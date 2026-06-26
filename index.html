@@ -272,7 +272,7 @@
   .cat-row input.cn{flex:1;min-width:120px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff}
   .swatches{display:flex;gap:5px;flex-wrap:wrap}.sw{width:22px;height:22px;border-radius:6px;cursor:pointer;border:2px solid transparent}.sw.on{border-color:#16211f}
   .flow-prev-h{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--ink-soft);margin:0 0 7px}
-  .flow-scroll{overflow:auto;border:1px solid var(--line);border-radius:10px;background:#fff;padding:8px;-webkit-overflow-scrolling:touch;margin-bottom:14px}
+  .flow-scroll{overflow:auto;border:1px solid var(--line);border-radius:10px;background:#fff;padding:8px;-webkit-overflow-scrolling:touch;margin-bottom:14px;max-height:75vh}
   .blk{background:#f5f8f7;border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
   .blk-top{display:flex;align-items:center;gap:8px;margin-bottom:11px}
   .blk-type{font-size:10.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;padding:3px 8px;border-radius:6px}
@@ -522,7 +522,7 @@ async function saveSession(){const f=Runtime.fiche;if(!f)return;const now=Date.n
   const s={id:Runtime.sessionId||uid('s'),ficheId:f.id,ficheTitle:f.title,name:name||def,savedAt:now,checked:{...Runtime.checked},nav:Runtime.nav.slice(),counters:{...Runtime.counters},timers:tsnap};
   try{await Data.putSession(s);}catch(e){alert('Sauvegarde impossible (stockage saturé).');return;}
   Runtime.sessionId=s.id;Runtime.name=s.name;const i=sessions.findIndex(x=>x.id===s.id);if(i>=0)sessions[i]=s;else sessions.push(s);state.showSess=true;render();}
-function resumeSession(id){const s=sessions.find(x=>x.id===id);if(!s)return;const f=fiches.find(x=>x.id===s.ficheId);if(!f){alert('Fiche introuvable.');return;}freshRuntime(f,s);state.fiche=f;state.id=f.id;state.showFlow=false;state.showSess=false;state.view='read';render();}
+function resumeSession(id){const s=sessions.find(x=>x.id===id);if(!s)return;const f=fiches.find(x=>x.id===s.ficheId);if(!f){alert('Fiche introuvable.');return;}freshRuntime(f,s);state.fiche=f;state.id=f.id;state.showFlow=false;state.showFlow=!!(f.blocks&&f.blocks.length);state.showSess=false;state.view='read';render();}
 async function deleteSession(id){if(!confirm('Supprimer cette session ?'))return;await Data.delSession(id);sessions=sessions.filter(x=>x.id!==id);if(Runtime.sessionId===id){Runtime.sessionId=null;Runtime.name='';}render();}
 
 /* ===== Render =====
@@ -573,20 +573,36 @@ function staticBlock(title,cls,arr,liClass,forget){const items=clean(arr);if(!it
    Utilisé en aperçu live dans l'éditeur et à la demande en lecture. */
 function buildFlowSVG(f){
   const blocks=f.blocks||[];if(!blocks.length)return '<div style="padding:14px;color:#54635f;font-size:13px">Aucun bloc.</div>';
+  const NW=224,TH=28,IH=17,IPAD=8,HG=36,VG=52,PX=14,PY=14,MAX_IT=7;
+  function nh(b){const dec=b.type==='decision';const its=dec?(b.options||[]).filter(o=>o.label||o.target):clean(b.steps);const qh=(dec&&b.question)?IH:0;return TH+IPAD+qh+Math.min(its.length,MAX_IT)*IH+(its.length>MAX_IT?IH:0)+IPAD;}
   const byId={};blocks.forEach(b=>byId[b.id]=b);const start=(f.start&&byId[f.start])?f.start:blocks[0].id;
-  const level={};const q=[start];level[start]=0;
-  while(q.length){const id=q.shift();const b=byId[id];const tg=[];if(b.type==='steps'){if(b.next&&byId[b.next])tg.push(b.next);}else (b.options||[]).forEach(o=>{if(o.target&&byId[o.target])tg.push(o.target);});tg.forEach(t=>{if(level[t]===undefined){level[t]=level[id]+1;q.push(t);}});}
+  const level={};const bq=[start];level[start]=0;
+  while(bq.length){const id=bq.shift();const b=byId[id];const tg=b.type==='steps'?(b.next&&byId[b.next]?[b.next]:[]):(b.options||[]).map(o=>o.target).filter(t=>t&&byId[t]);tg.forEach(t=>{if(level[t]===undefined){level[t]=level[id]+1;bq.push(t);}});}
   let maxL=0;Object.values(level).forEach(v=>{if(v>maxL)maxL=v;});blocks.forEach(b=>{if(level[b.id]===undefined){maxL+=1;level[b.id]=maxL;}});
   const byLevel={};blocks.forEach(b=>{(byLevel[level[b.id]]=byLevel[level[b.id]]||[]).push(b.id);});
-  const NW=160,NH=48,HG=30,VG=72,PX=16,PY=18;let maxRow=1;Object.values(byLevel).forEach(r=>{if(r.length>maxRow)maxRow=r.length;});
-  const totalW=PX*2+maxRow*NW+(maxRow-1)*HG,totalH=PY*2+(maxL+1)*NH+maxL*VG;const pos={};
-  Object.keys(byLevel).map(Number).sort((a,b)=>a-b).forEach(L=>{const row=byLevel[L];const rw=row.length*NW+(row.length-1)*HG;const sx=PX+(totalW-PX*2-rw)/2;row.forEach((id,i)=>{pos[id]={x:sx+i*(NW+HG),y:PY+L*(NH+VG)};});});
-  let edges='';blocks.forEach(b=>{const p=pos[b.id];if(!p)return;const conns=[];if(b.type==='steps'){if(b.next&&byId[b.next])conns.push({t:b.next,lab:''});}else (b.options||[]).forEach(o=>{if(o.target&&byId[o.target])conns.push({t:o.target,lab:o.label||''});});
-    conns.forEach(c=>{const Q=pos[c.t];if(!Q)return;const x1=p.x+NW/2,y1=p.y+NH,x2=Q.x+NW/2,y2=Q.y,my=(y1+y2)/2;edges+=`<path d="M${x1},${y1} C${x1},${my} ${x2},${my} ${x2},${y2}" fill="none" stroke="#9fb0ac" stroke-width="2" marker-end="url(#ah)"/>`;
-      if(c.lab){const lx=(x1+x2)/2,ly=my,lab=textTrunc(c.lab,14),w=Math.min(130,16+lab.length*7);edges+=`<g transform="translate(${lx},${ly})"><rect x="${-w/2}" y="-11" width="${w}" height="22" rx="11" fill="#fff" stroke="#e1cf9f"/><text x="0" y="4" text-anchor="middle" font-size="11" font-weight="600" fill="#6b4d12" font-family="system-ui">${esc(lab)}</text></g>`;}});});
-  let nodes='';blocks.forEach(b=>{const p=pos[b.id];if(!p)return;const dec=b.type==='decision';const fill=dec?'#f6efdd':'#ffffff',stroke=dec?'#e1cf9f':'#c9d4d1',tcol=dec?'#6b4d12':'#16211f',isS=b.id===start;const sub=dec?((b.options||[]).filter(o=>o.label||o.target).length+' issue(s)'):(clean(b.steps).length+' étape(s)');
-    nodes+=`<g transform="translate(${p.x},${p.y})"><rect width="${NW}" height="${NH}" rx="11" fill="${fill}" stroke="${isS?'#0d5b56':stroke}" stroke-width="${isS?2.5:1.5}"/>${dec?`<circle cx="15" cy="${NH/2}" r="4" fill="#946615"/>`:`<rect width="4" height="${NH}" rx="2" fill="#16211f"/>`}<text x="${NW/2}" y="${NH/2-3}" text-anchor="middle" font-size="12.5" font-weight="650" fill="${tcol}" font-family="system-ui">${esc(textTrunc(b.title||(dec?'Décision':'Étapes'),20))}</text><text x="${NW/2}" y="${NH/2+13}" text-anchor="middle" font-size="10" fill="${dec?'#9a7a2e':'#7c8a87'}" font-family="system-ui">${sub}</text>${isS?`<g transform="translate(${NW-4},-9)"><rect x="-46" width="46" height="16" rx="8" fill="#0d5b56"/><text x="-23" y="11.5" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" font-family="system-ui" letter-spacing="0.5">DÉPART</text></g>`:''}</g>`;});
-  return `<svg width="${totalW}" height="${totalH}" viewBox="0 0 ${totalW} ${totalH}" xmlns="http://www.w3.org/2000/svg"><defs><marker id="ah" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#9fb0ac"/></marker></defs>${edges}${nodes}</svg>`;
+  let maxRow=1;Object.values(byLevel).forEach(r=>{if(r.length>maxRow)maxRow=r.length;});
+  const totalW=PX*2+maxRow*NW+(maxRow-1)*HG;
+  const levelY={};let curY=PY;
+  Object.keys(byLevel).map(Number).sort((a,b)=>a-b).forEach(L=>{levelY[L]=curY;const lh=Math.max(...byLevel[L].map(id=>nh(byId[id])));curY+=lh+VG;});
+  const totalH=curY-VG+PY;
+  const pos={};
+  Object.keys(byLevel).map(Number).sort((a,b)=>a-b).forEach(L=>{const row=byLevel[L];const rw=row.length*NW+(row.length-1)*HG;const sx=PX+(totalW-PX*2-rw)/2;row.forEach((id,i)=>{pos[id]={x:sx+i*(NW+HG),y:levelY[L],h:nh(byId[id])};});});
+  let edges='';blocks.forEach(b=>{const p=pos[b.id];if(!p)return;const conns=b.type==='steps'?(b.next&&byId[b.next]?[{t:b.next,lab:''}]:[]):(b.options||[]).filter(o=>o.target&&byId[o.target]).map(o=>({t:o.target,lab:o.label||''}));
+    conns.forEach(c=>{const Q=pos[c.t];if(!Q)return;const x1=p.x+NW/2,y1=p.y+p.h,x2=Q.x+NW/2,y2=Q.y,my=(y1+y2)/2;edges+=`<path d="M${x1},${y1} C${x1},${my} ${x2},${my} ${x2},${y2}" fill="none" stroke="#9fb0ac" stroke-width="1.8" marker-end="url(#ah)"/>`;if(c.lab){const lx=(x1+x2)/2,ly=my,lab=textTrunc(c.lab,16),w=Math.min(140,18+lab.length*6.5);edges+=`<g transform="translate(${lx},${ly})"><rect x="${-w/2}" y="-10" width="${w}" height="20" rx="10" fill="#fff" stroke="#e1cf9f"/><text x="0" y="4" text-anchor="middle" font-size="10.5" font-weight="600" fill="#6b4d12" font-family="system-ui">${esc(lab)}</text></g>`;}});});
+  let nodes='';blocks.forEach(b=>{const p=pos[b.id];if(!p)return;const dec=b.type==='decision',isS=b.id===start;const fill=dec?'#fdf8ef':'#f5faf8',stroke=dec?'#e1cf9f':'#c2d0cc',tcol=dec?'#6b4d12':'#16211f';const h=p.h;
+    let g=`<rect width="${NW}" height="${h}" rx="10" fill="${fill}" stroke="${isS?'#0d5b56':stroke}" stroke-width="${isS?2.5:1.5}"/>`;
+    g+=`<rect width="${NW}" height="${TH}" rx="10" fill="${dec?'#f0e4c8':'#dbeae5'}"/><rect width="${NW}" height="6" y="${TH-6}" fill="${dec?'#f0e4c8':'#dbeae5'}"/>`;
+    g+=dec?`<circle cx="13" cy="${TH/2}" r="4" fill="#946615"/>`:`<rect x="0" y="0" width="4" height="${TH}" rx="2" fill="#0d5b56"/>`;
+    g+=`<text x="${NW/2+2}" y="${TH/2+4.5}" text-anchor="middle" font-size="11.5" font-weight="700" fill="${tcol}" font-family="system-ui">${esc(textTrunc(b.title||(dec?'Décision':'Étapes'),28))}</text>`;
+    if(isS)g+=`<rect x="${NW-54}" y="5" width="50" height="15" rx="7" fill="#0d5b56"/><text x="${NW-29}" y="16" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff" font-family="system-ui" letter-spacing="0.5">DÉPART</text>`;
+    let iy=TH+IPAD;
+    if(dec){if(b.question){g+=`<text x="10" y="${iy+12}" font-size="10.5" font-style="italic" fill="#8b6914" font-family="system-ui">${esc(textTrunc(b.question,30))}</text>`;iy+=IH;}
+      const opts=(b.options||[]).filter(o=>o.label||o.target);opts.slice(0,MAX_IT).forEach((o,i)=>{g+=`<text x="12" y="${iy+i*IH+12}" font-size="10.5" fill="#6b4d12" font-family="system-ui"><tspan font-weight="700" fill="#946615">›</tspan> ${esc(textTrunc(o.label||('Option '+(i+1)),29))}</text>`;});
+      if(opts.length>MAX_IT)g+=`<text x="${NW/2}" y="${iy+MAX_IT*IH+10}" text-anchor="middle" font-size="10" fill="#a08040" font-family="system-ui">+${opts.length-MAX_IT} autres options…</text>`;
+    }else{const steps=clean(b.steps);steps.slice(0,MAX_IT).forEach((s,i)=>{g+=`<text x="12" y="${iy+i*IH+12}" font-size="10.5" fill="#16211f" font-family="system-ui"><tspan font-weight="700" fill="#7c8a87">${i+1}.</tspan> ${esc(textTrunc(s,29))}</text>`;});
+      if(steps.length>MAX_IT)g+=`<text x="${NW/2}" y="${iy+MAX_IT*IH+10}" text-anchor="middle" font-size="10" fill="#7c8a87" font-family="system-ui">+${steps.length-MAX_IT} autres étapes…</text>`;}
+    nodes+=`<g transform="translate(${p.x},${p.y})">${g}</g>`;});
+  return `<svg width="${totalW}" height="${totalH}" viewBox="0 0 ${totalW} ${totalH}" xmlns="http://www.w3.org/2000/svg" style="display:block"><defs><marker id="ah" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#9fb0ac"/></marker></defs>${edges}${nodes}</svg>`;
 }
 
 /* ===== Runtime panel (rendu des minuteurs/compteurs en lecture) =====
@@ -639,7 +655,7 @@ function renderRead(){
     ${runtimePanel(f)}
     ${sessBar}${sessList}
     ${staticBlock('Confirmation diagnostique','h-confirm',f.confirmation,'confirm')}
-    <section class="block"><div class="block-h h-steps"><span class="pip"></span>Prise en charge${flow?' — parcours guidé':' — étape par étape'}<span class="spc"></span>${flow?`<button class="btn sm" id="flowToggle" style="text-transform:none;letter-spacing:0">${state.showFlow?'Masquer':'Algorithme'}</button>`:''}</div>${flow&&state.showFlow?`<div class="flow-scroll">${buildFlowSVG(f)}</div>`:''}${navHtml}</section>
+    <section class="block"><div class="block-h h-steps"><span class="pip"></span>Prise en charge${flow?' — parcours guidé':' — étape par étape'}<span class="spc"></span>${f.blocks&&f.blocks.length?`<button class="btn sm" id="flowToggle" style="text-transform:none;letter-spacing:0">${state.showFlow?'▲ Masquer':'▼ Algorithme'}</button>`:''}</div>${f.blocks&&f.blocks.length&&state.showFlow?`<div class="flow-scroll">${buildFlowSVG(f)}</div>`:''}${navHtml}</section>
     ${gallery}
     ${staticBlock('À vérifier','h-verify',f.verify,'verify')}
     ${staticBlock('Ne pas oublier','h-forget',f.notForget,'forget',true)}
@@ -787,7 +803,7 @@ async function deleteDraft(){if(!confirm('Supprimer cette fiche définitivement 
      fiche déjà active (minuteurs en cours préservés) ; sinon en reconstruit un neuf.
    openEdit(id) : édite une copie profonde de la fiche (state.draft).
    newFiche()   : crée une fiche vierge et passe en édition. */
-function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;if(!(Runtime.fiche&&Runtime.ficheId===id))freshRuntime(f,null);state.fiche=Runtime.fiche;state.checked=Runtime.checked;state.nav=Runtime.nav;state.id=id;state.showFlow=false;state.showSess=false;state.view='read';render();}
+function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;if(!(Runtime.fiche&&Runtime.ficheId===id))freshRuntime(f,null);state.fiche=Runtime.fiche;state.checked=Runtime.checked;state.nav=Runtime.nav;state.id=id;state.showFlow=!!(f.blocks&&f.blocks.length);state.showSess=false;state.view='read';render();}
 function openEdit(id){const f=fiches.find(x=>x.id===id);state.draft=JSON.parse(JSON.stringify(f));state.catMgr=false;state.view='edit';render();}
 function newFiche(){state.draft=blankFiche();state.catMgr=false;state.view='edit';render();}
 document.getElementById('topNew').onclick=newFiche;
