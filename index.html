@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<!--
+===============================================================================
+  AIDES COGNITIVES CLINIQUES — Application web hors ligne (PWA)
+===============================================================================
+
+  OBJECTIF
+  --------
+  Bibliothèque d'« aides cognitives » médicales que l'utilisateur (clinicien :
+  anesthésie / urgences / réanimation) rédige, modifie et utilise lui-même.
+  Une aide cognitive = une fiche de référence pour une situation critique
+  (ex. anaphylaxie, ACR, intoxication aux anesthésiques locaux) consultée
+  pendant la crise pour ne rien oublier. Principe inspiré des recommandations
+  SFAR : "détrompage" = la bonne information, au bon endroit, au bon moment.
+
+  L'application doit fonctionner HORS LIGNE et sans aucun serveur : c'est un
+  fichier HTML autonome (HTML + CSS + JavaScript "vanilla", aucune dépendance
+  ni bibliothèque externe). Tout est stocké localement sur l'appareil.
+
+  Fichiers du dossier PWA (doivent rester ensemble) :
+    - index.html .............. CE fichier = toute l'application
+    - sw.js ................... service worker (cache hors ligne)
+    - manifest.webmanifest .... métadonnées d'installation PWA
+    - icon-*.png .............. icônes de l'app
+  L'installation comme app + le cache automatique exigent un hébergement HTTPS
+  (GitHub Pages / Netlify / intranet). Ouvert en fichier local, tout marche
+  aussi hors ligne, mais sans installation ni service worker.
+
+  FONCTIONNALITÉS
+  ---------------
+  1. CRUD de fiches : créer / lire / modifier / dupliquer / supprimer.
+  2. Structure d'une fiche : confirmation diagnostique, prise en charge,
+     à vérifier, ne pas oublier, diagnostics différentiels, références,
+     contexte local, images/captures, date de validation.
+  3. Checklists CONDITIONNELLES : la "prise en charge" est faite de BLOCS.
+     - bloc 'steps'    = liste d'étapes cochables, avec un bloc suivant.
+     - bloc 'decision' = question + options, chaque option pointant vers un
+       autre bloc (branchement "si oui -> A, si non -> B").
+     => arbre décisionnel parcouru pas à pas en mode crise.
+  4. ALGORITHME auto : un schéma SVG (organigramme en couches) est généré
+     automatiquement à partir des blocs et de leurs liens (buildFlowSVG),
+     visible en aperçu dans l'éditeur et à la demande en lecture.
+  5. CATÉGORIES colorées éditables (créer / renommer / recolorer / supprimer),
+     servant de filtres colorés dans la bibliothèque.
+  6. MINUTEURS / COMPTEURS (usage temps réel) définis par fiche :
+     - 'stopwatch' = chronomètre (temps écoulé) ;
+     - 'interval'  = minuteur à cycle programmable (durée + boucle) qui sonne,
+       vibre, clignote et compte les cycles (ex. adrénaline, analyse du rythme) ;
+     - compteurs +/- (ex. nombre de doses).
+  7. SESSIONS : on enregistre l'état d'utilisation d'une fiche (étapes cochées,
+     position dans l'arbre, compteurs, temps/cycles des minuteurs) sous un nom,
+     pour la REPRENDRE plus tard ou la SUPPRIMER. Stockées par appareil.
+  8. EXPORT / IMPORT JSON (fiches + catégories ; PAS les sessions) = sauvegarde
+     et transfert manuel entre appareils. (Pas de synchro cloud automatique :
+     impossible dans un PWA statique sans backend ; choix assumé.)
+
+  ARCHITECTURE GÉNÉRALE (voir aussi les commentaires de chaque section JS)
+  -----------------------------------------------------------------------
+  - PERSISTANCE en couches, choisie au démarrage (chooseBackend) :
+      IndexedDB ('ac-db', stores 'fiches'/'meta'/'sessions')  [préféré]
+        -> sinon window.storage (clé-valeur fourni par l'hôte)
+        -> sinon localStorage
+        -> sinon mémoire volatile (objet MEM).
+    L'objet `Data` pointe vers le backend retenu et expose une même interface :
+      getAll/put/del (fiches), getCats/setCats (catégories),
+      getSessions/putSession/delSession (sessions).
+  - ÉTAT GLOBAL :
+      `state`   = quoi afficher (view library|edit|read, recherche, filtres,
+                  brouillon en cours d'édition, fiche affichée, navigation...).
+      `Runtime` = état VIVANT d'une fiche ouverte en mode crise (cochages,
+                  position, compteurs, minuteurs qui tournent). Survit aux
+                  allers-retours bibliothèque<->lecture ; invalidé après édition.
+  - RENDU : une seule fonction render() réécrit #main selon state.view, en
+    déléguant à renderLibrary / renderEditor / renderRead. Pas de framework :
+    le HTML est produit par template strings, puis les écouteurs sont rattachés.
+  - Les minuteurs sont rafraîchis par un unique setInterval(updateTimers, 300)
+    qui met à jour le DOM par id (sans re-rendu complet) et déclenche les alertes.
+
+  MODÈLE DE DONNÉES (une fiche)
+  -----------------------------
+  {
+    id, title, category(=id de catégorie ou ''), validation('AAAA-MM'),
+    localInfo, order(tri),
+    confirmation[], verify[], notForget[], differentials[], references[],
+    images:   [{ id, data(base64 JPEG réduit), caption }],
+    timers:   [{ id, label, type:'stopwatch'|'interval', seconds, autoloop }],
+    counters: [{ id, label, step, start }],
+    start:    id du bloc de départ,
+    blocks:   [ bloc 'steps'    { id, type, title, steps[], image, next(idBloc|null) }
+              | bloc 'decision' { id, type, title, question, image,
+                                  options:[{ label, target(idBloc) }] } ]
+  }
+  Catégorie : { id, name, color(hex) }   (collection séparée, store 'meta').
+  Session   : { id, ficheId, ficheTitle, name, savedAt,
+                checked{'idBloc:index':bool}, nav[idBloc...],
+                counters{idCompteur:valeur},
+                timers{idMinuteur:{elapsedMs, cycles}} }
+
+  CONVENTIONS / PIÈGES UTILES
+  ---------------------------
+  - migrate() rend toute fiche ancienne compatible (champs manquants, ancien
+    format à étapes plates -> blocs). migrateCategories() convertit les
+    anciennes catégories "texte libre" en objets {id,name,color}.
+  - state.checked / state.nav PARTAGENT la référence des objets de Runtime
+    (même tableau/objet) pour que cocher/naviguer mette à jour la session vive.
+  - Après édition d'une fiche, Runtime est invalidé (resetRuntime) puis reconstruit
+    pour refléter les nouvelles définitions de minuteurs/compteurs.
+  - Images : réduites (downscale, JPEG ~1180px q0.78) car stockées en base64 ;
+    le stockage peut saturer -> message + conseil d'export.
+  - Audio (alerte minuteur) : nécessite un premier geste utilisateur pour
+    débloquer l'AudioContext (créé/réveillé dans ensureAudio).
+  - AUCUNE donnée patient n'est prévue ; le contenu clinique est sous la
+    responsabilité de l'auteur de la fiche (date de validation à tenir à jour).
+
+  POUR ÉTENDRE (pistes connues, non implémentées)
+  -----------------------------------------------
+  - Synchro multi-appareils réelle : nécessiterait un backend (Firebase/Supabase)
+    + un "code de synchro" ; pose une question de confidentialité (contenu via
+    un tiers). Aujourd'hui : export/import manuel uniquement.
+  - Partage d'une fiche par lien/QR ; impression déjà gérée (window.print).
+===============================================================================
+-->
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0d5b56">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Aides cog.">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<title>Aides cognitives</title>
+<!-- ============================ STYLES ============================
+  Système de design "instrument clinique". Couleurs via variables CSS dans
+  :root : teal (--primary) = identité/confirmation ; ambré (--verify) = décisions
+  et points à vérifier ; vermillon (--critical) = "ne pas oublier"/urgence.
+  Police système pour le texte, mono (--mono) pour les chiffres (minuteurs,
+  numéros d'étapes). Le bandeau temps réel (.rt-panel) est volontairement sombre
+  pour la lisibilité en crise. Mise en page mobile-first, centrée, max 780px.
+  Bloc @media print : épure la fiche pour une sauvegarde papier (masque barres,
+  contrôles, minuteurs ; conserve étapes et listes).
+-->
+<style>
+  :root{--ink:#16211f;--ink-soft:#54635f;--line:#d6ddda;--bg:#e9edec;--surface:#fff;--primary:#0d5b56;--primary-dk:#0a4a46;--primary-soft:#e1efec;--critical:#bf3a21;--critical-soft:#fbe9e4;--verify:#946615;--verify-soft:#f6efdd;--radius:14px;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--shadow:0 1px 2px rgba(16,32,30,.05),0 6px 22px rgba(16,32,30,.07);}
+  *{box-sizing:border-box}html,body{margin:0;padding:0}
+  body{font-family:var(--sans);color:var(--ink);background:var(--bg);line-height:1.5;-webkit-font-smoothing:antialiased;padding-bottom:env(safe-area-inset-bottom)}
+  button{font-family:inherit;cursor:pointer}input,textarea,select{font-family:inherit;font-size:16px}textarea{resize:vertical}
+  .app{max-width:780px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
+  header.bar{position:sticky;top:0;z-index:20;background:var(--primary);color:#eaf5f3;padding:calc(14px + env(safe-area-inset-top)) 18px 14px;display:flex;align-items:center;gap:14px}
+  .brand{display:flex;flex-direction:column;line-height:1.1;flex:1;min-width:0}
+  .brand b{font-size:18px;letter-spacing:.2px;font-weight:650}
+  .brand span{font-size:11.5px;text-transform:uppercase;letter-spacing:1.6px;color:#9fcdc7;margin-top:3px}
+  .bar-act{background:rgba(255,255,255,.14);color:#eaf5f3;border:0;padding:9px 13px;border-radius:9px;font-size:13.5px;font-weight:600;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+  .bar-act:hover{background:rgba(255,255,255,.24)}
+  main{flex:1;padding:18px}
+  .notice{background:var(--verify-soft);border:1px solid #ecdcb4;color:#6b4d12;border-radius:10px;padding:10px 13px;font-size:12.5px;margin-bottom:16px;display:flex;gap:9px;align-items:flex-start}
+  .notice svg{flex-shrink:0;margin-top:1px}
+  .lib-top{display:flex;gap:10px;margin-bottom:14px}
+  .search{flex:1;position:relative;display:flex;align-items:center}
+  .search svg{position:absolute;left:12px;color:var(--ink-soft);pointer-events:none}
+  .search input{width:100%;padding:11px 12px 11px 38px;border:1px solid var(--line);border-radius:11px;background:var(--surface);color:var(--ink)}
+  .search input:focus{outline:2px solid var(--primary);border-color:transparent}
+  .btn-new{background:var(--primary);color:#fff;border:0;border-radius:11px;padding:0 16px;font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+  .btn-new:hover{background:var(--primary-dk)}
+  .catbar{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px}
+  .catchip{border:1px solid var(--line);background:var(--surface);padding:5px 12px;border-radius:20px;font-size:12.5px;font-weight:600;cursor:pointer}
+  .cards{display:grid;gap:12px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px 17px;box-shadow:var(--shadow);cursor:pointer;display:flex;align-items:center;gap:14px;transition:transform .08s,border-color .12s}
+  .card:hover{border-color:#bdcecb;transform:translateY(-1px)}.card:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .card-body{flex:1;min-width:0}.card h3{margin:0 0 5px;font-size:16.5px;font-weight:640}
+  .card-meta{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+  .tag{font-size:11px;font-weight:600;letter-spacing:.3px;background:var(--primary-soft);color:var(--primary-dk);padding:3px 9px;border-radius:20px}
+  .tag.flow{background:#efe7d2;color:var(--verify)}.tag.sess{background:#dfeae8;color:var(--primary-dk)}
+  .card-date{font-size:12px;color:var(--ink-soft)}.card-date.stale{color:var(--critical)}
+  .chev{color:#b6c4c1;flex-shrink:0}
+  .empty{text-align:center;padding:54px 20px;color:var(--ink-soft);border:1.5px dashed var(--line);border-radius:var(--radius);background:rgba(255,255,255,.5)}
+  .empty b{display:block;color:var(--ink);font-size:16px;margin-bottom:6px}
+  .read-head h2{margin:0;font-size:24px;font-weight:680;line-height:1.18}
+  .read-meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0 18px}
+  .local{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 14px;margin-bottom:18px;font-size:14px;color:var(--ink-soft);white-space:pre-wrap}
+  section.block{margin-bottom:22px}
+  .block-h{display:flex;align-items:center;gap:9px;margin-bottom:11px;font-size:12px;font-weight:700;letter-spacing:1.3px;text-transform:uppercase}
+  .block-h .pip{width:9px;height:9px;border-radius:3px;flex-shrink:0}.block-h .spc{flex:1}
+  .h-confirm{color:var(--primary-dk)} .h-confirm .pip{background:var(--primary)}
+  .h-steps{color:var(--ink)} .h-steps .pip{background:var(--ink)}
+  .h-verify{color:var(--verify)} .h-verify .pip{background:var(--verify)}
+  .h-forget{color:var(--critical)} .h-forget .pip{background:var(--critical)}
+  .h-diff{color:var(--ink-soft)} .h-diff .pip{background:var(--ink-soft)}
+  .h-img{color:var(--primary-dk)} .h-img .pip{background:var(--primary)}
+  ol.steps{list-style:none;margin:0;padding:0;counter-reset:s}
+  ol.steps li{counter-increment:s;display:flex;gap:14px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--ink);border-radius:11px;padding:13px 15px;margin-bottom:9px;cursor:pointer;transition:opacity .12s,background .12s}
+  ol.steps li::before{content:counter(s,decimal-leading-zero);font-family:var(--mono);font-size:15px;font-weight:600;color:var(--ink);min-width:26px;padding-top:1px}
+  ol.steps li .txt{flex:1;font-size:16px;line-height:1.45;padding-top:1px}
+  ol.steps li .box{width:22px;height:22px;border:2px solid #c3cecb;border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;margin-top:1px}
+  ol.steps li.done{background:#f3f7f5;opacity:.55;border-left-color:var(--primary)}
+  ol.steps li.done .box{background:var(--primary);border-color:var(--primary)}
+  ol.steps li.done .txt{text-decoration:line-through}
+  ul.flat{list-style:none;margin:0;padding:0}
+  ul.flat li{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 14px;margin-bottom:8px;font-size:15px;display:flex;gap:11px;align-items:flex-start}
+  ul.flat li::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;flex-shrink:0;margin-top:8px;opacity:.5}
+  ul.forget li{background:var(--critical-soft);border-color:#f0c9bd;color:var(--critical)}
+  ul.forget li .ftxt{color:var(--ink)}ul.verify li{border-color:#e8dcbd}ul.diff li{color:var(--ink-soft)}
+  .nav-wrap{background:#f4f7f6;border:1px solid var(--line);border-radius:var(--radius);padding:15px 15px 13px;margin-bottom:6px}
+  .crumbs{display:flex;flex-wrap:wrap;gap:5px;align-items:center;font-size:11px;color:var(--ink-soft);margin-bottom:12px}
+  .crumbs .cb{background:#e4ebe9;padding:2px 8px;border-radius:12px}.crumbs .cb.cur{background:var(--primary);color:#fff}
+  .node-title{font-size:13px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--ink-soft);margin-bottom:12px}
+  .question{font-size:19px;font-weight:650;line-height:1.3;margin:2px 0 16px}
+  .options{display:grid;gap:10px}
+  .opt{display:flex;align-items:center;gap:11px;text-align:left;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--verify);border-radius:11px;padding:14px 15px;font-size:16px;font-weight:550;color:var(--ink);width:100%}
+  .opt:hover{background:#fff;border-color:var(--verify)}.opt .arr{margin-left:auto;color:var(--verify)}
+  .flow-ctrl{display:flex;gap:9px;margin-top:14px;flex-wrap:wrap}
+  .endcap{font-size:13px;color:var(--ink-soft);font-style:italic;margin-top:12px}
+  .node-img{width:100%;border-radius:10px;border:1px solid var(--line);margin-bottom:14px;cursor:zoom-in;display:block}
+  .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+  .gthumb img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px;border:1px solid var(--line);cursor:zoom-in;display:block}
+  .gcap{font-size:11.5px;color:var(--ink-soft);margin-top:4px;line-height:1.3}
+  .refs{font-size:12.5px;color:var(--ink-soft);border-top:1px solid var(--line);padding-top:14px;margin-top:24px}
+  .refs b{color:var(--ink);display:block;margin-bottom:6px;font-size:11px;letter-spacing:1px;text-transform:uppercase}
+  .refs ol{margin:0;padding-left:18px}.refs li{margin-bottom:3px}
+  .read-actions{display:flex;gap:9px;flex-wrap:wrap;margin:24px 0 22px}
+  /* runtime */
+  .rt-panel{background:#0f2a28;border-radius:14px;padding:14px;margin-bottom:14px}
+  .rt-head{display:flex;align-items:center;margin-bottom:11px}
+  .rt-head b{color:#eaf5f3;font-size:11px;letter-spacing:1.2px;text-transform:uppercase;flex:1}
+  .rt-sound{background:rgba(255,255,255,.12);border:0;color:#eaf5f3;border-radius:8px;padding:6px 11px;font-size:12px;font-weight:600}
+  .rt-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+  .rt-counters{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:10px}
+  .tmcard,.cncard{background:#15403b;border:1px solid #1d524c;border-radius:11px;padding:12px;color:#eaf5f3}
+  .cncard{text-align:center}
+  .tmcard.flash{animation:fl .5s ease 3}
+  @keyframes fl{50%{background:#b5532a;border-color:#d9663a}}
+  .tm-label{font-size:10.5px;letter-spacing:.6px;text-transform:uppercase;color:#9fcdc7;margin-bottom:6px}
+  .tm-val,.cn-val{font-family:var(--mono);font-size:30px;font-weight:600;letter-spacing:1px;line-height:1.05}
+  .tm-cyc{font-size:12px;color:#9fcdc7;margin-top:3px}
+  .tm-bar-wrap{height:5px;background:#1d524c;border-radius:3px;margin:8px 0 4px;overflow:hidden}
+  .tm-bar{height:100%;background:#5fd0c4;width:0%}
+  .tm-ctrl,.cn-ctrl{display:flex;gap:6px;margin-top:9px}
+  .cn-ctrl{justify-content:center}
+  .tm-btn{flex:1;background:rgba(255,255,255,.12);color:#eaf5f3;border:0;border-radius:8px;padding:8px;font-size:12.5px;font-weight:600}
+  .tm-btn:hover{background:rgba(255,255,255,.2)}
+  .cn-btn{width:46px;height:40px;border-radius:9px;border:0;background:rgba(255,255,255,.12);color:#eaf5f3;font-size:20px;font-weight:600}
+  .cn-btn:hover{background:rgba(255,255,255,.2)}
+  .session-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+  .sess-list{background:#f5f8f7;border:1px solid var(--line);border-radius:11px;padding:6px 10px;margin-bottom:18px}
+  .sess-row{display:flex;gap:8px;align-items:center;padding:9px 2px;border-bottom:1px solid var(--line)}
+  .sess-row:last-child{border-bottom:0}.sess-row .si{flex:1;min-width:0}
+  .sess-row .sn{font-weight:600;font-size:14px}.sess-row .sd{font-size:11.5px;color:var(--ink-soft)}
+  /* editor */
+  .field{margin-bottom:18px}
+  .field>label{display:block;font-size:12px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--ink-soft);margin-bottom:7px}
+  .field .hint{font-weight:400;text-transform:none;letter-spacing:0;color:var(--ink-soft);font-size:12px}
+  .field input[type=text],.field textarea,.field select{width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink)}
+  .field input:focus,.field textarea:focus,.field select:focus{outline:2px solid var(--primary);border-color:transparent}
+  .row2{display:flex;gap:12px}.row2>.field{flex:1}
+  .list-edit .li{display:flex;gap:8px;margin-bottom:8px;align-items:flex-start}.list-edit .li input{flex:1}
+  .li-num{font-family:var(--mono);font-size:13px;color:var(--ink-soft);min-width:22px;padding-top:12px;text-align:right}
+  .mini{border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);width:34px;height:42px;border-radius:9px;font-size:16px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+  .mini:hover{background:#f3f6f5;color:var(--ink)}.mini.del:hover{color:var(--critical);border-color:#eecabe;background:var(--critical-soft)}
+  .add-line{margin-top:4px;border:1px dashed var(--line);background:transparent;color:var(--primary-dk);padding:9px 13px;border-radius:9px;font-size:13.5px;font-weight:600;width:100%}
+  .add-line:hover{background:var(--primary-soft);border-color:var(--primary-soft)}
+  fieldset{border:0;margin:0 0 4px;padding:0}
+  .sub2{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--ink-soft);margin:0 0 8px}
+  .trow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+  .trow input[data-tf],.trow input[data-cf]{flex:1;min-width:130px;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:#fff}
+  .trow input[type=number]{padding:9px;border:1px solid var(--line);border-radius:9px;background:#fff}
+  .trow span{font-size:12px;color:var(--ink-soft)}
+  .catpick{display:flex;gap:7px;flex-wrap:wrap}
+  .catpill{border:1.5px solid var(--line);background:#fff;padding:7px 14px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer}
+  .cat-mgr{background:#f5f8f7;border:1px solid var(--line);border-radius:11px;padding:12px;margin-top:10px}
+  .cat-row{display:flex;gap:8px;align-items:center;margin-bottom:9px;flex-wrap:wrap}
+  .cat-row input.cn{flex:1;min-width:120px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff}
+  .swatches{display:flex;gap:5px;flex-wrap:wrap}.sw{width:22px;height:22px;border-radius:6px;cursor:pointer;border:2px solid transparent}.sw.on{border-color:#16211f}
+  .flow-prev-h{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--ink-soft);margin:0 0 7px}
+  .flow-scroll{overflow:auto;border:1px solid var(--line);border-radius:10px;background:#fff;padding:8px;-webkit-overflow-scrolling:touch;margin-bottom:14px}
+  .blk{background:#f5f8f7;border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
+  .blk-top{display:flex;align-items:center;gap:8px;margin-bottom:11px}
+  .blk-type{font-size:10.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;padding:3px 8px;border-radius:6px}
+  .blk-type.steps{background:#e4ebe9;color:var(--ink)}.blk-type.decision{background:#efe7d2;color:var(--verify)}
+  .blk-top input{flex:1;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:#fff}
+  .blk .sub{font-size:11px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;color:var(--ink-soft);margin:12px 0 7px}
+  .startbtn{border:1px solid var(--line);background:#fff;color:var(--ink-soft);border-radius:8px;padding:6px 11px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
+  .startbtn.on{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .optedit{display:flex;gap:8px;margin-bottom:8px;align-items:center}
+  .optedit input{flex:1;min-width:0;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:#fff}.optedit select{flex:1;min-width:0}
+  .imgrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.imgrow img{height:54px;border-radius:8px;border:1px solid var(--line)}
+  .add-blocks{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:6px}
+  .btn{padding:11px 17px;border-radius:11px;font-size:14px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+  .btn:hover{background:#f3f6f5}.btn.primary{background:var(--primary);color:#fff;border-color:var(--primary)}.btn.primary:hover{background:var(--primary-dk)}
+  .btn.danger{color:var(--critical);border-color:#eecabe}.btn.danger:hover{background:var(--critical-soft)}
+  .btn.sm{padding:8px 13px;font-size:13px}.btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .editor-foot{display:flex;gap:10px;margin-top:8px;flex-wrap:wrap}.editor-foot .spacer{flex:1}
+  .back{background:none;border:0;color:var(--primary);font-size:14px;font-weight:600;padding:6px 0;margin-bottom:6px;display:inline-flex;align-items:center;gap:6px}.back:hover{color:var(--primary-dk)}
+  footer.tools{border-top:1px solid var(--line);padding:16px 18px calc(20px + env(safe-area-inset-bottom));display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+  footer.tools .lbl{font-size:11.5px;color:var(--ink-soft);margin-right:auto}
+  .tlink{background:none;border:0;color:var(--primary);font-size:13px;font-weight:600;padding:6px 8px;border-radius:8px}.tlink:hover{background:var(--primary-soft)}#installBtn{display:none}
+  .lightbox{position:fixed;inset:0;background:rgba(16,32,30,.92);z-index:50;display:none;align-items:center;justify-content:center;padding:20px;flex-direction:column;gap:14px}
+  .lightbox.on{display:flex}.lightbox img{max-width:100%;max-height:82vh;border-radius:8px}
+  .lightbox .cap{color:#cfe0dd;font-size:13px;text-align:center;max-width:600px}
+  .lightbox .x{position:absolute;top:calc(14px + env(safe-area-inset-top));right:16px;background:rgba(255,255,255,.15);color:#fff;border:0;width:40px;height:40px;border-radius:50%;font-size:22px}
+  @media (max-width:560px){.read-head h2{font-size:21px}.row2{flex-direction:column;gap:0}.question{font-size:18px}}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}.tmcard.flash{animation:none}}
+  @media print{body{background:#fff}header.bar,footer.tools,.read-actions,.back,.notice,.bar-act,.flow-ctrl,.lightbox,.rt-panel,.session-bar,.sess-list{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="bar"><div class="brand"><b>Aides cognitives</b><span id="brandSub">Bibliothèque</span></div>
+    <button class="bar-act" id="topNew"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Nouvelle</button></header>
+  <main id="main"></main>
+  <footer class="tools"><span class="lbl" id="count"></span>
+    <button class="tlink" id="installBtn">Installer l'app</button>
+    <button class="tlink" id="exportBtn">Exporter</button>
+    <button class="tlink" id="importBtn">Importer</button>
+    <input type="file" id="importFile" accept="application/json" hidden></footer>
+</div>
+<div class="lightbox" id="lightbox"><button class="x" id="lbX">×</button><img id="lbImg" alt=""><div class="cap" id="lbCap"></div></div>
+
+<script>
+/* =====================================================================
+   JAVASCRIPT — application complète (vanilla, sans dépendance).
+   Organisation : Palette -> Backends/persistance -> État & Runtime ->
+   Modèle (création/migration/seed) -> Chargement -> Runtime (minuteurs,
+   audio) -> Sessions -> Rendu (library/read/editor) -> Navigation ->
+   Lightbox -> Export/Import -> PWA -> load().
+   ===================================================================== */
+
+/* PALETTE : couleurs proposées pour les catégories (hex sombres, lisibles
+   en texte comme en pastille teintée). Index réutilisé cycliquement. */
+const PALETTE=['#0d5b56','#1f5fa6','#4b3fa6','#7a2f6b','#b23052','#b5532a','#8a6a12','#4f6b1e','#1f7a4d','#45556b'];
+/* ===== Backends =====
+   Quatre implémentations interchangeables exposant la MÊME interface.
+   `Data` (plus bas) pointera vers celle retenue par chooseBackend().
+   - MEM : repli mémoire (perdu au rechargement).
+   - KV  : clé-valeur sérialisé en JSON (window.storage de l'hôte, sinon
+           localStorage, sinon MEM). Clés : fiches_v1 / cats_v1 / sessions_v1.
+   - IDB : IndexedDB 'ac-db' v3, stores 'fiches'(keyPath id), 'meta'
+           (catégories sous la clé 'categories'), 'sessions'(keyPath id).
+   Méthodes communes : getAll/put/del, getCats/setCats, getSessions/putSession/delSession. */
+const MEM={};
+const KV={
+  async _r(k,d){try{if(window.storage&&window.storage.get){const r=await window.storage.get(k);return r?JSON.parse(r.value):d;}}catch(e){}try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return MEM[k]?JSON.parse(MEM[k]):d;}},
+  async _w(k,v){const s=JSON.stringify(v);try{if(window.storage&&window.storage.set){await window.storage.set(k,s);return;}}catch(e){}try{localStorage.setItem(k,s);}catch(e){MEM[k]=s;throw e;}},
+  async getAll(){return this._r('fiches_v1',[]);},
+  async put(f){const a=await this._r('fiches_v1',[]);const i=a.findIndex(x=>x.id===f.id);if(i>=0)a[i]=f;else a.push(f);await this._w('fiches_v1',a);},
+  async del(id){const a=await this._r('fiches_v1',[]);await this._w('fiches_v1',a.filter(x=>x.id!==id));},
+  async getCats(){return this._r('cats_v1',null);},async setCats(c){return this._w('cats_v1',c);},
+  async getSessions(){return this._r('sessions_v1',[]);},
+  async putSession(s){const a=await this._r('sessions_v1',[]);const i=a.findIndex(x=>x.id===s.id);if(i>=0)a[i]=s;else a.push(s);await this._w('sessions_v1',a);},
+  async delSession(id){const a=await this._r('sessions_v1',[]);await this._w('sessions_v1',a.filter(x=>x.id!==id));}
+};
+const IDB={
+  db:null,
+  open(){return new Promise((res,rej)=>{let req;try{req=indexedDB.open('ac-db',3);}catch(e){return rej(e);}
+    req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains('fiches'))db.createObjectStore('fiches',{keyPath:'id'});if(!db.objectStoreNames.contains('meta'))db.createObjectStore('meta');if(!db.objectStoreNames.contains('sessions'))db.createObjectStore('sessions',{keyPath:'id'});};
+    req.onsuccess=()=>{this.db=req.result;res(true);};req.onerror=()=>rej(req.error||new Error('idb'));setTimeout(()=>rej(new Error('idb-timeout')),1500);});},
+  _s(store,mode){return this.db.transaction(store,mode).objectStore(store);},
+  getAll(){return new Promise((res,rej)=>{const r=this._s('fiches','readonly').getAll();r.onsuccess=()=>res(r.result||[]);r.onerror=()=>rej(r.error);});},
+  put(f){return new Promise((res,rej)=>{const r=this._s('fiches','readwrite').put(f);r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});},
+  del(id){return new Promise((res,rej)=>{const r=this._s('fiches','readwrite').delete(id);r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});},
+  getCats(){return new Promise((res,rej)=>{const r=this._s('meta','readonly').get('categories');r.onsuccess=()=>res(r.result||null);r.onerror=()=>rej(r.error);});},
+  setCats(c){return new Promise((res,rej)=>{const r=this._s('meta','readwrite').put(c,'categories');r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});},
+  getSessions(){return new Promise((res,rej)=>{const r=this._s('sessions','readonly').getAll();r.onsuccess=()=>res(r.result||[]);r.onerror=()=>rej(r.error);});},
+  putSession(s){return new Promise((res,rej)=>{const r=this._s('sessions','readwrite').put(s);r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});},
+  delSession(id){return new Promise((res,rej)=>{const r=this._s('sessions','readwrite').delete(id);r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});}
+};
+let Data=KV;
+
+/* ===== State & Runtime =====
+   `fiches` `categories` `sessions` : copies en mémoire des données persistées.
+   `state` : ce qui doit être AFFICHÉ.
+     view      = 'library' | 'edit' | 'read'
+     q, cat    = recherche texte et filtre catégorie (bibliothèque)
+     draft     = brouillon en cours d'édition (copie profonde de la fiche)
+     fiche     = fiche affichée en lecture
+     nav       = pile des blocs visités (fil d'Ariane / parcours guidé)
+     checked   = { 'idBloc:index': true } étapes cochées (partagé avec Runtime)
+     catMgr/showFlow/showSess = panneaux dépliés (gestion catégories / algo / sessions)
+   `Runtime` : état VIVANT d'une fiche utilisée en mode crise. Persiste tant
+     qu'on reste sur la même fiche (ficheId), pour ne pas perdre des minuteurs
+     en cours en revenant à la bibliothèque. Contient les minuteurs (avec leur
+     horodatage de démarrage) et les compteurs. state.checked/state.nav pointent
+     vers Runtime.checked/Runtime.nav (même référence) -> cocher = modifier la session vive.
+   `AC` : AudioContext (créé paresseusement, voir ensureAudio/beep).
+   Helpers : uid (id unique), esc (échappe le HTML), clean (vide les lignes vides),
+     catTag (pastille couleur d'une catégorie), fmtMs (millisecondes -> mm:ss). */
+let fiches=[],categories=[],sessions=[];
+let state={view:'library',id:null,q:'',cat:'',draft:null,fiche:null,nav:[],checked:{},catMgr:false,showFlow:false,showSess:false};
+const Runtime={fiche:null,ficheId:null,sessionId:null,name:'',sound:true,checked:{},nav:[],counters:{},timers:{}};
+let AC=null;
+const uid=p=>(p||'f')+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+const esc=s=>(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const main=document.getElementById('main');
+const clean=a=>(a||[]).map(s=>s.trim()).filter(Boolean);
+const byOrder=(a,b)=>(b.order||0)-(a.order||0);
+const textTrunc=(s,n)=>{s=String(s||'');return s.length>n?s.slice(0,n-1)+'…':s;};
+const catOf=f=>categories.find(c=>c.id===f.category)||null;
+const catName=f=>{const c=catOf(f);return c?c.name:'';};
+function catTag(f){const c=catOf(f);return c?`<span class="tag" style="background:${c.color}22;color:${c.color}">${esc(c.name)}</span>`:'';}
+const fmtMs=ms=>{ms=Math.max(0,Math.floor(ms/1000));const m=Math.floor(ms/60),s=ms%60;return (m<10?'0':'')+m+':'+(s<10?'0':'')+s;};
+
+/* ===== Modèle =====
+   blankFiche()  : fiche vierge (1 bloc d'étapes) pour une création.
+   migrate(f)    : rend compatible une fiche d'origine quelconque (ajoute les
+                   champs manquants ; convertit l'ancien format "étapes plates"
+                   en un bloc 'steps'). Appelée à chaque lecture/import.
+   seed(catId)   : fiche d'exemple "Anaphylaxie peropératoire" (branchement +
+                   chronomètre + minuteur à cycle + compteur) chargée au 1er lancement.
+   defaultCats() : 4 catégories par défaut.
+   migrateCategories() : convertit d'anciennes catégories "texte" en objets
+                   {id,name,color} et réécrit fiche.category avec l'id. Renvoie
+                   les fiches modifiées (à repersister).
+   Aides : hasFlow (la fiche a-t-elle un branchement ?), staleDate (validation
+   de plus de 2 ans), fmtDate (libellé de date de validation). */
+function blankFiche(){const b={id:uid('b'),type:'steps',title:'Prise en charge',steps:[''],image:null,next:null};
+  return{id:uid(),title:'',category:'',validation:'',localInfo:'',confirmation:[''],verify:[''],notForget:[''],differentials:[''],references:[''],images:[],timers:[],counters:[],blocks:[b],start:b.id,order:Date.now()};}
+function migrate(f){f.images=f.images||[];f.timers=f.timers||[];f.counters=f.counters||[];['confirmation','verify','notForget','differentials','references'].forEach(k=>f[k]=f[k]||[]);
+  if(!f.blocks){const b={id:uid('b'),type:'steps',title:'Prise en charge',steps:(f.steps||[]).slice(),image:null,next:null};f.blocks=[b];f.start=b.id;}
+  delete f.steps;if(!f.start&&f.blocks.length)f.start=f.blocks[0].id;if(typeof f.order!=='number')f.order=0;
+  f.blocks.forEach(b=>{if(b.type==='steps'){b.steps=b.steps||[];if(!('next'in b))b.next=null;}else{b.options=b.options||[];b.question=b.question||'';}if(!('image'in b))b.image=null;});return f;}
+function seed(catId){const b1=uid('b'),b2=uid('b'),b3=uid('b'),bd=uid('b');
+  return migrate({id:uid(),title:'Anaphylaxie peropératoire',category:catId||'',validation:'2025-01',
+    localInfo:'Réanimateur de garde : …\nPharmacie : …\n(adaptez à votre établissement)',
+    confirmation:['Hypotension / collapsus brutal','Bronchospasme, désaturation','Érythème, urticaire, œdème','Survenue après injection / exposition'],
+    verify:['Voie veineuse de bon calibre','Monitorage complet','Prélèvement tryptase à organiser'],
+    notForget:['Adrénaline = 1ʳᵉ intention, ne pas retarder','Penser au latex et aux curares'],
+    differentials:['Choc hémorragique','Embolie pulmonaire / gazeuse','Pneumothorax compressif'],
+    references:['Exemple à compléter — recommandations en vigueur'],images:[],
+    timers:[{id:uid('t'),label:'Temps écoulé',type:'stopwatch'},{id:uid('t'),label:'Cycle réévaluation',type:'interval',seconds:180,autoloop:true}],
+    counters:[{id:uid('n'),label:'Bolus adrénaline',step:1,start:0}],
+    start:b1,
+    blocks:[
+      {id:b1,type:'steps',title:'Mesures immédiates',image:null,steps:['Arrêter l\u2019agent suspecté','Appeler à l\u2019aide — désigner un lecteur','O\u2082 100 %, voies aériennes','Adrénaline titrée (protocole local)','Remplissage vasculaire'],next:bd},
+      {id:bd,type:'decision',title:'Réévaluation',image:null,question:'Amélioration après adrénaline et remplissage ?',options:[{label:'Oui — stabilisé',target:b2},{label:'Non — réfractaire',target:b3}]},
+      {id:b2,type:'steps',title:'Stabilisé',image:null,steps:['Surveillance rapprochée','Tracer doses et horaires','Bilan allergologique'],next:null},
+      {id:b3,type:'steps',title:'Choc réfractaire',image:null,steps:['Adrénaline en perfusion continue','Renforcer le remplissage','2ᵉ vasopresseur','Renfort réanimation'],next:null}
+    ]});}
+function defaultCats(){return[{id:uid('c'),name:'Anesthésie',color:'#0d5b56'},{id:uid('c'),name:'Urgences',color:'#b23052'},{id:uid('c'),name:'Réanimation',color:'#1f5fa6'},{id:uid('c'),name:'Pédiatrie',color:'#1f7a4d'}];}
+function migrateCategories(){const changed=[];const byName={};categories.forEach(c=>byName[c.name.toLowerCase()]=c.id);let pi=categories.length;
+  fiches.forEach(f=>{const cv=f.category;if(!cv)return;if(categories.some(c=>c.id===cv))return;const name=String(cv).trim();if(!name){f.category='';changed.push(f);return;}
+    let id=byName[name.toLowerCase()];if(!id){id=uid('c');categories.push({id,name,color:PALETTE[pi++%PALETTE.length]});byName[name.toLowerCase()]=id;}f.category=id;changed.push(f);});return changed;}
+const hasFlow=f=>(f.blocks||[]).length>1||(f.blocks||[]).some(b=>b.type==='decision');
+const staleDate=v=>{if(!v)return false;const d=new Date(v.length===7?v+'-01':v);if(isNaN(d))return false;return (Date.now()-d.getTime())>730*864e5;};
+const fmtDate=v=>v?'Validée '+v:'Sans date de validation';
+
+/* ===== Load =====
+   chooseBackend() : tente IndexedDB ; au premier passage, migre les éventuelles
+     données KV existantes vers IDB. En cas d'échec, reste sur KV.
+   load()          : point d'entrée (appelé tout en bas). Choisit le backend,
+     charge catégories/fiches/sessions, sème les valeurs par défaut si vide,
+     applique migrateCategories, puis render().
+   saveCats()      : persiste la liste de catégories.
+   persist(f)      : enregistre une fiche ; alerte si le stockage est saturé. */
+async function chooseBackend(){try{await IDB.open();Data=IDB;const ex=await IDB.getAll();if(!ex.length){const old=await KV.getAll();if(old.length){for(const f of old)await IDB.put(migrate(f));}const oc=await KV.getCats();if(oc)await IDB.setCats(oc);const os=await KV.getSessions();if(os&&os.length){for(const s of os)await IDB.putSession(s);}}}catch(e){Data=KV;}}
+async function load(){
+  await chooseBackend();
+  categories=(await Data.getCats())||[];
+  fiches=(await Data.getAll()).map(migrate);
+  sessions=(await Data.getSessions())||[];
+  if(!categories.length){categories=defaultCats();await Data.setCats(categories);}
+  if(!fiches.length){const f=seed(categories[0]?categories[0].id:'');fiches=[f];await Data.put(f);}
+  const ch=migrateCategories();if(ch.length){await Data.setCats(categories);for(const f of ch)await Data.put(f);}
+  render();
+}
+async function saveCats(){try{await Data.setCats(categories);}catch(e){}}
+async function persist(f){try{await Data.put(f);return true;}catch(e){alert('Stockage saturé. Exportez vos fiches puis allégez les images.');return false;}}
+
+/* ===== Runtime (minuteurs, compteurs, audio) =====
+   freshRuntime(f, session) : (re)construit l'état vivant pour la fiche f. Si une
+     `session` est fournie, reprend ses cochages/position/compteurs/minuteurs
+     (minuteurs en pause). Relie state.checked/state.nav à Runtime.
+   resetRuntime()           : invalide le Runtime (forcera une reconstruction).
+   ensureAudio()/beep()     : AudioContext paresseux ; beep = bip + vibration,
+     déclenché à la fin d'un cycle de minuteur. flash(id) : clignotement visuel.
+   toggleTimer(t)           : démarre/met en pause (plie le temps écoulé dans
+     elapsedMs ; mémorise lastStart au démarrage). resetTimer(t) : remet à zéro.
+   updateTimers()           : appelée par un setInterval global toutes les 300 ms.
+     - Pour les minuteurs 'interval' en marche : détecte le franchissement d'un
+       cycle (rebascule, incrémente cycles, beep+flash ; boucle si autoloop).
+     - Si on est en vue 'read', met à jour le DOM par id (valeur, cycles, barre)
+       SANS re-rendu complet (évite les sauts de défilement et pertes de focus).
+   Note : l'intervalle tourne en permanence mais ne fait rien hors mode crise
+   sauf gérer les alertes des minuteurs encore actifs. */
+function freshRuntime(f,session){
+  Runtime.fiche=f;Runtime.ficheId=f.id;Runtime.sessionId=session?session.id:null;Runtime.name=session?session.name:'';
+  Runtime.checked=session&&session.checked?{...session.checked}:{};
+  Runtime.nav=(session&&session.nav&&session.nav.length)?session.nav.slice():[f.start||((f.blocks[0]||{}).id)];
+  Runtime.counters={};(f.counters||[]).forEach(c=>{Runtime.counters[c.id]=(session&&session.counters&&(c.id in session.counters))?session.counters[c.id]:(c.start||0);});
+  Runtime.timers={};(f.timers||[]).forEach(t=>{const sv=session&&session.timers&&session.timers[t.id];Runtime.timers[t.id]={id:t.id,label:t.label,type:t.type,seconds:t.seconds||0,autoloop:!!t.autoloop,elapsedMs:sv?sv.elapsedMs:0,cycles:sv?sv.cycles:0,running:false,lastStart:0};});
+  state.checked=Runtime.checked;state.nav=Runtime.nav;
+}
+function resetRuntime(){Runtime.fiche=null;Runtime.ficheId=null;Runtime.sessionId=null;Runtime.name='';Runtime.timers={};Runtime.counters={};}
+function ensureAudio(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();}catch(e){}}
+function beep(){if(Runtime.sound){try{ensureAudio();const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=880;o.connect(g);g.connect(AC.destination);g.gain.setValueAtTime(.0001,AC.currentTime);g.gain.exponentialRampToValueAtTime(.32,AC.currentTime+.02);g.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+.55);o.start();o.stop(AC.currentTime+.55);}catch(e){}}if(navigator.vibrate)try{navigator.vibrate([220,120,220]);}catch(e){}}
+function flash(id){const el=document.getElementById('tmcard-'+id);if(el){el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),1500);}}
+function toggleTimer(t){const now=Date.now();if(t.running){if(t.type==='interval')t.elapsedMs=Math.min(t.seconds*1000,t.elapsedMs+(now-t.lastStart));else t.elapsedMs+=now-t.lastStart;t.running=false;}else{ensureAudio();t.lastStart=now;t.running=true;}}
+function resetTimer(t){t.running=false;t.elapsedMs=0;t.cycles=0;t.lastStart=0;}
+function updateTimers(){
+  if(!Runtime.fiche)return;const now=Date.now();
+  Object.values(Runtime.timers).forEach(t=>{if(t.type==='interval'&&t.running){const per=t.seconds*1000||1;const within=t.elapsedMs+(now-t.lastStart);
+    if(within>=per){const comp=Math.floor(within/per);t.cycles+=comp;const left=within-comp*per;if(t.autoloop){t.elapsedMs=0;t.lastStart=now-left;}else{t.running=false;t.elapsedMs=per;t.lastStart=0;}beep();flash(t.id);}}});
+  if(state.view!=='read')return;
+  Object.values(Runtime.timers).forEach(t=>{const v=document.getElementById('tmval-'+t.id);if(!v)return;
+    if(t.type==='stopwatch'){v.textContent=fmtMs(t.elapsedMs+(t.running?(now-t.lastStart):0));}
+    else{const per=t.seconds*1000||0;const within=t.elapsedMs+(t.running?(now-t.lastStart):0);v.textContent=fmtMs(Math.max(0,per-within));
+      const c=document.getElementById('tmcyc-'+t.id);if(c)c.textContent='Cycles : '+t.cycles;const bar=document.getElementById('tmbar-'+t.id);if(bar)bar.style.width=(per?Math.min(100,within/per*100):0)+'%';}});
+}
+setInterval(updateTimers,300);
+
+/* ===== Sessions =====
+   saveSession()     : fige l'état vivant (cochages, position, compteurs, et pour
+     chaque minuteur son elapsedMs+cycles) dans un objet session nommé, persisté.
+     Réutilise l'id si on a déjà repris une session (mise à jour plutôt que doublon).
+   resumeSession(id) : recharge une session sauvegardée dans le Runtime et ouvre
+     la fiche en lecture (minuteurs en pause, prêts à relancer).
+   deleteSession(id) : suppression définitive d'une session.
+   (Les sessions sont locales à l'appareil et exclues de l'export JSON.) */
+async function saveSession(){const f=Runtime.fiche;if(!f)return;const now=Date.now();const tsnap={};
+  Object.values(Runtime.timers).forEach(t=>{const within=t.elapsedMs+(t.running?(now-t.lastStart):0);tsnap[t.id]={elapsedMs:t.type==='interval'?Math.min(t.seconds*1000,within):within,cycles:t.cycles};});
+  const def=Runtime.name||((f.title||'Session')+' — '+new Date().toLocaleString('fr-FR',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'}));
+  const name=prompt('Nom de la session :',def);if(name===null)return;
+  const s={id:Runtime.sessionId||uid('s'),ficheId:f.id,ficheTitle:f.title,name:name||def,savedAt:now,checked:{...Runtime.checked},nav:Runtime.nav.slice(),counters:{...Runtime.counters},timers:tsnap};
+  try{await Data.putSession(s);}catch(e){alert('Sauvegarde impossible (stockage saturé).');return;}
+  Runtime.sessionId=s.id;Runtime.name=s.name;const i=sessions.findIndex(x=>x.id===s.id);if(i>=0)sessions[i]=s;else sessions.push(s);state.showSess=true;render();}
+function resumeSession(id){const s=sessions.find(x=>x.id===id);if(!s)return;const f=fiches.find(x=>x.id===s.ficheId);if(!f){alert('Fiche introuvable.');return;}freshRuntime(f,s);state.fiche=f;state.id=f.id;state.showFlow=false;state.showSess=false;state.view='read';render();}
+async function deleteSession(id){if(!confirm('Supprimer cette session ?'))return;await Data.delSession(id);sessions=sessions.filter(x=>x.id!==id);if(Runtime.sessionId===id){Runtime.sessionId=null;Runtime.name='';}render();}
+
+/* ===== Render =====
+   render() : aiguilleur unique. Met à jour l'en-tête et délègue à la vue active
+     (renderLibrary / renderEditor / renderRead). Remet le scroll en haut sauf en
+     lecture (pour ne pas sauter pendant l'usage en crise).
+   renderLibrary() : recherche + filtres catégories colorés + grille de cartes
+     (pastilles catégorie/branchement/nb de sessions, date de validation). */
+function render(){
+  document.getElementById('topNew').style.display=state.view==='library'?'inline-flex':'none';
+  document.getElementById('brandSub').textContent=state.view==='library'?'Bibliothèque':state.view==='edit'?'Édition':'Mode crise';
+  if(state.view==='library')renderLibrary();else if(state.view==='edit')renderEditor();else renderRead();
+  document.getElementById('count').textContent=fiches.length+' fiche'+(fiches.length>1?'s':'');
+  if(state.view!=='read')window.scrollTo(0,0);
+}
+function renderLibrary(){
+  const q=state.q.toLowerCase();
+  const list=fiches.slice().sort(byOrder).filter(f=>(!state.cat||f.category===state.cat)&&(!q||(f.title+' '+catName(f)).toLowerCase().includes(q)));
+  const chips=`<button class="catchip" data-cat="" style="${!state.cat?'background:#16211f;color:#fff;border-color:#16211f':''}">Toutes</button>`+categories.map(c=>`<button class="catchip" data-cat="${c.id}" style="${state.cat===c.id?`background:${c.color};color:#fff;border-color:${c.color}`:`color:${c.color};border-color:${c.color}55`}">${esc(c.name)}</button>`).join('');
+  main.innerHTML=`
+    <div class="notice"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01" stroke-linecap="round"/></svg><div>Vous êtes l'auteur et le responsable du contenu. Validez chaque fiche et tenez la date à jour.</div></div>
+    <div class="lib-top"><div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg><input id="q" placeholder="Rechercher…" value="${esc(state.q)}"></div>
+      <button class="btn-new" id="newBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Créer</button></div>
+    <div class="catbar">${chips}</div>
+    <div class="cards">${list.length?list.map(f=>{const sc=sessions.filter(s=>s.ficheId===f.id).length;return `
+      <div class="card" tabindex="0" role="button" data-open="${f.id}"><div class="card-body"><h3>${esc(f.title)||'Sans titre'}</h3>
+        <div class="card-meta">${catTag(f)}${hasFlow(f)?'<span class="tag flow">Conditionnelle</span>':''}${sc?`<span class="tag sess">${sc} session${sc>1?'s':''}</span>`:''}<span class="card-date${staleDate(f.validation)?' stale':''}">${esc(fmtDate(f.validation))}${staleDate(f.validation)?' · à revoir':''}</span></div></div>
+        <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></div>`;}).join('')
+      :`<div class="empty"><b>Aucune fiche</b>${state.q||state.cat?'Aucun résultat pour ce filtre.':'Créez votre première aide cognitive.'}</div>`}</div>`;
+  document.getElementById('q').addEventListener('input',e=>{state.q=e.target.value;renderLibrary();});
+  document.getElementById('newBtn').onclick=newFiche;
+  main.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{state.cat=b.dataset.cat;renderLibrary();});
+  main.querySelectorAll('[data-open]').forEach(el=>{el.onclick=()=>openRead(el.dataset.open);el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openRead(el.dataset.open);}};});
+}
+function staticBlock(title,cls,arr,liClass,forget){const items=clean(arr);if(!items.length)return '';return `<section class="block"><div class="block-h ${cls}"><span class="pip"></span>${title}</div><ul class="flat ${liClass}">${items.map(x=>forget?`<li><span class="ftxt">${esc(x)}</span></li>`:`<li>${esc(x)}</li>`).join('')}</ul></section>`;}
+
+/* ===== Flow SVG =====
+   buildFlowSVG(f) : génère l'organigramme de la fiche, en SVG, par mise en page
+   en COUCHES. Algorithme :
+     1) BFS depuis le bloc de départ -> niveau (profondeur) de chaque bloc atteint ;
+        les blocs orphelins (non reliés) sont empilés après le dernier niveau.
+     2) Les blocs d'un même niveau forment une rangée centrée horizontalement.
+     3) Arêtes : steps->next (sans label) ; decision->options (label = intitulé
+        de la réponse, affiché dans une pastille). Flèche via <marker>.
+     4) Nœuds : 'steps' clairs / 'decision' ambrés ; le bloc de départ est souligné.
+   Retourne une chaîne <svg> dimensionnée (scroll horizontal si large).
+   Utilisé en aperçu live dans l'éditeur et à la demande en lecture. */
+function buildFlowSVG(f){
+  const blocks=f.blocks||[];if(!blocks.length)return '<div style="padding:14px;color:#54635f;font-size:13px">Aucun bloc.</div>';
+  const byId={};blocks.forEach(b=>byId[b.id]=b);const start=(f.start&&byId[f.start])?f.start:blocks[0].id;
+  const level={};const q=[start];level[start]=0;
+  while(q.length){const id=q.shift();const b=byId[id];const tg=[];if(b.type==='steps'){if(b.next&&byId[b.next])tg.push(b.next);}else (b.options||[]).forEach(o=>{if(o.target&&byId[o.target])tg.push(o.target);});tg.forEach(t=>{if(level[t]===undefined){level[t]=level[id]+1;q.push(t);}});}
+  let maxL=0;Object.values(level).forEach(v=>{if(v>maxL)maxL=v;});blocks.forEach(b=>{if(level[b.id]===undefined){maxL+=1;level[b.id]=maxL;}});
+  const byLevel={};blocks.forEach(b=>{(byLevel[level[b.id]]=byLevel[level[b.id]]||[]).push(b.id);});
+  const NW=160,NH=48,HG=30,VG=72,PX=16,PY=18;let maxRow=1;Object.values(byLevel).forEach(r=>{if(r.length>maxRow)maxRow=r.length;});
+  const totalW=PX*2+maxRow*NW+(maxRow-1)*HG,totalH=PY*2+(maxL+1)*NH+maxL*VG;const pos={};
+  Object.keys(byLevel).map(Number).sort((a,b)=>a-b).forEach(L=>{const row=byLevel[L];const rw=row.length*NW+(row.length-1)*HG;const sx=PX+(totalW-PX*2-rw)/2;row.forEach((id,i)=>{pos[id]={x:sx+i*(NW+HG),y:PY+L*(NH+VG)};});});
+  let edges='';blocks.forEach(b=>{const p=pos[b.id];if(!p)return;const conns=[];if(b.type==='steps'){if(b.next&&byId[b.next])conns.push({t:b.next,lab:''});}else (b.options||[]).forEach(o=>{if(o.target&&byId[o.target])conns.push({t:o.target,lab:o.label||''});});
+    conns.forEach(c=>{const Q=pos[c.t];if(!Q)return;const x1=p.x+NW/2,y1=p.y+NH,x2=Q.x+NW/2,y2=Q.y,my=(y1+y2)/2;edges+=`<path d="M${x1},${y1} C${x1},${my} ${x2},${my} ${x2},${y2}" fill="none" stroke="#9fb0ac" stroke-width="2" marker-end="url(#ah)"/>`;
+      if(c.lab){const lx=(x1+x2)/2,ly=my,lab=textTrunc(c.lab,14),w=Math.min(130,16+lab.length*7);edges+=`<g transform="translate(${lx},${ly})"><rect x="${-w/2}" y="-11" width="${w}" height="22" rx="11" fill="#fff" stroke="#e1cf9f"/><text x="0" y="4" text-anchor="middle" font-size="11" font-weight="600" fill="#6b4d12" font-family="system-ui">${esc(lab)}</text></g>`;}});});
+  let nodes='';blocks.forEach(b=>{const p=pos[b.id];if(!p)return;const dec=b.type==='decision';const fill=dec?'#f6efdd':'#ffffff',stroke=dec?'#e1cf9f':'#c9d4d1',tcol=dec?'#6b4d12':'#16211f',isS=b.id===start;const sub=dec?((b.options||[]).filter(o=>o.label||o.target).length+' issue(s)'):(clean(b.steps).length+' étape(s)');
+    nodes+=`<g transform="translate(${p.x},${p.y})"><rect width="${NW}" height="${NH}" rx="11" fill="${fill}" stroke="${isS?'#0d5b56':stroke}" stroke-width="${isS?2.5:1.5}"/>${dec?`<circle cx="15" cy="${NH/2}" r="4" fill="#946615"/>`:`<rect width="4" height="${NH}" rx="2" fill="#16211f"/>`}<text x="${NW/2}" y="${NH/2-3}" text-anchor="middle" font-size="12.5" font-weight="650" fill="${tcol}" font-family="system-ui">${esc(textTrunc(b.title||(dec?'Décision':'Étapes'),20))}</text><text x="${NW/2}" y="${NH/2+13}" text-anchor="middle" font-size="10" fill="${dec?'#9a7a2e':'#7c8a87'}" font-family="system-ui">${sub}</text>${isS?`<g transform="translate(${NW-4},-9)"><rect x="-46" width="46" height="16" rx="8" fill="#0d5b56"/><text x="-23" y="11.5" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" font-family="system-ui" letter-spacing="0.5">DÉPART</text></g>`:''}</g>`;});
+  return `<svg width="${totalW}" height="${totalH}" viewBox="0 0 ${totalW} ${totalH}" xmlns="http://www.w3.org/2000/svg"><defs><marker id="ah" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#9fb0ac"/></marker></defs>${edges}${nodes}</svg>`;
+}
+
+/* ===== Runtime panel (rendu des minuteurs/compteurs en lecture) =====
+   timerCard(t)   : carte d'un minuteur. 'stopwatch' -> temps qui monte ;
+     'interval' -> temps restant qui descend + barre de progression + "Cycles : n".
+     Les valeurs initiales sont calculées ici ; ensuite updateTimers() rafraîchit
+     les éléments par id (tmval-/tmcyc-/tmbar-). Boutons Démarrer/Pause et Réinit.
+   counterCard(c) : carte d'un compteur (valeur + boutons - / +).
+   runtimePanel(f): assemble le bandeau (rien si la fiche n'a ni minuteur ni
+     compteur) avec un bouton son 🔔/🔕. */
+function timerCard(t){const now=Date.now();let val,cyc='',bw=0;
+  if(t.type==='stopwatch'){val=fmtMs(t.elapsedMs+(t.running?(now-t.lastStart):0));}
+  else{const per=t.seconds*1000||0;const within=t.elapsedMs+(t.running?(now-t.lastStart):0);val=fmtMs(Math.max(0,per-within));bw=per?Math.min(100,within/per*100):0;cyc='Cycles : '+t.cycles;}
+  return `<div class="tmcard" id="tmcard-${t.id}"><div class="tm-label">${esc(t.label)||(t.type==='interval'?'Minuteur':'Chronomètre')}</div>
+    <div class="tm-val" id="tmval-${t.id}">${val}</div>
+    ${t.type==='interval'?`<div class="tm-bar-wrap"><div class="tm-bar" id="tmbar-${t.id}" style="width:${bw}%"></div></div><div class="tm-cyc" id="tmcyc-${t.id}">${cyc}</div>`:''}
+    <div class="tm-ctrl"><button class="tm-btn" id="tmbtn-${t.id}" data-tmtoggle="${t.id}">${t.running?'Pause':'Démarrer'}</button><button class="tm-btn" data-tmreset="${t.id}">Réinit.</button></div></div>`;}
+function counterCard(c){const v=Runtime.counters[c.id]||0;return `<div class="cncard"><div class="tm-label">${esc(c.label)||'Compteur'}</div><div class="cn-val" id="cnval-${c.id}">${v}</div><div class="cn-ctrl"><button class="cn-btn" data-cndec="${c.id}" data-step="${c.step||1}">−</button><button class="cn-btn" data-cninc="${c.id}" data-step="${c.step||1}">+</button></div></div>`;}
+function runtimePanel(f){const tl=Object.values(Runtime.timers);const cl=f.counters||[];if(!tl.length&&!cl.length)return '';
+  return `<div class="rt-panel"><div class="rt-head"><b>Minuteurs & compteurs</b><button class="rt-sound" id="soundToggle">${Runtime.sound?'🔔 Son':'🔕 Muet'}</button></div>${tl.length?`<div class="rt-grid">${tl.map(timerCard).join('')}</div>`:''}${cl.length?`<div class="rt-counters">${cl.map(counterCard).join('')}</div>`:''}</div>`;}
+
+/* ===== Read (mode crise / lecture) =====
+   renderRead() : affiche la fiche active. De haut en bas : titre + méta, contexte
+   local, BANDEAU minuteurs/compteurs, barre de SESSIONS (enregistrer / liste /
+   réinitialiser), confirmation diagnostique, PRISE EN CHARGE (bloc courant : soit
+   une liste d'étapes cochables avec "Continuer", soit une décision avec ses
+   options ; fil d'Ariane + aperçu algorithme optionnel), galerie d'images,
+   à vérifier / ne pas oublier / différentiels, références, actions (modifier /
+   imprimer / dupliquer).
+   La 2e moitié de la fonction RATTACHE tous les écouteurs : navigation entre blocs
+   (push/pop sur state.nav), cochage des étapes, contrôles minuteurs/compteurs
+   (mise à jour DOM directe, sans render), et gestion des sessions. */
+function renderRead(){
+  const f=state.fiche;if(!f){state.view='library';return render();}
+  const cur=state.nav[state.nav.length-1];const blk=f.blocks.find(b=>b.id===cur)||f.blocks.find(b=>b.id===f.start)||f.blocks[0];const flow=hasFlow(f);let navHtml='';
+  if(blk){const crumbs=flow?`<div class="crumbs">${state.nav.map((id,i)=>{const b=f.blocks.find(x=>x.id===id);return `<span class="cb${i===state.nav.length-1?' cur':''}">${esc((b&&b.title)||'?')}</span>`;}).join('<span>›</span>')}</div>`:'';
+    const imgH=blk.image?`<img class="node-img" src="${blk.image}" data-full="${blk.image}" alt="">`:'';
+    if(blk.type==='decision'){navHtml=`<div class="nav-wrap">${crumbs}<div class="node-title">${esc(blk.title)||'Décision'}</div>${imgH}<div class="question">${esc(blk.question)||'…'}</div><div class="options">${(blk.options||[]).map((o,i)=>`<button class="opt" data-goto="${o.target||''}">${esc(o.label)||'Option '+(i+1)}<span class="arr"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></span></button>`).join('')}</div><div class="flow-ctrl">${state.nav.length>1?'<button class="btn sm" id="navBack">← Précédent</button>':''}<button class="btn sm" id="navReset">Recommencer</button></div></div>`;}
+    else{const steps=clean(blk.steps);navHtml=`<div class="nav-wrap">${crumbs}<div class="node-title">${esc(blk.title)||'Étapes'}</div>${imgH}<ol class="steps">${steps.map((s,i)=>{const k=blk.id+':'+i;return `<li data-ck="${k}" class="${state.checked[k]?'done':''}"><span class="box">${state.checked[k]?'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg>':''}</span><span class="txt">${esc(s)}</span></li>`;}).join('')}</ol><div class="flow-ctrl">${blk.next&&f.blocks.some(b=>b.id===blk.next)?'<button class="btn primary sm" id="navNext">Continuer →</button>':'<span class="endcap">Fin de cette branche.</span>'}${state.nav.length>1?'<button class="btn sm" id="navBack">← Précédent</button>':''}${flow?'<button class="btn sm" id="navReset">Recommencer</button>':''}</div></div>`;}}
+  const gallery=(f.images||[]).length?`<section class="block"><div class="block-h h-img"><span class="pip"></span>Schémas & captures</div><div class="gallery">${f.images.map(im=>`<div class="gthumb"><img src="${im.data}" data-full="${im.data}" data-cap="${esc(im.caption||'')}" alt="${esc(im.caption||'')}">${im.caption?`<div class="gcap">${esc(im.caption)}</div>`:''}</div>`).join('')}</div></section>`:'';
+  const refs=clean(f.references);
+  const ss=sessions.filter(s=>s.ficheId===f.id).sort((a,b)=>b.savedAt-a.savedAt);
+  const sessBar=`<div class="session-bar"><button class="btn sm" id="saveSess">Enregistrer la session</button>${ss.length?`<button class="btn sm" id="toggleSess">Sessions (${ss.length})</button>`:''}<button class="btn sm" id="resetSess">Réinitialiser</button>${Runtime.name?`<span class="card-date">Reprise : ${esc(Runtime.name)}</span>`:''}</div>`;
+  const sessList=(state.showSess&&ss.length)?`<div class="sess-list">${ss.map(s=>`<div class="sess-row"><div class="si"><div class="sn">${esc(s.name)}</div><div class="sd">${new Date(s.savedAt).toLocaleString('fr-FR')}</div></div><button class="btn sm" data-resume="${s.id}">Reprendre</button><button class="mini del" data-delsess="${s.id}">×</button></div>`).join('')}</div>`:'';
+  main.innerHTML=`
+    <button class="back" id="back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Bibliothèque</button>
+    <div class="read-head"><h2>${esc(f.title)||'Sans titre'}</h2></div>
+    <div class="read-meta">${catTag(f)}${hasFlow(f)?'<span class="tag flow">Conditionnelle</span>':''}<span class="card-date${staleDate(f.validation)?' stale':''}">${esc(fmtDate(f.validation))}</span></div>
+    ${f.localInfo&&f.localInfo.trim()?`<div class="local">${esc(f.localInfo)}</div>`:''}
+    ${runtimePanel(f)}
+    ${sessBar}${sessList}
+    ${staticBlock('Confirmation diagnostique','h-confirm',f.confirmation,'confirm')}
+    <section class="block"><div class="block-h h-steps"><span class="pip"></span>Prise en charge${flow?' — parcours guidé':' — étape par étape'}<span class="spc"></span>${flow?`<button class="btn sm" id="flowToggle" style="text-transform:none;letter-spacing:0">${state.showFlow?'Masquer':'Algorithme'}</button>`:''}</div>${flow&&state.showFlow?`<div class="flow-scroll">${buildFlowSVG(f)}</div>`:''}${navHtml}</section>
+    ${gallery}
+    ${staticBlock('À vérifier','h-verify',f.verify,'verify')}
+    ${staticBlock('Ne pas oublier','h-forget',f.notForget,'forget',true)}
+    ${staticBlock('Diagnostics différentiels','h-diff',f.differentials,'diff')}
+    ${refs.length?`<div class="refs"><b>Références</b><ol>${refs.map(r=>`<li>${esc(r)}</li>`).join('')}</ol></div>`:''}
+    <div class="read-actions"><button class="btn" id="edit">Modifier</button><button class="btn" id="print">Imprimer</button><button class="btn" id="dup">Dupliquer</button></div>`;
+  document.getElementById('back').onclick=()=>{state.view='library';state.fiche=null;state.showFlow=false;render();};
+  document.getElementById('edit').onclick=()=>openEdit(f.id);
+  document.getElementById('print').onclick=()=>window.print();
+  document.getElementById('dup').onclick=async()=>{const c=JSON.parse(JSON.stringify(f));c.id=uid();c.title=(f.title||'Fiche')+' (copie)';c.order=Date.now();if(await persist(c)){fiches.push(c);openEdit(c.id);}};
+  const ft=document.getElementById('flowToggle');if(ft)ft.onclick=()=>{state.showFlow=!state.showFlow;render();};
+  const nx=document.getElementById('navNext');if(nx)nx.onclick=()=>{state.nav.push(blk.next);render();};
+  const bk=document.getElementById('navBack');if(bk)bk.onclick=()=>{state.nav.pop();render();};
+  const rs=document.getElementById('navReset');if(rs)rs.onclick=()=>{state.nav.length=0;state.nav.push(f.start);render();};
+  main.querySelectorAll('[data-goto]').forEach(b=>b.onclick=()=>{const t=b.dataset.goto;if(t&&f.blocks.some(x=>x.id===t)){state.nav.push(t);render();}});
+  main.querySelectorAll('[data-ck]').forEach(li=>li.onclick=()=>{const k=li.dataset.ck;state.checked[k]=!state.checked[k];render();});
+  main.querySelectorAll('img[data-full]').forEach(im=>im.onclick=()=>openLightbox(im.dataset.full,im.dataset.cap||''));
+  // runtime controls (no full re-render)
+  const st=document.getElementById('soundToggle');if(st)st.onclick=()=>{Runtime.sound=!Runtime.sound;if(Runtime.sound)ensureAudio();st.textContent=Runtime.sound?'🔔 Son':'🔕 Muet';};
+  main.querySelectorAll('[data-tmtoggle]').forEach(b=>b.onclick=()=>{const t=Runtime.timers[b.dataset.tmtoggle];toggleTimer(t);const btn=document.getElementById('tmbtn-'+t.id);if(btn)btn.textContent=t.running?'Pause':'Démarrer';updateTimers();});
+  main.querySelectorAll('[data-tmreset]').forEach(b=>b.onclick=()=>{const t=Runtime.timers[b.dataset.tmreset];resetTimer(t);const btn=document.getElementById('tmbtn-'+t.id);if(btn)btn.textContent='Démarrer';updateTimers();});
+  main.querySelectorAll('[data-cninc]').forEach(b=>b.onclick=()=>{const id=b.dataset.cninc;Runtime.counters[id]=(Runtime.counters[id]||0)+(+b.dataset.step);document.getElementById('cnval-'+id).textContent=Runtime.counters[id];});
+  main.querySelectorAll('[data-cndec]').forEach(b=>b.onclick=()=>{const id=b.dataset.cndec;Runtime.counters[id]=Math.max(0,(Runtime.counters[id]||0)-(+b.dataset.step));document.getElementById('cnval-'+id).textContent=Runtime.counters[id];});
+  // sessions
+  document.getElementById('saveSess').onclick=saveSession;
+  const tg=document.getElementById('toggleSess');if(tg)tg.onclick=()=>{state.showSess=!state.showSess;render();};
+  document.getElementById('resetSess').onclick=()=>{if(!confirm('Réinitialiser la session ? (décochages, compteurs et minuteurs remis à zéro)'))return;freshRuntime(f,null);state.fiche=f;render();};
+  main.querySelectorAll('[data-resume]').forEach(b=>b.onclick=()=>resumeSession(b.dataset.resume));
+  main.querySelectorAll('[data-delsess]').forEach(b=>b.onclick=()=>deleteSession(b.dataset.delsess));
+  updateTimers();
+}
+
+/* ===== Editor =====
+   Briques de formulaire qui produisent du HTML :
+     listEditor()      : éditeur d'une liste simple (confirmation, vérifier, etc.),
+       avec ajout/suppression et réordonnancement optionnel.
+     targetSelect()    : menu déroulant "bloc cible" (pour next / options).
+     imageEditor()     : ajout/retrait d'une image attachée à un bloc.
+     blockEditor()     : éditeur d'un bloc 'steps' ou 'decision'.
+     catManagerHtml()  : panneau de gestion des catégories.
+     timerEditorRow()  : ligne d'édition d'un minuteur (libellé ; pour 'interval'
+       : minutes/secondes + case "boucle").
+     counterEditorRow(): ligne d'édition d'un compteur (libellé, pas, départ).
+   renderEditor() : assemble le formulaire complet à partir de state.draft, INCLUT
+     l'aperçu d'algorithme (re-dessiné à chaque rendu), puis rattache tous les
+     écouteurs. Les modifications mutent directement state.draft ; un re-rendu n'a
+     lieu que pour les changements structurels (ajout/suppression/réordre/typage).
+   bindListEditors() : écouteurs communs aux listes simples.
+   downscale()       : réduit une image (canvas) avant stockage base64.
+   saveDraft()       : nettoie/normalise le brouillon, persiste, puis ouvre la fiche.
+   deleteDraft()     : supprime la fiche ET ses sessions associées. */
+function listEditor(legend,hint,key,arr,ordered){const rows=(arr.length?arr:['']).map((v,i)=>`<div class="li" data-i="${i}">${ordered?`<span class="li-num">${String(i+1).padStart(2,'0')}</span>`:''}<input type="text" value="${esc(v)}" data-key="${key}" data-idx="${i}" placeholder="…">${ordered?`<button class="mini" data-mv="up" data-key="${key}" data-idx="${i}">↑</button><button class="mini" data-mv="down" data-key="${key}" data-idx="${i}">↓</button>`:''}<button class="mini del" data-rm="${key}" data-idx="${i}">×</button></div>`).join('');return `<fieldset class="field list-edit"><label>${legend}${hint?` <span class="hint">${hint}</span>`:''}</label>${rows}<button class="add-line" data-add="${key}">+ Ajouter une ligne</button></fieldset>`;}
+function targetSelect(blocks,selfId,value){const opts=blocks.filter(b=>b.id!==selfId).map(b=>`<option value="${b.id}" ${b.id===value?'selected':''}>${esc(b.title)||'(bloc sans titre)'}</option>`).join('');return `<select data-target><option value="" ${!value?'selected':''}>— Fin / aucun —</option>${opts}</select>`;}
+function imageEditor(b){return `<div class="sub">Image du bloc (option)</div><div class="imgrow">${b.image?`<img src="${b.image}" alt=""><button class="btn sm danger" data-bimgdel>Retirer</button>`:`<button class="btn sm" data-bimg>+ Image / capture</button>`}</div>`;}
+function blockEditor(b,blocks){if(b.type==='decision'){return `<div class="blk" data-bid="${b.id}"><div class="blk-top"><span class="blk-type decision">Décision</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Réévaluation)"></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Question</div><input type="text" data-bf="question" value="${esc(b.question)}" placeholder="ex. Réponse à l'adrénaline ?" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:#fff"><div class="sub">Réponses → bloc cible</div>${(b.options.length?b.options:[{label:'',target:''}]).map((o,i)=>`<div class="optedit" data-oi="${i}"><input type="text" data-of="label" value="${esc(o.label)}" placeholder="ex. Oui">${targetSelect(blocks,b.id,o.target)}<button class="mini del" data-rmopt="${i}">×</button></div>`).join('')}<button class="add-line" data-addopt>+ Ajouter une réponse</button>${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="mini" data-bmv="up">↑</button><button class="mini" data-bmv="down">↓</button><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
+  return `<div class="blk" data-bid="${b.id}"><div class="blk-top"><span class="blk-type steps">Étapes</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Mesures immédiates)"></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Étapes (cochables en mode crise)</div>${(b.steps.length?b.steps:['']).map((s,i)=>`<div class="li" data-si="${i}"><span class="li-num">${String(i+1).padStart(2,'0')}</span><input type="text" data-sf value="${esc(s)}" placeholder="…"><button class="mini" data-smv="up" data-si="${i}">↑</button><button class="mini" data-smv="down" data-si="${i}">↓</button><button class="mini del" data-rmstep="${i}">×</button></div>`).join('')}<button class="add-line" data-addstep>+ Ajouter une étape</button><div class="sub">Étape suivante</div>${targetSelect(blocks,b.id,b.next)}${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="mini" data-bmv="up">↑</button><button class="mini" data-bmv="down">↓</button><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
+function catManagerHtml(){return `<div class="cat-mgr">${categories.map(c=>`<div class="cat-row" data-cid="${c.id}"><input class="cn" data-cname value="${esc(c.name)}"><div class="swatches">${PALETTE.map(col=>`<span class="sw ${c.color===col?'on':''}" data-setcol="${col}" style="background:${col}"></span>`).join('')}</div><button class="mini del" data-delcat>×</button></div>`).join('')}<div class="cat-row"><input class="cn" id="newCatName" placeholder="Nouvelle catégorie…"><button class="btn sm" id="addCat">Ajouter</button></div></div>`;}
+function timerEditorRow(t,i){const iv=t.type==='interval';const mm=Math.floor((t.seconds||0)/60),ss=(t.seconds||0)%60;return `<div class="trow" data-ti="${i}"><span class="blk-type ${iv?'decision':'steps'}">${iv?'Cycle':'Chrono'}</span><input type="text" data-tf="label" value="${esc(t.label)}" placeholder="${iv?'ex. Cycle adrénaline':'ex. Temps écoulé'}">${iv?`<input type="number" min="0" data-tmin value="${mm}" style="width:56px"><span>min</span><input type="number" min="0" max="59" data-tsec value="${ss}" style="width:56px"><span>s</span><label style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--ink-soft)"><input type="checkbox" data-tloop ${t.autoloop?'checked':''}>boucle</label>`:''}<button class="mini del" data-tdel="${i}">×</button></div>`;}
+function counterEditorRow(c,i){return `<div class="trow" data-ci="${i}"><input type="text" data-cf="label" value="${esc(c.label)}" placeholder="ex. Adrénaline (mg)"><span>pas</span><input type="number" data-cstep value="${c.step||1}" style="width:56px"><span>départ</span><input type="number" data-cstart value="${c.start||0}" style="width:56px"><button class="mini del" data-cdel="${i}">×</button></div>`;}
+
+function renderEditor(){
+  const f=state.draft;const blocks=f.blocks;blocks._start=f.start;
+  main.innerHTML=`
+    <button class="back" id="back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Annuler</button>
+    <div class="field"><label>Titre de la situation</label><input type="text" id="f-title" value="${esc(f.title)}" placeholder="ex. Intoxication aux anesthésiques locaux"></div>
+    <div class="field"><label>Catégorie</label><div class="catpick"><button class="catpill" data-selcat="" style="${!f.category?'background:#54635f;color:#fff;border-color:#54635f':''}">Aucune</button>${categories.map(c=>`<button class="catpill" data-selcat="${c.id}" style="${f.category===c.id?`background:${c.color};color:#fff;border-color:${c.color}`:`color:${c.color};border-color:${c.color}66`}">${esc(c.name)}</button>`).join('')}<button class="catpill" id="catMgrBtn" style="border-style:dashed;color:var(--ink-soft)">⚙ Gérer</button></div>${state.catMgr?catManagerHtml():''}</div>
+    <div class="row2"><div class="field"><label>Date de validation</label><input type="text" id="f-validation" value="${esc(f.validation)}" placeholder="AAAA-MM"></div></div>
+    <div class="field"><label>Contexte local <span class="hint">numéros utiles, particularités</span></label><textarea id="f-localInfo" rows="2" placeholder="Réanimateur de garde, pharmacie…">${esc(f.localInfo)}</textarea></div>
+    ${listEditor('Confirmation diagnostique','critères pour déclencher la fiche','confirmation',f.confirmation)}
+    <fieldset class="field"><label>Prise en charge <span class="hint">listes d'étapes + décisions conditionnelles</span></label><p class="flow-prev-h">Algorithme — aperçu automatique</p><div class="flow-scroll">${buildFlowSVG(f)}</div>${f.blocks.map(b=>blockEditor(b,blocks)).join('')}<div class="add-blocks"><button class="btn sm" id="addSteps">+ Bloc d'étapes</button><button class="btn sm" id="addDecision">+ Décision (si… alors…)</button></div></fieldset>
+    <fieldset class="field"><label>Minuteurs & compteurs <span class="hint">disponibles pendant la session</span></label>
+      <p class="sub2">Minuteurs</p>${(f.timers||[]).map((t,i)=>timerEditorRow(t,i)).join('')}<div class="add-blocks"><button class="btn sm" id="addStopwatch">+ Chronomètre</button><button class="btn sm" id="addInterval">+ Minuteur (cycle)</button></div>
+      <p class="sub2" style="margin-top:14px">Compteurs</p>${(f.counters||[]).map((c,i)=>counterEditorRow(c,i)).join('')}<button class="add-line" id="addCounter">+ Ajouter un compteur</button></fieldset>
+    ${listEditor('À vérifier','','verify',f.verify)}
+    ${listEditor('Ne pas oublier','points critiques','notForget',f.notForget)}
+    ${listEditor('Diagnostics différentiels','','differentials',f.differentials)}
+    <fieldset class="field"><label>Schémas & captures <span class="hint">stockées hors ligne dans l'app</span></label><div class="gallery">${(f.images||[]).map((im,i)=>`<div class="gthumb"><img src="${im.data}" alt=""><input type="text" class="gcap" data-imgcap="${i}" value="${esc(im.caption||'')}" placeholder="Légende…" style="width:100%;margin-top:5px;padding:6px 8px;border:1px solid var(--line);border-radius:7px"><button class="btn sm danger" data-imgdel="${i}" style="width:100%;margin-top:5px">Retirer</button></div>`).join('')}</div><button class="add-line" id="addImg" style="margin-top:10px">+ Ajouter une image / capture</button></fieldset>
+    ${listEditor('Références','sources de la fiche','references',f.references)}
+    <div class="editor-foot"><button class="btn primary" id="saveBtn">Enregistrer</button><div class="spacer"></div>${fiches.some(x=>x.id===f.id)?'<button class="btn danger" id="delBtn">Supprimer</button>':''}</div>
+    <input type="file" id="imgInput" accept="image/*" hidden>`;
+  document.getElementById('back').onclick=()=>{state.draft=null;state.catMgr=false;if(fiches.some(x=>x.id===f.id)){resetRuntime();openRead(f.id);}else{state.view='library';render();}};
+  ['title','validation','localInfo'].forEach(k=>document.getElementById('f-'+k).addEventListener('input',e=>state.draft[k]=e.target.value));
+  bindListEditors();
+  // catégorie
+  main.querySelectorAll('[data-selcat]').forEach(b=>b.onclick=()=>{state.draft.category=b.dataset.selcat;renderEditor();});
+  document.getElementById('catMgrBtn').onclick=()=>{state.catMgr=!state.catMgr;renderEditor();};
+  if(state.catMgr){main.querySelectorAll('.cat-row[data-cid]').forEach(row=>{const cid=row.dataset.cid;const c=categories.find(x=>x.id===cid);const nm=row.querySelector('[data-cname]');if(nm)nm.addEventListener('input',e=>{c.name=e.target.value;saveCats();});row.querySelectorAll('[data-setcol]').forEach(sw=>sw.onclick=()=>{c.color=sw.dataset.setcol;saveCats();renderEditor();});const dl=row.querySelector('[data-delcat]');if(dl)dl.onclick=async()=>{if(!confirm('Supprimer « '+c.name+' » ? Les fiches associées passeront sans catégorie.'))return;categories=categories.filter(x=>x.id!==cid);const tt=[];fiches.forEach(ff=>{if(ff.category===cid){ff.category='';tt.push(ff);}});if(state.draft.category===cid)state.draft.category='';await saveCats();for(const ff of tt)await persist(ff);renderEditor();};});
+    const ac=document.getElementById('addCat');if(ac)ac.onclick=async()=>{const inp=document.getElementById('newCatName');const name=(inp.value||'').trim();if(!name)return;categories.push({id:uid('c'),name,color:PALETTE[categories.length%PALETTE.length]});await saveCats();renderEditor();};}
+  // images
+  let imgMode={kind:null,bid:null};const imgInput=document.getElementById('imgInput');
+  document.getElementById('addImg').onclick=()=>{imgMode={kind:'gallery'};imgInput.click();};
+  main.querySelectorAll('[data-imgdel]').forEach(b=>b.onclick=()=>{f.images.splice(+b.dataset.imgdel,1);renderEditor();});
+  main.querySelectorAll('[data-imgcap]').forEach(inp=>inp.addEventListener('input',e=>f.images[+e.target.dataset.imgcap].caption=e.target.value));
+  // minuteurs/compteurs
+  document.getElementById('addStopwatch').onclick=()=>{f.timers.push({id:uid('t'),label:'',type:'stopwatch'});renderEditor();};
+  document.getElementById('addInterval').onclick=()=>{f.timers.push({id:uid('t'),label:'',type:'interval',seconds:120,autoloop:true});renderEditor();};
+  document.getElementById('addCounter').onclick=()=>{f.counters.push({id:uid('n'),label:'',step:1,start:0});renderEditor();};
+  main.querySelectorAll('[data-ti]').forEach(row=>{const t=f.timers[+row.dataset.ti];const lab=row.querySelector('[data-tf]');if(lab)lab.addEventListener('input',e=>t.label=e.target.value);
+    const mn=row.querySelector('[data-tmin]'),sc=row.querySelector('[data-tsec]');const upd=()=>{t.seconds=(parseInt(mn.value||0)||0)*60+(parseInt(sc.value||0)||0);};if(mn)mn.addEventListener('input',upd);if(sc)sc.addEventListener('input',upd);
+    const lp=row.querySelector('[data-tloop]');if(lp)lp.addEventListener('change',e=>t.autoloop=e.target.checked);
+    const dl=row.querySelector('[data-tdel]');if(dl)dl.onclick=()=>{f.timers.splice(+dl.dataset.tdel,1);renderEditor();};});
+  main.querySelectorAll('[data-ci]').forEach(row=>{const c=f.counters[+row.dataset.ci];const lab=row.querySelector('[data-cf]');if(lab)lab.addEventListener('input',e=>c.label=e.target.value);
+    const st=row.querySelector('[data-cstep]');if(st)st.addEventListener('input',e=>c.step=parseInt(e.target.value||1)||1);const sr=row.querySelector('[data-cstart]');if(sr)sr.addEventListener('input',e=>c.start=parseInt(e.target.value||0)||0);
+    const dl=row.querySelector('[data-cdel]');if(dl)dl.onclick=()=>{f.counters.splice(+dl.dataset.cdel,1);renderEditor();};});
+  // blocs
+  document.getElementById('addSteps').onclick=()=>{f.blocks.push({id:uid('b'),type:'steps',title:'',steps:[''],image:null,next:null});renderEditor();};
+  document.getElementById('addDecision').onclick=()=>{f.blocks.push({id:uid('b'),type:'decision',title:'',question:'',image:null,options:[{label:'Oui',target:''},{label:'Non',target:''}]});renderEditor();};
+  main.querySelectorAll('.blk').forEach(card=>{const bid=card.dataset.bid;const b=f.blocks.find(x=>x.id===bid);
+    card.querySelectorAll('[data-bf]').forEach(inp=>{const fld=inp.dataset.bf;inp.addEventListener('input',e=>b[fld]=e.target.value);inp.addEventListener('change',()=>renderEditor());});
+    const sb=card.querySelector('[data-start]');if(sb)sb.onclick=()=>{f.start=bid;renderEditor();};
+    card.querySelectorAll('[data-sf]').forEach((inp,i)=>inp.addEventListener('input',e=>{b.steps[i]=e.target.value;}));
+    const as=card.querySelector('[data-addstep]');if(as)as.onclick=()=>{b.steps.push('');renderEditor();};
+    card.querySelectorAll('[data-rmstep]').forEach(btn=>btn.onclick=()=>{b.steps.splice(+btn.dataset.rmstep,1);if(!b.steps.length)b.steps.push('');renderEditor();});
+    card.querySelectorAll('[data-smv]').forEach(btn=>btn.onclick=()=>{const i=+btn.dataset.si,j=btn.dataset.smv==='up'?i-1:i+1;if(j<0||j>=b.steps.length)return;[b.steps[i],b.steps[j]]=[b.steps[j],b.steps[i]];renderEditor();});
+    if(b.type==='steps'){const ns=card.querySelector('select[data-target]');if(ns)ns.addEventListener('change',e=>{b.next=e.target.value||null;renderEditor();});}
+    const ao=card.querySelector('[data-addopt]');if(ao)ao.onclick=()=>{b.options.push({label:'',target:''});renderEditor();};
+    card.querySelectorAll('[data-rmopt]').forEach(btn=>btn.onclick=()=>{b.options.splice(+btn.dataset.rmopt,1);if(!b.options.length)b.options.push({label:'',target:''});renderEditor();});
+    card.querySelectorAll('.optedit').forEach(row=>{const oi=+row.dataset.oi;const lab=row.querySelector('[data-of]');if(lab)lab.addEventListener('input',e=>b.options[oi].label=e.target.value);const tgt=row.querySelector('select[data-target]');if(tgt)tgt.addEventListener('change',e=>{b.options[oi].target=e.target.value||'';renderEditor();});});
+    const bi=card.querySelector('[data-bimg]');if(bi)bi.onclick=()=>{imgMode={kind:'block',bid};imgInput.click();};
+    const bd2=card.querySelector('[data-bimgdel]');if(bd2)bd2.onclick=()=>{b.image=null;renderEditor();};
+    card.querySelectorAll('[data-bmv]').forEach(btn=>btn.onclick=()=>{const i=f.blocks.indexOf(b),j=btn.dataset.bmv==='up'?i-1:i+1;if(j<0||j>=f.blocks.length)return;[f.blocks[i],f.blocks[j]]=[f.blocks[j],f.blocks[i]];renderEditor();});
+    const bd=card.querySelector('[data-bdel]');if(bd)bd.onclick=()=>{f.blocks=f.blocks.filter(x=>x.id!==bid);f.blocks.forEach(x=>{if(x.next===bid)x.next=null;if(x.options)x.options.forEach(o=>{if(o.target===bid)o.target='';});});if(f.start===bid)f.start=f.blocks[0]?f.blocks[0].id:null;if(!f.blocks.length){const nb={id:uid('b'),type:'steps',title:'Prise en charge',steps:[''],image:null,next:null};f.blocks.push(nb);f.start=nb.id;}renderEditor();};});
+  imgInput.onchange=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;const data=await downscale(file);if(!data){alert('Image illisible.');return;}if(imgMode.kind==='gallery')f.images.push({id:uid('i'),data,caption:''});else{const b=f.blocks.find(x=>x.id===imgMode.bid);if(b)b.image=data;}renderEditor();};
+  document.getElementById('saveBtn').onclick=saveDraft;const del=document.getElementById('delBtn');if(del)del.onclick=deleteDraft;
+}
+function bindListEditors(){
+  main.querySelectorAll('input[data-key]').forEach(inp=>inp.addEventListener('input',e=>{state.draft[e.target.dataset.key][+e.target.dataset.idx]=e.target.value;}));
+  main.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{state.draft[b.dataset.add].push('');renderEditor();});
+  main.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{const a=state.draft[b.dataset.rm];a.splice(+b.dataset.idx,1);if(!a.length)a.push('');renderEditor();});
+  main.querySelectorAll('[data-mv]').forEach(b=>b.onclick=()=>{const a=state.draft[b.dataset.key],i=+b.dataset.idx,j=b.dataset.mv==='up'?i-1:i+1;if(j<0||j>=a.length)return;[a[i],a[j]]=[a[j],a[i]];renderEditor();});
+}
+function downscale(file,maxDim=1180,quality=0.78){return new Promise(res=>{const img=new Image();const url=URL.createObjectURL(file);img.onload=()=>{let w=img.width,h=img.height;const sc=Math.min(1,maxDim/Math.max(w,h));const cw=Math.round(w*sc),ch=Math.round(h*sc);const c=document.createElement('canvas');c.width=cw;c.height=ch;c.getContext('2d').drawImage(img,0,0,cw,ch);URL.revokeObjectURL(url);try{res(c.toDataURL('image/jpeg',quality));}catch(e){res(null);}};img.onerror=()=>{URL.revokeObjectURL(url);res(null);};img.src=url;});}
+async function saveDraft(){const d=state.draft;d.title=(d.title||'').trim();
+  ['confirmation','verify','notForget','differentials','references'].forEach(k=>d[k]=clean(d[k]));
+  d.blocks.forEach(b=>{b.title=(b.title||'').trim();if(b.type==='steps')b.steps=clean(b.steps);else{b.question=(b.question||'').trim();b.options=(b.options||[]).filter(o=>(o.label||'').trim());}});
+  d.timers=(d.timers||[]).map(t=>({id:t.id,label:(t.label||'').trim(),type:t.type==='interval'?'interval':'stopwatch',seconds:Math.max(0,parseInt(t.seconds||0)||0),autoloop:!!t.autoloop}));
+  d.counters=(d.counters||[]).map(c=>({id:c.id,label:(c.label||'').trim(),step:Math.max(1,parseInt(c.step||1)||1),start:parseInt(c.start||0)||0}));
+  delete d.blocks._start;if(!d.start||!d.blocks.some(b=>b.id===d.start))d.start=d.blocks[0]?d.blocks[0].id:null;
+  if(!d.title){alert('Donnez un titre à la fiche.');return;}if(typeof d.order!=='number')d.order=Date.now();
+  if(!(await persist(d)))return;const i=fiches.findIndex(x=>x.id===d.id);if(i>=0)fiches[i]=d;else fiches.push(d);state.draft=null;state.catMgr=false;resetRuntime();openRead(d.id);}
+async function deleteDraft(){if(!confirm('Supprimer cette fiche définitivement ?'))return;const id=state.draft.id;await Data.del(id);const rel=sessions.filter(s=>s.ficheId===id);for(const s of rel)await Data.delSession(s.id);sessions=sessions.filter(s=>s.ficheId!==id);fiches=fiches.filter(x=>x.id!==id);state.draft=null;state.catMgr=false;resetRuntime();state.view='library';render();}
+
+/* ===== Navigation =====
+   openRead(id) : ouvre une fiche en lecture. Conserve le Runtime si c'est la MÊME
+     fiche déjà active (minuteurs en cours préservés) ; sinon en reconstruit un neuf.
+   openEdit(id) : édite une copie profonde de la fiche (state.draft).
+   newFiche()   : crée une fiche vierge et passe en édition. */
+function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;if(!(Runtime.fiche&&Runtime.ficheId===id))freshRuntime(f,null);state.fiche=Runtime.fiche;state.checked=Runtime.checked;state.nav=Runtime.nav;state.id=id;state.showFlow=false;state.showSess=false;state.view='read';render();}
+function openEdit(id){const f=fiches.find(x=>x.id===id);state.draft=JSON.parse(JSON.stringify(f));state.catMgr=false;state.view='edit';render();}
+function newFiche(){state.draft=blankFiche();state.catMgr=false;state.view='edit';render();}
+document.getElementById('topNew').onclick=newFiche;
+
+/* ===== Lightbox ===== (agrandissement d'une image au clic, avec légende) */
+const lb=document.getElementById('lightbox');
+function openLightbox(src,cap){document.getElementById('lbImg').src=src;document.getElementById('lbCap').textContent=cap||'';lb.classList.add('on');}
+function closeLightbox(){lb.classList.remove('on');document.getElementById('lbImg').src='';}
+document.getElementById('lbX').onclick=closeLightbox;lb.onclick=e=>{if(e.target===lb)closeLightbox();};
+
+/* ===== Export / Import =====
+   Export : télécharge un JSON { version, categories, fiches } (sessions exclues).
+   Import : accepte le format objet (nouveau) ou un simple tableau de fiches
+     (ancien). Propose de FUSIONNER ou de REMPLACER ; ajoute les catégories
+     manquantes ; régénère les id en cas de collision. */
+document.getElementById('exportBtn').onclick=()=>{const out={version:3,categories,fiches:fiches.map(f=>{const c={...f};if(c.blocks)delete c.blocks._start;return c;})};const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='aides-cognitives-'+new Date().toISOString().slice(0,10)+'.json';a.click();};
+document.getElementById('importBtn').onclick=()=>document.getElementById('importFile').click();
+document.getElementById('importFile').onchange=e=>{const file=e.target.files[0];if(!file)return;const r=new FileReader();
+  r.onload=async()=>{try{const data=JSON.parse(r.result);const imp=Array.isArray(data)?{fiches:data,categories:[]}:data;if(!Array.isArray(imp.fiches))throw 0;
+    const merge=confirm('OK = fusionner avec vos fiches.\nAnnuler = remplacer entièrement.');
+    if(!merge){for(const f of fiches)await Data.del(f.id);fiches=[];}
+    (imp.categories||[]).forEach(c=>{if(c&&c.id&&!categories.some(x=>x.id===c.id))categories.push(c);});await saveCats();
+    const ids=new Set(fiches.map(x=>x.id));for(let d of imp.fiches){d=migrate(d);if(!d.id||ids.has(d.id))d.id=uid();ids.add(d.id);if(await persist(d))fiches.push(d);}
+    state.view='library';render();}catch(err){alert('Fichier illisible.');}};
+  r.readAsText(file);e.target.value='';};
+
+/* ===== PWA =====
+   Enregistre le service worker (cache hors ligne) si disponible. Capte
+   l'évènement beforeinstallprompt pour proposer "Installer l'app". */
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));}
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;document.getElementById('installBtn').style.display='inline-block';});
+document.getElementById('installBtn').onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;document.getElementById('installBtn').style.display='none';};
+
+load(); /* DÉMARRAGE de l'application */
+</script>
+</body>
+</html>
