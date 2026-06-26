@@ -1,5 +1,22 @@
-// Service worker — cache l'app pour un fonctionnement hors ligne complet.
-const CACHE = 'aides-cognitives-v1';
+// =============================================================================
+//  Service worker — fonctionnement hors ligne + MISE À JOUR AUTOMATIQUE du code.
+//
+//  Stratégie :
+//   - Navigation (la page index.html) : "réseau d'abord". Quand l'iPhone a du
+//     réseau, on récupère TOUJOURS la dernière version en ligne, puis on la met
+//     en cache pour l'usage hors ligne. Hors ligne -> on sert la copie en cache.
+//     => une modif d'index.html en ligne s'applique automatiquement à la
+//        réouverture, sans bump de version manuel.
+//   - Autres fichiers (icônes, manifest) : "stale-while-revalidate" = on sert
+//     vite le cache et on rafraîchit en arrière-plan.
+//   - skipWaiting + clients.claim : le nouveau worker prend la main tout de suite.
+//   - À l'activation : on supprime les anciens caches.
+//
+//  IMPORTANT : ce worker ne touche JAMAIS à IndexedDB ('ac-db') ni au
+//  localStorage. Vos fiches/catégories/sessions sont indépendantes du cache de
+//  code et restent intactes à chaque mise à jour, tant que l'URL reste la même.
+// =============================================================================
+const CACHE = 'aides-cognitives-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -25,12 +42,34 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  if (e.request.method !== 'GET') return;
+  const req = e.request;
+  if (req.method !== 'GET') return;
+
+  // Page / navigation : réseau d'abord, cache en secours (hors ligne).
+  const isNav = req.mode === 'navigate' ||
+                (req.headers.get('accept') || '').includes('text/html');
+  if (isNav) {
+    e.respondWith(
+      fetch(req)
+        .then(resp => {
+          const copy = resp.clone();
+          caches.open(CACHE).then(c => c.put('./index.html', copy));
+          return resp;
+        })
+        .catch(() => caches.match(req).then(r => r || caches.match('./index.html')))
+    );
+    return;
+  }
+
+  // Autres ressources : stale-while-revalidate.
   e.respondWith(
-    caches.match(e.request).then(cached => cached || fetch(e.request).then(resp => {
-      const copy = resp.clone();
-      caches.open(CACHE).then(c => c.put(e.request, copy));
-      return resp;
-    }).catch(() => caches.match('./index.html')))
+    caches.match(req).then(cached => {
+      const network = fetch(req).then(resp => {
+        const copy = resp.clone();
+        caches.open(CACHE).then(c => c.put(req, copy));
+        return resp;
+      }).catch(() => cached);
+      return cached || network;
+    })
   );
 });
