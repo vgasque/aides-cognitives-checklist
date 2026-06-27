@@ -296,9 +296,14 @@
   .cat-mgr{background:#f5f8f7;border:1px solid var(--line);border-radius:11px;padding:12px;margin-top:10px}
   .cat-row{display:flex;gap:8px;align-items:center;margin-bottom:9px;flex-wrap:wrap}
   .cat-row input.cn{flex:1;min-width:120px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff}
-  .swatches{display:flex;gap:5px;flex-wrap:wrap}.sw{width:22px;height:22px;border-radius:6px;cursor:pointer;border:2px solid transparent}.sw.on{border-color:#16211f}
+  .swatches{display:flex;gap:7px;flex-wrap:wrap}.sw{width:24px;height:24px;border-radius:6px;cursor:pointer;border:2px solid transparent}
+  .sw.on{border-color:transparent;box-shadow:0 0 0 2px #fff,0 0 0 4px var(--ink);transform:scale(1.12)}
   .flow-prev-h{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--ink-soft);margin:0 0 7px}
   .flow-scroll{width:100%;overflow:auto;border:1px solid var(--line);border-radius:10px;background:#fff;padding:8px;-webkit-overflow-scrolling:touch;margin-bottom:14px;max-height:75vh}
+  .flow-zoom{display:flex;align-items:center;gap:7px;margin-bottom:7px}
+  .fz{border:1px solid var(--line);background:var(--surface);color:var(--ink);width:34px;height:30px;border-radius:8px;font-size:17px;font-weight:600;line-height:1;display:inline-flex;align-items:center;justify-content:center}
+  .fz:hover{background:#f3f6f5}.fz-r{width:auto;padding:0 11px;font-size:12.5px}
+  .fzv{font-family:var(--mono);font-size:12px;color:var(--ink-soft);min-width:46px;text-align:center}
   .blk{background:#f5f8f7;border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
   .blk-top{display:flex;align-items:center;gap:8px;margin-bottom:11px}
   .blk-type{font-size:10.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;padding:3px 8px;border-radius:6px}
@@ -343,8 +348,8 @@
   .cm-dot{width:18px;height:18px;border-radius:6px;flex-shrink:0}
   .cm-name{flex:1;min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;font-size:14px}
   .cm-count{font-size:11.5px;color:var(--ink-soft);white-space:nowrap}
-  .cm-sw{display:flex;gap:5px;flex-wrap:wrap;margin-top:9px}
-  .cm-sw .sw{width:22px;height:22px;border-radius:6px;cursor:pointer;border:2px solid transparent}.cm-sw .sw.on{border-color:#16211f}
+  .cm-sw{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}.cm-sw .sw{width:24px;height:24px;border-radius:6px;cursor:pointer;border:2px solid transparent}
+  .cm-sw .sw.on{border-color:transparent;box-shadow:0 0 0 2px #fff,0 0 0 4px var(--ink);transform:scale(1.12)}
   .cm-del{flex-shrink:0;width:34px;height:36px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink-soft);font-size:16px}
   .cm-del:hover{color:var(--critical);border-color:#eecabe;background:var(--critical-soft)}
   .cm-confirm{margin-top:10px;padding:11px;border:1px solid #eecabe;background:var(--critical-soft);border-radius:9px}
@@ -399,7 +404,7 @@
 
 /* PALETTE : couleurs proposées pour les catégories (hex sombres, lisibles
    en texte comme en pastille teintée). Index réutilisé cycliquement. */
-const APP_VERSION='2.1.20';
+const APP_VERSION='2.1.21';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 const PALETTE=['#b23052','#823a32','#b5532a','#a26a42','#8a6a12','#4f6b1e','#1f7a4d','#0d5b56','#007fb1','#45556b','#1f5fa6','#4b3fa6','#8869af','#7a2f6b','#ad5e7e'];
 /* ===== Backends =====
@@ -471,6 +476,12 @@ const clean=a=>(a||[]).map(s=>s.trim()).filter(Boolean);
 let flowScroll={left:0,top:0};
 function captureFlow(){const el=main.querySelector('.flow-scroll');if(el)flowScroll={left:el.scrollLeft,top:el.scrollTop};}
 function restoreFlow(){const el=main.querySelector('.flow-scroll');if(el){el.scrollLeft=flowScroll.left;el.scrollTop=flowScroll.top;}}
+// Zoom de l'aperçu algorithme via boutons dédiés (le pinch-to-zoom du navigateur reste natif,
+// on ne capture aucun geste tactile). Le déplacement se fait par le défilement du conteneur.
+let flowZoom=1;
+function applyFlowZoom(){const s=main.querySelector('.flow-scroll svg');if(s){const bw=+s.getAttribute('data-bw')||300,bh=+s.getAttribute('data-bh')||200;s.style.width=Math.round(bw*flowZoom)+'px';s.style.height=Math.round(bh*flowZoom)+'px';}const v=document.getElementById('fzVal');if(v)v.textContent=Math.round(flowZoom*100)+'%';}
+function bindFlowZoom(){main.querySelectorAll('[data-zoom]').forEach(b=>b.onclick=()=>{const a=b.dataset.zoom;if(a==='in')flowZoom=Math.min(4,Math.round((flowZoom+0.25)*100)/100);else if(a==='out')flowZoom=Math.max(0.4,Math.round((flowZoom-0.25)*100)/100);else flowZoom=1;applyFlowZoom();});}
+const flowBlock=f=>`<div class="flow-zoom"><button class="fz" data-zoom="out" aria-label="Dézoomer">−</button><span class="fzv" id="fzVal">${Math.round(flowZoom*100)}%</span><button class="fz" data-zoom="in" aria-label="Zoomer">+</button><button class="fz fz-r" data-zoom="reset">Réinit.</button></div><div class="flow-scroll">${buildFlowSVG(f)}</div>`;
 const byOrder=(a,b)=>(b.order||0)-(a.order||0);
 const textTrunc=(s,n)=>{s=String(s||'');return s.length>n?s.slice(0,n-1)+'…':s;};
 const catOf=f=>categories.find(c=>c.id===f.category)||null;
@@ -790,8 +801,13 @@ function buildFlowSVG(f){
     blocks.forEach(b=>{const q=pos[b.id];if(!q)return;if(q.y<e.ymax&&q.y+q.h>e.ymin)req=Math.max(req,q.x+q.w);});
     e.req=req;});
   const placedB=[];
-  back2.slice().sort((a,b)=>a.req-b.req).forEach(e=>{let bx=e.req+16,bump=1;while(bump){bump=0;placedB.forEach(p=>{if(p.ymin<e.ymax&&p.ymax>e.ymin&&Math.abs(p.bx-bx)<20){bx=p.bx+20;bump=1;}});}e.bx=bx;placedB.push(e);
-    const lw=e.lab?pwN(e.lab):8;if(bx+lw/2+10>svgW)svgW=bx+lw/2+10;if(e.ybt+8>svgH)svgH=e.ybt+8;});
+  back2.slice().sort((a,b)=>a.req-b.req).forEach(e=>{e.midY=Math.round((e.yas+e.ybt)/2);e.pw=e.lab?pwN(e.lab):0;let bx=e.req+16,bump=1;
+    while(bump){bump=0;placedB.forEach(p=>{
+      const line=p.ymin<e.ymax&&p.ymax>e.ymin&&Math.abs(p.bx-bx)<20; // risers (lignes) trop proches
+      const pillc=e.pw&&p.pw&&Math.abs(p.midY-e.midY)<22&&Math.abs(p.bx-bx)<(e.pw+p.pw)/2+6; // pastilles qui se chevauchent
+      if(line||pillc){bx=Math.max(p.bx+20,pillc?p.bx+(e.pw+p.pw)/2+6:0,bx);bump=1;}});}
+    e.bx=bx;placedB.push(e);
+    const lw=e.pw||8;if(bx+lw/2+10>svgW)svgW=bx+lw/2+10;if(e.ybt+8>svgH)svgH=e.ybt+8;});
   // Auto-références : petite boucle compacte JUSTE à droite du bloc (jamais autour d'un autre).
   selfL.forEach(e=>{const lw=e.lab?pwN(e.lab):8;const right=e.p.x+e.p.w+SLOOP+lw+12;if(right>svgW)svgW=right;});
   const pill=(lx,ly,lab)=>{const t=textTrunc(lab,28),w=Math.min(220,18+t.length*6.5);return `<g transform="translate(${lx},${ly})"><rect x="${-w/2}" y="-10" width="${w}" height="20" rx="10" fill="#fff" stroke="#e1cf9f"/><text x="0" y="4" text-anchor="middle" font-size="10.5" font-weight="600" fill="#6b4d12" font-family="system-ui">${esc(t)}</text></g>`;};
@@ -815,7 +831,7 @@ function buildFlowSVG(f){
     const gS=Math.min(16+(e.sIdx||0)*9,HG-3),gT=Math.min(16+(e.tIdx||0)*9,HG-3);
     const sxg=sx+gS,txg=tx+gT,yas=e.yas,ybt=e.ybt;
     edges+=`<path d="M${sx},${sy} L${sxg},${sy} L${sxg},${yas} L${bx},${yas} L${bx},${ybt} L${txg},${ybt} L${txg},${ty} L${tx},${ty}" fill="none" stroke="#c98a2a" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#ahb)"/>`;
-    if(lab)edges+=pillN(Math.round((sxg+bx)/2),yas,lab);});
+    if(lab)edges+=pillN(bx,e.midY,lab);});
   // Auto-référence : sort du côté droit (haut), redescend juste à droite du bloc et y rentre (bas).
   selfL.forEach(e=>{const sx=e.p.x+e.p.w,sy=e.sy,ty=e.ty,bx=sx+SLOOP;
     edges+=`<path d="M${sx},${sy} L${bx},${sy} L${bx},${ty} L${sx},${ty}" fill="none" stroke="#c98a2a" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#ahb)"/>`;
@@ -847,7 +863,7 @@ function buildFlowSVG(f){
       iy+=LH;});});
     g+=`<rect width="${W}" height="${h}" rx="10" fill="none" stroke="${isS?'#0d5b56':stroke}" stroke-width="${isS?2.5:1.5}"/>`;
     nodes+=`<g transform="translate(${p.x},${p.y})">${g}</g>`;});
-  return `<svg width="${svgW}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}" xmlns="http://www.w3.org/2000/svg" style="display:block"><defs><marker id="ah" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#9fb0ac"/></marker><marker id="ahb" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#c98a2a"/></marker></defs>${edges}${nodes}</svg>`;
+  return `<svg width="${svgW}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:0 auto" data-bw="${svgW}" data-bh="${svgH}"><defs><marker id="ah" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#9fb0ac"/></marker><marker id="ahb" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#c98a2a"/></marker></defs>${edges}${nodes}</svg>`;
 }
 
 /* ===== Runtime panel (rendu des minuteurs/compteurs en lecture) =====
@@ -922,7 +938,7 @@ function renderRead(){
     ${timekeeperPanel()}
     ${sessBar}${sessList}
     ${staticBlock('Confirmation diagnostique','h-confirm',f.confirmation,'confirm')}
-    <section class="block"><div class="block-h h-steps"><span class="pip"></span>Prise en charge${flow?' — parcours guidé':' — étape par étape'}<span class="spc"></span>${f.blocks&&f.blocks.length?`<button class="btn sm" id="flowToggle" style="text-transform:none;letter-spacing:0">${state.showFlow?'▲ Masquer':'▼ Algorithme'}</button>`:''}</div>${f.blocks&&f.blocks.length&&state.showFlow?`<div class="flow-scroll">${buildFlowSVG(f)}</div>`:''}${navHtml}</section>
+    <section class="block"><div class="block-h h-steps"><span class="pip"></span>Prise en charge${flow?' — parcours guidé':' — étape par étape'}<span class="spc"></span>${f.blocks&&f.blocks.length?`<button class="btn sm" id="flowToggle" style="text-transform:none;letter-spacing:0">${state.showFlow?'▲ Masquer':'▼ Algorithme'}</button>`:''}</div>${f.blocks&&f.blocks.length&&state.showFlow?flowBlock(f):''}${navHtml}</section>
     ${gallery}
     ${staticBlock('À vérifier','h-verify',f.verify,'verify')}
     ${staticBlock('Ne pas oublier','h-forget',f.notForget,'forget',true)}
@@ -966,7 +982,7 @@ function renderRead(){
   document.getElementById('resetSess').onclick=()=>{if(!confirm('Réinitialiser la session ? (décochages, compteurs et minuteurs remis à zéro)'))return;freshRuntime(f,null);state.fiche=f;render();};
   main.querySelectorAll('[data-resume]').forEach(b=>b.onclick=()=>resumeSession(b.dataset.resume));
   main.querySelectorAll('[data-delsess]').forEach(b=>b.onclick=()=>deleteSession(b.dataset.delsess));
-  restoreFlow();
+  bindFlowZoom();applyFlowZoom();restoreFlow();
   updateTimers();
 }
 
@@ -1008,7 +1024,7 @@ function renderEditor(){
     <div class="row2"><div class="field"><label>Date de validation</label><input type="text" id="f-validation" value="${esc(f.validation)}" placeholder="AAAA-MM"></div></div>
     <div class="field"><label>Contexte local <span class="hint">numéros utiles, particularités</span></label><textarea id="f-localInfo" rows="2" placeholder="Réanimateur de garde, pharmacie…">${esc(f.localInfo)}</textarea></div>
     ${listEditor('Confirmation diagnostique','critères pour déclencher la fiche','confirmation',f.confirmation)}
-    <fieldset class="field"><label>Prise en charge <span class="hint">listes d'étapes + décisions conditionnelles</span></label><p class="flow-prev-h">Algorithme — aperçu automatique</p><div class="flow-scroll">${buildFlowSVG(f)}</div>${f.blocks.map(b=>blockEditor(b,blocks)).join('')}<div class="add-blocks"><button class="btn sm" id="addSteps">+ Bloc d'étapes</button><button class="btn sm" id="addDecision">+ Décision (si… alors…)</button></div></fieldset>
+    <fieldset class="field"><label>Prise en charge <span class="hint">listes d'étapes + décisions conditionnelles</span></label><p class="flow-prev-h">Algorithme — aperçu automatique</p>${flowBlock(f)}${f.blocks.map(b=>blockEditor(b,blocks)).join('')}<div class="add-blocks"><button class="btn sm" id="addSteps">+ Bloc d'étapes</button><button class="btn sm" id="addDecision">+ Décision (si… alors…)</button></div></fieldset>
     <fieldset class="field"><label>Minuteurs & compteurs <span class="hint">disponibles pendant la session</span></label>
       <p class="sub2">Minuteurs</p>${(f.timers||[]).map((t,i)=>timerEditorRow(t,i)).join('')}<div class="add-blocks"><button class="btn sm" id="addStopwatch">+ Chronomètre</button><button class="btn sm" id="addInterval">+ Minuteur (cycle)</button></div>
       <p class="sub2" style="margin-top:14px">Compteurs</p>${(f.counters||[]).map((c,i)=>counterEditorRow(c,i)).join('')}<button class="add-line" id="addCounter">+ Ajouter un compteur</button></fieldset>
@@ -1063,7 +1079,7 @@ function renderEditor(){
     const bd=card.querySelector('[data-bdel]');if(bd)bd.onclick=()=>{f.blocks=f.blocks.filter(x=>x.id!==bid);f.blocks.forEach(x=>{if(x.next===bid)x.next=null;if(x.options)x.options.forEach(o=>{if(o.target===bid)o.target='';});});if(f.start===bid)f.start=f.blocks[0]?f.blocks[0].id:null;if(!f.blocks.length){const nb={id:uid('b'),type:'steps',title:'Prise en charge',steps:[''],image:null,next:null};f.blocks.push(nb);f.start=nb.id;}renderEditor();};});
   imgInput.onchange=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;const data=await downscale(file);if(!data){alert('Image illisible.');return;}if(imgMode.kind==='gallery')f.images.push({id:uid('i'),data,caption:''});else{const b=f.blocks.find(x=>x.id===imgMode.bid);if(b)b.image=data;}renderEditor();};
   document.getElementById('saveBtn').onclick=saveDraft;const del=document.getElementById('delBtn');if(del)del.onclick=deleteDraft;
-  restoreFlow();
+  bindFlowZoom();applyFlowZoom();restoreFlow();
 }
 function bindListEditors(){
   main.querySelectorAll('input[data-key]').forEach(inp=>inp.addEventListener('input',e=>{state.draft[e.target.dataset.key][+e.target.dataset.idx]=e.target.value;}));
