@@ -396,9 +396,9 @@
 
 /* PALETTE : couleurs proposées pour les catégories (hex sombres, lisibles
    en texte comme en pastille teintée). Index réutilisé cycliquement. */
-const APP_VERSION='2.1.16';
+const APP_VERSION='2.1.17';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
-const PALETTE=['#0d5b56','#1f5fa6','#4b3fa6','#7a2f6b','#b23052','#b5532a','#8a6a12','#4f6b1e','#1f7a4d','#45556b'];
+const PALETTE=['#b23052','#823a32','#b5532a','#a26a42','#8a6a12','#4f6b1e','#1f7a4d','#0d5b56','#007fb1','#45556b','#1f5fa6','#4b3fa6','#8869af','#7a2f6b','#ad5e7e'];
 /* ===== Backends =====
    Quatre implémentations interchangeables exposant la MÊME interface.
    `Data` (plus bas) pointera vers celle retenue par chooseBackend().
@@ -754,15 +754,19 @@ function buildFlowSVG(f){
   // bloc -> quand plusieurs blocs convergent, les flèches arrivent côte à côte sans se superposer.
   const byTgt={};fwd.forEach(e=>{(byTgt[e.tid]=byTgt[e.tid]||[]).push(e);});
   Object.values(byTgt).forEach(arr=>{arr.sort((a,b)=>a.p.x-b.p.x);const n=arr.length;arr.forEach((e,i)=>{e.entryIdx=i;e.x2=Math.round(e.Q.x+NW*(i+1)/(n+1));});});
-  // Les arêtes de retour sont routées sur la marge droite, décalées pour éviter les superpositions.
-  const BGUT=30,baseBulge=totalW-PX+18;let svgW=totalW,svgH=totalH;
-  back.forEach((e,k)=>{e.bx=baseBulge+k*BGUT;const lw=e.lab?Math.min(220,18+textTrunc(e.lab,28).length*6.5):8;const right=e.bx+lw/2+10;if(right>svgW)svgW=right;
-    const lowT=(botOfY[e.Q.y]||e.Q.y+e.Q.h)+14+8;if(lowT>svgH)svgH=lowT;});
   // Points d'attache des retours sur le côté droit, RÉPARTIS par bloc : un bloc peut être à la
-  // fois source d'un retour et cible d'un autre -> sinon les deux se superposent au même point
-  // (côté droit, milieu) et un retour semble manquer.
+  // fois source d'un retour et cible d'un autre (ou se référer à LUI-MÊME) -> sans répartition,
+  // les connexions se superposent au même point et un retour semble manquer.
   const rAtt={};back.forEach(e=>{(rAtt[e.sid]=rAtt[e.sid]||[]).push([e,'s']);(rAtt[e.tid]=rAtt[e.tid]||[]).push([e,'t']);});
   Object.keys(rAtt).forEach(id=>{const pp=pos[id],arr=rAtt[id],m=arr.length;arr.forEach((a,k)=>{const yy=Math.round(pp.y+pp.h*(k+1)/(m+1));if(a[1]==='s')a[0].sy=yy;else a[0].ty=yy;});});
+  // Sépare les AUTO-RÉFÉRENCES (un bloc qui boucle sur lui-même) des retours classiques.
+  const selfL=[],back2=[];back.forEach(e=>{(e.sid===e.tid?selfL:back2).push(e);});
+  // Retours classiques : routés sur la marge droite, décalés pour éviter les superpositions.
+  const BGUT=30,baseBulge=totalW-PX+18,SLOOP=24;let svgW=totalW,svgH=totalH;
+  back2.forEach((e,k)=>{e.bx=baseBulge+k*BGUT;const lw=e.lab?Math.min(220,18+textTrunc(e.lab,28).length*6.5):8;const right=e.bx+lw/2+10;if(right>svgW)svgW=right;
+    const lowT=(botOfY[e.Q.y]||e.Q.y+e.Q.h)+14+8;if(lowT>svgH)svgH=lowT;});
+  // Auto-références : petite boucle compacte JUSTE à droite du bloc (jamais autour d'un autre).
+  selfL.forEach(e=>{const lw=e.lab?Math.min(220,18+textTrunc(e.lab,28).length*6.5):8;const right=e.p.x+NW+SLOOP+lw+12;if(right>svgW)svgW=right;});
   const pill=(lx,ly,lab)=>{const t=textTrunc(lab,28),w=Math.min(220,18+t.length*6.5);return `<g transform="translate(${lx},${ly})"><rect x="${-w/2}" y="-10" width="${w}" height="20" rx="10" fill="#fff" stroke="#e1cf9f"/><text x="0" y="4" text-anchor="middle" font-size="10.5" font-weight="600" fill="#6b4d12" font-family="system-ui">${esc(t)}</text></g>`;};
   let edges='';
   fwd.forEach(e=>{const y1=e.p.y+e.p.h,y2=e.Q.y,lane=(e.exitIdx||0)+(e.entryIdx||0),rowBot=botOfY[e.p.y]||y1;
@@ -777,10 +781,14 @@ function buildFlowSVG(f){
   // la marge par la bande AU-DESSUS d'elle (on monte directement) et la cible par la bande
   // SOUS elle (la marge arrive d'en bas). Bandes libres car tops alignés / bas = bloc le plus
   // haut. Remontée sur la marge droite (x=bx). Aucun segment ne passe sous/à travers un bloc.
-  back.forEach(e=>{const p=e.p,Q=e.Q,lab=e.lab,bx=e.bx,g=16,sx=p.x+NW,sy=e.sy,tx=Q.x+NW,ty=e.ty;
+  back2.forEach(e=>{const p=e.p,Q=e.Q,lab=e.lab,bx=e.bx,g=16,sx=p.x+NW,sy=e.sy,tx=Q.x+NW,ty=e.ty;
     const sxg=sx+g,txg=tx+g,yas=Math.max(4,p.y-14),ybt=(botOfY[Q.y]||Q.y+Q.h)+14;
     edges+=`<path d="M${sx},${sy} L${sxg},${sy} L${sxg},${yas} L${bx},${yas} L${bx},${ybt} L${txg},${ybt} L${txg},${ty} L${tx},${ty}" fill="none" stroke="#c98a2a" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#ahb)"/>`;
     if(lab)edges+=pill(bx,Math.round((yas+ybt)/2),lab);});
+  // Auto-référence : sort du côté droit (haut), redescend juste à droite du bloc et y rentre (bas).
+  selfL.forEach(e=>{const sx=e.p.x+NW,sy=e.sy,ty=e.ty,bx=sx+SLOOP;
+    edges+=`<path d="M${sx},${sy} L${bx},${sy} L${bx},${ty} L${sx},${ty}" fill="none" stroke="#c98a2a" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#ahb)"/>`;
+    if(e.lab){const t=textTrunc(e.lab,28),w=Math.min(220,18+t.length*6.5);edges+=pill(Math.round(bx+w/2+6),Math.round((sy+ty)/2),e.lab);}});
   let nodes='';blocks.forEach(b=>{const p=pos[b.id];if(!p)return;const L=LAY[b.id],dec=L.dec,isS=b.id===start;
     const fill=dec?'#fdf8ef':'#f5faf8',stroke=dec?'#e1cf9f':'#c2d0cc',tcol=dec?'#6b4d12':'#16211f';const h=p.h,hh=L.headerH;
     let g=`<rect width="${NW}" height="${h}" rx="10" fill="${fill}"/>`;
@@ -1045,12 +1053,16 @@ TÂCHE
 À partir du document que je te fournis, produis UNIQUEMENT un objet JSON valide,
 conforme au schéma ci-dessous, prêt à être enregistré en .json et importé dans mon
 application. N'ajoute aucun texte avant ou après le JSON, aucune balise Markdown,
-aucun commentaire, aucune virgule finale.
+aucun commentaire, aucune virgule finale. SEULE EXCEPTION : si une information te manque
+et que tu serais tenté de l'inventer, ne produis pas le JSON tout de suite — pose-moi
+d'abord la ou les questions.
 
 EXIGENCES DE FOND
-- Langue : français. Style des étapes : phrases courtes, à l'impératif, actionnables.
-- Fidélité absolue à la source : n'invente aucune dose, seuil, ni médicament absent du
-  document. Si une information manque, laisse un champ vide plutôt que de l'inventer.
+- Langue : français. Style des étapes : TÉLÉGRAPHIQUE (pas de phrase complète) — voir la
+  section ERGONOMIE.
+- NE RIEN INVENTER : n'ajoute aucune information (dose, seuil, médicament, voie, débit,
+  délai, geste) absente du document. Si un élément te semble utile mais n'y figure pas, NE
+  L'AJOUTE PAS de toi-même : demande-moi de le valider avant. En cas de doute, laisse vide.
 - Structure l'arbre de prise en charge en BLOCS :
   - bloc « steps » = liste d'étapes cochables, menant éventuellement à un bloc suivant ;
   - bloc « decision » = une question avec des options, chaque option pointant vers un
@@ -1064,8 +1076,14 @@ EXIGENCES DE FOND
 - category : "" et "categories": [] (je classerai la fiche après import).
 
 ERGONOMIE DE L'ALGORITHME (conception d'aide cognitive de crise, esprit SFAR / SFMU)
-- Une étape = UNE seule action concrète, commençant par un verbe à l'impératif
-  ("Administrer…", "Appeler…", "Vérifier…"). Pas de paragraphe ni de phrase longue.
+- Une étape = UNE seule action, en style TÉLÉGRAPHIQUE : supprime les verbes
+  d'administration et les mots de liaison superflus. Format « Produit dose voie » ou
+  « Geste → cible ». Les flèches (→) sont autorisées et encouragées.
+  Exemples de réécriture :
+    "Administrer du Rivotril 0,1 mg/kg"            -> "Rivotril 0,1 mg/kg IVD"
+    "Mettre en route le relais MgSO4 1 g/h IVSE"   -> "Relais MgSO4 1 g/h IVSE"
+    "Préparer l'induction en séquence rapide"      -> "ISR → matériel + drogues prêtes"
+    "Appeler à l'aide et répartir les rôles"       -> "Appel à l'aide → rôles"
 - Ordre = priorité clinique réelle et chronologique : sécuriser d'abord (ABC, appel à
   l'aide), puis traitement de 1re intention SANS délai, puis 2e intention, puis surveillance.
 - Place tôt l'APPEL À L'AIDE et la répartition des rôles ; mets en tête les gestes qui
@@ -1079,6 +1097,9 @@ ERGONOMIE DE L'ALGORITHME (conception d'aide cognitive de crise, esprit SFAR / S
 - Quand la prise en charge est cyclique, crée une BOUCLE DE RÉÉVALUATION : un bloc de
   surveillance dont le « next » renvoie vers la décision de réévaluation, et associe un
   minuteur de cycle (timer interval, autoloop).
+- PLUSIEURS minuteurs de réévaluation sont les BIENVENUS quand la prise en charge le
+  justifie (ex. un minuteur de bolus à durée fixe + un cycle de surveillance qui reboucle).
+  N'hésite pas à en créer plusieurs.
 - Limite la charge cognitive : titres de blocs courts, listes ramassées, une idée par ligne.
 - Répartition : confirmation = critères diagnostiques déclenchant la fiche ; verify = ce qui
   doit être contrôlé/monitoré ; notForget = pièges et points critiques (détrompage) ;
@@ -1156,7 +1177,7 @@ function closeCatMgr(){catModal.classList.remove('on');renderLibrary();}
 function renderCatMgr(){
   const body=document.getElementById('catMgrBody');
   body.innerHTML=categories.map(c=>{const n=catCount(c.id);
-    const conf=catDelId===c.id?`<div class="cm-confirm">${n?`<p>« ${esc(c.name)} » contient <b>${n}</b> fiche${n>1?'s':''}. Choisissez où déplacer ces fiches avant de supprimer la catégorie :</p><select data-movesel>${categories.filter(x=>x.id!==c.id).map(x=>`<option value="${x.id}">Déplacer vers « ${esc(x.name)} »</option>`).join('')}<option value="">Laisser sans catégorie</option></select>`:`<p>Supprimer « ${esc(c.name)} » ? (catégorie vide)</p>`}<div class="cm-cact"><button class="btn danger sm" data-confdel="${c.id}">Supprimer</button><button class="btn sm" data-canceldel>Annuler</button></div></div>`:'';
+    const conf=catDelId===c.id?`<div class="cm-confirm">${n?`<p>« ${esc(c.name)} » contient <b>${n}</b> fiche${n>1?'s':''}. Choisissez où déplacer ces fiches avant de supprimer la catégorie :</p><select data-movesel><option value="">Laisser sans catégorie</option>${categories.filter(x=>x.id!==c.id).map(x=>`<option value="${x.id}">Déplacer vers « ${esc(x.name)} »</option>`).join('')}</select>`:`<p>Supprimer « ${esc(c.name)} » ? (catégorie vide)</p>`}<div class="cm-cact"><button class="btn danger sm" data-confdel="${c.id}">${n?'Déplacer puis Supprimer':'Supprimer'}</button><button class="btn sm" data-canceldel>Annuler</button></div></div>`:'';
     return `<div class="cm-row" data-cid="${c.id}"><div class="cm-top"><span class="cm-dot" style="background:${c.color}"></span><input class="cm-name" data-cname value="${esc(c.name)}"><span class="cm-count">${n} fiche${n>1?'s':''}</span><button class="cm-del" data-askdel="${c.id}" aria-label="Supprimer">×</button></div><div class="cm-sw">${PALETTE.map(col=>`<span class="sw ${c.color===col?'on':''}" data-setcol="${col}" style="background:${col}"></span>`).join('')}</div>${conf}</div>`;
   }).join('')+`${categories.length?'':'<p style="font-size:13px;color:var(--ink-soft);margin:0 0 10px">Aucune catégorie pour le moment.</p>'}<div class="cm-add"><input id="cmNew" placeholder="Nouvelle catégorie…"><button class="btn primary sm" id="cmAdd">Ajouter</button></div>`;
   body.querySelectorAll('.cm-row').forEach(row=>{const cid=row.dataset.cid;const c=categories.find(x=>x.id===cid);if(!c)return;

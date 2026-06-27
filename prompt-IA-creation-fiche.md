@@ -24,12 +24,16 @@ TÂCHE
 À partir du document que je te fournis, produis UNIQUEMENT un objet JSON valide,
 conforme au schéma ci-dessous, prêt à être enregistré en .json et importé dans mon
 application. N'ajoute aucun texte avant ou après le JSON, aucune balise Markdown,
-aucun commentaire, aucune virgule finale.
+aucun commentaire, aucune virgule finale. SEULE EXCEPTION : si une information te manque
+et que tu serais tenté de l'inventer, ne produis pas le JSON tout de suite — pose-moi
+d'abord la ou les questions.
 
 EXIGENCES DE FOND
-- Langue : français. Style des étapes : phrases courtes, à l'impératif, actionnables.
-- Fidélité absolue à la source : n'invente aucune dose, seuil, ni médicament absent du
-  document. Si une information manque, laisse un champ vide plutôt que de l'inventer.
+- Langue : français. Style des étapes : TÉLÉGRAPHIQUE (pas de phrase complète) — voir la
+  section ERGONOMIE.
+- NE RIEN INVENTER : n'ajoute aucune information (dose, seuil, médicament, voie, débit,
+  délai, geste) absente du document. Si un élément te semble utile mais n'y figure pas, NE
+  L'AJOUTE PAS de toi-même : demande-moi de le valider avant. En cas de doute, laisse vide.
 - Structure l'arbre de prise en charge en BLOCS :
   - bloc « steps » = liste d'étapes cochables, menant éventuellement à un bloc suivant ;
   - bloc « decision » = une question avec des options, chaque option pointant vers un
@@ -47,8 +51,14 @@ EXIGENCES DE FOND
 - category : "" (je classerai la fiche après import). Laisse "categories": [].
 
 ERGONOMIE DE L'ALGORITHME (conception d'aide cognitive de crise, esprit SFAR / SFMU)
-- Une étape = UNE seule action concrète, commençant par un verbe à l'impératif
-  ("Administrer…", "Appeler…", "Vérifier…"). Pas de paragraphe ni de phrase longue.
+- Une étape = UNE seule action, en style TÉLÉGRAPHIQUE : supprime les verbes
+  d'administration et les mots de liaison superflus. Format « Produit dose voie » ou
+  « Geste → cible ». Les flèches (→) sont autorisées et encouragées.
+  Exemples de réécriture :
+    "Administrer du Rivotril 0,1 mg/kg"            -> "Rivotril 0,1 mg/kg IVD"
+    "Mettre en route le relais MgSO4 1 g/h IVSE"   -> "Relais MgSO4 1 g/h IVSE"
+    "Préparer l'induction en séquence rapide"      -> "ISR → matériel + drogues prêtes"
+    "Appeler à l'aide et répartir les rôles"       -> "Appel à l'aide → rôles"
 - Ordre = priorité clinique réelle et chronologique : sécuriser d'abord (ABC, appel à
   l'aide), puis traitement de 1re intention SANS délai, puis 2e intention, puis surveillance.
 - Place tôt l'APPEL À L'AIDE et la répartition des rôles ; mets en tête les gestes qui
@@ -62,6 +72,9 @@ ERGONOMIE DE L'ALGORITHME (conception d'aide cognitive de crise, esprit SFAR / S
 - Quand la prise en charge est cyclique, crée une BOUCLE DE RÉÉVALUATION : un bloc de
   surveillance dont le « next » renvoie vers la décision de réévaluation, et associe un
   minuteur de cycle (timer interval, autoloop).
+- PLUSIEURS minuteurs de réévaluation sont les BIENVENUS quand la prise en charge le
+  justifie (ex. un minuteur de bolus à durée fixe + un cycle de surveillance qui reboucle).
+  N'hésite pas à en créer plusieurs.
 - Limite la charge cognitive : titres de blocs courts, listes ramassées, une idée par ligne.
 - Répartition : confirmation = critères diagnostiques déclenchant la fiche ; verify = ce qui
   doit être contrôlé/monitoré ; notForget = pièges et points critiques (détrompage) ;
