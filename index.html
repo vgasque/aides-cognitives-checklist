@@ -336,7 +336,7 @@
 
 /* PALETTE : couleurs proposées pour les catégories (hex sombres, lisibles
    en texte comme en pastille teintée). Index réutilisé cycliquement. */
-const APP_VERSION='2.1.8';
+const APP_VERSION='2.1.10';
 const PALETTE=['#0d5b56','#1f5fa6','#4b3fa6','#7a2f6b','#b23052','#b5532a','#8a6a12','#4f6b1e','#1f7a4d','#45556b'];
 /* ===== Backends =====
    Quatre implémentations interchangeables exposant la MÊME interface.
@@ -741,11 +741,12 @@ function renderRead(){
     ${staticBlock('Ne pas oublier','h-forget',f.notForget,'forget',true)}
     ${staticBlock('Diagnostics différentiels','h-diff',f.differentials,'diff')}
     ${refs.length?`<div class="refs"><b>Références</b><ol>${refs.map(r=>`<li>${esc(r)}</li>`).join('')}</ol></div>`:''}
-    <div class="read-actions"><button class="btn" id="edit">Modifier</button><button class="btn" id="print">Imprimer</button><button class="btn" id="dup">Dupliquer</button></div>`;
+    <div class="read-actions"><button class="btn" id="edit">Modifier</button><button class="btn" id="print">Imprimer</button><button class="btn" id="dup">Dupliquer</button><button class="btn" id="exportOne">Exporter</button></div>`;
   document.getElementById('back').onclick=()=>{state.view='library';state.fiche=null;state.showFlow=false;render();};
   document.getElementById('edit').onclick=()=>openEdit(f.id);
   document.getElementById('print').onclick=()=>window.print();
   document.getElementById('dup').onclick=async()=>{const c=JSON.parse(JSON.stringify(f));c.id=uid();c.title=(f.title||'Fiche')+' (copie)';c.order=Date.now();if(await persist(c)){fiches.push(c);openEdit(c.id);}};
+  document.getElementById('exportOne').onclick=()=>exportData([f],'fiche-'+fileSlug(f.title));
   const ft=document.getElementById('flowToggle');if(ft)ft.onclick=()=>{state.showFlow=!state.showFlow;render();};
   const nx=document.getElementById('navNext');if(nx)nx.onclick=()=>{state.nav.push(blk.next);render();};
   const bk=document.getElementById('navBack');if(bk)bk.onclick=()=>{state.nav.pop();render();};
@@ -896,9 +897,14 @@ document.getElementById('lbX').onclick=closeLightbox;lb.onclick=e=>{if(e.target=
 
 /* ===== Export / Import =====
    Export : télécharge un JSON { version, categories, fiches } (sessions exclues).
+     exportData() est partagée : export GLOBAL (toutes fiches + toutes catégories,
+     bouton du pied de page) et export d'UNE seule fiche (bouton dans la lecture,
+     n'embarque que les catégories utilisées). Même enveloppe -> réimportable.
    Import : accepte le format objet (nouveau) ou un simple tableau de fiches
-     (ancien). Propose de FUSIONNER ou de REMPLACER ; ajoute les catégories
-     manquantes ; régénère les id en cas de collision.
+     (ancien) ; fonctionne pour une librairie entière comme pour une fiche seule.
+     Propose de FUSIONNER ou de REMPLACER ; ajoute les catégories manquantes.
+     DOUBLONS (même id, mode fusion) : demande une fois s'il faut remplacer la
+     version existante ou importer en double ; sinon régénère l'id (copie).
 
    STRUCTURE JSON ET RÉTRO-COMPATIBILITÉ — À LIRE AVANT TOUTE MODIFICATION
    -------------------------------------------------------------------------
@@ -923,14 +929,26 @@ document.getElementById('lbX').onclick=closeLightbox;lb.onclick=e=>{if(e.target=
    5. Ne pas oublier de mettre à jour le commentaire MODÈLE DE DONNÉES en tête
       de fichier quand le schéma évolue, pour que les prochains lecteurs/IAs
       aient une vue exacte de la structure attendue. */
-document.getElementById('exportBtn').onclick=()=>{const out={version:3,categories,fiches:fiches.map(f=>{const c={...f};if(c.blocks)delete c.blocks._start;return c;})};const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='aides-cognitives-'+new Date().toISOString().slice(0,10)+'.json';a.click();};
+// Export réutilisable : `cats` par défaut = catégories réellement utilisées par `list`
+// (pour un export d'une seule fiche) ; l'export global passe toutes les catégories.
+function exportData(list,baseName,cats){const out={version:3,categories:cats||categories.filter(c=>list.some(f=>f.category===c.id)),fiches:list.map(f=>{const c={...f};if(c.blocks)delete c.blocks._start;return c;})};const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=baseName+'-'+new Date().toISOString().slice(0,10)+'.json';a.click();}
+const fileSlug=s=>(String(s||"fiche").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,40))||"fiche";
+document.getElementById('exportBtn').onclick=()=>exportData(fiches,'aides-cognitives',categories);
 document.getElementById('importBtn').onclick=()=>document.getElementById('importFile').click();
 document.getElementById('importFile').onchange=e=>{const file=e.target.files[0];if(!file)return;const r=new FileReader();
   r.onload=async()=>{try{const data=JSON.parse(r.result);const imp=Array.isArray(data)?{fiches:data,categories:[]}:data;if(!Array.isArray(imp.fiches))throw 0;
+    // Fonctionne pour une librairie entière comme pour une fiche seule (fiches = tableau de 1).
     const merge=confirm('OK = fusionner avec vos fiches.\nAnnuler = remplacer entièrement.');
     if(!merge){for(const f of fiches)await Data.del(f.id);fiches=[];}
     (imp.categories||[]).forEach(c=>{if(c&&c.id&&!categories.some(x=>x.id===c.id))categories.push(c);});await saveCats();
-    const ids=new Set(fiches.map(x=>x.id));for(let d of imp.fiches){d=migrate(d);if(!d.id||ids.has(d.id))d.id=uid();ids.add(d.id);if(await persist(d))fiches.push(d);}
+    // Gestion des doublons (même identifiant) en mode fusion : remplacer la version
+    // existante, ou importer en double (garder les deux). En mode remplacement, pas de doublon.
+    const existing=new Set(fiches.map(x=>x.id));
+    const clashes=merge?imp.fiches.filter(d=>d&&d.id&&existing.has(d.id)).length:0;
+    const replace=clashes?confirm(clashes+' fiche(s) déjà présente(s) (même identifiant).\n\nOK = remplacer la version existante par celle importée.\nAnnuler = importer en double (garder les deux).'):false;
+    for(let d of imp.fiches){d=migrate(d);
+      if(d.id&&existing.has(d.id)&&replace){if(await persist(d)){const i=fiches.findIndex(x=>x.id===d.id);if(i>=0)fiches[i]=d;else fiches.push(d);}}
+      else{if(!d.id||existing.has(d.id))d.id=uid();existing.add(d.id);if(await persist(d))fiches.push(d);}}
     state.view='library';render();}catch(err){alert('Fichier illisible.');}};
   r.readAsText(file);e.target.value='';};
 
