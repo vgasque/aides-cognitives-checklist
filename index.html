@@ -92,7 +92,10 @@
   }
   Catégorie : { id, name, color(hex) }   (collection séparée, store 'meta').
   Session   : { id, ficheId, ficheTitle, name, savedAt,
-                checked{'idBloc:index':bool}, nav[idBloc...],
+                checked{'seqVisite:idBloc:index':bool}, nav[idBloc...],
+                navSeq[ n... ] (id de visite unique parallèle à nav ; chaque passage
+                  sur un bloc lors d'une boucle a un seq distinct -> cases neuves,
+                  les cases des visites précédentes ne sont pas effacées),
                 counters{idCompteur:valeur},
                 timers{idMinuteur:{elapsedMs, cycles}} }
 
@@ -317,8 +320,8 @@
   <main id="main"></main>
   <footer class="tools"><span class="lbl" id="count"></span>
     <button class="tlink" id="installBtn">Installer l'app</button>
-    <button class="tlink" id="exportBtn">Exporter</button>
-    <button class="tlink" id="importBtn">Importer</button>
+    <button class="tlink" id="exportBtn">Exporter toute la bibliothèque</button>
+    <button class="tlink" id="importBtn">Importer une fiche</button>
     <div class="storage-gauge" id="storageInfo"></div>
     <input type="file" id="importFile" accept="application/json" hidden></footer>
 </div>
@@ -336,7 +339,7 @@
 
 /* PALETTE : couleurs proposées pour les catégories (hex sombres, lisibles
    en texte comme en pastille teintée). Index réutilisé cycliquement. */
-const APP_VERSION='2.1.10';
+const APP_VERSION='2.1.11';
 const PALETTE=['#0d5b56','#1f5fa6','#4b3fa6','#7a2f6b','#b23052','#b5532a','#8a6a12','#4f6b1e','#1f7a4d','#45556b'];
 /* ===== Backends =====
    Quatre implémentations interchangeables exposant la MÊME interface.
@@ -395,8 +398,8 @@ let Data=KV;
    Helpers : uid (id unique), esc (échappe le HTML), clean (vide les lignes vides),
      catTag (pastille couleur d'une catégorie), fmtMs (millisecondes -> mm:ss). */
 let fiches=[],categories=[],sessions=[];
-let state={view:'library',id:null,q:'',cat:'',draft:null,fiche:null,nav:[],checked:{},catMgr:false,showFlow:false,showSess:false};
-const Runtime={fiche:null,ficheId:null,sessionId:null,name:'',sound:true,checked:{},nav:[],counters:{},timers:{}};
+let state={view:'library',id:null,q:'',cat:'',draft:null,fiche:null,nav:[],navSeq:[],checked:{},catMgr:false,showFlow:false,showSess:false};
+const Runtime={fiche:null,ficheId:null,sessionId:null,name:'',sound:true,checked:{},nav:[],navSeq:[],seq:0,counters:{},timers:{}};
 let AC=null;
 const uid=p=>(p||'f')+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
 const esc=s=>(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -513,9 +516,15 @@ function freshRuntime(f,session){
   Runtime.fiche=f;Runtime.ficheId=f.id;Runtime.sessionId=session?session.id:null;Runtime.name=session?session.name:'';
   Runtime.checked=session&&session.checked?{...session.checked}:{};
   Runtime.nav=(session&&session.nav&&session.nav.length)?session.nav.slice():[f.start||((f.blocks[0]||{}).id)];
+  // navSeq : identifiant de VISITE unique par entrée de nav (parallèle à nav). Permet, lors
+  // d'une boucle qui revient sur un bloc, d'avoir des cases à cocher NEUVES pour cette visite
+  // tout en conservant (sans les effacer) les cases cochées des visites précédentes. La clé de
+  // cochage = 'seqDeLaVisite:idBloc:index'. On restaure navSeq d'une session, sinon on régénère.
+  Runtime.navSeq=(session&&session.navSeq&&session.navSeq.length===Runtime.nav.length)?session.navSeq.slice():Runtime.nav.map((_,i)=>i+1);
+  Runtime.seq=Runtime.navSeq.reduce((m,v)=>Math.max(m,v),0);
   Runtime.counters={};(f.counters||[]).forEach(c=>{Runtime.counters[c.id]=(session&&session.counters&&(c.id in session.counters))?session.counters[c.id]:(c.start||0);});
   Runtime.timers={};(f.timers||[]).forEach(t=>{const sv=session&&session.timers&&session.timers[t.id];Runtime.timers[t.id]={id:t.id,label:t.label,type:t.type,seconds:t.seconds||0,autoloop:!!t.autoloop,elapsedMs:sv?sv.elapsedMs:0,cycles:sv?sv.cycles:0,running:false,lastStart:0};});
-  state.checked=Runtime.checked;state.nav=Runtime.nav;
+  state.checked=Runtime.checked;state.nav=Runtime.nav;state.navSeq=Runtime.navSeq;
 }
 function resetRuntime(){Runtime.fiche=null;Runtime.ficheId=null;Runtime.sessionId=null;Runtime.name='';Runtime.timers={};Runtime.counters={};}
 function ensureAudio(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();}catch(e){}}
@@ -552,7 +561,7 @@ async function saveSession(){const f=Runtime.fiche;if(!f)return;const now=Date.n
   Object.values(Runtime.timers).forEach(t=>{const within=t.elapsedMs+(t.running?(now-t.lastStart):0);tsnap[t.id]={elapsedMs:t.type==='interval'?Math.min(t.seconds*1000,within):within,cycles:t.cycles};});
   const def=Runtime.name||((f.title||'Session')+' — '+new Date().toLocaleString('fr-FR',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'}));
   const name=prompt('Nom de la session :',def);if(name===null)return;
-  const s={id:Runtime.sessionId||uid('s'),ficheId:f.id,ficheTitle:f.title,name:name||def,savedAt:now,checked:{...Runtime.checked},nav:Runtime.nav.slice(),counters:{...Runtime.counters},timers:tsnap};
+  const s={id:Runtime.sessionId||uid('s'),ficheId:f.id,ficheTitle:f.title,name:name||def,savedAt:now,checked:{...Runtime.checked},nav:Runtime.nav.slice(),navSeq:Runtime.navSeq.slice(),counters:{...Runtime.counters},timers:tsnap};
   try{await Data.putSession(s);}catch(e){alert('Sauvegarde impossible (stockage saturé).');return;}
   Runtime.sessionId=s.id;Runtime.name=s.name;const i=sessions.findIndex(x=>x.id===s.id);if(i>=0)sessions[i]=s;else sessions.push(s);state.showSess=true;render();}
 function resumeSession(id){const s=sessions.find(x=>x.id===id);if(!s)return;const f=fiches.find(x=>x.id===s.ficheId);if(!f){alert('Fiche introuvable.');return;}freshRuntime(f,s);state.fiche=f;state.id=f.id;state.showFlow=false;state.showFlow=!!(f.blocks&&f.blocks.length);state.showSess=false;state.view='read';render();}
@@ -717,11 +726,11 @@ function runtimePanel(f){const tl=Object.values(Runtime.timers);const cl=f.count
    (mise à jour DOM directe, sans render), et gestion des sessions. */
 function renderRead(){
   const f=state.fiche;if(!f){state.view='library';return render();}
-  const cur=state.nav[state.nav.length-1];const blk=f.blocks.find(b=>b.id===cur)||f.blocks.find(b=>b.id===f.start)||f.blocks[0];const flow=hasFlow(f);let navHtml='';
+  const cur=state.nav[state.nav.length-1];const curSeq=state.navSeq[state.navSeq.length-1]||1;const blk=f.blocks.find(b=>b.id===cur)||f.blocks.find(b=>b.id===f.start)||f.blocks[0];const flow=hasFlow(f);let navHtml='';
   if(blk){const crumbs=flow?`<div class="crumbs">${state.nav.map((id,i)=>{const b=f.blocks.find(x=>x.id===id);return `<span class="cb${i===state.nav.length-1?' cur':''}">${esc((b&&b.title)||'?')}</span>`;}).join('<span>›</span>')}</div>`:'';
     const imgH=blk.image?`<img class="node-img" src="${blk.image}" data-full="${blk.image}" alt="">`:'';
     if(blk.type==='decision'){navHtml=`<div class="nav-wrap">${crumbs}<div class="node-title">${esc(blk.title)||'Décision'}</div>${imgH}<div class="question">${esc(blk.question)||'…'}</div><div class="options">${(blk.options||[]).map((o,i)=>`<button class="opt" data-goto="${o.target||''}">${esc(o.label)||'Option '+(i+1)}<span class="arr"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></span></button>`).join('')}</div><div class="flow-ctrl">${state.nav.length>1?'<button class="btn sm" id="navBack">← Précédent</button>':''}<button class="btn sm" id="navReset">Recommencer</button></div></div>`;}
-    else{const steps=clean(blk.steps);navHtml=`<div class="nav-wrap">${crumbs}<div class="node-title">${esc(blk.title)||'Étapes'}</div>${imgH}<ol class="steps">${steps.map((s,i)=>{const k=blk.id+':'+i;return `<li data-ck="${k}" class="${state.checked[k]?'done':''}"><span class="box">${state.checked[k]?'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg>':''}</span><span class="txt">${esc(s)}</span></li>`;}).join('')}</ol><div class="flow-ctrl">${blk.next&&f.blocks.some(b=>b.id===blk.next)?'<button class="btn primary sm" id="navNext">Continuer →</button>':'<span class="endcap">Fin de cette branche.</span>'}${state.nav.length>1?'<button class="btn sm" id="navBack">← Précédent</button>':''}${flow?'<button class="btn sm" id="navReset">Recommencer</button>':''}</div></div>`;}}
+    else{const steps=clean(blk.steps);navHtml=`<div class="nav-wrap">${crumbs}<div class="node-title">${esc(blk.title)||'Étapes'}</div>${imgH}<ol class="steps">${steps.map((s,i)=>{const k=curSeq+':'+blk.id+':'+i;return `<li data-ck="${k}" class="${state.checked[k]?'done':''}"><span class="box">${state.checked[k]?'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg>':''}</span><span class="txt">${esc(s)}</span></li>`;}).join('')}</ol><div class="flow-ctrl">${blk.next&&f.blocks.some(b=>b.id===blk.next)?'<button class="btn primary sm" id="navNext">Continuer →</button>':'<span class="endcap">Fin de cette branche.</span>'}${state.nav.length>1?'<button class="btn sm" id="navBack">← Précédent</button>':''}${flow?'<button class="btn sm" id="navReset">Recommencer</button>':''}</div></div>`;}}
   const gallery=(f.images||[]).length?`<section class="block"><div class="block-h h-img"><span class="pip"></span>Schémas & captures</div><div class="gallery">${f.images.map(im=>`<div class="gthumb"><img src="${im.data}" data-full="${im.data}" data-cap="${esc(im.caption||'')}" alt="${esc(im.caption||'')}">${im.caption?`<div class="gcap">${esc(im.caption)}</div>`:''}</div>`).join('')}</div></section>`:'';
   const refs=clean(f.references);
   const ss=sessions.filter(s=>s.ficheId===f.id).sort((a,b)=>b.savedAt-a.savedAt);
@@ -741,17 +750,17 @@ function renderRead(){
     ${staticBlock('Ne pas oublier','h-forget',f.notForget,'forget',true)}
     ${staticBlock('Diagnostics différentiels','h-diff',f.differentials,'diff')}
     ${refs.length?`<div class="refs"><b>Références</b><ol>${refs.map(r=>`<li>${esc(r)}</li>`).join('')}</ol></div>`:''}
-    <div class="read-actions"><button class="btn" id="edit">Modifier</button><button class="btn" id="print">Imprimer</button><button class="btn" id="dup">Dupliquer</button><button class="btn" id="exportOne">Exporter</button></div>`;
+    <div class="read-actions"><button class="btn" id="edit">Modifier</button><button class="btn" id="print">Imprimer</button><button class="btn" id="dup">Dupliquer</button><button class="btn" id="exportOne">Exporter cette fiche</button></div>`;
   document.getElementById('back').onclick=()=>{state.view='library';state.fiche=null;state.showFlow=false;render();};
   document.getElementById('edit').onclick=()=>openEdit(f.id);
   document.getElementById('print').onclick=()=>window.print();
   document.getElementById('dup').onclick=async()=>{const c=JSON.parse(JSON.stringify(f));c.id=uid();c.title=(f.title||'Fiche')+' (copie)';c.order=Date.now();if(await persist(c)){fiches.push(c);openEdit(c.id);}};
   document.getElementById('exportOne').onclick=()=>exportData([f],'fiche-'+fileSlug(f.title));
   const ft=document.getElementById('flowToggle');if(ft)ft.onclick=()=>{state.showFlow=!state.showFlow;render();};
-  const nx=document.getElementById('navNext');if(nx)nx.onclick=()=>{state.nav.push(blk.next);render();};
-  const bk=document.getElementById('navBack');if(bk)bk.onclick=()=>{state.nav.pop();render();};
-  const rs=document.getElementById('navReset');if(rs)rs.onclick=()=>{state.nav.length=0;state.nav.push(f.start);render();};
-  main.querySelectorAll('[data-goto]').forEach(b=>b.onclick=()=>{const t=b.dataset.goto;if(t&&f.blocks.some(x=>x.id===t)){state.nav.push(t);render();}});
+  const nx=document.getElementById('navNext');if(nx)nx.onclick=()=>{state.nav.push(blk.next);state.navSeq.push(++Runtime.seq);render();};
+  const bk=document.getElementById('navBack');if(bk)bk.onclick=()=>{state.nav.pop();state.navSeq.pop();render();};
+  const rs=document.getElementById('navReset');if(rs)rs.onclick=()=>{state.nav.length=0;state.navSeq.length=0;state.nav.push(f.start);state.navSeq.push(++Runtime.seq);render();};
+  main.querySelectorAll('[data-goto]').forEach(b=>b.onclick=()=>{const t=b.dataset.goto;if(t&&f.blocks.some(x=>x.id===t)){state.nav.push(t);state.navSeq.push(++Runtime.seq);render();}});
   main.querySelectorAll('[data-ck]').forEach(li=>li.onclick=()=>{const k=li.dataset.ck;state.checked[k]=!state.checked[k];render();});
   main.querySelectorAll('img[data-full]').forEach(im=>im.onclick=()=>openLightbox(im.dataset.full,im.dataset.cap||''));
   // runtime controls (no full re-render)
@@ -884,7 +893,7 @@ async function deleteDraft(){if(!confirm('Supprimer cette fiche définitivement 
      fiche déjà active (minuteurs en cours préservés) ; sinon en reconstruit un neuf.
    openEdit(id) : édite une copie profonde de la fiche (state.draft).
    newFiche()   : crée une fiche vierge et passe en édition. */
-function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;if(!(Runtime.fiche&&Runtime.ficheId===id))freshRuntime(f,null);state.fiche=Runtime.fiche;state.checked=Runtime.checked;state.nav=Runtime.nav;state.id=id;state.showFlow=!!(f.blocks&&f.blocks.length);state.showSess=false;state.view='read';render();}
+function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;if(!(Runtime.fiche&&Runtime.ficheId===id))freshRuntime(f,null);state.fiche=Runtime.fiche;state.checked=Runtime.checked;state.nav=Runtime.nav;state.navSeq=Runtime.navSeq;state.id=id;state.showFlow=!!(f.blocks&&f.blocks.length);state.showSess=false;state.view='read';render();}
 function openEdit(id){const f=fiches.find(x=>x.id===id);state.draft=JSON.parse(JSON.stringify(f));state.catMgr=false;state.view='edit';render();}
 function newFiche(){state.draft=blankFiche();state.catMgr=false;state.view='edit';render();}
 document.getElementById('topNew').onclick=newFiche;
@@ -902,7 +911,9 @@ document.getElementById('lbX').onclick=closeLightbox;lb.onclick=e=>{if(e.target=
      n'embarque que les catégories utilisées). Même enveloppe -> réimportable.
    Import : accepte le format objet (nouveau) ou un simple tableau de fiches
      (ancien) ; fonctionne pour une librairie entière comme pour une fiche seule.
-     Propose de FUSIONNER ou de REMPLACER ; ajoute les catégories manquantes.
+     Propose de FUSIONNER ou de REMPLACER UNIQUEMENT si l'import contient plusieurs
+     fiches ; un import d'une seule fiche fusionne toujours (jamais d'écrasement de
+     la bibliothèque). Ajoute les catégories manquantes.
      DOUBLONS (même id, mode fusion) : demande une fois s'il faut remplacer la
      version existante ou importer en double ; sinon régénère l'id (copie).
 
@@ -938,7 +949,9 @@ document.getElementById('importBtn').onclick=()=>document.getElementById('import
 document.getElementById('importFile').onchange=e=>{const file=e.target.files[0];if(!file)return;const r=new FileReader();
   r.onload=async()=>{try{const data=JSON.parse(r.result);const imp=Array.isArray(data)?{fiches:data,categories:[]}:data;if(!Array.isArray(imp.fiches))throw 0;
     // Fonctionne pour une librairie entière comme pour une fiche seule (fiches = tableau de 1).
-    const merge=confirm('OK = fusionner avec vos fiches.\nAnnuler = remplacer entièrement.');
+    // SÉCURITÉ : l'option destructive "remplacer entièrement" n'est proposée que pour un
+    // import de PLUSIEURS fiches. Un import d'une seule fiche fusionne toujours (jamais d'écrasement).
+    const merge=imp.fiches.length>1?confirm('Import de '+imp.fiches.length+' fiches.\n\nOK = fusionner avec votre bibliothèque.\nAnnuler = REMPLACER entièrement votre bibliothèque.'):true;
     if(!merge){for(const f of fiches)await Data.del(f.id);fiches=[];}
     (imp.categories||[]).forEach(c=>{if(c&&c.id&&!categories.some(x=>x.id===c.id))categories.push(c);});await saveCats();
     // Gestion des doublons (même identifiant) en mode fusion : remplacer la version
