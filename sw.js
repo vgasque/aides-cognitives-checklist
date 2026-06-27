@@ -16,7 +16,7 @@
 //  localStorage. Vos fiches/catégories/sessions sont indépendantes du cache de
 //  code et restent intactes à chaque mise à jour, tant que l'URL reste la même.
 // =============================================================================
-const CACHE = 'aides-cognitives-v2.1.15';
+const CACHE = 'aides-cognitives-v2.1.16';
 const ASSETS = [
   './',
   './index.html',

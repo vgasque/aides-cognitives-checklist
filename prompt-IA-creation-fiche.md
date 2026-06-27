@@ -46,6 +46,27 @@ EXIGENCES DE FOND
 - images : toujours [] (j'ajouterai les schémas moi-même dans l'application).
 - category : "" (je classerai la fiche après import). Laisse "categories": [].
 
+ERGONOMIE DE L'ALGORITHME (conception d'aide cognitive de crise, esprit SFAR / SFMU)
+- Une étape = UNE seule action concrète, commençant par un verbe à l'impératif
+  ("Administrer…", "Appeler…", "Vérifier…"). Pas de paragraphe ni de phrase longue.
+- Ordre = priorité clinique réelle et chronologique : sécuriser d'abord (ABC, appel à
+  l'aide), puis traitement de 1re intention SANS délai, puis 2e intention, puis surveillance.
+- Place tôt l'APPEL À L'AIDE et la répartition des rôles ; mets en tête les gestes qui
+  sauvent et le plus time-critical (ex. adrénaline si anaphylaxie, MgSO4 si éclampsie) —
+  ne les enfouis pas dans la liste.
+- Doses, voies et débits explicites et VÉRIFIABLES (ex. "MgSO4 4 g IV sur 20 min").
+- Chaque étape doit être COCHABLE en situation (fais-le / vérifie-le) : évite les étapes
+  vagues, non actionnables ou non vérifiables.
+- Réserve les blocs « decision » aux VRAIS points de bifurcation (si récidive -> …), pas
+  pour enchaîner une simple séquence.
+- Quand la prise en charge est cyclique, crée une BOUCLE DE RÉÉVALUATION : un bloc de
+  surveillance dont le « next » renvoie vers la décision de réévaluation, et associe un
+  minuteur de cycle (timer interval, autoloop).
+- Limite la charge cognitive : titres de blocs courts, listes ramassées, une idée par ligne.
+- Répartition : confirmation = critères diagnostiques déclenchant la fiche ; verify = ce qui
+  doit être contrôlé/monitoré ; notForget = pièges et points critiques (détrompage) ;
+  differentials = diagnostics différentiels.
+
 COHÉRENCE DES IDENTIFIANTS (très important)
 - Chaque bloc a un "id" unique au sein de la fiche (ex. "b1", "b2", "bd").
 - "start" doit être l'id d'un bloc existant.

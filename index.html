@@ -396,7 +396,7 @@
 
 /* PALETTE : couleurs proposées pour les catégories (hex sombres, lisibles
    en texte comme en pastille teintée). Index réutilisé cycliquement. */
-const APP_VERSION='2.1.15';
+const APP_VERSION='2.1.16';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 const PALETTE=['#0d5b56','#1f5fa6','#4b3fa6','#7a2f6b','#b23052','#b5532a','#8a6a12','#4f6b1e','#1f7a4d','#45556b'];
 /* ===== Backends =====
@@ -758,10 +758,18 @@ function buildFlowSVG(f){
   const BGUT=30,baseBulge=totalW-PX+18;let svgW=totalW,svgH=totalH;
   back.forEach((e,k)=>{e.bx=baseBulge+k*BGUT;const lw=e.lab?Math.min(220,18+textTrunc(e.lab,28).length*6.5):8;const right=e.bx+lw/2+10;if(right>svgW)svgW=right;
     const lowT=(botOfY[e.Q.y]||e.Q.y+e.Q.h)+14+8;if(lowT>svgH)svgH=lowT;});
+  // Points d'attache des retours sur le côté droit, RÉPARTIS par bloc : un bloc peut être à la
+  // fois source d'un retour et cible d'un autre -> sinon les deux se superposent au même point
+  // (côté droit, milieu) et un retour semble manquer.
+  const rAtt={};back.forEach(e=>{(rAtt[e.sid]=rAtt[e.sid]||[]).push([e,'s']);(rAtt[e.tid]=rAtt[e.tid]||[]).push([e,'t']);});
+  Object.keys(rAtt).forEach(id=>{const pp=pos[id],arr=rAtt[id],m=arr.length;arr.forEach((a,k)=>{const yy=Math.round(pp.y+pp.h*(k+1)/(m+1));if(a[1]==='s')a[0].sy=yy;else a[0].ty=yy;});});
   const pill=(lx,ly,lab)=>{const t=textTrunc(lab,28),w=Math.min(220,18+t.length*6.5);return `<g transform="translate(${lx},${ly})"><rect x="${-w/2}" y="-10" width="${w}" height="20" rx="10" fill="#fff" stroke="#e1cf9f"/><text x="0" y="4" text-anchor="middle" font-size="10.5" font-weight="600" fill="#6b4d12" font-family="system-ui">${esc(t)}</text></g>`;};
   let edges='';
-  fwd.forEach(e=>{const y1=e.p.y+e.p.h,y2=e.Q.y,lane=(e.exitIdx||0)+(e.entryIdx||0);
-    let my=y1+Math.min(Math.round(VG*0.5),Math.round((y2-y1)/2));my=Math.round(Math.min(my+lane*6,y1+VG-8,y2-8));
+  fwd.forEach(e=>{const y1=e.p.y+e.p.h,y2=e.Q.y,lane=(e.exitIdx||0)+(e.entryIdx||0),rowBot=botOfY[e.p.y]||y1;
+    // Coude horizontal placé SOUS le bas de TOUTE la rangée source (gap libre), pas sous le bas
+    // du seul bloc source : évite de passer sous un voisin de rangée plus haut (ex. décision
+    // courte à côté d'un bloc d'étapes long).
+    let my=rowBot+Math.min(Math.round(VG*0.5),Math.round((y2-rowBot)/2));my=Math.round(Math.min(my+lane*6,rowBot+VG-8,y2-8));
     edges+=`<path d="M${e.x1},${y1} L${e.x1},${my} L${e.x2},${my} L${e.x2},${y2}" fill="none" stroke="#9fb0ac" stroke-width="1.8" marker-end="url(#ah)"/>`;
     if(e.lab)edges+=pill(Math.round((e.x1+e.x2)/2),my,e.lab);});
   // Routage anti-chevauchement, sans aller-retour : on sort par le côté droit dans
@@ -769,7 +777,7 @@ function buildFlowSVG(f){
   // la marge par la bande AU-DESSUS d'elle (on monte directement) et la cible par la bande
   // SOUS elle (la marge arrive d'en bas). Bandes libres car tops alignés / bas = bloc le plus
   // haut. Remontée sur la marge droite (x=bx). Aucun segment ne passe sous/à travers un bloc.
-  back.forEach(({p,Q,lab,bx})=>{const g=16,sx=p.x+NW,sy=Math.round(p.y+p.h/2),tx=Q.x+NW,ty=Math.round(Q.y+Q.h/2);
+  back.forEach(e=>{const p=e.p,Q=e.Q,lab=e.lab,bx=e.bx,g=16,sx=p.x+NW,sy=e.sy,tx=Q.x+NW,ty=e.ty;
     const sxg=sx+g,txg=tx+g,yas=Math.max(4,p.y-14),ybt=(botOfY[Q.y]||Q.y+Q.h)+14;
     edges+=`<path d="M${sx},${sy} L${sxg},${sy} L${sxg},${yas} L${bx},${yas} L${bx},${ybt} L${txg},${ybt} L${txg},${ty} L${tx},${ty}" fill="none" stroke="#c98a2a" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#ahb)"/>`;
     if(lab)edges+=pill(bx,Math.round((yas+ybt)/2),lab);});
@@ -1054,6 +1062,27 @@ EXIGENCES DE FOND
 - timers / counters : seulement s'ils ont un sens (cycle de réévaluation, nombre de
   bolus...). Sinon, tableaux vides. images : toujours [].
 - category : "" et "categories": [] (je classerai la fiche après import).
+
+ERGONOMIE DE L'ALGORITHME (conception d'aide cognitive de crise, esprit SFAR / SFMU)
+- Une étape = UNE seule action concrète, commençant par un verbe à l'impératif
+  ("Administrer…", "Appeler…", "Vérifier…"). Pas de paragraphe ni de phrase longue.
+- Ordre = priorité clinique réelle et chronologique : sécuriser d'abord (ABC, appel à
+  l'aide), puis traitement de 1re intention SANS délai, puis 2e intention, puis surveillance.
+- Place tôt l'APPEL À L'AIDE et la répartition des rôles ; mets en tête les gestes qui
+  sauvent et le plus time-critical (ex. adrénaline si anaphylaxie, MgSO4 si éclampsie) —
+  ne les enfouis pas dans la liste.
+- Doses, voies et débits explicites et VÉRIFIABLES (ex. "MgSO4 4 g IV sur 20 min").
+- Chaque étape doit être COCHABLE en situation (fais-le / vérifie-le) : évite les étapes
+  vagues, non actionnables ou non vérifiables.
+- Réserve les blocs « decision » aux VRAIS points de bifurcation (si récidive -> …), pas
+  pour enchaîner une simple séquence.
+- Quand la prise en charge est cyclique, crée une BOUCLE DE RÉÉVALUATION : un bloc de
+  surveillance dont le « next » renvoie vers la décision de réévaluation, et associe un
+  minuteur de cycle (timer interval, autoloop).
+- Limite la charge cognitive : titres de blocs courts, listes ramassées, une idée par ligne.
+- Répartition : confirmation = critères diagnostiques déclenchant la fiche ; verify = ce qui
+  doit être contrôlé/monitoré ; notForget = pièges et points critiques (détrompage) ;
+  differentials = diagnostics différentiels.
 
 COHÉRENCE DES IDENTIFIANTS (très important)
 - Chaque bloc a un "id" unique au sein de la fiche (ex. "b1", "b2", "bd").
