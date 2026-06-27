@@ -396,7 +396,7 @@
 
 /* PALETTE : couleurs proposées pour les catégories (hex sombres, lisibles
    en texte comme en pastille teintée). Index réutilisé cycliquement. */
-const APP_VERSION='2.1.17';
+const APP_VERSION='2.1.18';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 const PALETTE=['#b23052','#823a32','#b5532a','#a26a42','#8a6a12','#4f6b1e','#1f7a4d','#0d5b56','#007fb1','#45556b','#1f5fa6','#4b3fa6','#8869af','#7a2f6b','#ad5e7e'];
 /* ===== Backends =====
@@ -743,9 +743,11 @@ function buildFlowSVG(f){
   // Collecte des arêtes, séparées en AVANT (descendantes) et RETOUR (même niveau / remontée).
   // Convention algorithme médical : connecteurs orthogonaux (angles droits), trait plein
   // pour le flux principal, trait pointillé pour les boucles/retours.
-  const fwd=[],back=[];
+  const fwd=[],back=[],lat=[];
   blocks.forEach(b=>{const p=pos[b.id];if(!p)return;const conns=b.type==='steps'?(b.next&&byId[b.next]?[{t:b.next,lab:''}]:[]):(b.options||[]).filter(o=>o.target&&byId[o.target]).map(o=>({t:o.target,lab:o.label||''}));
-    conns.forEach(c=>{const Q=pos[c.t];if(!Q)return;(Q.y>p.y?fwd:back).push({sid:b.id,tid:c.t,p,Q,lab:c.lab});});});
+    conns.forEach(c=>{const Q=pos[c.t];if(!Q)return;const e={sid:b.id,tid:c.t,p,Q,lab:c.lab};
+      // AVANT (plus bas) / RETOUR (plus haut ou soi-même) / LATÉRAL (même niveau, autre bloc).
+      if(Q.y>p.y)fwd.push(e);else if(Q.y<p.y||c.t===b.id)back.push(e);else lat.push(e);});});
   // Points de SORTIE : pour chaque source, triés par x de la CIBLE (la branche de gauche sort
   // à gauche, celle de droite à droite -> plus de croisement en X sous un bloc conditionnel).
   const bySrc={};fwd.forEach(e=>{(bySrc[e.sid]=bySrc[e.sid]||[]).push(e);});
@@ -759,12 +761,20 @@ function buildFlowSVG(f){
   // les connexions se superposent au même point et un retour semble manquer.
   const rAtt={};back.forEach(e=>{(rAtt[e.sid]=rAtt[e.sid]||[]).push([e,'s']);(rAtt[e.tid]=rAtt[e.tid]||[]).push([e,'t']);});
   Object.keys(rAtt).forEach(id=>{const pp=pos[id],arr=rAtt[id],m=arr.length;arr.forEach((a,k)=>{const yy=Math.round(pp.y+pp.h*(k+1)/(m+1));if(a[1]==='s')a[0].sy=yy;else a[0].ty=yy;});});
+  // Arêtes LATÉRALES (même niveau) : attache sur le côté FACE à la cible (droite si la cible est
+  // à droite, gauche sinon), réparties par bloc et par côté.
+  const latAtt={};
+  lat.forEach(e=>{const sS=e.Q.x>e.p.x?'R':'L',tS=e.Q.x>e.p.x?'L':'R';(latAtt[e.sid+sS]=latAtt[e.sid+sS]||[]).push([e,'s']);(latAtt[e.tid+tS]=latAtt[e.tid+tS]||[]).push([e,'t']);});
+  Object.keys(latAtt).forEach(k=>{const id=k.slice(0,-1),pp=pos[id],arr=latAtt[k],m=arr.length;arr.forEach((a,j)=>{const yy=Math.round(pp.y+pp.h*(j+1)/(m+1));if(a[1]==='s')a[0].lsy=yy;else a[0].lty=yy;});});
   // Sépare les AUTO-RÉFÉRENCES (un bloc qui boucle sur lui-même) des retours classiques.
   const selfL=[],back2=[];back.forEach(e=>{(e.sid===e.tid?selfL:back2).push(e);});
+  // Index par source/cible : permet d'ÉCARTER (bifurquer) plusieurs retours partant du même bloc
+  // (ou arrivant au même bloc) pour qu'ils ne se chevauchent pas (risers et bandes décalés).
+  const sCnt={},tCnt={};back2.forEach(e=>{e.sIdx=(sCnt[e.sid]=(sCnt[e.sid]||0));sCnt[e.sid]++;e.tIdx=(tCnt[e.tid]=(tCnt[e.tid]||0));tCnt[e.tid]++;});
   // Retours classiques : routés sur la marge droite, décalés pour éviter les superpositions.
   const BGUT=30,baseBulge=totalW-PX+18,SLOOP=24;let svgW=totalW,svgH=totalH;
   back2.forEach((e,k)=>{e.bx=baseBulge+k*BGUT;const lw=e.lab?Math.min(220,18+textTrunc(e.lab,28).length*6.5):8;const right=e.bx+lw/2+10;if(right>svgW)svgW=right;
-    const lowT=(botOfY[e.Q.y]||e.Q.y+e.Q.h)+14+8;if(lowT>svgH)svgH=lowT;});
+    const lowT=(botOfY[e.Q.y]||e.Q.y+e.Q.h)+14+(e.tIdx||0)*8+8;if(lowT>svgH)svgH=lowT;});
   // Auto-références : petite boucle compacte JUSTE à droite du bloc (jamais autour d'un autre).
   selfL.forEach(e=>{const lw=e.lab?Math.min(220,18+textTrunc(e.lab,28).length*6.5):8;const right=e.p.x+NW+SLOOP+lw+12;if(right>svgW)svgW=right;});
   const pill=(lx,ly,lab)=>{const t=textTrunc(lab,28),w=Math.min(220,18+t.length*6.5);return `<g transform="translate(${lx},${ly})"><rect x="${-w/2}" y="-10" width="${w}" height="20" rx="10" fill="#fff" stroke="#e1cf9f"/><text x="0" y="4" text-anchor="middle" font-size="10.5" font-weight="600" fill="#6b4d12" font-family="system-ui">${esc(t)}</text></g>`;};
@@ -781,14 +791,28 @@ function buildFlowSVG(f){
   // la marge par la bande AU-DESSUS d'elle (on monte directement) et la cible par la bande
   // SOUS elle (la marge arrive d'en bas). Bandes libres car tops alignés / bas = bloc le plus
   // haut. Remontée sur la marge droite (x=bx). Aucun segment ne passe sous/à travers un bloc.
-  back2.forEach(e=>{const p=e.p,Q=e.Q,lab=e.lab,bx=e.bx,g=16,sx=p.x+NW,sy=e.sy,tx=Q.x+NW,ty=e.ty;
-    const sxg=sx+g,txg=tx+g,yas=Math.max(4,p.y-14),ybt=(botOfY[Q.y]||Q.y+Q.h)+14;
+  back2.forEach(e=>{const p=e.p,Q=e.Q,lab=e.lab,bx=e.bx,sx=p.x+NW,sy=e.sy,tx=Q.x+NW,ty=e.ty;
+    // Décale le riser (x) et la bande (y) selon l'index source/cible -> deux retours du même bloc
+    // bifurquent au lieu de se chevaucher.
+    const gS=Math.min(16+(e.sIdx||0)*9,HG-3),gT=Math.min(16+(e.tIdx||0)*9,HG-3);
+    const sxg=sx+gS,txg=tx+gT,yas=Math.max(4,p.y-14-(e.sIdx||0)*8),ybt=(botOfY[Q.y]||Q.y+Q.h)+14+(e.tIdx||0)*8;
     edges+=`<path d="M${sx},${sy} L${sxg},${sy} L${sxg},${yas} L${bx},${yas} L${bx},${ybt} L${txg},${ybt} L${txg},${ty} L${tx},${ty}" fill="none" stroke="#c98a2a" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#ahb)"/>`;
     if(lab)edges+=pill(bx,Math.round((yas+ybt)/2),lab);});
   // Auto-référence : sort du côté droit (haut), redescend juste à droite du bloc et y rentre (bas).
   selfL.forEach(e=>{const sx=e.p.x+NW,sy=e.sy,ty=e.ty,bx=sx+SLOOP;
     edges+=`<path d="M${sx},${sy} L${bx},${sy} L${bx},${ty} L${sx},${ty}" fill="none" stroke="#c98a2a" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#ahb)"/>`;
     if(e.lab){const t=textTrunc(e.lab,28),w=Math.min(220,18+t.length*6.5);edges+=pill(Math.round(bx+w/2+6),Math.round((sy+ty)/2),e.lab);}});
+  // Arête LATÉRALE (même niveau). Adjacents + sans label : trait direct bord-à-bord (du bord
+  // face à face). Sinon (label, ou un bloc entre les deux) : route SOUS la rangée pour laisser
+  // la place au label et ne passer ni sur un bloc ni sur la pastille d'une arête conditionnelle.
+  lat.forEach(e=>{const p=e.p,Q=e.Q,toR=Q.x>p.x,sx=toR?p.x+NW:p.x,tx=toR?Q.x:Q.x+NW,sy=e.lsy,ty=e.lty;
+    const lo=Math.min(sx,tx),hi=Math.max(sx,tx);
+    const blocked=blocks.some(b=>{const q=pos[b.id];return q&&b.id!==e.sid&&b.id!==e.tid&&q.y===p.y&&q.x+NW>lo+2&&q.x<hi-2;});
+    if(!blocked&&!e.lab){const mx=Math.round((sx+tx)/2);
+      edges+=`<path d="M${sx},${sy} L${mx},${sy} L${mx},${ty} L${tx},${ty}" fill="none" stroke="#9fb0ac" stroke-width="1.8" marker-end="url(#ah)"/>`;}
+    else{const g=16,yb=(botOfY[p.y]||p.y+p.h)+16,sxg=toR?sx+g:sx-g,txg=toR?tx-g:tx+g;
+      edges+=`<path d="M${sx},${sy} L${sxg},${sy} L${sxg},${yb} L${txg},${yb} L${txg},${ty} L${tx},${ty}" fill="none" stroke="#9fb0ac" stroke-width="1.8" marker-end="url(#ah)"/>`;
+      if(yb+8>svgH)svgH=yb+8;if(e.lab)edges+=pill(Math.round((sx+tx)/2),yb,e.lab);}});
   let nodes='';blocks.forEach(b=>{const p=pos[b.id];if(!p)return;const L=LAY[b.id],dec=L.dec,isS=b.id===start;
     const fill=dec?'#fdf8ef':'#f5faf8',stroke=dec?'#e1cf9f':'#c2d0cc',tcol=dec?'#6b4d12':'#16211f';const h=p.h,hh=L.headerH;
     let g=`<rect width="${NW}" height="${h}" rx="10" fill="${fill}"/>`;
@@ -1100,7 +1124,11 @@ ERGONOMIE DE L'ALGORITHME (conception d'aide cognitive de crise, esprit SFAR / S
 - PLUSIEURS minuteurs de réévaluation sont les BIENVENUS quand la prise en charge le
   justifie (ex. un minuteur de bolus à durée fixe + un cycle de surveillance qui reboucle).
   N'hésite pas à en créer plusieurs.
-- Limite la charge cognitive : titres de blocs courts, listes ramassées, une idée par ligne.
+- REGROUPE sur UNE même ligne les éléments d'un même geste ou d'une même catégorie quand
+  c'est cohérent, plutôt qu'une ligne par élément. Ex. : "Monitoring continu : TA, FC, SpO2,
+  conscience, neuro, RCF" sur une seule ligne (pas six) ; "Bilan : NFS, coag, iono, hépatique".
+  Garde séparées les ACTIONS distinctes (un geste = une ligne).
+- Limite la charge cognitive : titres de blocs courts, listes ramassées.
 - Répartition : confirmation = critères diagnostiques déclenchant la fiche ; verify = ce qui
   doit être contrôlé/monitoré ; notForget = pièges et points critiques (détrompage) ;
   differentials = diagnostics différentiels.

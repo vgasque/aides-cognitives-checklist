@@ -75,7 +75,11 @@ ERGONOMIE DE L'ALGORITHME (conception d'aide cognitive de crise, esprit SFAR / S
 - PLUSIEURS minuteurs de réévaluation sont les BIENVENUS quand la prise en charge le
   justifie (ex. un minuteur de bolus à durée fixe + un cycle de surveillance qui reboucle).
   N'hésite pas à en créer plusieurs.
-- Limite la charge cognitive : titres de blocs courts, listes ramassées, une idée par ligne.
+- REGROUPE sur UNE même ligne les éléments d'un même geste ou d'une même catégorie quand
+  c'est cohérent, plutôt qu'une ligne par élément. Ex. : "Monitoring continu : TA, FC, SpO2,
+  conscience, neuro, RCF" sur une seule ligne (pas six) ; "Bilan : NFS, coag, iono, hépatique".
+  Garde séparées les ACTIONS distinctes (un geste = une ligne).
+- Limite la charge cognitive : titres de blocs courts, listes ramassées.
 - Répartition : confirmation = critères diagnostiques déclenchant la fiche ; verify = ce qui
   doit être contrôlé/monitoré ; notForget = pièges et points critiques (détrompage) ;
   differentials = diagnostics différentiels.
