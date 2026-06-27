@@ -210,6 +210,8 @@
   .nav-wrap{background:#f4f7f6;border:1px solid var(--line);border-radius:var(--radius);padding:15px 15px 13px;margin-bottom:6px}
   .crumbs{display:flex;flex-wrap:wrap;gap:5px;align-items:center;font-size:11px;color:var(--ink-soft);margin-bottom:12px}
   .crumbs .cb{background:#e4ebe9;padding:2px 8px;border-radius:12px;cursor:pointer}.crumbs .cb:not(.cur):hover{background:#cfe0dd}.crumbs .cb.cur{background:var(--primary);color:#fff;cursor:default}
+  .crumbs .cb-n{font-family:var(--mono);font-size:10px;opacity:.7;margin-left:2px}
+  .node-title .pass-n{font-family:var(--mono);text-transform:none;letter-spacing:0;font-weight:600;color:var(--primary);margin-left:7px}
   .node-title{font-size:13px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--ink-soft);margin-bottom:12px}
   .question{font-size:19px;font-weight:650;line-height:1.3;margin:2px 0 16px}
   .options{display:grid;gap:10px}
@@ -397,7 +399,7 @@
 
 /* PALETTE : couleurs proposées pour les catégories (hex sombres, lisibles
    en texte comme en pastille teintée). Index réutilisé cycliquement. */
-const APP_VERSION='2.1.19';
+const APP_VERSION='2.1.20';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 const PALETTE=['#b23052','#823a32','#b5532a','#a26a42','#8a6a12','#4f6b1e','#1f7a4d','#0d5b56','#007fb1','#45556b','#1f5fa6','#4b3fa6','#8869af','#7a2f6b','#ad5e7e'];
 /* ===== Backends =====
@@ -777,12 +779,19 @@ function buildFlowSVG(f){
   // Index par source/cible : permet d'ÉCARTER (bifurquer) plusieurs retours partant du même bloc
   // (ou arrivant au même bloc) pour qu'ils ne se chevauchent pas (risers et bandes décalés).
   const sCnt={},tCnt={};back2.forEach(e=>{e.sIdx=(sCnt[e.sid]=(sCnt[e.sid]||0));sCnt[e.sid]++;e.tIdx=(tCnt[e.tid]=(tCnt[e.tid]||0));tCnt[e.tid]++;});
-  // Retours classiques : routés sur la marge droite. BGUT >= largeur d'une pastille étroite ->
-  // les pastilles de deux retours voisins ne se chevauchent pas (bug 4.A).
-  const BGUT=150,baseBulge=totalW-PX+18,SLOOP=24,pwN=lab=>Math.min(130,18+textTrunc(lab,18).length*6.3);
+  // Retours : remontée verticale (x=bx) placée AU PLUS PRÈS des blocs — juste à droite des blocs
+  // que la remontée doit contourner (rangées intermédiaires entre cible et source), au lieu d'une
+  // marge globale lointaine. On décale (bx + 20) uniquement si deux retours se gêneraient.
+  const SLOOP=24,pwN=lab=>Math.min(130,18+textTrunc(lab,18).length*6.3);
   let svgW=totalW,svgH=totalH;
-  back2.forEach((e,k)=>{e.bx=baseBulge+k*BGUT;const lw=e.lab?pwN(e.lab):8;const right=e.bx+lw/2+10;if(right>svgW)svgW=right;
-    const lowT=(botOfY[e.Q.y]||e.Q.y+e.Q.h)+14+(e.tIdx||0)*8+8;if(lowT>svgH)svgH=lowT;});
+  back2.forEach(e=>{e.yas=Math.max(4,e.p.y-14-(e.sIdx||0)*8);e.ybt=(botOfY[e.Q.y]||e.Q.y+e.Q.h)+14+(e.tIdx||0)*8;
+    e.ymin=Math.min(e.yas,e.ybt);e.ymax=Math.max(e.yas,e.ybt);
+    let req=Math.max(e.p.x+e.p.w,e.Q.x+e.Q.w);
+    blocks.forEach(b=>{const q=pos[b.id];if(!q)return;if(q.y<e.ymax&&q.y+q.h>e.ymin)req=Math.max(req,q.x+q.w);});
+    e.req=req;});
+  const placedB=[];
+  back2.slice().sort((a,b)=>a.req-b.req).forEach(e=>{let bx=e.req+16,bump=1;while(bump){bump=0;placedB.forEach(p=>{if(p.ymin<e.ymax&&p.ymax>e.ymin&&Math.abs(p.bx-bx)<20){bx=p.bx+20;bump=1;}});}e.bx=bx;placedB.push(e);
+    const lw=e.lab?pwN(e.lab):8;if(bx+lw/2+10>svgW)svgW=bx+lw/2+10;if(e.ybt+8>svgH)svgH=e.ybt+8;});
   // Auto-références : petite boucle compacte JUSTE à droite du bloc (jamais autour d'un autre).
   selfL.forEach(e=>{const lw=e.lab?pwN(e.lab):8;const right=e.p.x+e.p.w+SLOOP+lw+12;if(right>svgW)svgW=right;});
   const pill=(lx,ly,lab)=>{const t=textTrunc(lab,28),w=Math.min(220,18+t.length*6.5);return `<g transform="translate(${lx},${ly})"><rect x="${-w/2}" y="-10" width="${w}" height="20" rx="10" fill="#fff" stroke="#e1cf9f"/><text x="0" y="4" text-anchor="middle" font-size="10.5" font-weight="600" fill="#6b4d12" font-family="system-ui">${esc(t)}</text></g>`;};
@@ -801,12 +810,12 @@ function buildFlowSVG(f){
   // SOUS elle (la marge arrive d'en bas). Bandes libres car tops alignés / bas = bloc le plus
   // haut. Remontée sur la marge droite (x=bx). Aucun segment ne passe sous/à travers un bloc.
   back2.forEach(e=>{const p=e.p,Q=e.Q,lab=e.lab,bx=e.bx,sx=p.x+p.w,sy=e.sy,tx=Q.x+Q.w,ty=e.ty;
-    // Décale le riser (x) et la bande (y) selon l'index source/cible -> deux retours du même bloc
+    // Riser (x) et bandes (y) décalés selon l'index source/cible -> deux retours du même bloc
     // bifurquent au lieu de se chevaucher.
     const gS=Math.min(16+(e.sIdx||0)*9,HG-3),gT=Math.min(16+(e.tIdx||0)*9,HG-3);
-    const sxg=sx+gS,txg=tx+gT,yas=Math.max(4,p.y-14-(e.sIdx||0)*8),ybt=(botOfY[Q.y]||Q.y+Q.h)+14+(e.tIdx||0)*8;
+    const sxg=sx+gS,txg=tx+gT,yas=e.yas,ybt=e.ybt;
     edges+=`<path d="M${sx},${sy} L${sxg},${sy} L${sxg},${yas} L${bx},${yas} L${bx},${ybt} L${txg},${ybt} L${txg},${ty} L${tx},${ty}" fill="none" stroke="#c98a2a" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#ahb)"/>`;
-    if(lab)edges+=pillN(bx,Math.round((yas+ybt)/2),lab);});
+    if(lab)edges+=pillN(Math.round((sxg+bx)/2),yas,lab);});
   // Auto-référence : sort du côté droit (haut), redescend juste à droite du bloc et y rentre (bas).
   selfL.forEach(e=>{const sx=e.p.x+e.p.w,sy=e.sy,ty=e.ty,bx=sx+SLOOP;
     edges+=`<path d="M${sx},${sy} L${bx},${sy} L${bx},${ty} L${sx},${ty}" fill="none" stroke="#c98a2a" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#ahb)"/>`;
@@ -883,16 +892,22 @@ function renderRead(){
   const f=state.fiche;if(!f){state.view='library';return render();}
   const npos=Math.min(state.navPos==null?state.nav.length-1:state.navPos,state.nav.length-1);state.navPos=npos;
   const cur=state.nav[npos];const curSeq=state.navSeq[npos]||1;const atTip=npos>=state.nav.length-1;const blk=f.blocks.find(b=>b.id===cur)||f.blocks.find(b=>b.id===f.start)||f.blocks[0];const flow=hasFlow(f);let navHtml='';
-  if(blk){const crumbs=flow?`<div class="crumbs">${state.nav.map((id,i)=>{const b=f.blocks.find(x=>x.id===id);return `<span class="cb${i===npos?' cur':''}" data-crumb="${i}" role="button" tabindex="0">${esc((b&&b.title)||'?')}</span>`;}).join('<span>›</span>')}</div>`:'';
+  if(blk){const occ={},totOcc={};state.nav.forEach(id=>{totOcc[id]=(totOcc[id]||0)+1;});
+    // Numérotation des PASSAGES : quand une boucle ramène sur un bloc déjà visité, chaque passage
+    // est une NOUVELLE INSTANCE (seq distinct -> cases neuves) ; on l'indique (#1, #2…) pour qu'il
+    // soit clair qu'on continue une nouvelle fois et qu'on ne « revient » pas en arrière.
+    const crumbs=flow?`<div class="crumbs">${state.nav.map((id,i)=>{const b=f.blocks.find(x=>x.id===id);occ[id]=(occ[id]||0)+1;const tag=totOcc[id]>1?` <span class="cb-n">#${occ[id]}</span>`:'';return `<span class="cb${i===npos?' cur':''}" data-crumb="${i}" role="button" tabindex="0">${esc((b&&b.title)||'?')}${tag}</span>`;}).join('<span>›</span>')}</div>`:'';
+    const curOcc=state.nav.slice(0,npos+1).filter(x=>x===cur).length,curTot=totOcc[cur]||1;
+    const passTag=curTot>1?` <span class="pass-n">passage ${curOcc}/${curTot}</span>`:'';
     const backBtn=npos>0?'<button class="btn sm" id="navBack">← Précédent</button>':'';
     const resetBtn=flow?'<button class="btn sm" id="navReset">Recommencer</button>':'';
     const histBtn=!atTip?'<button class="btn sm" id="navFwd">Suivant →</button><button class="btn primary sm" id="navResume">↺ Reprendre à partir de ce point</button>':'';
     const imgH=blk.image?`<img class="node-img" src="${blk.image}" data-full="${blk.image}" alt="">`:'';
     if(blk.type==='decision'){const taken=state.nav[npos+1];
       const opts=(blk.options||[]).map((o,i)=>{const sel=!atTip&&o.target&&o.target===taken;const arr=sel?'<span class="arr">✓</span>':'<span class="arr"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></span>';return `<button class="opt${sel?' taken':''}" ${atTip?`data-goto="${o.target||''}"`:'disabled'}>${esc(o.label)||'Option '+(i+1)}${arr}</button>`;}).join('');
-      navHtml=`<div class="nav-wrap">${crumbs}<div class="node-title">${esc(blk.title)||'Décision'}</div>${imgH}<div class="question">${esc(blk.question)||'…'}</div><div class="options">${opts}</div><div class="flow-ctrl">${histBtn}${backBtn}${resetBtn}</div></div>`;}
+      navHtml=`<div class="nav-wrap">${crumbs}<div class="node-title">${esc(blk.title)||'Décision'}${passTag}</div>${imgH}<div class="question">${esc(blk.question)||'…'}</div><div class="options">${opts}</div><div class="flow-ctrl">${histBtn}${backBtn}${resetBtn}</div></div>`;}
     else{const steps=clean(blk.steps);const fwdc=atTip?(blk.next&&f.blocks.some(b=>b.id===blk.next)?'<button class="btn primary sm" id="navNext">Continuer →</button>':'<span class="endcap">Fin de cette branche.</span>'):histBtn;
-      navHtml=`<div class="nav-wrap">${crumbs}<div class="node-title">${esc(blk.title)||'Étapes'}</div>${imgH}<ol class="steps">${steps.map((s,i)=>{const k=curSeq+':'+blk.id+':'+i;return `<li data-ck="${k}" class="${state.checked[k]?'done':''}"><span class="box">${state.checked[k]?'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg>':''}</span><span class="txt">${esc(s)}</span></li>`;}).join('')}</ol><div class="flow-ctrl">${fwdc}${backBtn}${resetBtn}</div></div>`;}}
+      navHtml=`<div class="nav-wrap">${crumbs}<div class="node-title">${esc(blk.title)||'Étapes'}${passTag}</div>${imgH}<ol class="steps">${steps.map((s,i)=>{const k=curSeq+':'+blk.id+':'+i;return `<li data-ck="${k}" class="${state.checked[k]?'done':''}"><span class="box">${state.checked[k]?'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg>':''}</span><span class="txt">${esc(s)}</span></li>`;}).join('')}</ol><div class="flow-ctrl">${fwdc}${backBtn}${resetBtn}</div></div>`;}}
   const gallery=(f.images||[]).length?`<section class="block"><div class="block-h h-img"><span class="pip"></span>Schémas & captures</div><div class="gallery">${f.images.map(im=>`<div class="gthumb"><img src="${im.data}" data-full="${im.data}" data-cap="${esc(im.caption||'')}" alt="${esc(im.caption||'')}">${im.caption?`<div class="gcap">${esc(im.caption)}</div>`:''}</div>`).join('')}</div></section>`:'';
   const refs=clean(f.references);
   const ss=sessions.filter(s=>s.ficheId===f.id).sort((a,b)=>b.savedAt-a.savedAt);
