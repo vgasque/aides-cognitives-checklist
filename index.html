@@ -336,7 +336,7 @@
 
 /* PALETTE : couleurs proposées pour les catégories (hex sombres, lisibles
    en texte comme en pastille teintée). Index réutilisé cycliquement. */
-const APP_VERSION='2.1.4';
+const APP_VERSION='2.1.5';
 const PALETTE=['#0d5b56','#1f5fa6','#4b3fa6','#7a2f6b','#b23052','#b5532a','#8a6a12','#4f6b1e','#1f7a4d','#45556b'];
 /* ===== Backends =====
    Quatre implémentations interchangeables exposant la MÊME interface.
@@ -658,9 +658,14 @@ function buildFlowSVG(f){
     const x1=Math.round(p.x+NW*(i+1)/(n+1)),y1=p.y+p.h,x2=Q.x+NW/2,y2=Q.y,my=Math.round(y1+Math.min(VG*0.5,(y2-y1)/2));
     edges+=`<path d="M${x1},${y1} L${x1},${my} L${x2},${my} L${x2},${y2}" fill="none" stroke="#9fb0ac" stroke-width="1.8" marker-end="url(#ah)"/>`;
     if(lab)edges+=pill((x1+x2)/2,my,lab);});
-  back.forEach(({p,Q,lab,bx})=>{const sx=p.x+NW,sy=Math.round(p.y+p.h/2),tx=Q.x+NW,ty=Math.round(Q.y+Q.h/2);
-    edges+=`<path d="M${sx},${sy} L${bx},${sy} L${bx},${ty} L${tx},${ty}" fill="none" stroke="#c98a2a" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#ahb)"/>`;
-    if(lab)edges+=pill(bx,Math.round((sy+ty)/2),lab);});
+  // Routage anti-chevauchement : on sort par le côté droit dans l'inter-colonne (libre),
+  // les segments horizontaux courent dans la bande AU-DESSUS de chaque rangée (libre car
+  // tous les blocs d'un niveau ont le même bord supérieur), et la remontée se fait sur la
+  // marge droite (x=bx). Aucun segment ne passe ainsi sous ou à travers un bloc.
+  back.forEach(({p,Q,lab,bx})=>{const g=16,sx=p.x+NW,sy=Math.round(p.y+p.h/2),tx=Q.x+NW,ty=Math.round(Q.y+Q.h/2);
+    const sxg=sx+g,txg=tx+g,ya=Math.max(4,p.y-16),yb=Math.max(4,Q.y-16);
+    edges+=`<path d="M${sx},${sy} L${sxg},${sy} L${sxg},${ya} L${bx},${ya} L${bx},${yb} L${txg},${yb} L${txg},${ty} L${tx},${ty}" fill="none" stroke="#c98a2a" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#ahb)"/>`;
+    if(lab)edges+=pill(bx,Math.round((ya+yb)/2),lab);});
   let nodes='';blocks.forEach(b=>{const p=pos[b.id];if(!p)return;const dec=b.type==='decision',isS=b.id===start;const fill=dec?'#fdf8ef':'#f5faf8',stroke=dec?'#e1cf9f':'#c2d0cc',tcol=dec?'#6b4d12':'#16211f';const h=p.h;
     let g=`<rect width="${NW}" height="${h}" rx="10" fill="${fill}" stroke="${isS?'#0d5b56':stroke}" stroke-width="${isS?2.5:1.5}"/>`;
     g+=`<rect width="${NW}" height="${TH}" rx="10" fill="${dec?'#f0e4c8':'#dbeae5'}"/><rect width="${NW}" height="6" y="${TH-6}" fill="${dec?'#f0e4c8':'#dbeae5'}"/>`;
