@@ -316,6 +316,7 @@
   .back{background:none;border:0;color:var(--primary);font-size:14px;font-weight:600;padding:6px 0;margin-bottom:6px;display:inline-flex;align-items:center;gap:6px}.back:hover{color:var(--primary-dk)}
   footer.tools{border-top:1px solid var(--line);padding:16px 18px calc(20px + env(safe-area-inset-bottom));display:flex;gap:9px;flex-wrap:wrap;align-items:center}
   footer.tools .lbl{font-size:11.5px;color:var(--ink-soft);margin-right:auto}
+  .tools-actions{display:flex;gap:9px;flex-wrap:wrap;justify-content:flex-end;align-items:center;margin-left:auto}
   .storage-gauge{font-size:11px;color:var(--ink-soft);width:100%;line-height:1.4}
   .storage-gauge .pers-ok{color:var(--primary);font-weight:600}
   .storage-gauge .pers-warn{color:var(--verify)}
@@ -334,6 +335,21 @@
   .ai-card ol{font-size:13px;color:var(--ink-soft);margin:0 0 12px;padding-left:20px;line-height:1.5}
   .ai-ta{width:100%;height:300px;border:1px solid var(--line);border-radius:10px;padding:12px;font-family:var(--mono);font-size:12px;line-height:1.5;background:#f7faf9;color:var(--ink);white-space:pre;overflow:auto}
   .ai-actions{display:flex;gap:9px;flex-wrap:wrap;margin:12px 0 4px}
+  .cm-row{border:1px solid var(--line);border-radius:11px;padding:11px 12px;margin-bottom:10px;background:#fafcfb}
+  .cm-top{display:flex;gap:8px;align-items:center}
+  .cm-dot{width:18px;height:18px;border-radius:6px;flex-shrink:0}
+  .cm-name{flex:1;min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;font-size:14px}
+  .cm-count{font-size:11.5px;color:var(--ink-soft);white-space:nowrap}
+  .cm-sw{display:flex;gap:5px;flex-wrap:wrap;margin-top:9px}
+  .cm-sw .sw{width:22px;height:22px;border-radius:6px;cursor:pointer;border:2px solid transparent}.cm-sw .sw.on{border-color:#16211f}
+  .cm-del{flex-shrink:0;width:34px;height:36px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink-soft);font-size:16px}
+  .cm-del:hover{color:var(--critical);border-color:#eecabe;background:var(--critical-soft)}
+  .cm-confirm{margin-top:10px;padding:11px;border:1px solid #eecabe;background:var(--critical-soft);border-radius:9px}
+  .cm-confirm p{font-size:12.5px;color:var(--ink);margin:0 0 9px;line-height:1.45}
+  .cm-confirm select{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:#fff;margin-bottom:9px}
+  .cm-cact{display:flex;gap:8px;flex-wrap:wrap}
+  .cm-add{display:flex;gap:8px;align-items:center;margin-top:6px}
+  .cm-add input{flex:1;min-width:0;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:#fff;font-size:14px}
   @media (max-width:560px){.read-head h2{font-size:21px}.row2{flex-direction:column;gap:0}.question{font-size:18px}}
   @media (prefers-reduced-motion:reduce){*{transition:none!important}.tmcard.flash{animation:none}}
   @media print{body{background:#fff}header.bar,footer.tools,.read-actions,.back,.notice,.bar-act,.flow-ctrl,.lightbox,.rt-panel,.tk-panel,.session-bar,.sess-list{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}}
@@ -345,10 +361,12 @@
     <button class="bar-act" id="topNew"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Nouvelle</button></header>
   <main id="main"></main>
   <footer class="tools"><span class="lbl" id="count"></span>
+    <div class="tools-actions">
     <button class="tlink" id="installBtn">Installer l'app</button>
     <button class="tlink" id="exportBtn">Exporter tout</button>
     <button class="tlink" id="importBtn">Importer</button>
     <button class="tlink" id="aiBtn">✨ Créer via IA</button>
+    </div>
     <div class="storage-gauge" id="storageInfo"></div>
     <input type="file" id="importFile" accept="application/json" hidden></footer>
 </div>
@@ -362,6 +380,10 @@
   <p><b>Ensuite :</b></p>
   <ol><li>Enregistrez la réponse de l'IA dans un fichier <b>.json</b>.</li><li>Touchez <b>Importer</b> et choisissez ce fichier (l'import d'une fiche ne remplace jamais votre bibliothèque).</li><li>Ouvrez la fiche, <b>relisez-la</b>, ajoutez la catégorie, les schémas et la date de validation. Vous restez responsable du contenu.</li></ol>
 </div></div>
+<div class="ai-modal" id="catModal"><div class="ai-card">
+  <div class="ai-top"><h3>Gérer les catégories</h3><button class="ai-x" id="catX" aria-label="Fermer">×</button></div>
+  <div id="catMgrBody"></div>
+</div></div>
 
 <script>
 /* =====================================================================
@@ -374,7 +396,7 @@
 
 /* PALETTE : couleurs proposées pour les catégories (hex sombres, lisibles
    en texte comme en pastille teintée). Index réutilisé cycliquement. */
-const APP_VERSION='2.1.13';
+const APP_VERSION='2.1.14';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 const PALETTE=['#0d5b56','#1f5fa6','#4b3fa6','#7a2f6b','#b23052','#b5532a','#8a6a12','#4f6b1e','#1f7a4d','#45556b'];
 /* ===== Backends =====
@@ -627,7 +649,7 @@ function render(){
 function renderLibrary(){
   const q=state.q.toLowerCase();
   const list=fiches.slice().sort(byOrder).filter(f=>(!state.cat||f.category===state.cat)&&(!q||(f.title+' '+catName(f)).toLowerCase().includes(q)));
-  const chips=`<button class="catchip" data-cat="" style="${!state.cat?'background:#16211f;color:#fff;border-color:#16211f':''}">Toutes</button>`+categories.map(c=>`<button class="catchip" data-cat="${c.id}" style="${state.cat===c.id?`background:${c.color};color:#fff;border-color:${c.color}`:`color:${c.color};border-color:${c.color}55`}">${esc(c.name)}</button>`).join('');
+  const chips=`<button class="catchip" data-cat="" style="${!state.cat?'background:#16211f;color:#fff;border-color:#16211f':''}">Toutes</button>`+categories.map(c=>`<button class="catchip" data-cat="${c.id}" style="${state.cat===c.id?`background:${c.color};color:#fff;border-color:${c.color}`:`color:${c.color};border-color:${c.color}55`}">${esc(c.name)}</button>`).join('')+`<button class="catchip" id="catMgrChip" style="border-style:dashed;color:var(--ink-soft)">⚙ Gérer</button>`;
   main.innerHTML=`
     <div class="notice"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01" stroke-linecap="round"/></svg><div>Vous êtes l'auteur et le responsable du contenu. Validez chaque fiche et tenez la date à jour.</div></div>
     <div class="lib-top"><div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg><input id="q" placeholder="Rechercher…" value="${esc(state.q)}"></div>
@@ -642,6 +664,7 @@ function renderLibrary(){
   document.getElementById('q').addEventListener('input',e=>{state.q=e.target.value;const pos=e.target.selectionStart;renderLibrary();const inp=document.getElementById('q');inp.focus();inp.setSelectionRange(pos,pos);});
   document.getElementById('newBtn').onclick=newFiche;
   main.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{state.cat=b.dataset.cat;renderLibrary();});
+  document.getElementById('catMgrChip').onclick=openCatMgr;
   main.querySelectorAll('[data-open]').forEach(el=>{el.onclick=()=>openRead(el.dataset.open);el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openRead(el.dataset.open);}};});
 }
 function staticBlock(title,cls,arr,liClass,forget){const items=clean(arr);if(!items.length)return '';return `<section class="block"><div class="block-h ${cls}"><span class="pip"></span>${title}</div><ul class="flat ${liClass}">${items.map(x=>forget?`<li><span class="ftxt">${esc(x)}</span></li>`:`<li>${esc(x)}</li>`).join('')}</ul></section>`;}
@@ -1055,6 +1078,34 @@ aiModal.onclick=e=>{if(e.target===aiModal)closeAI();};
 document.getElementById('aiCopy').onclick=async()=>{const ta=document.getElementById('aiTa');const btn=document.getElementById('aiCopy');
   try{await navigator.clipboard.writeText(AI_PROMPT);}catch(e){ta.focus();ta.select();try{document.execCommand('copy');}catch(_){}}
   btn.textContent='Copié ✓';setTimeout(()=>{btn.textContent='Copier le prompt';},1800);};
+
+/* ===== Gestion des catégories (depuis l'accueil) =====
+   Modale : créer / renommer / recolorer / supprimer. Suppression d'une catégorie NON VIDE :
+   confirmation INLINE (pas de window.confirm en chaîne) avec choix de DÉPLACER les fiches
+   liées vers une autre catégorie (ou « aucune ») avant suppression. */
+const catModal=document.getElementById('catModal');
+let catDelId=null;
+const catCount=id=>fiches.filter(f=>f.category===id).length;
+function openCatMgr(){catDelId=null;catModal.classList.add('on');renderCatMgr();}
+function closeCatMgr(){catModal.classList.remove('on');renderLibrary();}
+function renderCatMgr(){
+  const body=document.getElementById('catMgrBody');
+  body.innerHTML=categories.map(c=>{const n=catCount(c.id);
+    const conf=catDelId===c.id?`<div class="cm-confirm">${n?`<p>« ${esc(c.name)} » contient <b>${n}</b> fiche${n>1?'s':''}. Choisissez où déplacer ces fiches avant de supprimer la catégorie :</p><select data-movesel>${categories.filter(x=>x.id!==c.id).map(x=>`<option value="${x.id}">Déplacer vers « ${esc(x.name)} »</option>`).join('')}<option value="">Laisser sans catégorie</option></select>`:`<p>Supprimer « ${esc(c.name)} » ? (catégorie vide)</p>`}<div class="cm-cact"><button class="btn danger sm" data-confdel="${c.id}">Supprimer</button><button class="btn sm" data-canceldel>Annuler</button></div></div>`:'';
+    return `<div class="cm-row" data-cid="${c.id}"><div class="cm-top"><span class="cm-dot" style="background:${c.color}"></span><input class="cm-name" data-cname value="${esc(c.name)}"><span class="cm-count">${n} fiche${n>1?'s':''}</span><button class="cm-del" data-askdel="${c.id}" aria-label="Supprimer">×</button></div><div class="cm-sw">${PALETTE.map(col=>`<span class="sw ${c.color===col?'on':''}" data-setcol="${col}" style="background:${col}"></span>`).join('')}</div>${conf}</div>`;
+  }).join('')+`${categories.length?'':'<p style="font-size:13px;color:var(--ink-soft);margin:0 0 10px">Aucune catégorie pour le moment.</p>'}<div class="cm-add"><input id="cmNew" placeholder="Nouvelle catégorie…"><button class="btn primary sm" id="cmAdd">Ajouter</button></div>`;
+  body.querySelectorAll('.cm-row').forEach(row=>{const cid=row.dataset.cid;const c=categories.find(x=>x.id===cid);if(!c)return;
+    const nm=row.querySelector('[data-cname]');if(nm)nm.addEventListener('input',e=>{c.name=e.target.value;saveCats();});
+    row.querySelectorAll('[data-setcol]').forEach(sw=>sw.onclick=()=>{c.color=sw.dataset.setcol;saveCats();renderCatMgr();});
+    const ad=row.querySelector('[data-askdel]');if(ad)ad.onclick=()=>{catDelId=cid;renderCatMgr();};
+    const cn=row.querySelector('[data-canceldel]');if(cn)cn.onclick=()=>{catDelId=null;renderCatMgr();};
+    const cf=row.querySelector('[data-confdel]');if(cf)cf.onclick=async()=>{const sel=row.querySelector('[data-movesel]');const target=sel?sel.value:'';
+      const moved=fiches.filter(f=>f.category===cid);for(const ff of moved){ff.category=target;await persist(ff);}
+      categories=categories.filter(x=>x.id!==cid);if(state.cat===cid)state.cat=target||'';await saveCats();catDelId=null;renderCatMgr();};});
+  const add=document.getElementById('cmAdd');if(add)add.onclick=async()=>{const inp=document.getElementById('cmNew');const name=(inp.value||'').trim();if(!name)return;categories.push({id:uid('c'),name,color:PALETTE[categories.length%PALETTE.length]});await saveCats();renderCatMgr();};
+}
+document.getElementById('catX').onclick=closeCatMgr;
+catModal.onclick=e=>{if(e.target===catModal)closeCatMgr();};
 
 /* ===== Export / Import =====
    Export : télécharge un JSON { version, categories, fiches } (sessions exclues).
