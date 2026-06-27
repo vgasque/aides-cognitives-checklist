@@ -297,6 +297,9 @@
   .back{background:none;border:0;color:var(--primary);font-size:14px;font-weight:600;padding:6px 0;margin-bottom:6px;display:inline-flex;align-items:center;gap:6px}.back:hover{color:var(--primary-dk)}
   footer.tools{border-top:1px solid var(--line);padding:16px 18px calc(20px + env(safe-area-inset-bottom));display:flex;gap:9px;flex-wrap:wrap;align-items:center}
   footer.tools .lbl{font-size:11.5px;color:var(--ink-soft);margin-right:auto}
+  .storage-gauge{font-size:11px;color:var(--ink-soft);width:100%;line-height:1.4}
+  .storage-gauge .pers-ok{color:var(--primary);font-weight:600}
+  .storage-gauge .pers-warn{color:var(--verify)}
   .tlink{background:none;border:0;color:var(--primary);font-size:13px;font-weight:600;padding:6px 8px;border-radius:8px}.tlink:hover{background:var(--primary-soft)}#installBtn{display:none}
   .lightbox{position:fixed;inset:0;background:rgba(16,32,30,.92);z-index:50;display:none;align-items:center;justify-content:center;padding:20px;flex-direction:column;gap:14px}
   .lightbox.on{display:flex}.lightbox img{max-width:100%;max-height:82vh;border-radius:8px}
@@ -316,6 +319,7 @@
     <button class="tlink" id="installBtn">Installer l'app</button>
     <button class="tlink" id="exportBtn">Exporter</button>
     <button class="tlink" id="importBtn">Importer</button>
+    <div class="storage-gauge" id="storageInfo"></div>
     <input type="file" id="importFile" accept="application/json" hidden></footer>
 </div>
 <div id="screenFlash"></div>
@@ -332,7 +336,7 @@
 
 /* PALETTE : couleurs proposées pour les catégories (hex sombres, lisibles
    en texte comme en pastille teintée). Index réutilisé cycliquement. */
-const APP_VERSION='2.1.1';
+const APP_VERSION='2.1.2';
 const PALETTE=['#0d5b56','#1f5fa6','#4b3fa6','#7a2f6b','#b23052','#b5532a','#8a6a12','#4f6b1e','#1f7a4d','#45556b'];
 /* ===== Backends =====
    Quatre implémentations interchangeables exposant la MÊME interface.
@@ -458,8 +462,25 @@ const fmtDate=v=>v?'Validée '+v:'Sans date de validation';
    saveCats()      : persiste la liste de catégories.
    persist(f)      : enregistre une fiche ; alerte si le stockage est saturé. */
 async function chooseBackend(){try{await IDB.open();Data=IDB;const ex=await IDB.getAll();if(!ex.length){const old=await KV.getAll();if(old.length){for(const f of old)await IDB.put(migrate(f));}const oc=await KV.getCats();if(oc)await IDB.setCats(oc);const os=await KV.getSessions();if(os&&os.length){for(const s of os)await IDB.putSession(s);}}}catch(e){Data=KV;}}
+async function updateStorageInfo(){
+  const el=document.getElementById('storageInfo');if(!el)return;
+  try{
+    const ns=navigator.storage||null;
+    const [est,pers]=await Promise.all([
+      ns&&ns.estimate?ns.estimate():null,
+      ns&&ns.persisted?ns.persisted():null
+    ]);
+    if(!est){el.textContent='';return;}
+    const fmt=n=>{if(!n)return '0 o';if(n<1024)return n+' o';if(n<1048576)return Math.round(n/1024)+' Ko';if(n<1073741824)return (n/1048576).toFixed(1)+' Mo';return (n/1073741824).toFixed(2)+' Go';};
+    const persHtml=pers===true
+      ?'<span class="pers-ok">persistant ✓</span>'
+      :'<span class="pers-warn">non persistant (ajoutez à l\'écran d\'accueil)</span>';
+    el.innerHTML=`Stockage : <b>${fmt(est.usage)}</b> / ${fmt(est.quota)} utilisés · ${persHtml}`;
+  }catch(e){if(el)el.textContent='';}
+}
 async function load(){
   await chooseBackend();
+  if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();
   categories=(await Data.getCats())||[];
   fiches=(await Data.getAll()).map(migrate);
   sessions=(await Data.getSessions())||[];
@@ -467,9 +488,10 @@ async function load(){
   if(!fiches.length){const f=seed(categories[0]?categories[0].id:'');fiches=[f];await Data.put(f);}
   const ch=migrateCategories();if(ch.length){await Data.setCats(categories);for(const f of ch)await Data.put(f);}
   render();
+  updateStorageInfo();
 }
 async function saveCats(){try{await Data.setCats(categories);}catch(e){}}
-async function persist(f){try{await Data.put(f);return true;}catch(e){alert('Stockage saturé. Exportez vos fiches puis allégez les images.');return false;}}
+async function persist(f){try{await Data.put(f);updateStorageInfo();return true;}catch(e){alert('Stockage saturé. Exportez vos fiches puis allégez les images.');return false;}}
 
 /* ===== Runtime (minuteurs, compteurs, audio) =====
    freshRuntime(f, session) : (re)construit l'état vivant pour la fiche f. Si une
