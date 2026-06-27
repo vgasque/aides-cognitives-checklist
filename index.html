@@ -396,7 +396,7 @@
 
 /* PALETTE : couleurs proposées pour les catégories (hex sombres, lisibles
    en texte comme en pastille teintée). Index réutilisé cycliquement. */
-const APP_VERSION='2.1.14';
+const APP_VERSION='2.1.15';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 const PALETTE=['#0d5b56','#1f5fa6','#4b3fa6','#7a2f6b','#b23052','#b5532a','#8a6a12','#4f6b1e','#1f7a4d','#45556b'];
 /* ===== Backends =====
@@ -463,6 +463,11 @@ const uid=p=>(p||'f')+Date.now().toString(36)+Math.random().toString(36).slice(2
 const esc=s=>(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const main=document.getElementById('main');
 const clean=a=>(a||[]).map(s=>s.trim()).filter(Boolean);
+// Préserve la position de défilement de l'aperçu algorithme (.flow-scroll) entre deux rendus,
+// pour qu'elle ne se réinitialise pas quand on coche une case, horodate, enregistre une session…
+let flowScroll={left:0,top:0};
+function captureFlow(){const el=main.querySelector('.flow-scroll');if(el)flowScroll={left:el.scrollLeft,top:el.scrollTop};}
+function restoreFlow(){const el=main.querySelector('.flow-scroll');if(el){el.scrollLeft=flowScroll.left;el.scrollTop=flowScroll.top;}}
 const byOrder=(a,b)=>(b.order||0)-(a.order||0);
 const textTrunc=(s,n)=>{s=String(s||'');return s.length>n?s.slice(0,n-1)+'…':s;};
 const catOf=f=>categories.find(c=>c.id===f.category)||null;
@@ -629,7 +634,7 @@ async function saveSession(){const f=Runtime.fiche;if(!f)return;const now=Date.n
   const s={id:Runtime.sessionId||uid('s'),ficheId:f.id,ficheTitle:f.title,name:name||def,savedAt:now,checked:{...Runtime.checked},nav:Runtime.nav.slice(),navSeq:Runtime.navSeq.slice(),counters:{...Runtime.counters},timers:tsnap,events:(Runtime.events||[]).map(e=>({...e}))};
   try{await Data.putSession(s);}catch(e){alert('Sauvegarde impossible (stockage saturé).');return;}
   Runtime.sessionId=s.id;Runtime.name=s.name;const i=sessions.findIndex(x=>x.id===s.id);if(i>=0)sessions[i]=s;else sessions.push(s);state.showSess=true;render();}
-function resumeSession(id){const s=sessions.find(x=>x.id===id);if(!s)return;const f=fiches.find(x=>x.id===s.ficheId);if(!f){alert('Fiche introuvable.');return;}freshRuntime(f,s);state.fiche=f;state.id=f.id;state.showFlow=false;state.showFlow=!!(f.blocks&&f.blocks.length);state.showSess=false;state.view='read';render();}
+function resumeSession(id){const s=sessions.find(x=>x.id===id);if(!s)return;const f=fiches.find(x=>x.id===s.ficheId);if(!f){alert('Fiche introuvable.');return;}flowScroll={left:0,top:0};freshRuntime(f,s);state.fiche=f;state.id=f.id;state.showFlow=false;state.showFlow=!!(f.blocks&&f.blocks.length);state.showSess=false;state.view='read';render();}
 async function deleteSession(id){if(!confirm('Supprimer cette session ?'))return;await Data.delSession(id);sessions=sessions.filter(x=>x.id!==id);if(Runtime.sessionId===id){Runtime.sessionId=null;Runtime.name='';}render();}
 
 /* ===== Render =====
@@ -677,12 +682,17 @@ function staticBlock(title,cls,arr,liClass,forget){const items=clean(arr);if(!it
      2) Les blocs d'un même niveau forment une rangée centrée horizontalement.
         L'ORDRE dans la rangée est calculé par BARYCENTRE des positions des
         parents (haut->bas) pour limiter les croisements d'arêtes inutiles.
+        Le TEXTE des titres/étapes/options est ENROULÉ (wrapText), jamais tronqué,
+        et TOUTES les étapes sont affichées (plus de limite à 7) ; la hauteur du
+        bloc s'adapte (LAY[id]).
      3) Arêtes : steps->next (sans label) ; decision->options (label = intitulé
         de la réponse, affiché dans une pastille). Connecteurs ORTHOGONAUX
         (angles droits), convention des algorithmes médicaux. Flèche via <marker>.
-        - Arête AVANT (cible plus bas) : trait PLEIN gris, sortie répartie sur le
-          bas du bloc (branches d'une décision distinctes), coude horizontal dans
-          l'inter-rangée, flèche vers le bas (marqueur 'ah').
+        - Arête AVANT (cible plus bas) : trait PLEIN gris. Les points de SORTIE
+          (bas du bloc) sont triés par x de la cible (pas de croisement en X sous
+          une décision) ; les points d'ENTRÉE (haut du bloc cible) sont répartis et
+          triés par x de la source (convergence de plusieurs blocs lisible).
+          Coude horizontal dans l'inter-rangée, flèche vers le bas (marqueur 'ah').
         - Arête RETOUR / BOUCLE (cible au même niveau ou plus haut) : trait
           POINTILLÉ ambré routé sur la marge DROITE (sortie côté droit de la
           source -> entrée côté droit de la cible), flèche 'ahb'. Plusieurs
@@ -691,11 +701,25 @@ function staticBlock(title,cls,arr,liClass,forget){const items=clean(arr);if(!it
      4) Nœuds : 'steps' clairs / 'decision' ambrés ; le bloc de départ est souligné.
    Retourne une chaîne <svg> dimensionnée (scroll horizontal si large).
    Utilisé en aperçu live dans l'éditeur et à la demande en lecture. */
+// Enroulement de texte (retour à la ligne sur les mots) pour le SVG : aucune troncature,
+// coupe les mots trop longs. Renvoie un tableau de lignes.
+function wrapText(str,maxChars){const words=String(str||'').replace(/\s+/g,' ').trim().split(' ').filter(Boolean);const lines=[];let cur='';
+  const push=()=>{if(cur){lines.push(cur);cur='';}};
+  words.forEach(w=>{while(w.length>maxChars){push();lines.push(w.slice(0,maxChars));w=w.slice(maxChars);}if(!cur)cur=w;else if(cur.length+1+w.length<=maxChars)cur+=' '+w;else{push();cur=w;}});
+  push();return lines.length?lines:[''];}
 function buildFlowSVG(f){
   const blocks=f.blocks||[];if(!blocks.length)return '<div style="padding:14px;color:#54635f;font-size:13px">Aucun bloc.</div>';
-  const NW=265,TH=28,IH=17,IPAD=8,HG=36,VG=52,PX=14,PY=14,MAX_IT=7;
-  function nh(b){const dec=b.type==='decision';const its=dec?(b.options||[]).filter(o=>o.label||o.target):clean(b.steps);const qh=(dec&&b.question)?IH:0;return TH+IPAD+qh+Math.min(its.length,MAX_IT)*IH+(its.length>MAX_IT?IH:0)+IPAD;}
+  const NW=265,TH=28,HG=36,VG=52,PX=14,PY=14,LH=16,TLH=15,HPAD=8,TXT_MAX=42,TITLE_MAX=34;
   const byId={};blocks.forEach(b=>byId[b.id]=b);const start=(f.start&&byId[f.start])?f.start:blocks[0].id;
+  // Mise en page de chaque bloc : texte ENROULÉ (jamais tronqué), TOUTES les étapes/options (sans limite).
+  const LAY={};
+  blocks.forEach(b=>{const dec=b.type==='decision';
+    const headerLines=wrapText(b.title||(dec?'Décision':'Étapes'),TITLE_MAX);
+    const headerH=Math.max(TH,headerLines.length*TLH+12);const items=[];
+    if(dec){if(b.question)items.push({kind:'q',lines:wrapText(b.question,TXT_MAX)});(b.options||[]).filter(o=>o.label||o.target).forEach((o,i)=>items.push({kind:'opt',lines:wrapText(o.label||('Option '+(i+1)),TXT_MAX-2)}));}
+    else{clean(b.steps).forEach((s,i)=>items.push({kind:'step',num:i+1,lines:wrapText(s,TXT_MAX-3)}));}
+    const cl=items.reduce((n,it)=>n+it.lines.length,0);LAY[b.id]={dec,headerLines,headerH,items,h:headerH+HPAD+cl*LH+HPAD};});
+  const nh=id=>LAY[id].h;
   const level={};const bq=[start];level[start]=0;
   while(bq.length){const id=bq.shift();const b=byId[id];const tg=b.type==='steps'?(b.next&&byId[b.next]?[b.next]:[]):(b.options||[]).map(o=>o.target).filter(t=>t&&byId[t]);tg.forEach(t=>{if(level[t]===undefined){level[t]=level[id]+1;bq.push(t);}});}
   let maxL=0;Object.values(level).forEach(v=>{if(v>maxL)maxL=v;});blocks.forEach(b=>{if(level[b.id]===undefined){maxL+=1;level[b.id]=maxL;}});
@@ -712,28 +736,34 @@ function buildFlowSVG(f){
   let maxRow=1;Object.values(byLevel).forEach(r=>{if(r.length>maxRow)maxRow=r.length;});
   const totalW=PX*2+maxRow*NW+(maxRow-1)*HG;
   const levelY={},botOfY={};let curY=PY;
-  Object.keys(byLevel).map(Number).sort((a,b)=>a-b).forEach(L=>{levelY[L]=curY;const lh=Math.max(...byLevel[L].map(id=>nh(byId[id])));botOfY[curY]=curY+lh;curY+=lh+VG;});
+  Object.keys(byLevel).map(Number).sort((a,b)=>a-b).forEach(L=>{levelY[L]=curY;const lh=Math.max(...byLevel[L].map(id=>nh(id)));botOfY[curY]=curY+lh;curY+=lh+VG;});
   const totalH=curY-VG+PY;
   const pos={};
-  Object.keys(byLevel).map(Number).sort((a,b)=>a-b).forEach(L=>{const row=byLevel[L];const rw=row.length*NW+(row.length-1)*HG;const sx=PX+(totalW-PX*2-rw)/2;row.forEach((id,i)=>{pos[id]={x:sx+i*(NW+HG),y:levelY[L],h:nh(byId[id])};});});
+  Object.keys(byLevel).map(Number).sort((a,b)=>a-b).forEach(L=>{const row=byLevel[L];const rw=row.length*NW+(row.length-1)*HG;const sx=PX+(totalW-PX*2-rw)/2;row.forEach((id,i)=>{pos[id]={x:sx+i*(NW+HG),y:levelY[L],h:nh(id)};});});
   // Collecte des arêtes, séparées en AVANT (descendantes) et RETOUR (même niveau / remontée).
   // Convention algorithme médical : connecteurs orthogonaux (angles droits), trait plein
   // pour le flux principal, trait pointillé pour les boucles/retours.
   const fwd=[],back=[];
   blocks.forEach(b=>{const p=pos[b.id];if(!p)return;const conns=b.type==='steps'?(b.next&&byId[b.next]?[{t:b.next,lab:''}]:[]):(b.options||[]).filter(o=>o.target&&byId[o.target]).map(o=>({t:o.target,lab:o.label||''}));
-    conns.forEach(c=>{const Q=pos[c.t];if(!Q)return;(Q.y>p.y?fwd:back).push({p,Q,lab:c.lab});});});
-  // Répartit les points de sortie AVANT sur le bas du bloc (branches d'une décision lisibles).
-  const outCnt={};fwd.forEach(e=>{const k=e.p.x+'_'+e.p.y;outCnt[k]=(outCnt[k]||0)+1;});
+    conns.forEach(c=>{const Q=pos[c.t];if(!Q)return;(Q.y>p.y?fwd:back).push({sid:b.id,tid:c.t,p,Q,lab:c.lab});});});
+  // Points de SORTIE : pour chaque source, triés par x de la CIBLE (la branche de gauche sort
+  // à gauche, celle de droite à droite -> plus de croisement en X sous un bloc conditionnel).
+  const bySrc={};fwd.forEach(e=>{(bySrc[e.sid]=bySrc[e.sid]||[]).push(e);});
+  Object.values(bySrc).forEach(arr=>{arr.sort((a,b)=>a.Q.x-b.Q.x);const n=arr.length;arr.forEach((e,i)=>{e.exitIdx=i;e.x1=Math.round(e.p.x+NW*(i+1)/(n+1));});});
+  // Points d'ENTRÉE : pour chaque cible, triés par x de la SOURCE et RÉPARTIS sur le haut du
+  // bloc -> quand plusieurs blocs convergent, les flèches arrivent côte à côte sans se superposer.
+  const byTgt={};fwd.forEach(e=>{(byTgt[e.tid]=byTgt[e.tid]||[]).push(e);});
+  Object.values(byTgt).forEach(arr=>{arr.sort((a,b)=>a.p.x-b.p.x);const n=arr.length;arr.forEach((e,i)=>{e.entryIdx=i;e.x2=Math.round(e.Q.x+NW*(i+1)/(n+1));});});
   // Les arêtes de retour sont routées sur la marge droite, décalées pour éviter les superpositions.
   const BGUT=30,baseBulge=totalW-PX+18;let svgW=totalW,svgH=totalH;
   back.forEach((e,k)=>{e.bx=baseBulge+k*BGUT;const lw=e.lab?Math.min(220,18+textTrunc(e.lab,28).length*6.5):8;const right=e.bx+lw/2+10;if(right>svgW)svgW=right;
     const lowT=(botOfY[e.Q.y]||e.Q.y+e.Q.h)+14+8;if(lowT>svgH)svgH=lowT;});
   const pill=(lx,ly,lab)=>{const t=textTrunc(lab,28),w=Math.min(220,18+t.length*6.5);return `<g transform="translate(${lx},${ly})"><rect x="${-w/2}" y="-10" width="${w}" height="20" rx="10" fill="#fff" stroke="#e1cf9f"/><text x="0" y="4" text-anchor="middle" font-size="10.5" font-weight="600" fill="#6b4d12" font-family="system-ui">${esc(t)}</text></g>`;};
-  let edges='';const outIx={};
-  fwd.forEach(({p,Q,lab})=>{const k=p.x+'_'+p.y,n=outCnt[k],i=(outIx[k]=(outIx[k]||0));outIx[k]=i+1;
-    const x1=Math.round(p.x+NW*(i+1)/(n+1)),y1=p.y+p.h,x2=Q.x+NW/2,y2=Q.y,my=Math.round(y1+Math.min(VG*0.5,(y2-y1)/2));
-    edges+=`<path d="M${x1},${y1} L${x1},${my} L${x2},${my} L${x2},${y2}" fill="none" stroke="#9fb0ac" stroke-width="1.8" marker-end="url(#ah)"/>`;
-    if(lab)edges+=pill((x1+x2)/2,my,lab);});
+  let edges='';
+  fwd.forEach(e=>{const y1=e.p.y+e.p.h,y2=e.Q.y,lane=(e.exitIdx||0)+(e.entryIdx||0);
+    let my=y1+Math.min(Math.round(VG*0.5),Math.round((y2-y1)/2));my=Math.round(Math.min(my+lane*6,y1+VG-8,y2-8));
+    edges+=`<path d="M${e.x1},${y1} L${e.x1},${my} L${e.x2},${my} L${e.x2},${y2}" fill="none" stroke="#9fb0ac" stroke-width="1.8" marker-end="url(#ah)"/>`;
+    if(e.lab)edges+=pill(Math.round((e.x1+e.x2)/2),my,e.lab);});
   // Routage anti-chevauchement, sans aller-retour : on sort par le côté droit dans
   // l'inter-colonne (libre). Comme la cible est plus haut que la source, la source rejoint
   // la marge par la bande AU-DESSUS d'elle (on monte directement) et la cible par la bande
@@ -743,18 +773,20 @@ function buildFlowSVG(f){
     const sxg=sx+g,txg=tx+g,yas=Math.max(4,p.y-14),ybt=(botOfY[Q.y]||Q.y+Q.h)+14;
     edges+=`<path d="M${sx},${sy} L${sxg},${sy} L${sxg},${yas} L${bx},${yas} L${bx},${ybt} L${txg},${ybt} L${txg},${ty} L${tx},${ty}" fill="none" stroke="#c98a2a" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#ahb)"/>`;
     if(lab)edges+=pill(bx,Math.round((yas+ybt)/2),lab);});
-  let nodes='';blocks.forEach(b=>{const p=pos[b.id];if(!p)return;const dec=b.type==='decision',isS=b.id===start;const fill=dec?'#fdf8ef':'#f5faf8',stroke=dec?'#e1cf9f':'#c2d0cc',tcol=dec?'#6b4d12':'#16211f';const h=p.h;
+  let nodes='';blocks.forEach(b=>{const p=pos[b.id];if(!p)return;const L=LAY[b.id],dec=L.dec,isS=b.id===start;
+    const fill=dec?'#fdf8ef':'#f5faf8',stroke=dec?'#e1cf9f':'#c2d0cc',tcol=dec?'#6b4d12':'#16211f';const h=p.h,hh=L.headerH;
     let g=`<rect width="${NW}" height="${h}" rx="10" fill="${fill}"/>`;
-    g+=`<rect width="${NW}" height="${TH}" rx="10" fill="${dec?'#f0e4c8':'#dbeae5'}"/><rect width="${NW}" height="6" y="${TH-6}" fill="${dec?'#f0e4c8':'#dbeae5'}"/>`;
-    g+=dec?`<circle cx="13" cy="${TH/2}" r="4" fill="#946615"/>`:`<rect x="0" y="0" width="4" height="${TH}" rx="2" fill="#0d5b56"/>`;
-    g+=`<text x="${NW/2+2}" y="${TH/2+4.5}" text-anchor="middle" font-size="11.5" font-weight="700" fill="${tcol}" font-family="system-ui">${esc(textTrunc(b.title||(dec?'Décision':'Étapes'),42))}</text>`;
+    g+=`<rect width="${NW}" height="${hh}" rx="10" fill="${dec?'#f0e4c8':'#dbeae5'}"/><rect width="${NW}" height="6" y="${hh-6}" fill="${dec?'#f0e4c8':'#dbeae5'}"/>`;
+    g+=dec?`<circle cx="13" cy="${Math.round(hh/2)}" r="4" fill="#946615"/>`:`<rect x="0" y="0" width="4" height="${hh}" rx="2" fill="#0d5b56"/>`;
+    const hy0=(hh-L.headerLines.length*TLH)/2;
+    L.headerLines.forEach((ln,i)=>{g+=`<text x="${NW/2+2}" y="${Math.round(hy0+i*TLH+TLH-4)}" text-anchor="middle" font-size="11.5" font-weight="700" fill="${tcol}" font-family="system-ui">${esc(ln)}</text>`;});
     if(isS)g+=`<rect x="${NW-54}" y="5" width="50" height="15" rx="7" fill="#0d5b56"/><text x="${NW-29}" y="16" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff" font-family="system-ui" letter-spacing="0.5">DÉPART</text>`;
-    let iy=TH+IPAD;
-    if(dec){if(b.question){g+=`<text x="10" y="${iy+12}" font-size="10.5" font-style="italic" fill="#8b6914" font-family="system-ui">${esc(textTrunc(b.question,48))}</text>`;iy+=IH;}
-      const opts=(b.options||[]).filter(o=>o.label||o.target);opts.slice(0,MAX_IT).forEach((o,i)=>{g+=`<text x="12" y="${iy+i*IH+12}" font-size="10.5" fill="#6b4d12" font-family="system-ui"><tspan font-weight="700" fill="#946615">›</tspan> ${esc(textTrunc(o.label||('Option '+(i+1)),45))}</text>`;});
-      if(opts.length>MAX_IT)g+=`<text x="${NW/2}" y="${iy+MAX_IT*IH+10}" text-anchor="middle" font-size="10" fill="#a08040" font-family="system-ui">+${opts.length-MAX_IT} autres options…</text>`;
-    }else{const steps=clean(b.steps);steps.slice(0,MAX_IT).forEach((s,i)=>{g+=`<text x="12" y="${iy+i*IH+12}" font-size="10.5" fill="#16211f" font-family="system-ui"><tspan font-weight="700" fill="#7c8a87">${i+1}.</tspan> ${esc(textTrunc(s,45))}</text>`;});
-      if(steps.length>MAX_IT)g+=`<text x="${NW/2}" y="${iy+MAX_IT*IH+10}" text-anchor="middle" font-size="10" fill="#7c8a87" font-family="system-ui">+${steps.length-MAX_IT} autres étapes…</text>`;}
+    let iy=hh+HPAD;
+    L.items.forEach(it=>{it.lines.forEach((ln,li)=>{const y=iy+12;
+      if(it.kind==='q'){g+=`<text x="10" y="${y}" font-size="10.5" font-style="italic" fill="#8b6914" font-family="system-ui">${esc(ln)}</text>`;}
+      else if(it.kind==='opt'){const pre=li===0?'<tspan font-weight="700" fill="#946615">› </tspan>':'';g+=`<text x="${li===0?12:20}" y="${y}" font-size="10.5" fill="#6b4d12" font-family="system-ui">${pre}${esc(ln)}</text>`;}
+      else{const pre=li===0?`<tspan font-weight="700" fill="#7c8a87">${it.num}. </tspan>`:'';g+=`<text x="${li===0?12:22}" y="${y}" font-size="10.5" fill="#16211f" font-family="system-ui">${pre}${esc(ln)}</text>`;}
+      iy+=LH;});});
     g+=`<rect width="${NW}" height="${h}" rx="10" fill="none" stroke="${isS?'#0d5b56':stroke}" stroke-width="${isS?2.5:1.5}"/>`;
     nodes+=`<g transform="translate(${p.x},${p.y})">${g}</g>`;});
   return `<svg width="${svgW}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}" xmlns="http://www.w3.org/2000/svg" style="display:block"><defs><marker id="ah" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#9fb0ac"/></marker><marker id="ahb" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#c98a2a"/></marker></defs>${edges}${nodes}</svg>`;
@@ -798,6 +830,7 @@ function timekeeperPanel(){const ev=Runtime.events||[];const t0=ev.length?ev[0].
    (push/pop sur state.nav), cochage des étapes, contrôles minuteurs/compteurs
    (mise à jour DOM directe, sans render), et gestion des sessions. */
 function renderRead(){
+  captureFlow();
   const f=state.fiche;if(!f){state.view='library';return render();}
   const cur=state.nav[state.nav.length-1];const curSeq=state.navSeq[state.navSeq.length-1]||1;const blk=f.blocks.find(b=>b.id===cur)||f.blocks.find(b=>b.id===f.start)||f.blocks[0];const flow=hasFlow(f);let navHtml='';
   if(blk){const crumbs=flow?`<div class="crumbs">${state.nav.map((id,i)=>{const b=f.blocks.find(x=>x.id===id);return `<span class="cb${i===state.nav.length-1?' cur':''}" data-crumb="${i}" role="button" tabindex="0">${esc((b&&b.title)||'?')}</span>`;}).join('<span>›</span>')}</div>`:'';
@@ -859,6 +892,7 @@ function renderRead(){
   document.getElementById('resetSess').onclick=()=>{if(!confirm('Réinitialiser la session ? (décochages, compteurs et minuteurs remis à zéro)'))return;freshRuntime(f,null);state.fiche=f;render();};
   main.querySelectorAll('[data-resume]').forEach(b=>b.onclick=()=>resumeSession(b.dataset.resume));
   main.querySelectorAll('[data-delsess]').forEach(b=>b.onclick=()=>deleteSession(b.dataset.delsess));
+  restoreFlow();
   updateTimers();
 }
 
@@ -891,6 +925,7 @@ function timerEditorRow(t,i){const iv=t.type==='interval';const mm=Math.floor((t
 function counterEditorRow(c,i){return `<div class="trow" data-ci="${i}"><input type="text" data-cf="label" value="${esc(c.label)}" placeholder="ex. Adrénaline (mg)"><span>pas</span><input type="number" data-cstep value="${c.step||1}" style="width:56px"><span>départ</span><input type="number" data-cstart value="${c.start||0}" style="width:56px"><button class="mini del" data-cdel="${i}">×</button></div>`;}
 
 function renderEditor(){
+  captureFlow();
   const f=state.draft;const blocks=f.blocks;blocks._start=f.start;
   main.innerHTML=`
     <button class="back" id="back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Annuler</button>
@@ -954,6 +989,7 @@ function renderEditor(){
     const bd=card.querySelector('[data-bdel]');if(bd)bd.onclick=()=>{f.blocks=f.blocks.filter(x=>x.id!==bid);f.blocks.forEach(x=>{if(x.next===bid)x.next=null;if(x.options)x.options.forEach(o=>{if(o.target===bid)o.target='';});});if(f.start===bid)f.start=f.blocks[0]?f.blocks[0].id:null;if(!f.blocks.length){const nb={id:uid('b'),type:'steps',title:'Prise en charge',steps:[''],image:null,next:null};f.blocks.push(nb);f.start=nb.id;}renderEditor();};});
   imgInput.onchange=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;const data=await downscale(file);if(!data){alert('Image illisible.');return;}if(imgMode.kind==='gallery')f.images.push({id:uid('i'),data,caption:''});else{const b=f.blocks.find(x=>x.id===imgMode.bid);if(b)b.image=data;}renderEditor();};
   document.getElementById('saveBtn').onclick=saveDraft;const del=document.getElementById('delBtn');if(del)del.onclick=deleteDraft;
+  restoreFlow();
 }
 function bindListEditors(){
   main.querySelectorAll('input[data-key]').forEach(inp=>inp.addEventListener('input',e=>{state.draft[e.target.dataset.key][+e.target.dataset.idx]=e.target.value;}));
@@ -977,7 +1013,7 @@ async function deleteDraft(){if(!confirm('Supprimer cette fiche définitivement 
      fiche déjà active (minuteurs en cours préservés) ; sinon en reconstruit un neuf.
    openEdit(id) : édite une copie profonde de la fiche (state.draft).
    newFiche()   : crée une fiche vierge et passe en édition. */
-function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;if(!(Runtime.fiche&&Runtime.ficheId===id))freshRuntime(f,null);state.fiche=Runtime.fiche;state.checked=Runtime.checked;state.nav=Runtime.nav;state.navSeq=Runtime.navSeq;state.id=id;state.showFlow=!!(f.blocks&&f.blocks.length);state.showSess=false;state.view='read';render();}
+function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;flowScroll={left:0,top:0};if(!(Runtime.fiche&&Runtime.ficheId===id))freshRuntime(f,null);state.fiche=Runtime.fiche;state.checked=Runtime.checked;state.nav=Runtime.nav;state.navSeq=Runtime.navSeq;state.id=id;state.showFlow=!!(f.blocks&&f.blocks.length);state.showSess=false;state.view='read';render();}
 function openEdit(id){const f=fiches.find(x=>x.id===id);state.draft=JSON.parse(JSON.stringify(f));state.catMgr=false;state.view='edit';render();}
 function newFiche(){state.draft=blankFiche();state.catMgr=false;state.view='edit';render();}
 document.getElementById('topNew').onclick=newFiche;
