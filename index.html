@@ -336,7 +336,7 @@
 
 /* PALETTE : couleurs proposées pour les catégories (hex sombres, lisibles
    en texte comme en pastille teintée). Index réutilisé cycliquement. */
-const APP_VERSION='2.1.6';
+const APP_VERSION='2.1.7';
 const PALETTE=['#0d5b56','#1f5fa6','#4b3fa6','#7a2f6b','#b23052','#b5532a','#8a6a12','#4f6b1e','#1f7a4d','#45556b'];
 /* ===== Backends =====
    Quatre implémentations interchangeables exposant la MÊME interface.
@@ -652,19 +652,20 @@ function buildFlowSVG(f){
   // Les arêtes de retour sont routées sur la marge droite, décalées pour éviter les superpositions.
   const BGUT=30,baseBulge=totalW-PX+18;let svgW=totalW,svgH=totalH;
   back.forEach((e,k)=>{e.bx=baseBulge+k*BGUT;const lw=e.lab?Math.min(220,18+textTrunc(e.lab,28).length*6.5):8;const right=e.bx+lw/2+10;if(right>svgW)svgW=right;
-    const lowS=(botOfY[e.p.y]||e.p.y+e.p.h)+14,lowT=(botOfY[e.Q.y]||e.Q.y+e.Q.h)+14;const low=Math.max(lowS,lowT)+8;if(low>svgH)svgH=low;});
+    const lowT=(botOfY[e.Q.y]||e.Q.y+e.Q.h)+14+8;if(lowT>svgH)svgH=lowT;});
   const pill=(lx,ly,lab)=>{const t=textTrunc(lab,28),w=Math.min(220,18+t.length*6.5);return `<g transform="translate(${lx},${ly})"><rect x="${-w/2}" y="-10" width="${w}" height="20" rx="10" fill="#fff" stroke="#e1cf9f"/><text x="0" y="4" text-anchor="middle" font-size="10.5" font-weight="600" fill="#6b4d12" font-family="system-ui">${esc(t)}</text></g>`;};
   let edges='';const outIx={};
   fwd.forEach(({p,Q,lab})=>{const k=p.x+'_'+p.y,n=outCnt[k],i=(outIx[k]=(outIx[k]||0));outIx[k]=i+1;
     const x1=Math.round(p.x+NW*(i+1)/(n+1)),y1=p.y+p.h,x2=Q.x+NW/2,y2=Q.y,my=Math.round(y1+Math.min(VG*0.5,(y2-y1)/2));
     edges+=`<path d="M${x1},${y1} L${x1},${my} L${x2},${my} L${x2},${y2}" fill="none" stroke="#9fb0ac" stroke-width="1.8" marker-end="url(#ah)"/>`;
     if(lab)edges+=pill((x1+x2)/2,my,lab);});
-  // Routage anti-chevauchement : on sort par le côté droit dans l'inter-colonne (libre),
-  // les segments horizontaux courent dans la bande SOUS le bord inférieur de chaque rangée
-  // (libre car on prend le bas de la rangée = bloc le plus haut), et la remontée se fait sur
-  // la marge droite (x=bx). Aucun segment ne passe ainsi sous ou à travers un bloc.
+  // Routage anti-chevauchement, sans aller-retour : on sort par le côté droit dans
+  // l'inter-colonne (libre). Comme la cible est plus haut que la source, la source rejoint
+  // la marge par la bande AU-DESSUS d'elle (on monte directement) et la cible par la bande
+  // SOUS elle (la marge arrive d'en bas). Bandes libres car tops alignés / bas = bloc le plus
+  // haut. Remontée sur la marge droite (x=bx). Aucun segment ne passe sous/à travers un bloc.
   back.forEach(({p,Q,lab,bx})=>{const g=16,sx=p.x+NW,sy=Math.round(p.y+p.h/2),tx=Q.x+NW,ty=Math.round(Q.y+Q.h/2);
-    const sxg=sx+g,txg=tx+g,yas=(botOfY[p.y]||p.y+p.h)+14,ybt=(botOfY[Q.y]||Q.y+Q.h)+14;
+    const sxg=sx+g,txg=tx+g,yas=Math.max(4,p.y-14),ybt=(botOfY[Q.y]||Q.y+Q.h)+14;
     edges+=`<path d="M${sx},${sy} L${sxg},${sy} L${sxg},${yas} L${bx},${yas} L${bx},${ybt} L${txg},${ybt} L${txg},${ty} L${tx},${ty}" fill="none" stroke="#c98a2a" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#ahb)"/>`;
     if(lab)edges+=pill(bx,Math.round((yas+ybt)/2),lab);});
   let nodes='';blocks.forEach(b=>{const p=pos[b.id];if(!p)return;const dec=b.type==='decision',isS=b.id===start;const fill=dec?'#fdf8ef':'#f5faf8',stroke=dec?'#e1cf9f':'#c2d0cc',tcol=dec?'#6b4d12':'#16211f';const h=p.h;
