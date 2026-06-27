@@ -585,7 +585,7 @@ function staticBlock(title,cls,arr,liClass,forget){const items=clean(arr);if(!it
    Utilisé en aperçu live dans l'éditeur et à la demande en lecture. */
 function buildFlowSVG(f){
   const blocks=f.blocks||[];if(!blocks.length)return '<div style="padding:14px;color:#54635f;font-size:13px">Aucun bloc.</div>';
-  const NW=310,TH=28,IH=17,IPAD=8,HG=36,VG=52,PX=14,PY=14,MAX_IT=7;
+  const NW=265,TH=28,IH=17,IPAD=8,HG=36,VG=52,PX=14,PY=14,MAX_IT=7;
   function nh(b){const dec=b.type==='decision';const its=dec?(b.options||[]).filter(o=>o.label||o.target):clean(b.steps);const qh=(dec&&b.question)?IH:0;return TH+IPAD+qh+Math.min(its.length,MAX_IT)*IH+(its.length>MAX_IT?IH:0)+IPAD;}
   const byId={};blocks.forEach(b=>byId[b.id]=b);const start=(f.start&&byId[f.start])?f.start:blocks[0].id;
   const level={};const bq=[start];level[start]=0;
