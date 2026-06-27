@@ -40,7 +40,10 @@ EXIGENCES DE FOND
     autre bloc (branchement « si oui → A, si non → B »).
   - Une option/`next` peut renvoyer vers un bloc précédent (boucle de réévaluation).
 - Mets dans :
-  - confirmation = critères qui confirment le diagnostic / déclenchent la fiche ;
+  - confirmation = critères qui confirment le diagnostic / déclenchent la fiche.
+    Détaille-les POINT PAR POINT (un critère par ligne, pour pouvoir cocher), en
+    REGROUPANT ceux d'une même catégorie quand ça reste lisible (ex. "Signes neuro :
+    convulsions / troubles de conscience"). Esprit aide cognitive : court, repérable.
   - verify       = points à vérifier (accès, monitorage, prélèvements…) ;
   - notForget    = pièges et points critiques à ne pas oublier ;
   - differentials= diagnostics différentiels ;
@@ -69,9 +72,13 @@ ERGONOMIE DE L'ALGORITHME (conception d'aide cognitive de crise, esprit SFAR / S
   vagues, non actionnables ou non vérifiables.
 - Réserve les blocs « decision » aux VRAIS points de bifurcation (si récidive -> …), pas
   pour enchaîner une simple séquence.
-- Quand la prise en charge est cyclique, crée une BOUCLE DE RÉÉVALUATION : un bloc de
-  surveillance dont le « next » renvoie vers la décision de réévaluation, et associe un
-  minuteur de cycle (timer interval, autoloop).
+- Quand la prise en charge est cyclique, crée une BOUCLE DE RÉÉVALUATION : un bloc peut
+  RENVOYER VERS UN BLOC PRÉCÉDENT pour réévaluer (le « next » d'un bloc, ou le « target »
+  d'une option, peut viser un bloc déjà passé). Exemple typique :
+    bloc "Surveillance" -> décision "Nouvelle crise convulsive ?"
+       option "Oui" -> retour à un bloc de traitement précédent (ex. "Anticonvulsivant")
+       option "Non" -> poursuivre / surveiller
+  Associe un minuteur de cycle (timer interval, autoloop) à ces boucles.
 - PLUSIEURS minuteurs de réévaluation sont les BIENVENUS quand la prise en charge le
   justifie (ex. un minuteur de bolus à durée fixe + un cycle de surveillance qui reboucle).
   N'hésite pas à en créer plusieurs.

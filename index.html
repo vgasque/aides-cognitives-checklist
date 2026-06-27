@@ -215,6 +215,7 @@
   .options{display:grid;gap:10px}
   .opt{display:flex;align-items:center;gap:11px;text-align:left;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--verify);border-radius:11px;padding:14px 15px;font-size:16px;font-weight:550;color:var(--ink);width:100%}
   .opt:hover{background:#fff;border-color:var(--verify)}.opt .arr{margin-left:auto;color:var(--verify)}
+  .opt[disabled]{opacity:.55;cursor:default}.opt.taken{opacity:1;background:var(--primary-soft);border-left-color:var(--primary)}.opt.taken .arr{color:var(--primary)}
   .flow-ctrl{display:flex;gap:9px;margin-top:14px;flex-wrap:wrap}
   .endcap{font-size:13px;color:var(--ink-soft);font-style:italic;margin-top:12px}
   .node-img{width:100%;border-radius:10px;border:1px solid var(--line);margin-bottom:14px;cursor:zoom-in;display:block}
@@ -396,7 +397,7 @@
 
 /* PALETTE : couleurs proposées pour les catégories (hex sombres, lisibles
    en texte comme en pastille teintée). Index réutilisé cycliquement. */
-const APP_VERSION='2.1.18';
+const APP_VERSION='2.1.19';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 const PALETTE=['#b23052','#823a32','#b5532a','#a26a42','#8a6a12','#4f6b1e','#1f7a4d','#0d5b56','#007fb1','#45556b','#1f5fa6','#4b3fa6','#8869af','#7a2f6b','#ad5e7e'];
 /* ===== Backends =====
@@ -456,7 +457,7 @@ let Data=KV;
    Helpers : uid (id unique), esc (échappe le HTML), clean (vide les lignes vides),
      catTag (pastille couleur d'une catégorie), fmtMs (millisecondes -> mm:ss). */
 let fiches=[],categories=[],sessions=[];
-let state={view:'library',id:null,q:'',cat:'',draft:null,fiche:null,nav:[],navSeq:[],checked:{},catMgr:false,showFlow:false,showSess:false};
+let state={view:'library',id:null,q:'',cat:'',draft:null,fiche:null,nav:[],navSeq:[],navPos:0,checked:{},catMgr:false,showFlow:false,showSess:false};
 const Runtime={fiche:null,ficheId:null,sessionId:null,name:'',sound:true,checked:{},nav:[],navSeq:[],seq:0,counters:{},timers:{},events:[]};
 let AC=null;
 const uid=p=>(p||'f')+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
@@ -588,7 +589,7 @@ function freshRuntime(f,session){
   Runtime.counters={};(f.counters||[]).forEach(c=>{Runtime.counters[c.id]=(session&&session.counters&&(c.id in session.counters))?session.counters[c.id]:(c.start||0);});
   Runtime.timers={};(f.timers||[]).forEach(t=>{const sv=session&&session.timers&&session.timers[t.id];Runtime.timers[t.id]={id:t.id,label:t.label,type:t.type,seconds:t.seconds||0,autoloop:!!t.autoloop,elapsedMs:sv?sv.elapsedMs:0,cycles:sv?sv.cycles:0,running:false,lastStart:0};});
   Runtime.events=(session&&Array.isArray(session.events))?session.events.map(e=>({...e})):[];
-  state.checked=Runtime.checked;state.nav=Runtime.nav;state.navSeq=Runtime.navSeq;
+  state.checked=Runtime.checked;state.nav=Runtime.nav;state.navSeq=Runtime.navSeq;state.navPos=Runtime.nav.length-1;
 }
 function resetRuntime(){Runtime.fiche=null;Runtime.ficheId=null;Runtime.sessionId=null;Runtime.name='';Runtime.timers={};Runtime.counters={};}
 // Vibration. NB : iOS (Safari/PWA iPhone) n'expose PAS l'API Vibration -> aucune
@@ -709,17 +710,23 @@ function wrapText(str,maxChars){const words=String(str||'').replace(/\s+/g,' ').
   push();return lines.length?lines:[''];}
 function buildFlowSVG(f){
   const blocks=f.blocks||[];if(!blocks.length)return '<div style="padding:14px;color:#54635f;font-size:13px">Aucun bloc.</div>';
-  const NW=265,TH=28,HG=36,VG=52,PX=14,PY=14,LH=16,TLH=15,HPAD=8,TXT_MAX=42,TITLE_MAX=34;
+  const TH=28,HG=36,VG=52,PX=14,PY=14,LH=16,TLH=15,HPAD=8,TXT_MAX=42,TITLE_MAX=34,MINW=150,MAXW=300,CW=5.6;
   const byId={};blocks.forEach(b=>byId[b.id]=b);const start=(f.start&&byId[f.start])?f.start:blocks[0].id;
-  // Mise en page de chaque bloc : texte ENROULÉ (jamais tronqué), TOUTES les étapes/options (sans limite).
+  // Mise en page de chaque bloc : texte ENROULÉ (jamais tronqué), TOUTES les étapes/options (sans
+  // limite). LARGEUR ajustée au contenu (chaque bloc se resserre sur sa plus longue ligne) pour
+  // éviter l'espace vide à droite du texte.
   const LAY={};
   blocks.forEach(b=>{const dec=b.type==='decision';
     const headerLines=wrapText(b.title||(dec?'Décision':'Étapes'),TITLE_MAX);
     const headerH=Math.max(TH,headerLines.length*TLH+12);const items=[];
     if(dec){if(b.question)items.push({kind:'q',lines:wrapText(b.question,TXT_MAX)});(b.options||[]).filter(o=>o.label||o.target).forEach((o,i)=>items.push({kind:'opt',lines:wrapText(o.label||('Option '+(i+1)),TXT_MAX-2)}));}
     else{clean(b.steps).forEach((s,i)=>items.push({kind:'step',num:i+1,lines:wrapText(s,TXT_MAX-3)}));}
-    const cl=items.reduce((n,it)=>n+it.lines.length,0);LAY[b.id]={dec,headerLines,headerH,items,h:headerH+HPAD+cl*LH+HPAD};});
-  const nh=id=>LAY[id].h;
+    const cl=items.reduce((n,it)=>n+it.lines.length,0);
+    let mxc=0;headerLines.forEach(l=>{mxc=Math.max(mxc,l.length*1.12);});
+    items.forEach(it=>it.lines.forEach((l,li)=>{const pre=it.kind==='step'?(li===0?String(it.num).length+2:1.5):it.kind==='opt'?(li===0?2:1.5):0;mxc=Math.max(mxc,l.length+pre);}));
+    let base=Math.round(mxc*CW)+22;if(b.id===start)base+=58;
+    LAY[b.id]={dec,headerLines,headerH,items,h:headerH+HPAD+cl*LH+HPAD,w:Math.max(MINW,Math.min(MAXW,base))};});
+  const nh=id=>LAY[id].h,nw=id=>LAY[id].w;
   const level={};const bq=[start];level[start]=0;
   while(bq.length){const id=bq.shift();const b=byId[id];const tg=b.type==='steps'?(b.next&&byId[b.next]?[b.next]:[]):(b.options||[]).map(o=>o.target).filter(t=>t&&byId[t]);tg.forEach(t=>{if(level[t]===undefined){level[t]=level[id]+1;bq.push(t);}});}
   let maxL=0;Object.values(level).forEach(v=>{if(v>maxL)maxL=v;});blocks.forEach(b=>{if(level[b.id]===undefined){maxL+=1;level[b.id]=maxL;}});
@@ -733,13 +740,14 @@ function buildFlowSVG(f){
     if(li>0){const bc={};row.forEach(id=>{const ps=parentsF[id];bc[id]=ps.length?ps.reduce((s,p)=>s+(orderIx[p]||0),0)/ps.length:1e9;});
       row.sort((a,b)=>(bc[a]-bc[b])||(bIx(a)-bIx(b)));}
     row.forEach((id,i)=>orderIx[id]=i);});
-  let maxRow=1;Object.values(byLevel).forEach(r=>{if(r.length>maxRow)maxRow=r.length;});
-  const totalW=PX*2+maxRow*NW+(maxRow-1)*HG;
+  // Largeur de chaque rangée = somme des largeurs des blocs + écarts ; rangées centrées.
+  const rowW={};let maxRowW=0;Object.keys(byLevel).forEach(L=>{const r=byLevel[L];const w=r.reduce((s,id)=>s+nw(id),0)+(r.length-1)*HG;rowW[L]=w;if(w>maxRowW)maxRowW=w;});
+  const totalW=PX*2+maxRowW;
   const levelY={},botOfY={};let curY=PY;
   Object.keys(byLevel).map(Number).sort((a,b)=>a-b).forEach(L=>{levelY[L]=curY;const lh=Math.max(...byLevel[L].map(id=>nh(id)));botOfY[curY]=curY+lh;curY+=lh+VG;});
   const totalH=curY-VG+PY;
   const pos={};
-  Object.keys(byLevel).map(Number).sort((a,b)=>a-b).forEach(L=>{const row=byLevel[L];const rw=row.length*NW+(row.length-1)*HG;const sx=PX+(totalW-PX*2-rw)/2;row.forEach((id,i)=>{pos[id]={x:sx+i*(NW+HG),y:levelY[L],h:nh(id)};});});
+  Object.keys(byLevel).map(Number).sort((a,b)=>a-b).forEach(L=>{const row=byLevel[L];let x=PX+(maxRowW-rowW[L])/2;row.forEach(id=>{pos[id]={x:Math.round(x),y:levelY[L],h:nh(id),w:nw(id)};x+=nw(id)+HG;});});
   // Collecte des arêtes, séparées en AVANT (descendantes) et RETOUR (même niveau / remontée).
   // Convention algorithme médical : connecteurs orthogonaux (angles droits), trait plein
   // pour le flux principal, trait pointillé pour les boucles/retours.
@@ -747,37 +755,38 @@ function buildFlowSVG(f){
   blocks.forEach(b=>{const p=pos[b.id];if(!p)return;const conns=b.type==='steps'?(b.next&&byId[b.next]?[{t:b.next,lab:''}]:[]):(b.options||[]).filter(o=>o.target&&byId[o.target]).map(o=>({t:o.target,lab:o.label||''}));
     conns.forEach(c=>{const Q=pos[c.t];if(!Q)return;const e={sid:b.id,tid:c.t,p,Q,lab:c.lab};
       // AVANT (plus bas) / RETOUR (plus haut ou soi-même) / LATÉRAL (même niveau, autre bloc).
-      if(Q.y>p.y)fwd.push(e);else if(Q.y<p.y||c.t===b.id)back.push(e);else lat.push(e);});});
+      if(Q.y>p.y){e.kind='fwd';fwd.push(e);}else if(Q.y<p.y||c.t===b.id){e.kind='back';back.push(e);}else{e.kind='lat';lat.push(e);}});});
   // Points de SORTIE : pour chaque source, triés par x de la CIBLE (la branche de gauche sort
   // à gauche, celle de droite à droite -> plus de croisement en X sous un bloc conditionnel).
   const bySrc={};fwd.forEach(e=>{(bySrc[e.sid]=bySrc[e.sid]||[]).push(e);});
-  Object.values(bySrc).forEach(arr=>{arr.sort((a,b)=>a.Q.x-b.Q.x);const n=arr.length;arr.forEach((e,i)=>{e.exitIdx=i;e.x1=Math.round(e.p.x+NW*(i+1)/(n+1));});});
+  Object.values(bySrc).forEach(arr=>{arr.sort((a,b)=>a.Q.x-b.Q.x);const n=arr.length;arr.forEach((e,i)=>{e.exitIdx=i;e.x1=Math.round(e.p.x+e.p.w*(i+1)/(n+1));});});
   // Points d'ENTRÉE : pour chaque cible, triés par x de la SOURCE et RÉPARTIS sur le haut du
   // bloc -> quand plusieurs blocs convergent, les flèches arrivent côte à côte sans se superposer.
   const byTgt={};fwd.forEach(e=>{(byTgt[e.tid]=byTgt[e.tid]||[]).push(e);});
-  Object.values(byTgt).forEach(arr=>{arr.sort((a,b)=>a.p.x-b.p.x);const n=arr.length;arr.forEach((e,i)=>{e.entryIdx=i;e.x2=Math.round(e.Q.x+NW*(i+1)/(n+1));});});
-  // Points d'attache des retours sur le côté droit, RÉPARTIS par bloc : un bloc peut être à la
-  // fois source d'un retour et cible d'un autre (ou se référer à LUI-MÊME) -> sans répartition,
-  // les connexions se superposent au même point et un retour semble manquer.
-  const rAtt={};back.forEach(e=>{(rAtt[e.sid]=rAtt[e.sid]||[]).push([e,'s']);(rAtt[e.tid]=rAtt[e.tid]||[]).push([e,'t']);});
-  Object.keys(rAtt).forEach(id=>{const pp=pos[id],arr=rAtt[id],m=arr.length;arr.forEach((a,k)=>{const yy=Math.round(pp.y+pp.h*(k+1)/(m+1));if(a[1]==='s')a[0].sy=yy;else a[0].ty=yy;});});
-  // Arêtes LATÉRALES (même niveau) : attache sur le côté FACE à la cible (droite si la cible est
-  // à droite, gauche sinon), réparties par bloc et par côté.
-  const latAtt={};
-  lat.forEach(e=>{const sS=e.Q.x>e.p.x?'R':'L',tS=e.Q.x>e.p.x?'L':'R';(latAtt[e.sid+sS]=latAtt[e.sid+sS]||[]).push([e,'s']);(latAtt[e.tid+tS]=latAtt[e.tid+tS]||[]).push([e,'t']);});
-  Object.keys(latAtt).forEach(k=>{const id=k.slice(0,-1),pp=pos[id],arr=latAtt[k],m=arr.length;arr.forEach((a,j)=>{const yy=Math.round(pp.y+pp.h*(j+1)/(m+1));if(a[1]==='s')a[0].lsy=yy;else a[0].lty=yy;});});
+  Object.values(byTgt).forEach(arr=>{arr.sort((a,b)=>a.p.x-b.p.x);const n=arr.length;arr.forEach((e,i)=>{e.entryIdx=i;e.x2=Math.round(e.Q.x+e.Q.w*(i+1)/(n+1));});});
+  // Attache des arêtes sur les CÔTÉS des blocs, UNIFIÉE retours (pointillé) + latérales (plein) :
+  // toutes les connexions d'un même côté d'un bloc sont réparties ensemble -> une ligne pleine et
+  // une ligne pointillée ne partent/n'arrivent jamais au même point (bug 4.B), et deux retours du
+  // même bloc ne se superposent pas. Retours/auto-réf = côté droit ; latérales = côté face à la cible.
+  const att={};
+  back.forEach(e=>{(att[e.sid+'R']=att[e.sid+'R']||[]).push([e,'s']);(att[e.tid+'R']=att[e.tid+'R']||[]).push([e,'t']);});
+  lat.forEach(e=>{const sS=e.Q.x>e.p.x?'R':'L',tS=e.Q.x>e.p.x?'L':'R';(att[e.sid+sS]=att[e.sid+sS]||[]).push([e,'s']);(att[e.tid+tS]=att[e.tid+tS]||[]).push([e,'t']);});
+  Object.keys(att).forEach(k=>{const id=k.slice(0,-1),pp=pos[id],arr=att[k],m=arr.length;arr.forEach((a,j)=>{const yy=Math.round(pp.y+pp.h*(j+1)/(m+1)),e=a[0],role=a[1];if(e.kind==='lat'){if(role==='s')e.lsy=yy;else e.lty=yy;}else{if(role==='s')e.sy=yy;else e.ty=yy;}});});
   // Sépare les AUTO-RÉFÉRENCES (un bloc qui boucle sur lui-même) des retours classiques.
   const selfL=[],back2=[];back.forEach(e=>{(e.sid===e.tid?selfL:back2).push(e);});
   // Index par source/cible : permet d'ÉCARTER (bifurquer) plusieurs retours partant du même bloc
   // (ou arrivant au même bloc) pour qu'ils ne se chevauchent pas (risers et bandes décalés).
   const sCnt={},tCnt={};back2.forEach(e=>{e.sIdx=(sCnt[e.sid]=(sCnt[e.sid]||0));sCnt[e.sid]++;e.tIdx=(tCnt[e.tid]=(tCnt[e.tid]||0));tCnt[e.tid]++;});
-  // Retours classiques : routés sur la marge droite, décalés pour éviter les superpositions.
-  const BGUT=30,baseBulge=totalW-PX+18,SLOOP=24;let svgW=totalW,svgH=totalH;
-  back2.forEach((e,k)=>{e.bx=baseBulge+k*BGUT;const lw=e.lab?Math.min(220,18+textTrunc(e.lab,28).length*6.5):8;const right=e.bx+lw/2+10;if(right>svgW)svgW=right;
+  // Retours classiques : routés sur la marge droite. BGUT >= largeur d'une pastille étroite ->
+  // les pastilles de deux retours voisins ne se chevauchent pas (bug 4.A).
+  const BGUT=150,baseBulge=totalW-PX+18,SLOOP=24,pwN=lab=>Math.min(130,18+textTrunc(lab,18).length*6.3);
+  let svgW=totalW,svgH=totalH;
+  back2.forEach((e,k)=>{e.bx=baseBulge+k*BGUT;const lw=e.lab?pwN(e.lab):8;const right=e.bx+lw/2+10;if(right>svgW)svgW=right;
     const lowT=(botOfY[e.Q.y]||e.Q.y+e.Q.h)+14+(e.tIdx||0)*8+8;if(lowT>svgH)svgH=lowT;});
   // Auto-références : petite boucle compacte JUSTE à droite du bloc (jamais autour d'un autre).
-  selfL.forEach(e=>{const lw=e.lab?Math.min(220,18+textTrunc(e.lab,28).length*6.5):8;const right=e.p.x+NW+SLOOP+lw+12;if(right>svgW)svgW=right;});
+  selfL.forEach(e=>{const lw=e.lab?pwN(e.lab):8;const right=e.p.x+e.p.w+SLOOP+lw+12;if(right>svgW)svgW=right;});
   const pill=(lx,ly,lab)=>{const t=textTrunc(lab,28),w=Math.min(220,18+t.length*6.5);return `<g transform="translate(${lx},${ly})"><rect x="${-w/2}" y="-10" width="${w}" height="20" rx="10" fill="#fff" stroke="#e1cf9f"/><text x="0" y="4" text-anchor="middle" font-size="10.5" font-weight="600" fill="#6b4d12" font-family="system-ui">${esc(t)}</text></g>`;};
+  const pillN=(lx,ly,lab)=>{const t=textTrunc(lab,18),w=pwN(lab);return `<g transform="translate(${lx},${ly})"><rect x="${-w/2}" y="-10" width="${w}" height="20" rx="10" fill="#fff" stroke="#e1cf9f"/><text x="0" y="4" text-anchor="middle" font-size="10.5" font-weight="600" fill="#6b4d12" font-family="system-ui">${esc(t)}</text></g>`;};
   let edges='';
   fwd.forEach(e=>{const y1=e.p.y+e.p.h,y2=e.Q.y,lane=(e.exitIdx||0)+(e.entryIdx||0),rowBot=botOfY[e.p.y]||y1;
     // Coude horizontal placé SOUS le bas de TOUTE la rangée source (gap libre), pas sous le bas
@@ -791,43 +800,43 @@ function buildFlowSVG(f){
   // la marge par la bande AU-DESSUS d'elle (on monte directement) et la cible par la bande
   // SOUS elle (la marge arrive d'en bas). Bandes libres car tops alignés / bas = bloc le plus
   // haut. Remontée sur la marge droite (x=bx). Aucun segment ne passe sous/à travers un bloc.
-  back2.forEach(e=>{const p=e.p,Q=e.Q,lab=e.lab,bx=e.bx,sx=p.x+NW,sy=e.sy,tx=Q.x+NW,ty=e.ty;
+  back2.forEach(e=>{const p=e.p,Q=e.Q,lab=e.lab,bx=e.bx,sx=p.x+p.w,sy=e.sy,tx=Q.x+Q.w,ty=e.ty;
     // Décale le riser (x) et la bande (y) selon l'index source/cible -> deux retours du même bloc
     // bifurquent au lieu de se chevaucher.
     const gS=Math.min(16+(e.sIdx||0)*9,HG-3),gT=Math.min(16+(e.tIdx||0)*9,HG-3);
     const sxg=sx+gS,txg=tx+gT,yas=Math.max(4,p.y-14-(e.sIdx||0)*8),ybt=(botOfY[Q.y]||Q.y+Q.h)+14+(e.tIdx||0)*8;
     edges+=`<path d="M${sx},${sy} L${sxg},${sy} L${sxg},${yas} L${bx},${yas} L${bx},${ybt} L${txg},${ybt} L${txg},${ty} L${tx},${ty}" fill="none" stroke="#c98a2a" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#ahb)"/>`;
-    if(lab)edges+=pill(bx,Math.round((yas+ybt)/2),lab);});
+    if(lab)edges+=pillN(bx,Math.round((yas+ybt)/2),lab);});
   // Auto-référence : sort du côté droit (haut), redescend juste à droite du bloc et y rentre (bas).
-  selfL.forEach(e=>{const sx=e.p.x+NW,sy=e.sy,ty=e.ty,bx=sx+SLOOP;
+  selfL.forEach(e=>{const sx=e.p.x+e.p.w,sy=e.sy,ty=e.ty,bx=sx+SLOOP;
     edges+=`<path d="M${sx},${sy} L${bx},${sy} L${bx},${ty} L${sx},${ty}" fill="none" stroke="#c98a2a" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#ahb)"/>`;
-    if(e.lab){const t=textTrunc(e.lab,28),w=Math.min(220,18+t.length*6.5);edges+=pill(Math.round(bx+w/2+6),Math.round((sy+ty)/2),e.lab);}});
+    if(e.lab)edges+=pillN(Math.round(bx+pwN(e.lab)/2+6),Math.round((sy+ty)/2),e.lab);});
   // Arête LATÉRALE (même niveau). Adjacents + sans label : trait direct bord-à-bord (du bord
   // face à face). Sinon (label, ou un bloc entre les deux) : route SOUS la rangée pour laisser
   // la place au label et ne passer ni sur un bloc ni sur la pastille d'une arête conditionnelle.
-  lat.forEach(e=>{const p=e.p,Q=e.Q,toR=Q.x>p.x,sx=toR?p.x+NW:p.x,tx=toR?Q.x:Q.x+NW,sy=e.lsy,ty=e.lty;
+  lat.forEach(e=>{const p=e.p,Q=e.Q,toR=Q.x>p.x,sx=toR?p.x+p.w:p.x,tx=toR?Q.x:Q.x+Q.w,sy=e.lsy,ty=e.lty;
     const lo=Math.min(sx,tx),hi=Math.max(sx,tx);
-    const blocked=blocks.some(b=>{const q=pos[b.id];return q&&b.id!==e.sid&&b.id!==e.tid&&q.y===p.y&&q.x+NW>lo+2&&q.x<hi-2;});
+    const blocked=blocks.some(b=>{const q=pos[b.id];return q&&b.id!==e.sid&&b.id!==e.tid&&q.y===p.y&&q.x+q.w>lo+2&&q.x<hi-2;});
     if(!blocked&&!e.lab){const mx=Math.round((sx+tx)/2);
       edges+=`<path d="M${sx},${sy} L${mx},${sy} L${mx},${ty} L${tx},${ty}" fill="none" stroke="#9fb0ac" stroke-width="1.8" marker-end="url(#ah)"/>`;}
     else{const g=16,yb=(botOfY[p.y]||p.y+p.h)+16,sxg=toR?sx+g:sx-g,txg=toR?tx-g:tx+g;
       edges+=`<path d="M${sx},${sy} L${sxg},${sy} L${sxg},${yb} L${txg},${yb} L${txg},${ty} L${tx},${ty}" fill="none" stroke="#9fb0ac" stroke-width="1.8" marker-end="url(#ah)"/>`;
       if(yb+8>svgH)svgH=yb+8;if(e.lab)edges+=pill(Math.round((sx+tx)/2),yb,e.lab);}});
-  let nodes='';blocks.forEach(b=>{const p=pos[b.id];if(!p)return;const L=LAY[b.id],dec=L.dec,isS=b.id===start;
+  let nodes='';blocks.forEach(b=>{const p=pos[b.id];if(!p)return;const L=LAY[b.id],dec=L.dec,isS=b.id===start,W=p.w;
     const fill=dec?'#fdf8ef':'#f5faf8',stroke=dec?'#e1cf9f':'#c2d0cc',tcol=dec?'#6b4d12':'#16211f';const h=p.h,hh=L.headerH;
-    let g=`<rect width="${NW}" height="${h}" rx="10" fill="${fill}"/>`;
-    g+=`<rect width="${NW}" height="${hh}" rx="10" fill="${dec?'#f0e4c8':'#dbeae5'}"/><rect width="${NW}" height="6" y="${hh-6}" fill="${dec?'#f0e4c8':'#dbeae5'}"/>`;
+    let g=`<rect width="${W}" height="${h}" rx="10" fill="${fill}"/>`;
+    g+=`<rect width="${W}" height="${hh}" rx="10" fill="${dec?'#f0e4c8':'#dbeae5'}"/><rect width="${W}" height="6" y="${hh-6}" fill="${dec?'#f0e4c8':'#dbeae5'}"/>`;
     g+=dec?`<circle cx="13" cy="${Math.round(hh/2)}" r="4" fill="#946615"/>`:`<rect x="0" y="0" width="4" height="${hh}" rx="2" fill="#0d5b56"/>`;
     const hy0=(hh-L.headerLines.length*TLH)/2;
-    L.headerLines.forEach((ln,i)=>{g+=`<text x="${NW/2+2}" y="${Math.round(hy0+i*TLH+TLH-4)}" text-anchor="middle" font-size="11.5" font-weight="700" fill="${tcol}" font-family="system-ui">${esc(ln)}</text>`;});
-    if(isS)g+=`<rect x="${NW-54}" y="5" width="50" height="15" rx="7" fill="#0d5b56"/><text x="${NW-29}" y="16" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff" font-family="system-ui" letter-spacing="0.5">DÉPART</text>`;
+    L.headerLines.forEach((ln,i)=>{g+=`<text x="${W/2+2}" y="${Math.round(hy0+i*TLH+TLH-4)}" text-anchor="middle" font-size="11.5" font-weight="700" fill="${tcol}" font-family="system-ui">${esc(ln)}</text>`;});
+    if(isS)g+=`<rect x="${W-54}" y="5" width="50" height="15" rx="7" fill="#0d5b56"/><text x="${W-29}" y="16" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff" font-family="system-ui" letter-spacing="0.5">DÉPART</text>`;
     let iy=hh+HPAD;
     L.items.forEach(it=>{it.lines.forEach((ln,li)=>{const y=iy+12;
       if(it.kind==='q'){g+=`<text x="10" y="${y}" font-size="10.5" font-style="italic" fill="#8b6914" font-family="system-ui">${esc(ln)}</text>`;}
       else if(it.kind==='opt'){const pre=li===0?'<tspan font-weight="700" fill="#946615">› </tspan>':'';g+=`<text x="${li===0?12:20}" y="${y}" font-size="10.5" fill="#6b4d12" font-family="system-ui">${pre}${esc(ln)}</text>`;}
       else{const pre=li===0?`<tspan font-weight="700" fill="#7c8a87">${it.num}. </tspan>`:'';g+=`<text x="${li===0?12:22}" y="${y}" font-size="10.5" fill="#16211f" font-family="system-ui">${pre}${esc(ln)}</text>`;}
       iy+=LH;});});
-    g+=`<rect width="${NW}" height="${h}" rx="10" fill="none" stroke="${isS?'#0d5b56':stroke}" stroke-width="${isS?2.5:1.5}"/>`;
+    g+=`<rect width="${W}" height="${h}" rx="10" fill="none" stroke="${isS?'#0d5b56':stroke}" stroke-width="${isS?2.5:1.5}"/>`;
     nodes+=`<g transform="translate(${p.x},${p.y})">${g}</g>`;});
   return `<svg width="${svgW}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}" xmlns="http://www.w3.org/2000/svg" style="display:block"><defs><marker id="ah" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#9fb0ac"/></marker><marker id="ahb" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#c98a2a"/></marker></defs>${edges}${nodes}</svg>`;
 }
@@ -872,11 +881,18 @@ function timekeeperPanel(){const ev=Runtime.events||[];const t0=ev.length?ev[0].
 function renderRead(){
   captureFlow();
   const f=state.fiche;if(!f){state.view='library';return render();}
-  const cur=state.nav[state.nav.length-1];const curSeq=state.navSeq[state.navSeq.length-1]||1;const blk=f.blocks.find(b=>b.id===cur)||f.blocks.find(b=>b.id===f.start)||f.blocks[0];const flow=hasFlow(f);let navHtml='';
-  if(blk){const crumbs=flow?`<div class="crumbs">${state.nav.map((id,i)=>{const b=f.blocks.find(x=>x.id===id);return `<span class="cb${i===state.nav.length-1?' cur':''}" data-crumb="${i}" role="button" tabindex="0">${esc((b&&b.title)||'?')}</span>`;}).join('<span>›</span>')}</div>`:'';
+  const npos=Math.min(state.navPos==null?state.nav.length-1:state.navPos,state.nav.length-1);state.navPos=npos;
+  const cur=state.nav[npos];const curSeq=state.navSeq[npos]||1;const atTip=npos>=state.nav.length-1;const blk=f.blocks.find(b=>b.id===cur)||f.blocks.find(b=>b.id===f.start)||f.blocks[0];const flow=hasFlow(f);let navHtml='';
+  if(blk){const crumbs=flow?`<div class="crumbs">${state.nav.map((id,i)=>{const b=f.blocks.find(x=>x.id===id);return `<span class="cb${i===npos?' cur':''}" data-crumb="${i}" role="button" tabindex="0">${esc((b&&b.title)||'?')}</span>`;}).join('<span>›</span>')}</div>`:'';
+    const backBtn=npos>0?'<button class="btn sm" id="navBack">← Précédent</button>':'';
+    const resetBtn=flow?'<button class="btn sm" id="navReset">Recommencer</button>':'';
+    const histBtn=!atTip?'<button class="btn sm" id="navFwd">Suivant →</button><button class="btn primary sm" id="navResume">↺ Reprendre à partir de ce point</button>':'';
     const imgH=blk.image?`<img class="node-img" src="${blk.image}" data-full="${blk.image}" alt="">`:'';
-    if(blk.type==='decision'){navHtml=`<div class="nav-wrap">${crumbs}<div class="node-title">${esc(blk.title)||'Décision'}</div>${imgH}<div class="question">${esc(blk.question)||'…'}</div><div class="options">${(blk.options||[]).map((o,i)=>`<button class="opt" data-goto="${o.target||''}">${esc(o.label)||'Option '+(i+1)}<span class="arr"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></span></button>`).join('')}</div><div class="flow-ctrl">${state.nav.length>1?'<button class="btn sm" id="navBack">← Précédent</button>':''}<button class="btn sm" id="navReset">Recommencer</button></div></div>`;}
-    else{const steps=clean(blk.steps);navHtml=`<div class="nav-wrap">${crumbs}<div class="node-title">${esc(blk.title)||'Étapes'}</div>${imgH}<ol class="steps">${steps.map((s,i)=>{const k=curSeq+':'+blk.id+':'+i;return `<li data-ck="${k}" class="${state.checked[k]?'done':''}"><span class="box">${state.checked[k]?'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg>':''}</span><span class="txt">${esc(s)}</span></li>`;}).join('')}</ol><div class="flow-ctrl">${blk.next&&f.blocks.some(b=>b.id===blk.next)?'<button class="btn primary sm" id="navNext">Continuer →</button>':'<span class="endcap">Fin de cette branche.</span>'}${state.nav.length>1?'<button class="btn sm" id="navBack">← Précédent</button>':''}${flow?'<button class="btn sm" id="navReset">Recommencer</button>':''}</div></div>`;}}
+    if(blk.type==='decision'){const taken=state.nav[npos+1];
+      const opts=(blk.options||[]).map((o,i)=>{const sel=!atTip&&o.target&&o.target===taken;const arr=sel?'<span class="arr">✓</span>':'<span class="arr"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></span>';return `<button class="opt${sel?' taken':''}" ${atTip?`data-goto="${o.target||''}"`:'disabled'}>${esc(o.label)||'Option '+(i+1)}${arr}</button>`;}).join('');
+      navHtml=`<div class="nav-wrap">${crumbs}<div class="node-title">${esc(blk.title)||'Décision'}</div>${imgH}<div class="question">${esc(blk.question)||'…'}</div><div class="options">${opts}</div><div class="flow-ctrl">${histBtn}${backBtn}${resetBtn}</div></div>`;}
+    else{const steps=clean(blk.steps);const fwdc=atTip?(blk.next&&f.blocks.some(b=>b.id===blk.next)?'<button class="btn primary sm" id="navNext">Continuer →</button>':'<span class="endcap">Fin de cette branche.</span>'):histBtn;
+      navHtml=`<div class="nav-wrap">${crumbs}<div class="node-title">${esc(blk.title)||'Étapes'}</div>${imgH}<ol class="steps">${steps.map((s,i)=>{const k=curSeq+':'+blk.id+':'+i;return `<li data-ck="${k}" class="${state.checked[k]?'done':''}"><span class="box">${state.checked[k]?'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg>':''}</span><span class="txt">${esc(s)}</span></li>`;}).join('')}</ol><div class="flow-ctrl">${fwdc}${backBtn}${resetBtn}</div></div>`;}}
   const gallery=(f.images||[]).length?`<section class="block"><div class="block-h h-img"><span class="pip"></span>Schémas & captures</div><div class="gallery">${f.images.map(im=>`<div class="gthumb"><img src="${im.data}" data-full="${im.data}" data-cap="${esc(im.caption||'')}" alt="${esc(im.caption||'')}">${im.caption?`<div class="gcap">${esc(im.caption)}</div>`:''}</div>`).join('')}</div></section>`:'';
   const refs=clean(f.references);
   const ss=sessions.filter(s=>s.ficheId===f.id).sort((a,b)=>b.savedAt-a.savedAt);
@@ -904,14 +920,17 @@ function renderRead(){
   document.getElementById('dup').onclick=async()=>{const c=JSON.parse(JSON.stringify(f));c.id=uid();c.title=(f.title||'Fiche')+' (copie)';c.order=Date.now();if(await persist(c)){fiches.push(c);openEdit(c.id);}};
   document.getElementById('exportOne').onclick=()=>exportData([f],'fiche-'+fileSlug(f.title));
   const ft=document.getElementById('flowToggle');if(ft)ft.onclick=()=>{state.showFlow=!state.showFlow;render();};
-  const nx=document.getElementById('navNext');if(nx)nx.onclick=()=>{state.nav.push(blk.next);state.navSeq.push(++Runtime.seq);render();};
-  const bk=document.getElementById('navBack');if(bk)bk.onclick=()=>{state.nav.pop();state.navSeq.pop();render();};
-  const rs=document.getElementById('navReset');if(rs)rs.onclick=()=>{state.nav.length=0;state.navSeq.length=0;state.nav.push(f.start);state.navSeq.push(++Runtime.seq);render();};
-  main.querySelectorAll('[data-goto]').forEach(b=>b.onclick=()=>{const t=b.dataset.goto;if(t&&f.blocks.some(x=>x.id===t)){state.nav.push(t);state.navSeq.push(++Runtime.seq);render();}});
-  // Fil d'Ariane navigable : revenir à une étape déjà visitée (troncature de nav/navSeq).
-  // Les cochages des étapes au-delà restent en mémoire (non effacés) ; en ré-avançant, une
-  // nouvelle visite (seq) donnera des cases neuves.
-  const goCrumb=i=>{if(i>=0&&i<state.nav.length-1){state.nav.length=i+1;state.navSeq.length=i+1;render();}};
+  // Navigation NON DESTRUCTIVE : le fil d'Ariane et Précédent/Suivant déplacent seulement un
+  // CURSEUR (state.navPos) sans rien effacer -> on peut revenir en arrière puis ré-avancer en
+  // gardant toute la progression. Seul « Continuer/option » (au bout) étend le parcours, et
+  // « Reprendre à partir de ce point » tronque volontairement la suite pour repartir d'ici.
+  const nx=document.getElementById('navNext');if(nx)nx.onclick=()=>{state.nav.push(blk.next);state.navSeq.push(++Runtime.seq);state.navPos=state.nav.length-1;render();};
+  const fwb=document.getElementById('navFwd');if(fwb)fwb.onclick=()=>{state.navPos=Math.min(state.navPos+1,state.nav.length-1);render();};
+  const rsm=document.getElementById('navResume');if(rsm)rsm.onclick=()=>{state.nav.length=state.navPos+1;state.navSeq.length=state.navPos+1;render();};
+  const bk=document.getElementById('navBack');if(bk)bk.onclick=()=>{state.navPos=Math.max(0,state.navPos-1);render();};
+  const rs=document.getElementById('navReset');if(rs)rs.onclick=()=>{state.nav.length=0;state.navSeq.length=0;state.nav.push(f.start);state.navSeq.push(++Runtime.seq);state.navPos=0;render();};
+  main.querySelectorAll('[data-goto]').forEach(b=>b.onclick=()=>{const t=b.dataset.goto;if(t&&f.blocks.some(x=>x.id===t)){state.nav.push(t);state.navSeq.push(++Runtime.seq);state.navPos=state.nav.length-1;render();}});
+  const goCrumb=i=>{if(i>=0&&i<state.nav.length){state.navPos=i;render();}};
   main.querySelectorAll('[data-crumb]').forEach(c=>{c.onclick=()=>goCrumb(+c.dataset.crumb);c.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();goCrumb(+c.dataset.crumb);}};});
   main.querySelectorAll('[data-ck]').forEach(li=>li.onclick=()=>{const k=li.dataset.ck;state.checked[k]=!state.checked[k];render();});
   main.querySelectorAll('img[data-full]').forEach(im=>im.onclick=()=>openLightbox(im.dataset.full,im.dataset.cap||''));
@@ -1053,7 +1072,7 @@ async function deleteDraft(){if(!confirm('Supprimer cette fiche définitivement 
      fiche déjà active (minuteurs en cours préservés) ; sinon en reconstruit un neuf.
    openEdit(id) : édite une copie profonde de la fiche (state.draft).
    newFiche()   : crée une fiche vierge et passe en édition. */
-function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;flowScroll={left:0,top:0};if(!(Runtime.fiche&&Runtime.ficheId===id))freshRuntime(f,null);state.fiche=Runtime.fiche;state.checked=Runtime.checked;state.nav=Runtime.nav;state.navSeq=Runtime.navSeq;state.id=id;state.showFlow=!!(f.blocks&&f.blocks.length);state.showSess=false;state.view='read';render();}
+function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;flowScroll={left:0,top:0};if(!(Runtime.fiche&&Runtime.ficheId===id))freshRuntime(f,null);state.fiche=Runtime.fiche;state.checked=Runtime.checked;state.nav=Runtime.nav;state.navSeq=Runtime.navSeq;state.navPos=state.nav.length-1;state.id=id;state.showFlow=!!(f.blocks&&f.blocks.length);state.showSess=false;state.view='read';render();}
 function openEdit(id){const f=fiches.find(x=>x.id===id);state.draft=JSON.parse(JSON.stringify(f));state.catMgr=false;state.view='edit';render();}
 function newFiche(){state.draft=blankFiche();state.catMgr=false;state.view='edit';render();}
 document.getElementById('topNew').onclick=newFiche;
@@ -1095,6 +1114,10 @@ EXIGENCES DE FOND
 - Mets dans : confirmation = critères qui confirment le diagnostic / déclenchent la
   fiche ; verify = points à vérifier ; notForget = pièges et points critiques ;
   differentials = diagnostics différentiels ; references = source(s) précise(s).
+- CONFIRMATION DIAGNOSTIQUE : détaille les critères diagnostiques POINT PAR POINT (un
+  critère par ligne pour pouvoir cocher), mais REGROUPE sur une ligne ceux d'une même
+  catégorie quand ça reste lisible (ex. "Signes neuro : convulsions / troubles de
+  conscience"). Reste dans l'esprit aide cognitive : court, repérable d'un coup d'œil.
 - timers / counters : seulement s'ils ont un sens (cycle de réévaluation, nombre de
   bolus...). Sinon, tableaux vides. images : toujours [].
 - category : "" et "categories": [] (je classerai la fiche après import).
@@ -1118,9 +1141,13 @@ ERGONOMIE DE L'ALGORITHME (conception d'aide cognitive de crise, esprit SFAR / S
   vagues, non actionnables ou non vérifiables.
 - Réserve les blocs « decision » aux VRAIS points de bifurcation (si récidive -> …), pas
   pour enchaîner une simple séquence.
-- Quand la prise en charge est cyclique, crée une BOUCLE DE RÉÉVALUATION : un bloc de
-  surveillance dont le « next » renvoie vers la décision de réévaluation, et associe un
-  minuteur de cycle (timer interval, autoloop).
+- Quand la prise en charge est cyclique, crée une BOUCLE DE RÉÉVALUATION : un bloc peut
+  RENVOYER VERS UN BLOC PRÉCÉDENT pour réévaluer (le « next » d'un bloc, ou le « target »
+  d'une option, peut viser un bloc déjà passé). Exemple typique :
+    bloc "Surveillance" -> décision "Nouvelle crise convulsive ?"
+       option "Oui" -> retour à un bloc de traitement précédent (ex. "Anticonvulsivant")
+       option "Non" -> poursuivre / surveiller
+  Associe un minuteur de cycle (timer interval, autoloop) à ces boucles.
 - PLUSIEURS minuteurs de réévaluation sont les BIENVENUS quand la prise en charge le
   justifie (ex. un minuteur de bolus à durée fixe + un cycle de surveillance qui reboucle).
   N'hésite pas à en créer plusieurs.
