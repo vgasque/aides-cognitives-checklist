@@ -545,7 +545,7 @@ async function deleteSession(id){if(!confirm('Supprimer cette session ?'))return
 function render(){
   document.getElementById('topNew').style.display=state.view==='library'?'inline-flex':'none';
   document.getElementById('brandSub').textContent=state.view==='library'?'Bibliothèque':state.view==='edit'?'Édition':'Mode crise';
-  const bt=document.getElementById('brandTitle');if(bt){const t=state.view==='read'&&state.fiche?state.fiche.title||'':'';bt.textContent=t;bt.style.display=t?'':'none';}
+  const bt=document.getElementById('brandTitle');if(bt){const t=state.view==='read'&&state.fiche?state.fiche.title||'':'';bt.textContent=t;bt.style.display=t?'block':'none';}
   if(state.view==='library')renderLibrary();else if(state.view==='edit')renderEditor();else renderRead();
   document.getElementById('count').textContent=fiches.length+' fiche'+(fiches.length>1?'s':'')+' · v'+APP_VERSION;
   if(state.view!=='read')window.scrollTo(0,0);
