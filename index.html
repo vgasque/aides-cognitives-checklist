@@ -259,7 +259,7 @@
   .mini:hover{background:#f3f6f5;color:var(--ink)}.mini.del:hover{color:var(--critical);border-color:#eecabe;background:var(--critical-soft)}
   .add-line{margin-top:4px;border:1px dashed var(--line);background:transparent;color:var(--primary-dk);padding:9px 13px;border-radius:9px;font-size:13.5px;font-weight:600;width:100%}
   .add-line:hover{background:var(--primary-soft);border-color:var(--primary-soft)}
-  fieldset{border:0;margin:0 0 4px;padding:0}
+  fieldset{border:0;margin:0 0 4px;padding:0;min-width:0}
   .sub2{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--ink-soft);margin:0 0 8px}
   .trow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
   .trow input[data-tf],.trow input[data-cf]{flex:1;min-width:130px;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:#fff}
@@ -272,7 +272,7 @@
   .cat-row input.cn{flex:1;min-width:120px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff}
   .swatches{display:flex;gap:5px;flex-wrap:wrap}.sw{width:22px;height:22px;border-radius:6px;cursor:pointer;border:2px solid transparent}.sw.on{border-color:#16211f}
   .flow-prev-h{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--ink-soft);margin:0 0 7px}
-  .flow-scroll{overflow:auto;border:1px solid var(--line);border-radius:10px;background:#fff;padding:8px;-webkit-overflow-scrolling:touch;margin-bottom:14px;max-height:75vh}
+  .flow-scroll{width:100%;overflow:auto;border:1px solid var(--line);border-radius:10px;background:#fff;padding:8px;-webkit-overflow-scrolling:touch;margin-bottom:14px;max-height:75vh}
   .blk{background:#f5f8f7;border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
   .blk-top{display:flex;align-items:center;gap:8px;margin-bottom:11px}
   .blk-type{font-size:10.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;padding:3px 8px;border-radius:6px}
@@ -818,7 +818,31 @@ document.getElementById('lbX').onclick=closeLightbox;lb.onclick=e=>{if(e.target=
    Export : télécharge un JSON { version, categories, fiches } (sessions exclues).
    Import : accepte le format objet (nouveau) ou un simple tableau de fiches
      (ancien). Propose de FUSIONNER ou de REMPLACER ; ajoute les catégories
-     manquantes ; régénère les id en cas de collision. */
+     manquantes ; régénère les id en cas de collision.
+
+   STRUCTURE JSON ET RÉTRO-COMPATIBILITÉ — À LIRE AVANT TOUTE MODIFICATION
+   -------------------------------------------------------------------------
+   Format exporté (version courante = 3) :
+     {
+       version: 3,
+       categories: [ { id, name, color } ],
+       fiches: [ <voir modèle ci-dessus> ]
+     }
+
+   Règles pour conserver la compatibilité au fil des mises à jour :
+   1. Ne JAMAIS supprimer un champ existant du modèle fiche ou catégorie.
+      Si un champ est abandonné, le laisser accepté en import (il sera ignoré).
+   2. Tout nouveau champ OBLIGATOIRE doit être ajouté dans migrate() avec une
+      valeur par défaut, de façon à ce que les fiches sans ce champ restent valides.
+   3. Si la structure change de façon incompatible (ex. type ou sémantique d'un
+      champ modifiée), incrémenter `version` dans exportBtn.onclick ET adapter
+      l'import pour détecter l'ancienne version et la convertir.
+   4. migrate() est le point d'entrée unique de migration : elle est appelée à
+      chaque lecture (getAll) et à chaque import. C'est là qu'on assure la
+      compatibilité ascendante.
+   5. Ne pas oublier de mettre à jour le commentaire MODÈLE DE DONNÉES en tête
+      de fichier quand le schéma évolue, pour que les prochains lecteurs/IAs
+      aient une vue exacte de la structure attendue. */
 document.getElementById('exportBtn').onclick=()=>{const out={version:3,categories,fiches:fiches.map(f=>{const c={...f};if(c.blocks)delete c.blocks._start;return c;})};const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='aides-cognitives-'+new Date().toISOString().slice(0,10)+'.json';a.click();};
 document.getElementById('importBtn').onclick=()=>document.getElementById('importFile').click();
 document.getElementById('importFile').onchange=e=>{const file=e.target.files[0];if(!file)return;const r=new FileReader();
