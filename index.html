@@ -336,7 +336,7 @@
 
 /* PALETTE : couleurs proposées pour les catégories (hex sombres, lisibles
    en texte comme en pastille teintée). Index réutilisé cycliquement. */
-const APP_VERSION='2.1.5';
+const APP_VERSION='2.1.6';
 const PALETTE=['#0d5b56','#1f5fa6','#4b3fa6','#7a2f6b','#b23052','#b5532a','#8a6a12','#4f6b1e','#1f7a4d','#45556b'];
 /* ===== Backends =====
    Quatre implémentations interchangeables exposant la MÊME interface.
@@ -636,8 +636,8 @@ function buildFlowSVG(f){
     row.forEach((id,i)=>orderIx[id]=i);});
   let maxRow=1;Object.values(byLevel).forEach(r=>{if(r.length>maxRow)maxRow=r.length;});
   const totalW=PX*2+maxRow*NW+(maxRow-1)*HG;
-  const levelY={};let curY=PY;
-  Object.keys(byLevel).map(Number).sort((a,b)=>a-b).forEach(L=>{levelY[L]=curY;const lh=Math.max(...byLevel[L].map(id=>nh(byId[id])));curY+=lh+VG;});
+  const levelY={},botOfY={};let curY=PY;
+  Object.keys(byLevel).map(Number).sort((a,b)=>a-b).forEach(L=>{levelY[L]=curY;const lh=Math.max(...byLevel[L].map(id=>nh(byId[id])));botOfY[curY]=curY+lh;curY+=lh+VG;});
   const totalH=curY-VG+PY;
   const pos={};
   Object.keys(byLevel).map(Number).sort((a,b)=>a-b).forEach(L=>{const row=byLevel[L];const rw=row.length*NW+(row.length-1)*HG;const sx=PX+(totalW-PX*2-rw)/2;row.forEach((id,i)=>{pos[id]={x:sx+i*(NW+HG),y:levelY[L],h:nh(byId[id])};});});
@@ -650,8 +650,9 @@ function buildFlowSVG(f){
   // Répartit les points de sortie AVANT sur le bas du bloc (branches d'une décision lisibles).
   const outCnt={};fwd.forEach(e=>{const k=e.p.x+'_'+e.p.y;outCnt[k]=(outCnt[k]||0)+1;});
   // Les arêtes de retour sont routées sur la marge droite, décalées pour éviter les superpositions.
-  const BGUT=30,baseBulge=totalW-PX+18;let svgW=totalW;
-  back.forEach((e,k)=>{e.bx=baseBulge+k*BGUT;const lw=e.lab?Math.min(220,18+textTrunc(e.lab,28).length*6.5):8;const right=e.bx+lw/2+10;if(right>svgW)svgW=right;});
+  const BGUT=30,baseBulge=totalW-PX+18;let svgW=totalW,svgH=totalH;
+  back.forEach((e,k)=>{e.bx=baseBulge+k*BGUT;const lw=e.lab?Math.min(220,18+textTrunc(e.lab,28).length*6.5):8;const right=e.bx+lw/2+10;if(right>svgW)svgW=right;
+    const lowS=(botOfY[e.p.y]||e.p.y+e.p.h)+14,lowT=(botOfY[e.Q.y]||e.Q.y+e.Q.h)+14;const low=Math.max(lowS,lowT)+8;if(low>svgH)svgH=low;});
   const pill=(lx,ly,lab)=>{const t=textTrunc(lab,28),w=Math.min(220,18+t.length*6.5);return `<g transform="translate(${lx},${ly})"><rect x="${-w/2}" y="-10" width="${w}" height="20" rx="10" fill="#fff" stroke="#e1cf9f"/><text x="0" y="4" text-anchor="middle" font-size="10.5" font-weight="600" fill="#6b4d12" font-family="system-ui">${esc(t)}</text></g>`;};
   let edges='';const outIx={};
   fwd.forEach(({p,Q,lab})=>{const k=p.x+'_'+p.y,n=outCnt[k],i=(outIx[k]=(outIx[k]||0));outIx[k]=i+1;
@@ -659,13 +660,13 @@ function buildFlowSVG(f){
     edges+=`<path d="M${x1},${y1} L${x1},${my} L${x2},${my} L${x2},${y2}" fill="none" stroke="#9fb0ac" stroke-width="1.8" marker-end="url(#ah)"/>`;
     if(lab)edges+=pill((x1+x2)/2,my,lab);});
   // Routage anti-chevauchement : on sort par le côté droit dans l'inter-colonne (libre),
-  // les segments horizontaux courent dans la bande AU-DESSUS de chaque rangée (libre car
-  // tous les blocs d'un niveau ont le même bord supérieur), et la remontée se fait sur la
-  // marge droite (x=bx). Aucun segment ne passe ainsi sous ou à travers un bloc.
+  // les segments horizontaux courent dans la bande SOUS le bord inférieur de chaque rangée
+  // (libre car on prend le bas de la rangée = bloc le plus haut), et la remontée se fait sur
+  // la marge droite (x=bx). Aucun segment ne passe ainsi sous ou à travers un bloc.
   back.forEach(({p,Q,lab,bx})=>{const g=16,sx=p.x+NW,sy=Math.round(p.y+p.h/2),tx=Q.x+NW,ty=Math.round(Q.y+Q.h/2);
-    const sxg=sx+g,txg=tx+g,ya=Math.max(4,p.y-16),yb=Math.max(4,Q.y-16);
-    edges+=`<path d="M${sx},${sy} L${sxg},${sy} L${sxg},${ya} L${bx},${ya} L${bx},${yb} L${txg},${yb} L${txg},${ty} L${tx},${ty}" fill="none" stroke="#c98a2a" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#ahb)"/>`;
-    if(lab)edges+=pill(bx,Math.round((ya+yb)/2),lab);});
+    const sxg=sx+g,txg=tx+g,yas=(botOfY[p.y]||p.y+p.h)+14,ybt=(botOfY[Q.y]||Q.y+Q.h)+14;
+    edges+=`<path d="M${sx},${sy} L${sxg},${sy} L${sxg},${yas} L${bx},${yas} L${bx},${ybt} L${txg},${ybt} L${txg},${ty} L${tx},${ty}" fill="none" stroke="#c98a2a" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#ahb)"/>`;
+    if(lab)edges+=pill(bx,Math.round((yas+ybt)/2),lab);});
   let nodes='';blocks.forEach(b=>{const p=pos[b.id];if(!p)return;const dec=b.type==='decision',isS=b.id===start;const fill=dec?'#fdf8ef':'#f5faf8',stroke=dec?'#e1cf9f':'#c2d0cc',tcol=dec?'#6b4d12':'#16211f';const h=p.h;
     let g=`<rect width="${NW}" height="${h}" rx="10" fill="${fill}" stroke="${isS?'#0d5b56':stroke}" stroke-width="${isS?2.5:1.5}"/>`;
     g+=`<rect width="${NW}" height="${TH}" rx="10" fill="${dec?'#f0e4c8':'#dbeae5'}"/><rect width="${NW}" height="6" y="${TH-6}" fill="${dec?'#f0e4c8':'#dbeae5'}"/>`;
@@ -679,7 +680,7 @@ function buildFlowSVG(f){
     }else{const steps=clean(b.steps);steps.slice(0,MAX_IT).forEach((s,i)=>{g+=`<text x="12" y="${iy+i*IH+12}" font-size="10.5" fill="#16211f" font-family="system-ui"><tspan font-weight="700" fill="#7c8a87">${i+1}.</tspan> ${esc(textTrunc(s,45))}</text>`;});
       if(steps.length>MAX_IT)g+=`<text x="${NW/2}" y="${iy+MAX_IT*IH+10}" text-anchor="middle" font-size="10" fill="#7c8a87" font-family="system-ui">+${steps.length-MAX_IT} autres étapes…</text>`;}
     nodes+=`<g transform="translate(${p.x},${p.y})">${g}</g>`;});
-  return `<svg width="${svgW}" height="${totalH}" viewBox="0 0 ${svgW} ${totalH}" xmlns="http://www.w3.org/2000/svg" style="display:block"><defs><marker id="ah" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#9fb0ac"/></marker><marker id="ahb" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#c98a2a"/></marker></defs>${edges}${nodes}</svg>`;
+  return `<svg width="${svgW}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}" xmlns="http://www.w3.org/2000/svg" style="display:block"><defs><marker id="ah" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#9fb0ac"/></marker><marker id="ahb" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#c98a2a"/></marker></defs>${edges}${nodes}</svg>`;
 }
 
 /* ===== Runtime panel (rendu des minuteurs/compteurs en lecture) =====
