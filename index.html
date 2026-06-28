@@ -237,6 +237,8 @@
   .block-care{background:var(--primary-soft);border:1px solid #cfe6e0;border-radius:var(--radius);padding:14px 14px 4px;margin-bottom:22px}
   .block-care .nav-wrap{background:var(--surface)}
   .flow-toggle{text-transform:none;letter-spacing:0;background:var(--surface);border-color:#b9ddd6;color:var(--primary-dk);white-space:nowrap}
+  /* Indice reliant le schéma (vue d'ensemble) à la checklist d'étapes en dessous. */
+  .flow-hint{font-size:11.5px;color:var(--ink-soft);text-align:center;margin:-4px 0 12px}
   .rt-ic{flex-shrink:0}
   ol.steps{list-style:none;margin:0;padding:0;counter-reset:s}
   ol.steps li{counter-increment:s;display:flex;gap:14px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--ink);border-radius:11px;padding:13px 15px;margin-bottom:9px;cursor:pointer;transition:opacity .12s,background .12s}
@@ -272,6 +274,10 @@
   .refs b{color:var(--ink);display:block;margin-bottom:6px;font-size:11px;letter-spacing:1px;text-transform:uppercase}
   .refs ol{margin:0;padding-left:18px}.refs li{margin-bottom:3px}
   .read-actions{display:flex;gap:9px;flex-wrap:wrap;margin:24px 0 22px}
+  /* Outils d'AUTORING séparés du contenu de crise : section discrète en bas de fiche. */
+  .read-tools{margin:28px 0 22px;border-top:1px solid var(--line);padding-top:14px}
+  .read-tools-h{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft);margin-bottom:9px}
+  .read-tools-btns{display:flex;gap:9px;flex-wrap:wrap}
   /* runtime */
   .rt-panel{background:#0f2a28;border-radius:14px;padding:14px;margin-bottom:14px;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   /* Pendant un « maintenir pour réinitialiser » : aucune sélection de texte possible nulle part. */
@@ -306,6 +312,9 @@
   .tm-btn:disabled{opacity:.32;cursor:default}.tm-btn:disabled:hover{background:rgba(255,255,255,.12)}
   .cn-btn{width:46px;height:40px;border-radius:9px;border:0;background:rgba(255,255,255,.12);color:#eaf5f3;font-size:20px;font-weight:600}
   .cn-btn:hover{background:rgba(255,255,255,.2)}
+  /* Réinit. d'un compteur (maintenir) : secondaire, sous les boutons +/−. */
+  .cn-reset{margin:9px auto 0;min-width:120px;padding:6px 14px;background:rgba(255,255,255,.1);color:#eaf5f3;border:0;border-radius:8px;font-size:11.5px;font-weight:600;-webkit-user-select:none;user-select:none}
+  .cn-reset:hover{background:rgba(255,255,255,.18)}
   /* Horodatage : outil SECONDAIRE -> panneau CLAIR (le panneau sombre reste réservé aux minuteurs/compteurs) */
   .tk-panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:13px 14px;margin-bottom:14px;box-shadow:var(--shadow)}
   .tk-head{display:flex;align-items:center;gap:10px;margin-bottom:9px}
@@ -320,6 +329,7 @@
   .tk-del{flex-shrink:0;width:32px;height:36px;border:0;border-radius:8px;background:#eef1f0;color:var(--ink-soft);font-size:17px}
   .tk-del:hover{background:var(--critical-soft);color:var(--critical)}
   .tk-empty{font-size:12.5px;color:var(--ink-soft);padding:3px 0}
+  .tk-panel.empty .tk-head{margin-bottom:0}
   /* Bandeau de session (mode lecture) : discret tant qu'inactif, mis en avant « en cours » */
   .session-bar{display:flex;gap:8px 10px;flex-wrap:wrap;align-items:center;margin-bottom:16px;border-radius:12px;padding:11px 13px}
   .session-bar.idle{background:#f3f6f5;border:1px dashed var(--line)}
@@ -362,6 +372,8 @@
   .field input[type=text],.field textarea,.field select{width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink)}
   .field input:focus,.field textarea:focus,.field select:focus{outline:2px solid var(--primary);border-color:transparent}
   .row2{display:flex;gap:12px}.row2>.field{flex:1}
+  /* Date de validation non interprétée : on signale (bordure rouge) sans bloquer la saisie. */
+  #f-validation.val-bad{border-color:var(--critical);background:var(--critical-soft)}
   .list-edit .li{display:flex;gap:8px;margin-bottom:8px;align-items:flex-start}.list-edit .li input{flex:1}
   .li-num{font-family:var(--mono);font-size:13px;color:var(--ink-soft);min-width:22px;padding-top:12px;text-align:right}
   .mini{border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);width:34px;height:42px;border-radius:9px;font-size:16px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -384,7 +396,7 @@
   .flow-prev-h{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--ink-soft);margin:0 0 7px}
   .flow-scroll{width:100%;overflow:auto;border:1px solid var(--line);border-radius:10px;background:#fff;padding:8px;-webkit-overflow-scrolling:touch;margin-bottom:14px;max-height:75vh}
   .flow-zoom{display:flex;align-items:center;gap:7px;margin-bottom:7px}
-  .fz{border:1px solid var(--line);background:var(--surface);color:var(--ink);width:34px;height:30px;border-radius:8px;font-size:17px;font-weight:600;line-height:1;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+  .fz{border:1px solid var(--line);background:var(--surface);color:var(--ink);width:42px;height:40px;border-radius:9px;font-size:18px;font-weight:600;line-height:1;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
   .fz:hover{background:#f3f6f5}.fz-r{width:auto;padding:0 11px;font-size:12.5px}
   .fz-spc{flex:1}
   .fzv{font-family:var(--mono);font-size:12px;color:var(--ink-soft);min-width:46px;text-align:center}
@@ -411,7 +423,10 @@
   .btn.danger{color:var(--critical);border-color:#eecabe}.btn.danger:hover{background:var(--critical-soft)}
   /* « Maintenir pour réinitialiser » un minuteur : jauge (fond) qui se remplit pendant l'appui
      prolongé ; le texte reste lisible au-dessus (la jauge est un fond, pas un calque). */
-  .tm-reset{touch-action:none}
+  /* Réinit. minuteur : libellé sur 2 lignes -> petit indice « maintenir » visible (geste appui long). */
+  .tm-reset{touch-action:none;display:flex;flex-direction:column;justify-content:center;line-height:1.05;padding-top:5px;padding-bottom:5px;min-height:40px}
+  .tm-reset .tmr-lab,.tm-reset .tmr-hint{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  .tm-reset .tmr-hint{font-size:8.5px;font-weight:700;opacity:.65;text-transform:uppercase;letter-spacing:.5px;margin-top:1px}
   .tm-reset.holding{background-color:rgba(255,255,255,.12);background-image:linear-gradient(rgba(217,102,58,.6),rgba(217,102,58,.6));background-repeat:no-repeat;background-size:0% 100%;animation:holdfill .8s linear forwards}
   @keyframes holdfill{to{background-size:100% 100%}}
   .btn.sm{padding:8px 13px;font-size:13px}.btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
@@ -431,7 +446,7 @@
   .lightbox{position:fixed;inset:0;background:rgba(16,32,30,.92);z-index:100;display:none;align-items:center;justify-content:center;padding:20px;flex-direction:column;gap:14px}
   .lightbox.on{display:flex}.lightbox img{max-width:100%;max-height:82vh;border-radius:8px}
   .lightbox .cap{color:#cfe0dd;font-size:13px;text-align:center;max-width:600px}
-  .lightbox .x{position:absolute;top:calc(14px + env(safe-area-inset-top));right:16px;background:rgba(255,255,255,.15);color:#fff;border:0;width:40px;height:40px;border-radius:50%;font-size:22px}
+  .lightbox .x{position:absolute;top:calc(14px + env(safe-area-inset-top));right:16px;background:rgba(255,255,255,.15);color:#fff;border:0;width:46px;height:46px;border-radius:50%;font-size:24px}
   .ai-modal{position:fixed;inset:0;background:rgba(16,32,30,.92);z-index:55;display:none;align-items:flex-start;justify-content:center;padding:calc(18px + env(safe-area-inset-top)) 14px calc(18px + env(safe-area-inset-bottom));overflow:auto}
   .ai-modal.on{display:flex}
   .ai-card{background:var(--surface);border-radius:14px;max-width:720px;width:100%;margin:auto;padding:20px;box-shadow:var(--shadow)}
@@ -464,7 +479,7 @@
   .cm-add input{flex:1;min-width:0;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:#fff;font-size:14px}
   @media (max-width:560px){.read-head h2{font-size:21px}.row2{flex-direction:column;gap:0}.question{font-size:18px}}
   @media (prefers-reduced-motion:reduce){*{transition:none!important}.tmcard.flash{animation:none}}
-  @media print{body{background:#fff}header.bar,footer.tools,.read-actions,.back,.notice,.bar-act,.flow-ctrl,.lightbox,.rt-panel,.tk-panel,.session-bar,.sess-list{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}}
+  @media print{body{background:#fff}header.bar,footer.tools,.read-actions,.read-tools,.back,.notice,.bar-act,.flow-ctrl,.lightbox,.rt-panel,.tk-panel,.session-bar,.sess-list{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}}
 </style>
 </head>
 <body>
@@ -512,7 +527,7 @@
 
 /* PALETTE : couleurs proposées pour les catégories (hex sombres, lisibles
    en texte comme en pastille teintée). Index réutilisé cycliquement. */
-const APP_VERSION='2.3.4';
+const APP_VERSION='2.3.5';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 const PALETTE=['#b23052','#823a32','#b5532a','#a26a42','#8a6a12','#4f6b1e','#1f7a4d','#0d5b56','#007fb1','#45556b','#1f5fa6','#4b3fa6','#8869af','#7a2f6b','#ad5e7e'];
 /* ===== Backends =====
@@ -600,6 +615,21 @@ const safeColor=c=>(typeof c==='string'&&/^#[0-9a-fA-F]{3,8}$/.test(c))?c:'#4555
 const safeImg=d=>(typeof d==='string'&&/^data:image\/(png|jpe?g|gif|webp);base64,[A-Za-z0-9+/=\s]{0,6000000}$/i.test(d))?d:null;
 const sstr=(v,max)=>String(v==null?'':v).slice(0,max||5000);
 const sarr=(a,max)=>(Array.isArray(a)?a:[]).slice(0,max||1000).map(x=>sstr(x,4000));
+// Date de validation : on n'accepte QUE le mois/année. parseValidation() est tolérant en entrée
+// ("jan 2026", "janv 2026", "01/2026", "2026/01", "1-2026", "202601"…) et renvoie TOUJOURS le format
+// canonique "AAAA-MM" (ou '' si non interprétable) -> résilience + sécurité (jamais de format douteux).
+const FR_MONTHS=[['janvier','janv','jan'],['février','fevrier','févr','fevr','fév','fev'],['mars','mar'],['avril','avr'],['mai'],['juin'],['juillet','juil','jul'],['août','aout','aoû','aou'],['septembre','sept','sep'],['octobre','octo','oct'],['novembre','nove','nov'],['décembre','decembre','déc','dec']];
+function monthFromName(s){s=String(s||'').toLowerCase();for(let i=0;i<12;i++){for(const a of FR_MONTHS[i]){if(s.indexOf(a)>=0)return i+1;}}return 0;}
+function parseValidation(s){s=String(s==null?'':s).trim();if(!s)return '';
+  if(/^\d{4}-(0[1-9]|1[0-2])$/.test(s))return s;            // déjà canonique
+  if(/^\d{6}$/.test(s)){const y=+s.slice(0,4),mo=+s.slice(4);return (mo>=1&&mo<=12&&y>=1900&&y<=2999)?y+'-'+String(mo).padStart(2,'0'):'';}
+  let mo=monthFromName(s),y=0;
+  const fourY=s.match(/(?:19|20|21)\d{2}/);if(fourY)y=+fourY[0];
+  if(!mo){const nums=s.match(/\d{1,4}/g)||[];for(const n of nums){if(n.length<=2){const v=+n;if(v>=1&&v<=12){mo=v;break;}}}}
+  if(!y){const two=(s.match(/\d{1,2}/g)||[]).map(Number);let c=two.find(n=>n>12);if(c==null&&mo)c=two.find(n=>n!==mo);if(c!=null)y=2000+c;}
+  return (mo>=1&&mo<=12&&y>=1900&&y<=2999)?y+'-'+String(mo).padStart(2,'0'):'';}
+// "AAAA-MM" -> "MM/AAAA" pour l'affichage dans le champ de saisie.
+const valToDisplay=v=>{const m=String(v||'').match(/^(\d{4})-(\d{2})$/);return m?m[2]+'/'+m[1]:'';};
 // Préserve la position de défilement de l'aperçu algorithme (.flow-scroll) entre deux rendus,
 // pour qu'elle ne se réinitialise pas quand on coche une case, horodate, enregistre une session…
 let flowScroll={left:0,top:0};
@@ -646,6 +676,10 @@ let flowPrevTimer=null;
 function scheduleFlowPreview(f){if(flowPrevTimer)clearTimeout(flowPrevTimer);
   flowPrevTimer=setTimeout(()=>{flowPrevTimer=null;const el=main.querySelector('.flow-scroll');if(!el)return;captureFlow();el.innerHTML=buildFlowSVG(f);applyFlowZoom();restoreFlow();bindSvgImages(el);},300);}
 const byOrder=(a,b)=>(b.order||0)-(a.order||0);
+// Catégories TOUJOURS affichées par ordre alphabétique (filtres, sélecteur, gestionnaire), quel que
+// soit l'ordre de création/stockage. localeCompare 'fr' -> tri correct des accents.
+const byCatName=(a,b)=>(a.name||'').localeCompare(b.name||'','fr',{sensitivity:'base'});
+const catsSorted=()=>categories.slice().sort(byCatName);
 const textTrunc=(s,n)=>{s=String(s||'');return s.length>n?s.slice(0,n-1)+'…':s;};
 const catOf=f=>categories.find(c=>c.id===f.category)||null;
 const catName=f=>{const c=catOf(f);return c?c.name:'';};
@@ -672,7 +706,10 @@ function blankFiche(){const b={id:uid('b'),type:'steps',title:'Prise en charge',
 // conservant les liens internes), valide images/couleurs, plafonne les tailles.
 function migrate(f){if(!f||typeof f!=='object')f={};
   f.id=safeId(f.id,'f');
-  f.title=sstr(f.title,300);f.validation=sstr(f.validation,16);f.localInfo=sstr(f.localInfo,4000);
+  f.title=sstr(f.title,300);f.localInfo=sstr(f.localInfo,4000);
+  // Date de validation normalisée en "AAAA-MM" si interprétable (sinon on garde la chaîne brute bornée,
+  // affichée telle quelle) -> tolérant à l'import tout en visant un format propre.
+  f.validation=parseValidation(f.validation)||sstr(f.validation,16);
   f.category=safeCatRef(f.category);
   if(typeof f.order!=='number'||!isFinite(f.order))f.order=Date.now();
   ['confirmation','verify','notForget','differentials','references'].forEach(k=>f[k]=sarr(f[k],500));
@@ -718,7 +755,8 @@ function migrateCategories(){const changed=[];const byName={};categories.forEach
     let id=byName[name.toLowerCase()];if(!id){id=uid('c');categories.push({id,name,color:PALETTE[pi++%PALETTE.length]});byName[name.toLowerCase()]=id;}f.category=id;changed.push(f);});return changed;}
 const hasFlow=f=>(f.blocks||[]).length>1||(f.blocks||[]).some(b=>b.type==='decision');
 const staleDate=v=>{if(!v)return false;const d=new Date(v.length===7?v+'-01':v);if(isNaN(d))return false;return (Date.now()-d.getTime())>730*864e5;};
-const fmtDate=v=>v?'Validée '+v:'Sans date de validation';
+// Affichage de la date de validation : "AAAA-MM" -> "MM/AAAA" ; "AAAA-MM-JJ" -> "JJ/MM/AAAA".
+const fmtDate=v=>{if(!v)return 'Sans date de validation';const m=String(v).match(/^(\d{4})-(\d{2})(?:-(\d{2}))?$/);return m?('Validée '+(m[3]?m[3]+'/':'')+m[2]+'/'+m[1]):('Validée '+v);};
 
 /* ===== Load =====
    chooseBackend() : tente IndexedDB ; au premier passage, migre les éventuelles
@@ -863,11 +901,12 @@ function showBanner(ficheId,fTitle,tLabel){const host=document.getElementById('a
 // notification (système + banderole in-app + flash écran) car la session n'est pas sous les yeux.
 function onTimerFired(R,t){beep();
   const activeVisible=(R===Runtime)&&state.view==='read'&&document.visibilityState!=='hidden';
+  const ft=R.fiche?(R.fiche.title||'Aide cognitive'):'Aide cognitive';const tl=t.label||(t.type==='interval'?'Minuteur':'Chronomètre');
+  // Banderole TEXTE dans tous les cas -> le flash (clignotement) n'est jamais ambigu (on lit quel
+  // minuteur a sonné). Flash de la carte si on la voit ; flash écran + notif système si en arrière-plan.
+  showBanner(R.ficheId,ft,tl);
   if(activeVisible){flash(t.id);}
-  else{flashScreen();const ft=R.fiche?(R.fiche.title||'Aide cognitive'):'Aide cognitive';const tl=t.label||(t.type==='interval'?'Minuteur':'Chronomètre');showBanner(R.ficheId,ft,tl);
-    // Notification SYSTÈME uniquement si l'app est en ARRIÈRE-PLAN. Si on est déjà sur l'app
-    // (premier plan), la banderole in-app suffit -> pas de doublon de notification téléphone.
-    if(document.visibilityState==='hidden')osNotify('⏰ '+tl+' — terminé',ft,R.ficheId);}}
+  else{flashScreen();if(document.visibilityState==='hidden')osNotify('⏰ '+tl+' — terminé',ft,R.ficheId);}}
 // Reprise d'un minuteur d'intervalle DÉJÀ TERMINÉ (non bouclé) = nouveau cycle (repart du plein) :
 // corrige « Reprendre » qui semblait ne rien faire (le temps était déjà à 0).
 function toggleTimer(t){const now=Date.now();
@@ -890,40 +929,32 @@ function updateTimers(){refreshTimersDOM(Date.now());}
 setInterval(tickAll,300);
 
 /* ===== Sessions =====
-   saveSession()     : fige l'état vivant (cochages, position, compteurs, et pour
-     chaque minuteur son elapsedMs+cycles) dans un objet session nommé, persisté.
-     Réutilise l'id si on a déjà repris une session (mise à jour plutôt que doublon).
-   resumeSession(id) : recharge une session sauvegardée dans le Runtime et ouvre
-     la fiche en lecture (minuteurs en pause, prêts à relancer).
-   deleteSession(id) : suppression définitive d'une session.
+   L'enregistrement est AUTOMATIQUE/continu (persistLive). Pas de bouton « Enregistrer » ni
+   « Réinitialiser » de session : seul « Terminer » (endCurrentSession) clôt la session — archivée
+   dans l'historique — et remet la fiche à zéro ; la prochaine action démarre une nouvelle session.
+   resumeSession(id) : recharge une session (historique) dans le Runtime, la réactive et ouvre la fiche.
+   deleteSession(id) : suppression définitive d'une session de l'historique.
    (Les sessions sont locales à l'appareil et exclues de l'export JSON.) */
-// Enregistrer (nommer) la session courante : la session est déjà auto-sauvegardée, ce bouton permet
-// de la (re)nommer. La session reste « en cours » (vive).
-function saveSession(){const f=Runtime.fiche;if(!f)return;ensureStarted();
-  const def=Runtime.name||autoSessName(f);
-  const name=prompt('Nom de la session :',def);if(name===null)return;
-  Runtime.name=name||def;persistLive(Runtime,true);render();}
-// Réinitialiser : on repart d'une fiche vierge (cochages/compteurs/minuteurs à zéro) et on EFFACE la
-// session en cours (registre vif + persistée). Une nouvelle session démarrera à la prochaine action.
+// Note : il n'y a PAS de bouton « Enregistrer » de session : l'enregistrement est AUTOMATIQUE et
+// continu (persistLive à chaque action + persistAllLive en quittant). Ni de « Réinitialiser » de
+// session : « Terminer » archive et remet la fiche à zéro (modèle volontairement minimal pour l'urgence).
 // MAINTENIR pour réinitialiser un minuteur/chrono : il faut garder le doigt appuyé ~0,8 s (jauge qui
 // se remplit). Un appui bref — ou même un DOUBLE appui au même endroit en situation de stress — ne
 // déclenche rien. Pas de fenêtre modale (réservée, elle, à la réinitialisation de SESSION).
-function holdToReset(btn,doAction){if(!btn)return;let to=null;const lbl=btn.textContent;
+function holdToReset(btn,doAction){if(!btn)return;let to=null;const lbl=btn.innerHTML;
   const clearSel=()=>{try{const s=window.getSelection&&window.getSelection();if(s&&s.removeAllRanges)s.removeAllRanges();}catch(_){}};
-  const cancel=()=>{if(to){clearTimeout(to);to=null;}btn.classList.remove('holding');btn.textContent=lbl;document.body.classList.remove('hold-noselect');};
+  const cancel=()=>{if(to){clearTimeout(to);to=null;}btn.classList.remove('holding');btn.innerHTML=lbl;document.body.classList.remove('hold-noselect');};
   const begin=e=>{if(btn.disabled)return;if(e&&e.cancelable)e.preventDefault();cancel();clearSel();
     // Pendant l'appui prolongé : on bloque TOUTE sélection de texte (sinon iPhone sélectionne le
     // texte autour du bouton) et on efface une sélection éventuelle.
-    document.body.classList.add('hold-noselect');btn.classList.add('holding');btn.textContent='Maintenir…';
+    document.body.classList.add('hold-noselect');btn.classList.add('holding');
+    // On ne change QUE le libellé (pas tout le bouton) -> la structure sur 2 lignes est conservée :
+    // la HAUTEUR du bouton ne change pas pendant l'appui (sinon il « rapetissait » au clic).
+    const lab=btn.querySelector('.tmr-lab');if(lab)lab.textContent='Maintenir…';else btn.textContent='Maintenir…';
     to=setTimeout(()=>{to=null;btn.classList.remove('holding');document.body.classList.remove('hold-noselect');clearSel();doAction();},800);};
   btn.addEventListener('pointerdown',begin);['pointerup','pointerleave','pointercancel'].forEach(ev=>btn.addEventListener(ev,cancel));
   btn.addEventListener('contextmenu',e=>e.preventDefault());
   btn.onclick=e=>{e.preventDefault();e.stopPropagation();};}
-function resetSession(){if(!confirm('Réinitialiser la session ? (cochages, compteurs et minuteurs remis à zéro)'))return;
-  const f=Runtime.fiche,old=Runtime.sessionId;
-  if(Runtime.ficheId&&liveSessions[Runtime.ficheId])delete liveSessions[Runtime.ficheId];
-  if(old){try{Data.delSession(old);}catch(e){}sessions=sessions.filter(x=>x.id!==old);}
-  freshRuntime(f,null);state.fiche=f;render();}
 // Terminer : fige en historique et arrête les minuteurs (depuis la fiche). Reste reprenable plus tard.
 // Terminer : on archive la session (historique) PUIS on repart d'une fiche vierge (tout remis à zéro :
 // cochages, compteurs, minuteurs). La session terminée reste enregistrée et reprenable.
@@ -953,10 +984,10 @@ function render(){
 function renderLibrary(){
   const q=state.q.toLowerCase();
   const list=fiches.slice().sort(byOrder).filter(f=>(!state.cat||f.category===state.cat)&&(!q||(f.title+' '+catName(f)).toLowerCase().includes(q)));
-  const chips=`<button class="catchip" data-cat="" style="${!state.cat?'background:#16211f;color:#fff;border-color:#16211f':''}">Toutes</button>`+categories.map(c=>{const col=safeColor(c.color);return `<button class="catchip" data-cat="${esc(c.id)}" style="${state.cat===c.id?`background:${col};color:#fff;border-color:${col}`:`color:${col};border-color:${col}55`}">${esc(c.name)}</button>`;}).join('')+`<button class="catchip" id="catMgrChip" style="border-style:dashed;color:var(--ink-soft)">⚙ Gérer</button>`;
+  const chips=`<button class="catchip" data-cat="" style="${!state.cat?'background:#16211f;color:#fff;border-color:#16211f':''}">Toutes</button>`+catsSorted().map(c=>{const col=safeColor(c.color);return `<button class="catchip" data-cat="${esc(c.id)}" style="${state.cat===c.id?`background:${col};color:#fff;border-color:${col}`:`color:${col};border-color:${col}55`}">${esc(c.name)}</button>`;}).join('')+`<button class="catchip" id="catMgrChip" style="border-style:dashed;color:var(--ink-soft)">⚙ Gérer</button>`;
   // SESSIONS EN COURS (vives) : accès rapide en haut de l'accueil + actions (reprendre/réinit/terminer).
   const liveArr=Object.values(liveSessions).filter(R=>R.started&&R.fiche);
-  const liveHtml=liveArr.length?`<div class="live-sessions"><div class="ls-h"><span class="sess-dot"></span>Sessions en cours · ${liveArr.length}</div>${liveArr.map(R=>{const run=Object.values(R.timers).filter(t=>t.running).length;return `<div class="ls-row"><div class="ls-info" data-openlive="${R.ficheId}" role="button" tabindex="0"><b>${esc(R.fiche.title||'Sans titre')}</b><span>depuis ${timeAgo(R.startedAt)}${run?` · ${run} minuteur${run>1?'s':''} actif${run>1?'s':''}`:''}</span></div><div class="ls-acts"><button class="btn sm primary" data-openlive="${R.ficheId}">Reprendre</button><button class="btn sm" data-resetlive="${R.ficheId}">Réinitialiser</button><button class="btn sm danger" data-endlive="${R.ficheId}">Terminer</button></div></div>`;}).join('')}</div>`:'';
+  const liveHtml=liveArr.length?`<div class="live-sessions"><div class="ls-h"><span class="sess-dot"></span>Sessions en cours · ${liveArr.length}</div>${liveArr.map(R=>{const run=Object.values(R.timers).filter(t=>t.running).length;return `<div class="ls-row"><div class="ls-info" data-openlive="${R.ficheId}" role="button" tabindex="0"><b>${esc(R.fiche.title||'Sans titre')}</b><span>depuis ${timeAgo(R.startedAt)}${run?` · ${run} minuteur${run>1?'s':''} actif${run>1?'s':''}`:''}</span></div><div class="ls-acts"><button class="btn sm primary" data-openlive="${R.ficheId}">Ouvrir</button><button class="btn sm danger" data-endlive="${R.ficheId}">Terminer</button></div></div>`;}).join('')}</div>`:'';
   main.innerHTML=`
     ${liveHtml}
     <div class="notice"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01" stroke-linecap="round"/></svg><div>Vous êtes l'auteur et le responsable du contenu. Validez chaque fiche et tenez la date à jour.</div></div>
@@ -965,7 +996,7 @@ function renderLibrary(){
     <div class="catbar">${chips}</div>
     <div class="cards">${list.length?list.map(f=>{const sc=sessions.filter(s=>s.ficheId===f.id&&!s.live).length;const isLive=!!liveSessions[f.id];return `
       <div class="card${isLive?' has-live':''}" tabindex="0" role="button" data-open="${f.id}"><div class="card-body"><h3>${esc(f.title)||'Sans titre'}</h3>
-        <div class="card-meta">${isLive?'<span class="tag live">● En cours</span>':''}${catTag(f)}${hasFlow(f)?'<span class="tag flow">Conditionnelle</span>':''}${sc?`<span class="tag sess">${sc} session${sc>1?'s':''}</span>`:''}<span class="card-date${staleDate(f.validation)?' stale':''}">${esc(fmtDate(f.validation))}${staleDate(f.validation)?' · à revoir':''}</span></div></div>
+        <div class="card-meta">${isLive?'<span class="tag live">● En cours</span>':''}${catTag(f)}${sc?`<span class="tag sess" title="Sessions enregistrées dans l'historique">${sc} sauvegardée${sc>1?'s':''}</span>`:''}<span class="card-date${staleDate(f.validation)?' stale':''}">${esc(fmtDate(f.validation))}${staleDate(f.validation)?' · à revoir':''}</span></div></div>
         <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></div>`;}).join('')
       :`<div class="empty"><b>Aucune fiche</b>${state.q||state.cat?'Aucun résultat pour ce filtre.':'Créez votre première aide cognitive.'}</div>`}</div>`;
 
@@ -976,7 +1007,6 @@ function renderLibrary(){
   document.getElementById('catMgrChip').onclick=openCatMgr;
   main.querySelectorAll('[data-openlive]').forEach(el=>{el.onclick=()=>openRead(el.dataset.openlive);el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openRead(el.dataset.openlive);}};});
   main.querySelectorAll('[data-endlive]').forEach(b=>b.onclick=()=>{const id=b.dataset.endlive,R=liveSessions[id];if(R&&confirm('Terminer la session ? Les minuteurs s’arrêtent ; la session est conservée dans l’historique.')){endSession(R);if(Runtime.ficheId===id)resetRuntime();renderLibrary();}});
-  main.querySelectorAll('[data-resetlive]').forEach(b=>b.onclick=()=>{const id=b.dataset.resetlive,R=liveSessions[id];if(R&&confirm('Réinitialiser la session ? (cochages, compteurs et minuteurs remis à zéro)')){const old=R.sessionId;delete liveSessions[id];if(old){try{Data.delSession(old);}catch(e){}sessions=sessions.filter(x=>x.id!==old);}if(Runtime.ficheId===id)resetRuntime();renderLibrary();}});
   main.querySelectorAll('[data-open]').forEach(el=>{el.onclick=()=>openRead(el.dataset.open);el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openRead(el.dataset.open);}};});
 }
 // Petite icône d'en-tête de section (repère visuel rapide du TYPE de bloc). Trait = currentColor (suit
@@ -1286,7 +1316,7 @@ function timerCard(t){const now=Date.now();let val,cyc='',bw=0;
   return `<div class="tmcard" id="tmcard-${t.id}"><div class="tm-label">${esc(t.label)||(t.type==='interval'?'Minuteur':'Chronomètre')}</div>
     <div class="tm-val" id="tmval-${t.id}">${val}</div>
     ${t.type==='interval'?`<div class="tm-bar-wrap"><div class="tm-bar" id="tmbar-${t.id}" style="width:${bw}%"></div></div><div class="tm-cyc" id="tmcyc-${t.id}">${cyc}</div>`:''}
-    <div class="tm-ctrl"><button class="tm-btn tm-main${t.running?' run':''}" id="tmbtn-${t.id}" data-tmtoggle="${t.id}">${timerBtnLabel(t)}</button><button class="tm-btn tm-reset" id="tmreset-${t.id}" data-tmreset="${t.id}"${t.running?' disabled':''} title="Maintenir pour réinitialiser">Réinit.</button></div></div>`;}
+    <div class="tm-ctrl"><button class="tm-btn tm-main${t.running?' run':''}" id="tmbtn-${t.id}" data-tmtoggle="${t.id}">${timerBtnLabel(t)}</button><button class="tm-btn tm-reset" id="tmreset-${t.id}" data-tmreset="${t.id}"${t.running?' disabled':''} title="Maintenir pour réinitialiser"><span class="tmr-lab">Réinit.</span><span class="tmr-hint">maintenir</span></button></div></div>`;}
 // Libellé du bouton principal : « Pause » quand ça tourne, « Reprendre » une fois démarré puis
 // mis en pause, « Démarrer » tant qu'il n'a jamais tourné ou après réinitialisation.
 function timerStarted(t){return (t.elapsedMs>0)||(t.cycles>0);}
@@ -1294,7 +1324,7 @@ function timerBtnLabel(t){return t.running?'Pause':(timerStarted(t)?'Reprendre':
 // Le bouton principal (Démarrer/Reprendre/Pause) reste TOUJOURS au même emplacement (même taille).
 // « Réinit. » reste à droite mais est DÉSACTIVÉ pendant que ça tourne (évite un clic accidentel).
 function syncTimerBtns(t){const b=document.getElementById('tmbtn-'+t.id);if(b){b.textContent=timerBtnLabel(t);b.classList.toggle('run',!!t.running);}const r=document.getElementById('tmreset-'+t.id);if(r)r.disabled=!!t.running;}
-function counterCard(c){const v=Runtime.counters[c.id]||0;return `<div class="cncard"><div class="tm-label">${esc(c.label)||'Compteur'}</div><div class="cn-val" id="cnval-${c.id}">${v}</div><div class="cn-ctrl"><button class="cn-btn" data-cndec="${c.id}" data-step="${c.step||1}">−</button><button class="cn-btn" data-cninc="${c.id}" data-step="${c.step||1}">+</button></div></div>`;}
+function counterCard(c){const v=Runtime.counters[c.id]||0;return `<div class="cncard"><div class="tm-label">${esc(c.label)||'Compteur'}</div><div class="cn-val" id="cnval-${c.id}">${v}</div><div class="cn-ctrl"><button class="cn-btn" data-cndec="${c.id}" data-step="${c.step||1}">−</button><button class="cn-btn" data-cninc="${c.id}" data-step="${c.step||1}">+</button></div><button class="cn-reset tm-reset" data-cnreset="${c.id}" title="Maintenir pour remettre à zéro"><span class="tmr-lab">Réinit.</span><span class="tmr-hint">maintenir</span></button></div>`;}
 function runtimePanel(f){const tl=Object.values(Runtime.timers);const cl=f.counters||[];if(!tl.length&&!cl.length)return '';
   return `<div class="rt-panel"><div class="rt-head"><svg class="rt-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5fd0c4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg><b>Minuteurs & compteurs</b>${IS_TOUCH?`<button class="rt-warn" id="soundWarn" title="Mode silencieux du téléphone" style="${soundOn?'':'display:none'}">⚠︎ silencieux ?</button>`:''}<button class="rt-sound" id="soundToggle">${soundOn?'🔔 Son':'🔕 Muet'}</button></div>${tl.length?`<div class="rt-grid">${tl.map(timerCard).join('')}</div>`:''}${cl.length?`<div class="rt-counters">${cl.map(counterCard).join('')}</div>`:''}</div>`;}
 /* timekeeperPanel : journal d'horodatage. Bouton « Horodater » -> ajoute un repère à l'heure
@@ -1302,8 +1332,10 @@ function runtimePanel(f){const tl=Object.values(Runtime.timers);const cl=f.count
    posteriori en reprenant une session). Chaque ligne montre l'heure (HH:MM:SS) et le délai
    écoulé depuis le 1er repère. Persisté dans la session (Runtime.events / session.events). */
 function timekeeperPanel(){const ev=Runtime.events||[];const t0=ev.length?ev[0].t:0;
-  const rows=ev.length?ev.map(e=>{const d=new Date(e.t);const hh=String(d.getHours()).padStart(2,'0'),mm=String(d.getMinutes()).padStart(2,'0'),ss=String(d.getSeconds()).padStart(2,'0');const el=e.t>t0?'+'+fmtMs(e.t-t0):'—';return `<div class="tk-row"><span class="tk-time">${hh}:${mm}:${ss}</span><span class="tk-el">${el}</span><input class="tk-lab" data-tklab="${e.id}" value="${esc(e.label||'')}" placeholder="Libellé…"><button class="tk-del" data-tkdel="${e.id}" aria-label="Supprimer">×</button></div>`;}).join(''):'<div class="tk-empty">Aucun horodatage. Touchez « Horodater » à chaque action clé.</div>';
-  return `<div class="tk-panel"><div class="tk-head"><b>Horodatage des actions</b><button class="tk-add" id="tkAdd">⏱ Horodater</button></div>${rows}</div>`;}
+  const rows=ev.length?ev.map(e=>{const d=new Date(e.t);const hh=String(d.getHours()).padStart(2,'0'),mm=String(d.getMinutes()).padStart(2,'0'),ss=String(d.getSeconds()).padStart(2,'0');const el=e.t>t0?'+'+fmtMs(e.t-t0):'—';return `<div class="tk-row"><span class="tk-time">${hh}:${mm}:${ss}</span><span class="tk-el">${el}</span><input class="tk-lab" data-tklab="${e.id}" value="${esc(e.label||'')}" placeholder="Libellé…"><button class="tk-del" data-tkdel="${e.id}" aria-label="Supprimer">×</button></div>`;}).join(''):'';
+  // Outil SECONDAIRE : compact tant qu'on n'a rien noté (juste le bouton). « Journal des actions » =
+  // suite horodatée des gestes clés (pour la traçabilité / le compte-rendu après coup).
+  return `<div class="tk-panel${ev.length?'':' empty'}"><div class="tk-head"><b>Journal des actions</b><button class="tk-add" id="tkAdd">⏱ Noter l’heure</button></div>${rows}</div>`;}
 
 /* ===== Read (mode crise / lecture) =====
    renderRead() : affiche la fiche active. De haut en bas : titre + méta, contexte
@@ -1327,10 +1359,12 @@ function renderRead(){
     // soit clair qu'on continue une nouvelle fois et qu'on ne « revient » pas en arrière.
     const crumbs=flow?`<div class="crumbs">${state.nav.map((id,i)=>{const b=f.blocks.find(x=>x.id===id);occ[id]=(occ[id]||0)+1;const tag=totOcc[id]>1?` <span class="cb-n">#${occ[id]}</span>`:'';return `<span class="cb${i===npos?' cur':''}" data-crumb="${i}" role="button" tabindex="0">${esc((b&&b.title)||'?')}${tag}</span>`;}).join('<span>›</span>')}</div>`:'';
     const curOcc=state.nav.slice(0,npos+1).filter(x=>x===cur).length,curTot=totOcc[cur]||1;
-    const passTag=curTot>1?` <span class="pass-n">passage ${curOcc}/${curTot}</span>`:'';
+    const passTag=curTot>1?` <span class="pass-n">tour ${curOcc}/${curTot}</span>`:'';
     const backBtn=npos>0?'<button class="btn sm" id="navBack">← Précédent</button>':'';
-    const resetBtn=flow?'<button class="btn sm" id="navReset">Recommencer</button>':'';
-    const histBtn=!atTip?'<button class="btn sm" id="navFwd">Suivant →</button><button class="btn primary sm" id="navResume">↺ Reprendre à partir de ce point</button>':'';
+    // « Recommencer » seulement à la position actuelle (au bout) : en mode RELECTURE d'un pas
+    // précédent, on évite la surcharge de boutons (« Repartir d'ici » + le fil d'Ariane suffisent).
+    const resetBtn=(flow&&atTip)?'<button class="btn sm" id="navReset">Recommencer</button>':'';
+    const histBtn=!atTip?'<button class="btn primary sm" id="navFwd">Continuer →</button><button class="btn sm" id="navResume">↺ Repartir d’ici (efface la suite)</button>':'';
     const imgH=blk.image?`<img class="node-img" src="${blk.image}" data-full="${blk.image}" alt="">`:'';
     if(blk.type==='decision'){const taken=state.nav[npos+1];
       const opts=(blk.options||[]).map((o,i)=>{const sel=!atTip&&o.target&&o.target===taken;const arr=sel?'<span class="arr">✓</span>':'<span class="arr"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></span>';return `<button class="opt${sel?' taken':''}" ${atTip?`data-goto="${o.target||''}"`:'disabled'}>${esc(o.label)||'Option '+(i+1)}${arr}</button>`;}).join('');
@@ -1343,25 +1377,25 @@ function renderRead(){
   const ss=sessions.filter(s=>s.ficheId===f.id&&s.id!==Runtime.sessionId).sort((a,b)=>b.savedAt-a.savedAt);
   const started=Runtime.started;
   const sessBar=started
-    ?`<div class="session-bar live"><span class="sess-dot"></span><div class="sess-info"><b>Session en cours</b><span>${esc(Runtime.name||autoSessName(f))} · depuis ${timeAgo(Runtime.startedAt)}</span></div><div class="sess-acts"><button class="btn sm" id="saveSess">Enregistrer</button><button class="btn sm" id="resetSess">Réinitialiser</button><button class="btn sm danger" id="endSess">Terminer</button>${ss.length?`<button class="btn sm sess-hist" id="toggleSess">Historique (${ss.length})</button>`:''}</div></div>`
-    :`<div class="session-bar idle"><span class="sess-hint">La session démarrera à la 1ʳᵉ action (cocher une étape, lancer un minuteur/compteur ou horodater).</span>${ss.length?`<button class="btn sm" id="toggleSess">Historique (${ss.length})</button>`:''}</div>`;
-  const sessList=(state.showSess&&ss.length)?`<div class="sess-list">${ss.map(s=>`<div class="sess-row"><div class="si"><div class="sn">${esc(s.name)}${s.live?' <span class="sess-livetag">en cours</span>':''}</div><div class="sd">${new Date(s.savedAt).toLocaleString('fr-FR')}</div></div><button class="btn sm" data-resume="${s.id}">Reprendre</button><button class="mini del" data-delsess="${s.id}">×</button></div>`).join('')}</div>`:'';
+    ?`<div class="session-bar live"><span class="sess-dot"></span><div class="sess-info"><b>Session en cours</b><span>depuis ${timeAgo(Runtime.startedAt)} · enregistrée automatiquement</span></div><div class="sess-acts"><button class="btn sm danger" id="endSess" title="Clôt la session (gardée dans l'historique) et remet la fiche à zéro">Terminer</button>${ss.length?`<button class="btn sm sess-hist" id="toggleSess">Historique (${ss.length})</button>`:''}</div></div>`
+    :`<div class="session-bar idle"><span class="sess-hint">La session démarre à la 1ʳᵉ action (cocher, minuteur, compteur ou horodatage) et s'enregistre automatiquement ensuite.</span>${ss.length?`<button class="btn sm" id="toggleSess">Historique (${ss.length})</button>`:''}</div>`;
+  const sessList=(state.showSess&&ss.length)?`<div class="sess-list">${ss.map(s=>`<div class="sess-row"><div class="si"><div class="sn">${esc(s.name)}${s.live?' <span class="sess-livetag">en cours</span>':''}</div><div class="sd">${new Date(s.savedAt).toLocaleString('fr-FR')}</div></div><button class="btn sm" data-resume="${s.id}">Ouvrir</button><button class="mini del" data-delsess="${s.id}">×</button></div>`).join('')}</div>`:'';
   main.innerHTML=`
     <button class="back" id="back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Bibliothèque</button>
     <div class="read-head"><h2>${esc(f.title)||'Sans titre'}</h2></div>
-    <div class="read-meta">${catTag(f)}${hasFlow(f)?'<span class="tag flow">Conditionnelle</span>':''}<span class="card-date${staleDate(f.validation)?' stale':''}">${esc(fmtDate(f.validation))}</span></div>
-    ${f.localInfo&&f.localInfo.trim()?`<div class="local">${esc(f.localInfo)}</div>`:''}
+    <div class="read-meta">${catTag(f)}<span class="card-date${staleDate(f.validation)?' stale':''}">${esc(fmtDate(f.validation))}</span></div>
     ${sessBar}${sessList}
     ${runtimePanel(f)}
-    ${timekeeperPanel()}
     ${staticBlock('Confirmation diagnostique','h-confirm',f.confirmation,'confirm')}
-    <section class="block block-care"><div class="block-h h-main">${headerIcon('h-main')}Prise en charge${flow?' — parcours guidé':' — étape par étape'}<span class="spc"></span>${f.blocks&&f.blocks.length?`<button class="btn sm flow-toggle" id="flowToggle">${state.showFlow?'▲ Masquer l’algorithme':'▼ Voir l’algorithme'}</button>`:''}</div>${f.blocks&&f.blocks.length&&state.showFlow?flowBlock(f,cur):''}${navHtml}</section>
+    <section class="block block-care"><div class="block-h h-main">${headerIcon('h-main')}Prise en charge${flow?' — parcours guidé':' — étape par étape'}<span class="spc"></span>${f.blocks&&f.blocks.length?`<button class="btn sm flow-toggle" id="flowToggle">${state.showFlow?'▲ Masquer l’algorithme':'▼ Voir l’algorithme'}</button>`:''}</div>${f.blocks&&f.blocks.length&&state.showFlow?flowBlock(f,cur)+'<div class="flow-hint">Schéma = vue d’ensemble · cochez les étapes ci-dessous ↓</div>':''}${navHtml}</section>
+    ${f.localInfo&&f.localInfo.trim()?`<div class="local">${esc(f.localInfo)}</div>`:''}
+    ${timekeeperPanel()}
     ${gallery}
     ${staticBlock('À vérifier','h-verify',f.verify,'verify')}
     ${staticBlock('Ne pas oublier','h-forget',f.notForget,'forget',true)}
     ${staticBlock('Diagnostics différentiels','h-diff',f.differentials,'diff')}
     ${refs.length?`<div class="refs"><b>Références</b><ol>${refs.map(r=>`<li>${esc(r)}</li>`).join('')}</ol></div>`:''}
-    <div class="read-actions"><button class="btn" id="edit">Modifier</button><button class="btn" id="print">Imprimer</button><button class="btn" id="dup">Dupliquer</button><button class="btn" id="exportOne">Exporter cette fiche</button></div>`;
+    <div class="read-tools"><div class="read-tools-h">Gérer cette fiche</div><div class="read-tools-btns"><button class="btn sm" id="edit">Modifier</button><button class="btn sm" id="print">Imprimer</button><button class="btn sm" id="dup">Dupliquer</button><button class="btn sm" id="exportOne">Exporter</button></div></div>`;
   // Retour bibliothèque : la session reste VIVE (minuteurs continuent) et est auto-enregistrée.
   document.getElementById('back').onclick=()=>{persistAllLive();state.view='library';state.fiche=null;state.showFlow=false;render();};
   document.getElementById('edit').onclick=()=>openEdit(f.id);
@@ -1369,10 +1403,10 @@ function renderRead(){
   document.getElementById('dup').onclick=async()=>{const c=JSON.parse(JSON.stringify(f));c.id=uid();c.title=(f.title||'Fiche')+' (copie)';c.order=Date.now();if(await persist(c)){fiches.push(c);openEdit(c.id);}};
   document.getElementById('exportOne').onclick=()=>exportData([f],'fiche-'+fileSlug(f.title));
   const ft=document.getElementById('flowToggle');if(ft)ft.onclick=()=>{state.showFlow=!state.showFlow;render();};
-  // Navigation NON DESTRUCTIVE : le fil d'Ariane et Précédent/Suivant déplacent seulement un
+  // Navigation NON DESTRUCTIVE : le fil d'Ariane et Précédent/Continuer déplacent seulement un
   // CURSEUR (state.navPos) sans rien effacer -> on peut revenir en arrière puis ré-avancer en
   // gardant toute la progression. Seul « Continuer/option » (au bout) étend le parcours, et
-  // « Reprendre à partir de ce point » tronque volontairement la suite pour repartir d'ici.
+  // « Repartir d'ici (efface la suite) » tronque volontairement la suite pour repartir d'ici.
   const nx=document.getElementById('navNext');if(nx)nx.onclick=()=>{state.nav.push(blk.next);state.navSeq.push(++Runtime.seq);state.navPos=state.nav.length-1;scrollNavNext=true;render();};
   const fwb=document.getElementById('navFwd');if(fwb)fwb.onclick=()=>{state.navPos=Math.min(state.navPos+1,state.nav.length-1);scrollNavNext=true;render();};
   const rsm=document.getElementById('navResume');if(rsm)rsm.onclick=()=>{state.nav.length=state.navPos+1;state.navSeq.length=state.navPos+1;render();};
@@ -1393,13 +1427,13 @@ function renderRead(){
   main.querySelectorAll('[data-tmreset]').forEach(b=>holdToReset(b,()=>{const t=Runtime.timers[b.dataset.tmreset];resetTimer(t);syncTimerBtns(t);updateTimers();persistLive(Runtime);}));
   main.querySelectorAll('[data-cninc]').forEach(b=>b.onclick=()=>{const id=b.dataset.cninc;Runtime.counters[id]=(Runtime.counters[id]||0)+(+b.dataset.step);const fresh=ensureStarted();persistLive(Runtime);if(fresh)render();else document.getElementById('cnval-'+id).textContent=Runtime.counters[id];});
   main.querySelectorAll('[data-cndec]').forEach(b=>b.onclick=()=>{const id=b.dataset.cndec;Runtime.counters[id]=Math.max(0,(Runtime.counters[id]||0)-(+b.dataset.step));const fresh=ensureStarted();persistLive(Runtime);if(fresh)render();else document.getElementById('cnval-'+id).textContent=Runtime.counters[id];});
+  // Réinit. d'un compteur : MAINTENIR (même geste anti-accidentel que les minuteurs). Repart de la valeur de départ.
+  main.querySelectorAll('[data-cnreset]').forEach(b=>holdToReset(b,()=>{const id=b.dataset.cnreset;const c=(Runtime.fiche.counters||[]).find(x=>x.id===id);Runtime.counters[id]=c?(c.start||0):0;const el=document.getElementById('cnval-'+id);if(el)el.textContent=Runtime.counters[id];persistLive(Runtime);}));
   // horodatage : ajout (re-rendu), édition du libellé (sans re-rendu, garde le focus), suppression.
   const tkA=document.getElementById('tkAdd');if(tkA)tkA.onclick=()=>{Runtime.events=Runtime.events||[];Runtime.events.push({id:uid('e'),t:Date.now(),label:'Action '+(Runtime.events.length+1)});ensureStarted();persistLive(Runtime);render();};
   main.querySelectorAll('[data-tklab]').forEach(inp=>inp.addEventListener('input',e=>{const ev=(Runtime.events||[]).find(x=>x.id===e.target.dataset.tklab);if(ev){ev.label=e.target.value;persistLive(Runtime);}}));
   main.querySelectorAll('[data-tkdel]').forEach(b=>b.onclick=()=>{Runtime.events=(Runtime.events||[]).filter(x=>x.id!==b.dataset.tkdel);persistLive(Runtime);render();});
   // sessions : Enregistrer (nommer) / Réinitialiser / Terminer / Historique
-  const sv=document.getElementById('saveSess');if(sv)sv.onclick=saveSession;
-  const rss=document.getElementById('resetSess');if(rss)rss.onclick=resetSession;
   const es=document.getElementById('endSess');if(es)es.onclick=endCurrentSession;
   const tg=document.getElementById('toggleSess');if(tg)tg.onclick=()=>{state.showSess=!state.showSess;render();};
   main.querySelectorAll('[data-resume]').forEach(b=>b.onclick=()=>resumeSession(b.dataset.resume));
@@ -1434,7 +1468,7 @@ function targetSelect(blocks,selfId,value){const opts=blocks.filter(b=>b.id!==se
 function imageEditor(b){return `<div class="sub">Image du bloc (option)</div><div class="imgrow">${b.image?`<img src="${b.image}" alt=""><button class="btn sm danger" data-bimgdel>Retirer</button>`:`<button class="btn sm" data-bimg>+ Image / capture</button>`}</div>`;}
 function blockEditor(b,blocks){if(b.type==='decision'){return `<div class="blk" data-bid="${b.id}"><div class="blk-top"><span class="blk-type decision">Décision</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Réévaluation)"></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Question</div><input type="text" data-bf="question" value="${esc(b.question)}" placeholder="ex. Réponse à l'adrénaline ?" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:#fff"><div class="sub">Réponses → bloc cible</div>${(b.options.length?b.options:[{label:'',target:''}]).map((o,i)=>`<div class="optedit" data-oi="${i}"><input type="text" data-of="label" value="${esc(o.label)}" placeholder="ex. Oui">${targetSelect(blocks,b.id,o.target)}<button class="mini del" data-rmopt="${i}">×</button></div>`).join('')}<button class="add-line" data-addopt>+ Ajouter une réponse</button>${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="mini" data-bmv="up">↑</button><button class="mini" data-bmv="down">↓</button><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
   return `<div class="blk" data-bid="${b.id}"><div class="blk-top"><span class="blk-type steps">Étapes</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Mesures immédiates)"></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Étapes (cochables en mode crise)</div>${(b.steps.length?b.steps:['']).map((s,i)=>`<div class="li" data-si="${i}"><span class="li-num">${String(i+1).padStart(2,'0')}</span><input type="text" data-sf value="${esc(s)}" placeholder="…"><button class="mini" data-smv="up" data-si="${i}">↑</button><button class="mini" data-smv="down" data-si="${i}">↓</button><button class="mini del" data-rmstep="${i}">×</button></div>`).join('')}<button class="add-line" data-addstep>+ Ajouter une étape</button><div class="sub">Étape suivante</div>${targetSelect(blocks,b.id,b.next)}${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="mini" data-bmv="up">↑</button><button class="mini" data-bmv="down">↓</button><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
-function catManagerHtml(){return `<div class="cat-mgr">${categories.map(c=>`<div class="cat-row" data-cid="${c.id}"><input class="cn" data-cname value="${esc(c.name)}"><div class="swatches">${PALETTE.map(col=>`<span class="sw ${c.color===col?'on':''}" data-setcol="${col}" style="background:${col}"></span>`).join('')}</div><button class="mini del" data-delcat>×</button></div>`).join('')}<div class="cat-row"><input class="cn" id="newCatName" placeholder="Nouvelle catégorie…"><button class="btn sm" id="addCat">Ajouter</button></div></div>`;}
+function catManagerHtml(){return `<div class="cat-mgr">${catsSorted().map(c=>`<div class="cat-row" data-cid="${c.id}"><input class="cn" data-cname value="${esc(c.name)}"><div class="swatches">${PALETTE.map(col=>`<span class="sw ${c.color===col?'on':''}" data-setcol="${col}" style="background:${col}"></span>`).join('')}</div><button class="mini del" data-delcat>×</button></div>`).join('')}<div class="cat-row"><input class="cn" id="newCatName" placeholder="Nouvelle catégorie…"><button class="btn sm" id="addCat">Ajouter</button></div></div>`;}
 function timerEditorRow(t,i){const iv=t.type==='interval';const mm=Math.floor((t.seconds||0)/60),ss=(t.seconds||0)%60;return `<div class="trow" data-ti="${i}"><span class="blk-type ${iv?'decision':'steps'}">${iv?'Cycle':'Chrono'}</span><input type="text" data-tf="label" value="${esc(t.label)}" placeholder="${iv?'ex. Cycle adrénaline':'ex. Temps écoulé'}">${iv?`<input type="number" min="0" data-tmin value="${mm}" style="width:56px"><span>min</span><input type="number" min="0" max="59" data-tsec value="${ss}" style="width:56px"><span>s</span><label style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--ink-soft)"><input type="checkbox" data-tloop ${t.autoloop?'checked':''}>boucle</label>`:''}<button class="mini del" data-tdel="${i}">×</button></div>`;}
 function counterEditorRow(c,i){return `<div class="trow" data-ci="${i}"><input type="text" data-cf="label" value="${esc(c.label)}" placeholder="ex. Adrénaline (mg)"><span>pas</span><input type="number" data-cstep value="${c.step||1}" style="width:56px"><span>départ</span><input type="number" data-cstart value="${c.start||0}" style="width:56px"><button class="mini del" data-cdel="${i}">×</button></div>`;}
 
@@ -1446,8 +1480,8 @@ function renderEditor(){
     <button class="back" id="back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Annuler</button>
     ${isNew&&state.showCreateBand!==false?`<div class="create-band"><div class="cb-q">Comment créer cette fiche ?</div><div class="cb-opts"><button class="btn primary sm" id="cbAI">✨ Créer via IA</button><button class="btn sm" id="cbManual">✍ Créer manuellement</button></div><div class="cb-hint">« Via IA » : copiez le prompt dans une IA avec un document, puis importez le résultat. « Manuellement » : remplissez les champs ci-dessous.</div></div>`:''}
     <div class="field"><label>Titre de la situation</label><input type="text" id="f-title" value="${esc(f.title)}" placeholder="ex. Intoxication aux anesthésiques locaux"></div>
-    <div class="field"><label>Catégorie</label><div class="catpick"><button class="catpill" data-selcat="" style="${!f.category?'background:#54635f;color:#fff;border-color:#54635f':''}">Aucune</button>${categories.map(c=>{const col=safeColor(c.color);return `<button class="catpill" data-selcat="${esc(c.id)}" style="${f.category===c.id?`background:${col};color:#fff;border-color:${col}`:`color:${col};border-color:${col}66`}">${esc(c.name)}</button>`;}).join('')}<button class="catpill" id="catMgrBtn" style="border-style:dashed;color:var(--ink-soft)">⚙ Gérer</button></div>${state.catMgr?catManagerHtml():''}</div>
-    <div class="row2"><div class="field"><label>Date de validation</label><input type="text" id="f-validation" value="${esc(f.validation)}" placeholder="AAAA-MM"></div></div>
+    <div class="field"><label>Catégorie</label><div class="catpick"><button class="catpill" data-selcat="" style="${!f.category?'background:#54635f;color:#fff;border-color:#54635f':''}">Aucune</button>${catsSorted().map(c=>{const col=safeColor(c.color);return `<button class="catpill" data-selcat="${esc(c.id)}" style="${f.category===c.id?`background:${col};color:#fff;border-color:${col}`:`color:${col};border-color:${col}66`}">${esc(c.name)}</button>`;}).join('')}<button class="catpill" id="catMgrBtn" style="border-style:dashed;color:var(--ink-soft)">⚙ Gérer</button></div>${state.catMgr?catManagerHtml():''}</div>
+    <div class="row2"><div class="field"><label>Date de validation <span class="hint">mois/année</span></label><input type="text" id="f-validation" inputmode="numeric" autocapitalize="off" value="${esc(valToDisplay(f.validation))}" placeholder="MM/AAAA (ex. 01/2026)"></div></div>
     <div class="field"><label>Contexte local <span class="hint">numéros utiles, particularités</span></label><textarea id="f-localInfo" rows="2" placeholder="Réanimateur de garde, pharmacie…">${esc(f.localInfo)}</textarea></div>
     ${listEditor('Confirmation diagnostique','critères pour déclencher la fiche','confirmation',f.confirmation)}
     <fieldset class="field"><label>Prise en charge <span class="hint">listes d'étapes + décisions conditionnelles</span></label><p class="flow-prev-h">Algorithme — aperçu automatique</p>${flowBlock(f)}${f.blocks.map(b=>blockEditor(b,blocks)).join('')}<div class="add-blocks"><button class="btn sm" id="addSteps">+ Bloc d'étapes</button><button class="btn sm" id="addDecision">+ Décision (si… alors…)</button></div></fieldset>
@@ -1464,7 +1498,12 @@ function renderEditor(){
   document.getElementById('back').onclick=()=>{state.draft=null;state.catMgr=false;if(fiches.some(x=>x.id===f.id)){resetRuntime();openRead(f.id);}else{state.view='library';render();}};
   const cbA=document.getElementById('cbAI');if(cbA)cbA.onclick=openAI;
   const cbM=document.getElementById('cbManual');if(cbM)cbM.onclick=()=>{state.showCreateBand=false;renderEditor();const t=document.getElementById('f-title');if(t)t.focus();};
-  ['title','validation','localInfo'].forEach(k=>document.getElementById('f-'+k).addEventListener('input',e=>state.draft[k]=e.target.value));
+  ['title','localInfo'].forEach(k=>document.getElementById('f-'+k).addEventListener('input',e=>state.draft[k]=e.target.value));
+  // Date de validation : champ texte tolérant. À la VALIDATION du champ (blur), on interprète l'entrée
+  // (« janv 2026 », « 01/2026 », « 2026/01 »…) et on la réécrit au propre « MM/AAAA » ; entrée non
+  // comprise -> bordure rouge, on n'enregistre pas une valeur douteuse.
+  const fv=document.getElementById('f-validation');
+  if(fv){fv.addEventListener('change',()=>{const raw=fv.value.trim();if(!raw){state.draft.validation='';fv.classList.remove('val-bad');return;}const norm=parseValidation(raw);if(norm){state.draft.validation=norm;fv.value=valToDisplay(norm);fv.classList.remove('val-bad');}else{fv.classList.add('val-bad');}});}
   bindListEditors();
   // catégorie
   main.querySelectorAll('[data-selcat]').forEach(b=>b.onclick=()=>{state.draft.category=b.dataset.selcat;renderEditor();});
@@ -1518,6 +1557,9 @@ function bindListEditors(){
 }
 function downscale(file,maxDim=1180,quality=0.78){return new Promise(res=>{const img=new Image();const url=URL.createObjectURL(file);img.onload=()=>{let w=img.width,h=img.height;const sc=Math.min(1,maxDim/Math.max(w,h));const cw=Math.round(w*sc),ch=Math.round(h*sc);const c=document.createElement('canvas');c.width=cw;c.height=ch;c.getContext('2d').drawImage(img,0,0,cw,ch);URL.revokeObjectURL(url);try{res(c.toDataURL('image/jpeg',quality));}catch(e){res(null);}};img.onerror=()=>{URL.revokeObjectURL(url);res(null);};img.src=url;});}
 async function saveDraft(){const d=state.draft;d.title=(d.title||'').trim();
+  // Filet de sécurité : on (re)normalise la date de validation depuis le champ même sans blur.
+  const fvEl=document.getElementById('f-validation');if(fvEl)d.validation=parseValidation(fvEl.value)||d.validation||'';
+  d.validation=parseValidation(d.validation)||'';
   ['confirmation','verify','notForget','differentials','references'].forEach(k=>d[k]=clean(d[k]));
   d.blocks.forEach(b=>{b.title=(b.title||'').trim();if(b.type==='steps')b.steps=clean(b.steps);else{b.question=(b.question||'').trim();b.options=(b.options||[]).filter(o=>(o.label||'').trim());}});
   d.timers=(d.timers||[]).map(t=>({id:t.id,label:(t.label||'').trim(),type:t.type==='interval'?'interval':'stopwatch',seconds:Math.max(0,parseInt(t.seconds||0)||0),autoloop:!!t.autoloop}));
@@ -1711,7 +1753,7 @@ function openCatMgr(){catDelId=null;catModal.classList.add('on');renderCatMgr();
 function closeCatMgr(){catModal.classList.remove('on');renderLibrary();}
 function renderCatMgr(){
   const body=document.getElementById('catMgrBody');
-  body.innerHTML=categories.map(c=>{const n=catCount(c.id);
+  body.innerHTML=catsSorted().map(c=>{const n=catCount(c.id);
     const conf=catDelId===c.id?`<div class="cm-confirm">${n?`<p>« ${esc(c.name)} » contient <b>${n}</b> fiche${n>1?'s':''}. Choisissez où déplacer ces fiches avant de supprimer la catégorie :</p><select data-movesel><option value="">Laisser sans catégorie</option>${categories.filter(x=>x.id!==c.id).map(x=>`<option value="${esc(x.id)}">Déplacer vers « ${esc(x.name)} »</option>`).join('')}</select>`:`<p>Supprimer « ${esc(c.name)} » ? (catégorie vide)</p>`}<div class="cm-cact"><button class="btn danger sm" data-confdel="${esc(c.id)}">${n?'Déplacer puis Supprimer':'Supprimer'}</button><button class="btn sm" data-canceldel>Annuler</button></div></div>`:'';
     return `<div class="cm-row" data-cid="${esc(c.id)}"><div class="cm-top"><span class="cm-dot" style="background:${safeColor(c.color)}"></span><input class="cm-name" data-cname value="${esc(c.name)}"><span class="cm-count">${n} fiche${n>1?'s':''}</span><button class="cm-del" data-askdel="${esc(c.id)}" aria-label="Supprimer">×</button></div><div class="cm-sw">${PALETTE.map(col=>`<span class="sw ${c.color===col?'on':''}" data-setcol="${col}" style="background:${col}"></span>`).join('')}</div>${conf}</div>`;
   }).join('')+`${categories.length?'':'<p style="font-size:13px;color:var(--ink-soft);margin:0 0 10px">Aucune catégorie pour le moment.</p>'}<div class="cm-add"><input id="cmNew" placeholder="Nouvelle catégorie…"><button class="btn primary sm" id="cmAdd">Ajouter</button></div>`;
