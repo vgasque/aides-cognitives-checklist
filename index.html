@@ -378,6 +378,8 @@
   .li-num{font-family:var(--mono);font-size:13px;color:var(--ink-soft);min-width:22px;padding-top:12px;text-align:right}
   .mini{border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);width:34px;height:42px;border-radius:9px;font-size:16px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
   .mini:hover{background:#f3f6f5;color:var(--ink)}.mini.del:hover{color:var(--critical);border-color:#eecabe;background:var(--critical-soft)}
+  /* Étapes d'un bloc : les boutons ↑ ↓ × sont sur une ligne (non flex) -> petit espace entre eux. */
+  .blk .li .mini+.mini{margin-left:7px}
   .add-line{margin-top:4px;border:1px dashed var(--line);background:transparent;color:var(--primary-dk);padding:9px 13px;border-radius:9px;font-size:13.5px;font-weight:600;width:100%}
   .add-line:hover{background:var(--primary-soft);border-color:var(--primary-soft)}
   fieldset{border:0;margin:0 0 4px;padding:0;min-width:0}
@@ -527,7 +529,7 @@
 
 /* PALETTE : couleurs proposées pour les catégories (hex sombres, lisibles
    en texte comme en pastille teintée). Index réutilisé cycliquement. */
-const APP_VERSION='2.3.5';
+const APP_VERSION='2.3.6';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 const PALETTE=['#b23052','#823a32','#b5532a','#a26a42','#8a6a12','#4f6b1e','#1f7a4d','#0d5b56','#007fb1','#45556b','#1f5fa6','#4b3fa6','#8869af','#7a2f6b','#ad5e7e'];
 /* ===== Backends =====
@@ -622,7 +624,12 @@ const FR_MONTHS=[['janvier','janv','jan'],['février','fevrier','févr','fevr','
 function monthFromName(s){s=String(s||'').toLowerCase();for(let i=0;i<12;i++){for(const a of FR_MONTHS[i]){if(s.indexOf(a)>=0)return i+1;}}return 0;}
 function parseValidation(s){s=String(s==null?'':s).trim();if(!s)return '';
   if(/^\d{4}-(0[1-9]|1[0-2])$/.test(s))return s;            // déjà canonique
-  if(/^\d{6}$/.test(s)){const y=+s.slice(0,4),mo=+s.slice(4);return (mo>=1&&mo<=12&&y>=1900&&y<=2999)?y+'-'+String(mo).padStart(2,'0'):'';}
+  // 6 chiffres collés (clavier numérique iPhone, pas de « / ») : AAAAMM (« 202602 ») OU MMAAAA
+  // (« 022026 », « 112025 »). On essaie l'année en tête, puis le mois en tête.
+  if(/^\d{6}$/.test(s)){const y1=+s.slice(0,4),m1=+s.slice(4),y2=+s.slice(2),m2=+s.slice(0,2);
+    if(y1>=1900&&y1<=2999&&m1>=1&&m1<=12)return y1+'-'+String(m1).padStart(2,'0');
+    if(y2>=1900&&y2<=2999&&m2>=1&&m2<=12)return y2+'-'+String(m2).padStart(2,'0');
+    return '';}
   let mo=monthFromName(s),y=0;
   const fourY=s.match(/(?:19|20|21)\d{2}/);if(fourY)y=+fourY[0];
   if(!mo){const nums=s.match(/\d{1,4}/g)||[];for(const n of nums){if(n.length<=2){const v=+n;if(v>=1&&v<=12){mo=v;break;}}}}
@@ -1481,7 +1488,7 @@ function renderEditor(){
     ${isNew&&state.showCreateBand!==false?`<div class="create-band"><div class="cb-q">Comment créer cette fiche ?</div><div class="cb-opts"><button class="btn primary sm" id="cbAI">✨ Créer via IA</button><button class="btn sm" id="cbManual">✍ Créer manuellement</button></div><div class="cb-hint">« Via IA » : copiez le prompt dans une IA avec un document, puis importez le résultat. « Manuellement » : remplissez les champs ci-dessous.</div></div>`:''}
     <div class="field"><label>Titre de la situation</label><input type="text" id="f-title" value="${esc(f.title)}" placeholder="ex. Intoxication aux anesthésiques locaux"></div>
     <div class="field"><label>Catégorie</label><div class="catpick"><button class="catpill" data-selcat="" style="${!f.category?'background:#54635f;color:#fff;border-color:#54635f':''}">Aucune</button>${catsSorted().map(c=>{const col=safeColor(c.color);return `<button class="catpill" data-selcat="${esc(c.id)}" style="${f.category===c.id?`background:${col};color:#fff;border-color:${col}`:`color:${col};border-color:${col}66`}">${esc(c.name)}</button>`;}).join('')}<button class="catpill" id="catMgrBtn" style="border-style:dashed;color:var(--ink-soft)">⚙ Gérer</button></div>${state.catMgr?catManagerHtml():''}</div>
-    <div class="row2"><div class="field"><label>Date de validation <span class="hint">mois/année</span></label><input type="text" id="f-validation" inputmode="numeric" autocapitalize="off" value="${esc(valToDisplay(f.validation))}" placeholder="MM/AAAA (ex. 01/2026)"></div></div>
+    <div class="row2"><div class="field"><label>Date de validation <span class="hint">mois/année</span></label><input type="text" id="f-validation" inputmode="numeric" autocapitalize="off" value="${esc(valToDisplay(f.validation))}" placeholder="MM/AAAA — ex. 012026 ou 01/2026"></div></div>
     <div class="field"><label>Contexte local <span class="hint">numéros utiles, particularités</span></label><textarea id="f-localInfo" rows="2" placeholder="Réanimateur de garde, pharmacie…">${esc(f.localInfo)}</textarea></div>
     ${listEditor('Confirmation diagnostique','critères pour déclencher la fiche','confirmation',f.confirmation)}
     <fieldset class="field"><label>Prise en charge <span class="hint">listes d'étapes + décisions conditionnelles</span></label><p class="flow-prev-h">Algorithme — aperçu automatique</p>${flowBlock(f)}${f.blocks.map(b=>blockEditor(b,blocks)).join('')}<div class="add-blocks"><button class="btn sm" id="addSteps">+ Bloc d'étapes</button><button class="btn sm" id="addDecision">+ Décision (si… alors…)</button></div></fieldset>
