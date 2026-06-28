@@ -236,7 +236,7 @@
   .h-main .sec-ic{width:18px;height:18px}
   .block-care{background:var(--primary-soft);border:1px solid #cfe6e0;border-radius:var(--radius);padding:14px 14px 4px;margin-bottom:22px}
   .block-care .nav-wrap{background:var(--surface)}
-  .flow-toggle{text-transform:none;letter-spacing:0;background:var(--surface);border-color:#b9ddd6;color:var(--primary-dk)}
+  .flow-toggle{text-transform:none;letter-spacing:0;background:var(--surface);border-color:#b9ddd6;color:var(--primary-dk);white-space:nowrap}
   .rt-ic{flex-shrink:0}
   ol.steps{list-style:none;margin:0;padding:0;counter-reset:s}
   ol.steps li{counter-increment:s;display:flex;gap:14px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--ink);border-radius:11px;padding:13px 15px;margin-bottom:9px;cursor:pointer;transition:opacity .12s,background .12s}
@@ -251,7 +251,7 @@
   ul.flat li::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;flex-shrink:0;margin-top:8px;opacity:.5}
   ul.forget li{background:var(--critical-soft);border-color:#f0c9bd;color:var(--critical)}
   ul.forget li .ftxt{color:var(--ink)}ul.verify li{border-color:#e8dcbd}ul.diff li{color:var(--ink-soft)}
-  .nav-wrap{background:#f4f7f6;border:1px solid var(--line);border-left:3px solid var(--primary);border-radius:var(--radius);padding:15px 15px 13px 14px;margin-bottom:6px;box-shadow:var(--shadow)}
+  .nav-wrap{background:#f4f7f6;border:1px solid var(--line);border-left:3px solid var(--primary);border-radius:var(--radius);padding:15px 15px 13px 14px;margin-bottom:6px;box-shadow:var(--shadow);scroll-margin-top:74px}
   .crumbs{display:flex;flex-wrap:wrap;gap:5px;align-items:center;font-size:11px;color:var(--ink-soft);margin-bottom:12px}
   .crumbs .cb{background:#e4ebe9;padding:2px 8px;border-radius:12px;cursor:pointer}.crumbs .cb:not(.cur):hover{background:#cfe0dd}.crumbs .cb.cur{background:var(--primary);color:#fff;cursor:default}
   .crumbs .cb-n{font-family:var(--mono);font-size:10px;opacity:.7;margin-left:2px}
@@ -278,7 +278,10 @@
   .rt-head b{color:#eaf5f3;font-size:11px;letter-spacing:1.2px;text-transform:uppercase;flex:1}
   .rt-sound{background:rgba(255,255,255,.12);border:0;color:#eaf5f3;border-radius:8px;padding:6px 11px;font-size:12px;font-weight:600}
   .rt-warn{background:rgba(245,192,64,.18);border:0;color:#f0c040;border-radius:8px;padding:6px 9px;font-size:11.5px;font-weight:600;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
-  .rt-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+  .rt-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+  /* Petits écrans (iPhone) : on garde AU MOINS 2 minuteurs par ligne (compact), mais on EMPILE les
+     boutons de chaque carte -> chacun prend toute la largeur de la carte, sans texte tronqué. */
+  @media (max-width:430px){.tm-ctrl{flex-direction:column}.tm-btn{flex:0 0 auto;width:100%;font-size:12.5px}}
   .rt-counters{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:10px}
   .tmcard,.cncard{background:#15403b;border:1px solid #1d524c;border-radius:11px;padding:12px;color:#eaf5f3}
   .cncard{text-align:center}
@@ -294,7 +297,7 @@
   .tm-bar{height:100%;background:#5fd0c4;width:0%}
   .tm-ctrl,.cn-ctrl{display:flex;gap:6px;margin-top:9px}
   .cn-ctrl{justify-content:center}
-  .tm-btn{flex:1;min-width:0;background:rgba(255,255,255,.12);color:#eaf5f3;border:0;border-radius:8px;padding:8px;font-size:12.5px;font-weight:600;transition:background .12s,opacity .12s}
+  .tm-btn{flex:1;min-width:0;background:rgba(255,255,255,.12);color:#eaf5f3;border:0;border-radius:8px;padding:8px 6px;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background .12s,opacity .12s}
   .tm-btn:hover{background:rgba(255,255,255,.2)}
   .tm-main{background:rgba(95,208,196,.22)}.tm-main:hover{background:rgba(95,208,196,.32)}
   .tm-main.run{background:rgba(217,102,58,.28)}.tm-main.run:hover{background:rgba(217,102,58,.4)}
@@ -379,9 +382,15 @@
   .flow-prev-h{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--ink-soft);margin:0 0 7px}
   .flow-scroll{width:100%;overflow:auto;border:1px solid var(--line);border-radius:10px;background:#fff;padding:8px;-webkit-overflow-scrolling:touch;margin-bottom:14px;max-height:75vh}
   .flow-zoom{display:flex;align-items:center;gap:7px;margin-bottom:7px}
-  .fz{border:1px solid var(--line);background:var(--surface);color:var(--ink);width:34px;height:30px;border-radius:8px;font-size:17px;font-weight:600;line-height:1;display:inline-flex;align-items:center;justify-content:center}
+  .fz{border:1px solid var(--line);background:var(--surface);color:var(--ink);width:34px;height:30px;border-radius:8px;font-size:17px;font-weight:600;line-height:1;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
   .fz:hover{background:#f3f6f5}.fz-r{width:auto;padding:0 11px;font-size:12.5px}
+  .fz-spc{flex:1}
   .fzv{font-family:var(--mono);font-size:12px;color:var(--ink-soft);min-width:46px;text-align:center}
+  /* Plein écran de l'algorithme SVG (zoom + défilement, pinch natif) */
+  #flowFull{position:fixed;inset:0;z-index:90;background:#eef1f0;display:none;flex-direction:column}
+  #flowFull.on{display:flex}
+  #flowFull .ff-bar{display:flex;align-items:center;gap:7px;padding:calc(9px + env(safe-area-inset-top)) 12px 9px;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:0 1px 6px rgba(16,32,30,.06)}
+  #flowFull .ff-scroll{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px;background:#fff}
   .blk{background:#f5f8f7;border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
   .blk-top{display:flex;align-items:center;gap:8px;margin-bottom:11px}
   .blk-type{font-size:10.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;padding:3px 8px;border-radius:6px}
@@ -398,6 +407,11 @@
   .btn:active{transform:translateY(1px)}
   .btn:hover{background:#f3f6f5;border-color:#c9d3d0}.btn.primary{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 1px 2px rgba(10,74,70,.2),0 4px 12px rgba(10,74,70,.16)}.btn.primary:hover{background:var(--primary-dk);border-color:var(--primary-dk)}
   .btn.danger{color:var(--critical);border-color:#eecabe}.btn.danger:hover{background:var(--critical-soft)}
+  /* « Maintenir pour réinitialiser » un minuteur : jauge (fond) qui se remplit pendant l'appui
+     prolongé ; le texte reste lisible au-dessus (la jauge est un fond, pas un calque). */
+  .tm-reset{touch-action:none}
+  .tm-reset.holding{background-color:rgba(255,255,255,.12);background-image:linear-gradient(rgba(217,102,58,.6),rgba(217,102,58,.6));background-repeat:no-repeat;background-size:0% 100%;animation:holdfill .8s linear forwards}
+  @keyframes holdfill{to{background-size:100% 100%}}
   .btn.sm{padding:8px 13px;font-size:13px}.btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .editor-foot{display:flex;gap:10px;margin-top:8px;flex-wrap:wrap}.editor-foot .spacer{flex:1}
   .back{background:var(--surface);border:1px solid var(--line);color:var(--primary);font-size:13.5px;font-weight:600;padding:8px 14px 8px 11px;margin-bottom:14px;border-radius:10px;display:inline-flex;align-items:center;gap:6px}.back:hover{background:var(--primary-soft);border-color:var(--primary-soft);color:var(--primary-dk)}
@@ -464,6 +478,7 @@
 </div>
 <div id="screenFlash"></div>
 <div id="alerts"></div>
+<div id="flowFull"><div class="ff-bar"><button class="fz" data-zoomf="out" aria-label="Dézoomer">−</button><span class="fzv">100%</span><button class="fz" data-zoomf="in" aria-label="Zoomer">+</button><button class="fz fz-r" data-zoomf="reset">Réinit.</button><span class="fz-spc"></span><button class="fz fz-r" id="ffClose">Fermer ✕</button></div><div class="ff-scroll"></div></div>
 <div class="lightbox" id="lightbox"><button class="x" id="lbX">×</button><img id="lbImg" alt=""><div class="cap" id="lbCap"></div></div>
 <div class="ai-modal" id="aiModal"><div class="ai-card">
   <div class="ai-top"><h3>Créer une fiche avec une IA</h3><button class="ai-x" id="aiX" aria-label="Fermer">×</button></div>
@@ -491,7 +506,7 @@
 
 /* PALETTE : couleurs proposées pour les catégories (hex sombres, lisibles
    en texte comme en pastille teintée). Index réutilisé cycliquement. */
-const APP_VERSION='2.3';
+const APP_VERSION='2.3.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 const PALETTE=['#b23052','#823a32','#b5532a','#a26a42','#8a6a12','#4f6b1e','#1f7a4d','#0d5b56','#007fb1','#45556b','#1f5fa6','#4b3fa6','#8869af','#7a2f6b','#ad5e7e'];
 /* ===== Backends =====
@@ -582,14 +597,30 @@ const sarr=(a,max)=>(Array.isArray(a)?a:[]).slice(0,max||1000).map(x=>sstr(x,400
 // Préserve la position de défilement de l'aperçu algorithme (.flow-scroll) entre deux rendus,
 // pour qu'elle ne se réinitialise pas quand on coche une case, horodate, enregistre une session…
 let flowScroll={left:0,top:0};
+// Quand on AVANCE/RECULE dans le parcours (Continuer/Suivant/option/Précédent/Recommencer), on
+// repositionne la vue sur le bloc à cocher (.nav-wrap) pour ne pas avoir à remonter la page.
+let scrollNavNext=false;
+function scrollNavIntoView(){const el=main.querySelector('.nav-wrap');if(el)el.scrollIntoView({block:'start',behavior:'auto'});}
 function captureFlow(){const el=main.querySelector('.flow-scroll');if(el)flowScroll={left:el.scrollLeft,top:el.scrollTop};}
-function restoreFlow(){const el=main.querySelector('.flow-scroll');if(el){el.scrollLeft=flowScroll.left;el.scrollTop=flowScroll.top;}}
+// left=null -> on CENTRE horizontalement (à l'ouverture) : sur un algorithme très large, le bloc de
+// départ (rangée centrée) est ainsi directement visible. Une fois l'utilisateur a défilé, on conserve.
+function restoreFlow(){const el=main.querySelector('.flow-scroll');if(!el)return;if(flowScroll.left==null){el.scrollLeft=Math.max(0,(el.scrollWidth-el.clientWidth)/2);el.scrollTop=flowScroll.top||0;}else{el.scrollLeft=flowScroll.left;el.scrollTop=flowScroll.top;}}
 // Zoom de l'aperçu algorithme via boutons dédiés (le pinch-to-zoom du navigateur reste natif,
 // on ne capture aucun geste tactile). Le déplacement se fait par le défilement du conteneur.
 let flowZoom=1;
-function applyFlowZoom(){const s=main.querySelector('.flow-scroll svg');if(s){const bw=+s.getAttribute('data-bw')||300,bh=+s.getAttribute('data-bh')||200;s.style.width=Math.round(bw*flowZoom)+'px';s.style.height=Math.round(bh*flowZoom)+'px';}const v=document.getElementById('fzVal');if(v)v.textContent=Math.round(flowZoom*100)+'%';}
-function bindFlowZoom(){main.querySelectorAll('[data-zoom]').forEach(b=>b.onclick=()=>{const a=b.dataset.zoom;if(a==='in')flowZoom=Math.min(4,Math.round((flowZoom+0.25)*100)/100);else if(a==='out')flowZoom=Math.max(0.4,Math.round((flowZoom-0.25)*100)/100);else flowZoom=1;applyFlowZoom();});}
-const flowBlock=(f,curId)=>`<div class="flow-zoom"><button class="fz" data-zoom="out" aria-label="Dézoomer">−</button><span class="fzv" id="fzVal">${Math.round(flowZoom*100)}%</span><button class="fz" data-zoom="in" aria-label="Zoomer">+</button><button class="fz fz-r" data-zoom="reset">Réinit.</button></div><div class="flow-scroll">${buildFlowSVG(f,curId)}</div>`;
+// Le zoom s'applique au SVG d'aperçu (inline) ET au SVG plein écran s'il est ouvert ; tous les
+// indicateurs de % (.fzv, inline + plein écran) sont synchronisés.
+function applyFlowZoom(){document.querySelectorAll('.flow-scroll svg, #flowFull .ff-scroll svg').forEach(s=>{const bw=+s.getAttribute('data-bw')||300,bh=+s.getAttribute('data-bh')||200;s.style.width=Math.round(bw*flowZoom)+'px';s.style.height=Math.round(bh*flowZoom)+'px';});document.querySelectorAll('.fzv').forEach(v=>v.textContent=Math.round(flowZoom*100)+'%');}
+function zoomStep(a){if(a==='in')flowZoom=Math.min(4,Math.round((flowZoom+0.25)*100)/100);else if(a==='out')flowZoom=Math.max(0.4,Math.round((flowZoom-0.25)*100)/100);else flowZoom=1;applyFlowZoom();}
+// Contexte de l'algorithme actuellement affiché (fiche + bloc courant), pour le plein écran.
+let flowCtx={f:null,curId:null};
+function bindFlowZoom(){main.querySelectorAll('[data-zoom]').forEach(b=>b.onclick=()=>zoomStep(b.dataset.zoom));
+  main.querySelectorAll('[data-flowfull]').forEach(b=>b.onclick=()=>{if(flowCtx.f)openFlowFull(flowCtx.f,flowCtx.curId);});}
+// Plein écran de l'algorithme : superpose le SVG (même bloc courant mis en évidence), zoom + défilement
+// (pinch natif aussi). On centre horizontalement à l'ouverture.
+function openFlowFull(f,curId){const ov=document.getElementById('flowFull');if(!ov)return;const sc=ov.querySelector('.ff-scroll');sc.innerHTML=buildFlowSVG(f,curId);ov.classList.add('on');applyFlowZoom();sc.scrollLeft=Math.max(0,(sc.scrollWidth-sc.clientWidth)/2);sc.scrollTop=0;}
+function closeFlowFull(){const ov=document.getElementById('flowFull');if(ov){ov.classList.remove('on');const sc=ov.querySelector('.ff-scroll');if(sc)sc.innerHTML='';}}
+const flowBlock=(f,curId)=>`<div class="flow-zoom"><button class="fz" data-zoom="out" aria-label="Dézoomer">−</button><span class="fzv">${Math.round(flowZoom*100)}%</span><button class="fz" data-zoom="in" aria-label="Zoomer">+</button><button class="fz fz-r" data-zoom="reset">Réinit.</button><span class="fz-spc"></span><button class="fz" data-flowfull aria-label="Plein écran" title="Plein écran">⛶</button></div><div class="flow-scroll">${buildFlowSVG(f,curId)}</div>`;
 // Rafraîchit l'aperçu algorithme PENDANT la frappe (titres, étapes, réponses) sans reconstruire
 // tout le formulaire : on ne remplace que le SVG dans .flow-scroll -> le champ en cours de saisie
 // garde le focus et on évite un rendu complet à chaque touche. DÉBOUNCÉ (~300 ms) pour ne pas
@@ -714,7 +745,7 @@ async function load(){
 // le temps app fermée n'est pas rattrapé). Elles réapparaissent dans « Sessions en cours ».
 function restoreLiveSessions(){sessions.filter(s=>s.live).forEach(s=>{const f=fiches.find(x=>x.id===s.ficheId);if(!f)return;const R=buildRuntime(f,s);R.started=true;R.startedAt=s.startedAt||s.savedAt||Date.now();liveSessions[f.id]=R;});}
 // Auto-enregistrement des sessions vives quand l'app passe en arrière-plan ou se ferme.
-window.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')persistAllLive();});
+window.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')persistAllLive();else{try{if(AC&&AC.state!=='running')AC.resume();}catch(e){}}});
 window.addEventListener('pagehide',persistAllLive);
 window.addEventListener('beforeunload',persistAllLive);
 async function saveCats(){try{await Data.setCats(categories);}catch(e){}}
@@ -792,8 +823,14 @@ function requestNotifyPermission(){try{if('Notification'in window&&Notification.
 // ensureAudio (déclenché au 1er geste : démarrage d'un minuteur, bouton son).
 const VIBE_OK='vibrate'in navigator;let vibePrimed=false;
 function buzz(p){if(!VIBE_OK)return;try{navigator.vibrate(p);}catch(e){}}
-function ensureAudio(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();}catch(e){}if(VIBE_OK&&!vibePrimed){vibePrimed=true;try{navigator.vibrate(0);}catch(e){}}}
-function beep(){if(soundOn){try{ensureAudio();const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=880;o.connect(g);g.connect(AC.destination);g.gain.setValueAtTime(.0001,AC.currentTime);g.gain.exponentialRampToValueAtTime(.32,AC.currentTime+.02);g.gain.setValueAtTime(.28,AC.currentTime+.02);g.gain.exponentialRampToValueAtTime(.24,AC.currentTime+1.8);g.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+2);o.start();o.stop(AC.currentTime+2);}catch(e){}}buzz([500,200,500,200,500]);}
+function ensureAudio(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state!=='running')AC.resume();}catch(e){}if(VIBE_OK&&!vibePrimed){vibePrimed=true;try{navigator.vibrate(0);}catch(e){}}}
+// Génère le bip. tone() est appelé QUAND le contexte tourne : c'est la clé de fiabilité, car un
+// AudioContext 'suspended'/'interrupted' (iOS, app revenue au 1er plan, onglet en veille) jouerait
+// dans le vide. On RESUME d'abord, puis on programme l'oscillateur dans le callback de resume.
+function beep(){buzz([500,200,500,200,500]);if(!soundOn)return;
+  try{ensureAudio();}catch(e){}if(!AC)return;
+  const tone=()=>{try{const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=880;o.connect(g);g.connect(AC.destination);const t0=AC.currentTime;g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(.32,t0+.02);g.gain.setValueAtTime(.28,t0+.02);g.gain.exponentialRampToValueAtTime(.24,t0+1.8);g.gain.exponentialRampToValueAtTime(.0001,t0+2);o.start();o.stop(t0+2);}catch(e){}};
+  if(AC.state==='running'){tone();}else{try{const p=AC.resume();if(p&&p.then)p.then(tone).catch(tone);else setTimeout(tone,60);}catch(e){tone();}}}
 function flashScreen(){const sf=document.getElementById('screenFlash');if(sf){sf.classList.remove('on');void sf.offsetWidth;sf.classList.add('on');}}
 function flash(id){const el=document.getElementById('tmcard-'+id);if(el){el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),1500);}flashScreen();}
 // Notification SYSTÈME (si autorisée) — fonctionne même app en arrière-plan.
@@ -810,7 +847,10 @@ function showBanner(ficheId,fTitle,tLabel){const host=document.getElementById('a
 function onTimerFired(R,t){beep();
   const activeVisible=(R===Runtime)&&state.view==='read'&&document.visibilityState!=='hidden';
   if(activeVisible){flash(t.id);}
-  else{flashScreen();const ft=R.fiche?(R.fiche.title||'Aide cognitive'):'Aide cognitive';const tl=t.label||(t.type==='interval'?'Minuteur':'Chronomètre');showBanner(R.ficheId,ft,tl);osNotify('⏰ '+tl+' — terminé',ft,R.ficheId);}}
+  else{flashScreen();const ft=R.fiche?(R.fiche.title||'Aide cognitive'):'Aide cognitive';const tl=t.label||(t.type==='interval'?'Minuteur':'Chronomètre');showBanner(R.ficheId,ft,tl);
+    // Notification SYSTÈME uniquement si l'app est en ARRIÈRE-PLAN. Si on est déjà sur l'app
+    // (premier plan), la banderole in-app suffit -> pas de doublon de notification téléphone.
+    if(document.visibilityState==='hidden')osNotify('⏰ '+tl+' — terminé',ft,R.ficheId);}}
 // Reprise d'un minuteur d'intervalle DÉJÀ TERMINÉ (non bouclé) = nouveau cycle (repart du plein) :
 // corrige « Reprendre » qui semblait ne rien faire (le temps était déjà à 0).
 function toggleTimer(t){const now=Date.now();
@@ -848,6 +888,15 @@ function saveSession(){const f=Runtime.fiche;if(!f)return;ensureStarted();
   Runtime.name=name||def;persistLive(Runtime,true);render();}
 // Réinitialiser : on repart d'une fiche vierge (cochages/compteurs/minuteurs à zéro) et on EFFACE la
 // session en cours (registre vif + persistée). Une nouvelle session démarrera à la prochaine action.
+// MAINTENIR pour réinitialiser un minuteur/chrono : il faut garder le doigt appuyé ~0,8 s (jauge qui
+// se remplit). Un appui bref — ou même un DOUBLE appui au même endroit en situation de stress — ne
+// déclenche rien. Pas de fenêtre modale (réservée, elle, à la réinitialisation de SESSION).
+function holdToReset(btn,doAction){if(!btn)return;let to=null;const lbl=btn.textContent;
+  const cancel=()=>{if(to){clearTimeout(to);to=null;}btn.classList.remove('holding');btn.textContent=lbl;};
+  const begin=e=>{if(btn.disabled)return;if(e&&e.cancelable)e.preventDefault();cancel();btn.classList.add('holding');btn.textContent='Maintenir…';
+    to=setTimeout(()=>{to=null;btn.classList.remove('holding');doAction();},800);};
+  btn.addEventListener('pointerdown',begin);['pointerup','pointerleave','pointercancel'].forEach(ev=>btn.addEventListener(ev,cancel));
+  btn.onclick=e=>{e.preventDefault();e.stopPropagation();};}
 function resetSession(){if(!confirm('Réinitialiser la session ? (cochages, compteurs et minuteurs remis à zéro)'))return;
   const f=Runtime.fiche,old=Runtime.sessionId;
   if(Runtime.ficheId&&liveSessions[Runtime.ficheId])delete liveSessions[Runtime.ficheId];
@@ -857,7 +906,7 @@ function resetSession(){if(!confirm('Réinitialiser la session ? (cochages, comp
 function endCurrentSession(){if(!Runtime.started)return;if(!confirm('Terminer la session ? Les minuteurs s’arrêtent ; la session est conservée dans l’historique.'))return;endSession(Runtime);render();}
 // Reprendre une session de l'historique (ou vive) : recharge dans un runtime, la réactive (vive) et
 // ouvre la fiche. Si une session vive existe déjà pour cette fiche, on la rouvre telle quelle.
-function resumeSession(id){const s=sessions.find(x=>x.id===id);if(!s)return;const f=fiches.find(x=>x.id===s.ficheId);if(!f){alert('Fiche introuvable.');return;}flowScroll={left:0,top:0};
+function resumeSession(id){const s=sessions.find(x=>x.id===id);if(!s)return;const f=fiches.find(x=>x.id===s.ficheId);if(!f){alert('Fiche introuvable.');return;}flowScroll={left:null,top:0};
   if(liveSessions[f.id]&&liveSessions[f.id].sessionId===id){Runtime=liveSessions[f.id];}
   else{Runtime=buildRuntime(f,s);Runtime.started=true;Runtime.startedAt=s.startedAt||Date.now();liveSessions[f.id]=Runtime;persistLive(Runtime,true);}
   Runtime.fiche=f;bindStateToRuntime();state.fiche=f;state.id=f.id;state.showFlow=!!(f.blocks&&f.blocks.length);state.showSess=false;state.view='read';render();}
@@ -1198,7 +1247,7 @@ function timerCard(t){const now=Date.now();let val,cyc='',bw=0;
   return `<div class="tmcard" id="tmcard-${t.id}"><div class="tm-label">${esc(t.label)||(t.type==='interval'?'Minuteur':'Chronomètre')}</div>
     <div class="tm-val" id="tmval-${t.id}">${val}</div>
     ${t.type==='interval'?`<div class="tm-bar-wrap"><div class="tm-bar" id="tmbar-${t.id}" style="width:${bw}%"></div></div><div class="tm-cyc" id="tmcyc-${t.id}">${cyc}</div>`:''}
-    <div class="tm-ctrl"><button class="tm-btn tm-main${t.running?' run':''}" id="tmbtn-${t.id}" data-tmtoggle="${t.id}">${timerBtnLabel(t)}</button><button class="tm-btn tm-reset" id="tmreset-${t.id}" data-tmreset="${t.id}"${t.running?' disabled':''}>Réinit.</button></div></div>`;}
+    <div class="tm-ctrl"><button class="tm-btn tm-main${t.running?' run':''}" id="tmbtn-${t.id}" data-tmtoggle="${t.id}">${timerBtnLabel(t)}</button><button class="tm-btn tm-reset" id="tmreset-${t.id}" data-tmreset="${t.id}"${t.running?' disabled':''} title="Maintenir pour réinitialiser">Réinit.</button></div></div>`;}
 // Libellé du bouton principal : « Pause » quand ça tourne, « Reprendre » une fois démarré puis
 // mis en pause, « Démarrer » tant qu'il n'a jamais tourné ou après réinitialisation.
 function timerStarted(t){return (t.elapsedMs>0)||(t.cycles>0);}
@@ -1267,7 +1316,7 @@ function renderRead(){
     ${runtimePanel(f)}
     ${timekeeperPanel()}
     ${staticBlock('Confirmation diagnostique','h-confirm',f.confirmation,'confirm')}
-    <section class="block block-care"><div class="block-h h-main">${headerIcon('h-main')}Prise en charge${flow?' — parcours guidé':' — étape par étape'}<span class="spc"></span>${f.blocks&&f.blocks.length?`<button class="btn sm flow-toggle" id="flowToggle">${state.showFlow?'▲ Masquer':'▼ Algorithme'}</button>`:''}</div>${f.blocks&&f.blocks.length&&state.showFlow?flowBlock(f,cur):''}${navHtml}</section>
+    <section class="block block-care"><div class="block-h h-main">${headerIcon('h-main')}Prise en charge${flow?' — parcours guidé':' — étape par étape'}<span class="spc"></span>${f.blocks&&f.blocks.length?`<button class="btn sm flow-toggle" id="flowToggle">${state.showFlow?'▲ Masquer l’algorithme':'▼ Voir l’algorithme'}</button>`:''}</div>${f.blocks&&f.blocks.length&&state.showFlow?flowBlock(f,cur):''}${navHtml}</section>
     ${gallery}
     ${staticBlock('À vérifier','h-verify',f.verify,'verify')}
     ${staticBlock('Ne pas oublier','h-forget',f.notForget,'forget',true)}
@@ -1285,12 +1334,12 @@ function renderRead(){
   // CURSEUR (state.navPos) sans rien effacer -> on peut revenir en arrière puis ré-avancer en
   // gardant toute la progression. Seul « Continuer/option » (au bout) étend le parcours, et
   // « Reprendre à partir de ce point » tronque volontairement la suite pour repartir d'ici.
-  const nx=document.getElementById('navNext');if(nx)nx.onclick=()=>{state.nav.push(blk.next);state.navSeq.push(++Runtime.seq);state.navPos=state.nav.length-1;render();};
-  const fwb=document.getElementById('navFwd');if(fwb)fwb.onclick=()=>{state.navPos=Math.min(state.navPos+1,state.nav.length-1);render();};
+  const nx=document.getElementById('navNext');if(nx)nx.onclick=()=>{state.nav.push(blk.next);state.navSeq.push(++Runtime.seq);state.navPos=state.nav.length-1;scrollNavNext=true;render();};
+  const fwb=document.getElementById('navFwd');if(fwb)fwb.onclick=()=>{state.navPos=Math.min(state.navPos+1,state.nav.length-1);scrollNavNext=true;render();};
   const rsm=document.getElementById('navResume');if(rsm)rsm.onclick=()=>{state.nav.length=state.navPos+1;state.navSeq.length=state.navPos+1;render();};
-  const bk=document.getElementById('navBack');if(bk)bk.onclick=()=>{state.navPos=Math.max(0,state.navPos-1);render();};
-  const rs=document.getElementById('navReset');if(rs)rs.onclick=()=>{state.nav.length=0;state.navSeq.length=0;state.nav.push(f.start);state.navSeq.push(++Runtime.seq);state.navPos=0;render();};
-  main.querySelectorAll('[data-goto]').forEach(b=>b.onclick=()=>{const t=b.dataset.goto;if(t&&f.blocks.some(x=>x.id===t)){state.nav.push(t);state.navSeq.push(++Runtime.seq);state.navPos=state.nav.length-1;render();}});
+  const bk=document.getElementById('navBack');if(bk)bk.onclick=()=>{state.navPos=Math.max(0,state.navPos-1);scrollNavNext=true;render();};
+  const rs=document.getElementById('navReset');if(rs)rs.onclick=()=>{state.nav.length=0;state.navSeq.length=0;state.nav.push(f.start);state.navSeq.push(++Runtime.seq);state.navPos=0;scrollNavNext=true;render();};
+  main.querySelectorAll('[data-goto]').forEach(b=>b.onclick=()=>{const t=b.dataset.goto;if(t&&f.blocks.some(x=>x.id===t)){state.nav.push(t);state.navSeq.push(++Runtime.seq);state.navPos=state.nav.length-1;scrollNavNext=true;render();}});
   const goCrumb=i=>{if(i>=0&&i<state.nav.length){state.navPos=i;render();}};
   main.querySelectorAll('[data-crumb]').forEach(c=>{c.onclick=()=>goCrumb(+c.dataset.crumb);c.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();goCrumb(+c.dataset.crumb);}};});
   // Cocher une étape DÉMARRE la session (1ʳᵉ action) et l'auto-enregistre.
@@ -1302,7 +1351,7 @@ function renderRead(){
   // Lancer un minuteur DÉMARRE la session. Si elle vient de démarrer, on re-rend (le bandeau « en
   // cours » apparaît) ; sinon mise à jour DOM directe.
   main.querySelectorAll('[data-tmtoggle]').forEach(b=>b.onclick=()=>{const t=Runtime.timers[b.dataset.tmtoggle];toggleTimer(t);const fresh=ensureStarted();persistLive(Runtime);if(fresh)render();else{syncTimerBtns(t);updateTimers();}});
-  main.querySelectorAll('[data-tmreset]').forEach(b=>b.onclick=()=>{const t=Runtime.timers[b.dataset.tmreset];resetTimer(t);syncTimerBtns(t);updateTimers();persistLive(Runtime);});
+  main.querySelectorAll('[data-tmreset]').forEach(b=>holdToReset(b,()=>{const t=Runtime.timers[b.dataset.tmreset];resetTimer(t);syncTimerBtns(t);updateTimers();persistLive(Runtime);}));
   main.querySelectorAll('[data-cninc]').forEach(b=>b.onclick=()=>{const id=b.dataset.cninc;Runtime.counters[id]=(Runtime.counters[id]||0)+(+b.dataset.step);const fresh=ensureStarted();persistLive(Runtime);if(fresh)render();else document.getElementById('cnval-'+id).textContent=Runtime.counters[id];});
   main.querySelectorAll('[data-cndec]').forEach(b=>b.onclick=()=>{const id=b.dataset.cndec;Runtime.counters[id]=Math.max(0,(Runtime.counters[id]||0)-(+b.dataset.step));const fresh=ensureStarted();persistLive(Runtime);if(fresh)render();else document.getElementById('cnval-'+id).textContent=Runtime.counters[id];});
   // horodatage : ajout (re-rendu), édition du libellé (sans re-rendu, garde le focus), suppression.
@@ -1316,8 +1365,10 @@ function renderRead(){
   const tg=document.getElementById('toggleSess');if(tg)tg.onclick=()=>{state.showSess=!state.showSess;render();};
   main.querySelectorAll('[data-resume]').forEach(b=>b.onclick=()=>resumeSession(b.dataset.resume));
   main.querySelectorAll('[data-delsess]').forEach(b=>b.onclick=()=>deleteSession(b.dataset.delsess));
+  flowCtx={f,curId:cur};
   bindFlowZoom();applyFlowZoom();restoreFlow();
   updateTimers();
+  if(scrollNavNext){scrollNavNext=false;scrollNavIntoView();}
 }
 
 /* ===== Editor =====
@@ -1417,6 +1468,7 @@ function renderEditor(){
     const bd=card.querySelector('[data-bdel]');if(bd)bd.onclick=()=>{f.blocks=f.blocks.filter(x=>x.id!==bid);f.blocks.forEach(x=>{if(x.next===bid)x.next=null;if(x.options)x.options.forEach(o=>{if(o.target===bid)o.target='';});});if(f.start===bid)f.start=f.blocks[0]?f.blocks[0].id:null;if(!f.blocks.length){const nb={id:uid('b'),type:'steps',title:'Prise en charge',steps:[''],image:null,next:null};f.blocks.push(nb);f.start=nb.id;}renderEditor();};});
   imgInput.onchange=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;const data=await downscale(file);if(!data){alert('Image illisible.');return;}if(imgMode.kind==='gallery')f.images.push({id:uid('i'),data,caption:''});else{const b=f.blocks.find(x=>x.id===imgMode.bid);if(b)b.image=data;}renderEditor();};
   document.getElementById('saveBtn').onclick=saveDraft;const del=document.getElementById('delBtn');if(del)del.onclick=deleteDraft;
+  flowCtx={f,curId:null};
   bindFlowZoom();applyFlowZoom();restoreFlow();
 }
 function bindListEditors(){
@@ -1446,7 +1498,7 @@ async function deleteDraft(){if(!confirm('Supprimer cette fiche définitivement 
 // Ouvre une fiche en lecture. Si une SESSION VIVE existe pour cette fiche, on la rouvre telle quelle
 // (minuteurs toujours en cours). Sinon on garde le runtime transitoire de cette même fiche (s'il n'a
 // pas démarré), sinon on en crée un neuf.
-function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;flowScroll={left:0,top:0};
+function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;flowScroll={left:null,top:0};
   if(liveSessions[id]){Runtime=liveSessions[id];Runtime.fiche=f;}
   else if(!(Runtime.fiche&&Runtime.ficheId===id&&!Runtime.started)){Runtime=buildRuntime(f,null);}
   bindStateToRuntime();state.fiche=Runtime.fiche;state.id=id;state.showFlow=!!(f.blocks&&f.blocks.length);state.showSess=false;state.view='read';render();}
@@ -1459,6 +1511,9 @@ const lb=document.getElementById('lightbox');
 function openLightbox(src,cap){document.getElementById('lbImg').src=src;document.getElementById('lbCap').textContent=cap||'';lb.classList.add('on');}
 function closeLightbox(){lb.classList.remove('on');document.getElementById('lbImg').src='';}
 document.getElementById('lbX').onclick=closeLightbox;lb.onclick=e=>{if(e.target===lb)closeLightbox();};
+// Plein écran de l'algorithme : boutons de zoom (mêmes que l'aperçu) + fermeture.
+document.querySelectorAll('#flowFull [data-zoomf]').forEach(b=>b.onclick=()=>zoomStep(b.dataset.zoomf));
+document.getElementById('ffClose').onclick=closeFlowFull;
 
 /* ===== Prompt IA ===== (fenêtre d'aide pour générer une fiche importable via une IA)
    Le prompt est embarqué (l'app marche hors ligne) ; il décrit le format JSON exact
