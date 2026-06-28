@@ -273,7 +273,9 @@
   .refs ol{margin:0;padding-left:18px}.refs li{margin-bottom:3px}
   .read-actions{display:flex;gap:9px;flex-wrap:wrap;margin:24px 0 22px}
   /* runtime */
-  .rt-panel{background:#0f2a28;border-radius:14px;padding:14px;margin-bottom:14px}
+  .rt-panel{background:#0f2a28;border-radius:14px;padding:14px;margin-bottom:14px;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+  /* Pendant un « maintenir pour réinitialiser » : aucune sélection de texte possible nulle part. */
+  body.hold-noselect,body.hold-noselect *{-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important}
   .rt-head{display:flex;align-items:center;gap:8px;margin-bottom:11px}
   .rt-head b{color:#eaf5f3;font-size:11px;letter-spacing:1.2px;text-transform:uppercase;flex:1}
   .rt-sound{background:rgba(255,255,255,.12);border:0;color:#eaf5f3;border-radius:8px;padding:6px 11px;font-size:12px;font-weight:600}
@@ -426,13 +428,17 @@
   .storage-gauge .pers-ok{color:var(--primary);font-weight:600}
   .storage-gauge .pers-warn{color:var(--verify)}
   .tlink{background:none;border:0;color:var(--primary);font-size:13px;font-weight:600;padding:6px 8px;border-radius:8px}.tlink:hover{background:var(--primary-soft)}#installBtn{display:none}
-  .lightbox{position:fixed;inset:0;background:rgba(16,32,30,.92);z-index:50;display:none;align-items:center;justify-content:center;padding:20px;flex-direction:column;gap:14px}
+  .lightbox{position:fixed;inset:0;background:rgba(16,32,30,.92);z-index:100;display:none;align-items:center;justify-content:center;padding:20px;flex-direction:column;gap:14px}
   .lightbox.on{display:flex}.lightbox img{max-width:100%;max-height:82vh;border-radius:8px}
   .lightbox .cap{color:#cfe0dd;font-size:13px;text-align:center;max-width:600px}
   .lightbox .x{position:absolute;top:calc(14px + env(safe-area-inset-top));right:16px;background:rgba(255,255,255,.15);color:#fff;border:0;width:40px;height:40px;border-radius:50%;font-size:22px}
-  .ai-modal{position:fixed;inset:0;background:rgba(16,32,30,.92);z-index:55;display:none;align-items:flex-start;justify-content:center;padding:24px 14px;overflow:auto}
+  .ai-modal{position:fixed;inset:0;background:rgba(16,32,30,.92);z-index:55;display:none;align-items:flex-start;justify-content:center;padding:calc(18px + env(safe-area-inset-top)) 14px calc(18px + env(safe-area-inset-bottom));overflow:auto}
   .ai-modal.on{display:flex}
   .ai-card{background:var(--surface);border-radius:14px;max-width:720px;width:100%;margin:auto;padding:20px;box-shadow:var(--shadow)}
+  /* La fenêtre « Gérer les catégories » ne dépasse jamais l'écran (encoche/horloge incluses) : la
+     carte est plafonnée et la LISTE défile à l'intérieur ; l'en-tête reste visible. */
+  #catModal .ai-card{display:flex;flex-direction:column;max-height:calc(100dvh - 36px - env(safe-area-inset-top) - env(safe-area-inset-bottom));overflow:hidden}
+  #catModal #catMgrBody{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;min-height:0}
   .ai-card .ai-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
   .ai-card h3{margin:0;font-size:18px;font-weight:680;flex:1}
   .ai-card .ai-x{background:none;border:0;color:var(--ink-soft);font-size:24px;line-height:1;padding:0 4px}
@@ -506,7 +512,7 @@
 
 /* PALETTE : couleurs proposées pour les catégories (hex sombres, lisibles
    en texte comme en pastille teintée). Index réutilisé cycliquement. */
-const APP_VERSION='2.3.2';
+const APP_VERSION='2.3.3';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 const PALETTE=['#b23052','#823a32','#b5532a','#a26a42','#8a6a12','#4f6b1e','#1f7a4d','#0d5b56','#007fb1','#45556b','#1f5fa6','#4b3fa6','#8869af','#7a2f6b','#ad5e7e'];
 /* ===== Backends =====
@@ -618,11 +624,14 @@ function applyFlowZoom(){document.querySelectorAll('.flow-scroll svg, #flowFull 
 function zoomStep(a){if(a==='in')flowZoom=Math.min(4,Math.round((flowZoom+0.25)*100)/100);else if(a==='out')flowZoom=Math.max(0.4,Math.round((flowZoom-0.25)*100)/100);else flowZoom=1;applyFlowZoom();}
 // Contexte de l'algorithme actuellement affiché (fiche + bloc courant), pour le plein écran.
 let flowCtx={f:null,curId:null};
+// Rend cliquables les images intégrées au SVG (vignettes des blocs) -> ouverture en plein écran.
+function bindSvgImages(container){if(!container)return;container.querySelectorAll('image[data-full]').forEach(im=>{im.style.cursor='zoom-in';im.onclick=ev=>{ev.stopPropagation();ev.preventDefault();openLightbox(im.getAttribute('data-full'),'');};});}
 function bindFlowZoom(){main.querySelectorAll('[data-zoom]').forEach(b=>b.onclick=()=>zoomStep(b.dataset.zoom));
-  main.querySelectorAll('[data-flowfull]').forEach(b=>b.onclick=()=>{if(flowCtx.f)openFlowFull(flowCtx.f,flowCtx.curId);});}
+  main.querySelectorAll('[data-flowfull]').forEach(b=>b.onclick=()=>{if(flowCtx.f)openFlowFull(flowCtx.f,flowCtx.curId);});
+  bindSvgImages(main.querySelector('.flow-scroll'));}
 // Plein écran de l'algorithme : superpose le SVG (même bloc courant mis en évidence), zoom + défilement
 // (pinch natif aussi). On centre horizontalement à l'ouverture.
-function openFlowFull(f,curId){const ov=document.getElementById('flowFull');if(!ov)return;const sc=ov.querySelector('.ff-scroll');sc.innerHTML=buildFlowSVG(f,curId);ov.classList.add('on');applyFlowZoom();sc.scrollLeft=centerOnStart(sc);sc.scrollTop=0;}
+function openFlowFull(f,curId){const ov=document.getElementById('flowFull');if(!ov)return;const sc=ov.querySelector('.ff-scroll');sc.innerHTML=buildFlowSVG(f,curId);ov.classList.add('on');applyFlowZoom();bindSvgImages(sc);sc.scrollLeft=centerOnStart(sc);sc.scrollTop=0;}
 function closeFlowFull(){const ov=document.getElementById('flowFull');if(ov){ov.classList.remove('on');const sc=ov.querySelector('.ff-scroll');if(sc)sc.innerHTML='';}}
 const flowBlock=(f,curId)=>`<div class="flow-zoom"><button class="fz" data-zoom="out" aria-label="Dézoomer">−</button><span class="fzv">${Math.round(flowZoom*100)}%</span><button class="fz" data-zoom="in" aria-label="Zoomer">+</button><button class="fz fz-r" data-zoom="reset">Réinit.</button><span class="fz-spc"></span><button class="fz" data-flowfull aria-label="Plein écran" title="Plein écran">⛶</button></div><div class="flow-scroll">${buildFlowSVG(f,curId)}</div>`;
 // Rafraîchit l'aperçu algorithme PENDANT la frappe (titres, étapes, réponses) sans reconstruire
@@ -631,7 +640,7 @@ const flowBlock=(f,curId)=>`<div class="flow-zoom"><button class="fz" data-zoom=
 // recalculer la mise en page à chaque caractère = peu de ressources/énergie.
 let flowPrevTimer=null;
 function scheduleFlowPreview(f){if(flowPrevTimer)clearTimeout(flowPrevTimer);
-  flowPrevTimer=setTimeout(()=>{flowPrevTimer=null;const el=main.querySelector('.flow-scroll');if(!el)return;captureFlow();el.innerHTML=buildFlowSVG(f);applyFlowZoom();restoreFlow();},300);}
+  flowPrevTimer=setTimeout(()=>{flowPrevTimer=null;const el=main.querySelector('.flow-scroll');if(!el)return;captureFlow();el.innerHTML=buildFlowSVG(f);applyFlowZoom();restoreFlow();bindSvgImages(el);},300);}
 const byOrder=(a,b)=>(b.order||0)-(a.order||0);
 const textTrunc=(s,n)=>{s=String(s||'');return s.length>n?s.slice(0,n-1)+'…':s;};
 const catOf=f=>categories.find(c=>c.id===f.category)||null;
@@ -699,7 +708,7 @@ function seed(catId){const b1=uid('b'),b2=uid('b'),b3=uid('b'),bd=uid('b');
       {id:b2,type:'steps',title:'Stabilisé',image:null,steps:['Surveillance rapprochée','Tracer doses et horaires','Bilan allergologique'],next:null},
       {id:b3,type:'steps',title:'Choc réfractaire',image:null,steps:['Adrénaline en perfusion continue','Renforcer le remplissage','2ᵉ vasopresseur','Renfort réanimation'],next:null}
     ]});}
-function defaultCats(){return[{id:uid('c'),name:'Anesthésie-Réanimation',color:'#0d5b56'},{id:uid('c'),name:'Cardiologie',color:'#b23052'},{id:uid('c'),name:'Pédiatrie',color:'#1f7a4d'},{id:uid('c'),name:'Régulation',color:'#4b3fa6'},{id:uid('c'),name:'SMUR',color:'#b5532a'},{id:uid('c'),name:'SSE',color:'#8a6a12'},{id:uid('c'),name:'Urgences',color:'#1f5fa6'}];}
+function defaultCats(){return[{id:uid('c'),name:'Anesthésie',color:'#0d5b56'},{id:uid('c'),name:'Cardiologie',color:'#b23052'},{id:uid('c'),name:'Pédiatrie',color:'#1f7a4d'},{id:uid('c'),name:'Réanimation',color:'#007fb1'},{id:uid('c'),name:'Régulation',color:'#4b3fa6'},{id:uid('c'),name:'SMUR',color:'#b5532a'},{id:uid('c'),name:'SSE',color:'#8a6a12'},{id:uid('c'),name:'Urgences',color:'#1f5fa6'}];}
 function migrateCategories(){const changed=[];const byName={};categories.forEach(c=>byName[c.name.toLowerCase()]=c.id);let pi=categories.length;
   fiches.forEach(f=>{const cv=f.category;if(!cv)return;if(categories.some(c=>c.id===cv))return;const name=String(cv).trim();if(!name){f.category='';changed.push(f);return;}
     let id=byName[name.toLowerCase()];if(!id){id=uid('c');categories.push({id,name,color:PALETTE[pi++%PALETTE.length]});byName[name.toLowerCase()]=id;}f.category=id;changed.push(f);});return changed;}
@@ -896,10 +905,15 @@ function saveSession(){const f=Runtime.fiche;if(!f)return;ensureStarted();
 // se remplit). Un appui bref — ou même un DOUBLE appui au même endroit en situation de stress — ne
 // déclenche rien. Pas de fenêtre modale (réservée, elle, à la réinitialisation de SESSION).
 function holdToReset(btn,doAction){if(!btn)return;let to=null;const lbl=btn.textContent;
-  const cancel=()=>{if(to){clearTimeout(to);to=null;}btn.classList.remove('holding');btn.textContent=lbl;};
-  const begin=e=>{if(btn.disabled)return;if(e&&e.cancelable)e.preventDefault();cancel();btn.classList.add('holding');btn.textContent='Maintenir…';
-    to=setTimeout(()=>{to=null;btn.classList.remove('holding');doAction();},800);};
+  const clearSel=()=>{try{const s=window.getSelection&&window.getSelection();if(s&&s.removeAllRanges)s.removeAllRanges();}catch(_){}};
+  const cancel=()=>{if(to){clearTimeout(to);to=null;}btn.classList.remove('holding');btn.textContent=lbl;document.body.classList.remove('hold-noselect');};
+  const begin=e=>{if(btn.disabled)return;if(e&&e.cancelable)e.preventDefault();cancel();clearSel();
+    // Pendant l'appui prolongé : on bloque TOUTE sélection de texte (sinon iPhone sélectionne le
+    // texte autour du bouton) et on efface une sélection éventuelle.
+    document.body.classList.add('hold-noselect');btn.classList.add('holding');btn.textContent='Maintenir…';
+    to=setTimeout(()=>{to=null;btn.classList.remove('holding');document.body.classList.remove('hold-noselect');clearSel();doAction();},800);};
   btn.addEventListener('pointerdown',begin);['pointerup','pointerleave','pointercancel'].forEach(ev=>btn.addEventListener(ev,cancel));
+  btn.addEventListener('contextmenu',e=>e.preventDefault());
   btn.onclick=e=>{e.preventDefault();e.stopPropagation();};}
 function resetSession(){if(!confirm('Réinitialiser la session ? (cochages, compteurs et minuteurs remis à zéro)'))return;
   const f=Runtime.fiche,old=Runtime.sessionId;
@@ -951,7 +965,8 @@ function renderLibrary(){
 
   document.getElementById('q').addEventListener('input',e=>{state.q=e.target.value;const pos=e.target.selectionStart;renderLibrary();const inp=document.getElementById('q');inp.focus();inp.setSelectionRange(pos,pos);});
   document.getElementById('newBtn').onclick=newFiche;
-  main.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{state.cat=b.dataset.cat;renderLibrary();});
+  // Recliquer la catégorie déjà sélectionnée la dé-sélectionne (revient à « Toutes »).
+  main.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{const c=b.dataset.cat;state.cat=(c&&state.cat===c)?'':c;renderLibrary();});
   document.getElementById('catMgrChip').onclick=openCatMgr;
   main.querySelectorAll('[data-openlive]').forEach(el=>{el.onclick=()=>openRead(el.dataset.openlive);el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openRead(el.dataset.openlive);}};});
   main.querySelectorAll('[data-endlive]').forEach(b=>b.onclick=()=>{const R=liveSessions[b.dataset.endlive];if(R&&confirm('Terminer la session ? Les minuteurs s’arrêtent ; la session est conservée dans l’historique.')){endSession(R);renderLibrary();}});
@@ -1009,6 +1024,7 @@ function wrapText(str,maxChars){const words=String(str||'').replace(/\s+/g,' ').
 function buildFlowSVG(f,curId){
   const blocks=f.blocks||[];if(!blocks.length)return '<div style="padding:14px;color:#54635f;font-size:13px">Aucun bloc.</div>';
   const TH=28,HG=36,VG=52,PX=14,PY=14,LH=16,TLH=15,HPAD=8,TXT_MAX=42,TITLE_MAX=34,MINW=150,MAXW=300,CW=5.6;
+  const IMG_H=60,IMG_PAD=8,IMG_GAP=6;// vignette d'image dans le bloc (cliquable -> plein écran)
   const byId={};blocks.forEach(b=>byId[b.id]=b);const start=(f.start&&byId[f.start])?f.start:blocks[0].id;
   // Mise en page de chaque bloc : texte ENROULÉ (jamais tronqué), TOUTES les étapes/options (sans
   // limite). LARGEUR ajustée au contenu (chaque bloc se resserre sur sa plus longue ligne) pour
@@ -1026,7 +1042,8 @@ function buildFlowSVG(f,curId){
     let mxc=0;headerLines.forEach(l=>{mxc=Math.max(mxc,l.length*1.12);});
     items.forEach(it=>it.lines.forEach((l,li)=>{const pre=(it.kind==='step'||it.kind==='opt')?(li===0?String(it.num).length+2:1.5):0;mxc=Math.max(mxc,l.length+pre);}));
     let base=Math.round(mxc*CW)+22;
-    LAY[b.id]={dec,headerLines,headerH,startStrip,items,h:headerH+HPAD+cl*LH+HPAD,w:Math.max(MINW,Math.min(MAXW,base))};});
+    const img=b.image||null;// image du bloc (déjà validée par migrate -> safeImg)
+    LAY[b.id]={dec,headerLines,headerH,startStrip,items,img,h:headerH+HPAD+cl*LH+(img?(IMG_GAP+IMG_H):0)+HPAD,w:Math.max(MINW,Math.min(MAXW,base))};});
   const nh=id=>LAY[id].h,nw=id=>LAY[id].w;
   const level={};const bq=[start];level[start]=0;
   while(bq.length){const id=bq.shift();const b=byId[id];const tg=b.type==='steps'?(b.next&&byId[b.next]?[b.next]:[]):(b.options||[]).map(o=>o.target).filter(t=>t&&byId[t]);tg.forEach(t=>{if(level[t]===undefined){level[t]=level[id]+1;bq.push(t);}});}
@@ -1232,6 +1249,11 @@ function buildFlowSVG(f,curId){
       else if(it.kind==='opt'){const pre=li===0?`<tspan font-weight="700" fill="#946615">${it.num}. </tspan>`:'';g+=`<text x="${li===0?12:22}" y="${y}" font-size="10.5" fill="#6b4d12" font-family="system-ui">${pre}${esc(ln)}</text>`;}
       else{const pre=li===0?`<tspan font-weight="700" fill="#7c8a87">${it.num}. </tspan>`:'';g+=`<text x="${li===0?12:22}" y="${y}" font-size="10.5" fill="#16211f" font-family="system-ui">${pre}${esc(ln)}</text>`;}
       iy+=LH;});});
+    // Image du bloc DANS le SVG : vignette ajustée (meet) + petite loupe ; cliquable -> plein écran.
+    if(L.img){const iyi=iy+IMG_GAP,iw=W-2*IMG_PAD;
+      g+=`<rect x="${IMG_PAD}" y="${iyi}" width="${iw}" height="${IMG_H}" rx="7" fill="#eef2f1" stroke="${stroke}"/>`;
+      g+=`<image x="${IMG_PAD}" y="${iyi}" width="${iw}" height="${IMG_H}" href="${L.img}" preserveAspectRatio="xMidYMid meet" data-full="${L.img}" style="cursor:zoom-in"/>`;
+      g+=`<g transform="translate(${W-IMG_PAD-15},${iyi+4})" pointer-events="none"><circle cx="6" cy="6" r="7" fill="rgba(13,91,86,.85)"/><circle cx="5" cy="5" r="2.4" fill="none" stroke="#fff" stroke-width="1.2"/><path d="M6.8 6.8 L9 9" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></g>`;}
     g+=`<rect width="${W}" height="${h}" rx="10" fill="none" stroke="${(isCur||isS)?'#0d5b56':stroke}" stroke-width="${(isCur||isS)?2.5:1.5}"/>`;
     nodes+=`<g transform="translate(${p.x},${p.y})">${g}</g>`;});
   const startCx=pos[start]?Math.round(pos[start].x+pos[start].w/2):Math.round(svgW/2);
