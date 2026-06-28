@@ -45,7 +45,7 @@ EXIGENCES DE FOND
   - bloc « decision » = une question avec des options, chaque option pointant vers un
     autre bloc (branchement « si oui → A, si non → B »).
   - Une option/`next` peut renvoyer vers un bloc précédent (boucle de réévaluation).
-- Mets dans :
+- RÉPARTITION DES SECTIONS (où placer quoi) :
   - confirmation = critères qui confirment le diagnostic / déclenchent la fiche.
     Détaille-les POINT PAR POINT (un critère par ligne, pour pouvoir cocher), en
     REGROUPANT ceux d'une même catégorie quand ça reste lisible (ex. "Signes neuro :
@@ -93,9 +93,6 @@ ERGONOMIE DE L'ALGORITHME (conception d'aide cognitive de crise, esprit SFAR / S
   conscience, neuro, RCF" sur une seule ligne (pas six) ; "Bilan : NFS, coag, iono, hépatique".
   Garde séparées les ACTIONS distinctes (un geste = une ligne).
 - Limite la charge cognitive : titres de blocs courts, listes ramassées.
-- Répartition : confirmation = critères diagnostiques déclenchant la fiche ; verify = ce qui
-  doit être contrôlé/monitoré ; notForget = pièges et points critiques (détrompage) ;
-  differentials = diagnostics différentiels.
 
 COHÉRENCE DES IDENTIFIANTS (très important)
 - Chaque bloc a un "id" unique au sein de la fiche (ex. "b1", "b2", "bd").

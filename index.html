@@ -117,6 +117,34 @@
   - AUCUNE donnée patient n'est prévue ; le contenu clinique est sous la
     responsabilité de l'auteur de la fiche (date de validation à tenir à jour).
 
+  SÉCURITÉ — RÈGLES À RESPECTER POUR TOUTE MODIFICATION (ne pas régresser)
+  -----------------------------------------------------------------------
+  Toute donnée entrant par IMPORT JSON (ou via un stockage altéré) est NON FIABLE :
+  le fichier peut contenir n'importe quel type ou valeur. L'app étant rendue par
+  template strings + innerHTML, une valeur non échappée = XSS, un identifiant hostile
+  = pollution de prototype / plantage, une donnée démesurée = blocage (DoS). Donc :
+  1. POINT D'ENTRÉE UNIQUE : toute fiche passe par migrate() et toute catégorie par
+     sanitizeCats() (au chargement, à l'import ET à la duplication). N'ajoutez JAMAIS
+     un chemin qui insère des données externes sans repasser par ces fonctions.
+  2. TEXTE -> toujours esc() avant de l'injecter dans du HTML (esc coerce aussi en
+     chaîne : aucune exception même si la valeur n'est pas une string).
+  3. NE JAMAIS interpoler une valeur externe BRUTE dans un attribut ou un style :
+       - couleur       -> safeColor()  (hex validé, sinon couleur par défaut) ;
+       - image/data-uri -> safeImg()   (seules les data:image/... reconnues passent) ;
+       - identifiant dans un attribut -> esc() (ou déjà restreint par safeId()).
+  4. IDENTIFIANTS utilisés comme CLÉS d'objet (byId[id], liveSessions[id],
+     Runtime.counters[id], state.checked[...], idMap...) : uniquement des ids passés
+     par safeId() (jeu [A-Za-z0-9_-]; __proto__/constructor/prototype bannis) ->
+     pas de pollution de prototype. Pour les tables de correspondance temporaires,
+     utilisez Object.create(null).
+  5. PLAFONNER les tailles (sstr/sarr + .slice) pour qu'une fiche démesurée ne fige
+     pas l'app.
+  Avant de livrer une évolution du modèle de données ou du rendu, TESTEZ avec une
+  fiche hostile (id "__proto__", title non-string, data-uri "x\" onerror=...",
+  couleur "#fff\"><img onerror=...>", cibles pendantes) : aucun script ne doit
+  s'exécuter, aucune exception, aucun blocage. Voir les garde-fous regroupés près de
+  safeId / safeColor / safeImg / migrate / sanitizeCats.
+
   POUR ÉTENDRE (pistes connues, non implémentées)
   -----------------------------------------------
   - Synchro multi-appareils réelle : nécessiterait un backend (Firebase/Supabase)
@@ -187,14 +215,29 @@
   .read-meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0 18px}
   .local{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 14px;margin-bottom:18px;font-size:14px;color:var(--ink-soft);white-space:pre-wrap}
   section.block{margin-bottom:22px}
-  .block-h{display:flex;align-items:center;gap:9px;margin-bottom:11px;font-size:11.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase}
+  .block-h{display:flex;align-items:center;gap:10px;margin-bottom:12px;font-size:12.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase}
   .block-h .pip{width:9px;height:9px;border-radius:3px;flex-shrink:0}.block-h .spc{flex:1}
+  /* Chaque section a un BADGE d'icône TEINTÉ à sa couleur -> repère visuel fort et distinct */
+  .block-h .sec-badge{width:28px;height:28px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;background:#e7ecea}
+  .block-h .sec-ic{flex-shrink:0}
+  .h-confirm .sec-badge,.h-img .sec-badge{background:#dbeae5}
+  .h-verify .sec-badge{background:var(--verify-soft)}
+  .h-forget .sec-badge{background:var(--critical-soft)}
+  .h-diff .sec-badge{background:#e7ecea}
+  .h-main .sec-badge{background:var(--surface);box-shadow:inset 0 0 0 1px #cfe6e0}
   .h-confirm{color:var(--primary-dk)} .h-confirm .pip{background:var(--primary)}
   .h-steps{color:var(--ink)} .h-steps .pip{background:var(--ink)}
   .h-verify{color:var(--verify)} .h-verify .pip{background:var(--verify)}
   .h-forget{color:var(--critical)} .h-forget .pip{background:var(--critical)}
   .h-diff{color:var(--ink-soft)} .h-diff .pip{background:var(--ink-soft)}
   .h-img{color:var(--primary-dk)} .h-img .pip{background:var(--primary)}
+  /* « Prise en charge » = cœur de l'aide cognitive : en-tête PLUS marqué (taille, couleur primaire) */
+  .h-main{color:var(--primary-dk);font-size:13px;letter-spacing:.4px}
+  .h-main .sec-ic{width:18px;height:18px}
+  .block-care{background:var(--primary-soft);border:1px solid #cfe6e0;border-radius:var(--radius);padding:14px 14px 4px;margin-bottom:22px}
+  .block-care .nav-wrap{background:var(--surface)}
+  .flow-toggle{text-transform:none;letter-spacing:0;background:var(--surface);border-color:#b9ddd6;color:var(--primary-dk)}
+  .rt-ic{flex-shrink:0}
   ol.steps{list-style:none;margin:0;padding:0;counter-reset:s}
   ol.steps li{counter-increment:s;display:flex;gap:14px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--ink);border-radius:11px;padding:13px 15px;margin-bottom:9px;cursor:pointer;transition:opacity .12s,background .12s}
   ol.steps li::before{content:counter(s,decimal-leading-zero);font-family:var(--mono);font-size:15px;font-weight:600;color:var(--ink);min-width:26px;padding-top:1px}
@@ -251,28 +294,62 @@
   .tm-bar{height:100%;background:#5fd0c4;width:0%}
   .tm-ctrl,.cn-ctrl{display:flex;gap:6px;margin-top:9px}
   .cn-ctrl{justify-content:center}
-  .tm-btn{flex:1;background:rgba(255,255,255,.12);color:#eaf5f3;border:0;border-radius:8px;padding:8px;font-size:12.5px;font-weight:600}
+  .tm-btn{flex:1;min-width:0;background:rgba(255,255,255,.12);color:#eaf5f3;border:0;border-radius:8px;padding:8px;font-size:12.5px;font-weight:600;transition:background .12s,opacity .12s}
   .tm-btn:hover{background:rgba(255,255,255,.2)}
+  .tm-main{background:rgba(95,208,196,.22)}.tm-main:hover{background:rgba(95,208,196,.32)}
+  .tm-main.run{background:rgba(217,102,58,.28)}.tm-main.run:hover{background:rgba(217,102,58,.4)}
+  .tm-btn:disabled{opacity:.32;cursor:default}.tm-btn:disabled:hover{background:rgba(255,255,255,.12)}
   .cn-btn{width:46px;height:40px;border-radius:9px;border:0;background:rgba(255,255,255,.12);color:#eaf5f3;font-size:20px;font-weight:600}
   .cn-btn:hover{background:rgba(255,255,255,.2)}
-  .tk-panel{background:#0f2a28;border-radius:14px;padding:14px;margin-bottom:14px}
-  .tk-head{display:flex;align-items:center;gap:10px;margin-bottom:11px}
-  .tk-head b{color:#eaf5f3;font-size:11px;letter-spacing:1.2px;text-transform:uppercase;flex:1}
-  .tk-add{background:#5fd0c4;color:#08312d;border:0;border-radius:9px;padding:9px 14px;font-size:13.5px;font-weight:700;display:inline-flex;align-items:center;gap:6px}
-  .tk-add:hover{background:#74dccf}
-  .tk-row{display:flex;gap:9px;align-items:center;padding:8px 0;border-top:1px solid #1d524c}
-  .tk-time{font-family:var(--mono);font-size:14px;color:#eaf5f3;white-space:nowrap}
-  .tk-el{font-family:var(--mono);font-size:11px;color:#9fcdc7;white-space:nowrap;min-width:46px}
-  .tk-lab{flex:1;min-width:0;padding:7px 10px;border:1px solid #1d524c;border-radius:8px;background:#15403b;color:#eaf5f3;font-size:14px}
-  .tk-lab:focus{outline:2px solid #5fd0c4;border-color:transparent}
-  .tk-del{flex-shrink:0;width:32px;height:36px;border:0;border-radius:8px;background:rgba(255,255,255,.12);color:#eaf5f3;font-size:17px}
-  .tk-del:hover{background:#b5532a}
-  .tk-empty{font-size:12.5px;color:#9fcdc7;padding:3px 0}
-  .session-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+  /* Horodatage : outil SECONDAIRE -> panneau CLAIR (le panneau sombre reste réservé aux minuteurs/compteurs) */
+  .tk-panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:13px 14px;margin-bottom:14px;box-shadow:var(--shadow)}
+  .tk-head{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+  .tk-head b{color:var(--ink-soft);font-size:11px;letter-spacing:1px;text-transform:uppercase;flex:1}
+  .tk-add{background:var(--primary);color:#fff;border:0;border-radius:9px;padding:8px 13px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
+  .tk-add:hover{background:var(--primary-dk)}
+  .tk-row{display:flex;gap:9px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+  .tk-time{font-family:var(--mono);font-size:14px;color:var(--ink);white-space:nowrap}
+  .tk-el{font-family:var(--mono);font-size:11px;color:var(--ink-soft);white-space:nowrap;min-width:46px}
+  .tk-lab{flex:1;min-width:0;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font-size:14px}
+  .tk-lab:focus{outline:2px solid var(--primary);border-color:transparent}
+  .tk-del{flex-shrink:0;width:32px;height:36px;border:0;border-radius:8px;background:#eef1f0;color:var(--ink-soft);font-size:17px}
+  .tk-del:hover{background:var(--critical-soft);color:var(--critical)}
+  .tk-empty{font-size:12.5px;color:var(--ink-soft);padding:3px 0}
+  /* Bandeau de session (mode lecture) : discret tant qu'inactif, mis en avant « en cours » */
+  .session-bar{display:flex;gap:8px 10px;flex-wrap:wrap;align-items:center;margin-bottom:16px;border-radius:12px;padding:11px 13px}
+  .session-bar.idle{background:#f3f6f5;border:1px dashed var(--line)}
+  .session-bar.idle .sess-hint{flex:1;min-width:160px;font-size:12.5px;color:var(--ink-soft);line-height:1.35}
+  .session-bar.live{background:var(--primary-soft);border:1px solid #b9ddd6}
+  .session-bar.live .sess-info{flex:1;min-width:140px;display:flex;flex-direction:column;line-height:1.25}
+  .session-bar.live .sess-info b{font-size:13px;color:var(--primary-dk);letter-spacing:.2px}
+  .session-bar.live .sess-info span{font-size:11.5px;color:var(--ink-soft)}
+  .session-bar .sess-acts{display:flex;gap:7px;flex-wrap:wrap}
+  .sess-dot{width:9px;height:9px;border-radius:50%;background:var(--primary);flex-shrink:0;box-shadow:0 0 0 0 rgba(13,91,86,.45);animation:pulse 2s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(13,91,86,.4)}70%{box-shadow:0 0 0 7px rgba(13,91,86,0)}100%{box-shadow:0 0 0 0 rgba(13,91,86,0)}}
+  .sess-livetag{font-size:10px;font-weight:700;color:var(--primary-dk);background:var(--primary-soft);padding:1px 7px;border-radius:10px;margin-left:6px}
   .sess-list{background:#f5f8f7;border:1px solid var(--line);border-radius:11px;padding:6px 10px;margin-bottom:18px}
   .sess-row{display:flex;gap:8px;align-items:center;padding:9px 2px;border-bottom:1px solid var(--line)}
   .sess-row:last-child{border-bottom:0}.sess-row .si{flex:1;min-width:0}
   .sess-row .sn{font-weight:600;font-size:14px}.sess-row .sd{font-size:11.5px;color:var(--ink-soft)}
+  /* Accueil : sessions en cours */
+  .live-sessions{background:var(--surface);border:1px solid #b9ddd6;border-left:3px solid var(--primary);border-radius:var(--radius);padding:12px 14px;margin-bottom:16px;box-shadow:var(--shadow)}
+  .ls-h{display:flex;align-items:center;gap:8px;font-size:11.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--primary-dk);margin-bottom:10px}
+  .ls-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:9px 0;border-top:1px solid var(--line)}
+  .ls-row:first-of-type{border-top:0}
+  .ls-info{flex:1;min-width:150px;display:flex;flex-direction:column;line-height:1.25;cursor:pointer}
+  .ls-info b{font-size:15px;font-weight:640}.ls-info span{font-size:12px;color:var(--ink-soft)}
+  .ls-acts{display:flex;gap:7px;flex-wrap:wrap}
+  .tag.live{background:#dff0ec;color:var(--primary-dk)}
+  .card.has-live{border-color:#b9ddd6}
+  /* Banderoles d'alerte (minuteur d'une session non visible) */
+  #alerts{position:fixed;left:0;right:0;top:0;z-index:80;display:flex;flex-direction:column;align-items:center;gap:8px;padding:calc(8px + env(safe-area-inset-top)) 12px 0;pointer-events:none}
+  .alert-toast{pointer-events:auto;max-width:520px;width:100%;display:flex;gap:11px;align-items:center;background:#15403b;color:#eaf5f3;border-radius:12px;padding:11px 13px;box-shadow:0 8px 28px rgba(16,32,30,.28);cursor:pointer;animation:toastIn .28s ease}
+  .alert-toast.out{opacity:0;transform:translateY(-8px);transition:opacity .4s,transform .4s}
+  .alert-toast .at-ic{font-size:20px;flex-shrink:0}
+  .alert-toast .at-tx{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.25}
+  .alert-toast .at-tx b{font-size:13.5px}.alert-toast .at-tx span{font-size:12px;color:#9fcdc7}
+  .alert-toast .at-x{background:rgba(255,255,255,.14);border:0;color:#eaf5f3;border-radius:8px;width:26px;height:26px;font-size:16px;flex-shrink:0;cursor:pointer}
+  @keyframes toastIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
   /* editor */
   .field{margin-bottom:18px}
   .field>label{display:block;font-size:12px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--ink-soft);margin-bottom:7px}
@@ -386,6 +463,7 @@
     <input type="file" id="importFile" accept="application/json" hidden></footer>
 </div>
 <div id="screenFlash"></div>
+<div id="alerts"></div>
 <div class="lightbox" id="lightbox"><button class="x" id="lbX">×</button><img id="lbImg" alt=""><div class="cap" id="lbCap"></div></div>
 <div class="ai-modal" id="aiModal"><div class="ai-card">
   <div class="ai-top"><h3>Créer une fiche avec une IA</h3><button class="ai-x" id="aiX" aria-label="Fermer">×</button></div>
@@ -413,7 +491,7 @@
 
 /* PALETTE : couleurs proposées pour les catégories (hex sombres, lisibles
    en texte comme en pastille teintée). Index réutilisé cycliquement. */
-const APP_VERSION='2.1.23';
+const APP_VERSION='2.3';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 const PALETTE=['#b23052','#823a32','#b5532a','#a26a42','#8a6a12','#4f6b1e','#1f7a4d','#0d5b56','#007fb1','#45556b','#1f5fa6','#4b3fa6','#8869af','#7a2f6b','#ad5e7e'];
 /* ===== Backends =====
@@ -474,12 +552,33 @@ let Data=KV;
      catTag (pastille couleur d'une catégorie), fmtMs (millisecondes -> mm:ss). */
 let fiches=[],categories=[],sessions=[];
 let state={view:'library',id:null,q:'',cat:'',draft:null,fiche:null,nav:[],navSeq:[],navPos:0,checked:{},catMgr:false,showFlow:false,showSess:false};
-const Runtime={fiche:null,ficheId:null,sessionId:null,name:'',sound:true,checked:{},nav:[],navSeq:[],seq:0,counters:{},timers:{},events:[]};
+// Plusieurs sessions VIVES en parallèle : un runtime par fiche dont la session a démarré. Leurs
+// minuteurs continuent de tourner en arrière-plan (tickAll les fait tous avancer, même fiche non
+// visible). `Runtime` pointe vers le runtime de la fiche actuellement ouverte ; `liveSessions` est
+// le registre ficheId -> runtime vif. `soundOn` = réglage son global (toutes sessions).
+function makeRuntime(){return {fiche:null,ficheId:null,sessionId:null,name:'',started:false,startedAt:0,checked:{},nav:[],navSeq:[],seq:0,counters:{},timers:{},events:[]};}
+let Runtime=makeRuntime();
+const liveSessions={};
+let soundOn=true;
 let AC=null;
 const uid=p=>(p||'f')+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
-const esc=s=>(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+// esc/clean COERCENT toujours en chaîne -> jamais d'exception si une donnée importée n'est pas une
+// chaîne (sinon `(obj).replace` lèverait et casserait tout le rendu = écran blanc).
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const main=document.getElementById('main');
-const clean=a=>(a||[]).map(s=>s.trim()).filter(Boolean);
+const clean=a=>(Array.isArray(a)?a:[]).map(s=>String(s==null?'':s).trim()).filter(Boolean);
+/* ===== Garde-fous de sécurité (assainissement des données importées/stockées) =====
+   Tout ce qui entre par import JSON (ou un stockage altéré) est NON FIABLE. On le normalise au point
+   d'entrée (migrate / sanitizeCats) : types coercés, identifiants restreints à un jeu sûr (pas de
+   pollution de prototype ni d'échappement d'attribut), couleurs validées, images limitées aux
+   data-URI d'image reconnues. Les tailles sont plafonnées pour éviter un blocage (DoS). */
+const SAFE_ID=/^[A-Za-z0-9_-]{1,64}$/;const BAD_KEYS=['__proto__','constructor','prototype'];
+const safeId=(id,p)=>(typeof id==='string'&&SAFE_ID.test(id)&&BAD_KEYS.indexOf(id)<0)?id:uid(p);
+const safeCatRef=id=>(typeof id==='string'&&SAFE_ID.test(id)&&BAD_KEYS.indexOf(id)<0)?id:'';
+const safeColor=c=>(typeof c==='string'&&/^#[0-9a-fA-F]{3,8}$/.test(c))?c:'#45556b';
+const safeImg=d=>(typeof d==='string'&&/^data:image\/(png|jpe?g|gif|webp);base64,[A-Za-z0-9+/=\s]{0,6000000}$/i.test(d))?d:null;
+const sstr=(v,max)=>String(v==null?'':v).slice(0,max||5000);
+const sarr=(a,max)=>(Array.isArray(a)?a:[]).slice(0,max||1000).map(x=>sstr(x,4000));
 // Préserve la position de défilement de l'aperçu algorithme (.flow-scroll) entre deux rendus,
 // pour qu'elle ne se réinitialise pas quand on coche une case, horodate, enregistre une session…
 let flowScroll={left:0,top:0};
@@ -490,7 +589,7 @@ function restoreFlow(){const el=main.querySelector('.flow-scroll');if(el){el.scr
 let flowZoom=1;
 function applyFlowZoom(){const s=main.querySelector('.flow-scroll svg');if(s){const bw=+s.getAttribute('data-bw')||300,bh=+s.getAttribute('data-bh')||200;s.style.width=Math.round(bw*flowZoom)+'px';s.style.height=Math.round(bh*flowZoom)+'px';}const v=document.getElementById('fzVal');if(v)v.textContent=Math.round(flowZoom*100)+'%';}
 function bindFlowZoom(){main.querySelectorAll('[data-zoom]').forEach(b=>b.onclick=()=>{const a=b.dataset.zoom;if(a==='in')flowZoom=Math.min(4,Math.round((flowZoom+0.25)*100)/100);else if(a==='out')flowZoom=Math.max(0.4,Math.round((flowZoom-0.25)*100)/100);else flowZoom=1;applyFlowZoom();});}
-const flowBlock=f=>`<div class="flow-zoom"><button class="fz" data-zoom="out" aria-label="Dézoomer">−</button><span class="fzv" id="fzVal">${Math.round(flowZoom*100)}%</span><button class="fz" data-zoom="in" aria-label="Zoomer">+</button><button class="fz fz-r" data-zoom="reset">Réinit.</button></div><div class="flow-scroll">${buildFlowSVG(f)}</div>`;
+const flowBlock=(f,curId)=>`<div class="flow-zoom"><button class="fz" data-zoom="out" aria-label="Dézoomer">−</button><span class="fzv" id="fzVal">${Math.round(flowZoom*100)}%</span><button class="fz" data-zoom="in" aria-label="Zoomer">+</button><button class="fz fz-r" data-zoom="reset">Réinit.</button></div><div class="flow-scroll">${buildFlowSVG(f,curId)}</div>`;
 // Rafraîchit l'aperçu algorithme PENDANT la frappe (titres, étapes, réponses) sans reconstruire
 // tout le formulaire : on ne remplace que le SVG dans .flow-scroll -> le champ en cours de saisie
 // garde le focus et on évite un rendu complet à chaque touche. DÉBOUNCÉ (~300 ms) pour ne pas
@@ -502,7 +601,7 @@ const byOrder=(a,b)=>(b.order||0)-(a.order||0);
 const textTrunc=(s,n)=>{s=String(s||'');return s.length>n?s.slice(0,n-1)+'…':s;};
 const catOf=f=>categories.find(c=>c.id===f.category)||null;
 const catName=f=>{const c=catOf(f);return c?c.name:'';};
-function catTag(f){const c=catOf(f);return c?`<span class="tag" style="background:${c.color}22;color:${c.color}">${esc(c.name)}</span>`:'';}
+function catTag(f){const c=catOf(f);if(!c)return '';const col=safeColor(c.color);return `<span class="tag" style="background:${col}22;color:${col}">${esc(c.name)}</span>`;}
 const fmtMs=ms=>{ms=Math.max(0,Math.floor(ms/1000));const m=Math.floor(ms/60),s=ms%60;return (m<10?'0':'')+m+':'+(s<10?'0':'')+s;};
 
 /* ===== Modèle =====
@@ -520,10 +619,34 @@ const fmtMs=ms=>{ms=Math.max(0,Math.floor(ms/1000));const m=Math.floor(ms/60),s=
    de plus de 2 ans), fmtDate (libellé de date de validation). */
 function blankFiche(){const b={id:uid('b'),type:'steps',title:'Prise en charge',steps:[''],image:null,next:null};
   return{id:uid(),title:'',category:'',validation:'',localInfo:'',confirmation:[''],verify:[''],notForget:[''],differentials:[''],references:[''],images:[],timers:[],counters:[],blocks:[b],start:b.id,order:Date.now()};}
-function migrate(f){f.images=f.images||[];f.timers=f.timers||[];f.counters=f.counters||[];['confirmation','verify','notForget','differentials','references'].forEach(k=>f[k]=f[k]||[]);
-  if(!f.blocks){const b={id:uid('b'),type:'steps',title:'Prise en charge',steps:(f.steps||[]).slice(),image:null,next:null};f.blocks=[b];f.start=b.id;}
-  delete f.steps;if(!f.start&&f.blocks.length)f.start=f.blocks[0].id;if(typeof f.order!=='number')f.order=0;
-  f.blocks.forEach(b=>{if(b.type==='steps'){b.steps=b.steps||[];if(!('next'in b))b.next=null;}else{b.options=b.options||[];b.question=b.question||'';}if(!('image'in b))b.image=null;});return f;}
+// migrate = compatibilité ascendante ET point d'ASSAINISSEMENT (toute fiche chargée/importée/dupliquée
+// y passe). Coerce les types, restreint les identifiants à un jeu sûr (remappés si dangereux, en
+// conservant les liens internes), valide images/couleurs, plafonne les tailles.
+function migrate(f){if(!f||typeof f!=='object')f={};
+  f.id=safeId(f.id,'f');
+  f.title=sstr(f.title,300);f.validation=sstr(f.validation,16);f.localInfo=sstr(f.localInfo,4000);
+  f.category=safeCatRef(f.category);
+  if(typeof f.order!=='number'||!isFinite(f.order))f.order=Date.now();
+  ['confirmation','verify','notForget','differentials','references'].forEach(k=>f[k]=sarr(f[k],500));
+  f.images=(Array.isArray(f.images)?f.images:[]).slice(0,200).map(im=>({id:safeId(im&&im.id,'i'),data:safeImg(im&&im.data),caption:sstr(im&&im.caption,300)})).filter(im=>im.data);
+  // Ancienne fiche "steps" plate -> un bloc d'étapes.
+  if(!Array.isArray(f.blocks)){const b={id:uid('b'),type:'steps',title:sstr(f.title||'Prise en charge',300),steps:sarr(f.steps,500),image:null,next:null};f.blocks=[b];f.start=b.id;}
+  delete f.steps;f.blocks=f.blocks.slice(0,400).filter(b=>b&&typeof b==='object');
+  // Remappage des identifiants de blocs (sûrs conservés, dangereux régénérés) + table orig->nouveau.
+  const idMap=Object.create(null),used=Object.create(null);
+  f.blocks.forEach(b=>{let nid=safeId(b.id,'b');while(used[nid]){nid=uid('b');}used[nid]=1;idMap[String(b.id==null?'':b.id)]=nid;b.id=nid;});
+  const mapId=x=>{const v=idMap[String(x==null?'':x)];return v===undefined?null:v;};
+  f.blocks=f.blocks.map(b=>{b.title=sstr(b.title,300);b.image=safeImg(b.image);
+    if(b.type==='decision'){b.question=sstr(b.question,1000);b.options=(Array.isArray(b.options)?b.options:[]).slice(0,40).map(o=>({label:sstr(o&&o.label,300),target:mapId(o&&o.target)}));delete b.steps;delete b.next;}
+    else{b.type='steps';b.steps=sarr(b.steps,500);b.next=mapId(b.next);delete b.options;delete b.question;}
+    return b;});
+  f.start=mapId(f.start)||(f.blocks[0]?f.blocks[0].id:null);
+  f.timers=(Array.isArray(f.timers)?f.timers:[]).slice(0,40).map(t=>({id:safeId(t&&t.id,'t'),label:sstr(t&&t.label,120),type:(t&&t.type==='interval')?'interval':'stopwatch',seconds:Math.max(0,Math.min(86400,Math.round(Number(t&&t.seconds))||0)),autoloop:!!(t&&t.autoloop)}));
+  f.counters=(Array.isArray(f.counters)?f.counters:[]).slice(0,40).map(c=>({id:safeId(c&&c.id,'n'),label:sstr(c&&c.label,120),step:Math.max(1,Math.min(9999,Math.round(Number(c&&c.step))||1)),start:Math.max(0,Math.min(1e9,Math.round(Number(c&&c.start))||0))}));
+  return f;}
+// Catégories importées/chargées : nom coercé, couleur validée, id restreint (les ids sûrs sont
+// conservés -> les fiches qui les référencent restent associées).
+function sanitizeCats(cats){return (Array.isArray(cats)?cats:[]).slice(0,200).map(c=>({id:safeId(c&&c.id,'c'),name:sstr(c&&c.name,120),color:safeColor(c&&c.color)}));}
 function seed(catId){const b1=uid('b'),b2=uid('b'),b3=uid('b'),bd=uid('b');
   return migrate({id:uid(),title:'Anaphylaxie peropératoire',category:catId||'',validation:'2025-01',
     localInfo:'Réanimateur de garde : …\nPharmacie : …\n(adaptez à votre établissement)',
@@ -577,15 +700,23 @@ async function updateStorageInfo(){
 async function load(){
   await chooseBackend();
   if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();
-  categories=(await Data.getCats())||[];
+  categories=sanitizeCats(await Data.getCats());
   fiches=(await Data.getAll()).map(migrate);
   sessions=(await Data.getSessions())||[];
   if(!categories.length){categories=defaultCats();await Data.setCats(categories);}
   if(!fiches.length){const f=seed(categories[0]?categories[0].id:'');fiches=[f];await Data.put(f);}
   const ch=migrateCategories();if(ch.length){await Data.setCats(categories);for(const f of ch)await Data.put(f);}
+  restoreLiveSessions();
   render();
   updateStorageInfo();
 }
+// Au chargement, on reconstruit les sessions VIVES (live=true) en runtimes (minuteurs en pause :
+// le temps app fermée n'est pas rattrapé). Elles réapparaissent dans « Sessions en cours ».
+function restoreLiveSessions(){sessions.filter(s=>s.live).forEach(s=>{const f=fiches.find(x=>x.id===s.ficheId);if(!f)return;const R=buildRuntime(f,s);R.started=true;R.startedAt=s.startedAt||s.savedAt||Date.now();liveSessions[f.id]=R;});}
+// Auto-enregistrement des sessions vives quand l'app passe en arrière-plan ou se ferme.
+window.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')persistAllLive();});
+window.addEventListener('pagehide',persistAllLive);
+window.addEventListener('beforeunload',persistAllLive);
 async function saveCats(){try{await Data.setCats(categories);}catch(e){}}
 async function persist(f){try{await Data.put(f);updateStorageInfo();return true;}catch(e){alert('Stockage saturé. Exportez vos fiches puis allégez les images.');return false;}}
 
@@ -605,22 +736,56 @@ async function persist(f){try{await Data.put(f);updateStorageInfo();return true;
        SANS re-rendu complet (évite les sauts de défilement et pertes de focus).
    Note : l'intervalle tourne en permanence mais ne fait rien hors mode crise
    sauf gérer les alertes des minuteurs encore actifs. */
-function freshRuntime(f,session){
-  Runtime.fiche=f;Runtime.ficheId=f.id;Runtime.sessionId=session?session.id:null;Runtime.name=session?session.name:'';
-  Runtime.checked=session&&session.checked?{...session.checked}:{};
-  Runtime.nav=(session&&session.nav&&session.nav.length)?session.nav.slice():[f.start||((f.blocks[0]||{}).id)];
+function buildRuntime(f,session){
+  const R=makeRuntime();
+  R.fiche=f;R.ficheId=f.id;R.sessionId=session?session.id:null;R.name=session?(session.name||''):'';
+  R.started=!!session;R.startedAt=session&&session.startedAt?session.startedAt:0;
+  R.checked=session&&session.checked?{...session.checked}:{};
+  R.nav=(session&&session.nav&&session.nav.length)?session.nav.slice():[f.start||((f.blocks[0]||{}).id)];
   // navSeq : identifiant de VISITE unique par entrée de nav (parallèle à nav). Permet, lors
   // d'une boucle qui revient sur un bloc, d'avoir des cases à cocher NEUVES pour cette visite
   // tout en conservant (sans les effacer) les cases cochées des visites précédentes. La clé de
   // cochage = 'seqDeLaVisite:idBloc:index'. On restaure navSeq d'une session, sinon on régénère.
-  Runtime.navSeq=(session&&session.navSeq&&session.navSeq.length===Runtime.nav.length)?session.navSeq.slice():Runtime.nav.map((_,i)=>i+1);
-  Runtime.seq=Runtime.navSeq.reduce((m,v)=>Math.max(m,v),0);
-  Runtime.counters={};(f.counters||[]).forEach(c=>{Runtime.counters[c.id]=(session&&session.counters&&(c.id in session.counters))?session.counters[c.id]:(c.start||0);});
-  Runtime.timers={};(f.timers||[]).forEach(t=>{const sv=session&&session.timers&&session.timers[t.id];Runtime.timers[t.id]={id:t.id,label:t.label,type:t.type,seconds:t.seconds||0,autoloop:!!t.autoloop,elapsedMs:sv?sv.elapsedMs:0,cycles:sv?sv.cycles:0,running:false,lastStart:0};});
-  Runtime.events=(session&&Array.isArray(session.events))?session.events.map(e=>({...e})):[];
-  state.checked=Runtime.checked;state.nav=Runtime.nav;state.navSeq=Runtime.navSeq;state.navPos=Runtime.nav.length-1;
+  R.navSeq=(session&&session.navSeq&&session.navSeq.length===R.nav.length)?session.navSeq.slice():R.nav.map((_,i)=>i+1);
+  R.seq=R.navSeq.reduce((m,v)=>Math.max(m,v),0);
+  R.counters={};(f.counters||[]).forEach(c=>{R.counters[c.id]=(session&&session.counters&&(c.id in session.counters))?session.counters[c.id]:(c.start||0);});
+  // Minuteurs reconstruits EN PAUSE (running=false) : on restaure le temps écoulé/cycles mais on ne
+  // fait pas « rattraper » le temps passé app fermée. Une session vive rechargée reprend en pause.
+  R.timers={};(f.timers||[]).forEach(t=>{const sv=session&&session.timers&&session.timers[t.id];R.timers[t.id]={id:t.id,label:t.label,type:t.type,seconds:t.seconds||0,autoloop:!!t.autoloop,elapsedMs:sv?sv.elapsedMs:0,cycles:sv?sv.cycles:0,running:false,lastStart:0};});
+  R.events=(session&&Array.isArray(session.events))?session.events.map(e=>({...e})):[];
+  return R;
 }
-function resetRuntime(){Runtime.fiche=null;Runtime.ficheId=null;Runtime.sessionId=null;Runtime.name='';Runtime.timers={};Runtime.counters={};}
+function bindStateToRuntime(){state.checked=Runtime.checked;state.nav=Runtime.nav;state.navSeq=Runtime.navSeq;state.navPos=Runtime.nav.length-1;}
+function freshRuntime(f,session){Runtime=buildRuntime(f,session);bindStateToRuntime();}
+function resetRuntime(){Runtime=makeRuntime();}
+// ----- Cycle de vie des sessions vives -----
+function autoSessName(f){return (f&&f.title||'Session')+' — '+new Date().toLocaleString('fr-FR',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'});}
+function timeAgo(ts){if(!ts)return 'maintenant';const s=Math.floor((Date.now()-ts)/1000);if(s<60)return 'moins d’1 min';const m=Math.floor(s/60);if(m<60)return m+' min';const h=Math.floor(m/60),mm=m%60;return h+' h'+(mm?(' '+mm):'');}
+// Photographie de l'état vivant -> objet session persistable. live=true tant que la session est « en cours ».
+function snapshotSession(R,live){const now=Date.now();const tsnap={};
+  Object.values(R.timers).forEach(t=>{const within=t.elapsedMs+(t.running?(now-t.lastStart):0);tsnap[t.id]={elapsedMs:t.type==='interval'?Math.min(t.seconds*1000,within):within,cycles:t.cycles};});
+  return {id:R.sessionId,ficheId:R.fiche.id,ficheTitle:R.fiche.title,name:R.name,savedAt:now,startedAt:R.startedAt||now,live:!!live,checked:{...R.checked},nav:R.nav.slice(),navSeq:R.navSeq.slice(),counters:{...R.counters},timers:tsnap,events:(R.events||[]).map(e=>({...e}))};}
+// Persistance (auto-save) débouncée par runtime ; immediate=true pour figer sur sortie/alarme.
+function persistLive(R,immediate){if(!R||!R.started||!R.fiche)return;
+  const doIt=()=>{R._pt=null;const s=snapshotSession(R,true);try{Data.putSession(s);}catch(e){}const i=sessions.findIndex(x=>x.id===s.id);if(i>=0)sessions[i]=s;else sessions.push(s);};
+  if(immediate){if(R._pt){clearTimeout(R._pt);R._pt=null;}doIt();}else{if(R._pt)return;R._pt=setTimeout(doIt,700);}}
+function persistAllLive(){Object.values(liveSessions).forEach(R=>persistLive(R,true));}
+// Démarre la session de la fiche active DÈS la 1ʳᵉ action (cocher / minuteur / compteur / horodatage).
+// Renvoie true si elle vient de démarrer (le caller fait alors un render pour afficher le bandeau).
+function ensureStarted(){if(Runtime.started||!Runtime.fiche)return false;
+  Runtime.started=true;Runtime.startedAt=Date.now();
+  if(!Runtime.sessionId)Runtime.sessionId=uid('s');
+  if(!Runtime.name)Runtime.name=autoSessName(Runtime.fiche);
+  liveSessions[Runtime.ficheId]=Runtime;
+  requestNotifyPermission();persistLive(Runtime,true);return true;}
+// Terminer : fige en historique (live=false), arrête les minuteurs, sort du registre vif.
+function endSession(R){if(!R||!R.fiche)return;
+  Object.values(R.timers).forEach(t=>{if(t.running)toggleTimer(t);});
+  R.startedAt=R.startedAt||Date.now();
+  const s=snapshotSession(R,false);try{Data.putSession(s);}catch(e){}
+  const i=sessions.findIndex(x=>x.id===s.id);if(i>=0)sessions[i]=s;else sessions.push(s);
+  delete liveSessions[R.ficheId];R.started=false;R.sessionId=null;R.name='';}
+function requestNotifyPermission(){try{if('Notification'in window&&Notification.permission==='default')Notification.requestPermission();}catch(e){}}
 // Vibration. NB : iOS (Safari/PWA iPhone) n'expose PAS l'API Vibration -> aucune
 // vibration possible depuis le web sur iPhone (le flash d'écran sert d'alerte de secours).
 // Sur Android, la vibration exige une activation utilisateur préalable : on l'amorce dans
@@ -628,26 +793,44 @@ function resetRuntime(){Runtime.fiche=null;Runtime.ficheId=null;Runtime.sessionI
 const VIBE_OK='vibrate'in navigator;let vibePrimed=false;
 function buzz(p){if(!VIBE_OK)return;try{navigator.vibrate(p);}catch(e){}}
 function ensureAudio(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();}catch(e){}if(VIBE_OK&&!vibePrimed){vibePrimed=true;try{navigator.vibrate(0);}catch(e){}}}
-function beep(){if(Runtime.sound){try{ensureAudio();const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=880;o.connect(g);g.connect(AC.destination);g.gain.setValueAtTime(.0001,AC.currentTime);g.gain.exponentialRampToValueAtTime(.32,AC.currentTime+.02);g.gain.setValueAtTime(.28,AC.currentTime+.02);g.gain.exponentialRampToValueAtTime(.24,AC.currentTime+1.8);g.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+2);o.start();o.stop(AC.currentTime+2);}catch(e){}}buzz([500,200,500,200,500]);}
-function flash(id){
-  const el=document.getElementById('tmcard-'+id);
-  if(el){el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),1500);}
-  const sf=document.getElementById('screenFlash');
-  if(sf){sf.classList.remove('on');void sf.offsetWidth;sf.classList.add('on');}
-}
-function toggleTimer(t){const now=Date.now();if(t.running){if(t.type==='interval')t.elapsedMs=Math.min(t.seconds*1000,t.elapsedMs+(now-t.lastStart));else t.elapsedMs+=now-t.lastStart;t.running=false;}else{ensureAudio();t.lastStart=now;t.running=true;}}
+function beep(){if(soundOn){try{ensureAudio();const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=880;o.connect(g);g.connect(AC.destination);g.gain.setValueAtTime(.0001,AC.currentTime);g.gain.exponentialRampToValueAtTime(.32,AC.currentTime+.02);g.gain.setValueAtTime(.28,AC.currentTime+.02);g.gain.exponentialRampToValueAtTime(.24,AC.currentTime+1.8);g.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+2);o.start();o.stop(AC.currentTime+2);}catch(e){}}buzz([500,200,500,200,500]);}
+function flashScreen(){const sf=document.getElementById('screenFlash');if(sf){sf.classList.remove('on');void sf.offsetWidth;sf.classList.add('on');}}
+function flash(id){const el=document.getElementById('tmcard-'+id);if(el){el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),1500);}flashScreen();}
+// Notification SYSTÈME (si autorisée) — fonctionne même app en arrière-plan.
+function osNotify(title,body,ficheId){try{if('Notification'in window&&Notification.permission==='granted'){const n=new Notification(title,{body,tag:'ac-'+(ficheId||'t'),renotify:true});n.onclick=()=>{try{window.focus();}catch(e){}if(ficheId)openRead(ficheId);n.close();};}}catch(e){}}
+// Banderole in-app (toast) cliquable -> ouvre la fiche concernée. Empilable, auto-disparition.
+function showBanner(ficheId,fTitle,tLabel){const host=document.getElementById('alerts');if(!host)return;
+  const el=document.createElement('div');el.className='alert-toast';
+  el.innerHTML=`<div class="at-ic">⏰</div><div class="at-tx"><b>${esc(tLabel)} — terminé</b><span>${esc(fTitle)}</span></div><button class="at-x" aria-label="Fermer">×</button>`;
+  el.querySelector('.at-x').onclick=ev=>{ev.stopPropagation();el.remove();};
+  el.onclick=()=>{el.remove();openRead(ficheId);};
+  host.appendChild(el);setTimeout(()=>{el.classList.add('out');setTimeout(()=>el.remove(),400);},10000);}
+// Fin d'un minuteur : son toujours + flash de la carte si la session est ACTIVE & VISIBLE, sinon
+// notification (système + banderole in-app + flash écran) car la session n'est pas sous les yeux.
+function onTimerFired(R,t){beep();
+  const activeVisible=(R===Runtime)&&state.view==='read'&&document.visibilityState!=='hidden';
+  if(activeVisible){flash(t.id);}
+  else{flashScreen();const ft=R.fiche?(R.fiche.title||'Aide cognitive'):'Aide cognitive';const tl=t.label||(t.type==='interval'?'Minuteur':'Chronomètre');showBanner(R.ficheId,ft,tl);osNotify('⏰ '+tl+' — terminé',ft,R.ficheId);}}
+// Reprise d'un minuteur d'intervalle DÉJÀ TERMINÉ (non bouclé) = nouveau cycle (repart du plein) :
+// corrige « Reprendre » qui semblait ne rien faire (le temps était déjà à 0).
+function toggleTimer(t){const now=Date.now();
+  if(t.running){if(t.type==='interval')t.elapsedMs=Math.min(t.seconds*1000,t.elapsedMs+(now-t.lastStart));else t.elapsedMs+=now-t.lastStart;t.running=false;}
+  else{ensureAudio();if(t.type==='interval'&&t.elapsedMs>=(t.seconds*1000||1))t.elapsedMs=0;t.lastStart=now;t.running=true;}}
 function resetTimer(t){t.running=false;t.elapsedMs=0;t.cycles=0;t.lastStart=0;}
-function updateTimers(){
-  if(!Runtime.fiche)return;const now=Date.now();
-  Object.values(Runtime.timers).forEach(t=>{if(t.type==='interval'&&t.running){const per=t.seconds*1000||1;const within=t.elapsedMs+(now-t.lastStart);
-    if(within>=per){const comp=Math.floor(within/per);t.cycles+=comp;const left=within-comp*per;if(t.autoloop){t.elapsedMs=0;t.lastStart=now-left;}else{t.running=false;t.elapsedMs=per;t.lastStart=0;}beep();flash(t.id);}}});
-  if(state.view!=='read')return;
+// tickAll : fait AVANCER les minuteurs de TOUTES les sessions vives (même fiche non visible) et
+// déclenche les alarmes. Puis rafraîchit le DOM de la fiche active si on est en lecture.
+function tickAll(){const now=Date.now();let fired=null;
+  Object.values(liveSessions).forEach(R=>{Object.values(R.timers).forEach(t=>{if(t.type==='interval'&&t.running){const per=t.seconds*1000||1;const within=t.elapsedMs+(now-t.lastStart);
+    if(within>=per){const comp=Math.floor(within/per);t.cycles+=comp;const left=within-comp*per;if(t.autoloop){t.elapsedMs=0;t.lastStart=now-left;}else{t.running=false;t.elapsedMs=per;t.lastStart=0;}onTimerFired(R,t);fired=R;}}});});
+  if(fired)persistLive(fired,true);
+  if(state.view==='read'&&Runtime.fiche)refreshTimersDOM(now);}
+function refreshTimersDOM(now){now=now||Date.now();
   Object.values(Runtime.timers).forEach(t=>{const v=document.getElementById('tmval-'+t.id);if(!v)return;syncTimerBtns(t);
     if(t.type==='stopwatch'){v.textContent=fmtMs(t.elapsedMs+(t.running?(now-t.lastStart):0));}
     else{const per=t.seconds*1000||0;const within=t.elapsedMs+(t.running?(now-t.lastStart):0);v.textContent=fmtMs(Math.max(0,per-within));
-      const c=document.getElementById('tmcyc-'+t.id);if(c)c.textContent='Cycles : '+t.cycles;const bar=document.getElementById('tmbar-'+t.id);if(bar)bar.style.width=(per?Math.min(100,within/per*100):0)+'%';}});
-}
-setInterval(updateTimers,300);
+      const c=document.getElementById('tmcyc-'+t.id);if(c)c.textContent='Cycles : '+t.cycles;const bar=document.getElementById('tmbar-'+t.id);if(bar)bar.style.width=(per?Math.min(100,within/per*100):0)+'%';}});}
+function updateTimers(){refreshTimersDOM(Date.now());}
+setInterval(tickAll,300);
 
 /* ===== Sessions =====
    saveSession()     : fige l'état vivant (cochages, position, compteurs, et pour
@@ -657,15 +840,28 @@ setInterval(updateTimers,300);
      la fiche en lecture (minuteurs en pause, prêts à relancer).
    deleteSession(id) : suppression définitive d'une session.
    (Les sessions sont locales à l'appareil et exclues de l'export JSON.) */
-async function saveSession(){const f=Runtime.fiche;if(!f)return;const now=Date.now();const tsnap={};
-  Object.values(Runtime.timers).forEach(t=>{const within=t.elapsedMs+(t.running?(now-t.lastStart):0);tsnap[t.id]={elapsedMs:t.type==='interval'?Math.min(t.seconds*1000,within):within,cycles:t.cycles};});
-  const def=Runtime.name||((f.title||'Session')+' — '+new Date().toLocaleString('fr-FR',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'}));
+// Enregistrer (nommer) la session courante : la session est déjà auto-sauvegardée, ce bouton permet
+// de la (re)nommer. La session reste « en cours » (vive).
+function saveSession(){const f=Runtime.fiche;if(!f)return;ensureStarted();
+  const def=Runtime.name||autoSessName(f);
   const name=prompt('Nom de la session :',def);if(name===null)return;
-  const s={id:Runtime.sessionId||uid('s'),ficheId:f.id,ficheTitle:f.title,name:name||def,savedAt:now,checked:{...Runtime.checked},nav:Runtime.nav.slice(),navSeq:Runtime.navSeq.slice(),counters:{...Runtime.counters},timers:tsnap,events:(Runtime.events||[]).map(e=>({...e}))};
-  try{await Data.putSession(s);}catch(e){alert('Sauvegarde impossible (stockage saturé).');return;}
-  Runtime.sessionId=s.id;Runtime.name=s.name;const i=sessions.findIndex(x=>x.id===s.id);if(i>=0)sessions[i]=s;else sessions.push(s);state.showSess=true;render();}
-function resumeSession(id){const s=sessions.find(x=>x.id===id);if(!s)return;const f=fiches.find(x=>x.id===s.ficheId);if(!f){alert('Fiche introuvable.');return;}flowScroll={left:0,top:0};freshRuntime(f,s);state.fiche=f;state.id=f.id;state.showFlow=false;state.showFlow=!!(f.blocks&&f.blocks.length);state.showSess=false;state.view='read';render();}
-async function deleteSession(id){if(!confirm('Supprimer cette session ?'))return;await Data.delSession(id);sessions=sessions.filter(x=>x.id!==id);if(Runtime.sessionId===id){Runtime.sessionId=null;Runtime.name='';}render();}
+  Runtime.name=name||def;persistLive(Runtime,true);render();}
+// Réinitialiser : on repart d'une fiche vierge (cochages/compteurs/minuteurs à zéro) et on EFFACE la
+// session en cours (registre vif + persistée). Une nouvelle session démarrera à la prochaine action.
+function resetSession(){if(!confirm('Réinitialiser la session ? (cochages, compteurs et minuteurs remis à zéro)'))return;
+  const f=Runtime.fiche,old=Runtime.sessionId;
+  if(Runtime.ficheId&&liveSessions[Runtime.ficheId])delete liveSessions[Runtime.ficheId];
+  if(old){try{Data.delSession(old);}catch(e){}sessions=sessions.filter(x=>x.id!==old);}
+  freshRuntime(f,null);state.fiche=f;render();}
+// Terminer : fige en historique et arrête les minuteurs (depuis la fiche). Reste reprenable plus tard.
+function endCurrentSession(){if(!Runtime.started)return;if(!confirm('Terminer la session ? Les minuteurs s’arrêtent ; la session est conservée dans l’historique.'))return;endSession(Runtime);render();}
+// Reprendre une session de l'historique (ou vive) : recharge dans un runtime, la réactive (vive) et
+// ouvre la fiche. Si une session vive existe déjà pour cette fiche, on la rouvre telle quelle.
+function resumeSession(id){const s=sessions.find(x=>x.id===id);if(!s)return;const f=fiches.find(x=>x.id===s.ficheId);if(!f){alert('Fiche introuvable.');return;}flowScroll={left:0,top:0};
+  if(liveSessions[f.id]&&liveSessions[f.id].sessionId===id){Runtime=liveSessions[f.id];}
+  else{Runtime=buildRuntime(f,s);Runtime.started=true;Runtime.startedAt=s.startedAt||Date.now();liveSessions[f.id]=Runtime;persistLive(Runtime,true);}
+  Runtime.fiche=f;bindStateToRuntime();state.fiche=f;state.id=f.id;state.showFlow=!!(f.blocks&&f.blocks.length);state.showSess=false;state.view='read';render();}
+async function deleteSession(id){if(!confirm('Supprimer cette session ?'))return;try{await Data.delSession(id);}catch(e){}sessions=sessions.filter(x=>x.id!==id);Object.values(liveSessions).forEach(R=>{if(R.sessionId===id){delete liveSessions[R.ficheId];R.started=false;R.sessionId=null;R.name='';}});render();}
 
 /* ===== Render =====
    render() : aiguilleur unique. Met à jour l'en-tête et délègue à la vue active
@@ -684,25 +880,42 @@ function render(){
 function renderLibrary(){
   const q=state.q.toLowerCase();
   const list=fiches.slice().sort(byOrder).filter(f=>(!state.cat||f.category===state.cat)&&(!q||(f.title+' '+catName(f)).toLowerCase().includes(q)));
-  const chips=`<button class="catchip" data-cat="" style="${!state.cat?'background:#16211f;color:#fff;border-color:#16211f':''}">Toutes</button>`+categories.map(c=>`<button class="catchip" data-cat="${c.id}" style="${state.cat===c.id?`background:${c.color};color:#fff;border-color:${c.color}`:`color:${c.color};border-color:${c.color}55`}">${esc(c.name)}</button>`).join('')+`<button class="catchip" id="catMgrChip" style="border-style:dashed;color:var(--ink-soft)">⚙ Gérer</button>`;
+  const chips=`<button class="catchip" data-cat="" style="${!state.cat?'background:#16211f;color:#fff;border-color:#16211f':''}">Toutes</button>`+categories.map(c=>{const col=safeColor(c.color);return `<button class="catchip" data-cat="${esc(c.id)}" style="${state.cat===c.id?`background:${col};color:#fff;border-color:${col}`:`color:${col};border-color:${col}55`}">${esc(c.name)}</button>`;}).join('')+`<button class="catchip" id="catMgrChip" style="border-style:dashed;color:var(--ink-soft)">⚙ Gérer</button>`;
+  // SESSIONS EN COURS (vives) : accès rapide en haut de l'accueil + actions (reprendre/réinit/terminer).
+  const liveArr=Object.values(liveSessions).filter(R=>R.started&&R.fiche);
+  const liveHtml=liveArr.length?`<div class="live-sessions"><div class="ls-h"><span class="sess-dot"></span>Sessions en cours · ${liveArr.length}</div>${liveArr.map(R=>{const run=Object.values(R.timers).filter(t=>t.running).length;return `<div class="ls-row"><div class="ls-info" data-openlive="${R.ficheId}" role="button" tabindex="0"><b>${esc(R.fiche.title||'Sans titre')}</b><span>depuis ${timeAgo(R.startedAt)}${run?` · ${run} minuteur${run>1?'s':''} actif${run>1?'s':''}`:''}</span></div><div class="ls-acts"><button class="btn sm primary" data-openlive="${R.ficheId}">Reprendre</button><button class="btn sm" data-resetlive="${R.ficheId}">Réinitialiser</button><button class="btn sm danger" data-endlive="${R.ficheId}">Terminer</button></div></div>`;}).join('')}</div>`:'';
   main.innerHTML=`
+    ${liveHtml}
     <div class="notice"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01" stroke-linecap="round"/></svg><div>Vous êtes l'auteur et le responsable du contenu. Validez chaque fiche et tenez la date à jour.</div></div>
     <div class="lib-top"><div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg><input id="q" placeholder="Rechercher…" value="${esc(state.q)}"></div>
       <button class="btn-new" id="newBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Créer</button></div>
     <div class="catbar">${chips}</div>
-    <div class="cards">${list.length?list.map(f=>{const sc=sessions.filter(s=>s.ficheId===f.id).length;return `
-      <div class="card" tabindex="0" role="button" data-open="${f.id}"><div class="card-body"><h3>${esc(f.title)||'Sans titre'}</h3>
-        <div class="card-meta">${catTag(f)}${hasFlow(f)?'<span class="tag flow">Conditionnelle</span>':''}${sc?`<span class="tag sess">${sc} session${sc>1?'s':''}</span>`:''}<span class="card-date${staleDate(f.validation)?' stale':''}">${esc(fmtDate(f.validation))}${staleDate(f.validation)?' · à revoir':''}</span></div></div>
+    <div class="cards">${list.length?list.map(f=>{const sc=sessions.filter(s=>s.ficheId===f.id&&!s.live).length;const isLive=!!liveSessions[f.id];return `
+      <div class="card${isLive?' has-live':''}" tabindex="0" role="button" data-open="${f.id}"><div class="card-body"><h3>${esc(f.title)||'Sans titre'}</h3>
+        <div class="card-meta">${isLive?'<span class="tag live">● En cours</span>':''}${catTag(f)}${hasFlow(f)?'<span class="tag flow">Conditionnelle</span>':''}${sc?`<span class="tag sess">${sc} session${sc>1?'s':''}</span>`:''}<span class="card-date${staleDate(f.validation)?' stale':''}">${esc(fmtDate(f.validation))}${staleDate(f.validation)?' · à revoir':''}</span></div></div>
         <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></div>`;}).join('')
       :`<div class="empty"><b>Aucune fiche</b>${state.q||state.cat?'Aucun résultat pour ce filtre.':'Créez votre première aide cognitive.'}</div>`}</div>`;
-  
+
   document.getElementById('q').addEventListener('input',e=>{state.q=e.target.value;const pos=e.target.selectionStart;renderLibrary();const inp=document.getElementById('q');inp.focus();inp.setSelectionRange(pos,pos);});
   document.getElementById('newBtn').onclick=newFiche;
   main.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{state.cat=b.dataset.cat;renderLibrary();});
   document.getElementById('catMgrChip').onclick=openCatMgr;
+  main.querySelectorAll('[data-openlive]').forEach(el=>{el.onclick=()=>openRead(el.dataset.openlive);el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openRead(el.dataset.openlive);}};});
+  main.querySelectorAll('[data-endlive]').forEach(b=>b.onclick=()=>{const R=liveSessions[b.dataset.endlive];if(R&&confirm('Terminer la session ? Les minuteurs s’arrêtent ; la session est conservée dans l’historique.')){endSession(R);renderLibrary();}});
+  main.querySelectorAll('[data-resetlive]').forEach(b=>b.onclick=()=>{const id=b.dataset.resetlive,R=liveSessions[id];if(R&&confirm('Réinitialiser la session ? (cochages, compteurs et minuteurs remis à zéro)')){const old=R.sessionId;delete liveSessions[id];if(old){try{Data.delSession(old);}catch(e){}sessions=sessions.filter(x=>x.id!==old);}if(Runtime.ficheId===id)resetRuntime();renderLibrary();}});
   main.querySelectorAll('[data-open]').forEach(el=>{el.onclick=()=>openRead(el.dataset.open);el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openRead(el.dataset.open);}};});
 }
-function staticBlock(title,cls,arr,liClass,forget){const items=clean(arr);if(!items.length)return '';return `<section class="block"><div class="block-h ${cls}"><span class="pip"></span>${title}</div><ul class="flat ${liClass}">${items.map(x=>forget?`<li><span class="ftxt">${esc(x)}</span></li>`:`<li>${esc(x)}</li>`).join('')}</ul></section>`;}
+// Petite icône d'en-tête de section (repère visuel rapide du TYPE de bloc). Trait = currentColor (suit
+// la couleur du header), donc cohérent avec le code couleur existant (teal/ambré/vermillon/gris).
+function headerIcon(cls){const P={
+  'h-confirm':'<path d="M20 6L9 17l-5-5"/>',
+  'h-main':'<path d="M9 6h11M9 12h11M9 18h7"/><circle cx="4.5" cy="6" r="1.4"/><circle cx="4.5" cy="12" r="1.4"/><circle cx="4.5" cy="18" r="1.4"/>',
+  'h-verify':'<path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/>',
+  'h-forget':'<path d="M12 3l9 16H3z"/><path d="M12 9v5M12 17h.01"/>',
+  'h-diff':'<circle cx="6" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="9" r="2"/><path d="M6 8v8M8 18h6a4 4 0 004-4v-1"/>',
+  'h-img':'<rect x="3" y="3" width="18" height="18" rx="2.5"/><circle cx="8.5" cy="8.5" r="1.6"/><path d="M21 15l-5-5L5 21"/>'};
+  const p=P[cls];return p?`<span class="sec-badge"><svg class="sec-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg></span>`:'<span class="pip"></span>';}
+function staticBlock(title,cls,arr,liClass,forget){const items=clean(arr);if(!items.length)return '';return `<section class="block"><div class="block-h ${cls}">${headerIcon(cls)}${title}</div><ul class="flat ${liClass}">${items.map(x=>forget?`<li><span class="ftxt">${esc(x)}</span></li>`:`<li>${esc(x)}</li>`).join('')}</ul></section>`;}
 
 /* ===== Flow SVG =====
    buildFlowSVG(f) : génère l'organigramme de la fiche, en SVG, par mise en page
@@ -740,7 +953,7 @@ function wrapText(str,maxChars){const words=String(str||'').replace(/\s+/g,' ').
   const push=()=>{if(cur){lines.push(cur);cur='';}};
   words.forEach(w=>{while(w.length>maxChars){push();lines.push(w.slice(0,maxChars));w=w.slice(maxChars);}if(!cur)cur=w;else if(cur.length+1+w.length<=maxChars)cur+=' '+w;else{push();cur=w;}});
   push();return lines.length?lines:[''];}
-function buildFlowSVG(f){
+function buildFlowSVG(f,curId){
   const blocks=f.blocks||[];if(!blocks.length)return '<div style="padding:14px;color:#54635f;font-size:13px">Aucun bloc.</div>';
   const TH=28,HG=36,VG=52,PX=14,PY=14,LH=16,TLH=15,HPAD=8,TXT_MAX=42,TITLE_MAX=34,MINW=150,MAXW=300,CW=5.6;
   const byId={};blocks.forEach(b=>byId[b.id]=b);const start=(f.start&&byId[f.start])?f.start:blocks[0].id;
@@ -947,11 +1160,14 @@ function buildFlowSVG(f){
     placedLabels.push({x:best.x-halfW,y:best.y-9.5,w:w+4,h:19});
     edges+=labelTag(best.x,best.y,job.txt);
     if(best.x+halfW+6>svgW)svgW=best.x+halfW+6;if(best.y+13>svgH)svgH=best.y+13;});
-  let nodes='';blocks.forEach(b=>{const p=pos[b.id];if(!p)return;const L=LAY[b.id],dec=L.dec,isS=b.id===start,W=p.w,cid='cp'+b.id;
+  let nodes='';blocks.forEach(b=>{const p=pos[b.id];if(!p)return;const L=LAY[b.id],dec=L.dec,isS=b.id===start,isCur=!!curId&&b.id===curId,W=p.w,cid='cp'+b.id;
     const fill=dec?'#fdf8ef':'#f5faf8',stroke=dec?'#e1cf9f':'#c2d0cc',tcol=dec?'#6b4d12':'#16211f';const h=p.h,hh=L.headerH;
+    // Bloc COURANT (étape où l'on se trouve dans le parcours) : léger HALO teal derrière le bloc +
+    // bordure teal plus marquée. Discret (« sans trop en faire »), juste pour repérer où on en est.
+    let g=isCur?`<rect x="-5" y="-5" width="${W+10}" height="${h+10}" rx="15" fill="none" stroke="#0d5b56" stroke-width="6" opacity="0.13"/>`:'';
     // Fonds CLIPPÉS au contour arrondi : le bandeau d'en-tête et le liseré gauche suivent le coin
     // arrondi et ne dépassent plus hors de la bordure (bug 3.iii). La bordure est tracée par-dessus.
-    let g=`<clipPath id="${cid}"><rect width="${W}" height="${h}" rx="10"/></clipPath><g clip-path="url(#${cid})"><rect width="${W}" height="${h}" fill="${fill}"/><rect width="${W}" height="${hh}" fill="${dec?'#f0e4c8':'#dbeae5'}"/>${dec?`<circle cx="13" cy="${Math.round(hh/2)}" r="4" fill="#946615"/>`:`<rect x="0" y="0" width="4" height="${hh}" fill="#0d5b56"/>`}</g>`;
+    g+=`<clipPath id="${cid}"><rect width="${W}" height="${h}" rx="10"/></clipPath><g clip-path="url(#${cid})"><rect width="${W}" height="${h}" fill="${fill}"/><rect width="${W}" height="${hh}" fill="${dec?'#f0e4c8':'#dbeae5'}"/>${dec?`<circle cx="13" cy="${Math.round(hh/2)}" r="4" fill="#946615"/>`:`<rect x="0" y="0" width="4" height="${hh}" fill="#0d5b56"/>`}</g>`;
     const strip=L.startStrip||0;
     // Titre centré DANS l'espace situé sous le bandeau « DÉPART » (strip) -> jamais masqué.
     const hy0=strip+(hh-strip-L.headerLines.length*TLH)/2;
@@ -963,7 +1179,7 @@ function buildFlowSVG(f){
       else if(it.kind==='opt'){const pre=li===0?`<tspan font-weight="700" fill="#946615">${it.num}. </tspan>`:'';g+=`<text x="${li===0?12:22}" y="${y}" font-size="10.5" fill="#6b4d12" font-family="system-ui">${pre}${esc(ln)}</text>`;}
       else{const pre=li===0?`<tspan font-weight="700" fill="#7c8a87">${it.num}. </tspan>`:'';g+=`<text x="${li===0?12:22}" y="${y}" font-size="10.5" fill="#16211f" font-family="system-ui">${pre}${esc(ln)}</text>`;}
       iy+=LH;});});
-    g+=`<rect width="${W}" height="${h}" rx="10" fill="none" stroke="${isS?'#0d5b56':stroke}" stroke-width="${isS?2.5:1.5}"/>`;
+    g+=`<rect width="${W}" height="${h}" rx="10" fill="none" stroke="${(isCur||isS)?'#0d5b56':stroke}" stroke-width="${(isCur||isS)?2.5:1.5}"/>`;
     nodes+=`<g transform="translate(${p.x},${p.y})">${g}</g>`;});
   return `<svg width="${svgW}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:0 auto" data-bw="${svgW}" data-bh="${svgH}"><defs><marker id="ah" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#9fb0ac"/></marker><marker id="ahb" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#c98a2a"/></marker></defs>${edges}${nodes}</svg>`;
 }
@@ -982,17 +1198,17 @@ function timerCard(t){const now=Date.now();let val,cyc='',bw=0;
   return `<div class="tmcard" id="tmcard-${t.id}"><div class="tm-label">${esc(t.label)||(t.type==='interval'?'Minuteur':'Chronomètre')}</div>
     <div class="tm-val" id="tmval-${t.id}">${val}</div>
     ${t.type==='interval'?`<div class="tm-bar-wrap"><div class="tm-bar" id="tmbar-${t.id}" style="width:${bw}%"></div></div><div class="tm-cyc" id="tmcyc-${t.id}">${cyc}</div>`:''}
-    <div class="tm-ctrl"><button class="tm-btn" id="tmbtn-${t.id}" data-tmtoggle="${t.id}">${timerBtnLabel(t)}</button><button class="tm-btn" id="tmreset-${t.id}" data-tmreset="${t.id}"${t.running?' style="display:none"':''}>Réinit.</button></div></div>`;}
+    <div class="tm-ctrl"><button class="tm-btn tm-main${t.running?' run':''}" id="tmbtn-${t.id}" data-tmtoggle="${t.id}">${timerBtnLabel(t)}</button><button class="tm-btn tm-reset" id="tmreset-${t.id}" data-tmreset="${t.id}"${t.running?' disabled':''}>Réinit.</button></div></div>`;}
 // Libellé du bouton principal : « Pause » quand ça tourne, « Reprendre » une fois démarré puis
 // mis en pause, « Démarrer » tant qu'il n'a jamais tourné ou après réinitialisation.
 function timerStarted(t){return (t.elapsedMs>0)||(t.cycles>0);}
 function timerBtnLabel(t){return t.running?'Pause':(timerStarted(t)?'Reprendre':'Démarrer');}
-// Synchronise l'apparence des boutons d'un minuteur : « Réinit. » n'est visible qu'à l'ARRÊT
-// (en pause / non lancé) pour éviter de l'actionner par erreur pendant que le minuteur tourne.
-function syncTimerBtns(t){const b=document.getElementById('tmbtn-'+t.id);if(b)b.textContent=timerBtnLabel(t);const r=document.getElementById('tmreset-'+t.id);if(r)r.style.display=t.running?'none':'';}
+// Le bouton principal (Démarrer/Reprendre/Pause) reste TOUJOURS au même emplacement (même taille).
+// « Réinit. » reste à droite mais est DÉSACTIVÉ pendant que ça tourne (évite un clic accidentel).
+function syncTimerBtns(t){const b=document.getElementById('tmbtn-'+t.id);if(b){b.textContent=timerBtnLabel(t);b.classList.toggle('run',!!t.running);}const r=document.getElementById('tmreset-'+t.id);if(r)r.disabled=!!t.running;}
 function counterCard(c){const v=Runtime.counters[c.id]||0;return `<div class="cncard"><div class="tm-label">${esc(c.label)||'Compteur'}</div><div class="cn-val" id="cnval-${c.id}">${v}</div><div class="cn-ctrl"><button class="cn-btn" data-cndec="${c.id}" data-step="${c.step||1}">−</button><button class="cn-btn" data-cninc="${c.id}" data-step="${c.step||1}">+</button></div></div>`;}
 function runtimePanel(f){const tl=Object.values(Runtime.timers);const cl=f.counters||[];if(!tl.length&&!cl.length)return '';
-  return `<div class="rt-panel"><div class="rt-head"><b>Minuteurs & compteurs</b>${IS_TOUCH?`<button class="rt-warn" id="soundWarn" title="Mode silencieux du téléphone" style="${Runtime.sound?'':'display:none'}">⚠︎ silencieux ?</button>`:''}<button class="rt-sound" id="soundToggle">${Runtime.sound?'🔔 Son':'🔕 Muet'}</button></div>${tl.length?`<div class="rt-grid">${tl.map(timerCard).join('')}</div>`:''}${cl.length?`<div class="rt-counters">${cl.map(counterCard).join('')}</div>`:''}</div>`;}
+  return `<div class="rt-panel"><div class="rt-head"><svg class="rt-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5fd0c4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg><b>Minuteurs & compteurs</b>${IS_TOUCH?`<button class="rt-warn" id="soundWarn" title="Mode silencieux du téléphone" style="${soundOn?'':'display:none'}">⚠︎ silencieux ?</button>`:''}<button class="rt-sound" id="soundToggle">${soundOn?'🔔 Son':'🔕 Muet'}</button></div>${tl.length?`<div class="rt-grid">${tl.map(timerCard).join('')}</div>`:''}${cl.length?`<div class="rt-counters">${cl.map(counterCard).join('')}</div>`:''}</div>`;}
 /* timekeeperPanel : journal d'horodatage. Bouton « Horodater » -> ajoute un repère à l'heure
    courante avec un libellé automatique ("Action N"), renommable à tout moment (même a
    posteriori en reprenant une session). Chaque ligne montre l'heure (HH:MM:SS) et le délai
@@ -1033,28 +1249,33 @@ function renderRead(){
       navHtml=`<div class="nav-wrap">${crumbs}<div class="node-title">${esc(blk.title)||'Décision'}${passTag}</div>${imgH}<div class="question">${esc(blk.question)||'…'}</div><div class="options">${opts}</div><div class="flow-ctrl">${histBtn}${backBtn}${resetBtn}</div></div>`;}
     else{const steps=clean(blk.steps);const fwdc=atTip?(blk.next&&f.blocks.some(b=>b.id===blk.next)?'<button class="btn primary sm" id="navNext">Continuer →</button>':'<span class="endcap">Fin de cette branche.</span>'):histBtn;
       navHtml=`<div class="nav-wrap">${crumbs}<div class="node-title">${esc(blk.title)||'Étapes'}${passTag}</div>${imgH}<ol class="steps">${steps.map((s,i)=>{const k=curSeq+':'+blk.id+':'+i;return `<li data-ck="${k}" class="${state.checked[k]?'done':''}"><span class="box">${state.checked[k]?'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg>':''}</span><span class="txt">${esc(s)}</span></li>`;}).join('')}</ol><div class="flow-ctrl">${fwdc}${backBtn}${resetBtn}</div></div>`;}}
-  const gallery=(f.images||[]).length?`<section class="block"><div class="block-h h-img"><span class="pip"></span>Schémas & captures</div><div class="gallery">${f.images.map(im=>`<div class="gthumb"><img src="${im.data}" data-full="${im.data}" data-cap="${esc(im.caption||'')}" alt="${esc(im.caption||'')}">${im.caption?`<div class="gcap">${esc(im.caption)}</div>`:''}</div>`).join('')}</div></section>`:'';
+  const gallery=(f.images||[]).length?`<section class="block"><div class="block-h h-img">${headerIcon('h-img')}Schémas & captures</div><div class="gallery">${f.images.map(im=>`<div class="gthumb"><img src="${im.data}" data-full="${im.data}" data-cap="${esc(im.caption||'')}" alt="${esc(im.caption||'')}">${im.caption?`<div class="gcap">${esc(im.caption)}</div>`:''}</div>`).join('')}</div></section>`:'';
   const refs=clean(f.references);
-  const ss=sessions.filter(s=>s.ficheId===f.id).sort((a,b)=>b.savedAt-a.savedAt);
-  const sessBar=`<div class="session-bar"><button class="btn sm" id="saveSess">Enregistrer la session</button>${ss.length?`<button class="btn sm" id="toggleSess">Sessions (${ss.length})</button>`:''}<button class="btn sm" id="resetSess">Réinitialiser</button>${Runtime.name?`<span class="card-date">Reprise : ${esc(Runtime.name)}</span>`:''}</div>`;
-  const sessList=(state.showSess&&ss.length)?`<div class="sess-list">${ss.map(s=>`<div class="sess-row"><div class="si"><div class="sn">${esc(s.name)}</div><div class="sd">${new Date(s.savedAt).toLocaleString('fr-FR')}</div></div><button class="btn sm" data-resume="${s.id}">Reprendre</button><button class="mini del" data-delsess="${s.id}">×</button></div>`).join('')}</div>`:'';
+  // Historique = sessions de cette fiche, EN EXCLUANT la session vive courante (affichée par le bandeau).
+  const ss=sessions.filter(s=>s.ficheId===f.id&&s.id!==Runtime.sessionId).sort((a,b)=>b.savedAt-a.savedAt);
+  const started=Runtime.started;
+  const sessBar=started
+    ?`<div class="session-bar live"><span class="sess-dot"></span><div class="sess-info"><b>Session en cours</b><span>${esc(Runtime.name||autoSessName(f))} · depuis ${timeAgo(Runtime.startedAt)}</span></div><div class="sess-acts"><button class="btn sm" id="saveSess">Enregistrer</button><button class="btn sm" id="resetSess">Réinitialiser</button><button class="btn sm danger" id="endSess">Terminer</button>${ss.length?`<button class="btn sm sess-hist" id="toggleSess">Historique (${ss.length})</button>`:''}</div></div>`
+    :`<div class="session-bar idle"><span class="sess-hint">La session démarrera à la 1ʳᵉ action (cocher une étape, lancer un minuteur/compteur ou horodater).</span>${ss.length?`<button class="btn sm" id="toggleSess">Historique (${ss.length})</button>`:''}</div>`;
+  const sessList=(state.showSess&&ss.length)?`<div class="sess-list">${ss.map(s=>`<div class="sess-row"><div class="si"><div class="sn">${esc(s.name)}${s.live?' <span class="sess-livetag">en cours</span>':''}</div><div class="sd">${new Date(s.savedAt).toLocaleString('fr-FR')}</div></div><button class="btn sm" data-resume="${s.id}">Reprendre</button><button class="mini del" data-delsess="${s.id}">×</button></div>`).join('')}</div>`:'';
   main.innerHTML=`
     <button class="back" id="back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Bibliothèque</button>
     <div class="read-head"><h2>${esc(f.title)||'Sans titre'}</h2></div>
     <div class="read-meta">${catTag(f)}${hasFlow(f)?'<span class="tag flow">Conditionnelle</span>':''}<span class="card-date${staleDate(f.validation)?' stale':''}">${esc(fmtDate(f.validation))}</span></div>
     ${f.localInfo&&f.localInfo.trim()?`<div class="local">${esc(f.localInfo)}</div>`:''}
+    ${sessBar}${sessList}
     ${runtimePanel(f)}
     ${timekeeperPanel()}
-    ${sessBar}${sessList}
     ${staticBlock('Confirmation diagnostique','h-confirm',f.confirmation,'confirm')}
-    <section class="block"><div class="block-h h-steps"><span class="pip"></span>Prise en charge${flow?' — parcours guidé':' — étape par étape'}<span class="spc"></span>${f.blocks&&f.blocks.length?`<button class="btn sm" id="flowToggle" style="text-transform:none;letter-spacing:0">${state.showFlow?'▲ Masquer':'▼ Algorithme'}</button>`:''}</div>${f.blocks&&f.blocks.length&&state.showFlow?flowBlock(f):''}${navHtml}</section>
+    <section class="block block-care"><div class="block-h h-main">${headerIcon('h-main')}Prise en charge${flow?' — parcours guidé':' — étape par étape'}<span class="spc"></span>${f.blocks&&f.blocks.length?`<button class="btn sm flow-toggle" id="flowToggle">${state.showFlow?'▲ Masquer':'▼ Algorithme'}</button>`:''}</div>${f.blocks&&f.blocks.length&&state.showFlow?flowBlock(f,cur):''}${navHtml}</section>
     ${gallery}
     ${staticBlock('À vérifier','h-verify',f.verify,'verify')}
     ${staticBlock('Ne pas oublier','h-forget',f.notForget,'forget',true)}
     ${staticBlock('Diagnostics différentiels','h-diff',f.differentials,'diff')}
     ${refs.length?`<div class="refs"><b>Références</b><ol>${refs.map(r=>`<li>${esc(r)}</li>`).join('')}</ol></div>`:''}
     <div class="read-actions"><button class="btn" id="edit">Modifier</button><button class="btn" id="print">Imprimer</button><button class="btn" id="dup">Dupliquer</button><button class="btn" id="exportOne">Exporter cette fiche</button></div>`;
-  document.getElementById('back').onclick=()=>{state.view='library';state.fiche=null;state.showFlow=false;render();};
+  // Retour bibliothèque : la session reste VIVE (minuteurs continuent) et est auto-enregistrée.
+  document.getElementById('back').onclick=()=>{persistAllLive();state.view='library';state.fiche=null;state.showFlow=false;render();};
   document.getElementById('edit').onclick=()=>openEdit(f.id);
   document.getElementById('print').onclick=()=>window.print();
   document.getElementById('dup').onclick=async()=>{const c=JSON.parse(JSON.stringify(f));c.id=uid();c.title=(f.title||'Fiche')+' (copie)';c.order=Date.now();if(await persist(c)){fiches.push(c);openEdit(c.id);}};
@@ -1072,23 +1293,27 @@ function renderRead(){
   main.querySelectorAll('[data-goto]').forEach(b=>b.onclick=()=>{const t=b.dataset.goto;if(t&&f.blocks.some(x=>x.id===t)){state.nav.push(t);state.navSeq.push(++Runtime.seq);state.navPos=state.nav.length-1;render();}});
   const goCrumb=i=>{if(i>=0&&i<state.nav.length){state.navPos=i;render();}};
   main.querySelectorAll('[data-crumb]').forEach(c=>{c.onclick=()=>goCrumb(+c.dataset.crumb);c.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();goCrumb(+c.dataset.crumb);}};});
-  main.querySelectorAll('[data-ck]').forEach(li=>li.onclick=()=>{const k=li.dataset.ck;state.checked[k]=!state.checked[k];render();});
+  // Cocher une étape DÉMARRE la session (1ʳᵉ action) et l'auto-enregistre.
+  main.querySelectorAll('[data-ck]').forEach(li=>li.onclick=()=>{const k=li.dataset.ck;state.checked[k]=!state.checked[k];ensureStarted();persistLive(Runtime);render();});
   main.querySelectorAll('img[data-full]').forEach(im=>im.onclick=()=>openLightbox(im.dataset.full,im.dataset.cap||''));
   // runtime controls (no full re-render)
-  const st=document.getElementById('soundToggle');if(st)st.onclick=()=>{Runtime.sound=!Runtime.sound;if(Runtime.sound)ensureAudio();st.textContent=Runtime.sound?'🔔 Son':'🔕 Muet';const sw=document.getElementById('soundWarn');if(sw)sw.style.display=Runtime.sound?'':'none';};
+  const st=document.getElementById('soundToggle');if(st)st.onclick=()=>{soundOn=!soundOn;if(soundOn)ensureAudio();st.textContent=soundOn?'🔔 Son':'🔕 Muet';const sw=document.getElementById('soundWarn');if(sw)sw.style.display=soundOn?'':'none';};
   const swn=document.getElementById('soundWarn');if(swn)swn.onclick=()=>alert('Mode silencieux du téléphone.\n\nSi le bouton latéral de votre téléphone est sur silencieux, l\'alarme sonore peut ne pas être audible (impossible à détecter depuis le navigateur).\n\nSur iPhone, la vibration n\'est pas non plus disponible depuis le web.\n\nAlerte de secours : l\'écran clignote (flash) à chaque fin de minuteur.');
-  main.querySelectorAll('[data-tmtoggle]').forEach(b=>b.onclick=()=>{const t=Runtime.timers[b.dataset.tmtoggle];toggleTimer(t);syncTimerBtns(t);updateTimers();});
-  main.querySelectorAll('[data-tmreset]').forEach(b=>b.onclick=()=>{const t=Runtime.timers[b.dataset.tmreset];resetTimer(t);syncTimerBtns(t);updateTimers();});
-  main.querySelectorAll('[data-cninc]').forEach(b=>b.onclick=()=>{const id=b.dataset.cninc;Runtime.counters[id]=(Runtime.counters[id]||0)+(+b.dataset.step);document.getElementById('cnval-'+id).textContent=Runtime.counters[id];});
-  main.querySelectorAll('[data-cndec]').forEach(b=>b.onclick=()=>{const id=b.dataset.cndec;Runtime.counters[id]=Math.max(0,(Runtime.counters[id]||0)-(+b.dataset.step));document.getElementById('cnval-'+id).textContent=Runtime.counters[id];});
+  // Lancer un minuteur DÉMARRE la session. Si elle vient de démarrer, on re-rend (le bandeau « en
+  // cours » apparaît) ; sinon mise à jour DOM directe.
+  main.querySelectorAll('[data-tmtoggle]').forEach(b=>b.onclick=()=>{const t=Runtime.timers[b.dataset.tmtoggle];toggleTimer(t);const fresh=ensureStarted();persistLive(Runtime);if(fresh)render();else{syncTimerBtns(t);updateTimers();}});
+  main.querySelectorAll('[data-tmreset]').forEach(b=>b.onclick=()=>{const t=Runtime.timers[b.dataset.tmreset];resetTimer(t);syncTimerBtns(t);updateTimers();persistLive(Runtime);});
+  main.querySelectorAll('[data-cninc]').forEach(b=>b.onclick=()=>{const id=b.dataset.cninc;Runtime.counters[id]=(Runtime.counters[id]||0)+(+b.dataset.step);const fresh=ensureStarted();persistLive(Runtime);if(fresh)render();else document.getElementById('cnval-'+id).textContent=Runtime.counters[id];});
+  main.querySelectorAll('[data-cndec]').forEach(b=>b.onclick=()=>{const id=b.dataset.cndec;Runtime.counters[id]=Math.max(0,(Runtime.counters[id]||0)-(+b.dataset.step));const fresh=ensureStarted();persistLive(Runtime);if(fresh)render();else document.getElementById('cnval-'+id).textContent=Runtime.counters[id];});
   // horodatage : ajout (re-rendu), édition du libellé (sans re-rendu, garde le focus), suppression.
-  const tkA=document.getElementById('tkAdd');if(tkA)tkA.onclick=()=>{Runtime.events=Runtime.events||[];Runtime.events.push({id:uid('e'),t:Date.now(),label:'Action '+(Runtime.events.length+1)});render();};
-  main.querySelectorAll('[data-tklab]').forEach(inp=>inp.addEventListener('input',e=>{const ev=(Runtime.events||[]).find(x=>x.id===e.target.dataset.tklab);if(ev)ev.label=e.target.value;}));
-  main.querySelectorAll('[data-tkdel]').forEach(b=>b.onclick=()=>{Runtime.events=(Runtime.events||[]).filter(x=>x.id!==b.dataset.tkdel);render();});
-  // sessions
-  document.getElementById('saveSess').onclick=saveSession;
+  const tkA=document.getElementById('tkAdd');if(tkA)tkA.onclick=()=>{Runtime.events=Runtime.events||[];Runtime.events.push({id:uid('e'),t:Date.now(),label:'Action '+(Runtime.events.length+1)});ensureStarted();persistLive(Runtime);render();};
+  main.querySelectorAll('[data-tklab]').forEach(inp=>inp.addEventListener('input',e=>{const ev=(Runtime.events||[]).find(x=>x.id===e.target.dataset.tklab);if(ev){ev.label=e.target.value;persistLive(Runtime);}}));
+  main.querySelectorAll('[data-tkdel]').forEach(b=>b.onclick=()=>{Runtime.events=(Runtime.events||[]).filter(x=>x.id!==b.dataset.tkdel);persistLive(Runtime);render();});
+  // sessions : Enregistrer (nommer) / Réinitialiser / Terminer / Historique
+  const sv=document.getElementById('saveSess');if(sv)sv.onclick=saveSession;
+  const rss=document.getElementById('resetSess');if(rss)rss.onclick=resetSession;
+  const es=document.getElementById('endSess');if(es)es.onclick=endCurrentSession;
   const tg=document.getElementById('toggleSess');if(tg)tg.onclick=()=>{state.showSess=!state.showSess;render();};
-  document.getElementById('resetSess').onclick=()=>{if(!confirm('Réinitialiser la session ? (décochages, compteurs et minuteurs remis à zéro)'))return;freshRuntime(f,null);state.fiche=f;render();};
   main.querySelectorAll('[data-resume]').forEach(b=>b.onclick=()=>resumeSession(b.dataset.resume));
   main.querySelectorAll('[data-delsess]').forEach(b=>b.onclick=()=>deleteSession(b.dataset.delsess));
   bindFlowZoom();applyFlowZoom();restoreFlow();
@@ -1131,7 +1356,7 @@ function renderEditor(){
     <button class="back" id="back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Annuler</button>
     ${isNew&&state.showCreateBand!==false?`<div class="create-band"><div class="cb-q">Comment créer cette fiche ?</div><div class="cb-opts"><button class="btn primary sm" id="cbAI">✨ Créer via IA</button><button class="btn sm" id="cbManual">✍ Créer manuellement</button></div><div class="cb-hint">« Via IA » : copiez le prompt dans une IA avec un document, puis importez le résultat. « Manuellement » : remplissez les champs ci-dessous.</div></div>`:''}
     <div class="field"><label>Titre de la situation</label><input type="text" id="f-title" value="${esc(f.title)}" placeholder="ex. Intoxication aux anesthésiques locaux"></div>
-    <div class="field"><label>Catégorie</label><div class="catpick"><button class="catpill" data-selcat="" style="${!f.category?'background:#54635f;color:#fff;border-color:#54635f':''}">Aucune</button>${categories.map(c=>`<button class="catpill" data-selcat="${c.id}" style="${f.category===c.id?`background:${c.color};color:#fff;border-color:${c.color}`:`color:${c.color};border-color:${c.color}66`}">${esc(c.name)}</button>`).join('')}<button class="catpill" id="catMgrBtn" style="border-style:dashed;color:var(--ink-soft)">⚙ Gérer</button></div>${state.catMgr?catManagerHtml():''}</div>
+    <div class="field"><label>Catégorie</label><div class="catpick"><button class="catpill" data-selcat="" style="${!f.category?'background:#54635f;color:#fff;border-color:#54635f':''}">Aucune</button>${categories.map(c=>{const col=safeColor(c.color);return `<button class="catpill" data-selcat="${esc(c.id)}" style="${f.category===c.id?`background:${col};color:#fff;border-color:${col}`:`color:${col};border-color:${col}66`}">${esc(c.name)}</button>`;}).join('')}<button class="catpill" id="catMgrBtn" style="border-style:dashed;color:var(--ink-soft)">⚙ Gérer</button></div>${state.catMgr?catManagerHtml():''}</div>
     <div class="row2"><div class="field"><label>Date de validation</label><input type="text" id="f-validation" value="${esc(f.validation)}" placeholder="AAAA-MM"></div></div>
     <div class="field"><label>Contexte local <span class="hint">numéros utiles, particularités</span></label><textarea id="f-localInfo" rows="2" placeholder="Réanimateur de garde, pharmacie…">${esc(f.localInfo)}</textarea></div>
     ${listEditor('Confirmation diagnostique','critères pour déclencher la fiche','confirmation',f.confirmation)}
@@ -1208,15 +1433,23 @@ async function saveDraft(){const d=state.draft;d.title=(d.title||'').trim();
   d.counters=(d.counters||[]).map(c=>({id:c.id,label:(c.label||'').trim(),step:Math.max(1,parseInt(c.step||1)||1),start:parseInt(c.start||0)||0}));
   delete d.blocks._start;if(!d.start||!d.blocks.some(b=>b.id===d.start))d.start=d.blocks[0]?d.blocks[0].id:null;
   if(!d.title){alert('Donnez un titre à la fiche.');return;}if(typeof d.order!=='number')d.order=Date.now();
-  if(!(await persist(d)))return;const i=fiches.findIndex(x=>x.id===d.id);if(i>=0)fiches[i]=d;else fiches.push(d);state.draft=null;state.catMgr=false;resetRuntime();openRead(d.id);}
-async function deleteDraft(){if(!confirm('Supprimer cette fiche définitivement ?'))return;const id=state.draft.id;await Data.del(id);const rel=sessions.filter(s=>s.ficheId===id);for(const s of rel)await Data.delSession(s.id);sessions=sessions.filter(s=>s.ficheId!==id);fiches=fiches.filter(x=>x.id!==id);state.draft=null;state.catMgr=false;resetRuntime();state.view='library';render();}
+  // La structure de la fiche change : on TERMINE une éventuelle session vive (archivée) pour éviter
+  // une incohérence minuteurs/blocs, puis on rouvre la fiche à neuf.
+  if(!(await persist(d)))return;const i=fiches.findIndex(x=>x.id===d.id);if(i>=0)fiches[i]=d;else fiches.push(d);if(liveSessions[d.id])endSession(liveSessions[d.id]);state.draft=null;state.catMgr=false;resetRuntime();openRead(d.id);}
+async function deleteDraft(){if(!confirm('Supprimer cette fiche définitivement ?'))return;const id=state.draft.id;await Data.del(id);const rel=sessions.filter(s=>s.ficheId===id);for(const s of rel)await Data.delSession(s.id);sessions=sessions.filter(s=>s.ficheId!==id);if(liveSessions[id])delete liveSessions[id];fiches=fiches.filter(x=>x.id!==id);state.draft=null;state.catMgr=false;resetRuntime();state.view='library';render();}
 
 /* ===== Navigation =====
    openRead(id) : ouvre une fiche en lecture. Conserve le Runtime si c'est la MÊME
      fiche déjà active (minuteurs en cours préservés) ; sinon en reconstruit un neuf.
    openEdit(id) : édite une copie profonde de la fiche (state.draft).
    newFiche()   : crée une fiche vierge et passe en édition. */
-function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;flowScroll={left:0,top:0};if(!(Runtime.fiche&&Runtime.ficheId===id))freshRuntime(f,null);state.fiche=Runtime.fiche;state.checked=Runtime.checked;state.nav=Runtime.nav;state.navSeq=Runtime.navSeq;state.navPos=state.nav.length-1;state.id=id;state.showFlow=!!(f.blocks&&f.blocks.length);state.showSess=false;state.view='read';render();}
+// Ouvre une fiche en lecture. Si une SESSION VIVE existe pour cette fiche, on la rouvre telle quelle
+// (minuteurs toujours en cours). Sinon on garde le runtime transitoire de cette même fiche (s'il n'a
+// pas démarré), sinon on en crée un neuf.
+function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;flowScroll={left:0,top:0};
+  if(liveSessions[id]){Runtime=liveSessions[id];Runtime.fiche=f;}
+  else if(!(Runtime.fiche&&Runtime.ficheId===id&&!Runtime.started)){Runtime=buildRuntime(f,null);}
+  bindStateToRuntime();state.fiche=Runtime.fiche;state.id=id;state.showFlow=!!(f.blocks&&f.blocks.length);state.showSess=false;state.view='read';render();}
 function openEdit(id){const f=fiches.find(x=>x.id===id);state.draft=JSON.parse(JSON.stringify(f));state.catMgr=false;state.view='edit';render();}
 function newFiche(){state.draft=blankFiche();state.catMgr=false;state.showCreateBand=true;state.view='edit';render();}
 document.getElementById('topNew').onclick=newFiche;
@@ -1261,9 +1494,12 @@ EXIGENCES DE FOND
   - bloc « decision » = une question avec des options, chaque option pointant vers un
     autre bloc (branchement « si oui -> A, si non -> B ») ;
   - une option / « next » peut renvoyer vers un bloc précédent (boucle de réévaluation).
-- Mets dans : confirmation = critères qui confirment le diagnostic / déclenchent la
-  fiche ; verify = points à vérifier ; notForget = pièges et points critiques ;
-  differentials = diagnostics différentiels ; references = source(s) précise(s).
+- RÉPARTITION DES SECTIONS (où placer quoi) :
+  - confirmation  = critères qui CONFIRMENT le diagnostic / déclenchent la fiche ;
+  - verify        = ce qui doit être contrôlé / monitoré ;
+  - notForget     = pièges et points critiques (détrompage) ;
+  - differentials = diagnostics différentiels ;
+  - references    = source(s) précise(s).
 - CONFIRMATION DIAGNOSTIQUE : détaille les critères diagnostiques POINT PAR POINT (un
   critère par ligne pour pouvoir cocher), mais REGROUPE sur une ligne ceux d'une même
   catégorie quand ça reste lisible (ex. "Signes neuro : convulsions / troubles de
@@ -1306,9 +1542,6 @@ ERGONOMIE DE L'ALGORITHME (conception d'aide cognitive de crise, esprit SFAR / S
   conscience, neuro, RCF" sur une seule ligne (pas six) ; "Bilan : NFS, coag, iono, hépatique".
   Garde séparées les ACTIONS distinctes (un geste = une ligne).
 - Limite la charge cognitive : titres de blocs courts, listes ramassées.
-- Répartition : confirmation = critères diagnostiques déclenchant la fiche ; verify = ce qui
-  doit être contrôlé/monitoré ; notForget = pièges et points critiques (détrompage) ;
-  differentials = diagnostics différentiels.
 
 COHÉRENCE DES IDENTIFIANTS (très important)
 - Chaque bloc a un "id" unique au sein de la fiche (ex. "b1", "b2", "bd").
@@ -1385,8 +1618,8 @@ function closeCatMgr(){catModal.classList.remove('on');renderLibrary();}
 function renderCatMgr(){
   const body=document.getElementById('catMgrBody');
   body.innerHTML=categories.map(c=>{const n=catCount(c.id);
-    const conf=catDelId===c.id?`<div class="cm-confirm">${n?`<p>« ${esc(c.name)} » contient <b>${n}</b> fiche${n>1?'s':''}. Choisissez où déplacer ces fiches avant de supprimer la catégorie :</p><select data-movesel><option value="">Laisser sans catégorie</option>${categories.filter(x=>x.id!==c.id).map(x=>`<option value="${x.id}">Déplacer vers « ${esc(x.name)} »</option>`).join('')}</select>`:`<p>Supprimer « ${esc(c.name)} » ? (catégorie vide)</p>`}<div class="cm-cact"><button class="btn danger sm" data-confdel="${c.id}">${n?'Déplacer puis Supprimer':'Supprimer'}</button><button class="btn sm" data-canceldel>Annuler</button></div></div>`:'';
-    return `<div class="cm-row" data-cid="${c.id}"><div class="cm-top"><span class="cm-dot" style="background:${c.color}"></span><input class="cm-name" data-cname value="${esc(c.name)}"><span class="cm-count">${n} fiche${n>1?'s':''}</span><button class="cm-del" data-askdel="${c.id}" aria-label="Supprimer">×</button></div><div class="cm-sw">${PALETTE.map(col=>`<span class="sw ${c.color===col?'on':''}" data-setcol="${col}" style="background:${col}"></span>`).join('')}</div>${conf}</div>`;
+    const conf=catDelId===c.id?`<div class="cm-confirm">${n?`<p>« ${esc(c.name)} » contient <b>${n}</b> fiche${n>1?'s':''}. Choisissez où déplacer ces fiches avant de supprimer la catégorie :</p><select data-movesel><option value="">Laisser sans catégorie</option>${categories.filter(x=>x.id!==c.id).map(x=>`<option value="${esc(x.id)}">Déplacer vers « ${esc(x.name)} »</option>`).join('')}</select>`:`<p>Supprimer « ${esc(c.name)} » ? (catégorie vide)</p>`}<div class="cm-cact"><button class="btn danger sm" data-confdel="${esc(c.id)}">${n?'Déplacer puis Supprimer':'Supprimer'}</button><button class="btn sm" data-canceldel>Annuler</button></div></div>`:'';
+    return `<div class="cm-row" data-cid="${esc(c.id)}"><div class="cm-top"><span class="cm-dot" style="background:${safeColor(c.color)}"></span><input class="cm-name" data-cname value="${esc(c.name)}"><span class="cm-count">${n} fiche${n>1?'s':''}</span><button class="cm-del" data-askdel="${esc(c.id)}" aria-label="Supprimer">×</button></div><div class="cm-sw">${PALETTE.map(col=>`<span class="sw ${c.color===col?'on':''}" data-setcol="${col}" style="background:${col}"></span>`).join('')}</div>${conf}</div>`;
   }).join('')+`${categories.length?'':'<p style="font-size:13px;color:var(--ink-soft);margin:0 0 10px">Aucune catégorie pour le moment.</p>'}<div class="cm-add"><input id="cmNew" placeholder="Nouvelle catégorie…"><button class="btn primary sm" id="cmAdd">Ajouter</button></div>`;
   body.querySelectorAll('.cm-row').forEach(row=>{const cid=row.dataset.cid;const c=categories.find(x=>x.id===cid);if(!c)return;
     const nm=row.querySelector('[data-cname]');if(nm)nm.addEventListener('input',e=>{c.name=e.target.value;saveCats();});
@@ -1450,7 +1683,7 @@ document.getElementById('importFile').onchange=e=>{const file=e.target.files[0];
     // import de PLUSIEURS fiches. Un import d'une seule fiche fusionne toujours (jamais d'écrasement).
     const merge=imp.fiches.length>1?confirm('Import de '+imp.fiches.length+' fiches.\n\nOK = fusionner avec votre bibliothèque.\nAnnuler = REMPLACER entièrement votre bibliothèque.'):true;
     if(!merge){for(const f of fiches)await Data.del(f.id);fiches=[];}
-    (imp.categories||[]).forEach(c=>{if(c&&c.id&&!categories.some(x=>x.id===c.id))categories.push(c);});await saveCats();
+    sanitizeCats(imp.categories).forEach(c=>{if(c.id&&!categories.some(x=>x.id===c.id))categories.push(c);});await saveCats();
     // Gestion des doublons (même identifiant) en mode fusion : remplacer la version
     // existante, ou importer en double (garder les deux). En mode remplacement, pas de doublon.
     const existing=new Set(fiches.map(x=>x.id));
