@@ -297,7 +297,7 @@
   .tm-bar{height:100%;background:#5fd0c4;width:0%}
   .tm-ctrl,.cn-ctrl{display:flex;gap:6px;margin-top:9px}
   .cn-ctrl{justify-content:center}
-  .tm-btn{flex:1;min-width:0;background:rgba(255,255,255,.12);color:#eaf5f3;border:0;border-radius:8px;padding:8px 6px;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background .12s,opacity .12s}
+  .tm-btn{flex:1;min-width:0;background:rgba(255,255,255,.12);color:#eaf5f3;border:0;border-radius:8px;padding:8px 6px;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background .12s,opacity .12s;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   .tm-btn:hover{background:rgba(255,255,255,.2)}
   .tm-main{background:rgba(95,208,196,.22)}.tm-main:hover{background:rgba(95,208,196,.32)}
   .tm-main.run{background:rgba(217,102,58,.28)}.tm-main.run:hover{background:rgba(217,102,58,.4)}
@@ -506,7 +506,7 @@
 
 /* PALETTE : couleurs proposées pour les catégories (hex sombres, lisibles
    en texte comme en pastille teintée). Index réutilisé cycliquement. */
-const APP_VERSION='2.3.1';
+const APP_VERSION='2.3.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 const PALETTE=['#b23052','#823a32','#b5532a','#a26a42','#8a6a12','#4f6b1e','#1f7a4d','#0d5b56','#007fb1','#45556b','#1f5fa6','#4b3fa6','#8869af','#7a2f6b','#ad5e7e'];
 /* ===== Backends =====
@@ -600,11 +600,15 @@ let flowScroll={left:0,top:0};
 // Quand on AVANCE/RECULE dans le parcours (Continuer/Suivant/option/Précédent/Recommencer), on
 // repositionne la vue sur le bloc à cocher (.nav-wrap) pour ne pas avoir à remonter la page.
 let scrollNavNext=false;
-function scrollNavIntoView(){const el=main.querySelector('.nav-wrap');if(el)el.scrollIntoView({block:'start',behavior:'auto'});}
+// On positionne le FIL D'ARIANE (ou, à défaut, le bloc à cocher) juste sous l'en-tête fixe : on
+// mesure la hauteur réelle de l'en-tête (variable selon l'encoche iPhone) pour ne pas tomber trop bas.
+function scrollNavIntoView(){const wrap=main.querySelector('.nav-wrap');if(!wrap)return;const target=wrap.querySelector('.crumbs')||wrap.querySelector('.node-title')||wrap;const hdr=document.querySelector('header.bar');const hh=hdr?hdr.getBoundingClientRect().height:60;const y=window.scrollY+target.getBoundingClientRect().top-hh-8;window.scrollTo(0,Math.max(0,Math.round(y)));}
 function captureFlow(){const el=main.querySelector('.flow-scroll');if(el)flowScroll={left:el.scrollLeft,top:el.scrollTop};}
-// left=null -> on CENTRE horizontalement (à l'ouverture) : sur un algorithme très large, le bloc de
-// départ (rangée centrée) est ainsi directement visible. Une fois l'utilisateur a défilé, on conserve.
-function restoreFlow(){const el=main.querySelector('.flow-scroll');if(!el)return;if(flowScroll.left==null){el.scrollLeft=Math.max(0,(el.scrollWidth-el.clientWidth)/2);el.scrollTop=flowScroll.top||0;}else{el.scrollLeft=flowScroll.left;el.scrollTop=flowScroll.top;}}
+// Centre horizontalement le défilement sur le centre du BLOC DE DÉPART (data-startcx, en coordonnées
+// SVG non zoomées -> ×flowZoom). À l'ouverture (left=null) le départ est ainsi pile au milieu, même
+// sur un algorithme très large. Ensuite on conserve la position de l'utilisateur.
+function centerOnStart(el){const svg=el.querySelector('svg');const cx=svg?+svg.getAttribute('data-startcx')||0:0;const target=(cx?cx*flowZoom:el.scrollWidth/2)-el.clientWidth/2;return Math.max(0,Math.min(el.scrollWidth-el.clientWidth,Math.round(target)));}
+function restoreFlow(){const el=main.querySelector('.flow-scroll');if(!el)return;if(flowScroll.left==null){el.scrollLeft=centerOnStart(el);el.scrollTop=flowScroll.top||0;}else{el.scrollLeft=flowScroll.left;el.scrollTop=flowScroll.top;}}
 // Zoom de l'aperçu algorithme via boutons dédiés (le pinch-to-zoom du navigateur reste natif,
 // on ne capture aucun geste tactile). Le déplacement se fait par le défilement du conteneur.
 let flowZoom=1;
@@ -618,7 +622,7 @@ function bindFlowZoom(){main.querySelectorAll('[data-zoom]').forEach(b=>b.onclic
   main.querySelectorAll('[data-flowfull]').forEach(b=>b.onclick=()=>{if(flowCtx.f)openFlowFull(flowCtx.f,flowCtx.curId);});}
 // Plein écran de l'algorithme : superpose le SVG (même bloc courant mis en évidence), zoom + défilement
 // (pinch natif aussi). On centre horizontalement à l'ouverture.
-function openFlowFull(f,curId){const ov=document.getElementById('flowFull');if(!ov)return;const sc=ov.querySelector('.ff-scroll');sc.innerHTML=buildFlowSVG(f,curId);ov.classList.add('on');applyFlowZoom();sc.scrollLeft=Math.max(0,(sc.scrollWidth-sc.clientWidth)/2);sc.scrollTop=0;}
+function openFlowFull(f,curId){const ov=document.getElementById('flowFull');if(!ov)return;const sc=ov.querySelector('.ff-scroll');sc.innerHTML=buildFlowSVG(f,curId);ov.classList.add('on');applyFlowZoom();sc.scrollLeft=centerOnStart(sc);sc.scrollTop=0;}
 function closeFlowFull(){const ov=document.getElementById('flowFull');if(ov){ov.classList.remove('on');const sc=ov.querySelector('.ff-scroll');if(sc)sc.innerHTML='';}}
 const flowBlock=(f,curId)=>`<div class="flow-zoom"><button class="fz" data-zoom="out" aria-label="Dézoomer">−</button><span class="fzv">${Math.round(flowZoom*100)}%</span><button class="fz" data-zoom="in" aria-label="Zoomer">+</button><button class="fz fz-r" data-zoom="reset">Réinit.</button><span class="fz-spc"></span><button class="fz" data-flowfull aria-label="Plein écran" title="Plein écran">⛶</button></div><div class="flow-scroll">${buildFlowSVG(f,curId)}</div>`;
 // Rafraîchit l'aperçu algorithme PENDANT la frappe (titres, étapes, réponses) sans reconstruire
@@ -1230,7 +1234,8 @@ function buildFlowSVG(f,curId){
       iy+=LH;});});
     g+=`<rect width="${W}" height="${h}" rx="10" fill="none" stroke="${(isCur||isS)?'#0d5b56':stroke}" stroke-width="${(isCur||isS)?2.5:1.5}"/>`;
     nodes+=`<g transform="translate(${p.x},${p.y})">${g}</g>`;});
-  return `<svg width="${svgW}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:0 auto" data-bw="${svgW}" data-bh="${svgH}"><defs><marker id="ah" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#9fb0ac"/></marker><marker id="ahb" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#c98a2a"/></marker></defs>${edges}${nodes}</svg>`;
+  const startCx=pos[start]?Math.round(pos[start].x+pos[start].w/2):Math.round(svgW/2);
+  return `<svg width="${svgW}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:0 auto" data-bw="${svgW}" data-bh="${svgH}" data-startcx="${startCx}"><defs><marker id="ah" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#9fb0ac"/></marker><marker id="ahb" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#c98a2a"/></marker></defs>${edges}${nodes}</svg>`;
 }
 
 /* ===== Runtime panel (rendu des minuteurs/compteurs en lecture) =====
