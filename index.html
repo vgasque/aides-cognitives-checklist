@@ -512,7 +512,7 @@
 
 /* PALETTE : couleurs proposées pour les catégories (hex sombres, lisibles
    en texte comme en pastille teintée). Index réutilisé cycliquement. */
-const APP_VERSION='2.3.3';
+const APP_VERSION='2.3.4';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 const PALETTE=['#b23052','#823a32','#b5532a','#a26a42','#8a6a12','#4f6b1e','#1f7a4d','#0d5b56','#007fb1','#45556b','#1f5fa6','#4b3fa6','#8869af','#7a2f6b','#ad5e7e'];
 /* ===== Backends =====
@@ -608,7 +608,11 @@ let flowScroll={left:0,top:0};
 let scrollNavNext=false;
 // On positionne le FIL D'ARIANE (ou, à défaut, le bloc à cocher) juste sous l'en-tête fixe : on
 // mesure la hauteur réelle de l'en-tête (variable selon l'encoche iPhone) pour ne pas tomber trop bas.
-function scrollNavIntoView(){const wrap=main.querySelector('.nav-wrap');if(!wrap)return;const target=wrap.querySelector('.crumbs')||wrap.querySelector('.node-title')||wrap;const hdr=document.querySelector('header.bar');const hh=hdr?hdr.getBoundingClientRect().height:60;const y=window.scrollY+target.getBoundingClientRect().top-hh-8;window.scrollTo(0,Math.max(0,Math.round(y)));}
+function scrollNavIntoView(){const wrap=main.querySelector('.nav-wrap');if(!wrap)return;const target=wrap.querySelector('.crumbs')||wrap.querySelector('.node-title')||wrap;const hdr=document.querySelector('header.bar');const hh=hdr?hdr.getBoundingClientRect().height:60;const y=Math.max(0,Math.round(window.scrollY+target.getBoundingClientRect().top-hh-8));
+  // On ne fait que REMONTER vers le bloc à cocher (quand il est passé au-dessus). Si on est déjà
+  // au-dessus (ex. en train de regarder le schéma de l'algorithme), on NE descend PAS -> on peut
+  // voir l'algorithme et commencer à cocher en même temps.
+  if(y<window.scrollY-1)window.scrollTo(0,y);}
 function captureFlow(){const el=main.querySelector('.flow-scroll');if(el)flowScroll={left:el.scrollLeft,top:el.scrollTop};}
 // Centre horizontalement le défilement sur le centre du BLOC DE DÉPART (data-startcx, en coordonnées
 // SVG non zoomées -> ×flowZoom). À l'ouverture (left=null) le départ est ainsi pile au milieu, même
@@ -921,7 +925,9 @@ function resetSession(){if(!confirm('Réinitialiser la session ? (cochages, comp
   if(old){try{Data.delSession(old);}catch(e){}sessions=sessions.filter(x=>x.id!==old);}
   freshRuntime(f,null);state.fiche=f;render();}
 // Terminer : fige en historique et arrête les minuteurs (depuis la fiche). Reste reprenable plus tard.
-function endCurrentSession(){if(!Runtime.started)return;if(!confirm('Terminer la session ? Les minuteurs s’arrêtent ; la session est conservée dans l’historique.'))return;endSession(Runtime);render();}
+// Terminer : on archive la session (historique) PUIS on repart d'une fiche vierge (tout remis à zéro :
+// cochages, compteurs, minuteurs). La session terminée reste enregistrée et reprenable.
+function endCurrentSession(){if(!Runtime.started)return;if(!confirm('Terminer la session ? Les minuteurs s’arrêtent ; la session est conservée dans l’historique et la fiche est remise à zéro.'))return;const f=Runtime.fiche;endSession(Runtime);freshRuntime(f,null);state.fiche=f;render();}
 // Reprendre une session de l'historique (ou vive) : recharge dans un runtime, la réactive (vive) et
 // ouvre la fiche. Si une session vive existe déjà pour cette fiche, on la rouvre telle quelle.
 function resumeSession(id){const s=sessions.find(x=>x.id===id);if(!s)return;const f=fiches.find(x=>x.id===s.ficheId);if(!f){alert('Fiche introuvable.');return;}flowScroll={left:null,top:0};
@@ -969,7 +975,7 @@ function renderLibrary(){
   main.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{const c=b.dataset.cat;state.cat=(c&&state.cat===c)?'':c;renderLibrary();});
   document.getElementById('catMgrChip').onclick=openCatMgr;
   main.querySelectorAll('[data-openlive]').forEach(el=>{el.onclick=()=>openRead(el.dataset.openlive);el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openRead(el.dataset.openlive);}};});
-  main.querySelectorAll('[data-endlive]').forEach(b=>b.onclick=()=>{const R=liveSessions[b.dataset.endlive];if(R&&confirm('Terminer la session ? Les minuteurs s’arrêtent ; la session est conservée dans l’historique.')){endSession(R);renderLibrary();}});
+  main.querySelectorAll('[data-endlive]').forEach(b=>b.onclick=()=>{const id=b.dataset.endlive,R=liveSessions[id];if(R&&confirm('Terminer la session ? Les minuteurs s’arrêtent ; la session est conservée dans l’historique.')){endSession(R);if(Runtime.ficheId===id)resetRuntime();renderLibrary();}});
   main.querySelectorAll('[data-resetlive]').forEach(b=>b.onclick=()=>{const id=b.dataset.resetlive,R=liveSessions[id];if(R&&confirm('Réinitialiser la session ? (cochages, compteurs et minuteurs remis à zéro)')){const old=R.sessionId;delete liveSessions[id];if(old){try{Data.delSession(old);}catch(e){}sessions=sessions.filter(x=>x.id!==old);}if(Runtime.ficheId===id)resetRuntime();renderLibrary();}});
   main.querySelectorAll('[data-open]').forEach(el=>{el.onclick=()=>openRead(el.dataset.open);el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openRead(el.dataset.open);}};});
 }
@@ -1045,9 +1051,15 @@ function buildFlowSVG(f,curId){
     const img=b.image||null;// image du bloc (déjà validée par migrate -> safeImg)
     LAY[b.id]={dec,headerLines,headerH,startStrip,items,img,h:headerH+HPAD+cl*LH+(img?(IMG_GAP+IMG_H):0)+HPAD,w:Math.max(MINW,Math.min(MAXW,base))};});
   const nh=id=>LAY[id].h,nw=id=>LAY[id].w;
-  const level={};const bq=[start];level[start]=0;
-  while(bq.length){const id=bq.shift();const b=byId[id];const tg=b.type==='steps'?(b.next&&byId[b.next]?[b.next]:[]):(b.options||[]).map(o=>o.target).filter(t=>t&&byId[t]);tg.forEach(t=>{if(level[t]===undefined){level[t]=level[id]+1;bq.push(t);}});}
-  let maxL=0;Object.values(level).forEach(v=>{if(v>maxL)maxL=v;});blocks.forEach(b=>{if(level[b.id]===undefined){maxL+=1;level[b.id]=maxL;}});
+  const level={};
+  const tgOf=id=>{const b=byId[id];return b.type==='steps'?(b.next&&byId[b.next]?[b.next]:[]):(b.options||[]).map(o=>o.target).filter(t=>t&&byId[t]);};
+  // BFS en COUCHES depuis une racine ; renvoie le niveau max atteint par ce composant.
+  const bfsLevels=(root,base)=>{level[root]=base;const q=[root];let mx=base;while(q.length){const id=q.shift();tgOf(id).forEach(t=>{if(level[t]===undefined){level[t]=level[id]+1;if(level[t]>mx)mx=level[t];q.push(t);}});}return mx;};
+  let maxL=bfsLevels(start,0);
+  // Composants ORPHELINS (blocs non reliés au départ, ex. bloc 1 et bloc 2 déconnectés) : on relance un
+  // BFS depuis chaque racine orpheline SOUS les niveaux occupés -> leurs blocs conditionnels gardent une
+  // hiérarchie correcte (sinon leurs flèches étaient mal classées avant/retour et mal tracées).
+  blocks.forEach(b=>{if(level[b.id]===undefined)maxL=bfsLevels(b.id,maxL+1);});
   const byLevel={};blocks.forEach(b=>{(byLevel[level[b.id]]=byLevel[level[b.id]]||[]).push(b.id);});
   // Ordonne chaque rangée par le barycentre des positions de ses parents (haut->bas),
   // afin de limiter les croisements d'arêtes inutiles (sinon = ordre brut du tableau).
