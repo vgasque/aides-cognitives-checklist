@@ -88,7 +88,10 @@
     start:    id du bloc de départ,
     blocks:   [ bloc 'steps'    { id, type, title, steps[], image, next(idBloc|null) }
               | bloc 'decision' { id, type, title, question, image,
-                                  options:[{ label, target(idBloc) }] } ]
+                                  options:[{ label, target(idBloc) }] } ],
+    // Métadonnées de synchronisation (rétrocompatibles, défauts posés par migrate()) :
+    updatedAt(ms), deletedAt(ms|null tombstone), ownerId(uuid|null), libraryId(id|null)
+    // (`dirty` = marqueur LOCAL "à pousser", jamais exporté ni importé)
   }
   Catégorie : { id, name, color(hex) }   (collection séparée, store 'meta').
   Session   : { id, ficheId, ficheTitle, name, savedAt,
@@ -545,6 +548,9 @@ const PALETTE=['#b23052','#823a32','#b5532a','#a26a42','#8a6a12','#4f6b1e','#1f7
            (catégories sous la clé 'categories'), 'sessions'(keyPath id).
    Méthodes communes : getAll/put/del, getCats/setCats, getSessions/putSession/delSession. */
 const MEM={};
+// Filet de sûreté (app critique) : on conserve les N dernières versions d'une fiche avant écrasement,
+// pour pouvoir comparer/restaurer. Inerte tant qu'aucune écriture de sauvegarde n'est câblée (Lot Sync).
+const BACKUP_MAX=5;
 const KV={
   async _r(k,d){try{if(window.storage&&window.storage.get){const r=await window.storage.get(k);return r?JSON.parse(r.value):d;}}catch(e){}try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return MEM[k]?JSON.parse(MEM[k]):d;}},
   async _w(k,v){const s=JSON.stringify(v);try{if(window.storage&&window.storage.set){await window.storage.set(k,s);return;}}catch(e){}try{localStorage.setItem(k,s);}catch(e){MEM[k]=s;throw e;}},
@@ -554,12 +560,16 @@ const KV={
   async getCats(){return this._r('cats_v1',null);},async setCats(c){return this._w('cats_v1',c);},
   async getSessions(){return this._r('sessions_v1',[]);},
   async putSession(s){const a=await this._r('sessions_v1',[]);const i=a.findIndex(x=>x.id===s.id);if(i>=0)a[i]=s;else a.push(s);await this._w('sessions_v1',a);},
-  async delSession(id){const a=await this._r('sessions_v1',[]);await this._w('sessions_v1',a.filter(x=>x.id!==id));}
+  async delSession(id){const a=await this._r('sessions_v1',[]);await this._w('sessions_v1',a.filter(x=>x.id!==id));},
+  _prune(a,ficheId){const same=a.filter(b=>b.ficheId===ficheId).sort((x,y)=>(x.at||0)-(y.at||0));const drop=new Set(same.slice(0,Math.max(0,same.length-BACKUP_MAX)).map(b=>b.bid));return a.filter(b=>!drop.has(b.bid));},
+  async getBackups(ficheId){const a=await this._r('backups_v1',[]);return ficheId?a.filter(b=>b.ficheId===ficheId):a;},
+  async putBackup(b){const a=await this._r('backups_v1',[]);a.push(b);await this._w('backups_v1',this._prune(a,b.ficheId));},
+  async delBackup(bid){const a=await this._r('backups_v1',[]);await this._w('backups_v1',a.filter(x=>x.bid!==bid));}
 };
 const IDB={
   db:null,
-  open(){return new Promise((res,rej)=>{let req;try{req=indexedDB.open('ac-db',3);}catch(e){return rej(e);}
-    req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains('fiches'))db.createObjectStore('fiches',{keyPath:'id'});if(!db.objectStoreNames.contains('meta'))db.createObjectStore('meta');if(!db.objectStoreNames.contains('sessions'))db.createObjectStore('sessions',{keyPath:'id'});};
+  open(){return new Promise((res,rej)=>{let req;try{req=indexedDB.open('ac-db',4);}catch(e){return rej(e);}
+    req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains('fiches'))db.createObjectStore('fiches',{keyPath:'id'});if(!db.objectStoreNames.contains('meta'))db.createObjectStore('meta');if(!db.objectStoreNames.contains('sessions'))db.createObjectStore('sessions',{keyPath:'id'});if(!db.objectStoreNames.contains('backups')){const bs=db.createObjectStore('backups',{keyPath:'bid'});bs.createIndex('byFiche','ficheId',{unique:false});}};
     req.onsuccess=()=>{this.db=req.result;res(true);};req.onerror=()=>rej(req.error||new Error('idb'));setTimeout(()=>rej(new Error('idb-timeout')),1500);});},
   _s(store,mode){return this.db.transaction(store,mode).objectStore(store);},
   getAll(){return new Promise((res,rej)=>{const r=this._s('fiches','readonly').getAll();r.onsuccess=()=>res(r.result||[]);r.onerror=()=>rej(r.error);});},
@@ -569,7 +579,12 @@ const IDB={
   setCats(c){return new Promise((res,rej)=>{const r=this._s('meta','readwrite').put(c,'categories');r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});},
   getSessions(){return new Promise((res,rej)=>{const r=this._s('sessions','readonly').getAll();r.onsuccess=()=>res(r.result||[]);r.onerror=()=>rej(r.error);});},
   putSession(s){return new Promise((res,rej)=>{const r=this._s('sessions','readwrite').put(s);r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});},
-  delSession(id){return new Promise((res,rej)=>{const r=this._s('sessions','readwrite').delete(id);r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});}
+  delSession(id){return new Promise((res,rej)=>{const r=this._s('sessions','readwrite').delete(id);r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});},
+  getBackups(ficheId){return new Promise((res,rej)=>{const st=this._s('backups','readonly');const r=(ficheId&&st.indexNames.contains('byFiche'))?st.index('byFiche').getAll(ficheId):st.getAll();r.onsuccess=()=>res(r.result||[]);r.onerror=()=>rej(r.error);});},
+  putBackup(b){return new Promise((res,rej)=>{const tx=this.db.transaction('backups','readwrite');const st=tx.objectStore('backups');st.put(b);
+    const q=st.index('byFiche').getAll(b.ficheId);q.onsuccess=()=>{const arr=(q.result||[]).sort((x,y)=>(x.at||0)-(y.at||0));for(let i=0;i<arr.length-BACKUP_MAX;i++)st.delete(arr[i].bid);};
+    tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);});},
+  delBackup(bid){return new Promise((res,rej)=>{const r=this._s('backups','readwrite').delete(bid);r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});}
 };
 let Data=KV;
 
@@ -616,6 +631,9 @@ const clean=a=>(Array.isArray(a)?a:[]).map(s=>String(s==null?'':s).trim()).filte
 const SAFE_ID=/^[A-Za-z0-9_-]{1,64}$/;const BAD_KEYS=['__proto__','constructor','prototype'];
 const safeId=(id,p)=>(typeof id==='string'&&SAFE_ID.test(id)&&BAD_KEYS.indexOf(id)<0)?id:uid(p);
 const safeCatRef=id=>(typeof id==='string'&&SAFE_ID.test(id)&&BAD_KEYS.indexOf(id)<0)?id:'';
+// Identifiants de SYNCHRONISATION (ownerId, libraryId) : on n'invente JAMAIS de valeur (contrairement à
+// safeId qui régénère) -> une valeur non sûre devient null. Couvre les uuid Supabase (36 car. avec tirets).
+const safeMetaId=v=>(typeof v==='string'&&SAFE_ID.test(v)&&BAD_KEYS.indexOf(v)<0)?v:null;
 const safeColor=c=>(typeof c==='string'&&/^#[0-9a-fA-F]{3,8}$/.test(c))?c:'#45556b';
 const safeImg=d=>(typeof d==='string'&&/^data:image\/(png|jpe?g|gif|webp);base64,[A-Za-z0-9+/=\s]{0,6000000}$/i.test(d))?d:null;
 const sstr=(v,max)=>String(v==null?'':v).slice(0,max||5000);
@@ -738,6 +756,15 @@ function migrate(f){if(!f||typeof f!=='object')f={};
   f.start=mapId(f.start)||(f.blocks[0]?f.blocks[0].id:null);
   f.timers=(Array.isArray(f.timers)?f.timers:[]).slice(0,40).map(t=>({id:safeId(t&&t.id,'t'),label:sstr(t&&t.label,120),type:(t&&t.type==='interval')?'interval':'stopwatch',seconds:Math.max(0,Math.min(86400,Math.round(Number(t&&t.seconds))||0)),autoloop:!!(t&&t.autoloop)}));
   f.counters=(Array.isArray(f.counters)?f.counters:[]).slice(0,40).map(c=>({id:safeId(c&&c.id,'n'),label:sstr(c&&c.label,120),step:Math.max(1,Math.min(9999,Math.round(Number(c&&c.step))||1)),start:Math.max(0,Math.min(1e9,Math.round(Number(c&&c.start))||0))}));
+  // Métadonnées de SYNCHRONISATION (rétrocompatibles : défauts posés ici, inertes tant qu'aucun cloud).
+  //   updatedAt : ms de dernière modif (défaut = order ou maintenant) -> résolution de conflit (last-write-wins).
+  //   deletedAt : tombstone de suppression douce (null si vivante).
+  //   ownerId   : uuid du créateur (null = local/perso). libraryId : id de bibliothèque partagée (null = perso).
+  // `dirty` (marqueur local "à pousser") est purement local : posé par persist(), jamais conservé d'un import.
+  if(typeof f.updatedAt!=='number'||!isFinite(f.updatedAt))f.updatedAt=(typeof f.order==='number'&&isFinite(f.order))?f.order:Date.now();
+  f.deletedAt=(typeof f.deletedAt==='number'&&isFinite(f.deletedAt))?f.deletedAt:null;
+  f.ownerId=safeMetaId(f.ownerId);f.libraryId=safeMetaId(f.libraryId);
+  delete f.dirty;
   return f;}
 // Catégories importées/chargées : nom coercé, couleur validée, id restreint (les ids sûrs sont
 // conservés -> les fiches qui les référencent restent associées).
@@ -814,7 +841,7 @@ window.addEventListener('visibilitychange',()=>{if(document.visibilityState==='h
 window.addEventListener('pagehide',persistAllLive);
 window.addEventListener('beforeunload',persistAllLive);
 async function saveCats(){try{await Data.setCats(categories);}catch(e){}}
-async function persist(f){try{await Data.put(f);updateStorageInfo();return true;}catch(e){alert('Stockage saturé. Exportez vos fiches puis allégez les images.');return false;}}
+async function persist(f){try{f.updatedAt=Date.now();f.dirty=true;await Data.put(f);updateStorageInfo();return true;}catch(e){alert('Stockage saturé. Exportez vos fiches puis allégez les images.');return false;}}
 
 /* ===== Runtime (minuteurs, compteurs, audio) =====
    freshRuntime(f, session) : (re)construit l'état vivant pour la fiche f. Si une
@@ -1818,7 +1845,10 @@ catModal.onclick=e=>{if(e.target===catModal)closeCatMgr();};
       aient une vue exacte de la structure attendue. */
 // Export réutilisable : `cats` par défaut = catégories réellement utilisées par `list`
 // (pour un export d'une seule fiche) ; l'export global passe toutes les catégories.
-function exportData(list,baseName,cats){const out={version:3,categories:cats||categories.filter(c=>list.some(f=>f.category===c.id)),fiches:list.map(f=>{const c={...f};if(c.blocks)delete c.blocks._start;return c;})};const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=baseName+'-'+new Date().toISOString().slice(0,10)+'.json';a.click();}
+function exportData(list,baseName,cats){const out={version:3,categories:cats||categories.filter(c=>list.some(f=>f.category===c.id)),fiches:list.map(f=>{const c={...f};if(c.blocks)delete c.blocks._start;
+  // On retire les champs de sync PUREMENT LOCAUX -> une fiche importée ailleurs devient celle de l'importateur
+  // (pas d'owner/biblio d'autrui) ; `updatedAt` est conservé (utile au last-write-wins multi-appareils).
+  delete c.dirty;delete c.ownerId;delete c.libraryId;return c;})};const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=baseName+'-'+new Date().toISOString().slice(0,10)+'.json';a.click();}
 const fileSlug=s=>(String(s||"fiche").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,40))||"fiche";
 document.getElementById('exportBtn').onclick=()=>exportData(fiches,'aides-cognitives',categories);
 document.getElementById('importBtn').onclick=()=>document.getElementById('importFile').click();
