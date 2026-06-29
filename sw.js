@@ -16,7 +16,7 @@
 //  localStorage. Vos fiches/catégories/sessions sont indépendantes du cache de
 //  code et restent intactes à chaque mise à jour, tant que l'URL reste la même.
 // =============================================================================
-const CACHE = 'aides-cognitives-v2.3.7';
+const CACHE = 'aides-cognitives-v3.0.0-dev';
 const ASSETS = [
   './',
   './index.html',
@@ -43,6 +43,9 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   const req = e.request;
+  // Requêtes CROSS-ORIGIN (ex. API Supabase : auth, REST de synchro) : on ne les intercepte
+  // JAMAIS et on ne met JAMAIS leurs réponses en cache -> réseau direct, données fraîches.
+  if (new URL(req.url).origin !== self.location.origin) return;
   if (req.method !== 'GET') return;
 
   // Page / navigation : réseau d'abord, cache en secours (hors ligne).

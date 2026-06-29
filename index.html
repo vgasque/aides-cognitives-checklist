@@ -451,6 +451,18 @@
   .storage-gauge .pers-ok{color:var(--primary);font-weight:600}
   .storage-gauge .pers-warn{color:var(--verify)}
   .tlink{background:none;border:0;color:var(--primary);font-size:13px;font-weight:600;padding:6px 8px;border-radius:8px}.tlink:hover{background:var(--primary-soft)}#installBtn{display:none}
+  /* Pastille d'état de synchro : discrète, jamais bloquante (app critique). */
+  .sync-chip{font-size:11px;font-weight:600;padding:2px 9px;border-radius:999px;display:inline-flex;align-items:center;gap:5px;line-height:1.7}
+  .sync-chip::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.85}
+  .sync-chip.off{color:var(--ink-soft);background:var(--primary-soft)}
+  .sync-chip.ok{color:var(--primary);background:var(--primary-soft)}
+  .sync-chip.busy{color:#8a6a12;background:#f6efd6}
+  .sync-chip.err{color:var(--verify);background:#f6e1e1}
+  .auth-field{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;font-size:16px;margin:6px 0}
+  .auth-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:6px}
+  .auth-msg{font-size:13px;margin:8px 0 0;min-height:18px}
+  .auth-msg.err{color:var(--verify)}.auth-msg.ok{color:var(--primary)}
+  .auth-who{font-size:14px;margin:2px 0 10px}.auth-who b{color:var(--primary)}
   .lightbox{position:fixed;inset:0;background:rgba(16,32,30,.92);z-index:100;display:none;align-items:center;justify-content:center;padding:20px;flex-direction:column;gap:14px}
   .lightbox.on{display:flex}.lightbox img{max-width:100%;max-height:82vh;border-radius:8px}
   .lightbox .cap{color:#cfe0dd;font-size:13px;text-align:center;max-width:600px}
@@ -501,8 +513,10 @@
     <button class="tlink" id="exportBtn">Exporter tout</button>
     <button class="tlink" id="importBtn">Importer</button>
     <button class="tlink" id="aiBtn">✨ Créer via IA</button>
+    <button class="tlink" id="acctBtn">Compte</button>
     </div>
     <div class="storage-gauge" id="storageInfo"></div>
+    <div class="sync-chip" id="syncChip" hidden></div>
     <input type="file" id="importFile" accept="application/json" hidden></footer>
 </div>
 <div id="screenFlash"></div>
@@ -523,6 +537,11 @@
   <div class="ai-top"><h3>Gérer les catégories</h3><button class="ai-x" id="catX" aria-label="Fermer">×</button></div>
   <div id="catMgrBody"></div>
 </div></div>
+<div class="ai-modal" id="authModal"><div class="ai-card">
+  <div class="ai-top"><h3>Compte &amp; synchronisation</h3><button class="ai-x" id="authX" aria-label="Fermer">×</button></div>
+  <div id="authBody"></div>
+  <p class="ai-note">La synchronisation rend votre bibliothèque accessible sur tous vos appareils. L'application reste pleinement utilisable hors-ligne et sans compte.</p>
+</div></div>
 
 <script>
 /* =====================================================================
@@ -535,7 +554,7 @@
 
 /* PALETTE : couleurs proposées pour les catégories (hex sombres, lisibles
    en texte comme en pastille teintée). Index réutilisé cycliquement. */
-const APP_VERSION='2.3.7';
+const APP_VERSION='3.0.0-dev';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 const PALETTE=['#b23052','#823a32','#b5532a','#a26a42','#8a6a12','#4f6b1e','#1f7a4d','#0d5b56','#007fb1','#45556b','#1f5fa6','#4b3fa6','#8869af','#7a2f6b','#ad5e7e'];
 /* ===== Backends =====
@@ -1873,6 +1892,75 @@ document.getElementById('importFile').onchange=e=>{const file=e.target.files[0];
     const openId=pendingOpenImport&&added.length?added[added.length-1]:null;pendingOpenImport=false;
     if(openId)openRead(openId);else{state.view='library';render();}}catch(err){pendingOpenImport=false;alert('Fichier illisible.');}};
   r.readAsText(file);e.target.value='';};
+
+/* ===== Compte & synchronisation (Supabase) =====
+   Authentification par CODE e-mail (OTP) via l'API GoTrue, en `fetch` direct (AUCUNE
+   librairie tierce -> on préserve le mono-fichier hors-ligne et une surface d'attaque
+   minimale). La clé `publishable` ci-dessous est PUBLIQUE par conception : la sécurité
+   repose sur les politiques RLS côté serveur, jamais sur ce client. Ce lot gère uniquement
+   la SESSION (connexion/déconnexion) ; la synchro des données arrive au lot suivant.
+   Tout est OPTIONNEL : déconnecté, l'app fonctionne exactement comme aujourd'hui (local). */
+const SUPA={url:'https://xhvgiwcxaqcnacuiovhh.supabase.co',key:'sb_publishable_X6kvCMh6XiCvKQEOc1c0PQ_BrMZDIQd'};
+const Auth={
+  session:null,
+  _load(){try{this.session=JSON.parse(localStorage.getItem('ac-auth')||'null');}catch(e){this.session=null;}},
+  _save(){try{this.session?localStorage.setItem('ac-auth',JSON.stringify(this.session)):localStorage.removeItem('ac-auth');}catch(e){}},
+  user(){return (this.session&&this.session.user)||null;},
+  signedIn(){return !!(this.session&&this.session.access_token);},
+  token(){return (this.session&&this.session.access_token)||SUPA.key;},
+  // apikey = clé publishable (toujours) ; Authorization = jeton utilisateur si connecté, sinon la clé (rôle anon).
+  headers(extra){return Object.assign({'apikey':SUPA.key,'Authorization':'Bearer '+this.token(),'Content-Type':'application/json'},extra||{});},
+  async _post(path,body){const r=await fetch(SUPA.url+path,{method:'POST',headers:this.headers(),body:JSON.stringify(body)});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.msg||j.error_description||j.error||('HTTP '+r.status));return j;},
+  _setSession(j){if(!j||!j.access_token)return;this.session={access_token:j.access_token,refresh_token:j.refresh_token,expires_at:j.expires_at||(Math.floor(Date.now()/1000)+(j.expires_in||3600)),user:j.user};this._save();},
+  async sendCode(email){await this._post('/auth/v1/otp',{email:email,create_user:true});},
+  async verifyCode(email,code){const j=await this._post('/auth/v1/verify',{type:'email',email:email,token:code});this._setSession(j);return j;},
+  async refresh(){if(!this.session||!this.session.refresh_token)return false;try{const r=await fetch(SUPA.url+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:this.headers(),body:JSON.stringify({refresh_token:this.session.refresh_token})});const j=await r.json().catch(()=>({}));if(!r.ok)throw 0;this._setSession(j);return true;}catch(e){await this.signOut();return false;}},
+  // Rafraîchit le jeton s'il expire dans <60 s. À appeler avant tout appel synchronisé (lot suivant).
+  async ensureFresh(){if(!this.signedIn())return false;const now=Math.floor(Date.now()/1000);if(this.session.expires_at&&this.session.expires_at-now<60)return this.refresh();return true;},
+  async signOut(){const tok=this.session&&this.session.access_token;this.session=null;this._save();if(tok){try{await fetch(SUPA.url+'/auth/v1/logout',{method:'POST',headers:{'apikey':SUPA.key,'Authorization':'Bearer '+tok}});}catch(e){}}}
+};
+// Pastille d'état : discrète, jamais bloquante. Connecté -> visible ; déconnecté -> masquée (app locale comme avant).
+function setSyncChip(state,text){const chip=document.getElementById('syncChip');if(!chip)return;
+  if(!Auth.signedIn()){chip.hidden=true;return;}
+  chip.hidden=false;chip.className='sync-chip '+(state||'ok');chip.textContent=text||'Connecté';}
+// État local de la fenêtre Compte (étape e-mail -> code).
+let _authStep={mode:'email',email:'',msg:'',msgcls:''};
+function renderAuth(){const body=document.getElementById('authBody');if(!body)return;
+  if(Auth.signedIn()){const u=Auth.user()||{};
+    body.innerHTML=`<p class="auth-who">Connecté : <b>${esc(u.email||'')}</b></p>
+      <p class="auth-msg ok">La synchronisation multi-appareils sera activée à l'étape suivante.</p>
+      <div class="auth-row"><button class="btn sm" id="authOut">Se déconnecter</button></div>`;
+    body.querySelector('#authOut').onclick=async()=>{await Auth.signOut();_authStep={mode:'email',email:'',msg:'',msgcls:''};renderAuth();setSyncChip();};
+    return;}
+  if(_authStep.mode==='email'){
+    body.innerHTML=`<p>Recevez un <b>code à 6 chiffres</b> par e-mail pour vous connecter ou créer votre compte.</p>
+      <input class="auth-field" id="authEmail" type="email" inputmode="email" autocomplete="email" placeholder="votre e-mail" value="${esc(_authStep.email)}">
+      <div class="auth-row"><button class="btn primary sm" id="authSend">Recevoir le code</button></div>
+      <p class="auth-msg ${_authStep.msgcls}">${esc(_authStep.msg)}</p>`;
+    const send=body.querySelector('#authSend');
+    send.onclick=async()=>{const email=(body.querySelector('#authEmail').value||'').trim();if(!email||email.indexOf('@')<1){_authStep.msg='E-mail invalide.';_authStep.msgcls='err';return renderAuth();}
+      _authStep.email=email;_authStep.msg='Envoi du code…';_authStep.msgcls='';renderAuth();
+      try{await Auth.sendCode(email);_authStep.mode='code';_authStep.msg='';renderAuth();}
+      catch(e){_authStep.msg='Échec de l\'envoi : '+e.message;_authStep.msgcls='err';renderAuth();}};
+  }else{
+    body.innerHTML=`<p>Un code a été envoyé à <b>${esc(_authStep.email)}</b>. Saisissez-le :</p>
+      <input class="auth-field" id="authCode" inputmode="numeric" autocomplete="one-time-code" placeholder="code à 6 chiffres">
+      <div class="auth-row"><button class="btn primary sm" id="authVerify">Valider</button><button class="tlink" id="authBack">Changer d'e-mail</button></div>
+      <p class="auth-msg ${_authStep.msgcls}">${esc(_authStep.msg)}</p>`;
+    body.querySelector('#authBack').onclick=()=>{_authStep.mode='email';_authStep.msg='';renderAuth();};
+    const v=body.querySelector('#authVerify');
+    v.onclick=async()=>{const code=(body.querySelector('#authCode').value||'').replace(/\D/g,'');if(!code){_authStep.msg='Saisissez le code reçu.';_authStep.msgcls='err';return renderAuth();}
+      _authStep.msg='Vérification…';_authStep.msgcls='';renderAuth();
+      try{await Auth.verifyCode(_authStep.email,code);_authStep.msg='';renderAuth();setSyncChip();}
+      catch(e){_authStep.msg='Code invalide ou expiré.';_authStep.msgcls='err';renderAuth();}};
+  }}
+const authModal=document.getElementById('authModal');
+function openAuth(){authModal.classList.add('on');renderAuth();}
+function closeAuth(){authModal.classList.remove('on');}
+document.getElementById('acctBtn').onclick=openAuth;
+document.getElementById('authX').onclick=closeAuth;
+authModal.onclick=e=>{if(e.target===authModal)closeAuth();};
+Auth._load();setSyncChip();
 
 /* ===== PWA =====
    Enregistre le service worker (cache hors ligne) si disponible. Capte
