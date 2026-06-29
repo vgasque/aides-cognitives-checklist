@@ -50,11 +50,45 @@ Ouvrez index.html : l'app fonctionne hors ligne et enregistre vos fiches. Seuls
 l'installation et la mise en cache automatique nécessitent l'https.
 
 ## Données & synchronisation
-Tout est stocké localement, par appareil. Pas de synchronisation automatique entre
-appareils : utilisez Exporter / Importer (JSON, en bas) pour sauvegarder et transférer
-iPhone ↔ ordinateur. On peut exporter **toute la bibliothèque** ou **une seule fiche**
-(depuis la fiche). (Les sessions ne sont pas incluses dans l'export, étant liées à un
-usage en cours sur l'appareil.)
+Par défaut, tout est stocké **localement, par appareil** : l'application fonctionne
+entièrement hors-ligne et **sans compte**. Pour transférer sans cloud, utilisez
+Exporter / Importer (JSON, en bas) : **toute la bibliothèque** ou **une seule fiche**
+(depuis la fiche). (Les sessions ne sont pas incluses dans l'export.)
+
+**Synchronisation multi-appareils (optionnelle).** En vous connectant (bouton **Compte**),
+votre bibliothèque personnelle devient accessible sur tous vos appareils. Le principe reste
+**local-first** : IndexedDB demeure la source de vérité, le cloud n'est qu'un miroir ;
+l'application reste pleinement utilisable hors-ligne, et la synchro se fait en arrière-plan
+sans jamais interrompre l'usage. En cas de modification concurrente sur deux appareils, la
+version la plus récente est appliquée et **la précédente est conservée** (bouton « Versions »
+dans la fiche, pour comparer/restaurer). L'activation requiert une configuration unique
+décrite ci-dessous.
+
+## Activer la synchronisation (installation, une seule fois)
+La synchro s'appuie sur **Supabase** (base + authentification, offre gratuite) et un service
+d'envoi d'e-mails **Brevo** (gratuit) pour les codes de connexion. À faire une fois par le
+responsable de l'instance :
+
+1. **Créer un projet Supabase** (région UE/Francfort conseillée). À l'écran *Security* :
+   *Enable Data API* coché, *Auto-expose new tables* **décoché**, *Enable automatic RLS* coché.
+2. **Exécuter le schéma** : SQL Editor → coller le contenu de [`supabase/schema.sql`](supabase/schema.sql) → Run.
+   (Crée les tables, la sécurité par ligne *RLS*, les rôles et les bibliothèques partagées.)
+3. **Brancher l'envoi d'e-mails (Brevo)** — nécessaire pour recevoir les codes de connexion :
+   - Créer un compte gratuit sur brevo.com, **vérifier une adresse expéditrice** (un e-mail à
+     vous suffit, aucun domaine requis), puis générer une **clé SMTP** (menu *SMTP & API*).
+   - Dans Supabase → *Authentication → Emails → SMTP Settings* → activer **Custom SMTP** :
+     hôte `smtp-relay.brevo.com`, port `587`, login et clé SMTP Brevo, adresse expéditrice vérifiée.
+   - Puis *Authentication → Emails → modèle « Magic Link »* : insérer le code à 6 chiffres avec
+     la variable `{{ .Token }}` (ex. `<p>Votre code : {{ .Token }}</p>`).
+4. **Renseigner les identifiants dans l'app** : dans `index.html`, la constante `SUPA`
+   (`url` + `key` *publishable*, publique par conception) pointe vers votre projet.
+5. **Se nommer administrateur** (pour créer des bibliothèques partagées) : se connecter une fois
+   dans l'app, puis exécuter le petit `insert into app_admins …` indiqué en bas de `schema.sql`.
+
+Côté utilisateur, il suffit ensuite d'ouvrir l'app, **Compte → Recevoir le code**, saisir le
+code reçu par e-mail. Sécurité : l'isolation des données (espace personnel vs bibliothèques
+partagées, rôles lecture/édition) est imposée **côté serveur** par les politiques RLS, jamais
+par le navigateur.
 
 ## Note son
 La première alerte sonore nécessite une interaction (démarrer un minuteur) pour activer

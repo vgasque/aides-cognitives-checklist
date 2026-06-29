@@ -463,6 +463,11 @@
   .auth-msg{font-size:13px;margin:8px 0 0;min-height:18px}
   .auth-msg.err{color:var(--verify)}.auth-msg.ok{color:var(--primary)}
   .auth-who{font-size:14px;margin:2px 0 10px}.auth-who b{color:var(--primary)}
+  /* Toast non bloquant (notifications de synchro/conflit) : n'interrompt jamais l'usage. */
+  .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translate(-50%,16px);max-width:min(560px,92vw);background:var(--ink);color:#fff;font-size:13.5px;line-height:1.5;padding:12px 15px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.28);z-index:120;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none}
+  .toast.on{opacity:1;transform:translate(-50%,0)}
+  .vers-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+  .vers-row .vt{font-size:13px;color:var(--ink-soft)}
   .lightbox{position:fixed;inset:0;background:rgba(16,32,30,.92);z-index:100;display:none;align-items:center;justify-content:center;padding:20px;flex-direction:column;gap:14px}
   .lightbox.on{display:flex}.lightbox img{max-width:100%;max-height:82vh;border-radius:8px}
   .lightbox .cap{color:#cfe0dd;font-size:13px;text-align:center;max-width:600px}
@@ -541,6 +546,11 @@
   <div class="ai-top"><h3>Compte &amp; synchronisation</h3><button class="ai-x" id="authX" aria-label="Fermer">×</button></div>
   <div id="authBody"></div>
   <p class="ai-note">La synchronisation rend votre bibliothèque accessible sur tous vos appareils. L'application reste pleinement utilisable hors-ligne et sans compte.</p>
+</div></div>
+<div class="ai-modal" id="versModal"><div class="ai-card">
+  <div class="ai-top"><h3>Versions précédentes</h3><button class="ai-x" id="versX" aria-label="Fermer">×</button></div>
+  <div id="versBody"></div>
+  <p class="ai-note">Sauvegardes locales créées avant qu'une version venue d'un autre appareil ne remplace la vôtre. Restaurer remplace la fiche actuelle par la version choisie.</p>
 </div></div>
 
 <script>
@@ -843,7 +853,9 @@ async function load(){
   await chooseBackend();
   if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();
   categories=sanitizeCats(await Data.getCats());
-  fiches=(await Data.getAll()).map(migrate);
+  // On masque les TOMBSTONES (suppressions douces) de l'affichage ; ils restent dans IDB tant
+  // qu'ils n'ont pas été poussés vers le cloud (propagation de la suppression aux autres appareils).
+  fiches=(await Data.getAll()).map(migrate).filter(f=>!f.deletedAt);
   sessions=(await Data.getSessions())||[];
   if(!categories.length){categories=defaultCats();await Data.setCats(categories);}
   if(!fiches.length){const f=seed(categories[0]?categories[0].id:'');fiches=[f];await Data.put(f);}
@@ -851,6 +863,8 @@ async function load(){
   restoreLiveSessions();
   render();
   updateStorageInfo();
+  // Données prêtes (backend choisi) : on lance une première synchro si l'utilisateur est connecté.
+  if(typeof Sync!=='undefined'&&Auth.signedIn())Sync.full();
 }
 // Au chargement, on reconstruit les sessions VIVES (live=true) en runtimes (minuteurs en pause :
 // le temps app fermée n'est pas rattrapé). Elles réapparaissent dans « Sessions en cours ».
@@ -859,8 +873,17 @@ function restoreLiveSessions(){sessions.filter(s=>s.live).forEach(s=>{const f=fi
 window.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')persistAllLive();else{try{if(AC&&AC.state!=='running')AC.resume();}catch(e){}}});
 window.addEventListener('pagehide',persistAllLive);
 window.addEventListener('beforeunload',persistAllLive);
-async function saveCats(){try{await Data.setCats(categories);}catch(e){}}
-async function persist(f){try{f.updatedAt=Date.now();f.dirty=true;await Data.put(f);updateStorageInfo();return true;}catch(e){alert('Stockage saturé. Exportez vos fiches puis allégez les images.');return false;}}
+async function saveCats(){try{await Data.setCats(categories);}catch(e){}
+  // Horodatage + marqueur "à pousser" pour la synchro des catégories (document unique par périmètre).
+  try{localStorage.setItem('ac-cats-updated',String(Date.now()));localStorage.setItem('ac-cats-dirty','1');}catch(e){}
+  if(typeof Sync!=='undefined')Sync.schedule();}
+async function persist(f){try{f.updatedAt=Date.now();f.dirty=true;await Data.put(f);updateStorageInfo();if(typeof Sync!=='undefined')Sync.schedule();return true;}catch(e){alert('Stockage saturé. Exportez vos fiches puis allégez les images.');return false;}}
+// Suppression : DOUCE (tombstone) si connecté -> propage l'effacement aux autres appareils, purgée
+// localement une fois poussée (Sync._push). Si DÉCONNECTÉ : suppression DURE (aucun cloud à informer
+// -> pas de tombstone inutile qui encombrerait le stockage hors-ligne ; comportement identique à avant).
+async function softDelete(f){if(!f)return;
+  if(typeof Auth==='undefined'||!Auth.signedIn()){try{await Data.del(f.id);}catch(e){}return;}
+  f.deletedAt=Date.now();f.updatedAt=Date.now();f.dirty=true;try{await Data.put(f);}catch(e){}if(typeof Sync!=='undefined')Sync.schedule();}
 
 /* ===== Runtime (minuteurs, compteurs, audio) =====
    freshRuntime(f, session) : (re)construit l'état vivant pour la fiche f. Si une
@@ -1451,13 +1474,14 @@ function renderRead(){
     ${staticBlock('Ne pas oublier','h-forget',f.notForget,'forget',true)}
     ${staticBlock('Diagnostics différentiels','h-diff',f.differentials,'diff')}
     ${refs.length?`<div class="refs"><b>Références</b><ol>${refs.map(r=>`<li>${esc(r)}</li>`).join('')}</ol></div>`:''}
-    <div class="read-tools"><div class="read-tools-h">Gérer cette fiche</div><div class="read-tools-btns"><button class="btn sm" id="edit">Modifier</button><button class="btn sm" id="print">Imprimer</button><button class="btn sm" id="dup">Dupliquer</button><button class="btn sm" id="exportOne">Exporter</button></div></div>`;
+    <div class="read-tools"><div class="read-tools-h">Gérer cette fiche</div><div class="read-tools-btns"><button class="btn sm" id="edit">Modifier</button><button class="btn sm" id="print">Imprimer</button><button class="btn sm" id="dup">Dupliquer</button><button class="btn sm" id="exportOne">Exporter</button><button class="btn sm" id="versions">Versions</button></div></div>`;
   // Retour bibliothèque : la session reste VIVE (minuteurs continuent) et est auto-enregistrée.
   document.getElementById('back').onclick=()=>{persistAllLive();state.view='library';state.fiche=null;state.showFlow=false;render();};
   document.getElementById('edit').onclick=()=>openEdit(f.id);
   document.getElementById('print').onclick=()=>window.print();
   document.getElementById('dup').onclick=async()=>{const c=JSON.parse(JSON.stringify(f));c.id=uid();c.title=(f.title||'Fiche')+' (copie)';c.order=Date.now();if(await persist(c)){fiches.push(c);openEdit(c.id);}};
   document.getElementById('exportOne').onclick=()=>exportData([f],'fiche-'+fileSlug(f.title));
+  document.getElementById('versions').onclick=()=>openVersions(f.id);
   const ft=document.getElementById('flowToggle');if(ft)ft.onclick=()=>{state.showFlow=!state.showFlow;render();};
   // Navigation NON DESTRUCTIVE : le fil d'Ariane et Précédent/Continuer déplacent seulement un
   // CURSEUR (state.navPos) sans rien effacer -> on peut revenir en arrière puis ré-avancer en
@@ -1625,7 +1649,7 @@ async function saveDraft(){const d=state.draft;d.title=(d.title||'').trim();
   // La structure de la fiche change : on TERMINE une éventuelle session vive (archivée) pour éviter
   // une incohérence minuteurs/blocs, puis on rouvre la fiche à neuf.
   if(!(await persist(d)))return;const i=fiches.findIndex(x=>x.id===d.id);if(i>=0)fiches[i]=d;else fiches.push(d);if(liveSessions[d.id])endSession(liveSessions[d.id]);state.draft=null;state.catMgr=false;resetRuntime();openRead(d.id);}
-async function deleteDraft(){if(!confirm('Supprimer cette fiche définitivement ?'))return;const id=state.draft.id;await Data.del(id);const rel=sessions.filter(s=>s.ficheId===id);for(const s of rel)await Data.delSession(s.id);sessions=sessions.filter(s=>s.ficheId!==id);if(liveSessions[id])delete liveSessions[id];fiches=fiches.filter(x=>x.id!==id);state.draft=null;state.catMgr=false;resetRuntime();state.view='library';render();}
+async function deleteDraft(){if(!confirm('Supprimer cette fiche définitivement ?'))return;const id=state.draft.id;const f=fiches.find(x=>x.id===id)||state.draft;await softDelete(f);const rel=sessions.filter(s=>s.ficheId===id);for(const s of rel)await Data.delSession(s.id);sessions=sessions.filter(s=>s.ficheId!==id);if(liveSessions[id])delete liveSessions[id];fiches=fiches.filter(x=>x.id!==id);state.draft=null;state.catMgr=false;resetRuntime();state.view='library';render();}
 
 /* ===== Navigation =====
    openRead(id) : ouvre une fiche en lecture. Conserve le Runtime si c'est la MÊME
@@ -1877,7 +1901,7 @@ document.getElementById('importFile').onchange=e=>{const file=e.target.files[0];
     // SÉCURITÉ : l'option destructive "remplacer entièrement" n'est proposée que pour un
     // import de PLUSIEURS fiches. Un import d'une seule fiche fusionne toujours (jamais d'écrasement).
     const merge=imp.fiches.length>1?confirm('Import de '+imp.fiches.length+' fiches.\n\nOK = fusionner avec votre bibliothèque.\nAnnuler = REMPLACER entièrement votre bibliothèque.'):true;
-    if(!merge){for(const f of fiches)await Data.del(f.id);fiches=[];}
+    if(!merge){for(const f of fiches)await softDelete(f);fiches=[];}
     sanitizeCats(imp.categories).forEach(c=>{if(c.id&&!categories.some(x=>x.id===c.id))categories.push(c);});await saveCats();
     // Gestion des doublons (même identifiant) en mode fusion : remplacer la version
     // existante, ou importer en double (garder les deux). En mode remplacement, pas de doublon.
@@ -1951,7 +1975,7 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
     const v=body.querySelector('#authVerify');
     v.onclick=async()=>{const code=(body.querySelector('#authCode').value||'').replace(/\D/g,'');if(!code){_authStep.msg='Saisissez le code reçu.';_authStep.msgcls='err';return renderAuth();}
       _authStep.msg='Vérification…';_authStep.msgcls='';renderAuth();
-      try{await Auth.verifyCode(_authStep.email,code);_authStep.msg='';renderAuth();setSyncChip();}
+      try{await Auth.verifyCode(_authStep.email,code);_authStep.msg='';renderAuth();setSyncChip();if(typeof Sync!=='undefined')Sync.full();}
       catch(e){_authStep.msg='Code invalide ou expiré.';_authStep.msgcls='err';renderAuth();}};
   }}
 const authModal=document.getElementById('authModal');
@@ -1961,6 +1985,125 @@ document.getElementById('acctBtn').onclick=openAuth;
 document.getElementById('authX').onclick=closeAuth;
 authModal.onclick=e=>{if(e.target===authModal)closeAuth();};
 Auth._load();setSyncChip();
+
+/* ===== Synchronisation (local-first) =====
+   IndexedDB reste la SOURCE DE VÉRITÉ ; le cloud est un miroir asynchrone. Stratégie :
+   PULL d'abord (réconciliation last-write-wins par `updatedAt`, sauvegarde de la version locale
+   en cas de divergence) puis PUSH des enregistrements `dirty`. Suppressions = tombstones.
+   Ce lot synchronise l'ESPACE PERSONNEL (library_id NULL) ; les bibliothèques partagées viendront
+   ensuite. Tout échec est silencieux côté usage (l'app reste pleinement utilisable hors-ligne). */
+// Appel REST générique vers PostgREST. Rafraîchit le jeton au besoin. Lève en cas d'erreur HTTP.
+async function rest(method,path,body,extra){await Auth.ensureFresh();
+  const r=await fetch(SUPA.url+path,{method:method,headers:Auth.headers(extra),body:body?JSON.stringify(body):undefined});
+  if(!r.ok){const t=await r.text().catch(()=>'');throw new Error('REST '+r.status+' '+String(t).slice(0,200));}
+  const ct=r.headers.get('content-type')||'';return ct.indexOf('application/json')>=0?r.json():null;}
+// Conversions fiche <-> ligne Supabase. La fiche complète est stockée en JSONB ; les colonnes
+// updated_at/deleted_at/owner/library_id (autoritatives) servent au filtrage et à la RLS.
+function ficheToRow(f,uidv){const data=Object.assign({},f);delete data.dirty;
+  return {id:f.id,owner:uidv,library_id:f.libraryId||null,data:data,
+    updated_at:new Date(f.updatedAt||Date.now()).toISOString(),
+    deleted_at:f.deletedAt?new Date(f.deletedAt).toISOString():null};}
+function ficheFromRow(row){return migrate(Object.assign({},row.data,{id:row.id,
+    updatedAt:Date.parse(row.updated_at)||Date.now(),
+    deletedAt:row.deleted_at?Date.parse(row.deleted_at):null,
+    ownerId:row.owner||null,libraryId:row.library_id||null}));}
+// Toast NON BLOQUANT : informe sans jamais interrompre l'usage (principe app critique).
+function toast(msg,ms){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);
+  requestAnimationFrame(()=>t.classList.add('on'));setTimeout(()=>{t.classList.remove('on');setTimeout(()=>t.remove(),300);},ms||4500);}
+function notifyConflicts(list){if(!list.length)return;
+  toast('⚠ '+list.length+' fiche'+(list.length>1?'s':'')+' modifiée'+(list.length>1?'s':'')+' sur un autre appareil. Version la plus récente appliquée ; votre version précédente est conservée (bouton « Versions » dans la fiche).',9000);}
+const Sync={
+  running:false,_pt:null,_cursorKey:'ac-sync-cursor',
+  online(){return navigator.onLine!==false;},
+  // Débounce : regroupe les écritures rapprochées en une seule synchro.
+  schedule(){if(!Auth.signedIn())return;clearTimeout(this._pt);this._pt=setTimeout(()=>this.full(),900);},
+  async full(){
+    if(!Auth.signedIn()||!this.online()||this.running){if(!this.online())setSyncChip('off','Hors-ligne');return;}
+    this.running=true;setSyncChip('busy','Synchro…');
+    try{await Auth.ensureFresh();
+      await this._initIfNeeded();
+      const conflicts=await this._pull();
+      await this._push();
+      await this._syncCats();
+      setSyncChip('ok','Synchronisé');
+      notifyConflicts(conflicts);
+    }catch(e){setSyncChip('err','Erreur de synchro');}
+    finally{this.running=false;}
+  },
+  // Première synchro pour ce compte : si le cloud est VIDE, on téléverse la bibliothèque locale
+  // existante (on la marque `dirty`). S'il contient déjà des données, on n'écrase rien (on adopte
+  // le cloud ; le PULL apportera tout). Évite de polluer le cloud avec la fiche d'exemple.
+  async _initIfNeeded(){const uidv=Auth.user().id;const k='ac-sync-init-'+uidv;if(localStorage.getItem(k))return;
+    const peek=await rest('GET','/rest/v1/fiches?select=id&library_id=is.null&limit=1')||[];
+    if(!peek.length){const all=await Data.getAll();for(const f of all){if(!f.libraryId&&!f.deletedAt){f.dirty=true;await Data.put(f);}}
+      try{localStorage.setItem('ac-cats-dirty','1');if(!localStorage.getItem('ac-cats-updated'))localStorage.setItem('ac-cats-updated',String(Date.now()));}catch(e){}}
+    localStorage.setItem(k,'1');},
+  async _pull(){
+    const cur=localStorage.getItem(this._cursorKey);
+    // Recouvrement de 2 s + application idempotente (LWW) -> aucun enregistrement manqué aux bornes.
+    const since=cur?new Date((Date.parse(cur)||0)-2000).toISOString():'1970-01-01T00:00:00Z';
+    const rows=await rest('GET','/rest/v1/fiches?select=*&library_id=is.null&updated_at=gt.'+encodeURIComponent(since)+'&order=updated_at.asc')||[];
+    let maxTs=cur?Date.parse(cur):0;const conflicts=[];
+    const localAll=await Data.getAll();const byId={};localAll.forEach(f=>byId[f.id]=f);
+    for(const row of rows){const rts=Date.parse(row.updated_at)||0;if(rts>maxTs)maxTs=rts;
+      const local=byId[row.id];
+      if(row.deleted_at){if(local){await Data.del(row.id);const i=fiches.findIndex(x=>x.id===row.id);if(i>=0)fiches.splice(i,1);}continue;}
+      if(!local){const nf=ficheFromRow(row);await Data.put(nf);if(!nf.deletedAt)fiches.push(nf);continue;}
+      if(rts>(local.updatedAt||0)){
+        if(local.dirty){ // divergence locale ET distante -> conflit : on conserve la version locale
+          try{await Data.putBackup({bid:uid('bk'),ficheId:local.id,at:Date.now(),data:JSON.parse(JSON.stringify(local))});}catch(e){}
+          conflicts.push(local.title||local.id);}
+        const nf=ficheFromRow(row);await Data.put(nf);const i=fiches.findIndex(x=>x.id===row.id);if(i>=0)fiches[i]=nf;else if(!nf.deletedAt)fiches.push(nf);
+      } // sinon local plus récent/identique -> on garde (sera poussé si dirty)
+    }
+    if(maxTs)localStorage.setItem(this._cursorKey,new Date(maxTs).toISOString());
+    if(rows.length)render();
+    return conflicts;},
+  async _push(){
+    const all=await Data.getAll();const dirty=all.filter(f=>f.dirty&&!f.libraryId); // perso uniquement (ce lot)
+    if(!dirty.length)return;const uidv=Auth.user().id;
+    const rows=dirty.map(f=>ficheToRow(f,uidv));
+    await rest('POST','/rest/v1/fiches',rows,{'Prefer':'resolution=merge-duplicates,return=minimal'});
+    for(const f of dirty){if(f.deletedAt){await Data.del(f.id);} // tombstone poussé -> purge locale (espace récupéré)
+      else{f.dirty=false;await Data.put(f);}}},
+  async _syncCats(){
+    const uidv=Auth.user().id;const sk='personal:'+uidv;
+    const localTs=+(localStorage.getItem('ac-cats-updated')||0);
+    const dirty=localStorage.getItem('ac-cats-dirty')==='1';
+    const rows=await rest('GET','/rest/v1/category_sets?select=*&scope_key=eq.'+encodeURIComponent(sk))||[];
+    const remote=rows[0];
+    if(remote){const rts=Date.parse(remote.updated_at)||0;
+      if(rts>localTs){categories=sanitizeCats(remote.data&&remote.data.categories);await Data.setCats(categories);
+        try{localStorage.setItem('ac-cats-updated',String(rts));localStorage.removeItem('ac-cats-dirty');}catch(e){}
+        render();return;}}
+    if(dirty||!remote){const now=localTs||Date.now();
+      const row={scope_key:sk,owner:uidv,library_id:null,data:{categories:categories},updated_at:new Date(now).toISOString()};
+      await rest('POST','/rest/v1/category_sets',[row],{'Prefer':'resolution=merge-duplicates,return=minimal'});
+      try{localStorage.removeItem('ac-cats-dirty');}catch(e){}}}
+};
+// Déclencheurs de synchro : retour en ligne, retour au premier plan.
+window.addEventListener('online',()=>{setSyncChip('ok','Synchronisé');Sync.full();});
+window.addEventListener('offline',()=>setSyncChip('off','Hors-ligne'));
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')Sync.schedule();});
+
+/* ===== Versions précédentes (réversibilité) ===== */
+const versModal=document.getElementById('versModal');let _versFiche=null;
+async function openVersions(ficheId){_versFiche=ficheId;versModal.classList.add('on');await renderVersions();}
+function closeVersions(){versModal.classList.remove('on');}
+async function renderVersions(){const body=document.getElementById('versBody');if(!body)return;
+  let list=[];try{list=await Data.getBackups(_versFiche);}catch(e){}
+  list=(list||[]).sort((a,b)=>(b.at||0)-(a.at||0));
+  if(!list.length){body.innerHTML='<p class="auth-msg">Aucune version précédente conservée pour cette fiche.</p>';return;}
+  body.innerHTML=list.map(b=>`<div class="vers-row"><span class="vt">${esc(new Date(b.at).toLocaleString('fr-FR'))}</span><span><button class="btn sm" data-restore="${esc(b.bid)}">Restaurer</button></span></div>`).join('');
+  body.querySelectorAll('[data-restore]').forEach(btn=>btn.onclick=async()=>{
+    const b=list.find(x=>x.bid===btn.dataset.restore);if(!b||!b.data)return;
+    if(!confirm('Restaurer cette version ? La fiche actuelle sera remplacée (et sauvegardée à son tour).'))return;
+    const cur=fiches.find(x=>x.id===_versFiche);if(cur){try{await Data.putBackup({bid:uid('bk'),ficheId:_versFiche,at:Date.now(),data:JSON.parse(JSON.stringify(cur))});}catch(e){}}
+    const restored=migrate(Object.assign({},b.data,{id:_versFiche}));
+    if(await persist(restored)){const i=fiches.findIndex(x=>x.id===_versFiche);if(i>=0)fiches[i]=restored;else fiches.push(restored);}
+    closeVersions();if(state.fiche&&state.fiche.id===_versFiche)state.fiche=restored;render();});}
+document.getElementById('versX').onclick=closeVersions;
+versModal.onclick=e=>{if(e.target===versModal)closeVersions();};
 
 /* ===== PWA =====
    Enregistre le service worker (cache hors ligne) si disponible. Capte
