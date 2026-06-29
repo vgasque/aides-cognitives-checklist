@@ -1952,12 +1952,13 @@ let _authStep={mode:'email',email:'',msg:'',msgcls:''};
 function renderAuth(){const body=document.getElementById('authBody');if(!body)return;
   if(Auth.signedIn()){const u=Auth.user()||{};
     body.innerHTML=`<p class="auth-who">Connecté : <b>${esc(u.email||'')}</b></p>
-      <p class="auth-msg ok">La synchronisation multi-appareils sera activée à l'étape suivante.</p>
-      <div class="auth-row"><button class="btn sm" id="authOut">Se déconnecter</button></div>`;
-    body.querySelector('#authOut').onclick=async()=>{await Auth.signOut();_authStep={mode:'email',email:'',msg:'',msgcls:''};renderAuth();setSyncChip();};
+      <p class="auth-msg ok">Synchronisation multi-appareils active : votre bibliothèque personnelle est sauvegardée et accessible sur vos autres appareils connectés au même compte.</p>
+      <div class="auth-row"><button class="btn primary sm" id="authSync">Synchroniser maintenant</button><button class="btn sm" id="authOut">Se déconnecter</button></div>`;
+    body.querySelector('#authSync').onclick=()=>{Sync.full();closeAuth();};
+    body.querySelector('#authOut').onclick=async()=>{if(!confirm('Se déconnecter ? Vos fiches restent disponibles localement sur cet appareil.'))return;await Auth.signOut();_authStep={mode:'email',email:'',msg:'',msgcls:''};renderAuth();setSyncChip();};
     return;}
   if(_authStep.mode==='email'){
-    body.innerHTML=`<p>Recevez un <b>code à 6 chiffres</b> par e-mail pour vous connecter ou créer votre compte.</p>
+    body.innerHTML=`<p>Recevez un <b>code par e-mail</b> pour vous connecter ou créer votre compte.</p>
       <input class="auth-field" id="authEmail" type="email" inputmode="email" autocomplete="email" placeholder="votre e-mail" value="${esc(_authStep.email)}">
       <div class="auth-row"><button class="btn primary sm" id="authSend">Recevoir le code</button></div>
       <p class="auth-msg ${_authStep.msgcls}">${esc(_authStep.msg)}</p>`;
@@ -1968,7 +1969,7 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
       catch(e){_authStep.msg='Échec de l\'envoi : '+e.message;_authStep.msgcls='err';renderAuth();}};
   }else{
     body.innerHTML=`<p>Un code a été envoyé à <b>${esc(_authStep.email)}</b>. Saisissez-le :</p>
-      <input class="auth-field" id="authCode" inputmode="numeric" autocomplete="one-time-code" placeholder="code à 6 chiffres">
+      <input class="auth-field" id="authCode" inputmode="numeric" autocomplete="one-time-code" placeholder="code reçu par e-mail">
       <div class="auth-row"><button class="btn primary sm" id="authVerify">Valider</button><button class="tlink" id="authBack">Changer d'e-mail</button></div>
       <p class="auth-msg ${_authStep.msgcls}">${esc(_authStep.msg)}</p>`;
     body.querySelector('#authBack').onclick=()=>{_authStep.mode='email';_authStep.msg='';renderAuth();};

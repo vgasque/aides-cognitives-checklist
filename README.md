@@ -78,8 +78,13 @@ responsable de l'instance :
      vous suffit, aucun domaine requis), puis générer une **clé SMTP** (menu *SMTP & API*).
    - Dans Supabase → *Authentication → Emails → SMTP Settings* → activer **Custom SMTP** :
      hôte `smtp-relay.brevo.com`, port `587`, login et clé SMTP Brevo, adresse expéditrice vérifiée.
-   - Puis *Authentication → Emails → modèle « Magic Link »* : insérer le code à 6 chiffres avec
-     la variable `{{ .Token }}` (ex. `<p>Votre code : {{ .Token }}</p>`).
+   - Désactiver *Authentication → Providers → Email → « Confirm email »* (pour une connexion par
+     code, saisir le code prouve déjà la possession de l'adresse ; évite l'e-mail de confirmation).
+   - Puis *Authentication → Emails → modèles « Magic Link » **et** « Confirm signup »* : insérer le
+     code de connexion avec la variable `{{ .Token }}` (ex. `<p>Votre code : {{ .Token }}</p>`).
+   - Si vous utilisez un SMTP grand public (ex. **Gmail** : hôte `smtp.gmail.com`, port `587`,
+     « mot de passe d'application »), l'expéditeur doit être votre propre adresse — les services
+     type Brevo refusent d'envoyer « au nom » d'un domaine Gmail/Outlook sans domaine vérifié.
 4. **Renseigner les identifiants dans l'app** : dans `index.html`, la constante `SUPA`
    (`url` + `key` *publishable*, publique par conception) pointe vers votre projet.
 5. **Se nommer administrateur** (pour créer des bibliothèques partagées) : se connecter une fois
