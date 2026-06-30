@@ -149,6 +149,26 @@ grant execute on function public.is_member(text)  to authenticated;
 grant execute on function public.member_role(text) to authenticated;
 -- public.app_admins : volontairement AUCUN grant.
 
+-- ---------- 5bis. Invitation d'un membre par e-mail (Lot 3) -----------------
+-- Recherche un compte par e-mail (table auth.users protégée) et lui attribue un rôle.
+-- Réservé à un admin de la bibliothèque (ou app-admin). L'invité doit s'être connecté
+-- au moins une fois (compte existant) ; sinon retourne 'not_found'.
+create or replace function public.invite_member(p_library text, p_email text, p_role text default 'viewer')
+returns text language plpgsql security definer set search_path = public as $$
+declare v_uid uuid;
+begin
+  if not (public.member_role(p_library) = 'admin' or public.is_app_admin()) then
+    raise exception 'not allowed';
+  end if;
+  if p_role not in ('viewer','editor','admin') then p_role := 'viewer'; end if;
+  select id into v_uid from auth.users where lower(email) = lower(trim(p_email));
+  if v_uid is null then return 'not_found'; end if;
+  insert into public.memberships(user_id, library_id, role) values (v_uid, p_library, p_role)
+    on conflict (user_id, library_id) do update set role = excluded.role;
+  return 'ok';
+end;$$;
+grant execute on function public.invite_member(text,text,text) to authenticated;
+
 -- ---------- 6. Recharge du cache PostgREST ----------------------------------
 notify pgrst, 'reload schema';
 
