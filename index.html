@@ -747,18 +747,20 @@
 const APP_VERSION='3.0.0-dev';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 const PALETTE=['#b23052','#823a32','#b5532a','#a26a42','#8a6a12','#4f6b1e','#1f7a4d','#0d5b56','#007fb1','#45556b','#1f5fa6','#4b3fa6','#8869af','#7a2f6b','#ad5e7e'];
-/* ===== Backends =====
-   Quatre implémentations interchangeables exposant la MÊME interface.
+/* ===== Backends (stockage LOCAL) =====
+   Trois implémentations interchangeables exposant la MÊME interface.
    `Data` (plus bas) pointera vers celle retenue par chooseBackend().
    - MEM : repli mémoire (perdu au rechargement).
    - KV  : clé-valeur sérialisé en JSON (window.storage de l'hôte, sinon
-           localStorage, sinon MEM). Clés : fiches_v1 / cats_v1 / sessions_v1.
-   - IDB : IndexedDB 'ac-db' v3, stores 'fiches'(keyPath id), 'meta'
-           (catégories sous la clé 'categories'), 'sessions'(keyPath id).
-   Méthodes communes : getAll/put/del, getCats/setCats, getSessions/putSession/delSession. */
+           localStorage, sinon MEM). Clés : fiches_v1 / cats_v1 / sessions_v1 / backups_v1.
+   - IDB : IndexedDB 'ac-db' v4, stores 'fiches'(keyPath id), 'meta'
+           (catégories sous la clé 'categories'), 'sessions'(keyPath id),
+           'backups'(keyPath bid, index byFiche).
+   Méthodes communes : getAll/put/del, getCats/setCats,
+   getSessions/putSession/delSession, getBackups/putBackup/delBackup. */
 const MEM={};
 // Filet de sûreté (app critique) : on conserve les N dernières versions d'une fiche avant écrasement,
-// pour pouvoir comparer/restaurer. Inerte tant qu'aucune écriture de sauvegarde n'est câblée (Lot Sync).
+// pour pouvoir comparer/restaurer (écrit lors d'un CONFLIT de synchro et avant une restauration).
 const BACKUP_MAX=5;
 const KV={
   async _r(k,d){try{if(window.storage&&window.storage.get){const r=await window.storage.get(k);return r?JSON.parse(r.value):d;}}catch(e){}try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return MEM[k]?JSON.parse(MEM[k]):d;}},
@@ -805,7 +807,7 @@ let Data=KV;
      draft     = brouillon en cours d'édition (copie profonde de la fiche)
      fiche     = fiche affichée en lecture
      nav       = pile des blocs visités (fil d'Ariane / parcours guidé)
-     checked   = { 'idBloc:index': true } étapes cochées (partagé avec Runtime)
+     checked   = { 'seqVisite:idBloc:index': true } étapes cochées (partagé avec Runtime)
      catMgr/showFlow/showSess = panneaux dépliés (gestion catégories / algo / sessions)
    `Runtime` : état VIVANT d'une fiche utilisée en mode crise. Persiste tant
      qu'on reste sur la même fiche (ficheId), pour ne pas perdre des minuteurs
@@ -848,7 +850,8 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;',
 const main=document.getElementById('main');
 const clean=a=>(Array.isArray(a)?a:[]).map(s=>String(s==null?'':s).trim()).filter(Boolean);
 /* ===== Garde-fous de sécurité (assainissement des données importées/stockées) =====
-   Tout ce qui entre par import JSON (ou un stockage altéré) est NON FIABLE. On le normalise au point
+   Tout ce qui entre par import JSON, par la synchro cloud, ou via un stockage altéré est NON FIABLE.
+   On le normalise au point
    d'entrée (migrate / sanitizeCats) : types coercés, identifiants restreints à un jeu sûr (pas de
    pollution de prototype ni d'échappement d'attribut), couleurs validées, images limitées aux
    data-URI d'image reconnues. Les tailles sont plafonnées pour éviter un blocage (DoS). */
@@ -931,7 +934,7 @@ const byOrder=(a,b)=>(b.order||0)-(a.order||0);
 // Catégories TOUJOURS affichées par ordre alphabétique (filtres, sélecteur, gestionnaire), quel que
 // soit l'ordre de création/stockage. localeCompare 'fr' -> tri correct des accents.
 const byCatName=(a,b)=>(a.name||'').localeCompare(b.name||'','fr',{sensitivity:'base'});
-// Catégories PAR PÉRIMÈTRE : chaque catégorie porte un libraryId (null = Perso, sinon bibliothèque).
+// Catégories PAR BIBLIOTHÈQUE : chaque catégorie porte un libraryId (null = Perso, sinon bibliothèque).
 // Le tableau `categories` les contient toutes ; on filtre par bibliothèque pour l'affichage/édition.
 const catScope=c=>(c&&c.libraryId)||null;
 const catsForScope=scope=>categories.filter(c=>catScope(c)===(scope||null));
@@ -956,10 +959,10 @@ const fmtMs=ms=>{ms=Math.max(0,Math.floor(ms/1000));const m=Math.floor(ms/60),s=
                    en un bloc 'steps'). Appelée à chaque lecture/import.
    seed(catId)   : fiche d'exemple "Anaphylaxie peropératoire" (branchement +
                    chronomètre + minuteur à cycle + compteur) chargée au 1er lancement.
-   defaultCats() : 4 catégories par défaut.
+   defaultCats() : 8 catégories par défaut (espace Perso).
    migrateCategories() : convertit d'anciennes catégories "texte" en objets
-                   {id,name,color} et réécrit fiche.category avec l'id. Renvoie
-                   les fiches modifiées (à repersister).
+                   {id,name,color,libraryId} et réécrit fiche.category avec l'id.
+                   Renvoie les fiches modifiées (à repersister).
    Aides : hasFlow (la fiche a-t-elle un branchement ?), staleDate (validation
    de plus de 2 ans), fmtDate (libellé de date de validation). */
 function blankFiche(){const b={id:uid('b'),type:'steps',title:'Prise en charge',steps:[''],image:null,next:null};
@@ -991,7 +994,8 @@ function migrate(f){if(!f||typeof f!=='object')f={};
   f.start=mapId(f.start)||(f.blocks[0]?f.blocks[0].id:null);
   f.timers=(Array.isArray(f.timers)?f.timers:[]).slice(0,40).map(t=>({id:safeId(t&&t.id,'t'),label:sstr(t&&t.label,120),type:(t&&t.type==='interval')?'interval':'stopwatch',seconds:Math.max(0,Math.min(86400,Math.round(Number(t&&t.seconds))||0)),autoloop:!!(t&&t.autoloop)}));
   f.counters=(Array.isArray(f.counters)?f.counters:[]).slice(0,40).map(c=>({id:safeId(c&&c.id,'n'),label:sstr(c&&c.label,120),step:Math.max(1,Math.min(9999,Math.round(Number(c&&c.step))||1)),start:Math.max(0,Math.min(1e9,Math.round(Number(c&&c.start))||0))}));
-  // Métadonnées de SYNCHRONISATION (rétrocompatibles : défauts posés ici, inertes tant qu'aucun cloud).
+  // Métadonnées de SYNCHRONISATION (rétrocompatibles : défauts posés ici ; utilisées par l'objet Sync
+  // quand on est connecté, sinon simplement stockées sans effet).
   //   updatedAt : ms de dernière modif (défaut = order ou maintenant) -> résolution de conflit (last-write-wins).
   //   deletedAt : tombstone de suppression douce (null si vivante).
   //   ownerId   : uuid du créateur (null = local/perso). libraryId : id de bibliothèque partagée (null = perso).
@@ -1111,7 +1115,7 @@ window.addEventListener('visibilitychange',()=>{if(document.visibilityState==='h
 window.addEventListener('pagehide',persistAllLive);
 window.addEventListener('beforeunload',persistAllLive);
 async function saveCats(scope){try{await Data.setCats(categories);}catch(e){}
-  // Horodatage + marqueur "à pousser" PAR PÉRIMÈTRE (clé '' = Perso, sinon id de bibliothèque).
+  // Horodatage + marqueur "à pousser" PAR BIBLIOTHÈQUE (clé '' = Perso, sinon id de bibliothèque).
   const sk=(scope===undefined?activeCatScope():scope)||'';
   try{localStorage.setItem('ac-cats-updated:'+sk,String(Date.now()));localStorage.setItem('ac-cats-dirty:'+sk,'1');}catch(e){}
   if(typeof Sync!=='undefined')Sync.schedule();}
@@ -1302,10 +1306,10 @@ function renderLibrary(){
   const q=state.q.toLowerCase();
   // Si la bibliothèque sélectionnée n'existe plus (déconnexion, perte d'accès), on retombe sur Perso.
   if(state.scope&&!myLibraries.some(l=>l.id===state.scope))state.scope=null;
-  // Filtrage par PÉRIMÈTRE : Perso (libraryId vide) ou bibliothèque partagée sélectionnée.
+  // Filtrage par BIBLIOTHÈQUE : Perso (libraryId vide) ou bibliothèque partagée sélectionnée.
   const list=fiches.slice().sort(byOrder).filter(f=>(state.scope?f.libraryId===state.scope:!f.libraryId)&&(!state.cat||f.category===state.cat)&&(!q||(f.title+' '+catName(f)).toLowerCase().includes(q)));
   const chips=`<button class="catchip" data-cat="" style="${!state.cat?'background:#16211f;color:#fff;border-color:#16211f':''}">Toutes</button>`+catsSorted(state.scope).map(c=>{const col=safeColor(c.color);return `<button class="catchip${state.cat===c.id?'':' colored'}" data-cat="${esc(c.id)}" style="${state.cat===c.id?`background:${col};color:#fff;border-color:${col}`:`--catcol:${col}`}">${esc(c.name)}</button>`;}).join('')+(canEditScope(state.scope)?`<button class="catchip" id="catMgrChip" style="border-style:dashed;color:var(--ink-soft)">⚙ Gérer</button>`:'');
-  // ESPACE (visible seulement connecté) : Perso + bibliothèques partagées + création (app-admin).
+  // Barre BIBLIOTHÈQUE (visible seulement connecté) : Perso + bibliothèques partagées + création (app-admin).
   const ROLE_LBL={viewer:'lecture',editor:'édition',admin:'admin'};
   const scopeBar=Auth.signedIn()?`<div class="scopebar"><span class="scope-lbl">Bibliothèque</span><div class="chiprow">
       <button class="scopebtn${!state.scope?' on':''}" data-scope="">Perso</button>
@@ -1687,7 +1691,7 @@ function timekeeperPanel(){const ev=Runtime.events||[];const t0=ev.length?ev[0].
    une liste d'étapes cochables avec "Continuer", soit une décision avec ses
    options ; fil d'Ariane + aperçu algorithme optionnel), galerie d'images,
    à vérifier / ne pas oublier / différentiels, références, actions (modifier /
-   imprimer / dupliquer).
+   imprimer / dupliquer / exporter / versions précédentes).
    La 2e moitié de la fonction RATTACHE tous les écouteurs : navigation entre blocs
    (push/pop sur state.nav), cochage des étapes, contrôles minuteurs/compteurs
    (mise à jour DOM directe, sans render), et gestion des sessions. */
@@ -2150,7 +2154,7 @@ catModal.onclick=e=>{if(e.target===catModal)closeCatMgr();};
    2. Tout nouveau champ OBLIGATOIRE doit être ajouté dans migrate() avec une
       valeur par défaut, de façon à ce que les fiches sans ce champ restent valides.
    3. Si la structure change de façon incompatible (ex. type ou sémantique d'un
-      champ modifiée), incrémenter `version` dans exportBtn.onclick ET adapter
+      champ modifiée), incrémenter `version` dans exportData() ET adapter
       l'import pour détecter l'ancienne version et la convertir.
    4. migrate() est le point d'entrée unique de migration : elle est appelée à
       chaque lecture (getAll) et à chaque import. C'est là qu'on assure la
@@ -2426,7 +2430,7 @@ const Sync={
       else{f.dirty=false;await Data.put(f);}}},
   async _syncCats(){
     const uidv=Auth.user().id;
-    // Un document de catégories PAR PÉRIMÈTRE : Perso (clé '') + chaque bibliothèque (clé = id).
+    // Un document de catégories PAR BIBLIOTHÈQUE : Perso (clé '') + chaque bibliothèque (clé = id).
     // On ne pousse une bibliothèque que si l'on peut l'éditer ; sinon on se contente de la lire.
     const scopes=[{key:'',scopeKey:'personal:'+uidv,libraryId:null,canPush:true}]
       .concat(myLibraries.map(l=>({key:l.id,scopeKey:'lib:'+l.id,libraryId:l.id,canPush:(l.role==='editor'||l.role==='admin')})));
@@ -2436,7 +2440,7 @@ const Sync={
       const dirty=localStorage.getItem('ac-cats-dirty:'+s.key)==='1';
       let remote=null;try{const rows=await rest('GET','/rest/v1/category_sets?select=*&scope_key=eq.'+encodeURIComponent(s.scopeKey))||[];remote=rows[0];}catch(e){continue;}
       if(remote&&(Date.parse(remote.updated_at)||0)>localTs){
-        // Distant plus récent -> on remplace les catégories DE CE PÉRIMÈTRE par le set distant.
+        // Distant plus récent -> on remplace les catégories DE CETTE BIBLIOTHÈQUE par le set distant.
         const incoming=sanitizeCats(remote.data&&remote.data.categories).map(c=>{c.libraryId=s.libraryId;return c;});
         categories=categories.filter(c=>(c.libraryId||null)!==(s.libraryId||null)).concat(incoming);
         try{localStorage.setItem('ac-cats-updated:'+s.key,String(Date.parse(remote.updated_at)));localStorage.removeItem('ac-cats-dirty:'+s.key);}catch(e){}
