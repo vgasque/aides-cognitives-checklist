@@ -248,6 +248,11 @@
   .scope-ctx-i{font-size:12.5px;color:var(--ink-soft);font-weight:600}
   .linkbtn{background:none;border:0;color:var(--primary);font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:0;margin-left:auto}
   .linkbtn:hover{text-decoration:underline}
+  .caret{opacity:.7;font-size:11px}
+  .scopebtn.collapse,.catchip.collapse{font-weight:700;padding-left:11px;padding-right:11px}
+  .notice{position:relative;padding-right:34px}
+  .notice-x{position:absolute;top:6px;right:7px;background:none;border:0;color:var(--ink-soft);font-size:19px;line-height:1;cursor:pointer;padding:2px 7px;border-radius:7px}
+  .notice-x:hover{background:rgba(0,0,0,.07)}
   .ro-badge{font-size:11px;font-weight:600;color:var(--primary-dk);background:var(--primary-soft);padding:2px 8px;border-radius:10px}
   .mem-invite{margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--line)}
   .mem-act{display:flex;gap:8px;align-items:center}
@@ -698,7 +703,7 @@ let fiches=[],categories=[],sessions=[];
 // Bibliothèques partagées dont l'utilisateur est membre : [{id,name,role}]. myIsAppAdmin = peut créer
 // des bibliothèques. state.scope = périmètre affiché : null = Perso, sinon id de bibliothèque.
 let myLibraries=[],myIsAppAdmin=false;
-let state={view:'library',id:null,q:'',cat:'',scope:null,draft:null,fiche:null,nav:[],navSeq:[],navPos:0,checked:{},catMgr:false,showFlow:false,showSess:false};
+let state={view:'library',id:null,q:'',cat:'',scope:null,scopeOpen:false,catOpen:false,draft:null,fiche:null,nav:[],navSeq:[],navPos:0,checked:{},catMgr:false,showFlow:false,showSess:false};
 // Rôle/édition par périmètre. Perso (libraryId vide) = toujours éditable. Bibliothèque : éditable
 // si role editor/admin. (La RLS reste l'arbitre côté serveur ; ceci n'est que l'ergonomie.)
 function roleOf(libId){const l=myLibraries.find(x=>x.id===libId);return l?l.role:null;}
@@ -811,6 +816,7 @@ const catsForScope=scope=>categories.filter(c=>catScope(c)===(scope||null));
 const catsSorted=(scope)=>catsForScope(scope).slice().sort(byCatName);
 // Périmètre dont on gère les catégories : en édition = celui de la fiche ; sinon = périmètre affiché.
 function activeCatScope(){return state.view==='edit'?(state.draft?(state.draft.libraryId||null):null):(state.scope||null);}
+function noticeHidden(){try{return localStorage.getItem('ac-notice-hidden')==='1';}catch(e){return false;}}
 // id de catégorie : déterministe (par nom) pour le Perso (cohérence multi-appareils des défauts) ;
 // aléatoire pour une bibliothèque (le jeu de catégories est un document synchronisé unique -> pas
 // besoin de déterminisme, et on évite toute collision d'id avec le Perso ou une autre bibliothèque).
@@ -1168,21 +1174,30 @@ function renderLibrary(){
   const chips=`<button class="catchip" data-cat="" style="${!state.cat?'background:#16211f;color:#fff;border-color:#16211f':''}">Toutes</button>`+catsSorted(state.scope).map(c=>{const col=safeColor(c.color);return `<button class="catchip" data-cat="${esc(c.id)}" style="${state.cat===c.id?`background:${col};color:#fff;border-color:${col}`:`background:${col}1f;border-color:${col}88`}">${esc(c.name)}</button>`;}).join('')+(canEditScope(state.scope)?`<button class="catchip" id="catMgrChip" style="border-style:dashed;color:var(--ink-soft)">⚙ Gérer</button>`:'');
   // PÉRIMÈTRE (visible seulement connecté) : Perso + bibliothèques partagées + création (app-admin).
   const ROLE_LBL={viewer:'lecture',editor:'édition',admin:'admin'};
+  // PÉRIMÈTRE repliable : par défaut, on n'affiche que le périmètre courant ; un tap déplie la liste.
+  const curScopeName=state.scope?(libName(state.scope)||'Bibliothèque'):'Perso';
   const scopeBar=Auth.signedIn()?`<div class="scopebar"><span class="scope-lbl">Périmètre</span>
-    <button class="scopebtn${!state.scope?' on':''}" data-scope="">Perso</button>
-    ${myLibraries.map(l=>`<button class="scopebtn${state.scope===l.id?' on':''}" data-scope="${esc(l.id)}" title="Bibliothèque partagée — rôle : ${esc(ROLE_LBL[l.role]||l.role)}">${esc(l.name)}</button>`).join('')}
-    ${myIsAppAdmin?`<button class="scopebtn add" id="newLibBtn">+ Bibliothèque</button>`:''}</div>
+    ${state.scopeOpen?`<button class="scopebtn${!state.scope?' on':''}" data-scope="">Perso</button>
+      ${myLibraries.map(l=>`<button class="scopebtn${state.scope===l.id?' on':''}" data-scope="${esc(l.id)}" title="Bibliothèque partagée — rôle : ${esc(ROLE_LBL[l.role]||l.role)}">${esc(l.name)}</button>`).join('')}
+      ${myIsAppAdmin?`<button class="scopebtn add" id="newLibBtn">+ Bibliothèque</button>`:''}
+      <button class="scopebtn collapse" id="scopeCollapse" title="Replier" aria-label="Replier">▴</button>`
+    :`<button class="scopebtn on" id="scopeToggle">${esc(curScopeName)} <span class="caret">▾</span></button>`}</div>
     ${state.scope?`<div class="scope-ctx"><span class="scope-ctx-i">Bibliothèque partagée${canEditScope(state.scope)?'':' · vous êtes en lecture seule'}</span>${(roleOf(state.scope)==='admin'||myIsAppAdmin)?`<button class="linkbtn" id="membersBtn"><span>👥</span> Gérer les membres</button>`:''}</div>`:''}`:'';
+  // CATÉGORIES repliables : par défaut un résumé (filtre courant) ; un tap déplie les pastilles.
+  const curCatName=state.cat?((catsForScope(state.scope).find(c=>c.id===state.cat)||{}).name||'Catégorie'):'Toutes les catégories';
+  const catbar=state.catOpen
+    ? `<div class="catbar">${chips}<button class="catchip collapse" id="catCollapse" title="Replier" aria-label="Replier">▴</button></div>`
+    : `<div class="catbar"><button class="catchip on" id="catToggle">🔎 ${esc(curCatName)} <span class="caret">▾</span></button></div>`;
   // SESSIONS EN COURS (vives) : accès rapide en haut de l'accueil + actions (reprendre/réinit/terminer).
   const liveArr=Object.values(liveSessions).filter(R=>R.started&&R.fiche);
   const liveHtml=liveArr.length?`<div class="live-sessions"><div class="ls-h"><span class="sess-dot"></span>Sessions en cours · ${liveArr.length}</div>${liveArr.map(R=>{const run=Object.values(R.timers).filter(t=>t.running).length;return `<div class="ls-row"><div class="ls-info" data-openlive="${R.ficheId}" role="button" tabindex="0"><b>${esc(R.fiche.title||'Sans titre')}</b><span>depuis ${timeAgo(R.startedAt)}${run?` · ${run} minuteur${run>1?'s':''} actif${run>1?'s':''}`:''}</span></div><div class="ls-acts"><button class="btn sm primary" data-openlive="${R.ficheId}">Ouvrir</button><button class="btn sm danger" data-endlive="${R.ficheId}">Terminer</button></div></div>`;}).join('')}</div>`:'';
   main.innerHTML=`
     ${scopeBar}
     ${liveHtml}
-    ${!state.scope?`<div class="notice"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01" stroke-linecap="round"/></svg><div>Vous êtes l'auteur et le responsable du contenu. Validez chaque fiche et tenez la date à jour.</div></div>`:''}
+    ${(!state.scope&&!noticeHidden())?`<div class="notice"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01" stroke-linecap="round"/></svg><div>Vous êtes l'auteur et le responsable du contenu. Validez chaque fiche et tenez la date à jour.</div><button class="notice-x" id="noticeX" aria-label="Masquer">×</button></div>`:''}
     <div class="lib-top"><div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg><input id="q" placeholder="Rechercher…" value="${esc(state.q)}"></div>
       ${canEditScope(state.scope)?`<button class="btn-new" id="newBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Créer</button>`:''}</div>
-    <div class="catbar">${chips}</div>
+    ${catbar}
     <div class="cards">${list.length?list.map(f=>{const sc=sessions.filter(s=>s.ficheId===f.id&&!s.live).length;const isLive=!!liveSessions[f.id];return `
       <div class="card${isLive?' has-live':''}" tabindex="0" role="button" data-open="${f.id}"><div class="card-body"><h3>${esc(f.title)||'Sans titre'}</h3>
         <div class="card-meta">${isLive?'<span class="tag live">● En cours</span>':''}${catTag(f)}${sc?`<span class="tag sess" title="Sessions enregistrées dans l'historique">${sc} sauvegardée${sc>1?'s':''}</span>`:''}<span class="card-date${staleDate(f.validation)?' stale':''}">${esc(fmtDate(f.validation))}${staleDate(f.validation)?' · à revoir':''}</span></div></div>
@@ -1191,11 +1206,16 @@ function renderLibrary(){
 
   document.getElementById('q').addEventListener('input',e=>{state.q=e.target.value;const pos=e.target.selectionStart;renderLibrary();const inp=document.getElementById('q');inp.focus();inp.setSelectionRange(pos,pos);});
   {const nb=document.getElementById('newBtn');if(nb)nb.onclick=newFiche;}
-  // Recliquer la catégorie déjà sélectionnée la dé-sélectionne (revient à « Toutes »).
-  main.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{const c=b.dataset.cat;state.cat=(c&&state.cat===c)?'':c;renderLibrary();});
+  {const nx=document.getElementById('noticeX');if(nx)nx.onclick=()=>{try{localStorage.setItem('ac-notice-hidden','1');}catch(e){}renderLibrary();};}
+  // Catégories repliables : déplier / replier ; sélectionner une catégorie replie automatiquement.
+  {const ct=document.getElementById('catToggle');if(ct)ct.onclick=()=>{state.catOpen=true;renderLibrary();};}
+  {const cc=document.getElementById('catCollapse');if(cc)cc.onclick=()=>{state.catOpen=false;renderLibrary();};}
+  main.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{const c=b.dataset.cat;state.cat=(c&&state.cat===c)?'':c;state.catOpen=false;renderLibrary();});
   {const cmc=document.getElementById('catMgrChip');if(cmc)cmc.onclick=openCatMgr;}
-  // Périmètre : changer de bibliothèque / créer une bibliothèque (app-admin).
-  main.querySelectorAll('[data-scope]').forEach(b=>b.onclick=()=>{state.scope=b.dataset.scope||null;state.cat='';renderLibrary();});
+  // Périmètre repliable : déplier / replier ; choisir un périmètre replie automatiquement.
+  {const st=document.getElementById('scopeToggle');if(st)st.onclick=()=>{state.scopeOpen=true;renderLibrary();};}
+  {const sc=document.getElementById('scopeCollapse');if(sc)sc.onclick=()=>{state.scopeOpen=false;renderLibrary();};}
+  main.querySelectorAll('[data-scope]').forEach(b=>b.onclick=()=>{state.scope=b.dataset.scope||null;state.cat='';state.scopeOpen=false;renderLibrary();});
   const nlb=document.getElementById('newLibBtn');if(nlb)nlb.onclick=createLibrary;
   const mb=document.getElementById('membersBtn');if(mb)mb.onclick=()=>openMembers(state.scope);
   main.querySelectorAll('[data-openlive]').forEach(el=>{el.onclick=()=>openRead(el.dataset.openlive);el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openRead(el.dataset.openlive);}};});
