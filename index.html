@@ -197,7 +197,7 @@
   html[data-theme="dark"] .toast{background:#05100e;border:1px solid var(--line)}
   html[data-theme="dark"] :is(.read-img,.thumb,.fiche-img) img{filter:brightness(.92)}
   /* Champs de saisie (éditeur) codés en dur en blanc -> fond sombre lisible. */
-  html[data-theme="dark"] :is(.blk-top input,.trow input[data-tf],.trow input[data-cf],.trow input[type=number],.tk-lab,.cat-row input.cn,.optedit input,.catpill,.startbtn,.cat-row input,.trow input){background:#0e1714;color:var(--ink);border-color:var(--line)}
+  html[data-theme="dark"] :is(.blk-top input,.trow input[data-tf],.trow input[data-cf],.trow input[type=number],.tk-lab,.cat-row input.cn,.optedit input,.catpill,.startbtn,.cat-row input,.trow input,.cm-name,.cm-add input){background:#0e1714;color:var(--ink);border-color:var(--line)}
   /* Panneaux/encadrés codés en dur en clair -> fond sombre. */
   html[data-theme="dark"] :is(.cat-mgr,.blk,.nav-wrap,.sess-list,.cm-row,.session-bar.idle){background:#141d1a;border-color:var(--line)}
   html[data-theme="dark"] .ai-ta{background:#0e1714;color:var(--ink)}
@@ -228,6 +228,12 @@
   .brand span{font-size:11.5px;text-transform:uppercase;letter-spacing:1.6px;color:#9fcdc7;margin-top:3px}
   #brandTitle{font-size:13px;font-weight:600;color:#eaf5f3;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:0;text-transform:none;display:none}
   .bar-act{background:rgba(255,255,255,.14);color:#eaf5f3;border:0;padding:9px 13px;border-radius:9px;font-size:13.5px;font-weight:600;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+  /* Icône Compte dans l'en-tête (présence utilisateur), avec pastille d'état de synchro discrète. */
+  .bar-acct{position:relative;background:rgba(255,255,255,.14);color:#eaf5f3;border:0;width:38px;height:38px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex:none;cursor:pointer}
+  .bar-acct:hover{background:rgba(255,255,255,.26)}.bar-acct.on{background:rgba(255,255,255,.22)}
+  .acct-dot{position:absolute;right:2px;bottom:2px;width:11px;height:11px;border-radius:50%;border:2px solid #0b4a45;background:#5bd1a8}
+  .acct-dot.busy{background:#e8c45c}.acct-dot.err{background:#ff7058}.acct-dot.off{background:#a9b8b3}
+  html[data-theme="dark"] .acct-dot{border-color:#10302b}
   .bar-act:hover{background:rgba(255,255,255,.24)}
   main{flex:1;padding:18px}
   .notice{background:var(--verify-soft);border:1px solid #ecdcb4;color:#6b4d12;border-radius:10px;padding:10px 13px;font-size:12.5px;margin-bottom:16px;display:flex;gap:9px;align-items:flex-start}
@@ -239,10 +245,15 @@
   .search input:focus{outline:2px solid var(--primary);border-color:transparent}
   .btn-new{background:var(--primary);color:#fff;border:0;border-radius:11px;padding:0 16px;font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:7px;white-space:nowrap;box-shadow:0 1px 2px rgba(10,74,70,.2),0 4px 12px rgba(10,74,70,.16);transition:background .12s,transform .06s}
   .btn-new:hover{background:var(--primary-dk)}.btn-new:active{transform:translateY(1px)}
-  .catbar{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px}
+  .catbar{margin-bottom:16px}
+  /* Une seule ligne défilable horizontalement -> vue d'ensemble sans allonger la page. */
+  .chiprow{display:flex;gap:8px;flex-wrap:nowrap;overflow-x:auto;padding-bottom:3px;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+  .chiprow::-webkit-scrollbar{height:5px}.chiprow::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+  .chiprow>*{flex:none}
   .catchip{border:1px solid var(--line);background:var(--surface);padding:5px 12px;border-radius:20px;font-size:12.5px;font-weight:600;cursor:pointer;transition:background .12s,border-color .12s,color .12s}
   .catchip:hover{border-color:#c2cecb;background:#f4f7f6}
-  .scopebar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+  .scopebar{display:flex;gap:10px;align-items:center;margin-bottom:14px}
+  .scopebar .chiprow{flex:1;min-width:0}
   .scope-lbl{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--ink-soft);margin-right:2px}
   .scopebtn{border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:6px 13px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;transition:background .12s,border-color .12s}
   .scopebtn.on{background:var(--primary);color:#fff;border-color:var(--primary)}
@@ -269,9 +280,13 @@
   .card-meta{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
   .tag{font-size:11px;font-weight:600;letter-spacing:.3px;background:var(--primary-soft);color:var(--primary-dk);padding:3px 9px;border-radius:20px}
   /* Étiquette de catégorie : texte en --ink (lisible dans les 2 thèmes) + pastille de couleur. */
-  .tag.cat{color:var(--ink);display:inline-flex;align-items:center;gap:5px}
-  .tag.cat::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--c,var(--primary));flex:none}
   .catchip,.catpill{color:var(--ink)}
+  /* Catégories en TEXTE COLORÉ (couleur de la catégorie), lisibles dans les 2 thèmes via color-mix :
+     en sombre on éclaircit la teinte (mix avec blanc), en clair on la garde. */
+  .tag.cat{background:color-mix(in srgb, var(--c,var(--primary)) 15%, transparent);color:var(--c,var(--primary))}
+  .catchip.colored,.catpill.colored{color:var(--catcol);background:color-mix(in srgb, var(--catcol) 12%, transparent);border-color:color-mix(in srgb, var(--catcol) 45%, transparent)}
+  html[data-theme="dark"] .tag.cat{background:color-mix(in srgb, var(--c,var(--primary)) 26%, transparent);color:color-mix(in srgb, var(--c,var(--primary)) 60%, white)}
+  html[data-theme="dark"] .catchip.colored,html[data-theme="dark"] .catpill.colored{color:color-mix(in srgb, var(--catcol) 62%, white);background:color-mix(in srgb, var(--catcol) 22%, transparent);border-color:color-mix(in srgb, var(--catcol) 50%, transparent)}
   .tag.flow{background:#efe7d2;color:var(--verify)}.tag.sess{background:#dfeae8;color:var(--primary-dk)}
   .card-date{font-size:12px;color:var(--ink-soft)}.card-date.stale{color:var(--critical)}
   .chev{color:#b6c4c1;flex-shrink:0}
@@ -573,7 +588,8 @@
 <body>
 <div class="app">
   <header class="bar"><div class="brand"><b>Aides cognitives</b><span id="brandSub">Bibliothèque</span><span id="brandTitle"></span></div>
-    <button class="bar-act" id="topNew"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Nouvelle</button></header>
+    <button class="bar-act" id="topNew"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Nouvelle</button>
+    <button class="bar-acct" id="acctTop" aria-label="Compte et synchronisation" title="Compte"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M5.5 20.5v-1a5 5 0 015-5h3a5 5 0 015 5v1"/></svg><span class="acct-dot" id="acctDot" hidden></span></button></header>
   <main id="main"></main>
   <footer class="tools"><span class="lbl" id="count"></span>
     <div class="tools-actions">
@@ -582,7 +598,6 @@
     <button class="tlink" id="importBtn">Importer</button>
     <button class="tlink" id="aiBtn">✨ Créer via IA</button>
     <button class="tlink" id="themeBtn">🌙 Sombre</button>
-    <button class="tlink" id="acctBtn">Compte</button>
     </div>
     <div class="storage-gauge" id="storageInfo"></div>
     <div class="sync-chip" id="syncChip" hidden></div>
@@ -828,7 +843,7 @@ function newCatId(name,scope){if(scope)return uid('c');let id=detCatId(name),n=2
 const textTrunc=(s,n)=>{s=String(s||'');return s.length>n?s.slice(0,n-1)+'…':s;};
 const catOf=f=>categories.find(c=>c.id===f.category)||null;
 const catName=f=>{const c=catOf(f);return c?c.name:'';};
-function catTag(f){const c=catOf(f);if(!c)return '';const col=safeColor(c.color);return `<span class="tag cat" style="background:${col}22;--c:${col}">${esc(c.name)}</span>`;}
+function catTag(f){const c=catOf(f);if(!c)return '';const col=safeColor(c.color);return `<span class="tag cat" style="--c:${col}">${esc(c.name)}</span>`;}
 const fmtMs=ms=>{ms=Math.max(0,Math.floor(ms/1000));const m=Math.floor(ms/60),s=ms%60;return (m<10?'0':'')+m+':'+(s<10?'0':'')+s;};
 
 /* ===== Modèle =====
@@ -1175,23 +1190,16 @@ function renderLibrary(){
   if(state.scope&&!myLibraries.some(l=>l.id===state.scope))state.scope=null;
   // Filtrage par PÉRIMÈTRE : Perso (libraryId vide) ou bibliothèque partagée sélectionnée.
   const list=fiches.slice().sort(byOrder).filter(f=>(state.scope?f.libraryId===state.scope:!f.libraryId)&&(!state.cat||f.category===state.cat)&&(!q||(f.title+' '+catName(f)).toLowerCase().includes(q)));
-  const chips=`<button class="catchip" data-cat="" style="${!state.cat?'background:#16211f;color:#fff;border-color:#16211f':''}">Toutes</button>`+catsSorted(state.scope).map(c=>{const col=safeColor(c.color);return `<button class="catchip" data-cat="${esc(c.id)}" style="${state.cat===c.id?`background:${col};color:#fff;border-color:${col}`:`background:${col}1f;border-color:${col}88`}">${esc(c.name)}</button>`;}).join('')+(canEditScope(state.scope)?`<button class="catchip" id="catMgrChip" style="border-style:dashed;color:var(--ink-soft)">⚙ Gérer</button>`:'');
-  // PÉRIMÈTRE (visible seulement connecté) : Perso + bibliothèques partagées + création (app-admin).
+  const chips=`<button class="catchip" data-cat="" style="${!state.cat?'background:#16211f;color:#fff;border-color:#16211f':''}">Toutes</button>`+catsSorted(state.scope).map(c=>{const col=safeColor(c.color);return `<button class="catchip${state.cat===c.id?'':' colored'}" data-cat="${esc(c.id)}" style="${state.cat===c.id?`background:${col};color:#fff;border-color:${col}`:`--catcol:${col}`}">${esc(c.name)}</button>`;}).join('')+(canEditScope(state.scope)?`<button class="catchip" id="catMgrChip" style="border-style:dashed;color:var(--ink-soft)">⚙ Gérer</button>`:'');
+  // ESPACE (visible seulement connecté) : Perso + bibliothèques partagées + création (app-admin).
   const ROLE_LBL={viewer:'lecture',editor:'édition',admin:'admin'};
-  // PÉRIMÈTRE repliable : par défaut, on n'affiche que le périmètre courant ; un tap déplie la liste.
-  const curScopeName=state.scope?(libName(state.scope)||'Bibliothèque'):'Perso';
-  const scopeBar=Auth.signedIn()?`<div class="scopebar"><span class="scope-lbl">Périmètre</span>
-    ${state.scopeOpen?`<button class="scopebtn${!state.scope?' on':''}" data-scope="">Perso</button>
+  const scopeBar=Auth.signedIn()?`<div class="scopebar"><span class="scope-lbl">Espace</span><div class="chiprow">
+      <button class="scopebtn${!state.scope?' on':''}" data-scope="">Perso</button>
       ${myLibraries.map(l=>`<button class="scopebtn${state.scope===l.id?' on':''}" data-scope="${esc(l.id)}" title="Bibliothèque partagée — rôle : ${esc(ROLE_LBL[l.role]||l.role)}">${esc(l.name)}</button>`).join('')}
-      ${myIsAppAdmin?`<button class="scopebtn add" id="newLibBtn">+ Bibliothèque</button>`:''}
-      <button class="scopebtn collapse" id="scopeCollapse" title="Replier" aria-label="Replier">▴</button>`
-    :`<button class="scopebtn on" id="scopeToggle">${esc(curScopeName)} <span class="caret">▾</span></button>`}</div>
+      ${myIsAppAdmin?`<button class="scopebtn add" id="newLibBtn">+ Bibliothèque</button>`:''}</div></div>
     ${state.scope?`<div class="scope-ctx"><span class="scope-ctx-i">Bibliothèque partagée${canEditScope(state.scope)?'':' · vous êtes en lecture seule'}</span>${(roleOf(state.scope)==='admin'||myIsAppAdmin)?`<button class="linkbtn" id="membersBtn"><span>👥</span> Gérer les membres</button>`:''}</div>`:''}`:'';
-  // CATÉGORIES repliables : par défaut un résumé (filtre courant) ; un tap déplie les pastilles.
-  const curCatName=state.cat?((catsForScope(state.scope).find(c=>c.id===state.cat)||{}).name||'Catégorie'):'Toutes les catégories';
-  const catbar=state.catOpen
-    ? `<div class="catbar">${chips}<button class="catchip collapse" id="catCollapse" title="Replier" aria-label="Replier">▴</button></div>`
-    : `<div class="catbar"><button class="catchip on" id="catToggle">🔎 ${esc(curCatName)} <span class="caret">▾</span></button></div>`;
+  // CATÉGORIES : vue d'ensemble complète, mais sur UNE seule ligne défilable (n'allonge pas la page).
+  const catbar=`<div class="catbar"><div class="chiprow">${chips}</div></div>`;
   // SESSIONS EN COURS (vives) : accès rapide en haut de l'accueil + actions (reprendre/réinit/terminer).
   const liveArr=Object.values(liveSessions).filter(R=>R.started&&R.fiche);
   const liveHtml=liveArr.length?`<div class="live-sessions"><div class="ls-h"><span class="sess-dot"></span>Sessions en cours · ${liveArr.length}</div>${liveArr.map(R=>{const run=Object.values(R.timers).filter(t=>t.running).length;return `<div class="ls-row"><div class="ls-info" data-openlive="${R.ficheId}" role="button" tabindex="0"><b>${esc(R.fiche.title||'Sans titre')}</b><span>depuis ${timeAgo(R.startedAt)}${run?` · ${run} minuteur${run>1?'s':''} actif${run>1?'s':''}`:''}</span></div><div class="ls-acts"><button class="btn sm primary" data-openlive="${R.ficheId}">Ouvrir</button><button class="btn sm danger" data-endlive="${R.ficheId}">Terminer</button></div></div>`;}).join('')}</div>`:'';
@@ -1698,7 +1706,7 @@ function renderEditor(){
     <button class="back" id="back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Annuler</button>
     ${isNew&&state.showCreateBand!==false?`<div class="create-band"><div class="cb-q">Comment créer cette fiche ?</div><div class="cb-opts"><button class="btn primary sm" id="cbAI">✨ Créer via IA</button><button class="btn sm" id="cbManual">✍ Créer manuellement</button></div><div class="cb-hint">« Via IA » : copiez le prompt dans une IA avec un document, puis importez le résultat. « Manuellement » : remplissez les champs ci-dessous.</div></div>`:''}
     <div class="field"><label>Titre de la situation</label><input type="text" id="f-title" value="${esc(f.title)}" placeholder="ex. Intoxication aux anesthésiques locaux"></div>
-    <div class="field"><label>Catégorie</label><div class="catpick"><button class="catpill" data-selcat="" style="${!f.category?'background:#54635f;color:#fff;border-color:#54635f':''}">Aucune</button>${catsSorted(f.libraryId).map(c=>{const col=safeColor(c.color);return `<button class="catpill" data-selcat="${esc(c.id)}" style="${f.category===c.id?`background:${col};color:#fff;border-color:${col}`:`background:${col}1f;border-color:${col}88`}">${esc(c.name)}</button>`;}).join('')}<button class="catpill" id="catMgrBtn" style="border-style:dashed;color:var(--ink-soft)">⚙ Gérer</button></div>${state.catMgr?catManagerHtml():''}</div>
+    <div class="field"><label>Catégorie</label><div class="catpick"><button class="catpill" data-selcat="" style="${!f.category?'background:#54635f;color:#fff;border-color:#54635f':''}">Aucune</button>${catsSorted(f.libraryId).map(c=>{const col=safeColor(c.color);return `<button class="catpill${f.category===c.id?'':' colored'}" data-selcat="${esc(c.id)}" style="${f.category===c.id?`background:${col};color:#fff;border-color:${col}`:`--catcol:${col}`}">${esc(c.name)}</button>`;}).join('')}<button class="catpill" id="catMgrBtn" style="border-style:dashed;color:var(--ink-soft)">⚙ Gérer</button></div>${state.catMgr?catManagerHtml():''}</div>
     ${Auth.signedIn()?`<div class="field"><label>Périmètre <span class="hint">où ranger cette fiche</span></label>
       <select id="f-scope"><option value="" ${!f.libraryId?'selected':''}>Perso (privé)</option>${myLibraries.filter(l=>l.role==='editor'||l.role==='admin').map(l=>`<option value="${esc(l.id)}" ${f.libraryId===l.id?'selected':''}>${esc(l.name)} (partagée)</option>`).join('')}${f.libraryId&&!myLibraries.some(l=>l.id===f.libraryId)?`<option value="${esc(f.libraryId)}" selected>${esc(libName(f.libraryId)||'Bibliothèque')}</option>`:''}</select></div>`:''}
     <div class="row2"><div class="field"><label>Date de validation <span class="hint">mois/année</span></label><input type="text" id="f-validation" inputmode="numeric" autocapitalize="off" value="${esc(valToDisplay(f.validation))}" placeholder="MM/AAAA — ex. 012026 ou 01/2026"></div></div>
@@ -2088,7 +2096,12 @@ const Auth={
   async signOut(){const tok=this.session&&this.session.access_token;this.session=null;this._save();if(tok){try{await fetch(SUPA.url+'/auth/v1/logout',{method:'POST',headers:{'apikey':SUPA.key,'Authorization':'Bearer '+tok}});}catch(e){}}}
 };
 // Pastille d'état : discrète, jamais bloquante. Connecté -> visible ; déconnecté -> masquée (app locale comme avant).
-function setSyncChip(state,text){const chip=document.getElementById('syncChip');if(!chip)return;
+function setSyncChip(state,text){
+  // Pastille d'état sur l'icône Compte de l'en-tête (présence + état de synchro), discrète.
+  const dot=document.getElementById('acctDot'),top=document.getElementById('acctTop');
+  if(dot){dot.hidden=!Auth.signedIn();dot.className='acct-dot '+(state||'ok');}
+  if(top)top.classList.toggle('on',Auth.signedIn());
+  const chip=document.getElementById('syncChip');if(!chip)return;
   if(!Auth.signedIn()){chip.hidden=true;return;}
   chip.hidden=false;chip.className='sync-chip '+(state||'ok');chip.textContent=text||'Connecté';}
 // État local de la fenêtre Compte (étape e-mail -> code).
@@ -2129,7 +2142,7 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
 const authModal=document.getElementById('authModal');
 function openAuth(){authModal.classList.add('on');renderAuth();}
 function closeAuth(){authModal.classList.remove('on');}
-document.getElementById('acctBtn').onclick=openAuth;
+document.getElementById('acctTop').onclick=openAuth;
 document.getElementById('authX').onclick=closeAuth;
 authModal.onclick=e=>{if(e.target===authModal)closeAuth();};
 Auth._load();setSyncChip();
