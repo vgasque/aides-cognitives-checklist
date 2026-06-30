@@ -605,6 +605,14 @@
   .auth-confirm{text-align:center;letter-spacing:2px;font-weight:600;text-transform:uppercase}
   .auth-admin-note{font-size:12.5px;color:var(--ink-soft);text-align:center;margin:16px 0 0;line-height:1.5}
   .btn:disabled{opacity:.4;cursor:not-allowed}.btn.danger:disabled:hover{background:var(--critical-soft)}
+  /* Explication « où sont mes fiches ? » */
+  .storage-gauge[role=button]:hover{text-decoration:underline}
+  .stg-card{border:1px solid var(--line);border-radius:12px;padding:13px 14px;margin-bottom:12px}
+  .stg-local{background:var(--critical-soft)}.stg-cloud{background:var(--primary-soft)}
+  .stg-h{display:flex;align-items:center;gap:8px;font-size:14.5px}.stg-ic{font-size:20px}
+  .stg-card p{font-size:13.5px;line-height:1.55;margin:7px 0;color:var(--ink)}
+  .stg-warn{color:var(--critical)}
+  .stg-ul{margin:7px 0 0;padding-left:18px;font-size:13.5px;line-height:1.55;color:var(--ink)}.stg-ul li{margin:3px 0}
   /* Toast non bloquant (notifications de synchro/conflit) : n'interrompt jamais l'usage. */
   .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translate(-50%,16px);max-width:min(560px,92vw);background:var(--ink);color:#fff;font-size:13.5px;line-height:1.5;padding:12px 15px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.28);z-index:120;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none}
   .toast.on{opacity:1;transform:translate(-50%,0)}
@@ -687,6 +695,10 @@
 <div class="ai-modal" id="authModal"><div class="ai-card">
   <div class="ai-top"><h3>Compte &amp; synchronisation</h3><button class="ai-x" id="authX" aria-label="Fermer">×</button></div>
   <div id="authBody"></div>
+</div></div>
+<div class="ai-modal" id="storageModal"><div class="ai-card">
+  <div class="ai-top"><h3>Où sont enregistrées vos fiches ?</h3><button class="ai-x" id="storageX" aria-label="Fermer">×</button></div>
+  <div id="storageBody"></div>
 </div></div>
 <div class="ai-modal" id="membersModal"><div class="ai-card">
   <div class="ai-top"><h3>Membres de la bibliothèque</h3><button class="ai-x" id="membersX" aria-label="Fermer">×</button></div>
@@ -1275,10 +1287,10 @@ function renderLibrary(){
   const chips=`<button class="catchip" data-cat="" style="${!state.cat?'background:#16211f;color:#fff;border-color:#16211f':''}">Toutes</button>`+catsSorted(state.scope).map(c=>{const col=safeColor(c.color);return `<button class="catchip${state.cat===c.id?'':' colored'}" data-cat="${esc(c.id)}" style="${state.cat===c.id?`background:${col};color:#fff;border-color:${col}`:`--catcol:${col}`}">${esc(c.name)}</button>`;}).join('')+(canEditScope(state.scope)?`<button class="catchip" id="catMgrChip" style="border-style:dashed;color:var(--ink-soft)">⚙ Gérer</button>`:'');
   // ESPACE (visible seulement connecté) : Perso + bibliothèques partagées + création (app-admin).
   const ROLE_LBL={viewer:'lecture',editor:'édition',admin:'admin'};
-  const scopeBar=Auth.signedIn()?`<div class="scopebar"><span class="scope-lbl">Espace</span><div class="chiprow">
+  const scopeBar=Auth.signedIn()?`<div class="scopebar"><span class="scope-lbl">Bibliothèque</span><div class="chiprow">
       <button class="scopebtn${!state.scope?' on':''}" data-scope="">Perso</button>
       ${sortedLibraries().map(l=>`<button class="scopebtn${state.scope===l.id?' on':''}" data-scope="${esc(l.id)}" title="Bibliothèque partagée — rôle : ${esc(ROLE_LBL[l.role]||l.role)}">${esc(l.name)}</button>`).join('')}
-      ${myIsAppAdmin?`<button class="scopebtn add" id="newLibBtn">+ Bibliothèque</button>`:''}</div></div>
+      ${myIsAppAdmin?`<button class="scopebtn add" id="newLibBtn">+ Nouvelle</button>`:''}</div></div>
     ${state.scope?`<div class="scope-ctx"><span class="scope-ctx-i">Bibliothèque partagée${canEditScope(state.scope)?'':' · vous êtes en lecture seule'}</span>${(roleOf(state.scope)==='admin'||myIsAppAdmin)?`<button class="linkbtn" id="membersBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 19v-1a4 4 0 00-4-4H6a4 4 0 00-4 4v1"/><circle cx="9" cy="7" r="3"/><path d="M22 19v-1a4 4 0 00-3-3.87M16 4.13A4 4 0 0119 8"/></svg>Gérer les membres</button>`:''}</div>`:''}`:'';
   // CATÉGORIES : vue d'ensemble complète, mais sur UNE seule ligne défilable (n'allonge pas la page).
   const catbar=`<div class="catbar"><div class="chiprow">${chips}</div></div>`;
@@ -1603,11 +1615,13 @@ function buildFlowSVG(f,curId){
       else{const pre=li===0?`<tspan font-weight="700" fill="#7c8a87">${it.num}. </tspan>`:'';g+=`<text x="${li===0?12:22}" y="${y}" font-size="10.5" fill="#16211f" font-family="system-ui">${pre}${esc(ln)}</text>`;}
       iy+=LH;});});
     // Image du bloc DANS le SVG : vignette ajustée (meet) + petite loupe ; cliquable -> plein écran.
-    if(L.img){const iyi=iy+IMG_GAP,iw=W-2*IMG_PAD;
-      g+=`<rect x="${IMG_PAD}" y="${iyi}" width="${iw}" height="${IMG_H}" rx="7" fill="#eef2f1" stroke="${stroke}"/>`;
-      // Vignette aux coins arrondis : on imite le clip des NŒUDS (rect du clipPath à l'ORIGINE d'un
-      // groupe translaté) -> sinon, avec des coords décalées dans le clipPath, le clip ne s'applique pas.
-      g+=`<g transform="translate(${IMG_PAD},${iyi})"><clipPath id="imgc_${b.id}"><rect width="${iw}" height="${IMG_H}" rx="7"/></clipPath><image width="${iw}" height="${IMG_H}" href="${L.img}" preserveAspectRatio="xMidYMid meet" clip-path="url(#imgc_${b.id})" data-full="${L.img}" style="cursor:zoom-in"/></g>`;
+    if(L.img){const iyi=iy+IMG_GAP,iw=W-2*IMG_PAD,IP=2,iw2=iw-2*IP,ih2=IMG_H-2*IP;
+      // 1) FOND (sans bordure). 2) IMAGE clippée, RENTRÉE de IP px -> ne mord plus sur la bordure ;
+      //    coins arrondis via le clip à l'ORIGINE d'un groupe translaté (imite le clip des nœuds).
+      //    3) BORDURE par-dessus -> tracé net, jamais recouvert par l'image.
+      g+=`<rect x="${IMG_PAD}" y="${iyi}" width="${iw}" height="${IMG_H}" rx="7" fill="#eef2f1"/>`;
+      g+=`<g transform="translate(${IMG_PAD+IP},${iyi+IP})"><clipPath id="imgc_${b.id}"><rect width="${iw2}" height="${ih2}" rx="5"/></clipPath><image width="${iw2}" height="${ih2}" href="${L.img}" preserveAspectRatio="xMidYMid meet" clip-path="url(#imgc_${b.id})" data-full="${L.img}" style="cursor:zoom-in"/></g>`;
+      g+=`<rect x="${IMG_PAD}" y="${iyi}" width="${iw}" height="${IMG_H}" rx="7" fill="none" stroke="${stroke}" pointer-events="none"/>`;
       g+=`<g transform="translate(${W-IMG_PAD-15},${iyi+4})" pointer-events="none"><circle cx="6" cy="6" r="7" fill="rgba(13,91,86,.85)"/><circle cx="5" cy="5" r="2.4" fill="none" stroke="#fff" stroke-width="1.2"/><path d="M6.8 6.8 L9 9" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></g>`;}
     g+=`<rect${isCur?' class="flow-hl"':''} width="${W}" height="${h}" rx="10" fill="none" stroke="${isCur?'#0d5b56':stroke}" stroke-width="${isCur?2.5:1.5}"/>`;
     nodes+=`<g transform="translate(${p.x},${p.y})">${g}</g>`;});
@@ -2270,6 +2284,26 @@ function closeAuth(){authModal.classList.remove('on');}
 document.getElementById('acctTop').onclick=openAuth;
 document.getElementById('authX').onclick=closeAuth;
 authModal.onclick=e=>{if(e.target===authModal)closeAuth();};
+
+/* ===== Explication « où sont mes fiches ? » (langage simple, non technique) ===== */
+const storageModal=document.getElementById('storageModal');
+function renderStorageInfo(){const body=document.getElementById('storageBody');if(!body)return;const signed=Auth.signedIn();
+  body.innerHTML=`<p class="auth-sub" style="margin-top:0">Vos fiches peuvent être enregistrées de deux façons. Voici la différence, simplement :</p>
+    <div class="stg-card stg-local"><div class="stg-h"><span class="stg-ic">📱</span><b>Sur cet appareil (hors-ligne)</b></div>
+      <p>Vos fiches sont gardées <b>uniquement dans la mémoire de ce téléphone/ordinateur</b>, comme des notes écrites sur un seul carnet.</p>
+      <p class="stg-warn">⚠ Si le navigateur fait du ménage, ou si l'appareil est perdu, cassé, réinitialisé ou changé, <b>vos fiches sont perdues</b> — il n'en existe aucune autre copie.</p></div>
+    <div class="stg-card stg-cloud"><div class="stg-h"><span class="stg-ic">☁️</span><b>En ligne, avec un compte (synchronisation)</b></div>
+      <p>En vous connectant, une <b>copie de sécurité</b> de vos fiches est aussi gardée dans un <b>espace en ligne protégé</b> (le « cloud »).</p>
+      <ul class="stg-ul"><li>Si l'appareil tombe en panne ou est perdu, <b>rien n'est perdu</b>.</li><li>Vous <b>retrouvez vos fiches sur n'importe quel appareil</b> en vous connectant.</li><li>Vous pouvez <b>partager</b> des bibliothèques avec votre équipe.</li></ul></div>
+    ${signed?`<p class="auth-msg ok" style="text-align:center">✓ Vous êtes connecté : vos fiches sont sauvegardées en ligne.</p>`
+            :`<button class="btn primary auth-full" id="stgConnect">Créer un compte / se connecter</button>`}`;
+  const c=body.querySelector('#stgConnect');if(c)c.onclick=()=>{closeStorageInfo();openAuth();};}
+function openStorageInfo(){renderStorageInfo();storageModal.classList.add('on');}
+function closeStorageInfo(){storageModal.classList.remove('on');}
+document.getElementById('storageX').onclick=closeStorageInfo;
+storageModal.onclick=e=>{if(e.target===storageModal)closeStorageInfo();};
+{const si=document.getElementById('storageInfo');if(si){si.style.cursor='pointer';si.setAttribute('role','button');si.setAttribute('tabindex','0');si.onclick=openStorageInfo;si.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openStorageInfo();}};}}
+
 Auth._load();setSyncChip();
 
 /* ===== Thème clair / sombre ===== */
@@ -2317,7 +2351,7 @@ const Sync={
   schedule(){if(!Auth.signedIn())return;clearTimeout(this._pt);this._pt=setTimeout(()=>this.full(),900);},
   async full(){
     if(!Auth.signedIn()||!this.online()||this.running){if(!this.online())setSyncChip('off','Hors-ligne');return;}
-    this.running=true;setSyncChip('busy','Synchro…');
+    this.running=true;setSyncChip('busy','Synchro en cours');
     try{await Auth.ensureFresh();
       await this.loadProfile();
       await this._initIfNeeded();
