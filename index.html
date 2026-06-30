@@ -17,6 +17,22 @@
   fichier HTML autonome (HTML + CSS + JavaScript "vanilla", aucune dépendance
   ni bibliothèque externe). Tout est stocké localement sur l'appareil.
 
+  ╔══════════════════════════════════════════════════════════════════════════╗
+  ║  RÈGLE DE CONCEPTION — À RESPECTER POUR TOUTE MODIFICATION (humain ou IA)  ║
+  ╠══════════════════════════════════════════════════════════════════════════╣
+  ║  C'est une AIDE COGNITIVE utilisée en SITUATION D'URGENCE, souvent en      ║
+  ║  contexte de STRESS très élevé. L'interface DOIT donc rester CLAIRE,       ║
+  ║  SIMPLE et PRÉVISIBLE, et suivre les principes des applications critiques  ║
+  ║  (Apple Human Interface Guidelines + sûreté aviation/nucléaire) :          ║
+  ║   • Lisibilité et hiérarchie visuelle fortes ; cibles tactiles larges.     ║
+  ║   • Le MODE CRISE n'est JAMAIS interrompu (pas de modale/synchro intrusive).║
+  ║   • Visibilité permanente de l'état du système (connexion, synchro…).      ║
+  ║   • Aucune action destructive surprise : confirmation + réversibilité.     ║
+  ║   • Dégradation gracieuse (fail-safe local) ; l'opérateur garde le contrôle.║
+  ║   • Rendu correct et cohérent sur ORDINATEUR ET TÉLÉPHONE (iPhone).        ║
+  ║  En cas de doute, privilégier la simplicité et la sécurité à l'esthétique. ║
+  ╚══════════════════════════════════════════════════════════════════════════╝
+
   Fichiers du dossier PWA (doivent rester ensemble) :
     - index.html .............. CE fichier = toute l'application
     - sw.js ................... service worker (cache hors ligne)
@@ -197,7 +213,9 @@
   html[data-theme="dark"] .toast{background:#05100e;border:1px solid var(--line)}
   html[data-theme="dark"] :is(.read-img,.thumb,.fiche-img) img{filter:brightness(.92)}
   /* Champs de saisie (éditeur) codés en dur en blanc -> fond sombre lisible. */
-  html[data-theme="dark"] :is(.blk-top input,.trow input[data-tf],.trow input[data-cf],.trow input[type=number],.tk-lab,.cat-row input.cn,.optedit input,.catpill,.startbtn,.cat-row input,.trow input,.cm-name,.cm-add input){background:#0e1714;color:var(--ink);border-color:var(--line)}
+  html[data-theme="dark"] :is(.blk-top input,.trow input[data-tf],.trow input[data-cf],.trow input[type=number],.tk-lab,.cat-row input.cn,.optedit input,.startbtn,.cat-row input,.trow input,.cm-name,.cm-add input){background:#0e1714;color:var(--ink);border-color:var(--line)}
+  /* Pastilles de catégorie NON colorées (Aucune/Gérer) -> fond sombre ; les colorées gardent leur teinte. */
+  html[data-theme="dark"] .catpill:not(.colored){background:#0e1714;color:var(--ink);border-color:var(--line)}
   /* Panneaux/encadrés codés en dur en clair -> fond sombre. */
   html[data-theme="dark"] :is(.cat-mgr,.blk,.nav-wrap,.sess-list,.cm-row,.session-bar.idle){background:#141d1a;border-color:var(--line)}
   html[data-theme="dark"] .ai-ta{background:#0e1714;color:var(--ink)}
@@ -1264,6 +1282,8 @@ function renderLibrary(){
   main.querySelectorAll('[data-openlive]').forEach(el=>{el.onclick=()=>openRead(el.dataset.openlive);el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openRead(el.dataset.openlive);}};});
   main.querySelectorAll('[data-endlive]').forEach(b=>b.onclick=()=>{const id=b.dataset.endlive,R=liveSessions[id];if(R&&confirm('Terminer la session ? Les minuteurs s’arrêtent ; la session est conservée dans l’historique.')){endSession(R);if(Runtime.ficheId===id)resetRuntime();renderLibrary();}});
   main.querySelectorAll('[data-open]').forEach(el=>{el.onclick=()=>openRead(el.dataset.open);el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openRead(el.dataset.open);}};});
+  // Toujours montrer le périmètre ACTIF même si la barre défile (on le centre dans sa ligne).
+  const act=main.querySelector('.scopebar .scopebtn.on');if(act){const row=act.closest('.chiprow');if(row&&row.scrollWidth>row.clientWidth)row.scrollLeft=Math.max(0,act.offsetLeft-row.clientWidth/2+act.clientWidth/2);}
 }
 // Petite icône d'en-tête de section (repère visuel rapide du TYPE de bloc). Trait = currentColor (suit
 // la couleur du header), donc cohérent avec le code couleur existant (teal/ambré/vermillon/gris).
@@ -2188,7 +2208,7 @@ Auth._load();setSyncChip();
 function resolveTheme(mode){return mode==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):mode;}
 function applyTheme(mode){try{localStorage.setItem('ac-theme',mode);}catch(e){}
   const resolved=resolveTheme(mode);document.documentElement.setAttribute('data-theme',resolved);
-  const b=document.getElementById('themeBtn');if(b)b.textContent=mode==='auto'?'🌗 Auto':(mode==='dark'?'🌙 Sombre':'☀️ Clair');
+  const b=document.getElementById('themeBtn');if(b){b.textContent=mode==='auto'?'🌗 Thème : auto':(mode==='dark'?'🌙 Thème : sombre':'☀️ Thème : clair');b.title=mode==='auto'?'Thème automatique : suit le réglage clair/sombre de votre appareil. Cliquez pour choisir manuellement.':'Cliquez pour changer de thème (auto / clair / sombre).';}
   const m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',resolved==='dark'?'#0e2723':'#0d5b56');}
 // Cycle : Auto -> Clair -> Sombre -> Auto.
 document.getElementById('themeBtn').onclick=()=>{const cur=localStorage.getItem('ac-theme')||'auto';applyTheme(cur==='auto'?'light':cur==='light'?'dark':'auto');};
