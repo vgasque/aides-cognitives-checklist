@@ -208,6 +208,7 @@
   html[data-theme="dark"] .empty{background:rgba(255,255,255,.03)}
   html[data-theme="dark"] .tag.flow{background:#33301f;color:var(--verify)}
   html[data-theme="dark"] .tag.sess{background:#1f302d;color:var(--primary-dk)}
+  html[data-theme="dark"] .tag.live{background:#16302c;color:var(--primary-dk)}
   html[data-theme="dark"] header.bar{background:linear-gradient(180deg,#13322e,#0e2723);color:#dceeeb}
   html[data-theme="dark"] .ai-card,html[data-theme="dark"] .ai-modal .ai-card{background:var(--surface);color:var(--ink)}
   html[data-theme="dark"] .toast{background:#05100e;border:1px solid var(--line)}
@@ -239,8 +240,10 @@
   html[data-theme="dark"] :is(.flow-scroll,#flowFull .ff-scroll) svg{filter:invert(1) hue-rotate(180deg)}
   /* On ANNULE l'inversion sur les vraies images (sinon photos en négatif) : double inversion = identité. */
   html[data-theme="dark"] :is(.flow-scroll,#flowFull .ff-scroll) svg image{filter:invert(1) hue-rotate(180deg)}
-  /* Surlignage du bloc en cours : on annule l'inversion globale pour qu'il garde sa teinte choisie (teal propre). */
-  html[data-theme="dark"] :is(.flow-scroll,#flowFull .ff-scroll) svg .flow-hl{filter:invert(1) hue-rotate(180deg)}
+  /* Surlignage du bloc en cours : on annule l'inversion globale ET on pilote teinte/opacité en CSS
+     -> teal propre, et adaptation INSTANTANÉE au basculement de thème (pas de reconstruction du SVG). */
+  html[data-theme="dark"] :is(.flow-scroll,#flowFull .ff-scroll) svg .flow-hl{filter:invert(1) hue-rotate(180deg);stroke:#34b3a6}
+  html[data-theme="dark"] :is(.flow-scroll,#flowFull .ff-scroll) svg .flow-hl-glow{opacity:.28}
   *{box-sizing:border-box}html,body{margin:0;padding:0}
   body{font-family:var(--sans);color:var(--ink);background:var(--bg);line-height:1.5;-webkit-font-smoothing:antialiased;padding-bottom:env(safe-area-inset-bottom)}
   button{font-family:inherit;cursor:pointer}input,textarea,select{font-family:inherit;font-size:16px}textarea{resize:vertical}
@@ -1029,11 +1032,22 @@ async function updateStorageInfo(){
     ]);
     if(!est){el.textContent='';return;}
     const fmt=n=>{if(!n)return '0 o';if(n<1024)return n+' o';if(n<1048576)return Math.round(n/1024)+' Ko';if(n<1073741824)return (n/1048576).toFixed(1)+' Mo';return (n/1073741824).toFixed(2)+' Go';};
-    const persHtml=pers===true
-      ?'<span class="pers-ok">conservé ✓</span>'
-      :'<span class="pers-warn">risque d\'effacement — installez l\'app</span>';
-    el.innerHTML=`Stockage sur cet appareil : <b>${fmt(est.usage)}</b> / ${fmt(est.quota)} · ${persHtml}`;
-    el.title='Espace utilisé sur CET appareil (mode hors-ligne). Indépendant du cloud : les données synchronisées sur Supabase ne comptent pas dans cette limite. « Conservé » = à l\'abri d\'un effacement automatique du navigateur (obtenu en installant l\'app sur l\'écran d\'accueil).';
+    // Message selon l'état : CONNECTÉ -> rassurant (le cloud est la vraie sauvegarde, la limite ne
+    // concerne que le cache local) ; DÉCONNECTÉ -> cet appareil est la SEULE copie.
+    const signed=(typeof Auth!=='undefined'&&Auth.signedIn());
+    let status,tip;
+    if(signed){
+      status='<span class="pers-ok">☁ aussi sauvegardé dans le cloud</span>';
+      tip='Cette limite ne concerne QUE la copie hors-ligne sur cet appareil — pas vos données. Comme vous êtes connecté, vos fiches sont aussi sauvegardées dans le cloud : si le navigateur efface cette copie locale (ou si vous changez d\'appareil), vous les retrouvez intégralement en vous reconnectant. C\'est précisément l\'intérêt de la synchronisation.';
+    }else if(pers===true){
+      status='<span class="pers-ok">copie unique, mais conservée ✓</span>';
+      tip='Sans compte, cet appareil contient votre SEULE copie. Elle est ici à l\'abri d\'un effacement automatique du navigateur (app installée). Connectez-vous pour aussi la sauvegarder dans le cloud et y accéder depuis vos autres appareils.';
+    }else{
+      status='<span class="pers-warn">copie unique — connectez-vous ou installez l\'app</span>';
+      tip='Sans compte, cet appareil contient votre SEULE copie, et le navigateur pourrait l\'effacer automatiquement. Pour éviter toute perte : connectez-vous (sauvegarde dans le cloud) ou installez l\'app sur l\'écran d\'accueil.';
+    }
+    el.innerHTML=`Stockage sur cet appareil : <b>${fmt(est.usage)}</b> / ${fmt(est.quota)} · ${status}`;
+    el.title=tip;
   }catch(e){if(el)el.textContent='';}
 }
 async function load(){
@@ -1351,11 +1365,8 @@ function wrapText(str,maxChars){const words=String(str||'').replace(/\s+/g,' ').
   push();return lines.length?lines:[''];}
 function buildFlowSVG(f,curId){
   const blocks=f.blocks||[];if(!blocks.length)return '<div style="padding:14px;color:#54635f;font-size:13px">Aucun bloc.</div>';
-  // Surlignage du bloc EN COURS : en sombre, le filtre global inverse les couleurs (teal -> cyan néon,
-  // moche). On dessine donc le surlignage avec une couleur adaptée au thème ET on le marque .flow-hl
-  // pour CONTRER l'inversion globale (double inversion = identité) -> la couleur choisie s'affiche telle quelle.
-  const DARK=document.documentElement.getAttribute('data-theme')==='dark';
-  const HL=DARK?'#34b3a6':'#0d5b56';
+  // Surlignage du bloc EN COURS marqué .flow-hl : en sombre, le CSS contre l'inversion globale ET
+  // pilote la teinte/opacité (-> s'adapte INSTANTANÉMENT au basculement clair/sombre, sans reconstruire).
   const TH=28,HG=36,VG=52,PX=14,PY=14,LH=16,TLH=15,HPAD=8,TXT_MAX=42,TITLE_MAX=34,MINW=150,MAXW=300,CW=5.6;
   const IMG_H=60,IMG_PAD=8,IMG_GAP=6;// vignette d'image dans le bloc (cliquable -> plein écran)
   const byId={};blocks.forEach(b=>byId[b.id]=b);const start=(f.start&&byId[f.start])?f.start:blocks[0].id;
@@ -1573,7 +1584,7 @@ function buildFlowSVG(f,curId){
     const fill=dec?'#fdf8ef':'#f5faf8',stroke=dec?'#e1cf9f':'#c2d0cc',tcol=dec?'#6b4d12':'#16211f';const h=p.h,hh=L.headerH;
     // Bloc COURANT (étape où l'on se trouve dans le parcours) : léger HALO teal derrière le bloc +
     // bordure teal plus marquée. Discret (« sans trop en faire »), juste pour repérer où on en est.
-    let g=isCur?`<rect class="flow-hl" x="-5" y="-5" width="${W+10}" height="${h+10}" rx="15" fill="none" stroke="${HL}" stroke-width="6" opacity="${DARK?0.28:0.13}"/>`:'';
+    let g=isCur?`<rect class="flow-hl flow-hl-glow" x="-5" y="-5" width="${W+10}" height="${h+10}" rx="15" fill="none" stroke="#0d5b56" stroke-width="6" opacity="0.13"/>`:'';
     // Fonds CLIPPÉS au contour arrondi : le bandeau d'en-tête et le liseré gauche suivent le coin
     // arrondi et ne dépassent plus hors de la bordure (bug 3.iii). La bordure est tracée par-dessus.
     g+=`<clipPath id="${cid}"><rect width="${W}" height="${h}" rx="10"/></clipPath><g clip-path="url(#${cid})"><rect width="${W}" height="${h}" fill="${fill}"/><rect width="${W}" height="${hh}" fill="${dec?'#f0e4c8':'#dbeae5'}"/>${dec?`<circle cx="13" cy="${Math.round(hh/2)}" r="4" fill="#946615"/>`:`<rect x="0" y="0" width="4" height="${hh}" fill="#0d5b56"/>`}</g>`;
@@ -1595,7 +1606,7 @@ function buildFlowSVG(f,curId){
       // groupe translaté) -> sinon, avec des coords décalées dans le clipPath, le clip ne s'applique pas.
       g+=`<g transform="translate(${IMG_PAD},${iyi})"><clipPath id="imgc_${b.id}"><rect width="${iw}" height="${IMG_H}" rx="7"/></clipPath><image width="${iw}" height="${IMG_H}" href="${L.img}" preserveAspectRatio="xMidYMid meet" clip-path="url(#imgc_${b.id})" data-full="${L.img}" style="cursor:zoom-in"/></g>`;
       g+=`<g transform="translate(${W-IMG_PAD-15},${iyi+4})" pointer-events="none"><circle cx="6" cy="6" r="7" fill="rgba(13,91,86,.85)"/><circle cx="5" cy="5" r="2.4" fill="none" stroke="#fff" stroke-width="1.2"/><path d="M6.8 6.8 L9 9" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></g>`;}
-    g+=`<rect${isCur?' class="flow-hl"':''} width="${W}" height="${h}" rx="10" fill="none" stroke="${isCur?HL:stroke}" stroke-width="${isCur?2.5:1.5}"/>`;
+    g+=`<rect${isCur?' class="flow-hl"':''} width="${W}" height="${h}" rx="10" fill="none" stroke="${isCur?'#0d5b56':stroke}" stroke-width="${isCur?2.5:1.5}"/>`;
     nodes+=`<g transform="translate(${p.x},${p.y})">${g}</g>`;});
   const startCx=pos[start]?Math.round(pos[start].x+pos[start].w/2):Math.round(svgW/2);
   return `<svg width="${svgW}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:0 auto" data-bw="${svgW}" data-bh="${svgH}" data-startcx="${startCx}"><defs><marker id="ah" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#9fb0ac"/></marker><marker id="ahb" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#c98a2a"/></marker></defs>${edges}${nodes}</svg>`;
