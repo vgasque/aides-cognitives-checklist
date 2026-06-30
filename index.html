@@ -252,6 +252,7 @@
   .mem-invite{margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--line)}
   .mem-act{display:flex;gap:8px;align-items:center}
   .mem-act select{padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)}
+  .cm-scope{font-size:12.5px;color:var(--ink-soft);margin:0 0 12px;padding-bottom:10px;border-bottom:1px solid var(--line)}.cm-scope b{color:var(--primary)}
   .cards{display:grid;gap:12px}
   .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px 17px;box-shadow:var(--shadow);cursor:pointer;display:flex;align-items:center;gap:14px;transition:transform .08s,border-color .12s}
   .card:hover{border-color:#bdcecb;transform:translateY(-1px);box-shadow:var(--shadow-lg)}.card:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
@@ -803,7 +804,17 @@ const byOrder=(a,b)=>(b.order||0)-(a.order||0);
 // Catégories TOUJOURS affichées par ordre alphabétique (filtres, sélecteur, gestionnaire), quel que
 // soit l'ordre de création/stockage. localeCompare 'fr' -> tri correct des accents.
 const byCatName=(a,b)=>(a.name||'').localeCompare(b.name||'','fr',{sensitivity:'base'});
-const catsSorted=()=>categories.slice().sort(byCatName);
+// Catégories PAR PÉRIMÈTRE : chaque catégorie porte un libraryId (null = Perso, sinon bibliothèque).
+// Le tableau `categories` les contient toutes ; on filtre par périmètre pour l'affichage/édition.
+const catScope=c=>(c&&c.libraryId)||null;
+const catsForScope=scope=>categories.filter(c=>catScope(c)===(scope||null));
+const catsSorted=(scope)=>catsForScope(scope).slice().sort(byCatName);
+// Périmètre dont on gère les catégories : en édition = celui de la fiche ; sinon = périmètre affiché.
+function activeCatScope(){return state.view==='edit'?(state.draft?(state.draft.libraryId||null):null):(state.scope||null);}
+// id de catégorie : déterministe (par nom) pour le Perso (cohérence multi-appareils des défauts) ;
+// aléatoire pour une bibliothèque (le jeu de catégories est un document synchronisé unique -> pas
+// besoin de déterminisme, et on évite toute collision d'id avec le Perso ou une autre bibliothèque).
+function newCatId(name,scope){if(scope)return uid('c');let id=detCatId(name),n=2;while(categories.some(c=>c.id===id))id=detCatId(name)+'-'+(n++);return id;}
 const textTrunc=(s,n)=>{s=String(s||'');return s.length>n?s.slice(0,n-1)+'…':s;};
 const catOf=f=>categories.find(c=>c.id===f.category)||null;
 const catName=f=>{const c=catOf(f);return c?c.name:'';};
@@ -864,7 +875,7 @@ function migrate(f){if(!f||typeof f!=='object')f={};
   return f;}
 // Catégories importées/chargées : nom coercé, couleur validée, id restreint (les ids sûrs sont
 // conservés -> les fiches qui les référencent restent associées).
-function sanitizeCats(cats){return (Array.isArray(cats)?cats:[]).slice(0,200).map(c=>({id:safeId(c&&c.id,'c'),name:sstr(c&&c.name,120),color:safeColor(c&&c.color)}));}
+function sanitizeCats(cats){return (Array.isArray(cats)?cats:[]).slice(0,400).map(c=>({id:safeId(c&&c.id,'c'),name:sstr(c&&c.name,120),color:safeColor(c&&c.color),libraryId:safeMetaId(c&&c.libraryId)}));}
 function seed(catId){const b1=uid('b'),b2=uid('b'),b3=uid('b'),bd=uid('b');
   return migrate({id:uid(),title:'Anaphylaxie peropératoire',category:catId||'',validation:'2025-01',
     localInfo:'Réanimateur de garde : …\nPharmacie : …\n(adaptez à votre établissement)',
@@ -892,17 +903,19 @@ function freshCatId(name){let id=detCatId(name),n=2;while(categories.some(c=>c.i
 // Migration : convertit les ids de catégories existants (aléatoires) en ids déterministes et
 // repointe les fiches. Idempotente : une fois les ids déterministes, ne fait plus rien.
 async function remapCatsDeterministic(){const map={};const byNew={};const kept=[];
-  for(const c of categories){const nid=detCatId(c.name);
-    if(byNew[nid]){map[c.id]=nid;continue;}           // doublon de nom -> fusion vers le premier
+  for(const c of categories){
+    if(c.libraryId){kept.push(c);continue;}            // catégories de BIBLIOTHÈQUE : ids inchangés (doc synchronisé)
+    const nid=detCatId(c.name);
+    if(byNew[nid]){map[c.id]=nid;continue;}            // doublon de nom -> fusion vers le premier
     byNew[nid]=true;if(c.id!==nid)map[c.id]=nid;c.id=nid;kept.push(c);}
   categories=kept;
   if(!Object.keys(map).length)return;
   const changed=[];fiches.forEach(f=>{if(f.category&&map[f.category]){f.category=map[f.category];changed.push(f);}});
-  await saveCats();for(const f of changed)await persist(f);}
-function defaultCats(){return[['Anesthésie','#0d5b56'],['Cardiologie','#b23052'],['Pédiatrie','#1f7a4d'],['Réanimation','#007fb1'],['Régulation','#4b3fa6'],['SMUR','#b5532a'],['SSE','#8a6a12'],['Urgences','#1f5fa6']].map(([name,color])=>({id:detCatId(name),name,color}));}
+  await saveCats(null);for(const f of changed)await persist(f);}
+function defaultCats(){return[['Anesthésie','#0d5b56'],['Cardiologie','#b23052'],['Pédiatrie','#1f7a4d'],['Réanimation','#007fb1'],['Régulation','#4b3fa6'],['SMUR','#b5532a'],['SSE','#8a6a12'],['Urgences','#1f5fa6']].map(([name,color])=>({id:detCatId(name),name,color,libraryId:null}));}
 function migrateCategories(){const changed=[];const byName={};categories.forEach(c=>byName[c.name.toLowerCase()]=c.id);let pi=categories.length;
   fiches.forEach(f=>{const cv=f.category;if(!cv)return;if(categories.some(c=>c.id===cv))return;const name=String(cv).trim();if(!name){f.category='';changed.push(f);return;}
-    let id=byName[name.toLowerCase()];if(!id){id=freshCatId(name);categories.push({id,name,color:PALETTE[pi++%PALETTE.length]});byName[name.toLowerCase()]=id;}f.category=id;changed.push(f);});return changed;}
+    let id=byName[name.toLowerCase()];if(!id){id=newCatId(name,null);categories.push({id,name,color:PALETTE[pi++%PALETTE.length],libraryId:null});byName[name.toLowerCase()]=id;}f.category=id;changed.push(f);});return changed;}
 const hasFlow=f=>(f.blocks||[]).length>1||(f.blocks||[]).some(b=>b.type==='decision');
 const staleDate=v=>{if(!v)return false;const d=new Date(v.length===7?v+'-01':v);if(isNaN(d))return false;return (Date.now()-d.getTime())>730*864e5;};
 // Affichage de la date de validation : "AAAA-MM" -> "MM/AAAA" ; "AAAA-MM-JJ" -> "JJ/MM/AAAA".
@@ -958,9 +971,10 @@ function restoreLiveSessions(){sessions.filter(s=>s.live).forEach(s=>{const f=fi
 window.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')persistAllLive();else{try{if(AC&&AC.state!=='running')AC.resume();}catch(e){}}});
 window.addEventListener('pagehide',persistAllLive);
 window.addEventListener('beforeunload',persistAllLive);
-async function saveCats(){try{await Data.setCats(categories);}catch(e){}
-  // Horodatage + marqueur "à pousser" pour la synchro des catégories (document unique par périmètre).
-  try{localStorage.setItem('ac-cats-updated',String(Date.now()));localStorage.setItem('ac-cats-dirty','1');}catch(e){}
+async function saveCats(scope){try{await Data.setCats(categories);}catch(e){}
+  // Horodatage + marqueur "à pousser" PAR PÉRIMÈTRE (clé '' = Perso, sinon id de bibliothèque).
+  const sk=(scope===undefined?activeCatScope():scope)||'';
+  try{localStorage.setItem('ac-cats-updated:'+sk,String(Date.now()));localStorage.setItem('ac-cats-dirty:'+sk,'1');}catch(e){}
   if(typeof Sync!=='undefined')Sync.schedule();}
 async function persist(f){try{f.updatedAt=Date.now();f.dirty=true;await Data.put(f);updateStorageInfo();if(typeof Sync!=='undefined')Sync.schedule();return true;}catch(e){alert('Stockage saturé. Exportez vos fiches puis allégez les images.');return false;}}
 // Suppression : DOUCE (tombstone) si connecté -> propage l'effacement aux autres appareils, purgée
@@ -1151,12 +1165,12 @@ function renderLibrary(){
   if(state.scope&&!myLibraries.some(l=>l.id===state.scope))state.scope=null;
   // Filtrage par PÉRIMÈTRE : Perso (libraryId vide) ou bibliothèque partagée sélectionnée.
   const list=fiches.slice().sort(byOrder).filter(f=>(state.scope?f.libraryId===state.scope:!f.libraryId)&&(!state.cat||f.category===state.cat)&&(!q||(f.title+' '+catName(f)).toLowerCase().includes(q)));
-  const chips=`<button class="catchip" data-cat="" style="${!state.cat?'background:#16211f;color:#fff;border-color:#16211f':''}">Toutes</button>`+catsSorted().map(c=>{const col=safeColor(c.color);return `<button class="catchip" data-cat="${esc(c.id)}" style="${state.cat===c.id?`background:${col};color:#fff;border-color:${col}`:`background:${col}1f;border-color:${col}88`}">${esc(c.name)}</button>`;}).join('')+`<button class="catchip" id="catMgrChip" style="border-style:dashed;color:var(--ink-soft)">⚙ Gérer</button>`;
+  const chips=`<button class="catchip" data-cat="" style="${!state.cat?'background:#16211f;color:#fff;border-color:#16211f':''}">Toutes</button>`+catsSorted(state.scope).map(c=>{const col=safeColor(c.color);return `<button class="catchip" data-cat="${esc(c.id)}" style="${state.cat===c.id?`background:${col};color:#fff;border-color:${col}`:`background:${col}1f;border-color:${col}88`}">${esc(c.name)}</button>`;}).join('')+(canEditScope(state.scope)?`<button class="catchip" id="catMgrChip" style="border-style:dashed;color:var(--ink-soft)">⚙ Gérer</button>`:'');
   // PÉRIMÈTRE (visible seulement connecté) : Perso + bibliothèques partagées + création (app-admin).
   const ROLE_LBL={viewer:'lecture',editor:'édition',admin:'admin'};
   const scopeBar=Auth.signedIn()?`<div class="scopebar"><span class="scope-lbl">Périmètre</span>
     <button class="scopebtn${!state.scope?' on':''}" data-scope="">Perso</button>
-    ${myLibraries.map(l=>`<button class="scopebtn${state.scope===l.id?' on':''}" data-scope="${esc(l.id)}" title="Bibliothèque partagée — rôle : ${esc(ROLE_LBL[l.role]||l.role)}">${esc(l.name)}${l.role==='viewer'?' <span class="ro-hint">lecture</span>':''}</button>`).join('')}
+    ${myLibraries.map(l=>`<button class="scopebtn${state.scope===l.id?' on':''}" data-scope="${esc(l.id)}" title="Bibliothèque partagée — rôle : ${esc(ROLE_LBL[l.role]||l.role)}">${esc(l.name)}</button>`).join('')}
     ${myIsAppAdmin?`<button class="scopebtn add" id="newLibBtn">+ Bibliothèque</button>`:''}</div>
     ${state.scope?`<div class="scope-ctx"><span class="scope-ctx-i">Bibliothèque partagée${canEditScope(state.scope)?'':' · vous êtes en lecture seule'}</span>${(roleOf(state.scope)==='admin'||myIsAppAdmin)?`<button class="linkbtn" id="membersBtn"><span>👥</span> Gérer les membres</button>`:''}</div>`:''}`:'';
   // SESSIONS EN COURS (vives) : accès rapide en haut de l'accueil + actions (reprendre/réinit/terminer).
@@ -1179,7 +1193,7 @@ function renderLibrary(){
   document.getElementById('newBtn').onclick=newFiche;
   // Recliquer la catégorie déjà sélectionnée la dé-sélectionne (revient à « Toutes »).
   main.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{const c=b.dataset.cat;state.cat=(c&&state.cat===c)?'':c;renderLibrary();});
-  document.getElementById('catMgrChip').onclick=openCatMgr;
+  {const cmc=document.getElementById('catMgrChip');if(cmc)cmc.onclick=openCatMgr;}
   // Périmètre : changer de bibliothèque / créer une bibliothèque (app-admin).
   main.querySelectorAll('[data-scope]').forEach(b=>b.onclick=()=>{state.scope=b.dataset.scope||null;state.cat='';renderLibrary();});
   const nlb=document.getElementById('newLibBtn');if(nlb)nlb.onclick=createLibrary;
@@ -1648,7 +1662,7 @@ function targetSelect(blocks,selfId,value){const opts=blocks.filter(b=>b.id!==se
 function imageEditor(b){return `<div class="sub">Image du bloc (option)</div><div class="imgrow">${b.image?`<img src="${b.image}" alt=""><button class="btn sm danger" data-bimgdel>Retirer</button>`:`<button class="btn sm" data-bimg>+ Image / capture</button>`}</div>`;}
 function blockEditor(b,blocks){if(b.type==='decision'){return `<div class="blk" data-bid="${b.id}"><div class="blk-top"><span class="blk-type decision">Décision</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Réévaluation)"></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Question</div><input type="text" data-bf="question" value="${esc(b.question)}" placeholder="ex. Réponse à l'adrénaline ?" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)"><div class="sub">Réponses → bloc cible</div>${(b.options.length?b.options:[{label:'',target:''}]).map((o,i)=>`<div class="optedit" data-oi="${i}"><input type="text" data-of="label" value="${esc(o.label)}" placeholder="ex. Oui">${targetSelect(blocks,b.id,o.target)}<button class="mini del" data-rmopt="${i}">×</button></div>`).join('')}<button class="add-line" data-addopt>+ Ajouter une réponse</button>${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="mini" data-bmv="up">↑</button><button class="mini" data-bmv="down">↓</button><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
   return `<div class="blk" data-bid="${b.id}"><div class="blk-top"><span class="blk-type steps">Étapes</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Mesures immédiates)"></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Étapes (cochables en mode crise)</div>${(b.steps.length?b.steps:['']).map((s,i)=>`<div class="li" data-si="${i}"><span class="li-num">${String(i+1).padStart(2,'0')}</span><input type="text" data-sf value="${esc(s)}" placeholder="…"><button class="mini" data-smv="up" data-si="${i}">↑</button><button class="mini" data-smv="down" data-si="${i}">↓</button><button class="mini del" data-rmstep="${i}">×</button></div>`).join('')}<button class="add-line" data-addstep>+ Ajouter une étape</button><div class="sub">Étape suivante</div>${targetSelect(blocks,b.id,b.next)}${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="mini" data-bmv="up">↑</button><button class="mini" data-bmv="down">↓</button><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
-function catManagerHtml(){return `<div class="cat-mgr">${catsSorted().map(c=>`<div class="cat-row" data-cid="${c.id}"><input class="cn" data-cname value="${esc(c.name)}"><div class="swatches">${PALETTE.map(col=>`<span class="sw ${c.color===col?'on':''}" data-setcol="${col}" style="background:${col}"></span>`).join('')}</div><button class="mini del" data-delcat>×</button></div>`).join('')}<div class="cat-row"><input class="cn" id="newCatName" placeholder="Nouvelle catégorie…"><button class="btn sm" id="addCat">Ajouter</button></div></div>`;}
+function catManagerHtml(){return `<div class="cat-mgr">${catsSorted(activeCatScope()).map(c=>`<div class="cat-row" data-cid="${c.id}"><input class="cn" data-cname value="${esc(c.name)}"><div class="swatches">${PALETTE.map(col=>`<span class="sw ${c.color===col?'on':''}" data-setcol="${col}" style="background:${col}"></span>`).join('')}</div><button class="mini del" data-delcat>×</button></div>`).join('')}<div class="cat-row"><input class="cn" id="newCatName" placeholder="Nouvelle catégorie…"><button class="btn sm" id="addCat">Ajouter</button></div></div>`;}
 function timerEditorRow(t,i){const iv=t.type==='interval';const mm=Math.floor((t.seconds||0)/60),ss=(t.seconds||0)%60;return `<div class="trow" data-ti="${i}"><span class="blk-type ${iv?'decision':'steps'}">${iv?'Cycle':'Chrono'}</span><input type="text" data-tf="label" value="${esc(t.label)}" placeholder="${iv?'ex. Cycle adrénaline':'ex. Temps écoulé'}">${iv?`<input type="number" min="0" data-tmin value="${mm}" style="width:56px"><span>min</span><input type="number" min="0" max="59" data-tsec value="${ss}" style="width:56px"><span>s</span><label style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--ink-soft)"><input type="checkbox" data-tloop ${t.autoloop?'checked':''}>boucle</label>`:''}<button class="mini del" data-tdel="${i}">×</button></div>`;}
 function counterEditorRow(c,i){return `<div class="trow" data-ci="${i}"><input type="text" data-cf="label" value="${esc(c.label)}" placeholder="ex. Adrénaline (mg)"><span>pas</span><input type="number" data-cstep value="${c.step||1}" style="width:56px"><span>départ</span><input type="number" data-cstart value="${c.start||0}" style="width:56px"><button class="mini del" data-cdel="${i}">×</button></div>`;}
 
@@ -1660,7 +1674,7 @@ function renderEditor(){
     <button class="back" id="back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Annuler</button>
     ${isNew&&state.showCreateBand!==false?`<div class="create-band"><div class="cb-q">Comment créer cette fiche ?</div><div class="cb-opts"><button class="btn primary sm" id="cbAI">✨ Créer via IA</button><button class="btn sm" id="cbManual">✍ Créer manuellement</button></div><div class="cb-hint">« Via IA » : copiez le prompt dans une IA avec un document, puis importez le résultat. « Manuellement » : remplissez les champs ci-dessous.</div></div>`:''}
     <div class="field"><label>Titre de la situation</label><input type="text" id="f-title" value="${esc(f.title)}" placeholder="ex. Intoxication aux anesthésiques locaux"></div>
-    <div class="field"><label>Catégorie</label><div class="catpick"><button class="catpill" data-selcat="" style="${!f.category?'background:#54635f;color:#fff;border-color:#54635f':''}">Aucune</button>${catsSorted().map(c=>{const col=safeColor(c.color);return `<button class="catpill" data-selcat="${esc(c.id)}" style="${f.category===c.id?`background:${col};color:#fff;border-color:${col}`:`background:${col}1f;border-color:${col}88`}">${esc(c.name)}</button>`;}).join('')}<button class="catpill" id="catMgrBtn" style="border-style:dashed;color:var(--ink-soft)">⚙ Gérer</button></div>${state.catMgr?catManagerHtml():''}</div>
+    <div class="field"><label>Catégorie</label><div class="catpick"><button class="catpill" data-selcat="" style="${!f.category?'background:#54635f;color:#fff;border-color:#54635f':''}">Aucune</button>${catsSorted(f.libraryId).map(c=>{const col=safeColor(c.color);return `<button class="catpill" data-selcat="${esc(c.id)}" style="${f.category===c.id?`background:${col};color:#fff;border-color:${col}`:`background:${col}1f;border-color:${col}88`}">${esc(c.name)}</button>`;}).join('')}<button class="catpill" id="catMgrBtn" style="border-style:dashed;color:var(--ink-soft)">⚙ Gérer</button></div>${state.catMgr?catManagerHtml():''}</div>
     ${Auth.signedIn()?`<div class="field"><label>Périmètre <span class="hint">où ranger cette fiche</span></label>
       <select id="f-scope"><option value="" ${!f.libraryId?'selected':''}>Perso (privé)</option>${myLibraries.filter(l=>l.role==='editor'||l.role==='admin').map(l=>`<option value="${esc(l.id)}" ${f.libraryId===l.id?'selected':''}>${esc(l.name)} (partagée)</option>`).join('')}${f.libraryId&&!myLibraries.some(l=>l.id===f.libraryId)?`<option value="${esc(f.libraryId)}" selected>${esc(libName(f.libraryId)||'Bibliothèque')}</option>`:''}</select></div>`:''}
     <div class="row2"><div class="field"><label>Date de validation <span class="hint">mois/année</span></label><input type="text" id="f-validation" inputmode="numeric" autocapitalize="off" value="${esc(valToDisplay(f.validation))}" placeholder="MM/AAAA — ex. 012026 ou 01/2026"></div></div>
@@ -1689,10 +1703,13 @@ function renderEditor(){
   bindListEditors();
   // catégorie
   main.querySelectorAll('[data-selcat]').forEach(b=>b.onclick=()=>{state.draft.category=b.dataset.selcat;renderEditor();});
-  const scopeSel=document.getElementById('f-scope');if(scopeSel)scopeSel.onchange=()=>{state.draft.libraryId=scopeSel.value||null;};
+  const scopeSel=document.getElementById('f-scope');if(scopeSel)scopeSel.onchange=()=>{const ns=scopeSel.value||null;state.draft.libraryId=ns;
+    // Les catégories sont propres à un périmètre : si l'actuelle n'appartient pas au nouveau, on la retire.
+    const cc=state.draft.category;if(cc){const cat=categories.find(x=>x.id===cc);if(!cat||(cat.libraryId||null)!==(ns||null))state.draft.category='';}
+    state.catMgr=false;renderEditor();};
   document.getElementById('catMgrBtn').onclick=()=>{state.catMgr=!state.catMgr;renderEditor();};
-  if(state.catMgr){main.querySelectorAll('.cat-row[data-cid]').forEach(row=>{const cid=row.dataset.cid;const c=categories.find(x=>x.id===cid);const nm=row.querySelector('[data-cname]');if(nm)nm.addEventListener('input',e=>{c.name=e.target.value;saveCats();});row.querySelectorAll('[data-setcol]').forEach(sw=>sw.onclick=()=>{c.color=sw.dataset.setcol;saveCats();renderEditor();});const dl=row.querySelector('[data-delcat]');if(dl)dl.onclick=async()=>{if(!confirm('Supprimer « '+c.name+' » ? Les fiches associées passeront sans catégorie.'))return;categories=categories.filter(x=>x.id!==cid);const tt=[];fiches.forEach(ff=>{if(ff.category===cid){ff.category='';tt.push(ff);}});if(state.draft.category===cid)state.draft.category='';await saveCats();for(const ff of tt)await persist(ff);renderEditor();};});
-    const ac=document.getElementById('addCat');if(ac)ac.onclick=async()=>{const inp=document.getElementById('newCatName');const name=(inp.value||'').trim();if(!name)return;categories.push({id:freshCatId(name),name,color:PALETTE[categories.length%PALETTE.length]});await saveCats();renderEditor();};}
+  if(state.catMgr){const dscope=state.draft.libraryId||null;main.querySelectorAll('.cat-row[data-cid]').forEach(row=>{const cid=row.dataset.cid;const c=categories.find(x=>x.id===cid);const nm=row.querySelector('[data-cname]');if(nm)nm.addEventListener('input',e=>{c.name=e.target.value;saveCats(dscope);});row.querySelectorAll('[data-setcol]').forEach(sw=>sw.onclick=()=>{c.color=sw.dataset.setcol;saveCats(dscope);renderEditor();});const dl=row.querySelector('[data-delcat]');if(dl)dl.onclick=async()=>{if(!confirm('Supprimer « '+c.name+' » ? Les fiches associées passeront sans catégorie.'))return;categories=categories.filter(x=>x.id!==cid);const tt=[];fiches.forEach(ff=>{if(ff.category===cid){ff.category='';tt.push(ff);}});if(state.draft.category===cid)state.draft.category='';await saveCats(dscope);for(const ff of tt)await persist(ff);renderEditor();};});
+    const ac=document.getElementById('addCat');if(ac)ac.onclick=async()=>{const inp=document.getElementById('newCatName');const name=(inp.value||'').trim();if(!name)return;categories.push({id:newCatId(name,dscope),name,color:PALETTE[categories.length%PALETTE.length],libraryId:dscope});await saveCats(dscope);renderEditor();};}
   // images
   let imgMode={kind:null,bid:null};const imgInput=document.getElementById('imgInput');
   document.getElementById('addImg').onclick=()=>{imgMode={kind:'gallery'};imgInput.click();};
@@ -1935,20 +1952,20 @@ const catCount=id=>fiches.filter(f=>f.category===id).length;
 function openCatMgr(){catDelId=null;catModal.classList.add('on');renderCatMgr();}
 function closeCatMgr(){catModal.classList.remove('on');renderLibrary();}
 function renderCatMgr(){
-  const body=document.getElementById('catMgrBody');
-  body.innerHTML=catsSorted().map(c=>{const n=catCount(c.id);
-    const conf=catDelId===c.id?`<div class="cm-confirm">${n?`<p>« ${esc(c.name)} » contient <b>${n}</b> fiche${n>1?'s':''}. Choisissez où déplacer ces fiches avant de supprimer la catégorie :</p><select data-movesel><option value="">Laisser sans catégorie</option>${categories.filter(x=>x.id!==c.id).map(x=>`<option value="${esc(x.id)}">Déplacer vers « ${esc(x.name)} »</option>`).join('')}</select>`:`<p>Supprimer « ${esc(c.name)} » ? (catégorie vide)</p>`}<div class="cm-cact"><button class="btn danger sm" data-confdel="${esc(c.id)}">${n?'Déplacer puis Supprimer':'Supprimer'}</button><button class="btn sm" data-canceldel>Annuler</button></div></div>`:'';
+  const body=document.getElementById('catMgrBody');const scp=state.scope||null;const scoped=catsSorted(scp);
+  body.innerHTML=`${scp?`<p class="cm-scope">Catégories de la bibliothèque <b>${esc(libName(scp)||'')}</b> (partagées avec ses membres).</p>`:'<p class="cm-scope">Catégories de votre espace personnel.</p>'}`+scoped.map(c=>{const n=catCount(c.id);
+    const conf=catDelId===c.id?`<div class="cm-confirm">${n?`<p>« ${esc(c.name)} » contient <b>${n}</b> fiche${n>1?'s':''}. Choisissez où déplacer ces fiches avant de supprimer la catégorie :</p><select data-movesel><option value="">Laisser sans catégorie</option>${scoped.filter(x=>x.id!==c.id).map(x=>`<option value="${esc(x.id)}">Déplacer vers « ${esc(x.name)} »</option>`).join('')}</select>`:`<p>Supprimer « ${esc(c.name)} » ? (catégorie vide)</p>`}<div class="cm-cact"><button class="btn danger sm" data-confdel="${esc(c.id)}">${n?'Déplacer puis Supprimer':'Supprimer'}</button><button class="btn sm" data-canceldel>Annuler</button></div></div>`:'';
     return `<div class="cm-row" data-cid="${esc(c.id)}"><div class="cm-top"><span class="cm-dot" style="background:${safeColor(c.color)}"></span><input class="cm-name" data-cname value="${esc(c.name)}"><span class="cm-count">${n} fiche${n>1?'s':''}</span><button class="cm-del" data-askdel="${esc(c.id)}" aria-label="Supprimer">×</button></div><div class="cm-sw">${PALETTE.map(col=>`<span class="sw ${c.color===col?'on':''}" data-setcol="${col}" style="background:${col}"></span>`).join('')}</div>${conf}</div>`;
-  }).join('')+`${categories.length?'':'<p style="font-size:13px;color:var(--ink-soft);margin:0 0 10px">Aucune catégorie pour le moment.</p>'}<div class="cm-add"><input id="cmNew" placeholder="Nouvelle catégorie…"><button class="btn primary sm" id="cmAdd">Ajouter</button></div>`;
+  }).join('')+`${scoped.length?'':'<p style="font-size:13px;color:var(--ink-soft);margin:0 0 10px">Aucune catégorie pour le moment.</p>'}<div class="cm-add"><input id="cmNew" placeholder="Nouvelle catégorie…"><button class="btn primary sm" id="cmAdd">Ajouter</button></div>`;
   body.querySelectorAll('.cm-row').forEach(row=>{const cid=row.dataset.cid;const c=categories.find(x=>x.id===cid);if(!c)return;
-    const nm=row.querySelector('[data-cname]');if(nm)nm.addEventListener('input',e=>{c.name=e.target.value;saveCats();});
-    row.querySelectorAll('[data-setcol]').forEach(sw=>sw.onclick=()=>{c.color=sw.dataset.setcol;saveCats();renderCatMgr();});
+    const nm=row.querySelector('[data-cname]');if(nm)nm.addEventListener('input',e=>{c.name=e.target.value;saveCats(scp);});
+    row.querySelectorAll('[data-setcol]').forEach(sw=>sw.onclick=()=>{c.color=sw.dataset.setcol;saveCats(scp);renderCatMgr();});
     const ad=row.querySelector('[data-askdel]');if(ad)ad.onclick=()=>{catDelId=cid;renderCatMgr();};
     const cn=row.querySelector('[data-canceldel]');if(cn)cn.onclick=()=>{catDelId=null;renderCatMgr();};
     const cf=row.querySelector('[data-confdel]');if(cf)cf.onclick=async()=>{const sel=row.querySelector('[data-movesel]');const target=sel?sel.value:'';
       const moved=fiches.filter(f=>f.category===cid);for(const ff of moved){ff.category=target;await persist(ff);}
-      categories=categories.filter(x=>x.id!==cid);if(state.cat===cid)state.cat=target||'';await saveCats();catDelId=null;renderCatMgr();};});
-  const add=document.getElementById('cmAdd');if(add)add.onclick=async()=>{const inp=document.getElementById('cmNew');const name=(inp.value||'').trim();if(!name)return;categories.push({id:freshCatId(name),name,color:PALETTE[categories.length%PALETTE.length]});await saveCats();renderCatMgr();};
+      categories=categories.filter(x=>x.id!==cid);if(state.cat===cid)state.cat=target||'';await saveCats(scp);catDelId=null;renderCatMgr();};});
+  const add=document.getElementById('cmAdd');if(add)add.onclick=async()=>{const inp=document.getElementById('cmNew');const name=(inp.value||'').trim();if(!name)return;categories.push({id:newCatId(name,scp),name,color:PALETTE[catsForScope(scp).length%PALETTE.length],libraryId:scp});await saveCats(scp);renderCatMgr();};
 }
 document.getElementById('catX').onclick=closeCatMgr;
 catModal.onclick=e=>{if(e.target===catModal)closeCatMgr();};
@@ -1991,7 +2008,7 @@ catModal.onclick=e=>{if(e.target===catModal)closeCatMgr();};
       aient une vue exacte de la structure attendue. */
 // Export réutilisable : `cats` par défaut = catégories réellement utilisées par `list`
 // (pour un export d'une seule fiche) ; l'export global passe toutes les catégories.
-function exportData(list,baseName,cats){const out={version:3,categories:cats||categories.filter(c=>list.some(f=>f.category===c.id)),fiches:list.map(f=>{const c={...f};if(c.blocks)delete c.blocks._start;
+function exportData(list,baseName,cats){const out={version:3,categories:(cats||categories.filter(c=>list.some(f=>f.category===c.id))).map(c=>({id:c.id,name:c.name,color:c.color})),fiches:list.map(f=>{const c={...f};if(c.blocks)delete c.blocks._start;
   // On retire les champs de sync PUREMENT LOCAUX -> une fiche importée ailleurs devient celle de l'importateur
   // (pas d'owner/biblio d'autrui) ; `updatedAt` est conservé (utile au last-write-wins multi-appareils).
   delete c.dirty;delete c.ownerId;delete c.libraryId;return c;})};const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=baseName+'-'+new Date().toISOString().slice(0,10)+'.json';a.click();}
@@ -2152,7 +2169,7 @@ const Sync={
   async _initIfNeeded(){const uidv=Auth.user().id;const k='ac-sync-init-'+uidv;if(localStorage.getItem(k))return;
     const peek=await rest('GET','/rest/v1/fiches?select=id&library_id=is.null&limit=1')||[];
     if(!peek.length){const all=await Data.getAll();for(const f of all){if(!f.libraryId&&!f.deletedAt){f.dirty=true;await Data.put(f);}}
-      try{localStorage.setItem('ac-cats-dirty','1');if(!localStorage.getItem('ac-cats-updated'))localStorage.setItem('ac-cats-updated',String(Date.now()));}catch(e){}}
+      try{localStorage.setItem('ac-cats-dirty:','1');if(!localStorage.getItem('ac-cats-updated:'))localStorage.setItem('ac-cats-updated:',String(Date.now()));}catch(e){}}
     localStorage.setItem(k,'1');},
   async _pull(){
     const cur=localStorage.getItem(this._cursorKey);
@@ -2185,19 +2202,30 @@ const Sync={
     for(const f of dirty){if(f.deletedAt){await Data.del(f.id);} // tombstone poussé -> purge locale (espace récupéré)
       else{f.dirty=false;await Data.put(f);}}},
   async _syncCats(){
-    const uidv=Auth.user().id;const sk='personal:'+uidv;
-    const localTs=+(localStorage.getItem('ac-cats-updated')||0);
-    const dirty=localStorage.getItem('ac-cats-dirty')==='1';
-    const rows=await rest('GET','/rest/v1/category_sets?select=*&scope_key=eq.'+encodeURIComponent(sk))||[];
-    const remote=rows[0];
-    if(remote){const rts=Date.parse(remote.updated_at)||0;
-      if(rts>localTs){categories=sanitizeCats(remote.data&&remote.data.categories);await Data.setCats(categories);
-        try{localStorage.setItem('ac-cats-updated',String(rts));localStorage.removeItem('ac-cats-dirty');}catch(e){}
-        render();return;}}
-    if(dirty||!remote){const now=localTs||Date.now();
-      const row={scope_key:sk,owner:uidv,library_id:null,data:{categories:categories},updated_at:new Date(now).toISOString()};
-      await rest('POST','/rest/v1/category_sets',[row],{'Prefer':'resolution=merge-duplicates,return=minimal'});
-      try{localStorage.removeItem('ac-cats-dirty');}catch(e){}}},
+    const uidv=Auth.user().id;
+    // Un document de catégories PAR PÉRIMÈTRE : Perso (clé '') + chaque bibliothèque (clé = id).
+    // On ne pousse une bibliothèque que si l'on peut l'éditer ; sinon on se contente de la lire.
+    const scopes=[{key:'',scopeKey:'personal:'+uidv,libraryId:null,canPush:true}]
+      .concat(myLibraries.map(l=>({key:l.id,scopeKey:'lib:'+l.id,libraryId:l.id,canPush:(l.role==='editor'||l.role==='admin')})));
+    let changed=false;
+    for(const s of scopes){
+      const localTs=+(localStorage.getItem('ac-cats-updated:'+s.key)||0);
+      const dirty=localStorage.getItem('ac-cats-dirty:'+s.key)==='1';
+      let remote=null;try{const rows=await rest('GET','/rest/v1/category_sets?select=*&scope_key=eq.'+encodeURIComponent(s.scopeKey))||[];remote=rows[0];}catch(e){continue;}
+      if(remote&&(Date.parse(remote.updated_at)||0)>localTs){
+        // Distant plus récent -> on remplace les catégories DE CE PÉRIMÈTRE par le set distant.
+        const incoming=sanitizeCats(remote.data&&remote.data.categories).map(c=>{c.libraryId=s.libraryId;return c;});
+        categories=categories.filter(c=>(c.libraryId||null)!==(s.libraryId||null)).concat(incoming);
+        try{localStorage.setItem('ac-cats-updated:'+s.key,String(Date.parse(remote.updated_at)));localStorage.removeItem('ac-cats-dirty:'+s.key);}catch(e){}
+        changed=true;continue;
+      }
+      if(s.canPush&&(dirty||!remote)){const now=localTs||Date.now();
+        const data={categories:catsForScope(s.libraryId).map(c=>({id:c.id,name:c.name,color:c.color,libraryId:s.libraryId}))};
+        try{await rest('POST','/rest/v1/category_sets',[{scope_key:s.scopeKey,owner:uidv,library_id:s.libraryId,data:data,updated_at:new Date(now).toISOString()}],{'Prefer':'resolution=merge-duplicates,return=minimal'});
+          try{localStorage.removeItem('ac-cats-dirty:'+s.key);}catch(e){}}catch(e){}
+      }
+    }
+    if(changed){await Data.setCats(categories);render();}},
   // Réconciliation des fiches PARTAGÉES : retire localement celles devenues inaccessibles (fiche
   // déplacée hors de la biblio, membre retiré, biblio supprimée). Les fiches Perso ne sont jamais
   // touchées. En cas d'échec réseau, on ne supprime rien (sécurité).
