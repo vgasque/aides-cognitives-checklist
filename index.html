@@ -1152,7 +1152,7 @@ async function deleteSession(id){if(!confirm('Supprimer cette session ?'))return
    renderLibrary() : recherche + filtres catégories colorés + grille de cartes
      (pastilles catégorie/branchement/nb de sessions, date de validation). */
 function render(){
-  document.getElementById('topNew').style.display=state.view==='library'?'inline-flex':'none';
+  document.getElementById('topNew').style.display=(state.view==='library'&&canEditScope(state.scope))?'inline-flex':'none';
   document.getElementById('brandSub').textContent=state.view==='library'?'Bibliothèque':state.view==='edit'?'Édition':'Mode crise';
   const bt=document.getElementById('brandTitle');if(bt){const t=state.view==='read'&&state.fiche?state.fiche.title||'':'';bt.textContent=t;bt.style.display=t?'block':'none';}
   if(state.view==='library')renderLibrary();else if(state.view==='edit')renderEditor();else renderRead();
@@ -1179,9 +1179,9 @@ function renderLibrary(){
   main.innerHTML=`
     ${scopeBar}
     ${liveHtml}
-    <div class="notice"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01" stroke-linecap="round"/></svg><div>Vous êtes l'auteur et le responsable du contenu. Validez chaque fiche et tenez la date à jour.</div></div>
+    ${!state.scope?`<div class="notice"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01" stroke-linecap="round"/></svg><div>Vous êtes l'auteur et le responsable du contenu. Validez chaque fiche et tenez la date à jour.</div></div>`:''}
     <div class="lib-top"><div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg><input id="q" placeholder="Rechercher…" value="${esc(state.q)}"></div>
-      <button class="btn-new" id="newBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Créer</button></div>
+      ${canEditScope(state.scope)?`<button class="btn-new" id="newBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Créer</button>`:''}</div>
     <div class="catbar">${chips}</div>
     <div class="cards">${list.length?list.map(f=>{const sc=sessions.filter(s=>s.ficheId===f.id&&!s.live).length;const isLive=!!liveSessions[f.id];return `
       <div class="card${isLive?' has-live':''}" tabindex="0" role="button" data-open="${f.id}"><div class="card-body"><h3>${esc(f.title)||'Sans titre'}</h3>
@@ -1190,7 +1190,7 @@ function renderLibrary(){
       :`<div class="empty"><b>Aucune fiche</b>${state.q||state.cat?'Aucun résultat pour ce filtre.':'Créez votre première aide cognitive.'}</div>`}</div>`;
 
   document.getElementById('q').addEventListener('input',e=>{state.q=e.target.value;const pos=e.target.selectionStart;renderLibrary();const inp=document.getElementById('q');inp.focus();inp.setSelectionRange(pos,pos);});
-  document.getElementById('newBtn').onclick=newFiche;
+  {const nb=document.getElementById('newBtn');if(nb)nb.onclick=newFiche;}
   // Recliquer la catégorie déjà sélectionnée la dé-sélectionne (revient à « Toutes »).
   main.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{const c=b.dataset.cat;state.cat=(c&&state.cat===c)?'':c;renderLibrary();});
   {const cmc=document.getElementById('catMgrChip');if(cmc)cmc.onclick=openCatMgr;}
