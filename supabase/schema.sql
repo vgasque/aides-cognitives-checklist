@@ -191,6 +191,18 @@ language sql security definer set search_path = public as $$
 $$;
 grant execute on function public.list_members(text) to authenticated;
 
+-- ---------- 5quater. Durcissement : updated_at non postdatable ---------------
+-- Empêche un client de postdater updated_at pour « gagner » indûment un conflit (last-write-wins).
+-- On clampe seulement les valeurs dans le futur -> aucune nuisance pour les écritures normales.
+create or replace function public.clamp_updated_at()
+returns trigger language plpgsql as $$
+begin if new.updated_at is null or new.updated_at > now() then new.updated_at = now(); end if; return new; end;
+$$;
+drop trigger if exists fiches_clamp_updated   on public.fiches;
+drop trigger if exists catsets_clamp_updated  on public.category_sets;
+create trigger fiches_clamp_updated  before insert or update on public.fiches        for each row execute function public.clamp_updated_at();
+create trigger catsets_clamp_updated before insert or update on public.category_sets for each row execute function public.clamp_updated_at();
+
 -- ---------- 6. Recharge du cache PostgREST ----------------------------------
 notify pgrst, 'reload schema';
 
