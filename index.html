@@ -451,8 +451,9 @@
   .session-bar.live .sess-info b{font-size:13px;color:var(--primary-dk);letter-spacing:.2px}
   .session-bar.live .sess-info span{font-size:11.5px;color:var(--ink-soft)}
   .session-bar .sess-acts{display:flex;gap:7px;flex-wrap:wrap}
-  .sess-dot{width:9px;height:9px;border-radius:50%;background:var(--primary);flex-shrink:0;box-shadow:0 0 0 0 rgba(13,91,86,.45);animation:pulse 2s infinite}
-  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(13,91,86,.4)}70%{box-shadow:0 0 0 7px rgba(13,91,86,0)}100%{box-shadow:0 0 0 0 rgba(13,91,86,0)}}
+  .sess-dot{--pulse:13,91,86;width:9px;height:9px;border-radius:50%;background:var(--primary);flex-shrink:0;box-shadow:0 0 0 0 rgba(var(--pulse),.45);animation:pulse 2s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(var(--pulse),.45)}70%{box-shadow:0 0 0 7px rgba(var(--pulse),0)}100%{box-shadow:0 0 0 0 rgba(var(--pulse),0)}}
+  html[data-theme="dark"] .sess-dot{--pulse:63,176,166}
   .sess-livetag{font-size:10px;font-weight:700;color:var(--primary-dk);background:var(--primary-soft);padding:1px 7px;border-radius:10px;margin-left:6px}
   .sess-list{background:#f5f8f7;border:1px solid var(--line);border-radius:11px;padding:6px 10px;margin-bottom:18px}
   .sess-row{display:flex;gap:8px;align-items:center;padding:9px 2px;border-bottom:1px solid var(--line)}
@@ -467,6 +468,7 @@
   .ls-info b{font-size:15px;font-weight:640}.ls-info span{font-size:12px;color:var(--ink-soft)}
   .ls-acts{display:flex;gap:7px;flex-wrap:wrap}
   .tag.live{background:#dff0ec;color:var(--primary-dk)}
+  .tag.libtag{display:inline-flex;align-items:center;gap:4px;background:var(--primary-soft);color:var(--primary-dk);max-width:55vw;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.tag.libtag svg{flex:none;opacity:.85}
   .card.has-live{border-color:#b9ddd6}
   /* Banderoles d'alerte (minuteur d'une session non visible) */
   #alerts{position:fixed;left:0;right:0;top:0;z-index:80;display:flex;flex-direction:column;align-items:center;gap:8px;padding:calc(8px + env(safe-area-inset-top)) 12px 0;pointer-events:none}
@@ -1032,22 +1034,23 @@ async function updateStorageInfo(){
     ]);
     if(!est){el.textContent='';return;}
     const fmt=n=>{if(!n)return '0 o';if(n<1024)return n+' o';if(n<1048576)return Math.round(n/1024)+' Ko';if(n<1073741824)return (n/1048576).toFixed(1)+' Mo';return (n/1073741824).toFixed(2)+' Go';};
-    // Message selon l'état : CONNECTÉ -> rassurant (le cloud est la vraie sauvegarde, la limite ne
-    // concerne que le cache local) ; DÉCONNECTÉ -> cet appareil est la SEULE copie.
+    // On MÈNE avec le message de sécurité (où sont mes fiches, suis-je à l'abri ?), on garde le détail
+    // chiffré (taille / quota appareil) en info-bulle. CONNECTÉ -> rassurant ; DÉCONNECTÉ -> copie unique.
     const signed=(typeof Auth!=='undefined'&&Auth.signedIn());
-    let status,tip;
+    const used=fmt(est.usage);
+    let main,tip;
     if(signed){
-      status='<span class="pers-ok">☁ aussi sauvegardé dans le cloud</span>';
-      tip='Cette limite ne concerne QUE la copie hors-ligne sur cet appareil — pas vos données. Comme vous êtes connecté, vos fiches sont aussi sauvegardées dans le cloud : si le navigateur efface cette copie locale (ou si vous changez d\'appareil), vous les retrouvez intégralement en vous reconnectant. C\'est précisément l\'intérêt de la synchronisation.';
+      main='<span class="pers-ok">☁ <b>Sauvegardé dans le cloud</b></span> · '+used+' sur cet appareil';
+      tip='Vos fiches sont sauvegardées dans le cloud. Le « '+used+' » est seulement la copie hors-ligne sur CET appareil (sa limite, '+fmt(est.quota)+', ne concerne donc pas vos données) : même effacée du navigateur ou depuis un autre appareil, vous retrouvez tout en vous reconnectant. C\'est l\'intérêt de la synchronisation.';
     }else if(pers===true){
-      status='<span class="pers-ok">copie unique, mais conservée ✓</span>';
-      tip='Sans compte, cet appareil contient votre SEULE copie. Elle est ici à l\'abri d\'un effacement automatique du navigateur (app installée). Connectez-vous pour aussi la sauvegarder dans le cloud et y accéder depuis vos autres appareils.';
+      main='<b>Sur cet appareil uniquement</b> · '+used+' · copie unique';
+      tip='Sans compte, cet appareil contient votre SEULE copie ('+used+' / '+fmt(est.quota)+'), ici à l\'abri d\'un effacement automatique du navigateur. Connectez-vous pour la sauvegarder dans le cloud et y accéder depuis vos autres appareils.';
     }else{
-      status='<span class="pers-warn">copie unique — connectez-vous ou installez l\'app</span>';
-      tip='Sans compte, cet appareil contient votre SEULE copie, et le navigateur pourrait l\'effacer automatiquement. Pour éviter toute perte : connectez-vous (sauvegarde dans le cloud) ou installez l\'app sur l\'écran d\'accueil.';
+      main='<span class="pers-warn">⚠ <b>Sur cet appareil seulement</b> · '+used+' · non protégé</span> — connectez-vous';
+      tip='Sans compte, cet appareil contient votre SEULE copie ('+used+' / '+fmt(est.quota)+') et le navigateur pourrait l\'effacer. Pour éviter toute perte : connectez-vous (sauvegarde dans le cloud) ou installez l\'app sur l\'écran d\'accueil.';
     }
-    el.innerHTML=`Stockage sur cet appareil : <b>${fmt(est.usage)}</b> / ${fmt(est.quota)} · ${status}`;
-    el.title=tip;
+    if(est.quota&&est.usage/est.quota>0.85)main+=' · <span class="pers-warn">⚠ appareil presque plein</span>';
+    el.innerHTML=main;el.title=tip;
   }catch(e){if(el)el.textContent='';}
 }
 async function load(){
@@ -1693,7 +1696,7 @@ function renderRead(){
   main.innerHTML=`
     <button class="back" id="back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Bibliothèque</button>
     <div class="read-head"><h2>${esc(f.title)||'Sans titre'}</h2></div>
-    <div class="read-meta">${catTag(f)}<span class="card-date${staleDate(f.validation)?' stale':''}">${esc(fmtDate(f.validation))}</span></div>
+    <div class="read-meta">${f.libraryId?`<span class="tag libtag" title="Bibliothèque partagée"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/></svg>${esc(libName(f.libraryId)||'Partagée')}</span>`:''}${catTag(f)}<span class="card-date${staleDate(f.validation)?' stale':''}">${esc(fmtDate(f.validation))}</span></div>
     ${sessBar}${sessList}
     ${runtimePanel(f)}
     ${staticBlock('Confirmation diagnostique','h-confirm',f.confirmation,'confirm')}
