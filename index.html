@@ -166,7 +166,7 @@
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
-<script>try{var _t=localStorage.getItem('ac-theme')||((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light');document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
+<script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);}catch(e){}</script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Aides cog.">
@@ -217,7 +217,9 @@
   html[data-theme="dark"] .blk-type.decision{background:#33301f}
   /* SVG de l'algorithme : inversion + rotation de teinte -> rendu sombre cohérent (les couleurs
      teal/ambre restent distinctes ; pas d'images réelles dans le SVG, seulement des pavés). */
-  html[data-theme="dark"] :is(.flow-scroll,#flowFull .ff-scroll) svg{filter:invert(0.92) hue-rotate(180deg)}
+  html[data-theme="dark"] :is(.flow-scroll,#flowFull .ff-scroll) svg{filter:invert(1) hue-rotate(180deg)}
+  /* On ANNULE l'inversion sur les vraies images (sinon photos en négatif) : double inversion = identité. */
+  html[data-theme="dark"] :is(.flow-scroll,#flowFull .ff-scroll) svg image{filter:invert(1) hue-rotate(180deg)}
   *{box-sizing:border-box}html,body{margin:0;padding:0}
   body{font-family:var(--sans);color:var(--ink);background:var(--bg);line-height:1.5;-webkit-font-smoothing:antialiased;padding-bottom:env(safe-area-inset-bottom)}
   button{font-family:inherit;cursor:pointer}input,textarea,select{font-family:inherit;font-size:16px}textarea{resize:vertical}
@@ -229,8 +231,10 @@
   #brandTitle{font-size:13px;font-weight:600;color:#eaf5f3;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:0;text-transform:none;display:none}
   .bar-act{background:rgba(255,255,255,.14);color:#eaf5f3;border:0;padding:9px 13px;border-radius:9px;font-size:13.5px;font-weight:600;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
   /* Icône Compte dans l'en-tête (présence utilisateur), avec pastille d'état de synchro discrète. */
-  .bar-acct{position:relative;background:rgba(255,255,255,.14);color:#eaf5f3;border:0;width:38px;height:38px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex:none;cursor:pointer}
-  .bar-acct:hover{background:rgba(255,255,255,.26)}.bar-acct.on{background:rgba(255,255,255,.22)}
+  .bar-acct{position:relative;background:rgba(255,255,255,.14);color:#eaf5f3;border:0;width:38px;height:38px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex:none;cursor:pointer;transition:background .12s,transform .06s}
+  .bar-acct.on{background:rgba(255,255,255,.2)}
+  .bar-acct:hover,.bar-acct.on:hover{background:rgba(255,255,255,.34)}
+  .bar-acct:active{transform:translateY(1px)}
   /* Déconnecté = buste en contour ; connecté = buste plein (+ pastille verte). État évident. */
   .bar-acct .ic-filled{display:none}
   .bar-acct.on .ic-outline{display:none}.bar-acct.on .ic-filled{display:inline-block}
@@ -544,6 +548,25 @@
   .auth-msg{font-size:13px;margin:8px 0 0;min-height:18px}
   .auth-msg.err{color:var(--verify)}.auth-msg.ok{color:var(--primary)}
   .auth-who{font-size:14px;margin:2px 0 10px}.auth-who b{color:var(--primary)}
+  /* Fenêtre Compte redessinée */
+  .auth-card-in{display:flex;align-items:center;gap:13px;margin-bottom:4px}
+  .auth-avatar{width:48px;height:48px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:21px;font-weight:700;flex:none}
+  .auth-id{min-width:0}
+  .auth-email{font-size:15px;font-weight:650;color:var(--ink);word-break:break-all;line-height:1.3}
+  .auth-state{font-size:12.5px;color:var(--primary);display:flex;align-items:center;gap:6px;margin-top:3px}
+  .auth-state .auth-dot{width:8px;height:8px;border-radius:50%;background:#37c98e;flex:none}
+  .auth-sub{font-size:13.5px;color:var(--ink-soft);line-height:1.55;margin:12px 0 18px}
+  .auth-actions{display:flex;flex-direction:column;gap:9px}
+  .auth-actions .btn{width:100%;justify-content:center}
+  .btn.ghost{background:transparent;border-color:transparent;color:var(--ink-soft)}
+  .btn.ghost:hover{background:var(--critical-soft);color:var(--critical);border-color:transparent}
+  .auth-hero{text-align:center;margin-bottom:18px}
+  .auth-hero-ic{width:56px;height:56px;border-radius:15px;background:var(--primary-soft);color:var(--primary);display:inline-flex;align-items:center;justify-content:center;margin-bottom:11px}
+  .auth-hero h4{margin:0 0 5px;font-size:17px;color:var(--ink)}
+  .auth-hero .auth-sub{margin:0}
+  .auth-label{display:block;font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--ink-soft);margin-bottom:6px}
+  .auth-full{width:100%;justify-content:center;margin-top:8px}
+  .auth-code{text-align:center;letter-spacing:8px;font-size:22px;font-weight:700;padding-left:8px}
   /* Toast non bloquant (notifications de synchro/conflit) : n'interrompt jamais l'usage. */
   .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translate(-50%,16px);max-width:min(560px,92vw);background:var(--ink);color:#fff;font-size:13.5px;line-height:1.5;padding:12px 15px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.28);z-index:120;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none}
   .toast.on{opacity:1;transform:translate(-50%,0)}
@@ -599,7 +622,6 @@
     <button class="tlink" id="installBtn">Installer l'app</button>
     <button class="tlink" id="exportBtn">Exporter tout</button>
     <button class="tlink" id="importBtn">Importer</button>
-    <button class="tlink" id="aiBtn">✨ Créer via IA</button>
     <button class="tlink" id="themeBtn">🌙 Sombre</button>
     </div>
     <div class="storage-gauge" id="storageInfo"></div>
@@ -1527,8 +1549,10 @@ function buildFlowSVG(f,curId){
       iy+=LH;});});
     // Image du bloc DANS le SVG : vignette ajustée (meet) + petite loupe ; cliquable -> plein écran.
     if(L.img){const iyi=iy+IMG_GAP,iw=W-2*IMG_PAD;
+      g+=`<clipPath id="imgc_${b.id}"><rect x="${IMG_PAD}" y="${iyi}" width="${iw}" height="${IMG_H}" rx="7"/></clipPath>`;
       g+=`<rect x="${IMG_PAD}" y="${iyi}" width="${iw}" height="${IMG_H}" rx="7" fill="#eef2f1" stroke="${stroke}"/>`;
-      g+=`<image x="${IMG_PAD}" y="${iyi}" width="${iw}" height="${IMG_H}" href="${L.img}" preserveAspectRatio="xMidYMid meet" data-full="${L.img}" style="cursor:zoom-in"/>`;
+      // clip-path = coins arrondis (l'image carrée ne déborde plus du cadre).
+      g+=`<image x="${IMG_PAD}" y="${iyi}" width="${iw}" height="${IMG_H}" href="${L.img}" preserveAspectRatio="xMidYMid meet" clip-path="url(#imgc_${b.id})" data-full="${L.img}" style="cursor:zoom-in"/>`;
       g+=`<g transform="translate(${W-IMG_PAD-15},${iyi+4})" pointer-events="none"><circle cx="6" cy="6" r="7" fill="rgba(13,91,86,.85)"/><circle cx="5" cy="5" r="2.4" fill="none" stroke="#fff" stroke-width="1.2"/><path d="M6.8 6.8 L9 9" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></g>`;}
     g+=`<rect width="${W}" height="${h}" rx="10" fill="none" stroke="${(isCur||isS)?'#0d5b56':stroke}" stroke-width="${(isCur||isS)?2.5:1.5}"/>`;
     nodes+=`<g transform="translate(${p.x},${p.y})">${g}</g>`;});
@@ -1975,7 +1999,7 @@ AVANT DE RÉPONDRE, VÉRIFIE
 const aiModal=document.getElementById('aiModal');
 function openAI(){document.getElementById('aiTa').value=AI_PROMPT;aiModal.classList.add('on');document.getElementById('aiCopy').textContent='Copier le prompt';}
 function closeAI(){aiModal.classList.remove('on');}
-document.getElementById('aiBtn').onclick=openAI;
+{const ab=document.getElementById('aiBtn');if(ab)ab.onclick=openAI;}
 document.getElementById('aiX').onclick=closeAI;
 aiModal.onclick=e=>{if(e.target===aiModal)closeAI();};
 // Import depuis la fenêtre IA : on mémorise qu'il faut OUVRIR directement la fiche importée.
@@ -2118,30 +2142,32 @@ function setSyncChip(state,text){
 // État local de la fenêtre Compte (étape e-mail -> code).
 let _authStep={mode:'email',email:'',msg:'',msgcls:''};
 function renderAuth(){const body=document.getElementById('authBody');if(!body)return;
-  if(Auth.signedIn()){const u=Auth.user()||{};
-    body.innerHTML=`<p class="auth-who">Connecté : <b>${esc(u.email||'')}</b></p>
-      <p class="auth-msg ok">Synchronisation multi-appareils active : votre bibliothèque personnelle est sauvegardée et accessible sur vos autres appareils connectés au même compte.</p>
-      <div class="auth-row"><button class="btn primary sm" id="authSync">Synchroniser maintenant</button><button class="btn sm" id="authSwitch">Changer de compte</button><button class="btn sm" id="authOut">Se déconnecter</button></div>`;
+  if(Auth.signedIn()){const u=Auth.user()||{};const ini=((u.email||'?').trim()[0]||'?').toUpperCase();
+    body.innerHTML=`<div class="auth-card-in"><div class="auth-avatar">${esc(ini)}</div><div class="auth-id"><div class="auth-email">${esc(u.email||'')}</div><div class="auth-state"><span class="auth-dot"></span>Synchronisation active</div></div></div>
+      <p class="auth-sub">Votre bibliothèque personnelle est sauvegardée et accessible sur tous vos appareils connectés à ce compte.</p>
+      <div class="auth-actions"><button class="btn primary" id="authSync">Synchroniser maintenant</button><button class="btn" id="authSwitch">Changer de compte</button><button class="btn ghost" id="authOut">Se déconnecter</button></div>`;
     body.querySelector('#authSync').onclick=()=>{Sync.full();closeAuth();};
     const doSignOut=async()=>{await Auth.signOut();myLibraries=[];myIsAppAdmin=false;state.scope=null;_authStep={mode:'email',email:'',msg:'',msgcls:''};renderAuth();setSyncChip();if(state.view==='library')renderLibrary();};
     body.querySelector('#authSwitch').onclick=async()=>{await doSignOut();}; // déconnecte et revient à l'écran de connexion (fenêtre ouverte)
     body.querySelector('#authOut').onclick=async()=>{if(!confirm('Se déconnecter ? Vos fiches restent disponibles localement sur cet appareil.'))return;await doSignOut();};
     return;}
   if(_authStep.mode==='email'){
-    body.innerHTML=`<p>Recevez un <b>code par e-mail</b> pour vous connecter ou créer votre compte.</p>
-      <input class="auth-field" id="authEmail" type="email" inputmode="email" autocomplete="email" placeholder="votre e-mail" value="${esc(_authStep.email)}">
-      <div class="auth-row"><button class="btn primary sm" id="authSend">Recevoir le code</button></div>
+    body.innerHTML=`<div class="auth-hero"><div class="auth-hero-ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3.5 6.5l8.5 6 8.5-6"/></svg></div><h4>Connexion</h4><p class="auth-sub">Recevez un code par e-mail pour vous connecter ou créer votre compte.</p></div>
+      <label class="auth-label" for="authEmail">Adresse e-mail</label>
+      <input class="auth-field" id="authEmail" type="email" inputmode="email" autocomplete="email" placeholder="vous@exemple.fr" value="${esc(_authStep.email)}">
+      <button class="btn primary auth-full" id="authSend">Recevoir le code</button>
       <p class="auth-msg ${_authStep.msgcls}">${esc(_authStep.msg)}</p>
-      <p class="ai-note">La synchronisation rend votre bibliothèque accessible sur tous vos appareils. L'application reste pleinement utilisable hors-ligne et sans compte.</p>`;
+      <p class="ai-note">L'application reste pleinement utilisable hors-ligne et sans compte. La synchronisation est optionnelle.</p>`;
     const send=body.querySelector('#authSend');
     send.onclick=async()=>{const email=(body.querySelector('#authEmail').value||'').trim();if(!email||email.indexOf('@')<1){_authStep.msg='E-mail invalide.';_authStep.msgcls='err';return renderAuth();}
       _authStep.email=email;_authStep.msg='Envoi du code…';_authStep.msgcls='';renderAuth();
       try{await Auth.sendCode(email);_authStep.mode='code';_authStep.msg='';renderAuth();}
       catch(e){_authStep.msg='Échec de l\'envoi : '+e.message;_authStep.msgcls='err';renderAuth();}};
   }else{
-    body.innerHTML=`<p>Un code a été envoyé à <b>${esc(_authStep.email)}</b>. Saisissez-le :</p>
-      <input class="auth-field" id="authCode" inputmode="numeric" autocomplete="one-time-code" placeholder="code reçu par e-mail">
-      <div class="auth-row"><button class="btn primary sm" id="authVerify">Valider</button><button class="tlink" id="authBack">Changer d'e-mail</button></div>
+    body.innerHTML=`<div class="auth-hero"><div class="auth-hero-ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg></div><h4>Saisissez le code</h4><p class="auth-sub">Un code a été envoyé à <b>${esc(_authStep.email)}</b>.</p></div>
+      <input class="auth-field auth-code" id="authCode" inputmode="numeric" autocomplete="one-time-code" placeholder="••••••">
+      <button class="btn primary auth-full" id="authVerify">Valider</button>
+      <div style="text-align:center;margin-top:10px"><button class="tlink" id="authBack">← Changer d'e-mail</button></div>
       <p class="auth-msg ${_authStep.msgcls}">${esc(_authStep.msg)}</p>`;
     body.querySelector('#authBack').onclick=()=>{_authStep.mode='email';_authStep.msg='';renderAuth();};
     const v=body.querySelector('#authVerify');
@@ -2159,11 +2185,16 @@ authModal.onclick=e=>{if(e.target===authModal)closeAuth();};
 Auth._load();setSyncChip();
 
 /* ===== Thème clair / sombre ===== */
-function applyTheme(t){document.documentElement.setAttribute('data-theme',t);try{localStorage.setItem('ac-theme',t);}catch(e){}
-  const b=document.getElementById('themeBtn');if(b)b.textContent=(t==='dark')?'☀️ Clair':'🌙 Sombre';
-  const m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',t==='dark'?'#0e2723':'#0d5b56');}
-document.getElementById('themeBtn').onclick=()=>{const cur=document.documentElement.getAttribute('data-theme')==='dark'?'dark':'light';applyTheme(cur==='dark'?'light':'dark');};
-applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'dark':'light');
+function resolveTheme(mode){return mode==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):mode;}
+function applyTheme(mode){try{localStorage.setItem('ac-theme',mode);}catch(e){}
+  const resolved=resolveTheme(mode);document.documentElement.setAttribute('data-theme',resolved);
+  const b=document.getElementById('themeBtn');if(b)b.textContent=mode==='auto'?'🌗 Auto':(mode==='dark'?'🌙 Sombre':'☀️ Clair');
+  const m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',resolved==='dark'?'#0e2723':'#0d5b56');}
+// Cycle : Auto -> Clair -> Sombre -> Auto.
+document.getElementById('themeBtn').onclick=()=>{const cur=localStorage.getItem('ac-theme')||'auto';applyTheme(cur==='auto'?'light':cur==='light'?'dark':'auto');};
+// En mode Auto, suit en DIRECT les changements de thème du système.
+if(window.matchMedia){try{matchMedia('(prefers-color-scheme:dark)').addEventListener('change',()=>{if((localStorage.getItem('ac-theme')||'auto')==='auto')applyTheme('auto');});}catch(e){}}
+applyTheme(localStorage.getItem('ac-theme')||'auto');
 
 /* ===== Synchronisation (local-first) =====
    IndexedDB reste la SOURCE DE VÉRITÉ ; le cloud est un miroir asynchrone. Stratégie :
