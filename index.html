@@ -231,6 +231,9 @@
   /* Icône Compte dans l'en-tête (présence utilisateur), avec pastille d'état de synchro discrète. */
   .bar-acct{position:relative;background:rgba(255,255,255,.14);color:#eaf5f3;border:0;width:38px;height:38px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex:none;cursor:pointer}
   .bar-acct:hover{background:rgba(255,255,255,.26)}.bar-acct.on{background:rgba(255,255,255,.22)}
+  /* Déconnecté = buste en contour ; connecté = buste plein (+ pastille verte). État évident. */
+  .bar-acct .ic-filled{display:none}
+  .bar-acct.on .ic-outline{display:none}.bar-acct.on .ic-filled{display:inline-block}
   .acct-dot{position:absolute;right:2px;bottom:2px;width:11px;height:11px;border-radius:50%;border:2px solid #0b4a45;background:#5bd1a8}
   .acct-dot.busy{background:#e8c45c}.acct-dot.err{background:#ff7058}.acct-dot.off{background:#a9b8b3}
   html[data-theme="dark"] .acct-dot{border-color:#10302b}
@@ -589,7 +592,7 @@
 <div class="app">
   <header class="bar"><div class="brand"><b>Aides cognitives</b><span id="brandSub">Bibliothèque</span><span id="brandTitle"></span></div>
     <button class="bar-act" id="topNew"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Nouvelle</button>
-    <button class="bar-acct" id="acctTop" aria-label="Compte et synchronisation" title="Compte"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M5.5 20.5v-1a5 5 0 015-5h3a5 5 0 015 5v1"/></svg><span class="acct-dot" id="acctDot" hidden></span></button></header>
+    <button class="bar-acct" id="acctTop" aria-label="Compte et synchronisation" title="Compte"><svg class="ic-outline" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M5.5 20.5v-1a5 5 0 015-5h3a5 5 0 015 5v1"/></svg><svg class="ic-filled" width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="7.7" r="3.7"/><path d="M4.6 20a7.4 7.4 0 0114.8 0 1 1 0 01-1 1.1H5.6a1 1 0 01-1-1.1z"/></svg><span class="acct-dot" id="acctDot" hidden></span></button></header>
   <main id="main"></main>
   <footer class="tools"><span class="lbl" id="count"></span>
     <div class="tools-actions">
