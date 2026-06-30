@@ -243,6 +243,7 @@
   .scopebtn{border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:6px 13px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;transition:background .12s,border-color .12s}
   .scopebtn.on{background:var(--primary);color:#fff;border-color:var(--primary)}
   .scopebtn.add{border-style:dashed;color:var(--primary);background:transparent}
+  .ro-badge{font-size:11px;font-weight:600;color:var(--primary-dk);background:var(--primary-soft);padding:2px 8px;border-radius:10px}
   .cards{display:grid;gap:12px}
   .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px 17px;box-shadow:var(--shadow);cursor:pointer;display:flex;align-items:center;gap:14px;transition:transform .08s,border-color .12s}
   .card:hover{border-color:#bdcecb;transform:translateY(-1px);box-shadow:var(--shadow-lg)}.card:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
@@ -684,6 +685,12 @@ let fiches=[],categories=[],sessions=[];
 // des bibliothèques. state.scope = périmètre affiché : null = Perso, sinon id de bibliothèque.
 let myLibraries=[],myIsAppAdmin=false;
 let state={view:'library',id:null,q:'',cat:'',scope:null,draft:null,fiche:null,nav:[],navSeq:[],navPos:0,checked:{},catMgr:false,showFlow:false,showSess:false};
+// Rôle/édition par périmètre. Perso (libraryId vide) = toujours éditable. Bibliothèque : éditable
+// si role editor/admin. (La RLS reste l'arbitre côté serveur ; ceci n'est que l'ergonomie.)
+function roleOf(libId){const l=myLibraries.find(x=>x.id===libId);return l?l.role:null;}
+function libName(libId){const l=myLibraries.find(x=>x.id===libId);return l?l.name:'';}
+function canEditScope(scope){if(!scope)return true;const r=roleOf(scope);return r==='editor'||r==='admin';}
+function canEditFiche(f){return (f&&f.libraryId)?canEditScope(f.libraryId):true;}
 // Plusieurs sessions VIVES en parallèle : un runtime par fiche dont la session a démarré. Leurs
 // minuteurs continuent de tourner en arrière-plan (tickAll les fait tous avancer, même fiche non
 // visible). `Runtime` pointe vers le runtime de la fiche actuellement ouverte ; `liveSessions` est
@@ -1551,10 +1558,10 @@ function renderRead(){
     ${staticBlock('Ne pas oublier','h-forget',f.notForget,'forget',true)}
     ${staticBlock('Diagnostics différentiels','h-diff',f.differentials,'diff')}
     ${refs.length?`<div class="refs"><b>Références</b><ol>${refs.map(r=>`<li>${esc(r)}</li>`).join('')}</ol></div>`:''}
-    <div class="read-tools"><div class="read-tools-h">Gérer cette fiche</div><div class="read-tools-btns"><button class="btn sm" id="edit">Modifier</button><button class="btn sm" id="print">Imprimer</button><button class="btn sm" id="dup">Dupliquer</button><button class="btn sm" id="exportOne">Exporter</button><button class="btn sm" id="versions">Versions</button></div></div>`;
+    <div class="read-tools"><div class="read-tools-h">Gérer cette fiche${f.libraryId?` · <span class="ro-badge">${canEditFiche(f)?esc(libName(f.libraryId)||'Partagée'):'Lecture seule'}</span>`:''}</div><div class="read-tools-btns">${canEditFiche(f)?'<button class="btn sm" id="edit">Modifier</button>':''}<button class="btn sm" id="print">Imprimer</button><button class="btn sm" id="dup">Dupliquer</button><button class="btn sm" id="exportOne">Exporter</button><button class="btn sm" id="versions">Versions</button></div></div>`;
   // Retour bibliothèque : la session reste VIVE (minuteurs continuent) et est auto-enregistrée.
   document.getElementById('back').onclick=()=>{persistAllLive();state.view='library';state.fiche=null;state.showFlow=false;render();};
-  document.getElementById('edit').onclick=()=>openEdit(f.id);
+  {const eb=document.getElementById('edit');if(eb)eb.onclick=()=>openEdit(f.id);}
   document.getElementById('print').onclick=()=>window.print();
   document.getElementById('dup').onclick=async()=>{const c=JSON.parse(JSON.stringify(f));c.id=uid();c.title=(f.title||'Fiche')+' (copie)';c.order=Date.now();if(await persist(c)){fiches.push(c);openEdit(c.id);}};
   document.getElementById('exportOne').onclick=()=>exportData([f],'fiche-'+fileSlug(f.title));
@@ -1623,7 +1630,7 @@ function renderRead(){
 function listEditor(legend,hint,key,arr,ordered){const rows=(arr.length?arr:['']).map((v,i)=>`<div class="li" data-i="${i}">${ordered?`<span class="li-num">${String(i+1).padStart(2,'0')}</span>`:''}<input type="text" value="${esc(v)}" data-key="${key}" data-idx="${i}" placeholder="…">${ordered?`<button class="mini" data-mv="up" data-key="${key}" data-idx="${i}">↑</button><button class="mini" data-mv="down" data-key="${key}" data-idx="${i}">↓</button>`:''}<button class="mini del" data-rm="${key}" data-idx="${i}">×</button></div>`).join('');return `<fieldset class="field list-edit"><label>${legend}${hint?` <span class="hint">${hint}</span>`:''}</label>${rows}<button class="add-line" data-add="${key}">+ Ajouter une ligne</button></fieldset>`;}
 function targetSelect(blocks,selfId,value){const opts=blocks.filter(b=>b.id!==selfId).map(b=>`<option value="${b.id}" ${b.id===value?'selected':''}>${esc(b.title)||'(bloc sans titre)'}</option>`).join('');return `<select data-target><option value="" ${!value?'selected':''}>— Fin / aucun —</option>${opts}</select>`;}
 function imageEditor(b){return `<div class="sub">Image du bloc (option)</div><div class="imgrow">${b.image?`<img src="${b.image}" alt=""><button class="btn sm danger" data-bimgdel>Retirer</button>`:`<button class="btn sm" data-bimg>+ Image / capture</button>`}</div>`;}
-function blockEditor(b,blocks){if(b.type==='decision'){return `<div class="blk" data-bid="${b.id}"><div class="blk-top"><span class="blk-type decision">Décision</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Réévaluation)"></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Question</div><input type="text" data-bf="question" value="${esc(b.question)}" placeholder="ex. Réponse à l'adrénaline ?" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:#fff"><div class="sub">Réponses → bloc cible</div>${(b.options.length?b.options:[{label:'',target:''}]).map((o,i)=>`<div class="optedit" data-oi="${i}"><input type="text" data-of="label" value="${esc(o.label)}" placeholder="ex. Oui">${targetSelect(blocks,b.id,o.target)}<button class="mini del" data-rmopt="${i}">×</button></div>`).join('')}<button class="add-line" data-addopt>+ Ajouter une réponse</button>${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="mini" data-bmv="up">↑</button><button class="mini" data-bmv="down">↓</button><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
+function blockEditor(b,blocks){if(b.type==='decision'){return `<div class="blk" data-bid="${b.id}"><div class="blk-top"><span class="blk-type decision">Décision</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Réévaluation)"></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Question</div><input type="text" data-bf="question" value="${esc(b.question)}" placeholder="ex. Réponse à l'adrénaline ?" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)"><div class="sub">Réponses → bloc cible</div>${(b.options.length?b.options:[{label:'',target:''}]).map((o,i)=>`<div class="optedit" data-oi="${i}"><input type="text" data-of="label" value="${esc(o.label)}" placeholder="ex. Oui">${targetSelect(blocks,b.id,o.target)}<button class="mini del" data-rmopt="${i}">×</button></div>`).join('')}<button class="add-line" data-addopt>+ Ajouter une réponse</button>${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="mini" data-bmv="up">↑</button><button class="mini" data-bmv="down">↓</button><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
   return `<div class="blk" data-bid="${b.id}"><div class="blk-top"><span class="blk-type steps">Étapes</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Mesures immédiates)"></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Étapes (cochables en mode crise)</div>${(b.steps.length?b.steps:['']).map((s,i)=>`<div class="li" data-si="${i}"><span class="li-num">${String(i+1).padStart(2,'0')}</span><input type="text" data-sf value="${esc(s)}" placeholder="…"><button class="mini" data-smv="up" data-si="${i}">↑</button><button class="mini" data-smv="down" data-si="${i}">↓</button><button class="mini del" data-rmstep="${i}">×</button></div>`).join('')}<button class="add-line" data-addstep>+ Ajouter une étape</button><div class="sub">Étape suivante</div>${targetSelect(blocks,b.id,b.next)}${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="mini" data-bmv="up">↑</button><button class="mini" data-bmv="down">↓</button><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
 function catManagerHtml(){return `<div class="cat-mgr">${catsSorted().map(c=>`<div class="cat-row" data-cid="${c.id}"><input class="cn" data-cname value="${esc(c.name)}"><div class="swatches">${PALETTE.map(col=>`<span class="sw ${c.color===col?'on':''}" data-setcol="${col}" style="background:${col}"></span>`).join('')}</div><button class="mini del" data-delcat>×</button></div>`).join('')}<div class="cat-row"><input class="cn" id="newCatName" placeholder="Nouvelle catégorie…"><button class="btn sm" id="addCat">Ajouter</button></div></div>`;}
 function timerEditorRow(t,i){const iv=t.type==='interval';const mm=Math.floor((t.seconds||0)/60),ss=(t.seconds||0)%60;return `<div class="trow" data-ti="${i}"><span class="blk-type ${iv?'decision':'steps'}">${iv?'Cycle':'Chrono'}</span><input type="text" data-tf="label" value="${esc(t.label)}" placeholder="${iv?'ex. Cycle adrénaline':'ex. Temps écoulé'}">${iv?`<input type="number" min="0" data-tmin value="${mm}" style="width:56px"><span>min</span><input type="number" min="0" max="59" data-tsec value="${ss}" style="width:56px"><span>s</span><label style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--ink-soft)"><input type="checkbox" data-tloop ${t.autoloop?'checked':''}>boucle</label>`:''}<button class="mini del" data-tdel="${i}">×</button></div>`;}
@@ -1638,6 +1645,8 @@ function renderEditor(){
     ${isNew&&state.showCreateBand!==false?`<div class="create-band"><div class="cb-q">Comment créer cette fiche ?</div><div class="cb-opts"><button class="btn primary sm" id="cbAI">✨ Créer via IA</button><button class="btn sm" id="cbManual">✍ Créer manuellement</button></div><div class="cb-hint">« Via IA » : copiez le prompt dans une IA avec un document, puis importez le résultat. « Manuellement » : remplissez les champs ci-dessous.</div></div>`:''}
     <div class="field"><label>Titre de la situation</label><input type="text" id="f-title" value="${esc(f.title)}" placeholder="ex. Intoxication aux anesthésiques locaux"></div>
     <div class="field"><label>Catégorie</label><div class="catpick"><button class="catpill" data-selcat="" style="${!f.category?'background:#54635f;color:#fff;border-color:#54635f':''}">Aucune</button>${catsSorted().map(c=>{const col=safeColor(c.color);return `<button class="catpill" data-selcat="${esc(c.id)}" style="${f.category===c.id?`background:${col};color:#fff;border-color:${col}`:`background:${col}1f;border-color:${col}88`}">${esc(c.name)}</button>`;}).join('')}<button class="catpill" id="catMgrBtn" style="border-style:dashed;color:var(--ink-soft)">⚙ Gérer</button></div>${state.catMgr?catManagerHtml():''}</div>
+    ${Auth.signedIn()?`<div class="field"><label>Périmètre <span class="hint">où ranger cette fiche</span></label>
+      <select id="f-scope"><option value="" ${!f.libraryId?'selected':''}>Perso (privé)</option>${myLibraries.filter(l=>l.role==='editor'||l.role==='admin').map(l=>`<option value="${esc(l.id)}" ${f.libraryId===l.id?'selected':''}>${esc(l.name)} (partagée)</option>`).join('')}${f.libraryId&&!myLibraries.some(l=>l.id===f.libraryId)?`<option value="${esc(f.libraryId)}" selected>${esc(libName(f.libraryId)||'Bibliothèque')}</option>`:''}</select></div>`:''}
     <div class="row2"><div class="field"><label>Date de validation <span class="hint">mois/année</span></label><input type="text" id="f-validation" inputmode="numeric" autocapitalize="off" value="${esc(valToDisplay(f.validation))}" placeholder="MM/AAAA — ex. 012026 ou 01/2026"></div></div>
     <div class="field"><label>Contexte local <span class="hint">numéros utiles, particularités</span></label><textarea id="f-localInfo" rows="2" placeholder="Réanimateur de garde, pharmacie…">${esc(f.localInfo)}</textarea></div>
     ${listEditor('Confirmation diagnostique','critères pour déclencher la fiche','confirmation',f.confirmation)}
@@ -1664,6 +1673,7 @@ function renderEditor(){
   bindListEditors();
   // catégorie
   main.querySelectorAll('[data-selcat]').forEach(b=>b.onclick=()=>{state.draft.category=b.dataset.selcat;renderEditor();});
+  const scopeSel=document.getElementById('f-scope');if(scopeSel)scopeSel.onchange=()=>{state.draft.libraryId=scopeSel.value||null;};
   document.getElementById('catMgrBtn').onclick=()=>{state.catMgr=!state.catMgr;renderEditor();};
   if(state.catMgr){main.querySelectorAll('.cat-row[data-cid]').forEach(row=>{const cid=row.dataset.cid;const c=categories.find(x=>x.id===cid);const nm=row.querySelector('[data-cname]');if(nm)nm.addEventListener('input',e=>{c.name=e.target.value;saveCats();});row.querySelectorAll('[data-setcol]').forEach(sw=>sw.onclick=()=>{c.color=sw.dataset.setcol;saveCats();renderEditor();});const dl=row.querySelector('[data-delcat]');if(dl)dl.onclick=async()=>{if(!confirm('Supprimer « '+c.name+' » ? Les fiches associées passeront sans catégorie.'))return;categories=categories.filter(x=>x.id!==cid);const tt=[];fiches.forEach(ff=>{if(ff.category===cid){ff.category='';tt.push(ff);}});if(state.draft.category===cid)state.draft.category='';await saveCats();for(const ff of tt)await persist(ff);renderEditor();};});
     const ac=document.getElementById('addCat');if(ac)ac.onclick=async()=>{const inp=document.getElementById('newCatName');const name=(inp.value||'').trim();if(!name)return;categories.push({id:freshCatId(name),name,color:PALETTE[categories.length%PALETTE.length]});await saveCats();renderEditor();};}
@@ -1740,8 +1750,8 @@ function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;flowScroll=
   if(liveSessions[id]){Runtime=liveSessions[id];Runtime.fiche=f;}
   else if(!(Runtime.fiche&&Runtime.ficheId===id&&!Runtime.started)){Runtime=buildRuntime(f,null);}
   bindStateToRuntime();state.fiche=Runtime.fiche;state.id=id;state.showFlow=!!(f.blocks&&f.blocks.length);state.showSess=false;state.view='read';render();}
-function openEdit(id){const f=fiches.find(x=>x.id===id);state.draft=JSON.parse(JSON.stringify(f));state.catMgr=false;state.view='edit';render();}
-function newFiche(){state.draft=blankFiche();state.catMgr=false;state.showCreateBand=true;state.view='edit';render();}
+function openEdit(id){const f=fiches.find(x=>x.id===id);if(!f)return;if(!canEditFiche(f)){alert('Lecture seule : vous n\'avez pas les droits d\'édition sur cette bibliothèque.');return openRead(id);}state.draft=JSON.parse(JSON.stringify(f));state.catMgr=false;state.view='edit';render();}
+function newFiche(){if(!canEditScope(state.scope)){alert('Lecture seule : vous ne pouvez pas créer de fiche dans cette bibliothèque.');return;}const d=blankFiche();d.libraryId=state.scope||null;state.draft=d;state.catMgr=false;state.showCreateBand=true;state.view='edit';render();}
 document.getElementById('topNew').onclick=newFiche;
 
 /* ===== Lightbox ===== (agrandissement d'une image au clic, avec légende) */
@@ -2131,7 +2141,8 @@ const Sync={
     const cur=localStorage.getItem(this._cursorKey);
     // Recouvrement de 2 s + application idempotente (LWW) -> aucun enregistrement manqué aux bornes.
     const since=cur?new Date((Date.parse(cur)||0)-2000).toISOString():'1970-01-01T00:00:00Z';
-    const rows=await rest('GET','/rest/v1/fiches?select=*&library_id=is.null&updated_at=gt.'+encodeURIComponent(since)+'&order=updated_at.asc')||[];
+    // Pas de filtre de périmètre : la RLS limite déjà à ce que je peux voir (Perso + mes bibliothèques).
+    const rows=await rest('GET','/rest/v1/fiches?select=*&updated_at=gt.'+encodeURIComponent(since)+'&order=updated_at.asc')||[];
     let maxTs=cur?Date.parse(cur):0;const conflicts=[];
     const localAll=await Data.getAll();const byId={};localAll.forEach(f=>byId[f.id]=f);
     for(const row of rows){const rts=Date.parse(row.updated_at)||0;if(rts>maxTs)maxTs=rts;
@@ -2149,7 +2160,8 @@ const Sync={
     if(rows.length)render();
     return conflicts;},
   async _push(){
-    const all=await Data.getAll();const dirty=all.filter(f=>f.dirty&&!f.libraryId); // perso uniquement (ce lot)
+    // On pousse Perso + les fiches des bibliothèques où l'on peut éditer (la RLS refuserait sinon).
+    const all=await Data.getAll();const dirty=all.filter(f=>f.dirty&&canEditFiche(f));
     if(!dirty.length)return;const uidv=Auth.user().id;
     const rows=dirty.map(f=>ficheToRow(f,uidv));
     await rest('POST','/rest/v1/fiches',rows,{'Prefer':'resolution=merge-duplicates,return=minimal'});
