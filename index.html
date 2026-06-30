@@ -244,6 +244,9 @@
   .scopebtn.on{background:var(--primary);color:#fff;border-color:var(--primary)}
   .scopebtn.add{border-style:dashed;color:var(--primary);background:transparent}
   .ro-badge{font-size:11px;font-weight:600;color:var(--primary-dk);background:var(--primary-soft);padding:2px 8px;border-radius:10px}
+  .mem-invite{margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+  .mem-act{display:flex;gap:8px;align-items:center}
+  .mem-act select{padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)}
   .cards{display:grid;gap:12px}
   .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px 17px;box-shadow:var(--shadow);cursor:pointer;display:flex;align-items:center;gap:14px;transition:transform .08s,border-color .12s}
   .card:hover{border-color:#bdcecb;transform:translateY(-1px);box-shadow:var(--shadow-lg)}.card:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
@@ -591,6 +594,11 @@
 <div class="ai-modal" id="authModal"><div class="ai-card">
   <div class="ai-top"><h3>Compte &amp; synchronisation</h3><button class="ai-x" id="authX" aria-label="Fermer">×</button></div>
   <div id="authBody"></div>
+</div></div>
+<div class="ai-modal" id="membersModal"><div class="ai-card">
+  <div class="ai-top"><h3>Membres de la bibliothèque</h3><button class="ai-x" id="membersX" aria-label="Fermer">×</button></div>
+  <div id="membersBody"></div>
+  <p class="ai-note">La personne invitée doit s'être <b>connectée au moins une fois</b> à l'application (compte créé) avant de pouvoir être ajoutée. Lecteur = consultation seule ; Éditeur = peut modifier ; Admin = peut aussi gérer les membres.</p>
 </div></div>
 <div class="ai-modal" id="versModal"><div class="ai-card">
   <div class="ai-top"><h3>Versions précédentes</h3><button class="ai-x" id="versX" aria-label="Fermer">×</button></div>
@@ -1143,7 +1151,8 @@ function renderLibrary(){
   const scopeBar=Auth.signedIn()?`<div class="scopebar"><span class="scope-lbl">Périmètre</span>
     <button class="scopebtn${!state.scope?' on':''}" data-scope="">Perso</button>
     ${myLibraries.map(l=>`<button class="scopebtn${state.scope===l.id?' on':''}" data-scope="${esc(l.id)}" title="Rôle : ${esc(l.role)}">${esc(l.name)}${l.role==='viewer'?' 🔒':''}</button>`).join('')}
-    ${myIsAppAdmin?`<button class="scopebtn add" id="newLibBtn">+ Bibliothèque</button>`:''}</div>`:'';
+    ${myIsAppAdmin?`<button class="scopebtn add" id="newLibBtn">+ Bibliothèque</button>`:''}
+    ${state.scope&&(roleOf(state.scope)==='admin'||myIsAppAdmin)?`<button class="scopebtn" id="membersBtn">👥 Membres</button>`:''}</div>`:'';
   // SESSIONS EN COURS (vives) : accès rapide en haut de l'accueil + actions (reprendre/réinit/terminer).
   const liveArr=Object.values(liveSessions).filter(R=>R.started&&R.fiche);
   const liveHtml=liveArr.length?`<div class="live-sessions"><div class="ls-h"><span class="sess-dot"></span>Sessions en cours · ${liveArr.length}</div>${liveArr.map(R=>{const run=Object.values(R.timers).filter(t=>t.running).length;return `<div class="ls-row"><div class="ls-info" data-openlive="${R.ficheId}" role="button" tabindex="0"><b>${esc(R.fiche.title||'Sans titre')}</b><span>depuis ${timeAgo(R.startedAt)}${run?` · ${run} minuteur${run>1?'s':''} actif${run>1?'s':''}`:''}</span></div><div class="ls-acts"><button class="btn sm primary" data-openlive="${R.ficheId}">Ouvrir</button><button class="btn sm danger" data-endlive="${R.ficheId}">Terminer</button></div></div>`;}).join('')}</div>`:'';
@@ -1168,6 +1177,7 @@ function renderLibrary(){
   // Périmètre : changer de bibliothèque / créer une bibliothèque (app-admin).
   main.querySelectorAll('[data-scope]').forEach(b=>b.onclick=()=>{state.scope=b.dataset.scope||null;state.cat='';renderLibrary();});
   const nlb=document.getElementById('newLibBtn');if(nlb)nlb.onclick=createLibrary;
+  const mb=document.getElementById('membersBtn');if(mb)mb.onclick=()=>openMembers(state.scope);
   main.querySelectorAll('[data-openlive]').forEach(el=>{el.onclick=()=>openRead(el.dataset.openlive);el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openRead(el.dataset.openlive);}};});
   main.querySelectorAll('[data-endlive]').forEach(b=>b.onclick=()=>{const id=b.dataset.endlive,R=liveSessions[id];if(R&&confirm('Terminer la session ? Les minuteurs s’arrêtent ; la session est conservée dans l’historique.')){endSession(R);if(Runtime.ficheId===id)resetRuntime();renderLibrary();}});
   main.querySelectorAll('[data-open]').forEach(el=>{el.onclick=()=>openRead(el.dataset.open);el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openRead(el.dataset.open);}};});
@@ -2221,6 +2231,36 @@ async function renderVersions(){const body=document.getElementById('versBody');i
     closeVersions();if(state.fiche&&state.fiche.id===_versFiche)state.fiche=restored;render();});}
 document.getElementById('versX').onclick=closeVersions;
 versModal.onclick=e=>{if(e.target===versModal)closeVersions();};
+
+/* ===== Membres d'une bibliothèque (Lot 3, étape 4) ===== */
+const membersModal=document.getElementById('membersModal');let _memLib=null;
+const ROLE_FR={viewer:'Lecteur',editor:'Éditeur',admin:'Admin'};
+function roleOptions(role){return ['viewer','editor','admin'].map(r=>`<option value="${r}" ${role===r?'selected':''}>${ROLE_FR[r]}</option>`).join('');}
+async function openMembers(libId){_memLib=libId;membersModal.classList.add('on');await renderMembers();}
+function closeMembers(){membersModal.classList.remove('on');}
+async function renderMembers(){const body=document.getElementById('membersBody');if(!body||!_memLib)return;
+  body.innerHTML='<p class="auth-msg">Chargement…</p>';
+  let list=[];try{list=await rest('POST','/rest/v1/rpc/list_members',{p_library:_memLib})||[];}catch(e){body.innerHTML='<p class="auth-msg err">Erreur de chargement des membres.</p>';return;}
+  const me=Auth.user()&&Auth.user().id;
+  body.innerHTML=`<div class="mem-invite"><input class="auth-field" id="memEmail" type="email" inputmode="email" autocomplete="off" placeholder="e-mail de la personne à inviter">
+      <div class="auth-row"><select id="memNewRole">${roleOptions('viewer')}</select><button class="btn primary sm" id="memInvite">Inviter</button></div>
+      <p class="auth-msg" id="memMsg"></p></div>
+    <div class="mem-list">${list.length?list.map(m=>`<div class="vers-row"><span class="vt">${esc(m.email)}${m.user_id===me?' (vous)':''}</span><span class="mem-act">${m.user_id===me?`<span class="ro-badge">${ROLE_FR[m.role]||esc(m.role)}</span>`:`<select data-role="${esc(m.user_id)}">${roleOptions(m.role)}</select><button class="mini del" data-remove="${esc(m.user_id)}" title="Retirer">×</button>`}</span></div>`).join(''):'<p class="auth-msg">Aucun membre.</p>'}</div>`;
+  const setMsg=(t,c)=>{const e=document.getElementById('memMsg');if(e){e.textContent=t;e.className='auth-msg '+(c||'');}};
+  document.getElementById('memInvite').onclick=async()=>{const email=(document.getElementById('memEmail').value||'').trim();const role=document.getElementById('memNewRole').value;
+    if(!email||email.indexOf('@')<1){setMsg('Saisissez un e-mail valide.','err');return;}setMsg('Invitation…','');
+    try{const r=await rest('POST','/rest/v1/rpc/invite_member',{p_library:_memLib,p_email:email,p_role:role});
+      if(r==='not_found')setMsg('Aucun compte avec cet e-mail. La personne doit d\'abord se connecter une fois à l\'application.','err');
+      else{await renderMembers();await Sync.loadProfile();}}
+    catch(e){setMsg('Échec : '+e.message,'err');}};
+  body.querySelectorAll('[data-role]').forEach(sel=>sel.onchange=async()=>{
+    try{await rest('PATCH','/rest/v1/memberships?library_id=eq.'+encodeURIComponent(_memLib)+'&user_id=eq.'+encodeURIComponent(sel.dataset.role),{role:sel.value},{'Prefer':'return=minimal'});await Sync.loadProfile();}
+    catch(e){alert('Modification du rôle impossible : '+e.message);renderMembers();}});
+  body.querySelectorAll('[data-remove]').forEach(b=>b.onclick=async()=>{if(!confirm('Retirer ce membre de la bibliothèque ?'))return;
+    try{await rest('DELETE','/rest/v1/memberships?library_id=eq.'+encodeURIComponent(_memLib)+'&user_id=eq.'+encodeURIComponent(b.dataset.remove),null,{'Prefer':'return=minimal'});await renderMembers();}
+    catch(e){alert('Retrait impossible : '+e.message);}});}
+document.getElementById('membersX').onclick=closeMembers;
+membersModal.onclick=e=>{if(e.target===membersModal)closeMembers();};
 
 /* ===== PWA =====
    Enregistre le service worker (cache hors ligne) si disponible. Capte

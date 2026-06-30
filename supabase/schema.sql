@@ -169,6 +169,20 @@ begin
 end;$$;
 grant execute on function public.invite_member(text,text,text) to authenticated;
 
+-- ---------- 5ter. Liste des membres d'une bibliothèque (Lot 3, étape 4) ------
+-- Renvoie e-mail + rôle des membres. Réservé aux admins de la bibliothèque (sinon vide) :
+-- nécessaire car auth.users n'est pas accessible via l'API publique.
+create or replace function public.list_members(p_library text)
+returns table(user_id uuid, email text, role text)
+language sql security definer set search_path = public as $$
+  select m.user_id, u.email::text, m.role
+  from public.memberships m join auth.users u on u.id = m.user_id
+  where m.library_id = p_library
+    and (public.member_role(p_library) = 'admin' or public.is_app_admin())
+  order by m.role, u.email;
+$$;
+grant execute on function public.list_members(text) to authenticated;
+
 -- ---------- 6. Recharge du cache PostgREST ----------------------------------
 notify pgrst, 'reload schema';
 
