@@ -212,6 +212,10 @@ returns void language plpgsql security definer set search_path = public, auth as
 declare uid uuid := auth.uid();
 begin
   if uid is null then raise exception 'not authenticated'; end if;
+  -- GARDE-FOU : un super-admin (app_admin) ne peut PAS s'auto-supprimer (gestion via dashboard).
+  if exists (select 1 from public.app_admins where user_id = uid) then
+    raise exception 'super-admin account cannot be self-deleted';
+  end if;
   delete from public.fiches        where owner = uid and library_id is null;
   delete from public.category_sets where owner = uid and library_id is null;
   delete from auth.users where id = uid;   -- cascade -> memberships, app_admins, sessions…

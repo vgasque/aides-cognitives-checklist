@@ -216,6 +216,7 @@
   html[data-theme="dark"] :is(.blk-top input,.trow input[data-tf],.trow input[data-cf],.trow input[type=number],.tk-lab,.cat-row input.cn,.optedit input,.startbtn,.cat-row input,.trow input,.cm-name,.cm-add input){background:#0e1714;color:var(--ink);border-color:var(--line)}
   /* Pastilles de catégorie NON colorées (Aucune/Gérer) -> fond sombre ; les colorées gardent leur teinte. */
   html[data-theme="dark"] .catpill:not(.colored){background:#0e1714;color:var(--ink);border-color:var(--line)}
+  html[data-theme="dark"] .cm-del{background:#0e1714;border-color:var(--line)}
   /* Panneaux/encadrés codés en dur en clair -> fond sombre. */
   html[data-theme="dark"] :is(.cat-mgr,.blk,.nav-wrap,.sess-list,.cm-row,.session-bar.idle){background:#141d1a;border-color:var(--line)}
   html[data-theme="dark"] .ai-ta{background:#0e1714;color:var(--ink)}
@@ -593,6 +594,10 @@
   .auth-del .auth-sub{text-align:left}
   .auth-check{display:flex;gap:9px;align-items:flex-start;text-align:left;font-size:13.5px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px 12px;margin:4px 0 6px;cursor:pointer}
   .auth-check input{margin-top:2px;flex:none}
+  .auth-confirm-lbl{text-align:left;font-size:13px;color:var(--ink-soft);margin:14px 0 6px}.auth-confirm-lbl b{color:var(--critical)}
+  .auth-confirm{text-align:center;letter-spacing:2px;font-weight:600;text-transform:uppercase}
+  .auth-admin-note{font-size:12.5px;color:var(--ink-soft);text-align:center;margin:16px 0 0;line-height:1.5}
+  .btn:disabled{opacity:.4;cursor:not-allowed}.btn.danger:disabled:hover{background:var(--critical-soft)}
   /* Toast non bloquant (notifications de synchro/conflit) : n'interrompt jamais l'usage. */
   .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translate(-50%,16px);max-width:min(560px,92vw);background:var(--ink);color:#fff;font-size:13.5px;line-height:1.5;padding:12px 15px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.28);z-index:120;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none}
   .toast.on{opacity:1;transform:translate(-50%,0)}
@@ -1254,7 +1259,7 @@ function renderLibrary(){
       <button class="scopebtn${!state.scope?' on':''}" data-scope="">Perso</button>
       ${sortedLibraries().map(l=>`<button class="scopebtn${state.scope===l.id?' on':''}" data-scope="${esc(l.id)}" title="Bibliothèque partagée — rôle : ${esc(ROLE_LBL[l.role]||l.role)}">${esc(l.name)}</button>`).join('')}
       ${myIsAppAdmin?`<button class="scopebtn add" id="newLibBtn">+ Bibliothèque</button>`:''}</div></div>
-    ${state.scope?`<div class="scope-ctx"><span class="scope-ctx-i">Bibliothèque partagée${canEditScope(state.scope)?'':' · vous êtes en lecture seule'}</span>${(roleOf(state.scope)==='admin'||myIsAppAdmin)?`<button class="linkbtn" id="membersBtn"><span>👥</span> Gérer les membres</button>`:''}</div>`:''}`:'';
+    ${state.scope?`<div class="scope-ctx"><span class="scope-ctx-i">Bibliothèque partagée${canEditScope(state.scope)?'':' · vous êtes en lecture seule'}</span>${(roleOf(state.scope)==='admin'||myIsAppAdmin)?`<button class="linkbtn" id="membersBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 19v-1a4 4 0 00-4-4H6a4 4 0 00-4 4v1"/><circle cx="9" cy="7" r="3"/><path d="M22 19v-1a4 4 0 00-3-3.87M16 4.13A4 4 0 0119 8"/></svg>Gérer les membres</button>`:''}</div>`:''}`:'';
   // CATÉGORIES : vue d'ensemble complète, mais sur UNE seule ligne défilable (n'allonge pas la page).
   const catbar=`<div class="catbar"><div class="chiprow">${chips}</div></div>`;
   // SESSIONS EN COURS (vives) : accès rapide en haut de l'accueil + actions (reprendre/réinit/terminer).
@@ -1577,10 +1582,10 @@ function buildFlowSVG(f,curId){
       iy+=LH;});});
     // Image du bloc DANS le SVG : vignette ajustée (meet) + petite loupe ; cliquable -> plein écran.
     if(L.img){const iyi=iy+IMG_GAP,iw=W-2*IMG_PAD;
-      g+=`<clipPath id="imgc_${b.id}"><rect x="${IMG_PAD}" y="${iyi}" width="${iw}" height="${IMG_H}" rx="7"/></clipPath>`;
       g+=`<rect x="${IMG_PAD}" y="${iyi}" width="${iw}" height="${IMG_H}" rx="7" fill="#eef2f1" stroke="${stroke}"/>`;
-      // clip-path = coins arrondis (l'image carrée ne déborde plus du cadre).
-      g+=`<image x="${IMG_PAD}" y="${iyi}" width="${iw}" height="${IMG_H}" href="${L.img}" preserveAspectRatio="xMidYMid meet" clip-path="url(#imgc_${b.id})" data-full="${L.img}" style="cursor:zoom-in"/>`;
+      // Vignette aux coins arrondis : on imite le clip des NŒUDS (rect du clipPath à l'ORIGINE d'un
+      // groupe translaté) -> sinon, avec des coords décalées dans le clipPath, le clip ne s'applique pas.
+      g+=`<g transform="translate(${IMG_PAD},${iyi})"><clipPath id="imgc_${b.id}"><rect width="${iw}" height="${IMG_H}" rx="7"/></clipPath><image width="${iw}" height="${IMG_H}" href="${L.img}" preserveAspectRatio="xMidYMid meet" clip-path="url(#imgc_${b.id})" data-full="${L.img}" style="cursor:zoom-in"/></g>`;
       g+=`<g transform="translate(${W-IMG_PAD-15},${iyi+4})" pointer-events="none"><circle cx="6" cy="6" r="7" fill="rgba(13,91,86,.85)"/><circle cx="5" cy="5" r="2.4" fill="none" stroke="#fff" stroke-width="1.2"/><path d="M6.8 6.8 L9 9" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></g>`;}
     g+=`<rect width="${W}" height="${h}" rx="10" fill="none" stroke="${(isCur||isS)?'#0d5b56':stroke}" stroke-width="${(isCur||isS)?2.5:1.5}"/>`;
     nodes+=`<g transform="translate(${p.x},${p.y})">${g}</g>`;});
@@ -2187,10 +2192,14 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
         <h4>Supprimer le compte ?</h4>
         <p class="auth-sub">Cette action est <b>irréversible</b>. Votre compte et votre bibliothèque personnelle synchronisée seront définitivement supprimés du cloud. Les fiches que vous avez ajoutées à des bibliothèques partagées y resteront.</p>
         <label class="auth-check"><input type="checkbox" id="delLocal"><span>Effacer aussi les fiches enregistrées sur <b>cet appareil</b></span></label>
+        <p class="auth-confirm-lbl">Pour confirmer, tapez <b>SUPPRIMER</b> ci-dessous :</p>
+        <input class="auth-field auth-confirm" id="delConfirm" autocomplete="off" autocapitalize="characters" placeholder="SUPPRIMER">
         <p class="auth-msg" id="delMsg"></p>
-        <div class="auth-actions"><button class="btn danger" id="delGo">Supprimer définitivement</button><button class="btn" id="delCancel">Annuler</button></div></div>`;
+        <div class="auth-actions"><button class="btn danger" id="delGo" disabled>Supprimer définitivement</button><button class="btn" id="delCancel">Annuler</button></div></div>`;
       body.querySelector('#delCancel').onclick=()=>{_authDelete=false;renderAuth();};
-      body.querySelector('#delGo').onclick=async()=>{const wipe=body.querySelector('#delLocal').checked;
+      const delGo=body.querySelector('#delGo'),delConf=body.querySelector('#delConfirm');
+      delConf.addEventListener('input',()=>{delGo.disabled=(delConf.value||'').trim().toUpperCase()!=='SUPPRIMER';});
+      delGo.onclick=async()=>{if(delGo.disabled)return;const wipe=body.querySelector('#delLocal').checked;
         if(!confirm('Supprimer DÉFINITIVEMENT votre compte'+(wipe?' et les données de cet appareil':'')+' ? Cette action est irréversible.'))return;
         const setM=(t,c)=>{const e=document.getElementById('delMsg');if(e){e.textContent=t;e.className='auth-msg '+(c||'');}};setM('Suppression…','');
         try{await Auth.deleteAccount();await Auth.signOut();myLibraries=[];myIsAppAdmin=false;state.scope=null;
@@ -2202,11 +2211,11 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
     body.innerHTML=`<div class="auth-card-in"><div class="auth-avatar">${esc(ini)}</div><div class="auth-id"><div class="auth-email">${esc(u.email||'')}</div><div class="auth-state"><span class="auth-dot"></span>Synchronisation active</div></div></div>
       <p class="auth-sub">Votre bibliothèque personnelle est sauvegardée et accessible sur tous vos appareils connectés à ce compte.</p>
       <div class="auth-actions"><button class="btn primary" id="authSync">Synchroniser maintenant</button><button class="btn" id="authSwitch">Changer de compte</button><button class="btn ghost" id="authOut">Se déconnecter</button></div>
-      <button class="auth-danger" id="authDelete">Supprimer mon compte et mes données</button>`;
+      ${myIsAppAdmin?'<p class="auth-admin-note">Compte administrateur : la suppression se fait depuis le tableau de bord Supabase (garde-fou).</p>':'<button class="auth-danger" id="authDelete">Supprimer mon compte et mes données</button>'}`;
     body.querySelector('#authSync').onclick=()=>{Sync.full();closeAuth();};
     body.querySelector('#authSwitch').onclick=async()=>{await doSignOut();}; // déconnecte et revient à l'écran de connexion (fenêtre ouverte)
     body.querySelector('#authOut').onclick=async()=>{if(!confirm('Se déconnecter ? Vos fiches restent disponibles localement sur cet appareil.'))return;await doSignOut();};
-    body.querySelector('#authDelete').onclick=()=>{_authDelete=true;renderAuth();};
+    {const ad=body.querySelector('#authDelete');if(ad)ad.onclick=()=>{_authDelete=true;renderAuth();};}
     return;}
   if(_authStep.mode==='email'){
     body.innerHTML=`<div class="auth-hero"><div class="auth-hero-ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3.5 6.5l8.5 6 8.5-6"/></svg></div><h4>Connexion</h4><p class="auth-sub">Recevez un code par e-mail pour vous connecter ou créer votre compte.</p></div>
