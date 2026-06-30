@@ -8,10 +8,11 @@
   --------
   Bibliothèque d'« aides cognitives » médicales que l'utilisateur (clinicien :
   anesthésie / urgences / réanimation) rédige, modifie et utilise lui-même.
-  Une aide cognitive = une fiche de référence pour une situation critique
-  (ex. anaphylaxie, ACR, intoxication aux anesthésiques locaux) consultée
-  pendant la crise pour ne rien oublier. Principe inspiré des recommandations
-  SFAR : "détrompage" = la bonne information, au bon endroit, au bon moment.
+  Une aide cognitive = une fiche de référence pour une URGENCE VITALE (ex.
+  anaphylaxie, arrêt cardiaque, intoxication aux anesthésiques locaux), consultée
+  PENDANT la crise, sous stress majeur, pour ne rien oublier ni se tromper.
+  Principe inspiré des recommandations SFAR : "détrompage" = la bonne information,
+  au bon endroit, au bon moment. La fiabilité et la clarté priment sur tout.
 
   L'application doit fonctionner HORS LIGNE : c'est un fichier HTML autonome
   (HTML + CSS + JavaScript "vanilla", aucune dépendance ni bibliothèque externe).
@@ -31,6 +32,8 @@
   ║   • Aucune action destructive surprise : confirmation + réversibilité.     ║
   ║   • Dégradation gracieuse (fail-safe local) ; l'opérateur garde le contrôle.║
   ║   • Rendu correct et cohérent sur ORDINATEUR ET TÉLÉPHONE (iPhone).        ║
+  ║   • AUCUNE dépendance ni bibliothèque externe : tout reste dans CE fichier ║
+  ║     (vanilla). La sécurité cloud repose sur la RLS SERVEUR, jamais le client.║
   ║  En cas de doute, privilégier la simplicité et la sécurité à l'esthétique. ║
   ╚══════════════════════════════════════════════════════════════════════════╝
 
@@ -39,6 +42,8 @@
     - sw.js ................... service worker (cache hors ligne)
     - manifest.webmanifest .... métadonnées d'installation PWA
     - icon-*.png .............. icônes de l'app
+    - supabase/schema.sql ..... schéma + sécurité (RLS) de la synchro cloud,
+                                à exécuter une fois côté Supabase (cf. point 9)
   L'installation comme app + le cache automatique exigent un hébergement HTTPS
   (GitHub Pages / Netlify / intranet). Ouvert en fichier local, tout marche
   aussi hors ligne, mais sans installation ni service worker.
@@ -148,13 +153,14 @@
 
   SÉCURITÉ — RÈGLES À RESPECTER POUR TOUTE MODIFICATION (ne pas régresser)
   -----------------------------------------------------------------------
-  Toute donnée entrant par IMPORT JSON (ou via un stockage altéré) est NON FIABLE :
+  Toute donnée entrant par IMPORT JSON, par la SYNCHRO CLOUD (pull) ou via un stockage
+  altéré est NON FIABLE :
   le fichier peut contenir n'importe quel type ou valeur. L'app étant rendue par
   template strings + innerHTML, une valeur non échappée = XSS, un identifiant hostile
   = pollution de prototype / plantage, une donnée démesurée = blocage (DoS). Donc :
   1. POINT D'ENTRÉE UNIQUE : toute fiche passe par migrate() et toute catégorie par
-     sanitizeCats() (au chargement, à l'import ET à la duplication). N'ajoutez JAMAIS
-     un chemin qui insère des données externes sans repasser par ces fonctions.
+     sanitizeCats() (au chargement, à l'import, à la duplication ET au PULL cloud).
+     N'ajoutez JAMAIS un chemin qui insère des données externes sans repasser par elles.
   2. TEXTE -> toujours esc() avant de l'injecter dans du HTML (esc coerce aussi en
      chaîne : aucune exception même si la valeur n'est pas une string).
   3. NE JAMAIS interpoler une valeur externe BRUTE dans un attribut ou un style :
@@ -176,9 +182,9 @@
 
   POUR ÉTENDRE (pistes connues, non implémentées)
   -----------------------------------------------
-  - Synchro multi-appareils réelle : nécessiterait un backend (Firebase/Supabase)
-    + un "code de synchro" ; pose une question de confidentialité (contenu via
-    un tiers). Aujourd'hui : export/import manuel uniquement.
+  - Synchro multi-appareils + bibliothèques partagées : DÉJÀ FAIT (Supabase, point 9).
+    Pistes restantes : sync des SESSIONS (aujourd'hui locales), résolution de conflit
+    plus fine que le "dernier qui écrit gagne", envoi des codes par SMTP (cf. README).
   - Partage d'une fiche par lien/QR ; impression déjà gérée (window.print).
 ===============================================================================
 -->
@@ -2181,9 +2187,10 @@ document.getElementById('importFile').onchange=e=>{const file=e.target.files[0];
    Authentification par CODE e-mail (OTP) via l'API GoTrue, en `fetch` direct (AUCUNE
    librairie tierce -> on préserve le mono-fichier hors-ligne et une surface d'attaque
    minimale). La clé `publishable` ci-dessous est PUBLIQUE par conception : la sécurité
-   repose sur les politiques RLS côté serveur, jamais sur ce client. Ce lot gère uniquement
-   la SESSION (connexion/déconnexion) ; la synchro des données arrive au lot suivant.
-   Tout est OPTIONNEL : déconnecté, l'app fonctionne exactement comme aujourd'hui (local). */
+   repose sur les politiques RLS côté serveur, jamais sur ce client. Ce module gère la SESSION
+   (connexion par code, rafraîchissement du jeton, déconnexion) et la SUPPRESSION de compte
+   (RGPD) ; la synchronisation des DONNÉES est dans l'objet `Sync` (plus bas).
+   Tout est OPTIONNEL : déconnecté, l'app fonctionne exactement comme sans compte (local). */
 const SUPA={url:'https://xhvgiwcxaqcnacuiovhh.supabase.co',key:'sb_publishable_X6kvCMh6XiCvKQEOc1c0PQ_BrMZDIQd'};
 const Auth={
   session:null,
@@ -2199,7 +2206,7 @@ const Auth={
   async sendCode(email){await this._post('/auth/v1/otp',{email:email,create_user:true});},
   async verifyCode(email,code){const j=await this._post('/auth/v1/verify',{type:'email',email:email,token:code});this._setSession(j);return j;},
   async refresh(){if(!this.session||!this.session.refresh_token)return false;try{const r=await fetch(SUPA.url+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:this.headers(),body:JSON.stringify({refresh_token:this.session.refresh_token})});const j=await r.json().catch(()=>({}));if(!r.ok)throw 0;this._setSession(j);return true;}catch(e){await this.signOut();return false;}},
-  // Rafraîchit le jeton s'il expire dans <60 s. À appeler avant tout appel synchronisé (lot suivant).
+  // Rafraîchit le jeton s'il expire dans <60 s. Appelé par rest() avant chaque appel REST de synchro.
   async ensureFresh(){if(!this.signedIn())return false;const now=Math.floor(Date.now()/1000);if(this.session.expires_at&&this.session.expires_at-now<60)return this.refresh();return true;},
   async signOut(){const tok=this.session&&this.session.access_token;this.session=null;this._save();if(tok){try{await fetch(SUPA.url+'/auth/v1/logout',{method:'POST',headers:{'apikey':SUPA.key,'Authorization':'Bearer '+tok}});}catch(e){}}},
   // Suppression RGPD : efface compte + données perso côté serveur (RPC SECURITY DEFINER).
@@ -2330,8 +2337,9 @@ applyTheme(localStorage.getItem('ac-theme')||'auto');
    IndexedDB reste la SOURCE DE VÉRITÉ ; le cloud est un miroir asynchrone. Stratégie :
    PULL d'abord (réconciliation last-write-wins par `updatedAt`, sauvegarde de la version locale
    en cas de divergence) puis PUSH des enregistrements `dirty`. Suppressions = tombstones.
-   Ce lot synchronise l'ESPACE PERSONNEL (library_id NULL) ; les bibliothèques partagées viendront
-   ensuite. Tout échec est silencieux côté usage (l'app reste pleinement utilisable hors-ligne). */
+   Synchronise le PERSONNEL (library_id NULL) ET les bibliothèques partagées dont on est membre
+   (la RLS borne l'accès côté serveur ; on ne pousse que là où l'on peut éditer). Tout échec est
+   silencieux côté usage (l'app reste pleinement utilisable hors-ligne). */
 // Appel REST générique vers PostgREST. Rafraîchit le jeton au besoin. Lève en cas d'erreur HTTP.
 async function rest(method,path,body,extra){await Auth.ensureFresh();
   const r=await fetch(SUPA.url+path,{method:method,headers:Auth.headers(extra),body:body?JSON.stringify(body):undefined});
