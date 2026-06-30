@@ -51,6 +51,14 @@ create table if not exists public.category_sets (
   data       jsonb not null,
   updated_at timestamptz not null default now()
 );
+-- SÉCURITÉ : la clé scope_key DOIT correspondre à l'identité réelle de la ligne (owner pour le perso,
+-- library_id pour une bibliothèque). Empêche un éditeur d'une biblio de « squatter » la clé d'une
+-- autre biblio (déni de service) en posant un scope_key qui ne lui appartient pas.
+do $$ begin
+  alter table public.category_sets add constraint category_sets_scope_chk
+    check (scope_key = case when library_id is null then 'personal:'||coalesce(owner::text,'')
+                            else 'lib:'||library_id end);
+exception when duplicate_object then null; end $$;
 
 -- ---------- 2. Helpers SECURITY DEFINER (évitent la récursion RLS) ----------
 -- Ces fonctions consultent app_admins / memberships pour l'utilisateur COURANT
