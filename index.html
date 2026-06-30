@@ -13,9 +13,10 @@
   pendant la crise pour ne rien oublier. Principe inspiré des recommandations
   SFAR : "détrompage" = la bonne information, au bon endroit, au bon moment.
 
-  L'application doit fonctionner HORS LIGNE et sans aucun serveur : c'est un
-  fichier HTML autonome (HTML + CSS + JavaScript "vanilla", aucune dépendance
-  ni bibliothèque externe). Tout est stocké localement sur l'appareil.
+  L'application doit fonctionner HORS LIGNE : c'est un fichier HTML autonome
+  (HTML + CSS + JavaScript "vanilla", aucune dépendance ni bibliothèque externe).
+  Tout est stocké localement sur l'appareil ; une synchronisation cloud reste
+  OPTIONNELLE (compte) et ne fait jamais obstacle à l'usage hors-ligne (cf. point 9).
 
   ╔══════════════════════════════════════════════════════════════════════════╗
   ║  RÈGLE DE CONCEPTION — À RESPECTER POUR TOUTE MODIFICATION (humain ou IA)  ║
@@ -67,22 +68,30 @@
      position dans l'arbre, compteurs, temps/cycles des minuteurs) sous un nom,
      pour la REPRENDRE plus tard ou la SUPPRIMER. Stockées par appareil.
   8. EXPORT / IMPORT JSON (fiches + catégories ; PAS les sessions) = sauvegarde
-     et transfert manuel entre appareils. (Pas de synchro cloud automatique :
-     impossible dans un PWA statique sans backend ; choix assumé.)
+     et transfert manuel, surtout utile SANS compte (filet de sécurité local).
+  9. SYNCHRONISATION CLOUD optionnelle (v3.0.0) via Supabase : avec un compte
+     (connexion par code e-mail), la bibliothèque personnelle est sauvegardée en
+     ligne et accessible sur tous ses appareils ; BIBLIOTHÈQUES PARTAGÉES multiples
+     avec rôles (lecteur/éditeur/admin) pour les équipes. Reste LOCAL-FIRST :
+     déconnecté, l'app fonctionne exactement comme avant. Détails : module `Auth`,
+     objet `Sync`, fichier supabase/schema.sql (RLS = vraie sécurité, côté serveur).
 
   ARCHITECTURE GÉNÉRALE (voir aussi les commentaires de chaque section JS)
   -----------------------------------------------------------------------
-  - PERSISTANCE en couches, choisie au démarrage (chooseBackend) :
-      IndexedDB ('ac-db', stores 'fiches'/'meta'/'sessions')  [préféré]
+  - PERSISTANCE LOCALE en couches, choisie au démarrage (chooseBackend) :
+      IndexedDB ('ac-db', stores 'fiches'/'meta'/'sessions'/'backups')  [préféré]
         -> sinon window.storage (clé-valeur fourni par l'hôte)
         -> sinon localStorage
         -> sinon mémoire volatile (objet MEM).
     L'objet `Data` pointe vers le backend retenu et expose une même interface :
       getAll/put/del (fiches), getCats/setCats (catégories),
-      getSessions/putSession/delSession (sessions).
+      getSessions/putSession/delSession (sessions),
+      getBackups/putBackup/delBackup (versions locales gardées avant écrasement).
+    Le CLOUD (Supabase) est une couche SÉPARÉE et asynchrone PAR-DESSUS (objet `Sync`) :
+    IndexedDB reste la SOURCE DE VÉRITÉ ; rien ne bloque jamais l'usage hors-ligne.
   - ÉTAT GLOBAL :
       `state`   = quoi afficher (view library|edit|read, recherche, filtres,
-                  brouillon en cours d'édition, fiche affichée, navigation...).
+                  bibliothèque affichée (scope), brouillon, fiche affichée, navigation...).
       `Runtime` = état VIVANT d'une fiche ouverte en mode crise (cochages,
                   position, compteurs, minuteurs qui tournent). Survit aux
                   allers-retours bibliothèque<->lecture ; invalidé après édition.
@@ -109,7 +118,8 @@
     updatedAt(ms), deletedAt(ms|null tombstone), ownerId(uuid|null), libraryId(id|null)
     // (`dirty` = marqueur LOCAL "à pousser", jamais exporté ni importé)
   }
-  Catégorie : { id, name, color(hex) }   (collection séparée, store 'meta').
+  Catégorie : { id, name, color(hex), libraryId(null=Perso | id de bibliothèque) }
+               (collection séparée, store 'meta' ; synchronisée PAR bibliothèque).
   Session   : { id, ficheId, ficheTitle, name, savedAt,
                 checked{'seqVisite:idBloc:index':bool}, nav[idBloc...],
                 navSeq[ n... ] (id de visite unique parallèle à nav ; chaque passage
@@ -294,8 +304,6 @@
   .scope-ctx-i{font-size:12.5px;color:var(--ink-soft);font-weight:600}
   .linkbtn{background:none;border:0;color:var(--primary);font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:0;margin-left:auto}
   .linkbtn:hover{text-decoration:underline}
-  .caret{opacity:.7;font-size:11px}
-  .scopebtn.collapse,.catchip.collapse{font-weight:700;padding-left:11px;padding-right:11px}
   .notice{position:relative;padding-right:34px}
   .notice-x{position:absolute;top:6px;right:7px;background:none;border:0;color:var(--ink-soft);font-size:19px;line-height:1;cursor:pointer;padding:2px 7px;border-radius:7px}
   .notice-x:hover{background:rgba(0,0,0,.07)}
@@ -585,8 +593,6 @@
   .auth-sub{font-size:13.5px;color:var(--ink-soft);line-height:1.55;margin:12px 0 18px}
   .auth-actions{display:flex;flex-direction:column;gap:9px}
   .auth-actions .btn{width:100%;justify-content:center}
-  .btn.ghost{background:transparent;border-color:transparent;color:var(--ink-soft)}
-  .btn.ghost:hover{background:var(--critical-soft);color:var(--critical);border-color:transparent}
   .auth-hero{text-align:center;margin-bottom:18px}
   .auth-hero-ic{width:56px;height:56px;border-radius:15px;background:var(--primary-soft);color:var(--primary);display:inline-flex;align-items:center;justify-content:center;margin-bottom:11px}
   .auth-hero h4{margin:0 0 5px;font-size:17px;color:var(--ink)}
@@ -798,10 +804,10 @@ let Data=KV;
      catTag (pastille couleur d'une catégorie), fmtMs (millisecondes -> mm:ss). */
 let fiches=[],categories=[],sessions=[];
 // Bibliothèques partagées dont l'utilisateur est membre : [{id,name,role}]. myIsAppAdmin = peut créer
-// des bibliothèques. state.scope = périmètre affiché : null = Perso, sinon id de bibliothèque.
+// des bibliothèques. state.scope = bibliothèque affichée : null = Perso, sinon id de bibliothèque partagée.
 let myLibraries=[],myIsAppAdmin=false;
-let state={view:'library',id:null,q:'',cat:'',scope:null,scopeOpen:false,catOpen:false,draft:null,fiche:null,nav:[],navSeq:[],navPos:0,checked:{},catMgr:false,showFlow:false,showSess:false};
-// Rôle/édition par périmètre. Perso (libraryId vide) = toujours éditable. Bibliothèque : éditable
+let state={view:'library',id:null,q:'',cat:'',scope:null,draft:null,fiche:null,nav:[],navSeq:[],navPos:0,checked:{},catMgr:false,showFlow:false,showSess:false};
+// Rôle/édition par bibliothèque. Perso (libraryId vide) = toujours éditable. Bibliothèque partagée : éditable
 // si role editor/admin. (La RLS reste l'arbitre côté serveur ; ceci n'est que l'ergonomie.)
 function roleOf(libId){const l=myLibraries.find(x=>x.id===libId);return l?l.role:null;}
 function libName(libId){const l=myLibraries.find(x=>x.id===libId);return l?l.name:'';}
@@ -913,11 +919,11 @@ const byOrder=(a,b)=>(b.order||0)-(a.order||0);
 // soit l'ordre de création/stockage. localeCompare 'fr' -> tri correct des accents.
 const byCatName=(a,b)=>(a.name||'').localeCompare(b.name||'','fr',{sensitivity:'base'});
 // Catégories PAR PÉRIMÈTRE : chaque catégorie porte un libraryId (null = Perso, sinon bibliothèque).
-// Le tableau `categories` les contient toutes ; on filtre par périmètre pour l'affichage/édition.
+// Le tableau `categories` les contient toutes ; on filtre par bibliothèque pour l'affichage/édition.
 const catScope=c=>(c&&c.libraryId)||null;
 const catsForScope=scope=>categories.filter(c=>catScope(c)===(scope||null));
 const catsSorted=(scope)=>catsForScope(scope).slice().sort(byCatName);
-// Périmètre dont on gère les catégories : en édition = celui de la fiche ; sinon = périmètre affiché.
+// Bibliothèque dont on gère les catégories : en édition = celle de la fiche ; sinon = bibliothèque affichée.
 function activeCatScope(){return state.view==='edit'?(state.draft?(state.draft.libraryId||null):null):(state.scope||null);}
 function noticeHidden(){try{return localStorage.getItem('ac-notice-hidden')==='1';}catch(e){return false;}}
 // id de catégorie : déterministe (par nom) pour le Perso (cohérence multi-appareils des défauts) ;
@@ -1007,8 +1013,6 @@ function seed(catId){const b1=uid('b'),b2=uid('b'),b3=uid('b'),bd=uid('b');
 // aléatoires, les jeux de catégories divergeaient entre appareils et la catégorie « disparaissait ».)
 function catSlug(name){return String(name||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,48);}
 function detCatId(name){const s=catSlug(name);return s?('c-'+s):uid('c');}
-// id déterministe mais unique localement (en cas de doublon de nom exact, on suffixe).
-function freshCatId(name){let id=detCatId(name),n=2;while(categories.some(c=>c.id===id))id=detCatId(name)+'-'+(n++);return id;}
 // Migration : convertit les ids de catégories existants (aléatoires) en ids déterministes et
 // repointe les fiches. Idempotente : une fois les ids déterministes, ne fait plus rien.
 async function remapCatsDeterministic(){const map={};const byNew={};const kept=[];
@@ -1283,7 +1287,7 @@ function render(){
 }
 function renderLibrary(){
   const q=state.q.toLowerCase();
-  // Si le périmètre sélectionné n'existe plus (déconnexion, perte d'accès), on retombe sur Perso.
+  // Si la bibliothèque sélectionnée n'existe plus (déconnexion, perte d'accès), on retombe sur Perso.
   if(state.scope&&!myLibraries.some(l=>l.id===state.scope))state.scope=null;
   // Filtrage par PÉRIMÈTRE : Perso (libraryId vide) ou bibliothèque partagée sélectionnée.
   const list=fiches.slice().sort(byOrder).filter(f=>(state.scope?f.libraryId===state.scope:!f.libraryId)&&(!state.cat||f.category===state.cat)&&(!q||(f.title+' '+catName(f)).toLowerCase().includes(q)));
@@ -1316,21 +1320,17 @@ function renderLibrary(){
   document.getElementById('q').addEventListener('input',e=>{state.q=e.target.value;const pos=e.target.selectionStart;renderLibrary();const inp=document.getElementById('q');inp.focus();inp.setSelectionRange(pos,pos);});
   {const nb=document.getElementById('newBtn');if(nb)nb.onclick=newFiche;}
   {const nx=document.getElementById('noticeX');if(nx)nx.onclick=()=>{try{localStorage.setItem('ac-notice-hidden','1');}catch(e){}renderLibrary();};}
-  // Catégories repliables : déplier / replier ; sélectionner une catégorie replie automatiquement.
-  {const ct=document.getElementById('catToggle');if(ct)ct.onclick=()=>{state.catOpen=true;renderLibrary();};}
-  {const cc=document.getElementById('catCollapse');if(cc)cc.onclick=()=>{state.catOpen=false;renderLibrary();};}
-  main.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{const c=b.dataset.cat;state.cat=(c&&state.cat===c)?'':c;state.catOpen=false;renderLibrary();});
+  // Recliquer la catégorie déjà sélectionnée la dé-sélectionne (revient à « Toutes »).
+  main.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{const c=b.dataset.cat;state.cat=(c&&state.cat===c)?'':c;renderLibrary();});
   {const cmc=document.getElementById('catMgrChip');if(cmc)cmc.onclick=openCatMgr;}
-  // Périmètre repliable : déplier / replier ; choisir un périmètre replie automatiquement.
-  {const st=document.getElementById('scopeToggle');if(st)st.onclick=()=>{state.scopeOpen=true;renderLibrary();};}
-  {const sc=document.getElementById('scopeCollapse');if(sc)sc.onclick=()=>{state.scopeOpen=false;renderLibrary();};}
+  // Changer de bibliothèque (incrémente son compteur d'usage) / en créer une (app-admin).
   main.querySelectorAll('[data-scope]').forEach(b=>b.onclick=()=>{state.scope=b.dataset.scope||null;bumpLibUsage(b.dataset.scope);state.cat='';renderLibrary();});
   const nlb=document.getElementById('newLibBtn');if(nlb)nlb.onclick=createLibrary;
   const mb=document.getElementById('membersBtn');if(mb)mb.onclick=()=>openMembers(state.scope);
   main.querySelectorAll('[data-openlive]').forEach(el=>{el.onclick=()=>openRead(el.dataset.openlive);el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openRead(el.dataset.openlive);}};});
   main.querySelectorAll('[data-endlive]').forEach(b=>b.onclick=()=>{const id=b.dataset.endlive,R=liveSessions[id];if(R&&confirm('Terminer la session ? Les minuteurs s’arrêtent ; la session est conservée dans l’historique.')){endSession(R);if(Runtime.ficheId===id)resetRuntime();renderLibrary();}});
   main.querySelectorAll('[data-open]').forEach(el=>{el.onclick=()=>openRead(el.dataset.open);el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openRead(el.dataset.open);}};});
-  // Toujours montrer le périmètre ACTIF même si la barre défile (on le centre dans sa ligne).
+  // Toujours montrer la bibliothèque ACTIVE même si la barre défile (on la centre dans sa ligne).
   const act=main.querySelector('.scopebar .scopebtn.on');if(act){const row=act.closest('.chiprow');if(row&&row.scrollWidth>row.clientWidth)row.scrollLeft=Math.max(0,act.offsetLeft-row.clientWidth/2+act.clientWidth/2);}
 }
 // Petite icône d'en-tête de section (repère visuel rapide du TYPE de bloc). Trait = currentColor (suit
@@ -1841,7 +1841,7 @@ function renderEditor(){
   // catégorie
   main.querySelectorAll('[data-selcat]').forEach(b=>b.onclick=()=>{state.draft.category=b.dataset.selcat;renderEditor();});
   const scopeSel=document.getElementById('f-scope');if(scopeSel)scopeSel.onchange=()=>{const ns=scopeSel.value||null;state.draft.libraryId=ns;
-    // Les catégories sont propres à un périmètre : si l'actuelle n'appartient pas au nouveau, on la retire.
+    // Les catégories sont propres à une bibliothèque : si l'actuelle n'appartient pas à la nouvelle, on la retire.
     const cc=state.draft.category;if(cc){const cat=categories.find(x=>x.id===cc);if(!cat||(cat.libraryId||null)!==(ns||null))state.draft.category='';}
     state.catMgr=false;renderEditor();};
   document.getElementById('catMgrBtn').onclick=()=>{state.catMgr=!state.catMgr;renderEditor();};
@@ -2380,7 +2380,7 @@ const Sync={
     const cur=localStorage.getItem(this._cursorKey);
     // Recouvrement de 2 s + application idempotente (LWW) -> aucun enregistrement manqué aux bornes.
     const since=cur?new Date((Date.parse(cur)||0)-2000).toISOString():'1970-01-01T00:00:00Z';
-    // Pas de filtre de périmètre : la RLS limite déjà à ce que je peux voir (Perso + mes bibliothèques).
+    // Pas de filtre de bibliothèque : la RLS limite déjà à ce que je peux voir (Perso + mes bibliothèques).
     const rows=await rest('GET','/rest/v1/fiches?select=*&updated_at=gt.'+encodeURIComponent(since)+'&order=updated_at.asc')||[];
     let maxTs=cur?Date.parse(cur):0;const conflicts=[];
     const localAll=await Data.getAll();const byId={};localAll.forEach(f=>byId[f.id]=f);
