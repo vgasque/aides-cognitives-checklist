@@ -191,7 +191,26 @@
   html[data-theme="dark"] header.bar{background:linear-gradient(180deg,#13322e,#0e2723);color:#dceeeb}
   html[data-theme="dark"] .ai-card,html[data-theme="dark"] .ai-modal .ai-card{background:var(--surface);color:var(--ink)}
   html[data-theme="dark"] .toast{background:#05100e;border:1px solid var(--line)}
-  html[data-theme="dark"] img{filter:brightness(.92)}
+  html[data-theme="dark"] :is(.read-img,.thumb,.fiche-img) img{filter:brightness(.92)}
+  /* Champs de saisie (éditeur) codés en dur en blanc -> fond sombre lisible. */
+  html[data-theme="dark"] :is(.blk-top input,.trow input[data-tf],.trow input[data-cf],.trow input[type=number],.tk-lab,.cat-row input.cn,.optedit input,.catpill,.startbtn,.cat-row input,.trow input){background:#0e1714;color:var(--ink);border-color:var(--line)}
+  /* Panneaux/encadrés codés en dur en clair -> fond sombre. */
+  html[data-theme="dark"] :is(.cat-mgr,.blk,.nav-wrap,.sess-list,.cm-row,.session-bar.idle){background:#141d1a;border-color:var(--line)}
+  html[data-theme="dark"] .ai-ta{background:#0e1714;color:var(--ink)}
+  html[data-theme="dark"] :is(.flow-scroll,#flowFull .ff-scroll){background:#0e1714}
+  /* Survols clairs -> survols sombres. */
+  html[data-theme="dark"] :is(.btn:hover,.mini:hover,.fz:hover,.opt:hover,.catchip:hover){background:#1d2723;border-color:#3a463f}
+  html[data-theme="dark"] ol.steps li.done{background:#13201c}
+  /* Bandeaux : texte/bordures codés en dur -> couleurs lisibles sur fond sombre. */
+  html[data-theme="dark"] .notice{color:var(--verify);border-color:#4a3f1e}
+  html[data-theme="dark"] .block-h .sec-badge{background:#23302c}
+  html[data-theme="dark"] :is(.h-confirm .sec-badge,.h-img .sec-badge){background:#16302c}
+  html[data-theme="dark"] .h-main .sec-badge{background:var(--surface);box-shadow:inset 0 0 0 1px #2c4a44}
+  html[data-theme="dark"] .sync-chip.busy{background:#2f2a18;color:#e0b048}
+  html[data-theme="dark"] .sync-chip.err{background:#3a201a;color:#ff8a70}
+  /* SVG de l'algorithme : inversion + rotation de teinte -> rendu sombre cohérent (les couleurs
+     teal/ambre restent distinctes ; pas d'images réelles dans le SVG, seulement des pavés). */
+  html[data-theme="dark"] :is(.flow-scroll,#flowFull .ff-scroll) svg{filter:invert(0.92) hue-rotate(180deg)}
   *{box-sizing:border-box}html,body{margin:0;padding:0}
   body{font-family:var(--sans);color:var(--ink);background:var(--bg);line-height:1.5;-webkit-font-smoothing:antialiased;padding-bottom:env(safe-area-inset-bottom)}
   button{font-family:inherit;cursor:pointer}input,textarea,select{font-family:inherit;font-size:16px}textarea{resize:vertical}
@@ -222,6 +241,10 @@
   .card-body{flex:1;min-width:0}.card h3{margin:0 0 5px;font-size:16.5px;font-weight:640}
   .card-meta{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
   .tag{font-size:11px;font-weight:600;letter-spacing:.3px;background:var(--primary-soft);color:var(--primary-dk);padding:3px 9px;border-radius:20px}
+  /* Étiquette de catégorie : texte en --ink (lisible dans les 2 thèmes) + pastille de couleur. */
+  .tag.cat{color:var(--ink);display:inline-flex;align-items:center;gap:5px}
+  .tag.cat::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--c,var(--primary));flex:none}
+  .catchip,.catpill{color:var(--ink)}
   .tag.flow{background:#efe7d2;color:var(--verify)}.tag.sess{background:#dfeae8;color:var(--primary-dk)}
   .card-date{font-size:12px;color:var(--ink-soft)}.card-date.stale{color:var(--critical)}
   .chev{color:#b6c4c1;flex-shrink:0}
@@ -559,7 +582,6 @@
 <div class="ai-modal" id="authModal"><div class="ai-card">
   <div class="ai-top"><h3>Compte &amp; synchronisation</h3><button class="ai-x" id="authX" aria-label="Fermer">×</button></div>
   <div id="authBody"></div>
-  <p class="ai-note">La synchronisation rend votre bibliothèque accessible sur tous vos appareils. L'application reste pleinement utilisable hors-ligne et sans compte.</p>
 </div></div>
 <div class="ai-modal" id="versModal"><div class="ai-card">
   <div class="ai-top"><h3>Versions précédentes</h3><button class="ai-x" id="versX" aria-label="Fermer">×</button></div>
@@ -754,7 +776,7 @@ const catsSorted=()=>categories.slice().sort(byCatName);
 const textTrunc=(s,n)=>{s=String(s||'');return s.length>n?s.slice(0,n-1)+'…':s;};
 const catOf=f=>categories.find(c=>c.id===f.category)||null;
 const catName=f=>{const c=catOf(f);return c?c.name:'';};
-function catTag(f){const c=catOf(f);if(!c)return '';const col=safeColor(c.color);return `<span class="tag" style="background:${col}22;color:${col}">${esc(c.name)}</span>`;}
+function catTag(f){const c=catOf(f);if(!c)return '';const col=safeColor(c.color);return `<span class="tag cat" style="background:${col}22;--c:${col}">${esc(c.name)}</span>`;}
 const fmtMs=ms=>{ms=Math.max(0,Math.floor(ms/1000));const m=Math.floor(ms/60),s=ms%60;return (m<10?'0':'')+m+':'+(s<10?'0':'')+s;};
 
 /* ===== Modèle =====
@@ -1095,7 +1117,7 @@ function render(){
 function renderLibrary(){
   const q=state.q.toLowerCase();
   const list=fiches.slice().sort(byOrder).filter(f=>(!state.cat||f.category===state.cat)&&(!q||(f.title+' '+catName(f)).toLowerCase().includes(q)));
-  const chips=`<button class="catchip" data-cat="" style="${!state.cat?'background:#16211f;color:#fff;border-color:#16211f':''}">Toutes</button>`+catsSorted().map(c=>{const col=safeColor(c.color);return `<button class="catchip" data-cat="${esc(c.id)}" style="${state.cat===c.id?`background:${col};color:#fff;border-color:${col}`:`color:${col};border-color:${col}55`}">${esc(c.name)}</button>`;}).join('')+`<button class="catchip" id="catMgrChip" style="border-style:dashed;color:var(--ink-soft)">⚙ Gérer</button>`;
+  const chips=`<button class="catchip" data-cat="" style="${!state.cat?'background:#16211f;color:#fff;border-color:#16211f':''}">Toutes</button>`+catsSorted().map(c=>{const col=safeColor(c.color);return `<button class="catchip" data-cat="${esc(c.id)}" style="${state.cat===c.id?`background:${col};color:#fff;border-color:${col}`:`background:${col}1f;border-color:${col}88`}">${esc(c.name)}</button>`;}).join('')+`<button class="catchip" id="catMgrChip" style="border-style:dashed;color:var(--ink-soft)">⚙ Gérer</button>`;
   // SESSIONS EN COURS (vives) : accès rapide en haut de l'accueil + actions (reprendre/réinit/terminer).
   const liveArr=Object.values(liveSessions).filter(R=>R.started&&R.fiche);
   const liveHtml=liveArr.length?`<div class="live-sessions"><div class="ls-h"><span class="sess-dot"></span>Sessions en cours · ${liveArr.length}</div>${liveArr.map(R=>{const run=Object.values(R.timers).filter(t=>t.running).length;return `<div class="ls-row"><div class="ls-info" data-openlive="${R.ficheId}" role="button" tabindex="0"><b>${esc(R.fiche.title||'Sans titre')}</b><span>depuis ${timeAgo(R.startedAt)}${run?` · ${run} minuteur${run>1?'s':''} actif${run>1?'s':''}`:''}</span></div><div class="ls-acts"><button class="btn sm primary" data-openlive="${R.ficheId}">Ouvrir</button><button class="btn sm danger" data-endlive="${R.ficheId}">Terminer</button></div></div>`;}).join('')}</div>`:'';
@@ -1592,7 +1614,7 @@ function renderEditor(){
     <button class="back" id="back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Annuler</button>
     ${isNew&&state.showCreateBand!==false?`<div class="create-band"><div class="cb-q">Comment créer cette fiche ?</div><div class="cb-opts"><button class="btn primary sm" id="cbAI">✨ Créer via IA</button><button class="btn sm" id="cbManual">✍ Créer manuellement</button></div><div class="cb-hint">« Via IA » : copiez le prompt dans une IA avec un document, puis importez le résultat. « Manuellement » : remplissez les champs ci-dessous.</div></div>`:''}
     <div class="field"><label>Titre de la situation</label><input type="text" id="f-title" value="${esc(f.title)}" placeholder="ex. Intoxication aux anesthésiques locaux"></div>
-    <div class="field"><label>Catégorie</label><div class="catpick"><button class="catpill" data-selcat="" style="${!f.category?'background:#54635f;color:#fff;border-color:#54635f':''}">Aucune</button>${catsSorted().map(c=>{const col=safeColor(c.color);return `<button class="catpill" data-selcat="${esc(c.id)}" style="${f.category===c.id?`background:${col};color:#fff;border-color:${col}`:`color:${col};border-color:${col}66`}">${esc(c.name)}</button>`;}).join('')}<button class="catpill" id="catMgrBtn" style="border-style:dashed;color:var(--ink-soft)">⚙ Gérer</button></div>${state.catMgr?catManagerHtml():''}</div>
+    <div class="field"><label>Catégorie</label><div class="catpick"><button class="catpill" data-selcat="" style="${!f.category?'background:#54635f;color:#fff;border-color:#54635f':''}">Aucune</button>${catsSorted().map(c=>{const col=safeColor(c.color);return `<button class="catpill" data-selcat="${esc(c.id)}" style="${f.category===c.id?`background:${col};color:#fff;border-color:${col}`:`background:${col}1f;border-color:${col}88`}">${esc(c.name)}</button>`;}).join('')}<button class="catpill" id="catMgrBtn" style="border-style:dashed;color:var(--ink-soft)">⚙ Gérer</button></div>${state.catMgr?catManagerHtml():''}</div>
     <div class="row2"><div class="field"><label>Date de validation <span class="hint">mois/année</span></label><input type="text" id="f-validation" inputmode="numeric" autocapitalize="off" value="${esc(valToDisplay(f.validation))}" placeholder="MM/AAAA — ex. 012026 ou 01/2026"></div></div>
     <div class="field"><label>Contexte local <span class="hint">numéros utiles, particularités</span></label><textarea id="f-localInfo" rows="2" placeholder="Réanimateur de garde, pharmacie…">${esc(f.localInfo)}</textarea></div>
     ${listEditor('Confirmation diagnostique','critères pour déclencher la fiche','confirmation',f.confirmation)}
@@ -1995,7 +2017,8 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
     body.innerHTML=`<p>Recevez un <b>code par e-mail</b> pour vous connecter ou créer votre compte.</p>
       <input class="auth-field" id="authEmail" type="email" inputmode="email" autocomplete="email" placeholder="votre e-mail" value="${esc(_authStep.email)}">
       <div class="auth-row"><button class="btn primary sm" id="authSend">Recevoir le code</button></div>
-      <p class="auth-msg ${_authStep.msgcls}">${esc(_authStep.msg)}</p>`;
+      <p class="auth-msg ${_authStep.msgcls}">${esc(_authStep.msg)}</p>
+      <p class="ai-note">La synchronisation rend votre bibliothèque accessible sur tous vos appareils. L'application reste pleinement utilisable hors-ligne et sans compte.</p>`;
     const send=body.querySelector('#authSend');
     send.onclick=async()=>{const email=(body.querySelector('#authEmail').value||'').trim();if(!email||email.indexOf('@')<1){_authStep.msg='E-mail invalide.';_authStep.msgcls='err';return renderAuth();}
       _authStep.email=email;_authStep.msg='Envoi du code…';_authStep.msgcls='';renderAuth();
