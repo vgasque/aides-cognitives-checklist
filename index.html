@@ -243,6 +243,11 @@
   .scopebtn{border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:6px 13px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;transition:background .12s,border-color .12s}
   .scopebtn.on{background:var(--primary);color:#fff;border-color:var(--primary)}
   .scopebtn.add{border-style:dashed;color:var(--primary);background:transparent}
+  .scopebtn .ro-hint{font-weight:500;font-size:11px;opacity:.75;margin-left:2px}
+  .scope-ctx{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin:-6px 0 16px;padding:9px 12px;background:var(--primary-soft);border-radius:10px}
+  .scope-ctx-i{font-size:12.5px;color:var(--ink-soft);font-weight:600}
+  .linkbtn{background:none;border:0;color:var(--primary);font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:0;margin-left:auto}
+  .linkbtn:hover{text-decoration:underline}
   .ro-badge{font-size:11px;font-weight:600;color:var(--primary-dk);background:var(--primary-soft);padding:2px 8px;border-radius:10px}
   .mem-invite{margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--line)}
   .mem-act{display:flex;gap:8px;align-items:center}
@@ -1148,11 +1153,12 @@ function renderLibrary(){
   const list=fiches.slice().sort(byOrder).filter(f=>(state.scope?f.libraryId===state.scope:!f.libraryId)&&(!state.cat||f.category===state.cat)&&(!q||(f.title+' '+catName(f)).toLowerCase().includes(q)));
   const chips=`<button class="catchip" data-cat="" style="${!state.cat?'background:#16211f;color:#fff;border-color:#16211f':''}">Toutes</button>`+catsSorted().map(c=>{const col=safeColor(c.color);return `<button class="catchip" data-cat="${esc(c.id)}" style="${state.cat===c.id?`background:${col};color:#fff;border-color:${col}`:`background:${col}1f;border-color:${col}88`}">${esc(c.name)}</button>`;}).join('')+`<button class="catchip" id="catMgrChip" style="border-style:dashed;color:var(--ink-soft)">⚙ Gérer</button>`;
   // PÉRIMÈTRE (visible seulement connecté) : Perso + bibliothèques partagées + création (app-admin).
+  const ROLE_LBL={viewer:'lecture',editor:'édition',admin:'admin'};
   const scopeBar=Auth.signedIn()?`<div class="scopebar"><span class="scope-lbl">Périmètre</span>
     <button class="scopebtn${!state.scope?' on':''}" data-scope="">Perso</button>
-    ${myLibraries.map(l=>`<button class="scopebtn${state.scope===l.id?' on':''}" data-scope="${esc(l.id)}" title="Rôle : ${esc(l.role)}">${esc(l.name)}${l.role==='viewer'?' 🔒':''}</button>`).join('')}
-    ${myIsAppAdmin?`<button class="scopebtn add" id="newLibBtn">+ Bibliothèque</button>`:''}
-    ${state.scope&&(roleOf(state.scope)==='admin'||myIsAppAdmin)?`<button class="scopebtn" id="membersBtn">👥 Membres</button>`:''}</div>`:'';
+    ${myLibraries.map(l=>`<button class="scopebtn${state.scope===l.id?' on':''}" data-scope="${esc(l.id)}" title="Bibliothèque partagée — rôle : ${esc(ROLE_LBL[l.role]||l.role)}">${esc(l.name)}${l.role==='viewer'?' <span class="ro-hint">lecture</span>':''}</button>`).join('')}
+    ${myIsAppAdmin?`<button class="scopebtn add" id="newLibBtn">+ Bibliothèque</button>`:''}</div>
+    ${state.scope?`<div class="scope-ctx"><span class="scope-ctx-i">Bibliothèque partagée${canEditScope(state.scope)?'':' · vous êtes en lecture seule'}</span>${(roleOf(state.scope)==='admin'||myIsAppAdmin)?`<button class="linkbtn" id="membersBtn"><span>👥</span> Gérer les membres</button>`:''}</div>`:''}`:'';
   // SESSIONS EN COURS (vives) : accès rapide en haut de l'accueil + actions (reprendre/réinit/terminer).
   const liveArr=Object.values(liveSessions).filter(R=>R.started&&R.fiche);
   const liveHtml=liveArr.length?`<div class="live-sessions"><div class="ls-h"><span class="sess-dot"></span>Sessions en cours · ${liveArr.length}</div>${liveArr.map(R=>{const run=Object.values(R.timers).filter(t=>t.running).length;return `<div class="ls-row"><div class="ls-info" data-openlive="${R.ficheId}" role="button" tabindex="0"><b>${esc(R.fiche.title||'Sans titre')}</b><span>depuis ${timeAgo(R.startedAt)}${run?` · ${run} minuteur${run>1?'s':''} actif${run>1?'s':''}`:''}</span></div><div class="ls-acts"><button class="btn sm primary" data-openlive="${R.ficheId}">Ouvrir</button><button class="btn sm danger" data-endlive="${R.ficheId}">Terminer</button></div></div>`;}).join('')}</div>`:'';
@@ -2133,6 +2139,7 @@ const Sync={
       await this._initIfNeeded();
       const conflicts=await this._pull();
       await this._push();
+      await this._reconcileShared();
       await this._syncCats();
       setSyncChip('ok','Synchronisé');
       notifyConflicts(conflicts);
@@ -2191,10 +2198,21 @@ const Sync={
       const row={scope_key:sk,owner:uidv,library_id:null,data:{categories:categories},updated_at:new Date(now).toISOString()};
       await rest('POST','/rest/v1/category_sets',[row],{'Prefer':'resolution=merge-duplicates,return=minimal'});
       try{localStorage.removeItem('ac-cats-dirty');}catch(e){}}},
+  // Réconciliation des fiches PARTAGÉES : retire localement celles devenues inaccessibles (fiche
+  // déplacée hors de la biblio, membre retiré, biblio supprimée). Les fiches Perso ne sont jamais
+  // touchées. En cas d'échec réseau, on ne supprime rien (sécurité).
+  async _reconcileShared(){
+    let ids;try{const rows=await rest('GET','/rest/v1/fiches?select=id')||[];ids=new Set(rows.map(r=>r.id));}catch(e){return;}
+    const all=await Data.getAll();let changed=false;
+    for(const f of all){if(f.libraryId&&!f.dirty&&!ids.has(f.id)){await Data.del(f.id);const i=fiches.findIndex(x=>x.id===f.id);if(i>=0)fiches.splice(i,1);changed=true;}}
+    if(changed)render();},
   // Profil : bibliothèques partagées dont je suis membre (avec rôle) + statut app-admin.
   async loadProfile(){
     try{const rows=await rest('GET','/rest/v1/memberships?select=role,library_id,libraries(id,name)')||[];
-      myLibraries=rows.filter(r=>r.libraries).map(r=>({id:r.library_id,name:r.libraries.name,role:r.role})).sort((a,b)=>String(a.name).localeCompare(String(b.name)));
+      // Déduplication par id (robustesse) : si une biblio remonte plusieurs fois, on garde le rôle le plus élevé.
+      const rank={viewer:1,editor:2,admin:3},by={};
+      rows.filter(r=>r.libraries).forEach(r=>{const id=r.library_id,cur=by[id];if(!cur||rank[r.role]>rank[cur.role])by[id]={id,name:r.libraries.name,role:r.role};});
+      myLibraries=Object.values(by).sort((a,b)=>String(a.name).localeCompare(String(b.name)));
     }catch(e){myLibraries=[];}
     try{myIsAppAdmin=(await rest('POST','/rest/v1/rpc/is_app_admin',{}))===true;}catch(e){myIsAppAdmin=false;}
     if(state.view==='library')renderLibrary();}
