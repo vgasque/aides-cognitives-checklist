@@ -161,6 +161,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0d5b56">
+<!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
+<script>try{var _t=localStorage.getItem('ac-theme')||((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light');document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Aides cog.">
@@ -179,6 +181,17 @@
 -->
 <style>
   :root{--ink:#13201d;--ink-soft:#5a6864;--line:#dde3e0;--bg:#eef1f0;--surface:#fff;--primary:#0d5b56;--primary-dk:#0a4a46;--primary-soft:#e1efec;--critical:#bf3a21;--critical-soft:#fbe9e4;--verify:#946615;--verify-soft:#f6efdd;--radius:14px;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--shadow:0 1px 2px rgba(16,32,30,.04),0 4px 16px rgba(16,32,30,.06);--shadow-lg:0 2px 6px rgba(16,32,30,.06),0 12px 32px rgba(16,32,30,.10);}
+  /* ===== THÈME SOMBRE (usage dans le noir) : on redéfinit les variables + quelques fonds codés en dur.
+     Contraste maintenu pour la lisibilité en situation critique. ===== */
+  html[data-theme="dark"]{--ink:#e7edeb;--ink-soft:#9db0ab;--line:#2b3733;--bg:#0e1513;--surface:#19221f;--primary:#3fb0a6;--primary-dk:#56c2b8;--primary-soft:#16302c;--critical:#ff6f52;--critical-soft:#3a201a;--verify:#e0b048;--verify-soft:#322b17;--shadow:0 1px 2px rgba(0,0,0,.45),0 4px 16px rgba(0,0,0,.5);--shadow-lg:0 2px 6px rgba(0,0,0,.5),0 12px 32px rgba(0,0,0,.65);}
+  html[data-theme="dark"]{color-scheme:dark;}
+  html[data-theme="dark"] .empty{background:rgba(255,255,255,.03)}
+  html[data-theme="dark"] .tag.flow{background:#33301f;color:var(--verify)}
+  html[data-theme="dark"] .tag.sess{background:#1f302d;color:var(--primary-dk)}
+  html[data-theme="dark"] header.bar{background:linear-gradient(180deg,#13322e,#0e2723);color:#dceeeb}
+  html[data-theme="dark"] .ai-card,html[data-theme="dark"] .ai-modal .ai-card{background:var(--surface);color:var(--ink)}
+  html[data-theme="dark"] .toast{background:#05100e;border:1px solid var(--line)}
+  html[data-theme="dark"] img{filter:brightness(.92)}
   *{box-sizing:border-box}html,body{margin:0;padding:0}
   body{font-family:var(--sans);color:var(--ink);background:var(--bg);line-height:1.5;-webkit-font-smoothing:antialiased;padding-bottom:env(safe-area-inset-bottom)}
   button{font-family:inherit;cursor:pointer}input,textarea,select{font-family:inherit;font-size:16px}textarea{resize:vertical}
@@ -518,6 +531,7 @@
     <button class="tlink" id="exportBtn">Exporter tout</button>
     <button class="tlink" id="importBtn">Importer</button>
     <button class="tlink" id="aiBtn">✨ Créer via IA</button>
+    <button class="tlink" id="themeBtn">🌙 Sombre</button>
     <button class="tlink" id="acctBtn">Compte</button>
     </div>
     <div class="storage-gauge" id="storageInfo"></div>
@@ -815,10 +829,27 @@ function seed(catId){const b1=uid('b'),b2=uid('b'),b3=uid('b'),bd=uid('b');
       {id:b2,type:'steps',title:'Stabilisé',image:null,steps:['Surveillance rapprochée','Tracer doses et horaires','Bilan allergologique'],next:null},
       {id:b3,type:'steps',title:'Choc réfractaire',image:null,steps:['Adrénaline en perfusion continue','Renforcer le remplissage','2ᵉ vasopresseur','Renfort réanimation'],next:null}
     ]});}
-function defaultCats(){return[{id:uid('c'),name:'Anesthésie',color:'#0d5b56'},{id:uid('c'),name:'Cardiologie',color:'#b23052'},{id:uid('c'),name:'Pédiatrie',color:'#1f7a4d'},{id:uid('c'),name:'Réanimation',color:'#007fb1'},{id:uid('c'),name:'Régulation',color:'#4b3fa6'},{id:uid('c'),name:'SMUR',color:'#b5532a'},{id:uid('c'),name:'SSE',color:'#8a6a12'},{id:uid('c'),name:'Urgences',color:'#1f5fa6'}];}
+// Identifiant de catégorie DÉTERMINISTE, dérivé du nom : deux appareils qui créent « Anesthésie »
+// obtiennent le MÊME id -> les fiches conservent leur catégorie après synchro. (Avec des ids
+// aléatoires, les jeux de catégories divergeaient entre appareils et la catégorie « disparaissait ».)
+function catSlug(name){return String(name||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,48);}
+function detCatId(name){const s=catSlug(name);return s?('c-'+s):uid('c');}
+// id déterministe mais unique localement (en cas de doublon de nom exact, on suffixe).
+function freshCatId(name){let id=detCatId(name),n=2;while(categories.some(c=>c.id===id))id=detCatId(name)+'-'+(n++);return id;}
+// Migration : convertit les ids de catégories existants (aléatoires) en ids déterministes et
+// repointe les fiches. Idempotente : une fois les ids déterministes, ne fait plus rien.
+async function remapCatsDeterministic(){const map={};const byNew={};const kept=[];
+  for(const c of categories){const nid=detCatId(c.name);
+    if(byNew[nid]){map[c.id]=nid;continue;}           // doublon de nom -> fusion vers le premier
+    byNew[nid]=true;if(c.id!==nid)map[c.id]=nid;c.id=nid;kept.push(c);}
+  categories=kept;
+  if(!Object.keys(map).length)return;
+  const changed=[];fiches.forEach(f=>{if(f.category&&map[f.category]){f.category=map[f.category];changed.push(f);}});
+  await saveCats();for(const f of changed)await persist(f);}
+function defaultCats(){return[['Anesthésie','#0d5b56'],['Cardiologie','#b23052'],['Pédiatrie','#1f7a4d'],['Réanimation','#007fb1'],['Régulation','#4b3fa6'],['SMUR','#b5532a'],['SSE','#8a6a12'],['Urgences','#1f5fa6']].map(([name,color])=>({id:detCatId(name),name,color}));}
 function migrateCategories(){const changed=[];const byName={};categories.forEach(c=>byName[c.name.toLowerCase()]=c.id);let pi=categories.length;
   fiches.forEach(f=>{const cv=f.category;if(!cv)return;if(categories.some(c=>c.id===cv))return;const name=String(cv).trim();if(!name){f.category='';changed.push(f);return;}
-    let id=byName[name.toLowerCase()];if(!id){id=uid('c');categories.push({id,name,color:PALETTE[pi++%PALETTE.length]});byName[name.toLowerCase()]=id;}f.category=id;changed.push(f);});return changed;}
+    let id=byName[name.toLowerCase()];if(!id){id=freshCatId(name);categories.push({id,name,color:PALETTE[pi++%PALETTE.length]});byName[name.toLowerCase()]=id;}f.category=id;changed.push(f);});return changed;}
 const hasFlow=f=>(f.blocks||[]).length>1||(f.blocks||[]).some(b=>b.type==='decision');
 const staleDate=v=>{if(!v)return false;const d=new Date(v.length===7?v+'-01':v);if(isNaN(d))return false;return (Date.now()-d.getTime())>730*864e5;};
 // Affichage de la date de validation : "AAAA-MM" -> "MM/AAAA" ; "AAAA-MM-JJ" -> "JJ/MM/AAAA".
@@ -859,6 +890,7 @@ async function load(){
   sessions=(await Data.getSessions())||[];
   if(!categories.length){categories=defaultCats();await Data.setCats(categories);}
   if(!fiches.length){const f=seed(categories[0]?categories[0].id:'');fiches=[f];await Data.put(f);}
+  await remapCatsDeterministic(); // ids de catégories déterministes (cohérence multi-appareils)
   const ch=migrateCategories();if(ch.length){await Data.setCats(categories);for(const f of ch)await Data.put(f);}
   restoreLiveSessions();
   render();
@@ -1589,7 +1621,7 @@ function renderEditor(){
   main.querySelectorAll('[data-selcat]').forEach(b=>b.onclick=()=>{state.draft.category=b.dataset.selcat;renderEditor();});
   document.getElementById('catMgrBtn').onclick=()=>{state.catMgr=!state.catMgr;renderEditor();};
   if(state.catMgr){main.querySelectorAll('.cat-row[data-cid]').forEach(row=>{const cid=row.dataset.cid;const c=categories.find(x=>x.id===cid);const nm=row.querySelector('[data-cname]');if(nm)nm.addEventListener('input',e=>{c.name=e.target.value;saveCats();});row.querySelectorAll('[data-setcol]').forEach(sw=>sw.onclick=()=>{c.color=sw.dataset.setcol;saveCats();renderEditor();});const dl=row.querySelector('[data-delcat]');if(dl)dl.onclick=async()=>{if(!confirm('Supprimer « '+c.name+' » ? Les fiches associées passeront sans catégorie.'))return;categories=categories.filter(x=>x.id!==cid);const tt=[];fiches.forEach(ff=>{if(ff.category===cid){ff.category='';tt.push(ff);}});if(state.draft.category===cid)state.draft.category='';await saveCats();for(const ff of tt)await persist(ff);renderEditor();};});
-    const ac=document.getElementById('addCat');if(ac)ac.onclick=async()=>{const inp=document.getElementById('newCatName');const name=(inp.value||'').trim();if(!name)return;categories.push({id:uid('c'),name,color:PALETTE[categories.length%PALETTE.length]});await saveCats();renderEditor();};}
+    const ac=document.getElementById('addCat');if(ac)ac.onclick=async()=>{const inp=document.getElementById('newCatName');const name=(inp.value||'').trim();if(!name)return;categories.push({id:freshCatId(name),name,color:PALETTE[categories.length%PALETTE.length]});await saveCats();renderEditor();};}
   // images
   let imgMode={kind:null,bid:null};const imgInput=document.getElementById('imgInput');
   document.getElementById('addImg').onclick=()=>{imgMode={kind:'gallery'};imgInput.click();};
@@ -1845,7 +1877,7 @@ function renderCatMgr(){
     const cf=row.querySelector('[data-confdel]');if(cf)cf.onclick=async()=>{const sel=row.querySelector('[data-movesel]');const target=sel?sel.value:'';
       const moved=fiches.filter(f=>f.category===cid);for(const ff of moved){ff.category=target;await persist(ff);}
       categories=categories.filter(x=>x.id!==cid);if(state.cat===cid)state.cat=target||'';await saveCats();catDelId=null;renderCatMgr();};});
-  const add=document.getElementById('cmAdd');if(add)add.onclick=async()=>{const inp=document.getElementById('cmNew');const name=(inp.value||'').trim();if(!name)return;categories.push({id:uid('c'),name,color:PALETTE[categories.length%PALETTE.length]});await saveCats();renderCatMgr();};
+  const add=document.getElementById('cmAdd');if(add)add.onclick=async()=>{const inp=document.getElementById('cmNew');const name=(inp.value||'').trim();if(!name)return;categories.push({id:freshCatId(name),name,color:PALETTE[categories.length%PALETTE.length]});await saveCats();renderCatMgr();};
 }
 document.getElementById('catX').onclick=closeCatMgr;
 catModal.onclick=e=>{if(e.target===catModal)closeCatMgr();};
@@ -1953,9 +1985,11 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
   if(Auth.signedIn()){const u=Auth.user()||{};
     body.innerHTML=`<p class="auth-who">Connecté : <b>${esc(u.email||'')}</b></p>
       <p class="auth-msg ok">Synchronisation multi-appareils active : votre bibliothèque personnelle est sauvegardée et accessible sur vos autres appareils connectés au même compte.</p>
-      <div class="auth-row"><button class="btn primary sm" id="authSync">Synchroniser maintenant</button><button class="btn sm" id="authOut">Se déconnecter</button></div>`;
+      <div class="auth-row"><button class="btn primary sm" id="authSync">Synchroniser maintenant</button><button class="btn sm" id="authSwitch">Changer de compte</button><button class="btn sm" id="authOut">Se déconnecter</button></div>`;
     body.querySelector('#authSync').onclick=()=>{Sync.full();closeAuth();};
-    body.querySelector('#authOut').onclick=async()=>{if(!confirm('Se déconnecter ? Vos fiches restent disponibles localement sur cet appareil.'))return;await Auth.signOut();_authStep={mode:'email',email:'',msg:'',msgcls:''};renderAuth();setSyncChip();};
+    const doSignOut=async()=>{await Auth.signOut();_authStep={mode:'email',email:'',msg:'',msgcls:''};renderAuth();setSyncChip();};
+    body.querySelector('#authSwitch').onclick=async()=>{await doSignOut();}; // déconnecte et revient à l'écran de connexion (fenêtre ouverte)
+    body.querySelector('#authOut').onclick=async()=>{if(!confirm('Se déconnecter ? Vos fiches restent disponibles localement sur cet appareil.'))return;await doSignOut();};
     return;}
   if(_authStep.mode==='email'){
     body.innerHTML=`<p>Recevez un <b>code par e-mail</b> pour vous connecter ou créer votre compte.</p>
@@ -1986,6 +2020,13 @@ document.getElementById('acctBtn').onclick=openAuth;
 document.getElementById('authX').onclick=closeAuth;
 authModal.onclick=e=>{if(e.target===authModal)closeAuth();};
 Auth._load();setSyncChip();
+
+/* ===== Thème clair / sombre ===== */
+function applyTheme(t){document.documentElement.setAttribute('data-theme',t);try{localStorage.setItem('ac-theme',t);}catch(e){}
+  const b=document.getElementById('themeBtn');if(b)b.textContent=(t==='dark')?'☀️ Clair':'🌙 Sombre';
+  const m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',t==='dark'?'#0e2723':'#0d5b56');}
+document.getElementById('themeBtn').onclick=()=>{const cur=document.documentElement.getAttribute('data-theme')==='dark'?'dark':'light';applyTheme(cur==='dark'?'light':'dark');};
+applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'dark':'light');
 
 /* ===== Synchronisation (local-first) =====
    IndexedDB reste la SOURCE DE VÉRITÉ ; le cloud est un miroir asynchrone. Stratégie :
