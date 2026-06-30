@@ -622,6 +622,7 @@
   .stg-tip{font-size:12.5px;color:var(--ink-soft);background:rgba(0,0,0,.04);border-radius:8px;padding:8px 10px}
   html[data-theme="dark"] .stg-tip{background:rgba(255,255,255,.05)}
   .stg-ul{margin:7px 0 0;padding-left:18px;font-size:13.5px;line-height:1.55;color:var(--ink)}.stg-ul li{margin:3px 0}
+  .auth-explain{margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
   /* Toast non bloquant (notifications de synchro/conflit) : n'interrompt jamais l'usage. */
   .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translate(-50%,16px);max-width:min(560px,92vw);background:var(--ink);color:#fff;font-size:13.5px;line-height:1.5;padding:12px 15px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.28);z-index:120;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none}
   .toast.on{opacity:1;transform:translate(-50%,0)}
@@ -1297,7 +1298,7 @@ function renderLibrary(){
   const scopeBar=Auth.signedIn()?`<div class="scopebar"><span class="scope-lbl">Bibliothèque</span><div class="chiprow">
       <button class="scopebtn${!state.scope?' on':''}" data-scope="">Perso</button>
       ${sortedLibraries().map(l=>`<button class="scopebtn${state.scope===l.id?' on':''}" data-scope="${esc(l.id)}" title="Bibliothèque partagée — rôle : ${esc(ROLE_LBL[l.role]||l.role)}">${esc(l.name)}</button>`).join('')}
-      ${myIsAppAdmin?`<button class="scopebtn add" id="newLibBtn">+ Nouvelle</button>`:''}</div></div>
+      ${myIsAppAdmin?`<button class="scopebtn add" id="newLibBtn">+ Nouvelle bibliothèque</button>`:''}</div></div>
     ${state.scope?`<div class="scope-ctx"><span class="scope-ctx-i">Bibliothèque partagée${canEditScope(state.scope)?'':' · vous êtes en lecture seule'}</span>${(roleOf(state.scope)==='admin'||myIsAppAdmin)?`<button class="linkbtn" id="membersBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 19v-1a4 4 0 00-4-4H6a4 4 0 00-4 4v1"/><circle cx="9" cy="7" r="3"/><path d="M22 19v-1a4 4 0 00-3-3.87M16 4.13A4 4 0 0119 8"/></svg>Gérer les membres</button>`:''}</div>`:''}`:'';
   // CATÉGORIES : vue d'ensemble complète, mais sur UNE seule ligne défilable (n'allonge pas la page).
   const catbar=`<div class="catbar"><div class="chiprow">${chips}</div></div>`;
@@ -2262,7 +2263,7 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
       <input class="auth-field" id="authEmail" type="email" inputmode="email" autocomplete="email" placeholder="vous@exemple.fr" value="${esc(_authStep.email)}">
       <button class="btn primary auth-full" id="authSend">Recevoir le code</button>
       <p class="auth-msg ${_authStep.msgcls}">${esc(_authStep.msg)}</p>
-      <p class="ai-note">L'application reste pleinement utilisable hors-ligne et sans compte. La synchronisation est optionnelle.</p>`;
+      <div class="auth-explain">${storageExplainHtml()}</div>`;
     const send=body.querySelector('#authSend');
     send.onclick=async()=>{const email=(body.querySelector('#authEmail').value||'').trim();if(!email||email.indexOf('@')<1){_authStep.msg='E-mail invalide.';_authStep.msgcls='err';return renderAuth();}
       _authStep.email=email;_authStep.msg='Envoi du code…';_authStep.msgcls='';renderAuth();
@@ -2290,17 +2291,20 @@ authModal.onclick=e=>{if(e.target===authModal)closeAuth();};
 
 /* ===== Explication « où sont mes fiches ? » (langage simple, non technique) ===== */
 const storageModal=document.getElementById('storageModal');
-function renderStorageInfo(){const body=document.getElementById('storageBody');if(!body)return;const signed=Auth.signedIn();
-  body.innerHTML=`<p class="auth-sub" style="margin-top:0">Vos fiches peuvent être enregistrées de deux façons. Voici la différence, simplement :</p>
+// Bloc explicatif RÉUTILISÉ (fenêtre « Où sont mes fiches ? » ET écran Compte déconnecté) : on le
+// définit UNE fois pour éviter toute divergence. Langage volontairement simple (soignant non informaticien).
+function storageExplainHtml(){return `<p class="auth-sub" style="margin-top:0">Vos fiches peuvent être enregistrées de deux façons :</p>
     <div class="stg-card stg-local"><div class="stg-h"><span class="stg-ic">📱</span><b>Sur cet appareil (hors-ligne)</b></div>
-      <p>Vos fiches sont gardées <b>uniquement dans la mémoire de ce téléphone/ordinateur</b>, comme des notes écrites sur un seul carnet.</p>
-      <p class="stg-warn">⚠ Si le navigateur fait du ménage, ou si l'appareil est perdu, cassé, réinitialisé ou changé, <b>vos fiches sont perdues</b> — il n'en existe aucune autre copie.</p>
-      <p class="stg-tip">💡 Sans compte, pensez à <b>exporter</b> régulièrement vos fiches (bouton « Exporter tout », en bas) : vous obtenez un fichier de sauvegarde à conserver ailleurs (e-mail, clé USB…) et à réimporter en cas de besoin.</p></div>
+      <p>Gardées <b>uniquement dans la mémoire de ce téléphone/ordinateur</b>, comme des notes sur un seul carnet.</p>
+      <p class="stg-warn">⚠ Si le navigateur fait du ménage, ou si l'appareil est perdu, cassé, réinitialisé ou changé, <b>vos fiches sont perdues</b> — aucune autre copie.</p>
+      <p class="stg-tip">💡 Sans compte, pensez à <b>exporter</b> régulièrement (bouton « Exporter tout », en bas) : un fichier de sauvegarde à garder ailleurs et à réimporter au besoin.</p></div>
     <div class="stg-card stg-cloud"><div class="stg-h"><span class="stg-ic">☁️</span><b>En ligne, avec un compte (synchronisation)</b></div>
-      <p>En vous connectant, une <b>copie de sécurité</b> de vos fiches est aussi gardée dans un <b>espace en ligne protégé</b> (le « cloud »).</p>
-      <ul class="stg-ul"><li>Si l'appareil tombe en panne ou est perdu, <b>rien n'est perdu</b>.</li><li>Vous <b>retrouvez vos fiches sur n'importe quel appareil</b> en vous connectant.</li><li>Vous pouvez <b>partager</b> des bibliothèques avec votre équipe.</li></ul></div>
-    ${signed?`<p class="auth-msg ok" style="text-align:center">✓ Vous êtes connecté : vos fiches sont sauvegardées en ligne.</p>`
-            :`<button class="btn primary auth-full" id="stgConnect">Créer un compte / se connecter</button>`}`;
+      <p>En vous connectant, une <b>copie de sécurité</b> est aussi gardée dans un <b>espace en ligne protégé</b> (le « cloud »).</p>
+      <ul class="stg-ul"><li>Appareil en panne ou perdu : <b>rien n'est perdu</b>.</li><li>Vous <b>retrouvez vos fiches sur n'importe quel appareil</b>.</li><li>Vous pouvez <b>partager</b> des bibliothèques avec votre équipe.</li></ul></div>`;}
+function renderStorageInfo(){const body=document.getElementById('storageBody');if(!body)return;
+  body.innerHTML=storageExplainHtml()+(Auth.signedIn()
+    ?`<p class="auth-msg ok" style="text-align:center">✓ Vous êtes connecté : vos fiches sont sauvegardées en ligne.</p>`
+    :`<button class="btn primary auth-full" id="stgConnect">Créer un compte / se connecter</button>`);
   const c=body.querySelector('#stgConnect');if(c)c.onclick=()=>{closeStorageInfo();openAuth();};}
 function openStorageInfo(){renderStorageInfo();storageModal.classList.add('on');}
 function closeStorageInfo(){storageModal.classList.remove('on');}
