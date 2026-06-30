@@ -203,6 +203,21 @@ drop trigger if exists catsets_clamp_updated  on public.category_sets;
 create trigger fiches_clamp_updated  before insert or update on public.fiches        for each row execute function public.clamp_updated_at();
 create trigger catsets_clamp_updated before insert or update on public.category_sets for each row execute function public.clamp_updated_at();
 
+-- ---------- 5quinquies. Suppression de son propre compte (RGPD) --------------
+-- Efface les DONNÉES PERSONNELLES (fiches + catégories perso) puis le compte lui-même.
+-- Les memberships et app_admins partent en cascade avec auth.users. Les fiches que l'utilisateur
+-- a ajoutées à des bibliothèques PARTAGÉES y restent (contenu collectif de l'équipe).
+create or replace function public.delete_my_account()
+returns void language plpgsql security definer set search_path = public, auth as $$
+declare uid uuid := auth.uid();
+begin
+  if uid is null then raise exception 'not authenticated'; end if;
+  delete from public.fiches        where owner = uid and library_id is null;
+  delete from public.category_sets where owner = uid and library_id is null;
+  delete from auth.users where id = uid;   -- cascade -> memberships, app_admins, sessions…
+end; $$;
+grant execute on function public.delete_my_account() to authenticated;
+
 -- ---------- 6. Recharge du cache PostgREST ----------------------------------
 notify pgrst, 'reload schema';
 

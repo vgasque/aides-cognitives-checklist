@@ -585,6 +585,14 @@
   .auth-label{display:block;font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--ink-soft);margin-bottom:6px}
   .auth-full{width:100%;justify-content:center;margin-top:8px}
   .auth-code{text-align:center;letter-spacing:8px;font-size:22px;font-weight:700;padding-left:8px}
+  /* Lien discret « Supprimer mon compte » + écran de confirmation */
+  .auth-danger{display:block;width:100%;margin-top:16px;padding:9px;background:none;border:0;color:var(--critical);font-size:13px;font-weight:600;cursor:pointer;border-radius:8px}
+  .auth-danger:hover{background:var(--critical-soft)}
+  .auth-del{text-align:center}
+  .auth-hero-ic.danger{background:var(--critical-soft);color:var(--critical)}
+  .auth-del .auth-sub{text-align:left}
+  .auth-check{display:flex;gap:9px;align-items:flex-start;text-align:left;font-size:13.5px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px 12px;margin:4px 0 6px;cursor:pointer}
+  .auth-check input{margin-top:2px;flex:none}
   /* Toast non bloquant (notifications de synchro/conflit) : n'interrompt jamais l'usage. */
   .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translate(-50%,16px);max-width:min(560px,92vw);background:var(--ink);color:#fff;font-size:13.5px;line-height:1.5;padding:12px 15px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.28);z-index:120;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none}
   .toast.on{opacity:1;transform:translate(-50%,0)}
@@ -2148,7 +2156,9 @@ const Auth={
   async refresh(){if(!this.session||!this.session.refresh_token)return false;try{const r=await fetch(SUPA.url+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:this.headers(),body:JSON.stringify({refresh_token:this.session.refresh_token})});const j=await r.json().catch(()=>({}));if(!r.ok)throw 0;this._setSession(j);return true;}catch(e){await this.signOut();return false;}},
   // Rafraîchit le jeton s'il expire dans <60 s. À appeler avant tout appel synchronisé (lot suivant).
   async ensureFresh(){if(!this.signedIn())return false;const now=Math.floor(Date.now()/1000);if(this.session.expires_at&&this.session.expires_at-now<60)return this.refresh();return true;},
-  async signOut(){const tok=this.session&&this.session.access_token;this.session=null;this._save();if(tok){try{await fetch(SUPA.url+'/auth/v1/logout',{method:'POST',headers:{'apikey':SUPA.key,'Authorization':'Bearer '+tok}});}catch(e){}}}
+  async signOut(){const tok=this.session&&this.session.access_token;this.session=null;this._save();if(tok){try{await fetch(SUPA.url+'/auth/v1/logout',{method:'POST',headers:{'apikey':SUPA.key,'Authorization':'Bearer '+tok}});}catch(e){}}},
+  // Suppression RGPD : efface compte + données perso côté serveur (RPC SECURITY DEFINER).
+  async deleteAccount(){await this._post('/rest/v1/rpc/delete_my_account',{});}
 };
 // Pastille d'état : discrète, jamais bloquante. Connecté -> visible ; déconnecté -> masquée (app locale comme avant).
 function setSyncChip(state,text){
@@ -2160,16 +2170,43 @@ function setSyncChip(state,text){
   if(!Auth.signedIn()){chip.hidden=true;return;}
   chip.hidden=false;chip.className='sync-chip '+(state||'ok');chip.textContent=text||'Connecté';}
 // État local de la fenêtre Compte (étape e-mail -> code).
-let _authStep={mode:'email',email:'',msg:'',msgcls:''};
+let _authStep={mode:'email',email:'',msg:'',msgcls:''};let _authDelete=false;
+// Efface TOUTES les données locales de cet appareil (IndexedDB + clés de synchro). Irréversible.
+async function wipeLocal(){
+  try{if(IDB.db){IDB.db.close();IDB.db=null;}}catch(e){}
+  try{await new Promise(res=>{const r=indexedDB.deleteDatabase('ac-db');r.onsuccess=r.onerror=r.onblocked=()=>res();});}catch(e){}
+  try{['fiches_v1','cats_v1','sessions_v1','backups_v1','ac-sync-cursor','ac-cats-dirty:','ac-cats-updated:','ac-lib-usage','ac-notice-hidden','ac-auth'].forEach(k=>localStorage.removeItem(k));
+    for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);if(k&&(k.indexOf('ac-sync-init-')===0||k.indexOf('ac-cats-dirty:')===0||k.indexOf('ac-cats-updated:')===0))localStorage.removeItem(k);}
+  }catch(e){}
+}
 function renderAuth(){const body=document.getElementById('authBody');if(!body)return;
-  if(Auth.signedIn()){const u=Auth.user()||{};const ini=((u.email||'?').trim()[0]||'?').toUpperCase();
+  if(Auth.signedIn()){const u=Auth.user()||{};
+    const doSignOut=async()=>{await Auth.signOut();myLibraries=[];myIsAppAdmin=false;state.scope=null;_authDelete=false;_authStep={mode:'email',email:'',msg:'',msgcls:''};renderAuth();setSyncChip();if(state.view==='library')renderLibrary();};
+    if(_authDelete){
+      body.innerHTML=`<div class="auth-del"><div class="auth-hero-ic danger"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 16H3z"/><path d="M12 9v5M12 17h.01"/></svg></div>
+        <h4>Supprimer le compte ?</h4>
+        <p class="auth-sub">Cette action est <b>irréversible</b>. Votre compte et votre bibliothèque personnelle synchronisée seront définitivement supprimés du cloud. Les fiches que vous avez ajoutées à des bibliothèques partagées y resteront.</p>
+        <label class="auth-check"><input type="checkbox" id="delLocal"><span>Effacer aussi les fiches enregistrées sur <b>cet appareil</b></span></label>
+        <p class="auth-msg" id="delMsg"></p>
+        <div class="auth-actions"><button class="btn danger" id="delGo">Supprimer définitivement</button><button class="btn" id="delCancel">Annuler</button></div></div>`;
+      body.querySelector('#delCancel').onclick=()=>{_authDelete=false;renderAuth();};
+      body.querySelector('#delGo').onclick=async()=>{const wipe=body.querySelector('#delLocal').checked;
+        if(!confirm('Supprimer DÉFINITIVEMENT votre compte'+(wipe?' et les données de cet appareil':'')+' ? Cette action est irréversible.'))return;
+        const setM=(t,c)=>{const e=document.getElementById('delMsg');if(e){e.textContent=t;e.className='auth-msg '+(c||'');}};setM('Suppression…','');
+        try{await Auth.deleteAccount();await Auth.signOut();myLibraries=[];myIsAppAdmin=false;state.scope=null;
+          if(wipe){await wipeLocal();location.reload();return;}
+          _authDelete=false;_authStep={mode:'email',email:'',msg:'',msgcls:''};renderAuth();setSyncChip();if(state.view==='library')renderLibrary();toast('Votre compte a été supprimé.');
+        }catch(e){setM('Échec de la suppression : '+e.message,'err');}};
+      return;}
+    const ini=((u.email||'?').trim()[0]||'?').toUpperCase();
     body.innerHTML=`<div class="auth-card-in"><div class="auth-avatar">${esc(ini)}</div><div class="auth-id"><div class="auth-email">${esc(u.email||'')}</div><div class="auth-state"><span class="auth-dot"></span>Synchronisation active</div></div></div>
       <p class="auth-sub">Votre bibliothèque personnelle est sauvegardée et accessible sur tous vos appareils connectés à ce compte.</p>
-      <div class="auth-actions"><button class="btn primary" id="authSync">Synchroniser maintenant</button><button class="btn" id="authSwitch">Changer de compte</button><button class="btn ghost" id="authOut">Se déconnecter</button></div>`;
+      <div class="auth-actions"><button class="btn primary" id="authSync">Synchroniser maintenant</button><button class="btn" id="authSwitch">Changer de compte</button><button class="btn ghost" id="authOut">Se déconnecter</button></div>
+      <button class="auth-danger" id="authDelete">Supprimer mon compte et mes données</button>`;
     body.querySelector('#authSync').onclick=()=>{Sync.full();closeAuth();};
-    const doSignOut=async()=>{await Auth.signOut();myLibraries=[];myIsAppAdmin=false;state.scope=null;_authStep={mode:'email',email:'',msg:'',msgcls:''};renderAuth();setSyncChip();if(state.view==='library')renderLibrary();};
     body.querySelector('#authSwitch').onclick=async()=>{await doSignOut();}; // déconnecte et revient à l'écran de connexion (fenêtre ouverte)
     body.querySelector('#authOut').onclick=async()=>{if(!confirm('Se déconnecter ? Vos fiches restent disponibles localement sur cet appareil.'))return;await doSignOut();};
+    body.querySelector('#authDelete').onclick=()=>{_authDelete=true;renderAuth();};
     return;}
   if(_authStep.mode==='email'){
     body.innerHTML=`<div class="auth-hero"><div class="auth-hero-ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3.5 6.5l8.5 6 8.5-6"/></svg></div><h4>Connexion</h4><p class="auth-sub">Recevez un code par e-mail pour vous connecter ou créer votre compte.</p></div>
@@ -2197,7 +2234,7 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
       catch(e){_authStep.msg='Code invalide ou expiré.';_authStep.msgcls='err';renderAuth();}};
   }}
 const authModal=document.getElementById('authModal');
-function openAuth(){authModal.classList.add('on');renderAuth();}
+function openAuth(){_authDelete=false;authModal.classList.add('on');renderAuth();}
 function closeAuth(){authModal.classList.remove('on');}
 document.getElementById('acctTop').onclick=openAuth;
 document.getElementById('authX').onclick=closeAuth;
