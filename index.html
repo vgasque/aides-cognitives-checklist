@@ -19,23 +19,24 @@
   Tout est stocké localement sur l'appareil ; une synchronisation cloud reste
   OPTIONNELLE (compte) et ne fait jamais obstacle à l'usage hors-ligne (cf. point 9).
 
-  ╔══════════════════════════════════════════════════════════════════════════╗
-  ║  RÈGLE DE CONCEPTION — À RESPECTER POUR TOUTE MODIFICATION (humain ou IA)  ║
-  ╠══════════════════════════════════════════════════════════════════════════╣
-  ║  C'est une AIDE COGNITIVE utilisée en SITUATION D'URGENCE, souvent en      ║
-  ║  contexte de STRESS très élevé. L'interface DOIT donc rester CLAIRE,       ║
-  ║  SIMPLE et PRÉVISIBLE, et suivre les principes des applications critiques  ║
-  ║  (Apple Human Interface Guidelines + sûreté aviation/nucléaire) :          ║
-  ║   • Lisibilité et hiérarchie visuelle fortes ; cibles tactiles larges.     ║
-  ║   • Le MODE CRISE n'est JAMAIS interrompu (pas de modale/synchro intrusive).║
-  ║   • Visibilité permanente de l'état du système (connexion, synchro…).      ║
-  ║   • Aucune action destructive surprise : confirmation + réversibilité.     ║
-  ║   • Dégradation gracieuse (fail-safe local) ; l'opérateur garde le contrôle.║
-  ║   • Rendu correct et cohérent sur ORDINATEUR ET TÉLÉPHONE (iPhone).        ║
-  ║   • AUCUNE dépendance ni bibliothèque externe : tout reste dans CE fichier ║
-  ║     (vanilla). La sécurité cloud repose sur la RLS SERVEUR, jamais le client.║
-  ║  En cas de doute, privilégier la simplicité et la sécurité à l'esthétique. ║
-  ╚══════════════════════════════════════════════════════════════════════════╝
+  ──────────────────────────────────────────────────────────────────────────────
+   RÈGLE DE CONCEPTION — toute modification (humaine ou IA) doit s'y conformer
+  ──────────────────────────────────────────────────────────────────────────────
+   Cet outil est consulté en URGENCE VITALE, sous stress majeur : il relève des
+   applications CRITIQUES. Son interface vise donc une clarté et une prévisibilité
+   irréprochables, dans l'esprit des standards les plus exigeants — les Apple Human
+   Interface Guidelines et la culture de sûreté de l'aviation et du nucléaire.
+   En pratique :
+     • Lisibilité et hiérarchie visuelle fortes ; cibles tactiles larges.
+     • Le MODE CRISE n'est JAMAIS interrompu (aucune modale ni synchro intrusive).
+     • L'état du système reste toujours visible (connexion, synchronisation…).
+     • Aucune action destructive par surprise : confirmation + réversibilité.
+     • Dégradation gracieuse (repli local) ; l'opérateur garde le contrôle.
+     • Rendu correct et cohérent sur ordinateur ET téléphone (iPhone).
+     • Aucune dépendance externe : tout tient dans CE fichier (JS « vanilla »).
+     • La sécurité du cloud repose sur la RLS SERVEUR, jamais sur ce client.
+   En cas de doute : la simplicité et la sécurité priment sur l'esthétique.
+  ──────────────────────────────────────────────────────────────────────────────
 
   Fichiers du dossier PWA (doivent rester ensemble) :
     - index.html .............. CE fichier = toute l'application
@@ -628,7 +629,12 @@
   .stg-tip{font-size:12.5px;color:var(--ink-soft);background:rgba(0,0,0,.04);border-radius:8px;padding:8px 10px}
   html[data-theme="dark"] .stg-tip{background:rgba(255,255,255,.05)}
   .stg-ul{margin:7px 0 0;padding-left:18px;font-size:13.5px;line-height:1.55;color:var(--ink)}.stg-ul li{margin:3px 0}
-  .auth-explain{margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+  .auth-why{margin-top:16px;border-top:1px solid var(--line);padding-top:10px}
+  .auth-why>summary{cursor:pointer;font-size:14px;font-weight:650;color:var(--primary);list-style:none;display:flex;align-items:center;gap:7px;padding:4px 0}
+  .auth-why>summary::-webkit-details-marker{display:none}
+  .auth-why>summary::before{content:"▸";font-size:11px;opacity:.8;transition:transform .15s}
+  .auth-why[open]>summary::before{transform:rotate(90deg)}
+  .auth-why-body{padding-top:6px}
   /* Toast non bloquant (notifications de synchro/conflit) : n'interrompt jamais l'usage. */
   .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translate(-50%,16px);max-width:min(560px,92vw);background:var(--ink);color:#fff;font-size:13.5px;line-height:1.5;padding:12px 15px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.28);z-index:120;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none}
   .toast.on{opacity:1;transform:translate(-50%,0)}
@@ -1304,7 +1310,7 @@ function renderLibrary(){
   const scopeBar=Auth.signedIn()?`<div class="scopebar"><span class="scope-lbl">Bibliothèque</span><div class="chiprow">
       <button class="scopebtn${!state.scope?' on':''}" data-scope="">Perso</button>
       ${sortedLibraries().map(l=>`<button class="scopebtn${state.scope===l.id?' on':''}" data-scope="${esc(l.id)}" title="Bibliothèque partagée — rôle : ${esc(ROLE_LBL[l.role]||l.role)}">${esc(l.name)}</button>`).join('')}
-      ${myIsAppAdmin?`<button class="scopebtn add" id="newLibBtn">+ Nouvelle bibliothèque</button>`:''}</div></div>
+      ${myIsAppAdmin?`<button class="scopebtn add" id="newLibBtn" title="Créer une bibliothèque partagée">+ Bibliothèque</button>`:''}</div></div>
     ${state.scope?`<div class="scope-ctx"><span class="scope-ctx-i">Bibliothèque partagée${canEditScope(state.scope)?'':' · vous êtes en lecture seule'}</span>${(roleOf(state.scope)==='admin'||myIsAppAdmin)?`<button class="linkbtn" id="membersBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 19v-1a4 4 0 00-4-4H6a4 4 0 00-4 4v1"/><circle cx="9" cy="7" r="3"/><path d="M22 19v-1a4 4 0 00-3-3.87M16 4.13A4 4 0 0119 8"/></svg>Gérer les membres</button>`:''}</div>`:''}`:'';
   // CATÉGORIES : vue d'ensemble complète, mais sur UNE seule ligne défilable (n'allonge pas la page).
   const catbar=`<div class="catbar"><div class="chiprow">${chips}</div></div>`;
@@ -2270,7 +2276,7 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
       <input class="auth-field" id="authEmail" type="email" inputmode="email" autocomplete="email" placeholder="vous@exemple.fr" value="${esc(_authStep.email)}">
       <button class="btn primary auth-full" id="authSend">Recevoir le code</button>
       <p class="auth-msg ${_authStep.msgcls}">${esc(_authStep.msg)}</p>
-      <div class="auth-explain">${storageExplainHtml()}</div>`;
+      <details class="auth-why"><summary>Pourquoi créer un compte ?</summary><div class="auth-why-body">${storageExplainHtml()}</div></details>`;
     const send=body.querySelector('#authSend');
     send.onclick=async()=>{const email=(body.querySelector('#authEmail').value||'').trim();if(!email||email.indexOf('@')<1){_authStep.msg='E-mail invalide.';_authStep.msgcls='err';return renderAuth();}
       _authStep.email=email;_authStep.msg='Envoi du code…';_authStep.msgcls='';renderAuth();
