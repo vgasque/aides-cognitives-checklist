@@ -368,6 +368,7 @@
   .nav-wrap{background:#f4f7f6;border:1px solid var(--line);border-left:3px solid var(--primary);border-radius:var(--radius);padding:15px 15px 13px 14px;margin-bottom:6px;box-shadow:var(--shadow);scroll-margin-top:74px}
   .crumbs{display:flex;flex-wrap:wrap;gap:5px;align-items:center;font-size:11px;color:var(--ink-soft);margin-bottom:12px}
   .crumbs .cb{background:#e4ebe9;padding:2px 8px;border-radius:12px;cursor:pointer}.crumbs .cb:not(.cur):hover{background:#cfe0dd}.crumbs .cb.cur{background:var(--primary);color:#fff;cursor:default}
+  html[data-theme="dark"] .crumbs .cb:not(.cur){background:#23302c}html[data-theme="dark"] .crumbs .cb:not(.cur):hover{background:#2d3d38}
   .crumbs .cb-n{font-family:var(--mono);font-size:10px;opacity:.7;margin-left:2px}
   .node-title .pass-n{font-family:var(--mono);text-transform:none;letter-spacing:0;font-weight:600;color:var(--primary);margin-left:7px}
   .node-title{font-size:13px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--ink-soft);margin-bottom:12px}
@@ -612,6 +613,8 @@
   .stg-h{display:flex;align-items:center;gap:8px;font-size:14.5px}.stg-ic{font-size:20px}
   .stg-card p{font-size:13.5px;line-height:1.55;margin:7px 0;color:var(--ink)}
   .stg-warn{color:var(--critical)}
+  .stg-tip{font-size:12.5px;color:var(--ink-soft);background:rgba(0,0,0,.04);border-radius:8px;padding:8px 10px}
+  html[data-theme="dark"] .stg-tip{background:rgba(255,255,255,.05)}
   .stg-ul{margin:7px 0 0;padding-left:18px;font-size:13.5px;line-height:1.55;color:var(--ink)}.stg-ul li{margin:3px 0}
   /* Toast non bloquant (notifications de synchro/conflit) : n'interrompt jamais l'usage. */
   .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translate(-50%,16px);max-width:min(560px,92vw);background:var(--ink);color:#fff;font-size:13.5px;line-height:1.5;padding:12px 15px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.28);z-index:120;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none}
@@ -1809,7 +1812,7 @@ function renderEditor(){
     ${isNew&&state.showCreateBand!==false?`<div class="create-band"><div class="cb-q">Comment créer cette fiche ?</div><div class="cb-opts"><button class="btn primary sm" id="cbAI">✨ Créer via IA</button><button class="btn sm" id="cbManual">✍ Créer manuellement</button></div><div class="cb-hint">« Via IA » : copiez le prompt dans une IA avec un document, puis importez le résultat. « Manuellement » : remplissez les champs ci-dessous.</div></div>`:''}
     <div class="field"><label>Titre de la situation</label><input type="text" id="f-title" value="${esc(f.title)}" placeholder="ex. Intoxication aux anesthésiques locaux"></div>
     <div class="field"><label>Catégorie</label><div class="catpick"><button class="catpill" data-selcat="" style="${!f.category?'background:#54635f;color:#fff;border-color:#54635f':''}">Aucune</button>${catsSorted(f.libraryId).map(c=>{const col=safeColor(c.color);return `<button class="catpill${f.category===c.id?'':' colored'}" data-selcat="${esc(c.id)}" style="${f.category===c.id?`background:${col};color:#fff;border-color:${col}`:`--catcol:${col}`}">${esc(c.name)}</button>`;}).join('')}<button class="catpill" id="catMgrBtn" style="border-style:dashed;color:var(--ink-soft)">⚙ Gérer</button></div>${state.catMgr?catManagerHtml():''}</div>
-    ${Auth.signedIn()?`<div class="field"><label>Périmètre <span class="hint">où ranger cette fiche</span></label>
+    ${Auth.signedIn()?`<div class="field"><label>Bibliothèque <span class="hint">où ranger cette fiche</span></label>
       <select id="f-scope"><option value="" ${!f.libraryId?'selected':''}>Perso (privé)</option>${sortedLibraries().filter(l=>l.role==='editor'||l.role==='admin').map(l=>`<option value="${esc(l.id)}" ${f.libraryId===l.id?'selected':''}>${esc(l.name)} (partagée)</option>`).join('')}${f.libraryId&&!myLibraries.some(l=>l.id===f.libraryId)?`<option value="${esc(f.libraryId)}" selected>${esc(libName(f.libraryId)||'Bibliothèque')}</option>`:''}</select></div>`:''}
     <div class="row2"><div class="field"><label>Date de validation <span class="hint">mois/année</span></label><input type="text" id="f-validation" inputmode="numeric" autocapitalize="off" value="${esc(valToDisplay(f.validation))}" placeholder="MM/AAAA — ex. 012026 ou 01/2026"></div></div>
     <div class="field"><label>Contexte local <span class="hint">numéros utiles, particularités</span></label><textarea id="f-localInfo" rows="2" placeholder="Réanimateur de garde, pharmacie…">${esc(f.localInfo)}</textarea></div>
@@ -2291,7 +2294,8 @@ function renderStorageInfo(){const body=document.getElementById('storageBody');i
   body.innerHTML=`<p class="auth-sub" style="margin-top:0">Vos fiches peuvent être enregistrées de deux façons. Voici la différence, simplement :</p>
     <div class="stg-card stg-local"><div class="stg-h"><span class="stg-ic">📱</span><b>Sur cet appareil (hors-ligne)</b></div>
       <p>Vos fiches sont gardées <b>uniquement dans la mémoire de ce téléphone/ordinateur</b>, comme des notes écrites sur un seul carnet.</p>
-      <p class="stg-warn">⚠ Si le navigateur fait du ménage, ou si l'appareil est perdu, cassé, réinitialisé ou changé, <b>vos fiches sont perdues</b> — il n'en existe aucune autre copie.</p></div>
+      <p class="stg-warn">⚠ Si le navigateur fait du ménage, ou si l'appareil est perdu, cassé, réinitialisé ou changé, <b>vos fiches sont perdues</b> — il n'en existe aucune autre copie.</p>
+      <p class="stg-tip">💡 Sans compte, pensez à <b>exporter</b> régulièrement vos fiches (bouton « Exporter tout », en bas) : vous obtenez un fichier de sauvegarde à conserver ailleurs (e-mail, clé USB…) et à réimporter en cas de besoin.</p></div>
     <div class="stg-card stg-cloud"><div class="stg-h"><span class="stg-ic">☁️</span><b>En ligne, avec un compte (synchronisation)</b></div>
       <p>En vous connectant, une <b>copie de sécurité</b> de vos fiches est aussi gardée dans un <b>espace en ligne protégé</b> (le « cloud »).</p>
       <ul class="stg-ul"><li>Si l'appareil tombe en panne ou est perdu, <b>rien n'est perdu</b>.</li><li>Vous <b>retrouvez vos fiches sur n'importe quel appareil</b> en vous connectant.</li><li>Vous pouvez <b>partager</b> des bibliothèques avec votre équipe.</li></ul></div>
