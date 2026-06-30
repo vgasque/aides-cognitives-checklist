@@ -1403,7 +1403,8 @@ function staticBlock(title,cls,arr,liClass,forget){const items=clean(arr);if(!it
           (flèche 'ah'). Plusieurs boucles sont décalées horizontalement pour ne pas
           se superposer. Côté libre à droite -> tracé direct ; côté obstrué ->
           contournement par l'inter-rangée.
-     4) Nœuds : 'steps' clairs / 'decision' ambrés ; le bloc de départ est souligné.
+     4) Nœuds : 'steps' clairs / 'decision' ambrés ; le bloc de départ porte une pastille
+        « DÉPART » ; le bloc COURANT (où l'on en est dans le parcours) est entouré d'un halo teal.
    Retourne une chaîne <svg> dimensionnée (scroll horizontal si large).
    Utilisé en aperçu live dans l'éditeur et à la demande en lecture. */
 // Enroulement de texte (retour à la ligne sur les mots) pour le SVG : aucune troncature,
@@ -1414,8 +1415,6 @@ function wrapText(str,maxChars){const words=String(str||'').replace(/\s+/g,' ').
   push();return lines.length?lines:[''];}
 function buildFlowSVG(f,curId){
   const blocks=f.blocks||[];if(!blocks.length)return '<div style="padding:14px;color:#54635f;font-size:13px">Aucun bloc.</div>';
-  // Surlignage du bloc EN COURS marqué .flow-hl : en sombre, le CSS contre l'inversion globale ET
-  // pilote la teinte/opacité (-> s'adapte INSTANTANÉMENT au basculement clair/sombre, sans reconstruire).
   const TH=28,HG=36,VG=52,PX=14,PY=14,LH=16,TLH=15,HPAD=8,TXT_MAX=42,TITLE_MAX=34,MINW=150,MAXW=300,CW=5.6;
   const IMG_H=60,IMG_PAD=8,IMG_GAP=6;// vignette d'image dans le bloc (cliquable -> plein écran)
   const byId={};blocks.forEach(b=>byId[b.id]=b);const start=(f.start&&byId[f.start])?f.start:blocks[0].id;
@@ -1631,8 +1630,9 @@ function buildFlowSVG(f,curId){
     if(best.x+halfW+6>svgW)svgW=best.x+halfW+6;if(best.y+13>svgH)svgH=best.y+13;});
   let nodes='';blocks.forEach(b=>{const p=pos[b.id];if(!p)return;const L=LAY[b.id],dec=L.dec,isS=b.id===start,isCur=!!curId&&b.id===curId,W=p.w,cid='cp'+b.id;
     const fill=dec?'#fdf8ef':'#f5faf8',stroke=dec?'#e1cf9f':'#c2d0cc',tcol=dec?'#6b4d12':'#16211f';const h=p.h,hh=L.headerH;
-    // Bloc COURANT (étape où l'on se trouve dans le parcours) : léger HALO teal derrière le bloc +
-    // bordure teal plus marquée. Discret (« sans trop en faire »), juste pour repérer où on en est.
+    // Bloc COURANT (où l'on en est dans le parcours) : léger HALO teal derrière le bloc + bordure teal
+    // (ajoutée plus bas), discret, juste pour se repérer. Marqué .flow-hl : en SOMBRE, le CSS contre
+    // l'inversion globale ET pilote teinte/opacité -> s'adapte instantanément au thème sans reconstruire.
     let g=isCur?`<rect class="flow-hl flow-hl-glow" x="-5" y="-5" width="${W+10}" height="${h+10}" rx="15" fill="none" stroke="#0d5b56" stroke-width="6" opacity="0.13"/>`:'';
     // Fonds CLIPPÉS au contour arrondi : le bandeau d'en-tête et le liseré gauche suivent le coin
     // arrondi et ne dépassent plus hors de la bordure (bug 3.iii). La bordure est tracée par-dessus.
