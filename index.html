@@ -208,6 +208,9 @@
   html[data-theme="dark"] .h-main .sec-badge{background:var(--surface);box-shadow:inset 0 0 0 1px #2c4a44}
   html[data-theme="dark"] .sync-chip.busy{background:#2f2a18;color:#e0b048}
   html[data-theme="dark"] .sync-chip.err{background:#3a201a;color:#ff8a70}
+  /* Étiquettes de type de bloc/minuteur (Étapes/Décision/Chrono/Cycle) : fonds clairs -> sombres. */
+  html[data-theme="dark"] .blk-type.steps{background:#23302c}
+  html[data-theme="dark"] .blk-type.decision{background:#33301f}
   /* SVG de l'algorithme : inversion + rotation de teinte -> rendu sombre cohérent (les couleurs
      teal/ambre restent distinctes ; pas d'images réelles dans le SVG, seulement des pavés). */
   html[data-theme="dark"] :is(.flow-scroll,#flowFull .ff-scroll) svg{filter:invert(0.92) hue-rotate(180deg)}
@@ -235,6 +238,11 @@
   .catbar{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px}
   .catchip{border:1px solid var(--line);background:var(--surface);padding:5px 12px;border-radius:20px;font-size:12.5px;font-weight:600;cursor:pointer;transition:background .12s,border-color .12s,color .12s}
   .catchip:hover{border-color:#c2cecb;background:#f4f7f6}
+  .scopebar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+  .scope-lbl{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--ink-soft);margin-right:2px}
+  .scopebtn{border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:6px 13px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;transition:background .12s,border-color .12s}
+  .scopebtn.on{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .scopebtn.add{border-style:dashed;color:var(--primary);background:transparent}
   .cards{display:grid;gap:12px}
   .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px 17px;box-shadow:var(--shadow);cursor:pointer;display:flex;align-items:center;gap:14px;transition:transform .08s,border-color .12s}
   .card:hover{border-color:#bdcecb;transform:translateY(-1px);box-shadow:var(--shadow-lg)}.card:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
@@ -672,7 +680,10 @@ let Data=KV;
    Helpers : uid (id unique), esc (échappe le HTML), clean (vide les lignes vides),
      catTag (pastille couleur d'une catégorie), fmtMs (millisecondes -> mm:ss). */
 let fiches=[],categories=[],sessions=[];
-let state={view:'library',id:null,q:'',cat:'',draft:null,fiche:null,nav:[],navSeq:[],navPos:0,checked:{},catMgr:false,showFlow:false,showSess:false};
+// Bibliothèques partagées dont l'utilisateur est membre : [{id,name,role}]. myIsAppAdmin = peut créer
+// des bibliothèques. state.scope = périmètre affiché : null = Perso, sinon id de bibliothèque.
+let myLibraries=[],myIsAppAdmin=false;
+let state={view:'library',id:null,q:'',cat:'',scope:null,draft:null,fiche:null,nav:[],navSeq:[],navPos:0,checked:{},catMgr:false,showFlow:false,showSess:false};
 // Plusieurs sessions VIVES en parallèle : un runtime par fiche dont la session a démarré. Leurs
 // minuteurs continuent de tourner en arrière-plan (tickAll les fait tous avancer, même fiche non
 // visible). `Runtime` pointe vers le runtime de la fiche actuellement ouverte ; `liveSessions` est
@@ -1116,12 +1127,21 @@ function render(){
 }
 function renderLibrary(){
   const q=state.q.toLowerCase();
-  const list=fiches.slice().sort(byOrder).filter(f=>(!state.cat||f.category===state.cat)&&(!q||(f.title+' '+catName(f)).toLowerCase().includes(q)));
+  // Si le périmètre sélectionné n'existe plus (déconnexion, perte d'accès), on retombe sur Perso.
+  if(state.scope&&!myLibraries.some(l=>l.id===state.scope))state.scope=null;
+  // Filtrage par PÉRIMÈTRE : Perso (libraryId vide) ou bibliothèque partagée sélectionnée.
+  const list=fiches.slice().sort(byOrder).filter(f=>(state.scope?f.libraryId===state.scope:!f.libraryId)&&(!state.cat||f.category===state.cat)&&(!q||(f.title+' '+catName(f)).toLowerCase().includes(q)));
   const chips=`<button class="catchip" data-cat="" style="${!state.cat?'background:#16211f;color:#fff;border-color:#16211f':''}">Toutes</button>`+catsSorted().map(c=>{const col=safeColor(c.color);return `<button class="catchip" data-cat="${esc(c.id)}" style="${state.cat===c.id?`background:${col};color:#fff;border-color:${col}`:`background:${col}1f;border-color:${col}88`}">${esc(c.name)}</button>`;}).join('')+`<button class="catchip" id="catMgrChip" style="border-style:dashed;color:var(--ink-soft)">⚙ Gérer</button>`;
+  // PÉRIMÈTRE (visible seulement connecté) : Perso + bibliothèques partagées + création (app-admin).
+  const scopeBar=Auth.signedIn()?`<div class="scopebar"><span class="scope-lbl">Périmètre</span>
+    <button class="scopebtn${!state.scope?' on':''}" data-scope="">Perso</button>
+    ${myLibraries.map(l=>`<button class="scopebtn${state.scope===l.id?' on':''}" data-scope="${esc(l.id)}" title="Rôle : ${esc(l.role)}">${esc(l.name)}${l.role==='viewer'?' 🔒':''}</button>`).join('')}
+    ${myIsAppAdmin?`<button class="scopebtn add" id="newLibBtn">+ Bibliothèque</button>`:''}</div>`:'';
   // SESSIONS EN COURS (vives) : accès rapide en haut de l'accueil + actions (reprendre/réinit/terminer).
   const liveArr=Object.values(liveSessions).filter(R=>R.started&&R.fiche);
   const liveHtml=liveArr.length?`<div class="live-sessions"><div class="ls-h"><span class="sess-dot"></span>Sessions en cours · ${liveArr.length}</div>${liveArr.map(R=>{const run=Object.values(R.timers).filter(t=>t.running).length;return `<div class="ls-row"><div class="ls-info" data-openlive="${R.ficheId}" role="button" tabindex="0"><b>${esc(R.fiche.title||'Sans titre')}</b><span>depuis ${timeAgo(R.startedAt)}${run?` · ${run} minuteur${run>1?'s':''} actif${run>1?'s':''}`:''}</span></div><div class="ls-acts"><button class="btn sm primary" data-openlive="${R.ficheId}">Ouvrir</button><button class="btn sm danger" data-endlive="${R.ficheId}">Terminer</button></div></div>`;}).join('')}</div>`:'';
   main.innerHTML=`
+    ${scopeBar}
     ${liveHtml}
     <div class="notice"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01" stroke-linecap="round"/></svg><div>Vous êtes l'auteur et le responsable du contenu. Validez chaque fiche et tenez la date à jour.</div></div>
     <div class="lib-top"><div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg><input id="q" placeholder="Rechercher…" value="${esc(state.q)}"></div>
@@ -1138,6 +1158,9 @@ function renderLibrary(){
   // Recliquer la catégorie déjà sélectionnée la dé-sélectionne (revient à « Toutes »).
   main.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{const c=b.dataset.cat;state.cat=(c&&state.cat===c)?'':c;renderLibrary();});
   document.getElementById('catMgrChip').onclick=openCatMgr;
+  // Périmètre : changer de bibliothèque / créer une bibliothèque (app-admin).
+  main.querySelectorAll('[data-scope]').forEach(b=>b.onclick=()=>{state.scope=b.dataset.scope||null;state.cat='';renderLibrary();});
+  const nlb=document.getElementById('newLibBtn');if(nlb)nlb.onclick=createLibrary;
   main.querySelectorAll('[data-openlive]').forEach(el=>{el.onclick=()=>openRead(el.dataset.openlive);el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openRead(el.dataset.openlive);}};});
   main.querySelectorAll('[data-endlive]').forEach(b=>b.onclick=()=>{const id=b.dataset.endlive,R=liveSessions[id];if(R&&confirm('Terminer la session ? Les minuteurs s’arrêtent ; la session est conservée dans l’historique.')){endSession(R);if(Runtime.ficheId===id)resetRuntime();renderLibrary();}});
   main.querySelectorAll('[data-open]').forEach(el=>{el.onclick=()=>openRead(el.dataset.open);el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openRead(el.dataset.open);}};});
@@ -2009,7 +2032,7 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
       <p class="auth-msg ok">Synchronisation multi-appareils active : votre bibliothèque personnelle est sauvegardée et accessible sur vos autres appareils connectés au même compte.</p>
       <div class="auth-row"><button class="btn primary sm" id="authSync">Synchroniser maintenant</button><button class="btn sm" id="authSwitch">Changer de compte</button><button class="btn sm" id="authOut">Se déconnecter</button></div>`;
     body.querySelector('#authSync').onclick=()=>{Sync.full();closeAuth();};
-    const doSignOut=async()=>{await Auth.signOut();_authStep={mode:'email',email:'',msg:'',msgcls:''};renderAuth();setSyncChip();};
+    const doSignOut=async()=>{await Auth.signOut();myLibraries=[];myIsAppAdmin=false;state.scope=null;_authStep={mode:'email',email:'',msg:'',msgcls:''};renderAuth();setSyncChip();if(state.view==='library')renderLibrary();};
     body.querySelector('#authSwitch').onclick=async()=>{await doSignOut();}; // déconnecte et revient à l'écran de connexion (fenêtre ouverte)
     body.querySelector('#authOut').onclick=async()=>{if(!confirm('Se déconnecter ? Vos fiches restent disponibles localement sur cet appareil.'))return;await doSignOut();};
     return;}
@@ -2086,6 +2109,7 @@ const Sync={
     if(!Auth.signedIn()||!this.online()||this.running){if(!this.online())setSyncChip('off','Hors-ligne');return;}
     this.running=true;setSyncChip('busy','Synchro…');
     try{await Auth.ensureFresh();
+      await this.loadProfile();
       await this._initIfNeeded();
       const conflicts=await this._pull();
       await this._push();
@@ -2144,8 +2168,24 @@ const Sync={
     if(dirty||!remote){const now=localTs||Date.now();
       const row={scope_key:sk,owner:uidv,library_id:null,data:{categories:categories},updated_at:new Date(now).toISOString()};
       await rest('POST','/rest/v1/category_sets',[row],{'Prefer':'resolution=merge-duplicates,return=minimal'});
-      try{localStorage.removeItem('ac-cats-dirty');}catch(e){}}}
+      try{localStorage.removeItem('ac-cats-dirty');}catch(e){}}},
+  // Profil : bibliothèques partagées dont je suis membre (avec rôle) + statut app-admin.
+  async loadProfile(){
+    try{const rows=await rest('GET','/rest/v1/memberships?select=role,library_id,libraries(id,name)')||[];
+      myLibraries=rows.filter(r=>r.libraries).map(r=>({id:r.library_id,name:r.libraries.name,role:r.role})).sort((a,b)=>String(a.name).localeCompare(String(b.name)));
+    }catch(e){myLibraries=[];}
+    try{myIsAppAdmin=(await rest('POST','/rest/v1/rpc/is_app_admin',{}))===true;}catch(e){myIsAppAdmin=false;}
+    if(state.view==='library')renderLibrary();}
 };
+// Création d'une bibliothèque partagée (app-admin uniquement ; la RLS rejette sinon).
+async function createLibrary(){
+  if(!myIsAppAdmin){alert('Seul un administrateur peut créer une bibliothèque.');return;}
+  const name=(prompt('Nom de la nouvelle bibliothèque partagée :')||'').trim();if(!name)return;
+  const id='lib-'+(catSlug(name).slice(0,32)||'x')+'-'+Math.random().toString(36).slice(2,6);
+  try{await rest('POST','/rest/v1/libraries',[{id:id,name:name}],{'Prefer':'return=minimal'});
+    await Sync.loadProfile();           // le trigger m'a ajouté comme admin -> apparaît dans la liste
+    state.scope=id;renderLibrary();toast('Bibliothèque « '+name+' » créée.');
+  }catch(e){alert('Création impossible : '+e.message);}}
 // Déclencheurs de synchro : retour en ligne, retour au premier plan.
 window.addEventListener('online',()=>{setSyncChip('ok','Synchronisé');Sync.full();});
 window.addEventListener('offline',()=>setSyncChip('off','Hors-ligne'));
