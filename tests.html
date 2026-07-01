@@ -123,6 +123,42 @@ function run(A){
     ok('pastille '+c+' ≥ 4.5:1', rTag>=4.5, 'ratio '+rTag.toFixed(2));
     ok('chip '+c+' (blanc) ≥ 4.5:1', rChip>=4.5, 'ratio '+rChip.toFixed(2));
   });
+
+  group('txNorm() / recherche plein texte');
+  eq('accents et casse normalisés', A.txNorm('Réanimation ÉCG'), 'reanimation ecg');
+  const hay=A.ficheHaystack({title:'ACR',confirmation:['Pas de pouls'],blocks:[{type:'steps',title:'RCP',steps:['Amiodarone 300 mg']},{type:'decision',title:'Rythme',question:'Choquable ?',options:[{label:'Oui choquable'}]}]});
+  ok('haystack inclut une étape', hay.indexOf('amiodarone')>=0);
+  ok('haystack inclut une question de décision', hay.indexOf('choquable')>=0);
+  ok('haystack inclut un libellé d’option', hay.indexOf('oui choquable')>=0);
+
+  group('sanitizePins()');
+  eq('rejette ids invalides / borne à 50', A.sanitizePins(['ok_1','bad id','__proto__']), ['ok_1']);
+  eq('non-tableau → []', A.sanitizePins('x'), []);
+
+  group('fmtBytes()');
+  eq('octets', A.fmtBytes(512), '512 o');
+  eq('kilo-octets', A.fmtBytes(2048), '2 Ko');
+  eq('méga-octets', A.fmtBytes(3145728), '3.0 Mo');
+
+  group('flattenFiche() / diffFicheLines()');
+  const fA={title:'T',confirmation:['a','b'],blocks:[{type:'steps',title:'B',steps:['s1']}]};
+  const fB={title:'T',confirmation:['a'],blocks:[{type:'steps',title:'B',steps:['s1','s2']}]};
+  const d=A.diffFicheLines(fA,fB); // cur=fA, old=fB : restaurer fB retirerait 'b', ajouterait 's2'
+  ok('diff détecte une suppression', d.removed.some(x=>/·\s*b$/.test(x)));
+  ok('diff détecte un ajout', d.added.some(x=>/s2$/.test(x)));
+  eq('aucune diff si identiques', A.diffFicheLines(fA,fA), {removed:[],added:[]});
+
+  group('stepTextFromKey()');
+  const fK={blocks:[{id:'b1',type:'steps',title:'Mesures',steps:['Étape A','Étape B']}]};
+  eq('résout une étape cochée', A.stepTextFromKey(fK,'0:b1:1'), {block:'Mesures',step:'Étape B'});
+  eq('clé orpheline → null', A.stepTextFromKey(fK,'0:zz:0'), null);
+
+  group('migrate() — champs 3.1 (status/related/updatedBy)');
+  const m31=A.migrate({title:'x',status:'draft',related:['ok-1','__proto__','bad id'],updatedBy:'a@b.fr'});
+  eq('status brouillon conservé', m31.status, 'draft');
+  eq('related nettoyé', m31.related, ['ok-1']);
+  eq('updatedBy conservé', m31.updatedBy, 'a@b.fr');
+  eq('status inconnu → validée', A.migrate({title:'x',status:'???'}).status, '');
 }
 
 // Ouvert en double-cliquant le fichier (file://) : le navigateur isole les iframes (origine

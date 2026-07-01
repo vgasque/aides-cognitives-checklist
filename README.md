@@ -104,6 +104,15 @@ d'écran sert d'alerte de secours).
 > Vous êtes l'auteur et le responsable du contenu clinique. Validez chaque fiche avec
 > les recommandations en vigueur et tenez la date de validation à jour.
 
+## Développement
+- **Publier une version** : `./release.sh X.Y.Z` synchronise les numéros de version (index.html +
+  sw.js) et vérifie syntaxe/tests ; le rédacteur (humain ou IA) complète ensuite le CHANGELOG et
+  committe avec les notes de version. Ne jamais modifier le numéro à la main
+  (voir [CLAUDE.md](CLAUDE.md)).
+- **Tests** : `npm test` (Playwright headless) ou ouvrir `tests.html` **servi en http**
+  (`python3 -m http.server` puis `http://localhost:8000/tests.html`). `npm run check` vérifie la
+  syntaxe. L'intégration continue rejoue le tout à chaque push (`.github/workflows/ci.yml`).
+
 ## Sécurité & confidentialité
 - **Aucune dépendance externe** : l'app est un seul fichier HTML en JavaScript « vanille »,
   sans CDN ni bibliothèque tierce. Rien n'est chargé depuis un autre domaine.

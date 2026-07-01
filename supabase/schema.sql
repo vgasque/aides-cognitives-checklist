@@ -403,6 +403,26 @@ do $$ begin
     check (octet_length(data::text) <= 1024*1024);
 exception when duplicate_object then null; end $$;
 
+-- ---------- 6quater. État de l'instance (app-admin) : tableau de bord léger ------------------
+-- Compteurs agrégés pour l'écran « Comptes en attente » : nombre de comptes, en attente, refusés,
+-- bibliothèques, fiches perso/partagées vivantes, et octets de stockage consommés (data des fiches
+-- + des jeux de catégories). Réservé aux app-admins (renvoie NULL sinon). SECURITY DEFINER car il
+-- agrège des tables/comptes que l'appelant ne peut pas lire ligne à ligne.
+create or replace function public.get_instance_stats()
+returns jsonb language sql stable security definer set search_path = public, auth as $$
+  select case when not public.is_app_admin() then null else jsonb_build_object(
+    'users',        (select count(*) from auth.users),
+    'pending',      (select count(*) from public.user_status where status = 'pending'),
+    'rejected',     (select count(*) from public.user_status where status = 'rejected'),
+    'libraries',    (select count(*) from public.libraries),
+    'fiches_perso', (select count(*) from public.fiches where library_id is null and deleted_at is null),
+    'fiches_shared',(select count(*) from public.fiches where library_id is not null and deleted_at is null),
+    'storage_bytes',(select coalesce(sum(octet_length(data::text)),0) from public.fiches where deleted_at is null)
+                    + (select coalesce(sum(octet_length(data::text)),0) from public.category_sets)
+  ) end;
+$$;
+grant execute on function public.get_instance_stats() to authenticated;
+
 -- ---------- 6. Recharge du cache PostgREST ----------------------------------
 notify pgrst, 'reload schema';
 

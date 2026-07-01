@@ -1,0 +1,67 @@
+{
+  "version": 3,
+  "categories": [
+    { "id": "c-anesthesie", "name": "Anesthésie", "color": "#0d5b56" }
+  ],
+  "fiches": [
+    {
+      "id": "ex-last",
+      "title": "Toxicité systémique des anesthésiques locaux (LAST)",
+      "category": "c-anesthesie",
+      "validation": "2025-01",
+      "status": "draft",
+      "localInfo": "Emplacement de l'émulsion lipidique 20 % : …\nRéanimateur / renfort : …\n(adaptez à votre établissement)",
+      "confirmation": [
+        "Contexte d'injection d'anesthésique local (ALR, infiltration)",
+        "Signes neurologiques : agitation, dysarthrie, convulsions",
+        "Signes cardiaques : troubles du rythme, collapsus, arrêt"
+      ],
+      "verify": [
+        "Arrêter l'injection d'anesthésique local",
+        "Appeler à l'aide, chariot d'urgence + émulsion lipidique",
+        "Monitorage complet, voie veineuse"
+      ],
+      "notForget": [
+        "Émulsion lipidique 20 % : traitement spécifique, ne pas retarder",
+        "RCP prolongée possible (pronostic favorable si maintenue)",
+        "Éviter (ou doser prudemment) certains anti-arythmiques"
+      ],
+      "differentials": [
+        "Réaction vagale",
+        "Anaphylaxie",
+        "Cause cardiaque primitive"
+      ],
+      "references": [
+        "Exemple à relire et compléter — recommandations en vigueur (SFAR / ASRA LAST)"
+      ],
+      "images": [],
+      "timers": [
+        { "id": "ex-last-t1", "label": "Temps écoulé", "type": "stopwatch" }
+      ],
+      "counters": [
+        { "id": "ex-last-c1", "label": "Bolus émulsion lipidique", "step": 1, "start": 0 }
+      ],
+      "start": "ex-last-b1",
+      "blocks": [
+        { "id": "ex-last-b1", "type": "steps", "title": "Mesures immédiates", "steps": [
+          "Arrêter l'injection", "O₂ 100 %, protéger les voies aériennes",
+          "Traiter les convulsions (benzodiazépine)", "Débuter l'émulsion lipidique 20 %"
+        ], "next": "ex-last-d1" },
+        { "id": "ex-last-d1", "type": "decision", "title": "Arrêt cardiaque ?",
+          "question": "Le patient est-il en arrêt cardio-circulatoire ?",
+          "options": [
+            { "label": "Oui", "target": "ex-last-b2" },
+            { "label": "Non", "target": "ex-last-b3" }
+          ] },
+        { "id": "ex-last-b2", "type": "steps", "title": "Arrêt cardiaque", "steps": [
+          "RCP de qualité, prolongée", "Poursuivre l'émulsion lipidique (bolus puis perfusion)",
+          "Renfort réanimation / CEC si disponible"
+        ], "next": "ex-last-d1" },
+        { "id": "ex-last-b3", "type": "steps", "title": "Stabilisation", "steps": [
+          "Surveillance rapprochée (récidive possible)", "Traiter les troubles du rythme",
+          "Tracer doses et horaires"
+        ], "next": null }
+      ]
+    }
+  ]
+}
