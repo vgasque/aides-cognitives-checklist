@@ -239,10 +239,19 @@ create table if not exists public.user_status (
 -- Peuplé automatiquement à chaque création de compte (1ère vérification OTP réussie
 -- -> insertion dans auth.users, capturée ici). SECURITY DEFINER : nécessaire pour
 -- qu'un trigger sur auth.users (schéma protégé) puisse écrire dans public.
+-- Si la validation est DÉSACTIVÉE au moment de l'inscription, la ligne est directement créée
+-- "approved" (pas "pending" par défaut) : sinon le compte fonctionne normalement (is_approved()
+-- l'autorise déjà via l'interrupteur global) MAIS apparaît quand même, à tort, dans la liste
+-- « Comptes en attente » -> confusion pour l'app-admin, et rattrapage rétroactif surprenant si la
+-- validation est réactivée plus tard (des comptes déjà pleinement actifs se retrouveraient à valider).
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer set search_path = public as $$
+declare v_status text := 'pending';
 begin
-  insert into public.user_status(user_id, email) values (new.id, new.email)
+  if not coalesce((select require_approval from public.app_settings limit 1), true) then
+    v_status := 'approved';
+  end if;
+  insert into public.user_status(user_id, email, status) values (new.id, new.email, v_status)
     on conflict (user_id) do nothing;
   return new;
 end;$$;
@@ -266,15 +275,19 @@ create policy user_status_write on public.user_status for update
   with check (public.is_app_admin());
 grant select, update on public.user_status to authenticated;
 
--- Interrupteur global (app-admin) : permet de désactiver entièrement l'exigence de validation
--- (ex. usage solo, ou équipe de confiance où l'approbation manuelle est jugée superflue).
+-- Interrupteur global (app-admin) : permet d'activer l'exigence de validation des nouveaux comptes.
+-- DÉSACTIVÉ PAR DÉFAUT : sur une instance fraîche, app_admins est encore vide (on ne peut s'y
+-- nommer admin qu'APRÈS s'être connecté une 1ère fois, cf. instructions finales) -> si la validation
+-- était active d'office, ce tout premier compte se retrouverait bloqué "en attente" dès sa première
+-- connexion. Une fois devenu app-admin, activez la validation quand vous le souhaitez (fenêtre
+-- Compte -> « Comptes en attente ») pour les comptes suivants.
 -- Ligne UNIQUE (id toujours = true) ; accès UNIQUEMENT via les fonctions ci-dessous (comme
 -- app_admins : aucune politique ni grant sur la table elle-même -> invisible de l'API directe).
 create table if not exists public.app_settings (
   id               boolean primary key default true check (id),
-  require_approval boolean not null default true
+  require_approval boolean not null default false
 );
-insert into public.app_settings(id, require_approval) values (true, true) on conflict (id) do nothing;
+insert into public.app_settings(id, require_approval) values (true, false) on conflict (id) do nothing;
 alter table public.app_settings enable row level security;
 
 -- is_approved() : un app-admin est TOUJOURS considéré approuvé (garde-fou anti-blocage,
@@ -395,12 +408,16 @@ notify pgrst, 'reload schema';
 
 -- ============================================================================
 --  APRÈS EXÉCUTION — pour vous nommer app-admin (créateur de bibliothèques) :
---    1) Connectez-vous une première fois dans l'app (pour créer votre compte),
+--    1) Connectez-vous une première fois dans l'app (pour créer votre compte).
+--       La validation des comptes est DÉSACTIVÉE PAR DÉFAUT (voir app_settings
+--       ci-dessus) : ce premier compte se synchronise donc normalement, sans
+--       écran "en attente". Vous n'êtes pas encore app-admin pour autant (pas
+--       de création de bibliothèque) tant que l'étape 2 n'est pas faite.
 --    2) puis exécutez, en remplaçant l'e-mail :
 --       insert into public.app_admins(user_id)
 --       select id from auth.users where email = 'vous@exemple.fr';
 --
---  Comptes suivants : quiconque crée un compte reste "en attente" tant que vous
---  ne l'approuvez pas depuis l'app (fenêtre Compte -> « Comptes en attente »,
---  visible uniquement pour un app-admin).
+--  Comptes suivants : ils se synchronisent librement tant que vous n'activez pas
+--  la validation (fenêtre Compte -> « Comptes en attente », visible seulement
+--  pour un app-admin -> case « Exiger une validation pour les nouveaux comptes »).
 -- ============================================================================
