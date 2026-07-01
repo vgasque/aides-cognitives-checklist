@@ -2520,20 +2520,23 @@ document.getElementById('versX').onclick=closeVersions;
 versModal.onclick=e=>{if(e.target===versModal)closeVersions();};
 
 /* ===== Membres d'une bibliothèque (Lot 3, étape 4) ===== */
-const membersModal=document.getElementById('membersModal');let _memLib=null;
+const membersModal=document.getElementById('membersModal');let _memLib=null,_memRenaming=false;
 const ROLE_FR={viewer:'Lecteur',editor:'Éditeur',admin:'Admin'};
 function roleOptions(role){return ['viewer','editor','admin'].map(r=>`<option value="${r}" ${role===r?'selected':''}>${ROLE_FR[r]}</option>`).join('');}
-async function openMembers(libId){_memLib=libId;membersModal.classList.add('on');await renderMembers();}
+async function openMembers(libId){_memLib=libId;_memRenaming=false;membersModal.classList.add('on');await renderMembers();}
 function closeMembers(){membersModal.classList.remove('on');}
 const memIni=e=>((String(e||'?').trim()[0])||'?').toUpperCase();
 async function renderMembers(){const body=document.getElementById('membersBody');if(!body||!_memLib)return;
   body.innerHTML='<p class="auth-msg">Chargement…</p>';
   let list=[];try{list=await rest('POST','/rest/v1/rpc/list_members',{p_library:_memLib})||[];}catch(e){body.innerHTML='<p class="auth-msg err">Erreur de chargement des membres.</p>';return;}
   const me=Auth.user()&&Auth.user().id;const isAdmin=(roleOf(_memLib)==='admin')||myIsAppAdmin;const n=list.length;
+  const canRename=(roleOf(_memLib)==='admin'||myIsAppAdmin);
   body.innerHTML=`
     <div class="mem-head"><div class="auth-avatar">${esc(memIni(libName(_memLib)))}</div>
-      <div class="mem-head-i"><div class="mem-lib-name">${esc(libName(_memLib)||'Bibliothèque')}</div><div class="mem-lib-sub">Bibliothèque partagée · ${n} membre${n>1?'s':''}</div></div></div>
-    ${isAdmin?`<div class="auth-row mem-libacts">${(roleOf(_memLib)==='admin'||myIsAppAdmin)?'<button class="btn sm" id="libRename">Renommer</button>':''}${myIsAppAdmin?'<button class="btn sm ghost-danger" id="libDelete">Supprimer la bibliothèque</button>':''}</div>`:''}
+      <div class="mem-head-i">${_memRenaming
+        ?`<input class="auth-field mem-rename" id="memRenameInput" value="${esc(libName(_memLib)||'')}" maxlength="60"><div class="auth-row" style="margin-top:8px"><button class="btn primary sm" id="memRenameOk">Renommer</button><button class="btn sm" id="memRenameCancel">Annuler</button></div><p class="auth-msg" id="memRenameMsg"></p>`
+        :`<div class="mem-lib-name">${esc(libName(_memLib)||'Bibliothèque')}</div><div class="mem-lib-sub">Bibliothèque partagée · ${n} membre${n>1?'s':''}</div>`}</div></div>
+    ${(isAdmin&&!_memRenaming)?`<div class="auth-row mem-libacts">${canRename?'<button class="btn sm" id="libRename">Renommer</button>':''}${myIsAppAdmin?'<button class="btn sm ghost-danger" id="libDelete">Supprimer la bibliothèque</button>':''}</div>`:''}
     <div class="mem-section"><p class="mem-section-h">Inviter un membre</p>
       <input class="auth-field" id="memEmail" type="email" inputmode="email" autocomplete="off" placeholder="e-mail de la personne">
       <div class="auth-row"><select id="memNewRole">${roleOptions('viewer')}</select><button class="btn primary" id="memInvite">Inviter</button></div>
@@ -2555,9 +2558,19 @@ async function renderMembers(){const body=document.getElementById('membersBody')
     try{await rest('DELETE','/rest/v1/memberships?library_id=eq.'+encodeURIComponent(_memLib)+'&user_id=eq.'+encodeURIComponent(b.dataset.remove),null,{'Prefer':'return=minimal'});await renderMembers();}
     catch(e){alert('Retrait impossible : '+e.message);}});
   // Renommer (admin de la biblio ou app-admin) / Supprimer (app-admin uniquement, cf. RLS lib_delete).
-  const rn=body.querySelector('#libRename');if(rn)rn.onclick=async()=>{const nn=(prompt('Nouveau nom de la bibliothèque :',libName(_memLib))||'').trim();if(!nn||nn===libName(_memLib))return;
-    try{await rest('PATCH','/rest/v1/libraries?id=eq.'+encodeURIComponent(_memLib),{name:nn},{'Prefer':'return=minimal'});await Sync.loadProfile();await renderMembers();renderLibrary();}
-    catch(e){alert('Renommage impossible : '+e.message);}};
+  // Renommer : bascule l'en-tête en édition en ligne (pas de popup), puis confirme/annule.
+  const rn=body.querySelector('#libRename');if(rn)rn.onclick=()=>{_memRenaming=true;renderMembers();};
+  const rc=body.querySelector('#memRenameCancel');if(rc)rc.onclick=()=>{_memRenaming=false;renderMembers();};
+  const inp=body.querySelector('#memRenameInput');
+  if(inp){inp.focus();inp.select();inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();body.querySelector('#memRenameOk').click();}else if(e.key==='Escape'){_memRenaming=false;renderMembers();}};}
+  const rok=body.querySelector('#memRenameOk');if(rok)rok.onclick=async()=>{
+    const nn=(inp.value||'').trim();const msg=body.querySelector('#memRenameMsg');
+    if(!nn){if(msg){msg.textContent='Le nom ne peut pas être vide.';msg.className='auth-msg err';}return;}
+    if(nn===libName(_memLib)){_memRenaming=false;renderMembers();return;}
+    rok.disabled=true;
+    try{await rest('PATCH','/rest/v1/libraries?id=eq.'+encodeURIComponent(_memLib),{name:nn},{'Prefer':'return=minimal'});
+      _memRenaming=false;await Sync.loadProfile();await renderMembers();renderLibrary();}
+    catch(e){rok.disabled=false;if(msg){msg.textContent='Renommage impossible : '+e.message;msg.className='auth-msg err';}}};
   const dl=body.querySelector('#libDelete');if(dl)dl.onclick=async()=>{
     if(!confirm('Supprimer DÉFINITIVEMENT la bibliothèque « '+libName(_memLib)+' » et TOUTES ses fiches partagées ? Action irréversible.'))return;
     try{await rest('DELETE','/rest/v1/libraries?id=eq.'+encodeURIComponent(_memLib),null,{'Prefer':'return=minimal'});
