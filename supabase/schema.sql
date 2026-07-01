@@ -369,6 +369,27 @@ begin
 end;$$;
 grant execute on function public.delete_rejected_user(uuid) to authenticated;
 
+-- ---------- 6ter. Garde-fou : taille maximale d'une ligne (anti-abus stockage) --------------
+-- Les plafonds de taille CÔTÉ CLIENT (images redimensionnées par downscale(), nombre de blocs/
+-- images limité...) ne sont que des garde-fous d'ergonomie : un appel REST direct (contournant
+-- l'app, cf. revue de sécurité) pourrait les ignorer et pousser une ligne démesurée. Impact
+-- PARTAGÉ pour une bibliothèque (quota de stockage du projet, donc de toute l'équipe). On mesure
+-- la taille OCTET de la représentation JSON (simple et prévisible, indépendant des détails de
+-- compression TOAST de Postgres).
+--   fiches.data (20 Mo) : une fiche réelle contient au plus quelques dizaines d'images, chacune
+--     réduite par downscale() à ~100-300 Ko en base64 -> large marge même pour une fiche très
+--     riche en schémas/captures.
+--   category_sets.data (1 Mo) : aucune image, seulement des tuples {id,name,color,libraryId}
+--     plafonnés à 400 entrées -> quelques Ko en usage réel, marge x10 largement suffisante.
+do $$ begin
+  alter table public.fiches add constraint fiches_data_size_chk
+    check (octet_length(data::text) <= 20*1024*1024);
+exception when duplicate_object then null; end $$;
+do $$ begin
+  alter table public.category_sets add constraint catsets_data_size_chk
+    check (octet_length(data::text) <= 1024*1024);
+exception when duplicate_object then null; end $$;
+
 -- ---------- 6. Recharge du cache PostgREST ----------------------------------
 notify pgrst, 'reload schema';
 

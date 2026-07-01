@@ -287,10 +287,11 @@
   .bar-acct.on .ic-outline{display:none}.bar-acct.on .ic-filled{display:inline-block}
   .acct-dot{position:absolute;right:2px;bottom:2px;width:11px;height:11px;border-radius:50%;border:2px solid #0b4a45;background:#5bd1a8}
   .acct-dot.busy{background:#e8c45c}.acct-dot.err{background:#ff7058}.acct-dot.off{background:#a9b8b3}
+  .acct-dot.pending{background:#e8c45c}.acct-dot.rejected{background:#ff7058}
   html[data-theme="dark"] .acct-dot{border-color:#10302b}
   .bar-act:hover{background:rgba(255,255,255,.24)}
   main{flex:1;padding:18px}
-  .notice{background:var(--verify-soft);border:1px solid #ecdcb4;color:#6b4d12;border-radius:10px;padding:10px 13px;font-size:12.5px;margin-bottom:16px;display:flex;gap:9px;align-items:flex-start}
+  .notice{background:var(--verify-soft);border:1px solid #ecdcb4;color:#6b4d12;border-radius:10px;padding:10px 13px;font-size:12.5px;margin-bottom:16px;display:flex;gap:9px;align-items:flex-start;position:relative;padding-right:34px}
   .notice[hidden]{display:none} /* le display:flex ci-dessus prime sinon sur [hidden] (même origine auteur) */
   .notice svg{flex-shrink:0;margin-top:1px}
   .notice.sync-err{background:#f6e1e1;border-color:#e8c3c3;color:#8a3020;cursor:pointer}
@@ -321,7 +322,6 @@
   .scope-ctx-i{font-size:12.5px;color:var(--ink-soft);font-weight:600}
   .linkbtn{background:none;border:0;color:var(--primary);font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:0;margin-left:auto}
   .linkbtn:hover{text-decoration:underline}
-  .notice{position:relative;padding-right:34px}
   .notice-x{position:absolute;top:6px;right:7px;background:none;border:0;color:var(--ink-soft);font-size:19px;line-height:1;cursor:pointer;padding:2px 7px;border-radius:7px}
   .notice-x:hover{background:rgba(0,0,0,.07)}
   .ro-badge{font-size:11px;font-weight:600;color:var(--primary-dk);background:var(--primary-soft);padding:2px 8px;border-radius:10px}
@@ -874,6 +874,9 @@ let fiches=[],categories=[],sessions=[];
 // myAccountStatus : 'pending'/'approved'/'rejected'/null (null = déconnecté ou pas encore vérifié).
 // myPendingCount : nombre de comptes en attente (app-admin uniquement, rafraîchi à chaque synchro).
 let myLibraries=[],myIsAppAdmin=false,myAccountStatus=null,myPendingCount=0;
+// Remet à zéro tout l'état lié au compte cloud (déconnexion, suppression de compte) : jamais partiel,
+// pour ne pas laisser un rôle/statut périmé traîner après un changement de compte.
+function resetAuthState(){myLibraries=[];myIsAppAdmin=false;myAccountStatus=null;myPendingCount=0;state.scope=null;}
 let state={view:'library',id:null,q:'',cat:'',scope:null,draft:null,fiche:null,nav:[],navSeq:[],navPos:0,checked:{},catMgr:false,showFlow:false,showSess:false};
 // Rôle/édition par bibliothèque. Perso (libraryId vide) = toujours éditable. Bibliothèque partagée : éditable
 // si role editor/admin. (La RLS reste l'arbitre côté serveur ; ceci n'est que l'ergonomie.)
@@ -1972,14 +1975,14 @@ function renderEditor(){
     card.querySelectorAll('[data-sf]').forEach((inp,i)=>inp.addEventListener('input',e=>{b.steps[i]=e.target.value;scheduleFlowPreview(f);}));
     const as=card.querySelector('[data-addstep]');if(as)as.onclick=()=>{b.steps.push('');renderEditor();};
     card.querySelectorAll('[data-rmstep]').forEach(btn=>btn.onclick=()=>{b.steps.splice(+btn.dataset.rmstep,1);if(!b.steps.length)b.steps.push('');renderEditor();});
-    card.querySelectorAll('[data-smv]').forEach(btn=>btn.onclick=()=>{const i=+btn.dataset.si,j=btn.dataset.smv==='up'?i-1:i+1;if(j<0||j>=b.steps.length)return;[b.steps[i],b.steps[j]]=[b.steps[j],b.steps[i]];renderEditor();});
+    card.querySelectorAll('[data-smv]').forEach(btn=>btn.onclick=()=>{moveItem(b.steps,+btn.dataset.si,btn.dataset.smv==='up'?-1:1);renderEditor();});
     if(b.type==='steps'){const ns=card.querySelector('select[data-target]');if(ns)ns.addEventListener('change',e=>{b.next=e.target.value||null;renderEditor();});}
     const ao=card.querySelector('[data-addopt]');if(ao)ao.onclick=()=>{b.options.push({label:'',target:''});renderEditor();};
     card.querySelectorAll('[data-rmopt]').forEach(btn=>btn.onclick=()=>{b.options.splice(+btn.dataset.rmopt,1);if(!b.options.length)b.options.push({label:'',target:''});renderEditor();});
     card.querySelectorAll('.optedit').forEach(row=>{const oi=+row.dataset.oi;const lab=row.querySelector('[data-of]');if(lab)lab.addEventListener('input',e=>{b.options[oi].label=e.target.value;scheduleFlowPreview(f);});const tgt=row.querySelector('select[data-target]');if(tgt)tgt.addEventListener('change',e=>{b.options[oi].target=e.target.value||'';renderEditor();});});
     const bi=card.querySelector('[data-bimg]');if(bi)bi.onclick=()=>{imgMode={kind:'block',bid};imgInput.click();};
     const bd2=card.querySelector('[data-bimgdel]');if(bd2)bd2.onclick=()=>{b.image=null;renderEditor();};
-    card.querySelectorAll('[data-bmv]').forEach(btn=>btn.onclick=()=>{const i=f.blocks.indexOf(b),j=btn.dataset.bmv==='up'?i-1:i+1;if(j<0||j>=f.blocks.length)return;[f.blocks[i],f.blocks[j]]=[f.blocks[j],f.blocks[i]];renderEditor();});
+    card.querySelectorAll('[data-bmv]').forEach(btn=>btn.onclick=()=>{moveItem(f.blocks,f.blocks.indexOf(b),btn.dataset.bmv==='up'?-1:1);renderEditor();});
     const bd=card.querySelector('[data-bdel]');if(bd)bd.onclick=()=>{f.blocks=f.blocks.filter(x=>x.id!==bid);f.blocks.forEach(x=>{if(x.next===bid)x.next=null;if(x.options)x.options.forEach(o=>{if(o.target===bid)o.target='';});});if(f.start===bid)f.start=f.blocks[0]?f.blocks[0].id:null;if(!f.blocks.length){const nb={id:uid('b'),type:'steps',title:'Prise en charge',steps:[''],image:null,next:null};f.blocks.push(nb);f.start=nb.id;}renderEditor();};});
   imgInput.onchange=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;const data=await downscale(file);if(!data){alert('Image illisible.');return;}if(imgMode.kind==='gallery')f.images.push({id:uid('i'),data,caption:''});else{const b=f.blocks.find(x=>x.id===imgMode.bid);if(b)b.image=data;}renderEditor();};
   document.getElementById('saveBtn').onclick=saveDraft;const del=document.getElementById('delBtn');if(del)del.onclick=deleteDraft;
@@ -1990,7 +1993,7 @@ function bindListEditors(){
   main.querySelectorAll('input[data-key]').forEach(inp=>inp.addEventListener('input',e=>{state.draft[e.target.dataset.key][+e.target.dataset.idx]=e.target.value;}));
   main.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{state.draft[b.dataset.add].push('');renderEditor();});
   main.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{const a=state.draft[b.dataset.rm];a.splice(+b.dataset.idx,1);if(!a.length)a.push('');renderEditor();});
-  main.querySelectorAll('[data-mv]').forEach(b=>b.onclick=()=>{const a=state.draft[b.dataset.key],i=+b.dataset.idx,j=b.dataset.mv==='up'?i-1:i+1;if(j<0||j>=a.length)return;[a[i],a[j]]=[a[j],a[i]];renderEditor();});
+  main.querySelectorAll('[data-mv]').forEach(b=>b.onclick=()=>{moveItem(state.draft[b.dataset.key],+b.dataset.idx,b.dataset.mv==='up'?-1:1);renderEditor();});
 }
 function downscale(file,maxDim=1180,quality=0.78){return new Promise(res=>{const img=new Image();const url=URL.createObjectURL(file);img.onload=()=>{let w=img.width,h=img.height;const sc=Math.min(1,maxDim/Math.max(w,h));const cw=Math.round(w*sc),ch=Math.round(h*sc);const c=document.createElement('canvas');c.width=cw;c.height=ch;c.getContext('2d').drawImage(img,0,0,cw,ch);URL.revokeObjectURL(url);try{res(c.toDataURL('image/jpeg',quality));}catch(e){res(null);}};img.onerror=()=>{URL.revokeObjectURL(url);res(null);};img.src=url;});}
 async function saveDraft(){const d=state.draft;d.title=(d.title||'').trim();
@@ -2354,7 +2357,7 @@ async function wipeLocal(){
 }
 function renderAuth(){const body=document.getElementById('authBody');if(!body)return;
   if(Auth.signedIn()){const u=Auth.user()||{};
-    const doSignOut=async()=>{await Auth.signOut();myLibraries=[];myIsAppAdmin=false;myAccountStatus=null;myPendingCount=0;state.scope=null;_authDelete=false;_authStep={mode:'email',email:'',msg:'',msgcls:''};renderAuth();setSyncChip();if(state.view==='library')renderLibrary();};
+    const doSignOut=async()=>{await Auth.signOut();resetAuthState();_authDelete=false;_authStep={mode:'email',email:'',msg:'',msgcls:''};renderAuth();setSyncChip();if(state.view==='library')renderLibrary();};
     if(_authDelete){
       body.innerHTML=`<div class="auth-del"><div class="auth-hero-ic danger"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 16H3z"/><path d="M12 9v5M12 17h.01"/></svg></div>
         <h4>Supprimer le compte ?</h4>
@@ -2370,7 +2373,7 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
       delGo.onclick=async()=>{if(delGo.disabled)return;const wipe=body.querySelector('#delLocal').checked;
         if(!confirm('Supprimer DÉFINITIVEMENT votre compte'+(wipe?' et les données de cet appareil':'')+' ? Cette action est irréversible.'))return;
         const setM=(t,c)=>{const e=document.getElementById('delMsg');if(e){e.textContent=t;e.className='auth-msg '+(c||'');}};setM('Suppression…','');
-        try{await Auth.deleteAccount();await Auth.signOut();myLibraries=[];myIsAppAdmin=false;myAccountStatus=null;myPendingCount=0;state.scope=null;
+        try{await Auth.deleteAccount();await Auth.signOut();resetAuthState();
           if(wipe){await wipeLocal();location.reload();return;}
           _authDelete=false;_authStep={mode:'email',email:'',msg:'',msgcls:''};renderAuth();setSyncChip();if(state.view==='library')renderLibrary();toast('Votre compte a été supprimé.');
         }catch(e){setM('Échec de la suppression : '+e.message,'err');}};
@@ -2385,7 +2388,12 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
         <p class="auth-sub">${rejected?"Votre demande de compte a été refusée par un administrateur. Vous pouvez supprimer cette demande ci-dessous, ou réessayer avec une autre adresse e-mail.":"Votre e-mail est vérifié. Un administrateur doit maintenant approuver votre compte avant que vos fiches ne soient synchronisées dans le cloud. En attendant, l'app reste pleinement utilisable en local, sur cet appareil."}</p>
         <div class="auth-actions"><button class="btn primary" id="authRecheck">Vérifier maintenant</button><button class="btn" id="authSwitch">Changer de compte</button><button class="btn" id="authOut">Se déconnecter</button></div>
         <button class="auth-danger" id="authDelete">Supprimer cette demande de compte</button>`;
-      body.querySelector('#authRecheck').onclick=async()=>{const b=body.querySelector('#authRecheck');b.disabled=true;b.textContent='Vérification…';await refreshAccountStatus();renderAuth();setSyncChip();if(myAccountStatus==='approved')Sync.full();};
+      body.querySelector('#authRecheck').onclick=async()=>{const b=body.querySelector('#authRecheck');b.disabled=true;b.textContent='Vérification…';
+        await refreshAccountStatus();renderAuth();
+        // Toujours refléter le VRAI statut : approuvé -> Sync.full() gère la pastille (busy puis ok/err) ;
+        // toujours pending/rejected -> on le dit explicitement (jamais l'état par défaut "ok/Connecté").
+        if(myAccountStatus==='approved')Sync.full();
+        else setSyncChip(myAccountStatus,myAccountStatus==='rejected'?'Compte refusé':'En attente de validation');};
       body.querySelector('#authSwitch').onclick=async()=>{await doSignOut();};
       body.querySelector('#authOut').onclick=async()=>{if(!confirm('Se déconnecter ?'))return;await doSignOut();};
       {const ad=body.querySelector('#authDelete');if(ad)ad.onclick=()=>{_authDelete=true;renderAuth();};}
@@ -2498,6 +2506,9 @@ async function rest(method,path,body,extra){await Auth.ensureFresh();
   const r=await fetch(SUPA.url+path,{method:method,headers:Auth.headers(extra),body:body?JSON.stringify(body):undefined});
   if(!r.ok){const t=await r.text().catch(()=>'');throw new Error('REST '+r.status+' '+String(t).slice(0,200));}
   const ct=r.headers.get('content-type')||'';return ct.indexOf('application/json')>=0?r.json():null;}
+// Appel d'une fonction Postgres exposée par PostgREST (toujours en POST). Raccourci de rest() pour
+// les nombreux appels /rest/v1/rpc/* (my_status, is_app_admin, invite_member, etc.).
+const rpc=(name,body)=>rest('POST','/rest/v1/rpc/'+name,body||{});
 // Conversions fiche <-> ligne Supabase. La fiche complète est stockée en JSONB ; les colonnes
 // updated_at/deleted_at/owner/library_id (autoritatives) servent au filtrage et à la RLS.
 function ficheToRow(f,uidv){const data=Object.assign({},f);delete data.dirty;
@@ -2544,7 +2555,7 @@ function explainSyncError(e){const msg=String((e&&e.message)||e||'');const m=msg
 // le dernier statut connu (pas de fausse alerte hors-ligne) ; la tentative de synchro suivante tranchera.
 async function refreshAccountStatus(){
   if(!Auth.signedIn()){myAccountStatus=null;return;}
-  try{myAccountStatus=await rest('POST','/rest/v1/rpc/my_status',{});}catch(e){}}
+  try{myAccountStatus=await rpc('my_status');}catch(e){}}
 const Sync={
   running:false,_pt:null,_cursorKey:'ac-sync-cursor',_retryTimer:null,_retryDelay:0,lastError:null,lastErrorAt:0,
   online(){return navigator.onLine!==false;},
@@ -2658,9 +2669,9 @@ const Sync={
       rows.filter(r=>r.libraries).forEach(r=>{const id=r.library_id,cur=by[id];if(!cur||rank[r.role]>rank[cur.role])by[id]={id,name:r.libraries.name,role:r.role};});
       myLibraries=Object.values(by).sort((a,b)=>String(a.name).localeCompare(String(b.name)));
     }catch(e){myLibraries=[];}
-    try{myIsAppAdmin=(await rest('POST','/rest/v1/rpc/is_app_admin',{}))===true;}catch(e){myIsAppAdmin=false;}
+    try{myIsAppAdmin=(await rpc('is_app_admin'))===true;}catch(e){myIsAppAdmin=false;}
     // Nombre de comptes en attente : app-admin uniquement (visible sur le bouton « Comptes en attente »).
-    if(myIsAppAdmin){try{myPendingCount=(await rest('POST','/rest/v1/rpc/list_unapproved_users',{})||[]).filter(u=>u.status==='pending').length;}catch(e){myPendingCount=0;}}
+    if(myIsAppAdmin){try{myPendingCount=(await rpc('list_unapproved_users')||[]).filter(u=>u.status==='pending').length;}catch(e){myPendingCount=0;}}
     else myPendingCount=0;
     if(state.view==='library')renderLibrary();}
 };
@@ -2697,7 +2708,7 @@ function closeMembers(){membersModal.classList.remove('on');}
 const memIni=e=>((String(e||'?').trim()[0])||'?').toUpperCase();
 async function renderMembers(){const body=document.getElementById('membersBody');if(!body||!_memLib)return;
   body.innerHTML='<p class="auth-msg">Chargement…</p>';
-  let list=[];try{list=await rest('POST','/rest/v1/rpc/list_members',{p_library:_memLib})||[];}catch(e){body.innerHTML='<p class="auth-msg err">Erreur de chargement des membres.</p>';return;}
+  let list=[];try{list=await rpc('list_members',{p_library:_memLib})||[];}catch(e){body.innerHTML='<p class="auth-msg err">Erreur de chargement des membres.</p>';return;}
   const me=Auth.user()&&Auth.user().id;const isAdmin=(roleOf(_memLib)==='admin')||myIsAppAdmin;const n=list.length;
   const canRename=(roleOf(_memLib)==='admin'||myIsAppAdmin);
   body.innerHTML=`
@@ -2714,7 +2725,7 @@ async function renderMembers(){const body=document.getElementById('membersBody')
   const setMsg=(t,c)=>{const e=document.getElementById('memMsg');if(e){e.textContent=t;e.className='auth-msg '+(c||'');}};
   document.getElementById('memInvite').onclick=async()=>{const email=(document.getElementById('memEmail').value||'').trim();const role=document.getElementById('memNewRole').value;
     if(!email||email.indexOf('@')<1){setMsg('Saisissez un e-mail valide.','err');return;}setMsg('Invitation…','');
-    try{const r=await rest('POST','/rest/v1/rpc/invite_member',{p_library:_memLib,p_email:email,p_role:role});
+    try{const r=await rpc('invite_member',{p_library:_memLib,p_email:email,p_role:role});
       if(r==='not_found')setMsg('Aucun compte avec cet e-mail. La personne doit d\'abord se connecter une fois à l\'application.','err');
       else{await renderMembers();await Sync.loadProfile();}}
     catch(e){setMsg('Échec : '+e.message,'err');}};
@@ -2791,7 +2802,7 @@ const pendingModal=document.getElementById('pendingModal');
 async function renderPending(){const body=document.getElementById('pendingBody');if(!body)return;
   body.innerHTML='<p class="auth-msg">Chargement…</p>';
   let list=[],required=true;
-  try{const r=await Promise.all([rest('POST','/rest/v1/rpc/list_unapproved_users',{}),rest('POST','/rest/v1/rpc/get_approval_required',{})]);list=r[0]||[];required=r[1]!==false;}
+  try{const r=await Promise.all([rpc('list_unapproved_users'),rpc('get_approval_required')]);list=r[0]||[];required=r[1]!==false;}
   catch(e){body.innerHTML='<p class="auth-msg err">Erreur de chargement.</p>';return;}
   body.innerHTML=`<label class="auth-check pend-toggle"><input type="checkbox" id="pendToggle"${required?' checked':''}><span>Exiger une validation pour les nouveaux comptes</span></label>
     <p class="ai-note" style="margin:-4px 0 16px">${required?"Chaque nouveau compte reste « en attente » jusqu'à votre approbation ci-dessous.":"Désactivé : les nouveaux comptes sont approuvés automatiquement, sans validation de votre part."}</p>
@@ -2799,18 +2810,18 @@ async function renderPending(){const body=document.getElementById('pendingBody')
     <div class="mem-list">${list.map(u=>`<div class="mem-row"><div class="mem-avatar">${esc(memIni(u.email))}</div><div class="mem-info"><span class="mem-email">${esc(u.email)}</span><span class="pend-badge ${u.status}">${u.status==='rejected'?'Refusé':'En attente'}</span></div><div class="mem-act">${u.status==='rejected'?`<button class="btn sm primary" data-approve="${esc(u.user_id)}">Approuver</button><button class="btn sm ghost-danger" data-delete="${esc(u.user_id)}" title="Supprimer la demande pour laisser une 2e chance">Supprimer</button>`:`<button class="btn sm primary" data-approve="${esc(u.user_id)}">Approuver</button><button class="mini del" data-reject="${esc(u.user_id)}" title="Refuser">×</button>`}</div></div>`).join('')}</div>`
     :'<p class="auth-msg" style="text-align:center">Aucun compte en attente.</p>'}`;
   document.getElementById('pendToggle').onchange=async e=>{const val=e.target.checked;
-    try{await rest('POST','/rest/v1/rpc/set_approval_required',{p_value:val});await renderPending();toast(val?'Validation des nouveaux comptes réactivée.':'Validation désactivée : les nouveaux comptes seront approuvés automatiquement.');}
+    try{await rpc('set_approval_required',{p_value:val});await renderPending();toast(val?'Validation des nouveaux comptes réactivée.':'Validation désactivée : les nouveaux comptes seront approuvés automatiquement.');}
     catch(err){e.target.checked=!val;alert('Échec : '+err.message);}};
   body.querySelectorAll('[data-approve]').forEach(b=>b.onclick=async()=>{
-    try{await rest('POST','/rest/v1/rpc/set_user_status',{p_user:b.dataset.approve,p_status:'approved'});await renderPending();await Sync.loadProfile();toast('Compte approuvé.');}
+    try{await rpc('set_user_status',{p_user:b.dataset.approve,p_status:'approved'});await renderPending();await Sync.loadProfile();toast('Compte approuvé.');}
     catch(e){alert('Échec : '+e.message);}});
   body.querySelectorAll('[data-reject]').forEach(b=>b.onclick=async()=>{
     if(!confirm('Refuser ce compte ?'))return;
-    try{await rest('POST','/rest/v1/rpc/set_user_status',{p_user:b.dataset.reject,p_status:'rejected'});await renderPending();await Sync.loadProfile();}
+    try{await rpc('set_user_status',{p_user:b.dataset.reject,p_status:'rejected'});await renderPending();await Sync.loadProfile();}
     catch(e){alert('Échec : '+e.message);}});
   body.querySelectorAll('[data-delete]').forEach(b=>b.onclick=async()=>{
     if(!confirm("Supprimer définitivement ce compte refusé ? La personne pourra recréer un compte avec cette adresse e-mail (nouvelle demande à valider)."))return;
-    try{await rest('POST','/rest/v1/rpc/delete_rejected_user',{p_user:b.dataset.delete});await renderPending();toast('Compte supprimé.');}
+    try{await rpc('delete_rejected_user',{p_user:b.dataset.delete});await renderPending();toast('Compte supprimé.');}
     catch(e){alert('Échec : '+e.message);}});}
 async function openPending(){pendingModal.classList.add('on');await renderPending();}
 function closePending(){pendingModal.classList.remove('on');}
