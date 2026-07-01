@@ -613,6 +613,7 @@
   .tlink{background:none;border:0;color:var(--primary);font-size:13px;font-weight:600;padding:6px 8px;border-radius:8px}.tlink:hover{background:var(--primary-soft)}#installBtn{display:none}
   /* Pastille d'état de synchro : discrète, jamais bloquante (app critique). */
   .sync-chip{font-size:11px;font-weight:600;padding:2px 9px;border-radius:999px;display:inline-flex;align-items:center;gap:5px;line-height:1.7}
+  .sync-chip[hidden]{display:none} /* le display:inline-flex ci-dessus prime sinon sur [hidden] (même origine auteur) */
   .sync-chip::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.85}
   .sync-chip.off{color:var(--ink-soft);background:var(--primary-soft)}
   .sync-chip.ok{color:var(--primary);background:var(--primary-soft)}
@@ -795,7 +796,7 @@
 
 /* PALETTE : couleurs proposées pour les catégories (hex sombres, lisibles
    en texte comme en pastille teintée). Index réutilisé cycliquement. */
-const APP_VERSION='3.0.1';
+const APP_VERSION='3.0.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 const PALETTE=['#b23052','#823a32','#b5532a','#a26a42','#8a6a12','#4f6b1e','#1f7a4d','#0d5b56','#007fb1','#45556b','#1f5fa6','#4b3fa6','#8869af','#7a2f6b','#ad5e7e'];
 /* ===== Backends (stockage LOCAL) =====
