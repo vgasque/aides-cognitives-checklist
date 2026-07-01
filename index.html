@@ -263,8 +263,12 @@
   html[data-theme="dark"] :is(.flow-scroll,#flowFull .ff-scroll) svg .flow-hl-glow{opacity:.28}
   *{box-sizing:border-box}html,body{margin:0;padding:0}
   body{font-family:var(--sans);color:var(--ink);background:var(--bg);line-height:1.5;-webkit-font-smoothing:antialiased;padding-bottom:env(safe-area-inset-bottom)}
-  button{font-family:inherit;cursor:pointer}input,textarea,select{font-family:inherit;font-size:16px}textarea{resize:vertical}
-  .app{max-width:780px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
+  button{font-family:inherit;cursor:pointer}input,textarea,select{font-family:inherit;font-size:16px;max-width:100%}textarea{resize:vertical}
+  /* overflow-x:clip = filet anti-débordement horizontal (un enfant trop large ne peut plus
+     élargir la page ni créer de bande vide à droite sur iOS). 'clip' plutôt que 'hidden' :
+     ne crée PAS de conteneur de défilement -> l'en-tête sticky et les scrollers internes
+     (aperçu algorithme, barres de puces) continuent de fonctionner. */
+  .app{max-width:780px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;overflow-x:clip}
   header.bar{position:sticky;top:0;z-index:20;background:linear-gradient(180deg,var(--primary),var(--primary-dk));color:#eaf5f3;padding:calc(14px + env(safe-area-inset-top)) 18px 14px;display:flex;align-items:center;gap:14px;box-shadow:0 2px 12px rgba(10,74,70,.18)}
   .brand{display:flex;flex-direction:column;line-height:1.1;flex:1;min-width:0}
   .brand b{font-size:18px;letter-spacing:.2px;font-weight:650}
@@ -519,10 +523,10 @@
   .field .hint{font-weight:400;text-transform:none;letter-spacing:0;color:var(--ink-soft);font-size:12px}
   .field input[type=text],.field textarea,.field select{width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink)}
   .field input:focus,.field textarea:focus,.field select:focus{outline:2px solid var(--primary);border-color:transparent}
-  .row2{display:flex;gap:12px}.row2>.field{flex:1}
+  .row2{display:flex;gap:12px}.row2>.field{flex:1;min-width:0}
   /* Date de validation non interprétée : on signale (bordure rouge) sans bloquer la saisie. */
   #f-validation.val-bad{border-color:var(--critical);background:var(--critical-soft)}
-  .list-edit .li{display:flex;gap:8px;margin-bottom:8px;align-items:flex-start}.list-edit .li input{flex:1}
+  .list-edit .li{display:flex;gap:8px;margin-bottom:8px;align-items:flex-start}.list-edit .li input{flex:1;min-width:0}
   .li-num{font-family:var(--mono);font-size:13px;color:var(--ink-soft);min-width:22px;padding-top:12px;text-align:right}
   .mini{border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);width:34px;height:42px;border-radius:9px;font-size:16px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
   .mini:hover{background:#f3f6f5;color:var(--ink)}.mini.del:hover{color:var(--critical);border-color:#eecabe;background:var(--critical-soft)}
@@ -559,7 +563,7 @@
   .blk-top{display:flex;align-items:center;gap:8px;margin-bottom:11px}
   .blk-type{font-size:10.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;padding:3px 8px;border-radius:6px}
   .blk-type.steps{background:#e4ebe9;color:var(--ink)}.blk-type.decision{background:#efe7d2;color:var(--verify)}
-  .blk-top input{flex:1;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:#fff}
+  .blk-top input{flex:1;min-width:0;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:#fff}
   .blk .sub{font-size:11px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;color:var(--ink-soft);margin:12px 0 7px}
   .startbtn{border:1px solid var(--line);background:#fff;color:var(--ink-soft);border-radius:8px;padding:6px 11px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
   .startbtn.on{background:var(--primary);color:#fff;border-color:var(--primary)}
@@ -758,7 +762,7 @@
 
 /* PALETTE : couleurs proposées pour les catégories (hex sombres, lisibles
    en texte comme en pastille teintée). Index réutilisé cycliquement. */
-const APP_VERSION='3.0.0';
+const APP_VERSION='3.0.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 const PALETTE=['#b23052','#823a32','#b5532a','#a26a42','#8a6a12','#4f6b1e','#1f7a4d','#0d5b56','#007fb1','#45556b','#1f5fa6','#4b3fa6','#8869af','#7a2f6b','#ad5e7e'];
 /* ===== Backends (stockage LOCAL) =====
