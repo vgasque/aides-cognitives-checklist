@@ -222,6 +222,153 @@ begin
 end; $$;
 grant execute on function public.delete_my_account() to authenticated;
 
+-- ---------- 6bis. Validation des comptes par un super-admin (Lot 4) ---------
+-- Un compte reste "pending" (créé, e-mail vérifié par code OTP, mais pas encore
+-- utilisable dans le cloud) tant qu'un app-admin ne l'a pas approuvé. Tant que
+-- pending/rejected, l'espace PERSO n'est PAS synchronisable (RLS ci-dessous) :
+-- l'app continue de fonctionner en local (hors-ligne), exactement comme sans compte.
+create table if not exists public.user_status (
+  user_id    uuid primary key references auth.users on delete cascade,
+  email      text not null,
+  status     text not null default 'pending' check (status in ('pending','approved','rejected')),
+  created_at timestamptz not null default now(),
+  decided_at timestamptz,
+  decided_by uuid references auth.users
+);
+
+-- Peuplé automatiquement à chaque création de compte (1ère vérification OTP réussie
+-- -> insertion dans auth.users, capturée ici). SECURITY DEFINER : nécessaire pour
+-- qu'un trigger sur auth.users (schéma protégé) puisse écrire dans public.
+create or replace function public.handle_new_user()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  insert into public.user_status(user_id, email) values (new.id, new.email)
+    on conflict (user_id) do nothing;
+  return new;
+end;$$;
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created after insert on auth.users
+  for each row execute function public.handle_new_user();
+
+-- Migration : les comptes déjà existants (vous y compris, en tant qu'app-admin actuel)
+-- sont approuvés d'office -> aucun risque de vous retrouver bloqué en ré-exécutant ce script.
+insert into public.user_status(user_id, email, status, decided_at)
+  select id, email, 'approved', now() from auth.users
+  on conflict (user_id) do nothing;
+
+alter table public.user_status enable row level security;
+-- Chacun voit sa PROPRE ligne (pour connaître son statut) ; un app-admin voit tout.
+create policy user_status_select on public.user_status for select
+  using (user_id = auth.uid() or public.is_app_admin());
+-- Seul un app-admin peut changer le statut de quelqu'un (approuver/refuser).
+create policy user_status_write on public.user_status for update
+  using (public.is_app_admin())
+  with check (public.is_app_admin());
+grant select, update on public.user_status to authenticated;
+
+-- Interrupteur global (app-admin) : permet de désactiver entièrement l'exigence de validation
+-- (ex. usage solo, ou équipe de confiance où l'approbation manuelle est jugée superflue).
+-- Ligne UNIQUE (id toujours = true) ; accès UNIQUEMENT via les fonctions ci-dessous (comme
+-- app_admins : aucune politique ni grant sur la table elle-même -> invisible de l'API directe).
+create table if not exists public.app_settings (
+  id               boolean primary key default true check (id),
+  require_approval boolean not null default true
+);
+insert into public.app_settings(id, require_approval) values (true, true) on conflict (id) do nothing;
+alter table public.app_settings enable row level security;
+
+-- is_approved() : un app-admin est TOUJOURS considéré approuvé (garde-fou anti-blocage,
+-- même s'il a été promu admin après coup sans que sa ligne user_status ait été mise à jour).
+-- Si la validation est désactivée globalement (require_approval = false), tout le monde passe.
+create or replace function public.is_approved()
+returns boolean language sql stable security definer set search_path = public as $$
+  select public.is_app_admin()
+    or not coalesce((select require_approval from public.app_settings limit 1), true)
+    or exists (select 1 from public.user_status where user_id = auth.uid() and status = 'approved');
+$$;
+grant execute on function public.is_approved() to authenticated;
+
+-- Gate : l'espace PERSO (fiches + catégories) requiert l'approbation. Les bibliothèques
+-- partagées sont inchangées (déjà protégées par memberships, qu'un compte pending n'a pas).
+drop policy if exists fiches_perso on public.fiches;
+create policy fiches_perso on public.fiches for all
+  using      (library_id is null and owner = auth.uid() and public.is_approved())
+  with check (library_id is null and owner = auth.uid() and public.is_approved());
+drop policy if exists cats_perso on public.category_sets;
+create policy cats_perso on public.category_sets for all
+  using      (library_id is null and owner = auth.uid() and public.is_approved())
+  with check (library_id is null and owner = auth.uid() and public.is_approved());
+
+-- Statut du compte courant (le client l'appelle juste après la vérification OTP, puis à chaque
+-- synchro) : reflète EXACTEMENT is_approved() (si la validation est désactivée globalement, ou si
+-- aucune ligne n'existe -> 'approved', pour ne jamais afficher "en attente" à quelqu'un dont la
+-- synchro fonctionne déjà réellement).
+create or replace function public.my_status()
+returns text language sql stable security definer set search_path = public as $$
+  select case
+    when public.is_app_admin() then 'approved'
+    when not coalesce((select require_approval from public.app_settings limit 1), true) then 'approved'
+    else coalesce((select status from public.user_status where user_id = auth.uid()), 'approved')
+  end;
+$$;
+grant execute on function public.my_status() to authenticated;
+
+-- Lecture/écriture de l'interrupteur (écran « Comptes en attente »). Lecture ouverte à tout
+-- utilisateur connecté (ne révèle rien de sensible) ; écriture réservée à l'app-admin.
+create or replace function public.get_approval_required()
+returns boolean language sql stable security definer set search_path = public as $$
+  select coalesce((select require_approval from public.app_settings limit 1), true);
+$$;
+grant execute on function public.get_approval_required() to authenticated;
+
+create or replace function public.set_approval_required(p_value boolean)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if not public.is_app_admin() then raise exception 'not allowed'; end if;
+  update public.app_settings set require_approval = p_value where id = true;
+end;$$;
+grant execute on function public.set_approval_required(boolean) to authenticated;
+
+-- Comptes pending/rejected (app-admin uniquement ; vide sinon) -> écran « Comptes en attente ».
+create or replace function public.list_unapproved_users()
+returns table(user_id uuid, email text, status text, created_at timestamptz)
+language sql security definer set search_path = public as $$
+  select s.user_id, s.email, s.status, s.created_at from public.user_status s
+  where s.status in ('pending','rejected') and public.is_app_admin()
+  order by s.created_at;
+$$;
+grant execute on function public.list_unapproved_users() to authenticated;
+
+-- Approuver / refuser (app-admin uniquement). Un app-admin ne peut pas être rétrogradé
+-- par erreur (protège contre un clic malheureux sur son propre compte).
+create or replace function public.set_user_status(p_user uuid, p_status text)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if not public.is_app_admin() then raise exception 'not allowed'; end if;
+  if p_status not in ('pending','approved','rejected') then raise exception 'invalid status'; end if;
+  if p_status <> 'approved' and exists(select 1 from public.app_admins where user_id = p_user) then
+    raise exception 'cannot demote an app-admin';
+  end if;
+  update public.user_status set status = p_status, decided_at = now(), decided_by = auth.uid()
+    where user_id = p_user;
+end;$$;
+grant execute on function public.set_user_status(uuid, text) to authenticated;
+
+-- Supprime DÉFINITIVEMENT un compte REFUSÉ (app-admin uniquement) : donne une "2e chance" à la
+-- personne, qui pourra recréer un compte avec la même adresse e-mail (nouvelle demande, repartant
+-- de "pending" via le trigger on_auth_user_created). Restreint volontairement aux comptes rejected
+-- (pas pending/approved) -> pas d'usage détourné pour supprimer n'importe quel compte via cette RPC.
+create or replace function public.delete_rejected_user(p_user uuid)
+returns void language plpgsql security definer set search_path = public, auth as $$
+begin
+  if not public.is_app_admin() then raise exception 'not allowed'; end if;
+  if not exists(select 1 from public.user_status where user_id = p_user and status = 'rejected') then
+    raise exception 'user is not in rejected status';
+  end if;
+  delete from auth.users where id = p_user;   -- cascade -> user_status, memberships
+end;$$;
+grant execute on function public.delete_rejected_user(uuid) to authenticated;
+
 -- ---------- 6. Recharge du cache PostgREST ----------------------------------
 notify pgrst, 'reload schema';
 
@@ -231,4 +378,8 @@ notify pgrst, 'reload schema';
 --    2) puis exécutez, en remplaçant l'e-mail :
 --       insert into public.app_admins(user_id)
 --       select id from auth.users where email = 'vous@exemple.fr';
+--
+--  Comptes suivants : quiconque crée un compte reste "en attente" tant que vous
+--  ne l'approuvez pas depuis l'app (fenêtre Compte -> « Comptes en attente »,
+--  visible uniquement pour un app-admin).
 -- ============================================================================

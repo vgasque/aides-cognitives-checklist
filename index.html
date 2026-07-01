@@ -231,7 +231,7 @@
   html[data-theme="dark"] .toast{background:#05100e;border:1px solid var(--line)}
   html[data-theme="dark"] :is(.read-img,.thumb,.fiche-img) img{filter:brightness(.92)}
   /* Champs de saisie (éditeur) codés en dur en blanc -> fond sombre lisible. */
-  html[data-theme="dark"] :is(.blk-top input,.trow input[data-tf],.trow input[data-cf],.trow input[type=number],.tk-lab,.cat-row input.cn,.optedit input,.startbtn,.cat-row input,.trow input,.cm-name,.cm-add input){background:#0e1714;color:var(--ink);border-color:var(--line)}
+  html[data-theme="dark"] :is(.blk-top input,.trow input[data-tf],.trow input[data-cf],.trow input[type=number],.tk-lab,.tk-time-edit,.cat-row input.cn,.optedit input,.startbtn,.cat-row input,.trow input,.cm-name,.cm-add input){background:#0e1714;color:var(--ink);border-color:var(--line)}
   /* Pastilles de catégorie NON colorées (Aucune/Gérer) -> fond sombre ; les colorées gardent leur teinte. */
   html[data-theme="dark"] .catpill:not(.colored){background:#0e1714;color:var(--ink);border-color:var(--line)}
   html[data-theme="dark"] .cm-del{background:#0e1714;border-color:var(--line)}
@@ -248,7 +248,9 @@
   html[data-theme="dark"] :is(.h-confirm .sec-badge,.h-img .sec-badge){background:#16302c}
   html[data-theme="dark"] .h-main .sec-badge{background:var(--surface);box-shadow:inset 0 0 0 1px #2c4a44}
   html[data-theme="dark"] .sync-chip.busy{background:#2f2a18;color:#e0b048}
-  html[data-theme="dark"] .sync-chip.err{background:#3a201a;color:#ff8a70}
+  html[data-theme="dark"] .sync-chip.err,html[data-theme="dark"] .sync-chip.rejected{background:#3a201a;color:#ff8a70}
+  html[data-theme="dark"] .sync-chip.pending{background:#2f2a18;color:#e0b048}
+  html[data-theme="dark"] .notice.sync-pending{color:var(--verify);border-color:#4a3f1e}
   /* Étiquettes de type de bloc/minuteur (Étapes/Décision/Chrono/Cycle) : fonds clairs -> sombres. */
   html[data-theme="dark"] .blk-type.steps{background:#23302c}
   html[data-theme="dark"] .blk-type.decision{background:#33301f}
@@ -289,7 +291,11 @@
   .bar-act:hover{background:rgba(255,255,255,.24)}
   main{flex:1;padding:18px}
   .notice{background:var(--verify-soft);border:1px solid #ecdcb4;color:#6b4d12;border-radius:10px;padding:10px 13px;font-size:12.5px;margin-bottom:16px;display:flex;gap:9px;align-items:flex-start}
+  .notice[hidden]{display:none} /* le display:flex ci-dessus prime sinon sur [hidden] (même origine auteur) */
   .notice svg{flex-shrink:0;margin-top:1px}
+  .notice.sync-err{background:#f6e1e1;border-color:#e8c3c3;color:#8a3020;cursor:pointer}
+  html[data-theme="dark"] .notice.sync-err{background:#3a201a;border-color:#5a3428;color:#ff8a70}
+  .notice.sync-pending{cursor:pointer}
   .lib-top{display:flex;gap:10px;margin-bottom:14px}
   .search{flex:1;position:relative;display:flex;align-items:center}
   .search svg{position:absolute;left:12px;color:var(--ink-soft);pointer-events:none}
@@ -468,8 +474,16 @@
   .tk-head b{color:var(--ink-soft);font-size:11px;letter-spacing:1px;text-transform:uppercase;flex:1}
   .tk-add{background:var(--primary);color:#fff;border:0;border-radius:9px;padding:8px 13px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
   .tk-add:hover{background:var(--primary-dk)}
-  .tk-row{display:flex;gap:9px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
-  .tk-time{font-family:var(--mono);font-size:14px;color:var(--ink);white-space:nowrap}
+  .tk-item{border-top:1px solid var(--line)}
+  .tk-row{display:flex;gap:9px;align-items:center;padding:8px 0}
+  .tk-item .tk-row{padding-bottom:0}
+  .tk-item:has(.tk-orig-row) .tk-row{padding-bottom:2px}
+  .tk-time{font-family:var(--mono);font-size:14px;color:var(--ink);white-space:nowrap;cursor:pointer;border-radius:6px;padding:2px 5px;margin:-2px 0}
+  .tk-time:hover{background:var(--primary-soft)}
+  .tk-time-edit{font-family:var(--mono);font-size:14px;width:76px;flex-shrink:0;padding:2px 5px;border:1px solid var(--primary);border-radius:6px;background:#fff;color:var(--ink)}
+  .tk-orig-row{font-size:11px;color:var(--ink-soft);padding:0 0 8px;display:flex;align-items:center;gap:7px}
+  .tk-orig{background:none;border:0;color:var(--ink-soft);font-size:11px;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+  .tk-orig:hover{color:var(--primary)}
   .tk-el{font-family:var(--mono);font-size:11px;color:var(--ink-soft);white-space:nowrap;min-width:46px}
   .tk-lab{flex:1;min-width:0;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font-size:14px}
   .tk-lab:focus{outline:2px solid var(--primary);border-color:transparent}
@@ -603,7 +617,9 @@
   .sync-chip.off{color:var(--ink-soft);background:var(--primary-soft)}
   .sync-chip.ok{color:var(--primary);background:var(--primary-soft)}
   .sync-chip.busy{color:#8a6a12;background:#f6efd6}
-  .sync-chip.err{color:var(--verify);background:#f6e1e1}
+  .sync-chip.err{color:var(--verify);background:#f6e1e1;cursor:pointer}
+  .sync-chip.pending{color:var(--verify);background:var(--verify-soft);cursor:pointer}
+  .sync-chip.rejected{color:var(--critical);background:var(--critical-soft);cursor:pointer}
   .auth-field{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;font-size:16px;margin:6px 0}
   .auth-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:6px}
   .auth-msg{font-size:13px;margin:8px 0 0;min-height:18px}
@@ -616,6 +632,11 @@
   .auth-email{font-size:15px;font-weight:650;color:var(--ink);word-break:break-all;line-height:1.3}
   .auth-state{font-size:12.5px;color:var(--primary);display:flex;align-items:center;gap:6px;margin-top:3px}
   .auth-state .auth-dot{width:8px;height:8px;border-radius:50%;background:#37c98e;flex:none}
+  .auth-state.pending{color:var(--verify)}.auth-state.pending .auth-dot{background:var(--verify)}
+  .auth-state.err{color:var(--critical)}.auth-state.err .auth-dot{background:var(--critical)}
+  .pend-badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;margin-left:6px}
+  .pend-badge.pending{color:var(--verify);background:var(--verify-soft)}
+  .pend-badge.rejected{color:var(--critical);background:var(--critical-soft)}
   .auth-sub{font-size:13.5px;color:var(--ink-soft);line-height:1.55;margin:12px 0 18px}
   .auth-actions{display:flex;flex-direction:column;gap:9px}
   .auth-actions .btn{width:100%;justify-content:center}
@@ -741,9 +762,21 @@
   <div class="ai-top"><h3>Où sont enregistrées vos fiches ?</h3><button class="ai-x" id="storageX" aria-label="Fermer">×</button></div>
   <div id="storageBody"></div>
 </div></div>
+<div class="ai-modal" id="syncErrModal"><div class="ai-card">
+  <div class="ai-top"><h3>Erreur de synchronisation</h3><button class="ai-x" id="syncErrX" aria-label="Fermer">×</button></div>
+  <div id="syncErrBody"></div>
+</div></div>
 <div class="ai-modal" id="membersModal"><div class="ai-card">
   <div class="ai-top"><h3>Gérer la bibliothèque</h3><button class="ai-x" id="membersX" aria-label="Fermer">×</button></div>
   <div id="membersBody"></div>
+</div></div>
+<div class="ai-modal" id="newLibModal"><div class="ai-card">
+  <div class="ai-top"><h3>Créer une bibliothèque</h3><button class="ai-x" id="newLibX" aria-label="Fermer">×</button></div>
+  <div id="newLibBody"></div>
+</div></div>
+<div class="ai-modal" id="pendingModal"><div class="ai-card">
+  <div class="ai-top"><h3>Comptes en attente</h3><button class="ai-x" id="pendingX" aria-label="Fermer">×</button></div>
+  <div id="pendingBody"></div>
 </div></div>
 <div class="ai-modal" id="versModal"><div class="ai-card">
   <div class="ai-top"><h3>Versions précédentes</h3><button class="ai-x" id="versX" aria-label="Fermer">×</button></div>
@@ -838,7 +871,9 @@ let Data=KV;
 let fiches=[],categories=[],sessions=[];
 // Bibliothèques partagées dont l'utilisateur est membre : [{id,name,role}]. myIsAppAdmin = peut créer
 // des bibliothèques. state.scope = bibliothèque affichée : null = Perso, sinon id de bibliothèque partagée.
-let myLibraries=[],myIsAppAdmin=false;
+// myAccountStatus : 'pending'/'approved'/'rejected'/null (null = déconnecté ou pas encore vérifié).
+// myPendingCount : nombre de comptes en attente (app-admin uniquement, rafraîchi à chaque synchro).
+let myLibraries=[],myIsAppAdmin=false,myAccountStatus=null,myPendingCount=0;
 let state={view:'library',id:null,q:'',cat:'',scope:null,draft:null,fiche:null,nav:[],navSeq:[],navPos:0,checked:{},catMgr:false,showFlow:false,showSess:false};
 // Rôle/édition par bibliothèque. Perso (libraryId vide) = toujours éditable. Bibliothèque partagée : éditable
 // si role editor/admin. (La RLS reste l'arbitre côté serveur ; ceci n'est que l'ergonomie.)
@@ -969,6 +1004,7 @@ const catOf=f=>categories.find(c=>c.id===f.category)||null;
 const catName=f=>{const c=catOf(f);return c?c.name:'';};
 function catTag(f){const c=catOf(f);if(!c)return '';const col=safeColor(c.color);return `<span class="tag cat" style="--c:${col}">${esc(c.name)}</span>`;}
 const fmtMs=ms=>{ms=Math.max(0,Math.floor(ms/1000));const m=Math.floor(ms/60),s=ms%60;return (m<10?'0':'')+m+':'+(s<10?'0':'')+s;};
+const fmtHMS=t=>{const d=new Date(t);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+':'+String(d.getSeconds()).padStart(2,'0');};
 
 /* ===== Modèle =====
    blankFiche()  : fiche vierge (1 bloc d'étapes) pour une création.
@@ -1100,7 +1136,7 @@ async function updateStorageInfo(){
       main='<b>Sur cet appareil uniquement</b> · '+used+' · copie unique';
       tip='Sans compte, cet appareil contient votre SEULE copie ('+used+' / '+fmt(est.quota)+'), ici à l\'abri d\'un effacement automatique du navigateur. Connectez-vous pour la sauvegarder dans le cloud et y accéder depuis vos autres appareils.';
     }else{
-      main='<span class="pers-warn">⚠ <b>Sur cet appareil seulement</b> · '+used+' · non protégé</span> — connectez-vous';
+      main='<span class="pers-warn">⚠ <b>Stockage sur cet appareil seulement</b> · '+used+' · non protégé</span> — connectez-vous';
       tip='Sans compte, cet appareil contient votre SEULE copie ('+used+' / '+fmt(est.quota)+') et le navigateur pourrait l\'effacer. Pour éviter toute perte : connectez-vous (sauvegarde dans le cloud) ou installez l\'app sur l\'écran d\'accueil.';
     }
     if(est.quota&&est.usage/est.quota>0.85)main+=' · <span class="pers-warn">⚠ appareil presque plein</span>';
@@ -1342,6 +1378,7 @@ function renderLibrary(){
   main.innerHTML=`
     ${scopeBar}
     ${liveHtml}
+    <div class="notice" id="syncErrNotice" hidden></div>
     ${(!state.scope&&!noticeHidden())?`<div class="notice"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01" stroke-linecap="round"/></svg><div>Vous êtes l'auteur et le responsable du contenu. Validez chaque fiche et tenez la date à jour.</div><button class="notice-x" id="noticeX" aria-label="Masquer">×</button></div>`:''}
     <div class="lib-top"><div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg><input id="q" placeholder="Rechercher…" value="${esc(state.q)}"></div>
       ${canEditScope(state.scope)?`<button class="btn-new" id="newBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Créer</button>`:''}</div>
@@ -1355,12 +1392,13 @@ function renderLibrary(){
   document.getElementById('q').addEventListener('input',e=>{state.q=e.target.value;const pos=e.target.selectionStart;renderLibrary();const inp=document.getElementById('q');inp.focus();inp.setSelectionRange(pos,pos);});
   {const nb=document.getElementById('newBtn');if(nb)nb.onclick=newFiche;}
   {const nx=document.getElementById('noticeX');if(nx)nx.onclick=()=>{try{localStorage.setItem('ac-notice-hidden','1');}catch(e){}renderLibrary();};}
+  updateSyncBanner();
   // Recliquer la catégorie déjà sélectionnée la dé-sélectionne (revient à « Toutes »).
   main.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{const c=b.dataset.cat;state.cat=(c&&state.cat===c)?'':c;renderLibrary();});
   {const cmc=document.getElementById('catMgrChip');if(cmc)cmc.onclick=openCatMgr;}
   // Changer de bibliothèque (incrémente son compteur d'usage) / en créer une (app-admin).
   main.querySelectorAll('[data-scope]').forEach(b=>b.onclick=()=>{state.scope=b.dataset.scope||null;bumpLibUsage(b.dataset.scope);state.cat='';renderLibrary();});
-  const nlb=document.getElementById('newLibBtn');if(nlb)nlb.onclick=createLibrary;
+  const nlb=document.getElementById('newLibBtn');if(nlb)nlb.onclick=openNewLib;
   const mb=document.getElementById('membersBtn');if(mb)mb.onclick=()=>openMembers(state.scope);
   main.querySelectorAll('[data-openlive]').forEach(el=>{el.onclick=()=>openRead(el.dataset.openlive);el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openRead(el.dataset.openlive);}};});
   main.querySelectorAll('[data-endlive]').forEach(b=>b.onclick=()=>{const id=b.dataset.endlive,R=liveSessions[id];if(R&&confirm('Terminer la session ? Les minuteurs s’arrêtent ; la session est conservée dans l’historique.')){endSession(R);if(Runtime.ficheId===id)resetRuntime();renderLibrary();}});
@@ -1695,9 +1733,14 @@ function runtimePanel(f){const tl=Object.values(Runtime.timers);const cl=f.count
 /* timekeeperPanel : journal d'horodatage. Bouton « Horodater » -> ajoute un repère à l'heure
    courante avec un libellé automatique ("Action N"), renommable à tout moment (même a
    posteriori en reprenant une session). Chaque ligne montre l'heure (HH:MM:SS) et le délai
-   écoulé depuis le 1er repère. Persisté dans la session (Runtime.events / session.events). */
+   écoulé depuis le 1er repère. Persisté dans la session (Runtime.events / session.events).
+   L'heure est CORRIGEABLE (clic dessus) pour rattraper un clic tardif : correction NON
+   DESTRUCTIVE -> la toute première heure enregistrée (e.origT) reste affichée et un bouton
+   permet d'y revenir, plutôt que de la faire disparaître silencieusement. */
 function timekeeperPanel(){const ev=Runtime.events||[];const t0=ev.length?ev[0].t:0;
-  const rows=ev.length?ev.map(e=>{const d=new Date(e.t);const hh=String(d.getHours()).padStart(2,'0'),mm=String(d.getMinutes()).padStart(2,'0'),ss=String(d.getSeconds()).padStart(2,'0');const el=e.t>t0?'+'+fmtMs(e.t-t0):'—';return `<div class="tk-row"><span class="tk-time">${hh}:${mm}:${ss}</span><span class="tk-el">${el}</span><input class="tk-lab" data-tklab="${e.id}" value="${esc(e.label||'')}" placeholder="Libellé…"><button class="tk-del" data-tkdel="${e.id}" aria-label="Supprimer">×</button></div>`;}).join(''):'';
+  const rows=ev.length?ev.map(e=>{const diff=e.t-t0;const el=diff===0?'—':(diff>0?'+':'−')+fmtMs(Math.abs(diff));
+    const origRow=(typeof e.origT==='number')?`<div class="tk-orig-row">à l'origine ${fmtHMS(e.origT)}<button class="tk-orig" data-tkrevert="${e.id}">↺ revenir</button></div>`:'';
+    return `<div class="tk-item"><div class="tk-row"><span class="tk-time" data-tktime="${e.id}" role="button" tabindex="0" title="Cliquer pour corriger l'heure">${fmtHMS(e.t)}</span><span class="tk-el">${el}</span><input class="tk-lab" data-tklab="${e.id}" value="${esc(e.label||'')}" placeholder="Libellé…"><button class="tk-del" data-tkdel="${e.id}" aria-label="Supprimer">×</button></div>${origRow}</div>`;}).join(''):'';
   // Outil SECONDAIRE : compact tant qu'on n'a rien noté (juste le bouton). « Journal des actions » =
   // suite horodatée des gestes clés (pour la traçabilité / le compte-rendu après coup).
   return `<div class="tk-panel${ev.length?'':' empty'}"><div class="tk-head"><b>Journal des actions</b><button class="tk-add" id="tkAdd">⏱ Noter l’heure</button></div>${rows}</div>`;}
@@ -1799,6 +1842,26 @@ function renderRead(){
   const tkA=document.getElementById('tkAdd');if(tkA)tkA.onclick=()=>{Runtime.events=Runtime.events||[];Runtime.events.push({id:uid('e'),t:Date.now(),label:'Action '+(Runtime.events.length+1)});ensureStarted();persistLive(Runtime);render();};
   main.querySelectorAll('[data-tklab]').forEach(inp=>inp.addEventListener('input',e=>{const ev=(Runtime.events||[]).find(x=>x.id===e.target.dataset.tklab);if(ev){ev.label=e.target.value;persistLive(Runtime);}}));
   main.querySelectorAll('[data-tkdel]').forEach(b=>b.onclick=()=>{Runtime.events=(Runtime.events||[]).filter(x=>x.id!==b.dataset.tkdel);persistLive(Runtime);render();});
+  // Correction d'heure NON DESTRUCTIVE : la 1ère valeur (avant toute correction) est conservée dans
+  // e.origT (jamais écrasée par une correction suivante) et reste visible + réversible (↺ revenir).
+  main.querySelectorAll('[data-tktime]').forEach(span=>span.onclick=()=>{
+    const ev=(Runtime.events||[]).find(x=>x.id===span.dataset.tktime);if(!ev)return;
+    const inp=document.createElement('input');inp.className='tk-time-edit';inp.inputMode='numeric';inp.value=fmtHMS(ev.t);
+    span.replaceWith(inp);inp.focus();inp.select();
+    const commit=()=>{const m=(inp.value||'').trim().match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+      if(m){const h=Math.min(23,parseInt(m[1],10)),mi=Math.min(59,parseInt(m[2],10)),s=Math.min(59,parseInt(m[3]||'0',10));
+        const base=new Date(ev.t);base.setHours(h,mi,s,0);
+        if(typeof ev.origT!=='number')ev.origT=ev.t;
+        ev.t=base.getTime();
+        Runtime.events.sort((a,b)=>a.t-b.t);
+        persistLive(Runtime);}
+      render();};
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();inp.blur();}
+      else if(e.key==='Escape'){e.preventDefault();inp.removeEventListener('blur',commit);render();}});
+    inp.addEventListener('blur',commit);});
+  main.querySelectorAll('[data-tkrevert]').forEach(b=>b.onclick=()=>{
+    const ev=(Runtime.events||[]).find(x=>x.id===b.dataset.tkrevert);if(!ev||typeof ev.origT!=='number')return;
+    ev.t=ev.origT;delete ev.origT;Runtime.events.sort((a,b)=>a.t-b.t);persistLive(Runtime);render();});
   // sessions : Enregistrer (nommer) / Réinitialiser / Terminer / Historique
   const es=document.getElementById('endSess');if(es)es.onclick=endCurrentSession;
   const tg=document.getElementById('toggleSess');if(tg)tg.onclick=()=>{state.showSess=!state.showSess;render();};
@@ -2204,6 +2267,10 @@ document.getElementById('importFile').onchange=e=>{const file=e.target.files[0];
     const replace=clashes?confirm(clashes+' fiche(s) déjà présente(s) (même identifiant).\n\nOK = remplacer la version existante par celle importée.\nAnnuler = importer en double (garder les deux).'):false;
     const added=[];
     for(let d of imp.fiches){d=migrate(d);
+      // Référence de catégorie orpheline (id absent du fichier importé ET de la bibliothèque locale) :
+      // on la vide plutôt que de laisser migrateCategories() la transformer en catégorie fantôme
+      // (elle traiterait alors l'id brut comme un nom de catégorie lisible).
+      if(d.category&&!categories.some(c=>c.id===d.category))d.category='';
       if(d.id&&existing.has(d.id)&&replace){if(await persist(d)){const i=fiches.findIndex(x=>x.id===d.id);if(i>=0)fiches[i]=d;else fiches.push(d);added.push(d.id);}}
       else{if(!d.id||existing.has(d.id))d.id=uid();existing.add(d.id);if(await persist(d)){fiches.push(d);added.push(d.id);}}}
     // Depuis la fenêtre IA : on ouvre directement la fiche importée plutôt que la bibliothèque.
@@ -2246,9 +2313,35 @@ function setSyncChip(state,text){
   const dot=document.getElementById('acctDot'),top=document.getElementById('acctTop');
   if(dot){dot.hidden=!Auth.signedIn();dot.className='acct-dot '+(state||'ok');}
   if(top)top.classList.toggle('on',Auth.signedIn());
-  const chip=document.getElementById('syncChip');if(!chip)return;
-  if(!Auth.signedIn()){chip.hidden=true;return;}
-  chip.hidden=false;chip.className='sync-chip '+(state||'ok');chip.textContent=text||'Connecté';}
+  const chip=document.getElementById('syncChip');if(!chip){updateSyncBanner();return;}
+  if(!Auth.signedIn()){chip.hidden=true;updateSyncBanner();return;}
+  chip.hidden=false;chip.className='sync-chip '+(state||'ok');chip.textContent=text||'Connecté';
+  const clickable=state==='err'||state==='pending'||state==='rejected';
+  chip.onclick=clickable?(state==='err'?openSyncErr:openAuth):null;
+  chip.title=state==='err'?"Cliquer pour voir le détail de l'erreur":(clickable?"Cliquer pour plus d'informations":'');
+  updateSyncBanner();}
+// Bandeau (page d'accueil UNIQUEMENT, cf. renderLibrary) qui reprend l'état de la pastille de
+// synchro mais en beaucoup plus court : juste le titre, pas le paragraphe d'explication (réservé à
+// la fenêtre ouverte au clic). Se (dé)affiche tout seul au même rythme que la pastille ; n'existe
+// dans le DOM que sur la bibliothèque -> jamais affiché en lecture/édition (app pleinement utilisable
+// pendant qu'une synchro est en échec/relance/attente d'approbation).
+function updateSyncBanner(){
+  const el=document.getElementById('syncErrNotice');if(!el)return;
+  const chip=document.getElementById('syncChip');
+  const st=(!chip||chip.hidden)?null:(chip.classList.contains('err')?'err':chip.classList.contains('pending')?'pending':chip.classList.contains('rejected')?'rejected':null);
+  if(!st){el.hidden=true;return;}
+  el.hidden=false;
+  if(st==='err'){
+    const err=Sync.lastError||{icon:SYNC_ERR_ICONS.warning,title:'Erreur de synchronisation'};
+    el.className='notice sync-err';el.onclick=openSyncErr;
+    el.innerHTML=`${err.icon}<div><b>Erreur de synchronisation</b> — ${esc(err.title)} · Nouvelle tentative automatique en cours</div>`;
+  }else if(st==='pending'){
+    el.className='notice sync-pending';el.onclick=openAuth;
+    el.innerHTML=`${SYNC_ERR_ICONS.lock}<div><b>Compte en attente de validation</b> — vos fiches restent sur cet appareil en attendant</div>`;
+  }else{
+    el.className='notice sync-err';el.onclick=openAuth;
+    el.innerHTML=`${SYNC_ERR_ICONS.forbidden}<div><b>Demande de compte refusée</b> — vos fiches restent sur cet appareil</div>`;
+  }}
 // État local de la fenêtre Compte (étape e-mail -> code).
 let _authStep={mode:'email',email:'',msg:'',msgcls:''};let _authDelete=false;
 // Efface TOUTES les données locales de cet appareil (IndexedDB + clés de synchro). Irréversible.
@@ -2261,7 +2354,7 @@ async function wipeLocal(){
 }
 function renderAuth(){const body=document.getElementById('authBody');if(!body)return;
   if(Auth.signedIn()){const u=Auth.user()||{};
-    const doSignOut=async()=>{await Auth.signOut();myLibraries=[];myIsAppAdmin=false;state.scope=null;_authDelete=false;_authStep={mode:'email',email:'',msg:'',msgcls:''};renderAuth();setSyncChip();if(state.view==='library')renderLibrary();};
+    const doSignOut=async()=>{await Auth.signOut();myLibraries=[];myIsAppAdmin=false;myAccountStatus=null;myPendingCount=0;state.scope=null;_authDelete=false;_authStep={mode:'email',email:'',msg:'',msgcls:''};renderAuth();setSyncChip();if(state.view==='library')renderLibrary();};
     if(_authDelete){
       body.innerHTML=`<div class="auth-del"><div class="auth-hero-ic danger"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 16H3z"/><path d="M12 9v5M12 17h.01"/></svg></div>
         <h4>Supprimer le compte ?</h4>
@@ -2277,20 +2370,35 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
       delGo.onclick=async()=>{if(delGo.disabled)return;const wipe=body.querySelector('#delLocal').checked;
         if(!confirm('Supprimer DÉFINITIVEMENT votre compte'+(wipe?' et les données de cet appareil':'')+' ? Cette action est irréversible.'))return;
         const setM=(t,c)=>{const e=document.getElementById('delMsg');if(e){e.textContent=t;e.className='auth-msg '+(c||'');}};setM('Suppression…','');
-        try{await Auth.deleteAccount();await Auth.signOut();myLibraries=[];myIsAppAdmin=false;state.scope=null;
+        try{await Auth.deleteAccount();await Auth.signOut();myLibraries=[];myIsAppAdmin=false;myAccountStatus=null;myPendingCount=0;state.scope=null;
           if(wipe){await wipeLocal();location.reload();return;}
           _authDelete=false;_authStep={mode:'email',email:'',msg:'',msgcls:''};renderAuth();setSyncChip();if(state.view==='library')renderLibrary();toast('Votre compte a été supprimé.');
         }catch(e){setM('Échec de la suppression : '+e.message,'err');}};
       return;}
     const ini=((u.email||'?').trim()[0]||'?').toUpperCase();
+    // Compte pas encore (ou plus) approuvé : e-mail vérifié (code OTP passé) mais synchro bloquée
+    // côté serveur (RLS) tant qu'un app-admin n'a pas tranché. Voir aussi updateSyncBanner()/setSyncChip
+    // (même statut affiché en bandeau + pastille pied de page).
+    if(myAccountStatus==='pending'||myAccountStatus==='rejected'){
+      const rejected=myAccountStatus==='rejected';
+      body.innerHTML=`<div class="auth-card-in"><div class="auth-avatar">${esc(ini)}</div><div class="auth-id"><div class="auth-email">${esc(u.email||'')}</div><div class="auth-state ${rejected?'err':'pending'}"><span class="auth-dot"></span>${rejected?'Demande refusée':'En attente de validation'}</div></div></div>
+        <p class="auth-sub">${rejected?"Votre demande de compte a été refusée par un administrateur. Vous pouvez supprimer cette demande ci-dessous, ou réessayer avec une autre adresse e-mail.":"Votre e-mail est vérifié. Un administrateur doit maintenant approuver votre compte avant que vos fiches ne soient synchronisées dans le cloud. En attendant, l'app reste pleinement utilisable en local, sur cet appareil."}</p>
+        <div class="auth-actions"><button class="btn primary" id="authRecheck">Vérifier maintenant</button><button class="btn" id="authSwitch">Changer de compte</button><button class="btn" id="authOut">Se déconnecter</button></div>
+        <button class="auth-danger" id="authDelete">Supprimer cette demande de compte</button>`;
+      body.querySelector('#authRecheck').onclick=async()=>{const b=body.querySelector('#authRecheck');b.disabled=true;b.textContent='Vérification…';await refreshAccountStatus();renderAuth();setSyncChip();if(myAccountStatus==='approved')Sync.full();};
+      body.querySelector('#authSwitch').onclick=async()=>{await doSignOut();};
+      body.querySelector('#authOut').onclick=async()=>{if(!confirm('Se déconnecter ?'))return;await doSignOut();};
+      {const ad=body.querySelector('#authDelete');if(ad)ad.onclick=()=>{_authDelete=true;renderAuth();};}
+      return;}
     body.innerHTML=`<div class="auth-card-in"><div class="auth-avatar">${esc(ini)}</div><div class="auth-id"><div class="auth-email">${esc(u.email||'')}</div><div class="auth-state"><span class="auth-dot"></span>Synchronisation active</div></div></div>
       <p class="auth-sub">Votre bibliothèque personnelle est sauvegardée et accessible sur tous vos appareils connectés à ce compte.</p>
-      <div class="auth-actions"><button class="btn primary" id="authSync">Synchroniser maintenant</button><button class="btn" id="authSwitch">Changer de compte</button><button class="btn" id="authOut">Se déconnecter</button></div>
+      <div class="auth-actions"><button class="btn primary" id="authSync">Synchroniser maintenant</button><button class="btn" id="authSwitch">Changer de compte</button><button class="btn" id="authOut">Se déconnecter</button>${myIsAppAdmin?`<button class="btn" id="authPending">Comptes en attente${myPendingCount?' ('+myPendingCount+')':''}</button>`:''}</div>
       ${myIsAppAdmin?'<p class="auth-admin-note">Compte administrateur : la suppression se fait depuis le tableau de bord Supabase (garde-fou).</p>':'<button class="auth-danger" id="authDelete">Supprimer mon compte et mes données</button>'}`;
     body.querySelector('#authSync').onclick=()=>{Sync.full();closeAuth();};
     body.querySelector('#authSwitch').onclick=async()=>{await doSignOut();}; // déconnecte et revient à l'écran de connexion (fenêtre ouverte)
     body.querySelector('#authOut').onclick=async()=>{if(!confirm('Se déconnecter ? Vos fiches restent disponibles localement sur cet appareil.'))return;await doSignOut();};
     {const ad=body.querySelector('#authDelete');if(ad)ad.onclick=()=>{_authDelete=true;renderAuth();};}
+    {const ap=body.querySelector('#authPending');if(ap)ap.onclick=()=>{closeAuth();openPending();};}
     return;}
   if(_authStep.mode==='email'){
     body.innerHTML=`<div class="auth-hero"><div class="auth-hero-ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3.5 6.5l8.5 6 8.5-6"/></svg></div><h4>Connexion</h4><p class="auth-sub">Recevez un code par e-mail pour vous connecter ou créer votre compte.</p></div>
@@ -2314,11 +2422,13 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
     const v=body.querySelector('#authVerify');
     v.onclick=async()=>{const code=(body.querySelector('#authCode').value||'').replace(/\D/g,'');if(!code){_authStep.msg='Saisissez le code reçu.';_authStep.msgcls='err';return renderAuth();}
       _authStep.msg='Vérification…';_authStep.msgcls='';renderAuth();
-      try{await Auth.verifyCode(_authStep.email,code);_authStep.msg='';renderAuth();setSyncChip();if(typeof Sync!=='undefined')Sync.full();}
+      try{await Auth.verifyCode(_authStep.email,code);_authStep.msg='';await refreshAccountStatus();renderAuth();setSyncChip();if(typeof Sync!=='undefined')Sync.full();}
       catch(e){_authStep.msg='Code invalide ou expiré.';_authStep.msgcls='err';renderAuth();}};
   }}
 const authModal=document.getElementById('authModal');
-function openAuth(){_authDelete=false;authModal.classList.add('on');renderAuth();}
+function openAuth(){_authDelete=false;authModal.classList.add('on');renderAuth();
+  if(Auth.signedIn())refreshAccountStatus().then(renderAuth); // rafraîchit un statut potentiellement périmé, sans bloquer l'ouverture
+}
 function closeAuth(){authModal.classList.remove('on');}
 document.getElementById('acctTop').onclick=openAuth;
 document.getElementById('authX').onclick=closeAuth;
@@ -2345,6 +2455,21 @@ function openStorageInfo(){renderStorageInfo();storageModal.classList.add('on');
 function closeStorageInfo(){storageModal.classList.remove('on');}
 document.getElementById('storageX').onclick=closeStorageInfo;
 storageModal.onclick=e=>{if(e.target===storageModal)closeStorageInfo();};
+// Fenêtre ouverte au clic sur la pastille « Erreur de synchro » : explique la cause précise
+// (voir explainSyncError) plutôt qu'un message générique, + bouton pour relancer sans attendre le backoff.
+const syncErrModal=document.getElementById('syncErrModal');
+function renderSyncErr(){const body=document.getElementById('syncErrBody');if(!body)return;
+  const err=Sync.lastError||{icon:SYNC_ERR_ICONS.unknown,title:'Erreur inconnue',detail:'Aucun détail disponible.'};
+  const when=Sync.lastErrorAt?new Date(Sync.lastErrorAt).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):'';
+  body.innerHTML=`<p class="auth-sub" style="margin-top:0;font-size:15px;display:flex;align-items:center;gap:7px">${err.icon} <b>${esc(err.title)}</b></p>
+    <p>${esc(err.detail)}</p>
+    ${when?`<p class="ai-note">Dernier échec : ${when}${Sync._retryTimer?' · nouvelle tentative automatique en cours' : ''}</p>`:''}
+    <div class="ai-actions"><button class="btn primary sm" id="syncErrRetry">Réessayer maintenant</button></div>`;
+  const b=body.querySelector('#syncErrRetry');if(b)b.onclick=()=>{closeSyncErr();Sync.full();};}
+function openSyncErr(){renderSyncErr();syncErrModal.classList.add('on');}
+function closeSyncErr(){syncErrModal.classList.remove('on');}
+document.getElementById('syncErrX').onclick=closeSyncErr;
+syncErrModal.onclick=e=>{if(e.target===syncErrModal)closeSyncErr();};
 {const si=document.getElementById('storageInfo');if(si){si.style.cursor='pointer';si.setAttribute('role','button');si.setAttribute('tabindex','0');si.onclick=openStorageInfo;si.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openStorageInfo();}};}}
 
 Auth._load();setSyncChip();
@@ -2388,26 +2513,72 @@ function toast(msg,ms){const t=document.createElement('div');t.className='toast'
   requestAnimationFrame(()=>t.classList.add('on'));setTimeout(()=>{t.classList.remove('on');setTimeout(()=>t.remove(),300);},ms||4500);}
 function notifyConflicts(list){if(!list.length)return;
   toast('⚠ '+list.length+' fiche'+(list.length>1?'s':'')+' modifiée'+(list.length>1?'s':'')+' sur un autre appareil. Version la plus récente appliquée ; votre version précédente est conservée (bouton « Versions » dans la fiche).',9000);}
+// Traduit l'erreur brute d'une synchro échouée en message compréhensible pour un soignant non
+// informaticien (fenêtre ouverte au clic sur la pastille « Erreur de synchro »). Un statut HTTP
+// absent (ex. TypeError "Failed to fetch") = la requête n'a même pas atteint le serveur -> réseau.
+// Petits pictos SVG (pas d'emoji, cohérents avec le reste de l'UI : trait, viewBox 24, currentColor)
+// selon la nature de l'erreur de synchro. Un seul dessin par famille -> repérage visuel rapide.
+const SYNC_ERR_ICONS={
+  lock:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>',
+  forbidden:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M6 6l12 12"/></svg>',
+  image:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.4"/><path d="M21 15l-5-5-4 4-3-3-6 6"/></svg>',
+  warning:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5l9.5 16.5H2.5L12 3.5z"/><path d="M12 10v4"/><path d="M12 17h.01"/></svg>',
+  server:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="6" rx="1.5"/><rect x="4" y="14" width="16" height="6" rx="1.5"/><path d="M7.5 7h.01M7.5 17h.01"/></svg>',
+  offline:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 9.5a11 11 0 0115 0"/><path d="M7.5 12.8a7 7 0 019 0"/><path d="M10.5 16a3 3 0 013 0"/><path d="M12 19h.01"/><path d="M3 3l18 18"/></svg>',
+  unknown:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.2 9.5a2.8 2.8 0 015.4 1c0 1.8-2.6 2-2.6 4"/><path d="M12 17h.01"/></svg>'};
+function explainSyncError(e){const msg=String((e&&e.message)||e||'');const m=msg.match(/^REST (\d+)/);const status=m?parseInt(m[1],10):null;
+  if(status===401)return{icon:SYNC_ERR_ICONS.lock,title:'Session expirée',detail:'Votre connexion au compte a expiré. Reconnectez-vous depuis la fenêtre « Compte » pour reprendre la synchronisation.'};
+  if(status===403)return{icon:SYNC_ERR_ICONS.forbidden,title:'Accès refusé',detail:"Vous n'avez plus les droits nécessaires sur une bibliothèque partagée (rôle modifié ou accès retiré par un administrateur). Les fiches concernées ne se synchronisent plus ; le reste de votre bibliothèque continue normalement."};
+  if(status===413)return{icon:SYNC_ERR_ICONS.image,title:'Fiche trop volumineuse',detail:"Une fiche contient des images trop lourdes pour être envoyées. Réduisez ou supprimez des images dans cette fiche, puis réessayez."};
+  if(status===409)return{icon:SYNC_ERR_ICONS.warning,title:'Conflit de données',detail:"Une incohérence a été détectée en enregistrant vos données. Nouvelle tentative automatique en cours ; si le problème persiste, exportez vos fiches par sécurité (bouton « Exporter tout »)."};
+  if(status>=500)return{icon:SYNC_ERR_ICONS.server,title:'Service indisponible',detail:"Le service de synchronisation rencontre un problème de son côté (indépendant de votre appareil ou de votre connexion). Nouvelle tentative automatique en cours."};
+  // Pas de statut HTTP identifié : soit la requête n'a jamais atteint le serveur (vraie panne réseau,
+  // typiquement une TypeError "Failed to fetch"/"NetworkError"/"Load failed"), soit une erreur
+  // inattendue ailleurs (ex. IndexedDB). On ne parle de "réseau" que si ça y ressemble vraiment,
+  // pour ne pas égarer l'utilisateur sur un problème sans rapport avec la connexion.
+  if(!status&&((e instanceof TypeError)||/fetch|network|internet|load failed/i.test(msg)))
+    return{icon:SYNC_ERR_ICONS.offline,title:'Serveur injoignable',detail:"La connexion Internet semble fonctionner, mais le service de synchronisation n'a pas répondu (réseau instable, Wi-Fi d'hôtel/hôpital filtrant, coupure temporaire...). Nouvelle tentative automatique en cours ; vos modifications restent sur cet appareil en attendant."};
+  return{icon:SYNC_ERR_ICONS.unknown,title:'Erreur inattendue',detail:'Détail technique : '+msg.slice(0,200)};}
+// Statut d'approbation du compte courant (voir RPC my_status() côté serveur, seule autorité réelle —
+// la RLS bloque de toute façon l'espace perso tant que non approuvé). En cas d'échec réseau on GARDE
+// le dernier statut connu (pas de fausse alerte hors-ligne) ; la tentative de synchro suivante tranchera.
+async function refreshAccountStatus(){
+  if(!Auth.signedIn()){myAccountStatus=null;return;}
+  try{myAccountStatus=await rest('POST','/rest/v1/rpc/my_status',{});}catch(e){}}
 const Sync={
-  running:false,_pt:null,_cursorKey:'ac-sync-cursor',
+  running:false,_pt:null,_cursorKey:'ac-sync-cursor',_retryTimer:null,_retryDelay:0,lastError:null,lastErrorAt:0,
   online(){return navigator.onLine!==false;},
   // Débounce : regroupe les écritures rapprochées en une seule synchro.
   schedule(){if(!Auth.signedIn())return;clearTimeout(this._pt);this._pt=setTimeout(()=>this.full(),900);},
   async full(){
     if(!Auth.signedIn()||!this.online()||this.running){if(!this.online())setSyncChip('off','Hors-ligne');return;}
+    clearTimeout(this._retryTimer);
     this.running=true;setSyncChip('busy','Synchro en cours');
     try{await Auth.ensureFresh();
+      await refreshAccountStatus();
+      // Compte pas encore approuvé : on n'attaque même pas les autres appels (la RLS les
+      // refuserait de toute façon). Pas de relance automatique ici -> seul un admin ou un nouveau
+      // passage au premier plan (visibilitychange -> schedule()) redéclenchera une vérification.
+      if(myAccountStatus==='pending'){setSyncChip('pending','En attente de validation');return;}
+      if(myAccountStatus==='rejected'){setSyncChip('rejected','Compte refusé');return;}
       await this.loadProfile();
       await this._initIfNeeded();
       const conflicts=await this._pull();
       await this._push();
       await this._reconcileShared();
       await this._syncCats();
+      this._retryDelay=0;
       setSyncChip('ok','Synchronisé');
       notifyConflicts(conflicts);
-    }catch(e){setSyncChip('err','Erreur de synchro');}
+    }catch(e){this.lastError=explainSyncError(e);this.lastErrorAt=Date.now();setSyncChip('err','Erreur de synchro');this._scheduleRetry();}
     finally{this.running=false;}
   },
+  // Nouvelle tentative après échec (backoff : 5s, 10s, 20s... plafonné à 2 min). Annulée si une
+  // synchro réussit ou redémarre entretemps (schedule()/full()) ; sans effet si repassé hors-ligne
+  // (l'écoute 'online' reprend alors la main immédiatement).
+  _scheduleRetry(){clearTimeout(this._retryTimer);
+    this._retryDelay=Math.min(this._retryDelay?this._retryDelay*2:5000,120000);
+    this._retryTimer=setTimeout(()=>{if(this.online())this.full();},this._retryDelay);},
   // Première synchro pour ce compte : si le cloud est VIDE, on téléverse la bibliothèque locale
   // existante (on la marque `dirty`). S'il contient déjà des données, on n'écrase rien (on adopte
   // le cloud ; le PULL apportera tout). Évite de polluer le cloud avec la fiche d'exemple.
@@ -2488,17 +2659,11 @@ const Sync={
       myLibraries=Object.values(by).sort((a,b)=>String(a.name).localeCompare(String(b.name)));
     }catch(e){myLibraries=[];}
     try{myIsAppAdmin=(await rest('POST','/rest/v1/rpc/is_app_admin',{}))===true;}catch(e){myIsAppAdmin=false;}
+    // Nombre de comptes en attente : app-admin uniquement (visible sur le bouton « Comptes en attente »).
+    if(myIsAppAdmin){try{myPendingCount=(await rest('POST','/rest/v1/rpc/list_unapproved_users',{})||[]).filter(u=>u.status==='pending').length;}catch(e){myPendingCount=0;}}
+    else myPendingCount=0;
     if(state.view==='library')renderLibrary();}
 };
-// Création d'une bibliothèque partagée (app-admin uniquement ; la RLS rejette sinon).
-async function createLibrary(){
-  if(!myIsAppAdmin){alert('Seul un administrateur peut créer une bibliothèque.');return;}
-  const name=(prompt('Nom de la nouvelle bibliothèque partagée :')||'').trim();if(!name)return;
-  const id='lib-'+(catSlug(name).slice(0,32)||'x')+'-'+Math.random().toString(36).slice(2,6);
-  try{await rest('POST','/rest/v1/libraries',[{id:id,name:name}],{'Prefer':'return=minimal'});
-    await Sync.loadProfile();           // le trigger m'a ajouté comme admin -> apparaît dans la liste
-    state.scope=id;renderLibrary();toast('Bibliothèque « '+name+' » créée.');
-  }catch(e){alert('Création impossible : '+e.message);}}
 // Déclencheurs de synchro : retour en ligne, retour au premier plan.
 window.addEventListener('online',()=>{setSyncChip('ok','Synchronisé');Sync.full();});
 window.addEventListener('offline',()=>setSyncChip('off','Hors-ligne'));
@@ -2591,6 +2756,66 @@ async function renderMembers(){const body=document.getElementById('membersBody')
     catch(e){alert('Suppression impossible : '+e.message);}};}
 document.getElementById('membersX').onclick=closeMembers;
 membersModal.onclick=e=>{if(e.target===membersModal)closeMembers();};
+// Fenêtre "Créer une bibliothèque" (app-admin uniquement ; la RLS rejette sinon si contournée) :
+// même gabarit que les autres fenêtres (.ai-modal/.ai-card), remplace l'ancien prompt() natif.
+// Explique d'abord ce qu'est une bibliothèque avant de demander un nom.
+const newLibModal=document.getElementById('newLibModal');
+function renderNewLib(){const body=document.getElementById('newLibBody');if(!body)return;
+  body.innerHTML=`<p class="auth-sub" style="margin-top:0">Une <b>bibliothèque</b> est un espace partagé : les fiches qu'elle contient sont accessibles aux membres que vous y invitez (rôle lecteur, éditeur ou admin), pour travailler à plusieurs sur les mêmes aides cognitives — une équipe, un service...</p>
+    <input class="auth-field" id="newLibName" maxlength="60" placeholder="Nom de la bibliothèque (ex. Réanimation, SMUR…)">
+    <p class="auth-msg" id="newLibMsg"></p>
+    <div class="ai-actions"><button class="btn primary sm" id="newLibOk">Créer</button></div>`;
+  const inp=body.querySelector('#newLibName');inp.focus();
+  const setMsg=(t,c)=>{const e=document.getElementById('newLibMsg');if(e){e.textContent=t;e.className='auth-msg '+(c||'');}};
+  const submit=async()=>{
+    const name=(inp.value||'').trim();if(!name){setMsg('Donnez un nom à la bibliothèque.','err');return;}
+    const btn=document.getElementById('newLibOk');btn.disabled=true;setMsg('Création…','');
+    const id='lib-'+(catSlug(name).slice(0,32)||'x')+'-'+Math.random().toString(36).slice(2,6);
+    try{await rest('POST','/rest/v1/libraries',[{id:id,name:name}],{'Prefer':'return=minimal'});
+      await Sync.loadProfile();           // le trigger m'a ajouté comme admin -> apparaît dans la liste
+      closeNewLib();state.scope=id;renderLibrary();toast('Bibliothèque « '+name+' » créée.');
+    }catch(e){btn.disabled=false;setMsg('Création impossible : '+e.message,'err');}};
+  document.getElementById('newLibOk').onclick=submit;
+  inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();submit();}};}
+function openNewLib(){
+  if(!myIsAppAdmin){alert('Seul un administrateur peut créer une bibliothèque.');return;}
+  renderNewLib();newLibModal.classList.add('on');}
+function closeNewLib(){newLibModal.classList.remove('on');}
+document.getElementById('newLibX').onclick=closeNewLib;
+newLibModal.onclick=e=>{if(e.target===newLibModal)closeNewLib();};
+// Fenêtre "Comptes en attente" (app-admin uniquement ; visible depuis la fenêtre Compte). Liste les
+// comptes ayant vérifié leur e-mail (code OTP) mais pas encore approuvés (pending) ou refusés
+// (rejected, pour pouvoir revenir dessus). Approuver/refuser = RPC set_user_status (RLS : app-admin
+// uniquement, et ne peut jamais rétrograder un app-admin — voir schema.sql).
+const pendingModal=document.getElementById('pendingModal');
+async function renderPending(){const body=document.getElementById('pendingBody');if(!body)return;
+  body.innerHTML='<p class="auth-msg">Chargement…</p>';
+  let list=[],required=true;
+  try{const r=await Promise.all([rest('POST','/rest/v1/rpc/list_unapproved_users',{}),rest('POST','/rest/v1/rpc/get_approval_required',{})]);list=r[0]||[];required=r[1]!==false;}
+  catch(e){body.innerHTML='<p class="auth-msg err">Erreur de chargement.</p>';return;}
+  body.innerHTML=`<label class="auth-check pend-toggle"><input type="checkbox" id="pendToggle"${required?' checked':''}><span>Exiger une validation pour les nouveaux comptes</span></label>
+    <p class="ai-note" style="margin:-4px 0 16px">${required?"Chaque nouveau compte reste « en attente » jusqu'à votre approbation ci-dessous.":"Désactivé : les nouveaux comptes sont approuvés automatiquement, sans validation de votre part."}</p>
+    ${list.length?`<p class="auth-sub" style="margin-top:0">Ces comptes ont vérifié leur e-mail (code reçu)${required?' mais attendent votre approbation pour synchroniser leurs fiches dans le cloud':''}.</p>
+    <div class="mem-list">${list.map(u=>`<div class="mem-row"><div class="mem-avatar">${esc(memIni(u.email))}</div><div class="mem-info"><span class="mem-email">${esc(u.email)}</span><span class="pend-badge ${u.status}">${u.status==='rejected'?'Refusé':'En attente'}</span></div><div class="mem-act">${u.status==='rejected'?`<button class="btn sm primary" data-approve="${esc(u.user_id)}">Approuver</button><button class="btn sm ghost-danger" data-delete="${esc(u.user_id)}" title="Supprimer la demande pour laisser une 2e chance">Supprimer</button>`:`<button class="btn sm primary" data-approve="${esc(u.user_id)}">Approuver</button><button class="mini del" data-reject="${esc(u.user_id)}" title="Refuser">×</button>`}</div></div>`).join('')}</div>`
+    :'<p class="auth-msg" style="text-align:center">Aucun compte en attente.</p>'}`;
+  document.getElementById('pendToggle').onchange=async e=>{const val=e.target.checked;
+    try{await rest('POST','/rest/v1/rpc/set_approval_required',{p_value:val});await renderPending();toast(val?'Validation des nouveaux comptes réactivée.':'Validation désactivée : les nouveaux comptes seront approuvés automatiquement.');}
+    catch(err){e.target.checked=!val;alert('Échec : '+err.message);}};
+  body.querySelectorAll('[data-approve]').forEach(b=>b.onclick=async()=>{
+    try{await rest('POST','/rest/v1/rpc/set_user_status',{p_user:b.dataset.approve,p_status:'approved'});await renderPending();await Sync.loadProfile();toast('Compte approuvé.');}
+    catch(e){alert('Échec : '+e.message);}});
+  body.querySelectorAll('[data-reject]').forEach(b=>b.onclick=async()=>{
+    if(!confirm('Refuser ce compte ?'))return;
+    try{await rest('POST','/rest/v1/rpc/set_user_status',{p_user:b.dataset.reject,p_status:'rejected'});await renderPending();await Sync.loadProfile();}
+    catch(e){alert('Échec : '+e.message);}});
+  body.querySelectorAll('[data-delete]').forEach(b=>b.onclick=async()=>{
+    if(!confirm("Supprimer définitivement ce compte refusé ? La personne pourra recréer un compte avec cette adresse e-mail (nouvelle demande à valider)."))return;
+    try{await rest('POST','/rest/v1/rpc/delete_rejected_user',{p_user:b.dataset.delete});await renderPending();toast('Compte supprimé.');}
+    catch(e){alert('Échec : '+e.message);}});}
+async function openPending(){pendingModal.classList.add('on');await renderPending();}
+function closePending(){pendingModal.classList.remove('on');}
+document.getElementById('pendingX').onclick=closePending;
+pendingModal.onclick=e=>{if(e.target===pendingModal)closePending();};
 
 /* ===== PWA =====
    Enregistre le service worker (cache hors ligne) si disponible. Capte
