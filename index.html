@@ -418,6 +418,9 @@
   .opt:hover{background:#fff;border-color:var(--verify)}.opt .arr{margin-left:auto;color:var(--verify)}
   .opt[disabled]{opacity:.55;cursor:default}.opt.taken{opacity:1;background:var(--primary-soft);border-left-color:var(--primary)}.opt.taken .arr{color:var(--primary)}
   .flow-ctrl{display:flex;gap:9px;margin-top:14px;flex-wrap:wrap}
+  /* Navigation en mode crise (Continuer / Précédent / Recommencer…) : cible tactile confortable (>= 44px).
+     Sélecteur .btn.sm (spécificité supérieure) pour l'emporter sur la règle .btn.sm générique. */
+  .flow-ctrl .btn.sm,.flow-ctrl .btn{min-height:44px}
   .endcap{font-size:13px;color:var(--ink-soft);font-style:italic;margin-top:12px}
   .node-img{width:100%;border-radius:10px;border:1px solid var(--line);margin-bottom:14px;cursor:zoom-in;display:block}
   .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
@@ -585,7 +588,7 @@
   .optedit input{flex:1;min-width:0;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:#fff}.optedit select{flex:1;min-width:0}
   .imgrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.imgrow img{height:54px;border-radius:8px;border:1px solid var(--line)}
   .add-blocks{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:6px}
-  .btn{padding:11px 17px;border-radius:11px;font-size:14px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ink);transition:background .12s,border-color .12s,box-shadow .12s,transform .06s}
+  .btn{padding:11px 17px;border-radius:11px;font-size:14px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ink);transition:background .12s,border-color .12s,box-shadow .12s,transform .06s;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px}
   .btn:active{transform:translateY(1px)}
   .btn:hover{background:#f3f6f5;border-color:#c9d3d0}.btn.primary{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 1px 2px rgba(10,74,70,.2),0 4px 12px rgba(10,74,70,.16)}.btn.primary:hover{background:var(--primary-dk);border-color:var(--primary-dk)}
   .btn.danger{color:var(--critical);border-color:#eecabe}.btn.danger:hover{background:var(--critical-soft)}
@@ -597,7 +600,7 @@
   .tm-reset .tmr-hint{font-size:8.5px;font-weight:700;opacity:.65;text-transform:uppercase;letter-spacing:.5px;margin-top:1px}
   .tm-reset.holding{background-color:rgba(255,255,255,.12);background-image:linear-gradient(rgba(217,102,58,.6),rgba(217,102,58,.6));background-repeat:no-repeat;background-size:0% 100%;animation:holdfill .8s linear forwards}
   @keyframes holdfill{to{background-size:100% 100%}}
-  .btn.sm{padding:8px 13px;font-size:13px}.btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .btn.sm{padding:8px 13px;font-size:13px;min-height:38px}.btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .editor-foot{display:flex;gap:10px;margin-top:8px;flex-wrap:wrap}.editor-foot .spacer{flex:1}
   .back{background:var(--surface);border:1px solid var(--line);color:var(--primary);font-size:13.5px;font-weight:600;padding:8px 14px 8px 11px;margin-bottom:14px;border-radius:10px;display:inline-flex;align-items:center;gap:6px}.back:hover{background:var(--primary-soft);border-color:var(--primary-soft);color:var(--primary-dk)}
   .create-band{background:var(--primary-soft);border:1px solid #bfe0da;border-radius:12px;padding:14px 15px;margin-bottom:18px}
@@ -741,8 +744,8 @@
 <div id="alerts"></div>
 <div id="flowFull"><div class="ff-bar"><button class="fz" data-zoomf="out" aria-label="Dézoomer">−</button><span class="fzv">100%</span><button class="fz" data-zoomf="in" aria-label="Zoomer">+</button><button class="fz fz-r" data-zoomf="reset">Réinit.</button><span class="fz-spc"></span><button class="fz fz-r" id="ffClose">Fermer ✕</button></div><div class="ff-scroll"></div></div>
 <div class="lightbox" id="lightbox"><button class="x" id="lbX">×</button><img id="lbImg" alt=""><div class="cap" id="lbCap"></div></div>
-<div class="ai-modal" id="aiModal"><div class="ai-card">
-  <div class="ai-top"><h3>Créer une fiche avec une IA</h3><button class="ai-x" id="aiX" aria-label="Fermer">×</button></div>
+<div class="ai-modal" id="aiModal" role="dialog" aria-modal="true" aria-labelledby="aiModalTitle"><div class="ai-card">
+  <div class="ai-top"><h3 id="aiModalTitle">Créer une fiche avec une IA</h3><button class="ai-x" id="aiX" aria-label="Fermer">×</button></div>
   <p>Copiez le texte ci-dessous dans une IA (ChatGPT, Claude…) <b>en y joignant votre source</b> : un PDF, une image/capture, ou le texte d'une recommandation. L'IA renverra un fichier JSON.</p>
   <textarea class="ai-ta" id="aiTa" readonly spellcheck="false"></textarea>
   <div class="ai-actions"><button class="btn primary sm" id="aiCopy">Copier le prompt</button></div>
@@ -751,36 +754,36 @@
   <div class="ai-actions"><button class="btn primary sm" id="aiImport"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M7 8l5-5 5 5M5 17v2a2 2 0 002 2h10a2 2 0 002-2v-2"/></svg>Importer le fichier créé par l'IA</button></div>
   <p class="ai-note">Une fois les instructions ci-dessus suivies, importez ici le fichier <b>.json</b> : la fiche s'ouvrira directement.</p>
 </div></div>
-<div class="ai-modal" id="catModal"><div class="ai-card">
-  <div class="ai-top"><h3>Gérer les catégories</h3><button class="ai-x" id="catX" aria-label="Fermer">×</button></div>
+<div class="ai-modal" id="catModal" role="dialog" aria-modal="true" aria-labelledby="catModalTitle"><div class="ai-card">
+  <div class="ai-top"><h3 id="catModalTitle">Gérer les catégories</h3><button class="ai-x" id="catX" aria-label="Fermer">×</button></div>
   <div id="catMgrBody"></div>
 </div></div>
-<div class="ai-modal" id="authModal"><div class="ai-card">
-  <div class="ai-top"><h3>Compte &amp; synchronisation</h3><button class="ai-x" id="authX" aria-label="Fermer">×</button></div>
+<div class="ai-modal" id="authModal" role="dialog" aria-modal="true" aria-labelledby="authModalTitle"><div class="ai-card">
+  <div class="ai-top"><h3 id="authModalTitle">Compte &amp; synchronisation</h3><button class="ai-x" id="authX" aria-label="Fermer">×</button></div>
   <div id="authBody"></div>
 </div></div>
-<div class="ai-modal" id="storageModal"><div class="ai-card">
-  <div class="ai-top"><h3>Où sont enregistrées vos fiches ?</h3><button class="ai-x" id="storageX" aria-label="Fermer">×</button></div>
+<div class="ai-modal" id="storageModal" role="dialog" aria-modal="true" aria-labelledby="storageModalTitle"><div class="ai-card">
+  <div class="ai-top"><h3 id="storageModalTitle">Où sont enregistrées vos fiches ?</h3><button class="ai-x" id="storageX" aria-label="Fermer">×</button></div>
   <div id="storageBody"></div>
 </div></div>
-<div class="ai-modal" id="syncErrModal"><div class="ai-card">
-  <div class="ai-top"><h3>Erreur de synchronisation</h3><button class="ai-x" id="syncErrX" aria-label="Fermer">×</button></div>
+<div class="ai-modal" id="syncErrModal" role="dialog" aria-modal="true" aria-labelledby="syncErrModalTitle"><div class="ai-card">
+  <div class="ai-top"><h3 id="syncErrModalTitle">Erreur de synchronisation</h3><button class="ai-x" id="syncErrX" aria-label="Fermer">×</button></div>
   <div id="syncErrBody"></div>
 </div></div>
-<div class="ai-modal" id="membersModal"><div class="ai-card">
-  <div class="ai-top"><h3>Gérer la bibliothèque</h3><button class="ai-x" id="membersX" aria-label="Fermer">×</button></div>
+<div class="ai-modal" id="membersModal" role="dialog" aria-modal="true" aria-labelledby="membersModalTitle"><div class="ai-card">
+  <div class="ai-top"><h3 id="membersModalTitle">Gérer la bibliothèque</h3><button class="ai-x" id="membersX" aria-label="Fermer">×</button></div>
   <div id="membersBody"></div>
 </div></div>
-<div class="ai-modal" id="newLibModal"><div class="ai-card">
-  <div class="ai-top"><h3>Créer une bibliothèque</h3><button class="ai-x" id="newLibX" aria-label="Fermer">×</button></div>
+<div class="ai-modal" id="newLibModal" role="dialog" aria-modal="true" aria-labelledby="newLibModalTitle"><div class="ai-card">
+  <div class="ai-top"><h3 id="newLibModalTitle">Créer une bibliothèque</h3><button class="ai-x" id="newLibX" aria-label="Fermer">×</button></div>
   <div id="newLibBody"></div>
 </div></div>
-<div class="ai-modal" id="pendingModal"><div class="ai-card">
-  <div class="ai-top"><h3>Comptes en attente</h3><button class="ai-x" id="pendingX" aria-label="Fermer">×</button></div>
+<div class="ai-modal" id="pendingModal" role="dialog" aria-modal="true" aria-labelledby="pendingModalTitle"><div class="ai-card">
+  <div class="ai-top"><h3 id="pendingModalTitle">Comptes en attente</h3><button class="ai-x" id="pendingX" aria-label="Fermer">×</button></div>
   <div id="pendingBody"></div>
 </div></div>
-<div class="ai-modal" id="versModal"><div class="ai-card">
-  <div class="ai-top"><h3>Versions précédentes</h3><button class="ai-x" id="versX" aria-label="Fermer">×</button></div>
+<div class="ai-modal" id="versModal" role="dialog" aria-modal="true" aria-labelledby="versModalTitle"><div class="ai-card">
+  <div class="ai-top"><h3 id="versModalTitle">Versions précédentes</h3><button class="ai-x" id="versX" aria-label="Fermer">×</button></div>
   <div id="versBody"></div>
   <p class="ai-note">Sauvegardes locales créées avant qu'une version venue d'un autre appareil ne remplace la vôtre. Restaurer remplace la fiche actuelle par la version choisie.</p>
 </div></div>
@@ -796,9 +799,15 @@
 
 /* PALETTE : couleurs proposées pour les catégories (hex sombres, lisibles
    en texte comme en pastille teintée). Index réutilisé cycliquement. */
-const APP_VERSION='3.0.3';
+// IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
+const APP_VERSION='3.0.4';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
-const PALETTE=['#b23052','#823a32','#b5532a','#a26a42','#8a6a12','#4f6b1e','#1f7a4d','#0d5b56','#007fb1','#45556b','#1f5fa6','#4b3fa6','#8869af','#7a2f6b','#ad5e7e'];
+// Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
+// évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
+const LIB_PAGE=60;
+// Palette de catégories : chaque teinte respecte WCAG AA (contraste >= 4.5:1) aussi bien
+// en pastille (texte de couleur sur fond teinté à 15 %) qu'en chip sélectionnée (texte blanc).
+const PALETTE=['#b23052','#823a32','#a54c26','#8d5c39','#806311','#4f6b1e','#1d7449','#0d5b56','#006d98','#45556b','#1f5fa6','#4b3fa6','#755a96','#7a2f6b','#95516c'];
 /* ===== Backends (stockage LOCAL) =====
    Trois implémentations interchangeables exposant la MÊME interface.
    `Data` (plus bas) pointera vers celle retenue par chooseBackend().
@@ -878,7 +887,7 @@ let myLibraries=[],myIsAppAdmin=false,myAccountStatus=null,myPendingCount=0;
 // Remet à zéro tout l'état lié au compte cloud (déconnexion, suppression de compte) : jamais partiel,
 // pour ne pas laisser un rôle/statut périmé traîner après un changement de compte.
 function resetAuthState(){myLibraries=[];myIsAppAdmin=false;myAccountStatus=null;myPendingCount=0;state.scope=null;}
-let state={view:'library',id:null,q:'',cat:'',scope:null,draft:null,fiche:null,nav:[],navSeq:[],navPos:0,checked:{},catMgr:false,showFlow:false,showSess:false};
+let state={view:'library',id:null,q:'',cat:'',scope:null,draft:null,fiche:null,nav:[],navSeq:[],navPos:0,checked:{},catMgr:false,showFlow:false,showSess:false,libLimit:LIB_PAGE};
 // Rôle/édition par bibliothèque. Perso (libraryId vide) = toujours éditable. Bibliothèque partagée : éditable
 // si role editor/admin. (La RLS reste l'arbitre côté serveur ; ceci n'est que l'ergonomie.)
 function roleOf(libId){const l=myLibraries.find(x=>x.id===libId);return l?l.role:null;}
@@ -1083,6 +1092,25 @@ function seed(catId){const b1=uid('b'),b2=uid('b'),b3=uid('b'),bd=uid('b');
       {id:b2,type:'steps',title:'Stabilisé',image:null,steps:['Surveillance rapprochée','Tracer doses et horaires','Bilan allergologique'],next:null},
       {id:b3,type:'steps',title:'Choc réfractaire',image:null,steps:['Adrénaline en perfusion continue','Renforcer le remplissage','2ᵉ vasopresseur','Renfort réanimation'],next:null}
     ]});}
+// Deuxième fiche d'exemple : arrêt cardiaque. Illustre une DÉCISION rebouclée (le rythme est
+// réévalué à chaque cycle) et un minuteur À CYCLE de 2 min (RCP). À relire/valider avant tout usage.
+function seed2(catId){const b1=uid('b'),bd=uid('b'),b2=uid('b'),b3=uid('b');
+  return migrate({id:uid(),title:'Arrêt cardiaque (ACR) — algorithme',category:catId||'',validation:'2025-01',
+    localInfo:'Réanimateur / renfort : …\nEmplacement défibrillateur : …\n(adaptez à votre établissement)',
+    confirmation:['Inconscient, ne réagit pas','Pas de respiration normale (ou gasps)','Pas de pouls central en 10 s'],
+    verify:['Chariot d’urgence + défibrillateur','Plan dur sous le thorax','Désigner un meneur et un lecteur'],
+    notForget:['MCE de qualité : 100–120/min, 5–6 cm, relâchement complet','Minimiser les interruptions (< 10 s)','Rechercher les causes réversibles (4H / 4T)'],
+    differentials:['4H : Hypoxie, Hypovolémie, Hypo/Hyperkaliémie, Hypothermie','4T : Thrombose (coronaire/pulmonaire), pneumoThorax, Tamponnade, Toxiques'],
+    references:['Exemple à compléter — recommandations ERC/ILCOR en vigueur'],images:[],
+    timers:[{id:uid('t'),label:'Temps écoulé',type:'stopwatch'},{id:uid('t'),label:'Cycle RCP (2 min)',type:'interval',seconds:120,autoloop:true}],
+    counters:[{id:uid('n'),label:'Chocs délivrés',step:1,start:0},{id:uid('n'),label:'Adrénaline (mg)',step:1,start:0}],
+    start:b1,
+    blocks:[
+      {id:b1,type:'steps',title:'Reconnaissance & alerte',image:null,steps:['Vérifier conscience et respiration','Alerter, appeler du renfort + défibrillateur','Débuter la RCP 30:2 sans délai'],next:bd},
+      {id:bd,type:'decision',title:'Analyse du rythme',image:null,question:'Rythme choquable (FV / TV sans pouls) ?',options:[{label:'Oui — choquable',target:b2},{label:'Non — non choquable',target:b3}]},
+      {id:b2,type:'steps',title:'Choquable (FV / TVsp)',image:null,steps:['Choc immédiat, puis reprise RCP 2 min','Adrénaline 1 mg après le 3ᵉ choc, puis /3–5 min','Amiodarone 300 mg après le 3ᵉ choc'],next:bd},
+      {id:b3,type:'steps',title:'Non choquable (AESP / asystolie)',image:null,steps:['RCP 2 min sans interruption','Adrénaline 1 mg immédiatement, puis /3–5 min','Traiter les causes réversibles (4H / 4T)'],next:bd}
+    ]});}
 // Identifiant de catégorie DÉTERMINISTE, dérivé du nom : deux appareils qui créent « Anesthésie »
 // obtiennent le MÊME id -> les fiches conservent leur catégorie après synchro. (Avec des ids
 // aléatoires, les jeux de catégories divergeaient entre appareils et la catégorie « disparaissait ».)
@@ -1100,7 +1128,7 @@ async function remapCatsDeterministic(){const map={};const byNew={};const kept=[
   if(!Object.keys(map).length)return;
   const changed=[];fiches.forEach(f=>{if(f.category&&map[f.category]){f.category=map[f.category];changed.push(f);}});
   await saveCats(null);for(const f of changed)await persist(f);}
-function defaultCats(){return[['Anesthésie','#0d5b56'],['Cardiologie','#b23052'],['Pédiatrie','#1f7a4d'],['Réanimation','#007fb1'],['Régulation','#4b3fa6'],['SMUR','#b5532a'],['SSE','#8a6a12'],['Urgences','#1f5fa6']].map(([name,color])=>({id:detCatId(name),name,color,libraryId:null}));}
+function defaultCats(){return[['Anesthésie','#0d5b56'],['Cardiologie','#b23052'],['Pédiatrie','#1d7449'],['Réanimation','#006d98'],['Régulation','#4b3fa6'],['SMUR','#a54c26'],['SSE','#806311'],['Urgences','#1f5fa6']].map(([name,color])=>({id:detCatId(name),name,color,libraryId:null}));}
 function migrateCategories(){const changed=[];const byName={};categories.forEach(c=>byName[c.name.toLowerCase()]=c.id);let pi=categories.length;
   fiches.forEach(f=>{const cv=f.category;if(!cv)return;if(categories.some(c=>c.id===cv))return;const name=String(cv).trim();if(!name){f.category='';changed.push(f);return;}
     let id=byName[name.toLowerCase()];if(!id){id=newCatId(name,null);categories.push({id,name,color:PALETTE[pi++%PALETTE.length],libraryId:null});byName[name.toLowerCase()]=id;}f.category=id;changed.push(f);});return changed;}
@@ -1156,7 +1184,7 @@ async function load(){
   fiches=(await Data.getAll()).map(migrate).filter(f=>!f.deletedAt);
   sessions=(await Data.getSessions())||[];
   if(!categories.length){categories=defaultCats();await Data.setCats(categories);}
-  if(!fiches.length){const f=seed(categories[0]?categories[0].id:'');fiches=[f];await Data.put(f);}
+  if(!fiches.length){const catAna=(categories.find(c=>c.name==='Anesthésie')||categories[0]||{}).id||'';const catRea=(categories.find(c=>c.name==='Réanimation')||{}).id||catAna;fiches=[seed(catAna),seed2(catRea)];for(const x of fiches)await Data.put(x);}
   await remapCatsDeterministic(); // ids de catégories déterministes (cohérence multi-appareils)
   const ch=migrateCategories();if(ch.length){await Data.setCats(categories);for(const f of ch)await Data.put(f);}
   restoreLiveSessions();
@@ -1177,7 +1205,7 @@ async function saveCats(scope){try{await Data.setCats(categories);}catch(e){}
   const sk=(scope===undefined?activeCatScope():scope)||'';
   try{localStorage.setItem('ac-cats-updated:'+sk,String(Date.now()));localStorage.setItem('ac-cats-dirty:'+sk,'1');}catch(e){}
   if(typeof Sync!=='undefined')Sync.schedule();}
-async function persist(f){try{f.updatedAt=Date.now();f.dirty=true;await Data.put(f);updateStorageInfo();if(typeof Sync!=='undefined')Sync.schedule();return true;}catch(e){alert('Stockage saturé. Exportez vos fiches puis allégez les images.');return false;}}
+async function persist(f){try{f.updatedAt=Date.now();f.dirty=true;await Data.put(f);updateStorageInfo();if(typeof Sync!=='undefined')Sync.schedule();return true;}catch(e){toast('⚠ Stockage saturé. Exportez vos fiches puis allégez les images.',9000);return false;}}
 // Suppression : DOUCE (tombstone) si connecté -> propage l'effacement aux autres appareils, purgée
 // localement une fois poussée (Sync._push). Si DÉCONNECTÉ : suppression DURE (aucun cloud à informer
 // -> pas de tombstone inutile qui encombrerait le stockage hors-ligne ; comportement identique à avant).
@@ -1300,10 +1328,11 @@ function tickAll(){const now=Date.now();let fired=null;
   if(fired)persistLive(fired,true);
   if(state.view==='read'&&Runtime.fiche)refreshTimersDOM(now);}
 function refreshTimersDOM(now){now=now||Date.now();
-  Object.values(Runtime.timers).forEach(t=>{const v=document.getElementById('tmval-'+t.id);if(!v)return;syncTimerBtns(t);
+  Object.values(Runtime.timers).forEach(t=>{const v=document.getElementById('tmval-'+t.id);if(!v)return;syncTimerBtns(t);const lbl=esc(t.label)||(t.type==='interval'?'Minuteur':'Chronomètre');
     if(t.type==='stopwatch'){v.textContent=fmtMs(t.elapsedMs+(t.running?(now-t.lastStart):0));}
     else{const per=t.seconds*1000||0;const within=t.elapsedMs+(t.running?(now-t.lastStart):0);v.textContent=fmtMs(Math.max(0,per-within));
-      const c=document.getElementById('tmcyc-'+t.id);if(c)c.textContent='Cycles : '+t.cycles;const bar=document.getElementById('tmbar-'+t.id);if(bar)bar.style.width=(per?Math.min(100,within/per*100):0)+'%';}});}
+      const c=document.getElementById('tmcyc-'+t.id);if(c)c.textContent='Cycles : '+t.cycles;const bar=document.getElementById('tmbar-'+t.id);if(bar)bar.style.width=(per?Math.min(100,within/per*100):0)+'%';}
+    v.setAttribute('aria-label',lbl+' : '+v.textContent);});}
 function updateTimers(){refreshTimersDOM(Date.now());}
 setInterval(tickAll,300);
 
@@ -1340,7 +1369,7 @@ function holdToReset(btn,doAction){if(!btn)return;let to=null;const lbl=btn.inne
 function endCurrentSession(){if(!Runtime.started)return;if(!confirm('Terminer la session ? Les minuteurs s’arrêtent ; la session est conservée dans l’historique et la fiche est remise à zéro.'))return;const f=Runtime.fiche;endSession(Runtime);freshRuntime(f,null);state.fiche=f;render();}
 // Reprendre une session de l'historique (ou vive) : recharge dans un runtime, la réactive (vive) et
 // ouvre la fiche. Si une session vive existe déjà pour cette fiche, on la rouvre telle quelle.
-function resumeSession(id){const s=sessions.find(x=>x.id===id);if(!s)return;const f=fiches.find(x=>x.id===s.ficheId);if(!f){alert('Fiche introuvable.');return;}flowScroll={left:null,top:0};
+function resumeSession(id){const s=sessions.find(x=>x.id===id);if(!s)return;const f=fiches.find(x=>x.id===s.ficheId);if(!f){toast('⚠ Fiche introuvable.');return;}flowScroll={left:null,top:0};
   if(liveSessions[f.id]&&liveSessions[f.id].sessionId===id){Runtime=liveSessions[f.id];}
   else{Runtime=buildRuntime(f,s);Runtime.started=true;Runtime.startedAt=s.startedAt||Date.now();liveSessions[f.id]=Runtime;persistLive(Runtime,true);}
   Runtime.fiche=f;bindStateToRuntime();state.fiche=f;state.id=f.id;state.showFlow=!!(f.blocks&&f.blocks.length);state.showSess=false;state.view='read';render();}
@@ -1387,21 +1416,22 @@ function renderLibrary(){
     <div class="lib-top"><div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg><input id="q" placeholder="Rechercher…" value="${esc(state.q)}"></div>
       ${canEditScope(state.scope)?`<button class="btn-new" id="newBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Créer</button>`:''}</div>
     ${catbar}
-    <div class="cards">${list.length?list.map(f=>{const sc=sessions.filter(s=>s.ficheId===f.id&&!s.live).length;const isLive=!!liveSessions[f.id];return `
+    <div class="cards">${list.length?list.slice(0,state.libLimit).map(f=>{const sc=sessions.filter(s=>s.ficheId===f.id&&!s.live).length;const isLive=!!liveSessions[f.id];return `
       <div class="card${isLive?' has-live':''}" tabindex="0" role="button" data-open="${f.id}"><div class="card-body"><h3>${esc(f.title)||'Sans titre'}</h3>
         <div class="card-meta">${isLive?'<span class="tag live">● En cours</span>':''}${catTag(f)}${sc?`<span class="tag sess" title="Sessions enregistrées dans l'historique">${sc} sauvegardée${sc>1?'s':''}</span>`:''}<span class="card-date${staleDate(f.validation)?' stale':''}">${esc(fmtDate(f.validation))}${staleDate(f.validation)?' · à revoir':''}</span></div></div>
-        <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></div>`;}).join('')
+        <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></div>`;}).join('')+(list.length>state.libLimit?`<button class="btn" id="showMore" style="width:100%;margin-top:2px">Afficher plus (${list.length-state.libLimit} restante${list.length-state.libLimit>1?'s':''})</button>`:'')
       :`<div class="empty"><b>Aucune fiche</b>${state.q||state.cat?'Aucun résultat pour ce filtre.':'Créez votre première aide cognitive.'}</div>`}</div>`;
 
-  document.getElementById('q').addEventListener('input',e=>{state.q=e.target.value;const pos=e.target.selectionStart;renderLibrary();const inp=document.getElementById('q');inp.focus();inp.setSelectionRange(pos,pos);});
+  document.getElementById('q').addEventListener('input',e=>{state.q=e.target.value;state.libLimit=LIB_PAGE;const pos=e.target.selectionStart;renderLibrary();const inp=document.getElementById('q');inp.focus();inp.setSelectionRange(pos,pos);});
+  {const sm=document.getElementById('showMore');if(sm)sm.onclick=()=>{state.libLimit+=LIB_PAGE;renderLibrary();};}
   {const nb=document.getElementById('newBtn');if(nb)nb.onclick=newFiche;}
   {const nx=document.getElementById('noticeX');if(nx)nx.onclick=()=>{try{localStorage.setItem('ac-notice-hidden','1');}catch(e){}renderLibrary();};}
   updateSyncBanner();
   // Recliquer la catégorie déjà sélectionnée la dé-sélectionne (revient à « Toutes »).
-  main.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{const c=b.dataset.cat;state.cat=(c&&state.cat===c)?'':c;renderLibrary();});
+  main.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{const c=b.dataset.cat;state.cat=(c&&state.cat===c)?'':c;state.libLimit=LIB_PAGE;renderLibrary();});
   {const cmc=document.getElementById('catMgrChip');if(cmc)cmc.onclick=openCatMgr;}
   // Changer de bibliothèque (incrémente son compteur d'usage) / en créer une (app-admin).
-  main.querySelectorAll('[data-scope]').forEach(b=>b.onclick=()=>{state.scope=b.dataset.scope||null;bumpLibUsage(b.dataset.scope);state.cat='';renderLibrary();});
+  main.querySelectorAll('[data-scope]').forEach(b=>b.onclick=()=>{state.scope=b.dataset.scope||null;bumpLibUsage(b.dataset.scope);state.cat='';state.libLimit=LIB_PAGE;renderLibrary();});
   const nlb=document.getElementById('newLibBtn');if(nlb)nlb.onclick=openNewLib;
   const mb=document.getElementById('membersBtn');if(mb)mb.onclick=()=>openMembers(state.scope);
   main.querySelectorAll('[data-openlive]').forEach(el=>{el.onclick=()=>openRead(el.dataset.openlive);el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openRead(el.dataset.openlive);}};});
@@ -1720,18 +1750,21 @@ function buildFlowSVG(f,curId){
 function timerCard(t){const now=Date.now();let val,cyc='',bw=0;
   if(t.type==='stopwatch'){val=fmtMs(t.elapsedMs+(t.running?(now-t.lastStart):0));}
   else{const per=t.seconds*1000||0;const within=t.elapsedMs+(t.running?(now-t.lastStart):0);val=fmtMs(Math.max(0,per-within));bw=per?Math.min(100,within/per*100):0;cyc='Cycles : '+t.cycles;}
-  return `<div class="tmcard" id="tmcard-${t.id}"><div class="tm-label">${esc(t.label)||(t.type==='interval'?'Minuteur':'Chronomètre')}</div>
-    <div class="tm-val" id="tmval-${t.id}">${val}</div>
+  const lbl=esc(t.label)||(t.type==='interval'?'Minuteur':'Chronomètre');
+  return `<div class="tmcard" id="tmcard-${t.id}" role="group" aria-label="${lbl}"><div class="tm-label">${lbl}</div>
+    <div class="tm-val" id="tmval-${t.id}" role="timer" aria-label="${lbl} : ${val}">${val}</div>
     ${t.type==='interval'?`<div class="tm-bar-wrap"><div class="tm-bar" id="tmbar-${t.id}" style="width:${bw}%"></div></div><div class="tm-cyc" id="tmcyc-${t.id}">${cyc}</div>`:''}
-    <div class="tm-ctrl"><button class="tm-btn tm-main${t.running?' run':''}" id="tmbtn-${t.id}" data-tmtoggle="${t.id}">${timerBtnLabel(t)}</button><button class="tm-btn tm-reset" id="tmreset-${t.id}" data-tmreset="${t.id}"${t.running?' disabled':''} title="Maintenir pour réinitialiser"><span class="tmr-lab">Réinit.</span><span class="tmr-hint">maintenir</span></button></div></div>`;}
+    <div class="tm-ctrl"><button class="tm-btn tm-main${t.running?' run':''}" id="tmbtn-${t.id}" data-tmtoggle="${t.id}" aria-label="${timerBtnLabel(t)} — ${lbl}">${timerBtnLabel(t)}</button><button class="tm-btn tm-reset" id="tmreset-${t.id}" data-tmreset="${t.id}"${t.running?' disabled':''} title="Maintenir pour réinitialiser" aria-label="Réinitialiser — ${lbl}"><span class="tmr-lab">Réinit.</span><span class="tmr-hint">maintenir</span></button></div></div>`;}
 // Libellé du bouton principal : « Pause » quand ça tourne, « Reprendre » une fois démarré puis
 // mis en pause, « Démarrer » tant qu'il n'a jamais tourné ou après réinitialisation.
 function timerStarted(t){return (t.elapsedMs>0)||(t.cycles>0);}
 function timerBtnLabel(t){return t.running?'Pause':(timerStarted(t)?'Reprendre':'Démarrer');}
 // Le bouton principal (Démarrer/Reprendre/Pause) reste TOUJOURS au même emplacement (même taille).
 // « Réinit. » reste à droite mais est DÉSACTIVÉ pendant que ça tourne (évite un clic accidentel).
-function syncTimerBtns(t){const b=document.getElementById('tmbtn-'+t.id);if(b){b.textContent=timerBtnLabel(t);b.classList.toggle('run',!!t.running);}const r=document.getElementById('tmreset-'+t.id);if(r)r.disabled=!!t.running;}
-function counterCard(c){const v=Runtime.counters[c.id]||0;return `<div class="cncard"><div class="tm-label">${esc(c.label)||'Compteur'}</div><div class="cn-val" id="cnval-${c.id}">${v}</div><div class="cn-ctrl"><button class="cn-btn" data-cndec="${c.id}" data-step="${c.step||1}">−</button><button class="cn-btn" data-cninc="${c.id}" data-step="${c.step||1}">+</button></div><button class="cn-reset tm-reset" data-cnreset="${c.id}" title="Maintenir pour remettre à zéro"><span class="tmr-lab">Réinit.</span><span class="tmr-hint">maintenir</span></button></div>`;}
+function syncTimerBtns(t){const lbl=esc(t.label)||(t.type==='interval'?'Minuteur':'Chronomètre');const b=document.getElementById('tmbtn-'+t.id);if(b){b.textContent=timerBtnLabel(t);b.setAttribute('aria-label',timerBtnLabel(t)+' — '+lbl);b.classList.toggle('run',!!t.running);}const r=document.getElementById('tmreset-'+t.id);if(r)r.disabled=!!t.running;}
+function counterCard(c){const v=Runtime.counters[c.id]||0;const lbl=esc(c.label)||'Compteur';return `<div class="cncard" role="group" aria-label="${lbl}"><div class="tm-label">${lbl}</div><div class="cn-val" id="cnval-${c.id}" role="status" aria-label="${lbl} : ${v}">${v}</div><div class="cn-ctrl"><button class="cn-btn" data-cndec="${c.id}" data-step="${c.step||1}" aria-label="Diminuer — ${lbl}">−</button><button class="cn-btn" data-cninc="${c.id}" data-step="${c.step||1}" aria-label="Augmenter — ${lbl}">+</button></div><button class="cn-reset tm-reset" data-cnreset="${c.id}" title="Maintenir pour remettre à zéro" aria-label="Remettre à zéro — ${lbl}"><span class="tmr-lab">Réinit.</span><span class="tmr-hint">maintenir</span></button></div>`;}
+// Met à jour la valeur affichée d'un compteur ET son étiquette accessible (role="status").
+function setCounterVal(id){const el=document.getElementById('cnval-'+id);if(!el)return;const c=((Runtime.fiche&&Runtime.fiche.counters)||[]).find(x=>x.id===id);const lbl=(c&&esc(c.label))||'Compteur';const v=Runtime.counters[id]||0;el.textContent=v;el.setAttribute('aria-label',lbl+' : '+v);}
 function runtimePanel(f){const tl=Object.values(Runtime.timers);const cl=f.counters||[];if(!tl.length&&!cl.length)return '';
   return `<div class="rt-panel"><div class="rt-head"><svg class="rt-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5fd0c4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg><b>Minuteurs & compteurs</b>${IS_TOUCH?`<button class="rt-warn" id="soundWarn" title="Mode silencieux du téléphone" style="${soundOn?'':'display:none'}">⚠︎ silencieux ?</button>`:''}<button class="rt-sound" id="soundToggle">${soundOn?'🔔 Son':'🔕 Muet'}</button></div>${tl.length?`<div class="rt-grid">${tl.map(timerCard).join('')}</div>`:''}${cl.length?`<div class="rt-counters">${cl.map(counterCard).join('')}</div>`:''}</div>`;}
 /* timekeeperPanel : journal d'horodatage. Bouton « Horodater » -> ajoute un repère à l'heure
@@ -1833,15 +1866,15 @@ function renderRead(){
   main.querySelectorAll('img[data-full]').forEach(im=>im.onclick=()=>openLightbox(im.dataset.full,im.dataset.cap||''));
   // runtime controls (no full re-render)
   const st=document.getElementById('soundToggle');if(st)st.onclick=()=>{soundOn=!soundOn;if(soundOn)ensureAudio();st.textContent=soundOn?'🔔 Son':'🔕 Muet';const sw=document.getElementById('soundWarn');if(sw)sw.style.display=soundOn?'':'none';};
-  const swn=document.getElementById('soundWarn');if(swn)swn.onclick=()=>alert('Mode silencieux du téléphone.\n\nSi le bouton latéral de votre téléphone est sur silencieux, l\'alarme sonore peut ne pas être audible (impossible à détecter depuis le navigateur).\n\nSur iPhone, la vibration n\'est pas non plus disponible depuis le web.\n\nAlerte de secours : l\'écran clignote (flash) à chaque fin de minuteur.');
+  const swn=document.getElementById('soundWarn');if(swn)swn.onclick=()=>toast('Mode silencieux du téléphone : si le bouton latéral est sur silencieux, l\'alarme sonore peut ne pas être audible (indétectable depuis le navigateur ; la vibration non plus sur iPhone). Alerte de secours : l\'écran clignote à chaque fin de minuteur.',11000);
   // Lancer un minuteur DÉMARRE la session. Si elle vient de démarrer, on re-rend (le bandeau « en
   // cours » apparaît) ; sinon mise à jour DOM directe.
   main.querySelectorAll('[data-tmtoggle]').forEach(b=>b.onclick=()=>{const t=Runtime.timers[b.dataset.tmtoggle];toggleTimer(t);const fresh=ensureStarted();persistLive(Runtime);if(fresh)render();else{syncTimerBtns(t);updateTimers();}});
   main.querySelectorAll('[data-tmreset]').forEach(b=>holdToReset(b,()=>{const t=Runtime.timers[b.dataset.tmreset];resetTimer(t);syncTimerBtns(t);updateTimers();persistLive(Runtime);}));
-  main.querySelectorAll('[data-cninc]').forEach(b=>b.onclick=()=>{const id=b.dataset.cninc;Runtime.counters[id]=(Runtime.counters[id]||0)+(+b.dataset.step);const fresh=ensureStarted();persistLive(Runtime);if(fresh)render();else document.getElementById('cnval-'+id).textContent=Runtime.counters[id];});
-  main.querySelectorAll('[data-cndec]').forEach(b=>b.onclick=()=>{const id=b.dataset.cndec;Runtime.counters[id]=Math.max(0,(Runtime.counters[id]||0)-(+b.dataset.step));const fresh=ensureStarted();persistLive(Runtime);if(fresh)render();else document.getElementById('cnval-'+id).textContent=Runtime.counters[id];});
+  main.querySelectorAll('[data-cninc]').forEach(b=>b.onclick=()=>{const id=b.dataset.cninc;Runtime.counters[id]=(Runtime.counters[id]||0)+(+b.dataset.step);const fresh=ensureStarted();persistLive(Runtime);if(fresh)render();else setCounterVal(id);});
+  main.querySelectorAll('[data-cndec]').forEach(b=>b.onclick=()=>{const id=b.dataset.cndec;Runtime.counters[id]=Math.max(0,(Runtime.counters[id]||0)-(+b.dataset.step));const fresh=ensureStarted();persistLive(Runtime);if(fresh)render();else setCounterVal(id);});
   // Réinit. d'un compteur : MAINTENIR (même geste anti-accidentel que les minuteurs). Repart de la valeur de départ.
-  main.querySelectorAll('[data-cnreset]').forEach(b=>holdToReset(b,()=>{const id=b.dataset.cnreset;const c=(Runtime.fiche.counters||[]).find(x=>x.id===id);Runtime.counters[id]=c?(c.start||0):0;const el=document.getElementById('cnval-'+id);if(el)el.textContent=Runtime.counters[id];persistLive(Runtime);}));
+  main.querySelectorAll('[data-cnreset]').forEach(b=>holdToReset(b,()=>{const id=b.dataset.cnreset;const c=(Runtime.fiche.counters||[]).find(x=>x.id===id);Runtime.counters[id]=c?(c.start||0):0;setCounterVal(id);persistLive(Runtime);}));
   // horodatage : ajout (re-rendu), édition du libellé (sans re-rendu, garde le focus), suppression.
   const tkA=document.getElementById('tkAdd');if(tkA)tkA.onclick=()=>{Runtime.events=Runtime.events||[];Runtime.events.push({id:uid('e'),t:Date.now(),label:'Action '+(Runtime.events.length+1)});ensureStarted();persistLive(Runtime);render();};
   main.querySelectorAll('[data-tklab]').forEach(inp=>inp.addEventListener('input',e=>{const ev=(Runtime.events||[]).find(x=>x.id===e.target.dataset.tklab);if(ev){ev.label=e.target.value;persistLive(Runtime);}}));
@@ -1985,7 +2018,7 @@ function renderEditor(){
     const bd2=card.querySelector('[data-bimgdel]');if(bd2)bd2.onclick=()=>{b.image=null;renderEditor();};
     card.querySelectorAll('[data-bmv]').forEach(btn=>btn.onclick=()=>{moveItem(f.blocks,f.blocks.indexOf(b),btn.dataset.bmv==='up'?-1:1);renderEditor();});
     const bd=card.querySelector('[data-bdel]');if(bd)bd.onclick=()=>{f.blocks=f.blocks.filter(x=>x.id!==bid);f.blocks.forEach(x=>{if(x.next===bid)x.next=null;if(x.options)x.options.forEach(o=>{if(o.target===bid)o.target='';});});if(f.start===bid)f.start=f.blocks[0]?f.blocks[0].id:null;if(!f.blocks.length){const nb={id:uid('b'),type:'steps',title:'Prise en charge',steps:[''],image:null,next:null};f.blocks.push(nb);f.start=nb.id;}renderEditor();};});
-  imgInput.onchange=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;const data=await downscale(file);if(!data){alert('Image illisible.');return;}if(imgMode.kind==='gallery')f.images.push({id:uid('i'),data,caption:''});else{const b=f.blocks.find(x=>x.id===imgMode.bid);if(b)b.image=data;}renderEditor();};
+  imgInput.onchange=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;const data=await downscale(file);if(!data){toast('⚠ Image illisible.');return;}if(imgMode.kind==='gallery')f.images.push({id:uid('i'),data,caption:''});else{const b=f.blocks.find(x=>x.id===imgMode.bid);if(b)b.image=data;}renderEditor();};
   document.getElementById('saveBtn').onclick=saveDraft;const del=document.getElementById('delBtn');if(del)del.onclick=deleteDraft;
   flowCtx={f,curId:null};
   bindFlowZoom();applyFlowZoom();restoreFlow();
@@ -2006,7 +2039,7 @@ async function saveDraft(){const d=state.draft;d.title=(d.title||'').trim();
   d.timers=(d.timers||[]).map(t=>({id:t.id,label:(t.label||'').trim(),type:t.type==='interval'?'interval':'stopwatch',seconds:Math.max(0,parseInt(t.seconds||0)||0),autoloop:!!t.autoloop}));
   d.counters=(d.counters||[]).map(c=>({id:c.id,label:(c.label||'').trim(),step:Math.max(1,parseInt(c.step||1)||1),start:parseInt(c.start||0)||0}));
   delete d.blocks._start;if(!d.start||!d.blocks.some(b=>b.id===d.start))d.start=d.blocks[0]?d.blocks[0].id:null;
-  if(!d.title){alert('Donnez un titre à la fiche.');return;}if(typeof d.order!=='number')d.order=Date.now();
+  if(!d.title){toast('⚠ Donnez un titre à la fiche.');return;}if(typeof d.order!=='number')d.order=Date.now();
   // La structure de la fiche change : on TERMINE une éventuelle session vive (archivée) pour éviter
   // une incohérence minuteurs/blocs, puis on rouvre la fiche à neuf.
   if(!(await persist(d)))return;const i=fiches.findIndex(x=>x.id===d.id);if(i>=0)fiches[i]=d;else fiches.push(d);if(liveSessions[d.id])endSession(liveSessions[d.id]);state.draft=null;state.catMgr=false;resetRuntime();openRead(d.id);}
@@ -2024,8 +2057,8 @@ function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;flowScroll=
   if(liveSessions[id]){Runtime=liveSessions[id];Runtime.fiche=f;}
   else if(!(Runtime.fiche&&Runtime.ficheId===id&&!Runtime.started)){Runtime=buildRuntime(f,null);}
   bindStateToRuntime();state.fiche=Runtime.fiche;state.id=id;state.showFlow=!!(f.blocks&&f.blocks.length);state.showSess=false;state.view='read';render();}
-function openEdit(id){const f=fiches.find(x=>x.id===id);if(!f)return;if(!canEditFiche(f)){alert('Lecture seule : vous n\'avez pas les droits d\'édition sur cette bibliothèque.');return openRead(id);}state.draft=JSON.parse(JSON.stringify(f));state.catMgr=false;state.view='edit';render();}
-function newFiche(){if(!canEditScope(state.scope)){alert('Lecture seule : vous ne pouvez pas créer de fiche dans cette bibliothèque.');return;}const d=blankFiche();d.libraryId=state.scope||null;state.draft=d;state.catMgr=false;state.showCreateBand=true;state.view='edit';render();}
+function openEdit(id){const f=fiches.find(x=>x.id===id);if(!f)return;if(!canEditFiche(f)){toast('Lecture seule : vous n\'avez pas les droits d\'édition sur cette bibliothèque.');return openRead(id);}state.draft=JSON.parse(JSON.stringify(f));state.catMgr=false;state.view='edit';render();}
+function newFiche(){if(!canEditScope(state.scope)){toast('Lecture seule : vous ne pouvez pas créer de fiche dans cette bibliothèque.');return;}const d=blankFiche();d.libraryId=state.scope||null;state.draft=d;state.catMgr=false;state.showCreateBand=true;state.view='edit';render();}
 document.getElementById('topNew').onclick=newFiche;
 
 /* ===== Lightbox ===== (agrandissement d'une image au clic, avec légende) */
@@ -2279,7 +2312,7 @@ document.getElementById('importFile').onchange=e=>{const file=e.target.files[0];
       else{if(!d.id||existing.has(d.id))d.id=uid();existing.add(d.id);if(await persist(d)){fiches.push(d);added.push(d.id);}}}
     // Depuis la fenêtre IA : on ouvre directement la fiche importée plutôt que la bibliothèque.
     const openId=pendingOpenImport&&added.length?added[added.length-1]:null;pendingOpenImport=false;
-    if(openId)openRead(openId);else{state.view='library';render();}}catch(err){pendingOpenImport=false;alert('Fichier illisible.');}};
+    if(openId)openRead(openId);else{state.view='library';render();}}catch(err){pendingOpenImport=false;toast('⚠ Fichier illisible.');}};
   r.readAsText(file);e.target.value='';};
 
 /* ===== Compte & synchronisation (Supabase) =====
@@ -2732,10 +2765,10 @@ async function renderMembers(){const body=document.getElementById('membersBody')
     catch(e){setMsg('Échec : '+e.message,'err');}};
   body.querySelectorAll('[data-role]').forEach(sel=>sel.onchange=async()=>{
     try{await rest('PATCH','/rest/v1/memberships?library_id=eq.'+encodeURIComponent(_memLib)+'&user_id=eq.'+encodeURIComponent(sel.dataset.role),{role:sel.value},{'Prefer':'return=minimal'});await Sync.loadProfile();}
-    catch(e){alert('Modification du rôle impossible : '+e.message);renderMembers();}});
+    catch(e){toast('⚠ Modification du rôle impossible : '+e.message);renderMembers();}});
   body.querySelectorAll('[data-remove]').forEach(b=>b.onclick=async()=>{if(!confirm('Retirer ce membre de la bibliothèque ?'))return;
     try{await rest('DELETE','/rest/v1/memberships?library_id=eq.'+encodeURIComponent(_memLib)+'&user_id=eq.'+encodeURIComponent(b.dataset.remove),null,{'Prefer':'return=minimal'});await renderMembers();}
-    catch(e){alert('Retrait impossible : '+e.message);}});
+    catch(e){toast('⚠ Retrait impossible : '+e.message);}});
   // Renommer (admin de la biblio ou app-admin) / Supprimer (app-admin uniquement, cf. RLS lib_delete).
   // Renommer : bascule l'en-tête en édition en ligne (pas de popup), puis confirme/annule.
   // Renommer : on échange UNIQUEMENT l'en-tête en édition en ligne, sans re-render (donc
@@ -2765,7 +2798,7 @@ async function renderMembers(){const body=document.getElementById('membersBody')
     if(!confirm('Supprimer DÉFINITIVEMENT la bibliothèque « '+libName(_memLib)+' » et TOUTES ses fiches partagées ? Action irréversible.'))return;
     try{await rest('DELETE','/rest/v1/libraries?id=eq.'+encodeURIComponent(_memLib),null,{'Prefer':'return=minimal'});
       closeMembers();state.scope=null;await Sync.loadProfile();Sync.full();renderLibrary();toast('Bibliothèque supprimée.');}
-    catch(e){alert('Suppression impossible : '+e.message);}};}
+    catch(e){toast('⚠ Suppression impossible : '+e.message);}};}
 document.getElementById('membersX').onclick=closeMembers;
 membersModal.onclick=e=>{if(e.target===membersModal)closeMembers();};
 // Fenêtre "Créer une bibliothèque" (app-admin uniquement ; la RLS rejette sinon si contournée) :
@@ -2790,7 +2823,7 @@ function renderNewLib(){const body=document.getElementById('newLibBody');if(!bod
   document.getElementById('newLibOk').onclick=submit;
   inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();submit();}};}
 function openNewLib(){
-  if(!myIsAppAdmin){alert('Seul un administrateur peut créer une bibliothèque.');return;}
+  if(!myIsAppAdmin){toast('Seul un administrateur peut créer une bibliothèque.');return;}
   renderNewLib();newLibModal.classList.add('on');}
 function closeNewLib(){newLibModal.classList.remove('on');}
 document.getElementById('newLibX').onclick=closeNewLib;
@@ -2812,32 +2845,75 @@ async function renderPending(){const body=document.getElementById('pendingBody')
     :'<p class="auth-msg" style="text-align:center">Aucun compte en attente.</p>'}`;
   document.getElementById('pendToggle').onchange=async e=>{const val=e.target.checked;
     try{await rpc('set_approval_required',{p_value:val});await renderPending();toast(val?'Validation des nouveaux comptes réactivée.':'Validation désactivée : les nouveaux comptes seront approuvés automatiquement.');}
-    catch(err){e.target.checked=!val;alert('Échec : '+err.message);}};
+    catch(err){e.target.checked=!val;toast('⚠ Échec : '+err.message);}};
   body.querySelectorAll('[data-approve]').forEach(b=>b.onclick=async()=>{
     try{await rpc('set_user_status',{p_user:b.dataset.approve,p_status:'approved'});await renderPending();await Sync.loadProfile();toast('Compte approuvé.');}
-    catch(e){alert('Échec : '+e.message);}});
+    catch(e){toast('⚠ Échec : '+e.message);}});
   body.querySelectorAll('[data-reject]').forEach(b=>b.onclick=async()=>{
     if(!confirm('Refuser ce compte ?'))return;
     try{await rpc('set_user_status',{p_user:b.dataset.reject,p_status:'rejected'});await renderPending();await Sync.loadProfile();}
-    catch(e){alert('Échec : '+e.message);}});
+    catch(e){toast('⚠ Échec : '+e.message);}});
   body.querySelectorAll('[data-delete]').forEach(b=>b.onclick=async()=>{
     if(!confirm("Supprimer définitivement ce compte refusé ? La personne pourra recréer un compte avec cette adresse e-mail (nouvelle demande à valider)."))return;
     try{await rpc('delete_rejected_user',{p_user:b.dataset.delete});await renderPending();toast('Compte supprimé.');}
-    catch(e){alert('Échec : '+e.message);}});}
+    catch(e){toast('⚠ Échec : '+e.message);}});}
 async function openPending(){pendingModal.classList.add('on');await renderPending();}
 function closePending(){pendingModal.classList.remove('on');}
 document.getElementById('pendingX').onclick=closePending;
 pendingModal.onclick=e=>{if(e.target===pendingModal)closePending();};
 
-/* ===== PWA =====
-   Enregistre le service worker (cache hors ligne) si disponible. Capte
-   l'évènement beforeinstallprompt pour proposer "Installer l'app". */
-if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));}
-let deferredPrompt=null;
-window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;document.getElementById('installBtn').style.display='inline-block';});
-document.getElementById('installBtn').onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;document.getElementById('installBtn').style.display='none';};
+/* ===== Accessibilité des fenêtres modales =====
+   Les attributs role="dialog"/aria-modal/aria-labelledby sont posés dans le HTML. Ici, de façon
+   CENTRALISÉE pour toutes les .ai-modal (aucune modif des 9 fonctions d'ouverture) :
+     • à l'ouverture : mémorise l'élément actif et déplace le focus DANS la fenêtre ;
+     • Échap : ferme la fenêtre du dessus (réutilise son bouton ✕, donc ses effets de bord),
+       sinon l'aperçu plein écran ou la visionneuse d'image ;
+     • Tab : piège le focus dans la fenêtre ouverte (recalculé à chaque frappe car le contenu
+       de certaines fenêtres se remplit après l'ouverture) ;
+     • à la fermeture : rend le focus à l'élément déclencheur. */
+let _modalReturnFocus=null;
+function _openModals(){return [...document.querySelectorAll('.ai-modal.on')];}
+function _topModal(){const m=_openModals();return m[m.length-1]||null;}
+function _focusables(el){return [...el.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')].filter(x=>x.offsetParent!==null);}
+new MutationObserver(muts=>{muts.forEach(m=>{
+  const el=m.target;if(!el.classList||!el.classList.contains('ai-modal'))return;
+  const wasOn=/\bon\b/.test(m.oldValue||''),isOn=el.classList.contains('on');
+  if(isOn&&!wasOn){if(_openModals().length<=1)_modalReturnFocus=document.activeElement;const f=_focusables(el);(f[0]||el).focus();}
+  else if(!isOn&&wasOn&&!_topModal()&&_modalReturnFocus){try{_modalReturnFocus.focus();}catch(_){}_modalReturnFocus=null;}
+});}).observe(document.body,{subtree:true,attributes:true,attributeFilter:['class'],attributeOldValue:true});
+document.addEventListener('keydown',e=>{
+  const modal=_topModal();
+  if(e.key==='Escape'){
+    if(modal){e.preventDefault();const x=modal.querySelector('.ai-x');if(x)x.click();return;}
+    const ff=document.getElementById('flowFull');if(ff&&ff.classList.contains('on')){e.preventDefault();closeFlowFull();return;}
+    if(lb&&lb.classList.contains('on')){e.preventDefault();closeLightbox();}
+    return;
+  }
+  if(e.key==='Tab'&&modal){
+    const f=_focusables(modal);if(!f.length){e.preventDefault();return;}
+    const first=f[0],last=f[f.length-1];
+    if(!modal.contains(document.activeElement)){e.preventDefault();first.focus();}
+    else if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+    else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+  }
+});
 
-load(); /* DÉMARRAGE de l'application */
+/* ===== Mode test =====
+   Si l'URL contient ?__actest (utilisé uniquement par tests.html, chargé en iframe), on n'amorce
+   PAS l'application : on expose juste les fonctions pures à tester. AUCUN effet en usage normal :
+   sans ce paramètre, rien de tout ceci ne s'exécute et aucun global n'est ajouté. */
+if(location.search.indexOf('__actest')>=0){
+  window.__ac_test__={migrate,sanitizeCats,safeId,safeColor,safeImg,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE};
+}else{
+  /* ===== PWA =====
+     Enregistre le service worker (cache hors ligne) si disponible. Capte
+     l'évènement beforeinstallprompt pour proposer "Installer l'app". */
+  if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));}
+  let deferredPrompt=null;
+  window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;document.getElementById('installBtn').style.display='inline-block';});
+  document.getElementById('installBtn').onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;document.getElementById('installBtn').style.display='none';};
+  load(); /* DÉMARRAGE de l'application */
+}
 </script>
 </body>
 </html>

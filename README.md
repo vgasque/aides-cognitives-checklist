@@ -103,3 +103,38 @@ d'écran sert d'alerte de secours).
 
 > Vous êtes l'auteur et le responsable du contenu clinique. Validez chaque fiche avec
 > les recommandations en vigueur et tenez la date de validation à jour.
+
+## Sécurité & confidentialité
+- **Aucune dépendance externe** : l'app est un seul fichier HTML en JavaScript « vanille »,
+  sans CDN ni bibliothèque tierce. Rien n'est chargé depuis un autre domaine.
+- **Content-Security-Policy stricte** (dans `index.html`) : `default-src 'self'`, les seules
+  connexions réseau autorisées vont vers votre projet Supabase (`connect-src`), `object-src 'none'`.
+- **Contenu importé neutralisé** : tout JSON importé ou reçu du cloud est nettoyé
+  (échappement HTML systématique à l'affichage, identifiants et couleurs validés, images
+  limitées) — un fichier piégé ne peut pas exécuter de code.
+- **Isolation des données côté serveur** : l'accès (espace personnel vs bibliothèques
+  partagées, rôles) est imposé par les politiques RLS de Supabase, jamais par le navigateur.
+  La clé `key` (publishable) présente dans `index.html` est **publique par conception**.
+- **Connexion sans mot de passe** : code à usage unique par e-mail (OTP).
+
+## Données personnelles (RGPD)
+- **Par défaut, tout reste sur l'appareil** (IndexedDB) : aucune donnée n'est envoyée tant que
+  vous ne créez pas de compte. La synchro cloud est **facultative**.
+- **Suppression du compte** : depuis *Compte*, la suppression efface vos fiches et catégories
+  **personnelles** ainsi que le compte lui-même (les fiches ajoutées à des bibliothèques
+  **partagées** restent, car elles appartiennent à l'équipe).
+- **Hébergement UE** possible (région Supabase Francfort conseillée).
+- **Ne saisissez aucune donnée patient** : les fiches sont des aides cognitives génériques.
+- Un usage en établissement peut nécessiter, côté organisation, la désignation d'un
+  responsable de traitement et une analyse d'impact (AIPD/DPIA). Ce point dépasse l'app.
+
+## Limites connues
+- **Navigateur récent requis** (IndexedDB, `fetch`, service worker) ; Internet Explorer n'est
+  pas pris en charge.
+- **Résolution de conflits en « dernière écriture gagne »** : en cas d'édition simultanée d'une
+  même fiche sur deux appareils, la version la plus récente s'applique et la précédente est
+  conservée (bouton « Versions »). Il n'y a pas de fusion automatique champ par champ.
+- **Grandes bibliothèques** : les fiches s'affichent par pages (« Afficher plus ») ; la recherche
+  reste instantanée.
+- **Version** : le numéro affiché en pied de page (`APP_VERSION`) et la version du cache dans
+  `sw.js` doivent rester identiques à chaque publication.

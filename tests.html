@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tests — Aides cognitives</title>
+<style>
+  :root{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  body{margin:0;background:#eef1f0;color:#13201d;padding:20px;max-width:900px;margin:0 auto}
+  h1{font-size:20px;margin:0 0 4px}
+  .sub{color:#5a6864;font-size:13px;margin:0 0 16px}
+  #summary{font-size:16px;font-weight:700;padding:12px 15px;border-radius:11px;margin-bottom:14px}
+  #summary.ok{background:#e1efec;color:#0a4a46;border:1px solid #bfe0da}
+  #summary.ko{background:#fbe9e4;color:#8f2a17;border:1px solid #eecabe}
+  .grp{background:#fff;border:1px solid #dde3e0;border-radius:11px;padding:6px 14px;margin-bottom:10px}
+  .grp h2{font-size:13px;text-transform:uppercase;letter-spacing:.5px;color:#5a6864;margin:10px 0 6px}
+  .t{display:flex;gap:9px;align-items:flex-start;padding:5px 0;border-top:1px solid #f0f3f2;font-size:14px}
+  .t:first-of-type{border-top:0}
+  .tag{flex:0 0 auto;font-weight:700;font-size:11px;padding:2px 8px;border-radius:20px}
+  .pass .tag{background:#e1efec;color:#0a4a46}
+  .fail .tag{background:#fbe9e4;color:#bf3a21}
+  .msg{flex:1}
+  .fail .msg{color:#8f2a17}
+  code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;background:#f3f6f5;padding:1px 5px;border-radius:5px}
+</style>
+</head>
+<body>
+<h1>Tests unitaires — Aides cognitives</h1>
+<p class="sub">Runner autonome, sans dépendance. Charge <code>index.html?__actest=1</code> dans une iframe
+(l'app ne démarre pas dans ce mode) puis vérifie les fonctions pures. Ouvrir cette page via le serveur local.</p>
+<div id="summary">Chargement…</div>
+<div id="out"></div>
+<iframe id="app" src="index.html?__actest=1" style="display:none" title="app under test"></iframe>
+
+<script>
+const out=document.getElementById('out');
+let pass=0,fail=0,curGrp=null;
+function group(name){const g=document.createElement('div');g.className='grp';const h=document.createElement('h2');h.textContent=name;g.appendChild(h);out.appendChild(g);curGrp=g;}
+function record(ok,label,detail){
+  if(ok)pass++;else fail++;
+  const row=document.createElement('div');row.className='t '+(ok?'pass':'fail');
+  row.innerHTML='<span class="tag">'+(ok?'PASS':'FAIL')+'</span><span class="msg"></span>';
+  row.querySelector('.msg').textContent=label+(ok||!detail?'':' — '+detail);
+  curGrp.appendChild(row);
+}
+function ok(label,cond,detail){record(!!cond,label,detail||'condition fausse');}
+function eq(label,got,exp){const c=JSON.stringify(got)===JSON.stringify(exp);record(c,label,'attendu '+JSON.stringify(exp)+', obtenu '+JSON.stringify(got));}
+
+// Contraste WCAG (pour garder la palette de catégories conforme AA).
+function _lin(c){c/=255;return c<=0.03928?c/12.92:Math.pow((c+0.055)/1.055,2.4);}
+function _lum(hex){hex=hex.replace('#','');return 0.2126*_lin(parseInt(hex.substr(0,2),16))+0.7152*_lin(parseInt(hex.substr(2,2),16))+0.0722*_lin(parseInt(hex.substr(4,2),16));}
+function ratio(a,b){const l1=_lum(a),l2=_lum(b);return (Math.max(l1,l2)+0.05)/(Math.min(l1,l2)+0.05);}
+function tint15(hex){hex=hex.replace('#','');const f=i=>Math.round(255*0.85+parseInt(hex.substr(i,2),16)*0.15).toString(16).padStart(2,'0');return '#'+f(0)+f(2)+f(4);}
+
+function run(A){
+  group('esc() — échappement HTML');
+  eq('échappe < > & "', A.esc('<b>&"x"'), '&lt;b&gt;&amp;&quot;x&quot;');
+  eq('null → chaîne vide', A.esc(null), '');
+
+  group('safeId() — anti-pollution & format');
+  ok('rejette __proto__', A.safeId('__proto__','f')!=='__proto__');
+  ok('rejette constructor', A.safeId('constructor','f')!=='constructor');
+  ok('rejette prototype', A.safeId('prototype','f')!=='prototype');
+  ok('rejette caractères invalides', A.safeId('a b/c','f')!=='a b/c');
+  eq('conserve un id valide', A.safeId('abc-123_XY','f'), 'abc-123_XY');
+
+  group('safeColor()');
+  eq('hex valide conservé', A.safeColor('#0d5b56'), '#0d5b56');
+  eq('javascript: → défaut', A.safeColor('javascript:alert(1)'), '#45556b');
+  eq('non-chaîne → défaut', A.safeColor(42), '#45556b');
+
+  group('safeImg()');
+  ok('data:image conservé', A.safeImg('data:image/png;base64,AAAA')==='data:image/png;base64,AAAA');
+  eq('javascript: → null', A.safeImg('javascript:alert(1)'), null);
+  eq('URL http → null', A.safeImg('http://x/y.png'), null);
+
+  group('sstr() / sarr()');
+  eq('sstr coerce nombre', A.sstr(123,10), '123');
+  eq('sstr tronque', A.sstr('abcdef',3), 'abc');
+  eq('sarr borne la longueur', A.sarr(['a','b','c'],2), ['a','b']);
+  eq('sarr coerce éléments', A.sarr([1,2],5), ['1','2']);
+  eq('sarr non-array → []', A.sarr('x',5), []);
+
+  group('parseValidation() → AAAA-MM');
+  eq('déjà canonique', A.parseValidation('2026-01'), '2026-01');
+  eq('01/2026', A.parseValidation('01/2026'), '2026-01');
+  eq('nom de mois FR', A.parseValidation('janvier 2026'), '2026-01');
+  eq('6 chiffres collés', A.parseValidation('202602'), '2026-02');
+  eq('vide → vide', A.parseValidation(''), '');
+  eq('illisible → vide', A.parseValidation('xyz'), '');
+
+  group('catSlug() / detCatId()');
+  eq('accents retirés + slug', A.catSlug('Réanimation'), 'reanimation');
+  eq('id déterministe', A.detCatId('Réanimation'), 'c-reanimation');
+  ok('même nom → même id', A.detCatId('Anesthésie')===A.detCatId('Anesthésie'));
+
+  group('staleDate()');
+  ok('date ancienne (>2 ans) = périmée', A.staleDate('2000-01')===true);
+  ok('mois courant ≠ périmé', A.staleDate(new Date().toISOString().slice(0,7))===false);
+  ok('vide ≠ périmé', A.staleDate('')===false);
+
+  group('migrate() — fiche hostile neutralisée');
+  const before=Object.prototype.polluted;
+  const m=A.migrate({id:'__proto__',title:'<img onerror=alert(1)>',category:'c',validation:'2026-01',
+    confirmation:['x'],blocks:[{id:'constructor',type:'steps',title:'b',steps:['s']}],
+    images:[{id:'i',data:'javascript:alert(1)',caption:'c'}]});
+  ok('id __proto__ remplacé', m.id!=='__proto__');
+  ok('aucune prototype pollution', Object.prototype.polluted===before);
+  ok('image javascript: supprimée', !(m.images||[]).some(im=>String(im.data).indexOf('javascript:')>=0));
+  ok('titre conservé comme chaîne (échappé à l’affichage)', typeof m.title==='string');
+  ok('structure blocs préservée', Array.isArray(m.blocks)&&m.blocks.length>=1);
+
+  group('sanitizeCats() — catégories hostiles');
+  const sc=A.sanitizeCats([{id:'prototype',name:'<img>',color:'javascript:alert(1)',libraryId:null}]);
+  ok('id prototype remplacé', sc[0].id!=='prototype');
+  eq('couleur javascript: → défaut', sc[0].color, '#45556b');
+  ok('nom conservé comme chaîne', typeof sc[0].name==='string');
+
+  group('PALETTE — contraste WCAG AA (régression #3)');
+  A.PALETTE.forEach(c=>{
+    const rTag=ratio(c,tint15(c));      // pastille : texte de couleur sur fond teinté 15 %
+    const rChip=ratio('#ffffff',c);     // chip sélectionnée : texte blanc sur couleur pleine
+    ok('pastille '+c+' ≥ 4.5:1', rTag>=4.5, 'ratio '+rTag.toFixed(2));
+    ok('chip '+c+' (blanc) ≥ 4.5:1', rChip>=4.5, 'ratio '+rChip.toFixed(2));
+  });
+}
+
+// Ouvert en double-cliquant le fichier (file://) : le navigateur isole les iframes (origine
+// « null ») et bloque l'accès aux fonctions à tester. Ce n'est pas un bug : il faut un serveur
+// http, comme pour le service worker de l'app.
+const FILE_HELP='Cette page doit être servie en http(s), pas ouverte comme fichier local : '+
+  'le navigateur bloque alors l’accès à l’iframe de test (sécurité des origines). '+
+  'Lancez un petit serveur dans ce dossier (ex. « python3 -m http.server 8123 ») puis ouvrez '+
+  'http://localhost:8123/tests.html — ou utilisez l’URL de votre hébergement (…/tests.html).';
+if(location.protocol==='file:'){
+  const s=document.getElementById('summary');s.className='ko';s.textContent=FILE_HELP;
+}
+document.getElementById('app').addEventListener('load',()=>{
+  const s=document.getElementById('summary');
+  if(location.protocol==='file:')return; // message déjà affiché ci-dessus
+  try{
+    const A=document.getElementById('app').contentWindow.__ac_test__;
+    if(!A){s.className='ko';s.textContent='Échec : __ac_test__ introuvable (index.html non chargé en mode test ?).';return;}
+    run(A);
+    s.className=fail?'ko':'ok';
+    s.textContent=(fail?'✗ ':'✓ ')+pass+' réussis, '+fail+' échoués.';
+  }catch(e){s.className='ko';s.textContent=(String(e.message).indexOf('cross-origin')>=0?FILE_HELP:'Erreur d’exécution des tests : '+e.message);}
+});
+</script>
+</body>
+</html>
