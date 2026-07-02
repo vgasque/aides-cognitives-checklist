@@ -91,42 +91,57 @@ alter table public.category_sets enable row level security;
 
 -- app_admins : AUCUNE politique + AUCUN grant -> totalement invisible de l'API.
 
+-- NB : Postgres n'a pas de « create policy if not exists » -> chaque politique est précédée
+-- d'un drop if exists pour que schema.sql soit REJOUABLE en entier sur une instance existante.
+
 -- fiches : perso (owner) OU partagé (lecture = membre, écriture = editor/admin)
+drop policy if exists fiches_perso on public.fiches;
 create policy fiches_perso on public.fiches for all
   using      (library_id is null and owner = auth.uid())
   with check (library_id is null and owner = auth.uid());
+drop policy if exists fiches_shared_read on public.fiches;
 create policy fiches_shared_read on public.fiches for select
   using (library_id is not null and public.is_member(library_id));
+drop policy if exists fiches_shared_write on public.fiches;
 create policy fiches_shared_write on public.fiches for all
   using      (library_id is not null and public.member_role(library_id) in ('editor','admin'))
   with check (library_id is not null and public.member_role(library_id) in ('editor','admin'));
 
 -- category_sets : même logique
+drop policy if exists cats_perso on public.category_sets;
 create policy cats_perso on public.category_sets for all
   using      (library_id is null and owner = auth.uid())
   with check (library_id is null and owner = auth.uid());
+drop policy if exists cats_shared_read on public.category_sets;
 create policy cats_shared_read on public.category_sets for select
   using (library_id is not null and public.is_member(library_id));
+drop policy if exists cats_shared_write on public.category_sets;
 create policy cats_shared_write on public.category_sets for all
   using      (library_id is not null and public.member_role(library_id) in ('editor','admin'))
   with check (library_id is not null and public.member_role(library_id) in ('editor','admin'));
 
 -- libraries : lecture = membre ou app-admin ; création = app-admin uniquement ;
 --             renommage = app-admin ou library-admin ; suppression = app-admin
+drop policy if exists lib_select on public.libraries;
 create policy lib_select on public.libraries for select
   using (public.is_member(id) or public.is_app_admin());
+drop policy if exists lib_insert on public.libraries;
 create policy lib_insert on public.libraries for insert
   with check (public.is_app_admin());
+drop policy if exists lib_update on public.libraries;
 create policy lib_update on public.libraries for update
   using      (public.is_app_admin() or public.member_role(id) = 'admin')
   with check (public.is_app_admin() or public.member_role(id) = 'admin');
+drop policy if exists lib_delete on public.libraries;
 create policy lib_delete on public.libraries for delete
   using (public.is_app_admin());
 
 -- memberships : on voit ses propres lignes (et l'admin voit celles de sa biblio) ;
 --               seul un library-admin (ou app-admin) ajoute/retire des membres
+drop policy if exists mem_select on public.memberships;
 create policy mem_select on public.memberships for select
   using (user_id = auth.uid() or public.member_role(library_id) = 'admin' or public.is_app_admin());
+drop policy if exists mem_write on public.memberships;
 create policy mem_write on public.memberships for all
   using      (public.member_role(library_id) = 'admin' or public.is_app_admin())
   with check (public.member_role(library_id) = 'admin' or public.is_app_admin());
@@ -207,11 +222,27 @@ create trigger catsets_clamp_updated before insert or update on public.category_
 -- Efface les DONNÉES PERSONNELLES (fiches + catégories perso) puis le compte lui-même.
 -- Les memberships et app_admins partent en cascade avec auth.users. Les fiches que l'utilisateur
 -- a ajoutées à des bibliothèques PARTAGÉES y restent (contenu collectif de l'équipe).
+-- DÉFENSE EN PROFONDEUR : exige une CONFIRMATION D'IDENTITÉ RÉCENTE — une entrée « amr »
+-- (authentication method reference, posée par GoTrue dans le JWT) de type otp/magiclink datant
+-- de moins de 10 minutes. Un jeton de session volé ne suffit donc pas, même rafraîchi (le
+-- refresh conserve l'amr et son horodatage d'origine) : il faut avoir saisi un code reçu sur
+-- la boîte mail du compte juste avant. C'est le pendant serveur du parcours de l'app
+-- (SUPPRIMER -> code OTP -> suppression) ; toute anomalie de claim bloque (fail-closed).
 create or replace function public.delete_my_account()
 returns void language plpgsql security definer set search_path = public, auth as $$
-declare uid uuid := auth.uid();
+declare
+  uid    uuid  := auth.uid();
+  claims jsonb := coalesce(nullif(current_setting('request.jwt.claims', true), ''), '{}')::jsonb;
 begin
   if uid is null then raise exception 'not authenticated'; end if;
+  if not exists (
+    select 1
+    from jsonb_array_elements(coalesce(claims->'amr', '[]'::jsonb)) e
+    where e->>'method' in ('otp','magiclink')
+      and to_timestamp((e->>'timestamp')::numeric) > now() - interval '10 minutes'
+  ) then
+    raise exception 'recent otp verification required';
+  end if;
   -- GARDE-FOU : un super-admin (app_admin) ne peut PAS s'auto-supprimer (gestion via dashboard).
   if exists (select 1 from public.app_admins where user_id = uid) then
     raise exception 'super-admin account cannot be self-deleted';
@@ -267,9 +298,11 @@ insert into public.user_status(user_id, email, status, decided_at)
 
 alter table public.user_status enable row level security;
 -- Chacun voit sa PROPRE ligne (pour connaître son statut) ; un app-admin voit tout.
+drop policy if exists user_status_select on public.user_status;
 create policy user_status_select on public.user_status for select
   using (user_id = auth.uid() or public.is_app_admin());
 -- Seul un app-admin peut changer le statut de quelqu'un (approuver/refuser).
+drop policy if exists user_status_write on public.user_status;
 create policy user_status_write on public.user_status for update
   using (public.is_app_admin())
   with check (public.is_app_admin());
@@ -311,6 +344,30 @@ drop policy if exists cats_perso on public.category_sets;
 create policy cats_perso on public.category_sets for all
   using      (library_id is null and owner = auth.uid() and public.is_approved())
   with check (library_id is null and owner = auth.uid() and public.is_approved());
+
+-- ---------- 6ter. Notes personnelles par fiche --------------------------------
+-- (Après is_approved(), que la politique référence.)
+-- Une note PRIVÉE par (utilisateur, fiche) : annotation perso sur une fiche (perso OU partagée),
+-- synchronisée entre les appareils du même compte, JAMAIS visible des autres membres. Modifier la
+-- fiche ne touche pas aux notes (stockage séparé). Pas de FK vers fiches : la fiche peut être un
+-- tombstone ou une fiche locale jamais synchronisée ; les orphelines sont minuscules et ignorées.
+create table if not exists public.fiche_notes (
+  user_id    uuid not null references auth.users on delete cascade,
+  fiche_id   text not null,
+  note       text not null default '',
+  updated_at timestamptz not null default now(),
+  primary key (user_id, fiche_id)
+);
+alter table public.fiche_notes enable row level security;
+drop policy if exists notes_own on public.fiche_notes;
+create policy notes_own on public.fiche_notes for all
+  using      (user_id = auth.uid() and public.is_approved())
+  with check (user_id = auth.uid() and public.is_approved());
+grant select, insert, update, delete on public.fiche_notes to authenticated;
+-- Même anti-postdatage que fiches/category_sets (last-write-wins non trichable).
+drop trigger if exists notes_clamp_updated on public.fiche_notes;
+create trigger notes_clamp_updated before insert or update on public.fiche_notes
+  for each row execute function public.clamp_updated_at();
 
 -- Statut du compte courant (le client l'appelle juste après la vérification OTP, puis à chaque
 -- synchro) : reflète EXACTEMENT is_approved() (si la validation est désactivée globalement, ou si

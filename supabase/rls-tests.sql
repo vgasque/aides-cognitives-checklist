@@ -87,6 +87,71 @@ begin
     raise exception 'ÉCHEC : un compte pending a pu écrire dans son espace perso';
   exception when insufficient_privilege then null; end;
 
+  ------------------------------------------------------------------ 6. Notes personnelles : privées et gatées
+  -- Bob est PENDING (section 5) : l'écriture d'une note est bloquée par le gate is_approved().
+  begin
+    insert into public.fiche_notes(user_id,fiche_id,note) values (bob,'f-alice','note de bob');
+    raise exception 'ÉCHEC : un compte pending a pu écrire une note';
+  exception when insufficient_privilege then null; end;
+
+  -- Alice (approuvée) écrit sa note ; Bob (réapprouvé) écrit la SIENNE sur la MÊME fiche.
+  reset role;
+  update public.user_status set status='approved' where user_id=bob;
+  perform set_config('request.jwt.claims', json_build_object('sub',alice,'role','authenticated')::text, true);
+  set local role authenticated;
+  insert into public.fiche_notes(user_id,fiche_id,note) values (alice,'f-alice','note d''alice');
+  perform set_config('request.jwt.claims', json_build_object('sub',bob,'role','authenticated')::text, true);
+  insert into public.fiche_notes(user_id,fiche_id,note) values (bob,'f-alice','note de bob');
+
+  -- Chacun ne voit QUE la sienne ; impossible d'écrire une note au nom d'un autre.
+  select count(*) into v_cnt from public.fiche_notes where fiche_id='f-alice';
+  if v_cnt <> 1 then raise exception 'ÉCHEC : Bob voit % note(s) sur f-alice (attendu : 1, la sienne)', v_cnt; end if;
+  select count(*) into v_cnt from public.fiche_notes where user_id=alice;
+  if v_cnt <> 0 then raise exception 'ÉCHEC : Bob voit la note personnelle d''Alice'; end if;
+  begin
+    insert into public.fiche_notes(user_id,fiche_id,note) values (alice,'f-2','usurpation');
+    raise exception 'ÉCHEC : Bob a pu écrire une note au nom d''Alice';
+  exception when insufficient_privilege then null; end;
+  update public.fiche_notes set note='hack' where user_id=alice;  -- RLS -> 0 ligne, sans erreur
+  reset role;
+  select count(*) into v_cnt from public.fiche_notes where user_id=alice and note='hack';
+  if v_cnt <> 0 then raise exception 'ÉCHEC : Bob a pu modifier la note d''Alice'; end if;
+
+  -- (Remise en pending pour ne pas fausser la suite éventuelle.)
+  update public.user_status set status='pending' where user_id=bob;
+
+  ------------------------------------------------------------------ 7. delete_my_account : OTP récent exigé
+  -- Sans entrée amr dans le JWT (jeton de session « nu », p. ex. volé) -> refus.
+  perform set_config('request.jwt.claims', json_build_object('sub',bob,'role','authenticated')::text, true);
+  set local role authenticated;
+  begin
+    perform public.delete_my_account();
+    raise exception 'ÉCHEC : suppression de compte possible SANS vérification OTP récente';
+  exception when raise_exception then
+    if sqlerrm <> 'recent otp verification required' then raise; end if;
+  end;
+
+  -- Entrée amr otp PÉRIMÉE (il y a 1 h) -> refus aussi (un refresh conserve l'amr d'origine).
+  perform set_config('request.jwt.claims', json_build_object('sub',bob,'role','authenticated',
+    'amr',json_build_array(json_build_object('method','otp','timestamp',(extract(epoch from now())::bigint - 3600))))::text, true);
+  begin
+    perform public.delete_my_account();
+    raise exception 'ÉCHEC : suppression de compte possible avec un OTP d''il y a 1 h';
+  exception when raise_exception then
+    if sqlerrm <> 'recent otp verification required' then raise; end if;
+  end;
+
+  -- Entrée amr otp FRAÎCHE (le parcours normal de l'app : code saisi juste avant) -> suppression OK.
+  perform set_config('request.jwt.claims', json_build_object('sub',bob,'role','authenticated',
+    'amr',json_build_array(json_build_object('method','otp','timestamp',extract(epoch from now())::bigint)))::text, true);
+  perform public.delete_my_account();
+  reset role;
+  select count(*) into v_cnt from auth.users where id=bob;
+  if v_cnt <> 0 then raise exception 'ÉCHEC : delete_my_account n''a pas supprimé le compte'; end if;
+  -- La suppression du compte emporte aussi ses notes personnelles (FK on delete cascade).
+  select count(*) into v_cnt from public.fiche_notes where user_id=bob;
+  if v_cnt <> 0 then raise exception 'ÉCHEC : les notes de Bob ont survécu à la suppression du compte'; end if;
+
   ------------------------------------------------------------------ FIN
   reset role;
   raise notice '✅ TOUS LES TESTS RLS PASSENT';

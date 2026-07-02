@@ -160,6 +160,25 @@ function run(A){
   eq('résout une étape cochée', A.stepTextFromKey(fK,'0:b1:1'), {block:'Mesures',step:'Étape B'});
   eq('clé orpheline → null', A.stepTextFromKey(fK,'0:zz:0'), null);
 
+  group('sanitizeNotes()');
+  const nIn={'f-ok':{t:'ma note',at:123,dirty:true},'__proto__':{t:'x',at:1},'bad id':{t:'x',at:1},'f-2':{t:42,at:'nope'},'f-3':'pas un objet'};
+  const nOut=A.sanitizeNotes(nIn);
+  eq('entrée valide conservée (avec dirty)', nOut['f-ok'], {t:'ma note',at:123,dirty:true});
+  ok('clé dangereuse écartée', !Object.prototype.hasOwnProperty.call(nOut,'__proto__'));
+  ok('clé au format invalide écartée', !('bad id' in nOut));
+  eq('texte coercé + at non numérique → 0', nOut['f-2'], {t:'42',at:0});
+  ok('valeur non-objet écartée', !('f-3' in nOut));
+  eq('non-objet → {}', A.sanitizeNotes(null), {});
+
+  group('stripJsonFences()');
+  eq('JSON nu inchangé', A.stripJsonFences('{"a":1}'), '{"a":1}');
+  eq('clôtures ```json retirées', A.stripJsonFences('```json\n{"a":1}\n```'), '{"a":1}');
+  eq('clôtures ``` sans langue retirées', A.stripJsonFences('```\n{"a":1}\n```'), '{"a":1}');
+  eq('BOM + espaces retirés', A.stripJsonFences('﻿  {"a":1}\n'), '{"a":1}');
+  eq('backticks INTERNES préservés', A.stripJsonFences('{"a":"x ``` y"}'), '{"a":"x ``` y"}');
+  eq('clôture non fermée → texte intact (échouera au parse)', A.stripJsonFences('```json\n{"a":1}'), '```json\n{"a":1}');
+  eq('non-chaîne coercée', A.stripJsonFences(null), '');
+
   group('migrate() — champs 3.1 (status/related/updatedBy)');
   const m31=A.migrate({title:'x',status:'draft',related:['ok-1','__proto__','bad id'],updatedBy:'a@b.fr'});
   eq('status brouillon conservé', m31.status, 'draft');

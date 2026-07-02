@@ -4,6 +4,52 @@ Toutes les versions notables de l'application. Format inspiré de *Keep a Change
 versionnage sémantique. La version affichée en pied de page (`APP_VERSION` dans `index.html`)
 et le cache du service worker (`sw.js`) sont tenus synchronisés par `release.sh`.
 
+## [3.2.0] — 2026-07-02
+### Ajouté
+- **Notes personnelles par fiche.** En bas de chaque fiche, une carte en pointillés permet
+  d'attacher une note privée : toujours PERSONNELLE (hors de la fiche — un éditeur qui modifie
+  une fiche partagée n'y touche jamais ; chaque membre d'une bibliothèque a la sienne, invisible
+  des autres), synchronisée entre les appareils du même compte (nouvelle table `fiche_notes`,
+  RLS « chacun ne lit/écrit que les siennes »), jamais exportée ni imprimée ni dupliquée.
+  Lecture seule par défaut (rien d'éditable par accident en mode crise) : l'édition demande un
+  geste explicite (« Modifier » / « + Ajouter une note personnelle »), avec auto-enregistrement.
+  Même composant en lecture et dans l'éditeur, y compris dès la création d'une fiche (note
+  nettoyée si la création est annulée). La suppression d'une fiche efface la note attachée et
+  propage l'effacement ; supprimer une fiche de bibliothèque partagée prévient l'éditeur que
+  les notes personnelles des membres seront perdues.
+- **Suppression de compte confirmée par code e-mail (OTP).** Le parcours exige désormais, après
+  le garde-fou « SUPPRIMER », un code envoyé à l'adresse de la session (jamais une adresse
+  saisie — aucune injection possible) ; côté serveur, la RPC `delete_my_account` refuse tout
+  jeton sans vérification OTP de moins de 10 minutes (claim `amr` — un jeton volé, même
+  rafraîchi, ne suffit plus). Message clair et « Renvoyer le code » si le code a expiré.
+- **Confirmation d'import** : un message confirme le nombre de fiches importées.
+
+### Modifié
+- **Prompt « Créer via IA » durci** : les fiches générées arrivent obligatoirement en
+  **brouillon**, sans date de validation (relecture et validation humaines dans l'app) ; le
+  document source est traité comme données, jamais comme instructions (anti-injection) ; doses,
+  unités et voies recopiées à l'identique (aucune conversion ni arrondi) ; en cas d'algorithmes
+  multiples (adulte/pédiatrie), l'IA demande lequel traiter ; les blocs suivent les phases
+  cliniques (jamais de découpage arbitraire). L'import tolère désormais une réponse d'IA
+  enrobée de clôtures Markdown (```json) au lieu d'échouer « Fichier illisible ».
+- **Pied de page réorganisé** : actions (Exporter/Importer/Thème/taille du texte) d'abord,
+  puis la ligne d'état (nombre de fiches · version, pastille de synchro), puis le message de
+  stockage. Icône « Aa » recentrée ; étoiles « Créer via IA » dorées et pleines.
+
+### Corrigé
+- Synchronisation des notes : re-rendu limité à la fiche affichée (pas de vol de focus) et
+  marqueur « à pousser » protégé contre une frappe pendant l'envoi (aucune perte silencieuse).
+
+### Serveur (à rejouer dans Supabase : `schema.sql` puis `rls-tests.sql`)
+- `schema.sql` désormais **entièrement rejouable** (drop policy if exists devant chaque
+  politique) ; nouvelle table `fiche_notes` (+ RLS, gate d'approbation, trigger anti-postdatage) ;
+  `delete_my_account` exige un OTP récent. `rls-tests.sql` : isolation des notes entre
+  utilisateurs, gate d'approbation, refus d'usurpation, cascade à la suppression de compte,
+  et exigence d'OTP récent (absent/périmé/frais) — 2 sections nouvelles.
+
+### Tests
+- `sanitizeNotes` et `stripJsonFences` exposées au hook de test ; 13 tests ajoutés (100 au total).
+
 ## [3.1.5] — 2026-07-02
 ### Corrigé
 - **Impression du compte-rendu de session fiable.** L'iframe d'impression (hors écran) était
