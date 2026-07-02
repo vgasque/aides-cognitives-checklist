@@ -867,7 +867,7 @@
 /* PALETTE : couleurs proposées pour les catégories (hex sombres, lisibles
    en texte comme en pastille teintée). Index réutilisé cycliquement. */
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='3.1.1';
+const APP_VERSION='3.1.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -2128,7 +2128,7 @@ function renderEditor(){
     ${Auth.signedIn()?`<div class="field"><label>Bibliothèque <span class="hint">où ranger cette fiche</span></label>
       <select id="f-scope"><option value="" ${!f.libraryId?'selected':''}>Perso (privé)</option>${sortedLibraries().filter(l=>l.role==='editor'||l.role==='admin').map(l=>`<option value="${esc(l.id)}" ${f.libraryId===l.id?'selected':''}>${esc(l.name)} (partagée)</option>`).join('')}${f.libraryId&&!myLibraries.some(l=>l.id===f.libraryId)?`<option value="${esc(f.libraryId)}" selected>${esc(libName(f.libraryId)||'Bibliothèque')}</option>`:''}</select></div>`:''}
     <div class="row2"><div class="field"><label>Date de validation <span class="hint">mois/année</span></label><input type="text" id="f-validation" inputmode="numeric" autocapitalize="off" value="${esc(valToDisplay(f.validation))}" placeholder="MM/AAAA — ex. 012026 ou 01/2026"></div>
-      <div class="field"><label>État</label><select id="f-status"><option value="" ${f.status!=='draft'?'selected':''}>Validée</option><option value="draft" ${f.status==='draft'?'selected':''}>Brouillon (masquée aux lecteurs)</option></select></div></div>
+      <div class="field"><label>État</label><select id="f-status"><option value="" ${f.status!=='draft'?'selected':''}>Validée</option><option value="draft" ${f.status==='draft'?'selected':''}>Brouillon${f.libraryId?' (masquée aux lecteurs)':''}</option></select></div></div>
     <div class="field"><label>Contexte local <span class="hint">numéros utiles, particularités</span></label><textarea id="f-localInfo" rows="2" placeholder="Réanimateur de garde, pharmacie…">${esc(f.localInfo)}</textarea></div>
     ${listEditor('Confirmation diagnostique','critères pour déclencher la fiche','confirmation',f.confirmation)}
     <fieldset class="field"><label>Prise en charge <span class="hint">listes d'étapes + décisions conditionnelles</span></label><p class="flow-prev-h">Algorithme — aperçu automatique</p>${flowBlock(f)}${f.blocks.map(b=>blockEditor(b,blocks)).join('')}<div class="add-blocks"><button class="btn sm" id="addSteps">+ Bloc d'étapes</button><button class="btn sm" id="addDecision">+ Décision (si… alors…)</button></div></fieldset>
@@ -2154,6 +2154,11 @@ function renderEditor(){
   // comprise -> bordure rouge, on n'enregistre pas une valeur douteuse.
   const fv=document.getElementById('f-validation');
   if(fv){fv.addEventListener('change',()=>{const raw=fv.value.trim();if(!raw){state.draft.validation='';fv.classList.remove('val-bad');return;}const norm=parseValidation(raw);if(norm){state.draft.validation=norm;fv.value=valToDisplay(norm);fv.classList.remove('val-bad');}else{fv.classList.add('val-bad');}});}
+  // État (validée/brouillon) : reporté dans le brouillon DÈS le changement — sinon tout re-rendu
+  // du formulaire (changement de bibliothèque, de catégorie, ajout d'étape…) reperdrait la sélection.
+  // Le libellé « (masquée aux lecteurs) » n'a de sens qu'en bibliothèque partagée : le changement de
+  // bibliothèque re-rend le formulaire, ce qui met aussi ce libellé à jour.
+  {const stSel=document.getElementById('f-status');if(stSel)stSel.onchange=()=>{state.draft.status=stSel.value==='draft'?'draft':'';};}
   bindListEditors();
   // Fiches liées : ajout via le menu, retrait via la croix (mise à jour immédiate de l'aperçu).
   {const ra=document.getElementById('relAdd');if(ra)ra.onchange=()=>{const id=ra.value;if(!id)return;state.draft.related=state.draft.related||[];if(state.draft.related.indexOf(id)<0)state.draft.related.push(id);renderEditor();};}

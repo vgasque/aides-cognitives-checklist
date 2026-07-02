@@ -4,6 +4,18 @@ Toutes les versions notables de l'application. Format inspiré de *Keep a Change
 versionnage sémantique. La version affichée en pied de page (`APP_VERSION` dans `index.html`)
 et le cache du service worker (`sw.js`) sont tenus synchronisés par `release.sh`.
 
+## [3.1.2] — 2026-07-02
+### Modifié
+- Éditeur, champ « État » : l'option affiche simplement **« Brouillon »** pour une fiche
+  personnelle ; la précision « (masquée aux lecteurs) » n'apparaît que si la fiche est dans une
+  **bibliothèque partagée**, et le libellé se met à jour immédiatement quand on déplace la fiche
+  d'une bibliothèque à l'autre.
+
+### Corrigé
+- Le choix Validée/Brouillon est désormais conservé pendant l'édition : auparavant, tout
+  re-rendu du formulaire (changement de bibliothèque ou de catégorie, ajout d'étape…) le
+  réinitialisait silencieusement à la valeur enregistrée.
+
 ## [3.1.1] — 2026-07-02
 ### Corrigé
 - **Service worker** : les réponses d'erreur (404/500) et les pages interceptées par un portail
