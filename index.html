@@ -9,7 +9,7 @@
   Bibliothèque d'« aides cognitives » médicales que l'utilisateur (clinicien :
   anesthésie / urgences / réanimation) rédige, modifie et utilise lui-même.
   Une aide cognitive = une fiche de référence pour une URGENCE VITALE (ex.
-  anaphylaxie, arrêt cardiaque, intoxication aux anesthésiques locaux), consultée
+  anaphylaxie, arrêt cardiaque, état de mal épileptique), consultée
   PENDANT la crise, sous stress majeur, pour ne rien oublier ni se tromper.
   Principe inspiré des recommandations SFAR : "détrompage" = la bonne information,
   au bon endroit, au bon moment. La fiabilité et la clarté priment sur tout.
@@ -867,7 +867,7 @@
 /* PALETTE : couleurs proposées pour les catégories (hex sombres, lisibles
    en texte comme en pastille teintée). Index réutilisé cycliquement. */
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='3.1.3';
+const APP_VERSION='3.1.4';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -1132,8 +1132,8 @@ const fmtHMS=t=>{const d=new Date(t);return String(d.getHours()).padStart(2,'0')
    migrate(f)    : rend compatible une fiche d'origine quelconque (ajoute les
                    champs manquants ; convertit l'ancien format "étapes plates"
                    en un bloc 'steps'). Appelée à chaque lecture/import.
-   seed(catId)   : fiche d'exemple "Anaphylaxie peropératoire" (branchement +
-                   chronomètre + minuteur à cycle + compteur) chargée au 1er lancement.
+   seed(catId)   : fiche d'exemple "Anaphylaxie" (branchement + chronomètre +
+                   minuteur à cycle + compteur) chargée au 1er lancement.
    defaultCats() : 8 catégories par défaut (espace Perso).
    migrateCategories() : convertit d'anciennes catégories "texte" en objets
                    {id,name,color,libraryId} et réécrit fiche.category avec l'id.
@@ -1191,21 +1191,21 @@ function migrate(f){if(!f||typeof f!=='object')f={};
 // conservés -> les fiches qui les référencent restent associées).
 function sanitizeCats(cats){return (Array.isArray(cats)?cats:[]).slice(0,400).map(c=>({id:safeId(c&&c.id,'c'),name:sstr(c&&c.name,120),color:safeColor(c&&c.color),libraryId:safeMetaId(c&&c.libraryId)}));}
 function seed(catId){const b1=uid('b'),b2=uid('b'),b3=uid('b'),bd=uid('b');
-  return migrate({id:uid(),title:'Anaphylaxie peropératoire',category:catId||'',validation:'2025-01',
-    localInfo:'Réanimateur de garde : …\nPharmacie : …\n(adaptez à votre établissement)',
-    confirmation:['Hypotension / collapsus brutal','Bronchospasme, désaturation','Érythème, urticaire, œdème','Survenue après injection / exposition'],
-    verify:['Voie veineuse de bon calibre','Monitorage complet','Prélèvement tryptase à organiser'],
-    notForget:['Adrénaline = 1ʳᵉ intention, ne pas retarder','Penser au latex et aux curares'],
-    differentials:['Choc hémorragique','Embolie pulmonaire / gazeuse','Pneumothorax compressif'],
+  return migrate({id:uid(),title:'Anaphylaxie (choc anaphylactique)',category:catId||'',validation:'2025-01',
+    localInfo:'Renfort / réanimateur : …\nSAMU – régulation : …\n(adaptez à votre pratique)',
+    confirmation:['Exposition possible (aliment, médicament, piqûre…)','Signes cutanéo-muqueux : urticaire, œdème','Hypotension / collapsus, tachycardie','Bronchospasme, dyspnée, désaturation'],
+    verify:['Voie veineuse de bon calibre','Monitorage complet, O₂','Prélèvement tryptase à organiser (à l’hôpital)'],
+    notForget:['Adrénaline IM = 1ʳᵉ intention, ne pas retarder','Allonger, jambes surélevées — ne pas verticaliser','Surveillance prolongée : réaction biphasique possible'],
+    differentials:['Asthme aigu grave','Malaise vagal','Œdème laryngé d’autre origine','Choc d’autre cause (septique, hémorragique)'],
     references:['Exemple à compléter — recommandations en vigueur'],images:[],
-    timers:[{id:uid('t'),label:'Temps écoulé',type:'stopwatch'},{id:uid('t'),label:'Cycle réévaluation',type:'interval',seconds:180,autoloop:true}],
-    counters:[{id:uid('n'),label:'Bolus adrénaline',step:1,start:0}],
+    timers:[{id:uid('t'),label:'Temps écoulé',type:'stopwatch'},{id:uid('t'),label:'Réévaluation après adrénaline',type:'interval',seconds:300,autoloop:true}],
+    counters:[{id:uid('n'),label:'Injections d’adrénaline',step:1,start:0}],
     start:b1,
     blocks:[
-      {id:b1,type:'steps',title:'Mesures immédiates',image:null,steps:['Arrêter l\u2019agent suspecté','Appeler à l\u2019aide — désigner un lecteur','O\u2082 100 %, voies aériennes','Adrénaline titrée (protocole local)','Remplissage vasculaire'],next:bd},
+      {id:b1,type:'steps',title:'Mesures immédiates',image:null,steps:['Retirer / arrêter l’allergène si possible','Appeler à l’aide — désigner un lecteur','Adrénaline IM, face antéro-latérale de cuisse (protocole local)','Allonger, jambes surélevées','O₂ fort débit, voie veineuse, remplissage'],next:bd},
       {id:bd,type:'decision',title:'Réévaluation',image:null,question:'Amélioration après adrénaline et remplissage ?',options:[{label:'Oui — stabilisé',target:b2},{label:'Non — réfractaire',target:b3}]},
-      {id:b2,type:'steps',title:'Stabilisé',image:null,steps:['Surveillance rapprochée','Tracer doses et horaires','Bilan allergologique'],next:null},
-      {id:b3,type:'steps',title:'Choc réfractaire',image:null,steps:['Adrénaline en perfusion continue','Renforcer le remplissage','2ᵉ vasopresseur','Renfort réanimation'],next:null}
+      {id:b2,type:'steps',title:'Stabilisé',image:null,steps:['Surveillance prolongée (réaction biphasique)','Tracer doses et horaires','Orientation hospitalière, bilan allergologique à distance'],next:null},
+      {id:b3,type:'steps',title:'Réfractaire',image:null,steps:['Répéter l’adrénaline IM à 5 min','Renforcer le remplissage','Adrénaline IV titrée (équipe entraînée, protocole local)','Renfort réanimation / SMUR'],next:bd}
     ]});}
 // Deuxième fiche d'exemple : arrêt cardiaque. Illustre une DÉCISION rebouclée (le rythme est
 // réévalué à chaque cycle) et un minuteur À CYCLE de 2 min (RCP). À relire/valider avant tout usage.
@@ -1299,7 +1299,7 @@ async function load(){
   fiches=(await Data.getAll()).map(migrate).filter(f=>!f.deletedAt);
   sessions=(await Data.getSessions())||[];
   if(!categories.length){categories=defaultCats();await Data.setCats(categories);}
-  if(!fiches.length){const catAna=(categories.find(c=>c.name==='Anesthésie')||categories[0]||{}).id||'';const catRea=(categories.find(c=>c.name==='Réanimation')||{}).id||catAna;fiches=[seed(catAna),seed2(catRea)];for(const x of fiches)await Data.put(x);}
+  if(!fiches.length){const catUrg=(categories.find(c=>c.name==='Urgences')||categories[0]||{}).id||'';const catSmur=(categories.find(c=>c.name==='SMUR')||{}).id||catUrg;fiches=[seed(catUrg),seed2(catSmur)];for(const x of fiches)await Data.put(x);}
   await remapCatsDeterministic(); // ids de catégories déterministes (cohérence multi-appareils)
   const ch=migrateCategories();if(ch.length){await Data.setCats(categories);for(const f of ch)await Data.put(f);}
   restoreLiveSessions();

@@ -4,6 +4,22 @@ Toutes les versions notables de l'application. Format inspiré de *Keep a Change
 versionnage sémantique. La version affichée en pied de page (`APP_VERSION` dans `index.html`)
 et le cache du service worker (`sw.js`) sont tenus synchronisés par `release.sh`.
 
+## [3.1.4] — 2026-07-02
+### Modifié — exemples réorientés médecine d'urgence
+- Fiche de démarrage « Anaphylaxie peropératoire » remplacée par **« Anaphylaxie (choc
+  anaphylactique) »** (urgences / pré-hospitalier : adrénaline IM, réévaluation à 5 min, boucle
+  en cas de forme réfractaire), catégorie **Urgences**. La fiche « Arrêt cardiaque » (ERC),
+  valable en médecine d'urgence, est conservée et rangée en catégorie **SMUR**.
+  (Ne concerne que les nouvelles installations : les fiches d'exemple ne sont créées qu'à la
+  première ouverture, aucune bibliothèque existante n'est modifiée.)
+- Fiches importables `exemples/` remplacées : LAST et hémorragie du post-partum (contextes
+  anesthésie/réanimation) cèdent la place à **« Accouchement inopiné en pré-hospitalier »**
+  (SMUR) et **« État de mal épileptique de l'adulte »** (urgences). Leurs catégories embarquées
+  (`c-smur`, `c-urgences`) correspondent aux ids déterministes des catégories par défaut :
+  l'import se rattache aux catégories existantes sans doublon.
+- Comme toujours pour les exemples : contenu générique (« protocole local »), statut
+  **brouillon**, à relire et valider avant tout usage clinique.
+
 ## [3.1.3] — 2026-07-02
 ### Corrigé
 - **Bibliothèques partagées accessibles hors-ligne.** La liste des bibliothèques (et vos rôles)

@@ -40,11 +40,11 @@ IA (ChatGPT, Claude…) en y joignant un PDF, une image ou une recommandation. L
 fichier JSON à importer (bouton « Importer »). Relisez toujours la fiche générée avant usage.
 
 ## Fiches d'exemple (`exemples/`)
-Deux fiches sont créées automatiquement à la première ouverture (« Anaphylaxie peropératoire »,
-« Arrêt cardiaque »). Le dossier `exemples/` en fournit deux autres à importer (bouton
-« Importer » ; l'import d'une seule fiche fusionne, ne remplace jamais la bibliothèque) :
-- `last-toxicite-anesthesiques-locaux.json` — toxicité systémique des anesthésiques locaux (LAST) ;
-- `hemorragie-post-partum.json` — hémorragie du post-partum (HPP).
+Deux fiches sont créées automatiquement à la première ouverture (« Anaphylaxie (choc
+anaphylactique) », « Arrêt cardiaque »). Le dossier `exemples/` en fournit deux autres à importer
+(bouton « Importer » ; l'import d'une seule fiche fusionne, ne remplace jamais la bibliothèque) :
+- `accouchement-inopine-prehospitalier.json` — accouchement inopiné en pré-hospitalier (SMUR) ;
+- `etat-de-mal-epileptique.json` — état de mal épileptique de l'adulte (urgences).
 
 ⚠️ **À relire et valider avant tout usage clinique** : contenu volontairement générique, marqué
 « brouillon », à adapter à vos protocoles et aux recommandations en vigueur.
