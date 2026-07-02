@@ -4,6 +4,40 @@ Toutes les versions notables de l'application. Format inspiré de *Keep a Change
 versionnage sémantique. La version affichée en pied de page (`APP_VERSION` dans `index.html`)
 et le cache du service worker (`sw.js`) sont tenus synchronisés par `release.sh`.
 
+## [3.1.5] — 2026-07-02
+### Corrigé
+- **Impression du compte-rendu de session fiable.** L'iframe d'impression (hors écran) était
+  recréée à chaque clic puis retirée au bout d'une seconde : recliquer sur « Imprimer » (ou un
+  navigateur lent à ouvrir l'aperçu) imprimait une page blanche. L'iframe est désormais
+  conservée et réutilisée tant que le compte-rendu affiché est le même, puis retirée à la
+  fermeture de la fenêtre.
+- **Flash d'alarme : plus de bande jaune persistante en bas d'écran (iPhone).** L'overlay du
+  flash restait composité (animation `forwards`) après la fin du clignotement et Safari iOS
+  s'en servait pour teinter la barre du bas en jaune. Il est maintenant retiré du rendu
+  (`display:none`) dès la fin de l'animation.
+- **Le filtre de catégories ne perd plus sa position.** Sur l'accueil, cliquer un filtre en fin
+  de liste ne ramène plus la rangée de catégories à son début : le défilement horizontal est
+  restauré après le re-rendu.
+- **Synchronisation : deux trous colmatés.** (1) Le curseur de pull est remis à zéro à la
+  déconnexion — en se connectant ensuite avec un autre compte, l'app ne rapatriait que les
+  fiches plus récentes que l'ancien curseur et ratait l'historique du compte. (2) La migration
+  des catégories au démarrage ré-enregistrait des fiches sans leur marqueur « à pousser » :
+  une fiche importée hors connexion pouvait ainsi ne jamais être synchronisée.
+
+### Modifié
+- **Les fiches d'exemple ne sont plus créées automatiquement.** À la première ouverture (ou
+  bibliothèque perso vide), un bandeau « Besoin d'exemples pour commencer ? » propose d'ajouter
+  les deux fiches d'exemple (Anaphylaxie, Arrêt cardiaque) ; il est masquable. Les fiches
+  ajoutées par ce bouton passent par le circuit normal d'enregistrement : elles se synchronisent
+  si un compte est connecté (l'ancien amorçage silencieux ne le faisait pas). Les bibliothèques
+  existantes ne sont pas concernées.
+- **Emojis remplacés par des icônes SVG** dans toute l'interface (bouton thème, son 🔔/🔕 →
+  cloche, « ⚙ Gérer », « Noter l'heure », « Créer via IA / manuellement », bandeau d'alarme,
+  jauge de stockage, fenêtre « Où sont mes fiches ? », plein écran de l'algorithme, préfixe des
+  toasts d'avertissement) : rendu identique sur tous les appareils, couleur du thème respectée.
+  Restent : les symboles typographiques (✓ ✕ ›) et le « ⏰ » des notifications système, où le
+  SVG est impossible.
+
 ## [3.1.4] — 2026-07-02
 ### Modifié — exemples réorientés médecine d'urgence
 - Fiche de démarrage « Anaphylaxie peropératoire » remplacée par **« Anaphylaxie (choc

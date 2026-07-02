@@ -331,6 +331,8 @@
   .linkbtn:hover{text-decoration:underline}
   .notice-x{position:absolute;top:4px;right:4px;background:none;border:0;color:var(--ink-soft);font-size:19px;line-height:1;cursor:pointer;padding:0;min-width:28px;min-height:28px;display:inline-flex;align-items:center;justify-content:center;border-radius:7px}
   .notice-x:hover{background:rgba(0,0,0,.07)}
+  /* Icônes SVG « de texte » (uiIcon, remplacent les emojis) : alignées sur la ligne de base. */
+  svg.tic{vertical-align:-2.5px;flex:none}
   .ro-badge{font-size:11px;font-weight:600;color:var(--primary-dk);background:var(--primary-soft);padding:2px 8px;border-radius:10px}
   /* Fenêtre « Gérer la bibliothèque » — aligne le style sur la fenêtre Compte. */
   .mem-head{display:flex;align-items:center;gap:12px;margin-bottom:12px}
@@ -473,8 +475,11 @@
   .cncard{text-align:center}
   .tmcard.flash{animation:fl .5s ease 3}
   @keyframes fl{50%{background:#b5532a;border-color:#d9663a}}
-  #screenFlash{position:fixed;inset:0;pointer-events:none;z-index:99;opacity:0;background:#f0c040}
-  #screenFlash.on{animation:sf 2s ease-out forwards}
+  /* Hors flash : display:none (pas seulement opacity:0). Avec `forwards`, la couche jaune restait
+     active dans le compositeur après le flash et Safari iOS s'en servait pour teinter la barre du
+     bas de l'écran en jaune ; la classe .on est retirée en fin d'animation (voir flashScreen). */
+  #screenFlash{position:fixed;inset:0;pointer-events:none;z-index:99;opacity:0;background:#f0c040;display:none}
+  #screenFlash.on{display:block;animation:sf 2s ease-out forwards}
   @keyframes sf{0%{opacity:.55}60%{opacity:.3}100%{opacity:0}}
   .tm-label{font-size:10.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--rt-muted);margin-bottom:6px}
   .tm-val,.cn-val{font-family:var(--mono);font-size:30px;font-weight:600;letter-spacing:1px;line-height:1.05}
@@ -812,7 +817,7 @@
     <button class="tlink" id="installBtn">Installer l'app</button>
     <button class="tlink" id="exportBtn">Exporter tout</button>
     <button class="tlink" id="importBtn">Importer</button>
-    <button class="tlink" id="themeBtn">🌙 Sombre</button>
+    <button class="tlink" id="themeBtn">Thème</button><!-- libellé + icône posés par applyTheme() au démarrage -->
     <button class="tlink zoom-tlink" id="zoomBtn" title="Taille du texte (cycle 100 % → 110 % → 125 %)" aria-label="Taille du texte"><svg width="17" height="15" viewBox="0 0 26 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 20L8 4l6 16M4.2 14.5h7.6"/><path d="M15.5 20l4.2-11 4.2 11M17 16.4h5.4"/></svg><span id="zoomPct" hidden></span></button>
     </div>
     <div class="storage-gauge" id="storageInfo"></div>
@@ -871,7 +876,7 @@
 <!-- Accueil première ouverture : 3 repères, une seule fois (localStorage ac-onboarded). -->
 <div class="ai-modal" id="welcomeModal" role="dialog" aria-modal="true" aria-labelledby="welcomeModalTitle"><div class="ai-card" style="max-width:560px">
   <div class="ai-top"><h3 id="welcomeModalTitle">Bienvenue dans Aides cognitives</h3><button class="ai-x" id="welcomeX" aria-label="Fermer">×</button></div>
-  <p><b>1 · Vous rédigez, vous validez.</b> L'app ne contient aucun protocole imposé : vous créez vos fiches (à la main ou via « ✨ Créer via IA ») et vous restez responsable du contenu clinique. Deux fiches d'exemple sont fournies — relisez-les avant tout usage.</p>
+  <p><b>1 · Vous rédigez, vous validez.</b> L'app ne contient aucun protocole imposé : vous créez vos fiches (à la main ou via « Créer via IA ») et vous restez responsable du contenu clinique. Deux fiches d'exemple peuvent être ajoutées depuis l'accueil — relisez-les avant tout usage.</p>
   <p><b>2 · Le mode crise ne vous interrompt jamais.</b> Ouvrez une fiche : étapes cochables, minuteurs, compteurs et horodatage. Tout est enregistré automatiquement en session, même hors-ligne.</p>
   <p><b>3 · Vos données restent sur l'appareil.</b> Sans compte, rien ne quitte votre téléphone (pensez à « Exporter tout »). Le bouton Compte active la synchronisation multi-appareils, facultative.</p>
   <div style="display:flex;justify-content:flex-end;margin-top:14px"><button class="btn primary" id="welcomeGo">Commencer</button></div>
@@ -906,7 +911,7 @@
 /* PALETTE : couleurs proposées pour les catégories (hex sombres, lisibles
    en texte comme en pastille teintée). Index réutilisé cycliquement. */
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='3.1.4';
+const APP_VERSION='3.1.5';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -1109,7 +1114,7 @@ function bindFlowZoom(){main.querySelectorAll('[data-zoom]').forEach(b=>b.onclic
 // (pinch natif aussi). On centre horizontalement à l'ouverture.
 function openFlowFull(f,curId){const ov=document.getElementById('flowFull');if(!ov)return;const sc=ov.querySelector('.ff-scroll');sc.innerHTML=buildFlowSVG(f,curId);ov.classList.add('on');applyFlowZoom();bindSvgImages(sc);sc.scrollLeft=centerOnStart(sc);sc.scrollTop=0;}
 function closeFlowFull(){const ov=document.getElementById('flowFull');if(ov){ov.classList.remove('on');const sc=ov.querySelector('.ff-scroll');if(sc)sc.innerHTML='';}}
-const flowBlock=(f,curId)=>`<div class="flow-zoom"><button class="fz" data-zoom="out" aria-label="Dézoomer">−</button><span class="fzv">${Math.round(flowZoom*100)}%</span><button class="fz" data-zoom="in" aria-label="Zoomer">+</button><button class="fz fz-r" data-zoom="reset">Rétablir</button><span class="fz-spc"></span><button class="fz" data-flowfull aria-label="Plein écran" title="Plein écran">⛶</button></div><div class="flow-scroll">${buildFlowSVG(f,curId)}</div>`;
+const flowBlock=(f,curId)=>`<div class="flow-zoom"><button class="fz" data-zoom="out" aria-label="Dézoomer">−</button><span class="fzv">${Math.round(flowZoom*100)}%</span><button class="fz" data-zoom="in" aria-label="Zoomer">+</button><button class="fz fz-r" data-zoom="reset">Rétablir</button><span class="fz-spc"></span><button class="fz" data-flowfull aria-label="Plein écran" title="Plein écran"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 3H5a2 2 0 00-2 2v3M16 3h3a2 2 0 012 2v3M8 21H5a2 2 0 01-2-2v-3M16 21h3a2 2 0 002-2v-3"/></svg></button></div><div class="flow-scroll">${buildFlowSVG(f,curId)}</div>`;
 // Rafraîchit l'aperçu algorithme PENDANT la frappe (titres, étapes, réponses) sans reconstruire
 // tout le formulaire : on ne remplace que le SVG dans .flow-scroll -> le champ en cours de saisie
 // garde le focus et on évite un rendu complet à chaque touche. DÉBOUNCÉ (~300 ms) pour ne pas
@@ -1155,6 +1160,7 @@ const catsSorted=(scope)=>catsForScope(scope).slice().sort(byCatName);
 // Bibliothèque dont on gère les catégories : en édition = celle de la fiche ; sinon = bibliothèque affichée.
 function activeCatScope(){return state.view==='edit'?(state.draft?(state.draft.libraryId||null):null):(state.scope||null);}
 function noticeHidden(){try{return localStorage.getItem('ac-notice-hidden')==='1';}catch(e){return false;}}
+function seedsHidden(){try{return localStorage.getItem('ac-seeds-hidden')==='1';}catch(e){return false;}}
 // id de catégorie : déterministe (par nom) pour le Perso (cohérence multi-appareils des défauts) ;
 // aléatoire pour une bibliothèque (le jeu de catégories est un document synchronisé unique -> pas
 // besoin de déterminisme, et on évite toute collision d'id avec le Perso ou une autre bibliothèque).
@@ -1267,6 +1273,15 @@ function seed2(catId){const b1=uid('b'),bd=uid('b'),b2=uid('b'),b3=uid('b');
       {id:b2,type:'steps',title:'Choquable (FV / TVsp)',image:null,steps:['Choc immédiat, puis reprise RCP 2 min','Adrénaline 1 mg après le 3ᵉ choc, puis /3–5 min','Amiodarone 300 mg après le 3ᵉ choc'],next:bd},
       {id:b3,type:'steps',title:'Non choquable (AESP / asystolie)',image:null,steps:['RCP 2 min sans interruption','Adrénaline 1 mg immédiatement, puis /3–5 min','Traiter les causes réversibles (4H / 4T)'],next:bd}
     ]});}
+// Ajout À LA DEMANDE des fiches d'exemple (bandeau « Besoin d'exemples ? » de l'accueil ; plus
+// jamais créées automatiquement au démarrage). persist() les marque `dirty` -> elles se
+// synchronisent normalement si un compte est connecté.
+async function addSeedFiches(){
+  const catUrg=(categories.find(c=>c.name==='Urgences')||categories[0]||{}).id||'';
+  const catSmur=(categories.find(c=>c.name==='SMUR')||{}).id||catUrg;
+  for(const f of [seed(catUrg),seed2(catSmur)]){if(await persist(f))fiches.push(f);}
+  toast('2 fiches d’exemple ajoutées — relisez-les et adaptez-les avant tout usage clinique.',8000);
+  render();}
 // Identifiant de catégorie DÉTERMINISTE, dérivé du nom : deux appareils qui créent « Anesthésie »
 // obtiennent le MÊME id -> les fiches conservent leur catégorie après synchro. (Avec des ids
 // aléatoires, les jeux de catégories divergeaient entre appareils et la catégorie « disparaissait ».)
@@ -1318,16 +1333,16 @@ async function updateStorageInfo(){
     const used=fmt(est.usage);
     let main,tip;
     if(signed){
-      main='<span class="pers-ok">☁ <b>Sauvegardé dans le cloud</b></span> · '+used+' sur cet appareil';
+      main='<span class="pers-ok">'+uiIcon('cloud',13)+' <b>Sauvegardé dans le cloud</b></span> · '+used+' sur cet appareil';
       tip='Vos fiches sont sauvegardées dans le cloud. Le « '+used+' » est seulement la copie hors-ligne sur CET appareil (sa limite, '+fmt(est.quota)+', ne concerne donc pas vos données) : même effacée du navigateur ou depuis un autre appareil, vous retrouvez tout en vous reconnectant. C\'est l\'intérêt de la synchronisation.';
     }else if(pers===true){
       main='<b>Sur cet appareil uniquement</b> · '+used+' · copie unique';
       tip='Sans compte, cet appareil contient votre SEULE copie ('+used+' / '+fmt(est.quota)+'), ici à l\'abri d\'un effacement automatique du navigateur. Connectez-vous pour la sauvegarder dans le cloud et y accéder depuis vos autres appareils.';
     }else{
-      main='<span class="pers-warn">⚠ <b>Stockage sur cet appareil seulement</b> · '+used+' · non protégé</span> — connectez-vous';
+      main='<span class="pers-warn">'+uiIcon('warn',13)+' <b>Stockage sur cet appareil seulement</b> · '+used+' · non protégé</span> — connectez-vous';
       tip='Sans compte, cet appareil contient votre SEULE copie ('+used+' / '+fmt(est.quota)+') et le navigateur pourrait l\'effacer. Pour éviter toute perte : connectez-vous (sauvegarde dans le cloud) ou installez l\'app sur l\'écran d\'accueil.';
     }
-    if(est.quota&&est.usage/est.quota>0.85)main+=' · <span class="pers-warn">⚠ appareil presque plein</span>';
+    if(est.quota&&est.usage/est.quota>0.85)main+=' · <span class="pers-warn">'+uiIcon('warn',13)+' appareil presque plein</span>';
     el.innerHTML=main;el.title=tip;
   }catch(e){if(el)el.textContent='';}
 }
@@ -1340,9 +1355,14 @@ async function load(){
   fiches=(await Data.getAll()).map(migrate).filter(f=>!f.deletedAt);
   sessions=(await Data.getSessions())||[];
   if(!categories.length){categories=defaultCats();await Data.setCats(categories);}
-  if(!fiches.length){const catUrg=(categories.find(c=>c.name==='Urgences')||categories[0]||{}).id||'';const catSmur=(categories.find(c=>c.name==='SMUR')||{}).id||catUrg;fiches=[seed(catUrg),seed2(catSmur)];for(const x of fiches)await Data.put(x);}
+  // Les fiches d'exemple ne sont PLUS créées automatiquement : bibliothèque vide -> un bandeau
+  // d'accueil les PROPOSE (bouton « Ajouter les fiches d'exemple » dans renderLibrary). L'utilisateur
+  // reste maître de son contenu dès le premier écran (et le cloud n'est jamais pollué à son insu).
   await remapCatsDeterministic(); // ids de catégories déterministes (cohérence multi-appareils)
-  const ch=migrateCategories();if(ch.length){await Data.setCats(categories);for(const f of ch)await Data.put(f);}
+  // `dirty` posé explicitement : migrate() (getAll) l'a retiré des objets en mémoire, et un put
+  // sans lui ÉCRASERAIT le marqueur « à pousser » d'une fiche importée hors connexion (qui ne
+  // serait alors jamais synchronisée). La catégorie a changé -> à pousser, de toute façon.
+  const ch=migrateCategories();if(ch.length){await Data.setCats(categories);for(const f of ch){f.dirty=true;await Data.put(f);}}
   restoreLiveSessions();
   render();
   updateStorageInfo();
@@ -1464,21 +1484,27 @@ td:first-child{white-space:nowrap}ul{margin:0;padding-left:20px;font-size:13.5px
   reportModal.classList.add('on');
 }
 // Impression À LA DEMANDE via un iframe HORS ÉCRAN (mais de taille réelle : un iframe caché
-// 0×0 / visibility:hidden s'imprime BLANC sur la plupart des navigateurs). Une seule fois
-// (garde-fou : l'onload d'un srcdoc peut se déclencher deux fois), retiré après impression.
+// 0×0 / visibility:hidden s'imprime BLANC sur la plupart des navigateurs). L'iframe RESTE en
+// place et est RÉUTILISÉE tant que le compte-rendu affiché est le même : la recréer à chaque
+// clic (et la retirer 1 s après) faisait imprimer une page BLANCHE quand on relançait
+// l'impression (l'aperçu du navigateur lisait une frame déjà retirée / pas encore peinte).
+// Elle est retirée à la fermeture de la fenêtre de compte-rendu.
 function printReportDoc(){
-  const old=document.getElementById('reportFrame');if(old)old.remove();
-  const fr=document.createElement('iframe');fr.id='reportFrame';fr.setAttribute('aria-hidden','true');
+  const doPrint=fr=>{try{const w=fr.contentWindow;w.focus();w.print();}catch(e){toast('⚠ Impression indisponible sur ce navigateur.');}};
+  let fr=document.getElementById('reportFrame');
+  if(fr&&fr._doc===_reportDoc&&fr._ready){doPrint(fr);return;}   // même document déjà chargé -> réimpression directe
+  if(fr)fr.remove();
+  fr=document.createElement('iframe');fr.id='reportFrame';fr.setAttribute('aria-hidden','true');
   fr.style.cssText='position:fixed;left:-10000px;top:0;width:794px;height:1123px;border:0';  // ~A4 @96dpi, hors écran
-  let printed=false;
+  fr._doc=_reportDoc;
+  let printed=false;   // garde-fou : l'onload d'un srcdoc peut se déclencher deux fois
   fr.onload=()=>{if(printed)return;printed=true;
     // Laisse le rendu se peindre avant d'imprimer (sinon page blanche sur certains navigateurs).
-    setTimeout(()=>{try{const w=fr.contentWindow;w.focus();w.print();}catch(e){toast('⚠ Impression indisponible sur ce navigateur.');}
-      setTimeout(()=>fr.remove(),1000);},150);};
+    setTimeout(()=>{fr._ready=true;doPrint(fr);},150);};
   document.body.appendChild(fr);fr.srcdoc=_reportDoc;
 }
 function downloadReportDoc(){const blob=new Blob([_reportDoc],{type:'text/html'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=_reportName+'.html';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);}
-bindModalDismiss(reportModal,()=>reportModal.classList.remove('on'));
+bindModalDismiss(reportModal,()=>{reportModal.classList.remove('on');const fr=document.getElementById('reportFrame');if(fr)fr.remove();});
 document.getElementById('reportPrint').onclick=printReportDoc;
 document.getElementById('reportDownload').onclick=downloadReportDoc;
 // Persistance (auto-save) débouncée par runtime ; immediate=true pour figer sur sortie/alarme.
@@ -1517,6 +1543,9 @@ function beep(){buzz([500,200,500,200,500]);if(!soundOn)return;
   const tone=()=>{try{const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=880;o.connect(g);g.connect(AC.destination);const t0=AC.currentTime;g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(.32,t0+.02);g.gain.setValueAtTime(.28,t0+.02);g.gain.exponentialRampToValueAtTime(.24,t0+1.8);g.gain.exponentialRampToValueAtTime(.0001,t0+2);o.start();o.stop(t0+2);}catch(e){}};
   if(AC.state==='running'){tone();}else{try{const p=AC.resume();if(p&&p.then)p.then(tone).catch(tone);else setTimeout(tone,60);}catch(e){tone();}}}
 function flashScreen(){const sf=document.getElementById('screenFlash');if(sf){sf.classList.remove('on');void sf.offsetWidth;sf.classList.add('on');}}
+// Fin du flash : on retire complètement l'overlay du rendu (sinon il reste composité en jaune
+// et Safari iOS teint la barre du bas de l'écran en jaune tant qu'on ne recharge pas la page).
+{const sf=document.getElementById('screenFlash');if(sf)sf.addEventListener('animationend',()=>sf.classList.remove('on'));}
 function flash(id){const el=document.getElementById('tmcard-'+id);if(el){el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),1500);}flashScreen();announce('Minuteur terminé : '+((Runtime.timers[id]&&Runtime.timers[id].label)||'minuteur'));}
 // Annonce un évènement aux lecteurs d'écran via la zone aria-live (sans rien afficher).
 function announce(msg){const z=document.getElementById('srLive');if(!z)return;z.textContent='';setTimeout(()=>{z.textContent=msg;},30);}
@@ -1525,7 +1554,7 @@ function osNotify(title,body,ficheId){try{if('Notification'in window&&Notificati
 // Banderole in-app (toast) cliquable -> ouvre la fiche concernée. Empilable, auto-disparition.
 function showBanner(ficheId,fTitle,tLabel){const host=document.getElementById('alerts');if(!host)return;
   const el=document.createElement('div');el.className='alert-toast';
-  el.innerHTML=`<div class="at-ic">⏰</div><div class="at-tx"><b>${esc(tLabel)} — terminé</b><span>${esc(fTitle)}</span></div><button class="at-x" aria-label="Fermer">×</button>`;
+  el.innerHTML=`<div class="at-ic">${uiIcon('alarm',22)}</div><div class="at-tx"><b>${esc(tLabel)} — terminé</b><span>${esc(fTitle)}</span></div><button class="at-x" aria-label="Fermer">×</button>`;
   el.querySelector('.at-x').onclick=ev=>{ev.stopPropagation();el.remove();};
   el.onclick=()=>{el.remove();openRead(ficheId);};
   host.appendChild(el);setTimeout(()=>{el.classList.add('out');setTimeout(()=>el.remove(),400);},10000);}
@@ -1622,6 +1651,9 @@ function render(){
 }
 function renderLibrary(){
   const q=txNorm(state.q);
+  // Le re-rendu remplace la rangée de catégories : on mémorise son défilement horizontal pour le
+  // restaurer ensuite (sinon cliquer un filtre en fin de liste ramenait la rangée au début).
+  const _oldCatRow=main.querySelector('.catbar .chiprow');const _catRowX=_oldCatRow?_oldCatRow.scrollLeft:0;
   // Si la bibliothèque sélectionnée n'existe plus (déconnexion, perte d'accès), on retombe sur Perso.
   if(state.scope&&!myLibraries.some(l=>l.id===state.scope))state.scope=null;
   // Filtrage par BIBLIOTHÈQUE : Perso (libraryId vide) ou bibliothèque partagée sélectionnée.
@@ -1630,7 +1662,7 @@ function renderLibrary(){
   const canEdit=canEditScope(state.scope);
   // Tri : épinglées d'abord (préférence locale), puis ordre habituel. Recherche : plein texte normalisé.
   const list=fiches.slice().sort((a,b)=>((isPinned(b.id)?1:0)-(isPinned(a.id)?1:0))||byOrder(a,b)).filter(f=>(state.scope?f.libraryId===state.scope:!f.libraryId)&&(!state.cat||f.category===state.cat)&&(canEdit||f.status!=='draft')&&(!q||ficheHaystack(f).includes(q)));
-  const chips=`<button class="catchip" data-cat="" style="${!state.cat?'background:#16211f;color:#fff;border-color:#16211f':''}">Toutes</button>`+catsSorted(state.scope).map(c=>{const col=safeColor(c.color);return `<button class="catchip${state.cat===c.id?'':' colored'}" data-cat="${esc(c.id)}" style="${state.cat===c.id?`background:${col};color:#fff;border-color:${col}`:`--catcol:${col}`}">${esc(c.name)}</button>`;}).join('')+(canEditScope(state.scope)?`<button class="catchip" id="catMgrChip" style="border-style:dashed;color:var(--ink-soft)">⚙ Gérer</button>`:'');
+  const chips=`<button class="catchip" data-cat="" style="${!state.cat?'background:#16211f;color:#fff;border-color:#16211f':''}">Toutes</button>`+catsSorted(state.scope).map(c=>{const col=safeColor(c.color);return `<button class="catchip${state.cat===c.id?'':' colored'}" data-cat="${esc(c.id)}" style="${state.cat===c.id?`background:${col};color:#fff;border-color:${col}`:`--catcol:${col}`}">${esc(c.name)}</button>`;}).join('')+(canEditScope(state.scope)?`<button class="catchip" id="catMgrChip" style="border-style:dashed;color:var(--ink-soft)">${uiIcon('gear',13)} Gérer</button>`:'');
   // Barre BIBLIOTHÈQUE (visible seulement connecté) : Perso + bibliothèques partagées + création (app-admin).
   const ROLE_LBL={viewer:'lecture',editor:'édition',admin:'admin'};
   const scopeBar=Auth.signedIn()?`<div class="scopebar"><span class="scope-lbl">Bibliothèque</span><div class="chiprow">
@@ -1648,6 +1680,7 @@ function renderLibrary(){
     ${liveHtml}
     <div class="notice" id="syncErrNotice" hidden></div>
     ${(!state.scope&&!noticeHidden())?`<div class="notice"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01" stroke-linecap="round"/></svg><div>Vous êtes l'auteur et le responsable du contenu. Validez chaque fiche et tenez la date à jour.</div><button class="notice-x" id="noticeX" aria-label="Masquer">×</button></div>`:''}
+    ${(!state.scope&&!fiches.some(f=>!f.libraryId)&&!seedsHidden())?`<div class="notice"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 00-4 10.4c.8.8 1 1.6 1 2.6h6c0-1 .2-1.8 1-2.6A6 6 0 0012 3z"/></svg><div><b>Besoin d'exemples pour commencer ?</b> Ajoutez les deux fiches d'exemple (Anaphylaxie, Arrêt cardiaque) pour découvrir l'application — à relire et adapter avant tout usage clinique.<div style="margin-top:9px"><button class="btn sm primary" id="seedAdd">Ajouter les fiches d'exemple</button></div></div><button class="notice-x" id="seedX" aria-label="Masquer">×</button></div>`:''}
     <div class="lib-top"><div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg><input id="q" placeholder="Rechercher…" value="${esc(state.q)}"></div>
       ${canEditScope(state.scope)?`<button class="btn-new" id="newBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Créer</button>`:''}</div>
     ${catbar}
@@ -1662,6 +1695,8 @@ function renderLibrary(){
   {const sm=document.getElementById('showMore');if(sm)sm.onclick=()=>{state.libLimit+=LIB_PAGE;renderLibrary();};}
   {const nb=document.getElementById('newBtn');if(nb)nb.onclick=newFiche;}
   {const nx=document.getElementById('noticeX');if(nx)nx.onclick=()=>{try{localStorage.setItem('ac-notice-hidden','1');}catch(e){}renderLibrary();};}
+  {const sa=document.getElementById('seedAdd');if(sa)sa.onclick=addSeedFiches;}
+  {const sx=document.getElementById('seedX');if(sx)sx.onclick=()=>{try{localStorage.setItem('ac-seeds-hidden','1');}catch(e){}renderLibrary();};}
   updateSyncBanner();
   // Recliquer la catégorie déjà sélectionnée la dé-sélectionne (revient à « Toutes »).
   main.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{const c=b.dataset.cat;state.cat=(c&&state.cat===c)?'':c;state.libLimit=LIB_PAGE;renderLibrary();});
@@ -1676,7 +1711,27 @@ function renderLibrary(){
   main.querySelectorAll('[data-pin]').forEach(b=>b.onclick=e=>{e.stopPropagation();togglePin(b.dataset.pin);renderLibrary();});
   // Toujours montrer la bibliothèque ACTIVE même si la barre défile (on la centre dans sa ligne).
   const act=main.querySelector('.scopebar .scopebtn.on');if(act){const row=act.closest('.chiprow');if(row&&row.scrollWidth>row.clientWidth)row.scrollLeft=Math.max(0,act.offsetLeft-row.clientWidth/2+act.clientWidth/2);}
+  {const row=main.querySelector('.catbar .chiprow');if(row&&_catRowX)row.scrollLeft=_catRowX;}
 }
+/* Icônes SVG inline « de texte » (remplacent les emojis : rendu identique sur tous les appareils,
+   couleur = currentColor donc thème respecté, pas de style emoji qui jure avec l'interface).
+   Même langage graphique que le reste : trait 2, viewBox 24, bouts arrondis. */
+function uiIcon(name,size){const P={
+  gear:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33h0a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51h0a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82v0a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>',
+  bell:'<path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/>',
+  belloff:'<path d="M13.7 21a2 2 0 01-3.4 0"/><path d="M18.6 13c-.4-1.4-.6-3-.6-5a6 6 0 00-9.3-5"/><path d="M6.3 6.3C6.1 6.9 6 7.4 6 8c0 7-3 9-3 9h14"/><path d="M2 2l20 20"/>',
+  moon:'<path d="M21 12.8A9 9 0 1111.2 3 7 7 0 0021 12.8z"/>',
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  autotheme:'<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 010 18z" fill="currentColor" stroke="none"/>',
+  cloud:'<path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/>',
+  warn:'<path d="M12 3.5l9.5 16.5H2.5L12 3.5z"/><path d="M12 10v4"/><path d="M12 17h.01"/>',
+  alarm:'<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2"/><path d="M5.2 3.4L2.8 5.5M18.8 3.4l2.4 2.1"/>',
+  stopwatch:'<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/>',
+  sparkles:'<path d="M11 4l1.7 4.3L17 10l-4.3 1.7L11 16l-1.7-4.3L5 10l4.3-1.7z"/><path d="M18.5 14.5l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9z"/>',
+  pen:'<path d="M17 3a2.83 2.83 0 014 4L7.5 20.5 2 22l1.5-5.5z"/>',
+  phone:'<rect x="7" y="2" width="10" height="20" rx="2.5"/><path d="M11 18.2h2"/>',
+  bulb:'<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 00-4 10.4c.8.8 1 1.6 1 2.6h6c0-1 .2-1.8 1-2.6A6 6 0 0012 3z"/>'};
+  const s=size||15;return `<svg class="tic" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[name]||''}</svg>`;}
 // Petite icône d'en-tête de section (repère visuel rapide du TYPE de bloc). Trait = currentColor (suit
 // la couleur du header), donc cohérent avec le code couleur existant (teal/ambré/vermillon/gris).
 function headerIcon(cls){const P={
@@ -2008,7 +2063,7 @@ function runtimePanel(f){const tl=Object.values(Runtime.timers);const cl=f.count
   const anyActive=tl.some(t=>t.running||timerStarted(t))||cl.some(c=>(Runtime.counters[c.id]||0)!==(c.start||0));
   if(!anyActive&&!state.rtOpen){const parts=[];if(tl.length)parts.push(tl.length+' minuteur'+(tl.length>1?'s':''));if(cl.length)parts.push(cl.length+' compteur'+(cl.length>1?'s':''));
     return `<button class="rt-collapsed" id="rtOpen" aria-expanded="false"><svg class="rt-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5fd0c4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg><span class="rtc-i">Minuteurs & compteurs · ${parts.join(' · ')}</span><span class="rtc-open">▾ Afficher</span></button>`;}
-  return `<div class="rt-panel"><div class="rt-head"><svg class="rt-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5fd0c4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg><b>Minuteurs & compteurs</b>${IS_TOUCH?`<button class="rt-warn" id="soundWarn" title="Mode silencieux du téléphone" style="${soundOn?'':'display:none'}">⚠︎ silencieux ?</button>`:''}<button class="rt-sound" id="soundToggle">${soundOn?'🔔 Son':'🔕 Muet'}</button></div>${tl.length?`<div class="rt-grid">${tl.map(timerCard).join('')}</div>`:''}${cl.length?`<div class="rt-counters">${cl.map(counterCard).join('')}</div>`:''}</div>`;}
+  return `<div class="rt-panel"><div class="rt-head"><svg class="rt-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5fd0c4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg><b>Minuteurs & compteurs</b>${IS_TOUCH?`<button class="rt-warn" id="soundWarn" title="Mode silencieux du téléphone" style="${soundOn?'':'display:none'}">${uiIcon('warn',12)} silencieux ?</button>`:''}<button class="rt-sound" id="soundToggle">${soundOn?uiIcon('bell',13)+' Son':uiIcon('belloff',13)+' Muet'}</button></div>${tl.length?`<div class="rt-grid">${tl.map(timerCard).join('')}</div>`:''}${cl.length?`<div class="rt-counters">${cl.map(counterCard).join('')}</div>`:''}</div>`;}
 /* timekeeperPanel : journal d'horodatage. Bouton « Horodater » -> ajoute un repère à l'heure
    courante avec un libellé automatique ("Action N"), renommable à tout moment (même a
    posteriori en reprenant une session). Chaque ligne montre l'heure (HH:MM:SS) et le délai
@@ -2022,7 +2077,7 @@ function timekeeperPanel(){const ev=Runtime.events||[];const t0=ev.length?ev[0].
     return `<div class="tk-item"><div class="tk-row"><span class="tk-time" data-tktime="${e.id}" role="button" tabindex="0" title="Cliquer pour corriger l'heure">${fmtHMS(e.t)}</span><span class="tk-el">${el}</span><input class="tk-lab" data-tklab="${e.id}" value="${esc(e.label||'')}" placeholder="Libellé…"><button class="tk-del" data-tkdel="${e.id}" aria-label="Supprimer">×</button></div>${origRow}</div>`;}).join(''):'';
   // Outil SECONDAIRE : compact tant qu'on n'a rien noté (juste le bouton). « Journal des actions » =
   // suite horodatée des gestes clés (pour la traçabilité / le compte-rendu après coup).
-  return `<div class="tk-panel${ev.length?'':' empty'}"><div class="tk-head"><b>Journal des actions</b><button class="tk-add" id="tkAdd">⏱ Noter l’heure</button></div>${rows}</div>`;}
+  return `<div class="tk-panel${ev.length?'':' empty'}"><div class="tk-head"><b>Journal des actions</b><button class="tk-add" id="tkAdd">${uiIcon('stopwatch',13)} Noter l’heure</button></div>${rows}</div>`;}
 
 /* ===== Read (mode crise / lecture) =====
    renderRead() : affiche la fiche active. De haut en bas : titre + méta, contexte
@@ -2119,7 +2174,7 @@ function renderRead(){
   main.querySelectorAll('[data-ck]').forEach(li=>{const tgl=kb=>{const k=li.dataset.ck;state.checked[k]=!state.checked[k];ensureStarted();persistLive(Runtime);render();if(kb){const nl=main.querySelector('[data-ck="'+CSS.escape(k)+'"]');if(nl)nl.focus();}};li.onclick=()=>tgl(false);li.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();tgl(true);}};});
   main.querySelectorAll('img[data-full]').forEach(im=>im.onclick=()=>openLightbox(im.dataset.full,im.dataset.cap||''));
   // runtime controls (no full re-render)
-  const st=document.getElementById('soundToggle');if(st)st.onclick=()=>{soundOn=!soundOn;if(soundOn)ensureAudio();st.textContent=soundOn?'🔔 Son':'🔕 Muet';const sw=document.getElementById('soundWarn');if(sw)sw.style.display=soundOn?'':'none';};
+  const st=document.getElementById('soundToggle');if(st)st.onclick=()=>{soundOn=!soundOn;if(soundOn)ensureAudio();st.innerHTML=soundOn?uiIcon('bell',13)+' Son':uiIcon('belloff',13)+' Muet';const sw=document.getElementById('soundWarn');if(sw)sw.style.display=soundOn?'':'none';};
   const swn=document.getElementById('soundWarn');if(swn)swn.onclick=()=>toast('Mode silencieux du téléphone : si le bouton latéral est sur silencieux, l\'alarme sonore peut ne pas être audible (indétectable depuis le navigateur ; la vibration non plus sur iPhone). Alerte de secours : l\'écran clignote à chaque fin de minuteur.',11000);
   // Lancer un minuteur DÉMARRE la session. Si elle vient de démarrer, on re-rend (le bandeau « en
   // cours » apparaît) ; sinon mise à jour DOM directe.
@@ -2197,9 +2252,9 @@ function renderEditor(){
   const isNew=!fiches.some(x=>x.id===f.id);
   main.innerHTML=`
     <button class="back" id="back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Annuler</button>
-    ${isNew&&state.showCreateBand!==false?`<div class="create-band"><div class="cb-q">Comment créer cette fiche ?</div><div class="cb-opts"><button class="btn primary sm" id="cbAI">✨ Créer via IA</button><button class="btn sm" id="cbManual">✍ Créer manuellement</button></div><div class="cb-hint">« Via IA » : copiez le prompt dans une IA avec un document, puis importez le résultat. « Manuellement » : remplissez les champs ci-dessous.</div></div>`:''}
+    ${isNew&&state.showCreateBand!==false?`<div class="create-band"><div class="cb-q">Comment créer cette fiche ?</div><div class="cb-opts"><button class="btn primary sm" id="cbAI">${uiIcon('sparkles',14)} Créer via IA</button><button class="btn sm" id="cbManual">${uiIcon('pen',13)} Créer manuellement</button></div><div class="cb-hint">« Via IA » : copiez le prompt dans une IA avec un document, puis importez le résultat. « Manuellement » : remplissez les champs ci-dessous.</div></div>`:''}
     <div class="field"><label>Titre de la situation</label><input type="text" id="f-title" value="${esc(f.title)}" placeholder="ex. Intoxication aux anesthésiques locaux"></div>
-    <div class="field"><label>Catégorie</label><div class="catpick"><button class="catpill" data-selcat="" style="${!f.category?'background:#54635f;color:#fff;border-color:#54635f':''}">Aucune</button>${catsSorted(f.libraryId).map(c=>{const col=safeColor(c.color);return `<button class="catpill${f.category===c.id?'':' colored'}" data-selcat="${esc(c.id)}" style="${f.category===c.id?`background:${col};color:#fff;border-color:${col}`:`--catcol:${col}`}">${esc(c.name)}</button>`;}).join('')}<button class="catpill" id="catMgrBtn" style="border-style:dashed;color:var(--ink-soft)">⚙ Gérer</button></div></div>
+    <div class="field"><label>Catégorie</label><div class="catpick"><button class="catpill" data-selcat="" style="${!f.category?'background:#54635f;color:#fff;border-color:#54635f':''}">Aucune</button>${catsSorted(f.libraryId).map(c=>{const col=safeColor(c.color);return `<button class="catpill${f.category===c.id?'':' colored'}" data-selcat="${esc(c.id)}" style="${f.category===c.id?`background:${col};color:#fff;border-color:${col}`:`--catcol:${col}`}">${esc(c.name)}</button>`;}).join('')}<button class="catpill" id="catMgrBtn" style="border-style:dashed;color:var(--ink-soft)">${uiIcon('gear',13)} Gérer</button></div></div>
     ${Auth.signedIn()?`<div class="field"><label>Bibliothèque <span class="hint">où ranger cette fiche</span></label>
       <select id="f-scope"><option value="" ${!f.libraryId?'selected':''}>Perso (privé)</option>${sortedLibraries().filter(l=>l.role==='editor'||l.role==='admin').map(l=>`<option value="${esc(l.id)}" ${f.libraryId===l.id?'selected':''}>${esc(l.name)} (partagée)</option>`).join('')}${f.libraryId&&!myLibraries.some(l=>l.id===f.libraryId)?`<option value="${esc(f.libraryId)}" selected>${esc(libName(f.libraryId)||'Bibliothèque')}</option>`:''}</select></div>`:''}
     <div class="row2"><div class="field"><label>Date de validation <span class="hint">mois/année</span></label><input type="text" id="f-validation" inputmode="numeric" autocapitalize="off" value="${esc(valToDisplay(f.validation))}" placeholder="MM/AAAA — ex. 012026 ou 01/2026"></div>
@@ -2625,7 +2680,12 @@ const Auth={
     this._setSession(j);return true;},
   // Rafraîchit le jeton s'il expire dans <60 s. Appelé par rest() avant chaque appel REST de synchro.
   async ensureFresh(){if(!this.signedIn())return false;const now=Math.floor(Date.now()/1000);if(this.session.expires_at&&this.session.expires_at-now<60)return this.refresh();return true;},
-  async signOut(){const tok=this.session&&this.session.access_token;this.session=null;this._save();if(tok){try{await fetch(SUPA.url+'/auth/v1/logout',{method:'POST',headers:{'apikey':SUPA.key,'Authorization':'Bearer '+tok}});}catch(e){}}},
+  async signOut(){const tok=this.session&&this.session.access_token;this.session=null;this._save();
+    // Curseur de pull remis à zéro : il est GLOBAL (pas par compte) ; s'il survivait à la
+    // déconnexion, une connexion à un AUTRE compte ne rapatrierait que le plus récent que ce
+    // curseur et raterait tout l'historique du compte. Re-pull complet = idempotent (LWW).
+    try{localStorage.removeItem('ac-sync-cursor');}catch(e){}
+    if(tok){try{await fetch(SUPA.url+'/auth/v1/logout',{method:'POST',headers:{'apikey':SUPA.key,'Authorization':'Bearer '+tok}});}catch(e){}}},
   // Suppression RGPD : efface compte + données perso côté serveur (RPC SECURITY DEFINER).
   async deleteAccount(){await this._post('/rest/v1/rpc/delete_my_account',{});}
 };
@@ -2670,7 +2730,7 @@ let _authStep={mode:'email',email:'',msg:'',msgcls:''};let _authDelete=false;
 async function wipeLocal(){
   try{if(IDB.db){IDB.db.close();IDB.db=null;}}catch(e){}
   try{await new Promise(res=>{const r=indexedDB.deleteDatabase('ac-db');r.onsuccess=r.onerror=r.onblocked=()=>res();});}catch(e){}
-  try{['fiches_v1','cats_v1','sessions_v1','backups_v1','ac-sync-cursor','ac-cats-dirty:','ac-cats-updated:','ac-lib-usage','ac-notice-hidden','ac-auth','ac-pins','ac-onboarded'].forEach(k=>localStorage.removeItem(k));
+  try{['fiches_v1','cats_v1','sessions_v1','backups_v1','ac-sync-cursor','ac-cats-dirty:','ac-cats-updated:','ac-lib-usage','ac-notice-hidden','ac-seeds-hidden','ac-auth','ac-pins','ac-onboarded'].forEach(k=>localStorage.removeItem(k));
     for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);if(k&&(k.indexOf('ac-sync-init-')===0||k.indexOf('ac-cats-dirty:')===0||k.indexOf('ac-cats-updated:')===0||k.indexOf('ac-profile-')===0))localStorage.removeItem(k);}
   }catch(e){}
 }
@@ -2773,11 +2833,11 @@ const storageModal=document.getElementById('storageModal');
 // Bloc explicatif RÉUTILISÉ (fenêtre « Où sont mes fiches ? » ET écran Compte déconnecté) : on le
 // définit UNE fois pour éviter toute divergence. Langage volontairement simple (soignant non informaticien).
 function storageExplainHtml(){return `<p class="auth-sub" style="margin-top:0">Vos fiches peuvent être enregistrées de deux façons :</p>
-    <div class="stg-card stg-local"><div class="stg-h"><span class="stg-ic">📱</span><b>Sur cet appareil (hors-ligne)</b></div>
+    <div class="stg-card stg-local"><div class="stg-h"><span class="stg-ic">${uiIcon('phone',19)}</span><b>Sur cet appareil (hors-ligne)</b></div>
       <p>Gardées <b>uniquement dans la mémoire de ce téléphone/ordinateur</b>, comme des notes sur un seul carnet.</p>
-      <p class="stg-warn">⚠ Si le navigateur fait du ménage, ou si l'appareil est perdu, cassé, réinitialisé ou changé, <b>vos fiches sont perdues</b> — aucune autre copie.</p>
-      <p class="stg-tip">💡 Sans compte, pensez à <b>exporter</b> régulièrement (bouton « Exporter tout », en bas) : un fichier de sauvegarde à garder ailleurs et à réimporter au besoin.</p></div>
-    <div class="stg-card stg-cloud"><div class="stg-h"><span class="stg-ic">☁️</span><b>En ligne, avec un compte (synchronisation)</b></div>
+      <p class="stg-warn">${uiIcon('warn',13)} Si le navigateur fait du ménage, ou si l'appareil est perdu, cassé, réinitialisé ou changé, <b>vos fiches sont perdues</b> — aucune autre copie.</p>
+      <p class="stg-tip">${uiIcon('bulb',13)} Sans compte, pensez à <b>exporter</b> régulièrement (bouton « Exporter tout », en bas) : un fichier de sauvegarde à garder ailleurs et à réimporter au besoin.</p></div>
+    <div class="stg-card stg-cloud"><div class="stg-h"><span class="stg-ic">${uiIcon('cloud',19)}</span><b>En ligne, avec un compte (synchronisation)</b></div>
       <p>En vous connectant, une <b>copie de sécurité</b> est aussi gardée dans un <b>espace en ligne protégé</b> (le « cloud »).</p>
       <ul class="stg-ul"><li>Appareil en panne ou perdu : <b>rien n'est perdu</b>.</li><li>Vous <b>retrouvez vos fiches sur n'importe quel appareil</b>.</li><li>Vous pouvez <b>partager</b> des bibliothèques avec votre équipe.</li></ul></div>`;}
 function renderStorageInfo(){const body=document.getElementById('storageBody');if(!body)return;
@@ -2815,7 +2875,7 @@ setSyncChip();
 function resolveTheme(mode){return mode==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):mode;}
 function applyTheme(mode){try{localStorage.setItem('ac-theme',mode);}catch(e){}
   const resolved=resolveTheme(mode);document.documentElement.setAttribute('data-theme',resolved);
-  const b=document.getElementById('themeBtn');if(b){b.textContent=mode==='auto'?'🌗 Thème : auto':(mode==='dark'?'🌙 Thème : sombre':'☀️ Thème : clair');b.title=mode==='auto'?'Thème automatique : suit le réglage clair/sombre de votre appareil. Cliquez pour choisir manuellement.':'Cliquez pour changer de thème (auto / clair / sombre).';}
+  const b=document.getElementById('themeBtn');if(b){b.innerHTML=mode==='auto'?uiIcon('autotheme',14)+' Thème : auto':(mode==='dark'?uiIcon('moon',14)+' Thème : sombre':uiIcon('sun',14)+' Thème : clair');b.title=mode==='auto'?'Thème automatique : suit le réglage clair/sombre de votre appareil. Cliquez pour choisir manuellement.':'Cliquez pour changer de thème (auto / clair / sombre).';}
   const m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',resolved==='dark'?'#0e2723':'#0d5b56');}
 // Cycle : Auto -> Clair -> Sombre -> Auto.
 document.getElementById('themeBtn').onclick=()=>{const cur=localStorage.getItem('ac-theme')||'auto';applyTheme(cur==='auto'?'light':cur==='light'?'dark':'auto');};
@@ -2877,7 +2937,13 @@ function _confirmEnd(v){confirmModal.classList.remove('on');const r=_confirmRes;
 document.getElementById('confirmYes').onclick=()=>_confirmEnd(true);
 document.getElementById('confirmNo').onclick=()=>_confirmEnd(false);
 bindModalDismiss(confirmModal,()=>_confirmEnd(null));
-function toast(msg,ms){const t=document.createElement('div');t.className='toast';t.setAttribute('role','status');t.textContent=msg;document.body.appendChild(t);
+function toast(msg,ms){const t=document.createElement('div');t.className='toast';t.setAttribute('role','status');
+  // Convention existante : un message commençant par « ⚠ » est un avertissement -> le préfixe
+  // devient une icône SVG (uiIcon), le reste du message reste du TEXTE (jamais interprété en HTML).
+  const s=String(msg);
+  if(s.charCodeAt(0)===0x26A0){t.innerHTML=uiIcon('warn',14)+' ';t.appendChild(document.createTextNode(s.replace(/^⚠️?\s*/,'')));}
+  else t.textContent=s;
+  document.body.appendChild(t);
   requestAnimationFrame(()=>t.classList.add('on'));setTimeout(()=>{t.classList.remove('on');setTimeout(()=>t.remove(),300);},ms||4500);}
 function notifyConflicts(list){if(!list.length)return;
   toast('⚠ '+list.length+' fiche'+(list.length>1?'s':'')+' modifiée'+(list.length>1?'s':'')+' sur un autre appareil. Version la plus récente appliquée ; votre version précédente est conservée (bouton « Versions » dans la fiche).',9000);}
