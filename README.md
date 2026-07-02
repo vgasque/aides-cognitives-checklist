@@ -8,142 +8,110 @@ pour l'usage en temps réel.
 
 Code réalisé avec Claude AI.
 
-## Contenu de l'archive
-- index.html — l'application
-- sw.js — service worker (hors ligne)
-- manifest.webmanifest — app installable
-- icon-192.png, icon-512.png, icon-512-maskable.png, apple-touch-icon.png — icônes
-- prompt-IA-creation-fiche.md — prompt type pour générer une fiche via une IA
-
-Gardez tous les fichiers ensemble dans le même dossier.
-
-## Minuteurs, compteurs & sessions (temps réel)
-- Dans une fiche, l'éditeur permet de définir des **chronomètres** (compte le temps
-  écoulé), des **minuteurs à cycle** programmables (ex. 2 min « analyse du rythme »,
-  3 min « adrénaline ») qui se relancent en boucle, comptent les cycles et alertent
-  (son + vibration + flash), et des **compteurs** (ex. nombre de doses).
-- En mode crise, ces outils apparaissent dans un bandeau en haut de la fiche.
-- **Horodatage des actions** : un bouton permet de marquer instantanément chaque action
-  avec un libellé renommable (même a posteriori).
-- **Enregistrer la session** sauvegarde l'état complet (étapes cochées, parcours,
-  compteurs, temps écoulé/cycles, horodatages). On peut la **rouvrir et reprendre** ou la
-  **supprimer** depuis la fiche. Les sessions sont stockées localement, par appareil.
-
-## Créer une fiche avec une IA
-Le bouton « ✨ Créer via IA » (en bas) ouvre un prompt type à copier dans une IA
-(ChatGPT, Claude…) en y joignant un PDF, une image ou une recommandation. L'IA renvoie un
-fichier JSON que vous importez ensuite (bouton « Importer »). Le prompt est aussi fourni
-dans [prompt-IA-creation-fiche.md](prompt-IA-creation-fiche.md). Relisez toujours la fiche
-générée avant usage.
-
-## Installer comme application (PWA)
-Mode installable + hors ligne complet = hébergement **https** (le service worker ne
-fonctionne ni en fichier local ni en http simple) :
-1. GitHub Pages — fichiers à la racine d'un dépôt, activez Pages.
-2. Netlify / Cloudflare Pages — glissez-déposez le dossier, URL https immédiate.
-3. Intranet de l'établissement en https.
-
-Ouvrez l'URL, puis « Installer l'app » (iPhone : Safari → Partager → Sur l'écran d'accueil).
-
-## Sans hébergement
-Ouvrez index.html : l'app fonctionne hors ligne et enregistre vos fiches. Seuls
-l'installation et la mise en cache automatique nécessitent l'https.
-
-## Données & synchronisation
-Par défaut, tout est stocké **localement, par appareil** : l'application fonctionne
-entièrement hors-ligne et **sans compte**. Pour transférer sans cloud, utilisez
-Exporter / Importer (JSON, en bas) : **toute la bibliothèque** ou **une seule fiche**
-(depuis la fiche). (Les sessions ne sont pas incluses dans l'export.)
-
-**Synchronisation multi-appareils (optionnelle).** En vous connectant (bouton **Compte**),
-votre bibliothèque personnelle devient accessible sur tous vos appareils. Le principe reste
-**local-first** : IndexedDB demeure la source de vérité, le cloud n'est qu'un miroir ;
-l'application reste pleinement utilisable hors-ligne, et la synchro se fait en arrière-plan
-sans jamais interrompre l'usage. En cas de modification concurrente sur deux appareils, la
-version la plus récente est appliquée et **la précédente est conservée** (bouton « Versions »
-dans la fiche, pour comparer/restaurer). L'activation requiert une configuration unique
-décrite ci-dessous.
-
-## Activer la synchronisation (installation, une seule fois)
-La synchro s'appuie sur **Supabase** (base + authentification, offre gratuite) et un service
-d'envoi d'e-mails **Brevo** (gratuit) pour les codes de connexion. À faire une fois par le
-responsable de l'instance :
-
-1. **Créer un projet Supabase** (région UE/Francfort conseillée). À l'écran *Security* :
-   *Enable Data API* coché, *Auto-expose new tables* **décoché**, *Enable automatic RLS* coché.
-2. **Exécuter le schéma** : SQL Editor → coller le contenu de [`supabase/schema.sql`](supabase/schema.sql) → Run.
-   (Crée les tables, la sécurité par ligne *RLS*, les rôles et les bibliothèques partagées.)
-3. **Brancher l'envoi d'e-mails (Brevo)** — nécessaire pour recevoir les codes de connexion :
-   - Créer un compte gratuit sur brevo.com, **vérifier une adresse expéditrice** (un e-mail à
-     vous suffit, aucun domaine requis), puis générer une **clé SMTP** (menu *SMTP & API*).
-   - Dans Supabase → *Authentication → Emails → SMTP Settings* → activer **Custom SMTP** :
-     hôte `smtp-relay.brevo.com`, port `587`, login et clé SMTP Brevo, adresse expéditrice vérifiée.
-   - Désactiver *Authentication → Providers → Email → « Confirm email »* (pour une connexion par
-     code, saisir le code prouve déjà la possession de l'adresse ; évite l'e-mail de confirmation).
-   - Puis *Authentication → Emails → modèles « Magic Link » **et** « Confirm signup »* : insérer le
-     code de connexion avec la variable `{{ .Token }}` (ex. `<p>Votre code : {{ .Token }}</p>`).
-   - Si vous utilisez un SMTP grand public (ex. **Gmail** : hôte `smtp.gmail.com`, port `587`,
-     « mot de passe d'application »), l'expéditeur doit être votre propre adresse — les services
-     type Brevo refusent d'envoyer « au nom » d'un domaine Gmail/Outlook sans domaine vérifié.
-4. **Renseigner les identifiants dans l'app** : dans `index.html`, la constante `SUPA`
-   (`url` + `key` *publishable*, publique par conception) pointe vers votre projet.
-5. **Se nommer administrateur** (pour créer des bibliothèques partagées) : se connecter une fois
-   dans l'app, puis exécuter le petit `insert into app_admins …` indiqué en bas de `schema.sql`.
-
-Côté utilisateur, il suffit ensuite d'ouvrir l'app, **Compte → Recevoir le code**, saisir le
-code reçu par e-mail. Sécurité : l'isolation des données (espace personnel vs bibliothèques
-partagées, rôles lecture/édition) est imposée **côté serveur** par les politiques RLS, jamais
-par le navigateur.
-
-## Note son
-La première alerte sonore nécessite une interaction (démarrer un minuteur) pour activer
-l'audio du navigateur. Un bouton 🔔/🔕 permet de couper le son. Sur iPhone, si le
-téléphone est en mode silencieux l'alarme sonore peut ne pas être audible (le flash
-d'écran sert d'alerte de secours).
-
 > Vous êtes l'auteur et le responsable du contenu clinique. Validez chaque fiche avec
 > les recommandations en vigueur et tenez la date de validation à jour.
+
+## Contenu du dépôt
+- `index.html` — **toute l'application** (HTML + CSS + JS vanille, sans dépendance) ;
+- `sw.js`, `manifest.webmanifest`, `icon-*.png` — service worker (hors ligne) et installation PWA ;
+- `exemples/` — fiches d'exemple prêtes à importer ;
+- `supabase/` — schéma et tests de sécurité (RLS) de la synchronisation optionnelle ;
+- `docs/deploiement-et-conformite.md` — kit de déploiement en établissement + statut
+  réglementaire (non-DM), modèles RGPD et conditions d'utilisation ;
+- `AGENTS.md` — instructions pour les contributeurs (humains ou IA) ; `CLAUDE.md` l'importe ;
+- `tests.html`, `scripts/`, `release.sh` — tests et outillage de publication.
+
+Les fichiers de l'application (`index.html`, `sw.js`, manifest, icônes) doivent rester ensemble
+dans le même dossier.
+
+## Minuteurs, compteurs & sessions (temps réel)
+- L'éditeur d'une fiche permet de définir des **chronomètres**, des **minuteurs à cycle**
+  programmables (ex. 2 min « analyse du rythme ») qui bouclent, comptent les cycles et alertent
+  (son + vibration + flash), et des **compteurs** (ex. nombre de doses).
+- En mode crise, ces outils apparaissent dans un bandeau en haut de la fiche, avec un
+  **journal d'horodatage** des actions (libellés renommables, même a posteriori).
+- La **session** (étapes cochées, parcours, compteurs, temps/cycles, horodatages) s'enregistre
+  automatiquement, en local, par appareil ; on peut la reprendre, la terminer, en tirer un
+  **compte-rendu** imprimable.
+
+## Créer une fiche avec une IA
+Le bouton « ✨ Créer via IA » (à la création d'une fiche) affiche un prompt type à copier dans une
+IA (ChatGPT, Claude…) en y joignant un PDF, une image ou une recommandation. L'IA renvoie un
+fichier JSON à importer (bouton « Importer »). Relisez toujours la fiche générée avant usage.
+
+## Fiches d'exemple (`exemples/`)
+Deux fiches sont créées automatiquement à la première ouverture (« Anaphylaxie peropératoire »,
+« Arrêt cardiaque »). Le dossier `exemples/` en fournit deux autres à importer (bouton
+« Importer » ; l'import d'une seule fiche fusionne, ne remplace jamais la bibliothèque) :
+- `last-toxicite-anesthesiques-locaux.json` — toxicité systémique des anesthésiques locaux (LAST) ;
+- `hemorragie-post-partum.json` — hémorragie du post-partum (HPP).
+
+⚠️ **À relire et valider avant tout usage clinique** : contenu volontairement générique, marqué
+« brouillon », à adapter à vos protocoles et aux recommandations en vigueur.
+
+## Installer comme application (PWA)
+Mode installable + hors ligne complet = hébergement **https** (le service worker ne fonctionne ni
+en fichier local ni en http simple) : GitHub Pages, Netlify / Cloudflare Pages, ou intranet https.
+Ouvrez l'URL, puis « Installer l'app » (iPhone : Safari → Partager → Sur l'écran d'accueil).
+
+Sans hébergement, ouvrir `index.html` suffit : l'app fonctionne et enregistre vos fiches ; seuls
+l'installation et le cache automatique demandent l'https.
+
+## Données & synchronisation
+Par défaut, tout est stocké **localement, par appareil** : l'application fonctionne entièrement
+hors-ligne et **sans compte**. Pour transférer sans cloud : Exporter / Importer (JSON) — toute la
+bibliothèque ou une seule fiche. (Les sessions ne sont pas incluses dans l'export.)
+
+**Synchronisation multi-appareils (optionnelle).** En vous connectant (bouton **Compte**), votre
+bibliothèque personnelle devient accessible sur tous vos appareils, avec des **bibliothèques
+partagées** d'équipe (rôles lecteur/éditeur/admin). Le principe reste **local-first** : IndexedDB
+demeure la source de vérité, le cloud n'est qu'un miroir, et la synchro ne bloque jamais l'usage.
+En cas de modification concurrente, la version la plus récente s'applique et **la précédente est
+conservée** (bouton « Versions » dans la fiche).
+
+L'activation nécessite une configuration unique (Supabase + Brevo, ~30 min, gratuite) : suivre le
+**kit de déploiement** dans [`docs/deploiement-et-conformite.md`](docs/deploiement-et-conformite.md).
+
+## Note son
+La première alerte sonore nécessite une interaction (démarrer un minuteur) pour activer l'audio du
+navigateur. Un bouton 🔔/🔕 coupe le son. Sur iPhone en mode silencieux, l'alarme peut être
+inaudible : le flash d'écran sert d'alerte de secours.
 
 ## Développement
 - **Publier une version** : `./release.sh X.Y.Z` synchronise les numéros de version (index.html +
   sw.js) et vérifie syntaxe/tests ; le rédacteur (humain ou IA) complète ensuite le CHANGELOG et
-  committe avec les notes de version. Ne jamais modifier le numéro à la main
-  (voir [CLAUDE.md](CLAUDE.md)).
+  committe avec les notes de version. Ne jamais modifier le numéro à la main (voir `AGENTS.md`).
 - **Tests** : `npm test` (Playwright headless) ou ouvrir `tests.html` **servi en http**
   (`python3 -m http.server` puis `http://localhost:8000/tests.html`). `npm run check` vérifie la
   syntaxe. L'intégration continue rejoue le tout à chaque push (`.github/workflows/ci.yml`).
 
 ## Sécurité & confidentialité
-- **Aucune dépendance externe** : l'app est un seul fichier HTML en JavaScript « vanille »,
-  sans CDN ni bibliothèque tierce. Rien n'est chargé depuis un autre domaine.
-- **Content-Security-Policy stricte** (dans `index.html`) : `default-src 'self'`, les seules
-  connexions réseau autorisées vont vers votre projet Supabase (`connect-src`), `object-src 'none'`.
-- **Contenu importé neutralisé** : tout JSON importé ou reçu du cloud est nettoyé
-  (échappement HTML systématique à l'affichage, identifiants et couleurs validés, images
-  limitées) — un fichier piégé ne peut pas exécuter de code.
-- **Isolation des données côté serveur** : l'accès (espace personnel vs bibliothèques
-  partagées, rôles) est imposé par les politiques RLS de Supabase, jamais par le navigateur.
-  La clé `key` (publishable) présente dans `index.html` est **publique par conception**.
+- **Aucune dépendance externe** : un seul fichier HTML en JavaScript « vanille », sans CDN ni
+  bibliothèque tierce. Rien n'est chargé depuis un autre domaine.
+- **Content-Security-Policy stricte** (`index.html` et `_headers`) : `default-src 'self'`, seules
+  les connexions vers votre projet Supabase sont autorisées, `object-src 'none'`.
+- **Contenu importé neutralisé** : tout JSON importé ou reçu du cloud est nettoyé (échappement
+  HTML systématique, identifiants et couleurs validés, images limitées) — un fichier piégé ne peut
+  pas exécuter de code.
+- **Isolation des données côté serveur** : imposée par les politiques RLS de Supabase, jamais par
+  le navigateur. La clé `key` (publishable) dans `index.html` est **publique par conception**.
 - **Connexion sans mot de passe** : code à usage unique par e-mail (OTP).
 
 ## Données personnelles (RGPD)
-- **Par défaut, tout reste sur l'appareil** (IndexedDB) : aucune donnée n'est envoyée tant que
-  vous ne créez pas de compte. La synchro cloud est **facultative**.
-- **Suppression du compte** : depuis *Compte*, la suppression efface vos fiches et catégories
-  **personnelles** ainsi que le compte lui-même (les fiches ajoutées à des bibliothèques
-  **partagées** restent, car elles appartiennent à l'équipe).
+- **Par défaut, tout reste sur l'appareil** (IndexedDB) : rien n'est envoyé tant que vous ne créez
+  pas de compte. La synchro cloud est **facultative**.
+- **Suppression du compte** intégrée (efface fiches et catégories **personnelles** + le compte ;
+  les contributions aux bibliothèques **partagées** restent, contenu d'équipe).
 - **Hébergement UE** possible (région Supabase Francfort conseillée).
 - **Ne saisissez aucune donnée patient** : les fiches sont des aides cognitives génériques.
-- Un usage en établissement peut nécessiter, côté organisation, la désignation d'un
-  responsable de traitement et une analyse d'impact (AIPD/DPIA). Ce point dépasse l'app.
+- Modèles de registre RGPD et de conditions d'utilisation : voir
+  [`docs/deploiement-et-conformite.md`](docs/deploiement-et-conformite.md).
 
 ## Limites connues
-- **Navigateur récent requis** (IndexedDB, `fetch`, service worker) ; Internet Explorer n'est
-  pas pris en charge.
-- **Résolution de conflits en « dernière écriture gagne »** : en cas d'édition simultanée d'une
-  même fiche sur deux appareils, la version la plus récente s'applique et la précédente est
-  conservée (bouton « Versions »). Il n'y a pas de fusion automatique champ par champ.
-- **Grandes bibliothèques** : les fiches s'affichent par pages (« Afficher plus ») ; la recherche
-  reste instantanée.
-- **Version** : le numéro affiché en pied de page (`APP_VERSION`) et la version du cache dans
-  `sw.js` doivent rester identiques à chaque publication.
+- **Navigateur récent requis** (IndexedDB, `fetch`, service worker).
+- **Conflits en « dernière écriture gagne »** : pas de fusion champ par champ ; la version écrasée
+  reste récupérable (« Versions »).
+- **Grandes bibliothèques** : affichage par pages (« Afficher plus ») ; la recherche reste
+  instantanée.
+- **Version** : le numéro en pied de page (`APP_VERSION`) et le cache de `sw.js` sont tenus
+  synchronisés par `release.sh` — ne pas les modifier à la main.

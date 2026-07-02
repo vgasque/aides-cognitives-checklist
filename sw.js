@@ -17,7 +17,7 @@
 //  code et restent intactes à chaque mise à jour, tant que l'URL reste la même.
 // =============================================================================
 // IMPORTANT : garder cette version synchronisée avec APP_VERSION dans index.html.
-const CACHE = 'aides-cognitives-v3.1.0';
+const CACHE = 'aides-cognitives-v3.1.1';
 const ASSETS = [
   './',
   './index.html',
@@ -56,8 +56,13 @@ self.addEventListener('fetch', e => {
     e.respondWith(
       fetch(req)
         .then(resp => {
-          const copy = resp.clone();
-          caches.open(CACHE).then(c => c.put('./index.html', copy));
+          // Ne mettre en cache QUE les vraies réponses de l'app (statut 2xx, même origine) :
+          // une page d'erreur (404/500) ou un portail captif Wi-Fi (hôtel/hôpital) qui répond
+          // à la place du serveur écraserait sinon la copie hors-ligne -> app critique cassée.
+          if (resp.ok && resp.type === 'basic') {
+            const copy = resp.clone();
+            caches.open(CACHE).then(c => c.put('./index.html', copy));
+          }
           return resp;
         })
         .catch(() => caches.match(req).then(r => r || caches.match('./index.html')))
@@ -69,8 +74,11 @@ self.addEventListener('fetch', e => {
   e.respondWith(
     caches.match(req).then(cached => {
       const network = fetch(req).then(resp => {
-        const copy = resp.clone();
-        caches.open(CACHE).then(c => c.put(req, copy));
+        // Même garde-fou que pour la navigation : jamais d'erreur mise en cache.
+        if (resp.ok && resp.type === 'basic') {
+          const copy = resp.clone();
+          caches.open(CACHE).then(c => c.put(req, copy));
+        }
         return resp;
       }).catch(() => cached);
       return cached || network;

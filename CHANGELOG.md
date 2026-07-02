@@ -4,6 +4,36 @@ Toutes les versions notables de l'application. Format inspiré de *Keep a Change
 versionnage sémantique. La version affichée en pied de page (`APP_VERSION` dans `index.html`)
 et le cache du service worker (`sw.js`) sont tenus synchronisés par `release.sh`.
 
+## [3.1.1] — 2026-07-02
+### Corrigé
+- **Service worker** : les réponses d'erreur (404/500) et les pages interceptées par un portail
+  captif Wi-Fi (hôtel, hôpital) ne sont **plus jamais mises en cache** — la copie hors-ligne de
+  l'application ne peut plus être écrasée par une page cassée.
+- Effacement local (« Supprimer mon compte ») : les épingles et le marqueur d'accueil sont
+  désormais aussi effacés.
+
+### Optimisé
+- **Recherche plein texte** : le contenu indexé de chaque fiche est mis en cache — plus de
+  re-parcours de toute la bibliothèque à chaque frappe.
+- **Synchronisation** : le rapatriement (pull) est paginé — une très grosse bibliothèque arrive
+  entière dès la première synchro (au lieu d'être plafonnée à 1 000 fiches par passage).
+- Vignettes de la galerie chargées en différé (`loading="lazy"`), favicon ajouté.
+
+### Nettoyé (audit de code, comportement identique)
+- Gestionnaire de catégories **unifié** : l'éditeur ouvre la même fenêtre que l'accueil (avec le
+  déplacement des fiches avant suppression), au lieu d'un panneau dupliqué.
+- Fermeture des fenêtres (✕ / fond / Échap) factorisée (`bindModalDismiss`), suppression de code
+  mort (`state.id`, alias `updateTimers`, CSS orphelin), `fileSlug` réutilise `catSlug`.
+
+### Documentation
+- `AGENTS.md` devient le fichier d'instructions **canonique**, lisible par tout outil IA
+  (`CLAUDE.md` l'importe) ; il inclut un plan de navigation du monofichier.
+- Docs consolidées : `docs/deploiement-et-conformite.md` regroupe kit de déploiement, statut
+  non-dispositif-médical, modèles RGPD et CGU, et l'annexe « calcul de doses (écarté) »
+  (5 fichiers → 1). `prompt-IA-creation-fiche.md` supprimé (doublon du prompt embarqué dans
+  l'app, source unique désormais) ; `exemples/README.md` fusionné dans le README, lui-même
+  allégé (le kit de déploiement n'y est plus dupliqué).
+
 ## [3.1.0] — 2026-07-02
 ### Ajouté
 - Recherche **plein texte** : la recherche porte désormais sur tout le contenu des fiches (étapes,

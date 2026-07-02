@@ -104,7 +104,7 @@
   - RENDU : une seule fonction render() réécrit #main selon state.view, en
     déléguant à renderLibrary / renderEditor / renderRead. Pas de framework :
     le HTML est produit par template strings, puis les écouteurs sont rattachés.
-  - Les minuteurs sont rafraîchis par un unique setInterval(updateTimers, 300)
+  - Les minuteurs sont rafraîchis par un unique setInterval(tickAll, 300)
     qui met à jour le DOM par id (sans re-rendu complet) et déclenche les alertes.
 
   MODÈLE DE DONNÉES (une fiche)
@@ -204,6 +204,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Aides cog.">
 <link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" type="image/png" href="./icon-192.png">
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <title>Aides cognitives</title>
 <!-- ============================ STYLES ============================
@@ -231,12 +232,12 @@
   html[data-theme="dark"] .toast{background:#05100e;border:1px solid var(--line)}
   html[data-theme="dark"] :is(.read-img,.thumb,.fiche-img) img{filter:brightness(.92)}
   /* Champs de saisie (éditeur) codés en dur en blanc -> fond sombre lisible. */
-  html[data-theme="dark"] :is(.blk-top input,.trow input[data-tf],.trow input[data-cf],.trow input[type=number],.tk-lab,.tk-time-edit,.cat-row input.cn,.optedit input,.startbtn,.cat-row input,.trow input,.cm-name,.cm-add input){background:#0e1714;color:var(--ink);border-color:var(--line)}
+  html[data-theme="dark"] :is(.blk-top input,.trow input[data-tf],.trow input[data-cf],.trow input[type=number],.tk-lab,.tk-time-edit,.optedit input,.startbtn,.trow input,.cm-name,.cm-add input){background:#0e1714;color:var(--ink);border-color:var(--line)}
   /* Pastilles de catégorie NON colorées (Aucune/Gérer) -> fond sombre ; les colorées gardent leur teinte. */
   html[data-theme="dark"] .catpill:not(.colored){background:#0e1714;color:var(--ink);border-color:var(--line)}
   html[data-theme="dark"] .cm-del{background:#0e1714;border-color:var(--line)}
   /* Panneaux/encadrés codés en dur en clair -> fond sombre. */
-  html[data-theme="dark"] :is(.cat-mgr,.blk,.nav-wrap,.sess-list,.cm-row,.session-bar.idle){background:#141d1a;border-color:var(--line)}
+  html[data-theme="dark"] :is(.blk,.nav-wrap,.sess-list,.cm-row,.session-bar.idle){background:#141d1a;border-color:var(--line)}
   html[data-theme="dark"] .ai-ta{background:#0e1714;color:var(--ink)}
   html[data-theme="dark"] :is(.flow-scroll,#flowFull .ff-scroll){background:#0e1714}
   /* Survols clairs -> survols sombres. */
@@ -574,11 +575,6 @@
   .trow span{font-size:12px;color:var(--ink-soft)}
   .catpick{display:flex;gap:7px;flex-wrap:wrap}
   .catpill{border:1.5px solid var(--line);background:#fff;padding:7px 14px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer}
-  .cat-mgr{background:#f5f8f7;border:1px solid var(--line);border-radius:11px;padding:12px;margin-top:10px}
-  .cat-row{display:flex;gap:8px;align-items:center;margin-bottom:9px;flex-wrap:wrap}
-  .cat-row input.cn{flex:1;min-width:120px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff}
-  .swatches{display:flex;gap:7px;flex-wrap:wrap}.sw{width:24px;height:24px;border-radius:6px;cursor:pointer;border:2px solid transparent}
-  .sw.on{border-color:transparent;box-shadow:0 0 0 2px #fff,0 0 0 4px var(--ink);transform:scale(1.12)}
   .flow-prev-h{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--ink-soft);margin:0 0 7px}
   .flow-scroll{width:100%;overflow:auto;border:1px solid var(--line);border-radius:10px;background:#fff;padding:8px;-webkit-overflow-scrolling:touch;margin-bottom:14px;max-height:75vh}
   .flow-zoom{display:flex;align-items:center;gap:7px;margin-bottom:7px}
@@ -871,7 +867,7 @@
 /* PALETTE : couleurs proposées pour les catégories (hex sombres, lisibles
    en texte comme en pastille teintée). Index réutilisé cycliquement. */
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='3.1.0';
+const APP_VERSION='3.1.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -940,7 +936,7 @@ let Data=KV;
      fiche     = fiche affichée en lecture
      nav       = pile des blocs visités (fil d'Ariane / parcours guidé)
      checked   = { 'seqVisite:idBloc:index': true } étapes cochées (partagé avec Runtime)
-     catMgr/showFlow/showSess = panneaux dépliés (gestion catégories / algo / sessions)
+     showFlow/showSess = panneaux dépliés (aperçu algorithme / historique de sessions)
    `Runtime` : état VIVANT d'une fiche utilisée en mode crise. Persiste tant
      qu'on reste sur la même fiche (ficheId), pour ne pas perdre des minuteurs
      en cours en revenant à la bibliothèque. Contient les minuteurs (avec leur
@@ -958,7 +954,7 @@ let myLibraries=[],myIsAppAdmin=false,myAccountStatus=null,myPendingCount=0;
 // Remet à zéro tout l'état lié au compte cloud (déconnexion, suppression de compte) : jamais partiel,
 // pour ne pas laisser un rôle/statut périmé traîner après un changement de compte.
 function resetAuthState(){myLibraries=[];myIsAppAdmin=false;myAccountStatus=null;myPendingCount=0;state.scope=null;}
-let state={view:'library',id:null,q:'',cat:'',scope:null,draft:null,fiche:null,nav:[],navSeq:[],navPos:0,checked:{},catMgr:false,showFlow:false,showSess:false,libLimit:LIB_PAGE};
+let state={view:'library',q:'',cat:'',scope:null,draft:null,fiche:null,nav:[],navSeq:[],navPos:0,checked:{},showFlow:false,showSess:false,libLimit:LIB_PAGE};
 // Rôle/édition par bibliothèque. Perso (libraryId vide) = toujours éditable. Bibliothèque partagée : éditable
 // si role editor/admin. (La RLS reste l'arbitre côté serveur ; ceci n'est que l'ergonomie.)
 function roleOf(libId){const l=myLibraries.find(x=>x.id===libId);return l?l.role:null;}
@@ -1071,9 +1067,17 @@ const byOrder=(a,b)=>(b.order||0)-(a.order||0);
 // Recherche PLEIN TEXTE, insensible aux accents : la requête « adrenaline » doit trouver une fiche
 // où le mot n'apparaît que dans une étape (« Adrénaline titrée… »), pas seulement dans le titre.
 const txNorm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
-function ficheHaystack(f){const parts=[f.title,catName(f),f.localInfo,...(f.confirmation||[]),...(f.verify||[]),...(f.notForget||[]),...(f.differentials||[]),...(f.references||[])];
-  (f.blocks||[]).forEach(b=>{parts.push(b&&b.title,b&&b.question);((b&&b.steps)||[]).forEach(s=>parts.push(s));((b&&b.options)||[]).forEach(o=>parts.push(o&&o.label));});
-  return txNorm(parts.filter(Boolean).join(' '));}
+// Le haystack d'une fiche est mis en CACHE par objet (WeakMap) pour ne pas re-parcourir toutes les
+// fiches \u00e0 chaque frappe dans la recherche. S\u00fbr car toute modification de CONTENU remplace l'objet
+// fiche (\u00e9diteur, import, synchro, restauration) ; seule `category` est parfois mut\u00e9e en place
+// (d\u00e9placements), et le NOM de cat\u00e9gorie peut changer sans toucher la fiche (renommage) : le nom
+// est donc exclu du cache et recalcul\u00e9 \u00e0 chaque appel.
+const _hayCache=new WeakMap();
+function ficheHaystack(f){let h=_hayCache.get(f);
+  if(h===undefined){const parts=[f.title,f.localInfo,...(f.confirmation||[]),...(f.verify||[]),...(f.notForget||[]),...(f.differentials||[]),...(f.references||[])];
+    (f.blocks||[]).forEach(b=>{parts.push(b&&b.title,b&&b.question);((b&&b.steps)||[]).forEach(s=>parts.push(s));((b&&b.options)||[]).forEach(o=>parts.push(o&&o.label));});
+    h=txNorm(parts.filter(Boolean).join(' '));_hayCache.set(f,h);}
+  return h+' '+txNorm(catName(f));}
 // ÉPINGLAGE : préférence PAR UTILISATEUR. Stockée localement (localStorage) et, si connecté,
 // SYNCHRONISÉE entre ses appareils en voyageant dans le document de catégories PERSO
 // (category_sets, scope 'personal:<uid>' -> data.pins). Par-utilisateur : n'impose jamais
@@ -1293,9 +1297,13 @@ async function load(){
   // Données prêtes (backend choisi) : on lance une première synchro si l'utilisateur est connecté.
   if(typeof Sync!=='undefined'&&Auth.signedIn())Sync.full();
 }
+/* Fermeture standard d'une fenêtre (.ai-modal), câblée UNE fois par fenêtre : le bouton ✕ (.ai-x)
+   et le clic sur le fond déclenchent la même fonction de fermeture (Échap est géré globalement,
+   via le ✕ — voir la section Accessibilité des fenêtres modales). */
+function bindModalDismiss(modal,close){const x=modal.querySelector('.ai-x');if(x)x.onclick=close;
+  modal.onclick=e=>{if(e.target===modal)close();};}
 {const done=()=>{try{localStorage.setItem('ac-onboarded','1');}catch(e){}welcomeModal.classList.remove('on');};
- document.getElementById('welcomeX').onclick=done;document.getElementById('welcomeGo').onclick=done;
- welcomeModal.onclick=e=>{if(e.target===welcomeModal)done();};}
+ bindModalDismiss(welcomeModal,done);document.getElementById('welcomeGo').onclick=done;}
 // Au chargement, on reconstruit les sessions VIVES (live=true) en runtimes (minuteurs en pause :
 // le temps app fermée n'est pas rattrapé). Elles réapparaissent dans « Sessions en cours ».
 function restoreLiveSessions(){sessions.filter(s=>s.live).forEach(s=>{const f=fiches.find(x=>x.id===s.ficheId);if(!f)return;const R=buildRuntime(f,s);R.started=true;R.startedAt=s.startedAt||s.savedAt||Date.now();liveSessions[f.id]=R;});}
@@ -1328,7 +1336,7 @@ async function softDelete(f){if(!f)return;
      déclenché à la fin d'un cycle de minuteur. flash(id) : clignotement visuel.
    toggleTimer(t)           : démarre/met en pause (plie le temps écoulé dans
      elapsedMs ; mémorise lastStart au démarrage). resetTimer(t) : remet à zéro.
-   updateTimers()           : appelée par un setInterval global toutes les 300 ms.
+   tickAll()                : appelée par un setInterval global toutes les 300 ms.
      - Pour les minuteurs 'interval' en marche : détecte le franchissement d'un
        cycle (rebascule, incrémente cycles, beep+flash ; boucle si autoloop).
      - Si on est en vue 'read', met à jour le DOM par id (valeur, cycles, barre)
@@ -1416,8 +1424,7 @@ function printReportDoc(){
   document.body.appendChild(fr);fr.srcdoc=_reportDoc;
 }
 function downloadReportDoc(){const blob=new Blob([_reportDoc],{type:'text/html'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=_reportName+'.html';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);}
-document.getElementById('reportX').onclick=()=>reportModal.classList.remove('on');
-reportModal.onclick=e=>{if(e.target===reportModal)reportModal.classList.remove('on');};
+bindModalDismiss(reportModal,()=>reportModal.classList.remove('on'));
 document.getElementById('reportPrint').onclick=printReportDoc;
 document.getElementById('reportDownload').onclick=downloadReportDoc;
 // Persistance (auto-save) débouncée par runtime ; immediate=true pour figer sur sortie/alarme.
@@ -1497,7 +1504,6 @@ function refreshTimersDOM(now){now=now||Date.now();
     else{const per=t.seconds*1000||0;const within=t.elapsedMs+(t.running?(now-t.lastStart):0);v.textContent=fmtMs(Math.max(0,per-within));
       const c=document.getElementById('tmcyc-'+t.id);if(c)c.textContent='Cycles : '+t.cycles;const bar=document.getElementById('tmbar-'+t.id);if(bar)bar.style.width=(per?Math.min(100,within/per*100):0)+'%';}
     v.setAttribute('aria-label',lbl+' : '+v.textContent);});}
-function updateTimers(){refreshTimersDOM(Date.now());}
 setInterval(tickAll,300);
 
 /* ===== Sessions =====
@@ -1536,7 +1542,7 @@ async function endCurrentSession(){if(!Runtime.started)return;if(!await confirmD
 function resumeSession(id){const s=sessions.find(x=>x.id===id);if(!s)return;const f=fiches.find(x=>x.id===s.ficheId);if(!f){toast('⚠ Fiche introuvable.');return;}flowScroll={left:null,top:0};
   if(liveSessions[f.id]&&liveSessions[f.id].sessionId===id){Runtime=liveSessions[f.id];}
   else{Runtime=buildRuntime(f,s);Runtime.started=true;Runtime.startedAt=s.startedAt||Date.now();liveSessions[f.id]=Runtime;persistLive(Runtime,true);}
-  Runtime.fiche=f;bindStateToRuntime();state.fiche=f;state.id=f.id;state.showFlow=!!(f.blocks&&f.blocks.length);state.showSess=false;state.view='read';render();}
+  Runtime.fiche=f;bindStateToRuntime();state.fiche=f;state.showFlow=!!(f.blocks&&f.blocks.length);state.showSess=false;state.view='read';render();}
 async function deleteSession(id){if(!await confirmDlg('Supprimer cette session ?',{yes:'Supprimer',danger:true}))return;try{await Data.delSession(id);}catch(e){}sessions=sessions.filter(x=>x.id!==id);Object.values(liveSessions).forEach(R=>{if(R.sessionId===id){delete liveSessions[R.ficheId];R.started=false;R.sessionId=null;R.name='';}});render();}
 
 /* ===== Render =====
@@ -1554,7 +1560,7 @@ function render(){
   if(state.view!=='read')window.scrollTo(0,0);
 }
 function renderLibrary(){
-  const q=state.q.toLowerCase();
+  const q=txNorm(state.q);
   // Si la bibliothèque sélectionnée n'existe plus (déconnexion, perte d'accès), on retombe sur Perso.
   if(state.scope&&!myLibraries.some(l=>l.id===state.scope))state.scope=null;
   // Filtrage par BIBLIOTHÈQUE : Perso (libraryId vide) ou bibliothèque partagée sélectionnée.
@@ -1562,7 +1568,7 @@ function renderLibrary(){
   // visibles pour qui peut éditer le scope (perso, ou éditeur/admin de la biblio).
   const canEdit=canEditScope(state.scope);
   // Tri : épinglées d'abord (préférence locale), puis ordre habituel. Recherche : plein texte normalisé.
-  const list=fiches.slice().sort((a,b)=>((isPinned(b.id)?1:0)-(isPinned(a.id)?1:0))||byOrder(a,b)).filter(f=>(state.scope?f.libraryId===state.scope:!f.libraryId)&&(!state.cat||f.category===state.cat)&&(canEdit||f.status!=='draft')&&(!q||ficheHaystack(f).includes(txNorm(q))));
+  const list=fiches.slice().sort((a,b)=>((isPinned(b.id)?1:0)-(isPinned(a.id)?1:0))||byOrder(a,b)).filter(f=>(state.scope?f.libraryId===state.scope:!f.libraryId)&&(!state.cat||f.category===state.cat)&&(canEdit||f.status!=='draft')&&(!q||ficheHaystack(f).includes(q)));
   const chips=`<button class="catchip" data-cat="" style="${!state.cat?'background:#16211f;color:#fff;border-color:#16211f':''}">Toutes</button>`+catsSorted(state.scope).map(c=>{const col=safeColor(c.color);return `<button class="catchip${state.cat===c.id?'':' colored'}" data-cat="${esc(c.id)}" style="${state.cat===c.id?`background:${col};color:#fff;border-color:${col}`:`--catcol:${col}`}">${esc(c.name)}</button>`;}).join('')+(canEditScope(state.scope)?`<button class="catchip" id="catMgrChip" style="border-style:dashed;color:var(--ink-soft)">⚙ Gérer</button>`:'');
   // Barre BIBLIOTHÈQUE (visible seulement connecté) : Perso + bibliothèques partagées + création (app-admin).
   const ROLE_LBL={viewer:'lecture',editor:'édition',admin:'admin'};
@@ -1912,7 +1918,7 @@ function buildFlowSVG(f,curId){
 /* ===== Runtime panel (rendu des minuteurs/compteurs en lecture) =====
    timerCard(t)   : carte d'un minuteur. 'stopwatch' -> temps qui monte ;
      'interval' -> temps restant qui descend + barre de progression + "Cycles : n".
-     Les valeurs initiales sont calculées ici ; ensuite updateTimers() rafraîchit
+     Les valeurs initiales sont calculées ici ; ensuite refreshTimersDOM() rafraîchit
      les éléments par id (tmval-/tmcyc-/tmbar-). Boutons Démarrer/Pause et Réinit.
    counterCard(c) : carte d'un compteur (valeur + boutons - / +).
    runtimePanel(f): assemble le bandeau (rien si la fiche n'a ni minuteur ni
@@ -1986,7 +1992,7 @@ function renderRead(){
       navHtml=`<div class="nav-wrap">${crumbs}<div class="node-title">${esc(blk.title)||'Décision'}${passTag}</div>${imgH}<div class="question">${esc(blk.question)||'…'}</div><div class="options">${opts}</div><div class="flow-ctrl">${histBtn}${backBtn}${resetBtn}</div></div>`;}
     else{const steps=clean(blk.steps);const fwdc=atTip?(blk.next&&f.blocks.some(b=>b.id===blk.next)?'<button class="btn primary sm" id="navNext">Continuer →</button>':'<span class="endcap">Fin de cette branche.</span>'):histBtn;
       navHtml=`<div class="nav-wrap">${crumbs}<div class="node-title">${esc(blk.title)||'Étapes'}${passTag}</div>${imgH}<ol class="steps">${steps.map((s,i)=>{const k=curSeq+':'+blk.id+':'+i;return `<li data-ck="${k}" class="${state.checked[k]?'done':''}"><span class="box">${state.checked[k]?'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg>':''}</span><span class="txt">${esc(s)}</span></li>`;}).join('')}</ol><div class="flow-ctrl">${fwdc}${backBtn}${resetBtn}</div></div>`;}}
-  const gallery=(f.images||[]).length?`<section class="block"><div class="block-h h-img">${headerIcon('h-img')}Schémas & captures</div><div class="gallery">${f.images.map(im=>`<div class="gthumb"><img src="${im.data}" data-full="${im.data}" data-cap="${esc(im.caption||'')}" alt="${esc(im.caption||'')}">${im.caption?`<div class="gcap">${esc(im.caption)}</div>`:''}</div>`).join('')}</div></section>`:'';
+  const gallery=(f.images||[]).length?`<section class="block"><div class="block-h h-img">${headerIcon('h-img')}Schémas & captures</div><div class="gallery">${f.images.map(im=>`<div class="gthumb"><img src="${im.data}" data-full="${im.data}" data-cap="${esc(im.caption||'')}" alt="${esc(im.caption||'')}" loading="lazy" decoding="async">${im.caption?`<div class="gcap">${esc(im.caption)}</div>`:''}</div>`).join('')}</div></section>`:'';
   const refs=clean(f.references);
   // Historique = sessions de cette fiche, EN EXCLUANT la session vive courante (affichée par le bandeau).
   const ss=sessions.filter(s=>s.ficheId===f.id&&s.id!==Runtime.sessionId).sort((a,b)=>b.savedAt-a.savedAt);
@@ -2042,8 +2048,8 @@ function renderRead(){
   const swn=document.getElementById('soundWarn');if(swn)swn.onclick=()=>toast('Mode silencieux du téléphone : si le bouton latéral est sur silencieux, l\'alarme sonore peut ne pas être audible (indétectable depuis le navigateur ; la vibration non plus sur iPhone). Alerte de secours : l\'écran clignote à chaque fin de minuteur.',11000);
   // Lancer un minuteur DÉMARRE la session. Si elle vient de démarrer, on re-rend (le bandeau « en
   // cours » apparaît) ; sinon mise à jour DOM directe.
-  main.querySelectorAll('[data-tmtoggle]').forEach(b=>b.onclick=()=>{const t=Runtime.timers[b.dataset.tmtoggle];toggleTimer(t);const fresh=ensureStarted();persistLive(Runtime);if(fresh)render();else{syncTimerBtns(t);updateTimers();}});
-  main.querySelectorAll('[data-tmreset]').forEach(b=>holdToReset(b,()=>{const t=Runtime.timers[b.dataset.tmreset];resetTimer(t);syncTimerBtns(t);updateTimers();persistLive(Runtime);}));
+  main.querySelectorAll('[data-tmtoggle]').forEach(b=>b.onclick=()=>{const t=Runtime.timers[b.dataset.tmtoggle];toggleTimer(t);const fresh=ensureStarted();persistLive(Runtime);if(fresh)render();else{syncTimerBtns(t);refreshTimersDOM();}});
+  main.querySelectorAll('[data-tmreset]').forEach(b=>holdToReset(b,()=>{const t=Runtime.timers[b.dataset.tmreset];resetTimer(t);syncTimerBtns(t);refreshTimersDOM();persistLive(Runtime);}));
   main.querySelectorAll('[data-cninc]').forEach(b=>b.onclick=()=>{const id=b.dataset.cninc;Runtime.counters[id]=(Runtime.counters[id]||0)+(+b.dataset.step);const fresh=ensureStarted();persistLive(Runtime);if(fresh)render();else setCounterVal(id);});
   main.querySelectorAll('[data-cndec]').forEach(b=>b.onclick=()=>{const id=b.dataset.cndec;Runtime.counters[id]=Math.max(0,(Runtime.counters[id]||0)-(+b.dataset.step));const fresh=ensureStarted();persistLive(Runtime);if(fresh)render();else setCounterVal(id);});
   // Réinit. d'un compteur : MAINTENIR (même geste anti-accidentel que les minuteurs). Repart de la valeur de départ.
@@ -2080,7 +2086,7 @@ function renderRead(){
   main.querySelectorAll('[data-delsess]').forEach(b=>b.onclick=()=>deleteSession(b.dataset.delsess));
   flowCtx={f,curId:cur};
   bindFlowZoom();applyFlowZoom();restoreFlow();
-  updateTimers();
+  refreshTimersDOM();
   if(scrollNavNext){scrollNavNext=false;scrollNavIntoView();}
 }
 
@@ -2091,7 +2097,6 @@ function renderRead(){
      targetSelect()    : menu déroulant "bloc cible" (pour next / options).
      imageEditor()     : ajout/retrait d'une image attachée à un bloc.
      blockEditor()     : éditeur d'un bloc 'steps' ou 'decision'.
-     catManagerHtml()  : panneau de gestion des catégories.
      timerEditorRow()  : ligne d'édition d'un minuteur (libellé ; pour 'interval'
        : minutes/secondes + case "boucle").
      counterEditorRow(): ligne d'édition d'un compteur (libellé, pas, départ).
@@ -2108,7 +2113,6 @@ function targetSelect(blocks,selfId,value){const opts=blocks.filter(b=>b.id!==se
 function imageEditor(b){return `<div class="sub">Image du bloc (option)</div><div class="imgrow">${b.image?`<img src="${b.image}" alt=""><button class="btn sm danger" data-bimgdel>Retirer</button>`:`<button class="btn sm" data-bimg>+ Image / capture</button>`}</div>`;}
 function blockEditor(b,blocks){if(b.type==='decision'){return `<div class="blk" data-bid="${b.id}"><div class="blk-top"><span class="blk-type decision">Décision</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Réévaluation)"></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Question</div><input type="text" data-bf="question" value="${esc(b.question)}" placeholder="ex. Réponse à l'adrénaline ?" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)"><div class="sub">Réponses → bloc cible</div>${(b.options.length?b.options:[{label:'',target:''}]).map((o,i)=>`<div class="optedit" data-oi="${i}"><input type="text" data-of="label" value="${esc(o.label)}" placeholder="ex. Oui">${targetSelect(blocks,b.id,o.target)}<button class="mini del" data-rmopt="${i}">×</button></div>`).join('')}<button class="add-line" data-addopt>+ Ajouter une réponse</button>${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="mini" data-bmv="up">↑</button><button class="mini" data-bmv="down">↓</button><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
   return `<div class="blk" data-bid="${b.id}"><div class="blk-top"><span class="blk-type steps">Étapes</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Mesures immédiates)"></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Étapes (cochables en mode crise)</div>${(b.steps.length?b.steps:['']).map((s,i)=>`<div class="li" data-si="${i}"><span class="li-num">${String(i+1).padStart(2,'0')}</span><input type="text" data-sf value="${esc(s)}" placeholder="…"><button class="mini" data-smv="up" data-si="${i}">↑</button><button class="mini" data-smv="down" data-si="${i}">↓</button><button class="mini del" data-rmstep="${i}">×</button></div>`).join('')}<button class="add-line" data-addstep>+ Ajouter une étape</button><div class="sub">Étape suivante</div>${targetSelect(blocks,b.id,b.next)}${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="mini" data-bmv="up">↑</button><button class="mini" data-bmv="down">↓</button><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
-function catManagerHtml(){return `<div class="cat-mgr">${catsSorted(activeCatScope()).map(c=>`<div class="cat-row" data-cid="${c.id}"><input class="cn" data-cname value="${esc(c.name)}"><div class="swatches">${PALETTE.map(col=>`<span class="sw ${c.color===col?'on':''}" data-setcol="${col}" style="background:${col}"></span>`).join('')}</div><button class="mini del" data-delcat>×</button></div>`).join('')}<div class="cat-row"><input class="cn" id="newCatName" placeholder="Nouvelle catégorie…"><button class="btn sm" id="addCat">Ajouter</button></div></div>`;}
 function timerEditorRow(t,i){const iv=t.type==='interval';const mm=Math.floor((t.seconds||0)/60),ss=(t.seconds||0)%60;return `<div class="trow" data-ti="${i}"><span class="blk-type ${iv?'decision':'steps'}">${iv?'Cycle':'Chrono'}</span><input type="text" data-tf="label" value="${esc(t.label)}" placeholder="${iv?'ex. Cycle adrénaline':'ex. Temps écoulé'}">${iv?`<input type="number" min="0" data-tmin value="${mm}" style="width:56px"><span>min</span><input type="number" min="0" max="59" data-tsec value="${ss}" style="width:56px"><span>s</span><label style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--ink-soft)"><input type="checkbox" data-tloop ${t.autoloop?'checked':''}>boucle</label>`:''}<button class="mini" data-tmv="up" aria-label="Monter">↑</button><button class="mini" data-tmv="down" aria-label="Descendre">↓</button><button class="mini del" data-tdel="${i}">×</button></div>`;}
 function counterEditorRow(c,i){return `<div class="trow" data-ci="${i}"><input type="text" data-cf="label" value="${esc(c.label)}" placeholder="ex. Adrénaline (mg)"><span>pas</span><input type="number" data-cstep value="${c.step||1}" style="width:56px"><span>départ</span><input type="number" data-cstart value="${c.start||0}" style="width:56px"><button class="mini" data-cmv="up" aria-label="Monter">↑</button><button class="mini" data-cmv="down" aria-label="Descendre">↓</button><button class="mini del" data-cdel="${i}">×</button></div>`;}
 
@@ -2120,7 +2124,7 @@ function renderEditor(){
     <button class="back" id="back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Annuler</button>
     ${isNew&&state.showCreateBand!==false?`<div class="create-band"><div class="cb-q">Comment créer cette fiche ?</div><div class="cb-opts"><button class="btn primary sm" id="cbAI">✨ Créer via IA</button><button class="btn sm" id="cbManual">✍ Créer manuellement</button></div><div class="cb-hint">« Via IA » : copiez le prompt dans une IA avec un document, puis importez le résultat. « Manuellement » : remplissez les champs ci-dessous.</div></div>`:''}
     <div class="field"><label>Titre de la situation</label><input type="text" id="f-title" value="${esc(f.title)}" placeholder="ex. Intoxication aux anesthésiques locaux"></div>
-    <div class="field"><label>Catégorie</label><div class="catpick"><button class="catpill" data-selcat="" style="${!f.category?'background:#54635f;color:#fff;border-color:#54635f':''}">Aucune</button>${catsSorted(f.libraryId).map(c=>{const col=safeColor(c.color);return `<button class="catpill${f.category===c.id?'':' colored'}" data-selcat="${esc(c.id)}" style="${f.category===c.id?`background:${col};color:#fff;border-color:${col}`:`--catcol:${col}`}">${esc(c.name)}</button>`;}).join('')}<button class="catpill" id="catMgrBtn" style="border-style:dashed;color:var(--ink-soft)">⚙ Gérer</button></div>${state.catMgr?catManagerHtml():''}</div>
+    <div class="field"><label>Catégorie</label><div class="catpick"><button class="catpill" data-selcat="" style="${!f.category?'background:#54635f;color:#fff;border-color:#54635f':''}">Aucune</button>${catsSorted(f.libraryId).map(c=>{const col=safeColor(c.color);return `<button class="catpill${f.category===c.id?'':' colored'}" data-selcat="${esc(c.id)}" style="${f.category===c.id?`background:${col};color:#fff;border-color:${col}`:`--catcol:${col}`}">${esc(c.name)}</button>`;}).join('')}<button class="catpill" id="catMgrBtn" style="border-style:dashed;color:var(--ink-soft)">⚙ Gérer</button></div></div>
     ${Auth.signedIn()?`<div class="field"><label>Bibliothèque <span class="hint">où ranger cette fiche</span></label>
       <select id="f-scope"><option value="" ${!f.libraryId?'selected':''}>Perso (privé)</option>${sortedLibraries().filter(l=>l.role==='editor'||l.role==='admin').map(l=>`<option value="${esc(l.id)}" ${f.libraryId===l.id?'selected':''}>${esc(l.name)} (partagée)</option>`).join('')}${f.libraryId&&!myLibraries.some(l=>l.id===f.libraryId)?`<option value="${esc(f.libraryId)}" selected>${esc(libName(f.libraryId)||'Bibliothèque')}</option>`:''}</select></div>`:''}
     <div class="row2"><div class="field"><label>Date de validation <span class="hint">mois/année</span></label><input type="text" id="f-validation" inputmode="numeric" autocapitalize="off" value="${esc(valToDisplay(f.validation))}" placeholder="MM/AAAA — ex. 012026 ou 01/2026"></div>
@@ -2134,14 +2138,14 @@ function renderEditor(){
     ${listEditor('À vérifier','','verify',f.verify)}
     ${listEditor('Ne pas oublier','points critiques','notForget',f.notForget)}
     ${listEditor('Diagnostics différentiels','','differentials',f.differentials)}
-    <fieldset class="field"><label>Schémas & captures <span class="hint">stockées hors ligne dans l'app</span></label><div class="gallery">${(f.images||[]).map((im,i)=>`<div class="gthumb"><img src="${im.data}" alt=""><input type="text" class="gcap" data-imgcap="${i}" value="${esc(im.caption||'')}" placeholder="Légende…" style="width:100%;margin-top:5px;padding:6px 8px;border:1px solid var(--line);border-radius:7px"><button class="btn sm danger" data-imgdel="${i}" style="width:100%;margin-top:5px">Retirer</button></div>`).join('')}</div><button class="add-line" id="addImg" style="margin-top:10px">+ Ajouter une image / capture</button></fieldset>
+    <fieldset class="field"><label>Schémas & captures <span class="hint">stockées hors ligne dans l'app</span></label><div class="gallery">${(f.images||[]).map((im,i)=>`<div class="gthumb"><img src="${im.data}" alt="" loading="lazy" decoding="async"><input type="text" class="gcap" data-imgcap="${i}" value="${esc(im.caption||'')}" placeholder="Légende…" style="width:100%;margin-top:5px;padding:6px 8px;border:1px solid var(--line);border-radius:7px"><button class="btn sm danger" data-imgdel="${i}" style="width:100%;margin-top:5px">Retirer</button></div>`).join('')}</div><button class="add-line" id="addImg" style="margin-top:10px">+ Ajouter une image / capture</button></fieldset>
     ${listEditor('Références','sources de la fiche','references',f.references)}
     <fieldset class="field"><label>Fiches liées <span class="hint">raccourcis « Voir aussi » en bas de la fiche</span></label>
       <div class="rel-edit">${(f.related||[]).map(id=>{const rf=fiches.find(x=>x.id===id);return rf?`<span class="rel-chip">${esc(rf.title)||'Sans titre'}<button class="rel-x" data-relrm="${esc(id)}" aria-label="Retirer">×</button></span>`:'';}).join('')||'<span class="hint">Aucune fiche liée.</span>'}</div>
       ${(()=>{const opts=fiches.filter(x=>x.id!==f.id&&!x.deletedAt&&(f.related||[]).indexOf(x.id)<0&&(x.libraryId||null)===(f.libraryId||null)).sort(byOrder);return opts.length?`<select id="relAdd" style="margin-top:8px;width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)"><option value="">+ Ajouter une fiche liée…</option>${opts.map(x=>`<option value="${esc(x.id)}">${esc(x.title)||'Sans titre'}</option>`).join('')}</select>`:'<p class="hint">Aucune autre fiche disponible dans ce périmètre.</p>';})()}</fieldset>
     <div class="editor-foot"><button class="btn primary" id="saveBtn">Enregistrer</button><div class="spacer"></div>${fiches.some(x=>x.id===f.id)?'<button class="btn danger" id="delBtn">Supprimer</button>':''}</div>
     <input type="file" id="imgInput" accept="image/*" hidden>`;
-  document.getElementById('back').onclick=()=>{state.draft=null;state.catMgr=false;if(fiches.some(x=>x.id===f.id)){resetRuntime();openRead(f.id);}else{state.view='library';render();}};
+  document.getElementById('back').onclick=()=>{state.draft=null;if(fiches.some(x=>x.id===f.id)){resetRuntime();openRead(f.id);}else{state.view='library';render();}};
   const cbA=document.getElementById('cbAI');if(cbA)cbA.onclick=openAI;
   const cbM=document.getElementById('cbManual');if(cbM)cbM.onclick=()=>{state.showCreateBand=false;renderEditor();const t=document.getElementById('f-title');if(t)t.focus();};
   ['title','localInfo'].forEach(k=>document.getElementById('f-'+k).addEventListener('input',e=>state.draft[k]=e.target.value));
@@ -2159,10 +2163,10 @@ function renderEditor(){
   const scopeSel=document.getElementById('f-scope');if(scopeSel)scopeSel.onchange=()=>{const ns=scopeSel.value||null;state.draft.libraryId=ns;
     // Les catégories sont propres à une bibliothèque : si l'actuelle n'appartient pas à la nouvelle, on la retire.
     const cc=state.draft.category;if(cc){const cat=categories.find(x=>x.id===cc);if(!cat||(cat.libraryId||null)!==(ns||null))state.draft.category='';}
-    state.catMgr=false;renderEditor();};
-  document.getElementById('catMgrBtn').onclick=()=>{state.catMgr=!state.catMgr;renderEditor();};
-  if(state.catMgr){const dscope=state.draft.libraryId||null;main.querySelectorAll('.cat-row[data-cid]').forEach(row=>{const cid=row.dataset.cid;const c=categories.find(x=>x.id===cid);const nm=row.querySelector('[data-cname]');if(nm)nm.addEventListener('input',e=>{c.name=e.target.value;saveCats(dscope);});row.querySelectorAll('[data-setcol]').forEach(sw=>sw.onclick=()=>{c.color=sw.dataset.setcol;saveCats(dscope);renderEditor();});const dl=row.querySelector('[data-delcat]');if(dl)dl.onclick=async()=>{if(!await confirmDlg('Supprimer « '+c.name+' » ? Les fiches associées passeront sans catégorie.',{yes:'Supprimer',danger:true}))return;categories=categories.filter(x=>x.id!==cid);const tt=[];fiches.forEach(ff=>{if(ff.category===cid){ff.category='';tt.push(ff);}});if(state.draft.category===cid)state.draft.category='';await saveCats(dscope);for(const ff of tt)await persist(ff);renderEditor();};});
-    const ac=document.getElementById('addCat');if(ac)ac.onclick=async()=>{const inp=document.getElementById('newCatName');const name=(inp.value||'').trim();if(!name)return;categories.push({id:newCatId(name,dscope),name,color:PALETTE[categories.length%PALETTE.length],libraryId:dscope});await saveCats(dscope);renderEditor();};}
+    renderEditor();};
+  // « ⚙ Gérer » ouvre la MÊME fenêtre de gestion des catégories que l'accueil (périmètre =
+  // bibliothèque du brouillon via activeCatScope) ; l'éditeur est re-rendu à sa fermeture.
+  document.getElementById('catMgrBtn').onclick=openCatMgr;
   // images
   let imgMode={kind:null,bid:null};const imgInput=document.getElementById('imgInput');
   document.getElementById('addImg').onclick=()=>{imgMode={kind:'gallery'};imgInput.click();};
@@ -2227,8 +2231,8 @@ async function saveDraft(){const d=state.draft;d.title=(d.title||'').trim();
   if(!d.title){toast('⚠ Donnez un titre à la fiche.');return;}if(typeof d.order!=='number')d.order=Date.now();
   // La structure de la fiche change : on TERMINE une éventuelle session vive (archivée) pour éviter
   // une incohérence minuteurs/blocs, puis on rouvre la fiche à neuf.
-  if(!(await persist(d)))return;const i=fiches.findIndex(x=>x.id===d.id);if(i>=0)fiches[i]=d;else fiches.push(d);if(liveSessions[d.id])endSession(liveSessions[d.id]);state.draft=null;state.catMgr=false;resetRuntime();openRead(d.id);}
-async function deleteDraft(){if(!await confirmDlg('Supprimer cette fiche définitivement ?',{yes:'Supprimer',danger:true}))return;const id=state.draft.id;const f=fiches.find(x=>x.id===id)||state.draft;await softDelete(f);const rel=sessions.filter(s=>s.ficheId===id);for(const s of rel)await Data.delSession(s.id);sessions=sessions.filter(s=>s.ficheId!==id);if(liveSessions[id])delete liveSessions[id];fiches=fiches.filter(x=>x.id!==id);state.draft=null;state.catMgr=false;resetRuntime();state.view='library';render();}
+  if(!(await persist(d)))return;const i=fiches.findIndex(x=>x.id===d.id);if(i>=0)fiches[i]=d;else fiches.push(d);if(liveSessions[d.id])endSession(liveSessions[d.id]);state.draft=null;resetRuntime();openRead(d.id);}
+async function deleteDraft(){if(!await confirmDlg('Supprimer cette fiche définitivement ?',{yes:'Supprimer',danger:true}))return;const id=state.draft.id;const f=fiches.find(x=>x.id===id)||state.draft;await softDelete(f);const rel=sessions.filter(s=>s.ficheId===id);for(const s of rel)await Data.delSession(s.id);sessions=sessions.filter(s=>s.ficheId!==id);if(liveSessions[id])delete liveSessions[id];fiches=fiches.filter(x=>x.id!==id);state.draft=null;resetRuntime();state.view='library';render();}
 
 /* ===== Navigation =====
    openRead(id) : ouvre une fiche en lecture. Conserve le Runtime si c'est la MÊME
@@ -2241,9 +2245,9 @@ async function deleteDraft(){if(!await confirmDlg('Supprimer cette fiche défini
 function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;flowScroll={left:null,top:0};
   if(liveSessions[id]){Runtime=liveSessions[id];Runtime.fiche=f;}
   else if(!(Runtime.fiche&&Runtime.ficheId===id&&!Runtime.started)){Runtime=buildRuntime(f,null);}
-  bindStateToRuntime();state.fiche=Runtime.fiche;state.id=id;state.showFlow=!!(f.blocks&&f.blocks.length);state.showSess=false;state.view='read';render();}
-function openEdit(id){const f=fiches.find(x=>x.id===id);if(!f)return;if(!canEditFiche(f)){toast('Lecture seule : vous n\'avez pas les droits d\'édition sur cette bibliothèque.');return openRead(id);}state.draft=JSON.parse(JSON.stringify(f));state.catMgr=false;state.view='edit';render();}
-function newFiche(){if(!canEditScope(state.scope)){toast('Lecture seule : vous ne pouvez pas créer de fiche dans cette bibliothèque.');return;}const d=blankFiche();d.libraryId=state.scope||null;state.draft=d;state.catMgr=false;state.showCreateBand=true;state.view='edit';render();}
+  bindStateToRuntime();state.fiche=Runtime.fiche;state.showFlow=!!(f.blocks&&f.blocks.length);state.showSess=false;state.view='read';render();}
+function openEdit(id){const f=fiches.find(x=>x.id===id);if(!f)return;if(!canEditFiche(f)){toast('Lecture seule : vous n\'avez pas les droits d\'édition sur cette bibliothèque.');return openRead(id);}state.draft=JSON.parse(JSON.stringify(f));state.view='edit';render();}
+function newFiche(){if(!canEditScope(state.scope)){toast('Lecture seule : vous ne pouvez pas créer de fiche dans cette bibliothèque.');return;}const d=blankFiche();d.libraryId=state.scope||null;state.draft=d;state.showCreateBand=true;state.view='edit';render();}
 document.getElementById('topNew').onclick=newFiche;
 
 /* ===== Lightbox ===== (agrandissement d'une image au clic, avec légende) */
@@ -2257,7 +2261,7 @@ document.getElementById('ffClose').onclick=closeFlowFull;
 
 /* ===== Prompt IA ===== (fenêtre d'aide pour générer une fiche importable via une IA)
    Le prompt est embarqué (l'app marche hors ligne) ; il décrit le format JSON exact
-   attendu par l'import. Tenir synchronisé avec prompt-IA-creation-fiche.md à la racine. */
+   attendu par l'import. SOURCE UNIQUE : ce texte n'existe qu'ici (pas de copie à synchroniser). */
 const AI_PROMPT=`RÔLE
 Tu es un assistant qui transforme un document médical (recommandation, protocole,
 algorithme, chapitre, image/capture) en une « aide cognitive » de crise, destinée à
@@ -2392,8 +2396,7 @@ const aiModal=document.getElementById('aiModal');
 function openAI(){document.getElementById('aiTa').value=AI_PROMPT;aiModal.classList.add('on');document.getElementById('aiCopy').textContent='Copier le prompt';}
 function closeAI(){aiModal.classList.remove('on');}
 {const ab=document.getElementById('aiBtn');if(ab)ab.onclick=openAI;}
-document.getElementById('aiX').onclick=closeAI;
-aiModal.onclick=e=>{if(e.target===aiModal)closeAI();};
+bindModalDismiss(aiModal,closeAI);
 // Import depuis la fenêtre IA : on mémorise qu'il faut OUVRIR directement la fiche importée.
 let pendingOpenImport=false;
 document.getElementById('aiImport').onclick=()=>{pendingOpenImport=true;closeAI();document.getElementById('importFile').click();};
@@ -2401,17 +2404,19 @@ document.getElementById('aiCopy').onclick=async()=>{const ta=document.getElement
   try{await navigator.clipboard.writeText(AI_PROMPT);}catch(e){ta.focus();ta.select();try{document.execCommand('copy');}catch(_){}}
   btn.textContent='Copié ✓';setTimeout(()=>{btn.textContent='Copier le prompt';},1800);};
 
-/* ===== Gestion des catégories (depuis l'accueil) =====
-   Modale : créer / renommer / recolorer / supprimer. Suppression d'une catégorie NON VIDE :
-   confirmation INLINE (pas de window.confirm en chaîne) avec choix de DÉPLACER les fiches
-   liées vers une autre catégorie (ou « aucune ») avant suppression. */
+/* ===== Gestion des catégories (accueil ET éditeur : MÊME fenêtre) =====
+   Modale unique : créer / renommer / recolorer / supprimer. Suppression d'une catégorie NON
+   VIDE : confirmation INLINE (pas de window.confirm en chaîne) avec choix de DÉPLACER les
+   fiches liées vers une autre catégorie (ou « aucune ») avant suppression. Le périmètre
+   (Perso / bibliothèque) suit la vue : activeCatScope() = bibliothèque de la fiche en cours
+   d'édition, sinon bibliothèque affichée. À la fermeture, la vue active est re-rendue. */
 const catModal=document.getElementById('catModal');
 let catDelId=null;
 const catCount=id=>fiches.filter(f=>f.category===id).length;
 function openCatMgr(){catDelId=null;catModal.classList.add('on');renderCatMgr();}
-function closeCatMgr(){catModal.classList.remove('on');renderLibrary();}
+function closeCatMgr(){catModal.classList.remove('on');if(state.view==='edit')renderEditor();else if(state.view==='library')renderLibrary();}
 function renderCatMgr(){
-  const body=document.getElementById('catMgrBody');const scp=state.scope||null;const scoped=catsSorted(scp);
+  const body=document.getElementById('catMgrBody');const scp=activeCatScope();const scoped=catsSorted(scp);
   body.innerHTML=`${scp?`<p class="cm-scope">Catégories de la bibliothèque <b>${esc(libName(scp)||'')}</b> (partagées avec ses membres).</p>`:'<p class="cm-scope">Catégories de votre espace personnel.</p>'}`+scoped.map(c=>{const n=catCount(c.id);
     const conf=catDelId===c.id?`<div class="cm-confirm">${n?`<p>« ${esc(c.name)} » contient <b>${n}</b> fiche${n>1?'s':''}. Choisissez où déplacer ces fiches avant de supprimer la catégorie :</p><select data-movesel><option value="">Laisser sans catégorie</option>${scoped.filter(x=>x.id!==c.id).map(x=>`<option value="${esc(x.id)}">Déplacer vers « ${esc(x.name)} »</option>`).join('')}</select>`:`<p>Supprimer « ${esc(c.name)} » ? (catégorie vide)</p>`}<div class="cm-cact"><button class="btn danger sm" data-confdel="${esc(c.id)}">${n?'Déplacer puis Supprimer':'Supprimer'}</button><button class="btn sm" data-canceldel>Annuler</button></div></div>`:'';
     return `<div class="cm-row" data-cid="${esc(c.id)}"><div class="cm-top"><span class="cm-dot" style="background:${safeColor(c.color)}"></span><input class="cm-name" data-cname value="${esc(c.name)}"><span class="cm-count">${n} fiche${n>1?'s':''}</span><button class="cm-del" data-askdel="${esc(c.id)}" aria-label="Supprimer">×</button></div><div class="cm-sw">${PALETTE.map(col=>`<span class="sw ${c.color===col?'on':''}" data-setcol="${col}" style="background:${col}"></span>`).join('')}</div>${conf}</div>`;
@@ -2423,11 +2428,13 @@ function renderCatMgr(){
     const cn=row.querySelector('[data-canceldel]');if(cn)cn.onclick=()=>{catDelId=null;renderCatMgr();};
     const cf=row.querySelector('[data-confdel]');if(cf)cf.onclick=async()=>{const sel=row.querySelector('[data-movesel]');const target=sel?sel.value:'';
       const moved=fiches.filter(f=>f.category===cid);for(const ff of moved){ff.category=target;await persist(ff);}
-      categories=categories.filter(x=>x.id!==cid);if(state.cat===cid)state.cat=target||'';await saveCats(scp);catDelId=null;renderCatMgr();};});
+      categories=categories.filter(x=>x.id!==cid);if(state.cat===cid)state.cat=target||'';
+      // Brouillon en cours d'édition : il pointe peut-être sur la catégorie supprimée (copie de la fiche).
+      if(state.draft&&state.draft.category===cid)state.draft.category=target||'';
+      await saveCats(scp);catDelId=null;renderCatMgr();};});
   const add=document.getElementById('cmAdd');if(add)add.onclick=async()=>{const inp=document.getElementById('cmNew');const name=(inp.value||'').trim();if(!name)return;categories.push({id:newCatId(name,scp),name,color:PALETTE[catsForScope(scp).length%PALETTE.length],libraryId:scp});await saveCats(scp);renderCatMgr();};
 }
-document.getElementById('catX').onclick=closeCatMgr;
-catModal.onclick=e=>{if(e.target===catModal)closeCatMgr();};
+bindModalDismiss(catModal,closeCatMgr);
 
 /* ===== Export / Import =====
    Export : télécharge un JSON { version, categories, fiches } (sessions exclues).
@@ -2471,7 +2478,8 @@ function exportData(list,baseName,cats){const out={version:3,categories:(cats||c
   // On retire les champs de sync PUREMENT LOCAUX -> une fiche importée ailleurs devient celle de l'importateur
   // (pas d'owner/biblio d'autrui) ; `updatedAt` est conservé (utile au last-write-wins multi-appareils).
   delete c.dirty;delete c.ownerId;delete c.libraryId;return c;})};const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=baseName+'-'+new Date().toISOString().slice(0,10)+'.json';a.click();}
-const fileSlug=s=>(String(s||"fiche").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,40))||"fiche";
+// Nom de fichier s\u00fbr pour un export : m\u00eames r\u00e8gles que catSlug (accents retir\u00e9s, jeu [a-z0-9-]).
+const fileSlug=s=>catSlug(s).slice(0,40)||'fiche';
 document.getElementById('exportBtn').onclick=()=>exportData(fiches,'aides-cognitives',categories);
 document.getElementById('importBtn').onclick=()=>document.getElementById('importFile').click();
 document.getElementById('importFile').onchange=e=>{const file=e.target.files[0];if(!file)return;const r=new FileReader();
@@ -2574,7 +2582,7 @@ let _authStep={mode:'email',email:'',msg:'',msgcls:''};let _authDelete=false;
 async function wipeLocal(){
   try{if(IDB.db){IDB.db.close();IDB.db=null;}}catch(e){}
   try{await new Promise(res=>{const r=indexedDB.deleteDatabase('ac-db');r.onsuccess=r.onerror=r.onblocked=()=>res();});}catch(e){}
-  try{['fiches_v1','cats_v1','sessions_v1','backups_v1','ac-sync-cursor','ac-cats-dirty:','ac-cats-updated:','ac-lib-usage','ac-notice-hidden','ac-auth'].forEach(k=>localStorage.removeItem(k));
+  try{['fiches_v1','cats_v1','sessions_v1','backups_v1','ac-sync-cursor','ac-cats-dirty:','ac-cats-updated:','ac-lib-usage','ac-notice-hidden','ac-auth','ac-pins','ac-onboarded'].forEach(k=>localStorage.removeItem(k));
     for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);if(k&&(k.indexOf('ac-sync-init-')===0||k.indexOf('ac-cats-dirty:')===0||k.indexOf('ac-cats-updated:')===0))localStorage.removeItem(k);}
   }catch(e){}
 }
@@ -2670,8 +2678,7 @@ function openAuth(){_authDelete=false;authModal.classList.add('on');renderAuth()
 }
 function closeAuth(){authModal.classList.remove('on');}
 document.getElementById('acctTop').onclick=openAuth;
-document.getElementById('authX').onclick=closeAuth;
-authModal.onclick=e=>{if(e.target===authModal)closeAuth();};
+bindModalDismiss(authModal,closeAuth);
 
 /* ===== Explication « où sont mes fiches ? » (langage simple, non technique) ===== */
 const storageModal=document.getElementById('storageModal');
@@ -2692,8 +2699,7 @@ function renderStorageInfo(){const body=document.getElementById('storageBody');i
   const c=body.querySelector('#stgConnect');if(c)c.onclick=()=>{closeStorageInfo();openAuth();};}
 function openStorageInfo(){renderStorageInfo();storageModal.classList.add('on');}
 function closeStorageInfo(){storageModal.classList.remove('on');}
-document.getElementById('storageX').onclick=closeStorageInfo;
-storageModal.onclick=e=>{if(e.target===storageModal)closeStorageInfo();};
+bindModalDismiss(storageModal,closeStorageInfo);
 // Fenêtre ouverte au clic sur la pastille « Erreur de synchro » : explique la cause précise
 // (voir explainSyncError) plutôt qu'un message générique, + bouton pour relancer sans attendre le backoff.
 const syncErrModal=document.getElementById('syncErrModal');
@@ -2707,8 +2713,7 @@ function renderSyncErr(){const body=document.getElementById('syncErrBody');if(!b
   const b=body.querySelector('#syncErrRetry');if(b)b.onclick=()=>{closeSyncErr();Sync.full();};}
 function openSyncErr(){renderSyncErr();syncErrModal.classList.add('on');}
 function closeSyncErr(){syncErrModal.classList.remove('on');}
-document.getElementById('syncErrX').onclick=closeSyncErr;
-syncErrModal.onclick=e=>{if(e.target===syncErrModal)closeSyncErr();};
+bindModalDismiss(syncErrModal,closeSyncErr);
 {const si=document.getElementById('storageInfo');if(si){si.style.cursor='pointer';si.setAttribute('role','button');si.setAttribute('tabindex','0');si.onclick=openStorageInfo;si.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openStorageInfo();}};}}
 
 Auth._load();setSyncChip();
@@ -2778,8 +2783,7 @@ function confirmDlg(msg,opts){opts=opts||{};return new Promise(res=>{
 function _confirmEnd(v){confirmModal.classList.remove('on');const r=_confirmRes;_confirmRes=null;if(r)r(v);}
 document.getElementById('confirmYes').onclick=()=>_confirmEnd(true);
 document.getElementById('confirmNo').onclick=()=>_confirmEnd(false);
-document.getElementById('confirmX').onclick=()=>_confirmEnd(null);
-confirmModal.onclick=e=>{if(e.target===confirmModal)_confirmEnd(null);};
+bindModalDismiss(confirmModal,()=>_confirmEnd(null));
 function toast(msg,ms){const t=document.createElement('div');t.className='toast';t.setAttribute('role','status');t.textContent=msg;document.body.appendChild(t);
   requestAnimationFrame(()=>t.classList.add('on'));setTimeout(()=>{t.classList.remove('on');setTimeout(()=>t.remove(),300);},ms||4500);}
 function notifyConflicts(list){if(!list.length)return;
@@ -2861,24 +2865,34 @@ const Sync={
   async _pull(){
     const cur=localStorage.getItem(this._cursorKey);
     // Recouvrement de 2 s + application idempotente (LWW) -> aucun enregistrement manqué aux bornes.
-    const since=cur?new Date((Date.parse(cur)||0)-2000).toISOString():'1970-01-01T00:00:00Z';
-    // Pas de filtre de bibliothèque : la RLS limite déjà à ce que je peux voir (Perso + mes bibliothèques).
-    const rows=await rest('GET','/rest/v1/fiches?select=*&updated_at=gt.'+encodeURIComponent(since)+'&order=updated_at.asc')||[];
-    let maxTs=cur?Date.parse(cur):0;const conflicts=[];
+    let since=cur?new Date((Date.parse(cur)||0)-2000).toISOString():'1970-01-01T00:00:00Z';
+    let maxTs=cur?Date.parse(cur):0;const conflicts=[];let total=0;
     const localAll=await Data.getAll();const byId={};localAll.forEach(f=>byId[f.id]=f);
-    for(const row of rows){const rts=Date.parse(row.updated_at)||0;if(rts>maxTs)maxTs=rts;
-      const local=byId[row.id];
-      if(row.deleted_at){if(local){await Data.del(row.id);const i=fiches.findIndex(x=>x.id===row.id);if(i>=0)fiches.splice(i,1);}continue;}
-      if(!local){const nf=ficheFromRow(row);await Data.put(nf);if(!nf.deletedAt)fiches.push(nf);continue;}
-      if(rts>(local.updatedAt||0)){
-        if(local.dirty){ // divergence locale ET distante -> conflit : on conserve la version locale
-          try{await Data.putBackup({bid:uid('bk'),ficheId:local.id,at:Date.now(),data:JSON.parse(JSON.stringify(local))});}catch(e){}
-          conflicts.push(local.title||local.id);}
-        const nf=ficheFromRow(row);await Data.put(nf);const i=fiches.findIndex(x=>x.id===row.id);if(i>=0)fiches[i]=nf;else if(!nf.deletedAt)fiches.push(nf);
-      } // sinon local plus récent/identique -> on garde (sera poussé si dirty)
+    // PAGINATION : PostgREST plafonne une réponse (1000 lignes par défaut) -> on boucle par pages
+    // (limit explicite + curseur updated_at croissant) jusqu'à une page incomplète, pour qu'une très
+    // grosse bibliothèque arrive ENTIÈRE dès la première synchro. Garde-fous : nombre de pages borné,
+    // arrêt si le curseur n'avance plus (horodatages identiques -> évite une boucle infinie).
+    // Pas de filtre de bibliothèque : la RLS limite déjà à ce que je peux voir (Perso + mes bibliothèques).
+    const PAGE=1000;
+    for(let p=0;p<50;p++){
+      const rows=await rest('GET','/rest/v1/fiches?select=*&updated_at=gt.'+encodeURIComponent(since)+'&order=updated_at.asc&limit='+PAGE)||[];
+      total+=rows.length;
+      for(const row of rows){const rts=Date.parse(row.updated_at)||0;if(rts>maxTs)maxTs=rts;
+        const local=byId[row.id];
+        if(row.deleted_at){if(local){await Data.del(row.id);delete byId[row.id];const i=fiches.findIndex(x=>x.id===row.id);if(i>=0)fiches.splice(i,1);}continue;}
+        if(!local){const nf=ficheFromRow(row);await Data.put(nf);byId[row.id]=nf;if(!nf.deletedAt)fiches.push(nf);continue;}
+        if(rts>(local.updatedAt||0)){
+          if(local.dirty){ // divergence locale ET distante -> conflit : on conserve la version locale
+            try{await Data.putBackup({bid:uid('bk'),ficheId:local.id,at:Date.now(),data:JSON.parse(JSON.stringify(local))});}catch(e){}
+            conflicts.push(local.title||local.id);}
+          const nf=ficheFromRow(row);await Data.put(nf);byId[row.id]=nf;const i=fiches.findIndex(x=>x.id===row.id);if(i>=0)fiches[i]=nf;else if(!nf.deletedAt)fiches.push(nf);
+        } // sinon local plus récent/identique -> on garde (sera poussé si dirty)
+      }
+      if(rows.length<PAGE)break;
+      const next=new Date(maxTs).toISOString();if(next===since)break;since=next;
     }
     if(maxTs)localStorage.setItem(this._cursorKey,new Date(maxTs).toISOString());
-    if(rows.length)render();
+    if(total)render();
     return conflicts;},
   async _push(){
     // On pousse Perso + les fiches des bibliothèques où l'on peut éditer (la RLS refuserait sinon).
@@ -2992,8 +3006,7 @@ async function renderVersions(){const body=document.getElementById('versBody');i
     const restored=migrate(Object.assign({},b.data,{id:_versFiche}));
     if(await persist(restored)){const i=fiches.findIndex(x=>x.id===_versFiche);if(i>=0)fiches[i]=restored;else fiches.push(restored);}
     closeVersions();if(state.fiche&&state.fiche.id===_versFiche)state.fiche=restored;render();});}
-document.getElementById('versX').onclick=closeVersions;
-versModal.onclick=e=>{if(e.target===versModal)closeVersions();};
+bindModalDismiss(versModal,closeVersions);
 
 /* ===== Membres d'une bibliothèque (Lot 3, étape 4) ===== */
 const membersModal=document.getElementById('membersModal');let _memLib=null;
@@ -3061,8 +3074,7 @@ async function renderMembers(){const body=document.getElementById('membersBody')
     try{await rest('DELETE','/rest/v1/libraries?id=eq.'+encodeURIComponent(_memLib),null,{'Prefer':'return=minimal'});
       closeMembers();state.scope=null;await Sync.loadProfile();Sync.full();renderLibrary();toast('Bibliothèque supprimée.');}
     catch(e){toast('⚠ Suppression impossible : '+e.message);}};}
-document.getElementById('membersX').onclick=closeMembers;
-membersModal.onclick=e=>{if(e.target===membersModal)closeMembers();};
+bindModalDismiss(membersModal,closeMembers);
 // Fenêtre "Créer une bibliothèque" (app-admin uniquement ; la RLS rejette sinon si contournée) :
 // même gabarit que les autres fenêtres (.ai-modal/.ai-card), remplace l'ancien prompt() natif.
 // Explique d'abord ce qu'est une bibliothèque avant de demander un nom.
@@ -3088,8 +3100,7 @@ function openNewLib(){
   if(!myIsAppAdmin){toast('Seul un administrateur peut créer une bibliothèque.');return;}
   renderNewLib();newLibModal.classList.add('on');}
 function closeNewLib(){newLibModal.classList.remove('on');}
-document.getElementById('newLibX').onclick=closeNewLib;
-newLibModal.onclick=e=>{if(e.target===newLibModal)closeNewLib();};
+bindModalDismiss(newLibModal,closeNewLib);
 // Fenêtre "Comptes en attente" (app-admin uniquement ; visible depuis la fenêtre Compte). Liste les
 // comptes ayant vérifié leur e-mail (code OTP) mais pas encore approuvés (pending) ou refusés
 // (rejected, pour pouvoir revenir dessus). Approuver/refuser = RPC set_user_status (RLS : app-admin
@@ -3121,8 +3132,7 @@ async function renderPending(){const body=document.getElementById('pendingBody')
     catch(e){toast('⚠ Échec : '+e.message);}});}
 async function openPending(){pendingModal.classList.add('on');await renderPending();}
 function closePending(){pendingModal.classList.remove('on');}
-document.getElementById('pendingX').onclick=closePending;
-pendingModal.onclick=e=>{if(e.target===pendingModal)closePending();};
+bindModalDismiss(pendingModal,closePending);
 
 /* ===== Accessibilité des fenêtres modales =====
    Les attributs role="dialog"/aria-modal/aria-labelledby sont posés dans le HTML. Ici, de façon
