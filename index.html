@@ -867,7 +867,7 @@
 /* PALETTE : couleurs proposées pour les catégories (hex sombres, lisibles
    en texte comme en pastille teintée). Index réutilisé cycliquement. */
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='3.1.2';
+const APP_VERSION='3.1.3';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -953,7 +953,20 @@ let fiches=[],categories=[],sessions=[];
 let myLibraries=[],myIsAppAdmin=false,myAccountStatus=null,myPendingCount=0;
 // Remet à zéro tout l'état lié au compte cloud (déconnexion, suppression de compte) : jamais partiel,
 // pour ne pas laisser un rôle/statut périmé traîner après un changement de compte.
-function resetAuthState(){myLibraries=[];myIsAppAdmin=false;myAccountStatus=null;myPendingCount=0;state.scope=null;}
+function resetAuthState(){myLibraries=[];myIsAppAdmin=false;myAccountStatus=null;myPendingCount=0;state.scope=null;
+  try{for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);if(k&&k.indexOf('ac-profile-')===0)localStorage.removeItem(k);}}catch(e){}}
+// ----- Profil (bibliothèques partagées) : cache LOCAL, par utilisateur -----
+// Sans cache, myLibraries/myIsAppAdmin ne vivaient qu'en mémoire, remplis par Sync.loadProfile()
+// (réseau) : HORS-LIGNE, les bibliothèques partagées « disparaissaient » alors que leurs fiches
+// sont bien dans IndexedDB. Le profil est donc mis en cache (localStorage, clé par utilisateur) :
+// sauvé à chaque synchro réussie, restauré au démarrage, JAMAIS écrasé par un simple échec réseau.
+// Ergonomie uniquement : les droits réels restent arbitrés par la RLS côté serveur (un rôle
+// périmé du cache ne donne aucun accès — le push serait refusé).
+const LIB_ROLES=['viewer','editor','admin'];
+const sanitizeLibs=a=>(Array.isArray(a)?a:[]).slice(0,200).map(l=>({id:safeMetaId(l&&l.id),name:sstr(l&&l.name,120),role:LIB_ROLES.indexOf(l&&l.role)>=0?l.role:'viewer'})).filter(l=>l.id);
+function profileCacheKey(){const u=Auth.user();return (u&&u.id)?('ac-profile-'+u.id):null;}
+function saveProfileCache(){const k=profileCacheKey();if(!k)return;try{localStorage.setItem(k,JSON.stringify({libraries:myLibraries,isAppAdmin:myIsAppAdmin}));}catch(e){}}
+function loadProfileCache(){const k=profileCacheKey();if(!k)return;try{const p=JSON.parse(localStorage.getItem(k)||'null');if(!p)return;myLibraries=sanitizeLibs(p.libraries);myIsAppAdmin=p.isAppAdmin===true;}catch(e){}}
 let state={view:'library',q:'',cat:'',scope:null,draft:null,fiche:null,nav:[],navSeq:[],navPos:0,checked:{},showFlow:false,showSess:false,libLimit:LIB_PAGE};
 // Rôle/édition par bibliothèque. Perso (libraryId vide) = toujours éditable. Bibliothèque partagée : éditable
 // si role editor/admin. (La RLS reste l'arbitre côté serveur ; ceci n'est que l'ergonomie.)
@@ -2539,7 +2552,16 @@ const Auth={
   _setSession(j){if(!j||!j.access_token)return;this.session={access_token:j.access_token,refresh_token:j.refresh_token,expires_at:j.expires_at||(Math.floor(Date.now()/1000)+(j.expires_in||3600)),user:j.user};this._save();},
   async sendCode(email){await this._post('/auth/v1/otp',{email:email,create_user:true});},
   async verifyCode(email,code){const j=await this._post('/auth/v1/verify',{type:'email',email:email,token:code});this._setSession(j);return j;},
-  async refresh(){if(!this.session||!this.session.refresh_token)return false;try{const r=await fetch(SUPA.url+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:this.headers(),body:JSON.stringify({refresh_token:this.session.refresh_token})});const j=await r.json().catch(()=>({}));if(!r.ok)throw 0;this._setSession(j);return true;}catch(e){await this.signOut();return false;}},
+  // Rafraîchissement du jeton. IMPORTANT (hors-ligne) : un échec RÉSEAU (fetch qui lève : mode
+  // avion, Wi-Fi captif, coupure) ne déconnecte JAMAIS — on garde la session et on réessaiera au
+  // retour du réseau. Seul un REFUS du serveur (400/401/403 = refresh token invalide ou révoqué)
+  // déconnecte réellement. Sinon, rester hors-ligne > 1 h (jeton expiré) déconnectait l'utilisateur
+  // et rendait les bibliothèques partagées inaccessibles sans possibilité de se reconnecter.
+  async refresh(){if(!this.session||!this.session.refresh_token)return false;
+    let r;try{r=await fetch(SUPA.url+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:this.headers(),body:JSON.stringify({refresh_token:this.session.refresh_token})});}catch(e){return false;}
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok){if(r.status===400||r.status===401||r.status===403)await this.signOut();return false;}
+    this._setSession(j);return true;},
   // Rafraîchit le jeton s'il expire dans <60 s. Appelé par rest() avant chaque appel REST de synchro.
   async ensureFresh(){if(!this.signedIn())return false;const now=Math.floor(Date.now()/1000);if(this.session.expires_at&&this.session.expires_at-now<60)return this.refresh();return true;},
   async signOut(){const tok=this.session&&this.session.access_token;this.session=null;this._save();if(tok){try{await fetch(SUPA.url+'/auth/v1/logout',{method:'POST',headers:{'apikey':SUPA.key,'Authorization':'Bearer '+tok}});}catch(e){}}},
@@ -2588,7 +2610,7 @@ async function wipeLocal(){
   try{if(IDB.db){IDB.db.close();IDB.db=null;}}catch(e){}
   try{await new Promise(res=>{const r=indexedDB.deleteDatabase('ac-db');r.onsuccess=r.onerror=r.onblocked=()=>res();});}catch(e){}
   try{['fiches_v1','cats_v1','sessions_v1','backups_v1','ac-sync-cursor','ac-cats-dirty:','ac-cats-updated:','ac-lib-usage','ac-notice-hidden','ac-auth','ac-pins','ac-onboarded'].forEach(k=>localStorage.removeItem(k));
-    for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);if(k&&(k.indexOf('ac-sync-init-')===0||k.indexOf('ac-cats-dirty:')===0||k.indexOf('ac-cats-updated:')===0))localStorage.removeItem(k);}
+    for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);if(k&&(k.indexOf('ac-sync-init-')===0||k.indexOf('ac-cats-dirty:')===0||k.indexOf('ac-cats-updated:')===0||k.indexOf('ac-profile-')===0))localStorage.removeItem(k);}
   }catch(e){}
 }
 // État de l'instance (app-admin) : petit tableau de bord affiché dans l'écran Compte. Chargé en
@@ -2721,7 +2743,12 @@ function closeSyncErr(){syncErrModal.classList.remove('on');}
 bindModalDismiss(syncErrModal,closeSyncErr);
 {const si=document.getElementById('storageInfo');if(si){si.style.cursor='pointer';si.setAttribute('role','button');si.setAttribute('tabindex','0');si.onclick=openStorageInfo;si.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openStorageInfo();}};}}
 
-Auth._load();setSyncChip();
+Auth._load();
+// Restaure la dernière liste connue de bibliothèques partagées (mise en cache à chaque synchro
+// réussie) : hors-ligne, la barre « Bibliothèque » et les fiches partagées (déjà dans IndexedDB)
+// restent accessibles sans attendre — ni exiger — le réseau.
+if(Auth.signedIn())loadProfileCache();
+setSyncChip();
 
 /* ===== Thème clair / sombre ===== */
 function resolveTheme(mode){return mode==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):mode;}
@@ -2944,17 +2971,22 @@ const Sync={
     for(const f of all){if(f.libraryId&&!f.dirty&&!ids.has(f.id)){await Data.del(f.id);const i=fiches.findIndex(x=>x.id===f.id);if(i>=0)fiches.splice(i,1);changed=true;}}
     if(changed)render();},
   // Profil : bibliothèques partagées dont je suis membre (avec rôle) + statut app-admin.
+  // En cas d'ÉCHEC réseau, on GARDE la dernière valeur connue (jamais de « disparition » des
+  // bibliothèques hors-ligne) ; en cas de succès, le profil est mis en cache (loadProfileCache
+  // le restaure au démarrage). Une révocation réelle arrive, elle, par une réponse 200 réussie.
   async loadProfile(){
+    let ok=true;
     try{const rows=await rest('GET','/rest/v1/memberships?select=role,library_id,libraries(id,name)')||[];
       // Déduplication par id (robustesse) : si une biblio remonte plusieurs fois, on garde le rôle le plus élevé.
       const rank={viewer:1,editor:2,admin:3},by={};
       rows.filter(r=>r.libraries).forEach(r=>{const id=r.library_id,cur=by[id];if(!cur||rank[r.role]>rank[cur.role])by[id]={id,name:r.libraries.name,role:r.role};});
       myLibraries=Object.values(by).sort((a,b)=>String(a.name).localeCompare(String(b.name)));
-    }catch(e){myLibraries=[];}
-    try{myIsAppAdmin=(await rpc('is_app_admin'))===true;}catch(e){myIsAppAdmin=false;}
+    }catch(e){ok=false;}
+    try{myIsAppAdmin=(await rpc('is_app_admin'))===true;}catch(e){ok=false;}
     // Nombre de comptes en attente : app-admin uniquement (visible sur le bouton « Comptes en attente »).
     if(myIsAppAdmin){try{myPendingCount=(await rpc('list_unapproved_users')||[]).filter(u=>u.status==='pending').length;}catch(e){myPendingCount=0;}}
     else myPendingCount=0;
+    if(ok)saveProfileCache();
     if(state.view==='library')renderLibrary();}
 };
 // Déclencheurs de synchro : retour en ligne, retour au premier plan.
@@ -3181,7 +3213,7 @@ document.addEventListener('keydown',e=>{
    sans ce paramètre, rien de tout ceci ne s'exécute et aucun global n'est ajouté. */
 if(location.search.indexOf('__actest')>=0){
   window.__ac_test__={migrate,sanitizeCats,safeId,safeColor,safeImg,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,
-    txNorm,ficheHaystack,sanitizePins,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey};
+    txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey};
 }else{
   /* ===== PWA =====
      Enregistre le service worker (cache hors ligne) si disponible. Capte

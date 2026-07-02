@@ -135,6 +135,13 @@ function run(A){
   eq('rejette ids invalides / borne à 50', A.sanitizePins(['ok_1','bad id','__proto__']), ['ok_1']);
   eq('non-tableau → []', A.sanitizePins('x'), []);
 
+  group('sanitizeLibs() — cache de profil hors-ligne');
+  eq('lib valide conservée', A.sanitizeLibs([{id:'lib-rea',name:'Réa',role:'editor'}]), [{id:'lib-rea',name:'Réa',role:'editor'}]);
+  eq('rôle inconnu → viewer', A.sanitizeLibs([{id:'lib-x',name:'X',role:'root'}])[0].role, 'viewer');
+  eq('id invalide → lib écartée', A.sanitizeLibs([{id:'bad id',name:'X',role:'admin'}]), []);
+  eq('non-tableau → []', A.sanitizeLibs('x'), []);
+  ok('nom coercé en chaîne', typeof A.sanitizeLibs([{id:'lib-y',name:42,role:'viewer'}])[0].name==='string');
+
   group('fmtBytes()');
   eq('octets', A.fmtBytes(512), '512 o');
   eq('kilo-octets', A.fmtBytes(2048), '2 Ko');

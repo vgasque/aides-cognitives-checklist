@@ -4,6 +4,24 @@ Toutes les versions notables de l'application. Format inspiré de *Keep a Change
 versionnage sémantique. La version affichée en pied de page (`APP_VERSION` dans `index.html`)
 et le cache du service worker (`sw.js`) sont tenus synchronisés par `release.sh`.
 
+## [3.1.3] — 2026-07-02
+### Corrigé
+- **Bibliothèques partagées accessibles hors-ligne.** La liste des bibliothèques (et vos rôles)
+  est désormais mise en cache localement à chaque synchro réussie et restaurée au démarrage :
+  sans réseau, la barre « Bibliothèque » et les fiches partagées (déjà stockées sur l'appareil)
+  restent consultables et éditables. Un simple échec réseau ne fait plus « disparaître » les
+  bibliothèques (la dernière liste connue est conservée) ; une révocation réelle continue, elle,
+  d'être appliquée à la synchro suivante. Le cache est purement ergonomique : les droits réels
+  restent arbitrés par la RLS côté serveur.
+- **Plus de déconnexion intempestive hors-ligne.** Le rafraîchissement du jeton ne déconnecte
+  plus sur un échec réseau (mode avion, Wi-Fi captif) — rester hors-ligne plus d'une heure
+  pouvait déconnecter et rendre les bibliothèques partagées inaccessibles sans possibilité de
+  se reconnecter. Seul un refus du serveur (jeton révoqué) déconnecte désormais.
+
+### Tests
+- Nouvelle fonction pure `sanitizeLibs` (assainissement du cache de profil) exposée au hook de
+  test ; 5 tests ajoutés (91 au total).
+
 ## [3.1.2] — 2026-07-02
 ### Modifié
 - Éditeur, champ « État » : l'option affiche simplement **« Brouillon »** pour une fiche
