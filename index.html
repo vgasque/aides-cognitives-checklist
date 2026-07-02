@@ -218,10 +218,16 @@
   contrôles, minuteurs ; conserve étapes et listes).
 -->
 <style>
-  :root{--ink:#13201d;--ink-soft:#5a6864;--line:#dde3e0;--bg:#eef1f0;--surface:#fff;--primary:#0d5b56;--primary-dk:#0a4a46;--primary-soft:#e1efec;--critical:#bf3a21;--critical-soft:#fbe9e4;--verify:#946615;--verify-soft:#f6efdd;--radius:14px;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--shadow:0 1px 2px rgba(16,32,30,.04),0 4px 16px rgba(16,32,30,.06);--shadow-lg:0 2px 6px rgba(16,32,30,.06),0 12px 32px rgba(16,32,30,.10);}
+  /* Tokens : TOUTE nouvelle couleur passe par ici (pas de hex ad hoc dans les règles).
+     Neutres : --surface-2 (panneaux/survols), --surface-3 (badges neutres), --line-strong (bordures
+     de composants, contraste >= 3:1). Gamme primaire claire : --primary-100 (fonds de tags),
+     --primary-200 (bordures douces), --primary-300 (bordures marquées). --verify-line/--critical-line :
+     bordures des encadrés ambrés/vermillon. --alert-* : banderoles d'alerte (ambre vif, volontairement
+     distinct de --verify). --rt-* : panneau temps réel (sombre dans les DEUX thèmes, lisibilité crise). */
+  :root{--ink:#13201d;--ink-soft:#5a6864;--line:#dde3e0;--line-strong:#7c8a87;--bg:#eef1f0;--surface:#fff;--surface-2:#f5f8f7;--surface-3:#e7ecea;--primary:#0d5b56;--primary-dk:#0a4a46;--primary-soft:#e1efec;--primary-100:#dfeae8;--primary-200:#cfe6e0;--primary-300:#b9ddd6;--critical:#bf3a21;--critical-soft:#fbe9e4;--critical-line:#eecabe;--verify:#8a5e0f;--verify-soft:#f6efdd;--verify-line:#e8dcbd;--alert:#f2b01c;--alert-hi:#ffce4a;--alert-strong:#d39a10;--alert-ink:#3a2a02;--rt-bg:#0f2a28;--rt-card:#15403b;--rt-line:#1d524c;--rt-ink:#eaf5f3;--rt-muted:#9fcdc7;--radius:14px;--radius-md:11px;--radius-sm:9px;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--shadow:0 1px 2px rgba(16,32,30,.04),0 4px 16px rgba(16,32,30,.06);--shadow-lg:0 2px 6px rgba(16,32,30,.06),0 12px 32px rgba(16,32,30,.10);}
   /* ===== THÈME SOMBRE (usage dans le noir) : on redéfinit les variables + quelques fonds codés en dur.
      Contraste maintenu pour la lisibilité en situation critique. ===== */
-  html[data-theme="dark"]{--ink:#e7edeb;--ink-soft:#9db0ab;--line:#2b3733;--bg:#0e1513;--surface:#19221f;--primary:#3fb0a6;--primary-dk:#56c2b8;--primary-soft:#16302c;--critical:#ff6f52;--critical-soft:#3a201a;--verify:#e0b048;--verify-soft:#322b17;--shadow:0 1px 2px rgba(0,0,0,.45),0 4px 16px rgba(0,0,0,.5);--shadow-lg:0 2px 6px rgba(0,0,0,.5),0 12px 32px rgba(0,0,0,.65);}
+  html[data-theme="dark"]{--ink:#e7edeb;--ink-soft:#9db0ab;--line:#2b3733;--bg:#0e1513;--surface:#19221f;--surface-2:#141d1a;--surface-3:#23302c;--primary:#3fb0a6;--primary-dk:#56c2b8;--primary-soft:#16302c;--primary-100:#16302c;--primary-200:#2c4a44;--primary-300:#2c4a44;--critical:#ff6f52;--critical-soft:#3a201a;--critical-line:#5a3428;--verify:#e0b048;--verify-soft:#322b17;--verify-line:#4a3f1e;--shadow:0 1px 2px rgba(0,0,0,.45),0 4px 16px rgba(0,0,0,.5);--shadow-lg:0 2px 6px rgba(0,0,0,.5),0 12px 32px rgba(0,0,0,.65);}
   html[data-theme="dark"]{color-scheme:dark;}
   html[data-theme="dark"] .empty{background:rgba(255,255,255,.03)}
   html[data-theme="dark"] .tag.flow{background:#33301f;color:var(--verify)}
@@ -277,7 +283,7 @@
   .brand b{font-size:18px;letter-spacing:.2px;font-weight:650}
   .brand span{font-size:11.5px;text-transform:uppercase;letter-spacing:1.6px;color:#9fcdc7;margin-top:3px}
   #brandTitle{font-size:13px;font-weight:600;color:#eaf5f3;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:0;text-transform:none;display:none}
-  .bar-act{background:rgba(255,255,255,.14);color:#eaf5f3;border:0;padding:9px 13px;border-radius:9px;font-size:13.5px;font-weight:600;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+  .bar-act{background:rgba(255,255,255,.14);color:#eaf5f3;border:0;padding:9px 13px;border-radius:var(--radius-sm);font-size:13.5px;font-weight:600;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
   /* Icône Compte dans l'en-tête (présence utilisateur), avec pastille d'état de synchro discrète. */
   .bar-acct{position:relative;background:rgba(255,255,255,.14);color:#eaf5f3;border:0;width:38px;height:38px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex:none;cursor:pointer;transition:background .12s,transform .06s}
   .bar-acct.on{background:rgba(255,255,255,.2)}
@@ -292,7 +298,7 @@
   html[data-theme="dark"] .acct-dot{border-color:#10302b}
   .bar-act:hover{background:rgba(255,255,255,.24)}
   main{flex:1;padding:18px}
-  .notice{background:var(--verify-soft);border:1px solid #ecdcb4;color:#6b4d12;border-radius:10px;padding:10px 13px;font-size:12.5px;margin-bottom:16px;display:flex;gap:9px;align-items:flex-start;position:relative;padding-right:34px}
+  .notice{background:var(--verify-soft);border:1px solid var(--verify-line);color:#6b4d12;border-radius:10px;padding:10px 13px;font-size:12.5px;margin-bottom:16px;display:flex;gap:9px;align-items:flex-start;position:relative;padding-right:34px}
   .notice[hidden]{display:none} /* le display:flex ci-dessus prime sinon sur [hidden] (même origine auteur) */
   .notice svg{flex-shrink:0;margin-top:1px}
   .notice.sync-err{background:#f6e1e1;border-color:#e8c3c3;color:#8a3020;cursor:pointer}
@@ -301,21 +307,21 @@
   .lib-top{display:flex;gap:10px;margin-bottom:14px}
   .search{flex:1;position:relative;display:flex;align-items:center}
   .search svg{position:absolute;left:12px;color:var(--ink-soft);pointer-events:none}
-  .search input{width:100%;padding:11px 12px 11px 38px;border:1px solid var(--line);border-radius:11px;background:var(--surface);color:var(--ink)}
+  .search input{width:100%;padding:11px 12px 11px 38px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--surface);color:var(--ink)}
   .search input:focus{outline:2px solid var(--primary);border-color:transparent}
-  .btn-new{background:var(--primary);color:#fff;border:0;border-radius:11px;padding:0 16px;font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:7px;white-space:nowrap;box-shadow:0 1px 2px rgba(10,74,70,.2),0 4px 12px rgba(10,74,70,.16);transition:background .12s,transform .06s}
+  .btn-new{background:var(--primary);color:#fff;border:0;border-radius:var(--radius-md);padding:0 16px;font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:7px;white-space:nowrap;box-shadow:0 1px 2px rgba(10,74,70,.2),0 4px 12px rgba(10,74,70,.16);transition:background .12s,transform .06s}
   .btn-new:hover{background:var(--primary-dk)}.btn-new:active{transform:translateY(1px)}
   .catbar{margin-bottom:16px}
   /* Une seule ligne défilable horizontalement -> vue d'ensemble sans allonger la page. */
   .chiprow{display:flex;gap:8px;flex-wrap:nowrap;overflow-x:auto;padding-bottom:3px;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
   .chiprow::-webkit-scrollbar{height:5px}.chiprow::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
   .chiprow>*{flex:none}
-  .catchip{border:1px solid var(--line);background:var(--surface);padding:5px 12px;border-radius:20px;font-size:12.5px;font-weight:600;cursor:pointer;transition:background .12s,border-color .12s,color .12s}
-  .catchip:hover{border-color:#c2cecb;background:#f4f7f6}
+  .catchip{border:1px solid var(--line);background:var(--surface);padding:8px 14px;border-radius:20px;font-size:12.5px;font-weight:600;cursor:pointer;transition:background .12s,border-color .12s,color .12s}
+  .catchip:hover{border-color:#c2cecb;background:var(--surface-2)}
   .scopebar{display:flex;gap:10px;align-items:center;margin-bottom:14px}
   .scopebar .chiprow{flex:1;min-width:0}
   .scope-lbl{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--ink-soft);margin-right:2px}
-  .scopebtn{border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:6px 13px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;transition:background .12s,border-color .12s}
+  .scopebtn{border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 14px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;transition:background .12s,border-color .12s}
   .scopebtn.on{background:var(--primary);color:#fff;border-color:var(--primary)}
   .scopebtn.add{border-style:dashed;color:var(--primary);background:transparent}
   .scopebtn .ro-hint{font-weight:500;font-size:11px;opacity:.75;margin-left:2px}
@@ -323,7 +329,7 @@
   .scope-ctx-i{font-size:12.5px;color:var(--ink-soft);font-weight:600}
   .linkbtn{background:none;border:0;color:var(--primary);font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:0;margin-left:auto}
   .linkbtn:hover{text-decoration:underline}
-  .notice-x{position:absolute;top:6px;right:7px;background:none;border:0;color:var(--ink-soft);font-size:19px;line-height:1;cursor:pointer;padding:2px 7px;border-radius:7px}
+  .notice-x{position:absolute;top:4px;right:4px;background:none;border:0;color:var(--ink-soft);font-size:19px;line-height:1;cursor:pointer;padding:0;min-width:28px;min-height:28px;display:inline-flex;align-items:center;justify-content:center;border-radius:7px}
   .notice-x:hover{background:rgba(0,0,0,.07)}
   .ro-badge{font-size:11px;font-weight:600;color:var(--primary-dk);background:var(--primary-soft);padding:2px 8px;border-radius:10px}
   /* Fenêtre « Gérer la bibliothèque » — aligne le style sur la fenêtre Compte. */
@@ -336,7 +342,7 @@
   .mem-section-h{font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--ink-soft);margin:0 0 8px}
   .mem-hint{font-size:12px;color:var(--ink-soft);line-height:1.5;margin:9px 0 0}
   .mem-list{display:flex;flex-direction:column;gap:8px}
-  .mem-row{display:flex;align-items:center;gap:10px;padding:8px 11px;border:1px solid var(--line);border-radius:11px;background:var(--surface)}
+  .mem-row{display:flex;align-items:center;gap:10px;padding:8px 11px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--surface)}
   .mem-avatar{width:32px;height:32px;border-radius:50%;background:var(--primary-soft);color:var(--primary-dk);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex:none}
   .mem-info{flex:1;min-width:0}
   .mem-email{font-size:14px;color:var(--ink);word-break:break-all}.mem-you{color:var(--ink-soft);font-weight:400}
@@ -349,7 +355,7 @@
   .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px 17px;box-shadow:var(--shadow);cursor:pointer;display:flex;align-items:center;gap:14px;transition:transform .08s,border-color .12s}
   .card:hover{border-color:#bdcecb;transform:translateY(-1px);box-shadow:var(--shadow-lg)}.card:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* Épingle : cible tactile 40px, étoile SVG pleine ambrée quand actif. */
-  .card .pinbtn{background:none;border:0;line-height:1;color:var(--ink-soft);min-width:40px;min-height:40px;border-radius:9px;cursor:pointer;flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center}
+  .card .pinbtn{background:none;border:0;line-height:1;color:var(--ink-soft);min-width:40px;min-height:40px;border-radius:var(--radius-sm);cursor:pointer;flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center}
   .card .pinbtn:hover{background:var(--primary-soft);color:var(--primary)}
   .card .pinbtn.on{color:var(--verify)}
   .card .pinbtn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
@@ -364,7 +370,7 @@
   .catchip.colored,.catpill.colored{color:var(--catcol);background:color-mix(in srgb, var(--catcol) 12%, transparent);border-color:color-mix(in srgb, var(--catcol) 45%, transparent)}
   html[data-theme="dark"] .tag.cat{background:color-mix(in srgb, var(--c,var(--primary)) 26%, transparent);color:color-mix(in srgb, var(--c,var(--primary)) 60%, white)}
   html[data-theme="dark"] .catchip.colored,html[data-theme="dark"] .catpill.colored{color:color-mix(in srgb, var(--catcol) 62%, white);background:color-mix(in srgb, var(--catcol) 22%, transparent);border-color:color-mix(in srgb, var(--catcol) 50%, transparent)}
-  .tag.flow{background:#efe7d2;color:var(--verify)}.tag.sess{background:#dfeae8;color:var(--primary-dk)}
+  .tag.flow{background:#efe7d2;color:var(--verify)}.tag.sess{background:var(--primary-100);color:var(--primary-dk)}
   .tag.draft{background:var(--verify-soft);color:var(--verify)}
   /* Fiches liées : chips en lecture, éditeur avec croix de retrait. */
   .related{margin:16px 0 4px}.related>b{display:block;font-size:12.5px;color:var(--ink-soft);margin-bottom:7px}
@@ -384,13 +390,13 @@
   .block-h{display:flex;align-items:center;gap:10px;margin-bottom:12px;font-size:12.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase}
   .block-h .pip{width:9px;height:9px;border-radius:3px;flex-shrink:0}.block-h .spc{flex:1}
   /* Chaque section a un BADGE d'icône TEINTÉ à sa couleur -> repère visuel fort et distinct */
-  .block-h .sec-badge{width:28px;height:28px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;background:#e7ecea}
+  .block-h .sec-badge{width:28px;height:28px;border-radius:var(--radius-sm);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--surface-3)}
   .block-h .sec-ic{flex-shrink:0}
-  .h-confirm .sec-badge,.h-img .sec-badge{background:#dbeae5}
+  .h-confirm .sec-badge,.h-img .sec-badge{background:var(--primary-100)}
   .h-verify .sec-badge{background:var(--verify-soft)}
   .h-forget .sec-badge{background:var(--critical-soft)}
-  .h-diff .sec-badge{background:#e7ecea}
-  .h-main .sec-badge{background:var(--surface);box-shadow:inset 0 0 0 1px #cfe6e0}
+  .h-diff .sec-badge{background:var(--surface-3)}
+  .h-main .sec-badge{background:var(--surface);box-shadow:inset 0 0 0 1px var(--primary-200)}
   .h-confirm{color:var(--primary-dk)} .h-confirm .pip{background:var(--primary)}
   .h-steps{color:var(--ink)} .h-steps .pip{background:var(--ink)}
   .h-verify{color:var(--verify)} .h-verify .pip{background:var(--verify)}
@@ -400,35 +406,35 @@
   /* « Prise en charge » = cœur de l'aide cognitive : en-tête PLUS marqué (taille, couleur primaire) */
   .h-main{color:var(--primary-dk);font-size:13px;letter-spacing:.4px}
   .h-main .sec-ic{width:18px;height:18px}
-  .block-care{background:var(--primary-soft);border:1px solid #cfe6e0;border-radius:var(--radius);padding:14px 14px 4px;margin-bottom:22px}
+  .block-care{background:var(--primary-soft);border:1px solid var(--primary-200);border-radius:var(--radius);padding:14px 14px 4px;margin-bottom:22px}
   .block-care .nav-wrap{background:var(--surface)}
-  .flow-toggle{text-transform:none;letter-spacing:0;background:var(--surface);border-color:#b9ddd6;color:var(--primary-dk);white-space:nowrap}
+  .flow-toggle{text-transform:none;letter-spacing:0;background:var(--surface);border-color:var(--primary-300);color:var(--primary-dk);white-space:nowrap}
   /* Indice reliant le schéma (vue d'ensemble) à la checklist d'étapes en dessous. */
   .flow-hint{font-size:11.5px;color:var(--ink-soft);text-align:center;margin:-4px 0 12px}
   .rt-ic{flex-shrink:0}
   ol.steps{list-style:none;margin:0;padding:0;counter-reset:s}
-  ol.steps li{counter-increment:s;display:flex;gap:14px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--ink);border-radius:11px;padding:13px 15px;margin-bottom:9px;cursor:pointer;transition:opacity .12s,background .12s}
+  ol.steps li{counter-increment:s;display:flex;gap:14px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--ink);border-radius:var(--radius-md);padding:13px 15px;margin-bottom:9px;cursor:pointer;transition:opacity .12s,background .12s}
   ol.steps li::before{content:counter(s,decimal-leading-zero);font-family:var(--mono);font-size:15px;font-weight:600;color:var(--ink);min-width:26px;padding-top:1px}
   ol.steps li .txt{flex:1;font-size:16px;line-height:1.45;padding-top:1px}
-  ol.steps li .box{width:22px;height:22px;border:2px solid #c3cecb;border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;margin-top:1px}
-  ol.steps li.done{background:#f3f7f5;opacity:.55;border-left-color:var(--primary)}
+  ol.steps li .box{width:22px;height:22px;border:2px solid var(--line-strong);border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;margin-top:1px}
+  ol.steps li.done{background:var(--surface-2);opacity:.65;border-left-color:var(--primary)}
   ol.steps li.done .box{background:var(--primary);border-color:var(--primary)}
   ol.steps li.done .txt{text-decoration:line-through}
   ul.flat{list-style:none;margin:0;padding:0}
   ul.flat li{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 14px;margin-bottom:8px;font-size:15px;display:flex;gap:11px;align-items:flex-start}
   ul.flat li::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;flex-shrink:0;margin-top:8px;opacity:.5}
-  ul.forget li{background:var(--critical-soft);border-color:#f0c9bd;color:var(--critical)}
-  ul.forget li .ftxt{color:var(--ink)}ul.verify li{border-color:#e8dcbd}ul.diff li{color:var(--ink-soft)}
-  .nav-wrap{background:#f4f7f6;border:1px solid var(--line);border-left:3px solid var(--primary);border-radius:var(--radius);padding:15px 15px 13px 14px;margin-bottom:6px;box-shadow:var(--shadow);scroll-margin-top:74px}
+  ul.forget li{background:var(--critical-soft);border-color:var(--critical-line);color:var(--critical)}
+  ul.forget li .ftxt{color:var(--ink)}ul.verify li{border-color:var(--verify-line)}ul.diff li{color:var(--ink-soft)}
+  .nav-wrap{background:var(--surface-2);border:1px solid var(--line);border-left:3px solid var(--primary);border-radius:var(--radius);padding:15px 15px 13px 14px;margin-bottom:6px;box-shadow:var(--shadow);scroll-margin-top:74px}
   .crumbs{display:flex;flex-wrap:wrap;gap:5px;align-items:center;font-size:11px;color:var(--ink-soft);margin-bottom:12px}
-  .crumbs .cb{background:#e4ebe9;padding:2px 8px;border-radius:12px;cursor:pointer}.crumbs .cb:not(.cur):hover{background:#cfe0dd}.crumbs .cb.cur{background:var(--primary);color:#fff;cursor:default}
+  .crumbs .cb{background:var(--surface-3);padding:2px 8px;border-radius:12px;cursor:pointer}.crumbs .cb:not(.cur):hover{background:var(--primary-200)}.crumbs .cb.cur{background:var(--primary);color:#fff;cursor:default}
   html[data-theme="dark"] .crumbs .cb:not(.cur){background:#23302c}html[data-theme="dark"] .crumbs .cb:not(.cur):hover{background:#2d3d38}
   .crumbs .cb-n{font-family:var(--mono);font-size:10px;opacity:.7;margin-left:2px}
   .node-title .pass-n{font-family:var(--mono);text-transform:none;letter-spacing:0;font-weight:600;color:var(--primary);margin-left:7px}
   .node-title{font-size:13px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--ink-soft);margin-bottom:12px}
   .question{font-size:19px;font-weight:650;line-height:1.3;margin:2px 0 16px}
   .options{display:grid;gap:10px}
-  .opt{display:flex;align-items:center;gap:11px;text-align:left;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--verify);border-radius:11px;padding:14px 15px;font-size:16px;font-weight:550;color:var(--ink);width:100%}
+  .opt{display:flex;align-items:center;gap:11px;text-align:left;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--verify);border-radius:var(--radius-md);padding:14px 15px;font-size:16px;font-weight:550;color:var(--ink);width:100%}
   .opt:hover{background:#fff;border-color:var(--verify)}.opt .arr{margin-left:auto;color:var(--verify)}
   .opt[disabled]{opacity:.55;cursor:default}.opt.taken{opacity:1;background:var(--primary-soft);border-left-color:var(--primary)}.opt.taken .arr{color:var(--primary)}
   .flow-ctrl{display:flex;gap:9px;margin-top:14px;flex-wrap:wrap}
@@ -451,7 +457,7 @@
   .read-tools-h{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft);margin-bottom:9px}
   .read-tools-btns{display:flex;gap:9px;flex-wrap:wrap}
   /* runtime */
-  .rt-panel{background:#0f2a28;border-radius:14px;padding:14px;margin-bottom:14px;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+  .rt-panel{background:var(--rt-bg);border-radius:14px;padding:14px;margin-bottom:14px;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   /* Pendant un « maintenir pour réinitialiser » : aucune sélection de texte possible nulle part. */
   body.hold-noselect,body.hold-noselect *{-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important}
   .rt-head{display:flex;align-items:center;gap:8px;margin-bottom:11px}
@@ -463,17 +469,17 @@
      boutons de chaque carte -> chacun prend toute la largeur de la carte, sans texte tronqué. */
   @media (max-width:430px){.tm-ctrl{flex-direction:column}.tm-btn{flex:0 0 auto;width:100%;font-size:12.5px}}
   .rt-counters{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:10px}
-  .tmcard,.cncard{background:#15403b;border:1px solid #1d524c;border-radius:11px;padding:12px;color:#eaf5f3}
+  .tmcard,.cncard{background:var(--rt-card);border:1px solid var(--rt-line);border-radius:var(--radius-md);padding:12px;color:#eaf5f3}
   .cncard{text-align:center}
   .tmcard.flash{animation:fl .5s ease 3}
   @keyframes fl{50%{background:#b5532a;border-color:#d9663a}}
   #screenFlash{position:fixed;inset:0;pointer-events:none;z-index:99;opacity:0;background:#f0c040}
   #screenFlash.on{animation:sf 2s ease-out forwards}
   @keyframes sf{0%{opacity:.55}60%{opacity:.3}100%{opacity:0}}
-  .tm-label{font-size:10.5px;letter-spacing:.6px;text-transform:uppercase;color:#9fcdc7;margin-bottom:6px}
+  .tm-label{font-size:10.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--rt-muted);margin-bottom:6px}
   .tm-val,.cn-val{font-family:var(--mono);font-size:30px;font-weight:600;letter-spacing:1px;line-height:1.05}
-  .tm-cyc{font-size:12px;color:#9fcdc7;margin-top:3px}
-  .tm-bar-wrap{height:5px;background:#1d524c;border-radius:3px;margin:8px 0 4px;overflow:hidden}
+  .tm-cyc{font-size:12px;color:var(--rt-muted);margin-top:3px}
+  .tm-bar-wrap{height:5px;background:var(--rt-line);border-radius:3px;margin:8px 0 4px;overflow:hidden}
   .tm-bar{height:100%;background:#5fd0c4;width:0%}
   .tm-ctrl,.cn-ctrl{display:flex;gap:6px;margin-top:9px}
   .cn-ctrl{justify-content:center}
@@ -482,7 +488,7 @@
   .tm-main{background:rgba(95,208,196,.22)}.tm-main:hover{background:rgba(95,208,196,.32)}
   .tm-main.run{background:rgba(217,102,58,.28)}.tm-main.run:hover{background:rgba(217,102,58,.4)}
   .tm-btn:disabled{opacity:.32;cursor:default}.tm-btn:disabled:hover{background:rgba(255,255,255,.12)}
-  .cn-btn{width:46px;height:40px;border-radius:9px;border:0;background:rgba(255,255,255,.12);color:#eaf5f3;font-size:20px;font-weight:600}
+  .cn-btn{width:46px;height:40px;border-radius:var(--radius-sm);border:0;background:rgba(255,255,255,.12);color:#eaf5f3;font-size:20px;font-weight:600}
   .cn-btn:hover{background:rgba(255,255,255,.2)}
   /* Réinit. d'un compteur (maintenir) : secondaire, sous les boutons +/−. */
   .cn-reset{margin:9px auto 0;min-width:120px;padding:6px 14px;background:rgba(255,255,255,.1);color:#eaf5f3;border:0;border-radius:8px;font-size:11.5px;font-weight:600;-webkit-user-select:none;user-select:none}
@@ -491,7 +497,7 @@
   .tk-panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:13px 14px;margin-bottom:14px;box-shadow:var(--shadow)}
   .tk-head{display:flex;align-items:center;gap:10px;margin-bottom:9px}
   .tk-head b{color:var(--ink-soft);font-size:11px;letter-spacing:1px;text-transform:uppercase;flex:1}
-  .tk-add{background:var(--primary);color:#fff;border:0;border-radius:9px;padding:8px 13px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
+  .tk-add{background:var(--primary);color:#fff;border:0;border-radius:var(--radius-sm);padding:8px 13px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
   .tk-add:hover{background:var(--primary-dk)}
   .tk-item{border-top:1px solid var(--line)}
   .tk-row{display:flex;gap:9px;align-items:center;padding:8px 0}
@@ -506,15 +512,15 @@
   .tk-el{font-family:var(--mono);font-size:11px;color:var(--ink-soft);white-space:nowrap;min-width:46px}
   .tk-lab{flex:1;min-width:0;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font-size:14px}
   .tk-lab:focus{outline:2px solid var(--primary);border-color:transparent}
-  .tk-del{flex-shrink:0;width:32px;height:36px;border:0;border-radius:8px;background:#eef1f0;color:var(--ink-soft);font-size:17px}
+  .tk-del{flex-shrink:0;width:32px;height:36px;border:0;border-radius:8px;background:var(--bg);color:var(--ink-soft);font-size:17px}
   .tk-del:hover{background:var(--critical-soft);color:var(--critical)}
   .tk-empty{font-size:12.5px;color:var(--ink-soft);padding:3px 0}
   .tk-panel.empty .tk-head{margin-bottom:0}
   /* Bandeau de session (mode lecture) : discret tant qu'inactif, mis en avant « en cours » */
   .session-bar{display:flex;gap:8px 10px;flex-wrap:wrap;align-items:center;margin-bottom:16px;border-radius:12px;padding:11px 13px}
-  .session-bar.idle{background:#f3f6f5;border:1px dashed var(--line)}
+  .session-bar.idle{background:var(--surface-2);border:1px dashed var(--line)}
   .session-bar.idle .sess-hint{flex:1;min-width:160px;font-size:12.5px;color:var(--ink-soft);line-height:1.35}
-  .session-bar.live{background:var(--primary-soft);border:1px solid #b9ddd6}
+  .session-bar.live{background:var(--primary-soft);border:1px solid var(--primary-300)}
   .session-bar.live .sess-info{flex:1;min-width:140px;display:flex;flex-direction:column;line-height:1.25}
   .session-bar.live .sess-info b{font-size:13px;color:var(--primary-dk);letter-spacing:.2px}
   .session-bar.live .sess-info span{font-size:11.5px;color:var(--ink-soft)}
@@ -523,31 +529,34 @@
   @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(var(--pulse),.45)}70%{box-shadow:0 0 0 7px rgba(var(--pulse),0)}100%{box-shadow:0 0 0 0 rgba(var(--pulse),0)}}
   html[data-theme="dark"] .sess-dot{--pulse:63,176,166}
   .sess-livetag{font-size:10px;font-weight:700;color:var(--primary-dk);background:var(--primary-soft);padding:1px 7px;border-radius:10px;margin-left:6px}
-  .sess-list{background:#f5f8f7;border:1px solid var(--line);border-radius:11px;padding:6px 10px;margin-bottom:18px}
-  .sess-row{display:flex;gap:8px;align-items:center;padding:9px 2px;border-bottom:1px solid var(--line)}
-  .sess-row:last-child{border-bottom:0}.sess-row .si{flex:1;min-width:0}
-  .sess-row .sn{font-weight:600;font-size:14px}.sess-row .sd{font-size:11.5px;color:var(--ink-soft)}
+  .sess-list{background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius-md);padding:6px 10px;margin-bottom:18px}
+  /* Rangée d'historique : les ACTIONS passent sous le titre quand elles ne tiennent pas (téléphone),
+     plutôt que d'écraser le titre sur plusieurs lignes. Titre = une ligne tronquée (…). */
+  .sess-row{display:flex;gap:8px 10px;align-items:center;flex-wrap:wrap;padding:9px 2px;border-bottom:1px solid var(--line)}
+  .sess-row:last-child{border-bottom:0}.sess-row .si{flex:1;min-width:150px}
+  .sess-row .sn{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sess-row .sd{font-size:11.5px;color:var(--ink-soft)}
+  .sess-row .sess-acts{display:flex;gap:7px;flex-wrap:wrap;flex:none;margin-left:auto}
   /* Accueil : sessions en cours */
-  .live-sessions{background:var(--surface);border:1px solid #b9ddd6;border-left:3px solid var(--primary);border-radius:var(--radius);padding:12px 14px;margin-bottom:16px;box-shadow:var(--shadow)}
+  .live-sessions{background:var(--surface);border:1px solid var(--primary-300);border-left:3px solid var(--primary);border-radius:var(--radius);padding:12px 14px;margin-bottom:16px;box-shadow:var(--shadow)}
   .ls-h{display:flex;align-items:center;gap:8px;font-size:11.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--primary-dk);margin-bottom:10px}
   .ls-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:9px 0;border-top:1px solid var(--line)}
   .ls-row:first-of-type{border-top:0}
   .ls-info{flex:1;min-width:150px;display:flex;flex-direction:column;line-height:1.25;cursor:pointer}
   .ls-info b{font-size:15px;font-weight:640}.ls-info span{font-size:12px;color:var(--ink-soft)}
   .ls-acts{display:flex;gap:7px;flex-wrap:wrap}
-  .tag.live{background:#dff0ec;color:var(--primary-dk)}
+  .tag.live{background:var(--primary-100);color:var(--primary-dk)}
   .tag.libtag{display:inline-flex;align-items:center;gap:4px;background:var(--primary-soft);color:var(--primary-dk);max-width:55vw;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.tag.libtag svg{flex:none;opacity:.85}
-  .card.has-live{border-color:#b9ddd6}
+  .card.has-live{border-color:var(--primary-300)}
   /* Banderoles d'alerte (minuteur d'une session non visible) */
   #alerts{position:fixed;left:0;right:0;top:0;z-index:80;display:flex;flex-direction:column;align-items:center;gap:8px;padding:calc(8px + env(safe-area-inset-top)) 12px 0;pointer-events:none}
   /* Couleur AMBRE volontairement distincte de l'en-tête vert (sinon les deux bandeaux se confondent
      et on rate l'alerte) : halo + quelques pulsations pour attirer l'œil. */
-  .alert-toast{pointer-events:auto;max-width:520px;width:100%;display:flex;gap:11px;align-items:center;background:linear-gradient(180deg,#ffce4a,#f2b01c);color:#3a2a02;border:1px solid #d39a10;border-radius:12px;padding:12px 13px;box-shadow:0 10px 30px rgba(50,35,0,.34);cursor:pointer;animation:toastIn .28s ease,toastPulse 1.1s ease-in-out .3s 3}
+  .alert-toast{pointer-events:auto;max-width:520px;width:100%;display:flex;gap:11px;align-items:center;background:linear-gradient(180deg,var(--alert-hi),var(--alert));color:var(--alert-ink);border:1px solid var(--alert-strong);border-radius:12px;padding:12px 13px;box-shadow:0 10px 30px rgba(50,35,0,.34);cursor:pointer;animation:toastIn .28s ease,toastPulse 1.1s ease-in-out .3s 3}
   .alert-toast.out{opacity:0;transform:translateY(-8px);transition:opacity .4s,transform .4s;animation:none}
   .alert-toast .at-ic{font-size:22px;flex-shrink:0}
   .alert-toast .at-tx{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.25}
-  .alert-toast .at-tx b{font-size:14px;color:#2b2002}.alert-toast .at-tx span{font-size:12px;color:#6b520c}
-  .alert-toast .at-x{background:rgba(0,0,0,.13);border:0;color:#3a2a02;border-radius:8px;width:26px;height:26px;font-size:16px;flex-shrink:0;cursor:pointer}
+  .alert-toast .at-tx b{font-size:14px;color:var(--alert-ink)}.alert-toast .at-tx span{font-size:12px;color:var(--alert-ink)}
+  .alert-toast .at-x{background:rgba(0,0,0,.13);border:0;color:var(--alert-ink);border-radius:8px;width:26px;height:26px;font-size:16px;flex-shrink:0;cursor:pointer}
   @keyframes toastIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
   @keyframes toastPulse{0%,100%{box-shadow:0 10px 30px rgba(50,35,0,.34),0 0 0 0 rgba(242,176,28,0)}50%{box-shadow:0 10px 30px rgba(50,35,0,.34),0 0 0 7px rgba(242,176,28,.5)}}
   /* editor */
@@ -561,60 +570,60 @@
   #f-validation.val-bad{border-color:var(--critical);background:var(--critical-soft)}
   .list-edit .li{display:flex;gap:8px;margin-bottom:8px;align-items:flex-start}.list-edit .li input{flex:1;min-width:0}
   .li-num{font-family:var(--mono);font-size:13px;color:var(--ink-soft);min-width:22px;padding-top:12px;text-align:right}
-  .mini{border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);width:34px;height:42px;border-radius:9px;font-size:16px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
-  .mini:hover{background:#f3f6f5;color:var(--ink)}.mini.del:hover{color:var(--critical);border-color:#eecabe;background:var(--critical-soft)}
+  .mini{border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);width:34px;height:42px;border-radius:var(--radius-sm);font-size:16px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+  .mini:hover{background:var(--surface-2);color:var(--ink)}.mini.del:hover{color:var(--critical);border-color:var(--critical-line);background:var(--critical-soft)}
   /* Étapes d'un bloc : les boutons ↑ ↓ × sont sur une ligne (non flex) -> petit espace entre eux. */
   .blk .li .mini+.mini{margin-left:7px}
-  .add-line{margin-top:4px;border:1px dashed var(--line);background:transparent;color:var(--primary-dk);padding:9px 13px;border-radius:9px;font-size:13.5px;font-weight:600;width:100%}
+  .add-line{margin-top:4px;border:1px dashed var(--line);background:transparent;color:var(--primary-dk);padding:9px 13px;border-radius:var(--radius-sm);font-size:13.5px;font-weight:600;width:100%}
   .add-line:hover{background:var(--primary-soft);border-color:var(--primary-soft)}
   fieldset{border:0;margin:0 0 4px;padding:0;min-width:0}
   .sub2{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--ink-soft);margin:0 0 8px}
   .trow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
-  .trow input[data-tf],.trow input[data-cf]{flex:1;min-width:130px;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:#fff}
-  .trow input[type=number]{padding:9px;border:1px solid var(--line);border-radius:9px;background:#fff}
+  .trow input[data-tf],.trow input[data-cf]{flex:1;min-width:130px;padding:9px 11px;border:1px solid var(--line);border-radius:var(--radius-sm);background:#fff}
+  .trow input[type=number]{padding:9px;border:1px solid var(--line);border-radius:var(--radius-sm);background:#fff}
   .trow span{font-size:12px;color:var(--ink-soft)}
   .catpick{display:flex;gap:7px;flex-wrap:wrap}
   .catpill{border:1.5px solid var(--line);background:#fff;padding:7px 14px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer}
   .flow-prev-h{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--ink-soft);margin:0 0 7px}
   .flow-scroll{width:100%;overflow:auto;border:1px solid var(--line);border-radius:10px;background:#fff;padding:8px;-webkit-overflow-scrolling:touch;margin-bottom:14px;max-height:75vh}
   .flow-zoom{display:flex;align-items:center;gap:7px;margin-bottom:7px}
-  .fz{border:1px solid var(--line);background:var(--surface);color:var(--ink);width:42px;height:40px;border-radius:9px;font-size:18px;font-weight:600;line-height:1;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
-  .fz:hover{background:#f3f6f5}.fz-r{width:auto;padding:0 11px;font-size:12.5px}
+  .fz{border:1px solid var(--line);background:var(--surface);color:var(--ink);width:42px;height:40px;border-radius:var(--radius-sm);font-size:18px;font-weight:600;line-height:1;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+  .fz:hover{background:var(--surface-2)}.fz-r{width:auto;padding:0 11px;font-size:12.5px}
   .fz-spc{flex:1}
   .fzv{font-family:var(--mono);font-size:12px;color:var(--ink-soft);min-width:46px;text-align:center}
   /* Plein écran de l'algorithme SVG (zoom + défilement, pinch natif) */
-  #flowFull{position:fixed;inset:0;z-index:90;background:#eef1f0;display:none;flex-direction:column}
+  #flowFull{position:fixed;inset:0;z-index:90;background:var(--bg);display:none;flex-direction:column}
   #flowFull.on{display:flex}
   #flowFull .ff-bar{display:flex;align-items:center;gap:7px;padding:calc(9px + env(safe-area-inset-top)) 12px 9px;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:0 1px 6px rgba(16,32,30,.06)}
   #flowFull .ff-scroll{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px;background:#fff}
-  .blk{background:#f5f8f7;border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
+  .blk{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
   .blk-top{display:flex;align-items:center;gap:8px;margin-bottom:11px}
   .blk-type{font-size:10.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;padding:3px 8px;border-radius:6px}
-  .blk-type.steps{background:#e4ebe9;color:var(--ink)}.blk-type.decision{background:#efe7d2;color:var(--verify)}
-  .blk-top input{flex:1;min-width:0;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:#fff}
+  .blk-type.steps{background:var(--surface-3);color:var(--ink)}.blk-type.decision{background:#efe7d2;color:var(--verify)}
+  .blk-top input{flex:1;min-width:0;padding:9px 11px;border:1px solid var(--line);border-radius:var(--radius-sm);background:#fff}
   .blk .sub{font-size:11px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;color:var(--ink-soft);margin:12px 0 7px}
   .startbtn{border:1px solid var(--line);background:#fff;color:var(--ink-soft);border-radius:8px;padding:6px 11px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
   .startbtn.on{background:var(--primary);color:#fff;border-color:var(--primary)}
   .optedit{display:flex;gap:8px;margin-bottom:8px;align-items:center}
-  .optedit input{flex:1;min-width:0;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:#fff}.optedit select{flex:1;min-width:0}
+  .optedit input{flex:1;min-width:0;padding:9px 11px;border:1px solid var(--line);border-radius:var(--radius-sm);background:#fff}.optedit select{flex:1;min-width:0}
   .imgrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.imgrow img{height:54px;border-radius:8px;border:1px solid var(--line)}
   .add-blocks{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:6px}
-  .btn{padding:11px 17px;border-radius:11px;font-size:14px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ink);transition:background .12s,border-color .12s,box-shadow .12s,transform .06s;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px}
+  .btn{padding:11px 17px;border-radius:var(--radius-md);font-size:14px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ink);transition:background .12s,border-color .12s,box-shadow .12s,transform .06s;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px}
   .btn:active{transform:translateY(1px)}
-  .btn:hover{background:#f3f6f5;border-color:#c9d3d0}.btn.primary{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 1px 2px rgba(10,74,70,.2),0 4px 12px rgba(10,74,70,.16)}.btn.primary:hover{background:var(--primary-dk);border-color:var(--primary-dk)}
-  .btn.danger{color:var(--critical);border-color:#eecabe}.btn.danger:hover{background:var(--critical-soft)}
+  .btn:hover{background:var(--surface-2);border-color:#c9d3d0}.btn.primary{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 1px 2px rgba(10,74,70,.2),0 4px 12px rgba(10,74,70,.16)}.btn.primary:hover{background:var(--primary-dk);border-color:var(--primary-dk)}
+  .btn.danger{color:var(--critical);border-color:var(--critical-line)}.btn.danger:hover{background:var(--critical-soft)}
   /* « Maintenir pour réinitialiser » un minuteur : jauge (fond) qui se remplit pendant l'appui
      prolongé ; le texte reste lisible au-dessus (la jauge est un fond, pas un calque). */
   /* Réinit. minuteur : libellé sur 2 lignes -> petit indice « maintenir » visible (geste appui long). */
   .tm-reset{touch-action:none;display:flex;flex-direction:column;justify-content:center;line-height:1.05;padding-top:5px;padding-bottom:5px;min-height:40px}
   .tm-reset .tmr-lab,.tm-reset .tmr-hint{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
-  .tm-reset .tmr-hint{font-size:8.5px;font-weight:700;opacity:.65;text-transform:uppercase;letter-spacing:.5px;margin-top:1px}
+  .tm-reset .tmr-hint{font-size:10px;font-weight:700;opacity:.65;text-transform:uppercase;letter-spacing:.5px;margin-top:1px}
   .tm-reset.holding{background-color:rgba(255,255,255,.12);background-image:linear-gradient(rgba(217,102,58,.6),rgba(217,102,58,.6));background-repeat:no-repeat;background-size:0% 100%;animation:holdfill .8s linear forwards}
   @keyframes holdfill{to{background-size:100% 100%}}
   .btn.sm{padding:8px 13px;font-size:13px;min-height:38px}.btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .editor-foot{display:flex;gap:10px;margin-top:8px;flex-wrap:wrap}.editor-foot .spacer{flex:1}
   .back{background:var(--surface);border:1px solid var(--line);color:var(--primary);font-size:13.5px;font-weight:600;padding:8px 14px 8px 11px;margin-bottom:14px;border-radius:10px;display:inline-flex;align-items:center;gap:6px}.back:hover{background:var(--primary-soft);border-color:var(--primary-soft);color:var(--primary-dk)}
-  .create-band{background:var(--primary-soft);border:1px solid #bfe0da;border-radius:12px;padding:14px 15px;margin-bottom:18px}
+  .create-band{background:var(--primary-soft);border:1px solid var(--primary-300);border-radius:12px;padding:14px 15px;margin-bottom:18px}
   .cb-q{font-size:14.5px;font-weight:650;color:var(--primary-dk);margin-bottom:10px}
   .cb-opts{display:flex;gap:9px;flex-wrap:wrap}
   .cb-hint{font-size:12px;color:var(--ink-soft);margin-top:10px;line-height:1.45}
@@ -624,7 +633,7 @@
   .storage-gauge{font-size:11px;color:var(--ink-soft);width:100%;line-height:1.4}
   .storage-gauge .pers-ok{color:var(--primary);font-weight:600}
   .storage-gauge .pers-warn{color:var(--verify)}
-  .tlink{background:none;border:0;color:var(--primary);font-size:13px;font-weight:600;padding:6px 8px;border-radius:8px}.tlink:hover{background:var(--primary-soft)}#installBtn{display:none}
+  .tlink{background:none;border:0;color:var(--primary);font-size:13px;font-weight:600;padding:6px 10px;min-height:32px;display:inline-flex;align-items:center;gap:4px;border-radius:8px}.tlink:hover{background:var(--primary-soft)}#installBtn{display:none}
   .zoom-tlink{display:inline-flex;align-items:center;gap:4px;vertical-align:middle}
   /* Pastille d'état de synchro : discrète, jamais bloquante (app critique). */
   .sync-chip{font-size:11px;font-weight:600;padding:2px 9px;border-radius:999px;display:inline-flex;align-items:center;gap:5px;line-height:1.7}
@@ -632,14 +641,14 @@
   .sync-chip::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.85}
   .sync-chip.off{color:var(--ink-soft);background:var(--primary-soft)}
   .sync-chip.ok{color:var(--primary);background:var(--primary-soft)}
-  .sync-chip.busy{color:#8a6a12;background:#f6efd6}
-  .sync-chip.err{color:var(--verify);background:#f6e1e1;cursor:pointer}
+  .sync-chip.busy{color:var(--verify);background:var(--verify-soft)}
+  .sync-chip.err{color:var(--critical);background:var(--critical-soft);cursor:pointer}
   .sync-chip.pending{color:var(--verify);background:var(--verify-soft);cursor:pointer}
   .sync-chip.rejected{color:var(--critical);background:var(--critical-soft);cursor:pointer}
   .auth-field{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;font-size:16px;margin:6px 0}
   .auth-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:6px}
   .auth-msg{font-size:13px;margin:8px 0 0;min-height:18px}
-  .auth-msg.err{color:var(--verify)}.auth-msg.ok{color:var(--primary)}
+  .auth-msg.err{color:var(--critical)}.auth-msg.ok{color:var(--primary)}
   .auth-who{font-size:14px;margin:2px 0 10px}.auth-who b{color:var(--primary)}
   /* Fenêtre Compte redessinée */
   .auth-card-in{display:flex;align-items:center;gap:13px;margin-bottom:4px}
@@ -706,7 +715,7 @@
   .vers-row .vt{font-size:13px;color:var(--ink-soft)}
   .vers-acts{display:flex;gap:7px;flex-wrap:wrap}
   /* Diff de versions : + rétabli (teal), − supprimé (vermillon), sur fond doux. */
-  .vers-diff{background:#f5f8f7;border:1px solid var(--line);border-radius:10px;padding:9px 12px;margin:8px 0 4px}
+  .vers-diff{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:9px 12px;margin:8px 0 4px}
   .diff-h{font-size:12px;font-weight:700;color:var(--ink-soft);margin:6px 0 4px;text-transform:uppercase;letter-spacing:.4px}
   .diff-line{font-size:13px;line-height:1.45;padding:1px 0}
   .diff-line.add{color:var(--primary-dk)}.diff-line.del{color:var(--critical)}
@@ -728,7 +737,7 @@
   .ai-card .ai-x{background:none;border:0;color:var(--ink-soft);font-size:24px;line-height:1;padding:0 4px}
   .ai-card p{font-size:13px;color:var(--ink-soft);margin:0 0 10px;line-height:1.5}
   .ai-card ol{font-size:13px;color:var(--ink-soft);margin:0 0 12px;padding-left:20px;line-height:1.5}
-  .ai-ta{width:100%;height:300px;border:1px solid var(--line);border-radius:10px;padding:12px;font-family:var(--mono);font-size:12px;line-height:1.5;background:#f7faf9;color:var(--ink);white-space:pre;overflow:auto}
+  .ai-ta{width:100%;height:300px;border:1px solid var(--line);border-radius:10px;padding:12px;font-family:var(--mono);font-size:12px;line-height:1.5;background:var(--surface-2);color:var(--ink);white-space:pre;overflow:auto}
   /* Aperçu de compte-rendu (dans la fenêtre) : reprend le style du document imprimé, en zone défilable. */
   .report-preview{max-height:min(60vh,520px);overflow:auto;border:1px solid var(--line);border-radius:10px;padding:16px 18px;background:var(--surface)}
   .report-preview h1{display:none}  /* redondant avec le titre de la fenêtre ; conservé dans le document imprimé/téléchargé */
@@ -742,7 +751,7 @@
   .report-preview .foot{margin-top:22px;font-size:11px;color:var(--ink-soft);border-top:1px solid var(--line);padding-top:8px}
   .ai-actions{display:flex;gap:9px;flex-wrap:wrap;margin:12px 0 4px}
   .ai-note{font-size:12px;color:var(--ink-soft);margin:6px 0 0;line-height:1.45}
-  .cm-row{border:1px solid var(--line);border-radius:11px;padding:11px 12px;margin-bottom:10px;background:#fafcfb}
+  .cm-row{border:1px solid var(--line);border-radius:var(--radius-md);padding:11px 12px;margin-bottom:10px;background:var(--surface-2)}
   .cm-top{display:flex;gap:8px;align-items:center}
   .cm-dot{width:18px;height:18px;border-radius:6px;flex-shrink:0}
   .cm-name{flex:1;min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;font-size:14px}
@@ -750,22 +759,52 @@
   .cm-sw{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}.cm-sw .sw{width:24px;height:24px;border-radius:6px;cursor:pointer;border:2px solid transparent}
   .cm-sw .sw.on{border-color:transparent;box-shadow:0 0 0 2px #fff,0 0 0 4px var(--ink);transform:scale(1.12)}
   .cm-del{flex-shrink:0;width:34px;height:36px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink-soft);font-size:16px}
-  .cm-del:hover{color:var(--critical);border-color:#eecabe;background:var(--critical-soft)}
-  .cm-confirm{margin-top:10px;padding:11px;border:1px solid #eecabe;background:var(--critical-soft);border-radius:9px}
+  .cm-del:hover{color:var(--critical);border-color:var(--critical-line);background:var(--critical-soft)}
+  .cm-confirm{margin-top:10px;padding:11px;border:1px solid var(--critical-line);background:var(--critical-soft);border-radius:var(--radius-sm)}
   .cm-confirm p{font-size:12.5px;color:var(--ink);margin:0 0 9px;line-height:1.45}
   .cm-confirm select{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:#fff;margin-bottom:9px}
   .cm-cact{display:flex;gap:8px;flex-wrap:wrap}
   .cm-add{display:flex;gap:8px;align-items:center;margin-top:6px}
   .cm-add input{flex:1;min-width:0;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:#fff;font-size:14px}
+  /* ===== Ajustements transverses (audit UX v3.2) ===== */
+  /* Focus clavier visible sur TOUS les contrôles interactifs (uniforme avec .btn/.card). */
+  :is(.catchip,.catpill,.tlink,.linkbtn,.mini,.fz,.scopebtn,.opt,.startbtn,.add-line,.notice-x,.tk-add,.tk-del,.cm-del,.ai-x,.rel-x,.back,.flow-toggle,.crumbs .cb,ol.steps li):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .rt-panel :is(.tm-btn,.cn-btn,.rt-sound,.tm-reset,.cn-reset):focus-visible{outline:2px solid #5fd0c4;outline-offset:2px}
+  header.bar :is(.bar-act,.bar-acct):focus-visible{outline:2px solid var(--rt-ink);outline-offset:2px}
+  /* En-tête en mode crise : le TITRE DE LA FICHE prime, la marque s'efface. */
+  header.bar.crisis .brand b{display:none}
+  header.bar.crisis #brandTitle{font-size:17px;font-weight:700;margin-top:1px}
+  /* « Ne pas oublier » : bandeau compact SOUS le titre (les rappels critiques se voient sans défiler). */
+  .forget-strip{background:var(--critical-soft);border:1px solid var(--critical-line);border-radius:var(--radius);padding:10px 13px 8px;margin-bottom:16px}
+  .forget-strip .block-h{margin-bottom:4px}
+  .forget-list{list-style:none;margin:0;padding:0}
+  .forget-list li{display:flex;gap:9px;align-items:flex-start;font-size:14.5px;line-height:1.4;padding:3px 0;color:var(--ink)}
+  .forget-list li::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--critical);flex-shrink:0;margin-top:7px}
+  /* Panneau minuteurs REPLIÉ tant que rien n'est démarré : le contenu clinique passe devant. */
+  .rt-collapsed{width:100%;display:flex;align-items:center;gap:9px;background:var(--rt-bg);color:var(--rt-ink);border:0;border-radius:var(--radius);padding:12px 14px;margin-bottom:14px;font-size:13px;font-weight:600;cursor:pointer;min-height:44px;text-align:left}
+  .rt-collapsed .rtc-i{flex:1;min-width:0}
+  .rt-collapsed .rtc-open{color:var(--rt-muted);font-size:12px;white-space:nowrap}
+  .rt-collapsed:focus-visible{outline:2px solid #5fd0c4;outline-offset:2px}
+  /* Bouton à MAINTENIR sur fond clair (Recommencer l'algorithme) : même geste anti-accidentel que les minuteurs. */
+  .btn.btn-hold{flex-direction:column;gap:0;line-height:1.05;touch-action:none;padding-top:5px;padding-bottom:5px}
+  .btn.btn-hold .tmr-hint{font-size:10px;font-weight:700;opacity:.6;text-transform:uppercase;letter-spacing:.5px;margin-top:1px}
+  .btn.btn-hold.holding{background-image:linear-gradient(rgba(217,102,58,.45),rgba(217,102,58,.45));background-repeat:no-repeat;background-size:0% 100%;animation:holdfill .8s linear forwards}
+  /* Compteurs : « + » (geste principal) plus large et teinté ; « − » (correction) plus discret. */
+  .cn-btn[data-cninc]{width:58px;background:rgba(95,208,196,.22)}
+  .cn-btn[data-cninc]:hover{background:rgba(95,208,196,.32)}
+  .cn-btn[data-cndec]{width:38px}
+  /* Desktop : chips sur plusieurs lignes (le défilement horizontal est un geste tactile) ;
+     bibliothèque sur 2 colonnes quand la place le permet. */
+  @media (min-width:780px){.chiprow{flex-wrap:nowrap}.catbar .chiprow,.scopebar .chiprow{flex-wrap:wrap;overflow-x:visible;padding-bottom:0}}
+  @media (min-width:900px){.cards{grid-template-columns:1fr 1fr}.cards>.empty,.cards>.btn{grid-column:1/-1}}
   @media (max-width:560px){.read-head h2{font-size:21px}.row2{flex-direction:column;gap:0}.question{font-size:18px}}
   @media (prefers-reduced-motion:reduce){*{transition:none!important}.tmcard.flash{animation:none}}
-  @media print{body{background:#fff}header.bar,footer.tools,.read-actions,.read-tools,.back,.notice,.bar-act,.flow-ctrl,.lightbox,.rt-panel,.tk-panel,.session-bar,.sess-list{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}}
+  @media print{body{background:#fff}header.bar,footer.tools,.read-actions,.read-tools,.back,.notice,.bar-act,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.session-bar,.sess-list{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}}
 </style>
 </head>
 <body>
 <div class="app">
   <header class="bar"><div class="brand"><b>Aides cognitives</b><span id="brandSub">Bibliothèque</span><span id="brandTitle"></span></div>
-    <button class="bar-act" id="topNew"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Nouvelle</button>
     <button class="bar-acct" id="acctTop" aria-label="Compte et synchronisation" title="Compte"><svg class="ic-outline" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M5.5 20.5v-1a5 5 0 015-5h3a5 5 0 015 5v1"/></svg><svg class="ic-filled" width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="7.7" r="3.7"/><path d="M4.6 20a7.4 7.4 0 0114.8 0 1 1 0 01-1 1.1H5.6a1 1 0 01-1-1.1z"/></svg><span class="acct-dot" id="acctDot" hidden></span></button></header>
   <main id="main"></main>
   <footer class="tools"><span class="lbl" id="count"></span>
@@ -784,7 +823,7 @@
 <!-- Zone d'annonce pour lecteurs d'écran (fin de minuteur, alarmes) : invisible, aria-live. -->
 <div id="srLive" class="sr-only" role="alert" aria-live="assertive"></div>
 <div id="alerts"></div>
-<div id="flowFull"><div class="ff-bar"><button class="fz" data-zoomf="out" aria-label="Dézoomer">−</button><span class="fzv">100%</span><button class="fz" data-zoomf="in" aria-label="Zoomer">+</button><button class="fz fz-r" data-zoomf="reset">Réinit.</button><span class="fz-spc"></span><button class="fz fz-r" id="ffClose">Fermer ✕</button></div><div class="ff-scroll"></div></div>
+<div id="flowFull"><div class="ff-bar"><button class="fz" data-zoomf="out" aria-label="Dézoomer">−</button><span class="fzv">100%</span><button class="fz" data-zoomf="in" aria-label="Zoomer">+</button><button class="fz fz-r" data-zoomf="reset">Rétablir</button><span class="fz-spc"></span><button class="fz fz-r" id="ffClose">Fermer ✕</button></div><div class="ff-scroll"></div></div>
 <div class="lightbox" id="lightbox"><button class="x" id="lbX">×</button><img id="lbImg" alt=""><div class="cap" id="lbCap"></div></div>
 <div class="ai-modal" id="aiModal" role="dialog" aria-modal="true" aria-labelledby="aiModalTitle"><div class="ai-card">
   <div class="ai-top"><h3 id="aiModalTitle">Créer une fiche avec une IA</h3><button class="ai-x" id="aiX" aria-label="Fermer">×</button></div>
@@ -874,7 +913,9 @@ const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').match
 const LIB_PAGE=60;
 // Palette de catégories : chaque teinte respecte WCAG AA (contraste >= 4.5:1) aussi bien
 // en pastille (texte de couleur sur fond teinté à 15 %) qu'en chip sélectionnée (texte blanc).
-const PALETTE=['#b23052','#823a32','#a54c26','#8d5c39','#806311','#4f6b1e','#1d7449','#0d5b56','#006d98','#45556b','#1f5fa6','#4b3fa6','#755a96','#7a2f6b','#95516c'];
+// Pas de teinte proche du vermillon --critical (#bf3a21) : une catégorie ne doit jamais avoir
+// l'air « dangereuse » (ex-#b23052 et ex-#a54c26 retirés ; les catégories existantes gardent leur couleur).
+const PALETTE=['#823a32','#8d5c39','#806311','#4f6b1e','#1d7449','#0d5b56','#006d98','#45556b','#1f5fa6','#4b3fa6','#755a96','#7a2f6b','#95516c'];
 /* ===== Backends (stockage LOCAL) =====
    Trois implémentations interchangeables exposant la MÊME interface.
    `Data` (plus bas) pointera vers celle retenue par chooseBackend().
@@ -967,7 +1008,7 @@ const sanitizeLibs=a=>(Array.isArray(a)?a:[]).slice(0,200).map(l=>({id:safeMetaI
 function profileCacheKey(){const u=Auth.user();return (u&&u.id)?('ac-profile-'+u.id):null;}
 function saveProfileCache(){const k=profileCacheKey();if(!k)return;try{localStorage.setItem(k,JSON.stringify({libraries:myLibraries,isAppAdmin:myIsAppAdmin}));}catch(e){}}
 function loadProfileCache(){const k=profileCacheKey();if(!k)return;try{const p=JSON.parse(localStorage.getItem(k)||'null');if(!p)return;myLibraries=sanitizeLibs(p.libraries);myIsAppAdmin=p.isAppAdmin===true;}catch(e){}}
-let state={view:'library',q:'',cat:'',scope:null,draft:null,fiche:null,nav:[],navSeq:[],navPos:0,checked:{},showFlow:false,showSess:false,libLimit:LIB_PAGE};
+let state={view:'library',q:'',cat:'',scope:null,draft:null,fiche:null,nav:[],navSeq:[],navPos:0,checked:{},showFlow:false,showSess:false,rtOpen:false,libLimit:LIB_PAGE};
 // Rôle/édition par bibliothèque. Perso (libraryId vide) = toujours éditable. Bibliothèque partagée : éditable
 // si role editor/admin. (La RLS reste l'arbitre côté serveur ; ceci n'est que l'ergonomie.)
 function roleOf(libId){const l=myLibraries.find(x=>x.id===libId);return l?l.role:null;}
@@ -1068,7 +1109,7 @@ function bindFlowZoom(){main.querySelectorAll('[data-zoom]').forEach(b=>b.onclic
 // (pinch natif aussi). On centre horizontalement à l'ouverture.
 function openFlowFull(f,curId){const ov=document.getElementById('flowFull');if(!ov)return;const sc=ov.querySelector('.ff-scroll');sc.innerHTML=buildFlowSVG(f,curId);ov.classList.add('on');applyFlowZoom();bindSvgImages(sc);sc.scrollLeft=centerOnStart(sc);sc.scrollTop=0;}
 function closeFlowFull(){const ov=document.getElementById('flowFull');if(ov){ov.classList.remove('on');const sc=ov.querySelector('.ff-scroll');if(sc)sc.innerHTML='';}}
-const flowBlock=(f,curId)=>`<div class="flow-zoom"><button class="fz" data-zoom="out" aria-label="Dézoomer">−</button><span class="fzv">${Math.round(flowZoom*100)}%</span><button class="fz" data-zoom="in" aria-label="Zoomer">+</button><button class="fz fz-r" data-zoom="reset">Réinit.</button><span class="fz-spc"></span><button class="fz" data-flowfull aria-label="Plein écran" title="Plein écran">⛶</button></div><div class="flow-scroll">${buildFlowSVG(f,curId)}</div>`;
+const flowBlock=(f,curId)=>`<div class="flow-zoom"><button class="fz" data-zoom="out" aria-label="Dézoomer">−</button><span class="fzv">${Math.round(flowZoom*100)}%</span><button class="fz" data-zoom="in" aria-label="Zoomer">+</button><button class="fz fz-r" data-zoom="reset">Rétablir</button><span class="fz-spc"></span><button class="fz" data-flowfull aria-label="Plein écran" title="Plein écran">⛶</button></div><div class="flow-scroll">${buildFlowSVG(f,curId)}</div>`;
 // Rafraîchit l'aperçu algorithme PENDANT la frappe (titres, étapes, réponses) sans reconstruire
 // tout le formulaire : on ne remplace que le SVG dans .flow-scroll -> le champ en cours de saisie
 // garde le focus et on évite un rendu complet à chaque touche. DÉBOUNCÉ (~300 ms) pour ne pas
@@ -1243,7 +1284,7 @@ async function remapCatsDeterministic(){const map={};const byNew={};const kept=[
   if(!Object.keys(map).length)return;
   const changed=[];fiches.forEach(f=>{if(f.category&&map[f.category]){f.category=map[f.category];changed.push(f);}});
   await saveCats(null);for(const f of changed)await persist(f);}
-function defaultCats(){return[['Anesthésie','#0d5b56'],['Cardiologie','#b23052'],['Pédiatrie','#1d7449'],['Réanimation','#006d98'],['Régulation','#4b3fa6'],['SMUR','#a54c26'],['SSE','#806311'],['Urgences','#1f5fa6']].map(([name,color])=>({id:detCatId(name),name,color,libraryId:null}));}
+function defaultCats(){return[['Anesthésie','#0d5b56'],['Cardiologie','#95516c'],['Pédiatrie','#1d7449'],['Réanimation','#006d98'],['Régulation','#4b3fa6'],['SMUR','#8d5c39'],['SSE','#806311'],['Urgences','#1f5fa6']].map(([name,color])=>({id:detCatId(name),name,color,libraryId:null}));}
 function migrateCategories(){const changed=[];const byName={};categories.forEach(c=>byName[c.name.toLowerCase()]=c.id);let pi=categories.length;
   fiches.forEach(f=>{const cv=f.category;if(!cv)return;if(categories.some(c=>c.id===cv))return;const name=String(cv).trim();if(!name){f.category='';changed.push(f);return;}
     let id=byName[name.toLowerCase()];if(!id){id=newCatId(name,null);categories.push({id,name,color:PALETTE[pi++%PALETTE.length],libraryId:null});byName[name.toLowerCase()]=id;}f.category=id;changed.push(f);});return changed;}
@@ -1541,10 +1582,16 @@ function holdToReset(btn,doAction){if(!btn)return;let to=null;const lbl=btn.inne
     document.body.classList.add('hold-noselect');btn.classList.add('holding');
     // On ne change QUE le libellé (pas tout le bouton) -> la structure sur 2 lignes est conservée :
     // la HAUTEUR du bouton ne change pas pendant l'appui (sinon il « rapetissait » au clic).
-    const lab=btn.querySelector('.tmr-lab');if(lab)lab.textContent='Maintenir…';else btn.textContent='Maintenir…';
+    // EXCEPTION .btn-hold (barre d'étapes) : bouton à largeur AUTO dans une rangée flex -> échanger
+    // le texte ferait varier sa largeur en plein appui (et décalerait les boutons voisins). La jauge
+    // qui se remplit + la mention « maintenir » persistante suffisent comme retour visuel.
+    if(!btn.classList.contains('btn-hold')){const lab=btn.querySelector('.tmr-lab');if(lab)lab.textContent='Maintenir…';else btn.textContent='Maintenir…';}
     to=setTimeout(()=>{to=null;btn.classList.remove('holding');document.body.classList.remove('hold-noselect');clearSel();doAction();},800);};
   btn.addEventListener('pointerdown',begin);['pointerup','pointerleave','pointercancel'].forEach(ev=>btn.addEventListener(ev,cancel));
   btn.addEventListener('contextmenu',e=>e.preventDefault());
+  // Alternative CLAVIER (WCAG : pas de geste obligatoire) : Entrée/Espace déclenchent directement.
+  // Le risque d'appui accidentel visé par le « maintenir » est tactile, pas clavier.
+  btn.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();cancel();doAction();}});
   btn.onclick=e=>{e.preventDefault();e.stopPropagation();};}
 // Terminer : fige en historique et arrête les minuteurs (depuis la fiche). Reste reprenable plus tard.
 // Terminer : on archive la session (historique) PUIS on repart d'une fiche vierge (tout remis à zéro :
@@ -1565,7 +1612,8 @@ async function deleteSession(id){if(!await confirmDlg('Supprimer cette session ?
    renderLibrary() : recherche + filtres catégories colorés + grille de cartes
      (pastilles catégorie/branchement/nb de sessions, date de validation). */
 function render(){
-  document.getElementById('topNew').style.display=(state.view==='library'&&canEditScope(state.scope))?'inline-flex':'none';
+  // En mode crise, l'en-tête met le TITRE DE LA FICHE en avant (classe .crisis) ; la marque s'efface.
+  document.querySelector('header.bar').classList.toggle('crisis',state.view==='read'&&!!state.fiche);
   document.getElementById('brandSub').textContent=state.view==='library'?'Bibliothèque':state.view==='edit'?'Édition':'Mode crise';
   const bt=document.getElementById('brandTitle');if(bt){const t=state.view==='read'&&state.fiche?state.fiche.title||'':'';bt.textContent=t;bt.style.display=t?'block':'none';}
   if(state.view==='library')renderLibrary();else if(state.view==='edit')renderEditor();else renderRead();
@@ -1955,6 +2003,11 @@ function counterCard(c){const v=Runtime.counters[c.id]||0;const lbl=esc(c.label)
 // Met à jour la valeur affichée d'un compteur ET son étiquette accessible (role="status").
 function setCounterVal(id){const el=document.getElementById('cnval-'+id);if(!el)return;const c=((Runtime.fiche&&Runtime.fiche.counters)||[]).find(x=>x.id===id);const lbl=(c&&esc(c.label))||'Compteur';const v=Runtime.counters[id]||0;el.textContent=v;el.setAttribute('aria-label',lbl+' : '+v);}
 function runtimePanel(f){const tl=Object.values(Runtime.timers);const cl=f.counters||[];if(!tl.length&&!cl.length)return '';
+  // REPLIÉ tant que rien n'a tourné (et pas ouvert à la main) : à T0, le premier écran montre le
+  // contenu clinique, pas des minuteurs à 00:00. Déplié dès la première activité (et le reste).
+  const anyActive=tl.some(t=>t.running||timerStarted(t))||cl.some(c=>(Runtime.counters[c.id]||0)!==(c.start||0));
+  if(!anyActive&&!state.rtOpen){const parts=[];if(tl.length)parts.push(tl.length+' minuteur'+(tl.length>1?'s':''));if(cl.length)parts.push(cl.length+' compteur'+(cl.length>1?'s':''));
+    return `<button class="rt-collapsed" id="rtOpen" aria-expanded="false"><svg class="rt-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5fd0c4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg><span class="rtc-i">Minuteurs & compteurs · ${parts.join(' · ')}</span><span class="rtc-open">▾ Afficher</span></button>`;}
   return `<div class="rt-panel"><div class="rt-head"><svg class="rt-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5fd0c4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg><b>Minuteurs & compteurs</b>${IS_TOUCH?`<button class="rt-warn" id="soundWarn" title="Mode silencieux du téléphone" style="${soundOn?'':'display:none'}">⚠︎ silencieux ?</button>`:''}<button class="rt-sound" id="soundToggle">${soundOn?'🔔 Son':'🔕 Muet'}</button></div>${tl.length?`<div class="rt-grid">${tl.map(timerCard).join('')}</div>`:''}${cl.length?`<div class="rt-counters">${cl.map(counterCard).join('')}</div>`:''}</div>`;}
 /* timekeeperPanel : journal d'horodatage. Bouton « Horodater » -> ajoute un repère à l'heure
    courante avec un libellé automatique ("Action N"), renommable à tout moment (même a
@@ -1997,28 +2050,35 @@ function renderRead(){
     const backBtn=npos>0?'<button class="btn sm" id="navBack">← Précédent</button>':'';
     // « Recommencer » seulement à la position actuelle (au bout) : en mode RELECTURE d'un pas
     // précédent, on évite la surcharge de boutons (« Repartir d'ici » + le fil d'Ariane suffisent).
-    const resetBtn=(flow&&atTip)?'<button class="btn sm" id="navReset">Recommencer</button>':'';
+    // MAINTENIR pour recommencer : efface tout le chemin parcouru -> même geste anti-accidentel
+    // que la réinitialisation d'un minuteur (un appui bref, même en stress, ne déclenche rien).
+    const resetBtn=(flow&&atTip)?'<button class="btn sm btn-hold" id="navReset" title="Maintenir pour recommencer du début"><span class="tmr-lab">Recommencer</span><span class="tmr-hint">maintenir</span></button>':'';
     const histBtn=!atTip?'<button class="btn primary sm" id="navFwd">Continuer →</button><button class="btn sm" id="navResume">↺ Repartir d’ici (efface la suite)</button>':'';
     const imgH=blk.image?`<img class="node-img" src="${blk.image}" data-full="${blk.image}" alt="">`:'';
     if(blk.type==='decision'){const taken=state.nav[npos+1];
       const opts=(blk.options||[]).map((o,i)=>{const sel=!atTip&&o.target&&o.target===taken;const arr=sel?'<span class="arr">✓</span>':'<span class="arr"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></span>';return `<button class="opt${sel?' taken':''}" ${atTip?`data-goto="${o.target||''}"`:'disabled'}>${esc(o.label)||'Option '+(i+1)}${arr}</button>`;}).join('');
       navHtml=`<div class="nav-wrap">${crumbs}<div class="node-title">${esc(blk.title)||'Décision'}${passTag}</div>${imgH}<div class="question">${esc(blk.question)||'…'}</div><div class="options">${opts}</div><div class="flow-ctrl">${histBtn}${backBtn}${resetBtn}</div></div>`;}
     else{const steps=clean(blk.steps);const fwdc=atTip?(blk.next&&f.blocks.some(b=>b.id===blk.next)?'<button class="btn primary sm" id="navNext">Continuer →</button>':'<span class="endcap">Fin de cette branche.</span>'):histBtn;
-      navHtml=`<div class="nav-wrap">${crumbs}<div class="node-title">${esc(blk.title)||'Étapes'}${passTag}</div>${imgH}<ol class="steps">${steps.map((s,i)=>{const k=curSeq+':'+blk.id+':'+i;return `<li data-ck="${k}" class="${state.checked[k]?'done':''}"><span class="box">${state.checked[k]?'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg>':''}</span><span class="txt">${esc(s)}</span></li>`;}).join('')}</ol><div class="flow-ctrl">${fwdc}${backBtn}${resetBtn}</div></div>`;}}
+      navHtml=`<div class="nav-wrap">${crumbs}<div class="node-title">${esc(blk.title)||'Étapes'}${passTag}</div>${imgH}<ol class="steps">${steps.map((s,i)=>{const k=curSeq+':'+blk.id+':'+i;return `<li data-ck="${k}" class="${state.checked[k]?'done':''}" role="checkbox" aria-checked="${state.checked[k]?'true':'false'}" tabindex="0"><span class="box">${state.checked[k]?'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg>':''}</span><span class="txt">${esc(s)}</span></li>`;}).join('')}</ol><div class="flow-ctrl">${fwdc}${backBtn}${resetBtn}</div></div>`;}}
   const gallery=(f.images||[]).length?`<section class="block"><div class="block-h h-img">${headerIcon('h-img')}Schémas & captures</div><div class="gallery">${f.images.map(im=>`<div class="gthumb"><img src="${im.data}" data-full="${im.data}" data-cap="${esc(im.caption||'')}" alt="${esc(im.caption||'')}" loading="lazy" decoding="async">${im.caption?`<div class="gcap">${esc(im.caption)}</div>`:''}</div>`).join('')}</div></section>`:'';
   const refs=clean(f.references);
+  // « Ne pas oublier » : bandeau compact SOUS le titre (un rappel critique doit être vu AVANT
+  // d'être violé, pas après avoir tout déroulé). Remplace l'ancienne section en bas de fiche.
+  const nf=clean(f.notForget);
+  const forgetStrip=nf.length?`<section class="block forget-strip"><div class="block-h h-forget">${headerIcon('h-forget')}Ne pas oublier</div><ul class="forget-list">${nf.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></section>`:'';
   // Historique = sessions de cette fiche, EN EXCLUANT la session vive courante (affichée par le bandeau).
   const ss=sessions.filter(s=>s.ficheId===f.id&&s.id!==Runtime.sessionId).sort((a,b)=>b.savedAt-a.savedAt);
   const started=Runtime.started;
   const sessBar=started
     ?`<div class="session-bar live"><span class="sess-dot"></span><div class="sess-info"><b>Session en cours</b><span>depuis ${timeAgo(Runtime.startedAt)} · enregistrée automatiquement</span></div><div class="sess-acts"><button class="btn sm danger" id="endSess" title="Clôt la session (gardée dans l'historique) et remet la fiche à zéro">Terminer</button>${ss.length?`<button class="btn sm sess-hist" id="toggleSess">Historique (${ss.length})</button>`:''}</div></div>`
     :`<div class="session-bar idle"><span class="sess-hint">La session démarre à la 1ʳᵉ action (cocher, minuteur, compteur ou horodatage) et s'enregistre automatiquement ensuite.</span>${ss.length?`<button class="btn sm" id="toggleSess">Historique (${ss.length})</button>`:''}</div>`;
-  const sessList=(state.showSess&&ss.length)?`<div class="sess-list">${ss.map(s=>`<div class="sess-row"><div class="si"><div class="sn">${esc(s.name)}${s.live?' <span class="sess-livetag">en cours</span>':''}</div><div class="sd">${new Date(s.savedAt).toLocaleString('fr-FR')}</div></div><button class="btn sm" data-resume="${s.id}">Ouvrir</button><button class="btn sm" data-report="${s.id}" title="Compte-rendu imprimable">Compte-rendu</button><button class="mini del" data-delsess="${s.id}">×</button></div>`).join('')}</div>`:'';
+  const sessList=(state.showSess&&ss.length)?`<div class="sess-list">${ss.map(s=>`<div class="sess-row"><div class="si"><div class="sn">${esc(s.name)}${s.live?' <span class="sess-livetag">en cours</span>':''}</div><div class="sd">${new Date(s.savedAt).toLocaleString('fr-FR')}</div></div><div class="sess-acts"><button class="btn sm" data-resume="${s.id}">Ouvrir</button><button class="btn sm" data-report="${s.id}" title="Compte-rendu imprimable">Compte-rendu</button><button class="mini del" data-delsess="${s.id}" aria-label="Supprimer la session">×</button></div></div>`).join('')}</div>`:'';
   main.innerHTML=`
     <button class="back" id="back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Bibliothèque</button>
     <div class="read-head"><h2>${esc(f.title)||'Sans titre'}</h2></div>
     <div class="read-meta">${f.libraryId?`<span class="tag libtag" title="Bibliothèque partagée"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/></svg>${esc(libName(f.libraryId)||'Partagée')}</span>`:''}${f.status==='draft'?'<span class="tag draft">Brouillon</span>':''}${catTag(f)}<span class="card-date${staleDate(f.validation)?' stale':''}">${esc(fmtDate(f.validation))}</span>${f.libraryId&&f.updatedBy?`<span class="card-date" title="Dernière modification">· modifiée par ${esc(f.updatedBy)}</span>`:''}</div>
     ${f.status==='draft'?`<div class="notice"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z" stroke-linecap="round" stroke-linejoin="round"/></svg><div><b>Brouillon</b> — cette fiche n'a pas encore été validée pour l'usage clinique.</div></div>`:''}
+    ${forgetStrip}
     ${sessBar}${sessList}
     ${runtimePanel(f)}
     ${staticBlock('Confirmation diagnostique','h-confirm',f.confirmation,'confirm')}
@@ -2027,7 +2087,6 @@ function renderRead(){
     ${timekeeperPanel()}
     ${gallery}
     ${staticBlock('À vérifier','h-verify',f.verify,'verify')}
-    ${staticBlock('Ne pas oublier','h-forget',f.notForget,'forget',true)}
     ${staticBlock('Diagnostics différentiels','h-diff',f.differentials,'diff')}
     ${refs.length?`<div class="refs"><b>Références</b><ol>${refs.map(r=>`<li>${esc(r)}</li>`).join('')}</ol></div>`:''}
     ${(()=>{const rel=(f.related||[]).map(id=>fiches.find(x=>x.id===id&&!x.deletedAt)).filter(Boolean);return rel.length?`<div class="related"><b>Voir aussi</b><div class="related-row">${rel.map(r=>`<button class="btn sm" data-openrel="${r.id}">${esc(r.title)||'Sans titre'} →</button>`).join('')}</div></div>`:'';})()}
@@ -2041,6 +2100,8 @@ function renderRead(){
   {const vb=document.getElementById('versions');if(vb)vb.onclick=()=>openVersions(f.id);}
   main.querySelectorAll('[data-openrel]').forEach(b=>b.onclick=()=>openRead(b.dataset.openrel));
   const ft=document.getElementById('flowToggle');if(ft)ft.onclick=()=>{state.showFlow=!state.showFlow;render();};
+  // Déplier le panneau minuteurs replié (reste ouvert tant qu'on est sur la fiche).
+  const ro=document.getElementById('rtOpen');if(ro)ro.onclick=()=>{state.rtOpen=true;render();};
   // Navigation NON DESTRUCTIVE : le fil d'Ariane et Précédent/Continuer déplacent seulement un
   // CURSEUR (state.navPos) sans rien effacer -> on peut revenir en arrière puis ré-avancer en
   // gardant toute la progression. Seul « Continuer/option » (au bout) étend le parcours, et
@@ -2049,12 +2110,13 @@ function renderRead(){
   const fwb=document.getElementById('navFwd');if(fwb)fwb.onclick=()=>{state.navPos=Math.min(state.navPos+1,state.nav.length-1);scrollNavNext=true;render();};
   const rsm=document.getElementById('navResume');if(rsm)rsm.onclick=()=>{state.nav.length=state.navPos+1;state.navSeq.length=state.navPos+1;render();};
   const bk=document.getElementById('navBack');if(bk)bk.onclick=()=>{state.navPos=Math.max(0,state.navPos-1);scrollNavNext=true;render();};
-  const rs=document.getElementById('navReset');if(rs)rs.onclick=()=>{state.nav.length=0;state.navSeq.length=0;state.nav.push(f.start);state.navSeq.push(++Runtime.seq);state.navPos=0;scrollNavNext=true;render();};
+  const rs=document.getElementById('navReset');if(rs)holdToReset(rs,()=>{state.nav.length=0;state.navSeq.length=0;state.nav.push(f.start);state.navSeq.push(++Runtime.seq);state.navPos=0;scrollNavNext=true;render();});
   main.querySelectorAll('[data-goto]').forEach(b=>b.onclick=()=>{const t=b.dataset.goto;if(t&&f.blocks.some(x=>x.id===t)){state.nav.push(t);state.navSeq.push(++Runtime.seq);state.navPos=state.nav.length-1;scrollNavNext=true;render();}});
   const goCrumb=i=>{if(i>=0&&i<state.nav.length){state.navPos=i;render();}};
   main.querySelectorAll('[data-crumb]').forEach(c=>{c.onclick=()=>goCrumb(+c.dataset.crumb);c.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();goCrumb(+c.dataset.crumb);}};});
   // Cocher une étape DÉMARRE la session (1ʳᵉ action) et l'auto-enregistre.
-  main.querySelectorAll('[data-ck]').forEach(li=>li.onclick=()=>{const k=li.dataset.ck;state.checked[k]=!state.checked[k];ensureStarted();persistLive(Runtime);render();});
+  // Accessible clavier/lecteur d'écran : role=checkbox + aria-checked (posés au rendu), Entrée/Espace.
+  main.querySelectorAll('[data-ck]').forEach(li=>{const tgl=kb=>{const k=li.dataset.ck;state.checked[k]=!state.checked[k];ensureStarted();persistLive(Runtime);render();if(kb){const nl=main.querySelector('[data-ck="'+CSS.escape(k)+'"]');if(nl)nl.focus();}};li.onclick=()=>tgl(false);li.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();tgl(true);}};});
   main.querySelectorAll('img[data-full]').forEach(im=>im.onclick=()=>openLightbox(im.dataset.full,im.dataset.cap||''));
   // runtime controls (no full re-render)
   const st=document.getElementById('soundToggle');if(st)st.onclick=()=>{soundOn=!soundOn;if(soundOn)ensureAudio();st.textContent=soundOn?'🔔 Son':'🔕 Muet';const sw=document.getElementById('soundWarn');if(sw)sw.style.display=soundOn?'':'none';};
@@ -2260,13 +2322,12 @@ async function deleteDraft(){if(!await confirmDlg('Supprimer cette fiche défini
 // Ouvre une fiche en lecture. Si une SESSION VIVE existe pour cette fiche, on la rouvre telle quelle
 // (minuteurs toujours en cours). Sinon on garde le runtime transitoire de cette même fiche (s'il n'a
 // pas démarré), sinon on en crée un neuf.
-function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;flowScroll={left:null,top:0};
+function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;flowScroll={left:null,top:0};state.rtOpen=false;
   if(liveSessions[id]){Runtime=liveSessions[id];Runtime.fiche=f;}
   else if(!(Runtime.fiche&&Runtime.ficheId===id&&!Runtime.started)){Runtime=buildRuntime(f,null);}
   bindStateToRuntime();state.fiche=Runtime.fiche;state.showFlow=!!(f.blocks&&f.blocks.length);state.showSess=false;state.view='read';render();}
 function openEdit(id){const f=fiches.find(x=>x.id===id);if(!f)return;if(!canEditFiche(f)){toast('Lecture seule : vous n\'avez pas les droits d\'édition sur cette bibliothèque.');return openRead(id);}state.draft=JSON.parse(JSON.stringify(f));state.view='edit';render();}
 function newFiche(){if(!canEditScope(state.scope)){toast('Lecture seule : vous ne pouvez pas créer de fiche dans cette bibliothèque.');return;}const d=blankFiche();d.libraryId=state.scope||null;state.draft=d;state.showCreateBand=true;state.view='edit';render();}
-document.getElementById('topNew').onclick=newFiche;
 
 /* ===== Lightbox ===== (agrandissement d'une image au clic, avec légende) */
 const lb=document.getElementById('lightbox');

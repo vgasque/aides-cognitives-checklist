@@ -19,6 +19,7 @@ et le cache du service worker (`sw.js`) sont tenus synchronisés par `release.sh
   l'import se rattache aux catégories existantes sans doublon.
 - Comme toujours pour les exemples : contenu générique (« protocole local »), statut
   **brouillon**, à relire et valider avant tout usage clinique.
+- **Correction de certains bugs design**
 
 ## [3.1.3] — 2026-07-02
 ### Corrigé

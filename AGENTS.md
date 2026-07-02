@@ -28,6 +28,12 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
 - L'intégration continue (`.github/workflows/ci.yml`) rejoue check + tests sur chaque push/PR.
 
 ## Conventions de code
+- **Design tokens** : aucune nouvelle couleur hex hors `:root` (tokens CSS) et `PALETTE`
+  (catégories). Sémantique fixe : erreur/danger = `--critical`, attente/avertissement/décision =
+  `--verify`, jamais l'inverse. Contraste texte ≥ 4.5:1, composants d'interface ≥ 3:1 (WCAG AA).
+- **Interactif** : cible tactile ≥ 32 px (44 px pour les contrôles du mode crise) ; tout nouvel
+  élément interactif reçoit un état `:focus-visible` et un équivalent clavier (Entrée/Espace).
+  Action destructrice en situation de crise = geste « maintenir » (`holdToReset`), pas un simple tap.
 - Toute donnée affichée passe par `esc()` (contenu potentiellement importé/partagé).
 - Toute donnée importée/chargée passe par `migrate()` / `sanitizeCats()` (point d'entrée unique de
   compatibilité et de sécurité) ; nouveaux champs = facultatifs, avec défaut posé dans `migrate()`.
