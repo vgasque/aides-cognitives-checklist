@@ -101,6 +101,10 @@ begin
   if v_cnt <> 1 then raise exception 'ÉCHEC : un e-mail vérifié n''apparaît pas en attente de validation'; end if;
 
   ------------------------------------------------------------------ 6. Notes personnelles : privées et gatées
+  -- La section 5bis est repassée en PROPRIÉTAIRE (reset role) : on REVIENT impérativement au
+  -- rôle authenticated (sinon la RLS est contournée et ce test échouerait à tort).
+  perform set_config('request.jwt.claims', json_build_object('sub',bob,'role','authenticated')::text, true);
+  set local role authenticated;
   -- Bob est PENDING (section 5) : l'écriture d'une note est bloquée par le gate is_approved().
   begin
     insert into public.fiche_notes(user_id,fiche_id,note) values (bob,'f-alice','note de bob');

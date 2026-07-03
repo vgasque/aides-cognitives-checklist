@@ -4,6 +4,16 @@ Toutes les versions notables de l'application. Format inspiré de *Keep a Change
 versionnage sémantique. La version affichée en pied de page (`APP_VERSION` dans `index.html`)
 et le cache du service worker (`sw.js`) sont tenus synchronisés par `release.sh`.
 
+## [3.2.5] — 2026-07-03
+### Tests
+- **`rls-tests.sql` : faux échec corrigé** (« ÉCHEC : un compte pending a pu écrire une note »).
+  La section 5bis, ajoutée en 3.2.3, se termine en rôle propriétaire (nécessaire pour semer
+  `auth.users`) ; la section 6 (notes personnelles), écrite avant elle, supposait encore le rôle
+  `authenticated` — en propriétaire, la RLS est contournée par définition et le test concluait
+  à tort à une faille. La section 6 rétablit désormais explicitement rôle et claims, avec un
+  commentaire de garde pour les prochaines insertions de sections. Aucun changement de schéma ni
+  de politique : les déploiements existants sont sains, seul le harnais de test était en cause.
+
 ## [3.2.4] — 2026-07-03
 ### Corrigé
 - **Fenêtre Compte : zone tampon anti-mauvais-tap.** « Changer de compte » commençait 9 px sous
