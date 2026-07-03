@@ -4,6 +4,28 @@ Toutes les versions notables de l'application. Format inspiré de *Keep a Change
 versionnage sémantique. La version affichée en pied de page (`APP_VERSION` dans `index.html`)
 et le cache du service worker (`sw.js`) sont tenus synchronisés par `release.sh`.
 
+## [3.2.1] — 2026-07-03
+### Corrigé
+- **iPhone en paysage : plus de textes agrandis de façon disproportionnée** (jauge de stockage,
+  en-têtes de section, bandeaux…) : le « font boosting » de Safari iOS est désactivé
+  (`-webkit-text-size-adjust:100%`). À confirmer sur appareil réel.
+- **Mode sombre : survol correct des boutons pleins.** La règle de survol sombre générique
+  écrasait aussi celle des boutons `primary` (« Créer via IA », « Ajouter les fiches
+  d'exemple »…) et `danger`, posant un fond quasi noir sous leur texte ; ils retrouvent leurs
+  survols propres (teal éclairci / teinte rouge douce).
+- **Journal des actions : plus de fausse « correction » d'heure.** Cliquer sur un horaire puis
+  valider sans le changer affichait quand même « à l'origine HH:MM:SS » (identique) — la
+  mention n'apparaît plus que si l'heure a réellement changé.
+
+### Modifié
+- **Session en cours = fiche verrouillée.** Pendant une session active, la note personnelle
+  passe en lecture seule avec un renvoi explicite (« pour annoter la session, utilisez le
+  journal des actions » — évite de la confondre avec une note de session) et le bouton
+  « + Ajouter une note » disparaît ; les boutons **Modifier** et **Versions** sont désactivés
+  (badge « session en cours : modification suspendue ») — modifier la fiche mettrait fin à la
+  session en cours. Imprimer / Dupliquer / Exporter restent disponibles (lecture seule).
+  Tout redevient actif dès que la session est terminée.
+
 ## [3.2.0] — 2026-07-02
 ### Ajouté
 - **Notes personnelles par fiche.** En bas de chaque fiche, une carte en pointillés permet

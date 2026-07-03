@@ -252,7 +252,10 @@
   html[data-theme="dark"] .ai-ta{background:#0e1714;color:var(--ink)}
   html[data-theme="dark"] :is(.flow-scroll,#flowFull .ff-scroll){background:#0e1714}
   /* Survols clairs -> survols sombres. */
-  html[data-theme="dark"] :is(.btn:hover,.mini:hover,.fz:hover,.opt:hover,.catchip:hover){background:#1d2723;border-color:#3a463f}
+  /* Hover sombre GÉNÉRIQUE : exclut .primary et .danger, sinon cette règle (plus spécifique que
+     .btn.primary:hover) posait un fond quasi noir sous leur texte -> les règles de base gardent
+     la main (primary s'éclaircit via --primary-dk, danger se teinte via --critical-soft). */
+  html[data-theme="dark"] :is(.btn:not(.primary):not(.danger):hover,.mini:hover,.fz:hover,.opt:hover,.catchip:hover){background:#1d2723;border-color:#3a463f}
   html[data-theme="dark"] ol.steps li.done{background:#13201c}
   /* Bandeaux : texte/bordures codés en dur -> couleurs lisibles sur fond sombre. */
   html[data-theme="dark"] .notice{color:var(--verify);border-color:#4a3f1e}
@@ -276,6 +279,9 @@
   html[data-theme="dark"] :is(.flow-scroll,#flowFull .ff-scroll) svg .flow-hl{filter:invert(1) hue-rotate(180deg);stroke:#34b3a6}
   html[data-theme="dark"] :is(.flow-scroll,#flowFull .ff-scroll) svg .flow-hl-glow{opacity:.28}
   *{box-sizing:border-box}html,body{margin:0;padding:0}
+  /* iOS Safari (paysage) : sans ce réglage, le « font boosting » agrandit certains textes de
+     façon disproportionnée (jauge de stockage, en-têtes de section, bandeaux…). */
+  html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
   body{font-family:var(--sans);color:var(--ink);background:var(--bg);line-height:1.5;-webkit-font-smoothing:antialiased;padding-bottom:env(safe-area-inset-bottom)}
   button{font-family:inherit;cursor:pointer}input,textarea,select{font-family:inherit;font-size:16px;max-width:100%}textarea{resize:vertical}
   /* overflow-x:clip = filet anti-débordement horizontal (un enfant trop large ne peut plus
@@ -935,7 +941,7 @@
 /* PALETTE : couleurs proposées pour les catégories (hex sombres, lisibles
    en texte comme en pastille teintée). Index réutilisé cycliquement. */
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='3.2.0';
+const APP_VERSION='3.2.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -1806,9 +1812,16 @@ function staticBlock(title,cls,arr,liClass,forget){const items=clean(arr);if(!it
    CRÉATION d'une fiche : l'id du brouillon existe déjà). Lecture seule par défaut — rien d'éditable
    par accident en crise — édition sur geste explicite (Modifier / + Ajouter), auto-enregistrement.
    `rerender` = re-rendu de la vue hôte (render en lecture, renderEditor en édition). */
-function noteBlockHtml(id){
+function noteBlockHtml(id,locked){
   const nt=(notes[id]&&notes[id].t)||'';
+  // SESSION EN COURS (locked) : la note de la FICHE n'est pas modifiable — sinon on croirait
+  // annoter LA SESSION (ce rôle revient au journal des actions). Pas de note -> rien du tout
+  // (un écran de crise ne propose pas une action indisponible) ; note existante -> lecture seule.
+  if(locked&&!nt)return '';
   if(!nt&&!state.noteEdit)return `<button class="note-add" id="noteEditBtn">${uiIcon('pen',13)} Ajouter une note personnelle</button>`;
+  if(locked)return `<section class="block notes-block"><div class="block-h h-notes">${headerIcon('h-notes')}Notes personnelles<span class="spc"></span><button class="btn sm" disabled title="Non modifiable pendant une session en cours">Modifier</button></div>
+    <div class="note-txt">${esc(nt)}</div>
+    <div class="note-meta">Note de la fiche, non modifiable pendant la session — pour annoter la session, utilisez le journal des actions.</div></section>`;
   return `<section class="block notes-block"><div class="block-h h-notes">${headerIcon('h-notes')}Notes personnelles<span class="spc"></span><button class="btn sm${state.noteEdit?' primary':''}" id="noteEditBtn">${state.noteEdit?'Terminer':'Modifier'}</button></div>
     ${state.noteEdit
       ?`<textarea class="note-ta" id="noteTa" rows="3" placeholder="Vos notes sur cette fiche.">${esc(nt)}</textarea><div class="note-meta" id="noteMeta">Jamais partagée : visible par vous seulement.</div>`
@@ -2225,8 +2238,8 @@ function renderRead(){
     ${staticBlock('Diagnostics différentiels','h-diff',f.differentials,'diff')}
     ${refs.length?`<div class="refs"><b>Références</b><ol>${refs.map(r=>`<li>${esc(r)}</li>`).join('')}</ol></div>`:''}
     ${(()=>{const rel=(f.related||[]).map(id=>fiches.find(x=>x.id===id&&!x.deletedAt)).filter(Boolean);return rel.length?`<div class="related"><b>Voir aussi</b><div class="related-row">${rel.map(r=>`<button class="btn sm" data-openrel="${r.id}">${esc(r.title)||'Sans titre'} →</button>`).join('')}</div></div>`:'';})()}
-    ${noteBlockHtml(f.id)}
-    <div class="read-tools"><div class="read-tools-h">Gérer cette fiche${f.libraryId?` · <span class="ro-badge">${canEditFiche(f)?esc(libName(f.libraryId)||'Partagée'):'Lecture seule'}</span>`:''}</div><div class="read-tools-btns">${canEditFiche(f)?'<button class="btn sm" id="edit">Modifier</button>':''}<button class="btn sm" id="print">Imprimer</button><button class="btn sm" id="dup">Dupliquer</button><button class="btn sm" id="exportOne">Exporter</button>${canEditFiche(f)?`<button class="btn sm" id="versions">${f.libraryId?'Ma version écrasée':'Versions'}</button>`:''}</div></div>`;
+    ${noteBlockHtml(f.id,started)}
+    <div class="read-tools"><div class="read-tools-h">Gérer cette fiche${started?' · <span class="ro-badge">session en cours : modification suspendue</span>':''}${f.libraryId?` · <span class="ro-badge">${canEditFiche(f)?esc(libName(f.libraryId)||'Partagée'):'Lecture seule'}</span>`:''}</div><div class="read-tools-btns">${canEditFiche(f)?`<button class="btn sm" id="edit"${started?' disabled title="Non modifiable pendant une session en cours"':''}>Modifier</button>`:''}<button class="btn sm" id="print">Imprimer</button><button class="btn sm" id="dup">Dupliquer</button><button class="btn sm" id="exportOne">Exporter</button>${canEditFiche(f)?`<button class="btn sm" id="versions"${started?' disabled title="Non modifiable pendant une session en cours"':''}>${f.libraryId?'Ma version écrasée':'Versions'}</button>`:''}</div></div>`;
   // Retour bibliothèque : la session reste VIVE (minuteurs continuent) et est auto-enregistrée.
   document.getElementById('back').onclick=()=>{persistAllLive();state.view='library';state.fiche=null;state.showFlow=false;render();};
   {const eb=document.getElementById('edit');if(eb)eb.onclick=()=>openEdit(f.id);}
@@ -2278,11 +2291,14 @@ function renderRead(){
     span.replaceWith(inp);inp.focus();inp.select();
     const commit=()=>{const m=(inp.value||'').trim().match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
       if(m){const h=Math.min(23,parseInt(m[1],10)),mi=Math.min(59,parseInt(m[2],10)),s=Math.min(59,parseInt(m[3]||'0',10));
-        const base=new Date(ev.t);base.setHours(h,mi,s,0);
-        if(typeof ev.origT!=='number')ev.origT=ev.t;
-        ev.t=base.getTime();
-        Runtime.events.sort((a,b)=>a.t-b.t);
-        persistLive(Runtime);}
+        const base=new Date(ev.t);base.setHours(h,mi,s,0);const nt=base.getTime();
+        // Heure INCHANGÉE (même seconde affichée) -> aucune « correction » : on ne pose pas
+        // origT (sinon « à l'origine HH:MM:SS » s'affichait avec la même heure, ce qui sème le doute).
+        if(Math.floor(nt/1000)!==Math.floor(ev.t/1000)){
+          if(typeof ev.origT!=='number')ev.origT=ev.t;
+          ev.t=nt;
+          Runtime.events.sort((a,b)=>a.t-b.t);
+          persistLive(Runtime);}}
       render();};
     inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();inp.blur();}
       else if(e.key==='Escape'){e.preventDefault();inp.removeEventListener('blur',commit);render();}});
