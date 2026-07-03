@@ -669,7 +669,10 @@
   .storage-gauge .pers-warn{color:var(--verify)}
   .tlink{background:none;border:0;color:var(--primary);font-size:13px;font-weight:600;padding:6px 10px;min-height:32px;display:inline-flex;align-items:center;gap:4px;border-radius:8px}.tlink:hover{background:var(--primary-soft)}#installBtn{display:none}
   .zoom-tlink{display:inline-flex;align-items:center;gap:4px;vertical-align:middle}
-  .zoom-tlink svg{margin-top:-1px}  /* le dessin « Aa » pèse vers le bas de son viewBox -> recentrage optique */
+  /* CALIBRÉ (ne pas retoucher à l'aveugle) : viewBox affleurant (0 4 26 16) + hauteur 11px +
+     ce -1px posent le BAS des « A » exactement sur la LIGNE DE BASE du texte voisin
+     (13px system-ui : ascente 13, descente 3 -> baseline = centre + 5px = bas du svg). */
+  .zoom-tlink svg{margin-top:-1px}
   /* Pastille d'état de synchro : discrète, jamais bloquante (app critique). */
   .sync-chip{font-size:11px;font-weight:600;padding:2px 9px;border-radius:999px;display:inline-flex;align-items:center;gap:5px;line-height:1.7}
   .sync-chip[hidden]{display:none} /* le display:inline-flex ci-dessus prime sinon sur [hidden] (même origine auteur) */
@@ -707,8 +710,12 @@
   .pend-badge.pending{color:var(--verify);background:var(--verify-soft)}
   .pend-badge.rejected{color:var(--critical);background:var(--critical-soft)}
   .auth-sub{font-size:13.5px;color:var(--ink-soft);line-height:1.55;margin:12px 0 18px}
-  .auth-actions{display:flex;flex-direction:column;gap:9px}
+  .auth-actions{display:flex;flex-direction:column;gap:10px}
   .auth-actions .btn{width:100%;justify-content:center}
+  /* Zone tampon entre l'action FRÉQUENTE (Synchroniser, primary) et les actions de compte qui
+     suivent (Changer de compte, Se déconnecter) : un tap légèrement trop bas ne doit pas
+     déclencher une déconnexion — l'espacement fait partie de la protection. */
+  .auth-actions .btn.primary+.btn{margin-top:14px}
   .auth-hero{text-align:center;margin-bottom:18px}
   .auth-hero-ic{width:56px;height:56px;border-radius:15px;background:var(--primary-soft);color:var(--primary);display:inline-flex;align-items:center;justify-content:center;margin-bottom:11px}
   .auth-hero h4{margin:0 0 5px;font-size:17px;color:var(--ink)}
@@ -852,7 +859,9 @@
     <button class="tlink" id="exportBtn">Exporter tout</button>
     <button class="tlink" id="importBtn">Importer</button>
     <button class="tlink" id="themeBtn">Thème</button><!-- libellé + icône posés par applyTheme() au démarrage -->
-    <button class="tlink zoom-tlink" id="zoomBtn" title="Taille du texte (cycle 100 % → 110 % → 125 %)" aria-label="Taille du texte"><svg width="17" height="15" viewBox="0 1 26 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 20L8 4l6 16M4.2 14.5h7.6"/><path d="M15.5 20l4.2-11 4.2 11M17 16.4h5.4"/></svg><span id="zoomPct" hidden></span></button>
+    <!-- viewBox calé sur le dessin (y 4..20) : le bas des « A » affleure le bas du SVG, ce qui
+         permet d'aligner précisément ce bas sur la LIGNE DE BASE du texte voisin (cf. .zoom-tlink svg). -->
+    <button class="tlink zoom-tlink" id="zoomBtn" title="Taille du texte (cycle 100 % → 110 % → 125 %)" aria-label="Taille du texte"><svg width="18" height="11" viewBox="0 4 26 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 20L8 4l6 16M4.2 14.5h7.6"/><path d="M15.5 20l4.2-11 4.2 11M17 16.4h5.4"/></svg><span id="zoomPct" hidden></span></button>
     </div>
     <div class="tools-status"><span class="lbl" id="count"></span><div class="sync-chip" id="syncChip" hidden></div></div>
     <div class="storage-gauge" id="storageInfo"></div>
@@ -945,7 +954,7 @@
 /* PALETTE : couleurs proposées pour les catégories (hex sombres, lisibles
    en texte comme en pastille teintée). Index réutilisé cycliquement. */
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='3.2.3';
+const APP_VERSION='3.2.4';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.

@@ -4,6 +4,18 @@ Toutes les versions notables de l'application. Format inspiré de *Keep a Change
 versionnage sémantique. La version affichée en pied de page (`APP_VERSION` dans `index.html`)
 et le cache du service worker (`sw.js`) sont tenus synchronisés par `release.sh`.
 
+## [3.2.4] — 2026-07-03
+### Corrigé
+- **Fenêtre Compte : zone tampon anti-mauvais-tap.** « Changer de compte » commençait 9 px sous
+  « Synchroniser maintenant » — un tap légèrement trop bas déconnectait (avec la confirmation de
+  la 3.2.3 en second filet). L'action fréquente est maintenant séparée des actions de compte par
+  24 px d'espace inerte ; les boutons restent cliquables sur toute leur surface (44 px).
+- **Icône « Aa » alignée sur la ligne de base, mesures à l'appui.** Le viewBox gardait 1,4 px de
+  vide sous les lettres : tout recentrage du cadre laissait les « A » trop bas. ViewBox recadré
+  au ras du dessin, puis bas des « A » calé sur la ligne de base réelle du texte voisin
+  (métriques de police vérifiées au pixel dans le navigateur) ; calibration documentée dans le
+  CSS pour éviter les futurs ajustements à l'aveugle.
+
 ## [3.2.3] — 2026-07-03
 ### Corrigé
 - **« Ma version écrasée » fonctionne enfin dans le cas courant.** La sauvegarde locale n'était
