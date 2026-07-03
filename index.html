@@ -691,6 +691,7 @@
   .auth-state .auth-dot{width:8px;height:8px;border-radius:50%;background:#37c98e;flex:none}
   .auth-state.pending{color:var(--verify)}.auth-state.pending .auth-dot{background:var(--verify)}
   .auth-state.err{color:var(--critical)}.auth-state.err .auth-dot{background:var(--critical)}
+  .auth-state.off{color:var(--ink-soft)}.auth-state.off .auth-dot{background:var(--line-strong)}
   /* État de l'instance (app-admin) : petites cartes de compteurs. */
   .inst-stats-wrap{margin:14px 0 4px}
   .auth-stats-h{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft);margin:0 0 8px}
@@ -941,7 +942,7 @@
 /* PALETTE : couleurs proposées pour les catégories (hex sombres, lisibles
    en texte comme en pastille teintée). Index réutilisé cycliquement. */
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='3.2.1';
+const APP_VERSION='3.2.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -2817,8 +2818,28 @@ const Auth={
   // Suppression RGPD : efface compte + données perso côté serveur (RPC SECURITY DEFINER).
   async deleteAccount(){await this._post('/rest/v1/rpc/delete_my_account',{});}
 };
+// État de synchro COURANT — SOURCE UNIQUE, posée par setSyncChip() : la pastille du pied de
+// page, le bandeau d'accueil ET la ligne d'état de la fenêtre Compte affichent tous cet état
+// (fini le « Synchronisation active » codé en dur dans la fenêtre alors que le pied de page
+// disait « Hors-ligne » ou « Erreur de synchro »).
+let _syncUi={state:'ok',text:'Connecté'};
+// Ligne d'état de la fenêtre Compte (point coloré + même texte que la pastille).
+function authStateHtml(){
+  const cls=_syncUi.state==='err'?' err':_syncUi.state==='off'?' off':_syncUi.state==='busy'?' pending':'';
+  return `<div class="auth-state${cls}" id="authState"><span class="auth-dot"></span>${esc(_syncUi.text)}</div>`;}
+// « Synchroniser maintenant » : grisé hors-ligne — acceptable UNIQUEMENT parce que la ligne
+// d'état juste au-dessus (authStateHtml) affiche « Hors-ligne » et explique pourquoi ; se
+// réactive en direct au retour du réseau (appelé par setSyncChip, même source _syncUi).
+function syncBtnRefresh(){const b=document.getElementById('authSync');if(!b)return;
+  const off=_syncUi.state==='off';b.disabled=off;
+  b.title=off?'Hors ligne : la synchronisation reprendra automatiquement au retour du réseau.':'';}
 // Pastille d'état : discrète, jamais bloquante. Connecté -> visible ; déconnecté -> masquée (app locale comme avant).
 function setSyncChip(state,text){
+  _syncUi={state:state||'ok',text:text||'Connecté'};
+  // Fenêtre Compte ouverte : sa ligne d'état ET le bouton « Synchroniser maintenant » suivent
+  // en DIRECT (mises à jour in-place, sans re-rendre la fenêtre — on ne casse pas une saisie).
+  {const as=document.getElementById('authState');if(as)as.outerHTML=authStateHtml();}
+  syncBtnRefresh();
   // Pastille d'état sur l'icône Compte de l'en-tête (présence + état de synchro), discrète.
   const dot=document.getElementById('acctDot'),top=document.getElementById('acctTop');
   if(dot){dot.hidden=!Auth.signedIn();dot.className='acct-dot '+(state||'ok');}
@@ -2889,15 +2910,24 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
           <div class="auth-actions"><button class="btn danger" id="delGo">Supprimer définitivement</button><button class="btn" id="delCancel">Annuler</button></div>
           <div style="text-align:center;margin-top:6px"><button class="tlink" id="delResend">Renvoyer le code</button></div></div>`;
         body.querySelector('#delCancel').onclick=()=>{_authDelete=false;renderAuth();};
-        body.querySelector('#delResend').onclick=async()=>{setM('Envoi du code…','');try{await Auth.sendCode(delEmail);setM('Code renvoyé.','ok');}catch(e){setM('Échec de l\'envoi : '+e.message,'err');}};
-        body.querySelector('#delGo').onclick=async()=>{
+        // Anti double-clic : chaque bouton est désactivé pendant son appel réseau (un renvoi de
+        // code invaliderait le précédent ; une double suppression ferait échouer bruyamment la 2e).
+        const dResend=body.querySelector('#delResend');
+        dResend.onclick=async()=>{if(dResend.disabled)return;
+          if(!Sync.online()){setM('Hors ligne : une connexion Internet est nécessaire pour recevoir le code.','err');return;}
+          dResend.disabled=true;setM('Envoi du code…','');
+          try{await Auth.sendCode(delEmail);setM('Code renvoyé.','ok');}catch(e){setM('Échec de l\'envoi : '+e.message,'err');}
+          dResend.disabled=false;};
+        const dGo=body.querySelector('#delGo');
+        dGo.onclick=async()=>{if(dGo.disabled)return;
           const code=(body.querySelector('#delCode').value||'').replace(/\D/g,'');
           if(!code){setM('Saisissez le code reçu par e-mail.','err');return;}
-          setM('Vérification…','');
+          dGo.disabled=true;dGo.textContent='Vérification…';
+          const reset=()=>{dGo.disabled=false;dGo.textContent='Supprimer définitivement';};
           // La vérification OTP renouvelle la session (preuve serveur) ; en cas d'échec, la
-          // session actuelle reste intacte et RIEN n'est supprimé.
-          try{await Auth.verifyCode(delEmail,code);}catch(e){setM('Code invalide ou expiré.','err');return;}
-          setM('Suppression…','');
+          // session actuelle reste intacte et RIEN n'est supprimé (bouton réactivé pour réessayer).
+          try{await Auth.verifyCode(delEmail,code);}catch(e){setM('Code invalide ou expiré.','err');reset();return;}
+          setM('Suppression…','');dGo.textContent='Suppression…';
           try{const wipe=!!_authDelete.wipe;await Auth.deleteAccount();await Auth.signOut();resetAuthState();
             if(wipe){await wipeLocal();location.reload();return;}
             _authDelete=false;_authStep={mode:'email',email:'',msg:'',msgcls:''};renderAuth();setSyncChip();if(state.view==='library')renderLibrary();toast('Votre compte a été supprimé.');
@@ -2905,11 +2935,13 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
             // Refus serveur « recent otp verification required » (défense en profondeur de la RPC,
             // voir supabase/schema.sql) : le code a plus de 10 min -> inviter à en recevoir un neuf.
             if(/otp verification/i.test(e.message||''))setM('Confirmation expirée : cliquez sur « Renvoyer le code » puis saisissez le nouveau code.','err');
-            else setM('Échec de la suppression : '+e.message,'err');}};
+            else setM('Échec de la suppression : '+e.message,'err');
+            reset();}};
         return;}
       body.innerHTML=`<div class="auth-del"><div class="auth-hero-ic danger"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 16H3z"/><path d="M12 9v5M12 17h.01"/></svg></div>
         <h4>Supprimer le compte ?</h4>
         <p class="auth-sub">Cette action est <b>irréversible</b>. Votre compte et votre bibliothèque personnelle synchronisée seront définitivement supprimés du cloud. Les fiches que vous avez ajoutées à des bibliothèques partagées y resteront.</p>
+        <p class="auth-sub">Par sécurité, votre identité doit être vérifiée : un <b>code de confirmation</b> vous sera envoyé à <b>${esc(delEmail)}</b>, à saisir avant la suppression.</p>
         <label class="auth-check"><input type="checkbox" id="delLocal"><span>Effacer aussi les fiches enregistrées sur <b>cet appareil</b></span></label>
         <p class="auth-confirm-lbl">Pour confirmer, tapez <b>SUPPRIMER</b> ci-dessous :</p>
         <input class="auth-field auth-confirm" id="delConfirm" autocomplete="off" autocapitalize="characters" placeholder="SUPPRIMER">
@@ -2917,12 +2949,16 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
         <div class="auth-actions"><button class="btn danger" id="delGo" disabled>Recevoir le code de confirmation</button><button class="btn" id="delCancel">Annuler</button></div></div>`;
       body.querySelector('#delCancel').onclick=()=>{_authDelete=false;renderAuth();};
       const delGo=body.querySelector('#delGo'),delConf=body.querySelector('#delConfirm');
-      delConf.addEventListener('input',()=>{delGo.disabled=(delConf.value||'').trim().toUpperCase()!=='SUPPRIMER';});
-      delGo.onclick=async()=>{if(delGo.disabled)return;const wipe=body.querySelector('#delLocal').checked;
+      // Anti double-clic : `delBusy` pendant l'envoi du code — le champ SUPPRIMER (qui pilote
+      // aussi delGo.disabled) ne peut pas réactiver le bouton au milieu de la requête.
+      let delBusy=false;
+      delConf.addEventListener('input',()=>{delGo.disabled=delBusy||(delConf.value||'').trim().toUpperCase()!=='SUPPRIMER';});
+      delGo.onclick=async()=>{if(delGo.disabled||delBusy)return;const wipe=body.querySelector('#delLocal').checked;
+        if(!Sync.online()){setM('Hors ligne : une connexion Internet est nécessaire pour recevoir le code.','err');return;}
         if(!await confirmDlg('Supprimer DÉFINITIVEMENT votre compte'+(wipe?' et les données de cet appareil':'')+' ? Un code de confirmation va vous être envoyé par e-mail.',{title:'Supprimer le compte',yes:'Recevoir le code',danger:true}))return;
-        setM('Envoi du code…','');
+        delBusy=true;delGo.disabled=true;delGo.textContent='Envoi du code…';setM('','');
         try{await Auth.sendCode(delEmail);_authDelete={step:2,wipe:wipe};renderAuth();}
-        catch(e){setM('Échec de l\'envoi du code : '+e.message,'err');}};
+        catch(e){setM('Échec de l\'envoi du code : '+e.message,'err');delBusy=false;delGo.disabled=false;delGo.textContent='Recevoir le code de confirmation';}};
       return;}
     const ini=((u.email||'?').trim()[0]||'?').toUpperCase();
     // Compte pas encore (ou plus) approuvé : e-mail vérifié (code OTP passé) mais synchro bloquée
@@ -2944,11 +2980,12 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
       body.querySelector('#authOut').onclick=async()=>{if(!await confirmDlg('Se déconnecter ?',{yes:'Se déconnecter'}))return;await doSignOut();};
       {const ad=body.querySelector('#authDelete');if(ad)ad.onclick=()=>{_authDelete=true;renderAuth();};}
       return;}
-    body.innerHTML=`<div class="auth-card-in"><div class="auth-avatar">${esc(ini)}</div><div class="auth-id"><div class="auth-email">${esc(u.email||'')}</div><div class="auth-state"><span class="auth-dot"></span>Synchronisation active</div></div></div>
+    body.innerHTML=`<div class="auth-card-in"><div class="auth-avatar">${esc(ini)}</div><div class="auth-id"><div class="auth-email">${esc(u.email||'')}</div>${authStateHtml()}</div></div>
       <p class="auth-sub">Votre bibliothèque personnelle est sauvegardée et accessible sur tous vos appareils connectés à ce compte.</p>
       <div class="auth-actions"><button class="btn primary" id="authSync">Synchroniser maintenant</button><button class="btn" id="authSwitch">Changer de compte</button><button class="btn" id="authOut">Se déconnecter</button>${myIsAppAdmin?`<button class="btn" id="authPending">Comptes en attente${myPendingCount?' ('+myPendingCount+')':''}</button>`:''}</div>
       ${myIsAppAdmin?'<div id="authStats" class="inst-stats-wrap" aria-label="État de l\'instance"></div><p class="auth-admin-note">Compte administrateur : la suppression se fait depuis le tableau de bord Supabase (garde-fou).</p>':'<button class="auth-danger" id="authDelete">Supprimer mon compte et mes données</button>'}`;
     body.querySelector('#authSync').onclick=()=>{Sync.full();closeAuth();};
+    syncBtnRefresh();   // état initial du bouton (grisé si hors-ligne à l'ouverture)
     body.querySelector('#authSwitch').onclick=async()=>{await doSignOut();}; // déconnecte et revient à l'écran de connexion (fenêtre ouverte)
     body.querySelector('#authOut').onclick=async()=>{if(!await confirmDlg('Se déconnecter ? Vos fiches restent disponibles localement sur cet appareil.',{yes:'Se déconnecter'}))return;await doSignOut();};
     {const ad=body.querySelector('#authDelete');if(ad)ad.onclick=()=>{_authDelete=true;renderAuth();};}
@@ -2963,9 +3000,17 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
       <p class="auth-msg ${_authStep.msgcls}">${esc(_authStep.msg)}</p>
       <details class="auth-why"><summary>Pourquoi créer un compte ?</summary><div class="auth-why-body">${storageExplainHtml()}</div></details>`;
     const send=body.querySelector('#authSend');
-    send.onclick=async()=>{const email=(body.querySelector('#authEmail').value||'').trim();if(!email||email.indexOf('@')<1){_authStep.msg='E-mail invalide.';_authStep.msgcls='err';return renderAuth();}
-      _authStep.email=email;_authStep.msg='Envoi du code…';_authStep.msgcls='';renderAuth();
-      try{await Auth.sendCode(email);_authStep.mode='code';_authStep.msg='';renderAuth();}
+    // ANTI DOUBLE-CLIC : bouton désactivé + libellé d'attente PENDANT l'appel réseau (un 2e envoi
+    // d'OTP invaliderait le 1er code reçu, et GoTrue rate-limite les envois rapprochés). L'ancien
+    // renderAuth() avant l'await recréait un bouton... cliquable. Le renderAuth() final (succès
+    // comme échec) recrée le bouton dans son état normal.
+    send.onclick=async()=>{if(send.disabled)return;
+      const email=(body.querySelector('#authEmail').value||'').trim();if(!email||email.indexOf('@')<1){_authStep.msg='E-mail invalide.';_authStep.msgcls='err';return renderAuth();}
+      // Hors-ligne : message clair AVANT d'essayer (sinon un « Failed to fetch » cryptique).
+      if(!Sync.online()){_authStep.msg='Hors ligne : une connexion Internet est nécessaire pour recevoir le code.';_authStep.msgcls='err';return renderAuth();}
+      send.disabled=true;send.textContent='Envoi du code…';
+      _authStep.email=email;_authStep.msg='';_authStep.msgcls='';
+      try{await Auth.sendCode(email);_authStep.mode='code';renderAuth();}
       catch(e){_authStep.msg='Échec de l\'envoi : '+e.message;_authStep.msgcls='err';renderAuth();}};
   }else{
     body.innerHTML=`<div class="auth-hero"><div class="auth-hero-ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg></div><h4>Saisissez le code</h4><p class="auth-sub">Un code a été envoyé à <b>${esc(_authStep.email)}</b>.</p></div>
@@ -2975,8 +3020,11 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
       <p class="auth-msg ${_authStep.msgcls}">${esc(_authStep.msg)}</p>`;
     body.querySelector('#authBack').onclick=()=>{_authStep.mode='email';_authStep.msg='';renderAuth();};
     const v=body.querySelector('#authVerify');
-    v.onclick=async()=>{const code=(body.querySelector('#authCode').value||'').replace(/\D/g,'');if(!code){_authStep.msg='Saisissez le code reçu.';_authStep.msgcls='err';return renderAuth();}
-      _authStep.msg='Vérification…';_authStep.msgcls='';renderAuth();
+    v.onclick=async()=>{if(v.disabled)return;   // anti double-clic (même principe que l'envoi du code)
+      const code=(body.querySelector('#authCode').value||'').replace(/\D/g,'');if(!code){_authStep.msg='Saisissez le code reçu.';_authStep.msgcls='err';return renderAuth();}
+      if(!Sync.online()){_authStep.msg='Hors ligne : une connexion Internet est nécessaire pour vérifier le code.';_authStep.msgcls='err';return renderAuth();}
+      v.disabled=true;v.textContent='Vérification…';
+      _authStep.msg='';_authStep.msgcls='';
       try{await Auth.verifyCode(_authStep.email,code);_authStep.msg='';await refreshAccountStatus();renderAuth();setSyncChip();if(typeof Sync!=='undefined')Sync.full();}
       catch(e){_authStep.msg='Code invalide ou expiré.';_authStep.msgcls='err';renderAuth();}};
   }}

@@ -4,6 +4,34 @@ Toutes les versions notables de l'application. Format inspiré de *Keep a Change
 versionnage sémantique. La version affichée en pied de page (`APP_VERSION` dans `index.html`)
 et le cache du service worker (`sw.js`) sont tenus synchronisés par `release.sh`.
 
+## [3.2.2] — 2026-07-03
+### Corrigé
+- **Anti double-clic sur tout le parcours compte.** Les boutons « Recevoir le code »,
+  « Valider » (connexion) et ceux de la suppression de compte (envoi, renvoi, suppression)
+  se désactivent pendant l'appel réseau avec un libellé d'attente (« Envoi du code… »,
+  « Vérification… », « Suppression… ») et se réactivent en cas d'échec. Un double clic
+  envoyait deux requêtes : le 2ᵉ code OTP invalidait le 1ᵉʳ reçu par e-mail (« Code invalide »
+  incompréhensible) et GoTrue rate-limitait l'envoi. Le champ SUPPRIMER ne peut plus réactiver
+  le bouton au milieu d'une requête.
+- **La fenêtre Compte dit la vérité sur la synchro.** « Synchronisation active » était codé en
+  dur alors que le pied de page affichait « Hors-ligne » ou « Erreur de synchro ». La ligne
+  d'état de la fenêtre reflète désormais exactement le même état que la pastille (source
+  unique `_syncUi` posée par setSyncChip — aucune logique dupliquée), mise à jour en direct
+  si la fenêtre est ouverte quand l'état change.
+
+### Modifié
+- **Hors-ligne dit clairement son nom.** Tenter de se connecter/s'inscrire (ou de recevoir un
+  code de suppression) sans réseau affiche « Hors ligne : une connexion Internet est
+  nécessaire… » avant tout appel, au lieu d'un échec réseau cryptique. Le bouton
+  « Synchroniser maintenant » est grisé hors-ligne — légitime ici car la ligne d'état juste
+  au-dessus explique pourquoi, et il se réactive en direct au retour du réseau ; les boutons
+  de connexion, eux, restent actifs (pas d'indicateur réseau sur cet écran : un clic → message
+  vaut mieux qu'un bouton grisé inexpliqué).
+- **Suppression de compte : le processus est annoncé avant le bouton.** Le texte explique
+  désormais « Par sécurité, votre identité doit être vérifiée : un code de confirmation vous
+  sera envoyé à votre-adresse@… » — le bouton « Recevoir le code de confirmation » n'introduit
+  plus le concept de code sans prévenir, et l'utilisateur sait quelle boîte mail surveiller.
+
 ## [3.2.1] — 2026-07-03
 ### Corrigé
 - **iPhone en paysage : plus de textes agrandis de façon disproportionnée** (jauge de stockage,
