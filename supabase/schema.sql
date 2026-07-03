@@ -275,10 +275,16 @@ create table if not exists public.user_status (
 -- l'autorise déjà via l'interrupteur global) MAIS apparaît quand même, à tort, dans la liste
 -- « Comptes en attente » -> confusion pour l'app-admin, et rattrapage rétroactif surprenant si la
 -- validation est réactivée plus tard (des comptes déjà pleinement actifs se retrouveraient à valider).
+-- GARDE ANTI-SPAM : un compte n'entre dans user_status (donc dans « Comptes en attente »)
+-- qu'une fois son e-mail VÉRIFIÉ (code OTP saisi -> email_confirmed_at posé par GoTrue).
+-- Demander un code (create_user) crée déjà la ligne auth.users AVANT toute vérification :
+-- sans ce garde, n'importe qui pouvait remplir la liste d'attente d'adresses jamais
+-- confirmées (pollution + risque qu'un admin approuve une adresse non vérifiée).
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer set search_path = public as $$
 declare v_status text := 'pending';
 begin
+  if new.email_confirmed_at is null then return new; end if;  -- e-mail pas encore vérifié -> rien
   if not coalesce((select require_approval from public.app_settings limit 1), true) then
     v_status := 'approved';
   end if;
@@ -287,14 +293,23 @@ begin
   return new;
 end;$$;
 drop trigger if exists on_auth_user_created on auth.users;
-create trigger on_auth_user_created after insert on auth.users
+-- INSERT (comptes créés déjà confirmés, ex. via dashboard) ET UPDATE de email_confirmed_at
+-- (parcours normal : création à la demande du code, confirmation à la saisie du code).
+create trigger on_auth_user_created after insert or update of email_confirmed_at on auth.users
   for each row execute function public.handle_new_user();
 
--- Migration : les comptes déjà existants (vous y compris, en tant qu'app-admin actuel)
--- sont approuvés d'office -> aucun risque de vous retrouver bloqué en ré-exécutant ce script.
+-- Migration : les comptes déjà existants (vous y compris, en tant qu'app-admin actuel) sont
+-- approuvés d'office -> aucun risque de vous retrouver bloqué en ré-exécutant ce script.
+-- UNIQUEMENT les e-mails vérifiés (sinon le rejeu ressusciterait les inscriptions fantômes).
 insert into public.user_status(user_id, email, status, decided_at)
   select id, email, 'approved', now() from auth.users
+  where email_confirmed_at is not null
   on conflict (user_id) do nothing;
+
+-- Nettoyage : retire de la liste d'attente les inscriptions jamais vérifiées déjà enregistrées.
+delete from public.user_status s
+  using auth.users u
+  where s.user_id = u.id and u.email_confirmed_at is null and s.status = 'pending';
 
 alter table public.user_status enable row level security;
 -- Chacun voit sa PROPRE ligne (pour connaître son statut) ; un app-admin voit tout.

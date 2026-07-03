@@ -4,6 +4,52 @@ Toutes les versions notables de l'application. Format inspiré de *Keep a Change
 versionnage sémantique. La version affichée en pied de page (`APP_VERSION` dans `index.html`)
 et le cache du service worker (`sw.js`) sont tenus synchronisés par `release.sh`.
 
+## [3.2.3] — 2026-07-03
+### Corrigé
+- **« Ma version écrasée » fonctionne enfin dans le cas courant.** La sauvegarde locale n'était
+  créée qu'en cas de conflit (modification locale non poussée) : une fiche partagée mise à jour
+  par un collègue remplaçait votre copie sans rien archiver. La version locale est désormais
+  archivée à **chaque** remplacement par une version distante (5 versions max par fiche).
+- **Déconnexions intempestives.** (1) `Auth.refresh()` est désormais *single-flight* : deux
+  rafraîchissements simultanés du jeton (synchro de démarrage + fenêtre Compte + « Synchroniser
+  maintenant ») partaient avec le même refresh token — GoTrue rejetait le second (« déjà
+  utilisé ») et déconnectait. (2) « Changer de compte », voisin de « Synchroniser maintenant »,
+  déconnectait instantanément sans confirmation : il en demande une désormais.
+- **Journal des actions** : valider un horaire sans le changer n'affiche plus de fausse mention
+  « à l'origine HH:MM:SS » (posée pour un simple écart de millisecondes).
+- **Bibliothèque partagée vide** : le texte s'adapte aux droits — un lecteur voit « Cette
+  bibliothèque partagée est vide. » au lieu de l'appel à « créer votre première aide cognitive ».
+- **Icône « Aa »** recentrée d'un pixel supplémentaire.
+
+### Modifié
+- **Import : destination explicite.** Perso par défaut ; si une bibliothèque partagée éditable
+  est sélectionnée, l'app demande où importer (publier à l'équipe n'est jamais silencieux).
+  Les catégories importées rejoignent le jeu de la bibliothèque de destination, « REMPLACER »
+  ne touche plus que la destination (avant : toutes les bibliothèques !), l'app bascule sur la
+  destination et le toast la nomme.
+- **Déplacement de fiche entre bibliothèques : confirmations.** Sortir une fiche d'une
+  bibliothèque partagée prévient que les membres perdront l'accès à la fiche et à leurs notes
+  personnelles ; la déplacer vers une bibliothèque partagée confirme la publication à l'équipe.
+- **« dernière modification par … »** remplace « modifiée par … » sur les fiches partagées
+  (l'ancien libellé laissait croire à un auteur unique de la fiche).
+- **« Synchroniser maintenant » laisse la fenêtre ouverte** : la ligne d'état au-dessus montre
+  « Synchro en cours » puis le résultat — un vrai retour, au lieu d'une fermeture muette.
+- **« Reprendre »** remplace « Ouvrir » pour les sessions (bandeau d'accueil et historique) :
+  le bouton recharge l'état complet (étapes, minuteurs, compteurs), pas une simple ouverture.
+- **Rappel de session dans l'en-tête** : « MODE CRISE · ● session en cours » (point pulsé),
+  visible en permanence pendant une session — sans recolorer l'en-tête ni exposer de bouton
+  « Terminer » en zone de tap fréquente (action destructrice = jamais rendue plus accessible).
+- **Suppression de compte : avertissement « seul administrateur »** — si vous êtes l'unique
+  admin de bibliothèques partagées, l'écran vous invite à nommer un remplaçant avant de partir
+  (sinon seul l'administrateur de l'instance pourra en gérer les membres). Non bloquant.
+
+### Serveur (à rejouer dans Supabase : `schema.sql` puis `rls-tests.sql`)
+- **Anti-spam de la liste d'attente** : un compte n'entre dans `user_status` (« Comptes en
+  attente ») qu'une fois son e-mail **vérifié** (code OTP saisi). Avant, demander un code
+  suffisait : n'importe qui pouvait remplir la liste de fausses adresses, approuvables par
+  erreur. La migration du script ignore les e-mails non vérifiés (un rejeu ne les ressuscite
+  pas) et un nettoyage purge les inscriptions fantômes existantes. Test RLS ajouté (5bis).
+
 ## [3.2.2] — 2026-07-03
 ### Corrigé
 - **Anti double-clic sur tout le parcours compte.** Les boutons « Recevoir le code »,

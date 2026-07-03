@@ -23,6 +23,7 @@ do $$
 declare
   alice uuid := '11111111-1111-1111-1111-111111111111';
   bob   uuid := '22222222-2222-2222-2222-222222222222';
+  carol uuid := '33333333-3333-3333-3333-333333333333';
   v_hack text;
   v_cnt  int;
 begin
@@ -86,6 +87,18 @@ begin
     insert into public.fiches(id,owner,library_id,data) values ('f-bob',bob,null,'{"t":1}');
     raise exception 'ÉCHEC : un compte pending a pu écrire dans son espace perso';
   exception when insufficient_privilege then null; end;
+
+  ------------------------------------------------------------------ 5bis. Liste d'attente : e-mail vérifié exigé
+  -- Demander un code OTP crée la ligne auth.users AVANT toute vérification : elle ne doit PAS
+  -- apparaître en attente tant que l'e-mail n'est pas confirmé (anti-spam de fausses adresses).
+  reset role;
+  insert into auth.users (id, email) values (carol,'carol@test.local') on conflict (id) do nothing;
+  select count(*) into v_cnt from public.user_status where user_id=carol;
+  if v_cnt <> 0 then raise exception 'ÉCHEC : une inscription non vérifiée apparaît dans user_status'; end if;
+  -- L'utilisateur saisit son code (GoTrue pose email_confirmed_at) -> il apparaît alors en attente.
+  update auth.users set email_confirmed_at=now() where id=carol;
+  select count(*) into v_cnt from public.user_status where user_id=carol and status='pending';
+  if v_cnt <> 1 then raise exception 'ÉCHEC : un e-mail vérifié n''apparaît pas en attente de validation'; end if;
 
   ------------------------------------------------------------------ 6. Notes personnelles : privées et gatées
   -- Bob est PENDING (section 5) : l'écriture d'une note est bloquée par le gate is_approved().

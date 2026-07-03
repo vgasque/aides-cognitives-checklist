@@ -558,6 +558,8 @@
   .sess-dot{--pulse:13,91,86;width:9px;height:9px;border-radius:50%;background:var(--primary);flex-shrink:0;box-shadow:0 0 0 0 rgba(var(--pulse),.45);animation:pulse 2s infinite}
   @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(var(--pulse),.45)}70%{box-shadow:0 0 0 7px rgba(var(--pulse),0)}100%{box-shadow:0 0 0 0 rgba(var(--pulse),0)}}
   html[data-theme="dark"] .sess-dot{--pulse:63,176,166}
+  /* Rappel « session en cours » dans l'en-tête (fond sombre dans les deux thèmes) : teal clair. */
+  #brandSub .sess-dot{display:inline-block;width:8px;height:8px;background:#5fd0c4;--pulse:95,208,196;vertical-align:0;margin:0 1px}
   .sess-livetag{font-size:10px;font-weight:700;color:var(--primary-dk);background:var(--primary-soft);padding:1px 7px;border-radius:10px;margin-left:6px}
   .sess-list{background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius-md);padding:6px 10px;margin-bottom:18px}
   /* Rangée d'historique : les ACTIONS passent sous le titre quand elles ne tiennent pas (téléphone),
@@ -667,6 +669,7 @@
   .storage-gauge .pers-warn{color:var(--verify)}
   .tlink{background:none;border:0;color:var(--primary);font-size:13px;font-weight:600;padding:6px 10px;min-height:32px;display:inline-flex;align-items:center;gap:4px;border-radius:8px}.tlink:hover{background:var(--primary-soft)}#installBtn{display:none}
   .zoom-tlink{display:inline-flex;align-items:center;gap:4px;vertical-align:middle}
+  .zoom-tlink svg{margin-top:-1px}  /* le dessin « Aa » pèse vers le bas de son viewBox -> recentrage optique */
   /* Pastille d'état de synchro : discrète, jamais bloquante (app critique). */
   .sync-chip{font-size:11px;font-weight:600;padding:2px 9px;border-radius:999px;display:inline-flex;align-items:center;gap:5px;line-height:1.7}
   .sync-chip[hidden]{display:none} /* le display:inline-flex ci-dessus prime sinon sur [hidden] (même origine auteur) */
@@ -942,7 +945,7 @@
 /* PALETTE : couleurs proposées pour les catégories (hex sombres, lisibles
    en texte comme en pastille teintée). Index réutilisé cycliquement. */
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='3.2.2';
+const APP_VERSION='3.2.3';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -1708,7 +1711,12 @@ async function deleteSession(id){if(!await confirmDlg('Supprimer cette session ?
 function render(){
   // En mode crise, l'en-tête met le TITRE DE LA FICHE en avant (classe .crisis) ; la marque s'efface.
   document.querySelector('header.bar').classList.toggle('crisis',state.view==='read'&&!!state.fiche);
-  document.getElementById('brandSub').textContent=state.view==='library'?'Bibliothèque':state.view==='edit'?'Édition':'Mode crise';
+  // En session active, l'en-tête porte un rappel PERMANENT mais discret (point pulsé + texte) :
+  // assez visible pour ne pas oublier la session, sans recolorer tout l'en-tête ni exposer un
+  // bouton « Terminer » en zone de tap fréquente (action à ne PAS rendre plus accessible en crise).
+  {const bs=document.getElementById('brandSub');
+   if(state.view==='read'&&Runtime.started)bs.innerHTML='Mode crise · <span class="sess-dot" aria-hidden="true"></span> session en cours';
+   else bs.textContent=state.view==='library'?'Bibliothèque':state.view==='edit'?'Édition':'Mode crise';}
   const bt=document.getElementById('brandTitle');if(bt){const t=state.view==='read'&&state.fiche?state.fiche.title||'':'';bt.textContent=t;bt.style.display=t?'block':'none';}
   if(state.view==='library')renderLibrary();else if(state.view==='edit')renderEditor();else renderRead();
   document.getElementById('count').textContent=fiches.length+' fiche'+(fiches.length>1?'s':'')+' · v'+APP_VERSION;
@@ -1739,7 +1747,7 @@ function renderLibrary(){
   const catbar=`<div class="catbar"><div class="chiprow">${chips}</div></div>`;
   // SESSIONS EN COURS (vives) : accès rapide en haut de l'accueil + actions (reprendre/réinit/terminer).
   const liveArr=Object.values(liveSessions).filter(R=>R.started&&R.fiche);
-  const liveHtml=liveArr.length?`<div class="live-sessions"><div class="ls-h"><span class="sess-dot"></span>Sessions en cours · ${liveArr.length}</div>${liveArr.map(R=>{const run=Object.values(R.timers).filter(t=>t.running).length;return `<div class="ls-row"><div class="ls-info" data-openlive="${R.ficheId}" role="button" tabindex="0"><b>${esc(R.fiche.title||'Sans titre')}</b><span>depuis ${timeAgo(R.startedAt)}${run?` · ${run} minuteur${run>1?'s':''} actif${run>1?'s':''}`:''}</span></div><div class="ls-acts"><button class="btn sm primary" data-openlive="${R.ficheId}">Ouvrir</button><button class="btn sm danger" data-endlive="${R.ficheId}">Terminer</button></div></div>`;}).join('')}</div>`:'';
+  const liveHtml=liveArr.length?`<div class="live-sessions"><div class="ls-h"><span class="sess-dot"></span>Sessions en cours · ${liveArr.length}</div>${liveArr.map(R=>{const run=Object.values(R.timers).filter(t=>t.running).length;return `<div class="ls-row"><div class="ls-info" data-openlive="${R.ficheId}" role="button" tabindex="0"><b>${esc(R.fiche.title||'Sans titre')}</b><span>depuis ${timeAgo(R.startedAt)}${run?` · ${run} minuteur${run>1?'s':''} actif${run>1?'s':''}`:''}</span></div><div class="ls-acts"><button class="btn sm primary" data-openlive="${R.ficheId}">Reprendre</button><button class="btn sm danger" data-endlive="${R.ficheId}">Terminer</button></div></div>`;}).join('')}</div>`:'';
   main.innerHTML=`
     ${scopeBar}
     ${liveHtml}
@@ -1754,7 +1762,11 @@ function renderLibrary(){
         <div class="card-meta">${isLive?'<span class="tag live">● En cours</span>':''}${catTag(f)}${sc?`<span class="tag sess" title="Sessions enregistrées dans l'historique">${sc} sauvegardée${sc>1?'s':''}</span>`:''}<span class="card-date${staleDate(f.validation)?' stale':''}">${esc(fmtDate(f.validation))}${staleDate(f.validation)?' · à revoir':''}</span></div></div>
         <button class="pinbtn${isPinned(f.id)?' on':''}" data-pin="${f.id}" aria-label="${isPinned(f.id)?'Désépingler':'Épingler en haut de la liste'}" title="${isPinned(f.id)?'Désépingler':'Épingler en haut de la liste'}"><svg width="18" height="18" viewBox="0 0 24 24" fill="${isPinned(f.id)?'currentColor':'none'}" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"/></svg></button>
         <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></div>`;}).join('')+(list.length>state.libLimit?`<button class="btn" id="showMore" style="width:100%;margin-top:2px">Afficher plus (${list.length-state.libLimit} restante${list.length-state.libLimit>1?'s':''})</button>`:'')
-      :`<div class="empty"><b>Aucune fiche</b>${state.q||state.cat?'Aucun résultat pour ce filtre.':'Créez votre première aide cognitive.'}</div>`}</div>`;
+      :`<div class="empty"><b>Aucune fiche</b>${state.q||state.cat?'Aucun résultat pour ce filtre.'
+        // Appel à l'action SEULEMENT si on peut créer ici : un lecteur d'une bibliothèque
+        // partagée ne peut pas « créer sa première aide cognitive ».
+        :state.scope?(canEdit?'Cette bibliothèque partagée est vide — créez sa première fiche.':'Cette bibliothèque partagée est vide.')
+        :'Créez votre première aide cognitive.'}</div>`}</div>`;
 
   document.getElementById('q').addEventListener('input',e=>{state.q=e.target.value;state.libLimit=LIB_PAGE;const pos=e.target.selectionStart;renderLibrary();const inp=document.getElementById('q');inp.focus();inp.setSelectionRange(pos,pos);});
   {const sm=document.getElementById('showMore');if(sm)sm.onclick=()=>{state.libLimit+=LIB_PAGE;renderLibrary();};}
@@ -2221,11 +2233,11 @@ function renderRead(){
   const sessBar=started
     ?`<div class="session-bar live"><span class="sess-dot"></span><div class="sess-info"><b>Session en cours</b><span>depuis ${timeAgo(Runtime.startedAt)} · enregistrée automatiquement</span></div><div class="sess-acts"><button class="btn sm danger" id="endSess" title="Clôt la session (gardée dans l'historique) et remet la fiche à zéro">Terminer</button>${ss.length?`<button class="btn sm sess-hist" id="toggleSess">Historique (${ss.length})</button>`:''}</div></div>`
     :`<div class="session-bar idle"><span class="sess-hint">La session démarre à la 1ʳᵉ action (cocher, minuteur, compteur ou horodatage) et s'enregistre automatiquement ensuite.</span>${ss.length?`<button class="btn sm" id="toggleSess">Historique (${ss.length})</button>`:''}</div>`;
-  const sessList=(state.showSess&&ss.length)?`<div class="sess-list">${ss.map(s=>`<div class="sess-row"><div class="si"><div class="sn">${esc(s.name)}${s.live?' <span class="sess-livetag">en cours</span>':''}</div><div class="sd">${new Date(s.savedAt).toLocaleString('fr-FR')}</div></div><div class="sess-acts"><button class="btn sm" data-resume="${s.id}">Ouvrir</button><button class="btn sm" data-report="${s.id}" title="Compte-rendu imprimable">Compte-rendu</button><button class="mini del" data-delsess="${s.id}" aria-label="Supprimer la session">×</button></div></div>`).join('')}</div>`:'';
+  const sessList=(state.showSess&&ss.length)?`<div class="sess-list">${ss.map(s=>`<div class="sess-row"><div class="si"><div class="sn">${esc(s.name)}${s.live?' <span class="sess-livetag">en cours</span>':''}</div><div class="sd">${new Date(s.savedAt).toLocaleString('fr-FR')}</div></div><div class="sess-acts"><button class="btn sm" data-resume="${s.id}" title="Rouvre la session là où elle en était (étapes cochées, minuteurs, compteurs)">Reprendre</button><button class="btn sm" data-report="${s.id}" title="Compte-rendu imprimable">Compte-rendu</button><button class="mini del" data-delsess="${s.id}" aria-label="Supprimer la session">×</button></div></div>`).join('')}</div>`:'';
   main.innerHTML=`
     <button class="back" id="back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Bibliothèque</button>
     <div class="read-head"><h2>${esc(f.title)||'Sans titre'}</h2></div>
-    <div class="read-meta">${f.libraryId?`<span class="tag libtag" title="Bibliothèque partagée"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/></svg>${esc(libName(f.libraryId)||'Partagée')}</span>`:''}${f.status==='draft'?'<span class="tag draft">Brouillon</span>':''}${catTag(f)}<span class="card-date${staleDate(f.validation)?' stale':''}">${esc(fmtDate(f.validation))}</span>${f.libraryId&&f.updatedBy?`<span class="card-date" title="Dernière modification">· modifiée par ${esc(f.updatedBy)}</span>`:''}</div>
+    <div class="read-meta">${f.libraryId?`<span class="tag libtag" title="Bibliothèque partagée"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/></svg>${esc(libName(f.libraryId)||'Partagée')}</span>`:''}${f.status==='draft'?'<span class="tag draft">Brouillon</span>':''}${catTag(f)}<span class="card-date${staleDate(f.validation)?' stale':''}">${esc(fmtDate(f.validation))}</span>${f.libraryId&&f.updatedBy?`<span class="card-date" title="Auteur de la dernière modification (pas forcément de toute la fiche)">· dernière modification par ${esc(f.updatedBy)}</span>`:''}</div>
     ${f.status==='draft'?`<div class="notice"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z" stroke-linecap="round" stroke-linejoin="round"/></svg><div><b>Brouillon</b> — cette fiche n'a pas encore été validée pour l'usage clinique.</div></div>`:''}
     ${forgetStrip}
     ${sessBar}${sessList}
@@ -2467,6 +2479,15 @@ async function saveDraft(){const d=state.draft;d.title=(d.title||'').trim();
   d.counters=(d.counters||[]).map(c=>({id:c.id,label:(c.label||'').trim(),step:Math.max(1,parseInt(c.step||1)||1),start:parseInt(c.start||0)||0}));
   delete d.blocks._start;if(!d.start||!d.blocks.some(b=>b.id===d.start))d.start=d.blocks[0]?d.blocks[0].id:null;
   if(!d.title){toast('⚠ Donnez un titre à la fiche.');return;}if(typeof d.order!=='number')d.order=Date.now();
+  // CHANGEMENT DE BIBLIOTHÈQUE : conséquences irréversibles pour les AUTRES -> confirmation
+  // explicite. Sortie d'une bibliothèque partagée : les membres perdent l'accès à la fiche ET à
+  // leurs notes personnelles attachées (toujours en base, mais illisibles sans la fiche).
+  // Entrée dans une bibliothèque partagée : publication à toute l'équipe.
+  {const orig=fiches.find(x=>x.id===d.id);const from=(orig&&orig.libraryId)||null,to=d.libraryId||null;
+   if(orig&&from!==to){
+     if(from&&!await confirmDlg('Cette fiche va quitter la bibliothèque partagée « '+(libName(from)||'partagée')+' » : les autres membres n\'y auront plus accès, et les notes personnelles qu\'ils y avaient attachées ne leur seront plus visibles. Prévenez-les avant si besoin.',{title:'Retirer de la bibliothèque partagée',yes:'Déplacer la fiche',danger:true}))return;
+     if(to&&!await confirmDlg('Cette fiche va être publiée dans « '+(libName(to)||'la bibliothèque partagée')+' » : elle sera visible par tous les membres'+(d.status==='draft'?' pouvant éditer (brouillon masqué aux lecteurs)':'')+'.',{title:'Publier dans la bibliothèque partagée',yes:'Publier la fiche'}))return;
+   }}
   // La structure de la fiche change : on TERMINE une éventuelle session vive (archivée) pour éviter
   // une incohérence minuteurs/blocs, puis on rouvre la fiche à neuf.
   if(!(await persist(d)))return;const i=fiches.findIndex(x=>x.id===d.id);if(i>=0)fiches[i]=d;else fiches.push(d);if(liveSessions[d.id])endSession(liveSessions[d.id]);state.draft=null;resetRuntime();openRead(d.id);}
@@ -2701,9 +2722,12 @@ bindModalDismiss(catModal,closeCatMgr);
      n'embarque que les catégories utilisées). Même enveloppe -> réimportable.
    Import : accepte le format objet (nouveau) ou un simple tableau de fiches
      (ancien) ; fonctionne pour une librairie entière comme pour une fiche seule.
-     Propose de FUSIONNER ou de REMPLACER UNIQUEMENT si l'import contient plusieurs
-     fiches ; un import d'une seule fiche fusionne toujours (jamais d'écrasement de
-     la bibliothèque). Ajoute les catégories manquantes.
+     DESTINATION : Perso par défaut ; si une bibliothèque partagée éditable est
+     sélectionnée à l'accueil, demande où importer (publier à l'équipe = jamais
+     silencieux). Propose de FUSIONNER ou de REMPLACER (la destination seulement,
+     et UNIQUEMENT si l'import contient plusieurs fiches) ; un import d'une seule
+     fiche fusionne toujours. Ajoute les catégories manquantes au jeu de la
+     bibliothèque de destination.
      DOUBLONS (même id, mode fusion) : demande une fois s'il faut remplacer la
      version existante ou importer en double ; sinon régénère l'id (copie).
 
@@ -2746,15 +2770,31 @@ document.getElementById('importBtn').onclick=()=>document.getElementById('import
 function stripJsonFences(s){s=String(s==null?'':s).replace(/^\uFEFF/,'').trim();const m=s.match(/^```[a-zA-Z0-9-]*\s*([\s\S]*?)\s*```$/);return m?m[1]:s;}
 document.getElementById('importFile').onchange=e=>{const file=e.target.files[0];if(!file)return;const r=new FileReader();
   r.onload=async()=>{try{const data=JSON.parse(stripJsonFences(r.result));const imp=Array.isArray(data)?{fiches:data,categories:[]}:data;if(!Array.isArray(imp.fiches))throw 0;
+    // DESTINATION : Perso par défaut. Si une bibliothèque PARTAGÉE ÉDITABLE est sélectionnée à
+    // l'accueil, on DEMANDE (importer dans une bibliothèque partagée = publier à toute l'équipe :
+    // jamais en silence). Lecteur d'une bibliothèque partagée -> Perso d'office (pas de droits).
+    let targetLib=null;
+    if(state.scope&&canEditScope(state.scope)){
+      const dest=await confirmDlg('Où importer '+(imp.fiches.length>1?'ces '+imp.fiches.length+' fiches':'cette fiche')+' ?',{title:'Destination de l\'import',yes:'Dans « '+(libName(state.scope)||'la bibliothèque partagée')+' » (visible par les membres)',no:'Dans ma bibliothèque perso'});
+      if(dest===null){pendingOpenImport=false;return;}
+      if(dest)targetLib=state.scope;
+    }
+    const scopeLbl=targetLib?('« '+(libName(targetLib)||'la bibliothèque partagée')+' »'):'votre bibliothèque perso';
     // Fonctionne pour une librairie entière comme pour une fiche seule (fiches = tableau de 1).
     // SÉCURITÉ : l'option destructive "remplacer entièrement" n'est proposée que pour un
-    // import de PLUSIEURS fiches. Un import d'une seule fiche fusionne toujours (jamais d'écrasement).
+    // import de PLUSIEURS fiches, et ne touche QUE la bibliothèque de destination.
     // Tri-état : Fusionner (true) / Remplacer tout (false) / ✕-Échap (null) = import ABANDONNÉ —
     // l'ancien confirm() natif ne permettait pas d'annuler proprement cette étape destructive.
-    const merge=imp.fiches.length>1?await confirmDlg('Import de '+imp.fiches.length+' fiches.',{title:'Importer',yes:'Fusionner avec ma bibliothèque',no:'REMPLACER toute la bibliothèque'}):true;
+    const merge=imp.fiches.length>1?await confirmDlg('Import de '+imp.fiches.length+' fiches.',{title:'Importer',yes:'Fusionner avec '+scopeLbl,no:'REMPLACER '+scopeLbl}):true;
     if(merge===null){pendingOpenImport=false;return;}
-    if(!merge){if(!await confirmDlg('Toutes vos fiches actuelles seront supprimées puis remplacées par le contenu du fichier. Continuer ?',{title:'Remplacer la bibliothèque',yes:'Tout remplacer',danger:true}))return void(pendingOpenImport=false);for(const f of fiches)await softDelete(f);fiches=[];}
-    sanitizeCats(imp.categories).forEach(c=>{if(c.id&&!categories.some(x=>x.id===c.id))categories.push(c);});await saveCats();
+    if(!merge){if(!await confirmDlg('Toutes les fiches de '+scopeLbl+' seront supprimées puis remplacées par le contenu du fichier. Continuer ?',{title:'Remplacer la bibliothèque',yes:'Tout remplacer',danger:true}))return void(pendingOpenImport=false);
+      for(const f of fiches.filter(x=>(x.libraryId||null)===targetLib))await softDelete(f);
+      fiches=fiches.filter(x=>(x.libraryId||null)!==targetLib);}
+    // Catégories importées : rattachées à la bibliothèque de DESTINATION (chaque bibliothèque a
+    // son propre jeu de catégories) ; ajoutées seulement si absentes de ce jeu-là.
+    sanitizeCats(imp.categories).forEach(c=>{if(!c.id)return;c.libraryId=targetLib;
+      if(!categories.some(x=>x.id===c.id&&(x.libraryId||null)===targetLib))categories.push(c);});
+    await saveCats(targetLib);
     // Gestion des doublons (même identifiant) en mode fusion : remplacer la version
     // existante, ou importer en double (garder les deux). En mode remplacement, pas de doublon.
     const existing=new Set(fiches.map(x=>x.id));
@@ -2763,16 +2803,20 @@ document.getElementById('importFile').onchange=e=>{const file=e.target.files[0];
     if(replace===null){pendingOpenImport=false;return;}
     const added=[];
     for(let d of imp.fiches){d=migrate(d);
-      // Référence de catégorie orpheline (id absent du fichier importé ET de la bibliothèque locale) :
-      // on la vide plutôt que de laisser migrateCategories() la transformer en catégorie fantôme
-      // (elle traiterait alors l'id brut comme un nom de catégorie lisible).
-      if(d.category&&!categories.some(c=>c.id===d.category))d.category='';
+      d.libraryId=targetLib;   // migrate() vide libraryId (sécurité) -> on pose la destination choisie
+      // Référence de catégorie orpheline (id absent du fichier importé ET du jeu de catégories de
+      // la bibliothèque de destination) : on la vide plutôt que de laisser migrateCategories() la
+      // transformer en catégorie fantôme (elle traiterait l'id brut comme un nom lisible).
+      if(d.category&&!categories.some(c=>c.id===d.category&&(c.libraryId||null)===targetLib))d.category='';
       if(d.id&&existing.has(d.id)&&replace){if(await persist(d)){const i=fiches.findIndex(x=>x.id===d.id);if(i>=0)fiches[i]=d;else fiches.push(d);added.push(d.id);}}
       else{if(!d.id||existing.has(d.id))d.id=uid();existing.add(d.id);if(await persist(d)){fiches.push(d);added.push(d.id);}}}
     // Depuis la fenêtre IA : on ouvre directement la fiche importée plutôt que la bibliothèque.
     const openId=pendingOpenImport&&added.length?added[added.length-1]:null;pendingOpenImport=false;
+    // On AFFICHE la destination (sinon des fiches importées « dans Perso » depuis une bibliothèque
+    // partagée sélectionnée sembleraient avoir disparu).
+    state.scope=targetLib;state.cat='';
     if(openId)openRead(openId);else{state.view='library';render();}
-    if(added.length)toast(added.length>1?added.length+' fiches importées.':'1 fiche importée.');}catch(err){pendingOpenImport=false;toast('⚠ Fichier illisible.');}};
+    if(added.length)toast((added.length>1?added.length+' fiches importées':'1 fiche importée')+' dans '+scopeLbl+'.');}catch(err){pendingOpenImport=false;toast('⚠ Fichier illisible.');}};
   r.readAsText(file);e.target.value='';};
 
 /* ===== Compte & synchronisation (Supabase) =====
@@ -2802,11 +2846,20 @@ const Auth={
   // retour du réseau. Seul un REFUS du serveur (400/401/403 = refresh token invalide ou révoqué)
   // déconnecte réellement. Sinon, rester hors-ligne > 1 h (jeton expiré) déconnectait l'utilisateur
   // et rendait les bibliothèques partagées inaccessibles sans possibilité de se reconnecter.
-  async refresh(){if(!this.session||!this.session.refresh_token)return false;
-    let r;try{r=await fetch(SUPA.url+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:this.headers(),body:JSON.stringify({refresh_token:this.session.refresh_token})});}catch(e){return false;}
-    const j=await r.json().catch(()=>({}));
-    if(!r.ok){if(r.status===400||r.status===401||r.status===403)await this.signOut();return false;}
-    this._setSession(j);return true;},
+  // SINGLE-FLIGHT : GoTrue fait TOURNER le refresh token (l'ancien devient invalide). Deux
+  // refresh simultanés (synchro de démarrage + fenêtre Compte + « Synchroniser maintenant »…)
+  // partaient avec le MÊME token -> le 2e recevait 400 « déjà utilisé » -> signOut intempestif.
+  // Une seule rotation à la fois : les appels concurrents attendent la même promesse.
+  async refresh(){
+    if(this._refreshP)return this._refreshP;
+    this._refreshP=(async()=>{
+      if(!this.session||!this.session.refresh_token)return false;
+      let r;try{r=await fetch(SUPA.url+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:this.headers(),body:JSON.stringify({refresh_token:this.session.refresh_token})});}catch(e){return false;}
+      const j=await r.json().catch(()=>({}));
+      if(!r.ok){if(r.status===400||r.status===401||r.status===403)await this.signOut();return false;}
+      this._setSession(j);return true;
+    })();
+    try{return await this._refreshP;}finally{this._refreshP=null;}},
   // Rafraîchit le jeton s'il expire dans <60 s. Appelé par rest() avant chaque appel REST de synchro.
   async ensureFresh(){if(!this.signedIn())return false;const now=Math.floor(Date.now()/1000);if(this.session.expires_at&&this.session.expires_at-now<60)return this.refresh();return true;},
   async signOut(){const tok=this.session&&this.session.access_token;this.session=null;this._save();
@@ -2831,7 +2884,7 @@ function authStateHtml(){
 // d'état juste au-dessus (authStateHtml) affiche « Hors-ligne » et explique pourquoi ; se
 // réactive en direct au retour du réseau (appelé par setSyncChip, même source _syncUi).
 function syncBtnRefresh(){const b=document.getElementById('authSync');if(!b)return;
-  const off=_syncUi.state==='off';b.disabled=off;
+  const off=_syncUi.state==='off';b.disabled=off||_syncUi.state==='busy';
   b.title=off?'Hors ligne : la synchronisation reprendra automatiquement au retour du réseau.':'';}
 // Pastille d'état : discrète, jamais bloquante. Connecté -> visible ; déconnecté -> masquée (app locale comme avant).
 function setSyncChip(state,text){
@@ -2942,12 +2995,27 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
         <h4>Supprimer le compte ?</h4>
         <p class="auth-sub">Cette action est <b>irréversible</b>. Votre compte et votre bibliothèque personnelle synchronisée seront définitivement supprimés du cloud. Les fiches que vous avez ajoutées à des bibliothèques partagées y resteront.</p>
         <p class="auth-sub">Par sécurité, votre identité doit être vérifiée : un <b>code de confirmation</b> vous sera envoyé à <b>${esc(delEmail)}</b>, à saisir avant la suppression.</p>
+        <p class="auth-msg" id="delOrphanWarn" hidden style="color:var(--verify)"></p>
         <label class="auth-check"><input type="checkbox" id="delLocal"><span>Effacer aussi les fiches enregistrées sur <b>cet appareil</b></span></label>
         <p class="auth-confirm-lbl">Pour confirmer, tapez <b>SUPPRIMER</b> ci-dessous :</p>
         <input class="auth-field auth-confirm" id="delConfirm" autocomplete="off" autocapitalize="characters" placeholder="SUPPRIMER">
         <p class="auth-msg" id="delMsg"></p>
         <div class="auth-actions"><button class="btn danger" id="delGo" disabled>Recevoir le code de confirmation</button><button class="btn" id="delCancel">Annuler</button></div></div>`;
       body.querySelector('#delCancel').onclick=()=>{_authDelete=false;renderAuth();};
+      // BIBLIOTHÈQUES ORPHELINES : si je suis le SEUL admin d'une bibliothèque partagée, elle
+      // restera utilisable après mon départ mais plus personne (hors admin de l'instance) ne
+      // pourra gérer ses membres -> avertissement NON bloquant, chargé en asynchrone (un échec
+      // réseau n'empêche pas la suppression, la vérification d'identité par code suffit).
+      (async()=>{try{
+        const mine=myLibraries.filter(l=>l.role==='admin');if(!mine.length)return;
+        const orphans=[];
+        for(const l of mine){const rows=await rpc('list_members',{p_library:l.id})||[];
+          if(!rows.some(m=>m.role==='admin'&&m.user_id!==u.id))orphans.push(l.name||l.id);}
+        if(!orphans.length)return;
+        const el=document.getElementById('delOrphanWarn');if(!el)return;
+        el.hidden=false;
+        el.textContent='Vous êtes le seul administrateur de : '+orphans.join(', ')+'. Nommez un autre administrateur avant de partir (fenêtre « Gérer » de la bibliothèque), sinon seul l\'administrateur de l\'instance pourra en gérer les membres.';
+      }catch(e){}})();
       const delGo=body.querySelector('#delGo'),delConf=body.querySelector('#delConfirm');
       // Anti double-clic : `delBusy` pendant l'envoi du code — le champ SUPPRIMER (qui pilote
       // aussi delGo.disabled) ne peut pas réactiver le bouton au milieu de la requête.
@@ -2984,9 +3052,14 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
       <p class="auth-sub">Votre bibliothèque personnelle est sauvegardée et accessible sur tous vos appareils connectés à ce compte.</p>
       <div class="auth-actions"><button class="btn primary" id="authSync">Synchroniser maintenant</button><button class="btn" id="authSwitch">Changer de compte</button><button class="btn" id="authOut">Se déconnecter</button>${myIsAppAdmin?`<button class="btn" id="authPending">Comptes en attente${myPendingCount?' ('+myPendingCount+')':''}</button>`:''}</div>
       ${myIsAppAdmin?'<div id="authStats" class="inst-stats-wrap" aria-label="État de l\'instance"></div><p class="auth-admin-note">Compte administrateur : la suppression se fait depuis le tableau de bord Supabase (garde-fou).</p>':'<button class="auth-danger" id="authDelete">Supprimer mon compte et mes données</button>'}`;
-    body.querySelector('#authSync').onclick=()=>{Sync.full();closeAuth();};
-    syncBtnRefresh();   // état initial du bouton (grisé si hors-ligne à l'ouverture)
-    body.querySelector('#authSwitch').onclick=async()=>{await doSignOut();}; // déconnecte et revient à l'écran de connexion (fenêtre ouverte)
+    // La fenêtre RESTE ouverte : la ligne d'état juste au-dessus (authStateHtml, mise à jour en
+    // direct par setSyncChip) montre « Synchro en cours » puis le résultat -> vrai retour visuel,
+    // là où fermer la fenêtre laissait l'utilisateur sans aucune confirmation.
+    body.querySelector('#authSync').onclick=()=>{Sync.full();};
+    syncBtnRefresh();   // état initial du bouton (grisé si hors-ligne ou synchro déjà en cours)
+    // Confirmation AVANT de déconnecter : ce bouton est voisin de « Synchroniser maintenant » —
+    // sans elle, un tap imprécis déconnectait sans prévenir (vécu comme un bug).
+    body.querySelector('#authSwitch').onclick=async()=>{if(!await confirmDlg('Changer de compte ? Vous serez déconnecté de ce compte (vos fiches restent disponibles sur cet appareil).',{yes:'Changer de compte'}))return;await doSignOut();};
     body.querySelector('#authOut').onclick=async()=>{if(!await confirmDlg('Se déconnecter ? Vos fiches restent disponibles localement sur cet appareil.',{yes:'Se déconnecter'}))return;await doSignOut();};
     {const ad=body.querySelector('#authDelete');if(ad)ad.onclick=()=>{_authDelete=true;renderAuth();};}
     {const ap=body.querySelector('#authPending');if(ap)ap.onclick=()=>{closeAuth();openPending();};}
@@ -3254,9 +3327,13 @@ const Sync={
           continue;}
         if(!local){const nf=ficheFromRow(row);await Data.put(nf);byId[row.id]=nf;if(!nf.deletedAt)fiches.push(nf);continue;}
         if(rts>(local.updatedAt||0)){
-          if(local.dirty){ // divergence locale ET distante -> conflit : on conserve la version locale
-            try{await Data.putBackup({bid:uid('bk'),ficheId:local.id,at:Date.now(),data:JSON.parse(JSON.stringify(local))});}catch(e){}
-            conflicts.push(local.title||local.id);}
+          // La version LOCALE est TOUJOURS archivée avant remplacement (bouton « Versions » /
+          // « Ma version écrasée », borné à BACKUP_MAX par fiche) : pas seulement en cas de
+          // conflit — une fiche partagée mise à jour par un collègue archivait... rien, et le
+          // bouton mentait. Le toast « conflit », lui, reste réservé aux vraies divergences
+          // (modification locale non poussée écrasée).
+          try{await Data.putBackup({bid:uid('bk'),ficheId:local.id,at:Date.now(),data:JSON.parse(JSON.stringify(local))});}catch(e){}
+          if(local.dirty)conflicts.push(local.title||local.id);
           const nf=ficheFromRow(row);await Data.put(nf);byId[row.id]=nf;const i=fiches.findIndex(x=>x.id===row.id);if(i>=0)fiches[i]=nf;else if(!nf.deletedAt)fiches.push(nf);
         } // sinon local plus récent/identique -> on garde (sera poussé si dirty)
       }
