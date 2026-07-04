@@ -24,6 +24,7 @@ declare
   alice uuid := '11111111-1111-1111-1111-111111111111';
   bob   uuid := '22222222-2222-2222-2222-222222222222';
   carol uuid := '33333333-3333-3333-3333-333333333333';
+  dave  uuid := '44444444-4444-4444-4444-444444444444';
   v_hack text;
   v_cnt  int;
 begin
@@ -99,6 +100,23 @@ begin
   update auth.users set email_confirmed_at=now() where id=carol;
   select count(*) into v_cnt from public.user_status where user_id=carol and status='pending';
   if v_cnt <> 1 then raise exception 'ÉCHEC : un e-mail vérifié n''apparaît pas en attente de validation'; end if;
+
+  ------------------------------------------------------------------ 5ter. Compte SANS ligne user_status : approuvé (aligné sur my_status)
+  -- Cas réel : compte antérieur à la fonctionnalité de validation (ou migration incomplète).
+  -- my_status() rapporte 'approved' quand aucune ligne n'existe -> is_approved() doit faire de
+  -- même, sinon l'app affiche « Connecté » pendant que toutes les écritures sont refusées en 403.
+  -- (require_approval est TRUE depuis la section 5 : c'est bien l'absence de ligne qu'on teste.)
+  reset role;
+  insert into auth.users (id, email, email_confirmed_at) values (dave,'dave@test.local',now())
+    on conflict (id) do nothing;
+  delete from public.user_status where user_id=dave;   -- simule le compte d'avant la fonctionnalité
+  perform set_config('request.jwt.claims', json_build_object('sub',dave,'role','authenticated')::text, true);
+  set local role authenticated;
+  if public.my_status() <> 'approved' then raise exception 'ÉCHEC : my_status sans ligne user_status devrait être approved'; end if;
+  if public.is_approved() <> true then raise exception 'ÉCHEC : is_approved diverge de my_status (compte sans ligne user_status refusé)'; end if;
+  insert into public.fiches(id,owner,library_id,data) values ('f-dave',dave,null,'{"t":1}');
+  select count(*) into v_cnt from public.fiches where id='f-dave';
+  if v_cnt <> 1 then raise exception 'ÉCHEC : un compte sans ligne user_status ne peut pas écrire son espace perso'; end if;
 
   ------------------------------------------------------------------ 6. Notes personnelles : privées et gatées
   -- La section 5bis est repassée en PROPRIÉTAIRE (reset role) : on REVIENT impérativement au

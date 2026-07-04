@@ -964,7 +964,7 @@
 /* PALETTE : couleurs proposées pour les catégories (hex sombres, lisibles
    en texte comme en pastille teintée). Index réutilisé cycliquement. */
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='3.3.0';
+const APP_VERSION='3.3.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -1012,6 +1012,15 @@ function claimedDbName(space){let owner=null;try{owner=localStorage.getItem('ac-
 // Clé localStorage propre à l'espace courant — PUR via spaceKeyFor (testé). Le propriétaire de
 // la base historique garde les clés SANS suffixe (compatibilité), les autres sont suffixées.
 function spaceKeyFor(base,space,owner){return owner===space?base:base+'@'+(space||'anon');}
+// Empreinte NON réversible de l'espace local (uid du compte, ou '' hors compte) — PURE (testée).
+// Embarquée dans les exports : l'import sait ainsi si le fichier vient du MÊME espace (ids
+// conservés -> vraie restauration/fusion) ou d'un AUTRE (ids régénérés -> pas de collision de clé
+// primaire cloud entre comptes, cf. Export/Import). FNV-1a 32 bits : on évite seulement une
+// collision accidentelle, ce n'est pas de la cryptographie — mais l'uid du compte n'apparaît
+// jamais en clair dans un fichier destiné à être partagé.
+function spaceTag(space){let h=0x811c9dc5;const s=String(space==null?'':space);
+  for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,0x01000193)>>>0;}
+  return 'sp'+h.toString(36);}
 function spaceKey(base){let owner=null;try{owner=localStorage.getItem('ac-db-owner');}catch(e){}
   return spaceKeyFor(base,currentSpace(),owner===null?currentSpace():owner);}
 // Registre des espaces créés (pour l'effacement complet de l'appareil, cf. wipeLocal).
@@ -1170,7 +1179,14 @@ let Runtime=makeRuntime();
 const liveSessions={};
 let soundOn=true;
 let AC=null;
-const uid=p=>(p||'f')+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+// La clé primaire du cloud est GLOBALE (tous comptes confondus) : une collision d'ids entre deux
+// comptes rend la fiche du second impossible à pousser (refus RLS 403). L'ancien suffixe de
+// 3 caractères aléatoires rendait cela plausible à l'échelle d'une équipe -> 8+ caractères tirés
+// de crypto.getRandomValues (repli Math.random si l'API manque, ex. vieux navigateur).
+const uid=p=>{let r='';
+  try{const a=crypto.getRandomValues(new Uint32Array(2));r=a[0].toString(36)+a[1].toString(36);}
+  catch(e){r=Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2);}
+  return (p||'f')+Date.now().toString(36)+(r+'00000000').slice(0,8);};
 // esc/clean COERCENT toujours en chaîne -> jamais d'exception si une donnée importée n'est pas une
 // chaîne (sinon `(obj).replace` lèverait et casserait tout le rendu = écran blanc).
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -1525,7 +1541,9 @@ async function load(){
   // Accueil (3 repères) à la toute première ouverture seulement.
   try{if(!localStorage.getItem('ac-onboarded'))welcomeModal.classList.add('on');}catch(e){}
   // Données prêtes (backend choisi) : on lance une première synchro si l'utilisateur est connecté.
-  if(typeof Sync!=='undefined'&&Auth.signedIn())Sync.full();
+  // Les modifications faites pendant une déconnexion sont d'abord soumises à confirmation
+  // (appareil partagé) — le push les retient de toute façon tant que ce n'est pas tranché.
+  if(typeof Sync!=='undefined'&&Auth.signedIn())confirmHeldEdits().then(()=>Sync.full());
 }
 /* Fermeture standard d'une fenêtre (.ai-modal), câblée UNE fois par fenêtre : le bouton ✕ (.ai-x)
    et le clic sur le fond déclenchent la même fonction de fermeture (Échap est géré globalement,
@@ -1546,7 +1564,52 @@ async function saveCats(scope){try{await Data.setCats(categories);}catch(e){}
   const sk=(scope===undefined?activeCatScope():scope)||'';
   try{localStorage.setItem(spaceKey('ac-cats-updated:'+sk),String(Date.now()));localStorage.setItem(spaceKey('ac-cats-dirty:'+sk),'1');}catch(e){}
   if(typeof Sync!=='undefined')Sync.schedule();}
-async function persist(f){try{f.updatedAt=Date.now();f.dirty=true;
+/* ----- Modifications faites DÉCONNECTÉ dans l'espace d'un compte (appareil partagé) -----
+   Après une déconnexion, l'espace local du compte reste affiché et modifiable (promesse
+   hors-ligne). Revers : n'importe qui passant derrière sur le MÊME appareil peut alors créer,
+   modifier ou supprimer des fiches... qui partiraient silencieusement dans le cloud du compte à
+   sa reconnexion. On MARQUE donc (liste d'ids, clé par espace) toute écriture faite déconnecté ;
+   ces fiches sont RETENUES par Sync._push tant que le titulaire, une fois reconnecté, n'a pas
+   confirmé leur envoi (confirmHeldEdits). LIMITE assumée : c'est une protection d'ergonomie
+   contre l'injection « sans outils » (usage normal de l'app) — quelqu'un capable d'écrire
+   directement dans IndexedDB peut aussi retirer ce marqueur ; sur appareil partagé, seuls des
+   profils de navigateur ou des sessions système séparés isolent réellement les données. */
+function heldEdits(){try{const a=JSON.parse(localStorage.getItem(spaceKey('ac-held-edits'))||'[]');
+  return Array.isArray(a)?a.filter(id=>typeof id==='string'&&SAFE_ID.test(id)):[];}catch(e){return [];}}
+function setHeldEdits(a){try{a&&a.length?localStorage.setItem(spaceKey('ac-held-edits'),JSON.stringify(a.slice(0,500))):localStorage.removeItem(spaceKey('ac-held-edits'));}catch(e){}}
+function markHeldEdit(id){
+  if(currentSpace()==='')return;                                  // espace sans compte : géré par le dialogue « emporter »
+  if(typeof Auth!=='undefined'&&Auth.signedIn())return;           // connecté : synchro immédiate, rien à retenir
+  const a=heldEdits();if(a.indexOf(id)<0){a.push(id);setHeldEdits(a);}}
+// À la reconnexion (saisie du code, ouverture de l'app ou de la fenêtre Compte) : liste les
+// fiches modifiées pendant la déconnexion et demande quoi en faire AVANT tout push.
+// « Les synchroniser » -> envoi normal. « Les écarter » -> modifications locales abandonnées
+// (les versions du cloud seront rétablies au prochain pull, curseur remis à zéro pour re-couvrir
+// ces fiches). ✕/Échap -> on redemandera ; en attendant, elles restent hors synchronisation.
+let _heldDlgOpen=false;   // anti-réentrance : load() + openAuth() peuvent appeler en parallèle
+async function confirmHeldEdits(){
+  if(_heldDlgOpen)return;
+  let ids=heldEdits();if(!ids.length)return;
+  let all=[];try{all=await Data.getAll();}catch(e){return;}
+  const byId={};all.forEach(f=>{byId[f.id]=f;});
+  ids=ids.filter(id=>byId[id]&&byId[id].dirty);                   // déjà poussée ou disparue -> plus rien à retenir
+  if(!ids.length){setHeldEdits([]);return;}
+  const labels=ids.slice(0,5).map(id=>'« '+(sstr(byId[id].title,48).trim()||'sans titre')+' »'+(byId[id].deletedAt?' (supprimée)':''));
+  const more=ids.length-labels.length;
+  _heldDlgOpen=true;let ans=null;
+  try{ans=await confirmDlg('Pendant que ce compte était déconnecté, '+ids.length+' fiche'+(ids.length>1?'s ont été modifiées':' a été modifiée')+' sur cet appareil : '+labels.join(', ')+(more>0?' et '+more+' autre'+(more>1?'s':''):'')+'. Si c\'est bien vous, synchronisez-les ; sinon, écartez-les (les versions de votre espace en ligne seront rétablies).',
+    {title:'Modifications hors connexion',yes:'Les synchroniser',no:'Les écarter'});}
+  finally{_heldDlgOpen=false;}
+  if(ans===true){setHeldEdits([]);if(typeof Sync!=='undefined')Sync.schedule();}
+  else if(ans===false){
+    for(const id of ids){try{await Data.del(id);}catch(e){}
+      const i=fiches.findIndex(x=>x.id===id);if(i>=0)fiches.splice(i,1);
+      if(liveSessions[id]){delete liveSessions[id];}}
+    try{localStorage.removeItem(spaceKey(Sync._cursorKey));}catch(e){}   // re-pull complet (idempotent) -> versions cloud rétablies
+    setHeldEdits([]);render();if(typeof Sync!=='undefined')Sync.schedule();
+    toast('Modifications écartées : les versions de votre espace en ligne seront rétablies à la prochaine synchronisation.');}
+}
+async function persist(f){try{f.updatedAt=Date.now();f.dirty=true;markHeldEdit(f.id);
   // Attribution : si connecté, on signe la modification (affiché dans les bibliothèques partagées).
   if(typeof Auth!=='undefined'&&Auth.signedIn()){const u=Auth.user();if(u&&u.email)f.updatedBy=u.email;}
   await Data.put(f);updateStorageInfo();if(typeof Sync!=='undefined')Sync.schedule();return true;}catch(e){toast('⚠ Stockage saturé. Exportez vos fiches puis allégez les images.',9000);return false;}}
@@ -1572,7 +1635,7 @@ async function softDelete(f){if(!f)return;
     try{await Data.del(f.id);}catch(e){}return;}
   // La note personnelle attachée suit le sort de la fiche (t:'' -> propagé aux autres appareils).
   if(notes[f.id]&&notes[f.id].t){notes[f.id]={t:'',at:Date.now(),dirty:true};try{await Data.setNotes(notes);}catch(e){}}
-  f.deletedAt=Date.now();f.updatedAt=Date.now();f.dirty=true;try{await Data.put(f);}catch(e){}if(typeof Sync!=='undefined')Sync.schedule();}
+  f.deletedAt=Date.now();f.updatedAt=Date.now();f.dirty=true;markHeldEdit(f.id);try{await Data.put(f);}catch(e){}if(typeof Sync!=='undefined')Sync.schedule();}
 
 /* ===== Runtime (minuteurs, compteurs, audio) =====
    freshRuntime(f, session) : (re)construit l'état vivant pour la fiche f. Si une
@@ -2848,12 +2911,20 @@ bindModalDismiss(catModal,closeCatMgr);
      bibliothèque de destination.
      DOUBLONS (même id, mode fusion) : demande une fois s'il faut remplacer la
      version existante ou importer en double ; sinon régénère l'id (copie).
+     IDENTIFIANTS INTER-COMPTES : la clé primaire du cloud est GLOBALE (tous comptes) ->
+     conserver l'id d'une fiche exportée par un AUTRE compte rendait son push impossible
+     (refus RLS 403 permanent). L'export embarque donc une empreinte de l'espace d'origine
+     (`origin`, non réversible — spaceTag) ; l'import ne conserve les ids que si le fichier
+     vient du MÊME espace (vraie restauration/fusion multi-appareils). Fichier d'un autre
+     espace, ou ancien fichier sans `origin` : ids régénérés (le push répare de toute façon
+     une collision résiduelle, cf. Sync._push/reassignFicheId — ceinture et bretelles).
 
    STRUCTURE JSON ET RÉTRO-COMPATIBILITÉ — À LIRE AVANT TOUTE MODIFICATION
    -------------------------------------------------------------------------
    Format exporté (version courante = 3) :
      {
        version: 3,
+       origin: "sp…",              // empreinte de l'espace exportateur (spaceTag) — facultatif
        categories: [ { id, name, color } ],
        fiches: [ <voir modèle ci-dessus> ]
      }
@@ -2874,7 +2945,7 @@ bindModalDismiss(catModal,closeCatMgr);
       aient une vue exacte de la structure attendue. */
 // Export réutilisable : `cats` par défaut = catégories réellement utilisées par `list`
 // (pour un export d'une seule fiche) ; l'export global passe toutes les catégories.
-function exportData(list,baseName,cats){const out={version:3,categories:(cats||categories.filter(c=>list.some(f=>f.category===c.id))).map(c=>({id:c.id,name:c.name,color:c.color})),fiches:list.map(f=>{const c={...f};if(c.blocks)delete c.blocks._start;
+function exportData(list,baseName,cats){const out={version:3,origin:spaceTag(currentSpace()),categories:(cats||categories.filter(c=>list.some(f=>f.category===c.id))).map(c=>({id:c.id,name:c.name,color:c.color})),fiches:list.map(f=>{const c={...f};if(c.blocks)delete c.blocks._start;
   // On retire les champs de sync PUREMENT LOCAUX -> une fiche importée ailleurs devient celle de l'importateur
   // (pas d'owner/biblio d'autrui) ; `updatedAt` est conservé (utile au last-write-wins multi-appareils).
   delete c.dirty;delete c.ownerId;delete c.libraryId;return c;})};const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=baseName+'-'+new Date().toISOString().slice(0,10)+'.json';a.click();}
@@ -2913,6 +2984,11 @@ document.getElementById('importFile').onchange=e=>{const file=e.target.files[0];
     sanitizeCats(imp.categories).forEach(c=>{if(!c.id)return;c.libraryId=targetLib;
       if(!categories.some(x=>x.id===c.id&&(x.libraryId||null)===targetLib))categories.push(c);});
     await saveCats(targetLib);
+    // Fichier venu du MÊME espace local ? (empreinte d'origine, cf. commentaire de section).
+    // Même espace -> les ids sont conservés (restauration/fusion). Autre espace, ou ancien
+    // fichier sans empreinte -> ids TOUJOURS régénérés : un id encore possédé par un autre
+    // compte dans le cloud serait refusé au push (clé primaire globale).
+    const sameSpace=(typeof imp.origin==='string')&&imp.origin===spaceTag(currentSpace());
     // Gestion des doublons (même identifiant) en mode fusion : remplacer la version
     // existante, ou importer en double (garder les deux). En mode remplacement, pas de doublon.
     const existing=new Set(fiches.map(x=>x.id));
@@ -2927,7 +3003,7 @@ document.getElementById('importFile').onchange=e=>{const file=e.target.files[0];
       // transformer en catégorie fantôme (elle traiterait l'id brut comme un nom lisible).
       if(d.category&&!categories.some(c=>c.id===d.category&&(c.libraryId||null)===targetLib))d.category='';
       if(d.id&&existing.has(d.id)&&replace){if(await persist(d)){const i=fiches.findIndex(x=>x.id===d.id);if(i>=0)fiches[i]=d;else fiches.push(d);added.push(d.id);}}
-      else{if(!d.id||existing.has(d.id))d.id=uid();existing.add(d.id);if(await persist(d)){fiches.push(d);added.push(d.id);}}}
+      else{if(!d.id||existing.has(d.id)||!sameSpace)d.id=uid();existing.add(d.id);if(await persist(d)){fiches.push(d);added.push(d.id);}}}
     // Depuis la fenêtre IA : on ouvre directement la fiche importée plutôt que la bibliothèque.
     const openId=pendingOpenImport&&added.length?added[added.length-1]:null;pendingOpenImport=false;
     // On AFFICHE la destination (sinon des fiches importées « dans Perso » depuis une bibliothèque
@@ -3235,18 +3311,26 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
         // (parcours d'accueil : créer hors compte puis se connecter). Entre deux comptes :
         // jamais de transfert (chacun retrouve exactement sa bibliothèque).
         if(currentSpace()===''&&fiches.length){
-          const take=await confirmDlg(fiches.length+' fiche'+(fiches.length>1?'s':'')+' (avec notes et sessions) '+(fiches.length>1?'sont enregistrées':'est enregistrée')+' sur cet appareil hors compte. Les emporter dans ce compte ? Elles y seront synchronisées.',{title:'Fiches locales',yes:'Les emporter dans ce compte',no:'Les laisser hors compte'});
+          // Les TITRES sont listés : sur un appareil partagé, adopter ce contenu l'envoie dans le
+          // cloud du compte — l'utilisateur doit pouvoir reconnaître ce qu'il emporte avant d'accepter.
+          const names=fiches.slice(0,5).map(f=>'« '+(sstr(f.title,48).trim()||'sans titre')+' »').join(', ')+(fiches.length>5?' et '+(fiches.length-5)+' autre'+(fiches.length>6?'s':''):'');
+          const take=await confirmDlg(fiches.length+' fiche'+(fiches.length>1?'s':'')+' (avec notes et sessions) '+(fiches.length>1?'sont enregistrées':'est enregistrée')+' sur cet appareil hors compte : '+names+'. Les emporter dans ce compte ? Elles y seront synchronisées.',{title:'Fiches locales',yes:'Les emporter dans ce compte',no:'Les laisser hors compte'});
           if(take){try{await moveLocalDataTo(uid);}catch(e){}}
         }
         persistAllLive();registerSpace(uid);
         try{localStorage.setItem('ac-space',uid);}catch(e){}
         location.reload();return;
       }
-      _authStep.msg='';await refreshAccountStatus();renderAuth();setSyncChip();if(typeof Sync!=='undefined')Sync.full();};
+      _authStep.msg='';await refreshAccountStatus();renderAuth();setSyncChip();
+      // Reconnexion au MÊME compte : d'éventuelles modifications faites pendant la déconnexion
+      // (appareil partagé) sont soumises à confirmation AVANT la première synchro.
+      await confirmHeldEdits();
+      if(typeof Sync!=='undefined')Sync.full();};
   }}
 const authModal=document.getElementById('authModal');
 function openAuth(){_authDelete=false;authModal.classList.add('on');renderAuth();
-  if(Auth.signedIn())refreshAccountStatus().then(renderAuth); // rafraîchit un statut potentiellement périmé, sans bloquer l'ouverture
+  if(Auth.signedIn()){refreshAccountStatus().then(renderAuth); // rafraîchit un statut potentiellement périmé, sans bloquer l'ouverture
+    confirmHeldEdits();}   // re-propose les modifications hors connexion laissées en attente (✕ à la question précédente)
 }
 function closeAuth(){authModal.classList.remove('on');}
 document.getElementById('acctTop').onclick=openAuth;
@@ -3364,6 +3448,27 @@ function ficheFromRow(row){return migrate(Object.assign({},row.data,{id:row.id,
     updatedAt:Date.parse(row.updated_at)||Date.now(),
     deletedAt:row.deleted_at?Date.parse(row.deleted_at):null,
     ownerId:row.owner||null,libraryId:row.library_id||null}));}
+// RÉPARATION d'une fiche PERSO refusée en 403 au push : son id existe déjà dans le cloud sous un
+// AUTRE compte (fiche transférée par export/import entre comptes, ou collision d'ids — la clé
+// primaire cloud est GLOBALE). La fiche appartient bien à l'utilisateur localement : on l'adopte
+// sous un id NEUF en déplaçant tout ce qui s'y rattache sur cet appareil (note personnelle,
+// épingle, sessions, versions, session vive, écran ouvert), puis elle repart au push suivant.
+// Les rattachements distants ne bougent pas : ils visent la fiche de l'AUTRE compte.
+async function reassignFicheId(f){
+  const oldId=f.id;f.id=uid();f.dirty=true;
+  await Data.put(f);try{await Data.del(oldId);}catch(e){}
+  const i=fiches.findIndex(x=>x.id===oldId);if(i>=0)fiches[i]=f;
+  if(notes[oldId]){notes[f.id]=notes[oldId];delete notes[oldId];try{await Data.setNotes(notes);}catch(e){}}
+  const p=pins.indexOf(oldId);if(p>=0){pins[p]=f.id;
+    // Même mécanique que togglePin : épingles rangées dans le document de catégories PERSO -> à pousser.
+    try{localStorage.setItem(spaceKey('ac-pins'),JSON.stringify(pins));
+        localStorage.setItem(spaceKey('ac-cats-updated:'),String(Date.now()));localStorage.setItem(spaceKey('ac-cats-dirty:'),'1');}catch(e){}}
+  for(const s of sessions.filter(s=>s.ficheId===oldId)){s.ficheId=f.id;try{await Data.putSession(s);}catch(e){}}
+  try{for(const b of await Data.getBackups(oldId)){await Data.delBackup(b.bid);b.ficheId=f.id;await Data.putBackup(b);}}catch(e){}
+  if(liveSessions[oldId]){liveSessions[f.id]=liveSessions[oldId];delete liveSessions[oldId];liveSessions[f.id].ficheId=f.id;liveSessions[f.id].fiche=f;}
+  if(state.fiche&&state.fiche.id===oldId)state.fiche=f;
+  if(state.draft&&state.draft.id===oldId)state.draft.id=f.id;   // brouillon ouvert : il ré-enregistrera sous l'id neuf
+  return f;}
 // Toast NON BLOQUANT : informe sans jamais interrompre l'usage (principe app critique).
 /* Confirmation asynchrone : `await confirmDlg(msg)` -> true (bouton principal), false (bouton
    secondaire), null (✕ / Échap / clic sur le fond = abandon). Pour les cas simples,
@@ -3408,7 +3513,7 @@ const SYNC_ERR_ICONS={
   unknown:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.2 9.5a2.8 2.8 0 015.4 1c0 1.8-2.6 2-2.6 4"/><path d="M12 17h.01"/></svg>'};
 function explainSyncError(e){const msg=String((e&&e.message)||e||'');const m=msg.match(/^REST (\d+)/);const status=m?parseInt(m[1],10):null;
   if(status===401)return{icon:SYNC_ERR_ICONS.lock,title:'Session expirée',detail:'Votre connexion au compte a expiré. Reconnectez-vous depuis la fenêtre « Compte » pour reprendre la synchronisation.'};
-  if(status===403)return{icon:SYNC_ERR_ICONS.forbidden,title:'Accès refusé',detail:"Vous n'avez plus les droits nécessaires sur une bibliothèque partagée (rôle modifié ou accès retiré par un administrateur). Les fiches concernées ne se synchronisent plus ; le reste de votre bibliothèque continue normalement."};
+  if(status===403)return{icon:SYNC_ERR_ICONS.forbidden,title:'Écriture refusée',detail:"Le serveur a refusé d'enregistrer certaines fiches. Cause la plus fréquente : vos droits sur une bibliothèque partagée ont changé (rôle modifié ou accès retiré par un administrateur) — ces fiches restent lisibles mais vos modifications n'y sont plus publiées. Autre cause possible : une fiche venue d'un autre compte (import) porte un identifiant déjà pris ; l'app la répare alors automatiquement à la prochaine tentative. Le reste de votre bibliothèque continue de se synchroniser."};
   if(status===413)return{icon:SYNC_ERR_ICONS.image,title:'Fiche trop volumineuse',detail:"Une fiche contient des images trop lourdes pour être envoyées. Réduisez ou supprimez des images dans cette fiche, puis réessayez."};
   if(status===409)return{icon:SYNC_ERR_ICONS.warning,title:'Conflit de données',detail:"Une incohérence a été détectée en enregistrant vos données. Nouvelle tentative automatique en cours ; si le problème persiste, exportez vos fiches par sécurité (bouton « Exporter tout »)."};
   if(status>=500)return{icon:SYNC_ERR_ICONS.server,title:'Service indisponible',detail:"Le service de synchronisation rencontre un problème de son côté (indépendant de votre appareil ou de votre connexion). Nouvelle tentative automatique en cours."};
@@ -3447,10 +3552,14 @@ const Sync={
       await this.loadProfile();
       await this._initIfNeeded();
       const conflicts=await this._pull();
-      await this._push();
+      // Un échec (même partiel) du push ne prive plus le reste de la synchro : réconciliation,
+      // catégories et notes tournent quand même ; l'erreur est re-levée à la fin (pastille
+      // « Erreur de synchro » + nouvelle tentative automatique), tout le reste étant à jour.
+      let pushErr=null;try{await this._push();}catch(e){pushErr=e;}
       await this._reconcileShared();
       await this._syncCats();
       await this._syncNotes();
+      if(pushErr)throw pushErr;
       this._retryDelay=0;
       setSyncChip('ok','Synchronisé');
       notifyConflicts(conflicts);
@@ -3513,12 +3622,47 @@ const Sync={
     return conflicts;},
   async _push(){
     // On pousse Perso + les fiches des bibliothèques où l'on peut éditer (la RLS refuserait sinon).
-    const all=await Data.getAll();const dirty=all.filter(f=>f.dirty&&canEditFiche(f));
+    // Les modifications faites pendant une déconnexion (heldEdits) restent RETENUES tant que le
+    // titulaire du compte n'a pas tranché (confirmHeldEdits) — appareil partagé.
+    const held=new Set(heldEdits());
+    const all=await Data.getAll();const dirty=all.filter(f=>f.dirty&&canEditFiche(f)&&!held.has(f.id));
     if(!dirty.length)return;const uidv=Auth.user().id;
-    const rows=dirty.map(f=>ficheToRow(f,uidv));
-    await rest('POST','/rest/v1/fiches',rows,{'Prefer':'resolution=merge-duplicates,return=minimal'});
-    for(const f of dirty){if(f.deletedAt){await Data.del(f.id);} // tombstone poussé -> purge locale (espace récupéré)
-      else{f.dirty=false;await Data.put(f);}}},
+    // Envoi d'un sous-ensemble + acquittement local (une requête PostgREST est atomique : tout
+    // le sous-ensemble passe, ou rien).
+    const send=async batch=>{
+      await rest('POST','/rest/v1/fiches',batch.map(f=>ficheToRow(f,uidv)),{'Prefer':'resolution=merge-duplicates,return=minimal'});
+      for(const f of batch){if(f.deletedAt){await Data.del(f.id);} // tombstone poussé -> purge locale (espace récupéré)
+        else{f.dirty=false;await Data.put(f);}}};
+    // Cas nominal : tout part en UNE requête.
+    try{await send(dirty);return;}catch(e){}
+    // Le lot a été refusé : on réessaie fiche PAR fiche pour ISOLER la ou les fautives — avant,
+    // une seule fiche refusée (droits retirés, id déjà pris par un autre compte...) bloquait
+    // TOUTE la bibliothèque, indéfiniment (le backoff rejouait le même lot voué à l'échec).
+    let firstErr=null,persoOk=0;const perso403=[];
+    for(const f of dirty){
+      try{await send([f]);if(!f.libraryId)persoOk++;}
+      catch(e){const st=(String((e&&e.message)||'').match(/^REST (\d+)/)||[])[1];
+        if(st==='403'&&!f.libraryId)perso403.push(f);        // candidat réparation (voir ci-dessous)
+        else if(!firstErr)firstErr=e;}
+    }
+    // Fiche PERSO refusée en 403 = son id appartient déjà à un AUTRE compte (fiche transférée par
+    // export/import — la clé primaire cloud est globale) : on la RÉPARE en régénérant son id
+    // (reassignFicheId) puis on la repousse aussitôt. GARDE-FOU : uniquement si nos droits
+    // d'écriture perso sont avérés (une autre fiche perso vient de passer, ou is_approved()
+    // confirme) — sinon une panne de droits GLOBALE (compte plus approuvé, politique serveur)
+    // renommerait toutes les fiches en boucle à chaque nouvelle tentative.
+    if(perso403.length){
+      let writable=persoOk>0;
+      if(!writable){try{writable=(await rpc('is_approved'))===true;}catch(e){}}
+      if(writable){let repaired=false;
+        for(const f of perso403){
+          try{await reassignFicheId(f);repaired=true;await send([f]);}
+          catch(e){if(!firstErr)firstErr=e;}
+        }
+        if(repaired)render();
+      }else if(!firstErr)firstErr=new Error('REST 403 (espace personnel indisponible en écriture)');
+    }
+    if(firstErr)throw firstErr;},
   async _syncCats(){
     const uidv=Auth.user().id;
     // Un document de catégories PAR BIBLIOTHÈQUE : Perso (clé '') + chaque bibliothèque (clé = id).
@@ -3826,7 +3970,7 @@ document.addEventListener('keydown',e=>{
    sans ce paramètre, rien de tout ceci ne s'exécute et aucun global n'est ajouté. */
 if(location.search.indexOf('__actest')>=0){
   window.__ac_test__={migrate,sanitizeCats,safeId,safeColor,safeImg,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,
-    txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,sanitizeNotes,dbNameFor,spaceKeyFor};
+    txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID};
 }else{
   /* ===== PWA =====
      Enregistre le service worker (cache hors ligne) si disponible. Capte

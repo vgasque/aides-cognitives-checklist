@@ -1,5 +1,33 @@
 # Journal des modifications
 
+## [3.3.1] — 2026-07-04
+### Corrigé
+- **Changement de compte : une seule fiche refusée n'immobilisait plus toute la synchro.** La
+  clé primaire du cloud est globale (tous comptes confondus) : une fiche transférée entre
+  comptes (export/import, qui conservait l'identifiant) était refusée par le serveur (RLS) au
+  moment de la publier, et l'envoi se faisait en un seul lot — une fiche refusée bloquait alors
+  indéfiniment *toute* la bibliothèque, avec un message l'attribuant à tort à des droits perdus
+  sur une bibliothèque partagée. La synchro réessaie désormais fiche par fiche pour isoler la
+  fautive ; une fiche personnelle ainsi bloquée est réparée automatiquement (nouvel identifiant,
+  note/épingle/sessions/versions déplacées) puis repoussée. Un refus partiel n'empêche plus la
+  réconciliation des bibliothèques partagées ni la synchro des catégories et des notes. Le
+  message d'erreur distingue maintenant les deux causes réelles (droits partagés / identifiant
+  déjà pris) sans promettre à tort que "le reste continue normalement".
+- **Export / import entre comptes : identifiants régénérés.** Un fichier exporté embarque une
+  empreinte (non réversible) de l'espace d'origine ; l'import ne conserve les identifiants que
+  s'il provient du même espace (vraie restauration/fusion multi-appareils) — dans tous les
+  autres cas, ils sont régénérés pour ne plus jamais entrer en collision avec une fiche
+  possédée par un autre compte dans le cloud.
+- **Compte approuvé mais synchro refusée en boucle (cas rare).** Les comptes sans ligne de
+  statut connue (installations antérieures à la validation des comptes) étaient déclarés
+  « Connecté » par l'app alors que la politique serveur refusait malgré tout chaque écriture.
+  Alignement du schéma sur la même règle des deux côtés.
+- **Appareil partagé : moins de surprises.** Le dialogue « Les emporter dans ce compte ? »
+  (fiches créées avant toute connexion) liste désormais leurs titres. Les fiches créées,
+  modifiées ou supprimées pendant qu'un compte était déconnecté sur l'appareil ne sont plus
+  synchronisées en silence à la reconnexion : le titulaire du compte est d'abord invité à les
+  reconnaître (synchroniser ou écarter et rétablir les versions du cloud).
+
 Toutes les versions notables de l'application. Format inspiré de *Keep a Changelog* ;
 versionnage sémantique. La version affichée en pied de page (`APP_VERSION` dans `index.html`)
 et le cache du service worker (`sw.js`) sont tenus synchronisés par `release.sh`.
