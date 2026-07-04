@@ -1,5 +1,21 @@
 # Journal des modifications
 
+## [3.3.3] — 2026-07-04
+### Tests
+- **Vérification du finding #1 de l'audit sécurité (3.3.2) : un lecteur seul ne peut pas déplacer
+  une fiche partagée vers son espace perso, seul un editor/admin de la bibliothèque le peut.**
+  Rejoué pour de vrai contre une instance Postgres locale (schéma + politiques RLS réels, pas
+  seulement une relecture) : un viewer échoue bien (RLS -> 0 ligne, aucune modification), un
+  editor réussit (fonctionnalité voulue, non-régression). Ce rejeu a mis au jour un bug dans le
+  test ajouté en 3.3.2 (compte de test « gina » référencé dans `user_status` sans ligne
+  `auth.users` correspondante — violation de contrainte de clé étrangère) : corrigé.
+- **Découverte en marge de cette vérification :** le message de confirmation final de
+  `rls-tests.sql` (`select '✅ TOUS LES TESTS RLS PASSENT'`, après le `rollback`) s'affiche même
+  après l'échec d'un test — reproduit à la main en cassant délibérément une politique. Le
+  `raise notice` émis en fin de bloc `do $$…$$` reste fiable (il ne s'affiche que si tout a
+  réussi) ; c'est la ligne décorative qui ne l'est pas. Non corrigé dans cette version — à
+  discuter avant de retoucher la structure de sécurité du fichier de tests.
+
 ## [3.3.2] — 2026-07-04
 ### Sécurité
 - **Bibliothèque partagée : un compte non approuvé (liste d'attente/refusé) ne peut plus y être

@@ -198,7 +198,7 @@ begin
   -- approuvé dans une bibliothèque partagée (corrigé en 3.3.2, testé en 8.6 ci-dessous).
   reset role;
   insert into auth.users (id, email, email_confirmed_at) values
-    (erin,'erin@test.local',now()),(frank,'frank@test.local',now())
+    (erin,'erin@test.local',now()),(frank,'frank@test.local',now()),(gina,'gina@test.local',now())
     on conflict (id) do nothing;
   insert into public.user_status(user_id,email,status) values
     (erin,'erin@test.local','approved'),(frank,'frank@test.local','approved')
@@ -225,6 +225,31 @@ begin
   reset role;
   select data->>'hack' into v_hack from public.fiches where id='f-team';
   if v_hack is not null then raise exception 'ÉCHEC : un viewer a pu modifier une fiche de sa bibliothèque'; end if;
+
+  -- 8.2bis Déplacer une fiche partagée vers Perso (fonctionnalité VOULUE : sélecteur de
+  -- bibliothèque de l'éditeur, cf. CHANGELOG 3.2.3 « déplacement de fiche entre bibliothèques »)
+  -- reste réservé à un EDITOR/ADMIN de la bibliothèque d'origine — un simple viewer ne peut PAS
+  -- s'en servir pour exfiltrer une fiche vers son propre espace perso. fiches_shared_write exige
+  -- member_role in ('editor','admin') sur la ligne D'ORIGINE (USING) : un viewer échoue cette
+  -- condition -> RLS -> 0 ligne affectée, sans erreur (même mécanique que le test précédent).
+  reset role;
+  insert into public.fiches(id,owner,library_id,data) values ('f-move',erin,'lib-team','{"t":1}')
+    on conflict (id) do nothing;
+  perform set_config('request.jwt.claims', json_build_object('sub',frank,'role','authenticated')::text, true);
+  set local role authenticated;
+  update public.fiches set library_id=null, owner=frank where id='f-move';
+  reset role;
+  select library_id into v_hack from public.fiches where id='f-move';
+  if v_hack is distinct from 'lib-team' then raise exception 'ÉCHEC : un viewer a pu exfiltrer une fiche partagée vers son espace perso'; end if;
+
+  -- Un EDITOR de la bibliothèque, en revanche, peut légitimement déplacer CETTE MÊME fiche vers
+  -- Perso (non-régression : USING valide sur l'ancienne ligne — editor de lib-team — ET WITH
+  -- CHECK valide sur la nouvelle — owner = soi-même, cf. fiches_perso).
+  perform set_config('request.jwt.claims', json_build_object('sub',erin,'role','authenticated')::text, true);
+  set local role authenticated;
+  update public.fiches set library_id=null, owner=erin where id='f-move';
+  select count(*) into v_cnt from public.fiches where id='f-move' and library_id is null and owner=erin;
+  if v_cnt <> 1 then raise exception 'ÉCHEC : un editor ne peut pas déplacer une fiche de sa bibliothèque vers Perso'; end if;
 
   -- 8.3 Non-membre : ni lecture ni écriture.
   perform set_config('request.jwt.claims', json_build_object('sub',gina,'role','authenticated')::text, true);
