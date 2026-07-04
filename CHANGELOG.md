@@ -1,5 +1,21 @@
 # Journal des modifications
 
+## [3.3.4] — 2026-07-04
+### Ajouté
+- **« Se déconnecter » et « Changer de compte » proposent d'effacer aussi les fiches de ce
+  compte sur cet appareil.** Jusqu'ici, ni l'un ni l'autre ne touchait aux données locales
+  (promesse hors-ligne : les fiches restaient visibles sans compte connecté) — de la valeur sur
+  un appareil personnel, mais un vrai risque sur un appareil partagé (tablette d'équipe), où
+  elles restaient lisibles par la personne suivante tant que personne d'autre ne se connectait
+  à un compte différent. Une case à cocher (facultative, décochée par défaut) permet désormais
+  d'effacer la copie locale du compte courant au moment de partir ; les fiches restent intactes
+  dans le cloud, à re-synchroniser à la prochaine connexion. Nouvelle fonction `wipeCurrentSpace`
+  — distincte de `wipeLocal` (effacement total de l'appareil, réservé à la suppression de
+  compte) : seul l'espace du compte courant est effacé, les autres comptes déjà utilisés sur cet
+  appareil ne sont pas touchés. Même case et mêmes boutons pour les deux actions (elles
+  appellent la même fonction en interne) : proposer l'effacement seulement à l'une des deux
+  aurait été redondant et propice à l'erreur.
+
 ## [3.3.3] — 2026-07-04
 ### Tests
 - **Vérification du finding #1 de l'audit sécurité (3.3.2) : un lecteur seul ne peut pas déplacer

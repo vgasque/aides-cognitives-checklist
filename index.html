@@ -964,7 +964,7 @@
 /* PALETTE : couleurs proposées pour les catégories (hex sombres, lisibles
    en texte comme en pastille teintée). Index réutilisé cycliquement. */
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='3.3.3';
+const APP_VERSION='3.3.4';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -3155,6 +3155,32 @@ async function wipeLocal(){
         ||((k.indexOf('ac-')===0||k.indexOf('_v1@')>0)&&k.indexOf('@')>0))localStorage.removeItem(k);}
   }catch(e){}
 }
+// Efface les données locales du COMPTE COURANT uniquement (fiches, notes, sessions, versions,
+// épingles, catégories, curseur de synchro) — contrairement à wipeLocal() (effacement TOTAL de
+// l'appareil, réservé à la suppression de compte), les AUTRES espaces déjà utilisés sur cet
+// appareil (autres comptes) ne sont PAS touchés. Utilisée par « Se déconnecter »/« Changer de
+// compte » quand la case « effacer aussi cet appareil » est cochée (appareil partagé) : les
+// fiches restent dans le cloud, seule la copie locale disparaît. Reload obligatoire après appel
+// (IDB.db et l'état en mémoire pointent sur des données qui n'existent plus).
+async function wipeCurrentSpace(){
+  const space=currentSpace();
+  try{if(IDB.db){IDB.db.close();IDB.db=null;}}catch(e){}
+  let owner=null;try{owner=localStorage.getItem('ac-db-owner');}catch(e){}
+  try{await new Promise(res=>{const r=indexedDB.deleteDatabase(dbNameFor(space,owner));r.onsuccess=r.onerror=r.onblocked=()=>res();});}catch(e){}
+  try{
+    // Propriétaire de la base historique : ses clés localStorage sont NUES (sans suffixe
+    // d'espace, cf. spaceKeyFor) — ce sont donc les mêmes noms que wipeLocal() connaît déjà.
+    if(owner===space){
+      ['fiches_v1','cats_v1','sessions_v1','backups_v1','notes_v1','ac-sync-cursor','ac-lib-usage','ac-seeds-hidden','ac-pins','ac-held-edits'].forEach(k=>localStorage.removeItem(k));
+      for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);if(k&&(k.indexOf('ac-cats-dirty:')===0||k.indexOf('ac-cats-updated:')===0))localStorage.removeItem(k);}
+    }
+    localStorage.removeItem('ac-sync-init-'+space);
+    // Clés suffixées PAR CET ESPACE uniquement (spaceKeyFor place toujours le suffixe en toute
+    // fin de clé) : n'affecte aucune donnée d'un AUTRE compte déjà utilisé sur cet appareil.
+    const suffix='@'+(space||'anon');
+    for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);if(k&&k.endsWith(suffix))localStorage.removeItem(k);}
+  }catch(e){}
+}
 // État de l'instance (app-admin) : petit tableau de bord affiché dans l'écran Compte. Chargé en
 // asynchrone (RPC get_instance_stats, réservée aux app-admins) pour ne pas retarder l'ouverture.
 async function loadInstanceStats(){const box=document.getElementById('authStats');if(!box)return;
@@ -3164,7 +3190,13 @@ async function loadInstanceStats(){const box=document.getElementById('authStats'
   box.innerHTML='<div class="auth-stats-h">État de l\'instance</div><div class="inst-stats">'+cells.map(([k,v])=>`<div class="inst-stat"><span class="is-v">${esc(String(v))}</span><span class="is-k">${esc(k)}</span></div>`).join('')+'</div>';}
 function renderAuth(){const body=document.getElementById('authBody');if(!body)return;
   if(Auth.signedIn()){const u=Auth.user()||{};
-    const doSignOut=async()=>{await Auth.signOut();resetAuthState();_authDelete=false;_authStep={mode:'email',email:'',msg:'',msgcls:''};renderAuth();setSyncChip();if(state.view==='library')renderLibrary();};
+    // wipe : la case « effacer aussi cet appareil » était cochée (appareil partagé) — les fiches
+    // restent dans le cloud, seule la copie locale du compte disparaît. Reload (comme la
+    // suppression de compte) : plus simple et plus sûr que de retricoter l'état en mémoire après
+    // avoir supprimé les données qu'il référence.
+    const doSignOut=async(wipe)=>{await Auth.signOut();
+      if(wipe){await wipeCurrentSpace();location.reload();return;}
+      resetAuthState();_authDelete=false;_authStep={mode:'email',email:'',msg:'',msgcls:''};renderAuth();setSyncChip();if(state.view==='library')renderLibrary();};
     if(_authDelete){
       // E-mail cible = celui de la SESSION, jamais une saisie : le code de confirmation part
       // forcément à l'adresse du compte (aucune injection d'un autre e-mail possible), et la
@@ -3253,6 +3285,7 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
       const rejected=myAccountStatus==='rejected';
       body.innerHTML=`<div class="auth-card-in"><div class="auth-avatar">${esc(ini)}</div><div class="auth-id"><div class="auth-email">${esc(u.email||'')}</div><div class="auth-state ${rejected?'err':'pending'}"><span class="auth-dot"></span>${rejected?'Demande refusée':'En attente de validation'}</div></div></div>
         <p class="auth-sub">${rejected?"Votre demande de compte a été refusée par un administrateur. Vous pouvez supprimer cette demande ci-dessous, ou réessayer avec une autre adresse e-mail.":"Votre e-mail est vérifié. Un administrateur doit maintenant approuver votre compte avant que vos fiches ne soient synchronisées dans le cloud. En attendant, l'app reste pleinement utilisable en local, sur cet appareil."}</p>
+        <label class="auth-check"><input type="checkbox" id="authWipeOnOut"><span>En me déconnectant (ou changeant de compte), effacer aussi les fiches de ce compte enregistrées sur <b>cet appareil</b></span></label>
         <div class="auth-actions"><button class="btn primary" id="authRecheck">Vérifier maintenant</button><button class="btn" id="authSwitch">Changer de compte</button><button class="btn" id="authOut">Se déconnecter</button></div>
         <button class="auth-danger" id="authDelete">Supprimer cette demande de compte</button>`;
       body.querySelector('#authRecheck').onclick=async()=>{const b=body.querySelector('#authRecheck');b.disabled=true;b.textContent='Vérification…';
@@ -3261,12 +3294,17 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
         // toujours pending/rejected -> on le dit explicitement (jamais l'état par défaut "ok/Connecté").
         if(myAccountStatus==='approved')Sync.full();
         else setSyncChip(myAccountStatus,myAccountStatus==='rejected'?'Compte refusé':'En attente de validation');};
-      body.querySelector('#authSwitch').onclick=async()=>{await doSignOut();};
-      body.querySelector('#authOut').onclick=async()=>{if(!await confirmDlg('Se déconnecter ?',{yes:'Se déconnecter'}))return;await doSignOut();};
+      body.querySelector('#authSwitch').onclick=async()=>{const wipe=!!body.querySelector('#authWipeOnOut').checked;
+        if(wipe&&!await confirmDlg('Changer de compte et effacer les fiches de ce compte sur cet appareil ? Elles resteront disponibles dans votre espace en ligne.',{title:'Changer de compte',yes:'Changer de compte',danger:true}))return;
+        await doSignOut(wipe);};
+      body.querySelector('#authOut').onclick=async()=>{const wipe=!!body.querySelector('#authWipeOnOut').checked;
+        if(!await confirmDlg(wipe?'Se déconnecter et effacer les fiches de ce compte sur cet appareil ? Elles resteront disponibles dans votre espace en ligne.':'Se déconnecter ?',{yes:'Se déconnecter',danger:wipe}))return;
+        await doSignOut(wipe);};
       {const ad=body.querySelector('#authDelete');if(ad)ad.onclick=()=>{_authDelete=true;renderAuth();};}
       return;}
     body.innerHTML=`<div class="auth-card-in"><div class="auth-avatar">${esc(ini)}</div><div class="auth-id"><div class="auth-email">${esc(u.email||'')}</div>${authStateHtml()}</div></div>
       <p class="auth-sub">Votre bibliothèque personnelle est sauvegardée et accessible sur tous vos appareils connectés à ce compte.</p>
+      <label class="auth-check"><input type="checkbox" id="authWipeOnOut"><span>En me déconnectant (ou changeant de compte), effacer aussi les fiches de ce compte enregistrées sur <b>cet appareil</b></span></label>
       <div class="auth-actions"><button class="btn primary" id="authSync">Synchroniser maintenant</button><button class="btn" id="authSwitch">Changer de compte</button><button class="btn" id="authOut">Se déconnecter</button>${myIsAppAdmin?`<button class="btn" id="authPending">Comptes en attente${myPendingCount?' ('+myPendingCount+')':''}</button>`:''}</div>
       ${myIsAppAdmin?'<div id="authStats" class="inst-stats-wrap" aria-label="État de l\'instance"></div><p class="auth-admin-note">Compte administrateur : la suppression se fait depuis le tableau de bord Supabase (garde-fou).</p>':'<button class="auth-danger" id="authDelete">Supprimer mon compte et mes données</button>'}`;
     // La fenêtre RESTE ouverte : la ligne d'état juste au-dessus (authStateHtml, mise à jour en
@@ -3275,9 +3313,19 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
     body.querySelector('#authSync').onclick=()=>{Sync.full();};
     syncBtnRefresh();   // état initial du bouton (grisé si hors-ligne ou synchro déjà en cours)
     // Confirmation AVANT de déconnecter : ce bouton est voisin de « Synchroniser maintenant » —
-    // sans elle, un tap imprécis déconnectait sans prévenir (vécu comme un bug).
-    body.querySelector('#authSwitch').onclick=async()=>{if(!await confirmDlg('Changer de compte ? Vous serez déconnecté de ce compte (vos fiches restent disponibles sur cet appareil).',{yes:'Changer de compte'}))return;await doSignOut();};
-    body.querySelector('#authOut').onclick=async()=>{if(!await confirmDlg('Se déconnecter ? Vos fiches restent disponibles localement sur cet appareil.',{yes:'Se déconnecter'}))return;await doSignOut();};
+    // sans elle, un tap imprécis déconnectait sans prévenir (vécu comme un bug). Le message et le
+    // style (danger) reflètent la case « effacer aussi cet appareil » — mêmes bouton et case pour
+    // « Changer de compte » et « Se déconnecter » (l'un et l'autre appellent doSignOut) : proposer
+    // l'effacement seulement au second aurait été redondant et propice à l'erreur (deux chemins
+    // pour « quitter ce compte sur cet appareil », un seul avec l'option).
+    body.querySelector('#authSwitch').onclick=async()=>{const wipe=!!body.querySelector('#authWipeOnOut').checked;
+      const msg=wipe?'Changer de compte et effacer les fiches de ce compte sur cet appareil ? Elles resteront disponibles dans votre espace en ligne.':'Changer de compte ? Vous serez déconnecté de ce compte (vos fiches restent disponibles sur cet appareil).';
+      if(!await confirmDlg(msg,{title:'Changer de compte',yes:'Changer de compte',danger:wipe}))return;
+      await doSignOut(wipe);};
+    body.querySelector('#authOut').onclick=async()=>{const wipe=!!body.querySelector('#authWipeOnOut').checked;
+      const msg=wipe?'Se déconnecter et effacer les fiches de ce compte sur cet appareil ? Elles resteront disponibles dans votre espace en ligne.':'Se déconnecter ? Vos fiches restent disponibles localement sur cet appareil.';
+      if(!await confirmDlg(msg,{yes:'Se déconnecter',danger:wipe}))return;
+      await doSignOut(wipe);};
     {const ad=body.querySelector('#authDelete');if(ad)ad.onclick=()=>{_authDelete=true;renderAuth();};}
     {const ap=body.querySelector('#authPending');if(ap)ap.onclick=()=>{closeAuth();openPending();};}
     if(myIsAppAdmin)loadInstanceStats();  // état de l'instance : chargé en asynchrone, sans bloquer l'écran
