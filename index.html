@@ -968,7 +968,7 @@
 /* PALETTE : couleurs proposées pour les catégories (hex sombres, lisibles
    en texte comme en pastille teintée). Index réutilisé cycliquement. */
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='3.3.6';
+const APP_VERSION='3.3.7';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -1558,6 +1558,10 @@ async function load(){
   updateStorageInfo();
   // Accueil (3 repères) à la toute première ouverture seulement.
   try{if(!localStorage.getItem('ac-onboarded'))welcomeModal.classList.add('on');}catch(e){}
+  // Reprise après un « Changer de compte »/« Se déconnecter » AVEC effacement (passé par un
+  // reload, cf. doSignOut) : rouvrir l'écran de connexion, pour arriver au même endroit que sans
+  // effacement (la fenêtre Compte restait alors ouverte sur le formulaire de connexion).
+  try{if(localStorage.getItem('ac-reopen-auth')){localStorage.removeItem('ac-reopen-auth');if(typeof openAuth==='function')openAuth();}}catch(e){}
   // Données prêtes (backend choisi) : on lance une première synchro si l'utilisateur est connecté.
   // Les modifications faites pendant une déconnexion sont d'abord soumises à confirmation
   // (appareil partagé) — le push les retient de toute façon tant que ce n'est pas tranché.
@@ -3199,7 +3203,12 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
     // disparaît. Reload (comme la suppression de compte) : plus simple et plus sûr que de
     // retricoter l'état en mémoire après avoir supprimé les données qu'il référence.
     const doSignOut=async(wipe)=>{await Auth.signOut();
-      if(wipe){await wipeCurrentSpace();location.reload();return;}
+      // Avec effacement : on passe par un reload (l'état en mémoire pointe sur des données
+      // supprimées). Le reload FERME la fenêtre Compte -> sans le drapeau ci-dessous, on
+      // atterrissait sur la bibliothèque au lieu de l'écran de connexion, alors que SANS effacement
+      // la fenêtre reste ouverte sur ce même écran. Le drapeau la rouvre après le reload : l'option
+      // « effacer » ne change alors QUE les données, jamais la destination.
+      if(wipe){await wipeCurrentSpace();try{localStorage.setItem('ac-reopen-auth','1');}catch(e){}location.reload();return;}
       resetAuthState();_authDelete=false;_authStep={mode:'email',email:'',msg:'',msgcls:''};renderAuth();setSyncChip();if(state.view==='library')renderLibrary();};
     // « Changer de compte » et « Se déconnecter » : même action réelle (doSignOut) et même OPTION
     // facultative — effacer les fiches de ce compte sur cet appareil. L'option est portée par la

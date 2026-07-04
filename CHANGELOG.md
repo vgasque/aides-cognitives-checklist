@@ -1,5 +1,15 @@
 # Journal des modifications
 
+## [3.3.7] — 2026-07-04
+### Corrigé
+- **« Changer de compte » (ou « Se déconnecter ») avec l'option d'effacement cochée n'ouvrait
+  plus l'écran de connexion.** Sans l'option, la fenêtre Compte restait ouverte sur le formulaire
+  de connexion — on pouvait enchaîner directement sur un autre compte. Avec l'option cochée,
+  l'effacement passe par un rechargement de la page (nécessaire : l'état en mémoire pointe sur des
+  données supprimées) qui refermait la fenêtre et laissait l'utilisateur sur la bibliothèque. Le
+  rechargement rouvre désormais l'écran de connexion : l'option « effacer » ne change plus que les
+  données locales, jamais la destination après l'action.
+
 ## [3.3.6] — 2026-07-04
 ### Corrigé
 - **L'option « effacer aussi les fiches de ce compte sur cet appareil » n'est plus proposée à un
