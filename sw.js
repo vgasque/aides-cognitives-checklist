@@ -17,7 +17,7 @@
 //  code et restent intactes à chaque mise à jour, tant que l'URL reste la même.
 // =============================================================================
 // IMPORTANT : garder cette version synchronisée avec APP_VERSION dans index.html.
-const CACHE = 'aides-cognitives-v3.3.4';
+const CACHE = 'aides-cognitives-v3.3.5';
 const ASSETS = [
   './',
   './index.html',

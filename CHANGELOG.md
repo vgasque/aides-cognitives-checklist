@@ -1,5 +1,21 @@
 # Journal des modifications
 
+## [3.3.5] — 2026-07-04
+### Modifié
+- **L'option « effacer aussi les fiches de ce compte sur cet appareil » (3.3.4) passe dans la
+  fenêtre de confirmation.** Elle était une case permanente affichée sous les boutons de l'écran
+  Compte, dupliquée dans chaque variante de l'écran (connecté / en attente / refusé). Elle est
+  désormais portée par la fenêtre de confirmation qui s'ouvre au clic sur « Se déconnecter » ou
+  « Changer de compte » : moins de bruit dans l'écran, et l'option apparaît au moment de décider.
+  Cocher la case fait passer le bouton de validation en rouge (convention « action destructrice »).
+### Interne
+- **`confirmDlg` accepte une case à cocher optionnelle** (`opts.check`) : dans ce mode, la
+  promesse se résout avec `{checked}` sur validation (et `null` sur abandon) ; sans `opts.check`,
+  le retour booléen habituel est conservé (rétrocompatibilité de tous les appels existants,
+  vérifiée). Les gestionnaires « Se déconnecter » / « Changer de compte », auparavant dupliqués
+  quatre fois (deux écrans × deux boutons) avec leurs variantes de message, sont regroupés en un
+  seul point de code (`confirmLeave` + `doSwitch`/`doOut`).
+
 ## [3.3.4] — 2026-07-04
 ### Ajouté
 - **« Se déconnecter » et « Changer de compte » proposent d'effacer aussi les fiches de ce

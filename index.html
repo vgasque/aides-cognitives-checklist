@@ -738,6 +738,9 @@
   .auth-del .auth-sub{text-align:left}
   .auth-check{display:flex;gap:9px;align-items:flex-start;text-align:left;font-size:13.5px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px 12px;margin:4px 0 6px;cursor:pointer}
   .auth-check input{margin-top:2px;flex:none}
+  /* .auth-check pose display:flex -> l'attribut [hidden] (UA : display:none) est moins spécifique
+     et ne masquerait pas la case ; règle explicite pour la case optionnelle de confirmDlg. */
+  .auth-check[hidden]{display:none}
   .auth-confirm-lbl{text-align:left;font-size:13px;color:var(--ink-soft);margin:14px 0 6px}.auth-confirm-lbl b{color:var(--critical)}
   .auth-confirm{text-align:center;letter-spacing:2px;font-weight:600;text-transform:uppercase}
   .auth-admin-note{font-size:12.5px;color:var(--ink-soft);text-align:center;margin:16px 0 0;line-height:1.5}
@@ -949,6 +952,7 @@
 <div class="ai-modal" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmModalTitle"><div class="ai-card" style="max-width:480px">
   <div class="ai-top"><h3 id="confirmModalTitle">Confirmer</h3><button class="ai-x" id="confirmX" aria-label="Fermer">×</button></div>
   <p id="confirmMsg" style="white-space:pre-line;font-size:14.5px;color:var(--ink)"></p>
+  <label class="auth-check" id="confirmCheckRow" hidden><input type="checkbox" id="confirmCheck"><span id="confirmCheckLbl"></span></label>
   <div style="display:flex;gap:9px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px"><button class="btn" id="confirmNo">Annuler</button><button class="btn primary" id="confirmYes">Confirmer</button></div>
 </div></div>
 
@@ -964,7 +968,7 @@
 /* PALETTE : couleurs proposées pour les catégories (hex sombres, lisibles
    en texte comme en pastille teintée). Index réutilisé cycliquement. */
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='3.3.4';
+const APP_VERSION='3.3.5';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -3190,13 +3194,22 @@ async function loadInstanceStats(){const box=document.getElementById('authStats'
   box.innerHTML='<div class="auth-stats-h">État de l\'instance</div><div class="inst-stats">'+cells.map(([k,v])=>`<div class="inst-stat"><span class="is-v">${esc(String(v))}</span><span class="is-k">${esc(k)}</span></div>`).join('')+'</div>';}
 function renderAuth(){const body=document.getElementById('authBody');if(!body)return;
   if(Auth.signedIn()){const u=Auth.user()||{};
-    // wipe : la case « effacer aussi cet appareil » était cochée (appareil partagé) — les fiches
-    // restent dans le cloud, seule la copie locale du compte disparaît. Reload (comme la
-    // suppression de compte) : plus simple et plus sûr que de retricoter l'état en mémoire après
-    // avoir supprimé les données qu'il référence.
+    // wipe : la case « effacer aussi cet appareil » (fenêtre de confirmation) était cochée
+    // (appareil partagé) — les fiches restent dans le cloud, seule la copie locale du compte
+    // disparaît. Reload (comme la suppression de compte) : plus simple et plus sûr que de
+    // retricoter l'état en mémoire après avoir supprimé les données qu'il référence.
     const doSignOut=async(wipe)=>{await Auth.signOut();
       if(wipe){await wipeCurrentSpace();location.reload();return;}
       resetAuthState();_authDelete=false;_authStep={mode:'email',email:'',msg:'',msgcls:''};renderAuth();setSyncChip();if(state.view==='library')renderLibrary();};
+    // « Changer de compte » et « Se déconnecter » : même action réelle (doSignOut) et même OPTION
+    // facultative — effacer les fiches de ce compte sur cet appareil. L'option est portée par la
+    // fenêtre de confirmation (case décochée par défaut), au lieu d'une case permanente dupliquée
+    // dans chaque variante de l'écran Compte -> un seul point de code, deux boutons qui l'appellent.
+    const confirmLeave=async(title,msg,yes)=>{
+      const r=await confirmDlg(msg,{title:title,yes:yes,check:'Effacer aussi les fiches de ce compte sur cet appareil (elles restent disponibles dans votre espace en ligne)'});
+      if(!r)return;await doSignOut(r.checked);};
+    const doSwitch=()=>confirmLeave('Changer de compte','Changer de compte ? Vous serez déconnecté de ce compte.','Changer de compte');
+    const doOut=()=>confirmLeave('Se déconnecter','Se déconnecter ?','Se déconnecter');
     if(_authDelete){
       // E-mail cible = celui de la SESSION, jamais une saisie : le code de confirmation part
       // forcément à l'adresse du compte (aucune injection d'un autre e-mail possible), et la
@@ -3285,7 +3298,6 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
       const rejected=myAccountStatus==='rejected';
       body.innerHTML=`<div class="auth-card-in"><div class="auth-avatar">${esc(ini)}</div><div class="auth-id"><div class="auth-email">${esc(u.email||'')}</div><div class="auth-state ${rejected?'err':'pending'}"><span class="auth-dot"></span>${rejected?'Demande refusée':'En attente de validation'}</div></div></div>
         <p class="auth-sub">${rejected?"Votre demande de compte a été refusée par un administrateur. Vous pouvez supprimer cette demande ci-dessous, ou réessayer avec une autre adresse e-mail.":"Votre e-mail est vérifié. Un administrateur doit maintenant approuver votre compte avant que vos fiches ne soient synchronisées dans le cloud. En attendant, l'app reste pleinement utilisable en local, sur cet appareil."}</p>
-        <label class="auth-check"><input type="checkbox" id="authWipeOnOut"><span>En me déconnectant (ou changeant de compte), effacer aussi les fiches de ce compte enregistrées sur <b>cet appareil</b></span></label>
         <div class="auth-actions"><button class="btn primary" id="authRecheck">Vérifier maintenant</button><button class="btn" id="authSwitch">Changer de compte</button><button class="btn" id="authOut">Se déconnecter</button></div>
         <button class="auth-danger" id="authDelete">Supprimer cette demande de compte</button>`;
       body.querySelector('#authRecheck').onclick=async()=>{const b=body.querySelector('#authRecheck');b.disabled=true;b.textContent='Vérification…';
@@ -3294,17 +3306,12 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
         // toujours pending/rejected -> on le dit explicitement (jamais l'état par défaut "ok/Connecté").
         if(myAccountStatus==='approved')Sync.full();
         else setSyncChip(myAccountStatus,myAccountStatus==='rejected'?'Compte refusé':'En attente de validation');};
-      body.querySelector('#authSwitch').onclick=async()=>{const wipe=!!body.querySelector('#authWipeOnOut').checked;
-        if(wipe&&!await confirmDlg('Changer de compte et effacer les fiches de ce compte sur cet appareil ? Elles resteront disponibles dans votre espace en ligne.',{title:'Changer de compte',yes:'Changer de compte',danger:true}))return;
-        await doSignOut(wipe);};
-      body.querySelector('#authOut').onclick=async()=>{const wipe=!!body.querySelector('#authWipeOnOut').checked;
-        if(!await confirmDlg(wipe?'Se déconnecter et effacer les fiches de ce compte sur cet appareil ? Elles resteront disponibles dans votre espace en ligne.':'Se déconnecter ?',{yes:'Se déconnecter',danger:wipe}))return;
-        await doSignOut(wipe);};
+      body.querySelector('#authSwitch').onclick=doSwitch;
+      body.querySelector('#authOut').onclick=doOut;
       {const ad=body.querySelector('#authDelete');if(ad)ad.onclick=()=>{_authDelete=true;renderAuth();};}
       return;}
     body.innerHTML=`<div class="auth-card-in"><div class="auth-avatar">${esc(ini)}</div><div class="auth-id"><div class="auth-email">${esc(u.email||'')}</div>${authStateHtml()}</div></div>
       <p class="auth-sub">Votre bibliothèque personnelle est sauvegardée et accessible sur tous vos appareils connectés à ce compte.</p>
-      <label class="auth-check"><input type="checkbox" id="authWipeOnOut"><span>En me déconnectant (ou changeant de compte), effacer aussi les fiches de ce compte enregistrées sur <b>cet appareil</b></span></label>
       <div class="auth-actions"><button class="btn primary" id="authSync">Synchroniser maintenant</button><button class="btn" id="authSwitch">Changer de compte</button><button class="btn" id="authOut">Se déconnecter</button>${myIsAppAdmin?`<button class="btn" id="authPending">Comptes en attente${myPendingCount?' ('+myPendingCount+')':''}</button>`:''}</div>
       ${myIsAppAdmin?'<div id="authStats" class="inst-stats-wrap" aria-label="État de l\'instance"></div><p class="auth-admin-note">Compte administrateur : la suppression se fait depuis le tableau de bord Supabase (garde-fou).</p>':'<button class="auth-danger" id="authDelete">Supprimer mon compte et mes données</button>'}`;
     // La fenêtre RESTE ouverte : la ligne d'état juste au-dessus (authStateHtml, mise à jour en
@@ -3312,20 +3319,12 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
     // là où fermer la fenêtre laissait l'utilisateur sans aucune confirmation.
     body.querySelector('#authSync').onclick=()=>{Sync.full();};
     syncBtnRefresh();   // état initial du bouton (grisé si hors-ligne ou synchro déjà en cours)
-    // Confirmation AVANT de déconnecter : ce bouton est voisin de « Synchroniser maintenant » —
-    // sans elle, un tap imprécis déconnectait sans prévenir (vécu comme un bug). Le message et le
-    // style (danger) reflètent la case « effacer aussi cet appareil » — mêmes bouton et case pour
-    // « Changer de compte » et « Se déconnecter » (l'un et l'autre appellent doSignOut) : proposer
-    // l'effacement seulement au second aurait été redondant et propice à l'erreur (deux chemins
-    // pour « quitter ce compte sur cet appareil », un seul avec l'option).
-    body.querySelector('#authSwitch').onclick=async()=>{const wipe=!!body.querySelector('#authWipeOnOut').checked;
-      const msg=wipe?'Changer de compte et effacer les fiches de ce compte sur cet appareil ? Elles resteront disponibles dans votre espace en ligne.':'Changer de compte ? Vous serez déconnecté de ce compte (vos fiches restent disponibles sur cet appareil).';
-      if(!await confirmDlg(msg,{title:'Changer de compte',yes:'Changer de compte',danger:wipe}))return;
-      await doSignOut(wipe);};
-    body.querySelector('#authOut').onclick=async()=>{const wipe=!!body.querySelector('#authWipeOnOut').checked;
-      const msg=wipe?'Se déconnecter et effacer les fiches de ce compte sur cet appareil ? Elles resteront disponibles dans votre espace en ligne.':'Se déconnecter ? Vos fiches restent disponibles localement sur cet appareil.';
-      if(!await confirmDlg(msg,{yes:'Se déconnecter',danger:wipe}))return;
-      await doSignOut(wipe);};
+    // Confirmation AVANT de déconnecter (doSwitch/doOut) : ces boutons sont voisins de
+    // « Synchroniser maintenant » — sans elle, un tap imprécis déconnectait sans prévenir (vécu
+    // comme un bug). La fenêtre de confirmation porte aussi l'option « effacer les fiches locales »
+    // (case décochée par défaut), commune aux deux boutons (cf. confirmLeave, un seul point de code).
+    body.querySelector('#authSwitch').onclick=doSwitch;
+    body.querySelector('#authOut').onclick=doOut;
     {const ad=body.querySelector('#authDelete');if(ad)ad.onclick=()=>{_authDelete=true;renderAuth();};}
     {const ap=body.querySelector('#authPending');if(ap)ap.onclick=()=>{closeAuth();openPending();};}
     if(myIsAppAdmin)loadInstanceStats();  // état de l'instance : chargé en asynchrone, sans bloquer l'écran
@@ -3536,17 +3535,30 @@ async function reassignFicheId(f){
    secondaire), null (✕ / Échap / clic sur le fond = abandon). Pour les cas simples,
    `if(!await confirmDlg(...))return;` équivaut à l'ancien confirm(). Quand le bouton secondaire
    porte une action ALTERNATIVE (import : « remplacer » vs « garder les deux »), tester ===null
-   pour distinguer l'abandon. */
-let _confirmRes=null;
+   pour distinguer l'abandon.
+   CASE À COCHER OPTIONNELLE (`opts.check` = libellé) : ajoute une case dans la fenêtre (option
+   liée à l'action, ex. « effacer aussi les fiches locales »). Dans ce mode SEULEMENT, la promesse
+   se résout avec un OBJET `{checked}` sur validation (et null sur abandon) — les appelants sans
+   `opts.check` gardent le retour booléen habituel (rétrocompatibilité de l'idiome ci-dessus). */
+let _confirmRes=null,_confirmCheck=false;
 function confirmDlg(msg,opts){opts=opts||{};return new Promise(res=>{
   if(_confirmRes)_confirmRes(null);            // une seule confirmation à la fois
-  _confirmRes=res;
+  _confirmRes=res;_confirmCheck=!!opts.check;
   document.getElementById('confirmModalTitle').textContent=opts.title||'Confirmer';
   document.getElementById('confirmMsg').textContent=msg;
-  const y=document.getElementById('confirmYes');y.textContent=opts.yes||'Confirmer';y.className='btn '+(opts.danger?'danger':'primary');
+  const y=document.getElementById('confirmYes');y.textContent=opts.yes||'Confirmer';
   document.getElementById('confirmNo').textContent=opts.no||'Annuler';
+  const row=document.getElementById('confirmCheckRow'),cb=document.getElementById('confirmCheck');
+  if(opts.check){row.hidden=false;cb.checked=false;document.getElementById('confirmCheckLbl').textContent=opts.check;
+    // Cocher l'option rend l'action destructrice -> le bouton principal passe en rouge (convention
+    // « destructeur = danger »), même si l'appel de base n'était pas `danger`.
+    const upd=()=>{y.className='btn '+((opts.danger||cb.checked)?'danger':'primary');};cb.onchange=upd;upd();
+  }else{row.hidden=true;cb.onchange=null;y.className='btn '+(opts.danger?'danger':'primary');}
   confirmModal.classList.add('on');});}
-function _confirmEnd(v){confirmModal.classList.remove('on');const r=_confirmRes;_confirmRes=null;if(r)r(v);}
+// Résolution : en mode case à cocher, `true` (validation) -> {checked}, tout le reste -> null ;
+// sinon on transmet la valeur brute (true/false/null).
+function _confirmEnd(v){confirmModal.classList.remove('on');const r=_confirmRes;_confirmRes=null;if(!r)return;
+  r(_confirmCheck?(v===true?{checked:!!document.getElementById('confirmCheck').checked}:null):v);}
 document.getElementById('confirmYes').onclick=()=>_confirmEnd(true);
 document.getElementById('confirmNo').onclick=()=>_confirmEnd(false);
 bindModalDismiss(confirmModal,()=>_confirmEnd(null));
