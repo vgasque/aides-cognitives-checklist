@@ -25,6 +25,9 @@ declare
   bob   uuid := '22222222-2222-2222-2222-222222222222';
   carol uuid := '33333333-3333-3333-3333-333333333333';
   dave  uuid := '44444444-4444-4444-4444-444444444444';
+  erin  uuid := '55555555-5555-5555-5555-555555555555';
+  frank uuid := '66666666-6666-6666-6666-666666666666';
+  gina  uuid := '77777777-7777-7777-7777-777777777777';
   v_hack text;
   v_cnt  int;
 begin
@@ -186,6 +189,87 @@ begin
   -- La suppression du compte emporte aussi ses notes personnelles (FK on delete cascade).
   select count(*) into v_cnt from public.fiche_notes where user_id=bob;
   if v_cnt <> 0 then raise exception 'ÉCHEC : les notes de Bob ont survécu à la suppression du compte'; end if;
+
+  ------------------------------------------------------------------ 8. Bibliothèques partagées :
+  -- cloisonnement des rôles (viewer/editor/admin) et étanchéité entre bibliothèques. Jusqu'ici,
+  -- seuls les helpers is_member/member_role sur une bibliothèque INEXISTANTE étaient testés
+  -- (section 3) : aucun test ne créait une VRAIE bibliothèque avec des membres — c'est
+  -- précisément la lacune qui avait laissé passer, en 3.3.1, l'invitation d'un compte non
+  -- approuvé dans une bibliothèque partagée (corrigé en 3.3.2, testé en 8.6 ci-dessous).
+  reset role;
+  insert into auth.users (id, email, email_confirmed_at) values
+    (erin,'erin@test.local',now()),(frank,'frank@test.local',now())
+    on conflict (id) do nothing;
+  insert into public.user_status(user_id,email,status) values
+    (erin,'erin@test.local','approved'),(frank,'frank@test.local','approved')
+    on conflict (user_id) do update set status='approved';
+  insert into public.libraries(id,name,created_by) values ('lib-team','Équipe',alice),('lib-other','Autre',alice)
+    on conflict (id) do nothing;
+  insert into public.memberships(user_id,library_id,role) values (erin,'lib-team','editor'),(frank,'lib-team','viewer')
+    on conflict (user_id,library_id) do update set role=excluded.role;
+  insert into public.fiches(id,owner,library_id,data) values ('f-other',alice,'lib-other','{"t":1}')
+    on conflict (id) do nothing;
+
+  -- 8.1 Editor : peut créer/lire une fiche de SA bibliothèque.
+  perform set_config('request.jwt.claims', json_build_object('sub',erin,'role','authenticated')::text, true);
+  set local role authenticated;
+  insert into public.fiches(id,owner,library_id,data) values ('f-team',erin,'lib-team','{"t":1}');
+  select count(*) into v_cnt from public.fiches where id='f-team';
+  if v_cnt <> 1 then raise exception 'ÉCHEC : un editor ne peut pas créer une fiche dans sa bibliothèque'; end if;
+
+  -- 8.2 Viewer : peut LIRE mais pas ÉCRIRE (RLS -> 0 ligne affectée, sans erreur, comme section 1).
+  perform set_config('request.jwt.claims', json_build_object('sub',frank,'role','authenticated')::text, true);
+  select count(*) into v_cnt from public.fiches where id='f-team';
+  if v_cnt <> 1 then raise exception 'ÉCHEC : un viewer ne voit pas une fiche de sa bibliothèque'; end if;
+  update public.fiches set data='{"hack":1}' where id='f-team';
+  reset role;
+  select data->>'hack' into v_hack from public.fiches where id='f-team';
+  if v_hack is not null then raise exception 'ÉCHEC : un viewer a pu modifier une fiche de sa bibliothèque'; end if;
+
+  -- 8.3 Non-membre : ni lecture ni écriture.
+  perform set_config('request.jwt.claims', json_build_object('sub',gina,'role','authenticated')::text, true);
+  set local role authenticated;
+  select count(*) into v_cnt from public.fiches where id='f-team';
+  if v_cnt <> 0 then raise exception 'ÉCHEC : un non-membre voit une fiche de la bibliothèque'; end if;
+  begin
+    insert into public.fiches(id,owner,library_id,data) values ('f-intru',gina,'lib-team','{"t":1}');
+    raise exception 'ÉCHEC : un non-membre a pu écrire dans la bibliothèque';
+  exception when insufficient_privilege then null; end;
+
+  -- 8.4 Étanchéité entre bibliothèques : un membre de lib-team ne voit pas les fiches de lib-other.
+  perform set_config('request.jwt.claims', json_build_object('sub',erin,'role','authenticated')::text, true);
+  set local role authenticated;
+  select count(*) into v_cnt from public.fiches where id='f-other';
+  if v_cnt <> 0 then raise exception 'ÉCHEC : un membre de lib-team voit une fiche de lib-other'; end if;
+
+  -- 8.5 invite_member : réservé à un admin de la bibliothèque (un editor est refusé).
+  begin
+    perform public.invite_member('lib-team','frank@test.local','editor');
+    raise exception 'ÉCHEC : un editor (non admin) a pu inviter un membre';
+  exception when raise_exception then
+    if sqlerrm <> 'not allowed' then raise; end if;
+  end;
+
+  -- 8.6 invite_member : compte non approuvé refusé (correctif 3.3.2). Sans lui, Gina (pending)
+  -- obtenait un accès lecture/écriture immédiat à lib-team via une simple invitation d'un admin
+  -- de bibliothèque, alors que la validation des comptes n'était câblée que sur l'espace perso.
+  reset role;
+  update public.memberships set role='admin' where user_id=erin and library_id='lib-team';
+  insert into public.user_status(user_id,email,status) values (gina,'gina@test.local','pending')
+    on conflict (user_id) do update set status='pending';
+  perform set_config('request.jwt.claims', json_build_object('sub',erin,'role','authenticated')::text, true);
+  set local role authenticated;
+  select public.invite_member('lib-team','gina@test.local','viewer') into v_hack;
+  if v_hack <> 'not_approved' then raise exception 'ÉCHEC : invite_member a accepté un compte non approuvé (résultat : %)', v_hack; end if;
+  reset role;
+  select count(*) into v_cnt from public.memberships where user_id=gina and library_id='lib-team';
+  if v_cnt <> 0 then raise exception 'ÉCHEC : un compte non approuvé a quand même été ajouté comme membre'; end if;
+
+  -- 8.7 invite_member : compte approuvé accepté normalement (non-régression du correctif 8.6).
+  perform set_config('request.jwt.claims', json_build_object('sub',erin,'role','authenticated')::text, true);
+  set local role authenticated;
+  select public.invite_member('lib-team','frank@test.local','viewer') into v_hack;
+  if v_hack <> 'ok' then raise exception 'ÉCHEC : invite_member a refusé un compte approuvé (résultat : %)', v_hack; end if;
 
   ------------------------------------------------------------------ FIN
   reset role;

@@ -176,9 +176,17 @@ grant execute on function public.member_role(text) to authenticated;
 -- Recherche un compte par e-mail (table auth.users protégée) et lui attribue un rôle.
 -- Réservé à un admin de la bibliothèque (ou app-admin). L'invité doit s'être connecté
 -- au moins une fois (compte existant) ; sinon retourne 'not_found'.
+-- GARDE D'APPROBATION (3.3.2) : la validation des comptes (user_status/is_approved) n'était
+-- jusqu'ici câblée que sur l'espace PERSO -> un compte en attente ou refusé, une fois invité
+-- par un admin de bibliothèque, obtenait quand même un accès lecture/écriture immédiat à une
+-- bibliothèque partagée (fiches_shared_write ne teste pas l'approbation). On applique donc ici
+-- la MÊME règle que is_approved(), évaluée pour l'INVITÉ (et non l'appelant) : logique dupliquée
+-- en ligne plutôt qu'un is_approved(uid) paramétré, pour ne PAS créer de fonction qui permettrait
+-- à n'importe quel compte de sonder le statut d'approbation d'un autre (cf. commentaire des
+-- helpers SECURITY DEFINER ci-dessus : « aucun paramètre ne permet de lire les droits d'autrui »).
 create or replace function public.invite_member(p_library text, p_email text, p_role text default 'viewer')
 returns text language plpgsql security definer set search_path = public as $$
-declare v_uid uuid;
+declare v_uid uuid; v_status text;
 begin
   if not (public.member_role(p_library) = 'admin' or public.is_app_admin()) then
     raise exception 'not allowed';
@@ -186,6 +194,13 @@ begin
   if p_role not in ('viewer','editor','admin') then p_role := 'viewer'; end if;
   select id into v_uid from auth.users where lower(email) = lower(trim(p_email));
   if v_uid is null then return 'not_found'; end if;
+  if not exists(select 1 from public.app_admins where user_id = v_uid) then
+    select status into v_status from public.user_status where user_id = v_uid;
+    if coalesce(v_status,'approved') <> 'approved'
+       and coalesce((select require_approval from public.app_settings limit 1), true) then
+      return 'not_approved';
+    end if;
+  end if;
   insert into public.memberships(user_id, library_id, role) values (v_uid, p_library, p_role)
     on conflict (user_id, library_id) do update set role = excluded.role;
   return 'ok';

@@ -52,6 +52,13 @@ Si vous utilisez un SMTP grand public (ex. **Gmail** : hôte `smtp.gmail.com`, p
 « mot de passe d'application »), l'expéditeur doit être votre propre adresse — les services
 type Brevo refusent d'envoyer « au nom » d'un domaine Gmail/Outlook sans domaine vérifié.
 
+**Limiter les abus (OTP/inscriptions).** `handle_new_user()` (`supabase/schema.sql`) masque les
+adresses non vérifiées de la liste d'attente admin, mais ce n'est **pas** une limite de débit :
+une adresse peut redemander un code indéfiniment tant qu'elle n'est pas confirmée. La seule vraie
+protection est côté GoTrue, hors de ce dépôt : Supabase → *Authentication → Rate Limits* (débit
+d'envoi d'e-mails, tentatives par IP) — à vérifier/ajuster à chaque déploiement, en particulier si
+le SMTP par défaut de Supabase (limité) est remplacé par Brevo.
+
 ### 1.4 Relier l'app à Supabase
 Dans `index.html`, la constante `SUPA` (`url` + `key` *publishable*) doit pointer vers votre projet
 (Settings → API). La clé *publishable* est **publique par conception** (la sécurité vient des

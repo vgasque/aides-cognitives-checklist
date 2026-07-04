@@ -1,5 +1,32 @@
 # Journal des modifications
 
+## [3.3.2] — 2026-07-04
+### Sécurité
+- **Bibliothèque partagée : un compte non approuvé (liste d'attente/refusé) ne peut plus y être
+  invité.** La validation des comptes (liste d'attente) n'était jusqu'ici câblée que sur l'espace
+  perso ; un admin de bibliothèque pouvait, sans le savoir, donner un accès lecture/écriture
+  immédiat à une bibliothèque d'équipe à un compte jamais validé. `invite_member()` applique
+  désormais la même règle pour l'invité que pour l'espace perso ; l'écran « Gérer les membres »
+  explique le refus.
+### Tests
+- **Bibliothèques partagées : première couverture RLS des rôles.** Aucun test ne créait jusqu'ici
+  une vraie bibliothèque avec des membres pour vérifier viewer/editor/non-membre et l'étanchéité
+  entre bibliothèques — c'est cette lacune qui avait laissé passer la faille ci-dessus. Ajout
+  d'une section dédiée (`supabase/rls-tests.sql`), y compris une non-régression sur l'invitation
+  d'un compte non approuvé.
+- **`Sync._push` : la classification « fiche perso à réparer » (403 sur une fiche sans
+  bibliothèque, cf. 3.3.1) est extraite en fonction pure testée** (`restErrStatus`,
+  `isPersoRepairCandidate`), conformément à la règle du projet sur les fonctions pures.
+### Corrigé
+- **Appareil partagé, deux onglets ouverts sur deux comptes différents : un onglet resté sur
+  l'ancien compte pouvait continuer d'écrire (épingles, curseur de synchro, modifications
+  retenues) sous le nouvel espace actif de l'appareil**, sous l'effet d'un changement de compte
+  fait dans un autre onglet. Un onglet est maintenant averti (évènement `storage` sur
+  `ac-space`) et se recharge aussitôt, comme s'il venait de se connecter lui-même.
+### Documentation
+- Kit de déploiement : rappel que l'anti-spam de la liste d'attente n'est pas une limite de
+  débit — à configurer côté Supabase (*Authentication → Rate Limits*).
+
 ## [3.3.1] — 2026-07-04
 ### Corrigé
 - **Changement de compte : une seule fiche refusée n'immobilisait plus toute la synchro.** La

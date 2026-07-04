@@ -192,6 +192,14 @@ function run(A){
   ok('deux appels → ids distincts', A.uid()!==A.uid());
   ok('entropie renforcée (≥ 8 caractères aléatoires après l\'horodatage)', A.uid('f').length>=1+8+8);
 
+  group('restErrStatus() / isPersoRepairCandidate() — retry de Sync._push');
+  eq('statut extrait du message REST', A.restErrStatus('REST 403 Forbidden'), 403);
+  eq('pas de statut identifiable -> null', A.restErrStatus('Failed to fetch'), null);
+  eq('message vide/absent -> null', A.restErrStatus(), null);
+  ok('perso + 403 -> candidat réparation', A.isPersoRepairCandidate('REST 403 Forbidden', true));
+  ok('bibliothèque (non perso) + 403 -> pas candidat (droits partagés retirés, pas une collision d\'id)', !A.isPersoRepairCandidate('REST 403 Forbidden', false));
+  ok('perso + 409 -> pas candidat (autre cause)', !A.isPersoRepairCandidate('REST 409 Conflict', true));
+
   group('stripJsonFences()');
   eq('JSON nu inchangé', A.stripJsonFences('{"a":1}'), '{"a":1}');
   eq('clôtures ```json retirées', A.stripJsonFences('```json\n{"a":1}\n```'), '{"a":1}');

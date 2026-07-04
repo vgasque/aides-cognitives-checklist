@@ -964,7 +964,7 @@
 /* PALETTE : couleurs proposées pour les catégories (hex sombres, lisibles
    en texte comme en pastille teintée). Index réutilisé cycliquement. */
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='3.3.1';
+const APP_VERSION='3.3.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -993,7 +993,9 @@ const MEM={};
    - L'espace SUIT LE DERNIER COMPTE CONNECTÉ ('ac-space', collant) : une déconnexion — même
      forcée par un jeton révoqué en pleine session — ne change RIEN à l'affichage (promesse
      hors-ligne intacte). L'espace ne bascule qu'à la CONNEXION d'un AUTRE compte, par un
-     location.reload() (bascule atomique de tout l'état en mémoire).
+     location.reload() (bascule atomique de tout l'état en mémoire). MULTI-ONGLETS (3.3.2) :
+     ce reload ne se produit QUE dans l'onglet qui se connecte ; un autre onglet resté ouvert
+     est averti via l'évènement 'storage' sur 'ac-space' et se recharge à son tour (cf. plus bas).
    - UNE base IndexedDB PAR espace : la base historique 'ac-db' est ATTRIBUÉE (sans copie) au
      premier espace qui la réclame ('ac-db-owner') ; les autres espaces utilisent 'ac-db-<uid>'.
      Même logique pour les clés localStorage par espace (spaceKey) et le repli KV (kvName).
@@ -1026,6 +1028,18 @@ function spaceKey(base){let owner=null;try{owner=localStorage.getItem('ac-db-own
 // Registre des espaces créés (pour l'effacement complet de l'appareil, cf. wipeLocal).
 function registerSpace(space){try{const r=JSON.parse(localStorage.getItem('ac-spaces')||'[]');
   if(r.indexOf(space)<0){r.push(space);localStorage.setItem('ac-spaces',JSON.stringify(r));}}catch(e){}}
+// GARDE-FOU MULTI-ONGLETS (3.3.2) : un AUTRE onglet du même appareil vient de basculer 'ac-space'
+// (connexion à un compte différent, cf. bloc ci-dessus) — sans ce garde-fou, CET onglet continuerait
+// d'écrire épingles / curseur de synchro / modifications retenues (toutes lues via spaceKey(), donc
+// RE-CALCULÉES sur l'espace localStorage COURANT à chaque appel) sous le NOUVEL espace actif, tout
+// en affichant encore les fiches de l'ANCIEN — un mélange entre comptes sur appareil partagé,
+// exactement ce que ce cloisonnement par espace vise à empêcher. L'évènement 'storage' ne se
+// déclenche JAMAIS dans l'onglet qui écrit lui-même (garantie du standard) : il ne peut donc venir
+// que d'un AUTRE onglet/fenêtre -> rechargement immédiat, sans confirmation (même logique que la
+// reprise de bascule interrompue au démarrage, cf. load()). On ignore les autres clés (ex. 'ac-auth'
+// lors d'un simple rafraîchissement de jeton) pour ne pas recharger inutilement un second onglet
+// resté ouvert sur le MÊME compte.
+window.addEventListener('storage',e=>{if(e.key==='ac-space')location.reload();});
 // Filet de sûreté (app critique) : on conserve les N dernières versions d'une fiche avant écrasement,
 // pour pouvoir comparer/restaurer (écrit lors d'un CONFLIT de synchro et avant une restauration).
 const BACKUP_MAX=5;
@@ -3511,7 +3525,14 @@ const SYNC_ERR_ICONS={
   server:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="6" rx="1.5"/><rect x="4" y="14" width="16" height="6" rx="1.5"/><path d="M7.5 7h.01M7.5 17h.01"/></svg>',
   offline:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 9.5a11 11 0 0115 0"/><path d="M7.5 12.8a7 7 0 019 0"/><path d="M10.5 16a3 3 0 013 0"/><path d="M12 19h.01"/><path d="M3 3l18 18"/></svg>',
   unknown:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.2 9.5a2.8 2.8 0 015.4 1c0 1.8-2.6 2-2.6 4"/><path d="M12 17h.01"/></svg>'};
-function explainSyncError(e){const msg=String((e&&e.message)||e||'');const m=msg.match(/^REST (\d+)/);const status=m?parseInt(m[1],10):null;
+// Statut HTTP porté par le message d'erreur de rest() (format "REST <code> ...") — PUR (testé).
+// Réutilisé par explainSyncError (message utilisateur) ET isPersoRepairCandidate (Sync._push).
+function restErrStatus(message){const m=String(message||'').match(/^REST (\d+)/);return m?parseInt(m[1],10):null;}
+// Une fiche PERSO (sans bibliothèque) refusée en 403 = son id appartient déjà à un AUTRE compte
+// dans le cloud (clé primaire globale, cf. Sync._push) : candidate à reassignFicheId. PUR (testé) —
+// extrait de la boucle de retry de _push pour rester testable via ?__actest (AGENTS.md).
+function isPersoRepairCandidate(message,isPerso){return !!isPerso&&restErrStatus(message)===403;}
+function explainSyncError(e){const msg=String((e&&e.message)||e||'');const status=restErrStatus(msg);
   if(status===401)return{icon:SYNC_ERR_ICONS.lock,title:'Session expirée',detail:'Votre connexion au compte a expiré. Reconnectez-vous depuis la fenêtre « Compte » pour reprendre la synchronisation.'};
   if(status===403)return{icon:SYNC_ERR_ICONS.forbidden,title:'Écriture refusée',detail:"Le serveur a refusé d'enregistrer certaines fiches. Cause la plus fréquente : vos droits sur une bibliothèque partagée ont changé (rôle modifié ou accès retiré par un administrateur) — ces fiches restent lisibles mais vos modifications n'y sont plus publiées. Autre cause possible : une fiche venue d'un autre compte (import) porte un identifiant déjà pris ; l'app la répare alors automatiquement à la prochaine tentative. Le reste de votre bibliothèque continue de se synchroniser."};
   if(status===413)return{icon:SYNC_ERR_ICONS.image,title:'Fiche trop volumineuse',detail:"Une fiche contient des images trop lourdes pour être envoyées. Réduisez ou supprimez des images dans cette fiche, puis réessayez."};
@@ -3641,8 +3662,8 @@ const Sync={
     let firstErr=null,persoOk=0;const perso403=[];
     for(const f of dirty){
       try{await send([f]);if(!f.libraryId)persoOk++;}
-      catch(e){const st=(String((e&&e.message)||'').match(/^REST (\d+)/)||[])[1];
-        if(st==='403'&&!f.libraryId)perso403.push(f);        // candidat réparation (voir ci-dessous)
+      catch(e){
+        if(isPersoRepairCandidate(e&&e.message,!f.libraryId))perso403.push(f);        // candidat réparation (voir ci-dessous)
         else if(!firstErr)firstErr=e;}
     }
     // Fiche PERSO refusée en 403 = son id appartient déjà à un AUTRE compte (fiche transférée par
@@ -3830,6 +3851,7 @@ async function renderMembers(){const body=document.getElementById('membersBody')
     if(!email||email.indexOf('@')<1){setMsg('Saisissez un e-mail valide.','err');return;}setMsg('Invitation…','');
     try{const r=await rpc('invite_member',{p_library:_memLib,p_email:email,p_role:role});
       if(r==='not_found')setMsg('Aucun compte avec cet e-mail. La personne doit d\'abord se connecter une fois à l\'application.','err');
+      else if(r==='not_approved')setMsg('Ce compte est en attente de validation (ou a été refusé) : il ne peut pas être ajouté à une bibliothèque tant qu\'un administrateur ne l\'a pas approuvé.','err');
       else{await renderMembers();await Sync.loadProfile();}}
     catch(e){setMsg('Échec : '+e.message,'err');}};
   body.querySelectorAll('[data-role]').forEach(sel=>sel.onchange=async()=>{
@@ -3970,7 +3992,8 @@ document.addEventListener('keydown',e=>{
    sans ce paramètre, rien de tout ceci ne s'exécute et aucun global n'est ajouté. */
 if(location.search.indexOf('__actest')>=0){
   window.__ac_test__={migrate,sanitizeCats,safeId,safeColor,safeImg,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,
-    txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID};
+    txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,
+    restErrStatus,isPersoRepairCandidate};
 }else{
   /* ===== PWA =====
      Enregistre le service worker (cache hors ligne) si disponible. Capte
