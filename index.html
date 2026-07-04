@@ -968,7 +968,7 @@
 /* PALETTE : couleurs proposées pour les catégories (hex sombres, lisibles
    en texte comme en pastille teintée). Index réutilisé cycliquement. */
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='3.3.5';
+const APP_VERSION='3.3.6';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -3205,9 +3205,16 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
     // facultative — effacer les fiches de ce compte sur cet appareil. L'option est portée par la
     // fenêtre de confirmation (case décochée par défaut), au lieu d'une case permanente dupliquée
     // dans chaque variante de l'écran Compte -> un seul point de code, deux boutons qui l'appellent.
+    // L'option n'est PROPOSÉE que si les fiches sont réellement sauvegardées en ligne : un compte
+    // EN ATTENTE ou REFUSÉ a ses écritures bloquées côté serveur (RLS) -> ses fiches locales ne
+    // sont pas dans le cloud, les effacer les perdrait définitivement. On masque donc la case pour
+    // ces comptes (confirmDlg redevient un oui/non simple), la promesse « restent en ligne » ne
+    // valant que pour un compte approuvé.
+    const offerWipe=!(myAccountStatus==='pending'||myAccountStatus==='rejected');
     const confirmLeave=async(title,msg,yes)=>{
-      const r=await confirmDlg(msg,{title:title,yes:yes,check:'Effacer aussi les fiches de ce compte sur cet appareil (elles restent disponibles dans votre espace en ligne)'});
-      if(!r)return;await doSignOut(r.checked);};
+      const opts=offerWipe?{title:title,yes:yes,check:'Effacer aussi les fiches de ce compte sur cet appareil (elles restent disponibles dans votre espace en ligne)'}:{title:title,yes:yes};
+      const r=await confirmDlg(msg,opts);
+      if(!r)return;await doSignOut(offerWipe&&r.checked===true);};
     const doSwitch=()=>confirmLeave('Changer de compte','Changer de compte ? Vous serez déconnecté de ce compte.','Changer de compte');
     const doOut=()=>confirmLeave('Se déconnecter','Se déconnecter ?','Se déconnecter');
     if(_authDelete){

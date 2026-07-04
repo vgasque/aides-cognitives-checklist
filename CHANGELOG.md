@@ -1,5 +1,16 @@
 # Journal des modifications
 
+## [3.3.6] — 2026-07-04
+### Corrigé
+- **L'option « effacer aussi les fiches de ce compte sur cet appareil » n'est plus proposée à un
+  compte en attente de validation ou refusé.** Les écritures d'un tel compte sont bloquées côté
+  serveur (RLS) tant qu'un administrateur ne l'a pas approuvé : ses fiches locales ne sont donc
+  **pas** dans le cloud, et la case promettait à tort qu'« elles restent disponibles dans votre
+  espace en ligne » — les effacer les aurait perdues définitivement. La case n'apparaît désormais
+  que pour un compte approuvé (dont les fiches sont réellement sauvegardées) ; pour un compte en
+  attente/refusé, « Se déconnecter » et « Changer de compte » redeviennent une simple confirmation
+  sans option d'effacement.
+
 ## [3.3.5] — 2026-07-04
 ### Modifié
 - **L'option « effacer aussi les fiches de ce compte sur cet appareil » (3.3.4) passe dans la
