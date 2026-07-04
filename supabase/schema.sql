@@ -341,11 +341,15 @@ alter table public.app_settings enable row level security;
 -- is_approved() : un app-admin est TOUJOURS considéré approuvé (garde-fou anti-blocage,
 -- même s'il a été promu admin après coup sans que sa ligne user_status ait été mise à jour).
 -- Si la validation est désactivée globalement (require_approval = false), tout le monde passe.
+-- ALIGNÉ SUR my_status() : un compte SANS ligne user_status (antérieur à la fonctionnalité,
+-- migration incomplète...) est réputé APPROUVÉ, comme le rapporte my_status(). L'ancien
+-- `exists(... status='approved')` le refusait : l'app affichait alors « Connecté » (my_status)
+-- pendant que TOUTES les écritures étaient rejetées en 403 — panne de synchro inexplicable.
 create or replace function public.is_approved()
 returns boolean language sql stable security definer set search_path = public as $$
   select public.is_app_admin()
     or not coalesce((select require_approval from public.app_settings limit 1), true)
-    or exists (select 1 from public.user_status where user_id = auth.uid() and status = 'approved');
+    or coalesce((select status from public.user_status where user_id = auth.uid()), 'approved') = 'approved';
 $$;
 grant execute on function public.is_approved() to authenticated;
 
