@@ -4,6 +4,48 @@ Toutes les versions notables de l'application. Format inspiré de *Keep a Change
 versionnage sémantique. La version affichée en pied de page (`APP_VERSION` dans `index.html`)
 et le cache du service worker (`sw.js`) sont tenus synchronisés par `release.sh`.
 
+## [3.3.0] — 2026-07-04
+### Ajouté
+- **Espaces locaux par compte (multi-profils).** Tout le stockage local (fiches, notes
+  personnelles, sessions, versions, épingles, catégories, curseur de synchro) est désormais
+  cloisonné par compte : changer de compte ne mélange plus jamais deux bibliothèques, et revenir
+  à un compte retrouve instantanément son cache local. L'espace suit le **dernier compte
+  connecté** : une déconnexion — même forcée par un jeton révoqué — ne change rien à l'affichage
+  (promesse hors-ligne intacte) ; la bascule n'a lieu qu'à la connexion d'un **autre** compte,
+  par un rechargement propre. Migration **sans copie** : la base historique est attribuée à son
+  propriétaire actuel, les installations existantes ne voient aucune différence. Passage
+  « sans compte -> premier compte » : dialogue « Les emporter dans ce compte ? » (déplacement des
+  fiches, notes, sessions et épingles). Entre deux comptes : jamais de transfert (export/import
+  si besoin). Garde-fous : la synchro refuse structurellement de tourner sur l'espace d'un autre
+  compte, et une bascule interrompue (app fermée au mauvais moment) est reprise au démarrage.
+  Avant : les fiches de l'ancien compte restaient affichées chez le nouveau, pouvaient être
+  versées dans son cloud, et les identifiants déjà synchronisés provoquaient une erreur de
+  synchro permanente.
+- **Bouton « Réparer l'application »** (fenêtre « Où sont mes fiches ? ») : désinscrit le
+  service worker et vide ses caches (le code de l'app, pas les données) puis recharge une copie
+  neuve — remède au cas « l'app semble bloquée sur une ancienne version ». Fiches, notes et
+  sessions intactes (et le texte le dit).
+
+### Corrigé
+- **Suppression hors-ligne : plus de divergence entre appareils.** Supprimer une fiche en étant
+  déconnecté posait une suppression locale dure, sans tombstone : la fiche restait dans le cloud
+  et sur les autres appareils, définitivement. Dans l'espace d'un compte, la suppression
+  hors-ligne pose désormais un tombstone « à pousser », propagé à la reconnexion. (La
+  suppression dure ne subsiste que dans l'espace « sans compte », où il n'y a aucun cloud.)
+- **Jauge rouge du « maintenir pour réinitialiser » enfin constante.** En mode sombre, la règle
+  de survol générique (raccourci `background:`) effaçait la jauge de progression du bouton
+  « Recommencer » pendant l'appui (le tap déclenche `:hover` sur mobile) — visible en clair,
+  invisible en sombre. La règle exclut désormais les boutons en cours d'appui, et l'animation
+  de jauge redémarre à coup sûr (reflow forcé entre deux appuis rapprochés).
+- **Barre d'état iOS (heure/batterie) à jour.** iOS ne relit pas un meta `theme-color` modifié
+  sur place : la balise est désormais **remplacée** (helper unique `setThemeColorMeta`). Au
+  changement de thème, la barre suit immédiatement ; pendant le flash d'alarme, elle passe
+  volontairement au jaune d'alerte puis est explicitement restaurée (fin d'animation + filet
+  temporisé). À confirmer sur appareil réel.
+- **Note personnelle : plus de saut en haut de page.** « + Ajouter » et « Terminer »
+  reconstruisaient la vue et renvoyaient le défilement en haut ; la position est mémorisée et
+  restaurée, et le focus de la zone de saisie est pris sans défilement.
+
 ## [3.2.5] — 2026-07-03
 ### Tests
 - **`rls-tests.sql` : faux échec corrigé** (« ÉCHEC : un compte pending a pu écrire une note »).

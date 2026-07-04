@@ -126,6 +126,10 @@
   }
   Catégorie : { id, name, color(hex), libraryId(null=Perso | id de bibliothèque) }
                (collection séparée, store 'meta' ; synchronisée PAR bibliothèque).
+  ESPACES LOCAUX PAR COMPTE : tout le stockage local (base IndexedDB, clés localStorage,
+               repli KV) est cloisonné par compte — voir le bloc « ESPACES LOCAUX » de la
+               section Backends (currentSpace/dbNameFor/spaceKey). L'espace suit le DERNIER
+               compte connecté ; il ne bascule qu'à la connexion d'un autre compte (reload).
   Note perso : { ficheId: { t(texte), at(ms), dirty? } } — carte unique sous la clé 'notes'
                du store 'meta' (KV : 'notes_v1'). TOUJOURS personnelle : hors de la fiche
                (un éditeur qui modifie une fiche partagée n'y touche pas), jamais exportée,
@@ -254,8 +258,11 @@
   /* Survols clairs -> survols sombres. */
   /* Hover sombre GÉNÉRIQUE : exclut .primary et .danger, sinon cette règle (plus spécifique que
      .btn.primary:hover) posait un fond quasi noir sous leur texte -> les règles de base gardent
-     la main (primary s'éclaircit via --primary-dk, danger se teinte via --critical-soft). */
-  html[data-theme="dark"] :is(.btn:not(.primary):not(.danger):hover,.mini:hover,.fz:hover,.opt:hover,.catchip:hover){background:#1d2723;border-color:#3a463f}
+     la main (primary s'éclaircit via --primary-dk, danger se teinte via --critical-soft).
+     Exclut aussi .holding : le raccourci `background:` remettait background-image à zéro et
+     EFFAÇAIT la jauge rouge du « maintenir pour réinitialiser » (le tap déclenche :hover sur
+     mobile -> jauge invisible en mode sombre, visible en clair : affichage « inconstant »). */
+  html[data-theme="dark"] :is(.btn:not(.primary):not(.danger):not(.holding):hover,.mini:hover,.fz:hover,.opt:hover,.catchip:hover){background:#1d2723;border-color:#3a463f}
   html[data-theme="dark"] ol.steps li.done{background:#13201c}
   /* Bandeaux : texte/bordures codés en dur -> couleurs lisibles sur fond sombre. */
   html[data-theme="dark"] .notice{color:var(--verify);border-color:#4a3f1e}
@@ -743,6 +750,9 @@
   .stg-card p{font-size:13.5px;line-height:1.55;margin:7px 0;color:var(--ink)}
   .stg-warn{color:var(--critical)}
   .stg-tip{font-size:12.5px;color:var(--ink-soft);background:rgba(0,0,0,.04);border-radius:8px;padding:8px 10px}
+  /* « Réparer l'application » : zone secondaire, séparée des explications de stockage. */
+  .stg-repair{margin-top:16px;padding-top:14px;border-top:1px solid var(--line);text-align:center}
+  .stg-repair-hint{font-size:12px;color:var(--ink-soft);line-height:1.5;margin:8px 0 0}
   html[data-theme="dark"] .stg-tip{background:rgba(255,255,255,.05)}
   .stg-ul{margin:7px 0 0;padding-left:18px;font-size:13.5px;line-height:1.55;color:var(--ink)}.stg-ul li{margin:3px 0}
   .auth-why{margin-top:16px;border-top:1px solid var(--line);padding-top:10px}
@@ -954,7 +964,7 @@
 /* PALETTE : couleurs proposées pour les catégories (hex sombres, lisibles
    en texte comme en pastille teintée). Index réutilisé cycliquement. */
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='3.2.5';
+const APP_VERSION='3.3.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -976,12 +986,44 @@ const PALETTE=['#823a32','#8d5c39','#806311','#4f6b1e','#1d7449','#0d5b56','#006
    Méthodes communes : getAll/put/del, getCats/setCats,
    getSessions/putSession/delSession, getBackups/putBackup/delBackup. */
 const MEM={};
+/* ===== ESPACES LOCAUX PAR COMPTE (multi-profils) =====
+   Chaque compte a SES données locales (fiches, notes, sessions, épingles, catégories, curseur
+   de synchro) : changer de compte ne mélange JAMAIS deux bibliothèques, et revenir à un compte
+   retrouve instantanément son cache local. Principes :
+   - L'espace SUIT LE DERNIER COMPTE CONNECTÉ ('ac-space', collant) : une déconnexion — même
+     forcée par un jeton révoqué en pleine session — ne change RIEN à l'affichage (promesse
+     hors-ligne intacte). L'espace ne bascule qu'à la CONNEXION d'un AUTRE compte, par un
+     location.reload() (bascule atomique de tout l'état en mémoire).
+   - UNE base IndexedDB PAR espace : la base historique 'ac-db' est ATTRIBUÉE (sans copie) au
+     premier espace qui la réclame ('ac-db-owner') ; les autres espaces utilisent 'ac-db-<uid>'.
+     Même logique pour les clés localStorage par espace (spaceKey) et le repli KV (kvName).
+   - Transition « sans compte -> compte » : les fiches locales sont PROPOSÉES au déménagement
+     (déplacement, pas copie : un id ne peut être adopté que par un seul compte, la clé primaire
+     cloud est globale). Entre deux comptes : jamais de transfert (export/import si besoin). */
+function currentSpace(){try{return localStorage.getItem('ac-space')||'';}catch(e){return '';}}
+// Nom de la base (ou suffixe de clé) pour un espace donné — PUR (testé) : la base historique
+// revient au propriétaire enregistré, les autres espaces sont suffixés.
+function dbNameFor(space,owner){return owner===space?'ac-db':'ac-db-'+(space||'anon');}
+// Attribution paresseuse de la base historique : le premier espace qui ouvre le stockage la
+// réclame (aucune copie de données -> migration instantanée des installations existantes).
+function claimedDbName(space){let owner=null;try{owner=localStorage.getItem('ac-db-owner');}catch(e){}
+  if(owner===null){owner=space;try{localStorage.setItem('ac-db-owner',space);}catch(e){}}
+  return dbNameFor(space,owner);}
+// Clé localStorage propre à l'espace courant — PUR via spaceKeyFor (testé). Le propriétaire de
+// la base historique garde les clés SANS suffixe (compatibilité), les autres sont suffixées.
+function spaceKeyFor(base,space,owner){return owner===space?base:base+'@'+(space||'anon');}
+function spaceKey(base){let owner=null;try{owner=localStorage.getItem('ac-db-owner');}catch(e){}
+  return spaceKeyFor(base,currentSpace(),owner===null?currentSpace():owner);}
+// Registre des espaces créés (pour l'effacement complet de l'appareil, cf. wipeLocal).
+function registerSpace(space){try{const r=JSON.parse(localStorage.getItem('ac-spaces')||'[]');
+  if(r.indexOf(space)<0){r.push(space);localStorage.setItem('ac-spaces',JSON.stringify(r));}}catch(e){}}
 // Filet de sûreté (app critique) : on conserve les N dernières versions d'une fiche avant écrasement,
 // pour pouvoir comparer/restaurer (écrit lors d'un CONFLIT de synchro et avant une restauration).
 const BACKUP_MAX=5;
 const KV={
-  async _r(k,d){try{if(window.storage&&window.storage.get){const r=await window.storage.get(k);return r?JSON.parse(r.value):d;}}catch(e){}try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return MEM[k]?JSON.parse(MEM[k]):d;}},
-  async _w(k,v){const s=JSON.stringify(v);try{if(window.storage&&window.storage.set){await window.storage.set(k,s);return;}}catch(e){}try{localStorage.setItem(k,s);}catch(e){MEM[k]=s;throw e;}},
+  // Clés PAR ESPACE (spaceKey) : le propriétaire de la base historique garde les clés nues.
+  async _r(k,d){k=spaceKey(k);try{if(window.storage&&window.storage.get){const r=await window.storage.get(k);return r?JSON.parse(r.value):d;}}catch(e){}try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return MEM[k]?JSON.parse(MEM[k]):d;}},
+  async _w(k,v){k=spaceKey(k);const s=JSON.stringify(v);try{if(window.storage&&window.storage.set){await window.storage.set(k,s);return;}}catch(e){}try{localStorage.setItem(k,s);}catch(e){MEM[k]=s;throw e;}},
   async getAll(){return this._r('fiches_v1',[]);},
   async put(f){const a=await this._r('fiches_v1',[]);const i=a.findIndex(x=>x.id===f.id);if(i>=0)a[i]=f;else a.push(f);await this._w('fiches_v1',a);},
   async del(id){const a=await this._r('fiches_v1',[]);await this._w('fiches_v1',a.filter(x=>x.id!==id));},
@@ -995,11 +1037,14 @@ const KV={
   async putBackup(b){const a=await this._r('backups_v1',[]);a.push(b);await this._w('backups_v1',this._prune(a,b.ficheId));},
   async delBackup(bid){const a=await this._r('backups_v1',[]);await this._w('backups_v1',a.filter(x=>x.bid!==bid));}
 };
+// Ouverture d'une base d'espace (schéma commun). Utilisée par IDB.open (espace courant) ET par
+// le déménagement sans-compte -> compte (2e connexion vers la base cible).
+function openSpaceDb(name){return new Promise((res,rej)=>{let req;try{req=indexedDB.open(name,4);}catch(e){return rej(e);}
+  req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains('fiches'))db.createObjectStore('fiches',{keyPath:'id'});if(!db.objectStoreNames.contains('meta'))db.createObjectStore('meta');if(!db.objectStoreNames.contains('sessions'))db.createObjectStore('sessions',{keyPath:'id'});if(!db.objectStoreNames.contains('backups')){const bs=db.createObjectStore('backups',{keyPath:'bid'});bs.createIndex('byFiche','ficheId',{unique:false});}};
+  req.onsuccess=()=>res(req.result);req.onerror=()=>rej(req.error||new Error('idb'));setTimeout(()=>rej(new Error('idb-timeout')),1500);});}
 const IDB={
   db:null,
-  open(){return new Promise((res,rej)=>{let req;try{req=indexedDB.open('ac-db',4);}catch(e){return rej(e);}
-    req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains('fiches'))db.createObjectStore('fiches',{keyPath:'id'});if(!db.objectStoreNames.contains('meta'))db.createObjectStore('meta');if(!db.objectStoreNames.contains('sessions'))db.createObjectStore('sessions',{keyPath:'id'});if(!db.objectStoreNames.contains('backups')){const bs=db.createObjectStore('backups',{keyPath:'bid'});bs.createIndex('byFiche','ficheId',{unique:false});}};
-    req.onsuccess=()=>{this.db=req.result;res(true);};req.onerror=()=>rej(req.error||new Error('idb'));setTimeout(()=>rej(new Error('idb-timeout')),1500);});},
+  async open(){registerSpace(currentSpace());this.db=await openSpaceDb(claimedDbName(currentSpace()));return true;},
   _s(store,mode){return this.db.transaction(store,mode).objectStore(store);},
   getAll(){return new Promise((res,rej)=>{const r=this._s('fiches','readonly').getAll();r.onsuccess=()=>res(r.result||[]);r.onerror=()=>rej(r.error);});},
   put(f){return new Promise((res,rej)=>{const r=this._s('fiches','readwrite').put(f);r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});},
@@ -1020,6 +1065,41 @@ const IDB={
   delBackup(bid){return new Promise((res,rej)=>{const r=this._s('backups','readwrite').delete(bid);r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});}
 };
 let Data=KV;
+// Déménagement « sans compte -> compte » : DÉPLACE tout le contenu local (fiches, catégories,
+// notes, sessions, versions, épingles, marqueurs de push) de l'espace courant vers `space`.
+// DÉPLACEMENT et non copie : un id de fiche ne peut être adopté que par UN seul compte (la clé
+// primaire du cloud est globale). Appelé AVANT la bascule d'espace + location.reload().
+async function moveLocalDataTo(space){
+  const fs=await Data.getAll(),cats=await Data.getCats(),nts=await Data.getNotes(),
+        ss=await Data.getSessions(),bks=await Data.getBackups();
+  let owner=null;try{owner=localStorage.getItem('ac-db-owner');}catch(e){}
+  if(owner===null)owner=currentSpace();
+  if(Data===IDB){
+    const db=await openSpaceDb(dbNameFor(space,owner));
+    await new Promise((res,rej)=>{const tx=db.transaction(['fiches','meta','sessions','backups'],'readwrite');
+      fs.forEach(f=>tx.objectStore('fiches').put(f));
+      if(cats)tx.objectStore('meta').put(cats,'categories');
+      tx.objectStore('meta').put(nts||{},'notes');
+      ss.forEach(s=>tx.objectStore('sessions').put(s));
+      bks.forEach(b=>tx.objectStore('backups').put(b));
+      tx.oncomplete=res;tx.onerror=()=>rej(tx.error);});
+    db.close();
+  }else{
+    const w=(base,v)=>{try{localStorage.setItem(spaceKeyFor(base,space,owner),JSON.stringify(v));}catch(e){}};
+    w('fiches_v1',fs);if(cats)w('cats_v1',cats);w('notes_v1',nts||{});w('sessions_v1',ss);w('backups_v1',bks);
+  }
+  // Épingles + marqueur « catégories à pousser » suivent dans l'espace cible (poussés au 1er sync).
+  try{localStorage.setItem(spaceKeyFor('ac-pins',space,owner),JSON.stringify(pins));}catch(e){}
+  try{localStorage.setItem(spaceKeyFor('ac-cats-dirty:',space,owner),'1');
+      localStorage.setItem(spaceKeyFor('ac-cats-updated:',space,owner),String(Date.now()));}catch(e){}
+  // Vide l'espace source : ces données n'existent plus « hors compte ».
+  for(const f of fs)await Data.del(f.id);
+  for(const s of ss)await Data.delSession(s.id);
+  for(const b of bks)await Data.delBackup(b.bid);
+  try{await Data.setNotes({});}catch(e){}
+  try{await Data.setCats(null);}catch(e){}
+  try{localStorage.removeItem(spaceKey('ac-pins'));}catch(e){}
+}
 
 /* ===== State & Runtime =====
    `fiches` `categories` `sessions` : copies en mémoire des données persistées.
@@ -1076,8 +1156,8 @@ function libName(libId){const l=myLibraries.find(x=>x.id===libId);return l?l.nam
 function canEditScope(scope){if(!scope)return true;const r=roleOf(scope);return r==='editor'||r==='admin';}
 function canEditFiche(f){return (f&&f.libraryId)?canEditScope(f.libraryId):true;}
 // Tri des bibliothèques : les PLUS UTILISÉES d'abord (compteur local), puis ordre alphabétique.
-function libUsage(){try{return JSON.parse(localStorage.getItem('ac-lib-usage')||'{}');}catch(e){return {};}}
-function bumpLibUsage(id){if(!id)return;try{const u=libUsage();u[id]=(u[id]||0)+1;localStorage.setItem('ac-lib-usage',JSON.stringify(u));}catch(e){}}
+function libUsage(){try{return JSON.parse(localStorage.getItem(spaceKey('ac-lib-usage'))||'{}');}catch(e){return {};}}
+function bumpLibUsage(id){if(!id)return;try{const u=libUsage();u[id]=(u[id]||0)+1;localStorage.setItem(spaceKey('ac-lib-usage'),JSON.stringify(u));}catch(e){}}
 function sortedLibraries(){const u=libUsage();return myLibraries.slice().sort((a,b)=>((u[b.id]||0)-(u[a.id]||0))||String(a.name).localeCompare(String(b.name)));}
 // Déplace l'élément i d'un tableau d'un cran (dir -1 = haut, +1 = bas). Réutilisé pour minuteurs/compteurs.
 function moveItem(arr,i,dir){const j=i+dir;if(!arr||j<0||j>=arr.length)return;const t=arr[i];arr[i]=arr[j];arr[j]=t;}
@@ -1196,13 +1276,13 @@ function ficheHaystack(f){let h=_hayCache.get(f);
 // SYNCHRONISÉE entre ses appareils en voyageant dans le document de catégories PERSO
 // (category_sets, scope 'personal:<uid>' -> data.pins). Par-utilisateur : n'impose jamais
 // son ordre au reste de l'équipe d'une bibliothèque partagée.
-let pins=[];try{pins=JSON.parse(localStorage.getItem('ac-pins'))||[];}catch(e){}
+let pins=[];try{pins=JSON.parse(localStorage.getItem(spaceKey('ac-pins')))||[];}catch(e){}
 const isPinned=id=>pins.indexOf(id)>=0;
 const sanitizePins=a=>(Array.isArray(a)?a:[]).slice(0,50).filter(id=>typeof id==='string'&&SAFE_ID.test(id)&&BAD_KEYS.indexOf(id)<0);
 function togglePin(id){const i=pins.indexOf(id);if(i>=0)pins.splice(i,1);else pins.unshift(id);pins=pins.slice(0,50);
-  try{localStorage.setItem('ac-pins',JSON.stringify(pins));}catch(e){}
+  try{localStorage.setItem(spaceKey('ac-pins'),JSON.stringify(pins));}catch(e){}
   // Marque le document perso « à pousser » (même mécanique que saveCats) et programme une synchro.
-  try{localStorage.setItem('ac-cats-updated:',String(Date.now()));localStorage.setItem('ac-cats-dirty:','1');}catch(e){}
+  try{localStorage.setItem(spaceKey('ac-cats-updated:'),String(Date.now()));localStorage.setItem(spaceKey('ac-cats-dirty:'),'1');}catch(e){}
   if(typeof Sync!=='undefined'&&typeof Auth!=='undefined'&&Auth.signedIn())Sync.schedule();}
 // Catégories TOUJOURS affichées par ordre alphabétique (filtres, sélecteur, gestionnaire), quel que
 // soit l'ordre de création/stockage. localeCompare 'fr' -> tri correct des accents.
@@ -1215,7 +1295,7 @@ const catsSorted=(scope)=>catsForScope(scope).slice().sort(byCatName);
 // Bibliothèque dont on gère les catégories : en édition = celle de la fiche ; sinon = bibliothèque affichée.
 function activeCatScope(){return state.view==='edit'?(state.draft?(state.draft.libraryId||null):null):(state.scope||null);}
 function noticeHidden(){try{return localStorage.getItem('ac-notice-hidden')==='1';}catch(e){return false;}}
-function seedsHidden(){try{return localStorage.getItem('ac-seeds-hidden')==='1';}catch(e){return false;}}
+function seedsHidden(){try{return localStorage.getItem(spaceKey('ac-seeds-hidden'))==='1';}catch(e){return false;}}
 // id de catégorie : déterministe (par nom) pour le Perso (cohérence multi-appareils des défauts) ;
 // aléatoire pour une bibliothèque (le jeu de catégories est un document synchronisé unique -> pas
 // besoin de déterminisme, et on évite toute collision d'id avec le Perso ou une autre bibliothèque).
@@ -1410,6 +1490,18 @@ async function updateStorageInfo(){
   }catch(e){if(el)el.textContent='';}
 }
 async function load(){
+  // MIGRATION DOUCE vers les espaces par compte : un appareil déjà connecté avant cette version
+  // n'a ni 'ac-space' ni 'ac-db-owner' -> son espace devient ce compte et la base historique
+  // 'ac-db' lui est attribuée (aucune copie de données, aucune question).
+  try{if(Auth.signedIn()&&localStorage.getItem('ac-space')===null&&localStorage.getItem('ac-db-owner')===null){
+    const uid=Auth.user().id;localStorage.setItem('ac-space',uid);localStorage.setItem('ac-db-owner',uid);registerSpace(uid);}}catch(e){}
+  // REPRISE d'une bascule interrompue (app fermée entre la vérification du code et le reload) :
+  // connecté sur l'espace d'un AUTRE profil -> bascule immédiate, sans dialogue (sécurité
+  // d'abord : ne jamais afficher l'espace d'un autre compte ; la synchro est de toute façon
+  // bloquée par le garde-fou de Sync.full tant que espace ≠ compte).
+  try{if(Auth.signedIn()&&((Auth.user()||{}).id||'')!==currentSpace()){
+    const uid=Auth.user().id;localStorage.setItem('ac-space',uid);registerSpace(uid);location.reload();return;}}catch(e){}
+  registerSpace(currentSpace());   // registre des espaces (utile au wipeLocal), y compris en repli KV
   await chooseBackend();
   if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();
   categories=sanitizeCats(await Data.getCats());
@@ -1452,7 +1544,7 @@ window.addEventListener('beforeunload',persistAllLive);
 async function saveCats(scope){try{await Data.setCats(categories);}catch(e){}
   // Horodatage + marqueur "à pousser" PAR BIBLIOTHÈQUE (clé '' = Perso, sinon id de bibliothèque).
   const sk=(scope===undefined?activeCatScope():scope)||'';
-  try{localStorage.setItem('ac-cats-updated:'+sk,String(Date.now()));localStorage.setItem('ac-cats-dirty:'+sk,'1');}catch(e){}
+  try{localStorage.setItem(spaceKey('ac-cats-updated:'+sk),String(Date.now()));localStorage.setItem(spaceKey('ac-cats-dirty:'+sk),'1');}catch(e){}
   if(typeof Sync!=='undefined')Sync.schedule();}
 async function persist(f){try{f.updatedAt=Date.now();f.dirty=true;
   // Attribution : si connecté, on signe la modification (affiché dans les bibliothèques partagées).
@@ -1470,11 +1562,15 @@ async function saveNote(ficheId,text){
 // localement une fois poussée (Sync._push). Si DÉCONNECTÉ : suppression DURE (aucun cloud à informer
 // -> pas de tombstone inutile qui encombrerait le stockage hors-ligne ; comportement identique à avant).
 async function softDelete(f){if(!f)return;
-  // La note personnelle attachée suit le sort de la fiche : effacée (t:'') si connecté pour
-  // propager aux autres appareils, retirée purement localement sinon.
-  if(typeof Auth==='undefined'||!Auth.signedIn()){
+  // Suppression DURE uniquement dans l'espace « sans compte » (aucun cloud à informer, jamais).
+  // Dans l'espace d'un COMPTE — même déconnecté (hors-ligne) — on pose un TOMBSTONE : sans lui,
+  // une fiche supprimée hors-ligne restait dans le cloud et sur les autres appareils, et le
+  // curseur de pull (conservé par espace) ne la re-téléchargeait jamais -> divergence définitive.
+  const anonSpace=(typeof currentSpace==='function')?currentSpace()==='':true;
+  if(anonSpace&&(typeof Auth==='undefined'||!Auth.signedIn())){
     if(notes[f.id]){delete notes[f.id];try{await Data.setNotes(notes);}catch(e){}}
     try{await Data.del(f.id);}catch(e){}return;}
+  // La note personnelle attachée suit le sort de la fiche (t:'' -> propagé aux autres appareils).
   if(notes[f.id]&&notes[f.id].t){notes[f.id]={t:'',at:Date.now(),dirty:true};try{await Data.setNotes(notes);}catch(e){}}
   f.deletedAt=Date.now();f.updatedAt=Date.now();f.dirty=true;try{await Data.put(f);}catch(e){}if(typeof Sync!=='undefined')Sync.schedule();}
 
@@ -1619,10 +1715,17 @@ function beep(){buzz([500,200,500,200,500]);if(!soundOn)return;
   try{ensureAudio();}catch(e){}if(!AC)return;
   const tone=()=>{try{const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=880;o.connect(g);g.connect(AC.destination);const t0=AC.currentTime;g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(.32,t0+.02);g.gain.setValueAtTime(.28,t0+.02);g.gain.exponentialRampToValueAtTime(.24,t0+1.8);g.gain.exponentialRampToValueAtTime(.0001,t0+2);o.start();o.stop(t0+2);}catch(e){}};
   if(AC.state==='running'){tone();}else{try{const p=AC.resume();if(p&&p.then)p.then(tone).catch(tone);else setTimeout(tone,60);}catch(e){tone();}}}
-function flashScreen(){const sf=document.getElementById('screenFlash');if(sf){sf.classList.remove('on');void sf.offsetWidth;sf.classList.add('on');}}
+function flashScreen(){const sf=document.getElementById('screenFlash');if(sf){sf.classList.remove('on');void sf.offsetWidth;sf.classList.add('on');}
+  // Barre d'état iOS (heure/batterie) : elle suit le meta theme-color, pas l'overlay -> on la
+  // fait DÉLIBÉRÉMENT passer au jaune d'alerte pendant le flash (alarme plus visible), puis on
+  // RESTAURE explicitement la couleur du thème (fin d'animation + filet setTimeout : sans
+  // restauration explicite, iOS la laissait figée). #f0c040 = jaune du flash (#screenFlash).
+  setThemeColorMeta('#f0c040');
+  setTimeout(()=>setThemeColorMeta(themeColorCurrent()),2600);}
 // Fin du flash : on retire complètement l'overlay du rendu (sinon il reste composité en jaune
-// et Safari iOS teint la barre du bas de l'écran en jaune tant qu'on ne recharge pas la page).
-{const sf=document.getElementById('screenFlash');if(sf)sf.addEventListener('animationend',()=>sf.classList.remove('on'));}
+// et Safari iOS teint la barre du bas de l'écran en jaune tant qu'on ne recharge pas la page),
+// et on rend sa couleur nominale à la barre d'état.
+{const sf=document.getElementById('screenFlash');if(sf)sf.addEventListener('animationend',()=>{sf.classList.remove('on');setThemeColorMeta(themeColorCurrent());});}
 function flash(id){const el=document.getElementById('tmcard-'+id);if(el){el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),1500);}flashScreen();announce('Minuteur terminé : '+((Runtime.timers[id]&&Runtime.timers[id].label)||'minuteur'));}
 // Annonce un évènement aux lecteurs d'écran via la zone aria-live (sans rien afficher).
 function announce(msg){const z=document.getElementById('srLive');if(!z)return;z.textContent='';setTimeout(()=>{z.textContent=msg;},30);}
@@ -1685,7 +1788,9 @@ function holdToReset(btn,doAction){if(!btn)return;let to=null;const lbl=btn.inne
   const begin=e=>{if(btn.disabled)return;if(e&&e.cancelable)e.preventDefault();cancel();clearSel();
     // Pendant l'appui prolongé : on bloque TOUTE sélection de texte (sinon iPhone sélectionne le
     // texte autour du bouton) et on efface une sélection éventuelle.
-    document.body.classList.add('hold-noselect');btn.classList.add('holding');
+    // void offsetWidth : force un reflow entre retrait et re-pose de .holding -> l'animation de
+    // jauge REDÉMARRE toujours, même si deux pointerdown arrivent dans la même frame.
+    document.body.classList.add('hold-noselect');void btn.offsetWidth;btn.classList.add('holding');
     // On ne change QUE le libellé (pas tout le bouton) -> la structure sur 2 lignes est conservée :
     // la HAUTEUR du bouton ne change pas pendant l'appui (sinon il « rapetissait » au clic).
     // EXCEPTION .btn-hold (barre d'étapes) : bouton à largeur AUTO dans une rangée flex -> échanger
@@ -1782,7 +1887,7 @@ function renderLibrary(){
   {const nb=document.getElementById('newBtn');if(nb)nb.onclick=newFiche;}
   {const nx=document.getElementById('noticeX');if(nx)nx.onclick=()=>{try{localStorage.setItem('ac-notice-hidden','1');}catch(e){}renderLibrary();};}
   {const sa=document.getElementById('seedAdd');if(sa)sa.onclick=addSeedFiches;}
-  {const sx=document.getElementById('seedX');if(sx)sx.onclick=()=>{try{localStorage.setItem('ac-seeds-hidden','1');}catch(e){}renderLibrary();};}
+  {const sx=document.getElementById('seedX');if(sx)sx.onclick=()=>{try{localStorage.setItem(spaceKey('ac-seeds-hidden'),'1');}catch(e){}renderLibrary();};}
   updateSyncBanner();
   // Recliquer la catégorie déjà sélectionnée la dé-sélectionne (revient à « Toutes »).
   main.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{const c=b.dataset.cat;state.cat=(c&&state.cat===c)?'':c;state.libLimit=LIB_PAGE;renderLibrary();});
@@ -1851,8 +1956,12 @@ function noteBlockHtml(id,locked){
 function bindNoteBlock(id,rerender){
   const eb=document.getElementById('noteEditBtn');
   if(eb)eb.onclick=async()=>{
-    if(state.noteEdit){const ta=document.getElementById('noteTa');if(ta)await saveNote(id,ta.value);state.noteEdit=false;rerender();}
-    else{state.noteEdit=true;rerender();const ta=document.getElementById('noteTa');if(ta){ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length);}}};
+    // Le re-rendu reconstruit toute la vue : on MÉMORISE et RESTAURE le défilement (le bloc note
+    // est en bas de page -> sans ça, « Terminer » renvoyait brutalement en haut) ; le focus de la
+    // zone de saisie est pris sans défilement (preventScroll) pour la même raison.
+    const y=window.scrollY;
+    if(state.noteEdit){const ta=document.getElementById('noteTa');if(ta)await saveNote(id,ta.value);state.noteEdit=false;rerender();window.scrollTo(0,y);}
+    else{state.noteEdit=true;rerender();window.scrollTo(0,y);const ta=document.getElementById('noteTa');if(ta){try{ta.focus({preventScroll:true});}catch(e){ta.focus();}ta.setSelectionRange(ta.value.length,ta.value.length);}}};
   const ta=document.getElementById('noteTa');
   if(ta){let nt=null;
     const save=async()=>{nt=null;await saveNote(id,ta.value);const m=document.getElementById('noteMeta');if(m)m.textContent=(notes[id]&&notes[id].t)?'Enregistrée à l’instant':'';};
@@ -2872,10 +2981,11 @@ const Auth={
   // Rafraîchit le jeton s'il expire dans <60 s. Appelé par rest() avant chaque appel REST de synchro.
   async ensureFresh(){if(!this.signedIn())return false;const now=Math.floor(Date.now()/1000);if(this.session.expires_at&&this.session.expires_at-now<60)return this.refresh();return true;},
   async signOut(){const tok=this.session&&this.session.access_token;this.session=null;this._save();
-    // Curseur de pull remis à zéro : il est GLOBAL (pas par compte) ; s'il survivait à la
-    // déconnexion, une connexion à un AUTRE compte ne rapatrierait que le plus récent que ce
-    // curseur et raterait tout l'historique du compte. Re-pull complet = idempotent (LWW).
-    try{localStorage.removeItem('ac-sync-cursor');}catch(e){}
+    // Le curseur de pull N'EST PLUS effacé : il est désormais PAR ESPACE (spaceKey), donc une
+    // reconnexion au même compte reprend en incrémental, et un autre compte a son propre curseur
+    // (le cloisonnement par espace remplace l'ancien nettoyage anti-mélange de la 3.1.5).
+    // L'espace local ne change PAS non plus : les fiches restent affichées hors-ligne (promesse
+    // locale-first) — il ne bascule qu'à la connexion d'un AUTRE compte.
     if(tok){try{await fetch(SUPA.url+'/auth/v1/logout',{method:'POST',headers:{'apikey':SUPA.key,'Authorization':'Bearer '+tok}});}catch(e){}}},
   // Suppression RGPD : efface compte + données perso côté serveur (RPC SECURITY DEFINER).
   async deleteAccount(){await this._post('/rest/v1/rpc/delete_my_account',{});}
@@ -2939,12 +3049,20 @@ function updateSyncBanner(){
 // _authDelete : false | true (étape 1 : avertissement + garde-fou SUPPRIMER)
 //             | {step:2,wipe} (étape 2 : code OTP reçu, wipe = effacer aussi l'appareil).
 let _authStep={mode:'email',email:'',msg:'',msgcls:''};let _authDelete=false;
-// Efface TOUTES les données locales de cet appareil (IndexedDB + clés de synchro). Irréversible.
+// Efface TOUTES les données locales de cet appareil (IndexedDB de TOUS les espaces + clés de
+// synchro, y compris les clés suffixées par espace). Irréversible.
 async function wipeLocal(){
   try{if(IDB.db){IDB.db.close();IDB.db=null;}}catch(e){}
-  try{await new Promise(res=>{const r=indexedDB.deleteDatabase('ac-db');r.onsuccess=r.onerror=r.onblocked=()=>res();});}catch(e){}
-  try{['fiches_v1','cats_v1','sessions_v1','backups_v1','notes_v1','ac-sync-cursor','ac-cats-dirty:','ac-cats-updated:','ac-lib-usage','ac-notice-hidden','ac-seeds-hidden','ac-auth','ac-pins','ac-onboarded'].forEach(k=>localStorage.removeItem(k));
-    for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);if(k&&(k.indexOf('ac-sync-init-')===0||k.indexOf('ac-cats-dirty:')===0||k.indexOf('ac-cats-updated:')===0||k.indexOf('ac-profile-')===0))localStorage.removeItem(k);}
+  // Bases de tous les espaces connus (registre) + base historique + espace courant.
+  let spaces=[];try{spaces=JSON.parse(localStorage.getItem('ac-spaces')||'[]');}catch(e){}
+  let owner=null;try{owner=localStorage.getItem('ac-db-owner');}catch(e){}
+  const names=new Set(['ac-db']);
+  spaces.concat([currentSpace()]).forEach(s=>{names.add(dbNameFor(s,owner));names.add('ac-db-'+(s||'anon'));});
+  for(const n of names){try{await new Promise(res=>{const r=indexedDB.deleteDatabase(n);r.onsuccess=r.onerror=r.onblocked=()=>res();});}catch(e){}}
+  try{['fiches_v1','cats_v1','sessions_v1','backups_v1','notes_v1','ac-sync-cursor','ac-cats-dirty:','ac-cats-updated:','ac-lib-usage','ac-notice-hidden','ac-seeds-hidden','ac-auth','ac-pins','ac-onboarded','ac-space','ac-db-owner','ac-spaces'].forEach(k=>localStorage.removeItem(k));
+    for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);if(!k)continue;
+      if(k.indexOf('ac-sync-init-')===0||k.indexOf('ac-cats-dirty:')===0||k.indexOf('ac-cats-updated:')===0||k.indexOf('ac-profile-')===0
+        ||((k.indexOf('ac-')===0||k.indexOf('_v1@')>0)&&k.indexOf('@')>0))localStorage.removeItem(k);}
   }catch(e){}
 }
 // État de l'instance (app-admin) : petit tableau de bord affiché dans l'écran Compte. Chargé en
@@ -3107,8 +3225,24 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
       if(!Sync.online()){_authStep.msg='Hors ligne : une connexion Internet est nécessaire pour vérifier le code.';_authStep.msgcls='err';return renderAuth();}
       v.disabled=true;v.textContent='Vérification…';
       _authStep.msg='';_authStep.msgcls='';
-      try{await Auth.verifyCode(_authStep.email,code);_authStep.msg='';await refreshAccountStatus();renderAuth();setSyncChip();if(typeof Sync!=='undefined')Sync.full();}
-      catch(e){_authStep.msg='Code invalide ou expiré.';_authStep.msgcls='err';renderAuth();}};
+      try{await Auth.verifyCode(_authStep.email,code);}
+      catch(e){_authStep.msg='Code invalide ou expiré.';_authStep.msgcls='err';return renderAuth();}
+      // BASCULE D'ESPACE (multi-profils) : un AUTRE compte que l'espace courant se connecte ->
+      // l'app se recharge sur SON espace local (bascule atomique, aucun mélange de bibliothèques).
+      const uid=(Auth.user()||{}).id||'';
+      if(uid&&uid!==currentSpace()){
+        // Depuis l'espace « sans compte » avec du contenu : proposer d'EMPORTER les fiches
+        // (parcours d'accueil : créer hors compte puis se connecter). Entre deux comptes :
+        // jamais de transfert (chacun retrouve exactement sa bibliothèque).
+        if(currentSpace()===''&&fiches.length){
+          const take=await confirmDlg(fiches.length+' fiche'+(fiches.length>1?'s':'')+' (avec notes et sessions) '+(fiches.length>1?'sont enregistrées':'est enregistrée')+' sur cet appareil hors compte. Les emporter dans ce compte ? Elles y seront synchronisées.',{title:'Fiches locales',yes:'Les emporter dans ce compte',no:'Les laisser hors compte'});
+          if(take){try{await moveLocalDataTo(uid);}catch(e){}}
+        }
+        persistAllLive();registerSpace(uid);
+        try{localStorage.setItem('ac-space',uid);}catch(e){}
+        location.reload();return;
+      }
+      _authStep.msg='';await refreshAccountStatus();renderAuth();setSyncChip();if(typeof Sync!=='undefined')Sync.full();};
   }}
 const authModal=document.getElementById('authModal');
 function openAuth(){_authDelete=false;authModal.classList.add('on');renderAuth();
@@ -3130,11 +3264,23 @@ function storageExplainHtml(){return `<p class="auth-sub" style="margin-top:0">V
     <div class="stg-card stg-cloud"><div class="stg-h"><span class="stg-ic">${uiIcon('cloud',19)}</span><b>En ligne, avec un compte (synchronisation)</b></div>
       <p>En vous connectant, une <b>copie de sécurité</b> est aussi gardée dans un <b>espace en ligne protégé</b> (le « cloud »).</p>
       <ul class="stg-ul"><li>Appareil en panne ou perdu : <b>rien n'est perdu</b>.</li><li>Vous <b>retrouvez vos fiches sur n'importe quel appareil</b>.</li><li>Vous pouvez <b>partager</b> des bibliothèques avec votre équipe.</li></ul></div>`;}
+// « Réparer l'application » : désinscrit le service worker et vide ses CACHES — c'est le CODE
+// de l'app qui est rechargé à neuf, PAS les données (fiches/notes/sessions, intactes dans
+// IndexedDB). Remède au cas réel « l'app semble bloquée sur une ancienne version ».
+async function repairApp(){
+  persistAllLive();
+  try{if('serviceWorker' in navigator){const regs=await navigator.serviceWorker.getRegistrations();for(const r of regs)await r.unregister();}}catch(e){}
+  try{if(window.caches){const keys=await caches.keys();for(const k of keys)await caches.delete(k);}}catch(e){}
+  location.reload();}
 function renderStorageInfo(){const body=document.getElementById('storageBody');if(!body)return;
   body.innerHTML=storageExplainHtml()+(Auth.signedIn()
     ?`<p class="auth-msg ok" style="text-align:center">✓ Vous êtes connecté : vos fiches sont sauvegardées en ligne.</p>`
-    :`<button class="btn primary auth-full" id="stgConnect">Créer un compte / se connecter</button>`);
-  const c=body.querySelector('#stgConnect');if(c)c.onclick=()=>{closeStorageInfo();openAuth();};}
+    :`<button class="btn primary auth-full" id="stgConnect">Créer un compte / se connecter</button>`)
+    +`<div class="stg-repair"><button class="btn sm" id="repairAppBtn">Réparer l'application</button>
+      <p class="stg-repair-hint">Recharge une copie neuve de l'application — utile si elle semble bloquée sur une ancienne version. Vos fiches, notes et sessions ne sont pas touchées.</p></div>`;
+  const c=body.querySelector('#stgConnect');if(c)c.onclick=()=>{closeStorageInfo();openAuth();};
+  const rb=body.querySelector('#repairAppBtn');
+  if(rb)rb.onclick=async()=>{if(rb.disabled)return;rb.disabled=true;rb.textContent='Réparation…';await repairApp();};}
 function openStorageInfo(){renderStorageInfo();storageModal.classList.add('on');}
 function closeStorageInfo(){storageModal.classList.remove('on');}
 bindModalDismiss(storageModal,closeStorageInfo);
@@ -3166,7 +3312,17 @@ function resolveTheme(mode){return mode==='auto'?((window.matchMedia&&matchMedia
 function applyTheme(mode){try{localStorage.setItem('ac-theme',mode);}catch(e){}
   const resolved=resolveTheme(mode);document.documentElement.setAttribute('data-theme',resolved);
   const b=document.getElementById('themeBtn');if(b){b.innerHTML=mode==='auto'?uiIcon('autotheme',14)+' Thème : auto':(mode==='dark'?uiIcon('moon',14)+' Thème : sombre':uiIcon('sun',14)+' Thème : clair');b.title=mode==='auto'?'Thème automatique : suit le réglage clair/sombre de votre appareil. Cliquez pour choisir manuellement.':'Cliquez pour changer de thème (auto / clair / sombre).';}
-  const m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',resolved==='dark'?'#0e2723':'#0d5b56');}
+  setThemeColorMeta(resolved==='dark'?'#0e2723':'#0d5b56');}
+// Couleur de la barre d'état (meta theme-color) — HELPER UNIQUE (thème ET flash d'alarme).
+// Certaines versions d'iOS Safari ne re-lisent PAS un meta modifié via setAttribute, seulement
+// à l'INSERTION du nœud -> on REMPLACE la balise (idempotent si la couleur ne change pas).
+function setThemeColorMeta(col){
+  const old=document.querySelector('meta[name="theme-color"]');
+  if(old&&old.getAttribute('content')===col)return;
+  if(old)old.remove();
+  const m=document.createElement('meta');m.name='theme-color';m.content=col;document.head.appendChild(m);}
+// Couleur nominale de la barre d'état pour le thème COURANT (pour restaurer après le flash).
+function themeColorCurrent(){return document.documentElement.getAttribute('data-theme')==='dark'?'#0e2723':'#0d5b56';}
 // Cycle : Auto -> Clair -> Sombre -> Auto.
 document.getElementById('themeBtn').onclick=()=>{const cur=localStorage.getItem('ac-theme')||'auto';applyTheme(cur==='auto'?'light':cur==='light'?'dark':'auto');};
 // Taille du texte : zoom CSS sur <html> (agrandit AUSSI les cibles tactiles, pas seulement la
@@ -3275,6 +3431,9 @@ const Sync={
   // Débounce : regroupe les écritures rapprochées en une seule synchro.
   schedule(){if(!Auth.signedIn())return;clearTimeout(this._pt);this._pt=setTimeout(()=>this.full(),900);},
   async full(){
+    // GARDE-FOU espaces : ne JAMAIS synchroniser un compte sur l'espace d'un autre (fenêtre
+    // entre la vérification du code et le location.reload() de bascule, ou état incohérent).
+    if(Auth.signedIn()&&((Auth.user()||{}).id||'')!==currentSpace())return;
     if(!Auth.signedIn()||!this.online()||this.running){if(!this.online())setSyncChip('off','Hors-ligne');return;}
     clearTimeout(this._retryTimer);
     this.running=true;setSyncChip('busy','Synchro en cours');
@@ -3310,10 +3469,10 @@ const Sync={
   async _initIfNeeded(){const uidv=Auth.user().id;const k='ac-sync-init-'+uidv;if(localStorage.getItem(k))return;
     const peek=await rest('GET','/rest/v1/fiches?select=id&library_id=is.null&limit=1')||[];
     if(!peek.length){const all=await Data.getAll();for(const f of all){if(!f.libraryId&&!f.deletedAt){f.dirty=true;await Data.put(f);}}
-      try{localStorage.setItem('ac-cats-dirty:','1');if(!localStorage.getItem('ac-cats-updated:'))localStorage.setItem('ac-cats-updated:',String(Date.now()));}catch(e){}}
+      try{localStorage.setItem(spaceKey('ac-cats-dirty:'),'1');if(!localStorage.getItem(spaceKey('ac-cats-updated:')))localStorage.setItem(spaceKey('ac-cats-updated:'),String(Date.now()));}catch(e){}}
     localStorage.setItem(k,'1');},
   async _pull(){
-    const cur=localStorage.getItem(this._cursorKey);
+    const cur=localStorage.getItem(spaceKey(this._cursorKey));
     // Recouvrement de 2 s + application idempotente (LWW) -> aucun enregistrement manqué aux bornes.
     let since=cur?new Date((Date.parse(cur)||0)-2000).toISOString():'1970-01-01T00:00:00Z';
     let maxTs=cur?Date.parse(cur):0;const conflicts=[];let total=0;
@@ -3349,7 +3508,7 @@ const Sync={
       if(rows.length<PAGE)break;
       const next=new Date(maxTs).toISOString();if(next===since)break;since=next;
     }
-    if(maxTs)localStorage.setItem(this._cursorKey,new Date(maxTs).toISOString());
+    if(maxTs)localStorage.setItem(spaceKey(this._cursorKey),new Date(maxTs).toISOString());
     if(total)render();
     return conflicts;},
   async _push(){
@@ -3368,23 +3527,23 @@ const Sync={
       .concat(myLibraries.map(l=>({key:l.id,scopeKey:'lib:'+l.id,libraryId:l.id,canPush:(l.role==='editor'||l.role==='admin')})));
     let changed=false;
     for(const s of scopes){
-      const localTs=+(localStorage.getItem('ac-cats-updated:'+s.key)||0);
-      const dirty=localStorage.getItem('ac-cats-dirty:'+s.key)==='1';
+      const localTs=+(localStorage.getItem(spaceKey('ac-cats-updated:'+s.key))||0);
+      const dirty=localStorage.getItem(spaceKey('ac-cats-dirty:'+s.key))==='1';
       let remote=null;try{const rows=await rest('GET','/rest/v1/category_sets?select=*&scope_key=eq.'+encodeURIComponent(s.scopeKey))||[];remote=rows[0];}catch(e){continue;}
       if(remote&&(Date.parse(remote.updated_at)||0)>localTs){
         // Distant plus récent -> on remplace les catégories DE CETTE BIBLIOTHÈQUE par le set distant.
         const incoming=sanitizeCats(remote.data&&remote.data.categories).map(c=>{c.libraryId=s.libraryId;return c;});
         categories=categories.filter(c=>(c.libraryId||null)!==(s.libraryId||null)).concat(incoming);
         // Document PERSO : il transporte aussi les épingles de l'utilisateur (data.pins).
-        if(!s.libraryId&&remote.data&&Array.isArray(remote.data.pins)){pins=sanitizePins(remote.data.pins);try{localStorage.setItem('ac-pins',JSON.stringify(pins));}catch(e){}}
-        try{localStorage.setItem('ac-cats-updated:'+s.key,String(Date.parse(remote.updated_at)));localStorage.removeItem('ac-cats-dirty:'+s.key);}catch(e){}
+        if(!s.libraryId&&remote.data&&Array.isArray(remote.data.pins)){pins=sanitizePins(remote.data.pins);try{localStorage.setItem(spaceKey('ac-pins'),JSON.stringify(pins));}catch(e){}}
+        try{localStorage.setItem(spaceKey('ac-cats-updated:'+s.key),String(Date.parse(remote.updated_at)));localStorage.removeItem(spaceKey('ac-cats-dirty:'+s.key));}catch(e){}
         changed=true;continue;
       }
       if(s.canPush&&(dirty||!remote)){const now=localTs||Date.now();
         const data={categories:catsForScope(s.libraryId).map(c=>({id:c.id,name:c.name,color:c.color,libraryId:s.libraryId}))};
         if(!s.libraryId)data.pins=sanitizePins(pins);   // épingles : uniquement dans le document perso
         try{await rest('POST','/rest/v1/category_sets',[{scope_key:s.scopeKey,owner:uidv,library_id:s.libraryId,data:data,updated_at:new Date(now).toISOString()}],{'Prefer':'resolution=merge-duplicates,return=minimal'});
-          try{localStorage.removeItem('ac-cats-dirty:'+s.key);}catch(e){}}catch(e){}
+          try{localStorage.removeItem(spaceKey('ac-cats-dirty:'+s.key));}catch(e){}}catch(e){}
       }
     }
     if(changed){await Data.setCats(categories);render();}},
@@ -3667,7 +3826,7 @@ document.addEventListener('keydown',e=>{
    sans ce paramètre, rien de tout ceci ne s'exécute et aucun global n'est ajouté. */
 if(location.search.indexOf('__actest')>=0){
   window.__ac_test__={migrate,sanitizeCats,safeId,safeColor,safeImg,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,
-    txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,sanitizeNotes};
+    txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,sanitizeNotes,dbNameFor,spaceKeyFor};
 }else{
   /* ===== PWA =====
      Enregistre le service worker (cache hors ligne) si disponible. Capte

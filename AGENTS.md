@@ -57,7 +57,7 @@ modèle de données, règles de sécurité) : le lire en premier. Ensuite, dans 
 | Section (bannières `/* ===== … ===== */`) | Contenu |
 |---|---|
 | `<style>` | Tout le CSS (variables dans `:root`, thème sombre via `html[data-theme="dark"]`) |
-| Backends | `KV` / `IDB` / `MEM` : trois stockages locaux interchangeables derrière `Data` |
+| Backends | `KV` / `IDB` / `MEM` : trois stockages locaux interchangeables derrière `Data` ; **un espace local par compte** (`currentSpace`/`dbNameFor`/`spaceKey`, bascule par reload à la connexion d'un autre compte, jamais de mélange entre comptes) |
 | State & Runtime | `state` (quoi afficher) ; `Runtime` (état vivant du mode crise) ; garde-fous `safeId`/`safeColor`/`safeImg`/`sstr`/`sarr` |
 | Modèle | `blankFiche`, `migrate` (point d'entrée sécurité/compat), `seed`/`seed2`, catégories |
 | Load | `chooseBackend`, `load()` (démarrage), `persist`, `softDelete` |

@@ -170,6 +170,15 @@ function run(A){
   ok('valeur non-objet écartée', !('f-3' in nOut));
   eq('non-objet → {}', A.sanitizeNotes(null), {});
 
+  group('espaces locaux (dbNameFor / spaceKeyFor)');
+  eq('propriétaire -> base historique', A.dbNameFor('u1','u1'), 'ac-db');
+  eq('espace anonyme propriétaire', A.dbNameFor('',''), 'ac-db');
+  eq('autre espace -> base suffixée', A.dbNameFor('u2','u1'), 'ac-db-u2');
+  eq('anonyme non propriétaire', A.dbNameFor('','u1'), 'ac-db-anon');
+  eq('clé du propriétaire = clé nue (compat)', A.spaceKeyFor('ac-pins','u1','u1'), 'ac-pins');
+  eq('clé d\'un autre espace suffixée', A.spaceKeyFor('ac-pins','u2','u1'), 'ac-pins@u2');
+  eq('clé anonyme non propriétaire', A.spaceKeyFor('fiches_v1','','u1'), 'fiches_v1@anon');
+
   group('stripJsonFences()');
   eq('JSON nu inchangé', A.stripJsonFences('{"a":1}'), '{"a":1}');
   eq('clôtures ```json retirées', A.stripJsonFences('```json\n{"a":1}\n```'), '{"a":1}');
