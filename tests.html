@@ -209,7 +209,7 @@ function run(A){
   eq('clôture non fermée → texte intact (échouera au parse)', A.stripJsonFences('```json\n{"a":1}'), '```json\n{"a":1}');
   eq('non-chaîne coercée', A.stripJsonFences(null), '');
 
-  group('migrate() — champs 3.1 (status/related/updatedBy)');
+  group('migrate() — champs status/related/updatedBy');
   const m31=A.migrate({title:'x',status:'draft',related:['ok-1','__proto__','bad id'],updatedBy:'a@b.fr'});
   eq('status brouillon conservé', m31.status, 'draft');
   eq('related nettoyé', m31.related, ['ok-1']);

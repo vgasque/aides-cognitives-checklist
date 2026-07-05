@@ -75,7 +75,7 @@
      pour la REPRENDRE plus tard ou la SUPPRIMER. Stockées par appareil.
   8. EXPORT / IMPORT JSON (fiches + catégories ; PAS les sessions) = sauvegarde
      et transfert manuel, surtout utile SANS compte (filet de sécurité local).
-  9. SYNCHRONISATION CLOUD optionnelle (v3.0.0) via Supabase : avec un compte
+  9. SYNCHRONISATION CLOUD optionnelle via Supabase : avec un compte
      (connexion par code e-mail), la bibliothèque personnelle est sauvegardée en
      ligne et accessible sur tous ses appareils ; BIBLIOTHÈQUES PARTAGÉES multiples
      avec rôles (lecteur/éditeur/admin) pour les équipes. Reste LOCAL-FIRST :
@@ -192,9 +192,8 @@
 
   POUR ÉTENDRE (pistes connues, non implémentées)
   -----------------------------------------------
-  - Synchro multi-appareils + bibliothèques partagées : DÉJÀ FAIT (Supabase, point 9).
-    Pistes restantes : sync des SESSIONS (aujourd'hui locales), résolution de conflit
-    plus fine que le "dernier qui écrit gagne", envoi des codes par SMTP (cf. README).
+  - Sync des SESSIONS (aujourd'hui locales à l'appareil) ; résolution de conflit
+    plus fine que le "dernier qui écrit gagne" ; envoi des codes par SMTP (cf. README).
   - Partage d'une fiche par lien/QR ; impression déjà gérée (window.print).
 ===============================================================================
 -->
@@ -651,9 +650,8 @@
   .btn:active{transform:translateY(1px)}
   .btn:hover{background:var(--surface-2);border-color:#c9d3d0}.btn.primary{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 1px 2px rgba(10,74,70,.2),0 4px 12px rgba(10,74,70,.16)}.btn.primary:hover{background:var(--primary-dk);border-color:var(--primary-dk)}
   .btn.danger{color:var(--critical);border-color:var(--critical-line)}.btn.danger:hover{background:var(--critical-soft)}
-  /* « Maintenir pour réinitialiser » un minuteur : jauge (fond) qui se remplit pendant l'appui
-     prolongé ; le texte reste lisible au-dessus (la jauge est un fond, pas un calque). */
-  /* Réinit. minuteur : libellé sur 2 lignes -> petit indice « maintenir » visible (geste appui long). */
+  /* « Maintenir pour réinitialiser » un minuteur : jauge = fond qui se remplit pendant l'appui
+     (le texte reste lisible au-dessus). Libellé sur 2 lignes -> indice « maintenir » visible. */
   .tm-reset{touch-action:none;display:flex;flex-direction:column;justify-content:center;line-height:1.05;padding-top:5px;padding-bottom:5px;min-height:40px}
   .tm-reset .tmr-lab,.tm-reset .tmr-hint{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
   .tm-reset .tmr-hint{font-size:10px;font-weight:700;opacity:.65;text-transform:uppercase;letter-spacing:.5px;margin-top:1px}
@@ -695,7 +693,7 @@
   .auth-msg{font-size:13px;margin:8px 0 0;min-height:18px}
   .auth-msg.err{color:var(--critical)}.auth-msg.ok{color:var(--primary)}
   .auth-who{font-size:14px;margin:2px 0 10px}.auth-who b{color:var(--primary)}
-  /* Fenêtre Compte redessinée */
+  /* Fenêtre Compte */
   .auth-card-in{display:flex;align-items:center;gap:13px;margin-bottom:4px}
   .auth-avatar{width:48px;height:48px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:21px;font-weight:700;flex:none}
   .auth-id{min-width:0}
@@ -822,7 +820,7 @@
   .cm-cact{display:flex;gap:8px;flex-wrap:wrap}
   .cm-add{display:flex;gap:8px;align-items:center;margin-top:6px}
   .cm-add input{flex:1;min-width:0;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:#fff;font-size:14px}
-  /* ===== Ajustements transverses (audit UX v3.2) ===== */
+  /* ===== Ajustements transverses ===== */
   /* Focus clavier visible sur TOUS les contrôles interactifs (uniforme avec .btn/.card). */
   :is(.catchip,.catpill,.tlink,.linkbtn,.mini,.fz,.scopebtn,.opt,.startbtn,.add-line,.notice-x,.tk-add,.tk-del,.cm-del,.ai-x,.rel-x,.back,.flow-toggle,.crumbs .cb,ol.steps li):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .rt-panel :is(.tm-btn,.cn-btn,.rt-sound,.tm-reset,.cn-reset):focus-visible{outline:2px solid #5fd0c4;outline-offset:2px}
@@ -965,18 +963,16 @@
    Lightbox -> Export/Import -> PWA -> load().
    ===================================================================== */
 
-/* PALETTE : couleurs proposées pour les catégories (hex sombres, lisibles
-   en texte comme en pastille teintée). Index réutilisé cycliquement. */
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
 const APP_VERSION='3.3.7';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
 const LIB_PAGE=60;
-// Palette de catégories : chaque teinte respecte WCAG AA (contraste >= 4.5:1) aussi bien
-// en pastille (texte de couleur sur fond teinté à 15 %) qu'en chip sélectionnée (texte blanc).
-// Pas de teinte proche du vermillon --critical (#bf3a21) : une catégorie ne doit jamais avoir
-// l'air « dangereuse » (ex-#b23052 et ex-#a54c26 retirés ; les catégories existantes gardent leur couleur).
+// Palette de catégories (index réutilisé cycliquement) : chaque teinte respecte WCAG AA
+// (contraste >= 4.5:1) en pastille (texte coloré sur fond teinté à 15 %) comme en chip
+// sélectionnée (texte blanc). Pas de teinte proche du vermillon --critical : une catégorie
+// ne doit jamais avoir l'air « dangereuse ».
 const PALETTE=['#823a32','#8d5c39','#806311','#4f6b1e','#1d7449','#0d5b56','#006d98','#45556b','#1f5fa6','#4b3fa6','#755a96','#7a2f6b','#95516c'];
 /* ===== Backends (stockage LOCAL) =====
    Trois implémentations interchangeables exposant la MÊME interface.
@@ -997,7 +993,7 @@ const MEM={};
    - L'espace SUIT LE DERNIER COMPTE CONNECTÉ ('ac-space', collant) : une déconnexion — même
      forcée par un jeton révoqué en pleine session — ne change RIEN à l'affichage (promesse
      hors-ligne intacte). L'espace ne bascule qu'à la CONNEXION d'un AUTRE compte, par un
-     location.reload() (bascule atomique de tout l'état en mémoire). MULTI-ONGLETS (3.3.2) :
+     location.reload() (bascule atomique de tout l'état en mémoire). MULTI-ONGLETS :
      ce reload ne se produit QUE dans l'onglet qui se connecte ; un autre onglet resté ouvert
      est averti via l'évènement 'storage' sur 'ac-space' et se recharge à son tour (cf. plus bas).
    - UNE base IndexedDB PAR espace : la base historique 'ac-db' est ATTRIBUÉE (sans copie) au
@@ -1032,17 +1028,13 @@ function spaceKey(base){let owner=null;try{owner=localStorage.getItem('ac-db-own
 // Registre des espaces créés (pour l'effacement complet de l'appareil, cf. wipeLocal).
 function registerSpace(space){try{const r=JSON.parse(localStorage.getItem('ac-spaces')||'[]');
   if(r.indexOf(space)<0){r.push(space);localStorage.setItem('ac-spaces',JSON.stringify(r));}}catch(e){}}
-// GARDE-FOU MULTI-ONGLETS (3.3.2) : un AUTRE onglet du même appareil vient de basculer 'ac-space'
-// (connexion à un compte différent, cf. bloc ci-dessus) — sans ce garde-fou, CET onglet continuerait
-// d'écrire épingles / curseur de synchro / modifications retenues (toutes lues via spaceKey(), donc
-// RE-CALCULÉES sur l'espace localStorage COURANT à chaque appel) sous le NOUVEL espace actif, tout
-// en affichant encore les fiches de l'ANCIEN — un mélange entre comptes sur appareil partagé,
-// exactement ce que ce cloisonnement par espace vise à empêcher. L'évènement 'storage' ne se
-// déclenche JAMAIS dans l'onglet qui écrit lui-même (garantie du standard) : il ne peut donc venir
-// que d'un AUTRE onglet/fenêtre -> rechargement immédiat, sans confirmation (même logique que la
-// reprise de bascule interrompue au démarrage, cf. load()). On ignore les autres clés (ex. 'ac-auth'
-// lors d'un simple rafraîchissement de jeton) pour ne pas recharger inutilement un second onglet
-// resté ouvert sur le MÊME compte.
+// GARDE-FOU MULTI-ONGLETS : un AUTRE onglet vient de basculer 'ac-space' (connexion à un compte
+// différent). Sans reload, CET onglet écrirait ses clés spaceKey() (épingles, curseur, retenues)
+// sous le NOUVEL espace tout en affichant les fiches de l'ANCIEN -> mélange entre comptes.
+// L'évènement 'storage' ne se déclenche jamais dans l'onglet qui écrit (garantie du standard) :
+// il vient forcément d'un autre onglet -> rechargement immédiat, sans confirmation. Les autres
+// clés (ex. 'ac-auth' lors d'un rafraîchissement de jeton) sont ignorées pour ne pas recharger
+// un second onglet resté sur le MÊME compte.
 window.addEventListener('storage',e=>{if(e.key==='ac-space')location.reload();});
 // Filet de sûreté (app critique) : on conserve les N dernières versions d'une fiche avant écrasement,
 // pour pouvoir comparer/restaurer (écrit lors d'un CONFLIT de synchro et avant une restauration).
@@ -1163,12 +1155,11 @@ let myLibraries=[],myIsAppAdmin=false,myAccountStatus=null,myPendingCount=0;
 function resetAuthState(){myLibraries=[];myIsAppAdmin=false;myAccountStatus=null;myPendingCount=0;state.scope=null;
   try{for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);if(k&&k.indexOf('ac-profile-')===0)localStorage.removeItem(k);}}catch(e){}}
 // ----- Profil (bibliothèques partagées) : cache LOCAL, par utilisateur -----
-// Sans cache, myLibraries/myIsAppAdmin ne vivaient qu'en mémoire, remplis par Sync.loadProfile()
-// (réseau) : HORS-LIGNE, les bibliothèques partagées « disparaissaient » alors que leurs fiches
-// sont bien dans IndexedDB. Le profil est donc mis en cache (localStorage, clé par utilisateur) :
-// sauvé à chaque synchro réussie, restauré au démarrage, JAMAIS écrasé par un simple échec réseau.
-// Ergonomie uniquement : les droits réels restent arbitrés par la RLS côté serveur (un rôle
-// périmé du cache ne donne aucun accès — le push serait refusé).
+// Sans cache, myLibraries/myIsAppAdmin ne viendraient que du réseau (Sync.loadProfile) et les
+// bibliothèques partagées « disparaîtraient » hors-ligne alors que leurs fiches sont dans IndexedDB.
+// Cache localStorage par utilisateur : sauvé à chaque synchro réussie, restauré au démarrage,
+// JAMAIS écrasé par un simple échec réseau. Ergonomie uniquement : les droits réels restent
+// arbitrés par la RLS côté serveur (un rôle périmé du cache ne donne aucun accès).
 const LIB_ROLES=['viewer','editor','admin'];
 const sanitizeLibs=a=>(Array.isArray(a)?a:[]).slice(0,200).map(l=>({id:safeMetaId(l&&l.id),name:sstr(l&&l.name,120),role:LIB_ROLES.indexOf(l&&l.role)>=0?l.role:'viewer'})).filter(l=>l.id);
 function profileCacheKey(){const u=Auth.user();return (u&&u.id)?('ac-profile-'+u.id):null;}
@@ -1198,8 +1189,7 @@ const liveSessions={};
 let soundOn=true;
 let AC=null;
 // La clé primaire du cloud est GLOBALE (tous comptes confondus) : une collision d'ids entre deux
-// comptes rend la fiche du second impossible à pousser (refus RLS 403). L'ancien suffixe de
-// 3 caractères aléatoires rendait cela plausible à l'échelle d'une équipe -> 8+ caractères tirés
+// comptes rend la fiche du second impossible à pousser (refus RLS 403) -> 8+ caractères tirés
 // de crypto.getRandomValues (repli Math.random si l'API manque, ex. vieux navigateur).
 const uid=p=>{let r='';
   try{const a=crypto.getRandomValues(new Uint32Array(2));r=a[0].toString(36)+a[1].toString(36);}
@@ -1385,7 +1375,7 @@ function migrate(f){if(!f||typeof f!=='object')f={};
   f.start=mapId(f.start)||(f.blocks[0]?f.blocks[0].id:null);
   f.timers=(Array.isArray(f.timers)?f.timers:[]).slice(0,40).map(t=>({id:safeId(t&&t.id,'t'),label:sstr(t&&t.label,120),type:(t&&t.type==='interval')?'interval':'stopwatch',seconds:Math.max(0,Math.min(86400,Math.round(Number(t&&t.seconds))||0)),autoloop:!!(t&&t.autoloop)}));
   f.counters=(Array.isArray(f.counters)?f.counters:[]).slice(0,40).map(c=>({id:safeId(c&&c.id,'n'),label:sstr(c&&c.label,120),step:Math.max(1,Math.min(9999,Math.round(Number(c&&c.step))||1)),start:Math.max(0,Math.min(1e9,Math.round(Number(c&&c.start))||0))}));
-  // Champs 3.1 (tous FACULTATIFS, rétrocompatibles) :
+  // Champs FACULTATIFS (rétrocompatibles) :
   //   status    : '' = validée (défaut historique) | 'draft' = brouillon (bandeau + masquée aux lecteurs d'une biblio partagée).
   //   related   : ids de fiches liées (« Voir aussi ») — on ne garde que les ids au format sûr, sans en générer.
   //   updatedBy : e-mail du dernier modificateur (posé par persist() quand connecté ; affiché en biblio partagée).
@@ -1450,9 +1440,8 @@ function seed2(catId){const b1=uid('b'),bd=uid('b'),b2=uid('b'),b3=uid('b');
       {id:b2,type:'steps',title:'Choquable (FV / TVsp)',image:null,steps:['Choc immédiat, puis reprise RCP 2 min','Adrénaline 1 mg après le 3ᵉ choc, puis /3–5 min','Amiodarone 300 mg après le 3ᵉ choc'],next:bd},
       {id:b3,type:'steps',title:'Non choquable (AESP / asystolie)',image:null,steps:['RCP 2 min sans interruption','Adrénaline 1 mg immédiatement, puis /3–5 min','Traiter les causes réversibles (4H / 4T)'],next:bd}
     ]});}
-// Ajout À LA DEMANDE des fiches d'exemple (bandeau « Besoin d'exemples ? » de l'accueil ; plus
-// jamais créées automatiquement au démarrage). persist() les marque `dirty` -> elles se
-// synchronisent normalement si un compte est connecté.
+// Ajout À LA DEMANDE des fiches d'exemple (bandeau « Besoin d'exemples ? » de l'accueil).
+// persist() les marque `dirty` -> elles se synchronisent normalement si un compte est connecté.
 async function addSeedFiches(){
   const catUrg=(categories.find(c=>c.name==='Urgences')||categories[0]||{}).id||'';
   const catSmur=(categories.find(c=>c.name==='SMUR')||{}).id||catUrg;
@@ -1460,8 +1449,8 @@ async function addSeedFiches(){
   toast('2 fiches d’exemple ajoutées — relisez-les et adaptez-les avant tout usage clinique.',8000);
   render();}
 // Identifiant de catégorie DÉTERMINISTE, dérivé du nom : deux appareils qui créent « Anesthésie »
-// obtiennent le MÊME id -> les fiches conservent leur catégorie après synchro. (Avec des ids
-// aléatoires, les jeux de catégories divergeaient entre appareils et la catégorie « disparaissait ».)
+// obtiennent le MÊME id -> les fiches conservent leur catégorie après synchro (des ids aléatoires
+// feraient diverger les jeux entre appareils et « disparaître » la catégorie).
 function catSlug(name){return String(name||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,48);}
 function detCatId(name){const s=catSlug(name);return s?('c-'+s):uid('c');}
 // Migration : convertit les ids de catégories existants (aléatoires) en ids déterministes et
@@ -1545,9 +1534,8 @@ async function load(){
   sessions=(await Data.getSessions())||[];
   try{notes=sanitizeNotes(await Data.getNotes());}catch(e){notes={};}
   if(!categories.length){categories=defaultCats();await Data.setCats(categories);}
-  // Les fiches d'exemple ne sont PLUS créées automatiquement : bibliothèque vide -> un bandeau
-  // d'accueil les PROPOSE (bouton « Ajouter les fiches d'exemple » dans renderLibrary). L'utilisateur
-  // reste maître de son contenu dès le premier écran (et le cloud n'est jamais pollué à son insu).
+  // Bibliothèque vide -> un bandeau d'accueil PROPOSE les fiches d'exemple (jamais créées
+  // automatiquement : l'utilisateur reste maître de son contenu, le cloud n'est jamais pollué à son insu).
   await remapCatsDeterministic(); // ids de catégories déterministes (cohérence multi-appareils)
   // `dirty` posé explicitement : migrate() (getAll) l'a retiré des objets en mémoire, et un put
   // sans lui ÉCRASERAIT le marqueur « à pousser » d'une fiche importée hors connexion (qui ne
@@ -1741,12 +1729,10 @@ td:first-child{white-space:nowrap}ul{margin:0;padding-left:20px;font-size:13.5px
   document.getElementById('reportBody').innerHTML=inner;      // aperçu dans l'app
   reportModal.classList.add('on');
 }
-// Impression À LA DEMANDE via un iframe HORS ÉCRAN (mais de taille réelle : un iframe caché
-// 0×0 / visibility:hidden s'imprime BLANC sur la plupart des navigateurs). L'iframe RESTE en
-// place et est RÉUTILISÉE tant que le compte-rendu affiché est le même : la recréer à chaque
-// clic (et la retirer 1 s après) faisait imprimer une page BLANCHE quand on relançait
-// l'impression (l'aperçu du navigateur lisait une frame déjà retirée / pas encore peinte).
-// Elle est retirée à la fermeture de la fenêtre de compte-rendu.
+// Impression via un iframe HORS ÉCRAN mais de taille réelle (un iframe 0×0 ou visibility:hidden
+// s'imprime BLANC sur la plupart des navigateurs). L'iframe est RÉUTILISÉE tant que le
+// compte-rendu affiché est le même — la recréer à chaque clic imprimait une page blanche à la
+// 2e impression (frame retirée / pas encore peinte). Retirée à la fermeture de la fenêtre.
 function printReportDoc(){
   const doPrint=fr=>{try{const w=fr.contentWindow;w.focus();w.print();}catch(e){toast('⚠ Impression indisponible sur ce navigateur.');}};
   let fr=document.getElementById('reportFrame');
@@ -1833,8 +1819,8 @@ function onTimerFired(R,t){beep();
   showBanner(R.ficheId,ft,tl);
   if(activeVisible){flash(t.id);}
   else{flashScreen();if(document.visibilityState==='hidden')osNotify('⏰ '+tl+' — terminé',ft,R.ficheId);}}
-// Reprise d'un minuteur d'intervalle DÉJÀ TERMINÉ (non bouclé) = nouveau cycle (repart du plein) :
-// corrige « Reprendre » qui semblait ne rien faire (le temps était déjà à 0).
+// Reprise d'un minuteur d'intervalle DÉJÀ TERMINÉ (non bouclé) = nouveau cycle (repart du plein) —
+// sinon « Reprendre » semble ne rien faire (le temps est déjà à 0).
 function toggleTimer(t){const now=Date.now();
   if(t.running){if(t.type==='interval')t.elapsedMs=Math.min(t.seconds*1000,t.elapsedMs+(now-t.lastStart));else t.elapsedMs+=now-t.lastStart;t.running=false;}
   else{ensureAudio();if(t.type==='interval'&&t.elapsedMs>=(t.seconds*1000||1))t.elapsedMs=0;t.lastStart=now;t.running=true;}}
@@ -1861,9 +1847,6 @@ setInterval(tickAll,300);
    resumeSession(id) : recharge une session (historique) dans le Runtime, la réactive et ouvre la fiche.
    deleteSession(id) : suppression définitive d'une session de l'historique.
    (Les sessions sont locales à l'appareil et exclues de l'export JSON.) */
-// Note : il n'y a PAS de bouton « Enregistrer » de session : l'enregistrement est AUTOMATIQUE et
-// continu (persistLive à chaque action + persistAllLive en quittant). Ni de « Réinitialiser » de
-// session : « Terminer » archive et remet la fiche à zéro (modèle volontairement minimal pour l'urgence).
 // MAINTENIR pour réinitialiser un minuteur/chrono : il faut garder le doigt appuyé ~0,8 s (jauge qui
 // se remplit). Un appui bref — ou même un DOUBLE appui au même endroit en situation de stress — ne
 // déclenche rien. Pas de fenêtre modale (réservée, elle, à la réinitialisation de SESSION).
@@ -1889,9 +1872,8 @@ function holdToReset(btn,doAction){if(!btn)return;let to=null;const lbl=btn.inne
   // Le risque d'appui accidentel visé par le « maintenir » est tactile, pas clavier.
   btn.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();cancel();doAction();}});
   btn.onclick=e=>{e.preventDefault();e.stopPropagation();};}
-// Terminer : fige en historique et arrête les minuteurs (depuis la fiche). Reste reprenable plus tard.
-// Terminer : on archive la session (historique) PUIS on repart d'une fiche vierge (tout remis à zéro :
-// cochages, compteurs, minuteurs). La session terminée reste enregistrée et reprenable.
+// Terminer : archive la session (historique, reprenable plus tard), arrête les minuteurs, puis
+// repart d'une fiche vierge (cochages, compteurs, minuteurs remis à zéro).
 async function endCurrentSession(){if(!Runtime.started)return;if(!await confirmDlg('Terminer la session ? Les minuteurs s’arrêtent ; la session est conservée dans l’historique et la fiche est remise à zéro.',{yes:'Terminer'}))return;const f=Runtime.fiche;endSession(Runtime);freshRuntime(f,null);state.fiche=f;render();}
 // Reprendre une session de l'historique (ou vive) : recharge dans un runtime, la réactive (vive) et
 // ouvre la fiche. Si une session vive existe déjà pour cette fiche, on la rouvre telle quelle.
@@ -2102,7 +2084,7 @@ function buildFlowSVG(f,curId){
   blocks.forEach(b=>{const dec=b.type==='decision';const isStart=b.id===start;
     const headerLines=wrapText(b.title||(dec?'Décision':'Étapes'),TITLE_MAX);
     // Bloc de départ : on RÉSERVE un bandeau en haut de l'en-tête pour la pastille « DÉPART »,
-    // afin que le titre s'affiche EN DESSOUS et ne soit jamais masqué (bug chevauchement).
+    // afin que le titre s'affiche EN DESSOUS et ne soit jamais masqué.
     const startStrip=isStart?17:0;
     const headerH=Math.max(TH,headerLines.length*TLH+12)+startStrip;const items=[];
     if(dec){if(b.question)items.push({kind:'q',lines:wrapText(b.question,TXT_MAX)});(b.options||[]).filter(o=>o.label||o.target).forEach((o,i)=>items.push({kind:'opt',num:i+1,lines:wrapText(o.label||('Option '+(i+1)),TXT_MAX-3)}));}
@@ -2166,7 +2148,7 @@ function buildFlowSVG(f,curId){
   Object.values(byTgt).forEach(arr=>{arr.sort((a,b)=>a.p.x-b.p.x);const n=arr.length;arr.forEach((e,i)=>{e.entryIdx=i;e.x2=Math.round(e.Q.x+Math.min(e.Q.w-8,e.Q.w*(i+1)/(n+1)+6));});});
   // Attache des arêtes sur les CÔTÉS des blocs, UNIFIÉE retours (pointillé) + latérales (plein) :
   // toutes les connexions d'un même côté d'un bloc sont réparties ensemble -> une ligne pleine et
-  // une ligne pointillée ne partent/n'arrivent jamais au même point (bug 4.B), et deux retours du
+  // une ligne pointillée ne partent/n'arrivent jamais au même point, et deux retours du
   // même bloc ne se superposent pas. Retours/auto-réf = côté droit ; latérales = côté face à la cible.
   const att={};
   back.forEach(e=>{(att[e.sid+'R']=att[e.sid+'R']||[]).push([e,'s']);(att[e.tid+'R']=att[e.tid+'R']||[]).push([e,'t']);});
@@ -2312,7 +2294,7 @@ function buildFlowSVG(f,curId){
     // l'inversion globale ET pilote teinte/opacité -> s'adapte instantanément au thème sans reconstruire.
     let g=isCur?`<rect class="flow-hl flow-hl-glow" x="-5" y="-5" width="${W+10}" height="${h+10}" rx="15" fill="none" stroke="#0d5b56" stroke-width="6" opacity="0.13"/>`:'';
     // Fonds CLIPPÉS au contour arrondi : le bandeau d'en-tête et le liseré gauche suivent le coin
-    // arrondi et ne dépassent plus hors de la bordure (bug 3.iii). La bordure est tracée par-dessus.
+    // arrondi et ne dépassent pas de la bordure, tracée par-dessus.
     g+=`<clipPath id="${cid}"><rect width="${W}" height="${h}" rx="10"/></clipPath><g clip-path="url(#${cid})"><rect width="${W}" height="${h}" fill="${fill}"/><rect width="${W}" height="${hh}" fill="${dec?'#f0e4c8':'#dbeae5'}"/>${dec?`<circle cx="13" cy="${Math.round(hh/2)}" r="4" fill="#946615"/>`:`<rect x="0" y="0" width="4" height="${hh}" fill="#0d5b56"/>`}</g>`;
     const strip=L.startStrip||0;
     // Titre centré DANS l'espace situé sous le bandeau « DÉPART » (strip) -> jamais masqué.
@@ -2427,7 +2409,7 @@ function renderRead(){
   const gallery=(f.images||[]).length?`<section class="block"><div class="block-h h-img">${headerIcon('h-img')}Schémas & captures</div><div class="gallery">${f.images.map(im=>`<div class="gthumb"><img src="${im.data}" data-full="${im.data}" data-cap="${esc(im.caption||'')}" alt="${esc(im.caption||'')}" loading="lazy" decoding="async">${im.caption?`<div class="gcap">${esc(im.caption)}</div>`:''}</div>`).join('')}</div></section>`:'';
   const refs=clean(f.references);
   // « Ne pas oublier » : bandeau compact SOUS le titre (un rappel critique doit être vu AVANT
-  // d'être violé, pas après avoir tout déroulé). Remplace l'ancienne section en bas de fiche.
+  // d'être violé, pas après avoir tout déroulé).
   const nf=clean(f.notForget);
   const forgetStrip=nf.length?`<section class="block forget-strip"><div class="block-h h-forget">${headerIcon('h-forget')}Ne pas oublier</div><ul class="forget-list">${nf.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></section>`:'';
   // Historique = sessions de cette fiche, EN EXCLUANT la session vive courante (affichée par le bandeau).
@@ -2994,8 +2976,8 @@ document.getElementById('importFile').onchange=e=>{const file=e.target.files[0];
     // Fonctionne pour une librairie entière comme pour une fiche seule (fiches = tableau de 1).
     // SÉCURITÉ : l'option destructive "remplacer entièrement" n'est proposée que pour un
     // import de PLUSIEURS fiches, et ne touche QUE la bibliothèque de destination.
-    // Tri-état : Fusionner (true) / Remplacer tout (false) / ✕-Échap (null) = import ABANDONNÉ —
-    // l'ancien confirm() natif ne permettait pas d'annuler proprement cette étape destructive.
+    // Tri-état : Fusionner (true) / Remplacer tout (false) / ✕-Échap (null) = import ABANDONNÉ
+    // (une étape destructive doit pouvoir être annulée proprement).
     const merge=imp.fiches.length>1?await confirmDlg('Import de '+imp.fiches.length+' fiches.',{title:'Importer',yes:'Fusionner avec '+scopeLbl,no:'REMPLACER '+scopeLbl}):true;
     if(merge===null){pendingOpenImport=false;return;}
     if(!merge){if(!await confirmDlg('Toutes les fiches de '+scopeLbl+' seront supprimées puis remplacées par le contenu du fichier. Continuer ?',{title:'Remplacer la bibliothèque',yes:'Tout remplacer',danger:true}))return void(pendingOpenImport=false);
@@ -3059,13 +3041,11 @@ const Auth={
   async verifyCode(email,code){const j=await this._post('/auth/v1/verify',{type:'email',email:email,token:code});this._setSession(j);return j;},
   // Rafraîchissement du jeton. IMPORTANT (hors-ligne) : un échec RÉSEAU (fetch qui lève : mode
   // avion, Wi-Fi captif, coupure) ne déconnecte JAMAIS — on garde la session et on réessaiera au
-  // retour du réseau. Seul un REFUS du serveur (400/401/403 = refresh token invalide ou révoqué)
-  // déconnecte réellement. Sinon, rester hors-ligne > 1 h (jeton expiré) déconnectait l'utilisateur
-  // et rendait les bibliothèques partagées inaccessibles sans possibilité de se reconnecter.
-  // SINGLE-FLIGHT : GoTrue fait TOURNER le refresh token (l'ancien devient invalide). Deux
-  // refresh simultanés (synchro de démarrage + fenêtre Compte + « Synchroniser maintenant »…)
-  // partaient avec le MÊME token -> le 2e recevait 400 « déjà utilisé » -> signOut intempestif.
-  // Une seule rotation à la fois : les appels concurrents attendent la même promesse.
+  // retour du réseau ; sinon rester hors-ligne > 1 h (jeton expiré) déconnecterait sans retour.
+  // Seul un REFUS du serveur (400/401/403 = refresh token invalide ou révoqué) déconnecte.
+  // SINGLE-FLIGHT : GoTrue fait TOURNER le refresh token (l'ancien devient invalide) ; deux
+  // refresh simultanés partiraient avec le MÊME token -> 400 « déjà utilisé » -> signOut
+  // intempestif. Une seule rotation à la fois : les appels concurrents attendent la même promesse.
   async refresh(){
     if(this._refreshP)return this._refreshP;
     this._refreshP=(async()=>{
@@ -3079,19 +3059,17 @@ const Auth={
   // Rafraîchit le jeton s'il expire dans <60 s. Appelé par rest() avant chaque appel REST de synchro.
   async ensureFresh(){if(!this.signedIn())return false;const now=Math.floor(Date.now()/1000);if(this.session.expires_at&&this.session.expires_at-now<60)return this.refresh();return true;},
   async signOut(){const tok=this.session&&this.session.access_token;this.session=null;this._save();
-    // Le curseur de pull N'EST PLUS effacé : il est désormais PAR ESPACE (spaceKey), donc une
-    // reconnexion au même compte reprend en incrémental, et un autre compte a son propre curseur
-    // (le cloisonnement par espace remplace l'ancien nettoyage anti-mélange de la 3.1.5).
-    // L'espace local ne change PAS non plus : les fiches restent affichées hors-ligne (promesse
-    // locale-first) — il ne bascule qu'à la connexion d'un AUTRE compte.
+    // Le curseur de pull est PAR ESPACE (spaceKey) : une reconnexion au même compte reprend en
+    // incrémental, chaque compte a le sien. L'espace local ne change pas non plus : les fiches
+    // restent affichées hors-ligne (promesse local-first) — il ne bascule qu'à la connexion
+    // d'un AUTRE compte.
     if(tok){try{await fetch(SUPA.url+'/auth/v1/logout',{method:'POST',headers:{'apikey':SUPA.key,'Authorization':'Bearer '+tok}});}catch(e){}}},
   // Suppression RGPD : efface compte + données perso côté serveur (RPC SECURITY DEFINER).
   async deleteAccount(){await this._post('/rest/v1/rpc/delete_my_account',{});}
 };
 // État de synchro COURANT — SOURCE UNIQUE, posée par setSyncChip() : la pastille du pied de
 // page, le bandeau d'accueil ET la ligne d'état de la fenêtre Compte affichent tous cet état
-// (fini le « Synchronisation active » codé en dur dans la fenêtre alors que le pied de page
-// disait « Hors-ligne » ou « Erreur de synchro »).
+// (jamais deux états contradictoires à l'écran).
 let _syncUi={state:'ok',text:'Connecté'};
 // Ligne d'état de la fenêtre Compte (point coloré + même texte que la pastille).
 function authStateHtml(){
@@ -3203,11 +3181,10 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
     // disparaît. Reload (comme la suppression de compte) : plus simple et plus sûr que de
     // retricoter l'état en mémoire après avoir supprimé les données qu'il référence.
     const doSignOut=async(wipe)=>{await Auth.signOut();
-      // Avec effacement : on passe par un reload (l'état en mémoire pointe sur des données
-      // supprimées). Le reload FERME la fenêtre Compte -> sans le drapeau ci-dessous, on
-      // atterrissait sur la bibliothèque au lieu de l'écran de connexion, alors que SANS effacement
-      // la fenêtre reste ouverte sur ce même écran. Le drapeau la rouvre après le reload : l'option
-      // « effacer » ne change alors QUE les données, jamais la destination.
+      // Avec effacement : reload obligatoire (l'état en mémoire pointe sur des données supprimées).
+      // Le reload ferme la fenêtre Compte -> le drapeau 'ac-reopen-auth' la rouvre après, pour
+      // arriver au même écran de connexion qu'une déconnexion sans effacement : l'option
+      // « effacer » ne change QUE les données, jamais la destination.
       if(wipe){await wipeCurrentSpace();try{localStorage.setItem('ac-reopen-auth','1');}catch(e){}location.reload();return;}
       resetAuthState();_authDelete=false;_authStep={mode:'email',email:'',msg:'',msgcls:''};renderAuth();setSyncChip();if(state.view==='library')renderLibrary();};
     // « Changer de compte » et « Se déconnecter » : même action réelle (doSignOut) et même OPTION
@@ -3702,10 +3679,9 @@ const Sync={
         if(!local){const nf=ficheFromRow(row);await Data.put(nf);byId[row.id]=nf;if(!nf.deletedAt)fiches.push(nf);continue;}
         if(rts>(local.updatedAt||0)){
           // La version LOCALE est TOUJOURS archivée avant remplacement (bouton « Versions » /
-          // « Ma version écrasée », borné à BACKUP_MAX par fiche) : pas seulement en cas de
-          // conflit — une fiche partagée mise à jour par un collègue archivait... rien, et le
-          // bouton mentait. Le toast « conflit », lui, reste réservé aux vraies divergences
-          // (modification locale non poussée écrasée).
+          // « Ma version écrasée », borné à BACKUP_MAX par fiche), pas seulement en cas de conflit.
+          // Le toast « conflit », lui, reste réservé aux vraies divergences (modification locale
+          // non poussée écrasée).
           try{await Data.putBackup({bid:uid('bk'),ficheId:local.id,at:Date.now(),data:JSON.parse(JSON.stringify(local))});}catch(e){}
           if(local.dirty)conflicts.push(local.title||local.id);
           const nf=ficheFromRow(row);await Data.put(nf);byId[row.id]=nf;const i=fiches.findIndex(x=>x.id===row.id);if(i>=0)fiches[i]=nf;else if(!nf.deletedAt)fiches.push(nf);
@@ -3732,9 +3708,9 @@ const Sync={
         else{f.dirty=false;await Data.put(f);}}};
     // Cas nominal : tout part en UNE requête.
     try{await send(dirty);return;}catch(e){}
-    // Le lot a été refusé : on réessaie fiche PAR fiche pour ISOLER la ou les fautives — avant,
-    // une seule fiche refusée (droits retirés, id déjà pris par un autre compte...) bloquait
-    // TOUTE la bibliothèque, indéfiniment (le backoff rejouait le même lot voué à l'échec).
+    // Lot refusé : on réessaie fiche PAR fiche pour ISOLER la ou les fautives — sinon une seule
+    // fiche refusée (droits retirés, id déjà pris par un autre compte...) bloquerait TOUTE la
+    // bibliothèque indéfiniment (le backoff rejouerait le même lot voué à l'échec).
     let firstErr=null,persoOk=0;const perso403=[];
     for(const f of dirty){
       try{await send([f]);if(!f.libraryId)persoOk++;}
@@ -3899,7 +3875,7 @@ async function renderVersions(){const body=document.getElementById('versBody');i
     closeVersions();if(state.fiche&&state.fiche.id===_versFiche)state.fiche=restored;render();});}
 bindModalDismiss(versModal,closeVersions);
 
-/* ===== Membres d'une bibliothèque (Lot 3, étape 4) ===== */
+/* ===== Membres d'une bibliothèque ===== */
 const membersModal=document.getElementById('membersModal');let _memLib=null;
 const ROLE_FR={viewer:'Lecteur',editor:'Éditeur',admin:'Admin'};
 function roleOptions(role){return ['viewer','editor','admin'].map(r=>`<option value="${r}" ${role===r?'selected':''}>${ROLE_FR[r]}</option>`).join('');}
@@ -3937,9 +3913,8 @@ async function renderMembers(){const body=document.getElementById('membersBody')
     try{await rest('DELETE','/rest/v1/memberships?library_id=eq.'+encodeURIComponent(_memLib)+'&user_id=eq.'+encodeURIComponent(b.dataset.remove),null,{'Prefer':'return=minimal'});await renderMembers();}
     catch(e){toast('⚠ Retrait impossible : '+e.message);}});
   // Renommer (admin de la biblio ou app-admin) / Supprimer (app-admin uniquement, cf. RLS lib_delete).
-  // Renommer : bascule l'en-tête en édition en ligne (pas de popup), puis confirme/annule.
-  // Renommer : on échange UNIQUEMENT l'en-tête en édition en ligne, sans re-render (donc
-  // sans recharger la liste des membres ni de flash « Chargement… »).
+  // Renommer : on échange UNIQUEMENT l'en-tête en édition en ligne (pas de popup), sans re-render —
+  // donc sans recharger la liste des membres ni de flash « Chargement… ».
   const headI=body.querySelector('#memHeadI'),acts=body.querySelector('#memLibActs');
   const staticHead=headI?headI.innerHTML:'';
   const exitRename=()=>{if(!headI)return;headI.innerHTML=staticHead;if(acts)acts.style.display='';};
@@ -3968,8 +3943,8 @@ async function renderMembers(){const body=document.getElementById('membersBody')
     catch(e){toast('⚠ Suppression impossible : '+e.message);}};}
 bindModalDismiss(membersModal,closeMembers);
 // Fenêtre "Créer une bibliothèque" (app-admin uniquement ; la RLS rejette sinon si contournée) :
-// même gabarit que les autres fenêtres (.ai-modal/.ai-card), remplace l'ancien prompt() natif.
-// Explique d'abord ce qu'est une bibliothèque avant de demander un nom.
+// même gabarit que les autres fenêtres (.ai-modal/.ai-card). Explique d'abord ce qu'est une
+// bibliothèque avant de demander un nom.
 const newLibModal=document.getElementById('newLibModal');
 function renderNewLib(){const body=document.getElementById('newLibBody');if(!body)return;
   body.innerHTML=`<p class="auth-sub" style="margin-top:0">Une <b>bibliothèque</b> est un espace partagé : les fiches qu'elle contient sont accessibles aux membres que vous y invitez (rôle lecteur, éditeur ou admin), pour travailler à plusieurs sur les mêmes aides cognitives — une équipe, un service...</p>
