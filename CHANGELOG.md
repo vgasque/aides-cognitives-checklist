@@ -1,5 +1,13 @@
 # Journal des modifications
 
+## [3.4.4] — 2026-07-05
+### Modifié
+- **Message du badge « À compléter » reformulé sans jargon.** « Invites “à compléter” dans :
+  Références » employait « invite » (calque de l'anglais *prompt*), incompréhensible pour
+  l'utilisateur. Le toast et l'infobulle disent désormais « Reste à compléter : Références »,
+  et en lecture « — remplacez les mentions “à compléter” par vos informations locales. »
+  (règle du projet : aucun jargon technique dans les textes visibles).
+
 ## [3.4.3] — 2026-07-05
 ### Ajouté
 - **Le badge « À compléter » est tapable.** L'emplacement des invites n'était donné que par
