@@ -179,6 +179,12 @@ function run(A){
   eq('clé d\'un autre espace suffixée', A.spaceKeyFor('ac-pins','u2','u1'), 'ac-pins@u2');
   eq('clé anonyme non propriétaire', A.spaceKeyFor('fiches_v1','','u1'), 'fiches_v1@anon');
 
+  group('liveFicheCount() — fiches « hors compte » de l\'écran de connexion');
+  eq('compte les fiches vivantes', A.liveFicheCount([{id:'a'},{id:'b'}]), 2);
+  eq('exclut les tombstones', A.liveFicheCount([{id:'a'},{id:'b',deletedAt:123}]), 1);
+  eq('exclut les entrées invalides', A.liveFicheCount([null,'x',42,{id:'a'}]), 1);
+  eq('non-tableau → 0', A.liveFicheCount('x'), 0);
+
   group('spaceTag() — empreinte d\'espace des exports');
   eq('déterministe (même espace → même empreinte)', A.spaceTag('u-abc'), A.spaceTag('u-abc'));
   ok('espaces différents → empreintes différentes', A.spaceTag('u-abc')!==A.spaceTag('u-def'));

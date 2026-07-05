@@ -129,7 +129,8 @@
   ESPACES LOCAUX PAR COMPTE : tout le stockage local (base IndexedDB, clés localStorage,
                repli KV) est cloisonné par compte — voir le bloc « ESPACES LOCAUX » de la
                section Backends (currentSpace/dbNameFor/spaceKey). L'espace suit le DERNIER
-               compte connecté ; il ne bascule qu'à la connexion d'un autre compte (reload).
+               compte connecté ; il ne bascule (reload) qu'à la connexion d'un autre compte ou
+               au retour explicite vers l'espace sans compte (écran de connexion).
   Note perso : { ficheId: { t(texte), at(ms), dirty? } } — carte unique sous la clé 'notes'
                du store 'meta' (KV : 'notes_v1'). TOUJOURS personnelle : hors de la fiche
                (un éditeur qui modifie une fiche partagée n'y touche pas), jamais exportée,
@@ -964,7 +965,7 @@
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='3.3.7';
+const APP_VERSION='3.4.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -992,8 +993,9 @@ const MEM={};
    retrouve instantanément son cache local. Principes :
    - L'espace SUIT LE DERNIER COMPTE CONNECTÉ ('ac-space', collant) : une déconnexion — même
      forcée par un jeton révoqué en pleine session — ne change RIEN à l'affichage (promesse
-     hors-ligne intacte). L'espace ne bascule qu'à la CONNEXION d'un AUTRE compte, par un
-     location.reload() (bascule atomique de tout l'état en mémoire). MULTI-ONGLETS :
+     hors-ligne intacte). L'espace ne bascule que par un location.reload() (bascule atomique
+     de tout l'état en mémoire) : à la CONNEXION d'un AUTRE compte, ou par le retour EXPLICITE
+     vers l'espace sans compte depuis l'écran de connexion (switchToAnonSpace). MULTI-ONGLETS :
      ce reload ne se produit QUE dans l'onglet qui se connecte ; un autre onglet resté ouvert
      est averti via l'évènement 'storage' sur 'ac-space' et se recharge à son tour (cf. plus bas).
    - UNE base IndexedDB PAR espace : la base historique 'ac-db' est ATTRIBUÉE (sans copie) au
@@ -1119,6 +1121,38 @@ async function moveLocalDataTo(space){
   try{await Data.setCats(null);}catch(e){}
   try{localStorage.removeItem(spaceKey('ac-pins'));}catch(e){}
 }
+// Nombre de fiches VIVANTES d'un tableau brut (tombstones et entrées invalides exclus) —
+// PUR (testé). Partagé entre la lecture IndexedDB et le repli localStorage de anonFicheCount.
+const liveFicheCount=a=>(Array.isArray(a)?a:[]).filter(f=>f&&typeof f==='object'&&!f.deletedAt).length;
+// Nombre de fiches vivantes de l'espace « sans compte », lu SANS effet de bord : ne réclame
+// jamais 'ac-db-owner', et ne touche au stockage que si cet espace a réellement existé
+// (registre 'ac-spaces') — sinon l'ouverture IndexedDB créerait une base vide fantôme.
+// Alimente le lien « fiches hors compte » de l'écran de connexion (0 = pas de lien).
+async function anonFicheCount(){
+  if(currentSpace()==='')return 0;                     // déjà dessus : rien à proposer
+  let spaces=[];try{spaces=JSON.parse(localStorage.getItem('ac-spaces')||'[]');}catch(e){}
+  if(spaces.indexOf('')<0)return 0;
+  let owner=null;try{owner=localStorage.getItem('ac-db-owner');}catch(e){}
+  if(owner===null)return 0;
+  // IndexedDB fait AUTORITÉ quand il s'ouvre (chooseBackend y migre les données KV sans effacer
+  // les clés KV, qui peuvent donc être périmées) ; le repli KV ne sert que si l'ouverture échoue.
+  let n=0,idbOk=false;
+  try{const db=await openSpaceDb(dbNameFor('',owner));
+    n=await new Promise((res,rej)=>{const r=db.transaction('fiches','readonly').objectStore('fiches').getAll();r.onsuccess=()=>res(liveFicheCount(r.result));r.onerror=()=>rej(r.error);});
+    idbOk=true;db.close();
+  }catch(e){}
+  if(!idbOk){try{n=liveFicheCount(JSON.parse(localStorage.getItem(spaceKeyFor('fiches_v1','',owner))||'[]'));}catch(e){}}
+  return n;}
+// Bascule EXPLICITE vers l'espace « sans compte » (lien de l'écran de connexion) — l'espace
+// étant collant au dernier compte connecté, ces fiches seraient sinon inaccessibles pour
+// toujours. Uniquement déconnecté : connecté, load() ramènerait aussitôt sur l'espace du
+// compte (garde-fou espaces). Même bascule atomique qu'un changement de compte ; une
+// connexion ultérieure depuis cet espace re-proposera d'« emporter » les fiches.
+function switchToAnonSpace(){
+  if(typeof Auth!=='undefined'&&Auth.signedIn())return;
+  persistAllLive();
+  try{localStorage.setItem('ac-space','');}catch(e){}
+  location.reload();}
 
 /* ===== State & Runtime =====
    `fiches` `categories` `sessions` : copies en mémoire des données persistées.
@@ -3328,7 +3362,13 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
       <input class="auth-field" id="authEmail" type="email" inputmode="email" autocomplete="email" placeholder="vous@exemple.fr" value="${esc(_authStep.email)}">
       <button class="btn primary auth-full" id="authSend">Recevoir le code</button>
       <p class="auth-msg ${_authStep.msgcls}">${esc(_authStep.msg)}</p>
+      <div style="text-align:center;margin-top:2px"><button class="tlink" id="authAnon" hidden></button></div>
       <details class="auth-why"><summary>Pourquoi créer un compte ?</summary><div class="auth-why-body">${storageExplainHtml()}</div></details>`;
+    // Fiches « hors compte » présentes sur l'appareil : lien de consultation SANS se connecter
+    // (cf. switchToAnonSpace). Compté en asynchrone ; le lien reste masqué s'il n'y a rien.
+    (async()=>{try{const n=await anonFicheCount();const b=body.querySelector('#authAnon');if(!n||!b)return;
+      b.textContent='Cet appareil contient '+n+' fiche'+(n>1?'s':'')+' hors compte — les consulter sans se connecter';
+      b.hidden=false;b.onclick=switchToAnonSpace;}catch(e){}})();
     const send=body.querySelector('#authSend');
     // ANTI DOUBLE-CLIC : bouton désactivé + libellé d'attente PENDANT l'appel réseau (un 2e envoi
     // d'OTP invaliderait le 1er code reçu, et GoTrue rate-limite les envois rapprochés). L'ancien
@@ -3368,7 +3408,7 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
           // Les TITRES sont listés : sur un appareil partagé, adopter ce contenu l'envoie dans le
           // cloud du compte — l'utilisateur doit pouvoir reconnaître ce qu'il emporte avant d'accepter.
           const names=fiches.slice(0,5).map(f=>'« '+(sstr(f.title,48).trim()||'sans titre')+' »').join(', ')+(fiches.length>5?' et '+(fiches.length-5)+' autre'+(fiches.length>6?'s':''):'');
-          const take=await confirmDlg(fiches.length+' fiche'+(fiches.length>1?'s':'')+' (avec notes et sessions) '+(fiches.length>1?'sont enregistrées':'est enregistrée')+' sur cet appareil hors compte : '+names+'. Les emporter dans ce compte ? Elles y seront synchronisées.',{title:'Fiches locales',yes:'Les emporter dans ce compte',no:'Les laisser hors compte'});
+          const take=await confirmDlg(fiches.length+' fiche'+(fiches.length>1?'s':'')+' (avec notes et sessions) '+(fiches.length>1?'sont enregistrées':'est enregistrée')+' sur cet appareil hors compte : '+names+'. Les emporter dans ce compte ? Elles y seront synchronisées. Laissées hors compte, elles resteront consultables sans connexion, via le lien « fiches hors compte » de l\'écran de connexion.',{title:'Fiches locales',yes:'Les emporter dans ce compte',no:'Les laisser hors compte'});
           if(take){try{await moveLocalDataTo(uid);}catch(e){}}
         }
         persistAllLive();registerSpace(uid);
@@ -4044,7 +4084,7 @@ document.addEventListener('keydown',e=>{
 if(location.search.indexOf('__actest')>=0){
   window.__ac_test__={migrate,sanitizeCats,safeId,safeColor,safeImg,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,
-    restErrStatus,isPersoRepairCandidate};
+    restErrStatus,isPersoRepairCandidate,liveFicheCount};
 }else{
   /* ===== PWA =====
      Enregistre le service worker (cache hors ligne) si disponible. Capte

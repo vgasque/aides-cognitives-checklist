@@ -1,5 +1,21 @@
 # Journal des modifications
 
+## [3.4.0] — 2026-07-05
+### Ajouté
+- **Les fiches « hors compte » restent accessibles depuis l'écran de connexion.** L'espace local
+  suivant le dernier compte connecté, les fiches créées sans compte puis « laissées hors compte »
+  à la connexion devenaient définitivement invisibles sur l'appareil (rien ne ramenait jamais à
+  l'espace sans compte). L'écran de connexion affiche désormais, si cet espace contient des
+  fiches, un lien « Cet appareil contient N fiches hors compte — les consulter sans se
+  connecter » : il bascule sur l'espace sans compte (même bascule atomique qu'un changement de
+  compte, proposée uniquement déconnecté — jamais de mélange entre bibliothèques). Une connexion
+  ultérieure depuis cet espace re-propose de les emporter dans le compte : ce choix n'est plus
+  définitif, et le dialogue « Fiches locales » l'explique désormais.
+
+### Modifié
+- Le comptage des fiches hors compte est sans effet de bord (n'attribue jamais la base
+  historique à un espace, ne crée aucune base fantôme) ; fonction pure `liveFicheCount` testée.
+
 ## [3.3.7] — 2026-07-04
 ### Corrigé
 - **« Changer de compte » (ou « Se déconnecter ») avec l'option d'effacement cochée n'ouvrait
