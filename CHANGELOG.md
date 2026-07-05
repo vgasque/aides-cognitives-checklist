@@ -1,5 +1,15 @@
 # Journal des modifications
 
+## [3.4.3] — 2026-07-05
+### Ajouté
+- **Le badge « À compléter » est tapable.** L'emplacement des invites n'était donné que par
+  l'infobulle `title`, invisible sur mobile (pas de survol). Un tap / clic / Entrée ou Espace
+  sur le badge affiche désormais un toast listant les emplacements (« Invites “à compléter”
+  dans : Références · Bloc “Traitement” »). Le badge reste visuellement discret : la cible
+  tactile (~36 px) est étendue par un pseudo-élément invisible ; `role="button"`, `tabindex`
+  et `:focus-visible` posés. Sur une carte de la bibliothèque, taper le badge n'ouvre PAS la
+  fiche (même garde que l'épingle `data-pin`).
+
 ## [3.4.2] — 2026-07-05
 ### Corrigé
 - **Cliquer le libellé « Contexte local » déclenchait le bouton « B » (gras).** Le bouton était

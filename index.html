@@ -394,7 +394,10 @@
   html[data-theme="dark"] .catchip.colored,html[data-theme="dark"] .catpill.colored{color:color-mix(in srgb, var(--catcol) 62%, white);background:color-mix(in srgb, var(--catcol) 22%, transparent);border-color:color-mix(in srgb, var(--catcol) 50%, transparent)}
   .tag.flow{background:#efe7d2;color:var(--verify)}.tag.sess{background:var(--primary-100);color:var(--primary-dk)}
   .tag.draft{background:var(--verify-soft);color:var(--verify)}
-  .tag.todo{background:var(--verify-soft);color:var(--verify)}
+  .tag.todo{background:var(--verify-soft);color:var(--verify);position:relative;cursor:pointer}
+  /* Zone tactile étendue (~36 px) sans grossir le badge : pseudo-élément cliquable autour. */
+  .tag.todo::after{content:"";position:absolute;inset:-7px}
+  .tag.todo:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* Fiches liées : chips en lecture, éditeur avec croix de retrait. */
   .related{margin:16px 0 4px}.related>b{display:block;font-size:12.5px;color:var(--ink-soft);margin-bottom:7px}
   .related-row{display:flex;gap:8px;flex-wrap:wrap}
@@ -971,7 +974,7 @@
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='3.4.2';
+const APP_VERSION='3.4.3';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -2007,7 +2010,7 @@ function renderLibrary(){
     ${catbar}
     <div class="cards">${list.length?list.slice(0,state.libLimit).map(f=>{const sc=sessions.filter(s=>s.ficheId===f.id&&!s.live).length;const isLive=!!liveSessions[f.id];return `
       <div class="card${isLive?' has-live':''}" tabindex="0" role="button" data-open="${f.id}"><div class="card-body"><h3>${esc(f.title)||'Sans titre'}</h3>
-        <div class="card-meta">${isLive?'<span class="tag live">● En cours</span>':''}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" title="Invites « à compléter » dans : ${esc(sp.join(' · '))}">À compléter</span>`:'';})()}${catTag(f)}${sc?`<span class="tag sess" title="Sessions enregistrées dans l'historique">${sc} sauvegardée${sc>1?'s':''}</span>`:''}<span class="card-date${staleDate(f.validation)?' stale':''}">${esc(fmtDate(f.validation))}${staleDate(f.validation)?' · à revoir':''}</span></div></div>
+        <div class="card-meta">${isLive?'<span class="tag live">● En cours</span>':''}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo title="Invites « à compléter » dans : ${esc(sp.join(' · '))}">À compléter</span>`:'';})()}${catTag(f)}${sc?`<span class="tag sess" title="Sessions enregistrées dans l'historique">${sc} sauvegardée${sc>1?'s':''}</span>`:''}<span class="card-date${staleDate(f.validation)?' stale':''}">${esc(fmtDate(f.validation))}${staleDate(f.validation)?' · à revoir':''}</span></div></div>
         <button class="pinbtn${isPinned(f.id)?' on':''}" data-pin="${f.id}" aria-label="${isPinned(f.id)?'Désépingler':'Épingler en haut de la liste'}" title="${isPinned(f.id)?'Désépingler':'Épingler en haut de la liste'}"><svg width="18" height="18" viewBox="0 0 24 24" fill="${isPinned(f.id)?'currentColor':'none'}" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"/></svg></button>
         <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></div>`;}).join('')+(list.length>state.libLimit?`<button class="btn" id="showMore" style="width:100%;margin-top:2px">Afficher plus (${list.length-state.libLimit} restante${list.length-state.libLimit>1?'s':''})</button>`:'')
       :`<div class="empty"><b>Aucune fiche</b>${state.q||state.cat?'Aucun résultat pour ce filtre.'
@@ -2032,7 +2035,7 @@ function renderLibrary(){
   const mb=document.getElementById('membersBtn');if(mb)mb.onclick=()=>openMembers(state.scope);
   main.querySelectorAll('[data-openlive]').forEach(el=>{el.onclick=()=>openRead(el.dataset.openlive);el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openRead(el.dataset.openlive);}};});
   main.querySelectorAll('[data-endlive]').forEach(b=>b.onclick=async()=>{const id=b.dataset.endlive,R=liveSessions[id];if(R&&await confirmDlg('Terminer la session ? Les minuteurs s’arrêtent ; la session est conservée dans l’historique.',{yes:'Terminer'})){endSession(R);if(Runtime.ficheId===id)resetRuntime();renderLibrary();}});
-  main.querySelectorAll('[data-open]').forEach(el=>{el.onclick=e=>{if(e.target.closest('[data-pin]'))return;openRead(el.dataset.open);};el.onkeydown=e=>{if(e.target.closest('[data-pin]'))return;if(e.key==='Enter'||e.key===' '){e.preventDefault();openRead(el.dataset.open);}};});
+  main.querySelectorAll('[data-open]').forEach(el=>{el.onclick=e=>{if(e.target.closest('[data-pin]')||e.target.closest('[data-todo]'))return;openRead(el.dataset.open);};el.onkeydown=e=>{if(e.target.closest('[data-pin]')||e.target.closest('[data-todo]'))return;if(e.key==='Enter'||e.key===' '){e.preventDefault();openRead(el.dataset.open);}};});
   main.querySelectorAll('[data-pin]').forEach(b=>b.onclick=e=>{e.stopPropagation();togglePin(b.dataset.pin);renderLibrary();});
   // Toujours montrer la bibliothèque ACTIVE même si la barre défile (on la centre dans sa ligne).
   const act=main.querySelector('.scopebar .scopebtn.on');if(act){const row=act.closest('.chiprow');if(row&&row.scrollWidth>row.clientWidth)row.scrollLeft=Math.max(0,act.offsetLeft-row.clientWidth/2+act.clientWidth/2);}
@@ -2489,7 +2492,7 @@ function renderRead(){
   main.innerHTML=`
     <button class="back" id="back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Bibliothèque</button>
     <div class="read-head"><h2>${esc(f.title)||'Sans titre'}</h2></div>
-    <div class="read-meta">${f.libraryId?`<span class="tag libtag" title="Bibliothèque partagée"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/></svg>${esc(libName(f.libraryId)||'Partagée')}</span>`:''}${f.status==='draft'?'<span class="tag draft">Brouillon</span>':''}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" title="Invites « à compléter » dans : ${esc(sp.join(' · '))} — renseignez-les pour votre service.">À compléter</span>`:'';})()}${catTag(f)}<span class="card-date${staleDate(f.validation)?' stale':''}">${esc(fmtDate(f.validation))}</span>${f.libraryId&&f.updatedBy?`<span class="card-date" title="Auteur de la dernière modification (pas forcément de toute la fiche)">· dernière modification par ${esc(f.updatedBy)}</span>`:''}</div>
+    <div class="read-meta">${f.libraryId?`<span class="tag libtag" title="Bibliothèque partagée"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/></svg>${esc(libName(f.libraryId)||'Partagée')}</span>`:''}${f.status==='draft'?'<span class="tag draft">Brouillon</span>':''}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo title="Invites « à compléter » dans : ${esc(sp.join(' · '))} — renseignez-les pour votre service.">À compléter</span>`:'';})()}${catTag(f)}<span class="card-date${staleDate(f.validation)?' stale':''}">${esc(fmtDate(f.validation))}</span>${f.libraryId&&f.updatedBy?`<span class="card-date" title="Auteur de la dernière modification (pas forcément de toute la fiche)">· dernière modification par ${esc(f.updatedBy)}</span>`:''}</div>
     ${f.status==='draft'?`<div class="notice"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z" stroke-linecap="round" stroke-linejoin="round"/></svg><div><b>Brouillon</b> — cette fiche n'a pas encore été validée pour l'usage clinique.</div></div>`:''}
     ${forgetStrip}
     ${sessBar}${sessList}
@@ -2737,9 +2740,17 @@ const BOLDABLE='input[data-key],input[data-sf],input[data-of],input[data-bf="que
 // - click : applique le gras au champ texte du même conteneur (.li) ou du même champ (.field) ;
 // - Ctrl/Cmd-B dans un champ éligible : même action au clavier.
 main.addEventListener('pointerdown',e=>{if(e.target.closest&&e.target.closest('[data-bold]'))e.preventDefault();});
-main.addEventListener('click',e=>{const btn=e.target.closest&&e.target.closest('[data-bold]');if(!btn)return;
-  const box=btn.closest('.li')||btn.closest('.field');const inp=box&&box.querySelector('input[type="text"],textarea');if(inp)wrapBold(inp);});
-main.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&!e.altKey&&(e.key==='b'||e.key==='B')&&e.target.matches&&e.target.matches(BOLDABLE)){e.preventDefault();wrapBold(e.target);}});
+main.addEventListener('click',e=>{
+  const btn=e.target.closest&&e.target.closest('[data-bold]');
+  if(btn){const box=btn.closest('.li')||btn.closest('.field');const inp=box&&box.querySelector('input[type="text"],textarea');if(inp)wrapBold(inp);return;}
+  // Badge « À compléter » : au tap, toast listant les emplacements des invites (l'infobulle
+  // title n'existe qu'au survol — inaccessible sur mobile). Le clic sur le badge d'une carte
+  // n'ouvre pas la fiche (garde [data-todo] dans le gestionnaire des cartes).
+  const todo=e.target.closest&&e.target.closest('[data-todo]');
+  if(todo)toast(todo.getAttribute('title')||'',9000);});
+main.addEventListener('keydown',e=>{
+  if((e.metaKey||e.ctrlKey)&&!e.altKey&&(e.key==='b'||e.key==='B')&&e.target.matches&&e.target.matches(BOLDABLE)){e.preventDefault();wrapBold(e.target);return;}
+  if((e.key==='Enter'||e.key===' ')&&e.target.matches&&e.target.matches('[data-todo]')){e.preventDefault();toast(e.target.getAttribute('title')||'',9000);}});
 function downscale(file,maxDim=1180,quality=0.78){return new Promise(res=>{const img=new Image();const url=URL.createObjectURL(file);img.onload=()=>{let w=img.width,h=img.height;const sc=Math.min(1,maxDim/Math.max(w,h));const cw=Math.round(w*sc),ch=Math.round(h*sc);const c=document.createElement('canvas');c.width=cw;c.height=ch;c.getContext('2d').drawImage(img,0,0,cw,ch);URL.revokeObjectURL(url);
     // WebP (~30 % plus léger que JPEG à qualité égale) quand le navigateur sait l'encoder ;
     // Safari renvoie un PNG dans ce cas -> repli JPEG (préfixe vérifié, pas de demi-mesure).
