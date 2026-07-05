@@ -1,5 +1,24 @@
 # Journal des modifications
 
+## [3.4.5] — 2026-07-06
+### Modifié
+- **Prompt IA : cinq règles ajoutées, tirées de la relecture d'une fiche ACR (ERC 2025) générée
+  avec le prompt 3.4.1.** Les défauts observés remontaient à des règles absentes :
+  1. *Une étape = un seul moment* : interdiction de fusionner deux temps distincts sur une ligne
+     (ex. « après 3ᵉ choc : amiodarone 300 mg ; après 5ᵉ choc : 150 mg ») — cochée au premier
+     temps, la case masquait le rappel du second.
+  2. *Gestes uniques hors des boucles* : une boucle de réévaluation ne contient que ce qui se
+     refait à chaque cycle ; les gestes uniques (accès vasculaire, intubation…) sortent de la
+     boucle, sinon l'app les re-propose à cocher à chaque tour.
+  3. *Pas de gouvernance dans les étapes* : les positions d'organisation non actionnables en
+     situation (« technique X seulement si taux de succès > 95 % ») vont dans « Ne pas
+     oublier » ou sont exclues.
+  4. *Critères d'arrêt / limitation* : s'ils existent dans la source, ils figurent dans la
+     fiche (« quand s'arrêter » est le point de bascule le plus difficile) ; sinon invite locale.
+  5. *Une interdiction par ligne* dans « Ne pas oublier » (fini les lignes qui en empilent trois).
+  Liste de vérification finale du prompt mise à jour en conséquence ; 4 invariants de test
+  ajoutés (156 tests).
+
 ## [3.4.4] — 2026-07-05
 ### Modifié
 - **Message du badge « À compléter » reformulé sans jargon.** « Invites “à compléter” dans :

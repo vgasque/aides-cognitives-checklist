@@ -974,7 +974,7 @@
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='3.4.4';
+const APP_VERSION='3.4.5';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -2867,7 +2867,14 @@ PRIORISATION (quoi extraire quand la source est dense)
 2. Ensuite les 2e intentions, l'escalade, la surveillance.
 3. Les cibles chiffrées et le monitorage vont dans « verify » (pas dans les blocs).
 4. Exclus : physiopathologie, épidémiologie, justifications, considérations générales.
-   Une aide cognitive n'explique pas, elle guide.
+   Exclus aussi des ÉTAPES les positions d'organisation non actionnables en situation
+   (ex. « technique X seulement si taux de succès > 95 % », politiques d'équipement) :
+   notForget si le détrompage est utile, sinon rien. Une aide cognitive n'explique pas,
+   elle guide.
+5. Si la source donne des critères d'ARRÊT ou de limitation de la prise en charge
+   (durée, futilité, décision collégiale), ils figurent dans la fiche (bloc ou décision
+   dédiés) : « quand s'arrêter » est le point de bascule le plus difficile — ne l'omets
+   pas. S'ils sont renvoyés au protocole local, génère l'invite dans localInfo.
 En cas d'arbitrage : ce qui tue en minutes passe avant ce qui tue en heures.
 
 STRUCTURE
@@ -2896,7 +2903,9 @@ STRUCTURE
   - verify        = ce qui doit être contrôlé / monitoré, avec CIBLES CHIFFRÉES quand la
     source les donne (ex. « PAS ≥ 80 mmHg », « Fibrinogène ≥ 1,5 g/L ») ;
   - notForget     = pièges, points critiques, INTERDICTIONS et incompatibilités en
-    formulation négative explicite (« NE PAS associer X et Y »), contre-indications ;
+    formulation négative explicite (« NE PAS associer X et Y »), contre-indications.
+    UNE interdiction / un piège par ligne : une ligne qui en empile trois ne se lit
+    pas d'un coup d'œil ;
   - differentials = diagnostics à ÉLIMINER (mimics : artefact, erreur de mesure…).
     ATTENTION : une cause réversible AVEC traitement spécifique (hyperkaliémie,
     surdosage…) n'est PAS un simple différentiel — mets-la dans un bloc « steps » dédié
@@ -2923,6 +2932,9 @@ STYLE DES ÉTAPES
     "Mettre en route le relais MgSO4 1 g/h IVSE"   -> "Relais MgSO4 1 g/h IVSE"
     "Préparer l'induction en séquence rapide"      -> "ISR → matériel + drogues prêtes"
     "Appeler à l'aide et répartir les rôles"       -> "Appel à l'aide → rôles"
+- Une étape = UN SEUL MOMENT : ne fusionne JAMAIS deux temps distincts sur une ligne
+  (ex. « après 3e choc : amiodarone 300 mg ; après 5e choc : 150 mg ») — cochée au
+  premier temps, la case masquerait le rappel du second. Deux moments = deux étapes.
 - Chaque étape doit être COCHABLE en situation (fais-le / vérifie-le) et PRONONÇABLE :
   lue à voix haute telle quelle par un lecteur, un coéquipier peut confirmer « fait ».
 - VERBES FLOUS INTERDITS dans les étapes : « envisager », « considérer », « discuter ».
@@ -2961,6 +2973,11 @@ MINUTEURS, COMPTEURS, BOUCLES
        option "Oui" -> retour à un bloc de traitement précédent (ex. "Anticonvulsivant")
        option "Non" -> poursuivre / surveiller
   Associe un minuteur de cycle (timer interval, autoloop) à ces boucles.
+- Dans une boucle, ne place QUE ce qui se REFAIT à chaque cycle (réévaluation, analyse
+  du rythme, revue des causes réversibles…). Les gestes UNIQUES (accès vasculaire,
+  intubation, pose de pads…) vont dans un bloc HORS boucle : l'application représente
+  chaque tour de boucle avec des cases neuves — un geste unique placé dedans serait
+  re-proposé à cocher à chaque cycle (bruit pur sous stress).
 - PLUSIEURS minuteurs de réévaluation sont les BIENVENUS quand la prise en charge le
   justifie (ex. un minuteur de bolus à durée fixe + un cycle de surveillance qui reboucle).
 
@@ -3043,12 +3060,15 @@ AVANT DE RÉPONDRE, VÉRIFIE
    dilutions identiques au document).
 4. Le renfort (appel à l'aide / régulation) est dans le premier bloc, ou tu m'as signalé
    pourquoi la source impose autre chose.
-5. Aucune étape ne contient « envisager / considérer / discuter ».
-6. Les cibles chiffrées sont dans verify ; les interdictions dans notForget.
-7. references contient la source datée + la ligne « Fiche générée par IA le … ».
-8. Tout manque résiduel est marqué « ⚠ À COMPLÉTER » (aucun manque silencieux).
-9. Le gras (**…**) est rare, jamais une ligne entière.
-10. "status" vaut "draft", "validation" est vide, et tu n'as renvoyé QUE le JSON.`;
+5. Aucune étape ne contient « envisager / considérer / discuter » ; aucune étape ne
+   fusionne deux moments distincts (deux moments = deux étapes).
+6. Aucun geste unique n'est placé dans une boucle de réévaluation ; si la source parle
+   de critères d'arrêt / limitation, ils sont dans la fiche ou en invite localInfo.
+7. Les cibles chiffrées sont dans verify ; les interdictions dans notForget (une par ligne).
+8. references contient la source datée + la ligne « Fiche générée par IA le … ».
+9. Tout manque résiduel est marqué « ⚠ À COMPLÉTER » (aucun manque silencieux).
+10. Le gras (**…**) est rare, jamais une ligne entière.
+11. "status" vaut "draft", "validation" est vide, et tu n'as renvoyé QUE le JSON.`;
 const aiModal=document.getElementById('aiModal');
 function openAI(){document.getElementById('aiTa').value=AI_PROMPT;aiModal.classList.add('on');document.getElementById('aiCopy').textContent='Copier le prompt';}
 function closeAI(){aiModal.classList.remove('on');}

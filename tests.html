@@ -248,6 +248,10 @@ function run(A){
   ok('convention de manque explicite', A.AI_PROMPT.indexOf('⚠ À COMPLÉTER')>=0);
   ok('gras autorisé avec parcimonie', A.AI_PROMPT.indexOf('PARCIMONIE')>=0);
   ok('traçabilité datée exigée', A.AI_PROMPT.indexOf('Fiche générée par IA le')>=0);
+  ok('deux moments = deux étapes (pas de fusion de temps distincts)', A.AI_PROMPT.indexOf('Deux moments = deux étapes')>=0);
+  ok('gestes uniques hors des boucles de réévaluation', A.AI_PROMPT.indexOf('HORS boucle')>=0);
+  ok('critères d\'arrêt / limitation traités', A.AI_PROMPT.indexOf('quand s\'arrêter')>=0);
+  ok('une interdiction par ligne dans notForget', A.AI_PROMPT.indexOf('UNE interdiction / un piège par ligne')>=0);
   ok('pas d\'interpolation restée dans le template', A.AI_PROMPT.indexOf('${')<0);
 
   group('migrate() — champs status/related/updatedBy');
