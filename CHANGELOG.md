@@ -1,5 +1,39 @@
 # Journal des modifications
 
+## [3.4.1] — 2026-07-05
+### Ajouté
+- **Gras dans les textes de fiche.** Un fragment entouré de `**double astérisque**` s'affiche en
+  gras en lecture et en mode crise (étapes, listes Confirmation / À vérifier / Ne pas oublier /
+  Différentiels / Références, question et options des décisions, contexte local, compte-rendu de
+  session). Réservé aux doses time-critical et aux interdictions. Données stockées inchangées
+  (chaînes brutes : export/import et anciennes versions inchangés) ; balisage non apparié affiché
+  tel quel (la coquille reste visible, le rendu ne casse jamais) ; échappement `esc()` appliqué
+  avant la conversion ; l'algorithme SVG et la recherche plein texte ignorent les `**`.
+  Dans l'éditeur : bouton « B » à côté des champs concernés (entoure/retire sur la sélection)
+  et raccourci Ctrl/Cmd-B. Fonctions pures `fmt`/`stripBold` testées.
+- **Badge « À compléter ».** En bibliothèque et en tête de fiche, un badge discret (couleur
+  avertissement) signale une fiche contenant des invites laissées en suspens (« à compléter »,
+  marqueur ⚠) — gabarit local non renseigné ou manque signalé par la génération IA. Fonction
+  pure `ficheNeedsCompletion` testée.
+- **Fin de parcours explicite.** Le bout d'une branche sans suite affiche « FIN — fin de cette
+  branche de prise en charge. » (lève le doute « ai-je tout déroulé ? »).
+- **Gabarit de contexte local.** Une fiche créée à la main part avec les invites « Tél renfort :
+  à compléter » et « Tél régulation : à compléter » (les deux contextes d'exercice : structure
+  et SMUR).
+
+### Modifié
+- **Prompt IA refondu** (fenêtre « Créer via IA »), aligné sur les référentiels d'aides
+  cognitives de crise (Stanford Emergency Manual, fiches CAMR/SFAR) : double contexte
+  structure/SMUR (renfort sur place ou régulation) avec renfort imposé dans le premier bloc ;
+  critères de priorisation de l'extraction (time-critical d'abord, cibles chiffrées dans
+  « À vérifier », interdictions dans « Ne pas oublier », causes réversibles traitées comme des
+  actions) ; traçabilité obligatoire (source datée + ligne « Fiche générée par IA le … ») ;
+  manques marqués « ⚠ À COMPLÉTER » et contradictions de la source signalées, jamais tranchées ;
+  verbes flous (« envisager / considérer ») remplacés par une forme conditionnelle ou de
+  vérification active ; dilutions de la source recopiées mais jamais calculées, avec invite
+  locale « Dilutions / protocoles locaux si différents » ; gras `**…**` autorisé avec parcimonie ;
+  consignes par type de source (page web, PDF long, image/scan). Invariants du prompt testés.
+
 ## [3.4.0] — 2026-07-05
 ### Ajouté
 - **Les fiches « hors compte » restent accessibles depuis l'écran de connexion.** L'espace local

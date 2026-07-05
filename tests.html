@@ -215,6 +215,35 @@ function run(A){
   eq('clôture non fermée → texte intact (échouera au parse)', A.stripJsonFences('```json\n{"a":1}'), '```json\n{"a":1}');
   eq('non-chaîne coercée', A.stripJsonFences(null), '');
 
+  group('fmt() / stripBold() — gras **…**');
+  eq('paire convertie en <b>', A.fmt('Adrénaline **0,5 mg** IM'), 'Adrénaline <b>0,5 mg</b> IM');
+  eq('plusieurs paires', A.fmt('**NE PAS** associer **X**'), '<b>NE PAS</b> associer <b>X</b>');
+  eq('balisage non apparié laissé tel quel', A.fmt('a **b'), 'a **b');
+  eq('paire vide laissée telle quelle', A.fmt('a ****'), 'a ****');
+  eq('pas de gras multiligne', A.fmt('**a\nb**'), '**a\nb**');
+  eq('échappement AVANT le gras (XSS)', A.fmt('<img> **"x"**'), '&lt;img&gt; <b>&quot;x&quot;</b>');
+  eq('null → chaîne vide', A.fmt(null), '');
+  eq('stripBold retire les paires', A.stripBold('**a** et **b**'), 'a et b');
+  eq('stripBold laisse le non-apparié', A.stripBold('a **b'), 'a **b');
+  ok('recherche : le gras n\'empêche pas de trouver une expression',
+    A.ficheHaystack({title:'x',blocks:[{type:'steps',title:'B',steps:['**Adrénaline** 0,5 mg IM']}]}).indexOf('adrenaline 0,5 mg')>=0);
+
+  group('ficheNeedsCompletion() — badge « À compléter »');
+  ok('invite dans localInfo', A.ficheNeedsCompletion({localInfo:'Tél renfort : à compléter'})===true);
+  ok('marqueur ⚠ dans une étape', A.ficheNeedsCompletion({blocks:[{type:'steps',steps:['⚠ À COMPLÉTER : dose']}]})===true);
+  ok('invite dans une section liste', A.ficheNeedsCompletion({verify:['PAS cible : à compléter']})===true);
+  ok('fiche complète → false', A.ficheNeedsCompletion({localInfo:'Tél 1234',verify:['PAS ≥ 80'],blocks:[{type:'steps',steps:['ok']}]})===false);
+  ok('non-objet → false', A.ficheNeedsCompletion(null)===false);
+
+  group('AI_PROMPT — invariants du prompt embarqué');
+  ok('brouillon imposé', A.AI_PROMPT.indexOf('"status": "draft"')>=0);
+  ok('schéma version 3', A.AI_PROMPT.indexOf('"version": 3')>=0);
+  ok('double contexte structure/SMUR (régulation)', A.AI_PROMPT.indexOf('régulation')>=0);
+  ok('convention de manque explicite', A.AI_PROMPT.indexOf('⚠ À COMPLÉTER')>=0);
+  ok('gras autorisé avec parcimonie', A.AI_PROMPT.indexOf('PARCIMONIE')>=0);
+  ok('traçabilité datée exigée', A.AI_PROMPT.indexOf('Fiche générée par IA le')>=0);
+  ok('pas d\'interpolation restée dans le template', A.AI_PROMPT.indexOf('${')<0);
+
   group('migrate() — champs status/related/updatedBy');
   const m31=A.migrate({title:'x',status:'draft',related:['ok-1','__proto__','bad id'],updatedBy:'a@b.fr'});
   eq('status brouillon conservé', m31.status, 'draft');
