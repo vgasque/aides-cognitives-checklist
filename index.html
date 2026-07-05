@@ -603,6 +603,10 @@
   /* editor */
   .field{margin-bottom:18px}
   .field>label{display:block;font-size:12px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--ink-soft);margin-bottom:7px}
+  /* Ligne label + bouton (ex. « B » du contexte local) : le bouton reste HORS du <label>
+     (un bouton DANS un label devient son contrôle implicite -> cliquer le libellé cliquait le bouton). */
+  .field .lab-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:7px}
+  .field .lab-row>label{display:block;font-size:12px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--ink-soft)}
   .field .hint{font-weight:400;text-transform:none;letter-spacing:0;color:var(--ink-soft);font-size:12px}
   .field input[type=text],.field textarea,.field select{width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink)}
   .field input:focus,.field textarea:focus,.field select:focus{outline:2px solid var(--primary);border-color:transparent}
@@ -967,7 +971,7 @@
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='3.4.1';
+const APP_VERSION='3.4.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -1395,13 +1399,22 @@ function blankFiche(){const b={id:uid('b'),type:'steps',title:'Prise en charge',
   // SMUR) : une fiche déployée avec un « ☎ : … » vide entraîne à ignorer la ligne — on incite à
   // les renseigner (badge « À compléter » tant qu'une invite reste).
   return{id:uid(),title:'',category:'',validation:'',localInfo:'Tél renfort : à compléter\nTél régulation : à compléter',confirmation:[''],verify:[''],notForget:[''],differentials:[''],references:[''],images:[],timers:[],counters:[],blocks:[b],start:b.id,order:Date.now()};}
-// La fiche contient-elle des invites laissées en suspens (« à compléter », marqueur ⚠) — gabarit
-// local non renseigné ou manque signalé par la génération IA ? Badge discret (bibliothèque +
-// lecture) tant que c'est le cas. Fonction pure (testée dans tests.html via ?__actest).
-function ficheNeedsCompletion(f){if(!f||typeof f!=='object')return false;const rx=/à compléter|⚠/i;
-  if(rx.test(f.localInfo||''))return true;
-  if(['confirmation','verify','notForget','differentials','references'].some(k=>(Array.isArray(f[k])?f[k]:[]).some(x=>rx.test(String(x||'')))))return true;
-  return (Array.isArray(f.blocks)?f.blocks:[]).some(b=>b&&(rx.test(String(b.title||''))||rx.test(String(b.question||''))||(Array.isArray(b.steps)?b.steps:[]).some(s=>rx.test(String(s||'')))||(Array.isArray(b.options)?b.options:[]).some(o=>rx.test(String((o&&o.label)||'')))));}
+// Invites laissées en suspens : où la fiche contient-elle encore le texte « à compléter »
+// (gabarit local non renseigné, manque « ⚠ À COMPLÉTER : … » signalé par la génération IA) ?
+// completionSpots(f) renvoie la liste des EMPLACEMENTS (libellés des sections / blocs), affichée
+// dans l'infobulle du badge « À compléter » pour qu'on sache où chercher. SEUL le texte
+// « à compléter » compte : un ⚠ isolé est un marqueur d'avertissement clinique légitime, pas une
+// invite (sinon faux positifs sur la plupart des fiches). Fonctions pures (testées via ?__actest).
+const TODO_RX=/[àa] compl[eé]ter/i;
+function completionSpots(f){if(!f||typeof f!=='object')return [];const spots=[];
+  if(TODO_RX.test(String(f.localInfo||'')))spots.push('Contexte local');
+  const SECT={confirmation:'Confirmation diagnostique',verify:'À vérifier',notForget:'Ne pas oublier',differentials:'Diagnostics différentiels',references:'Références'};
+  Object.keys(SECT).forEach(k=>{if((Array.isArray(f[k])?f[k]:[]).some(x=>TODO_RX.test(String(x||''))))spots.push(SECT[k]);});
+  (Array.isArray(f.blocks)?f.blocks:[]).forEach(b=>{if(!b)return;
+    const hit=TODO_RX.test(String(b.title||''))||TODO_RX.test(String(b.question||''))||(Array.isArray(b.steps)?b.steps:[]).some(s=>TODO_RX.test(String(s||'')))||(Array.isArray(b.options)?b.options:[]).some(o=>TODO_RX.test(String((o&&o.label)||'')));
+    if(hit)spots.push('Bloc « '+(String(b.title||'').trim()||'sans titre')+' »');});
+  return spots;}
+function ficheNeedsCompletion(f){return completionSpots(f).length>0;}
 // migrate = compatibilité ascendante ET point d'ASSAINISSEMENT (toute fiche chargée/importée/dupliquée
 // y passe). Coerce les types, restreint les identifiants à un jeu sûr (remappés si dangereux, en
 // conservant les liens internes), valide images/couleurs, plafonne les tailles.
@@ -1994,7 +2007,7 @@ function renderLibrary(){
     ${catbar}
     <div class="cards">${list.length?list.slice(0,state.libLimit).map(f=>{const sc=sessions.filter(s=>s.ficheId===f.id&&!s.live).length;const isLive=!!liveSessions[f.id];return `
       <div class="card${isLive?' has-live':''}" tabindex="0" role="button" data-open="${f.id}"><div class="card-body"><h3>${esc(f.title)||'Sans titre'}</h3>
-        <div class="card-meta">${isLive?'<span class="tag live">● En cours</span>':''}${ficheNeedsCompletion(f)?'<span class="tag todo" title="La fiche contient des invites « à compléter »">À compléter</span>':''}${catTag(f)}${sc?`<span class="tag sess" title="Sessions enregistrées dans l'historique">${sc} sauvegardée${sc>1?'s':''}</span>`:''}<span class="card-date${staleDate(f.validation)?' stale':''}">${esc(fmtDate(f.validation))}${staleDate(f.validation)?' · à revoir':''}</span></div></div>
+        <div class="card-meta">${isLive?'<span class="tag live">● En cours</span>':''}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" title="Invites « à compléter » dans : ${esc(sp.join(' · '))}">À compléter</span>`:'';})()}${catTag(f)}${sc?`<span class="tag sess" title="Sessions enregistrées dans l'historique">${sc} sauvegardée${sc>1?'s':''}</span>`:''}<span class="card-date${staleDate(f.validation)?' stale':''}">${esc(fmtDate(f.validation))}${staleDate(f.validation)?' · à revoir':''}</span></div></div>
         <button class="pinbtn${isPinned(f.id)?' on':''}" data-pin="${f.id}" aria-label="${isPinned(f.id)?'Désépingler':'Épingler en haut de la liste'}" title="${isPinned(f.id)?'Désépingler':'Épingler en haut de la liste'}"><svg width="18" height="18" viewBox="0 0 24 24" fill="${isPinned(f.id)?'currentColor':'none'}" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"/></svg></button>
         <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></div>`;}).join('')+(list.length>state.libLimit?`<button class="btn" id="showMore" style="width:100%;margin-top:2px">Afficher plus (${list.length-state.libLimit} restante${list.length-state.libLimit>1?'s':''})</button>`:'')
       :`<div class="empty"><b>Aucune fiche</b>${state.q||state.cat?'Aucun résultat pour ce filtre.'
@@ -2476,7 +2489,7 @@ function renderRead(){
   main.innerHTML=`
     <button class="back" id="back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Bibliothèque</button>
     <div class="read-head"><h2>${esc(f.title)||'Sans titre'}</h2></div>
-    <div class="read-meta">${f.libraryId?`<span class="tag libtag" title="Bibliothèque partagée"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/></svg>${esc(libName(f.libraryId)||'Partagée')}</span>`:''}${f.status==='draft'?'<span class="tag draft">Brouillon</span>':''}${ficheNeedsCompletion(f)?'<span class="tag todo" title="La fiche contient des invites « à compléter » (contexte local, doses…) : renseignez-les pour votre service.">À compléter</span>':''}${catTag(f)}<span class="card-date${staleDate(f.validation)?' stale':''}">${esc(fmtDate(f.validation))}</span>${f.libraryId&&f.updatedBy?`<span class="card-date" title="Auteur de la dernière modification (pas forcément de toute la fiche)">· dernière modification par ${esc(f.updatedBy)}</span>`:''}</div>
+    <div class="read-meta">${f.libraryId?`<span class="tag libtag" title="Bibliothèque partagée"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/></svg>${esc(libName(f.libraryId)||'Partagée')}</span>`:''}${f.status==='draft'?'<span class="tag draft">Brouillon</span>':''}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" title="Invites « à compléter » dans : ${esc(sp.join(' · '))} — renseignez-les pour votre service.">À compléter</span>`:'';})()}${catTag(f)}<span class="card-date${staleDate(f.validation)?' stale':''}">${esc(fmtDate(f.validation))}</span>${f.libraryId&&f.updatedBy?`<span class="card-date" title="Auteur de la dernière modification (pas forcément de toute la fiche)">· dernière modification par ${esc(f.updatedBy)}</span>`:''}</div>
     ${f.status==='draft'?`<div class="notice"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z" stroke-linecap="round" stroke-linejoin="round"/></svg><div><b>Brouillon</b> — cette fiche n'a pas encore été validée pour l'usage clinique.</div></div>`:''}
     ${forgetStrip}
     ${sessBar}${sessList}
@@ -2611,7 +2624,7 @@ function renderEditor(){
       <select id="f-scope"><option value="" ${!f.libraryId?'selected':''}>Perso (privé)</option>${sortedLibraries().filter(l=>l.role==='editor'||l.role==='admin').map(l=>`<option value="${esc(l.id)}" ${f.libraryId===l.id?'selected':''}>${esc(l.name)} (partagée)</option>`).join('')}${f.libraryId&&!myLibraries.some(l=>l.id===f.libraryId)?`<option value="${esc(f.libraryId)}" selected>${esc(libName(f.libraryId)||'Bibliothèque')}</option>`:''}</select></div>`:''}
     <div class="row2"><div class="field"><label>Date de validation <span class="hint">mois/année</span></label><input type="text" id="f-validation" inputmode="numeric" autocapitalize="off" value="${esc(valToDisplay(f.validation))}" placeholder="MM/AAAA — ex. 012026 ou 01/2026"></div>
       <div class="field"><label>État</label><select id="f-status"><option value="" ${f.status!=='draft'?'selected':''}>Validée</option><option value="draft" ${f.status==='draft'?'selected':''}>Brouillon${f.libraryId?' (masquée aux lecteurs)':''}</option></select></div></div>
-    <div class="field"><label>Contexte local <span class="hint">numéros utiles, particularités</span> ${boldBtnHtml()}</label><textarea id="f-localInfo" rows="2" placeholder="Réanimateur de garde, pharmacie…">${esc(f.localInfo)}</textarea></div>
+    <div class="field"><div class="lab-row"><label>Contexte local <span class="hint">numéros utiles, particularités</span></label>${boldBtnHtml()}</div><textarea id="f-localInfo" rows="2" placeholder="Réanimateur de garde, pharmacie…">${esc(f.localInfo)}</textarea></div>
     ${listEditor('Confirmation diagnostique','critères pour déclencher la fiche','confirmation',f.confirmation)}
     <fieldset class="field"><label>Prise en charge <span class="hint">listes d'étapes + décisions conditionnelles</span></label><p class="flow-prev-h">Algorithme — aperçu automatique</p>${flowBlock(f)}${f.blocks.map(b=>blockEditor(b,blocks)).join('')}<div class="add-blocks"><button class="btn sm" id="addSteps">+ Bloc d'étapes</button><button class="btn sm" id="addDecision">+ Décision (si… alors…)</button></div></fieldset>
     <fieldset class="field"><label>Minuteurs & compteurs <span class="hint">disponibles pendant la session</span></label>
@@ -4219,7 +4232,7 @@ document.addEventListener('keydown',e=>{
 if(location.search.indexOf('__actest')>=0){
   window.__ac_test__={migrate,sanitizeCats,safeId,safeColor,safeImg,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,
-    restErrStatus,isPersoRepairCandidate,liveFicheCount,fmt,stripBold,ficheNeedsCompletion,AI_PROMPT};
+    restErrStatus,isPersoRepairCandidate,liveFicheCount,fmt,stripBold,ficheNeedsCompletion,completionSpots,AI_PROMPT};
 }else{
   /* ===== PWA =====
      Enregistre le service worker (cache hors ligne) si disponible. Capte

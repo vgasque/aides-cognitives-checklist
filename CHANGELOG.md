@@ -1,5 +1,22 @@
 # Journal des modifications
 
+## [3.4.2] — 2026-07-05
+### Corrigé
+- **Cliquer le libellé « Contexte local » déclenchait le bouton « B » (gras).** Le bouton était
+  placé DANS le `<label>` : sans attribut `for`, un label adopte comme contrôle implicite son
+  premier élément de formulaire descendant — le bouton — et tout clic sur le libellé le
+  déclenchait. Le bouton est sorti du label (ligne `lab-row` label + bouton) ; cliquer le
+  libellé est redevenu inerte, le bouton et Ctrl/Cmd-B fonctionnent comme avant.
+- **Badge « À compléter » : fin des faux positifs et emplacement des invites affiché.** Le badge
+  se déclenchait sur n'importe quel « ⚠ », alors que ce symbole sert aussi de simple marqueur
+  d'avertissement clinique (« ⚠ NE PAS associer… ») : ces fiches paraissaient « à compléter »
+  sans qu'aucune invite ne soit visible. Seul le texte « à compléter » (accents facultatifs)
+  compte désormais — le marqueur IA « ⚠ À COMPLÉTER : … » le contient et reste détecté. Et comme
+  une invite peut être discrète (ex. « Exemple à compléter » dans les références des fiches
+  d'exemple), l'infobulle du badge liste maintenant les emplacements concernés (« Invites
+  “à compléter” dans : Références · Bloc “Traitement” »). Nouvelle fonction pure
+  `completionSpots`, testée (152 tests).
+
 ## [3.4.1] — 2026-07-05
 ### Ajouté
 - **Gras dans les textes de fiche.** Un fragment entouré de `**double astérisque**` s'affiche en

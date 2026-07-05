@@ -228,12 +228,18 @@ function run(A){
   ok('recherche : le gras n\'empêche pas de trouver une expression',
     A.ficheHaystack({title:'x',blocks:[{type:'steps',title:'B',steps:['**Adrénaline** 0,5 mg IM']}]}).indexOf('adrenaline 0,5 mg')>=0);
 
-  group('ficheNeedsCompletion() — badge « À compléter »');
+  group('ficheNeedsCompletion() / completionSpots() — badge « À compléter »');
   ok('invite dans localInfo', A.ficheNeedsCompletion({localInfo:'Tél renfort : à compléter'})===true);
-  ok('marqueur ⚠ dans une étape', A.ficheNeedsCompletion({blocks:[{type:'steps',steps:['⚠ À COMPLÉTER : dose']}]})===true);
+  ok('marqueur « ⚠ À COMPLÉTER » dans une étape', A.ficheNeedsCompletion({blocks:[{type:'steps',steps:['⚠ À COMPLÉTER : dose']}]})===true);
   ok('invite dans une section liste', A.ficheNeedsCompletion({verify:['PAS cible : à compléter']})===true);
+  ok('accent manquant toléré (« a completer »)', A.ficheNeedsCompletion({verify:['cible a completer']})===true);
+  ok('⚠ seul (avertissement clinique) ne déclenche PAS', A.ficheNeedsCompletion({notForget:['⚠ NE PAS associer adrénaline et isoprénaline']})===false);
   ok('fiche complète → false', A.ficheNeedsCompletion({localInfo:'Tél 1234',verify:['PAS ≥ 80'],blocks:[{type:'steps',steps:['ok']}]})===false);
   ok('non-objet → false', A.ficheNeedsCompletion(null)===false);
+  eq('completionSpots liste les emplacements (infobulle du badge)',
+    A.completionSpots({localInfo:'Tél : à compléter',references:['Exemple à compléter'],blocks:[{type:'steps',title:'Traitement',steps:['⚠ À COMPLÉTER : dose']}]}),
+    ['Contexte local','Références','Bloc « Traitement »']);
+  eq('aucun emplacement → tableau vide', A.completionSpots({title:'x'}), []);
 
   group('AI_PROMPT — invariants du prompt embarqué');
   ok('brouillon imposé', A.AI_PROMPT.indexOf('"status": "draft"')>=0);
