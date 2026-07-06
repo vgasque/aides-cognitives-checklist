@@ -728,8 +728,8 @@
   .auth-actions{display:flex;flex-direction:column;gap:10px}
   .auth-actions .btn{width:100%;justify-content:center}
   /* Zone tampon entre l'action FRÉQUENTE (Synchroniser, primary) et les actions de compte qui
-     suivent (Changer de compte, Se déconnecter) : un tap légèrement trop bas ne doit pas
-     déclencher une déconnexion — l'espacement fait partie de la protection. */
+     suivent (Se déconnecter…) : un tap légèrement trop bas ne doit pas déclencher une
+     déconnexion — l'espacement fait partie de la protection. */
   .auth-actions .btn.primary+.btn{margin-top:14px}
   .auth-hero{text-align:center;margin-bottom:18px}
   .auth-hero-ic{width:56px;height:56px;border-radius:15px;background:var(--primary-soft);color:var(--primary);display:inline-flex;align-items:center;justify-content:center;margin-bottom:11px}
@@ -974,7 +974,7 @@
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='3.4.6';
+const APP_VERSION='3.4.7';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -1651,9 +1651,10 @@ async function load(){
   updateStorageInfo();
   // Accueil (3 repères) à la toute première ouverture seulement.
   try{if(!localStorage.getItem('ac-onboarded'))welcomeModal.classList.add('on');}catch(e){}
-  // Reprise après un « Changer de compte »/« Se déconnecter » AVEC effacement (passé par un
-  // reload, cf. doSignOut) : rouvrir l'écran de connexion, pour arriver au même endroit que sans
-  // effacement (la fenêtre Compte restait alors ouverte sur le formulaire de connexion).
+  // Reprise après un « Se déconnecter » AVEC effacement, ou un retour des fiches « hors
+  // compte » depuis la confirmation de déconnexion (passés par un reload, cf. doSignOut et
+  // returnLocalDataToAnon) : rouvrir l'écran de connexion, pour arriver au même endroit que
+  // sans effacement (la fenêtre Compte restait alors ouverte sur le formulaire de connexion).
   try{if(localStorage.getItem('ac-reopen-auth')){localStorage.removeItem('ac-reopen-auth');if(typeof openAuth==='function')openAuth();}}catch(e){}
   // Données prêtes (backend choisi) : on lance une première synchro si l'utilisateur est connecté.
   // Les modifications faites pendant une déconnexion sont d'abord soumises à confirmation
@@ -3435,10 +3436,13 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
       // « effacer » ne change QUE les données, jamais la destination.
       if(wipe){await wipeCurrentSpace();try{localStorage.setItem('ac-reopen-auth','1');}catch(e){}location.reload();return;}
       resetAuthState();_authDelete=false;_authStep={mode:'email',email:'',msg:'',msgcls:''};renderAuth();setSyncChip();if(state.view==='library')renderLibrary();};
-    // « Changer de compte » et « Se déconnecter » : même action réelle (doSignOut) et même OPTION
-    // facultative — effacer les fiches de ce compte sur cet appareil. L'option est portée par la
-    // fenêtre de confirmation (case décochée par défaut), au lieu d'une case permanente dupliquée
-    // dans chaque variante de l'écran Compte -> un seul point de code, deux boutons qui l'appellent.
+    // UN SEUL bouton « Se déconnecter » : l'ancien « Changer de compte » faisait EXACTEMENT la
+    // même chose (doSignOut -> écran de connexion, où l'on peut saisir n'importe quel e-mail) ;
+    // deux boutons voisins pour une seule action ajoutaient du bruit et un choix inutile. Le
+    // message de confirmation couvre le cas « autre compte ». L'OPTION facultative — effacer les
+    // fiches de ce compte sur cet appareil — est portée par la fenêtre de confirmation (case
+    // décochée par défaut), au lieu d'une case permanente dupliquée dans chaque variante de
+    // l'écran Compte -> un seul point de code.
     // L'option n'est PROPOSÉE que si les fiches sont réellement sauvegardées en ligne : un compte
     // EN ATTENTE ou REFUSÉ a ses écritures bloquées côté serveur (RLS) -> ses fiches locales ne
     // sont pas dans le cloud, les effacer les perdrait définitivement. On masque donc la case pour
@@ -3458,8 +3462,7 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
       if(!r)return;
       if(offerReturn&&r.checked===true)return returnLocalDataToAnon(true);
       await doSignOut(offerWipe&&r.checked===true);};
-    const doSwitch=()=>confirmLeave('Changer de compte','Changer de compte ? Vous serez déconnecté de ce compte.','Changer de compte');
-    const doOut=()=>confirmLeave('Se déconnecter','Se déconnecter ?','Se déconnecter');
+    const doOut=()=>confirmLeave('Se déconnecter','Se déconnecter ? Vous pourrez ensuite vous reconnecter, ou utiliser un autre compte.','Se déconnecter');
     if(_authDelete){
       // E-mail cible = celui de la SESSION, jamais une saisie : le code de confirmation part
       // forcément à l'adresse du compte (aucune injection d'un autre e-mail possible), et la
@@ -3470,7 +3473,7 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
         body.innerHTML=`<div class="auth-del"><div class="auth-hero-ic danger"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg></div>
           <h4>Confirmez votre identité</h4>
           <p class="auth-sub">Un code vient d'être envoyé à <b>${esc(delEmail)}</b>. Saisissez-le pour confirmer la suppression <b>définitive et irréversible</b> de votre compte.</p>
-          <input class="auth-field auth-code" id="delCode" inputmode="numeric" autocomplete="one-time-code" placeholder="••••••">
+          <input class="auth-field auth-code" id="delCode" inputmode="numeric" autocomplete="one-time-code" placeholder="••••••••">
           <p class="auth-msg" id="delMsg"></p>
           <div class="auth-actions"><button class="btn danger" id="delGo">Supprimer définitivement</button><button class="btn" id="delCancel">Annuler</button></div>
           <div style="text-align:center;margin-top:6px"><button class="tlink" id="delResend">Renvoyer le code</button></div></div>`;
@@ -3569,7 +3572,7 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
       const canReturn=canReturnToAnon(myAccountStatus,accountEverSynced(),fiches.length);
       body.innerHTML=`<div class="auth-card-in"><div class="auth-avatar">${esc(ini)}</div><div class="auth-id"><div class="auth-email">${esc(u.email||'')}</div><div class="auth-state ${rejected?'err':'pending'}"><span class="auth-dot"></span>${rejected?'Demande refusée':'En attente de validation'}</div></div></div>
         <p class="auth-sub">${rejected?"Votre demande de compte a été refusée par un administrateur. Vous pouvez supprimer cette demande ci-dessous, ou réessayer avec une autre adresse e-mail.":"Votre e-mail est vérifié. Un administrateur doit maintenant approuver votre compte avant que vos fiches ne soient synchronisées dans le cloud. En attendant, l'app reste pleinement utilisable en local, sur cet appareil."}${canReturn?" Vos fiches ne sont enregistrées que sur cet appareil : vous pouvez les ramener « hors compte » pour les garder accessibles sans ce compte.":""}</p>
-        <div class="auth-actions"><button class="btn primary" id="authRecheck">Vérifier maintenant</button>${canReturn?'<button class="btn" id="authReturnLocal">Ramener mes fiches hors compte</button>':''}<button class="btn" id="authSwitch">Changer de compte</button><button class="btn" id="authOut">Se déconnecter</button></div>
+        <div class="auth-actions"><button class="btn primary" id="authRecheck">Vérifier maintenant</button>${canReturn?'<button class="btn" id="authReturnLocal">Ramener mes fiches hors compte</button>':''}<button class="btn" id="authOut">Se déconnecter</button></div>
         <button class="auth-danger" id="authDelete">Supprimer cette demande de compte</button>`;
       {const rb=body.querySelector('#authReturnLocal');if(rb)rb.onclick=async()=>{
         const n=fiches.length;
@@ -3582,24 +3585,22 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
         // toujours pending/rejected -> on le dit explicitement (jamais l'état par défaut "ok/Connecté").
         if(myAccountStatus==='approved')Sync.full();
         else setSyncChip(myAccountStatus,myAccountStatus==='rejected'?'Compte refusé':'En attente de validation');};
-      body.querySelector('#authSwitch').onclick=doSwitch;
       body.querySelector('#authOut').onclick=doOut;
       {const ad=body.querySelector('#authDelete');if(ad)ad.onclick=()=>{_authDelete=true;renderAuth();};}
       return;}
     body.innerHTML=`<div class="auth-card-in"><div class="auth-avatar">${esc(ini)}</div><div class="auth-id"><div class="auth-email">${esc(u.email||'')}</div>${authStateHtml()}</div></div>
       <p class="auth-sub">Votre bibliothèque personnelle est sauvegardée et accessible sur tous vos appareils connectés à ce compte.</p>
-      <div class="auth-actions"><button class="btn primary" id="authSync">Synchroniser maintenant</button><button class="btn" id="authSwitch">Changer de compte</button><button class="btn" id="authOut">Se déconnecter</button>${myIsAppAdmin?`<button class="btn" id="authPending">Comptes en attente${myPendingCount?' ('+myPendingCount+')':''}</button>`:''}</div>
+      <div class="auth-actions"><button class="btn primary" id="authSync">Synchroniser maintenant</button><button class="btn" id="authOut">Se déconnecter</button>${myIsAppAdmin?`<button class="btn" id="authPending">Comptes en attente${myPendingCount?' ('+myPendingCount+')':''}</button>`:''}</div>
       ${myIsAppAdmin?'<div id="authStats" class="inst-stats-wrap" aria-label="État de l\'instance"></div><p class="auth-admin-note">Compte administrateur : la suppression se fait depuis le tableau de bord Supabase (garde-fou).</p>':'<button class="auth-danger" id="authDelete">Supprimer mon compte et mes données</button>'}`;
     // La fenêtre RESTE ouverte : la ligne d'état juste au-dessus (authStateHtml, mise à jour en
     // direct par setSyncChip) montre « Synchro en cours » puis le résultat -> vrai retour visuel,
     // là où fermer la fenêtre laissait l'utilisateur sans aucune confirmation.
     body.querySelector('#authSync').onclick=()=>{Sync.full();};
     syncBtnRefresh();   // état initial du bouton (grisé si hors-ligne ou synchro déjà en cours)
-    // Confirmation AVANT de déconnecter (doSwitch/doOut) : ces boutons sont voisins de
-    // « Synchroniser maintenant » — sans elle, un tap imprécis déconnectait sans prévenir (vécu
-    // comme un bug). La fenêtre de confirmation porte aussi l'option « effacer les fiches locales »
-    // (case décochée par défaut), commune aux deux boutons (cf. confirmLeave, un seul point de code).
-    body.querySelector('#authSwitch').onclick=doSwitch;
+    // Confirmation AVANT de déconnecter (doOut) : le bouton est voisin de « Synchroniser
+    // maintenant » — sans elle, un tap imprécis déconnectait sans prévenir (vécu comme un bug).
+    // La fenêtre de confirmation porte aussi l'option « effacer les fiches locales »
+    // (case décochée par défaut, cf. confirmLeave).
     body.querySelector('#authOut').onclick=doOut;
     {const ad=body.querySelector('#authDelete');if(ad)ad.onclick=()=>{_authDelete=true;renderAuth();};}
     {const ap=body.querySelector('#authPending');if(ap)ap.onclick=()=>{closeAuth();openPending();};}
@@ -3633,7 +3634,7 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
       catch(e){_authStep.msg='Échec de l\'envoi : '+e.message;_authStep.msgcls='err';renderAuth();}};
   }else{
     body.innerHTML=`<div class="auth-hero"><div class="auth-hero-ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg></div><h4>Saisissez le code</h4><p class="auth-sub">Un code a été envoyé à <b>${esc(_authStep.email)}</b>.</p></div>
-      <input class="auth-field auth-code" id="authCode" inputmode="numeric" autocomplete="one-time-code" placeholder="••••••">
+      <input class="auth-field auth-code" id="authCode" inputmode="numeric" autocomplete="one-time-code" placeholder="••••••••">
       <button class="btn primary auth-full" id="authVerify">Valider</button>
       <div style="text-align:center;margin-top:10px"><button class="tlink" id="authBack">← Changer d'e-mail</button></div>
       <p class="auth-msg ${_authStep.msgcls}">${esc(_authStep.msg)}</p>`;

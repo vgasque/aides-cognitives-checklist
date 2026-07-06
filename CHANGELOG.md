@@ -1,5 +1,17 @@
 # Journal des modifications
 
+## [3.4.7] — 2026-07-06
+### Modifié
+- **Un seul bouton « Se déconnecter » dans la fenêtre Compte.** « Changer de compte » faisait
+  exactement la même chose (déconnexion → écran de connexion, où l'on peut saisir n'importe
+  quel e-mail) : la v3.3.5 avait déjà regroupé leurs gestionnaires en un seul point de code,
+  les deux boutons visibles n'avaient plus de raison d'être. Le message de confirmation couvre
+  le cas « autre compte » (« Vous pourrez ensuite vous reconnecter, ou utiliser un autre
+  compte. ») ; retiré des deux écrans (connecté, en attente/refusé).
+- **Champ « Saisissez le code » : 8 points.** L'espace réservé des deux saisies de code
+  (connexion, suppression de compte) affichait 6 points alors que le code reçu par e-mail
+  compte 8 chiffres.
+
 ## [3.4.6] — 2026-07-06
 ### Ajouté
 - **Retour des fiches « hors compte » pour un compte non validé.** Les fiches emportées à la
