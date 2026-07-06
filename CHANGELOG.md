@@ -1,5 +1,29 @@
 # Journal des modifications
 
+## [3.4.6] — 2026-07-06
+### Ajouté
+- **Retour des fiches « hors compte » pour un compte non validé.** Les fiches emportées à la
+  connexion dans un compte **en attente de validation** ou **refusé** restaient dans l'espace
+  local de ce compte : en suivant le conseil « réessayer avec une autre adresse e-mail », elles
+  devenaient inaccessibles (aucun chemin d'interface n'y menait plus). Trois chemins de retour,
+  réservés aux comptes jamais synchronisés depuis l'appareil (garde `canReturnToAnon`, pure et
+  testée : jamais pour un compte déjà synchronisé, dont les ids sont réclamés dans le cloud) :
+  - bouton **« Ramener mes fiches hors compte »** sur l'écran Compte (en attente / refusé) ;
+  - case « Ramener d'abord les fiches… » dans la confirmation de **« Changer de compte »** et
+    **« Se déconnecter »** (nouvelle option `checkSafe` de la fenêtre de confirmation : une case
+    protectrice ne peint plus le bouton en rouge) ;
+  - retour **automatique** après « Supprimer cette demande de compte » (sans lui, l'espace du
+    compte supprimé devenait définitivement orphelin, l'OTP ne fonctionnant plus).
+  Le déplacement précède toujours la déconnexion et la bascule d'espace : en cas d'échec, rien
+  ne bouge. 6 tests ajoutés (162 tests).
+
+### Modifié
+- **Textes honnêtes pour les comptes non validés.** Le dialogue « emporter dans ce compte » dit
+  « synchronisées une fois le compte validé, si l'instance exige une validation » (au lieu d'une
+  promesse de synchro immédiate) ; l'écran de suppression d'une demande n'évoque plus de
+  « bibliothèque synchronisée supprimée du cloud » (rien n'y a jamais été envoyé) et la case
+  « Effacer aussi les fiches de cet appareil » avertit qu'elles n'existent nulle part ailleurs.
+
 ## [3.4.5] — 2026-07-06
 ### Modifié
 - **Prompt IA : cinq règles ajoutées, tirées de la relecture d'une fiche ACR (ERC 2025) générée
