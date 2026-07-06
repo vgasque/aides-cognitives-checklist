@@ -1012,7 +1012,12 @@ const MEM={};
      Même logique pour les clés localStorage par espace (spaceKey) et le repli KV (kvName).
    - Transition « sans compte -> compte » : les fiches locales sont PROPOSÉES au déménagement
      (déplacement, pas copie : un id ne peut être adopté que par un seul compte, la clé primaire
-     cloud est globale). Entre deux comptes : jamais de transfert (export/import si besoin). */
+     cloud est globale). Entre deux comptes : jamais de transfert (export/import si besoin).
+   - RETOUR « compte -> sans compte » (returnLocalDataToAnon) : uniquement pour un compte NON
+     APPROUVÉ (pending/rejected) jamais synchronisé depuis cet appareil (canReturnToAnon) — ses
+     ids n'ont jamais été réclamés dans le cloud, le retour puis une adoption ultérieure par un
+     autre compte sont donc sans risque de collision de clé primaire. Évite qu'un refus de
+     compte (ou une erreur d'e-mail) n'échoue les fiches dans un espace devenu inaccessible. */
 function currentSpace(){try{return localStorage.getItem('ac-space')||'';}catch(e){return '';}}
 // Nom de la base (ou suffixe de clé) pour un espace donné — PUR (testé) : la base historique
 // revient au propriétaire enregistré, les autres espaces sont suffixés.
@@ -1095,10 +1100,12 @@ const IDB={
   delBackup(bid){return new Promise((res,rej)=>{const r=this._s('backups','readwrite').delete(bid);r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});}
 };
 let Data=KV;
-// Déménagement « sans compte -> compte » : DÉPLACE tout le contenu local (fiches, catégories,
-// notes, sessions, versions, épingles, marqueurs de push) de l'espace courant vers `space`.
-// DÉPLACEMENT et non copie : un id de fiche ne peut être adopté que par UN seul compte (la clé
-// primaire du cloud est globale). Appelé AVANT la bascule d'espace + location.reload().
+// Déménagement d'espace : DÉPLACE tout le contenu local (fiches, catégories, notes, sessions,
+// versions, épingles, marqueurs de push) de l'espace courant vers `space`. Deux usages :
+// « sans compte -> compte » à la connexion, et le RETOUR « compte non approuvé -> sans compte »
+// (returnLocalDataToAnon). DÉPLACEMENT et non copie : un id de fiche ne peut être adopté que par
+// UN seul compte (la clé primaire du cloud est globale). Appelé AVANT la bascule d'espace +
+// location.reload().
 async function moveLocalDataTo(space){
   const fs=await Data.getAll(),cats=await Data.getCats(),nts=await Data.getNotes(),
         ss=await Data.getSessions(),bks=await Data.getBackups();
@@ -1130,6 +1137,34 @@ async function moveLocalDataTo(space){
   try{await Data.setCats(null);}catch(e){}
   try{localStorage.removeItem(spaceKey('ac-pins'));}catch(e){}
 }
+// Éligibilité au transfert INVERSE « compte -> hors compte » — PURE (testée via ?__actest).
+// Réservé à un compte NON APPROUVÉ (pending/rejected) que CET appareil n'a JAMAIS synchronisé
+// (marqueur 'ac-sync-init-<uid>' absent ; il est posé par Sync._initIfNeeded, qui ne tourne
+// qu'une fois le compte approuvé) : ses fiches n'existent alors nulle part ailleurs et leurs ids
+// n'ont jamais été réclamés dans le cloud -> le retour vers l'espace « sans compte », puis une
+// éventuelle adoption par un AUTRE compte, est sans collision de clé primaire. Un compte déjà
+// synchronisé (approuvé puis refusé) est EXCLU : ses fiches sont (ou étaient) dans le cloud.
+function canReturnToAnon(status,everSynced,liveCount){
+  return (status==='pending'||status==='rejected')&&!everSynced&&liveCount>0;}
+// CET appareil a-t-il déjà synchronisé le compte courant ? En cas de doute (stockage illisible),
+// répond OUI : on préfère ne pas proposer le retour plutôt que risquer une collision d'ids.
+function accountEverSynced(){const u=(typeof Auth!=='undefined'&&Auth.user())||null;
+  try{return !!(u&&u.id&&localStorage.getItem('ac-sync-init-'+u.id));}catch(e){return true;}}
+// Transfert INVERSE : ramène tout le contenu local du compte courant vers l'espace « sans
+// compte », puis bascule dessus (même bascule atomique par reload qu'un changement de compte).
+// Ordre IMPORTANT : déplacer PUIS déconnecter/basculer — si le déplacement échoue, on ne touche
+// à rien (l'utilisateur reste connecté, ses fiches restent où elles sont). La déconnexion est
+// obligatoire avant la bascule : connecté, load() ramènerait aussitôt sur l'espace du compte
+// (garde-fou espaces). `reopenAuth` rouvre la fenêtre Compte après le reload (parcours
+// « changer de compte » : on repart de l'écran de connexion, fiches en sécurité hors compte).
+async function returnLocalDataToAnon(reopenAuth){
+  persistAllLive();
+  try{await moveLocalDataTo('');}
+  catch(e){toast('⚠ Échec du retour hors compte : rien n\'a été déplacé. Réessayez, ou exportez vos fiches par sécurité (bouton « Exporter tout »).');return;}
+  try{await Auth.signOut();}catch(e){}
+  try{localStorage.setItem('ac-space','');}catch(e){}
+  if(reopenAuth){try{localStorage.setItem('ac-reopen-auth','1');}catch(e){}}
+  location.reload();}
 // Nombre de fiches VIVANTES d'un tableau brut (tombstones et entrées invalides exclus) —
 // PUR (testé). Partagé entre la lecture IndexedDB et le repli localStorage de anonFicheCount.
 const liveFicheCount=a=>(Array.isArray(a)?a:[]).filter(f=>f&&typeof f==='object'&&!f.deletedAt).length;
@@ -3410,10 +3445,19 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
     // ces comptes (confirmDlg redevient un oui/non simple), la promesse « restent en ligne » ne
     // valant que pour un compte approuvé.
     const offerWipe=!(myAccountStatus==='pending'||myAccountStatus==='rejected');
+    // Compte non approuvé jamais synchronisé : on propose l'INVERSE — ramener les fiches « hors
+    // compte » avant de partir. Sinon elles resteraient dans l'espace local de ce compte,
+    // invisible depuis tout autre compte (parcours « refusé -> réessayer avec un autre e-mail » :
+    // sans ce retour, les fiches emportées à la connexion seraient échouées là).
+    const offerReturn=!offerWipe&&canReturnToAnon(myAccountStatus,accountEverSynced(),fiches.length);
     const confirmLeave=async(title,msg,yes)=>{
-      const opts=offerWipe?{title:title,yes:yes,check:'Effacer aussi les fiches de ce compte sur cet appareil (elles restent disponibles dans votre espace en ligne)'}:{title:title,yes:yes};
+      const opts=offerWipe?{title:title,yes:yes,check:'Effacer aussi les fiches de ce compte sur cet appareil (elles restent disponibles dans votre espace en ligne)'}
+        :offerReturn?{title:title,yes:yes,checkSafe:true,check:'Ramener d\'abord les fiches de ce compte « hors compte » sur cet appareil (recommandé : ce compte n\'étant pas validé, elles n\'existent nulle part ailleurs)'}
+        :{title:title,yes:yes};
       const r=await confirmDlg(msg,opts);
-      if(!r)return;await doSignOut(offerWipe&&r.checked===true);};
+      if(!r)return;
+      if(offerReturn&&r.checked===true)return returnLocalDataToAnon(true);
+      await doSignOut(offerWipe&&r.checked===true);};
     const doSwitch=()=>confirmLeave('Changer de compte','Changer de compte ? Vous serez déconnecté de ce compte.','Changer de compte');
     const doOut=()=>confirmLeave('Se déconnecter','Se déconnecter ?','Se déconnecter');
     if(_authDelete){
@@ -3449,8 +3493,18 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
           // session actuelle reste intacte et RIEN n'est supprimé (bouton réactivé pour réessayer).
           try{await Auth.verifyCode(delEmail,code);}catch(e){setM('Code invalide ou expiré.','err');reset();return;}
           setM('Suppression…','');dGo.textContent='Suppression…';
-          try{const wipe=!!_authDelete.wipe;await Auth.deleteAccount();await Auth.signOut();resetAuthState();
+          try{const wipe=!!_authDelete.wipe;
+            // Compte non approuvé jamais synchronisé : une fois supprimé, plus aucune connexion
+            // (OTP) ne mènera à son espace local -> il deviendrait un orphelin inaccessible. On
+            // RAMÈNE donc automatiquement les fiches « hors compte » (sauf effacement demandé).
+            // Évalué AVANT la suppression : resetAuthState() efface le statut ensuite.
+            const goAnon=!wipe&&canReturnToAnon(myAccountStatus,accountEverSynced(),fiches.length);
+            await Auth.deleteAccount();await Auth.signOut();resetAuthState();
             if(wipe){await wipeLocal();location.reload();return;}
+            if(goAnon){persistAllLive();let moved=true;try{await moveLocalDataTo('');}catch(e){moved=false;}
+              // Échec du déplacement : on NE bascule PAS d'espace (les fiches restent visibles
+              // ici, exportables) ; le compte, lui, est déjà supprimé -> parcours standard.
+              if(moved){try{localStorage.setItem('ac-space','');}catch(e){}location.reload();return;}}
             _authDelete=false;_authStep={mode:'email',email:'',msg:'',msgcls:''};renderAuth();setSyncChip();if(state.view==='library')renderLibrary();toast('Votre compte a été supprimé.');
           }catch(e){
             // Refus serveur « recent otp verification required » (défense en profondeur de la RPC,
@@ -3459,12 +3513,18 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
             else setM('Échec de la suppression : '+e.message,'err');
             reset();}};
         return;}
+      // Compte non approuvé jamais synchronisé : le texte standard (« supprimés du cloud ») serait
+      // faux — rien n'y a jamais été envoyé. On annonce le RETOUR automatique des fiches « hors
+      // compte » (cf. goAnon à l'étape 2) et on avertit que la case d'effacement détruit alors la
+      // SEULE copie existante (un compte approuvé, lui, garde sa copie en ligne jusqu'à la
+      // suppression effective — et la perd avec elle, ce que le texte standard dit déjà).
+      const delReturn=canReturnToAnon(myAccountStatus,accountEverSynced(),fiches.length);
       body.innerHTML=`<div class="auth-del"><div class="auth-hero-ic danger"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 16H3z"/><path d="M12 9v5M12 17h.01"/></svg></div>
         <h4>Supprimer le compte ?</h4>
-        <p class="auth-sub">Cette action est <b>irréversible</b>. Votre compte et votre bibliothèque personnelle synchronisée seront définitivement supprimés du cloud. Les fiches que vous avez ajoutées à des bibliothèques partagées y resteront.</p>
+        <p class="auth-sub">${delReturn?"Cette action est <b>irréversible</b>. Ce compte n'a jamais été synchronisé : vos fiches n'existent <b>que sur cet appareil</b>. Après la suppression, elles redeviendront des fiches locales « hors compte », consultables sans connexion.":"Cette action est <b>irréversible</b>. Votre compte et votre bibliothèque personnelle synchronisée seront définitivement supprimés du cloud. Les fiches que vous avez ajoutées à des bibliothèques partagées y resteront."}</p>
         <p class="auth-sub">Par sécurité, votre identité doit être vérifiée : un <b>code de confirmation</b> vous sera envoyé à <b>${esc(delEmail)}</b>, à saisir avant la suppression.</p>
         <p class="auth-msg" id="delOrphanWarn" hidden style="color:var(--verify)"></p>
-        <label class="auth-check"><input type="checkbox" id="delLocal"><span>Effacer aussi les fiches enregistrées sur <b>cet appareil</b></span></label>
+        <label class="auth-check"><input type="checkbox" id="delLocal"><span>Effacer aussi les fiches enregistrées sur <b>cet appareil</b>${delReturn?' <b>(attention : elles n\'existent nulle part ailleurs)</b>':''}</span></label>
         <p class="auth-confirm-lbl">Pour confirmer, tapez <b>SUPPRIMER</b> ci-dessous :</p>
         <input class="auth-field auth-confirm" id="delConfirm" autocomplete="off" autocapitalize="characters" placeholder="SUPPRIMER">
         <p class="auth-msg" id="delMsg"></p>
@@ -3502,10 +3562,20 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
     // (même statut affiché en bandeau + pastille pied de page).
     if(myAccountStatus==='pending'||myAccountStatus==='rejected'){
       const rejected=myAccountStatus==='rejected';
+      // Fiches emportées à la connexion mais jamais synchronisées (compte non approuvé) : offrir
+      // le chemin RETOUR vers l'espace « hors compte » — surtout avant de « réessayer avec une
+      // autre adresse » (sinon elles resteraient dans l'espace local de ce compte, invisible
+      // depuis tout autre compte). Cf. canReturnToAnon (garde anti-collision d'ids cloud).
+      const canReturn=canReturnToAnon(myAccountStatus,accountEverSynced(),fiches.length);
       body.innerHTML=`<div class="auth-card-in"><div class="auth-avatar">${esc(ini)}</div><div class="auth-id"><div class="auth-email">${esc(u.email||'')}</div><div class="auth-state ${rejected?'err':'pending'}"><span class="auth-dot"></span>${rejected?'Demande refusée':'En attente de validation'}</div></div></div>
-        <p class="auth-sub">${rejected?"Votre demande de compte a été refusée par un administrateur. Vous pouvez supprimer cette demande ci-dessous, ou réessayer avec une autre adresse e-mail.":"Votre e-mail est vérifié. Un administrateur doit maintenant approuver votre compte avant que vos fiches ne soient synchronisées dans le cloud. En attendant, l'app reste pleinement utilisable en local, sur cet appareil."}</p>
-        <div class="auth-actions"><button class="btn primary" id="authRecheck">Vérifier maintenant</button><button class="btn" id="authSwitch">Changer de compte</button><button class="btn" id="authOut">Se déconnecter</button></div>
+        <p class="auth-sub">${rejected?"Votre demande de compte a été refusée par un administrateur. Vous pouvez supprimer cette demande ci-dessous, ou réessayer avec une autre adresse e-mail.":"Votre e-mail est vérifié. Un administrateur doit maintenant approuver votre compte avant que vos fiches ne soient synchronisées dans le cloud. En attendant, l'app reste pleinement utilisable en local, sur cet appareil."}${canReturn?" Vos fiches ne sont enregistrées que sur cet appareil : vous pouvez les ramener « hors compte » pour les garder accessibles sans ce compte.":""}</p>
+        <div class="auth-actions"><button class="btn primary" id="authRecheck">Vérifier maintenant</button>${canReturn?'<button class="btn" id="authReturnLocal">Ramener mes fiches hors compte</button>':''}<button class="btn" id="authSwitch">Changer de compte</button><button class="btn" id="authOut">Se déconnecter</button></div>
         <button class="auth-danger" id="authDelete">Supprimer cette demande de compte</button>`;
+      {const rb=body.querySelector('#authReturnLocal');if(rb)rb.onclick=async()=>{
+        const n=fiches.length;
+        const msg=(n>1?'Vos '+n+' fiches (avec notes et sessions) redeviendront des fiches locales « hors compte » sur cet appareil, consultables sans connexion.':'Votre fiche (avec notes et sessions) redeviendra une fiche locale « hors compte » sur cet appareil, consultable sans connexion.')+' Vous serez déconnecté de ce compte ; une connexion ultérieure proposera à nouveau de '+(n>1?'les ':'l\'')+'emporter.';
+        if(!await confirmDlg(msg,{title:'Ramener les fiches hors compte',yes:'Ramener hors compte'}))return;
+        returnLocalDataToAnon(false);};}
       body.querySelector('#authRecheck').onclick=async()=>{const b=body.querySelector('#authRecheck');b.disabled=true;b.textContent='Vérification…';
         await refreshAccountStatus();renderAuth();
         // Toujours refléter le VRAI statut : approuvé -> Sync.full() gère la pastille (busy puis ok/err) ;
@@ -3587,7 +3657,7 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
           // Les TITRES sont listés : sur un appareil partagé, adopter ce contenu l'envoie dans le
           // cloud du compte — l'utilisateur doit pouvoir reconnaître ce qu'il emporte avant d'accepter.
           const names=fiches.slice(0,5).map(f=>'« '+(sstr(f.title,48).trim()||'sans titre')+' »').join(', ')+(fiches.length>5?' et '+(fiches.length-5)+' autre'+(fiches.length>6?'s':''):'');
-          const take=await confirmDlg(fiches.length+' fiche'+(fiches.length>1?'s':'')+' (avec notes et sessions) '+(fiches.length>1?'sont enregistrées':'est enregistrée')+' sur cet appareil hors compte : '+names+'. Les emporter dans ce compte ? Elles y seront synchronisées. Laissées hors compte, elles resteront consultables sans connexion, via le lien « fiches hors compte » de l\'écran de connexion.',{title:'Fiches locales',yes:'Les emporter dans ce compte',no:'Les laisser hors compte'});
+          const take=await confirmDlg(fiches.length+' fiche'+(fiches.length>1?'s':'')+' (avec notes et sessions) '+(fiches.length>1?'sont enregistrées':'est enregistrée')+' sur cet appareil hors compte : '+names+'. Les emporter dans ce compte ? Elles y seront synchronisées (une fois le compte validé, si l\'instance exige une validation). Laissées hors compte, elles resteront consultables sans connexion, via le lien « fiches hors compte » de l\'écran de connexion.',{title:'Fiches locales',yes:'Les emporter dans ce compte',no:'Les laisser hors compte'});
           if(take){try{await moveLocalDataTo(uid);}catch(e){}}
         }
         persistAllLive();registerSpace(uid);
@@ -3763,8 +3833,10 @@ function confirmDlg(msg,opts){opts=opts||{};return new Promise(res=>{
   const row=document.getElementById('confirmCheckRow'),cb=document.getElementById('confirmCheck');
   if(opts.check){row.hidden=false;cb.checked=false;document.getElementById('confirmCheckLbl').textContent=opts.check;
     // Cocher l'option rend l'action destructrice -> le bouton principal passe en rouge (convention
-    // « destructeur = danger »), même si l'appel de base n'était pas `danger`.
-    const upd=()=>{y.className='btn '+((opts.danger||cb.checked)?'danger':'primary');};cb.onchange=upd;upd();
+    // « destructeur = danger »), même si l'appel de base n'était pas `danger`. Exception
+    // `checkSafe:true` : la case est PROTECTRICE (ex. « ramener les fiches hors compte »),
+    // la cocher ne doit pas peindre l'action en danger.
+    const upd=()=>{y.className='btn '+((opts.danger||(cb.checked&&!opts.checkSafe))?'danger':'primary');};cb.onchange=upd;upd();
   }else{row.hidden=true;cb.onchange=null;y.className='btn '+(opts.danger?'danger':'primary');}
   confirmModal.classList.add('on');});}
 // Résolution : en mode case à cocher, `true` (validation) -> {checked}, tout le reste -> null ;
@@ -4263,7 +4335,7 @@ document.addEventListener('keydown',e=>{
 if(location.search.indexOf('__actest')>=0){
   window.__ac_test__={migrate,sanitizeCats,safeId,safeColor,safeImg,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,
-    restErrStatus,isPersoRepairCandidate,liveFicheCount,fmt,stripBold,ficheNeedsCompletion,completionSpots,AI_PROMPT};
+    restErrStatus,isPersoRepairCandidate,liveFicheCount,canReturnToAnon,fmt,stripBold,ficheNeedsCompletion,completionSpots,AI_PROMPT};
 }else{
   /* ===== PWA =====
      Enregistre le service worker (cache hors ligne) si disponible. Capte

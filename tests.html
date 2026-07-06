@@ -185,6 +185,14 @@ function run(A){
   eq('exclut les entrées invalides', A.liveFicheCount([null,'x',42,{id:'a'}]), 1);
   eq('non-tableau → 0', A.liveFicheCount('x'), 0);
 
+  group('canReturnToAnon() — retour « compte -> hors compte » (comptes non approuvés)');
+  ok('pending jamais synchronisé avec fiches → oui', A.canReturnToAnon('pending',false,3)===true);
+  ok('rejected jamais synchronisé avec fiches → oui', A.canReturnToAnon('rejected',false,1)===true);
+  ok('compte approuvé → non (fiches dans le cloud)', A.canReturnToAnon('approved',false,3)===false);
+  ok('déjà synchronisé → non (ids réclamés dans le cloud)', A.canReturnToAnon('pending',true,3)===false);
+  ok('aucune fiche vivante → non (rien à ramener)', A.canReturnToAnon('rejected',false,0)===false);
+  ok('déconnecté (statut null) → non', A.canReturnToAnon(null,false,3)===false);
+
   group('spaceTag() — empreinte d\'espace des exports');
   eq('déterministe (même espace → même empreinte)', A.spaceTag('u-abc'), A.spaceTag('u-abc'));
   ok('espaces différents → empreintes différentes', A.spaceTag('u-abc')!==A.spaceTag('u-def'));
