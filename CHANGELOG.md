@@ -1,5 +1,16 @@
 # Journal des modifications
 
+## [3.4.8] — 2026-07-06
+### Corrigé
+- **Le gras n'éclate plus les lignes des listes de fiche.** Les puces de « Ne pas oublier »,
+  « Confirmation diagnostique », « À vérifier » et « Diagnostics différentiels », ainsi que les
+  boutons d'option des nœuds de décision, sont des conteneurs flex : un `**gras**` au milieu du
+  texte le découpait en plusieurs éléments flex séparés par l'espacement de la puce (espaces
+  parasites autour du gras, texte rendu en « colonnes » sur les lignes longues). Le texte formaté
+  est désormais toujours enveloppé dans un `<span>` unique (même schéma que les étapes) ;
+  suppression au passage du paramètre `forget` de `staticBlock` et de la règle CSS `ul.forget`,
+  vestiges jamais utilisés de ce correctif.
+
 ## [3.4.7] — 2026-07-06
 ### Modifié
 - **Un seul bouton « Se déconnecter » dans la fenêtre Compte.** « Changer de compte » faisait
