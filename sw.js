@@ -19,7 +19,7 @@
 //  code et restent intactes à chaque mise à jour, tant que l'URL reste la même.
 // =============================================================================
 // IMPORTANT : garder cette version synchronisée avec APP_VERSION dans index.html.
-const CACHE = 'aides-cognitives-v3.5.0';
+const CACHE = 'aides-cognitives-v3.5.1';
 const ASSETS = [
   './',
   './index.html',
@@ -42,6 +42,11 @@ self.addEventListener('activate', e => {
     caches.keys()
       .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
+      // Annonce la version du worker aux pages ouvertes : index.html la compare à son APP_VERSION
+      // et affiche le message JUSTE — « déjà à jour » (cas normal : la navigation réseau-d'abord a
+      // déjà servi le nouvel index.html) ou « rechargez » (page encore servie par l'ancien cache).
+      .then(() => self.clients.matchAll({ type: 'window' }))
+      .then(cs => cs.forEach(c => c.postMessage({ type: 'sw-activated', version: CACHE })))
   );
 });
 

@@ -1,5 +1,19 @@
 # Journal des modifications
 
+## [3.5.1] — 2026-07-07
+### Corrigé
+- **Message de mise à jour exact.** Le toast introduit en 3.5.0 annonçait « la nouvelle version
+  sera utilisée à la prochaine ouverture » alors que, dans le cas normal (en ligne), la stratégie
+  « réseau d'abord » venait déjà de servir le nouvel index.html : l'utilisateur ÉTAIT déjà sur la
+  nouvelle version. Le service worker annonce désormais sa version à la page (postMessage à
+  l'activation) ; la page la compare à `APP_VERSION` et affiche le bon message — « vous utilisez
+  déjà la nouvelle version » (versions égales, cas normal) ou « rechargez la page pour l'utiliser »
+  (page encore servie par l'ancien cache hors-ligne).
+- Au passage : la file des messages du worker est démarrée explicitement
+  (`navigator.serviceWorker.startMessages()`) — indispensable avec `addEventListener`, sans quoi
+  les messages restaient en file indéfiniment et aucun toast ne s'affichait. Les deux branches du
+  message ont été vérifiées en navigateur.
+
 ## [3.5.0] — 2026-07-07
 Version issue d'un audit complet (qualité de code, PWA, sécurité, performance). L'audit sécurité
 n'a trouvé aucune faille exploitable (échappement et assainissement complets, RLS couvrante).

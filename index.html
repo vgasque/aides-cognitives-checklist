@@ -1003,7 +1003,7 @@
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='3.5.0';
+const APP_VERSION='3.5.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -4474,18 +4474,28 @@ if(location.search.indexOf('__actest')>=0){
   /* ===== PWA =====
      Enregistre le service worker (cache hors ligne) si disponible. Capte
      l'évènement beforeinstallprompt pour proposer "Installer l'app". */
-  if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').then(reg=>{
+  if('serviceWorker' in navigator){window.addEventListener('load',()=>{
     // MISE À JOUR VISIBLE : sw.js fait skipWaiting+claim (la nouvelle version s'installe seule),
     // mais jusqu'ici en silence — une version cassée pouvait remplacer la copie hors-ligne sans
-    // que personne ne le sache. On PRÉVIENT désormais d'un toast discret quand une nouvelle
-    // version vient de s'activer. JAMAIS de rechargement forcé : en pleine crise, on ne recharge
-    // pas l'écran sous les doigts de l'utilisateur ; l'onglet ouvert continue sur l'ancienne
-    // version, la nouvelle sert à la prochaine ouverture (ou sur rechargement volontaire).
-    const hadController=!!navigator.serviceWorker.controller;   // faux à la toute 1ʳᵉ installation
-    reg.addEventListener('updatefound',()=>{const nw=reg.installing;if(!nw)return;
-      nw.addEventListener('statechange',()=>{
-        if(nw.state==='activated'&&hadController)toast('Application mise à jour — la nouvelle version sera utilisée à la prochaine ouverture (ou rechargez la page).',9000);});});
-  }).catch(()=>{}));}
+    // que personne ne le sache. À son activation, le worker ENVOIE sa version (postMessage,
+    // cf. sw.js) ; on la compare à APP_VERSION pour afficher le message JUSTE :
+    //  - versions égales (cas normal : la navigation réseau-d'abord vient DÉJÀ de servir le
+    //    nouvel index.html) -> « vous utilisez déjà la nouvelle version » ;
+    //  - versions différentes (page encore servie par l'ancien cache) -> « rechargez la page ».
+    // JAMAIS de rechargement forcé : en pleine crise, on ne recharge pas l'écran sous les doigts
+    // de l'utilisateur. Silencieux à la toute 1ʳᵉ installation (hadController faux).
+    const hadController=!!navigator.serviceWorker.controller;
+    navigator.serviceWorker.addEventListener('message',ev=>{
+      const d=ev.data||{};if(d.type!=='sw-activated'||!hadController)return;
+      const v=String(d.version||'').replace(/[^0-9.]/g,'');
+      toast(v===APP_VERSION
+        ?'Application mise à jour (v'+APP_VERSION+') — vous utilisez déjà la nouvelle version.'
+        :'Nouvelle version disponible'+(v?' (v'+v+')':'')+' — rechargez la page pour l\'utiliser.',9000);});
+    // OBLIGATOIRE avec addEventListener : démarre la file des messages du worker (sans cet appel
+    // — ou sans passer par `onmessage =` — le navigateur retient les messages indéfiniment).
+    if(navigator.serviceWorker.startMessages)navigator.serviceWorker.startMessages();
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  });}
   let deferredPrompt=null;
   window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;document.getElementById('installBtn').style.display='inline-block';});
   document.getElementById('installBtn').onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;document.getElementById('installBtn').style.display='none';};
