@@ -148,6 +148,18 @@ function run(A){
   eq('méga-octets', A.fmtBytes(3145728), '3.0 Mo');
 
   group('flattenFiche() / diffFicheLines()');
+  const fF={title:'T',status:'draft',localInfo:'Ctx',confirmation:['c1'],
+    blocks:[{id:'b1',type:'steps',title:'B',steps:['s1']},{id:'b2',type:'decision',title:'D',question:'Q ?',options:[{label:'Oui',target:'b1'}]}],
+    timers:[{label:'Cycle',type:'interval',seconds:120}],counters:[{label:'Adré'}]};
+  const fl=A.flattenFiche(fF);
+  ok('aplatit le titre', fl.indexOf('Titre · T')>=0);
+  ok('aplatit l\'état brouillon', fl.indexOf('État · brouillon')>=0);
+  ok('étape préfixée par son bloc', fl.indexOf('Bloc « B » · s1')>=0);
+  ok('question de décision', fl.indexOf('Bloc « D » · Q ?')>=0);
+  ok('option de décision', fl.indexOf('Bloc « D » — option · Oui')>=0);
+  ok('minuteur avec durée', fl.indexOf('Minuteur · Cycle (120 s)')>=0);
+  ok('compteur', fl.indexOf('Compteur · Adré')>=0);
+  eq('fiche nulle → []', A.flattenFiche(null), []);
   const fA={title:'T',confirmation:['a','b'],blocks:[{type:'steps',title:'B',steps:['s1']}]};
   const fB={title:'T',confirmation:['a'],blocks:[{type:'steps',title:'B',steps:['s1','s2']}]};
   const d=A.diffFicheLines(fA,fB); // cur=fA, old=fB : restaurer fB retirerait 'b', ajouterait 's2'
@@ -236,14 +248,28 @@ function run(A){
   ok('recherche : le gras n\'empêche pas de trouver une expression',
     A.ficheHaystack({title:'x',blocks:[{type:'steps',title:'B',steps:['**Adrénaline** 0,5 mg IM']}]}).indexOf('adrenaline 0,5 mg')>=0);
 
-  group('ficheNeedsCompletion() / completionSpots() — badge « À compléter »');
-  ok('invite dans localInfo', A.ficheNeedsCompletion({localInfo:'Tél renfort : à compléter'})===true);
-  ok('marqueur « ⚠ À COMPLÉTER » dans une étape', A.ficheNeedsCompletion({blocks:[{type:'steps',steps:['⚠ À COMPLÉTER : dose']}]})===true);
-  ok('invite dans une section liste', A.ficheNeedsCompletion({verify:['PAS cible : à compléter']})===true);
-  ok('accent manquant toléré (« a completer »)', A.ficheNeedsCompletion({verify:['cible a completer']})===true);
-  ok('⚠ seul (avertissement clinique) ne déclenche PAS', A.ficheNeedsCompletion({notForget:['⚠ NE PAS associer adrénaline et isoprénaline']})===false);
-  ok('fiche complète → false', A.ficheNeedsCompletion({localInfo:'Tél 1234',verify:['PAS ≥ 80'],blocks:[{type:'steps',steps:['ok']}]})===false);
-  ok('non-objet → false', A.ficheNeedsCompletion(null)===false);
+  group('buildFlowSVG() / wrapText() — organigramme (structure & échappement)');
+  const svg=A.buildFlowSVG({blocks:[
+    {id:'a',type:'steps',title:'<img src=x onerror=alert(1)>',steps:['x'],next:'d'},
+    {id:'d',type:'decision',title:'D',question:'Q ?',options:[{label:'retour',target:'a'},{label:'fin',target:''}]}],start:'a'},'d');
+  ok('rend un <svg> dimensionné', /^<svg width="[\d.]+" height="[\d.]+"/.test(svg));
+  ok('titre échappé (pas de balise brute)', svg.indexOf('<img src')<0&&svg.indexOf('&lt;img')>=0);
+  ok('pastille DÉPART présente', svg.indexOf('DÉPART')>=0);
+  ok('boucle issue d\'une décision = ambre pointillé', svg.indexOf('stroke-dasharray')>=0&&svg.indexOf('#c98a2a')>=0);
+  ok('halo du bloc courant', svg.indexOf('flow-hl')>=0);
+  ok('étiquette d\'option sur l\'arête', svg.indexOf('retour')>=0);
+  ok('sans bloc → message, pas de SVG', A.buildFlowSVG({blocks:[]}).indexOf('<svg')<0);
+  eq('wrapText enroule sans tronquer', A.wrapText('un deux trois quatre',9), ['un deux','trois','quatre']);
+  eq('wrapText coupe les mots trop longs', A.wrapText('abcdefghij',4), ['abcd','efgh','ij']);
+
+  group('completionSpots() — badge « À compléter »');
+  ok('invite dans localInfo', A.completionSpots({localInfo:'Tél renfort : à compléter'}).length>0);
+  ok('marqueur « ⚠ À COMPLÉTER » dans une étape', A.completionSpots({blocks:[{type:'steps',steps:['⚠ À COMPLÉTER : dose']}]}).length>0);
+  ok('invite dans une section liste', A.completionSpots({verify:['PAS cible : à compléter']}).length>0);
+  ok('accent manquant toléré (« a completer »)', A.completionSpots({verify:['cible a completer']}).length>0);
+  ok('⚠ seul (avertissement clinique) ne déclenche PAS', A.completionSpots({notForget:['⚠ NE PAS associer adrénaline et isoprénaline']}).length===0);
+  ok('fiche complète → aucun emplacement', A.completionSpots({localInfo:'Tél 1234',verify:['PAS ≥ 80'],blocks:[{type:'steps',steps:['ok']}]}).length===0);
+  ok('non-objet → aucun emplacement', A.completionSpots(null).length===0);
   eq('completionSpots liste les emplacements (infobulle du badge)',
     A.completionSpots({localInfo:'Tél : à compléter',references:['Exemple à compléter'],blocks:[{type:'steps',title:'Traitement',steps:['⚠ À COMPLÉTER : dose']}]}),
     ['Contexte local','Références','Bloc « Traitement »']);

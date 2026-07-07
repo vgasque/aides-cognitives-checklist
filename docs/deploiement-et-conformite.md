@@ -26,10 +26,25 @@ Durée : ~30 min. Aucune compétence serveur avancée requise.
 1. Copier tout le dépôt (au minimum : `index.html`, `sw.js`, `manifest.webmanifest`, les icônes).
    Les fichiers de développement (`scripts/`, `tests.html`, `.github/`, `package.json`) peuvent
    rester : ils ne sont pas servis à l'utilisateur final.
-2. Publier en **HTTPS** :
-   - **GitHub Pages** : dépôt → Settings → Pages → source = branche `main`, dossier racine.
-   - **Netlify / Cloudflare Pages** : glisser-déposer le dossier ; le fichier `_headers` fourni
-     applique automatiquement la CSP et les en-têtes de sécurité.
+   *Option* : `npm run build` produit dans `dist/` une copie **allégée** (~25 % plus légère à
+   charger — commentaires du code retirés, comportement strictement identique) ; déployer alors le
+   contenu de `dist/` au lieu de la racine.
+2. Publier en **HTTPS**. Attention : les protections diffèrent selon l'hébergeur, car le fichier
+   `_headers` fourni (CSP, HSTS, anti-iframe, `no-cache` sur `sw.js`) est une convention
+   **Netlify / Cloudflare Pages** — **GitHub Pages l'ignore totalement**.
+
+   | | GitHub Pages | Netlify / Cloudflare Pages |
+   |---|---|---|
+   | Mise en place | Settings → Pages → branche `main`, racine | glisser-déposer le dossier |
+   | CSP | balise `<meta>` d'`index.html` seulement | `<meta>` **et** en-tête HTTP (`_headers`) |
+   | HSTS, `nosniff`, anti-iframe (`X-Frame-Options`) | ✗ non appliqués | ✓ appliqués |
+   | `Cache-Control: no-cache` sur `sw.js` | ✗ (cache ~10 min par défaut) | ✓ appliqué |
+
+   Les deux hébergent l'app correctement — l'essentiel de la sécurité (échappement du contenu,
+   politiques RLS) est dans le code et côté serveur — mais **Netlify / Cloudflare Pages offrent la
+   posture complète**. Sur GitHub Pages, accepter explicitement la perte des en-têtes HTTP
+   ci-dessus (la mise à jour du service worker reste fonctionnelle : les navigateurs revérifient
+   `sw.js` au plus tard toutes les 24 h).
 3. Ouvrir l'URL : l'app doit se charger et proposer « Installer l'app ».
 
 ### 1.2 Créer le projet Supabase

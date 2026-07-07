@@ -251,7 +251,6 @@
   html[data-theme="dark"] header.bar{background:linear-gradient(180deg,#13322e,#0e2723);color:#dceeeb}
   html[data-theme="dark"] .ai-card,html[data-theme="dark"] .ai-modal .ai-card{background:var(--surface);color:var(--ink)}
   html[data-theme="dark"] .toast{background:#05100e;border:1px solid var(--line)}
-  html[data-theme="dark"] :is(.read-img,.thumb,.fiche-img) img{filter:brightness(.92)}
   /* Champs de saisie (éditeur) codés en dur en blanc -> fond sombre lisible. */
   html[data-theme="dark"] :is(.blk-top input,.trow input[data-tf],.trow input[data-cf],.trow input[type=number],.tk-lab,.tk-time-edit,.optedit input,.startbtn,.trow input,.cm-name,.cm-add input){background:#0e1714;color:var(--ink);border-color:var(--line)}
   /* Pastilles de catégorie NON colorées (Aucune/Gérer) -> fond sombre ; les colorées gardent leur teinte. */
@@ -303,7 +302,6 @@
   .brand b{font-size:18px;letter-spacing:.2px;font-weight:650}
   .brand span{font-size:11.5px;text-transform:uppercase;letter-spacing:1.6px;color:var(--rt-muted);margin-top:3px}
   #brandTitle{font-size:13px;font-weight:600;color:var(--rt-ink);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:0;text-transform:none;display:none}
-  .bar-act{background:rgba(255,255,255,.14);color:var(--rt-ink);border:0;padding:9px 13px;border-radius:var(--radius-sm);font-size:13.5px;font-weight:600;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
   /* Icône Compte dans l'en-tête (présence utilisateur), avec pastille d'état de synchro discrète. */
   .bar-acct{position:relative;background:rgba(255,255,255,.14);color:var(--rt-ink);border:0;width:44px;height:44px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex:none;cursor:pointer;transition:background .12s,transform .06s}
   /* Rappel MINUTEURS toujours visible : 2e ligne de l'en-tête sticky, n'apparaît que si un minuteur
@@ -327,7 +325,6 @@
   .acct-dot.busy{background:var(--alert-hi)}.acct-dot.err{background:var(--critical-bright)}.acct-dot.off{background:var(--neutral-bright)}
   .acct-dot.pending{background:var(--alert-hi)}.acct-dot.rejected{background:var(--critical-bright)}
   html[data-theme="dark"] .acct-dot{border-color:#10302b}
-  .bar-act:hover{background:rgba(255,255,255,.24)}
   main{flex:1;padding:18px}
   .notice{background:var(--verify-soft);border:1px solid var(--verify-line);color:var(--verify);border-radius:10px;padding:10px 13px;font-size:12.5px;margin-bottom:16px;display:flex;gap:9px;align-items:flex-start;position:relative;padding-right:40px}
   .notice[hidden]{display:none} /* le display:flex ci-dessus prime sinon sur [hidden] (même origine auteur) */
@@ -354,7 +351,6 @@
   .scopebtn{border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 14px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;transition:background .12s,border-color .12s}
   .scopebtn.on{background:var(--primary);color:var(--on-primary);border-color:var(--primary)}
   .scopebtn.add{border-style:dashed;color:var(--primary);background:transparent}
-  .scopebtn .ro-hint{font-weight:500;font-size:11px;opacity:.75;margin-left:2px}
   .scope-ctx{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin:-6px 0 16px;padding:9px 12px;background:var(--primary-soft);border-radius:10px}
   .scope-ctx-i{font-size:12.5px;color:var(--ink-soft);font-weight:600}
   .linkbtn{background:none;border:0;color:var(--primary);font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:0;margin-left:auto}
@@ -448,7 +444,6 @@
   .h-diff .sec-badge{background:var(--surface-3)}
   .h-main .sec-badge{background:var(--surface);box-shadow:inset 0 0 0 1px var(--primary-200)}
   .h-confirm{color:var(--primary-dk)} .h-confirm .pip{background:var(--primary)}
-  .h-steps{color:var(--ink)} .h-steps .pip{background:var(--ink)}
   .h-verify{color:var(--verify)} .h-verify .pip{background:var(--verify)}
   .h-forget{color:var(--critical)} .h-forget .pip{background:var(--critical)}
   .h-diff{color:var(--ink-soft)} .h-diff .pip{background:var(--ink-soft)}
@@ -502,7 +497,6 @@
   .refs{font-size:12.5px;color:var(--ink-soft);border-top:1px solid var(--line);padding-top:14px;margin-top:24px}
   .refs b{color:var(--ink);display:block;margin-bottom:6px;font-size:11px;letter-spacing:1px;text-transform:uppercase}
   .refs ol{margin:0;padding-left:18px}.refs li{margin-bottom:3px}
-  .read-actions{display:flex;gap:9px;flex-wrap:wrap;margin:24px 0 22px}
   /* Outils d'AUTORING séparés du contenu de crise : section discrète en bas de fiche. */
   .read-tools{margin:28px 0 22px;border-top:1px solid var(--line);padding-top:14px}
   .read-tools-h{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft);margin-bottom:9px}
@@ -574,7 +568,6 @@
   .tk-lab:focus{outline:2px solid var(--primary);border-color:transparent}
   .tk-del{flex-shrink:0;width:38px;height:44px;border:0;border-radius:8px;background:var(--bg);color:var(--ink-soft);font-size:17px}
   .tk-del:hover{background:var(--critical-soft);color:var(--critical)}
-  .tk-empty{font-size:12.5px;color:var(--ink-soft);padding:3px 0}
   .tk-panel.empty .tk-head{margin-bottom:0}
   /* Bandeau de session (mode lecture) : discret tant qu'inactif, mis en avant « en cours » */
   .session-bar{display:flex;gap:8px 10px;flex-wrap:wrap;align-items:center;margin-bottom:16px;border-radius:12px;padding:11px 13px}
@@ -722,7 +715,6 @@
   .auth-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:6px}
   .auth-msg{font-size:13px;margin:8px 0 0;min-height:18px}
   .auth-msg.err{color:var(--critical)}.auth-msg.ok{color:var(--primary)}
-  .auth-who{font-size:14px;margin:2px 0 10px}.auth-who b{color:var(--primary)}
   /* Fenêtre Compte */
   .auth-card-in{display:flex;align-items:center;gap:13px;margin-bottom:4px}
   .auth-avatar{width:48px;height:48px;border-radius:50%;background:var(--primary);color:var(--on-primary);display:flex;align-items:center;justify-content:center;font-size:21px;font-weight:700;flex:none}
@@ -869,7 +861,7 @@
   /* Focus clavier visible sur TOUS les contrôles interactifs (uniforme avec .btn/.card). */
   :is(.catchip,.catpill,.tlink,.linkbtn,.mini,.fz,.scopebtn,.opt,.startbtn,.add-line,.notice-x,.tk-add,.tk-del,.cm-del,.ai-x,.rel-x,.back,.flow-toggle,.crumbs .cb,ol.steps li):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .rt-panel :is(.tm-btn,.cn-btn,.rt-sound,.tm-reset,.cn-reset):focus-visible{outline:2px solid var(--live);outline-offset:2px}
-  header.bar :is(.bar-act,.bar-acct):focus-visible{outline:2px solid var(--rt-ink);outline-offset:2px}
+  header.bar .bar-acct:focus-visible{outline:2px solid var(--rt-ink);outline-offset:2px}
   /* En-tête en mode crise : le TITRE DE LA FICHE prime, la marque s'efface. */
   header.bar.crisis .brand b{display:none}
   header.bar.crisis #brandTitle{font-size:17px;font-weight:700;margin-top:1px}
@@ -898,7 +890,7 @@
   @media (min-width:900px){.cards{grid-template-columns:1fr 1fr}.cards>.empty,.cards>.btn{grid-column:1/-1}}
   @media (max-width:560px){.read-head h2{font-size:21px}.row2{flex-direction:column;gap:0}.question{font-size:18px}}
   @media (prefers-reduced-motion:reduce){*{transition:none!important}.tmcard.flash{animation:none}}
-  @media print{body{background:#fff}header.bar,footer.tools,.read-actions,.read-tools,.back,.notice,.bar-act,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.session-bar,.sess-list,.notes-block{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}}
+  @media print{body{background:#fff}header.bar,footer.tools,.read-tools,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.session-bar,.sess-list,.notes-block{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}}
 </style>
 </head>
 <body>
@@ -1011,7 +1003,7 @@
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='3.4.9';
+const APP_VERSION='3.5.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -1449,10 +1441,13 @@ function seedsHidden(){try{return localStorage.getItem(spaceKey('ac-seeds-hidden
 // aléatoire pour une bibliothèque (le jeu de catégories est un document synchronisé unique -> pas
 // besoin de déterminisme, et on évite toute collision d'id avec le Perso ou une autre bibliothèque).
 function newCatId(name,scope){if(scope)return uid('c');let id=detCatId(name),n=2;while(categories.some(c=>c.id===id))id=detCatId(name)+'-'+(n++);return id;}
-const textTrunc=(s,n)=>{s=String(s||'');return s.length>n?s.slice(0,n-1)+'…':s;};
 const catOf=f=>categories.find(c=>c.id===f.category)||null;
 const catName=f=>{const c=catOf(f);return c?c.name:'';};
 function catTag(f){const c=catOf(f);if(!c)return '';const col=safeColor(c.color);return `<span class="tag cat" style="--c:${col}">${esc(c.name)}</span>`;}
+// Pastille-bouton de catégorie (rangée de filtres de la bibliothèque ET sélecteur de l'éditeur) :
+// pleine couleur si sélectionnée, sinon liseré teinté (--catcol). Un seul point de code pour les deux.
+function catChipHtml(c,selected,cls,attr){const col=safeColor(c.color);
+  return `<button class="${cls}${selected?'':' colored'}" ${attr}="${esc(c.id)}" style="${selected?`background:${col};color:#fff;border-color:${col}`:`--catcol:${col}`}">${esc(c.name)}</button>`;}
 const fmtMs=ms=>{ms=Math.max(0,Math.floor(ms/1000));const m=Math.floor(ms/60),s=ms%60;return (m<10?'0':'')+m+':'+(s<10?'0':'')+s;};
 // Taille lisible (octets -> o/Ko/Mo/Go). Utilisé par la jauge de stockage et l'état de l'instance.
 const fmtBytes=n=>{n=+n||0;if(n<1024)return n+' o';if(n<1048576)return Math.round(n/1024)+' Ko';if(n<1073741824)return (n/1048576).toFixed(1)+' Mo';return (n/1073741824).toFixed(2)+' Go';};
@@ -1491,7 +1486,6 @@ function completionSpots(f){if(!f||typeof f!=='object')return [];const spots=[];
     const hit=TODO_RX.test(String(b.title||''))||TODO_RX.test(String(b.question||''))||(Array.isArray(b.steps)?b.steps:[]).some(s=>TODO_RX.test(String(s||'')))||(Array.isArray(b.options)?b.options:[]).some(o=>TODO_RX.test(String((o&&o.label)||'')));
     if(hit)spots.push('Bloc « '+(String(b.title||'').trim()||'sans titre')+' »');});
   return spots;}
-function ficheNeedsCompletion(f){return completionSpots(f).length>0;}
 // migrate = compatibilité ascendante ET point d'ASSAINISSEMENT (toute fiche chargée/importée/dupliquée
 // y passe). Coerce les types, restreint les identifiants à un jeu sûr (remappés si dangereux, en
 // conservant les liens internes), valide images/couleurs, plafonne les tailles.
@@ -1626,7 +1620,9 @@ const fmtDate=v=>{if(!v)return 'Sans date de validation';const m=String(v).match
      applique migrateCategories, puis render().
    saveCats()      : persiste la liste de catégories.
    persist(f)      : enregistre une fiche ; alerte si le stockage est saturé. */
-async function chooseBackend(){try{await IDB.open();Data=IDB;const ex=await IDB.getAll();if(!ex.length){const old=await KV.getAll();if(old.length){for(const f of old)await IDB.put(migrate(f));}const oc=await KV.getCats();if(oc)await IDB.setCats(oc);const os=await KV.getSessions();if(os&&os.length){for(const s of os)await IDB.putSession(s);}const on=await KV.getNotes();if(on&&Object.keys(on).length)await IDB.setNotes(on);}}catch(e){Data=KV;}}
+// Renvoie les fiches déjà lues (le test « base vide ? » a coûté un getAll complet : load() le
+// RÉUTILISE au lieu de relire) — ou null si une migration KV->IDB vient d'écrire (relire) ou en repli KV.
+async function chooseBackend(){try{await IDB.open();Data=IDB;const ex=await IDB.getAll();if(!ex.length){const old=await KV.getAll();if(old.length){for(const f of old)await IDB.put(migrate(f));}const oc=await KV.getCats();if(oc)await IDB.setCats(oc);const os=await KV.getSessions();if(os&&os.length){for(const s of os)await IDB.putSession(s);}const on=await KV.getNotes();if(on&&Object.keys(on).length)await IDB.setNotes(on);return null;}return ex;}catch(e){Data=KV;return null;}}
 async function updateStorageInfo(){
   const el=document.getElementById('storageInfo');if(!el)return;
   try{
@@ -1669,14 +1665,16 @@ async function load(){
   try{if(Auth.signedIn()&&((Auth.user()||{}).id||'')!==currentSpace()){
     const uid=Auth.user().id;localStorage.setItem('ac-space',uid);registerSpace(uid);location.reload();return;}}catch(e){}
   registerSpace(currentSpace());   // registre des espaces (utile au wipeLocal), y compris en repli KV
-  await chooseBackend();
+  const pre=await chooseBackend();  // fiches déjà lues par le test « base vide ? » (évite un 2e getAll)
   if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();
-  categories=sanitizeCats(await Data.getCats());
+  // Lectures indépendantes -> EN PARALLÈLE (démarrage) au lieu d'une chaîne d'attentes.
+  const [_cats,_fs,_ss,_nts]=await Promise.all([Data.getCats(),pre||Data.getAll(),Data.getSessions(),Data.getNotes().catch(()=>({}))]);
+  categories=sanitizeCats(_cats);
   // On masque les TOMBSTONES (suppressions douces) de l'affichage ; ils restent dans IDB tant
   // qu'ils n'ont pas été poussés vers le cloud (propagation de la suppression aux autres appareils).
-  fiches=(await Data.getAll()).map(migrate).filter(f=>!f.deletedAt);
-  sessions=(await Data.getSessions())||[];
-  try{notes=sanitizeNotes(await Data.getNotes());}catch(e){notes={};}
+  fiches=_fs.map(migrate).filter(f=>!f.deletedAt);
+  sessions=_ss||[];
+  try{notes=sanitizeNotes(_nts);}catch(e){notes={};}
   if(!categories.length){categories=defaultCats();await Data.setCats(categories);}
   // Bibliothèque vide -> un bandeau d'accueil PROPOSE les fiches d'exemple (jamais créées
   // automatiquement : l'utilisateur reste maître de son contenu, le cloud n'est jamais pollué à son insu).
@@ -1972,6 +1970,13 @@ function toggleTimer(t){const now=Date.now();
 function resetTimer(t){t.running=false;t.elapsedMs=0;t.cycles=0;t.lastStart=0;}
 // tickAll : fait AVANCER les minuteurs de TOUTES les sessions vives (même fiche non visible) et
 // déclenche les alarmes. Puis rafraîchit le DOM de la fiche active si on est en lecture.
+// Valeur affichée d'un minuteur : chrono -> temps écoulé ; cycle -> temps restant + progression (%).
+// SEUL point de calcul, partagé par la carte (timerCard), le rafraîchissement 300 ms
+// (refreshTimersDOM) et le rappel d'en-tête (updateRtStrip) : les trois affichages ne peuvent pas diverger.
+function timerDisplay(t,now){
+  if(t.type==='stopwatch')return{val:fmtMs(t.elapsedMs+(t.running?(now-t.lastStart):0)),bw:0};
+  const per=t.seconds*1000||0,within=t.elapsedMs+(t.running?(now-t.lastStart):0);
+  return{val:fmtMs(Math.max(0,per-within)),bw:per?Math.min(100,within/per*100):0};}
 function tickAll(){const now=Date.now();let fired=null;
   Object.values(liveSessions).forEach(R=>{Object.values(R.timers).forEach(t=>{if(t.type==='interval'&&t.running){const per=t.seconds*1000||1;const within=t.elapsedMs+(now-t.lastStart);
     if(within>=per){const comp=Math.floor(within/per);t.cycles+=comp;const left=within-comp*per;if(t.autoloop){t.elapsedMs=0;t.lastStart=now-left;}else{t.running=false;t.elapsedMs=per;t.lastStart=0;}onTimerFired(R,t);fired=R;}}});});
@@ -1982,27 +1987,32 @@ function tickAll(){const now=Date.now();let fired=null;
    que le panneau minuteurs est sorti de l'écran (on a déroulé les étapes), l'en-tête affiche le
    temps restant/écoulé en permanence — le cas d'usage cardinal (« adrénaline / 5 min ») ne doit
    jamais exiger de remonter la page pour LIRE le temps. Tap -> re-scrolle au panneau. */
+// Visibilité du panneau minuteurs : elle ne change qu'au DÉFILEMENT, au redimensionnement ou à un
+// re-rendu — on ne relit la géométrie (getBoundingClientRect = reflow forcé) que quand un de ces
+// événements l'a invalidée, PAS à chaque tick de 300 ms.
+let _rtShow=false,_rtShowDirty=true;
+window.addEventListener('scroll',()=>{_rtShowDirty=true;},{passive:true});
+window.addEventListener('resize',()=>{_rtShowDirty=true;},{passive:true});
 function updateRtStrip(now){const el=document.getElementById('rtStrip');if(!el)return;
   now=now||Date.now();
   const run=(state.view==='read'&&Runtime.fiche)?Object.values(Runtime.timers).filter(t=>t.running):[];
   let show=false;
-  if(run.length){const p=document.querySelector('.rt-panel');const hdr=document.querySelector('header.bar');
-    const hb=hdr?hdr.getBoundingClientRect().bottom:0;
-    show=!p||p.getBoundingClientRect().bottom<=hb;}
+  if(run.length){
+    if(_rtShowDirty){_rtShowDirty=false;const p=document.querySelector('.rt-panel');const hdr=document.querySelector('header.bar');
+      const hb=hdr?hdr.getBoundingClientRect().bottom:0;
+      _rtShow=!p||p.getBoundingClientRect().bottom<=hb;}
+    show=_rtShow;}
   if(!show){el.hidden=true;return;}
   const seg=run.slice(0,2).map(t=>{const lbl=esc(t.label)||(t.type==='interval'?'Minuteur':'Chrono');
-    const v=t.type==='stopwatch'?fmtMs(t.elapsedMs+(now-t.lastStart))
-      :fmtMs(Math.max(0,(t.seconds*1000||0)-(t.elapsedMs+(now-t.lastStart))));
-    return `<span class="rts-i"><span class="rts-l">${lbl}</span><b class="rts-t">${v}</b></span>`;}).join('');
+    return `<span class="rts-i"><span class="rts-l">${lbl}</span><b class="rts-t">${timerDisplay(t,now).val}</b></span>`;}).join('');
   el.innerHTML=seg+(run.length>2?`<span class="rts-more">+${run.length-2}</span>`:'')+'<span class="rts-go">▴ Voir</span>';
   el.hidden=false;}
 {const rs=document.getElementById('rtStrip');
  if(rs)rs.onclick=()=>{const p=document.querySelector('.rt-panel');if(p)p.scrollIntoView({behavior:'smooth',block:'start'});};}
 function refreshTimersDOM(now){now=now||Date.now();
   Object.values(Runtime.timers).forEach(t=>{const v=document.getElementById('tmval-'+t.id);if(!v)return;syncTimerBtns(t);const lbl=esc(t.label)||(t.type==='interval'?'Minuteur':'Chronomètre');
-    if(t.type==='stopwatch'){v.textContent=fmtMs(t.elapsedMs+(t.running?(now-t.lastStart):0));}
-    else{const per=t.seconds*1000||0;const within=t.elapsedMs+(t.running?(now-t.lastStart):0);v.textContent=fmtMs(Math.max(0,per-within));
-      const c=document.getElementById('tmcyc-'+t.id);if(c)c.textContent='Cycles : '+t.cycles;const bar=document.getElementById('tmbar-'+t.id);if(bar)bar.style.width=(per?Math.min(100,within/per*100):0)+'%';}
+    const d=timerDisplay(t,now);v.textContent=d.val;
+    if(t.type==='interval'){const c=document.getElementById('tmcyc-'+t.id);if(c)c.textContent='Cycles : '+t.cycles;const bar=document.getElementById('tmbar-'+t.id);if(bar)bar.style.width=d.bw+'%';}
     v.setAttribute('aria-label',lbl+' : '+v.textContent);});}
 setInterval(tickAll,300);
 
@@ -2068,11 +2078,12 @@ function render(){
   // Session en cours : pied de page réduit à l'état (les actions Exporter/Importer/Thème sortent
   // du champ visuel) ; le rappel minuteurs de l'en-tête est resynchronisé tout de suite.
   document.body.classList.toggle('crisis-live',state.view==='read'&&Runtime.started);
-  updateRtStrip();
   if(state.view==='library')renderLibrary();else if(state.view==='edit')renderEditor();else renderRead();
+  _rtShowDirty=true;updateRtStrip();   // APRÈS le rendu de la vue : position réelle du panneau minuteurs
   document.getElementById('count').textContent=fiches.length+' fiche'+(fiches.length>1?'s':'')+' · v'+APP_VERSION;
   if(state.view!=='read')window.scrollTo(0,0);
 }
+let _qDebounce=null;   // debounce du champ de recherche (voir l'écouteur 'input' ci-dessous)
 function renderLibrary(){
   const q=txNorm(state.q);
   // Le re-rendu remplace la rangée de catégories : on mémorise son défilement horizontal pour le
@@ -2086,7 +2097,7 @@ function renderLibrary(){
   const canEdit=canEditScope(state.scope);
   // Tri : épinglées d'abord (préférence locale), puis ordre habituel. Recherche : plein texte normalisé.
   const list=fiches.slice().sort((a,b)=>((isPinned(b.id)?1:0)-(isPinned(a.id)?1:0))||byOrder(a,b)).filter(f=>(state.scope?f.libraryId===state.scope:!f.libraryId)&&(!state.cat||f.category===state.cat)&&(canEdit||f.status!=='draft')&&(!q||ficheHaystack(f).includes(q)));
-  const chips=`<button class="catchip" data-cat="" style="${!state.cat?'background:var(--ink);color:var(--surface);border-color:var(--ink)':''}">Toutes</button>`+catsSorted(state.scope).map(c=>{const col=safeColor(c.color);return `<button class="catchip${state.cat===c.id?'':' colored'}" data-cat="${esc(c.id)}" style="${state.cat===c.id?`background:${col};color:#fff;border-color:${col}`:`--catcol:${col}`}">${esc(c.name)}</button>`;}).join('')+(canEditScope(state.scope)?`<button class="catchip" id="catMgrChip" style="border-style:dashed;color:var(--ink-soft)">${uiIcon('gear',13)} Gérer</button>`:'');
+  const chips=`<button class="catchip" data-cat="" style="${!state.cat?'background:var(--ink);color:var(--surface);border-color:var(--ink)':''}">Toutes</button>`+catsSorted(state.scope).map(c=>catChipHtml(c,state.cat===c.id,'catchip','data-cat')).join('')+(canEditScope(state.scope)?`<button class="catchip" id="catMgrChip" style="border-style:dashed;color:var(--ink-soft)">${uiIcon('gear',13)} Gérer</button>`:'');
   // Barre BIBLIOTHÈQUE (visible seulement connecté) : Perso + bibliothèques partagées + création (app-admin).
   const ROLE_LBL={viewer:'lecture',editor:'édition',admin:'admin'};
   const scopeBar=Auth.signedIn()?`<div class="scopebar"><span class="scope-lbl">Bibliothèque</span><div class="chiprow">
@@ -2119,7 +2130,11 @@ function renderLibrary(){
         :state.scope?(canEdit?'Cette bibliothèque partagée est vide — créez sa première fiche.':'Cette bibliothèque partagée est vide.')
         :'Créez votre première aide cognitive.'}</div>`}</div>`;
 
-  document.getElementById('q').addEventListener('input',e=>{state.q=e.target.value;state.libLimit=LIB_PAGE;const pos=e.target.selectionStart;renderLibrary();const inp=document.getElementById('q');inp.focus();inp.setSelectionRange(pos,pos);});
+  // Recherche DÉBOUNCÉE (150 ms) : re-filtrer/re-rendre toute la bibliothèque à chaque frappe
+  // faisait ramer la saisie sur mobile ; on attend une micro-pause de frappe. Focus/curseur restaurés
+  // (le re-rendu remplace le champ), comme avant.
+  document.getElementById('q').addEventListener('input',e=>{state.q=e.target.value;state.libLimit=LIB_PAGE;
+    clearTimeout(_qDebounce);_qDebounce=setTimeout(()=>{const pos=e.target.selectionStart;renderLibrary();const inp=document.getElementById('q');inp.focus();inp.setSelectionRange(pos,pos);},150);});
   {const sm=document.getElementById('showMore');if(sm)sm.onclick=()=>{state.libLimit+=LIB_PAGE;renderLibrary();};}
   {const nb=document.getElementById('newBtn');if(nb)nb.onclick=newFiche;}
   {const nx=document.getElementById('noticeX');if(nx)nx.onclick=()=>{try{localStorage.setItem('ac-notice-hidden','1');}catch(e){}renderLibrary();};}
@@ -2173,7 +2188,8 @@ function headerIcon(cls){const P={
   const p=P[cls];return p?`<span class="sec-badge"><svg class="sec-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg></span>`:'<span class="pip"></span>';}
 // Le <li> est un conteneur flex (puce en ::before) : le texte est TOUJOURS enveloppé dans un
 // <span> unique, sinon le gras de fmt() (<b>) éclate la ligne en plusieurs éléments flex.
-function staticBlock(title,cls,arr,liClass){const items=clean(arr);if(!items.length)return '';return `<section class="block"><div class="block-h ${cls}">${headerIcon(cls)}${title}</div><ul class="flat ${liClass}">${items.map(x=>`<li><span class="ftxt">${fmt(x)}</span></li>`).join('')}</ul></section>`;}
+// o (option) : {sec, ul} pour surclasser la classe de section / de liste (bandeau « Ne pas oublier »).
+function staticBlock(title,cls,arr,liClass,o){o=o||{};const items=clean(arr);if(!items.length)return '';return `<section class="block${o.sec?' '+o.sec:''}"><div class="block-h ${cls}">${headerIcon(cls)}${title}</div><ul class="${o.ul||'flat '+liClass}">${items.map(x=>`<li><span class="ftxt">${fmt(x)}</span></li>`).join('')}</ul></section>`;}
 /* Note personnelle : COMPOSANT PARTAGÉ entre la lecture (mode crise) et l'éditeur (y compris à la
    CRÉATION d'une fiche : l'id du brouillon existe déjà). Lecture seule par défaut — rien d'éditable
    par accident en crise — édition sur geste explicite (Modifier / + Ajouter), auto-enregistrement.
@@ -2244,11 +2260,31 @@ function wrapText(str,maxChars){const words=String(str||'').replace(/\s+/g,' ').
   const push=()=>{if(cur){lines.push(cur);cur='';}};
   words.forEach(w=>{while(w.length>maxChars){push();lines.push(w.slice(0,maxChars));w=w.slice(maxChars);}if(!cur)cur=w;else if(cur.length+1+w.length<=maxChars)cur+=' '+w;else{push();cur=w;}});
   push();return lines.length?lines:[''];}
+/* Constantes de mise en page du flow, partagées par les quatre étapes de buildFlowSVG
+   (flowMeasure / flowPlace / flowRoute / flowNodesSVG). IMG_* = vignette d'image dans le bloc
+   (cliquable -> plein écran) ; SLOOP = écart de la boucle d'auto-référence ; LBL_* = pastille d'étiquette. */
+const FLOWK={TH:28,HG:36,VG:52,PX:14,PY:14,LH:16,TLH:15,HPAD:8,TXT_MAX:42,TITLE_MAX:34,MINW:150,MAXW:300,CW:5.6,
+  IMG_H:60,IMG_PAD:8,IMG_GAP:6,SLOOP:24,LBL_MAX:16,LCH:5.5};
+// Étiquette d'une arête de décision = pastille de TEXTE (l'intitulé de la réponse), TRONQUÉE
+// si elle est trop longue (…) pour rester compacte et ne pas trop encombrer le schéma.
+const shortLbl=s=>{s=String(s||'').replace(/\s+/g,' ').trim();return s.length>FLOWK.LBL_MAX?s.slice(0,FLOWK.LBL_MAX-1)+'…':s;};
+const labW=s=>{const t=shortLbl(s);return t?Math.max(20,Math.round(t.length*FLOWK.LCH)+12):0;};
+const labelTag=(x,y,txt)=>{const t=shortLbl(txt);if(!t)return '';const w=labW(txt);return `<g transform="translate(${Math.round(x)},${Math.round(y)})"><rect x="${Math.round(-w/2)}" y="-8.5" width="${w}" height="17" rx="8.5" fill="#fff" stroke="#c9a24a" stroke-width="1.3"/><text x="0" y="3.3" text-anchor="middle" font-size="9.5" font-weight="600" fill="#6b4d12" font-family="system-ui">${esc(t)}</text></g>`;};
+// Orchestrateur : quatre étapes qui se passent un contexte C (algorithme détaillé dans le grand
+// commentaire ci-dessus ; chaque étape correspond à un point 1-4 de ce commentaire).
 function buildFlowSVG(f,curId){
   const blocks=f.blocks||[];if(!blocks.length)return '<div style="padding:14px;color:var(--ink-soft);font-size:13px">Aucun bloc.</div>';
-  const TH=28,HG=36,VG=52,PX=14,PY=14,LH=16,TLH=15,HPAD=8,TXT_MAX=42,TITLE_MAX=34,MINW=150,MAXW=300,CW=5.6;
-  const IMG_H=60,IMG_PAD=8,IMG_GAP=6;// vignette d'image dans le bloc (cliquable -> plein écran)
   const byId={};blocks.forEach(b=>byId[b.id]=b);const start=(f.start&&byId[f.start])?f.start:blocks[0].id;
+  const C={blocks,byId,start,curId};
+  flowMeasure(C);   // 1. dimensions de chaque bloc (texte enroulé, jamais tronqué)
+  flowPlace(C);     // 2. niveaux (BFS) + ordre dans la rangée (barycentre) + positions
+  flowRoute(C);     // 3. arêtes (avant / retour / latérales / auto-réf) + pastilles d'étiquette
+  const nodes=flowNodesSVG(C);   // 4. dessin des blocs
+  const startCx=C.pos[start]?Math.round(C.pos[start].x+C.pos[start].w/2):Math.round(C.svgW/2);
+  return `<svg width="${C.svgW}" height="${C.svgH}" viewBox="0 0 ${C.svgW} ${C.svgH}" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:0 auto" data-bw="${C.svgW}" data-bh="${C.svgH}" data-startcx="${startCx}"><defs><marker id="ah" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#9fb0ac"/></marker><marker id="ahb" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#c98a2a"/></marker></defs>${C.edges}${nodes}</svg>`;
+}
+// 1. MESURE : mise en page interne de chaque bloc -> C.LAY.
+function flowMeasure(C){const{blocks,start}=C;const{TH,LH,TLH,HPAD,TXT_MAX,TITLE_MAX,MINW,MAXW,CW,IMG_H,IMG_PAD,IMG_GAP}=FLOWK;
   // Mise en page de chaque bloc : texte ENROULÉ (jamais tronqué), TOUTES les étapes/options (sans
   // limite). LARGEUR ajustée au contenu (chaque bloc se resserre sur sa plus longue ligne) pour
   // éviter l'espace vide à droite du texte.
@@ -2267,6 +2303,10 @@ function buildFlowSVG(f,curId){
     let base=Math.round(mxc*CW)+22;
     const img=b.image||null;// image du bloc (déjà validée par migrate -> safeImg)
     LAY[b.id]={dec,headerLines,headerH,startStrip,items,img,h:headerH+HPAD+cl*LH+(img?(IMG_GAP+IMG_H):0)+HPAD,w:Math.max(MINW,Math.min(MAXW,base))};});
+  C.LAY=LAY;}
+// 2. PLACEMENT : BFS en couches depuis le départ, ordre par barycentre des parents, rangées
+// centrées -> C.pos / C.botOfY / C.totalW / C.totalH.
+function flowPlace(C){const{blocks,byId,start,LAY}=C;const{HG,VG,PX,PY}=FLOWK;
   const nh=id=>LAY[id].h,nw=id=>LAY[id].w;
   const level={};
   const tgOf=id=>{const b=byId[id];return b.type==='steps'?(b.next&&byId[b.next]?[b.next]:[]):(b.options||[]).map(o=>o.target).filter(t=>t&&byId[t]);};
@@ -2281,7 +2321,7 @@ function buildFlowSVG(f,curId){
   // Ordonne chaque rangée par le barycentre des positions de ses parents (haut->bas),
   // afin de limiter les croisements d'arêtes inutiles (sinon = ordre brut du tableau).
   const parentsF={};blocks.forEach(b=>{parentsF[b.id]=[];});
-  blocks.forEach(b=>{const tg=b.type==='steps'?(b.next&&byId[b.next]?[b.next]:[]):(b.options||[]).map(o=>o.target).filter(t=>t&&byId[t]);tg.forEach(t=>{if(level[t]>level[b.id])parentsF[t].push(b.id);});});
+  blocks.forEach(b=>{tgOf(b.id).forEach(t=>{if(level[t]>level[b.id])parentsF[t].push(b.id);});});
   const orderIx={},bIx=id=>blocks.findIndex(x=>x.id===id);
   Object.keys(byLevel).map(Number).sort((a,b)=>a-b).forEach((L,li)=>{const row=byLevel[L];
     if(li>0){const bc={};row.forEach(id=>{const ps=parentsF[id];bc[id]=ps.length?ps.reduce((s,p)=>s+(orderIx[p]||0),0)/ps.length:1e9;});
@@ -2295,6 +2335,9 @@ function buildFlowSVG(f,curId){
   const totalH=curY-VG+PY;
   const pos={};
   Object.keys(byLevel).map(Number).sort((a,b)=>a-b).forEach(L=>{const row=byLevel[L];let x=PX+(maxRowW-rowW[L])/2;row.forEach(id=>{pos[id]={x:Math.round(x),y:levelY[L],h:nh(id),w:nw(id)};x+=nw(id)+HG;});});
+  C.pos=pos;C.botOfY=botOfY;C.totalW=totalW;C.totalH=totalH;}
+// 3. ROUTAGE des arêtes + pose des pastilles d'étiquette -> C.edges, taille finale C.svgW / C.svgH.
+function flowRoute(C){const{blocks,byId,pos,botOfY}=C;const{HG,VG,SLOOP}=FLOWK;
   // Collecte des arêtes, séparées en AVANT (descendantes) et RETOUR (même niveau / remontée).
   // Convention algorithme médical : connecteurs orthogonaux (angles droits), trait plein
   // pour le flux principal, trait pointillé pour les boucles/retours.
@@ -2334,14 +2377,8 @@ function buildFlowSVG(f,curId){
   // Retours : remontée verticale (x=bx) placée AU PLUS PRÈS des blocs — juste à droite des blocs
   // que la remontée doit contourner (rangées intermédiaires entre cible et source), au lieu d'une
   // marge globale lointaine. On décale (bx + 20) uniquement si deux retours se gêneraient.
-  const SLOOP=24;
-  // Étiquette d'une arête de décision = pastille de TEXTE (l'intitulé de la réponse), TRONQUÉE
-  // si elle est trop longue (… ) pour rester compacte et ne pas trop encombrer le schéma.
-  const LBL_MAX=16,LCH=5.5;
-  const shortLbl=s=>{s=String(s||'').replace(/\s+/g,' ').trim();return s.length>LBL_MAX?s.slice(0,LBL_MAX-1)+'…':s;};
-  const labW=s=>{const t=shortLbl(s);return t?Math.max(20,Math.round(t.length*LCH)+12):0;};
-  const labelTag=(x,y,txt)=>{const t=shortLbl(txt);if(!t)return '';const w=labW(txt);return `<g transform="translate(${Math.round(x)},${Math.round(y)})"><rect x="${Math.round(-w/2)}" y="-8.5" width="${w}" height="17" rx="8.5" fill="#fff" stroke="#c9a24a" stroke-width="1.3"/><text x="0" y="3.3" text-anchor="middle" font-size="9.5" font-weight="600" fill="#6b4d12" font-family="system-ui">${esc(t)}</text></g>`;};
-  let svgW=totalW,svgH=totalH;
+  // (shortLbl / labW / labelTag : définis au niveau module, au-dessus de buildFlowSVG.)
+  let svgW=C.totalW,svgH=C.totalH;
   // Un côté peut être tracé DIRECTEMENT (sans contournement par l'inter-rangée) si sa rangée est libre
   // à DROITE : aucun bloc à droite de la source au niveau sy (resp. de la cible au niveau ty).
   const clearOf=(Y,xFrom,sid,tid)=>!blocks.some(b=>{const q=pos[b.id];return q&&b.id!==sid&&b.id!==tid&&q.y<=Y&&Y<=q.y+q.h&&q.x+q.w>xFrom+2;});
@@ -2459,6 +2496,10 @@ function buildFlowSVG(f,curId){
     placedLabels.push({x:best.x-halfW,y:best.y-9.5,w:w+4,h:19});
     edges+=labelTag(best.x,best.y,job.txt);
     if(best.x+halfW+6>svgW)svgW=best.x+halfW+6;if(best.y+13>svgH)svgH=best.y+13;});
+  C.edges=edges;C.svgW=svgW;C.svgH=svgH;}
+// 4. DESSIN des blocs (fond clippé, bandeau d'en-tête, pastille DÉPART, items, vignette d'image,
+// halo teal du bloc courant) -> chaîne des nœuds.
+function flowNodesSVG(C){const{blocks,pos,LAY,start,curId}=C;const{LH,TLH,HPAD,IMG_H,IMG_PAD,IMG_GAP}=FLOWK;
   let nodes='';blocks.forEach(b=>{const p=pos[b.id];if(!p)return;const L=LAY[b.id],dec=L.dec,isS=b.id===start,isCur=!!curId&&b.id===curId,W=p.w,cid='cp'+b.id;
     const fill=dec?'#fdf8ef':'#f5faf8',stroke=dec?'#e1cf9f':'#c2d0cc',tcol=dec?'#6b4d12':'#16211f';const h=p.h,hh=L.headerH;
     // Bloc COURANT (où l'on en est dans le parcours) : léger HALO teal derrière le bloc + bordure teal
@@ -2490,9 +2531,7 @@ function buildFlowSVG(f,curId){
       g+=`<g transform="translate(${W-IMG_PAD-15},${iyi+4})" pointer-events="none"><circle cx="6" cy="6" r="7" fill="rgba(13,91,86,.85)"/><circle cx="5" cy="5" r="2.4" fill="none" stroke="#fff" stroke-width="1.2"/><path d="M6.8 6.8 L9 9" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></g>`;}
     g+=`<rect${isCur?' class="flow-hl"':''} width="${W}" height="${h}" rx="10" fill="none" stroke="${isCur?'#0d5b56':stroke}" stroke-width="${isCur?2.5:1.5}"/>`;
     nodes+=`<g transform="translate(${p.x},${p.y})">${g}</g>`;});
-  const startCx=pos[start]?Math.round(pos[start].x+pos[start].w/2):Math.round(svgW/2);
-  return `<svg width="${svgW}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:0 auto" data-bw="${svgW}" data-bh="${svgH}" data-startcx="${startCx}"><defs><marker id="ah" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#9fb0ac"/></marker><marker id="ahb" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#c98a2a"/></marker></defs>${edges}${nodes}</svg>`;
-}
+  return nodes;}
 
 /* ===== Runtime panel (rendu des minuteurs/compteurs en lecture) =====
    timerCard(t)   : carte d'un minuteur. 'stopwatch' -> temps qui monte ;
@@ -2502,9 +2541,7 @@ function buildFlowSVG(f,curId){
    counterCard(c) : carte d'un compteur (valeur + boutons - / +).
    runtimePanel(f): assemble le bandeau (rien si la fiche n'a ni minuteur ni
      compteur) avec un bouton son 🔔/🔕. */
-function timerCard(t){const now=Date.now();let val,cyc='',bw=0;
-  if(t.type==='stopwatch'){val=fmtMs(t.elapsedMs+(t.running?(now-t.lastStart):0));}
-  else{const per=t.seconds*1000||0;const within=t.elapsedMs+(t.running?(now-t.lastStart):0);val=fmtMs(Math.max(0,per-within));bw=per?Math.min(100,within/per*100):0;cyc='Cycles : '+t.cycles;}
+function timerCard(t){const d=timerDisplay(t,Date.now());const val=d.val,bw=d.bw,cyc=t.type==='interval'?'Cycles : '+t.cycles:'';
   const lbl=esc(t.label)||(t.type==='interval'?'Minuteur':'Chronomètre');
   return `<div class="tmcard" id="tmcard-${t.id}" role="group" aria-label="${lbl}"><div class="tm-label">${lbl}</div>
     <div class="tm-val" id="tmval-${t.id}" role="timer" aria-label="${lbl} : ${val}">${val}</div>
@@ -2586,8 +2623,7 @@ function renderRead(){
   const refs=clean(f.references);
   // « Ne pas oublier » : bandeau compact SOUS le titre (un rappel critique doit être vu AVANT
   // d'être violé, pas après avoir tout déroulé).
-  const nf=clean(f.notForget);
-  const forgetStrip=nf.length?`<section class="block forget-strip"><div class="block-h h-forget">${headerIcon('h-forget')}Ne pas oublier</div><ul class="forget-list">${nf.map(x=>`<li><span class="ftxt">${fmt(x)}</span></li>`).join('')}</ul></section>`:'';
+  const forgetStrip=staticBlock('Ne pas oublier','h-forget',f.notForget,'',{sec:'forget-strip',ul:'forget-list'});
   // Historique = sessions de cette fiche, EN EXCLUANT la session vive courante (affichée par le bandeau).
   const ss=sessions.filter(s=>s.ficheId===f.id&&s.id!==Runtime.sessionId).sort((a,b)=>b.savedAt-a.savedAt);
   const started=Runtime.started;
@@ -2614,6 +2650,12 @@ function renderRead(){
     ${(()=>{const rel=(f.related||[]).map(id=>fiches.find(x=>x.id===id&&!x.deletedAt)).filter(Boolean);return rel.length?`<div class="related"><b>Voir aussi</b><div class="related-row">${rel.map(r=>`<button class="btn sm" data-openrel="${r.id}">${esc(r.title)||'Sans titre'} →</button>`).join('')}</div></div>`:'';})()}
     ${noteBlockHtml(f.id,started)}
     <div class="read-tools"><div class="read-tools-h">Gérer cette fiche${started?' · <span class="ro-badge">session en cours : modification suspendue</span>':''}${f.libraryId?` · <span class="ro-badge">${canEditFiche(f)?esc(libName(f.libraryId)||'Partagée'):'Lecture seule'}</span>`:''}</div><div class="read-tools-btns">${canEditFiche(f)?`<button class="btn sm" id="edit"${started?' disabled title="Non modifiable pendant une session en cours"':''}>Modifier</button>`:''}<button class="btn sm" id="print">Imprimer</button><button class="btn sm" id="dup">Dupliquer</button><button class="btn sm" id="exportOne">Exporter</button>${canEditFiche(f)?`<button class="btn sm" id="versions"${started?' disabled title="Non modifiable pendant une session en cours"':''}>${f.libraryId?'Ma version écrasée':'Versions'}</button>`:''}</div></div>`;
+  bindReadEvents(f,blk,cur);
+}
+// Câblage des écouteurs de la vue lecture (seconde moitié de l'ancien renderRead) : navigation entre
+// blocs, cochage des étapes, contrôles minuteurs/compteurs (mise à jour DOM directe, sans re-rendu),
+// journal des actions, sessions. `blk` = bloc affiché, `cur` = id du bloc courant (halo du flow).
+function bindReadEvents(f,blk,cur){
   // Retour bibliothèque : la session reste VIVE (minuteurs continuent) et est auto-enregistrée.
   document.getElementById('back').onclick=()=>{persistAllLive();state.view='library';state.fiche=null;state.showFlow=false;render();};
   {const eb=document.getElementById('edit');if(eb)eb.onclick=()=>openEdit(f.id);}
@@ -2732,7 +2774,7 @@ function renderEditor(){
     <button class="back" id="back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Quitter sans enregistrer</button>
     ${isNew&&state.showCreateBand!==false?`<div class="create-band"><div class="cb-q">Comment créer cette fiche ?</div><div class="cb-opts"><button class="btn primary sm" id="cbAI">${uiIcon('sparkles',14)} Créer via IA</button><button class="btn sm" id="cbManual">${uiIcon('pen',13)} Créer manuellement</button></div><div class="cb-hint">« Via IA » : copiez le prompt dans une IA avec un document, puis importez le résultat. « Manuellement » : remplissez les champs ci-dessous.</div></div>`:''}
     <div class="field"><label>Titre de la situation</label><input type="text" id="f-title" value="${esc(f.title)}" placeholder="ex. Intoxication aux anesthésiques locaux"></div>
-    <div class="field"><label>Catégorie</label><div class="catpick"><button class="catpill" data-selcat="" style="${!f.category?'background:var(--ink-soft);color:var(--surface);border-color:var(--ink-soft)':''}">Aucune</button>${catsSorted(f.libraryId).map(c=>{const col=safeColor(c.color);return `<button class="catpill${f.category===c.id?'':' colored'}" data-selcat="${esc(c.id)}" style="${f.category===c.id?`background:${col};color:#fff;border-color:${col}`:`--catcol:${col}`}">${esc(c.name)}</button>`;}).join('')}<button class="catpill" id="catMgrBtn" style="border-style:dashed;color:var(--ink-soft)">${uiIcon('gear',13)} Gérer</button></div></div>
+    <div class="field"><label>Catégorie</label><div class="catpick"><button class="catpill" data-selcat="" style="${!f.category?'background:var(--ink-soft);color:var(--surface);border-color:var(--ink-soft)':''}">Aucune</button>${catsSorted(f.libraryId).map(c=>catChipHtml(c,f.category===c.id,'catpill','data-selcat')).join('')}<button class="catpill" id="catMgrBtn" style="border-style:dashed;color:var(--ink-soft)">${uiIcon('gear',13)} Gérer</button></div></div>
     ${Auth.signedIn()?`<div class="field"><label>Bibliothèque <span class="hint">où ranger cette fiche</span></label>
       <select id="f-scope"><option value="" ${!f.libraryId?'selected':''}>Perso (privé)</option>${sortedLibraries().filter(l=>l.role==='editor'||l.role==='admin').map(l=>`<option value="${esc(l.id)}" ${f.libraryId===l.id?'selected':''}>${esc(l.name)} (partagée)</option>`).join('')}${f.libraryId&&!myLibraries.some(l=>l.id===f.libraryId)?`<option value="${esc(f.libraryId)}" selected>${esc(libName(f.libraryId)||'Bibliothèque')}</option>`:''}</select></div>`:''}
     <div class="row2"><div class="field"><label>Date de validation <span class="hint">mois/année</span></label><input type="text" id="f-validation" inputmode="numeric" autocapitalize="off" value="${esc(valToDisplay(f.validation))}" placeholder="MM/AAAA — ex. 012026 ou 01/2026"></div>
@@ -2754,6 +2796,13 @@ function renderEditor(){
     ${noteBlockHtml(f.id)}
     <div class="editor-foot"><button class="btn primary" id="saveBtn">Enregistrer</button><div class="spacer"></div>${fiches.some(x=>x.id===f.id)?'<button class="btn danger" id="delBtn">Supprimer</button>':''}</div>
     <input type="file" id="imgInput" accept="image/*" hidden>`;
+  bindEditorEvents(f);
+  flowCtx={f,curId:null};
+  bindFlowZoom();applyFlowZoom();restoreFlow();
+}
+// Câblage des écouteurs du formulaire (seconde moitié de l'ancien renderEditor) : champs simples,
+// listes, blocs d'étapes/décisions, minuteurs/compteurs, images, fiches liées, enregistrer/supprimer.
+function bindEditorEvents(f){
   bindNoteBlock(f.id,renderEditor);  // note personnelle : même composant qu'en lecture, dès la création
   // Annulation d'une CRÉATION : la note éventuellement saisie n'a plus de fiche -> effacée aussi
   // (saveNote(id,'') : tombstone propagé si déjà synchronisée, no-op si jamais de note).
@@ -2822,8 +2871,6 @@ function renderEditor(){
     const bd=card.querySelector('[data-bdel]');if(bd)bd.onclick=()=>{f.blocks=f.blocks.filter(x=>x.id!==bid);f.blocks.forEach(x=>{if(x.next===bid)x.next=null;if(x.options)x.options.forEach(o=>{if(o.target===bid)o.target='';});});if(f.start===bid)f.start=f.blocks[0]?f.blocks[0].id:null;if(!f.blocks.length){const nb={id:uid('b'),type:'steps',title:'Prise en charge',steps:[''],image:null,next:null};f.blocks.push(nb);f.start=nb.id;}renderEditor();};});
   imgInput.onchange=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;const data=await downscale(file);if(!data){toast('⚠ Image illisible.');return;}if(imgMode.kind==='gallery')f.images.push({id:uid('i'),data,caption:''});else{const b=f.blocks.find(x=>x.id===imgMode.bid);if(b)b.image=data;}renderEditor();};
   document.getElementById('saveBtn').onclick=saveDraft;const del=document.getElementById('delBtn');if(del)del.onclick=deleteDraft;
-  flowCtx={f,curId:null};
-  bindFlowZoom();applyFlowZoom();restoreFlow();
 }
 function bindListEditors(){
   main.querySelectorAll('input[data-key]').forEach(inp=>inp.addEventListener('input',e=>{state.draft[e.target.dataset.key][+e.target.dataset.idx]=e.target.value;}));
@@ -3539,7 +3586,12 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
       if(offerReturn&&r.checked===true)return returnLocalDataToAnon(true);
       await doSignOut(offerWipe&&r.checked===true);};
     const doOut=()=>confirmLeave('Se déconnecter','Se déconnecter ? Vous pourrez ensuite vous reconnecter, ou utiliser un autre compte.','Se déconnecter');
-    if(_authDelete){
+    if(_authDelete)return renderAuthDelete(body,u);
+    if(myAccountStatus==='pending'||myAccountStatus==='rejected')return renderAuthPending(body,u,doOut);
+    return renderAuthAccount(body,u,doOut);}
+  renderAuthLogin(body);}
+// Écran « suppression de compte » (étape 1 : garde-fous + « SUPPRIMER » tapé ; étape 2 : code OTP).
+function renderAuthDelete(body,u){
       // E-mail cible = celui de la SESSION, jamais une saisie : le code de confirmation part
       // forcément à l'adresse du compte (aucune injection d'un autre e-mail possible), et la
       // suppression exige l'accès à cette boîte mail (un appareil resté déverrouillé ne suffit pas).
@@ -3634,12 +3686,12 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
         delBusy=true;delGo.disabled=true;delGo.textContent='Envoi du code…';setM('','');
         try{await Auth.sendCode(delEmail);_authDelete={step:2,wipe:wipe};renderAuth();}
         catch(e){setM('Échec de l\'envoi du code : '+e.message,'err');delBusy=false;delGo.disabled=false;delGo.textContent='Recevoir le code de confirmation';}};
-      return;}
-    const ini=((u.email||'?').trim()[0]||'?').toUpperCase();
-    // Compte pas encore (ou plus) approuvé : e-mail vérifié (code OTP passé) mais synchro bloquée
-    // côté serveur (RLS) tant qu'un app-admin n'a pas tranché. Voir aussi updateSyncBanner()/setSyncChip
-    // (même statut affiché en bandeau + pastille pied de page).
-    if(myAccountStatus==='pending'||myAccountStatus==='rejected'){
+}
+// Écran « compte en attente / refusé » : e-mail vérifié (code OTP passé) mais synchro bloquée
+// côté serveur (RLS) tant qu'un app-admin n'a pas tranché. Voir aussi updateSyncBanner()/setSyncChip
+// (même statut affiché en bandeau + pastille pied de page).
+function renderAuthPending(body,u,doOut){
+      const ini=((u.email||'?').trim()[0]||'?').toUpperCase();
       const rejected=myAccountStatus==='rejected';
       // Fiches emportées à la connexion mais jamais synchronisées (compte non approuvé) : offrir
       // le chemin RETOUR vers l'espace « hors compte » — surtout avant de « réessayer avec une
@@ -3663,7 +3715,10 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
         else setSyncChip(myAccountStatus,myAccountStatus==='rejected'?'Compte refusé':'En attente de validation');};
       body.querySelector('#authOut').onclick=doOut;
       {const ad=body.querySelector('#authDelete');if(ad)ad.onclick=()=>{_authDelete=true;renderAuth();};}
-      return;}
+}
+// Écran « compte connecté (approuvé) » : synchro manuelle, déconnexion, panneaux admin, suppression.
+function renderAuthAccount(body,u,doOut){
+    const ini=((u.email||'?').trim()[0]||'?').toUpperCase();
     body.innerHTML=`<div class="auth-card-in"><div class="auth-avatar">${esc(ini)}</div><div class="auth-id"><div class="auth-email">${esc(u.email||'')}</div>${authStateHtml()}</div></div>
       <p class="auth-sub">Votre bibliothèque personnelle est sauvegardée et accessible sur tous vos appareils connectés à ce compte.</p>
       <div class="auth-actions"><button class="btn primary" id="authSync">Synchroniser maintenant</button><button class="btn" id="authOut">Se déconnecter</button>${myIsAppAdmin?`<button class="btn" id="authPending">Comptes en attente${myPendingCount?' ('+myPendingCount+')':''}</button>`:''}</div>
@@ -3681,7 +3736,9 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
     {const ad=body.querySelector('#authDelete');if(ad)ad.onclick=()=>{_authDelete=true;renderAuth();};}
     {const ap=body.querySelector('#authPending');if(ap)ap.onclick=()=>{closeAuth();openPending();};}
     if(myIsAppAdmin)loadInstanceStats();  // état de l'instance : chargé en asynchrone, sans bloquer l'écran
-    return;}
+}
+// Écran de connexion (déconnecté) : saisie de l'e-mail puis du code OTP reçu.
+function renderAuthLogin(body){
   if(_authStep.mode==='email'){
     body.innerHTML=`<div class="auth-hero"><div class="auth-hero-ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3.5 6.5l8.5 6 8.5-6"/></svg></div><h4>Connexion</h4><p class="auth-sub">Recevez un code par e-mail pour vous connecter ou créer votre compte.</p></div>
       <label class="auth-label" for="authEmail">Adresse e-mail</label>
@@ -4412,12 +4469,23 @@ document.addEventListener('keydown',e=>{
 if(location.search.indexOf('__actest')>=0){
   window.__ac_test__={migrate,sanitizeCats,safeId,safeColor,safeImg,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,
-    restErrStatus,isPersoRepairCandidate,liveFicheCount,canReturnToAnon,fmt,stripBold,ficheNeedsCompletion,completionSpots,AI_PROMPT};
+    restErrStatus,isPersoRepairCandidate,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT};
 }else{
   /* ===== PWA =====
      Enregistre le service worker (cache hors ligne) si disponible. Capte
      l'évènement beforeinstallprompt pour proposer "Installer l'app". */
-  if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));}
+  if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').then(reg=>{
+    // MISE À JOUR VISIBLE : sw.js fait skipWaiting+claim (la nouvelle version s'installe seule),
+    // mais jusqu'ici en silence — une version cassée pouvait remplacer la copie hors-ligne sans
+    // que personne ne le sache. On PRÉVIENT désormais d'un toast discret quand une nouvelle
+    // version vient de s'activer. JAMAIS de rechargement forcé : en pleine crise, on ne recharge
+    // pas l'écran sous les doigts de l'utilisateur ; l'onglet ouvert continue sur l'ancienne
+    // version, la nouvelle sert à la prochaine ouverture (ou sur rechargement volontaire).
+    const hadController=!!navigator.serviceWorker.controller;   // faux à la toute 1ʳᵉ installation
+    reg.addEventListener('updatefound',()=>{const nw=reg.installing;if(!nw)return;
+      nw.addEventListener('statechange',()=>{
+        if(nw.state==='activated'&&hadController)toast('Application mise à jour — la nouvelle version sera utilisée à la prochaine ouverture (ou rechargez la page).',9000);});});
+  }).catch(()=>{}));}
   let deferredPrompt=null;
   window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;document.getElementById('installBtn').style.display='inline-block';});
   document.getElementById('installBtn').onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;document.getElementById('installBtn').style.display='none';};

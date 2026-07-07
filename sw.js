@@ -10,6 +10,8 @@
 //   - Autres fichiers (icônes, manifest) : "stale-while-revalidate" = on sert
 //     vite le cache et on rafraîchit en arrière-plan.
 //   - skipWaiting + clients.claim : le nouveau worker prend la main tout de suite.
+//     La page, elle, affiche un toast « application mise à jour » quand un nouveau worker
+//     s'active (voir l'enregistrement du SW en fin d'index.html) — jamais de reload forcé.
 //   - À l'activation : on supprime les anciens caches.
 //
 //  IMPORTANT : ce worker ne touche JAMAIS à IndexedDB ('ac-db') ni au
@@ -17,12 +19,13 @@
 //  code et restent intactes à chaque mise à jour, tant que l'URL reste la même.
 // =============================================================================
 // IMPORTANT : garder cette version synchronisée avec APP_VERSION dans index.html.
-const CACHE = 'aides-cognitives-v3.4.9';
+const CACHE = 'aides-cognitives-v3.5.0';
 const ASSETS = [
   './',
   './index.html',
   './manifest.webmanifest',
   './icon-192.png',
+  './icon-192-maskable.png',
   './icon-512.png',
   './icon-512-maskable.png',
   './apple-touch-icon.png'

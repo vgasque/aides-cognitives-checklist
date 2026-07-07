@@ -20,11 +20,13 @@ update() { # fichier  regex-perl
 }
 update index.html "s/const APP_VERSION='[0-9.]+';/const APP_VERSION='$VER';/"
 update sw.js      "s/const CACHE = 'aides-cognitives-v[0-9.]+';/const CACHE = 'aides-cognitives-v$VER';/"
+update package.json 's/"version": "[0-9.]+"/"version": "'"$VER"'"/'
 
-# 2. Vérifier que les deux valeurs correspondent bien maintenant.
+# 2. Vérifier que les trois valeurs correspondent bien maintenant.
 grep -q "const APP_VERSION='$VER';" index.html || { echo "Échec MAJ index.html"; exit 1; }
 grep -q "aides-cognitives-v$VER'" sw.js       || { echo "Échec MAJ sw.js"; exit 1; }
-echo "Versions mises à jour → $VER (index.html + sw.js)"
+grep -q "\"version\": \"$VER\"" package.json  || { echo "Échec MAJ package.json"; exit 1; }
+echo "Versions mises à jour → $VER (index.html + sw.js + package.json)"
 
 # 3. Insérer une entrée CHANGELOG si la version n'y est pas déjà.
 DATE="$(date +%Y-%m-%d)"

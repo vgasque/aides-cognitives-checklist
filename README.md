@@ -79,17 +79,21 @@ inaudible : le flash d'écran sert d'alerte de secours.
 
 ## Développement
 - **Publier une version** : `./release.sh X.Y.Z` synchronise les numéros de version (index.html +
-  sw.js) et vérifie syntaxe/tests ; le rédacteur (humain ou IA) complète ensuite le CHANGELOG et
-  committe avec les notes de version. Ne jamais modifier le numéro à la main (voir `AGENTS.md`).
+  sw.js + package.json) et vérifie syntaxe/tests ; le rédacteur (humain ou IA) complète ensuite le
+  CHANGELOG et committe avec les notes de version. Ne jamais modifier le numéro à la main (voir `AGENTS.md`).
 - **Tests** : `npm test` (Playwright headless) ou ouvrir `tests.html` **servi en http**
   (`python3 -m http.server` puis `http://localhost:8000/tests.html`). `npm run check` vérifie la
   syntaxe. L'intégration continue rejoue le tout à chaque push (`.github/workflows/ci.yml`).
+- **Build optionnel** : `npm run build` produit dans `dist/` une copie déployable allégée (~25 %,
+  commentaires du code retirés, comportement identique). Le dépôt reste la source servie par défaut.
 
 ## Sécurité & confidentialité
 - **Aucune dépendance externe** : un seul fichier HTML en JavaScript « vanille », sans CDN ni
   bibliothèque tierce. Rien n'est chargé depuis un autre domaine.
 - **Content-Security-Policy stricte** (`index.html` et `_headers`) : `default-src 'self'`, seules
-  les connexions vers votre projet Supabase sont autorisées, `object-src 'none'`.
+  les connexions vers votre projet Supabase sont autorisées, `object-src 'none'`. Nota : le fichier
+  `_headers` n'est appliqué que par Netlify / Cloudflare Pages ; sur GitHub Pages, seule la CSP de
+  la balise `<meta>` s'applique (comparatif : `docs/deploiement-et-conformite.md`, § 1.1).
 - **Contenu importé neutralisé** : tout JSON importé ou reçu du cloud est nettoyé (échappement
   HTML systématique, identifiants et couleurs validés, images limitées) — un fichier piégé ne peut
   pas exécuter de code.
