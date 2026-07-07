@@ -1,5 +1,46 @@
 # Journal des modifications
 
+## [3.4.9] — 2026-07-07
+### Corrigé
+- **Contraste des boutons d'action en thème sombre.** Le texte blanc sur fond `--primary` (devenu
+  un teal clair en sombre) tombait à 2,6:1 — illisible sous WCAG AA. Nouveau token `--on-primary`
+  (blanc en clair, encre foncée en sombre) appliqué aux boutons primaires, cases cochées et avatar.
+- **Minuteurs visibles pendant tout le déroulé des étapes.** Le panneau « Minuteurs & compteurs »
+  disparaissait de l'écran dès qu'on descendait dans les étapes cochables ; un bandeau apparaît
+  maintenant dans l'en-tête (collant) dès qu'un minuteur tourne et que le panneau est hors champ —
+  le temps restant reste toujours lisible, un tap ramène au panneau.
+- **L'algorithme (schéma) ne masque plus la première étape.** Il s'affichait déplié par défaut à
+  l'ouverture d'une fiche, poussant la première case cochable sous ~700 px de contenu ; replié par
+  défaut désormais (reste à un tap via « Voir l'algorithme »), déplié à la demande seulement.
+- **Cibles tactiles remontées à 44 px** en mode crise et dans les fenêtres : fermeture des
+  modales, boutons minuteurs/compteurs/son/réinit., bouton compte de l'en-tête, croix des
+  banderoles d'alerte.
+- **Bouton Son ambigu** : affichait juste « Son »/« Muet » sans dire si c'était l'état ou l'action.
+  Libellé d'état explicite (« Son activé »/« Son coupé », `aria-pressed`), et l'état coupé — un
+  choix risqué en crise — passe en ambre pour rester visible.
+- **Horodatage du journal des actions** : l'heure cliquable (correction manuelle) n'avait pas
+  d'équivalent clavier ; Entrée/Espace fonctionnent désormais.
+### Modifié
+- **Couleurs consolidées vers les tokens existants** : les rouges « erreur » (4 valeurs), les ors
+  « attente/décision » et les teals « identité/temps réel » dispersés en dur convergent vers
+  `--critical`, `--verify`, `--live` (nouveau) ; nouveau `--line-hover` unique pour les survols de
+  boutons/chips ; l'état « minuteur en cours » passe du chaud (orange, proche de l'alarme) à un
+  teal froid — le chaud reste réservé aux alarmes et aux gestes de remise à zéro.
+- **Bordures des champs de saisie** relevées à `--line-strong` (contraste composant ≥ 3:1) ;
+  `::placeholder` stylé explicitement (n'était pas maîtrisé sur les fonds personnalisés).
+- **Wording clarifié** : « Reprendre » (session vive de l'accueil), « Rouvrir » (session archivée
+  de l'historique) et « Relancer » (minuteur en pause) ne se recouvrent plus ; « Réinit. » /
+  « Recommencer » unifiés en « Remettre à zéro » ; retour de l'éditeur renommé
+  « Quitter sans enregistrer » (il jette bien le brouillon en cours).
+- **Fil d'Ariane masqué au premier bloc** de la prise en charge (faisait doublon avec le titre du
+  bloc sans offrir de retour possible) ; apparaît dès le 2ᵉ bloc visité.
+- **Enregistrer (éditeur) collant en bas de l'écran** sur le formulaire, désormais long à faire
+  défiler ; pied de page réduit à l'état (masque Exporter/Importer/Thème) pendant une session en
+  cours, pour ne pas ajouter de cibles non pertinentes en crise.
+- Couleur de catégorie retirée de la palette (`#0d5b56`, identique à `--primary` — une catégorie
+  sélectionnée ne doit jamais ressembler à un bouton d'action).
+- Ajout d'un lien d'évitement clavier (« Aller au contenu »).
+
 ## [3.4.8] — 2026-07-06
 ### Corrigé
 - **Le gras n'éclate plus les lignes des listes de fiche.** Les puces de « Ne pas oublier »,

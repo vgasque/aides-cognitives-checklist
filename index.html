@@ -232,14 +232,20 @@
      de composants, contraste >= 3:1). Gamme primaire claire : --primary-100 (fonds de tags),
      --primary-200 (bordures douces), --primary-300 (bordures marquées). --verify-line/--critical-line :
      bordures des encadrés ambrés/vermillon. --alert-* : banderoles d'alerte (ambre vif, volontairement
-     distinct de --verify). --rt-* : panneau temps réel (sombre dans les DEUX thèmes, lisibilité crise). */
-  :root{--ink:#13201d;--ink-soft:#5a6864;--line:#dde3e0;--line-strong:#7c8a87;--bg:#eef1f0;--surface:#fff;--surface-2:#f5f8f7;--surface-3:#e7ecea;--primary:#0d5b56;--primary-dk:#0a4a46;--primary-soft:#e1efec;--primary-100:#dfeae8;--primary-200:#cfe6e0;--primary-300:#b9ddd6;--critical:#bf3a21;--critical-soft:#fbe9e4;--critical-line:#eecabe;--verify:#8a5e0f;--verify-soft:#f6efdd;--verify-line:#e8dcbd;--alert:#f2b01c;--alert-hi:#ffce4a;--alert-strong:#d39a10;--alert-ink:#3a2a02;--rt-bg:#0f2a28;--rt-card:#15403b;--rt-line:#1d524c;--rt-ink:#eaf5f3;--rt-muted:#9fcdc7;--radius:14px;--radius-md:11px;--radius-sm:9px;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--shadow:0 1px 2px rgba(16,32,30,.04),0 4px 16px rgba(16,32,30,.06);--shadow-lg:0 2px 6px rgba(16,32,30,.06),0 12px 32px rgba(16,32,30,.10);}
+     distinct de --verify). --rt-* : panneau temps réel (sombre dans les DEUX thèmes, lisibilité crise).
+     --on-primary : texte posé SUR --primary (blanc en clair ; en sombre --primary devient un teal
+     clair -> texte FONCÉ, sinon contraste 2,6:1). --live : accent « temps réel » (teal clair, fixe
+     dans les deux thèmes, comme --rt-*). --alarm/--alarm-deep : clignotement/jauge de maintien
+     (chaud = alarme ou geste destructif UNIQUEMENT, jamais un état neutre). --ok-bright /
+     --critical-bright / --neutral-bright : pastilles d'état posées sur l'EN-TÊTE (fond sombre dans
+     les deux thèmes -> valeurs vives fixes, --critical-bright = --critical du thème sombre).
+     --line-hover : bordure des survols de boutons/chips (un seul gris au lieu de trois). */
+  :root{--ink:#13201d;--ink-soft:#5a6864;--line:#dde3e0;--line-strong:#7c8a87;--line-hover:#c2cecb;--bg:#eef1f0;--surface:#fff;--surface-2:#f5f8f7;--surface-3:#e7ecea;--primary:#0d5b56;--primary-dk:#0a4a46;--primary-soft:#e1efec;--primary-100:#dfeae8;--primary-200:#cfe6e0;--primary-300:#b9ddd6;--on-primary:#fff;--critical:#bf3a21;--critical-soft:#fbe9e4;--critical-line:#eecabe;--verify:#8a5e0f;--verify-soft:#f6efdd;--verify-line:#e8dcbd;--alert:#f2b01c;--alert-hi:#ffce4a;--alert-strong:#d39a10;--alert-ink:#3a2a02;--rt-bg:#0f2a28;--rt-card:#15403b;--rt-line:#1d524c;--rt-ink:#eaf5f3;--rt-muted:#9fcdc7;--live:#5fd0c4;--alarm:#d9663a;--alarm-deep:#b5532a;--ok-bright:#5bd1a8;--critical-bright:#ff6f52;--neutral-bright:#a9b8b3;--radius:14px;--radius-md:11px;--radius-sm:9px;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--shadow:0 1px 2px rgba(16,32,30,.04),0 4px 16px rgba(16,32,30,.06);--shadow-lg:0 2px 6px rgba(16,32,30,.06),0 12px 32px rgba(16,32,30,.10);}
   /* ===== THÈME SOMBRE (usage dans le noir) : on redéfinit les variables + quelques fonds codés en dur.
      Contraste maintenu pour la lisibilité en situation critique. ===== */
-  html[data-theme="dark"]{--ink:#e7edeb;--ink-soft:#9db0ab;--line:#2b3733;--bg:#0e1513;--surface:#19221f;--surface-2:#141d1a;--surface-3:#23302c;--primary:#3fb0a6;--primary-dk:#56c2b8;--primary-soft:#16302c;--primary-100:#16302c;--primary-200:#2c4a44;--primary-300:#2c4a44;--critical:#ff6f52;--critical-soft:#3a201a;--critical-line:#5a3428;--verify:#e0b048;--verify-soft:#322b17;--verify-line:#4a3f1e;--shadow:0 1px 2px rgba(0,0,0,.45),0 4px 16px rgba(0,0,0,.5);--shadow-lg:0 2px 6px rgba(0,0,0,.5),0 12px 32px rgba(0,0,0,.65);}
+  html[data-theme="dark"]{--ink:#e7edeb;--ink-soft:#9db0ab;--line:#2b3733;--line-hover:#3a463f;--bg:#0e1513;--surface:#19221f;--surface-2:#141d1a;--surface-3:#23302c;--primary:#3fb0a6;--primary-dk:#56c2b8;--primary-soft:#16302c;--primary-100:#16302c;--primary-200:#2c4a44;--primary-300:#2c4a44;--on-primary:#0e1513;--critical:#ff6f52;--critical-soft:#3a201a;--critical-line:#5a3428;--verify:#e0b048;--verify-soft:#322b17;--verify-line:#4a3f1e;--shadow:0 1px 2px rgba(0,0,0,.45),0 4px 16px rgba(0,0,0,.5);--shadow-lg:0 2px 6px rgba(0,0,0,.5),0 12px 32px rgba(0,0,0,.65);}
   html[data-theme="dark"]{color-scheme:dark;}
   html[data-theme="dark"] .empty{background:rgba(255,255,255,.03)}
-  html[data-theme="dark"] .tag.flow{background:#33301f;color:var(--verify)}
   html[data-theme="dark"] .tag.sess{background:#1f302d;color:var(--primary-dk)}
   html[data-theme="dark"] .tag.live{background:#16302c;color:var(--primary-dk)}
   html[data-theme="dark"] header.bar{background:linear-gradient(180deg,#13322e,#0e2723);color:#dceeeb}
@@ -262,20 +268,16 @@
      Exclut aussi .holding : le raccourci `background:` remettait background-image à zéro et
      EFFAÇAIT la jauge rouge du « maintenir pour réinitialiser » (le tap déclenche :hover sur
      mobile -> jauge invisible en mode sombre, visible en clair : affichage « inconstant »). */
-  html[data-theme="dark"] :is(.btn:not(.primary):not(.danger):not(.holding):hover,.mini:hover,.fz:hover,.opt:hover,.catchip:hover){background:#1d2723;border-color:#3a463f}
+  html[data-theme="dark"] :is(.btn:not(.primary):not(.danger):not(.holding):hover,.mini:hover,.fz:hover,.opt:hover,.catchip:hover){background:#1d2723;border-color:var(--line-hover)}
   html[data-theme="dark"] ol.steps li.done{background:#13201c}
   /* Bandeaux : texte/bordures codés en dur -> couleurs lisibles sur fond sombre. */
   html[data-theme="dark"] .notice{color:var(--verify);border-color:#4a3f1e}
   html[data-theme="dark"] .block-h .sec-badge{background:#23302c}
   html[data-theme="dark"] :is(.h-confirm .sec-badge,.h-img .sec-badge){background:#16302c}
   html[data-theme="dark"] .h-main .sec-badge{background:var(--surface);box-shadow:inset 0 0 0 1px #2c4a44}
-  html[data-theme="dark"] .sync-chip.busy{background:#2f2a18;color:#e0b048}
-  html[data-theme="dark"] .sync-chip.err,html[data-theme="dark"] .sync-chip.rejected{background:#3a201a;color:#ff8a70}
-  html[data-theme="dark"] .sync-chip.pending{background:#2f2a18;color:#e0b048}
   html[data-theme="dark"] .notice.sync-pending{color:var(--verify);border-color:#4a3f1e}
   /* Étiquettes de type de bloc/minuteur (Étapes/Décision/Chrono/Cycle) : fonds clairs -> sombres. */
   html[data-theme="dark"] .blk-type.steps{background:#23302c}
-  html[data-theme="dark"] .blk-type.decision{background:#33301f}
   /* SVG de l'algorithme : inversion + rotation de teinte -> rendu sombre cohérent (les couleurs
      teal/ambre restent distinctes ; pas d'images réelles dans le SVG, seulement des pavés). */
   html[data-theme="dark"] :is(.flow-scroll,#flowFull .ff-scroll) svg{filter:invert(1) hue-rotate(180deg)}
@@ -296,38 +298,48 @@
      ne crée PAS de conteneur de défilement -> l'en-tête sticky et les scrollers internes
      (aperçu algorithme, barres de puces) continuent de fonctionner. */
   .app{max-width:780px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;overflow-x:clip}
-  header.bar{position:sticky;top:0;z-index:20;background:linear-gradient(180deg,var(--primary),var(--primary-dk));color:#eaf5f3;padding:calc(14px + env(safe-area-inset-top)) 18px 14px;display:flex;align-items:center;gap:14px;box-shadow:0 2px 12px rgba(10,74,70,.18)}
+  header.bar{position:sticky;top:0;z-index:20;background:linear-gradient(180deg,var(--primary),var(--primary-dk));color:var(--rt-ink);padding:calc(14px + env(safe-area-inset-top)) 18px 14px;display:flex;flex-wrap:wrap;align-items:center;gap:14px;box-shadow:0 2px 12px rgba(10,74,70,.18)}
   .brand{display:flex;flex-direction:column;line-height:1.1;flex:1;min-width:0}
   .brand b{font-size:18px;letter-spacing:.2px;font-weight:650}
-  .brand span{font-size:11.5px;text-transform:uppercase;letter-spacing:1.6px;color:#9fcdc7;margin-top:3px}
-  #brandTitle{font-size:13px;font-weight:600;color:#eaf5f3;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:0;text-transform:none;display:none}
-  .bar-act{background:rgba(255,255,255,.14);color:#eaf5f3;border:0;padding:9px 13px;border-radius:var(--radius-sm);font-size:13.5px;font-weight:600;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+  .brand span{font-size:11.5px;text-transform:uppercase;letter-spacing:1.6px;color:var(--rt-muted);margin-top:3px}
+  #brandTitle{font-size:13px;font-weight:600;color:var(--rt-ink);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:0;text-transform:none;display:none}
+  .bar-act{background:rgba(255,255,255,.14);color:var(--rt-ink);border:0;padding:9px 13px;border-radius:var(--radius-sm);font-size:13.5px;font-weight:600;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
   /* Icône Compte dans l'en-tête (présence utilisateur), avec pastille d'état de synchro discrète. */
-  .bar-acct{position:relative;background:rgba(255,255,255,.14);color:#eaf5f3;border:0;width:38px;height:38px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex:none;cursor:pointer;transition:background .12s,transform .06s}
+  .bar-acct{position:relative;background:rgba(255,255,255,.14);color:var(--rt-ink);border:0;width:44px;height:44px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex:none;cursor:pointer;transition:background .12s,transform .06s}
+  /* Rappel MINUTEURS toujours visible : 2e ligne de l'en-tête sticky, n'apparaît que si un minuteur
+     tourne ET que le panneau minuteurs est sorti de l'écran (mis à jour par tickAll). Tap -> remonte
+     au panneau. Fait partie de l'en-tête -> aucun calcul de position, reste sous l'encoche. */
+  #rtStrip{order:9;width:100%;display:flex;align-items:center;gap:14px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.28);color:var(--rt-ink);border-radius:10px;padding:6px 13px;min-height:44px;font-size:13px;font-weight:600;cursor:pointer;text-align:left}
+  #rtStrip[hidden]{display:none}
+  #rtStrip:focus-visible{outline:2px solid var(--live);outline-offset:2px}
+  #rtStrip .rts-i{display:inline-flex;align-items:baseline;gap:7px;min-width:0}
+  #rtStrip .rts-l{font-size:10.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--rt-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:34vw}
+  #rtStrip .rts-t{font-family:var(--mono);font-size:17px;font-weight:600;letter-spacing:.5px}
+  #rtStrip .rts-more{color:var(--rt-muted);font-size:12px}
+  #rtStrip .rts-go{margin-left:auto;color:var(--rt-muted);font-size:11.5px;white-space:nowrap}
   .bar-acct.on{background:rgba(255,255,255,.2)}
   .bar-acct:hover,.bar-acct.on:hover{background:rgba(255,255,255,.34)}
   .bar-acct:active{transform:translateY(1px)}
   /* Déconnecté = buste en contour ; connecté = buste plein (+ pastille verte). État évident. */
   .bar-acct .ic-filled{display:none}
   .bar-acct.on .ic-outline{display:none}.bar-acct.on .ic-filled{display:inline-block}
-  .acct-dot{position:absolute;right:2px;bottom:2px;width:11px;height:11px;border-radius:50%;border:2px solid #0b4a45;background:#5bd1a8}
-  .acct-dot.busy{background:#e8c45c}.acct-dot.err{background:#ff7058}.acct-dot.off{background:#a9b8b3}
-  .acct-dot.pending{background:#e8c45c}.acct-dot.rejected{background:#ff7058}
+  .acct-dot{position:absolute;right:2px;bottom:2px;width:11px;height:11px;border-radius:50%;border:2px solid var(--primary-dk);background:var(--ok-bright)}
+  .acct-dot.busy{background:var(--alert-hi)}.acct-dot.err{background:var(--critical-bright)}.acct-dot.off{background:var(--neutral-bright)}
+  .acct-dot.pending{background:var(--alert-hi)}.acct-dot.rejected{background:var(--critical-bright)}
   html[data-theme="dark"] .acct-dot{border-color:#10302b}
   .bar-act:hover{background:rgba(255,255,255,.24)}
   main{flex:1;padding:18px}
-  .notice{background:var(--verify-soft);border:1px solid var(--verify-line);color:#6b4d12;border-radius:10px;padding:10px 13px;font-size:12.5px;margin-bottom:16px;display:flex;gap:9px;align-items:flex-start;position:relative;padding-right:34px}
+  .notice{background:var(--verify-soft);border:1px solid var(--verify-line);color:var(--verify);border-radius:10px;padding:10px 13px;font-size:12.5px;margin-bottom:16px;display:flex;gap:9px;align-items:flex-start;position:relative;padding-right:40px}
   .notice[hidden]{display:none} /* le display:flex ci-dessus prime sinon sur [hidden] (même origine auteur) */
   .notice svg{flex-shrink:0;margin-top:1px}
-  .notice.sync-err{background:#f6e1e1;border-color:#e8c3c3;color:#8a3020;cursor:pointer}
-  html[data-theme="dark"] .notice.sync-err{background:#3a201a;border-color:#5a3428;color:#ff8a70}
+  .notice.sync-err{background:var(--critical-soft);border-color:var(--critical-line);color:var(--critical);cursor:pointer}
   .notice.sync-pending{cursor:pointer}
   .lib-top{display:flex;gap:10px;margin-bottom:14px}
   .search{flex:1;position:relative;display:flex;align-items:center}
   .search svg{position:absolute;left:12px;color:var(--ink-soft);pointer-events:none}
   .search input{width:100%;padding:11px 12px 11px 38px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--surface);color:var(--ink)}
   .search input:focus{outline:2px solid var(--primary);border-color:transparent}
-  .btn-new{background:var(--primary);color:#fff;border:0;border-radius:var(--radius-md);padding:0 16px;font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:7px;white-space:nowrap;box-shadow:0 1px 2px rgba(10,74,70,.2),0 4px 12px rgba(10,74,70,.16);transition:background .12s,transform .06s}
+  .btn-new{background:var(--primary);color:var(--on-primary);border:0;border-radius:var(--radius-md);padding:0 16px;font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:7px;white-space:nowrap;box-shadow:0 1px 2px rgba(10,74,70,.2),0 4px 12px rgba(10,74,70,.16);transition:background .12s,transform .06s}
   .btn-new:hover{background:var(--primary-dk)}.btn-new:active{transform:translateY(1px)}
   .catbar{margin-bottom:16px}
   /* Une seule ligne défilable horizontalement -> vue d'ensemble sans allonger la page. */
@@ -335,19 +347,19 @@
   .chiprow::-webkit-scrollbar{height:5px}.chiprow::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
   .chiprow>*{flex:none}
   .catchip{border:1px solid var(--line);background:var(--surface);padding:8px 14px;border-radius:20px;font-size:12.5px;font-weight:600;cursor:pointer;transition:background .12s,border-color .12s,color .12s}
-  .catchip:hover{border-color:#c2cecb;background:var(--surface-2)}
+  .catchip:hover{border-color:var(--line-hover);background:var(--surface-2)}
   .scopebar{display:flex;gap:10px;align-items:center;margin-bottom:14px}
   .scopebar .chiprow{flex:1;min-width:0}
   .scope-lbl{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--ink-soft);margin-right:2px}
   .scopebtn{border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 14px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;transition:background .12s,border-color .12s}
-  .scopebtn.on{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .scopebtn.on{background:var(--primary);color:var(--on-primary);border-color:var(--primary)}
   .scopebtn.add{border-style:dashed;color:var(--primary);background:transparent}
   .scopebtn .ro-hint{font-weight:500;font-size:11px;opacity:.75;margin-left:2px}
   .scope-ctx{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin:-6px 0 16px;padding:9px 12px;background:var(--primary-soft);border-radius:10px}
   .scope-ctx-i{font-size:12.5px;color:var(--ink-soft);font-weight:600}
   .linkbtn{background:none;border:0;color:var(--primary);font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:0;margin-left:auto}
   .linkbtn:hover{text-decoration:underline}
-  .notice-x{position:absolute;top:4px;right:4px;background:none;border:0;color:var(--ink-soft);font-size:19px;line-height:1;cursor:pointer;padding:0;min-width:28px;min-height:28px;display:inline-flex;align-items:center;justify-content:center;border-radius:7px}
+  .notice-x{position:absolute;top:4px;right:4px;background:none;border:0;color:var(--ink-soft);font-size:19px;line-height:1;cursor:pointer;padding:0;min-width:32px;min-height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:7px}
   .notice-x:hover{background:rgba(0,0,0,.07)}
   /* Icônes SVG « de texte » (uiIcon, remplacent les emojis) : alignées sur la ligne de base. */
   svg.tic{vertical-align:-2.5px;flex:none}
@@ -375,7 +387,7 @@
   .cm-scope{font-size:12.5px;color:var(--ink-soft);margin:0 0 12px;padding-bottom:10px;border-bottom:1px solid var(--line)}.cm-scope b{color:var(--primary)}
   .cards{display:grid;gap:12px}
   .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px 17px;box-shadow:var(--shadow);cursor:pointer;display:flex;align-items:center;gap:14px;transition:transform .08s,border-color .12s}
-  .card:hover{border-color:#bdcecb;transform:translateY(-1px);box-shadow:var(--shadow-lg)}.card:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .card:hover{border-color:var(--line-hover);transform:translateY(-1px);box-shadow:var(--shadow-lg)}.card:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* Épingle : cible tactile 40px, étoile SVG pleine ambrée quand actif. */
   .card .pinbtn{background:none;border:0;line-height:1;color:var(--ink-soft);min-width:40px;min-height:40px;border-radius:var(--radius-sm);cursor:pointer;flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center}
   .card .pinbtn:hover{background:var(--primary-soft);color:var(--primary)}
@@ -392,7 +404,7 @@
   .catchip.colored,.catpill.colored{color:var(--catcol);background:color-mix(in srgb, var(--catcol) 12%, transparent);border-color:color-mix(in srgb, var(--catcol) 45%, transparent)}
   html[data-theme="dark"] .tag.cat{background:color-mix(in srgb, var(--c,var(--primary)) 26%, transparent);color:color-mix(in srgb, var(--c,var(--primary)) 60%, white)}
   html[data-theme="dark"] .catchip.colored,html[data-theme="dark"] .catpill.colored{color:color-mix(in srgb, var(--catcol) 62%, white);background:color-mix(in srgb, var(--catcol) 22%, transparent);border-color:color-mix(in srgb, var(--catcol) 50%, transparent)}
-  .tag.flow{background:#efe7d2;color:var(--verify)}.tag.sess{background:var(--primary-100);color:var(--primary-dk)}
+  .tag.flow{background:var(--verify-soft);color:var(--verify)}.tag.sess{background:var(--primary-100);color:var(--primary-dk)}
   .tag.draft{background:var(--verify-soft);color:var(--verify)}
   .tag.todo{background:var(--verify-soft);color:var(--verify);position:relative;cursor:pointer}
   /* Zone tactile étendue (~36 px) sans grossir le badge : pseudo-élément cliquable autour. */
@@ -418,7 +430,7 @@
   .rel-x{background:none;border:0;color:var(--primary-dk);font-size:16px;line-height:1;min-width:24px;min-height:24px;border-radius:50%;cursor:pointer}
   .rel-x:hover{background:rgba(0,0,0,.08)}
   .card-date{font-size:12px;color:var(--ink-soft)}.card-date.stale{color:var(--critical)}
-  .chev{color:#b6c4c1;flex-shrink:0}
+  .chev{color:var(--line-strong);flex-shrink:0}
   .empty{text-align:center;padding:54px 20px;color:var(--ink-soft);border:1.5px dashed var(--line);border-radius:var(--radius);background:rgba(255,255,255,.5)}
   .empty b{display:block;color:var(--ink);font-size:16px;margin-bottom:6px}
   .read-head h2{margin:0;font-size:24px;font-weight:680;line-height:1.18}
@@ -454,7 +466,7 @@
   ol.steps li{counter-increment:s;display:flex;gap:14px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--ink);border-radius:var(--radius-md);padding:13px 15px;margin-bottom:9px;cursor:pointer;transition:opacity .12s,background .12s}
   ol.steps li::before{content:counter(s,decimal-leading-zero);font-family:var(--mono);font-size:15px;font-weight:600;color:var(--ink);min-width:26px;padding-top:1px}
   ol.steps li .txt{flex:1;font-size:16px;line-height:1.45;padding-top:1px}
-  ol.steps li .box{width:22px;height:22px;border:2px solid var(--line-strong);border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;margin-top:1px}
+  ol.steps li .box{width:22px;height:22px;border:2px solid var(--line-strong);border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--on-primary);margin-top:1px}
   ol.steps li.done{background:var(--surface-2);opacity:.65;border-left-color:var(--primary)}
   ol.steps li.done .box{background:var(--primary);border-color:var(--primary)}
   ol.steps li.done .txt{text-decoration:line-through}
@@ -465,7 +477,7 @@
   ul.verify li{border-color:var(--verify-line)}ul.diff li{color:var(--ink-soft)}
   .nav-wrap{background:var(--surface-2);border:1px solid var(--line);border-left:3px solid var(--primary);border-radius:var(--radius);padding:15px 15px 13px 14px;margin-bottom:6px;box-shadow:var(--shadow);scroll-margin-top:74px}
   .crumbs{display:flex;flex-wrap:wrap;gap:5px;align-items:center;font-size:11px;color:var(--ink-soft);margin-bottom:12px}
-  .crumbs .cb{background:var(--surface-3);padding:2px 8px;border-radius:12px;cursor:pointer}.crumbs .cb:not(.cur):hover{background:var(--primary-200)}.crumbs .cb.cur{background:var(--primary);color:#fff;cursor:default}
+  .crumbs .cb{background:var(--surface-3);padding:6px 11px;min-height:32px;display:inline-flex;align-items:center;border-radius:16px;cursor:pointer}.crumbs .cb:not(.cur):hover{background:var(--primary-200)}.crumbs .cb.cur{background:var(--primary);color:var(--on-primary);cursor:default}
   html[data-theme="dark"] .crumbs .cb:not(.cur){background:#23302c}html[data-theme="dark"] .crumbs .cb:not(.cur):hover{background:#2d3d38}
   .crumbs .cb-n{font-family:var(--mono);font-size:10px;opacity:.7;margin-left:2px}
   .node-title .pass-n{font-family:var(--mono);text-transform:none;letter-spacing:0;font-weight:600;color:var(--primary);margin-left:7px}
@@ -500,52 +512,58 @@
   /* Pendant un « maintenir pour réinitialiser » : aucune sélection de texte possible nulle part. */
   body.hold-noselect,body.hold-noselect *{-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important}
   .rt-head{display:flex;align-items:center;gap:8px;margin-bottom:11px}
-  .rt-head b{color:#eaf5f3;font-size:11px;letter-spacing:1.2px;text-transform:uppercase;flex:1}
-  .rt-sound{background:rgba(255,255,255,.12);border:0;color:#eaf5f3;border-radius:8px;padding:6px 11px;font-size:12px;font-weight:600}
-  .rt-warn{background:rgba(245,192,64,.18);border:0;color:#f0c040;border-radius:8px;padding:6px 9px;font-size:11.5px;font-weight:600;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+  .rt-head b{color:var(--rt-ink);font-size:11px;letter-spacing:1.2px;text-transform:uppercase;flex:1}
+  .rt-sound{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.45);color:var(--rt-ink);border-radius:8px;padding:6px 13px;min-height:44px;font-size:12px;font-weight:600}
+  /* Son COUPÉ = état risqué en crise -> signalé en ambre (pas seulement un changement de libellé). */
+  .rt-sound.off{color:var(--alert-hi);border-color:var(--alert-hi);background:color-mix(in srgb,var(--alert-hi) 12%,transparent)}
+  .rt-warn{background:color-mix(in srgb,var(--alert-hi) 18%,transparent);border:0;color:var(--alert-hi);border-radius:8px;padding:6px 9px;min-height:44px;font-size:11.5px;font-weight:600;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
   .rt-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
   /* Petits écrans (iPhone) : on garde AU MOINS 2 minuteurs par ligne (compact), mais on EMPILE les
      boutons de chaque carte -> chacun prend toute la largeur de la carte, sans texte tronqué. */
   @media (max-width:430px){.tm-ctrl{flex-direction:column}.tm-btn{flex:0 0 auto;width:100%;font-size:12.5px}}
   .rt-counters{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:10px}
-  .tmcard,.cncard{background:var(--rt-card);border:1px solid var(--rt-line);border-radius:var(--radius-md);padding:12px;color:#eaf5f3}
+  .tmcard,.cncard{background:var(--rt-card);border:1px solid var(--rt-line);border-radius:var(--radius-md);padding:12px;color:var(--rt-ink)}
   .cncard{text-align:center}
   .tmcard.flash{animation:fl .5s ease 3}
-  @keyframes fl{50%{background:#b5532a;border-color:#d9663a}}
+  @keyframes fl{50%{background:var(--alarm-deep);border-color:var(--alarm)}}
   /* Hors flash : display:none (pas seulement opacity:0). Avec `forwards`, la couche jaune restait
      active dans le compositeur après le flash et Safari iOS s'en servait pour teinter la barre du
      bas de l'écran en jaune ; la classe .on est retirée en fin d'animation (voir flashScreen). */
-  #screenFlash{position:fixed;inset:0;pointer-events:none;z-index:99;opacity:0;background:#f0c040;display:none}
+  #screenFlash{position:fixed;inset:0;pointer-events:none;z-index:99;opacity:0;background:var(--alert-hi);display:none}
   #screenFlash.on{display:block;animation:sf 2s ease-out forwards}
   @keyframes sf{0%{opacity:.55}60%{opacity:.3}100%{opacity:0}}
-  .tm-label{font-size:10.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--rt-muted);margin-bottom:6px}
+  .tm-label{font-size:12px;letter-spacing:.6px;text-transform:uppercase;color:var(--rt-muted);margin-bottom:6px}
   .tm-val,.cn-val{font-family:var(--mono);font-size:30px;font-weight:600;letter-spacing:1px;line-height:1.05}
   .tm-cyc{font-size:12px;color:var(--rt-muted);margin-top:3px}
   .tm-bar-wrap{height:5px;background:var(--rt-line);border-radius:3px;margin:8px 0 4px;overflow:hidden}
-  .tm-bar{height:100%;background:#5fd0c4;width:0%}
+  .tm-bar{height:100%;background:var(--live);width:0%}
   .tm-ctrl,.cn-ctrl{display:flex;gap:6px;margin-top:9px}
   .cn-ctrl{justify-content:center}
-  .tm-btn{flex:1;min-width:0;background:rgba(255,255,255,.12);color:#eaf5f3;border:0;border-radius:8px;padding:8px 6px;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background .12s,opacity .12s;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+  /* Bordure claire = délimitation du bouton >= 3:1 sur la carte sombre (WCAG 1.4.11) ;
+     min-height 44px = règle « mode crise » du projet. */
+  .tm-btn{flex:1;min-width:0;background:rgba(255,255,255,.12);color:var(--rt-ink);border:1px solid rgba(255,255,255,.45);border-radius:8px;padding:8px 6px;min-height:44px;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background .12s,opacity .12s;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   .tm-btn:hover{background:rgba(255,255,255,.2)}
-  .tm-main{background:rgba(95,208,196,.22)}.tm-main:hover{background:rgba(95,208,196,.32)}
-  .tm-main.run{background:rgba(217,102,58,.28)}.tm-main.run:hover{background:rgba(217,102,58,.4)}
+  .tm-main{background:color-mix(in srgb,var(--live) 22%,transparent);border-color:var(--live)}.tm-main:hover{background:color-mix(in srgb,var(--live) 32%,transparent)}
+  /* « En cours » = accent FROID plein (teal --live, texte sombre) : le chaud est réservé aux
+     alarmes (fin de cycle) et aux gestes destructifs, jamais à un état neutre qui tourne. */
+  .tm-main.run{background:var(--live);border-color:var(--live);color:var(--rt-bg)}.tm-main.run:hover{background:color-mix(in srgb,var(--live) 85%,white)}
   .tm-btn:disabled{opacity:.32;cursor:default}.tm-btn:disabled:hover{background:rgba(255,255,255,.12)}
-  .cn-btn{width:46px;height:40px;border-radius:var(--radius-sm);border:0;background:rgba(255,255,255,.12);color:#eaf5f3;font-size:20px;font-weight:600}
+  .cn-btn{width:46px;height:44px;border-radius:var(--radius-sm);border:1px solid rgba(255,255,255,.45);background:rgba(255,255,255,.12);color:var(--rt-ink);font-size:20px;font-weight:600}
   .cn-btn:hover{background:rgba(255,255,255,.2)}
   /* Réinit. d'un compteur (maintenir) : secondaire, sous les boutons +/−. */
-  .cn-reset{margin:9px auto 0;min-width:120px;padding:6px 14px;background:rgba(255,255,255,.1);color:#eaf5f3;border:0;border-radius:8px;font-size:11.5px;font-weight:600;-webkit-user-select:none;user-select:none}
+  .cn-reset{margin:9px auto 0;min-width:120px;padding:6px 14px;min-height:44px;background:rgba(255,255,255,.1);color:var(--rt-ink);border:1px solid rgba(255,255,255,.45);border-radius:8px;font-size:11.5px;font-weight:600;-webkit-user-select:none;user-select:none}
   .cn-reset:hover{background:rgba(255,255,255,.18)}
   /* Horodatage : outil SECONDAIRE -> panneau CLAIR (le panneau sombre reste réservé aux minuteurs/compteurs) */
   .tk-panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:13px 14px;margin-bottom:14px;box-shadow:var(--shadow)}
   .tk-head{display:flex;align-items:center;gap:10px;margin-bottom:9px}
   .tk-head b{color:var(--ink-soft);font-size:11px;letter-spacing:1px;text-transform:uppercase;flex:1}
-  .tk-add{background:var(--primary);color:#fff;border:0;border-radius:var(--radius-sm);padding:8px 13px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
+  .tk-add{background:var(--primary);color:var(--on-primary);border:0;border-radius:var(--radius-sm);padding:8px 13px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
   .tk-add:hover{background:var(--primary-dk)}
   .tk-item{border-top:1px solid var(--line)}
   .tk-row{display:flex;gap:9px;align-items:center;padding:8px 0}
   .tk-item .tk-row{padding-bottom:0}
   .tk-item:has(.tk-orig-row) .tk-row{padding-bottom:2px}
-  .tk-time{font-family:var(--mono);font-size:14px;color:var(--ink);white-space:nowrap;cursor:pointer;border-radius:6px;padding:2px 5px;margin:-2px 0}
+  .tk-time{font-family:var(--mono);font-size:14px;color:var(--ink);white-space:nowrap;cursor:pointer;border-radius:6px;padding:2px 6px;min-height:32px;display:inline-flex;align-items:center;margin:-2px 0}
   .tk-time:hover{background:var(--primary-soft)}
   .tk-time-edit{font-family:var(--mono);font-size:14px;width:76px;flex-shrink:0;padding:2px 5px;border:1px solid var(--primary);border-radius:6px;background:#fff;color:var(--ink)}
   .tk-orig-row{font-size:11px;color:var(--ink-soft);padding:0 0 8px;display:flex;align-items:center;gap:7px}
@@ -554,7 +572,7 @@
   .tk-el{font-family:var(--mono);font-size:11px;color:var(--ink-soft);white-space:nowrap;min-width:46px}
   .tk-lab{flex:1;min-width:0;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font-size:14px}
   .tk-lab:focus{outline:2px solid var(--primary);border-color:transparent}
-  .tk-del{flex-shrink:0;width:32px;height:36px;border:0;border-radius:8px;background:var(--bg);color:var(--ink-soft);font-size:17px}
+  .tk-del{flex-shrink:0;width:38px;height:44px;border:0;border-radius:8px;background:var(--bg);color:var(--ink-soft);font-size:17px}
   .tk-del:hover{background:var(--critical-soft);color:var(--critical)}
   .tk-empty{font-size:12.5px;color:var(--ink-soft);padding:3px 0}
   .tk-panel.empty .tk-head{margin-bottom:0}
@@ -571,7 +589,7 @@
   @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(var(--pulse),.45)}70%{box-shadow:0 0 0 7px rgba(var(--pulse),0)}100%{box-shadow:0 0 0 0 rgba(var(--pulse),0)}}
   html[data-theme="dark"] .sess-dot{--pulse:63,176,166}
   /* Rappel « session en cours » dans l'en-tête (fond sombre dans les deux thèmes) : teal clair. */
-  #brandSub .sess-dot{display:inline-block;width:8px;height:8px;background:#5fd0c4;--pulse:95,208,196;vertical-align:0;margin:0 1px}
+  #brandSub .sess-dot{display:inline-block;width:8px;height:8px;background:var(--live);--pulse:95,208,196;vertical-align:0;margin:0 1px}
   .sess-livetag{font-size:10px;font-weight:700;color:var(--primary-dk);background:var(--primary-soft);padding:1px 7px;border-radius:10px;margin-left:6px}
   .sess-list{background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius-md);padding:6px 10px;margin-bottom:18px}
   /* Rangée d'historique : les ACTIONS passent sous le titre quand elles ne tiennent pas (téléphone),
@@ -600,7 +618,7 @@
   .alert-toast .at-ic{font-size:22px;flex-shrink:0}
   .alert-toast .at-tx{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.25}
   .alert-toast .at-tx b{font-size:14px;color:var(--alert-ink)}.alert-toast .at-tx span{font-size:12px;color:var(--alert-ink)}
-  .alert-toast .at-x{background:rgba(0,0,0,.13);border:0;color:var(--alert-ink);border-radius:8px;width:26px;height:26px;font-size:16px;flex-shrink:0;cursor:pointer}
+  .alert-toast .at-x{background:rgba(0,0,0,.13);border:0;color:var(--alert-ink);border-radius:8px;width:38px;height:38px;font-size:17px;flex-shrink:0;cursor:pointer}
   @keyframes toastIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
   @keyframes toastPulse{0%,100%{box-shadow:0 10px 30px rgba(50,35,0,.34),0 0 0 0 rgba(242,176,28,0)}50%{box-shadow:0 10px 30px rgba(50,35,0,.34),0 0 0 7px rgba(242,176,28,.5)}}
   /* editor */
@@ -647,28 +665,30 @@
   .blk{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
   .blk-top{display:flex;align-items:center;gap:8px;margin-bottom:11px}
   .blk-type{font-size:10.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;padding:3px 8px;border-radius:6px}
-  .blk-type.steps{background:var(--surface-3);color:var(--ink)}.blk-type.decision{background:#efe7d2;color:var(--verify)}
+  .blk-type.steps{background:var(--surface-3);color:var(--ink)}.blk-type.decision{background:var(--verify-soft);color:var(--verify)}
   .blk-top input{flex:1;min-width:0;padding:9px 11px;border:1px solid var(--line);border-radius:var(--radius-sm);background:#fff}
   .blk .sub{font-size:11px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;color:var(--ink-soft);margin:12px 0 7px}
-  .startbtn{border:1px solid var(--line);background:#fff;color:var(--ink-soft);border-radius:8px;padding:6px 11px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
-  .startbtn.on{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .startbtn{border:1px solid var(--line);background:#fff;color:var(--ink-soft);border-radius:8px;padding:7px 12px;min-height:32px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
+  .startbtn.on{background:var(--primary);color:var(--on-primary);border-color:var(--primary)}
   .optedit{display:flex;gap:8px;margin-bottom:8px;align-items:center}
   .optedit input{flex:1;min-width:0;padding:9px 11px;border:1px solid var(--line);border-radius:var(--radius-sm);background:#fff}.optedit select{flex:1;min-width:0}
   .imgrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.imgrow img{height:54px;border-radius:8px;border:1px solid var(--line)}
   .add-blocks{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:6px}
   .btn{padding:11px 17px;border-radius:var(--radius-md);font-size:14px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ink);transition:background .12s,border-color .12s,box-shadow .12s,transform .06s;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px}
   .btn:active{transform:translateY(1px)}
-  .btn:hover{background:var(--surface-2);border-color:#c9d3d0}.btn.primary{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 1px 2px rgba(10,74,70,.2),0 4px 12px rgba(10,74,70,.16)}.btn.primary:hover{background:var(--primary-dk);border-color:var(--primary-dk)}
+  .btn:hover{background:var(--surface-2);border-color:var(--line-hover)}.btn.primary{background:var(--primary);color:var(--on-primary);border-color:var(--primary);box-shadow:0 1px 2px rgba(10,74,70,.2),0 4px 12px rgba(10,74,70,.16)}.btn.primary:hover{background:var(--primary-dk);border-color:var(--primary-dk)}
   .btn.danger{color:var(--critical);border-color:var(--critical-line)}.btn.danger:hover{background:var(--critical-soft)}
   /* « Maintenir pour réinitialiser » un minuteur : jauge = fond qui se remplit pendant l'appui
      (le texte reste lisible au-dessus). Libellé sur 2 lignes -> indice « maintenir » visible. */
-  .tm-reset{touch-action:none;display:flex;flex-direction:column;justify-content:center;line-height:1.05;padding-top:5px;padding-bottom:5px;min-height:40px}
+  .tm-reset{touch-action:none;display:flex;flex-direction:column;justify-content:center;line-height:1.05;padding-top:5px;padding-bottom:5px;min-height:44px}
   .tm-reset .tmr-lab,.tm-reset .tmr-hint{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
   .tm-reset .tmr-hint{font-size:10px;font-weight:700;opacity:.65;text-transform:uppercase;letter-spacing:.5px;margin-top:1px}
-  .tm-reset.holding{background-color:rgba(255,255,255,.12);background-image:linear-gradient(rgba(217,102,58,.6),rgba(217,102,58,.6));background-repeat:no-repeat;background-size:0% 100%;animation:holdfill .8s linear forwards}
+  .tm-reset.holding{background-color:rgba(255,255,255,.12);background-image:linear-gradient(color-mix(in srgb,var(--alarm) 60%,transparent),color-mix(in srgb,var(--alarm) 60%,transparent));background-repeat:no-repeat;background-size:0% 100%;animation:holdfill .8s linear forwards}
   @keyframes holdfill{to{background-size:100% 100%}}
   .btn.sm{padding:8px 13px;font-size:13px;min-height:38px}.btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-  .editor-foot{display:flex;gap:10px;margin-top:8px;flex-wrap:wrap}.editor-foot .spacer{flex:1}
+  /* Barre Enregistrer/Supprimer COLLANTE en bas : sur un formulaire à ~16 sections, « Enregistrer »
+     reste visible en permanence (sinon il faut dérouler tout le formulaire pour sortir proprement). */
+  .editor-foot{display:flex;gap:10px;flex-wrap:wrap;position:sticky;bottom:0;z-index:5;background:var(--bg);margin-top:8px;padding:10px 0 calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--line)}.editor-foot .spacer{flex:1}
   .back{background:var(--surface);border:1px solid var(--line);color:var(--primary);font-size:13.5px;font-weight:600;padding:8px 14px 8px 11px;margin-bottom:14px;border-radius:10px;display:inline-flex;align-items:center;gap:6px}.back:hover{background:var(--primary-soft);border-color:var(--primary-soft);color:var(--primary-dk)}
   .create-band{background:var(--primary-soft);border:1px solid var(--primary-300);border-radius:12px;padding:14px 15px;margin-bottom:18px}
   .cb-q{font-size:14.5px;font-weight:650;color:var(--primary-dk);margin-bottom:10px}
@@ -705,11 +725,11 @@
   .auth-who{font-size:14px;margin:2px 0 10px}.auth-who b{color:var(--primary)}
   /* Fenêtre Compte */
   .auth-card-in{display:flex;align-items:center;gap:13px;margin-bottom:4px}
-  .auth-avatar{width:48px;height:48px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:21px;font-weight:700;flex:none}
+  .auth-avatar{width:48px;height:48px;border-radius:50%;background:var(--primary);color:var(--on-primary);display:flex;align-items:center;justify-content:center;font-size:21px;font-weight:700;flex:none}
   .auth-id{min-width:0}
   .auth-email{font-size:15px;font-weight:650;color:var(--ink);word-break:break-all;line-height:1.3}
   .auth-state{font-size:12.5px;color:var(--primary);display:flex;align-items:center;gap:6px;margin-top:3px}
-  .auth-state .auth-dot{width:8px;height:8px;border-radius:50%;background:#37c98e;flex:none}
+  .auth-state .auth-dot{width:8px;height:8px;border-radius:50%;background:var(--ok-bright);flex:none}
   .auth-state.pending{color:var(--verify)}.auth-state.pending .auth-dot{background:var(--verify)}
   .auth-state.err{color:var(--critical)}.auth-state.err .auth-dot{background:var(--critical)}
   .auth-state.off{color:var(--ink-soft)}.auth-state.off .auth-dot{background:var(--line-strong)}
@@ -798,7 +818,9 @@
   #catModal #catMgrBody{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;min-height:0}
   .ai-card .ai-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
   .ai-card h3{margin:0;font-size:18px;font-weight:680;flex:1}
-  .ai-card .ai-x{background:none;border:0;color:var(--ink-soft);font-size:24px;line-height:1;padding:0 4px}
+  /* Fermeture des fenêtres : cible 44x44 (marges négatives -> l'en-tête de la carte ne grossit pas). */
+  .ai-card .ai-x{background:none;border:0;color:var(--ink-soft);font-size:24px;line-height:1;width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;border-radius:10px;margin:-10px -10px -10px 0;flex:none}
+  .ai-card .ai-x:hover{background:var(--surface-2);color:var(--ink)}
   .ai-card p{font-size:13px;color:var(--ink-soft);margin:0 0 10px;line-height:1.5}
   .ai-card ol{font-size:13px;color:var(--ink-soft);margin:0 0 12px;padding-left:20px;line-height:1.5}
   .ai-ta{width:100%;height:300px;border:1px solid var(--line);border-radius:10px;padding:12px;font-family:var(--mono);font-size:12px;line-height:1.5;background:var(--surface-2);color:var(--ink);white-space:pre;overflow:auto}
@@ -820,8 +842,8 @@
   .cm-dot{width:18px;height:18px;border-radius:6px;flex-shrink:0}
   .cm-name{flex:1;min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;font-size:14px}
   .cm-count{font-size:11.5px;color:var(--ink-soft);white-space:nowrap}
-  .cm-sw{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}.cm-sw .sw{width:24px;height:24px;border-radius:6px;cursor:pointer;border:2px solid transparent}
-  .cm-sw .sw.on{border-color:transparent;box-shadow:0 0 0 2px #fff,0 0 0 4px var(--ink);transform:scale(1.12)}
+  .cm-sw{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}.cm-sw .sw{width:32px;height:32px;border-radius:7px;cursor:pointer;border:2px solid transparent}
+  .cm-sw .sw.on{border-color:transparent;box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--ink);transform:scale(1.12)}
   .cm-del{flex-shrink:0;width:34px;height:36px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink-soft);font-size:16px}
   .cm-del:hover{color:var(--critical);border-color:var(--critical-line);background:var(--critical-soft)}
   .cm-confirm{margin-top:10px;padding:11px;border:1px solid var(--critical-line);background:var(--critical-soft);border-radius:var(--radius-sm)}
@@ -831,9 +853,22 @@
   .cm-add{display:flex;gap:8px;align-items:center;margin-top:6px}
   .cm-add input{flex:1;min-width:0;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:#fff;font-size:14px}
   /* ===== Ajustements transverses ===== */
+  /* Bordures des CHAMPS DE SAISIE : --line (1,3:1 sur blanc) ne délimite pas assez le composant
+     (WCAG 1.4.11 exige 3:1) -> --line-strong. Les cartes/panneaux, non interactifs, gardent --line. */
+  :is(.field input[type=text],.field textarea,.field select,.search input,.auth-field,.cm-name,.cm-add input,.tk-lab,.blk-top input,.trow input,.optedit input,.optedit select,.gcap,#relAdd,.ai-ta){border-color:var(--line-strong)}
+  /* Placeholder maîtrisé (sinon gris navigateur non garanti sur nos fonds personnalisés). */
+  ::placeholder{color:var(--ink-soft);opacity:1}
+  /* Lien d'évitement clavier : invisible jusqu'au focus. */
+  .skiplink{position:absolute;left:10px;top:-60px;z-index:200;background:var(--surface);color:var(--primary);font-weight:700;font-size:14px;padding:10px 16px;border-radius:10px;box-shadow:var(--shadow-lg);transition:top .12s}
+  .skiplink:focus-visible{top:calc(10px + env(safe-area-inset-top));outline:2px solid var(--primary);outline-offset:2px}
+  /* Session en cours : le pied de page se réduit à l'ÉTAT (nb de fiches, synchro) — Exporter/
+     Importer/Thème/zoom n'ont rien à faire dans le champ visuel pendant une crise. */
+  body.crisis-live footer.tools :is(.tools-actions,.storage-gauge){display:none}
+  /* Cible du rappel minuteurs : arriver SOUS l'en-tête sticky (plus haut avec la 2e ligne). */
+  .rt-panel{scroll-margin-top:130px}
   /* Focus clavier visible sur TOUS les contrôles interactifs (uniforme avec .btn/.card). */
   :is(.catchip,.catpill,.tlink,.linkbtn,.mini,.fz,.scopebtn,.opt,.startbtn,.add-line,.notice-x,.tk-add,.tk-del,.cm-del,.ai-x,.rel-x,.back,.flow-toggle,.crumbs .cb,ol.steps li):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-  .rt-panel :is(.tm-btn,.cn-btn,.rt-sound,.tm-reset,.cn-reset):focus-visible{outline:2px solid #5fd0c4;outline-offset:2px}
+  .rt-panel :is(.tm-btn,.cn-btn,.rt-sound,.tm-reset,.cn-reset):focus-visible{outline:2px solid var(--live);outline-offset:2px}
   header.bar :is(.bar-act,.bar-acct):focus-visible{outline:2px solid var(--rt-ink);outline-offset:2px}
   /* En-tête en mode crise : le TITRE DE LA FICHE prime, la marque s'efface. */
   header.bar.crisis .brand b{display:none}
@@ -848,15 +883,15 @@
   .rt-collapsed{width:100%;display:flex;align-items:center;gap:9px;background:var(--rt-bg);color:var(--rt-ink);border:0;border-radius:var(--radius);padding:12px 14px;margin-bottom:14px;font-size:13px;font-weight:600;cursor:pointer;min-height:44px;text-align:left}
   .rt-collapsed .rtc-i{flex:1;min-width:0}
   .rt-collapsed .rtc-open{color:var(--rt-muted);font-size:12px;white-space:nowrap}
-  .rt-collapsed:focus-visible{outline:2px solid #5fd0c4;outline-offset:2px}
+  .rt-collapsed:focus-visible{outline:2px solid var(--live);outline-offset:2px}
   /* Bouton à MAINTENIR sur fond clair (Recommencer l'algorithme) : même geste anti-accidentel que les minuteurs. */
   .btn.btn-hold{flex-direction:column;gap:0;line-height:1.05;touch-action:none;padding-top:5px;padding-bottom:5px}
   .btn.btn-hold .tmr-hint{font-size:10px;font-weight:700;opacity:.6;text-transform:uppercase;letter-spacing:.5px;margin-top:1px}
-  .btn.btn-hold.holding{background-image:linear-gradient(rgba(217,102,58,.45),rgba(217,102,58,.45));background-repeat:no-repeat;background-size:0% 100%;animation:holdfill .8s linear forwards}
+  .btn.btn-hold.holding{background-image:linear-gradient(color-mix(in srgb,var(--alarm) 45%,transparent),color-mix(in srgb,var(--alarm) 45%,transparent));background-repeat:no-repeat;background-size:0% 100%;animation:holdfill .8s linear forwards}
   /* Compteurs : « + » (geste principal) plus large et teinté ; « − » (correction) plus discret. */
-  .cn-btn[data-cninc]{width:58px;background:rgba(95,208,196,.22)}
-  .cn-btn[data-cninc]:hover{background:rgba(95,208,196,.32)}
-  .cn-btn[data-cndec]{width:38px}
+  .cn-btn[data-cninc]{width:58px;background:color-mix(in srgb,var(--live) 22%,transparent);border-color:var(--live)}
+  .cn-btn[data-cninc]:hover{background:color-mix(in srgb,var(--live) 32%,transparent)}
+  .cn-btn[data-cndec]{width:44px}
   /* Desktop : chips sur plusieurs lignes (le défilement horizontal est un geste tactile) ;
      bibliothèque sur 2 colonnes quand la place le permet. */
   @media (min-width:780px){.chiprow{flex-wrap:nowrap}.catbar .chiprow,.scopebar .chiprow{flex-wrap:wrap;overflow-x:visible;padding-bottom:0}}
@@ -867,10 +902,12 @@
 </style>
 </head>
 <body>
+<a class="skiplink" href="#main">Aller au contenu</a>
 <div class="app">
   <header class="bar"><div class="brand"><b>Aides cognitives</b><span id="brandSub">Bibliothèque</span><span id="brandTitle"></span></div>
-    <button class="bar-acct" id="acctTop" aria-label="Compte et synchronisation" title="Compte"><svg class="ic-outline" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M5.5 20.5v-1a5 5 0 015-5h3a5 5 0 015 5v1"/></svg><svg class="ic-filled" width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="7.7" r="3.7"/><path d="M4.6 20a7.4 7.4 0 0114.8 0 1 1 0 01-1 1.1H5.6a1 1 0 01-1-1.1z"/></svg><span class="acct-dot" id="acctDot" hidden></span></button></header>
-  <main id="main"></main>
+    <button class="bar-acct" id="acctTop" aria-label="Compte et synchronisation" title="Compte"><svg class="ic-outline" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M5.5 20.5v-1a5 5 0 015-5h3a5 5 0 015 5v1"/></svg><svg class="ic-filled" width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="7.7" r="3.7"/><path d="M4.6 20a7.4 7.4 0 0114.8 0 1 1 0 01-1 1.1H5.6a1 1 0 01-1-1.1z"/></svg><span class="acct-dot" id="acctDot" hidden></span></button>
+    <button id="rtStrip" hidden aria-label="Minuteurs en cours — afficher le panneau"></button></header>
+  <main id="main" tabindex="-1"></main>
   <!-- Pied de page : ACTIONS d'abord (interactives, les plus utilisées), puis l'ÉTAT passif
        (nb de fiches · version + pastille de synchro), puis le message de stockage (explicatif,
        le plus long). Hiérarchie action > statut > métadonnées. -->
@@ -893,7 +930,7 @@
 <div id="srLive" class="sr-only" role="alert" aria-live="assertive"></div>
 <div id="alerts"></div>
 <div id="flowFull"><div class="ff-bar"><button class="fz" data-zoomf="out" aria-label="Dézoomer">−</button><span class="fzv">100%</span><button class="fz" data-zoomf="in" aria-label="Zoomer">+</button><button class="fz fz-r" data-zoomf="reset">Rétablir</button><span class="fz-spc"></span><button class="fz fz-r" id="ffClose">Fermer ✕</button></div><div class="ff-scroll"></div></div>
-<div class="lightbox" id="lightbox"><button class="x" id="lbX">×</button><img id="lbImg" alt=""><div class="cap" id="lbCap"></div></div>
+<div class="lightbox" id="lightbox"><button class="x" id="lbX" aria-label="Fermer l'image">×</button><img id="lbImg" alt=""><div class="cap" id="lbCap"></div></div>
 <div class="ai-modal" id="aiModal" role="dialog" aria-modal="true" aria-labelledby="aiModalTitle"><div class="ai-card">
   <div class="ai-top"><h3 id="aiModalTitle">Créer une fiche avec une IA</h3><button class="ai-x" id="aiX" aria-label="Fermer">×</button></div>
   <p>Copiez le texte ci-dessous dans une IA (ChatGPT, Claude…) <b>en y joignant votre source</b> : un PDF, une image/capture, ou le texte d'une recommandation. L'IA renverra un fichier JSON.</p>
@@ -974,7 +1011,7 @@
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='3.4.8';
+const APP_VERSION='3.4.9';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -983,7 +1020,9 @@ const LIB_PAGE=60;
 // (contraste >= 4.5:1) en pastille (texte coloré sur fond teinté à 15 %) comme en chip
 // sélectionnée (texte blanc). Pas de teinte proche du vermillon --critical : une catégorie
 // ne doit jamais avoir l'air « dangereuse ».
-const PALETTE=['#823a32','#8d5c39','#806311','#4f6b1e','#1d7449','#0d5b56','#006d98','#45556b','#1f5fa6','#4b3fa6','#755a96','#7a2f6b','#95516c'];
+// Pas non plus de teal --primary (#0d5b56) : une catégorie sélectionnée ressemblerait à un bouton
+// d'action primaire ; le pétrole #0e6b78 garde une place « teal » sans se confondre avec la marque.
+const PALETTE=['#823a32','#8d5c39','#806311','#4f6b1e','#1d7449','#0e6b78','#006d98','#45556b','#1f5fa6','#4b3fa6','#755a96','#7a2f6b','#95516c'];
 /* ===== Backends (stockage LOCAL) =====
    Trois implémentations interchangeables exposant la MÊME interface.
    `Data` (plus bas) pointera vers celle retenue par chooseBackend().
@@ -1570,7 +1609,7 @@ async function remapCatsDeterministic(){const map={};const byNew={};const kept=[
   if(!Object.keys(map).length)return;
   const changed=[];fiches.forEach(f=>{if(f.category&&map[f.category]){f.category=map[f.category];changed.push(f);}});
   await saveCats(null);for(const f of changed)await persist(f);}
-function defaultCats(){return[['Anesthésie','#0d5b56'],['Cardiologie','#95516c'],['Pédiatrie','#1d7449'],['Réanimation','#006d98'],['Régulation','#4b3fa6'],['SMUR','#8d5c39'],['SSE','#806311'],['Urgences','#1f5fa6']].map(([name,color])=>({id:detCatId(name),name,color,libraryId:null}));}
+function defaultCats(){return[['Anesthésie','#0e6b78'],['Cardiologie','#95516c'],['Pédiatrie','#1d7449'],['Réanimation','#006d98'],['Régulation','#4b3fa6'],['SMUR','#8d5c39'],['SSE','#806311'],['Urgences','#1f5fa6']].map(([name,color])=>({id:detCatId(name),name,color,libraryId:null}));}
 function migrateCategories(){const changed=[];const byName={};categories.forEach(c=>byName[c.name.toLowerCase()]=c.id);let pi=categories.length;
   fiches.forEach(f=>{const cv=f.category;if(!cv)return;if(categories.some(c=>c.id===cv))return;const name=String(cv).trim();if(!name){f.category='';changed.push(f);return;}
     let id=byName[name.toLowerCase()];if(!id){id=newCatId(name,null);categories.push({id,name,color:PALETTE[pi++%PALETTE.length],libraryId:null});byName[name.toLowerCase()]=id;}f.category=id;changed.push(f);});return changed;}
@@ -1827,8 +1866,8 @@ ${timers?`<h2>Minuteurs</h2><table>${timers}</table>`:''}
   const css=`body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#13201d;max-width:720px;margin:24px auto;padding:0 18px;line-height:1.5}
 h1{font-size:20px;margin:0 0 2px}h2{font-size:14px;text-transform:uppercase;letter-spacing:.5px;color:#5a6864;margin:22px 0 8px;border-bottom:1px solid #dde3e0;padding-bottom:4px}
 .meta{color:#5a6864;font-size:13px;margin-bottom:6px}table{width:100%;border-collapse:collapse;font-size:13.5px}td{padding:5px 8px;border-bottom:1px solid #eef1f0;vertical-align:top}
-td:first-child{white-space:nowrap}ul{margin:0;padding-left:20px;font-size:13.5px}.muted{color:#8a9895}
-.foot{margin-top:26px;font-size:11px;color:#8a9895;border-top:1px solid #dde3e0;padding-top:8px}
+td:first-child{white-space:nowrap}ul{margin:0;padding-left:20px;font-size:13.5px}.muted{color:#5a6864}
+.foot{margin-top:26px;font-size:11px;color:#5a6864;border-top:1px solid #dde3e0;padding-top:8px}
 @media print{body{margin:0}}`;
   _reportDoc=`<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Compte-rendu — ${title}</title><style>${css}</style></head><body>${inner}</body></html>`;
   _reportName='compte-rendu-'+fileSlug((f&&f.title)||s.ficheTitle);
@@ -1896,8 +1935,8 @@ function flashScreen(){const sf=document.getElementById('screenFlash');if(sf){sf
   // Barre d'état iOS (heure/batterie) : elle suit le meta theme-color, pas l'overlay -> on la
   // fait DÉLIBÉRÉMENT passer au jaune d'alerte pendant le flash (alarme plus visible), puis on
   // RESTAURE explicitement la couleur du thème (fin d'animation + filet setTimeout : sans
-  // restauration explicite, iOS la laissait figée). #f0c040 = jaune du flash (#screenFlash).
-  setThemeColorMeta('#f0c040');
+  // restauration explicite, iOS la laissait figée). #ffce4a = jaune du flash (= --alert-hi, #screenFlash).
+  setThemeColorMeta('#ffce4a');
   setTimeout(()=>setThemeColorMeta(themeColorCurrent()),2600);}
 // Fin du flash : on retire complètement l'overlay du rendu (sinon il reste composité en jaune
 // et Safari iOS teint la barre du bas de l'écran en jaune tant qu'on ne recharge pas la page),
@@ -1926,7 +1965,7 @@ function onTimerFired(R,t){beep();
   if(activeVisible){flash(t.id);}
   else{flashScreen();if(document.visibilityState==='hidden')osNotify('⏰ '+tl+' — terminé',ft,R.ficheId);}}
 // Reprise d'un minuteur d'intervalle DÉJÀ TERMINÉ (non bouclé) = nouveau cycle (repart du plein) —
-// sinon « Reprendre » semble ne rien faire (le temps est déjà à 0).
+// sinon « Relancer » semble ne rien faire (le temps est déjà à 0).
 function toggleTimer(t){const now=Date.now();
   if(t.running){if(t.type==='interval')t.elapsedMs=Math.min(t.seconds*1000,t.elapsedMs+(now-t.lastStart));else t.elapsedMs+=now-t.lastStart;t.running=false;}
   else{ensureAudio();if(t.type==='interval'&&t.elapsedMs>=(t.seconds*1000||1))t.elapsedMs=0;t.lastStart=now;t.running=true;}}
@@ -1937,7 +1976,28 @@ function tickAll(){const now=Date.now();let fired=null;
   Object.values(liveSessions).forEach(R=>{Object.values(R.timers).forEach(t=>{if(t.type==='interval'&&t.running){const per=t.seconds*1000||1;const within=t.elapsedMs+(now-t.lastStart);
     if(within>=per){const comp=Math.floor(within/per);t.cycles+=comp;const left=within-comp*per;if(t.autoloop){t.elapsedMs=0;t.lastStart=now-left;}else{t.running=false;t.elapsedMs=per;t.lastStart=0;}onTimerFired(R,t);fired=R;}}});});
   if(fired)persistLive(fired,true);
-  if(state.view==='read'&&Runtime.fiche)refreshTimersDOM(now);}
+  if(state.view==='read'&&Runtime.fiche)refreshTimersDOM(now);
+  updateRtStrip(now);}
+/* Rappel MINUTEURS dans l'en-tête sticky (#rtStrip) : en mode crise, dès qu'un minuteur tourne et
+   que le panneau minuteurs est sorti de l'écran (on a déroulé les étapes), l'en-tête affiche le
+   temps restant/écoulé en permanence — le cas d'usage cardinal (« adrénaline / 5 min ») ne doit
+   jamais exiger de remonter la page pour LIRE le temps. Tap -> re-scrolle au panneau. */
+function updateRtStrip(now){const el=document.getElementById('rtStrip');if(!el)return;
+  now=now||Date.now();
+  const run=(state.view==='read'&&Runtime.fiche)?Object.values(Runtime.timers).filter(t=>t.running):[];
+  let show=false;
+  if(run.length){const p=document.querySelector('.rt-panel');const hdr=document.querySelector('header.bar');
+    const hb=hdr?hdr.getBoundingClientRect().bottom:0;
+    show=!p||p.getBoundingClientRect().bottom<=hb;}
+  if(!show){el.hidden=true;return;}
+  const seg=run.slice(0,2).map(t=>{const lbl=esc(t.label)||(t.type==='interval'?'Minuteur':'Chrono');
+    const v=t.type==='stopwatch'?fmtMs(t.elapsedMs+(now-t.lastStart))
+      :fmtMs(Math.max(0,(t.seconds*1000||0)-(t.elapsedMs+(now-t.lastStart))));
+    return `<span class="rts-i"><span class="rts-l">${lbl}</span><b class="rts-t">${v}</b></span>`;}).join('');
+  el.innerHTML=seg+(run.length>2?`<span class="rts-more">+${run.length-2}</span>`:'')+'<span class="rts-go">▴ Voir</span>';
+  el.hidden=false;}
+{const rs=document.getElementById('rtStrip');
+ if(rs)rs.onclick=()=>{const p=document.querySelector('.rt-panel');if(p)p.scrollIntoView({behavior:'smooth',block:'start'});};}
 function refreshTimersDOM(now){now=now||Date.now();
   Object.values(Runtime.timers).forEach(t=>{const v=document.getElementById('tmval-'+t.id);if(!v)return;syncTimerBtns(t);const lbl=esc(t.label)||(t.type==='interval'?'Minuteur':'Chronomètre');
     if(t.type==='stopwatch'){v.textContent=fmtMs(t.elapsedMs+(t.running?(now-t.lastStart):0));}
@@ -1986,7 +2046,7 @@ async function endCurrentSession(){if(!Runtime.started)return;if(!await confirmD
 function resumeSession(id){const s=sessions.find(x=>x.id===id);if(!s)return;const f=fiches.find(x=>x.id===s.ficheId);if(!f){toast('⚠ Fiche introuvable.');return;}flowScroll={left:null,top:0};
   if(liveSessions[f.id]&&liveSessions[f.id].sessionId===id){Runtime=liveSessions[f.id];}
   else{Runtime=buildRuntime(f,s);Runtime.started=true;Runtime.startedAt=s.startedAt||Date.now();liveSessions[f.id]=Runtime;persistLive(Runtime,true);}
-  Runtime.fiche=f;bindStateToRuntime();state.fiche=f;state.showFlow=!!(f.blocks&&f.blocks.length);state.showSess=false;state.view='read';render();}
+  Runtime.fiche=f;bindStateToRuntime();state.fiche=f;state.showFlow=false;state.showSess=false;state.view='read';render();}
 async function deleteSession(id){if(!await confirmDlg('Supprimer cette session ?',{yes:'Supprimer',danger:true}))return;try{await Data.delSession(id);}catch(e){}sessions=sessions.filter(x=>x.id!==id);Object.values(liveSessions).forEach(R=>{if(R.sessionId===id){delete liveSessions[R.ficheId];R.started=false;R.sessionId=null;R.name='';}});render();}
 
 /* ===== Render =====
@@ -2005,6 +2065,10 @@ function render(){
    if(state.view==='read'&&Runtime.started)bs.innerHTML='Mode crise · <span class="sess-dot" aria-hidden="true"></span> session en cours';
    else bs.textContent=state.view==='library'?'Bibliothèque':state.view==='edit'?'Édition':'Mode crise';}
   const bt=document.getElementById('brandTitle');if(bt){const t=state.view==='read'&&state.fiche?state.fiche.title||'':'';bt.textContent=t;bt.style.display=t?'block':'none';}
+  // Session en cours : pied de page réduit à l'état (les actions Exporter/Importer/Thème sortent
+  // du champ visuel) ; le rappel minuteurs de l'en-tête est resynchronisé tout de suite.
+  document.body.classList.toggle('crisis-live',state.view==='read'&&Runtime.started);
+  updateRtStrip();
   if(state.view==='library')renderLibrary();else if(state.view==='edit')renderEditor();else renderRead();
   document.getElementById('count').textContent=fiches.length+' fiche'+(fiches.length>1?'s':'')+' · v'+APP_VERSION;
   if(state.view!=='read')window.scrollTo(0,0);
@@ -2022,7 +2086,7 @@ function renderLibrary(){
   const canEdit=canEditScope(state.scope);
   // Tri : épinglées d'abord (préférence locale), puis ordre habituel. Recherche : plein texte normalisé.
   const list=fiches.slice().sort((a,b)=>((isPinned(b.id)?1:0)-(isPinned(a.id)?1:0))||byOrder(a,b)).filter(f=>(state.scope?f.libraryId===state.scope:!f.libraryId)&&(!state.cat||f.category===state.cat)&&(canEdit||f.status!=='draft')&&(!q||ficheHaystack(f).includes(q)));
-  const chips=`<button class="catchip" data-cat="" style="${!state.cat?'background:#16211f;color:#fff;border-color:#16211f':''}">Toutes</button>`+catsSorted(state.scope).map(c=>{const col=safeColor(c.color);return `<button class="catchip${state.cat===c.id?'':' colored'}" data-cat="${esc(c.id)}" style="${state.cat===c.id?`background:${col};color:#fff;border-color:${col}`:`--catcol:${col}`}">${esc(c.name)}</button>`;}).join('')+(canEditScope(state.scope)?`<button class="catchip" id="catMgrChip" style="border-style:dashed;color:var(--ink-soft)">${uiIcon('gear',13)} Gérer</button>`:'');
+  const chips=`<button class="catchip" data-cat="" style="${!state.cat?'background:var(--ink);color:var(--surface);border-color:var(--ink)':''}">Toutes</button>`+catsSorted(state.scope).map(c=>{const col=safeColor(c.color);return `<button class="catchip${state.cat===c.id?'':' colored'}" data-cat="${esc(c.id)}" style="${state.cat===c.id?`background:${col};color:#fff;border-color:${col}`:`--catcol:${col}`}">${esc(c.name)}</button>`;}).join('')+(canEditScope(state.scope)?`<button class="catchip" id="catMgrChip" style="border-style:dashed;color:var(--ink-soft)">${uiIcon('gear',13)} Gérer</button>`:'');
   // Barre BIBLIOTHÈQUE (visible seulement connecté) : Perso + bibliothèques partagées + création (app-admin).
   const ROLE_LBL={viewer:'lecture',editor:'édition',admin:'admin'};
   const scopeBar=Auth.signedIn()?`<div class="scopebar"><span class="scope-lbl">Bibliothèque</span><div class="chiprow">
@@ -2181,7 +2245,7 @@ function wrapText(str,maxChars){const words=String(str||'').replace(/\s+/g,' ').
   words.forEach(w=>{while(w.length>maxChars){push();lines.push(w.slice(0,maxChars));w=w.slice(maxChars);}if(!cur)cur=w;else if(cur.length+1+w.length<=maxChars)cur+=' '+w;else{push();cur=w;}});
   push();return lines.length?lines:[''];}
 function buildFlowSVG(f,curId){
-  const blocks=f.blocks||[];if(!blocks.length)return '<div style="padding:14px;color:#54635f;font-size:13px">Aucun bloc.</div>';
+  const blocks=f.blocks||[];if(!blocks.length)return '<div style="padding:14px;color:var(--ink-soft);font-size:13px">Aucun bloc.</div>';
   const TH=28,HG=36,VG=52,PX=14,PY=14,LH=16,TLH=15,HPAD=8,TXT_MAX=42,TITLE_MAX=34,MINW=150,MAXW=300,CW=5.6;
   const IMG_H=60,IMG_PAD=8,IMG_GAP=6;// vignette d'image dans le bloc (cliquable -> plein écran)
   const byId={};blocks.forEach(b=>byId[b.id]=b);const start=(f.start&&byId[f.start])?f.start:blocks[0].id;
@@ -2413,14 +2477,14 @@ function buildFlowSVG(f,curId){
     L.items.forEach(it=>{it.lines.forEach((ln,li)=>{const y=iy+12;
       if(it.kind==='q'){g+=`<text x="10" y="${y}" font-size="10.5" font-style="italic" fill="#8b6914" font-family="system-ui">${esc(ln)}</text>`;}
       else if(it.kind==='opt'){const pre=li===0?`<tspan font-weight="700" fill="#946615">${it.num}. </tspan>`:'';g+=`<text x="${li===0?12:22}" y="${y}" font-size="10.5" fill="#6b4d12" font-family="system-ui">${pre}${esc(ln)}</text>`;}
-      else{const pre=li===0?`<tspan font-weight="700" fill="#7c8a87">${it.num}. </tspan>`:'';g+=`<text x="${li===0?12:22}" y="${y}" font-size="10.5" fill="#16211f" font-family="system-ui">${pre}${esc(ln)}</text>`;}
+      else{const pre=li===0?`<tspan font-weight="700" fill="#5a6864">${it.num}. </tspan>`:'';g+=`<text x="${li===0?12:22}" y="${y}" font-size="10.5" fill="#16211f" font-family="system-ui">${pre}${esc(ln)}</text>`;}
       iy+=LH;});});
     // Image du bloc DANS le SVG : vignette ajustée (meet) + petite loupe ; cliquable -> plein écran.
     if(L.img){const iyi=iy+IMG_GAP,iw=W-2*IMG_PAD,IP=2,iw2=iw-2*IP,ih2=IMG_H-2*IP;
       // 1) FOND (sans bordure). 2) IMAGE clippée, RENTRÉE de IP px -> ne mord plus sur la bordure ;
       //    coins arrondis via le clip à l'ORIGINE d'un groupe translaté (imite le clip des nœuds).
       //    3) BORDURE par-dessus -> tracé net, jamais recouvert par l'image.
-      g+=`<rect x="${IMG_PAD}" y="${iyi}" width="${iw}" height="${IMG_H}" rx="7" fill="#eef2f1"/>`;
+      g+=`<rect x="${IMG_PAD}" y="${iyi}" width="${iw}" height="${IMG_H}" rx="7" fill="#eef1f0"/>`;
       g+=`<g transform="translate(${IMG_PAD+IP},${iyi+IP})"><clipPath id="imgc_${b.id}"><rect width="${iw2}" height="${ih2}" rx="5"/></clipPath><image width="${iw2}" height="${ih2}" href="${L.img}" preserveAspectRatio="xMidYMid meet" clip-path="url(#imgc_${b.id})" data-full="${L.img}" style="cursor:zoom-in"/></g>`;
       g+=`<rect x="${IMG_PAD}" y="${iyi}" width="${iw}" height="${IMG_H}" rx="7" fill="none" stroke="${stroke}" pointer-events="none"/>`;
       g+=`<g transform="translate(${W-IMG_PAD-15},${iyi+4})" pointer-events="none"><circle cx="6" cy="6" r="7" fill="rgba(13,91,86,.85)"/><circle cx="5" cy="5" r="2.4" fill="none" stroke="#fff" stroke-width="1.2"/><path d="M6.8 6.8 L9 9" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></g>`;}
@@ -2445,15 +2509,17 @@ function timerCard(t){const now=Date.now();let val,cyc='',bw=0;
   return `<div class="tmcard" id="tmcard-${t.id}" role="group" aria-label="${lbl}"><div class="tm-label">${lbl}</div>
     <div class="tm-val" id="tmval-${t.id}" role="timer" aria-label="${lbl} : ${val}">${val}</div>
     ${t.type==='interval'?`<div class="tm-bar-wrap"><div class="tm-bar" id="tmbar-${t.id}" style="width:${bw}%"></div></div><div class="tm-cyc" id="tmcyc-${t.id}">${cyc}</div>`:''}
-    <div class="tm-ctrl"><button class="tm-btn tm-main${t.running?' run':''}" id="tmbtn-${t.id}" data-tmtoggle="${t.id}" aria-label="${timerBtnLabel(t)} — ${lbl}">${timerBtnLabel(t)}</button><button class="tm-btn tm-reset" id="tmreset-${t.id}" data-tmreset="${t.id}"${t.running?' disabled':''} title="Maintenir pour réinitialiser" aria-label="Réinitialiser — ${lbl}"><span class="tmr-lab">Réinit.</span><span class="tmr-hint">maintenir</span></button></div></div>`;}
-// Libellé du bouton principal : « Pause » quand ça tourne, « Reprendre » une fois démarré puis
-// mis en pause, « Démarrer » tant qu'il n'a jamais tourné ou après réinitialisation.
+    <div class="tm-ctrl"><button class="tm-btn tm-main${t.running?' run':''}" id="tmbtn-${t.id}" data-tmtoggle="${t.id}" aria-label="${timerBtnLabel(t)} — ${lbl}">${timerBtnLabel(t)}</button><button class="tm-btn tm-reset" id="tmreset-${t.id}" data-tmreset="${t.id}"${t.running?' disabled':''} title="Maintenir pour remettre à zéro" aria-label="Remettre à zéro — ${lbl}"><span class="tmr-lab">Remettre à zéro</span><span class="tmr-hint">maintenir</span></button></div></div>`;}
+// Libellé du bouton principal : « Pause » quand ça tourne, « Relancer » une fois démarré puis
+// mis en pause, « Démarrer » tant qu'il n'a jamais tourné ou après remise à zéro.
+// « Relancer » (pas « Reprendre ») : « Reprendre » est réservé aux SESSIONS vives de l'accueil —
+// un mot = un sens.
 function timerStarted(t){return (t.elapsedMs>0)||(t.cycles>0);}
-function timerBtnLabel(t){return t.running?'Pause':(timerStarted(t)?'Reprendre':'Démarrer');}
+function timerBtnLabel(t){return t.running?'Pause':(timerStarted(t)?'Relancer':'Démarrer');}
 // Le bouton principal (Démarrer/Reprendre/Pause) reste TOUJOURS au même emplacement (même taille).
 // « Réinit. » reste à droite mais est DÉSACTIVÉ pendant que ça tourne (évite un clic accidentel).
 function syncTimerBtns(t){const lbl=esc(t.label)||(t.type==='interval'?'Minuteur':'Chronomètre');const b=document.getElementById('tmbtn-'+t.id);if(b){b.textContent=timerBtnLabel(t);b.setAttribute('aria-label',timerBtnLabel(t)+' — '+lbl);b.classList.toggle('run',!!t.running);}const r=document.getElementById('tmreset-'+t.id);if(r)r.disabled=!!t.running;}
-function counterCard(c){const v=Runtime.counters[c.id]||0;const lbl=esc(c.label)||'Compteur';return `<div class="cncard" role="group" aria-label="${lbl}"><div class="tm-label">${lbl}</div><div class="cn-val" id="cnval-${c.id}" role="status" aria-label="${lbl} : ${v}">${v}</div><div class="cn-ctrl"><button class="cn-btn" data-cndec="${c.id}" data-step="${c.step||1}" aria-label="Diminuer — ${lbl}">−</button><button class="cn-btn" data-cninc="${c.id}" data-step="${c.step||1}" aria-label="Augmenter — ${lbl}">+</button></div><button class="cn-reset tm-reset" data-cnreset="${c.id}" title="Maintenir pour remettre à zéro" aria-label="Remettre à zéro — ${lbl}"><span class="tmr-lab">Réinit.</span><span class="tmr-hint">maintenir</span></button></div>`;}
+function counterCard(c){const v=Runtime.counters[c.id]||0;const lbl=esc(c.label)||'Compteur';return `<div class="cncard" role="group" aria-label="${lbl}"><div class="tm-label">${lbl}</div><div class="cn-val" id="cnval-${c.id}" role="status" aria-label="${lbl} : ${v}">${v}</div><div class="cn-ctrl"><button class="cn-btn" data-cndec="${c.id}" data-step="${c.step||1}" aria-label="Diminuer — ${lbl}">−</button><button class="cn-btn" data-cninc="${c.id}" data-step="${c.step||1}" aria-label="Augmenter — ${lbl}">+</button></div><button class="cn-reset tm-reset" data-cnreset="${c.id}" title="Maintenir pour remettre à zéro" aria-label="Remettre à zéro — ${lbl}"><span class="tmr-lab">Remettre à zéro</span><span class="tmr-hint">maintenir</span></button></div>`;}
 // Met à jour la valeur affichée d'un compteur ET son étiquette accessible (role="status").
 function setCounterVal(id){const el=document.getElementById('cnval-'+id);if(!el)return;const c=((Runtime.fiche&&Runtime.fiche.counters)||[]).find(x=>x.id===id);const lbl=(c&&esc(c.label))||'Compteur';const v=Runtime.counters[id]||0;el.textContent=v;el.setAttribute('aria-label',lbl+' : '+v);}
 function runtimePanel(f){const tl=Object.values(Runtime.timers);const cl=f.counters||[];if(!tl.length&&!cl.length)return '';
@@ -2462,7 +2528,7 @@ function runtimePanel(f){const tl=Object.values(Runtime.timers);const cl=f.count
   const anyActive=tl.some(t=>t.running||timerStarted(t))||cl.some(c=>(Runtime.counters[c.id]||0)!==(c.start||0));
   if(!anyActive&&!state.rtOpen){const parts=[];if(tl.length)parts.push(tl.length+' minuteur'+(tl.length>1?'s':''));if(cl.length)parts.push(cl.length+' compteur'+(cl.length>1?'s':''));
     return `<button class="rt-collapsed" id="rtOpen" aria-expanded="false"><svg class="rt-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5fd0c4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg><span class="rtc-i">Minuteurs & compteurs · ${parts.join(' · ')}</span><span class="rtc-open">▾ Afficher</span></button>`;}
-  return `<div class="rt-panel"><div class="rt-head"><svg class="rt-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5fd0c4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg><b>Minuteurs & compteurs</b>${IS_TOUCH?`<button class="rt-warn" id="soundWarn" title="Mode silencieux du téléphone" style="${soundOn?'':'display:none'}">${uiIcon('warn',12)} silencieux ?</button>`:''}<button class="rt-sound" id="soundToggle">${soundOn?uiIcon('bell',13)+' Son':uiIcon('belloff',13)+' Muet'}</button></div>${tl.length?`<div class="rt-grid">${tl.map(timerCard).join('')}</div>`:''}${cl.length?`<div class="rt-counters">${cl.map(counterCard).join('')}</div>`:''}</div>`;}
+  return `<div class="rt-panel"><div class="rt-head"><svg class="rt-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5fd0c4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg><b>Minuteurs & compteurs</b>${IS_TOUCH?`<button class="rt-warn" id="soundWarn" title="Mode silencieux du téléphone" style="${soundOn?'':'display:none'}">${uiIcon('warn',12)} silencieux ?</button>`:''}<button class="rt-sound${soundOn?'':' off'}" id="soundToggle" aria-pressed="${soundOn?'true':'false'}" title="${soundOn?'Le son est activé — appuyer pour couper':'Le son est coupé — appuyer pour activer'}">${soundOn?uiIcon('bell',13)+' Son activé':uiIcon('belloff',13)+' Son coupé'}</button></div>${tl.length?`<div class="rt-grid">${tl.map(timerCard).join('')}</div>`:''}${cl.length?`<div class="rt-counters">${cl.map(counterCard).join('')}</div>`:''}</div>`;}
 /* timekeeperPanel : journal d'horodatage. Bouton « Horodater » -> ajoute un repère à l'heure
    courante avec un libellé automatique ("Action N"), renommable à tout moment (même a
    posteriori en reprenant une session). Chaque ligne montre l'heure (HH:MM:SS) et le délai
@@ -2498,7 +2564,9 @@ function renderRead(){
     // Numérotation des PASSAGES : quand une boucle ramène sur un bloc déjà visité, chaque passage
     // est une NOUVELLE INSTANCE (seq distinct -> cases neuves) ; on l'indique (#1, #2…) pour qu'il
     // soit clair qu'on continue une nouvelle fois et qu'on ne « revient » pas en arrière.
-    const crumbs=flow?`<div class="crumbs">${state.nav.map((id,i)=>{const b=f.blocks.find(x=>x.id===id);occ[id]=(occ[id]||0)+1;const tag=totOcc[id]>1?` <span class="cb-n">#${occ[id]}</span>`:'';return `<span class="cb${i===npos?' cur':''}" data-crumb="${i}" role="button" tabindex="0">${esc((b&&b.title)||'?')}${tag}</span>`;}).join('<span>›</span>')}</div>`:'';
+    // Fil d'Ariane seulement à partir du 2e bloc : au 1er, il ne fait que doubler le titre du bloc
+    // (et n'offre aucun retour possible) -> un élément interactif de moins sur l'écran de crise.
+    const crumbs=(flow&&state.nav.length>1)?`<div class="crumbs">${state.nav.map((id,i)=>{const b=f.blocks.find(x=>x.id===id);occ[id]=(occ[id]||0)+1;const tag=totOcc[id]>1?` <span class="cb-n">#${occ[id]}</span>`:'';return `<span class="cb${i===npos?' cur':''}" data-crumb="${i}" role="button" tabindex="0">${esc((b&&b.title)||'?')}${tag}</span>`;}).join('<span>›</span>')}</div>`:'';
     const curOcc=state.nav.slice(0,npos+1).filter(x=>x===cur).length,curTot=totOcc[cur]||1;
     const passTag=curTot>1?` <span class="pass-n">tour ${curOcc}/${curTot}</span>`:'';
     const backBtn=npos>0?'<button class="btn sm" id="navBack">← Précédent</button>':'';
@@ -2506,7 +2574,7 @@ function renderRead(){
     // précédent, on évite la surcharge de boutons (« Repartir d'ici » + le fil d'Ariane suffisent).
     // MAINTENIR pour recommencer : efface tout le chemin parcouru -> même geste anti-accidentel
     // que la réinitialisation d'un minuteur (un appui bref, même en stress, ne déclenche rien).
-    const resetBtn=(flow&&atTip)?'<button class="btn sm btn-hold" id="navReset" title="Maintenir pour recommencer du début"><span class="tmr-lab">Recommencer</span><span class="tmr-hint">maintenir</span></button>':'';
+    const resetBtn=(flow&&atTip)?'<button class="btn sm btn-hold" id="navReset" title="Maintenir pour tout remettre à zéro (repart du début)"><span class="tmr-lab">Remettre à zéro</span><span class="tmr-hint">maintenir</span></button>':'';
     const histBtn=!atTip?'<button class="btn primary sm" id="navFwd">Continuer →</button><button class="btn sm" id="navResume">↺ Repartir d’ici (efface la suite)</button>':'';
     const imgH=blk.image?`<img class="node-img" src="${blk.image}" data-full="${blk.image}" alt="">`:'';
     if(blk.type==='decision'){const taken=state.nav[npos+1];
@@ -2526,7 +2594,7 @@ function renderRead(){
   const sessBar=started
     ?`<div class="session-bar live"><span class="sess-dot"></span><div class="sess-info"><b>Session en cours</b><span>depuis ${timeAgo(Runtime.startedAt)} · enregistrée automatiquement</span></div><div class="sess-acts"><button class="btn sm danger" id="endSess" title="Clôt la session (gardée dans l'historique) et remet la fiche à zéro">Terminer</button>${ss.length?`<button class="btn sm sess-hist" id="toggleSess">Historique (${ss.length})</button>`:''}</div></div>`
     :`<div class="session-bar idle"><span class="sess-hint">La session démarre à la 1ʳᵉ action (cocher, minuteur, compteur ou horodatage) et s'enregistre automatiquement ensuite.</span>${ss.length?`<button class="btn sm" id="toggleSess">Historique (${ss.length})</button>`:''}</div>`;
-  const sessList=(state.showSess&&ss.length)?`<div class="sess-list">${ss.map(s=>`<div class="sess-row"><div class="si"><div class="sn">${esc(s.name)}${s.live?' <span class="sess-livetag">en cours</span>':''}</div><div class="sd">${new Date(s.savedAt).toLocaleString('fr-FR')}</div></div><div class="sess-acts"><button class="btn sm" data-resume="${s.id}" title="Rouvre la session là où elle en était (étapes cochées, minuteurs, compteurs)">Reprendre</button><button class="btn sm" data-report="${s.id}" title="Compte-rendu imprimable">Compte-rendu</button><button class="mini del" data-delsess="${s.id}" aria-label="Supprimer la session">×</button></div></div>`).join('')}</div>`:'';
+  const sessList=(state.showSess&&ss.length)?`<div class="sess-list">${ss.map(s=>`<div class="sess-row"><div class="si"><div class="sn">${esc(s.name)}${s.live?' <span class="sess-livetag">en cours</span>':''}</div><div class="sd">${new Date(s.savedAt).toLocaleString('fr-FR')}</div></div><div class="sess-acts"><button class="btn sm" data-resume="${s.id}" title="Rouvre la session là où elle en était (étapes cochées, minuteurs, compteurs)">Rouvrir</button><button class="btn sm" data-report="${s.id}" title="Compte-rendu imprimable">Compte-rendu</button><button class="mini del" data-delsess="${s.id}" aria-label="Supprimer la session">×</button></div></div>`).join('')}</div>`:'';
   main.innerHTML=`
     <button class="back" id="back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Bibliothèque</button>
     <div class="read-head"><h2>${esc(f.title)||'Sans titre'}</h2></div>
@@ -2575,7 +2643,10 @@ function renderRead(){
   main.querySelectorAll('[data-ck]').forEach(li=>{const tgl=kb=>{const k=li.dataset.ck;state.checked[k]=!state.checked[k];ensureStarted();persistLive(Runtime);render();if(kb){const nl=main.querySelector('[data-ck="'+CSS.escape(k)+'"]');if(nl)nl.focus();}};li.onclick=()=>tgl(false);li.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();tgl(true);}};});
   main.querySelectorAll('img[data-full]').forEach(im=>im.onclick=()=>openLightbox(im.dataset.full,im.dataset.cap||''));
   // runtime controls (no full re-render)
-  const st=document.getElementById('soundToggle');if(st)st.onclick=()=>{soundOn=!soundOn;if(soundOn)ensureAudio();st.innerHTML=soundOn?uiIcon('bell',13)+' Son':uiIcon('belloff',13)+' Muet';const sw=document.getElementById('soundWarn');if(sw)sw.style.display=soundOn?'':'none';};
+  // Bouton à bascule : le libellé dit l'ÉTAT (« Son activé/coupé », comme « Thème : sombre »),
+  // le title dit l'action, aria-pressed porte l'état pour les lecteurs d'écran. L'état « coupé »
+  // est signalé en ambre : couper le son en crise est un choix risqué, il doit rester visible.
+  const st=document.getElementById('soundToggle');if(st)st.onclick=()=>{soundOn=!soundOn;if(soundOn)ensureAudio();st.innerHTML=soundOn?uiIcon('bell',13)+' Son activé':uiIcon('belloff',13)+' Son coupé';st.classList.toggle('off',!soundOn);st.setAttribute('aria-pressed',soundOn?'true':'false');st.title=soundOn?'Le son est activé — appuyer pour couper':'Le son est coupé — appuyer pour activer';const sw=document.getElementById('soundWarn');if(sw)sw.style.display=soundOn?'':'none';};
   const swn=document.getElementById('soundWarn');if(swn)swn.onclick=()=>toast('Mode silencieux du téléphone : si le bouton latéral est sur silencieux, l\'alarme sonore peut ne pas être audible (indétectable depuis le navigateur ; la vibration non plus sur iPhone). Alerte de secours : l\'écran clignote à chaque fin de minuteur.',11000);
   // Lancer un minuteur DÉMARRE la session. Si elle vient de démarrer, on re-rend (le bandeau « en
   // cours » apparaît) ; sinon mise à jour DOM directe.
@@ -2591,7 +2662,8 @@ function renderRead(){
   main.querySelectorAll('[data-tkdel]').forEach(b=>b.onclick=()=>{Runtime.events=(Runtime.events||[]).filter(x=>x.id!==b.dataset.tkdel);persistLive(Runtime);render();});
   // Correction d'heure NON DESTRUCTIVE : la 1ère valeur (avant toute correction) est conservée dans
   // e.origT (jamais écrasée par une correction suivante) et reste visible + réversible (↺ revenir).
-  main.querySelectorAll('[data-tktime]').forEach(span=>span.onclick=()=>{
+  // role=button -> équivalent clavier obligatoire (Entrée/Espace ouvrent l'édition de l'heure).
+  main.querySelectorAll('[data-tktime]').forEach(span=>{span.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();span.click();}};span.onclick=()=>{
     const ev=(Runtime.events||[]).find(x=>x.id===span.dataset.tktime);if(!ev)return;
     const inp=document.createElement('input');inp.className='tk-time-edit';inp.inputMode='numeric';inp.value=fmtHMS(ev.t);
     span.replaceWith(inp);inp.focus();inp.select();
@@ -2608,7 +2680,7 @@ function renderRead(){
       render();};
     inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();inp.blur();}
       else if(e.key==='Escape'){e.preventDefault();inp.removeEventListener('blur',commit);render();}});
-    inp.addEventListener('blur',commit);});
+    inp.addEventListener('blur',commit);};});
   main.querySelectorAll('[data-tkrevert]').forEach(b=>b.onclick=()=>{
     const ev=(Runtime.events||[]).find(x=>x.id===b.dataset.tkrevert);if(!ev||typeof ev.origT!=='number')return;
     ev.t=ev.origT;delete ev.origT;Runtime.events.sort((a,b)=>a.t-b.t);persistLive(Runtime);render();});
@@ -2642,13 +2714,13 @@ function renderRead(){
    downscale()       : réduit une image (canvas) avant stockage base64.
    saveDraft()       : nettoie/normalise le brouillon, persiste, puis ouvre la fiche.
    deleteDraft()     : supprime la fiche ET ses sessions associées. */
-function listEditor(legend,hint,key,arr,ordered){const rows=(arr.length?arr:['']).map((v,i)=>`<div class="li" data-i="${i}">${ordered?`<span class="li-num">${String(i+1).padStart(2,'0')}</span>`:''}<input type="text" value="${esc(v)}" data-key="${key}" data-idx="${i}" placeholder="…">${boldBtnHtml()}${ordered?`<button class="mini" data-mv="up" data-key="${key}" data-idx="${i}">↑</button><button class="mini" data-mv="down" data-key="${key}" data-idx="${i}">↓</button>`:''}<button class="mini del" data-rm="${key}" data-idx="${i}">×</button></div>`).join('');return `<fieldset class="field list-edit"><label>${legend}${hint?` <span class="hint">${hint}</span>`:''}</label>${rows}<button class="add-line" data-add="${key}">+ Ajouter une ligne</button></fieldset>`;}
+function listEditor(legend,hint,key,arr,ordered){const rows=(arr.length?arr:['']).map((v,i)=>`<div class="li" data-i="${i}">${ordered?`<span class="li-num">${String(i+1).padStart(2,'0')}</span>`:''}<input type="text" value="${esc(v)}" data-key="${key}" data-idx="${i}" placeholder="…">${boldBtnHtml()}${ordered?`<button class="mini" data-mv="up" data-key="${key}" data-idx="${i}" aria-label="Monter">↑</button><button class="mini" data-mv="down" data-key="${key}" data-idx="${i}" aria-label="Descendre">↓</button>`:''}<button class="mini del" data-rm="${key}" data-idx="${i}" aria-label="Supprimer la ligne">×</button></div>`).join('');return `<fieldset class="field list-edit"><label>${legend}${hint?` <span class="hint">${hint}</span>`:''}</label>${rows}<button class="add-line" data-add="${key}">+ Ajouter une ligne</button></fieldset>`;}
 // Bouton « Gras » : entoure la sélection du champ voisin de ** (rendu <b> en lecture via fmt()).
 function boldBtnHtml(){return '<button type="button" class="mini bld" data-bold aria-label="Mettre la sélection en gras" title="Gras — sélectionnez du texte puis cliquez (ou Ctrl/Cmd-B). Réservez-le aux doses et interdictions critiques.">B</button>';}
 function targetSelect(blocks,selfId,value){const opts=blocks.filter(b=>b.id!==selfId).map(b=>`<option value="${b.id}" ${b.id===value?'selected':''}>${esc(b.title)||'(bloc sans titre)'}</option>`).join('');return `<select data-target><option value="" ${!value?'selected':''}>— Fin / aucun —</option>${opts}</select>`;}
 function imageEditor(b){return `<div class="sub">Image du bloc (option)</div><div class="imgrow">${b.image?`<img src="${b.image}" alt=""><button class="btn sm danger" data-bimgdel>Retirer</button>`:`<button class="btn sm" data-bimg>+ Image / capture</button>`}</div>`;}
-function blockEditor(b,blocks){if(b.type==='decision'){return `<div class="blk" data-bid="${b.id}"><div class="blk-top"><span class="blk-type decision">Décision</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Réévaluation)"></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Question</div><input type="text" data-bf="question" value="${esc(b.question)}" placeholder="ex. Réponse à l'adrénaline ?" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)"><div class="sub">Réponses → bloc cible</div>${(b.options.length?b.options:[{label:'',target:''}]).map((o,i)=>`<div class="optedit" data-oi="${i}"><input type="text" data-of="label" value="${esc(o.label)}" placeholder="ex. Oui">${targetSelect(blocks,b.id,o.target)}<button class="mini del" data-rmopt="${i}">×</button></div>`).join('')}<button class="add-line" data-addopt>+ Ajouter une réponse</button>${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="mini" data-bmv="up">↑</button><button class="mini" data-bmv="down">↓</button><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
-  return `<div class="blk" data-bid="${b.id}"><div class="blk-top"><span class="blk-type steps">Étapes</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Mesures immédiates)"></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Étapes (cochables en mode crise)</div>${(b.steps.length?b.steps:['']).map((s,i)=>`<div class="li" data-si="${i}"><span class="li-num">${String(i+1).padStart(2,'0')}</span><input type="text" data-sf value="${esc(s)}" placeholder="…">${boldBtnHtml()}<button class="mini" data-smv="up" data-si="${i}">↑</button><button class="mini" data-smv="down" data-si="${i}">↓</button><button class="mini del" data-rmstep="${i}">×</button></div>`).join('')}<button class="add-line" data-addstep>+ Ajouter une étape</button><div class="sub">Étape suivante</div>${targetSelect(blocks,b.id,b.next)}${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="mini" data-bmv="up">↑</button><button class="mini" data-bmv="down">↓</button><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
+function blockEditor(b,blocks){if(b.type==='decision'){return `<div class="blk" data-bid="${b.id}"><div class="blk-top"><span class="blk-type decision">Décision</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Réévaluation)"></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Question</div><input type="text" data-bf="question" value="${esc(b.question)}" placeholder="ex. Réponse à l'adrénaline ?" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)"><div class="sub">Réponses → bloc cible</div>${(b.options.length?b.options:[{label:'',target:''}]).map((o,i)=>`<div class="optedit" data-oi="${i}"><input type="text" data-of="label" value="${esc(o.label)}" placeholder="ex. Oui">${targetSelect(blocks,b.id,o.target)}<button class="mini del" data-rmopt="${i}" aria-label="Supprimer la réponse">×</button></div>`).join('')}<button class="add-line" data-addopt>+ Ajouter une réponse</button>${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="mini" data-bmv="up" aria-label="Monter le bloc">↑</button><button class="mini" data-bmv="down" aria-label="Descendre le bloc">↓</button><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
+  return `<div class="blk" data-bid="${b.id}"><div class="blk-top"><span class="blk-type steps">Étapes</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Mesures immédiates)"></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Étapes (cochables en mode crise)</div>${(b.steps.length?b.steps:['']).map((s,i)=>`<div class="li" data-si="${i}"><span class="li-num">${String(i+1).padStart(2,'0')}</span><input type="text" data-sf value="${esc(s)}" placeholder="…">${boldBtnHtml()}<button class="mini" data-smv="up" data-si="${i}" aria-label="Monter">↑</button><button class="mini" data-smv="down" data-si="${i}" aria-label="Descendre">↓</button><button class="mini del" data-rmstep="${i}" aria-label="Supprimer l'étape">×</button></div>`).join('')}<button class="add-line" data-addstep>+ Ajouter une étape</button><div class="sub">Étape suivante</div>${targetSelect(blocks,b.id,b.next)}${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="mini" data-bmv="up" aria-label="Monter le bloc">↑</button><button class="mini" data-bmv="down" aria-label="Descendre le bloc">↓</button><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
 function timerEditorRow(t,i){const iv=t.type==='interval';const mm=Math.floor((t.seconds||0)/60),ss=(t.seconds||0)%60;return `<div class="trow" data-ti="${i}"><span class="blk-type ${iv?'decision':'steps'}">${iv?'Cycle':'Chrono'}</span><input type="text" data-tf="label" value="${esc(t.label)}" placeholder="${iv?'ex. Cycle adrénaline':'ex. Temps écoulé'}">${iv?`<input type="number" min="0" data-tmin value="${mm}" style="width:56px"><span>min</span><input type="number" min="0" max="59" data-tsec value="${ss}" style="width:56px"><span>s</span><label style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--ink-soft)"><input type="checkbox" data-tloop ${t.autoloop?'checked':''}>boucle</label>`:''}<button class="mini" data-tmv="up" aria-label="Monter">↑</button><button class="mini" data-tmv="down" aria-label="Descendre">↓</button><button class="mini del" data-tdel="${i}">×</button></div>`;}
 function counterEditorRow(c,i){return `<div class="trow" data-ci="${i}"><input type="text" data-cf="label" value="${esc(c.label)}" placeholder="ex. Adrénaline (mg)"><span>pas</span><input type="number" data-cstep value="${c.step||1}" style="width:56px"><span>départ</span><input type="number" data-cstart value="${c.start||0}" style="width:56px"><button class="mini" data-cmv="up" aria-label="Monter">↑</button><button class="mini" data-cmv="down" aria-label="Descendre">↓</button><button class="mini del" data-cdel="${i}">×</button></div>`;}
 
@@ -2657,10 +2729,10 @@ function renderEditor(){
   const f=state.draft;const blocks=f.blocks;blocks._start=f.start;
   const isNew=!fiches.some(x=>x.id===f.id);
   main.innerHTML=`
-    <button class="back" id="back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Annuler</button>
+    <button class="back" id="back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Quitter sans enregistrer</button>
     ${isNew&&state.showCreateBand!==false?`<div class="create-band"><div class="cb-q">Comment créer cette fiche ?</div><div class="cb-opts"><button class="btn primary sm" id="cbAI">${uiIcon('sparkles',14)} Créer via IA</button><button class="btn sm" id="cbManual">${uiIcon('pen',13)} Créer manuellement</button></div><div class="cb-hint">« Via IA » : copiez le prompt dans une IA avec un document, puis importez le résultat. « Manuellement » : remplissez les champs ci-dessous.</div></div>`:''}
     <div class="field"><label>Titre de la situation</label><input type="text" id="f-title" value="${esc(f.title)}" placeholder="ex. Intoxication aux anesthésiques locaux"></div>
-    <div class="field"><label>Catégorie</label><div class="catpick"><button class="catpill" data-selcat="" style="${!f.category?'background:#54635f;color:#fff;border-color:#54635f':''}">Aucune</button>${catsSorted(f.libraryId).map(c=>{const col=safeColor(c.color);return `<button class="catpill${f.category===c.id?'':' colored'}" data-selcat="${esc(c.id)}" style="${f.category===c.id?`background:${col};color:#fff;border-color:${col}`:`--catcol:${col}`}">${esc(c.name)}</button>`;}).join('')}<button class="catpill" id="catMgrBtn" style="border-style:dashed;color:var(--ink-soft)">${uiIcon('gear',13)} Gérer</button></div></div>
+    <div class="field"><label>Catégorie</label><div class="catpick"><button class="catpill" data-selcat="" style="${!f.category?'background:var(--ink-soft);color:var(--surface);border-color:var(--ink-soft)':''}">Aucune</button>${catsSorted(f.libraryId).map(c=>{const col=safeColor(c.color);return `<button class="catpill${f.category===c.id?'':' colored'}" data-selcat="${esc(c.id)}" style="${f.category===c.id?`background:${col};color:#fff;border-color:${col}`:`--catcol:${col}`}">${esc(c.name)}</button>`;}).join('')}<button class="catpill" id="catMgrBtn" style="border-style:dashed;color:var(--ink-soft)">${uiIcon('gear',13)} Gérer</button></div></div>
     ${Auth.signedIn()?`<div class="field"><label>Bibliothèque <span class="hint">où ranger cette fiche</span></label>
       <select id="f-scope"><option value="" ${!f.libraryId?'selected':''}>Perso (privé)</option>${sortedLibraries().filter(l=>l.role==='editor'||l.role==='admin').map(l=>`<option value="${esc(l.id)}" ${f.libraryId===l.id?'selected':''}>${esc(l.name)} (partagée)</option>`).join('')}${f.libraryId&&!myLibraries.some(l=>l.id===f.libraryId)?`<option value="${esc(f.libraryId)}" selected>${esc(libName(f.libraryId)||'Bibliothèque')}</option>`:''}</select></div>`:''}
     <div class="row2"><div class="field"><label>Date de validation <span class="hint">mois/année</span></label><input type="text" id="f-validation" inputmode="numeric" autocapitalize="off" value="${esc(valToDisplay(f.validation))}" placeholder="MM/AAAA — ex. 012026 ou 01/2026"></div>
@@ -2835,7 +2907,9 @@ async function deleteDraft(){
 function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;flowScroll={left:null,top:0};state.rtOpen=false;state.noteEdit=false;
   if(liveSessions[id]){Runtime=liveSessions[id];Runtime.fiche=f;}
   else if(!(Runtime.fiche&&Runtime.ficheId===id&&!Runtime.started)){Runtime=buildRuntime(f,null);}
-  bindStateToRuntime();state.fiche=Runtime.fiche;state.showFlow=!!(f.blocks&&f.blocks.length);state.showSess=false;state.view='read';render();}
+  // Algorithme REPLIÉ à l'ouverture : la 1ʳᵉ étape actionnable doit arriver le plus haut possible
+  // sous stress ; le schéma (vue d'ensemble, utile à froid) reste à un tap (« Voir l'algorithme »).
+  bindStateToRuntime();state.fiche=Runtime.fiche;state.showFlow=false;state.showSess=false;state.view='read';render();}
 function openEdit(id){const f=fiches.find(x=>x.id===id);if(!f)return;if(!canEditFiche(f)){toast('Lecture seule : vous n\'avez pas les droits d\'édition sur cette bibliothèque.');return openRead(id);}state.draft=JSON.parse(JSON.stringify(f));state.noteEdit=false;state.view='edit';render();}
 function newFiche(){if(!canEditScope(state.scope)){toast('Lecture seule : vous ne pouvez pas créer de fiche dans cette bibliothèque.');return;}const d=blankFiche();d.libraryId=state.scope||null;state.draft=d;state.noteEdit=false;state.showCreateBand=true;state.view='edit';render();}
 
