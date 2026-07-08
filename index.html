@@ -606,7 +606,7 @@
   #alerts{position:fixed;left:0;right:0;top:0;z-index:80;display:flex;flex-direction:column;align-items:center;gap:8px;padding:calc(8px + env(safe-area-inset-top)) 12px 0;pointer-events:none}
   /* Couleur AMBRE volontairement distincte de l'en-tête vert (sinon les deux bandeaux se confondent
      et on rate l'alerte) : halo + quelques pulsations pour attirer l'œil. */
-  .alert-toast{pointer-events:auto;max-width:520px;width:100%;display:flex;gap:11px;align-items:center;background:linear-gradient(180deg,var(--alert-hi),var(--alert));color:var(--alert-ink);border:1px solid var(--alert-strong);border-radius:12px;padding:12px 13px;box-shadow:0 10px 30px rgba(50,35,0,.34);cursor:pointer;animation:toastIn .28s ease,toastPulse 1.1s ease-in-out .3s 3}
+  .alert-toast{pointer-events:auto;position:relative;overflow:hidden;max-width:520px;width:100%;display:flex;gap:11px;align-items:center;background:linear-gradient(180deg,var(--alert-hi),var(--alert));color:var(--alert-ink);border:1px solid var(--alert-strong);border-radius:12px;padding:12px 13px;box-shadow:0 10px 30px rgba(50,35,0,.34);cursor:pointer;animation:toastIn .28s ease,toastPulse 1.1s ease-in-out .3s 3}
   .alert-toast.out{opacity:0;transform:translateY(-8px);transition:opacity .4s,transform .4s;animation:none}
   .alert-toast .at-ic{font-size:22px;flex-shrink:0}
   .alert-toast .at-tx{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.25}
@@ -785,8 +785,12 @@
   .auth-why[open]>summary::before{transform:rotate(90deg)}
   .auth-why-body{padding-top:6px}
   /* Toast non bloquant (notifications de synchro/conflit) : n'interrompt jamais l'usage. */
-  .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translate(-50%,16px);max-width:min(560px,92vw);background:var(--ink);color:#fff;font-size:13.5px;line-height:1.5;padding:12px 15px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.28);z-index:120;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none}
+  .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translate(-50%,16px);max-width:min(560px,92vw);background:var(--ink);color:#fff;font-size:13.5px;line-height:1.5;padding:12px 15px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.28);z-index:120;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;overflow:hidden}
   .toast.on{opacity:1;transform:translate(-50%,0)}
+  /* Barre de vie des toasts (durée via animation-duration inline) : indique quand le toast va
+     disparaître. `currentColor` -> contraste garanti sur les deux fonds (toast sombre, alerte ambre). */
+  .t-life{position:absolute;left:0;bottom:0;height:3px;width:100%;background:currentColor;opacity:.45;transform-origin:left;animation:tLife linear forwards;pointer-events:none}
+  @keyframes tLife{from{transform:scaleX(1)}to{transform:scaleX(0)}}
   .vers-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
   .vers-row .vt{font-size:13px;color:var(--ink-soft)}
   .vers-acts{display:flex;gap:7px;flex-wrap:wrap}
@@ -1003,7 +1007,7 @@
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='3.5.1';
+const APP_VERSION='3.5.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -1951,6 +1955,7 @@ function showBanner(ficheId,fTitle,tLabel){const host=document.getElementById('a
   el.innerHTML=`<div class="at-ic">${uiIcon('alarm',22)}</div><div class="at-tx"><b>${esc(tLabel)} — terminé</b><span>${esc(fTitle)}</span></div><button class="at-x" aria-label="Fermer">×</button>`;
   el.querySelector('.at-x').onclick=ev=>{ev.stopPropagation();el.remove();};
   el.onclick=()=>{el.remove();openRead(ficheId);};
+  el.appendChild(lifeBar(10000));
   host.appendChild(el);setTimeout(()=>{el.classList.add('out');setTimeout(()=>el.remove(),400);},10000);}
 // Fin d'un minuteur : son toujours + flash de la carte si la session est ACTIVE & VISIBLE, sinon
 // notification (système + banderole in-app + flash écran) car la session n'est pas sous les yeux.
@@ -3980,12 +3985,16 @@ function _confirmEnd(v){confirmModal.classList.remove('on');const r=_confirmRes;
 document.getElementById('confirmYes').onclick=()=>_confirmEnd(true);
 document.getElementById('confirmNo').onclick=()=>_confirmEnd(false);
 bindModalDismiss(confirmModal,()=>_confirmEnd(null));
+// Barre de vie (décorative, aria-hidden) : se vide sur la durée d'affichage pour signaler quand
+// le toast va disparaître. La durée est portée par l'animation CSS `tLife` (voir .t-life).
+function lifeBar(ms){const b=document.createElement('div');b.className='t-life';b.setAttribute('aria-hidden','true');b.style.animationDuration=ms+'ms';return b;}
 function toast(msg,ms){const t=document.createElement('div');t.className='toast';t.setAttribute('role','status');
   // Convention existante : un message commençant par « ⚠ » est un avertissement -> le préfixe
   // devient une icône SVG (uiIcon), le reste du message reste du TEXTE (jamais interprété en HTML).
   const s=String(msg);
   if(s.charCodeAt(0)===0x26A0){t.innerHTML=uiIcon('warn',14)+' ';t.appendChild(document.createTextNode(s.replace(/^⚠️?\s*/,'')));}
   else t.textContent=s;
+  t.appendChild(lifeBar(ms||4500));
   document.body.appendChild(t);
   requestAnimationFrame(()=>t.classList.add('on'));setTimeout(()=>{t.classList.remove('on');setTimeout(()=>t.remove(),300);},ms||4500);}
 function notifyConflicts(list){if(!list.length)return;
