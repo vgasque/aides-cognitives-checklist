@@ -1,5 +1,14 @@
 # Journal des modifications
 
+## [3.5.2] — 2026-07-08
+### Ajouté
+- **Barre de vie des notifications.** Une fine barre en bas des toasts se vide de gauche à droite
+  sur la durée d'affichage : on voit d'un coup d'œil quand la notification va disparaître. Elle
+  équipe le toast bas d'écran (durée variable selon le message) et la banderole ambre de fin de
+  minuteur (10 s). Barre en `currentColor` (contraste garanti sur fond sombre comme ambre, aucune
+  nouvelle couleur), purement décorative pour les lecteurs d'écran (`aria-hidden`), durée
+  synchronisée avec la temporisation de disparition.
+
 ## [3.5.1] — 2026-07-07
 ### Corrigé
 - **Message de mise à jour exact.** Le toast introduit en 3.5.0 annonçait « la nouvelle version
