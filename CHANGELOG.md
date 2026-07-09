@@ -1,5 +1,14 @@
 # Journal des modifications
 
+## [3.5.5] — 2026-07-09
+### Corrigé
+- **La barre Enregistrer/Supprimer s'efface pendant la saisie sur téléphone.** Le retrait de
+  l'encart bas (3.5.4) ne suffisait pas : selon les navigateurs, un espace résiduel subsistait
+  au-dessus du clavier virtuel, et la barre elle-même mangeait un écran déjà réduit de moitié.
+  Sur écran tactile, la barre est donc masquée tant qu'un champ de saisie texte a le focus
+  (clavier ouvert) et réapparaît dès la fin de la saisie. Sur ordinateur (pas de clavier
+  virtuel), elle reste visible pendant la frappe, comportement inchangé.
+
 ## [3.5.4] — 2026-07-09
 ### Corrigé
 - **Plus d'espace vide entre la barre Enregistrer/Supprimer et le clavier.** Dans l'éditeur, la
