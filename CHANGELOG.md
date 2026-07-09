@@ -8,7 +8,11 @@
   être **partagé entre plusieurs fiches/protocoles du même périmètre** (« Joindre un document
   existant ») : le remplacer le met à jour partout, il n'est supprimé que quand plus rien ne le
   référence. Les PDF sont stockés en Blob natif dans IndexedDB (jamais en base64 dans la fiche)
-  et n'alourdissent pas l'export JSON (seules leurs métadonnées y figurent).
+  et n'alourdissent pas l'export JSON (seules leurs métadonnées y figurent). Le binaire est
+  stocké en ArrayBuffer (fiable sur tous les navigateurs, y compris Safari/iOS où le stockage
+  de Blob dans IndexedDB a des bugs connus) ; en cas de problème, la visionneuse distingue
+  clairement « composant non téléchargé » (hors-ligne avant première utilisation) de
+  « fichier endommagé ».
 - **Visionneuse PDF intégrée, toutes pages, tous appareils.** Lecture dans l'app (iPhone, iPad,
   Android, ordinateur) : défilement de toutes les pages, zoom −/+/Largeur, plein écran, Échap
   pour fermer. Rendu par pdf.js **vendorisé** (`vendor/pdfjs`, version figée 4.10.38, précaché
@@ -25,9 +29,11 @@
   propagés, orphelins listés pour l'app-admin (`list_orphan_attachments`, purge manuelle).
   Nouveaux tests RLS (section 9) : lecture croisée refusée, usurpation de chemin refusée,
   rôles respectés, anonyme sans accès.
-- **Nouvelle section « Protocoles ».** Un gros sélecteur à deux positions en tête de l'accueil
-  (« Aides cognitives | Protocoles », indicateur glissant animé, bascule à tout moment,
-  mémorisée par compte) sépare les aides cognitives de crise des protocoles de référence.
+- **Nouvelle section « Protocoles ».** Un sélecteur à deux positions **intégré à la barre
+  d'en-tête fixe** (« Aides cognitives | Protocoles », à la manière d'un segmented control de
+  barre de navigation iOS : indicateur glissant, transition de contenu fluide et jamais
+  bloquante, bascule à tout moment, mémorisée par compte) sépare les aides cognitives de crise
+  des protocoles de référence.
   Un protocole = titre, catégorie (jeu partagé avec les fiches), bibliothèque (perso ou
   partagée), date de validation, état brouillon/validé, **un ou plusieurs PDF** et/ou un
   **contenu rédigé dans l'app**. Recherche plein texte, export/import JSON (champ

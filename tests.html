@@ -356,6 +356,12 @@ function run(A){
   eq('blankProtocol : modèle complet', Object.keys(A.blankProtocol()).sort(),
      ['attachments','body','category','deletedAt','id','images','libraryId','order','ownerId','status','title','updatedAt','updatedBy','validation'].sort());
 
+  group('attBuf() — formats de stockage des documents (ArrayBuffer courant, Blob historique)');
+  ok('format courant {buf:ArrayBuffer} accepté', A.attBuf({buf:new ArrayBuffer(4)})!==null);
+  ok('format historique {blob:Blob} accepté', A.attBuf({blob:new Blob(['x'])})!==null);
+  eq('enregistrement vide -> null', A.attBuf({}), null);
+  eq('absent -> null', A.attBuf(null), null);
+
   group('migrate() — champ attachments');
   eq('absent → tableau vide', A.migrate({title:'x'}).attachments, []);
   eq('non-tableau → tableau vide', A.migrate({title:'x',attachments:'zzz'}).attachments, []);

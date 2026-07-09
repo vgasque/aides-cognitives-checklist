@@ -858,18 +858,32 @@
   .report-preview .foot{margin-top:22px;font-size:11px;color:var(--ink-soft);border-top:1px solid var(--line);padding-top:8px}
   .ai-actions{display:flex;gap:9px;flex-wrap:wrap;margin:12px 0 4px}
   .ai-note{font-size:12px;color:var(--ink-soft);margin:6px 0 0;line-height:1.45}
-  /* ----- Sélecteur de section « Aides cognitives | Protocoles » (page d'accueil) : deux
-     positions fixes, indicateur glissant (transform -> animation fluide, coupée si
-     prefers-reduced-motion), cibles >= 44 px. ----- */
-  .secswitch{position:relative;display:grid;grid-template-columns:1fr 1fr;background:var(--surface-3);border:1px solid var(--line);border-radius:var(--radius);padding:4px;margin:0 0 14px}
-  /* L'état actif n'est pas porté que par l'indicateur : le libellé actif est aussi plus sombre et
-     gras (WCAG 1.4.1/1.4.11 — jamais la couleur seule) ; liseré + ombre renforcent la pastille. */
-  .secswitch-ind{position:absolute;top:4px;bottom:4px;left:4px;width:calc(50% - 4px);background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-md);box-shadow:var(--shadow);transition:transform .22s ease;pointer-events:none}
-  .secswitch.sec-protocols .secswitch-ind{transform:translateX(100%)}
-  .secbtn{position:relative;z-index:1;min-height:46px;background:none;border:0;border-radius:var(--radius-md);font-size:15px;font-weight:600;color:var(--ink-soft);cursor:pointer;font-family:inherit}
-  .secbtn.on{color:var(--ink)}
-  .secbtn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-  @media (prefers-reduced-motion:reduce){.secswitch-ind{transition:none}}
+  /* ----- Sélecteur de section « Aides cognitives | Protocoles » : intégré à la barre d'en-tête
+     FIXE (il remplace la marque sur l'accueil, comme un segmented control de barre de navigation
+     iOS). Élément STATIQUE (jamais re-rendu) -> l'indicateur glisse réellement (transition sur
+     transform : composée par le GPU, la page reste pleinement utilisable pendant l'animation).
+     L'état actif n'est jamais porté par la couleur seule : libellé actif foncé sur pastille
+     claire + aria-pressed (WCAG 1.4.1). Coupé si prefers-reduced-motion. ----- */
+  header.bar.home .brand{display:none}
+  #hdrSec{display:none;position:relative;flex:1;min-width:0;max-width:420px;grid-template-columns:1fr 1fr;background:rgba(9,38,36,.32);border:1px solid rgba(255,255,255,.22);border-radius:12px;padding:3px}
+  header.bar.home #hdrSec{display:grid}
+  #hdrSec .secswitch-ind{position:absolute;top:3px;bottom:3px;left:3px;width:calc(50% - 3px);background:var(--surface);border-radius:9px;box-shadow:0 1px 4px rgba(0,0,0,.28);transition:transform .3s cubic-bezier(.3,.7,.35,1);pointer-events:none}
+  #hdrSec.sec-protocols .secswitch-ind{transform:translateX(100%)}
+  #hdrSec .secbtn{position:relative;z-index:1;min-height:38px;padding:0 8px;background:none;border:0;border-radius:9px;font-size:13.5px;font-weight:620;color:rgba(255,255,255,.9);cursor:pointer;transition:color .3s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:inherit}
+  html[data-theme="dark"] #hdrSec .secbtn{color:rgba(220,238,235,.85)}
+  #hdrSec .secbtn.on{color:var(--primary-dk)}
+  /* Après la règle sombre ci-dessus (même origine, spécificité supérieure) : l'état actif garde
+     sa couleur d'accent dans les deux thèmes. */
+  html[data-theme="dark"] #hdrSec .secbtn.on{color:var(--primary-dk)}
+  #hdrSec .secbtn:focus-visible{outline:2px solid #fff;outline-offset:2px}
+  @media (max-width:420px){#hdrSec .secbtn{font-size:12.5px;letter-spacing:-.2px}}
+  /* Transition de CONTENU entre sections : la nouvelle liste entre en glissement + fondu (dans le
+     sens de la bascule). transform/opacity seulement -> aucune interaction bloquée pendant l'animation. */
+  @keyframes secInL{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:none}}
+  @keyframes secInR{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+  main.sec-anim-l{animation:secInL .3s cubic-bezier(.25,.1,.25,1)}
+  main.sec-anim-r{animation:secInR .3s cubic-bezier(.25,.1,.25,1)}
+  @media (prefers-reduced-motion:reduce){#hdrSec .secswitch-ind,#hdrSec .secbtn{transition:none}main.sec-anim-l,main.sec-anim-r{animation:none}}
   /* ----- Contenu rédigé des protocoles (mini-Markdown) : lecture + éditeur ----- */
   .md-body{line-height:1.55;font-size:15px}
   .md-h2{font-size:17px;font-weight:680;margin:18px 0 8px;color:var(--ink)}
@@ -978,6 +992,9 @@
 <a class="skiplink" href="#main">Aller au contenu</a>
 <div class="app">
   <header class="bar"><div class="brand"><b>Aides cognitives</b><span id="brandSub">Bibliothèque</span><span id="brandTitle"></span></div>
+    <!-- Sélecteur de section (accueil seulement, cf. header.bar.home) : élément STATIQUE, jamais
+         re-rendu -> l'indicateur GLISSE réellement d'un bouton à l'autre au lieu d'être recréé. -->
+    <div id="hdrSec" role="group" aria-label="Type de contenu"><span class="secswitch-ind" aria-hidden="true"></span><button class="secbtn" data-section="fiches" aria-pressed="true">Aides cognitives</button><button class="secbtn" data-section="protocols" aria-pressed="false">Protocoles</button></div>
     <button class="bar-acct" id="acctTop" aria-label="Compte et synchronisation" title="Compte"><svg class="ic-outline" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M5.5 20.5v-1a5 5 0 015-5h3a5 5 0 015 5v1"/></svg><svg class="ic-filled" width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="7.7" r="3.7"/><path d="M4.6 20a7.4 7.4 0 0114.8 0 1 1 0 01-1 1.1H5.6a1 1 0 01-1-1.1z"/></svg><span class="acct-dot" id="acctDot" hidden></span></button>
     <button id="rtStrip" hidden aria-label="Minuteurs en cours — afficher le panneau"></button></header>
   <main id="main" tabindex="-1"></main>
@@ -1240,9 +1257,12 @@ const IDB={
     const q=st.index('byFiche').getAll(b.ficheId);q.onsuccess=()=>{const arr=(q.result||[]).sort((x,y)=>(x.at||0)-(y.at||0));for(let i=0;i<arr.length-BACKUP_MAX;i++)st.delete(arr[i].bid);};
     tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);});},
   delBackup(bid){return new Promise((res,rej)=>{const r=this._s('backups','readwrite').delete(bid);r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});},
-  // Documents PDF joints : Blob NATIFS (structured clone d'IndexedDB), hors du modèle fiche.
-  // Enregistrement : {id, blob:Blob, size, type:'application/pdf', createdAt, dirty:0|1,
-  // remotePath:null|string} — dirty/remotePath servent à la synchronisation Storage (upload).
+  // Documents PDF joints, hors du modèle fiche. Enregistrement : {id, buf:ArrayBuffer, size,
+  // type:'application/pdf', createdAt, dirty:0|1, remotePath:null|string} — dirty/remotePath
+  // servent à la synchronisation Storage (upload). ARRAYBUFFER et non Blob/File : le structured
+  // clone d'IndexedDB les accepte tous, mais le stockage de Blob a des bugs de corruption connus
+  // sur Safari/iOS (WebKit) — l'ArrayBuffer est fiable partout. Les enregistrements HISTORIQUES
+  // au format {blob:Blob} restent acceptés en lecture (attBuf ci-dessous).
   getAtt(id){return new Promise((res,rej)=>{const r=this._s('attachments','readonly').get(id);r.onsuccess=()=>res(r.result||null);r.onerror=()=>rej(r.error);});},
   putAtt(rec){return new Promise((res,rej)=>{const r=this._s('attachments','readwrite').put(rec);r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});},
   delAtt(id){return new Promise((res,rej)=>{const r=this._s('attachments','readwrite').delete(id);r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});},
@@ -1250,10 +1270,18 @@ const IDB={
   getAtts(){return new Promise((res,rej)=>{const r=this._s('attachments','readonly').getAll();r.onsuccess=()=>res(r.result||[]);r.onerror=()=>rej(r.error);});}
 };
 let Data=KV;
-// Les documents PDF (Blob) n'existent qu'en IndexedDB : le repli KV (localStorage = JSON pur) ne
-// peut pas les stocker. En repli, l'AJOUT est refusé proprement (message dans l'éditeur) et la
-// LECTURE d'une référence sans blob indique le document indisponible — jamais d'échec silencieux.
+// Les documents PDF (binaires) n'existent qu'en IndexedDB : le repli KV (localStorage = JSON pur)
+// ne peut pas les stocker. En repli, l'AJOUT est refusé proprement (message dans l'éditeur) et la
+// LECTURE d'une référence sans binaire indique le document indisponible — jamais d'échec silencieux.
 const supportsAttachments=()=>Data===IDB;
+// Contenu binaire d'un enregistrement de document, quel que soit son format de stockage
+// (buf:ArrayBuffer = format courant ; blob:Blob = format historique 4.0.0 pré-correctif).
+// Renvoie une promesse d'ArrayBuffer, ou null si l'enregistrement est vide/inconnu.
+function attBuf(rec){if(!rec)return null;
+  // toString plutôt qu'instanceof : sûr entre contextes (iframe de test, worker...).
+  if(Object.prototype.toString.call(rec.buf)==='[object ArrayBuffer]')return Promise.resolve(rec.buf);
+  if(rec.blob&&typeof rec.blob.arrayBuffer==='function')return rec.blob.arrayBuffer();
+  return null;}
 // Déménagement d'espace : DÉPLACE tout le contenu local (fiches, catégories, notes, sessions,
 // versions, épingles, marqueurs de push) de l'espace courant vers `space`. Deux usages :
 // « sans compte -> compte » à la connexion, et le RETOUR « compte non approuvé -> sans compte »
@@ -2334,6 +2362,9 @@ function render(){
   if(_lastView==='library'&&state.view!=='library')_libScrollY=window.scrollY;
   // En mode crise, l'en-tête met le TITRE DE LA FICHE en avant (classe .crisis) ; la marque s'efface.
   document.querySelector('header.bar').classList.toggle('crisis',state.view==='read'&&!!state.fiche);
+  // Sur l'ACCUEIL, l'en-tête porte le sélecteur de section à la place de la marque (classe .home).
+  document.querySelector('header.bar').classList.toggle('home',state.view==='library');
+  if(state.view==='library')updateHdrSec();
   // En session active, l'en-tête porte un rappel PERMANENT mais discret (point pulsé + texte) :
   // assez visible pour ne pas oublier la session, sans recolorer tout l'en-tête ni exposer un
   // bouton « Terminer » en zone de tap fréquente (action à ne PAS rendre plus accessible en crise).
@@ -2368,20 +2399,25 @@ let _lastView=null,_lastFicheId=null,_libScrollY=0;
 let _qDebounce=null;   // debounce du champ de recherche (voir l'écouteur 'input' ci-dessous)
 /* ----- Chrome COMMUN de la page d'accueil (partagé entre renderLibrary et renderProtocols,
    jamais dupliqué) : sélecteur de section, barre de bibliothèques, rangée de catégories. ----- */
-// Gros sélecteur à deux positions fixes « Aides cognitives | Protocoles » : indicateur glissant
-// (transition transform, coupée si prefers-reduced-motion), cibles >= 44 px, aria-pressed,
-// clavier = Tab+Entrée sur chaque bouton + flèches gauche/droite sur le groupe.
-function sectionSwitchHtml(){const p=state.section==='protocols';
-  return `<div class="secswitch${p?' sec-protocols':''}" id="secSwitch" role="group" aria-label="Type de contenu">
-    <span class="secswitch-ind" aria-hidden="true"></span>
-    <button class="secbtn${p?'':' on'}" data-section="fiches" aria-pressed="${!p}">Aides cognitives</button>
-    <button class="secbtn${p?' on':''}" data-section="protocols" aria-pressed="${p}">Protocoles</button></div>`;}
+// Sélecteur de section de l'EN-TÊTE (#hdrSec, statique -> l'indicateur glisse vraiment) :
+// câblé UNE fois ici ; render() le montre sur l'accueil (header.bar.home) et met l'état à jour.
+// Clavier : Tab+Entrée sur chaque bouton + flèches gauche/droite sur le groupe.
+const hdrSec=document.getElementById('hdrSec');
+hdrSec.querySelectorAll('[data-section]').forEach(b=>b.onclick=()=>setSection(b.dataset.section));
+hdrSec.onkeydown=e=>{if(e.key==='ArrowLeft'){e.preventDefault();setSection('fiches');}else if(e.key==='ArrowRight'){e.preventDefault();setSection('protocols');}};
+function updateHdrSec(){const p=state.section==='protocols';
+  hdrSec.classList.toggle('sec-protocols',p);
+  hdrSec.querySelectorAll('[data-section]').forEach(b=>{const on=(b.dataset.section==='protocols')===p;
+    b.classList.toggle('on',on);b.setAttribute('aria-pressed',on?'true':'false');});}
 function setSection(s){s=(s==='protocols')?'protocols':'fiches';if(state.section===s)return;
+  const dir=(s==='protocols')?'r':'l';
   state.section=s;try{localStorage.setItem(spaceKey('ac-section'),s);}catch(e){}
-  state.cat='';state.q='';state.libLimit=LIB_PAGE;render();}
-function bindSectionSwitch(){const sw=document.getElementById('secSwitch');if(!sw)return;
-  sw.querySelectorAll('[data-section]').forEach(b=>b.onclick=()=>setSection(b.dataset.section));
-  sw.onkeydown=e=>{if(e.key==='ArrowLeft'){e.preventDefault();setSection('fiches');}else if(e.key==='ArrowRight'){e.preventDefault();setSection('protocols');}};}
+  state.cat='';state.q='';state.libLimit=LIB_PAGE;render();
+  // Transition de contenu (transform/opacity uniquement -> compositeur : la page reste utilisable
+  // pendant l'animation, qui accompagne le glissement de l'indicateur de l'en-tête).
+  main.classList.remove('sec-anim-l','sec-anim-r');void main.offsetWidth;
+  main.classList.add('sec-anim-'+dir);
+  main.addEventListener('animationend',()=>main.classList.remove('sec-anim-l','sec-anim-r'),{once:true});}
 // Barre BIBLIOTHÈQUE (visible seulement connecté) : Perso + bibliothèques partagées + création (app-admin).
 function scopeBarHtml(){
   const ROLE_LBL={viewer:'lecture',editor:'édition',admin:'admin'};
@@ -2396,7 +2432,6 @@ function catbarHtml(){
   return `<div class="catbar"><div class="chiprow">${chips}</div></div>`;}
 // Écouteurs du chrome commun. `rerender` = re-rendu de la vue hôte (renderLibrary/renderProtocols).
 function bindHomeChrome(rerender){
-  bindSectionSwitch();
   main.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{const c=b.dataset.cat;state.cat=(c&&state.cat===c)?'':c;state.libLimit=LIB_PAGE;rerender();});
   {const cmc=document.getElementById('catMgrChip');if(cmc)cmc.onclick=openCatMgr;}
   main.querySelectorAll('[data-scope]').forEach(b=>b.onclick=()=>{state.scope=b.dataset.scope||null;bumpLibUsage(b.dataset.scope);state.cat='';state.libLimit=LIB_PAGE;rerender();});
@@ -2428,7 +2463,6 @@ function renderLibrary(){
   const liveArr=Object.values(liveSessions).filter(R=>R.started&&R.fiche);
   const liveHtml=liveArr.length?`<div class="live-sessions"><div class="ls-h"><span class="sess-dot"></span>Sessions en cours · ${liveArr.length}</div>${liveArr.map(R=>{const run=Object.values(R.timers).filter(t=>t.running).length;return `<div class="ls-row"><div class="ls-info" data-openlive="${R.ficheId}" role="button" tabindex="0"><b>${esc(R.fiche.title||'Sans titre')}</b><span>depuis ${timeAgo(R.startedAt)}${run?` · ${run} minuteur${run>1?'s':''} actif${run>1?'s':''}`:''}</span></div><div class="ls-acts"><button class="btn sm primary" data-openlive="${R.ficheId}">Reprendre</button><button class="btn sm danger" data-endlive="${R.ficheId}">Terminer</button></div></div>`;}).join('')}</div>`:'';
   main.innerHTML=`
-    ${sectionSwitchHtml()}
     ${scopeBar}
     ${liveHtml}
     <div class="notice" id="syncErrNotice" hidden></div>
@@ -2476,7 +2510,6 @@ function renderProtocols(){
   const canEdit=canEditScope(state.scope);
   const list=protocols.slice().sort(byOrder).filter(p=>(state.scope?p.libraryId===state.scope:!p.libraryId)&&(!state.cat||p.category===state.cat)&&(canEdit||p.status!=='draft')&&(!q||protocolHaystack(p).includes(q)));
   main.innerHTML=`
-    ${sectionSwitchHtml()}
     ${scopeBarHtml()}
     <div class="notice" id="syncErrNotice" hidden></div>
     <div class="lib-top"><div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg><input id="q" placeholder="Rechercher un protocole…" value="${esc(state.q)}"></div>
@@ -3276,14 +3309,15 @@ function bindAttEditor(entity,rerender){
    if(ap)ap.onclick=()=>{if((entity.attachments||[]).length>=MAX_ATT_PER_ENTITY){toast('⚠ '+MAX_ATT_PER_ENTITY+' documents maximum.');return;}pdfInput.click();};}
   if(pdfInput)pdfInput.onchange=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;
     if(file.size>MAX_PDF_BYTES){toast('⚠ Document trop volumineux ('+fmtBytes(file.size)+') : '+fmtBytes(MAX_PDF_BYTES)+' maximum.');return;}
+    // Lecture COMPLÈTE en ArrayBuffer dès l'ajout (stockage fiable partout, cf. IDB.putAtt) +
     // CONTENU vérifié (signature %PDF-) en plus du type déclaré : un fichier renommé .pdf ne passe pas.
-    let head='';try{head=String.fromCharCode.apply(null,new Uint8Array(await file.slice(0,5).arrayBuffer()));}catch(err){}
-    if(head!=='%PDF-'){toast('⚠ Ce fichier n\'est pas un PDF valide.');return;}
+    let buf=null;try{buf=await file.arrayBuffer();}catch(err){}
+    if(!buf||String.fromCharCode.apply(null,new Uint8Array(buf.slice(0,5)))!=='%PDF-'){toast('⚠ Ce fichier n\'est pas un PDF valide.');return;}
     const id=uid('a');
-    try{await IDB.putAtt({id,blob:file,size:file.size,type:'application/pdf',createdAt:Date.now(),dirty:1,remotePath:null});}
+    try{await IDB.putAtt({id,buf,size:buf.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:1,remotePath:null});}
     catch(err){toast('⚠ Stockage saturé : document non enregistré.',9000);return;}
     draftNewAtts.push(id);
-    entity.attachments=entity.attachments||[];entity.attachments.push({id,name:safeFileName(file.name)||'document.pdf',size:file.size});
+    entity.attachments=entity.attachments||[];entity.attachments.push({id,name:safeFileName(file.name)||'document.pdf',size:buf.byteLength});
     rerender();};
   main.querySelectorAll('[data-attname]').forEach(inp=>inp.addEventListener('input',e=>{const a=(entity.attachments||[])[+e.target.dataset.attname];if(a)a.name=e.target.value;}));
   main.querySelectorAll('[data-attrm]').forEach(b=>b.onclick=()=>{entity.attachments.splice(+b.dataset.attrm,1);rerender();});
@@ -3582,15 +3616,15 @@ async function renderPdfPage(s){if(!_pv||s.rendering)return;
 async function openPdfViewer(att,entity){
   if(!supportsAttachments()){toast('⚠ Ce navigateur ne peut pas stocker les documents hors ligne — ouvrez l\'app dans un navigateur récent pour lire ce PDF.',9000);return;}
   let rec=null;try{rec=await IDB.getAtt(att.id);}catch(e){}
-  if(!rec||!rec.blob){
+  if(!attBuf(rec)){
     // Pas encore sur cet appareil : tentative de téléchargement IMMÉDIATE si connecté (le
     // téléchargement de fond de la synchro n'est peut-être pas passé par ce document).
     // `entity` (fiche ou protocole hôte) fournit le périmètre -> chemin cloud.
     if(typeof Auth!=='undefined'&&Auth.signedIn()&&navigator.onLine!==false){
       toast('Téléchargement du document…');
       try{const path=attStoragePath(entity?(entity.libraryId||null):null,(Auth.user()||{}).id,att.id);
-        const r=await storageReq('GET',path);const blob=await r.blob();
-        rec={id:att.id,blob:blob,size:blob.size,type:'application/pdf',createdAt:Date.now(),dirty:0,remotePath:path};
+        const r=await storageReq('GET',path);const buf=await r.arrayBuffer();
+        rec={id:att.id,buf:buf,size:buf.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:0,remotePath:path};
         await IDB.putAtt(rec);}
       catch(e){toast('⚠ Document introuvable dans le cloud — il n\'a peut-être pas encore été envoyé depuis l\'appareil où il a été ajouté.',9000);return;}
     }else{toast('Document pas encore téléchargé sur cet appareil : connectez-vous avec du réseau pour le récupérer.',9000);return;}
@@ -3599,9 +3633,16 @@ async function openPdfViewer(att,entity){
   document.getElementById('pdfModalTitle').textContent=att.name||'Document';
   sc.innerHTML='<div class="pdf-msg">Ouverture du document…</div>';
   pdfModal.classList.add('on');
+  // Deux échecs BIEN DISTINCTS : le chargement de la visionneuse (vendor/pdfjs absent du cache —
+  // ex. hors-ligne avec un service worker antérieur à la 4.0.0) n'est PAS un fichier endommagé.
+  let lib=null;
+  try{lib=await pdfLib();}
+  catch(e){console.error('pdfLib:',e);
+    sc.innerHTML='<div class="pdf-msg">'+uiIcon('warn',15)+' Visionneuse indisponible sur cet appareil : composant non encore téléchargé. Reconnectez-vous à Internet, rechargez la page, puis réessayez.</div>';return;}
   let doc;
-  try{const lib=await pdfLib();doc=await lib.getDocument({data:await rec.blob.arrayBuffer()}).promise;}
-  catch(e){sc.innerHTML='<div class="pdf-msg">'+uiIcon('warn',15)+' Impossible d\'ouvrir ce document (fichier endommagé ?).</div>';return;}
+  try{doc=await lib.getDocument({data:await attBuf(rec)}).promise;}
+  catch(e){console.error('PDF illisible:',e);
+    sc.innerHTML='<div class="pdf-msg">'+uiIcon('warn',15)+' Impossible d\'ouvrir ce document : le fichier semble endommagé ou dans un format non pris en charge. Retirez-le puis ajoutez-le à nouveau depuis le fichier d\'origine.</div>';return;}
   if(!pdfModal.classList.contains('on')){try{doc.destroy();}catch(e){}return;}   // fermée pendant le chargement
   const p1=await doc.getPage(1);const vp1=p1.getViewport({scale:1});
   _pv={doc,pages:[],observer:null,z:1,cssW:0,baseW:vp1.width,baseH:vp1.height};
@@ -4964,7 +5005,8 @@ const Sync={
         continue;}
       if(!editable[rec.id])continue;
       if(rec.dirty||rec.remotePath!==want){
-        try{await storageReq('POST',want,rec.blob,'application/pdf',{'x-upsert':'true'});
+        try{const body=await attBuf(rec);if(!body)continue;   // enregistrement vide : rien à pousser
+          await storageReq('POST',want,body,'application/pdf',{'x-upsert':'true'});
           if(rec.remotePath&&rec.remotePath!==want)queueAttDelete(rec.remotePath);   // déplacement de périmètre
           rec.dirty=0;rec.remotePath=want;await IDB.putAtt(rec);
         }catch(e){if(!firstErr)firstErr=e;}}
@@ -4975,8 +5017,8 @@ const Sync={
     const missing=Object.keys(paths).filter(id=>!have.has(id));
     if(missing.length&&!this._attDl){this._attDl=true;
       (async()=>{try{for(const id of missing){
-          try{const r=await storageReq('GET',paths[id]);const blob=await r.blob();
-            await IDB.putAtt({id:id,blob:blob,size:blob.size,type:'application/pdf',createdAt:Date.now(),dirty:0,remotePath:paths[id]});}
+          try{const r=await storageReq('GET',paths[id]);const buf=await r.arrayBuffer();
+            await IDB.putAtt({id:id,buf:buf,size:buf.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:0,remotePath:paths[id]});}
           catch(e){}}
       }finally{this._attDl=false;}})();}
     if(firstErr)throw firstErr;
@@ -5301,7 +5343,7 @@ document.addEventListener('focusout',e=>{if(!_kbText(e.relatedTarget))document.b
    PAS l'application : on expose juste les fonctions pures à tester. AUCUN effet en usage normal :
    sans ce paramètre, rien de tout ceci ne s'exécute et aucun global n'est ajouté. */
 if(location.search.indexOf('__actest')>=0){
-  window.__ac_test__={migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attStoragePath,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
+  window.__ac_test__={migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attStoragePath,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,
     restErrStatus,isPersoRepairCandidate,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT};
