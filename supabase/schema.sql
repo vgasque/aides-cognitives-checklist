@@ -517,6 +517,93 @@ returns jsonb language sql stable security definer set search_path = public, aut
 $$;
 grant execute on function public.get_instance_stats() to authenticated;
 
+-- ---------- 6quinquies. Protocoles (4.0.0) : clone de `fiches` -------------------------------
+-- Section « Protocoles » de l'app : documents de service (PDF joints) et/ou contenu rédigé
+-- (mini-Markdown), rangés comme les fiches (perso par owner, ou bibliothèque partagée).
+-- MÊME modèle de sécurité que `fiches` : politiques identiques, trigger anti-postdatage,
+-- plafond de taille de ligne. Le contenu voyage entier en jsonb (colonne data).
+create table if not exists public.protocols (
+  id         text primary key,
+  owner      uuid not null default auth.uid(),
+  library_id text references public.libraries on delete cascade,   -- NULL = perso
+  data       jsonb not null,
+  updated_at timestamptz not null default now(),
+  deleted_at timestamptz
+);
+create index if not exists protocols_updated_idx on public.protocols (updated_at);
+create index if not exists protocols_library_idx on public.protocols (library_id);
+alter table public.protocols enable row level security;
+
+drop policy if exists prot_perso on public.protocols;
+create policy prot_perso on public.protocols for all
+  using      (library_id is null and owner = auth.uid() and public.is_approved())
+  with check (library_id is null and owner = auth.uid() and public.is_approved());
+drop policy if exists prot_shared_read on public.protocols;
+create policy prot_shared_read on public.protocols for select
+  using (library_id is not null and public.is_member(library_id));
+drop policy if exists prot_shared_write on public.protocols;
+create policy prot_shared_write on public.protocols for all
+  using      (library_id is not null and public.member_role(library_id) in ('editor','admin'))
+  with check (library_id is not null and public.member_role(library_id) in ('editor','admin'));
+
+drop trigger if exists protocols_clamp_updated on public.protocols;
+create trigger protocols_clamp_updated before insert or update on public.protocols
+  for each row execute function public.clamp_updated_at();
+
+do $$ begin
+  alter table public.protocols add constraint protocols_data_size_chk
+    check (octet_length(data::text) <= 20*1024*1024);
+exception when duplicate_object then null; end $$;
+
+grant select, insert, update, delete on public.protocols to authenticated;
+
+-- La suppression de compte (RGPD) emporte aussi les protocoles perso.
+create or replace function public.delete_my_account()
+returns void language plpgsql security definer set search_path = public, auth as $$
+declare
+  uid    uuid  := auth.uid();
+  claims jsonb := coalesce(nullif(current_setting('request.jwt.claims', true), ''), '{}')::jsonb;
+begin
+  if uid is null then raise exception 'not authenticated'; end if;
+  if not exists (
+    select 1
+    from jsonb_array_elements(coalesce(claims->'amr', '[]'::jsonb)) e
+    where e->>'method' in ('otp','magiclink')
+      and to_timestamp((e->>'timestamp')::numeric) > now() - interval '10 minutes'
+  ) then
+    raise exception 'recent otp verification required';
+  end if;
+  if exists (select 1 from public.app_admins where user_id = uid) then
+    raise exception 'super-admin account cannot be self-deleted';
+  end if;
+  delete from public.fiches        where owner = uid and library_id is null;
+  delete from public.protocols     where owner = uid and library_id is null;
+  delete from public.category_sets where owner = uid and library_id is null;
+  -- Documents PDF perso du bucket : rendus inaccessibles par la RLS dès la suppression du compte ;
+  -- leurs objets orphelins remontent dans list_orphan_attachments() (purge manuelle app-admin).
+  delete from auth.users where id = uid;   -- cascade -> memberships, app_admins, sessions…
+end; $$;
+
+-- État de l'instance : RE-CRÉÉE ici (après la table protocols, qu'une fonction SQL ne peut
+-- référencer avant sa création) avec les compteurs de protocoles et le poids du bucket.
+create or replace function public.get_instance_stats()
+returns jsonb language sql stable security definer set search_path = public, auth as $$
+  select case when not public.is_app_admin() then null else jsonb_build_object(
+    'users',        (select count(*) from auth.users),
+    'pending',      (select count(*) from public.user_status where status = 'pending'),
+    'rejected',     (select count(*) from public.user_status where status = 'rejected'),
+    'libraries',    (select count(*) from public.libraries),
+    'fiches_perso', (select count(*) from public.fiches where library_id is null and deleted_at is null),
+    'fiches_shared',(select count(*) from public.fiches where library_id is not null and deleted_at is null),
+    'protocols',    (select count(*) from public.protocols where deleted_at is null),
+    'storage_bytes',(select coalesce(sum(octet_length(data::text)),0) from public.fiches where deleted_at is null)
+                    + (select coalesce(sum(octet_length(data::text)),0) from public.category_sets)
+                    + (select coalesce(sum(octet_length(data::text)),0) from public.protocols where deleted_at is null),
+    'attachments_bytes',(select coalesce(sum((o.metadata->>'size')::bigint),0)
+                         from storage.objects o where o.bucket_id = 'attachments')
+  ) end;
+$$;
+
 -- ---------- 7. Documents PDF joints : bucket Storage 'attachments' (4.0.0) ------------------
 -- Les fiches ne transportent que des MÉTADONNÉES ({id,name,size} dans data.attachments) ; le
 -- fichier PDF lui-même vit dans ce bucket PRIVÉ. LE CHEMIN ENCODE LE PÉRIMÈTRE DE SÉCURITÉ :
@@ -583,7 +670,11 @@ language sql stable security definer set search_path = public, storage as $$
     and substring(o.name from '([A-Za-z0-9_-]{1,64})\.pdf$') not in (
       select a->>'id'
       from public.fiches f, jsonb_array_elements(coalesce(f.data->'attachments','[]'::jsonb)) a
-      where f.deleted_at is null)
+      where f.deleted_at is null
+      union
+      select a->>'id'
+      from public.protocols p, jsonb_array_elements(coalesce(p.data->'attachments','[]'::jsonb)) a
+      where p.deleted_at is null)
   order by o.created_at;
 $$;
 grant execute on function public.list_orphan_attachments() to authenticated;

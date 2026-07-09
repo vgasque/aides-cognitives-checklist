@@ -397,6 +397,60 @@ begin
     raise exception 'ÉCHEC : le rôle anon a pu déposer un document';
   exception when insufficient_privilege then null; end;
 
+  ------------------------------------------------------------------ 10. Table protocols (clone de fiches)
+  -- Mêmes scénarios que les fiches : isolement perso, gate d'approbation, rôles des bibliothèques
+  -- partagées, anti-exfiltration. État hérité : require_approval=TRUE ; erin admin de lib-team ;
+  -- frank viewer de lib-team ; gina pending non-membre.
+
+  -- 10.1 Perso isolé : Alice crée, erin ne voit ni ne modifie.
+  perform set_config('request.jwt.claims', json_build_object('sub',alice,'role','authenticated')::text, true);
+  set local role authenticated;
+  insert into public.protocols(id,owner,library_id,data) values ('p-alice',alice,null,'{"t":1}');
+  select count(*) into v_cnt from public.protocols where id='p-alice';
+  if v_cnt <> 1 then raise exception 'ÉCHEC : Alice ne voit pas son propre protocole perso'; end if;
+  perform set_config('request.jwt.claims', json_build_object('sub',erin,'role','authenticated')::text, true);
+  select count(*) into v_cnt from public.protocols where id='p-alice';
+  if v_cnt <> 0 then raise exception 'ÉCHEC : erin voit le protocole perso d''Alice'; end if;
+  update public.protocols set data='{"hack":1}' where id='p-alice';
+  reset role;
+  select data->>'hack' into v_hack from public.protocols where id='p-alice';
+  if v_hack is not null then raise exception 'ÉCHEC : erin a pu modifier le protocole perso d''Alice'; end if;
+
+  -- 10.2 Compte NON approuvé : écriture perso bloquée (gate is_approved).
+  perform set_config('request.jwt.claims', json_build_object('sub',gina,'role','authenticated')::text, true);
+  set local role authenticated;
+  begin
+    insert into public.protocols(id,owner,library_id,data) values ('p-gina',gina,null,'{"t":1}');
+    raise exception 'ÉCHEC : un compte pending a pu écrire un protocole perso';
+  exception when insufficient_privilege then null; end;
+
+  -- 10.3 Bibliothèque partagée : editor/admin écrit, viewer lit sans écrire, non-membre rien.
+  perform set_config('request.jwt.claims', json_build_object('sub',erin,'role','authenticated')::text, true);
+  insert into public.protocols(id,owner,library_id,data) values ('p-team',erin,'lib-team','{"t":1}');
+  perform set_config('request.jwt.claims', json_build_object('sub',frank,'role','authenticated')::text, true);
+  select count(*) into v_cnt from public.protocols where id='p-team';
+  if v_cnt <> 1 then raise exception 'ÉCHEC : un viewer ne voit pas un protocole de sa bibliothèque'; end if;
+  update public.protocols set data='{"hack":1}' where id='p-team';
+  reset role;
+  select data->>'hack' into v_hack from public.protocols where id='p-team';
+  if v_hack is not null then raise exception 'ÉCHEC : un viewer a pu modifier un protocole de sa bibliothèque'; end if;
+  perform set_config('request.jwt.claims', json_build_object('sub',gina,'role','authenticated')::text, true);
+  set local role authenticated;
+  select count(*) into v_cnt from public.protocols where id='p-team';
+  if v_cnt <> 0 then raise exception 'ÉCHEC : un non-membre voit un protocole de la bibliothèque'; end if;
+  begin
+    insert into public.protocols(id,owner,library_id,data) values ('p-intru',gina,'lib-team','{"t":1}');
+    raise exception 'ÉCHEC : un non-membre a pu écrire un protocole dans la bibliothèque';
+  exception when insufficient_privilege then null; end;
+
+  -- 10.4 Anti-exfiltration : un viewer ne peut pas déplacer un protocole partagé vers son perso.
+  perform set_config('request.jwt.claims', json_build_object('sub',frank,'role','authenticated')::text, true);
+  set local role authenticated;
+  update public.protocols set library_id=null, owner=frank where id='p-team';
+  reset role;
+  select library_id into v_hack from public.protocols where id='p-team';
+  if v_hack is distinct from 'lib-team' then raise exception 'ÉCHEC : un viewer a pu exfiltrer un protocole partagé vers son espace perso'; end if;
+
   ------------------------------------------------------------------ FIN
   reset role;
   raise notice '✅ TOUS LES TESTS RLS PASSENT';

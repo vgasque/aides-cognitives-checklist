@@ -4178,7 +4178,7 @@ async function wipeLocal(){
   const names=new Set(['ac-db']);
   spaces.concat([currentSpace()]).forEach(s=>{names.add(dbNameFor(s,owner));names.add('ac-db-'+(s||'anon'));});
   for(const n of names){try{await new Promise(res=>{const r=indexedDB.deleteDatabase(n);r.onsuccess=r.onerror=r.onblocked=()=>res();});}catch(e){}}
-  try{['fiches_v1','cats_v1','sessions_v1','backups_v1','notes_v1','protocols_v1','ac-sync-cursor','ac-cats-dirty:','ac-cats-updated:','ac-lib-usage','ac-notice-hidden','ac-seeds-hidden','ac-auth','ac-pins','ac-onboarded','ac-space','ac-db-owner','ac-spaces','ac-att-del','ac-section'].forEach(k=>localStorage.removeItem(k));
+  try{['fiches_v1','cats_v1','sessions_v1','backups_v1','notes_v1','protocols_v1','ac-sync-cursor','ac-sync-cursor-prot','ac-cats-dirty:','ac-cats-updated:','ac-lib-usage','ac-notice-hidden','ac-seeds-hidden','ac-auth','ac-pins','ac-onboarded','ac-space','ac-db-owner','ac-spaces','ac-att-del','ac-section'].forEach(k=>localStorage.removeItem(k));
     for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);if(!k)continue;
       if(k.indexOf('ac-sync-init-')===0||k.indexOf('ac-cats-dirty:')===0||k.indexOf('ac-cats-updated:')===0||k.indexOf('ac-profile-')===0
         ||((k.indexOf('ac-')===0||k.indexOf('_v1@')>0)&&k.indexOf('@')>0))localStorage.removeItem(k);}
@@ -4200,7 +4200,7 @@ async function wipeCurrentSpace(){
     // Propriétaire de la base historique : ses clés localStorage sont NUES (sans suffixe
     // d'espace, cf. spaceKeyFor) — ce sont donc les mêmes noms que wipeLocal() connaît déjà.
     if(owner===space){
-      ['fiches_v1','cats_v1','sessions_v1','backups_v1','notes_v1','protocols_v1','ac-sync-cursor','ac-lib-usage','ac-seeds-hidden','ac-pins','ac-held-edits','ac-att-del','ac-section'].forEach(k=>localStorage.removeItem(k));
+      ['fiches_v1','cats_v1','sessions_v1','backups_v1','notes_v1','protocols_v1','ac-sync-cursor','ac-sync-cursor-prot','ac-lib-usage','ac-seeds-hidden','ac-pins','ac-held-edits','ac-att-del','ac-section'].forEach(k=>localStorage.removeItem(k));
       for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);if(k&&(k.indexOf('ac-cats-dirty:')===0||k.indexOf('ac-cats-updated:')===0))localStorage.removeItem(k);}
     }
     localStorage.removeItem('ac-sync-init-'+space);
@@ -4215,7 +4215,7 @@ async function wipeCurrentSpace(){
 async function loadInstanceStats(){const box=document.getElementById('authStats');if(!box)return;
   let s=null;try{s=await rpc('get_instance_stats');}catch(e){}
   if(!s){box.innerHTML='';return;}
-  const cells=[['Comptes',s.users],['En attente',s.pending],['Refusés',s.rejected],['Bibliothèques',s.libraries],['Fiches perso',s.fiches_perso],['Fiches partagées',s.fiches_shared],['Stockage',fmtBytes(s.storage_bytes)],['Documents PDF',fmtBytes(s.attachments_bytes||0)]];
+  const cells=[['Comptes',s.users],['En attente',s.pending],['Refusés',s.rejected],['Bibliothèques',s.libraries],['Fiches perso',s.fiches_perso],['Fiches partagées',s.fiches_shared],['Protocoles',s.protocols||0],['Stockage',fmtBytes(s.storage_bytes)],['Documents PDF',fmtBytes(s.attachments_bytes||0)]];
   box.innerHTML='<div class="auth-stats-h">État de l\'instance</div><div class="inst-stats">'+cells.map(([k,v])=>`<div class="inst-stat"><span class="is-v">${esc(String(v))}</span><span class="is-k">${esc(k)}</span></div>`).join('')+'</div>';}
 function renderAuth(){const body=document.getElementById('authBody');if(!body)return;
   if(Auth.signedIn()){const u=Auth.user()||{};
@@ -4596,6 +4596,16 @@ function ficheFromRow(row){return migrate(Object.assign({},row.data,{id:row.id,
     updatedAt:Date.parse(row.updated_at)||Date.now(),
     deletedAt:row.deleted_at?Date.parse(row.deleted_at):null,
     ownerId:row.owner||null,libraryId:row.library_id||null}));}
+// Protocoles <-> lignes Supabase : mêmes conversions que les fiches (table `protocols`, clone
+// de `fiches` côté serveur : id/owner/library_id/data jsonb/updated_at/deleted_at).
+function protocolToRow(p,uidv){const data=Object.assign({},p);delete data.dirty;
+  return {id:p.id,owner:uidv,library_id:p.libraryId||null,data:data,
+    updated_at:new Date(p.updatedAt||Date.now()).toISOString(),
+    deleted_at:p.deletedAt?new Date(p.deletedAt).toISOString():null};}
+function protocolFromRow(row){return migrateProtocol(Object.assign({},row.data,{id:row.id,
+    updatedAt:Date.parse(row.updated_at)||Date.now(),
+    deletedAt:row.deleted_at?Date.parse(row.deleted_at):null,
+    ownerId:row.owner||null,libraryId:row.library_id||null}));}
 /* ----- Documents PDF : bucket Storage 'attachments' -----
    Le CHEMIN encode le périmètre de sécurité (politiques RLS de supabase/schema.sql §7) :
    u/<uid>/<attId>.pdf = perso (propriétaire seul) ; l/<libId>/<attId>.pdf = bibliothèque
@@ -4747,11 +4757,12 @@ const Sync={
       if(myAccountStatus==='rejected'){setSyncChip('rejected','Compte refusé');return;}
       await this.loadProfile();
       await this._initIfNeeded();
-      const conflicts=await this._pull();
+      const conflicts=(await this._pull()).concat(await this._pullProtocols());
       // Un échec (même partiel) du push ne prive plus le reste de la synchro : réconciliation,
       // catégories et notes tournent quand même ; l'erreur est re-levée à la fin (pastille
       // « Erreur de synchro » + nouvelle tentative automatique), tout le reste étant à jour.
       let pushErr=null;try{await this._push();}catch(e){pushErr=e;}
+      try{await this._pushProtocols();}catch(e){if(!pushErr)pushErr=e;}
       await this._reconcileShared();
       await this._syncCats();
       await this._syncNotes();
@@ -4779,14 +4790,21 @@ const Sync={
   async _initIfNeeded(){const uidv=Auth.user().id;const k='ac-sync-init-'+uidv;if(localStorage.getItem(k))return;
     const peek=await rest('GET','/rest/v1/fiches?select=id&library_id=is.null&limit=1')||[];
     if(!peek.length){const all=await Data.getAll();for(const f of all){if(!f.libraryId&&!f.deletedAt){f.dirty=true;await Data.put(f);}}
+      // Les protocoles locaux suivent le même téléversement initial que les fiches.
+      const allP=await Data.getProtocols().catch(()=>[]);for(const p of allP){if(!p.libraryId&&!p.deletedAt){p.dirty=true;await Data.putProtocol(p);}}
       try{localStorage.setItem(spaceKey('ac-cats-dirty:'),'1');if(!localStorage.getItem(spaceKey('ac-cats-updated:')))localStorage.setItem(spaceKey('ac-cats-updated:'),String(Date.now()));}catch(e){}}
     localStorage.setItem(k,'1');},
-  async _pull(){
-    const cur=localStorage.getItem(spaceKey(this._cursorKey));
+  // PULL GÉNÉRIQUE d'une table {id, data jsonb, updated_at, deleted_at} — comportement
+  // STRICTEMENT identique à l'historique des fiches ; les spécificités (archivage de version,
+  // nettoyage de la note personnelle) sont injectées par `cfg`.
+  //   cfg = { table, cursorKey, getAllLocal, dataPut, dataDel, fromRow,
+  //           addMem/replaceMem/dropMem (tableau en mémoire), backup?, onRemoteDelete? }
+  async _pullTable(cfg){
+    const cur=localStorage.getItem(spaceKey(cfg.cursorKey));
     // Recouvrement de 2 s + application idempotente (LWW) -> aucun enregistrement manqué aux bornes.
     let since=cur?new Date((Date.parse(cur)||0)-2000).toISOString():'1970-01-01T00:00:00Z';
     let maxTs=cur?Date.parse(cur):0;const conflicts=[];let total=0;
-    const localAll=await Data.getAll();const byId={};localAll.forEach(f=>byId[f.id]=f);
+    const localAll=await cfg.getAllLocal();const byId={};localAll.forEach(f=>byId[f.id]=f);
     // PAGINATION : PostgREST plafonne une réponse (1000 lignes par défaut) -> on boucle par pages
     // (limit explicite + curseur updated_at croissant) jusqu'à une page incomplète, pour qu'une très
     // grosse bibliothèque arrive ENTIÈRE dès la première synchro. Garde-fous : nombre de pages borné,
@@ -4794,32 +4812,43 @@ const Sync={
     // Pas de filtre de bibliothèque : la RLS limite déjà à ce que je peux voir (Perso + mes bibliothèques).
     const PAGE=1000;
     for(let p=0;p<50;p++){
-      const rows=await rest('GET','/rest/v1/fiches?select=*&updated_at=gt.'+encodeURIComponent(since)+'&order=updated_at.asc&limit='+PAGE)||[];
+      const rows=await rest('GET','/rest/v1/'+cfg.table+'?select=*&updated_at=gt.'+encodeURIComponent(since)+'&order=updated_at.asc&limit='+PAGE)||[];
       total+=rows.length;
       for(const row of rows){const rts=Date.parse(row.updated_at)||0;if(rts>maxTs)maxTs=rts;
         const local=byId[row.id];
-        if(row.deleted_at){if(local){await Data.del(row.id);delete byId[row.id];const i=fiches.findIndex(x=>x.id===row.id);if(i>=0)fiches.splice(i,1);}
-          // Fiche supprimée (ailleurs, ou par un éditeur de la bibliothèque) : ma note personnelle
-          // attachée est effacée aussi (t:'' poussé -> propagation à mes autres appareils).
-          if(notes[row.id]&&notes[row.id].t){notes[row.id]={t:'',at:Date.now(),dirty:true};try{await Data.setNotes(notes);}catch(e){}}
+        if(row.deleted_at){if(local){await cfg.dataDel(row.id);delete byId[row.id];cfg.dropMem(row.id);}
+          if(cfg.onRemoteDelete)await cfg.onRemoteDelete(row.id);
           continue;}
-        if(!local){const nf=ficheFromRow(row);await Data.put(nf);byId[row.id]=nf;if(!nf.deletedAt)fiches.push(nf);continue;}
+        if(!local){const nf=cfg.fromRow(row);await cfg.dataPut(nf);byId[row.id]=nf;if(!nf.deletedAt)cfg.addMem(nf);continue;}
         if(rts>(local.updatedAt||0)){
-          // La version LOCALE est TOUJOURS archivée avant remplacement (bouton « Versions » /
-          // « Ma version écrasée », borné à BACKUP_MAX par fiche), pas seulement en cas de conflit.
-          // Le toast « conflit », lui, reste réservé aux vraies divergences (modification locale
-          // non poussée écrasée).
-          try{await Data.putBackup({bid:uid('bk'),ficheId:local.id,at:Date.now(),data:JSON.parse(JSON.stringify(local))});}catch(e){}
+          // La version LOCALE est archivée avant remplacement quand la table le prévoit (fiches :
+          // bouton « Versions », borné à BACKUP_MAX). Le toast « conflit », lui, reste réservé
+          // aux vraies divergences (modification locale non poussée écrasée).
+          if(cfg.backup)try{await cfg.backup(local);}catch(e){}
           if(local.dirty)conflicts.push(local.title||local.id);
-          const nf=ficheFromRow(row);await Data.put(nf);byId[row.id]=nf;const i=fiches.findIndex(x=>x.id===row.id);if(i>=0)fiches[i]=nf;else if(!nf.deletedAt)fiches.push(nf);
+          const nf=cfg.fromRow(row);await cfg.dataPut(nf);byId[row.id]=nf;cfg.replaceMem(nf);
         } // sinon local plus récent/identique -> on garde (sera poussé si dirty)
       }
       if(rows.length<PAGE)break;
       const next=new Date(maxTs).toISOString();if(next===since)break;since=next;
     }
-    if(maxTs)localStorage.setItem(spaceKey(this._cursorKey),new Date(maxTs).toISOString());
+    if(maxTs)localStorage.setItem(spaceKey(cfg.cursorKey),new Date(maxTs).toISOString());
     if(total)render();
     return conflicts;},
+  async _pull(){return this._pullTable({table:'fiches',cursorKey:this._cursorKey,
+    getAllLocal:()=>Data.getAll(),dataPut:f=>Data.put(f),dataDel:id=>Data.del(id),fromRow:ficheFromRow,
+    addMem:f=>fiches.push(f),
+    dropMem:id=>{const i=fiches.findIndex(x=>x.id===id);if(i>=0)fiches.splice(i,1);},
+    replaceMem:f=>{const i=fiches.findIndex(x=>x.id===f.id);if(i>=0)fiches[i]=f;else if(!f.deletedAt)fiches.push(f);},
+    backup:local=>Data.putBackup({bid:uid('bk'),ficheId:local.id,at:Date.now(),data:JSON.parse(JSON.stringify(local))}),
+    // Fiche supprimée (ailleurs, ou par un éditeur de la bibliothèque) : ma note personnelle
+    // attachée est effacée aussi (t:'' poussé -> propagation à mes autres appareils).
+    onRemoteDelete:async id=>{if(notes[id]&&notes[id].t){notes[id]={t:'',at:Date.now(),dirty:true};try{await Data.setNotes(notes);}catch(e){}}}});},
+  async _pullProtocols(){return this._pullTable({table:'protocols',cursorKey:'ac-sync-cursor-prot',
+    getAllLocal:()=>Data.getProtocols(),dataPut:p=>Data.putProtocol(p),dataDel:id=>Data.delProtocol(id),fromRow:protocolFromRow,
+    addMem:p=>protocols.push(p),
+    dropMem:id=>{const i=protocols.findIndex(x=>x.id===id);if(i>=0)protocols.splice(i,1);},
+    replaceMem:p=>{const i=protocols.findIndex(x=>x.id===p.id);if(i>=0)protocols[i]=p;else if(!p.deletedAt)protocols.push(p);}});},
   async _push(){
     // On pousse Perso + les fiches des bibliothèques où l'on peut éditer (la RLS refuserait sinon).
     // Les modifications faites pendant une déconnexion (heldEdits) restent RETENUES tant que le
@@ -4862,6 +4891,38 @@ const Sync={
         if(repaired)render();
       }else if(!firstErr)firstErr=new Error('REST 403 (espace personnel indisponible en écriture)');
     }
+    if(firstErr)throw firstErr;},
+  // PUSH des protocoles `dirty` : lot unique, puis repli protocole PAR protocole pour isoler un
+  // refus (même mécanique que _push). Un protocole PERSO refusé en 403 (id déjà pris par un autre
+  // compte — import inter-comptes) est réparé par régénération d'id : contrairement aux fiches,
+  // aucun rattachement local à déplacer (pas de sessions/notes/épingles sur un protocole), les
+  // documents PDF étant référencés par des ids indépendants de celui du protocole.
+  async _pushProtocols(){
+    const all=await Data.getProtocols();const dirty=all.filter(p=>p.dirty&&canEditFiche(p));
+    if(!dirty.length)return;const uidv=Auth.user().id;
+    const send=async batch=>{
+      await rest('POST','/rest/v1/protocols',batch.map(p=>protocolToRow(p,uidv)),{'Prefer':'resolution=merge-duplicates,return=minimal'});
+      for(const p of batch){if(p.deletedAt){await Data.delProtocol(p.id);} // tombstone poussé -> purge locale
+        else{p.dirty=false;await Data.putProtocol(p);}}};
+    try{await send(dirty);return;}catch(e){}
+    let firstErr=null,persoOk=0;const perso403=[];
+    for(const p of dirty){
+      try{await send([p]);if(!p.libraryId)persoOk++;}
+      catch(e){if(isPersoRepairCandidate(e&&e.message,!p.libraryId))perso403.push(p);else if(!firstErr)firstErr=e;}}
+    if(perso403.length){
+      let writable=persoOk>0;
+      if(!writable){try{writable=(await rpc('is_approved'))===true;}catch(e){}}
+      if(writable){let repaired=false;
+        for(const p of perso403){
+          try{const oldId=p.id;p.id=uid('p');p.dirty=true;
+            await Data.putProtocol(p);try{await Data.delProtocol(oldId);}catch(e){}
+            const i=protocols.findIndex(x=>x.id===oldId);if(i>=0)protocols[i]=p;
+            if(state.protocol&&state.protocol.id===oldId)state.protocol=p;
+            if(state.pdraft&&state.pdraft.id===oldId)state.pdraft.id=p.id;
+            repaired=true;await send([p]);}
+          catch(e){if(!firstErr)firstErr=e;}}
+        if(repaired)render();
+      }else if(!firstErr)firstErr=new Error('REST 403 (espace personnel indisponible en écriture)');}
     if(firstErr)throw firstErr;},
   // ----- Documents PDF : synchronisation avec le bucket Storage 'attachments' -----
   // Appelée APRÈS _pull/_reconcileShared : l'ensemble local des références (fiches vivantes +
@@ -4977,10 +5038,15 @@ const Sync={
   // Réconciliation des fiches PARTAGÉES : retire localement celles devenues inaccessibles (fiche
   // déplacée hors de la biblio, membre retiré, biblio supprimée). Les fiches Perso ne sont jamais
   // touchées. En cas d'échec réseau, on ne supprime rien (sécurité).
+  // Retire localement les enregistrements PARTAGÉS devenus inaccessibles (droits retirés,
+  // bibliothèque supprimée). Générique fiches/protocoles — même comportement qu'avant.
   async _reconcileShared(){
-    let ids;try{const rows=await rest('GET','/rest/v1/fiches?select=id')||[];ids=new Set(rows.map(r=>r.id));}catch(e){return;}
-    const all=await Data.getAll();let changed=false;
-    for(const f of all){if(f.libraryId&&!f.dirty&&!ids.has(f.id)){await Data.del(f.id);const i=fiches.findIndex(x=>x.id===f.id);if(i>=0)fiches.splice(i,1);changed=true;}}
+    await this._reconcileTable('fiches',()=>Data.getAll(),id=>Data.del(id),fiches);
+    await this._reconcileTable('protocols',()=>Data.getProtocols(),id=>Data.delProtocol(id),protocols);},
+  async _reconcileTable(table,getAllLocal,dataDel,mem){
+    let ids;try{const rows=await rest('GET','/rest/v1/'+table+'?select=id')||[];ids=new Set(rows.map(r=>r.id));}catch(e){return;}
+    const all=await getAllLocal();let changed=false;
+    for(const f of all){if(f.libraryId&&!f.dirty&&!ids.has(f.id)){await dataDel(f.id);const i=mem.findIndex(x=>x.id===f.id);if(i>=0)mem.splice(i,1);changed=true;}}
     if(changed)render();},
   // Profil : bibliothèques partagées dont je suis membre (avec rôle) + statut app-admin.
   // En cas d'ÉCHEC réseau, on GARDE la dernière valeur connue (jamais de « disparition » des
@@ -4999,7 +5065,7 @@ const Sync={
     if(myIsAppAdmin){try{myPendingCount=(await rpc('list_unapproved_users')||[]).filter(u=>u.status==='pending').length;}catch(e){myPendingCount=0;}}
     else myPendingCount=0;
     if(ok)saveProfileCache();
-    if(state.view==='library')renderLibrary();}
+    if(state.view==='library')render();}   // render() aiguille selon la section (fiches/protocoles)
 };
 // Déclencheurs de synchro : retour en ligne, retour au premier plan.
 window.addEventListener('online',()=>{setSyncChip('ok','Synchronisé');Sync.full();});
