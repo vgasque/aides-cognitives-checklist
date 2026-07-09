@@ -1,5 +1,20 @@
 # Journal des modifications
 
+## [3.5.3] — 2026-07-09
+### Corrigé
+- **Ouvrir une fiche affiche son début.** Après avoir défilé dans la bibliothèque, ouvrir une
+  fiche conservait la position de défilement (on arrivait au milieu de la fiche). Le défilement
+  est désormais géré par transition de vue : haut de page à l'ouverture d'une fiche (ou au
+  changement de fiche via une banderole d'alerte) et à l'entrée en édition ; au retour à la
+  bibliothèque, la position de la liste est restaurée là où on en était. Les re-rendus en lecture
+  (cocher une étape, minuteurs) ne provoquent toujours aucun saut, usage en crise oblige.
+
+### Modifié
+- **Icône « attention » unifiée.** Le triangle arrondi du bandeau « Brouillon » devient le dessin
+  unique de l'avertissement : bandeau « Ne pas oublier », toasts, fenêtre de suppression de compte
+  et erreurs de synchro l'utilisent désormais via `uiIcon('warn')` — plus de SVG dupliqués en dur
+  (quatre copies divergentes supprimées).
+
 ## [3.5.2] — 2026-07-08
 ### Ajouté
 - **Barre de vie des notifications.** Une fine barre en bas des toasts se vide de gauche à droite
