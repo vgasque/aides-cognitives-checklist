@@ -312,6 +312,11 @@ function run(A){
   eq('taille démesurée clampée au plafond', A.safeAttachment({id:'a1',name:'x',size:1e12}).size, A.MAX_PDF_BYTES);
   ok('nom avec chemin nettoyé', A.safeAttachment({id:'a1',name:'../x.pdf',size:1}).name.indexOf('/')<0);
 
+  group('attStoragePath() — le chemin cloud encode le périmètre');
+  eq('perso -> u/<uid>/<id>.pdf', A.attStoragePath(null,'11111111-1111-1111-1111-111111111111','att1'), 'u/11111111-1111-1111-1111-111111111111/att1.pdf');
+  eq('bibliothèque -> l/<lib>/<id>.pdf', A.attStoragePath('lib-team','11111111-1111-1111-1111-111111111111','att1'), 'l/lib-team/att1.pdf');
+  eq('libraryId vide = perso', A.attStoragePath('','u-1','att1'), 'u/u-1/att1.pdf');
+
   group('migrate() — champ attachments');
   eq('absent → tableau vide', A.migrate({title:'x'}).attachments, []);
   eq('non-tableau → tableau vide', A.migrate({title:'x',attachments:'zzz'}).attachments, []);

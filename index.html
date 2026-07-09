@@ -1903,8 +1903,11 @@ async function gcAttachments(entities){
   if(!supportsAttachments())return;
   try{const ref=new Set();
     (entities||[]).forEach(f=>{if(f&&Array.isArray(f.attachments))f.attachments.forEach(a=>{if(a&&a.id)ref.add(a.id);});});
-    const ids=await IDB.getAttIds();
-    for(const id of ids){if(!ref.has(id))await IDB.delAtt(id);}
+    for(const rec of await IDB.getAtts()){
+      if(ref.has(rec.id))continue;
+      // Copie cloud éventuelle -> file de suppression distante (rejouée par Sync._syncAttachments).
+      if(rec.remotePath)queueAttDelete(rec.remotePath);
+      await IDB.delAtt(rec.id);}
   }catch(e){}}
 
 /* ===== Runtime (minuteurs, compteurs, audio) =====
@@ -3122,7 +3125,14 @@ async function saveDraft(){const d=state.draft;d.title=(d.title||'').trim();
    }}
   // La structure de la fiche change : on TERMINE une éventuelle session vive (archivée) pour éviter
   // une incohérence minuteurs/blocs, puis on rouvre la fiche à neuf.
-  if(!(await persist(d)))return;draftNewAtts=[];const i=fiches.findIndex(x=>x.id===d.id);if(i>=0)fiches[i]=d;else fiches.push(d);if(liveSessions[d.id])endSession(liveSessions[d.id]);state.draft=null;resetRuntime();openRead(d.id);}
+  if(!(await persist(d)))return;draftNewAtts=[];
+  // CHANGEMENT DE BIBLIOTHÈQUE : le chemin cloud des documents PDF encode le périmètre -> on
+  // remet leurs blobs « à pousser » (re-upload au nouveau chemin + suppression de l'ancien,
+  // gérés par Sync._syncAttachments).
+  {const orig2=fiches.find(x=>x.id===d.id);
+   if(orig2&&(orig2.libraryId||null)!==(d.libraryId||null)&&supportsAttachments()){
+     for(const a of (d.attachments||[])){try{const rec=await IDB.getAtt(a.id);if(rec){rec.dirty=1;await IDB.putAtt(rec);}}catch(e){}}}}
+  const i=fiches.findIndex(x=>x.id===d.id);if(i>=0)fiches[i]=d;else fiches.push(d);if(liveSessions[d.id])endSession(liveSessions[d.id]);state.draft=null;resetRuntime();openRead(d.id);}
 async function deleteDraft(){
   // Fiche de bibliothèque PARTAGÉE : la suppression effacera aussi, chez chaque membre, la note
   // personnelle qu'il a pu attacher à cette fiche -> on le dit à l'éditeur/admin avant.
@@ -3219,7 +3229,19 @@ async function renderPdfPage(s){if(!_pv||s.rendering)return;
 async function openPdfViewer(att){
   if(!supportsAttachments()){toast('⚠ Ce navigateur ne peut pas stocker les documents hors ligne — ouvrez l\'app dans un navigateur récent pour lire ce PDF.',9000);return;}
   let rec=null;try{rec=await IDB.getAtt(att.id);}catch(e){}
-  if(!rec||!rec.blob){toast('Document indisponible sur cet appareil (pas encore téléchargé, ou joint depuis un autre appareil).',9000);return;}
+  if(!rec||!rec.blob){
+    // Pas encore sur cet appareil : tentative de téléchargement IMMÉDIATE si connecté (le
+    // téléchargement de fond de la synchro n'est peut-être pas passé par ce document).
+    if(typeof Auth!=='undefined'&&Auth.signedIn()&&navigator.onLine!==false){
+      toast('Téléchargement du document…');
+      try{const f=(state.fiche&&(state.fiche.attachments||[]).some(a=>a.id===att.id))?state.fiche:null;
+        const path=attStoragePath(f?(f.libraryId||null):null,(Auth.user()||{}).id,att.id);
+        const r=await storageReq('GET',path);const blob=await r.blob();
+        rec={id:att.id,blob:blob,size:blob.size,type:'application/pdf',createdAt:Date.now(),dirty:0,remotePath:path};
+        await IDB.putAtt(rec);}
+      catch(e){toast('⚠ Document introuvable dans le cloud — il n\'a peut-être pas encore été envoyé depuis l\'appareil où il a été ajouté.',9000);return;}
+    }else{toast('Document pas encore téléchargé sur cet appareil : connectez-vous avec du réseau pour le récupérer.',9000);return;}
+  }
   const sc=document.getElementById('pdfScroll');
   document.getElementById('pdfModalTitle').textContent=att.name||'Document';
   sc.innerHTML='<div class="pdf-msg">Ouverture du document…</div>';
@@ -3822,7 +3844,7 @@ async function wipeCurrentSpace(){
 async function loadInstanceStats(){const box=document.getElementById('authStats');if(!box)return;
   let s=null;try{s=await rpc('get_instance_stats');}catch(e){}
   if(!s){box.innerHTML='';return;}
-  const cells=[['Comptes',s.users],['En attente',s.pending],['Refusés',s.rejected],['Bibliothèques',s.libraries],['Fiches perso',s.fiches_perso],['Fiches partagées',s.fiches_shared],['Stockage',fmtBytes(s.storage_bytes)]];
+  const cells=[['Comptes',s.users],['En attente',s.pending],['Refusés',s.rejected],['Bibliothèques',s.libraries],['Fiches perso',s.fiches_perso],['Fiches partagées',s.fiches_shared],['Stockage',fmtBytes(s.storage_bytes)],['Documents PDF',fmtBytes(s.attachments_bytes||0)]];
   box.innerHTML='<div class="auth-stats-h">État de l\'instance</div><div class="inst-stats">'+cells.map(([k,v])=>`<div class="inst-stat"><span class="is-v">${esc(String(v))}</span><span class="is-k">${esc(k)}</span></div>`).join('')+'</div>';}
 function renderAuth(){const body=document.getElementById('authBody');if(!body)return;
   if(Auth.signedIn()){const u=Auth.user()||{};
@@ -4203,6 +4225,28 @@ function ficheFromRow(row){return migrate(Object.assign({},row.data,{id:row.id,
     updatedAt:Date.parse(row.updated_at)||Date.now(),
     deletedAt:row.deleted_at?Date.parse(row.deleted_at):null,
     ownerId:row.owner||null,libraryId:row.library_id||null}));}
+/* ----- Documents PDF : bucket Storage 'attachments' -----
+   Le CHEMIN encode le périmètre de sécurité (politiques RLS de supabase/schema.sql §7) :
+   u/<uid>/<attId>.pdf = perso (propriétaire seul) ; l/<libId>/<attId>.pdf = bibliothèque
+   partagée (lecture = membres, écriture = editor/admin). Déplacer une fiche entre périmètres
+   = re-upload au nouveau chemin puis suppression de l'ancien (champ remotePath du blob). */
+// Chemin d'un document dans le bucket — PUR (testé).
+function attStoragePath(libraryId,ownerUid,attId){return libraryId?('l/'+libraryId+'/'+attId+'.pdf'):('u/'+ownerUid+'/'+attId+'.pdf');}
+// Appel direct de l'API Storage (corps BINAIRE : Auth.headers() imposerait un Content-Type JSON).
+// Erreurs au format 'REST <code> …' -> restErrStatus/explainSyncError les comprennent déjà.
+async function storageReq(method,path,body,ctype,extra){await Auth.ensureFresh();
+  const h=Object.assign({'apikey':SUPA.key,'Authorization':'Bearer '+Auth.token()},extra||{});
+  if(ctype)h['Content-Type']=ctype;
+  const r=await fetch(SUPA.url+'/storage/v1/object/attachments/'+path,{method:method,headers:h,body:body});
+  if(!r.ok){const t=await r.text().catch(()=>'');const err=new Error('REST '+r.status+' '+String(t).slice(0,200));err.status=r.status;throw err;}
+  return r;}
+// File LOCALE des suppressions distantes à rejouer (un chemin n'y entre que quand plus AUCUNE
+// entité ne référence son document) : vidée à chaque synchro, survit aux redémarrages.
+const ATT_PATH_RX=/^[ul]\/[A-Za-z0-9_-]{1,64}\/[A-Za-z0-9_-]{1,64}\.pdf$/;
+function attDelQueue(){try{const a=JSON.parse(localStorage.getItem(spaceKey('ac-att-del'))||'[]');
+  return Array.isArray(a)?a.filter(p=>typeof p==='string'&&ATT_PATH_RX.test(p)):[];}catch(e){return [];}}
+function setAttDelQueue(a){try{a&&a.length?localStorage.setItem(spaceKey('ac-att-del'),JSON.stringify(a.slice(0,500))):localStorage.removeItem(spaceKey('ac-att-del'));}catch(e){}}
+function queueAttDelete(path){if(!ATT_PATH_RX.test(String(path||'')))return;const a=attDelQueue();if(a.indexOf(path)<0){a.push(path);setAttDelQueue(a);}}
 // RÉPARATION d'une fiche PERSO refusée en 403 au push : son id existe déjà dans le cloud sous un
 // AUTRE compte (fiche transférée par export/import entre comptes, ou collision d'ids — la clé
 // primaire cloud est GLOBALE). La fiche appartient bien à l'utilisateur localement : on l'adopte
@@ -4295,7 +4339,7 @@ function isPersoRepairCandidate(message,isPerso){return !!isPerso&&restErrStatus
 function explainSyncError(e){const msg=String((e&&e.message)||e||'');const status=restErrStatus(msg);
   if(status===401)return{icon:SYNC_ERR_ICONS.lock,title:'Session expirée',detail:'Votre connexion au compte a expiré. Reconnectez-vous depuis la fenêtre « Compte » pour reprendre la synchronisation.'};
   if(status===403)return{icon:SYNC_ERR_ICONS.forbidden,title:'Écriture refusée',detail:"Le serveur a refusé d'enregistrer certaines fiches. Cause la plus fréquente : vos droits sur une bibliothèque partagée ont changé (rôle modifié ou accès retiré par un administrateur) — ces fiches restent lisibles mais vos modifications n'y sont plus publiées. Autre cause possible : une fiche venue d'un autre compte (import) porte un identifiant déjà pris ; l'app la répare alors automatiquement à la prochaine tentative. Le reste de votre bibliothèque continue de se synchroniser."};
-  if(status===413)return{icon:SYNC_ERR_ICONS.image,title:'Fiche trop volumineuse',detail:"Une fiche contient des images trop lourdes pour être envoyées. Réduisez ou supprimez des images dans cette fiche, puis réessayez."};
+  if(status===413)return{icon:SYNC_ERR_ICONS.image,title:'Contenu trop volumineux',detail:"Une fiche contient des images trop lourdes, ou un document PDF dépasse la taille maximale autorisée (15 Mo). Réduisez ou supprimez des images, ou allégez le document, puis réessayez."};
   if(status===409)return{icon:SYNC_ERR_ICONS.warning,title:'Conflit de données',detail:"Une incohérence a été détectée en enregistrant vos données. Nouvelle tentative automatique en cours ; si le problème persiste, exportez vos fiches par sécurité (bouton « Exporter tout »)."};
   if(status>=500)return{icon:SYNC_ERR_ICONS.server,title:'Service indisponible',detail:"Le service de synchronisation rencontre un problème de son côté (indépendant de votre appareil ou de votre connexion). Nouvelle tentative automatique en cours."};
   // Pas de statut HTTP identifié : soit la requête n'a jamais atteint le serveur (vraie panne réseau,
@@ -4340,7 +4384,12 @@ const Sync={
       await this._reconcileShared();
       await this._syncCats();
       await this._syncNotes();
+      // Documents PDF (bucket Storage) : suppressions distantes en attente, upload des blobs
+      // modifiés, puis téléchargement en arrière-plan des documents manquants. Un échec Storage
+      // ne prive pas le reste de la synchro (re-levé à la fin -> pastille + retry).
+      let attErr=null;try{await this._syncAttachments();}catch(e){attErr=e;}
       if(pushErr)throw pushErr;
+      if(attErr)throw attErr;
       this._retryDelay=0;
       setSyncChip('ok','Synchronisé');
       notifyConflicts(conflicts);
@@ -4443,6 +4492,59 @@ const Sync={
       }else if(!firstErr)firstErr=new Error('REST 403 (espace personnel indisponible en écriture)');
     }
     if(firstErr)throw firstErr;},
+  // ----- Documents PDF : synchronisation avec le bucket Storage 'attachments' -----
+  // Appelée APRÈS _pull/_reconcileShared : l'ensemble local des références (fiches vivantes +
+  // tombstones pas encore poussés) est frais. Réservée au backend IDB (pas de blobs en repli KV).
+  // 1. rejoue la file de suppressions distantes ; 2. purge les blobs locaux que plus rien ne
+  // référence (en mettant leur copie cloud en file) ; 3. upload des blobs dirty ou dont le
+  // périmètre a changé (re-upload + suppression de l'ancien chemin) ; 4. télécharge en
+  // ARRIÈRE-PLAN tout document référencé manquant (hors-ligne d'urgence : systématique).
+  async _syncAttachments(){
+    if(!supportsAttachments())return;
+    const uidv=Auth.user().id;let firstErr=null;
+    // 1. Suppressions distantes en attente. 404 = déjà supprimé ailleurs ; 400/403 = ne passera
+    // jamais (droits perdus, chemin invalide) -> on retire de la file (l'orphelin éventuel reste
+    // visible de l'app-admin via list_orphan_attachments) ; autres erreurs (réseau, 5xx) -> la
+    // file est conservée et retentée.
+    for(const p of attDelQueue()){
+      try{await storageReq('DELETE',p);setAttDelQueue(attDelQueue().filter(x=>x!==p));}
+      catch(e){if(e.status===404||e.status===403||e.status===400)setAttDelQueue(attDelQueue().filter(x=>x!==p));
+        else if(!firstErr)firstErr=e;}}
+    // 2. Références locales : chemin attendu par document (le scope d'une entité VIVANTE prime
+    // sur celui d'un tombstone) + droit de pousser (jamais d'upload par un simple lecteur).
+    const all=await Data.getAll();
+    const paths=Object.create(null),editable=Object.create(null);
+    all.forEach(f=>{(f.attachments||[]).forEach(a=>{if(!a||!a.id)return;
+      if(!paths[a.id]||!f.deletedAt)paths[a.id]=attStoragePath(f.libraryId||null,uidv,a.id);
+      if(canEditFiche(f))editable[a.id]=true;});});
+    // Blobs du brouillon EN COURS d'édition : pas encore référencés par une fiche enregistrée ->
+    // à protéger de la purge (une synchro peut se déclencher pendant la saisie).
+    const draftIds=new Set(draftNewAtts.concat(((state.draft&&state.draft.attachments)||[]).map(a=>a.id)));
+    for(const rec of await IDB.getAtts()){
+      const want=paths[rec.id];
+      if(!want){if(draftIds.has(rec.id))continue;             // brouillon : on ne touche à rien
+        if(rec.remotePath)queueAttDelete(rec.remotePath);      // copie cloud -> file de suppression
+        try{await IDB.delAtt(rec.id);}catch(e){}
+        continue;}
+      if(!editable[rec.id])continue;
+      if(rec.dirty||rec.remotePath!==want){
+        try{await storageReq('POST',want,rec.blob,'application/pdf',{'x-upsert':'true'});
+          if(rec.remotePath&&rec.remotePath!==want)queueAttDelete(rec.remotePath);   // déplacement de périmètre
+          rec.dirty=0;rec.remotePath=want;await IDB.putAtt(rec);
+        }catch(e){if(!firstErr)firstErr=e;}}
+    }
+    // 4. Téléchargements manquants : séquentiels, en arrière-plan (n'allongent pas la synchro) ;
+    // erreurs silencieuses (retentées à la prochaine synchro, ou à la demande via la visionneuse).
+    const have=new Set(await IDB.getAttIds());
+    const missing=Object.keys(paths).filter(id=>!have.has(id));
+    if(missing.length&&!this._attDl){this._attDl=true;
+      (async()=>{try{for(const id of missing){
+          try{const r=await storageReq('GET',paths[id]);const blob=await r.blob();
+            await IDB.putAtt({id:id,blob:blob,size:blob.size,type:'application/pdf',createdAt:Date.now(),dirty:0,remotePath:paths[id]});}
+          catch(e){}}
+      }finally{this._attDl=false;}})();}
+    if(firstErr)throw firstErr;
+  },
   async _syncCats(){
     const uidv=Auth.user().id;
     // Un document de catégories PAR BIBLIOTHÈQUE : Perso (clé '') + chaque bibliothèque (clé = id).
@@ -4758,7 +4860,7 @@ document.addEventListener('focusout',e=>{if(!_kbText(e.relatedTarget))document.b
    PAS l'application : on expose juste les fonctions pures à tester. AUCUN effet en usage normal :
    sans ce paramètre, rien de tout ceci ne s'exécute et aucun global n'est ajouté. */
 if(location.search.indexOf('__actest')>=0){
-  window.__ac_test__={migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,
+  window.__ac_test__={migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attStoragePath,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,
     restErrStatus,isPersoRepairCandidate,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT};
 }else{

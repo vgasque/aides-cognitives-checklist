@@ -54,9 +54,10 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
 - Fonctions pures testables : les exposer via le hook `?__actest` (fin de `index.html`) et ajouter
   un test dans `tests.html`.
 - Ne jamais supprimer un champ du modèle fiche/catégorie (compatibilité ascendante).
-- La sécurité réelle est **côté serveur** (politiques RLS de `supabase/schema.sql`) ; les contrôles
-  client ne sont que de l'ergonomie. Toute évolution du schéma doit être revalidée avec
-  `supabase/rls-tests.sql`.
+- La sécurité réelle est **côté serveur** (politiques RLS de `supabase/schema.sql`, y compris
+  celles du bucket Storage `attachments` — le **chemin encode le périmètre** : `u/<uid>/…` perso,
+  `l/<libId>/…` partagé) ; les contrôles client ne sont que de l'ergonomie. Toute évolution du
+  schéma OU des politiques du bucket doit être revalidée avec `supabase/rls-tests.sql`.
 
 ## Périmètre réglementaire
 L'app est un **support de contenu** rédigé et validé par l'utilisateur, sans calcul ni

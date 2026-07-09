@@ -296,6 +296,107 @@ begin
   select public.invite_member('lib-team','frank@test.local','viewer') into v_hack;
   if v_hack <> 'ok' then raise exception 'ÉCHEC : invite_member a refusé un compte approuvé (résultat : %)', v_hack; end if;
 
+  ------------------------------------------------------------------ 9. Bucket Storage 'attachments' (documents PDF)
+  -- Le CHEMIN encode le périmètre : u/<uid>/<attId>.pdf (perso) ; l/<libId>/<attId>.pdf (partagé).
+  -- On teste directement les politiques RLS de storage.objects (l'API Storage n'est qu'un client
+  -- de cette table). État hérité des sections précédentes : require_approval=TRUE ; erin = admin
+  -- de lib-team ; frank = viewer de lib-team ; gina = pending, non-membre.
+
+  -- 9.1 Alice (approuvée) dépose et lit un document dans SON dossier perso.
+  perform set_config('request.jwt.claims', json_build_object('sub',alice,'role','authenticated')::text, true);
+  set local role authenticated;
+  insert into storage.objects(bucket_id,name,metadata) values ('attachments','u/'||alice||'/att-a1.pdf','{"size":100}');
+  select count(*) into v_cnt from storage.objects where bucket_id='attachments' and name='u/'||alice||'/att-a1.pdf';
+  if v_cnt <> 1 then raise exception 'ÉCHEC : Alice ne voit pas son propre document perso'; end if;
+
+  -- 9.2 Lecture croisée PERSO refusée : erin ne voit pas le document d'Alice, et ne peut pas
+  -- écrire dans le dossier d'Alice (usurpation de chemin).
+  perform set_config('request.jwt.claims', json_build_object('sub',erin,'role','authenticated')::text, true);
+  select count(*) into v_cnt from storage.objects where bucket_id='attachments' and name='u/'||alice||'/att-a1.pdf';
+  if v_cnt <> 0 then raise exception 'ÉCHEC : erin voit un document perso d''Alice'; end if;
+  begin
+    insert into storage.objects(bucket_id,name) values ('attachments','u/'||alice||'/att-intrus.pdf');
+    raise exception 'ÉCHEC : erin a pu déposer un document dans le dossier perso d''Alice';
+  exception when insufficient_privilege then null; end;
+
+  -- 9.3 Nom hors format refusé, même dans SON propre dossier (extension non-.pdf, id non conforme).
+  perform set_config('request.jwt.claims', json_build_object('sub',alice,'role','authenticated')::text, true);
+  begin
+    insert into storage.objects(bucket_id,name) values ('attachments','u/'||alice||'/evil.exe');
+    raise exception 'ÉCHEC : un nom hors format (.exe) a été accepté';
+  exception when insufficient_privilege then null; end;
+  begin
+    insert into storage.objects(bucket_id,name) values ('attachments','u/'||alice||'/a/b.pdf');
+    raise exception 'ÉCHEC : un chemin à sous-dossier a été accepté';
+  exception when insufficient_privilege then null; end;
+
+  -- 9.4 Compte NON approuvé : dépôt refusé même dans son propre dossier (gate is_approved).
+  perform set_config('request.jwt.claims', json_build_object('sub',gina,'role','authenticated')::text, true);
+  begin
+    insert into storage.objects(bucket_id,name) values ('attachments','u/'||gina||'/att-g1.pdf');
+    raise exception 'ÉCHEC : un compte pending a pu déposer un document perso';
+  exception when insufficient_privilege then null; end;
+
+  -- 9.5 Bibliothèque partagée : erin (admin de lib-team) dépose un document de la bibliothèque.
+  perform set_config('request.jwt.claims', json_build_object('sub',erin,'role','authenticated')::text, true);
+  insert into storage.objects(bucket_id,name,metadata) values ('attachments','l/lib-team/att-t1.pdf','{"size":200}');
+  select count(*) into v_cnt from storage.objects where bucket_id='attachments' and name='l/lib-team/att-t1.pdf';
+  if v_cnt <> 1 then raise exception 'ÉCHEC : un editor/admin ne peut pas déposer un document dans sa bibliothèque'; end if;
+
+  -- 9.6 frank (viewer, membre) LIT le document de la bibliothèque mais ne peut ni le remplacer
+  -- ni le supprimer (RLS -> 0 ligne affectée, sans erreur) ni en déposer un nouveau.
+  perform set_config('request.jwt.claims', json_build_object('sub',frank,'role','authenticated')::text, true);
+  select count(*) into v_cnt from storage.objects where bucket_id='attachments' and name='l/lib-team/att-t1.pdf';
+  if v_cnt <> 1 then raise exception 'ÉCHEC : un viewer membre ne voit pas un document de sa bibliothèque'; end if;
+  update storage.objects set metadata='{"hack":1}' where bucket_id='attachments' and name='l/lib-team/att-t1.pdf';
+  delete from storage.objects where bucket_id='attachments' and name='l/lib-team/att-t1.pdf';
+  begin
+    insert into storage.objects(bucket_id,name) values ('attachments','l/lib-team/att-f1.pdf');
+    raise exception 'ÉCHEC : un viewer a pu déposer un document dans la bibliothèque';
+  exception when insufficient_privilege then null; end;
+  reset role;
+  select metadata->>'hack' into v_hack from storage.objects where bucket_id='attachments' and name='l/lib-team/att-t1.pdf';
+  if v_hack is not null then raise exception 'ÉCHEC : un viewer a pu remplacer un document de sa bibliothèque'; end if;
+  select count(*) into v_cnt from storage.objects where bucket_id='attachments' and name='l/lib-team/att-t1.pdf';
+  if v_cnt <> 1 then raise exception 'ÉCHEC : un viewer a pu supprimer un document de sa bibliothèque'; end if;
+
+  -- 9.7 Un EDITOR peut remplacer/supprimer le document déposé par un AUTRE (jamais fondé sur
+  -- storage.objects.owner — même modèle que fiches_shared_write). frank passe editor pour le test.
+  update public.memberships set role='editor' where user_id=frank and library_id='lib-team';
+  perform set_config('request.jwt.claims', json_build_object('sub',frank,'role','authenticated')::text, true);
+  set local role authenticated;
+  delete from storage.objects where bucket_id='attachments' and name='l/lib-team/att-t1.pdf';
+  reset role;
+  select count(*) into v_cnt from storage.objects where bucket_id='attachments' and name='l/lib-team/att-t1.pdf';
+  if v_cnt <> 0 then raise exception 'ÉCHEC : un editor ne peut pas supprimer le document d''un collègue de sa bibliothèque'; end if;
+  update public.memberships set role='viewer' where user_id=frank and library_id='lib-team';  -- remise en état
+
+  -- 9.8 Non-membre : aucun accès aux documents de la bibliothèque.
+  reset role;
+  insert into storage.objects(bucket_id,name) values ('attachments','l/lib-team/att-t2.pdf');
+  perform set_config('request.jwt.claims', json_build_object('sub',gina,'role','authenticated')::text, true);
+  set local role authenticated;
+  select count(*) into v_cnt from storage.objects where bucket_id='attachments' and name='l/lib-team/att-t2.pdf';
+  if v_cnt <> 0 then raise exception 'ÉCHEC : un non-membre voit un document de la bibliothèque'; end if;
+  begin
+    insert into storage.objects(bucket_id,name) values ('attachments','l/lib-team/att-g2.pdf');
+    raise exception 'ÉCHEC : un non-membre a pu déposer un document dans la bibliothèque';
+  exception when insufficient_privilege then null; end;
+
+  -- 9.9 Rôle ANON (sans session) : rien — ni lecture ni dépôt (aucune politique ne le couvre,
+  -- auth.uid() est NULL). Selon la configuration des grants storage, la lecture échoue en
+  -- insufficient_privilege ou renvoie simplement 0 ligne : les deux sont un refus correct.
+  perform set_config('request.jwt.claims', '{}', true);
+  set local role anon;
+  begin
+    select count(*) into v_cnt from storage.objects where bucket_id='attachments';
+    if v_cnt <> 0 then raise exception 'ÉCHEC : le rôle anon voit des documents du bucket'; end if;
+  exception when insufficient_privilege then null; end;
+  begin
+    insert into storage.objects(bucket_id,name) values ('attachments','u/'||alice||'/att-anon.pdf');
+    raise exception 'ÉCHEC : le rôle anon a pu déposer un document';
+  exception when insufficient_privilege then null; end;
+
   ------------------------------------------------------------------ FIN
   reset role;
   raise notice '✅ TOUS LES TESTS RLS PASSENT';

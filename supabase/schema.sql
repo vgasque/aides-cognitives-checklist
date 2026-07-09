@@ -509,10 +509,84 @@ returns jsonb language sql stable security definer set search_path = public, aut
     'fiches_perso', (select count(*) from public.fiches where library_id is null and deleted_at is null),
     'fiches_shared',(select count(*) from public.fiches where library_id is not null and deleted_at is null),
     'storage_bytes',(select coalesce(sum(octet_length(data::text)),0) from public.fiches where deleted_at is null)
-                    + (select coalesce(sum(octet_length(data::text)),0) from public.category_sets)
+                    + (select coalesce(sum(octet_length(data::text)),0) from public.category_sets),
+    -- Octets du bucket de documents PDF (métadonnées storage ; 0 si le bucket n'existe pas encore).
+    'attachments_bytes',(select coalesce(sum((o.metadata->>'size')::bigint),0)
+                         from storage.objects o where o.bucket_id = 'attachments')
   ) end;
 $$;
 grant execute on function public.get_instance_stats() to authenticated;
+
+-- ---------- 7. Documents PDF joints : bucket Storage 'attachments' (4.0.0) ------------------
+-- Les fiches ne transportent que des MÉTADONNÉES ({id,name,size} dans data.attachments) ; le
+-- fichier PDF lui-même vit dans ce bucket PRIVÉ. LE CHEMIN ENCODE LE PÉRIMÈTRE DE SÉCURITÉ :
+--   u/<owner_uid>/<attId>.pdf   -> document personnel (accès : propriétaire seul)
+--   l/<library_id>/<attId>.pdf  -> document d'une bibliothèque partagée (accès : membres)
+-- Les politiques RLS sur storage.objects réutilisent les helpers existants (is_approved,
+-- is_member, member_role). On ne s'appuie JAMAIS sur storage.objects.owner : comme pour
+-- fiches_shared_write, un éditeur doit pouvoir remplacer/supprimer le document d'un collègue
+-- dans SA bibliothèque. Aucune politique pour anon -> aucun accès sans session.
+-- Plafonds APPLIQUÉS PAR LE SERVEUR (indépendamment du client) : 15 Mo/fichier, PDF uniquement.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+  values ('attachments', 'attachments', false, 15728640, array['application/pdf'])
+  on conflict (id) do update
+  set public = excluded.public,
+      file_size_limit = excluded.file_size_limit,
+      allowed_mime_types = excluded.allowed_mime_types;
+
+-- Perso : propriétaire approuvé uniquement, chemin strictement conforme (uuid = auth.uid()).
+-- USING = WITH CHECK -> lecture, upload (INSERT), remplacement (UPDATE, x-upsert) et suppression.
+drop policy if exists att_perso on storage.objects;
+create policy att_perso on storage.objects for all
+  using      (bucket_id = 'attachments' and public.is_approved()
+              and (storage.foldername(name))[1] = 'u'
+              and (storage.foldername(name))[2] = auth.uid()::text
+              and name ~ '^u/[0-9a-f-]{36}/[A-Za-z0-9_-]{1,64}\.pdf$')
+  with check (bucket_id = 'attachments' and public.is_approved()
+              and (storage.foldername(name))[1] = 'u'
+              and (storage.foldername(name))[2] = auth.uid()::text
+              and name ~ '^u/[0-9a-f-]{36}/[A-Za-z0-9_-]{1,64}\.pdf$');
+
+-- Bibliothèque partagée : lecture = tout membre (comme fiches_shared_read).
+drop policy if exists att_lib_read on storage.objects;
+create policy att_lib_read on storage.objects for select
+  using (bucket_id = 'attachments'
+         and (storage.foldername(name))[1] = 'l'
+         and public.is_member((storage.foldername(name))[2]));
+
+-- Bibliothèque partagée : écriture (upload/remplacement/suppression) = editor/admin, chemin
+-- strictement conforme (comme fiches_shared_write ; l'approbation n'est pas re-testée ici, même
+-- logique que fiches : un compte non approuvé n'obtient pas de membership, cf. invite_member).
+drop policy if exists att_lib_write on storage.objects;
+create policy att_lib_write on storage.objects for all
+  using      (bucket_id = 'attachments'
+              and (storage.foldername(name))[1] = 'l'
+              and public.member_role((storage.foldername(name))[2]) in ('editor','admin')
+              and name ~ '^l/[A-Za-z0-9_-]{1,64}/[A-Za-z0-9_-]{1,64}\.pdf$')
+  with check (bucket_id = 'attachments'
+              and (storage.foldername(name))[1] = 'l'
+              and public.member_role((storage.foldername(name))[2]) in ('editor','admin')
+              and name ~ '^l/[A-Za-z0-9_-]{1,64}/[A-Za-z0-9_-]{1,64}\.pdf$');
+
+-- Orphelins du bucket (app-admin) : objets dont l'id de fichier n'apparaît plus dans les
+-- métadonnées d'AUCUNE fiche vivante. Cas rare (interruption entre un upload et l'enregistrement
+-- de la fiche ; la file de suppression côté client couvre les flux normaux). La fonction LISTE
+-- seulement (SECURITY DEFINER, app-admin) : la suppression effective reste MANUELLE, via le
+-- dashboard Storage ou l'API — jamais de destruction automatique côté serveur.
+create or replace function public.list_orphan_attachments()
+returns table(name text, size_bytes bigint, created_at timestamptz)
+language sql stable security definer set search_path = public, storage as $$
+  select o.name, coalesce((o.metadata->>'size')::bigint, 0), o.created_at
+  from storage.objects o
+  where o.bucket_id = 'attachments'
+    and public.is_app_admin()
+    and substring(o.name from '([A-Za-z0-9_-]{1,64})\.pdf$') not in (
+      select a->>'id'
+      from public.fiches f, jsonb_array_elements(coalesce(f.data->'attachments','[]'::jsonb)) a
+      where f.deleted_at is null)
+  order by o.created_at;
+$$;
+grant execute on function public.list_orphan_attachments() to authenticated;
 
 -- ---------- 6. Recharge du cache PostgREST ----------------------------------
 notify pgrst, 'reload schema';
