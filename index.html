@@ -862,7 +862,9 @@
      positions fixes, indicateur glissant (transform -> animation fluide, coupée si
      prefers-reduced-motion), cibles >= 44 px. ----- */
   .secswitch{position:relative;display:grid;grid-template-columns:1fr 1fr;background:var(--surface-3);border:1px solid var(--line);border-radius:var(--radius);padding:4px;margin:0 0 14px}
-  .secswitch-ind{position:absolute;top:4px;bottom:4px;left:4px;width:calc(50% - 4px);background:var(--surface);border-radius:var(--radius-md);box-shadow:var(--shadow);transition:transform .22s ease;pointer-events:none}
+  /* L'état actif n'est pas porté que par l'indicateur : le libellé actif est aussi plus sombre et
+     gras (WCAG 1.4.1/1.4.11 — jamais la couleur seule) ; liseré + ombre renforcent la pastille. */
+  .secswitch-ind{position:absolute;top:4px;bottom:4px;left:4px;width:calc(50% - 4px);background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-md);box-shadow:var(--shadow);transition:transform .22s ease;pointer-events:none}
   .secswitch.sec-protocols .secswitch-ind{transform:translateX(100%)}
   .secbtn{position:relative;z-index:1;min-height:46px;background:none;border:0;border-radius:var(--radius-md);font-size:15px;font-weight:600;color:var(--ink-soft);cursor:pointer;font-family:inherit}
   .secbtn.on{color:var(--ink)}
