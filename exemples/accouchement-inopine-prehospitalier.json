@@ -1,0 +1,89 @@
+{
+  "version": 3,
+  "categories": [
+    { "id": "c-smur", "name": "SMUR", "color": "#a54c26" }
+  ],
+  "fiches": [
+    {
+      "id": "ex-acc",
+      "title": "Accouchement inopiné en pré-hospitalier",
+      "category": "c-smur",
+      "validation": "2025-01",
+      "status": "draft",
+      "localInfo": "Régulation / renfort pédiatrique (SMUR néonatal) : …\nMaternité de secteur : …\n(adaptez à votre pratique)",
+      "confirmation": [
+        "Envie de pousser irrépressible / présentation visible à la vulve",
+        "Contractions rapprochées (< 3 min), travail rapide",
+        "Score d'imminence élevé (Malinas / SPIA selon pratique locale)"
+      ],
+      "verify": [
+        "Kit accouchement + matériel néonatal prêts (clamps, lange, bonnet)",
+        "Cellule / pièce chauffée, intimité préservée",
+        "Régulation prévenue : renfort pédiatrique, orientation"
+      ],
+      "notForget": [
+        "On n'empêche pas un accouchement imminent : s'installer plutôt que partir",
+        "Lutte contre l'hypothermie du nouveau-né : sécher, bonnet, peau à peau",
+        "Délivrance : ne JAMAIS tirer sur le cordon",
+        "Surveiller le saignement maternel (risque d'hémorragie du post-partum)"
+      ],
+      "differentials": [
+        "Faux travail (transport possible)",
+        "Urgence obstétricale associée : procidence du cordon, siège, hémorragie"
+      ],
+      "references": [
+        "Exemple à relire et compléter — recommandations en vigueur (SFMU / SFAR / ILCOR nouveau-né)"
+      ],
+      "images": [],
+      "timers": [
+        { "id": "ex-acc-t1", "label": "Temps depuis la naissance", "type": "stopwatch" },
+        { "id": "ex-acc-t2", "label": "Réévaluation Apgar (5 min)", "type": "interval", "seconds": 300, "autoloop": true }
+      ],
+      "counters": [],
+      "start": "ex-acc-b1",
+      "blocks": [
+        { "id": "ex-acc-b1", "type": "steps", "title": "Préparation", "image": null, "steps": [
+          "Installer la patiente, intimité, chauffage",
+          "Kit accouchement ouvert, matériel néonatal à portée",
+          "Contact régulation : renfort / orientation"
+        ], "next": "ex-acc-d1" },
+        { "id": "ex-acc-d1", "type": "decision", "title": "Imminence", "image": null,
+          "question": "Accouchement imminent (envie de pousser, présentation visible) ?",
+          "options": [
+            { "label": "Oui — sur place", "target": "ex-acc-b2" },
+            { "label": "Non — transport", "target": "ex-acc-b3" }
+          ] },
+        { "id": "ex-acc-b2", "type": "steps", "title": "Accouchement sur place", "image": null, "steps": [
+          "Accompagner la sortie de la tête (ne pas tirer)",
+          "Vérifier un circulaire du cordon",
+          "Noter l'heure de naissance → démarrer le chrono",
+          "Sécher, stimuler, peau à peau, bonnet"
+        ], "next": "ex-acc-d2" },
+        { "id": "ex-acc-d2", "type": "decision", "title": "État du nouveau-né", "image": null,
+          "question": "Nouveau-né vigoureux (crie, tonique, respire) ?",
+          "options": [
+            { "label": "Oui — vigoureux", "target": "ex-acc-b4" },
+            { "label": "Non", "target": "ex-acc-b5" }
+          ] },
+        { "id": "ex-acc-b4", "type": "steps", "title": "Suites & délivrance", "image": null, "steps": [
+          "Apgar à 1, 5 et 10 min (minuteur)",
+          "Clampage du cordon selon protocole local",
+          "Délivrance : surveiller, ne pas tirer sur le cordon",
+          "Surveiller le saignement maternel",
+          "Transport mère + enfant au chaud"
+        ], "next": null },
+        { "id": "ex-acc-b5", "type": "steps", "title": "Nouveau-né non vigoureux", "image": null, "steps": [
+          "Sécher, stimuler, libérer les voies aériennes",
+          "Ventilation au masque : insufflations initiales puis réévaluer (protocole)",
+          "FC < 60/min malgré ventilation efficace → MCE (protocole)",
+          "Renfort pédiatrique / SMUR néonatal"
+        ], "next": "ex-acc-d2" },
+        { "id": "ex-acc-b3", "type": "steps", "title": "Transport avant accouchement", "image": null, "steps": [
+          "Installation adaptée, surveillance continue",
+          "Kit accouchement à portée de main pendant le trajet",
+          "Réévaluer l'imminence en route"
+        ], "next": "ex-acc-d1" }
+      ]
+    }
+  ]
+}

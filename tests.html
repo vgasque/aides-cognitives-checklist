@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tests — Aides cognitives</title>
+<style>
+  :root{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  body{margin:0;background:#eef1f0;color:#13201d;padding:20px;max-width:900px;margin:0 auto}
+  h1{font-size:20px;margin:0 0 4px}
+  .sub{color:#5a6864;font-size:13px;margin:0 0 16px}
+  #summary{font-size:16px;font-weight:700;padding:12px 15px;border-radius:11px;margin-bottom:14px}
+  #summary.ok{background:#e1efec;color:#0a4a46;border:1px solid #bfe0da}
+  #summary.ko{background:#fbe9e4;color:#8f2a17;border:1px solid #eecabe}
+  .grp{background:#fff;border:1px solid #dde3e0;border-radius:11px;padding:6px 14px;margin-bottom:10px}
+  .grp h2{font-size:13px;text-transform:uppercase;letter-spacing:.5px;color:#5a6864;margin:10px 0 6px}
+  .t{display:flex;gap:9px;align-items:flex-start;padding:5px 0;border-top:1px solid #f0f3f2;font-size:14px}
+  .t:first-of-type{border-top:0}
+  .tag{flex:0 0 auto;font-weight:700;font-size:11px;padding:2px 8px;border-radius:20px}
+  .pass .tag{background:#e1efec;color:#0a4a46}
+  .fail .tag{background:#fbe9e4;color:#bf3a21}
+  .msg{flex:1}
+  .fail .msg{color:#8f2a17}
+  code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;background:#f3f6f5;padding:1px 5px;border-radius:5px}
+</style>
+</head>
+<body>
+<h1>Tests unitaires — Aides cognitives</h1>
+<p class="sub">Runner autonome, sans dépendance. Charge <code>index.html?__actest=1</code> dans une iframe
+(l'app ne démarre pas dans ce mode) puis vérifie les fonctions pures. Ouvrir cette page via le serveur local.</p>
+<div id="summary">Chargement…</div>
+<div id="out"></div>
+<iframe id="app" src="index.html?__actest=1" style="display:none" title="app under test"></iframe>
+
+<script>
+const out=document.getElementById('out');
+let pass=0,fail=0,curGrp=null;
+function group(name){const g=document.createElement('div');g.className='grp';const h=document.createElement('h2');h.textContent=name;g.appendChild(h);out.appendChild(g);curGrp=g;}
+function record(ok,label,detail){
+  if(ok)pass++;else fail++;
+  const row=document.createElement('div');row.className='t '+(ok?'pass':'fail');
+  row.innerHTML='<span class="tag">'+(ok?'PASS':'FAIL')+'</span><span class="msg"></span>';
+  row.querySelector('.msg').textContent=label+(ok||!detail?'':' — '+detail);
+  curGrp.appendChild(row);
+}
+function ok(label,cond,detail){record(!!cond,label,detail||'condition fausse');}
+function eq(label,got,exp){const c=JSON.stringify(got)===JSON.stringify(exp);record(c,label,'attendu '+JSON.stringify(exp)+', obtenu '+JSON.stringify(got));}
+
+// Contraste WCAG (pour garder la palette de catégories conforme AA).
+function _lin(c){c/=255;return c<=0.03928?c/12.92:Math.pow((c+0.055)/1.055,2.4);}
+function _lum(hex){hex=hex.replace('#','');return 0.2126*_lin(parseInt(hex.substr(0,2),16))+0.7152*_lin(parseInt(hex.substr(2,2),16))+0.0722*_lin(parseInt(hex.substr(4,2),16));}
+function ratio(a,b){const l1=_lum(a),l2=_lum(b);return (Math.max(l1,l2)+0.05)/(Math.min(l1,l2)+0.05);}
+function tint15(hex){hex=hex.replace('#','');const f=i=>Math.round(255*0.85+parseInt(hex.substr(i,2),16)*0.15).toString(16).padStart(2,'0');return '#'+f(0)+f(2)+f(4);}
+
+function run(A){
+  group('esc() — échappement HTML');
+  eq('échappe < > & "', A.esc('<b>&"x"'), '&lt;b&gt;&amp;&quot;x&quot;');
+  eq('null → chaîne vide', A.esc(null), '');
+
+  group('safeId() — anti-pollution & format');
+  ok('rejette __proto__', A.safeId('__proto__','f')!=='__proto__');
+  ok('rejette constructor', A.safeId('constructor','f')!=='constructor');
+  ok('rejette prototype', A.safeId('prototype','f')!=='prototype');
+  ok('rejette caractères invalides', A.safeId('a b/c','f')!=='a b/c');
+  eq('conserve un id valide', A.safeId('abc-123_XY','f'), 'abc-123_XY');
+
+  group('safeColor()');
+  eq('hex valide conservé', A.safeColor('#0d5b56'), '#0d5b56');
+  eq('javascript: → défaut', A.safeColor('javascript:alert(1)'), '#45556b');
+  eq('non-chaîne → défaut', A.safeColor(42), '#45556b');
+
+  group('safeImg()');
+  ok('data:image conservé', A.safeImg('data:image/png;base64,AAAA')==='data:image/png;base64,AAAA');
+  eq('javascript: → null', A.safeImg('javascript:alert(1)'), null);
+  eq('URL http → null', A.safeImg('http://x/y.png'), null);
+
+  group('sstr() / sarr()');
+  eq('sstr coerce nombre', A.sstr(123,10), '123');
+  eq('sstr tronque', A.sstr('abcdef',3), 'abc');
+  eq('sarr borne la longueur', A.sarr(['a','b','c'],2), ['a','b']);
+  eq('sarr coerce éléments', A.sarr([1,2],5), ['1','2']);
+  eq('sarr non-array → []', A.sarr('x',5), []);
+
+  group('parseValidation() → AAAA-MM');
+  eq('déjà canonique', A.parseValidation('2026-01'), '2026-01');
+  eq('01/2026', A.parseValidation('01/2026'), '2026-01');
+  eq('nom de mois FR', A.parseValidation('janvier 2026'), '2026-01');
+  eq('6 chiffres collés', A.parseValidation('202602'), '2026-02');
+  eq('vide → vide', A.parseValidation(''), '');
+  eq('illisible → vide', A.parseValidation('xyz'), '');
+
+  group('catSlug() / detCatId()');
+  eq('accents retirés + slug', A.catSlug('Réanimation'), 'reanimation');
+  eq('id déterministe', A.detCatId('Réanimation'), 'c-reanimation');
+  ok('même nom → même id', A.detCatId('Anesthésie')===A.detCatId('Anesthésie'));
+
+  group('staleDate()');
+  ok('date ancienne (>2 ans) = périmée', A.staleDate('2000-01')===true);
+  ok('mois courant ≠ périmé', A.staleDate(new Date().toISOString().slice(0,7))===false);
+  ok('vide ≠ périmé', A.staleDate('')===false);
+
+  group('migrate() — fiche hostile neutralisée');
+  const before=Object.prototype.polluted;
+  const m=A.migrate({id:'__proto__',title:'<img onerror=alert(1)>',category:'c',validation:'2026-01',
+    confirmation:['x'],blocks:[{id:'constructor',type:'steps',title:'b',steps:['s']}],
+    images:[{id:'i',data:'javascript:alert(1)',caption:'c'}]});
+  ok('id __proto__ remplacé', m.id!=='__proto__');
+  ok('aucune prototype pollution', Object.prototype.polluted===before);
+  ok('image javascript: supprimée', !(m.images||[]).some(im=>String(im.data).indexOf('javascript:')>=0));
+  ok('titre conservé comme chaîne (échappé à l’affichage)', typeof m.title==='string');
+  ok('structure blocs préservée', Array.isArray(m.blocks)&&m.blocks.length>=1);
+
+  group('sanitizeCats() — catégories hostiles');
+  const sc=A.sanitizeCats([{id:'prototype',name:'<img>',color:'javascript:alert(1)',libraryId:null}]);
+  ok('id prototype remplacé', sc[0].id!=='prototype');
+  eq('couleur javascript: → défaut', sc[0].color, '#45556b');
+  ok('nom conservé comme chaîne', typeof sc[0].name==='string');
+
+  group('PALETTE — contraste WCAG AA (régression #3)');
+  A.PALETTE.forEach(c=>{
+    const rTag=ratio(c,tint15(c));      // pastille : texte de couleur sur fond teinté 15 %
+    const rChip=ratio('#ffffff',c);     // chip sélectionnée : texte blanc sur couleur pleine
+    ok('pastille '+c+' ≥ 4.5:1', rTag>=4.5, 'ratio '+rTag.toFixed(2));
+    ok('chip '+c+' (blanc) ≥ 4.5:1', rChip>=4.5, 'ratio '+rChip.toFixed(2));
+  });
+
+  group('txNorm() / recherche plein texte');
+  eq('accents et casse normalisés', A.txNorm('Réanimation ÉCG'), 'reanimation ecg');
+  const hay=A.ficheHaystack({title:'ACR',confirmation:['Pas de pouls'],blocks:[{type:'steps',title:'RCP',steps:['Amiodarone 300 mg']},{type:'decision',title:'Rythme',question:'Choquable ?',options:[{label:'Oui choquable'}]}]});
+  ok('haystack inclut une étape', hay.indexOf('amiodarone')>=0);
+  ok('haystack inclut une question de décision', hay.indexOf('choquable')>=0);
+  ok('haystack inclut un libellé d’option', hay.indexOf('oui choquable')>=0);
+
+  group('sanitizePins()');
+  eq('rejette ids invalides / borne à 50', A.sanitizePins(['ok_1','bad id','__proto__']), ['ok_1']);
+  eq('non-tableau → []', A.sanitizePins('x'), []);
+
+  group('sanitizeLibs() — cache de profil hors-ligne');
+  eq('lib valide conservée', A.sanitizeLibs([{id:'lib-rea',name:'Réa',role:'editor'}]), [{id:'lib-rea',name:'Réa',role:'editor'}]);
+  eq('rôle inconnu → viewer', A.sanitizeLibs([{id:'lib-x',name:'X',role:'root'}])[0].role, 'viewer');
+  eq('id invalide → lib écartée', A.sanitizeLibs([{id:'bad id',name:'X',role:'admin'}]), []);
+  eq('non-tableau → []', A.sanitizeLibs('x'), []);
+  ok('nom coercé en chaîne', typeof A.sanitizeLibs([{id:'lib-y',name:42,role:'viewer'}])[0].name==='string');
+
+  group('fmtBytes()');
+  eq('octets', A.fmtBytes(512), '512 o');
+  eq('kilo-octets', A.fmtBytes(2048), '2 Ko');
+  eq('méga-octets', A.fmtBytes(3145728), '3.0 Mo');
+
+  group('flattenFiche() / diffFicheLines()');
+  const fF={title:'T',status:'draft',localInfo:'Ctx',confirmation:['c1'],
+    blocks:[{id:'b1',type:'steps',title:'B',steps:['s1']},{id:'b2',type:'decision',title:'D',question:'Q ?',options:[{label:'Oui',target:'b1'}]}],
+    timers:[{label:'Cycle',type:'interval',seconds:120}],counters:[{label:'Adré'}]};
+  const fl=A.flattenFiche(fF);
+  ok('aplatit le titre', fl.indexOf('Titre · T')>=0);
+  ok('aplatit l\'état brouillon', fl.indexOf('État · brouillon')>=0);
+  ok('étape préfixée par son bloc', fl.indexOf('Bloc « B » · s1')>=0);
+  ok('question de décision', fl.indexOf('Bloc « D » · Q ?')>=0);
+  ok('option de décision', fl.indexOf('Bloc « D » — option · Oui')>=0);
+  ok('minuteur avec durée', fl.indexOf('Minuteur · Cycle (120 s)')>=0);
+  ok('compteur', fl.indexOf('Compteur · Adré')>=0);
+  eq('fiche nulle → []', A.flattenFiche(null), []);
+  const fA={title:'T',confirmation:['a','b'],blocks:[{type:'steps',title:'B',steps:['s1']}]};
+  const fB={title:'T',confirmation:['a'],blocks:[{type:'steps',title:'B',steps:['s1','s2']}]};
+  const d=A.diffFicheLines(fA,fB); // cur=fA, old=fB : restaurer fB retirerait 'b', ajouterait 's2'
+  ok('diff détecte une suppression', d.removed.some(x=>/·\s*b$/.test(x)));
+  ok('diff détecte un ajout', d.added.some(x=>/s2$/.test(x)));
+  eq('aucune diff si identiques', A.diffFicheLines(fA,fA), {removed:[],added:[]});
+
+  group('stepTextFromKey()');
+  const fK={blocks:[{id:'b1',type:'steps',title:'Mesures',steps:['Étape A','Étape B']}]};
+  eq('résout une étape cochée', A.stepTextFromKey(fK,'0:b1:1'), {block:'Mesures',step:'Étape B'});
+  eq('clé orpheline → null', A.stepTextFromKey(fK,'0:zz:0'), null);
+
+  group('sanitizeNotes()');
+  const nIn={'f-ok':{t:'ma note',at:123,dirty:true},'__proto__':{t:'x',at:1},'bad id':{t:'x',at:1},'f-2':{t:42,at:'nope'},'f-3':'pas un objet'};
+  const nOut=A.sanitizeNotes(nIn);
+  eq('entrée valide conservée (avec dirty)', nOut['f-ok'], {t:'ma note',at:123,dirty:true});
+  ok('clé dangereuse écartée', !Object.prototype.hasOwnProperty.call(nOut,'__proto__'));
+  ok('clé au format invalide écartée', !('bad id' in nOut));
+  eq('texte coercé + at non numérique → 0', nOut['f-2'], {t:'42',at:0});
+  ok('valeur non-objet écartée', !('f-3' in nOut));
+  eq('non-objet → {}', A.sanitizeNotes(null), {});
+
+  group('espaces locaux (dbNameFor / spaceKeyFor)');
+  eq('propriétaire -> base historique', A.dbNameFor('u1','u1'), 'ac-db');
+  eq('espace anonyme propriétaire', A.dbNameFor('',''), 'ac-db');
+  eq('autre espace -> base suffixée', A.dbNameFor('u2','u1'), 'ac-db-u2');
+  eq('anonyme non propriétaire', A.dbNameFor('','u1'), 'ac-db-anon');
+  eq('clé du propriétaire = clé nue (compat)', A.spaceKeyFor('ac-pins','u1','u1'), 'ac-pins');
+  eq('clé d\'un autre espace suffixée', A.spaceKeyFor('ac-pins','u2','u1'), 'ac-pins@u2');
+  eq('clé anonyme non propriétaire', A.spaceKeyFor('fiches_v1','','u1'), 'fiches_v1@anon');
+
+  group('liveFicheCount() — fiches « hors compte » de l\'écran de connexion');
+  eq('compte les fiches vivantes', A.liveFicheCount([{id:'a'},{id:'b'}]), 2);
+  eq('exclut les tombstones', A.liveFicheCount([{id:'a'},{id:'b',deletedAt:123}]), 1);
+  eq('exclut les entrées invalides', A.liveFicheCount([null,'x',42,{id:'a'}]), 1);
+  eq('non-tableau → 0', A.liveFicheCount('x'), 0);
+
+  group('canReturnToAnon() — retour « compte -> hors compte » (comptes non approuvés)');
+  ok('pending jamais synchronisé avec fiches → oui', A.canReturnToAnon('pending',false,3)===true);
+  ok('rejected jamais synchronisé avec fiches → oui', A.canReturnToAnon('rejected',false,1)===true);
+  ok('compte approuvé → non (fiches dans le cloud)', A.canReturnToAnon('approved',false,3)===false);
+  ok('déjà synchronisé → non (ids réclamés dans le cloud)', A.canReturnToAnon('pending',true,3)===false);
+  ok('aucune fiche vivante → non (rien à ramener)', A.canReturnToAnon('rejected',false,0)===false);
+  ok('déconnecté (statut null) → non', A.canReturnToAnon(null,false,3)===false);
+
+  group('spaceTag() — empreinte d\'espace des exports');
+  eq('déterministe (même espace → même empreinte)', A.spaceTag('u-abc'), A.spaceTag('u-abc'));
+  ok('espaces différents → empreintes différentes', A.spaceTag('u-abc')!==A.spaceTag('u-def'));
+  ok('espace anonyme accepté', /^sp[a-z0-9]+$/.test(A.spaceTag('')));
+  ok('uid non réversible (absent de l\'empreinte)', A.spaceTag('u-abc').indexOf('u-abc')<0);
+  eq('null coercé comme chaîne vide', A.spaceTag(null), A.spaceTag(''));
+
+  group('uid() — identifiants (clé primaire cloud GLOBALE)');
+  ok('format sûr (SAFE_ID)', A.SAFE_ID.test(A.uid()));
+  ok('préfixe appliqué', A.uid('bk').indexOf('bk')===0);
+  ok('deux appels → ids distincts', A.uid()!==A.uid());
+  ok('entropie renforcée (≥ 8 caractères aléatoires après l\'horodatage)', A.uid('f').length>=1+8+8);
+
+  group('restErrStatus() / isPersoRepairCandidate() — retry de Sync._push');
+  eq('statut extrait du message REST', A.restErrStatus('REST 403 Forbidden'), 403);
+  eq('pas de statut identifiable -> null', A.restErrStatus('Failed to fetch'), null);
+  eq('message vide/absent -> null', A.restErrStatus(), null);
+  ok('perso + 403 -> candidat réparation', A.isPersoRepairCandidate('REST 403 Forbidden', true));
+  ok('bibliothèque (non perso) + 403 -> pas candidat (droits partagés retirés, pas une collision d\'id)', !A.isPersoRepairCandidate('REST 403 Forbidden', false));
+  ok('perso + 409 -> pas candidat (autre cause)', !A.isPersoRepairCandidate('REST 409 Conflict', true));
+
+  group('stripJsonFences()');
+  eq('JSON nu inchangé', A.stripJsonFences('{"a":1}'), '{"a":1}');
+  eq('clôtures ```json retirées', A.stripJsonFences('```json\n{"a":1}\n```'), '{"a":1}');
+  eq('clôtures ``` sans langue retirées', A.stripJsonFences('```\n{"a":1}\n```'), '{"a":1}');
+  eq('BOM + espaces retirés', A.stripJsonFences('﻿  {"a":1}\n'), '{"a":1}');
+  eq('backticks INTERNES préservés', A.stripJsonFences('{"a":"x ``` y"}'), '{"a":"x ``` y"}');
+  eq('clôture non fermée → texte intact (échouera au parse)', A.stripJsonFences('```json\n{"a":1}'), '```json\n{"a":1}');
+  eq('non-chaîne coercée', A.stripJsonFences(null), '');
+
+  group('fmt() / stripBold() — gras **…**');
+  eq('paire convertie en <b>', A.fmt('Adrénaline **0,5 mg** IM'), 'Adrénaline <b>0,5 mg</b> IM');
+  eq('plusieurs paires', A.fmt('**NE PAS** associer **X**'), '<b>NE PAS</b> associer <b>X</b>');
+  eq('balisage non apparié laissé tel quel', A.fmt('a **b'), 'a **b');
+  eq('paire vide laissée telle quelle', A.fmt('a ****'), 'a ****');
+  eq('pas de gras multiligne', A.fmt('**a\nb**'), '**a\nb**');
+  eq('échappement AVANT le gras (XSS)', A.fmt('<img> **"x"**'), '&lt;img&gt; <b>&quot;x&quot;</b>');
+  eq('null → chaîne vide', A.fmt(null), '');
+  eq('stripBold retire les paires', A.stripBold('**a** et **b**'), 'a et b');
+  eq('stripBold laisse le non-apparié', A.stripBold('a **b'), 'a **b');
+  ok('recherche : le gras n\'empêche pas de trouver une expression',
+    A.ficheHaystack({title:'x',blocks:[{type:'steps',title:'B',steps:['**Adrénaline** 0,5 mg IM']}]}).indexOf('adrenaline 0,5 mg')>=0);
+
+  group('buildFlowSVG() / wrapText() — organigramme (structure & échappement)');
+  const svg=A.buildFlowSVG({blocks:[
+    {id:'a',type:'steps',title:'<img src=x onerror=alert(1)>',steps:['x'],next:'d'},
+    {id:'d',type:'decision',title:'D',question:'Q ?',options:[{label:'retour',target:'a'},{label:'fin',target:''}]}],start:'a'},'d');
+  ok('rend un <svg> dimensionné', /^<svg width="[\d.]+" height="[\d.]+"/.test(svg));
+  ok('titre échappé (pas de balise brute)', svg.indexOf('<img src')<0&&svg.indexOf('&lt;img')>=0);
+  ok('pastille DÉPART présente', svg.indexOf('DÉPART')>=0);
+  ok('boucle issue d\'une décision = ambre pointillé', svg.indexOf('stroke-dasharray')>=0&&svg.indexOf('#c98a2a')>=0);
+  ok('halo du bloc courant', svg.indexOf('flow-hl')>=0);
+  ok('étiquette d\'option sur l\'arête', svg.indexOf('retour')>=0);
+  ok('sans bloc → message, pas de SVG', A.buildFlowSVG({blocks:[]}).indexOf('<svg')<0);
+  eq('wrapText enroule sans tronquer', A.wrapText('un deux trois quatre',9), ['un deux','trois','quatre']);
+  eq('wrapText coupe les mots trop longs', A.wrapText('abcdefghij',4), ['abcd','efgh','ij']);
+
+  group('completionSpots() — badge « À compléter »');
+  ok('invite dans localInfo', A.completionSpots({localInfo:'Tél renfort : à compléter'}).length>0);
+  ok('marqueur « ⚠ À COMPLÉTER » dans une étape', A.completionSpots({blocks:[{type:'steps',steps:['⚠ À COMPLÉTER : dose']}]}).length>0);
+  ok('invite dans une section liste', A.completionSpots({verify:['PAS cible : à compléter']}).length>0);
+  ok('accent manquant toléré (« a completer »)', A.completionSpots({verify:['cible a completer']}).length>0);
+  ok('⚠ seul (avertissement clinique) ne déclenche PAS', A.completionSpots({notForget:['⚠ NE PAS associer adrénaline et isoprénaline']}).length===0);
+  ok('fiche complète → aucun emplacement', A.completionSpots({localInfo:'Tél 1234',verify:['PAS ≥ 80'],blocks:[{type:'steps',steps:['ok']}]}).length===0);
+  ok('non-objet → aucun emplacement', A.completionSpots(null).length===0);
+  eq('completionSpots liste les emplacements (infobulle du badge)',
+    A.completionSpots({localInfo:'Tél : à compléter',references:['Exemple à compléter'],blocks:[{type:'steps',title:'Traitement',steps:['⚠ À COMPLÉTER : dose']}]}),
+    ['Contexte local','Références','Bloc « Traitement »']);
+  eq('aucun emplacement → tableau vide', A.completionSpots({title:'x'}), []);
+
+  group('AI_PROMPT — invariants du prompt embarqué');
+  ok('brouillon imposé', A.AI_PROMPT.indexOf('"status": "draft"')>=0);
+  ok('schéma version 3', A.AI_PROMPT.indexOf('"version": 3')>=0);
+  ok('double contexte structure/SMUR (régulation)', A.AI_PROMPT.indexOf('régulation')>=0);
+  ok('convention de manque explicite', A.AI_PROMPT.indexOf('⚠ À COMPLÉTER')>=0);
+  ok('gras autorisé avec parcimonie', A.AI_PROMPT.indexOf('PARCIMONIE')>=0);
+  ok('traçabilité datée exigée', A.AI_PROMPT.indexOf('Fiche générée par IA le')>=0);
+  ok('deux moments = deux étapes (pas de fusion de temps distincts)', A.AI_PROMPT.indexOf('Deux moments = deux étapes')>=0);
+  ok('gestes uniques hors des boucles de réévaluation', A.AI_PROMPT.indexOf('HORS boucle')>=0);
+  ok('critères d\'arrêt / limitation traités', A.AI_PROMPT.indexOf('quand s\'arrêter')>=0);
+  ok('une interdiction par ligne dans notForget', A.AI_PROMPT.indexOf('UNE interdiction / un piège par ligne')>=0);
+  ok('pas d\'interpolation restée dans le template', A.AI_PROMPT.indexOf('${')<0);
+
+  group('migrate() — champs status/related/updatedBy');
+  const m31=A.migrate({title:'x',status:'draft',related:['ok-1','__proto__','bad id'],updatedBy:'a@b.fr'});
+  eq('status brouillon conservé', m31.status, 'draft');
+  eq('related nettoyé', m31.related, ['ok-1']);
+  eq('updatedBy conservé', m31.updatedBy, 'a@b.fr');
+  eq('status inconnu → validée', A.migrate({title:'x',status:'???'}).status, '');
+}
+
+// Ouvert en double-cliquant le fichier (file://) : le navigateur isole les iframes (origine
+// « null ») et bloque l'accès aux fonctions à tester. Ce n'est pas un bug : il faut un serveur
+// http, comme pour le service worker de l'app.
+const FILE_HELP='Cette page doit être servie en http(s), pas ouverte comme fichier local : '+
+  'le navigateur bloque alors l’accès à l’iframe de test (sécurité des origines). '+
+  'Lancez un petit serveur dans ce dossier (ex. « python3 -m http.server 8123 ») puis ouvrez '+
+  'http://localhost:8123/tests.html — ou utilisez l’URL de votre hébergement (…/tests.html).';
+if(location.protocol==='file:'){
+  const s=document.getElementById('summary');s.className='ko';s.textContent=FILE_HELP;
+}
+document.getElementById('app').addEventListener('load',()=>{
+  const s=document.getElementById('summary');
+  if(location.protocol==='file:')return; // message déjà affiché ci-dessus
+  try{
+    const A=document.getElementById('app').contentWindow.__ac_test__;
+    if(!A){s.className='ko';s.textContent='Échec : __ac_test__ introuvable (index.html non chargé en mode test ?).';return;}
+    run(A);
+    s.className=fail?'ko':'ok';
+    s.textContent=(fail?'✗ ':'✓ ')+pass+' réussis, '+fail+' échoués.';
+  }catch(e){s.className='ko';s.textContent=(String(e.message).indexOf('cross-origin')>=0?FILE_HELP:'Erreur d’exécution des tests : '+e.message);}
+});
+</script>
+</body>
+</html>

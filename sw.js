@@ -10,18 +10,22 @@
 //   - Autres fichiers (icônes, manifest) : "stale-while-revalidate" = on sert
 //     vite le cache et on rafraîchit en arrière-plan.
 //   - skipWaiting + clients.claim : le nouveau worker prend la main tout de suite.
+//     La page, elle, affiche un toast « application mise à jour » quand un nouveau worker
+//     s'active (voir l'enregistrement du SW en fin d'index.html) — jamais de reload forcé.
 //   - À l'activation : on supprime les anciens caches.
 //
 //  IMPORTANT : ce worker ne touche JAMAIS à IndexedDB ('ac-db') ni au
 //  localStorage. Vos fiches/catégories/sessions sont indépendantes du cache de
 //  code et restent intactes à chaque mise à jour, tant que l'URL reste la même.
 // =============================================================================
-const CACHE = 'aides-cognitives-v3.0.0';
+// IMPORTANT : garder cette version synchronisée avec APP_VERSION dans index.html.
+const CACHE = 'aides-cognitives-v3.5.5';
 const ASSETS = [
   './',
   './index.html',
   './manifest.webmanifest',
   './icon-192.png',
+  './icon-192-maskable.png',
   './icon-512.png',
   './icon-512-maskable.png',
   './apple-touch-icon.png'
@@ -38,6 +42,11 @@ self.addEventListener('activate', e => {
     caches.keys()
       .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
+      // Annonce la version du worker aux pages ouvertes : index.html la compare à son APP_VERSION
+      // et affiche le message JUSTE — « déjà à jour » (cas normal : la navigation réseau-d'abord a
+      // déjà servi le nouvel index.html) ou « rechargez » (page encore servie par l'ancien cache).
+      .then(() => self.clients.matchAll({ type: 'window' }))
+      .then(cs => cs.forEach(c => c.postMessage({ type: 'sw-activated', version: CACHE })))
   );
 });
 
@@ -55,8 +64,13 @@ self.addEventListener('fetch', e => {
     e.respondWith(
       fetch(req)
         .then(resp => {
-          const copy = resp.clone();
-          caches.open(CACHE).then(c => c.put('./index.html', copy));
+          // Ne mettre en cache QUE les vraies réponses de l'app (statut 2xx, même origine) :
+          // une page d'erreur (404/500) ou un portail captif Wi-Fi (hôtel/hôpital) qui répond
+          // à la place du serveur écraserait sinon la copie hors-ligne -> app critique cassée.
+          if (resp.ok && resp.type === 'basic') {
+            const copy = resp.clone();
+            caches.open(CACHE).then(c => c.put('./index.html', copy));
+          }
           return resp;
         })
         .catch(() => caches.match(req).then(r => r || caches.match('./index.html')))
@@ -68,8 +82,11 @@ self.addEventListener('fetch', e => {
   e.respondWith(
     caches.match(req).then(cached => {
       const network = fetch(req).then(resp => {
-        const copy = resp.clone();
-        caches.open(CACHE).then(c => c.put(req, copy));
+        // Même garde-fou que pour la navigation : jamais d'erreur mise en cache.
+        if (resp.ok && resp.type === 'basic') {
+          const copy = resp.clone();
+          caches.open(CACHE).then(c => c.put(req, copy));
+        }
         return resp;
       }).catch(() => cached);
       return cached || network;

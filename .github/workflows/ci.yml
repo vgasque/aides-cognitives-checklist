@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      # Vérification de syntaxe : ne nécessite aucune dépendance.
+      - name: Vérifier la syntaxe (index.html, sw.js, tests.html)
+        run: node scripts/check-syntax.mjs
+      # Tests fonctionnels headless (Playwright / Chromium).
+      - name: Installer les dépendances de test
+        run: npm install
+      - name: Installer Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Lancer la suite de tests
+        run: npm test
