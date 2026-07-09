@@ -114,6 +114,11 @@
     localInfo, order(tri),
     confirmation[], verify[], notForget[], differentials[], references[],
     images:   [{ id, data(base64 JPEG réduit), caption }],
+    attachments: [{ id, name, size }]  (MÉTADONNÉES d'un document PDF joint ; le PDF lui-même
+              est un Blob NATIF dans le store IndexedDB 'attachments' — jamais en base64 dans la
+              fiche, jamais dans l'export JSON. Un même id peut être référencé par PLUSIEURS
+              fiches (document partagé) ; le blob n'est supprimé que quand plus aucune entité ne
+              le référence — gcAttachments au démarrage),
     timers:   [{ id, label, type:'stopwatch'|'interval', seconds, autoloop }],
     counters: [{ id, label, step, start }],
     start:    id du bloc de départ,
@@ -157,6 +162,11 @@
     pour refléter les nouvelles définitions de minuteurs/compteurs.
   - Images : réduites (downscale, JPEG ~1180px q0.78) car stockées en base64 ;
     le stockage peut saturer -> message + conseil d'export.
+  - Documents PDF : Blob natifs dans le store IndexedDB 'attachments' (IDB v5), plafonds
+    MAX_PDF_BYTES / MAX_ATT_PER_ENTITY, validés par safeAttachment (id JAMAIS régénéré :
+    entrée invalide rejetée). Indisponibles en repli KV (supportsAttachments). Lecture par la
+    visionneuse intégrée (pdf.js VENDORISÉ dans vendor/pdfjs — SEULE dépendance runtime,
+    chargée paresseusement, précachée par sw.js ; voir AGENTS.md).
   - Audio (alerte minuteur) : nécessite un premier geste utilisateur pour
     débloquer l'AudioContext (créé/réveillé dans ensureAudio).
   - AUCUNE donnée patient n'est prévue ; le contenu clinique est sous la
@@ -841,6 +851,29 @@
   .report-preview .foot{margin-top:22px;font-size:11px;color:var(--ink-soft);border-top:1px solid var(--line);padding-top:8px}
   .ai-actions{display:flex;gap:9px;flex-wrap:wrap;margin:12px 0 4px}
   .ai-note{font-size:12px;color:var(--ink-soft);margin:6px 0 0;line-height:1.45}
+  /* ----- Documents PDF joints : liste en lecture (boutons >=44px) + lignes de l'éditeur ----- */
+  .att-list{display:flex;flex-direction:column;gap:8px}
+  .att-row{display:flex;align-items:center;gap:10px;width:100%;min-height:48px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--surface);color:var(--ink);font-size:14px;text-align:left;cursor:pointer}
+  .att-row:hover{border-color:var(--line-hover);background:var(--surface-2)}
+  .att-row:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .att-ico{flex:none;display:inline-flex;color:var(--primary)}
+  .att-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:560}
+  .att-size{flex:none;font-size:12px;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+  .att-erow{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .att-erow input[type="text"]{flex:1;min-width:0;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)}
+  /* ----- Visionneuse PDF : fenêtre plein écran (barre d'outils + pages défilantes) ----- */
+  .pdf-modal{padding:0}
+  .pdf-card{display:flex;flex-direction:column;width:100%;height:100dvh;background:var(--bg)}
+  .pdf-bar{display:flex;align-items:center;gap:8px;flex:none;padding:calc(8px + env(safe-area-inset-top)) calc(10px + env(safe-area-inset-right)) 8px calc(12px + env(safe-area-inset-left));background:var(--surface);border-bottom:1px solid var(--line)}
+  .pdf-title{flex:1;min-width:0;font-size:14.5px;font-weight:620;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink)}
+  .pdf-tools{display:flex;align-items:center;gap:6px;flex:none}
+  .pdf-bar .ai-x{background:none;border:0;color:var(--ink-soft);font-size:24px;line-height:1;width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;border-radius:10px;flex:none}
+  .pdf-bar .ai-x:hover{background:var(--surface-2);color:var(--ink)}
+  .pdf-scroll{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px calc(10px + env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left))}
+  .pdf-page{position:relative;margin:0 auto 10px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.22)}
+  .pdf-page canvas{display:block;width:100%;height:100%}
+  .pdf-msg{color:var(--ink-soft);text-align:center;padding:34px 16px;font-size:14px}
+  @media (max-width:520px){.pdf-title{font-size:13px}.pdf-tools .fzv{display:none}}  /* petit écran : on garde « Largeur » (le plus utile), on masque le % */
   .cm-row{border:1px solid var(--line);border-radius:var(--radius-md);padding:11px 12px;margin-bottom:10px;background:var(--surface-2)}
   .cm-top{display:flex;gap:8px;align-items:center}
   .cm-dot{width:18px;height:18px;border-radius:6px;flex-shrink:0}
@@ -993,6 +1026,16 @@
   <div id="reportBody" class="report-preview"></div>
   <div style="display:flex;gap:9px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px"><button class="btn" id="reportDownload">Télécharger</button><button class="btn primary" id="reportPrint">Imprimer</button></div>
 </div></div>
+<!-- Visionneuse PDF (documents joints) : plein écran, rendu pdf.js page par page (virtualisé).
+     Même gestion d'accessibilité que les autres fenêtres (.ai-modal : focus, Échap, piège Tab). -->
+<div class="ai-modal pdf-modal" id="pdfModal" role="dialog" aria-modal="true" aria-labelledby="pdfModalTitle">
+  <div class="pdf-card">
+    <div class="pdf-bar"><h3 id="pdfModalTitle" class="pdf-title">Document</h3>
+      <div class="pdf-tools"><button class="fz" data-pz="out" aria-label="Dézoomer">−</button><span class="fzv" id="pdfZoomVal">100%</span><button class="fz" data-pz="in" aria-label="Zoomer">+</button><button class="fz fz-r" data-pz="fit">Largeur</button></div>
+      <button class="ai-x" id="pdfX" aria-label="Fermer le document">×</button></div>
+    <div class="pdf-scroll" id="pdfScroll" tabindex="0"></div>
+  </div>
+</div>
 <!-- Confirmation NON bloquante (remplace confirm() natif) : mêmes garanties d'accessibilité que
      les autres fenêtres (role=dialog, focus piégé, Échap). DERNIÈRE dans le DOM -> _topModal() la
      considère bien « au-dessus » quand elle s'ouvre par-dessus une autre fenêtre.
@@ -1117,9 +1160,22 @@ const KV={
 };
 // Ouverture d'une base d'espace (schéma commun). Utilisée par IDB.open (espace courant) ET par
 // le déménagement sans-compte -> compte (2e connexion vers la base cible).
-function openSpaceDb(name){return new Promise((res,rej)=>{let req;try{req=indexedDB.open(name,4);}catch(e){return rej(e);}
-  req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains('fiches'))db.createObjectStore('fiches',{keyPath:'id'});if(!db.objectStoreNames.contains('meta'))db.createObjectStore('meta');if(!db.objectStoreNames.contains('sessions'))db.createObjectStore('sessions',{keyPath:'id'});if(!db.objectStoreNames.contains('backups')){const bs=db.createObjectStore('backups',{keyPath:'bid'});bs.createIndex('byFiche','ficheId',{unique:false});}};
-  req.onsuccess=()=>res(req.result);req.onerror=()=>rej(req.error||new Error('idb'));setTimeout(()=>rej(new Error('idb-timeout')),1500);});}
+function openSpaceDb(name){return new Promise((res,rej)=>{let req;try{req=indexedDB.open(name,5);}catch(e){return rej(e);}
+  req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains('fiches'))db.createObjectStore('fiches',{keyPath:'id'});if(!db.objectStoreNames.contains('meta'))db.createObjectStore('meta');if(!db.objectStoreNames.contains('sessions'))db.createObjectStore('sessions',{keyPath:'id'});if(!db.objectStoreNames.contains('backups')){const bs=db.createObjectStore('backups',{keyPath:'bid'});bs.createIndex('byFiche','ficheId',{unique:false});}
+    // v5 : 'attachments' = documents PDF en Blob NATIF (structured clone — jamais de base64 dans la
+    // fiche) ; 'protocols' = section Protocoles (créé dès maintenant : UN SEUL bump à risque).
+    if(!db.objectStoreNames.contains('attachments'))db.createObjectStore('attachments',{keyPath:'id'});
+    if(!db.objectStoreNames.contains('protocols'))db.createObjectStore('protocols',{keyPath:'id'});};
+  // Un VIEIL onglet encore ouvert bloque la migration de version : on le dit clairement au lieu de
+  // laisser le timeout ci-dessous faire retomber EN SILENCE sur le repli KV (bibliothèque qui
+  // semblerait vide). L'ouverture reprendra dès que l'autre onglet sera fermé/rechargé.
+  req.onblocked=()=>{try{toast('⚠ Fermez les autres onglets de l\'application puis rechargez cette page (mise à jour du stockage en attente).',9000);}catch(e){}};
+  req.onsuccess=()=>{const db=req.result;
+    // Une FUTURE migration demandée par un autre onglet : on libère la base (sinon c'est nous qui
+    // bloquerions) et on invite à recharger.
+    db.onversionchange=()=>{try{db.close();}catch(e){}try{toast('Application mise à jour dans un autre onglet — rechargez cette page.');}catch(e){}};
+    res(db);};
+  req.onerror=()=>rej(req.error||new Error('idb'));setTimeout(()=>rej(new Error('idb-timeout')),1500);});}
 const IDB={
   db:null,
   async open(){registerSpace(currentSpace());this.db=await openSpaceDb(claimedDbName(currentSpace()));return true;},
@@ -1140,9 +1196,21 @@ const IDB={
   putBackup(b){return new Promise((res,rej)=>{const tx=this.db.transaction('backups','readwrite');const st=tx.objectStore('backups');st.put(b);
     const q=st.index('byFiche').getAll(b.ficheId);q.onsuccess=()=>{const arr=(q.result||[]).sort((x,y)=>(x.at||0)-(y.at||0));for(let i=0;i<arr.length-BACKUP_MAX;i++)st.delete(arr[i].bid);};
     tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);});},
-  delBackup(bid){return new Promise((res,rej)=>{const r=this._s('backups','readwrite').delete(bid);r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});}
+  delBackup(bid){return new Promise((res,rej)=>{const r=this._s('backups','readwrite').delete(bid);r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});},
+  // Documents PDF joints : Blob NATIFS (structured clone d'IndexedDB), hors du modèle fiche.
+  // Enregistrement : {id, blob:Blob, size, type:'application/pdf', createdAt, dirty:0|1,
+  // remotePath:null|string} — dirty/remotePath servent à la synchronisation Storage (upload).
+  getAtt(id){return new Promise((res,rej)=>{const r=this._s('attachments','readonly').get(id);r.onsuccess=()=>res(r.result||null);r.onerror=()=>rej(r.error);});},
+  putAtt(rec){return new Promise((res,rej)=>{const r=this._s('attachments','readwrite').put(rec);r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});},
+  delAtt(id){return new Promise((res,rej)=>{const r=this._s('attachments','readwrite').delete(id);r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});},
+  getAttIds(){return new Promise((res,rej)=>{const r=this._s('attachments','readonly').getAllKeys();r.onsuccess=()=>res(r.result||[]);r.onerror=()=>rej(r.error);});},
+  getAtts(){return new Promise((res,rej)=>{const r=this._s('attachments','readonly').getAll();r.onsuccess=()=>res(r.result||[]);r.onerror=()=>rej(r.error);});}
 };
 let Data=KV;
+// Les documents PDF (Blob) n'existent qu'en IndexedDB : le repli KV (localStorage = JSON pur) ne
+// peut pas les stocker. En repli, l'AJOUT est refusé proprement (message dans l'éditeur) et la
+// LECTURE d'une référence sans blob indique le document indisponible — jamais d'échec silencieux.
+const supportsAttachments=()=>Data===IDB;
 // Déménagement d'espace : DÉPLACE tout le contenu local (fiches, catégories, notes, sessions,
 // versions, épingles, marqueurs de push) de l'espace courant vers `space`. Deux usages :
 // « sans compte -> compte » à la connexion, et le RETOUR « compte non approuvé -> sans compte »
@@ -1152,16 +1220,19 @@ let Data=KV;
 async function moveLocalDataTo(space){
   const fs=await Data.getAll(),cats=await Data.getCats(),nts=await Data.getNotes(),
         ss=await Data.getSessions(),bks=await Data.getBackups();
+  // Documents PDF (Blob, IndexedDB uniquement) : déménagent avec le reste. En repli KV il n'y en a pas.
+  const atts=(Data===IDB)?await IDB.getAtts().catch(()=>[]):[];
   let owner=null;try{owner=localStorage.getItem('ac-db-owner');}catch(e){}
   if(owner===null)owner=currentSpace();
   if(Data===IDB){
     const db=await openSpaceDb(dbNameFor(space,owner));
-    await new Promise((res,rej)=>{const tx=db.transaction(['fiches','meta','sessions','backups'],'readwrite');
+    await new Promise((res,rej)=>{const tx=db.transaction(['fiches','meta','sessions','backups','attachments'],'readwrite');
       fs.forEach(f=>tx.objectStore('fiches').put(f));
       if(cats)tx.objectStore('meta').put(cats,'categories');
       tx.objectStore('meta').put(nts||{},'notes');
       ss.forEach(s=>tx.objectStore('sessions').put(s));
       bks.forEach(b=>tx.objectStore('backups').put(b));
+      atts.forEach(a=>tx.objectStore('attachments').put(a));
       tx.oncomplete=res;tx.onerror=()=>rej(tx.error);});
     db.close();
   }else{
@@ -1176,6 +1247,7 @@ async function moveLocalDataTo(space){
   for(const f of fs)await Data.del(f.id);
   for(const s of ss)await Data.delSession(s.id);
   for(const b of bks)await Data.delBackup(b.bid);
+  for(const a of atts){try{await IDB.delAtt(a.id);}catch(e){}}
   try{await Data.setNotes({});}catch(e){}
   try{await Data.setCats(null);}catch(e){}
   try{localStorage.removeItem(spaceKey('ac-pins'));}catch(e){}
@@ -1344,6 +1416,18 @@ const safeMetaId=v=>(typeof v==='string'&&SAFE_ID.test(v)&&BAD_KEYS.indexOf(v)<0
 const safeColor=c=>(typeof c==='string'&&/^#[0-9a-fA-F]{3,8}$/.test(c))?c:'#45556b';
 const safeImg=d=>(typeof d==='string'&&/^data:image\/(png|jpe?g|gif|webp);base64,[A-Za-z0-9+/=\s]{0,6000000}$/i.test(d))?d:null;
 const sstr=(v,max)=>String(v==null?'':v).slice(0,max||5000);
+// Documents PDF joints : le BLOB vit dans le store IndexedDB 'attachments' (jamais en base64 dans
+// la fiche) ; la fiche ne porte que des MÉTADONNÉES légères {id, name, size}.
+const MAX_PDF_BYTES=15*1024*1024;   // 15 Mo par document (aligné sur la limite serveur du bucket)
+const MAX_ATT_PER_ENTITY=10;        // documents par fiche (ou protocole)
+// Nom de fichier affichable — PUR (testé) : borné, sans séparateur de chemin ni caractère de contrôle.
+const safeFileName=s=>sstr(s,150).replace(/[\/\\\u0000-\u001f\u007f]/g,'').trim();
+// Métadonnée de pièce jointe — PURE (testée). L'id n'est JAMAIS régénéré (contrairement à safeId) :
+// un id inventé ne pointerait sur aucun blob -> entrée invalide REJETÉE (null, filtrée par migrate).
+function safeAttachment(a){if(!a||typeof a!=='object')return null;
+  const id=(typeof a.id==='string'&&SAFE_ID.test(a.id)&&BAD_KEYS.indexOf(a.id)<0)?a.id:null;
+  if(!id)return null;
+  return {id,name:safeFileName(a.name)||'document.pdf',size:Math.max(0,Math.min(MAX_PDF_BYTES,Math.round(Number(a.size))||0))};}
 const sarr=(a,max)=>(Array.isArray(a)?a:[]).slice(0,max||1000).map(x=>sstr(x,4000));
 // Date de validation : on n'accepte QUE le mois/année. parseValidation() est tolérant en entrée
 // ("jan 2026", "janv 2026", "01/2026", "2026/01", "1-2026", "202601"…) et renvoie TOUJOURS le format
@@ -1482,7 +1566,7 @@ function blankFiche(){const b={id:uid('b'),type:'steps',title:'Prise en charge',
   // localInfo pré-rempli avec les invites de renfort des DEUX contextes d'exercice (structure /
   // SMUR) : une fiche déployée avec un « ☎ : … » vide entraîne à ignorer la ligne — on incite à
   // les renseigner (badge « À compléter » tant qu'une invite reste).
-  return{id:uid(),title:'',category:'',validation:'',localInfo:'Tél renfort : à compléter\nTél régulation : à compléter',confirmation:[''],verify:[''],notForget:[''],differentials:[''],references:[''],images:[],timers:[],counters:[],blocks:[b],start:b.id,order:Date.now()};}
+  return{id:uid(),title:'',category:'',validation:'',localInfo:'Tél renfort : à compléter\nTél régulation : à compléter',confirmation:[''],verify:[''],notForget:[''],differentials:[''],references:[''],images:[],attachments:[],timers:[],counters:[],blocks:[b],start:b.id,order:Date.now()};}
 // Invites laissées en suspens : où la fiche contient-elle encore le texte « à compléter »
 // (gabarit local non renseigné, manque « ⚠ À COMPLÉTER : … » signalé par la génération IA) ?
 // completionSpots(f) renvoie la liste des EMPLACEMENTS (libellés des sections / blocs), affichée
@@ -1532,6 +1616,9 @@ function migrate(f){if(!f||typeof f!=='object')f={};
   f.status=(f.status==='draft')?'draft':'';
   f.related=(Array.isArray(f.related)?f.related:[]).slice(0,20).filter(id=>typeof id==='string'&&SAFE_ID.test(id)&&BAD_KEYS.indexOf(id)<0);
   f.updatedBy=sstr(f.updatedBy,160);
+  //   attachments : documents PDF joints — MÉTADONNÉES seules ({id,name,size}) ; le blob vit dans
+  //   le store IndexedDB 'attachments'. Entrées invalides REJETÉES (safeAttachment renvoie null).
+  f.attachments=(Array.isArray(f.attachments)?f.attachments:[]).slice(0,MAX_ATT_PER_ENTITY).map(safeAttachment).filter(Boolean);
   // Métadonnées de SYNCHRONISATION (rétrocompatibles : défauts posés ici ; utilisées par l'objet Sync
   // quand on est connecté, sinon simplement stockées sans effet).
   //   updatedAt : ms de dernière modif (défaut = order ou maintenant) -> résolution de conflit (last-write-wins).
@@ -1661,6 +1748,9 @@ async function updateStorageInfo(){
       tip='Sans compte, cet appareil contient votre SEULE copie ('+used+' / '+fmt(est.quota)+') et le navigateur pourrait l\'effacer. Pour éviter toute perte : connectez-vous (sauvegarde dans le cloud) ou installez l\'app sur l\'écran d\'accueil.';
     }
     if(est.quota&&est.usage/est.quota>0.85)main+=' · <span class="pers-warn">'+uiIcon('warn',13)+' appareil presque plein</span>';
+    // Poids des documents PDF joints (somme des métadonnées en mémoire — aucun blob n'est relu).
+    let attB=0;fiches.forEach(x=>(x.attachments||[]).forEach(a=>attB+=a.size||0));
+    if(attB)tip+=' Dont '+fmt(attB)+' de documents PDF joints.';
     el.innerHTML=main;el.title=tip;
   }catch(e){if(el)el.textContent='';}
 }
@@ -1684,7 +1774,8 @@ async function load(){
   categories=sanitizeCats(_cats);
   // On masque les TOMBSTONES (suppressions douces) de l'affichage ; ils restent dans IDB tant
   // qu'ils n'ont pas été poussés vers le cloud (propagation de la suppression aux autres appareils).
-  fiches=_fs.map(migrate).filter(f=>!f.deletedAt);
+  const allFiches=_fs.map(migrate);
+  fiches=allFiches.filter(f=>!f.deletedAt);
   sessions=_ss||[];
   try{notes=sanitizeNotes(_nts);}catch(e){notes={};}
   if(!categories.length){categories=defaultCats();await Data.setCats(categories);}
@@ -1698,6 +1789,7 @@ async function load(){
   restoreLiveSessions();
   render();
   updateStorageInfo();
+  gcAttachments(allFiches);   // nettoyage des blobs PDF orphelins (non bloquant pour le démarrage)
   // Accueil (3 repères) à la toute première ouverture seulement.
   try{if(!localStorage.getItem('ac-onboarded'))welcomeModal.classList.add('on');}catch(e){}
   // Reprise après un « Se déconnecter » AVEC effacement, ou un retour des fiches « hors
@@ -1801,6 +1893,19 @@ async function softDelete(f){if(!f)return;
   // La note personnelle attachée suit le sort de la fiche (t:'' -> propagé aux autres appareils).
   if(notes[f.id]&&notes[f.id].t){notes[f.id]={t:'',at:Date.now(),dirty:true};try{await Data.setNotes(notes);}catch(e){}}
   f.deletedAt=Date.now();f.updatedAt=Date.now();f.dirty=true;markHeldEdit(f.id);try{await Data.put(f);}catch(e){}if(typeof Sync!=='undefined')Sync.schedule();}
+// Ramasse-miettes des documents PDF : supprime les blobs qu'AUCUNE entité ne référence plus
+// (fiches vivantes ET tombstones — un tombstone garde ses métadonnées tant qu'il n'est pas purgé,
+// donc son document reste restaurable). Appelé au démarrage (load) : simple, idempotent, rattrape
+// tous les chemins (retrait dans l'éditeur, suppression de fiche, import écrasant, abandon...).
+// Comptage de références IMPLICITE : un document PARTAGÉ entre plusieurs fiches survit tant que
+// l'une d'elles le référence. (La section Protocoles ajoutera ses références ici.)
+async function gcAttachments(entities){
+  if(!supportsAttachments())return;
+  try{const ref=new Set();
+    (entities||[]).forEach(f=>{if(f&&Array.isArray(f.attachments))f.attachments.forEach(a=>{if(a&&a.id)ref.add(a.id);});});
+    const ids=await IDB.getAttIds();
+    for(const id of ids){if(!ref.has(id))await IDB.delAtt(id);}
+  }catch(e){}}
 
 /* ===== Runtime (minuteurs, compteurs, audio) =====
    freshRuntime(f, session) : (re)construit l'état vivant pour la fiche f. Si une
@@ -2202,6 +2307,7 @@ function uiIcon(name,size){const P={
   stopwatch:'<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/>',
   sparkles:'<path fill="currentColor" d="M11 4l1.7 4.3L17 10l-4.3 1.7L11 16l-1.7-4.3L5 10l4.3-1.7z"/><path fill="currentColor" d="M18.5 14.5l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9z"/>',
   pen:'<path d="M17 3a2.83 2.83 0 014 4L7.5 20.5 2 22l1.5-5.5z"/>',
+  doc:'<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/>',
   phone:'<rect x="7" y="2" width="10" height="20" rx="2.5"/><path d="M11 18.2h2"/>',
   bulb:'<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 00-4 10.4c.8.8 1 1.6 1 2.6h6c0-1 .2-1.8 1-2.6A6 6 0 0012 3z"/>'};
   const s=size||15;return `<svg class="tic" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[name]||''}</svg>`;}
@@ -2214,6 +2320,7 @@ function headerIcon(cls){const P={
   'h-forget':WARN_GLYPH,
   'h-diff':'<circle cx="6" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="9" r="2"/><path d="M6 8v8M8 18h6a4 4 0 004-4v-1"/>',
   'h-img':'<rect x="3" y="3" width="18" height="18" rx="2.5"/><circle cx="8.5" cy="8.5" r="1.6"/><path d="M21 15l-5-5L5 21"/>',
+  'h-doc':'<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/>',
   'h-notes':'<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4z"/>'};
   const p=P[cls];return p?`<span class="sec-badge"><svg class="sec-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg></span>`:'<span class="pip"></span>';}
 // Le <li> est un conteneur flex (puce en ::before) : le texte est TOUJOURS enveloppé dans un
@@ -2650,6 +2757,8 @@ function renderRead(){
     else{const steps=clean(blk.steps);const fwdc=atTip?(blk.next&&f.blocks.some(b=>b.id===blk.next)?'<button class="btn primary sm" id="navNext">Continuer →</button>':'<span class="endcap">FIN — fin de cette branche de prise en charge.</span>'):histBtn;
       navHtml=`<div class="nav-wrap">${crumbs}<div class="node-title">${esc(blk.title)||'Étapes'}${passTag}</div>${imgH}<ol class="steps">${steps.map((s,i)=>{const k=curSeq+':'+blk.id+':'+i;return `<li data-ck="${k}" class="${state.checked[k]?'done':''}" role="checkbox" aria-checked="${state.checked[k]?'true':'false'}" tabindex="0"><span class="box">${state.checked[k]?'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg>':''}</span><span class="txt">${fmt(s)}</span></li>`;}).join('')}</ol><div class="flow-ctrl">${fwdc}${backBtn}${resetBtn}</div></div>`;}}
   const gallery=(f.images||[]).length?`<section class="block"><div class="block-h h-img">${headerIcon('h-img')}Schémas & captures</div><div class="gallery">${f.images.map(im=>`<div class="gthumb"><img src="${im.data}" data-full="${im.data}" data-cap="${esc(im.caption||'')}" alt="${esc(im.caption||'')}" loading="lazy" decoding="async">${im.caption?`<div class="gcap">${esc(im.caption)}</div>`:''}</div>`).join('')}</div></section>`:'';
+  // Documents PDF joints : liste de boutons (≥44 px, utilisables en crise) -> visionneuse intégrée.
+  const docs=(f.attachments||[]).length?`<section class="block"><div class="block-h h-doc">${headerIcon('h-doc')}Documents</div><div class="att-list">${f.attachments.map(a=>`<button class="att-row" data-att="${esc(a.id)}" title="Ouvrir le document"><span class="att-ico">${uiIcon('doc',16)}</span><span class="att-name">${esc(a.name)}</span><span class="att-size">${fmtBytes(a.size)}</span></button>`).join('')}</div></section>`:'';
   const refs=clean(f.references);
   // « Ne pas oublier » : bandeau compact SOUS le titre (un rappel critique doit être vu AVANT
   // d'être violé, pas après avoir tout déroulé).
@@ -2674,6 +2783,7 @@ function renderRead(){
     ${f.localInfo&&f.localInfo.trim()?`<div class="local">${fmt(f.localInfo)}</div>`:''}
     ${timekeeperPanel()}
     ${gallery}
+    ${docs}
     ${staticBlock('À vérifier','h-verify',f.verify,'verify')}
     ${staticBlock('Diagnostics différentiels','h-diff',f.differentials,'diff')}
     ${refs.length?`<div class="refs"><b>Références</b><ol>${refs.map(r=>`<li>${fmt(r)}</li>`).join('')}</ol></div>`:''}
@@ -2714,6 +2824,8 @@ function bindReadEvents(f,blk,cur){
   // Accessible clavier/lecteur d'écran : role=checkbox + aria-checked (posés au rendu), Entrée/Espace.
   main.querySelectorAll('[data-ck]').forEach(li=>{const tgl=kb=>{const k=li.dataset.ck;state.checked[k]=!state.checked[k];ensureStarted();persistLive(Runtime);render();if(kb){const nl=main.querySelector('[data-ck="'+CSS.escape(k)+'"]');if(nl)nl.focus();}};li.onclick=()=>tgl(false);li.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();tgl(true);}};});
   main.querySelectorAll('img[data-full]').forEach(im=>im.onclick=()=>openLightbox(im.dataset.full,im.dataset.cap||''));
+  // Documents PDF -> visionneuse intégrée (le blob est lu dans IndexedDB à l'ouverture).
+  main.querySelectorAll('[data-att]').forEach(b=>b.onclick=()=>{const a=(f.attachments||[]).find(x=>x.id===b.dataset.att);if(a)openPdfViewer(a);});
   // runtime controls (no full re-render)
   // Bouton à bascule : le libellé dit l'ÉTAT (« Son activé/coupé », comme « Thème : sombre »),
   // le title dit l'action, aria-pressed porte l'état pour les lecteurs d'écran. L'état « coupé »
@@ -2789,6 +2901,21 @@ function bindReadEvents(f,blk,cur){
 function listEditor(legend,hint,key,arr,ordered){const rows=(arr.length?arr:['']).map((v,i)=>`<div class="li" data-i="${i}">${ordered?`<span class="li-num">${String(i+1).padStart(2,'0')}</span>`:''}<input type="text" value="${esc(v)}" data-key="${key}" data-idx="${i}" placeholder="…">${boldBtnHtml()}${ordered?`<button class="mini" data-mv="up" data-key="${key}" data-idx="${i}" aria-label="Monter">↑</button><button class="mini" data-mv="down" data-key="${key}" data-idx="${i}" aria-label="Descendre">↓</button>`:''}<button class="mini del" data-rm="${key}" data-idx="${i}" aria-label="Supprimer la ligne">×</button></div>`).join('');return `<fieldset class="field list-edit"><label>${legend}${hint?` <span class="hint">${hint}</span>`:''}</label>${rows}<button class="add-line" data-add="${key}">+ Ajouter une ligne</button></fieldset>`;}
 // Bouton « Gras » : entoure la sélection du champ voisin de ** (rendu <b> en lecture via fmt()).
 function boldBtnHtml(){return '<button type="button" class="mini bld" data-bold aria-label="Mettre la sélection en gras" title="Gras — sélectionnez du texte puis cliquez (ou Ctrl/Cmd-B). Réservez-le aux doses et interdictions critiques.">B</button>';}
+// Documents PDF joignables depuis les AUTRES fiches du MÊME périmètre (Perso, ou même bibliothèque
+// partagée — jamais inter-périmètres : le chemin de stockage cloud encode le périmètre de sécurité).
+// Rattacher un document existant = PARTAGE : le même id est référencé par plusieurs fiches, le
+// remplacer le met à jour partout, il ne disparaît que quand plus personne ne le référence (GC).
+function attachablePdfs(f){const have=new Set((f.attachments||[]).map(a=>a.id));const seen=new Set(),out=[];
+  fiches.forEach(x=>{if(x.id===f.id||x.deletedAt||(x.libraryId||null)!==(f.libraryId||null))return;
+    (x.attachments||[]).forEach(a=>{if(!a||have.has(a.id)||seen.has(a.id))return;seen.add(a.id);out.push({id:a.id,name:a.name,size:a.size,from:x.title||'Sans titre'});});});
+  return out;}
+// Blobs PDF ajoutés pendant l'édition COURANTE : purgés si on quitte sans enregistrer (le blob est
+// écrit immédiatement dans IndexedDB à l'ajout, AVANT l'enregistrement de la fiche).
+let draftNewAtts=[];
+async function purgeDraftAtts(){const ids=draftNewAtts;draftNewAtts=[];
+  if(!ids.length||!supportsAttachments())return;
+  const ref=new Set();fiches.forEach(x=>(x.attachments||[]).forEach(a=>ref.add(a.id)));
+  for(const id of ids){if(!ref.has(id)){try{await IDB.delAtt(id);}catch(e){}}}}
 function targetSelect(blocks,selfId,value){const opts=blocks.filter(b=>b.id!==selfId).map(b=>`<option value="${b.id}" ${b.id===value?'selected':''}>${esc(b.title)||'(bloc sans titre)'}</option>`).join('');return `<select data-target><option value="" ${!value?'selected':''}>— Fin / aucun —</option>${opts}</select>`;}
 function imageEditor(b){return `<div class="sub">Image du bloc (option)</div><div class="imgrow">${b.image?`<img src="${b.image}" alt=""><button class="btn sm danger" data-bimgdel>Retirer</button>`:`<button class="btn sm" data-bimg>+ Image / capture</button>`}</div>`;}
 function blockEditor(b,blocks){if(b.type==='decision'){return `<div class="blk" data-bid="${b.id}"><div class="blk-top"><span class="blk-type decision">Décision</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Réévaluation)"></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Question</div><input type="text" data-bf="question" value="${esc(b.question)}" placeholder="ex. Réponse à l'adrénaline ?" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)"><div class="sub">Réponses → bloc cible</div>${(b.options.length?b.options:[{label:'',target:''}]).map((o,i)=>`<div class="optedit" data-oi="${i}"><input type="text" data-of="label" value="${esc(o.label)}" placeholder="ex. Oui">${targetSelect(blocks,b.id,o.target)}<button class="mini del" data-rmopt="${i}" aria-label="Supprimer la réponse">×</button></div>`).join('')}<button class="add-line" data-addopt>+ Ajouter une réponse</button>${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="mini" data-bmv="up" aria-label="Monter le bloc">↑</button><button class="mini" data-bmv="down" aria-label="Descendre le bloc">↓</button><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
@@ -2819,13 +2946,19 @@ function renderEditor(){
     ${listEditor('Ne pas oublier','points critiques','notForget',f.notForget)}
     ${listEditor('Diagnostics différentiels','','differentials',f.differentials)}
     <fieldset class="field"><label>Schémas & captures <span class="hint">stockées hors ligne dans l'app</span></label><div class="gallery">${(f.images||[]).map((im,i)=>`<div class="gthumb"><img src="${im.data}" alt="" loading="lazy" decoding="async"><input type="text" class="gcap" data-imgcap="${i}" value="${esc(im.caption||'')}" placeholder="Légende…" style="width:100%;margin-top:5px;padding:6px 8px;border:1px solid var(--line);border-radius:7px"><button class="btn sm danger" data-imgdel="${i}" style="width:100%;margin-top:5px">Retirer</button></div>`).join('')}</div><button class="add-line" id="addImg" style="margin-top:10px">+ Ajouter une image / capture</button></fieldset>
+    <fieldset class="field"><label>Documents (PDF) <span class="hint">protocoles, recommandations — lisibles hors ligne</span></label>
+      ${supportsAttachments()?`${(f.attachments||[]).map((a,i)=>`<div class="att-erow" data-ai="${i}"><span class="att-ico">${uiIcon('doc',15)}</span><input type="text" data-attname="${i}" value="${esc(a.name)}" aria-label="Nom du document" placeholder="Nom du document"><span class="att-size">${fmtBytes(a.size)}</span><button class="mini del" data-attrm="${i}" aria-label="Retirer le document">×</button></div>`).join('')}
+      <button class="add-line" id="addPdf">+ Ajouter un PDF (${fmtBytes(MAX_PDF_BYTES)} max)</button>
+      ${(()=>{const opts=attachablePdfs(f);return opts.length?`<select id="attAdd" style="margin-top:8px;width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)"><option value="">+ Joindre un document d'une autre fiche (partagé : mis à jour partout)…</option>${opts.map(o=>`<option value="${esc(o.id)}">${esc(o.name)} (${fmtBytes(o.size)}) — ${esc(o.from)}</option>`).join('')}</select>`:'';})()}`
+      :`<p class="hint">Ce navigateur ne permet pas de stocker des documents hors ligne — ouvrez l'app dans un navigateur récent (ou installez-la sur l'écran d'accueil) pour joindre des PDF.</p>`}</fieldset>
     ${listEditor('Références','sources de la fiche','references',f.references)}
     <fieldset class="field"><label>Fiches liées <span class="hint">raccourcis « Voir aussi » en bas de la fiche</span></label>
       <div class="rel-edit">${(f.related||[]).map(id=>{const rf=fiches.find(x=>x.id===id);return rf?`<span class="rel-chip">${esc(rf.title)||'Sans titre'}<button class="rel-x" data-relrm="${esc(id)}" aria-label="Retirer">×</button></span>`:'';}).join('')||'<span class="hint">Aucune fiche liée.</span>'}</div>
       ${(()=>{const opts=fiches.filter(x=>x.id!==f.id&&!x.deletedAt&&(f.related||[]).indexOf(x.id)<0&&(x.libraryId||null)===(f.libraryId||null)).sort(byOrder);return opts.length?`<select id="relAdd" style="margin-top:8px;width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)"><option value="">+ Ajouter une fiche liée…</option>${opts.map(x=>`<option value="${esc(x.id)}">${esc(x.title)||'Sans titre'}</option>`).join('')}</select>`:'<p class="hint">Aucune autre fiche disponible dans cette bibliothèque.</p>';})()}</fieldset>
     ${noteBlockHtml(f.id)}
     <div class="editor-foot"><button class="btn primary" id="saveBtn">Enregistrer</button><div class="spacer"></div>${fiches.some(x=>x.id===f.id)?'<button class="btn danger" id="delBtn">Supprimer</button>':''}</div>
-    <input type="file" id="imgInput" accept="image/*" hidden>`;
+    <input type="file" id="imgInput" accept="image/*" hidden>
+    <input type="file" id="pdfInput" accept="application/pdf,.pdf" hidden>`;
   bindEditorEvents(f);
   flowCtx={f,curId:null};
   bindFlowZoom();applyFlowZoom();restoreFlow();
@@ -2836,7 +2969,7 @@ function bindEditorEvents(f){
   bindNoteBlock(f.id,renderEditor);  // note personnelle : même composant qu'en lecture, dès la création
   // Annulation d'une CRÉATION : la note éventuellement saisie n'a plus de fiche -> effacée aussi
   // (saveNote(id,'') : tombstone propagé si déjà synchronisée, no-op si jamais de note).
-  document.getElementById('back').onclick=()=>{state.draft=null;state.noteEdit=false;if(fiches.some(x=>x.id===f.id)){resetRuntime();openRead(f.id);}else{saveNote(f.id,'');state.view='library';render();}};
+  document.getElementById('back').onclick=()=>{purgeDraftAtts();state.draft=null;state.noteEdit=false;if(fiches.some(x=>x.id===f.id)){resetRuntime();openRead(f.id);}else{saveNote(f.id,'');state.view='library';render();}};
   const cbA=document.getElementById('cbAI');if(cbA)cbA.onclick=openAI;
   const cbM=document.getElementById('cbManual');if(cbM)cbM.onclick=()=>{state.showCreateBand=false;renderEditor();const t=document.getElementById('f-title');if(t)t.focus();};
   ['title','localInfo'].forEach(k=>document.getElementById('f-'+k).addEventListener('input',e=>state.draft[k]=e.target.value));
@@ -2900,6 +3033,30 @@ function bindEditorEvents(f){
     card.querySelectorAll('[data-bmv]').forEach(btn=>btn.onclick=()=>{moveItem(f.blocks,f.blocks.indexOf(b),btn.dataset.bmv==='up'?-1:1);renderEditor();});
     const bd=card.querySelector('[data-bdel]');if(bd)bd.onclick=()=>{f.blocks=f.blocks.filter(x=>x.id!==bid);f.blocks.forEach(x=>{if(x.next===bid)x.next=null;if(x.options)x.options.forEach(o=>{if(o.target===bid)o.target='';});});if(f.start===bid)f.start=f.blocks[0]?f.blocks[0].id:null;if(!f.blocks.length){const nb={id:uid('b'),type:'steps',title:'Prise en charge',steps:[''],image:null,next:null};f.blocks.push(nb);f.start=nb.id;}renderEditor();};});
   imgInput.onchange=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;const data=await downscale(file);if(!data){toast('⚠ Image illisible.');return;}if(imgMode.kind==='gallery')f.images.push({id:uid('i'),data,caption:''});else{const b=f.blocks.find(x=>x.id===imgMode.bid);if(b)b.image=data;}renderEditor();};
+  // Documents PDF : le BLOB est écrit immédiatement dans IndexedDB (il ne transite jamais par
+  // state.draft ni par le JSON de la fiche) ; le brouillon ne reçoit que {id,name,size}. Les ids
+  // ajoutés pendant cette édition sont tracés (draftNewAtts) -> purge si « Quitter sans enregistrer ».
+  const pdfInput=document.getElementById('pdfInput');
+  {const ap=document.getElementById('addPdf');
+   if(ap)ap.onclick=()=>{if((f.attachments||[]).length>=MAX_ATT_PER_ENTITY){toast('⚠ '+MAX_ATT_PER_ENTITY+' documents maximum par fiche.');return;}pdfInput.click();};}
+  if(pdfInput)pdfInput.onchange=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;
+    if(file.size>MAX_PDF_BYTES){toast('⚠ Document trop volumineux ('+fmtBytes(file.size)+') : '+fmtBytes(MAX_PDF_BYTES)+' maximum.');return;}
+    // CONTENU vérifié (signature %PDF-) en plus du type déclaré : un fichier renommé .pdf ne passe pas.
+    let head='';try{head=String.fromCharCode.apply(null,new Uint8Array(await file.slice(0,5).arrayBuffer()));}catch(err){}
+    if(head!=='%PDF-'){toast('⚠ Ce fichier n\'est pas un PDF valide.');return;}
+    const id=uid('a');
+    try{await IDB.putAtt({id,blob:file,size:file.size,type:'application/pdf',createdAt:Date.now(),dirty:1,remotePath:null});}
+    catch(err){toast('⚠ Stockage saturé : document non enregistré.',9000);return;}
+    draftNewAtts.push(id);
+    f.attachments=f.attachments||[];f.attachments.push({id,name:safeFileName(file.name)||'document.pdf',size:file.size});
+    renderEditor();};
+  main.querySelectorAll('[data-attname]').forEach(inp=>inp.addEventListener('input',e=>{const a=(f.attachments||[])[+e.target.dataset.attname];if(a)a.name=e.target.value;}));
+  main.querySelectorAll('[data-attrm]').forEach(b=>b.onclick=()=>{f.attachments.splice(+b.dataset.attrm,1);renderEditor();});
+  {const aa=document.getElementById('attAdd');
+   if(aa)aa.onchange=()=>{const id=aa.value;if(!id)return;
+     if((f.attachments||[]).length>=MAX_ATT_PER_ENTITY){toast('⚠ '+MAX_ATT_PER_ENTITY+' documents maximum par fiche.');return;}
+     const o=attachablePdfs(f).find(x=>x.id===id);
+     if(o){f.attachments=f.attachments||[];f.attachments.push({id:o.id,name:o.name,size:o.size});renderEditor();}};}
   document.getElementById('saveBtn').onclick=saveDraft;const del=document.getElementById('delBtn');if(del)del.onclick=deleteDraft;
 }
 function bindListEditors(){
@@ -2951,6 +3108,7 @@ async function saveDraft(){const d=state.draft;d.title=(d.title||'').trim();
   d.blocks.forEach(b=>{b.title=(b.title||'').trim();if(b.type==='steps')b.steps=clean(b.steps);else{b.question=(b.question||'').trim();b.options=(b.options||[]).filter(o=>(o.label||'').trim());}});
   d.timers=(d.timers||[]).map(t=>({id:t.id,label:(t.label||'').trim(),type:t.type==='interval'?'interval':'stopwatch',seconds:Math.max(0,parseInt(t.seconds||0)||0),autoloop:!!t.autoloop}));
   d.counters=(d.counters||[]).map(c=>({id:c.id,label:(c.label||'').trim(),step:Math.max(1,parseInt(c.step||1)||1),start:parseInt(c.start||0)||0}));
+  d.attachments=(d.attachments||[]).map(safeAttachment).filter(Boolean);
   delete d.blocks._start;if(!d.start||!d.blocks.some(b=>b.id===d.start))d.start=d.blocks[0]?d.blocks[0].id:null;
   if(!d.title){toast('⚠ Donnez un titre à la fiche.');return;}if(typeof d.order!=='number')d.order=Date.now();
   // CHANGEMENT DE BIBLIOTHÈQUE : conséquences irréversibles pour les AUTRES -> confirmation
@@ -2964,7 +3122,7 @@ async function saveDraft(){const d=state.draft;d.title=(d.title||'').trim();
    }}
   // La structure de la fiche change : on TERMINE une éventuelle session vive (archivée) pour éviter
   // une incohérence minuteurs/blocs, puis on rouvre la fiche à neuf.
-  if(!(await persist(d)))return;const i=fiches.findIndex(x=>x.id===d.id);if(i>=0)fiches[i]=d;else fiches.push(d);if(liveSessions[d.id])endSession(liveSessions[d.id]);state.draft=null;resetRuntime();openRead(d.id);}
+  if(!(await persist(d)))return;draftNewAtts=[];const i=fiches.findIndex(x=>x.id===d.id);if(i>=0)fiches[i]=d;else fiches.push(d);if(liveSessions[d.id])endSession(liveSessions[d.id]);state.draft=null;resetRuntime();openRead(d.id);}
 async function deleteDraft(){
   // Fiche de bibliothèque PARTAGÉE : la suppression effacera aussi, chez chaque membre, la note
   // personnelle qu'il a pu attacher à cette fiche -> on le dit à l'éditeur/admin avant.
@@ -2987,8 +3145,8 @@ function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;flowScroll=
   // Algorithme REPLIÉ à l'ouverture : la 1ʳᵉ étape actionnable doit arriver le plus haut possible
   // sous stress ; le schéma (vue d'ensemble, utile à froid) reste à un tap (« Voir l'algorithme »).
   bindStateToRuntime();state.fiche=Runtime.fiche;state.showFlow=false;state.showSess=false;state.view='read';render();}
-function openEdit(id){const f=fiches.find(x=>x.id===id);if(!f)return;if(!canEditFiche(f)){toast('Lecture seule : vous n\'avez pas les droits d\'édition sur cette bibliothèque.');return openRead(id);}state.draft=JSON.parse(JSON.stringify(f));state.noteEdit=false;state.view='edit';render();}
-function newFiche(){if(!canEditScope(state.scope)){toast('Lecture seule : vous ne pouvez pas créer de fiche dans cette bibliothèque.');return;}const d=blankFiche();d.libraryId=state.scope||null;state.draft=d;state.noteEdit=false;state.showCreateBand=true;state.view='edit';render();}
+function openEdit(id){const f=fiches.find(x=>x.id===id);if(!f)return;if(!canEditFiche(f)){toast('Lecture seule : vous n\'avez pas les droits d\'édition sur cette bibliothèque.');return openRead(id);}state.draft=JSON.parse(JSON.stringify(f));draftNewAtts=[];state.noteEdit=false;state.view='edit';render();}
+function newFiche(){if(!canEditScope(state.scope)){toast('Lecture seule : vous ne pouvez pas créer de fiche dans cette bibliothèque.');return;}const d=blankFiche();d.libraryId=state.scope||null;state.draft=d;draftNewAtts=[];state.noteEdit=false;state.showCreateBand=true;state.view='edit';render();}
 
 /* ===== Lightbox ===== (agrandissement d'une image au clic, avec légende) */
 const lb=document.getElementById('lightbox');
@@ -2998,6 +3156,89 @@ document.getElementById('lbX').onclick=closeLightbox;lb.onclick=e=>{if(e.target=
 // Plein écran de l'algorithme : boutons de zoom (mêmes que l'aperçu) + fermeture.
 document.querySelectorAll('#flowFull [data-zoomf]').forEach(b=>b.onclick=()=>zoomStep(b.dataset.zoomf));
 document.getElementById('ffClose').onclick=closeFlowFull;
+
+/* ===== Visionneuse PDF =====
+   Rendu par pdf.js VENDORISÉ (vendor/pdfjs, version figée, précaché par sw.js -> hors ligne ;
+   SEULE dépendance runtime autorisée, voir AGENTS.md), chargé PARESSEUSEMENT au premier document
+   ouvert (import() dynamique : zéro coût au démarrage — l'app reste instantanée en urgence).
+   Rendu VIRTUALISÉ : un conteneur par page à hauteur pré-calculée ; IntersectionObserver ne rend
+   sur canvas que les pages proches de l'écran et DÉTRUIT les canvas éloignés (iOS plafonne la
+   mémoire totale des canvas -> un long PDF entièrement rendu ferait planter l'onglet).
+   Zoom par boutons (comme l'algorithme) ; « Largeur » (100 %) = pleine largeur d'écran.
+   Fenêtre .ai-modal -> focus / Échap / piège Tab gérés par l'accessibilité centralisée. */
+let _pdfjs=null;
+async function pdfLib(){if(!_pdfjs){const m=await import('./vendor/pdfjs/pdf.min.js');
+  m.GlobalWorkerOptions.workerSrc='./vendor/pdfjs/pdf.worker.min.js';_pdfjs=m;}return _pdfjs;}
+const pdfModal=document.getElementById('pdfModal');
+let _pv=null;   // état de la visionneuse ouverte {doc, pages[], observer, z, cssW, baseW, baseH}
+function closePdfViewer(){
+  if(_pv){try{_pv.observer&&_pv.observer.disconnect();}catch(e){}try{_pv.doc.destroy();}catch(e){}_pv=null;}
+  const sc=document.getElementById('pdfScroll');if(sc)sc.innerHTML='';
+  pdfModal.classList.remove('on');}
+bindModalDismiss(pdfModal,closePdfViewer);
+pdfModal.querySelectorAll('[data-pz]').forEach(b=>b.onclick=()=>pdfZoom(b.dataset.pz));
+window.addEventListener('resize',()=>{if(_pv&&pdfModal.classList.contains('on')){pdfApplyScale();pdfRenderNear();}});
+// Rend IMMÉDIATEMENT les pages proches de l'écran (±1 hauteur d'écran), par géométrie : à
+// l'ouverture et après un zoom, on n'attend pas le premier passage de l'IntersectionObserver
+// (sinon page blanche d'une frame — et filet de sûreté si l'observer tarde). renderPdfPage
+// ne refait rien si la page est déjà rendue à l'échelle courante.
+function pdfRenderNear(){if(!_pv)return;const sc=document.getElementById('pdfScroll');const r=sc.getBoundingClientRect();
+  _pv.pages.forEach(s=>{const p=s.el.getBoundingClientRect();
+    if(p.bottom>=r.top-r.height&&p.top<=r.bottom+r.height){s.vis=true;renderPdfPage(s);}});}
+// Largeur CSS des pages + hauteur pré-calculée de chaque conteneur (les pages non encore lues
+// utilisent les dimensions de la page 1 ; corrigées à la première lecture de la page).
+function pdfApplyScale(){if(!_pv)return;const sc=document.getElementById('pdfScroll');
+  const avail=Math.max(120,sc.clientWidth-20);
+  _pv.cssW=Math.round(avail*_pv.z);
+  const zv=document.getElementById('pdfZoomVal');if(zv)zv.textContent=Math.round(_pv.z*100)+'%';
+  _pv.pages.forEach(s=>{const w=s.vp?s.vp.width:_pv.baseW,h=s.vp?s.vp.height:_pv.baseH;
+    s.el.style.width=_pv.cssW+'px';s.el.style.height=Math.round(h*(_pv.cssW/w))+'px';
+    releasePdfPage(s);});}
+function pdfZoom(a){if(!_pv)return;
+  if(a==='in')_pv.z=Math.min(4,Math.round((_pv.z+0.25)*100)/100);
+  else if(a==='out')_pv.z=Math.max(0.5,Math.round((_pv.z-0.25)*100)/100);
+  else _pv.z=1;
+  pdfApplyScale();pdfRenderNear();}
+function releasePdfPage(s){if(s.canvas){s.canvas.width=s.canvas.height=0;s.canvas.remove();s.canvas=null;}}
+async function renderPdfPage(s){if(!_pv||s.rendering)return;
+  if(s.canvas&&s.renderedW===_pv.cssW)return;   // déjà rendue à cette échelle
+  s.rendering=true;
+  try{
+    if(!s.page){s.page=await _pv.doc.getPage(+s.el.dataset.p);s.vp=s.page.getViewport({scale:1});
+      if(_pv)s.el.style.height=Math.round(s.vp.height*(_pv.cssW/s.vp.width))+'px';}
+    if(!_pv||!s.vis){s.rendering=false;return;}
+    const dpr=Math.min(2,window.devicePixelRatio||1);      // dpr plafonné : netteté vs mémoire iOS
+    const vp=s.page.getViewport({scale:(_pv.cssW/s.vp.width)*dpr});
+    const c=document.createElement('canvas');c.width=Math.round(vp.width);c.height=Math.round(vp.height);
+    const targetW=_pv.cssW;
+    await s.page.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;
+    if(!_pv||!s.vis||_pv.cssW!==targetW){c.width=c.height=0;s.rendering=false;if(_pv&&s.vis)renderPdfPage(s);return;}
+    releasePdfPage(s);s.el.innerHTML='';s.el.appendChild(c);s.canvas=c;s.renderedW=targetW;
+  }catch(e){}
+  s.rendering=false;}
+async function openPdfViewer(att){
+  if(!supportsAttachments()){toast('⚠ Ce navigateur ne peut pas stocker les documents hors ligne — ouvrez l\'app dans un navigateur récent pour lire ce PDF.',9000);return;}
+  let rec=null;try{rec=await IDB.getAtt(att.id);}catch(e){}
+  if(!rec||!rec.blob){toast('Document indisponible sur cet appareil (pas encore téléchargé, ou joint depuis un autre appareil).',9000);return;}
+  const sc=document.getElementById('pdfScroll');
+  document.getElementById('pdfModalTitle').textContent=att.name||'Document';
+  sc.innerHTML='<div class="pdf-msg">Ouverture du document…</div>';
+  pdfModal.classList.add('on');
+  let doc;
+  try{const lib=await pdfLib();doc=await lib.getDocument({data:await rec.blob.arrayBuffer()}).promise;}
+  catch(e){sc.innerHTML='<div class="pdf-msg">'+uiIcon('warn',15)+' Impossible d\'ouvrir ce document (fichier endommagé ?).</div>';return;}
+  if(!pdfModal.classList.contains('on')){try{doc.destroy();}catch(e){}return;}   // fermée pendant le chargement
+  const p1=await doc.getPage(1);const vp1=p1.getViewport({scale:1});
+  _pv={doc,pages:[],observer:null,z:1,cssW:0,baseW:vp1.width,baseH:vp1.height};
+  sc.innerHTML='';
+  for(let i=1;i<=doc.numPages;i++){const el=document.createElement('div');el.className='pdf-page';el.dataset.p=i;sc.appendChild(el);
+    _pv.pages.push({el,page:i===1?p1:null,vp:i===1?vp1:null,canvas:null,renderedW:0,rendering:false,vis:false});}
+  pdfApplyScale();
+  _pv.observer=new IntersectionObserver(es=>es.forEach(en=>{const s=_pv&&_pv.pages[+en.target.dataset.p-1];if(!s)return;
+    s.vis=en.isIntersecting;if(s.vis)renderPdfPage(s);else releasePdfPage(s);}),{root:sc,rootMargin:'100% 0px'});
+  _pv.pages.forEach(s=>_pv.observer.observe(s.el));
+  pdfRenderNear();   // premières pages rendues sans attendre l'observer
+}
 
 /* ===== Prompt IA ===== (fenêtre d'aide pour générer une fiche importable via une IA)
    Le prompt est embarqué (l'app marche hors ligne) ; il décrit le format JSON exact
@@ -3354,7 +3595,11 @@ bindModalDismiss(catModal,closeCatMgr);
 function exportData(list,baseName,cats){const out={version:3,origin:spaceTag(currentSpace()),categories:(cats||categories.filter(c=>list.some(f=>f.category===c.id))).map(c=>({id:c.id,name:c.name,color:c.color})),fiches:list.map(f=>{const c={...f};if(c.blocks)delete c.blocks._start;
   // On retire les champs de sync PUREMENT LOCAUX -> une fiche importée ailleurs devient celle de l'importateur
   // (pas d'owner/biblio d'autrui) ; `updatedAt` est conservé (utile au last-write-wins multi-appareils).
-  delete c.dirty;delete c.ownerId;delete c.libraryId;return c;})};const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=baseName+'-'+new Date().toISOString().slice(0,10)+'.json';a.click();}
+  delete c.dirty;delete c.ownerId;delete c.libraryId;return c;})};const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=baseName+'-'+new Date().toISOString().slice(0,10)+'.json';a.click();
+  // Les DOCUMENTS PDF ne voyagent PAS dans le JSON (le fichier resterait sinon illisible et
+  // énorme) : seules leurs métadonnées y figurent. On le dit à l'export — les PDF suivent le
+  // compte via la synchronisation cloud.
+  if(list.some(f=>(f.attachments||[]).length))toast('Les documents PDF joints ne sont pas inclus dans le fichier exporté (seules les fiches le sont) ; ils suivent votre compte via la synchronisation.',9000);}
 // Nom de fichier s\u00fbr pour un export : m\u00eames r\u00e8gles que catSlug (accents retir\u00e9s, jeu [a-z0-9-]).
 const fileSlug=s=>catSlug(s).slice(0,40)||'fiche';
 document.getElementById('exportBtn').onclick=()=>exportData(fiches,'aides-cognitives',categories);
@@ -3404,6 +3649,9 @@ document.getElementById('importFile').onchange=e=>{const file=e.target.files[0];
     const added=[];
     for(let d of imp.fiches){d=migrate(d);
       d.libraryId=targetLib;   // migrate() vide libraryId (sécurité) -> on pose la destination choisie
+      // Fichier d'un AUTRE espace : les blobs PDF référencés n'existent pas ici (et les ids sont
+      // de toute façon régénérés) -> références vidées, pas de boutons « Document indisponible ».
+      if(!sameSpace)d.attachments=[];
       // Référence de catégorie orpheline (id absent du fichier importé ET du jeu de catégories de
       // la bibliothèque de destination) : on la vide plutôt que de laisser migrateCategories() la
       // transformer en catégorie fantôme (elle traiterait l'id brut comme un nom lisible).
@@ -4510,7 +4758,7 @@ document.addEventListener('focusout',e=>{if(!_kbText(e.relatedTarget))document.b
    PAS l'application : on expose juste les fonctions pures à tester. AUCUN effet en usage normal :
    sans ce paramètre, rien de tout ceci ne s'exécute et aucun global n'est ajouté. */
 if(location.search.indexOf('__actest')>=0){
-  window.__ac_test__={migrate,sanitizeCats,safeId,safeColor,safeImg,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,
+  window.__ac_test__={migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,
     restErrStatus,isPersoRepairCandidate,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT};
 }else{

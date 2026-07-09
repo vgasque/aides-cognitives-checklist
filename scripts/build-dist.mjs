@@ -37,6 +37,11 @@ const COPY = ['manifest.webmanifest', 'icon-192.png', 'icon-192-maskable.png', '
   'icon-512-maskable.png', 'apple-touch-icon.png', '_headers', '.nojekyll', 'LICENSE'];
 for (const f of COPY) await copyFile(ROOT + f, DIST + f);
 
+// pdf.js vendorisé (visionneuse PDF) : déjà minifié en amont, copié tel quel.
+await mkdir(DIST + 'vendor/pdfjs', { recursive: true });
+for (const f of ['pdf.min.js', 'pdf.worker.min.js', 'LICENSE', 'README.txt'])
+  await copyFile(ROOT + 'vendor/pdfjs/' + f, DIST + 'vendor/pdfjs/' + f);
+
 const before = (await readFile(ROOT + 'index.html')).length;
 const after = html.length;
 console.log(`dist/ prêt : index.html ${(before / 1024).toFixed(0)} Ko -> ${(after / 1024).toFixed(0)} Ko` +

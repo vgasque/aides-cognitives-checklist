@@ -294,6 +294,29 @@ function run(A){
   eq('related nettoyé', m31.related, ['ok-1']);
   eq('updatedBy conservé', m31.updatedBy, 'a@b.fr');
   eq('status inconnu → validée', A.migrate({title:'x',status:'???'}).status, '');
+
+  group('safeFileName() — nom de document affichable');
+  eq('nom simple conservé', A.safeFileName('protocole-ACR.pdf'), 'protocole-ACR.pdf');
+  eq('séparateurs de chemin retirés', A.safeFileName('../..\\etc/passwd.pdf'), '....etcpasswd.pdf');
+  ok('borné à 150 caractères', A.safeFileName('a'.repeat(400)).length<=150);
+  eq('non-chaîne coercée', A.safeFileName(42), '42');
+
+  group('safeAttachment() — métadonnées de document PDF');
+  eq('entrée valide normalisée', A.safeAttachment({id:'a1-X_9',name:'doc.pdf',size:1234}), {id:'a1-X_9',name:'doc.pdf',size:1234});
+  eq('id __proto__ REJETÉ (jamais régénéré)', A.safeAttachment({id:'__proto__',name:'x',size:1}), null);
+  eq('id invalide rejeté', A.safeAttachment({id:'a b/c',name:'x',size:1}), null);
+  eq('id manquant rejeté', A.safeAttachment({name:'x',size:1}), null);
+  eq('non-objet rejeté', A.safeAttachment('x'), null);
+  eq('nom vide → défaut', A.safeAttachment({id:'a1',size:1}).name, 'document.pdf');
+  eq('taille négative clampée à 0', A.safeAttachment({id:'a1',name:'x',size:-5}).size, 0);
+  eq('taille démesurée clampée au plafond', A.safeAttachment({id:'a1',name:'x',size:1e12}).size, A.MAX_PDF_BYTES);
+  ok('nom avec chemin nettoyé', A.safeAttachment({id:'a1',name:'../x.pdf',size:1}).name.indexOf('/')<0);
+
+  group('migrate() — champ attachments');
+  eq('absent → tableau vide', A.migrate({title:'x'}).attachments, []);
+  eq('non-tableau → tableau vide', A.migrate({title:'x',attachments:'zzz'}).attachments, []);
+  eq('entrées invalides filtrées', A.migrate({title:'x',attachments:[{id:'__proto__'},null,'s',{id:'ok-1',name:'d.pdf',size:9}]}).attachments, [{id:'ok-1',name:'d.pdf',size:9}]);
+  ok('plafonné à MAX_ATT_PER_ENTITY', A.migrate({title:'x',attachments:Array.from({length:99},(_,i)=>({id:'a'+i,name:'d',size:1}))}).attachments.length<=A.MAX_ATT_PER_ENTITY);
 }
 
 // Ouvert en double-cliquant le fichier (file://) : le navigateur isole les iframes (origine

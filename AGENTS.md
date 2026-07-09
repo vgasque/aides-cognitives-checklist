@@ -7,6 +7,14 @@ PWA médicale **monofichier** (`index.html`), JavaScript vanille, **aucune dépe
 Stockage local-first (IndexedDB) ; synchro cloud Supabase optionnelle (RLS). Utilisée en urgence
 vitale, sous stress : clarté et robustesse priment.
 
+> **Exception UNIQUE à la règle zéro-dépendance : pdf.js** (visionneuse des documents PDF).
+> Vendorisé dans `vendor/pdfjs/` (version figée, notée dans `vendor/pdfjs/README.txt`), chargé
+> **paresseusement** (`import()` au premier document ouvert — jamais au démarrage), **précaché
+> par `sw.js`** (hors ligne dès l'installation). Mettre à jour pdf.js = décision explicite +
+> test hors-ligne complet (mode avion, PDF 50+ pages, iPhone). **Aucune autre dépendance runtime
+> n'est autorisée** ; tout nouveau fichier servi doit être ajouté à `ASSETS` (`sw.js`) ET à
+> `scripts/build-dist.mjs`.
+
 ## Règle de publication (IMPÉRATIF)
 Publier une version = trois étapes, dans cet ordre :
 
@@ -37,6 +45,12 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
 - Toute donnée affichée passe par `esc()` (contenu potentiellement importé/partagé).
 - Toute donnée importée/chargée passe par `migrate()` / `sanitizeCats()` (point d'entrée unique de
   compatibilité et de sécurité) ; nouveaux champs = facultatifs, avec défaut posé dans `migrate()`.
+- **Documents PDF** : le blob vit dans le store IndexedDB `attachments` (base v5), JAMAIS en
+  base64 dans la fiche ni dans l'export JSON ; la fiche ne porte que `attachments:[{id,name,size}]`
+  (validé par `safeAttachment` — id jamais régénéré, entrée invalide rejetée ; plafonds
+  `MAX_PDF_BYTES`/`MAX_ATT_PER_ENTITY`). En repli KV l'ajout est refusé (`supportsAttachments`).
+  Un document peut être **partagé** entre plusieurs fiches du même périmètre (même id référencé) :
+  les blobs ne sont supprimés que par `gcAttachments` (comptage de références au démarrage).
 - Fonctions pures testables : les exposer via le hook `?__actest` (fin de `index.html`) et ajouter
   un test dans `tests.html`.
 - Ne jamais supprimer un champ du modèle fiche/catégorie (compatibilité ascendante).
@@ -50,21 +64,22 @@ recommandation individualisée : voir `docs/deploiement-et-conformite.md` (§ 2,
 non-dispositif-médical). Toute fonctionnalité qui produirait une sortie individualisée
 (ex. calcul de doses) doit être évaluée au regard de ce statut **avant** développement.
 
-## Se repérer dans `index.html` (monofichier, ~3 100 lignes)
+## Se repérer dans `index.html` (monofichier, ~4 700 lignes)
 Le fichier s'ouvre sur un **grand commentaire d'architecture** (objectif, règles de conception,
 modèle de données, règles de sécurité) : le lire en premier. Ensuite, dans l'ordre :
 
 | Section (bannières `/* ===== … ===== */`) | Contenu |
 |---|---|
 | `<style>` | Tout le CSS (variables dans `:root`, thème sombre via `html[data-theme="dark"]`) |
-| Backends | `KV` / `IDB` / `MEM` : trois stockages locaux interchangeables derrière `Data` ; **un espace local par compte** (`currentSpace`/`dbNameFor`/`spaceKey`, bascule par reload à la connexion d'un autre compte, jamais de mélange entre comptes) |
-| State & Runtime | `state` (quoi afficher) ; `Runtime` (état vivant du mode crise) ; garde-fous `safeId`/`safeColor`/`safeImg`/`sstr`/`sarr` |
+| Backends | `KV` / `IDB` / `MEM` : trois stockages locaux interchangeables derrière `Data` ; **un espace local par compte** (`currentSpace`/`dbNameFor`/`spaceKey`, bascule par reload à la connexion d'un autre compte, jamais de mélange entre comptes) ; stores IndexedDB v5 : `fiches`, `meta`, `sessions`, `backups`, `attachments` (Blob PDF), `protocols` |
+| State & Runtime | `state` (quoi afficher) ; `Runtime` (état vivant du mode crise) ; garde-fous `safeId`/`safeColor`/`safeImg`/`safeAttachment`/`sstr`/`sarr` |
 | Modèle | `blankFiche`, `migrate` (point d'entrée sécurité/compat), `seed`/`seed2`, catégories |
 | Load | `chooseBackend`, `load()` (démarrage), `persist`, `softDelete` |
 | Runtime | minuteurs/compteurs/audio (`tickAll`, `beep`), sessions vives (`liveSessions`) |
 | Sessions | auto-enregistrement (`persistLive`), reprise, compte-rendu |
 | Render | `render()` → `renderLibrary` / `renderRead` / `renderEditor` (template strings + écouteurs) |
 | Flow SVG | `buildFlowSVG` : organigramme auto de la prise en charge |
+| Visionneuse PDF | `pdfLib` (chargement paresseux de `vendor/pdfjs`), `openPdfViewer` (rendu virtualisé par IntersectionObserver, zoom), fenêtre `#pdfModal` |
 | Export / Import | JSON `version: 3` ; règles de rétrocompatibilité documentées sur place |
 | Compte & synchro | `Auth` (OTP e-mail), `Sync` (pull/push local-first), fenêtres associées |
 | Accessibilité | gestion centralisée des modales (focus, Échap, Tab) |
