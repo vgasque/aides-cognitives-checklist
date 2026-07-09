@@ -136,6 +136,13 @@
                section Backends (currentSpace/dbNameFor/spaceKey). L'espace suit le DERNIER
                compte connecté ; il ne bascule (reload) qu'à la connexion d'un autre compte ou
                au retour explicite vers l'espace sans compte (écran de connexion).
+  Protocole : { id, title, category, validation, body(mini-Markdown, <= 20 000 car.),
+               images[{id,data,caption}] (référencées par ![…](img:ID) dans body),
+               attachments[{id,name,size}] (documents PDF, store 'attachments' partagé
+               avec les fiches), order, status, updatedBy, updatedAt, deletedAt,
+               ownerId, libraryId } — store IndexedDB 'protocols' (KV : 'protocols_v1'),
+               assaini par migrateProtocol() (mêmes règles que migrate()). Section
+               séparée de l'accueil (sélecteur « Aides cognitives | Protocoles »).
   Note perso : { ficheId: { t(texte), at(ms), dirty? } } — carte unique sous la clé 'notes'
                du store 'meta' (KV : 'notes_v1'). TOUJOURS personnelle : hors de la fiche
                (un éditeur qui modifie une fiche partagée n'y touche pas), jamais exportée,
@@ -851,6 +858,33 @@
   .report-preview .foot{margin-top:22px;font-size:11px;color:var(--ink-soft);border-top:1px solid var(--line);padding-top:8px}
   .ai-actions{display:flex;gap:9px;flex-wrap:wrap;margin:12px 0 4px}
   .ai-note{font-size:12px;color:var(--ink-soft);margin:6px 0 0;line-height:1.45}
+  /* ----- Sélecteur de section « Aides cognitives | Protocoles » (page d'accueil) : deux
+     positions fixes, indicateur glissant (transform -> animation fluide, coupée si
+     prefers-reduced-motion), cibles >= 44 px. ----- */
+  .secswitch{position:relative;display:grid;grid-template-columns:1fr 1fr;background:var(--surface-3);border:1px solid var(--line);border-radius:var(--radius);padding:4px;margin:0 0 14px}
+  .secswitch-ind{position:absolute;top:4px;bottom:4px;left:4px;width:calc(50% - 4px);background:var(--surface);border-radius:var(--radius-md);box-shadow:var(--shadow);transition:transform .22s ease;pointer-events:none}
+  .secswitch.sec-protocols .secswitch-ind{transform:translateX(100%)}
+  .secbtn{position:relative;z-index:1;min-height:46px;background:none;border:0;border-radius:var(--radius-md);font-size:15px;font-weight:600;color:var(--ink-soft);cursor:pointer;font-family:inherit}
+  .secbtn.on{color:var(--ink)}
+  .secbtn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  @media (prefers-reduced-motion:reduce){.secswitch-ind{transition:none}}
+  /* ----- Contenu rédigé des protocoles (mini-Markdown) : lecture + éditeur ----- */
+  .md-body{line-height:1.55;font-size:15px}
+  .md-h2{font-size:17px;font-weight:680;margin:18px 0 8px;color:var(--ink)}
+  .md-h3{font-size:15px;font-weight:650;margin:14px 0 6px;color:var(--ink)}
+  .md-body h2:first-child,.md-preview h2:first-child{margin-top:2px}
+  .md-p{margin:0 0 10px;color:var(--ink)}
+  .md-ul,.md-ol{margin:0 0 10px;padding-left:22px}
+  .md-ul li,.md-ol li{margin:3px 0}
+  .md-fig{margin:12px 0}
+  .md-fig img{max-width:100%;border-radius:var(--radius-sm);border:1px solid var(--line);cursor:zoom-in}
+  .md-fig figcaption{font-size:12px;color:var(--ink-soft);margin-top:4px}
+  .md-body a,.md-preview a{color:var(--primary);text-decoration:underline}
+  .md-toolbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+  .md-toolbar .mini{min-width:36px;min-height:32px;padding:4px 9px}
+  #p-body{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--surface);color:var(--ink);font-family:var(--mono);font-size:13px;line-height:1.55;resize:vertical}
+  .md-prev-h{font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-soft);margin:12px 0 6px}
+  .md-preview{border:1px dashed var(--line-strong);border-radius:var(--radius-sm);padding:12px 14px;background:var(--surface-2);min-height:44px;line-height:1.55}
   /* ----- Documents PDF joints : liste en lecture (boutons >=44px) + lignes de l'éditeur ----- */
   .att-list{display:flex;flex-direction:column;gap:8px}
   .att-row{display:flex;align-items:center;gap:10px;width:100%;min-height:48px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--surface);color:var(--ink);font-size:14px;text-align:left;cursor:pointer}
@@ -1150,6 +1184,10 @@ const KV={
   async del(id){const a=await this._r('fiches_v1',[]);await this._w('fiches_v1',a.filter(x=>x.id!==id));},
   async getCats(){return this._r('cats_v1',null);},async setCats(c){return this._w('cats_v1',c);},
   async getNotes(){return this._r('notes_v1',{});},async setNotes(n){return this._w('notes_v1',n);},
+  // Protocoles : JSON pur (body + images data-URL passent ; les PDF, eux, exigent IndexedDB).
+  async getProtocols(){return this._r('protocols_v1',[]);},
+  async putProtocol(p){const a=await this._r('protocols_v1',[]);const i=a.findIndex(x=>x.id===p.id);if(i>=0)a[i]=p;else a.push(p);await this._w('protocols_v1',a);},
+  async delProtocol(id){const a=await this._r('protocols_v1',[]);await this._w('protocols_v1',a.filter(x=>x.id!==id));},
   async getSessions(){return this._r('sessions_v1',[]);},
   async putSession(s){const a=await this._r('sessions_v1',[]);const i=a.findIndex(x=>x.id===s.id);if(i>=0)a[i]=s;else a.push(s);await this._w('sessions_v1',a);},
   async delSession(id){const a=await this._r('sessions_v1',[]);await this._w('sessions_v1',a.filter(x=>x.id!==id));},
@@ -1189,6 +1227,9 @@ const IDB={
   // du store meta (comme les catégories) -> aucun bump de version IndexedDB nécessaire.
   getNotes(){return new Promise((res,rej)=>{const r=this._s('meta','readonly').get('notes');r.onsuccess=()=>res(r.result||{});r.onerror=()=>rej(r.error);});},
   setNotes(n){return new Promise((res,rej)=>{const r=this._s('meta','readwrite').put(n,'notes');r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});},
+  getProtocols(){return new Promise((res,rej)=>{const r=this._s('protocols','readonly').getAll();r.onsuccess=()=>res(r.result||[]);r.onerror=()=>rej(r.error);});},
+  putProtocol(p){return new Promise((res,rej)=>{const r=this._s('protocols','readwrite').put(p);r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});},
+  delProtocol(id){return new Promise((res,rej)=>{const r=this._s('protocols','readwrite').delete(id);r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});},
   getSessions(){return new Promise((res,rej)=>{const r=this._s('sessions','readonly').getAll();r.onsuccess=()=>res(r.result||[]);r.onerror=()=>rej(r.error);});},
   putSession(s){return new Promise((res,rej)=>{const r=this._s('sessions','readwrite').put(s);r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});},
   delSession(id){return new Promise((res,rej)=>{const r=this._s('sessions','readwrite').delete(id);r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});},
@@ -1219,25 +1260,26 @@ const supportsAttachments=()=>Data===IDB;
 // location.reload().
 async function moveLocalDataTo(space){
   const fs=await Data.getAll(),cats=await Data.getCats(),nts=await Data.getNotes(),
-        ss=await Data.getSessions(),bks=await Data.getBackups();
+        ss=await Data.getSessions(),bks=await Data.getBackups(),prots=await Data.getProtocols().catch(()=>[]);
   // Documents PDF (Blob, IndexedDB uniquement) : déménagent avec le reste. En repli KV il n'y en a pas.
   const atts=(Data===IDB)?await IDB.getAtts().catch(()=>[]):[];
   let owner=null;try{owner=localStorage.getItem('ac-db-owner');}catch(e){}
   if(owner===null)owner=currentSpace();
   if(Data===IDB){
     const db=await openSpaceDb(dbNameFor(space,owner));
-    await new Promise((res,rej)=>{const tx=db.transaction(['fiches','meta','sessions','backups','attachments'],'readwrite');
+    await new Promise((res,rej)=>{const tx=db.transaction(['fiches','meta','sessions','backups','attachments','protocols'],'readwrite');
       fs.forEach(f=>tx.objectStore('fiches').put(f));
       if(cats)tx.objectStore('meta').put(cats,'categories');
       tx.objectStore('meta').put(nts||{},'notes');
       ss.forEach(s=>tx.objectStore('sessions').put(s));
       bks.forEach(b=>tx.objectStore('backups').put(b));
       atts.forEach(a=>tx.objectStore('attachments').put(a));
+      prots.forEach(p=>tx.objectStore('protocols').put(p));
       tx.oncomplete=res;tx.onerror=()=>rej(tx.error);});
     db.close();
   }else{
     const w=(base,v)=>{try{localStorage.setItem(spaceKeyFor(base,space,owner),JSON.stringify(v));}catch(e){}};
-    w('fiches_v1',fs);if(cats)w('cats_v1',cats);w('notes_v1',nts||{});w('sessions_v1',ss);w('backups_v1',bks);
+    w('fiches_v1',fs);if(cats)w('cats_v1',cats);w('notes_v1',nts||{});w('sessions_v1',ss);w('backups_v1',bks);w('protocols_v1',prots);
   }
   // Épingles + marqueur « catégories à pousser » suivent dans l'espace cible (poussés au 1er sync).
   try{localStorage.setItem(spaceKeyFor('ac-pins',space,owner),JSON.stringify(pins));}catch(e){}
@@ -1248,6 +1290,7 @@ async function moveLocalDataTo(space){
   for(const s of ss)await Data.delSession(s.id);
   for(const b of bks)await Data.delBackup(b.bid);
   for(const a of atts){try{await IDB.delAtt(a.id);}catch(e){}}
+  for(const p of prots){try{await Data.delProtocol(p.id);}catch(e){}}
   try{await Data.setNotes({});}catch(e){}
   try{await Data.setCats(null);}catch(e){}
   try{localStorage.removeItem(spaceKey('ac-pins'));}catch(e){}
@@ -1331,7 +1374,7 @@ function switchToAnonSpace(){
    `AC` : AudioContext (créé paresseusement, voir ensureAudio/beep).
    Helpers : uid (id unique), esc (échappe le HTML), clean (vide les lignes vides),
      catTag (pastille couleur d'une catégorie), fmtMs (millisecondes -> mm:ss). */
-let fiches=[],categories=[],sessions=[];
+let fiches=[],categories=[],sessions=[],protocols=[];
 // Notes personnelles PAR FICHE : { ficheId: {t:texte, at:ms, dirty?:true} }. Toujours PRIVÉES
 // (jamais dans la fiche, jamais exportées, invisibles des autres membres d'une bibliothèque) ;
 // synchronisées entre les appareils du MÊME compte via la table fiche_notes (RLS : les siennes
@@ -1359,7 +1402,10 @@ function profileCacheKey(){const u=Auth.user();return (u&&u.id)?('ac-profile-'+u
 function saveProfileCache(){const k=profileCacheKey();if(!k)return;try{localStorage.setItem(k,JSON.stringify({libraries:myLibraries,isAppAdmin:myIsAppAdmin}));}catch(e){}}
 function loadProfileCache(){const k=profileCacheKey();if(!k)return;try{const p=JSON.parse(localStorage.getItem(k)||'null');if(!p)return;myLibraries=sanitizeLibs(p.libraries);myIsAppAdmin=p.isAppAdmin===true;}catch(e){}}
 let state={view:'library',q:'',cat:'',scope:null,draft:null,fiche:null,nav:[],navSeq:[],navPos:0,checked:{},showFlow:false,showSess:false,rtOpen:false,libLimit:LIB_PAGE,
-  noteEdit:false};  // édition de la note personnelle (lecture seule par défaut en mode crise)
+  noteEdit:false,  // édition de la note personnelle (lecture seule par défaut en mode crise)
+  section:'fiches',        // page d'accueil : 'fiches' (aides cognitives) | 'protocols' (mémorisé par espace)
+  protocol:null,pdraft:null};  // protocole affiché (protocolRead) / brouillon (protocolEdit)
+try{if(localStorage.getItem(spaceKey('ac-section'))==='protocols')state.section='protocols';}catch(e){}
 // Rôle/édition par bibliothèque. Perso (libraryId vide) = toujours éditable. Bibliothèque partagée : éditable
 // si role editor/admin. (La RLS reste l'arbitre côté serveur ; ceci n'est que l'ergonomie.)
 function roleOf(libId){const l=myLibraries.find(x=>x.id===libId);return l?l.role:null;}
@@ -1399,6 +1445,62 @@ const BOLD_RX=/\*\*([^*\n]+)\*\*/g;
 const fmt=s=>esc(s).replace(BOLD_RX,'<b>$1</b>');
 // Texte SANS balisage (algorithme SVG, recherche plein texte) : retire les ** des paires.
 const stripBold=s=>String(s==null?'':s).replace(BOLD_RX,'$1');
+/* ===== Mini-Markdown (protocoles rédigés) =====
+   Parseur MAISON volontairement minimal (zéro dépendance), XSS-safe par construction :
+   mdInline fait TOUJOURS esc() d'abord, puis pose le balisage sur le texte déjà échappé.
+   Syntaxe : ## / ### titres, - liste, 1. liste numérotée, **gras**, *italique*,
+   [texte](https://…) lien externe, [texte](att:ID) ouvre un document PDF joint,
+   ![légende](img:ID) image (référence à l'entrée p.images correspondante — data URL déjà
+   validée par safeImg dans migrateProtocol). Balisage non reconnu laissé VISIBLE tel quel
+   (même philosophie que fmt : la coquille se voit en relecture, le rendu ne casse jamais).
+   Fonctions PURES (testées via ?__actest). Plafonds anti-DoS : 20 000 caractères / 2 000 lignes. */
+const MD_MAX_CHARS=20000,MD_MAX_LINES=2000;
+const MD_ITAL_RX=/(^|[^*])\*([^*\n]+)\*(?!\*)/g;   // *italique* (sans manger les ** du gras)
+function mdInline(s){let h=esc(sstr(s,4000));
+  // Liens : https strict (jamais javascript: — revalidé APRÈS échappement), ou att:ID (jeu SAFE_ID).
+  h=h.replace(/\[([^\]\n]{1,200})\]\(([^()\s]{1,500})\)/g,(m,txt,href)=>{
+    if(/^https?:\/\/\S+$/i.test(href))return '<a href="'+href+'" target="_blank" rel="noopener noreferrer">'+txt+'</a>';
+    const am=href.match(/^att:([A-Za-z0-9_-]{1,64})$/);
+    if(am&&BAD_KEYS.indexOf(am[1])<0)return '<a href="#" data-mdatt="'+am[1]+'">'+txt+'</a>';
+    return m;});
+  h=h.replace(BOLD_RX,'<b>$1</b>');
+  h=h.replace(MD_ITAL_RX,'$1<i>$2</i>');
+  return h;}
+// Découpe en blocs (ligne à ligne) : {t:'h2'|'h3', text} | {t:'ul'|'ol', items[]} |
+// {t:'img', caption, id} | {t:'p', lines[]}.
+function mdBlocks(src){
+  const lines=sstr(src,MD_MAX_CHARS).split('\n').slice(0,MD_MAX_LINES);
+  const out=[];let list=null,para=[];
+  const flushPara=()=>{if(para.length){out.push({t:'p',lines:para});para=[];}};
+  const flushList=()=>{if(list){out.push(list);list=null;}};
+  for(const l of lines){let m;
+    if(/^\s*$/.test(l)){flushPara();flushList();continue;}
+    if((m=l.match(/^###\s+(.*)$/))){flushPara();flushList();out.push({t:'h3',text:m[1]});continue;}
+    if((m=l.match(/^##\s+(.*)$/))){flushPara();flushList();out.push({t:'h2',text:m[1]});continue;}
+    if((m=l.match(/^!\[([^\]]{0,300})\]\(img:([A-Za-z0-9_-]{1,64})\)\s*$/))){flushPara();flushList();out.push({t:'img',caption:m[1],id:m[2]});continue;}
+    if((m=l.match(/^[-*]\s+(.*)$/))){flushPara();if(!list||list.t!=='ul'){flushList();list={t:'ul',items:[]};}list.items.push(m[1]);continue;}
+    if((m=l.match(/^\d{1,3}[.)]\s+(.*)$/))){flushPara();if(!list||list.t!=='ol'){flushList();list={t:'ol',items:[]};}list.items.push(m[1]);continue;}
+    flushList();para.push(l);}
+  flushPara();flushList();return out;}
+// Rendu HTML. ctx.images = tableau {id,data,caption} de l'entité (ids déjà sûrs — migrateProtocol).
+// Référence d'image morte -> rien (pas d'image cassée à l'écran).
+function mdRender(src,ctx){ctx=ctx||{};
+  // Défense propre à mdRender (indépendante de migrateProtocol) : clés BAD_KEYS jamais admises.
+  const imgs=Object.create(null);(ctx.images||[]).forEach(im=>{if(im&&im.id&&BAD_KEYS.indexOf(im.id)<0)imgs[im.id]=im;});
+  return mdBlocks(src).map(b=>{
+    if(b.t==='h2')return '<h2 class="md-h2">'+mdInline(b.text)+'</h2>';
+    if(b.t==='h3')return '<h3 class="md-h3">'+mdInline(b.text)+'</h3>';
+    if(b.t==='ul')return '<ul class="md-ul">'+b.items.map(i=>'<li>'+mdInline(i)+'</li>').join('')+'</ul>';
+    if(b.t==='ol')return '<ol class="md-ol">'+b.items.map(i=>'<li>'+mdInline(i)+'</li>').join('')+'</ol>';
+    if(b.t==='img'){const im=imgs[b.id];if(!im)return '';const cap=b.caption||im.caption||'';
+      return '<figure class="md-fig"><img src="'+im.data+'" data-full="'+im.data+'" data-cap="'+esc(cap)+'" alt="'+esc(cap)+'" loading="lazy" decoding="async">'+(cap?'<figcaption>'+esc(cap)+'</figcaption>':'')+'</figure>';}
+    return '<p class="md-p">'+b.lines.map(mdInline).join('<br>')+'</p>';}).join('');}
+// Texte brut pour la recherche plein texte (retire le balisage, garde légendes et libellés de liens).
+function mdStrip(src){return sstr(src,MD_MAX_CHARS).split('\n').map(l=>l
+    .replace(/^#{2,3}\s+/,'').replace(/^[-*]\s+/,'').replace(/^\d{1,3}[.)]\s+/,'')
+    .replace(/^!\[([^\]]*)\]\([^()]*\)\s*$/,'$1')
+    .replace(/\[([^\]\n]{1,200})\]\([^()\s]{1,500}\)/g,'$1'))
+  .join(' ').replace(BOLD_RX,'$1').replace(MD_ITAL_RX,'$1$2');}
 const main=document.getElementById('main');
 const clean=a=>(Array.isArray(a)?a:[]).map(s=>String(s==null?'':s).trim()).filter(Boolean);
 /* ===== Garde-fous de sécurité (assainissement des données importées/stockées) =====
@@ -1641,6 +1743,29 @@ function sanitizeNotes(obj){const out={};if(!obj||typeof obj!=='object')return o
     out[k]={t:sstr(v.t,10000),at:(typeof v.at==='number'&&isFinite(v.at))?v.at:0};
     if(v.dirty===true)out[k].dirty=true;}
   return out;}
+/* ----- PROTOCOLES : documents de service (PDF joints) et/ou contenu rédigé en mini-Markdown.
+   Modèle : { id, title, category, validation('AAAA-MM'), body(mini-Markdown, <= MD_MAX_CHARS),
+   images[{id,data,caption}] (référencées par ![…](img:ID) dans body), attachments[{id,name,size}]
+   (mêmes documents PDF que les fiches — store IndexedDB 'attachments' partagé), order, status,
+   updatedBy, updatedAt, deletedAt, ownerId, libraryId }. migrateProtocol = point d'entrée UNIQUE
+   sécurité/compat (mêmes règles que migrate) : appelé à chaque lecture, import et pull cloud. */
+function blankProtocol(){return {id:uid('p'),title:'',category:'',validation:'',body:'',images:[],attachments:[],order:Date.now(),status:'',updatedBy:'',updatedAt:Date.now(),deletedAt:null,ownerId:null,libraryId:null};}
+function migrateProtocol(p){if(!p||typeof p!=='object')p={};
+  p.id=safeId(p.id,'p');
+  p.title=sstr(p.title,300);
+  p.category=safeCatRef(p.category);
+  p.validation=parseValidation(p.validation)||sstr(p.validation,16);
+  p.body=sstr(p.body,MD_MAX_CHARS);
+  if(typeof p.order!=='number'||!isFinite(p.order))p.order=Date.now();
+  p.images=(Array.isArray(p.images)?p.images:[]).slice(0,60).map(im=>({id:safeId(im&&im.id,'i'),data:safeImg(im&&im.data),caption:sstr(im&&im.caption,300)})).filter(im=>im.data);
+  p.attachments=(Array.isArray(p.attachments)?p.attachments:[]).slice(0,MAX_ATT_PER_ENTITY).map(safeAttachment).filter(Boolean);
+  p.status=(p.status==='draft')?'draft':'';
+  p.updatedBy=sstr(p.updatedBy,160);
+  if(typeof p.updatedAt!=='number'||!isFinite(p.updatedAt))p.updatedAt=(typeof p.order==='number'&&isFinite(p.order))?p.order:Date.now();
+  p.deletedAt=(typeof p.deletedAt==='number'&&isFinite(p.deletedAt))?p.deletedAt:null;
+  p.ownerId=safeMetaId(p.ownerId);p.libraryId=safeMetaId(p.libraryId);
+  delete p.dirty;
+  return p;}
 function seed(catId){const b1=uid('b'),b2=uid('b'),b3=uid('b'),bd=uid('b');
   return migrate({id:uid(),title:'Anaphylaxie (choc anaphylactique)',category:catId||'',validation:'2025-01',
     localInfo:'Renfort / réanimateur : …\nSAMU – régulation : …\n(adaptez à votre pratique)',
@@ -1721,7 +1846,7 @@ const fmtDate=v=>{if(!v)return 'Sans date de validation';const m=String(v).match
    persist(f)      : enregistre une fiche ; alerte si le stockage est saturé. */
 // Renvoie les fiches déjà lues (le test « base vide ? » a coûté un getAll complet : load() le
 // RÉUTILISE au lieu de relire) — ou null si une migration KV->IDB vient d'écrire (relire) ou en repli KV.
-async function chooseBackend(){try{await IDB.open();Data=IDB;const ex=await IDB.getAll();if(!ex.length){const old=await KV.getAll();if(old.length){for(const f of old)await IDB.put(migrate(f));}const oc=await KV.getCats();if(oc)await IDB.setCats(oc);const os=await KV.getSessions();if(os&&os.length){for(const s of os)await IDB.putSession(s);}const on=await KV.getNotes();if(on&&Object.keys(on).length)await IDB.setNotes(on);return null;}return ex;}catch(e){Data=KV;return null;}}
+async function chooseBackend(){try{await IDB.open();Data=IDB;const ex=await IDB.getAll();if(!ex.length){const old=await KV.getAll();if(old.length){for(const f of old)await IDB.put(migrate(f));}const oc=await KV.getCats();if(oc)await IDB.setCats(oc);const os=await KV.getSessions();if(os&&os.length){for(const s of os)await IDB.putSession(s);}const on=await KV.getNotes();if(on&&Object.keys(on).length)await IDB.setNotes(on);const op=await KV.getProtocols();if(op&&op.length){for(const p of op)await IDB.putProtocol(migrateProtocol(p));}return null;}return ex;}catch(e){Data=KV;return null;}}
 async function updateStorageInfo(){
   const el=document.getElementById('storageInfo');if(!el)return;
   try{
@@ -1770,12 +1895,14 @@ async function load(){
   const pre=await chooseBackend();  // fiches déjà lues par le test « base vide ? » (évite un 2e getAll)
   if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();
   // Lectures indépendantes -> EN PARALLÈLE (démarrage) au lieu d'une chaîne d'attentes.
-  const [_cats,_fs,_ss,_nts]=await Promise.all([Data.getCats(),pre||Data.getAll(),Data.getSessions(),Data.getNotes().catch(()=>({}))]);
+  const [_cats,_fs,_ss,_nts,_ps]=await Promise.all([Data.getCats(),pre||Data.getAll(),Data.getSessions(),Data.getNotes().catch(()=>({})),Data.getProtocols().catch(()=>[])]);
   categories=sanitizeCats(_cats);
   // On masque les TOMBSTONES (suppressions douces) de l'affichage ; ils restent dans IDB tant
   // qu'ils n'ont pas été poussés vers le cloud (propagation de la suppression aux autres appareils).
   const allFiches=_fs.map(migrate);
   fiches=allFiches.filter(f=>!f.deletedAt);
+  const allProtocols=(_ps||[]).map(migrateProtocol);
+  protocols=allProtocols.filter(p=>!p.deletedAt);
   sessions=_ss||[];
   try{notes=sanitizeNotes(_nts);}catch(e){notes={};}
   if(!categories.length){categories=defaultCats();await Data.setCats(categories);}
@@ -1789,7 +1916,7 @@ async function load(){
   restoreLiveSessions();
   render();
   updateStorageInfo();
-  gcAttachments(allFiches);   // nettoyage des blobs PDF orphelins (non bloquant pour le démarrage)
+  gcAttachments(allFiches.concat(allProtocols));   // nettoyage des blobs PDF orphelins (non bloquant)
   // Accueil (3 repères) à la toute première ouverture seulement.
   try{if(!localStorage.getItem('ac-onboarded'))welcomeModal.classList.add('on');}catch(e){}
   // Reprise après un « Se déconnecter » AVEC effacement, ou un retour des fiches « hors
@@ -1893,6 +2020,18 @@ async function softDelete(f){if(!f)return;
   // La note personnelle attachée suit le sort de la fiche (t:'' -> propagé aux autres appareils).
   if(notes[f.id]&&notes[f.id].t){notes[f.id]={t:'',at:Date.now(),dirty:true};try{await Data.setNotes(notes);}catch(e){}}
   f.deletedAt=Date.now();f.updatedAt=Date.now();f.dirty=true;markHeldEdit(f.id);try{await Data.put(f);}catch(e){}if(typeof Sync!=='undefined')Sync.schedule();}
+// Protocoles : même mécanique que persist()/softDelete() pour les fiches. (La retenue des
+// modifications hors connexion — heldEdits — reste propre aux fiches ; à étendre avec la
+// synchronisation des protocoles.)
+async function persistProtocol(p){try{p.updatedAt=Date.now();p.dirty=true;
+  if(typeof Auth!=='undefined'&&Auth.signedIn()){const u=Auth.user();if(u&&u.email)p.updatedBy=u.email;}
+  await Data.putProtocol(p);updateStorageInfo();if(typeof Sync!=='undefined')Sync.schedule();return true;}
+  catch(e){toast('⚠ Stockage saturé. Exportez vos données puis allégez les images.',9000);return false;}}
+async function softDeleteProtocol(p){if(!p)return;
+  const anonSpace=(typeof currentSpace==='function')?currentSpace()==='':true;
+  if(anonSpace&&(typeof Auth==='undefined'||!Auth.signedIn())){try{await Data.delProtocol(p.id);}catch(e){}return;}
+  p.deletedAt=Date.now();p.updatedAt=Date.now();p.dirty=true;try{await Data.putProtocol(p);}catch(e){}
+  if(typeof Sync!=='undefined')Sync.schedule();}
 // Ramasse-miettes des documents PDF : supprime les blobs qu'AUCUNE entité ne référence plus
 // (fiches vivantes ET tombstones — un tombstone garde ses métadonnées tant qu'il n'est pas purgé,
 // donc son document reste restaurable). Appelé au démarrage (load) : simple, idempotent, rattrape
@@ -2198,14 +2337,20 @@ function render(){
   // bouton « Terminer » en zone de tap fréquente (action à ne PAS rendre plus accessible en crise).
   {const bs=document.getElementById('brandSub');
    if(state.view==='read'&&Runtime.started)bs.innerHTML='Mode crise · <span class="sess-dot" aria-hidden="true"></span> session en cours';
-   else bs.textContent=state.view==='library'?'Bibliothèque':state.view==='edit'?'Édition':'Mode crise';}
-  const bt=document.getElementById('brandTitle');if(bt){const t=state.view==='read'&&state.fiche?state.fiche.title||'':'';bt.textContent=t;bt.style.display=t?'block':'none';}
+   else bs.textContent=state.view==='library'?(state.section==='protocols'?'Protocoles':'Bibliothèque')
+     :state.view==='edit'||state.view==='protocolEdit'?'Édition'
+     :state.view==='protocolRead'?'Protocole':'Mode crise';}
+  const bt=document.getElementById('brandTitle');if(bt){const t=state.view==='read'&&state.fiche?state.fiche.title||'':state.view==='protocolRead'&&state.protocol?state.protocol.title||'':'';bt.textContent=t;bt.style.display=t?'block':'none';}
   // Session en cours : pied de page réduit à l'état (les actions Exporter/Importer/Thème sortent
   // du champ visuel) ; le rappel minuteurs de l'en-tête est resynchronisé tout de suite.
   document.body.classList.toggle('crisis-live',state.view==='read'&&Runtime.started);
-  if(state.view==='library')renderLibrary();else if(state.view==='edit')renderEditor();else renderRead();
+  if(state.view==='library')(state.section==='protocols'?renderProtocols():renderLibrary());
+  else if(state.view==='edit')renderEditor();
+  else if(state.view==='protocolRead')renderProtocolRead();
+  else if(state.view==='protocolEdit')renderProtocolEdit();
+  else renderRead();
   _rtShowDirty=true;updateRtStrip();   // APRÈS le rendu de la vue : position réelle du panneau minuteurs
-  document.getElementById('count').textContent=fiches.length+' fiche'+(fiches.length>1?'s':'')+' · v'+APP_VERSION;
+  document.getElementById('count').textContent=fiches.length+' fiche'+(fiches.length>1?'s':'')+(protocols.length?' · '+protocols.length+' protocole'+(protocols.length>1?'s':''):'')+' · v'+APP_VERSION;
   // Défilement selon la TRANSITION de vue (et pas seulement la vue) :
   //   -> bibliothèque : position restaurée (retour de fiche/éditeur) ; re-rendu sur place inchangé ;
   //   -> lecture : haut de fiche à l'ARRIVÉE ou au changement de fiche (banderole d'alerte), mais
@@ -2219,6 +2364,49 @@ function render(){
 // Transition de vue (défilement ci-dessus) : vue du rendu précédent, fiche affichée, position bibliothèque.
 let _lastView=null,_lastFicheId=null,_libScrollY=0;
 let _qDebounce=null;   // debounce du champ de recherche (voir l'écouteur 'input' ci-dessous)
+/* ----- Chrome COMMUN de la page d'accueil (partagé entre renderLibrary et renderProtocols,
+   jamais dupliqué) : sélecteur de section, barre de bibliothèques, rangée de catégories. ----- */
+// Gros sélecteur à deux positions fixes « Aides cognitives | Protocoles » : indicateur glissant
+// (transition transform, coupée si prefers-reduced-motion), cibles >= 44 px, aria-pressed,
+// clavier = Tab+Entrée sur chaque bouton + flèches gauche/droite sur le groupe.
+function sectionSwitchHtml(){const p=state.section==='protocols';
+  return `<div class="secswitch${p?' sec-protocols':''}" id="secSwitch" role="group" aria-label="Type de contenu">
+    <span class="secswitch-ind" aria-hidden="true"></span>
+    <button class="secbtn${p?'':' on'}" data-section="fiches" aria-pressed="${!p}">Aides cognitives</button>
+    <button class="secbtn${p?' on':''}" data-section="protocols" aria-pressed="${p}">Protocoles</button></div>`;}
+function setSection(s){s=(s==='protocols')?'protocols':'fiches';if(state.section===s)return;
+  state.section=s;try{localStorage.setItem(spaceKey('ac-section'),s);}catch(e){}
+  state.cat='';state.q='';state.libLimit=LIB_PAGE;render();}
+function bindSectionSwitch(){const sw=document.getElementById('secSwitch');if(!sw)return;
+  sw.querySelectorAll('[data-section]').forEach(b=>b.onclick=()=>setSection(b.dataset.section));
+  sw.onkeydown=e=>{if(e.key==='ArrowLeft'){e.preventDefault();setSection('fiches');}else if(e.key==='ArrowRight'){e.preventDefault();setSection('protocols');}};}
+// Barre BIBLIOTHÈQUE (visible seulement connecté) : Perso + bibliothèques partagées + création (app-admin).
+function scopeBarHtml(){
+  const ROLE_LBL={viewer:'lecture',editor:'édition',admin:'admin'};
+  return Auth.signedIn()?`<div class="scopebar"><span class="scope-lbl">Bibliothèque</span><div class="chiprow">
+      <button class="scopebtn${!state.scope?' on':''}" data-scope="">Perso</button>
+      ${sortedLibraries().map(l=>`<button class="scopebtn${state.scope===l.id?' on':''}" data-scope="${esc(l.id)}" title="Bibliothèque partagée — rôle : ${esc(ROLE_LBL[l.role]||l.role)}">${esc(l.name)}</button>`).join('')}
+      ${myIsAppAdmin?`<button class="scopebtn add" id="newLibBtn" title="Créer une bibliothèque partagée">+ Bibliothèque</button>`:''}</div></div>
+    ${state.scope?`<div class="scope-ctx"><span class="scope-ctx-i">Bibliothèque partagée${canEditScope(state.scope)?'':' · vous êtes en lecture seule'}</span>${(roleOf(state.scope)==='admin'||myIsAppAdmin)?`<button class="linkbtn" id="membersBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 19v-1a4 4 0 00-4-4H6a4 4 0 00-4 4v1"/><circle cx="9" cy="7" r="3"/><path d="M22 19v-1a4 4 0 00-3-3.87M16 4.13A4 4 0 0119 8"/></svg>Gérer</button>`:''}</div>`:''}`:'';}
+// Rangée de catégories (une ligne défilable) : mêmes pastilles pour fiches et protocoles.
+function catbarHtml(){
+  const chips=`<button class="catchip" data-cat="" style="${!state.cat?'background:var(--ink);color:var(--surface);border-color:var(--ink)':''}">Toutes</button>`+catsSorted(state.scope).map(c=>catChipHtml(c,state.cat===c.id,'catchip','data-cat')).join('')+(canEditScope(state.scope)?`<button class="catchip" id="catMgrChip" style="border-style:dashed;color:var(--ink-soft)">${uiIcon('gear',13)} Gérer</button>`:'');
+  return `<div class="catbar"><div class="chiprow">${chips}</div></div>`;}
+// Écouteurs du chrome commun. `rerender` = re-rendu de la vue hôte (renderLibrary/renderProtocols).
+function bindHomeChrome(rerender){
+  bindSectionSwitch();
+  main.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{const c=b.dataset.cat;state.cat=(c&&state.cat===c)?'':c;state.libLimit=LIB_PAGE;rerender();});
+  {const cmc=document.getElementById('catMgrChip');if(cmc)cmc.onclick=openCatMgr;}
+  main.querySelectorAll('[data-scope]').forEach(b=>b.onclick=()=>{state.scope=b.dataset.scope||null;bumpLibUsage(b.dataset.scope);state.cat='';state.libLimit=LIB_PAGE;rerender();});
+  {const nlb=document.getElementById('newLibBtn');if(nlb)nlb.onclick=openNewLib;}
+  {const mb=document.getElementById('membersBtn');if(mb)mb.onclick=()=>openMembers(state.scope);}
+  // Recherche DÉBOUNCÉE (150 ms) : re-filtrer/re-rendre à chaque frappe ferait ramer la saisie
+  // sur mobile. Focus/curseur restaurés (le re-rendu remplace le champ).
+  {const qi=document.getElementById('q');if(qi)qi.addEventListener('input',e=>{state.q=e.target.value;state.libLimit=LIB_PAGE;
+    clearTimeout(_qDebounce);_qDebounce=setTimeout(()=>{const pos=e.target.selectionStart;rerender();const inp=document.getElementById('q');inp.focus();inp.setSelectionRange(pos,pos);},150);});}
+  // Toujours montrer la bibliothèque ACTIVE même si la barre défile (centrée dans sa ligne).
+  const act=main.querySelector('.scopebar .scopebtn.on');if(act){const row=act.closest('.chiprow');if(row&&row.scrollWidth>row.clientWidth)row.scrollLeft=Math.max(0,act.offsetLeft-row.clientWidth/2+act.clientWidth/2);}
+}
 function renderLibrary(){
   const q=txNorm(state.q);
   // Le re-rendu remplace la rangée de catégories : on mémorise son défilement horizontal pour le
@@ -2232,20 +2420,13 @@ function renderLibrary(){
   const canEdit=canEditScope(state.scope);
   // Tri : épinglées d'abord (préférence locale), puis ordre habituel. Recherche : plein texte normalisé.
   const list=fiches.slice().sort((a,b)=>((isPinned(b.id)?1:0)-(isPinned(a.id)?1:0))||byOrder(a,b)).filter(f=>(state.scope?f.libraryId===state.scope:!f.libraryId)&&(!state.cat||f.category===state.cat)&&(canEdit||f.status!=='draft')&&(!q||ficheHaystack(f).includes(q)));
-  const chips=`<button class="catchip" data-cat="" style="${!state.cat?'background:var(--ink);color:var(--surface);border-color:var(--ink)':''}">Toutes</button>`+catsSorted(state.scope).map(c=>catChipHtml(c,state.cat===c.id,'catchip','data-cat')).join('')+(canEditScope(state.scope)?`<button class="catchip" id="catMgrChip" style="border-style:dashed;color:var(--ink-soft)">${uiIcon('gear',13)} Gérer</button>`:'');
-  // Barre BIBLIOTHÈQUE (visible seulement connecté) : Perso + bibliothèques partagées + création (app-admin).
-  const ROLE_LBL={viewer:'lecture',editor:'édition',admin:'admin'};
-  const scopeBar=Auth.signedIn()?`<div class="scopebar"><span class="scope-lbl">Bibliothèque</span><div class="chiprow">
-      <button class="scopebtn${!state.scope?' on':''}" data-scope="">Perso</button>
-      ${sortedLibraries().map(l=>`<button class="scopebtn${state.scope===l.id?' on':''}" data-scope="${esc(l.id)}" title="Bibliothèque partagée — rôle : ${esc(ROLE_LBL[l.role]||l.role)}">${esc(l.name)}</button>`).join('')}
-      ${myIsAppAdmin?`<button class="scopebtn add" id="newLibBtn" title="Créer une bibliothèque partagée">+ Bibliothèque</button>`:''}</div></div>
-    ${state.scope?`<div class="scope-ctx"><span class="scope-ctx-i">Bibliothèque partagée${canEditScope(state.scope)?'':' · vous êtes en lecture seule'}</span>${(roleOf(state.scope)==='admin'||myIsAppAdmin)?`<button class="linkbtn" id="membersBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 19v-1a4 4 0 00-4-4H6a4 4 0 00-4 4v1"/><circle cx="9" cy="7" r="3"/><path d="M22 19v-1a4 4 0 00-3-3.87M16 4.13A4 4 0 0119 8"/></svg>Gérer</button>`:''}</div>`:''}`:'';
-  // CATÉGORIES : vue d'ensemble complète, mais sur UNE seule ligne défilable (n'allonge pas la page).
-  const catbar=`<div class="catbar"><div class="chiprow">${chips}</div></div>`;
+  const scopeBar=scopeBarHtml();
+  const catbar=catbarHtml();
   // SESSIONS EN COURS (vives) : accès rapide en haut de l'accueil + actions (reprendre/réinit/terminer).
   const liveArr=Object.values(liveSessions).filter(R=>R.started&&R.fiche);
   const liveHtml=liveArr.length?`<div class="live-sessions"><div class="ls-h"><span class="sess-dot"></span>Sessions en cours · ${liveArr.length}</div>${liveArr.map(R=>{const run=Object.values(R.timers).filter(t=>t.running).length;return `<div class="ls-row"><div class="ls-info" data-openlive="${R.ficheId}" role="button" tabindex="0"><b>${esc(R.fiche.title||'Sans titre')}</b><span>depuis ${timeAgo(R.startedAt)}${run?` · ${run} minuteur${run>1?'s':''} actif${run>1?'s':''}`:''}</span></div><div class="ls-acts"><button class="btn sm primary" data-openlive="${R.ficheId}">Reprendre</button><button class="btn sm danger" data-endlive="${R.ficheId}">Terminer</button></div></div>`;}).join('')}</div>`:'';
   main.innerHTML=`
+    ${sectionSwitchHtml()}
     ${scopeBar}
     ${liveHtml}
     <div class="notice" id="syncErrNotice" hidden></div>
@@ -2265,32 +2446,196 @@ function renderLibrary(){
         :state.scope?(canEdit?'Cette bibliothèque partagée est vide — créez sa première fiche.':'Cette bibliothèque partagée est vide.')
         :'Créez votre première aide cognitive.'}</div>`}</div>`;
 
-  // Recherche DÉBOUNCÉE (150 ms) : re-filtrer/re-rendre toute la bibliothèque à chaque frappe
-  // faisait ramer la saisie sur mobile ; on attend une micro-pause de frappe. Focus/curseur restaurés
-  // (le re-rendu remplace le champ), comme avant.
-  document.getElementById('q').addEventListener('input',e=>{state.q=e.target.value;state.libLimit=LIB_PAGE;
-    clearTimeout(_qDebounce);_qDebounce=setTimeout(()=>{const pos=e.target.selectionStart;renderLibrary();const inp=document.getElementById('q');inp.focus();inp.setSelectionRange(pos,pos);},150);});
+  bindHomeChrome(renderLibrary);   // sélecteur de section, bibliothèques, catégories, recherche
   {const sm=document.getElementById('showMore');if(sm)sm.onclick=()=>{state.libLimit+=LIB_PAGE;renderLibrary();};}
   {const nb=document.getElementById('newBtn');if(nb)nb.onclick=newFiche;}
   {const nx=document.getElementById('noticeX');if(nx)nx.onclick=()=>{try{localStorage.setItem('ac-notice-hidden','1');}catch(e){}renderLibrary();};}
   {const sa=document.getElementById('seedAdd');if(sa)sa.onclick=addSeedFiches;}
   {const sx=document.getElementById('seedX');if(sx)sx.onclick=()=>{try{localStorage.setItem(spaceKey('ac-seeds-hidden'),'1');}catch(e){}renderLibrary();};}
   updateSyncBanner();
-  // Recliquer la catégorie déjà sélectionnée la dé-sélectionne (revient à « Toutes »).
-  main.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{const c=b.dataset.cat;state.cat=(c&&state.cat===c)?'':c;state.libLimit=LIB_PAGE;renderLibrary();});
-  {const cmc=document.getElementById('catMgrChip');if(cmc)cmc.onclick=openCatMgr;}
-  // Changer de bibliothèque (incrémente son compteur d'usage) / en créer une (app-admin).
-  main.querySelectorAll('[data-scope]').forEach(b=>b.onclick=()=>{state.scope=b.dataset.scope||null;bumpLibUsage(b.dataset.scope);state.cat='';state.libLimit=LIB_PAGE;renderLibrary();});
-  const nlb=document.getElementById('newLibBtn');if(nlb)nlb.onclick=openNewLib;
-  const mb=document.getElementById('membersBtn');if(mb)mb.onclick=()=>openMembers(state.scope);
   main.querySelectorAll('[data-openlive]').forEach(el=>{el.onclick=()=>openRead(el.dataset.openlive);el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openRead(el.dataset.openlive);}};});
   main.querySelectorAll('[data-endlive]').forEach(b=>b.onclick=async()=>{const id=b.dataset.endlive,R=liveSessions[id];if(R&&await confirmDlg('Terminer la session ? Les minuteurs s’arrêtent ; la session est conservée dans l’historique.',{yes:'Terminer'})){endSession(R);if(Runtime.ficheId===id)resetRuntime();renderLibrary();}});
   main.querySelectorAll('[data-open]').forEach(el=>{el.onclick=e=>{if(e.target.closest('[data-pin]')||e.target.closest('[data-todo]'))return;openRead(el.dataset.open);};el.onkeydown=e=>{if(e.target.closest('[data-pin]')||e.target.closest('[data-todo]'))return;if(e.key==='Enter'||e.key===' '){e.preventDefault();openRead(el.dataset.open);}};});
   main.querySelectorAll('[data-pin]').forEach(b=>b.onclick=e=>{e.stopPropagation();togglePin(b.dataset.pin);renderLibrary();});
-  // Toujours montrer la bibliothèque ACTIVE même si la barre défile (on la centre dans sa ligne).
-  const act=main.querySelector('.scopebar .scopebtn.on');if(act){const row=act.closest('.chiprow');if(row&&row.scrollWidth>row.clientWidth)row.scrollLeft=Math.max(0,act.offsetLeft-row.clientWidth/2+act.clientWidth/2);}
   {const row=main.querySelector('.catbar .chiprow');if(row&&_catRowX)row.scrollLeft=_catRowX;}
 }
+/* ----- Vues PROTOCOLES : liste (renderProtocols), lecture (renderProtocolRead), édition
+   (renderProtocolEdit). Même chrome d'accueil que la bibliothèque de fiches (sélecteur de
+   section, bibliothèques, catégories, recherche) ; les documents PDF et leur visionneuse sont
+   les mêmes composants que sur les fiches. ----- */
+const _protoHay=new WeakMap();
+function protocolHaystack(p){let h=_protoHay.get(p);
+  if(h===undefined){h=txNorm([p.title,mdStrip(p.body),...(p.attachments||[]).map(a=>a.name)].filter(Boolean).join(' '));_protoHay.set(p,h);}
+  return h+' '+txNorm(catName(p));}
+function renderProtocols(){
+  const q=txNorm(state.q);
+  const _oldCatRow=main.querySelector('.catbar .chiprow');const _catRowX=_oldCatRow?_oldCatRow.scrollLeft:0;
+  if(state.scope&&!myLibraries.some(l=>l.id===state.scope))state.scope=null;
+  const canEdit=canEditScope(state.scope);
+  const list=protocols.slice().sort(byOrder).filter(p=>(state.scope?p.libraryId===state.scope:!p.libraryId)&&(!state.cat||p.category===state.cat)&&(canEdit||p.status!=='draft')&&(!q||protocolHaystack(p).includes(q)));
+  main.innerHTML=`
+    ${sectionSwitchHtml()}
+    ${scopeBarHtml()}
+    <div class="notice" id="syncErrNotice" hidden></div>
+    <div class="lib-top"><div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg><input id="q" placeholder="Rechercher un protocole…" value="${esc(state.q)}"></div>
+      ${canEdit?`<button class="btn-new" id="newBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Créer</button>`:''}</div>
+    ${catbarHtml()}
+    <div class="cards">${list.length?list.slice(0,state.libLimit).map(p=>{const nDoc=(p.attachments||[]).length;return `
+      <div class="card" tabindex="0" role="button" data-open="${p.id}"><div class="card-body"><h3>${esc(p.title)||'Sans titre'}</h3>
+        <div class="card-meta">${p.status==='draft'?'<span class="tag draft">Brouillon</span>':''}${catTag(p)}${nDoc?`<span class="tag sess" title="Documents PDF joints">${nDoc} PDF</span>`:''}${p.body&&p.body.trim()?'<span class="tag sess" title="Contenu rédigé dans l’app">Rédigé</span>':''}<span class="card-date${staleDate(p.validation)?' stale':''}">${esc(fmtDate(p.validation))}${staleDate(p.validation)?' · à revoir':''}</span></div></div>
+        <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></div>`;}).join('')+(list.length>state.libLimit?`<button class="btn" id="showMore" style="width:100%;margin-top:2px">Afficher plus (${list.length-state.libLimit} restant${list.length-state.libLimit>1?'s':''})</button>`:'')
+      :`<div class="empty"><b>Aucun protocole</b>${state.q||state.cat?'Aucun résultat pour ce filtre.'
+        :state.scope?(canEdit?'Cette bibliothèque partagée est vide — ajoutez son premier protocole.':'Cette bibliothèque partagée ne contient pas encore de protocole.')
+        :'Ajoutez un protocole : un ou plusieurs PDF, et/ou un contenu rédigé dans l’app.'}</div>`}</div>`;
+  bindHomeChrome(renderProtocols);
+  {const sm=document.getElementById('showMore');if(sm)sm.onclick=()=>{state.libLimit+=LIB_PAGE;renderProtocols();};}
+  {const nb=document.getElementById('newBtn');if(nb)nb.onclick=newProtocol;}
+  updateSyncBanner();
+  main.querySelectorAll('[data-open]').forEach(el=>{el.onclick=()=>openProtocolRead(el.dataset.open);el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openProtocolRead(el.dataset.open);}};});
+  {const row=main.querySelector('.catbar .chiprow');if(row&&_catRowX)row.scrollLeft=_catRowX;}
+}
+// Liste de boutons « Documents » (lecture) — même composant pour fiches et protocoles.
+function attListHtml(entity){return (entity.attachments||[]).length?`<section class="block"><div class="block-h h-doc">${headerIcon('h-doc')}Documents</div><div class="att-list">${entity.attachments.map(a=>`<button class="att-row" data-att="${esc(a.id)}" title="Ouvrir le document"><span class="att-ico">${uiIcon('doc',16)}</span><span class="att-name">${esc(a.name)}</span><span class="att-size">${fmtBytes(a.size)}</span></button>`).join('')}</div></section>`:'';}
+function bindAttList(entity){main.querySelectorAll('[data-att]').forEach(b=>b.onclick=()=>{const a=(entity.attachments||[]).find(x=>x.id===b.dataset.att);if(a)openPdfViewer(a,entity);});}
+function renderProtocolRead(){
+  const p=state.protocol;if(!p){state.view='library';return render();}
+  const body=(p.body&&p.body.trim())?`<section class="block md-body">${mdRender(p.body,{images:p.images})}</section>`:'';
+  const docs=attListHtml(p);
+  main.innerHTML=`
+    <button class="back" id="back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Protocoles</button>
+    <div class="read-head"><h2>${esc(p.title)||'Sans titre'}</h2></div>
+    <div class="read-meta">${p.libraryId?`<span class="tag libtag" title="Bibliothèque partagée"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/></svg>${esc(libName(p.libraryId)||'Partagée')}</span>`:''}${p.status==='draft'?'<span class="tag draft">Brouillon</span>':''}${catTag(p)}<span class="card-date${staleDate(p.validation)?' stale':''}">${esc(fmtDate(p.validation))}</span>${p.libraryId&&p.updatedBy?`<span class="card-date" title="Auteur de la dernière modification">· dernière modification par ${esc(p.updatedBy)}</span>`:''}</div>
+    ${p.status==='draft'?`<div class="notice">${uiIcon('warn',15)}<div><b>Brouillon</b> — ce protocole n'a pas encore été validé pour l'usage clinique.</div></div>`:''}
+    ${docs}
+    ${body}
+    ${(!docs&&!body)?'<div class="empty"><b>Protocole vide</b>Ajoutez un PDF ou un contenu rédigé via « Modifier ».</div>':''}
+    <div class="read-tools"><div class="read-tools-h">Gérer ce protocole${p.libraryId?` · <span class="ro-badge">${canEditFiche(p)?esc(libName(p.libraryId)||'Partagée'):'Lecture seule'}</span>`:''}</div><div class="read-tools-btns">${canEditFiche(p)?'<button class="btn sm" id="edit">Modifier</button>':''}<button class="btn sm" id="print">Imprimer</button><button class="btn sm" id="dup">Dupliquer</button><button class="btn sm" id="exportOne">Exporter</button></div></div>`;
+  document.getElementById('back').onclick=()=>{state.view='library';state.protocol=null;render();};
+  {const eb=document.getElementById('edit');if(eb)eb.onclick=()=>openProtocolEdit(p.id);}
+  document.getElementById('print').onclick=()=>window.print();
+  document.getElementById('dup').onclick=async()=>{const c=migrateProtocol(JSON.parse(JSON.stringify(p)));c.id=uid('p');c.title=(p.title||'Protocole')+' (copie)';c.order=Date.now();
+    if(await persistProtocol(c)){protocols.push(c);openProtocolEdit(c.id);}};
+  document.getElementById('exportOne').onclick=()=>exportData([],'protocole-'+fileSlug(p.title),categories.filter(c=>c.id===p.category),[p]);
+  bindAttList(p);
+  // Liens [texte](att:ID) du contenu rédigé -> même visionneuse que la section Documents.
+  main.querySelectorAll('[data-mdatt]').forEach(a=>a.onclick=e=>{e.preventDefault();const at=(p.attachments||[]).find(x=>x.id===a.dataset.mdatt);if(at)openPdfViewer(at,p);else toast('⚠ Document lié introuvable dans ce protocole.');});
+  main.querySelectorAll('img[data-full]').forEach(im=>im.onclick=()=>openLightbox(im.dataset.full,im.dataset.cap||''));
+}
+/* Barre d'outils du contenu rédigé : insertions Markdown au curseur / sur la sélection.
+   wrapBold (fiches) est réutilisé pour le gras ; les autres actions sont locales ici. */
+function mdWrapSel(inp,mark){const v=inp.value;let a=inp.selectionStart==null?v.length:inp.selectionStart,b=inp.selectionEnd==null?v.length:inp.selectionEnd;if(a>b){const t=a;a=b;b=t;}
+  inp.value=v.slice(0,a)+mark+v.slice(a,b)+mark+v.slice(b);
+  inp.focus();inp.setSelectionRange(a+mark.length,b+mark.length);
+  inp.dispatchEvent(new Event('input',{bubbles:false}));}
+function mdPrefixLines(inp,prefix,numbered){const v=inp.value;let a=inp.selectionStart==null?v.length:inp.selectionStart,b=inp.selectionEnd==null?v.length:inp.selectionEnd;if(a>b){const t=a;a=b;b=t;}
+  const ls=v.lastIndexOf('\n',a-1)+1;let end=v.indexOf('\n',b);if(end<0)end=v.length;
+  const seg=v.slice(ls,end).split('\n').map((l,i)=>(numbered?(i+1)+'. ':prefix)+l).join('\n');
+  inp.value=v.slice(0,ls)+seg+v.slice(end);
+  inp.focus();inp.dispatchEvent(new Event('input',{bubbles:false}));}
+function mdInsertAt(inp,text){const v=inp.value;const a=inp.selectionStart==null?v.length:inp.selectionStart;
+  inp.value=v.slice(0,a)+text+v.slice(a);
+  inp.focus();inp.setSelectionRange(a+text.length,a+text.length);
+  inp.dispatchEvent(new Event('input',{bubbles:false}));}
+let _mdPrevTimer=null;
+function renderProtocolEdit(){
+  const p=state.pdraft;if(!p){state.view='library';return render();}
+  const isNew=!protocols.some(x=>x.id===p.id);
+  main.innerHTML=`
+    <button class="back" id="back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Quitter sans enregistrer</button>
+    <div class="field"><label>Titre du protocole</label><input type="text" id="p-title" value="${esc(p.title)}" placeholder="ex. Douleur thoracique — protocole de service"></div>
+    <div class="field"><label>Catégorie</label><div class="catpick"><button class="catpill" data-selcat="" style="${!p.category?'background:var(--ink-soft);color:var(--surface);border-color:var(--ink-soft)':''}">Aucune</button>${catsSorted(p.libraryId).map(c=>catChipHtml(c,p.category===c.id,'catpill','data-selcat')).join('')}<button class="catpill" id="catMgrBtn" style="border-style:dashed;color:var(--ink-soft)">${uiIcon('gear',13)} Gérer</button></div></div>
+    ${Auth.signedIn()?`<div class="field"><label>Bibliothèque <span class="hint">où ranger ce protocole</span></label>
+      <select id="p-scope"><option value="" ${!p.libraryId?'selected':''}>Perso (privé)</option>${sortedLibraries().filter(l=>l.role==='editor'||l.role==='admin').map(l=>`<option value="${esc(l.id)}" ${p.libraryId===l.id?'selected':''}>${esc(l.name)} (partagée)</option>`).join('')}${p.libraryId&&!myLibraries.some(l=>l.id===p.libraryId)?`<option value="${esc(p.libraryId)}" selected>${esc(libName(p.libraryId)||'Bibliothèque')}</option>`:''}</select></div>`:''}
+    <div class="row2"><div class="field"><label>Date de validation <span class="hint">mois/année</span></label><input type="text" id="p-validation" inputmode="numeric" autocapitalize="off" value="${esc(valToDisplay(p.validation))}" placeholder="MM/AAAA — ex. 012026 ou 01/2026"></div>
+      <div class="field"><label>État</label><select id="p-status"><option value="" ${p.status!=='draft'?'selected':''}>Validé</option><option value="draft" ${p.status==='draft'?'selected':''}>Brouillon${p.libraryId?' (masqué aux lecteurs)':''}</option></select></div></div>
+    ${attFieldsetHtml(p)}
+    <fieldset class="field"><label>Contenu rédigé <span class="hint">facultatif — mise en forme simple, aperçu en dessous</span></label>
+      <div class="md-toolbar" role="toolbar" aria-label="Mise en forme">
+        <button type="button" class="mini bld" data-mdtool="b" title="Gras — **texte**">B</button>
+        <button type="button" class="mini" data-mdtool="i" title="Italique — *texte*"><i>I</i></button>
+        <button type="button" class="mini" data-mdtool="h2" title="Titre — ## Titre">H2</button>
+        <button type="button" class="mini" data-mdtool="h3" title="Sous-titre — ### Sous-titre">H3</button>
+        <button type="button" class="mini" data-mdtool="ul" title="Liste à puces — - élément">•&nbsp;liste</button>
+        <button type="button" class="mini" data-mdtool="ol" title="Liste numérotée — 1. élément">1.&nbsp;liste</button>
+        <button type="button" class="mini" data-mdtool="link" title="Lien — [texte](https://…)">lien</button>
+        <button type="button" class="mini" data-mdtool="img" title="Insérer une image (réduite et stockée hors ligne)">image</button>
+      </div>
+      <textarea id="p-body" rows="12" placeholder="## Indication&#10;- Critère 1&#10;- Critère 2&#10;&#10;Texte libre, **gras**, *italique*…">${esc(p.body)}</textarea>
+      <p class="hint">Syntaxe : <code>## titre</code>, <code>### sous-titre</code>, <code>- liste</code>, <code>1. liste</code>, <code>**gras**</code>, <code>*italique*</code>, <code>[texte](https://…)</code>.</p>
+      <p class="md-prev-h">Aperçu</p><div class="md-preview" id="mdPreview">${mdRender(p.body,{images:p.images})}</div></fieldset>
+    <div class="editor-foot"><button class="btn primary" id="saveBtn">Enregistrer</button><div class="spacer"></div>${isNew?'':'<button class="btn danger" id="delBtn">Supprimer</button>'}</div>
+    <input type="file" id="imgInput" accept="image/*" hidden>
+    <input type="file" id="pdfInput" accept="application/pdf,.pdf" hidden>`;
+  document.getElementById('back').onclick=()=>{purgeDraftAtts();state.pdraft=null;if(protocols.some(x=>x.id===p.id))openProtocolRead(p.id);else{state.view='library';render();}};
+  document.getElementById('p-title').addEventListener('input',e=>p.title=e.target.value);
+  {const fv=document.getElementById('p-validation');
+   if(fv)fv.addEventListener('change',()=>{const raw=fv.value.trim();if(!raw){p.validation='';fv.classList.remove('val-bad');return;}const norm=parseValidation(raw);if(norm){p.validation=norm;fv.value=valToDisplay(norm);fv.classList.remove('val-bad');}else{fv.classList.add('val-bad');}});}
+  {const stSel=document.getElementById('p-status');if(stSel)stSel.onchange=()=>{p.status=stSel.value==='draft'?'draft':'';};}
+  main.querySelectorAll('[data-selcat]').forEach(b=>b.onclick=()=>{p.category=b.dataset.selcat;renderProtocolEdit();});
+  document.getElementById('catMgrBtn').onclick=openCatMgr;
+  {const scopeSel=document.getElementById('p-scope');if(scopeSel)scopeSel.onchange=()=>{const ns=scopeSel.value||null;p.libraryId=ns;
+    const cc=p.category;if(cc){const cat=categories.find(x=>x.id===cc);if(!cat||(cat.libraryId||null)!==(ns||null))p.category='';}
+    renderProtocolEdit();};}
+  bindAttEditor(p,renderProtocolEdit);
+  // Contenu rédigé : saisie -> brouillon + aperçu débouncé (même cadence que l'aperçu algorithme).
+  const ta=document.getElementById('p-body');
+  const schedulePrev=()=>{clearTimeout(_mdPrevTimer);_mdPrevTimer=setTimeout(()=>{const pv=document.getElementById('mdPreview');if(pv)pv.innerHTML=mdRender(p.body,{images:p.images});},300);};
+  ta.addEventListener('input',()=>{p.body=ta.value;schedulePrev();});
+  const imgInput=document.getElementById('imgInput');
+  main.querySelectorAll('[data-mdtool]').forEach(b=>b.onclick=()=>{const k=b.dataset.mdtool;
+    if(k==='b')wrapBold(ta);
+    else if(k==='i')mdWrapSel(ta,'*');
+    else if(k==='h2')mdPrefixLines(ta,'## ');
+    else if(k==='h3')mdPrefixLines(ta,'### ');
+    else if(k==='ul')mdPrefixLines(ta,'- ');
+    else if(k==='ol')mdPrefixLines(ta,'',true);
+    else if(k==='link'){const v=ta.value,a=ta.selectionStart||0,e2=ta.selectionEnd||0;const sel=v.slice(a,e2)||'texte';ta.value=v.slice(0,a)+'['+sel+'](https://)'+v.slice(e2);ta.focus();const c=a+sel.length+3;ta.setSelectionRange(c,c+8);ta.dispatchEvent(new Event('input',{bubbles:false}));}
+    else if(k==='img')imgInput.click();});
+  imgInput.onchange=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;
+    const data=await downscale(file);if(!data){toast('⚠ Image illisible.');return;}
+    if((p.images||[]).length>=60){toast('⚠ 60 images maximum par protocole.');return;}
+    const id=uid('i');p.images=p.images||[];p.images.push({id,data,caption:''});
+    mdInsertAt(ta,(ta.value&&!/\n$/.test(ta.value.slice(0,ta.selectionStart||0))?'\n':'')+'![](img:'+id+')\n');};
+  document.getElementById('saveBtn').onclick=saveProtocolDraft;
+  {const del=document.getElementById('delBtn');if(del)del.onclick=deleteProtocolDraft;}
+}
+async function saveProtocolDraft(){const d=state.pdraft;d.title=(d.title||'').trim();
+  const stEl=document.getElementById('p-status');if(stEl)d.status=stEl.value==='draft'?'draft':'';
+  const fvEl=document.getElementById('p-validation');if(fvEl)d.validation=parseValidation(fvEl.value)||d.validation||'';
+  d.validation=parseValidation(d.validation)||'';
+  d.body=sstr(d.body,MD_MAX_CHARS);
+  d.attachments=(d.attachments||[]).map(safeAttachment).filter(Boolean);
+  // Images jamais référencées dans le corps : retirées à l'enregistrement (pas de poids mort).
+  {const used=new Set();mdBlocks(d.body).forEach(b=>{if(b.t==='img')used.add(b.id);});
+   d.images=(d.images||[]).filter(im=>used.has(im.id));}
+  if(!d.title){toast('⚠ Donnez un titre au protocole.');return;}
+  if(typeof d.order!=='number')d.order=Date.now();
+  {const orig=protocols.find(x=>x.id===d.id);const from=(orig&&orig.libraryId)||null,to=d.libraryId||null;
+   if(orig&&from!==to){
+     if(from&&!await confirmDlg('Ce protocole va quitter la bibliothèque partagée « '+(libName(from)||'partagée')+' » : les autres membres n\'y auront plus accès.',{title:'Retirer de la bibliothèque partagée',yes:'Déplacer le protocole',danger:true}))return;
+     if(to&&!await confirmDlg('Ce protocole va être publié dans « '+(libName(to)||'la bibliothèque partagée')+' » : il sera visible par tous les membres'+(d.status==='draft'?' pouvant éditer (brouillon masqué aux lecteurs)':'')+'.',{title:'Publier dans la bibliothèque partagée',yes:'Publier le protocole'}))return;
+   }}
+  if(!(await persistProtocol(d)))return;draftNewAtts=[];
+  // Changement de bibliothèque : les blobs des documents repartent vers le nouveau chemin cloud.
+  {const orig2=protocols.find(x=>x.id===d.id);
+   if(orig2&&(orig2.libraryId||null)!==(d.libraryId||null)&&supportsAttachments()){
+     for(const a of (d.attachments||[])){try{const rec=await IDB.getAtt(a.id);if(rec){rec.dirty=1;await IDB.putAtt(rec);}}catch(e){}}}}
+  const i=protocols.findIndex(x=>x.id===d.id);if(i>=0)protocols[i]=d;else protocols.push(d);
+  state.pdraft=null;openProtocolRead(d.id);}
+async function deleteProtocolDraft(){
+  const msg=state.pdraft&&state.pdraft.libraryId
+    ?'Supprimer ce protocole définitivement ?\nIl disparaîtra pour tous les membres de la bibliothèque.'
+    :'Supprimer ce protocole définitivement ?';
+  if(!await confirmDlg(msg,{yes:'Supprimer',danger:true}))return;
+  const id=state.pdraft.id;const p=protocols.find(x=>x.id===id)||state.pdraft;
+  await softDeleteProtocol(p);protocols=protocols.filter(x=>x.id!==id);
+  state.pdraft=null;state.view='library';render();}
+function openProtocolRead(id){const p=protocols.find(x=>x.id===id);if(!p)return;state.protocol=p;state.view='protocolRead';render();}
+function openProtocolEdit(id){const p=protocols.find(x=>x.id===id);if(!p)return;
+  if(!canEditFiche(p)){toast('Lecture seule : vous n\'avez pas les droits d\'édition sur cette bibliothèque.');return openProtocolRead(id);}
+  state.pdraft=migrateProtocol(JSON.parse(JSON.stringify(p)));draftNewAtts=[];state.view='protocolEdit';render();}
+function newProtocol(){if(!canEditScope(state.scope)){toast('Lecture seule : vous ne pouvez pas créer de protocole dans cette bibliothèque.');return;}
+  const d=blankProtocol();d.libraryId=state.scope||null;state.pdraft=d;draftNewAtts=[];state.view='protocolEdit';render();}
 /* Icônes SVG inline « de texte » (remplacent les emojis : rendu identique sur tous les appareils,
    couleur = currentColor donc thème respecté, pas de style emoji qui jure avec l'interface).
    Même langage graphique que le reste : trait 2, viewBox 24, bouts arrondis. */
@@ -2761,7 +3106,7 @@ function renderRead(){
       navHtml=`<div class="nav-wrap">${crumbs}<div class="node-title">${esc(blk.title)||'Étapes'}${passTag}</div>${imgH}<ol class="steps">${steps.map((s,i)=>{const k=curSeq+':'+blk.id+':'+i;return `<li data-ck="${k}" class="${state.checked[k]?'done':''}" role="checkbox" aria-checked="${state.checked[k]?'true':'false'}" tabindex="0"><span class="box">${state.checked[k]?'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg>':''}</span><span class="txt">${fmt(s)}</span></li>`;}).join('')}</ol><div class="flow-ctrl">${fwdc}${backBtn}${resetBtn}</div></div>`;}}
   const gallery=(f.images||[]).length?`<section class="block"><div class="block-h h-img">${headerIcon('h-img')}Schémas & captures</div><div class="gallery">${f.images.map(im=>`<div class="gthumb"><img src="${im.data}" data-full="${im.data}" data-cap="${esc(im.caption||'')}" alt="${esc(im.caption||'')}" loading="lazy" decoding="async">${im.caption?`<div class="gcap">${esc(im.caption)}</div>`:''}</div>`).join('')}</div></section>`:'';
   // Documents PDF joints : liste de boutons (≥44 px, utilisables en crise) -> visionneuse intégrée.
-  const docs=(f.attachments||[]).length?`<section class="block"><div class="block-h h-doc">${headerIcon('h-doc')}Documents</div><div class="att-list">${f.attachments.map(a=>`<button class="att-row" data-att="${esc(a.id)}" title="Ouvrir le document"><span class="att-ico">${uiIcon('doc',16)}</span><span class="att-name">${esc(a.name)}</span><span class="att-size">${fmtBytes(a.size)}</span></button>`).join('')}</div></section>`:'';
+  const docs=attListHtml(f);
   const refs=clean(f.references);
   // « Ne pas oublier » : bandeau compact SOUS le titre (un rappel critique doit être vu AVANT
   // d'être violé, pas après avoir tout déroulé).
@@ -2828,7 +3173,7 @@ function bindReadEvents(f,blk,cur){
   main.querySelectorAll('[data-ck]').forEach(li=>{const tgl=kb=>{const k=li.dataset.ck;state.checked[k]=!state.checked[k];ensureStarted();persistLive(Runtime);render();if(kb){const nl=main.querySelector('[data-ck="'+CSS.escape(k)+'"]');if(nl)nl.focus();}};li.onclick=()=>tgl(false);li.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();tgl(true);}};});
   main.querySelectorAll('img[data-full]').forEach(im=>im.onclick=()=>openLightbox(im.dataset.full,im.dataset.cap||''));
   // Documents PDF -> visionneuse intégrée (le blob est lu dans IndexedDB à l'ouverture).
-  main.querySelectorAll('[data-att]').forEach(b=>b.onclick=()=>{const a=(f.attachments||[]).find(x=>x.id===b.dataset.att);if(a)openPdfViewer(a);});
+  bindAttList(f);
   // runtime controls (no full re-render)
   // Bouton à bascule : le libellé dit l'ÉTAT (« Son activé/coupé », comme « Thème : sombre »),
   // le title dit l'action, aria-pressed porte l'état pour les lecteurs d'écran. L'état « coupé »
@@ -2909,15 +3254,48 @@ function boldBtnHtml(){return '<button type="button" class="mini bld" data-bold 
 // Rattacher un document existant = PARTAGE : le même id est référencé par plusieurs fiches, le
 // remplacer le met à jour partout, il ne disparaît que quand plus personne ne le référence (GC).
 function attachablePdfs(f){const have=new Set((f.attachments||[]).map(a=>a.id));const seen=new Set(),out=[];
-  fiches.forEach(x=>{if(x.id===f.id||x.deletedAt||(x.libraryId||null)!==(f.libraryId||null))return;
+  fiches.concat(protocols).forEach(x=>{if(x.id===f.id||x.deletedAt||(x.libraryId||null)!==(f.libraryId||null))return;
     (x.attachments||[]).forEach(a=>{if(!a||have.has(a.id)||seen.has(a.id))return;seen.add(a.id);out.push({id:a.id,name:a.name,size:a.size,from:x.title||'Sans titre'});});});
   return out;}
+// Fieldset « Documents (PDF) » PARTAGÉ entre l'éditeur de fiche et l'éditeur de protocole
+// (même composant, mêmes garde-fous). `entity` = state.draft ou state.pdraft.
+function attFieldsetHtml(entity){
+  return `<fieldset class="field"><label>Documents (PDF) <span class="hint">protocoles, recommandations — lisibles hors ligne</span></label>
+      ${supportsAttachments()?`${(entity.attachments||[]).map((a,i)=>`<div class="att-erow" data-ai="${i}"><span class="att-ico">${uiIcon('doc',15)}</span><input type="text" data-attname="${i}" value="${esc(a.name)}" aria-label="Nom du document" placeholder="Nom du document"><span class="att-size">${fmtBytes(a.size)}</span><button class="mini del" data-attrm="${i}" aria-label="Retirer le document">×</button></div>`).join('')}
+      <button class="add-line" id="addPdf">+ Ajouter un PDF (${fmtBytes(MAX_PDF_BYTES)} max)</button>
+      ${(()=>{const opts=attachablePdfs(entity);return opts.length?`<select id="attAdd" style="margin-top:8px;width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)"><option value="">+ Joindre un document existant (partagé : mis à jour partout)…</option>${opts.map(o=>`<option value="${esc(o.id)}">${esc(o.name)} (${fmtBytes(o.size)}) — ${esc(o.from)}</option>`).join('')}</select>`:'';})()}`
+      :`<p class="hint">Ce navigateur ne permet pas de stocker des documents hors ligne — ouvrez l'app dans un navigateur récent (ou installez-la sur l'écran d'accueil) pour joindre des PDF.</p>`}</fieldset>`;}
+// Écouteurs du fieldset Documents. Le BLOB est écrit immédiatement dans IndexedDB (il ne transite
+// jamais par le brouillon ni par le JSON) ; le brouillon ne reçoit que {id,name,size}. Les ids
+// ajoutés pendant cette édition sont tracés (draftNewAtts) -> purge si « Quitter sans enregistrer ».
+function bindAttEditor(entity,rerender){
+  const pdfInput=document.getElementById('pdfInput');
+  {const ap=document.getElementById('addPdf');
+   if(ap)ap.onclick=()=>{if((entity.attachments||[]).length>=MAX_ATT_PER_ENTITY){toast('⚠ '+MAX_ATT_PER_ENTITY+' documents maximum.');return;}pdfInput.click();};}
+  if(pdfInput)pdfInput.onchange=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;
+    if(file.size>MAX_PDF_BYTES){toast('⚠ Document trop volumineux ('+fmtBytes(file.size)+') : '+fmtBytes(MAX_PDF_BYTES)+' maximum.');return;}
+    // CONTENU vérifié (signature %PDF-) en plus du type déclaré : un fichier renommé .pdf ne passe pas.
+    let head='';try{head=String.fromCharCode.apply(null,new Uint8Array(await file.slice(0,5).arrayBuffer()));}catch(err){}
+    if(head!=='%PDF-'){toast('⚠ Ce fichier n\'est pas un PDF valide.');return;}
+    const id=uid('a');
+    try{await IDB.putAtt({id,blob:file,size:file.size,type:'application/pdf',createdAt:Date.now(),dirty:1,remotePath:null});}
+    catch(err){toast('⚠ Stockage saturé : document non enregistré.',9000);return;}
+    draftNewAtts.push(id);
+    entity.attachments=entity.attachments||[];entity.attachments.push({id,name:safeFileName(file.name)||'document.pdf',size:file.size});
+    rerender();};
+  main.querySelectorAll('[data-attname]').forEach(inp=>inp.addEventListener('input',e=>{const a=(entity.attachments||[])[+e.target.dataset.attname];if(a)a.name=e.target.value;}));
+  main.querySelectorAll('[data-attrm]').forEach(b=>b.onclick=()=>{entity.attachments.splice(+b.dataset.attrm,1);rerender();});
+  {const aa=document.getElementById('attAdd');
+   if(aa)aa.onchange=()=>{const id=aa.value;if(!id)return;
+     if((entity.attachments||[]).length>=MAX_ATT_PER_ENTITY){toast('⚠ '+MAX_ATT_PER_ENTITY+' documents maximum.');return;}
+     const o=attachablePdfs(entity).find(x=>x.id===id);
+     if(o){entity.attachments=entity.attachments||[];entity.attachments.push({id:o.id,name:o.name,size:o.size});rerender();}};}}
 // Blobs PDF ajoutés pendant l'édition COURANTE : purgés si on quitte sans enregistrer (le blob est
 // écrit immédiatement dans IndexedDB à l'ajout, AVANT l'enregistrement de la fiche).
 let draftNewAtts=[];
 async function purgeDraftAtts(){const ids=draftNewAtts;draftNewAtts=[];
   if(!ids.length||!supportsAttachments())return;
-  const ref=new Set();fiches.forEach(x=>(x.attachments||[]).forEach(a=>ref.add(a.id)));
+  const ref=new Set();fiches.concat(protocols).forEach(x=>(x.attachments||[]).forEach(a=>ref.add(a.id)));
   for(const id of ids){if(!ref.has(id)){try{await IDB.delAtt(id);}catch(e){}}}}
 function targetSelect(blocks,selfId,value){const opts=blocks.filter(b=>b.id!==selfId).map(b=>`<option value="${b.id}" ${b.id===value?'selected':''}>${esc(b.title)||'(bloc sans titre)'}</option>`).join('');return `<select data-target><option value="" ${!value?'selected':''}>— Fin / aucun —</option>${opts}</select>`;}
 function imageEditor(b){return `<div class="sub">Image du bloc (option)</div><div class="imgrow">${b.image?`<img src="${b.image}" alt=""><button class="btn sm danger" data-bimgdel>Retirer</button>`:`<button class="btn sm" data-bimg>+ Image / capture</button>`}</div>`;}
@@ -2949,11 +3327,7 @@ function renderEditor(){
     ${listEditor('Ne pas oublier','points critiques','notForget',f.notForget)}
     ${listEditor('Diagnostics différentiels','','differentials',f.differentials)}
     <fieldset class="field"><label>Schémas & captures <span class="hint">stockées hors ligne dans l'app</span></label><div class="gallery">${(f.images||[]).map((im,i)=>`<div class="gthumb"><img src="${im.data}" alt="" loading="lazy" decoding="async"><input type="text" class="gcap" data-imgcap="${i}" value="${esc(im.caption||'')}" placeholder="Légende…" style="width:100%;margin-top:5px;padding:6px 8px;border:1px solid var(--line);border-radius:7px"><button class="btn sm danger" data-imgdel="${i}" style="width:100%;margin-top:5px">Retirer</button></div>`).join('')}</div><button class="add-line" id="addImg" style="margin-top:10px">+ Ajouter une image / capture</button></fieldset>
-    <fieldset class="field"><label>Documents (PDF) <span class="hint">protocoles, recommandations — lisibles hors ligne</span></label>
-      ${supportsAttachments()?`${(f.attachments||[]).map((a,i)=>`<div class="att-erow" data-ai="${i}"><span class="att-ico">${uiIcon('doc',15)}</span><input type="text" data-attname="${i}" value="${esc(a.name)}" aria-label="Nom du document" placeholder="Nom du document"><span class="att-size">${fmtBytes(a.size)}</span><button class="mini del" data-attrm="${i}" aria-label="Retirer le document">×</button></div>`).join('')}
-      <button class="add-line" id="addPdf">+ Ajouter un PDF (${fmtBytes(MAX_PDF_BYTES)} max)</button>
-      ${(()=>{const opts=attachablePdfs(f);return opts.length?`<select id="attAdd" style="margin-top:8px;width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)"><option value="">+ Joindre un document d'une autre fiche (partagé : mis à jour partout)…</option>${opts.map(o=>`<option value="${esc(o.id)}">${esc(o.name)} (${fmtBytes(o.size)}) — ${esc(o.from)}</option>`).join('')}</select>`:'';})()}`
-      :`<p class="hint">Ce navigateur ne permet pas de stocker des documents hors ligne — ouvrez l'app dans un navigateur récent (ou installez-la sur l'écran d'accueil) pour joindre des PDF.</p>`}</fieldset>
+    ${attFieldsetHtml(f)}
     ${listEditor('Références','sources de la fiche','references',f.references)}
     <fieldset class="field"><label>Fiches liées <span class="hint">raccourcis « Voir aussi » en bas de la fiche</span></label>
       <div class="rel-edit">${(f.related||[]).map(id=>{const rf=fiches.find(x=>x.id===id);return rf?`<span class="rel-chip">${esc(rf.title)||'Sans titre'}<button class="rel-x" data-relrm="${esc(id)}" aria-label="Retirer">×</button></span>`:'';}).join('')||'<span class="hint">Aucune fiche liée.</span>'}</div>
@@ -3036,30 +3410,7 @@ function bindEditorEvents(f){
     card.querySelectorAll('[data-bmv]').forEach(btn=>btn.onclick=()=>{moveItem(f.blocks,f.blocks.indexOf(b),btn.dataset.bmv==='up'?-1:1);renderEditor();});
     const bd=card.querySelector('[data-bdel]');if(bd)bd.onclick=()=>{f.blocks=f.blocks.filter(x=>x.id!==bid);f.blocks.forEach(x=>{if(x.next===bid)x.next=null;if(x.options)x.options.forEach(o=>{if(o.target===bid)o.target='';});});if(f.start===bid)f.start=f.blocks[0]?f.blocks[0].id:null;if(!f.blocks.length){const nb={id:uid('b'),type:'steps',title:'Prise en charge',steps:[''],image:null,next:null};f.blocks.push(nb);f.start=nb.id;}renderEditor();};});
   imgInput.onchange=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;const data=await downscale(file);if(!data){toast('⚠ Image illisible.');return;}if(imgMode.kind==='gallery')f.images.push({id:uid('i'),data,caption:''});else{const b=f.blocks.find(x=>x.id===imgMode.bid);if(b)b.image=data;}renderEditor();};
-  // Documents PDF : le BLOB est écrit immédiatement dans IndexedDB (il ne transite jamais par
-  // state.draft ni par le JSON de la fiche) ; le brouillon ne reçoit que {id,name,size}. Les ids
-  // ajoutés pendant cette édition sont tracés (draftNewAtts) -> purge si « Quitter sans enregistrer ».
-  const pdfInput=document.getElementById('pdfInput');
-  {const ap=document.getElementById('addPdf');
-   if(ap)ap.onclick=()=>{if((f.attachments||[]).length>=MAX_ATT_PER_ENTITY){toast('⚠ '+MAX_ATT_PER_ENTITY+' documents maximum par fiche.');return;}pdfInput.click();};}
-  if(pdfInput)pdfInput.onchange=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;
-    if(file.size>MAX_PDF_BYTES){toast('⚠ Document trop volumineux ('+fmtBytes(file.size)+') : '+fmtBytes(MAX_PDF_BYTES)+' maximum.');return;}
-    // CONTENU vérifié (signature %PDF-) en plus du type déclaré : un fichier renommé .pdf ne passe pas.
-    let head='';try{head=String.fromCharCode.apply(null,new Uint8Array(await file.slice(0,5).arrayBuffer()));}catch(err){}
-    if(head!=='%PDF-'){toast('⚠ Ce fichier n\'est pas un PDF valide.');return;}
-    const id=uid('a');
-    try{await IDB.putAtt({id,blob:file,size:file.size,type:'application/pdf',createdAt:Date.now(),dirty:1,remotePath:null});}
-    catch(err){toast('⚠ Stockage saturé : document non enregistré.',9000);return;}
-    draftNewAtts.push(id);
-    f.attachments=f.attachments||[];f.attachments.push({id,name:safeFileName(file.name)||'document.pdf',size:file.size});
-    renderEditor();};
-  main.querySelectorAll('[data-attname]').forEach(inp=>inp.addEventListener('input',e=>{const a=(f.attachments||[])[+e.target.dataset.attname];if(a)a.name=e.target.value;}));
-  main.querySelectorAll('[data-attrm]').forEach(b=>b.onclick=()=>{f.attachments.splice(+b.dataset.attrm,1);renderEditor();});
-  {const aa=document.getElementById('attAdd');
-   if(aa)aa.onchange=()=>{const id=aa.value;if(!id)return;
-     if((f.attachments||[]).length>=MAX_ATT_PER_ENTITY){toast('⚠ '+MAX_ATT_PER_ENTITY+' documents maximum par fiche.');return;}
-     const o=attachablePdfs(f).find(x=>x.id===id);
-     if(o){f.attachments=f.attachments||[];f.attachments.push({id:o.id,name:o.name,size:o.size});renderEditor();}};}
+  bindAttEditor(f,renderEditor);   // documents PDF (composant partagé avec l'éditeur de protocole)
   document.getElementById('saveBtn').onclick=saveDraft;const del=document.getElementById('delBtn');if(del)del.onclick=deleteDraft;
 }
 function bindListEditors(){
@@ -3226,16 +3577,16 @@ async function renderPdfPage(s){if(!_pv||s.rendering)return;
     releasePdfPage(s);s.el.innerHTML='';s.el.appendChild(c);s.canvas=c;s.renderedW=targetW;
   }catch(e){}
   s.rendering=false;}
-async function openPdfViewer(att){
+async function openPdfViewer(att,entity){
   if(!supportsAttachments()){toast('⚠ Ce navigateur ne peut pas stocker les documents hors ligne — ouvrez l\'app dans un navigateur récent pour lire ce PDF.',9000);return;}
   let rec=null;try{rec=await IDB.getAtt(att.id);}catch(e){}
   if(!rec||!rec.blob){
     // Pas encore sur cet appareil : tentative de téléchargement IMMÉDIATE si connecté (le
     // téléchargement de fond de la synchro n'est peut-être pas passé par ce document).
+    // `entity` (fiche ou protocole hôte) fournit le périmètre -> chemin cloud.
     if(typeof Auth!=='undefined'&&Auth.signedIn()&&navigator.onLine!==false){
       toast('Téléchargement du document…');
-      try{const f=(state.fiche&&(state.fiche.attachments||[]).some(a=>a.id===att.id))?state.fiche:null;
-        const path=attStoragePath(f?(f.libraryId||null):null,(Auth.user()||{}).id,att.id);
+      try{const path=attStoragePath(entity?(entity.libraryId||null):null,(Auth.user()||{}).id,att.id);
         const r=await storageReq('GET',path);const blob=await r.blob();
         rec={id:att.id,blob:blob,size:blob.size,type:'application/pdf',createdAt:Date.now(),dirty:0,remotePath:path};
         await IDB.putAtt(rec);}
@@ -3614,17 +3965,23 @@ bindModalDismiss(catModal,closeCatMgr);
       aient une vue exacte de la structure attendue. */
 // Export réutilisable : `cats` par défaut = catégories réellement utilisées par `list`
 // (pour un export d'une seule fiche) ; l'export global passe toutes les catégories.
-function exportData(list,baseName,cats){const out={version:3,origin:spaceTag(currentSpace()),categories:(cats||categories.filter(c=>list.some(f=>f.category===c.id))).map(c=>({id:c.id,name:c.name,color:c.color})),fiches:list.map(f=>{const c={...f};if(c.blocks)delete c.blocks._start;
-  // On retire les champs de sync PUREMENT LOCAUX -> une fiche importée ailleurs devient celle de l'importateur
-  // (pas d'owner/biblio d'autrui) ; `updatedAt` est conservé (utile au last-write-wins multi-appareils).
-  delete c.dirty;delete c.ownerId;delete c.libraryId;return c;})};const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=baseName+'-'+new Date().toISOString().slice(0,10)+'.json';a.click();
+// `protos` (facultatif, champ `protocols` du JSON — rétrocompatible : ignoré des anciennes
+// versions) : les protocoles à inclure (export global, ou export d'un protocole seul).
+function exportData(list,baseName,cats,protos){
+  const strip=f=>{const c={...f};if(c.blocks)delete c.blocks._start;
+    // On retire les champs de sync PUREMENT LOCAUX -> un contenu importé ailleurs devient celui de
+    // l'importateur (pas d'owner/biblio d'autrui) ; `updatedAt` est conservé (last-write-wins).
+    delete c.dirty;delete c.ownerId;delete c.libraryId;return c;};
+  const out={version:3,origin:spaceTag(currentSpace()),categories:(cats||categories.filter(c=>list.some(f=>f.category===c.id))).map(c=>({id:c.id,name:c.name,color:c.color})),fiches:list.map(strip)};
+  if(Array.isArray(protos)&&protos.length)out.protocols=protos.map(strip);
+  const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=baseName+'-'+new Date().toISOString().slice(0,10)+'.json';a.click();
   // Les DOCUMENTS PDF ne voyagent PAS dans le JSON (le fichier resterait sinon illisible et
   // énorme) : seules leurs métadonnées y figurent. On le dit à l'export — les PDF suivent le
   // compte via la synchronisation cloud.
-  if(list.some(f=>(f.attachments||[]).length))toast('Les documents PDF joints ne sont pas inclus dans le fichier exporté (seules les fiches le sont) ; ils suivent votre compte via la synchronisation.',9000);}
+  if(list.concat(protos||[]).some(f=>(f.attachments||[]).length))toast('Les documents PDF joints ne sont pas inclus dans le fichier exporté ; ils suivent votre compte via la synchronisation.',9000);}
 // Nom de fichier s\u00fbr pour un export : m\u00eames r\u00e8gles que catSlug (accents retir\u00e9s, jeu [a-z0-9-]).
 const fileSlug=s=>catSlug(s).slice(0,40)||'fiche';
-document.getElementById('exportBtn').onclick=()=>exportData(fiches,'aides-cognitives',categories);
+document.getElementById('exportBtn').onclick=()=>exportData(fiches,'aides-cognitives',categories,protocols);
 document.getElementById('importBtn').onclick=()=>document.getElementById('importFile').click();
 // Tolère une réponse d'IA enrobée de clôtures Markdown ("```json ... ```") malgré la consigne du
 // prompt, et un éventuel BOM : on retire l'enrobage avant JSON.parse au lieu d'échouer
@@ -3649,9 +4006,12 @@ document.getElementById('importFile').onchange=e=>{const file=e.target.files[0];
     // (une étape destructive doit pouvoir être annulée proprement).
     const merge=imp.fiches.length>1?await confirmDlg('Import de '+imp.fiches.length+' fiches.',{title:'Importer',yes:'Fusionner avec '+scopeLbl,no:'REMPLACER '+scopeLbl}):true;
     if(merge===null){pendingOpenImport=false;return;}
-    if(!merge){if(!await confirmDlg('Toutes les fiches de '+scopeLbl+' seront supprimées puis remplacées par le contenu du fichier. Continuer ?',{title:'Remplacer la bibliothèque',yes:'Tout remplacer',danger:true}))return void(pendingOpenImport=false);
+    const hasProtos=Array.isArray(imp.protocols)&&imp.protocols.length>0;
+    if(!merge){if(!await confirmDlg('Toutes les fiches'+(hasProtos?' et tous les protocoles':'')+' de '+scopeLbl+' seront supprimé(e)s puis remplacé(e)s par le contenu du fichier. Continuer ?',{title:'Remplacer la bibliothèque',yes:'Tout remplacer',danger:true}))return void(pendingOpenImport=false);
       for(const f of fiches.filter(x=>(x.libraryId||null)===targetLib))await softDelete(f);
-      fiches=fiches.filter(x=>(x.libraryId||null)!==targetLib);}
+      fiches=fiches.filter(x=>(x.libraryId||null)!==targetLib);
+      if(hasProtos){for(const pr of protocols.filter(x=>(x.libraryId||null)===targetLib))await softDeleteProtocol(pr);
+        protocols=protocols.filter(x=>(x.libraryId||null)!==targetLib);}}
     // Catégories importées : rattachées à la bibliothèque de DESTINATION (chaque bibliothèque a
     // son propre jeu de catégories) ; ajoutées seulement si absentes de ce jeu-là.
     sanitizeCats(imp.categories).forEach(c=>{if(!c.id)return;c.libraryId=targetLib;
@@ -3680,13 +4040,24 @@ document.getElementById('importFile').onchange=e=>{const file=e.target.files[0];
       if(d.category&&!categories.some(c=>c.id===d.category&&(c.libraryId||null)===targetLib))d.category='';
       if(d.id&&existing.has(d.id)&&replace){if(await persist(d)){const i=fiches.findIndex(x=>x.id===d.id);if(i>=0)fiches[i]=d;else fiches.push(d);added.push(d.id);}}
       else{if(!d.id||existing.has(d.id)||!sameSpace)d.id=uid();existing.add(d.id);if(await persist(d)){fiches.push(d);added.push(d.id);}}}
+    // PROTOCOLES du fichier (champ facultatif `protocols`, absent des anciens exports) : mêmes
+    // règles que les fiches (assainissement migrateProtocol, ids conservés si même espace,
+    // références PDF vidées sinon — les blobs n'existent pas ici).
+    let addedP=0;
+    if(hasProtos){const existingP=new Set(protocols.map(x=>x.id));
+      for(let d of imp.protocols){d=migrateProtocol(d);
+        d.libraryId=targetLib;
+        if(!sameSpace)d.attachments=[];
+        if(d.category&&!categories.some(c=>c.id===d.category&&(c.libraryId||null)===targetLib))d.category='';
+        if(d.id&&existingP.has(d.id)&&sameSpace){if(await persistProtocol(d)){const i=protocols.findIndex(x=>x.id===d.id);if(i>=0)protocols[i]=d;else protocols.push(d);addedP++;}}
+        else{if(!d.id||existingP.has(d.id)||!sameSpace)d.id=uid('p');existingP.add(d.id);if(await persistProtocol(d)){protocols.push(d);addedP++;}}}}
     // Depuis la fenêtre IA : on ouvre directement la fiche importée plutôt que la bibliothèque.
     const openId=pendingOpenImport&&added.length?added[added.length-1]:null;pendingOpenImport=false;
     // On AFFICHE la destination (sinon des fiches importées « dans Perso » depuis une bibliothèque
     // partagée sélectionnée sembleraient avoir disparu).
     state.scope=targetLib;state.cat='';
     if(openId)openRead(openId);else{state.view='library';render();}
-    if(added.length)toast((added.length>1?added.length+' fiches importées':'1 fiche importée')+' dans '+scopeLbl+'.');}catch(err){pendingOpenImport=false;toast('⚠ Fichier illisible.');}};
+    if(added.length||addedP)toast([added.length?(added.length>1?added.length+' fiches importées':'1 fiche importée'):'',addedP?(addedP>1?addedP+' protocoles importés':'1 protocole importé'):''].filter(Boolean).join(' et ')+' dans '+scopeLbl+'.');}catch(err){pendingOpenImport=false;toast('⚠ Fichier illisible.');}};
   r.readAsText(file);e.target.value='';};
 
 /* ===== Compte & synchronisation (Supabase) =====
@@ -3807,7 +4178,7 @@ async function wipeLocal(){
   const names=new Set(['ac-db']);
   spaces.concat([currentSpace()]).forEach(s=>{names.add(dbNameFor(s,owner));names.add('ac-db-'+(s||'anon'));});
   for(const n of names){try{await new Promise(res=>{const r=indexedDB.deleteDatabase(n);r.onsuccess=r.onerror=r.onblocked=()=>res();});}catch(e){}}
-  try{['fiches_v1','cats_v1','sessions_v1','backups_v1','notes_v1','ac-sync-cursor','ac-cats-dirty:','ac-cats-updated:','ac-lib-usage','ac-notice-hidden','ac-seeds-hidden','ac-auth','ac-pins','ac-onboarded','ac-space','ac-db-owner','ac-spaces'].forEach(k=>localStorage.removeItem(k));
+  try{['fiches_v1','cats_v1','sessions_v1','backups_v1','notes_v1','protocols_v1','ac-sync-cursor','ac-cats-dirty:','ac-cats-updated:','ac-lib-usage','ac-notice-hidden','ac-seeds-hidden','ac-auth','ac-pins','ac-onboarded','ac-space','ac-db-owner','ac-spaces','ac-att-del','ac-section'].forEach(k=>localStorage.removeItem(k));
     for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);if(!k)continue;
       if(k.indexOf('ac-sync-init-')===0||k.indexOf('ac-cats-dirty:')===0||k.indexOf('ac-cats-updated:')===0||k.indexOf('ac-profile-')===0
         ||((k.indexOf('ac-')===0||k.indexOf('_v1@')>0)&&k.indexOf('@')>0))localStorage.removeItem(k);}
@@ -3829,7 +4200,7 @@ async function wipeCurrentSpace(){
     // Propriétaire de la base historique : ses clés localStorage sont NUES (sans suffixe
     // d'espace, cf. spaceKeyFor) — ce sont donc les mêmes noms que wipeLocal() connaît déjà.
     if(owner===space){
-      ['fiches_v1','cats_v1','sessions_v1','backups_v1','notes_v1','ac-sync-cursor','ac-lib-usage','ac-seeds-hidden','ac-pins','ac-held-edits'].forEach(k=>localStorage.removeItem(k));
+      ['fiches_v1','cats_v1','sessions_v1','backups_v1','notes_v1','protocols_v1','ac-sync-cursor','ac-lib-usage','ac-seeds-hidden','ac-pins','ac-held-edits','ac-att-del','ac-section'].forEach(k=>localStorage.removeItem(k));
       for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);if(k&&(k.indexOf('ac-cats-dirty:')===0||k.indexOf('ac-cats-updated:')===0))localStorage.removeItem(k);}
     }
     localStorage.removeItem('ac-sync-init-'+space);
@@ -4512,14 +4883,16 @@ const Sync={
         else if(!firstErr)firstErr=e;}}
     // 2. Références locales : chemin attendu par document (le scope d'une entité VIVANTE prime
     // sur celui d'un tombstone) + droit de pousser (jamais d'upload par un simple lecteur).
-    const all=await Data.getAll();
+    const all=(await Data.getAll()).concat(await Data.getProtocols().catch(()=>[]));
     const paths=Object.create(null),editable=Object.create(null);
     all.forEach(f=>{(f.attachments||[]).forEach(a=>{if(!a||!a.id)return;
       if(!paths[a.id]||!f.deletedAt)paths[a.id]=attStoragePath(f.libraryId||null,uidv,a.id);
       if(canEditFiche(f))editable[a.id]=true;});});
-    // Blobs du brouillon EN COURS d'édition : pas encore référencés par une fiche enregistrée ->
-    // à protéger de la purge (une synchro peut se déclencher pendant la saisie).
-    const draftIds=new Set(draftNewAtts.concat(((state.draft&&state.draft.attachments)||[]).map(a=>a.id)));
+    // Blobs du brouillon EN COURS d'édition (fiche OU protocole) : pas encore référencés par une
+    // entité enregistrée -> à protéger de la purge (une synchro peut arriver pendant la saisie).
+    const draftIds=new Set(draftNewAtts
+      .concat(((state.draft&&state.draft.attachments)||[]).map(a=>a.id))
+      .concat(((state.pdraft&&state.pdraft.attachments)||[]).map(a=>a.id)));
     for(const rec of await IDB.getAtts()){
       const want=paths[rec.id];
       if(!want){if(draftIds.has(rec.id))continue;             // brouillon : on ne touche à rien
@@ -4860,7 +5233,8 @@ document.addEventListener('focusout',e=>{if(!_kbText(e.relatedTarget))document.b
    PAS l'application : on expose juste les fonctions pures à tester. AUCUN effet en usage normal :
    sans ce paramètre, rien de tout ceci ne s'exécute et aucun global n'est ajouté. */
 if(location.search.indexOf('__actest')>=0){
-  window.__ac_test__={migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attStoragePath,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,
+  window.__ac_test__={migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attStoragePath,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
+    mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,
     restErrStatus,isPersoRepairCandidate,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT};
 }else{

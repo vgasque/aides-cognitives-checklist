@@ -317,6 +317,45 @@ function run(A){
   eq('bibliothèque -> l/<lib>/<id>.pdf', A.attStoragePath('lib-team','11111111-1111-1111-1111-111111111111','att1'), 'l/lib-team/att1.pdf');
   eq('libraryId vide = perso', A.attStoragePath('','u-1','att1'), 'u/u-1/att1.pdf');
 
+  group('mini-Markdown — mdInline() : XSS et balisage');
+  ok('esc() d\'abord : balise HTML neutralisée', A.mdInline('<img onerror=alert(1)>').indexOf('<img')<0);
+  eq('gras', A.mdInline('a **b** c'), 'a <b>b</b> c');
+  eq('italique', A.mdInline('a *b* c'), 'a <i>b</i> c');
+  ok('gras + italique cohabitent', A.mdInline('**g** et *i*').indexOf('<b>g</b>')>=0&&A.mdInline('**g** et *i*').indexOf('<i>i</i>')>=0);
+  ok('lien https accepté', A.mdInline('[x](https://ex.fr/a)').indexOf('href="https://ex.fr/a"')>=0);
+  ok('lien https : rel noopener', A.mdInline('[x](https://ex.fr)').indexOf('rel="noopener noreferrer"')>=0);
+  ok('javascript: refusé (laissé visible)', A.mdInline('[x](javascript:alert(1))').indexOf('<a')<0);
+  ok('att:ID sûr accepté', A.mdInline('[doc](att:a1-X)').indexOf('data-mdatt="a1-X"')>=0);
+  ok('att:__proto__ refusé', A.mdInline('[doc](att:__proto__)').indexOf('data-mdatt')<0);
+  eq('balisage non apparié laissé visible', A.mdInline('a **b'), 'a **b');
+
+  group('mini-Markdown — mdBlocks() / mdRender()');
+  eq('titres et listes découpés', A.mdBlocks('## T\n- a\n- b\n1. c').map(b=>b.t), ['h2','ul','ol']);
+  ok('paragraphes séparés par ligne vide', A.mdBlocks('a\n\nb').length===2);
+  ok('rendu titre', A.mdRender('## Titre').indexOf('<h2 class="md-h2">Titre</h2>')>=0);
+  ok('rendu liste', A.mdRender('- a\n- b').indexOf('<li>a</li><li>b</li>')>=0);
+  ok('image référencée rendue', A.mdRender('![cap](img:i1)',{images:[{id:'i1',data:'data:image/png;base64,AAAA',caption:''}]}).indexOf('<figure')>=0);
+  eq('référence d\'image morte -> rien', A.mdRender('![cap](img:absent)',{images:[]}), '');
+  ok('img:__proto__ jamais rendu', A.mdRender('![x](img:__proto__)',{images:[{id:'__proto__',data:'data:image/png;base64,AAAA'}]}).indexOf('<figure')<0);
+  ok('plafond de taille respecté (pas de blocage)', typeof A.mdRender('x'.repeat(A.MD_MAX_CHARS*2))==='string');
+
+  group('mini-Markdown — mdStrip() (recherche)');
+  eq('balisage retiré', A.mdStrip('## T\n- **a**\n[l](https://x)'), 'T a l');
+  eq('légende d\'image conservée', A.mdStrip('![légende](img:i1)'), 'légende');
+
+  group('migrateProtocol() — protocole hostile neutralisé');
+  const mp=A.migrateProtocol({id:'__proto__',title:'<b>x</b>',body:42,category:'c a t',
+    images:[{id:'i',data:'javascript:alert(1)'}],attachments:[{id:'ok-1',name:'d.pdf',size:9},{id:'bad id'}]});
+  ok('id __proto__ remplacé', mp.id!=='__proto__');
+  eq('body coercé en chaîne', mp.body, '42');
+  eq('catégorie invalide vidée', mp.category, '');
+  eq('image javascript: supprimée', mp.images, []);
+  eq('attachments filtrés', mp.attachments, [{id:'ok-1',name:'d.pdf',size:9}]);
+  eq('statut par défaut', mp.status, '');
+  ok('updatedAt posé', typeof mp.updatedAt==='number');
+  eq('blankProtocol : modèle complet', Object.keys(A.blankProtocol()).sort(),
+     ['attachments','body','category','deletedAt','id','images','libraryId','order','ownerId','status','title','updatedAt','updatedBy','validation'].sort());
+
   group('migrate() — champ attachments');
   eq('absent → tableau vide', A.migrate({title:'x'}).attachments, []);
   eq('non-tableau → tableau vide', A.migrate({title:'x',attachments:'zzz'}).attachments, []);

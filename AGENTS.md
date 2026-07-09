@@ -81,6 +81,8 @@ modèle de données, règles de sécurité) : le lire en premier. Ensuite, dans 
 | Render | `render()` → `renderLibrary` / `renderRead` / `renderEditor` (template strings + écouteurs) |
 | Flow SVG | `buildFlowSVG` : organigramme auto de la prise en charge |
 | Visionneuse PDF | `pdfLib` (chargement paresseux de `vendor/pdfjs`), `openPdfViewer` (rendu virtualisé par IntersectionObserver, zoom), fenêtre `#pdfModal` |
+| Mini-Markdown | `mdBlocks`/`mdInline`/`mdRender`/`mdStrip` : parseur maison XSS-safe (esc() d'abord) du contenu rédigé des protocoles |
+| Protocoles | `blankProtocol`/`migrateProtocol` (point d'entrée sécurité/compat), `renderProtocols`/`renderProtocolRead`/`renderProtocolEdit`, sélecteur de section sur l'accueil (`state.section`) |
 | Export / Import | JSON `version: 3` ; règles de rétrocompatibilité documentées sur place |
 | Compte & synchro | `Auth` (OTP e-mail), `Sync` (pull/push local-first), fenêtres associées |
 | Accessibilité | gestion centralisée des modales (focus, Échap, Tab) |
