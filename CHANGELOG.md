@@ -12,8 +12,10 @@
 ### Modifié
 - **Icône « attention » unifiée.** Le triangle arrondi du bandeau « Brouillon » devient le dessin
   unique de l'avertissement : bandeau « Ne pas oublier », toasts, fenêtre de suppression de compte
-  et erreurs de synchro l'utilisent désormais via `uiIcon('warn')` — plus de SVG dupliqués en dur
-  (quatre copies divergentes supprimées).
+  et erreurs de synchro l'utilisent désormais via un tracé partagé (`WARN_GLYPH`, servi par
+  `uiIcon('warn')`) — plus de SVG dupliqués en dur (quatre copies divergentes supprimées). Dans le
+  badge d'en-tête de section (« Ne pas oublier »), le tracé est recentré optiquement pour rester
+  aligné avec le titre.
 
 ## [3.5.2] — 2026-07-08
 ### Ajouté
