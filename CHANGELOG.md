@@ -1,5 +1,16 @@
 # Journal des modifications
 
+## [3.5.4] — 2026-07-09
+### Corrigé
+- **Plus d'espace vide entre la barre Enregistrer/Supprimer et le clavier.** Dans l'éditeur, la
+  barre collée en bas conservait son encart `env(safe-area-inset-bottom)` (zone du geste système,
+  ~34 px sur iPhone) pendant la saisie : quand la fenêtre est réduite au-dessus du clavier
+  virtuel (PWA installée notamment), cet encart s'intercalait en bandeau vide entre les boutons
+  et le clavier. L'encart est maintenant retiré tant qu'un champ de saisie texte a le focus
+  (clavier à l'écran, il recouvre la zone du geste système) et rétabli dès la fin de la saisie ;
+  sans clavier virtuel (ordinateur), l'encart vaut 0 et rien ne change. Les champs sans clavier
+  (cases à cocher, boutons) sont exclus de la détection.
+
 ## [3.5.3] — 2026-07-09
 ### Corrigé
 - **Ouvrir une fiche affiche son début.** Après avoir défilé dans la bibliothèque, ouvrir une
