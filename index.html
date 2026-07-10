@@ -858,39 +858,26 @@
   .report-preview .foot{margin-top:22px;font-size:11px;color:var(--ink-soft);border-top:1px solid var(--line);padding-top:8px}
   .ai-actions{display:flex;gap:9px;flex-wrap:wrap;margin:12px 0 4px}
   .ai-note{font-size:12px;color:var(--ink-soft);margin:6px 0 0;line-height:1.45}
-  /* ----- Sélecteur de section « Aides cognitives | Protocoles » : intégré à la barre d'en-tête
-     FIXE (il remplace la marque sur l'accueil, comme un segmented control de barre de navigation
-     iOS). Élément STATIQUE (jamais re-rendu) -> l'indicateur glisse réellement (transition sur
-     transform : composée par le GPU, la page reste pleinement utilisable pendant l'animation).
-     L'état actif n'est jamais porté par la couleur seule : libellé actif foncé sur pastille
-     claire + aria-pressed (WCAG 1.4.1). Coupé si prefers-reduced-motion. ----- */
+  /* ----- Sélecteur de section = TITRE DE PAGE À ONGLETS (pattern « primary tabs » MD3 / titres
+     multi-pages iOS — un segmented control est un contrôle de FILTRAGE, pas de navigation de
+     page). Le titre actif EST le texte du haut de page (corps/graisse de la marque), l'inactif
+     est en retrait, un SOULIGNEMENT partagé glisse de l'un à l'autre (transform mesuré par
+     updateHdrSec, composé GPU -> page utilisable pendant l'animation). Aucun cadre, aucune
+     pastille, aucune icône : rien que la typographie. L'état n'est jamais porté par la couleur
+     seule : position du soulignement + graisse + aria-pressed (WCAG 1.4.1). ----- */
   header.bar.home .brand{display:none}
-  /* Largeur CONTENUE (flex-basis 310px, rétrécissable) + margin-right:auto : le sélecteur occupe
-     la place du titre à gauche, le bouton Compte reste COLLÉ À DROITE quelle que soit la largeur.
-     Fond/liseré = mêmes voiles blancs que les autres contrôles de l'en-tête (.bar-acct, #rtStrip). */
-  /* Base 200px extensible jusqu'à 310px : tient sur UNE ligne avec le bouton Compte même à 375px
-     (l'en-tête est flex-wrap pour #rtStrip : sans base réduite, le bouton passait à la ligne). */
-  #hdrSec{display:none;position:relative;flex:1 1 200px;max-width:310px;min-width:0;margin-right:auto;grid-template-columns:minmax(0,1fr) minmax(0,1fr);background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.28);border-radius:12px;padding:3px}
-  header.bar.home #hdrSec{display:grid}
-  /* Liseré sur la pastille : reste perceptible en thème sombre (pastille sombre sur fond sombre). */
-  #hdrSec .secswitch-ind{position:absolute;top:3px;bottom:3px;left:3px;width:calc(50% - 3px);background:var(--surface);border:1px solid rgba(255,255,255,.28);border-radius:9px;box-shadow:0 1px 4px rgba(0,0,0,.28);transition:transform .3s cubic-bezier(.3,.7,.35,1);pointer-events:none}
-  #hdrSec.sec-protocols .secswitch-ind{transform:translateX(100%)}
-  /* Sombre : pastille et piste sont proches en luminance -> liseré renforcé (l'état reste de
-     toute façon porté par le texte d'accent 7,6:1 + aria-pressed, jamais par la pastille seule). */
-  html[data-theme="dark"] #hdrSec .secswitch-ind{border-color:rgba(255,255,255,.45)}
-  /* Rôle de TITRE DE PAGE : corps/graisse rapprochés de la marque (15px/680 pour l'actif), et le
-     libellé peut se replier sur DEUX lignes sur écran étroit (« Aides cognitives ») au lieu
-     d'être tronqué — l'icône reste à gauche, centrée sur les deux lignes. */
-  #hdrSec .secbtn{position:relative;z-index:1;display:inline-flex;align-items:center;justify-content:center;gap:7px;min-width:0;min-height:46px;padding:4px 8px;background:none;border:0;border-radius:9px;font-size:15px;font-weight:600;line-height:1.12;text-align:center;color:rgba(255,255,255,.88);cursor:pointer;transition:color .3s;font-family:inherit}
-  #hdrSec .secbtn svg{flex:none}
-  #hdrSec .secbtn .sec-lbl{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  @media (max-width:430px){#hdrSec .secbtn{font-size:14px}#hdrSec .secbtn .sec-lbl{white-space:normal;overflow:visible}}
-  html[data-theme="dark"] #hdrSec .secbtn{color:rgba(220,238,235,.85)}
-  #hdrSec .secbtn.on{color:var(--primary-dk);font-weight:680}
-  /* Après la règle sombre ci-dessus (même origine, spécificité supérieure) : l'état actif garde
-     sa couleur d'accent dans les deux thèmes. */
-  html[data-theme="dark"] #hdrSec .secbtn.on{color:var(--primary-dk)}
-  #hdrSec .secbtn:focus-visible{outline:2px solid #fff;outline-offset:2px}
+  #hdrSec{display:none;position:relative;flex:1 1 auto;min-width:0;margin-right:auto;align-items:stretch;gap:2px}
+  header.bar.home #hdrSec{display:flex}
+  #hdrSec .secbtn{position:relative;display:inline-flex;align-items:center;min-width:0;min-height:46px;padding:2px 9px 10px;background:none;border:0;font-family:inherit;font-size:17px;font-weight:600;letter-spacing:.2px;line-height:1.15;color:rgba(255,255,255,.74);cursor:pointer;transition:color .3s;white-space:nowrap}
+  html[data-theme="dark"] #hdrSec .secbtn{color:rgba(220,238,235,.68)}
+  #hdrSec .secbtn.on{color:var(--rt-ink);font-weight:680}
+  html[data-theme="dark"] #hdrSec .secbtn.on{color:#dceeeb}
+  #hdrSec .secbtn:focus-visible{outline:2px solid #fff;outline-offset:2px;border-radius:8px}
+  #hdrSec .secbtn .sec-lbl{min-width:0;overflow:hidden;text-overflow:ellipsis}
+  @media (max-width:400px){#hdrSec .secbtn{font-size:15.5px;padding:2px 7px 10px}}
+  /* Soulignement partagé, ajusté au TEXTE du titre actif (largeur mesurée -> suit corps et libellé). */
+  #hdrSec .secswitch-ind{position:absolute;bottom:4px;left:0;height:3px;width:40px;background:var(--rt-ink);border-radius:2px;transition:transform .3s cubic-bezier(.3,.7,.35,1),width .3s cubic-bezier(.3,.7,.35,1);pointer-events:none}
+  html[data-theme="dark"] #hdrSec .secswitch-ind{background:#dceeeb}
   /* Transition de CONTENU entre sections : la nouvelle liste entre en glissement + fondu (dans le
      sens de la bascule). transform/opacity seulement -> aucune interaction bloquée pendant l'animation. */
   @keyframes secInL{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:none}}
@@ -1025,7 +1012,7 @@
   <header class="bar"><div class="brand"><b>Aides cognitives</b><span id="brandSub">Bibliothèque</span><span id="brandTitle"></span></div>
     <!-- Sélecteur de section (accueil seulement, cf. header.bar.home) : élément STATIQUE, jamais
          re-rendu -> l'indicateur GLISSE réellement d'un bouton à l'autre au lieu d'être recréé. -->
-    <div id="hdrSec" role="group" aria-label="Type de contenu"><span class="secswitch-ind" aria-hidden="true"></span><button class="secbtn" data-section="fiches" aria-pressed="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h7"/><path d="M3.5 5.5l1 1 2-2M3.5 11.5l1 1 2-2M3.5 17.5l1 1 2-2"/></svg><span class="sec-lbl">Aides cognitives</span></button><button class="secbtn" data-section="protocols" aria-pressed="false"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg><span class="sec-lbl">Protocoles</span></button></div>
+    <div id="hdrSec" role="group" aria-label="Type de contenu"><span class="secswitch-ind" aria-hidden="true"></span><button class="secbtn" data-section="fiches" aria-pressed="true"><span class="sec-lbl">Aides cognitives</span></button><button class="secbtn" data-section="protocols" aria-pressed="false"><span class="sec-lbl">Protocoles</span></button></div>
     <button class="bar-acct" id="acctTop" aria-label="Compte et synchronisation" title="Compte"><svg class="ic-outline" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M5.5 20.5v-1a5 5 0 015-5h3a5 5 0 015 5v1"/></svg><svg class="ic-filled" width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="7.7" r="3.7"/><path d="M4.6 20a7.4 7.4 0 0114.8 0 1 1 0 01-1 1.1H5.6a1 1 0 01-1-1.1z"/></svg><span class="acct-dot" id="acctDot" hidden></span></button>
     <button id="rtStrip" hidden aria-label="Minuteurs en cours — afficher le panneau"></button></header>
   <main id="main" tabindex="-1"></main>
@@ -2478,8 +2465,17 @@ hdrSec.querySelectorAll('[data-section]').forEach(b=>b.onclick=()=>setSection(b.
 hdrSec.onkeydown=e=>{if(e.key==='ArrowLeft'){e.preventDefault();setSection('fiches');}else if(e.key==='ArrowRight'){e.preventDefault();setSection('protocols');}};
 function updateHdrSec(){const p=state.section==='protocols';
   hdrSec.classList.toggle('sec-protocols',p);
+  let act=null;
   hdrSec.querySelectorAll('[data-section]').forEach(b=>{const on=(b.dataset.section==='protocols')===p;
-    b.classList.toggle('on',on);b.setAttribute('aria-pressed',on?'true':'false');});}
+    b.classList.toggle('on',on);b.setAttribute('aria-pressed',on?'true':'false');if(on)act=b;});
+  // Soulignement ajusté au TEXTE du titre actif : largeur/position MESURÉES (suivent le libellé
+  // et le corps réel), animées par transform/width -> glisse d'un titre à l'autre.
+  const ind=hdrSec.querySelector('.secswitch-ind');
+  if(ind&&act){const lbl=act.querySelector('.sec-lbl')||act;
+    ind.style.width=lbl.offsetWidth+'px';
+    ind.style.transform='translateX('+(act.offsetLeft+lbl.offsetLeft)+'px)';}}
+// Le soulignement dépend de mesures : re-calé si la largeur de la fenêtre change.
+window.addEventListener('resize',()=>{if(document.querySelector('header.bar').classList.contains('home'))updateHdrSec();});
 // keepQuery : bascule déclenchée par la RECHERCHE TRANSVERSALE -> la requête est conservée
 // (le filtre de catégorie, lui, est remis à zéro : il pourrait masquer les résultats attendus).
 function setSection(s,keepQuery){s=(s==='protocols')?'protocols':'fiches';if(state.section===s)return;

@@ -29,11 +29,11 @@
   propagés, orphelins listés pour l'app-admin (`list_orphan_attachments`, purge manuelle).
   Nouveaux tests RLS (section 9) : lecture croisée refusée, usurpation de chemin refusée,
   rôles respectés, anonyme sans accès.
-- **Nouvelle section « Protocoles ».** Un sélecteur à deux positions **intégré à la barre
-  d'en-tête fixe** (« Aides cognitives | Protocoles », à la manière d'un segmented control de
-  barre de navigation iOS : indicateur glissant, transition de contenu fluide et jamais
-  bloquante, bascule à tout moment, mémorisée par compte) sépare les aides cognitives de crise
-  des protocoles de référence.
+- **Nouvelle section « Protocoles ».** Le **titre de la page d'accueil devient un titre à
+  onglets** dans la barre fixe (« Aides cognitives | Protocoles », pattern primary tabs :
+  titre actif en pleine graisse, soulignement qui glisse de l'un à l'autre, transition de
+  contenu fluide et jamais bloquante, bascule à tout moment, mémorisée par compte) et sépare
+  les aides cognitives de crise des protocoles de référence.
   Un protocole = titre, catégorie (jeu partagé avec les fiches), bibliothèque (perso ou
   partagée), date de validation, état brouillon/validé, **un ou plusieurs PDF** et/ou un
   **contenu rédigé dans l'app**. Recherche plein texte, export/import JSON (champ
