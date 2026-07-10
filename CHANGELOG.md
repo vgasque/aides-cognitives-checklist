@@ -29,11 +29,12 @@
   propagés, orphelins listés pour l'app-admin (`list_orphan_attachments`, purge manuelle).
   Nouveaux tests RLS (section 9) : lecture croisée refusée, usurpation de chemin refusée,
   rôles respectés, anonyme sans accès.
-- **Nouvelle section « Protocoles ».** Le **titre de la page d'accueil devient un titre à
-  onglets** dans la barre fixe (« Aides cognitives | Protocoles », pattern primary tabs :
-  titre actif en pleine graisse, soulignement qui glisse de l'un à l'autre, transition de
-  contenu fluide et jamais bloquante, bascule à tout moment, mémorisée par compte) et sépare
-  les aides cognitives de crise des protocoles de référence.
+- **Nouvelle section « Protocoles ».** Le **titre de la page d'accueil devient le sélecteur**
+  dans la barre fixe : « Aides cognitives | Protocoles » en titres à onglets — une ligne de
+  base court sous les deux titres et un indicateur ajusté au titre actif glisse de l'un à
+  l'autre avec un léger ressort — transition de contenu fluide et jamais bloquante, bascule à
+  tout moment, mémorisée par compte. Sépare les aides cognitives de crise des protocoles de
+  référence.
   Un protocole = titre, catégorie (jeu partagé avec les fiches), bibliothèque (perso ou
   partagée), date de validation, état brouillon/validé, **un ou plusieurs PDF** et/ou un
   **contenu rédigé dans l'app**. Recherche plein texte, export/import JSON (champ
@@ -53,6 +54,18 @@
   souvenir d'où vit un contenu.
 
 ### Modifié
+- **En-tête clair (inversion) + identité d'accueil.** La barre fixe prend la couleur du fond de
+  page (hairline de séparation), le teal se retire dans les **accents**. L'accueil retrouve la
+  **ligne d'identité** « Aides cognitives » + compte, avec en dessous la rangée d'onglets
+  « **Aides | Protocoles** » (la section est renommée pour lever le doublon avec le nom de
+  l'app). Le **mode crise** ne recolore plus la barre : il s'annonce par un **bandeau d'état
+  étiqueté** sous la barre (« Mode crise · session en cours… », pattern des systèmes
+  critiques — texte + couleur + position), le titre de la fiche gardant l'emplacement et le
+  corps du titre d'accueil ; le **rappel minuteurs y est fusionné** (chrono compact cliquable à
+  droite du bandeau — un seul bloc d'état, apparition en fondu discret jamais bloquant). Sur
+  l'accueil, la **ligne d'identité se replie au défilement** (pattern grand titre : espaces
+  confortables en haut de page, barre minimale en navigation). Propagé partout : bouton Compte
+  et pastille d'état, thème sombre, couleur de la barre d'état système.
 - **Base locale IndexedDB v4 → v5** (stores `attachments` et `protocols`). Migration
   automatique et silencieuse ; si un vieil onglet de l'app bloque la mise à jour du stockage,
   un message invite à le fermer (au lieu d'un repli silencieux vers une bibliothèque vide).

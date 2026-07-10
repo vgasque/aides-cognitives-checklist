@@ -265,7 +265,6 @@
   html[data-theme="dark"] .empty{background:rgba(255,255,255,.03)}
   html[data-theme="dark"] .tag.sess{background:#1f302d;color:var(--primary-dk)}
   html[data-theme="dark"] .tag.live{background:#16302c;color:var(--primary-dk)}
-  html[data-theme="dark"] header.bar{background:linear-gradient(180deg,#13322e,#0e2723);color:#dceeeb}
   html[data-theme="dark"] .ai-card,html[data-theme="dark"] .ai-modal .ai-card{background:var(--surface);color:var(--ink)}
   html[data-theme="dark"] .toast{background:#05100e;border:1px solid var(--line)}
   /* Champs de saisie (éditeur) codés en dur en blanc -> fond sombre lisible. */
@@ -314,34 +313,78 @@
      ne crée PAS de conteneur de défilement -> l'en-tête sticky et les scrollers internes
      (aperçu algorithme, barres de puces) continuent de fonctionner. */
   .app{max-width:780px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;overflow-x:clip}
-  header.bar{position:sticky;top:0;z-index:20;background:linear-gradient(180deg,var(--primary),var(--primary-dk));color:var(--rt-ink);padding:calc(14px + env(safe-area-inset-top)) 18px 14px;display:flex;flex-wrap:wrap;align-items:center;gap:14px;box-shadow:0 2px 12px rgba(10,74,70,.18)}
+  /* EN-TÊTE CLAIR par défaut (inversion 4.0.0) : la barre prend la couleur du fond de page —
+     plus de bloc teal détaché sur l'accueil, le teal se retire dans les ACCENTS (indicateur
+     d'onglet, focus) — et redevient TEAL PLEIN en mode crise (.crisis, posée par render()) :
+     l'immersion colorée reste la signature fonctionnelle de la crise. Un hairline sépare la
+     barre du contenu qui défile dessous (mêmes fonds). */
+  /* EN-TÊTE CLAIR PARTOUT (accueil, lecture, édition) : plus aucune recoloration du chrome.
+     Le MODE CRISE se signale par le BANDEAU D'ÉTAT étiqueté #crisisBand sous la barre (pattern
+     des systèmes critiques : texte + couleur + position, trois canaux redondants) — la barre
+     reste identique, le titre de la fiche prend l'emplacement et le corps du titre d'accueil. */
+  /* Barre à ESPACES CONFORTABLES : la compacité vient du REPLI AU DÉFILEMENT (pattern « grand
+     titre » iOS) — sur l'accueil, la ligne d'identité se replie dès qu'on défile (.condensed,
+     posée par l'écouteur de scroll) et il ne reste que les onglets (~52px). Jamais de texte tassé. */
+  header.bar{position:sticky;top:0;z-index:20;background:var(--bg);color:var(--ink);border-bottom:1px solid var(--line);padding:calc(12px + env(safe-area-inset-top)) 18px 8px;display:flex;flex-wrap:wrap;align-items:center;gap:14px;row-gap:8px}
+  .id-row{display:flex;align-items:center;gap:14px;width:100%;min-width:0;max-height:44px;opacity:1;transition:max-height .25s ease,opacity .18s ease,margin .25s ease;overflow:hidden}
+  .id-row .brand{flex:1}
+  /* Repli : uniquement sur l'accueil (en crise, la ligne porte le titre de la fiche -> reste). */
+  header.bar.home.condensed .id-row{max-height:0;opacity:0;margin-bottom:-8px;pointer-events:none}
+  /* Bandeau d'état du mode crise : RANGÉE ARRONDIE dans la barre (même géométrie que le rappel
+     minuteurs sur l'accueil), qui ABSORBE les minuteurs en crise (#cbTimers à droite). Sombre :
+     carte teal du runtime. Apparition en fondu discret (transform/opacity -> jamais bloquant). */
+  #crisisBand{order:8;width:100%;min-height:40px;padding:7px 9px 7px 13px;background:var(--primary);color:#fff;font-size:12.5px;font-weight:600;letter-spacing:.3px;border-radius:10px;display:flex;align-items:center;gap:8px;animation:cbIn .3s ease}
+  #crisisBand[hidden]{display:none}
+  html[data-theme="dark"] #crisisBand{background:var(--rt-card);color:var(--rt-ink)}
+  #crisisBand .sess-dot{--pulse:95,208,196;background:var(--live);flex:none}
+  #crisisBand .cb-lbl{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  /* Minuteurs fusionnés (seule partie ACTIONNABLE du bandeau) : jusqu'à DEUX minuteurs
+     ÉTIQUETÉS (vision globale, comme l'ancien rappel) + « +n » + ▴. */
+  #cbTimers{margin-left:auto;flex:0 1 auto;min-width:0;display:inline-flex;align-items:center;gap:12px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);color:inherit;border-radius:8px;padding:4px 10px;min-height:32px;font-family:inherit;cursor:pointer}
+  #cbTimers[hidden]{display:none}
+  #cbTimers:focus-visible{outline:2px solid var(--live);outline-offset:2px}
+  #cbTimers .rts-i{display:inline-flex;align-items:baseline;gap:6px;min-width:0}
+  #cbTimers .rts-l{font-size:10px;letter-spacing:.4px;text-transform:uppercase;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:17vw}
+  /* « Mode crise » ne se tronque jamais : ce sont les étiquettes de minuteurs qui s'ellipsent. */
+  #crisisBand.has-timers .cb-lbl{flex:none}
+  #cbTimers .rts-t{font-family:var(--mono);font-size:14.5px;font-weight:600;letter-spacing:.5px}
+  #cbTimers .cbt-n{font-size:11px;opacity:.85;white-space:nowrap}
+  /* PETIT ÉCRAN : bandeau BORD À BORD (bannière d'état système — les marges latérales gaspillent
+     la largeur et une carte flottante fait moins « état ») ; il vient mourir sur le bord bas de
+     la barre. Écran large : rangée arrondie en retrait (un ruban pleine largeur écraserait la
+     colonne) — l'adaptation canonique des bannières MD3. Le détail de session s'efface aussi
+     quand les minuteurs occupent la place. */
+  @media (max-width:640px){
+    #crisisBand.has-timers .cb-sub{display:none}
+    #crisisBand{width:calc(100% + 36px);margin:2px -18px 0;border-radius:0;padding:7px 15px 7px 18px}
+    header.bar.crisis{padding-bottom:0}
+  }
+  @keyframes cbIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
   .brand{display:flex;flex-direction:column;line-height:1.1;flex:1;min-width:0}
-  .brand b{font-size:18px;letter-spacing:.2px;font-weight:650}
-  .brand span{font-size:11.5px;text-transform:uppercase;letter-spacing:1.6px;color:var(--rt-muted);margin-top:3px}
-  #brandTitle{font-size:13px;font-weight:600;color:var(--rt-ink);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:0;text-transform:none;display:none}
+  .brand .brand-name{font-size:17px;letter-spacing:.2px;font-weight:650;line-height:1.2}
+  #brandSub{font-size:11.5px;text-transform:uppercase;letter-spacing:1.6px;color:var(--ink-soft);margin-top:3px}
+  /* Accueil : le sous-titre est porté par les onglets ; crise : l'état est porté par le bandeau. */
+  header.bar.home #brandSub,header.bar.crisis #brandSub{display:none}
+  #brandTitle{font-size:13px;font-weight:600;color:inherit;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:0;text-transform:none;display:none}
   /* Icône Compte dans l'en-tête (présence utilisateur), avec pastille d'état de synchro discrète. */
-  .bar-acct{position:relative;background:rgba(255,255,255,.14);color:var(--rt-ink);border:0;width:44px;height:44px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex:none;cursor:pointer;transition:background .12s,transform .06s}
+  /* 40px (>= 32 exigés — ce n'est pas un contrôle du mode crise) : c'est lui qui fixe la hauteur
+     de la rangée d'identité, la barre d'accueil reste sous ~85px hors encoche. */
+  .bar-acct{position:relative;background:var(--surface-3);color:var(--ink-soft);border:0;width:40px;height:40px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex:none;cursor:pointer;transition:background .12s,transform .06s}
   /* Rappel MINUTEURS toujours visible : 2e ligne de l'en-tête sticky, n'apparaît que si un minuteur
      tourne ET que le panneau minuteurs est sorti de l'écran (mis à jour par tickAll). Tap -> remonte
      au panneau. Fait partie de l'en-tête -> aucun calcul de position, reste sous l'encoche. */
-  #rtStrip{order:9;width:100%;display:flex;align-items:center;gap:14px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.28);color:var(--rt-ink);border-radius:10px;padding:6px 13px;min-height:44px;font-size:13px;font-weight:600;cursor:pointer;text-align:left}
-  #rtStrip[hidden]{display:none}
-  #rtStrip:focus-visible{outline:2px solid var(--live);outline-offset:2px}
-  #rtStrip .rts-i{display:inline-flex;align-items:baseline;gap:7px;min-width:0}
-  #rtStrip .rts-l{font-size:10.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--rt-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:34vw}
-  #rtStrip .rts-t{font-family:var(--mono);font-size:17px;font-weight:600;letter-spacing:.5px}
-  #rtStrip .rts-more{color:var(--rt-muted);font-size:12px}
-  #rtStrip .rts-go{margin-left:auto;color:var(--rt-muted);font-size:11.5px;white-space:nowrap}
-  .bar-acct.on{background:rgba(255,255,255,.2)}
-  .bar-acct:hover,.bar-acct.on:hover{background:rgba(255,255,255,.34)}
+  /* (L'ancien rappel minuteurs #rtStrip est FUSIONNÉ dans le bandeau de crise : cf. #cbTimers.) */
+  .bar-acct.on{background:var(--primary-soft);color:var(--primary-dk)}
+  .bar-acct:hover,.bar-acct.on:hover{background:var(--primary-100);color:var(--primary-dk)}
   .bar-acct:active{transform:translateY(1px)}
   /* Déconnecté = buste en contour ; connecté = buste plein (+ pastille verte). État évident. */
   .bar-acct .ic-filled{display:none}
   .bar-acct.on .ic-outline{display:none}.bar-acct.on .ic-filled{display:inline-block}
-  .acct-dot{position:absolute;right:2px;bottom:2px;width:11px;height:11px;border-radius:50%;border:2px solid var(--primary-dk);background:var(--ok-bright)}
+  /* Le liseré de la pastille découpe sur le FOND de la barre : fond de page par défaut,
+     teal en mode crise (le token --bg suit seul le thème sombre). */
+  .acct-dot{position:absolute;right:2px;bottom:2px;width:11px;height:11px;border-radius:50%;border:2px solid var(--bg);background:var(--ok-bright)}
   .acct-dot.busy{background:var(--alert-hi)}.acct-dot.err{background:var(--critical-bright)}.acct-dot.off{background:var(--neutral-bright)}
   .acct-dot.pending{background:var(--alert-hi)}.acct-dot.rejected{background:var(--critical-bright)}
-  html[data-theme="dark"] .acct-dot{border-color:#10302b}
   main{flex:1;padding:18px}
   .notice{background:var(--verify-soft);border:1px solid var(--verify-line);color:var(--verify);border-radius:10px;padding:10px 13px;font-size:12.5px;margin-bottom:16px;display:flex;gap:9px;align-items:flex-start;position:relative;padding-right:40px}
   .notice[hidden]{display:none} /* le display:flex ci-dessus prime sinon sur [hidden] (même origine auteur) */
@@ -858,38 +901,28 @@
   .report-preview .foot{margin-top:22px;font-size:11px;color:var(--ink-soft);border-top:1px solid var(--line);padding-top:8px}
   .ai-actions{display:flex;gap:9px;flex-wrap:wrap;margin:12px 0 4px}
   .ai-note{font-size:12px;color:var(--ink-soft);margin:6px 0 0;line-height:1.45}
-  /* ----- Sélecteur de section = SEGMENTED CONTROL DE TITRE (qualité iOS, rôle de titre de page).
-     Synthèse des deux pistes explorées : l'OBJET pastille (tactile, désigné) + la TAILLE d'un
-     titre. La clé : segments AJUSTÉS AU CONTENU (mesurés par updateHdrSec) et non 50/50 -> le
-     libellé tient en grand sur UNE ligne ; la pastille blanche glisse avec un léger ressort
-     (transform/width composés GPU, page utilisable pendant l'animation). Matériaux de l'en-tête :
-     voile blanc + hairline (mêmes valeurs que .bar-acct/#rtStrip), pastille --surface, ombre
-     douce. L'état n'est jamais porté par la couleur seule : position de la pastille + couleur
-     d'accent + graisse + aria-pressed (WCAG 1.4.1). Coupé si prefers-reduced-motion. ----- */
-  header.bar.home .brand{display:none}
-  /* SANS PISTE ni cadre (pattern « pill tabs ») : les deux titres sont posés DIRECTEMENT sur la
-     barre — le contrôle appartient à l'en-tête au lieu d'y flotter — et seule la CAPSULE blanche
-     entoure le titre actif, glissant de l'un à l'autre. Hybride des deux pistes explorées :
-     l'intégration des onglets + l'objet de la pastille. */
-  #hdrSec{display:none;position:relative;min-width:0;margin-right:auto;align-items:stretch;gap:4px}
-  header.bar.home #hdrSec{display:inline-flex}
-  /* Capsule : largeur/position MESURÉES sur le segment actif (updateHdrSec) ; ressort discret. */
-  #hdrSec .secswitch-ind{position:absolute;top:2px;bottom:2px;left:0;width:40px;background:var(--surface);border-radius:999px;box-shadow:0 2px 10px rgba(0,0,0,.25),0 1px 2px rgba(0,0,0,.16);transition:transform .32s cubic-bezier(.34,1.25,.4,1),width .32s cubic-bezier(.34,1.25,.4,1);pointer-events:none}
-  html[data-theme="dark"] #hdrSec .secswitch-ind{border:1px solid rgba(255,255,255,.45)}
-  #hdrSec .secbtn{position:relative;z-index:1;display:inline-flex;align-items:center;justify-content:center;gap:7px;min-width:0;min-height:46px;padding:0 16px;background:none;border:0;border-radius:999px;font-family:inherit;font-size:16px;font-weight:600;letter-spacing:.1px;line-height:1.15;color:rgba(255,255,255,.92);cursor:pointer;transition:color .32s;white-space:nowrap}
-  #hdrSec .secbtn svg{flex:none;opacity:.9}
+  /* ----- ACCUEIL : ligne d'identité (marque + compte) puis RANGÉE D'ONGLETS pleine largeur
+     « Aides | Protocoles » (pattern X/Play Store). La marque reste le titre (18px/650) ; les
+     onglets sont la navigation de section (15px, actif 680 + indicateur teal 3px à la largeur
+     du libellé, MESURÉE par updateHdrSec, glissant avec un léger ressort). L'état n'est jamais
+     porté par la couleur seule : position de l'indicateur + encre/retrait + graisse +
+     aria-pressed (WCAG 1.4.1). Coupé si prefers-reduced-motion. ----- */
+  #hdrSec{display:none;position:relative;order:5;width:100%;min-width:0;align-items:stretch;gap:24px;padding:0 2px}
+  header.bar.home #hdrSec{display:flex}
+  /* En-tête CLAIR (inversion) : titres en encre sur le fond, TEAL réservé à l'indicateur —
+     l'accent porte la sélection ; les tokens suivent seuls le thème sombre. */
+  /* Onglets de SECTION (la marque au-dessus porte le rôle de titre) : une seule taille pour les
+     deux états — pas de reflux de largeur à la bascule, l'indicateur mesuré reste exact. */
+  #hdrSec .secbtn{position:relative;display:inline-flex;align-items:center;min-width:0;min-height:36px;padding:0 2px 9px;background:none;border:0;font-family:inherit;font-size:15px;font-weight:600;letter-spacing:.2px;line-height:1.15;color:var(--ink-soft);cursor:pointer;transition:color .3s;white-space:nowrap}
+  #hdrSec .secbtn.on{color:var(--ink);font-weight:680}
+  #hdrSec .secbtn:focus-visible{outline:2px solid var(--primary);outline-offset:3px;border-radius:6px}
   #hdrSec .secbtn .sec-lbl{min-width:0;overflow:hidden;text-overflow:ellipsis}
-  html[data-theme="dark"] #hdrSec .secbtn{color:rgba(220,238,235,.68)}
-  #hdrSec .secbtn.on{color:var(--primary-dk);font-weight:680}
-  /* Sombre : la pastille est sombre -> l'actif redevient LUMINEUX (hiérarchie du titre conservée,
-     l'accent teal y serait moins saillant que l'inactif). Règle après la règle sombre ci-dessus. */
-  html[data-theme="dark"] #hdrSec .secbtn.on{color:var(--rt-ink)}
-  #hdrSec .secbtn:focus-visible{outline:2px solid #fff;outline-offset:2px}
-  /* Retour tactile discret (iOS) : le libellé pressé se tasse à peine. */
+  /* Retour tactile discret : le libellé pressé se tasse à peine. */
   #hdrSec .secbtn:active .sec-lbl{transform:scale(.97)}
-  /* Écran étroit : les icônes s'effacent (le TEXTE du titre prime), corps à peine réduit ->
-     les deux segments + le bouton Compte tiennent sur une ligne dès 360px. */
-  @media (max-width:410px){#hdrSec .secbtn{font-size:15px;padding:0 12px}#hdrSec .secbtn svg{display:none}}
+  @media (max-width:400px){#hdrSec .secbtn{font-size:14.5px}}
+  /* Indicateur : 3px, coins supérieurs arrondis (MD3), largeur du LIBELLÉ actif (mesurée),
+     glisse et se redimensionne avec un léger ressort. */
+  #hdrSec .secswitch-ind{position:absolute;bottom:0;left:0;height:3px;width:40px;background:var(--primary);border-radius:3px 3px 0 0;transition:transform .32s cubic-bezier(.34,1.25,.4,1),width .32s cubic-bezier(.34,1.25,.4,1);pointer-events:none}
   /* Transition de CONTENU entre sections : la nouvelle liste entre en glissement + fondu (dans le
      sens de la bascule). transform/opacity seulement -> aucune interaction bloquée pendant l'animation. */
   @keyframes secInL{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:none}}
@@ -986,9 +1019,12 @@
   /* Focus clavier visible sur TOUS les contrôles interactifs (uniforme avec .btn/.card). */
   :is(.catchip,.catpill,.tlink,.linkbtn,.mini,.fz,.scopebtn,.opt,.startbtn,.add-line,.notice-x,.tk-add,.tk-del,.cm-del,.ai-x,.rel-x,.back,.flow-toggle,.crumbs .cb,ol.steps li):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .rt-panel :is(.tm-btn,.cn-btn,.rt-sound,.tm-reset,.cn-reset):focus-visible{outline:2px solid var(--live);outline-offset:2px}
-  header.bar .bar-acct:focus-visible{outline:2px solid var(--rt-ink);outline-offset:2px}
+  header.bar .bar-acct:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  header.bar.crisis .bar-acct:focus-visible{outline-color:var(--rt-ink)}
   /* En-tête en mode crise : le TITRE DE LA FICHE prime, la marque s'efface. */
-  header.bar.crisis .brand b{display:none}
+  header.bar.crisis .brand .brand-name{display:none}
+  /* Crise : le titre de la fiche prend l'ÉCHELLE DU TITRE D'ACCUEIL (17px/700, même emplacement)
+     — la hiérarchie typographique ne bouge pas entre les vues, seul le bandeau d'état s'ajoute. */
   header.bar.crisis #brandTitle{font-size:17px;font-weight:700;margin-top:1px}
   /* « Ne pas oublier » : bandeau compact SOUS le titre (les rappels critiques se voient sans défiler). */
   .forget-strip{background:var(--critical-soft);border:1px solid var(--critical-line);border-radius:var(--radius);padding:10px 13px 8px;margin-bottom:16px}
@@ -1014,19 +1050,24 @@
   @media (min-width:780px){.chiprow{flex-wrap:nowrap}.catbar .chiprow,.scopebar .chiprow{flex-wrap:wrap;overflow-x:visible;padding-bottom:0}}
   @media (min-width:900px){.cards{grid-template-columns:1fr 1fr}.cards>.empty,.cards>.btn{grid-column:1/-1}}
   @media (max-width:560px){.read-head h2{font-size:21px}.row2{flex-direction:column;gap:0}.question{font-size:18px}}
-  @media (prefers-reduced-motion:reduce){*{transition:none!important}.tmcard.flash{animation:none}}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}.tmcard.flash{animation:none}#crisisBand{animation:none}}
   @media print{body{background:#fff}header.bar,footer.tools,.read-tools,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.session-bar,.sess-list,.notes-block{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}}
 </style>
 </head>
 <body>
 <a class="skiplink" href="#main">Aller au contenu</a>
 <div class="app">
-  <header class="bar"><div class="brand"><b>Aides cognitives</b><span id="brandSub">Bibliothèque</span><span id="brandTitle"></span></div>
+  <!-- .id-row = LIGNE D'IDENTITÉ (marque + compte) : repliée au défilement sur l'accueil
+       (pattern « grand titre » iOS — la barre reste minimale en navigation, cf. .condensed). -->
+  <header class="bar"><div class="id-row"><div class="brand"><span class="brand-name">Aides cognitives</span><span id="brandSub">Bibliothèque</span><span id="brandTitle"></span></div>
+    <button class="bar-acct" id="acctTop" aria-label="Compte et synchronisation" title="Compte"><svg class="ic-outline" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M5.5 20.5v-1a5 5 0 015-5h3a5 5 0 015 5v1"/></svg><svg class="ic-filled" width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="7.7" r="3.7"/><path d="M4.6 20a7.4 7.4 0 0114.8 0 1 1 0 01-1 1.1H5.6a1 1 0 01-1-1.1z"/></svg><span class="acct-dot" id="acctDot" hidden></span></button></div>
     <!-- Sélecteur de section (accueil seulement, cf. header.bar.home) : élément STATIQUE, jamais
          re-rendu -> l'indicateur GLISSE réellement d'un bouton à l'autre au lieu d'être recréé. -->
-    <div id="hdrSec" role="group" aria-label="Type de contenu"><span class="secswitch-ind" aria-hidden="true"></span><button class="secbtn" data-section="fiches" aria-pressed="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h7"/><path d="M3.5 5.5l1 1 2-2M3.5 11.5l1 1 2-2M3.5 17.5l1 1 2-2"/></svg><span class="sec-lbl">Aides cognitives</span></button><button class="secbtn" data-section="protocols" aria-pressed="false"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg><span class="sec-lbl">Protocoles</span></button></div>
-    <button class="bar-acct" id="acctTop" aria-label="Compte et synchronisation" title="Compte"><svg class="ic-outline" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M5.5 20.5v-1a5 5 0 015-5h3a5 5 0 015 5v1"/></svg><svg class="ic-filled" width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="7.7" r="3.7"/><path d="M4.6 20a7.4 7.4 0 0114.8 0 1 1 0 01-1 1.1H5.6a1 1 0 01-1-1.1z"/></svg><span class="acct-dot" id="acctDot" hidden></span></button>
-    <button id="rtStrip" hidden aria-label="Minuteurs en cours — afficher le panneau"></button></header>
+    <div id="hdrSec" role="group" aria-label="Type de contenu"><span class="secswitch-ind" aria-hidden="true"></span><button class="secbtn" data-section="fiches" aria-pressed="true"><span class="sec-lbl">Aides</span></button><button class="secbtn" data-section="protocols" aria-pressed="false"><span class="sec-lbl">Protocoles</span></button></div>
+    <!-- Bandeau d'état du MODE CRISE (C2) : étiquette persistante dans l'en-tête sticky. Il
+         ABSORBE le rappel minuteurs en crise (bouton #cbTimers, rempli par updateRtStrip) —
+         un seul bloc d'état au lieu de deux rangées empilées. -->
+    <div id="crisisBand" hidden><span class="sess-dot" aria-hidden="true"></span><span class="cb-lbl"></span><button id="cbTimers" hidden aria-label="Minuteurs en cours — afficher le panneau"></button></div></header>
   <main id="main" tabindex="-1"></main>
   <!-- Pied de page : ACTIONS d'abord (interactives, les plus utilisées), puis l'ÉTAT passif
        (nb de fiches · version + pastille de synchro), puis le message de stockage (explicatif,
@@ -1053,13 +1094,13 @@
 <div class="lightbox" id="lightbox"><button class="x" id="lbX" aria-label="Fermer l'image">×</button><img id="lbImg" alt=""><div class="cap" id="lbCap"></div></div>
 <div class="ai-modal" id="aiModal" role="dialog" aria-modal="true" aria-labelledby="aiModalTitle"><div class="ai-card">
   <div class="ai-top"><h3 id="aiModalTitle">Créer une fiche avec une IA</h3><button class="ai-x" id="aiX" aria-label="Fermer">×</button></div>
-  <p>Copiez le texte ci-dessous dans une IA (ChatGPT, Claude…) <b>en y joignant votre source</b> : un PDF, une image/capture, ou le texte d'une recommandation. L'IA renverra un fichier JSON.</p>
+  <p>Copiez le texte ci-dessous dans une IA (ChatGPT, Claude…) <strong>en y joignant votre source</strong> : un PDF, une image/capture, ou le texte d'une recommandation. L'IA renverra un fichier JSON.</p>
   <textarea class="ai-ta" id="aiTa" readonly spellcheck="false"></textarea>
   <div class="ai-actions"><button class="btn primary sm" id="aiCopy">Copier le prompt</button></div>
-  <p><b>Ensuite :</b></p>
-  <ol><li>Enregistrez la réponse de l'IA dans un fichier <b>.json</b>.</li><li>Importez-le avec le bouton ci-dessous (l'import d'une fiche ne remplace jamais votre bibliothèque).</li><li><b>Relisez la fiche</b>, ajoutez la catégorie, les schémas et la date de validation. Vous restez responsable du contenu.</li></ol>
+  <p><strong>Ensuite :</strong></p>
+  <ol><li>Enregistrez la réponse de l'IA dans un fichier <strong>.json</strong>.</li><li>Importez-le avec le bouton ci-dessous (l'import d'une fiche ne remplace jamais votre bibliothèque).</li><li><strong>Relisez la fiche</strong>, ajoutez la catégorie, les schémas et la date de validation. Vous restez responsable du contenu.</li></ol>
   <div class="ai-actions"><button class="btn primary sm" id="aiImport"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M7 8l5-5 5 5M5 17v2a2 2 0 002 2h10a2 2 0 002-2v-2"/></svg>Importer le fichier créé par l'IA</button></div>
-  <p class="ai-note">Une fois les instructions ci-dessus suivies, importez ici le fichier <b>.json</b> : la fiche s'ouvrira directement.</p>
+  <p class="ai-note">Une fois les instructions ci-dessus suivies, importez ici le fichier <strong>.json</strong> : la fiche s'ouvrira directement.</p>
 </div></div>
 <div class="ai-modal" id="catModal" role="dialog" aria-modal="true" aria-labelledby="catModalTitle"><div class="ai-card">
   <div class="ai-top"><h3 id="catModalTitle">Gérer les catégories</h3><button class="ai-x" id="catX" aria-label="Fermer">×</button></div>
@@ -1097,9 +1138,9 @@
 <!-- Accueil première ouverture : 3 repères, une seule fois (localStorage ac-onboarded). -->
 <div class="ai-modal" id="welcomeModal" role="dialog" aria-modal="true" aria-labelledby="welcomeModalTitle"><div class="ai-card" style="max-width:560px">
   <div class="ai-top"><h3 id="welcomeModalTitle">Bienvenue dans Aides cognitives</h3><button class="ai-x" id="welcomeX" aria-label="Fermer">×</button></div>
-  <p><b>1 · Vous rédigez, vous validez.</b> L'app ne contient aucun protocole imposé : vous créez vos fiches (à la main ou via « Créer via IA ») et vous restez responsable du contenu clinique. Deux fiches d'exemple peuvent être ajoutées depuis l'accueil — relisez-les avant tout usage.</p>
-  <p><b>2 · Le mode crise ne vous interrompt jamais.</b> Ouvrez une fiche : étapes cochables, minuteurs, compteurs et horodatage. Tout est enregistré automatiquement en session, même hors-ligne.</p>
-  <p><b>3 · Vos données restent sur l'appareil.</b> Sans compte, rien ne quitte votre téléphone (pensez à « Exporter tout »). Le bouton Compte active la synchronisation multi-appareils, facultative.</p>
+  <p><strong>1 · Vous rédigez, vous validez.</strong> L'app ne contient aucun protocole imposé : vous créez vos fiches (à la main ou via « Créer via IA ») et vous restez responsable du contenu clinique. Deux fiches d'exemple peuvent être ajoutées depuis l'accueil — relisez-les avant tout usage.</p>
+  <p><strong>2 · Le mode crise ne vous interrompt jamais.</strong> Ouvrez une fiche : étapes cochables, minuteurs, compteurs et horodatage. Tout est enregistré automatiquement en session, même hors-ligne.</p>
+  <p><strong>3 · Vos données restent sur l'appareil.</strong> Sans compte, rien ne quitte votre téléphone (pensez à « Exporter tout »). Le bouton Compte active la synchronisation multi-appareils, facultative.</p>
   <div style="display:flex;justify-content:flex-end;margin-top:14px"><button class="btn primary" id="welcomeGo">Commencer</button></div>
 </div></div>
 <!-- Aperçu de compte-rendu de session : visualisation DANS l'app, puis Imprimer / Télécharger.
@@ -2353,7 +2394,10 @@ function tickAll(){const now=Date.now();let fired=null;
 let _rtShow=false,_rtShowDirty=true;
 window.addEventListener('scroll',()=>{_rtShowDirty=true;},{passive:true});
 window.addEventListener('resize',()=>{_rtShowDirty=true;},{passive:true});
-function updateRtStrip(now){const el=document.getElementById('rtStrip');if(!el)return;
+// FUSIONNÉ dans le bandeau de crise : le chrono compact #cbTimers (à droite du bandeau) reprend
+// le rôle de l'ancien rappel #rtStrip — visible quand un minuteur tourne ET que le panneau
+// minuteurs est sorti de l'écran ; tap -> remonte au panneau. Un seul bloc d'état dans la barre.
+function updateRtStrip(now){const el=document.getElementById('cbTimers');if(!el)return;
   now=now||Date.now();
   const run=(state.view==='read'&&Runtime.fiche)?Object.values(Runtime.timers).filter(t=>t.running):[];
   let show=false;
@@ -2362,13 +2406,15 @@ function updateRtStrip(now){const el=document.getElementById('rtStrip');if(!el)r
       const hb=hdr?hdr.getBoundingClientRect().bottom:0;
       _rtShow=!p||p.getBoundingClientRect().bottom<=hb;}
     show=_rtShow;}
-  if(!show){el.hidden=true;return;}
+  const band=document.getElementById('crisisBand');
+  if(!show){el.hidden=true;if(band)band.classList.remove('has-timers');return;}
+  // Jusqu'à DEUX minuteurs étiquetés (vision globale), puis « +n » et le rappel « remonter ».
   const seg=run.slice(0,2).map(t=>{const lbl=esc(t.label)||(t.type==='interval'?'Minuteur':'Chrono');
-    return `<span class="rts-i"><span class="rts-l">${lbl}</span><b class="rts-t">${timerDisplay(t,now).val}</b></span>`;}).join('');
-  el.innerHTML=seg+(run.length>2?`<span class="rts-more">+${run.length-2}</span>`:'')+'<span class="rts-go">▴ Voir</span>';
-  el.hidden=false;}
-{const rs=document.getElementById('rtStrip');
- if(rs)rs.onclick=()=>{const p=document.querySelector('.rt-panel');if(p)p.scrollIntoView({behavior:'smooth',block:'start'});};}
+    return '<span class="rts-i"><span class="rts-l">'+lbl+'</span><span class="rts-t">'+timerDisplay(t,now).val+'</span></span>';}).join('');
+  el.innerHTML=seg+(run.length>2?'<span class="cbt-n">+'+(run.length-2)+'</span>':'')+'<span class="cbt-n" aria-hidden="true">▴</span>';
+  el.hidden=false;if(band)band.classList.add('has-timers');}
+{const cbt=document.getElementById('cbTimers');
+ if(cbt)cbt.onclick=()=>{const p=document.querySelector('.rt-panel');if(p)p.scrollIntoView({behavior:'smooth',block:'start'});};}
 function refreshTimersDOM(now){now=now||Date.now();
   Object.values(Runtime.timers).forEach(t=>{const v=document.getElementById('tmval-'+t.id);if(!v)return;syncTimerBtns(t);const lbl=esc(t.label)||(t.type==='interval'?'Minuteur':'Chronomètre');
     const d=timerDisplay(t,now);v.textContent=d.val;
@@ -2435,14 +2481,22 @@ function render(){
   // Sur l'ACCUEIL, l'en-tête porte le sélecteur de section à la place de la marque (classe .home).
   document.querySelector('header.bar').classList.toggle('home',state.view==='library');
   if(state.view==='library')updateHdrSec();
+  // Barre d'état système accordée à l'en-tête (clair par défaut, teal en crise, thème suivi).
+  setThemeColorMeta(themeColorCurrent());
   // En session active, l'en-tête porte un rappel PERMANENT mais discret (point pulsé + texte) :
   // assez visible pour ne pas oublier la session, sans recolorer tout l'en-tête ni exposer un
   // bouton « Terminer » en zone de tap fréquente (action à ne PAS rendre plus accessible en crise).
+  // Sous-titre de la marque — masqué par le CSS sur l'accueil (les onglets parlent) et en crise
+  // (le bandeau d'état parle) ; reste utile en édition/lecture de protocole.
   {const bs=document.getElementById('brandSub');
-   if(state.view==='read'&&Runtime.started)bs.innerHTML='Mode crise · <span class="sess-dot" aria-hidden="true"></span> session en cours';
-   else bs.textContent=state.view==='library'?(state.section==='protocols'?'Protocoles':'Bibliothèque')
-     :state.view==='edit'||state.view==='protocolEdit'?'Édition'
-     :state.view==='protocolRead'?'Protocole':'Mode crise';}
+   bs.textContent=state.view==='edit'||state.view==='protocolEdit'?'Édition'
+     :state.view==='protocolRead'?'Protocole'
+     :state.view==='library'?(state.section==='protocols'?'Protocoles':'Bibliothèque'):'Mode crise';}
+  // Bandeau d'état du MODE CRISE (C2) : étiquette persistante (en-tête sticky), état de session
+  // inclus. On ne remplit QUE le libellé : le chrono #cbTimers (géré par updateRtStrip) survit.
+  {const cb=document.getElementById('crisisBand');const crisis=state.view==='read'&&!!state.fiche;
+   cb.hidden=!crisis;
+   if(crisis)cb.querySelector('.cb-lbl').innerHTML='Mode crise'+(Runtime.started?'<span class="cb-sub"> · session en cours — enregistrée automatiquement</span>':'');}
   const bt=document.getElementById('brandTitle');if(bt){const t=state.view==='read'&&state.fiche?state.fiche.title||'':state.view==='protocolRead'&&state.protocol?state.protocol.title||'':'';bt.textContent=t;bt.style.display=t?'block':'none';}
   // Session en cours : pied de page réduit à l'état (les actions Exporter/Importer/Thème sortent
   // du champ visuel) ; le rappel minuteurs de l'en-tête est resynchronisé tout de suite.
@@ -2480,14 +2534,21 @@ function updateHdrSec(){const p=state.section==='protocols';
   let act=null;
   hdrSec.querySelectorAll('[data-section]').forEach(b=>{const on=(b.dataset.section==='protocols')===p;
     b.classList.toggle('on',on);b.setAttribute('aria-pressed',on?'true':'false');if(on)act=b;});
-  // Pastille ajustée au SEGMENT actif : largeur/position MESURÉES (les segments sont taillés
-  // sur leur contenu, pas 50/50 -> le libellé tient en grand sur une ligne), animées par
-  // transform/width -> la pastille glisse d'un segment à l'autre.
+  // Indicateur ajusté au LIBELLÉ du titre actif : largeur/position MESURÉES (suivent le texte
+  // et le corps réels), animées par transform/width -> glisse d'un titre à l'autre sur la
+  // ligne de base.
   const ind=hdrSec.querySelector('.secswitch-ind');
-  if(ind&&act){ind.style.width=act.offsetWidth+'px';
-    ind.style.transform='translateX('+act.offsetLeft+'px)';}}
+  if(ind&&act){const lbl=act.querySelector('.sec-lbl')||act;
+    ind.style.width=lbl.offsetWidth+'px';
+    ind.style.transform='translateX('+(act.offsetLeft+lbl.offsetLeft)+'px)';}}
 // Le soulignement dépend de mesures : re-calé si la largeur de la fenêtre change.
 window.addEventListener('resize',()=>{if(document.querySelector('header.bar').classList.contains('home'))updateHdrSec();});
+// « GRAND TITRE » : sur l'accueil, la ligne d'identité se replie dès qu'on défile (.condensed,
+// cf. CSS — il ne reste que les onglets) et réapparaît en haut de page. Écouteur passif ;
+// les scrollTo() de render() déclenchent aussi l'évènement -> état toujours juste.
+let _hdrCond=false;
+window.addEventListener('scroll',()=>{const c=window.scrollY>24;
+  if(c!==_hdrCond){_hdrCond=c;document.querySelector('header.bar').classList.toggle('condensed',c);}},{passive:true});
 // keepQuery : bascule déclenchée par la RECHERCHE TRANSVERSALE -> la requête est conservée
 // (le filtre de catégorie, lui, est remis à zéro : il pourrait masquer les résultats attendus).
 function setSection(s,keepQuery){s=(s==='protocols')?'protocols':'fiches';if(state.section===s)return;
@@ -4712,7 +4773,7 @@ function resolveTheme(mode){return mode==='auto'?((window.matchMedia&&matchMedia
 function applyTheme(mode){try{localStorage.setItem('ac-theme',mode);}catch(e){}
   const resolved=resolveTheme(mode);document.documentElement.setAttribute('data-theme',resolved);
   const b=document.getElementById('themeBtn');if(b){b.innerHTML=mode==='auto'?uiIcon('autotheme',14)+' Thème : auto':(mode==='dark'?uiIcon('moon',14)+' Thème : sombre':uiIcon('sun',14)+' Thème : clair');b.title=mode==='auto'?'Thème automatique : suit le réglage clair/sombre de votre appareil. Cliquez pour choisir manuellement.':'Cliquez pour changer de thème (auto / clair / sombre).';}
-  setThemeColorMeta(resolved==='dark'?'#0e2723':'#0d5b56');}
+  setThemeColorMeta(themeColorCurrent());}
 // Couleur de la barre d'état (meta theme-color) — HELPER UNIQUE (thème ET flash d'alarme).
 // Certaines versions d'iOS Safari ne re-lisent PAS un meta modifié via setAttribute, seulement
 // à l'INSERTION du nœud -> on REMPLACE la balise (idempotent si la couleur ne change pas).
@@ -4721,8 +4782,9 @@ function setThemeColorMeta(col){
   if(old&&old.getAttribute('content')===col)return;
   if(old)old.remove();
   const m=document.createElement('meta');m.name='theme-color';m.content=col;document.head.appendChild(m);}
-// Couleur nominale de la barre d'état pour le thème COURANT (pour restaurer après le flash).
-function themeColorCurrent(){return document.documentElement.getAttribute('data-theme')==='dark'?'#0e2723':'#0d5b56';}
+// Couleur nominale de la barre d'état pour le thème courant (restaurée après le flash d'alarme) :
+// l'en-tête est CLAIR sur toutes les vues (le mode crise se signale par le bandeau, pas la barre).
+function themeColorCurrent(){return document.documentElement.getAttribute('data-theme')==='dark'?'#0e1513':'#eef1f0';}
 // Cycle : Auto -> Clair -> Sombre -> Auto.
 document.getElementById('themeBtn').onclick=()=>{const cur=localStorage.getItem('ac-theme')||'auto';applyTheme(cur==='auto'?'light':cur==='light'?'dark':'auto');};
 // Taille du texte : zoom CSS sur <html> (agrandit AUSSI les cibles tactiles, pas seulement la
