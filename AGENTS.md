@@ -54,6 +54,11 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
 - Fonctions pures testables : les exposer via le hook `?__actest` (fin de `index.html`) et ajouter
   un test dans `tests.html`.
 - Ne jamais supprimer un champ du modèle fiche/catégorie (compatibilité ascendante).
+- **Nommage SQL** : ne JAMAIS renommer un identifiant existant (`fiches`, `category_sets`,
+  `fiche_notes`… sont historiquement en français : un renommage casserait les instances déployées
+  et le client, sans gain fonctionnel) ; tout **nouvel** objet (table, fonction, politique,
+  colonne) est nommé **en anglais** (`protocols`, `list_orphan_attachments`…). Le français reste
+  la langue des commentaires et des textes visibles.
 - La sécurité réelle est **côté serveur** (politiques RLS de `supabase/schema.sql`, y compris
   celles du bucket Storage `attachments` — le **chemin encode le périmètre** : `u/<uid>/…` perso,
   `l/<libId>/…` partagé) ; les contrôles client ne sont que de l'ergonomie. Toute évolution du

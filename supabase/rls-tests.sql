@@ -343,13 +343,18 @@ begin
   select count(*) into v_cnt from storage.objects where bucket_id='attachments' and name='l/lib-team/att-t1.pdf';
   if v_cnt <> 1 then raise exception 'ÉCHEC : un editor/admin ne peut pas déposer un document dans sa bibliothèque'; end if;
 
+  -- NB SUPPRESSIONS : Supabase BLOQUE tout DELETE direct sur storage.objects, même en SQL Editor
+  -- (trigger storage.protect_delete : « Use the Storage API instead »). La voie de suppression
+  -- réelle de l'app est l'API Storage, qui applique LES MÊMES politiques (att_perso/att_lib_write
+  -- sont FOR ALL : une seule expression pour SELECT/INSERT/UPDATE/DELETE). On valide donc leur
+  -- clause USING via des UPDATE (autorisés en direct) — la sémantique DELETE en découle.
+
   -- 9.6 frank (viewer, membre) LIT le document de la bibliothèque mais ne peut ni le remplacer
-  -- ni le supprimer (RLS -> 0 ligne affectée, sans erreur) ni en déposer un nouveau.
+  -- (RLS -> 0 ligne affectée, sans erreur) ni en déposer un nouveau.
   perform set_config('request.jwt.claims', json_build_object('sub',frank,'role','authenticated')::text, true);
   select count(*) into v_cnt from storage.objects where bucket_id='attachments' and name='l/lib-team/att-t1.pdf';
   if v_cnt <> 1 then raise exception 'ÉCHEC : un viewer membre ne voit pas un document de sa bibliothèque'; end if;
   update storage.objects set metadata='{"hack":1}' where bucket_id='attachments' and name='l/lib-team/att-t1.pdf';
-  delete from storage.objects where bucket_id='attachments' and name='l/lib-team/att-t1.pdf';
   begin
     insert into storage.objects(bucket_id,name) values ('attachments','l/lib-team/att-f1.pdf');
     raise exception 'ÉCHEC : un viewer a pu déposer un document dans la bibliothèque';
@@ -357,18 +362,17 @@ begin
   reset role;
   select metadata->>'hack' into v_hack from storage.objects where bucket_id='attachments' and name='l/lib-team/att-t1.pdf';
   if v_hack is not null then raise exception 'ÉCHEC : un viewer a pu remplacer un document de sa bibliothèque'; end if;
-  select count(*) into v_cnt from storage.objects where bucket_id='attachments' and name='l/lib-team/att-t1.pdf';
-  if v_cnt <> 1 then raise exception 'ÉCHEC : un viewer a pu supprimer un document de sa bibliothèque'; end if;
 
-  -- 9.7 Un EDITOR peut remplacer/supprimer le document déposé par un AUTRE (jamais fondé sur
-  -- storage.objects.owner — même modèle que fiches_shared_write). frank passe editor pour le test.
+  -- 9.7 Un EDITOR peut REMPLACER le document déposé par un AUTRE (jamais fondé sur
+  -- storage.objects.owner — même modèle que fiches_shared_write, x-upsert = UPDATE ; la clause
+  -- couvre aussi DELETE, cf. NB ci-dessus). frank passe editor pour le test.
   update public.memberships set role='editor' where user_id=frank and library_id='lib-team';
   perform set_config('request.jwt.claims', json_build_object('sub',frank,'role','authenticated')::text, true);
   set local role authenticated;
-  delete from storage.objects where bucket_id='attachments' and name='l/lib-team/att-t1.pdf';
+  update storage.objects set metadata='{"size":999}' where bucket_id='attachments' and name='l/lib-team/att-t1.pdf';
   reset role;
-  select count(*) into v_cnt from storage.objects where bucket_id='attachments' and name='l/lib-team/att-t1.pdf';
-  if v_cnt <> 0 then raise exception 'ÉCHEC : un editor ne peut pas supprimer le document d''un collègue de sa bibliothèque'; end if;
+  select metadata->>'size' into v_hack from storage.objects where bucket_id='attachments' and name='l/lib-team/att-t1.pdf';
+  if v_hack is distinct from '999' then raise exception 'ÉCHEC : un editor ne peut pas remplacer le document d''un collègue de sa bibliothèque'; end if;
   update public.memberships set role='viewer' where user_id=frank and library_id='lib-team';  -- remise en état
 
   -- 9.8 Non-membre : aucun accès aux documents de la bibliothèque.

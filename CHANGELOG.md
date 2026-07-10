@@ -40,11 +40,17 @@
   rétrocompatible), synchronisation cloud complète (table `protocols`, mêmes politiques RLS
   que les fiches — tests section 10).
 - **Contenu rédigé en mise en forme simple (mini-Markdown maison, sans dépendance).** Titres
-  (`##`/`###`), listes à puces et numérotées, **gras**, *italique*, liens web, liens vers un
-  PDF joint, images intégrées (réduites et stockées hors ligne). Éditeur avec barre d'outils
-  (B, I, H2, H3, listes, lien, image) et aperçu en direct. Rendu sûr par construction
-  (échappement d'abord, `javascript:` et identifiants hostiles refusés — testés) ; balisage
-  non reconnu laissé visible, le rendu ne casse jamais.
+  (`#`/`##`/`###`), listes à puces et numérotées avec **sous-listes** (2 espaces d'indentation),
+  **citations** (`>`), **code** en ligne et en bloc (```` ``` ````), séparateur (`---`),
+  **gras**, *italique*, liens web, liens vers un PDF joint, images intégrées (réduites et
+  stockées hors ligne). Éditeur avec barre d'outils (B, I, H2, H3, listes, citation, code,
+  lien, image) et aperçu en direct. Rendu sûr par construction (échappement d'abord,
+  `javascript:` et identifiants hostiles refusés, aucun balisage interprété dans le code —
+  testés) ; balisage non reconnu laissé visible, le rendu ne casse jamais.
+- **Recherche transversale.** La recherche de l'accueil évalue aussi la requête sur l'autre
+  section : un bloc discret « N protocoles correspondent aussi à cette recherche » (et
+  inversement) bascule de section en conservant la recherche — en urgence, pas besoin de se
+  souvenir d'où vit un contenu.
 
 ### Modifié
 - **Base locale IndexedDB v4 → v5** (stores `attachments` et `protocols`). Migration
@@ -57,9 +63,11 @@
   et composants Documents **factorisés** entre fiches et protocoles (aucune logique dupliquée).
 
 ### Sécurité
-- Nouveaux garde-fous : `safeAttachment` (id jamais régénéré, entrée invalide rejetée),
-  `safeFileName`, validateurs du mini-Markdown — tous testés (227 tests). La suppression de
-  compte (RGPD) emporte aussi les protocoles personnels.
+- Nouveaux garde-fous : `safeAttachment` (id jamais régénéré, entrée invalide rejetée,
+  extension `.pdf` garantie même après renommage), `safeFileName`, validateurs du
+  mini-Markdown — tous testés (246 tests). Un PDF endommagé affiche un message clair et ne
+  bloque jamais la navigation (rendu isolé dans un worker, jamais de code exécuté depuis un
+  document). La suppression de compte (RGPD) emporte aussi les protocoles personnels.
 
 ### À savoir
 - Le schéma serveur doit être re-exécuté (`supabase/schema.sql`) puis validé avec

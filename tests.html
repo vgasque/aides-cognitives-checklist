@@ -308,6 +308,8 @@ function run(A){
   eq('id manquant rejeté', A.safeAttachment({name:'x',size:1}), null);
   eq('non-objet rejeté', A.safeAttachment('x'), null);
   eq('nom vide → défaut', A.safeAttachment({id:'a1',size:1}).name, 'document.pdf');
+  eq('extension .pdf garantie au renommage', A.safeAttachment({id:'a1',name:'rapport',size:1}).name, 'rapport.pdf');
+  eq('extension .pdf jamais dupliquée', A.safeAttachment({id:'a1',name:'x.PDF',size:1}).name, 'x.PDF');
   eq('taille négative clampée à 0', A.safeAttachment({id:'a1',name:'x',size:-5}).size, 0);
   eq('taille démesurée clampée au plafond', A.safeAttachment({id:'a1',name:'x',size:1e12}).size, A.MAX_PDF_BYTES);
   ok('nom avec chemin nettoyé', A.safeAttachment({id:'a1',name:'../x.pdf',size:1}).name.indexOf('/')<0);
@@ -334,6 +336,18 @@ function run(A){
   ok('paragraphes séparés par ligne vide', A.mdBlocks('a\n\nb').length===2);
   ok('rendu titre', A.mdRender('## Titre').indexOf('<h2 class="md-h2">Titre</h2>')>=0);
   ok('rendu liste', A.mdRender('- a\n- b').indexOf('<li>a</li><li>b</li>')>=0);
+  eq('# -> h1', A.mdBlocks('# Grand titre')[0].t, 'h1');
+  ok('sous-liste (2 espaces) rattachée à l\'élément précédent', (()=>{const b=A.mdBlocks('- a\n  - a1\n  - a2\n- b')[0];return b.t==='ul'&&b.items.length===2&&b.items[0].sub&&b.items[0].sub.items.length===2&&!b.items[1].sub;})());
+  ok('rendu sous-liste imbriquée', A.mdRender('- a\n  - a1').indexOf('<li>a<ul class="md-ul"><li>a1</li></ul></li>')>=0);
+  ok('sous-liste numérotée dans liste à puces', A.mdRender('- a\n  1. a1').indexOf('<ol class="md-ol"><li>a1</li></ol>')>=0);
+  eq('citation regroupée', A.mdBlocks('> l1\n> l2')[0].t, 'q');
+  ok('rendu citation', A.mdRender('> x').indexOf('<blockquote class="md-q">x</blockquote>')>=0);
+  ok('code en ligne (échappé)', A.mdRender('un `x<y` code').indexOf('<code class="md-ci">x&lt;y</code>')>=0);
+  ok('balisage NON interprété dans le code en ligne', A.mdRender('`**pas gras**`').indexOf('<b>')<0);
+  ok('bloc de code ``` rendu en <pre>', A.mdRender('```\ncode\n```').indexOf('<pre class="md-code">')>=0);
+  ok('bloc de code : HTML neutralisé', A.mdRender('```\n<script>alert(1)<\/script>\n```').indexOf('<script>')<0);
+  ok('bloc non refermé : contenu visible quand même', A.mdRender('```\nabc').indexOf('abc')>=0);
+  ok('séparateur ---', A.mdRender('---').indexOf('<hr class="md-hr">')>=0);
   ok('image référencée rendue', A.mdRender('![cap](img:i1)',{images:[{id:'i1',data:'data:image/png;base64,AAAA',caption:''}]}).indexOf('<figure')>=0);
   eq('référence d\'image morte -> rien', A.mdRender('![cap](img:absent)',{images:[]}), '');
   ok('img:__proto__ jamais rendu', A.mdRender('![x](img:__proto__)',{images:[{id:'__proto__',data:'data:image/png;base64,AAAA'}]}).indexOf('<figure')<0);
@@ -342,6 +356,7 @@ function run(A){
   group('mini-Markdown — mdStrip() (recherche)');
   eq('balisage retiré', A.mdStrip('## T\n- **a**\n[l](https://x)'), 'T a l');
   eq('légende d\'image conservée', A.mdStrip('![légende](img:i1)'), 'légende');
+  eq('citation/code/hr retirés', A.mdStrip('> a\n`b`\n---'), 'a b ');
 
   group('migrateProtocol() — protocole hostile neutralisé');
   const mp=A.migrateProtocol({id:'__proto__',title:'<b>x</b>',body:42,category:'c a t',
