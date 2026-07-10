@@ -294,6 +294,94 @@ function run(A){
   eq('related nettoyé', m31.related, ['ok-1']);
   eq('updatedBy conservé', m31.updatedBy, 'a@b.fr');
   eq('status inconnu → validée', A.migrate({title:'x',status:'???'}).status, '');
+
+  group('safeFileName() — nom de document affichable');
+  eq('nom simple conservé', A.safeFileName('protocole-ACR.pdf'), 'protocole-ACR.pdf');
+  eq('séparateurs de chemin retirés', A.safeFileName('../..\\etc/passwd.pdf'), '....etcpasswd.pdf');
+  ok('borné à 150 caractères', A.safeFileName('a'.repeat(400)).length<=150);
+  eq('non-chaîne coercée', A.safeFileName(42), '42');
+
+  group('safeAttachment() — métadonnées de document PDF');
+  eq('entrée valide normalisée', A.safeAttachment({id:'a1-X_9',name:'doc.pdf',size:1234}), {id:'a1-X_9',name:'doc.pdf',size:1234});
+  eq('id __proto__ REJETÉ (jamais régénéré)', A.safeAttachment({id:'__proto__',name:'x',size:1}), null);
+  eq('id invalide rejeté', A.safeAttachment({id:'a b/c',name:'x',size:1}), null);
+  eq('id manquant rejeté', A.safeAttachment({name:'x',size:1}), null);
+  eq('non-objet rejeté', A.safeAttachment('x'), null);
+  eq('nom vide → défaut', A.safeAttachment({id:'a1',size:1}).name, 'document.pdf');
+  eq('extension .pdf garantie au renommage', A.safeAttachment({id:'a1',name:'rapport',size:1}).name, 'rapport.pdf');
+  eq('extension .pdf jamais dupliquée', A.safeAttachment({id:'a1',name:'x.PDF',size:1}).name, 'x.PDF');
+  eq('taille négative clampée à 0', A.safeAttachment({id:'a1',name:'x',size:-5}).size, 0);
+  eq('taille démesurée clampée au plafond', A.safeAttachment({id:'a1',name:'x',size:1e12}).size, A.MAX_PDF_BYTES);
+  ok('nom avec chemin nettoyé', A.safeAttachment({id:'a1',name:'../x.pdf',size:1}).name.indexOf('/')<0);
+
+  group('attStoragePath() — le chemin cloud encode le périmètre');
+  eq('perso -> u/<uid>/<id>.pdf', A.attStoragePath(null,'11111111-1111-1111-1111-111111111111','att1'), 'u/11111111-1111-1111-1111-111111111111/att1.pdf');
+  eq('bibliothèque -> l/<lib>/<id>.pdf', A.attStoragePath('lib-team','11111111-1111-1111-1111-111111111111','att1'), 'l/lib-team/att1.pdf');
+  eq('libraryId vide = perso', A.attStoragePath('','u-1','att1'), 'u/u-1/att1.pdf');
+
+  group('mini-Markdown — mdInline() : XSS et balisage');
+  ok('esc() d\'abord : balise HTML neutralisée', A.mdInline('<img onerror=alert(1)>').indexOf('<img')<0);
+  eq('gras', A.mdInline('a **b** c'), 'a <b>b</b> c');
+  eq('italique', A.mdInline('a *b* c'), 'a <i>b</i> c');
+  ok('gras + italique cohabitent', A.mdInline('**g** et *i*').indexOf('<b>g</b>')>=0&&A.mdInline('**g** et *i*').indexOf('<i>i</i>')>=0);
+  ok('lien https accepté', A.mdInline('[x](https://ex.fr/a)').indexOf('href="https://ex.fr/a"')>=0);
+  ok('lien https : rel noopener', A.mdInline('[x](https://ex.fr)').indexOf('rel="noopener noreferrer"')>=0);
+  ok('javascript: refusé (laissé visible)', A.mdInline('[x](javascript:alert(1))').indexOf('<a')<0);
+  ok('att:ID sûr accepté', A.mdInline('[doc](att:a1-X)').indexOf('data-mdatt="a1-X"')>=0);
+  ok('att:__proto__ refusé', A.mdInline('[doc](att:__proto__)').indexOf('data-mdatt')<0);
+  eq('balisage non apparié laissé visible', A.mdInline('a **b'), 'a **b');
+
+  group('mini-Markdown — mdBlocks() / mdRender()');
+  eq('titres et listes découpés', A.mdBlocks('## T\n- a\n- b\n1. c').map(b=>b.t), ['h2','ul','ol']);
+  ok('paragraphes séparés par ligne vide', A.mdBlocks('a\n\nb').length===2);
+  ok('rendu titre', A.mdRender('## Titre').indexOf('<h2 class="md-h2">Titre</h2>')>=0);
+  ok('rendu liste', A.mdRender('- a\n- b').indexOf('<li>a</li><li>b</li>')>=0);
+  eq('# -> h1', A.mdBlocks('# Grand titre')[0].t, 'h1');
+  ok('sous-liste (2 espaces) rattachée à l\'élément précédent', (()=>{const b=A.mdBlocks('- a\n  - a1\n  - a2\n- b')[0];return b.t==='ul'&&b.items.length===2&&b.items[0].sub&&b.items[0].sub.items.length===2&&!b.items[1].sub;})());
+  ok('rendu sous-liste imbriquée', A.mdRender('- a\n  - a1').indexOf('<li>a<ul class="md-ul"><li>a1</li></ul></li>')>=0);
+  ok('sous-liste numérotée dans liste à puces', A.mdRender('- a\n  1. a1').indexOf('<ol class="md-ol"><li>a1</li></ol>')>=0);
+  eq('citation regroupée', A.mdBlocks('> l1\n> l2')[0].t, 'q');
+  ok('rendu citation', A.mdRender('> x').indexOf('<blockquote class="md-q">x</blockquote>')>=0);
+  ok('code en ligne (échappé)', A.mdRender('un `x<y` code').indexOf('<code class="md-ci">x&lt;y</code>')>=0);
+  ok('balisage NON interprété dans le code en ligne', A.mdRender('`**pas gras**`').indexOf('<b>')<0);
+  ok('bloc de code ``` rendu en <pre>', A.mdRender('```\ncode\n```').indexOf('<pre class="md-code">')>=0);
+  ok('bloc de code : HTML neutralisé', A.mdRender('```\n<script>alert(1)<\/script>\n```').indexOf('<script>')<0);
+  ok('bloc non refermé : contenu visible quand même', A.mdRender('```\nabc').indexOf('abc')>=0);
+  ok('séparateur ---', A.mdRender('---').indexOf('<hr class="md-hr">')>=0);
+  ok('image référencée rendue', A.mdRender('![cap](img:i1)',{images:[{id:'i1',data:'data:image/png;base64,AAAA',caption:''}]}).indexOf('<figure')>=0);
+  eq('référence d\'image morte -> rien', A.mdRender('![cap](img:absent)',{images:[]}), '');
+  ok('img:__proto__ jamais rendu', A.mdRender('![x](img:__proto__)',{images:[{id:'__proto__',data:'data:image/png;base64,AAAA'}]}).indexOf('<figure')<0);
+  ok('plafond de taille respecté (pas de blocage)', typeof A.mdRender('x'.repeat(A.MD_MAX_CHARS*2))==='string');
+
+  group('mini-Markdown — mdStrip() (recherche)');
+  eq('balisage retiré', A.mdStrip('## T\n- **a**\n[l](https://x)'), 'T a l');
+  eq('légende d\'image conservée', A.mdStrip('![légende](img:i1)'), 'légende');
+  eq('citation/code/hr retirés', A.mdStrip('> a\n`b`\n---'), 'a b ');
+
+  group('migrateProtocol() — protocole hostile neutralisé');
+  const mp=A.migrateProtocol({id:'__proto__',title:'<b>x</b>',body:42,category:'c a t',
+    images:[{id:'i',data:'javascript:alert(1)'}],attachments:[{id:'ok-1',name:'d.pdf',size:9},{id:'bad id'}]});
+  ok('id __proto__ remplacé', mp.id!=='__proto__');
+  eq('body coercé en chaîne', mp.body, '42');
+  eq('catégorie invalide vidée', mp.category, '');
+  eq('image javascript: supprimée', mp.images, []);
+  eq('attachments filtrés', mp.attachments, [{id:'ok-1',name:'d.pdf',size:9}]);
+  eq('statut par défaut', mp.status, '');
+  ok('updatedAt posé', typeof mp.updatedAt==='number');
+  eq('blankProtocol : modèle complet', Object.keys(A.blankProtocol()).sort(),
+     ['attachments','body','category','deletedAt','id','images','libraryId','order','ownerId','status','title','updatedAt','updatedBy','validation'].sort());
+
+  group('attBuf() — formats de stockage des documents (ArrayBuffer courant, Blob historique)');
+  ok('format courant {buf:ArrayBuffer} accepté', A.attBuf({buf:new ArrayBuffer(4)})!==null);
+  ok('format historique {blob:Blob} accepté', A.attBuf({blob:new Blob(['x'])})!==null);
+  eq('enregistrement vide -> null', A.attBuf({}), null);
+  eq('absent -> null', A.attBuf(null), null);
+
+  group('migrate() — champ attachments');
+  eq('absent → tableau vide', A.migrate({title:'x'}).attachments, []);
+  eq('non-tableau → tableau vide', A.migrate({title:'x',attachments:'zzz'}).attachments, []);
+  eq('entrées invalides filtrées', A.migrate({title:'x',attachments:[{id:'__proto__'},null,'s',{id:'ok-1',name:'d.pdf',size:9}]}).attachments, [{id:'ok-1',name:'d.pdf',size:9}]);
+  ok('plafonné à MAX_ATT_PER_ENTITY', A.migrate({title:'x',attachments:Array.from({length:99},(_,i)=>({id:'a'+i,name:'d',size:1}))}).attachments.length<=A.MAX_ATT_PER_ENTITY);
 }
 
 // Ouvert en double-cliquant le fichier (file://) : le navigateur isole les iframes (origine

@@ -1,5 +1,80 @@
 # Journal des modifications
 
+## [4.0.0] — 2026-07-09
+### Ajouté
+- **Documents PDF joints aux fiches.** Chaque fiche peut porter jusqu'à 10 PDF (15 Mo max
+  chacun : protocoles de service, recommandations…), ajoutés depuis l'éditeur (le contenu du
+  fichier est vérifié, pas seulement son extension) et lisibles hors ligne. Un document peut
+  être **partagé entre plusieurs fiches/protocoles du même périmètre** (« Joindre un document
+  existant ») : le remplacer le met à jour partout, il n'est supprimé que quand plus rien ne le
+  référence. Les PDF sont stockés en Blob natif dans IndexedDB (jamais en base64 dans la fiche)
+  et n'alourdissent pas l'export JSON (seules leurs métadonnées y figurent). Le binaire est
+  stocké en ArrayBuffer (fiable sur tous les navigateurs, y compris Safari/iOS où le stockage
+  de Blob dans IndexedDB a des bugs connus) ; en cas de problème, la visionneuse distingue
+  clairement « composant non téléchargé » (hors-ligne avant première utilisation) de
+  « fichier endommagé ».
+- **Visionneuse PDF intégrée, toutes pages, tous appareils.** Lecture dans l'app (iPhone, iPad,
+  Android, ordinateur) : défilement de toutes les pages, zoom −/+/Largeur, plein écran, Échap
+  pour fermer. Rendu par pdf.js **vendorisé** (`vendor/pdfjs`, version figée 4.10.38, précaché
+  par le service worker → fonctionne hors ligne dès l'installation, chargé paresseusement →
+  aucun coût au démarrage) : **exception unique et documentée à la règle zéro-dépendance**
+  (AGENTS.md). Rendu virtualisé (les pages éloignées de l'écran sont libérées : un long PDF ne
+  sature pas la mémoire d'un iPhone).
+- **Synchronisation cloud des documents.** Bucket privé Supabase Storage avec politiques RLS
+  strictes : le chemin encode le périmètre (`u/<compte>/…` personnel — propriétaire approuvé
+  seul ; `l/<bibliothèque>/…` partagé — lecture pour tout membre, écriture éditeur/admin),
+  plafonds de taille et de type appliqués par le serveur, aucun accès sans session. Les
+  documents manquants sont **téléchargés systématiquement** en arrière-plan à la synchro
+  (disponibles hors ligne en urgence), déplacements entre bibliothèques et suppressions
+  propagés, orphelins listés pour l'app-admin (`list_orphan_attachments`, purge manuelle).
+  Nouveaux tests RLS (section 9) : lecture croisée refusée, usurpation de chemin refusée,
+  rôles respectés, anonyme sans accès.
+- **Nouvelle section « Protocoles ».** Le **titre de la page d'accueil devient un titre à
+  onglets** dans la barre fixe (« Aides cognitives | Protocoles », pattern primary tabs :
+  titre actif en pleine graisse, soulignement qui glisse de l'un à l'autre, transition de
+  contenu fluide et jamais bloquante, bascule à tout moment, mémorisée par compte) et sépare
+  les aides cognitives de crise des protocoles de référence.
+  Un protocole = titre, catégorie (jeu partagé avec les fiches), bibliothèque (perso ou
+  partagée), date de validation, état brouillon/validé, **un ou plusieurs PDF** et/ou un
+  **contenu rédigé dans l'app**. Recherche plein texte, export/import JSON (champ
+  rétrocompatible), synchronisation cloud complète (table `protocols`, mêmes politiques RLS
+  que les fiches — tests section 10).
+- **Contenu rédigé en mise en forme simple (mini-Markdown maison, sans dépendance).** Titres
+  (`#`/`##`/`###`), listes à puces et numérotées avec **sous-listes** (2 espaces d'indentation),
+  **citations** (`>`), **code** en ligne et en bloc (```` ``` ````), séparateur (`---`),
+  **gras**, *italique*, liens web, liens vers un PDF joint, images intégrées (réduites et
+  stockées hors ligne). Éditeur avec barre d'outils (B, I, H2, H3, listes, citation, code,
+  lien, image) et aperçu en direct. Rendu sûr par construction (échappement d'abord,
+  `javascript:` et identifiants hostiles refusés, aucun balisage interprété dans le code —
+  testés) ; balisage non reconnu laissé visible, le rendu ne casse jamais.
+- **Recherche transversale.** La recherche de l'accueil évalue aussi la requête sur l'autre
+  section : un bloc discret « N protocoles correspondent aussi à cette recherche » (et
+  inversement) bascule de section en conservant la recherche — en urgence, pas besoin de se
+  souvenir d'où vit un contenu.
+
+### Modifié
+- **Base locale IndexedDB v4 → v5** (stores `attachments` et `protocols`). Migration
+  automatique et silencieuse ; si un vieil onglet de l'app bloque la mise à jour du stockage,
+  un message invite à le fermer (au lieu d'un repli silencieux vers une bibliothèque vide).
+- La jauge de stockage indique le poids des documents PDF ; le tableau de bord app-admin
+  affiche protocoles et poids du bucket ; le message d'erreur « contenu trop volumineux »
+  couvre les documents.
+- Chrome de l'accueil (sélecteur de section, barre de bibliothèques, catégories, recherche)
+  et composants Documents **factorisés** entre fiches et protocoles (aucune logique dupliquée).
+
+### Sécurité
+- Nouveaux garde-fous : `safeAttachment` (id jamais régénéré, entrée invalide rejetée,
+  extension `.pdf` garantie même après renommage), `safeFileName`, validateurs du
+  mini-Markdown — tous testés (246 tests). Un PDF endommagé affiche un message clair et ne
+  bloque jamais la navigation (rendu isolé dans un worker, jamais de code exécuté depuis un
+  document). La suppression de compte (RGPD) emporte aussi les protocoles personnels.
+
+### À savoir
+- Le schéma serveur doit être re-exécuté (`supabase/schema.sql`) puis validé avec
+  `supabase/rls-tests.sql` pour activer bucket et table `protocols`.
+- Multi-onglets : si la bibliothèque semble vide après la mise à jour, fermez les autres
+  onglets de l'app puis rechargez (migration de la base locale en attente).
+
 ## [3.5.5] — 2026-07-09
 ### Corrigé
 - **La barre Enregistrer/Supprimer s'efface pendant la saisie sur téléphone.** Le retrait de

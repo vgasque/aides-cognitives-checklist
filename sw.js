@@ -19,7 +19,7 @@
 //  code et restent intactes à chaque mise à jour, tant que l'URL reste la même.
 // =============================================================================
 // IMPORTANT : garder cette version synchronisée avec APP_VERSION dans index.html.
-const CACHE = 'aides-cognitives-v3.5.5';
+const CACHE = 'aides-cognitives-v4.0.0';
 const ASSETS = [
   './',
   './index.html',
@@ -28,7 +28,12 @@ const ASSETS = [
   './icon-192-maskable.png',
   './icon-512.png',
   './icon-512-maskable.png',
-  './apple-touch-icon.png'
+  './apple-touch-icon.png',
+  // Visionneuse PDF (pdf.js vendorisé) : PRÉCACHÉ obligatoirement — chargé paresseusement par la
+  // page, un premier usage HORS LIGNE échouerait sans cette entrée (stale-while-revalidate ne
+  // couvre que ce qui a déjà été demandé une fois).
+  './vendor/pdfjs/pdf.min.js',
+  './vendor/pdfjs/pdf.worker.min.js'
 ];
 
 self.addEventListener('install', e => {

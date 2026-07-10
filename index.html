@@ -114,6 +114,11 @@
     localInfo, order(tri),
     confirmation[], verify[], notForget[], differentials[], references[],
     images:   [{ id, data(base64 JPEG réduit), caption }],
+    attachments: [{ id, name, size }]  (MÉTADONNÉES d'un document PDF joint ; le PDF lui-même
+              est un Blob NATIF dans le store IndexedDB 'attachments' — jamais en base64 dans la
+              fiche, jamais dans l'export JSON. Un même id peut être référencé par PLUSIEURS
+              fiches (document partagé) ; le blob n'est supprimé que quand plus aucune entité ne
+              le référence — gcAttachments au démarrage),
     timers:   [{ id, label, type:'stopwatch'|'interval', seconds, autoloop }],
     counters: [{ id, label, step, start }],
     start:    id du bloc de départ,
@@ -131,6 +136,13 @@
                section Backends (currentSpace/dbNameFor/spaceKey). L'espace suit le DERNIER
                compte connecté ; il ne bascule (reload) qu'à la connexion d'un autre compte ou
                au retour explicite vers l'espace sans compte (écran de connexion).
+  Protocole : { id, title, category, validation, body(mini-Markdown, <= 20 000 car.),
+               images[{id,data,caption}] (référencées par ![…](img:ID) dans body),
+               attachments[{id,name,size}] (documents PDF, store 'attachments' partagé
+               avec les fiches), order, status, updatedBy, updatedAt, deletedAt,
+               ownerId, libraryId } — store IndexedDB 'protocols' (KV : 'protocols_v1'),
+               assaini par migrateProtocol() (mêmes règles que migrate()). Section
+               séparée de l'accueil (sélecteur « Aides cognitives | Protocoles »).
   Note perso : { ficheId: { t(texte), at(ms), dirty? } } — carte unique sous la clé 'notes'
                du store 'meta' (KV : 'notes_v1'). TOUJOURS personnelle : hors de la fiche
                (un éditeur qui modifie une fiche partagée n'y touche pas), jamais exportée,
@@ -157,6 +169,11 @@
     pour refléter les nouvelles définitions de minuteurs/compteurs.
   - Images : réduites (downscale, JPEG ~1180px q0.78) car stockées en base64 ;
     le stockage peut saturer -> message + conseil d'export.
+  - Documents PDF : Blob natifs dans le store IndexedDB 'attachments' (IDB v5), plafonds
+    MAX_PDF_BYTES / MAX_ATT_PER_ENTITY, validés par safeAttachment (id JAMAIS régénéré :
+    entrée invalide rejetée). Indisponibles en repli KV (supportsAttachments). Lecture par la
+    visionneuse intégrée (pdf.js VENDORISÉ dans vendor/pdfjs — SEULE dépendance runtime,
+    chargée paresseusement, précachée par sw.js ; voir AGENTS.md).
   - Audio (alerte minuteur) : nécessite un premier geste utilisateur pour
     débloquer l'AudioContext (créé/réveillé dans ensureAudio).
   - AUCUNE donnée patient n'est prévue ; le contenu clinique est sous la
@@ -841,6 +858,102 @@
   .report-preview .foot{margin-top:22px;font-size:11px;color:var(--ink-soft);border-top:1px solid var(--line);padding-top:8px}
   .ai-actions{display:flex;gap:9px;flex-wrap:wrap;margin:12px 0 4px}
   .ai-note{font-size:12px;color:var(--ink-soft);margin:6px 0 0;line-height:1.45}
+  /* ----- Sélecteur de section = SEGMENTED CONTROL DE TITRE (qualité iOS, rôle de titre de page).
+     Synthèse des deux pistes explorées : l'OBJET pastille (tactile, désigné) + la TAILLE d'un
+     titre. La clé : segments AJUSTÉS AU CONTENU (mesurés par updateHdrSec) et non 50/50 -> le
+     libellé tient en grand sur UNE ligne ; la pastille blanche glisse avec un léger ressort
+     (transform/width composés GPU, page utilisable pendant l'animation). Matériaux de l'en-tête :
+     voile blanc + hairline (mêmes valeurs que .bar-acct/#rtStrip), pastille --surface, ombre
+     douce. L'état n'est jamais porté par la couleur seule : position de la pastille + couleur
+     d'accent + graisse + aria-pressed (WCAG 1.4.1). Coupé si prefers-reduced-motion. ----- */
+  header.bar.home .brand{display:none}
+  /* SANS PISTE ni cadre (pattern « pill tabs ») : les deux titres sont posés DIRECTEMENT sur la
+     barre — le contrôle appartient à l'en-tête au lieu d'y flotter — et seule la CAPSULE blanche
+     entoure le titre actif, glissant de l'un à l'autre. Hybride des deux pistes explorées :
+     l'intégration des onglets + l'objet de la pastille. */
+  #hdrSec{display:none;position:relative;min-width:0;margin-right:auto;align-items:stretch;gap:4px}
+  header.bar.home #hdrSec{display:inline-flex}
+  /* Capsule : largeur/position MESURÉES sur le segment actif (updateHdrSec) ; ressort discret. */
+  #hdrSec .secswitch-ind{position:absolute;top:2px;bottom:2px;left:0;width:40px;background:var(--surface);border-radius:999px;box-shadow:0 2px 10px rgba(0,0,0,.25),0 1px 2px rgba(0,0,0,.16);transition:transform .32s cubic-bezier(.34,1.25,.4,1),width .32s cubic-bezier(.34,1.25,.4,1);pointer-events:none}
+  html[data-theme="dark"] #hdrSec .secswitch-ind{border:1px solid rgba(255,255,255,.45)}
+  #hdrSec .secbtn{position:relative;z-index:1;display:inline-flex;align-items:center;justify-content:center;gap:7px;min-width:0;min-height:46px;padding:0 16px;background:none;border:0;border-radius:999px;font-family:inherit;font-size:16px;font-weight:600;letter-spacing:.1px;line-height:1.15;color:rgba(255,255,255,.92);cursor:pointer;transition:color .32s;white-space:nowrap}
+  #hdrSec .secbtn svg{flex:none;opacity:.9}
+  #hdrSec .secbtn .sec-lbl{min-width:0;overflow:hidden;text-overflow:ellipsis}
+  html[data-theme="dark"] #hdrSec .secbtn{color:rgba(220,238,235,.68)}
+  #hdrSec .secbtn.on{color:var(--primary-dk);font-weight:680}
+  /* Sombre : la pastille est sombre -> l'actif redevient LUMINEUX (hiérarchie du titre conservée,
+     l'accent teal y serait moins saillant que l'inactif). Règle après la règle sombre ci-dessus. */
+  html[data-theme="dark"] #hdrSec .secbtn.on{color:var(--rt-ink)}
+  #hdrSec .secbtn:focus-visible{outline:2px solid #fff;outline-offset:2px}
+  /* Retour tactile discret (iOS) : le libellé pressé se tasse à peine. */
+  #hdrSec .secbtn:active .sec-lbl{transform:scale(.97)}
+  /* Écran étroit : les icônes s'effacent (le TEXTE du titre prime), corps à peine réduit ->
+     les deux segments + le bouton Compte tiennent sur une ligne dès 360px. */
+  @media (max-width:410px){#hdrSec .secbtn{font-size:15px;padding:0 12px}#hdrSec .secbtn svg{display:none}}
+  /* Transition de CONTENU entre sections : la nouvelle liste entre en glissement + fondu (dans le
+     sens de la bascule). transform/opacity seulement -> aucune interaction bloquée pendant l'animation. */
+  @keyframes secInL{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:none}}
+  @keyframes secInR{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+  main.sec-anim-l{animation:secInL .3s cubic-bezier(.25,.1,.25,1)}
+  main.sec-anim-r{animation:secInR .3s cubic-bezier(.25,.1,.25,1)}
+  @media (prefers-reduced-motion:reduce){#hdrSec .secswitch-ind,#hdrSec .secbtn{transition:none}main.sec-anim-l,main.sec-anim-r{animation:none}}
+  /* ----- Contenu rédigé des protocoles (mini-Markdown) : lecture + éditeur ----- */
+  .md-body{line-height:1.55;font-size:15px}
+  .md-h2{font-size:17px;font-weight:680;margin:18px 0 8px;color:var(--ink)}
+  .md-h3{font-size:15px;font-weight:650;margin:14px 0 6px;color:var(--ink)}
+  .md-body h2:first-child,.md-preview h2:first-child{margin-top:2px}
+  .md-p{margin:0 0 10px;color:var(--ink)}
+  .md-ul,.md-ol{margin:0 0 10px;padding-left:22px}
+  .md-ul li,.md-ol li{margin:3px 0}
+  .md-h1{font-size:19px;font-weight:700;margin:20px 0 9px;color:var(--ink)}
+  .md-ul .md-ul,.md-ul .md-ol,.md-ol .md-ul,.md-ol .md-ol{margin:3px 0 0;padding-left:20px}
+  .md-q{margin:0 0 10px;padding:6px 0 6px 12px;border-left:3px solid var(--line-strong);color:var(--ink-soft)}
+  .md-ci{font-family:var(--mono);font-size:.92em;background:var(--surface-3);border-radius:5px;padding:1px 5px}
+  .md-code{margin:0 0 10px;padding:10px 12px;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius-sm);overflow-x:auto}
+  .md-code code{font-family:var(--mono);font-size:12.5px;line-height:1.5;white-space:pre}
+  .md-hr{border:0;border-top:1px solid var(--line);margin:14px 0}
+  .md-fig{margin:12px 0}
+  .md-fig img{max-width:100%;border-radius:var(--radius-sm);border:1px solid var(--line);cursor:zoom-in}
+  .md-fig figcaption{font-size:12px;color:var(--ink-soft);margin-top:4px}
+  .md-body a,.md-preview a{color:var(--primary);text-decoration:underline}
+  .md-toolbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+  /* .mini a une LARGEUR FIXE (boutons carrés × ↑ ↓) : ici les libellés varient -> largeur auto. */
+  .md-toolbar .mini{width:auto;min-width:36px;height:34px;padding:0 10px;font-size:13px;font-weight:600;white-space:nowrap}
+  #p-body{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--surface);color:var(--ink);font-family:var(--mono);font-size:13px;line-height:1.55;resize:vertical}
+  .md-prev-h{font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-soft);margin:12px 0 6px}
+  .md-preview{border:1px dashed var(--line-strong);border-radius:var(--radius-sm);padding:12px 14px;background:var(--surface-2);min-height:44px;line-height:1.55}
+  /* ----- Recherche transversale : résultats trouvés dans L'AUTRE section (bloc sous la liste) ----- */
+  /* AU-DESSUS de la liste de résultats (jamais noyé sous la pagination) : bandeau compact. */
+  .cross-hits{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;min-height:40px;margin:0 0 10px;padding:8px 14px;background:var(--surface-2);border:1px dashed var(--line-strong);border-radius:var(--radius-md);color:var(--ink-soft);font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit}
+  .cross-hits:hover{background:var(--surface-3);color:var(--ink)}
+  .cross-hits:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* ----- Documents PDF joints : liste en lecture (boutons >=44px) + lignes de l'éditeur ----- */
+  .att-list{display:flex;flex-direction:column;gap:8px}
+  .att-row{display:flex;align-items:center;gap:10px;width:100%;min-height:48px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--surface);color:var(--ink);font-size:14px;text-align:left;cursor:pointer}
+  .att-row:hover{border-color:var(--line-hover);background:var(--surface-2)}
+  .att-row:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .att-ico{flex:none;display:inline-flex;color:var(--primary)}
+  .att-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:560}
+  .att-size{flex:none;font-size:12px;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+  .att-erow{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  /* Sélecteur de document existant : liste défilable, origine du document en 2e ligne. */
+  .attpick-list{max-height:min(52vh,440px);overflow-y:auto;-webkit-overflow-scrolling:touch;margin-top:12px}
+  .attpick-list .att-row{margin-bottom:8px}
+  .att-from{display:block;font-size:11.5px;font-weight:400;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .att-erow input[type="text"]{flex:1;min-width:0;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)}
+  /* ----- Visionneuse PDF : fenêtre plein écran (barre d'outils + pages défilantes) ----- */
+  .pdf-modal{padding:0}
+  .pdf-card{display:flex;flex-direction:column;width:100%;height:100dvh;background:var(--bg)}
+  .pdf-bar{display:flex;align-items:center;gap:8px;flex:none;padding:calc(8px + env(safe-area-inset-top)) calc(10px + env(safe-area-inset-right)) 8px calc(12px + env(safe-area-inset-left));background:var(--surface);border-bottom:1px solid var(--line)}
+  .pdf-title{flex:1;min-width:0;font-size:14.5px;font-weight:620;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink)}
+  .pdf-tools{display:flex;align-items:center;gap:6px;flex:none}
+  .pdf-bar .ai-x{background:none;border:0;color:var(--ink-soft);font-size:24px;line-height:1;width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;border-radius:10px;flex:none}
+  .pdf-bar .ai-x:hover{background:var(--surface-2);color:var(--ink)}
+  .pdf-scroll{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px calc(10px + env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left))}
+  .pdf-page{position:relative;margin:0 auto 10px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.22)}
+  .pdf-page canvas{display:block;width:100%;height:100%}
+  .pdf-msg{color:var(--ink-soft);text-align:center;padding:34px 16px;font-size:14px}
+  @media (max-width:520px){.pdf-title{font-size:13px}.pdf-tools .fzv{display:none}}  /* petit écran : on garde « Largeur » (le plus utile), on masque le % */
   .cm-row{border:1px solid var(--line);border-radius:var(--radius-md);padding:11px 12px;margin-bottom:10px;background:var(--surface-2)}
   .cm-top{display:flex;gap:8px;align-items:center}
   .cm-dot{width:18px;height:18px;border-radius:6px;flex-shrink:0}
@@ -909,6 +1022,9 @@
 <a class="skiplink" href="#main">Aller au contenu</a>
 <div class="app">
   <header class="bar"><div class="brand"><b>Aides cognitives</b><span id="brandSub">Bibliothèque</span><span id="brandTitle"></span></div>
+    <!-- Sélecteur de section (accueil seulement, cf. header.bar.home) : élément STATIQUE, jamais
+         re-rendu -> l'indicateur GLISSE réellement d'un bouton à l'autre au lieu d'être recréé. -->
+    <div id="hdrSec" role="group" aria-label="Type de contenu"><span class="secswitch-ind" aria-hidden="true"></span><button class="secbtn" data-section="fiches" aria-pressed="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h7"/><path d="M3.5 5.5l1 1 2-2M3.5 11.5l1 1 2-2M3.5 17.5l1 1 2-2"/></svg><span class="sec-lbl">Aides cognitives</span></button><button class="secbtn" data-section="protocols" aria-pressed="false"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg><span class="sec-lbl">Protocoles</span></button></div>
     <button class="bar-acct" id="acctTop" aria-label="Compte et synchronisation" title="Compte"><svg class="ic-outline" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M5.5 20.5v-1a5 5 0 015-5h3a5 5 0 015 5v1"/></svg><svg class="ic-filled" width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="7.7" r="3.7"/><path d="M4.6 20a7.4 7.4 0 0114.8 0 1 1 0 01-1 1.1H5.6a1 1 0 01-1-1.1z"/></svg><span class="acct-dot" id="acctDot" hidden></span></button>
     <button id="rtStrip" hidden aria-label="Minuteurs en cours — afficher le panneau"></button></header>
   <main id="main" tabindex="-1"></main>
@@ -993,6 +1109,24 @@
   <div id="reportBody" class="report-preview"></div>
   <div style="display:flex;gap:9px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px"><button class="btn" id="reportDownload">Télécharger</button><button class="btn primary" id="reportPrint">Imprimer</button></div>
 </div></div>
+<!-- Sélecteur de document existant (éditeurs de fiche ET de protocole) : liste FILTRABLE — un
+     menu déroulant ne passe pas à l'échelle à 50+ documents. Accessibilité .ai-modal standard. -->
+<div class="ai-modal" id="attPickModal" role="dialog" aria-modal="true" aria-labelledby="attPickTitle"><div class="ai-card">
+  <div class="ai-top"><h3 id="attPickTitle">Joindre un document existant</h3><button class="ai-x" id="attPickX" aria-label="Fermer">×</button></div>
+  <p>Le document sera <b>partagé</b> : le remplacer le mettra à jour sur toutes les fiches et tous les protocoles qui l'utilisent.</p>
+  <div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg><input id="attPickQ" placeholder="Filtrer par nom ou origine…"></div>
+  <div id="attPickList" class="att-list attpick-list"></div>
+</div></div>
+<!-- Visionneuse PDF (documents joints) : plein écran, rendu pdf.js page par page (virtualisé).
+     Même gestion d'accessibilité que les autres fenêtres (.ai-modal : focus, Échap, piège Tab). -->
+<div class="ai-modal pdf-modal" id="pdfModal" role="dialog" aria-modal="true" aria-labelledby="pdfModalTitle">
+  <div class="pdf-card">
+    <div class="pdf-bar"><h3 id="pdfModalTitle" class="pdf-title">Document</h3>
+      <div class="pdf-tools"><button class="fz" data-pz="out" aria-label="Dézoomer">−</button><span class="fzv" id="pdfZoomVal">100%</span><button class="fz" data-pz="in" aria-label="Zoomer">+</button><button class="fz fz-r" data-pz="fit">Largeur</button></div>
+      <button class="ai-x" id="pdfX" aria-label="Fermer le document">×</button></div>
+    <div class="pdf-scroll" id="pdfScroll" tabindex="0"></div>
+  </div>
+</div>
 <!-- Confirmation NON bloquante (remplace confirm() natif) : mêmes garanties d'accessibilité que
      les autres fenêtres (role=dialog, focus piégé, Échap). DERNIÈRE dans le DOM -> _topModal() la
      considère bien « au-dessus » quand elle s'ouvre par-dessus une autre fenêtre.
@@ -1015,7 +1149,7 @@
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='3.5.5';
+const APP_VERSION='4.0.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -1107,6 +1241,10 @@ const KV={
   async del(id){const a=await this._r('fiches_v1',[]);await this._w('fiches_v1',a.filter(x=>x.id!==id));},
   async getCats(){return this._r('cats_v1',null);},async setCats(c){return this._w('cats_v1',c);},
   async getNotes(){return this._r('notes_v1',{});},async setNotes(n){return this._w('notes_v1',n);},
+  // Protocoles : JSON pur (body + images data-URL passent ; les PDF, eux, exigent IndexedDB).
+  async getProtocols(){return this._r('protocols_v1',[]);},
+  async putProtocol(p){const a=await this._r('protocols_v1',[]);const i=a.findIndex(x=>x.id===p.id);if(i>=0)a[i]=p;else a.push(p);await this._w('protocols_v1',a);},
+  async delProtocol(id){const a=await this._r('protocols_v1',[]);await this._w('protocols_v1',a.filter(x=>x.id!==id));},
   async getSessions(){return this._r('sessions_v1',[]);},
   async putSession(s){const a=await this._r('sessions_v1',[]);const i=a.findIndex(x=>x.id===s.id);if(i>=0)a[i]=s;else a.push(s);await this._w('sessions_v1',a);},
   async delSession(id){const a=await this._r('sessions_v1',[]);await this._w('sessions_v1',a.filter(x=>x.id!==id));},
@@ -1117,9 +1255,22 @@ const KV={
 };
 // Ouverture d'une base d'espace (schéma commun). Utilisée par IDB.open (espace courant) ET par
 // le déménagement sans-compte -> compte (2e connexion vers la base cible).
-function openSpaceDb(name){return new Promise((res,rej)=>{let req;try{req=indexedDB.open(name,4);}catch(e){return rej(e);}
-  req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains('fiches'))db.createObjectStore('fiches',{keyPath:'id'});if(!db.objectStoreNames.contains('meta'))db.createObjectStore('meta');if(!db.objectStoreNames.contains('sessions'))db.createObjectStore('sessions',{keyPath:'id'});if(!db.objectStoreNames.contains('backups')){const bs=db.createObjectStore('backups',{keyPath:'bid'});bs.createIndex('byFiche','ficheId',{unique:false});}};
-  req.onsuccess=()=>res(req.result);req.onerror=()=>rej(req.error||new Error('idb'));setTimeout(()=>rej(new Error('idb-timeout')),1500);});}
+function openSpaceDb(name){return new Promise((res,rej)=>{let req;try{req=indexedDB.open(name,5);}catch(e){return rej(e);}
+  req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains('fiches'))db.createObjectStore('fiches',{keyPath:'id'});if(!db.objectStoreNames.contains('meta'))db.createObjectStore('meta');if(!db.objectStoreNames.contains('sessions'))db.createObjectStore('sessions',{keyPath:'id'});if(!db.objectStoreNames.contains('backups')){const bs=db.createObjectStore('backups',{keyPath:'bid'});bs.createIndex('byFiche','ficheId',{unique:false});}
+    // v5 : 'attachments' = documents PDF en Blob NATIF (structured clone — jamais de base64 dans la
+    // fiche) ; 'protocols' = section Protocoles (créé dès maintenant : UN SEUL bump à risque).
+    if(!db.objectStoreNames.contains('attachments'))db.createObjectStore('attachments',{keyPath:'id'});
+    if(!db.objectStoreNames.contains('protocols'))db.createObjectStore('protocols',{keyPath:'id'});};
+  // Un VIEIL onglet encore ouvert bloque la migration de version : on le dit clairement au lieu de
+  // laisser le timeout ci-dessous faire retomber EN SILENCE sur le repli KV (bibliothèque qui
+  // semblerait vide). L'ouverture reprendra dès que l'autre onglet sera fermé/rechargé.
+  req.onblocked=()=>{try{toast('⚠ Fermez les autres onglets de l\'application puis rechargez cette page (mise à jour du stockage en attente).',9000);}catch(e){}};
+  req.onsuccess=()=>{const db=req.result;
+    // Une FUTURE migration demandée par un autre onglet : on libère la base (sinon c'est nous qui
+    // bloquerions) et on invite à recharger.
+    db.onversionchange=()=>{try{db.close();}catch(e){}try{toast('Application mise à jour dans un autre onglet — rechargez cette page.');}catch(e){}};
+    res(db);};
+  req.onerror=()=>rej(req.error||new Error('idb'));setTimeout(()=>rej(new Error('idb-timeout')),1500);});}
 const IDB={
   db:null,
   async open(){registerSpace(currentSpace());this.db=await openSpaceDb(claimedDbName(currentSpace()));return true;},
@@ -1133,6 +1284,9 @@ const IDB={
   // du store meta (comme les catégories) -> aucun bump de version IndexedDB nécessaire.
   getNotes(){return new Promise((res,rej)=>{const r=this._s('meta','readonly').get('notes');r.onsuccess=()=>res(r.result||{});r.onerror=()=>rej(r.error);});},
   setNotes(n){return new Promise((res,rej)=>{const r=this._s('meta','readwrite').put(n,'notes');r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});},
+  getProtocols(){return new Promise((res,rej)=>{const r=this._s('protocols','readonly').getAll();r.onsuccess=()=>res(r.result||[]);r.onerror=()=>rej(r.error);});},
+  putProtocol(p){return new Promise((res,rej)=>{const r=this._s('protocols','readwrite').put(p);r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});},
+  delProtocol(id){return new Promise((res,rej)=>{const r=this._s('protocols','readwrite').delete(id);r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});},
   getSessions(){return new Promise((res,rej)=>{const r=this._s('sessions','readonly').getAll();r.onsuccess=()=>res(r.result||[]);r.onerror=()=>rej(r.error);});},
   putSession(s){return new Promise((res,rej)=>{const r=this._s('sessions','readwrite').put(s);r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});},
   delSession(id){return new Promise((res,rej)=>{const r=this._s('sessions','readwrite').delete(id);r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});},
@@ -1140,9 +1294,32 @@ const IDB={
   putBackup(b){return new Promise((res,rej)=>{const tx=this.db.transaction('backups','readwrite');const st=tx.objectStore('backups');st.put(b);
     const q=st.index('byFiche').getAll(b.ficheId);q.onsuccess=()=>{const arr=(q.result||[]).sort((x,y)=>(x.at||0)-(y.at||0));for(let i=0;i<arr.length-BACKUP_MAX;i++)st.delete(arr[i].bid);};
     tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);});},
-  delBackup(bid){return new Promise((res,rej)=>{const r=this._s('backups','readwrite').delete(bid);r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});}
+  delBackup(bid){return new Promise((res,rej)=>{const r=this._s('backups','readwrite').delete(bid);r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});},
+  // Documents PDF joints, hors du modèle fiche. Enregistrement : {id, buf:ArrayBuffer, size,
+  // type:'application/pdf', createdAt, dirty:0|1, remotePath:null|string} — dirty/remotePath
+  // servent à la synchronisation Storage (upload). ARRAYBUFFER et non Blob/File : le structured
+  // clone d'IndexedDB les accepte tous, mais le stockage de Blob a des bugs de corruption connus
+  // sur Safari/iOS (WebKit) — l'ArrayBuffer est fiable partout. Les enregistrements HISTORIQUES
+  // au format {blob:Blob} restent acceptés en lecture (attBuf ci-dessous).
+  getAtt(id){return new Promise((res,rej)=>{const r=this._s('attachments','readonly').get(id);r.onsuccess=()=>res(r.result||null);r.onerror=()=>rej(r.error);});},
+  putAtt(rec){return new Promise((res,rej)=>{const r=this._s('attachments','readwrite').put(rec);r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});},
+  delAtt(id){return new Promise((res,rej)=>{const r=this._s('attachments','readwrite').delete(id);r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});},
+  getAttIds(){return new Promise((res,rej)=>{const r=this._s('attachments','readonly').getAllKeys();r.onsuccess=()=>res(r.result||[]);r.onerror=()=>rej(r.error);});},
+  getAtts(){return new Promise((res,rej)=>{const r=this._s('attachments','readonly').getAll();r.onsuccess=()=>res(r.result||[]);r.onerror=()=>rej(r.error);});}
 };
 let Data=KV;
+// Les documents PDF (binaires) n'existent qu'en IndexedDB : le repli KV (localStorage = JSON pur)
+// ne peut pas les stocker. En repli, l'AJOUT est refusé proprement (message dans l'éditeur) et la
+// LECTURE d'une référence sans binaire indique le document indisponible — jamais d'échec silencieux.
+const supportsAttachments=()=>Data===IDB;
+// Contenu binaire d'un enregistrement de document, quel que soit son format de stockage
+// (buf:ArrayBuffer = format courant ; blob:Blob = format historique 4.0.0 pré-correctif).
+// Renvoie une promesse d'ArrayBuffer, ou null si l'enregistrement est vide/inconnu.
+function attBuf(rec){if(!rec)return null;
+  // toString plutôt qu'instanceof : sûr entre contextes (iframe de test, worker...).
+  if(Object.prototype.toString.call(rec.buf)==='[object ArrayBuffer]')return Promise.resolve(rec.buf);
+  if(rec.blob&&typeof rec.blob.arrayBuffer==='function')return rec.blob.arrayBuffer();
+  return null;}
 // Déménagement d'espace : DÉPLACE tout le contenu local (fiches, catégories, notes, sessions,
 // versions, épingles, marqueurs de push) de l'espace courant vers `space`. Deux usages :
 // « sans compte -> compte » à la connexion, et le RETOUR « compte non approuvé -> sans compte »
@@ -1151,22 +1328,26 @@ let Data=KV;
 // location.reload().
 async function moveLocalDataTo(space){
   const fs=await Data.getAll(),cats=await Data.getCats(),nts=await Data.getNotes(),
-        ss=await Data.getSessions(),bks=await Data.getBackups();
+        ss=await Data.getSessions(),bks=await Data.getBackups(),prots=await Data.getProtocols().catch(()=>[]);
+  // Documents PDF (Blob, IndexedDB uniquement) : déménagent avec le reste. En repli KV il n'y en a pas.
+  const atts=(Data===IDB)?await IDB.getAtts().catch(()=>[]):[];
   let owner=null;try{owner=localStorage.getItem('ac-db-owner');}catch(e){}
   if(owner===null)owner=currentSpace();
   if(Data===IDB){
     const db=await openSpaceDb(dbNameFor(space,owner));
-    await new Promise((res,rej)=>{const tx=db.transaction(['fiches','meta','sessions','backups'],'readwrite');
+    await new Promise((res,rej)=>{const tx=db.transaction(['fiches','meta','sessions','backups','attachments','protocols'],'readwrite');
       fs.forEach(f=>tx.objectStore('fiches').put(f));
       if(cats)tx.objectStore('meta').put(cats,'categories');
       tx.objectStore('meta').put(nts||{},'notes');
       ss.forEach(s=>tx.objectStore('sessions').put(s));
       bks.forEach(b=>tx.objectStore('backups').put(b));
+      atts.forEach(a=>tx.objectStore('attachments').put(a));
+      prots.forEach(p=>tx.objectStore('protocols').put(p));
       tx.oncomplete=res;tx.onerror=()=>rej(tx.error);});
     db.close();
   }else{
     const w=(base,v)=>{try{localStorage.setItem(spaceKeyFor(base,space,owner),JSON.stringify(v));}catch(e){}};
-    w('fiches_v1',fs);if(cats)w('cats_v1',cats);w('notes_v1',nts||{});w('sessions_v1',ss);w('backups_v1',bks);
+    w('fiches_v1',fs);if(cats)w('cats_v1',cats);w('notes_v1',nts||{});w('sessions_v1',ss);w('backups_v1',bks);w('protocols_v1',prots);
   }
   // Épingles + marqueur « catégories à pousser » suivent dans l'espace cible (poussés au 1er sync).
   try{localStorage.setItem(spaceKeyFor('ac-pins',space,owner),JSON.stringify(pins));}catch(e){}
@@ -1176,6 +1357,8 @@ async function moveLocalDataTo(space){
   for(const f of fs)await Data.del(f.id);
   for(const s of ss)await Data.delSession(s.id);
   for(const b of bks)await Data.delBackup(b.bid);
+  for(const a of atts){try{await IDB.delAtt(a.id);}catch(e){}}
+  for(const p of prots){try{await Data.delProtocol(p.id);}catch(e){}}
   try{await Data.setNotes({});}catch(e){}
   try{await Data.setCats(null);}catch(e){}
   try{localStorage.removeItem(spaceKey('ac-pins'));}catch(e){}
@@ -1259,7 +1442,7 @@ function switchToAnonSpace(){
    `AC` : AudioContext (créé paresseusement, voir ensureAudio/beep).
    Helpers : uid (id unique), esc (échappe le HTML), clean (vide les lignes vides),
      catTag (pastille couleur d'une catégorie), fmtMs (millisecondes -> mm:ss). */
-let fiches=[],categories=[],sessions=[];
+let fiches=[],categories=[],sessions=[],protocols=[];
 // Notes personnelles PAR FICHE : { ficheId: {t:texte, at:ms, dirty?:true} }. Toujours PRIVÉES
 // (jamais dans la fiche, jamais exportées, invisibles des autres membres d'une bibliothèque) ;
 // synchronisées entre les appareils du MÊME compte via la table fiche_notes (RLS : les siennes
@@ -1287,7 +1470,10 @@ function profileCacheKey(){const u=Auth.user();return (u&&u.id)?('ac-profile-'+u
 function saveProfileCache(){const k=profileCacheKey();if(!k)return;try{localStorage.setItem(k,JSON.stringify({libraries:myLibraries,isAppAdmin:myIsAppAdmin}));}catch(e){}}
 function loadProfileCache(){const k=profileCacheKey();if(!k)return;try{const p=JSON.parse(localStorage.getItem(k)||'null');if(!p)return;myLibraries=sanitizeLibs(p.libraries);myIsAppAdmin=p.isAppAdmin===true;}catch(e){}}
 let state={view:'library',q:'',cat:'',scope:null,draft:null,fiche:null,nav:[],navSeq:[],navPos:0,checked:{},showFlow:false,showSess:false,rtOpen:false,libLimit:LIB_PAGE,
-  noteEdit:false};  // édition de la note personnelle (lecture seule par défaut en mode crise)
+  noteEdit:false,  // édition de la note personnelle (lecture seule par défaut en mode crise)
+  section:'fiches',        // page d'accueil : 'fiches' (aides cognitives) | 'protocols' (mémorisé par espace)
+  protocol:null,pdraft:null};  // protocole affiché (protocolRead) / brouillon (protocolEdit)
+try{if(localStorage.getItem(spaceKey('ac-section'))==='protocols')state.section='protocols';}catch(e){}
 // Rôle/édition par bibliothèque. Perso (libraryId vide) = toujours éditable. Bibliothèque partagée : éditable
 // si role editor/admin. (La RLS reste l'arbitre côté serveur ; ceci n'est que l'ergonomie.)
 function roleOf(libId){const l=myLibraries.find(x=>x.id===libId);return l?l.role:null;}
@@ -1327,6 +1513,90 @@ const BOLD_RX=/\*\*([^*\n]+)\*\*/g;
 const fmt=s=>esc(s).replace(BOLD_RX,'<b>$1</b>');
 // Texte SANS balisage (algorithme SVG, recherche plein texte) : retire les ** des paires.
 const stripBold=s=>String(s==null?'':s).replace(BOLD_RX,'$1');
+/* ===== Mini-Markdown (protocoles rédigés) =====
+   Parseur MAISON volontairement minimal (zéro dépendance), XSS-safe par construction :
+   mdInline fait TOUJOURS esc() d'abord, puis pose le balisage sur le texte déjà échappé.
+   Syntaxe : # / ## / ### titres, - liste, 1. liste numérotée (sous-liste : 2 espaces
+   d'indentation, UN niveau), > citation, `code` en ligne, ``` bloc de code, --- séparateur,
+   **gras**, *italique*, [texte](https://…) lien externe, [texte](att:ID) ouvre un document PDF
+   joint, ![légende](img:ID) image (référence à l'entrée p.images correspondante — data URL déjà
+   validée par safeImg dans migrateProtocol). Balisage non reconnu laissé VISIBLE tel quel
+   (même philosophie que fmt : la coquille se voit en relecture, le rendu ne casse jamais).
+   Fonctions PURES (testées via ?__actest). Plafonds anti-DoS : 20 000 caractères / 2 000 lignes. */
+const MD_MAX_CHARS=20000,MD_MAX_LINES=2000;
+const MD_ITAL_RX=/(^|[^*])\*([^*\n]+)\*(?!\*)/g;   // *italique* (sans manger les ** du gras)
+const MD_CODE_RX=/(`[^`\n]+`)/;                    // `code` en ligne (segment préservé tel quel)
+function mdInline(s){const h=esc(sstr(s,4000));
+  // Le texte (déjà échappé) est découpé autour des segments `code` : AUCUN balisage n'est
+  // interprété à l'intérieur (un lien ou ** dans du code reste littéral, comme en Markdown).
+  return h.split(MD_CODE_RX).map(seg=>{
+    if(seg.length>2&&seg.charCodeAt(0)===96&&seg.charCodeAt(seg.length-1)===96)
+      return '<code class="md-ci">'+seg.slice(1,-1)+'</code>';
+    // Liens : https strict (jamais javascript: — revalidé APRÈS échappement), ou att:ID (jeu SAFE_ID).
+    let x=seg.replace(/\[([^\]\n]{1,200})\]\(([^()\s]{1,500})\)/g,(m,txt,href)=>{
+      if(/^https?:\/\/\S+$/i.test(href))return '<a href="'+href+'" target="_blank" rel="noopener noreferrer">'+txt+'</a>';
+      const am=href.match(/^att:([A-Za-z0-9_-]{1,64})$/);
+      if(am&&BAD_KEYS.indexOf(am[1])<0)return '<a href="#" data-mdatt="'+am[1]+'">'+txt+'</a>';
+      return m;});
+    x=x.replace(BOLD_RX,'<b>$1</b>');
+    x=x.replace(MD_ITAL_RX,'$1<i>$2</i>');
+    return x;}).join('');}
+// Découpe en blocs (ligne à ligne) : {t:'h1'|'h2'|'h3', text} | {t:'ul'|'ol', items:[{text,sub}]}
+// (sub = sous-liste {t,items:[textes]} d'UN niveau) | {t:'q', lines[]} (citation) |
+// {t:'code', lines[]} (bloc ```) | {t:'hr'} | {t:'img', caption, id} | {t:'p', lines[]}.
+function mdBlocks(src){
+  const lines=sstr(src,MD_MAX_CHARS).split('\n').slice(0,MD_MAX_LINES);
+  const out=[];let list=null,para=[],quote=null,code=null;
+  const flushPara=()=>{if(para.length){out.push({t:'p',lines:para});para=[];}};
+  const flushList=()=>{if(list){out.push(list);list=null;}};
+  const flushQuote=()=>{if(quote){out.push(quote);quote=null;}};
+  const flushAll=()=>{flushPara();flushList();flushQuote();};
+  for(const l of lines){let m;
+    // Bloc de code : tout est LITTÉRAL jusqu'à la clôture ``` (aucun balisage interprété).
+    if(code){if(/^```/.test(l)){out.push(code);code=null;}else code.lines.push(l);continue;}
+    if(/^```/.test(l)){flushAll();code={t:'code',lines:[]};continue;}
+    if(/^\s*$/.test(l)){flushAll();continue;}
+    if((m=l.match(/^(#{1,3})\s+(.*)$/))){flushAll();out.push({t:'h'+m[1].length,text:m[2]});continue;}
+    if(/^(---+|\*\*\*+)\s*$/.test(l)){flushAll();out.push({t:'hr'});continue;}
+    if((m=l.match(/^!\[([^\]]{0,300})\]\(img:([A-Za-z0-9_-]{1,64})\)\s*$/))){flushAll();out.push({t:'img',caption:m[1],id:m[2]});continue;}
+    if((m=l.match(/^>\s?(.*)$/))){flushPara();flushList();if(!quote)quote={t:'q',lines:[]};quote.lines.push(m[1]);continue;}
+    // SOUS-LISTE (2 espaces ou plus) : rattachée au dernier élément de la liste en cours.
+    if(list&&list.items.length&&(m=l.match(/^\s{2,}(?:[-*]\s+|(\d{1,3})[.)]\s+)(.*)$/))){
+      const last=list.items[list.items.length-1],st=m[1]?'ol':'ul';
+      if(!last.sub||last.sub.t!==st)last.sub={t:st,items:[]};
+      last.sub.items.push(m[2]);continue;}
+    if((m=l.match(/^[-*]\s+(.*)$/))){flushPara();flushQuote();if(!list||list.t!=='ul'){flushList();list={t:'ul',items:[]};}list.items.push({text:m[1],sub:null});continue;}
+    if((m=l.match(/^\d{1,3}[.)]\s+(.*)$/))){flushPara();flushQuote();if(!list||list.t!=='ol'){flushList();list={t:'ol',items:[]};}list.items.push({text:m[1],sub:null});continue;}
+    flushList();flushQuote();para.push(l);}
+  if(code)out.push(code);   // ``` non refermé : dégradation propre, le contenu reste visible
+  flushAll();return out;}
+// Rendu HTML. ctx.images = tableau {id,data,caption} de l'entité (ids déjà sûrs — migrateProtocol).
+// Référence d'image morte -> rien (pas d'image cassée à l'écran).
+function mdRender(src,ctx){ctx=ctx||{};
+  // Défense propre à mdRender (indépendante de migrateProtocol) : clés BAD_KEYS jamais admises.
+  const imgs=Object.create(null);(ctx.images||[]).forEach(im=>{if(im&&im.id&&BAD_KEYS.indexOf(im.id)<0)imgs[im.id]=im;});
+  // Élément de liste (+ éventuelle sous-liste d'un niveau, balise ul/ol sûre par construction).
+  const li=it=>'<li>'+mdInline(it.text)+(it.sub?'<'+it.sub.t+' class="md-'+it.sub.t+'">'+it.sub.items.map(x=>'<li>'+mdInline(x)+'</li>').join('')+'</'+it.sub.t+'>':'')+'</li>';
+  return mdBlocks(src).map(b=>{
+    if(b.t==='h1')return '<h1 class="md-h1">'+mdInline(b.text)+'</h1>';
+    if(b.t==='h2')return '<h2 class="md-h2">'+mdInline(b.text)+'</h2>';
+    if(b.t==='h3')return '<h3 class="md-h3">'+mdInline(b.text)+'</h3>';
+    if(b.t==='ul')return '<ul class="md-ul">'+b.items.map(li).join('')+'</ul>';
+    if(b.t==='ol')return '<ol class="md-ol">'+b.items.map(li).join('')+'</ol>';
+    if(b.t==='q')return '<blockquote class="md-q">'+b.lines.map(mdInline).join('<br>')+'</blockquote>';
+    if(b.t==='code')return '<pre class="md-code"><code>'+esc(b.lines.join('\n'))+'</code></pre>';
+    if(b.t==='hr')return '<hr class="md-hr">';
+    if(b.t==='img'){const im=imgs[b.id];if(!im)return '';const cap=b.caption||im.caption||'';
+      return '<figure class="md-fig"><img src="'+im.data+'" data-full="'+im.data+'" data-cap="'+esc(cap)+'" alt="'+esc(cap)+'" loading="lazy" decoding="async">'+(cap?'<figcaption>'+esc(cap)+'</figcaption>':'')+'</figure>';}
+    return '<p class="md-p">'+b.lines.map(mdInline).join('<br>')+'</p>';}).join('');}
+// Texte brut pour la recherche plein texte (retire le balisage, garde légendes et libellés de liens).
+function mdStrip(src){return sstr(src,MD_MAX_CHARS).split('\n').map(l=>l
+    .replace(/^```.*$/,'').replace(/^(---+|\*\*\*+)\s*$/,'')
+    .replace(/^#{1,3}\s+/,'').replace(/^>\s?/,'')
+    .replace(/^\s*[-*]\s+/,'').replace(/^\s*\d{1,3}[.)]\s+/,'')
+    .replace(/^!\[([^\]]*)\]\([^()]*\)\s*$/,'$1')
+    .replace(/\[([^\]\n]{1,200})\]\([^()\s]{1,500}\)/g,'$1'))
+  .join(' ').replace(BOLD_RX,'$1').replace(MD_ITAL_RX,'$1$2').replace(/`([^`\n]+)`/g,'$1');}
 const main=document.getElementById('main');
 const clean=a=>(Array.isArray(a)?a:[]).map(s=>String(s==null?'':s).trim()).filter(Boolean);
 /* ===== Garde-fous de sécurité (assainissement des données importées/stockées) =====
@@ -1344,6 +1614,22 @@ const safeMetaId=v=>(typeof v==='string'&&SAFE_ID.test(v)&&BAD_KEYS.indexOf(v)<0
 const safeColor=c=>(typeof c==='string'&&/^#[0-9a-fA-F]{3,8}$/.test(c))?c:'#45556b';
 const safeImg=d=>(typeof d==='string'&&/^data:image\/(png|jpe?g|gif|webp);base64,[A-Za-z0-9+/=\s]{0,6000000}$/i.test(d))?d:null;
 const sstr=(v,max)=>String(v==null?'':v).slice(0,max||5000);
+// Documents PDF joints : le BLOB vit dans le store IndexedDB 'attachments' (jamais en base64 dans
+// la fiche) ; la fiche ne porte que des MÉTADONNÉES légères {id, name, size}.
+const MAX_PDF_BYTES=15*1024*1024;   // 15 Mo par document (aligné sur la limite serveur du bucket)
+const MAX_ATT_PER_ENTITY=10;        // documents par fiche (ou protocole)
+// Nom de fichier affichable — PUR (testé) : borné, sans séparateur de chemin ni caractère de contrôle.
+const safeFileName=s=>sstr(s,150).replace(/[\/\\\u0000-\u001f\u007f]/g,'').trim();
+// Métadonnée de pièce jointe — PURE (testée). L'id n'est JAMAIS régénéré (contrairement à safeId) :
+// un id inventé ne pointerait sur aucun blob -> entrée invalide REJETÉE (null, filtrée par migrate).
+function safeAttachment(a){if(!a||typeof a!=='object')return null;
+  const id=(typeof a.id==='string'&&SAFE_ID.test(a.id)&&BAD_KEYS.indexOf(a.id)<0)?a.id:null;
+  if(!id)return null;
+  // Le nom n'est qu'un LIBELLÉ d'affichage (le chemin cloud utilise l'id, jamais le nom), mais on
+  // garantit l'extension .pdf : un renommage ne peut pas faire croire à un autre type de fichier.
+  let name=safeFileName(a.name)||'document.pdf';
+  if(!/\.pdf$/i.test(name))name=name.slice(0,146)+'.pdf';
+  return {id,name,size:Math.max(0,Math.min(MAX_PDF_BYTES,Math.round(Number(a.size))||0))};}
 const sarr=(a,max)=>(Array.isArray(a)?a:[]).slice(0,max||1000).map(x=>sstr(x,4000));
 // Date de validation : on n'accepte QUE le mois/année. parseValidation() est tolérant en entrée
 // ("jan 2026", "janv 2026", "01/2026", "2026/01", "1-2026", "202601"…) et renvoie TOUJOURS le format
@@ -1482,7 +1768,7 @@ function blankFiche(){const b={id:uid('b'),type:'steps',title:'Prise en charge',
   // localInfo pré-rempli avec les invites de renfort des DEUX contextes d'exercice (structure /
   // SMUR) : une fiche déployée avec un « ☎ : … » vide entraîne à ignorer la ligne — on incite à
   // les renseigner (badge « À compléter » tant qu'une invite reste).
-  return{id:uid(),title:'',category:'',validation:'',localInfo:'Tél renfort : à compléter\nTél régulation : à compléter',confirmation:[''],verify:[''],notForget:[''],differentials:[''],references:[''],images:[],timers:[],counters:[],blocks:[b],start:b.id,order:Date.now()};}
+  return{id:uid(),title:'',category:'',validation:'',localInfo:'Tél renfort : à compléter\nTél régulation : à compléter',confirmation:[''],verify:[''],notForget:[''],differentials:[''],references:[''],images:[],attachments:[],timers:[],counters:[],blocks:[b],start:b.id,order:Date.now()};}
 // Invites laissées en suspens : où la fiche contient-elle encore le texte « à compléter »
 // (gabarit local non renseigné, manque « ⚠ À COMPLÉTER : … » signalé par la génération IA) ?
 // completionSpots(f) renvoie la liste des EMPLACEMENTS (libellés des sections / blocs), affichée
@@ -1532,6 +1818,9 @@ function migrate(f){if(!f||typeof f!=='object')f={};
   f.status=(f.status==='draft')?'draft':'';
   f.related=(Array.isArray(f.related)?f.related:[]).slice(0,20).filter(id=>typeof id==='string'&&SAFE_ID.test(id)&&BAD_KEYS.indexOf(id)<0);
   f.updatedBy=sstr(f.updatedBy,160);
+  //   attachments : documents PDF joints — MÉTADONNÉES seules ({id,name,size}) ; le blob vit dans
+  //   le store IndexedDB 'attachments'. Entrées invalides REJETÉES (safeAttachment renvoie null).
+  f.attachments=(Array.isArray(f.attachments)?f.attachments:[]).slice(0,MAX_ATT_PER_ENTITY).map(safeAttachment).filter(Boolean);
   // Métadonnées de SYNCHRONISATION (rétrocompatibles : défauts posés ici ; utilisées par l'objet Sync
   // quand on est connecté, sinon simplement stockées sans effet).
   //   updatedAt : ms de dernière modif (défaut = order ou maintenant) -> résolution de conflit (last-write-wins).
@@ -1554,6 +1843,29 @@ function sanitizeNotes(obj){const out={};if(!obj||typeof obj!=='object')return o
     out[k]={t:sstr(v.t,10000),at:(typeof v.at==='number'&&isFinite(v.at))?v.at:0};
     if(v.dirty===true)out[k].dirty=true;}
   return out;}
+/* ----- PROTOCOLES : documents de service (PDF joints) et/ou contenu rédigé en mini-Markdown.
+   Modèle : { id, title, category, validation('AAAA-MM'), body(mini-Markdown, <= MD_MAX_CHARS),
+   images[{id,data,caption}] (référencées par ![…](img:ID) dans body), attachments[{id,name,size}]
+   (mêmes documents PDF que les fiches — store IndexedDB 'attachments' partagé), order, status,
+   updatedBy, updatedAt, deletedAt, ownerId, libraryId }. migrateProtocol = point d'entrée UNIQUE
+   sécurité/compat (mêmes règles que migrate) : appelé à chaque lecture, import et pull cloud. */
+function blankProtocol(){return {id:uid('p'),title:'',category:'',validation:'',body:'',images:[],attachments:[],order:Date.now(),status:'',updatedBy:'',updatedAt:Date.now(),deletedAt:null,ownerId:null,libraryId:null};}
+function migrateProtocol(p){if(!p||typeof p!=='object')p={};
+  p.id=safeId(p.id,'p');
+  p.title=sstr(p.title,300);
+  p.category=safeCatRef(p.category);
+  p.validation=parseValidation(p.validation)||sstr(p.validation,16);
+  p.body=sstr(p.body,MD_MAX_CHARS);
+  if(typeof p.order!=='number'||!isFinite(p.order))p.order=Date.now();
+  p.images=(Array.isArray(p.images)?p.images:[]).slice(0,60).map(im=>({id:safeId(im&&im.id,'i'),data:safeImg(im&&im.data),caption:sstr(im&&im.caption,300)})).filter(im=>im.data);
+  p.attachments=(Array.isArray(p.attachments)?p.attachments:[]).slice(0,MAX_ATT_PER_ENTITY).map(safeAttachment).filter(Boolean);
+  p.status=(p.status==='draft')?'draft':'';
+  p.updatedBy=sstr(p.updatedBy,160);
+  if(typeof p.updatedAt!=='number'||!isFinite(p.updatedAt))p.updatedAt=(typeof p.order==='number'&&isFinite(p.order))?p.order:Date.now();
+  p.deletedAt=(typeof p.deletedAt==='number'&&isFinite(p.deletedAt))?p.deletedAt:null;
+  p.ownerId=safeMetaId(p.ownerId);p.libraryId=safeMetaId(p.libraryId);
+  delete p.dirty;
+  return p;}
 function seed(catId){const b1=uid('b'),b2=uid('b'),b3=uid('b'),bd=uid('b');
   return migrate({id:uid(),title:'Anaphylaxie (choc anaphylactique)',category:catId||'',validation:'2025-01',
     localInfo:'Renfort / réanimateur : …\nSAMU – régulation : …\n(adaptez à votre pratique)',
@@ -1634,7 +1946,7 @@ const fmtDate=v=>{if(!v)return 'Sans date de validation';const m=String(v).match
    persist(f)      : enregistre une fiche ; alerte si le stockage est saturé. */
 // Renvoie les fiches déjà lues (le test « base vide ? » a coûté un getAll complet : load() le
 // RÉUTILISE au lieu de relire) — ou null si une migration KV->IDB vient d'écrire (relire) ou en repli KV.
-async function chooseBackend(){try{await IDB.open();Data=IDB;const ex=await IDB.getAll();if(!ex.length){const old=await KV.getAll();if(old.length){for(const f of old)await IDB.put(migrate(f));}const oc=await KV.getCats();if(oc)await IDB.setCats(oc);const os=await KV.getSessions();if(os&&os.length){for(const s of os)await IDB.putSession(s);}const on=await KV.getNotes();if(on&&Object.keys(on).length)await IDB.setNotes(on);return null;}return ex;}catch(e){Data=KV;return null;}}
+async function chooseBackend(){try{await IDB.open();Data=IDB;const ex=await IDB.getAll();if(!ex.length){const old=await KV.getAll();if(old.length){for(const f of old)await IDB.put(migrate(f));}const oc=await KV.getCats();if(oc)await IDB.setCats(oc);const os=await KV.getSessions();if(os&&os.length){for(const s of os)await IDB.putSession(s);}const on=await KV.getNotes();if(on&&Object.keys(on).length)await IDB.setNotes(on);const op=await KV.getProtocols();if(op&&op.length){for(const p of op)await IDB.putProtocol(migrateProtocol(p));}return null;}return ex;}catch(e){Data=KV;return null;}}
 async function updateStorageInfo(){
   const el=document.getElementById('storageInfo');if(!el)return;
   try{
@@ -1661,6 +1973,9 @@ async function updateStorageInfo(){
       tip='Sans compte, cet appareil contient votre SEULE copie ('+used+' / '+fmt(est.quota)+') et le navigateur pourrait l\'effacer. Pour éviter toute perte : connectez-vous (sauvegarde dans le cloud) ou installez l\'app sur l\'écran d\'accueil.';
     }
     if(est.quota&&est.usage/est.quota>0.85)main+=' · <span class="pers-warn">'+uiIcon('warn',13)+' appareil presque plein</span>';
+    // Poids des documents PDF joints (somme des métadonnées en mémoire — aucun blob n'est relu).
+    let attB=0;fiches.forEach(x=>(x.attachments||[]).forEach(a=>attB+=a.size||0));
+    if(attB)tip+=' Dont '+fmt(attB)+' de documents PDF joints.';
     el.innerHTML=main;el.title=tip;
   }catch(e){if(el)el.textContent='';}
 }
@@ -1680,11 +1995,14 @@ async function load(){
   const pre=await chooseBackend();  // fiches déjà lues par le test « base vide ? » (évite un 2e getAll)
   if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();
   // Lectures indépendantes -> EN PARALLÈLE (démarrage) au lieu d'une chaîne d'attentes.
-  const [_cats,_fs,_ss,_nts]=await Promise.all([Data.getCats(),pre||Data.getAll(),Data.getSessions(),Data.getNotes().catch(()=>({}))]);
+  const [_cats,_fs,_ss,_nts,_ps]=await Promise.all([Data.getCats(),pre||Data.getAll(),Data.getSessions(),Data.getNotes().catch(()=>({})),Data.getProtocols().catch(()=>[])]);
   categories=sanitizeCats(_cats);
   // On masque les TOMBSTONES (suppressions douces) de l'affichage ; ils restent dans IDB tant
   // qu'ils n'ont pas été poussés vers le cloud (propagation de la suppression aux autres appareils).
-  fiches=_fs.map(migrate).filter(f=>!f.deletedAt);
+  const allFiches=_fs.map(migrate);
+  fiches=allFiches.filter(f=>!f.deletedAt);
+  const allProtocols=(_ps||[]).map(migrateProtocol);
+  protocols=allProtocols.filter(p=>!p.deletedAt);
   sessions=_ss||[];
   try{notes=sanitizeNotes(_nts);}catch(e){notes={};}
   if(!categories.length){categories=defaultCats();await Data.setCats(categories);}
@@ -1698,6 +2016,7 @@ async function load(){
   restoreLiveSessions();
   render();
   updateStorageInfo();
+  gcAttachments(allFiches.concat(allProtocols));   // nettoyage des blobs PDF orphelins (non bloquant)
   // Accueil (3 repères) à la toute première ouverture seulement.
   try{if(!localStorage.getItem('ac-onboarded'))welcomeModal.classList.add('on');}catch(e){}
   // Reprise après un « Se déconnecter » AVEC effacement, ou un retour des fiches « hors
@@ -1801,6 +2120,34 @@ async function softDelete(f){if(!f)return;
   // La note personnelle attachée suit le sort de la fiche (t:'' -> propagé aux autres appareils).
   if(notes[f.id]&&notes[f.id].t){notes[f.id]={t:'',at:Date.now(),dirty:true};try{await Data.setNotes(notes);}catch(e){}}
   f.deletedAt=Date.now();f.updatedAt=Date.now();f.dirty=true;markHeldEdit(f.id);try{await Data.put(f);}catch(e){}if(typeof Sync!=='undefined')Sync.schedule();}
+// Protocoles : même mécanique que persist()/softDelete() pour les fiches. (La retenue des
+// modifications hors connexion — heldEdits — reste propre aux fiches ; à étendre avec la
+// synchronisation des protocoles.)
+async function persistProtocol(p){try{p.updatedAt=Date.now();p.dirty=true;
+  if(typeof Auth!=='undefined'&&Auth.signedIn()){const u=Auth.user();if(u&&u.email)p.updatedBy=u.email;}
+  await Data.putProtocol(p);updateStorageInfo();if(typeof Sync!=='undefined')Sync.schedule();return true;}
+  catch(e){toast('⚠ Stockage saturé. Exportez vos données puis allégez les images.',9000);return false;}}
+async function softDeleteProtocol(p){if(!p)return;
+  const anonSpace=(typeof currentSpace==='function')?currentSpace()==='':true;
+  if(anonSpace&&(typeof Auth==='undefined'||!Auth.signedIn())){try{await Data.delProtocol(p.id);}catch(e){}return;}
+  p.deletedAt=Date.now();p.updatedAt=Date.now();p.dirty=true;try{await Data.putProtocol(p);}catch(e){}
+  if(typeof Sync!=='undefined')Sync.schedule();}
+// Ramasse-miettes des documents PDF : supprime les blobs qu'AUCUNE entité ne référence plus
+// (fiches vivantes ET tombstones — un tombstone garde ses métadonnées tant qu'il n'est pas purgé,
+// donc son document reste restaurable). Appelé au démarrage (load) : simple, idempotent, rattrape
+// tous les chemins (retrait dans l'éditeur, suppression de fiche, import écrasant, abandon...).
+// Comptage de références IMPLICITE : un document PARTAGÉ entre plusieurs fiches survit tant que
+// l'une d'elles le référence. (La section Protocoles ajoutera ses références ici.)
+async function gcAttachments(entities){
+  if(!supportsAttachments())return;
+  try{const ref=new Set();
+    (entities||[]).forEach(f=>{if(f&&Array.isArray(f.attachments))f.attachments.forEach(a=>{if(a&&a.id)ref.add(a.id);});});
+    for(const rec of await IDB.getAtts()){
+      if(ref.has(rec.id))continue;
+      // Copie cloud éventuelle -> file de suppression distante (rejouée par Sync._syncAttachments).
+      if(rec.remotePath)queueAttDelete(rec.remotePath);
+      await IDB.delAtt(rec.id);}
+  }catch(e){}}
 
 /* ===== Runtime (minuteurs, compteurs, audio) =====
    freshRuntime(f, session) : (re)construit l'état vivant pour la fiche f. Si une
@@ -2085,19 +2432,28 @@ function render(){
   if(_lastView==='library'&&state.view!=='library')_libScrollY=window.scrollY;
   // En mode crise, l'en-tête met le TITRE DE LA FICHE en avant (classe .crisis) ; la marque s'efface.
   document.querySelector('header.bar').classList.toggle('crisis',state.view==='read'&&!!state.fiche);
+  // Sur l'ACCUEIL, l'en-tête porte le sélecteur de section à la place de la marque (classe .home).
+  document.querySelector('header.bar').classList.toggle('home',state.view==='library');
+  if(state.view==='library')updateHdrSec();
   // En session active, l'en-tête porte un rappel PERMANENT mais discret (point pulsé + texte) :
   // assez visible pour ne pas oublier la session, sans recolorer tout l'en-tête ni exposer un
   // bouton « Terminer » en zone de tap fréquente (action à ne PAS rendre plus accessible en crise).
   {const bs=document.getElementById('brandSub');
    if(state.view==='read'&&Runtime.started)bs.innerHTML='Mode crise · <span class="sess-dot" aria-hidden="true"></span> session en cours';
-   else bs.textContent=state.view==='library'?'Bibliothèque':state.view==='edit'?'Édition':'Mode crise';}
-  const bt=document.getElementById('brandTitle');if(bt){const t=state.view==='read'&&state.fiche?state.fiche.title||'':'';bt.textContent=t;bt.style.display=t?'block':'none';}
+   else bs.textContent=state.view==='library'?(state.section==='protocols'?'Protocoles':'Bibliothèque')
+     :state.view==='edit'||state.view==='protocolEdit'?'Édition'
+     :state.view==='protocolRead'?'Protocole':'Mode crise';}
+  const bt=document.getElementById('brandTitle');if(bt){const t=state.view==='read'&&state.fiche?state.fiche.title||'':state.view==='protocolRead'&&state.protocol?state.protocol.title||'':'';bt.textContent=t;bt.style.display=t?'block':'none';}
   // Session en cours : pied de page réduit à l'état (les actions Exporter/Importer/Thème sortent
   // du champ visuel) ; le rappel minuteurs de l'en-tête est resynchronisé tout de suite.
   document.body.classList.toggle('crisis-live',state.view==='read'&&Runtime.started);
-  if(state.view==='library')renderLibrary();else if(state.view==='edit')renderEditor();else renderRead();
+  if(state.view==='library')(state.section==='protocols'?renderProtocols():renderLibrary());
+  else if(state.view==='edit')renderEditor();
+  else if(state.view==='protocolRead')renderProtocolRead();
+  else if(state.view==='protocolEdit')renderProtocolEdit();
+  else renderRead();
   _rtShowDirty=true;updateRtStrip();   // APRÈS le rendu de la vue : position réelle du panneau minuteurs
-  document.getElementById('count').textContent=fiches.length+' fiche'+(fiches.length>1?'s':'')+' · v'+APP_VERSION;
+  document.getElementById('count').textContent=fiches.length+' fiche'+(fiches.length>1?'s':'')+(protocols.length?' · '+protocols.length+' protocole'+(protocols.length>1?'s':''):'')+' · v'+APP_VERSION;
   // Défilement selon la TRANSITION de vue (et pas seulement la vue) :
   //   -> bibliothèque : position restaurée (retour de fiche/éditeur) ; re-rendu sur place inchangé ;
   //   -> lecture : haut de fiche à l'ARRIVÉE ou au changement de fiche (banderole d'alerte), mais
@@ -2111,6 +2467,79 @@ function render(){
 // Transition de vue (défilement ci-dessus) : vue du rendu précédent, fiche affichée, position bibliothèque.
 let _lastView=null,_lastFicheId=null,_libScrollY=0;
 let _qDebounce=null;   // debounce du champ de recherche (voir l'écouteur 'input' ci-dessous)
+/* ----- Chrome COMMUN de la page d'accueil (partagé entre renderLibrary et renderProtocols,
+   jamais dupliqué) : sélecteur de section, barre de bibliothèques, rangée de catégories. ----- */
+// Sélecteur de section de l'EN-TÊTE (#hdrSec, statique -> l'indicateur glisse vraiment) :
+// câblé UNE fois ici ; render() le montre sur l'accueil (header.bar.home) et met l'état à jour.
+// Clavier : Tab+Entrée sur chaque bouton + flèches gauche/droite sur le groupe.
+const hdrSec=document.getElementById('hdrSec');
+hdrSec.querySelectorAll('[data-section]').forEach(b=>b.onclick=()=>setSection(b.dataset.section));
+hdrSec.onkeydown=e=>{if(e.key==='ArrowLeft'){e.preventDefault();setSection('fiches');}else if(e.key==='ArrowRight'){e.preventDefault();setSection('protocols');}};
+function updateHdrSec(){const p=state.section==='protocols';
+  hdrSec.classList.toggle('sec-protocols',p);
+  let act=null;
+  hdrSec.querySelectorAll('[data-section]').forEach(b=>{const on=(b.dataset.section==='protocols')===p;
+    b.classList.toggle('on',on);b.setAttribute('aria-pressed',on?'true':'false');if(on)act=b;});
+  // Pastille ajustée au SEGMENT actif : largeur/position MESURÉES (les segments sont taillés
+  // sur leur contenu, pas 50/50 -> le libellé tient en grand sur une ligne), animées par
+  // transform/width -> la pastille glisse d'un segment à l'autre.
+  const ind=hdrSec.querySelector('.secswitch-ind');
+  if(ind&&act){ind.style.width=act.offsetWidth+'px';
+    ind.style.transform='translateX('+act.offsetLeft+'px)';}}
+// Le soulignement dépend de mesures : re-calé si la largeur de la fenêtre change.
+window.addEventListener('resize',()=>{if(document.querySelector('header.bar').classList.contains('home'))updateHdrSec();});
+// keepQuery : bascule déclenchée par la RECHERCHE TRANSVERSALE -> la requête est conservée
+// (le filtre de catégorie, lui, est remis à zéro : il pourrait masquer les résultats attendus).
+function setSection(s,keepQuery){s=(s==='protocols')?'protocols':'fiches';if(state.section===s)return;
+  const dir=(s==='protocols')?'r':'l';
+  state.section=s;try{localStorage.setItem(spaceKey('ac-section'),s);}catch(e){}
+  state.cat='';if(!keepQuery)state.q='';state.libLimit=LIB_PAGE;render();
+  // Transition de contenu (transform/opacity uniquement -> compositeur : la page reste utilisable
+  // pendant l'animation, qui accompagne le glissement de l'indicateur de l'en-tête).
+  main.classList.remove('sec-anim-l','sec-anim-r');void main.offsetWidth;
+  main.classList.add('sec-anim-'+dir);
+  main.addEventListener('animationend',()=>main.classList.remove('sec-anim-l','sec-anim-r'),{once:true});}
+// Barre BIBLIOTHÈQUE (visible seulement connecté) : Perso + bibliothèques partagées + création (app-admin).
+function scopeBarHtml(){
+  const ROLE_LBL={viewer:'lecture',editor:'édition',admin:'admin'};
+  return Auth.signedIn()?`<div class="scopebar"><span class="scope-lbl">Bibliothèque</span><div class="chiprow">
+      <button class="scopebtn${!state.scope?' on':''}" data-scope="">Perso</button>
+      ${sortedLibraries().map(l=>`<button class="scopebtn${state.scope===l.id?' on':''}" data-scope="${esc(l.id)}" title="Bibliothèque partagée — rôle : ${esc(ROLE_LBL[l.role]||l.role)}">${esc(l.name)}</button>`).join('')}
+      ${myIsAppAdmin?`<button class="scopebtn add" id="newLibBtn" title="Créer une bibliothèque partagée">+ Bibliothèque</button>`:''}</div></div>
+    ${state.scope?`<div class="scope-ctx"><span class="scope-ctx-i">Bibliothèque partagée${canEditScope(state.scope)?'':' · vous êtes en lecture seule'}</span>${(roleOf(state.scope)==='admin'||myIsAppAdmin)?`<button class="linkbtn" id="membersBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 19v-1a4 4 0 00-4-4H6a4 4 0 00-4 4v1"/><circle cx="9" cy="7" r="3"/><path d="M22 19v-1a4 4 0 00-3-3.87M16 4.13A4 4 0 0119 8"/></svg>Gérer</button>`:''}</div>`:''}`:'';}
+// Rangée de catégories (une ligne défilable) : mêmes pastilles pour fiches et protocoles.
+function catbarHtml(){
+  const chips=`<button class="catchip" data-cat="" style="${!state.cat?'background:var(--ink);color:var(--surface);border-color:var(--ink)':''}">Toutes</button>`+catsSorted(state.scope).map(c=>catChipHtml(c,state.cat===c.id,'catchip','data-cat')).join('')+(canEditScope(state.scope)?`<button class="catchip" id="catMgrChip" style="border-style:dashed;color:var(--ink-soft)">${uiIcon('gear',13)} Gérer</button>`:'');
+  return `<div class="catbar"><div class="chiprow">${chips}</div></div>`;}
+// Écouteurs du chrome commun. `rerender` = re-rendu de la vue hôte (renderLibrary/renderProtocols).
+// RECHERCHE TRANSVERSALE : la même requête est aussi évaluée sur L'AUTRE section (en urgence, on
+// ne doit pas avoir à se souvenir d'où vit un contenu). Bloc discret sous les résultats ; le tap
+// bascule de section en CONSERVANT la recherche (setSection keepQuery). Le nombre est calculé
+// sans le filtre de catégorie (remis à zéro à la bascule). `other` = section cible.
+function crossHitsHtml(q,other){
+  if(!q)return '';
+  const canEdit=canEditScope(state.scope);
+  const inScope=x=>(state.scope?x.libraryId===state.scope:!x.libraryId)&&(canEdit||x.status!=='draft');
+  const n=other==='protocols'
+    ?protocols.filter(p=>inScope(p)&&protocolHaystack(p).includes(q)).length
+    :fiches.filter(f=>inScope(f)&&ficheHaystack(f).includes(q)).length;
+  if(!n)return '';
+  const lbl=other==='protocols'?('protocole'+(n>1?'s':'')):('aide'+(n>1?'s':'')+' cognitive'+(n>1?'s':''));
+  return `<button class="cross-hits" data-crosssec="${other}">${n} ${lbl} correspond${n>1?'ent':''} aussi à cette recherche<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>`;}
+function bindHomeChrome(rerender){
+  {const ch=main.querySelector('[data-crosssec]');if(ch)ch.onclick=()=>setSection(ch.dataset.crosssec,true);}
+  main.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{const c=b.dataset.cat;state.cat=(c&&state.cat===c)?'':c;state.libLimit=LIB_PAGE;rerender();});
+  {const cmc=document.getElementById('catMgrChip');if(cmc)cmc.onclick=openCatMgr;}
+  main.querySelectorAll('[data-scope]').forEach(b=>b.onclick=()=>{state.scope=b.dataset.scope||null;bumpLibUsage(b.dataset.scope);state.cat='';state.libLimit=LIB_PAGE;rerender();});
+  {const nlb=document.getElementById('newLibBtn');if(nlb)nlb.onclick=openNewLib;}
+  {const mb=document.getElementById('membersBtn');if(mb)mb.onclick=()=>openMembers(state.scope);}
+  // Recherche DÉBOUNCÉE (150 ms) : re-filtrer/re-rendre à chaque frappe ferait ramer la saisie
+  // sur mobile. Focus/curseur restaurés (le re-rendu remplace le champ).
+  {const qi=document.getElementById('q');if(qi)qi.addEventListener('input',e=>{state.q=e.target.value;state.libLimit=LIB_PAGE;
+    clearTimeout(_qDebounce);_qDebounce=setTimeout(()=>{const pos=e.target.selectionStart;rerender();const inp=document.getElementById('q');inp.focus();inp.setSelectionRange(pos,pos);},150);});}
+  // Toujours montrer la bibliothèque ACTIVE même si la barre défile (centrée dans sa ligne).
+  const act=main.querySelector('.scopebar .scopebtn.on');if(act){const row=act.closest('.chiprow');if(row&&row.scrollWidth>row.clientWidth)row.scrollLeft=Math.max(0,act.offsetLeft-row.clientWidth/2+act.clientWidth/2);}
+}
 function renderLibrary(){
   const q=txNorm(state.q);
   // Le re-rendu remplace la rangée de catégories : on mémorise son défilement horizontal pour le
@@ -2124,16 +2553,8 @@ function renderLibrary(){
   const canEdit=canEditScope(state.scope);
   // Tri : épinglées d'abord (préférence locale), puis ordre habituel. Recherche : plein texte normalisé.
   const list=fiches.slice().sort((a,b)=>((isPinned(b.id)?1:0)-(isPinned(a.id)?1:0))||byOrder(a,b)).filter(f=>(state.scope?f.libraryId===state.scope:!f.libraryId)&&(!state.cat||f.category===state.cat)&&(canEdit||f.status!=='draft')&&(!q||ficheHaystack(f).includes(q)));
-  const chips=`<button class="catchip" data-cat="" style="${!state.cat?'background:var(--ink);color:var(--surface);border-color:var(--ink)':''}">Toutes</button>`+catsSorted(state.scope).map(c=>catChipHtml(c,state.cat===c.id,'catchip','data-cat')).join('')+(canEditScope(state.scope)?`<button class="catchip" id="catMgrChip" style="border-style:dashed;color:var(--ink-soft)">${uiIcon('gear',13)} Gérer</button>`:'');
-  // Barre BIBLIOTHÈQUE (visible seulement connecté) : Perso + bibliothèques partagées + création (app-admin).
-  const ROLE_LBL={viewer:'lecture',editor:'édition',admin:'admin'};
-  const scopeBar=Auth.signedIn()?`<div class="scopebar"><span class="scope-lbl">Bibliothèque</span><div class="chiprow">
-      <button class="scopebtn${!state.scope?' on':''}" data-scope="">Perso</button>
-      ${sortedLibraries().map(l=>`<button class="scopebtn${state.scope===l.id?' on':''}" data-scope="${esc(l.id)}" title="Bibliothèque partagée — rôle : ${esc(ROLE_LBL[l.role]||l.role)}">${esc(l.name)}</button>`).join('')}
-      ${myIsAppAdmin?`<button class="scopebtn add" id="newLibBtn" title="Créer une bibliothèque partagée">+ Bibliothèque</button>`:''}</div></div>
-    ${state.scope?`<div class="scope-ctx"><span class="scope-ctx-i">Bibliothèque partagée${canEditScope(state.scope)?'':' · vous êtes en lecture seule'}</span>${(roleOf(state.scope)==='admin'||myIsAppAdmin)?`<button class="linkbtn" id="membersBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 19v-1a4 4 0 00-4-4H6a4 4 0 00-4 4v1"/><circle cx="9" cy="7" r="3"/><path d="M22 19v-1a4 4 0 00-3-3.87M16 4.13A4 4 0 0119 8"/></svg>Gérer</button>`:''}</div>`:''}`:'';
-  // CATÉGORIES : vue d'ensemble complète, mais sur UNE seule ligne défilable (n'allonge pas la page).
-  const catbar=`<div class="catbar"><div class="chiprow">${chips}</div></div>`;
+  const scopeBar=scopeBarHtml();
+  const catbar=catbarHtml();
   // SESSIONS EN COURS (vives) : accès rapide en haut de l'accueil + actions (reprendre/réinit/terminer).
   const liveArr=Object.values(liveSessions).filter(R=>R.started&&R.fiche);
   const liveHtml=liveArr.length?`<div class="live-sessions"><div class="ls-h"><span class="sess-dot"></span>Sessions en cours · ${liveArr.length}</div>${liveArr.map(R=>{const run=Object.values(R.timers).filter(t=>t.running).length;return `<div class="ls-row"><div class="ls-info" data-openlive="${R.ficheId}" role="button" tabindex="0"><b>${esc(R.fiche.title||'Sans titre')}</b><span>depuis ${timeAgo(R.startedAt)}${run?` · ${run} minuteur${run>1?'s':''} actif${run>1?'s':''}`:''}</span></div><div class="ls-acts"><button class="btn sm primary" data-openlive="${R.ficheId}">Reprendre</button><button class="btn sm danger" data-endlive="${R.ficheId}">Terminer</button></div></div>`;}).join('')}</div>`:'';
@@ -2146,6 +2567,7 @@ function renderLibrary(){
     <div class="lib-top"><div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg><input id="q" placeholder="Rechercher…" value="${esc(state.q)}"></div>
       ${canEditScope(state.scope)?`<button class="btn-new" id="newBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Créer</button>`:''}</div>
     ${catbar}
+    ${crossHitsHtml(q,'protocols')}
     <div class="cards">${list.length?list.slice(0,state.libLimit).map(f=>{const sc=sessions.filter(s=>s.ficheId===f.id&&!s.live).length;const isLive=!!liveSessions[f.id];return `
       <div class="card${isLive?' has-live':''}" tabindex="0" role="button" data-open="${f.id}"><div class="card-body"><h3>${esc(f.title)||'Sans titre'}</h3>
         <div class="card-meta">${isLive?'<span class="tag live">● En cours</span>':''}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo title="Reste à compléter : ${esc(sp.join(' · '))}">À compléter</span>`:'';})()}${catTag(f)}${sc?`<span class="tag sess" title="Sessions enregistrées dans l'historique">${sc} sauvegardée${sc>1?'s':''}</span>`:''}<span class="card-date${staleDate(f.validation)?' stale':''}">${esc(fmtDate(f.validation))}${staleDate(f.validation)?' · à revoir':''}</span></div></div>
@@ -2157,32 +2579,200 @@ function renderLibrary(){
         :state.scope?(canEdit?'Cette bibliothèque partagée est vide — créez sa première fiche.':'Cette bibliothèque partagée est vide.')
         :'Créez votre première aide cognitive.'}</div>`}</div>`;
 
-  // Recherche DÉBOUNCÉE (150 ms) : re-filtrer/re-rendre toute la bibliothèque à chaque frappe
-  // faisait ramer la saisie sur mobile ; on attend une micro-pause de frappe. Focus/curseur restaurés
-  // (le re-rendu remplace le champ), comme avant.
-  document.getElementById('q').addEventListener('input',e=>{state.q=e.target.value;state.libLimit=LIB_PAGE;
-    clearTimeout(_qDebounce);_qDebounce=setTimeout(()=>{const pos=e.target.selectionStart;renderLibrary();const inp=document.getElementById('q');inp.focus();inp.setSelectionRange(pos,pos);},150);});
+  bindHomeChrome(renderLibrary);   // sélecteur de section, bibliothèques, catégories, recherche
   {const sm=document.getElementById('showMore');if(sm)sm.onclick=()=>{state.libLimit+=LIB_PAGE;renderLibrary();};}
   {const nb=document.getElementById('newBtn');if(nb)nb.onclick=newFiche;}
   {const nx=document.getElementById('noticeX');if(nx)nx.onclick=()=>{try{localStorage.setItem('ac-notice-hidden','1');}catch(e){}renderLibrary();};}
   {const sa=document.getElementById('seedAdd');if(sa)sa.onclick=addSeedFiches;}
   {const sx=document.getElementById('seedX');if(sx)sx.onclick=()=>{try{localStorage.setItem(spaceKey('ac-seeds-hidden'),'1');}catch(e){}renderLibrary();};}
   updateSyncBanner();
-  // Recliquer la catégorie déjà sélectionnée la dé-sélectionne (revient à « Toutes »).
-  main.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{const c=b.dataset.cat;state.cat=(c&&state.cat===c)?'':c;state.libLimit=LIB_PAGE;renderLibrary();});
-  {const cmc=document.getElementById('catMgrChip');if(cmc)cmc.onclick=openCatMgr;}
-  // Changer de bibliothèque (incrémente son compteur d'usage) / en créer une (app-admin).
-  main.querySelectorAll('[data-scope]').forEach(b=>b.onclick=()=>{state.scope=b.dataset.scope||null;bumpLibUsage(b.dataset.scope);state.cat='';state.libLimit=LIB_PAGE;renderLibrary();});
-  const nlb=document.getElementById('newLibBtn');if(nlb)nlb.onclick=openNewLib;
-  const mb=document.getElementById('membersBtn');if(mb)mb.onclick=()=>openMembers(state.scope);
   main.querySelectorAll('[data-openlive]').forEach(el=>{el.onclick=()=>openRead(el.dataset.openlive);el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openRead(el.dataset.openlive);}};});
   main.querySelectorAll('[data-endlive]').forEach(b=>b.onclick=async()=>{const id=b.dataset.endlive,R=liveSessions[id];if(R&&await confirmDlg('Terminer la session ? Les minuteurs s’arrêtent ; la session est conservée dans l’historique.',{yes:'Terminer'})){endSession(R);if(Runtime.ficheId===id)resetRuntime();renderLibrary();}});
   main.querySelectorAll('[data-open]').forEach(el=>{el.onclick=e=>{if(e.target.closest('[data-pin]')||e.target.closest('[data-todo]'))return;openRead(el.dataset.open);};el.onkeydown=e=>{if(e.target.closest('[data-pin]')||e.target.closest('[data-todo]'))return;if(e.key==='Enter'||e.key===' '){e.preventDefault();openRead(el.dataset.open);}};});
   main.querySelectorAll('[data-pin]').forEach(b=>b.onclick=e=>{e.stopPropagation();togglePin(b.dataset.pin);renderLibrary();});
-  // Toujours montrer la bibliothèque ACTIVE même si la barre défile (on la centre dans sa ligne).
-  const act=main.querySelector('.scopebar .scopebtn.on');if(act){const row=act.closest('.chiprow');if(row&&row.scrollWidth>row.clientWidth)row.scrollLeft=Math.max(0,act.offsetLeft-row.clientWidth/2+act.clientWidth/2);}
   {const row=main.querySelector('.catbar .chiprow');if(row&&_catRowX)row.scrollLeft=_catRowX;}
 }
+/* ----- Vues PROTOCOLES : liste (renderProtocols), lecture (renderProtocolRead), édition
+   (renderProtocolEdit). Même chrome d'accueil que la bibliothèque de fiches (sélecteur de
+   section, bibliothèques, catégories, recherche) ; les documents PDF et leur visionneuse sont
+   les mêmes composants que sur les fiches. ----- */
+const _protoHay=new WeakMap();
+function protocolHaystack(p){let h=_protoHay.get(p);
+  if(h===undefined){h=txNorm([p.title,mdStrip(p.body),...(p.attachments||[]).map(a=>a.name)].filter(Boolean).join(' '));_protoHay.set(p,h);}
+  return h+' '+txNorm(catName(p));}
+function renderProtocols(){
+  const q=txNorm(state.q);
+  const _oldCatRow=main.querySelector('.catbar .chiprow');const _catRowX=_oldCatRow?_oldCatRow.scrollLeft:0;
+  if(state.scope&&!myLibraries.some(l=>l.id===state.scope))state.scope=null;
+  const canEdit=canEditScope(state.scope);
+  const list=protocols.slice().sort(byOrder).filter(p=>(state.scope?p.libraryId===state.scope:!p.libraryId)&&(!state.cat||p.category===state.cat)&&(canEdit||p.status!=='draft')&&(!q||protocolHaystack(p).includes(q)));
+  main.innerHTML=`
+    ${scopeBarHtml()}
+    <div class="notice" id="syncErrNotice" hidden></div>
+    <div class="lib-top"><div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg><input id="q" placeholder="Rechercher…" value="${esc(state.q)}"></div>
+      ${canEdit?`<button class="btn-new" id="newBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Créer</button>`:''}</div>
+    ${catbarHtml()}
+    ${crossHitsHtml(q,'fiches')}
+    <div class="cards">${list.length?list.slice(0,state.libLimit).map(p=>{const nDoc=(p.attachments||[]).length;return `
+      <div class="card" tabindex="0" role="button" data-open="${p.id}"><div class="card-body"><h3>${esc(p.title)||'Sans titre'}</h3>
+        <div class="card-meta">${p.status==='draft'?'<span class="tag draft">Brouillon</span>':''}${catTag(p)}${nDoc?`<span class="tag sess" title="Documents PDF joints">${nDoc} PDF</span>`:''}${p.body&&p.body.trim()?'<span class="tag sess" title="Contenu rédigé dans l’app">Rédigé</span>':''}<span class="card-date${staleDate(p.validation)?' stale':''}">${esc(fmtDate(p.validation))}${staleDate(p.validation)?' · à revoir':''}</span></div></div>
+        <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></div>`;}).join('')+(list.length>state.libLimit?`<button class="btn" id="showMore" style="width:100%;margin-top:2px">Afficher plus (${list.length-state.libLimit} restant${list.length-state.libLimit>1?'s':''})</button>`:'')
+      :`<div class="empty"><b>Aucun protocole</b>${state.q||state.cat?'Aucun résultat pour ce filtre.'
+        :state.scope?(canEdit?'Cette bibliothèque partagée est vide — ajoutez son premier protocole.':'Cette bibliothèque partagée ne contient pas encore de protocole.')
+        :'Ajoutez un protocole : un ou plusieurs PDF, et/ou un contenu rédigé dans l’app.'}</div>`}</div>`;
+  bindHomeChrome(renderProtocols);
+  {const sm=document.getElementById('showMore');if(sm)sm.onclick=()=>{state.libLimit+=LIB_PAGE;renderProtocols();};}
+  {const nb=document.getElementById('newBtn');if(nb)nb.onclick=newProtocol;}
+  updateSyncBanner();
+  main.querySelectorAll('[data-open]').forEach(el=>{el.onclick=()=>openProtocolRead(el.dataset.open);el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openProtocolRead(el.dataset.open);}};});
+  {const row=main.querySelector('.catbar .chiprow');if(row&&_catRowX)row.scrollLeft=_catRowX;}
+}
+// Liste de boutons « Documents » (lecture) — même composant pour fiches et protocoles.
+function attListHtml(entity){return (entity.attachments||[]).length?`<section class="block"><div class="block-h h-doc">${headerIcon('h-doc')}Documents</div><div class="att-list">${entity.attachments.map(a=>`<button class="att-row" data-att="${esc(a.id)}" title="Ouvrir le document"><span class="att-ico">${uiIcon('doc',16)}</span><span class="att-name">${esc(a.name)}</span><span class="att-size">${fmtBytes(a.size)}</span></button>`).join('')}</div></section>`:'';}
+function bindAttList(entity){main.querySelectorAll('[data-att]').forEach(b=>b.onclick=()=>{const a=(entity.attachments||[]).find(x=>x.id===b.dataset.att);if(a)openPdfViewer(a,entity);});}
+function renderProtocolRead(){
+  const p=state.protocol;if(!p){state.view='library';return render();}
+  const body=(p.body&&p.body.trim())?`<section class="block md-body">${mdRender(p.body,{images:p.images})}</section>`:'';
+  const docs=attListHtml(p);
+  main.innerHTML=`
+    <button class="back" id="back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Protocoles</button>
+    <div class="read-head"><h2>${esc(p.title)||'Sans titre'}</h2></div>
+    <div class="read-meta">${p.libraryId?`<span class="tag libtag" title="Bibliothèque partagée"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/></svg>${esc(libName(p.libraryId)||'Partagée')}</span>`:''}${p.status==='draft'?'<span class="tag draft">Brouillon</span>':''}${catTag(p)}<span class="card-date${staleDate(p.validation)?' stale':''}">${esc(fmtDate(p.validation))}</span>${p.libraryId&&p.updatedBy?`<span class="card-date" title="Auteur de la dernière modification">· dernière modification par ${esc(p.updatedBy)}</span>`:''}</div>
+    ${p.status==='draft'?`<div class="notice">${uiIcon('warn',15)}<div><b>Brouillon</b> — ce protocole n'a pas encore été validé pour l'usage clinique.</div></div>`:''}
+    ${docs}
+    ${body}
+    ${(!docs&&!body)?'<div class="empty"><b>Protocole vide</b>Ajoutez un PDF ou un contenu rédigé via « Modifier ».</div>':''}
+    <div class="read-tools"><div class="read-tools-h">Gérer ce protocole${p.libraryId?` · <span class="ro-badge">${canEditFiche(p)?esc(libName(p.libraryId)||'Partagée'):'Lecture seule'}</span>`:''}</div><div class="read-tools-btns">${canEditFiche(p)?'<button class="btn sm" id="edit">Modifier</button>':''}<button class="btn sm" id="print">Imprimer</button><button class="btn sm" id="dup">Dupliquer</button><button class="btn sm" id="exportOne">Exporter</button></div></div>`;
+  document.getElementById('back').onclick=()=>{state.view='library';state.protocol=null;render();};
+  {const eb=document.getElementById('edit');if(eb)eb.onclick=()=>openProtocolEdit(p.id);}
+  document.getElementById('print').onclick=()=>window.print();
+  document.getElementById('dup').onclick=async()=>{const c=migrateProtocol(JSON.parse(JSON.stringify(p)));c.id=uid('p');c.title=(p.title||'Protocole')+' (copie)';c.order=Date.now();
+    if(await persistProtocol(c)){protocols.push(c);openProtocolEdit(c.id);}};
+  document.getElementById('exportOne').onclick=()=>exportData([],'protocole-'+fileSlug(p.title),categories.filter(c=>c.id===p.category),[p]);
+  bindAttList(p);
+  // Liens [texte](att:ID) du contenu rédigé -> même visionneuse que la section Documents.
+  main.querySelectorAll('[data-mdatt]').forEach(a=>a.onclick=e=>{e.preventDefault();const at=(p.attachments||[]).find(x=>x.id===a.dataset.mdatt);if(at)openPdfViewer(at,p);else toast('⚠ Document lié introuvable dans ce protocole.');});
+  main.querySelectorAll('img[data-full]').forEach(im=>im.onclick=()=>openLightbox(im.dataset.full,im.dataset.cap||''));
+}
+/* Barre d'outils du contenu rédigé : insertions Markdown au curseur / sur la sélection.
+   wrapBold (fiches) est réutilisé pour le gras ; les autres actions sont locales ici. */
+function mdWrapSel(inp,mark){const v=inp.value;let a=inp.selectionStart==null?v.length:inp.selectionStart,b=inp.selectionEnd==null?v.length:inp.selectionEnd;if(a>b){const t=a;a=b;b=t;}
+  inp.value=v.slice(0,a)+mark+v.slice(a,b)+mark+v.slice(b);
+  inp.focus();inp.setSelectionRange(a+mark.length,b+mark.length);
+  inp.dispatchEvent(new Event('input',{bubbles:false}));}
+function mdPrefixLines(inp,prefix,numbered){const v=inp.value;let a=inp.selectionStart==null?v.length:inp.selectionStart,b=inp.selectionEnd==null?v.length:inp.selectionEnd;if(a>b){const t=a;a=b;b=t;}
+  const ls=v.lastIndexOf('\n',a-1)+1;let end=v.indexOf('\n',b);if(end<0)end=v.length;
+  const seg=v.slice(ls,end).split('\n').map((l,i)=>(numbered?(i+1)+'. ':prefix)+l).join('\n');
+  inp.value=v.slice(0,ls)+seg+v.slice(end);
+  inp.focus();inp.dispatchEvent(new Event('input',{bubbles:false}));}
+function mdInsertAt(inp,text){const v=inp.value;const a=inp.selectionStart==null?v.length:inp.selectionStart;
+  inp.value=v.slice(0,a)+text+v.slice(a);
+  inp.focus();inp.setSelectionRange(a+text.length,a+text.length);
+  inp.dispatchEvent(new Event('input',{bubbles:false}));}
+let _mdPrevTimer=null;
+function renderProtocolEdit(){
+  const p=state.pdraft;if(!p){state.view='library';return render();}
+  const isNew=!protocols.some(x=>x.id===p.id);
+  main.innerHTML=`
+    <button class="back" id="back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Quitter sans enregistrer</button>
+    <div class="field"><label>Titre du protocole</label><input type="text" id="p-title" value="${esc(p.title)}" placeholder="ex. Douleur thoracique — protocole de service"></div>
+    <div class="field"><label>Catégorie</label><div class="catpick"><button class="catpill" data-selcat="" style="${!p.category?'background:var(--ink-soft);color:var(--surface);border-color:var(--ink-soft)':''}">Aucune</button>${catsSorted(p.libraryId).map(c=>catChipHtml(c,p.category===c.id,'catpill','data-selcat')).join('')}<button class="catpill" id="catMgrBtn" style="border-style:dashed;color:var(--ink-soft)">${uiIcon('gear',13)} Gérer</button></div></div>
+    ${Auth.signedIn()?`<div class="field"><label>Bibliothèque <span class="hint">où ranger ce protocole</span></label>
+      <select id="p-scope"><option value="" ${!p.libraryId?'selected':''}>Perso (privé)</option>${sortedLibraries().filter(l=>l.role==='editor'||l.role==='admin').map(l=>`<option value="${esc(l.id)}" ${p.libraryId===l.id?'selected':''}>${esc(l.name)} (partagée)</option>`).join('')}${p.libraryId&&!myLibraries.some(l=>l.id===p.libraryId)?`<option value="${esc(p.libraryId)}" selected>${esc(libName(p.libraryId)||'Bibliothèque')}</option>`:''}</select></div>`:''}
+    <div class="row2"><div class="field"><label>Date de validation <span class="hint">mois/année</span></label><input type="text" id="p-validation" inputmode="numeric" autocapitalize="off" value="${esc(valToDisplay(p.validation))}" placeholder="MM/AAAA — ex. 012026 ou 01/2026"></div>
+      <div class="field"><label>État</label><select id="p-status"><option value="" ${p.status!=='draft'?'selected':''}>Validé</option><option value="draft" ${p.status==='draft'?'selected':''}>Brouillon${p.libraryId?' (masqué aux lecteurs)':''}</option></select></div></div>
+    ${attFieldsetHtml(p)}
+    <fieldset class="field"><label>Contenu rédigé <span class="hint">facultatif — mise en forme simple, aperçu en dessous</span></label>
+      <div class="md-toolbar" role="toolbar" aria-label="Mise en forme">
+        <button type="button" class="mini bld" data-mdtool="b" aria-label="Gras" title="Gras — **texte**">B</button>
+        <button type="button" class="mini md-it" data-mdtool="i" aria-label="Italique" title="Italique — *texte*"><i>I</i></button>
+        <button type="button" class="mini" data-mdtool="h2" aria-label="Titre" title="Titre — ## Titre">H2</button>
+        <button type="button" class="mini" data-mdtool="h3" aria-label="Sous-titre" title="Sous-titre — ### Sous-titre">H3</button>
+        <button type="button" class="mini" data-mdtool="ul" aria-label="Liste à puces" title="Liste à puces — - élément (sous-liste : 2 espaces devant)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.4" fill="currentColor" stroke="none"/><circle cx="4.5" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="4.5" cy="18" r="1.4" fill="currentColor" stroke="none"/></svg></button>
+        <button type="button" class="mini" data-mdtool="ol" aria-label="Liste numérotée" title="Liste numérotée — 1. élément"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M10 6h10M10 12h10M10 18h10"/><text x="2" y="8.6" font-size="8" font-weight="700" fill="currentColor" stroke="none">1</text><text x="2" y="14.6" font-size="8" font-weight="700" fill="currentColor" stroke="none">2</text><text x="2" y="20.6" font-size="8" font-weight="700" fill="currentColor" stroke="none">3</text></svg></button>
+        <button type="button" class="mini" data-mdtool="q" aria-label="Citation" title="Citation — > texte"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><path d="M10.2 6.5c-3 .9-4.7 3-4.7 6v5h5.1v-5.6H7.7c.2-1.7 1.2-2.9 3-3.5zM19.5 6.5c-3 .9-4.7 3-4.7 6v5h5.1v-5.6h-2.9c.2-1.7 1.2-2.9 3-3.5z"/></svg></button>
+        <button type="button" class="mini" data-mdtool="code" aria-label="Code" title="Code — \`texte\` (bloc : \`\`\` sur une ligne)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 7.5L4 12l4.5 4.5M15.5 7.5L20 12l-4.5 4.5"/></svg></button>
+        <button type="button" class="mini" data-mdtool="link" aria-label="Lien" title="Lien — [texte](https://…)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13.5a4.5 4.5 0 006.8.5l2.7-2.7a4.5 4.5 0 00-6.4-6.4l-1.5 1.5"/><path d="M14 10.5a4.5 4.5 0 00-6.8-.5l-2.7 2.7a4.5 4.5 0 006.4 6.4l1.5-1.5"/></svg></button>
+        <button type="button" class="mini" data-mdtool="img" aria-label="Insérer une image" title="Insérer une image (réduite et stockée hors ligne)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2.5"/><circle cx="8.5" cy="8.5" r="1.6"/><path d="M21 15l-5-5L5 21"/></svg></button>
+      </div>
+      <textarea id="p-body" rows="12" placeholder="## Indication&#10;- Critère 1&#10;- Critère 2&#10;&#10;Texte libre, **gras**, *italique*…">${esc(p.body)}</textarea>
+      <p class="hint">Syntaxe : <code># titre</code> (##, ###), <code>- liste</code> / <code>1. liste</code> (sous-liste : 2 espaces devant), <code>&gt; citation</code>, <code>\`code\`</code> (bloc : <code>\`\`\`</code>), <code>---</code> séparateur, <code>**gras**</code>, <code>*italique*</code>, <code>[texte](https://…)</code>.</p>
+      <p class="md-prev-h">Aperçu</p><div class="md-preview" id="mdPreview">${mdRender(p.body,{images:p.images})}</div></fieldset>
+    <div class="editor-foot"><button class="btn primary" id="saveBtn">Enregistrer</button><div class="spacer"></div>${isNew?'':'<button class="btn danger" id="delBtn">Supprimer</button>'}</div>
+    <input type="file" id="imgInput" accept="image/*" hidden>
+    <input type="file" id="pdfInput" accept="application/pdf,.pdf" hidden>`;
+  document.getElementById('back').onclick=()=>{purgeDraftAtts();state.pdraft=null;if(protocols.some(x=>x.id===p.id))openProtocolRead(p.id);else{state.view='library';render();}};
+  document.getElementById('p-title').addEventListener('input',e=>p.title=e.target.value);
+  {const fv=document.getElementById('p-validation');
+   if(fv)fv.addEventListener('change',()=>{const raw=fv.value.trim();if(!raw){p.validation='';fv.classList.remove('val-bad');return;}const norm=parseValidation(raw);if(norm){p.validation=norm;fv.value=valToDisplay(norm);fv.classList.remove('val-bad');}else{fv.classList.add('val-bad');}});}
+  {const stSel=document.getElementById('p-status');if(stSel)stSel.onchange=()=>{p.status=stSel.value==='draft'?'draft':'';};}
+  main.querySelectorAll('[data-selcat]').forEach(b=>b.onclick=()=>{p.category=b.dataset.selcat;renderProtocolEdit();});
+  document.getElementById('catMgrBtn').onclick=openCatMgr;
+  {const scopeSel=document.getElementById('p-scope');if(scopeSel)scopeSel.onchange=()=>{const ns=scopeSel.value||null;p.libraryId=ns;
+    const cc=p.category;if(cc){const cat=categories.find(x=>x.id===cc);if(!cat||(cat.libraryId||null)!==(ns||null))p.category='';}
+    renderProtocolEdit();};}
+  bindAttEditor(p,renderProtocolEdit);
+  // Contenu rédigé : saisie -> brouillon + aperçu débouncé (même cadence que l'aperçu algorithme).
+  const ta=document.getElementById('p-body');
+  const schedulePrev=()=>{clearTimeout(_mdPrevTimer);_mdPrevTimer=setTimeout(()=>{const pv=document.getElementById('mdPreview');if(pv)pv.innerHTML=mdRender(p.body,{images:p.images});},300);};
+  ta.addEventListener('input',()=>{p.body=ta.value;schedulePrev();});
+  const imgInput=document.getElementById('imgInput');
+  main.querySelectorAll('[data-mdtool]').forEach(b=>b.onclick=()=>{const k=b.dataset.mdtool;
+    if(k==='b')wrapBold(ta);
+    else if(k==='i')mdWrapSel(ta,'*');
+    else if(k==='h2')mdPrefixLines(ta,'## ');
+    else if(k==='h3')mdPrefixLines(ta,'### ');
+    else if(k==='ul')mdPrefixLines(ta,'- ');
+    else if(k==='ol')mdPrefixLines(ta,'',true);
+    else if(k==='q')mdPrefixLines(ta,'> ');
+    else if(k==='code')mdWrapSel(ta,'`');
+    else if(k==='link'){const v=ta.value,a=ta.selectionStart||0,e2=ta.selectionEnd||0;const sel=v.slice(a,e2)||'texte';ta.value=v.slice(0,a)+'['+sel+'](https://)'+v.slice(e2);ta.focus();const c=a+sel.length+3;ta.setSelectionRange(c,c+8);ta.dispatchEvent(new Event('input',{bubbles:false}));}
+    else if(k==='img')imgInput.click();});
+  imgInput.onchange=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;
+    const data=await downscale(file);if(!data){toast('⚠ Image illisible.');return;}
+    if((p.images||[]).length>=60){toast('⚠ 60 images maximum par protocole.');return;}
+    const id=uid('i');p.images=p.images||[];p.images.push({id,data,caption:''});
+    mdInsertAt(ta,(ta.value&&!/\n$/.test(ta.value.slice(0,ta.selectionStart||0))?'\n':'')+'![](img:'+id+')\n');};
+  document.getElementById('saveBtn').onclick=saveProtocolDraft;
+  {const del=document.getElementById('delBtn');if(del)del.onclick=deleteProtocolDraft;}
+}
+async function saveProtocolDraft(){const d=state.pdraft;d.title=(d.title||'').trim();
+  const stEl=document.getElementById('p-status');if(stEl)d.status=stEl.value==='draft'?'draft':'';
+  const fvEl=document.getElementById('p-validation');if(fvEl)d.validation=parseValidation(fvEl.value)||d.validation||'';
+  d.validation=parseValidation(d.validation)||'';
+  d.body=sstr(d.body,MD_MAX_CHARS);
+  d.attachments=(d.attachments||[]).map(safeAttachment).filter(Boolean);
+  // Images jamais référencées dans le corps : retirées à l'enregistrement (pas de poids mort).
+  {const used=new Set();mdBlocks(d.body).forEach(b=>{if(b.t==='img')used.add(b.id);});
+   d.images=(d.images||[]).filter(im=>used.has(im.id));}
+  if(!d.title){toast('⚠ Donnez un titre au protocole.');return;}
+  if(typeof d.order!=='number')d.order=Date.now();
+  {const orig=protocols.find(x=>x.id===d.id);const from=(orig&&orig.libraryId)||null,to=d.libraryId||null;
+   if(orig&&from!==to){
+     if(from&&!await confirmDlg('Ce protocole va quitter la bibliothèque partagée « '+(libName(from)||'partagée')+' » : les autres membres n\'y auront plus accès.',{title:'Retirer de la bibliothèque partagée',yes:'Déplacer le protocole',danger:true}))return;
+     if(to&&!await confirmDlg('Ce protocole va être publié dans « '+(libName(to)||'la bibliothèque partagée')+' » : il sera visible par tous les membres'+(d.status==='draft'?' pouvant éditer (brouillon masqué aux lecteurs)':'')+'.',{title:'Publier dans la bibliothèque partagée',yes:'Publier le protocole'}))return;
+   }}
+  if(!(await persistProtocol(d)))return;draftNewAtts=[];
+  // Changement de bibliothèque : les blobs des documents repartent vers le nouveau chemin cloud.
+  {const orig2=protocols.find(x=>x.id===d.id);
+   if(orig2&&(orig2.libraryId||null)!==(d.libraryId||null)&&supportsAttachments()){
+     for(const a of (d.attachments||[])){try{const rec=await IDB.getAtt(a.id);if(rec){rec.dirty=1;await IDB.putAtt(rec);}}catch(e){}}}}
+  const i=protocols.findIndex(x=>x.id===d.id);if(i>=0)protocols[i]=d;else protocols.push(d);
+  state.pdraft=null;openProtocolRead(d.id);}
+async function deleteProtocolDraft(){
+  const msg=state.pdraft&&state.pdraft.libraryId
+    ?'Supprimer ce protocole définitivement ?\nIl disparaîtra pour tous les membres de la bibliothèque.'
+    :'Supprimer ce protocole définitivement ?';
+  if(!await confirmDlg(msg,{yes:'Supprimer',danger:true}))return;
+  const id=state.pdraft.id;const p=protocols.find(x=>x.id===id)||state.pdraft;
+  await softDeleteProtocol(p);protocols=protocols.filter(x=>x.id!==id);
+  state.pdraft=null;state.view='library';render();}
+function openProtocolRead(id){const p=protocols.find(x=>x.id===id);if(!p)return;state.protocol=p;state.view='protocolRead';render();}
+function openProtocolEdit(id){const p=protocols.find(x=>x.id===id);if(!p)return;
+  if(!canEditFiche(p)){toast('Lecture seule : vous n\'avez pas les droits d\'édition sur cette bibliothèque.');return openProtocolRead(id);}
+  state.pdraft=migrateProtocol(JSON.parse(JSON.stringify(p)));draftNewAtts=[];state.view='protocolEdit';render();}
+function newProtocol(){if(!canEditScope(state.scope)){toast('Lecture seule : vous ne pouvez pas créer de protocole dans cette bibliothèque.');return;}
+  const d=blankProtocol();d.libraryId=state.scope||null;state.pdraft=d;draftNewAtts=[];state.view='protocolEdit';render();}
 /* Icônes SVG inline « de texte » (remplacent les emojis : rendu identique sur tous les appareils,
    couleur = currentColor donc thème respecté, pas de style emoji qui jure avec l'interface).
    Même langage graphique que le reste : trait 2, viewBox 24, bouts arrondis. */
@@ -2202,6 +2792,7 @@ function uiIcon(name,size){const P={
   stopwatch:'<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/>',
   sparkles:'<path fill="currentColor" d="M11 4l1.7 4.3L17 10l-4.3 1.7L11 16l-1.7-4.3L5 10l4.3-1.7z"/><path fill="currentColor" d="M18.5 14.5l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9z"/>',
   pen:'<path d="M17 3a2.83 2.83 0 014 4L7.5 20.5 2 22l1.5-5.5z"/>',
+  doc:'<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/>',
   phone:'<rect x="7" y="2" width="10" height="20" rx="2.5"/><path d="M11 18.2h2"/>',
   bulb:'<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 00-4 10.4c.8.8 1 1.6 1 2.6h6c0-1 .2-1.8 1-2.6A6 6 0 0012 3z"/>'};
   const s=size||15;return `<svg class="tic" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[name]||''}</svg>`;}
@@ -2214,6 +2805,7 @@ function headerIcon(cls){const P={
   'h-forget':WARN_GLYPH,
   'h-diff':'<circle cx="6" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="9" r="2"/><path d="M6 8v8M8 18h6a4 4 0 004-4v-1"/>',
   'h-img':'<rect x="3" y="3" width="18" height="18" rx="2.5"/><circle cx="8.5" cy="8.5" r="1.6"/><path d="M21 15l-5-5L5 21"/>',
+  'h-doc':'<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/>',
   'h-notes':'<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4z"/>'};
   const p=P[cls];return p?`<span class="sec-badge"><svg class="sec-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg></span>`:'<span class="pip"></span>';}
 // Le <li> est un conteneur flex (puce en ::before) : le texte est TOUJOURS enveloppé dans un
@@ -2650,6 +3242,8 @@ function renderRead(){
     else{const steps=clean(blk.steps);const fwdc=atTip?(blk.next&&f.blocks.some(b=>b.id===blk.next)?'<button class="btn primary sm" id="navNext">Continuer →</button>':'<span class="endcap">FIN — fin de cette branche de prise en charge.</span>'):histBtn;
       navHtml=`<div class="nav-wrap">${crumbs}<div class="node-title">${esc(blk.title)||'Étapes'}${passTag}</div>${imgH}<ol class="steps">${steps.map((s,i)=>{const k=curSeq+':'+blk.id+':'+i;return `<li data-ck="${k}" class="${state.checked[k]?'done':''}" role="checkbox" aria-checked="${state.checked[k]?'true':'false'}" tabindex="0"><span class="box">${state.checked[k]?'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg>':''}</span><span class="txt">${fmt(s)}</span></li>`;}).join('')}</ol><div class="flow-ctrl">${fwdc}${backBtn}${resetBtn}</div></div>`;}}
   const gallery=(f.images||[]).length?`<section class="block"><div class="block-h h-img">${headerIcon('h-img')}Schémas & captures</div><div class="gallery">${f.images.map(im=>`<div class="gthumb"><img src="${im.data}" data-full="${im.data}" data-cap="${esc(im.caption||'')}" alt="${esc(im.caption||'')}" loading="lazy" decoding="async">${im.caption?`<div class="gcap">${esc(im.caption)}</div>`:''}</div>`).join('')}</div></section>`:'';
+  // Documents PDF joints : liste de boutons (≥44 px, utilisables en crise) -> visionneuse intégrée.
+  const docs=attListHtml(f);
   const refs=clean(f.references);
   // « Ne pas oublier » : bandeau compact SOUS le titre (un rappel critique doit être vu AVANT
   // d'être violé, pas après avoir tout déroulé).
@@ -2674,6 +3268,7 @@ function renderRead(){
     ${f.localInfo&&f.localInfo.trim()?`<div class="local">${fmt(f.localInfo)}</div>`:''}
     ${timekeeperPanel()}
     ${gallery}
+    ${docs}
     ${staticBlock('À vérifier','h-verify',f.verify,'verify')}
     ${staticBlock('Diagnostics différentiels','h-diff',f.differentials,'diff')}
     ${refs.length?`<div class="refs"><b>Références</b><ol>${refs.map(r=>`<li>${fmt(r)}</li>`).join('')}</ol></div>`:''}
@@ -2714,6 +3309,8 @@ function bindReadEvents(f,blk,cur){
   // Accessible clavier/lecteur d'écran : role=checkbox + aria-checked (posés au rendu), Entrée/Espace.
   main.querySelectorAll('[data-ck]').forEach(li=>{const tgl=kb=>{const k=li.dataset.ck;state.checked[k]=!state.checked[k];ensureStarted();persistLive(Runtime);render();if(kb){const nl=main.querySelector('[data-ck="'+CSS.escape(k)+'"]');if(nl)nl.focus();}};li.onclick=()=>tgl(false);li.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();tgl(true);}};});
   main.querySelectorAll('img[data-full]').forEach(im=>im.onclick=()=>openLightbox(im.dataset.full,im.dataset.cap||''));
+  // Documents PDF -> visionneuse intégrée (le blob est lu dans IndexedDB à l'ouverture).
+  bindAttList(f);
   // runtime controls (no full re-render)
   // Bouton à bascule : le libellé dit l'ÉTAT (« Son activé/coupé », comme « Thème : sombre »),
   // le title dit l'action, aria-pressed porte l'état pour les lecteurs d'écran. L'état « coupé »
@@ -2789,6 +3386,74 @@ function bindReadEvents(f,blk,cur){
 function listEditor(legend,hint,key,arr,ordered){const rows=(arr.length?arr:['']).map((v,i)=>`<div class="li" data-i="${i}">${ordered?`<span class="li-num">${String(i+1).padStart(2,'0')}</span>`:''}<input type="text" value="${esc(v)}" data-key="${key}" data-idx="${i}" placeholder="…">${boldBtnHtml()}${ordered?`<button class="mini" data-mv="up" data-key="${key}" data-idx="${i}" aria-label="Monter">↑</button><button class="mini" data-mv="down" data-key="${key}" data-idx="${i}" aria-label="Descendre">↓</button>`:''}<button class="mini del" data-rm="${key}" data-idx="${i}" aria-label="Supprimer la ligne">×</button></div>`).join('');return `<fieldset class="field list-edit"><label>${legend}${hint?` <span class="hint">${hint}</span>`:''}</label>${rows}<button class="add-line" data-add="${key}">+ Ajouter une ligne</button></fieldset>`;}
 // Bouton « Gras » : entoure la sélection du champ voisin de ** (rendu <b> en lecture via fmt()).
 function boldBtnHtml(){return '<button type="button" class="mini bld" data-bold aria-label="Mettre la sélection en gras" title="Gras — sélectionnez du texte puis cliquez (ou Ctrl/Cmd-B). Réservez-le aux doses et interdictions critiques.">B</button>';}
+// Documents PDF joignables depuis les AUTRES fiches du MÊME périmètre (Perso, ou même bibliothèque
+// partagée — jamais inter-périmètres : le chemin de stockage cloud encode le périmètre de sécurité).
+// Rattacher un document existant = PARTAGE : le même id est référencé par plusieurs fiches, le
+// remplacer le met à jour partout, il ne disparaît que quand plus personne ne le référence (GC).
+function attachablePdfs(f){const have=new Set((f.attachments||[]).map(a=>a.id));const seen=new Set(),out=[];
+  fiches.concat(protocols).forEach(x=>{if(x.id===f.id||x.deletedAt||(x.libraryId||null)!==(f.libraryId||null))return;
+    (x.attachments||[]).forEach(a=>{if(!a||have.has(a.id)||seen.has(a.id))return;seen.add(a.id);out.push({id:a.id,name:a.name,size:a.size,from:x.title||'Sans titre'});});});
+  return out;}
+// Fieldset « Documents (PDF) » PARTAGÉ entre l'éditeur de fiche et l'éditeur de protocole
+// (même composant, mêmes garde-fous). `entity` = state.draft ou state.pdraft.
+function attFieldsetHtml(entity){
+  return `<fieldset class="field"><label>Documents (PDF) <span class="hint">protocoles, recommandations — lisibles hors ligne</span></label>
+      ${supportsAttachments()?`${(entity.attachments||[]).map((a,i)=>`<div class="att-erow" data-ai="${i}"><span class="att-ico">${uiIcon('doc',15)}</span><input type="text" data-attname="${i}" value="${esc(a.name)}" aria-label="Nom du document" placeholder="Nom du document"><span class="att-size">${fmtBytes(a.size)}</span><button class="mini del" data-attrm="${i}" aria-label="Retirer le document">×</button></div>`).join('')}
+      <button class="add-line" id="addPdf">+ Ajouter un PDF (${fmtBytes(MAX_PDF_BYTES)} max)</button>
+      ${(()=>{const n=attachablePdfs(entity).length;return n?`<button class="add-line" id="attAddBtn">+ Joindre un document existant (${n} disponible${n>1?'s':''})…</button>`:'';})()}`
+      :`<p class="hint">Ce navigateur ne permet pas de stocker des documents hors ligne — ouvrez l'app dans un navigateur récent (ou installez-la sur l'écran d'accueil) pour joindre des PDF.</p>`}</fieldset>`;}
+// Écouteurs du fieldset Documents. Le BLOB est écrit immédiatement dans IndexedDB (il ne transite
+// jamais par le brouillon ni par le JSON) ; le brouillon ne reçoit que {id,name,size}. Les ids
+// ajoutés pendant cette édition sont tracés (draftNewAtts) -> purge si « Quitter sans enregistrer ».
+function bindAttEditor(entity,rerender){
+  const pdfInput=document.getElementById('pdfInput');
+  {const ap=document.getElementById('addPdf');
+   if(ap)ap.onclick=()=>{if((entity.attachments||[]).length>=MAX_ATT_PER_ENTITY){toast('⚠ '+MAX_ATT_PER_ENTITY+' documents maximum.');return;}pdfInput.click();};}
+  if(pdfInput)pdfInput.onchange=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;
+    if(file.size>MAX_PDF_BYTES){toast('⚠ Document trop volumineux ('+fmtBytes(file.size)+') : '+fmtBytes(MAX_PDF_BYTES)+' maximum.');return;}
+    // Lecture COMPLÈTE en ArrayBuffer dès l'ajout (stockage fiable partout, cf. IDB.putAtt) +
+    // CONTENU vérifié (signature %PDF-) en plus du type déclaré : un fichier renommé .pdf ne passe pas.
+    let buf=null;try{buf=await file.arrayBuffer();}catch(err){}
+    if(!buf||String.fromCharCode.apply(null,new Uint8Array(buf.slice(0,5)))!=='%PDF-'){toast('⚠ Ce fichier n\'est pas un PDF valide.');return;}
+    const id=uid('a');
+    try{await IDB.putAtt({id,buf,size:buf.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:1,remotePath:null});}
+    catch(err){toast('⚠ Stockage saturé : document non enregistré.',9000);return;}
+    draftNewAtts.push(id);
+    entity.attachments=entity.attachments||[];entity.attachments.push({id,name:safeFileName(file.name)||'document.pdf',size:buf.byteLength});
+    rerender();};
+  main.querySelectorAll('[data-attname]').forEach(inp=>inp.addEventListener('input',e=>{const a=(entity.attachments||[])[+e.target.dataset.attname];if(a)a.name=e.target.value;}));
+  main.querySelectorAll('[data-attrm]').forEach(b=>b.onclick=()=>{entity.attachments.splice(+b.dataset.attrm,1);rerender();});
+  {const ab=document.getElementById('attAddBtn');if(ab)ab.onclick=()=>openAttPicker(entity,rerender);}}
+/* Sélecteur de document existant : fenêtre FILTRABLE (nom + fiche/protocole d'origine). Rempli à
+   l'ouverture, re-filtré à la frappe ; choisir un document ajoute la même référence {id,name,size}
+   au brouillon (document partagé, cf. attachablePdfs). */
+const attPickModal=document.getElementById('attPickModal');
+let _attPickCtx=null;   // {entity, rerender} de l'éditeur appelant
+function closeAttPicker(){_attPickCtx=null;attPickModal.classList.remove('on');}
+bindModalDismiss(attPickModal,closeAttPicker);
+function renderAttPickList(){
+  const box=document.getElementById('attPickList');if(!box||!_attPickCtx)return;
+  const q=txNorm(document.getElementById('attPickQ').value);
+  const opts=attachablePdfs(_attPickCtx.entity).filter(o=>!q||txNorm(o.name+' '+o.from).includes(q));
+  box.innerHTML=opts.length?opts.map(o=>`<button class="att-row" data-pick="${esc(o.id)}"><span class="att-ico">${uiIcon('doc',16)}</span><span class="att-name">${esc(o.name)}<span class="att-from">${esc(o.from)}</span></span><span class="att-size">${fmtBytes(o.size)}</span></button>`).join('')
+    :'<p class="ai-note">Aucun document '+(q?'ne correspond au filtre.':'disponible.')+'</p>';
+  box.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{
+    const ctx=_attPickCtx;const o=attachablePdfs(ctx.entity).find(x=>x.id===b.dataset.pick);
+    closeAttPicker();
+    if(ctx&&o){ctx.entity.attachments=ctx.entity.attachments||[];ctx.entity.attachments.push({id:o.id,name:o.name,size:o.size});ctx.rerender();}});}
+document.getElementById('attPickQ').addEventListener('input',renderAttPickList);
+function openAttPicker(entity,rerender){
+  if((entity.attachments||[]).length>=MAX_ATT_PER_ENTITY){toast('⚠ '+MAX_ATT_PER_ENTITY+' documents maximum.');return;}
+  _attPickCtx={entity:entity,rerender:rerender};
+  document.getElementById('attPickQ').value='';
+  attPickModal.classList.add('on');renderAttPickList();}
+// Blobs PDF ajoutés pendant l'édition COURANTE : purgés si on quitte sans enregistrer (le blob est
+// écrit immédiatement dans IndexedDB à l'ajout, AVANT l'enregistrement de la fiche).
+let draftNewAtts=[];
+async function purgeDraftAtts(){const ids=draftNewAtts;draftNewAtts=[];
+  if(!ids.length||!supportsAttachments())return;
+  const ref=new Set();fiches.concat(protocols).forEach(x=>(x.attachments||[]).forEach(a=>ref.add(a.id)));
+  for(const id of ids){if(!ref.has(id)){try{await IDB.delAtt(id);}catch(e){}}}}
 function targetSelect(blocks,selfId,value){const opts=blocks.filter(b=>b.id!==selfId).map(b=>`<option value="${b.id}" ${b.id===value?'selected':''}>${esc(b.title)||'(bloc sans titre)'}</option>`).join('');return `<select data-target><option value="" ${!value?'selected':''}>— Fin / aucun —</option>${opts}</select>`;}
 function imageEditor(b){return `<div class="sub">Image du bloc (option)</div><div class="imgrow">${b.image?`<img src="${b.image}" alt=""><button class="btn sm danger" data-bimgdel>Retirer</button>`:`<button class="btn sm" data-bimg>+ Image / capture</button>`}</div>`;}
 function blockEditor(b,blocks){if(b.type==='decision'){return `<div class="blk" data-bid="${b.id}"><div class="blk-top"><span class="blk-type decision">Décision</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Réévaluation)"></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Question</div><input type="text" data-bf="question" value="${esc(b.question)}" placeholder="ex. Réponse à l'adrénaline ?" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)"><div class="sub">Réponses → bloc cible</div>${(b.options.length?b.options:[{label:'',target:''}]).map((o,i)=>`<div class="optedit" data-oi="${i}"><input type="text" data-of="label" value="${esc(o.label)}" placeholder="ex. Oui">${targetSelect(blocks,b.id,o.target)}<button class="mini del" data-rmopt="${i}" aria-label="Supprimer la réponse">×</button></div>`).join('')}<button class="add-line" data-addopt>+ Ajouter une réponse</button>${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="mini" data-bmv="up" aria-label="Monter le bloc">↑</button><button class="mini" data-bmv="down" aria-label="Descendre le bloc">↓</button><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
@@ -2819,13 +3484,15 @@ function renderEditor(){
     ${listEditor('Ne pas oublier','points critiques','notForget',f.notForget)}
     ${listEditor('Diagnostics différentiels','','differentials',f.differentials)}
     <fieldset class="field"><label>Schémas & captures <span class="hint">stockées hors ligne dans l'app</span></label><div class="gallery">${(f.images||[]).map((im,i)=>`<div class="gthumb"><img src="${im.data}" alt="" loading="lazy" decoding="async"><input type="text" class="gcap" data-imgcap="${i}" value="${esc(im.caption||'')}" placeholder="Légende…" style="width:100%;margin-top:5px;padding:6px 8px;border:1px solid var(--line);border-radius:7px"><button class="btn sm danger" data-imgdel="${i}" style="width:100%;margin-top:5px">Retirer</button></div>`).join('')}</div><button class="add-line" id="addImg" style="margin-top:10px">+ Ajouter une image / capture</button></fieldset>
+    ${attFieldsetHtml(f)}
     ${listEditor('Références','sources de la fiche','references',f.references)}
     <fieldset class="field"><label>Fiches liées <span class="hint">raccourcis « Voir aussi » en bas de la fiche</span></label>
       <div class="rel-edit">${(f.related||[]).map(id=>{const rf=fiches.find(x=>x.id===id);return rf?`<span class="rel-chip">${esc(rf.title)||'Sans titre'}<button class="rel-x" data-relrm="${esc(id)}" aria-label="Retirer">×</button></span>`:'';}).join('')||'<span class="hint">Aucune fiche liée.</span>'}</div>
       ${(()=>{const opts=fiches.filter(x=>x.id!==f.id&&!x.deletedAt&&(f.related||[]).indexOf(x.id)<0&&(x.libraryId||null)===(f.libraryId||null)).sort(byOrder);return opts.length?`<select id="relAdd" style="margin-top:8px;width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)"><option value="">+ Ajouter une fiche liée…</option>${opts.map(x=>`<option value="${esc(x.id)}">${esc(x.title)||'Sans titre'}</option>`).join('')}</select>`:'<p class="hint">Aucune autre fiche disponible dans cette bibliothèque.</p>';})()}</fieldset>
     ${noteBlockHtml(f.id)}
     <div class="editor-foot"><button class="btn primary" id="saveBtn">Enregistrer</button><div class="spacer"></div>${fiches.some(x=>x.id===f.id)?'<button class="btn danger" id="delBtn">Supprimer</button>':''}</div>
-    <input type="file" id="imgInput" accept="image/*" hidden>`;
+    <input type="file" id="imgInput" accept="image/*" hidden>
+    <input type="file" id="pdfInput" accept="application/pdf,.pdf" hidden>`;
   bindEditorEvents(f);
   flowCtx={f,curId:null};
   bindFlowZoom();applyFlowZoom();restoreFlow();
@@ -2836,7 +3503,7 @@ function bindEditorEvents(f){
   bindNoteBlock(f.id,renderEditor);  // note personnelle : même composant qu'en lecture, dès la création
   // Annulation d'une CRÉATION : la note éventuellement saisie n'a plus de fiche -> effacée aussi
   // (saveNote(id,'') : tombstone propagé si déjà synchronisée, no-op si jamais de note).
-  document.getElementById('back').onclick=()=>{state.draft=null;state.noteEdit=false;if(fiches.some(x=>x.id===f.id)){resetRuntime();openRead(f.id);}else{saveNote(f.id,'');state.view='library';render();}};
+  document.getElementById('back').onclick=()=>{purgeDraftAtts();state.draft=null;state.noteEdit=false;if(fiches.some(x=>x.id===f.id)){resetRuntime();openRead(f.id);}else{saveNote(f.id,'');state.view='library';render();}};
   const cbA=document.getElementById('cbAI');if(cbA)cbA.onclick=openAI;
   const cbM=document.getElementById('cbManual');if(cbM)cbM.onclick=()=>{state.showCreateBand=false;renderEditor();const t=document.getElementById('f-title');if(t)t.focus();};
   ['title','localInfo'].forEach(k=>document.getElementById('f-'+k).addEventListener('input',e=>state.draft[k]=e.target.value));
@@ -2900,6 +3567,7 @@ function bindEditorEvents(f){
     card.querySelectorAll('[data-bmv]').forEach(btn=>btn.onclick=()=>{moveItem(f.blocks,f.blocks.indexOf(b),btn.dataset.bmv==='up'?-1:1);renderEditor();});
     const bd=card.querySelector('[data-bdel]');if(bd)bd.onclick=()=>{f.blocks=f.blocks.filter(x=>x.id!==bid);f.blocks.forEach(x=>{if(x.next===bid)x.next=null;if(x.options)x.options.forEach(o=>{if(o.target===bid)o.target='';});});if(f.start===bid)f.start=f.blocks[0]?f.blocks[0].id:null;if(!f.blocks.length){const nb={id:uid('b'),type:'steps',title:'Prise en charge',steps:[''],image:null,next:null};f.blocks.push(nb);f.start=nb.id;}renderEditor();};});
   imgInput.onchange=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;const data=await downscale(file);if(!data){toast('⚠ Image illisible.');return;}if(imgMode.kind==='gallery')f.images.push({id:uid('i'),data,caption:''});else{const b=f.blocks.find(x=>x.id===imgMode.bid);if(b)b.image=data;}renderEditor();};
+  bindAttEditor(f,renderEditor);   // documents PDF (composant partagé avec l'éditeur de protocole)
   document.getElementById('saveBtn').onclick=saveDraft;const del=document.getElementById('delBtn');if(del)del.onclick=deleteDraft;
 }
 function bindListEditors(){
@@ -2951,6 +3619,7 @@ async function saveDraft(){const d=state.draft;d.title=(d.title||'').trim();
   d.blocks.forEach(b=>{b.title=(b.title||'').trim();if(b.type==='steps')b.steps=clean(b.steps);else{b.question=(b.question||'').trim();b.options=(b.options||[]).filter(o=>(o.label||'').trim());}});
   d.timers=(d.timers||[]).map(t=>({id:t.id,label:(t.label||'').trim(),type:t.type==='interval'?'interval':'stopwatch',seconds:Math.max(0,parseInt(t.seconds||0)||0),autoloop:!!t.autoloop}));
   d.counters=(d.counters||[]).map(c=>({id:c.id,label:(c.label||'').trim(),step:Math.max(1,parseInt(c.step||1)||1),start:parseInt(c.start||0)||0}));
+  d.attachments=(d.attachments||[]).map(safeAttachment).filter(Boolean);
   delete d.blocks._start;if(!d.start||!d.blocks.some(b=>b.id===d.start))d.start=d.blocks[0]?d.blocks[0].id:null;
   if(!d.title){toast('⚠ Donnez un titre à la fiche.');return;}if(typeof d.order!=='number')d.order=Date.now();
   // CHANGEMENT DE BIBLIOTHÈQUE : conséquences irréversibles pour les AUTRES -> confirmation
@@ -2964,7 +3633,14 @@ async function saveDraft(){const d=state.draft;d.title=(d.title||'').trim();
    }}
   // La structure de la fiche change : on TERMINE une éventuelle session vive (archivée) pour éviter
   // une incohérence minuteurs/blocs, puis on rouvre la fiche à neuf.
-  if(!(await persist(d)))return;const i=fiches.findIndex(x=>x.id===d.id);if(i>=0)fiches[i]=d;else fiches.push(d);if(liveSessions[d.id])endSession(liveSessions[d.id]);state.draft=null;resetRuntime();openRead(d.id);}
+  if(!(await persist(d)))return;draftNewAtts=[];
+  // CHANGEMENT DE BIBLIOTHÈQUE : le chemin cloud des documents PDF encode le périmètre -> on
+  // remet leurs blobs « à pousser » (re-upload au nouveau chemin + suppression de l'ancien,
+  // gérés par Sync._syncAttachments).
+  {const orig2=fiches.find(x=>x.id===d.id);
+   if(orig2&&(orig2.libraryId||null)!==(d.libraryId||null)&&supportsAttachments()){
+     for(const a of (d.attachments||[])){try{const rec=await IDB.getAtt(a.id);if(rec){rec.dirty=1;await IDB.putAtt(rec);}}catch(e){}}}}
+  const i=fiches.findIndex(x=>x.id===d.id);if(i>=0)fiches[i]=d;else fiches.push(d);if(liveSessions[d.id])endSession(liveSessions[d.id]);state.draft=null;resetRuntime();openRead(d.id);}
 async function deleteDraft(){
   // Fiche de bibliothèque PARTAGÉE : la suppression effacera aussi, chez chaque membre, la note
   // personnelle qu'il a pu attacher à cette fiche -> on le dit à l'éditeur/admin avant.
@@ -2987,8 +3663,8 @@ function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;flowScroll=
   // Algorithme REPLIÉ à l'ouverture : la 1ʳᵉ étape actionnable doit arriver le plus haut possible
   // sous stress ; le schéma (vue d'ensemble, utile à froid) reste à un tap (« Voir l'algorithme »).
   bindStateToRuntime();state.fiche=Runtime.fiche;state.showFlow=false;state.showSess=false;state.view='read';render();}
-function openEdit(id){const f=fiches.find(x=>x.id===id);if(!f)return;if(!canEditFiche(f)){toast('Lecture seule : vous n\'avez pas les droits d\'édition sur cette bibliothèque.');return openRead(id);}state.draft=JSON.parse(JSON.stringify(f));state.noteEdit=false;state.view='edit';render();}
-function newFiche(){if(!canEditScope(state.scope)){toast('Lecture seule : vous ne pouvez pas créer de fiche dans cette bibliothèque.');return;}const d=blankFiche();d.libraryId=state.scope||null;state.draft=d;state.noteEdit=false;state.showCreateBand=true;state.view='edit';render();}
+function openEdit(id){const f=fiches.find(x=>x.id===id);if(!f)return;if(!canEditFiche(f)){toast('Lecture seule : vous n\'avez pas les droits d\'édition sur cette bibliothèque.');return openRead(id);}state.draft=JSON.parse(JSON.stringify(f));draftNewAtts=[];state.noteEdit=false;state.view='edit';render();}
+function newFiche(){if(!canEditScope(state.scope)){toast('Lecture seule : vous ne pouvez pas créer de fiche dans cette bibliothèque.');return;}const d=blankFiche();d.libraryId=state.scope||null;state.draft=d;draftNewAtts=[];state.noteEdit=false;state.showCreateBand=true;state.view='edit';render();}
 
 /* ===== Lightbox ===== (agrandissement d'une image au clic, avec légende) */
 const lb=document.getElementById('lightbox');
@@ -2998,6 +3674,112 @@ document.getElementById('lbX').onclick=closeLightbox;lb.onclick=e=>{if(e.target=
 // Plein écran de l'algorithme : boutons de zoom (mêmes que l'aperçu) + fermeture.
 document.querySelectorAll('#flowFull [data-zoomf]').forEach(b=>b.onclick=()=>zoomStep(b.dataset.zoomf));
 document.getElementById('ffClose').onclick=closeFlowFull;
+
+/* ===== Visionneuse PDF =====
+   Rendu par pdf.js VENDORISÉ (vendor/pdfjs, version figée, précaché par sw.js -> hors ligne ;
+   SEULE dépendance runtime autorisée, voir AGENTS.md), chargé PARESSEUSEMENT au premier document
+   ouvert (import() dynamique : zéro coût au démarrage — l'app reste instantanée en urgence).
+   Rendu VIRTUALISÉ : un conteneur par page à hauteur pré-calculée ; IntersectionObserver ne rend
+   sur canvas que les pages proches de l'écran et DÉTRUIT les canvas éloignés (iOS plafonne la
+   mémoire totale des canvas -> un long PDF entièrement rendu ferait planter l'onglet).
+   Zoom par boutons (comme l'algorithme) ; « Largeur » (100 %) = pleine largeur d'écran.
+   Fenêtre .ai-modal -> focus / Échap / piège Tab gérés par l'accessibilité centralisée. */
+let _pdfjs=null;
+async function pdfLib(){if(!_pdfjs){const m=await import('./vendor/pdfjs/pdf.min.js');
+  m.GlobalWorkerOptions.workerSrc='./vendor/pdfjs/pdf.worker.min.js';_pdfjs=m;}return _pdfjs;}
+const pdfModal=document.getElementById('pdfModal');
+let _pv=null;   // état de la visionneuse ouverte {doc, pages[], observer, z, cssW, baseW, baseH}
+function closePdfViewer(){
+  if(_pv){try{_pv.observer&&_pv.observer.disconnect();}catch(e){}try{_pv.doc.destroy();}catch(e){}_pv=null;}
+  const sc=document.getElementById('pdfScroll');if(sc)sc.innerHTML='';
+  pdfModal.classList.remove('on');}
+bindModalDismiss(pdfModal,closePdfViewer);
+pdfModal.querySelectorAll('[data-pz]').forEach(b=>b.onclick=()=>pdfZoom(b.dataset.pz));
+window.addEventListener('resize',()=>{if(_pv&&pdfModal.classList.contains('on')){pdfApplyScale();pdfRenderNear();}});
+// Rend IMMÉDIATEMENT les pages proches de l'écran (±1 hauteur d'écran), par géométrie : à
+// l'ouverture et après un zoom, on n'attend pas le premier passage de l'IntersectionObserver
+// (sinon page blanche d'une frame — et filet de sûreté si l'observer tarde). renderPdfPage
+// ne refait rien si la page est déjà rendue à l'échelle courante.
+function pdfRenderNear(){if(!_pv)return;const sc=document.getElementById('pdfScroll');const r=sc.getBoundingClientRect();
+  _pv.pages.forEach(s=>{const p=s.el.getBoundingClientRect();
+    if(p.bottom>=r.top-r.height&&p.top<=r.bottom+r.height){s.vis=true;renderPdfPage(s);}});}
+// Largeur CSS des pages + hauteur pré-calculée de chaque conteneur (les pages non encore lues
+// utilisent les dimensions de la page 1 ; corrigées à la première lecture de la page).
+function pdfApplyScale(){if(!_pv)return;const sc=document.getElementById('pdfScroll');
+  const avail=Math.max(120,sc.clientWidth-20);
+  _pv.cssW=Math.round(avail*_pv.z);
+  const zv=document.getElementById('pdfZoomVal');if(zv)zv.textContent=Math.round(_pv.z*100)+'%';
+  _pv.pages.forEach(s=>{const w=s.vp?s.vp.width:_pv.baseW,h=s.vp?s.vp.height:_pv.baseH;
+    s.el.style.width=_pv.cssW+'px';s.el.style.height=Math.round(h*(_pv.cssW/w))+'px';
+    releasePdfPage(s);});}
+function pdfZoom(a){if(!_pv)return;
+  if(a==='in')_pv.z=Math.min(4,Math.round((_pv.z+0.25)*100)/100);
+  else if(a==='out')_pv.z=Math.max(0.5,Math.round((_pv.z-0.25)*100)/100);
+  else _pv.z=1;
+  pdfApplyScale();pdfRenderNear();}
+function releasePdfPage(s){if(s.canvas){s.canvas.width=s.canvas.height=0;s.canvas.remove();s.canvas=null;}}
+async function renderPdfPage(s){if(!_pv||s.rendering)return;
+  if(s.canvas&&s.renderedW===_pv.cssW)return;   // déjà rendue à cette échelle
+  s.rendering=true;
+  try{
+    if(!s.page){s.page=await _pv.doc.getPage(+s.el.dataset.p);s.vp=s.page.getViewport({scale:1});
+      if(_pv)s.el.style.height=Math.round(s.vp.height*(_pv.cssW/s.vp.width))+'px';}
+    if(!_pv||!s.vis){s.rendering=false;return;}
+    const dpr=Math.min(2,window.devicePixelRatio||1);      // dpr plafonné : netteté vs mémoire iOS
+    const vp=s.page.getViewport({scale:(_pv.cssW/s.vp.width)*dpr});
+    const c=document.createElement('canvas');c.width=Math.round(vp.width);c.height=Math.round(vp.height);
+    const targetW=_pv.cssW;
+    await s.page.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;
+    if(!_pv||!s.vis||_pv.cssW!==targetW){c.width=c.height=0;s.rendering=false;if(_pv&&s.vis)renderPdfPage(s);return;}
+    releasePdfPage(s);s.el.innerHTML='';s.el.appendChild(c);s.canvas=c;s.renderedW=targetW;
+  }catch(e){}
+  s.rendering=false;}
+async function openPdfViewer(att,entity){
+  if(!supportsAttachments()){toast('⚠ Ce navigateur ne peut pas stocker les documents hors ligne — ouvrez l\'app dans un navigateur récent pour lire ce PDF.',9000);return;}
+  let rec=null;try{rec=await IDB.getAtt(att.id);}catch(e){}
+  if(!attBuf(rec)){
+    // Pas encore sur cet appareil : tentative de téléchargement IMMÉDIATE si connecté (le
+    // téléchargement de fond de la synchro n'est peut-être pas passé par ce document).
+    // `entity` (fiche ou protocole hôte) fournit le périmètre -> chemin cloud.
+    if(typeof Auth!=='undefined'&&Auth.signedIn()&&navigator.onLine!==false){
+      toast('Téléchargement du document…');
+      try{const path=attStoragePath(entity?(entity.libraryId||null):null,(Auth.user()||{}).id,att.id);
+        const r=await storageReq('GET',path);const buf=await r.arrayBuffer();
+        rec={id:att.id,buf:buf,size:buf.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:0,remotePath:path};
+        await IDB.putAtt(rec);}
+      catch(e){toast('⚠ Document introuvable dans le cloud — il n\'a peut-être pas encore été envoyé depuis l\'appareil où il a été ajouté.',9000);return;}
+    }else{toast('Document pas encore téléchargé sur cet appareil : connectez-vous avec du réseau pour le récupérer.',9000);return;}
+  }
+  const sc=document.getElementById('pdfScroll');
+  document.getElementById('pdfModalTitle').textContent=att.name||'Document';
+  sc.innerHTML='<div class="pdf-msg">Ouverture du document…</div>';
+  pdfModal.classList.add('on');
+  // Deux échecs BIEN DISTINCTS : le chargement de la visionneuse (vendor/pdfjs absent du cache —
+  // ex. hors-ligne avec un service worker antérieur à la 4.0.0) n'est PAS un fichier endommagé.
+  let lib=null;
+  try{lib=await pdfLib();}
+  catch(e){console.error('pdfLib:',e);
+    // file:// : les navigateurs BLOQUENT le chargement des modules ES (origine « null », CORS) —
+    // même limite que le service worker et tests.html. Il faut servir l'app en http.
+    sc.innerHTML='<div class="pdf-msg">'+uiIcon('warn',15)+' '+(location.protocol==='file:'
+      ?'La visionneuse ne peut pas se charger quand l\'app est ouverte en fichier local (file://) : le navigateur bloque ses modules par sécurité. Servez le dossier en http — ex. « python3 -m http.server 8123 » puis http://localhost:8123/ — ou utilisez votre hébergement.'
+      :'Visionneuse indisponible sur cet appareil : composant non encore téléchargé. Reconnectez-vous à Internet, rechargez la page, puis réessayez.')+'</div>';return;}
+  let doc;
+  try{doc=await lib.getDocument({data:await attBuf(rec)}).promise;}
+  catch(e){console.error('PDF illisible:',e);
+    sc.innerHTML='<div class="pdf-msg">'+uiIcon('warn',15)+' Impossible d\'ouvrir ce document : le fichier semble endommagé ou dans un format non pris en charge. Retirez-le puis ajoutez-le à nouveau depuis le fichier d\'origine.</div>';return;}
+  if(!pdfModal.classList.contains('on')){try{doc.destroy();}catch(e){}return;}   // fermée pendant le chargement
+  const p1=await doc.getPage(1);const vp1=p1.getViewport({scale:1});
+  _pv={doc,pages:[],observer:null,z:1,cssW:0,baseW:vp1.width,baseH:vp1.height};
+  sc.innerHTML='';
+  for(let i=1;i<=doc.numPages;i++){const el=document.createElement('div');el.className='pdf-page';el.dataset.p=i;sc.appendChild(el);
+    _pv.pages.push({el,page:i===1?p1:null,vp:i===1?vp1:null,canvas:null,renderedW:0,rendering:false,vis:false});}
+  pdfApplyScale();
+  _pv.observer=new IntersectionObserver(es=>es.forEach(en=>{const s=_pv&&_pv.pages[+en.target.dataset.p-1];if(!s)return;
+    s.vis=en.isIntersecting;if(s.vis)renderPdfPage(s);else releasePdfPage(s);}),{root:sc,rootMargin:'100% 0px'});
+  _pv.pages.forEach(s=>_pv.observer.observe(s.el));
+  pdfRenderNear();   // premières pages rendues sans attendre l'observer
+}
 
 /* ===== Prompt IA ===== (fenêtre d'aide pour générer une fiche importable via une IA)
    Le prompt est embarqué (l'app marche hors ligne) ; il décrit le format JSON exact
@@ -3351,13 +4133,23 @@ bindModalDismiss(catModal,closeCatMgr);
       aient une vue exacte de la structure attendue. */
 // Export réutilisable : `cats` par défaut = catégories réellement utilisées par `list`
 // (pour un export d'une seule fiche) ; l'export global passe toutes les catégories.
-function exportData(list,baseName,cats){const out={version:3,origin:spaceTag(currentSpace()),categories:(cats||categories.filter(c=>list.some(f=>f.category===c.id))).map(c=>({id:c.id,name:c.name,color:c.color})),fiches:list.map(f=>{const c={...f};if(c.blocks)delete c.blocks._start;
-  // On retire les champs de sync PUREMENT LOCAUX -> une fiche importée ailleurs devient celle de l'importateur
-  // (pas d'owner/biblio d'autrui) ; `updatedAt` est conservé (utile au last-write-wins multi-appareils).
-  delete c.dirty;delete c.ownerId;delete c.libraryId;return c;})};const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=baseName+'-'+new Date().toISOString().slice(0,10)+'.json';a.click();}
+// `protos` (facultatif, champ `protocols` du JSON — rétrocompatible : ignoré des anciennes
+// versions) : les protocoles à inclure (export global, ou export d'un protocole seul).
+function exportData(list,baseName,cats,protos){
+  const strip=f=>{const c={...f};if(c.blocks)delete c.blocks._start;
+    // On retire les champs de sync PUREMENT LOCAUX -> un contenu importé ailleurs devient celui de
+    // l'importateur (pas d'owner/biblio d'autrui) ; `updatedAt` est conservé (last-write-wins).
+    delete c.dirty;delete c.ownerId;delete c.libraryId;return c;};
+  const out={version:3,origin:spaceTag(currentSpace()),categories:(cats||categories.filter(c=>list.some(f=>f.category===c.id))).map(c=>({id:c.id,name:c.name,color:c.color})),fiches:list.map(strip)};
+  if(Array.isArray(protos)&&protos.length)out.protocols=protos.map(strip);
+  const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=baseName+'-'+new Date().toISOString().slice(0,10)+'.json';a.click();
+  // Les DOCUMENTS PDF ne voyagent PAS dans le JSON (le fichier resterait sinon illisible et
+  // énorme) : seules leurs métadonnées y figurent. On le dit à l'export — les PDF suivent le
+  // compte via la synchronisation cloud.
+  if(list.concat(protos||[]).some(f=>(f.attachments||[]).length))toast('Les documents PDF joints ne sont pas inclus dans le fichier exporté ; ils suivent votre compte via la synchronisation.',9000);}
 // Nom de fichier s\u00fbr pour un export : m\u00eames r\u00e8gles que catSlug (accents retir\u00e9s, jeu [a-z0-9-]).
 const fileSlug=s=>catSlug(s).slice(0,40)||'fiche';
-document.getElementById('exportBtn').onclick=()=>exportData(fiches,'aides-cognitives',categories);
+document.getElementById('exportBtn').onclick=()=>exportData(fiches,'aides-cognitives',categories,protocols);
 document.getElementById('importBtn').onclick=()=>document.getElementById('importFile').click();
 // Tolère une réponse d'IA enrobée de clôtures Markdown ("```json ... ```") malgré la consigne du
 // prompt, et un éventuel BOM : on retire l'enrobage avant JSON.parse au lieu d'échouer
@@ -3382,9 +4174,12 @@ document.getElementById('importFile').onchange=e=>{const file=e.target.files[0];
     // (une étape destructive doit pouvoir être annulée proprement).
     const merge=imp.fiches.length>1?await confirmDlg('Import de '+imp.fiches.length+' fiches.',{title:'Importer',yes:'Fusionner avec '+scopeLbl,no:'REMPLACER '+scopeLbl}):true;
     if(merge===null){pendingOpenImport=false;return;}
-    if(!merge){if(!await confirmDlg('Toutes les fiches de '+scopeLbl+' seront supprimées puis remplacées par le contenu du fichier. Continuer ?',{title:'Remplacer la bibliothèque',yes:'Tout remplacer',danger:true}))return void(pendingOpenImport=false);
+    const hasProtos=Array.isArray(imp.protocols)&&imp.protocols.length>0;
+    if(!merge){if(!await confirmDlg('Toutes les fiches'+(hasProtos?' et tous les protocoles':'')+' de '+scopeLbl+' seront supprimé(e)s puis remplacé(e)s par le contenu du fichier. Continuer ?',{title:'Remplacer la bibliothèque',yes:'Tout remplacer',danger:true}))return void(pendingOpenImport=false);
       for(const f of fiches.filter(x=>(x.libraryId||null)===targetLib))await softDelete(f);
-      fiches=fiches.filter(x=>(x.libraryId||null)!==targetLib);}
+      fiches=fiches.filter(x=>(x.libraryId||null)!==targetLib);
+      if(hasProtos){for(const pr of protocols.filter(x=>(x.libraryId||null)===targetLib))await softDeleteProtocol(pr);
+        protocols=protocols.filter(x=>(x.libraryId||null)!==targetLib);}}
     // Catégories importées : rattachées à la bibliothèque de DESTINATION (chaque bibliothèque a
     // son propre jeu de catégories) ; ajoutées seulement si absentes de ce jeu-là.
     sanitizeCats(imp.categories).forEach(c=>{if(!c.id)return;c.libraryId=targetLib;
@@ -3404,19 +4199,33 @@ document.getElementById('importFile').onchange=e=>{const file=e.target.files[0];
     const added=[];
     for(let d of imp.fiches){d=migrate(d);
       d.libraryId=targetLib;   // migrate() vide libraryId (sécurité) -> on pose la destination choisie
+      // Fichier d'un AUTRE espace : les blobs PDF référencés n'existent pas ici (et les ids sont
+      // de toute façon régénérés) -> références vidées, pas de boutons « Document indisponible ».
+      if(!sameSpace)d.attachments=[];
       // Référence de catégorie orpheline (id absent du fichier importé ET du jeu de catégories de
       // la bibliothèque de destination) : on la vide plutôt que de laisser migrateCategories() la
       // transformer en catégorie fantôme (elle traiterait l'id brut comme un nom lisible).
       if(d.category&&!categories.some(c=>c.id===d.category&&(c.libraryId||null)===targetLib))d.category='';
       if(d.id&&existing.has(d.id)&&replace){if(await persist(d)){const i=fiches.findIndex(x=>x.id===d.id);if(i>=0)fiches[i]=d;else fiches.push(d);added.push(d.id);}}
       else{if(!d.id||existing.has(d.id)||!sameSpace)d.id=uid();existing.add(d.id);if(await persist(d)){fiches.push(d);added.push(d.id);}}}
+    // PROTOCOLES du fichier (champ facultatif `protocols`, absent des anciens exports) : mêmes
+    // règles que les fiches (assainissement migrateProtocol, ids conservés si même espace,
+    // références PDF vidées sinon — les blobs n'existent pas ici).
+    let addedP=0;
+    if(hasProtos){const existingP=new Set(protocols.map(x=>x.id));
+      for(let d of imp.protocols){d=migrateProtocol(d);
+        d.libraryId=targetLib;
+        if(!sameSpace)d.attachments=[];
+        if(d.category&&!categories.some(c=>c.id===d.category&&(c.libraryId||null)===targetLib))d.category='';
+        if(d.id&&existingP.has(d.id)&&sameSpace){if(await persistProtocol(d)){const i=protocols.findIndex(x=>x.id===d.id);if(i>=0)protocols[i]=d;else protocols.push(d);addedP++;}}
+        else{if(!d.id||existingP.has(d.id)||!sameSpace)d.id=uid('p');existingP.add(d.id);if(await persistProtocol(d)){protocols.push(d);addedP++;}}}}
     // Depuis la fenêtre IA : on ouvre directement la fiche importée plutôt que la bibliothèque.
     const openId=pendingOpenImport&&added.length?added[added.length-1]:null;pendingOpenImport=false;
     // On AFFICHE la destination (sinon des fiches importées « dans Perso » depuis une bibliothèque
     // partagée sélectionnée sembleraient avoir disparu).
     state.scope=targetLib;state.cat='';
     if(openId)openRead(openId);else{state.view='library';render();}
-    if(added.length)toast((added.length>1?added.length+' fiches importées':'1 fiche importée')+' dans '+scopeLbl+'.');}catch(err){pendingOpenImport=false;toast('⚠ Fichier illisible.');}};
+    if(added.length||addedP)toast([added.length?(added.length>1?added.length+' fiches importées':'1 fiche importée'):'',addedP?(addedP>1?addedP+' protocoles importés':'1 protocole importé'):''].filter(Boolean).join(' et ')+' dans '+scopeLbl+'.');}catch(err){pendingOpenImport=false;toast('⚠ Fichier illisible.');}};
   r.readAsText(file);e.target.value='';};
 
 /* ===== Compte & synchronisation (Supabase) =====
@@ -3537,7 +4346,7 @@ async function wipeLocal(){
   const names=new Set(['ac-db']);
   spaces.concat([currentSpace()]).forEach(s=>{names.add(dbNameFor(s,owner));names.add('ac-db-'+(s||'anon'));});
   for(const n of names){try{await new Promise(res=>{const r=indexedDB.deleteDatabase(n);r.onsuccess=r.onerror=r.onblocked=()=>res();});}catch(e){}}
-  try{['fiches_v1','cats_v1','sessions_v1','backups_v1','notes_v1','ac-sync-cursor','ac-cats-dirty:','ac-cats-updated:','ac-lib-usage','ac-notice-hidden','ac-seeds-hidden','ac-auth','ac-pins','ac-onboarded','ac-space','ac-db-owner','ac-spaces'].forEach(k=>localStorage.removeItem(k));
+  try{['fiches_v1','cats_v1','sessions_v1','backups_v1','notes_v1','protocols_v1','ac-sync-cursor','ac-sync-cursor-prot','ac-cats-dirty:','ac-cats-updated:','ac-lib-usage','ac-notice-hidden','ac-seeds-hidden','ac-auth','ac-pins','ac-onboarded','ac-space','ac-db-owner','ac-spaces','ac-att-del','ac-section'].forEach(k=>localStorage.removeItem(k));
     for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);if(!k)continue;
       if(k.indexOf('ac-sync-init-')===0||k.indexOf('ac-cats-dirty:')===0||k.indexOf('ac-cats-updated:')===0||k.indexOf('ac-profile-')===0
         ||((k.indexOf('ac-')===0||k.indexOf('_v1@')>0)&&k.indexOf('@')>0))localStorage.removeItem(k);}
@@ -3559,7 +4368,7 @@ async function wipeCurrentSpace(){
     // Propriétaire de la base historique : ses clés localStorage sont NUES (sans suffixe
     // d'espace, cf. spaceKeyFor) — ce sont donc les mêmes noms que wipeLocal() connaît déjà.
     if(owner===space){
-      ['fiches_v1','cats_v1','sessions_v1','backups_v1','notes_v1','ac-sync-cursor','ac-lib-usage','ac-seeds-hidden','ac-pins','ac-held-edits'].forEach(k=>localStorage.removeItem(k));
+      ['fiches_v1','cats_v1','sessions_v1','backups_v1','notes_v1','protocols_v1','ac-sync-cursor','ac-sync-cursor-prot','ac-lib-usage','ac-seeds-hidden','ac-pins','ac-held-edits','ac-att-del','ac-section'].forEach(k=>localStorage.removeItem(k));
       for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);if(k&&(k.indexOf('ac-cats-dirty:')===0||k.indexOf('ac-cats-updated:')===0))localStorage.removeItem(k);}
     }
     localStorage.removeItem('ac-sync-init-'+space);
@@ -3574,7 +4383,7 @@ async function wipeCurrentSpace(){
 async function loadInstanceStats(){const box=document.getElementById('authStats');if(!box)return;
   let s=null;try{s=await rpc('get_instance_stats');}catch(e){}
   if(!s){box.innerHTML='';return;}
-  const cells=[['Comptes',s.users],['En attente',s.pending],['Refusés',s.rejected],['Bibliothèques',s.libraries],['Fiches perso',s.fiches_perso],['Fiches partagées',s.fiches_shared],['Stockage',fmtBytes(s.storage_bytes)]];
+  const cells=[['Comptes',s.users],['En attente',s.pending],['Refusés',s.rejected],['Bibliothèques',s.libraries],['Fiches perso',s.fiches_perso],['Fiches partagées',s.fiches_shared],['Protocoles',s.protocols||0],['Stockage',fmtBytes(s.storage_bytes)],['Documents PDF',fmtBytes(s.attachments_bytes||0)]];
   box.innerHTML='<div class="auth-stats-h">État de l\'instance</div><div class="inst-stats">'+cells.map(([k,v])=>`<div class="inst-stat"><span class="is-v">${esc(String(v))}</span><span class="is-k">${esc(k)}</span></div>`).join('')+'</div>';}
 function renderAuth(){const body=document.getElementById('authBody');if(!body)return;
   if(Auth.signedIn()){const u=Auth.user()||{};
@@ -3955,6 +4764,38 @@ function ficheFromRow(row){return migrate(Object.assign({},row.data,{id:row.id,
     updatedAt:Date.parse(row.updated_at)||Date.now(),
     deletedAt:row.deleted_at?Date.parse(row.deleted_at):null,
     ownerId:row.owner||null,libraryId:row.library_id||null}));}
+// Protocoles <-> lignes Supabase : mêmes conversions que les fiches (table `protocols`, clone
+// de `fiches` côté serveur : id/owner/library_id/data jsonb/updated_at/deleted_at).
+function protocolToRow(p,uidv){const data=Object.assign({},p);delete data.dirty;
+  return {id:p.id,owner:uidv,library_id:p.libraryId||null,data:data,
+    updated_at:new Date(p.updatedAt||Date.now()).toISOString(),
+    deleted_at:p.deletedAt?new Date(p.deletedAt).toISOString():null};}
+function protocolFromRow(row){return migrateProtocol(Object.assign({},row.data,{id:row.id,
+    updatedAt:Date.parse(row.updated_at)||Date.now(),
+    deletedAt:row.deleted_at?Date.parse(row.deleted_at):null,
+    ownerId:row.owner||null,libraryId:row.library_id||null}));}
+/* ----- Documents PDF : bucket Storage 'attachments' -----
+   Le CHEMIN encode le périmètre de sécurité (politiques RLS de supabase/schema.sql §7) :
+   u/<uid>/<attId>.pdf = perso (propriétaire seul) ; l/<libId>/<attId>.pdf = bibliothèque
+   partagée (lecture = membres, écriture = editor/admin). Déplacer une fiche entre périmètres
+   = re-upload au nouveau chemin puis suppression de l'ancien (champ remotePath du blob). */
+// Chemin d'un document dans le bucket — PUR (testé).
+function attStoragePath(libraryId,ownerUid,attId){return libraryId?('l/'+libraryId+'/'+attId+'.pdf'):('u/'+ownerUid+'/'+attId+'.pdf');}
+// Appel direct de l'API Storage (corps BINAIRE : Auth.headers() imposerait un Content-Type JSON).
+// Erreurs au format 'REST <code> …' -> restErrStatus/explainSyncError les comprennent déjà.
+async function storageReq(method,path,body,ctype,extra){await Auth.ensureFresh();
+  const h=Object.assign({'apikey':SUPA.key,'Authorization':'Bearer '+Auth.token()},extra||{});
+  if(ctype)h['Content-Type']=ctype;
+  const r=await fetch(SUPA.url+'/storage/v1/object/attachments/'+path,{method:method,headers:h,body:body});
+  if(!r.ok){const t=await r.text().catch(()=>'');const err=new Error('REST '+r.status+' '+String(t).slice(0,200));err.status=r.status;throw err;}
+  return r;}
+// File LOCALE des suppressions distantes à rejouer (un chemin n'y entre que quand plus AUCUNE
+// entité ne référence son document) : vidée à chaque synchro, survit aux redémarrages.
+const ATT_PATH_RX=/^[ul]\/[A-Za-z0-9_-]{1,64}\/[A-Za-z0-9_-]{1,64}\.pdf$/;
+function attDelQueue(){try{const a=JSON.parse(localStorage.getItem(spaceKey('ac-att-del'))||'[]');
+  return Array.isArray(a)?a.filter(p=>typeof p==='string'&&ATT_PATH_RX.test(p)):[];}catch(e){return [];}}
+function setAttDelQueue(a){try{a&&a.length?localStorage.setItem(spaceKey('ac-att-del'),JSON.stringify(a.slice(0,500))):localStorage.removeItem(spaceKey('ac-att-del'));}catch(e){}}
+function queueAttDelete(path){if(!ATT_PATH_RX.test(String(path||'')))return;const a=attDelQueue();if(a.indexOf(path)<0){a.push(path);setAttDelQueue(a);}}
 // RÉPARATION d'une fiche PERSO refusée en 403 au push : son id existe déjà dans le cloud sous un
 // AUTRE compte (fiche transférée par export/import entre comptes, ou collision d'ids — la clé
 // primaire cloud est GLOBALE). La fiche appartient bien à l'utilisateur localement : on l'adopte
@@ -4047,7 +4888,7 @@ function isPersoRepairCandidate(message,isPerso){return !!isPerso&&restErrStatus
 function explainSyncError(e){const msg=String((e&&e.message)||e||'');const status=restErrStatus(msg);
   if(status===401)return{icon:SYNC_ERR_ICONS.lock,title:'Session expirée',detail:'Votre connexion au compte a expiré. Reconnectez-vous depuis la fenêtre « Compte » pour reprendre la synchronisation.'};
   if(status===403)return{icon:SYNC_ERR_ICONS.forbidden,title:'Écriture refusée',detail:"Le serveur a refusé d'enregistrer certaines fiches. Cause la plus fréquente : vos droits sur une bibliothèque partagée ont changé (rôle modifié ou accès retiré par un administrateur) — ces fiches restent lisibles mais vos modifications n'y sont plus publiées. Autre cause possible : une fiche venue d'un autre compte (import) porte un identifiant déjà pris ; l'app la répare alors automatiquement à la prochaine tentative. Le reste de votre bibliothèque continue de se synchroniser."};
-  if(status===413)return{icon:SYNC_ERR_ICONS.image,title:'Fiche trop volumineuse',detail:"Une fiche contient des images trop lourdes pour être envoyées. Réduisez ou supprimez des images dans cette fiche, puis réessayez."};
+  if(status===413)return{icon:SYNC_ERR_ICONS.image,title:'Contenu trop volumineux',detail:"Une fiche contient des images trop lourdes, ou un document PDF dépasse la taille maximale autorisée (15 Mo). Réduisez ou supprimez des images, ou allégez le document, puis réessayez."};
   if(status===409)return{icon:SYNC_ERR_ICONS.warning,title:'Conflit de données',detail:"Une incohérence a été détectée en enregistrant vos données. Nouvelle tentative automatique en cours ; si le problème persiste, exportez vos fiches par sécurité (bouton « Exporter tout »)."};
   if(status>=500)return{icon:SYNC_ERR_ICONS.server,title:'Service indisponible',detail:"Le service de synchronisation rencontre un problème de son côté (indépendant de votre appareil ou de votre connexion). Nouvelle tentative automatique en cours."};
   // Pas de statut HTTP identifié : soit la requête n'a jamais atteint le serveur (vraie panne réseau,
@@ -4084,15 +4925,21 @@ const Sync={
       if(myAccountStatus==='rejected'){setSyncChip('rejected','Compte refusé');return;}
       await this.loadProfile();
       await this._initIfNeeded();
-      const conflicts=await this._pull();
+      const conflicts=(await this._pull()).concat(await this._pullProtocols());
       // Un échec (même partiel) du push ne prive plus le reste de la synchro : réconciliation,
       // catégories et notes tournent quand même ; l'erreur est re-levée à la fin (pastille
       // « Erreur de synchro » + nouvelle tentative automatique), tout le reste étant à jour.
       let pushErr=null;try{await this._push();}catch(e){pushErr=e;}
+      try{await this._pushProtocols();}catch(e){if(!pushErr)pushErr=e;}
       await this._reconcileShared();
       await this._syncCats();
       await this._syncNotes();
+      // Documents PDF (bucket Storage) : suppressions distantes en attente, upload des blobs
+      // modifiés, puis téléchargement en arrière-plan des documents manquants. Un échec Storage
+      // ne prive pas le reste de la synchro (re-levé à la fin -> pastille + retry).
+      let attErr=null;try{await this._syncAttachments();}catch(e){attErr=e;}
       if(pushErr)throw pushErr;
+      if(attErr)throw attErr;
       this._retryDelay=0;
       setSyncChip('ok','Synchronisé');
       notifyConflicts(conflicts);
@@ -4111,14 +4958,21 @@ const Sync={
   async _initIfNeeded(){const uidv=Auth.user().id;const k='ac-sync-init-'+uidv;if(localStorage.getItem(k))return;
     const peek=await rest('GET','/rest/v1/fiches?select=id&library_id=is.null&limit=1')||[];
     if(!peek.length){const all=await Data.getAll();for(const f of all){if(!f.libraryId&&!f.deletedAt){f.dirty=true;await Data.put(f);}}
+      // Les protocoles locaux suivent le même téléversement initial que les fiches.
+      const allP=await Data.getProtocols().catch(()=>[]);for(const p of allP){if(!p.libraryId&&!p.deletedAt){p.dirty=true;await Data.putProtocol(p);}}
       try{localStorage.setItem(spaceKey('ac-cats-dirty:'),'1');if(!localStorage.getItem(spaceKey('ac-cats-updated:')))localStorage.setItem(spaceKey('ac-cats-updated:'),String(Date.now()));}catch(e){}}
     localStorage.setItem(k,'1');},
-  async _pull(){
-    const cur=localStorage.getItem(spaceKey(this._cursorKey));
+  // PULL GÉNÉRIQUE d'une table {id, data jsonb, updated_at, deleted_at} — comportement
+  // STRICTEMENT identique à l'historique des fiches ; les spécificités (archivage de version,
+  // nettoyage de la note personnelle) sont injectées par `cfg`.
+  //   cfg = { table, cursorKey, getAllLocal, dataPut, dataDel, fromRow,
+  //           addMem/replaceMem/dropMem (tableau en mémoire), backup?, onRemoteDelete? }
+  async _pullTable(cfg){
+    const cur=localStorage.getItem(spaceKey(cfg.cursorKey));
     // Recouvrement de 2 s + application idempotente (LWW) -> aucun enregistrement manqué aux bornes.
     let since=cur?new Date((Date.parse(cur)||0)-2000).toISOString():'1970-01-01T00:00:00Z';
     let maxTs=cur?Date.parse(cur):0;const conflicts=[];let total=0;
-    const localAll=await Data.getAll();const byId={};localAll.forEach(f=>byId[f.id]=f);
+    const localAll=await cfg.getAllLocal();const byId={};localAll.forEach(f=>byId[f.id]=f);
     // PAGINATION : PostgREST plafonne une réponse (1000 lignes par défaut) -> on boucle par pages
     // (limit explicite + curseur updated_at croissant) jusqu'à une page incomplète, pour qu'une très
     // grosse bibliothèque arrive ENTIÈRE dès la première synchro. Garde-fous : nombre de pages borné,
@@ -4126,32 +4980,43 @@ const Sync={
     // Pas de filtre de bibliothèque : la RLS limite déjà à ce que je peux voir (Perso + mes bibliothèques).
     const PAGE=1000;
     for(let p=0;p<50;p++){
-      const rows=await rest('GET','/rest/v1/fiches?select=*&updated_at=gt.'+encodeURIComponent(since)+'&order=updated_at.asc&limit='+PAGE)||[];
+      const rows=await rest('GET','/rest/v1/'+cfg.table+'?select=*&updated_at=gt.'+encodeURIComponent(since)+'&order=updated_at.asc&limit='+PAGE)||[];
       total+=rows.length;
       for(const row of rows){const rts=Date.parse(row.updated_at)||0;if(rts>maxTs)maxTs=rts;
         const local=byId[row.id];
-        if(row.deleted_at){if(local){await Data.del(row.id);delete byId[row.id];const i=fiches.findIndex(x=>x.id===row.id);if(i>=0)fiches.splice(i,1);}
-          // Fiche supprimée (ailleurs, ou par un éditeur de la bibliothèque) : ma note personnelle
-          // attachée est effacée aussi (t:'' poussé -> propagation à mes autres appareils).
-          if(notes[row.id]&&notes[row.id].t){notes[row.id]={t:'',at:Date.now(),dirty:true};try{await Data.setNotes(notes);}catch(e){}}
+        if(row.deleted_at){if(local){await cfg.dataDel(row.id);delete byId[row.id];cfg.dropMem(row.id);}
+          if(cfg.onRemoteDelete)await cfg.onRemoteDelete(row.id);
           continue;}
-        if(!local){const nf=ficheFromRow(row);await Data.put(nf);byId[row.id]=nf;if(!nf.deletedAt)fiches.push(nf);continue;}
+        if(!local){const nf=cfg.fromRow(row);await cfg.dataPut(nf);byId[row.id]=nf;if(!nf.deletedAt)cfg.addMem(nf);continue;}
         if(rts>(local.updatedAt||0)){
-          // La version LOCALE est TOUJOURS archivée avant remplacement (bouton « Versions » /
-          // « Ma version écrasée », borné à BACKUP_MAX par fiche), pas seulement en cas de conflit.
-          // Le toast « conflit », lui, reste réservé aux vraies divergences (modification locale
-          // non poussée écrasée).
-          try{await Data.putBackup({bid:uid('bk'),ficheId:local.id,at:Date.now(),data:JSON.parse(JSON.stringify(local))});}catch(e){}
+          // La version LOCALE est archivée avant remplacement quand la table le prévoit (fiches :
+          // bouton « Versions », borné à BACKUP_MAX). Le toast « conflit », lui, reste réservé
+          // aux vraies divergences (modification locale non poussée écrasée).
+          if(cfg.backup)try{await cfg.backup(local);}catch(e){}
           if(local.dirty)conflicts.push(local.title||local.id);
-          const nf=ficheFromRow(row);await Data.put(nf);byId[row.id]=nf;const i=fiches.findIndex(x=>x.id===row.id);if(i>=0)fiches[i]=nf;else if(!nf.deletedAt)fiches.push(nf);
+          const nf=cfg.fromRow(row);await cfg.dataPut(nf);byId[row.id]=nf;cfg.replaceMem(nf);
         } // sinon local plus récent/identique -> on garde (sera poussé si dirty)
       }
       if(rows.length<PAGE)break;
       const next=new Date(maxTs).toISOString();if(next===since)break;since=next;
     }
-    if(maxTs)localStorage.setItem(spaceKey(this._cursorKey),new Date(maxTs).toISOString());
+    if(maxTs)localStorage.setItem(spaceKey(cfg.cursorKey),new Date(maxTs).toISOString());
     if(total)render();
     return conflicts;},
+  async _pull(){return this._pullTable({table:'fiches',cursorKey:this._cursorKey,
+    getAllLocal:()=>Data.getAll(),dataPut:f=>Data.put(f),dataDel:id=>Data.del(id),fromRow:ficheFromRow,
+    addMem:f=>fiches.push(f),
+    dropMem:id=>{const i=fiches.findIndex(x=>x.id===id);if(i>=0)fiches.splice(i,1);},
+    replaceMem:f=>{const i=fiches.findIndex(x=>x.id===f.id);if(i>=0)fiches[i]=f;else if(!f.deletedAt)fiches.push(f);},
+    backup:local=>Data.putBackup({bid:uid('bk'),ficheId:local.id,at:Date.now(),data:JSON.parse(JSON.stringify(local))}),
+    // Fiche supprimée (ailleurs, ou par un éditeur de la bibliothèque) : ma note personnelle
+    // attachée est effacée aussi (t:'' poussé -> propagation à mes autres appareils).
+    onRemoteDelete:async id=>{if(notes[id]&&notes[id].t){notes[id]={t:'',at:Date.now(),dirty:true};try{await Data.setNotes(notes);}catch(e){}}}});},
+  async _pullProtocols(){return this._pullTable({table:'protocols',cursorKey:'ac-sync-cursor-prot',
+    getAllLocal:()=>Data.getProtocols(),dataPut:p=>Data.putProtocol(p),dataDel:id=>Data.delProtocol(id),fromRow:protocolFromRow,
+    addMem:p=>protocols.push(p),
+    dropMem:id=>{const i=protocols.findIndex(x=>x.id===id);if(i>=0)protocols.splice(i,1);},
+    replaceMem:p=>{const i=protocols.findIndex(x=>x.id===p.id);if(i>=0)protocols[i]=p;else if(!p.deletedAt)protocols.push(p);}});},
   async _push(){
     // On pousse Perso + les fiches des bibliothèques où l'on peut éditer (la RLS refuserait sinon).
     // Les modifications faites pendant une déconnexion (heldEdits) restent RETENUES tant que le
@@ -4195,6 +5060,94 @@ const Sync={
       }else if(!firstErr)firstErr=new Error('REST 403 (espace personnel indisponible en écriture)');
     }
     if(firstErr)throw firstErr;},
+  // PUSH des protocoles `dirty` : lot unique, puis repli protocole PAR protocole pour isoler un
+  // refus (même mécanique que _push). Un protocole PERSO refusé en 403 (id déjà pris par un autre
+  // compte — import inter-comptes) est réparé par régénération d'id : contrairement aux fiches,
+  // aucun rattachement local à déplacer (pas de sessions/notes/épingles sur un protocole), les
+  // documents PDF étant référencés par des ids indépendants de celui du protocole.
+  async _pushProtocols(){
+    const all=await Data.getProtocols();const dirty=all.filter(p=>p.dirty&&canEditFiche(p));
+    if(!dirty.length)return;const uidv=Auth.user().id;
+    const send=async batch=>{
+      await rest('POST','/rest/v1/protocols',batch.map(p=>protocolToRow(p,uidv)),{'Prefer':'resolution=merge-duplicates,return=minimal'});
+      for(const p of batch){if(p.deletedAt){await Data.delProtocol(p.id);} // tombstone poussé -> purge locale
+        else{p.dirty=false;await Data.putProtocol(p);}}};
+    try{await send(dirty);return;}catch(e){}
+    let firstErr=null,persoOk=0;const perso403=[];
+    for(const p of dirty){
+      try{await send([p]);if(!p.libraryId)persoOk++;}
+      catch(e){if(isPersoRepairCandidate(e&&e.message,!p.libraryId))perso403.push(p);else if(!firstErr)firstErr=e;}}
+    if(perso403.length){
+      let writable=persoOk>0;
+      if(!writable){try{writable=(await rpc('is_approved'))===true;}catch(e){}}
+      if(writable){let repaired=false;
+        for(const p of perso403){
+          try{const oldId=p.id;p.id=uid('p');p.dirty=true;
+            await Data.putProtocol(p);try{await Data.delProtocol(oldId);}catch(e){}
+            const i=protocols.findIndex(x=>x.id===oldId);if(i>=0)protocols[i]=p;
+            if(state.protocol&&state.protocol.id===oldId)state.protocol=p;
+            if(state.pdraft&&state.pdraft.id===oldId)state.pdraft.id=p.id;
+            repaired=true;await send([p]);}
+          catch(e){if(!firstErr)firstErr=e;}}
+        if(repaired)render();
+      }else if(!firstErr)firstErr=new Error('REST 403 (espace personnel indisponible en écriture)');}
+    if(firstErr)throw firstErr;},
+  // ----- Documents PDF : synchronisation avec le bucket Storage 'attachments' -----
+  // Appelée APRÈS _pull/_reconcileShared : l'ensemble local des références (fiches vivantes +
+  // tombstones pas encore poussés) est frais. Réservée au backend IDB (pas de blobs en repli KV).
+  // 1. rejoue la file de suppressions distantes ; 2. purge les blobs locaux que plus rien ne
+  // référence (en mettant leur copie cloud en file) ; 3. upload des blobs dirty ou dont le
+  // périmètre a changé (re-upload + suppression de l'ancien chemin) ; 4. télécharge en
+  // ARRIÈRE-PLAN tout document référencé manquant (hors-ligne d'urgence : systématique).
+  async _syncAttachments(){
+    if(!supportsAttachments())return;
+    const uidv=Auth.user().id;let firstErr=null;
+    // 1. Suppressions distantes en attente. 404 = déjà supprimé ailleurs ; 400/403 = ne passera
+    // jamais (droits perdus, chemin invalide) -> on retire de la file (l'orphelin éventuel reste
+    // visible de l'app-admin via list_orphan_attachments) ; autres erreurs (réseau, 5xx) -> la
+    // file est conservée et retentée.
+    for(const p of attDelQueue()){
+      try{await storageReq('DELETE',p);setAttDelQueue(attDelQueue().filter(x=>x!==p));}
+      catch(e){if(e.status===404||e.status===403||e.status===400)setAttDelQueue(attDelQueue().filter(x=>x!==p));
+        else if(!firstErr)firstErr=e;}}
+    // 2. Références locales : chemin attendu par document (le scope d'une entité VIVANTE prime
+    // sur celui d'un tombstone) + droit de pousser (jamais d'upload par un simple lecteur).
+    const all=(await Data.getAll()).concat(await Data.getProtocols().catch(()=>[]));
+    const paths=Object.create(null),editable=Object.create(null);
+    all.forEach(f=>{(f.attachments||[]).forEach(a=>{if(!a||!a.id)return;
+      if(!paths[a.id]||!f.deletedAt)paths[a.id]=attStoragePath(f.libraryId||null,uidv,a.id);
+      if(canEditFiche(f))editable[a.id]=true;});});
+    // Blobs du brouillon EN COURS d'édition (fiche OU protocole) : pas encore référencés par une
+    // entité enregistrée -> à protéger de la purge (une synchro peut arriver pendant la saisie).
+    const draftIds=new Set(draftNewAtts
+      .concat(((state.draft&&state.draft.attachments)||[]).map(a=>a.id))
+      .concat(((state.pdraft&&state.pdraft.attachments)||[]).map(a=>a.id)));
+    for(const rec of await IDB.getAtts()){
+      const want=paths[rec.id];
+      if(!want){if(draftIds.has(rec.id))continue;             // brouillon : on ne touche à rien
+        if(rec.remotePath)queueAttDelete(rec.remotePath);      // copie cloud -> file de suppression
+        try{await IDB.delAtt(rec.id);}catch(e){}
+        continue;}
+      if(!editable[rec.id])continue;
+      if(rec.dirty||rec.remotePath!==want){
+        try{const body=await attBuf(rec);if(!body)continue;   // enregistrement vide : rien à pousser
+          await storageReq('POST',want,body,'application/pdf',{'x-upsert':'true'});
+          if(rec.remotePath&&rec.remotePath!==want)queueAttDelete(rec.remotePath);   // déplacement de périmètre
+          rec.dirty=0;rec.remotePath=want;await IDB.putAtt(rec);
+        }catch(e){if(!firstErr)firstErr=e;}}
+    }
+    // 4. Téléchargements manquants : séquentiels, en arrière-plan (n'allongent pas la synchro) ;
+    // erreurs silencieuses (retentées à la prochaine synchro, ou à la demande via la visionneuse).
+    const have=new Set(await IDB.getAttIds());
+    const missing=Object.keys(paths).filter(id=>!have.has(id));
+    if(missing.length&&!this._attDl){this._attDl=true;
+      (async()=>{try{for(const id of missing){
+          try{const r=await storageReq('GET',paths[id]);const buf=await r.arrayBuffer();
+            await IDB.putAtt({id:id,buf:buf,size:buf.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:0,remotePath:paths[id]});}
+          catch(e){}}
+      }finally{this._attDl=false;}})();}
+    if(firstErr)throw firstErr;
+  },
   async _syncCats(){
     const uidv=Auth.user().id;
     // Un document de catégories PAR BIBLIOTHÈQUE : Perso (clé '') + chaque bibliothèque (clé = id).
@@ -4254,10 +5207,15 @@ const Sync={
   // Réconciliation des fiches PARTAGÉES : retire localement celles devenues inaccessibles (fiche
   // déplacée hors de la biblio, membre retiré, biblio supprimée). Les fiches Perso ne sont jamais
   // touchées. En cas d'échec réseau, on ne supprime rien (sécurité).
+  // Retire localement les enregistrements PARTAGÉS devenus inaccessibles (droits retirés,
+  // bibliothèque supprimée). Générique fiches/protocoles — même comportement qu'avant.
   async _reconcileShared(){
-    let ids;try{const rows=await rest('GET','/rest/v1/fiches?select=id')||[];ids=new Set(rows.map(r=>r.id));}catch(e){return;}
-    const all=await Data.getAll();let changed=false;
-    for(const f of all){if(f.libraryId&&!f.dirty&&!ids.has(f.id)){await Data.del(f.id);const i=fiches.findIndex(x=>x.id===f.id);if(i>=0)fiches.splice(i,1);changed=true;}}
+    await this._reconcileTable('fiches',()=>Data.getAll(),id=>Data.del(id),fiches);
+    await this._reconcileTable('protocols',()=>Data.getProtocols(),id=>Data.delProtocol(id),protocols);},
+  async _reconcileTable(table,getAllLocal,dataDel,mem){
+    let ids;try{const rows=await rest('GET','/rest/v1/'+table+'?select=id')||[];ids=new Set(rows.map(r=>r.id));}catch(e){return;}
+    const all=await getAllLocal();let changed=false;
+    for(const f of all){if(f.libraryId&&!f.dirty&&!ids.has(f.id)){await dataDel(f.id);const i=mem.findIndex(x=>x.id===f.id);if(i>=0)mem.splice(i,1);changed=true;}}
     if(changed)render();},
   // Profil : bibliothèques partagées dont je suis membre (avec rôle) + statut app-admin.
   // En cas d'ÉCHEC réseau, on GARDE la dernière valeur connue (jamais de « disparition » des
@@ -4276,7 +5234,7 @@ const Sync={
     if(myIsAppAdmin){try{myPendingCount=(await rpc('list_unapproved_users')||[]).filter(u=>u.status==='pending').length;}catch(e){myPendingCount=0;}}
     else myPendingCount=0;
     if(ok)saveProfileCache();
-    if(state.view==='library')renderLibrary();}
+    if(state.view==='library')render();}   // render() aiguille selon la section (fiches/protocoles)
 };
 // Déclencheurs de synchro : retour en ligne, retour au premier plan.
 window.addEventListener('online',()=>{setSyncChip('ok','Synchronisé');Sync.full();});
@@ -4510,7 +5468,8 @@ document.addEventListener('focusout',e=>{if(!_kbText(e.relatedTarget))document.b
    PAS l'application : on expose juste les fonctions pures à tester. AUCUN effet en usage normal :
    sans ce paramètre, rien de tout ceci ne s'exécute et aucun global n'est ajouté. */
 if(location.search.indexOf('__actest')>=0){
-  window.__ac_test__={migrate,sanitizeCats,safeId,safeColor,safeImg,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,
+  window.__ac_test__={migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attStoragePath,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
+    mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,
     restErrStatus,isPersoRepairCandidate,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT};
 }else{
