@@ -52,12 +52,12 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
 - Toute donnée affichée passe par `esc()` (contenu potentiellement importé/partagé).
 - Toute donnée importée/chargée passe par `migrate()` / `sanitizeCats()` (point d'entrée unique de
   compatibilité et de sécurité) ; nouveaux champs = facultatifs, avec défaut posé dans `migrate()`.
-- **Documents PDF** : le blob vit dans le store IndexedDB `attachments` (base v5), JAMAIS en
+- **Documents PDF** : le PDF vit en ArrayBuffer dans le store IndexedDB `attachments` (base v5 ; Blob historique accepté en lecture), JAMAIS en
   base64 dans la fiche ni dans l'export JSON ; la fiche ne porte que `attachments:[{id,name,size}]`
   (validé par `safeAttachment` — id jamais régénéré, entrée invalide rejetée ; plafonds
   `MAX_PDF_BYTES`/`MAX_ATT_PER_ENTITY`). En repli KV l'ajout est refusé (`supportsAttachments`).
   Un document peut être **partagé** entre plusieurs fiches du même périmètre (même id référencé) :
-  les blobs ne sont supprimés que par `gcAttachments` (comptage de références au démarrage).
+  les documents ne sont supprimés que par `gcAttachments` (comptage de références au démarrage).
 - Fonctions pures testables : les exposer via le hook `?__actest` (fin de `index.html`) et ajouter
   un test dans `tests.html`.
 - Ne jamais supprimer un champ du modèle fiche/catégorie (compatibilité ascendante).
@@ -77,14 +77,14 @@ recommandation individualisée : voir `docs/deploiement-et-conformite.md` (§ 2,
 non-dispositif-médical). Toute fonctionnalité qui produirait une sortie individualisée
 (ex. calcul de doses) doit être évaluée au regard de ce statut **avant** développement.
 
-## Se repérer dans `index.html` (monofichier, ~4 700 lignes)
+## Se repérer dans `index.html` (monofichier, ~5 600 lignes)
 Le fichier s'ouvre sur un **grand commentaire d'architecture** (objectif, règles de conception,
 modèle de données, règles de sécurité) : le lire en premier. Ensuite, dans l'ordre :
 
 | Section (bannières `/* ===== … ===== */`) | Contenu |
 |---|---|
 | `<style>` | Tout le CSS (variables dans `:root`, thème sombre via `html[data-theme="dark"]`) |
-| Backends | `KV` / `IDB` / `MEM` : trois stockages locaux interchangeables derrière `Data` ; **un espace local par compte** (`currentSpace`/`dbNameFor`/`spaceKey`, bascule par reload à la connexion d'un autre compte, jamais de mélange entre comptes) ; stores IndexedDB v5 : `fiches`, `meta`, `sessions`, `backups`, `attachments` (Blob PDF), `protocols` |
+| Backends | `KV` / `IDB` / `MEM` : trois stockages locaux interchangeables derrière `Data` ; **un espace local par compte** (`currentSpace`/`dbNameFor`/`spaceKey`, bascule par reload à la connexion d'un autre compte, jamais de mélange entre comptes) ; stores IndexedDB v5 : `fiches`, `meta`, `sessions`, `backups`, `attachments` (ArrayBuffer PDF), `protocols` |
 | State & Runtime | `state` (quoi afficher) ; `Runtime` (état vivant du mode crise) ; garde-fous `safeId`/`safeColor`/`safeImg`/`safeAttachment`/`sstr`/`sarr` |
 | Modèle | `blankFiche`, `migrate` (point d'entrée sécurité/compat), `seed`/`seed2`, catégories |
 | Load | `chooseBackend`, `load()` (démarrage), `persist`, `softDelete` |

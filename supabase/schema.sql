@@ -369,7 +369,8 @@ $$;
 grant execute on function public.is_approved() to authenticated;
 
 -- Gate : l'espace PERSO (fiches + catégories) requiert l'approbation. Les bibliothèques
--- partagées sont inchangées (déjà protégées par memberships, qu'un compte pending n'a pas).
+-- partagées sont inchangées (déjà protégées par memberships, qu'un compte pending n'obtient
+-- pas — cf. invite_member — et qu'un compte rejeté PERD — cf. user_status_revoke_memberships).
 drop policy if exists fiches_perso on public.fiches;
 create policy fiches_perso on public.fiches for all
   using      (library_id is null and owner = auth.uid() and public.is_approved())
@@ -445,6 +446,10 @@ grant execute on function public.list_unapproved_users() to authenticated;
 
 -- Approuver / refuser (app-admin uniquement). Un app-admin ne peut pas être rétrogradé
 -- par erreur (protège contre un clic malheureux sur son propre compte).
+-- NB : la révocation des accès PARTAGÉS d'un compte qui quitte 'approved' n'est pas faite
+-- ici mais par le trigger user_status_revoke_memberships (ci-dessous) : il se déclenche sur
+-- l'UPDATE exécuté par cette fonction, mais AUSSI sur un UPDATE direct de user_status
+-- (app-admin via l'API REST, politique user_status_write) ou une édition au dashboard.
 create or replace function public.set_user_status(p_user uuid, p_status text)
 returns void language plpgsql security definer set search_path = public as $$
 begin
@@ -457,6 +462,32 @@ begin
     where user_id = p_user;
 end;$$;
 grant execute on function public.set_user_status(uuid, text) to authenticated;
+
+-- RÉVOCATION DES ACCÈS PARTAGÉS (audit de sécurité). La garde d'approbation n'est appliquée
+-- qu'à l'ENTRÉE d'une bibliothèque (invite_member, § 5bis) : les politiques *_shared_* des
+-- fiches, protocoles, category_sets et du bucket attachments ne re-testent PAS is_approved()
+-- à chaque requête — elles ne testent que le membership. Sans purge, un compte APPROUVÉ PUIS
+-- REJETÉ conservait donc, via l'API REST, la lecture ET l'écriture de toutes ses bibliothèques
+-- partagées. On supprime ici toutes ses lignes de memberships dès que son statut quitte
+-- 'approved', quel que soit le chemin d'écriture (RPC set_user_status ci-dessus, UPDATE direct
+-- de user_status par un app-admin, édition au dashboard). Le trigger couvre aussi l'INSERT
+-- (ligne recréée directement en pending/rejected : purge par cohérence, normalement sans effet).
+-- EFFET DE BORD ASSUMÉ : si le compte est RÉ-approuvé plus tard, ses memberships ne sont PAS
+-- restaurés — il devra être ré-invité (invite_member) dans chacune de ses bibliothèques. C'est
+-- voulu : la ré-approbation repasse par le circuit nominal, qui re-vérifie l'approbation.
+-- SECURITY DEFINER : la purge doit aboutir quel que soit le rôle qui a modifié le statut
+-- (défense en profondeur, indépendante des politiques RLS de memberships).
+create or replace function public.revoke_memberships()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  delete from public.memberships where user_id = new.user_id;
+  return new;
+end;$$;
+drop trigger if exists user_status_revoke_memberships on public.user_status;
+create trigger user_status_revoke_memberships
+  after insert or update of status on public.user_status
+  for each row when (new.status <> 'approved')
+  execute function public.revoke_memberships();
 
 -- Supprime DÉFINITIVEMENT un compte REFUSÉ (app-admin uniquement) : donne une "2e chance" à la
 -- personne, qui pourra recréer un compte avec la même adresse e-mail (nouvelle demande, repartant
@@ -604,6 +635,36 @@ returns jsonb language sql stable security definer set search_path = public, aut
   ) end;
 $$;
 
+-- ---------- 6sexies. Durcissement : updatedBy signé par le serveur (audit de sécurité) ------
+-- Le client pose data->>'updatedBy' (e-mail du dernier modificateur, affiché « dernière
+-- modification par… » dans les bibliothèques partagées) mais c'était une valeur DÉCLARATIVE :
+-- une requête REST directe pouvait y mettre n'importe quoi — un editor pouvait signer une
+-- modification du nom d'un collègue. Ce trigger écrase la valeur déclarée par l'e-mail RÉEL
+-- du JWT, sur fiches ET protocols (les deux seules tables dont le jsonb `data` porte ce champ ;
+-- category_sets et fiche_notes ne le portent pas).
+--   • Sans JWT ou sans claim email (service_role, SQL Editor, opérations d'administration) :
+--     on ne touche à RIEN — ces écritures ne sont pas des usurpations, et les écraser
+--     casserait les interventions de maintenance.
+--   • Champ ABSENT du payload : il le RESTE (on n'ajoute rien). Côté client, migrate() /
+--     migrateProtocol() tolèrent l'absence mais attendent une chaîne : le champ reste donc
+--     toujours une chaîne e-mail ou absent, jamais un null JSON.
+create or replace function public.stamp_updated_by()
+returns trigger language plpgsql as $$
+declare
+  claims  jsonb := coalesce(nullif(current_setting('request.jwt.claims', true), ''), '{}')::jsonb;
+  v_email text  := claims->>'email';
+begin
+  if v_email is null or v_email = '' then return new; end if;   -- pas de JWT -> ne rien écraser
+  if new.data ? 'updatedBy' then
+    new.data = jsonb_set(new.data, '{updatedBy}', to_jsonb(v_email));
+  end if;
+  return new;
+end;$$;
+drop trigger if exists fiches_stamp_updated_by    on public.fiches;
+drop trigger if exists protocols_stamp_updated_by on public.protocols;
+create trigger fiches_stamp_updated_by    before insert or update on public.fiches    for each row execute function public.stamp_updated_by();
+create trigger protocols_stamp_updated_by before insert or update on public.protocols for each row execute function public.stamp_updated_by();
+
 -- ---------- 7. Documents PDF joints : bucket Storage 'attachments' (4.0.0) ------------------
 -- Les fiches ne transportent que des MÉTADONNÉES ({id,name,size} dans data.attachments) ; le
 -- fichier PDF lui-même vit dans ce bucket PRIVÉ. LE CHEMIN ENCODE LE PÉRIMÈTRE DE SÉCURITÉ :
@@ -643,7 +704,8 @@ create policy att_lib_read on storage.objects for select
 
 -- Bibliothèque partagée : écriture (upload/remplacement/suppression) = editor/admin, chemin
 -- strictement conforme (comme fiches_shared_write ; l'approbation n'est pas re-testée ici, même
--- logique que fiches : un compte non approuvé n'obtient pas de membership, cf. invite_member).
+-- logique que fiches : un compte non approuvé n'obtient pas de membership, cf. invite_member,
+-- et un compte qui cesse d'être approuvé les perd tous, cf. user_status_revoke_memberships).
 drop policy if exists att_lib_write on storage.objects;
 create policy att_lib_write on storage.objects for all
   using      (bucket_id = 'attachments'

@@ -455,6 +455,108 @@ begin
   select library_id into v_hack from public.protocols where id='p-team';
   if v_hack is distinct from 'lib-team' then raise exception 'ÉCHEC : un viewer a pu exfiltrer un protocole partagé vers son espace perso'; end if;
 
+  ------------------------------------------------------------------ 11. Compte rejeté : accès partagés révoqués IMMÉDIATEMENT
+  -- (Audit de sécurité.) La garde d'approbation n'est testée qu'à l'ENTRÉE (invite_member,
+  -- section 8.6) : les politiques *_shared_* ne re-testent pas is_approved() à chaque requête.
+  -- Le trigger user_status_revoke_memberships purge donc les memberships dès qu'un statut
+  -- quitte 'approved' : un membre approuvé PUIS rejeté doit perdre sur-le-champ lecture ET
+  -- écriture sur les fiches, protocoles et documents partagés. État hérité : erin admin de
+  -- lib-team (approuvée) ; frank viewer de lib-team ; f-team, p-team et att-t1.pdf existent.
+
+  -- 11.1 Rejet via la RPC set_user_status (appelée par un app-admin) -> memberships purgés.
+  reset role;
+  insert into public.app_admins(user_id) values (alice) on conflict do nothing;
+  perform set_config('request.jwt.claims', json_build_object('sub',alice,'role','authenticated')::text, true);
+  set local role authenticated;
+  perform public.set_user_status(erin,'rejected');
+  reset role;
+  select count(*) into v_cnt from public.memberships where user_id=erin;
+  if v_cnt <> 0 then raise exception 'ÉCHEC : le rejet du compte n''a pas purgé ses memberships (% restants)', v_cnt; end if;
+
+  -- 11.2 erin (rejetée) ne LIT plus rien de partagé : fiches, protocoles, bucket.
+  perform set_config('request.jwt.claims', json_build_object('sub',erin,'role','authenticated')::text, true);
+  set local role authenticated;
+  select count(*) into v_cnt from public.fiches where id='f-team';
+  if v_cnt <> 0 then raise exception 'ÉCHEC : un compte rejeté lit encore une fiche partagée'; end if;
+  select count(*) into v_cnt from public.protocols where id='p-team';
+  if v_cnt <> 0 then raise exception 'ÉCHEC : un compte rejeté lit encore un protocole partagé'; end if;
+  select count(*) into v_cnt from storage.objects where bucket_id='attachments' and name='l/lib-team/att-t1.pdf';
+  if v_cnt <> 0 then raise exception 'ÉCHEC : un compte rejeté lit encore un document du bucket partagé'; end if;
+
+  -- 11.3 erin (rejetée) n'ÉCRIT plus rien de partagé (UPDATE -> 0 ligne sans erreur ; INSERT -> refus).
+  update public.fiches set data='{"revoked":1}' where id='f-team';
+  update storage.objects set metadata='{"revoked":1}' where bucket_id='attachments' and name='l/lib-team/att-t1.pdf';
+  begin
+    insert into public.fiches(id,owner,library_id,data) values ('f-revoked',erin,'lib-team','{"t":1}');
+    raise exception 'ÉCHEC : un compte rejeté a pu créer une fiche partagée';
+  exception when insufficient_privilege then null; end;
+  begin
+    insert into public.protocols(id,owner,library_id,data) values ('p-revoked',erin,'lib-team','{"t":1}');
+    raise exception 'ÉCHEC : un compte rejeté a pu créer un protocole partagé';
+  exception when insufficient_privilege then null; end;
+  begin
+    insert into storage.objects(bucket_id,name) values ('attachments','l/lib-team/att-revoked.pdf');
+    raise exception 'ÉCHEC : un compte rejeté a pu déposer un document dans le bucket partagé';
+  exception when insufficient_privilege then null; end;
+  reset role;
+  select data->>'revoked' into v_hack from public.fiches where id='f-team';
+  if v_hack is not null then raise exception 'ÉCHEC : un compte rejeté a pu modifier une fiche partagée'; end if;
+  select metadata->>'revoked' into v_hack from storage.objects where bucket_id='attachments' and name='l/lib-team/att-t1.pdf';
+  if v_hack is not null then raise exception 'ÉCHEC : un compte rejeté a pu remplacer un document du bucket partagé'; end if;
+
+  -- 11.4 AUTRE CHEMIN que la RPC : un UPDATE direct de user_status (app-admin via l'API REST,
+  -- dashboard...) doit purger pareil — c'est le trigger qui porte la garantie, pas set_user_status.
+  update public.user_status set status='rejected' where user_id=frank;
+  select count(*) into v_cnt from public.memberships where user_id=frank;
+  if v_cnt <> 0 then raise exception 'ÉCHEC : un UPDATE direct de user_status n''a pas purgé les memberships'; end if;
+
+  ------------------------------------------------------------------ 12. updatedBy signé par le serveur (trigger stamp_updated_by)
+  -- (Audit de sécurité.) data->>'updatedBy' est affiché « dernière modification par… » dans les
+  -- bibliothèques partagées : sans le trigger, un editor pouvait signer du nom d'un collègue via
+  -- l'API REST. frank est ré-approuvé et RÉ-INVITÉ editor (son rejet en 11.4 a purgé son
+  -- membership : la ré-invitation est le parcours nominal documenté dans schema.sql).
+  reset role;
+  update public.user_status set status='approved' where user_id=frank;
+  insert into public.memberships(user_id,library_id,role) values (frank,'lib-team','editor')
+    on conflict (user_id,library_id) do update set role='editor';
+
+  -- 12.1 UPDATE d'une fiche partagée avec un updatedBy FALSIFIÉ -> l'e-mail réel du JWT s'impose.
+  perform set_config('request.jwt.claims', json_build_object('sub',frank,'email','frank@test.local','role','authenticated')::text, true);
+  set local role authenticated;
+  update public.fiches set data='{"t":2,"updatedBy":"chef@example.org"}' where id='f-team';
+  reset role;
+  select data->>'updatedBy' into v_hack from public.fiches where id='f-team';
+  if v_hack is distinct from 'frank@test.local' then
+    raise exception 'ÉCHEC : updatedBy falsifié conservé sur une fiche (% au lieu de l''e-mail réel)', coalesce(v_hack,'NULL'); end if;
+
+  -- 12.2 Idem à l'INSERT, et sur protocols (les deux tables portent le champ).
+  perform set_config('request.jwt.claims', json_build_object('sub',frank,'email','frank@test.local','role','authenticated')::text, true);
+  set local role authenticated;
+  insert into public.protocols(id,owner,library_id,data) values ('p-forge',frank,'lib-team','{"updatedBy":"chef@example.org"}');
+  reset role;
+  select data->>'updatedBy' into v_hack from public.protocols where id='p-forge';
+  if v_hack is distinct from 'frank@test.local' then
+    raise exception 'ÉCHEC : updatedBy falsifié conservé sur un protocole (% au lieu de l''e-mail réel)', coalesce(v_hack,'NULL'); end if;
+
+  -- 12.3 Champ ABSENT du payload : il le RESTE (migrate() côté client tolère l'absence,
+  -- jamais un null JSON — le trigger ne doit rien AJOUTER).
+  perform set_config('request.jwt.claims', json_build_object('sub',frank,'email','frank@test.local','role','authenticated')::text, true);
+  set local role authenticated;
+  update public.fiches set data='{"t":3}' where id='f-team';
+  reset role;
+  select count(*) into v_cnt from public.fiches where id='f-team' and data ? 'updatedBy';
+  if v_cnt <> 0 then raise exception 'ÉCHEC : updatedBy a été ajouté à un payload qui ne le portait pas'; end if;
+
+  -- 12.4 SANS claim email (service_role, SQL Editor, maintenance) : la valeur déclarée est
+  -- CONSERVÉE (ne pas casser les opérations d'administration). NB : set_config(..., true)
+  -- persiste jusqu'à la fin de la transaction, même après reset role -> on vide explicitement
+  -- les claims pour simuler l'absence de JWT.
+  perform set_config('request.jwt.claims', '{}', true);
+  update public.fiches set data='{"t":4,"updatedBy":"admin@ops.local"}' where id='f-team';
+  select data->>'updatedBy' into v_hack from public.fiches where id='f-team';
+  if v_hack is distinct from 'admin@ops.local' then
+    raise exception 'ÉCHEC : une écriture sans JWT a été écrasée (%) — la maintenance serait cassée', coalesce(v_hack,'NULL'); end if;
+
   ------------------------------------------------------------------ FIN
   reset role;
   raise notice '✅ TOUS LES TESTS RLS PASSENT';
