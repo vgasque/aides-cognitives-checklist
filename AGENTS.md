@@ -40,12 +40,19 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   (catégories) — **y compris dans les overrides `html[data-theme="dark"]`** (pas de copie hex
   d'un token : la duplication désaccorde les palettes ; fond de champ de saisie = `--input-bg`).
   Sémantique fixe : erreur/danger = `--critical`, attente/avertissement/décision = `--verify`,
-  jamais l'inverse ; états (pastilles compte/synchro) : ok = `--primary`, attente = `--verify`,
+  jamais l'inverse. `--critical` couvre la destruction **et l'arrêt d'un processus vivant**
+  (ex. « Terminer » une session : archivante et réversible, mais stoppe les minuteurs — registre
+  du rouge « raccrocher » ; ne pas le « corriger » en ambre) ; états (pastilles compte/synchro) : ok = `--primary`, attente = `--verify`,
   erreur = `--critical`, inactif = `--line-strong`. Contraste texte ≥ 4.5:1, composants ≥ 3:1
   (WCAG AA).
 - **Échelles fermées** : breakpoints 430 / 560 / 640 / 780 / 900 px (pas de nouveau palier sans
   décision explicite) ; plancher typographique **11 px** (app consultée sous stress : rien en
   dessous, nulle part).
+- **Saillance & registres (audit v4.0.3)** : **un seul bouton rempli** (`--primary` plein) par
+  écran — si deux actions coexistent, la moins critique passe en tonal (`--primary-soft`,
+  cf. `.btn-new.tonal` : « Créer » s'efface quand « Reprendre » est affiché). **Un seul registre
+  de titres de section** (petites capitales grasses, cf. `.block-h`), repris par les titres du
+  contenu rédigé des protocoles (`.md-h1`/`.md-h2`) — pas de nouveau style de titre.
 - **Interactif** : cible tactile ≥ 32 px (44 px pour les contrôles du mode crise) ; tout nouvel
   élément interactif reçoit un état `:focus-visible` et un équivalent clavier (Entrée/Espace).
   Action destructrice en situation de crise = geste « maintenir » (`holdToReset`), pas un simple tap.

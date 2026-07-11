@@ -1,5 +1,36 @@
 # Journal des modifications
 
+## [4.0.3] — 2026-07-11
+Lot de cohérence issu de l'audit design v4 (registres visuels, saillance, accessibilité).
+
+### Modifié
+- **Les protocoles parlent la même langue visuelle que les fiches.** Les titres de section du
+  contenu rédigé (`#`, `##`) reprennent le registre des en-têtes de section des fiches (petites
+  capitales grasses espacées) au lieu d'un simple gras : une seule grammaire de titres dans
+  toute l'app, en lecture comme dans l'aperçu de l'éditeur.
+- **Le titre n'apparaît dans la barre d'en-tête qu'au défilement** (fiches et protocoles,
+  lecture et édition). En haut de page, le corps affiche déjà le titre : la barre garde la
+  marque, puis bascule sur « titre + nature du contenu » une fois le titre du corps sorti de
+  l'écran — le motif « grand titre » d'iOS, déjà utilisé par l'accueil, appliqué entièrement.
+  Hauteur de barre inchangée entre les deux états ; plus jamais deux titres affichés à la fois.
+- **Un seul bouton rempli par écran.** Quand l'accueil affiche « Reprendre » (session en cours,
+  teal plein), « Créer » — action d'autorat, rare en situation d'urgence — passe en ton doux ;
+  il reste plein quand aucune session n'est affichée. Règle notée dans AGENTS.md.
+- **« Validation : MM/AAAA »** remplace « Validée MM/AAAA » : le même libellé sert aux fiches
+  (féminin) et aux protocoles (masculin), l'accord unique était fautif pour l'un des deux.
+- **Doc — sémantique du vermillon régularisée** (`:root` + AGENTS.md) : `--critical` couvre la
+  destruction **et l'arrêt d'un processus vivant** (« Terminer » une session stoppe les
+  minuteurs — registre du rouge « raccrocher ») ; le bouton, volontairement vermillon, n'est
+  plus une exception à la règle.
+
+### Corrigé
+- **Cartes de liste accessibles au lecteur d'écran.** La carte entière était un « bouton »
+  contenant d'autres boutons (épingle, badge « À compléter ») — structure proscrite (ARIA).
+  Le titre est désormais le vrai bouton, sa zone de tap étendue à toute la carte ; épingle et
+  badge restent des commandes indépendantes, au clavier comme au doigt. Aucun changement visuel.
+- **Pastilles de catégories : zone de tap portée à ~44 px** (halo invisible autour de chaque
+  pastille, filtres de l'accueil et choix de catégorie des éditeurs) — taille visuelle inchangée.
+
 ## [4.0.2] — 2026-07-11
 ### Corrigé
 - **Synchronisation : certains contenus n'arrivaient jamais sur un appareil déjà synchronisé**

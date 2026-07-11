@@ -257,7 +257,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      --on-primary : texte posé SUR --primary (blanc en clair ; en sombre --primary devient un teal
      clair -> texte FONCÉ, sinon contraste 2,6:1). --live : accent « temps réel » (teal clair, fixe
      dans les deux thèmes, comme --rt-*). --alarm/--alarm-deep : clignotement/jauge de maintien
-     (chaud = alarme ou geste destructif UNIQUEMENT, jamais un état neutre). Pastilles d'état
+     (chaud = alarme ou geste destructif UNIQUEMENT, jamais un état neutre).
+     --critical = erreur/destruction OU ARRÊT D'UN PROCESSUS VIVANT (« Terminer » une session :
+     les minuteurs s'arrêtent — registre du rouge « raccrocher » iOS ; l'action est archivante et
+     réversible, mais son coût d'erreur en crise est opérationnel) — jamais une simple décision
+     (ça, c'est --verify). Pastilles d'état
      (compte / synchro) : tokens SÉMANTIQUES qui suivent le thème — ok = --primary (confirmation),
      attente = --verify, erreur = --critical, inactif = --line-strong ; tous >= 3:1 sur --bg dans
      les DEUX thèmes (l'en-tête est clair depuis 4.0.0 : plus de valeurs vives fixes).
@@ -360,12 +364,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* h1 du document (plan lecteur d'écran) stylé comme la marque — pas de typo de h1 par défaut. */
   .brand .brand-name{margin:0;font-size:17px;letter-spacing:.2px;font-weight:650;line-height:1.2}
   #brandSub{font-size:11.5px;text-transform:uppercase;letter-spacing:1.6px;color:var(--ink-soft);margin-top:3px}
-  /* Accueil : le sous-titre est porté par les onglets. En lecture il RESTE (« Aide cognitive »
-     sous le titre de fiche, symétrique du « Protocole » des protocoles — mêmes barres) ; le
-     bandeau teal, lui, ne dit que l'ÉTAT (mode crise, session en cours). */
+  /* Accueil : le sous-titre est porté par les onglets. En lecture il accompagne le titre dans
+     la barre UNE FOIS DÉFILÉ (« Aide cognitive » / « Protocole », cf. .titled/.ttl-on plus bas) ;
+     le bandeau teal, lui, ne dit que l'ÉTAT (mode crise, session en cours). */
   header.bar.home #brandSub{display:none}
-  /* Titre de la fiche/du protocole dans la barre : ÉCHELLE DU TITRE D'ACCUEIL (17px/700, même
-     emplacement) — la hiérarchie typographique ne bouge pas entre les vues. Une ligne, ellipsé. */
+  /* Titre de la fiche/du protocole dans la barre (révélé au défilement) : ÉCHELLE DU TITRE
+     D'ACCUEIL (17px/700, même emplacement) — la hiérarchie typographique ne bouge pas entre
+     les vues. Une ligne, ellipsé. */
   #brandTitle{font-size:17px;font-weight:700;line-height:1.2;color:inherit;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.2px;text-transform:none;display:none}
   /* Icône Compte dans l'en-tête (présence utilisateur), avec pastille d'état de synchro discrète. */
   /* 40px (>= 32 exigés — ce n'est pas un contrôle du mode crise) : c'est lui qui fixe la hauteur
@@ -401,12 +406,23 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .search input:focus{outline:2px solid var(--primary);border-color:transparent}
   .btn-new{background:var(--primary);color:var(--on-primary);border:0;border-radius:var(--radius-md);padding:0 16px;font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:7px;white-space:nowrap;box-shadow:0 1px 2px rgba(10,74,70,.2),0 4px 12px rgba(10,74,70,.16);transition:background .12s,transform .06s}
   .btn-new:hover{background:var(--primary-dk)}.btn-new:active{transform:translateY(1px)}
+  /* UN SEUL bouton rempli par écran : quand l'accueil affiche déjà « Reprendre » (session en
+     cours, teal plein), « Créer » (autorat, action rare) passe en TONAL — la crise garde la
+     saillance. Tokens seulement : suit les deux thèmes. */
+  .btn-new.tonal{background:var(--primary-soft);color:var(--primary-dk);box-shadow:none}
+  .btn-new.tonal:hover{background:var(--primary-100)}
   .catbar{margin-bottom:16px}
-  /* Une seule ligne défilable horizontalement -> vue d'ensemble sans allonger la page. */
-  .chiprow{display:flex;gap:8px;flex-wrap:nowrap;overflow-x:auto;padding-bottom:3px;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+  /* Une seule ligne défilable horizontalement -> vue d'ensemble sans allonger la page.
+     Padding vertical (compensé par les marges) : héberge le HALO de tap des pastilles (::after
+     ci-dessous) — dans un conteneur à défilement, un débord hors boîte serait clippé. */
+  .chiprow{display:flex;gap:8px;flex-wrap:nowrap;overflow-x:auto;padding:5px 0 8px;margin:-5px 0 -5px;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
   .chiprow::-webkit-scrollbar{height:5px}.chiprow::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
   .chiprow>*{flex:none}
   .catchip{border:1px solid var(--line);background:var(--surface);padding:8px 14px;border-radius:20px;font-size:12.5px;font-weight:600;cursor:pointer;transition:background .12s,border-color .12s,color .12s}
+  /* Zone de tap >= 44px sans grossir la pastille (halo cliquable, même technique que #cbTimers
+     et .tag.todo) : pastilles filtrées/choisies au pouce en mobile, tap fréquent (HIG/MD3). */
+  .catchip,.catpill{position:relative}
+  :is(.catchip,.catpill)::after{content:"";position:absolute;inset:-5px -2px}
   .catchip:not(.on):hover{border-color:var(--line-hover);background:var(--surface-2)}
   /* États tokenisés des pastilles (plus de style inline) : .on = sélection neutre (« Toutes »/
      « Aucune » — les catégories colorées, elles, se remplissent de LEUR couleur via catChipHtml) ;
@@ -450,8 +466,18 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .btn.ghost-danger:hover{background:var(--critical-soft);border-color:transparent}
   .cm-scope{font-size:12.5px;color:var(--ink-soft);margin:0 0 12px;padding-bottom:10px;border-bottom:1px solid var(--line)}.cm-scope b{color:var(--primary)}
   .cards{display:grid;gap:12px}
-  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px 17px;box-shadow:var(--shadow);cursor:pointer;display:flex;align-items:center;gap:14px;transition:transform .08s,border-color .12s}
-  .card:hover{border-color:var(--line-hover);transform:translateY(-1px);box-shadow:var(--shadow-lg)}.card:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .card{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px 17px;box-shadow:var(--shadow);cursor:pointer;display:flex;align-items:center;gap:14px;transition:transform .08s,border-color .12s}
+  .card:hover{border-color:var(--line-hover);transform:translateY(-1px);box-shadow:var(--shadow-lg)}
+  /* Titre-bouton « étiré » : la carte n'est PLUS role=button (un bouton ne doit pas contenir
+     d'autres commandes — épingle, badge « À compléter » : descendants interactifs proscrits,
+     ARIA APG). Le TITRE est le vrai <button> (clavier natif, nom accessible = titre) et son
+     ::after couvre toute la carte (position:relative ci-dessus) ; les commandes internes
+     repassent AU-DESSUS via z-index. Anneau de focus porté par la carte (:has, déjà utilisé). */
+  .card h2 .card-open{background:none;border:0;padding:0;margin:0;font:inherit;color:inherit;text-align:left;cursor:pointer}
+  .card .card-open::after{content:"";position:absolute;inset:0;border-radius:var(--radius)}
+  .card .card-open:focus-visible{outline:none}
+  .card:has(.card-open:focus-visible){outline:2px solid var(--primary);outline-offset:2px}
+  .card :is(.pinbtn,.tag.todo){position:relative;z-index:1}
   /* Épingle : cible tactile 40px, étoile SVG pleine ambrée quand actif. */
   .card .pinbtn{background:none;border:0;line-height:1;color:var(--ink-soft);min-width:40px;min-height:40px;border-radius:var(--radius-sm);cursor:pointer;flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center}
   .card .pinbtn:hover{background:var(--primary-soft);color:var(--primary)}
@@ -946,13 +972,19 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   @media (prefers-reduced-motion:reduce){#hdrSec .secswitch-ind,#hdrSec .secbtn{transition:none}main.sec-anim-l,main.sec-anim-r{animation:none}}
   /* ----- Contenu rédigé des protocoles (mini-Markdown) : lecture + éditeur ----- */
   .md-body{line-height:1.55;font-size:15px}
-  .md-h2{font-size:17px;font-weight:680;margin:18px 0 8px;color:var(--ink)}
-  .md-h3{font-size:15px;font-weight:650;margin:14px 0 6px;color:var(--ink)}
+  /* Titres de section du contenu rédigé : MÊME registre typographique que les en-têtes de
+     section des fiches (.block-h : petites capitales grasses, espacées) -> UNE seule grammaire
+     de titres dans toute l'app (audit v4.0.3). Sans pip ni badge (contenu libre, pas de
+     sémantique fixe à encoder). h1 (#) un cran plus marqué (encre pleine), h2 (##) courant
+     (encre douce), h3 (###) sous-titre en casse normale ; le CONTENU (15px) reste plus grand
+     que ses titres, comme dans les fiches. */
+  .md-h2{font-size:12.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;margin:20px 0 9px;color:var(--ink-soft)}
+  .md-h3{font-size:14px;font-weight:650;margin:14px 0 6px;color:var(--ink)}
   .md-body h2:first-child,.md-preview h2:first-child{margin-top:2px}
   .md-p{margin:0 0 10px;color:var(--ink)}
   .md-ul,.md-ol{margin:0 0 10px;padding-left:22px}
   .md-ul li,.md-ol li{margin:3px 0}
-  .md-h1{font-size:19px;font-weight:700;margin:20px 0 9px;color:var(--ink)}
+  .md-h1{font-size:13px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin:22px 0 10px;color:var(--ink)}
   .md-ul .md-ul,.md-ul .md-ol,.md-ol .md-ul,.md-ol .md-ol{margin:3px 0 0;padding-left:20px}
   .md-q{margin:0 0 10px;padding:6px 0 6px 12px;border-left:3px solid var(--line-strong);color:var(--ink-soft)}
   .md-ci{font-family:var(--mono);font-size:.92em;background:var(--surface-3);border-radius:5px;padding:1px 5px}
@@ -1035,12 +1067,21 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   header.bar .bar-acct:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   header.bar.crisis .bar-acct:focus-visible{outline-color:var(--rt-ink)}
   /* En-tête « titré » (.titled, posé par setBarTitle) : dans TOUTE vue fiche/protocole — lecture
-     comme édition — le TITRE prime, la marque s'efface. Même géométrie que la marque (17px, une
-     ligne ellipsée + sous-titre) : la hauteur de barre ne bouge pas entre les vues. */
-  header.bar.titled .brand .brand-name{display:none}
-  /* Le sous-titre (« Aide cognitive », « Protocole », « Édition ») passe SOUS le titre : même
-     structure visuelle que marque + sous-titre, dans toutes les vues fiche/protocole. */
+     comme édition — le titre remplace la marque, mais SEULEMENT une fois le titre du corps sorti
+     de l'écran (.ttl-on, posée par l'écouteur de scroll) : c'est le pattern « grand titre » iOS
+     complet — en haut de page le titre n'est jamais affiché deux fois (barre + corps), audit
+     v4.0.3. Même géométrie que la marque (17px, une ligne ellipsée + sous-titre) et hauteur de
+     barre STABLE entre les deux états : la rangée d'identité est calée par le bouton Compte
+     (40px), une ou deux lignes de texte y tiennent. */
+  header.bar.titled.ttl-on .brand .brand-name{display:none}
+  /* Au repos (haut de page) : marque seule — le corps affiche déjà le titre et la nature de la
+     vue. setBarTitle pose display en inline -> !important nécessaire pour re-masquer ici. */
+  header.bar.titled:not(.ttl-on) #brandTitle{display:none!important}
+  header.bar.titled:not(.ttl-on) #brandSub{display:none}
+  /* Une fois révélé, le sous-titre (« Aide cognitive », « Protocole », « Édition ») passe SOUS
+     le titre : même structure visuelle que marque + sous-titre. Apparition en fondu discret. */
   header.bar.titled #brandSub{order:3}
+  header.bar.titled.ttl-on #brandTitle{animation:cbIn .22s ease}
   /* « Ne pas oublier » : bandeau compact SOUS le titre (les rappels critiques se voient sans défiler). */
   .forget-strip{background:var(--critical-soft);border:1px solid var(--critical-line);border-radius:var(--radius);padding:10px 13px 8px;margin-bottom:16px}
   .forget-strip .block-h{margin-bottom:4px}
@@ -1062,10 +1103,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .cn-btn[data-cndec]{width:44px}
   /* Desktop : chips sur plusieurs lignes (le défilement horizontal est un geste tactile) ;
      bibliothèque sur 2 colonnes quand la place le permet. */
-  @media (min-width:780px){.chiprow{flex-wrap:nowrap}.catbar .chiprow,.scopebar .chiprow{flex-wrap:wrap;overflow-x:visible;padding-bottom:0}}
+  /* Large : plus de conteneur à défilement (wrap, overflow visible) -> le halo de tap déborde
+     librement, le padding/marges compensés de .chiprow ne servent plus. */
+  @media (min-width:780px){.chiprow{flex-wrap:nowrap}.catbar .chiprow,.scopebar .chiprow{flex-wrap:wrap;overflow-x:visible;padding:0;margin:0}}
   @media (min-width:900px){.cards{grid-template-columns:1fr 1fr}.cards>.empty,.cards>.btn{grid-column:1/-1}}
   @media (max-width:560px){.read-head h2{font-size:21px}.row2{flex-direction:column;gap:0}.question{font-size:18px}}
-  @media (prefers-reduced-motion:reduce){*{transition:none!important}.tmcard.flash{animation:none}#crisisBand{animation:none}.sess-dot::after{animation:none;opacity:0}}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}.tmcard.flash{animation:none}#crisisBand{animation:none}header.bar.titled.ttl-on #brandTitle{animation:none}.sess-dot::after{animation:none;opacity:0}}
   @media print{body{background:#fff}header.bar,footer.tools,.read-tools,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.session-bar,.sess-list,.notes-block{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}}
 </style>
 </head>
@@ -1205,7 +1248,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.0.2';
+const APP_VERSION='4.0.3';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -2023,7 +2066,9 @@ function migrateCategories(){const changed=[];const byName={};categories.forEach
 const hasFlow=f=>(f.blocks||[]).length>1||(f.blocks||[]).some(b=>b.type==='decision');
 const staleDate=v=>{if(!v)return false;const d=new Date(v.length===7?v+'-01':v);if(isNaN(d))return false;return (Date.now()-d.getTime())>730*864e5;};
 // Affichage de la date de validation : "AAAA-MM" -> "MM/AAAA" ; "AAAA-MM-JJ" -> "JJ/MM/AAAA".
-const fmtDate=v=>{if(!v)return 'Sans date de validation';const m=String(v).match(/^(\d{4})-(\d{2})(?:-(\d{2}))?$/);return m?('Validée '+(m[3]?m[3]+'/':'')+m[2]+'/'+m[1]):('Validée '+v);};
+// « Validation : … » (neutre) et non « Validée … » : le même libellé sert aux fiches (féminin)
+// ET aux protocoles (masculin) — l'accord unique était faux pour l'un des deux.
+const fmtDate=v=>{if(!v)return 'Sans date de validation';const m=String(v).match(/^(\d{4})-(\d{2})(?:-(\d{2}))?$/);return m?('Validation : '+(m[3]?m[3]+'/':'')+m[2]+'/'+m[1]):('Validation : '+v);};
 
 /* ===== Load =====
    chooseBackend() : tente IndexedDB ; au premier passage, migre les éventuelles
@@ -2603,8 +2648,10 @@ function render(){
   else if(state.view!=='read'||_lastView!=='read'||_fid!==_lastFicheId)window.scrollTo(0,0);
   _lastView=state.view;_lastFicheId=_fid;
 }
-// Titre courant dans la barre (fiche/protocole, lecture ou édition) : remplace la marque tant
-// qu'il est non vide (classe .titled), sinon la marque revient. Seul point d'écriture de #brandTitle.
+// Titre courant dans la barre (fiche/protocole, lecture ou édition) : classe .titled tant qu'il
+// est non vide, sinon la marque revient. L'AFFICHAGE effectif attend le défilement (.ttl-on,
+// écouteur de scroll ci-dessous) : en haut de page, le corps porte déjà le titre — jamais deux
+// titres visibles à la fois. Seul point d'écriture de #brandTitle.
 function setBarTitle(t){t=(t||'').trim();
   const bt=document.getElementById('brandTitle');bt.textContent=t;bt.style.display=t?'block':'none';
   document.querySelector('header.bar').classList.toggle('titled',!!t);}
@@ -2639,9 +2686,14 @@ window.addEventListener('resize',()=>{if(document.querySelector('header.bar').cl
 // « GRAND TITRE » : sur l'accueil, la ligne d'identité se replie dès qu'on défile (.condensed,
 // cf. CSS — il ne reste que les onglets) et réapparaît en haut de page. Écouteur passif ;
 // les scrollTo() de render() déclenchent aussi l'évènement -> état toujours juste.
-let _hdrCond=false;
+let _hdrCond=false,_hdrTtl=false;
 window.addEventListener('scroll',()=>{const c=window.scrollY>24;
-  if(c!==_hdrCond){_hdrCond=c;document.querySelector('header.bar').classList.toggle('condensed',c);}},{passive:true});
+  if(c!==_hdrCond){_hdrCond=c;document.querySelector('header.bar').classList.toggle('condensed',c);}
+  // Vues fiche/protocole (.titled) : le titre n'entre dans la barre (.ttl-on) qu'une fois le
+  // titre du CORPS sorti de l'écran (~110px : bouton retour + ligne de titre) — jamais deux
+  // titres visibles à la fois (pattern « grand titre » iOS, symétrique du repli de l'accueil).
+  const t=window.scrollY>110;
+  if(t!==_hdrTtl){_hdrTtl=t;document.querySelector('header.bar').classList.toggle('ttl-on',t);}},{passive:true});
 // keepQuery : bascule déclenchée par la RECHERCHE TRANSVERSALE -> la requête est conservée
 // (le filtre de catégorie, lui, est remis à zéro : il pourrait masquer les résultats attendus).
 function setSection(s,keepQuery){s=(s==='protocols')?'protocols':'fiches';if(state.section===s)return;
@@ -2720,7 +2772,7 @@ function renderHomeList(cfg){
     <div class="notice" id="syncErrNotice" hidden></div>
     ${cfg.notices?cfg.notices():''}
     <div class="lib-top"><div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg><input id="q" placeholder="Rechercher…" value="${esc(state.q)}"></div>
-      ${canEdit?`<button class="btn-new" id="newBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Créer</button>`:''}</div>
+      ${canEdit?`<button class="btn-new${cfg.newTonal&&cfg.newTonal()?' tonal':''}" id="newBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Créer</button>`:''}</div>
     ${catbarHtml()}
     ${crossHitsHtml(q,cfg.crossKind)}
     <div class="cards">${list.length?list.slice(0,state.libLimit).map(cfg.card).join('')+(list.length>state.libLimit?`<button class="btn" id="showMore" style="width:100%;margin-top:2px">Afficher plus (${list.length-state.libLimit} ${cfg.remainLbl(list.length-state.libLimit)})</button>`:'')
@@ -2734,14 +2786,17 @@ function renderHomeList(cfg){
   {const nb=document.getElementById('newBtn');if(nb)nb.onclick=cfg.create;}
   {const en=document.getElementById('emptyNew');if(en)en.onclick=cfg.create;}
   updateSyncBanner();
-  // Ouverture d'une carte — clavier compris ; les commandes internes (épingle, badge « À
-  // compléter ») ne doivent pas ouvrir (garde sans effet sur les cartes qui n'en ont pas).
-  main.querySelectorAll('[data-open]').forEach(el=>{el.onclick=e=>{if(e.target.closest('[data-pin]')||e.target.closest('[data-todo]'))return;cfg.open(el.dataset.open);};el.onkeydown=e=>{if(e.target.closest('[data-pin]')||e.target.closest('[data-todo]'))return;if(e.key==='Enter'||e.key===' '){e.preventDefault();cfg.open(el.dataset.open);}};});
+  // Ouverture d'une carte : le TITRE est le bouton (zone étendue à toute la carte par son
+  // ::after — cf. .card-open) ; vrai <button>, clavier natif. Épingle et badge « À compléter »
+  // sont des frères posés AU-DESSUS (z-index) : leurs taps n'atteignent jamais ce bouton.
+  main.querySelectorAll('[data-open]').forEach(el=>{el.onclick=()=>cfg.open(el.dataset.open);});
   if(cfg.bind)cfg.bind();
   {const row=main.querySelector('.catbar .chiprow');if(row&&_catRowX)row.scrollLeft=_catRowX;}
 }
 function renderLibrary(){
   renderHomeList({rerender:renderLibrary,crossKind:'protocols',create:newFiche,open:openRead,
+    // « Créer » tonal dès qu'une session en cours affiche son « Reprendre » rempli (cf. .btn-new.tonal).
+    newTonal:()=>Object.values(liveSessions).some(R=>R.started&&R.fiche),
     // Tri : épinglées d'abord (préférence locale), puis ordre habituel. Recherche : plein texte normalisé.
     list:(q,canEdit)=>fiches.slice().sort((a,b)=>((isPinned(b.id)?1:0)-(isPinned(a.id)?1:0))||byOrder(a,b)).filter(f=>(state.scope?f.libraryId===state.scope:!f.libraryId)&&(!state.cat||f.category===state.cat)&&(canEdit||f.status!=='draft')&&(!q||ficheHaystack(f).includes(q))),
     // SESSIONS EN COURS (vives) : accès rapide en haut de l'accueil + actions (reprendre/terminer).
@@ -2751,7 +2806,7 @@ function renderLibrary(){
       ${(!state.scope&&!noticeHidden())?`<div class="notice"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01" stroke-linecap="round"/></svg><div>Vous êtes l'auteur et le responsable du contenu. Validez chaque fiche et tenez la date à jour.</div><button class="notice-x" id="noticeX" aria-label="Masquer">×</button></div>`:''}
       ${(!state.scope&&!fiches.some(f=>!f.libraryId)&&!seedsHidden())?`<div class="notice"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 00-4 10.4c.8.8 1 1.6 1 2.6h6c0-1 .2-1.8 1-2.6A6 6 0 0012 3z"/></svg><div><b>Besoin d'exemples pour commencer ?</b> Ajoutez les deux fiches d'exemple (Anaphylaxie, Arrêt cardiaque) pour découvrir l'application — à relire et adapter avant tout usage clinique.<div style="margin-top:9px"><button class="btn sm primary" id="seedAdd">Ajouter les fiches d'exemple</button></div></div><button class="notice-x" id="seedX" aria-label="Masquer">×</button></div>`:''}`,
     card:f=>{const sc=sessions.filter(s=>s.ficheId===f.id&&!s.live).length;const isLive=!!liveSessions[f.id];return `
-      <div class="card${isLive?' has-live':''}" tabindex="0" role="button" data-open="${f.id}"><div class="card-body"><h2>${esc(f.title)||'Sans titre'}</h2>
+      <div class="card${isLive?' has-live':''}"><div class="card-body"><h2><button class="card-open" data-open="${f.id}">${esc(f.title)||'Sans titre'}</button></h2>
         <div class="card-meta">${isLive?'<span class="tag live">● En cours</span>':''}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo title="Reste à compléter : ${esc(sp.join(' · '))}">À compléter</span>`:'';})()}${catTag(f)}${sc?`<span class="tag sess" title="Sessions enregistrées dans l'historique">${sc} sauvegardée${sc>1?'s':''}</span>`:''}<span class="card-date${staleDate(f.validation)?' stale':''}">${esc(fmtDate(f.validation))}${staleDate(f.validation)?' · à revoir':''}</span></div></div>
         <button class="pinbtn${isPinned(f.id)?' on':''}" data-pin="${f.id}" aria-label="${isPinned(f.id)?'Désépingler':'Épingler en haut de la liste'}" title="${isPinned(f.id)?'Désépingler':'Épingler en haut de la liste'}"><svg width="18" height="18" viewBox="0 0 24 24" fill="${isPinned(f.id)?'currentColor':'none'}" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"/></svg></button>
         ${uiIcon('chev',18,{sw:2.2,cls:'chev'})}</div>`;},
@@ -2777,7 +2832,7 @@ function renderProtocols(){
   renderHomeList({rerender:renderProtocols,crossKind:'fiches',create:newProtocol,open:openProtocolRead,
     list:(q,canEdit)=>protocols.slice().sort(byOrder).filter(p=>(state.scope?p.libraryId===state.scope:!p.libraryId)&&(!state.cat||p.category===state.cat)&&(canEdit||p.status!=='draft')&&(!q||protocolHaystack(p).includes(q))),
     card:p=>{const nDoc=(p.attachments||[]).length;return `
-      <div class="card" tabindex="0" role="button" data-open="${p.id}"><div class="card-body"><h2>${esc(p.title)||'Sans titre'}</h2>
+      <div class="card"><div class="card-body"><h2><button class="card-open" data-open="${p.id}">${esc(p.title)||'Sans titre'}</button></h2>
         <div class="card-meta">${p.status==='draft'?'<span class="tag draft">Brouillon</span>':''}${catTag(p)}${nDoc?`<span class="tag sess" title="Documents PDF joints">${nDoc} PDF</span>`:''}${p.body&&p.body.trim()?'<span class="tag sess" title="Contenu rédigé dans l’app">Rédigé</span>':''}<span class="card-date${staleDate(p.validation)?' stale':''}">${esc(fmtDate(p.validation))}${staleDate(p.validation)?' · à revoir':''}</span></div></div>
         ${uiIcon('chev',18,{sw:2.2,cls:'chev'})}</div>`;},
     remainLbl:n=>'restant'+(n>1?'s':''),
