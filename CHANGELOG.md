@@ -1,5 +1,17 @@
 # Journal des modifications
 
+## [4.0.1] — 2026-07-11
+### Corrigé
+- **Titre dans la barre d'en-tête : comportement unifié entre fiches et protocoles, lecture et
+  édition.** En lecture de protocole, le titre s'affichait en petite troisième ligne sous
+  « Aides cognitives / Protocole » et se retrouvait **coupé par le bas de la barre** (rangée
+  d'identité plafonnée à 44 px) ; en édition (fiche comme protocole), aucun titre n'apparaissait.
+  Désormais, dans toute vue fiche/protocole, le titre **remplace la marque** sur une seule ligne
+  ellipsée à l'échelle du titre d'accueil (17 px), avec le libellé « Protocole » ou « Édition »
+  dessous — même géométrie qu'avant, la hauteur de barre ne change pas. En édition, le titre de
+  la barre **suit la saisie en direct** dans le champ « Titre » ; champ vidé, la marque revient
+  (création d'une nouvelle fiche). Le mode crise est inchangé (même motif, désormais partagé).
+
 ## [4.0.0] — 2026-07-09
 ### Ajouté
 - **Documents PDF joints aux fiches.** Chaque fiche peut porter jusqu'à 10 PDF (15 Mo max

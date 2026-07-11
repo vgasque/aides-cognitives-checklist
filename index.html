@@ -362,7 +362,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #brandSub{font-size:11.5px;text-transform:uppercase;letter-spacing:1.6px;color:var(--ink-soft);margin-top:3px}
   /* Accueil : le sous-titre est porté par les onglets ; crise : l'état est porté par le bandeau. */
   header.bar.home #brandSub,header.bar.crisis #brandSub{display:none}
-  #brandTitle{font-size:13px;font-weight:600;color:inherit;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:0;text-transform:none;display:none}
+  /* Titre de la fiche/du protocole dans la barre : ÉCHELLE DU TITRE D'ACCUEIL (17px/700, même
+     emplacement) — la hiérarchie typographique ne bouge pas entre les vues. Une ligne, ellipsé. */
+  #brandTitle{font-size:17px;font-weight:700;line-height:1.2;color:inherit;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.2px;text-transform:none;display:none}
   /* Icône Compte dans l'en-tête (présence utilisateur), avec pastille d'état de synchro discrète. */
   /* 40px (>= 32 exigés — ce n'est pas un contrôle du mode crise) : c'est lui qui fixe la hauteur
      de la rangée d'identité, la barre d'accueil reste sous ~85px hors encoche. */
@@ -1030,11 +1032,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .rt-panel :is(.tm-btn,.cn-btn,.rt-sound,.tm-reset,.cn-reset):focus-visible{outline:2px solid var(--live);outline-offset:2px}
   header.bar .bar-acct:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   header.bar.crisis .bar-acct:focus-visible{outline-color:var(--rt-ink)}
-  /* En-tête en mode crise : le TITRE DE LA FICHE prime, la marque s'efface. */
-  header.bar.crisis .brand .brand-name{display:none}
-  /* Crise : le titre de la fiche prend l'ÉCHELLE DU TITRE D'ACCUEIL (17px/700, même emplacement)
-     — la hiérarchie typographique ne bouge pas entre les vues, seul le bandeau d'état s'ajoute. */
-  header.bar.crisis #brandTitle{font-size:17px;font-weight:700;margin-top:1px}
+  /* En-tête « titré » (.titled, posé par setBarTitle) : dans TOUTE vue fiche/protocole — lecture
+     comme édition — le TITRE prime, la marque s'efface. Même géométrie que la marque (17px, une
+     ligne ellipsée + sous-titre) : la hauteur de barre ne bouge pas entre les vues. */
+  header.bar.titled .brand .brand-name{display:none}
+  /* Le sous-titre (« Protocole », « Édition ») passe SOUS le titre : même structure visuelle
+     que marque + sous-titre. En crise il est masqué (le bandeau d'état parle). */
+  header.bar.titled #brandSub{order:3}
   /* « Ne pas oublier » : bandeau compact SOUS le titre (les rappels critiques se voient sans défiler). */
   .forget-strip{background:var(--critical-soft);border:1px solid var(--critical-line);border-radius:var(--radius);padding:10px 13px 8px;margin-bottom:16px}
   .forget-strip .block-h{margin-bottom:4px}
@@ -1199,7 +1203,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.0.0';
+const APP_VERSION='4.0.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -2569,7 +2573,12 @@ function render(){
   {const cb=document.getElementById('crisisBand');const crisis=state.view==='read'&&!!state.fiche;
    cb.hidden=!crisis;
    if(crisis)cb.querySelector('.cb-lbl').innerHTML='Mode crise'+(Runtime.started?'<span class="cb-sub"> · session en cours — enregistrée automatiquement</span>':'');}
-  const bt=document.getElementById('brandTitle');if(bt){const t=state.view==='read'&&state.fiche?state.fiche.title||'':state.view==='protocolRead'&&state.protocol?state.protocol.title||'':'';bt.textContent=t;bt.style.display=t?'block':'none';}
+  // Titre dans la barre : TOUTE vue fiche/protocole, lecture COMME édition (en édition, le champ
+  // titre le met à jour en direct via setBarTitle — cf. bindEditorEvents / renderProtocolEdit).
+  setBarTitle(state.view==='read'&&state.fiche?state.fiche.title
+    :state.view==='protocolRead'&&state.protocol?state.protocol.title
+    :state.view==='edit'&&state.draft?state.draft.title
+    :state.view==='protocolEdit'&&state.pdraft?state.pdraft.title:'');
   // Session en cours : pied de page réduit à l'état (les actions Exporter/Importer/Thème sortent
   // du champ visuel) ; le rappel minuteurs de l'en-tête est resynchronisé tout de suite.
   document.body.classList.toggle('crisis-live',state.view==='read'&&Runtime.started);
@@ -2590,6 +2599,11 @@ function render(){
   else if(state.view!=='read'||_lastView!=='read'||_fid!==_lastFicheId)window.scrollTo(0,0);
   _lastView=state.view;_lastFicheId=_fid;
 }
+// Titre courant dans la barre (fiche/protocole, lecture ou édition) : remplace la marque tant
+// qu'il est non vide (classe .titled), sinon la marque revient. Seul point d'écriture de #brandTitle.
+function setBarTitle(t){t=(t||'').trim();
+  const bt=document.getElementById('brandTitle');bt.textContent=t;bt.style.display=t?'block':'none';
+  document.querySelector('header.bar').classList.toggle('titled',!!t);}
 // Transition de vue (défilement ci-dessus) : vue du rendu précédent, fiche affichée, position bibliothèque.
 let _lastView=null,_lastFicheId=null,_libScrollY=0;
 let _qDebounce=null;   // debounce du champ de recherche (voir l'écouteur 'input' ci-dessous)
@@ -2840,7 +2854,8 @@ function renderProtocolEdit(){
     <input type="file" id="imgInput" accept="image/*" hidden>
     <input type="file" id="pdfInput" accept="application/pdf,.pdf" hidden>`;
   document.getElementById('back').onclick=()=>{purgeDraftAtts();state.pdraft=null;if(protocols.some(x=>x.id===p.id))openProtocolRead(p.id);else{state.view='library';render();}};
-  document.getElementById('p-title').addEventListener('input',e=>p.title=e.target.value);
+  // Le titre saisi est reflété EN DIRECT dans la barre d'en-tête (même règle qu'en lecture).
+  document.getElementById('p-title').addEventListener('input',e=>{p.title=e.target.value;setBarTitle(e.target.value);});
   {const fv=document.getElementById('p-validation');
    if(fv)fv.addEventListener('change',()=>{const raw=fv.value.trim();if(!raw){p.validation='';fv.classList.remove('val-bad');return;}const norm=parseValidation(raw);if(norm){p.validation=norm;fv.value=valToDisplay(norm);fv.classList.remove('val-bad');}else{fv.classList.add('val-bad');}});}
   {const stSel=document.getElementById('p-status');if(stSel)stSel.onchange=()=>{p.status=stSel.value==='draft'?'draft':'';};}
@@ -3678,7 +3693,8 @@ function bindEditorEvents(f){
   document.getElementById('back').onclick=()=>{purgeDraftAtts();state.draft=null;state.noteEdit=false;if(fiches.some(x=>x.id===f.id)){resetRuntime();openRead(f.id);}else{saveNote(f.id,'');state.view='library';render();}};
   const cbA=document.getElementById('cbAI');if(cbA)cbA.onclick=openAI;
   const cbM=document.getElementById('cbManual');if(cbM)cbM.onclick=()=>{state.showCreateBand=false;renderEditor();const t=document.getElementById('f-title');if(t)t.focus();};
-  ['title','localInfo'].forEach(k=>document.getElementById('f-'+k).addEventListener('input',e=>state.draft[k]=e.target.value));
+  // Le titre saisi est reflété EN DIRECT dans la barre d'en-tête (même règle qu'en lecture).
+  ['title','localInfo'].forEach(k=>document.getElementById('f-'+k).addEventListener('input',e=>{state.draft[k]=e.target.value;if(k==='title')setBarTitle(e.target.value);}));
   // Date de validation : champ texte tolérant. À la VALIDATION du champ (blur), on interprète l'entrée
   // (« janv 2026 », « 01/2026 », « 2026/01 »…) et on la réécrit au propre « MM/AAAA » ; entrée non
   // comprise -> bordure rouge, on n'enregistre pas une valeur douteuse.
