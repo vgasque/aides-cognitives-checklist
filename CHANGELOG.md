@@ -74,6 +74,28 @@
   couvre les documents.
 - Chrome de l'accueil (sélecteur de section, barre de bibliothèques, catégories, recherche)
   et composants Documents **factorisés** entre fiches et protocoles (aucune logique dupliquée).
+- **Correctifs de l'audit design 4.0.0** (conformité WCAG 2.2 AA + cohérence des palettes) :
+  - **Pastilles d'état du compte et de la synchro** : couleurs sémantiques qui suivent le thème
+    (ok = teal, attente = ambre, erreur = vermillon, inactif = gris) — les anciennes valeurs
+    vives, calibrées pour l'en-tête sombre d'avant l'inversion, tombaient à 1,3–2,4:1 sur la
+    barre claire (3:1 requis) ; désormais ≥ 3:1 dans les deux thèmes.
+  - **Manifest et barre système alignés sur le chrome clair** : `theme_color`/`background_color`
+    du manifest et balise `theme-color` initiale = fond de page (plus de barre teal au-dessus
+    d'une app claire à l'installation) ; la couleur suit le thème sombre dès avant le premier
+    rendu. Le **verrou portrait est retiré** (usage tablette en paysage possible).
+  - **Plancher typographique 11 px** (étiquettes du bandeau de crise, indice « maintenir »,
+    numéros du fil d'Ariane, badges) et **zones de tap** : chrono du bandeau de crise ≥ 44 px,
+    jauge de stockage ≥ 24 px (WCAG 2.5.8).
+  - **Palettes dé-dupliquées** : les overrides du thème sombre qui recopiaient des valeurs de
+    tokens en hex sont supprimés (les tokens suivent seuls le thème) ; nouveau token
+    `--input-bg` pour tous les fonds de champs ; plus aucun style inline sur les pastilles de
+    catégorie (classes `.on`/`.mgr` tokenisées) ; le panneau de navigation garde son liseré
+    teal en thème sombre (perdu jusqu'ici par un override trop large).
+  - **Sémantique** : la marque devient le `h1` du document, les titres de cartes des `h2`
+    (plan de titres propre pour lecteurs d'écran) ; le sélecteur de section est un vrai
+    `tablist` (flèches ←/→, focus itinérant, `aria-selected`) ; badge « À compléter » souligné
+    en pointillés (affordance d'action) ; **bouton « Créer » dans les états vides** ;
+    breakpoints consolidés sur une échelle fermée (430/560/640/780/900 px, notée AGENTS.md).
 
 ### Sécurité
 - Nouveaux garde-fous : `safeAttachment` (id jamais régénéré, entrée invalide rejetée,

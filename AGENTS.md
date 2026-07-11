@@ -37,8 +37,15 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
 
 ## Conventions de code
 - **Design tokens** : aucune nouvelle couleur hex hors `:root` (tokens CSS) et `PALETTE`
-  (catégories). Sémantique fixe : erreur/danger = `--critical`, attente/avertissement/décision =
-  `--verify`, jamais l'inverse. Contraste texte ≥ 4.5:1, composants d'interface ≥ 3:1 (WCAG AA).
+  (catégories) — **y compris dans les overrides `html[data-theme="dark"]`** (pas de copie hex
+  d'un token : la duplication désaccorde les palettes ; fond de champ de saisie = `--input-bg`).
+  Sémantique fixe : erreur/danger = `--critical`, attente/avertissement/décision = `--verify`,
+  jamais l'inverse ; états (pastilles compte/synchro) : ok = `--primary`, attente = `--verify`,
+  erreur = `--critical`, inactif = `--line-strong`. Contraste texte ≥ 4.5:1, composants ≥ 3:1
+  (WCAG AA).
+- **Échelles fermées** : breakpoints 430 / 560 / 640 / 780 / 900 px (pas de nouveau palier sans
+  décision explicite) ; plancher typographique **11 px** (app consultée sous stress : rien en
+  dessous, nulle part).
 - **Interactif** : cible tactile ≥ 32 px (44 px pour les contrôles du mode crise) ; tout nouvel
   élément interactif reçoit un état `:focus-visible` et un équivalent clavier (Entrée/Espace).
   Action destructrice en situation de crise = geste « maintenir » (`holdToReset`), pas un simple tap.
