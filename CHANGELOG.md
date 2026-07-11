@@ -1,5 +1,26 @@
 # Journal des modifications
 
+## [4.0.2] — 2026-07-11
+### Corrigé
+- **Synchronisation : certains contenus n'arrivaient jamais sur un appareil déjà synchronisé**
+  (constaté sur des protocoles, mais valable pour les fiches). Le rattrapage incrémental ne
+  demandait au serveur que les lignes **plus récentes que la dernière synchro** ; or deux cas
+  réels produisent des lignes « dans le passé » : du contenu créé **avant votre adhésion** à une
+  bibliothèque partagée (l'accès le révèle d'un coup, avec ses dates d'origine), et un appareil
+  à l'**horloge en retard** (l'horodatage vient de l'appareil qui enregistre). Ces contenus
+  n'apparaissaient qu'en repartant de zéro (nouveau navigateur) — même la synchro manuelle ne
+  les ramenait pas. Chaque synchro effectue désormais un **repêchage de complétude** : un
+  inventaire léger (identifiants + dates) de tout ce qui est visible, puis récupération ciblée
+  des seules lignes manquées, appliquées avec les mêmes règles qu'avant (la version la plus
+  récente gagne, une saisie locale plus fraîche n'est jamais écrasée).
+
+### Modifié
+- **Barre d'en-tête harmonisée entre fiches et protocoles en lecture.** Un protocole ouvert
+  affichait « Protocole » sous son titre, mais une fiche ouverte n'affichait rien sous le sien.
+  La lecture d'une fiche porte désormais le libellé « Aide cognitive » au même endroit — les
+  deux barres ont la même structure (titre + nature du contenu). Le bandeau teal reste dédié à
+  l'état (mode crise, session en cours) et ne change pas.
+
 ## [4.0.1] — 2026-07-11
 ### Corrigé
 - **Titre dans la barre d'en-tête : comportement unifié entre fiches et protocoles, lecture et

@@ -360,8 +360,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* h1 du document (plan lecteur d'écran) stylé comme la marque — pas de typo de h1 par défaut. */
   .brand .brand-name{margin:0;font-size:17px;letter-spacing:.2px;font-weight:650;line-height:1.2}
   #brandSub{font-size:11.5px;text-transform:uppercase;letter-spacing:1.6px;color:var(--ink-soft);margin-top:3px}
-  /* Accueil : le sous-titre est porté par les onglets ; crise : l'état est porté par le bandeau. */
-  header.bar.home #brandSub,header.bar.crisis #brandSub{display:none}
+  /* Accueil : le sous-titre est porté par les onglets. En lecture il RESTE (« Aide cognitive »
+     sous le titre de fiche, symétrique du « Protocole » des protocoles — mêmes barres) ; le
+     bandeau teal, lui, ne dit que l'ÉTAT (mode crise, session en cours). */
+  header.bar.home #brandSub{display:none}
   /* Titre de la fiche/du protocole dans la barre : ÉCHELLE DU TITRE D'ACCUEIL (17px/700, même
      emplacement) — la hiérarchie typographique ne bouge pas entre les vues. Une ligne, ellipsé. */
   #brandTitle{font-size:17px;font-weight:700;line-height:1.2;color:inherit;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.2px;text-transform:none;display:none}
@@ -1036,8 +1038,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      comme édition — le TITRE prime, la marque s'efface. Même géométrie que la marque (17px, une
      ligne ellipsée + sous-titre) : la hauteur de barre ne bouge pas entre les vues. */
   header.bar.titled .brand .brand-name{display:none}
-  /* Le sous-titre (« Protocole », « Édition ») passe SOUS le titre : même structure visuelle
-     que marque + sous-titre. En crise il est masqué (le bandeau d'état parle). */
+  /* Le sous-titre (« Aide cognitive », « Protocole », « Édition ») passe SOUS le titre : même
+     structure visuelle que marque + sous-titre, dans toutes les vues fiche/protocole. */
   header.bar.titled #brandSub{order:3}
   /* « Ne pas oublier » : bandeau compact SOUS le titre (les rappels critiques se voient sans défiler). */
   .forget-strip{background:var(--critical-soft);border:1px solid var(--critical-line);border-radius:var(--radius);padding:10px 13px 8px;margin-bottom:16px}
@@ -1203,7 +1205,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.0.1';
+const APP_VERSION='4.0.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -2562,12 +2564,14 @@ function render(){
   // En session active, l'en-tête porte un rappel PERMANENT mais discret (point pulsé + texte) :
   // assez visible pour ne pas oublier la session, sans recolorer tout l'en-tête ni exposer un
   // bouton « Terminer » en zone de tap fréquente (action à ne PAS rendre plus accessible en crise).
-  // Sous-titre de la marque — masqué par le CSS sur l'accueil (les onglets parlent) et en crise
-  // (le bandeau d'état parle) ; reste utile en édition/lecture de protocole.
+  // Sous-titre de la marque — masqué par le CSS sur l'accueil (les onglets parlent) ; ailleurs
+  // il nomme la NATURE de la vue sous le titre : « Aide cognitive » / « Protocole » en lecture
+  // (barres harmonisées entre les deux sections), « Édition » dans les deux éditeurs. L'ÉTAT
+  // (mode crise, session en cours) reste porté par le bandeau teal, jamais par ce sous-titre.
   {const bs=document.getElementById('brandSub');
    bs.textContent=state.view==='edit'||state.view==='protocolEdit'?'Édition'
      :state.view==='protocolRead'?'Protocole'
-     :state.view==='library'?(state.section==='protocols'?'Protocoles':'Bibliothèque'):'Mode crise';}
+     :state.view==='library'?(state.section==='protocols'?'Protocoles':'Bibliothèque'):'Aide cognitive';}
   // Bandeau d'état du MODE CRISE (C2) : étiquette persistante (en-tête sticky), état de session
   // inclus. On ne remplit QUE le libellé : le chrono #cbTimers (géré par updateRtStrip) survit.
   {const cb=document.getElementById('crisisBand');const crisis=state.view==='read'&&!!state.fiche;
@@ -5103,6 +5107,22 @@ function explainSyncError(e){const msg=String((e&&e.message)||e||'');const statu
 async function refreshAccountStatus(){
   if(!Auth.signedIn()){myAccountStatus=null;return;}
   try{myAccountStatus=await rpc('my_status');}catch(e){}}
+// Lignes distantes que le pull INCRÉMENTAL (curseur temporel) ne ramènera JAMAIS, à repêcher :
+//  - id absent en local et non supprimé : ligne devenue visible APRÈS coup — adhésion à une
+//    bibliothèque dont le contenu existait déjà (la RLS révèle d'un coup des lignes plus VIEILLES
+//    que le curseur), ou ligne poussée avec un updated_at « passé » (horloge en retard sur un
+//    autre appareil : updated_at vient du client, le serveur ne borne que le futur,
+//    cf. clamp_updated_at dans supabase/schema.sql) ;
+//  - id présent mais version distante plus récente que la locale (mêmes causes, sur une mise à
+//    jour ou une suppression passée SOUS le curseur). La sélection reste LWW : une saisie locale
+//    plus fraîche n'est jamais redemandée (donc jamais écrasée).
+// PURE (testée) : reçoit le listing léger {id,updated_at,deleted_at} et l'index local {id:entité}.
+// Les ids viennent du serveur et repartent dans un filtre `id=in.(...)` : format SAFE_ID exigé.
+function pullMissedIds(rows,byId){const out=[];
+  for(const r of rows||[]){const id=String((r&&r.id)||'');
+    if(!SAFE_ID.test(id))continue;const local=byId[id];
+    if(local?(Date.parse(r.updated_at)||0)>(local.updatedAt||0):!r.deleted_at)out.push(id);}
+  return out;}
 const Sync={
   running:false,_pt:null,_cursorKey:'ac-sync-cursor',_retryTimer:null,_retryDelay:0,lastError:null,lastErrorAt:0,
   online(){return navigator.onLine!==false;},
@@ -5176,6 +5196,22 @@ const Sync={
     // bibliothèque) — avec un objet {} ordinaire, id='__proto__' matcherait Object.prototype et
     // ferait ignorer la ligne entrante (fiche partagée invisible chez les coéquipiers).
     const localAll=await cfg.getAllLocal();const byId=Object.create(null);localAll.forEach(f=>byId[f.id]=f);
+    // Application d'UNE ligne distante (LWW, idempotente) — partagée entre le pull incrémental et
+    // le repêchage de complétude ci-dessous ; alimente les tampons puts/dels de la page en cours.
+    const applyRow=async(row,puts,dels)=>{
+      const local=byId[row.id];
+      if(row.deleted_at){if(local){dels.push(row.id);delete byId[row.id];cfg.dropMem(row.id);}
+        if(cfg.onRemoteDelete)await cfg.onRemoteDelete(row.id);
+        return;}
+      if(!local){const nf=cfg.fromRow(row);puts.push(nf);byId[row.id]=nf;if(!nf.deletedAt)cfg.addMem(nf);return;}
+      if((Date.parse(row.updated_at)||0)>(local.updatedAt||0)){
+        // La version LOCALE est archivée avant remplacement quand la table le prévoit (fiches :
+        // bouton « Versions », borné à BACKUP_MAX). Le toast « conflit », lui, reste réservé
+        // aux vraies divergences (modification locale non poussée écrasée).
+        if(cfg.backup)try{await cfg.backup(local);}catch(e){}
+        if(local.dirty)conflicts.push(local.title||local.id);
+        const nf=cfg.fromRow(row);puts.push(nf);byId[row.id]=nf;cfg.replaceMem(nf);
+      }}; // sinon local plus récent/identique -> on garde (sera poussé si dirty)
     // PAGINATION : PostgREST plafonne une réponse (1000 lignes par défaut) -> on boucle par pages
     // (limit explicite + curseur updated_at croissant) jusqu'à une page incomplète, pour qu'une très
     // grosse bibliothèque arrive ENTIÈRE dès la première synchro. Garde-fous : nombre de pages borné,
@@ -5189,23 +5225,33 @@ const Sync={
       // transaction par ligne rendait la première synchro d'une grosse bibliothèque très lente.
       const puts=[],dels=[];
       for(const row of rows){const rts=Date.parse(row.updated_at)||0;if(rts>maxTs)maxTs=rts;
-        const local=byId[row.id];
-        if(row.deleted_at){if(local){dels.push(row.id);delete byId[row.id];cfg.dropMem(row.id);}
-          if(cfg.onRemoteDelete)await cfg.onRemoteDelete(row.id);
-          continue;}
-        if(!local){const nf=cfg.fromRow(row);puts.push(nf);byId[row.id]=nf;if(!nf.deletedAt)cfg.addMem(nf);continue;}
-        if(rts>(local.updatedAt||0)){
-          // La version LOCALE est archivée avant remplacement quand la table le prévoit (fiches :
-          // bouton « Versions », borné à BACKUP_MAX). Le toast « conflit », lui, reste réservé
-          // aux vraies divergences (modification locale non poussée écrasée).
-          if(cfg.backup)try{await cfg.backup(local);}catch(e){}
-          if(local.dirty)conflicts.push(local.title||local.id);
-          const nf=cfg.fromRow(row);puts.push(nf);byId[row.id]=nf;cfg.replaceMem(nf);
-        } // sinon local plus récent/identique -> on garde (sera poussé si dirty)
-      }
+        await applyRow(row,puts,dels);}
       await Data.applyRows(cfg.table,puts,dels);
       if(rows.length<PAGE)break;
       const next=new Date(maxTs).toISOString();if(next===since)break;since=next;
+    }
+    // REPÊCHAGE de complétude : le curseur temporel suppose que toute ligne à venir portera un
+    // updated_at POSTÉRIEUR au dernier vu. Deux cas réels le contredisent (voir pullMissedIds) :
+    // contenu antérieur à mon adhésion à une bibliothèque, appareil à l'horloge en retard. Ces
+    // lignes n'arrivaient qu'en repartant de zéro (nouveau navigateur, sans curseur). On liste
+    // donc TOUT le visible en léger (id+horodatages, paginé par id — clé unique : le curseur de
+    // page avance toujours), puis on va chercher les lignes entières manquées, appliquées par la
+    // même mécanique LWW. Sans curseur, inutile : le pull ci-dessus vient de tout ramener.
+    if(cur){
+      let missed=[],after='';
+      for(let p=0;p<50;p++){
+        const rows=await rest('GET','/rest/v1/'+cfg.table+'?select=id,updated_at,deleted_at&order=id.asc'+(after?'&id=gt.'+encodeURIComponent(after):'')+'&limit='+PAGE)||[];
+        missed=missed.concat(pullMissedIds(rows,byId));
+        if(rows.length<PAGE)break;after=String(rows[rows.length-1].id);
+      }
+      total+=missed.length;
+      // Lots de 60 ids (URL <= ~4 Ko avec des ids de 64 caractères max) : requête toujours sûre.
+      for(let i=0;i<missed.length;i+=60){
+        const rows=await rest('GET','/rest/v1/'+cfg.table+'?select=*&id=in.('+missed.slice(i,i+60).join(',')+')')||[];
+        const puts=[],dels=[];
+        for(const row of rows)await applyRow(row,puts,dels);
+        await Data.applyRows(cfg.table,puts,dels);
+      }
     }
     if(maxTs)localStorage.setItem(spaceKey(cfg.cursorKey),new Date(maxTs).toISOString());
     if(total)render();
@@ -5674,7 +5720,7 @@ if(location.search.indexOf('__actest')>=0){
   window.__ac_test__={migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attStoragePath,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,
-    restErrStatus,isPersoRepairCandidate,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT};
+    restErrStatus,isPersoRepairCandidate,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT};
 }else{
   /* ===== PWA =====
      Enregistre le service worker (cache hors ligne) si disponible. Capte
