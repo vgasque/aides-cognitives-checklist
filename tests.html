@@ -226,6 +226,28 @@ function run(A){
   ok('bibliothèque (non perso) + 403 -> pas candidat (droits partagés retirés, pas une collision d\'id)', !A.isPersoRepairCandidate('REST 403 Forbidden', false));
   ok('perso + 409 -> pas candidat (autre cause)', !A.isPersoRepairCandidate('REST 409 Conflict', true));
 
+  group('pullMissedIds() — repêchage des lignes passées SOUS le curseur du pull incrémental');
+  eq('ligne distante inconnue en local -> repêchée (adhésion tardive, horloge en retard)',
+    A.pullMissedIds([{id:'a',updated_at:'2026-01-01T00:00:00Z',deleted_at:null}],{}).join(','), 'a');
+  eq('tombstone distant sans trace locale -> rien à faire',
+    A.pullMissedIds([{id:'a',updated_at:'2026-01-01T00:00:00Z',deleted_at:'2026-01-02T00:00:00Z'}],{}).length, 0);
+  eq('version distante plus récente que la locale -> repêchée',
+    A.pullMissedIds([{id:'a',updated_at:'2026-01-02T00:00:00Z',deleted_at:null}],
+      {a:{id:'a',updatedAt:Date.parse('2026-01-01T00:00:00Z')}}).join(','), 'a');
+  eq('version locale plus récente (LWW) -> conservée, rien à redemander',
+    A.pullMissedIds([{id:'a',updated_at:'2026-01-01T00:00:00Z',deleted_at:null}],
+      {a:{id:'a',updatedAt:Date.parse('2026-01-02T00:00:00Z')}}).length, 0);
+  eq('horodatages identiques -> déjà appliquée, rien à redemander',
+    A.pullMissedIds([{id:'a',updated_at:'2026-01-01T00:00:00Z',deleted_at:null}],
+      {a:{id:'a',updatedAt:Date.parse('2026-01-01T00:00:00Z')}}).length, 0);
+  eq('suppression distante plus récente qu\'une ligne locale -> repêchée (elle sera effacée)',
+    A.pullMissedIds([{id:'a',updated_at:'2026-01-02T00:00:00Z',deleted_at:'2026-01-02T00:00:00Z'}],
+      {a:{id:'a',updatedAt:Date.parse('2026-01-01T00:00:00Z')}}).join(','), 'a');
+  eq('id hostile (hors SAFE_ID) -> exclu (repart dans un filtre id=in.(...))',
+    A.pullMissedIds([{id:'a),id=neq.(b',updated_at:'2026-01-01T00:00:00Z',deleted_at:null}],{}).length, 0);
+  eq('entrées invalides tolérées', A.pullMissedIds([null,42,{}],{}).length, 0);
+  eq('listing absent -> vide', A.pullMissedIds(null,{}).length, 0);
+
   group('stripJsonFences()');
   eq('JSON nu inchangé', A.stripJsonFences('{"a":1}'), '{"a":1}');
   eq('clôtures ```json retirées', A.stripJsonFences('```json\n{"a":1}\n```'), '{"a":1}');
