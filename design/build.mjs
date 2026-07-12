@@ -8,7 +8,7 @@
  *   node design/build.mjs
  *
  * Le dossier design/ n'est PAS servi par la PWA (hors ASSETS de sw.js, hors
- * dist/) : c'est un export destiné au projet « Design System » de claude.ai
+ * de sw.js) : c'est un export destiné au projet « Design System » de claude.ai
  * (synchronisation via l'outil DesignSync de Claude Code).
  */
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';

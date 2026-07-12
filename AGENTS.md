@@ -130,8 +130,10 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
 - Toute donnée affichée passe par `esc()` (contenu potentiellement importé/partagé). C'est la
   **seule** barrière anti-XSS (la CSP monofichier impose `script-src 'unsafe-inline'`) : ne jamais
   la relâcher ; les liens/images du mini-Markdown sont en plus nettoyés AU POINT D'INSERTION
-  (`mdInline` href, `mdRender` via `safeImg`) pour ne pas dépendre d'un invariant d'ordre. Risque
-  résiduel documenté dans `docs/deploiement-et-conformite.md` (§ 1.1).
+  (`mdInline` href, `mdRender` via `safeImg`) pour ne pas dépendre d'un invariant d'ordre. La CSP
+  est durcie par hashs SHA-256 des scripts inline (`scripts/csp-hashes.mjs`, rejoué par
+  `release.sh`) : un inline injecté est bloqué sur navigateur récent. Risque résiduel documenté
+  dans `docs/deploiement-et-conformite.md` (§ 1.1).
 - Toute donnée importée/chargée passe par `migrate()` / `sanitizeCats()` (point d'entrée unique de
   compatibilité et de sécurité) ; nouveaux champs = facultatifs, avec défaut posé dans `migrate()`.
 - **Documents PDF** : le PDF vit en ArrayBuffer dans le store IndexedDB `attachments` (base v5 ; Blob historique accepté en lecture), JAMAIS en
@@ -176,7 +178,7 @@ modèle de données, règles de sécurité) : le lire en premier. Ensuite, dans 
 | Load | `chooseBackend`, `load()` (démarrage), `persist`, `softDelete` |
 | Runtime | minuteurs/compteurs/audio (`tickAll`, `beep`), sessions vives (`liveSessions`) |
 | Sessions | auto-enregistrement (`persistLive`), reprise, compte-rendu |
-| Render | `render()` → `renderLibrary` / `renderRead` / `renderEditor` (template strings + écouteurs) |
+| Render | `render()` → `applyViewChrome` (chrome d'en-tête) puis `renderFiches`/`renderProtocols` / `renderRead` / `renderEditor` (template strings + écouteurs) |
 | Flow SVG | `buildFlowSVG` : organigramme auto de la prise en charge |
 | Visionneuse PDF | `pdfLib` (chargement paresseux de `vendor/pdfjs`), `openPdfViewer` (rendu virtualisé par IntersectionObserver, zoom), fenêtre `#pdfModal` |
 | Mini-Markdown | `mdBlocks`/`mdInline`/`mdRender`/`mdStrip` : parseur maison XSS-safe (esc() d'abord) du contenu rédigé des protocoles |

@@ -1,7 +1,7 @@
 # design/ — export Design System (claude.ai/design)
 
 Dossier **hors app** : rien ici n'est servi par la PWA (pas dans `ASSETS` de `sw.js`,
-pas dans `dist/`). Il alimente le projet « Design System » de claude.ai/design
+hors app servie). Il alimente le projet « Design System » de claude.ai/design
 (projectId `ded5aff6-1b5c-4813-919d-c9774c5163d1`).
 
 ## Contenu

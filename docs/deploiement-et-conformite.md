@@ -23,12 +23,10 @@ bibliothèques d'équipe). L'usage **sans compte** (100 % local) ne nécessite r
 Durée : ~30 min. Aucune compétence serveur avancée requise.
 
 ### 1.1 Héberger les fichiers
-1. Copier tout le dépôt (au minimum : `index.html`, `sw.js`, `manifest.webmanifest`, les icônes).
-   Les fichiers de développement (`scripts/`, `tests.html`, `.github/`, `package.json`) peuvent
-   rester : ils ne sont pas servis à l'utilisateur final.
-   *Option* : `npm run build` produit dans `dist/` une copie **allégée** (~25 % plus légère à
-   charger — commentaires du code retirés, comportement strictement identique) ; déployer alors le
-   contenu de `dist/` au lieu de la racine.
+1. Copier tout le dépôt (au minimum : `index.html`, `sw.js`, `manifest.webmanifest`, les icônes,
+   `vendor/pdfjs/`). Les fichiers de développement (`scripts/`, `tests.html`, `.github/`,
+   `package.json`) peuvent rester : ils ne sont pas servis à l'utilisateur final. Le dépôt est la
+   **seule forme servie** (pas d'étape de build) : la racine se déploie telle quelle.
 2. Publier en **HTTPS**. Attention : les protections diffèrent selon l'hébergeur, car le fichier
    `_headers` fourni (CSP, HSTS, anti-iframe, `no-cache` sur `sw.js`) est une convention
    **Netlify / Cloudflare Pages** — **GitHub Pages l'ignore totalement**.
@@ -54,10 +52,14 @@ Durée : ~30 min. Aucune compétence serveur avancée requise.
 > jetons de session Supabase (accès **et** rafraîchissement) vivent en `localStorage`, une faille
 > XSS non couverte vaudrait un vol de session durable. Conséquences pratiques : (a) ne jamais
 > relâcher la discipline `esc()` / garde-fous `safe*` lors d'une évolution ; (b) préférer un
-> hébergeur qui applique `_headers` (les en-têtes HTTP durcissent le reste de la posture) ;
-> (c) une piste de durcissement documentée est de générer, à la publication, les hashs SHA-256 des
-> blocs `<script>` inline et de les injecter dans `_headers` pour retirer `'unsafe-inline'` côté
-> scripts (Netlify / Cloudflare). Deux points RLS mineurs à connaître, sans impact en l'état :
+> hébergeur qui applique `_headers` (les en-têtes HTTP durcissent le reste de la posture).
+> **Durcissement en place (v4.1.1)** : `release.sh` calcule à chaque version les hashs SHA-256 des
+> deux `<script>` inline (`scripts/csp-hashes.mjs`) et les injecte dans la CSP (`<meta>` **et**
+> `_headers`). Un hash étant présent, les navigateurs CSP niveau 2+ **ignorent `'unsafe-inline'`**
+> et n'exécutent QUE ces scripts : un `<script>` ou un handler `on*=` injecté est bloqué
+> (`'unsafe-inline'` reste comme repli pour les très vieux navigateurs — dégradation douce).
+> `style-src 'unsafe-inline'` demeure (attributs `style=` non hachables, portée moindre). Deux
+> points RLS mineurs à connaître, sans impact en l'état :
 > `is_approved()` considère un compte sans ligne `user_status` comme approuvé (choix délibéré,
 > évite une panne de synchro silencieuse), et la politique de LECTURE des pièces jointes partagées
 > (`att_lib_read`) ne réapplique pas la regex de nom stricte de l'écriture.

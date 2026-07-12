@@ -35,6 +35,11 @@ if [[ -f CHANGELOG.md ]] && ! grep -q "## \[$VER\]" CHANGELOG.md; then
   echo "Entrée CHANGELOG ajoutée pour $VER (pensez à la compléter)."
 fi
 
+# 3bis. Durcissement CSP : recalculer les hashs SHA-256 des scripts inline (APP_VERSION vit dans
+#       le script principal -> son hash change à CHAQUE version) et les réinjecter dans la <meta>
+#       CSP d'index.html + _headers. DOIT tourner APRÈS la synchro de version. Idempotent.
+node scripts/csp-hashes.mjs || { echo "Injection des hashs CSP échouée — publication interrompue."; exit 1; }
+
 # 4. Vérification de syntaxe (sans dépendance) : garde-fou OBLIGATOIRE.
 node scripts/check-syntax.mjs || { echo "Syntaxe invalide — publication interrompue."; exit 1; }
 
