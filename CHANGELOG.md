@@ -20,6 +20,13 @@ Aucun changement de comportement visible : mêmes écrans, mêmes données.
 - **Manifest** : `orientation` portrait, `categories`, `dir` — fiche d'installation plus complète.
 
 ### Modifié
+- **Recherche transverse à toutes les bibliothèques** : dès qu'on tape une recherche, elle porte
+  sur la bibliothèque perso ET toutes les bibliothèques partagées accessibles (plus seulement
+  celle affichée) ; chaque résultat porte une pastille indiquant sa bibliothèque (si l'on a des
+  bibliothèques partagées). Les brouillons restent masqués là où l'on n'a pas le droit d'éditer.
+  Sans recherche, la navigation par bibliothèque/catégorie est inchangée.
+- **Correctifs mobile** : la loupe de la recherche ne chevauche plus le placeholder ; le crayon ✎
+  d'édition de bibliothèque ne déborde plus de la chip et réagit au tap.
 - **Facteur commun fiche/protocole** : sanitisation des entités (`sanitizeEntityCommon`), en-tête
   et sortie des éditeurs mutualisés — une évolution ne peut plus diverger d'un seul côté.
 - `render()` allégé (chrome d'en-tête extrait dans `applyViewChrome`) ; `renderLibrary` renommée

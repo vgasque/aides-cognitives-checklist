@@ -232,7 +232,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-GTgJUkMvMf0HGERwl6hhK3Q+f8ALC6T/BtGIvahGweM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-lRvvM8K3Nay5tFBtr3X8qeE3tkl6D6Zk6Z8kWCBSqwk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -2425,6 +2425,12 @@ function seedsHidden(){try{return localStorage.getItem(spaceKey('ac-seeds-hidden
 function newCatId(name,scope){if(scope)return uid('c');let id=detCatId(name),n=2;while(categories.some(c=>c.id===id))id=detCatId(name)+'-'+(n++);return id;}
 const catOf=f=>categories.find(c=>c.id===f.category)||null;
 const catName=f=>{const c=catOf(f);return c?c.name:'';};
+// Pastille « d'où vient ce résultat » : la recherche portant sur TOUTES les bibliothèques, on
+// indique la bibliothèque de chaque carte pour ne pas confondre deux fiches homonymes. Rien hors
+// recherche (le périmètre courant suffit) ni pour un compte sans bibliothèque partagée.
+function searchLibTag(x){if(!txNorm(state.q)||!myLibraries.length)return '';
+  const shared=!!x.libraryId;const name=shared?(libName(x.libraryId)||'Partagée'):'Perso';
+  return `<span class="tag libtag" title="Bibliothèque : ${esc(name)}">${uiIcon(shared?'book':'user',11)}${esc(name)}</span>`;}
 function catTag(f,neutral){const c=catOf(f);if(!c)return '';const col=safeColor(c.color);
   // neutral (cartes d'accueil) : le LISERÉ de carte porte déjà la couleur — la pilule reste
   // grise pour ne pas multiplier les pastilles colorées (audit v4.5, demande utilisateur).
@@ -3415,11 +3421,11 @@ function homeSideHtml(){
 // sans le filtre de catégorie (remis à zéro à la bascule). `other` = section cible.
 function crossHitsHtml(q,other){
   if(!q)return '';
-  const canEdit=canEditScope(state.scope);
-  const inScope=x=>(state.scope?x.libraryId===state.scope:!x.libraryId)&&(canEdit||x.status!=='draft');
+  // Recherche transverse aux sections ET à toutes les bibliothèques (comme la liste principale).
+  const vis=x=>canEditFiche(x)||x.status!=='draft';
   const n=other==='protocols'
-    ?protocols.filter(p=>inScope(p)&&protocolHaystack(p).includes(q)).length
-    :fiches.filter(f=>inScope(f)&&ficheHaystack(f).includes(q)).length;
+    ?protocols.filter(p=>vis(p)&&protocolHaystack(p).includes(q)).length
+    :fiches.filter(f=>vis(f)&&ficheHaystack(f).includes(q)).length;
   if(!n)return '';
   const lbl=other==='protocols'?('protocole'+(n>1?'s':'')):('aide'+(n>1?'s':'')+' cognitive'+(n>1?'s':''));
   return `<button class="cross-hits" data-crosssec="${other}">${n} ${lbl} correspond${n>1?'ent':''} aussi à cette recherche${uiIcon('chev',15,{sw:2.2,cls:''})}</button>`;}
@@ -3502,10 +3508,13 @@ function renderFiches(){
   renderHomeList({rerender:renderFiches,crossKind:'protocols',create:newFiche,open:openRead,
     // « Créer » tonal dès qu'une session en cours affiche son « Reprendre » rempli (cf. .btn-new.tonal).
     newTonal:()=>Object.values(liveSessions).some(R=>R.started&&R.fiche),
-    listTitle:()=>state.scope?esc((myLibraries.find(l=>l.id===state.scope)||{}).name||'Bibliothèque partagée'):'Bibliothèque perso',
+    listTitle:()=>txNorm(state.q)?'Résultats — toutes les bibliothèques':(state.scope?esc((myLibraries.find(l=>l.id===state.scope)||{}).name||'Bibliothèque partagée'):'Bibliothèque perso'),
     countLbl:n=>'aide'+(n>1?'s':'')+' cognitive'+(n>1?'s':''),
     // Tri : épinglées d'abord (préférence locale), puis ordre habituel. Recherche : plein texte normalisé.
-    list:(q,canEdit)=>fiches.slice().sort((a,b)=>((isPinned(b.id)?1:0)-(isPinned(a.id)?1:0))||byOrder(a,b)).filter(f=>(state.scope?f.libraryId===state.scope:!f.libraryId)&&(!state.cat||f.category===state.cat)&&(canEdit||f.status!=='draft')&&(!q||ficheHaystack(f).includes(q))),
+    // Recherche (q non vide) : porte sur TOUTES les bibliothèques accessibles (le tableau `fiches`
+    // ne contient déjà que du contenu autorisé) ; brouillon visible si on peut éditer SA biblio
+    // (canEditFiche, par item). Sans recherche : périmètre + catégorie courants, comme avant.
+    list:(q,canEdit)=>fiches.slice().sort((a,b)=>((isPinned(b.id)?1:0)-(isPinned(a.id)?1:0))||byOrder(a,b)).filter(f=>q?(ficheHaystack(f).includes(q)&&(canEditFiche(f)||f.status!=='draft')):((state.scope?f.libraryId===state.scope:!f.libraryId)&&(!state.cat||f.category===state.cat)&&(canEdit||f.status!=='draft'))),
     // SESSIONS EN COURS (SPEC §5) : une CARTE par session (surface, liseré primaire 3px), point
     // vert + kicker + titre, CHRONO mono vivant (mis à jour par tickAll), « Reprendre » plein,
     // « Terminer » en texte rouge (destructif : jamais plein, jamais premier).
@@ -3517,7 +3526,7 @@ function renderFiches(){
     card:f=>{const sc=sessions.filter(s=>s.ficheId===f.id&&!s.live).length;const isLive=!!liveSessions[f.id];
       const cc=catOf(f);return `
       <div class="card${isLive?' has-live':''}${cc?' striped':''}"${cc?` style="--stripe:${safeColor(cc.color)}"`:''}><div class="card-body"><h2><button class="card-open" data-open="${f.id}">${esc(f.title)||'Sans titre'}</button></h2>
-        <div class="card-meta">${isLive?'<span class="tag live">● En cours</span>':''}${statusChip(f.status,true)}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo title="Reste à compléter : ${esc(sp.join(' · '))}">△ À compléter</span>`:'';})()}${catTag(f,true)}${sc?`<span class="tag sess" title="Sessions enregistrées dans l'historique">${sc} sauvegardée${sc>1?'s':''}</span>`:''}${f.code?`<span class="card-date" style="font-family:var(--mono)">${esc(f.code)}</span>`:''}<span class="card-date${staleDate(f.validation)?' stale':''}">${esc(fmtDate(f.validation))}${staleDate(f.validation)?' · à revoir':''}</span></div></div>
+        <div class="card-meta">${searchLibTag(f)}${isLive?'<span class="tag live">● En cours</span>':''}${statusChip(f.status,true)}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo title="Reste à compléter : ${esc(sp.join(' · '))}">△ À compléter</span>`:'';})()}${catTag(f,true)}${sc?`<span class="tag sess" title="Sessions enregistrées dans l'historique">${sc} sauvegardée${sc>1?'s':''}</span>`:''}${f.code?`<span class="card-date" style="font-family:var(--mono)">${esc(f.code)}</span>`:''}<span class="card-date${staleDate(f.validation)?' stale':''}">${esc(fmtDate(f.validation))}${staleDate(f.validation)?' · à revoir':''}</span></div></div>
         <button class="pinbtn${isPinned(f.id)?' on':''}" data-pin="${f.id}" aria-label="${isPinned(f.id)?'Désépingler':'Épingler en haut de la liste'}" title="${isPinned(f.id)?'Désépingler':'Épingler en haut de la liste'}">${pinIcon(isPinned(f.id))}</button>
         ${uiIcon('chev',18,{sw:2.2,cls:'chev'})}</div>`;},
     remainLbl:n=>'restante'+(n>1?'s':''),
@@ -3540,14 +3549,14 @@ function protocolHaystack(p){let h=_protoHay.get(p);
   return h+' '+txNorm(catName(p));}
 function renderProtocols(){
   renderHomeList({rerender:renderProtocols,crossKind:'fiches',create:newProtocol,open:openProtocolRead,
-    listTitle:()=>'Protocoles',
+    listTitle:()=>txNorm(state.q)?'Résultats — toutes les bibliothèques':'Protocoles',
     countLbl:n=>'document'+(n>1?'s':''),
     // MÊME présentation que les fiches (harmonisation V5) : épinglés d'abord, liseré, statut,
     // épingle, chevron — un seul langage de carte sur tout l'accueil.
-    list:(q,canEdit)=>protocols.slice().sort((a,b)=>((isPinned(b.id)?1:0)-(isPinned(a.id)?1:0))||byOrder(a,b)).filter(p=>(state.scope?p.libraryId===state.scope:!p.libraryId)&&(!state.cat||p.category===state.cat)&&(canEdit||p.status!=='draft')&&(!q||protocolHaystack(p).includes(q))),
+    list:(q,canEdit)=>protocols.slice().sort((a,b)=>((isPinned(b.id)?1:0)-(isPinned(a.id)?1:0))||byOrder(a,b)).filter(p=>q?(protocolHaystack(p).includes(q)&&(canEditFiche(p)||p.status!=='draft')):((state.scope?p.libraryId===state.scope:!p.libraryId)&&(!state.cat||p.category===state.cat)&&(canEdit||p.status!=='draft'))),
     card:p=>{const nDoc=(p.attachments||[]).length;const cc=catOf(p);return `
       <div class="card${cc?' striped':''}"${cc?` style="--stripe:${safeColor(cc.color)}"`:''}><div class="card-body"><h2><button class="card-open" data-open="${p.id}">${esc(p.title)||'Sans titre'}</button></h2>
-        <div class="card-meta">${statusChip(p.status,false)}${catTag(p,true)}${nDoc?`<span class="tag sess" title="Documents PDF joints">${nDoc} PDF</span>`:''}${p.body&&p.body.trim()?'<span class="tag sess" title="Contenu rédigé dans l’app">Rédigé</span>':''}${p.code?`<span class="card-date" style="font-family:var(--mono)">${esc(p.code)}</span>`:''}<span class="card-date${staleDate(p.validation)?' stale':''}">${esc(fmtDate(p.validation))}${staleDate(p.validation)?' · à revoir':''}</span></div></div>
+        <div class="card-meta">${searchLibTag(p)}${statusChip(p.status,false)}${catTag(p,true)}${nDoc?`<span class="tag sess" title="Documents PDF joints">${nDoc} PDF</span>`:''}${p.body&&p.body.trim()?'<span class="tag sess" title="Contenu rédigé dans l’app">Rédigé</span>':''}${p.code?`<span class="card-date" style="font-family:var(--mono)">${esc(p.code)}</span>`:''}<span class="card-date${staleDate(p.validation)?' stale':''}">${esc(fmtDate(p.validation))}${staleDate(p.validation)?' · à revoir':''}</span></div></div>
         <button class="pinbtn${isPinned(p.id)?' on':''}" data-pin="${p.id}" aria-label="${isPinned(p.id)?'Désépingler':'Épingler en haut de la liste'}" title="${isPinned(p.id)?'Désépingler':'Épingler en haut de la liste'}">${pinIcon(isPinned(p.id))}</button>
         ${uiIcon('chev',18,{sw:2.2,cls:'chev'})}</div>`;},
     remainLbl:n=>'restant'+(n>1?'s':''),
