@@ -124,7 +124,9 @@
     timers:   [{ id, label, type:'stopwatch'|'interval', seconds, autoloop }],
     counters: [{ id, label, step, start, timerId }],   // timerId (v4.5, facultatif) : « ＋ » relance ce minuteur
     start:    id du bloc de départ,
-    blocks:   [ bloc 'steps'    { id, type, title, steps[], image, next(idBloc|null),
+    blocks:   [ bloc 'steps'    { id, type, title, steps[], image, imageW, imageH (dimensions
+                                  intrinsèques de l'image, 0 si inconnue — réservent l'espace
+                                  en lecture, anti-CLS), next(idBloc|null),
                                   nextLbl (v4.5, facultatif : destination annoncée par le
                                   bouton Continuer — repli = titre du bloc suivant) }
               | bloc 'decision' { id, type, title, question, image,
@@ -885,7 +887,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .flow-ctrl .btn.sm,.flow-ctrl .btn{min-height:44px}
   /* Fin de branche/d'algorithme : registre CONFIRMATION (vert, taxonomie V5). */
   .mini.bld{font-weight:800;font-size:14px}
-  .node-img{width:100%;border-radius:10px;border:1px solid var(--line);margin-bottom:14px;cursor:zoom-in;display:block}
+  .node-img{width:100%;height:auto;border-radius:10px;border:1px solid var(--line);margin-bottom:14px;cursor:zoom-in;display:block}
   .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
   .gthumb img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px;border:1px solid var(--line);cursor:zoom-in;display:block}
   .gcap{font-size:11.5px;color:var(--ink-soft);margin-top:4px;line-height:1.3}
@@ -1492,7 +1494,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .md-code code{font-family:var(--mono);font-size:12.5px;line-height:1.5;white-space:pre}
   .md-hr{border:0;border-top:1px solid var(--line);margin:14px 0}
   .md-fig{margin:12px 0}
-  .md-fig img{max-width:100%;border-radius:var(--radius-sm);border:1px solid var(--line);cursor:zoom-in}
+  .md-fig img{max-width:100%;height:auto;border-radius:var(--radius-sm);border:1px solid var(--line);cursor:zoom-in}
   .md-fig figcaption{font-size:12px;color:var(--ink-soft);margin-top:4px}
   .md-body a,.md-preview a{color:var(--primary);text-decoration:underline}
   .md-toolbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
@@ -2253,7 +2255,8 @@ function mdRender(src,ctx){ctx=ctx||{};
       // Défense en profondeur : data-URL revalidée ICI (safeImg) — mdRender reste sûr même si
       // un futur appelant lui passait des images non passées par migrate/migrateProtocol.
       const data=safeImg(im.data);if(!data)return '';
-      return '<figure class="md-fig"><img src="'+data+'" data-full="'+data+'" data-cap="'+esc(cap)+'" alt="'+esc(cap)+'" loading="lazy" decoding="async">'+(cap?'<figcaption>'+esc(cap)+'</figcaption>':'')+'</figure>';}
+      const dim=(im.w&&im.h)?' width="'+im.w+'" height="'+im.h+'"':'';
+      return '<figure class="md-fig"><img src="'+data+'" data-full="'+data+'"'+dim+' data-cap="'+esc(cap)+'" alt="'+esc(cap)+'" loading="lazy" decoding="async">'+(cap?'<figcaption>'+esc(cap)+'</figcaption>':'')+'</figure>';}
     return '<p class="md-p">'+b.lines.map(mdInline).join('<br>')+'</p>';}).join('');}
 // Texte brut pour la recherche plein texte (retire le balisage, garde légendes et libellés de liens).
 function mdStrip(src){return sstr(src,MD_MAX_CHARS).split('\n').map(l=>l
@@ -2503,6 +2506,8 @@ function completionSpots(f){if(!f||typeof f!=='object')return [];const spots=[];
 // documents PDF (métadonnées seules, entrées invalides rejetées) et la synchro (updatedAt
 // last-write-wins, tombstone deletedAt, ownerId/libraryId ; `dirty` purement local, jamais
 // conservé d'un import).
+// Dimension d'image bornée (0 = inconnue, ex. import ancien -> pas de réservation d'espace).
+const _dim=v=>Math.max(0,Math.min(20000,Math.round(Number(v))||0));
 function sanitizeEntityCommon(x,idPrefix,imgMax){
   x.id=safeId(x.id,idPrefix);
   x.title=sstr(x.title,300);
@@ -2510,7 +2515,7 @@ function sanitizeEntityCommon(x,idPrefix,imgMax){
   x.category=safeCatRef(x.category);
   if(typeof x.order!=='number'||!isFinite(x.order))x.order=Date.now();
   let _imgBudget=24000000;
-  x.images=(Array.isArray(x.images)?x.images:[]).slice(0,imgMax).map(im=>({id:safeId(im&&im.id,'i'),data:safeImg(im&&im.data),caption:sstr(im&&im.caption,300)})).filter(im=>im.data&&(_imgBudget-=im.data.length)>=0);
+  x.images=(Array.isArray(x.images)?x.images:[]).slice(0,imgMax).map(im=>({id:safeId(im&&im.id,'i'),data:safeImg(im&&im.data),w:_dim(im&&im.w),h:_dim(im&&im.h),caption:sstr(im&&im.caption,300)})).filter(im=>im.data&&(_imgBudget-=im.data.length)>=0);
   x.attachments=(Array.isArray(x.attachments)?x.attachments:[]).slice(0,MAX_ATT_PER_ENTITY).map(safeAttachment).filter(Boolean);
   x.status=(x.status==='draft')?'draft':(x.status==='review'?'review':'');
   x.code=sstr(x.code,40);
@@ -2532,7 +2537,7 @@ function migrate(f){if(!f||typeof f!=='object')f={};
   const idMap=Object.create(null),used=Object.create(null);
   f.blocks.forEach(b=>{let nid=safeId(b.id,'b');while(used[nid]){nid=uid('b');}used[nid]=1;idMap[String(b.id==null?'':b.id)]=nid;b.id=nid;});
   const mapId=x=>{const v=idMap[String(x==null?'':x)];return v===undefined?null:v;};
-  f.blocks=f.blocks.map(b=>{b.title=sstr(b.title,300);b.image=safeImg(b.image);
+  f.blocks=f.blocks.map(b=>{b.title=sstr(b.title,300);b.image=safeImg(b.image);b.imageW=_dim(b.imageW);b.imageH=_dim(b.imageH);
     if(b.type==='decision'){b.question=sstr(b.question,1000);b.options=(Array.isArray(b.options)?b.options:[]).slice(0,40).map(o=>({label:sstr(o&&o.label,300),target:mapId(o&&o.target)}));delete b.steps;delete b.next;}
     else{b.type='steps';b.steps=sarr(b.steps,500);b.next=mapId(b.next);b.nextLbl=sstr(b.nextLbl,120);delete b.options;delete b.question;}
     return b;});
@@ -3650,9 +3655,9 @@ function renderProtocolEdit(){
     else if(k==='link'){const v=ta.value,a=ta.selectionStart||0,e2=ta.selectionEnd||0;const sel=v.slice(a,e2)||'texte';ta.value=v.slice(0,a)+'['+sel+'](https://)'+v.slice(e2);ta.focus();const c=a+sel.length+3;ta.setSelectionRange(c,c+8);ta.dispatchEvent(new Event('input',{bubbles:false}));}
     else if(k==='img')imgInput.click();});
   imgInput.onchange=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;
-    const data=await downscale(file);if(!data){toast('⚠ Image illisible.');return;}
+    const r=await downscale(file);if(!r){toast('⚠ Image illisible.');return;}
     if((p.images||[]).length>=60){toast('⚠ 60 images maximum par protocole.');return;}
-    const id=uid('i');p.images=p.images||[];p.images.push({id,data,caption:''});
+    const id=uid('i');p.images=p.images||[];p.images.push({id,data:r.data,w:r.w,h:r.h,caption:''});
     mdInsertAt(ta,(ta.value&&!/\n$/.test(ta.value.slice(0,ta.selectionStart||0))?'\n':'')+'![](img:'+id+')\n');};
   document.getElementById('hdrSave').onclick=saveProtocolDraft;
   {const del=document.getElementById('delBtn');if(del)del.onclick=deleteProtocolDraft;}
@@ -4299,7 +4304,7 @@ function renderRead(){
     const resetBtn=flow?'<button class="btn sm btn-hold" id="navReset" title="Maintenir pour recommencer (repart du début — ne touche ni au chrono ni aux minuteurs)"><span class="tmr-lab">'+uiIcon('undo',13)+' Recommencer</span><span class="tmr-hint">maintenir</span></button>':'';
     navRowH=(flow||npos>0)?`<div class="flow-nav">${backBtn}${resetBtn}</div>`:'';
     const histBtn=!atTip?'<button class="btn primary sm" id="navFwd">Continuer →</button><button class="btn sm" id="navResume">↺ Repartir d’ici (efface la suite)</button>':'';
-    const imgH=blk.image?`<img class="node-img" src="${blk.image}" data-full="${blk.image}" alt="">`:'';
+    const imgH=blk.image?`<img class="node-img" src="${blk.image}" data-full="${blk.image}"${blk.imageW&&blk.imageH?` width="${blk.imageW}" height="${blk.imageH}"`:''} alt="">`:'';
     if(blk.type==='decision'){const taken=state.nav[npos+1];
       const opts=(blk.options||[]).map((o,i)=>{const sel=!atTip&&o.target&&o.target===taken;const arr=sel?'<span class="arr">✓</span>':'<span class="arr">'+uiIcon('chev',18,{sw:2.4,cls:''})+'</span>';return `<button class="opt${sel?' taken':''}" ${atTip?`data-goto="${o.target||''}"`:'disabled'}><span class="ftxt">${fmt(o.label)||'Option '+(i+1)}</span>${arr}</button>`;}).join('');
       navHtml=`<div class="nav-wrap dec">${crumbsH?'':''}<div class="node-title">Décision · ${esc(blk.title)||'Réévaluation'}${passTag}</div>${imgH}<div class="question">${fmt(blk.question)||'…'}</div><div class="options">${opts}</div>${histBtn?`<div class="flow-ctrl">${histBtn}</div>`:''}</div>`;}
@@ -4322,7 +4327,7 @@ function renderRead(){
         :(atTip?`<button class="btn cont ${allDone?'okay':'idle'}" id="navNext" data-contlbl="${esc(goLbl)}"${allDone?'':' aria-disabled="true"'}>${esc(contLbl)}</button>`:histBtn);
       blockDone=done;blockTot=steps.length;
       navHtml=`<div class="nav-wrap"><div class="node-title">Bloc · ${esc(blk.title)||'Étapes'}${passTag} — <span id="ntCount">${done}/${steps.length}</span> coché</div>${imgH}<ol class="steps">${steps.map((s,i)=>{const k=curSeq+':'+blk.id+':'+i;return `<li data-ck="${k}" class="${stepIsCrit(s)?'crit ':(stepIsVigil(s)?'vigil ':'')}${state.checked[k]?'done':''}" role="checkbox" aria-checked="${state.checked[k]?'true':'false'}" tabindex="0"><span class="box">${state.checked[k]?uiIcon('check',19,{sw:3,cls:''}):''}</span><span class="txt">${fmt(stepText(s))}</span></li>`;}).join('')}</ol><div class="flow-ctrl">${fwdc}</div></div>`;}}
-  const gallery=(f.images||[]).length?`<section class="block"><div class="block-h h-img">${headerIcon('h-img')}Schémas & captures</div><div class="gallery">${f.images.map(im=>`<div class="gthumb"><img src="${im.data}" data-full="${im.data}" data-cap="${esc(im.caption||'')}" alt="${esc(im.caption||'')}" loading="lazy" decoding="async">${im.caption?`<div class="gcap">${esc(im.caption)}</div>`:''}</div>`).join('')}</div></section>`:'';
+  const gallery=(f.images||[]).length?`<section class="block"><div class="block-h h-img">${headerIcon('h-img')}Schémas & captures</div><div class="gallery">${f.images.map(im=>`<div class="gthumb"><img src="${im.data}" data-full="${im.data}" data-cap="${esc(im.caption||'')}" alt="${esc(im.caption||'')}"${im.w&&im.h?` width="${im.w}" height="${im.h}"`:''} loading="lazy" decoding="async">${im.caption?`<div class="gcap">${esc(im.caption)}</div>`:''}</div>`).join('')}</div></section>`:'';
   // Documents PDF joints : liste de boutons (≥44 px, utilisables en crise) -> visionneuse intégrée.
   const docs=attListHtml(f);
   const refs=clean(f.references);
@@ -4763,7 +4768,7 @@ function bindEditorEvents(f){
     const bd2=card.querySelector('[data-bimgdel]');if(bd2)bd2.onclick=()=>{b.image=null;renderEditor();};
     card.querySelectorAll('[data-bmv]').forEach(btn=>btn.onclick=()=>{moveItem(f.blocks,f.blocks.indexOf(b),btn.dataset.bmv==='up'?-1:1);renderEditor();});
     const bd=card.querySelector('[data-bdel]');if(bd)bd.onclick=()=>{f.blocks=f.blocks.filter(x=>x.id!==bid);f.blocks.forEach(x=>{if(x.next===bid)x.next=null;if(x.options)x.options.forEach(o=>{if(o.target===bid)o.target='';});});if(f.start===bid)f.start=f.blocks[0]?f.blocks[0].id:null;if(!f.blocks.length){const nb={id:uid('b'),type:'steps',title:'Prise en charge',steps:[''],image:null,next:null};f.blocks.push(nb);f.start=nb.id;}renderEditor();};});
-  imgInput.onchange=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;const data=await downscale(file);if(!data){toast('⚠ Image illisible.');return;}if(imgMode.kind==='gallery')f.images.push({id:uid('i'),data,caption:''});else{const b=f.blocks.find(x=>x.id===imgMode.bid);if(b)b.image=data;}renderEditor();};
+  imgInput.onchange=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;const r=await downscale(file);if(!r){toast('⚠ Image illisible.');return;}if(imgMode.kind==='gallery')f.images.push({id:uid('i'),data:r.data,w:r.w,h:r.h,caption:''});else{const b=f.blocks.find(x=>x.id===imgMode.bid);if(b){b.image=r.data;b.imageW=r.w;b.imageH=r.h;}}renderEditor();};
   bindAttEditor(f,renderEditor);   // documents PDF (composant partagé avec l'éditeur de protocole)
   document.getElementById('hdrSave').onclick=saveDraft;const del=document.getElementById('delBtn');if(del)del.onclick=deleteDraft;
   // Menu ⋯ d'éditeur (SPEC §4, sans « Modifier ») : agit sur le BROUILLON tel qu'affiché.
@@ -4813,7 +4818,10 @@ main.addEventListener('keydown',e=>{
 function downscale(file,maxDim=1180,quality=0.78){return new Promise(res=>{const img=new Image();const url=URL.createObjectURL(file);img.onload=()=>{let w=img.width,h=img.height;const sc=Math.min(1,maxDim/Math.max(w,h));const cw=Math.round(w*sc),ch=Math.round(h*sc);const c=document.createElement('canvas');c.width=cw;c.height=ch;c.getContext('2d').drawImage(img,0,0,cw,ch);URL.revokeObjectURL(url);
     // WebP (~30 % plus léger que JPEG à qualité égale) quand le navigateur sait l'encoder ;
     // Safari renvoie un PNG dans ce cas -> repli JPEG (préfixe vérifié, pas de demi-mesure).
-    try{let out=c.toDataURL('image/webp',quality);if(out.indexOf('data:image/webp')!==0)out=c.toDataURL('image/jpeg',quality);res(out);}catch(e){try{res(c.toDataURL('image/jpeg',quality));}catch(_){res(null);}}};img.onerror=()=>{URL.revokeObjectURL(url);res(null);};img.src=url;});}
+    // On renvoie AUSSI les dimensions du canvas (cw×ch) : stockées avec l'image, elles permettent
+    // de réserver l'espace au bon ratio en lecture (anti-CLS) sans jamais déformer un schéma.
+    const done=d=>res(d?{data:d,w:cw,h:ch}:null);
+    try{let out=c.toDataURL('image/webp',quality);if(out.indexOf('data:image/webp')!==0)out=c.toDataURL('image/jpeg',quality);done(out);}catch(e){try{done(c.toDataURL('image/jpeg',quality));}catch(_){done(null);}}};img.onerror=()=>{URL.revokeObjectURL(url);res(null);};img.src=url;});}
 async function saveDraft(){const d=state.draft;d.title=(d.title||'').trim();
   draftReadStatusFields(d,'f');
   ['confirmation','verify','notForget','differentials','references','posology'].forEach(k=>d[k]=clean(d[k]));
