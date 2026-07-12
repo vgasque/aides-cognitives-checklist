@@ -28,21 +28,25 @@ dans le même dossier.
 - L'éditeur d'une fiche permet de définir des **chronomètres**, des **minuteurs à cycle**
   programmables (ex. 2 min « analyse du rythme ») qui bouclent, comptent les cycles et alertent
   (son + vibration + flash), et des **compteurs** (ex. nombre de doses).
-- En mode crise, ces outils apparaissent dans un bandeau en haut de la fiche, avec un
-  **journal d'horodatage** des actions (libellés renommables, même a posteriori).
+- En mode crise, ces outils vivent dans un **rail à droite** de la checklist (écrans larges)
+  ou un panneau repliable au-dessus (écrans étroits), avec un **journal d'horodatage** des
+  actions (libellés renommables, même a posteriori). On peut aussi lancer un **minuteur
+  ponctuel** (« ＋ Minuteur ») sans modifier la fiche.
 - La **session** (étapes cochées, parcours, compteurs, temps/cycles, horodatages) s'enregistre
   automatiquement, en local, par appareil ; on peut la reprendre, la terminer, en tirer un
   **compte-rendu** imprimable.
 
 ## Créer une fiche avec une IA
-Le bouton « ✨ Créer via IA » (à la création d'une fiche) affiche un prompt type à copier dans une
-IA (ChatGPT, Claude…) en y joignant un PDF, une image ou une recommandation. L'IA renvoie un
-fichier JSON à importer (bouton « Importer »). Relisez toujours la fiche générée avant usage.
+Le dialogue « Créer » propose trois méthodes : rédiger soi-même, **« Avec l'IA »** (un prompt
+type à copier dans une IA — ChatGPT, Claude… — en y joignant un PDF, une image ou une
+recommandation ; l'IA renvoie un fichier JSON), ou **« Importer un fichier »** (.json). Toute
+fiche importée par ce dialogue arrive en statut **Brouillon** : relisez-la toujours avant usage.
 
 ## Fiches d'exemple (`exemples/`)
 Deux fiches sont créées automatiquement à la première ouverture (« Anaphylaxie (choc
 anaphylactique) », « Arrêt cardiaque »). Le dossier `exemples/` en fournit deux autres à importer
-(bouton « Importer » ; l'import d'une seule fiche fusionne, ne remplace jamais la bibliothèque) :
+(dialogue « Créer » → « Importer un fichier » ; l'import d'une seule fiche fusionne, ne remplace
+jamais la bibliothèque) :
 - `accouchement-inopine-prehospitalier.json` — accouchement inopiné en pré-hospitalier (SMUR) ;
 - `etat-de-mal-epileptique.json` — état de mal épileptique de l'adulte (urgences).
 
@@ -59,8 +63,10 @@ l'installation et le cache automatique demandent l'https.
 
 ## Données & synchronisation
 Par défaut, tout est stocké **localement, par appareil** : l'application fonctionne entièrement
-hors-ligne et **sans compte**. Pour transférer sans cloud : Exporter / Importer (JSON) — toute la
-bibliothèque ou une seule fiche. (Les sessions ne sont pas incluses dans l'export.)
+hors-ligne et **sans compte**. Pour transférer sans cloud : « Exporter mes données »
+(fenêtre Compte) puis dialogue « Créer » → « Importer un fichier » sur l'autre appareil — toute la
+bibliothèque ou une seule fiche (menu ⋯ → Export .json). (Les sessions ne sont pas incluses dans
+l'export.)
 
 **Synchronisation multi-appareils (optionnelle).** En vous connectant (bouton **Compte**), votre
 bibliothèque personnelle devient accessible sur tous vos appareils, avec des **bibliothèques
@@ -84,8 +90,6 @@ inaudible : le flash d'écran sert d'alerte de secours.
 - **Tests** : `npm test` (Playwright headless) ou ouvrir `tests.html` **servi en http**
   (`python3 -m http.server` puis `http://localhost:8000/tests.html`). `npm run check` vérifie la
   syntaxe. L'intégration continue rejoue le tout à chaque push (`.github/workflows/ci.yml`).
-- **Build optionnel** : `npm run build` produit dans `dist/` une copie déployable allégée (~25 %,
-  commentaires du code retirés, comportement identique). Le dépôt reste la source servie par défaut.
 
 ## Sécurité & confidentialité
 - **Aucune dépendance externe** : un seul fichier HTML en JavaScript « vanille », sans CDN ni
@@ -117,5 +121,5 @@ inaudible : le flash d'écran sert d'alerte de secours.
   reste récupérable (« Versions »).
 - **Grandes bibliothèques** : affichage par pages (« Afficher plus ») ; la recherche reste
   instantanée.
-- **Version** : le numéro en pied de page (`APP_VERSION`) et le cache de `sw.js` sont tenus
-  synchronisés par `release.sh` — ne pas les modifier à la main.
+- **Version** : le numéro affiché en bas de la barre latérale de l'accueil (`APP_VERSION`) et le
+  cache de `sw.js` sont tenus synchronisés par `release.sh` — ne pas les modifier à la main.

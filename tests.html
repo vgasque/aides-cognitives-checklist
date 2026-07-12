@@ -110,6 +110,32 @@ function run(A){
   ok('titre conservé comme chaîne (échappé à l’affichage)', typeof m.title==='string');
   ok('structure blocs préservée', Array.isArray(m.blocks)&&m.blocks.length>=1);
 
+  group('statut 3 états / code / étapes critiques (V5)');
+  eq('bloc étapes : nextLbl conservé et borné', A.migrate({blocks:[{id:'b1',type:'steps',steps:['s'],nextLbl:'réévaluation à 5 min'}]}).blocks[0].nextLbl, 'réévaluation à 5 min');
+  eq('compteur lié : timerId sûr conservé', A.migrate({counters:[{id:'n1',label:'Adré',timerId:'t1'}]}).counters[0].timerId, 't1');
+  eq('compteur lié : timerId hostile vidé', A.migrate({counters:[{id:'n1',label:'Adré',timerId:'__proto__'}]}).counters[0].timerId, '');
+  eq('statut review conservé', A.migrate({status:'review'}).status, 'review');
+  eq('statut inconnu → validée (défaut historique)', A.migrate({status:'weird'}).status, '');
+  eq('statut draft conservé', A.migrate({status:'draft'}).status, 'draft');
+  eq('code borné et conservé', A.migrate({code:'URG-ANA-01'}).code, 'URG-ANA-01');
+  eq('code absent → vide', A.migrate({}).code, '');
+  eq('protocole : statut review conservé', A.migrateProtocol({status:'review'}).status, 'review');
+  eq('protocole : code conservé', A.migrateProtocol({code:'PRO-ISR-01'}).code, 'PRO-ISR-01');
+  ok('protocole : fiches liées filtrées (ids sûrs)', A.migrateProtocol({related:['ok-1','__proto__',42]}).related.join(',')==='ok-1');
+  ok('étape « ⚠ » critique', A.stepIsCrit('⚠ Adrénaline IM 0,5 mg'));
+  ok('étape « ! » critique', A.stepIsCrit('!Adrénaline IM'));
+  ok('étape ordinaire non critique', !A.stepIsCrit('Oxygène 15 L/min'));
+  ok('⚠ au milieu ≠ critique', !A.stepIsCrit('Dose max ⚠ 0,5 mg'));
+  eq('stepText retire le marqueur', A.stepText('⚠ Adrénaline IM'), 'Adrénaline IM');
+  eq('stepText inchangé sans marqueur', A.stepText('Oxygène'), 'Oxygène');
+  ok('étape « △ » vigilance', A.stepIsVigil('△ Réévaluer PA à 5 min'));
+  ok('vigilance ≠ critique', !A.stepIsCrit('△ Réévaluer')&&!A.stepIsVigil('⚠ Adrénaline'));
+  eq('stepText retire aussi « △ »', A.stepText('△ Réévaluer PA'), 'Réévaluer PA');
+  ok('recherche : le code des fiches est indexé', A.ficheHaystack(A.migrate({title:'X',code:'URG-ANA-01'})).indexOf('urg-ana-01')>=0);
+  ok('posology assaini en tableau borné', Array.isArray(A.migrate({posology:['⚠ **ADRÉNALINE** : 0,5 mg',42]}).posology));
+  ok('recherche : les repères posologiques sont indexés', A.ficheHaystack(A.migrate({title:'X',posology:['Amiodarone 300 mg']})).indexOf('amiodarone')>=0);
+  ok('prompt IA : section posology documentée', A.AI_PROMPT.indexOf('"posology"')>=0);
+
   group('sanitizeCats() — catégories hostiles');
   const sc=A.sanitizeCats([{id:'prototype',name:'<img>',color:'javascript:alert(1)',libraryId:null}]);
   ok('id prototype remplacé', sc[0].id!=='prototype');
@@ -277,7 +303,7 @@ function run(A){
   ok('rend un <svg> dimensionné', /^<svg width="[\d.]+" height="[\d.]+"/.test(svg));
   ok('titre échappé (pas de balise brute)', svg.indexOf('<img src')<0&&svg.indexOf('&lt;img')>=0);
   ok('pastille DÉPART présente', svg.indexOf('DÉPART')>=0);
-  ok('boucle issue d\'une décision = ambre pointillé', svg.indexOf('stroke-dasharray')>=0&&svg.indexOf('#c98a2a')>=0);
+  ok('boucle issue d\'une décision = ambre pointillé', svg.indexOf('stroke-dasharray')>=0&&svg.indexOf('#b7791f')>=0);
   ok('halo du bloc courant', svg.indexOf('flow-hl')>=0);
   ok('étiquette d\'option sur l\'arête', svg.indexOf('retour')>=0);
   ok('sans bloc → message, pas de SVG', A.buildFlowSVG({blocks:[]}).indexOf('<svg')<0);
@@ -391,7 +417,7 @@ function run(A){
   eq('statut par défaut', mp.status, '');
   ok('updatedAt posé', typeof mp.updatedAt==='number');
   eq('blankProtocol : modèle complet', Object.keys(A.blankProtocol()).sort(),
-     ['attachments','body','category','deletedAt','id','images','libraryId','order','ownerId','status','title','updatedAt','updatedBy','validation'].sort());
+     ['attachments','body','category','code','deletedAt','id','images','libraryId','order','ownerId','related','status','title','updatedAt','updatedBy','validation'].sort());
 
   group('attBuf() — formats de stockage des documents (ArrayBuffer courant, Blob historique)');
   ok('format courant {buf:ArrayBuffer} accepté', A.attBuf({buf:new ArrayBuffer(4)})!==null);

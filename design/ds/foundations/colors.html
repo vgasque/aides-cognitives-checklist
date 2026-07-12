@@ -1,0 +1,1449 @@
+<!-- @dsCard group="Fondations" name="Couleurs & tokens" subtitle="Neutres, bleu clinique, sémantiques, statuts, accents — 2 thèmes" viewport="760x1750" -->
+<!doctype html><html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Couleurs — Aides cognitives</title>
+<style>
+  /* Tokens : TOUTE nouvelle couleur passe par ici (pas de hex ad hoc dans les règles).
+     PALETTE V5 « bleu clinique » (canvas V5 Explorations, v4.0.4) : --primary bleu = identité et
+     action ; --ok vert = confirmation/issue positive (nouveau registre V5 : pastilles d'état,
+     fin d'algorithme) ; --verify ambré = décisions/vigilance ; --critical vermillon = danger.
+     Neutres : --surface-2 (panneaux/survols), --surface-3 (badges neutres, statuts achromatiques),
+     --line-strong (bordures de composants, contraste >= 3:1). Gamme primaire claire :
+     --primary-100 (fonds de tags), --primary-200 (bordures douces), --primary-300 (bordures
+     marquées). --primary-hi : fond de SURVOL des boutons remplis (en sombre, --primary-dk devient
+     l'accent TEXTE clair — le survol ne peut plus s'y adosser). --verify-line/--critical-line :
+     bordures DOUCES des encadrés ambrés/vermillon ; les notices de la taxonomie V5 (bord gauche
+     4px) empruntent la couleur du texte sémantique lui-même. --alert-* : banderoles d'alarme
+     (ambre vif, volontairement distinct de --verify). --rt-* : SNACKBAR (ardoise bleu nuit fixe
+     dans les deux thèmes) — le panneau minuteurs suit le THÈME depuis V5. --alarm : jauge de
+     maintien/flash (chaud = alarme ou geste destructif UNIQUEMENT, jamais un état neutre).
+     --critical = erreur/destruction OU ARRÊT D'UN PROCESSUS VIVANT (« Terminer » une session :
+     les minuteurs s'arrêtent — registre du rouge « raccrocher » iOS ; l'action est archivante et
+     réversible, mais son coût d'erreur en crise est opérationnel) — jamais une simple décision
+     (ça, c'est --verify). Pastilles d'état (compte / synchro) : tokens SÉMANTIQUES qui suivent le
+     thème — ok = --ok (vert, V5), attente = --verify, erreur = --critical, inactif = --line-strong ;
+     tous >= 3:1 sur --bg dans les DEUX thèmes.
+     --input-bg : fond des champs de saisie (blanc en clair, très sombre en sombre) — aucun fond
+     de champ codé en dur. Les overrides du thème sombre passent EUX AUSSI par les tokens (pas de
+     copie hex : une copie désaccorde les palettes au premier retoucher de token).
+     Échelle responsive FERMÉE : 430 / 560 / 640 / 780 / 900 / 1000 px (1000 = colonne droite de
+     la vue fiche, V5). Plancher typographique : 11px (app consultée sous stress — rien en dessous).
+     --line-hover : bordure des survols de boutons/chips (un seul gris au lieu de trois). */
+  :root{--ink:#101b28;--ink-soft:#5b6570;--line:#d5dbe2;--line-strong:#75828e;--line-hover:#c3ccd6;--bg:#f2f5f8;--surface:#fff;--surface-2:#eff2f6;--surface-3:#e8ecf1;--primary:#1f5fa6;--primary-dk:#17477f;--primary-hi:#17477f;--primary-soft:#e3ecf7;--primary-100:#dce7f5;--primary-200:#b9cde6;--primary-300:#8fb4de;--on-primary:#fff;--ok:#1d7a38;--ok-soft:#eaf6ee;--critical:#a32e1f;--critical-soft:#fbe9e4;--critical-line:#ecc4bc;--verify:#7a5900;--verify-soft:#fbf3dc;--verify-line:#eddfb6;--verify-bd:#b7791f;--verify-hi:#b45309;--critical-bd:#c43d34;--done-bg:#eff5f0;--done-line:#bfd8c6;--done-ink:#5b6570;--tag-bg:#e8ecf1;--tag-ink:#3c464f;--link:#1f5fa6;--soft:#8a94a0;--alert:#f0a431;--alert-hi:#ffb454;--alert-strong:#c98a18;--alert-ink:#3a2a02;--rt-card:#1c2a3c;--rt-line:#2c3d52;--rt-ink:#e8eef7;--alarm:#d1543c;--input-bg:#fff;--radius:14px;--radius-md:11px;--radius-sm:9px;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--shadow:0 1px 2px rgba(16,27,40,.04),0 4px 16px rgba(16,27,40,.06);--shadow-lg:0 2px 6px rgba(16,27,40,.06),0 12px 32px rgba(16,27,40,.10);}
+  /* ===== THÈME SOMBRE (usage dans le noir) : on redéfinit les variables + quelques fonds codés en dur.
+     Contraste maintenu pour la lisibilité en situation critique. ===== */
+  [data-theme="dark"]{--ink:#e8eef7;--ink-soft:#93a5b5;--line:#24303f;--line-hover:#3b4b5d;--bg:#0c1420;--surface:#121d2b;--surface-2:#101823;--surface-3:#1b2836;--primary:#2e71c2;--primary-dk:#8fb8e8;--primary-hi:#4685d2;--primary-soft:#16324f;--primary-100:#16324f;--primary-200:#2c4b6e;--primary-300:#2c4b6e;--on-primary:#fff;--ok:#37d67a;--ok-soft:#0e2618;--critical:#ff8a84;--critical-soft:#3a0e0c;--critical-line:#7a2b26;--verify:#ffb454;--verify-soft:#241d0c;--verify-line:#5c4a1e;--verify-bd:#ffb454;--verify-hi:#ffb454;--critical-bd:#ff5a52;--done-bg:#101b14;--done-line:#1f4a2e;--done-ink:#4e6e58;--tag-bg:#24303f;--tag-ink:#b9c6d4;--link:#8fb8e8;--soft:#5e7186;--input-bg:#0a111b;--shadow:0 1px 2px rgba(0,0,0,.45),0 4px 16px rgba(0,0,0,.5);--shadow-lg:0 2px 6px rgba(0,0,0,.5),0 12px 32px rgba(0,0,0,.65);}
+  [data-theme="dark"]{color-scheme:dark;}
+  [data-theme="dark"] .empty{background:rgba(255,255,255,.03)}
+  /* ===== PALETTES D'ACCENT (par utilisateur, connecté seulement) =====
+     Identité de session : remplace la famille bleue sur L'ACCUEIL ENTIER et sur L'EN-TÊTE de
+     toutes les vues (l'identité reste visible partout) — le CONTENU des fiches en crise, des
+     protocoles et des éditeurs garde le bleu clinique canonique (variables posées sur header.bar
+     seulement, elles ne descendent pas dans main).
+     5 accents AA (primaire >= 4.5:1 sur blanc) ; pas de vert/ambre/rouge (registres réservés).
+     Dérivés soft/100/200/300 par color-mix — mêmes proportions que la palette clinique. */
+  body.view-home[data-accent="teal"],body[data-accent="teal"] header.bar{--primary:#0f766e;--primary-dk:#0b5952;--primary-hi:#0c6b62;--link:#0f766e;--primary-soft:color-mix(in srgb,#0f766e 11%,#fff);--primary-100:color-mix(in srgb,#0f766e 16%,#fff);--primary-200:color-mix(in srgb,#0f766e 31%,#fff);--primary-300:color-mix(in srgb,#0f766e 47%,#fff)}
+  [data-theme="dark"] body.view-home[data-accent="teal"],[data-theme="dark"] body[data-accent="teal"] header.bar{--primary:#0d9488;--primary-dk:#7edcd2;--primary-hi:#11a996;--link:#7edcd2;--primary-soft:color-mix(in srgb,#0d9488 27%,#0c1420);--primary-100:color-mix(in srgb,#0d9488 27%,#0c1420);--primary-200:color-mix(in srgb,#0d9488 46%,#0c1420);--primary-300:color-mix(in srgb,#0d9488 46%,#0c1420)}
+  body.view-home[data-accent="violet"],body[data-accent="violet"] header.bar{--primary:#6d28d9;--primary-dk:#5b21b6;--primary-hi:#6423c9;--link:#6d28d9;--primary-soft:color-mix(in srgb,#6d28d9 11%,#fff);--primary-100:color-mix(in srgb,#6d28d9 16%,#fff);--primary-200:color-mix(in srgb,#6d28d9 31%,#fff);--primary-300:color-mix(in srgb,#6d28d9 47%,#fff)}
+  [data-theme="dark"] body.view-home[data-accent="violet"],[data-theme="dark"] body[data-accent="violet"] header.bar{--primary:#8b5cf6;--primary-dk:#c4b5fd;--primary-hi:#9d70f8;--link:#c4b5fd;--primary-soft:color-mix(in srgb,#8b5cf6 27%,#0c1420);--primary-100:color-mix(in srgb,#8b5cf6 27%,#0c1420);--primary-200:color-mix(in srgb,#8b5cf6 46%,#0c1420);--primary-300:color-mix(in srgb,#8b5cf6 46%,#0c1420)}
+  body.view-home[data-accent="indigo"],body[data-accent="indigo"] header.bar{--primary:#4338ca;--primary-dk:#3730a3;--primary-hi:#3d34b8;--link:#4338ca;--primary-soft:color-mix(in srgb,#4338ca 11%,#fff);--primary-100:color-mix(in srgb,#4338ca 16%,#fff);--primary-200:color-mix(in srgb,#4338ca 31%,#fff);--primary-300:color-mix(in srgb,#4338ca 47%,#fff)}
+  [data-theme="dark"] body.view-home[data-accent="indigo"],[data-theme="dark"] body[data-accent="indigo"] header.bar{--primary:#6366f1;--primary-dk:#a5b4fc;--primary-hi:#767ef5;--link:#a5b4fc;--primary-soft:color-mix(in srgb,#6366f1 27%,#0c1420);--primary-100:color-mix(in srgb,#6366f1 27%,#0c1420);--primary-200:color-mix(in srgb,#6366f1 46%,#0c1420);--primary-300:color-mix(in srgb,#6366f1 46%,#0c1420)}
+  body.view-home[data-accent="framboise"],body[data-accent="framboise"] header.bar{--primary:#be185d;--primary-dk:#9d174d;--primary-hi:#ad1755;--link:#be185d;--primary-soft:color-mix(in srgb,#be185d 11%,#fff);--primary-100:color-mix(in srgb,#be185d 16%,#fff);--primary-200:color-mix(in srgb,#be185d 31%,#fff);--primary-300:color-mix(in srgb,#be185d 47%,#fff)}
+  [data-theme="dark"] body.view-home[data-accent="framboise"],[data-theme="dark"] body[data-accent="framboise"] header.bar{--primary:#db2777;--primary-dk:#f9a8d4;--primary-hi:#e13a85;--link:#f9a8d4;--primary-soft:color-mix(in srgb,#db2777 27%,#0c1420);--primary-100:color-mix(in srgb,#db2777 27%,#0c1420);--primary-200:color-mix(in srgb,#db2777 46%,#0c1420);--primary-300:color-mix(in srgb,#db2777 46%,#0c1420)}
+  body.view-home[data-accent="ardoise"],body[data-accent="ardoise"] header.bar{--primary:#475569;--primary-dk:#334155;--primary-hi:#3f4c5f;--link:#475569;--primary-soft:color-mix(in srgb,#475569 11%,#fff);--primary-100:color-mix(in srgb,#475569 16%,#fff);--primary-200:color-mix(in srgb,#475569 31%,#fff);--primary-300:color-mix(in srgb,#475569 47%,#fff)}
+  [data-theme="dark"] body.view-home[data-accent="ardoise"],[data-theme="dark"] body[data-accent="ardoise"] header.bar{--primary:#64748b;--primary-dk:#cbd5e1;--primary-hi:#718299;--link:#cbd5e1;--primary-soft:color-mix(in srgb,#64748b 27%,#0c1420);--primary-100:color-mix(in srgb,#64748b 27%,#0c1420);--primary-200:color-mix(in srgb,#64748b 46%,#0c1420);--primary-300:color-mix(in srgb,#64748b 46%,#0c1420)}
+  /* Pastilles de choix (fenêtre Compte) : mêmes teintes, sélection = anneau (pattern .sw). */
+  .accent-row{display:flex;gap:8px;flex-wrap:wrap}
+  .acc-sw{position:relative;width:34px;height:34px;border-radius:50%;border:2px solid transparent;cursor:pointer;flex:none}
+  .acc-sw::after{content:"";position:absolute;inset:-5px}
+  .acc-sw.on{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--ink);transform:scale(1.08)}
+  .acc-sw:focus-visible{outline:2px solid var(--primary);outline-offset:3px}
+  .acc-sw.a-clinique{background:#1f5fa6}.acc-sw.a-teal{background:#0f766e}.acc-sw.a-violet{background:#6d28d9}.acc-sw.a-indigo{background:#4338ca}.acc-sw.a-framboise{background:#be185d}.acc-sw.a-ardoise{background:#475569}
+  [data-theme="dark"] .acc-sw.a-clinique{background:#2e71c2}[data-theme="dark"] .acc-sw.a-teal{background:#0d9488}[data-theme="dark"] .acc-sw.a-violet{background:#8b5cf6}[data-theme="dark"] .acc-sw.a-indigo{background:#6366f1}[data-theme="dark"] .acc-sw.a-framboise{background:#db2777}[data-theme="dark"] .acc-sw.a-ardoise{background:#64748b}
+  [data-theme="dark"] .ai-card,[data-theme="dark"] .ai-modal .ai-card{background:var(--surface);color:var(--ink)}
+  /* (Snackbar : tokens --rt-* fixes -> aucun override sombre nécessaire.) */
+  /* Champs de saisie, pastilles neutres, panneaux : plus AUCUN override sombre — leurs fonds
+     passent par les tokens (--input-bg, --surface-2…) qui suivent seuls le thème. */
+  [data-theme="dark"] .ai-ta{background:var(--input-bg);color:var(--ink)}
+  [data-theme="dark"] :is(.flow-scroll,#flowFull .ff-scroll){background:var(--input-bg)}
+  /* Survols clairs -> survols sombres. */
+  /* Hover sombre GÉNÉRIQUE : exclut .primary et .danger, sinon cette règle (plus spécifique que
+     .btn.primary:hover) posait un fond quasi noir sous leur texte -> les règles de base gardent
+     la main (primary s'éclaircit via --primary-dk, danger se teinte via --critical-soft).
+     Exclut aussi .holding : le raccourci `background:` remettait background-image à zéro et
+     EFFAÇAIT la jauge rouge du « maintenir pour réinitialiser » (le tap déclenche :hover sur
+     mobile -> jauge invisible en mode sombre, visible en clair : affichage « inconstant »). */
+  [data-theme="dark"] :is(.btn:not(.primary):not(.danger):not(.holding):hover,.mini:hover,.fz:hover,.opt:hover,.catchip:not(.on):hover){background:#1b2634;border-color:var(--line-hover)}
+  /* SVG de l'algorithme : inversion + rotation de teinte -> rendu sombre cohérent (les couleurs
+     bleu/ambre restent distinctes ; pas d'images réelles dans le SVG, seulement des pavés). */
+  [data-theme="dark"] :is(.flow-scroll,#flowFull .ff-scroll) svg{filter:invert(1) hue-rotate(180deg)}
+  /* On ANNULE l'inversion sur les vraies images (sinon photos en négatif) : double inversion = identité. */
+  [data-theme="dark"] :is(.flow-scroll,#flowFull .ff-scroll) svg image{filter:invert(1) hue-rotate(180deg)}
+  /* Surlignage du bloc en cours : on annule l'inversion globale ET on pilote teinte/opacité en CSS
+     -> bleu propre, et adaptation INSTANTANÉE au basculement de thème (pas de reconstruction du SVG). */
+  [data-theme="dark"] :is(.flow-scroll,#flowFull .ff-scroll) svg .flow-hl{filter:invert(1) hue-rotate(180deg);stroke:#4e8fd9}
+  [data-theme="dark"] :is(.flow-scroll,#flowFull .ff-scroll) svg .flow-hl-glow{opacity:.28}
+  *{box-sizing:border-box}html,body{margin:0;padding:0}
+  /* iOS Safari (paysage) : sans ce réglage, le « font boosting » agrandit certains textes de
+     façon disproportionnée (jauge de stockage, en-têtes de section, bandeaux…). */
+  html{-webkit-text-size-adjust:100%;text-size-adjust:100%;scrollbar-gutter:stable}  /* anti-décalage : la gouttière de scrollbar est réservée (bascule Aides <-> Protocoles) */
+  body{font-family:var(--sans);color:var(--ink);background:var(--bg);line-height:1.5;-webkit-font-smoothing:antialiased;padding-bottom:env(safe-area-inset-bottom)}
+  button{font-family:inherit;cursor:pointer}input,textarea,select{font-family:inherit;font-size:16px;max-width:100%}textarea{resize:vertical}
+  /* overflow-x:clip = filet anti-débordement horizontal (un enfant trop large ne peut plus
+     élargir la page ni créer de bande vide à droite sur iOS). 'clip' plutôt que 'hidden' :
+     ne crée PAS de conteneur de défilement -> l'en-tête sticky et les scrollers internes
+     (aperçu algorithme, barres de puces) continuent de fonctionner. */
+  /* LARGEURS (SPEC-largeurs.md, Claude Design) : le CADRE .app est fluide — l'en-tête et le
+     pied occupent toute la largeur à tous les écrans ; chaque vue PLAFONNE et CENTRE son
+     contenu (l'espace supplémentaire sert au centrage et aux panneaux persistants, JAMAIS à
+     allonger les lignes de texte — ~75 caractères max par ligne) :
+       accueil  : sidebar 240 + grille <= 1320 (4 colonnes max)  -> main <= 1622px
+       fiche    : checklist <= 860 (>= 1200px) + rail 320 -> 360  -> main <= 1282px
+       protocole: <= 780px À TOUTES les largeurs
+       éditeurs : MÊMES largeurs que la lecture correspondante (demande utilisateur v4.5) —
+                  fiche : formulaire <= 860 + aperçu 320 -> 360 ; protocole : <= 780 + aperçu 360 */
+  .app{max-width:none;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;overflow-x:clip}
+  body.view-home main{width:100%;max-width:1622px;margin:0 auto}
+  body.view-read main{width:100%;max-width:1282px;margin:0 auto}
+  body.view-edit main{width:100%;max-width:1282px;margin:0 auto}
+  body.view-pedit main{width:100%;max-width:816px;margin:0 auto}
+  @media (min-width:1000px){body.view-pedit main{max-width:1202px}}   /* 780 + 26 + 360 + marges */
+  body.view-pread main{width:100%;max-width:816px;margin:0 auto}
+  @media (min-width:1200px){
+    /* Fiche : lecture plafonnée 860px + rail élargi 360px (chiffres lisibles à distance). */
+    body.view-read .read-grid,body.view-edit .read-grid{grid-template-columns:minmax(0,860px) 360px;justify-content:center}
+    body.view-read .read-side .tm-val,body.view-read .read-side .cn-val{font-size:34px}
+  }
+  /* EN-TÊTE CLAIR par défaut (inversion 4.0.0) : la barre prend la couleur du fond de page —
+     plus de bloc coloré détaché sur l'accueil, le bleu se retire dans les ACCENTS (indicateur
+     d'onglet, focus) — et redevient TEAL PLEIN en mode crise (.crisis, posée par render()) :
+     l'immersion colorée reste la signature fonctionnelle de la crise. Un hairline sépare la
+     barre du contenu qui défile dessous (mêmes fonds). */
+  /* EN-TÊTE CLAIR PARTOUT (accueil, lecture, édition) : plus aucune recoloration du chrome.
+     Le MODE CRISE se signale par le BANDEAU D'ÉTAT étiqueté #crisisBand sous la barre (pattern
+     des systèmes critiques : texte + couleur + position, trois canaux redondants) — la barre
+     reste identique, le titre de la fiche prend l'emplacement et le corps du titre d'accueil. */
+  /* Barre à ESPACES CONFORTABLES : la compacité vient du REPLI AU DÉFILEMENT (pattern « grand
+     titre » iOS) — sur l'accueil, la ligne d'identité se replie dès qu'on défile (.condensed,
+     posée par l'écouteur de scroll) et il ne reste que les onglets (~52px). Jamais de texte tassé. */
+  header.bar{position:sticky;top:0;z-index:20;background:var(--surface);color:var(--ink);border-bottom:1px solid var(--line);padding:calc(12px + env(safe-area-inset-top)) 18px 8px;display:flex;flex-wrap:wrap;align-items:center;gap:14px;row-gap:8px}
+  .id-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;width:100%;min-width:0}
+  /* HORS ACCUEIL, l'en-tête tient sur UNE ligne à toutes les largeurs : pas de repli — les
+     éléments souples (retour, titre, segments chrono) rétrécissent avec ellipse/clip. Seul
+     l'accueil replie (recherche en 2e rangée + chips, comportement canvas). */
+  header.bar:not(.home) .id-row{flex-wrap:nowrap}
+  @media (max-width:559.98px){
+    header.bar:not(.home) .id-row{gap:6px}
+    /* Le libellé du retour disparaît (le chevron ‹ reste, cible 44px) ; le badge s'ellipse. */
+    header.bar:not(.home) #hdrBackLbl{display:none}
+    header.bar:not(.home) .hdr-back{padding:0 8px 0 4px;max-width:none}
+    header.bar:not(.home) .hdr-badge{max-width:34vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    /* ÉDITEURS en étroit : la barre garde ‹ · Aperçu · Enregistrer · ⋯ · compte sur UNE ligne.
+       Le badge d'état (redondant avec le sélecteur segmenté du formulaire) et le bouton thème
+       (accessible partout ailleurs) s'effacent ; les actions se compactent. */
+    :is(body.view-edit,body.view-pedit) #hdrBadge{display:none}
+    :is(body.view-edit,body.view-pedit) #hdrTheme{display:none}
+    :is(body.view-edit,body.view-pedit) .hdr-act2{padding:0 11px;font-size:12.5px}
+  }
+  .id-row .brand{flex:0 1 auto}
+  header.bar:not(.home) .id-row .brand{flex:1}
+  /* En crise, la marque s'efface : le bandeau titre (2e rangée) porte l'identité de la vue. */
+  header.bar.crisis .brand{display:none}
+  /* Groupe d'actions à droite de la rangée principale (V5) : minuteurs, badge, Créer, thème, compte. */
+  .hdr-acts{display:flex;align-items:center;gap:8px;margin-left:auto;flex:0 1 auto;min-width:0}
+  /* Boutons de la rangée principale (V5). Retour : vues internes (fiche, protocole, éditeurs). */
+  .hdr-back{display:inline-flex;align-items:center;gap:2px;min-height:40px;padding:0 10px 0 4px;margin-left:-6px;background:none;border:0;border-radius:10px;color:var(--primary-dk);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;flex:none;max-width:40vw}
+  .hdr-back span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .hdr-back:hover{background:var(--primary-soft)}
+  .hdr-back[hidden]{display:none}
+  .hdr-back:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .hdr-back.guarded{opacity:.4;transition:opacity .15s}   /* fenêtre d'inhibition post-aperçu : l'état s'annonce */
+  /* Boutons d'action de la barre : MÊME gabarit 36px et MÊMES couleurs que le canvas — tonal
+     --primary-soft / --primary-dk pour Créer et Thème (« un seul bouton rempli par écran » :
+     rien de rempli dans la barre), avatar --primary plein pour Compte (pastille d'état verte). */
+  .hdr-new{display:inline-flex;align-items:center;gap:5px;height:40px;padding:0 15px;border:0;border-radius:20px;background:var(--primary-soft);color:var(--primary-dk);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;flex:none}
+  .hdr-new:hover{background:var(--primary-100)}
+  .hdr-new[hidden]{display:none}
+  .hdr-new:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .hdr-new.tonal{background:var(--primary-soft);color:var(--primary-dk)}
+  @media (max-width:779.98px){.hdr-new .hdr-new-lbl{display:none}.hdr-new{width:40px;padding:0;justify-content:center;border-radius:50%}}
+  .hdr-theme{display:inline-flex;align-items:center;justify-content:center;height:40px;min-width:40px;padding:0 14px;border:0;border-radius:20px;background:var(--primary-soft);color:var(--primary-dk);font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;flex:none}
+  .hdr-theme:hover{background:var(--primary-100)}
+  .hdr-theme:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .hdr-theme-lbl{display:none;margin-left:5px}
+  @media (min-width:780px){.hdr-theme .hdr-theme-lbl{display:inline}}
+  /* (A−/A+ : absents de Claude Design — la taille du texte se règle dans la fenêtre Compte.) */
+  /* Menu ⋯ (SPEC gestion §4) : bouton 36px (halo 44), menu ancré sous la barre à droite,
+     rangées 44px — regroupe les actions de GESTION, remplace les barres d'actions de bas de page.
+     Jamais d'action destructive ici (Supprimer reste dans l'éditeur). */
+  .hdr-more{display:grid;place-items:center;width:44px;height:44px;padding:0;border:0;border-radius:10px;background:transparent;color:var(--link);cursor:pointer;flex:none}
+  .hdr-more:hover{background:color-mix(in srgb,var(--primary) 8%,transparent)}
+  .hdr-more[hidden]{display:none}
+  .hdr-more:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .more-menu{position:absolute;top:calc(100% + 6px);right:14px;width:262px;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.18);padding:6px;z-index:45}
+  .more-menu[hidden]{display:none}
+  .mm-row{display:flex;align-items:center;gap:11px;width:100%;min-height:44px;padding:0 11px;border:0;background:none;border-radius:8px;font-family:inherit;font-size:14px;font-weight:600;color:var(--ink);cursor:pointer;text-align:left}
+  .mm-row:hover{background:color-mix(in srgb,var(--primary) 8%,transparent)}
+  .mm-row:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
+  .mm-row[disabled]{opacity:.45;cursor:default}
+  .mm-row[disabled]:hover{background:none}
+  .mm-ic{flex:none;width:20px;text-align:center;color:var(--link);font-size:15px}
+  .mm-sub{font-size:13px;color:var(--ink-soft);font-weight:500}   /* suffixe inline « — hors urgence » */
+  .mm-sep{height:1px;background:var(--line);margin:5px 8px}
+  /* Action DESTRUCTIVE (canvas) : toujours dernière, isolée par un séparateur, jamais en fond
+     plein — rouge « raccrocher » (--critical couvre l'arrêt d'un processus vivant). */
+  .mm-row.danger{color:var(--critical);font-weight:700}
+  .mm-row.danger .mm-ic{color:currentColor}
+  .mm-row.danger:hover{background:color-mix(in srgb,var(--critical) 8%,transparent)}
+  /* SPEC §5 (éditeurs) : actions dans l'EN-TÊTE — Aperçu (tonal) + Enregistrer (rempli, à droite). */
+  .hdr-act2{display:inline-flex;align-items:center;height:36px;padding:0 14px;border:0;border-radius:18px;background:var(--primary-soft);color:var(--primary-dk);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;flex:none}
+  .hdr-act2:hover{background:var(--primary-100)}
+  .hdr-act2.primary{background:var(--primary);color:var(--on-primary)}
+  .hdr-act2.primary:hover{background:var(--primary-hi)}
+  .hdr-act2[hidden]{display:none}
+  .hdr-act2:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* Invariant SPEC §7 : cible tactile >= 44px sur les contrôles 36px de la barre (halo). */
+  :is(.hdr-new,.hdr-theme,.hdr-act2,.bar-acct){position:relative}
+  :is(.hdr-new,.hdr-theme,.hdr-act2,.bar-acct)::after{content:"";position:absolute;inset:-4px}
+  .hdr-badge{flex:none;font-size:11px;font-weight:700;background:var(--surface-3);color:var(--ink-soft);border-radius:10px;padding:3px 10px;white-space:nowrap;max-width:34vw;overflow:hidden;text-overflow:ellipsis}
+  .hdr-badge[hidden]{display:none}
+  /* Recherche FIXE dans l'en-tête (accueil, V5, canvas turn 6) : en ligne dans la rangée en
+     large, rangée propre (pleine largeur) en étroit — elle reste sous le doigt au défilement. */
+  .hdr-search{display:none;position:relative;align-items:center;min-width:0}
+  header.bar.home .hdr-search{display:flex;flex:3 1 220px;max-width:640px}
+  /* Styles exacts du canvas (accueil, section 6) : bordure 2px srchBd (--line-hover) — plus
+     marquée que les cartes à 1px, c'est l'élément interactif principal de l'en-tête ; fond =
+     MÊME surface que les cartes ; glyphe ⌕ intégré au placeholder ; pas d'ombre (~40px). */
+  .hdr-search svg{position:absolute;left:12px;color:var(--ink-soft);pointer-events:none}
+  .hdr-search input{width:100%;padding:9px 13px 9px 36px;border:2px solid var(--line-hover);border-radius:9px;background:var(--surface);color:var(--ink);font-size:15px;white-space:nowrap;overflow:hidden}
+  .hdr-search input:focus{outline:2px solid var(--primary);border-color:transparent}
+  @media (max-width:779.98px){header.bar.home .hdr-search{order:5;flex:1 1 100%;max-width:none;margin-top:2px}.hdr-search input{padding:10px 13px}}
+  /* Chips bibliothèques/catégories de l'accueil étroit : dans l'en-tête (fixes au défilement). */
+  #homeChrome{order:6;width:100%;min-width:0}
+  #homeChrome[hidden]{display:none}
+  #homeChrome .scopebar{margin-bottom:6px}
+  #homeChrome .catbar{margin-bottom:0}
+  /* V5 : bandeau TITRE du mode crise — le titre de la fiche vit ici en permanence (toujours
+     lisible en crise, canvas turn 6), « ■ MODE CRISE » à droite, registre ALERTE, bord à bord. */
+  #crisisBand{order:8;width:calc(100% + 36px);margin:2px -18px -8px;min-height:44px;padding:8px 18px 9px;background:var(--critical-soft);color:var(--ink);border-top:1px solid var(--critical-line);display:flex;align-items:center;gap:10px;animation:cbIn .3s ease}
+  #crisisBand[hidden]{display:none}
+  header.bar.crisis{border-bottom:2px solid var(--critical)}
+  #crisisBand .cb-ttl{flex:1;min-width:0;font-size:18px;font-weight:800;letter-spacing:-.2px;line-height:1.15;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  #crisisBand .cb-tag{flex:none;font-size:11px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:var(--critical)}
+  /* Segments minuteurs de l'en-tête de crise (V5) : étiquette au-dessus du temps, GLOBAL = chrono
+     de session (démarre à la 1ʳᵉ action), segment échu en ambre ; tap -> remonte au panneau. */
+  #cbTimers{position:relative;margin-left:auto;flex:0 1 auto;min-width:0;display:inline-flex;align-items:stretch;background:var(--surface);border:1px solid var(--line-strong);color:var(--ink);border-radius:9px;padding:0;min-height:40px;font-family:inherit;cursor:pointer;overflow:hidden}
+  /* Zone de tap >= 44px (règle « contrôle du mode crise ») : halo cliquable. */
+  #cbTimers::after{content:"";position:absolute;inset:-4px}
+  #cbTimers[hidden]{display:none}
+  #cbTimers:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  #cbTimers .seg{display:flex;flex-direction:column;justify-content:center;gap:1px;padding:3px 10px;min-width:0;border-left:1px solid var(--line)}
+  #cbTimers .seg:first-child{border-left:0}
+  #cbTimers .seg-l.seg-sess{color:var(--ok)}   /* ● SESSION : vert actif nominal (ECAM), jamais rouge/ambre */
+  #cbTimers .seg-l{font-size:11px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--ink-soft);line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:16vw}
+  /* Très étroit : « ● SESSION » doit se lire EN ENTIER (l'annonce d'état ne se tronque pas). */
+  @media (max-width:429.98px){#cbTimers .seg-l{font-size:11px;letter-spacing:.2px;max-width:none}#cbTimers .seg-l.seg-sess{max-width:none}}
+  #cbTimers .seg-t{font-family:var(--mono);font-size:15px;font-weight:700;letter-spacing:.5px;line-height:1.1;font-variant-numeric:tabular-nums;color:var(--ink)}
+  #cbTimers .seg.due{background:var(--verify-soft)}
+  #cbTimers .seg.due :is(.seg-l,.seg-t){color:var(--verify)}
+  #cbTimers .cbt-n{display:flex;align-items:center;padding:0 8px;font-size:11px;font-weight:800;color:var(--ink-soft);border-left:1px solid var(--line)}
+  @keyframes cbIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
+  .brand{display:flex;flex-direction:column;line-height:1.1;flex:1;min-width:0}
+  /* h1 du document (plan lecteur d'écran) stylé comme la marque — pas de typo de h1 par défaut. */
+  .brand .brand-name{margin:0;font-size:18px;font-weight:800;letter-spacing:-.2px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #brandSub{font-size:11.5px;text-transform:uppercase;letter-spacing:1.6px;color:var(--ink-soft);margin-top:3px}
+  /* Accueil : le sous-titre est porté par les onglets. En lecture il accompagne le titre dans
+     la barre UNE FOIS DÉFILÉ (« Aide cognitive » / « Protocole », cf. .titled/.ttl-on plus bas) ;
+     le bandeau de crise, lui, ne dit que l'ÉTAT (mode crise, session en cours). */
+  /* SPEC §5 : hors accueil, l'en-tête ne porte PAS la marque — seulement retour, badge et
+     actions (le titre n'apparaît qu'au défilement, cf. .titled). Le sous-titre disparaît. */
+  #brandSub{display:none}
+  header.bar:not(.home) .brand-name{display:none}
+  /* Titre de la fiche/du protocole dans la barre (révélé au défilement) : ÉCHELLE DU TITRE
+     D'ACCUEIL (17px/700, même emplacement) — la hiérarchie typographique ne bouge pas entre
+     les vues. Une ligne, ellipsé. */
+  #brandTitle{font-size:17px;font-weight:700;line-height:1.2;color:inherit;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.2px;text-transform:none;display:none}
+  /* Icône Compte dans l'en-tête (présence utilisateur), avec pastille d'état de synchro discrète. */
+  /* 40px (>= 32 exigés — ce n'est pas un contrôle du mode crise) : c'est lui qui fixe la hauteur
+     de la rangée d'identité, la barre d'accueil reste sous ~85px hors encoche. */
+  /* Avatar Compte (canvas) : cercle --primary PLEIN, 36px — même gabarit que Créer/Thème. */
+  .bar-acct{position:relative;background:var(--primary);color:var(--on-primary);border:0;width:40px;height:40px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex:none;cursor:pointer;transition:background .12s,transform .06s}
+  /* Rappel MINUTEURS toujours visible : 2e ligne de l'en-tête sticky, n'apparaît que si un minuteur
+     tourne ET que le panneau minuteurs est sorti de l'écran (mis à jour par tickAll). Tap -> remonte
+     au panneau. Fait partie de l'en-tête -> aucun calcul de position, reste sous l'encoche. */
+  /* (L'ancien rappel minuteurs #rtStrip est FUSIONNÉ dans le bandeau de crise : cf. #cbTimers.) */
+  .bar-acct.on{background:var(--primary);color:var(--on-primary)}
+  .bar-acct:hover,.bar-acct.on:hover{background:var(--primary-hi);color:var(--on-primary)}
+  .bar-acct:active{transform:translateY(1px)}
+  /* Déconnecté = buste en contour ; connecté = buste plein (+ pastille verte). État évident. */
+  .bar-acct .ic-filled{display:none}
+  .bar-acct.on .ic-outline{display:none}.bar-acct.on .ic-filled{display:inline-block}
+  /* Connecté : l'avatar porte les INITIALES du compte (2 premières lettres du mail, canvas
+     « JD ») — l'icône personne s'efface ; déconnecté : icône contour, pas d'initiales. */
+  .acct-ini{font-size:14px;font-weight:800;letter-spacing:.5px;line-height:1;color:var(--on-primary)}
+  .acct-ini[hidden]{display:none}
+  .bar-acct.ini-on .ic-filled{display:none!important}
+  /* Le liseré de la pastille découpe sur le FOND de la barre : fond de page par défaut,
+     inchangé en crise (le token --bg suit seul le thème sombre). */
+  /* Pastille d'état : tokens sémantiques (>= 3:1 sur --bg dans les deux thèmes, WCAG 1.4.11) ;
+     la couleur n'est jamais seule : buste plein/contour + chip texte du pied de page. */
+  .acct-dot{position:absolute;right:2px;bottom:2px;width:11px;height:11px;border-radius:50%;border:2px solid var(--surface);background:var(--ok)}
+  .acct-dot.busy{background:var(--verify)}.acct-dot.err{background:var(--critical)}.acct-dot.off{background:var(--line-strong)}
+  .acct-dot.pending{background:var(--verify)}.acct-dot.rejected{background:var(--critical)}
+  main{flex:1;padding:18px}
+  /* ===== TAXONOMIE DES NOTICES (V5, canvas turn 7) : 5 registres, du plus au moins impérieux —
+     ALERTE (--critical), ATTENTION (--verify), INFORMATION (--primary), CONFIRMATION (--ok),
+     MEMO (neutre). Grammaire commune : bord gauche 4px + bordure de la couleur SÉMANTIQUE (le
+     texte porte la même famille), glyphe/pictogramme + libellé — la couleur n'est jamais seule.
+     .notice = registre INFORMATION par défaut (hors crise : synchro, mises à jour, conseils). */
+  .notice{background:var(--primary-soft);border:1px solid var(--primary);border-left:4px solid var(--primary);color:var(--ink);border-radius:var(--radius-sm);padding:10px 13px;font-size:12.5px;margin-bottom:16px;display:flex;gap:9px;align-items:flex-start;position:relative;padding-right:40px}
+  .notice[hidden]{display:none} /* le display:flex ci-dessus prime sinon sur [hidden] (même origine auteur) */
+  .notice svg{flex-shrink:0;margin-top:1px;color:var(--primary-dk)}
+  .notice.sync-err{background:var(--critical-soft);border-color:var(--critical);color:var(--critical);cursor:pointer}
+  .notice.sync-err svg{color:var(--critical)}
+  .notice.sync-pending{background:var(--verify-soft);border-color:var(--verify);color:var(--verify);cursor:pointer}
+  .notice.sync-pending svg{color:var(--verify)}
+  /* Bandeau système (registre INFORMATION persistant : mise à jour de l'app) : pleine largeur
+     sous l'en-tête, rejetable, JAMAIS pendant une session de crise (cf. body.crisis-live). */
+  .sys-banner{display:flex;align-items:center;gap:9px;padding:9px 18px;background:var(--primary-soft);border-bottom:1px solid var(--primary-200);color:var(--ink);font-size:12.5px;line-height:1.35}
+  .sys-banner[hidden]{display:none}
+  .sys-banner .sb-ic{color:var(--primary-dk);flex:none;display:inline-flex}
+  .sys-banner .sb-txt{flex:1;min-width:0}
+  .sys-banner .sb-act{background:none;border:0;color:var(--primary-dk);font-size:12px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;padding:6px 8px;min-height:32px;border-radius:7px;cursor:pointer;flex:none}
+  .sys-banner .sb-act:hover{background:var(--primary-100)}
+  .sys-banner .sb-x{background:none;border:0;color:var(--ink-soft);font-size:19px;line-height:1;min-width:32px;min-height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:7px;cursor:pointer;flex:none}
+  .sys-banner .sb-x:hover{background:var(--primary-100)}
+  .sys-banner :is(.sb-act,.sb-x):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  body.crisis-live .sys-banner{display:none}
+  .lib-top{display:flex;gap:10px;margin-bottom:14px}
+  .search{flex:1;position:relative;display:flex;align-items:center}
+  .search svg{position:absolute;left:12px;color:var(--ink-soft);pointer-events:none}
+  .search input{width:100%;padding:11px 12px 11px 38px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--input-bg);color:var(--ink)}
+  .search input:focus{outline:2px solid var(--primary);border-color:transparent}
+  .btn-new{background:var(--primary);color:var(--on-primary);border:0;border-radius:var(--radius-md);padding:0 16px;font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:7px;white-space:nowrap;box-shadow:0 1px 2px rgba(23,71,127,.2),0 4px 12px rgba(23,71,127,.16);transition:background .12s,transform .06s}
+  .btn-new:hover{background:var(--primary-hi)}.btn-new:active{transform:translateY(1px)}
+  /* UN SEUL bouton rempli par écran : quand l'accueil affiche déjà « Reprendre » (session en
+     cours, bleu plein), « Créer » (autorat, action rare) passe en TONAL — la crise garde la
+     saillance. Tokens seulement : suit les deux thèmes. */
+  .btn-new.tonal{background:var(--primary-soft);color:var(--primary-dk);box-shadow:none}
+  .btn-new.tonal:hover{background:var(--primary-100)}
+  .catbar{display:flex;gap:10px;align-items:center;margin-bottom:16px}
+  .catbar .chiprow{flex:1;min-width:0}
+  /* Une seule ligne défilable horizontalement -> vue d'ensemble sans allonger la page.
+     Padding vertical (compensé par les marges) : héberge le HALO de tap des pastilles (::after
+     ci-dessous) — dans un conteneur à défilement, un débord hors boîte serait clippé. */
+  .chiprow{display:flex;gap:8px;flex-wrap:nowrap;overflow-x:auto;padding:5px 0 8px;margin:-5px 0 -5px;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+  .chiprow::-webkit-scrollbar{height:5px}.chiprow::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+  .chiprow>*{flex:none}
+  .catchip{border:1px solid var(--line);background:var(--surface);padding:8px 14px;border-radius:20px;font-size:12.5px;font-weight:600;cursor:pointer;transition:background .12s,border-color .12s,color .12s}
+  /* Zone de tap >= 44px sans grossir la pastille (halo cliquable, même technique que #cbTimers
+     et .tag.todo) : pastilles filtrées/choisies au pouce en mobile, tap fréquent (HIG/MD3). */
+  .catchip,.catpill{position:relative}
+  :is(.catchip,.catpill)::after{content:"";position:absolute;inset:-5px -2px}
+  .catchip:not(.on):hover{border-color:var(--line-hover);background:var(--surface-2)}
+  /* États tokenisés des pastilles (plus de style inline) : .on = sélection neutre (« Toutes »/
+     « Aucune » — les catégories colorées, elles, se remplissent de LEUR couleur via catChipHtml) ;
+     .mgr = action « Gérer » en retrait. */
+  .catchip.on,.catpill.on{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+  .catchip.mgr,.catpill.mgr{border-style:dashed;color:var(--ink-soft)}
+  .scopebar{display:flex;gap:10px;align-items:center;margin-bottom:14px}
+  .scopebar .chiprow{flex:1;min-width:0}
+  .scope-lbl{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--ink-soft);margin-right:2px}
+  /* inline-flex : la pastille ✎ de la chip active (34px, marges négatives) est ABSORBÉE par le
+     conteneur flex au lieu de gonfler la boîte de ligne (sinon la chip grandit et décale tout). */
+  /* line-height:normal : la chip ACTIVE est un <span> (pastille ✎ imbriquée, pas de bouton dans
+     un bouton) — sans lui, elle hériterait du 1.5 du body et serait plus haute que les chips
+     <button> (line-height UA), gonflant toute la rangée à la sélection. */
+  .scopebtn{position:relative;display:inline-flex;align-items:center;line-height:normal;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 14px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;transition:background .12s,border-color .12s}
+  .scopebtn.on,.startbtn.on{background:var(--primary);color:var(--on-primary);border-color:var(--primary)}
+  .scopebtn.add{border-style:dashed;color:var(--primary);background:transparent}
+  /* Halo tactile (audit v4.5) : chips ~33px -> cible >= 44px, étendue en VERTICAL seulement
+     (les chips voisines se touchent horizontalement dans la rangée défilante). */
+  :is(.scopebtn,.catchip)::after{content:"";position:absolute;inset:-6px 0}
+  .catchip{position:relative}
+  /* Pastille ✎ DANS la chip active (canvas) : 34×34 translucide sur le fond plein de la chip,
+     débordant à droite pour ne pas la gonfler ; hérite du blanc de la chip active. */
+  .chip-edit{display:inline-grid;place-items:center;width:34px;height:34px;margin:-12px -10px -12px 5px;border-radius:17px;background:color-mix(in srgb,var(--on-primary) 18%,transparent);color:inherit;border:0;cursor:pointer;vertical-align:middle}
+  .chip-edit:hover{background:color-mix(in srgb,var(--on-primary) 30%,transparent)}
+  .chip-edit:focus-visible{outline:2px solid var(--on-primary);outline-offset:-2px}
+  .scopebtn svg{vertical-align:-2px}
+  .scope-ctx{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin:-6px 0 16px;padding:9px 12px;background:var(--primary-soft);border-radius:10px}
+  .scope-ctx-i{font-size:12.5px;color:var(--ink-soft);font-weight:600}
+  .linkbtn{background:none;border:0;color:var(--primary);font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:0;margin-left:auto}
+  .linkbtn:hover{text-decoration:underline}
+  .notice-x{position:absolute;top:4px;right:4px;background:none;border:0;color:var(--ink-soft);font-size:19px;line-height:1;cursor:pointer;padding:0;min-width:32px;min-height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:7px}
+  .notice-x:hover{background:rgba(0,0,0,.07)}
+  /* Icônes SVG « de texte » (uiIcon, remplacent les emojis) : alignées sur la ligne de base. */
+  svg.tic{vertical-align:-2.5px;flex:none}
+  /* Étoiles « Avec l'IA » (dialogue Créer) : dorées et pleines, comme l'emoji ✨ qu'elles remplacent. */
+  #crtIA .crt-ic{color:var(--alert-strong)}
+  .ro-badge{font-size:11px;font-weight:600;color:var(--primary-dk);background:var(--primary-soft);padding:2px 8px;border-radius:10px}
+  /* Fenêtre « Gérer la bibliothèque » — aligne le style sur la fenêtre Compte. */
+  .mem-head{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+  .mem-head-i{min-width:0}
+  .mem-lib-name{font-size:17px;font-weight:700;color:var(--ink);word-break:break-word;line-height:1.2}
+  .mem-lib-sub{font-size:12.5px;color:var(--ink-soft);margin-top:3px}
+  /* Dialogue bibliothèque (SPEC-dialogue-bibliotheque) : étiquettes 11/800/1 --soft, rangées
+     membre 48px, avatar 30px 2 lettres, rangée d'invitation champ+rôle+＋ pointillé (~42px). */
+  .field-label{font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft);margin:0 0 6px}
+  .field-label .fl-n{font-weight:700;color:var(--ink-soft);letter-spacing:0}
+  .share-note{font-size:12px;color:var(--ink-soft);line-height:1.5;margin:0 0 14px}
+  .mem-section{margin-bottom:18px}
+  .mem-section-h{font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft);margin:0 0 6px}
+  .mem-hint{font-size:12px;color:var(--ink-soft);line-height:1.5;margin:9px 0 0}
+  .mem-list{display:flex;flex-direction:column;gap:7px;margin-bottom:7px}
+  .mem-row{display:flex;align-items:center;gap:10px;padding:8px 11px;min-height:48px;border:1px solid var(--line);border-radius:9px;background:var(--surface)}
+  .mem-avatar{width:30px;height:30px;border-radius:50%;background:var(--primary-soft);color:var(--primary-dk);display:grid;place-items:center;font-size:12px;font-weight:700;flex:none}
+  .mem-info{flex:1;min-width:0}
+  .mem-email{font-size:13.5px;color:var(--ink);word-break:break-all}.mem-you{color:var(--ink-soft);font-weight:400}
+  .mem-act{display:flex;gap:8px;align-items:center;flex:none}
+  .mem-act select{padding:9px 11px;border:1px solid var(--line-strong);border-radius:9px;background:var(--input-bg);color:var(--ink);font-size:12.5px;font-weight:600}
+  .mem-act .mini.del{width:34px;height:34px;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:var(--ink-soft);font-size:16px}
+  .mem-act .mini.del:hover{color:var(--critical);background:color-mix(in srgb,var(--critical) 8%,transparent)}
+  .invite-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+  .invite-row input{flex:1;min-width:0;padding:10px 12px;border:1px solid var(--line-strong);border-radius:9px;background:var(--input-bg);color:var(--ink);font-size:13.5px}
+  .invite-row select{flex:none;padding:9px 11px;border:1px solid var(--line-strong);border-radius:9px;background:var(--input-bg);color:var(--ink);font-size:12.5px;font-weight:600}
+  .invite-row .btn-add{width:42px;height:42px;flex:none;display:grid;place-items:center;border:1.5px dashed var(--line-strong);border-radius:9px;background:transparent;color:var(--link);font-size:16px;font-weight:800;cursor:pointer}
+  .invite-row .btn-add:hover{border-color:var(--primary);background:var(--primary-soft)}
+  .invite-row .btn-add:focus-visible,.invite-row select:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .roles-caption{font-size:11px;color:var(--ink-soft);margin:0 0 14px;line-height:1.5}
+  /* Spinner discret (chargements RÉSEAU uniquement — le local est synchrone, pas de skeleton). */
+  .spin{display:inline-block;width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--link);border-radius:50%;vertical-align:-2px;margin-right:7px;animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion:reduce){.spin{animation-duration:2s}}
+  .btn.ghost-danger{background:transparent;border-color:transparent;color:var(--critical)}
+  .btn.ghost-danger:hover{background:var(--critical-soft);border-color:transparent}
+  /* SPEC gestion §3 : Annuler / CTA demi-largeur ; ZONE SENSIBLE sous séparateur, bouton
+     CONTOUR rouge (jamais plein, jamais côte à côte avec le CTA principal). */
+  .dlg-actions{display:flex;gap:9px;align-items:center;margin-top:6px}
+  .dlg-actions .btn{flex:1;display:inline-flex;align-items:center;justify-content:center;min-height:44px;border-radius:9px;font-size:14px;font-weight:700;text-align:center}
+  .dlg-actions .btn:not(.primary){border:1.5px solid var(--line-hover);background:transparent;color:var(--ink)}
+  .dlg-actions .btn.primary{box-shadow:0 1px 2px rgba(23,71,127,.25)}
+  .dlg-actions .btn.primary.is-locked{background:transparent;border:1.5px solid var(--line);color:var(--ink-soft);box-shadow:none;cursor:default}
+  .mem-danger{border-top:1px solid var(--line);margin-top:18px;padding-top:14px}
+  .mem-danger .danger-h{color:var(--critical)}
+  .mem-danger .danger-caption{font-size:11.5px;color:var(--ink-soft);line-height:1.5;margin:7px 0 0}
+  .btn.outline-danger{background:transparent;border:1.5px solid var(--critical);border-radius:9px;min-height:44px;color:var(--critical);font-size:13.5px;font-weight:700}
+  .btn.outline-danger:hover{background:var(--critical-soft)}
+  .cm-scope{font-size:12.5px;color:var(--ink-soft);margin:0 0 12px;padding-bottom:10px;border-bottom:1px solid var(--line)}.cm-scope b{color:var(--primary)}
+  /* Grille des aides/protocoles — règle UNIQUE (consigne Claude Design) : colonnes auto-fill à
+     plancher 300px, gap 12px. Le nombre de colonnes découle seulement de la largeur disponible
+     (1 colonne < ~612px, 2 en cadre standard, 3 au palier 1320px) ; jamais de cartes étirées. */
+  .cards{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+  .cards>.empty,.cards>.btn{grid-column:1/-1}
+  /* SPEC §2 : une seule colonne sous 640px (explicite). */
+  @media (max-width:639.98px){.cards{grid-template-columns:1fr}}
+  .card{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px 17px;box-shadow:var(--shadow);cursor:pointer;display:flex;align-items:center;gap:14px;transition:transform .08s,border-color .12s;overflow:hidden}
+  .card:hover{border-color:var(--line-hover);transform:translateY(-1px);box-shadow:var(--shadow-lg)}
+  /* Liseré de CATÉGORIE (V5) : bande 8px pleine hauteur à gauche — la couleur des catégories
+     vit sur la tranche de la carte, les statuts restent achromatiques. */
+  .card.striped{padding-left:25px}
+  .card.striped::before{content:"";position:absolute;left:0;top:0;bottom:0;width:8px;background:var(--stripe)}
+  /* Titre-bouton « étiré » : la carte n'est PLUS role=button (un bouton ne doit pas contenir
+     d'autres commandes — épingle, badge « À compléter » : descendants interactifs proscrits,
+     ARIA APG). Le TITRE est le vrai <button> (clavier natif, nom accessible = titre) et son
+     ::after couvre toute la carte (position:relative ci-dessus) ; les commandes internes
+     repassent AU-DESSUS via z-index. Anneau de focus porté par la carte (:has, déjà utilisé). */
+  .card h2 .card-open{background:none;border:0;padding:0;margin:0;font:inherit;color:inherit;text-align:left;cursor:pointer}
+  .card .card-open::after{content:"";position:absolute;inset:0;border-radius:var(--radius)}
+  .card .card-open:focus-visible{outline:none}
+  .card:has(.card-open:focus-visible){outline:2px solid var(--primary);outline-offset:2px}
+  .card :is(.pinbtn,.tag.todo){position:relative;z-index:1}
+  /* Épingle : cible tactile 40px, étoile SVG pleine ambrée quand actif. */
+  .card .pinbtn{background:none;border:0;line-height:1;color:var(--ink-soft);min-width:40px;min-height:40px;border-radius:var(--radius-sm);cursor:pointer;flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center}
+  .card .pinbtn:hover{background:var(--primary-soft);color:var(--primary)}
+  .card .pinbtn.on{color:var(--verify)}
+  .card .pinbtn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .card-body{flex:1;min-width:0}.card h2{margin:0 0 5px;font-size:16.5px;font-weight:640}
+  .card-meta{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+  .tag{font-size:11px;font-weight:600;letter-spacing:.3px;background:var(--primary-soft);color:var(--primary-dk);padding:3px 9px;border-radius:20px}
+  /* Étiquette de catégorie : texte en --ink (lisible dans les 2 thèmes) + pastille de couleur. */
+  .catchip,.catpill{color:var(--ink)}
+  /* Catégories en TEXTE COLORÉ (couleur de la catégorie), lisibles dans les 2 thèmes via color-mix :
+     en sombre on éclaircit la teinte (mix avec blanc), en clair on la garde. */
+  .tag.cat{background:color-mix(in srgb, var(--c,var(--primary)) 15%, transparent);color:var(--c,var(--primary))}
+  .catchip.colored,.catpill.colored{color:var(--catcol);background:color-mix(in srgb, var(--catcol) 12%, transparent);border-color:color-mix(in srgb, var(--catcol) 45%, transparent)}
+  [data-theme="dark"] .tag.cat{background:color-mix(in srgb, var(--c,var(--primary)) 26%, transparent);color:color-mix(in srgb, var(--c,var(--primary)) 60%, white)}
+  [data-theme="dark"] .catchip.colored,[data-theme="dark"] .catpill.colored{color:color-mix(in srgb, var(--catcol) 62%, white);background:color-mix(in srgb, var(--catcol) 22%, transparent);border-color:color-mix(in srgb, var(--catcol) 50%, transparent)}
+  .tag.flow{background:var(--verify-soft);color:var(--verify)}
+  /* Tags informatifs des cartes : NEUTRES (audit v4.5) — la couleur reste au danger, au vert
+     session et au liseré de catégorie. */
+  .tag.sess{background:var(--tag-bg);color:var(--tag-ink)}
+  .tag.cat.neutral{background:var(--tag-bg);color:var(--tag-ink)}
+  /* Statuts ACHROMATIQUES (V5) : glyphe + texte sur fond neutre — la couleur reste réservée
+     au danger (rouge/ambre des registres) et aux catégories (liserés). */
+  /* Tag de statut (canvas V5 « ✓ Validée ») : pilule ACHROMATIQUE, identique pour les 3
+     états — glyphe + libellé suffisent (ECAM : jamais la couleur seule ; ici, pas de couleur
+     du tout). L'espace avant la méta vient du gap du conteneur. */
+  .status-tag{display:inline-block;vertical-align:middle;font-size:10.5px;font-weight:700;line-height:1.5;padding:2px 8px;border-radius:10px;background:var(--tag-bg);color:var(--tag-ink)}
+  .tag.draft{background:var(--tag-bg);color:var(--tag-ink)}
+  /* Soulignement pointillé = affordance « détail au tap » (sinon le badge paraît statique). */
+  .tag.todo{background:var(--tag-bg);color:var(--tag-ink);position:relative;cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px}
+  /* Zone tactile étendue (~36 px) sans grossir le badge : pseudo-élément cliquable autour. */
+  .tag.todo::after{content:"";position:absolute;inset:-7px}
+  .tag.todo:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* Fiches liées : chips en lecture, éditeur avec croix de retrait. */
+  .related{margin:16px 0 4px}.related>b{display:block;font-size:12.5px;color:var(--ink-soft);margin-bottom:7px}
+  .related-row{display:flex;gap:8px;flex-wrap:wrap}
+  /* Notes personnelles (bas de fiche) : carte en POINTILLÉS (registre « annotation informelle »,
+     distincte du contenu clinique validé), lecture seule par défaut. */
+  .h-notes{color:var(--ink-soft)}
+  .notes-block{margin:26px 0 6px;border:1.5px dashed var(--line-strong);border-radius:var(--radius-md);padding:13px 15px;background:var(--surface)}
+  .notes-block .block-h{margin-bottom:9px}
+  .note-txt{font-size:14px;line-height:1.55;color:var(--ink);white-space:pre-wrap;overflow-wrap:break-word}
+  .note-add{display:inline-flex;align-items:center;gap:7px;margin:26px 0 6px;background:none;border:1.5px dashed var(--line-strong);color:var(--ink-soft);border-radius:var(--radius-md);padding:10px 14px;font-size:13px;font-weight:600;min-height:38px;cursor:pointer;transition:background .12s,color .12s}
+  .note-add:hover{background:var(--surface-2);color:var(--ink)}
+  .note-add:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .note-ta{width:100%;min-height:74px;resize:vertical;padding:11px 12px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--input-bg);color:var(--ink);font:inherit;font-size:14px;line-height:1.5}
+  .note-ta:focus-visible{outline:2px solid var(--primary);outline-offset:1px}
+  .note-meta{font-size:11px;color:var(--ink-soft);margin-top:5px;min-height:14px}
+  .rel-edit{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .rel-chip{display:inline-flex;align-items:center;gap:6px;background:var(--primary-soft);color:var(--primary-dk);border-radius:20px;padding:4px 6px 4px 11px;font-size:12.5px;font-weight:600}
+  .rel-x{background:none;border:0;color:var(--primary-dk);font-size:16px;line-height:1;min-width:24px;min-height:24px;border-radius:50%;cursor:pointer}
+  .rel-x:hover{background:rgba(0,0,0,.08)}
+  /* Date à revoir : registre ATTENTION (le rouge reste réservé au danger vital, V5). */
+  .card-date{font-size:12px;color:var(--ink-soft)}.card-date.stale{color:var(--verify)}
+  .chev{color:var(--line-strong);flex-shrink:0}
+  .empty{text-align:center;padding:54px 20px;color:var(--ink-soft);border:1.5px dashed var(--line);border-radius:var(--radius);background:rgba(255,255,255,.5)}
+  /* Échec de démarrage : overlay plein écran centré, carte au registre ALERTE. */
+  .boot-fail{position:fixed;inset:0;display:grid;place-items:center;padding:20px;background:var(--bg);z-index:90}
+  .boot-card{max-width:440px;width:100%;background:var(--surface);border:1px solid var(--critical);border-left:4px solid var(--critical);border-radius:14px;padding:22px 20px;box-shadow:var(--shadow-lg)}
+  .boot-card h2{margin:0 0 10px;font-size:17px;font-weight:800;color:var(--ink)}
+  .boot-card p{margin:0 0 10px;font-size:13.5px;line-height:1.55;color:var(--ink-soft)}
+  .boot-card .btn{margin-top:6px;min-height:44px}
+  .empty b{display:block;color:var(--ink);font-size:16px;margin-bottom:6px}
+  .empty .btn{margin-top:14px}
+  .read-head h2{margin:0;font-size:24px;font-weight:680;line-height:1.18}
+  /* V5 : en crise le TITRE vit dans le bandeau d'en-tête sticky — le grand titre du corps ne
+     sert plus qu'à l'impression (l'en-tête est masqué en print). */
+  @media screen{body.view-read .read-head{display:none}}
+  .read-meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0 18px}
+  .local{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 14px;margin-bottom:18px;font-size:14px;color:var(--ink-soft);white-space:pre-wrap}
+  section.block{margin-bottom:22px}
+  /* En-têtes de section = KICKERS simples du canvas (11px/800, espacés) : la couleur du texte
+     porte le registre, plus de badge d'icône ni de pip (chrome retiré, V5). */
+  .block-h{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-soft)}
+  .block-h.h-verify{color:var(--verify)}
+  .block-h.h-forget{color:var(--critical)}
+  .block-h .sec-badge,.block-h .pip{display:none}
+  /* Bloc « Confirmation diagnostique » REPLIABLE (V5) : l'en-tête de section devient le bouton. */
+  /* Gabarit COLLAPSE du canvas : tag 11/800 --soft + summary 12/700 --link + chevron --link,
+     tête 48px, panneau bordé radius 8. Partagé « Après stabilisation » / « Carte des blocs ». */
+  .conf-block{background:var(--surface);border:1px solid var(--line);border-radius:8px;margin-bottom:10px;overflow:hidden}
+  .conf-head{display:flex;align-items:center;gap:8px;width:100%;background:none;border:0;padding:11px 12px;cursor:pointer;font-family:inherit;text-align:left;min-height:48px}
+  .conf-head .block-h{margin-bottom:0;color:var(--ink-soft)}
+  .conf-sub{flex:1;font-size:12px;font-weight:700;color:var(--link);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  .conf-chev{margin-left:auto;color:var(--link);font-weight:800;font-size:15px;padding:0 4px;flex:none}
+  .conf-head:focus-visible{outline:2px solid var(--primary);outline-offset:-2px;border-radius:8px}
+  .conf-block ul.flat{margin:0;padding:10px 12px 12px;border-top:1px solid var(--line)}
+  .block-h .pip{width:9px;height:9px;border-radius:3px;flex-shrink:0}.block-h .spc{flex:1}
+  /* V5 : plus de badge d'icône — kicker textuel seul (le registre passe par la couleur du texte). */
+  .block-h .sec-badge{display:none}
+  .block-h .sec-ic{flex-shrink:0}
+  .h-confirm .sec-badge,.h-img .sec-badge{background:var(--primary-100)}
+  .h-verify .sec-badge{background:var(--verify-soft)}
+  .h-forget .sec-badge{background:var(--critical-soft)}
+  /* Le triangle (WARN_GLYPH) est dessiné bas dans son viewBox : remonté d'1 px pour rester centré sur le titre. */
+  .h-forget .sec-ic{position:relative;top:-1px}
+  .h-diff .sec-badge{background:var(--surface-3)}
+  .h-main .sec-badge{background:var(--surface);box-shadow:inset 0 0 0 1px var(--primary-200)}
+  .h-confirm{color:var(--primary-dk)} .h-confirm .pip{background:var(--primary)}
+  .h-verify{color:var(--verify)} .h-verify .pip{background:var(--verify)}
+  .h-forget{color:var(--critical)} .h-forget .pip{background:var(--critical)}
+  .h-diff{color:var(--ink-soft)} .h-diff .pip{background:var(--ink-soft)}
+  .h-img{color:var(--primary-dk)} .h-img .pip{background:var(--primary)}
+  .h-main{color:var(--primary-dk)}
+  .h-pos{color:var(--ink-soft)}
+  .block-care{margin-bottom:22px}   /* plus d'encadré bleu (canvas SPEC-crise) : étiquette + contenu à nu */
+  /* Panneau ALGORITHME repliable (canvas turn 6) — le contenu SVG lui-même est inchangé. */
+  .alg-panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;margin-bottom:10px;overflow:hidden}
+  .alg-head{display:flex;align-items:center;gap:8px;width:100%;min-height:48px;padding:11px 12px;background:none;border:0;border-bottom:1px solid var(--line);cursor:pointer;font-family:inherit;text-align:left}
+  .alg-k{flex:none;font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-soft)}
+  .alg-sub{flex:1;min-width:0;font-size:12px;font-weight:700;color:var(--link);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .alg-chev{flex:none;color:var(--link);font-size:15px;font-weight:800}
+  .alg-head:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
+  .alg-panel .flow-zoom{padding:8px 12px 0}
+  .alg-panel .flow-scroll{border:0;border-radius:0;margin-bottom:8px;max-height:300px;-webkit-overflow-scrolling:touch}
+  .alg-panel .flow-hint{margin:0 4px 10px}
+  /* Repères posologiques (canvas) : cartes ; « ⚠ » en tête = registre ALERTE. */
+  .pos-card{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:13px 15px;margin-bottom:6px;color:var(--ink)}
+  .read-side .pos-card{margin-bottom:0}   /* le rail espace déjà (gap 12) */
+  .pos-name{font-size:14.5px;font-weight:800;color:var(--link)}
+  .pos-body{margin-top:5px;font-size:14px;line-height:1.5}
+  .pos-card>.pos-body:first-child{margin-top:0}
+  .pos-card.crit{background:var(--critical-soft);border-color:var(--critical-bd)}
+  .pos-card.crit .pos-name{color:var(--critical)}
+  .pos-card.crit b{color:var(--critical)}
+  .read-side .pos-block{margin-bottom:14px}
+  .flow-toggle{text-transform:none;letter-spacing:0;background:var(--surface);border-color:var(--primary-300);color:var(--primary-dk);white-space:nowrap}
+  /* Indice reliant le schéma (vue d'ensemble) à la checklist d'étapes en dessous. */
+  .flow-hint{font-size:11.5px;color:var(--ink-soft);text-align:center;margin:-4px 0 12px}
+  .rt-ic{flex-shrink:0}
+  ol.steps{list-style:none;margin:0;padding:0;counter-reset:s}
+  /* Rangée cochable (canvas section 6) : n° mono 14 · libellé 16.5/800 · case 36px à droite ;
+     min 64px, rangée entière cliquable ; transition .25s vers l'état coché. */
+  ol.steps li{counter-increment:s;display:flex;gap:12px;align-items:center;min-height:64px;background:var(--surface);border:1px solid var(--line-hover);border-left:3px solid var(--ink);border-radius:8px;padding:12px;margin-bottom:6px;cursor:pointer;transition:opacity .25s,background .25s,border-color .25s}
+  ol.steps li::before{content:counter(s,decimal-leading-zero);font-family:var(--mono);font-size:14px;font-weight:700;color:var(--ink-soft);width:30px;flex:none;text-align:center;align-self:flex-start;padding-top:3px}
+  ol.steps li .txt{flex:1;font-size:16.5px;font-weight:800;line-height:1.45}
+  /* Case à cocher À DROITE (canvas), 36px, vide = bordure 2px grise sur fond transparent. */
+  ol.steps li .box{order:3;width:36px;height:36px;border:2px solid var(--line-strong);border-radius:6px;flex-shrink:0;display:grid;place-items:center;color:var(--on-primary);background:transparent}
+  ol.steps li .txt{order:2}
+  /* Étape CRITIQUE (préfixe « ⚠ » dans la chaîne, V5) : registre ALERTE — fond, liseré et texte.
+     Déclarée AVANT .done : une étape critique cochée redevient « faite » (verte, barrée). */
+  ol.steps li.crit{background:var(--critical-soft);border-color:var(--critical-bd);border-left-color:var(--critical-bd)}
+  ol.steps li.crit .txt{color:var(--critical);font-weight:700}
+  ol.steps li.crit::before{color:var(--critical)}
+  ol.steps li.crit .box{border-color:var(--critical-bd)}
+  /* Étape VIGILANCE (préfixe « △ ») : registre ATTENTION — ambre, même grammaire que « ⚠ ». */
+  ol.steps li.vigil{background:var(--verify-soft);border-color:var(--verify);border-left-color:var(--verify)}
+  ol.steps li.vigil .txt{color:var(--verify);font-weight:700}
+  ol.steps li.vigil::before{color:var(--verify)}
+  ol.steps li.vigil .box{border-color:var(--verify)}
+  /* Étape COCHÉE : registre CONFIRMATION (coche et liseré VERTS, V5 — canvas turn 6). La coche
+     ENTRE avec le « pop » du canvas (échelle .6 -> 1.15 -> 1, transform seul : composité). */
+  /* Cochée : les deux types (action ET critique) CONVERGENT vers le même vert doux — l'urgence
+     est traitée (canvas). Fond/bordure/texte --done-*, opacité .6, coche verte pleine 19px. */
+  ol.steps li.done{background:var(--done-bg);opacity:.6;border-color:var(--done-line);border-left-color:var(--done-line)}
+  ol.steps li.done .box{background:var(--ok);border-color:var(--ok);color:var(--surface)}
+  ol.steps li.done .box svg{animation:pop .25s ease}
+  ol.steps li.done .txt{text-decoration:line-through;color:var(--done-ink);font-weight:400}
+  ol.steps li.done::before{color:var(--done-ink)}
+  @keyframes pop{0%{transform:scale(.6)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
+  .card .pinbtn.on svg{animation:pop .25s ease}
+  ul.flat{list-style:none;margin:0;padding:0}
+  ul.flat.verify{display:flex;flex-wrap:wrap;gap:8px}
+  ul.flat.verify li{flex:1;min-width:250px;margin-bottom:0;border-radius:8px;padding:11px 14px;font-size:14.5px}
+  ul.flat li{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 14px;margin-bottom:8px;font-size:15px;display:flex;gap:11px;align-items:flex-start}
+  ul.flat li::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;flex-shrink:0;margin-top:8px;opacity:.5}
+  ul.forget li{background:var(--critical-soft);border-color:var(--critical-line);color:var(--critical)}
+  /* « À vérifier » : panneaux NEUTRES (V5) — l'ambre reste porté par l'en-tête de section
+     (la couleur signale le registre, pas chaque item). */
+  ul.diff li{color:var(--ink-soft)}
+  .nav-wrap{margin-bottom:6px;scroll-margin-top:74px}
+  .nav-wrap.dec{border-radius:8px;padding:12px 14px;margin-bottom:10px}
+  .crumbs{display:flex;flex-wrap:wrap;gap:5px;align-items:center;font-size:11px;font-weight:700;color:var(--ink-soft);margin:2px 0 8px}
+  .crumbs .cb{background:var(--tag-bg);color:var(--ink-soft);padding:5px 10px;min-height:32px;display:inline-flex;align-items:center;border-radius:12px;cursor:pointer}.crumbs .cb:not(.cur):hover{background:var(--primary-200)}.crumbs .cb.cur{background:var(--link);color:var(--surface);cursor:default}
+  [data-theme="dark"] .crumbs .cb:not(.cur):hover{background:#22364d}
+  .crumbs .cb-n{font-family:var(--mono);font-size:11px;opacity:.7;margin-left:2px}
+  .node-title .pass-n{font-family:var(--mono);text-transform:none;letter-spacing:0;font-weight:600;color:var(--primary);margin-left:7px}
+  .node-title{font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-soft);margin-bottom:10px}
+  .nav-wrap.dec .node-title{color:var(--verify)}
+  .question{font-size:16px;font-weight:700;line-height:1.3;margin:2px 0 10px}
+  .options{display:grid;gap:10px}
+  .options{gap:8px}
+  /* Options de décision : MÊME hauteur que les rangées d'étapes (64px — retour utilisateur,
+     conforme au canvas) ; une seule échelle de cliquables dans le parcours. */
+  .opt{display:flex;align-items:center;gap:10px;text-align:left;background:transparent;border:1px solid var(--verify-bd);border-radius:8px;padding:11px 13px;min-height:64px;font-size:15px;font-weight:600;color:var(--ink);width:100%;cursor:pointer}
+  .opt:hover{background:var(--surface)}.opt .arr{margin-left:auto;color:var(--verify)}
+  .nav-wrap.dec{background:var(--verify-soft);border:1px solid var(--verify-bd);border-left:4px solid var(--verify-bd)}
+  .opt[disabled]{opacity:.55;cursor:default}.opt.taken{opacity:1;background:var(--primary-soft);border-left-color:var(--primary)}.opt.taken .arr{color:var(--primary)}
+  .flow-ctrl{display:flex;gap:9px;margin-top:14px;flex-wrap:wrap}
+  /* Masqué visuellement mais lu par les lecteurs d'écran (zone aria-live). */
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+  /* Navigation en mode crise (Continuer / Précédent / Recommencer…) : cible tactile confortable (>= 44px).
+     Sélecteur .btn.sm (spécificité supérieure) pour l'emporter sur la règle .btn.sm générique. */
+  .flow-ctrl .btn.sm,.flow-ctrl .btn{min-height:44px}
+  /* Fin de branche/d'algorithme : registre CONFIRMATION (vert, taxonomie V5). */
+  .endcap{display:block;text-align:center;font-size:13px;color:var(--ok);font-weight:800;letter-spacing:.8px;margin-top:12px;border:2px solid var(--ok);background:var(--ok-soft);border-radius:var(--radius-sm);padding:11px 13px}
+  .mini.bld{font-weight:800;font-size:14px}
+  .node-img{width:100%;border-radius:10px;border:1px solid var(--line);margin-bottom:14px;cursor:zoom-in;display:block}
+  .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+  .gthumb img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px;border:1px solid var(--line);cursor:zoom-in;display:block}
+  .gcap{font-size:11.5px;color:var(--ink-soft);margin-top:4px;line-height:1.3}
+  .refs{font-size:12.5px;color:var(--ink-soft);border-top:1px solid var(--line);padding-top:14px;margin-top:24px}
+  .refs b{color:var(--ink);display:block;margin-bottom:6px;font-size:11px;letter-spacing:1px;text-transform:uppercase}
+  .refs ol{margin:0;padding-left:18px}.refs li{margin-bottom:3px}
+  /* (Barre « Autorat — hors urgence » supprimée — SPEC gestion §4 : les actions vivent dans le
+     menu ⋯ de l'en-tête.) */
+  /* runtime — V5 : le panneau minuteurs SUIT LE THÈME (canvas turn 6 : cartes claires bordées en
+     thème clair, sombres en thème sombre) ; l'accent primaire porte l'action, l'ambre l'alarme. */
+  .rt-panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px;box-shadow:var(--shadow);-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+  /* Pendant un « maintenir pour réinitialiser » : aucune sélection de texte possible nulle part. */
+  body.hold-noselect,body.hold-noselect *{-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important}
+  .rt-head{display:flex;align-items:center;gap:8px;margin-bottom:11px}
+  .rt-head b{color:var(--ink-soft);font-size:11px;letter-spacing:1.2px;text-transform:uppercase;flex:1}
+  .rt-ic{color:var(--primary)}
+  .rt-sound{background:var(--surface);border:1px solid var(--line-strong);color:var(--ink-soft);border-radius:8px;padding:6px 13px;min-height:44px;font-size:12px;font-weight:600}
+  /* ✕ de repli du panneau (canvas) : en étroit seulement — en large la colonne est permanente. */
+  .rt-x{background:none;border:0;color:var(--ink-soft);font-size:20px;line-height:1;min-width:36px;min-height:36px;border-radius:8px;cursor:pointer;flex:none}
+  .rt-x:hover{background:var(--surface-2);color:var(--ink)}
+  .rt-x:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  @media (min-width:1000px){.rt-x{display:none}}
+  /* Son COUPÉ = état risqué en crise -> signalé en ambre (pas seulement un changement de libellé). */
+  .rt-sound.off{color:var(--verify);border-color:var(--verify);background:var(--verify-soft)}
+  .rt-warn{background:var(--verify-soft);border:0;color:var(--verify);border-radius:8px;padding:6px 9px;min-height:44px;font-size:11.5px;font-weight:600;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+  .rt-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+  /* Petits écrans (iPhone) : on garde AU MOINS 2 minuteurs par ligne (compact), mais on EMPILE les
+     boutons de chaque carte -> chacun prend toute la largeur de la carte, sans texte tronqué. */
+  @media (max-width:430px){.tm-ctrl{flex-direction:column}.tm-btn{flex:0 0 auto;width:100%;font-size:12.5px}}
+  .rt-counters{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:10px}
+  /* Anatomie du canvas (rail droit) : UNE variable d'état --tcol pilote libellé + temps +
+     barre (+ bordure via --tbd) ; courant = bleu, ÉCHU = AMBRE (le rouge reste réservé aux
+     memory items / vital), en pause = encre douce + texte « — EN PAUSE » (jamais couleur seule). */
+  .tmcard,.cncard{--tcol:var(--link);--tbd:var(--line);background:var(--surface);border:1.5px solid var(--tbd);border-radius:8px;padding:12px 14px;color:var(--ink)}
+  .tmcard.due{--tcol:var(--verify-hi);--tbd:var(--verify-bd)}
+  .tmcard.paused{--tcol:var(--ink-soft)}
+  .cncard{text-align:center}
+  .tmcard.flash{animation:fl .5s ease 3}
+  @keyframes fl{50%{background:var(--alert);border-color:var(--alert-strong);color:var(--alert-ink)}}
+  /* Hors flash : display:none (pas seulement opacity:0). Avec `forwards`, la couche jaune restait
+     active dans le compositeur après le flash et Safari iOS s'en servait pour teinter la barre du
+     bas de l'écran en jaune ; la classe .on est retirée en fin d'animation (voir flashScreen). */
+  #screenFlash{position:fixed;inset:0;pointer-events:none;z-index:99;opacity:0;background:var(--alert-hi);display:none}
+  #screenFlash.on{display:block;animation:sf 2s ease-out forwards}
+  @keyframes sf{0%{opacity:.55}60%{opacity:.3}100%{opacity:0}}
+  .tm-label{display:flex;align-items:center;gap:6px;font-size:10.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--tcol);margin-bottom:6px}
+  .cncard .tm-label{justify-content:center;color:var(--ink-soft)}
+  .tm-rm{margin-left:auto;background:none;border:0;color:var(--ink-soft);font-size:16px;line-height:1;min-width:32px;min-height:32px;border-radius:7px;cursor:pointer;flex:none}
+  .tm-rm:hover{background:var(--critical-soft);color:var(--critical)}
+  .tm-rm:focus-visible{outline:2px solid var(--critical);outline-offset:2px}
+  .rt-add{margin-top:10px;min-height:38px;border:1.5px dashed var(--line);border-radius:8px;color:var(--link);font-size:12.5px;font-weight:700}
+  .read-side .rt-add{margin-top:0}
+  .tm-val,.cn-val{font-family:var(--mono);font-size:26px;font-weight:700;line-height:1.15;font-variant-numeric:tabular-nums}
+  .tm-val{color:var(--tcol)}
+  .tm-cyc{font-size:12px;color:var(--ink-soft);margin-top:3px}
+  /* Barre de progression : proportion du temps RESTANT — elle SE VIDE (canvas). */
+  .tm-bar-wrap{height:4px;background:var(--line);border-radius:2px;margin:6px 0;overflow:hidden}
+  .tm-bar{height:100%;background:var(--tcol);width:100%;transition:width 1s linear}
+  .tm-ctrl,.cn-ctrl{display:flex;gap:6px;margin-top:9px}
+  .cn-ctrl{justify-content:center}
+  /* Bordure --line-strong = délimitation du bouton >= 3:1 (WCAG 1.4.11) ;
+     min-height 44px = règle « mode crise » du projet. */
+  /* Actions 36px visuels (canvas), zone tactile étendue à 44px par ::after (règle AGENTS). */
+  .tm-btn{position:relative;flex:1;min-width:0;display:inline-flex;align-items:center;justify-content:center;gap:5px;background:var(--surface);color:var(--ink-soft);border:1px solid var(--line);border-radius:7px;padding:6px;min-height:36px;font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background .12s,opacity .12s;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+  .tm-btn::after{content:"";position:absolute;inset:-4px}
+  .tm-btn:hover{background:var(--surface-2)}
+  .tm-main{flex:1.2;background:var(--surface);border:1.5px solid var(--link);color:var(--link);font-weight:800}.tm-main:hover{background:var(--primary-soft)}
+  /* « En cours » = accent FROID plein (primaire) : le chaud est réservé aux alarmes (fin de
+     cycle) et aux gestes destructifs, jamais à un état neutre qui tourne. */
+  .tm-main.run{background:var(--surface);border-color:var(--link);color:var(--link)}.tm-main.run:hover{background:var(--primary-soft)}
+  .tm-btn:disabled{opacity:.32;cursor:default}.tm-btn:disabled:hover{background:var(--surface)}
+  .cn-btn{flex:1;min-height:38px;border-radius:7px;border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);font-size:20px;font-weight:600}
+  .cn-btn:hover{background:var(--surface-2)}
+  /* Réinit. d'un compteur (maintenir) : secondaire, sous les boutons +/−. */
+  .cn-reset{margin:9px auto 0;min-width:120px;padding:6px 14px;min-height:44px;background:var(--surface);color:var(--ink-soft);border:1px solid var(--line-strong);border-radius:8px;font-size:11.5px;font-weight:600;-webkit-user-select:none;user-select:none}
+  .cn-reset:hover{background:var(--surface-2)}
+  /* Horodatage : outil SECONDAIRE -> panneau CLAIR (le panneau sombre reste réservé aux minuteurs/compteurs) */
+  .tk-panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:13px 14px;margin-bottom:14px;box-shadow:var(--shadow)}
+  .tk-head{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+  .tk-head b{color:var(--ink-soft);font-size:11px;letter-spacing:1px;text-transform:uppercase;flex:1}
+  .tk-add{background:var(--primary);color:var(--on-primary);border:0;border-radius:var(--radius-sm);padding:8px 13px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
+  .tk-add:hover{background:var(--primary-hi)}
+  .tk-item{border-top:1px solid var(--line)}
+  .tk-row{display:flex;gap:9px;align-items:center;padding:8px 0}
+  .tk-item .tk-row{padding-bottom:0}
+  .tk-item:has(.tk-orig-row) .tk-row{padding-bottom:2px}
+  .tk-time{font-family:var(--mono);font-size:14px;color:var(--ink);white-space:nowrap;cursor:pointer;border-radius:6px;padding:2px 6px;min-height:32px;display:inline-flex;align-items:center;margin:-2px 0}
+  .tk-time:hover{background:var(--primary-soft)}
+  .tk-time-edit{font-family:var(--mono);font-size:14px;width:76px;flex-shrink:0;padding:2px 5px;border:1px solid var(--primary);border-radius:6px;background:var(--input-bg);color:var(--ink)}
+  .tk-orig-row{font-size:11px;color:var(--ink-soft);padding:0 0 8px;display:flex;align-items:center;gap:7px}
+  .tk-orig{background:none;border:0;color:var(--ink-soft);font-size:11px;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+  .tk-orig:hover{color:var(--primary)}
+  .tk-el{font-family:var(--mono);font-size:11px;color:var(--ink-soft);white-space:nowrap;min-width:46px}
+  .tk-lab{flex:1;min-width:0;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--input-bg);color:var(--ink);font-size:14px}
+  .tk-lab:focus{outline:2px solid var(--primary);border-color:transparent}
+  .tk-del{flex-shrink:0;width:38px;height:44px;border:0;border-radius:8px;background:var(--bg);color:var(--ink-soft);font-size:17px}
+  .tk-del:hover{background:var(--critical-soft);color:var(--critical)}
+  .tk-panel.empty .tk-head{margin-bottom:0}
+  /* Bandeau de session (mode lecture) : discret tant qu'inactif, mis en avant « en cours » */
+  .session-bar{display:flex;gap:8px 10px;flex-wrap:wrap;align-items:center;margin-bottom:16px;border-radius:12px;padding:11px 13px}
+  .session-bar.idle{background:var(--surface-2);border:1px dashed var(--line)}
+  .session-bar.idle .sess-hint{flex:1;min-width:160px;font-size:12.5px;color:var(--ink-soft);line-height:1.35}
+  .session-bar.live{background:var(--primary-soft);border:1px solid var(--primary-300)}
+  .session-bar.live .sess-info{flex:1;min-width:140px;display:flex;flex-direction:column;line-height:1.25}
+  .session-bar.live .sess-info b{font-size:13px;color:var(--primary-dk);letter-spacing:.2px}
+  .session-bar.live .sess-info span{font-size:11.5px;color:var(--ink-soft)}
+  .session-bar .sess-acts{display:flex;gap:7px;flex-wrap:wrap}
+  /* Halo animé en transform/opacity sur un pseudo-élément (COMPOSITÉ) : l'ancienne animation de
+     box-shadow forçait un repaint continu pendant toute la durée d'une session, crise comprise. */
+  .sess-dot{--pulse:29,122,56;width:9px;height:9px;border-radius:50%;background:var(--ok);flex-shrink:0;position:relative}
+  .sess-dot::after{content:'';position:absolute;inset:0;border-radius:50%;background:rgba(var(--pulse),.45);animation:pulse 2s infinite;pointer-events:none}
+  @keyframes pulse{0%{transform:scale(1);opacity:1}70%{transform:scale(2.6);opacity:0}100%{transform:scale(2.6);opacity:0}}
+  [data-theme="dark"] .sess-dot{--pulse:55,214,122}
+  /* Rappel « session en cours » dans l'en-tête : pastille verte (--ok). */
+  #brandSub .sess-dot{display:inline-block;width:8px;height:8px;background:var(--ok);vertical-align:0;margin:0 1px}
+  .sess-livetag{font-size:11px;font-weight:700;color:var(--primary-dk);background:var(--primary-soft);padding:1px 7px;border-radius:10px;margin-left:6px}
+  .sess-list{background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius-md);padding:6px 10px;margin-bottom:18px}
+  /* Rangée d'historique : les ACTIONS passent sous le titre quand elles ne tiennent pas (téléphone),
+     plutôt que d'écraser le titre sur plusieurs lignes. Titre = une ligne tronquée (…). */
+  .sess-row{display:flex;gap:8px 10px;align-items:center;flex-wrap:wrap;padding:9px 2px;border-bottom:1px solid var(--line)}
+  .sess-row:last-child{border-bottom:0}.sess-row .si{flex:1;min-width:150px}
+  .sess-row .sn{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sess-row .sd{font-size:11.5px;color:var(--ink-soft)}
+  .sess-row .sess-acts{display:flex;gap:7px;flex-wrap:wrap;flex:none;margin-left:auto}
+  /* Accueil : sessions en cours (SPEC §5) — une carte par session, empilées (gap 8px), surface
+     + bordure primaire + liseré gauche 3px, chrono mono tabular, Terminer en TEXTE rouge. */
+  .live-sessions{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+  .ls-card{display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:var(--surface);border:1px solid var(--primary);border-left:3px solid var(--primary);border-radius:10px;padding:10px 12px;box-shadow:var(--shadow)}
+  .ls-info{flex:1;min-width:150px;display:flex;flex-direction:column;line-height:1.25;cursor:pointer}
+  .ls-info .ls-k{font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink-soft)}
+  .ls-info .ls-t{font-size:14.5px;font-weight:700;color:var(--ink)}
+  .ls-chrono{font-family:var(--mono);font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--ink)}
+  .ls-end{background:none;border:0;color:var(--critical);font-family:inherit;font-size:13px;font-weight:700;min-height:40px;padding:0 12px;border-radius:9px;cursor:pointer}
+  .ls-end:hover{background:var(--critical-soft)}
+  .ls-end:focus-visible{outline:2px solid var(--critical);outline-offset:2px}
+  .tag.live{background:var(--ok-soft);color:var(--ok);font-weight:700}   /* ● En cours : vert session (un seul vocabulaire) */
+  .tag.libtag{display:inline-flex;align-items:center;gap:4px;background:var(--primary-soft);color:var(--primary-dk);max-width:55vw;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.tag.libtag svg{flex:none;opacity:.85}
+  .card.has-live{border-color:var(--primary-300)}
+  /* Banderoles d'alerte (minuteur d'une session non visible) */
+  #alerts{position:fixed;left:0;right:0;top:0;z-index:80;display:flex;flex-direction:column;align-items:center;gap:8px;padding:calc(8px + env(safe-area-inset-top)) 12px 0;pointer-events:none}
+  /* Couleur AMBRE volontairement distincte de l'en-tête vert (sinon les deux bandeaux se confondent
+     et on rate l'alerte) : halo + quelques pulsations pour attirer l'œil. */
+  .alert-toast{pointer-events:auto;position:relative;overflow:hidden;max-width:520px;width:100%;display:flex;gap:11px;align-items:center;background:linear-gradient(180deg,var(--alert-hi),var(--alert));color:var(--alert-ink);border:1px solid var(--alert-strong);border-radius:12px;padding:12px 13px;box-shadow:0 10px 30px rgba(50,35,0,.34);cursor:pointer;animation:toastIn .28s ease,toastPulse 1.1s ease-in-out .3s 3}
+  .alert-toast.out{opacity:0;transform:translateY(-8px);transition:opacity .4s,transform .4s;animation:none}
+  .alert-toast .at-ic{font-size:22px;flex-shrink:0}
+  .alert-toast .at-tx{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.25}
+  .alert-toast .at-tx b{font-size:14px;color:var(--alert-ink)}.alert-toast .at-tx span{font-size:12px;color:var(--alert-ink)}
+  .alert-toast .at-x{background:rgba(0,0,0,.13);border:0;color:var(--alert-ink);border-radius:8px;width:38px;height:38px;font-size:17px;flex-shrink:0;cursor:pointer}
+  @keyframes toastIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes toastPulse{0%,100%{box-shadow:0 10px 30px rgba(50,35,0,.34),0 0 0 0 rgba(242,176,28,0)}50%{box-shadow:0 10px 30px rgba(50,35,0,.34),0 0 0 7px rgba(242,176,28,.5)}}
+  /* editor */
+  .field{margin-bottom:18px}
+  .field>label{display:block;font-size:12px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--ink-soft);margin-bottom:7px}
+  /* Ligne label + bouton (ex. « B » du contexte local) : le bouton reste HORS du <label>
+     (un bouton DANS un label devient son contrôle implicite -> cliquer le libellé cliquait le bouton). */
+  .field .lab-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:7px}
+  .field .lab-row>label{display:block;font-size:12px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--ink-soft)}
+  .field .hint{font-weight:400;text-transform:none;letter-spacing:0;color:var(--ink-soft);font-size:12px}
+  .field input[type=text],.field textarea,.field select{width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:10px;background:var(--input-bg);color:var(--ink)}
+  .field input:focus,.field textarea:focus,.field select:focus{outline:2px solid var(--primary);border-color:transparent}
+  .row2{display:flex;gap:12px}.row2>.field{flex:1;min-width:0}
+  /* Date de validation non interprétée : on signale (bordure rouge) sans bloquer la saisie. */
+  #f-validation.val-bad{border-color:var(--critical);background:var(--critical-soft)}
+  .list-edit .li{display:flex;gap:8px;margin-bottom:8px;align-items:flex-start}.list-edit .li input{flex:1;min-width:0}
+  .li-num{font-family:var(--mono);font-size:13px;color:var(--ink-soft);min-width:22px;padding-top:12px;text-align:right}
+  .mini{border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);width:34px;height:42px;border-radius:var(--radius-sm);font-size:16px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+  .mini:hover{background:var(--surface-2);color:var(--ink)}.mini.del:hover,.cm-del:hover{color:var(--critical);border-color:var(--critical-line);background:var(--critical-soft)}
+  /* Étapes d'un bloc : les boutons ↑ ↓ × sont sur une ligne (non flex) -> petit espace entre eux. */
+  .blk .li .mini+.mini{margin-left:7px}
+  .add-line{margin-top:4px;border:1px dashed var(--line);background:transparent;color:var(--primary-dk);padding:9px 13px;border-radius:var(--radius-sm);font-size:13.5px;font-weight:600;width:100%}
+  .add-line:hover{background:var(--primary-soft);border-color:var(--primary-soft)}
+  fieldset{border:0;margin:0 0 4px;padding:0;min-width:0}
+  .sub2{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--ink-soft);margin:0 0 8px}
+  .trow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+  .trow input[data-tf],.trow input[data-cf]{flex:1;min-width:130px;padding:9px 11px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--input-bg)}
+  .trow input[type=number]{padding:9px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--input-bg)}
+  .trow span{font-size:12px;color:var(--ink-soft)}
+  .catpick{display:flex;gap:7px;flex-wrap:wrap}
+  .catpill{border:1.5px solid var(--line);background:var(--input-bg);padding:7px 14px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer}
+  /* Sélecteur d'ÉTAT segmenté (V5) : ○ Brouillon / △ À relire / ✓ Validé(e) + phrase d'aide. */
+  .statuseg{display:flex;gap:6px;flex-wrap:wrap}
+  .st-seg{display:inline-flex;align-items:center;min-height:38px;padding:0 13px;border-radius:18px;border:1.5px solid var(--line-strong);background:var(--input-bg);color:var(--ink-soft);font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer}
+  .st-seg.on{background:var(--primary-soft);border-color:var(--primary);color:var(--primary-dk)}
+  .st-seg:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .st-hint{font-size:11.5px;color:var(--ink-soft);margin-top:5px}
+  /* Bascule du type d'étape (éditeur de blocs) : ⚠ critique (rouge) / △ vigilance (ambre). */
+  .crit-tgl.on{color:var(--critical);border-color:var(--critical);background:var(--critical-soft)}
+  .crit-tgl.vig{color:var(--verify);border-color:var(--verify);background:var(--verify-soft);font-size:14px;font-weight:800}
+  .flow-prev-h{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--ink-soft);margin:0 0 7px}
+  .flow-scroll{width:100%;overflow:auto;border:1px solid var(--line);border-radius:10px;background:#fff;padding:8px;-webkit-overflow-scrolling:touch;margin-bottom:14px;max-height:75vh}
+  .flow-zoom{display:flex;align-items:center;gap:7px;margin-bottom:7px}
+  .fz{border:1px solid var(--line);background:var(--surface);color:var(--ink);width:42px;height:40px;border-radius:var(--radius-sm);font-size:18px;font-weight:600;line-height:1;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+  .fz:hover{background:var(--surface-2)}.fz-r{width:auto;padding:0 11px;font-size:12.5px}
+  .fz-spc{flex:1}
+  .fzv{font-family:var(--mono);font-size:12px;color:var(--ink-soft);min-width:46px;text-align:center}
+  /* Plein écran de l'algorithme SVG (zoom + défilement, pinch natif) */
+  #flowFull{position:fixed;inset:0;z-index:90;background:var(--bg);display:none;flex-direction:column}
+  #flowFull.on{display:flex}
+  #flowFull .ff-bar{display:flex;align-items:center;gap:7px;padding:calc(9px + env(safe-area-inset-top)) 12px 9px;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:0 1px 6px rgba(16,27,40,.06)}
+  #flowFull .ff-scroll{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px;background:#fff}
+  .blk{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
+  .blk-top{display:flex;align-items:center;gap:8px;margin-bottom:11px}
+  .blk-type{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;padding:3px 8px;border-radius:6px}
+  .blk-type.steps{background:var(--surface-3);color:var(--ink)}.blk-type.decision{background:var(--verify-soft);color:var(--verify)}
+  .blk-top input,.optedit input{flex:1;min-width:0;padding:9px 11px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--input-bg)}
+  .blk .sub{font-size:11px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;color:var(--ink-soft);margin:12px 0 7px}
+  .startbtn{border:1px solid var(--line);background:var(--input-bg);color:var(--ink-soft);border-radius:8px;padding:7px 12px;min-height:32px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
+  .optedit{display:flex;gap:8px;margin-bottom:8px;align-items:center}
+  .optedit select{flex:1;min-width:0}
+  .imgrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.imgrow img{height:54px;border-radius:8px;border:1px solid var(--line)}
+  .add-blocks{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:6px}
+  .btn{padding:11px 17px;border-radius:var(--radius-md);font-size:14px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ink);transition:background .12s,border-color .12s,box-shadow .12s,transform .06s;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px}
+  .btn:active{transform:translateY(1px)}
+  .btn:hover{background:var(--surface-2);border-color:var(--line-hover)}.btn.primary{background:var(--primary);color:var(--on-primary);border-color:var(--primary);box-shadow:0 1px 2px rgba(23,71,127,.2),0 4px 12px rgba(23,71,127,.16)}.btn.primary:hover{background:var(--primary-hi);border-color:var(--primary-hi)}
+  .btn.danger{color:var(--critical);border-color:var(--critical-line)}.btn.danger:hover{background:var(--critical-soft)}
+  /* « Maintenir pour réinitialiser » un minuteur : jauge = fond qui se remplit pendant l'appui
+     (le texte reste lisible au-dessus). Libellé sur 2 lignes -> indice « maintenir » visible. */
+  .tm-reset{touch-action:none;display:flex;flex-direction:column;justify-content:center;line-height:1.05;padding-top:4px;padding-bottom:4px;min-height:36px}
+  /* Minuteurs ADDITIONNELS (ad hoc) : rangée compacte 48px — libellé · temps · ⟲ · ✕. */
+  .tm-mini{display:flex;align-items:center;gap:10px;min-height:48px;padding:8px 12px;margin-top:8px;background:var(--surface);border:1px solid var(--line);border-radius:8px}
+  .read-side .tm-mini{margin-top:0}
+  .tm-mini.due{border-color:var(--verify-bd)}
+  .tm-mini.due :is(.tmm-t,.tmm-l){color:var(--verify-hi)}
+  .tmm-l{flex:1;min-width:0;font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tmm-t{font-family:var(--mono);font-size:18px;font-weight:700;font-variant-numeric:tabular-nums}
+  .tmm-b{position:relative;width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:7px;background:none;color:var(--ink-soft);font-size:15px;cursor:pointer;flex:none}
+  .tmm-b::after{content:"";position:absolute;inset:-4px}
+  .tmm-b:hover{background:var(--surface-2)}
+  .tmm-b:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .cn-note{font-size:11px;color:var(--ink-soft);margin-top:4px}
+  .tm-reset .tmr-lab,.tm-reset .tmr-hint{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  .tm-reset .tmr-hint{font-size:11px;font-weight:700;opacity:.65;text-transform:uppercase;letter-spacing:.5px;margin-top:1px}
+  .tm-reset.holding{background-color:var(--surface-2);background-image:linear-gradient(color-mix(in srgb,var(--alarm) 60%,transparent),color-mix(in srgb,var(--alarm) 60%,transparent));background-repeat:no-repeat;background-size:0% 100%;animation:holdfill .8s linear forwards}
+  @keyframes holdfill{to{background-size:100% 100%}}
+  .btn.sm{padding:8px 13px;font-size:13px;min-height:38px}.btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* Registre CONFIRMATION sur un bouton (V5) : « Continuer » quand le bloc est entièrement coché. */
+  .btn.okay{background:var(--ok);border-color:var(--ok);color:var(--surface)}
+  .btn.okay:hover{background:color-mix(in srgb,var(--ok) 88%,var(--ink));border-color:var(--ok)}
+  /* Bouton CONTINUER (canvas section 6) : min 50px, 800 ; désactivé = contour + libellé qui dit
+     POURQUOI (« Cochez les étapes restantes (2) ») ; actif = vert plein + destination annoncée. */
+  .btn.cont{flex:1 1 auto;width:100%;min-height:50px;font-weight:800;font-size:15px;letter-spacing:.3px;border-radius:9px;border:2px solid var(--ok);display:flex;align-items:center;justify-content:center;gap:7px}
+  .btn.cont.idle{background:transparent;border:2px solid var(--line);color:var(--ink-soft);cursor:default}
+  .btn.cont.idle:hover{background:transparent}
+  /* §9 nav secondaire : [ Bloc précédent | Recommencer ] flex, sous le bloc courant. */
+  .flow-nav{display:flex;gap:8px;margin:10px 0 22px}  /* respire avant la section suivante (contexte local) */
+  .flow-nav>button{flex:1;min-height:44px;display:flex;align-items:center;justify-content:center;gap:5px;border:1px solid var(--line);border-radius:8px;background:transparent;font-size:13.5px;font-weight:700;cursor:pointer;color:var(--ink-soft);padding:6px}
+  .flow-nav>#navBack{color:var(--link)}
+  .flow-nav>button:hover{background:var(--surface)}
+  .flow-nav>button:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .flow-nav>button[disabled]{opacity:.4;cursor:default}
+  .flow-nav>button[disabled]:hover{background:transparent}
+  .flow-nav .tmr-hint{font-size:11px;font-weight:700;opacity:.6;text-transform:uppercase;letter-spacing:.5px}
+  /* §8 fin d'algorithme : état annoncé + la session CONTINUE (Terminer ≠ terminer la session). */
+  .flow-end{margin-top:8px;padding:15px;text-align:center;border:2px solid var(--done-line);border-radius:8px;color:var(--ok);font-size:15px;font-weight:800;letter-spacing:1px}
+  /* §12 pied de contenu : défile avec la fiche, jamais fixe. */
+  .crisis-footer{margin-top:16px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:11.5px;color:var(--ink-soft);font-weight:600}
+  .crisis-footer .cf-ok{color:var(--ok)}
+  /* Barre Enregistrer/Supprimer COLLANTE en bas : sur un formulaire à ~16 sections, « Enregistrer »
+     reste visible en permanence (sinon il faut dérouler tout le formulaire pour sortir proprement). */
+  /* (SPEC §6 : plus de pied d'éditeur — Enregistrer/Aperçu vivent dans l'en-tête, Supprimer en
+     fin de formulaire, cf. .ed-del.) */
+  /* (kb-open : plus rien à masquer — les actions d'éditeur sont dans l'en-tête sticky.) */
+  .back{background:var(--surface);border:1px solid var(--line);color:var(--primary);font-size:13.5px;font-weight:600;padding:8px 14px 8px 11px;margin-bottom:14px;border-radius:10px;display:inline-flex;align-items:center;gap:6px}.back:hover{background:var(--primary-soft);border-color:var(--primary-soft);color:var(--primary-dk)}
+  /* (create-band supprimée — le choix de méthode vit dans le dialogue « Créer », SPEC §2.1.) */
+  /* Pied de page COMPACT (une seule ligne qui replie au besoin) : version · synchro · stockage
+     — tout le contenu passif tient sur ~34px ; « Installer l'app » s'y glisse s'il apparaît. */
+  footer.tools{border-top:1px solid var(--line);padding:7px 18px calc(9px + env(safe-area-inset-bottom));display:flex;flex-wrap:wrap;gap:2px 14px;align-items:center}
+  footer.tools .lbl{font-size:11.5px;color:var(--ink-soft)}
+  .tools-actions{display:contents}   /* le bouton (masqué par défaut) devient un item direct de la ligne */
+  .tools-status{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+  .storage-gauge{font-size:11px;color:var(--ink-soft);line-height:1.4}
+  /* Accueil large : le pied de page N'EXISTE PLUS en bas d'écran — son contenu (version,
+     synchro, stockage) vit en bas de la sidebar (l'élément est DÉPLACÉ, jamais recréé :
+     ses ids et écouteurs restent vivants — cf. placeFooter()). */
+  .home-side footer.tools{margin-top:auto;flex-direction:column;align-items:flex-start;gap:4px;border-top:1px solid var(--line);padding:12px 2px 2px;margin-top:auto}
+  .storage-gauge .pers-ok{color:var(--ok);font-weight:600}
+  .storage-gauge .pers-warn{color:var(--verify)}
+  .tlink{background:none;border:0;color:var(--primary);font-size:13px;font-weight:600;padding:6px 10px;min-height:32px;display:inline-flex;align-items:center;gap:4px;border-radius:8px}.tlink:hover{background:var(--primary-soft)}#installBtn{display:none}
+  /* (La taille du texte vit dans la fenêtre Compte depuis V5 — plus de bouton Aa au pied de page.) */
+  /* Pastille d'état de synchro : discrète, jamais bloquante (app critique). */
+  .sync-chip{font-size:11px;font-weight:600;padding:2px 9px;border-radius:999px;display:inline-flex;align-items:center;gap:5px;line-height:1.7}
+  .sync-chip[hidden]{display:none} /* le display:inline-flex ci-dessus prime sinon sur [hidden] (même origine auteur) */
+  .sync-chip::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.85}
+  .sync-chip.off{color:var(--ink-soft);background:var(--primary-soft)}
+  .sync-chip.ok{color:var(--ok);background:var(--ok-soft)}
+  .sync-chip.busy{color:var(--verify);background:var(--verify-soft)}
+  .sync-chip.err,.sync-chip.rejected{color:var(--critical);background:var(--critical-soft);cursor:pointer}
+  .sync-chip.pending{color:var(--verify);background:var(--verify-soft);cursor:pointer}
+  .auth-field{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--input-bg);color:var(--ink);font-size:16px;margin:6px 0}
+  .auth-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:6px}
+  .auth-msg{font-size:13px;margin:8px 0 0;min-height:18px}
+  .auth-msg.err{color:var(--critical)}.auth-msg.ok{color:var(--primary)}
+  /* Fenêtre Compte */
+  .auth-card-in{display:flex;align-items:center;gap:13px;margin-bottom:4px}
+  .auth-avatar{width:48px;height:48px;border-radius:50%;background:var(--primary);color:var(--on-primary);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;letter-spacing:.5px;flex:none}
+  .auth-id{min-width:0}
+  .auth-email{font-size:15px;font-weight:650;color:var(--ink);word-break:break-all;line-height:1.3}
+  .auth-state{font-size:12.5px;color:var(--ok);display:flex;align-items:center;gap:6px;margin-top:3px}
+  .auth-state .auth-dot{width:8px;height:8px;border-radius:50%;background:var(--ok);flex:none}
+  .auth-state.pending{color:var(--verify)}.auth-state.pending .auth-dot{background:var(--verify)}
+  .auth-state.err{color:var(--critical)}.auth-state.err .auth-dot{background:var(--critical)}
+  .auth-state.off{color:var(--ink-soft)}.auth-state.off .auth-dot{background:var(--line-strong)}
+  /* État de l'instance (app-admin) : petites cartes de compteurs. */
+  .inst-stats-wrap{margin:14px 0 4px}
+  .auth-stats-h{font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft);margin:0 0 8px}
+  .inst-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:8px;margin:0 0 16px}
+  .inst-stat{background:var(--primary-soft);border-radius:10px;padding:9px 10px;text-align:center}
+  .inst-stat .is-v{display:block;font-size:18px;font-weight:700;color:var(--ink)}   /* donnée passive : encre, pas l'accent */
+  .inst-stat .is-k{display:block;font-size:11px;color:var(--ink-soft);margin-top:2px}
+  .pend-badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;margin-left:6px}
+  .pend-badge.pending{color:var(--verify);background:var(--verify-soft)}
+  .pend-badge.rejected{color:var(--critical);background:var(--critical-soft)}
+  .auth-sub{font-size:13.5px;color:var(--ink-soft);line-height:1.55;margin:12px 0 18px}
+  .auth-actions{display:flex;flex-direction:column;gap:10px}
+  /* Zone structurante de la fenêtre Compte (« Cet appareil », « Administration ») : frontière
+     nette entre gérer MON COMPTE et gérer CET APPAREIL (audit v4.5). */
+  .acct-zone{border-top:1px solid var(--line);margin-top:18px;padding-top:14px}
+  .ts-seg{min-width:52px;justify-content:center}
+  .ts-90{font-size:12px}.ts-100{font-size:14px}.ts-115{font-size:16px}.ts-130{font-size:18px}
+  .auth-actions .btn{width:100%;justify-content:center}
+  /* Zone tampon entre l'action FRÉQUENTE (Synchroniser, primary) et les actions de compte qui
+     suivent (Se déconnecter…) : un tap légèrement trop bas ne doit pas déclencher une
+     déconnexion — l'espacement fait partie de la protection. */
+  .auth-actions .btn.primary+.btn{margin-top:14px}
+  .auth-hero{text-align:center;margin-bottom:18px}
+  .auth-privacy{font-size:11.5px;color:var(--ink-soft);line-height:1.5;margin:8px 0 0;text-align:center}
+  /* Le message vide ne réserve plus ~60px sous le bouton (rythme inégal, audit v4.5). */
+  .auth-msg:empty{display:none}
+  /* Sélecteur de taille du texte : 38px visibles + halo -> cible tactile >= 44px. */
+  .st-seg.ts-seg{position:relative}
+  .st-seg.ts-seg::after{content:"";position:absolute;inset:-4px}
+  .auth-hero-ic{width:56px;height:56px;border-radius:15px;background:var(--primary-soft);color:var(--primary);display:inline-flex;align-items:center;justify-content:center;margin-bottom:11px}
+  .auth-hero h4{margin:0 0 5px;font-size:17px;color:var(--ink)}
+  .auth-hero .auth-sub{margin:0}
+  .auth-label{display:block;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft);margin-bottom:6px}
+  .auth-full{width:100%;justify-content:center;margin-top:8px}
+  .auth-code{text-align:center;letter-spacing:8px;font-size:22px;font-weight:700;padding-left:8px}
+  /* Lien discret « Supprimer mon compte » + écran de confirmation */
+  .auth-danger{display:block;width:100%;min-height:44px;margin-top:8px;padding:9px;background:none;border:0;color:var(--critical);font-size:13px;font-weight:600;cursor:pointer;border-radius:8px}
+  .auth-danger:hover{background:var(--critical-soft)}
+  .auth-del{text-align:center}
+  .auth-hero-ic.danger{background:var(--critical-soft);color:var(--critical)}
+  .auth-del .auth-sub{text-align:left}
+  .auth-check{display:flex;gap:9px;align-items:flex-start;text-align:left;font-size:13.5px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px 12px;margin:4px 0 6px;cursor:pointer}
+  .auth-check input{margin-top:2px;flex:none}
+  /* .auth-check pose display:flex -> l'attribut [hidden] (UA : display:none) est moins spécifique
+     et ne masquerait pas la case ; règle explicite pour la case optionnelle de confirmDlg. */
+  .auth-check[hidden]{display:none}
+  .auth-confirm-lbl{text-align:left;font-size:13px;color:var(--ink-soft);margin:14px 0 6px}.auth-confirm-lbl b{color:var(--critical)}
+  .auth-confirm{text-align:center;letter-spacing:2px;font-weight:600;text-transform:uppercase}
+  .auth-admin-note{font-size:12.5px;color:var(--ink-soft);text-align:center;margin:16px 0 0;line-height:1.5}
+  .btn:disabled{opacity:.4;cursor:not-allowed}.btn.danger:disabled:hover{background:var(--critical-soft)}
+  /* Explication « où sont mes fiches ? » */
+  .storage-gauge[role=button]:hover{text-decoration:underline}
+  .stg-card{border:1px solid var(--line);border-radius:12px;padding:13px 14px;margin-bottom:12px}
+  .stg-local{background:var(--critical-soft)}.stg-cloud{background:var(--primary-soft)}
+  .stg-h{display:flex;align-items:center;gap:8px;font-size:14.5px}.stg-ic{font-size:20px}
+  .stg-card p{font-size:13.5px;line-height:1.55;margin:7px 0;color:var(--ink)}
+  .stg-warn{color:var(--critical)}
+  .stg-tip{font-size:12.5px;color:var(--ink-soft);background:rgba(0,0,0,.04);border-radius:8px;padding:8px 10px}
+  /* « Réparer l'application » : zone secondaire, séparée des explications de stockage. */
+  .stg-repair{margin-top:16px;padding-top:14px;border-top:1px solid var(--line);text-align:center}
+  .stg-repair-hint{font-size:12px;color:var(--ink-soft);line-height:1.5;margin:8px 0 0}
+  [data-theme="dark"] .stg-tip{background:rgba(255,255,255,.05)}
+  .stg-ul{margin:7px 0 0;padding-left:18px;font-size:13.5px;line-height:1.55;color:var(--ink)}.stg-ul li{margin:3px 0}
+  .auth-why{margin-top:16px;border-top:1px solid var(--line);padding-top:10px}
+  .auth-why>summary{cursor:pointer;font-size:14px;font-weight:650;color:var(--primary);list-style:none;display:flex;align-items:center;gap:7px;padding:4px 0}
+  .auth-why>summary::-webkit-details-marker{display:none}
+  .auth-why>summary::before{content:"▸";font-size:11px;opacity:.8;transition:transform .15s}
+  .auth-why[open]>summary::before{transform:rotate(90deg)}
+  .auth-why-body{padding-top:6px}
+  /* Toast non bloquant (notifications de synchro/conflit) : n'interrompt jamais l'usage. */
+  /* Snackbar V5 : ardoise bleu nuit FIXE dans les deux thèmes (tokens --rt-*), 4-6 s, une seule
+     à la fois ; JAMAIS pendant une session de crise (mise en attente, cf. toast()). */
+  .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translate(-50%,16px);max-width:min(560px,92vw);background:var(--rt-card);color:var(--rt-ink);border:1px solid var(--rt-line);font-size:13.5px;line-height:1.5;padding:12px 15px;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.28);z-index:120;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;overflow:hidden}
+  .toast.on{opacity:1;transform:translate(-50%,0)}
+  /* Barre de vie des toasts (durée via animation-duration inline) : indique quand le toast va
+     disparaître. `currentColor` -> contraste garanti sur les deux fonds (toast sombre, alerte ambre). */
+  .t-life{position:absolute;left:0;bottom:0;height:3px;width:100%;background:currentColor;opacity:.45;transform-origin:left;animation:tLife linear forwards;pointer-events:none}
+  @keyframes tLife{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+  .vers-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+  .vers-row .vt{font-size:13px;color:var(--ink-soft)}
+  .vers-acts{display:flex;gap:7px;flex-wrap:wrap}
+  /* Diff de versions : + rétabli (bleu), − supprimé (vermillon), sur fond doux. */
+  .vers-diff{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:9px 12px;margin:8px 0 4px}
+  .diff-h{font-size:12px;font-weight:700;color:var(--ink-soft);margin:6px 0 4px;text-transform:uppercase;letter-spacing:.4px}
+  .diff-line{font-size:13px;line-height:1.45;padding:1px 0}
+  .diff-line.add{color:var(--primary-dk)}.diff-line.del{color:var(--critical)}
+  .diff-note{font-size:11.5px;color:var(--ink-soft);margin:8px 0 2px}
+  .lightbox{position:fixed;inset:0;background:rgba(16,27,40,.92);z-index:100;display:none;align-items:center;justify-content:center;padding:20px;flex-direction:column;gap:14px}
+  .lightbox.on{display:flex}.lightbox img{max-width:100%;max-height:82vh;border-radius:8px}
+  .lightbox .cap{color:#cfe0dd;font-size:13px;text-align:center;max-width:600px}
+  .lightbox .x{position:absolute;top:calc(14px + env(safe-area-inset-top));right:16px;background:rgba(255,255,255,.15);color:#fff;border:0;width:46px;height:46px;border-radius:50%;font-size:24px}
+  /* « ai- » : préfixe HISTORIQUE (première fenêtre = « Créer via IA ») devenu le préfixe GÉNÉRIQUE
+     de toutes les modales (Compte, PDF, confirmations…) — ai-modal/ai-card/ai-x/ai-top/ai-actions.
+     Ne pas y lire un lien avec l'IA ; renommer casserait sélecteurs CSS+JS pour un gain nul. */
+  .ai-modal{position:fixed;inset:0;background:rgba(16,27,40,.55);z-index:55;display:none;align-items:flex-start;justify-content:center;padding:calc(18px + env(safe-area-inset-top)) 14px calc(18px + env(safe-area-inset-bottom));overflow:auto}
+  .ai-modal.on{display:flex}
+  /* CONFIRMATIONS : petite carte CENTRÉE verticalement, à toutes les largeurs — jamais en plein
+     écran (une question d'une ligne n'occupe pas 100dvh) ni collée en haut. */
+  .ai-modal.dlg-confirm{align-items:center}
+  .dlg-confirm .ai-card{max-width:420px;box-shadow:0 12px 40px rgba(0,0,0,.3)}
+  .dlg-confirm h3{font-size:17px;font-weight:800}
+  .dlg-confirm .ai-x{font-size:17px;color:var(--ink-soft)}
+  .ai-card{background:var(--surface);border-radius:14px;max-width:720px;width:100%;margin:auto;padding:20px;box-shadow:var(--shadow)}
+  /* La fenêtre « Gérer les catégories » ne dépasse jamais l'écran (encoche/horloge incluses) : la
+     carte est plafonnée et la LISTE défile à l'intérieur ; l'en-tête reste visible. */
+  #catModal .ai-card{display:flex;flex-direction:column;max-height:calc(100dvh - 36px - env(safe-area-inset-top) - env(safe-area-inset-bottom));overflow:hidden}
+  #catModal #catMgrBody{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;min-height:0}
+  .ai-card .ai-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
+  .ai-card h3{margin:0;font-size:18px;font-weight:680;flex:1}
+  /* Fermeture des fenêtres : cible 44x44 (marges négatives -> l'en-tête de la carte ne grossit pas). */
+  .ai-card .ai-x{background:none;border:0;color:var(--ink-soft);font-size:24px;line-height:1;width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;border-radius:10px;margin:-10px -10px -10px 0;flex:none}
+  .ai-card .ai-x:hover{background:var(--surface-2);color:var(--ink)}
+  .ai-card p{font-size:13px;color:var(--ink-soft);margin:0 0 10px;line-height:1.5}
+  .ai-card ol{font-size:13px;color:var(--ink-soft);margin:0 0 12px;padding-left:20px;line-height:1.5}
+  .ai-ta{width:100%;height:300px;border:1px solid var(--line);border-radius:10px;padding:12px;font-family:var(--mono);font-size:12px;line-height:1.5;background:var(--surface-2);color:var(--ink);white-space:pre;overflow:auto}
+  /* Aperçu de compte-rendu (dans la fenêtre) : reprend le style du document imprimé, en zone défilable. */
+  .report-preview{max-height:min(60vh,520px);overflow:auto;border:1px solid var(--line);border-radius:10px;padding:16px 18px;background:var(--surface)}
+  .report-preview h1{display:none}  /* redondant avec le titre de la fenêtre ; conservé dans le document imprimé/téléchargé */
+  .report-preview h2{font-size:13px;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-soft);margin:20px 0 7px;border-bottom:1px solid var(--line);padding-bottom:4px}
+  .report-preview .meta{color:var(--ink-soft);font-size:13px;margin-bottom:5px}
+  .report-preview table{width:100%;border-collapse:collapse;font-size:13.5px}
+  .report-preview td{padding:5px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+  .report-preview td:first-child{white-space:nowrap}
+  .report-preview ul{margin:0;padding-left:20px;font-size:13.5px}
+  .report-preview .muted{color:var(--ink-soft)}
+  .report-preview .foot{margin-top:22px;font-size:11px;color:var(--ink-soft);border-top:1px solid var(--line);padding-top:8px}
+  .ai-actions{display:flex;gap:9px;flex-wrap:wrap;margin:12px 0 4px}
+  .ai-note{font-size:12px;color:var(--ink-soft);margin:6px 0 0;line-height:1.45}
+  /* Dialogue « Créer » (design exact du canvas, section 6) : fenêtre min(480px,100%) ; cartes de
+     méthode 64px, bordure 1.5px srchBd, glyphe 20px + libellé + chevron › ; sous-écran IA :
+     libellés d'étape « 1 · … », prompt monospace 180px max, « Copier » = SEUL bouton plein du
+     dialogue ; zones de dépôt en pointillés. */
+  /* Gabarit « dialogue 480 » du canvas : fenêtre min(480px,100%), titre 17/800, ✕ discret. */
+  .ai-card.dlg-480{max-width:480px;box-shadow:0 12px 40px rgba(0,0,0,.3)}
+  .dlg-480 h3{font-size:17px;font-weight:800}
+  .dlg-480 .ai-x{font-size:17px;color:var(--ink-soft)}
+  .crt-list{display:grid;gap:10px;grid-auto-rows:1fr;margin-bottom:4px}   /* rangées égales : toutes les cartes = la plus haute */
+  .crt-card{display:flex;align-items:center;gap:13px;width:100%;height:100%;min-height:64px;padding:14px;background:var(--surface);border:1.5px solid var(--line-hover);border-radius:11px;font-family:inherit;text-align:left;cursor:pointer;color:var(--ink)}
+  .crt-card:hover{border-color:var(--primary)}
+  .crt-card:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .crt-ic{flex:none;font-size:20px;line-height:1;width:26px;text-align:center;color:var(--ink)}
+  #crtIA .crt-ic{color:var(--alert-strong)}
+  .crt-t{font-size:15px;font-weight:700}
+  .crt-d{font-size:12.5px;color:var(--ink-soft);margin-top:2px;line-height:1.35}
+  .crt-chev{margin-left:auto;color:var(--line-strong);font-weight:700;font-size:17px;flex:none}
+  .crt-back{display:inline-flex;align-items:center;gap:3px;border:0;background:none;padding:0;min-height:40px;margin-bottom:2px;font-family:inherit;font-size:13.5px;font-weight:700;color:var(--primary-dk);cursor:pointer}
+  .crt-back:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:6px}
+  .crt-step{font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft);margin:14px 0 6px}
+  .crt-prompt{font-family:var(--mono);font-size:11.5px;line-height:1.55;background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:11px 13px;max-height:180px;overflow-y:auto;white-space:pre-wrap;color:var(--ink)}
+  [data-theme="dark"] .crt-prompt{background:var(--input-bg)}
+  .crt-copy{min-height:42px;padding:0 16px;border:0;border-radius:9px;background:var(--primary);color:var(--on-primary);font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer}
+  .crt-copy:hover{background:var(--primary-hi)}
+  .crt-copy:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .crt-drop{display:flex;align-items:center;justify-content:center;gap:8px;min-height:84px;width:100%;border:1.5px dashed var(--line-strong);border-radius:11px;background:none;color:var(--primary-dk);font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;text-align:center;padding:20px}
+  .crt-drop.pad-lg{padding:26px 20px}
+  .crt-drop.on,.crt-drop:hover{border-color:var(--primary);background:var(--primary-soft)}
+  .crt-drop:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .crt-note{font-size:11.5px;color:var(--ink-soft);line-height:1.5;margin:8px 0 0}
+  /* SPEC §6 : en dessous de 780px, les DIALOGUES passent en PLEIN ÉCRAN (100 %, sans arrondi ni
+     voile) — fenêtre centrée min(480px,100%) au-dessus. La visionneuse PDF a déjà son plein écran. */
+  @media (max-width:779.98px){
+    .ai-modal:not(.pdf-modal):not(.dlg-confirm){padding:0;background:var(--bg)}
+    .ai-modal:not(.pdf-modal):not(.dlg-confirm) .ai-card{max-width:none;width:100%;min-height:100dvh;border-radius:0;margin:0;padding:calc(18px + env(safe-area-inset-top)) 16px calc(18px + env(safe-area-inset-bottom))}
+  }
+  /* ----- ACCUEIL V5 (canvas turn 6) : une seule interface responsive. < 780px : recherche pleine
+     largeur, chips bibliothèques/catégories, TAB BAR basse à pastille glissante (au pouce).
+     >= 780px : colonne gauche (sections, bibliothèques, catégories) + grille de cartes fluide.
+     L'état n'est jamais porté par la couleur seule : pastille + encre + graisse + aria-selected
+     (rôles tablist/tab, flèches + focus itinérant — WCAG 1.4.1 & APG). ----- */
+  #tabBar{display:none;position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--surface);border-top:1px solid var(--line);padding:8px 10px calc(12px + env(safe-area-inset-bottom))}
+  body.view-home #tabBar{display:block}
+  #tabBar .tb-in{position:relative;display:flex;gap:8px;max-width:560px;margin:0 auto}
+  #tabBar .tb-pill{position:absolute;top:0;bottom:0;left:0;width:calc(50% - 4px);background:var(--primary-soft);border-radius:26px;transform:translateX(0);transition:transform .3s cubic-bezier(.3,1.2,.4,1);pointer-events:none}
+  #tabBar.protos .tb-pill{transform:translateX(calc(100% + 8px))}
+  #tabBar .tb-btn{flex:1;position:relative;display:flex;align-items:center;justify-content:center;gap:9px;min-height:52px;border-radius:26px;border:0;background:none;font-family:inherit;font-size:14px;font-weight:600;color:var(--ink-soft);cursor:pointer;transition:color .3s}
+  #tabBar .tb-btn.on{color:var(--primary-dk);font-weight:800}
+  #tabBar .tb-btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* La tab bar recouvre le bas de page : l'accueil réserve la place (pied de page accessible). */
+  body.view-home .app{padding-bottom:78px}
+  /* Colonne gauche de l'accueil (>= 780px), rendue par renderHomeList. */
+  .home-side{display:none}
+  .home-main{min-width:0}
+  .list-title{display:none}
+  .hs-h{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-soft);padding:0 12px;margin:16px 0 8px}
+  .home-side>.hs-h:first-child{margin-top:0}
+  .hs-row{display:flex;align-items:center;gap:9px;width:100%;min-height:38px;padding:8px 12px;border:0;border-radius:8px;background:none;font-family:inherit;font-size:13.5px;font-weight:500;color:var(--ink);cursor:pointer;text-align:left}
+  .hs-row:hover{background:var(--surface-2)}
+  .hs-row.on{background:var(--primary-soft);color:var(--primary-dk);font-weight:700}
+  .hs-row:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
+  .hs-row .hs-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .hs-row>.hs-name{flex:1}
+  .hs-row .hs-n{margin-left:auto;color:var(--ink-soft);font-weight:500;font-size:12.5px;flex:none;font-variant-numeric:tabular-nums}
+  .hs-row svg{flex:none}
+  /* Rangée bibliothèque (canvas) : [ zone pick flex:1 | colonne 34px ] — la colonne existe sur
+     TOUTES les rangées (compteurs alignés) : crayon ✎ (admin), cadenas non interactif (lecture
+     seule), vide sinon. Le crayon est un bouton FRÈRE de la rangée (jamais de bouton imbriqué
+     dans un bouton — ARIA APG), pleine hauteur (align-self:stretch -> cible ~34×48px). */
+  .hs-wrap{display:flex;align-items:center;gap:4px}
+  .hs-wrap .hs-row{flex:1;min-width:0}
+  .hs-act{flex:none;width:34px;align-self:stretch;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:var(--ink-soft)}
+  button.hs-act{cursor:pointer}
+  button.hs-act:hover{color:var(--primary-dk);background:color-mix(in srgb,var(--primary) 8%,transparent)}
+  button.hs-act:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
+  .hs-dot{width:9px;height:9px;border-radius:3px;flex:none}
+  .hs-2l{flex:1;min-width:0}
+  .hs-2l .hs-name{display:block}
+  .hs-sub{display:block;font-size:11px;color:var(--ink-soft);font-weight:400;margin-top:1px}
+  .hs-sep{height:1px;flex:none;background:var(--line);margin:12px 8px}   /* flex:none : jamais compressé à 0 quand la sidebar déborde */
+  .hs-add{display:block;width:100%;margin-top:6px;padding:8px 12px;border:1.5px dashed var(--line-strong);border-radius:8px;background:none;color:var(--primary-dk);font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;text-align:center}
+  /* « ⚙ Gérer les catégories » = BASCULE DE MODE (grammaire : pointillé = créer, contour plein
+     muted = gérer/configurer, fond plein = action primaire unique — jamais mélangées). Ouvre un
+     panneau INLINE juste en dessous (pas de dialogue) ; ouvert, bouton et panneau partagent
+     l'accent (lien visuel). */
+  .btn-manage-cats{display:block;width:100%;margin-top:6px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--ink-soft);font-family:inherit;font-size:13px;font-weight:400;text-align:center;cursor:pointer}
+  .btn-manage-cats:hover{background:var(--surface-2)}
+  .btn-manage-cats:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .hs-add:hover{background:var(--primary-soft)}
+  .hs-add:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  @media (min-width:780px){
+    body.view-home #tabBar{display:none}
+    /* COQUE FIXE (canvas) : le shell verrouille la hauteur — en-tête et pied ne bougent jamais,
+       SEULS la sidebar et le contenu scrollent (chacun le sien). C'est pour ça que la sidebar
+       « colle » : plus aucun scroll de page, donc plus aucun déplacement possible à la bascule
+       Aides <-> Protocoles. min-height:0 : sans lui, flexbox refuse de rétrécir le corps et le
+       scroll interne casse. */
+    body.view-home{height:100dvh;overflow:hidden}
+    body.view-home .app{height:100dvh;min-height:0;padding-bottom:0}
+    body.view-home header.bar{flex:none}
+    body.view-home footer.tools{flex:none}
+    body.view-home main{flex:1;min-height:0;display:flex;gap:0;padding:0;max-width:none;margin:0;overflow:hidden}
+    /* Sidebar : collée au bord GAUCHE sur toute la hauteur — même surface que l'en-tête,
+       séparée du contenu par une bordure droite 1px ; jamais une « bulle » flottante. */
+    /* 255px en border-box (box-sizing global) = le rendu du canvas (230px hors padding). */
+    .home-side{display:flex;flex-direction:column;gap:4px;flex:none;width:255px;background:var(--surface);border-right:1px solid var(--line);padding:16px 12px;overflow-y:auto}
+    .home-main{flex:1;min-width:0;overflow-y:auto;padding:18px 22px calc(24px + env(safe-area-inset-bottom))}
+    .home-main>*{max-width:1320px}
+    .list-title{display:block;font-size:15px;font-weight:700;margin:0 0 12px}
+    .list-title span{font-weight:500;color:var(--ink-soft)}
+    /* En large, bibliothèques et catégories vivent dans la colonne gauche (chips retirées du flux). */
+    body.view-home :is(.scopebar,.catbar){display:none}
+  }
+  /* Vue fiche V5 (>= 1000px, canvas turn 6) : colonne droite COLLANTE — minuteurs/compteurs et
+     horodatage sous les yeux pendant toute la checklist ; dans les ÉDITEURS, la colonne porte
+     l'« Aperçu en direct » du brouillon. */
+  @media (min-width:1000px){
+    .read-grid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:0 26px;align-items:start}
+    /* Éditeurs : mêmes plafonds que la lecture — fiche 1fr+320 (860+360 à >= 1200, cf. plus
+       haut), protocole 780+360 centré. */
+    body.view-pedit .read-grid{grid-template-columns:minmax(0,780px) 360px;justify-content:center}
+    .read-side{position:sticky;top:96px;max-height:calc(100vh - 110px);overflow-y:auto;padding:2px}
+    /* Rail « MINUTEURS & COMPTEURS » du mode crise (canvas) : frère droit du contenu, scroll
+       propre, bordure gauche 1px, cartes posées DIRECTEMENT sur le rail (plus de boîte). */
+    body.view-read .read-side{border-left:1px solid var(--line);padding:16px 2px 16px 18px;display:flex;flex-direction:column;gap:12px}
+    .rail-head{display:flex;align-items:center;gap:8px}
+    .rail-title{font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--ink-soft)}
+    .rail-head :is(.rt-sound,.rt-warn){margin-left:auto}
+    .rail-head .rt-sound~.rt-sound,.rail-head .rt-warn~.rt-sound{margin-left:0}
+    .rail-sep{height:1px;background:var(--line);margin:2px 0;flex:none}
+    body.view-read .read-side .rt-grid,body.view-read .read-side .rt-counters{margin-top:0}
+    /* Rail étroit : UNE carte minuteur/compteur par rangée (boutons jamais tronqués). */
+    .read-side .rt-grid,.read-side .rt-counters{grid-template-columns:1fr}
+    /* L'aperçu Markdown inline du protocole devient redondant avec la colonne : masqué en large. */
+    body.view-pedit .md-prev-h,body.view-pedit .md-preview{display:none}
+  }
+  /* Aperçu en direct de l'éditeur (colonne droite >= 1000px) : mini-rendu du brouillon. */
+  .ep-h{font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-soft);margin:0 0 8px}
+  .ep-card{border:1px solid var(--line);border-radius:var(--radius);background:var(--bg);overflow:hidden;box-shadow:var(--shadow)}
+  .ep-band{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--critical-soft);border-bottom:2px solid var(--critical)}
+  .ep-ttl{flex:1;min-width:0;font-size:13.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ep-tag{flex:none;font-size:11px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--critical)}
+  .ep-body{padding:10px 12px 12px;display:flex;flex-direction:column;gap:6px}
+  .ep-forget{border:1px solid var(--critical);border-left:4px solid var(--critical);background:var(--critical-soft);border-radius:7px;padding:7px 10px;font-size:11.5px;line-height:1.4}
+  .ep-fk{font-size:11px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--critical);margin-bottom:2px}
+  .ep-more{color:var(--ink-soft)}
+  .ep-step{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:7px;padding:8px 10px;font-size:12px;font-weight:600}
+  .ep-step.crit{background:var(--critical-soft);border-color:var(--critical);color:var(--critical);font-weight:800}
+  .ep-n{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink-soft);flex:none}
+  .ep-t{flex:1;min-width:0}
+  .ep-box{width:15px;height:15px;border:1.5px solid var(--line-strong);border-radius:4px;flex:none}
+  .ep-step.crit .ep-box{border-color:var(--critical)}
+  .ep-empty{font-size:12px;color:var(--ink-soft);text-align:center;padding:10px 0}
+  .ep-card.ep-md{background:var(--surface);padding:12px 14px;font-size:12.5px}
+  .ep-pttl{font-size:14px;font-weight:800;margin-bottom:8px}
+  .ep-full{width:100%;margin-top:10px}
+  /* Barre du MODE APERÇU (bas de la vue lecture ouverte depuis un éditeur). */
+  /* Suppression en FIN de formulaire (SPEC §6 : pas de pied d'éditeur, actions dans l'en-tête —
+     l'action destructrice reste loin d'Enregistrer). */
+  .ed-del{margin:26px 0 10px;padding-top:14px;border-top:1px solid var(--line)}
+  /* Transition de CONTENU entre sections : la nouvelle liste entre en glissement + fondu (dans le
+     sens de la bascule). transform/opacity seulement -> aucune interaction bloquée pendant l'animation. */
+  @keyframes secInL{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:none}}
+  @keyframes secInR{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+  /* Seule la LISTE glisse (canvas turn 6 : secAnim porte sur la grille de cartes) — la colonne
+     gauche, statique entre les sections, ne bouge pas. */
+  main.sec-anim-l .home-main{animation:secInL .3s cubic-bezier(.25,.1,.25,1)}
+  main.sec-anim-r .home-main{animation:secInR .3s cubic-bezier(.25,.1,.25,1)}
+  @media (prefers-reduced-motion:reduce){#tabBar .tb-pill,#tabBar .tb-btn{transition:none}main.sec-anim-l .home-main,main.sec-anim-r .home-main{animation:none}ol.steps li.done .box svg,.card .pinbtn.on svg{animation:none}}
+  /* ----- Contenu rédigé des protocoles (mini-Markdown) : lecture + éditeur ----- */
+  .md-body{line-height:1.55;font-size:15px}
+  /* Titres de section du contenu rédigé : MÊME registre typographique que les en-têtes de
+     section des fiches (.block-h : petites capitales grasses, espacées) -> UNE seule grammaire
+     de titres dans toute l'app (audit v4.0.3). Sans pip ni badge (contenu libre, pas de
+     sémantique fixe à encoder). h1 (#) un cran plus marqué (encre pleine), h2 (##) courant
+     (encre douce), h3 (###) sous-titre en casse normale ; le CONTENU (15px) reste plus grand
+     que ses titres, comme dans les fiches. */
+  .md-h2{font-size:12.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;margin:20px 0 9px;color:var(--ink-soft)}
+  .md-h3{font-size:14px;font-weight:650;margin:14px 0 6px;color:var(--ink)}
+  .md-body h2:first-child,.md-preview h2:first-child{margin-top:2px}
+  .md-p{margin:0 0 10px;color:var(--ink)}
+  .md-ul,.md-ol{margin:0 0 10px;padding-left:22px}
+  .md-ul li,.md-ol li{margin:3px 0}
+  .md-h1{font-size:13px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin:22px 0 10px;color:var(--ink)}
+  .md-ul .md-ul,.md-ul .md-ol,.md-ol .md-ul,.md-ol .md-ol{margin:3px 0 0;padding-left:20px}
+  .md-q{margin:0 0 10px;padding:6px 0 6px 12px;border-left:3px solid var(--line-strong);color:var(--ink-soft)}
+  .md-ci{font-family:var(--mono);font-size:.92em;background:var(--surface-3);border-radius:5px;padding:1px 5px}
+  .md-code{margin:0 0 10px;padding:10px 12px;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius-sm);overflow-x:auto}
+  .md-code code{font-family:var(--mono);font-size:12.5px;line-height:1.5;white-space:pre}
+  .md-hr{border:0;border-top:1px solid var(--line);margin:14px 0}
+  .md-fig{margin:12px 0}
+  .md-fig img{max-width:100%;border-radius:var(--radius-sm);border:1px solid var(--line);cursor:zoom-in}
+  .md-fig figcaption{font-size:12px;color:var(--ink-soft);margin-top:4px}
+  .md-body a,.md-preview a{color:var(--primary);text-decoration:underline}
+  .md-toolbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+  /* .mini a une LARGEUR FIXE (boutons carrés × ↑ ↓) : ici les libellés varient -> largeur auto. */
+  .md-toolbar .mini{width:auto;min-width:36px;height:34px;padding:0 10px;font-size:13px;font-weight:600;white-space:nowrap}
+  #p-body{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--input-bg);color:var(--ink);font-family:var(--mono);font-size:13px;line-height:1.55;resize:vertical}
+  .md-prev-h{font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-soft);margin:12px 0 6px}
+  .md-preview{border:1px dashed var(--line-strong);border-radius:var(--radius-sm);padding:12px 14px;background:var(--surface-2);min-height:44px;line-height:1.55}
+  /* ----- Recherche transversale : résultats trouvés dans L'AUTRE section (bloc sous la liste) ----- */
+  /* AU-DESSUS de la liste de résultats (jamais noyé sous la pagination) : bandeau compact. */
+  .cross-hits{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;min-height:40px;margin:0 0 10px;padding:8px 14px;background:var(--surface-2);border:1px dashed var(--line-strong);border-radius:var(--radius-md);color:var(--ink-soft);font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit}
+  .cross-hits:hover{background:var(--surface-3);color:var(--ink)}
+  .cross-hits:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* ----- Documents PDF joints : liste en lecture (boutons >=44px) + lignes de l'éditeur ----- */
+  .att-list{display:flex;flex-direction:column;gap:8px}
+  .att-row{display:flex;align-items:center;gap:10px;width:100%;min-height:48px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--surface);color:var(--ink);font-size:14px;text-align:left;cursor:pointer}
+  .att-row:hover{border-color:var(--line-hover);background:var(--surface-2)}
+  .att-row:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .att-ico{flex:none;display:inline-flex;color:var(--primary)}
+  .att-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:560}
+  .att-size{flex:none;font-size:12px;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+  .att-erow{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  /* Sélecteur de document existant : liste défilable, origine du document en 2e ligne. */
+  .attpick-list{max-height:min(52vh,440px);overflow-y:auto;-webkit-overflow-scrolling:touch;margin-top:12px}
+  .attpick-list .att-row{margin-bottom:8px}
+  .att-from{display:block;font-size:11.5px;font-weight:400;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .att-erow input[type="text"]{flex:1;min-width:0;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--input-bg);color:var(--ink)}
+  /* ----- Visionneuse PDF : fenêtre plein écran (barre d'outils + pages défilantes) ----- */
+  .pdf-modal{padding:0}
+  .pdf-card{display:flex;flex-direction:column;width:100%;height:100dvh;background:var(--bg)}
+  .pdf-bar{display:flex;align-items:center;gap:8px;flex:none;padding:calc(8px + env(safe-area-inset-top)) calc(10px + env(safe-area-inset-right)) 8px calc(12px + env(safe-area-inset-left));background:var(--surface);border-bottom:1px solid var(--line)}
+  .pdf-title{flex:1;min-width:0;font-size:14.5px;font-weight:620;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink)}
+  .pdf-tools{display:flex;align-items:center;gap:6px;flex:none}
+  .pdf-bar .ai-x{background:none;border:0;color:var(--ink-soft);font-size:24px;line-height:1;width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;border-radius:10px;flex:none}
+  .pdf-bar .ai-x:hover{background:var(--surface-2);color:var(--ink)}
+  .pdf-scroll{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px calc(10px + env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left))}
+  .pdf-page{position:relative;margin:0 auto 10px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.22)}
+  .pdf-page canvas{display:block;width:100%;height:100%}
+  .pdf-msg{color:var(--ink-soft);text-align:center;padding:34px 16px;font-size:14px}
+  @media (max-width:560px){.pdf-title{font-size:13px}.pdf-tools .fzv{display:none}}  /* petit écran : on garde « Largeur » (le plus utile), on masque le % */
+  .cm-row{border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:8px;background:var(--surface)}
+  .cm-top{display:flex;gap:8px;align-items:center}
+  .cm-dot{width:18px;height:18px;border-radius:6px;flex-shrink:0}
+  .cm-name{flex:1;min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--input-bg);font-size:14px}
+  .cm-count{font-size:11.5px;color:var(--ink-soft);white-space:nowrap;font-variant-numeric:tabular-nums}
+  .cm-sw{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}.cm-sw .sw{width:32px;height:32px;border-radius:7px;cursor:pointer;border:2px solid transparent}
+  .cm-sw .sw.on{border-color:transparent;box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--ink);transform:scale(1.12)}
+  .cm-del{flex-shrink:0;width:34px;height:34px;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:var(--ink-soft);font-size:16px;cursor:pointer}
+  .cm-del:hover{color:var(--critical);background:color-mix(in srgb,var(--critical) 8%,transparent)}
+  .cm-confirm{margin-top:10px;padding:11px;border:1px solid var(--critical-bd);background:var(--critical-soft);border-radius:8px}
+  .cm-confirm p{font-size:12.5px;color:var(--ink);margin:0 0 9px;line-height:1.45}
+  .cm-confirm select{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--input-bg);margin-bottom:9px}
+  .cm-cact{display:flex;gap:8px;flex-wrap:wrap}
+  .cm-add{display:flex;gap:8px;align-items:center;margin-top:6px}
+  .cm-add input{flex:1;min-width:0;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--input-bg);font-size:14px}
+  /* ===== Ajustements transverses ===== */
+  /* Bordures des CHAMPS DE SAISIE : --line-strong (3,9:1) — la limite d'un composant interactif
+     doit atteindre 3:1 (WCAG 1.4.11) ; le srchBd du canvas (1,6:1) est réservé à la barre de
+     recherche (2px, grande surface, identifiée par son placeholder). Arbitré à l'audit v4.5. */
+  :is(.field input[type=text],.field textarea,.field select,.search input,.auth-field,.cm-name,.cm-add input,.tk-lab,.blk-top input,.trow input,.optedit input,.optedit select,.gcap,#relAdd,.ai-ta){border-color:var(--line-strong)}
+  /* Placeholder maîtrisé (sinon gris navigateur non garanti sur nos fonds personnalisés). */
+  ::placeholder{color:var(--ink-soft);opacity:1}
+  /* Lien d'évitement clavier : invisible jusqu'au focus. */
+  .skiplink{position:absolute;left:10px;top:-60px;z-index:200;background:var(--surface);color:var(--primary);font-weight:700;font-size:14px;padding:10px 16px;border-radius:10px;box-shadow:var(--shadow-lg);transition:top .12s}
+  .skiplink:focus-visible{top:calc(10px + env(safe-area-inset-top));outline:2px solid var(--primary);outline-offset:2px}
+  /* Session en cours : le pied de page se réduit à l'ÉTAT (nb de fiches, synchro) — Exporter/
+     Importer/Thème/zoom n'ont rien à faire dans le champ visuel pendant une crise. */
+  body.crisis-live footer.tools :is(.tools-actions,.storage-gauge){display:none}
+  /* Le pied de page n'existe QUE sur l'accueil (bas de la sidebar en large, bas de page en
+     étroit) : en lecture et en édition (aides ET protocoles), rien en bas d'écran — l'input
+     d'import invisible qu'il héberge reste fonctionnel (clic programmatique). */
+  :is(body.view-read,body.view-pread,body.view-edit,body.view-pedit) footer.tools{display:none}
+  /* Cible du rappel minuteurs : arriver SOUS l'en-tête sticky (plus haut avec la 2e ligne). */
+  .rt-panel{scroll-margin-top:130px}
+  /* Focus clavier visible sur TOUS les contrôles interactifs (uniforme avec .btn/.card). */
+  :is(.catchip,.catpill,.tlink,.linkbtn,.mini,.fz,.scopebtn,.opt,.startbtn,.add-line,.notice-x,.tk-add,.tk-del,.cm-del,.ai-x,.rel-x,.back,.flow-toggle,.crumbs .cb,ol.steps li):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .rt-panel :is(.tm-btn,.cn-btn,.rt-sound,.tm-reset,.cn-reset):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  header.bar .bar-acct:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* En-tête « titré » (.titled, posé par setBarTitle) : dans TOUTE vue fiche/protocole — lecture
+     comme édition — le titre remplace la marque, mais SEULEMENT une fois le titre du corps sorti
+     de l'écran (.ttl-on, posée par l'écouteur de scroll) : c'est le pattern « grand titre » iOS
+     complet — en haut de page le titre n'est jamais affiché deux fois (barre + corps), audit
+     v4.0.3. Même géométrie que la marque (17px, une ligne ellipsée + sous-titre) et hauteur de
+     barre STABLE entre les deux états : la rangée d'identité est calée par le bouton Compte
+     (40px), une ou deux lignes de texte y tiennent. */
+  header.bar.titled.ttl-on .brand .brand-name{display:none}
+  /* Au repos (haut de page) : marque seule — le corps affiche déjà le titre et la nature de la
+     vue. setBarTitle pose display en inline -> !important nécessaire pour re-masquer ici. */
+  header.bar.titled:not(.ttl-on) #brandTitle{display:none!important}
+  header.bar.titled:not(.ttl-on) #brandSub{display:none}
+  /* Une fois révélé, le sous-titre (« Aide cognitive », « Protocole », « Édition ») passe SOUS
+     le titre : même structure visuelle que marque + sous-titre. Apparition en fondu discret. */
+  header.bar.titled #brandSub{order:3}
+  header.bar.titled.ttl-on #brandTitle{animation:cbIn .22s ease}
+  /* « Ne pas oublier » : bandeau compact SOUS le titre (les rappels critiques se voient sans défiler). */
+  /* Registre ALERTE compact (canvas turn 6) : kicker « ■ NE PAS OUBLIER » + items en coulée
+     « · » — le rappel critique tient en quelques lignes sous le titre. */
+  .forget-strip{background:var(--critical-soft);border:1px solid var(--critical-bd);border-radius:8px;padding:10px 13px;margin-bottom:10px}
+  .forget-strip .fs-k{font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--critical);margin-bottom:4px}
+  .forget-strip .fs-i{display:flex;gap:9px;align-items:flex-start;font-size:14px;line-height:1.45;padding:2px 0;color:var(--ink)}
+  .forget-strip .fs-i::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--critical);flex:none;margin-top:7px}
+  /* Panneau minuteurs REPLIÉ tant que rien n'est démarré : le contenu clinique passe devant. */
+  .rt-collapsed{width:100%;display:flex;align-items:center;gap:9px;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;margin-bottom:14px;font-size:13px;font-weight:600;cursor:pointer;min-height:44px;text-align:left;box-shadow:var(--shadow)}
+  .rt-collapsed:hover{border-color:var(--line-hover)}
+  .rt-collapsed .rtc-i{flex:1;min-width:0}
+  .rt-collapsed .rtc-open{color:var(--ink-soft);font-size:12px;white-space:nowrap}
+  .rt-collapsed:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* Bouton à MAINTENIR sur fond clair (Recommencer l'algorithme) : même geste anti-accidentel que les minuteurs. */
+  .btn.btn-hold{flex-direction:column;gap:0;line-height:1.05;touch-action:none;padding-top:5px;padding-bottom:5px}
+  .btn.btn-hold .tmr-hint{font-size:11px;font-weight:700;opacity:.6;text-transform:uppercase;letter-spacing:.5px;margin-top:1px}
+  .btn.btn-hold.holding{background-image:linear-gradient(color-mix(in srgb,var(--alarm) 45%,transparent),color-mix(in srgb,var(--alarm) 45%,transparent));background-repeat:no-repeat;background-size:0% 100%;animation:holdfill .8s linear forwards}
+  /* Compteurs : « + » (geste principal) plus large et teinté ; « − » (correction) plus discret. */
+  .cn-btn[data-cninc]{flex:1.4;background:var(--surface);border:1.5px solid var(--link);color:var(--link)}
+  .cn-btn[data-cninc]:hover{background:var(--primary-soft)}
+  .cn-btn[data-cndec]{width:44px}
+  /* Desktop : chips sur plusieurs lignes (le défilement horizontal est un geste tactile) ;
+     bibliothèque sur 2 colonnes quand la place le permet. */
+  /* Large : plus de conteneur à défilement (wrap, overflow visible) -> le halo de tap déborde
+     librement, le padding/marges compensés de .chiprow ne servent plus. */
+  @media (min-width:780px){.chiprow{flex-wrap:nowrap}.catbar .chiprow,.scopebar .chiprow{flex-wrap:wrap;overflow-x:visible;padding:0;margin:0}}
+  /* (Grille des cartes : règle unique auto-fill/minmax(300px,1fr) — cf. .cards plus haut.) */
+  @media (max-width:560px){.read-head h2{font-size:21px}.row2{flex-direction:column;gap:0}.question{font-size:18px}}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}.tmcard.flash{animation:none}#crisisBand{animation:none}header.bar.titled.ttl-on #brandTitle{animation:none}.sess-dot::after{animation:none;opacity:0}}
+  @media print{body{background:#fff}header.bar,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.session-bar,.sess-list,.notes-block{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}}
+</style><style>
+  body{margin:0;padding:0}
+  .ds-scope{background:var(--bg);color:var(--ink);padding:20px 22px 26px;font-family:var(--sans)}
+  .ds-lab{font:700 10px/1 var(--mono);letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-soft);margin:0 0 16px}
+  .ds-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 14px}
+  .ds-col{display:flex;flex-direction:column;gap:12px;margin:0 0 14px}
+  .ds-cap{font-size:11px;color:var(--ink-soft);margin:-6px 0 14px}
+  .ds-item{display:flex;flex-direction:column;gap:5px;align-items:flex-start}
+  .ds-item>small{font:600 10px/1.3 var(--mono);color:var(--ink-soft)}
+  .ds-sw{width:104px;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--surface)}
+  .ds-sw>i{display:block;height:44px}
+  .ds-sw>b{display:block;font:600 9.5px/1.3 var(--mono);padding:5px 7px;color:var(--ink);word-break:break-all}
+  .ds-sw>small{display:block;font-size:9.5px;line-height:1.3;padding:0 7px 6px;color:var(--ink-soft)}
+  .ds-static .toast{position:static;left:auto;bottom:auto;transform:none;opacity:1;pointer-events:auto;max-width:520px}
+  .ds-static #alerts,.ds-static .alerts{position:static;padding:0;align-items:flex-start}
+  .ds-type{margin:0 0 16px}
+  .ds-type>small{display:block;font:600 10px/1 var(--mono);color:var(--ink-soft);margin-bottom:4px}
+</style></head><body>
+<div class="ds-scope" data-theme="light"><p class="ds-lab">Thème clair</p>
+
+<div class="ds-row"><div class="ds-sw"><i style="background:var(--ink)"></i><b>--ink</b><small>texte</small></div><div class="ds-sw"><i style="background:var(--ink-soft)"></i><b>--ink-soft</b><small>texte secondaire</small></div><div class="ds-sw"><i style="background:var(--soft)"></i><b>--soft</b><small>DÉCORATIF seul — jamais du texte</small></div><div class="ds-sw"><i style="background:var(--bg)"></i><b>--bg</b><small>fond de page</small></div><div class="ds-sw"><i style="background:var(--surface)"></i><b>--surface</b><small>cartes</small></div><div class="ds-sw"><i style="background:var(--surface-2)"></i><b>--surface-2</b><small>panneaux</small></div><div class="ds-sw"><i style="background:var(--surface-3)"></i><b>--surface-3</b><small>badges neutres</small></div><div class="ds-sw"><i style="background:var(--line)"></i><b>--line</b><small>bordures douces</small></div><div class="ds-sw"><i style="background:var(--line-hover)"></i><b>--line-hover</b><small>bordures de cartes</small></div><div class="ds-sw"><i style="background:var(--line-strong)"></i><b>--line-strong</b><small>bordures ≥ 3:1 (champs, cases)</small></div><div class="ds-sw"><i style="background:var(--input-bg)"></i><b>--input-bg</b><small>fond des champs</small></div></div>
+<div class="ds-row"><div class="ds-sw"><i style="background:var(--primary)"></i><b>--primary</b><small>bleu clinique — identité / action</small></div><div class="ds-sw"><i style="background:var(--primary-dk)"></i><b>--primary-dk</b><small>texte accent</small></div><div class="ds-sw"><i style="background:var(--primary-hi)"></i><b>--primary-hi</b><small>survol des boutons remplis</small></div><div class="ds-sw"><i style="background:var(--primary-soft)"></i><b>--primary-soft</b><small>fonds bleus</small></div><div class="ds-sw"><i style="background:var(--primary-100)"></i><b>--primary-100</b><small>fonds de tags</small></div><div class="ds-sw"><i style="background:var(--primary-200)"></i><b>--primary-200</b><small>bordures douces</small></div><div class="ds-sw"><i style="background:var(--primary-300)"></i><b>--primary-300</b><small>bordures marquées</small></div><div class="ds-sw"><i style="background:var(--on-primary)"></i><b>--on-primary</b><small>texte sur primary</small></div><div class="ds-sw"><i style="background:var(--link)"></i><b>--link</b><small>liens + minuteur en cours</small></div></div>
+<div class="ds-row"><div class="ds-sw"><i style="background:var(--ok)"></i><b>--ok</b><small>confirmation / issue positive</small></div><div class="ds-sw"><i style="background:var(--ok-soft)"></i><b>--ok-soft</b><small>fonds verts</small></div><div class="ds-sw"><i style="background:var(--verify)"></i><b>--verify</b><small>décision / attente — texte</small></div><div class="ds-sw"><i style="background:var(--verify-bd)"></i><b>--verify-bd</b><small>bordures ambrées</small></div><div class="ds-sw"><i style="background:var(--verify-hi)"></i><b>--verify-hi</b><small>emphase ambrée (échu)</small></div><div class="ds-sw"><i style="background:var(--verify-soft)"></i><b>--verify-soft</b><small>fonds ambrés</small></div><div class="ds-sw"><i style="background:var(--verify-line)"></i><b>--verify-line</b><small>bordures douces ambrées</small></div></div>
+<div class="ds-row"><div class="ds-sw"><i style="background:var(--critical)"></i><b>--critical</b><small>TEXTE / icônes vital-destructif</small></div><div class="ds-sw"><i style="background:var(--critical-bd)"></i><b>--critical-bd</b><small>BORDURES rouges</small></div><div class="ds-sw"><i style="background:var(--critical-soft)"></i><b>--critical-soft</b><small>fonds vermillon</small></div><div class="ds-sw"><i style="background:var(--critical-line)"></i><b>--critical-line</b><small>bordures douces vermillon</small></div></div>
+<p class="ds-cap">TROIS ROUGES distincts, jamais fusionnés : --critical (texte/icônes), --critical-bd (bordures des cartes et bandeaux rouges), et le rouge « Urgences » de PALETTE (#b6382f) — couleur de CATÉGORIE (liseré/pastille), jamais un signal d’alerte.</p>
+<div class="ds-row"><div class="ds-sw"><i style="background:var(--done-bg)"></i><b>--done-bg</b><small>étape cochée — fond</small></div><div class="ds-sw"><i style="background:var(--done-line)"></i><b>--done-line</b><small>étape cochée — bordure</small></div><div class="ds-sw"><i style="background:var(--done-ink)"></i><b>--done-ink</b><small>étape cochée — texte</small></div><div class="ds-sw"><i style="background:var(--tag-bg)"></i><b>--tag-bg</b><small>pilules neutres — fond</small></div><div class="ds-sw"><i style="background:var(--tag-ink)"></i><b>--tag-ink</b><small>pilules neutres — texte</small></div></div>
+<div class="ds-row"><div class="ds-sw"><i style="background:var(--alert)"></i><b>--alert</b><small>banderole d’alerte</small></div><div class="ds-sw"><i style="background:var(--alert-hi)"></i><b>--alert-hi</b><small>alerte vive</small></div><div class="ds-sw"><i style="background:var(--alert-strong)"></i><b>--alert-strong</b><small>bordure alerte</small></div><div class="ds-sw"><i style="background:var(--alert-ink)"></i><b>--alert-ink</b><small>texte sur alerte</small></div><div class="ds-sw"><i style="background:var(--alarm)"></i><b>--alarm</b><small>jauge du geste « maintenir »</small></div><div class="ds-sw"><i style="background:var(--rt-card)"></i><b>--rt-card</b><small>toast ardoise (fixe)</small></div><div class="ds-sw"><i style="background:var(--rt-line)"></i><b>--rt-line</b><small>bordure du toast (fixe)</small></div><div class="ds-sw"><i style="background:var(--rt-ink)"></i><b>--rt-ink</b><small>texte du toast (fixe)</small></div></div>
+<div class="ds-row" style="align-items:flex-end">
+  <div class="ds-item"><span class="acc-sw a-clinique on"></span><small>défaut — bleu clinique</small></div>
+  <div class="ds-item"><span class="acc-sw a-teal"></span><small>sarcelle</small></div>
+  <div class="ds-item"><span class="acc-sw a-violet"></span><small>violet</small></div>
+  <div class="ds-item"><span class="acc-sw a-indigo"></span><small>indigo</small></div>
+  <div class="ds-item"><span class="acc-sw a-framboise"></span><small>framboise</small></div>
+  <div class="ds-item"><span class="acc-sw a-ardoise"></span><small>ardoise</small></div>
+</div>
+<p class="ds-cap">Sémantique FIXE : erreur / danger / arrêt d’un processus vivant = --critical ; décision / attente / avertissement = --verify ; confirmation = --ok — jamais l’inverse. --soft est DÉCORATIF seulement (texte secondaire = --ink-soft). COULEUR D’ACCENT par utilisateur (v4.5) : 5 nuances AA + bleu par défaut, CONNECTÉ seulement ; portée = accueil entier + en-tête de toutes les vues ; le contenu clinique (crise, protocoles, éditeurs) reste bleu clinique ; jamais de vert/ambre/rouge en accent (registres réservés).</p></div>
+<div class="ds-scope" data-theme="dark"><p class="ds-lab">Thème sombre</p>
+
+<div class="ds-row"><div class="ds-sw"><i style="background:var(--ink)"></i><b>--ink</b><small>texte</small></div><div class="ds-sw"><i style="background:var(--ink-soft)"></i><b>--ink-soft</b><small>texte secondaire</small></div><div class="ds-sw"><i style="background:var(--soft)"></i><b>--soft</b><small>DÉCORATIF seul — jamais du texte</small></div><div class="ds-sw"><i style="background:var(--bg)"></i><b>--bg</b><small>fond de page</small></div><div class="ds-sw"><i style="background:var(--surface)"></i><b>--surface</b><small>cartes</small></div><div class="ds-sw"><i style="background:var(--surface-2)"></i><b>--surface-2</b><small>panneaux</small></div><div class="ds-sw"><i style="background:var(--surface-3)"></i><b>--surface-3</b><small>badges neutres</small></div><div class="ds-sw"><i style="background:var(--line)"></i><b>--line</b><small>bordures douces</small></div><div class="ds-sw"><i style="background:var(--line-hover)"></i><b>--line-hover</b><small>bordures de cartes</small></div><div class="ds-sw"><i style="background:var(--line-strong)"></i><b>--line-strong</b><small>bordures ≥ 3:1 (champs, cases)</small></div><div class="ds-sw"><i style="background:var(--input-bg)"></i><b>--input-bg</b><small>fond des champs</small></div></div>
+<div class="ds-row"><div class="ds-sw"><i style="background:var(--primary)"></i><b>--primary</b><small>bleu clinique — identité / action</small></div><div class="ds-sw"><i style="background:var(--primary-dk)"></i><b>--primary-dk</b><small>texte accent</small></div><div class="ds-sw"><i style="background:var(--primary-hi)"></i><b>--primary-hi</b><small>survol des boutons remplis</small></div><div class="ds-sw"><i style="background:var(--primary-soft)"></i><b>--primary-soft</b><small>fonds bleus</small></div><div class="ds-sw"><i style="background:var(--primary-100)"></i><b>--primary-100</b><small>fonds de tags</small></div><div class="ds-sw"><i style="background:var(--primary-200)"></i><b>--primary-200</b><small>bordures douces</small></div><div class="ds-sw"><i style="background:var(--primary-300)"></i><b>--primary-300</b><small>bordures marquées</small></div><div class="ds-sw"><i style="background:var(--on-primary)"></i><b>--on-primary</b><small>texte sur primary</small></div><div class="ds-sw"><i style="background:var(--link)"></i><b>--link</b><small>liens + minuteur en cours</small></div></div>
+<div class="ds-row"><div class="ds-sw"><i style="background:var(--ok)"></i><b>--ok</b><small>confirmation / issue positive</small></div><div class="ds-sw"><i style="background:var(--ok-soft)"></i><b>--ok-soft</b><small>fonds verts</small></div><div class="ds-sw"><i style="background:var(--verify)"></i><b>--verify</b><small>décision / attente — texte</small></div><div class="ds-sw"><i style="background:var(--verify-bd)"></i><b>--verify-bd</b><small>bordures ambrées</small></div><div class="ds-sw"><i style="background:var(--verify-hi)"></i><b>--verify-hi</b><small>emphase ambrée (échu)</small></div><div class="ds-sw"><i style="background:var(--verify-soft)"></i><b>--verify-soft</b><small>fonds ambrés</small></div><div class="ds-sw"><i style="background:var(--verify-line)"></i><b>--verify-line</b><small>bordures douces ambrées</small></div></div>
+<div class="ds-row"><div class="ds-sw"><i style="background:var(--critical)"></i><b>--critical</b><small>TEXTE / icônes vital-destructif</small></div><div class="ds-sw"><i style="background:var(--critical-bd)"></i><b>--critical-bd</b><small>BORDURES rouges</small></div><div class="ds-sw"><i style="background:var(--critical-soft)"></i><b>--critical-soft</b><small>fonds vermillon</small></div><div class="ds-sw"><i style="background:var(--critical-line)"></i><b>--critical-line</b><small>bordures douces vermillon</small></div></div>
+<p class="ds-cap">TROIS ROUGES distincts, jamais fusionnés : --critical (texte/icônes), --critical-bd (bordures des cartes et bandeaux rouges), et le rouge « Urgences » de PALETTE (#b6382f) — couleur de CATÉGORIE (liseré/pastille), jamais un signal d’alerte.</p>
+<div class="ds-row"><div class="ds-sw"><i style="background:var(--done-bg)"></i><b>--done-bg</b><small>étape cochée — fond</small></div><div class="ds-sw"><i style="background:var(--done-line)"></i><b>--done-line</b><small>étape cochée — bordure</small></div><div class="ds-sw"><i style="background:var(--done-ink)"></i><b>--done-ink</b><small>étape cochée — texte</small></div><div class="ds-sw"><i style="background:var(--tag-bg)"></i><b>--tag-bg</b><small>pilules neutres — fond</small></div><div class="ds-sw"><i style="background:var(--tag-ink)"></i><b>--tag-ink</b><small>pilules neutres — texte</small></div></div>
+<div class="ds-row"><div class="ds-sw"><i style="background:var(--alert)"></i><b>--alert</b><small>banderole d’alerte</small></div><div class="ds-sw"><i style="background:var(--alert-hi)"></i><b>--alert-hi</b><small>alerte vive</small></div><div class="ds-sw"><i style="background:var(--alert-strong)"></i><b>--alert-strong</b><small>bordure alerte</small></div><div class="ds-sw"><i style="background:var(--alert-ink)"></i><b>--alert-ink</b><small>texte sur alerte</small></div><div class="ds-sw"><i style="background:var(--alarm)"></i><b>--alarm</b><small>jauge du geste « maintenir »</small></div><div class="ds-sw"><i style="background:var(--rt-card)"></i><b>--rt-card</b><small>toast ardoise (fixe)</small></div><div class="ds-sw"><i style="background:var(--rt-line)"></i><b>--rt-line</b><small>bordure du toast (fixe)</small></div><div class="ds-sw"><i style="background:var(--rt-ink)"></i><b>--rt-ink</b><small>texte du toast (fixe)</small></div></div>
+<div class="ds-row" style="align-items:flex-end">
+  <div class="ds-item"><span class="acc-sw a-clinique on"></span><small>défaut — bleu clinique</small></div>
+  <div class="ds-item"><span class="acc-sw a-teal"></span><small>sarcelle</small></div>
+  <div class="ds-item"><span class="acc-sw a-violet"></span><small>violet</small></div>
+  <div class="ds-item"><span class="acc-sw a-indigo"></span><small>indigo</small></div>
+  <div class="ds-item"><span class="acc-sw a-framboise"></span><small>framboise</small></div>
+  <div class="ds-item"><span class="acc-sw a-ardoise"></span><small>ardoise</small></div>
+</div>
+<p class="ds-cap">Sémantique FIXE : erreur / danger / arrêt d’un processus vivant = --critical ; décision / attente / avertissement = --verify ; confirmation = --ok — jamais l’inverse. --soft est DÉCORATIF seulement (texte secondaire = --ink-soft). COULEUR D’ACCENT par utilisateur (v4.5) : 5 nuances AA + bleu par défaut, CONNECTÉ seulement ; portée = accueil entier + en-tête de toutes les vues ; le contenu clinique (crise, protocoles, éditeurs) reste bleu clinique ; jamais de vert/ambre/rouge en accent (registres réservés).</p></div>
+</body></html>

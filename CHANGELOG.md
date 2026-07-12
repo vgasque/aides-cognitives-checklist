@@ -1,5 +1,54 @@
 # Journal des modifications
 
+## [4.1.0] — 2026-07-12
+Version consolidée : intégration complète du design Claude Design « V5 Explorations » et des
+spécifications écrites qui l'ont suivi (largeurs, écrans de gestion, mode crise, dialogue
+bibliothèque), plus l'audit UX/ECAM/WCAG appliqué. Remplace les versions locales 4.0.4 → 4.4.1,
+jamais publiées, écrasées en une seule entrée.
+
+### Ajouté
+- **Écrans de gestion** : dialogue « Créer » (3 méthodes — rédiger, avec l'IA, importer un
+  fichier ; tout import par ce dialogue arrive en Brouillon ; carte « Reprendre le brouillon ») ;
+  **menu ⋯** en lecture (Modifier, Versions, Dupliquer, Exports, Historique des sessions en
+  modale, « Terminer la session… » — remplace les barres d'autorat et le bandeau session) ;
+  **auto-enregistrement des brouillons** (store meta `draftpark`, fantôme restaurable,
+  « ‹ Retour » remplace « Annuler ») ; dialogue bibliothèque unifié (membres + zone sensible).
+- **Mode crise V5** : bandeau TITRE au registre ALERTE (« ■ MODE CRISE »), minuteurs segmentés
+  dans la barre à toutes les largeurs + chrono GLOBAL « ● Session », rail droit ≥ 1000 px,
+  cartes minuteur refondues (état TEXTUEL, barre 4 px du temps restant, échu = ambre,
+  « ↺ durée »), **minuteurs ad hoc** (`extraTimers`), compteur lié (`counters[].timerId`),
+  bouton Continuer à 2 états (destination annoncée, champ `nextLbl`), confirmation diagnostique
+  = condition d'entrée visible hors session, colonne de contenu au canvas (SPEC-crise).
+- **Statuts 3 états** (validé / à relire / brouillon, pilule achromatique unique), champ `code`
+  court indexé, étapes critiques « ⚠ » et vigilance « △ », section « Repères posologiques »,
+  aperçu d'édition en direct (colonne ≥ 1000 px).
+- **Couleur d'accent par utilisateur** (5 nuances AA + bleu clinique, connecté seulement :
+  accueil entier + en-têtes ; le contenu clinique reste bleu) ; préférences par utilisateur
+  (thème + taille du texte + accent) synchronisées via `data.prefs`.
+- Fenêtre Compte restructurée (gabarit dlg-480, « synchronisé à HH:MM », zones Cet appareil /
+  Administration / Zone sensible, avatar en initiales de l'e-mail).
+
+### Modifié
+- **Palette V5 « bleu clinique »** et tokens (trois rouges distincts, `--ok` confirmation,
+  `--soft` décoratif seulement, `--done-*`/`--tag-*`/`--link`/`--verify-bd`) ; taxonomie des
+  notices à 5 registres ; nouveau logo (bouclier + tracé ECG) ; icônes SVG harmonisées.
+- **Largeurs fermées par vue** (breakpoints 430→1200) : accueil = sidebar 255 px sur coque FIXE
+  + grille ≤ 1320 px ; fiche ≤ 860 px + rail 320→360 px ; protocole ≤ 780 px ; éditeurs alignés
+  sur leur lecture + aperçu sticky 360 px. Pied de page nomade en bas de la sidebar de
+  l'accueil ; export via la fenêtre Compte, import via le dialogue Créer.
+- **Audit ECAM/WCAG appliqué** : contrastes (texte secondaire `--ink-soft`, champs/cases
+  `--line-strong`), plancher typographique 11 px, garde 700 ms anti double-tap sur les retours
+  empilés, halos tactiles 44 px, cartes d'accueil sobres (pilule de catégorie neutre, couleur
+  au liseré seul), impression qui déplie les sections repliées.
+- Docs consolidées : la spécification des largeurs vit dans AGENTS.md (le fichier
+  `docs/SPEC-largeurs.md` est supprimé) ; export Design System (`design/`) régénéré.
+
+### Supprimé
+- **Chaîne de build `dist/`** (dossier, `scripts/build-dist.mjs`, dépendance `terser`, étape 6
+  de `release.sh`) : le dépôt est la seule forme servie — l'entre-deux « build optionnel
+  jamais déployé » était le pire des deux mondes.
+
+
 ## [4.0.3] — 2026-07-11
 Lot de cohérence issu de l'audit design v4 (registres visuels, saillance, accessibilité).
 
