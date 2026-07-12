@@ -2495,21 +2495,36 @@ function completionSpots(f){if(!f||typeof f!=='object')return [];const spots=[];
 // migrate = compatibilité ascendante ET point d'ASSAINISSEMENT (toute fiche chargée/importée/dupliquée
 // y passe). Coerce les types, restreint les identifiants à un jeu sûr (remappés si dangereux, en
 // conservant les liens internes), valide images/couleurs, plafonne les tailles.
-function migrate(f){if(!f||typeof f!=='object')f={};
-  f.id=safeId(f.id,'f');
-  f.title=sstr(f.title,300);f.localInfo=sstr(f.localInfo,4000);
-  // Date de validation normalisée en "AAAA-MM" si interprétable (sinon on garde la chaîne brute bornée,
-  // affichée telle quelle) -> tolérant à l'import tout en visant un format propre.
-  f.validation=parseValidation(f.validation)||sstr(f.validation,16);
-  f.category=safeCatRef(f.category);
-  if(typeof f.order!=='number'||!isFinite(f.order))f.order=Date.now();
-  ['confirmation','verify','notForget','differentials','references','posology'].forEach(k=>f[k]=sarr(f[k],500));
-  // Plafond CUMULÉ en plus du plafond par image (6 M car.) : sans lui, un JSON importé pouvait
-  // légalement porter 200 × 6 M ≈ 1,2 Go de base64 — le serveur refuse de toute façon une ligne
-  // trop lourde (schema.sql), on aligne le client et on évite de figer le téléphone au rendu.
-  // Les images en excès sont IGNORÉES (les premières sont gardées), comme une image invalide.
+// Queue COMMUNE de sanitisation fiche/protocole (audit v4.1.0 : ces règles vivaient en double
+// dans migrate() et migrateProtocol() — une évolution faite d'un seul côté divergeait en silence).
+// Couvre l'identité, les métadonnées éditoriales (status/code/related/updatedBy), les images
+// (plafond par image 6 M car. + plafond CUMULÉ 24 M : sans lui un JSON importé pouvait porter
+// imgMax × 6 M de base64 et figer le téléphone au rendu — images en excès IGNORÉES), les
+// documents PDF (métadonnées seules, entrées invalides rejetées) et la synchro (updatedAt
+// last-write-wins, tombstone deletedAt, ownerId/libraryId ; `dirty` purement local, jamais
+// conservé d'un import).
+function sanitizeEntityCommon(x,idPrefix,imgMax){
+  x.id=safeId(x.id,idPrefix);
+  x.title=sstr(x.title,300);
+  x.validation=parseValidation(x.validation)||sstr(x.validation,16);
+  x.category=safeCatRef(x.category);
+  if(typeof x.order!=='number'||!isFinite(x.order))x.order=Date.now();
   let _imgBudget=24000000;
-  f.images=(Array.isArray(f.images)?f.images:[]).slice(0,200).map(im=>({id:safeId(im&&im.id,'i'),data:safeImg(im&&im.data),caption:sstr(im&&im.caption,300)})).filter(im=>im.data&&(_imgBudget-=im.data.length)>=0);
+  x.images=(Array.isArray(x.images)?x.images:[]).slice(0,imgMax).map(im=>({id:safeId(im&&im.id,'i'),data:safeImg(im&&im.data),caption:sstr(im&&im.caption,300)})).filter(im=>im.data&&(_imgBudget-=im.data.length)>=0);
+  x.attachments=(Array.isArray(x.attachments)?x.attachments:[]).slice(0,MAX_ATT_PER_ENTITY).map(safeAttachment).filter(Boolean);
+  x.status=(x.status==='draft')?'draft':(x.status==='review'?'review':'');
+  x.code=sstr(x.code,40);
+  x.related=(Array.isArray(x.related)?x.related:[]).slice(0,20).filter(id=>typeof id==='string'&&SAFE_ID.test(id)&&BAD_KEYS.indexOf(id)<0);
+  x.updatedBy=sstr(x.updatedBy,160);
+  if(typeof x.updatedAt!=='number'||!isFinite(x.updatedAt))x.updatedAt=(typeof x.order==='number'&&isFinite(x.order))?x.order:Date.now();
+  x.deletedAt=(typeof x.deletedAt==='number'&&isFinite(x.deletedAt))?x.deletedAt:null;
+  x.ownerId=safeMetaId(x.ownerId);x.libraryId=safeMetaId(x.libraryId);
+  delete x.dirty;
+  return x;}
+function migrate(f){if(!f||typeof f!=='object')f={};
+  sanitizeEntityCommon(f,'f',200);
+  f.localInfo=sstr(f.localInfo,4000);
+  ['confirmation','verify','notForget','differentials','references','posology'].forEach(k=>f[k]=sarr(f[k],500));
   // Ancienne fiche "steps" plate -> un bloc d'étapes.
   if(!Array.isArray(f.blocks)){const b={id:uid('b'),type:'steps',title:sstr(f.title||'Prise en charge',300),steps:sarr(f.steps,500),image:null,next:null};f.blocks=[b];f.start=b.id;}
   delete f.steps;f.blocks=f.blocks.slice(0,400).filter(b=>b&&typeof b==='object');
@@ -2526,30 +2541,11 @@ function migrate(f){if(!f||typeof f!=='object')f={};
   // timerId (facultatif, v4.5) : le « ＋ » du compteur RELANCE ce minuteur (canvas : bolus
   //   adrénaline -> repart le cycle). Référence, jamais régénérée : invalide -> '' (cf. safeCatRef).
   f.counters=(Array.isArray(f.counters)?f.counters:[]).slice(0,40).map(c=>({id:safeId(c&&c.id,'n'),label:sstr(c&&c.label,120),step:Math.max(1,Math.min(9999,Math.round(Number(c&&c.step))||1)),start:Math.max(0,Math.min(1e9,Math.round(Number(c&&c.start))||0)),timerId:safeCatRef(c&&c.timerId)}));
-  // Champs FACULTATIFS (rétrocompatibles) :
-  //   status    : '' = validée (défaut historique) | 'review' = à relire (visible, badge △ — V5)
-  //               | 'draft' = brouillon (bandeau + masquée aux lecteurs d'une biblio partagée).
-  //               Un ancien client traite 'review' comme validée : dégradation douce.
-  //   code      : référence courte facultative (ex. URG-ANA-01, V5) — affichée en mono, recherchée.
-  //   related   : ids de fiches liées (« Voir aussi ») — on ne garde que les ids au format sûr, sans en générer.
-  //   updatedBy : e-mail du dernier modificateur (posé par persist() quand connecté ; affiché en biblio partagée).
-  f.status=(f.status==='draft')?'draft':(f.status==='review'?'review':'');
-  f.code=sstr(f.code,40);
-  f.related=(Array.isArray(f.related)?f.related:[]).slice(0,20).filter(id=>typeof id==='string'&&SAFE_ID.test(id)&&BAD_KEYS.indexOf(id)<0);
-  f.updatedBy=sstr(f.updatedBy,160);
-  //   attachments : documents PDF joints — MÉTADONNÉES seules ({id,name,size}) ; le blob vit dans
-  //   le store IndexedDB 'attachments'. Entrées invalides REJETÉES (safeAttachment renvoie null).
-  f.attachments=(Array.isArray(f.attachments)?f.attachments:[]).slice(0,MAX_ATT_PER_ENTITY).map(safeAttachment).filter(Boolean);
-  // Métadonnées de SYNCHRONISATION (rétrocompatibles : défauts posés ici ; utilisées par l'objet Sync
-  // quand on est connecté, sinon simplement stockées sans effet).
-  //   updatedAt : ms de dernière modif (défaut = order ou maintenant) -> résolution de conflit (last-write-wins).
-  //   deletedAt : tombstone de suppression douce (null si vivante).
-  //   ownerId   : uuid du créateur (null = local/perso). libraryId : id de bibliothèque partagée (null = perso).
-  // `dirty` (marqueur local "à pousser") est purement local : posé par persist(), jamais conservé d'un import.
-  if(typeof f.updatedAt!=='number'||!isFinite(f.updatedAt))f.updatedAt=(typeof f.order==='number'&&isFinite(f.order))?f.order:Date.now();
-  f.deletedAt=(typeof f.deletedAt==='number'&&isFinite(f.deletedAt))?f.deletedAt:null;
-  f.ownerId=safeMetaId(f.ownerId);f.libraryId=safeMetaId(f.libraryId);
-  delete f.dirty;
+  // Rappel du modèle (champs communs posés par sanitizeEntityCommon, tous rétrocompatibles) :
+  //   status '' = validée (défaut historique) | 'review' (badge △) | 'draft' (bandeau, masquée aux
+  //   lecteurs d'une biblio partagée ; un ancien client traite 'review' comme validée) ;
+  //   code = référence courte (mono, recherchée) ; related = ids de fiches liées (« Voir aussi ») ;
+  //   timerId d'un compteur : le « ＋ » RELANCE ce minuteur (référence jamais régénérée).
   return f;}
 // Catégories importées/chargées : nom coercé, couleur validée, id restreint (les ids sûrs sont
 // conservés -> les fiches qui les référencent restent associées).
@@ -2570,26 +2566,9 @@ function sanitizeNotes(obj){const out={};if(!obj||typeof obj!=='object')return o
    sécurité/compat (mêmes règles que migrate) : appelé à chaque lecture, import et pull cloud. */
 function blankProtocol(){return {id:uid('p'),title:'',code:'',category:'',validation:'',body:'',images:[],attachments:[],related:[],order:Date.now(),status:'',updatedBy:'',updatedAt:Date.now(),deletedAt:null,ownerId:null,libraryId:null};}
 function migrateProtocol(p){if(!p||typeof p!=='object')p={};
-  p.id=safeId(p.id,'p');
-  p.title=sstr(p.title,300);
-  p.category=safeCatRef(p.category);
-  p.validation=parseValidation(p.validation)||sstr(p.validation,16);
-  p.body=sstr(p.body,MD_MAX_CHARS);
-  if(typeof p.order!=='number'||!isFinite(p.order))p.order=Date.now();
-  // Même plafond cumulé que migrate() pour les fiches (voir le commentaire là-bas).
-  let _imgBudget=24000000;
-  p.images=(Array.isArray(p.images)?p.images:[]).slice(0,60).map(im=>({id:safeId(im&&im.id,'i'),data:safeImg(im&&im.data),caption:sstr(im&&im.caption,300)})).filter(im=>im.data&&(_imgBudget-=im.data.length)>=0);
-  p.attachments=(Array.isArray(p.attachments)?p.attachments:[]).slice(0,MAX_ATT_PER_ENTITY).map(safeAttachment).filter(Boolean);
-  // status/code : mêmes règles que migrate() (3 états V5, code court facultatif).
-  p.status=(p.status==='draft')?'draft':(p.status==='review'?'review':'');
-  p.code=sstr(p.code,40);
-  // related : ids de FICHES liées au protocole (« Fiches liées », V5) — ids sûrs seulement.
-  p.related=(Array.isArray(p.related)?p.related:[]).slice(0,20).filter(id=>typeof id==='string'&&SAFE_ID.test(id)&&BAD_KEYS.indexOf(id)<0);
-  p.updatedBy=sstr(p.updatedBy,160);
-  if(typeof p.updatedAt!=='number'||!isFinite(p.updatedAt))p.updatedAt=(typeof p.order==='number'&&isFinite(p.order))?p.order:Date.now();
-  p.deletedAt=(typeof p.deletedAt==='number'&&isFinite(p.deletedAt))?p.deletedAt:null;
-  p.ownerId=safeMetaId(p.ownerId);p.libraryId=safeMetaId(p.libraryId);
-  delete p.dirty;
+  sanitizeEntityCommon(p,'p',60);
+  p.body=sstr(p.body,MD_MAX_CHARS);   // contenu rédigé (mini-Markdown) — spécifique au protocole
+  // related : ids de FICHES liées au protocole (« Fiches liées », V5).
   return p;}
 function seed(catId){const b1=uid('b'),b2=uid('b'),b3=uid('b'),bd=uid('b');
   return migrate({id:uid(),title:'Anaphylaxie (choc anaphylactique)',category:catId||'',validation:'2025-01',
@@ -3627,14 +3606,7 @@ function renderProtocolEdit(){
   const isNew=!protocols.some(x=>x.id===p.id);
   const wideEdit=mqReadWide.matches;
   main.innerHTML=`${wideEdit?`<div class="read-grid"><div class="read-main">`:''}`+`
-    ${state.draftRestored?`<div class="notice">${uiIcon('history',15)}<span>Brouillon auto-enregistré (${fmtHMS(state.draftRestored)}) restauré — vos modifications non publiées ont été reprises. <button class="linkbtn" id="ghostDrop">Repartir de la version enregistrée</button></span></div>`:''}
-    <div class="field"><label>Titre du protocole</label><input type="text" id="p-title" value="${esc(p.title)}" placeholder="ex. Douleur thoracique — protocole de service"></div>
-    <div class="field"><label>Catégorie</label><div class="catpick"><button class="catpill${!p.category?' on':''}" data-selcat="">Aucune</button>${catsSorted(p.libraryId).map(c=>catChipHtml(c,p.category===c.id,'catpill','data-selcat')).join('')}<button class="catpill mgr" id="catMgrBtn">${uiIcon('gear',13)} Gérer</button></div></div>
-    ${Auth.signedIn()?`<div class="field"><label>Bibliothèque <span class="hint">où ranger ce protocole</span></label>
-      <select id="p-scope"><option value="" ${!p.libraryId?'selected':''}>Perso (privé)</option>${sortedLibraries().filter(l=>l.role==='editor'||l.role==='admin').map(l=>`<option value="${esc(l.id)}" ${p.libraryId===l.id?'selected':''}>${esc(l.name)} (partagée)</option>`).join('')}${p.libraryId&&!myLibraries.some(l=>l.id===p.libraryId)?`<option value="${esc(p.libraryId)}" selected>${esc(libName(p.libraryId)||'Bibliothèque')}</option>`:''}</select></div>`:''}
-    <div class="row2"><div class="field"><label>Code <span class="hint">référence courte facultative</span></label><input type="text" id="p-code" value="${esc(p.code||'')}" placeholder="ex. PRO-ISR-01" style="font-family:var(--mono)" maxlength="40"></div>
-      <div class="field"><label>Date de validation <span class="hint">mois/année</span></label><input type="text" id="p-validation" inputmode="numeric" autocapitalize="off" value="${esc(valToDisplay(p.validation))}" placeholder="MM/AAAA — ex. 012026 ou 01/2026"></div></div>
-    <div class="field"><label>État</label>${statusSegHtml(p.status,false,!!p.libraryId)}</div>
+    ${editorMetaFieldsHtml(p,'p',{titleLabel:'Titre du protocole',titlePh:'ex. Douleur thoracique — protocole de service',scopeHint:'où ranger ce protocole',codePh:'ex. PRO-ISR-01',fem:false})}
     ${attFieldsetHtml(p)}
     <div class="field"><label>Fiches liées <span class="hint">aides cognitives associées à ce protocole</span></label><div class="rel-edit">${(p.related||[]).map(id=>{const r=fiches.find(x=>x.id===id&&!x.deletedAt);return r?`<span class="rel-chip">${esc(r.title)||'Sans titre'}<button class="rel-x" data-relrm="${esc(r.id)}" aria-label="Retirer">×</button></span>`:'';}).join('')}<select id="relAdd"><option value="">+ Lier une fiche…</option>${fiches.filter(x=>!x.deletedAt&&(p.libraryId?x.libraryId===p.libraryId:!x.libraryId)&&(p.related||[]).indexOf(x.id)<0).map(x=>`<option value="${esc(x.id)}">${esc(x.title)||'Sans titre'}</option>`).join('')}</select></div></div>
     <fieldset class="field"><label>Contenu rédigé <span class="hint">facultatif — mise en forme simple, aperçu en dessous</span></label>
@@ -3657,37 +3629,9 @@ function renderProtocolEdit(){
     ${wideEdit?`</div><aside class="read-side" id="editSide">${editPreviewHtml('proto')}</aside></div>`:''}
     <input type="file" id="imgInput" accept="image/*" hidden>
     <input type="file" id="pdfInput" accept="application/pdf,.pdf" hidden>`;
-  // « ‹ Retour » (SPEC §2.2) : même mécanique d'auto-enregistrement que l'éditeur de fiche.
-  document.getElementById('hdrBackLbl').textContent='Retour';
-  document.getElementById('hdrBack').onclick=async()=>{
-    if(Date.now()-_backGuardT<700)return;   // double-tap depuis l'aperçu : absorbé (garde ECAM)
-    const exists=protocols.some(x=>x.id===p.id);
-    const dirty=JSON.stringify(state.pdraft)!==draftBase;
-    if(dirty){await parkDraftNow('p');toast('Brouillon conservé (non publié)'+(exists?'.':' — reprenez-le via « Créer ».'));}
-    else{await clearDraftParkIf('p',p.id);purgeDraftAtts();}
-    state.pdraft=null;state.draftRestored=null;
-    if(exists)openProtocolRead(p.id);else{state.view='library';render();}};
-  // Porte de sortie de la restauration : abandonner le brouillon parqué, repartir du publié.
-  {const gd=document.getElementById('ghostDrop');if(gd)gd.onclick=async()=>{const orig=protocols.find(x=>x.id===p.id);if(!orig)return;
-    await clearDraftParkIf('p',p.id);state.pdraft=migrateProtocol(JSON.parse(JSON.stringify(orig)));draftNewAtts=[];
-    draftBase=JSON.stringify(state.pdraft);_lastParked=null;state.draftRestored=null;render();};}
-  // Le titre saisi est reflété EN DIRECT dans la barre d'en-tête (même règle qu'en lecture).
-  document.getElementById('p-title').addEventListener('input',e=>{p.title=e.target.value;setBarTitle(e.target.value);});
-  {const fv=document.getElementById('p-validation');
-   if(fv)fv.addEventListener('change',()=>{const raw=fv.value.trim();if(!raw){p.validation='';fv.classList.remove('val-bad');return;}const norm=parseValidation(raw);if(norm){p.validation=norm;fv.value=valToDisplay(norm);fv.classList.remove('val-bad');}else{fv.classList.add('val-bad');}});}
-  // État SEGMENTÉ 3 états (V5) + code + fiches liées + aperçu.
-  main.querySelectorAll('.st-seg').forEach(b=>b.onclick=()=>{p.status=b.dataset.status==='valid'?'':b.dataset.status;renderProtocolEdit();});
-  updateHdrStatusBadge(p.status,false);
-  {const pv=document.getElementById('hdrPreview');if(pv)pv.onclick=openPDraftPreview;}
+  bindEditorExit({kind:'p',list:()=>protocols,getDraft:()=>state.pdraft,setDraft:v=>{state.pdraft=migrateProtocol(v);},clearDraft:()=>{state.pdraft=null;},openExisting:openProtocolRead});
+  bindEditorMetaFields(p,'p',{fem:false,rerender:renderProtocolEdit,preview:openPDraftPreview});
   bindEditSide('proto');
-  {const pc=document.getElementById('p-code');if(pc)pc.addEventListener('input',e=>{p.code=e.target.value;});}
-  {const ra=document.getElementById('relAdd');if(ra)ra.onchange=()=>{const id=ra.value;if(!id)return;p.related=p.related||[];if(p.related.indexOf(id)<0)p.related.push(id);renderProtocolEdit();};}
-  main.querySelectorAll('[data-relrm]').forEach(b=>b.onclick=()=>{p.related=(p.related||[]).filter(x=>x!==b.dataset.relrm);renderProtocolEdit();});
-  main.querySelectorAll('[data-selcat]').forEach(b=>b.onclick=()=>{p.category=b.dataset.selcat;renderProtocolEdit();});
-  document.getElementById('catMgrBtn').onclick=openCatMgr;
-  {const scopeSel=document.getElementById('p-scope');if(scopeSel)scopeSel.onchange=()=>{const ns=scopeSel.value||null;p.libraryId=ns;
-    const cc=p.category;if(cc){const cat=categories.find(x=>x.id===cc);if(!cat||(cat.libraryId||null)!==(ns||null))p.category='';}
-    renderProtocolEdit();};}
   bindAttEditor(p,renderProtocolEdit);
   // Contenu rédigé : saisie -> brouillon + aperçu débouncé (même cadence que l'aperçu algorithme).
   const ta=document.getElementById('p-body');
@@ -3718,6 +3662,64 @@ function renderProtocolEdit(){
     {label:'Exporter (.json)',ic:uiIcon('download',16),act:()=>exportData([],'protocole-'+fileSlug(state.pdraft.title),categories.filter(c=>c.id===state.pdraft.category),[migrateProtocol(JSON.parse(JSON.stringify(state.pdraft)))])},
   ]);
 }
+/* ----- Tronc COMMUN des éditeurs fiche/protocole (audit v4.1.0 : le gabarit d'en-tête de
+   formulaire, le câblage des champs partagés et la sortie « ‹ Retour » vivaient en double —
+   corriger ICI corrige les deux ; les ids de champs restent préfixés 'f-'/'p-'). ----- */
+// Rangées partagées du formulaire : notice de brouillon restauré, titre, catégorie,
+// bibliothèque, code + date de validation, état segmenté. L = libellés propres à l'entité.
+function editorMetaFieldsHtml(d,prefix,L){return `${state.draftRestored?`<div class="notice">${uiIcon('history',15)}<span>Brouillon auto-enregistré (${fmtHMS(state.draftRestored)}) restauré — vos modifications non publiées ont été reprises. <button class="linkbtn" id="ghostDrop">Repartir de la version enregistrée</button></span></div>`:''}
+    <div class="field"><label>${L.titleLabel}</label><input type="text" id="${prefix}-title" value="${esc(d.title)}" placeholder="${L.titlePh}"></div>
+    <div class="field"><label>Catégorie</label><div class="catpick"><button class="catpill${!d.category?' on':''}" data-selcat="">Aucune</button>${catsSorted(d.libraryId).map(c=>catChipHtml(c,d.category===c.id,'catpill','data-selcat')).join('')}<button class="catpill mgr" id="catMgrBtn">${uiIcon('gear',13)} Gérer</button></div></div>
+    ${Auth.signedIn()?`<div class="field"><label>Bibliothèque <span class="hint">${L.scopeHint}</span></label>
+      <select id="${prefix}-scope"><option value="" ${!d.libraryId?'selected':''}>Perso (privé)</option>${sortedLibraries().filter(l=>l.role==='editor'||l.role==='admin').map(l=>`<option value="${esc(l.id)}" ${d.libraryId===l.id?'selected':''}>${esc(l.name)} (partagée)</option>`).join('')}${d.libraryId&&!myLibraries.some(l=>l.id===d.libraryId)?`<option value="${esc(d.libraryId)}" selected>${esc(libName(d.libraryId)||'Bibliothèque')}</option>`:''}</select></div>`:''}
+    <div class="row2"><div class="field"><label>Code <span class="hint">référence courte facultative</span></label><input type="text" id="${prefix}-code" value="${esc(d.code||'')}" placeholder="${L.codePh}" style="font-family:var(--mono)" maxlength="40"></div>
+      <div class="field"><label>Date de validation <span class="hint">mois/année</span></label><input type="text" id="${prefix}-validation" inputmode="numeric" autocapitalize="off" value="${esc(valToDisplay(d.validation))}" placeholder="MM/AAAA — ex. 012026 ou 01/2026"></div></div>
+    <div class="field"><label>État</label>${statusSegHtml(d.status,L.fem,!!d.libraryId)}</div>`;}
+// Câblage des champs partagés. o = {fem, rerender, preview} ; d = objet brouillon vivant
+// (state.draft ou state.pdraft — même référence tant que l'éditeur est affiché).
+function bindEditorMetaFields(d,prefix,o){
+  // Le titre saisi est reflété EN DIRECT dans la barre d'en-tête (même règle qu'en lecture).
+  document.getElementById(prefix+'-title').addEventListener('input',e=>{d.title=e.target.value;setBarTitle(e.target.value);});
+  {const pc=document.getElementById(prefix+'-code');if(pc)pc.addEventListener('input',e=>{d.code=e.target.value;});}
+  // Date de validation : champ tolérant — interprétée au blur (« janv 2026 », « 01/2026 »…) puis
+  // réécrite au propre « MM/AAAA » ; entrée non comprise -> bordure rouge, valeur non retenue.
+  {const fv=document.getElementById(prefix+'-validation');
+   if(fv)fv.addEventListener('change',()=>{const raw=fv.value.trim();if(!raw){d.validation='';fv.classList.remove('val-bad');return;}const norm=parseValidation(raw);if(norm){d.validation=norm;fv.value=valToDisplay(norm);fv.classList.remove('val-bad');}else{fv.classList.add('val-bad');}});}
+  // État SEGMENTÉ 3 états (V5) : au clic, re-rendu (phrase d'aide + badge d'en-tête suivent).
+  main.querySelectorAll('.st-seg').forEach(b=>b.onclick=()=>{d.status=b.dataset.status==='valid'?'':b.dataset.status;o.rerender();});
+  updateHdrStatusBadge(d.status,o.fem);
+  // Aperçu du brouillon (V5) : bouton d'en-tête + colonne en direct (>= 1000px, cf. bindEditSide).
+  {const pv=document.getElementById('hdrPreview');if(pv)pv.onclick=o.preview;}
+  // Fiches liées : ajout via le menu, retrait via la croix (mise à jour immédiate de l'aperçu).
+  {const ra=document.getElementById('relAdd');if(ra)ra.onchange=()=>{const id=ra.value;if(!id)return;d.related=d.related||[];if(d.related.indexOf(id)<0)d.related.push(id);o.rerender();};}
+  main.querySelectorAll('[data-relrm]').forEach(b=>b.onclick=()=>{d.related=(d.related||[]).filter(x=>x!==b.dataset.relrm);o.rerender();});
+  // Catégorie + « ⚙ Gérer » (MÊME fenêtre de gestion que l'accueil, périmètre du brouillon).
+  main.querySelectorAll('[data-selcat]').forEach(b=>b.onclick=()=>{d.category=b.dataset.selcat;o.rerender();});
+  document.getElementById('catMgrBtn').onclick=openCatMgr;
+  // Bibliothèque : les catégories sont propres à une bibliothèque — si l'actuelle n'appartient
+  // pas à la nouvelle, elle est retirée du brouillon.
+  {const scopeSel=document.getElementById(prefix+'-scope');if(scopeSel)scopeSel.onchange=()=>{const ns=scopeSel.value||null;d.libraryId=ns;
+    const cc=d.category;if(cc){const cat=categories.find(x=>x.id===cc);if(!cat||(cat.libraryId||null)!==(ns||null))d.category='';}
+    o.rerender();};}}
+// Sortie d'éditeur : « ‹ Retour » (SPEC gestion §2.2, ex-« Annuler » — quitter ne perd rien :
+// brouillon modifié -> parqué, repris à la prochaine édition ou via « Créer » s'il est nouveau ;
+// vierge/inchangé -> emplacement vidé, blobs PDF ajoutés purgés) + porte de sortie « Repartir de
+// la version enregistrée » du brouillon restauré.
+function bindEditorExit(cfg){
+  document.getElementById('hdrBackLbl').textContent='Retour';
+  document.getElementById('hdrBack').onclick=async()=>{
+    if(Date.now()-_backGuardT<700)return;   // double-tap depuis l'aperçu : absorbé (garde ECAM)
+    const d=cfg.getDraft();
+    const exists=cfg.list().some(x=>x.id===d.id);
+    const dirty=JSON.stringify(d)!==draftBase;
+    if(dirty){await parkDraftNow(cfg.kind);toast('Brouillon conservé (non publié)'+(exists?'.':' — reprenez-le via « Créer ».'));}
+    else{await clearDraftParkIf(cfg.kind,d.id);purgeDraftAtts();if(!exists&&cfg.onCleanNew)cfg.onCleanNew(d);}
+    cfg.clearDraft();state.draftRestored=null;
+    if(exists)cfg.openExisting(d.id);else{state.view='library';render();}};
+  {const gd=document.getElementById('ghostDrop');if(gd)gd.onclick=async()=>{
+    const d=cfg.getDraft();const orig=cfg.list().find(x=>x.id===d.id);if(!orig)return;
+    await clearDraftParkIf(cfg.kind,d.id);cfg.setDraft(JSON.parse(JSON.stringify(orig)));draftNewAtts=[];
+    draftBase=JSON.stringify(cfg.getDraft());_lastParked=null;state.draftRestored=null;render();};}}
 /* ----- Enregistrement de brouillon : morceaux COMMUNS fiche/protocole (utilisés par
    saveDraft ET saveProtocolDraft — corriger ici corrige les deux). ----- */
 // Filet de sécurité : (re)normalise statut + date de validation depuis les champs, même sans blur.
@@ -4681,14 +4683,7 @@ function renderEditor(){
   const isNew=!fiches.some(x=>x.id===f.id);
   const wideEdit=mqReadWide.matches;
   main.innerHTML=`${wideEdit?`<div class="read-grid"><div class="read-main">`:''}`+`
-    ${state.draftRestored?`<div class="notice">${uiIcon('history',15)}<span>Brouillon auto-enregistré (${fmtHMS(state.draftRestored)}) restauré — vos modifications non publiées ont été reprises. <button class="linkbtn" id="ghostDrop">Repartir de la version enregistrée</button></span></div>`:''}
-    <div class="field"><label>Titre de la situation</label><input type="text" id="f-title" value="${esc(f.title)}" placeholder="ex. Intoxication aux anesthésiques locaux"></div>
-    <div class="field"><label>Catégorie</label><div class="catpick"><button class="catpill${!f.category?' on':''}" data-selcat="">Aucune</button>${catsSorted(f.libraryId).map(c=>catChipHtml(c,f.category===c.id,'catpill','data-selcat')).join('')}<button class="catpill mgr" id="catMgrBtn">${uiIcon('gear',13)} Gérer</button></div></div>
-    ${Auth.signedIn()?`<div class="field"><label>Bibliothèque <span class="hint">où ranger cette fiche</span></label>
-      <select id="f-scope"><option value="" ${!f.libraryId?'selected':''}>Perso (privé)</option>${sortedLibraries().filter(l=>l.role==='editor'||l.role==='admin').map(l=>`<option value="${esc(l.id)}" ${f.libraryId===l.id?'selected':''}>${esc(l.name)} (partagée)</option>`).join('')}${f.libraryId&&!myLibraries.some(l=>l.id===f.libraryId)?`<option value="${esc(f.libraryId)}" selected>${esc(libName(f.libraryId)||'Bibliothèque')}</option>`:''}</select></div>`:''}
-    <div class="row2"><div class="field"><label>Code <span class="hint">référence courte facultative</span></label><input type="text" id="f-code" value="${esc(f.code||'')}" placeholder="ex. URG-ANA-01" style="font-family:var(--mono)" maxlength="40"></div>
-      <div class="field"><label>Date de validation <span class="hint">mois/année</span></label><input type="text" id="f-validation" inputmode="numeric" autocapitalize="off" value="${esc(valToDisplay(f.validation))}" placeholder="MM/AAAA — ex. 012026 ou 01/2026"></div></div>
-    <div class="field"><label>État</label>${statusSegHtml(f.status,true,!!f.libraryId)}</div>
+    ${editorMetaFieldsHtml(f,'f',{titleLabel:'Titre de la situation',titlePh:'ex. Intoxication aux anesthésiques locaux',scopeHint:'où ranger cette fiche',codePh:'ex. URG-ANA-01',fem:true})}
     <div class="field"><div class="lab-row"><label>Contexte local <span class="hint">numéros utiles, particularités</span></label>${boldBtnHtml()}</div><textarea id="f-localInfo" rows="2" placeholder="Réanimateur de garde, pharmacie…">${esc(f.localInfo)}</textarea></div>
     ${listEditor('Confirmation diagnostique','critères pour déclencher la fiche','confirmation',f.confirmation)}
     <fieldset class="field"><label>Prise en charge <span class="hint">listes d'étapes + décisions conditionnelles</span></label><p class="flow-prev-h">Algorithme — aperçu automatique</p>${flowBlock(f)}${f.blocks.map(b=>blockEditor(b,blocks)).join('')}<div class="add-blocks"><button class="btn sm" id="addSteps">+ Bloc d'étapes</button><button class="btn sm" id="addDecision">+ Décision (si… alors…)</button></div></fieldset>
@@ -4718,51 +4713,14 @@ function renderEditor(){
 // listes, blocs d'étapes/décisions, minuteurs/compteurs, images, fiches liées, enregistrer/supprimer.
 function bindEditorEvents(f){
   bindNoteBlock(f.id,renderEditor);  // note personnelle : même composant qu'en lecture, dès la création
-  // Annulation d'une CRÉATION : la note éventuellement saisie n'a plus de fiche -> effacée aussi
-  // (saveNote(id,'') : tombstone propagé si déjà synchronisée, no-op si jamais de note).
-  // « ‹ Retour » (SPEC §2.2, ex-« Annuler ») : avec l'auto-enregistrement, quitter ne perd rien —
-  // brouillon modifié -> parqué (repris à la prochaine édition, ou via « Créer » s'il est nouveau) ;
-  // brouillon vierge/inchangé -> emplacement vidé, blobs PDF ajoutés purgés, note de création effacée.
-  document.getElementById('hdrBackLbl').textContent='Retour';
-  document.getElementById('hdrBack').onclick=async()=>{
-    if(Date.now()-_backGuardT<700)return;   // double-tap depuis l'aperçu : absorbé (garde ECAM)
-    const exists=fiches.some(x=>x.id===f.id);
-    const dirty=JSON.stringify(state.draft)!==draftBase;
-    if(dirty){await parkDraftNow('f');toast('Brouillon conservé (non publié)'+(exists?'.':' — reprenez-le via « Créer ».'));}
-    else{await clearDraftParkIf('f',f.id);purgeDraftAtts();if(!exists)saveNote(f.id,'');}
-    state.draft=null;state.noteEdit=false;state.draftRestored=null;
-    if(exists){resetRuntime();openRead(f.id);}else{state.view='library';render();}};
-  // Porte de sortie de la restauration : abandonner le brouillon parqué, repartir du publié.
-  {const gd=document.getElementById('ghostDrop');if(gd)gd.onclick=async()=>{const orig=fiches.find(x=>x.id===f.id);if(!orig)return;
-    await clearDraftParkIf('f',f.id);state.draft=JSON.parse(JSON.stringify(orig));draftNewAtts=[];
-    draftBase=JSON.stringify(state.draft);_lastParked=null;state.draftRestored=null;render();};}
-  // Le titre saisi est reflété EN DIRECT dans la barre d'en-tête (même règle qu'en lecture).
-  ['title','localInfo','code'].forEach(k=>document.getElementById('f-'+k).addEventListener('input',e=>{state.draft[k]=e.target.value;if(k==='title')setBarTitle(e.target.value);}));
-  // Date de validation : champ texte tolérant. À la VALIDATION du champ (blur), on interprète l'entrée
-  // (« janv 2026 », « 01/2026 », « 2026/01 »…) et on la réécrit au propre « MM/AAAA » ; entrée non
-  // comprise -> bordure rouge, on n'enregistre pas une valeur douteuse.
-  const fv=document.getElementById('f-validation');
-  if(fv){fv.addEventListener('change',()=>{const raw=fv.value.trim();if(!raw){state.draft.validation='';fv.classList.remove('val-bad');return;}const norm=parseValidation(raw);if(norm){state.draft.validation=norm;fv.value=valToDisplay(norm);fv.classList.remove('val-bad');}else{fv.classList.add('val-bad');}});}
-  // État SEGMENTÉ 3 états (V5) : ○ Brouillon / △ À relire / ✓ Validée — reporté dans le brouillon
-  // au clic, re-rendu (phrase d'aide + badge d'en-tête suivent).
-  main.querySelectorAll('.st-seg').forEach(b=>b.onclick=()=>{state.draft.status=b.dataset.status==='valid'?'':b.dataset.status;renderEditor();});
-  updateHdrStatusBadge(f.status,true);
-  // Aperçu du brouillon (V5) : bouton du pied d'éditeur + colonne en direct (>= 1000px).
-  {const pv=document.getElementById('hdrPreview');if(pv)pv.onclick=openDraftPreview;}
+  bindEditorExit({kind:'f',list:()=>fiches,getDraft:()=>state.draft,setDraft:v=>{state.draft=v;},clearDraft:()=>{state.draft=null;state.noteEdit=false;},
+    // Création abandonnée : la note éventuellement saisie n'a plus de fiche -> effacée aussi
+    // (saveNote(id,'') : tombstone propagé si déjà synchronisée, no-op si jamais de note).
+    onCleanNew:d=>saveNote(d.id,''),openExisting:id=>{resetRuntime();openRead(id);}});
+  bindEditorMetaFields(f,'f',{fem:true,rerender:renderEditor,preview:openDraftPreview});
+  document.getElementById('f-localInfo').addEventListener('input',e=>{state.draft.localInfo=e.target.value;});
   bindEditSide('fiche');
   bindListEditors();
-  // Fiches liées : ajout via le menu, retrait via la croix (mise à jour immédiate de l'aperçu).
-  {const ra=document.getElementById('relAdd');if(ra)ra.onchange=()=>{const id=ra.value;if(!id)return;state.draft.related=state.draft.related||[];if(state.draft.related.indexOf(id)<0)state.draft.related.push(id);renderEditor();};}
-  main.querySelectorAll('[data-relrm]').forEach(b=>b.onclick=()=>{state.draft.related=(state.draft.related||[]).filter(x=>x!==b.dataset.relrm);renderEditor();});
-  // catégorie
-  main.querySelectorAll('[data-selcat]').forEach(b=>b.onclick=()=>{state.draft.category=b.dataset.selcat;renderEditor();});
-  const scopeSel=document.getElementById('f-scope');if(scopeSel)scopeSel.onchange=()=>{const ns=scopeSel.value||null;state.draft.libraryId=ns;
-    // Les catégories sont propres à une bibliothèque : si l'actuelle n'appartient pas à la nouvelle, on la retire.
-    const cc=state.draft.category;if(cc){const cat=categories.find(x=>x.id===cc);if(!cat||(cat.libraryId||null)!==(ns||null))state.draft.category='';}
-    renderEditor();};
-  // « ⚙ Gérer » ouvre la MÊME fenêtre de gestion des catégories que l'accueil (périmètre =
-  // bibliothèque du brouillon via activeCatScope) ; l'éditeur est re-rendu à sa fermeture.
-  document.getElementById('catMgrBtn').onclick=openCatMgr;
   // images
   let imgMode={kind:null,bid:null};const imgInput=document.getElementById('imgInput');
   document.getElementById('addImg').onclick=()=>{imgMode={kind:'gallery'};imgInput.click();};
