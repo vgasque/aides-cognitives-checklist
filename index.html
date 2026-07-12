@@ -232,7 +232,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-c91j5ScGx2r4H0Vb/5L8fqGoB7qzZSncIIuIZUzpnro='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-w5YT+q3y9Axlqe6N8Ze/YKF4rLPkVln2W27OAnhz4MA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -3380,8 +3380,8 @@ function scopeBarHtml(){
       ${sortedLibraries().map(l=>{const admin=(l.role==='admin'||myIsAppAdmin);const ro=!canEditScope(l.id);const on=state.scope===l.id;
         // Chip ACTIVE : span (elle est déjà sélectionnée) portant la pastille ✎ translucide —
         // le crayon n'apparaît que sur la chip qu'on regarde ; jamais de bouton dans un bouton.
-        return on?`<span class="scopebtn on${admin?' edit':''}" title="Bibliothèque partagée — rôle : ${esc(_ROLE_LBL[l.role]||l.role)}">${ro?uiIcon('lock',12)+' ':''}${esc(l.name)}${admin?`<button class="chip-edit" data-libedit="${esc(l.id)}" title="Modifier la bibliothèque" aria-label="Modifier la bibliothèque « ${esc(l.name)} »">${uiIcon('pen',12)}</button>`:''}</span>`
-        :`<button class="scopebtn" data-scope="${esc(l.id)}" title="Bibliothèque partagée — rôle : ${esc(_ROLE_LBL[l.role]||l.role)}">${ro?uiIcon('lock',12)+' ':''}${esc(l.name)}</button>`;}).join('')}
+        return on?`<span class="scopebtn on${admin?' edit':''}" title="Bibliothèque partagée — rôle : ${esc(_ROLE_LBL[l.role]||l.role)}">${ro?uiIcon('lock',12)+' ':(!admin?uiIcon('lockopen',12)+' ':'')}${esc(l.name)}${admin?`<button class="chip-edit" data-libedit="${esc(l.id)}" title="Modifier la bibliothèque" aria-label="Modifier la bibliothèque « ${esc(l.name)} »">${uiIcon('pen',12)}</button>`:''}</span>`
+        :`<button class="scopebtn" data-scope="${esc(l.id)}" title="Bibliothèque partagée — rôle : ${esc(_ROLE_LBL[l.role]||l.role)}">${ro?uiIcon('lock',12)+' ':(!admin?uiIcon('lockopen',12)+' ':'')}${esc(l.name)}</button>`;}).join('')}
       ${myIsAppAdmin?`<button class="scopebtn add" data-newlib title="Créer une bibliothèque partagée">+ Bibliothèque</button>`:''}</div></div>`:'';}
 // Contexte de bibliothèque PARTAGÉE (lecture seule, bouton Gérer) : commun aux deux largeurs.
 function scopeCtxHtml(){
