@@ -64,7 +64,6 @@
   /* (Snackbar : tokens --rt-* fixes -> aucun override sombre nécessaire.) */
   /* Champs de saisie, pastilles neutres, panneaux : plus AUCUN override sombre — leurs fonds
      passent par les tokens (--input-bg, --surface-2…) qui suivent seuls le thème. */
-  [data-theme="dark"] .ai-ta{background:var(--input-bg);color:var(--ink)}
   [data-theme="dark"] :is(.flow-scroll,#flowFull .ff-scroll){background:var(--input-bg)}
   /* Survols clairs -> survols sombres. */
   /* Hover sombre GÉNÉRIQUE : exclut .primary et .danger, sinon cette règle (plus spécifique que
@@ -315,7 +314,6 @@
   .sys-banner .sb-x:hover{background:var(--primary-100)}
   .sys-banner :is(.sb-act,.sb-x):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   body.crisis-live .sys-banner{display:none}
-  .lib-top{display:flex;gap:10px;margin-bottom:14px}
   .search{flex:1;position:relative;display:flex;align-items:center}
   .search svg{position:absolute;left:12px;color:var(--ink-soft);pointer-events:none}
   .search input{width:100%;padding:11px 12px 11px 38px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--input-bg);color:var(--ink)}
@@ -379,18 +377,12 @@
   #crtIA .crt-ic{color:var(--alert-strong)}
   .ro-badge{font-size:11px;font-weight:600;color:var(--primary-dk);background:var(--primary-soft);padding:2px 8px;border-radius:10px}
   /* Fenêtre « Gérer la bibliothèque » — aligne le style sur la fenêtre Compte. */
-  .mem-head{display:flex;align-items:center;gap:12px;margin-bottom:12px}
-  .mem-head-i{min-width:0}
-  .mem-lib-name{font-size:17px;font-weight:700;color:var(--ink);word-break:break-word;line-height:1.2}
-  .mem-lib-sub{font-size:12.5px;color:var(--ink-soft);margin-top:3px}
   /* Dialogue bibliothèque (SPEC-dialogue-bibliotheque) : étiquettes 11/800/1 --soft, rangées
      membre 48px, avatar 30px 2 lettres, rangée d'invitation champ+rôle+＋ pointillé (~42px). */
   .field-label{font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft);margin:0 0 6px}
   .field-label .fl-n{font-weight:700;color:var(--ink-soft);letter-spacing:0}
   .share-note{font-size:12px;color:var(--ink-soft);line-height:1.5;margin:0 0 14px}
-  .mem-section{margin-bottom:18px}
   .mem-section-h{font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft);margin:0 0 6px}
-  .mem-hint{font-size:12px;color:var(--ink-soft);line-height:1.5;margin:9px 0 0}
   .mem-list{display:flex;flex-direction:column;gap:7px;margin-bottom:7px}
   .mem-row{display:flex;align-items:center;gap:10px;padding:8px 11px;min-height:48px;border:1px solid var(--line);border-radius:9px;background:var(--surface)}
   .mem-avatar{width:30px;height:30px;border-radius:50%;background:var(--primary-soft);color:var(--primary-dk);display:grid;place-items:center;font-size:12px;font-weight:700;flex:none}
@@ -554,7 +546,6 @@
   .h-img{color:var(--primary-dk)} .h-img .pip{background:var(--primary)}
   .h-main{color:var(--primary-dk)}
   .h-pos{color:var(--ink-soft)}
-  .block-care{margin-bottom:22px}   /* plus d'encadré bleu (canvas SPEC-crise) : étiquette + contenu à nu */
   /* Panneau ALGORITHME repliable (canvas turn 6) — le contenu SVG lui-même est inchangé. */
   .alg-panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;margin-bottom:10px;overflow:hidden}
   .alg-head{display:flex;align-items:center;gap:8px;width:100%;min-height:48px;padding:11px 12px;background:none;border:0;border-bottom:1px solid var(--line);cursor:pointer;font-family:inherit;text-align:left}
@@ -575,7 +566,6 @@
   .pos-card.crit .pos-name{color:var(--critical)}
   .pos-card.crit b{color:var(--critical)}
   .read-side .pos-block{margin-bottom:14px}
-  .flow-toggle{text-transform:none;letter-spacing:0;background:var(--surface);border-color:var(--primary-300);color:var(--primary-dk);white-space:nowrap}
   /* Indice reliant le schéma (vue d'ensemble) à la checklist d'étapes en dessous. */
   .flow-hint{font-size:11.5px;color:var(--ink-soft);text-align:center;margin:-4px 0 12px}
   .rt-ic{flex-shrink:0}
@@ -615,7 +605,6 @@
   ul.flat.verify li{flex:1;min-width:250px;margin-bottom:0;border-radius:8px;padding:11px 14px;font-size:14.5px}
   ul.flat li{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 14px;margin-bottom:8px;font-size:15px;display:flex;gap:11px;align-items:flex-start}
   ul.flat li::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;flex-shrink:0;margin-top:8px;opacity:.5}
-  ul.forget li{background:var(--critical-soft);border-color:var(--critical-line);color:var(--critical)}
   /* « À vérifier » : panneaux NEUTRES (V5) — l'ambre reste porté par l'en-tête de section
      (la couleur signale le registre, pas chaque item). */
   ul.diff li{color:var(--ink-soft)}
@@ -644,7 +633,6 @@
      Sélecteur .btn.sm (spécificité supérieure) pour l'emporter sur la règle .btn.sm générique. */
   .flow-ctrl .btn.sm,.flow-ctrl .btn{min-height:44px}
   /* Fin de branche/d'algorithme : registre CONFIRMATION (vert, taxonomie V5). */
-  .endcap{display:block;text-align:center;font-size:13px;color:var(--ok);font-weight:800;letter-spacing:.8px;margin-top:12px;border:2px solid var(--ok);background:var(--ok-soft);border-radius:var(--radius-sm);padding:11px 13px}
   .mini.bld{font-weight:800;font-size:14px}
   .node-img{width:100%;border-radius:10px;border:1px solid var(--line);margin-bottom:14px;cursor:zoom-in;display:block}
   .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
@@ -694,9 +682,6 @@
   @keyframes sf{0%{opacity:.55}60%{opacity:.3}100%{opacity:0}}
   .tm-label{display:flex;align-items:center;gap:6px;font-size:10.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--tcol);margin-bottom:6px}
   .cncard .tm-label{justify-content:center;color:var(--ink-soft)}
-  .tm-rm{margin-left:auto;background:none;border:0;color:var(--ink-soft);font-size:16px;line-height:1;min-width:32px;min-height:32px;border-radius:7px;cursor:pointer;flex:none}
-  .tm-rm:hover{background:var(--critical-soft);color:var(--critical)}
-  .tm-rm:focus-visible{outline:2px solid var(--critical);outline-offset:2px}
   .rt-add{margin-top:10px;min-height:38px;border:1.5px dashed var(--line);border-radius:8px;color:var(--link);font-size:12.5px;font-weight:700}
   .read-side .rt-add{margin-top:0}
   .tm-val,.cn-val{font-family:var(--mono);font-size:26px;font-weight:700;line-height:1.15;font-variant-numeric:tabular-nums}
@@ -745,15 +730,6 @@
   .tk-del{flex-shrink:0;width:38px;height:44px;border:0;border-radius:8px;background:var(--bg);color:var(--ink-soft);font-size:17px}
   .tk-del:hover{background:var(--critical-soft);color:var(--critical)}
   .tk-panel.empty .tk-head{margin-bottom:0}
-  /* Bandeau de session (mode lecture) : discret tant qu'inactif, mis en avant « en cours » */
-  .session-bar{display:flex;gap:8px 10px;flex-wrap:wrap;align-items:center;margin-bottom:16px;border-radius:12px;padding:11px 13px}
-  .session-bar.idle{background:var(--surface-2);border:1px dashed var(--line)}
-  .session-bar.idle .sess-hint{flex:1;min-width:160px;font-size:12.5px;color:var(--ink-soft);line-height:1.35}
-  .session-bar.live{background:var(--primary-soft);border:1px solid var(--primary-300)}
-  .session-bar.live .sess-info{flex:1;min-width:140px;display:flex;flex-direction:column;line-height:1.25}
-  .session-bar.live .sess-info b{font-size:13px;color:var(--primary-dk);letter-spacing:.2px}
-  .session-bar.live .sess-info span{font-size:11.5px;color:var(--ink-soft)}
-  .session-bar .sess-acts{display:flex;gap:7px;flex-wrap:wrap}
   /* Halo animé en transform/opacity sur un pseudo-élément (COMPOSITÉ) : l'ancienne animation de
      box-shadow forçait un repaint continu pendant toute la durée d'une session, crise comprise. */
   .sess-dot{--pulse:29,122,56;width:9px;height:9px;border-radius:50%;background:var(--ok);flex-shrink:0;position:relative}
@@ -935,7 +911,6 @@
   .sync-chip.err,.sync-chip.rejected{color:var(--critical);background:var(--critical-soft);cursor:pointer}
   .sync-chip.pending{color:var(--verify);background:var(--verify-soft);cursor:pointer}
   .auth-field{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--input-bg);color:var(--ink);font-size:16px;margin:6px 0}
-  .auth-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:6px}
   .auth-msg{font-size:13px;margin:8px 0 0;min-height:18px}
   .auth-msg.err{color:var(--critical)}.auth-msg.ok{color:var(--primary)}
   /* Fenêtre Compte */
@@ -1062,7 +1037,6 @@
   .ai-card .ai-x:hover{background:var(--surface-2);color:var(--ink)}
   .ai-card p{font-size:13px;color:var(--ink-soft);margin:0 0 10px;line-height:1.5}
   .ai-card ol{font-size:13px;color:var(--ink-soft);margin:0 0 12px;padding-left:20px;line-height:1.5}
-  .ai-ta{width:100%;height:300px;border:1px solid var(--line);border-radius:10px;padding:12px;font-family:var(--mono);font-size:12px;line-height:1.5;background:var(--surface-2);color:var(--ink);white-space:pre;overflow:auto}
   /* Aperçu de compte-rendu (dans la fenêtre) : reprend le style du document imprimé, en zone défilable. */
   .report-preview{max-height:min(60vh,520px);overflow:auto;border:1px solid var(--line);border-radius:10px;padding:16px 18px;background:var(--surface)}
   .report-preview h1{display:none}  /* redondant avec le titre de la fenêtre ; conservé dans le document imprimé/téléchargé */
@@ -1327,7 +1301,7 @@
   /* Bordures des CHAMPS DE SAISIE : --line-strong (3,9:1) — la limite d'un composant interactif
      doit atteindre 3:1 (WCAG 1.4.11) ; le srchBd du canvas (1,6:1) est réservé à la barre de
      recherche (2px, grande surface, identifiée par son placeholder). Arbitré à l'audit v4.5. */
-  :is(.field input[type=text],.field textarea,.field select,.search input,.auth-field,.cm-name,.cm-add input,.tk-lab,.blk-top input,.trow input,.optedit input,.optedit select,.gcap,#relAdd,.ai-ta){border-color:var(--line-strong)}
+  :is(.field input[type=text],.field textarea,.field select,.search input,.auth-field,.cm-name,.cm-add input,.tk-lab,.blk-top input,.trow input,.optedit input,.optedit select,.gcap,#relAdd){border-color:var(--line-strong)}
   /* Placeholder maîtrisé (sinon gris navigateur non garanti sur nos fonds personnalisés). */
   ::placeholder{color:var(--ink-soft);opacity:1}
   /* Lien d'évitement clavier : invisible jusqu'au focus. */
@@ -1343,7 +1317,7 @@
   /* Cible du rappel minuteurs : arriver SOUS l'en-tête sticky (plus haut avec la 2e ligne). */
   .rt-panel{scroll-margin-top:130px}
   /* Focus clavier visible sur TOUS les contrôles interactifs (uniforme avec .btn/.card). */
-  :is(.catchip,.catpill,.tlink,.linkbtn,.mini,.fz,.scopebtn,.opt,.startbtn,.add-line,.notice-x,.tk-add,.tk-del,.cm-del,.ai-x,.rel-x,.back,.flow-toggle,.crumbs .cb,ol.steps li):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  :is(.catchip,.catpill,.tlink,.linkbtn,.mini,.fz,.scopebtn,.opt,.startbtn,.add-line,.notice-x,.tk-add,.tk-del,.cm-del,.ai-x,.rel-x,.back,.crumbs .cb,ol.steps li):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .rt-panel :is(.tm-btn,.cn-btn,.rt-sound,.tm-reset,.cn-reset):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   header.bar .bar-acct:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* En-tête « titré » (.titled, posé par setBarTitle) : dans TOUTE vue fiche/protocole — lecture
@@ -1391,7 +1365,7 @@
   /* (Grille des cartes : règle unique auto-fill/minmax(300px,1fr) — cf. .cards plus haut.) */
   @media (max-width:560px){.read-head h2{font-size:21px}.row2{flex-direction:column;gap:0}.question{font-size:18px}}
   @media (prefers-reduced-motion:reduce){*{transition:none!important}.tmcard.flash{animation:none}#crisisBand{animation:none}header.bar.titled.ttl-on #brandTitle{animation:none}.sess-dot::after{animation:none;opacity:0}}
-  @media print{body{background:#fff}header.bar,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.session-bar,.sess-list,.notes-block{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}}
+  @media print{body{background:#fff}header.bar,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.sess-list,.notes-block{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}}
 </style><style>
   body{margin:0;padding:0}
   .ds-scope{background:var(--bg);color:var(--ink);padding:20px 22px 26px;font-family:var(--sans)}

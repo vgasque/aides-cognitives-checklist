@@ -189,7 +189,7 @@ const cardsDemo = `
 
 const formsDemo = `
 <div style="max-width:520px">
-  <div class="lib-top"><div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input placeholder="Rechercher une fiche…"></div><button class="btn-new">Créer</button></div>
+  <div class="ds-row" style="flex-wrap:nowrap"><div class="search" style="flex:1"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input placeholder="Rechercher une fiche…"></div><button class="btn-new">Créer</button></div>
   <div class="field"><label>Titre de la fiche</label><input type="text" value="Choc anaphylactique"></div>
   <div class="row2">
     <div class="field"><label>Catégorie</label><select><option>Urgence vitale</option></select></div>
@@ -236,9 +236,8 @@ const decisionDemo = `
   </div>
   <div class="options" style="margin-top:10px"><button class="opt taken" disabled><span class="ftxt">Choix déjà pris (relecture du parcours)</span><span class="arr">✓</span></button></div>
   <div class="flow-nav"><button id="navBack">‹ Bloc précédent</button><button class="btn-hold"><span class="tmr-lab">↺ Recommencer</span><span class="tmr-hint">maintenir</span></button></div>
-  <div class="endcap">→ Position latérale de sécurité, surveillance continue.</div>
 </div>
-<p class="ds-cap">Décision = carte AMBRE (liseré 4px, registre ATTENTION : une décision demande l’attention) ; options 64px — MÊME hauteur que les étapes, pas d’encadré bleu autour des blocs. Fil d’Ariane = CURSEUR non destructif (revisiter un bloc ne tronque pas le parcours). .endcap = issue positive (--ok).</p>`;
+<p class="ds-cap">Décision = carte AMBRE (liseré 4px, registre ATTENTION : une décision demande l’attention) ; options 64px — MÊME hauteur que les étapes, pas d’encadré bleu autour des blocs. Fil d’Ariane = CURSEUR non destructif (revisiter un bloc ne tronque pas le parcours). l’issue positive est portée par .flow-end (voir Listes).</p>`;
 
 const noticesDemo = `
 <div style="max-width:560px">

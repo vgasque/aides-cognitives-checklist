@@ -57,7 +57,7 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   neutres), `--link` (liens ET temps d'un minuteur en cours — ancien `--timer-run` fusionné).
 - **Taxonomie des notices (V5)** : 5 registres, du plus au moins impérieux — ALERTE
   (`--critical`), ATTENTION (`--verify`), INFORMATION (`--primary` : `.notice`, `#sysBanner`),
-  CONFIRMATION (`--ok` : `.endcap`), MEMO (neutre). Grammaire : bord gauche 4 px + bordure de la
+  CONFIRMATION (`--ok` : `.flow-end`, étape cochée), MEMO (neutre). Grammaire : bord gauche 4 px + bordure de la
   couleur sémantique ; la couleur n'est jamais seule. **Statuts achromatiques** : pilule `.status-tag` unique
   pour les 3 états (✓ Validé(e) — affiché lui aussi depuis v4.5 —, △ À compléter, ○ Brouillon ;
   tokens `--tag-bg`/`--tag-ink`) — la couleur reste réservée au danger et aux catégories
