@@ -127,7 +127,11 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   **inhibition temporelle** de 700 ms contre le double-tap (`.guarded`, opacité réduite —
   logique ECAM). Grammaire des boutons de gestion : **pointillé** = créer, **contour** = gérer/
   secondaire, **plein** = action primaire (un seul par écran).
-- Toute donnée affichée passe par `esc()` (contenu potentiellement importé/partagé).
+- Toute donnée affichée passe par `esc()` (contenu potentiellement importé/partagé). C'est la
+  **seule** barrière anti-XSS (la CSP monofichier impose `script-src 'unsafe-inline'`) : ne jamais
+  la relâcher ; les liens/images du mini-Markdown sont en plus nettoyés AU POINT D'INSERTION
+  (`mdInline` href, `mdRender` via `safeImg`) pour ne pas dépendre d'un invariant d'ordre. Risque
+  résiduel documenté dans `docs/deploiement-et-conformite.md` (§ 1.1).
 - Toute donnée importée/chargée passe par `migrate()` / `sanitizeCats()` (point d'entrée unique de
   compatibilité et de sécurité) ; nouveaux champs = facultatifs, avec défaut posé dans `migrate()`.
 - **Documents PDF** : le PDF vit en ArrayBuffer dans le store IndexedDB `attachments` (base v5 ; Blob historique accepté en lecture), JAMAIS en
@@ -139,6 +143,10 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
 - Fonctions pures testables : les exposer via le hook `?__actest` (fin de `index.html`) et ajouter
   un test dans `tests.html`.
 - Ne jamais supprimer un champ du modèle fiche/catégorie (compatibilité ascendante).
+- **Hygiène de suppression** : retirer un composant = retirer AUSSI son CSS orphelin ET mettre à
+  jour la doc qui le cite (AGENTS.md, `design/`). Une classe morte documentée (`.endcap` après
+  V5) fait diverger doc et code. Toute suppression de fichier référencé (ex. une SPEC) implique de
+  purger la référence.
 - **Nommage SQL** : ne JAMAIS renommer un identifiant existant (`fiches`, `category_sets`,
   `fiche_notes`… sont historiquement en français : un renommage casserait les instances déployées
   et le client, sans gain fonctionnel) ; tout **nouvel** objet (table, fonction, politique,

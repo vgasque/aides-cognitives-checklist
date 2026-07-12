@@ -104,7 +104,7 @@
                   position, compteurs, minuteurs qui tournent). Survit aux
                   allers-retours bibliothèque<->lecture ; invalidé après édition.
   - RENDU : une seule fonction render() réécrit #main selon state.view, en
-    déléguant à renderLibrary / renderEditor / renderRead. Pas de framework :
+    déléguant à renderFiches / renderEditor / renderRead. Pas de framework :
     le HTML est produit par template strings, puis les écouteurs sont rattachés.
   - Les minuteurs sont rafraîchis par un unique setInterval(tickAll, 300)
     qui met à jour le DOM par id (sans re-rendu complet) et déclenche les alertes.
@@ -1780,7 +1780,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.1.0';
+const APP_VERSION='4.1.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -3198,10 +3198,10 @@ async function deleteSession(id){if(!await confirmDlg('Supprimer cette session ?
 
 /* ===== Render =====
    render() : aiguilleur unique. Met à jour l'en-tête et délègue à la vue active
-     (renderLibrary / renderEditor / renderRead). Défilement géré par TRANSITION de vue :
+     (renderFiches / renderEditor / renderRead). Défilement géré par TRANSITION de vue :
      haut de page en entrant en fiche/édition, position restaurée au retour bibliothèque,
      jamais de saut pendant les re-rendus en lecture (usage en crise).
-   renderLibrary() : recherche + filtres catégories colorés + grille de cartes
+   renderFiches() : recherche + filtres catégories colorés + grille de cartes
      (pastilles catégorie/branchement/nb de sessions, date de validation). */
 function applyViewChrome(){
   // En mode crise, l'en-tête met le TITRE DE LA FICHE en avant (classe .crisis) ; la marque s'efface.
@@ -3279,7 +3279,7 @@ function render(){
   // Créer/Enregistrer/Aperçu, recherche, pied nomade) : extrait pour que render() se lise comme
   // « capture du défilement -> chrome -> dispatch de vue -> défilement final » (audit v4.1.0).
   applyViewChrome();
-  if(state.view==='library')(state.section==='protocols'?renderProtocols():renderLibrary());
+  if(state.view==='library')(state.section==='protocols'?renderProtocols():renderFiches());
   else if(state.view==='edit')renderEditor();
   else if(state.view==='protocolRead')renderProtocolRead();
   else if(state.view==='protocolEdit')renderProtocolEdit();
@@ -3307,7 +3307,7 @@ function setBarTitle(t){t=(t||'').trim();
 // Transition de vue (défilement ci-dessus) : vue du rendu précédent, fiche affichée, position bibliothèque.
 let _lastView=null,_lastFicheId=null,_libScrollY=0;
 let _qDebounce=null;   // debounce du champ de recherche (voir l'écouteur 'input' ci-dessous)
-/* ----- Chrome COMMUN de la page d'accueil (partagé entre renderLibrary et renderProtocols,
+/* ----- Chrome COMMUN de la page d'accueil (partagé entre renderFiches et renderProtocols,
    jamais dupliqué) : sélecteur de section, barre de bibliothèques, rangée de catégories. ----- */
 // Sélecteur de section V5 (canvas turn 6) : TAB BAR basse sur l'accueil étroit (< 780px, pastille
 // glissante) ; en large (>= 780px) la colonne gauche porte les sections (rendue par renderHomeList).
@@ -3404,7 +3404,7 @@ function homeSideHtml(){
     ${catsSorted(state.scope).map(c=>`<button class="hs-row${state.cat===c.id?' on':''}" data-cat="${esc(c.id)}"><span class="hs-dot" style="background:${safeColor(c.color)}"></span><span class="hs-name">${esc(c.name)}</span><span class="hs-n">${nCat(c.id)}</span></button>`).join('')}
     ${canEditCur?`<button class="btn-manage-cats" data-catmgr aria-haspopup="dialog">${uiIcon('gear',13)} Gérer les catégories</button>`:''}
   </aside>`;}
-// Écouteurs du chrome commun. `rerender` = re-rendu de la vue hôte (renderLibrary/renderProtocols).
+// Écouteurs du chrome commun. `rerender` = re-rendu de la vue hôte (renderFiches/renderProtocols).
 // RECHERCHE TRANSVERSALE : la même requête est aussi évaluée sur L'AUTRE section (en urgence, on
 // ne doit pas avoir à se souvenir d'où vit un contenu). Bloc discret sous les résultats ; le tap
 // bascule de section en CONSERVANT la recherche (setSection keepQuery). Le nombre est calculé
@@ -3494,8 +3494,8 @@ function renderHomeList(cfg){
   {const row=document.getElementById('homeChrome').querySelector('.catbar .chiprow');if(row&&_catRowX)row.scrollLeft=_catRowX;}
   placeFooter();   // accueil large : le pied de page (version/synchro/stockage) vit en bas de la sidebar
 }
-function renderLibrary(){
-  renderHomeList({rerender:renderLibrary,crossKind:'protocols',create:newFiche,open:openRead,
+function renderFiches(){
+  renderHomeList({rerender:renderFiches,crossKind:'protocols',create:newFiche,open:openRead,
     // « Créer » tonal dès qu'une session en cours affiche son « Reprendre » rempli (cf. .btn-new.tonal).
     newTonal:()=>Object.values(liveSessions).some(R=>R.started&&R.fiche),
     listTitle:()=>state.scope?esc((myLibraries.find(l=>l.id===state.scope)||{}).name||'Bibliothèque partagée'):'Bibliothèque perso',
@@ -3519,12 +3519,12 @@ function renderLibrary(){
     remainLbl:n=>'restante'+(n>1?'s':''),
     empty:{title:'Aucune fiche',libEdit:'Cette bibliothèque partagée est vide — créez sa première fiche.',libRead:'Cette bibliothèque partagée est vide.',anon:'Créez votre première aide cognitive.',cta:'Créer une fiche'},
     bind:()=>{
-      {const nx=document.getElementById('noticeX');if(nx)nx.onclick=()=>{try{localStorage.setItem('ac-notice-hidden','1');}catch(e){}renderLibrary();};}
+      {const nx=document.getElementById('noticeX');if(nx)nx.onclick=()=>{try{localStorage.setItem('ac-notice-hidden','1');}catch(e){}renderFiches();};}
       {const sa=document.getElementById('seedAdd');if(sa)sa.onclick=addSeedFiches;}
-      {const sx=document.getElementById('seedX');if(sx)sx.onclick=()=>{try{localStorage.setItem(spaceKey('ac-seeds-hidden'),'1');}catch(e){}renderLibrary();};}
+      {const sx=document.getElementById('seedX');if(sx)sx.onclick=()=>{try{localStorage.setItem(spaceKey('ac-seeds-hidden'),'1');}catch(e){}renderFiches();};}
       main.querySelectorAll('[data-openlive]').forEach(el=>{el.onclick=()=>openRead(el.dataset.openlive);el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openRead(el.dataset.openlive);}};});
-      main.querySelectorAll('[data-endlive]').forEach(b=>b.onclick=async()=>{const id=b.dataset.endlive,R=liveSessions[id];if(R&&await confirmDlg('Terminer la session ? Les minuteurs s’arrêtent ; la session est conservée dans l’historique.',{yes:'Terminer'})){endSession(R);if(Runtime.ficheId===id)resetRuntime();renderLibrary();}});
-      main.querySelectorAll('[data-pin]').forEach(b=>b.onclick=e=>{e.stopPropagation();togglePin(b.dataset.pin);renderLibrary();});}});
+      main.querySelectorAll('[data-endlive]').forEach(b=>b.onclick=async()=>{const id=b.dataset.endlive,R=liveSessions[id];if(R&&await confirmDlg('Terminer la session ? Les minuteurs s’arrêtent ; la session est conservée dans l’historique.',{yes:'Terminer'})){endSession(R);if(Runtime.ficheId===id)resetRuntime();renderFiches();}});
+      main.querySelectorAll('[data-pin]').forEach(b=>b.onclick=e=>{e.stopPropagation();togglePin(b.dataset.pin);renderFiches();});}});
 }
 /* ----- Vues PROTOCOLES : liste (renderProtocols), lecture (renderProtocolRead), édition
    (renderProtocolEdit). Même chrome d'accueil que la bibliothèque de fiches (sélecteur de
@@ -5389,7 +5389,7 @@ const catModal=document.getElementById('catModal');
 let catDelId=null,_catHost='catMgrBody';   // hôte courant : fenêtre (éditeur) ou panneau inline (accueil)
 const catCount=id=>fiches.filter(f=>f.category===id).length;
 function openCatMgr(){catDelId=null;_catHost='catMgrBody';catModal.classList.add('on');renderCatMgr();}
-function closeCatMgr(){catModal.classList.remove('on');if(state.view==='edit')renderEditor();else if(state.view==='library')renderLibrary();}
+function closeCatMgr(){catModal.classList.remove('on');if(state.view==='edit')renderEditor();else if(state.view==='library')renderFiches();}
 function renderCatMgr(){
   const body=document.getElementById(_catHost);if(!body)return;const scp=activeCatScope();const scoped=catsSorted(scp);
   body.innerHTML=`${scp?`<p class="cm-scope">Catégories de la bibliothèque <b>${esc(libName(scp)||'')}</b> (partagées avec ses membres).</p>`:'<p class="cm-scope">Catégories de votre espace personnel.</p>'}`+scoped.map(c=>{const n=catCount(c.id);
@@ -5668,7 +5668,7 @@ function setSyncChip(state,text){
   chip.onclick=clickable?(state==='err'?openSyncErr:openAuth):null;
   chip.title=state==='err'?"Cliquer pour voir le détail de l'erreur":(clickable?"Cliquer pour plus d'informations":'');
   updateSyncBanner();}
-// Bandeau (page d'accueil UNIQUEMENT, cf. renderLibrary) qui reprend l'état de la pastille de
+// Bandeau (page d'accueil UNIQUEMENT, cf. renderFiches) qui reprend l'état de la pastille de
 // synchro mais en beaucoup plus court : juste le titre, pas le paragraphe d'explication (réservé à
 // la fenêtre ouverte au clic). Se (dé)affiche tout seul au même rythme que la pastille ; n'existe
 // dans le DOM que sur la bibliothèque -> jamais affiché en lecture/édition (app pleinement utilisable
@@ -5755,7 +5755,7 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
       // arriver au même écran de connexion qu'une déconnexion sans effacement : l'option
       // « effacer » ne change QUE les données, jamais la destination.
       if(wipe){await wipeCurrentSpace();try{localStorage.setItem('ac-reopen-auth','1');}catch(e){}location.reload();return;}
-      resetAuthState();_authDelete=false;_authStep={mode:'email',email:'',msg:'',msgcls:''};renderAuth();setSyncChip();if(state.view==='library')renderLibrary();};
+      resetAuthState();_authDelete=false;_authStep={mode:'email',email:'',msg:'',msgcls:''};renderAuth();setSyncChip();if(state.view==='library')renderFiches();};
     // UN SEUL bouton « Se déconnecter » : l'ancien « Changer de compte » faisait EXACTEMENT la
     // même chose (doSignOut -> écran de connexion, où l'on peut saisir n'importe quel e-mail) ;
     // deux boutons voisins pour une seule action ajoutaient du bruit et un choix inutile. Le
@@ -5833,7 +5833,7 @@ function renderAuthDelete(body,u){
               // Échec du déplacement : on NE bascule PAS d'espace (les fiches restent visibles
               // ici, exportables) ; le compte, lui, est déjà supprimé -> parcours standard.
               if(moved){try{localStorage.setItem('ac-space','');}catch(e){}location.reload();return;}}
-            _authDelete=false;_authStep={mode:'email',email:'',msg:'',msgcls:''};renderAuth();setSyncChip();if(state.view==='library')renderLibrary();toast('Votre compte a été supprimé.');
+            _authDelete=false;_authStep={mode:'email',email:'',msg:'',msgcls:''};renderAuth();setSyncChip();if(state.view==='library')renderFiches();toast('Votre compte a été supprimé.');
           }catch(e){
             // Refus serveur « recent otp verification required » (défense en profondeur de la RPC,
             // voir supabase/schema.sql) : le code a plus de 10 min -> inviter à en recevoir un neuf.
@@ -6896,12 +6896,12 @@ async function renderMembers(){const body=document.getElementById('membersBody')
     if(nn===libName(_memLib)){closeMembers(true);return;}
     sv.disabled=true;
     try{await rest('PATCH','/rest/v1/libraries?id=eq.'+encodeURIComponent(_memLib),{name:nn},{'Prefer':'return=minimal'});
-      await Sync.loadProfile();closeMembers(true);if(state.view==='library')renderLibrary();}
+      await Sync.loadProfile();closeMembers(true);if(state.view==='library')renderFiches();}
     catch(e){sv.disabled=false;setMsg('Renommage impossible : '+e.message,'err');}};}
   const dl=body.querySelector('#libDelete');if(dl)dl.onclick=async()=>{
     if(!await confirmDlg('Supprimer DÉFINITIVEMENT la bibliothèque « '+libName(_memLib)+' » et TOUTES ses fiches partagées ? Action irréversible.',{title:'Supprimer la bibliothèque',yes:'Supprimer définitivement',danger:true}))return;
     try{await rest('DELETE','/rest/v1/libraries?id=eq.'+encodeURIComponent(_memLib),null,{'Prefer':'return=minimal'});
-      closeMembers();state.scope=null;await Sync.loadProfile();Sync.full();renderLibrary();toast('Bibliothèque supprimée.');}
+      closeMembers();state.scope=null;await Sync.loadProfile();Sync.full();renderFiches();toast('Bibliothèque supprimée.');}
     catch(e){toast('⚠ Suppression impossible : '+e.message);}};}
 bindModalDismiss(membersModal,closeMembers);
 // Fenêtre "Créer une bibliothèque" (app-admin uniquement ; la RLS rejette sinon si contournée) :
@@ -6931,7 +6931,7 @@ function renderNewLib(){const body=document.getElementById('newLibBody');if(!bod
     const id='lib-'+(catSlug(name).slice(0,32)||'x')+'-'+Math.random().toString(36).slice(2,6);
     try{await rest('POST','/rest/v1/libraries',[{id:id,name:name}],{'Prefer':'return=minimal'});
       await Sync.loadProfile();           // le trigger m'a ajouté comme admin -> apparaît dans la liste
-      closeNewLib(true);state.scope=id;renderLibrary();toast('Bibliothèque « '+name+' » créée.');
+      closeNewLib(true);state.scope=id;renderFiches();toast('Bibliothèque « '+name+' » créée.');
     }catch(e){btn.disabled=false;setMsg('Création impossible : '+e.message,'err');}};
   document.getElementById('newLibOk').onclick=submit;
   inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();submit();}};}

@@ -47,6 +47,21 @@ Durée : ~30 min. Aucune compétence serveur avancée requise.
    `sw.js` au plus tard toutes les 24 h).
 3. Ouvrir l'URL : l'app doit se charger et proposer « Installer l'app ».
 
+> **Risque résiduel assumé (défense en profondeur).** L'architecture monofichier impose une CSP
+> avec `script-src 'unsafe-inline'` : la CSP ne peut donc PAS servir de second rempart contre le
+> XSS — toute la protection repose sur l'échappement systématique (`esc()`) et l'assainissement
+> des imports (`migrate` / `migrateProtocol` / `sanitizeCats`), maintenus par des tests. Comme les
+> jetons de session Supabase (accès **et** rafraîchissement) vivent en `localStorage`, une faille
+> XSS non couverte vaudrait un vol de session durable. Conséquences pratiques : (a) ne jamais
+> relâcher la discipline `esc()` / garde-fous `safe*` lors d'une évolution ; (b) préférer un
+> hébergeur qui applique `_headers` (les en-têtes HTTP durcissent le reste de la posture) ;
+> (c) une piste de durcissement documentée est de générer, à la publication, les hashs SHA-256 des
+> blocs `<script>` inline et de les injecter dans `_headers` pour retirer `'unsafe-inline'` côté
+> scripts (Netlify / Cloudflare). Deux points RLS mineurs à connaître, sans impact en l'état :
+> `is_approved()` considère un compte sans ligne `user_status` comme approuvé (choix délibéré,
+> évite une panne de synchro silencieuse), et la politique de LECTURE des pièces jointes partagées
+> (`att_lib_read`) ne réapplique pas la regex de nom stricte de l'écriture.
+
 ### 1.2 Créer le projet Supabase
 1. Créer un compte sur supabase.com, **New project**, région **UE (Francfort)** conseillée.
 2. Page *Security* à la création : *Enable Data API* **ON**, *Auto-expose new tables* **OFF**,

@@ -1,5 +1,41 @@
 # Journal des modifications
 
+## [4.1.1] — 2026-07-12
+Correctifs et nettoyage issus d'un audit complet (code mort, duplication, sécurité, PWA/perf).
+Aucun changement de comportement visible : mêmes écrans, mêmes données.
+
+### Corrigé
+- **Fuite d'écouteurs de l'aperçu d'édition** : un écouteur `input` s'empilait sur `#main` à
+  chaque ouverture d'éditeur — un seul est désormais posé (les frappes ne déclenchaient plus,
+  après plusieurs éditions, qu'un seul aperçu au lieu de N).
+- **Service worker** : le handler de navigation ne met plus en cache que la page de l'app —
+  visiter `tests.html` ou une fiche de `design/` ne peut plus remplacer la copie hors-ligne.
+- **Défense en profondeur du mini-Markdown** : liens et images nettoyés au point d'insertion
+  (`href`, `safeImg`) — la sûreté ne dépend plus d'un invariant d'ordre.
+
+### Ajouté
+- **Réservation d'espace des images** (anti-décalage de mise en page) : chaque image mémorise ses
+  dimensions ; `width`/`height` émis en lecture réservent le bon ratio avant décodage, sans
+  jamais déformer un schéma. Import ancien sans dimensions : inchangé.
+- **Manifest** : `orientation` portrait, `categories`, `dir` — fiche d'installation plus complète.
+
+### Modifié
+- **Facteur commun fiche/protocole** : sanitisation des entités (`sanitizeEntityCommon`), en-tête
+  et sortie des éditeurs mutualisés — une évolution ne peut plus diverger d'un seul côté.
+- `render()` allégé (chrome d'en-tête extrait dans `applyViewChrome`) ; `renderLibrary` renommée
+  `renderFiches` (elle rend les fiches, pas les bibliothèques).
+
+### Supprimé
+- Code mort : `timeAgo()`, variable `_rtShow`, 17 règles CSS orphelines (vestiges des
+  remplacements V5). Chaîne de build `dist/` retirée (dossier, `build-dist.mjs`, `terser`) : le
+  dépôt est la seule forme servie.
+
+### Sécurité
+- Risque résiduel documenté (`docs/deploiement-et-conformite.md` § 1.1) : la CSP monofichier
+  (`script-src 'unsafe-inline'`) n'est pas un rempart anti-XSS — tout repose sur `esc()` et
+  l'assainissement des imports ; jetons Supabase en `localStorage`. Piste de durcissement notée
+  (hashs SHA-256 des scripts inline dans `_headers`).
+
 ## [4.1.0] — 2026-07-12
 Version consolidée : intégration complète du design Claude Design « V5 Explorations » et des
 spécifications écrites qui l'ont suivi (largeurs, écrans de gestion, mode crise, dialogue
