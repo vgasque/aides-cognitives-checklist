@@ -2221,7 +2221,9 @@ function mdInline(s){const h=esc(sstr(s,4000));
       return '<code class="md-ci">'+seg.slice(1,-1)+'</code>';
     // Liens : https strict (jamais javascript: — revalidé APRÈS échappement), ou att:ID (jeu SAFE_ID).
     let x=seg.replace(/\[([^\]\n]{1,200})\]\(([^()\s]{1,500})\)/g,(m,txt,href)=>{
-      if(/^https?:\/\/\S+$/i.test(href))return '<a href="'+href+'" target="_blank" rel="noopener noreferrer">'+txt+'</a>';
+      // Défense en profondeur : href nettoyé AU POINT D'INSERTION (guillemets/chevrons bruts
+      // retirés) — la sûreté de l'attribut ne dépend plus du seul esc() d'entrée de mdInline.
+      if(/^https?:\/\/\S+$/i.test(href))return '<a href="'+href.replace(/["'<>`]/g,'')+'" target="_blank" rel="noopener noreferrer">'+txt+'</a>';
       const am=href.match(/^att:([A-Za-z0-9_-]{1,64})$/);
       if(am&&BAD_KEYS.indexOf(am[1])<0)return '<a href="#" data-mdatt="'+am[1]+'">'+txt+'</a>';
       return m;});
@@ -2274,7 +2276,10 @@ function mdRender(src,ctx){ctx=ctx||{};
     if(b.t==='code')return '<pre class="md-code"><code>'+esc(b.lines.join('\n'))+'</code></pre>';
     if(b.t==='hr')return '<hr class="md-hr">';
     if(b.t==='img'){const im=imgs[b.id];if(!im)return '';const cap=b.caption||im.caption||'';
-      return '<figure class="md-fig"><img src="'+im.data+'" data-full="'+im.data+'" data-cap="'+esc(cap)+'" alt="'+esc(cap)+'" loading="lazy" decoding="async">'+(cap?'<figcaption>'+esc(cap)+'</figcaption>':'')+'</figure>';}
+      // Défense en profondeur : data-URL revalidée ICI (safeImg) — mdRender reste sûr même si
+      // un futur appelant lui passait des images non passées par migrate/migrateProtocol.
+      const data=safeImg(im.data);if(!data)return '';
+      return '<figure class="md-fig"><img src="'+data+'" data-full="'+data+'" data-cap="'+esc(cap)+'" alt="'+esc(cap)+'" loading="lazy" decoding="async">'+(cap?'<figcaption>'+esc(cap)+'</figcaption>':'')+'</figure>';}
     return '<p class="md-p">'+b.lines.map(mdInline).join('<br>')+'</p>';}).join('');}
 // Texte brut pour la recherche plein texte (retire le balisage, garde légendes et libellés de liens).
 function mdStrip(src){return sstr(src,MD_MAX_CHARS).split('\n').map(l=>l
@@ -4687,11 +4692,16 @@ function editPreviewHtml(kind){
     <div class="ep-card ep-md"><div class="ep-pttl">${esc(p.title)||'Sans titre'}</div>${mdRender(p.body||'',{images:p.images})}</div>
     <button type="button" class="btn sm ep-full" data-epfull>⛶ Ouvrir l'aperçu complet</button>`;}
 // Colonne d'aperçu : (re)câblage du bouton plein écran + mise à jour débouncée à la saisie.
-function bindEditSide(kind){const side=document.getElementById('editSide');if(!side)return;
-  const wire=()=>{const b=side.querySelector('[data-epfull]');if(b)b.onclick=kind==='fiche'?openDraftPreview:openPDraftPreview;};
+// UN SEUL écouteur 'input' vit sur #main (élément permanent) : l'ancien est retiré avant d'en
+// poser un nouveau — en empiler un par ouverture d'éditeur fuyait et écrivait dans des nœuds
+// détachés (audit v4.1.0). Le handler re-cherche #editSide à chaque tir pour la même raison.
+let _editSideOn=null,_editSideT=null;
+function bindEditSide(kind){if(!document.getElementById('editSide'))return;
+  const wire=()=>{const s=document.getElementById('editSide');const b=s&&s.querySelector('[data-epfull]');if(b)b.onclick=kind==='fiche'?openDraftPreview:openPDraftPreview;};
   wire();
-  let t=null;
-  main.addEventListener('input',()=>{clearTimeout(t);t=setTimeout(()=>{side.innerHTML=editPreviewHtml(kind);wire();},300);});}
+  if(_editSideOn)main.removeEventListener('input',_editSideOn);
+  _editSideOn=()=>{clearTimeout(_editSideT);_editSideT=setTimeout(()=>{const s=document.getElementById('editSide');if(!s)return;s.innerHTML=editPreviewHtml(kind);wire();},300);};
+  main.addEventListener('input',_editSideOn);}
 function renderEditor(){
   captureFlow();
   const f=state.draft;const blocks=f.blocks;blocks._start=f.start;
