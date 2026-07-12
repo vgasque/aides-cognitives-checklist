@@ -3203,10 +3203,7 @@ async function deleteSession(id){if(!await confirmDlg('Supprimer cette session ?
      jamais de saut pendant les re-rendus en lecture (usage en crise).
    renderLibrary() : recherche + filtres catégories colorés + grille de cartes
      (pastilles catégorie/branchement/nb de sessions, date de validation). */
-function render(){
-  // Position de la BIBLIOTHÈQUE mémorisée quand on la quitte : ouvrir une fiche remet en haut
-  // (le début de la fiche doit être visible), revenir restaure là où on en était dans la liste.
-  if(_lastView==='library'&&state.view!=='library')_libScrollY=window.scrollY;
+function applyViewChrome(){
   // En mode crise, l'en-tête met le TITRE DE LA FICHE en avant (classe .crisis) ; la marque s'efface.
   document.querySelector('header.bar').classList.toggle('crisis',state.view==='read'&&!!state.fiche);
   // Sur l'ACCUEIL, l'en-tête porte le sélecteur de section à la place de la marque (classe .home).
@@ -3273,6 +3270,15 @@ function render(){
   document.body.classList.toggle('crisis-live',state.view==='read'&&Runtime.started);
   // Sortie de crise : rejouer les notifications mises en attente (une par une, règle V5).
   if(!document.body.classList.contains('crisis-live'))flushHeldToasts();
+}
+function render(){
+  // Position de la BIBLIOTHÈQUE mémorisée quand on la quitte : ouvrir une fiche remet en haut
+  // (le début de la fiche doit être visible), revenir restaure là où on en était dans la liste.
+  if(_lastView==='library'&&state.view!=='library')_libScrollY=window.scrollY;
+  // Chrome d'en-tête + classes de vue (toggles crise/accueil/largeurs, bandeau titre, boutons
+  // Créer/Enregistrer/Aperçu, recherche, pied nomade) : extrait pour que render() se lise comme
+  // « capture du défilement -> chrome -> dispatch de vue -> défilement final » (audit v4.1.0).
+  applyViewChrome();
   if(state.view==='library')(state.section==='protocols'?renderProtocols():renderLibrary());
   else if(state.view==='edit')renderEditor();
   else if(state.view==='protocolRead')renderProtocolRead();
