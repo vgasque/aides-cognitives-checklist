@@ -80,6 +80,14 @@ self.addEventListener('fetch', e => {
   const isNav = req.mode === 'navigate' ||
                 (req.headers.get('accept') || '').includes('text/html');
   if (isNav) {
+    // SEULE la page de l'APP est traitée ici. Avant ce garde, TOUTE navigation HTML du même
+    // domaine (tests.html, design/…) passait par ce chemin et son contenu était mis en cache
+    // sous la clé './index.html' — la copie HORS-LIGNE de l'app d'urgence était alors REMPLACÉE
+    // par la dernière page visitée (empoisonnement constaté à l'audit v4.1.0). Hors app :
+    // réseau direct, jamais de mise en cache.
+    const navPath = new URL(req.url).pathname;
+    const appDir = new URL('./', self.location).pathname;
+    if (navPath !== appDir && navPath !== appDir + 'index.html') return;
     const net = fetch(req);
     // Mise en cache garantie par waitUntil (enregistré TOUT DE SUITE : le navigateur ne tue pas
     // le worker avant la fin du put), même quand la réponse servie vient finalement du cache.
