@@ -469,7 +469,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .hdr-search svg{position:absolute;left:12px;color:var(--ink-soft);pointer-events:none}
   .hdr-search input{width:100%;padding:9px 13px 9px 36px;border:2px solid var(--line-hover);border-radius:9px;background:var(--surface);color:var(--ink);font-size:15px;white-space:nowrap;overflow:hidden}
   .hdr-search input:focus{outline:2px solid var(--primary);border-color:transparent}
-  @media (max-width:779.98px){header.bar.home .hdr-search{order:5;flex:1 1 100%;max-width:none;margin-top:2px}.hdr-search input{padding:10px 13px}}
+  @media (max-width:779.98px){header.bar.home .hdr-search{order:5;flex:1 1 100%;max-width:none;margin-top:2px}.hdr-search input{padding:10px 13px 10px 36px}}  /* 36px à gauche : la loupe SVG (absolue, left:12px) garde sa réserve — sans quoi elle chevauche le placeholder */
   /* Chips bibliothèques/catégories de l'accueil étroit : dans l'en-tête (fixes au défilement). */
   #homeChrome{order:6;width:100%;min-width:0}
   #homeChrome[hidden]{display:none}
