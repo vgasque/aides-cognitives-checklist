@@ -232,7 +232,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-w5YT+q3y9Axlqe6N8Ze/YKF4rLPkVln2W27OAnhz4MA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-UDyS2RzhtBMsC/ZHEQixTq6F9HE48OW15KSW6hZka0g='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -3797,6 +3797,8 @@ async function deleteProtocolDraft(){
   state.pdraft=null;state.view='library';render();}
 function openProtocolRead(id){const p=protocols.find(x=>x.id===id);if(!p)return;state.protocol=p;state.view='protocolRead';render();}
 async function openProtocolEdit(id){const p=protocols.find(x=>x.id===id);if(!p)return;
+  // Même revérification de rôle que openEdit (protocole partagé, en ligne).
+  if(p.libraryId&&Auth.signedIn()&&Sync.online()){try{await Sync.loadProfile();}catch(e){}}
   if(!canEditFiche(p)){toast(RO_EDIT_TOAST);return openProtocolRead(id);}
   state.pdraft=migrateProtocol(JSON.parse(JSON.stringify(p)));draftNewAtts=[];state.draftRestored=null;
   draftBase=JSON.stringify(state.pdraft);_lastParked=null;
@@ -4919,7 +4921,12 @@ function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;flowScroll=
   // Algorithme REPLIÉ à l'ouverture : la 1ʳᵉ étape actionnable doit arriver le plus haut possible
   // sous stress ; le schéma (vue d'ensemble, utile à froid) reste à un tap (« Voir l'algorithme »).
   bindStateToRuntime();state.fiche=Runtime.fiche;state.showFlow=false;state.showSess=false;state.view='read';render();}
-async function openEdit(id){const f=fiches.find(x=>x.id===id);if(!f)return;if(!canEditFiche(f)){toast(RO_EDIT_TOAST);return openRead(id);}
+async function openEdit(id){const f=fiches.find(x=>x.id===id);if(!f)return;
+  // Le rôle peut avoir changé côté serveur pendant que l'app était ouverte (pas de synchro
+  // périodique) : fiche PARTAGÉE + en ligne -> profil revérifié AVANT le contrôle local.
+  // Hors-ligne on laisse passer (local-first) ; _reclaimBlocked rattrapera au push.
+  if(f.libraryId&&Auth.signedIn()&&Sync.online()){try{await Sync.loadProfile();}catch(e){}}
+  if(!canEditFiche(f)){toast(RO_EDIT_TOAST);return openRead(id);}
   state.draft=JSON.parse(JSON.stringify(f));draftNewAtts=[];state.noteEdit=false;state.draftRestored=null;
   draftBase=JSON.stringify(state.draft);_lastParked=null;
   // Un brouillon auto-enregistré de CETTE fiche attend ? On le restaure (rien ne se perd) —
@@ -6573,10 +6580,45 @@ const Sync={
   //      sont avérés (un autre élément perso vient de passer, ou is_approved() confirme) — sinon
   //      une panne de droits GLOBALE (compte plus approuvé, politique serveur) renommerait tout
   //      en boucle à chaque nouvelle tentative.
+  // DROITS PERDUS en cours de route (audit v4.1.1) : une modification locale `dirty` d'une
+  // bibliothèque où l'on ne peut PLUS écrire (rétrogradé lecteur, retiré de la bibliothèque)
+  // ne partirait JAMAIS — filtrée du push, épargnée par la réconciliation (qui protège les
+  // dirty), jamais écrasée par le pull (LWW : la copie locale est plus récente) -> divergence
+  // permanente et SILENCIEUSE (pastille verte). Ici : la modification est DUPLIQUÉE en Perso
+  // (rien ne se perd), la copie partagée revient à la version du serveur (ou disparaît si l'on
+  // n'est plus membre, comme _reconcileShared), et l'utilisateur est PRÉVENU. Ordre copie
+  // d'abord, retour serveur ensuite : un échec à mi-chemin laisse au pire un doublon Perso au
+  // passage suivant, jamais une modification effacée. Une SUPPRESSION bloquée, elle, n'a rien
+  // à préserver : la version de l'équipe est simplement restaurée.
+  async _reclaimBlocked(cfg,all){
+    const done=new Set(),copies=[],names=[];let restoredDel=false;
+    const blocked=all.filter(o=>o.dirty&&o.libraryId&&!canEditFiche(o)&&!(cfg.skip&&cfg.skip(o)));
+    for(const o of blocked){
+      try{
+        if(!o.deletedAt){
+          const c=cfg.clone(o);c.id=uid(cfg.idPrefix);c.libraryId=null;c.ownerId=null;
+          c.updatedBy='';c.updatedAt=Date.now();c.dirty=true;
+          await cfg.dataPut(c);cfg.addMem(c);copies.push(c);
+        }else restoredDel=true;
+        const rows=await rest('GET','/rest/v1/'+cfg.table+'?id=eq.'+encodeURIComponent(o.id)+'&select=*')||[];
+        if(rows.length&&!rows[0].deleted_at){const nf=cfg.fromRow(rows[0]);await cfg.dataPut(nf);cfg.replaceMem(nf);}
+        else{await cfg.dataDel(o.id);cfg.dropMem(o.id);}
+        done.add(o.id);names.push(o.title||o.id);
+      }catch(e){}   // réseau : o reste dirty, l'opération sera rejouée à la prochaine synchro
+    }
+    if(names.length){if(state.view==='library')render();
+      toast('Vos modifications sur « '+names[0]+' »'+(names.length>1?' (et '+(names.length-1)+' autre'+(names.length>2?'s':'')+')':'')+
+        ' n\u2019ont pas pu être publiées : vos droits sur la bibliothèque ont changé.'+
+        (copies.length?' Votre version a été copiée dans « Perso ».':'')+
+        (restoredDel?' La suppression a été annulée (version de l\u2019équipe restaurée).':''),12000);}
+    return {done,copies};},
   async _pushTable(cfg){
     // On pousse Perso + les bibliothèques où l'on peut éditer (la RLS refuserait sinon).
     const all=await cfg.getAllLocal();
-    const dirty=all.filter(o=>o.dirty&&canEditFiche(o)&&!(cfg.skip&&cfg.skip(o)));
+    let reclaimed={done:new Set(),copies:[]};
+    if(cfg.clone)reclaimed=await this._reclaimBlocked(cfg,all);
+    // Les copies Perso fraîchement créées partent dans CE passage (elles sont dirty).
+    const dirty=all.filter(o=>o.dirty&&canEditFiche(o)&&!(cfg.skip&&cfg.skip(o))&&!reclaimed.done.has(o.id)).concat(reclaimed.copies);
     if(!dirty.length)return;const uidv=Auth.user().id;
     const send=async batch=>{
       await rest('POST','/rest/v1/'+cfg.table,batch.map(o=>cfg.toRow(o,uidv)),{'Prefer':'resolution=merge-duplicates,return=minimal'});
@@ -6608,7 +6650,13 @@ const Sync={
     const held=new Set(heldEdits());
     return this._pushTable({table:'fiches',getAllLocal:()=>Data.getAll(),dataPut:f=>Data.put(f),dataDel:id=>Data.del(id),toRow:ficheToRow,
       skip:f=>held.has(f.id),
-      repair:f=>reassignFicheId(f)});},
+      repair:f=>reassignFicheId(f),
+      // Réconciliation « droits perdus » (cf. _reclaimBlocked) : clonage via migrate + accès
+      // au tableau mémoire, mêmes briques que le pull.
+      clone:f=>migrate(JSON.parse(JSON.stringify(f))),idPrefix:'f',fromRow:ficheFromRow,
+      addMem:f=>fiches.push(f),
+      replaceMem:f=>{const i=fiches.findIndex(x=>x.id===f.id);if(i>=0)fiches[i]=f;else if(!f.deletedAt)fiches.push(f);},
+      dropMem:id=>{const i=fiches.findIndex(x=>x.id===id);if(i>=0)fiches.splice(i,1);}});},
   async _pushProtocols(){
     return this._pushTable({table:'protocols',getAllLocal:()=>Data.getProtocols(),dataPut:p=>Data.putProtocol(p),dataDel:id=>Data.delProtocol(id),toRow:protocolToRow,
       // Réparation 403 : contrairement aux fiches (reassignFicheId), aucun rattachement local à
@@ -6618,7 +6666,11 @@ const Sync={
         await Data.putProtocol(p);try{await Data.delProtocol(oldId);}catch(e){}
         const i=protocols.findIndex(x=>x.id===oldId);if(i>=0)protocols[i]=p;
         if(state.protocol&&state.protocol.id===oldId)state.protocol=p;
-        if(state.pdraft&&state.pdraft.id===oldId)state.pdraft.id=p.id;}});},
+        if(state.pdraft&&state.pdraft.id===oldId)state.pdraft.id=p.id;},
+      clone:x=>migrateProtocol(JSON.parse(JSON.stringify(x))),idPrefix:'p',fromRow:protocolFromRow,
+      addMem:x=>protocols.push(x),
+      replaceMem:x=>{const i=protocols.findIndex(y=>y.id===x.id);if(i>=0)protocols[i]=x;else if(!x.deletedAt)protocols.push(x);},
+      dropMem:id=>{const i=protocols.findIndex(y=>y.id===id);if(i>=0)protocols.splice(i,1);}});},
   // ----- Documents PDF : synchronisation avec le bucket Storage 'attachments' -----
   // Appelée APRÈS _pull/_reconcileShared : l'ensemble local des références (fiches vivantes +
   // tombstones pas encore poussés) est frais. Réservée au backend IDB (pas de blobs en repli KV).

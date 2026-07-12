@@ -5,6 +5,16 @@ Correctifs et nettoyage issus d'un audit complet (code mort, duplication, sécur
 Aucun changement de comportement visible : mêmes écrans, mêmes données.
 
 ### Corrigé
+- **Droits perdus en cours d'utilisation** (rétrogradé lecteur ou retiré d'une bibliothèque
+  pendant que l'app est ouverte) : une modification locale non poussée d'une bibliothèque où
+  l'on ne peut plus écrire divergeait en silence pour toujours (jamais poussée, jamais
+  réconciliée, pastille verte). Désormais : la modification est **copiée dans « Perso »**
+  (rien ne se perd), la copie partagée **revient à la version de l'équipe** (ou disparaît si
+  l'on n'est plus membre), et l'utilisateur est **prévenu**. Une suppression bloquée est
+  annulée (version de l'équipe restaurée). En complément, l'ouverture de l'éditeur d'une
+  fiche/protocole **partagé** revérifie le rôle auprès du serveur quand on est en ligne.
+  Rappel : il n'y a pas de synchro périodique — droits et contenus se rafraîchissent au
+  démarrage, après chaque écriture locale, au retour au premier plan et au retour en ligne.
 - **Fuite d'écouteurs de l'aperçu d'édition** : un écouteur `input` s'empilait sur `#main` à
   chaque ouverture d'éditeur — un seul est désormais posé (les frappes ne déclenchaient plus,
   après plusieurs éditions, qu'un seul aperçu au lieu de N).
