@@ -85,7 +85,13 @@
   *{box-sizing:border-box}html,body{margin:0;padding:0}
   /* iOS Safari (paysage) : sans ce réglage, le « font boosting » agrandit certains textes de
      façon disproportionnée (jauge de stockage, en-têtes de section, bandeaux…). */
-  html{-webkit-text-size-adjust:100%;text-size-adjust:100%;scrollbar-gutter:stable}  /* anti-décalage : la gouttière de scrollbar est réservée (bascule Aides <-> Protocoles) */
+  /* PAS de scrollbar-gutter:stable sur html (retiré v4.2.1) : sur les navigateurs à barres de
+     défilement CLASSIQUES (Windows/Linux), il réservait ~15px à droite EN PERMANENCE, même quand
+     rien ne défile (accueil = coque fixe, fiche courte) — l'app semblait TRONQUÉE à droite
+     (en-tête/bandeau de crise arrêtés avant le bord, éléments fixed allant eux jusqu'au bord).
+     L'anti-décalage de la bascule Aides <-> Protocoles vit désormais DANS les panneaux
+     défilants de l'accueil large (.home-side/.home-main), seul endroit où il agit encore. */
+  html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
   body{font-family:var(--sans);color:var(--ink);background:var(--bg);line-height:1.5;-webkit-font-smoothing:antialiased;padding-bottom:env(safe-area-inset-bottom)}
   button{font-family:inherit;cursor:pointer}input,textarea,select{font-family:inherit;font-size:16px;max-width:100%}textarea{resize:vertical}
   /* overflow-x:clip = filet anti-débordement horizontal (un enfant trop large ne peut plus
@@ -1176,8 +1182,10 @@
     /* Sidebar : collée au bord GAUCHE sur toute la hauteur — même surface que l'en-tête,
        séparée du contenu par une bordure droite 1px ; jamais une « bulle » flottante. */
     /* 255px en border-box (box-sizing global) = le rendu du canvas (230px hors padding). */
-    .home-side{display:flex;flex-direction:column;gap:4px;flex:none;width:255px;background:var(--surface);border-right:1px solid var(--line);padding:16px 12px;overflow-y:auto}
-    .home-main{flex:1;min-width:0;overflow-y:auto;padding:18px 22px calc(24px + env(safe-area-inset-bottom))}
+    /* scrollbar-gutter DANS les panneaux (pas sur html, cf. v4.2.1) : la bascule
+       Aides <-> Protocoles ne fait plus refluer la grille quand la barre apparaît/disparaît. */
+    .home-side{display:flex;flex-direction:column;gap:4px;flex:none;width:255px;background:var(--surface);border-right:1px solid var(--line);padding:16px 12px;overflow-y:auto;scrollbar-gutter:stable}
+    .home-main{flex:1;min-width:0;overflow-y:auto;padding:18px 22px calc(24px + env(safe-area-inset-bottom));scrollbar-gutter:stable}
     .home-main>*{max-width:1320px}
     .list-title{display:block;font-size:15px;font-weight:700;margin:0 0 12px}
     .list-title span{font-weight:500;color:var(--ink-soft)}
