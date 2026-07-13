@@ -343,6 +343,16 @@ function run(A){
   eq('updatedBy conservé', m31.updatedBy, 'a@b.fr');
   eq('status inconnu → validée', A.migrate({title:'x',status:'???'}).status, '');
 
+  group('relCandidatesFor() — candidats « Voir aussi » (liens croisés v4.2.0)');
+  {const fs=[{id:'f1',title:'Choc',order:2},{id:'f2',title:'ACR',order:1},{id:'f3',title:'Poubelle',deletedAt:1},{id:'f4',title:'Partagée',libraryId:'L1'}];
+   const ps=[{id:'p1',title:'Proto ISR',code:'ISR-01',order:1},{id:'p2',title:'Proto partagé',libraryId:'L1'}];
+   const c=A.relCandidatesFor({id:'f1',related:['p1']},fs,ps);
+   eq('même périmètre, hors soi-même/liés/corbeille', c.map(x=>x.id), ['f2']);
+   eq('aides d\'abord puis protocoles', A.relCandidatesFor({id:'x',related:[]},fs,ps).map(x=>x.kind), ['f','f','p']);
+   eq('périmètre bibliothèque respecté', A.relCandidatesFor({id:'x',libraryId:'L1',related:[]},fs,ps).map(x=>x.id), ['f4','p2']);
+   eq('code repris pour le filtre', A.relCandidatesFor({id:'x',related:[]},fs,ps).find(x=>x.id==='p1').code, 'ISR-01');
+   eq('titre vide → « Sans titre »', A.relCandidatesFor({id:'x',related:[]},[{id:'f9'}],[]).map(x=>x.title), ['Sans titre']);}
+
   group('safeFileName() — nom de document affichable');
   eq('nom simple conservé', A.safeFileName('protocole-ACR.pdf'), 'protocole-ACR.pdf');
   eq('séparateurs de chemin retirés', A.safeFileName('../..\\etc/passwd.pdf'), '....etcpasswd.pdf');

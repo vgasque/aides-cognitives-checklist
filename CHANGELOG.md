@@ -1,5 +1,35 @@
 # Journal des modifications
 
+## [4.2.0] — 2026-07-13
+Liens croisés « Voir aussi », alarmes de minuteur au standard aviation (QRH/ECAM), thème
+accessible en mode crise.
+
+### Ajouté
+- **Liens croisés « Voir aussi »** : une aide cognitive OU un protocole peut désormais être lié
+  aux deux (et plus seulement des fiches). Le choix se fait dans un **sélecteur filtrable au
+  même design que « Joindre un document existant »** (icône par nature — feuille = aide,
+  livre = protocole —, nature en 2ᵉ ligne, code en colonne droite), commun aux deux éditeurs ;
+  il remplace l'ancien menu déroulant. En lecture, la section s'appelle « Voir aussi » partout
+  (fiches ET protocoles), chaque raccourci porte l'icône de sa nature et ouvre la bonne vue.
+  Compatibilité : `related` reste un tableau d'ids (export v3 inchangé) — un ancien client
+  ignore simplement les ids de protocole qu'il ne résout pas. Même périmètre uniquement
+  (Perso ou même bibliothèque), comme les documents partagés.
+
+### Modifié
+- **Alarme de minuteur en mode crise — règle QRH/ECAM** : un minuteur qui arrive à échéance ne
+  **déplace plus jamais le contexte de travail** quand la session est sous les yeux — plus
+  d'ouverture automatique du panneau minuteurs (qui décalait la checklist en cours de lecture),
+  plus de banderole jaune par-dessus l'écran de travail. À la place : bip/vibration + flash
+  bref (l'attention, façon *master caution*), puis un **segment ambre persistant** dans la
+  barre de minuteurs de l'en-tête — le minuteur échu y reste affiché « 00:00 » tant qu'il n'est
+  ni relancé ni réarmé (l'acquittement passe par l'action, pas par un « OK » de plus). La
+  banderole cliquable, le flash écran et la notification système sont **réservés à la session
+  hors de vue** (autre vue, autre fiche, app en arrière-plan) : là, l'alerte doit être routée.
+- **Bouton thème en mode crise (mobile)** : il reste visible pendant une session (retour sur la
+  v4.1.2 — décision : la luminosité ambiante change pendant une intervention, extérieur/
+  intérieur) ; seule la pastille de compte s'efface. Les intitulés de minuteurs s'ellipsent un
+  peu plus tôt (< 430 px) pour que barre + thème + menu ⋯ tiennent ensemble sur 375 px.
+
 ## [4.1.2] — 2026-07-13
 Correctifs d'affichage et retouches de design, surtout sur mobile.
 

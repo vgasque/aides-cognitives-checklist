@@ -232,7 +232,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-oQVlgGpL0lc3OCWXeZAJ83rrnIwLGWWgBB0t1FR2x+I='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-7/LTLgpXrYbTlXVZAtsQNB3nbAv1Xg4IkdjZWFIrJwY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -396,10 +396,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     :is(body.view-edit,body.view-pedit) #hdrBadge{display:none}
     :is(body.view-edit,body.view-pedit) #hdrTheme{display:none}
     :is(body.view-edit,body.view-pedit) .hdr-act2{padding:0 11px;font-size:12.5px}
-    /* SESSION DE CRISE en étroit : thème et compte s'effacent (accessibles partout ailleurs,
-       jamais nécessaires pendant une prise en charge) — toute la place revient aux minuteurs
-       #cbTimers (intitulés longs, plusieurs minuteurs). Le menu ⋯ reste (Terminer la session…). */
-    body.crisis-live #hdrTheme,body.crisis-live .bar-acct{display:none}
+    /* SESSION DE CRISE en étroit : le COMPTE s'efface (jamais nécessaire pendant une prise en
+       charge) — la place revient aux minuteurs #cbTimers. Le THÈME reste (décision utilisateur
+       v4.2.0 : la luminosité ambiante change pendant une intervention — extérieur/intérieur) et
+       le menu ⋯ aussi (Terminer la session…). */
+    body.crisis-live .bar-acct{display:none}
   }
   .id-row .brand{flex:0 1 auto}
   header.bar:not(.home) .id-row .brand{flex:1}
@@ -501,8 +502,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #cbTimers .seg-l{font-size:11px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--ink-soft);line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:16vw}
   /* Très étroit : « ● SESSION » doit se lire EN ENTIER (l'annonce d'état ne se tronque pas) —
      mais l'INTITULÉ d'un minuteur garde un plafond (ellipse) : sans lui, un libellé long poussait
-     le temps hors du cadre (overflow:hidden le COUPAIT). Segments resserrés (padding 8px). */
-  @media (max-width:429.98px){#cbTimers .seg{padding:3px 8px}#cbTimers .seg-l{font-size:11px;letter-spacing:.2px;max-width:21vw}#cbTimers .seg-l.seg-sess{max-width:none}}
+     le temps hors du cadre (overflow:hidden le COUPAIT). Segments resserrés (padding 8px) ;
+     plafond 18vw = la barre tient à 375px AVEC le bouton thème (gardé en crise, v4.2.0). */
+  @media (max-width:429.98px){#cbTimers .seg{padding:3px 8px}#cbTimers .seg-l{font-size:11px;letter-spacing:.2px;max-width:18vw}#cbTimers .seg-l.seg-sess{max-width:none}}
   #cbTimers .seg-t{font-family:var(--mono);font-size:15px;font-weight:700;letter-spacing:.5px;line-height:1.1;font-variant-numeric:tabular-nums;color:var(--ink)}
   #cbTimers .seg.due{background:var(--verify-soft)}
   #cbTimers .seg.due :is(.seg-l,.seg-t){color:var(--verify)}
@@ -1573,7 +1575,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Bordures des CHAMPS DE SAISIE : --line-strong (3,9:1) — la limite d'un composant interactif
      doit atteindre 3:1 (WCAG 1.4.11) ; le srchBd du canvas (1,6:1) est réservé à la barre de
      recherche (2px, grande surface, identifiée par son placeholder). Arbitré à l'audit v4.5. */
-  :is(.field input[type=text],.field textarea,.field select,.search input,.auth-field,.cm-name,.cm-add input,.tk-lab,.blk-top input,.trow input,.optedit input,.optedit select,.gcap,#relAdd){border-color:var(--line-strong)}
+  :is(.field input[type=text],.field textarea,.field select,.search input,.auth-field,.cm-name,.cm-add input,.tk-lab,.blk-top input,.trow input,.optedit input,.optedit select,.gcap){border-color:var(--line-strong)}
   /* Placeholder maîtrisé (sinon gris navigateur non garanti sur nos fonds personnalisés). */
   ::placeholder{color:var(--ink-soft);opacity:1}
   /* Lien d'évitement clavier : invisible jusqu'au focus. */
@@ -1767,6 +1769,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   <div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg><input id="attPickQ" placeholder="Filtrer par nom ou origine…"></div>
   <div id="attPickList" class="att-list attpick-list"></div>
 </div></div>
+<!-- Sélecteur « Voir aussi » (éditeurs de fiche ET de protocole) : lier une AIDE ou un PROTOCOLE
+     du même périmètre — même design que « Joindre un document existant » (liste filtrable). -->
+<div class="ai-modal" id="relPickModal" role="dialog" aria-modal="true" aria-labelledby="relPickTitle"><div class="ai-card">
+  <div class="ai-top"><h3 id="relPickTitle">Lier une aide ou un protocole</h3><button class="ai-x" id="relPickX" aria-label="Fermer">×</button></div>
+  <p>Le lien apparaît en lecture, dans la section <b>« Voir aussi »</b> — un raccourci, pas une copie.</p>
+  <div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg><input id="relPickQ" placeholder="Filtrer par titre ou code…"></div>
+  <div id="relPickList" class="att-list attpick-list"></div>
+</div></div>
 <!-- Visionneuse PDF (documents joints) : plein écran, rendu pdf.js page par page (virtualisé).
      Même gestion d'accessibilité que les autres fenêtres (.ai-modal : focus, Échap, piège Tab). -->
 <div class="ai-modal pdf-modal" id="pdfModal" role="dialog" aria-modal="true" aria-labelledby="pdfModalTitle">
@@ -1799,7 +1809,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.1.2';
+const APP_VERSION='4.2.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -2574,7 +2584,8 @@ function migrate(f){if(!f||typeof f!=='object')f={};
   // Rappel du modèle (champs communs posés par sanitizeEntityCommon, tous rétrocompatibles) :
   //   status '' = validée (défaut historique) | 'review' (badge △) | 'draft' (bandeau, masquée aux
   //   lecteurs d'une biblio partagée ; un ancien client traite 'review' comme validée) ;
-  //   code = référence courte (mono, recherchée) ; related = ids de fiches liées (« Voir aussi ») ;
+  //   code = référence courte (mono, recherchée) ; related = ids liés « Voir aussi » (fiches
+  //   OU protocoles depuis v4.2.0 — un ancien client ignore les ids qu'il ne résout pas) ;
   //   timerId d'un compteur : le « ＋ » RELANCE ce minuteur (référence jamais régénérée).
   return f;}
 // Catégories importées/chargées : nom coercé, couleur validée, id restreint (les ids sûrs sont
@@ -2598,7 +2609,7 @@ function blankProtocol(){return {id:uid('p'),title:'',code:'',category:'',valida
 function migrateProtocol(p){if(!p||typeof p!=='object')p={};
   sanitizeEntityCommon(p,'p',60);
   p.body=sstr(p.body,MD_MAX_CHARS);   // contenu rédigé (mini-Markdown) — spécifique au protocole
-  // related : ids de FICHES liées au protocole (« Fiches liées », V5).
+  // related : ids liés « Voir aussi » — fiches OU protocoles (v4.2.0), nettoyés par le tronc commun.
   return p;}
 function seed(catId){const b1=uid('b'),b2=uid('b'),b3=uid('b'),bd=uid('b');
   return migrate({id:uid(),title:'Anaphylaxie (choc anaphylactique)',category:catId||'',validation:'2025-01',
@@ -3074,19 +3085,19 @@ function showBanner(ficheId,fTitle,tLabel){const host=document.getElementById('a
   el.onclick=()=>{el.remove();openRead(ficheId);};
   el.appendChild(lifeBar(10000));
   host.appendChild(el);setTimeout(()=>{el.classList.add('out');setTimeout(()=>el.remove(),400);},10000);}
-// Fin d'un minuteur : son toujours + flash de la carte si la session est ACTIVE & VISIBLE, sinon
-// notification (système + banderole in-app + flash écran) car la session n'est pas sous les yeux.
+// Fin d'un minuteur — règles QRH/ECAM (v4.2.0) : l'alarme ne DÉPLACE JAMAIS le contexte de
+// travail de l'utilisateur qui a la session SOUS LES YEUX (pas d'auto-défilement, pas
+// d'ouverture du panneau, pas de fenêtre par-dessus la checklist en cours). Elle attire
+// l'attention (bip/vibration + flash bref = master caution) puis PERSISTE dans la zone d'alerte
+// dédiée — le segment AMBRE du bandeau #cbTimers (cf. updateRtStrip) — tant que le minuteur échu
+// n'est ni relancé ni réarmé (acquittement par l'action, pas par un « OK » de plus).
+// Session PAS sous les yeux (autre vue, autre fiche, app en arrière-plan) : là, banderole
+// cliquable + flash écran + notification système — l'alerte doit être ROUTÉE vers l'utilisateur.
 function onTimerFired(R,t){beep();
   const activeVisible=(R===Runtime)&&state.view==='read'&&document.visibilityState!=='hidden';
   const ft=R.fiche?(R.fiche.title||'Aide cognitive'):'Aide cognitive';const tl=t.label||(t.type==='interval'?'Minuteur':'Chronomètre');
-  // Banderole TEXTE dans tous les cas -> le flash (clignotement) n'est jamais ambigu (on lit quel
-  // minuteur a sonné). Flash de la carte si on la voit ; flash écran + notif système si en arrière-plan.
-  showBanner(R.ficheId,ft,tl);
-  if(activeVisible){
-    // V5 : un minuteur échu OUVRE le panneau replié (en étroit) — l'alarme doit se voir en carte.
-    if(!mqReadWide.matches&&!state.rtOpen){state.rtOpen=true;render();}
-    flash(t.id);}
-  else{flashScreen();if(document.visibilityState==='hidden')osNotify('⏰ '+tl+' — terminé',ft,R.ficheId);}}
+  if(activeVisible){flash(t.id);}   // carte clignotée si visible + flash écran bref (cf. flash())
+  else{showBanner(R.ficheId,ft,tl);flashScreen();if(document.visibilityState==='hidden')osNotify('⏰ '+tl+' — terminé',ft,R.ficheId);}}
 // Reprise d'un minuteur d'intervalle DÉJÀ TERMINÉ (non bouclé) = nouveau cycle (repart du plein) —
 // sinon « Relancer » semble ne rien faire (le temps est déjà à 0).
 function toggleTimer(t){const now=Date.now();
@@ -3136,15 +3147,19 @@ let _rtsHtml='';
 function updateRtStrip(now){const el=document.getElementById('cbTimers');if(!el)return;
   now=now||Date.now();
   const crisis=state.view==='read'&&!!Runtime.fiche;
-  const run=crisis?Object.values(Runtime.timers).filter(t=>t.running):[];
+  // ÉCHU NON ACQUITTÉ (registre ATTENTION, règle ECAM v4.2.0) : un minuteur d'intervalle arrivé
+  // au bout et non bouclé RESTE affiché en AMBRE dans la barre tant qu'il n'est ni relancé ni
+  // réarmé — l'alerte persiste dans la zone dédiée (l'état la porte : aucun drapeau à part).
+  const dueDone=t=>t.type==='interval'&&!t.running&&(t.seconds*1000||0)>0&&t.elapsedMs>=t.seconds*1000;
+  const run=crisis?Object.values(Runtime.timers).filter(t=>t.running||dueDone(t)):[];
   const started=crisis&&Runtime.started;
   // V5 : la barre segmentée est visible dès que la session vit OU qu'un minuteur tourne —
   // vision permanente d'un coup d'œil (canvas turn 6), tap -> remonte au panneau détaillé.
   if(!run.length&&!started){el.hidden=true;_rtsHtml='';return;}
-  // Segments : jusqu'à DEUX minuteurs étiquetés (les plus urgents d'abord), « +n », puis GLOBAL
-  // (chrono de session — démarre à la 1ʳᵉ action, décision produit V5) et le rappel « remonter ».
+  // Segments : jusqu'à DEUX minuteurs étiquetés (échus d'abord, puis les plus urgents), « +n »,
+  // puis GLOBAL (chrono de session — démarre à la 1ʳᵉ action, décision produit V5) et « remonter ».
   const withRem=run.map(t=>{const d=timerDisplay(t,now);
-    const rem=t.type==='interval'?Math.max(0,(t.seconds*1000||0)-(t.elapsedMs+(t.running?(now-t.lastStart):0))):Infinity;
+    const rem=dueDone(t)?-1:(t.type==='interval'?Math.max(0,(t.seconds*1000||0)-(t.elapsedMs+(t.running?(now-t.lastStart):0))):Infinity);
     return {t,d,rem,due:t.type==='interval'&&d.val==='00:00'};}).sort((a,b)=>a.rem-b.rem);
   // Les CHRONOMÈTRES vivent dans l'en-tête à TOUTES les largeurs (décision utilisateur) :
   // en étroit UN minuteur étiqueté + « +n » (la barre tient sur 375px), en large DEUX ;
@@ -3590,8 +3605,8 @@ function renderProtocolRead(){
   const preview=!!state.previewFrom;
   const body=(p.body&&p.body.trim())?`<section class="block md-body">${mdRender(p.body,{images:p.images})}</section>`:'';
   const docs=attListHtml(p);
-  // Fiches liées (V5) : chips vers les aides cognitives associées au protocole.
-  const rel=(p.related||[]).map(id=>fiches.find(x=>x.id===id&&!x.deletedAt)).filter(Boolean);
+  // « Voir aussi » (liens croisés v4.2.0) : aides cognitives ET protocoles associés.
+  const rel=(p.related||[]).map(id=>relTarget(id)).filter(Boolean);
   main.innerHTML=`
     <div class="read-head"><h2>${esc(p.title)||'Sans titre'}</h2></div>
     <div class="read-meta">${p.libraryId?`<span class="tag libtag" title="Bibliothèque partagée">${uiIcon('book',12)}${esc(libName(p.libraryId)||'Partagée')}</span>`:''}${statusChip(p.status,false)}${catTag(p)}${p.code?`<span class="card-date" style="font-family:var(--mono)">${esc(p.code)}</span>`:''}<span class="card-date${staleDate(p.validation)?' stale':''}">${esc(fmtDate(p.validation))}</span>${p.libraryId&&p.updatedBy?`<span class="card-date" title="Auteur de la dernière modification">· dernière modification par ${esc(p.updatedBy)}</span>`:''}</div>
@@ -3599,7 +3614,7 @@ function renderProtocolRead(){
     ${p.status==='review'?`<div class="notice">${uiIcon('warn',15)}<div><b>À relire</b> — ce protocole est signalé à relire avant validation.</div></div>`:''}
     ${docs}
     ${body}
-    ${rel.length?`<div class="related"><b>Fiches liées</b><div class="related-row">${rel.map(r=>`<button class="btn sm" data-openrel="${esc(r.id)}">${esc(r.title)||'Sans titre'} →</button>`).join('')}</div></div>`:''}
+    ${rel.length?`<div class="related"><b>Voir aussi</b><div class="related-row">${rel.map(r=>`<button class="btn sm" data-openrel="${esc(r.id)}">${uiIcon(relKindOf(r.id)==='p'?'book':'doc',13)}${esc(r.title)||'Sans titre'} →</button>`).join('')}</div></div>`:''}
     ${(!docs&&!body)?'<div class="empty"><b>Protocole vide</b>Ajoutez un PDF ou un contenu rédigé via « Modifier ».</div>':''}
     `;
   // Badge d'en-tête : statut (+ date de validation si posée), ex. « ✓ Validé · 03/2026 ».
@@ -3622,7 +3637,7 @@ function renderProtocolRead(){
     {label:'Exporter (.json)',ic:uiIcon('download',16),act:()=>exportData([],'protocole-'+fileSlug(p.title),categories.filter(c=>c.id===p.category),[p])},
     {label:'Exporter en PDF',ic:uiIcon('print',16),act:exportPdfCurrent},
   ]);
-  main.querySelectorAll('[data-openrel]').forEach(b=>b.onclick=()=>{state.previewFrom=null;openRead(b.dataset.openrel);});
+  main.querySelectorAll('[data-openrel]').forEach(b=>b.onclick=()=>{state.previewFrom=null;openRel(b.dataset.openrel);});
   bindAttList(p);
   // Liens [texte](att:ID) du contenu rédigé -> même visionneuse que la section Documents.
   main.querySelectorAll('[data-mdatt]').forEach(a=>a.onclick=e=>{e.preventDefault();const at=(p.attachments||[]).find(x=>x.id===a.dataset.mdatt);if(at)openPdfViewer(at,p);else toast('⚠ Document lié introuvable dans ce protocole.');});
@@ -3651,7 +3666,7 @@ function renderProtocolEdit(){
   main.innerHTML=`${wideEdit?`<div class="read-grid"><div class="read-main">`:''}`+`
     ${editorMetaFieldsHtml(p,'p',{titleLabel:'Titre du protocole',titlePh:'ex. Douleur thoracique — protocole de service',scopeHint:'où ranger ce protocole',codePh:'ex. PRO-ISR-01',fem:false})}
     ${attFieldsetHtml(p)}
-    <div class="field"><label>Fiches liées <span class="hint">aides cognitives associées à ce protocole</span></label><div class="rel-edit">${(p.related||[]).map(id=>{const r=fiches.find(x=>x.id===id&&!x.deletedAt);return r?`<span class="rel-chip">${esc(r.title)||'Sans titre'}<button class="rel-x" data-relrm="${esc(r.id)}" aria-label="Retirer">×</button></span>`:'';}).join('')}<select id="relAdd"><option value="">+ Lier une fiche…</option>${fiches.filter(x=>!x.deletedAt&&(p.libraryId?x.libraryId===p.libraryId:!x.libraryId)&&(p.related||[]).indexOf(x.id)<0).map(x=>`<option value="${esc(x.id)}">${esc(x.title)||'Sans titre'}</option>`).join('')}</select></div></div>
+    ${relFieldsetHtml(p)}
     <fieldset class="field"><label>Contenu rédigé <span class="hint">facultatif — mise en forme simple, aperçu en dessous</span></label>
       <div class="md-toolbar" role="toolbar" aria-label="Mise en forme">
         <button type="button" class="mini bld" data-mdtool="b" aria-label="Gras" title="Gras — **texte**">B</button>
@@ -3705,6 +3720,34 @@ function renderProtocolEdit(){
     {label:'Exporter (.json)',ic:uiIcon('download',16),act:()=>exportData([],'protocole-'+fileSlug(state.pdraft.title),categories.filter(c=>c.id===state.pdraft.category),[migrateProtocol(JSON.parse(JSON.stringify(state.pdraft)))])},
   ]);
 }
+/* ----- « Voir aussi » (liens croisés, v4.2.0) : une AIDE ou un PROTOCOLE peut être lié aux
+   deux. `related` reste un tableau d'ids (format v3 inchangé — un ancien client ne résout que
+   les fiches et ignore silencieusement un id de protocole). Même périmètre UNIQUEMENT (Perso
+   ou même bibliothèque), comme les documents partagés. ----- */
+function relTarget(id){return fiches.find(x=>x.id===id&&!x.deletedAt)||protocols.find(x=>x.id===id&&!x.deletedAt)||null;}
+function relKindOf(id){return protocols.some(x=>x.id===id)?'p':'f';}
+// Cœur PUR (testé par tests.html) : candidats liables d'une entité — aides d'abord puis
+// protocoles, chacun dans l'ordre de la bibliothèque ; hors soi-même, déjà liés et corbeille.
+function relCandidatesFor(entity,fs,ps){
+  const have=new Set([entity.id].concat(entity.related||[]));
+  const scope=entity.libraryId||null;
+  const ok=x=>!x.deletedAt&&!have.has(x.id)&&(x.libraryId||null)===scope;
+  const mk=kind=>x=>({id:x.id,title:x.title||'Sans titre',kind:kind,code:x.code||''});
+  return fs.filter(ok).sort(byOrder).map(mk('f')).concat(ps.filter(ok).sort(byOrder).map(mk('p')));}
+function relCandidates(entity){return relCandidatesFor(entity,fiches,protocols);}
+// Fieldset PARTAGÉ des deux éditeurs — même grammaire que « Documents (PDF) » : chips avec croix
+// de retrait + bouton « + Lier… » ouvrant le sélecteur filtrable (design « document existant »).
+function relFieldsetHtml(entity){
+  const chips=(entity.related||[]).map(id=>{const t=relTarget(id);return t?`<span class="rel-chip">${uiIcon(relKindOf(id)==='p'?'book':'doc',12)}${esc(t.title)||'Sans titre'}<button class="rel-x" data-relrm="${esc(id)}" aria-label="Retirer">×</button></span>`:'';}).join('');
+  const n=relCandidates(entity).length;
+  return `<fieldset class="field"><label>Voir aussi <span class="hint">aides cognitives et protocoles liés — raccourcis en lecture</span></label>
+    <div class="rel-edit">${chips||'<span class="hint">Aucun lien pour le moment.</span>'}</div>
+    ${n?`<button class="add-line" id="relAddBtn">+ Lier une aide ou un protocole (${n} disponible${n>1?'s':''})…</button>`:'<p class="hint">Rien d’autre à lier dans ce périmètre (Perso ou même bibliothèque).</p>'}</fieldset>`;}
+// Ouvre une cible « Voir aussi » selon sa nature : aide -> lecture de fiche (session), protocole
+// -> lecture de protocole. Cible disparue (corbeille) : silencieux, comme les résolutions ci-dessus.
+function openRel(id){
+  if(fiches.some(x=>x.id===id&&!x.deletedAt))return openRead(id);
+  if(protocols.some(x=>x.id===id&&!x.deletedAt)){persistAllLive();state.fiche=null;openProtocolRead(id);}}
 /* ----- Tronc COMMUN des éditeurs fiche/protocole (audit v4.1.0 : le gabarit d'en-tête de
    formulaire, le câblage des champs partagés et la sortie « ‹ Retour » vivaient en double —
    corriger ICI corrige les deux ; les ids de champs restent préfixés 'f-'/'p-'). ----- */
@@ -3733,8 +3776,9 @@ function bindEditorMetaFields(d,prefix,o){
   updateHdrStatusBadge(d.status,o.fem);
   // Aperçu du brouillon (V5) : bouton d'en-tête + colonne en direct (>= 1000px, cf. bindEditSide).
   {const pv=document.getElementById('hdrPreview');if(pv)pv.onclick=o.preview;}
-  // Fiches liées : ajout via le menu, retrait via la croix (mise à jour immédiate de l'aperçu).
-  {const ra=document.getElementById('relAdd');if(ra)ra.onchange=()=>{const id=ra.value;if(!id)return;d.related=d.related||[];if(d.related.indexOf(id)<0)d.related.push(id);o.rerender();};}
+  // « Voir aussi » : ajout via le sélecteur filtrable (même design que « Joindre un document
+  // existant »), retrait via la croix des chips (mise à jour immédiate de l'aperçu).
+  {const rb=document.getElementById('relAddBtn');if(rb)rb.onclick=()=>openRelPicker(d,o.rerender);}
   main.querySelectorAll('[data-relrm]').forEach(b=>b.onclick=()=>{d.related=(d.related||[]).filter(x=>x!==b.dataset.relrm);o.rerender();});
   // Catégorie + « ⚙ Gérer » (MÊME fenêtre de gestion que l'accueil, périmètre du brouillon).
   main.querySelectorAll('[data-selcat]').forEach(b=>b.onclick=()=>{d.category=b.dataset.selcat;o.rerender();});
@@ -4434,7 +4478,7 @@ function renderRead(){
     ${wideRead?'':posH}
     ${staticBlock('Diagnostics différentiels — si tableau atypique','h-diff',f.differentials,'diff')}
     ${refs.length?`<div class="refs"><b>Références</b><ol>${refs.map(r=>`<li>${fmt(r)}</li>`).join('')}</ol></div>`:''}
-    ${(()=>{const rel=(f.related||[]).map(id=>fiches.find(x=>x.id===id&&!x.deletedAt)).filter(Boolean);return rel.length?`<div class="related"><b>Voir aussi</b><div class="related-row">${rel.map(r=>`<button class="btn sm" data-openrel="${r.id}">${esc(r.title)||'Sans titre'} →</button>`).join('')}</div></div>`:'';})()}
+    ${(()=>{const rel=(f.related||[]).map(id=>relTarget(id)).filter(Boolean);return rel.length?`<div class="related"><b>Voir aussi</b><div class="related-row">${rel.map(r=>`<button class="btn sm" data-openrel="${esc(r.id)}">${uiIcon(relKindOf(r.id)==='p'?'book':'doc',13)}${esc(r.title)||'Sans titre'} →</button>`).join('')}</div></div>`:'';})()}
     ${preview?'':noteBlockHtml(f.id,started)}
     <div class="crisis-footer"><span><span class="cf-ok">●</span> Local — hors ligne OK</span><span>${[f.code?esc(f.code):'',f.validation?'maj '+esc(valToDisplay(f.validation)):'','v'+APP_VERSION].filter(Boolean).join(' · ')}</span></div>
     ${gridClose}`;
@@ -4474,7 +4518,7 @@ function bindReadEvents(f,blk,cur){
       return n?['sep',{label:'Historique des sessions ('+n+')',ic:uiIcon('history',16),act:()=>openSessHist(f.id)}]:[];})(),
     ...(started?['sep',{label:'Terminer la session…',ic:uiIcon('stop',16),danger:true,act:endCurrentSession}]:[]),
   ]);
-  main.querySelectorAll('[data-openrel]').forEach(b=>b.onclick=()=>openRead(b.dataset.openrel));
+  main.querySelectorAll('[data-openrel]').forEach(b=>b.onclick=()=>openRel(b.dataset.openrel));
   if(!state.previewFrom)bindNoteBlock(f.id,render);   // note personnelle (absente en mode aperçu)
   const ft=document.getElementById('flowToggle');if(ft)ft.onclick=()=>{state.showFlow=!state.showFlow;render();};
   // Déplier / replier le panneau minuteurs (canvas : rangée repliée, ✕ du panneau, barre d'en-tête).
@@ -4674,6 +4718,27 @@ function openAttPicker(entity,rerender){
   _attPickCtx={entity:entity,rerender:rerender};
   document.getElementById('attPickQ').value='';
   attPickModal.classList.add('on');renderAttPickList();}
+/* Sélecteur « Voir aussi » : MÊME patron que le sélecteur de document ci-dessus (fenêtre
+   filtrable, lignes .att-row) — icône doc = aide, livre = protocole ; code en colonne droite. */
+const relPickModal=document.getElementById('relPickModal');
+let _relPickCtx=null;   // {entity, rerender} de l'éditeur appelant
+function closeRelPicker(){_relPickCtx=null;relPickModal.classList.remove('on');}
+bindModalDismiss(relPickModal,closeRelPicker);
+function renderRelPickList(){
+  const box=document.getElementById('relPickList');if(!box||!_relPickCtx)return;
+  const q=txNorm(document.getElementById('relPickQ').value);
+  const opts=relCandidates(_relPickCtx.entity).filter(o=>!q||txNorm(o.title+' '+o.code).includes(q));
+  box.innerHTML=opts.length?opts.map(o=>`<button class="att-row" data-pick="${esc(o.id)}"><span class="att-ico">${uiIcon(o.kind==='p'?'book':'doc',16)}</span><span class="att-name">${esc(o.title)}<span class="att-from">${o.kind==='p'?'Protocole':'Aide cognitive'}</span></span>${o.code?`<span class="att-size" style="font-family:var(--mono)">${esc(o.code)}</span>`:''}</button>`).join('')
+    :'<p class="ai-note">Aucune fiche '+(q?'ne correspond au filtre.':'disponible.')+'</p>';
+  box.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{
+    const ctx=_relPickCtx;closeRelPicker();
+    if(ctx){ctx.entity.related=ctx.entity.related||[];if(ctx.entity.related.indexOf(b.dataset.pick)<0)ctx.entity.related.push(b.dataset.pick);ctx.rerender();}});}
+document.getElementById('relPickQ').addEventListener('input',renderRelPickList);
+function openRelPicker(entity,rerender){
+  if((entity.related||[]).length>=20){toast('⚠ 20 liens maximum.');return;}   // même plafond que migrate()
+  _relPickCtx={entity:entity,rerender:rerender};
+  document.getElementById('relPickQ').value='';
+  relPickModal.classList.add('on');renderRelPickList();}
 // Blobs PDF ajoutés pendant l'édition COURANTE : purgés si on quitte sans enregistrer (le blob est
 // écrit immédiatement dans IndexedDB à l'ajout, AVANT l'enregistrement de la fiche).
 let draftNewAtts=[];
@@ -4743,9 +4808,7 @@ function renderEditor(){
     <fieldset class="field"><label>Schémas & captures <span class="hint">stockées hors ligne dans l'app</span></label><div class="gallery">${(f.images||[]).map((im,i)=>`<div class="gthumb"><img src="${im.data}" alt="" loading="lazy" decoding="async"><input type="text" class="gcap" data-imgcap="${i}" value="${esc(im.caption||'')}" placeholder="Légende…" style="width:100%;margin-top:5px;padding:6px 8px;border:1px solid var(--line);border-radius:7px"><button class="btn sm danger" data-imgdel="${i}" style="width:100%;margin-top:5px">Retirer</button></div>`).join('')}</div><button class="add-line" id="addImg" style="margin-top:10px">+ Ajouter une image / capture</button></fieldset>
     ${attFieldsetHtml(f)}
     ${listEditor('Références','sources de la fiche','references',f.references)}
-    <fieldset class="field"><label>Fiches liées <span class="hint">raccourcis « Voir aussi » en bas de la fiche</span></label>
-      <div class="rel-edit">${(f.related||[]).map(id=>{const rf=fiches.find(x=>x.id===id);return rf?`<span class="rel-chip">${esc(rf.title)||'Sans titre'}<button class="rel-x" data-relrm="${esc(id)}" aria-label="Retirer">×</button></span>`:'';}).join('')||'<span class="hint">Aucune fiche liée.</span>'}</div>
-      ${(()=>{const opts=fiches.filter(x=>x.id!==f.id&&!x.deletedAt&&(f.related||[]).indexOf(x.id)<0&&(x.libraryId||null)===(f.libraryId||null)).sort(byOrder);return opts.length?`<select id="relAdd" style="margin-top:8px;width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)"><option value="">+ Ajouter une fiche liée…</option>${opts.map(x=>`<option value="${esc(x.id)}">${esc(x.title)||'Sans titre'}</option>`).join('')}</select>`:'<p class="hint">Aucune autre fiche disponible dans cette bibliothèque.</p>';})()}</fieldset>
+    ${relFieldsetHtml(f)}
     ${noteBlockHtml(f.id)}
     ${fiches.some(x=>x.id===f.id)?'<div class="ed-del"><button class="btn danger" id="delBtn">Supprimer cette fiche</button></div>':''}
     ${wideEdit?`</div><aside class="read-side" id="editSide">${editPreviewHtml('fiche')}</aside></div>`:''}
@@ -7131,7 +7194,7 @@ if(location.search.indexOf('__actest')>=0){
   window.__ac_test__={migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attStoragePath,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
-    restErrStatus,isPersoRepairCandidate,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT};
+    restErrStatus,isPersoRepairCandidate,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor};
 }else{
   /* ===== PWA =====
      Enregistre le service worker (cache hors ligne) si disponible. Capte

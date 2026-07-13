@@ -143,10 +143,11 @@
     :is(body.view-edit,body.view-pedit) #hdrBadge{display:none}
     :is(body.view-edit,body.view-pedit) #hdrTheme{display:none}
     :is(body.view-edit,body.view-pedit) .hdr-act2{padding:0 11px;font-size:12.5px}
-    /* SESSION DE CRISE en étroit : thème et compte s'effacent (accessibles partout ailleurs,
-       jamais nécessaires pendant une prise en charge) — toute la place revient aux minuteurs
-       #cbTimers (intitulés longs, plusieurs minuteurs). Le menu ⋯ reste (Terminer la session…). */
-    body.crisis-live #hdrTheme,body.crisis-live .bar-acct{display:none}
+    /* SESSION DE CRISE en étroit : le COMPTE s'efface (jamais nécessaire pendant une prise en
+       charge) — la place revient aux minuteurs #cbTimers. Le THÈME reste (décision utilisateur
+       v4.2.0 : la luminosité ambiante change pendant une intervention — extérieur/intérieur) et
+       le menu ⋯ aussi (Terminer la session…). */
+    body.crisis-live .bar-acct{display:none}
   }
   .id-row .brand{flex:0 1 auto}
   header.bar:not(.home) .id-row .brand{flex:1}
@@ -248,8 +249,9 @@
   #cbTimers .seg-l{font-size:11px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--ink-soft);line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:16vw}
   /* Très étroit : « ● SESSION » doit se lire EN ENTIER (l'annonce d'état ne se tronque pas) —
      mais l'INTITULÉ d'un minuteur garde un plafond (ellipse) : sans lui, un libellé long poussait
-     le temps hors du cadre (overflow:hidden le COUPAIT). Segments resserrés (padding 8px). */
-  @media (max-width:429.98px){#cbTimers .seg{padding:3px 8px}#cbTimers .seg-l{font-size:11px;letter-spacing:.2px;max-width:21vw}#cbTimers .seg-l.seg-sess{max-width:none}}
+     le temps hors du cadre (overflow:hidden le COUPAIT). Segments resserrés (padding 8px) ;
+     plafond 18vw = la barre tient à 375px AVEC le bouton thème (gardé en crise, v4.2.0). */
+  @media (max-width:429.98px){#cbTimers .seg{padding:3px 8px}#cbTimers .seg-l{font-size:11px;letter-spacing:.2px;max-width:18vw}#cbTimers .seg-l.seg-sess{max-width:none}}
   #cbTimers .seg-t{font-family:var(--mono);font-size:15px;font-weight:700;letter-spacing:.5px;line-height:1.1;font-variant-numeric:tabular-nums;color:var(--ink)}
   #cbTimers .seg.due{background:var(--verify-soft)}
   #cbTimers .seg.due :is(.seg-l,.seg-t){color:var(--verify)}
@@ -1320,7 +1322,7 @@
   /* Bordures des CHAMPS DE SAISIE : --line-strong (3,9:1) — la limite d'un composant interactif
      doit atteindre 3:1 (WCAG 1.4.11) ; le srchBd du canvas (1,6:1) est réservé à la barre de
      recherche (2px, grande surface, identifiée par son placeholder). Arbitré à l'audit v4.5. */
-  :is(.field input[type=text],.field textarea,.field select,.search input,.auth-field,.cm-name,.cm-add input,.tk-lab,.blk-top input,.trow input,.optedit input,.optedit select,.gcap,#relAdd){border-color:var(--line-strong)}
+  :is(.field input[type=text],.field textarea,.field select,.search input,.auth-field,.cm-name,.cm-add input,.tk-lab,.blk-top input,.trow input,.optedit input,.optedit select,.gcap){border-color:var(--line-strong)}
   /* Placeholder maîtrisé (sinon gris navigateur non garanti sur nos fonds personnalisés). */
   ::placeholder{color:var(--ink-soft);opacity:1}
   /* Lien d'évitement clavier : invisible jusqu'au focus. */

@@ -120,6 +120,17 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   les vues (`header.bar`) ; le CONTENU clinique (fiches en crise, protocoles, éditeurs) reste
   bleu clinique. Jamais de vert/ambre/rouge en accent (registres réservés). Persistance :
   `spaceKey('ac-accent')` local + `data.prefs.accent` cloud (avec thème et taille du texte).
+- **Alarme de minuteur (règle QRH/ECAM, v4.2.0)** : une alarme ne DÉPLACE JAMAIS le contexte de
+  travail quand la session est sous les yeux — pas d'auto-défilement, pas d'ouverture de panneau,
+  pas de fenêtre par-dessus la checklist. Attention par bip/vibration + flash bref (master
+  caution), puis **persistance en segment ambre** dans la barre `#cbTimers` tant que le minuteur
+  échu n'est ni relancé ni réarmé (acquittement par l'action, cf. `onTimerFired`/`updateRtStrip`).
+  Banderole cliquable + flash écran + notification système : **réservés à la session hors de
+  vue** (autre vue/fiche, app en arrière-plan) — l'alerte est alors ROUTÉE vers l'utilisateur.
+- **Liens « Voir aussi » (v4.2.0)** : `related` peut référencer des aides ET des protocoles
+  (mêmes ids ; export v3 inchangé — un ancien client ignore les ids qu'il ne résout pas), même
+  périmètre uniquement (Perso ou même bibliothèque, comme les documents partagés) ; sélecteur
+  filtrable commun aux deux éditeurs, au design de « Joindre un document existant ».
 - **Interactif** : cible tactile ≥ 32 px (44 px pour les contrôles du mode crise) ; tout nouvel
   élément interactif reçoit un état `:focus-visible` et un équivalent clavier (Entrée/Espace).
   Action destructrice en situation de crise = geste « maintenir » (`holdToReset`), pas un simple
