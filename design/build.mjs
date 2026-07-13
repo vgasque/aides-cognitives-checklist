@@ -303,19 +303,19 @@ const modalDemo = `
   <div class="ai-card dlg-480" style="box-shadow:var(--shadow-lg)">
     <div class="ai-top"><h3>Créer une aide cognitive</h3><button class="ai-x">×</button></div>
     <div class="ds-col" style="margin:0">
-      <button class="crt-card"><span class="crt-ic" aria-hidden="true">✎</span><span><span class="crt-t">Rédiger moi-même</span><br><span class="crt-d">Éditeur complet : étapes, décisions, minuteurs, images.</span></span><span class="crt-chev" aria-hidden="true">›</span></button>
-      <button class="crt-card" id="crtIA"><span class="crt-ic" aria-hidden="true">✦</span><span><span class="crt-t">Avec l’IA</span><br><span class="crt-d">Prompt à copier dans une IA, puis importer le JSON généré.</span></span><span class="crt-chev" aria-hidden="true">›</span></button>
-      <button class="crt-card"><span class="crt-ic" aria-hidden="true">⤓</span><span><span class="crt-t">Importer un fichier</span><br><span class="crt-d">.json exporté ou généré — la fiche arrive en Brouillon.</span></span><span class="crt-chev" aria-hidden="true">›</span></button>
+      <button class="crt-card"><span class="crt-ic" aria-hidden="true"><svg class="tic" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.83 2.83 0 014 4L7.5 20.5 2 22l1.5-5.5z"/></svg></span><span><span class="crt-t">Rédiger moi-même</span><br><span class="crt-d">Éditeur complet : étapes, décisions, minuteurs, images.</span></span><span class="crt-chev" aria-hidden="true">›</span></button>
+      <button class="crt-card" id="crtIA"><span class="crt-ic" aria-hidden="true"><svg class="tic" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path fill="currentColor" d="M11 4l1.7 4.3L17 10l-4.3 1.7L11 16l-1.7-4.3L5 10l4.3-1.7z"/><path fill="currentColor" d="M18.5 14.5l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9z"/></svg></span><span><span class="crt-t">Avec l’IA</span><br><span class="crt-d">Prompt à copier dans une IA, puis importer le JSON généré.</span></span><span class="crt-chev" aria-hidden="true">›</span></button>
+      <button class="crt-card"><span class="crt-ic" aria-hidden="true"><svg class="tic" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M6 11l6 6 6-6"/><path d="M4 21h16"/></svg></span><span><span class="crt-t">Importer un fichier</span><br><span class="crt-d">.json exporté ou généré — la fiche arrive en Brouillon.</span></span><span class="crt-chev" aria-hidden="true">›</span></button>
     </div>
   </div>
   <div class="ai-card dlg-480" style="box-shadow:var(--shadow-lg);margin-top:16px">
     <div class="ai-top"><h3>Bibliothèque SMUR</h3><button class="ai-x">×</button></div>
+    <div class="dlg-actions"><button class="btn">Annuler</button><button class="btn primary">Enregistrer</button></div>
     <div class="mem-list"><div class="mem-row"><span class="mem-avatar">VG</span><span class="mem-info"><span class="mem-email">victor@chu.fr <span class="mem-you">(vous)</span></span></span><span class="mem-act"><span class="ro-badge">Propriétaire</span></span></div></div>
-    <div class="dlg-actions"><button class="btn primary">Enregistrer</button><button class="btn">Fermer</button></div>
-    <div class="mem-danger"><p class="mem-section-h danger-h">Zone sensible</p><button class="btn danger">Supprimer la bibliothèque…</button></div>
+    <div class="mem-danger"><p class="mem-section-h danger-h">Zone sensible</p><button class="btn outline-danger">Supprimer la bibliothèque…</button></div>
   </div>
 </div>
-<p class="ds-cap">.dlg-480 — gabarit UNIQUE des fenêtres de gestion (480px, titre 17px/800, croix 44px, Échap / tap hors carte, focus géré) ; plein écran &lt; 640px SAUF .dlg-confirm (confirmations 420px, TOUJOURS centrées). La ZONE SENSIBLE est séparée par un filet et vient en DERNIER, jamais près des actions courantes. Dialogue Créer : 3 méthodes en cartes 64px (glyphes ✎ ✦ ⤓), carte « Reprendre le brouillon » quand un brouillon auto-enregistré existe.</p>`;
+<p class="ds-cap">.dlg-480 — gabarit UNIQUE des fenêtres de gestion (480px, titre 17px/800, croix 44px, Échap / tap hors carte, focus géré) ; plein écran &lt; 640px SAUF .dlg-confirm (confirmations 420px, TOUJOURS centrées). Annuler/Enregistrer vivent SOUS LE CHAMP qu'ils enregistrent (le nom) — les changements de membres, eux, s'appliquent immédiatement ; la ZONE SENSIBLE est séparée par un filet et vient en DERNIER, jamais près des actions courantes. Dialogue Créer : 3 méthodes en cartes 82px (icônes SVG uiIcon 26px uniformes), carte « Reprendre le brouillon » quand un brouillon auto-enregistré existe.</p>`;
 
 /* ---- Fiches ---- */
 const cards = [

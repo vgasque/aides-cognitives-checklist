@@ -1,5 +1,45 @@
 # Journal des modifications
 
+## [4.1.2] — 2026-07-13
+Correctifs d'affichage et retouches de design, surtout sur mobile.
+
+### Corrigé
+- **Fenêtre « Modifier la bibliothèque »** : Annuler / Enregistrer remontent **sous le champ
+  Nom** (ils ne portent que sur lui) au lieu de suivre la liste des membres — placés en bas,
+  ils laissaient croire qu'un ajout ou un retrait de membre devait être « enregistré », alors
+  que ces changements s'appliquent immédiatement (précisé aussi dans la légende des rôles).
+  Les messages du renommage s'affichent désormais sous le champ Nom, ceux des membres restent
+  sous la rangée d'invitation.
+- **Minuteurs de l'en-tête sur mobile** : un intitulé de minuteur long poussait le temps hors
+  du cadre (coupé net) sur les écrans < 430 px — l'intitulé s'ellipse à nouveau (« ● Session »
+  reste toujours entier) et les segments se resserrent. En complément, pendant une session de
+  crise sur écran étroit, les boutons **thème** et **compte** s'effacent de la barre (inutiles
+  en pleine prise en charge, accessibles partout ailleurs) : toute la place revient aux
+  minuteurs. Le menu ⋯ reste.
+- **Badge d'état fantôme dans l'en-tête** : après « Enregistrer » dans l'éditeur, le badge
+  « ✓ Validée · auto-enregistré » survivait au retour en lecture de la fiche — redondant avec
+  la pastille de statut du haut de page et envahissant sur mobile. L'en-tête masque désormais
+  son badge à chaque rendu ; seules les vues qui en déclarent un (éditeurs, lecture de
+  protocole, aperçus) le réaffichent.
+
+### Modifié
+- **Tab bar basse de l'accueil (mobile)** : hauteur réduite (~72 → ~55 px hors encoche) —
+  boutons 44 px (cible tactile minimale conservée), paddings resserrés.
+- **« Supprimer mon compte et mes données »** (et « Supprimer cette demande de compte ») :
+  même grammaire destructrice que « Supprimer la bibliothèque… » — zone sensible avec bouton
+  **contour rouge**, à la place de l'ancien lien discret (`.auth-danger` retiré).
+- **Bouton thème de l'en-tête** : rond (40 px) en format compact sans libellé, comme le bouton
+  Créer — il était ovale ; la forme pilule revient avec le libellé (≥ 780 px).
+- **Dialogue « Créer » (aide ET protocole)** : icônes des cartes remplacées par des **icônes
+  SVG uniformes 26 px** (crayon, étincelles, import, reprise de brouillon) — les anciens
+  glyphes texte ✎ ✦ ⤓ ↺ rendaient à des tailles inégales selon la police du système.
+- **Fenêtre « Où sont mes fiches ? »** mise à jour des évolutions V5 : le conseil d'export
+  pointe vers « Compte → Exporter mes données » (l'ancien bouton « Exporter tout » du pied de
+  page n'existe plus) et mentionne le chemin d'import (dialogue Créer). Mêmes corrections dans
+  la fenêtre de bienvenue et deux messages d'erreur qui citaient encore « Exporter tout ».
+- Lanceur de tests : variable `AC_CHROMIUM` pour pointer un Chromium déjà installé
+  (environnements distants/CI sans téléchargement Playwright).
+
 ## [4.1.1] — 2026-07-12
 Correctifs et nettoyage issus d'un audit complet (code mort, duplication, sécurité, PWA/perf).
 Aucun changement de comportement visible : mêmes écrans, mêmes données.
