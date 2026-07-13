@@ -232,7 +232,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-4Ri01TR9y5l+fUEhBzuiA5UKhl78JnHlHEauXqL5KQs='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-PAY3PgtIaSInTXN5HYyIvleJ2zZbn6ZrOy/exK19g9g='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -396,17 +396,42 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     header.bar:not(.home) #hdrBackLbl{display:none}
     header.bar:not(.home) .hdr-back{padding:0 8px 0 4px;max-width:none}
     header.bar:not(.home) .hdr-badge{max-width:34vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    /* ÉDITEURS en étroit : la barre garde ‹ · Aperçu · Enregistrer · ⋯ · compte sur UNE ligne.
-       Le badge d'état (redondant avec le sélecteur segmenté du formulaire) et le bouton thème
-       (accessible partout ailleurs) s'effacent ; les actions se compactent. */
-    :is(body.view-edit,body.view-pedit) #hdrBadge{display:none}
-    :is(body.view-edit,body.view-pedit) #hdrTheme{display:none}
-    :is(body.view-edit,body.view-pedit) .hdr-act2{padding:0 11px;font-size:12.5px}
     /* SESSION DE CRISE en étroit : le COMPTE s'efface (jamais nécessaire pendant une prise en
        charge) — la place revient aux minuteurs #cbTimers. Le THÈME reste (décision utilisateur
        v4.2.0 : la luminosité ambiante change pendant une intervention — extérieur/intérieur) et
        le menu ⋯ aussi (Terminer la session…). */
     body.crisis-live .bar-acct{display:none}
+  }
+  /* ÉDITEURS en étroit (< 640 — la barre porte plus d'éléments depuis l'indicateur de mode) :
+     ‹ · ÉDITION · badge · Aperçu · Enregistrer · ⋯ sur UNE ligne. Le badge d'état NE DISPARAÎT
+     JAMAIS (décision v4.3.0 — annonce d'état permanente) : il s'ellipse (plafond serré) ;
+     thème et compte s'effacent (accessibles partout ailleurs), les actions se compactent. */
+  @media (max-width:639.98px){
+    :is(body.view-edit,body.view-pedit) #hdrBackLbl{display:none}
+    :is(body.view-edit,body.view-pedit) .hdr-back{padding:0 8px 0 4px}
+    :is(body.view-edit,body.view-pedit) .hdr-badge{max-width:20vw}
+    :is(body.view-edit,body.view-pedit) #hdrTheme{display:none}
+    :is(body.view-edit,body.view-pedit) .hdr-act2{padding:0 11px;font-size:12.5px}
+    :is(body.view-edit,body.view-pedit) .bar-acct{display:none}
+  }
+  /* ÉDITEURS, toutes largeurs : répartition de la pénurie dans la rangée — le BADGE se
+     compresse en premier (ellipse, plancher 40px — jamais masqué), l'indicateur de mode garde
+     un plancher qui laisse lire « ÉDITION » (il ne disparaît à aucune largeur). */
+  :is(body.view-edit,body.view-pedit) .id-row .brand{flex:0 1 auto;min-width:64px}
+  :is(body.view-edit,body.view-pedit) #brandSub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  :is(body.view-edit,body.view-pedit) .hdr-badge{flex:0 1 auto;min-width:40px}
+  /* Très étroit : « Aperçu » passe en icône ⛶ (aria-label/tooltip conservés), tout se resserre —
+     la ligne ‹ ÉDITION badge ⛶ Enregistrer ⋯ tient sur 360px sans rien éjecter. */
+  #hdrPreview .pv-ic{display:none}
+  @media (max-width:429.98px){
+    :is(body.view-edit,body.view-pedit) #hdrPreview .pv-lbl{display:none}
+    :is(body.view-edit,body.view-pedit) #hdrPreview .pv-ic{display:inline;font-size:16px}
+    :is(body.view-edit,body.view-pedit) .hdr-act2{padding:0 10px}
+    :is(body.view-edit,body.view-pedit) .hdr-acts{gap:6px}
+    :is(body.view-edit,body.view-pedit) .hdr-more{width:38px}
+    :is(body.view-edit,body.view-pedit) .id-row .brand{min-width:56px}
+    :is(body.view-edit,body.view-pedit) #brandSub{letter-spacing:1px}
+    :is(body.view-edit,body.view-pedit) .hdr-badge{min-width:36px}
   }
   .id-row .brand{flex:0 1 auto}
   header.bar:not(.home) .id-row .brand{flex:1}
@@ -602,17 +627,25 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .chiprow{display:flex;gap:8px;flex-wrap:nowrap;overflow-x:auto;padding:5px 0 8px;margin:-5px 0 -5px;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
   .chiprow::-webkit-scrollbar{height:5px}.chiprow::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
   .chiprow>*{flex:none}
-  .catchip{border:1px solid var(--line);background:var(--surface);padding:8px 14px;border-radius:20px;font-size:12.5px;font-weight:600;cursor:pointer;transition:background .12s,border-color .12s,color .12s}
+  /* Chips de catégorie (SPEC crise §1a, v4.3.0) : la couleur de catégorie ne vit qu'en PASTILLE
+     .cat-dot (anneau de séparation) — jamais en aplat ; la SÉLECTION est le bleu système
+     (encodage unique, jamais la couleur de la catégorie — un chip plein rouge se lirait comme
+     une alarme). Pilule 36px min, bordure --line-strong (3:1) au repos. */
+  .catchip{display:inline-flex;align-items:center;gap:7px;min-height:36px;border:1px solid var(--line-strong);background:var(--surface);padding:7px 13px;border-radius:16px;font-size:12.5px;font-weight:600;cursor:pointer;transition:background .12s,border-color .12s,color .12s}
   /* Zone de tap >= 44px sans grossir la pastille (halo cliquable, même technique que #cbTimers
      et .tag.todo) : pastilles filtrées/choisies au pouce en mobile, tap fréquent (HIG/MD3). */
-  .catchip,.catpill{position:relative}
-  :is(.catchip,.catpill)::after{content:"";position:absolute;inset:-5px -2px}
+  .catchip{position:relative}
+  .catchip::after{content:"";position:absolute;inset:-5px -2px}
   .catchip:not(.on):hover{border-color:var(--line-hover);background:var(--surface-2)}
-  /* États tokenisés des pastilles (plus de style inline) : .on = sélection neutre (« Toutes »/
-     « Aucune » — les catégories colorées, elles, se remplissent de LEUR couleur via catChipHtml) ;
-     .mgr = action « Gérer » en retrait. */
-  .catchip.on,.catpill.on{background:var(--ink);color:var(--surface);border-color:var(--ink)}
-  .catchip.mgr,.catpill.mgr{border-style:dashed;color:var(--ink-soft)}
+  .catchip.on{background:var(--primary);color:var(--on-primary);border-color:var(--primary);font-weight:700}
+  html[data-theme="dark"] .catchip.on{background:var(--primary-dk);color:var(--bg);border-color:var(--primary-dk)}
+  .catchip.mgr{border-style:dashed;color:var(--ink-soft)}
+  /* Pastille de catégorie (règle UNIQUE du code couleur, SPEC crise §1) : 9px, ronde, anneau à
+     la couleur du fond porteur — sépare la pastille d'un fond quelconque et la garde lisible
+     sur la sélection bleue. Dans une pilule à fond maîtrisé (méta, chip éditeur) : 8px sans
+     anneau. La couleur n'est JAMAIS seule : toujours accompagnée du nom en toutes lettres. */
+  .cat-dot{width:9px;height:9px;flex:none;border-radius:50%;background:var(--catcol,var(--line-strong));box-shadow:0 0 0 2px var(--surface)}
+  .tag .cat-dot,.cat-chip-selected .cat-dot{width:8px;height:8px;box-shadow:none}
   .scopebar{display:flex;gap:10px;align-items:center;margin-bottom:14px}
   .scopebar .chiprow{flex:1;min-width:0}
   .scope-lbl{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--ink-soft);margin-right:2px}
@@ -702,8 +735,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .card:hover{border-color:var(--line-hover);transform:translateY(-1px);box-shadow:var(--shadow-lg)}
   /* Liseré de CATÉGORIE (V5) : bande 8px pleine hauteur à gauche — la couleur des catégories
      vit sur la tranche de la carte, les statuts restent achromatiques. */
-  .card.striped{padding-left:25px}
-  .card.striped::before{content:"";position:absolute;left:0;top:0;bottom:0;width:8px;background:var(--stripe)}
+  /* Liseré de catégorie : 4px (SPEC crise §1b, v4.3.0 — ex-8px) ; la couleur n'est jamais seule,
+     la pastille + le nom vivent dans la méta de la carte. */
+  .card.striped{padding-left:21px}
+  .card.striped::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--stripe)}
   /* Titre-bouton « étiré » : la carte n'est PLUS role=button (un bouton ne doit pas contenir
      d'autres commandes — épingle, badge « À compléter » : descendants interactifs proscrits,
      ARIA APG). Le TITRE est le vrai <button> (clavier natif, nom accessible = titre) et son
@@ -723,13 +758,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .card-meta{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
   .tag{font-size:11px;font-weight:600;letter-spacing:.3px;background:var(--primary-soft);color:var(--primary-dk);padding:3px 9px;border-radius:20px}
   /* Étiquette de catégorie : texte en --ink (lisible dans les 2 thèmes) + pastille de couleur. */
-  .catchip,.catpill{color:var(--ink)}
-  /* Catégories en TEXTE COLORÉ (couleur de la catégorie), lisibles dans les 2 thèmes via color-mix :
-     en sombre on éclaircit la teinte (mix avec blanc), en clair on la garde. */
-  .tag.cat{background:color-mix(in srgb, var(--c,var(--primary)) 15%, transparent);color:var(--c,var(--primary))}
-  .catchip.colored,.catpill.colored{color:var(--catcol);background:color-mix(in srgb, var(--catcol) 12%, transparent);border-color:color-mix(in srgb, var(--catcol) 45%, transparent)}
+  .catchip{color:var(--ink)}
+  /* Étiquette de catégorie en lecture : pastille + teinte <= 15 % + texte de la couleur
+     (règle §1 — jamais d'aplat) ; en sombre on éclaircit la teinte (mix avec blanc).
+     (.catchip.colored/.catpill.colored supprimés v4.3.0 : les chips portent la pastille.) */
+  .tag.cat{display:inline-flex;align-items:center;gap:6px;background:color-mix(in srgb, var(--c,var(--primary)) 15%, transparent);color:var(--c,var(--primary))}
   html[data-theme="dark"] .tag.cat{background:color-mix(in srgb, var(--c,var(--primary)) 26%, transparent);color:color-mix(in srgb, var(--c,var(--primary)) 60%, white)}
-  html[data-theme="dark"] .catchip.colored,html[data-theme="dark"] .catpill.colored{color:color-mix(in srgb, var(--catcol) 62%, white);background:color-mix(in srgb, var(--catcol) 22%, transparent);border-color:color-mix(in srgb, var(--catcol) 50%, transparent)}
   .tag.flow{background:var(--verify-soft);color:var(--verify)}
   /* Tags informatifs des cartes : NEUTRES (audit v4.5) — la couleur reste au danger, au vert
      session et au liseré de catégorie. */
@@ -1063,6 +1097,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #f-validation.val-bad{border-color:var(--critical);background:var(--critical-soft)}
   .list-edit .li{display:flex;gap:8px;margin-bottom:8px;align-items:flex-start}.list-edit .li input{flex:1;min-width:0}
   .li-num{font-family:var(--mono);font-size:13px;color:var(--ink-soft);min-width:22px;padding-top:12px;text-align:right}
+  /* Étape/ligne TYPÉE dans l'éditeur (v4.3.0) : le marqueur ⚠/△ ne vit plus DANS le champ texte
+     (effaçable à la main = changement de type accidentel) — c'est l'ENCADRÉ du champ qui porte
+     le registre (bordure + fond doux + encre), comme la rangée correspondante en lecture. */
+  .li.li-crit input[type=text]{border-color:var(--critical-bd);background:var(--critical-soft);color:var(--critical)}
+  .li.li-vigil input[type=text]{border-color:var(--verify);background:var(--verify-soft);color:var(--verify)}
+  .li.li-crit .li-num{color:var(--critical)}
+  .li.li-vigil .li-num{color:var(--verify)}
   .mini{border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);width:34px;height:42px;border-radius:var(--radius-sm);font-size:16px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
   .mini:hover{background:var(--surface-2);color:var(--ink)}.mini.del:hover,.cm-del:hover{color:var(--critical);border-color:var(--critical-line);background:var(--critical-soft)}
   /* Étapes d'un bloc : les boutons ↑ ↓ × sont sur une ligne (non flex) -> petit espace entre eux. */
@@ -1075,8 +1116,52 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .trow input[data-tf],.trow input[data-cf]{flex:1;min-width:130px;padding:9px 11px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--input-bg)}
   .trow input[type=number]{padding:9px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--input-bg)}
   .trow span{font-size:12px;color:var(--ink-soft)}
-  .catpick{display:flex;gap:7px;flex-wrap:wrap}
-  .catpill{border:1.5px solid var(--line);background:var(--input-bg);padding:7px 14px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer}
+  /* ----- Dialogue « Terminer la session ? » (SPEC crise §3, v4.3.0). Poursuivre = action SÛRE
+     (contour, à gauche, focus initial) ; Terminer = rouge système PLEIN (--critical-bd), même
+     largeur : le poids de taille est égal, la grammaire contour/plein porte la différence. ----- */
+  .endsess-dlg{max-width:400px;padding:20px}
+  .endsess-dlg .dlg-title{margin:0 0 6px;font-size:17px;font-weight:800}
+  .dlg-context{margin:0 0 6px;font-size:13.5px;line-height:1.5;color:var(--ink-soft)}
+  .dlg-context strong{color:var(--ink);font-variant-numeric:tabular-nums}
+  .dlg-consequences{margin:0 0 16px;font-size:13px;line-height:1.5;color:var(--ink-soft)}
+  .endsess-actions{display:flex;gap:9px}
+  .btn-continue-sess{flex:1;min-height:46px;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--line-hover);border-radius:9px;background:transparent;color:var(--ink);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer}
+  .btn-continue-sess:hover{background:var(--surface-2)}
+  .btn-end-sess{flex:1;min-height:46px;display:flex;align-items:center;justify-content:center;background:var(--critical-bd);color:#fff;border:0;border-radius:9px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer}
+  html[data-theme="dark"] .btn-end-sess{color:var(--bg)}
+  .btn-end-sess:hover{filter:brightness(1.06)}
+  :is(.btn-continue-sess,.btn-end-sess):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* ----- Sélecteur de catégorie des éditeurs (SPEC crise §1d/§2, v4.3.0) : « une sélectionnée
+     + Autre… ». Le formulaire n'affiche que la DÉCISION PRISE (chip teinté = prévisualisation
+     du liseré/pastille — la SEULE teinte de catégorie autorisée : 14 % + bordure + texte de la
+     couleur, trois encodages concordants) et la porte de sortie « Autre… » (menu ancré) :
+     divulgation progressive, coût visuel constant quel que soit le nombre de catégories.
+     (Remplace l'ancienne rangée .catpick/.catpill de toutes les catégories.) ----- */
+  .cat-picker{position:relative;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+  .cat-chip-selected{display:inline-flex;align-items:center;gap:6px;padding:8px 13px;border-radius:18px;background:color-mix(in srgb,var(--catcol) 14%,transparent);border:1.5px solid var(--catcol);color:var(--catcol);font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer}
+  html[data-theme="dark"] .cat-chip-selected{color:color-mix(in srgb,var(--catcol) 60%,var(--ink))}   /* contraste texte en sombre */
+  .cat-chip-selected.none{background:transparent;border-color:var(--line-strong);color:var(--ink-soft)}
+  .cat-chip-other{display:inline-flex;align-items:center;padding:8px 13px;border-radius:18px;border:1.5px solid var(--line-strong);background:transparent;color:var(--ink-soft);font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer}
+  .cat-chip-other:hover,.cat-chip-selected:hover{filter:brightness(.97)}
+  /* Menu ancré (même patron que le menu ⋯) : rangées 44px pastille + nom + ✓ sur la courante. */
+  .catmenu{position:absolute;top:calc(100% + 6px);left:0;z-index:40;min-width:250px;max-width:min(340px,92vw);max-height:340px;overflow-y:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.18);padding:6px}
+  .catmenu-row{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:0 11px;border:0;background:none;border-radius:8px;font-family:inherit;font-size:13.5px;font-weight:600;color:var(--ink);cursor:pointer;text-align:left}
+  .catmenu-row:hover{background:color-mix(in srgb,var(--primary) 8%,transparent)}
+  .catmenu-row:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
+  .catmenu-row .cm-ck{margin-left:auto;color:var(--primary);flex:none}
+  .catmenu-row .cm-nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .catmenu-sep{height:1px;background:var(--line);margin:5px 8px}
+  .catmenu-new{display:flex;align-items:center;gap:8px;width:calc(100% - 4px);min-height:44px;margin:2px;padding:0 11px;border:1.5px dashed var(--line-strong);border-radius:8px;background:none;font-family:inherit;font-size:13.5px;font-weight:600;color:var(--ink-soft);cursor:pointer;text-align:left}
+  .catmenu-new:hover{background:var(--surface-2)}
+  .catmenu-filter{width:calc(100% - 4px);margin:2px 2px 6px;height:36px;padding:0 11px;border:1px solid var(--line-strong);border-radius:8px;background:var(--input-bg);color:var(--ink);font-family:inherit;font-size:13.5px}
+  .catmenu-veil{display:none}
+  /* Mobile (< 780) : le menu devient une BOTTOM SHEET (poignée, voile, rangées 48px, au pouce). */
+  @media (max-width:779.98px){
+    .catmenu{position:fixed;left:0;right:0;bottom:0;top:auto;max-width:none;min-width:0;max-height:min(70vh,480px);border-radius:16px 16px 0 0;padding-bottom:calc(10px + env(safe-area-inset-bottom));z-index:70}
+    .catmenu::before{content:"";display:block;width:44px;height:4px;border-radius:2px;background:var(--line-strong);margin:4px auto 10px}
+    .catmenu-row{min-height:48px}
+    .catmenu-veil{display:block;position:fixed;inset:0;background:rgba(16,27,40,.45);z-index:69}
+  }
   /* Sélecteur d'ÉTAT segmenté (V5) : ○ Brouillon / △ À relire / ✓ Validé(e) + phrase d'aide. */
   .statuseg{display:flex;gap:6px;flex-wrap:wrap}
   .st-seg{display:inline-flex;align-items:center;min-height:38px;padding:0 13px;border-radius:18px;border:1.5px solid var(--line-strong);background:var(--input-bg);color:var(--ink-soft);font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer}
@@ -1397,7 +1482,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .home-side>.hs-h:first-child{margin-top:0}
   .hs-row{display:flex;align-items:center;gap:9px;width:100%;min-height:38px;padding:8px 12px;border:0;border-radius:8px;background:none;font-family:inherit;font-size:13.5px;font-weight:500;color:var(--ink);cursor:pointer;text-align:left}
   .hs-row:hover{background:var(--surface-2)}
-  .hs-row.on{background:var(--primary-soft);color:var(--primary-dk);font-weight:700}
+  /* Sélection = BLEU SYSTÈME plein (SPEC crise §1a, v4.3.0) — jamais la couleur de la catégorie
+     (encodage de sélection unique) ; la pastille reste lisible sur le bleu grâce à son anneau. */
+  .hs-row.on{background:var(--primary);color:var(--on-primary);font-weight:700}
+  html[data-theme="dark"] .hs-row.on{background:var(--primary-dk);color:var(--bg)}
+  .hs-row.on .hs-n{color:inherit;opacity:.75}
   .hs-row:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
   .hs-row .hs-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .hs-row>.hs-name{flex:1}
@@ -1413,7 +1502,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   button.hs-act{cursor:pointer}
   button.hs-act:hover{color:var(--primary-dk);background:color-mix(in srgb,var(--primary) 8%,transparent)}
   button.hs-act:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
-  .hs-dot{width:9px;height:9px;border-radius:3px;flex:none}
+  /* (.hs-dot supprimé v4.3.0 : la sidebar utilise la pastille commune .cat-dot, ronde + anneau.) */
   .hs-2l{flex:1;min-width:0}
   .hs-2l .hs-name{display:block}
   .hs-sub{display:block;font-size:11px;color:var(--ink-soft);font-weight:400;margin-top:1px}
@@ -1611,7 +1700,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Cible du rappel minuteurs : arriver SOUS l'en-tête sticky (plus haut avec la 2e ligne). */
   .rt-panel{scroll-margin-top:130px}
   /* Focus clavier visible sur TOUS les contrôles interactifs (uniforme avec .btn/.card). */
-  :is(.catchip,.catpill,.tlink,.linkbtn,.mini,.fz,.scopebtn,.opt,.startbtn,.add-line,.notice-x,.tk-add,.tk-del,.cm-del,.ai-x,.rel-x,.back,.crumbs .cb,ol.steps li):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  :is(.catchip,.cat-chip-selected,.cat-chip-other,.catmenu-new,.tlink,.linkbtn,.mini,.fz,.scopebtn,.opt,.startbtn,.add-line,.notice-x,.tk-add,.tk-del,.cm-del,.ai-x,.rel-x,.back,.crumbs .cb,ol.steps li):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .rt-panel :is(.tm-btn,.cn-btn,.rt-sound,.tm-reset,.cn-reset):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   header.bar .bar-acct:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* En-tête « titré » (.titled, posé par setBarTitle) : dans TOUTE vue fiche/protocole — lecture
@@ -1626,6 +1715,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      vue. setBarTitle pose display en inline -> !important nécessaire pour re-masquer ici. */
   header.bar.titled:not(.ttl-on) #brandTitle{display:none!important}
   header.bar.titled:not(.ttl-on) #brandSub{display:none}
+  /* Indicateur de MODE des éditeurs (v4.3.0) : « ÉDITION/CRÉATION — TYPE » TOUJOURS affiché
+     dans la barre (y compris en haut de page et titre défilé) — même patron typographique que
+     les micro-titres de section (11px/800/1.5px), encre douce (informe, n'alerte pas). Déclaré
+     APRÈS les règles .titled ci-dessus pour l'emporter à spécificité voisine. */
+  :is(body.view-edit,body.view-pedit) header.bar #brandSub,
+  :is(body.view-edit,body.view-pedit) header.bar.titled:not(.ttl-on) #brandSub{display:block;font-size:11px;font-weight:800;letter-spacing:1.5px;color:var(--ink-soft)}
+  @media (max-width:559.98px){:is(body.view-edit,body.view-pedit) #brandSub .bs-kind{display:none}}
   /* Une fois révélé, le sous-titre (« Aide cognitive », « Protocole », « Édition ») passe SOUS
      le titre : même structure visuelle que marque + sous-titre. Apparition en fondu discret. */
   header.bar.titled #brandSub{order:3}
@@ -1677,7 +1773,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     <button id="cbTimers" hidden aria-label="Minuteurs en cours — afficher le panneau"></button>
     <span class="hdr-badge" id="hdrBadge" hidden></span>
     <button class="hdr-new" id="hdrNew" hidden><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span class="hdr-new-lbl">Créer</span></button>
-    <button class="hdr-act2" id="hdrPreview" hidden title="Voir le brouillon tel qu'il s'affichera (aucune session)">Aperçu</button>
+    <button class="hdr-act2" id="hdrPreview" hidden title="Voir le brouillon tel qu'il s'affichera (aucune session)" aria-label="Aperçu"><span class="pv-ic" aria-hidden="true">⛶</span><span class="pv-lbl">Aperçu</span></button>
     <button class="hdr-act2 primary" id="hdrSave" hidden>Enregistrer</button>
     <button class="hdr-theme" id="hdrTheme" aria-label="Thème"></button>
     <button class="hdr-more" id="hdrMore" hidden aria-haspopup="menu" aria-expanded="false" aria-label="Actions"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><circle cx="4" cy="10" r="2"/><circle cx="10" cy="10" r="2"/><circle cx="16" cy="10" r="2"/></svg></button>
@@ -1807,6 +1903,17 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     <div class="pdf-scroll" id="pdfScroll" tabindex="0"></div>
   </div>
 </div>
+<!-- Dialogue « Terminer la session ? » (SPEC crise §3, v4.3.0) : TOUJOURS cette confirmation,
+     jamais d'arrêt direct — contexte (fiche + durée) puis CONSÉQUENCES annoncées AVANT le choix
+     (QRS : annoncer l'effet, pas demander la confiance), puis Poursuivre (sûr, contour, focus
+     initial, Échap) / Terminer (rouge système plein — l'un des seuls de l'app : arrêter une
+     session est l'action la plus lourde de conséquences). Centré, même sur mobile (court). -->
+<div class="ai-modal dlg-confirm" id="endSessModal" role="dialog" aria-modal="true" aria-labelledby="endSessTitle"><div class="ai-card endsess-dlg">
+  <h3 class="dlg-title" id="endSessTitle">Terminer la session ?</h3>
+  <p class="dlg-context" id="endSessCtx"></p>
+  <p class="dlg-consequences">Le chrono global et tous les minuteurs s'arrêtent. La session quitte l'accueil. Le déroulé horodaté reste consultable dans l'historique.</p>
+  <div class="endsess-actions"><button class="btn-continue-sess" id="endSessNo">Poursuivre</button><button class="btn-end-sess" id="endSessYes">Terminer</button></div>
+</div></div>
 <!-- Confirmation NON bloquante (remplace confirm() natif) : mêmes garanties d'accessibilité que
      les autres fenêtres (role=dialog, focus piégé, Échap). DERNIÈRE dans le DOM -> _topModal() la
      considère bien « au-dessus » quand elle s'ouvre par-dessus une autre fenêtre.
@@ -2477,13 +2584,15 @@ function searchLibTag(x){if(!txNorm(state.q)||!myLibraries.length)return '';
   const shared=!!x.libraryId;const name=shared?(libName(x.libraryId)||'Partagée'):'Perso';
   return `<span class="tag libtag" title="Bibliothèque : ${esc(name)}">${uiIcon(shared?'book':'user',11)}${esc(name)}</span>`;}
 function catTag(f,neutral){const c=catOf(f);if(!c)return '';const col=safeColor(c.color);
-  // neutral (cartes d'accueil) : le LISERÉ de carte porte déjà la couleur — la pilule reste
-  // grise pour ne pas multiplier les pastilles colorées (audit v4.5, demande utilisateur).
-  return neutral?`<span class="tag cat neutral">${esc(c.name)}</span>`:`<span class="tag cat" style="--c:${col}">${esc(c.name)}</span>`;}
-// Pastille-bouton de catégorie (rangée de filtres de la bibliothèque ET sélecteur de l'éditeur) :
-// pleine couleur si sélectionnée, sinon liseré teinté (--catcol). Un seul point de code pour les deux.
+  // SPEC crise §1 (v4.3.0) : pastille .cat-dot + nom en toutes lettres, partout. neutral
+  // (cartes d'accueil) : pilule GRISE — le liseré de carte porte déjà la couleur, la pastille
+  // l'identifie sans re-teinter la pilule ; sinon : teinte <= 15 % + texte de la couleur.
+  return `<span class="tag cat${neutral?' neutral':''}" style="--catcol:${col}${neutral?'':';--c:'+col}"><span class="cat-dot"></span>${esc(c.name)}</span>`;}
+// Chip-bouton de catégorie (rangée de filtres de l'accueil étroit). SPEC crise §1a (v4.3.0) :
+// la couleur ne vit qu'en PASTILLE .cat-dot (anneau) — jamais en aplat ; la sélection est le
+// BLEU SYSTÈME (.on), pas la couleur de la catégorie (un chip plein rouge se lirait alarme).
 function catChipHtml(c,selected,cls,attr){const col=safeColor(c.color);
-  return `<button class="${cls}${selected?'':' colored'}" ${attr}="${esc(c.id)}" style="${selected?`background:${col};color:#fff;border-color:${col}`:`--catcol:${col}`}">${esc(c.name)}</button>`;}
+  return `<button class="${cls}${selected?' on':''}" ${attr}="${esc(c.id)}"><span class="cat-dot" style="--catcol:${col}"></span>${esc(c.name)}</button>`;}
 /* ----- STATUT 3 ÉTATS (V5) : helpers partagés fiches/protocoles. status '' = validé(e)
    (défaut historique), 'review' = à relire, 'draft' = brouillon. Achromatique partout
    (la couleur reste réservée au danger et aux catégories). ----- */
@@ -3248,7 +3357,26 @@ function holdToReset(btn,doAction){if(!btn)return;let to=null;const lbl=btn.inne
   btn.onclick=e=>{e.preventDefault();e.stopPropagation();};}
 // Terminer : archive la session (historique, reprenable plus tard), arrête les minuteurs, puis
 // repart d'une fiche vierge (cochages, compteurs, minuteurs remis à zéro).
-async function endCurrentSession(){if(!Runtime.started)return;if(!await confirmDlg('Terminer la session ? Les minuteurs s’arrêtent ; la session est conservée dans l’historique et la fiche est remise à zéro.',{yes:'Terminer'}))return;const f=Runtime.fiche;endSession(Runtime);freshRuntime(f,null);state.fiche=f;render();}
+/* Dialogue « Terminer la session ? » (SPEC crise §3, v4.3.0) — SEULE porte de sortie d'une
+   session (menu ⋯, note de fin d'algorithme, ✕ du bandeau SESSIONS EN COURS) : contexte
+   (titre + durée) et conséquences annoncés AVANT le choix ; focus initial sur Poursuivre ;
+   Échap / tap hors carte = Poursuivre, jamais Terminer. */
+let _endSessResolve=null;
+function confirmEndSession(R){
+  return new Promise(res=>{_endSessResolve=res;
+    const ttl=(R&&R.fiche&&R.fiche.title)||'Aide cognitive';
+    const dur=fmtMs(Date.now()-((R&&R.startedAt)||Date.now()));
+    document.getElementById('endSessCtx').innerHTML=esc(ttl)+' — durée <strong>'+dur+'</strong>';
+    document.getElementById('endSessModal').classList.add('on');
+    document.getElementById('endSessNo').focus();});}
+function _endSessClose(v){document.getElementById('endSessModal').classList.remove('on');
+  const r=_endSessResolve;_endSessResolve=null;if(r)r(v);}
+document.getElementById('endSessNo').onclick=()=>_endSessClose(false);
+document.getElementById('endSessYes').onclick=()=>_endSessClose(true);
+bindModalDismiss(document.getElementById('endSessModal'),()=>_endSessClose(false));
+// Terminer depuis l'écran de crise : archive, remet la fiche à zéro et RETOURNE À L'ACCUEIL
+// (spec §3.6 — la session « quitte l'accueil », l'utilisateur aussi a fini son intervention).
+async function endCurrentSession(){if(!Runtime.started)return;if(!await confirmEndSession(Runtime))return;const f=Runtime.fiche;endSession(Runtime);freshRuntime(f,null);state.fiche=null;state.view='library';render();}
 // Reprendre une session de l'historique (ou vive) : recharge dans un runtime, la réactive (vive) et
 // ouvre la fiche. Si une session vive existe déjà pour cette fiche, on la rouvre telle quelle.
 function resumeSession(id){const s=sessions.find(x=>x.id===id);if(!s)return;const f=fiches.find(x=>x.id===s.ficheId);if(!f){toast('⚠ Fiche introuvable.');return;}flowScroll={left:null,top:0};
@@ -3289,8 +3417,15 @@ function applyViewChrome(){
   // (barres harmonisées entre les deux sections), « Édition » dans les deux éditeurs. L'ÉTAT
   // (mode crise, session en cours) reste porté par le bandeau de crise, jamais par ce sous-titre.
   {const bs=document.getElementById('brandSub');
-   bs.textContent=state.view==='edit'||state.view==='protocolEdit'?'Édition'
-     :state.view==='protocolRead'?'Protocole'
+   if(state.view==='edit'||state.view==='protocolEdit'){
+     // Indicateur de MODE (v4.3.0, annonce du mode courant — logique annonciateur ECAM) :
+     // « ÉDITION/CRÉATION — AIDE COGNITIVE/PROTOCOLE », TOUJOURS visible tant que le formulaire
+     // est ouvert (en-tête sticky, ne défile pas) ; encre douce (il informe, il n'alerte pas —
+     // le rouge d'en-tête reste réservé au mode crise). En étroit (< 560), tronqué au MODE seul.
+     const p=state.view==='protocolEdit';
+     const isNew=p?!protocols.some(x=>state.pdraft&&x.id===state.pdraft.id):!fiches.some(x=>state.draft&&x.id===state.draft.id);
+     bs.innerHTML='<span class="bs-mode">'+(isNew?'Création':'Édition')+'</span><span class="bs-kind"> — '+(p?'Protocole':'Aide cognitive')+'</span>';
+   }else bs.textContent=state.view==='protocolRead'?'Protocole'
      :state.view==='library'?(state.section==='protocols'?'Protocoles':'Bibliothèque'):'Aide cognitive';}
   // Bandeau TITRE du MODE CRISE (V5) : le titre de la fiche vit dans la rangée teintée de
   // l'en-tête sticky — toujours lisible en crise ; « ■ MODE CRISE » statique à droite.
@@ -3466,7 +3601,7 @@ function homeSideHtml(){
       ${myIsAppAdmin?`<button class="hs-add" data-newlib>＋ Nouvelle bibliothèque</button>`:''}`:''}
     <div class="hs-sep"></div><div class="hs-h">Catégories</div>
     <button class="hs-row${!state.cat?' on':''}" data-cat=""><span class="hs-name">Toutes</span><span class="hs-n">${nIn(state.scope)}</span></button>
-    ${catsSorted(state.scope).map(c=>`<button class="hs-row${state.cat===c.id?' on':''}" data-cat="${esc(c.id)}"><span class="hs-dot" style="background:${safeColor(c.color)}"></span><span class="hs-name">${esc(c.name)}</span><span class="hs-n">${nCat(c.id)}</span></button>`).join('')}
+    ${catsSorted(state.scope).map(c=>`<button class="hs-row${state.cat===c.id?' on':''}" data-cat="${esc(c.id)}"><span class="cat-dot" style="--catcol:${safeColor(c.color)}"></span><span class="hs-name">${esc(c.name)}</span><span class="hs-n">${nCat(c.id)}</span></button>`).join('')}
     ${canEditCur?`<button class="btn-manage-cats" data-catmgr aria-haspopup="dialog">${uiIcon('gear',13)} Gérer les catégories</button>`:''}
   </aside>`;}
 // Écouteurs du chrome commun. `rerender` = re-rendu de la vue hôte (renderFiches/renderProtocols).
@@ -3591,7 +3726,7 @@ function renderFiches(){
       {const sa=document.getElementById('seedAdd');if(sa)sa.onclick=addSeedFiches;}
       {const sx=document.getElementById('seedX');if(sx)sx.onclick=()=>{try{localStorage.setItem(spaceKey('ac-seeds-hidden'),'1');}catch(e){}renderFiches();};}
       main.querySelectorAll('[data-openlive]').forEach(el=>{el.onclick=()=>openRead(el.dataset.openlive);el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openRead(el.dataset.openlive);}};});
-      main.querySelectorAll('[data-endlive]').forEach(b=>b.onclick=async()=>{const id=b.dataset.endlive,R=liveSessions[id];if(R&&await confirmDlg('Terminer la session ? Les minuteurs s’arrêtent ; la session est conservée dans l’historique.',{yes:'Terminer'})){endSession(R);if(Runtime.ficheId===id)resetRuntime();renderFiches();}});
+      main.querySelectorAll('[data-endlive]').forEach(b=>b.onclick=async()=>{const id=b.dataset.endlive,R=liveSessions[id];if(R&&await confirmEndSession(R)){endSession(R);if(Runtime.ficheId===id)resetRuntime();renderFiches();}});
       main.querySelectorAll('[data-pin]').forEach(b=>b.onclick=e=>{e.stopPropagation();togglePin(b.dataset.pin);renderFiches();});}});
 }
 /* ----- Vues PROTOCOLES : liste (renderProtocols), lecture (renderProtocolRead), édition
@@ -3779,12 +3914,58 @@ function openRel(id){
 // bibliothèque, code + date de validation, état segmenté. L = libellés propres à l'entité.
 function editorMetaFieldsHtml(d,prefix,L){return `${state.draftRestored?`<div class="notice">${uiIcon('history',15)}<span>Brouillon auto-enregistré (${fmtHMS(state.draftRestored)}) restauré — vos modifications non publiées ont été reprises. <button class="linkbtn" id="ghostDrop">Repartir de la version enregistrée</button></span></div>`:''}
     <div class="field"><label>${L.titleLabel}</label><input type="text" id="${prefix}-title" value="${esc(d.title)}" placeholder="${L.titlePh}"></div>
-    <div class="field"><label>Catégorie</label><div class="catpick"><button class="catpill${!d.category?' on':''}" data-selcat="">Aucune</button>${catsSorted(d.libraryId).map(c=>catChipHtml(c,d.category===c.id,'catpill','data-selcat')).join('')}<button class="catpill mgr" id="catMgrBtn">${uiIcon('gear',13)} Gérer</button></div></div>
+    <div class="field"><label>Catégorie</label><div class="cat-picker" id="catPicker">${catPickerHtml(d)}</div></div>
     ${Auth.signedIn()?`<div class="field"><label>Bibliothèque <span class="hint">${L.scopeHint}</span></label>
       <select id="${prefix}-scope"><option value="" ${!d.libraryId?'selected':''}>Perso (privé)</option>${sortedLibraries().filter(l=>l.role==='editor'||l.role==='admin').map(l=>`<option value="${esc(l.id)}" ${d.libraryId===l.id?'selected':''}>${esc(l.name)} (partagée)</option>`).join('')}${d.libraryId&&!myLibraries.some(l=>l.id===d.libraryId)?`<option value="${esc(d.libraryId)}" selected>${esc(libName(d.libraryId)||'Bibliothèque')}</option>`:''}</select></div>`:''}
     <div class="row2"><div class="field"><label>Code <span class="hint">référence courte facultative</span></label><input type="text" id="${prefix}-code" value="${esc(d.code||'')}" placeholder="${L.codePh}" style="font-family:var(--mono)" maxlength="40"></div>
       <div class="field"><label>Date de validation <span class="hint">mois/année</span></label><input type="text" id="${prefix}-validation" inputmode="numeric" autocapitalize="off" value="${esc(valToDisplay(d.validation))}" placeholder="MM/AAAA — ex. 012026 ou 01/2026"></div></div>
     <div class="field"><label>État</label>${statusSegHtml(d.status,L.fem,!!d.libraryId)}</div>`;}
+/* Sélecteur de catégorie « une sélectionnée + Autre… » (SPEC crise §2, v4.3.0).
+   catPickerHtml : chip teinté de la catégorie COURANTE (ou « Sans catégorie », neutre) + bouton
+   « Autre… ». openCatMenu : menu ancré sous le picker (bottom sheet < 780) — une rangée 44px par
+   catégorie (pastille + nom + ✓ sur la courante), filtre si > 8, « ＋ Nouvelle catégorie » en
+   pointillé (ouvre le gestionnaire sans perdre le brouillon). Listbox ARIA : flèches, Entrée,
+   Échap (referme et rend le focus au déclencheur), clic hors menu. */
+function catPickerHtml(d){
+  const c=categories.find(x=>x.id===d.category);
+  const cur=c?`<button type="button" class="cat-chip-selected" data-catmenu style="--catcol:${safeColor(c.color)}" aria-haspopup="listbox" aria-expanded="false" title="Changer de catégorie"><span class="cat-dot"></span>${esc(c.name)}</button>`
+    :`<button type="button" class="cat-chip-selected none" data-catmenu aria-haspopup="listbox" aria-expanded="false" title="Choisir une catégorie">Sans catégorie</button>`;
+  return cur+`<button type="button" class="cat-chip-other" data-catmenu aria-haspopup="listbox" aria-expanded="false">Autre…</button>`;}
+function openCatMenu(host,d,rerender,trigger){
+  if(host.querySelector('.catmenu'))return;
+  const cats=catsSorted(d.libraryId);
+  const row=(id,name,col)=>`<button type="button" class="catmenu-row" role="option" aria-selected="${(d.category||'')===id?'true':'false'}" data-catopt="${esc(id)}"><span class="cat-dot" style="--catcol:${col||'var(--line-strong)'}"></span><span class="cm-nm">${esc(name)}</span>${(d.category||'')===id?`<span class="cm-ck">${uiIcon('check',15,{sw:2.6})}</span>`:''}</button>`;
+  const menu=document.createElement('div');menu.className='catmenu';menu.setAttribute('role','listbox');menu.setAttribute('aria-label','Catégorie');
+  menu.innerHTML=`${cats.length>8?'<input class="catmenu-filter" type="text" placeholder="Filtrer…" aria-label="Filtrer les catégories">':''}
+    ${row('','Sans catégorie','')}
+    ${cats.map(c=>row(c.id,c.name,safeColor(c.color))).join('')}
+    <div class="catmenu-sep"></div>
+    <button type="button" class="catmenu-new">＋ Nouvelle catégorie</button>`;
+  const veil=document.createElement('div');veil.className='catmenu-veil';
+  host.appendChild(veil);host.appendChild(menu);
+  host.querySelectorAll('[data-catmenu]').forEach(b=>b.setAttribute('aria-expanded','true'));
+  const close=(refocus)=>{menu.remove();veil.remove();document.removeEventListener('pointerdown',out,true);document.removeEventListener('keydown',keys,true);
+    host.querySelectorAll('[data-catmenu]').forEach(b=>b.setAttribute('aria-expanded','false'));
+    if(refocus&&trigger&&document.contains(trigger))trigger.focus();};
+  const out=e=>{if(!menu.contains(e.target)&&!e.target.closest('[data-catmenu]'))close(false);};
+  const rows=()=>[...menu.querySelectorAll('.catmenu-row,.catmenu-new')].filter(r=>r.style.display!=='none');
+  const keys=e=>{
+    if(e.key==='Escape'){e.stopPropagation();e.preventDefault();close(true);return;}
+    if(e.key!=='ArrowDown'&&e.key!=='ArrowUp')return;
+    if(!menu.contains(document.activeElement)&&document.activeElement!==trigger)return;
+    e.preventDefault();const r=rows();if(!r.length)return;
+    const i=r.indexOf(document.activeElement);
+    r[(i+(e.key==='ArrowDown'?1:-1)+r.length)%r.length].focus();};
+  document.addEventListener('pointerdown',out,true);
+  document.addEventListener('keydown',keys,true);
+  menu.querySelectorAll('[data-catopt]').forEach(b=>b.onclick=()=>{d.category=b.dataset.catopt;close(false);rerender();});
+  {const nw=menu.querySelector('.catmenu-new');nw.onclick=()=>{close(false);openCatMgr();};}
+  const fl=menu.querySelector('.catmenu-filter');
+  if(fl){fl.addEventListener('input',()=>{const q=txNorm(fl.value);
+      menu.querySelectorAll('.catmenu-row').forEach(r=>{r.style.display=(!q||txNorm(r.textContent).includes(q))?'':'none';});});
+    fl.focus();}
+  else{const first=menu.querySelector('.catmenu-row');if(first)first.focus();}
+  veil.onclick=()=>close(false);}
 // Câblage des champs partagés. o = {fem, rerender, preview} ; d = objet brouillon vivant
 // (state.draft ou state.pdraft — même référence tant que l'éditeur est affiché).
 function bindEditorMetaFields(d,prefix,o){
@@ -3804,9 +3985,10 @@ function bindEditorMetaFields(d,prefix,o){
   // existant »), retrait via la croix des chips (mise à jour immédiate de l'aperçu).
   {const rb=document.getElementById('relAddBtn');if(rb)rb.onclick=()=>openRelPicker(d,o.rerender);}
   main.querySelectorAll('[data-relrm]').forEach(b=>b.onclick=()=>{d.related=(d.related||[]).filter(x=>x!==b.dataset.relrm);o.rerender();});
-  // Catégorie + « ⚙ Gérer » (MÊME fenêtre de gestion que l'accueil, périmètre du brouillon).
-  main.querySelectorAll('[data-selcat]').forEach(b=>b.onclick=()=>{d.category=b.dataset.selcat;o.rerender();});
-  document.getElementById('catMgrBtn').onclick=openCatMgr;
+  // Catégorie : chip courant ET « Autre… » ouvrent le même menu ancré (SPEC crise §2) ;
+  // « ＋ Nouvelle catégorie » y ouvre le gestionnaire (même fenêtre que l'accueil).
+  {const pick=document.getElementById('catPicker');
+   if(pick)pick.querySelectorAll('[data-catmenu]').forEach(b=>b.onclick=()=>openCatMenu(pick,d,o.rerender,b));}
   // Bibliothèque : les catégories sont propres à une bibliothèque — si l'actuelle n'appartient
   // pas à la nouvelle, elle est retirée du brouillon.
   {const scopeSel=document.getElementById(prefix+'-scope');if(scopeSel)scopeSel.onchange=()=>{const ns=scopeSel.value||null;d.libraryId=ns;
@@ -4678,7 +4860,11 @@ function bindReadEvents(f,blk,cur){
    downscale()       : réduit une image (canvas) avant stockage base64.
    saveDraft()       : nettoie/normalise le brouillon, persiste, puis ouvre la fiche.
    deleteDraft()     : supprime la fiche ET ses sessions associées. */
-function listEditor(legend,hint,key,arr,ordered){const rows=(arr.length?arr:['']).map((v,i)=>`<div class="li" data-i="${i}">${ordered?`<span class="li-num">${String(i+1).padStart(2,'0')}</span>`:''}<input type="text" value="${esc(v)}" data-key="${key}" data-idx="${i}" placeholder="…">${boldBtnHtml()}${ordered?`<button class="mini" data-mv="up" data-key="${key}" data-idx="${i}" aria-label="Monter">↑</button><button class="mini" data-mv="down" data-key="${key}" data-idx="${i}" aria-label="Descendre">↓</button>`:''}<button class="mini del" data-rm="${key}" data-idx="${i}" aria-label="Supprimer la ligne">×</button></div>`).join('');return `<fieldset class="field list-edit"><label>${legend}${hint?` <span class="hint">${hint}</span>`:''}</label>${rows}<button class="add-line" data-add="${key}">+ Ajouter une ligne</button></fieldset>`;}
+// opts.crit (v4.3.0, repères posologiques) : bascule ⚠ par BOUTON (le signe est intapable au
+// clavier) — le champ affiche le texte NU, la rangée encadrée rouge porte le registre, le
+// préfixe « ⚠ » reste dans la CHAÎNE stockée (format v3 et cartes rouges inchangés).
+function listEditor(legend,hint,key,arr,ordered,opts){opts=opts||{};const rows=(arr.length?arr:['']).map((v,i)=>{const crit=opts.crit&&stepIsCrit(v);
+  return `<div class="li${crit?' li-crit':''}" data-i="${i}">${ordered?`<span class="li-num">${String(i+1).padStart(2,'0')}</span>`:''}<input type="text" value="${esc(opts.crit?stepText(v):v)}" data-key="${key}" data-idx="${i}"${opts.crit?' data-critlist':''} placeholder="…">${boldBtnHtml()}${opts.crit?`<button class="mini crit-tgl${crit?' on':''}" data-lcrit="${i}" data-lkey="${key}" title="${crit?'Ligne CRITIQUE (carte rouge) — toucher : normale':'Ligne normale — toucher : critique (carte rouge)'}">${uiIcon('warn',14)}</button>`:''}${ordered?`<button class="mini" data-mv="up" data-key="${key}" data-idx="${i}" aria-label="Monter">↑</button><button class="mini" data-mv="down" data-key="${key}" data-idx="${i}" aria-label="Descendre">↓</button>`:''}<button class="mini del" data-rm="${key}" data-idx="${i}" aria-label="Supprimer la ligne">×</button></div>`;}).join('');return `<fieldset class="field list-edit"><label>${legend}${hint?` <span class="hint">${hint}</span>`:''}</label>${rows}<button class="add-line" data-add="${key}">+ Ajouter une ligne</button></fieldset>`;}
 // Bouton « Gras » : entoure la sélection du champ voisin de ** (rendu <b> en lecture via fmt()).
 function boldBtnHtml(){return '<button type="button" class="mini bld" data-bold aria-label="Mettre la sélection en gras" title="Gras — sélectionnez du texte puis cliquez (ou Ctrl/Cmd-B). Réservez-le aux doses et interdictions critiques.">B</button>';}
 // Documents PDF joignables depuis les AUTRES fiches du MÊME périmètre (Perso, ou même bibliothèque
@@ -4773,7 +4959,7 @@ async function purgeDraftAtts(){const ids=draftNewAtts;draftNewAtts=[];
 function targetSelect(blocks,selfId,value){const opts=blocks.filter(b=>b.id!==selfId).map(b=>`<option value="${b.id}" ${b.id===value?'selected':''}>${esc(b.title)||'(bloc sans titre)'}</option>`).join('');return `<select data-target><option value="" ${!value?'selected':''}>— Fin / aucun —</option>${opts}</select>`;}
 function imageEditor(b){return `<div class="sub">Image du bloc (option)</div><div class="imgrow">${b.image?`<img src="${b.image}" alt=""><button class="btn sm danger" data-bimgdel>Retirer</button>`:`<button class="btn sm" data-bimg>+ Image / capture</button>`}</div>`;}
 function blockEditor(b,blocks){if(b.type==='decision'){return `<div class="blk" data-bid="${b.id}"><div class="blk-top"><span class="blk-type decision">Décision</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Réévaluation)"></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Question</div><input type="text" data-bf="question" value="${esc(b.question)}" placeholder="ex. Réponse à l'adrénaline ?" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)"><div class="sub">Réponses → bloc cible</div>${(b.options.length?b.options:[{label:'',target:''}]).map((o,i)=>`<div class="optedit" data-oi="${i}"><input type="text" data-of="label" value="${esc(o.label)}" placeholder="ex. Oui">${targetSelect(blocks,b.id,o.target)}<button class="mini del" data-rmopt="${i}" aria-label="Supprimer la réponse">×</button></div>`).join('')}<button class="add-line" data-addopt>+ Ajouter une réponse</button>${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="mini" data-bmv="up" aria-label="Monter le bloc">↑</button><button class="mini" data-bmv="down" aria-label="Descendre le bloc">↓</button><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
-  return `<div class="blk" data-bid="${b.id}"><div class="blk-top"><span class="blk-type steps">Étapes</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Mesures immédiates)"></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Étapes (cochables en mode crise)</div><div class="crit-guide"><b class="cg-r">${uiIcon('warn',11)} Rouge</b> : ce qui tue si on l'oublie (memory item, geste vital). <b class="cg-a">△ Ambre</b> : là où l'on risque de se tromper (dose/dilution à vérifier avant injection, contre-indication à écarter, confusion voie/site/produit, seuil à contrôler avant de poursuivre). Les deux → rouge.</div>${(b.steps.length?b.steps:['']).map((s,i)=>`<div class="li" data-si="${i}"><span class="li-num">${String(i+1).padStart(2,'0')}</span><input type="text" data-sf value="${esc(s)}" placeholder="…"><button class="mini crit-tgl${stepIsCrit(s)?' on':(stepIsVigil(s)?' vig':'')}" data-crit="${i}" title="${stepIsCrit(s)?'Étape CRITIQUE (rouge : ce qui tue si oublié) — toucher : vigilance (ambre)':(stepIsVigil(s)?'Étape VIGILANCE (ambre : risque d’erreur — dose, voie, seuil) — toucher : étape normale':'Étape normale — toucher : critique (rouge : ce qui tue si oublié)')}">${stepIsVigil(s)?'△':uiIcon('warn',14)}</button><button class="mini" data-smv="up" data-si="${i}" aria-label="Monter">↑</button><button class="mini" data-smv="down" data-si="${i}" aria-label="Descendre">↓</button><button class="mini del" data-rmstep="${i}" aria-label="Supprimer l'étape">×</button></div>`).join('')}<button class="add-line" data-addstep>+ Ajouter une étape</button><div class="sub">Étape suivante</div>${targetSelect(blocks,b.id,b.next)}${b.next?`<input type="text" data-bnextlbl value="${esc(b.nextLbl||'')}" maxlength="120" placeholder="Libellé du bouton Continuer (ex. réévaluation à 5 min)" style="margin-top:6px">`:''}${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="mini" data-bmv="up" aria-label="Monter le bloc">↑</button><button class="mini" data-bmv="down" aria-label="Descendre le bloc">↓</button><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
+  return `<div class="blk" data-bid="${b.id}"><div class="blk-top"><span class="blk-type steps">Étapes</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Mesures immédiates)"></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Étapes (cochables en mode crise)</div><div class="crit-guide"><b class="cg-r">${uiIcon('warn',11)} Rouge</b> : ce qui tue si on l'oublie (memory item, geste vital). <b class="cg-a">△ Ambre</b> : là où l'on risque de se tromper (dose/dilution à vérifier avant injection, contre-indication à écarter, confusion voie/site/produit, seuil à contrôler avant de poursuivre). Les deux → rouge.</div>${(b.steps.length?b.steps:['']).map((s,i)=>`<div class="li${stepIsCrit(s)?' li-crit':(stepIsVigil(s)?' li-vigil':'')}" data-si="${i}"><span class="li-num">${String(i+1).padStart(2,'0')}</span><input type="text" data-sf value="${esc(stepText(s))}" placeholder="…"><button class="mini crit-tgl${stepIsCrit(s)?' on':(stepIsVigil(s)?' vig':'')}" data-crit="${i}" title="${stepIsCrit(s)?'Étape CRITIQUE (rouge : ce qui tue si oublié) — toucher : vigilance (ambre)':(stepIsVigil(s)?'Étape VIGILANCE (ambre : risque d’erreur — dose, voie, seuil) — toucher : étape normale':'Étape normale — toucher : critique (rouge : ce qui tue si oublié)')}">${stepIsVigil(s)?'△':uiIcon('warn',14)}</button><button class="mini" data-smv="up" data-si="${i}" aria-label="Monter">↑</button><button class="mini" data-smv="down" data-si="${i}" aria-label="Descendre">↓</button><button class="mini del" data-rmstep="${i}" aria-label="Supprimer l'étape">×</button></div>`).join('')}<button class="add-line" data-addstep>+ Ajouter une étape</button><div class="sub">Étape suivante</div>${targetSelect(blocks,b.id,b.next)}${b.next?`<input type="text" data-bnextlbl value="${esc(b.nextLbl||'')}" maxlength="120" placeholder="Libellé du bouton Continuer (ex. réévaluation à 5 min)" style="margin-top:6px">`:''}${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="mini" data-bmv="up" aria-label="Monter le bloc">↑</button><button class="mini" data-bmv="down" aria-label="Descendre le bloc">↓</button><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
 function timerEditorRow(t,i){const iv=t.type==='interval';const mm=Math.floor((t.seconds||0)/60),ss=(t.seconds||0)%60;return `<div class="trow" data-ti="${i}"><span class="blk-type ${iv?'decision':'steps'}">${iv?'Cycle':'Chrono'}</span><input type="text" data-tf="label" value="${esc(t.label)}" placeholder="${iv?'ex. Cycle adrénaline':'ex. Temps écoulé'}">${iv?`<input type="number" min="0" data-tmin value="${mm}" style="width:56px"><span>min</span><input type="number" min="0" max="59" data-tsec value="${ss}" style="width:56px"><span>s</span><label style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--ink-soft)"><input type="checkbox" data-tloop ${t.autoloop?'checked':''}>boucle</label>`:''}<button class="mini" data-tmv="up" aria-label="Monter">↑</button><button class="mini" data-tmv="down" aria-label="Descendre">↓</button><button class="mini del" data-tdel="${i}">×</button></div>`;}
 function counterEditorRow(c,i,timers){const ivs=(timers||[]).filter(t=>t.type==='interval');
   return `<div class="trow" data-ci="${i}"><input type="text" data-cf="label" value="${esc(c.label)}" placeholder="ex. Adrénaline (mg)"><span>pas</span><input type="number" data-cstep value="${c.step||1}" style="width:56px"><span>départ</span><input type="number" data-cstart value="${c.start||0}" style="width:56px">${ivs.length?`<select data-clink title="Le « ＋ » du compteur relance ce minuteur (ex. bolus -> cycle)"><option value="">＋ ne relance rien</option>${ivs.map(t=>`<option value="${esc(t.id)}"${c.timerId===t.id?' selected':''}>＋ relance « ${esc(t.label)||'Minuteur'} »</option>`).join('')}</select>`:''}<button class="mini" data-cmv="up" aria-label="Monter">↑</button><button class="mini" data-cmv="down" aria-label="Descendre">↓</button><button class="mini del" data-cdel="${i}">×</button></div>`;}
@@ -4826,7 +5012,7 @@ function renderEditor(){
       <p class="sub2">Minuteurs</p>${(f.timers||[]).map((t,i)=>timerEditorRow(t,i)).join('')}<div class="add-blocks"><button class="btn sm" id="addStopwatch">+ Chronomètre</button><button class="btn sm" id="addInterval">+ Minuteur (cycle)</button></div>
       <p class="sub2" style="margin-top:14px">Compteurs</p>${(f.counters||[]).map((c,i)=>counterEditorRow(c,i,f.timers)).join('')}<button class="add-line" id="addCounter">+ Ajouter un compteur</button></fieldset>
     ${listEditor('À vérifier','','verify',f.verify)}
-    ${listEditor('Repères posologiques','« ⚠ » en tête de ligne = carte rouge (dose critique) · **gras** possible','posology',f.posology)}
+    ${listEditor('Repères posologiques','bouton ⚠ = carte rouge (dose critique) · **gras** possible','posology',f.posology,false,{crit:true})}
     ${listEditor('Ne pas oublier','points critiques','notForget',f.notForget)}
     ${listEditor('Diagnostics différentiels','','differentials',f.differentials)}
     <fieldset class="field"><label>Schémas & captures <span class="hint">stockées hors ligne dans l'app</span></label><div class="gallery">${(f.images||[]).map((im,i)=>`<div class="gthumb"><img src="${im.data}" alt="" loading="lazy" decoding="async"><input type="text" class="gcap" data-imgcap="${i}" value="${esc(im.caption||'')}" placeholder="Légende…" style="width:100%;margin-top:5px;padding:6px 8px;border:1px solid var(--line);border-radius:7px"><button class="btn sm danger" data-imgdel="${i}" style="width:100%;margin-top:5px">Retirer</button></div>`).join('')}</div><button class="add-line" id="addImg" style="margin-top:10px">+ Ajouter une image / capture</button></fieldset>
@@ -4879,7 +5065,12 @@ function bindEditorEvents(f){
   main.querySelectorAll('.blk').forEach(card=>{const bid=card.dataset.bid;const b=f.blocks.find(x=>x.id===bid);
     card.querySelectorAll('[data-bf]').forEach(inp=>{const fld=inp.dataset.bf;inp.addEventListener('input',e=>{b[fld]=e.target.value;scheduleFlowPreview(f);});inp.addEventListener('change',()=>renderEditor());});
     const sb=card.querySelector('[data-start]');if(sb)sb.onclick=()=>{f.start=bid;renderEditor();};
-    card.querySelectorAll('[data-sf]').forEach((inp,i)=>inp.addEventListener('input',e=>{b.steps[i]=e.target.value;scheduleFlowPreview(f);}));
+    // Le champ affiche le texte NU (v4.3.0) : le marqueur ⚠/△ ne vit plus DANS l'input — on ne
+    // peut plus l'effacer à la main (= changer le type par accident) ; le type est porté par
+    // l'encadré coloré de la rangée + la bascule, et RE-PRÉFIXÉ ici (format chaîne inchangé).
+    card.querySelectorAll('[data-sf]').forEach((inp,i)=>inp.addEventListener('input',e=>{
+      const cur=String(b.steps[i]||'');const pfx=stepIsCrit(cur)?'⚠ ':(stepIsVigil(cur)?'△ ':'');
+      b.steps[i]=pfx+e.target.value;scheduleFlowPreview(f);}));
     const as=card.querySelector('[data-addstep]');if(as)as.onclick=()=>{b.steps.push('');renderEditor();};
     card.querySelectorAll('[data-rmstep]').forEach(btn=>btn.onclick=()=>{b.steps.splice(+btn.dataset.rmstep,1);if(!b.steps.length)b.steps.push('');renderEditor();});
     // Bascule du TYPE d'étape (SPEC §2.2) : cycle normale -> ⚠ critique (rouge) -> △ vigilance
@@ -4910,7 +5101,14 @@ function bindEditorEvents(f){
 // d / rerender : brouillon et re-rendu de l'éditeur hôte — fiche par défaut (compat historique),
 // protocole depuis v4.2.2 (listes « Références » partagées entre les deux éditeurs).
 function bindListEditors(d,rerender){d=d||state.draft;rerender=rerender||renderEditor;
-  main.querySelectorAll('input[data-key]').forEach(inp=>inp.addEventListener('input',e=>{d[e.target.dataset.key][+e.target.dataset.idx]=e.target.value;}));
+  // Listes à bascule ⚠ (data-critlist) : le champ montre le texte NU — le préfixe de la chaîne
+  // stockée est RE-POSÉ à chaque frappe (il ne peut plus être effacé à la main, v4.3.0).
+  main.querySelectorAll('input[data-key]').forEach(inp=>inp.addEventListener('input',e=>{
+    const k=e.target.dataset.key,i=+e.target.dataset.idx;
+    const pfx=e.target.hasAttribute('data-critlist')&&stepIsCrit(d[k][i]||'')?'⚠ ':'';
+    d[k][i]=pfx+e.target.value;}));
+  main.querySelectorAll('[data-lcrit]').forEach(b=>b.onclick=()=>{const k=b.dataset.lkey,i=+b.dataset.lcrit;
+    const v=String(d[k][i]||'');d[k][i]=stepIsCrit(v)?stepText(v):('⚠ '+stepText(v));rerender();});
   main.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{d[b.dataset.add].push('');rerender();});
   main.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{const a=d[b.dataset.rm];a.splice(+b.dataset.idx,1);if(!a.length)a.push('');rerender();});
   main.querySelectorAll('[data-mv]').forEach(b=>b.onclick=()=>{moveItem(d[b.dataset.key],+b.dataset.idx,b.dataset.mv==='up'?-1:1);rerender();});
@@ -5530,7 +5728,7 @@ const catModal=document.getElementById('catModal');
 let catDelId=null,_catHost='catMgrBody';   // hôte courant : fenêtre (éditeur) ou panneau inline (accueil)
 const catCount=id=>fiches.filter(f=>f.category===id).length;
 function openCatMgr(){catDelId=null;_catHost='catMgrBody';catModal.classList.add('on');renderCatMgr();}
-function closeCatMgr(){catModal.classList.remove('on');if(state.view==='edit')renderEditor();else if(state.view==='library')renderFiches();}
+function closeCatMgr(){catModal.classList.remove('on');if(state.view==='edit')renderEditor();else if(state.view==='protocolEdit')renderProtocolEdit();else if(state.view==='library')renderFiches();}
 function renderCatMgr(){
   const body=document.getElementById(_catHost);if(!body)return;const scp=activeCatScope();const scoped=catsSorted(scp);
   body.innerHTML=`${scp?`<p class="cm-scope">Catégories de la bibliothèque <b>${esc(libName(scp)||'')}</b> (partagées avec ses membres).</p>`:'<p class="cm-scope">Catégories de votre espace personnel.</p>'}`+scoped.map(c=>{const n=catCount(c.id);

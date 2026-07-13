@@ -125,6 +125,31 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   les vues (`header.bar`) ; le CONTENU clinique (fiches en crise, protocoles, éditeurs) reste
   bleu clinique. Jamais de vert/ambre/rouge en accent (registres réservés). Persistance :
   `spaceKey('ac-accent')` local + `data.prefs.accent` cloud (avec thème et taille du texte).
+- **Code couleur des catégories (SPEC crise §1, v4.3.0)** : la couleur de catégorie (choisie
+  par l'utilisateur) n'apparaît qu'en **pastille** (`.cat-dot`, anneau à la couleur du fond
+  porteur), **liseré** (cartes, 4 px) ou **teinte ≤ 15 %** avec texte de la couleur — JAMAIS en
+  aplat saturé (les surfaces pleines sont réservées aux états système) et jamais seule (toujours
+  le nom en toutes lettres). La **sélection** (sidebar, chips) = **bleu système**, jamais la
+  couleur de la catégorie. Le bandeau de crise ne porte pas la couleur de catégorie. Sélecteur
+  des éditeurs = « **une sélectionnée + Autre…** » : chip teinté 14 % (la seule teinte autorisée
+  — prévisualise liseré/pastille) + menu ancré (bottom sheet < 780) avec « ＋ Nouvelle
+  catégorie » ; plus jamais la rangée de toutes les catégories.
+- **Dialogue « Terminer la session ? » (SPEC crise §3, v4.3.0)** : SEULE porte de sortie d'une
+  session (menu ⋯, fin d'algorithme, ✕ du bandeau sessions — jamais d'arrêt direct). Contexte
+  (titre + durée) et **conséquences annoncées avant le choix** ; « Poursuivre » = action sûre
+  (contour, focus initial, Échap) ; « Terminer » = un des SEULS rouges pleins de l'app
+  (`--critical-bd`). Terminer depuis l'écran de crise ramène à l'accueil.
+- **Marqueur d'étape hors du champ (v4.3.0)** : dans les éditeurs, le préfixe `⚠ `/`△ ` ne vit
+  plus DANS l'input (il était effaçable à la main = changement de type accidentel) — champ =
+  texte nu, rangée **encadrée** au registre, préfixe re-posé par le handler (la CHAÎNE stockée
+  garde le préfixe : format v3 inchangé). Les repères posologiques ont la même bascule ⚠ par
+  bouton (le signe est intapable au clavier).
+- **Indicateur de mode des éditeurs (v4.3.0)** : la barre affiche en permanence
+  « ÉDITION/CRÉATION — AIDE COGNITIVE/PROTOCOLE » (micro-titre 11px/800, encre douce — informe,
+  n'alerte pas), tronqué au mode seul < 560 px ; le badge de statut n'y disparaît JAMAIS
+  (thème et compte s'effacent à sa place en étroit). Pas de barre d'actions flottante en bas
+  d'éditeur (SPEC §5/§6 : une seule zone fixe, en haut ; clavier mobile ; Supprimer reste isolé
+  en fin de formulaire).
 - **Alarme de minuteur (règle QRH/ECAM, v4.2.0)** : une alarme ne DÉPLACE JAMAIS le contexte de
   travail quand la session est sous les yeux — pas d'auto-défilement, pas d'ouverture de panneau,
   pas de fenêtre par-dessus la checklist. Attention par bip/vibration + flash bref (master

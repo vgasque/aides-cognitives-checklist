@@ -146,12 +146,12 @@ const shapeDemo = `
 const catDemo = `
 <div class="ds-row">${PALETTE.map(c => `<div class="ds-item"><span style="width:34px;height:34px;border-radius:8px;background:${c};display:block"></span><small>${c}</small></div>`).join('')}</div>
 <p class="ds-cap">PALETTE : 13 teintes de catégories (choisies par l’utilisateur, jamais de nouvelle teinte codée en dur hors :root/PALETTE).</p>
-<div class="ds-row">${PALETTE.slice(0, 5).map((c, i) => `<span class="tag cat" style="--c:${c}">Catégorie ${i + 1}</span>`).join('')}</div>
-<p class="ds-cap">.tag.cat — étiquette teintée (color-mix : fond 15 % en clair, 26 % + texte éclairci en sombre) : lecture de fiche.</p>
-<div class="ds-row"><span class="tag cat neutral">Urgences</span><span class="tag cat neutral">Voies aériennes</span></div>
-<p class="ds-cap">.tag.cat.neutral — sur les CARTES d’accueil la pilule de catégorie est NEUTRE (--tag-bg/--tag-ink) : la couleur de catégorie ne vit que dans le liseré gauche de la carte (audit v4.5 : trop de pastilles colorées nuisait à la hiérarchie).</p>
-<div class="ds-row">${PALETTE.slice(5, 9).map((c, i) => `<button class="catchip colored" style="--catcol:${c}">Filtre ${i + 1}</button>`).join('')}</div>
-<p class="ds-cap">.catchip.colored — pastille de filtre teintée, lisible dans les deux thèmes via color-mix.</p>`;
+<div class="ds-row">${PALETTE.slice(0, 5).map((c, i) => `<span class="tag cat" style="--c:${c};--catcol:${c}"><span class="cat-dot"></span>Catégorie ${i + 1}</span>`).join('')}</div>
+<p class="ds-cap">.tag.cat — pastille + étiquette teintée ≤ 15 % avec texte de la couleur (règle SPEC crise §1 : jamais d’aplat ; la couleur n’est jamais seule) : lecture de fiche.</p>
+<div class="ds-row"><span class="tag cat neutral" style="--catcol:${PALETTE[8]}"><span class="cat-dot"></span>Urgences</span><span class="tag cat neutral" style="--catcol:${PALETTE[3]}"><span class="cat-dot"></span>Voies aériennes</span></div>
+<p class="ds-cap">.tag.cat.neutral — sur les CARTES d’accueil la pilule reste NEUTRE (--tag-bg/--tag-ink) : le liseré gauche 4px porte la couleur, la pastille l’identifie dans la méta.</p>
+<div class="ds-row">${PALETTE.slice(5, 9).map((c, i) => `<button class="catchip"><span class="cat-dot" style="--catcol:${c}"></span>Filtre ${i + 1}</button>`).join('')}</div>
+<p class="ds-cap">.catchip — la couleur de catégorie ne vit qu’en PASTILLE à anneau (SPEC crise §1a, v4.3.0) ; la sélection est le bleu système, jamais la couleur.</p>`;
 
 const buttonsDemo = `
 <div class="ds-row"><button class="btn primary">Enregistrer</button><button class="btn">Annuler</button><button class="btn danger">Supprimer</button><button class="btn" disabled>Désactivé</button><button class="btn sm">Petit (.sm)</button></div>
@@ -166,8 +166,8 @@ const buttonsDemo = `
 <p class="ds-cap">.mini — micro-contrôles d’éditeur.</p>`;
 
 const chipsDemo = `
-<div class="ds-row"><button class="catchip on">Toutes</button><button class="catchip">Aucune</button><button class="catchip">Adulte</button><button class="catchip mgr">Gérer…</button></div>
-<p class="ds-cap">.catchip — filtres de catégories ; .on = sélection neutre (encre pleine) ; .mgr = action en retrait (pointillés).</p>
+<div class="ds-row"><button class="catchip on">Toutes</button><button class="catchip"><span class="cat-dot" style="--catcol:${PALETTE[0]}"></span>Adulte</button><button class="catchip"><span class="cat-dot" style="--catcol:${PALETTE[6]}"></span>Pédiatrie</button><button class="catchip mgr">Gérer…</button></div>
+<p class="ds-cap">.catchip — filtres de catégories : pastille .cat-dot à anneau + nom ; .on = sélection BLEU SYSTÈME (jamais la couleur de la catégorie, v4.3.0) ; .mgr = action en retrait (pointillés).</p>
 <div class="ds-row"><span class="status-tag">✓ Validée</span><span class="status-tag">△ À relire</span><span class="status-tag">○ Brouillon</span><span class="tag todo">△ À compléter</span><span class="tag live">● En cours</span><span class="tag sess">3 sauvegardées</span><span class="tag flow">Algorithme</span><span class="tag libtag"><svg class="tic" width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h7l2 3h7v13H4z"/></svg> Bibliothèque SMUR</span></div>
 <p class="ds-cap">.status-tag — pilule ACHROMATIQUE unique pour les 3 statuts (--tag-bg/--tag-ink), affichée sur cartes, lecture et éditeurs (y compris « ✓ Validée ») ; .tag.todo est cliquable (souligné pointillé = affordance détail) ; .tag.live = session vive (vert --ok, état annoncé en texte).</p>
 <div class="ds-row"><span class="sync-chip off">Hors ligne</span><span class="sync-chip ok">Synchronisé</span><span class="sync-chip busy">Synchro…</span><span class="sync-chip pending">En attente</span><span class="sync-chip err">Erreur</span></div>
@@ -196,7 +196,7 @@ const formsDemo = `
     <div class="field"><label>Validation <span class="hint">MM/AAAA</span></label><input type="text" value="03/2026"></div>
   </div>
   <div class="field"><label>Contexte local</label><textarea rows="3">Chariot d’urgence : salle 2. Adrénaline au réfrigérateur.</textarea></div>
-  <div class="field"><label>Catégories</label><div class="catpick"><button class="catpill on">Adulte</button><button class="catpill">Pédiatrie</button><button class="catpill colored" style="--catcol:${PALETTE[2]}">Toxicologie</button></div></div>
+  <div class="field"><label>Catégorie</label><div class="cat-picker"><button class="cat-chip-selected" style="--catcol:${PALETTE[2]}"><span class="cat-dot"></span>Toxicologie</button><button class="cat-chip-other">Autre…</button></div></div>
   <input class="auth-field auth-code" value="482913" aria-label="Code reçu">
 </div>
 <p class="ds-cap">Fond des champs = --input-bg (jamais codé en dur) ; bordure --line-strong (≥ 3:1) ; focus = outline 2px --primary ; police 16px (anti-zoom iOS).</p>`;
