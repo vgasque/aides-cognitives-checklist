@@ -593,7 +593,10 @@
   /* Rangée cochable (canvas section 6) : n° mono 14 · libellé 16.5/800 · case 36px à droite ;
      min 64px, rangée entière cliquable ; transition .25s vers l'état coché. */
   ol.steps li{counter-increment:s;display:flex;gap:12px;align-items:center;min-height:64px;background:var(--surface);border:1px solid var(--line-hover);border-left:3px solid var(--ink);border-radius:8px;padding:12px;margin-bottom:6px;cursor:pointer;transition:opacity .25s,background .25s,border-color .25s}
-  ol.steps li::before{content:counter(s,decimal-leading-zero);font-family:var(--mono);font-size:14px;font-weight:700;color:var(--ink-soft);width:30px;flex:none;text-align:center;align-self:flex-start;padding-top:3px}
+  /* Numéro d'étape (v4.2.2) : 16px, CENTRÉ verticalement — c'est l'ancre de suivi de position
+     de la lecture challenge-response (QRH) ; aligné sur l'axe de la case à cocher, sans voler
+     la saillance du texte (mono, encre douce — les registres crit/vigil/done le recolorent). */
+  ol.steps li::before{content:counter(s,decimal-leading-zero);font-family:var(--mono);font-size:16px;font-weight:700;color:var(--ink-soft);width:30px;flex:none;text-align:center;align-self:center}
   ol.steps li .txt{flex:1;font-size:16.5px;font-weight:800;line-height:1.45}
   /* Case à cocher À DROITE (canvas), 36px, vide = bordure 2px grise sur fond transparent. */
   ol.steps li .box{order:3;width:36px;height:36px;border:2px solid var(--line-strong);border-radius:6px;flex-shrink:0;display:grid;place-items:center;color:var(--on-primary);background:transparent}
@@ -830,6 +833,11 @@
   /* Bascule du type d'étape (éditeur de blocs) : ⚠ critique (rouge) / △ vigilance (ambre). */
   .crit-tgl.on{color:var(--critical);border-color:var(--critical);background:var(--critical-soft)}
   .crit-tgl.vig{color:var(--verify);border-color:var(--verify);background:var(--verify-soft);font-size:14px;font-weight:800}
+  /* Consigne d'usage rouge/ambre (v4.2.2) : affichée UNE fois par bloc d'étapes, au point de
+     décision (doctrine utilisateur — rouge = ce qui tue si oublié ; ambre = risque d'erreur). */
+  .crit-guide{font-size:11.5px;color:var(--ink-soft);line-height:1.55;margin:-2px 0 8px}
+  .crit-guide .cg-r{color:var(--critical)}
+  .crit-guide .cg-a{color:var(--verify)}
   .flow-prev-h{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--ink-soft);margin:0 0 7px}
   .flow-scroll{width:100%;overflow:auto;border:1px solid var(--line);border-radius:10px;background:#fff;padding:8px;-webkit-overflow-scrolling:touch;margin-bottom:14px;max-height:75vh}
   .flow-zoom{display:flex;align-items:center;gap:7px;margin-bottom:7px}
@@ -1227,6 +1235,10 @@
   .ep-more{color:var(--ink-soft)}
   .ep-step{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:7px;padding:8px 10px;font-size:12px;font-weight:600}
   .ep-step.crit{background:var(--critical-soft);border-color:var(--critical);color:var(--critical);font-weight:800}
+  /* Étape VIGILANCE dans l'aperçu en direct (v4.2.2) : même registre ATTENTION qu'en lecture —
+     elle n'y apparaissait qu'en style normal (seul crit était traité). */
+  .ep-step.vig{background:var(--verify-soft);border-color:var(--verify);color:var(--verify);font-weight:800}
+  .ep-step.vig .ep-box{border-color:var(--verify)}
   .ep-n{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink-soft);flex:none}
   .ep-t{flex:1;min-width:0}
   .ep-box{width:15px;height:15px;border:1.5px solid var(--line-strong);border-radius:4px;flex:none}
