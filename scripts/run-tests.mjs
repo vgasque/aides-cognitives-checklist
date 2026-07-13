@@ -25,7 +25,9 @@ let chromium;
 try { ({ chromium } = await import('playwright')); }
 catch { console.error('Playwright absent : `npm install` puis `npx playwright install chromium`.'); process.exit(2); }
 
-const browser = await chromium.launch();
+// AC_CHROMIUM : chemin d'un Chromium déjà présent (environnements distants/CI où la révision
+// attendue par Playwright n'est pas téléchargée) — ex. AC_CHROMIUM=/opt/pw-browsers/chromium.
+const browser = await chromium.launch(process.env.AC_CHROMIUM ? { executablePath: process.env.AC_CHROMIUM } : {});
 const page = await browser.newPage();
 const errors = [];
 page.on('pageerror', e => errors.push('pageerror: ' + e.message));
