@@ -1,5 +1,18 @@
 # Journal des modifications
 
+## [4.2.1] — 2026-07-13
+### Corrigé
+- **App tronquée à droite sur certains navigateurs** : sur les navigateurs à barres de
+  défilement classiques (Windows/Linux — pas macOS/iOS, d'où le « certains »),
+  `scrollbar-gutter: stable` posé sur `html` réservait ~15 px à droite **en permanence**, même
+  quand rien ne défile (accueil = coque fixe, fiche courte) : l'en-tête, le bandeau MODE CRISE
+  et tout le contenu s'arrêtaient avant le bord de la fenêtre — alors que les éléments fixes
+  (tab bar, notifications) allaient, eux, jusqu'au bord. La réservation est retirée de `html` ;
+  l'anti-décalage qu'elle assurait (bascule Aides ↔ Protocoles) est déplacé **dans les panneaux
+  défilants de l'accueil large** (`.home-side`/`.home-main`), seul endroit où il agit encore
+  depuis la coque fixe V5. Vérifié : l'app atteint désormais exactement le bord droit à toutes
+  les largeurs, sans débordement horizontal.
+
 ## [4.2.0] — 2026-07-13
 Liens croisés « Voir aussi », alarmes de minuteur au standard aviation (QRH/ECAM), thème
 accessible en mode crise.
