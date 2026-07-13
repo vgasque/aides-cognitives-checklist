@@ -1,5 +1,50 @@
 # Journal des modifications
 
+## [4.3.0] — 2026-07-13
+Code couleur des catégories unifié (SPEC crise §1), sélecteur de catégorie « une sélectionnée
++ Autre… » (§2), dialogue « Terminer la session ? » (§3), marqueurs d'étapes sortis du champ
+texte, indicateur de mode dans les éditeurs.
+
+### Ajouté
+- **Sélecteur de catégorie « une sélectionnée + Autre… »** dans les deux éditeurs : le
+  formulaire n'affiche plus que la décision prise (chip teinté qui prévisualise liseré et
+  pastille) et la porte de sortie « Autre… » — menu ancré au patron du menu ⋯ (rangées 44 px
+  pastille + nom + ✓ sur la courante, champ de filtre au-delà de 8 catégories, « ＋ Nouvelle
+  catégorie » en pointillé qui ouvre le gestionnaire sans perdre le brouillon), **bottom
+  sheet** avec poignée et voile sous 780 px. Listbox ARIA (flèches, Entrée, Échap). Remplace
+  la rangée de toutes les catégories (largeur non bornée, faux air de choix multiple).
+  Correction au passage : fermer le gestionnaire de catégories re-rend désormais aussi
+  l'éditeur de protocole.
+- **Dialogue « Terminer la session ? »** : seule porte de sortie d'une session (menu ⋯, fin
+  d'algorithme, ✕ du bandeau SESSIONS EN COURS — jamais d'arrêt direct). Il annonce le
+  **contexte** (titre de la fiche + durée) puis les **conséquences avant le choix** (chrono et
+  minuteurs stoppés, session retirée de l'accueil, déroulé conservé dans l'historique) ;
+  « Poursuivre » = action sûre (contour, focus initial, Échap) ; « Terminer » = rouge système
+  plein — l'un des seuls de l'app. Terminer depuis l'écran de crise ramène à l'accueil.
+- **Indicateur de mode des éditeurs** : « ÉDITION/CRÉATION — AIDE COGNITIVE/PROTOCOLE » en
+  micro-titre permanent dans la barre (11 px/800, encre douce — informe, n'alerte pas),
+  tronqué au mode seul en étroit ; le **badge de statut ne disparaît plus jamais** (il
+  s'ellipse, plancher 40 px ; thème et compte s'effacent à sa place sous 640 px, « Aperçu »
+  passe en icône ⛶ sous 430 px). Pas de barre d'actions flottante en bas (une seule zone
+  fixe — en haut ; clavier mobile ; Supprimer reste isolé en fin de formulaire).
+- **Bascule ⚠ sur les repères posologiques** : le signe étant intapable au clavier, chaque
+  ligne porte le même bouton que les étapes (carte rouge en lecture).
+
+### Modifié
+- **Code couleur des catégories (règle unique, partout)** : la couleur choisie par
+  l'utilisateur n'apparaît qu'en **pastille** (`.cat-dot` ronde à anneau), **liseré** de carte
+  (ramené de 8 à 4 px) ou **teinte ≤ 15 %** avec texte de la couleur — jamais en aplat saturé
+  (réservé aux états système), jamais seule (toujours le nom en toutes lettres). La
+  **sélection** (rangées de la sidebar, chips mobiles) passe au **bleu système** — plus de
+  chips remplis de la couleur de catégorie ni de pilule noire « Toutes » ; la pastille reste
+  lisible sur le bleu grâce à son anneau. Le bandeau MODE CRISE ne porte pas la couleur de
+  catégorie (rouge système).
+- **Marqueur d'étape sorti du champ texte** (éditeur) : le préfixe ⚠/△ ajouté par la bascule
+  apparaissait DANS le champ — l'effacer à la main changeait le type par accident. Le champ
+  affiche désormais le texte nu, la rangée est **encadrée à la couleur du registre** (bordure,
+  fond doux, numéro coloré) et le préfixe est re-posé par le code à chaque frappe (la chaîne
+  stockée le garde : exports v3 et anciens clients inchangés).
+
 ## [4.2.2] — 2026-07-13
 Étapes : doctrine rouge/ambre affichée, gras retiré, chiffres plus lisibles ; références sur
 les protocoles ; prompt IA actualisé.
