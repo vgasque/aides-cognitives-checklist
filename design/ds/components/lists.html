@@ -143,17 +143,42 @@
     header.bar:not(.home) #hdrBackLbl{display:none}
     header.bar:not(.home) .hdr-back{padding:0 8px 0 4px;max-width:none}
     header.bar:not(.home) .hdr-badge{max-width:34vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    /* ÉDITEURS en étroit : la barre garde ‹ · Aperçu · Enregistrer · ⋯ · compte sur UNE ligne.
-       Le badge d'état (redondant avec le sélecteur segmenté du formulaire) et le bouton thème
-       (accessible partout ailleurs) s'effacent ; les actions se compactent. */
-    :is(body.view-edit,body.view-pedit) #hdrBadge{display:none}
-    :is(body.view-edit,body.view-pedit) #hdrTheme{display:none}
-    :is(body.view-edit,body.view-pedit) .hdr-act2{padding:0 11px;font-size:12.5px}
     /* SESSION DE CRISE en étroit : le COMPTE s'efface (jamais nécessaire pendant une prise en
        charge) — la place revient aux minuteurs #cbTimers. Le THÈME reste (décision utilisateur
        v4.2.0 : la luminosité ambiante change pendant une intervention — extérieur/intérieur) et
        le menu ⋯ aussi (Terminer la session…). */
     body.crisis-live .bar-acct{display:none}
+  }
+  /* ÉDITEURS en étroit (< 640 — la barre porte plus d'éléments depuis l'indicateur de mode) :
+     ‹ · ÉDITION · badge · Aperçu · Enregistrer · ⋯ sur UNE ligne. Le badge d'état NE DISPARAÎT
+     JAMAIS (décision v4.3.0 — annonce d'état permanente) : il s'ellipse (plafond serré) ;
+     thème et compte s'effacent (accessibles partout ailleurs), les actions se compactent. */
+  @media (max-width:639.98px){
+    :is(body.view-edit,body.view-pedit) #hdrBackLbl{display:none}
+    :is(body.view-edit,body.view-pedit) .hdr-back{padding:0 8px 0 4px}
+    :is(body.view-edit,body.view-pedit) .hdr-badge{max-width:20vw}
+    :is(body.view-edit,body.view-pedit) #hdrTheme{display:none}
+    :is(body.view-edit,body.view-pedit) .hdr-act2{padding:0 11px;font-size:12.5px}
+    :is(body.view-edit,body.view-pedit) .bar-acct{display:none}
+  }
+  /* ÉDITEURS, toutes largeurs : répartition de la pénurie dans la rangée — le BADGE se
+     compresse en premier (ellipse, plancher 40px — jamais masqué), l'indicateur de mode garde
+     un plancher qui laisse lire « ÉDITION » (il ne disparaît à aucune largeur). */
+  :is(body.view-edit,body.view-pedit) .id-row .brand{flex:0 1 auto;min-width:64px}
+  :is(body.view-edit,body.view-pedit) #brandSub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  :is(body.view-edit,body.view-pedit) .hdr-badge{flex:0 1 auto;min-width:40px}
+  /* Très étroit : « Aperçu » passe en icône ⛶ (aria-label/tooltip conservés), tout se resserre —
+     la ligne ‹ ÉDITION badge ⛶ Enregistrer ⋯ tient sur 360px sans rien éjecter. */
+  #hdrPreview .pv-ic{display:none}
+  @media (max-width:429.98px){
+    :is(body.view-edit,body.view-pedit) #hdrPreview .pv-lbl{display:none}
+    :is(body.view-edit,body.view-pedit) #hdrPreview .pv-ic{display:inline;font-size:16px}
+    :is(body.view-edit,body.view-pedit) .hdr-act2{padding:0 10px}
+    :is(body.view-edit,body.view-pedit) .hdr-acts{gap:6px}
+    :is(body.view-edit,body.view-pedit) .hdr-more{width:38px}
+    :is(body.view-edit,body.view-pedit) .id-row .brand{min-width:56px}
+    :is(body.view-edit,body.view-pedit) #brandSub{letter-spacing:1px}
+    :is(body.view-edit,body.view-pedit) .hdr-badge{min-width:36px}
   }
   .id-row .brand{flex:0 1 auto}
   header.bar:not(.home) .id-row .brand{flex:1}
@@ -349,17 +374,25 @@
   .chiprow{display:flex;gap:8px;flex-wrap:nowrap;overflow-x:auto;padding:5px 0 8px;margin:-5px 0 -5px;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
   .chiprow::-webkit-scrollbar{height:5px}.chiprow::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
   .chiprow>*{flex:none}
-  .catchip{border:1px solid var(--line);background:var(--surface);padding:8px 14px;border-radius:20px;font-size:12.5px;font-weight:600;cursor:pointer;transition:background .12s,border-color .12s,color .12s}
+  /* Chips de catégorie (SPEC crise §1a, v4.3.0) : la couleur de catégorie ne vit qu'en PASTILLE
+     .cat-dot (anneau de séparation) — jamais en aplat ; la SÉLECTION est le bleu système
+     (encodage unique, jamais la couleur de la catégorie — un chip plein rouge se lirait comme
+     une alarme). Pilule 36px min, bordure --line-strong (3:1) au repos. */
+  .catchip{display:inline-flex;align-items:center;gap:7px;min-height:36px;border:1px solid var(--line-strong);background:var(--surface);padding:7px 13px;border-radius:16px;font-size:12.5px;font-weight:600;cursor:pointer;transition:background .12s,border-color .12s,color .12s}
   /* Zone de tap >= 44px sans grossir la pastille (halo cliquable, même technique que #cbTimers
      et .tag.todo) : pastilles filtrées/choisies au pouce en mobile, tap fréquent (HIG/MD3). */
-  .catchip,.catpill{position:relative}
-  :is(.catchip,.catpill)::after{content:"";position:absolute;inset:-5px -2px}
+  .catchip{position:relative}
+  .catchip::after{content:"";position:absolute;inset:-5px -2px}
   .catchip:not(.on):hover{border-color:var(--line-hover);background:var(--surface-2)}
-  /* États tokenisés des pastilles (plus de style inline) : .on = sélection neutre (« Toutes »/
-     « Aucune » — les catégories colorées, elles, se remplissent de LEUR couleur via catChipHtml) ;
-     .mgr = action « Gérer » en retrait. */
-  .catchip.on,.catpill.on{background:var(--ink);color:var(--surface);border-color:var(--ink)}
-  .catchip.mgr,.catpill.mgr{border-style:dashed;color:var(--ink-soft)}
+  .catchip.on{background:var(--primary);color:var(--on-primary);border-color:var(--primary);font-weight:700}
+  [data-theme="dark"] .catchip.on{background:var(--primary-dk);color:var(--bg);border-color:var(--primary-dk)}
+  .catchip.mgr{border-style:dashed;color:var(--ink-soft)}
+  /* Pastille de catégorie (règle UNIQUE du code couleur, SPEC crise §1) : 9px, ronde, anneau à
+     la couleur du fond porteur — sépare la pastille d'un fond quelconque et la garde lisible
+     sur la sélection bleue. Dans une pilule à fond maîtrisé (méta, chip éditeur) : 8px sans
+     anneau. La couleur n'est JAMAIS seule : toujours accompagnée du nom en toutes lettres. */
+  .cat-dot{width:9px;height:9px;flex:none;border-radius:50%;background:var(--catcol,var(--line-strong));box-shadow:0 0 0 2px var(--surface)}
+  .tag .cat-dot,.cat-chip-selected .cat-dot{width:8px;height:8px;box-shadow:none}
   .scopebar{display:flex;gap:10px;align-items:center;margin-bottom:14px}
   .scopebar .chiprow{flex:1;min-width:0}
   .scope-lbl{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--ink-soft);margin-right:2px}
@@ -449,8 +482,10 @@
   .card:hover{border-color:var(--line-hover);transform:translateY(-1px);box-shadow:var(--shadow-lg)}
   /* Liseré de CATÉGORIE (V5) : bande 8px pleine hauteur à gauche — la couleur des catégories
      vit sur la tranche de la carte, les statuts restent achromatiques. */
-  .card.striped{padding-left:25px}
-  .card.striped::before{content:"";position:absolute;left:0;top:0;bottom:0;width:8px;background:var(--stripe)}
+  /* Liseré de catégorie : 4px (SPEC crise §1b, v4.3.0 — ex-8px) ; la couleur n'est jamais seule,
+     la pastille + le nom vivent dans la méta de la carte. */
+  .card.striped{padding-left:21px}
+  .card.striped::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--stripe)}
   /* Titre-bouton « étiré » : la carte n'est PLUS role=button (un bouton ne doit pas contenir
      d'autres commandes — épingle, badge « À compléter » : descendants interactifs proscrits,
      ARIA APG). Le TITRE est le vrai <button> (clavier natif, nom accessible = titre) et son
@@ -470,13 +505,12 @@
   .card-meta{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
   .tag{font-size:11px;font-weight:600;letter-spacing:.3px;background:var(--primary-soft);color:var(--primary-dk);padding:3px 9px;border-radius:20px}
   /* Étiquette de catégorie : texte en --ink (lisible dans les 2 thèmes) + pastille de couleur. */
-  .catchip,.catpill{color:var(--ink)}
-  /* Catégories en TEXTE COLORÉ (couleur de la catégorie), lisibles dans les 2 thèmes via color-mix :
-     en sombre on éclaircit la teinte (mix avec blanc), en clair on la garde. */
-  .tag.cat{background:color-mix(in srgb, var(--c,var(--primary)) 15%, transparent);color:var(--c,var(--primary))}
-  .catchip.colored,.catpill.colored{color:var(--catcol);background:color-mix(in srgb, var(--catcol) 12%, transparent);border-color:color-mix(in srgb, var(--catcol) 45%, transparent)}
+  .catchip{color:var(--ink)}
+  /* Étiquette de catégorie en lecture : pastille + teinte <= 15 % + texte de la couleur
+     (règle §1 — jamais d'aplat) ; en sombre on éclaircit la teinte (mix avec blanc).
+     (.catchip.colored/.catpill.colored supprimés v4.3.0 : les chips portent la pastille.) */
+  .tag.cat{display:inline-flex;align-items:center;gap:6px;background:color-mix(in srgb, var(--c,var(--primary)) 15%, transparent);color:var(--c,var(--primary))}
   [data-theme="dark"] .tag.cat{background:color-mix(in srgb, var(--c,var(--primary)) 26%, transparent);color:color-mix(in srgb, var(--c,var(--primary)) 60%, white)}
-  [data-theme="dark"] .catchip.colored,[data-theme="dark"] .catpill.colored{color:color-mix(in srgb, var(--catcol) 62%, white);background:color-mix(in srgb, var(--catcol) 22%, transparent);border-color:color-mix(in srgb, var(--catcol) 50%, transparent)}
   .tag.flow{background:var(--verify-soft);color:var(--verify)}
   /* Tags informatifs des cartes : NEUTRES (audit v4.5) — la couleur reste au danger, au vert
      session et au liseré de catégorie. */
@@ -810,6 +844,13 @@
   #f-validation.val-bad{border-color:var(--critical);background:var(--critical-soft)}
   .list-edit .li{display:flex;gap:8px;margin-bottom:8px;align-items:flex-start}.list-edit .li input{flex:1;min-width:0}
   .li-num{font-family:var(--mono);font-size:13px;color:var(--ink-soft);min-width:22px;padding-top:12px;text-align:right}
+  /* Étape/ligne TYPÉE dans l'éditeur (v4.3.0) : le marqueur ⚠/△ ne vit plus DANS le champ texte
+     (effaçable à la main = changement de type accidentel) — c'est l'ENCADRÉ du champ qui porte
+     le registre (bordure + fond doux + encre), comme la rangée correspondante en lecture. */
+  .li.li-crit input[type=text]{border-color:var(--critical-bd);background:var(--critical-soft);color:var(--critical)}
+  .li.li-vigil input[type=text]{border-color:var(--verify);background:var(--verify-soft);color:var(--verify)}
+  .li.li-crit .li-num{color:var(--critical)}
+  .li.li-vigil .li-num{color:var(--verify)}
   .mini{border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);width:34px;height:42px;border-radius:var(--radius-sm);font-size:16px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
   .mini:hover{background:var(--surface-2);color:var(--ink)}.mini.del:hover,.cm-del:hover{color:var(--critical);border-color:var(--critical-line);background:var(--critical-soft)}
   /* Étapes d'un bloc : les boutons ↑ ↓ × sont sur une ligne (non flex) -> petit espace entre eux. */
@@ -822,8 +863,52 @@
   .trow input[data-tf],.trow input[data-cf]{flex:1;min-width:130px;padding:9px 11px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--input-bg)}
   .trow input[type=number]{padding:9px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--input-bg)}
   .trow span{font-size:12px;color:var(--ink-soft)}
-  .catpick{display:flex;gap:7px;flex-wrap:wrap}
-  .catpill{border:1.5px solid var(--line);background:var(--input-bg);padding:7px 14px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer}
+  /* ----- Dialogue « Terminer la session ? » (SPEC crise §3, v4.3.0). Poursuivre = action SÛRE
+     (contour, à gauche, focus initial) ; Terminer = rouge système PLEIN (--critical-bd), même
+     largeur : le poids de taille est égal, la grammaire contour/plein porte la différence. ----- */
+  .endsess-dlg{max-width:400px;padding:20px}
+  .endsess-dlg .dlg-title{margin:0 0 6px;font-size:17px;font-weight:800}
+  .dlg-context{margin:0 0 6px;font-size:13.5px;line-height:1.5;color:var(--ink-soft)}
+  .dlg-context strong{color:var(--ink);font-variant-numeric:tabular-nums}
+  .dlg-consequences{margin:0 0 16px;font-size:13px;line-height:1.5;color:var(--ink-soft)}
+  .endsess-actions{display:flex;gap:9px}
+  .btn-continue-sess{flex:1;min-height:46px;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--line-hover);border-radius:9px;background:transparent;color:var(--ink);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer}
+  .btn-continue-sess:hover{background:var(--surface-2)}
+  .btn-end-sess{flex:1;min-height:46px;display:flex;align-items:center;justify-content:center;background:var(--critical-bd);color:#fff;border:0;border-radius:9px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer}
+  [data-theme="dark"] .btn-end-sess{color:var(--bg)}
+  .btn-end-sess:hover{filter:brightness(1.06)}
+  :is(.btn-continue-sess,.btn-end-sess):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* ----- Sélecteur de catégorie des éditeurs (SPEC crise §1d/§2, v4.3.0) : « une sélectionnée
+     + Autre… ». Le formulaire n'affiche que la DÉCISION PRISE (chip teinté = prévisualisation
+     du liseré/pastille — la SEULE teinte de catégorie autorisée : 14 % + bordure + texte de la
+     couleur, trois encodages concordants) et la porte de sortie « Autre… » (menu ancré) :
+     divulgation progressive, coût visuel constant quel que soit le nombre de catégories.
+     (Remplace l'ancienne rangée .catpick/.catpill de toutes les catégories.) ----- */
+  .cat-picker{position:relative;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+  .cat-chip-selected{display:inline-flex;align-items:center;gap:6px;padding:8px 13px;border-radius:18px;background:color-mix(in srgb,var(--catcol) 14%,transparent);border:1.5px solid var(--catcol);color:var(--catcol);font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer}
+  [data-theme="dark"] .cat-chip-selected{color:color-mix(in srgb,var(--catcol) 60%,var(--ink))}   /* contraste texte en sombre */
+  .cat-chip-selected.none{background:transparent;border-color:var(--line-strong);color:var(--ink-soft)}
+  .cat-chip-other{display:inline-flex;align-items:center;padding:8px 13px;border-radius:18px;border:1.5px solid var(--line-strong);background:transparent;color:var(--ink-soft);font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer}
+  .cat-chip-other:hover,.cat-chip-selected:hover{filter:brightness(.97)}
+  /* Menu ancré (même patron que le menu ⋯) : rangées 44px pastille + nom + ✓ sur la courante. */
+  .catmenu{position:absolute;top:calc(100% + 6px);left:0;z-index:40;min-width:250px;max-width:min(340px,92vw);max-height:340px;overflow-y:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.18);padding:6px}
+  .catmenu-row{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:0 11px;border:0;background:none;border-radius:8px;font-family:inherit;font-size:13.5px;font-weight:600;color:var(--ink);cursor:pointer;text-align:left}
+  .catmenu-row:hover{background:color-mix(in srgb,var(--primary) 8%,transparent)}
+  .catmenu-row:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
+  .catmenu-row .cm-ck{margin-left:auto;color:var(--primary);flex:none}
+  .catmenu-row .cm-nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .catmenu-sep{height:1px;background:var(--line);margin:5px 8px}
+  .catmenu-new{display:flex;align-items:center;gap:8px;width:calc(100% - 4px);min-height:44px;margin:2px;padding:0 11px;border:1.5px dashed var(--line-strong);border-radius:8px;background:none;font-family:inherit;font-size:13.5px;font-weight:600;color:var(--ink-soft);cursor:pointer;text-align:left}
+  .catmenu-new:hover{background:var(--surface-2)}
+  .catmenu-filter{width:calc(100% - 4px);margin:2px 2px 6px;height:36px;padding:0 11px;border:1px solid var(--line-strong);border-radius:8px;background:var(--input-bg);color:var(--ink);font-family:inherit;font-size:13.5px}
+  .catmenu-veil{display:none}
+  /* Mobile (< 780) : le menu devient une BOTTOM SHEET (poignée, voile, rangées 48px, au pouce). */
+  @media (max-width:779.98px){
+    .catmenu{position:fixed;left:0;right:0;bottom:0;top:auto;max-width:none;min-width:0;max-height:min(70vh,480px);border-radius:16px 16px 0 0;padding-bottom:calc(10px + env(safe-area-inset-bottom));z-index:70}
+    .catmenu::before{content:"";display:block;width:44px;height:4px;border-radius:2px;background:var(--line-strong);margin:4px auto 10px}
+    .catmenu-row{min-height:48px}
+    .catmenu-veil{display:block;position:fixed;inset:0;background:rgba(16,27,40,.45);z-index:69}
+  }
   /* Sélecteur d'ÉTAT segmenté (V5) : ○ Brouillon / △ À relire / ✓ Validé(e) + phrase d'aide. */
   .statuseg{display:flex;gap:6px;flex-wrap:wrap}
   .st-seg{display:inline-flex;align-items:center;min-height:38px;padding:0 13px;border-radius:18px;border:1.5px solid var(--line-strong);background:var(--input-bg);color:var(--ink-soft);font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer}
@@ -1144,7 +1229,11 @@
   .home-side>.hs-h:first-child{margin-top:0}
   .hs-row{display:flex;align-items:center;gap:9px;width:100%;min-height:38px;padding:8px 12px;border:0;border-radius:8px;background:none;font-family:inherit;font-size:13.5px;font-weight:500;color:var(--ink);cursor:pointer;text-align:left}
   .hs-row:hover{background:var(--surface-2)}
-  .hs-row.on{background:var(--primary-soft);color:var(--primary-dk);font-weight:700}
+  /* Sélection = BLEU SYSTÈME plein (SPEC crise §1a, v4.3.0) — jamais la couleur de la catégorie
+     (encodage de sélection unique) ; la pastille reste lisible sur le bleu grâce à son anneau. */
+  .hs-row.on{background:var(--primary);color:var(--on-primary);font-weight:700}
+  [data-theme="dark"] .hs-row.on{background:var(--primary-dk);color:var(--bg)}
+  .hs-row.on .hs-n{color:inherit;opacity:.75}
   .hs-row:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
   .hs-row .hs-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .hs-row>.hs-name{flex:1}
@@ -1160,7 +1249,7 @@
   button.hs-act{cursor:pointer}
   button.hs-act:hover{color:var(--primary-dk);background:color-mix(in srgb,var(--primary) 8%,transparent)}
   button.hs-act:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
-  .hs-dot{width:9px;height:9px;border-radius:3px;flex:none}
+  /* (.hs-dot supprimé v4.3.0 : la sidebar utilise la pastille commune .cat-dot, ronde + anneau.) */
   .hs-2l{flex:1;min-width:0}
   .hs-2l .hs-name{display:block}
   .hs-sub{display:block;font-size:11px;color:var(--ink-soft);font-weight:400;margin-top:1px}
@@ -1358,7 +1447,7 @@
   /* Cible du rappel minuteurs : arriver SOUS l'en-tête sticky (plus haut avec la 2e ligne). */
   .rt-panel{scroll-margin-top:130px}
   /* Focus clavier visible sur TOUS les contrôles interactifs (uniforme avec .btn/.card). */
-  :is(.catchip,.catpill,.tlink,.linkbtn,.mini,.fz,.scopebtn,.opt,.startbtn,.add-line,.notice-x,.tk-add,.tk-del,.cm-del,.ai-x,.rel-x,.back,.crumbs .cb,ol.steps li):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  :is(.catchip,.cat-chip-selected,.cat-chip-other,.catmenu-new,.tlink,.linkbtn,.mini,.fz,.scopebtn,.opt,.startbtn,.add-line,.notice-x,.tk-add,.tk-del,.cm-del,.ai-x,.rel-x,.back,.crumbs .cb,ol.steps li):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .rt-panel :is(.tm-btn,.cn-btn,.rt-sound,.tm-reset,.cn-reset):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   header.bar .bar-acct:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* En-tête « titré » (.titled, posé par setBarTitle) : dans TOUTE vue fiche/protocole — lecture
@@ -1373,6 +1462,13 @@
      vue. setBarTitle pose display en inline -> !important nécessaire pour re-masquer ici. */
   header.bar.titled:not(.ttl-on) #brandTitle{display:none!important}
   header.bar.titled:not(.ttl-on) #brandSub{display:none}
+  /* Indicateur de MODE des éditeurs (v4.3.0) : « ÉDITION/CRÉATION — TYPE » TOUJOURS affiché
+     dans la barre (y compris en haut de page et titre défilé) — même patron typographique que
+     les micro-titres de section (11px/800/1.5px), encre douce (informe, n'alerte pas). Déclaré
+     APRÈS les règles .titled ci-dessus pour l'emporter à spécificité voisine. */
+  :is(body.view-edit,body.view-pedit) header.bar #brandSub,
+  :is(body.view-edit,body.view-pedit) header.bar.titled:not(.ttl-on) #brandSub{display:block;font-size:11px;font-weight:800;letter-spacing:1.5px;color:var(--ink-soft)}
+  @media (max-width:559.98px){:is(body.view-edit,body.view-pedit) #brandSub .bs-kind{display:none}}
   /* Une fois révélé, le sous-titre (« Aide cognitive », « Protocole », « Édition ») passe SOUS
      le titre : même structure visuelle que marque + sous-titre. Apparition en fondu discret. */
   header.bar.titled #brandSub{order:3}
