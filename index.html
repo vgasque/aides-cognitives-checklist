@@ -232,7 +232,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-T8BD8p8xJahFIwhSyt+fAKPfMeoISv4xTK3gJlVJ4Kk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-4Ri01TR9y5l+fUEhBzuiA5UKhl78JnHlHEauXqL5KQs='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -846,7 +846,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Rangée cochable (canvas section 6) : n° mono 14 · libellé 16.5/800 · case 36px à droite ;
      min 64px, rangée entière cliquable ; transition .25s vers l'état coché. */
   ol.steps li{counter-increment:s;display:flex;gap:12px;align-items:center;min-height:64px;background:var(--surface);border:1px solid var(--line-hover);border-left:3px solid var(--ink);border-radius:8px;padding:12px;margin-bottom:6px;cursor:pointer;transition:opacity .25s,background .25s,border-color .25s}
-  ol.steps li::before{content:counter(s,decimal-leading-zero);font-family:var(--mono);font-size:14px;font-weight:700;color:var(--ink-soft);width:30px;flex:none;text-align:center;align-self:flex-start;padding-top:3px}
+  /* Numéro d'étape (v4.2.2) : 16px, CENTRÉ verticalement — c'est l'ancre de suivi de position
+     de la lecture challenge-response (QRH) ; aligné sur l'axe de la case à cocher, sans voler
+     la saillance du texte (mono, encre douce — les registres crit/vigil/done le recolorent). */
+  ol.steps li::before{content:counter(s,decimal-leading-zero);font-family:var(--mono);font-size:16px;font-weight:700;color:var(--ink-soft);width:30px;flex:none;text-align:center;align-self:center}
   ol.steps li .txt{flex:1;font-size:16.5px;font-weight:800;line-height:1.45}
   /* Case à cocher À DROITE (canvas), 36px, vide = bordure 2px grise sur fond transparent. */
   ol.steps li .box{order:3;width:36px;height:36px;border:2px solid var(--line-strong);border-radius:6px;flex-shrink:0;display:grid;place-items:center;color:var(--on-primary);background:transparent}
@@ -1083,6 +1086,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Bascule du type d'étape (éditeur de blocs) : ⚠ critique (rouge) / △ vigilance (ambre). */
   .crit-tgl.on{color:var(--critical);border-color:var(--critical);background:var(--critical-soft)}
   .crit-tgl.vig{color:var(--verify);border-color:var(--verify);background:var(--verify-soft);font-size:14px;font-weight:800}
+  /* Consigne d'usage rouge/ambre (v4.2.2) : affichée UNE fois par bloc d'étapes, au point de
+     décision (doctrine utilisateur — rouge = ce qui tue si oublié ; ambre = risque d'erreur). */
+  .crit-guide{font-size:11.5px;color:var(--ink-soft);line-height:1.55;margin:-2px 0 8px}
+  .crit-guide .cg-r{color:var(--critical)}
+  .crit-guide .cg-a{color:var(--verify)}
   .flow-prev-h{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--ink-soft);margin:0 0 7px}
   .flow-scroll{width:100%;overflow:auto;border:1px solid var(--line);border-radius:10px;background:#fff;padding:8px;-webkit-overflow-scrolling:touch;margin-bottom:14px;max-height:75vh}
   .flow-zoom{display:flex;align-items:center;gap:7px;margin-bottom:7px}
@@ -1480,6 +1488,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .ep-more{color:var(--ink-soft)}
   .ep-step{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:7px;padding:8px 10px;font-size:12px;font-weight:600}
   .ep-step.crit{background:var(--critical-soft);border-color:var(--critical);color:var(--critical);font-weight:800}
+  /* Étape VIGILANCE dans l'aperçu en direct (v4.2.2) : même registre ATTENTION qu'en lecture —
+     elle n'y apparaissait qu'en style normal (seul crit était traité). */
+  .ep-step.vig{background:var(--verify-soft);border-color:var(--verify);color:var(--verify);font-weight:800}
+  .ep-step.vig .ep-box{border-color:var(--verify)}
   .ep-n{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink-soft);flex:none}
   .ep-t{flex:1;min-width:0}
   .ep-box{width:15px;height:15px;border:1.5px solid var(--line-strong);border-radius:4px;flex:none}
@@ -1817,7 +1829,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.2.1';
+const APP_VERSION='4.2.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -2613,11 +2625,12 @@ function sanitizeNotes(obj){const out={};if(!obj||typeof obj!=='object')return o
    (mêmes documents PDF que les fiches — store IndexedDB 'attachments' partagé), order, status,
    updatedBy, updatedAt, deletedAt, ownerId, libraryId }. migrateProtocol = point d'entrée UNIQUE
    sécurité/compat (mêmes règles que migrate) : appelé à chaque lecture, import et pull cloud. */
-function blankProtocol(){return {id:uid('p'),title:'',code:'',category:'',validation:'',body:'',images:[],attachments:[],related:[],order:Date.now(),status:'',updatedBy:'',updatedAt:Date.now(),deletedAt:null,ownerId:null,libraryId:null};}
+function blankProtocol(){return {id:uid('p'),title:'',code:'',category:'',validation:'',body:'',images:[],attachments:[],related:[],references:[],order:Date.now(),status:'',updatedBy:'',updatedAt:Date.now(),deletedAt:null,ownerId:null,libraryId:null};}
 function migrateProtocol(p){if(!p||typeof p!=='object')p={};
   sanitizeEntityCommon(p,'p',60);
   p.body=sstr(p.body,MD_MAX_CHARS);   // contenu rédigé (mini-Markdown) — spécifique au protocole
   // related : ids liés « Voir aussi » — fiches OU protocoles (v4.2.0), nettoyés par le tronc commun.
+  p.references=sarr(p.references,500);   // traçabilité (v4.2.2) — même section que les fiches
   return p;}
 function seed(catId){const b1=uid('b'),b2=uid('b'),b3=uid('b'),bd=uid('b');
   return migrate({id:uid(),title:'Anaphylaxie (choc anaphylactique)',category:catId||'',validation:'2025-01',
@@ -3587,7 +3600,7 @@ function renderFiches(){
    les mêmes composants que sur les fiches. ----- */
 const _protoHay=new WeakMap();
 function protocolHaystack(p){let h=_protoHay.get(p);
-  if(h===undefined){h=txNorm([p.title,p.code,mdStrip(p.body),...(p.attachments||[]).map(a=>a.name)].filter(Boolean).join(' '));_protoHay.set(p,h);}
+  if(h===undefined){h=txNorm([p.title,p.code,mdStrip(p.body),...(p.references||[]),...(p.attachments||[]).map(a=>a.name)].filter(Boolean).join(' '));_protoHay.set(p,h);}
   return h+' '+txNorm(catName(p));}
 function renderProtocols(){
   renderHomeList({rerender:renderProtocols,crossKind:'fiches',create:newProtocol,open:openProtocolRead,
@@ -3623,6 +3636,7 @@ function renderProtocolRead(){
     ${docs}
     ${body}
     ${rel.length?`<div class="related"><b>Voir aussi</b><div class="related-row">${rel.map(r=>`<button class="btn sm" data-openrel="${esc(r.id)}">${uiIcon(relKindOf(r.id)==='p'?'book':'doc',13)}${esc(r.title)||'Sans titre'} →</button>`).join('')}</div></div>`:''}
+    ${(()=>{const refs=clean(p.references||[]);return refs.length?`<div class="refs"><b>Références</b><ol>${refs.map(r=>`<li>${fmt(r)}</li>`).join('')}</ol></div>`:'';})()}
     ${(!docs&&!body)?'<div class="empty"><b>Protocole vide</b>Ajoutez un PDF ou un contenu rédigé via « Modifier ».</div>':''}
     `;
   // Badge d'en-tête : statut (+ date de validation si posée), ex. « ✓ Validé · 03/2026 ».
@@ -3691,6 +3705,7 @@ function renderProtocolEdit(){
       <textarea id="p-body" rows="12" placeholder="## Indication&#10;- Critère 1&#10;- Critère 2&#10;&#10;Texte libre, **gras**, *italique*…">${esc(p.body)}</textarea>
       <p class="hint">Syntaxe : <code># titre</code> (##, ###), <code>- liste</code> / <code>1. liste</code> (sous-liste : 2 espaces devant), <code>&gt; citation</code>, <code>\`code\`</code> (bloc : <code>\`\`\`</code>), <code>---</code> séparateur, <code>**gras**</code>, <code>*italique*</code>, <code>[texte](https://…)</code>.</p>
       <p class="md-prev-h">Aperçu</p><div class="md-preview" id="mdPreview">${mdRender(p.body,{images:p.images})}</div></fieldset>
+    ${listEditor('Références','sources du protocole (traçabilité)','references',p.references||[])}
     ${isNew?'':'<div class="ed-del"><button class="btn danger" id="delBtn">Supprimer ce protocole</button></div>'}
     ${wideEdit?`</div><aside class="read-side" id="editSide">${editPreviewHtml('proto')}</aside></div>`:''}
     <input type="file" id="imgInput" accept="image/*" hidden>
@@ -3699,6 +3714,7 @@ function renderProtocolEdit(){
   bindEditorMetaFields(p,'p',{fem:false,rerender:renderProtocolEdit,preview:openPDraftPreview});
   bindEditSide('proto');
   bindAttEditor(p,renderProtocolEdit);
+  bindListEditors(p,renderProtocolEdit);   // Références (v4.2.2) — même composant que les fiches
   // Contenu rédigé : saisie -> brouillon + aperçu débouncé (même cadence que l'aperçu algorithme).
   const ta=document.getElementById('p-body');
   const schedulePrev=()=>{clearTimeout(_mdPrevTimer);_mdPrevTimer=setTimeout(()=>{const pv=document.getElementById('mdPreview');if(pv)pv.innerHTML=mdRender(p.body,{images:p.images});},300);};
@@ -4757,7 +4773,7 @@ async function purgeDraftAtts(){const ids=draftNewAtts;draftNewAtts=[];
 function targetSelect(blocks,selfId,value){const opts=blocks.filter(b=>b.id!==selfId).map(b=>`<option value="${b.id}" ${b.id===value?'selected':''}>${esc(b.title)||'(bloc sans titre)'}</option>`).join('');return `<select data-target><option value="" ${!value?'selected':''}>— Fin / aucun —</option>${opts}</select>`;}
 function imageEditor(b){return `<div class="sub">Image du bloc (option)</div><div class="imgrow">${b.image?`<img src="${b.image}" alt=""><button class="btn sm danger" data-bimgdel>Retirer</button>`:`<button class="btn sm" data-bimg>+ Image / capture</button>`}</div>`;}
 function blockEditor(b,blocks){if(b.type==='decision'){return `<div class="blk" data-bid="${b.id}"><div class="blk-top"><span class="blk-type decision">Décision</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Réévaluation)"></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Question</div><input type="text" data-bf="question" value="${esc(b.question)}" placeholder="ex. Réponse à l'adrénaline ?" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)"><div class="sub">Réponses → bloc cible</div>${(b.options.length?b.options:[{label:'',target:''}]).map((o,i)=>`<div class="optedit" data-oi="${i}"><input type="text" data-of="label" value="${esc(o.label)}" placeholder="ex. Oui">${targetSelect(blocks,b.id,o.target)}<button class="mini del" data-rmopt="${i}" aria-label="Supprimer la réponse">×</button></div>`).join('')}<button class="add-line" data-addopt>+ Ajouter une réponse</button>${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="mini" data-bmv="up" aria-label="Monter le bloc">↑</button><button class="mini" data-bmv="down" aria-label="Descendre le bloc">↓</button><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
-  return `<div class="blk" data-bid="${b.id}"><div class="blk-top"><span class="blk-type steps">Étapes</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Mesures immédiates)"></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Étapes (cochables en mode crise)</div>${(b.steps.length?b.steps:['']).map((s,i)=>`<div class="li" data-si="${i}"><span class="li-num">${String(i+1).padStart(2,'0')}</span><input type="text" data-sf value="${esc(s)}" placeholder="…">${boldBtnHtml()}<button class="mini crit-tgl${stepIsCrit(s)?' on':(stepIsVigil(s)?' vig':'')}" data-crit="${i}" title="${stepIsCrit(s)?'Étape CRITIQUE (rouge) — toucher : vigilance (ambre)':(stepIsVigil(s)?'Étape VIGILANCE (ambre) — toucher : étape normale':'Étape normale — toucher : critique (rouge)')}">${stepIsVigil(s)?'△':uiIcon('warn',14)}</button><button class="mini" data-smv="up" data-si="${i}" aria-label="Monter">↑</button><button class="mini" data-smv="down" data-si="${i}" aria-label="Descendre">↓</button><button class="mini del" data-rmstep="${i}" aria-label="Supprimer l'étape">×</button></div>`).join('')}<button class="add-line" data-addstep>+ Ajouter une étape</button><div class="sub">Étape suivante</div>${targetSelect(blocks,b.id,b.next)}${b.next?`<input type="text" data-bnextlbl value="${esc(b.nextLbl||'')}" maxlength="120" placeholder="Libellé du bouton Continuer (ex. réévaluation à 5 min)" style="margin-top:6px">`:''}${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="mini" data-bmv="up" aria-label="Monter le bloc">↑</button><button class="mini" data-bmv="down" aria-label="Descendre le bloc">↓</button><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
+  return `<div class="blk" data-bid="${b.id}"><div class="blk-top"><span class="blk-type steps">Étapes</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Mesures immédiates)"></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Étapes (cochables en mode crise)</div><div class="crit-guide"><b class="cg-r">${uiIcon('warn',11)} Rouge</b> : ce qui tue si on l'oublie (memory item, geste vital). <b class="cg-a">△ Ambre</b> : là où l'on risque de se tromper (dose/dilution à vérifier avant injection, contre-indication à écarter, confusion voie/site/produit, seuil à contrôler avant de poursuivre). Les deux → rouge.</div>${(b.steps.length?b.steps:['']).map((s,i)=>`<div class="li" data-si="${i}"><span class="li-num">${String(i+1).padStart(2,'0')}</span><input type="text" data-sf value="${esc(s)}" placeholder="…"><button class="mini crit-tgl${stepIsCrit(s)?' on':(stepIsVigil(s)?' vig':'')}" data-crit="${i}" title="${stepIsCrit(s)?'Étape CRITIQUE (rouge : ce qui tue si oublié) — toucher : vigilance (ambre)':(stepIsVigil(s)?'Étape VIGILANCE (ambre : risque d’erreur — dose, voie, seuil) — toucher : étape normale':'Étape normale — toucher : critique (rouge : ce qui tue si oublié)')}">${stepIsVigil(s)?'△':uiIcon('warn',14)}</button><button class="mini" data-smv="up" data-si="${i}" aria-label="Monter">↑</button><button class="mini" data-smv="down" data-si="${i}" aria-label="Descendre">↓</button><button class="mini del" data-rmstep="${i}" aria-label="Supprimer l'étape">×</button></div>`).join('')}<button class="add-line" data-addstep>+ Ajouter une étape</button><div class="sub">Étape suivante</div>${targetSelect(blocks,b.id,b.next)}${b.next?`<input type="text" data-bnextlbl value="${esc(b.nextLbl||'')}" maxlength="120" placeholder="Libellé du bouton Continuer (ex. réévaluation à 5 min)" style="margin-top:6px">`:''}${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="mini" data-bmv="up" aria-label="Monter le bloc">↑</button><button class="mini" data-bmv="down" aria-label="Descendre le bloc">↓</button><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
 function timerEditorRow(t,i){const iv=t.type==='interval';const mm=Math.floor((t.seconds||0)/60),ss=(t.seconds||0)%60;return `<div class="trow" data-ti="${i}"><span class="blk-type ${iv?'decision':'steps'}">${iv?'Cycle':'Chrono'}</span><input type="text" data-tf="label" value="${esc(t.label)}" placeholder="${iv?'ex. Cycle adrénaline':'ex. Temps écoulé'}">${iv?`<input type="number" min="0" data-tmin value="${mm}" style="width:56px"><span>min</span><input type="number" min="0" max="59" data-tsec value="${ss}" style="width:56px"><span>s</span><label style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--ink-soft)"><input type="checkbox" data-tloop ${t.autoloop?'checked':''}>boucle</label>`:''}<button class="mini" data-tmv="up" aria-label="Monter">↑</button><button class="mini" data-tmv="down" aria-label="Descendre">↓</button><button class="mini del" data-tdel="${i}">×</button></div>`;}
 function counterEditorRow(c,i,timers){const ivs=(timers||[]).filter(t=>t.type==='interval');
   return `<div class="trow" data-ci="${i}"><input type="text" data-cf="label" value="${esc(c.label)}" placeholder="ex. Adrénaline (mg)"><span>pas</span><input type="number" data-cstep value="${c.step||1}" style="width:56px"><span>départ</span><input type="number" data-cstart value="${c.start||0}" style="width:56px">${ivs.length?`<select data-clink title="Le « ＋ » du compteur relance ce minuteur (ex. bolus -> cycle)"><option value="">＋ ne relance rien</option>${ivs.map(t=>`<option value="${esc(t.id)}"${c.timerId===t.id?' selected':''}>＋ relance « ${esc(t.label)||'Minuteur'} »</option>`).join('')}</select>`:''}<button class="mini" data-cmv="up" aria-label="Monter">↑</button><button class="mini" data-cmv="down" aria-label="Descendre">↓</button><button class="mini del" data-cdel="${i}">×</button></div>`;}
@@ -4777,7 +4793,7 @@ function editPreviewHtml(kind){
     return `<div class="ep-h">Aperçu en direct</div>
       <div class="ep-card"><div class="ep-band"><span class="ep-ttl">${esc(f.title)||'Sans titre'}</span><span class="ep-tag">■ Mode crise</span></div><div class="ep-body">
       ${nf.length?`<div class="ep-forget"><div class="ep-fk">■ Ne pas oublier</div>${esc(String(nf[0]))}${nf.length>1?' <span class="ep-more">+'+(nf.length-1)+'</span>':''}</div>`:''}
-      ${steps.map((s,i)=>`<div class="ep-step${stepIsCrit(s)?' crit':''}"><span class="ep-n">${String(i+1).padStart(2,'0')}</span><span class="ep-t">${esc(stepText(s))}</span><span class="ep-box"></span></div>`).join('')}
+      ${steps.map((s,i)=>`<div class="ep-step${stepIsCrit(s)?' crit':(stepIsVigil(s)?' vig':'')}"><span class="ep-n">${String(i+1).padStart(2,'0')}</span><span class="ep-t">${esc(stepText(s))}</span><span class="ep-box"></span></div>`).join('')}
       ${!steps.length&&!nf.length?'<div class="ep-empty">Le contenu saisi apparaîtra ici.</div>':''}
       </div></div>
       <button type="button" class="btn sm ep-full" data-epfull>⛶ Ouvrir l'aperçu complet</button>`;}
@@ -4891,11 +4907,13 @@ function bindEditorEvents(f){
     {label:'Exporter (.json)',ic:uiIcon('download',16),act:()=>exportData([migrate(JSON.parse(JSON.stringify(state.draft)))],'fiche-'+fileSlug(state.draft.title))},
   ]);
 }
-function bindListEditors(){
-  main.querySelectorAll('input[data-key]').forEach(inp=>inp.addEventListener('input',e=>{state.draft[e.target.dataset.key][+e.target.dataset.idx]=e.target.value;}));
-  main.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{state.draft[b.dataset.add].push('');renderEditor();});
-  main.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{const a=state.draft[b.dataset.rm];a.splice(+b.dataset.idx,1);if(!a.length)a.push('');renderEditor();});
-  main.querySelectorAll('[data-mv]').forEach(b=>b.onclick=()=>{moveItem(state.draft[b.dataset.key],+b.dataset.idx,b.dataset.mv==='up'?-1:1);renderEditor();});
+// d / rerender : brouillon et re-rendu de l'éditeur hôte — fiche par défaut (compat historique),
+// protocole depuis v4.2.2 (listes « Références » partagées entre les deux éditeurs).
+function bindListEditors(d,rerender){d=d||state.draft;rerender=rerender||renderEditor;
+  main.querySelectorAll('input[data-key]').forEach(inp=>inp.addEventListener('input',e=>{d[e.target.dataset.key][+e.target.dataset.idx]=e.target.value;}));
+  main.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{d[b.dataset.add].push('');rerender();});
+  main.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{const a=d[b.dataset.rm];a.splice(+b.dataset.idx,1);if(!a.length)a.push('');rerender();});
+  main.querySelectorAll('[data-mv]').forEach(b=>b.onclick=()=>{moveItem(d[b.dataset.key],+b.dataset.idx,b.dataset.mv==='up'?-1:1);rerender();});
 }
 /* Gras dans l'éditeur : wrapBold() entoure la sélection du champ de ** (ou les retire si déjà
    présents — le même geste dé-graisse). Sans sélection : insère une paire ** vide, curseur au
@@ -4908,9 +4926,11 @@ function wrapBold(inp){const v=inp.value;let a=inp.selectionStart==null?v.length
   else{nv=v.slice(0,a)+'**'+sel+'**'+v.slice(b);ca=a+2;cb=b+2;}                                                                            // sinon -> entoure
   inp.value=nv;inp.focus();inp.setSelectionRange(ca,cb);
   inp.dispatchEvent(new Event('input',{bubbles:false}));}
-// Champs où le gras a du sens A L'AFFICHAGE (rendus via fmt()) : étapes, listes, options,
-// question, contexte local. Les titres/légendes restent en texte brut (esc()).
-const BOLDABLE='input[data-key],input[data-sf],input[data-of],input[data-bf="question"],#f-localInfo';
+// Champs où le gras a du sens A L'AFFICHAGE (rendus via fmt()) : listes, options, question,
+// contexte local. Les titres/légendes restent en texte brut (esc()). Les ÉTAPES sont EXCLUES
+// depuis v4.2.2 (bouton retiré aussi) : leur texte est déjà en gras à l'affichage (16,5px/800),
+// un **fragment** y était invisible. L'ancien contenu avec ** reste rendu par fmt() (compat).
+const BOLDABLE='input[data-key],input[data-of],input[data-bf="question"],#f-localInfo';
 // Délégation UNIQUE sur #main (survit aux re-rendus innerHTML, jamais dupliquée) :
 // - pointerdown sur [data-bold] : preventDefault pour NE PAS voler le focus (la sélection du champ reste active) ;
 // - click : applique le gras au champ texte du même conteneur (.li) ou du même champ (.field) ;
@@ -5285,17 +5305,24 @@ STYLE DES ÉTAPES
 - ABRÉVIATIONS : garde celles qui sont univoques dans le contexte de la fiche
   (ex. "TV" = tachycardie ventriculaire dans une fiche de cardiologie) ; développe les
   AMBIGUËS (TV, IRA…) si le contexte de la fiche ne lève pas l'ambiguïté.
-- MISE EN ÉVIDENCE : tu peux mettre en gras un fragment critique en l'entourant de
-  **double astérisque** — réserve-la aux doses time-critical et aux interdictions
-  (ex. "**Adrénaline 0,01 mg/kg IM**" ; "**NE PAS** associer X et Y").
-  PARCIMONIE ABSOLUE : au plus un fragment en gras par étape, beaucoup d'étapes sans
-  aucun (si tout est en gras, rien ne l'est). Jamais une ligne entière en gras, jamais
-  d'italique ni d'autre balisage.
+- MISE EN ÉVIDENCE : le gras **double astérisque** ne s'applique PAS aux étapes des
+  blocs (leur texte est déjà affiché en gras — un fragment n'y ressortirait pas) ; le
+  relief d'une étape passe par son TYPE (préfixe « ⚠ » / « △ », voir TYPES D'ÉTAPES).
+  Dans les SECTIONS DE LISTES (verify, notForget, posology), tu peux mettre en gras un
+  fragment critique — réserve-le aux doses time-critical et aux interdictions
+  (ex. "**NE PAS** associer X et Y"). PARCIMONIE ABSOLUE : au plus un fragment en gras
+  par ligne, beaucoup de lignes sans aucun (si tout est en gras, rien ne l'est). Jamais
+  une ligne entière en gras, jamais d'italique ni d'autre balisage.
 
 MINUTEURS, COMPTEURS, BOUCLES
 - timers / counters : seulement s'ils ont un sens clinique (cycle de réévaluation,
   durée de perfusion, nombre de bolus, délai max d'une dose — ex. « 1re dose < 3h »).
   Sinon, tableaux vides. images : toujours [].
+- L'application affiche déjà un CHRONO GLOBAL de session (démarre à la première action,
+  visible en permanence dans l'en-tête) : ne crée JAMAIS de chronomètre générique
+  « Temps écoulé » — il ferait doublon. Un "stopwatch" ne sert que pour une durée
+  SPÉCIFIQUE distincte du temps de prise en charge (ex. durée de garrot, temps de
+  no-flow) que la source demande explicitement de suivre.
 - Quand la prise en charge est cyclique, crée une BOUCLE DE RÉÉVALUATION : un bloc peut
   RENVOYER VERS UN BLOC PRÉCÉDENT pour réévaluer (le « next » d'un bloc, ou le « target »
   d'une option, peut viser un bloc déjà passé). Exemple typique :
@@ -5336,11 +5363,15 @@ CHAMPS IMPOSÉS
   dans l'app.
 
 TYPES D'ÉTAPES (préfixe au DÉBUT du libellé)
-- « ⚠ » = étape CRITIQUE time-critical dont l'omission ou le retard est immédiatement
-  dangereux (ex. « ⚠ Adrénaline IM 0,5 mg — face antéro-latérale de cuisse ») :
-  affichée en rouge. 1 à 2 par bloc MAXIMUM (si tout est critique, plus rien ne l'est).
-- « △ » = étape de VIGILANCE (surveillance, réévaluation, point de décision à ne pas
-  manquer) : affichée en ambre. Avec parcimonie également.
+- « ⚠ » = étape CRITIQUE, affichée en ROUGE : ce qui TUE si on l'oublie — memory items,
+  geste vital time-critical dont l'omission ou le retard est immédiatement dangereux
+  (ex. « ⚠ Adrénaline IM 0,5 mg — face antéro-latérale de cuisse »).
+  1 à 2 par bloc MAXIMUM (si tout est critique, plus rien ne l'est).
+- « △ » = étape de VIGILANCE, affichée en AMBRE : là où l'on risque de SE TROMPER —
+  vérification de dose/dilution avant injection, contre-indication à écarter, confusion
+  de voie/site/produit possible, seuil à contrôler avant de poursuivre. Avec parcimonie
+  également.
+- Une étape qui relève des deux registres → « ⚠ » (rouge).
 - Sans préfixe = action normale.
 
 REPÈRES POSOLOGIQUES (section posology)
@@ -5378,8 +5409,7 @@ SCHÉMA EXACT
       "references": ["Titre — Organisme, année — URL", "Fiche générée par IA le JJ/MM/AAAA à partir de la source ci-dessus — à relire et valider avant usage."],
       "images": [],
       "timers": [
-        { "id": "t1", "label": "Temps écoulé", "type": "stopwatch" },
-        { "id": "t2", "label": "Cycle de réévaluation", "type": "interval", "seconds": 180, "autoloop": true }
+        { "id": "t1", "label": "Cycle de réévaluation", "type": "interval", "seconds": 180, "autoloop": true }
       ],
       "counters": [ { "id": "n1", "label": "Bolus", "step": 1, "start": 0 } ],
       "start": "b1",

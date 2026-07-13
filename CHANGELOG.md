@@ -1,5 +1,43 @@
 # Journal des modifications
 
+## [4.2.2] — 2026-07-13
+Étapes : doctrine rouge/ambre affichée, gras retiré, chiffres plus lisibles ; références sur
+les protocoles ; prompt IA actualisé.
+
+### Corrigé
+- **Étape vigilance (ambre) invisible dans l'« Aperçu en direct »** de l'éditeur : la colonne
+  d'aperçu ne traitait que les étapes critiques (rouges) — une étape `△` s'y affichait comme
+  une étape normale. Elle apparaît désormais au registre ATTENTION (fond et texte ambre),
+  comme en lecture.
+
+### Ajouté
+- **Consigne d'usage rouge/ambre dans l'éditeur de blocs** (affichée au-dessus des étapes, là
+  où se prend la décision) : **rouge** = ce qui tue si on l'oublie (memory item, geste vital) ;
+  **ambre** = là où l'on risque de se tromper (dose/dilution à vérifier avant injection,
+  contre-indication à écarter, confusion voie/site/produit, seuil à contrôler avant de
+  poursuivre) ; une étape des deux registres → rouge. Les infobulles du bouton ⚠/△ reprennent
+  la doctrine, ainsi que le prompt IA et AGENTS.md.
+- **Références sur les protocoles** : même section « Références » que les aides cognitives —
+  liste dans l'éditeur (sous le contenu rédigé), affichée en bas de la lecture, indexée par la
+  recherche. Champ facultatif, export v3 inchangé (un ancien client l'ignore).
+
+### Modifié
+- **Gras retiré des étapes** (bouton « B » et raccourci Ctrl/Cmd-B) : le texte des étapes est
+  déjà affiché en gras — un **fragment** y était invisible ; le relief d'une étape passe par
+  son TYPE (rouge/ambre). Le gras reste disponible dans les listes (À vérifier, Ne pas
+  oublier, Repères posologiques…) ; l'ancien contenu contenant `**` reste rendu (compat).
+- **Chiffres des étapes** (mode crise) : 14 → 16 px et **centrés verticalement** sur l'axe de
+  la case à cocher — le numéro est l'ancre de suivi de position de la lecture à voix haute
+  (challenge-response, logique QRH) ; il reste en encre douce pour ne pas concurrencer le
+  texte, et suit les registres rouge/ambre/coché.
+- **Prompt IA actualisé** : le gras y est désormais exclu des étapes (réservé aux listes) ;
+  la doctrine rouge/ambre ci-dessus remplace l'ancienne définition du `△` ; nouvelle règle —
+  **ne jamais générer de chronomètre « Temps écoulé »** (l'app affiche déjà un chrono global
+  de session qui démarre à la première action), un `stopwatch` ne servant qu'à une durée
+  spécifique explicitement demandée par la source (garrot, no-flow…) ; l'exemple du schéma
+  est corrigé en conséquence. Déjà à jour et vérifiés : `code`, types d'étapes ⚠/△, repères
+  posologiques.
+
 ## [4.2.1] — 2026-07-13
 ### Corrigé
 - **App tronquée à droite sur certains navigateurs** : sur les navigateurs à barres de

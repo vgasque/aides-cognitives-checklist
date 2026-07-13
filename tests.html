@@ -335,6 +335,14 @@ function run(A){
   ok('critères d\'arrêt / limitation traités', A.AI_PROMPT.indexOf('quand s\'arrêter')>=0);
   ok('une interdiction par ligne dans notForget', A.AI_PROMPT.indexOf('UNE interdiction / un piège par ligne')>=0);
   ok('pas d\'interpolation restée dans le template', A.AI_PROMPT.indexOf('${')<0);
+  ok('chrono global de session signalé (pas de stopwatch « Temps écoulé »)', A.AI_PROMPT.indexOf('CHRONO GLOBAL')>=0);
+  ok('doctrine ambre = risque d\'erreur (v4.2.2)', A.AI_PROMPT.indexOf('SE TROMPER')>=0);
+  ok('gras exclu des étapes (texte déjà en gras)', A.AI_PROMPT.indexOf('ne s\'applique PAS aux étapes')>=0);
+
+  group('références des protocoles (v4.2.2)');
+  eq('migrateProtocol : références nettoyées/coercées', A.migrateProtocol({references:['SFAR 2023',42]}).references, ['SFAR 2023','42']);
+  ok('migrateProtocol : défaut = tableau', Array.isArray(A.migrateProtocol({}).references));
+  ok('blankProtocol : champ references présent', Array.isArray(A.blankProtocol().references));
 
   group('migrate() — champs status/related/updatedBy');
   const m31=A.migrate({title:'x',status:'draft',related:['ok-1','__proto__','bad id'],updatedBy:'a@b.fr'});
@@ -427,7 +435,7 @@ function run(A){
   eq('statut par défaut', mp.status, '');
   ok('updatedAt posé', typeof mp.updatedAt==='number');
   eq('blankProtocol : modèle complet', Object.keys(A.blankProtocol()).sort(),
-     ['attachments','body','category','code','deletedAt','id','images','libraryId','order','ownerId','related','status','title','updatedAt','updatedBy','validation'].sort());
+     ['attachments','body','category','code','deletedAt','id','images','libraryId','order','ownerId','references','related','status','title','updatedAt','updatedBy','validation'].sort());
 
   group('attBuf() — formats de stockage des documents (ArrayBuffer courant, Blob historique)');
   ok('format courant {buf:ArrayBuffer} accepté', A.attBuf({buf:new ArrayBuffer(4)})!==null);

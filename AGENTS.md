@@ -73,7 +73,12 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   comme validé) et un `code` court facultatif (mono, indexé par la recherche). **Étape
   critique** = préfixe `⚠ ` (ou `!`) DANS la chaîne d'étape (`stepIsCrit`/`stepText` — le format
   reste une chaîne : exports v3 et anciens clients inchangés) ; rendue rouge en lecture et dans
-  le SVG, bascule ⚠ dans l'éditeur de blocs ; le cochage passe au **vert `--ok`** et
+  le SVG, bascule ⚠ dans l'éditeur de blocs. **Doctrine d'usage (v4.2.2)** : rouge = ce qui TUE
+  si on l'oublie (memory item, geste vital) ; ambre (`△`, vigilance) = là où l'on risque de SE
+  TROMPER (dose/dilution à vérifier, contre-indication, confusion voie/site/produit, seuil) ;
+  une étape des deux registres → rouge. Le **gras est exclu des étapes** (texte déjà en gras à
+  l'affichage — le relief passe par le TYPE d'étape) ; il reste disponible dans les listes.
+  Le cochage passe au **vert `--ok`** et
   « Continuer » au registre CONFIRMATION quand tout le bloc est coché. Les éditeurs offrent un
   **aperçu du brouillon** (bouton « Aperçu » + colonne « Aperçu en direct » à ≥ 1000 px) via
   `state.previewFrom` : AUCUNE session ne démarre en aperçu (garde dans `ensureStarted`).
