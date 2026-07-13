@@ -138,7 +138,11 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   session (menu ⋯, fin d'algorithme, ✕ du bandeau sessions — jamais d'arrêt direct). Contexte
   (titre + durée) et **conséquences annoncées avant le choix** ; « Poursuivre » = action sûre
   (contour, focus initial, Échap) ; « Terminer » = un des SEULS rouges pleins de l'app
-  (`--critical-bd`). Terminer depuis l'écran de crise ramène à l'accueil.
+  (`--critical-bd`). Terminer depuis l'écran de crise ramène à l'accueil. **Même registre pour
+  les confirmations destructrices (v4.3.1)** : le bouton principal de `confirmDlg` en mode
+  `danger` (supprimer une fiche, un protocole, la bibliothèque…) est rouge plein
+  `--critical-bd` + texte blanc — uniquement dans la fenêtre de CONFIRMATION finale ; les
+  boutons « Supprimer » de fin de formulaire et des zones sensibles restent en contour.
 - **Marqueur d'étape hors du champ (v4.3.0)** : dans les éditeurs, le préfixe `⚠ `/`△ ` ne vit
   plus DANS l'input (il était effaçable à la main = changement de type accidentel) — champ =
   texte nu, rangée **encadrée** au registre, préfixe re-posé par le handler (la CHAÎNE stockée
@@ -167,7 +171,11 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   tap. Deux boutons « retour » empilés (aperçu → éditeur → bibliothèque) reçoivent une
   **inhibition temporelle** de 700 ms contre le double-tap (`.guarded`, opacité réduite —
   logique ECAM). Grammaire des boutons de gestion : **pointillé** = créer, **contour** = gérer/
-  secondaire, **plein** = action primaire (un seul par écran).
+  secondaire, **plein** = action primaire (un seul par écran). **Tactile (v4.3.1)** : tous les
+  contrôles portent `touch-action:manipulation` (supprime le délai double-tap de Safari iOS) ;
+  champs et menus ≥ **16 px sur écrans tactiles** (sous 16 px, Safari iOS zoome la page au
+  focus — taps « perdus » ; un compact < 16 px n'est admis qu'au pointeur fin, cf. fenêtre
+  bibliothèque).
 - Toute donnée affichée passe par `esc()` (contenu potentiellement importé/partagé). C'est la
   **seule** barrière anti-XSS (la CSP monofichier impose `script-src 'unsafe-inline'`) : ne jamais
   la relâcher ; les liens/images du mini-Markdown sont en plus nettoyés AU POINT D'INSERTION

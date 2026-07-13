@@ -1,5 +1,42 @@
 # Journal des modifications
 
+## [4.3.1] — 2026-07-13
+Correctifs mobile (fiabilité des taps, taille du texte sur iPhone) et harmonisation des
+confirmations destructrices sur le registre du dialogue « Terminer la session ».
+
+### Modifié
+- **États vides → dialogue Créer** : sur un accueil vide, « Créer un protocole » et le bouton
+  de création de fiche ouvrent désormais le dialogue « Créer » (mêmes méthodes — Manuellement,
+  Avec l'IA, Importer un fichier .json — que le bouton « ＋ Créer » de l'en-tête), au lieu de
+  sauter directement dans l'éditeur.
+- **« Créer une fiche » renommé « Créer une aide cognitive »** (bouton d'appel à l'action de
+  l'accueil vide), aligné sur le vocabulaire du reste de l'app.
+- **Confirmations destructrices au registre « Terminer la session »** : dans la fenêtre de
+  confirmation (`confirmDlg`), le bouton principal d'une action destructrice (supprimer une
+  fiche, un protocole, la bibliothèque, une session, retirer un membre…) est désormais **rouge
+  plein `--critical-bd` + texte blanc**, comme « Terminer » du dialogue de fin de session. Les
+  boutons « Supprimer » de fin de formulaire et des zones sensibles restent en contour (le
+  rouge plein est réservé à la confirmation finale).
+
+### Corrigé
+- **iPhone — taille du texte sans effet sur le texte** : dans « Compte & synchronisation »,
+  changer la taille (S/M/L/XL) agrandissait les cadres mais pas la police. Cause : le `zoom`
+  CSS posé sur `<html>` n'agrandit pas le texte sur iOS/iPadOS quand
+  `-webkit-text-size-adjust:100%` (anti font-boosting) est actif — ce réglage recale chaque
+  texte à sa taille spécifiée. Correctif : sur iOS uniquement, `-webkit-text-size-adjust` est
+  aligné sur le pourcentage de zoom choisi.
+- **iPhone — taps « ignorés » dans « Modifier la bibliothèque »** : le sélecteur de rôle
+  (Lecteur/Éditeur/Admin) et les boutons voisins ne répondaient pas toujours. Deux causes
+  traitées : (1) champs et menus de cette fenêtre en 12.5–13.5 px — sous 16 px, Safari iOS
+  **zoome automatiquement la page au focus** et le tap semble perdu (16 px sur écrans
+  tactiles) ; (2) délai du double-tap zoom — `touch-action:manipulation` posé sur tous les
+  contrôles (boutons, champs, menus) de l'app. Le bouton « retirer le membre » (×) reçoit un
+  halo portant sa cible tactile à 44 px.
+- **Fenêtre Compte — boutons jumeaux inégaux sur mobile** : « Exporter mes données » et
+  « Se déconnecter » n'avaient pas la même taille en étroit (le libellé le plus long élargissait
+  son bouton, et pouvait le rehausser en passant sur deux lignes). Les jumeaux demi-largeur
+  (`.dlg-actions`) partagent désormais la largeur à parts égales et s'étirent à la même hauteur.
+
 ## [4.3.0] — 2026-07-13
 Code couleur des catégories unifié (SPEC crise §1), sélecteur de catégorie « une sélectionnée
 + Autre… » (§2), dialogue « Terminer la session ? » (§3), marqueurs d'étapes sortis du champ
