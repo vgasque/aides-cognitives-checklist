@@ -1,5 +1,53 @@
 # Journal des modifications
 
+## [4.4.3] — 2026-07-15
+De la couleur dans les protocoles — mais seulement celle des registres : encadrés typés à la
+syntaxe GitHub, surligneur achromatique, et taille d'affichage réglable image par image.
+
+### Ajouté
+- **ENCADRÉS TYPÉS dans le contenu rédigé** : une citation peut porter un registre, exactement
+  comme une étape de fiche porte « ⚠ » ou « △ ». Quatre registres, aucun nouveau code couleur :
+  `> [!CAUTION]` **alerte** (rouge), `> [!WARNING]` **attention** (ambre), `> [!NOTE]`
+  **information** (bleu), `> [!TIP]` **confirmation** (vert) ; une citation sans marqueur reste
+  neutre. La couleur n'est **jamais seule** : bord gauche 4 px + icône + libellé du registre en
+  toutes lettres (WCAG 1.4.1).
+  **Syntaxe = celle des « alerts » de GitHub**, entièrement tapable au clavier — donc rendue
+  nativement par GitHub, GitLab, pandoc et Typora, et dégradée en simple citation lisible partout
+  ailleurs. Les quatre boutons de la barre d'outils produisent la **forme canonique** (marqueur
+  seul sur sa ligne, mot-clé en MAJUSCULES : seul dénominateur commun des implémentations tierces).
+  En lecture, l'app accepte aussi les alias `[!alerte]` / `[!attention]` / `[!info]` / `[!ok]`,
+  les glyphes ⚠ △ ℹ ✓ (copier-coller depuis une fiche), la forme d'une seule ligne, et les cinq
+  mots-clés GitHub (`IMPORTANT` est rendu au registre INFORMATION). Sécurité : le registre vient
+  d'un **jeu fermé** posé en classe — un mot-clé inconnu redonne une citation neutre, aucune
+  valeur utilisateur n'atteint jamais une classe ni un attribut.
+- **`==surligné==`** : surligneur **achromatique** (registre MEMO) — faire ressortir un mot sans
+  emprunter une couleur qui, dans cette app, veut dire « ça tue si on l'oublie » (rouge) ou « c'est
+  là qu'on se trompe » (ambre). Syntaxe répandue (Obsidian, Typora, pandoc) ; ailleurs, elle
+  s'affiche telle quelle. Bouton « S » dans la barre d'outils.
+- **Taille d'affichage des images, réglable IMAGE PAR IMAGE** : chaque image insérée apparaît dans
+  une galerie sous l'éditeur, avec son propre sélecteur (25 / 33 / 50 / 66 / 75 / 100 %) et une
+  vignette qui insère une nouvelle référence à la même image (une image peut illustrer deux
+  passages). La taille vit dans le **modèle** (`p.images[i].scale`), jamais dans la syntaxe : un
+  `=50%` glissé dans `![](img:ID)` casserait la regex des clients antérieurs et **ferait
+  disparaître les images** en bibliothèque partagée. Rendu par une classe issue d'un jeu fermé
+  (jamais un nombre interpolé dans un style) ; la réduction ne s'applique qu'au-dessus de 560 px
+  (sur téléphone, une image à 25 % serait illisible sous stress). Export v3 inchangé : un ancien
+  client ignore le champ et affiche l'image à 100 %.
+
+### Modifié
+- **Barre d'outils du protocole** : ajout des 4 boutons d'encadré (chacun coloré à son registre)
+  et du surligneur. Poser un encadré sur un encadré **remplace** son registre au lieu d'empiler
+  les marqueurs — comme un titre posé sur un titre remplace son niveau (v4.4.2).
+- Légende de syntaxe complétée (encadrés, surlignage, taille d'image) avec une note de
+  **portabilité** : ce qui est rendu ailleurs, ce qui dégrade — et en quoi rien n'est jamais perdu.
+
+### Sécurité / tests
+- 27 tests ajoutés (343 au total) : reconnaissance des 4 registres + 5 mots-clés GitHub + alias FR
+  + glyphes, marqueur inconnu → citation neutre, registre lu sur la seule 1ʳᵉ ligne, forme
+  canonique, absence de classe issue du texte utilisateur, surlignage échappé et neutralisé dans
+  du code, jeu fermé des échelles d'image, valeur par défaut posée par `migrate`, et deux images
+  aux tailles indépendantes.
+
 ## [4.4.2] — 2026-07-14
 Tableaux dans les protocoles, sélecteur de type dans le dialogue « Créer », pieds de page
 harmonisés, icônes agrandies, et deux correctifs iOS (zoom au focus, colonnes du bandeau).

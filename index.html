@@ -232,7 +232,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-VzMXMVaSNx8jYnNlmelZxgatjOFVmr3Evi5DwDJaqCc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-9csispNurU2zZlDA+hV7D4Aeaf5sJr7C26MT/4vBIM4='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1726,6 +1726,23 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .md-ul li,.md-ol li{margin:3px 0}
   .md-ul .md-ul,.md-ul .md-ol,.md-ol .md-ul,.md-ol .md-ol{margin:3px 0 0;padding-left:20px}
   .md-q{margin:0 0 10px;padding:6px 0 6px 12px;border-left:3px solid var(--line-strong);color:var(--ink-soft)}
+  /* ENCADRÉS TYPÉS (v4.4.3) : grammaire des notices V5 — bord gauche 4px + bordure + teinte du
+     registre, icône ET libellé en toutes lettres (la couleur n'est jamais seule, WCAG 1.4.1).
+     Aucune couleur nouvelle : ce sont les 4 registres de l'app. */
+  .md-call{padding:9px 12px;border-radius:var(--radius-sm);border:1px solid;border-left-width:4px;color:var(--ink)}
+  .md-call .mc-k{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:4px}
+  .md-call .mc-g{font-size:12px;line-height:1}
+  .md-call.crit{background:var(--critical-soft);border-color:var(--critical-line);border-left-color:var(--critical-bd)}
+  .md-call.crit .mc-k{color:var(--critical)}
+  .md-call.vig{background:var(--verify-soft);border-color:var(--verify-line);border-left-color:var(--verify-bd)}
+  .md-call.vig .mc-k{color:var(--verify)}
+  .md-call.info{background:var(--primary-soft);border-color:var(--primary);border-left-color:var(--primary)}
+  .md-call.info .mc-k{color:var(--primary-dk)}
+  .md-call.ok{background:var(--ok-soft);border-color:var(--ok);border-left-color:var(--ok)}
+  .md-call.ok .mc-k{color:var(--ok)}
+  /* ==surligné== : ACHROMATIQUE (registre MEMO) — faire ressortir un mot sans emprunter une
+     couleur qui, dans cette app, veut dire « ça tue » (rouge) ou « on s'y trompe » (ambre). */
+  .md-mk{background:var(--tag-bg);color:var(--tag-ink);padding:0 3px;border-radius:4px}
   .md-ci{font-family:var(--mono);font-size:.92em;background:var(--surface-3);border-radius:5px;padding:1px 5px}
   .md-code{margin:0 0 10px;padding:10px 12px;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius-sm);overflow-x:auto}
   .md-code code{font-family:var(--mono);font-size:12.5px;line-height:1.5;white-space:pre}
@@ -1744,8 +1761,28 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .md-fig{margin:12px 0}
   .md-fig img{max-width:100%;height:auto;border-radius:var(--radius-sm);border:1px solid var(--line);cursor:zoom-in}
   .md-fig figcaption{font-size:12px;color:var(--ink-soft);margin-top:4px}
+  /* Taille d'image PAR IMAGE (v4.4.3) : la réduction ne s'applique qu'AU-DESSUS de 560px — sur un
+     téléphone, une image à 25 % ferait ~90px de large, illisible sous stress (règle QRH). */
+  @media (min-width:560px){
+    .md-fig.w25 img{width:25%}.md-fig.w33 img{width:33%}.md-fig.w50 img{width:50%}
+    .md-fig.w66 img{width:66%}.md-fig.w75 img{width:75%}
+  }
   .md-body a,.md-preview a{color:var(--primary);text-decoration:underline}
   .md-toolbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+  /* Boutons d'ENCADRÉ TYPÉ : chacun porte la couleur de SON registre (le bouton dit ce qu'il pose). */
+  .md-toolbar .mdc-crit{color:var(--critical)}
+  .md-toolbar .mdc-vig{color:var(--verify);font-weight:800}
+  .md-toolbar .mdc-info{color:var(--primary-dk)}
+  .md-toolbar .mdc-ok{color:var(--ok)}
+  .md-toolbar .md-mkb{background:var(--tag-bg);color:var(--tag-ink);font-weight:800}
+  /* Images insérées : une rangée par image, avec SA taille d'affichage (v4.4.3). */
+  .md-imgs{margin:12px 0 4px}
+  .mi-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:7px 0;border-top:1px solid var(--line)}
+  .mi-th{width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid var(--line);cursor:copy;flex:none}
+  .mi-cap{flex:1;min-width:120px;font-size:13px;color:var(--ink-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mi-lab{font-size:12px;color:var(--ink-soft)}
+  .mi-sc{padding:8px 10px;border:1px solid var(--line-strong);border-radius:8px;background:var(--input-bg);color:var(--ink);font-size:13px;font-weight:600;min-height:40px}
+  .mi-sc:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* .mini a une LARGEUR FIXE (boutons carrés × ↑ ↓) : ici les libellés varient -> largeur auto. */
   .md-toolbar .mini{width:auto;min-width:36px;height:34px;padding:0 10px;font-size:13px;font-weight:600;white-space:nowrap}
   #p-body{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--input-bg);color:var(--ink);font-family:var(--mono);font-size:13px;line-height:1.55;resize:vertical}
@@ -1919,7 +1956,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      `.tk-time-edit` : le mono 16px déborde des 76px calibrés pour 14px -> largeur relevée. */
   @media (hover:none) and (pointer:coarse){
     .hdr-search input,#p-body,.note-ta,.catmenu-filter,.tk-lab,.tk-time-edit,.cm-name,.cm-add input,input.gcap,
-    .mem-act select,.invite-row select,.invite-row input{font-size:16px}
+    .mem-act select,.invite-row select,.invite-row input,.mi-sc{font-size:16px}
     .tk-time-edit{width:96px}
   }
   @media print{body{background:#fff}header.bar,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.sess-list,.notes-block{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}
@@ -2115,7 +2152,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.4.2';
+const APP_VERSION='4.4.3';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -2531,6 +2568,28 @@ const MD_MAX_CHARS=20000,MD_MAX_LINES=2000;
 const MD_MAX_TCOLS=12,MD_MAX_TROWS=200;
 const MD_TROW=/^\s*\|.*\|\s*$/;                     // ligne de tableau
 const MD_TSEP=/^\s*\|(?:\s*:?-{1,}:?\s*\|)+\s*$/;   // ligne de séparation (porte l'alignement)
+/* ENCADRÉS TYPÉS (v4.4.3) — une citation « > » peut porter un REGISTRE, exactement comme une étape
+   de fiche porte « ⚠ » / « △ ». La couleur n'invente rien : elle réutilise les 5 registres de l'app
+   (ALERTE / ATTENTION / INFORMATION / CONFIRMATION / MEMO neutre) et n'est JAMAIS seule (glyphe +
+   bord gauche 4 px + libellé du registre).
+   SYNTAXE = celle des « alerts » de GitHub (GFM) : « > [!WARNING] », entièrement tapable au clavier
+   et RENDUE NATIVEMENT par GitHub, VS Code, Obsidian… ; un lecteur qui l'ignore affiche une simple
+   citation commençant par « [!WARNING] » (le sens survit). Alias acceptés : les mots FR
+   ([!alerte] [!attention] [!info] [!ok]) et les GLYPHES (⚠ △ ℹ ✓), pour un copier-coller depuis une
+   fiche. Casse indifférente. Le REGISTRE est un jeu FERMÉ -> aucune valeur utilisateur n'atteint
+   jamais une classe CSS (défense en profondeur, comme l'alignement des tableaux). */
+const MD_CALL={caution:'crit',alerte:'crit',alert:'crit',danger:'crit','⚠':'crit','⚠️':'crit','!':'crit',
+  warning:'vig',attention:'vig','△':'vig',
+  note:'info',info:'info',important:'info','ℹ':'info','ℹ️':'info',
+  tip:'ok',ok:'ok',astuce:'ok','✓':'ok','✔':'ok'};
+const MD_CALL_LBL={crit:'Alerte',vig:'Attention',info:'Information',ok:'Confirmation'};
+// Marqueur en tête de la 1ʳᵉ ligne d'une citation -> {kind, text} (kind vide = citation neutre).
+function mdCallout(line){const s=String(line==null?'':line);
+  let m=s.match(/^\s*\[!\s*([A-Za-zÀ-ÿ]{2,12})\s*\]\s*(.*)$/);
+  if(m){const k=MD_CALL[m[1].toLowerCase()];if(k)return {kind:k,text:m[2]};return {kind:'',text:s};}
+  m=s.match(/^\s*(⚠️|⚠|△|ℹ️|ℹ|✓|✔)\s*(.*)$/);
+  if(m){const k=MD_CALL[m[1]];if(k)return {kind:k,text:m[2]};}
+  return {kind:'',text:s};}
 // Découpe une ligne de tableau en cellules. Gère le pipe échappé « \| » (sans regex ni sentinelle).
 function mdCells(line){const s=String(line==null?'':line).trim().replace(/^\|/,'').replace(/\|$/,'');
   const out=[];let cur='';
@@ -2540,6 +2599,7 @@ function mdCells(line){const s=String(line==null?'':line).trim().replace(/^\|/,'
     cur+=c;}
   out.push(cur.trim());return out.slice(0,MD_MAX_TCOLS);}
 const MD_ITAL_RX=/(^|[^*])\*([^*\n]+)\*(?!\*)/g;   // *italique* (sans manger les ** du gras)
+const MD_MARK_RX=/==([^=\n]+)==/g;                 // ==surligné== (achromatique, registre MEMO)
 const MD_CODE_RX=/(`[^`\n]+`)/;                    // `code` en ligne (segment préservé tel quel)
 function mdInline(s){const h=esc(sstr(s,4000));
   // Le texte (déjà échappé) est découpé autour des segments `code` : AUCUN balisage n'est
@@ -2557,6 +2617,10 @@ function mdInline(s){const h=esc(sstr(s,4000));
       return m;});
     x=x.replace(BOLD_RX,'<b>$1</b>');
     x=x.replace(MD_ITAL_RX,'$1<i>$2</i>');
+    // ==surligné== : surligneur ACHROMATIQUE (registre MEMO, --tag-bg) — il fait ressortir un mot
+    // sans mentir sur le code couleur (dans cette app, rouge et ambre ont un sens vital). Syntaxe
+    // répandue (Obsidian, Typora, pandoc) ; un lecteur qui l'ignore affiche « ==texte== » en clair.
+    x=x.replace(MD_MARK_RX,'<mark class="md-mk">$1</mark>');
     return x;}).join('');}
 // Découpe en blocs (ligne à ligne) : {t:'h1'|'h2'|'h3', text} | {t:'ul'|'ol', items:[{text,sub}]}
 // (sub = sous-liste {t,items:[textes]} d'UN niveau) | {t:'q', lines[]} (citation) |
@@ -2588,7 +2652,13 @@ function mdBlocks(src){
     if((m=l.match(/^(#{1,3})\s+(.*)$/))){flushAll();out.push({t:'h'+m[1].length,text:m[2]});continue;}
     if(/^(---+|\*\*\*+)\s*$/.test(l)){flushAll();out.push({t:'hr'});continue;}
     if((m=l.match(/^!\[([^\]]{0,300})\]\(img:([A-Za-z0-9_-]{1,64})\)\s*$/))){flushAll();out.push({t:'img',caption:m[1],id:m[2]});continue;}
-    if((m=l.match(/^>\s?(.*)$/))){flushPara();flushList();if(!quote)quote={t:'q',lines:[]};quote.lines.push(m[1]);continue;}
+    // Citation, éventuellement TYPÉE : le marqueur de registre n'est lu que sur la PREMIÈRE ligne
+    // du bloc (les suivantes appartiennent au même encadré, comme les alerts de GitHub).
+    if((m=l.match(/^>\s?(.*)$/))){flushPara();flushList();
+      if(!quote){const c=mdCallout(m[1]);quote={t:'q',kind:c.kind,lines:[]};
+        if(c.kind){if(c.text)quote.lines.push(c.text);}else quote.lines.push(m[1]);}
+      else quote.lines.push(m[1]);
+      continue;}
     // SOUS-LISTE (2 espaces ou plus) : rattachée au dernier élément de la liste en cours.
     if(list&&list.items.length&&(m=l.match(/^\s{2,}(?:[-*]\s+|(\d{1,3})[.)]\s+)(.*)$/))){
       const last=list.items[list.items.length-1],st=m[1]?'ol':'ul';
@@ -2599,7 +2669,12 @@ function mdBlocks(src){
     flushList();flushQuote();para.push(l);}
   if(code)out.push(code);   // ``` non refermé : dégradation propre, le contenu reste visible
   flushAll();return out;}
-// Rendu HTML. ctx.images = tableau {id,data,caption} de l'entité (ids déjà sûrs — migrateProtocol).
+// Icône de l'encadré typé : réutilise les glyphes de l'app (aucun nouveau dessin).
+const calloutIcon=k=>k==='crit'?uiIcon('warn',13):(k==='vig'?'<span class="mc-g" aria-hidden="true">△</span>':(k==='ok'?uiIcon('check',13,{sw:3}):uiIcon('info',13)));
+// Échelles d'image : jeu FERMÉ (une classe, jamais un nombre interpolé dans un style).
+const MD_SCALES=[25,33,50,66,75,100];
+const MD_SC={25:' w25',33:' w33',50:' w50',66:' w66',75:' w75'};
+// Rendu HTML. ctx.images = tableau {id,data,caption,scale} de l'entité (ids déjà sûrs — migrateProtocol).
 // Référence d'image morte -> rien (pas d'image cassée à l'écran).
 function mdRender(src,ctx){ctx=ctx||{};
   // Défense propre à mdRender (indépendante de migrateProtocol) : clés BAD_KEYS jamais admises.
@@ -2623,7 +2698,11 @@ function mdRender(src,ctx){ctx=ctx||{};
     if(b.t==='h3')return '<h3 class="md-h3">'+mdInline(b.text)+'</h3>';
     if(b.t==='ul')return '<ul class="md-ul">'+b.items.map(li).join('')+'</ul>';
     if(b.t==='ol')return '<ol class="md-ol">'+b.items.map(li).join('')+'</ol>';
-    if(b.t==='q')return '<blockquote class="md-q">'+b.lines.map(mdInline).join('<br>')+'</blockquote>';
+    if(b.t==='q'){const k=MD_CALL_LBL[b.kind]?b.kind:'';   // registre = jeu FERMÉ (jamais du texte libre)
+      const body=b.lines.map(mdInline).join('<br>');
+      if(!k)return '<blockquote class="md-q">'+body+'</blockquote>';
+      // La couleur n'est jamais seule : icône + LIBELLÉ du registre en toutes lettres (WCAG 1.4.1).
+      return '<blockquote class="md-q md-call '+k+'"><span class="mc-k">'+calloutIcon(k)+MD_CALL_LBL[k]+'</span>'+body+'</blockquote>';}
     if(b.t==='code')return '<pre class="md-code"><code>'+esc(b.lines.join('\n'))+'</code></pre>';
     if(b.t==='hr')return '<hr class="md-hr">';
     if(b.t==='img'){const im=imgs[b.id];if(!im)return '';const cap=b.caption||im.caption||'';
@@ -2631,7 +2710,10 @@ function mdRender(src,ctx){ctx=ctx||{};
       // un futur appelant lui passait des images non passées par migrate/migrateProtocol.
       const data=safeImg(im.data);if(!data)return '';
       const dim=(im.w&&im.h)?' width="'+im.w+'" height="'+im.h+'"':'';
-      return '<figure class="md-fig"><img src="'+data+'" data-full="'+data+'"'+dim+' data-cap="'+esc(cap)+'" alt="'+esc(cap)+'" loading="lazy" decoding="async">'+(cap?'<figcaption>'+esc(cap)+'</figcaption>':'')+'</figure>';}
+      // TAILLE (v4.4.3) : PAR IMAGE, portée par le modèle (im.scale) et rendue par une CLASSE issue
+      // d'un jeu fermé — jamais un nombre interpolé dans un style. Les dimensions intrinsèques
+      // restent posées (anti-CLS) ; la réduction ne s'applique qu'au-dessus de 560px (cf. CSS).
+      return '<figure class="md-fig'+(MD_SC[im.scale]||'')+'"><img src="'+data+'" data-full="'+data+'"'+dim+' data-cap="'+esc(cap)+'" alt="'+esc(cap)+'" loading="lazy" decoding="async">'+(cap?'<figcaption>'+esc(cap)+'</figcaption>':'')+'</figure>';}
     return '<p class="md-p">'+b.lines.map(mdInline).join('<br>')+'</p>';}).join('');}
 // Texte brut pour la recherche plein texte (retire le balisage, garde légendes et libellés de liens).
 function mdStrip(src){return sstr(src,MD_MAX_CHARS).split('\n').map(l=>l
@@ -2641,11 +2723,12 @@ function mdStrip(src){return sstr(src,MD_MAX_CHARS).split('\n').map(l=>l
     // restitue les pipes échappés « \| » — une seule logique de découpe, partagée avec le parseur.
     .replace(MD_TSEP,'')
     .replace(MD_TROW,x=>mdCells(x).join(' '))
-    .replace(/^#{1,3}\s+/,'').replace(/^>\s?/,'')
+    // Citation, y compris TYPÉE : le marqueur de registre ne pollue pas l'index de recherche.
+    .replace(/^#{1,3}\s+/,'').replace(/^>\s?/,'').replace(/^\[!\s*[A-Za-zÀ-ÿ]{2,12}\s*\]\s*/,'')
     .replace(/^\s*[-*]\s+/,'').replace(/^\s*\d{1,3}[.)]\s+/,'')
     .replace(/^!\[([^\]]*)\]\([^()]*\)\s*$/,'$1')
     .replace(/\[([^\]\n]{1,200})\]\([^()\s]{1,500}\)/g,'$1'))
-  .join(' ').replace(BOLD_RX,'$1').replace(MD_ITAL_RX,'$1$2').replace(/`([^`\n]+)`/g,'$1');}
+  .join(' ').replace(BOLD_RX,'$1').replace(MD_ITAL_RX,'$1$2').replace(MD_MARK_RX,'$1').replace(/`([^`\n]+)`/g,'$1');}
 const main=document.getElementById('main');
 /* Pied de page NOMADE : sur l'accueil large son contenu (version, synchro, stockage, input
    d'import) vit en bas de la sidebar ; ailleurs il reprend sa place en bas de .app. On DÉPLACE
@@ -2900,6 +2983,9 @@ function completionSpots(f){if(!f||typeof f!=='object')return [];const spots=[];
 // conservé d'un import).
 // Dimension d'image bornée (0 = inconnue, ex. import ancien -> pas de réservation d'espace).
 const _dim=v=>Math.max(0,Math.min(20000,Math.round(Number(v))||0));
+// Taille d'affichage d'une image, PAR IMAGE (v4.4.3) : jeu FERMÉ, défaut 100 % posé ici (donc un
+// export ancien — sans `scale` — s'affiche à 100 %, et un ancien client ignore simplement le champ).
+const _scale=v=>{const n=Math.round(Number(v));return MD_SCALES.indexOf(n)>=0?n:100;};
 function sanitizeEntityCommon(x,idPrefix,imgMax){
   x.id=safeId(x.id,idPrefix);
   x.title=sstr(x.title,300);
@@ -2907,7 +2993,7 @@ function sanitizeEntityCommon(x,idPrefix,imgMax){
   x.category=safeCatRef(x.category);
   if(typeof x.order!=='number'||!isFinite(x.order))x.order=Date.now();
   let _imgBudget=24000000;
-  x.images=(Array.isArray(x.images)?x.images:[]).slice(0,imgMax).map(im=>({id:safeId(im&&im.id,'i'),data:safeImg(im&&im.data),w:_dim(im&&im.w),h:_dim(im&&im.h),caption:sstr(im&&im.caption,300)})).filter(im=>im.data&&(_imgBudget-=im.data.length)>=0);
+  x.images=(Array.isArray(x.images)?x.images:[]).slice(0,imgMax).map(im=>({id:safeId(im&&im.id,'i'),data:safeImg(im&&im.data),w:_dim(im&&im.w),h:_dim(im&&im.h),caption:sstr(im&&im.caption,300),scale:_scale(im&&im.scale)})).filter(im=>im.data&&(_imgBudget-=im.data.length)>=0);
   x.attachments=(Array.isArray(x.attachments)?x.attachments:[]).slice(0,MAX_ATT_PER_ENTITY).map(safeAttachment).filter(Boolean);
   x.status=(x.status==='draft')?'draft':(x.status==='review'?'review':'');
   x.code=sstr(x.code,40);
@@ -4099,14 +4185,47 @@ function mdWrapSel(inp,mark){const v=inp.value;let a=inp.selectionStart==null?v.
 // Un titre POSÉ SUR UN TITRE remplace son niveau (H2 puis H1 donnait « # ## texte », v4.4.2).
 function mdPrefixLines(inp,prefix,numbered){const v=inp.value;let a=inp.selectionStart==null?v.length:inp.selectionStart,b=inp.selectionEnd==null?v.length:inp.selectionEnd;if(a>b){const t=a;a=b;b=t;}
   const ls=v.lastIndexOf('\n',a-1)+1;let end=v.indexOf('\n',b);if(end<0)end=v.length;
-  const head=/^#/.test(prefix);
-  const seg=v.slice(ls,end).split('\n').map((l,i)=>(numbered?(i+1)+'. ':prefix)+(head?l.replace(/^#{1,3}\s+/,''):l)).join('\n');
+  const head=/^#/.test(prefix),quo=/^>/.test(prefix);
+  // Un titre posé sur un titre REMPLACE son niveau ; une citation typée posée sur une citation
+  // (typée ou non) REMPLACE son registre — jamais d'empilement « > [!TIP] > [!NOTE] ».
+  const clean=l=>head?l.replace(/^#{1,3}\s+/,''):(quo?l.replace(/^>\s?/,'').replace(/^\[!\s*[A-Za-zÀ-ÿ]{2,12}\s*\]\s*/,''):l);
+  const seg=v.slice(ls,end).split('\n').map((l,i)=>(numbered?(i+1)+'. ':prefix)+clean(l)).join('\n');
   inp.value=v.slice(0,ls)+seg+v.slice(end);
   inp.focus();inp.dispatchEvent(new Event('input',{bubbles:false}));}
+/* Pose un ENCADRÉ TYPÉ sur les lignes sélectionnées, à la forme canonique de GitHub :
+     > [!CAUTION]
+     > texte
+   (marqueur seul sur sa ligne — c'est la seule forme que GitHub, pandoc et Typora rendent en
+   encadré ; l'app accepte aussi la forme d'une seule ligne, mais on ne la PRODUIT pas.)
+   Un encadré posé sur un encadré remplace son registre — jamais d'empilement. */
+function mdCalloutLines(inp,word){const v=inp.value;let a=inp.selectionStart==null?v.length:inp.selectionStart,b=inp.selectionEnd==null?v.length:inp.selectionEnd;if(a>b){const t=a;a=b;b=t;}
+  const ls=v.lastIndexOf('\n',a-1)+1;let end=v.indexOf('\n',b);if(end<0)end=v.length;
+  const body=v.slice(ls,end).split('\n')
+    .map(l=>l.replace(/^>\s?/,'').replace(/^\[!\s*[A-Za-zÀ-ÿ]{2,12}\s*\]\s*/,''))
+    .filter((l,i,arr)=>arr.length===1||l.trim()!=='')
+    .map(l=>'> '+l).join('\n');
+  const seg='> [!'+word+']\n'+(body||'> ');
+  inp.value=v.slice(0,ls)+seg+v.slice(end);
+  inp.focus();const c=ls+seg.length;inp.setSelectionRange(c,c);
+  inp.dispatchEvent(new Event('input',{bubbles:false}));}
 function mdInsertAt(inp,text){const v=inp.value;const a=inp.selectionStart==null?v.length:inp.selectionStart;
   inp.value=v.slice(0,a)+text+v.slice(a);
   inp.focus();inp.setSelectionRange(a+text.length,a+text.length);
   inp.dispatchEvent(new Event('input',{bubbles:false}));}
+/* Images du contenu rédigé (v4.4.3) : chaque image insérée a SA taille d'affichage, réglée ici
+   (jamais tapée dans le texte — le champ resterait effaçable à la main, et un ancien client
+   perdrait l'image ; cf. la doctrine « marqueur d'étape hors du champ », v4.3.0).
+   Un tap sur une vignette insère aussi sa référence dans le texte (image réutilisable). */
+function mdImagesHtml(p){const ims=(p.images||[]).filter(im=>im&&im.data);
+  if(!ims.length)return '';
+  return `<div class="md-imgs"><div class="sub2">Images insérées <span class="hint">taille d'affichage — s'applique au-dessus de 560 px de large</span></div>
+    ${ims.map((im,i)=>`<div class="mi-row">
+      <img class="mi-th" src="${im.data}" alt="" data-miref="${esc(im.id)}" title="Insérer une nouvelle référence à cette image">
+      <span class="mi-cap">${esc(im.caption||'Image '+(i+1))}</span>
+      <label class="mi-lab" for="miSc${i}">Taille</label>
+      <select class="mi-sc" id="miSc${i}" data-miscale="${esc(im.id)}">
+        ${MD_SCALES.map(s=>`<option value="${s}"${(im.scale||100)===s?' selected':''}>${s} %</option>`).join('')}
+      </select></div>`).join('')}</div>`;}
 let _mdPrevTimer=null;
 function renderProtocolEdit(){
   const p=state.pdraft;if(!p){state.view='library';return render();}
@@ -4120,6 +4239,7 @@ function renderProtocolEdit(){
       <div class="md-toolbar" role="toolbar" aria-label="Mise en forme">
         <button type="button" class="mini bld" data-mdtool="b" aria-label="Gras" title="Gras — **texte**">B</button>
         <button type="button" class="mini md-it" data-mdtool="i" aria-label="Italique" title="Italique — *texte*"><i>I</i></button>
+        <button type="button" class="mini md-mkb" data-mdtool="mark" aria-label="Surligner" title="Surligner — ==texte== (neutre : la couleur reste réservée aux registres)">S</button>
         <button type="button" class="mini" data-mdtool="h1" aria-label="Grand titre" title="Grand titre — # Titre">H1</button>
         <button type="button" class="mini" data-mdtool="h2" aria-label="Titre" title="Titre — ## Titre">H2</button>
         <button type="button" class="mini" data-mdtool="h3" aria-label="Sous-titre" title="Sous-titre — ### Sous-titre">H3</button>
@@ -4128,11 +4248,16 @@ function renderProtocolEdit(){
         <button type="button" class="mini" data-mdtool="q" aria-label="Citation" title="Citation — > texte"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><path d="M10.2 6.5c-3 .9-4.7 3-4.7 6v5h5.1v-5.6H7.7c.2-1.7 1.2-2.9 3-3.5zM19.5 6.5c-3 .9-4.7 3-4.7 6v5h5.1v-5.6h-2.9c.2-1.7 1.2-2.9 3-3.5z"/></svg></button>
         <button type="button" class="mini" data-mdtool="code" aria-label="Code" title="Code — \`texte\` (bloc : \`\`\` sur une ligne)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 7.5L4 12l4.5 4.5M15.5 7.5L20 12l-4.5 4.5"/></svg></button>
         <button type="button" class="mini" data-mdtool="link" aria-label="Lien" title="Lien — [texte](https://…)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13.5a4.5 4.5 0 006.8.5l2.7-2.7a4.5 4.5 0 00-6.4-6.4l-1.5 1.5"/><path d="M14 10.5a4.5 4.5 0 00-6.8-.5l-2.7 2.7a4.5 4.5 0 006.4 6.4l1.5-1.5"/></svg></button>
+        <button type="button" class="mini mdc mdc-crit" data-mdtool="c-caution" aria-label="Encadré Alerte" title="Encadré ALERTE (rouge) — > [!CAUTION] texte · ce qui tue si on l'oublie">${uiIcon('warn',15)}</button>
+        <button type="button" class="mini mdc mdc-vig" data-mdtool="c-warning" aria-label="Encadré Attention" title="Encadré ATTENTION (ambre) — > [!WARNING] texte · là où l'on risque de se tromper">△</button>
+        <button type="button" class="mini mdc mdc-info" data-mdtool="c-note" aria-label="Encadré Information" title="Encadré INFORMATION (bleu) — > [!NOTE] texte">${uiIcon('info',15)}</button>
+        <button type="button" class="mini mdc mdc-ok" data-mdtool="c-tip" aria-label="Encadré Confirmation" title="Encadré CONFIRMATION (vert) — > [!TIP] texte">${uiIcon('check',15,{sw:3})}</button>
         <button type="button" class="mini" data-mdtool="tbl" aria-label="Tableau" title="Tableau — | a | b | puis |---|---| (alignement : |:-:| centré, |---:| à droite)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9.5h18M9.5 9.5V20M3 15h18"/></svg></button>
         <button type="button" class="mini" data-mdtool="img" aria-label="Insérer une image" title="Insérer une image (réduite et stockée hors ligne)">${uiIcon('img',16)}</button>
       </div>
       <textarea id="p-body" rows="12" placeholder="## Indication&#10;- Critère 1&#10;- Critère 2&#10;&#10;Texte libre, **gras**, *italique*…">${esc(p.body)}</textarea>
-      <p class="hint">Syntaxe : <code># titre</code> (##, ###), <code>- liste</code> / <code>1. liste</code> (sous-liste : 2 espaces devant), <code>&gt; citation</code>, <code>\`code\`</code> (bloc : <code>\`\`\`</code>), <code>---</code> séparateur, <code>**gras**</code>, <code>*italique*</code>, <code>[texte](https://…)</code>, <code>[texte](att:ID)</code> ouvre un document joint, <code>![légende](img:ID)</code> image.<br>Tableau : <code>| a | b |</code> puis, en 2ᵉ ligne, <code>|---|---|</code> — l'alignement se règle là (<code>|:-:|</code> centré, <code>|---:|</code> à droite). Un <code>|</code> dans une cellule s'écrit <code>\\|</code>.</p>
+      <p class="hint">Syntaxe : <code># titre</code> (##, ###), <code>- liste</code> / <code>1. liste</code> (sous-liste : 2 espaces devant), <code>&gt; citation</code>, <code>\`code\`</code> (bloc : <code>\`\`\`</code>), <code>---</code> séparateur, <code>**gras**</code>, <code>*italique*</code>, <code>==surligné==</code>, <code>[texte](https://…)</code>, <code>[texte](att:ID)</code> ouvre un document joint, <code>![légende](img:ID)</code> image (taille réglable ci-dessous).<br>Tableau : <code>| a | b |</code> puis, en 2ᵉ ligne, <code>|---|---|</code> — l'alignement se règle là (<code>|:-:|</code> centré, <code>|---:|</code> à droite). Un <code>|</code> dans une cellule s'écrit <code>\\|</code>.<br>Encadré coloré — syntaxe GitHub, tapable au clavier, le marqueur seul sur sa ligne puis le texte en dessous : <code>&gt; [!CAUTION]</code> alerte · <code>&gt; [!WARNING]</code> attention · <code>&gt; [!NOTE]</code> information · <code>&gt; [!TIP]</code> confirmation (les boutons ci-dessus les posent). Alias acceptés ici : <code>[!alerte]</code>, <code>[!attention]</code>, <code>[!info]</code>, <code>[!ok]</code>, et les glyphes ⚠ △ ℹ ✓.<br><span class="hint">Portabilité : les mots-clés en MAJUSCULES sont rendus en encadré par GitHub, GitLab, pandoc et Typora ; ailleurs (et avec les alias), le texte reste une citation lisible — rien n'est jamais perdu.</span></p>
+      ${mdImagesHtml(p)}
       <p class="md-prev-h">Aperçu</p><div class="md-preview" id="mdPreview">${mdRender(p.body,{images:p.images})}</div></fieldset>
     ${listEditor('Références','sources du protocole (traçabilité)','references',p.references||[])}
     ${isNew?'':'<div class="ed-del"><button class="btn danger" id="delBtn">Supprimer ce protocole</button></div>'}
@@ -4152,6 +4277,12 @@ function renderProtocolEdit(){
   main.querySelectorAll('[data-mdtool]').forEach(b=>b.onclick=()=>{const k=b.dataset.mdtool;
     if(k==='b')wrapBold(ta);
     else if(k==='i')mdWrapSel(ta,'*');
+    else if(k==='mark')mdWrapSel(ta,'==');
+    // Encadrés typés : forme CANONIQUE de GitHub — marqueur SEUL sur sa ligne, contenu en dessous.
+    // (GitHub n'active l'encadré qu'à cette condition ; l'app, elle, accepte aussi « > [!X] texte »
+    //  sur une seule ligne — mais le bouton produit la forme la plus portable, mots-clés en
+    //  MAJUSCULES, seul dénominateur commun des implémentations tierces.)
+    else if(k.slice(0,2)==='c-')mdCalloutLines(ta,k.slice(2).toUpperCase());
     else if(k==='h1')mdPrefixLines(ta,'# ');
     else if(k==='h2')mdPrefixLines(ta,'## ');
     else if(k==='h3')mdPrefixLines(ta,'### ');
@@ -4165,8 +4296,19 @@ function renderProtocolEdit(){
   imgInput.onchange=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;
     const r=await downscale(file);if(!r){toast('⚠ Image illisible.');return;}
     if((p.images||[]).length>=60){toast('⚠ 60 images maximum par protocole.');return;}
-    const id=uid('i');p.images=p.images||[];p.images.push({id,data:r.data,w:r.w,h:r.h,caption:''});
-    mdInsertAt(ta,(ta.value&&!/\n$/.test(ta.value.slice(0,ta.selectionStart||0))?'\n':'')+'![](img:'+id+')\n');};
+    const id=uid('i');p.images=p.images||[];p.images.push({id,data:r.data,w:r.w,h:r.h,caption:'',scale:100});
+    mdInsertAt(ta,(ta.value&&!/\n$/.test(ta.value.slice(0,ta.selectionStart||0))?'\n':'')+'![](img:'+id+')\n');
+    renderProtocolEdit();};
+  // Taille PAR IMAGE : écrit dans le modèle (p.images[i].scale) et rafraîchit l'aperçu — le texte
+  // du protocole n'est jamais touché (la référence ![](img:ID) reste identique).
+  main.querySelectorAll('[data-miscale]').forEach(sel=>sel.onchange=()=>{
+    const im=(p.images||[]).find(x=>x.id===sel.dataset.miscale);if(!im)return;
+    im.scale=_scale(sel.value);
+    const pv=document.getElementById('mdPreview');if(pv)pv.innerHTML=mdRender(p.body,{images:p.images});
+    ta.dispatchEvent(new Event('input',{bubbles:false}));});   // auto-enregistrement du brouillon
+  // Vignette : insère une NOUVELLE référence à la même image (une image peut illustrer 2 passages).
+  main.querySelectorAll('[data-miref]').forEach(th=>th.onclick=()=>{
+    mdInsertAt(ta,(ta.value&&!/\n$/.test(ta.value.slice(0,ta.selectionStart||0))?'\n':'')+'![](img:'+th.dataset.miref+')\n');});
   document.getElementById('hdrSave').onclick=saveProtocolDraft;
   {const del=document.getElementById('delBtn');if(del)del.onclick=deleteProtocolDraft;}
   // Menu ⋯ d'éditeur (SPEC §4, sans « Modifier ») : agit sur le BROUILLON tel qu'affiché.
@@ -7822,7 +7964,7 @@ if(location.search.indexOf('__actest')>=0){
   window.__ac_test__={migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attStoragePath,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
-    restErrStatus,isPersoRepairCandidate,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt};
+    restErrStatus,isPersoRepairCandidate,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES};
 }else{
   /* ===== PWA =====
      Enregistre le service worker (cache hors ligne) si disponible. Capte

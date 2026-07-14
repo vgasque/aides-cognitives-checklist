@@ -456,6 +456,37 @@ function run(A){
   eq('pipes SANS ligne de séparation -> paragraphe', A.mdBlocks('dose | poids').map(b=>b.t), ['p']);
   eq('pipes dans un bloc de code -> pas de tableau', A.mdBlocks('```\n| a |\n|---|\n```').map(b=>b.t), ['code']);
 
+  group('mini-Markdown — encadrés typés + surlignage (v4.4.3)');
+  eq('[!CAUTION] -> registre ALERTE', A.mdCallout('[!CAUTION] Ne pas dépasser 3 mg').kind, 'crit');
+  eq('[!WARNING] -> ATTENTION', A.mdCallout('[!WARNING] Vérifier la dilution').kind, 'vig');
+  eq('[!NOTE] -> INFORMATION', A.mdCallout('[!NOTE] Seuil SFAR').kind, 'info');
+  eq('[!TIP] -> CONFIRMATION', A.mdCallout('[!TIP] Objectif atteint').kind, 'ok');
+  eq('casse indifférente', A.mdCallout('[!caution] x').kind, 'crit');
+  eq('alias français', [A.mdCallout('[!alerte] x').kind,A.mdCallout('[!attention] x').kind,A.mdCallout('[!info] x').kind,A.mdCallout('[!ok] x').kind], ['crit','vig','info','ok']);
+  eq('alias glyphe ⚠ (copier-coller depuis une fiche)', A.mdCallout('⚠ Adrénaline').kind, 'crit');
+  eq('alias glyphe △', A.mdCallout('△ Dose à vérifier').kind, 'vig');
+  eq('marqueur retiré du texte', A.mdCallout('[!TIP] Objectif atteint').text, 'Objectif atteint');
+  eq('mot inconnu -> citation NEUTRE, texte intact', A.mdCallout('[!bidule] x'), {kind:'',text:'[!bidule] x'});
+  eq('citation ordinaire inchangée', A.mdCallout('Simple citation').kind, '');
+  ok('rendu : classe de registre + libellé en toutes lettres', (()=>{const h=A.mdRender('> [!CAUTION] Danger');return h.indexOf('md-call crit')>=0&&h.indexOf('Alerte')>=0&&h.indexOf('Danger')>=0;})());
+  ok('registre lu SEULEMENT sur la 1re ligne du bloc', (()=>{const b=A.mdBlocks('> [!NOTE] a\n> [!TIP] b')[0];return b.kind==='info'&&b.lines.length===2&&b.lines[1].indexOf('[!TIP]')>=0;})());
+  ok('forme CANONIQUE GitHub (marqueur seul, texte en dessous)', (()=>{const b=A.mdBlocks('> [!CAUTION]\n> Danger mortel')[0];return b.kind==='crit'&&b.lines.length===1&&b.lines[0]==='Danger mortel';})());
+  ok('les 5 mots-clés GitHub sont reconnus', ['NOTE','TIP','IMPORTANT','WARNING','CAUTION'].every(w=>A.mdCallout('[!'+w+'] x').kind!==''));
+  ok('aucune classe issue du texte utilisateur (jeu fermé)', A.mdRender('> [!"><script>] x').indexOf('<script')<0);
+  ok('==surligné== rendu en <mark> achromatique', A.mdRender('un ==mot== clé').indexOf('<mark class="md-mk">mot</mark>')>=0);
+  ok('==surlignage== échappé (XSS)', A.mdRender('==<img onerror=x>==').indexOf('<img')<0);
+  ok('pas de surlignage dans du code', A.mdRender('`==x==`').indexOf('<mark')<0);
+  eq('surlignage retiré de l\'index de recherche', A.mdStrip('un ==mot== clé'), 'un mot clé');
+
+  group('Taille d\'image par image (v4.4.3)');
+  eq('échelles = jeu fermé', A.MD_SCALES, [25,33,50,66,75,100]);
+  eq('scale par défaut = 100 % (export ancien sans le champ)', A.migrateProtocol({images:[{id:'i1',data:'data:image/png;base64,AAAA'}]}).images[0].scale, 100);
+  eq('scale hors du jeu -> 100 %', A.migrateProtocol({images:[{id:'i1',data:'data:image/png;base64,AAAA',scale:37}]}).images[0].scale, 100);
+  eq('scale valide conservé', A.migrateProtocol({images:[{id:'i1',data:'data:image/png;base64,AAAA',scale:50}]}).images[0].scale, 50);
+  ok('rendu : classe fermée, jamais un style inline', (()=>{const h=A.mdRender('![c](img:i1)',{images:[{id:'i1',data:'data:image/png;base64,AAAA',scale:50}]});return h.indexOf('md-fig w50')>=0&&h.indexOf('style=')<0;})());
+  ok('100 % -> aucune classe de taille', A.mdRender('![c](img:i1)',{images:[{id:'i1',data:'data:image/png;base64,AAAA',scale:100}]}).indexOf('md-fig"')>=0);
+  ok('deux images, deux tailles indépendantes', (()=>{const h=A.mdRender('![a](img:i1)\n![b](img:i2)',{images:[{id:'i1',data:'data:image/png;base64,AAAA',scale:25},{id:'i2',data:'data:image/png;base64,BBBB',scale:75}]});return h.indexOf('md-fig w25')>=0&&h.indexOf('md-fig w75')>=0;})());
+
   group('mini-Markdown — mdStrip() (recherche)');
   eq('balisage retiré', A.mdStrip('## T\n- **a**\n[l](https://x)'), 'T a l');
   eq('légende d\'image conservée', A.mdStrip('![légende](img:i1)'), 'légende');

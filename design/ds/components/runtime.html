@@ -1473,6 +1473,23 @@
   .md-ul li,.md-ol li{margin:3px 0}
   .md-ul .md-ul,.md-ul .md-ol,.md-ol .md-ul,.md-ol .md-ol{margin:3px 0 0;padding-left:20px}
   .md-q{margin:0 0 10px;padding:6px 0 6px 12px;border-left:3px solid var(--line-strong);color:var(--ink-soft)}
+  /* ENCADRÉS TYPÉS (v4.4.3) : grammaire des notices V5 — bord gauche 4px + bordure + teinte du
+     registre, icône ET libellé en toutes lettres (la couleur n'est jamais seule, WCAG 1.4.1).
+     Aucune couleur nouvelle : ce sont les 4 registres de l'app. */
+  .md-call{padding:9px 12px;border-radius:var(--radius-sm);border:1px solid;border-left-width:4px;color:var(--ink)}
+  .md-call .mc-k{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:4px}
+  .md-call .mc-g{font-size:12px;line-height:1}
+  .md-call.crit{background:var(--critical-soft);border-color:var(--critical-line);border-left-color:var(--critical-bd)}
+  .md-call.crit .mc-k{color:var(--critical)}
+  .md-call.vig{background:var(--verify-soft);border-color:var(--verify-line);border-left-color:var(--verify-bd)}
+  .md-call.vig .mc-k{color:var(--verify)}
+  .md-call.info{background:var(--primary-soft);border-color:var(--primary);border-left-color:var(--primary)}
+  .md-call.info .mc-k{color:var(--primary-dk)}
+  .md-call.ok{background:var(--ok-soft);border-color:var(--ok);border-left-color:var(--ok)}
+  .md-call.ok .mc-k{color:var(--ok)}
+  /* ==surligné== : ACHROMATIQUE (registre MEMO) — faire ressortir un mot sans emprunter une
+     couleur qui, dans cette app, veut dire « ça tue » (rouge) ou « on s'y trompe » (ambre). */
+  .md-mk{background:var(--tag-bg);color:var(--tag-ink);padding:0 3px;border-radius:4px}
   .md-ci{font-family:var(--mono);font-size:.92em;background:var(--surface-3);border-radius:5px;padding:1px 5px}
   .md-code{margin:0 0 10px;padding:10px 12px;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius-sm);overflow-x:auto}
   .md-code code{font-family:var(--mono);font-size:12.5px;line-height:1.5;white-space:pre}
@@ -1491,8 +1508,28 @@
   .md-fig{margin:12px 0}
   .md-fig img{max-width:100%;height:auto;border-radius:var(--radius-sm);border:1px solid var(--line);cursor:zoom-in}
   .md-fig figcaption{font-size:12px;color:var(--ink-soft);margin-top:4px}
+  /* Taille d'image PAR IMAGE (v4.4.3) : la réduction ne s'applique qu'AU-DESSUS de 560px — sur un
+     téléphone, une image à 25 % ferait ~90px de large, illisible sous stress (règle QRH). */
+  @media (min-width:560px){
+    .md-fig.w25 img{width:25%}.md-fig.w33 img{width:33%}.md-fig.w50 img{width:50%}
+    .md-fig.w66 img{width:66%}.md-fig.w75 img{width:75%}
+  }
   .md-body a,.md-preview a{color:var(--primary);text-decoration:underline}
   .md-toolbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+  /* Boutons d'ENCADRÉ TYPÉ : chacun porte la couleur de SON registre (le bouton dit ce qu'il pose). */
+  .md-toolbar .mdc-crit{color:var(--critical)}
+  .md-toolbar .mdc-vig{color:var(--verify);font-weight:800}
+  .md-toolbar .mdc-info{color:var(--primary-dk)}
+  .md-toolbar .mdc-ok{color:var(--ok)}
+  .md-toolbar .md-mkb{background:var(--tag-bg);color:var(--tag-ink);font-weight:800}
+  /* Images insérées : une rangée par image, avec SA taille d'affichage (v4.4.3). */
+  .md-imgs{margin:12px 0 4px}
+  .mi-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:7px 0;border-top:1px solid var(--line)}
+  .mi-th{width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid var(--line);cursor:copy;flex:none}
+  .mi-cap{flex:1;min-width:120px;font-size:13px;color:var(--ink-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mi-lab{font-size:12px;color:var(--ink-soft)}
+  .mi-sc{padding:8px 10px;border:1px solid var(--line-strong);border-radius:8px;background:var(--input-bg);color:var(--ink);font-size:13px;font-weight:600;min-height:40px}
+  .mi-sc:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* .mini a une LARGEUR FIXE (boutons carrés × ↑ ↓) : ici les libellés varient -> largeur auto. */
   .md-toolbar .mini{width:auto;min-width:36px;height:34px;padding:0 10px;font-size:13px;font-weight:600;white-space:nowrap}
   #p-body{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--input-bg);color:var(--ink);font-family:var(--mono);font-size:13px;line-height:1.55;resize:vertical}
@@ -1666,7 +1703,7 @@
      `.tk-time-edit` : le mono 16px déborde des 76px calibrés pour 14px -> largeur relevée. */
   @media (hover:none) and (pointer:coarse){
     .hdr-search input,#p-body,.note-ta,.catmenu-filter,.tk-lab,.tk-time-edit,.cm-name,.cm-add input,input.gcap,
-    .mem-act select,.invite-row select,.invite-row input{font-size:16px}
+    .mem-act select,.invite-row select,.invite-row input,.mi-sc{font-size:16px}
     .tk-time-edit{width:96px}
   }
   @media print{body{background:#fff}header.bar,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.sess-list,.notes-block{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}
