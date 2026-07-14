@@ -1,5 +1,42 @@
 # Journal des modifications
 
+## [4.4.1] — 2026-07-14
+Finitions du parcours de soin : fil d'Ariane à hauteur fixe, encadrés de session unifiés,
+bouton de démarrage au gabarit « Continuer », mémoire de défilement de l'accueil, éditeur
+réordonné, prompt IA durci et fiches d'exemple allégées.
+
+### Modifié
+- **Encadrés de session unifiés** : « Minuteurs & compteurs » (rangée repliée et panneau) et
+  « Journal des actions » suivent le gabarit commun des blocs de la fiche (surface, bordure
+  fine, rayon 8, sans ombre — comme « Confirmation » et « Algorithme ») : un seul langage
+  d'encadré dans le parcours de soin.
+- **« Confirmé — démarrer la session » au gabarit de « Continuer »** : pleine largeur du bloc,
+  50 px, typographie 15/800 — la rangée d'action d'une étape a partout la même forme. Il reste
+  bleu `--primary` (démarrer = action primaire ; le vert reste la CONFIRMATION d'un bloc
+  entièrement coché) ; l'aide passe dessous, centrée.
+- **Éditeur de fiche réordonné dans l'ordre de LECTURE** du parcours de soin : identité →
+  Ne pas oublier (avec la mention « 4 rappels maximum ») → Confirmation diagnostique →
+  Prise en charge → Minuteurs & compteurs → Contexte local → Repères posologiques →
+  À vérifier → Diagnostics différentiels → annexes. On rédige dans l'ordre où l'équipe lira.
+- **Prompt IA** : « notForget » est désormais borné à **4 rappels maximum** (limite stricte,
+  alignée sur le garde-fou de l'éditeur) avec consigne de reclassement (étape ⚠ du bloc
+  concerné, ou « verify ») — l'ancienne consigne commune « ≤ 7 items » laissait passer des
+  bandeaux-fleuves.
+- **Fiches d'exemple** : le chronomètre « Temps écoulé » est retiré d'Anaphylaxie et d'ACR —
+  le chrono global de session (en-tête) le rend redondant. Micro-libellé : « Schéma = vue
+  d'ensemble · étapes à cocher en-dessous ↓ » (raccourci).
+
+### Corrigé
+- **Fil d'Ariane à HAUTEUR FIXE sur mobile** (règle ECAM : un long parcours ne doit jamais
+  allonger la page ni repousser les étapes hors de l'écran) : les jalons ne passent plus à la
+  ligne — une seule rangée à défilement horizontal (même geste que la barre de minuteurs de
+  l'en-tête), position COURANTE auto-centrée à chaque rendu, historique consultable d'un
+  glissement. Testé sur 6 tours de boucle ACR : 32 px de haut, constants.
+- **Défilement de l'accueil par section** : basculer Aides ↔ Protocoles n'hérite plus du
+  défilement de l'autre liste (la nouvelle section arrive EN HAUT) — mais revenir à une
+  section retrouve l'endroit exact où on l'avait laissée (mémoire par section, fenêtre en
+  étroit / colonne centrale en large).
+
 ## [4.4.0] — 2026-07-14
 Parcours de soin numéroté dans la vue fiche : la séquence « ① confirmer le diagnostic →
 ② dérouler l'algorithme → ③ surveiller » devient la structure visible de l'écran de crise

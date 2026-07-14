@@ -232,7 +232,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-BuZzRRv9Qd84CyoyB1Ny8/8QtnJ5eGl4iu5nfeWX9OM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-aYAjVpK1VHLss9wADZMvaYYM1FZWqjc4p+raFB4kb5k='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -859,8 +859,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Démarrage EXPLICITE de session (v4.3.2) : sous la confirmation diagnostique (doctrine QRH :
      on confirme le tableau, PUIS on agit). Seul bouton --primary plein de l'écran avant session
      (« Continuer » vit aux registres idle/CONFIRMATION) ; disparaît dès la session démarrée. */
-  .sess-start{display:flex;align-items:center;gap:6px 14px;flex-wrap:wrap;margin:14px 0 4px}
-  .ss-hint{font-size:12px;color:var(--ink-soft)}
+  /* v4.4.1 : « Confirmé — démarrer la session » au GABARIT de « Continuer » (.btn.cont :
+     pleine largeur, 50px, 15/800) — même grammaire de rangée d'action au pied d'une étape ;
+     il reste BLEU --primary (démarrer = action primaire, le vert reste la CONFIRMATION
+     d'un bloc entièrement coché). L'aide passe dessous, centrée. */
+  .sess-start{margin:14px 0 4px}
+  .sess-start .btn{width:100%;min-height:50px;font-weight:800;font-size:15px;letter-spacing:.3px;border-radius:9px;display:flex;align-items:center;justify-content:center;gap:7px}
+  .ss-hint{display:block;text-align:center;margin-top:6px;font-size:12px;color:var(--ink-soft)}
   /* ----- Parcours de soin (v4.4.0, « option B ») : rail vertical numéroté ① Confirmer →
      ② Prise en charge → ③ Surveillances & pièges. Pastilles : bleu = étape active,
      vert ✓ = faite, neutre cerclé = à venir — JAMAIS d'ambre/rouge ici (registres d'alerte).
@@ -976,8 +981,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   ul.diff li{color:var(--ink-soft)}
   .nav-wrap{margin-bottom:6px;scroll-margin-top:74px}
   .nav-wrap.dec{border-radius:8px;padding:12px 14px;margin-bottom:10px}
-  .crumbs{display:flex;flex-wrap:wrap;gap:5px;align-items:center;font-size:11px;font-weight:700;color:var(--ink-soft);margin:2px 0 8px}
-  .crumbs .cb{background:var(--tag-bg);color:var(--ink-soft);padding:5px 10px;min-height:32px;display:inline-flex;align-items:center;border-radius:12px;cursor:pointer}.crumbs .cb:not(.cur):hover{background:var(--primary-200)}.crumbs .cb.cur{background:var(--link);color:var(--surface);cursor:default}
+  /* Fil d'Ariane : EMPREINTE VERTICALE FIXE (v4.4.1, règle ECAM — un long parcours ne doit
+     jamais allonger la page ni repousser les étapes hors de l'écran). Une seule ligne à
+     défilement horizontal (même geste que la barre de minuteurs #cbTimers), pas de barre de
+     défilement visible ; la position COURANTE est auto-centrée à chaque rendu (bindReadEvents),
+     l'historique reste consultable d'un glissement. */
+  .crumbs{display:flex;flex-wrap:nowrap;gap:5px;align-items:center;font-size:11px;font-weight:700;color:var(--ink-soft);margin:2px 0 8px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .crumbs::-webkit-scrollbar{display:none}
+  .crumbs .cb{flex:none;background:var(--tag-bg);color:var(--ink-soft);padding:5px 10px;min-height:32px;display:inline-flex;align-items:center;border-radius:12px;cursor:pointer;white-space:nowrap}.crumbs .cb:not(.cur):hover{background:var(--primary-200)}.crumbs .cb.cur{background:var(--link);color:var(--surface);cursor:default}
   html[data-theme="dark"] .crumbs .cb:not(.cur):hover{background:#22364d}
   .crumbs .cb-n{font-family:var(--mono);font-size:11px;opacity:.7;margin-left:2px}
   .node-title .pass-n{font-family:var(--mono);text-transform:none;letter-spacing:0;font-weight:600;color:var(--primary);margin-left:7px}
@@ -1011,7 +1022,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      menu ⋯ de l'en-tête.) */
   /* runtime — V5 : le panneau minuteurs SUIT LE THÈME (canvas turn 6 : cartes claires bordées en
      thème clair, sombres en thème sombre) ; l'accent primaire porte l'action, l'ambre l'alarme. */
-  .rt-panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px;box-shadow:var(--shadow);-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+  /* v4.4.1 : les panneaux de session (minuteurs, journal) suivent le GABARIT COMMUN des blocs
+     de la fiche (surface, bordure --line, rayon 8, sans ombre — cf. .conf-block/.alg-panel) :
+     un seul langage d'encadré dans le parcours de soin. */
+  .rt-panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:14px;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   /* Pendant un « maintenir pour réinitialiser » : aucune sélection de texte possible nulle part. */
   body.hold-noselect,body.hold-noselect *{-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important}
   .rt-head{display:flex;align-items:center;gap:8px;margin-bottom:11px}
@@ -1075,7 +1089,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .cn-reset{margin:9px auto 0;min-width:120px;padding:6px 14px;min-height:44px;background:var(--surface);color:var(--ink-soft);border:1px solid var(--line-strong);border-radius:8px;font-size:11.5px;font-weight:600;-webkit-user-select:none;user-select:none}
   .cn-reset:hover{background:var(--surface-2)}
   /* Horodatage : outil SECONDAIRE -> panneau CLAIR (le panneau sombre reste réservé aux minuteurs/compteurs) */
-  .tk-panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:13px 14px;margin-bottom:14px;box-shadow:var(--shadow)}
+  .tk-panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:13px 14px;margin-bottom:14px}
   .tk-head{display:flex;align-items:center;gap:10px;margin-bottom:9px}
   .tk-head b{color:var(--ink-soft);font-size:11px;letter-spacing:1px;text-transform:uppercase;flex:1}
   .tk-add{background:var(--primary);color:var(--on-primary);border:0;border-radius:var(--radius-sm);padding:8px 13px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
@@ -1807,7 +1821,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      (garde-fou de l'éditeur au-delà de 4 rappels). */
   @media (min-width:780px){.forget-strip.many{display:grid;grid-template-columns:1fr 1fr;gap:0 24px}.forget-strip.many .fs-k{grid-column:1/-1}}
   /* Panneau minuteurs REPLIÉ tant que rien n'est démarré : le contenu clinique passe devant. */
-  .rt-collapsed{width:100%;display:flex;align-items:center;gap:9px;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;margin-bottom:14px;font-size:13px;font-weight:600;cursor:pointer;min-height:44px;text-align:left;box-shadow:var(--shadow)}
+  .rt-collapsed{width:100%;display:flex;align-items:center;gap:9px;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:13px;font-weight:600;cursor:pointer;min-height:44px;text-align:left}
   .rt-collapsed:hover{border-color:var(--line-hover)}
   .rt-collapsed .rtc-i{flex:1;min-width:0}
   .rt-collapsed .rtc-open{color:var(--ink-soft);font-size:12px;white-space:nowrap}
@@ -2030,7 +2044,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.4.0';
+const APP_VERSION='4.4.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -2847,7 +2861,8 @@ function seed(catId){const b1=uid('b'),b2=uid('b'),b3=uid('b'),bd=uid('b');
     notForget:['Adrénaline IM = 1ʳᵉ intention, ne pas retarder','Allonger, jambes surélevées — ne pas verticaliser','Surveillance prolongée : réaction biphasique possible'],
     differentials:['Asthme aigu grave','Malaise vagal','Œdème laryngé d’autre origine','Choc d’autre cause (septique, hémorragique)'],
     references:['Exemple à compléter — recommandations en vigueur'],images:[],
-    timers:[{id:uid('t'),label:'Temps écoulé',type:'stopwatch'},{id:uid('t'),label:'Réévaluation après adrénaline',type:'interval',seconds:300,autoloop:true}],
+    // (v4.4.1 : plus de chrono « Temps écoulé » — le chrono GLOBAL de session le rend redondant.)
+    timers:[{id:uid('t'),label:'Réévaluation après adrénaline',type:'interval',seconds:300,autoloop:true}],
     counters:[{id:uid('n'),label:'Injections d’adrénaline',step:1,start:0}],
     start:b1,
     blocks:[
@@ -2866,7 +2881,7 @@ function seed2(catId){const b1=uid('b'),bd=uid('b'),b2=uid('b'),b3=uid('b');
     notForget:['MCE de qualité : 100–120/min, 5–6 cm, relâchement complet','Minimiser les interruptions (< 10 s)','Rechercher les causes réversibles (4H / 4T)'],
     differentials:['4H : Hypoxie, Hypovolémie, Hypo/Hyperkaliémie, Hypothermie','4T : Thrombose (coronaire/pulmonaire), pneumoThorax, Tamponnade, Toxiques'],
     references:['Exemple à compléter — recommandations ERC/ILCOR en vigueur'],images:[],
-    timers:[{id:uid('t'),label:'Temps écoulé',type:'stopwatch'},{id:uid('t'),label:'Cycle RCP (2 min)',type:'interval',seconds:120,autoloop:true}],
+    timers:[{id:uid('t'),label:'Cycle RCP (2 min)',type:'interval',seconds:120,autoloop:true}],
     counters:[{id:uid('n'),label:'Chocs délivrés',step:1,start:0},{id:uid('n'),label:'Adrénaline (mg)',step:1,start:0}],
     start:b1,
     blocks:[
@@ -3656,10 +3671,18 @@ window.addEventListener('scroll',()=>{const c=window.scrollY>24;
   if(t!==_hdrTtl){_hdrTtl=t;document.querySelector('header.bar').classList.toggle('ttl-on',t);}},{passive:true});
 // keepQuery : bascule déclenchée par la RECHERCHE TRANSVERSALE -> la requête est conservée
 // (le filtre de catégorie, lui, est remis à zéro : il pourrait masquer les résultats attendus).
+// Mémoire de DÉFILEMENT par section (v4.4.1) : basculer Aides <-> Protocoles ne doit pas
+// hériter du scroll de l'autre liste (on arrivait « au milieu » de la nouvelle section) —
+// mais REVENIR à une section retrouve l'endroit où on l'avait laissée. Le défileur dépend
+// de la largeur : .home-main (accueil large, coque fixe) ou la fenêtre (étroit).
+const _homeScroll={fiches:0,protocols:0};
 function setSection(s,keepQuery){s=(s==='protocols')?'protocols':'fiches';if(state.section===s)return;
   const dir=(s==='protocols')?'r':'l';
+  {const sc=main.querySelector('.home-main');_homeScroll[state.section]=(mqHomeWide.matches&&sc)?sc.scrollTop:window.scrollY;}
   state.section=s;try{localStorage.setItem(spaceKey('ac-section'),s);}catch(e){}
   state.cat='';if(!keepQuery)state.q='';state.libLimit=LIB_PAGE;render();
+  {const y=_homeScroll[s]||0;const sc=main.querySelector('.home-main');
+   if(mqHomeWide.matches&&sc)sc.scrollTop=y;else window.scrollTo(0,y);}
   // Transition de contenu (transform/opacity uniquement -> compositeur : la page reste utilisable
   // pendant l'animation, qui accompagne le glissement de l'indicateur de l'en-tête).
   main.classList.remove('sec-anim-l','sec-anim-r');void main.offsetWidth;
@@ -4784,7 +4807,7 @@ function renderRead(){
   // le geste PORTE la confirmation), sinon en tête de « Prise en charge ». Un seul bouton
   // rempli par écran ; la 1ʳᵉ action clinique démarre toujours aussi (jamais bloquant).
   const sessStartH=(!preview&&!started)?`<div class="sess-start"><button class="btn primary" id="sessStart">${uiIcon('play',14)} ${confItems.length?'Confirmé — démarrer la session':'Démarrer la session'}</button><span class="ss-hint">chrono, minuteurs et journal — démarre aussi à la première action</span></div>`:'';
-  const algH=f.blocks&&f.blocks.length?`<div class="alg-panel"><button type="button" class="alg-head" id="flowToggle" aria-expanded="${state.showFlow?'true':'false'}"><span class="alg-k">Algorithme</span><span class="alg-sub">· carte des blocs — synchronisée${blockTot!=null?` · <span id="algCount">${blockDone}/${blockTot}</span> coché`:''}</span><span class="alg-chev" aria-hidden="true">${state.showFlow?'▴':'▾'}</span></button>${state.showFlow?flowBlock(f,cur)+'<div class="flow-hint">Schéma = vue d’ensemble · les étapes à cocher sont en dessous ↓</div>':''}</div>`:'';
+  const algH=f.blocks&&f.blocks.length?`<div class="alg-panel"><button type="button" class="alg-head" id="flowToggle" aria-expanded="${state.showFlow?'true':'false'}"><span class="alg-k">Algorithme</span><span class="alg-sub">· carte des blocs — synchronisée${blockTot!=null?` · <span id="algCount">${blockDone}/${blockTot}</span> coché`:''}</span><span class="alg-chev" aria-hidden="true">${state.showFlow?'▴':'▾'}</span></button>${state.showFlow?flowBlock(f,cur)+'<div class="flow-hint">Schéma = vue d’ensemble · étapes à cocher en-dessous ↓</div>':''}</div>`:'';
   const localH=f.localInfo&&f.localInfo.trim()?`<div class="local">${fmt(f.localInfo)}</div>`:'';
   const stages=[];
   if(confBlockH)stages.push({cls:started?'done':'on',head:'',body:confBlockH+sessStartH});
@@ -4897,6 +4920,10 @@ function bindReadEvents(f,blk,cur){
   main.querySelectorAll('[data-goto]').forEach(b=>b.onclick=()=>{const t=b.dataset.goto;if(t&&f.blocks.some(x=>x.id===t)){state.nav.push(t);state.navSeq.push(++Runtime.seq);state.navPos=state.nav.length-1;scrollNavNext=true;render();}});
   const goCrumb=i=>{if(i>=0&&i<state.nav.length){state.navPos=i;render();}};
   main.querySelectorAll('[data-crumb]').forEach(c=>{c.onclick=()=>goCrumb(+c.dataset.crumb);c.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();goCrumb(+c.dataset.crumb);}};});
+  // Fil d'Ariane à hauteur fixe : la position COURANTE est toujours visible (auto-centrée
+  // dans la ligne défilante — même logique que la chip de bibliothèque active de l'accueil).
+  {const cw=main.querySelector('.crumbs');const cc=cw&&cw.querySelector('.cb.cur');
+   if(cc&&cw.scrollWidth>cw.clientWidth)cw.scrollLeft=Math.max(0,cc.offsetLeft-cw.clientWidth/2+cc.clientWidth/2);}
   // Cocher une étape DÉMARRE la session (1ʳᵉ action) et l'auto-enregistre.
   // Accessible clavier/lecteur d'écran : role=checkbox + aria-checked (posés au rendu), Entrée/Espace.
   // MISE À JOUR CIBLÉE du <li> coché, pas de render() : reconstruire toute la vue (galerie
@@ -5147,16 +5174,19 @@ function renderEditor(){
   const wideEdit=mqReadWide.matches;
   main.innerHTML=`${wideEdit?`<div class="read-grid"><div class="read-main">`:''}`+`
     ${editorMetaFieldsHtml(f,'f',{titleLabel:'Titre de la situation',titlePh:'ex. Intoxication aux anesthésiques locaux',scopeHint:'où ranger cette fiche',codePh:'ex. URG-ANA-01',fem:true})}
-    <div class="field"><div class="lab-row"><label>Contexte local <span class="hint">numéros utiles, particularités</span></label>${boldBtnHtml()}</div><textarea id="f-localInfo" rows="2" placeholder="Réanimateur de garde, pharmacie…">${esc(f.localInfo)}</textarea></div>
+    ${''/* v4.4.1 : les champs suivent l'ORDRE DE LECTURE du parcours de soin (chapeau « Ne pas
+    oublier », ① confirmation, ② prise en charge + minuteurs + contexte local + posologie,
+    ③ à vérifier + différentiels, puis annexes) — on rédige dans l'ordre où l'équipe lira. */}
+    ${listEditor('Ne pas oublier','points critiques — 4 rappels maximum (bandeau permanent)','notForget',f.notForget)}
+    <p class="nf-guard" id="nfGuard" role="status">${nfGuardTxt(clean(f.notForget).length)}</p>
     ${listEditor('Confirmation diagnostique','critères pour déclencher la fiche','confirmation',f.confirmation)}
     <fieldset class="field"><label>Prise en charge <span class="hint">listes d'étapes + décisions conditionnelles</span></label><p class="flow-prev-h">Algorithme — aperçu automatique</p>${flowBlock(f)}${f.blocks.map(b=>blockEditor(b,blocks)).join('')}<div class="add-blocks"><button class="btn sm" id="addSteps">+ Bloc d'étapes</button><button class="btn sm" id="addDecision">+ Décision (si… alors…)</button></div></fieldset>
     <fieldset class="field"><label>Minuteurs & compteurs <span class="hint">disponibles pendant la session</span></label>
       <p class="sub2">Minuteurs</p>${(f.timers||[]).map((t,i)=>timerEditorRow(t,i)).join('')}<div class="add-blocks"><button class="btn sm" id="addStopwatch">+ Chronomètre</button><button class="btn sm" id="addInterval">+ Minuteur (cycle)</button></div>
       <p class="sub2" style="margin-top:14px">Compteurs</p>${(f.counters||[]).map((c,i)=>counterEditorRow(c,i,f.timers)).join('')}<button class="add-line" id="addCounter">+ Ajouter un compteur</button></fieldset>
-    ${listEditor('À vérifier','','verify',f.verify)}
+    <div class="field"><div class="lab-row"><label>Contexte local <span class="hint">numéros utiles, particularités</span></label>${boldBtnHtml()}</div><textarea id="f-localInfo" rows="2" placeholder="Réanimateur de garde, pharmacie…">${esc(f.localInfo)}</textarea></div>
     ${listEditor('Repères posologiques','bouton ⚠ = carte rouge (dose critique) · **gras** possible','posology',f.posology,false,{crit:true})}
-    ${listEditor('Ne pas oublier','points critiques','notForget',f.notForget)}
-    <p class="nf-guard" id="nfGuard" role="status">${nfGuardTxt(clean(f.notForget).length)}</p>
+    ${listEditor('À vérifier','','verify',f.verify)}
     ${listEditor('Diagnostics différentiels','','differentials',f.differentials)}
     <fieldset class="field"><label>Schémas & captures <span class="hint">stockées hors ligne dans l'app</span></label><div class="gallery">${(f.images||[]).map((im,i)=>`<div class="gthumb"><img src="${im.data}" alt="" loading="lazy" decoding="async"><input type="text" class="gcap" data-imgcap="${i}" value="${esc(im.caption||'')}" placeholder="Légende…" style="width:100%;margin-top:5px;padding:6px 8px;border:1px solid var(--line);border-radius:7px"><button class="btn sm danger" data-imgdel="${i}" style="width:100%;margin-top:5px">Retirer</button></div>`).join('')}</div><button class="add-line" id="addImg" style="margin-top:10px">+ Ajouter une image / capture</button></fieldset>
     ${attFieldsetHtml(f)}
@@ -5598,7 +5628,10 @@ STRUCTURE
   - notForget     = pièges, points critiques, INTERDICTIONS et incompatibilités en
     formulation négative explicite (« NE PAS associer X et Y »), contre-indications.
     UNE interdiction / un piège par ligne : une ligne qui en empile trois ne se lit
-    pas d'un coup d'œil ;
+    pas d'un coup d'œil. 4 RAPPELS MAXIMUM (limite stricte) : ce sont des memory items,
+    affichés en bandeau permanent — au-delà de 4, plus rien n'est saillant. Si tu en as
+    plus, garde les 4 qui TUENT et reclasse le reste : rappel lié à une étape précise →
+    étape « ⚠ » du bloc concerné ; surveillance / seuil → verify ;
   - differentials = diagnostics à ÉLIMINER (mimics : artefact, erreur de mesure…).
     ATTENTION : une cause réversible AVEC traitement spécifique (hyperkaliémie,
     surdosage…) n'est PAS un simple différentiel — mets-la dans un bloc « steps » dédié
@@ -5612,8 +5645,9 @@ STRUCTURE
   n'est pas limité, c'est la densité PAR BLOC qui compte. Un bloc qui dépasse ~8 lignes
   est un SIGNAL : condense (regroupement) ou sépare des PHASES cliniques distinctes
   (mesures immédiates / 2e intention / surveillance) — ne coupe JAMAIS une séquence
-  arbitrairement. Vise ≤ 7 items par section de liste (confirmation, verify, notForget) ;
-  au-delà, regroupe par catégorie. Si la source couvre plusieurs SITUATIONS distinctes,
+  arbitrairement. Vise ≤ 7 items par section de liste (confirmation, verify) — notForget
+  reste à 4 MAXIMUM (voir ci-dessus) ; au-delà, regroupe par catégorie. Si la source
+  couvre plusieurs SITUATIONS distinctes,
   propose-moi plusieurs fiches plutôt qu'une fiche-fleuve.
 
 STYLE DES ÉTAPES
