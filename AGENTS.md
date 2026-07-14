@@ -103,6 +103,22 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   2 colonnes ≥ 780 px — jamais de repli — et garde-fou non bloquant dans l'éditeur,
   `nfGuardTxt`). Tout re-rendu de DÉMARRAGE passe par `renderKeepAnchor` (l'élément déclencheur
   ne bouge pas d'un pixel à l'écran — ECAM).
+- **Sélecteur segmenté `.seg` (v4.4.2)** : composant UNIQUE à pastille glissante, partagé par la
+  tab bar basse (Aides ↔ Protocoles) et le dialogue « Créer » (Aide cognitive ↔ Protocole).
+  L'état vit sur la RACINE (`.seg.i1` = 2ᵉ segment) et la racine n'est JAMAIS re-rendue — sinon
+  la pastille saute au lieu de glisser (`paintSeg` est le seul point d'écriture). Le segment du
+  dialogue pilote `state.section` : choisir un type y bascule aussi l'onglet de l'accueil.
+- **Pieds de page (v4.4.2)** : UNE source de vérité pour l'état de stockage (`storageState`,
+  pure) — variante LONGUE dans la sidebar de l'accueil (+ info-bulle), variante COURTE dans le
+  pied des vues de LECTURE (fiche ET protocole, `readFooterHtml`). Le pied de lecture ne répète
+  ni le code court ni la date de validation (déjà dans la méta du haut). En session de crise,
+  l'état de stockage disparaît des deux pieds (aucun signal non actionnable pendant un soin).
+- **Repli de l'étape ① (doctrine, v4.4.2)** : un démarrage IMPLICITE (cochage, minuteur,
+  compteur, horodatage) ne replie JAMAIS « Confirmation diagnostique » — `ensureStarted` fige
+  l'état ouvert. `renderKeepAnchor` ne peut compenser le scroll que si `window.scrollY ≥ hauteur
+  retirée` : sur une page courte ou en haut de fiche, replier ferait sauter le contenu sous le
+  doigt (bug v4.3.2, en pire). Le repli n'appartient qu'aux gestes qui l'ACQUITTENT : le bouton
+  « Confirmé — démarrer la session » et la première navigation « Continuer → ».
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, minuteurs de crise segmentés `#cbTimers` avec chrono **GLOBAL** — temps écoulé
   depuis la 1ʳᵉ action de session, décision produit —, badge de statut, Créer, thème, compte) ;
@@ -246,7 +262,7 @@ modèle de données, règles de sécurité) : le lire en premier. Ensuite, dans 
 | Render | `render()` → `applyViewChrome` (chrome d'en-tête) puis `renderFiches`/`renderProtocols` / `renderRead` / `renderEditor` (template strings + écouteurs) |
 | Flow SVG | `buildFlowSVG` : organigramme auto de la prise en charge |
 | Visionneuse PDF | `pdfLib` (chargement paresseux de `vendor/pdfjs`), `openPdfViewer` (rendu virtualisé par IntersectionObserver, zoom), fenêtre `#pdfModal` |
-| Mini-Markdown | `mdBlocks`/`mdInline`/`mdRender`/`mdStrip` : parseur maison XSS-safe (esc() d'abord) du contenu rédigé des protocoles |
+| Mini-Markdown | `mdBlocks`/`mdInline`/`mdRender`/`mdStrip`/`mdCells` : parseur maison XSS-safe (esc() d'abord) du contenu rédigé des protocoles — titres, listes, citation, code, image, et TABLEAUX (v4.4.2 : pipes ouvrant ET fermant exigés + ligne `|---|` obligatoire, alignement issu d'un jeu FERMÉ posé en classe, jamais dans un attribut piloté par l'utilisateur) |
 | Protocoles | `blankProtocol`/`migrateProtocol` (point d'entrée sécurité/compat), `renderProtocols`/`renderProtocolRead`/`renderProtocolEdit`, sélecteur de section dans l'en-tête (`#hdrSec` statique, `state.section`) |
 | Export / Import | JSON `version: 3` ; règles de rétrocompatibilité documentées sur place |
 | Compte & synchro | `Auth` (OTP e-mail), `Sync` (pull/push local-first), fenêtres associées |

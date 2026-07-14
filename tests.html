@@ -425,10 +425,42 @@ function run(A){
   ok('img:__proto__ jamais rendu', A.mdRender('![x](img:__proto__)',{images:[{id:'__proto__',data:'data:image/png;base64,AAAA'}]}).indexOf('<figure')<0);
   ok('plafond de taille respecté (pas de blocage)', typeof A.mdRender('x'.repeat(A.MD_MAX_CHARS*2))==='string');
 
+  group('storageState() — source unique des deux pieds de page (v4.4.2)');
+  const SS_ON=A.storageState({signed:true,pers:true,usage:3e6,quota:3e9,attBytes:0});
+  const SS_PERS=A.storageState({signed:false,pers:true,usage:3e6,quota:3e9,attBytes:0});
+  const SS_OFF=A.storageState({signed:false,pers:false,usage:3e6,quota:3e9,attBytes:0});
+  ok('connecté -> « Cloud » dans les deux variantes', SS_ON.main.indexOf('Cloud')>=0&&SS_ON.short.indexOf('Cloud')>=0);
+  ok('déconnecté + persistant -> « Cet appareil seulement »', SS_PERS.short.indexOf('Cet appareil seulement')>=0);
+  ok('déconnecté sans persistance -> registre ATTENTION', SS_OFF.short.indexOf('pers-warn')>=0);
+  ok('« copie unique » / « non protégé » : variante LONGUE seulement', SS_PERS.main.indexOf('copie unique')>=0&&SS_PERS.short.indexOf('copie unique')<0&&SS_OFF.short.indexOf('non protégé')<0);
+  ok('« presque plein » : variante LONGUE seulement', (()=>{const s=A.storageState({signed:true,pers:true,usage:2.9e9,quota:3e9,attBytes:0});return s.main.indexOf('presque plein')>=0&&s.short.indexOf('presque plein')<0;})());
+  ok('poids des PDF joints ajouté à l\'info-bulle', A.storageState({signed:true,pers:true,usage:3e6,quota:3e9,attBytes:1e6}).tip.indexOf('documents PDF joints')>=0);
+
+  group('nfGuardTxt() — garde-fou « Ne pas oublier » (non bloquant)');
+  eq('4 rappels ou moins -> rien', A.nfGuardTxt(4), '');
+  ok('au-delà de 4 -> avertissement chiffré', A.nfGuardTxt(6).indexOf('6 rappels')>=0);
+
+  group('mini-Markdown — tableaux (v4.4.2)');
+  const TBL='| Produit | Dose |\n|---|---:|\n| Adrénaline | 1 mg |\n| Amiodarone | 300 mg |';
+  eq('tableau détecté', A.mdBlocks(TBL).map(b=>b.t), ['tbl']);
+  eq('en-tête et lignes', (()=>{const b=A.mdBlocks(TBL)[0];return [b.head.length,b.rows.length];})(), [2,2]);
+  eq('alignement issu de la ligne de séparation', A.mdBlocks('| a | b | c |\n|---|:-:|---:|\n| 1 | 2 | 3 |')[0].align, ['','c','r']);
+  ok('rendu <table> avec th scope', A.mdRender(TBL).indexOf('<th scope="col">Produit</th>')>=0);
+  ok('conteneur défilant focusable', A.mdRender(TBL).indexOf('<div class="md-tw" tabindex="0" role="region"')>=0);
+  ok('alignement rendu en classe fermée', A.mdRender('| a |\n|---:|\n| 1 |').indexOf('<td class="ta-r">1</td>')>=0);
+  ok('gras interprété dans une cellule', A.mdRender('| a |\n|---|\n| **x** |').indexOf('<b>x</b>')>=0);
+  ok('XSS dans une cellule neutralisé', A.mdRender('| <img onerror=x> |\n|---|\n| <script>a<\/script> |').indexOf('<img')<0);
+  eq('ligne trop courte complétée sur l\'en-tête', A.mdBlocks('| a | b |\n|---|---|\n| 1 |')[0].rows[0], ['1','']);
+  eq('ligne trop longue tronquée sur l\'en-tête', A.mdBlocks('| a |\n|---|\n| 1 | 2 |')[0].rows[0], ['1']);
+  eq('pipe échappé conservé dans la cellule', A.mdCells('| a \\| b | c |'), ['a | b','c']);
+  eq('pipes SANS ligne de séparation -> paragraphe', A.mdBlocks('dose | poids').map(b=>b.t), ['p']);
+  eq('pipes dans un bloc de code -> pas de tableau', A.mdBlocks('```\n| a |\n|---|\n```').map(b=>b.t), ['code']);
+
   group('mini-Markdown — mdStrip() (recherche)');
   eq('balisage retiré', A.mdStrip('## T\n- **a**\n[l](https://x)'), 'T a l');
   eq('légende d\'image conservée', A.mdStrip('![légende](img:i1)'), 'légende');
   eq('citation/code/hr retirés', A.mdStrip('> a\n`b`\n---'), 'a b ');
+  eq('tableau aplati (ni pipes ni tirets)', A.mdStrip('| a | b |\n|---|---|\n| 1 | 2 |'), 'a b  1 2');
 
   group('migrateProtocol() — protocole hostile neutralisé');
   const mp=A.migrateProtocol({id:'__proto__',title:'<b>x</b>',body:42,category:'c a t',

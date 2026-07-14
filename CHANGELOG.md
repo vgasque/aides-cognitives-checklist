@@ -1,5 +1,81 @@
 # Journal des modifications
 
+## [4.4.2] — 2026-07-14
+Tableaux dans les protocoles, sélecteur de type dans le dialogue « Créer », pieds de page
+harmonisés, icônes agrandies, et deux correctifs iOS (zoom au focus, colonnes du bandeau).
+
+### Ajouté
+- **TABLEAUX dans le contenu rédigé des protocoles** (mini-Markdown) : syntaxe pipe
+  `| a | b |` avec ligne de séparation obligatoire `|---|` en 2ᵉ ligne, qui porte l'**alignement**
+  (`|:-:|` centré, `|---:|` à droite) ; gras, italique, `code` et liens fonctionnent dans les
+  cellules ; pipe littéral en `\|`. Bouton dédié dans la barre d'outils, légende de syntaxe
+  complétée (y compris `att:` et `img:`, jusqu'ici non documentés). Rendu dans un **conteneur
+  défilant focusable** (`role="region"`, tabindex, `:focus-visible`) : sur iPhone le tableau
+  défile au lieu d'écraser ses colonnes ; il se déploie à l'impression. Sécurité : le contenu
+  des cellules passe par `mdInline` (donc `esc()` d'abord) et l'alignement vient d'une **table
+  blanche fermée** posée en classe — aucune valeur utilisateur n'atteint jamais un attribut.
+  Pipes ouvrant ET fermant exigés (plus strict que GFM) : une phrase clinique contenant un « | »
+  ne peut pas devenir un tableau par accident. Export v3 inchangé (un ancien client affiche des
+  lignes de texte à pipes — dégradation lisible). 14 tests ajoutés.
+- **Bouton H1 dans la barre d'outils du protocole** (le niveau existait dans le parseur mais
+  n'était pas atteignable) ; poser un titre sur un titre **remplace** son niveau au lieu
+  d'empiler les `#`.
+- **Sélecteur de type dans le dialogue « Créer »** : « Aide cognitive » / « Protocole » via le
+  **même composant segmenté à pastille glissante** que la tab bar basse (`.seg`, généralisé —
+  aucun CSS dupliqué, `prefers-reduced-motion` couvert). Choisir un type bascule aussi l'onglet
+  de l'accueil : au retour de l'éditeur, on retrouve la bonne liste. Clavier : flèches ← →,
+  `aria-selected`, tabindex itinérant.
+
+### Modifié
+- **Pieds de page harmonisés** (fiche ET protocole — le protocole n'en avait aucun) : la chaîne
+  morte « ● Local — hors ligne OK », qui affirmait « Local » même synchronisé au cloud, est
+  remplacée par l'**état réel de stockage**, désormais produit par une source unique
+  (`storageState`, pure et testée) partagée avec le pied de la barre latérale : « ☁ Cloud ·
+  3 Mo sur l'appareil » ou « Cet appareil seulement · 3 Mo ». Le « maj MM/AAAA » et le code
+  court disparaissent du pied (tous deux déjà en tête de page) : il ne reste que l'état et la
+  version. En session de crise, l'état de stockage s'efface — comme il s'efface du pied de la
+  sidebar (aucun signal non actionnable pendant un soin).
+- **Rail « parcours de soin » agrandi sur grand écran** (≥ 1000 px) : pastilles 28 → 34 px,
+  chiffres 12,5 → 15 px, ✓ des étapes faites à l'échelle, ligne de liaison et titres recalés
+  (géométrie liée, documentée dans le CSS). Lisible à distance sur un poste de déchocage.
+- **Hiérarchie des titres du contenu rédigé corrigée** : elle était **inversée** (H3 14 px >
+  H1 13 px > H2 12,5 px — un `###` paraissait plus important qu'un `#`). La saillance passe
+  désormais par le poids, l'encre et un filet, jamais par la seule taille : H1 = capitales
+  encre pleine + filet, H2 = capitales encre douce, H3 = casse normale. Les titres restent
+  volontairement plus petits que le corps (15 px) — le texte prime, le titre jalonne.
+- **Logotype de l'accueil** 18 → 20 px (sans élargir la barre : la hauteur est fixée par le
+  bouton Compte) et **glyphe des icônes de l'app agrandi** : 53 % → 63 % du canevas pour les
+  icônes iOS/PWA, 44 % → 49 % pour les icônes maskable Android (zone sûre respectée : le
+  bouclier n'est jamais rogné par un masque circulaire). Coins arrondis et opacité préservés.
+- **Repli de l'étape ① « Confirmation diagnostique » : doctrine figée** (audit QRH/ECAM). Un
+  démarrage **implicite** (cocher une étape, lancer un minuteur…) ne replie **jamais** le bloc —
+  `renderKeepAnchor` ne peut compenser le scroll que si la page est assez défilée ; en haut de
+  fiche ou sur une page courte, replier ferait sauter le contenu sous le doigt (c'est le bug
+  v4.3.2, en pire). Le repli est désormais **différé à la première navigation « Continuer → »**,
+  qui l'acquitte et déplace déjà le contexte à la demande de l'utilisateur : l'écran de crise
+  s'épure sans qu'aucun contenu ne bouge sous le doigt. `renderKeepAnchor` renvoie le résidu de
+  compensation (garde-fou testable).
+
+### Corrigé
+- **iPhone — zoom automatique au focus de la barre de recherche** : Safari iOS zoome dès qu'un
+  champ fait moins de 16 px. Le correctif v4.3.1 existait mais était **inopérant** — placé trop
+  haut dans la feuille, il était écrasé par les règles suivantes (une media query n'ajoute
+  aucune spécificité, seul l'ordre source tranche). Bloc unique reposé en fin de feuille et
+  **étendu à tous les champs concernés** après audit : recherche, corps du protocole, notes,
+  filtre de catégories, journal de session, renommage de catégorie, légende d'image, invitations
+  et rôles. Aucun `maximum-scale` au viewport (WCAG 2.2 §1.4.4).
+- **Bandeau « Ne pas oublier » en 2 colonnes — décalage vertical** : la grille faisait **partager
+  les rangées** aux deux colonnes (hauteur = plus grand item), si bien qu'un rappel sur deux
+  lignes creusait un trou en face. Passage en **multi-colonnes CSS** : deux colonnes de flux
+  indépendantes, remplissage compact, ordre de lecture (et d'annonce aux lecteurs d'écran)
+  inchangé, et un rappel n'est jamais coupé entre deux colonnes.
+
+### Vérifié (aucun changement)
+- **Contraste du texte des boutons rouges pleins en thème sombre** : déjà conforme. Le blanc sur
+  `--critical-bd` sombre (#ff5a52) donnerait 3,07:1 (échec AA) — mais les deux seuls boutons
+  concernés (« Terminer la session », confirmation destructrice) passent déjà à l'encre du fond
+  en sombre, soit 6,02:1. Aucun autre bouton à fond rouge plein n'existe dans l'app.
+
 ## [4.4.1] — 2026-07-14
 Finitions du parcours de soin : fil d'Ariane à hauteur fixe, encadrés de session unifiés,
 bouton de démarrage au gabarit « Continuer », mémoire de défilement de l'accueil, éditeur

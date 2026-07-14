@@ -232,7 +232,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-aYAjVpK1VHLss9wADZMvaYYM1FZWqjc4p+raFB4kb5k='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-VzMXMVaSNx8jYnNlmelZxgatjOFVmr3Evi5DwDJaqCc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -547,7 +547,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   @keyframes cbIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
   .brand{display:flex;flex-direction:column;line-height:1.1;flex:1;min-width:0}
   /* h1 du document (plan lecteur d'écran) stylé comme la marque — pas de typo de h1 par défaut. */
-  .brand .brand-name{margin:0;font-size:18px;font-weight:800;letter-spacing:-.2px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* 20px (v4.4.2) : la marque était trop discrète. Plafond dur — au-delà, « Aides cognitives »
+     se tronque sur iPhone SE/mini (375px : ~166px de logotype pour ~193px de budget) et la
+     hauteur de barre, fixée par le bouton Compte (40px), ne bouge pas. */
+  .brand .brand-name{margin:0;font-size:20px;font-weight:800;letter-spacing:-.2px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   #brandSub{font-size:11.5px;text-transform:uppercase;letter-spacing:1.6px;color:var(--ink-soft);margin-top:3px}
   /* Accueil : le sous-titre est porté par les onglets. En lecture il accompagne le titre dans
      la barre UNE FOIS DÉFILÉ (« Aide cognitive » / « Protocole », cf. .titled/.ttl-on plus bas) ;
@@ -701,12 +704,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .mem-act .mini.del{width:34px;height:34px;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:var(--ink-soft);font-size:16px;position:relative}
   .mem-act .mini.del::after{content:"";position:absolute;inset:-5px}   /* halo -> cible tactile 44px */
   .mem-act .mini.del:hover{color:var(--critical);background:color-mix(in srgb,var(--critical) 8%,transparent)}
-  /* iPhone : un champ ou un menu < 16px déclenche le ZOOM AUTOMATIQUE de Safari au focus — la
-     page saute sous le doigt et le tap sur le sélecteur de rôle (ou les boutons voisins) semble
-     ne pas répondre. 16px sur écrans tactiles uniquement (le compact 12.5px reste au pointeur fin). */
-  @media (hover:none) and (pointer:coarse){
-    .mem-act select,.invite-row select,.invite-row input{font-size:16px}
-  }
+  /* (Le bloc « 16px sur écrans tactiles » vit désormais en FIN de feuille, en une seule source
+     de vérité : posé ici, il était écrasé par les règles suivantes de même spécificité — une
+     media query n'ajoute AUCUNE spécificité, seul l'ordre source tranche. Cf. v4.4.2.) */
   .invite-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
   .invite-row input{flex:1;min-width:0;padding:10px 12px;border:1px solid var(--line-strong);border-radius:9px;background:var(--input-bg);color:var(--ink);font-size:13.5px}
   .invite-row select{flex:none;padding:9px 11px;border:1px solid var(--line-strong);border-radius:9px;background:var(--input-bg);color:var(--ink);font-size:12.5px;font-weight:600}
@@ -888,6 +888,19 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .cp-h{margin:6px 0 10px}
   .cp-stage.on>.cp-body>.cp-h{color:var(--primary-dk)}
   @media (max-width:429.98px){.cp-stage{padding-left:33px}.cp-n{width:24px;height:24px;font-size:11.5px}.cp-stage:not(:last-child)::before{left:11px;top:30px}}
+  /* >= 1000px (vue fiche large, cf. mqReadWide) : pastilles et chiffres agrandis — le rail
+     doit rester lisible à distance sur un grand écran (poste de déchocage). GÉOMÉTRIE LIÉE,
+     ne pas régler « à l'œil » : pour une pastille de W px posée à top:1px,
+     ligne de liaison left = W/2 - 1 et top = 1 + W + 5 ; gouttière = W + 12 ;
+     margin-top du titre = 1 + W/2 - 8,25 (recentrage optique sur le chiffre).
+     Le ✓ des étapes faites suit la pastille via .cp-n svg (le JS pose 13px, valable < 1000px). */
+  @media (min-width:1000px){
+    .cp-stage{padding-left:46px}
+    .cp-n{width:34px;height:34px;font-size:15px}
+    .cp-n svg{width:16px;height:16px}
+    .cp-stage:not(:last-child)::before{left:16px;top:40px}
+    .cp-h{margin-top:10px}
+  }
   /* Lien « Tableau atypique ? » (étape ① -> différentiels de l'étape ③) : cible 44px (crise). */
   .atyp-link{display:flex;align-items:center;width:100%;min-height:44px;background:none;border:0;border-top:1px solid var(--line);padding:6px 12px;font-family:inherit;font-size:12.5px;font-weight:700;color:var(--link);cursor:pointer;text-align:left}
   .atyp-link:hover{background:var(--surface-2)}
@@ -1314,7 +1327,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .flow-end{margin-top:8px;padding:15px;text-align:center;border:2px solid var(--done-line);border-radius:8px;color:var(--ok);font-size:15px;font-weight:800;letter-spacing:1px}
   /* §12 pied de contenu : défile avec la fiche, jamais fixe. */
   .crisis-footer{margin-top:16px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:11.5px;color:var(--ink-soft);font-weight:600}
-  .crisis-footer .cf-ok{color:var(--ok)}
+  /* En SESSION de crise, l'état de stockage disparaît du pied de lecture — exactement comme il
+     disparaît du pied de la sidebar (aucun signal non actionnable pendant un soin). */
+  body.crisis-live .crisis-footer .cf-stg{display:none}
   /* Barre Enregistrer/Supprimer COLLANTE en bas : sur un formulaire à ~16 sections, « Enregistrer »
      reste visible en permanence (sinon il faut dérouler tout le formulaire pour sortir proprement). */
   /* (SPEC §6 : plus de pied d'éditeur — Enregistrer/Aperçu vivent dans l'en-tête, Supprimer en
@@ -1333,8 +1348,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      synchro, stockage) vit en bas de la sidebar (l'élément est DÉPLACÉ, jamais recréé :
      ses ids et écouteurs restent vivants — cf. placeFooter()). */
   .home-side footer.tools{margin-top:auto;flex-direction:column;align-items:flex-start;gap:4px;border-top:1px solid var(--line);padding:12px 2px 2px;margin-top:auto}
-  .storage-gauge .pers-ok{color:var(--ok);font-weight:600}
-  .storage-gauge .pers-warn{color:var(--verify)}
+  /* Registres du libellé de stockage — partagés par les DEUX pieds (sidebar et vues de lecture). */
+  .storage-gauge .pers-ok,.crisis-footer .pers-ok{color:var(--ok);font-weight:600}
+  .storage-gauge .pers-warn,.crisis-footer .pers-warn{color:var(--verify)}
   .tlink{background:none;border:0;color:var(--primary);font-size:13px;font-weight:600;padding:6px 10px;min-height:32px;display:inline-flex;align-items:center;gap:4px;border-radius:8px}.tlink:hover{background:var(--primary-soft)}#installBtn{display:none}
   /* (La taille du texte vit dans la fenêtre Compte depuis V5 — plus de bouton Aa au pied de page.) */
   /* Pastille d'état de synchro : discrète, jamais bloquante (app critique). */
@@ -1544,12 +1560,18 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      l'ancienne barre (52px + 8/12 de padding) mangeait trop d'écran sur mobile. */
   #tabBar{display:none;position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--surface);border-top:1px solid var(--line);padding:5px 10px calc(6px + env(safe-area-inset-bottom))}
   body.view-home #tabBar{display:block}
-  #tabBar .tb-in{position:relative;display:flex;gap:8px;max-width:560px;margin:0 auto}
-  #tabBar .tb-pill{position:absolute;top:0;bottom:0;left:0;width:calc(50% - 4px);background:var(--primary-soft);border-radius:22px;transform:translateX(0);transition:transform .3s cubic-bezier(.3,1.2,.4,1);pointer-events:none}
-  #tabBar.protos .tb-pill{transform:translateX(calc(100% + 8px))}
-  #tabBar .tb-btn{flex:1;position:relative;display:flex;align-items:center;justify-content:center;gap:9px;min-height:44px;border-radius:22px;border:0;background:none;font-family:inherit;font-size:14px;font-weight:600;color:var(--ink-soft);cursor:pointer;transition:color .3s}
-  #tabBar .tb-btn.on{color:var(--primary-dk);font-weight:800}
-  #tabBar .tb-btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* Sélecteur SEGMENTÉ à pastille glissante — composant GÉNÉRIQUE (v4.4.2), partagé par la tab
+     bar basse (#tabBar : Aides <-> Protocoles) et le dialogue « Créer » (Aide <-> Protocole).
+     L'état vit sur la RACINE (.seg.i1 = 2e segment actif) et la racine n'est JAMAIS re-rendue
+     -> la pastille GLISSE au lieu de sauter. Deux segments. */
+  .seg{position:relative;display:flex;gap:8px}
+  .seg-pill{position:absolute;top:0;bottom:0;left:0;width:calc(50% - 4px);background:var(--primary-soft);border-radius:22px;transform:translateX(0);transition:transform .3s cubic-bezier(.3,1.2,.4,1);pointer-events:none}
+  .seg.i1 .seg-pill{transform:translateX(calc(100% + 8px))}
+  .seg-btn{flex:1;position:relative;display:flex;align-items:center;justify-content:center;gap:9px;min-height:44px;border-radius:22px;border:0;background:none;font-family:inherit;font-size:14px;font-weight:600;color:var(--ink-soft);cursor:pointer;transition:color .3s}
+  .seg-btn.on{color:var(--primary-dk);font-weight:800}
+  .seg-btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  #tabBar .seg{max-width:560px;margin:0 auto}   /* skin tab bar : plafond + centrage */
+  #createSeg{margin:2px 0 16px}                  /* skin dialogue Créer : respiration */
   /* La tab bar recouvre le bas de page : l'accueil réserve la place (pied de page accessible). */
   body.view-home .app{padding-bottom:62px}
   /* Colonne gauche de l'accueil (>= 780px), rendue par renderHomeList. */
@@ -1683,28 +1705,42 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      gauche, statique entre les sections, ne bouge pas. */
   main.sec-anim-l .home-main{animation:secInL .3s cubic-bezier(.25,.1,.25,1)}
   main.sec-anim-r .home-main{animation:secInR .3s cubic-bezier(.25,.1,.25,1)}
-  @media (prefers-reduced-motion:reduce){#tabBar .tb-pill,#tabBar .tb-btn{transition:none}main.sec-anim-l .home-main,main.sec-anim-r .home-main{animation:none}ol.steps li.done .box svg,.card .pinbtn.on svg{animation:none}}
+  @media (prefers-reduced-motion:reduce){.seg-pill,.seg-btn{transition:none}main.sec-anim-l .home-main,main.sec-anim-r .home-main{animation:none}ol.steps li.done .box svg,.card .pinbtn.on svg{animation:none}}
   /* ----- Contenu rédigé des protocoles (mini-Markdown) : lecture + éditeur ----- */
   .md-body{line-height:1.55;font-size:15px}
   /* Titres de section du contenu rédigé : MÊME registre typographique que les en-têtes de
      section des fiches (.block-h : petites capitales grasses, espacées) -> UNE seule grammaire
      de titres dans toute l'app (audit v4.0.3). Sans pip ni badge (contenu libre, pas de
-     sémantique fixe à encoder). h1 (#) un cran plus marqué (encre pleine), h2 (##) courant
-     (encre douce), h3 (###) sous-titre en casse normale ; le CONTENU (15px) reste plus grand
-     que ses titres, comme dans les fiches. */
-  .md-h2{font-size:12.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;margin:20px 0 9px;color:var(--ink-soft)}
-  .md-h3{font-size:14px;font-weight:650;margin:14px 0 6px;color:var(--ink)}
-  .md-body h2:first-child,.md-preview h2:first-child{margin-top:2px}
+     sémantique fixe à encoder). Le CONTENU (15px) reste plus grand que ses titres, comme dans
+     les fiches : c'est VOULU (le texte prime, le titre ne fait que jalonner).
+     HIÉRARCHIE CORRIGÉE (v4.4.2) : elle était INVERSÉE (h3 14px > h1 13px > h2 12.5px — un ###
+     paraissait plus important qu'un #). La saillance passe désormais par le POIDS, l'ENCRE et
+     un FILET, jamais par la seule taille : h1 = capitales encre pleine + filet ; h2 = capitales
+     encre douce ; h3 = casse normale. Ordre non ambigu, registre unique préservé. */
+  .md-h1{font-size:13px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;margin:24px 0 10px;padding-bottom:5px;border-bottom:1px solid var(--line);color:var(--ink)}
+  .md-h2{font-size:12px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;margin:20px 0 8px;color:var(--ink-soft)}
+  .md-h3{font-size:12.5px;font-weight:700;margin:14px 0 5px;color:var(--ink)}
+  .md-body :is(h1,h2,h3):first-child,.md-preview :is(h1,h2,h3):first-child{margin-top:2px}
   .md-p{margin:0 0 10px;color:var(--ink)}
   .md-ul,.md-ol{margin:0 0 10px;padding-left:22px}
   .md-ul li,.md-ol li{margin:3px 0}
-  .md-h1{font-size:13px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin:22px 0 10px;color:var(--ink)}
   .md-ul .md-ul,.md-ul .md-ol,.md-ol .md-ul,.md-ol .md-ol{margin:3px 0 0;padding-left:20px}
   .md-q{margin:0 0 10px;padding:6px 0 6px 12px;border-left:3px solid var(--line-strong);color:var(--ink-soft)}
   .md-ci{font-family:var(--mono);font-size:.92em;background:var(--surface-3);border-radius:5px;padding:1px 5px}
   .md-code{margin:0 0 10px;padding:10px 12px;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius-sm);overflow-x:auto}
   .md-code code{font-family:var(--mono);font-size:12.5px;line-height:1.5;white-space:pre}
   .md-hr{border:0;border-top:1px solid var(--line);margin:14px 0}
+  /* TABLEAUX (v4.4.2) — conteneur DÉFILANT et focusable : sur iPhone le tableau défile au lieu
+     d'écraser ses colonnes à 40px (lisibilité sous stress) ; en-têtes au registre des titres de
+     section. Aucune couleur nouvelle (tokens existants). */
+  .md-tw{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 0 12px;border:1px solid var(--line);border-radius:var(--radius-sm)}
+  .md-tw:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .md-tbl{border-collapse:collapse;width:100%;min-width:440px;font-size:14px}
+  .md-tbl th,.md-tbl td{padding:8px 11px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+  .md-tbl thead th{background:var(--surface-2);font-size:11.5px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--ink-soft);white-space:nowrap}
+  .md-tbl tbody tr:last-child td{border-bottom:0}
+  .md-tbl .ta-c{text-align:center}.md-tbl .ta-r{text-align:right;font-variant-numeric:tabular-nums}
+  .ep-md .md-tbl{font-size:11.5px;min-width:0}   /* aperçu en direct de l'éditeur (corps réduit) */
   .md-fig{margin:12px 0}
   .md-fig img{max-width:100%;height:auto;border-radius:var(--radius-sm);border:1px solid var(--line);cursor:zoom-in}
   .md-fig figcaption{font-size:12px;color:var(--ink-soft);margin-top:4px}
@@ -1818,8 +1854,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Bandeau LONG (v4.4.0) : > 4 rappels -> 2 colonnes en large pour contenir la hauteur du
      chapeau (jamais de repli ni de troncature : un rappel caché n'existe plus). Une colonne
      en étroit et au zoom 400 % (reflow WCAG 1.4.10). Le vrai remède reste éditorial
-     (garde-fou de l'éditeur au-delà de 4 rappels). */
-  @media (min-width:780px){.forget-strip.many{display:grid;grid-template-columns:1fr 1fr;gap:0 24px}.forget-strip.many .fs-k{grid-column:1/-1}}
+     (garde-fou de l'éditeur au-delà de 4 rappels).
+     MULTI-COLONNES et non grille (v4.4.2) : en grille, les deux colonnes PARTAGENT leurs
+     rangées (hauteur = plus grand item) — un rappel sur 2 lignes creusait un trou en face.
+     Le multicol donne deux colonnes de flux INDÉPENDANTES : remplissage compact, ordre DOM
+     (donc de lecture et d'annonce) inchangé, et break-inside garantit qu'un rappel n'est
+     jamais coupé entre deux colonnes. */
+  @media (min-width:780px){
+    .forget-strip.many .fs-list{-webkit-columns:2 auto;columns:2 auto;column-gap:24px}
+    .forget-strip.many .fs-i{-webkit-column-break-inside:avoid;break-inside:avoid}
+  }
   /* Panneau minuteurs REPLIÉ tant que rien n'est démarré : le contenu clinique passe devant. */
   .rt-collapsed{width:100%;display:flex;align-items:center;gap:9px;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:13px;font-weight:600;cursor:pointer;min-height:44px;text-align:left}
   .rt-collapsed:hover{border-color:var(--line-hover)}
@@ -1863,7 +1907,26 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .hs-row,.hs-act,.hs-add,.mm-row,.att-row,.rt-collapsed,.hdr-back,.hdr-new,.hdr-theme,.hdr-more,.hdr-act2,.tlink{transition:background-color .15s,color .15s}
   .card{transition:transform .12s cubic-bezier(.2,0,0,1),border-color .12s,box-shadow .15s}
   @media (prefers-reduced-motion:reduce){*{transition:none!important}.tmcard.flash{animation:none}#crisisBand{animation:none}header.bar.titled.ttl-on #brandTitle{animation:none}.sess-dot::after{animation:none;opacity:0}.ai-modal.on,.ai-modal.on:not(.pdf-modal) .ai-card,.more-menu:not([hidden]),.sys-banner:not([hidden]){animation:none}}
-  @media print{body{background:#fff}header.bar,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.sess-list,.notes-block{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}}
+  /* ===== ÉCRANS TACTILES : 16px sur TOUS les champs de saisie (source de vérité UNIQUE) =====
+     Sous 16px, Safari iOS ZOOME la page au focus : le contenu saute sous le doigt (barre de
+     recherche, éditeur de protocole, menu de catégories…) et les taps voisins se perdent.
+     Règle posée v4.3.1, ÉTENDUE ici à tous les champs du fichier après audit (v4.4.2), et
+     déplacée EN FIN DE FEUILLE : une media query n'ajoute aucune spécificité — placé plus haut,
+     le bloc était écrasé par les règles suivantes (.invite-row input, #p-body…) et ne faisait
+     donc RIEN. Les compacts restent < 16px au pointeur fin (desktop).
+     Jamais de maximum-scale / user-scalable=no au viewport (WCAG 2.2 §1.4.4).
+     `input.gcap` (et non `.gcap`) : la même classe sert de LÉGENDE en lecture, qui reste à 11.5px.
+     `.tk-time-edit` : le mono 16px déborde des 76px calibrés pour 14px -> largeur relevée. */
+  @media (hover:none) and (pointer:coarse){
+    .hdr-search input,#p-body,.note-ta,.catmenu-filter,.tk-lab,.tk-time-edit,.cm-name,.cm-add input,input.gcap,
+    .mem-act select,.invite-row select,.invite-row input{font-size:16px}
+    .tk-time-edit{width:96px}
+  }
+  @media print{body{background:#fff}header.bar,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.sess-list,.notes-block{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}
+    /* Un conteneur à défilement s'imprime TRONQUÉ : à l'impression le tableau se déploie. */
+    .md-tw{overflow:visible;break-inside:avoid}.md-tbl{min-width:0;font-size:11px}.md-tbl tr{break-inside:avoid}
+    .forget-strip{break-inside:avoid}
+    .crisis-footer .cf-stg{display:none}}
 </style>
 </head>
 <body>
@@ -1915,10 +1978,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
 </div>
 <!-- Tab bar de section (accueil < 780px, V5) : élément STATIQUE, pastille glissante ; en large
      la colonne gauche de l'accueil porte les sections. Fixée en bas, au pouce (canvas turn 6). -->
-<nav id="tabBar" aria-label="Sections"><div class="tb-in" role="tablist">
-  <span class="tb-pill" aria-hidden="true"></span>
-  <button class="tb-btn on" role="tab" data-section="fiches" aria-selected="true" tabindex="0"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg><span>Aides</span></button>
-  <button class="tb-btn" role="tab" data-section="protocols" aria-selected="false" tabindex="-1"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 016.5 17H20V4H6.5A2.5 2.5 0 004 6.5v13z"/><path d="M4 19.5A2.5 2.5 0 006.5 22H20v-5"/></svg><span>Protocoles</span></button>
+<nav id="tabBar" aria-label="Sections"><div class="seg" id="tabSeg" role="tablist">
+  <span class="seg-pill" aria-hidden="true"></span>
+  <button class="seg-btn on" role="tab" data-section="fiches" aria-selected="true" tabindex="0"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg><span>Aides</span></button>
+  <button class="seg-btn" role="tab" data-section="protocols" aria-selected="false" tabindex="-1"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 016.5 17H20V4H6.5A2.5 2.5 0 004 6.5v13z"/><path d="M4 19.5A2.5 2.5 0 006.5 22H20v-5"/></svg><span>Protocoles</span></button>
 </div></nav>
 <div id="screenFlash"></div>
 <!-- Zone d'annonce pour lecteurs d'écran (fin de minuteur, alarmes) : invisible, aria-live. -->
@@ -1930,8 +1993,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      en cartes verticales ; la méthode IA est un SOUS-ÉCRAN du même dialogue (retour « ‹ Autres
      méthodes »). Tout import (IA ou .json) arrive en état Brouillon. -->
 <div class="ai-modal" id="createModal" role="dialog" aria-modal="true" aria-labelledby="createModalTitle"><div class="ai-card dlg-480">
-  <div class="ai-top"><h3 id="createModalTitle">Créer une aide cognitive</h3><button class="ai-x" id="createX" aria-label="Fermer">×</button></div>
-  <div id="createBody"></div>
+  <div class="ai-top"><h3 id="createModalTitle">Créer</h3><button class="ai-x" id="createX" aria-label="Fermer">×</button></div>
+  <!-- Type de contenu : MÊME sélecteur segmenté à pastille glissante que la tab bar basse
+       (composant .seg partagé). STATIQUE — jamais réécrit par renderCreateDlg (qui ne touche
+       que #createBody) : sans quoi la pastille sauterait au lieu de glisser. -->
+  <div class="seg" id="createSeg" role="tablist" aria-label="Type de contenu à créer">
+    <span class="seg-pill" aria-hidden="true"></span>
+    <button class="seg-btn on" role="tab" data-createkind="fiches" aria-selected="true" aria-controls="createBody" tabindex="0"><span class="seg-ic" aria-hidden="true"></span><span>Aide cognitive</span></button>
+    <button class="seg-btn" role="tab" data-createkind="protocols" aria-selected="false" aria-controls="createBody" tabindex="-1"><span class="seg-ic" aria-hidden="true"></span><span>Protocole</span></button>
+  </div>
+  <div id="createBody" role="tabpanel"></div>
 </div></div>
 <div class="ai-modal" id="catModal" role="dialog" aria-modal="true" aria-labelledby="catModalTitle"><div class="ai-card dlg-480">
   <div class="ai-top"><h3 id="catModalTitle">Gérer les catégories</h3><button class="ai-x" id="catX" aria-label="Fermer">×</button></div>
@@ -2044,7 +2115,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.4.1';
+const APP_VERSION='4.4.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -2447,10 +2518,27 @@ const stripBold=s=>String(s==null?'':s).replace(BOLD_RX,'$1');
    d'indentation, UN niveau), > citation, `code` en ligne, ``` bloc de code, --- séparateur,
    **gras**, *italique*, [texte](https://…) lien externe, [texte](att:ID) ouvre un document PDF
    joint, ![légende](img:ID) image (référence à l'entrée p.images correspondante — data URL déjà
-   validée par safeImg dans migrateProtocol). Balisage non reconnu laissé VISIBLE tel quel
-   (même philosophie que fmt : la coquille se voit en relecture, le rendu ne casse jamais).
+   validée par safeImg dans migrateProtocol), et TABLEAUX (v4.4.2) : lignes « | a | b | » avec
+   une 2e ligne de séparation « |---|:-:|---:| » qui porte l'alignement (défaut / centré / droite).
+   Balisage non reconnu laissé VISIBLE tel quel (même philosophie que fmt : la coquille se voit
+   en relecture, le rendu ne casse jamais) — un ancien client affiche donc un tableau comme des
+   lignes de texte à pipes : dégradation lisible, export v3 inchangé (body reste une chaîne).
    Fonctions PURES (testées via ?__actest). Plafonds anti-DoS : 20 000 caractères / 2 000 lignes. */
 const MD_MAX_CHARS=20000,MD_MAX_LINES=2000;
+// Tableaux : pipes ouvrant ET fermant EXIGÉS (plus stricts que GFM) -> aucune collision possible
+// avec les autres blocs (hr, listes, citation, titre, image commencent par un autre caractère),
+// et une phrase clinique contenant un « | » ne devient jamais un tableau par accident.
+const MD_MAX_TCOLS=12,MD_MAX_TROWS=200;
+const MD_TROW=/^\s*\|.*\|\s*$/;                     // ligne de tableau
+const MD_TSEP=/^\s*\|(?:\s*:?-{1,}:?\s*\|)+\s*$/;   // ligne de séparation (porte l'alignement)
+// Découpe une ligne de tableau en cellules. Gère le pipe échappé « \| » (sans regex ni sentinelle).
+function mdCells(line){const s=String(line==null?'':line).trim().replace(/^\|/,'').replace(/\|$/,'');
+  const out=[];let cur='';
+  for(let i=0;i<s.length;i++){const c=s[i];
+    if(c==='\\'&&s[i+1]==='|'){cur+='|';i++;continue;}
+    if(c==='|'){out.push(cur.trim());cur='';continue;}
+    cur+=c;}
+  out.push(cur.trim());return out.slice(0,MD_MAX_TCOLS);}
 const MD_ITAL_RX=/(^|[^*])\*([^*\n]+)\*(?!\*)/g;   // *italique* (sans manger les ** du gras)
 const MD_CODE_RX=/(`[^`\n]+`)/;                    // `code` en ligne (segment préservé tel quel)
 function mdInline(s){const h=esc(sstr(s,4000));
@@ -2480,11 +2568,23 @@ function mdBlocks(src){
   const flushList=()=>{if(list){out.push(list);list=null;}};
   const flushQuote=()=>{if(quote){out.push(quote);quote=null;}};
   const flushAll=()=>{flushPara();flushList();flushQuote();};
-  for(const l of lines){let m;
+  for(let i=0;i<lines.length;i++){const l=lines[i];let m;
     // Bloc de code : tout est LITTÉRAL jusqu'à la clôture ``` (aucun balisage interprété).
+    // (Branche EN PREMIER : un « | » dans du code ne doit jamais devenir un tableau.)
     if(code){if(/^```/.test(l)){out.push(code);code=null;}else code.lines.push(l);continue;}
     if(/^```/.test(l)){flushAll();code={t:'code',lines:[]};continue;}
     if(/^\s*$/.test(l)){flushAll();continue;}
+    // TABLEAU (v4.4.2) : ligne de cellules SUIVIE d'une ligne de séparation. Le nombre de colonnes
+    // est normalisé sur l'en-tête (lignes trop courtes complétées, trop longues tronquées) : jamais
+    // de tableau déformé. L'alignement vient d'un jeu FERMÉ ('' | 'l' | 'c' | 'r'), jamais du texte.
+    if(MD_TROW.test(l)&&i+1<lines.length&&MD_TSEP.test(lines[i+1])){flushAll();
+      const align=mdCells(lines[i+1]).map(c=>{const L=/^:/.test(c),R=/:$/.test(c);return (L&&R)?'c':(R?'r':(L?'l':''));});
+      const head=mdCells(l),rows=[];let j=i+2;
+      while(j<lines.length&&MD_TROW.test(lines[j])&&!MD_TSEP.test(lines[j])&&rows.length<MD_MAX_TROWS){rows.push(mdCells(lines[j]));j++;}
+      const n=Math.max(1,Math.min(head.length,MD_MAX_TCOLS));
+      const fit=r=>{const o=r.slice(0,n);while(o.length<n)o.push('');return o;};
+      out.push({t:'tbl',align:align.slice(0,n),head:fit(head),rows:rows.map(fit)});
+      i=j-1;continue;}
     if((m=l.match(/^(#{1,3})\s+(.*)$/))){flushAll();out.push({t:'h'+m[1].length,text:m[2]});continue;}
     if(/^(---+|\*\*\*+)\s*$/.test(l)){flushAll();out.push({t:'hr'});continue;}
     if((m=l.match(/^!\[([^\]]{0,300})\]\(img:([A-Za-z0-9_-]{1,64})\)\s*$/))){flushAll();out.push({t:'img',caption:m[1],id:m[2]});continue;}
@@ -2506,7 +2606,18 @@ function mdRender(src,ctx){ctx=ctx||{};
   const imgs=Object.create(null);(ctx.images||[]).forEach(im=>{if(im&&im.id&&BAD_KEYS.indexOf(im.id)<0)imgs[im.id]=im;});
   // Élément de liste (+ éventuelle sous-liste d'un niveau, balise ul/ol sûre par construction).
   const li=it=>'<li>'+mdInline(it.text)+(it.sub?'<'+it.sub.t+' class="md-'+it.sub.t+'">'+it.sub.items.map(x=>'<li>'+mdInline(x)+'</li>').join('')+'</'+it.sub.t+'>':'')+'</li>';
+  // Alignement des cellules : TABLE BLANCHE fermée au point d'insertion (défense en profondeur —
+  // même idiome que la revalidation safeImg plus bas). Aucune valeur issue du texte utilisateur
+  // n'atteint jamais un attribut ; le CONTENU des cellules passe par mdInline (donc esc() d'abord),
+  // ce qui leur donne gratuitement gras/italique/`code`/liens, sans nouvelle surface XSS.
+  const TA={l:' class="ta-l"',c:' class="ta-c"',r:' class="ta-r"'},ta=a=>TA[a]||'';
   return mdBlocks(src).map(b=>{
+    if(b.t==='tbl'){const al=Array.isArray(b.align)?b.align:[];
+      const hd=(Array.isArray(b.head)?b.head:[]).map((c,i)=>'<th'+ta(al[i])+' scope="col">'+mdInline(c)+'</th>').join('');
+      const bd=(Array.isArray(b.rows)?b.rows:[]).map(r=>'<tr>'+(Array.isArray(r)?r:[]).map((c,i)=>'<td'+ta(al[i])+'>'+mdInline(c)+'</td>').join('')+'</tr>').join('');
+      // Conteneur défilant FOCUSABLE (clavier : WCAG 2.1.1) — sur iPhone le tableau défile au lieu
+      // d'écraser ses colonnes (lisibilité sous stress).
+      return '<div class="md-tw" tabindex="0" role="region" aria-label="Tableau"><table class="md-tbl"><thead><tr>'+hd+'</tr></thead><tbody>'+bd+'</tbody></table></div>';}
     if(b.t==='h1')return '<h1 class="md-h1">'+mdInline(b.text)+'</h1>';
     if(b.t==='h2')return '<h2 class="md-h2">'+mdInline(b.text)+'</h2>';
     if(b.t==='h3')return '<h3 class="md-h3">'+mdInline(b.text)+'</h3>';
@@ -2525,6 +2636,11 @@ function mdRender(src,ctx){ctx=ctx||{};
 // Texte brut pour la recherche plein texte (retire le balisage, garde légendes et libellés de liens).
 function mdStrip(src){return sstr(src,MD_MAX_CHARS).split('\n').map(l=>l
     .replace(/^```.*$/,'').replace(/^(---+|\*\*\*+)\s*$/,'')
+    // Tableaux : la ligne de séparation disparaît, les cellules deviennent du texte séparé par
+    // des espaces (sinon l'index de recherche se remplirait de pipes et de tirets). mdCells
+    // restitue les pipes échappés « \| » — une seule logique de découpe, partagée avec le parseur.
+    .replace(MD_TSEP,'')
+    .replace(MD_TROW,x=>mdCells(x).join(' '))
     .replace(/^#{1,3}\s+/,'').replace(/^>\s?/,'')
     .replace(/^\s*[-*]\s+/,'').replace(/^\s*\d{1,3}[.)]\s+/,'')
     .replace(/^!\[([^\]]*)\]\([^()]*\)\s*$/,'$1')
@@ -2937,39 +3053,66 @@ const fmtDate=v=>{if(!v)return 'Sans date de validation';const m=String(v).match
 // Renvoie les fiches déjà lues (le test « base vide ? » a coûté un getAll complet : load() le
 // RÉUTILISE au lieu de relire) — ou null si une migration KV->IDB vient d'écrire (relire) ou en repli KV.
 async function chooseBackend(){try{await IDB.open();Data=IDB;const ex=await IDB.getAll();if(!ex.length){const old=await KV.getAll();if(old.length){for(const f of old)await IDB.put(migrate(f));}const oc=await KV.getCats();if(oc)await IDB.setCats(oc);const os=await KV.getSessions();if(os&&os.length){for(const s of os)await IDB.putSession(s);}const on=await KV.getNotes();if(on&&Object.keys(on).length)await IDB.setNotes(on);const op=await KV.getProtocols();if(op&&op.length){for(const p of op)await IDB.putProtocol(migrateProtocol(p));}return null;}return ex;}catch(e){Data=KV;return null;}}
+/* SOURCE UNIQUE du libellé d'état de stockage (v4.4.2) — consommée par DEUX pieds de page :
+   celui de la barre latérale (variante LONGUE + info-bulle) et celui des vues de lecture
+   (variante COURTE : « ● Local — hors ligne OK », chaîne morte qui MENTAIT — elle affichait
+   « Local » même synchronisé au cloud — a disparu). Fonction PURE -> testable (?__actest).
+   SYNTHÈSE (v4.3.2) : le message de sécurité complet (où sont mes fiches, suis-je à l'abri ?)
+   vit dans l'info-bulle et la fenêtre de stockage (openStorageInfo). o = instantané mesuré. */
+function storageState(o){
+  const fmt=fmtBytes,used=fmt(o.usage);
+  let main,short,tip;
+  if(o.signed){
+    main='<span class="pers-ok">'+uiIcon('cloud',13)+' <b>Cloud</b></span> · '+used+' sur l\'appareil';
+    short='<span class="pers-ok">'+uiIcon('cloud',12)+' Cloud</span> · '+used+' sur l\'appareil';
+    tip='Vos fiches sont sauvegardées dans le cloud. Le « '+used+' » est seulement la copie hors-ligne sur CET appareil (sa limite, '+fmt(o.quota)+', ne concerne donc pas vos données) : même effacée du navigateur ou depuis un autre appareil, vous retrouvez tout en vous reconnectant. C\'est l\'intérêt de la synchronisation.';
+  }else if(o.pers===true){
+    main='<b>Cet appareil seulement</b> · '+used+' · copie unique';
+    short='Cet appareil seulement · '+used;
+    tip='Sans compte, cet appareil contient votre SEULE copie ('+used+' / '+fmt(o.quota)+'), ici à l\'abri d\'un effacement automatique du navigateur. Connectez-vous pour la sauvegarder dans le cloud et y accéder depuis vos autres appareils.';
+  }else{
+    main='<span class="pers-warn">'+uiIcon('warn',13)+' <b>Cet appareil seulement</b> · '+used+' · non protégé</span>';
+    short='<span class="pers-warn">'+uiIcon('warn',12)+' Cet appareil seulement</span> · '+used;
+    tip='Sans compte, cet appareil contient votre SEULE copie ('+used+' / '+fmt(o.quota)+') et le navigateur pourrait l\'effacer. Pour éviter toute perte : connectez-vous (sauvegarde dans le cloud) ou installez l\'app sur l\'écran d\'accueil.';
+  }
+  // « presque plein » : variante LONGUE seulement (le pied de lecture reste court et non alarmant).
+  if(o.quota&&o.usage/o.quota>0.85)main+=' · <span class="pers-warn">'+uiIcon('warn',13)+' presque plein</span>';
+  if(o.attBytes)tip+=' Dont '+fmt(o.attBytes)+' de documents PDF joints.';
+  return {main,short,tip};
+}
+// Dernier état mesuré : le pied des vues de lecture se rend de façon SYNCHRONE, alors que
+// l'estimation du stockage est asynchrone -> on garde l'instantané pour que le rendu dispose
+// du même libellé (et paintStorage() le rafraîchit dès que la mesure revient).
+let _stgSnap=null;
 async function updateStorageInfo(){
-  const el=document.getElementById('storageInfo');if(!el)return;
   try{
     const ns=navigator.storage||null;
     const [est,pers]=await Promise.all([
       ns&&ns.estimate?ns.estimate():null,
       ns&&ns.persisted?ns.persisted():null
     ]);
-    if(!est){el.textContent='';return;}
-    const fmt=fmtBytes;
-    // SYNTHÈSE (v4.3.2) : une ligne courte dans le pied de page — le message de sécurité complet
-    // (où sont mes fiches, suis-je à l'abri ?) vit dans l'info-bulle et la fenêtre de stockage
-    // qu'un tap ouvre (openStorageInfo). CONNECTÉ -> rassurant ; DÉCONNECTÉ -> copie unique.
-    const signed=(typeof Auth!=='undefined'&&Auth.signedIn());
-    const used=fmt(est.usage);
-    let main,tip;
-    if(signed){
-      main='<span class="pers-ok">'+uiIcon('cloud',13)+' <b>Cloud</b></span> · '+used+' sur l\'appareil';
-      tip='Vos fiches sont sauvegardées dans le cloud. Le « '+used+' » est seulement la copie hors-ligne sur CET appareil (sa limite, '+fmt(est.quota)+', ne concerne donc pas vos données) : même effacée du navigateur ou depuis un autre appareil, vous retrouvez tout en vous reconnectant. C\'est l\'intérêt de la synchronisation.';
-    }else if(pers===true){
-      main='<b>Cet appareil seulement</b> · '+used+' · copie unique';
-      tip='Sans compte, cet appareil contient votre SEULE copie ('+used+' / '+fmt(est.quota)+'), ici à l\'abri d\'un effacement automatique du navigateur. Connectez-vous pour la sauvegarder dans le cloud et y accéder depuis vos autres appareils.';
-    }else{
-      main='<span class="pers-warn">'+uiIcon('warn',13)+' <b>Cet appareil seulement</b> · '+used+' · non protégé</span>';
-      tip='Sans compte, cet appareil contient votre SEULE copie ('+used+' / '+fmt(est.quota)+') et le navigateur pourrait l\'effacer. Pour éviter toute perte : connectez-vous (sauvegarde dans le cloud) ou installez l\'app sur l\'écran d\'accueil.';
+    if(!est){_stgSnap=null;}
+    else{
+      // Poids des documents PDF joints (somme des métadonnées en mémoire — aucun blob n'est relu).
+      let attB=0;fiches.forEach(x=>(x.attachments||[]).forEach(a=>attB+=a.size||0));
+      _stgSnap={signed:(typeof Auth!=='undefined'&&Auth.signedIn()),pers,usage:est.usage,quota:est.quota,attBytes:attB};
     }
-    if(est.quota&&est.usage/est.quota>0.85)main+=' · <span class="pers-warn">'+uiIcon('warn',13)+' presque plein</span>';
-    // Poids des documents PDF joints (somme des métadonnées en mémoire — aucun blob n'est relu).
-    let attB=0;fiches.forEach(x=>(x.attachments||[]).forEach(a=>attB+=a.size||0));
-    if(attB)tip+=' Dont '+fmt(attB)+' de documents PDF joints.';
-    el.innerHTML=main;el.title=tip;
-  }catch(e){if(el)el.textContent='';}
+  }catch(e){_stgSnap=null;}
+  paintStorage();
 }
+// Écrit le libellé aux deux endroits possibles (la sidebar est masquée en lecture, le pied de
+// lecture n'existe pas à l'accueil : chacun se remplit s'il est présent).
+function paintStorage(){
+  const s=_stgSnap?storageState(_stgSnap):null;
+  const el=document.getElementById('storageInfo');
+  if(el){el.innerHTML=s?s.main:'';if(s)el.title=s.tip;}
+  const cf=main&&main.querySelector?main.querySelector('.crisis-footer .cf-stg'):null;
+  if(cf){cf.innerHTML=s?s.short:'';if(s)cf.title=s.tip;}
+}
+// Pied de page COMMUN aux vues de lecture (fiche ET protocole) : état de stockage à gauche,
+// version à droite. Plus de « maj MM/AAAA » ni de code court : tous deux sont DÉJÀ dans la
+// méta du haut de page (« Validation : MM/AAAA » + chip du code) — on ne le dit qu'une fois.
+const readFooterHtml=()=>`<div class="crisis-footer"><span class="cf-stg">${_stgSnap?storageState(_stgSnap).short:''}</span><span>v${APP_VERSION}</span></div>`;
 async function load(){
   // MIGRATION DOUCE vers les espaces par compte : un appareil déjà connecté avant cette version
   // n'a ni 'ac-space' ni 'ac-db-owner' -> son espace devient ce compte et la base historique
@@ -3278,10 +3421,22 @@ function persistAllLive(){Object.values(liveSessions).forEach(R=>persistLive(R,t
 function ensureStarted(){if(Runtime.started||!Runtime.fiche)return false;
   // MODE APERÇU (édition, V5) : jamais de session — on regarde le contenu, on ne soigne pas.
   if(state.previewFrom)return false;
-  // Le re-rendu de démarrage ne doit PAS replier « Confirmation diagnostique » sous le doigt
-  // (le contenu remonterait, le point de tap serait perdu — v4.3.2) : on FIGE l'état d'ouverture
-  // courant (ouvert par défaut avant démarrage). Le repli par défaut ne vaut que pour une
-  // session REPRISE (openRead remet state.confOpen à undefined).
+  /* DOCTRINE DU REPLI DE L'ÉTAPE ① (QRH/ECAM — audit v4.4.2, ne pas « simplifier ») :
+     un démarrage IMPLICITE (cocher une étape, lancer un minuteur, incrémenter un compteur,
+     horodater) ne replie JAMAIS « Confirmation diagnostique » — on FIGE l'état ouvert.
+     Deux raisons, chacune suffisante :
+      1. SCROLL — le repli retirerait 240 à 500 px AU-DESSUS du doigt. renderKeepAnchor ne peut
+         compenser que si window.scrollY >= hauteur retirée : en haut de fiche, sur une page
+         courte ou non défilable (desktop, tablette), la compensation est impossible et le
+         contenu saute — c'est le bug v4.3.2, en pire (le tap suivant pourrait cocher une AUTRE
+         étape en pleine réanimation).
+      2. DOCTRINE — cocher une étape de PRISE EN CHARGE n'acquitte rien sur le DIAGNOSTIC :
+         replier ① serait une action non commandée du système, retirant sous les yeux une
+         information qu'on est peut-être en train de lire à voix haute.
+     Le repli est réservé aux gestes qui l'ACQUITTENT explicitement : le bouton « Confirmé —
+     démarrer la session », et la première navigation « Continuer → » (qui déplace déjà le
+     contexte à la demande de l'utilisateur, cf. bindReadEvents). Session REPRISE : replié
+     d'emblée (openRead remet state.confOpen à undefined). */
   if(state.view==='read'&&state.confOpen===undefined)state.confOpen=true;
   Runtime.started=true;Runtime.startedAt=Date.now();
   if(!Runtime.sessionId)Runtime.sessionId=uid('s');
@@ -3637,11 +3792,15 @@ const tabBar=document.getElementById('tabBar');
 tabBar.querySelectorAll('[data-section]').forEach(b=>b.onclick=()=>setSection(b.dataset.section));
 tabBar.onkeydown=e=>{if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;e.preventDefault();
   setSection(e.key==='ArrowLeft'?'fiches':'protocols');
-  const act=tabBar.querySelector('.tb-btn.on');if(act)act.focus();};
-function updateHdrSec(){const p=state.section==='protocols';
-  tabBar.classList.toggle('protos',p);
-  tabBar.querySelectorAll('[data-section]').forEach(b=>{const on=(b.dataset.section==='protocols')===p;
+  const act=tabBar.querySelector('.seg-btn.on');if(act)act.focus();};
+// Bascule visuelle d'un sélecteur segmenté (.seg) : classe d'état sur la RACINE + tabindex
+// itinérant. `root` = la racine .seg, `attr` = l'attribut data-* qui porte la valeur du segment.
+// Partagé par la tab bar (data-section) et le dialogue Créer (data-createkind) — un seul patron.
+function paintSeg(root,attr,isSecond){
+  root.classList.toggle('i1',isSecond);
+  root.querySelectorAll('['+attr+']').forEach(b=>{const on=(b.getAttribute(attr)==='protocols')===isSecond;
     b.classList.toggle('on',on);b.setAttribute('aria-selected',on?'true':'false');b.tabIndex=on?0:-1;});}
+function updateHdrSec(){paintSeg(document.getElementById('tabSeg'),'data-section',state.section==='protocols');}
 // Recherche FIXE de l'en-tête (V5) : champ STATIQUE (jamais re-rendu -> le focus survit aux
 // re-rendus), débouncé 150 ms — re-filtrer à chaque frappe ferait ramer la saisie sur mobile.
 {const qi=document.getElementById('q');
@@ -3676,13 +3835,18 @@ window.addEventListener('scroll',()=>{const c=window.scrollY>24;
 // mais REVENIR à une section retrouve l'endroit où on l'avait laissée. Le défileur dépend
 // de la largeur : .home-main (accueil large, coque fixe) ou la fenêtre (étroit).
 const _homeScroll={fiches:0,protocols:0};
-function setSection(s,keepQuery){s=(s==='protocols')?'protocols':'fiches';if(state.section===s)return;
+// opts (v4.4.2, appel depuis le dialogue « Créer ») : keepCat = ne pas remettre le filtre de
+// catégorie à zéro ; silent = pas d'animation de bascule (l'accueil est sous le voile du dialogue).
+function setSection(s,keepQuery,opts){opts=opts||{};s=(s==='protocols')?'protocols':'fiches';if(state.section===s)return;
   const dir=(s==='protocols')?'r':'l';
   {const sc=main.querySelector('.home-main');_homeScroll[state.section]=(mqHomeWide.matches&&sc)?sc.scrollTop:window.scrollY;}
   state.section=s;try{localStorage.setItem(spaceKey('ac-section'),s);}catch(e){}
-  state.cat='';if(!keepQuery)state.q='';state.libLimit=LIB_PAGE;render();
+  if(!opts.keepCat)state.cat='';
+  if(!keepQuery)state.q='';
+  state.libLimit=LIB_PAGE;render();
   {const y=_homeScroll[s]||0;const sc=main.querySelector('.home-main');
    if(mqHomeWide.matches&&sc)sc.scrollTop=y;else window.scrollTo(0,y);}
+  if(opts.silent)return;
   // Transition de contenu (transform/opacity uniquement -> compositeur : la page reste utilisable
   // pendant l'animation, qui accompagne le glissement de l'indicateur de l'en-tête).
   main.classList.remove('sec-anim-l','sec-anim-r');void main.offsetWidth;
@@ -3897,7 +4061,9 @@ function renderProtocolRead(){
     ${rel.length?`<div class="related"><b>Voir aussi</b><div class="related-row">${rel.map(r=>`<button class="btn sm" data-openrel="${esc(r.id)}">${uiIcon(relKindOf(r.id)==='p'?'book':'doc',13)}${esc(r.title)||'Sans titre'} →</button>`).join('')}</div></div>`:''}
     ${(()=>{const refs=clean(p.references||[]);return refs.length?`<div class="refs"><b>Références</b><ol>${refs.map(r=>`<li>${fmt(r)}</li>`).join('')}</ol></div>`:'';})()}
     ${(!docs&&!body)?'<div class="empty"><b>Protocole vide</b>Ajoutez un PDF ou un contenu rédigé via « Modifier ».</div>':''}
+    ${readFooterHtml()}
     `;
+  updateStorageInfo();   // remplit le pied (mesure asynchrone) — même libellé que la sidebar
   // Badge d'en-tête : statut (+ date de validation si posée), ex. « ✓ Validé · 03/2026 ».
   updateHdrStatusBadge(p.status,false,p.validation?valToDisplay(p.validation):'');
   if(preview){
@@ -3930,9 +4096,11 @@ function mdWrapSel(inp,mark){const v=inp.value;let a=inp.selectionStart==null?v.
   inp.value=v.slice(0,a)+mark+v.slice(a,b)+mark+v.slice(b);
   inp.focus();inp.setSelectionRange(a+mark.length,b+mark.length);
   inp.dispatchEvent(new Event('input',{bubbles:false}));}
+// Un titre POSÉ SUR UN TITRE remplace son niveau (H2 puis H1 donnait « # ## texte », v4.4.2).
 function mdPrefixLines(inp,prefix,numbered){const v=inp.value;let a=inp.selectionStart==null?v.length:inp.selectionStart,b=inp.selectionEnd==null?v.length:inp.selectionEnd;if(a>b){const t=a;a=b;b=t;}
   const ls=v.lastIndexOf('\n',a-1)+1;let end=v.indexOf('\n',b);if(end<0)end=v.length;
-  const seg=v.slice(ls,end).split('\n').map((l,i)=>(numbered?(i+1)+'. ':prefix)+l).join('\n');
+  const head=/^#/.test(prefix);
+  const seg=v.slice(ls,end).split('\n').map((l,i)=>(numbered?(i+1)+'. ':prefix)+(head?l.replace(/^#{1,3}\s+/,''):l)).join('\n');
   inp.value=v.slice(0,ls)+seg+v.slice(end);
   inp.focus();inp.dispatchEvent(new Event('input',{bubbles:false}));}
 function mdInsertAt(inp,text){const v=inp.value;const a=inp.selectionStart==null?v.length:inp.selectionStart;
@@ -3952,6 +4120,7 @@ function renderProtocolEdit(){
       <div class="md-toolbar" role="toolbar" aria-label="Mise en forme">
         <button type="button" class="mini bld" data-mdtool="b" aria-label="Gras" title="Gras — **texte**">B</button>
         <button type="button" class="mini md-it" data-mdtool="i" aria-label="Italique" title="Italique — *texte*"><i>I</i></button>
+        <button type="button" class="mini" data-mdtool="h1" aria-label="Grand titre" title="Grand titre — # Titre">H1</button>
         <button type="button" class="mini" data-mdtool="h2" aria-label="Titre" title="Titre — ## Titre">H2</button>
         <button type="button" class="mini" data-mdtool="h3" aria-label="Sous-titre" title="Sous-titre — ### Sous-titre">H3</button>
         <button type="button" class="mini" data-mdtool="ul" aria-label="Liste à puces" title="Liste à puces — - élément (sous-liste : 2 espaces devant)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.4" fill="currentColor" stroke="none"/><circle cx="4.5" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="4.5" cy="18" r="1.4" fill="currentColor" stroke="none"/></svg></button>
@@ -3959,10 +4128,11 @@ function renderProtocolEdit(){
         <button type="button" class="mini" data-mdtool="q" aria-label="Citation" title="Citation — > texte"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><path d="M10.2 6.5c-3 .9-4.7 3-4.7 6v5h5.1v-5.6H7.7c.2-1.7 1.2-2.9 3-3.5zM19.5 6.5c-3 .9-4.7 3-4.7 6v5h5.1v-5.6h-2.9c.2-1.7 1.2-2.9 3-3.5z"/></svg></button>
         <button type="button" class="mini" data-mdtool="code" aria-label="Code" title="Code — \`texte\` (bloc : \`\`\` sur une ligne)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 7.5L4 12l4.5 4.5M15.5 7.5L20 12l-4.5 4.5"/></svg></button>
         <button type="button" class="mini" data-mdtool="link" aria-label="Lien" title="Lien — [texte](https://…)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13.5a4.5 4.5 0 006.8.5l2.7-2.7a4.5 4.5 0 00-6.4-6.4l-1.5 1.5"/><path d="M14 10.5a4.5 4.5 0 00-6.8-.5l-2.7 2.7a4.5 4.5 0 006.4 6.4l1.5-1.5"/></svg></button>
+        <button type="button" class="mini" data-mdtool="tbl" aria-label="Tableau" title="Tableau — | a | b | puis |---|---| (alignement : |:-:| centré, |---:| à droite)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9.5h18M9.5 9.5V20M3 15h18"/></svg></button>
         <button type="button" class="mini" data-mdtool="img" aria-label="Insérer une image" title="Insérer une image (réduite et stockée hors ligne)">${uiIcon('img',16)}</button>
       </div>
       <textarea id="p-body" rows="12" placeholder="## Indication&#10;- Critère 1&#10;- Critère 2&#10;&#10;Texte libre, **gras**, *italique*…">${esc(p.body)}</textarea>
-      <p class="hint">Syntaxe : <code># titre</code> (##, ###), <code>- liste</code> / <code>1. liste</code> (sous-liste : 2 espaces devant), <code>&gt; citation</code>, <code>\`code\`</code> (bloc : <code>\`\`\`</code>), <code>---</code> séparateur, <code>**gras**</code>, <code>*italique*</code>, <code>[texte](https://…)</code>.</p>
+      <p class="hint">Syntaxe : <code># titre</code> (##, ###), <code>- liste</code> / <code>1. liste</code> (sous-liste : 2 espaces devant), <code>&gt; citation</code>, <code>\`code\`</code> (bloc : <code>\`\`\`</code>), <code>---</code> séparateur, <code>**gras**</code>, <code>*italique*</code>, <code>[texte](https://…)</code>, <code>[texte](att:ID)</code> ouvre un document joint, <code>![légende](img:ID)</code> image.<br>Tableau : <code>| a | b |</code> puis, en 2ᵉ ligne, <code>|---|---|</code> — l'alignement se règle là (<code>|:-:|</code> centré, <code>|---:|</code> à droite). Un <code>|</code> dans une cellule s'écrit <code>\\|</code>.</p>
       <p class="md-prev-h">Aperçu</p><div class="md-preview" id="mdPreview">${mdRender(p.body,{images:p.images})}</div></fieldset>
     ${listEditor('Références','sources du protocole (traçabilité)','references',p.references||[])}
     ${isNew?'':'<div class="ed-del"><button class="btn danger" id="delBtn">Supprimer ce protocole</button></div>'}
@@ -3982,11 +4152,13 @@ function renderProtocolEdit(){
   main.querySelectorAll('[data-mdtool]').forEach(b=>b.onclick=()=>{const k=b.dataset.mdtool;
     if(k==='b')wrapBold(ta);
     else if(k==='i')mdWrapSel(ta,'*');
+    else if(k==='h1')mdPrefixLines(ta,'# ');
     else if(k==='h2')mdPrefixLines(ta,'## ');
     else if(k==='h3')mdPrefixLines(ta,'### ');
     else if(k==='ul')mdPrefixLines(ta,'- ');
     else if(k==='ol')mdPrefixLines(ta,'',true);
     else if(k==='q')mdPrefixLines(ta,'> ');
+    else if(k==='tbl')mdInsertAt(ta,(ta.value&&!/\n$/.test(ta.value.slice(0,ta.selectionStart||0))?'\n':'')+'\n| Colonne | Colonne |\n|---|---|\n| … | … |\n');
     else if(k==='code')mdWrapSel(ta,'`');
     else if(k==='link'){const v=ta.value,a=ta.selectionStart||0,e2=ta.selectionEnd||0;const sel=v.slice(a,e2)||'texte';ta.value=v.slice(0,a)+'['+sel+'](https://)'+v.slice(e2);ta.focus();const c=a+sel.length+3;ta.setSelectionRange(c,c+8);ta.dispatchEvent(new Event('input',{bubbles:false}));}
     else if(k==='img')imgInput.click();});
@@ -4756,7 +4928,7 @@ function renderRead(){
   const forgetStrip=(()=>{const items=clean(f.notForget);if(!items.length)return '';
     // ftxt englobant : .fs-i est un flex (puce ::before + texte) — sans lui, chaque segment
     // autour d'un **gras** deviendrait un item flex séparé (texte éclaté, gaps parasites).
-    return `<div class="forget-strip${items.length>4?' many':''}"><div class="fs-k">■ Ne pas oublier</div>${items.map(x=>`<div class="fs-i"><span class="ftxt">${fmt(x)}</span></div>`).join('')}</div>`;})();
+    return `<div class="forget-strip${items.length>4?' many':''}"><div class="fs-k">■ Ne pas oublier</div><div class="fs-list">${items.map(x=>`<div class="fs-i"><span class="ftxt">${fmt(x)}</span></div>`).join('')}</div></div>`;})();
   // Historique = sessions de cette fiche, EN EXCLUANT la session vive courante (affichée par le bandeau).
   const ss=sessions.filter(s=>s.ficheId===f.id&&s.id!==Runtime.sessionId).sort((a,b)=>b.savedAt-a.savedAt);
   const started=Runtime.started;
@@ -4831,18 +5003,29 @@ function renderRead(){
     ${refs.length?`<div class="refs"><b>Références</b><ol>${refs.map(r=>`<li>${fmt(r)}</li>`).join('')}</ol></div>`:''}
     ${(()=>{const rel=(f.related||[]).map(id=>relTarget(id)).filter(Boolean);return rel.length?`<div class="related"><b>Voir aussi</b><div class="related-row">${rel.map(r=>`<button class="btn sm" data-openrel="${esc(r.id)}">${uiIcon(relKindOf(r.id)==='p'?'book':'doc',13)}${esc(r.title)||'Sans titre'} →</button>`).join('')}</div></div>`:'';})()}
     ${preview?'':noteBlockHtml(f.id,started)}
-    <div class="crisis-footer"><span><span class="cf-ok">●</span> Local — hors ligne OK</span><span>${[f.code?esc(f.code):'',f.validation?'maj '+esc(valToDisplay(f.validation)):'','v'+APP_VERSION].filter(Boolean).join(' · ')}</span></div>
+    ${readFooterHtml()}
     ${gridClose}`;
+  updateStorageInfo();   // remplit le pied (mesure asynchrone) — même libellé que la sidebar
   bindReadEvents(f,blk,cur);
 }
-// Re-rendu de DÉMARRAGE de session (1ʳᵉ action) avec ANCRAGE : le bouton « Confirmé — démarrer »
-// disparaît du flux au re-rendu -> tout remonterait sous le doigt (ECAM : le contexte de travail
-// ne bouge pas). On mémorise la position ÉCRAN de l'élément déclencheur et on compense le scroll
-// pour qu'il ne bouge pas d'un pixel. `sel` = sélecteur re-trouvable après render().
+/* Re-rendu de DÉMARRAGE de session (1ʳᵉ action) avec ANCRAGE : le bouton « Confirmé — démarrer »
+   disparaît du flux au re-rendu -> tout remonterait sous le doigt (ECAM : le contexte de travail
+   ne bouge pas). On mémorise la position ÉCRAN de l'élément déclencheur et on compense le scroll
+   pour qu'il ne bouge pas d'un pixel. `sel` = sélecteur re-trouvable après render().
+   LIMITE STRUCTURELLE (à connaître avant d'en dépendre) : la compensation est BORNÉE par le haut
+   de page. Si le re-rendu retire S pixels AU-DESSUS de l'ancre alors que window.scrollY < S,
+   scrollBy ne peut pas descendre sous 0 : il reste un résidu de (S - scrollY) px. C'est sans
+   conséquence pour S ≈ une centaine de px (le bouton), mais cela interdit d'y adosser le repli
+   d'un BLOC entier (cf. la doctrine de state.confOpen dans ensureStarted).
+   Renvoie le RÉSIDU en px (0 = l'ancre n'a pas bougé) -> testable, et garde-fou pour l'avenir. */
 function renderKeepAnchor(sel){
   const el=sel?main.querySelector(sel):null;const top=el?el.getBoundingClientRect().top:null;
   render();
-  if(top!=null){const nl=main.querySelector(sel);if(nl){const d=nl.getBoundingClientRect().top-top;if(d)window.scrollBy(0,d);}}}
+  if(top==null)return 0;
+  const nl=main.querySelector(sel);if(!nl)return 0;
+  const d=nl.getBoundingClientRect().top-top;if(d)window.scrollBy(0,d);
+  const r=main.querySelector(sel);
+  return r?Math.round(r.getBoundingClientRect().top-top):0;}
 // Câblage des écouteurs de la vue lecture (seconde moitié de l'ancien renderRead) : navigation entre
 // blocs, cochage des étapes, contrôles minuteurs/compteurs (mise à jour DOM directe, sans re-rendu),
 // journal des actions, sessions. `blk` = bloc affiché, `cur` = id du bloc courant (halo du flow).
@@ -4909,6 +5092,12 @@ function bindReadEvents(f,blk,cur){
   // « Repartir d'ici (efface la suite) » tronque volontairement la suite pour repartir d'ici.
   const nx=document.getElementById('navNext');if(nx)nx.onclick=()=>{
     if(nx.getAttribute('aria-disabled')==='true')return;   // étapes restantes : le libellé l'annonce, le clic est ignoré (ECAM)
+    // REPLI DIFFÉRÉ de l'étape ① (v4.4.2) : « Continuer → » est le premier geste qui ACQUITTE la
+    // phase de confirmation (le bloc précédent est entièrement coché) ET qui déplace déjà le
+    // contexte à la demande de l'utilisateur (scrollNavNext -> scrollNavIntoView, qui ne fait que
+    // REMONTER). Replier ici est donc gratuit et invisible : l'écran de crise s'épure sans qu'aucun
+    // contenu ne bouge sous le doigt — ce qu'un repli au cochage ne peut pas garantir (ensureStarted).
+    if(Runtime.started)state.confOpen=false;
     // « Terminer l'algorithme ✓ » ≠ terminer la session : on AFFICHE l'état fin (§8), la session
     // (chrono, minuteurs) continue — la clôture est un choix séparé et confirmé.
     if(!(blk.next&&f.blocks.some(b=>b.id===blk.next))){state.flowEnded=true;render();return;}
@@ -5833,7 +6022,22 @@ AVANT DE RÉPONDRE, VÉRIFIE
 const createModal=document.getElementById('createModal');
 let pendingOpenImport=false;   // ouvrir directement la fiche importée (méthode IA)
 let importForceDraft=false;    // forcer l'état Brouillon des éléments importés (dialogue Créer)
-async function openCreateDlg(){renderCreateDlg('methods',await getDraftPark());createModal.classList.add('on');}
+/* Sélecteur de TYPE du dialogue « Créer » (v4.4.2) : aide cognitive <-> protocole, au même
+   composant segmenté que la tab bar (.seg, pastille glissante). Il pilote `state.section` —
+   source unique du type dans tout le dialogue (brouillon parqué, carte IA, aiguillage
+   newFiche/newProtocol) : choisir « Protocole » ici BASCULE donc aussi l'onglet de l'accueil,
+   et l'on retrouve la bonne liste au retour de l'éditeur. */
+const createSeg=document.getElementById('createSeg');
+createSeg.querySelector('[data-createkind="fiches"] .seg-ic').innerHTML=uiIcon('doc',18);
+createSeg.querySelector('[data-createkind="protocols"] .seg-ic').innerHTML=uiIcon('book',18);
+const updateCreateSeg=()=>paintSeg(createSeg,'data-createkind',state.section==='protocols');
+// silent : l'accueil est sous le voile du dialogue — pas d'animation de bascule de section.
+async function pickCreateKind(s){setSection(s,true,{keepCat:true,silent:true});updateCreateSeg();
+  renderCreateDlg('methods',await getDraftPark());}
+createSeg.querySelectorAll('[data-createkind]').forEach(b=>b.onclick=()=>pickCreateKind(b.dataset.createkind));
+createSeg.onkeydown=e=>{if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;e.preventDefault();
+  pickCreateKind(e.key==='ArrowLeft'?'fiches':'protocols').then(()=>{const a=createSeg.querySelector('.seg-btn.on');if(a)a.focus();});};
+async function openCreateDlg(){updateCreateSeg();renderCreateDlg('methods',await getDraftPark());createModal.classList.add('on');}
 function closeCreateDlg(){createModal.classList.remove('on');}
 function crtCard(id,glyph,t,d){return `<button class="crt-card" id="${id}"><span class="crt-ic" aria-hidden="true">${glyph}</span><span><span class="crt-t">${t}</span><br><span class="crt-d">${d}</span></span><span class="crt-chev" aria-hidden="true">›</span></button>`;}
 // Zone de dépôt : clic = sélecteur de fichier, glisser-déposer = lecture directe. Tout import
@@ -5846,7 +6050,9 @@ function bindCreateDrop(el,openAfter){
 }
 function renderCreateDlg(screen,park){
   const proto=state.section==='protocols';
-  document.getElementById('createModalTitle').textContent=proto?'Créer un protocole':'Créer une aide cognitive';
+  // Le segment ne vit que sur l'écran des méthodes (les sous-écrans IA / import sont propres au
+  // type déjà choisi et offrent leur propre retour « ‹ Autres méthodes »).
+  createSeg.hidden=(screen!=='methods');
   const body=document.getElementById('createBody');
   if(screen==='ia'){
     body.innerHTML=`
@@ -7616,7 +7822,7 @@ if(location.search.indexOf('__actest')>=0){
   window.__ac_test__={migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attStoragePath,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
-    restErrStatus,isPersoRepairCandidate,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle};
+    restErrStatus,isPersoRepairCandidate,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt};
 }else{
   /* ===== PWA =====
      Enregistre le service worker (cache hors ligne) si disponible. Capte
