@@ -1,5 +1,55 @@
 # Journal des modifications
 
+## [4.3.2] — 2026-07-14
+Micro-animations harmonisées, bouton « Démarrer la session », tri alphabétique par défaut,
+et correctifs d'affichage (bandeau de bibliothèque partagée, contraste de la barre latérale,
+scroll perdu au premier cochage).
+
+### Ajouté
+- **Bouton « ▶ Démarrer la session »** dans la vue lecture d'une aide cognitive, sous la
+  confirmation diagnostique (doctrine QRH : on confirme le tableau, puis on agit). Il lance
+  chrono, minuteurs et journal par le même chemin que la première action (`ensureStarted`) —
+  laquelle continue de démarrer la session implicitement. Seul bouton `--primary` plein de
+  l'écran avant session ; il disparaît dès la session démarrée.
+- **Micro-animations cohérentes** (registre unique, aligné Apple HIG / Material 3) : voile en
+  fondu + légère levée des fenêtres (`veilIn`/`riseIn`), dépliage ancré du menu ⋯ (`menuIn`),
+  entrée du bandeau système (réutilise `cbIn`), fondu court des survols (rangées de la barre
+  latérale, menu ⋯, documents), levée adoucie des cartes. Règles de sûreté (aviation/QRH) :
+  transform/opacity seulement (compositeur — l'app reste utilisable pendant l'animation),
+  **aucune animation de sortie** (fermer = immédiat), aucune boucle hors alarmes, pas
+  d'animation d'entrée sur les surfaces re-rendues en session (elles rejoueraient à chaque
+  action), visionneuse PDF exclue ; tout est neutralisé sous `prefers-reduced-motion`.
+
+### Modifié
+- **La date de validation quitte les CARTES** (elle doublait le badge « ✓ Validée ») : sur
+  l'accueil, une carte ne porte plus que le badge de statut ; seul un **dépassement** (validation
+  de plus de 2 ans) est signalé par une pastille « △ à revoir » au registre ATTENTION (la date
+  exacte reste dans son info-bulle). La vue lecture conserve « Validation : 01/2025 » inchangée.
+- **Bandeau « Bibliothèque partagée » supprimé** à l'ouverture d'une bibliothèque partagée :
+  l'information vit désormais dans le titre de liste — « Nom de la bibliothèque — partagée
+  (· lecture seule le cas échéant) — n aides cognitives / documents » — affiché aussi sur
+  l'accueil étroit quand une bibliothèque partagée est ouverte. Le titre de la section
+  Protocoles porte lui aussi le nom de la bibliothèque ouverte.
+- **Tri alphabétique par défaut** des aides cognitives, des protocoles et du sélecteur
+  « Voir aussi » (collation française : accents ignorés, numérique naturel — « Bloc 2 » avant
+  « Bloc 10 ») ; les épinglés restent en tête. Remplace le tri par récence (`order`, conservé
+  dans le modèle pour la compatibilité). Fonction `byTitle` exposée au mode test et couverte
+  par tests.html.
+- **Pied de page synthétisé** (bas de la barre latérale) : la ligne de stockage devient
+  compacte — « ☁ Cloud · 3 Mo sur l'appareil », « Cet appareil seulement · 3 Mo · copie
+  unique / non protégé » — le message de sécurité complet reste dans l'info-bulle et la
+  fenêtre « Où sont enregistrées vos fiches ? » (inchangées).
+
+### Corrigé
+- **Scroll perdu au premier cochage** : cocher la première étape (= démarrage de session)
+  re-rendait la vue avec « Confirmation diagnostique » repliée — le contenu remontait et le
+  point de tap était perdu. L'état d'ouverture du bloc est désormais figé au démarrage de la
+  session (`ensureStarted`) ; le repli par défaut ne vaut plus que pour une session reprise.
+- **Contraste de la barre latérale (WCAG 2.2 AA)** : sur une rangée de bibliothèque
+  sélectionnée (fond bleu système), le sous-texte « La vôtre · lecture-écriture » /
+  « Partagée · rôle » gardait son encre douce (contraste insuffisant) — il hérite désormais
+  de l'encre inversée (opacité .92, ≥ 4.5:1 sur tous les accents), comme le compte d'éléments.
+
 ## [4.3.1] — 2026-07-13
 Correctifs mobile (fiabilité des taps, taille du texte sur iPhone) et harmonisation des
 confirmations destructrices sur le registre du dialogue « Terminer la session ».

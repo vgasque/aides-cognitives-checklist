@@ -81,6 +81,12 @@ function run(A){
   eq('sarr coerce éléments', A.sarr([1,2],5), ['1','2']);
   eq('sarr non-array → []', A.sarr('x',5), []);
 
+  group('byTitle() — tri alphabétique par défaut (v4.3.2)');
+  eq('ordre alphabétique simple', [{title:'Choc'},{title:'Anaphylaxie'},{title:'Brûlure'}].sort(A.byTitle).map(x=>x.title), ['Anaphylaxie','Brûlure','Choc']);
+  eq('accents ignorés (É = E)', [{title:'État de mal'},{title:'Embolie'},{title:'Éclampsie'}].sort(A.byTitle).map(x=>x.title), ['Éclampsie','Embolie','État de mal']);
+  eq('numérique naturel (2 avant 10)', [{title:'Bloc 10'},{title:'Bloc 2'}].sort(A.byTitle).map(x=>x.title), ['Bloc 2','Bloc 10']);
+  eq('titre manquant → en tête, sans erreur', [{title:'Choc'},{}].sort(A.byTitle).map(x=>x.title||''), ['','Choc']);
+
   group('parseValidation() → AAAA-MM');
   eq('déjà canonique', A.parseValidation('2026-01'), '2026-01');
   eq('01/2026', A.parseValidation('01/2026'), '2026-01');

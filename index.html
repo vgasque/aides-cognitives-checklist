@@ -232,7 +232,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-XD2IBCyosWBTjwLe+8Gcc0atq6NKX+Od6ox9SEW8wUE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-2ne7wCtwJ3pC6iZ8AIEe5gHgna5TqAj6s5fO9lpEXEk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -675,8 +675,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .chip-edit:hover{background:color-mix(in srgb,var(--on-primary) 30%,transparent)}
   .chip-edit:focus-visible{outline:2px solid var(--on-primary);outline-offset:-2px}
   .scopebtn svg{vertical-align:-2px}
-  .scope-ctx{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin:-6px 0 16px;padding:9px 12px;background:var(--primary-soft);border-radius:10px}
-  .scope-ctx-i{font-size:12.5px;color:var(--ink-soft);font-weight:600}
   .linkbtn{background:none;border:0;color:var(--primary);font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:0;margin-left:auto}
   .linkbtn:hover{text-decoration:underline}
   .notice-x{position:absolute;top:4px;right:4px;background:none;border:0;color:var(--ink-soft);font-size:19px;line-height:1;cursor:pointer;padding:0;min-width:32px;min-height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:7px}
@@ -784,6 +782,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .tag.cat{display:inline-flex;align-items:center;gap:6px;background:color-mix(in srgb, var(--c,var(--primary)) 15%, transparent);color:var(--c,var(--primary))}
   html[data-theme="dark"] .tag.cat{background:color-mix(in srgb, var(--c,var(--primary)) 26%, transparent);color:color-mix(in srgb, var(--c,var(--primary)) 60%, white)}
   .tag.flow{background:var(--verify-soft);color:var(--verify)}
+  /* Validation périmée (> 2 ans) sur les CARTES (v4.3.2) : la date a quitté les cartes (elle
+     doublait le badge « ✓ Validée » — elle reste en vue lecture) ; seul le DÉPASSEMENT est
+     signalé, au registre ATTENTION. L'info-bulle porte la date exacte. */
+  .tag.stale{background:var(--verify-soft);color:var(--verify)}
   /* Tags informatifs des cartes : NEUTRES (audit v4.5) — la couleur reste au danger, au vert
      session et au liseré de catégorie. */
   .tag.sess{background:var(--tag-bg);color:var(--tag-ink)}
@@ -854,6 +856,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .conf-chev{margin-left:auto;color:var(--link);font-weight:800;font-size:15px;padding:0 4px;flex:none}
   .conf-head:focus-visible{outline:2px solid var(--primary);outline-offset:-2px;border-radius:8px}
   .conf-block ul.flat{margin:0;padding:10px 12px 12px;border-top:1px solid var(--line)}
+  /* Démarrage EXPLICITE de session (v4.3.2) : sous la confirmation diagnostique (doctrine QRH :
+     on confirme le tableau, PUIS on agit). Seul bouton --primary plein de l'écran avant session
+     (« Continuer » vit aux registres idle/CONFIRMATION) ; disparaît dès la session démarrée. */
+  .sess-start{display:flex;align-items:center;gap:6px 14px;flex-wrap:wrap;margin:14px 0 18px}
+  .ss-hint{font-size:12px;color:var(--ink-soft)}
   .block-h .pip{width:9px;height:9px;border-radius:3px;flex-shrink:0}.block-h .spc{flex:1}
   /* V5 : plus de badge d'icône — kicker textuel seul (le registre passe par la couleur du texte). */
   .block-h .sec-badge{display:none}
@@ -1504,7 +1511,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Colonne gauche de l'accueil (>= 780px), rendue par renderHomeList. */
   .home-side{display:none}
   .home-main{min-width:0}
-  .list-title{display:none}
+  /* Titre de liste : rendu en large, ET en étroit quand une bibliothèque partagée est ouverte
+     (v4.3.2 — il porte alors « Nom — partagée · rôle — n éléments », ex-bandeau scope-ctx). */
+  .list-title{font-size:15px;font-weight:700;margin:0 0 12px}
+  .list-title span{font-weight:500;color:var(--ink-soft)}
   .hs-h{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-soft);padding:0 12px;margin:16px 0 8px}
   .home-side>.hs-h:first-child{margin-top:0}
   .hs-row{display:flex;align-items:center;gap:9px;width:100%;min-height:38px;padding:8px 12px;border:0;border-radius:8px;background:none;font-family:inherit;font-size:13.5px;font-weight:500;color:var(--ink);cursor:pointer;text-align:left}
@@ -1513,7 +1523,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      (encodage de sélection unique) ; la pastille reste lisible sur le bleu grâce à son anneau. */
   .hs-row.on{background:var(--primary);color:var(--on-primary);font-weight:700}
   html[data-theme="dark"] .hs-row.on{background:var(--primary-dk);color:var(--bg)}
-  .hs-row.on .hs-n{color:inherit;opacity:.75}
+  /* Rangée SÉLECTIONNÉE : sous-texte et compte HÉRITENT de l'encre inversée (--on-primary) —
+     jamais --ink-soft sur fond primaire (contraste < AA). Opacité .92 : hiérarchie visuelle
+     préservée en restant ≥ 4.5:1 sur tous les accents (WCAG 2.2 AA). */
+  .hs-row.on :is(.hs-n,.hs-sub){color:inherit;opacity:.92}
   .hs-row:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
   .hs-row .hs-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .hs-row>.hs-name{flex:1}
@@ -1564,8 +1577,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .home-side{display:flex;flex-direction:column;gap:4px;flex:none;width:255px;background:var(--surface);border-right:1px solid var(--line);padding:16px 12px;overflow-y:auto;scrollbar-gutter:stable}
     .home-main{flex:1;min-width:0;overflow-y:auto;padding:18px 22px calc(24px + env(safe-area-inset-bottom));scrollbar-gutter:stable}
     .home-main>*{max-width:1320px}
-    .list-title{display:block;font-size:15px;font-weight:700;margin:0 0 12px}
-    .list-title span{font-weight:500;color:var(--ink-soft)}
     /* En large, bibliothèques et catégories vivent dans la colonne gauche (chips retirées du flux). */
     body.view-home :is(.scopebar,.catbar){display:none}
   }
@@ -1781,7 +1792,28 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   @media (min-width:780px){.chiprow{flex-wrap:nowrap}.catbar .chiprow,.scopebar .chiprow{flex-wrap:wrap;overflow-x:visible;padding:0;margin:0}}
   /* (Grille des cartes : règle unique auto-fill/minmax(300px,1fr) — cf. .cards plus haut.) */
   @media (max-width:560px){.read-head h2{font-size:21px}.row2{flex-direction:column;gap:0}.question{font-size:18px}}
-  @media (prefers-reduced-motion:reduce){*{transition:none!important}.tmcard.flash{animation:none}#crisisBand{animation:none}header.bar.titled.ttl-on #brandTitle{animation:none}.sess-dot::after{animation:none;opacity:0}}
+  /* ===== Micro-animations (v4.3.2) =====
+     Vocabulaire UNIQUE, aligné HIG/M3 : entrées 150-250 ms en décélération (--ease-out),
+     survols/appuis 120-150 ms. opacity/transform SEULEMENT (compositeur : rien ne bloque,
+     l'app reste utilisable pendant l'animation — règle QRH) ; AUCUNE animation de sortie
+     (fermer = immédiat, jamais d'attente) ; rien ne s'anime en boucle hors alarmes.
+     Les surfaces qui se RE-RENDENT au fil de la session (listes, blocs de la checklist)
+     ne portent PAS d'animation d'entrée : elles rejoueraient à chaque action. */
+  @keyframes veilIn{from{opacity:0}}
+  @keyframes riseIn{from{opacity:0;transform:translateY(10px) scale(.985)}}
+  @keyframes menuIn{from{opacity:0;transform:translateY(-4px) scale(.97)}}
+  /* Fenêtres : voile en fondu + carte en légère levée. La visionneuse PDF reste sèche
+     (rendu lourd : la priorité est d'afficher le document). */
+  .ai-modal.on{animation:veilIn .18s ease-out}
+  .ai-modal.on:not(.pdf-modal) .ai-card{animation:riseIn .22s cubic-bezier(.2,0,0,1)}
+  /* Menu ⋯ : dépliage ancré à son bouton (aucun déplacement de contexte, l'app reste tapable). */
+  .more-menu:not([hidden]){transform-origin:top right;animation:menuIn .16s cubic-bezier(.2,0,0,1)}
+  /* Bandeau système (INFO persistante, hors crise) : même entrée que le bandeau de crise. */
+  .sys-banner:not([hidden]){animation:cbIn .25s ease}
+  /* Survols des rangées/menus : fondu court au lieu du changement sec (aucun délai perçu). */
+  .hs-row,.hs-act,.hs-add,.mm-row,.att-row,.rt-collapsed,.hdr-back,.hdr-new,.hdr-theme,.hdr-more,.hdr-act2,.tlink{transition:background-color .15s,color .15s}
+  .card{transition:transform .12s cubic-bezier(.2,0,0,1),border-color .12s,box-shadow .15s}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}.tmcard.flash{animation:none}#crisisBand{animation:none}header.bar.titled.ttl-on #brandTitle{animation:none}.sess-dot::after{animation:none;opacity:0}.ai-modal.on,.ai-modal.on:not(.pdf-modal) .ai-card,.more-menu:not([hidden]),.sys-banner:not([hidden]){animation:none}}
   @media print{body{background:#fff}header.bar,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.sess-list,.notes-block{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}}
 </style>
 </head>
@@ -1963,7 +1995,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.3.1';
+const APP_VERSION='4.3.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -2554,7 +2586,11 @@ const flowBlock=(f,curId)=>`<div class="flow-zoom"><button class="fz" data-zoom=
 let flowPrevTimer=null;
 function scheduleFlowPreview(f){if(flowPrevTimer)clearTimeout(flowPrevTimer);
   flowPrevTimer=setTimeout(()=>{flowPrevTimer=null;const el=main.querySelector('.flow-scroll');if(!el)return;captureFlow();el.innerHTML=buildFlowSVG(f);applyFlowZoom();restoreFlow();bindSvgImages(el);},300);}
-const byOrder=(a,b)=>(b.order||0)-(a.order||0);
+// Tri PAR DÉFAUT des listes (v4.3.2) : ordre ALPHABÉTIQUE du titre (français, accents ignorés,
+// numérique naturel : « Bloc 2 » avant « Bloc 10 ») — remplace l'ancien tri par récence (order).
+// Le champ `order` reste dans le modèle (compatibilité ascendante), il n'ordonne plus l'accueil.
+const _collator=new Intl.Collator('fr',{sensitivity:'base',numeric:true});
+const byTitle=(a,b)=>_collator.compare(String(a.title||''),String(b.title||''));
 // Recherche PLEIN TEXTE, insensible aux accents : la requête « adrenaline » doit trouver une fiche
 // où le mot n'apparaît que dans une étape (« Adrénaline titrée… »), pas seulement dans le titre.
 const txNorm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
@@ -2861,22 +2897,23 @@ async function updateStorageInfo(){
     ]);
     if(!est){el.textContent='';return;}
     const fmt=fmtBytes;
-    // On MÈNE avec le message de sécurité (où sont mes fiches, suis-je à l'abri ?), on garde le détail
-    // chiffré (taille / quota appareil) en info-bulle. CONNECTÉ -> rassurant ; DÉCONNECTÉ -> copie unique.
+    // SYNTHÈSE (v4.3.2) : une ligne courte dans le pied de page — le message de sécurité complet
+    // (où sont mes fiches, suis-je à l'abri ?) vit dans l'info-bulle et la fenêtre de stockage
+    // qu'un tap ouvre (openStorageInfo). CONNECTÉ -> rassurant ; DÉCONNECTÉ -> copie unique.
     const signed=(typeof Auth!=='undefined'&&Auth.signedIn());
     const used=fmt(est.usage);
     let main,tip;
     if(signed){
-      main='<span class="pers-ok">'+uiIcon('cloud',13)+' <b>Sauvegardé dans le cloud</b></span> · '+used+' sur cet appareil';
+      main='<span class="pers-ok">'+uiIcon('cloud',13)+' <b>Cloud</b></span> · '+used+' sur l\'appareil';
       tip='Vos fiches sont sauvegardées dans le cloud. Le « '+used+' » est seulement la copie hors-ligne sur CET appareil (sa limite, '+fmt(est.quota)+', ne concerne donc pas vos données) : même effacée du navigateur ou depuis un autre appareil, vous retrouvez tout en vous reconnectant. C\'est l\'intérêt de la synchronisation.';
     }else if(pers===true){
-      main='<b>Sur cet appareil uniquement</b> · '+used+' · copie unique';
+      main='<b>Cet appareil seulement</b> · '+used+' · copie unique';
       tip='Sans compte, cet appareil contient votre SEULE copie ('+used+' / '+fmt(est.quota)+'), ici à l\'abri d\'un effacement automatique du navigateur. Connectez-vous pour la sauvegarder dans le cloud et y accéder depuis vos autres appareils.';
     }else{
-      main='<span class="pers-warn">'+uiIcon('warn',13)+' <b>Stockage sur cet appareil seulement</b> · '+used+' · non protégé</span> — connectez-vous';
+      main='<span class="pers-warn">'+uiIcon('warn',13)+' <b>Cet appareil seulement</b> · '+used+' · non protégé</span>';
       tip='Sans compte, cet appareil contient votre SEULE copie ('+used+' / '+fmt(est.quota)+') et le navigateur pourrait l\'effacer. Pour éviter toute perte : connectez-vous (sauvegarde dans le cloud) ou installez l\'app sur l\'écran d\'accueil.';
     }
-    if(est.quota&&est.usage/est.quota>0.85)main+=' · <span class="pers-warn">'+uiIcon('warn',13)+' appareil presque plein</span>';
+    if(est.quota&&est.usage/est.quota>0.85)main+=' · <span class="pers-warn">'+uiIcon('warn',13)+' presque plein</span>';
     // Poids des documents PDF joints (somme des métadonnées en mémoire — aucun blob n'est relu).
     let attB=0;fiches.forEach(x=>(x.attachments||[]).forEach(a=>attB+=a.size||0));
     if(attB)tip+=' Dont '+fmt(attB)+' de documents PDF joints.';
@@ -3191,6 +3228,11 @@ function persistAllLive(){Object.values(liveSessions).forEach(R=>persistLive(R,t
 function ensureStarted(){if(Runtime.started||!Runtime.fiche)return false;
   // MODE APERÇU (édition, V5) : jamais de session — on regarde le contenu, on ne soigne pas.
   if(state.previewFrom)return false;
+  // Le re-rendu de démarrage ne doit PAS replier « Confirmation diagnostique » sous le doigt
+  // (le contenu remonterait, le point de tap serait perdu — v4.3.2) : on FIGE l'état d'ouverture
+  // courant (ouvert par défaut avant démarrage). Le repli par défaut ne vaut que pour une
+  // session REPRISE (openRead remet state.confOpen à undefined).
+  if(state.view==='read'&&state.confOpen===undefined)state.confOpen=true;
   Runtime.started=true;Runtime.startedAt=Date.now();
   if(!Runtime.sessionId)Runtime.sessionId=uid('s');
   if(!Runtime.name)Runtime.name=autoSessName(Runtime.fiche);
@@ -3600,11 +3642,8 @@ function scopeBarHtml(){
         return on?`<span class="scopebtn on${admin?' edit':''}" title="Bibliothèque partagée — rôle : ${esc(_ROLE_LBL[l.role]||l.role)}">${ro?uiIcon('lock',12)+' ':(!admin?uiIcon('lockopen',12)+' ':'')}${esc(l.name)}${admin?`<button class="chip-edit" data-libedit="${esc(l.id)}" title="Modifier la bibliothèque" aria-label="Modifier la bibliothèque « ${esc(l.name)} »">${uiIcon('pen',12)}</button>`:''}</span>`
         :`<button class="scopebtn" data-scope="${esc(l.id)}" title="Bibliothèque partagée — rôle : ${esc(_ROLE_LBL[l.role]||l.role)}">${ro?uiIcon('lock',12)+' ':(!admin?uiIcon('lockopen',12)+' ':'')}${esc(l.name)}</button>`;}).join('')}
       ${myIsAppAdmin?`<button class="scopebtn add" data-newlib title="Créer une bibliothèque partagée">+ Bibliothèque</button>`:''}</div></div>`:'';}
-// Contexte de bibliothèque PARTAGÉE (lecture seule, bouton Gérer) : commun aux deux largeurs.
-function scopeCtxHtml(){
-  // (Le bouton « Gérer » a cédé la place au crayon ✎ dans la chip active / la rangée de la
-  // barre latérale — SPEC gestion §3 : un seul point d'entrée d'édition de bibliothèque.)
-  return state.scope?`<div class="scope-ctx"><span class="scope-ctx-i">Bibliothèque partagée${canEditScope(state.scope)?'':' · vous êtes en lecture seule'}</span></div>`:'';}
+// (v4.3.2 : le bandeau « Bibliothèque partagée » a disparu — l'information vit dans le TITRE
+// de liste : « Nom — partagée · lecture seule — n fiches/protocoles », cf. renderHomeList.)
 // Rangée de catégories en chips (accueil ÉTROIT) : mêmes pastilles pour fiches et protocoles.
 function catbarHtml(){
   const chips=`<button class="catchip${!state.cat?' on':''}" data-cat="">Toutes</button>`+catsSorted(state.scope).map(c=>catChipHtml(c,state.cat===c.id,'catchip','data-cat')).join('')+(canEditScope(state.scope)?`<button class="catchip mgr" data-catmgr>${uiIcon('gear',13)} Gérer</button>`:'');
@@ -3696,11 +3735,10 @@ function renderHomeList(cfg){
   main.innerHTML=`
     ${wide?homeSideHtml():''}
     <div class="home-main">
-    ${scopeCtxHtml()}
     ${cfg.topHtml?cfg.topHtml():''}
     <div class="notice" id="syncErrNotice" hidden></div>
     ${cfg.notices?cfg.notices():''}
-    ${wide?`<div class="list-title">${cfg.listTitle()} <span>— ${list.length} ${cfg.countLbl(list.length)}</span></div>`:''}
+    ${(wide||state.scope)?`<div class="list-title">${cfg.listTitle()} <span>${(state.scope&&!q)?`— partagée${canEdit?'':' · lecture seule'} `:''}— ${list.length} ${cfg.countLbl(list.length)}</span></div>`:''}
     ${crossHitsHtml(q,cfg.crossKind)}
     <div class="cards">${list.length?list.slice(0,state.libLimit).map(cfg.card).join('')+(list.length>state.libLimit?`<button class="btn" id="showMore" style="width:100%;margin-top:2px">Afficher plus (${list.length-state.libLimit} ${cfg.remainLbl(list.length-state.libLimit)})</button>`:'')
       // Appel à l'action SEULEMENT si on peut créer ici : un lecteur d'une bibliothèque
@@ -3727,11 +3765,12 @@ function renderFiches(){
     newTonal:()=>Object.values(liveSessions).some(R=>R.started&&R.fiche),
     listTitle:()=>txNorm(state.q)?'Résultats — toutes les bibliothèques':(state.scope?esc((myLibraries.find(l=>l.id===state.scope)||{}).name||'Bibliothèque partagée'):'Bibliothèque perso'),
     countLbl:n=>'aide'+(n>1?'s':'')+' cognitive'+(n>1?'s':''),
-    // Tri : épinglées d'abord (préférence locale), puis ordre habituel. Recherche : plein texte normalisé.
+    // Tri : épinglées d'abord (préférence locale), puis ordre alphabétique (byTitle, v4.3.2).
+    // Recherche : plein texte normalisé.
     // Recherche (q non vide) : porte sur TOUTES les bibliothèques accessibles (le tableau `fiches`
     // ne contient déjà que du contenu autorisé) ; brouillon visible si on peut éditer SA biblio
     // (canEditFiche, par item). Sans recherche : périmètre + catégorie courants, comme avant.
-    list:(q,canEdit)=>fiches.slice().sort((a,b)=>((isPinned(b.id)?1:0)-(isPinned(a.id)?1:0))||byOrder(a,b)).filter(f=>q?(ficheHaystack(f).includes(q)&&(canEditFiche(f)||f.status!=='draft')):((state.scope?f.libraryId===state.scope:!f.libraryId)&&(!state.cat||f.category===state.cat)&&(canEdit||f.status!=='draft'))),
+    list:(q,canEdit)=>fiches.slice().sort((a,b)=>((isPinned(b.id)?1:0)-(isPinned(a.id)?1:0))||byTitle(a,b)).filter(f=>q?(ficheHaystack(f).includes(q)&&(canEditFiche(f)||f.status!=='draft')):((state.scope?f.libraryId===state.scope:!f.libraryId)&&(!state.cat||f.category===state.cat)&&(canEdit||f.status!=='draft'))),
     // SESSIONS EN COURS (SPEC §5) : une CARTE par session (surface, liseré primaire 3px), point
     // vert + kicker + titre, CHRONO mono vivant (mis à jour par tickAll), « Reprendre » plein,
     // « Terminer » en texte rouge (destructif : jamais plein, jamais premier).
@@ -3743,7 +3782,7 @@ function renderFiches(){
     card:f=>{const sc=sessions.filter(s=>s.ficheId===f.id&&!s.live).length;const isLive=!!liveSessions[f.id];
       const cc=catOf(f);return `
       <div class="card${isLive?' has-live':''}${cc?' striped':''}"${cc?` style="--stripe:${safeColor(cc.color)}"`:''}><div class="card-body"><h2><button class="card-open" data-open="${f.id}">${esc(f.title)||'Sans titre'}</button></h2>
-        <div class="card-meta">${searchLibTag(f)}${isLive?'<span class="tag live">● En cours</span>':''}${statusChip(f.status,true)}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo title="Reste à compléter : ${esc(sp.join(' · '))}">△ À compléter</span>`:'';})()}${catTag(f,true)}${sc?`<span class="tag sess" title="Sessions enregistrées dans l'historique">${sc} sauvegardée${sc>1?'s':''}</span>`:''}${f.code?`<span class="card-date" style="font-family:var(--mono)">${esc(f.code)}</span>`:''}<span class="card-date${staleDate(f.validation)?' stale':''}">${esc(fmtDate(f.validation))}${staleDate(f.validation)?' · à revoir':''}</span></div></div>
+        <div class="card-meta">${searchLibTag(f)}${isLive?'<span class="tag live">● En cours</span>':''}${statusChip(f.status,true)}${staleDate(f.validation)?`<span class="tag stale" title="${esc(fmtDate(f.validation))} — plus de 2 ans : à revérifier">△ à revoir</span>`:''}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo title="Reste à compléter : ${esc(sp.join(' · '))}">△ À compléter</span>`:'';})()}${catTag(f,true)}${sc?`<span class="tag sess" title="Sessions enregistrées dans l'historique">${sc} sauvegardée${sc>1?'s':''}</span>`:''}${f.code?`<span class="card-date" style="font-family:var(--mono)">${esc(f.code)}</span>`:''}</div></div>
         <button class="pinbtn${isPinned(f.id)?' on':''}" data-pin="${f.id}" aria-label="${isPinned(f.id)?'Désépingler':'Épingler en haut de la liste'}" title="${isPinned(f.id)?'Désépingler':'Épingler en haut de la liste'}">${pinIcon(isPinned(f.id))}</button>
         ${uiIcon('chev',18,{sw:2.2,cls:'chev'})}</div>`;},
     remainLbl:n=>'restante'+(n>1?'s':''),
@@ -3766,14 +3805,14 @@ function protocolHaystack(p){let h=_protoHay.get(p);
   return h+' '+txNorm(catName(p));}
 function renderProtocols(){
   renderHomeList({rerender:renderProtocols,crossKind:'fiches',create:openCreateDlg,open:openProtocolRead,
-    listTitle:()=>txNorm(state.q)?'Résultats — toutes les bibliothèques':'Protocoles',
+    listTitle:()=>txNorm(state.q)?'Résultats — toutes les bibliothèques':(state.scope?esc(libName(state.scope)||'Bibliothèque partagée'):'Protocoles'),
     countLbl:n=>'document'+(n>1?'s':''),
     // MÊME présentation que les fiches (harmonisation V5) : épinglés d'abord, liseré, statut,
     // épingle, chevron — un seul langage de carte sur tout l'accueil.
-    list:(q,canEdit)=>protocols.slice().sort((a,b)=>((isPinned(b.id)?1:0)-(isPinned(a.id)?1:0))||byOrder(a,b)).filter(p=>q?(protocolHaystack(p).includes(q)&&(canEditFiche(p)||p.status!=='draft')):((state.scope?p.libraryId===state.scope:!p.libraryId)&&(!state.cat||p.category===state.cat)&&(canEdit||p.status!=='draft'))),
+    list:(q,canEdit)=>protocols.slice().sort((a,b)=>((isPinned(b.id)?1:0)-(isPinned(a.id)?1:0))||byTitle(a,b)).filter(p=>q?(protocolHaystack(p).includes(q)&&(canEditFiche(p)||p.status!=='draft')):((state.scope?p.libraryId===state.scope:!p.libraryId)&&(!state.cat||p.category===state.cat)&&(canEdit||p.status!=='draft'))),
     card:p=>{const nDoc=(p.attachments||[]).length;const cc=catOf(p);return `
       <div class="card${cc?' striped':''}"${cc?` style="--stripe:${safeColor(cc.color)}"`:''}><div class="card-body"><h2><button class="card-open" data-open="${p.id}">${esc(p.title)||'Sans titre'}</button></h2>
-        <div class="card-meta">${searchLibTag(p)}${statusChip(p.status,false)}${catTag(p,true)}${nDoc?`<span class="tag sess" title="Documents PDF joints">${nDoc} PDF</span>`:''}${p.body&&p.body.trim()?'<span class="tag sess" title="Contenu rédigé dans l’app">Rédigé</span>':''}${p.code?`<span class="card-date" style="font-family:var(--mono)">${esc(p.code)}</span>`:''}<span class="card-date${staleDate(p.validation)?' stale':''}">${esc(fmtDate(p.validation))}${staleDate(p.validation)?' · à revoir':''}</span></div></div>
+        <div class="card-meta">${searchLibTag(p)}${statusChip(p.status,false)}${staleDate(p.validation)?`<span class="tag stale" title="${esc(fmtDate(p.validation))} — plus de 2 ans : à revérifier">△ à revoir</span>`:''}${catTag(p,true)}${nDoc?`<span class="tag sess" title="Documents PDF joints">${nDoc} PDF</span>`:''}${p.body&&p.body.trim()?'<span class="tag sess" title="Contenu rédigé dans l’app">Rédigé</span>':''}${p.code?`<span class="card-date" style="font-family:var(--mono)">${esc(p.code)}</span>`:''}</div></div>
         <button class="pinbtn${isPinned(p.id)?' on':''}" data-pin="${p.id}" aria-label="${isPinned(p.id)?'Désépingler':'Épingler en haut de la liste'}" title="${isPinned(p.id)?'Désépingler':'Épingler en haut de la liste'}">${pinIcon(isPinned(p.id))}</button>
         ${uiIcon('chev',18,{sw:2.2,cls:'chev'})}</div>`;},
     remainLbl:n=>'restant'+(n>1?'s':''),
@@ -3919,7 +3958,7 @@ function relCandidatesFor(entity,fs,ps){
   const scope=entity.libraryId||null;
   const ok=x=>!x.deletedAt&&!have.has(x.id)&&(x.libraryId||null)===scope;
   const mk=kind=>x=>({id:x.id,title:x.title||'Sans titre',kind:kind,code:x.code||''});
-  return fs.filter(ok).sort(byOrder).map(mk('f')).concat(ps.filter(ok).sort(byOrder).map(mk('p')));}
+  return fs.filter(ok).sort(byTitle).map(mk('f')).concat(ps.filter(ok).sort(byTitle).map(mk('p')));}
 function relCandidates(entity){return relCandidatesFor(entity,fiches,protocols);}
 // Fieldset PARTAGÉ des deux éditeurs — même grammaire que « Documents (PDF) » : chips avec croix
 // de retrait + bouton « + Lier… » ouvrant le sélecteur filtrable (design « document existant »).
@@ -4698,6 +4737,7 @@ function renderRead(){
       // (« Confirmation diagnostique », pas « Après stabilisation » — contresens du canvas).
       const open=state.confOpen!==undefined?state.confOpen:!started;
       return `<section class="conf-block"><button type="button" class="conf-head" id="confToggle" aria-expanded="${open?'true':'false'}"><span class="block-h h-confirm">${headerIcon('h-confirm')}Confirmation diagnostique</span><span class="conf-sub">· ${items.length} élément${items.length>1?'s':''}</span><span class="conf-chev" aria-hidden="true">${open?'▴':'▾'}</span></button>${open?`<ul class="flat confirm">${items.map(x=>`<li><span class="ftxt">${fmt(x)}</span></li>`).join('')}</ul>`:''}</section>`;})()}
+    ${(!preview&&!started)?`<div class="sess-start"><button class="btn primary" id="sessStart">${uiIcon('play',14)} Démarrer la session</button><span class="ss-hint">chrono, minuteurs et journal — démarre aussi à la première action</span></div>`:''}
     ${wideRead?'':rtH}
     ${f.blocks&&f.blocks.length?`<div class="alg-panel"><button type="button" class="alg-head" id="flowToggle" aria-expanded="${state.showFlow?'true':'false'}"><span class="alg-k">Algorithme</span><span class="alg-sub">· carte des blocs — synchronisée${blockTot!=null?` · <span id="algCount">${blockDone}/${blockTot}</span> coché`:''}</span><span class="alg-chev" aria-hidden="true">${state.showFlow?'▴':'▾'}</span></button>${state.showFlow?flowBlock(f,cur)+'<div class="flow-hint">Schéma = vue d’ensemble · les étapes à cocher sont en dessous ↓</div>':''}</div>`:''}
     ${crumbsH}
@@ -4737,6 +4777,9 @@ function bindReadEvents(f,blk,cur){
   }
   // Confirmation diagnostique repliable (V5) : bascule mémorisée pour la fiche affichée.
   {const ct=document.getElementById('confToggle');if(ct)ct.onclick=()=>{const cur=state.confOpen!==undefined?state.confOpen:!Runtime.started;state.confOpen=!cur;render();};}
+  // Démarrage EXPLICITE de la session (v4.3.2) : même chemin que la 1ʳᵉ action (ensureStarted),
+  // pour lancer chrono et enregistrement AVANT le premier geste clinique.
+  {const sb=document.getElementById('sessStart');if(sb)sb.onclick=()=>{if(ensureStarted())render();};}
   // Menu ⋯ (SPEC §4) — a remplacé la barre « Autorat » de bas de page. En crise, « Modifier »
   // reste visible mais désactivé (mention explicite) : l'édition demeure à deux taps délibérés.
   const started=Runtime.started;
@@ -7464,7 +7507,7 @@ if(location.search.indexOf('__actest')>=0){
   window.__ac_test__={migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attStoragePath,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
-    restErrStatus,isPersoRepairCandidate,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor};
+    restErrStatus,isPersoRepairCandidate,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle};
 }else{
   /* ===== PWA =====
      Enregistre le service worker (cache hors ligne) si disponible. Capte

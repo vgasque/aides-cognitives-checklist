@@ -422,8 +422,6 @@
   .chip-edit:hover{background:color-mix(in srgb,var(--on-primary) 30%,transparent)}
   .chip-edit:focus-visible{outline:2px solid var(--on-primary);outline-offset:-2px}
   .scopebtn svg{vertical-align:-2px}
-  .scope-ctx{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin:-6px 0 16px;padding:9px 12px;background:var(--primary-soft);border-radius:10px}
-  .scope-ctx-i{font-size:12.5px;color:var(--ink-soft);font-weight:600}
   .linkbtn{background:none;border:0;color:var(--primary);font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:0;margin-left:auto}
   .linkbtn:hover{text-decoration:underline}
   .notice-x{position:absolute;top:4px;right:4px;background:none;border:0;color:var(--ink-soft);font-size:19px;line-height:1;cursor:pointer;padding:0;min-width:32px;min-height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:7px}
@@ -531,6 +529,10 @@
   .tag.cat{display:inline-flex;align-items:center;gap:6px;background:color-mix(in srgb, var(--c,var(--primary)) 15%, transparent);color:var(--c,var(--primary))}
   [data-theme="dark"] .tag.cat{background:color-mix(in srgb, var(--c,var(--primary)) 26%, transparent);color:color-mix(in srgb, var(--c,var(--primary)) 60%, white)}
   .tag.flow{background:var(--verify-soft);color:var(--verify)}
+  /* Validation périmée (> 2 ans) sur les CARTES (v4.3.2) : la date a quitté les cartes (elle
+     doublait le badge « ✓ Validée » — elle reste en vue lecture) ; seul le DÉPASSEMENT est
+     signalé, au registre ATTENTION. L'info-bulle porte la date exacte. */
+  .tag.stale{background:var(--verify-soft);color:var(--verify)}
   /* Tags informatifs des cartes : NEUTRES (audit v4.5) — la couleur reste au danger, au vert
      session et au liseré de catégorie. */
   .tag.sess{background:var(--tag-bg);color:var(--tag-ink)}
@@ -601,6 +603,11 @@
   .conf-chev{margin-left:auto;color:var(--link);font-weight:800;font-size:15px;padding:0 4px;flex:none}
   .conf-head:focus-visible{outline:2px solid var(--primary);outline-offset:-2px;border-radius:8px}
   .conf-block ul.flat{margin:0;padding:10px 12px 12px;border-top:1px solid var(--line)}
+  /* Démarrage EXPLICITE de session (v4.3.2) : sous la confirmation diagnostique (doctrine QRH :
+     on confirme le tableau, PUIS on agit). Seul bouton --primary plein de l'écran avant session
+     (« Continuer » vit aux registres idle/CONFIRMATION) ; disparaît dès la session démarrée. */
+  .sess-start{display:flex;align-items:center;gap:6px 14px;flex-wrap:wrap;margin:14px 0 18px}
+  .ss-hint{font-size:12px;color:var(--ink-soft)}
   .block-h .pip{width:9px;height:9px;border-radius:3px;flex-shrink:0}.block-h .spc{flex:1}
   /* V5 : plus de badge d'icône — kicker textuel seul (le registre passe par la couleur du texte). */
   .block-h .sec-badge{display:none}
@@ -1251,7 +1258,10 @@
   /* Colonne gauche de l'accueil (>= 780px), rendue par renderHomeList. */
   .home-side{display:none}
   .home-main{min-width:0}
-  .list-title{display:none}
+  /* Titre de liste : rendu en large, ET en étroit quand une bibliothèque partagée est ouverte
+     (v4.3.2 — il porte alors « Nom — partagée · rôle — n éléments », ex-bandeau scope-ctx). */
+  .list-title{font-size:15px;font-weight:700;margin:0 0 12px}
+  .list-title span{font-weight:500;color:var(--ink-soft)}
   .hs-h{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-soft);padding:0 12px;margin:16px 0 8px}
   .home-side>.hs-h:first-child{margin-top:0}
   .hs-row{display:flex;align-items:center;gap:9px;width:100%;min-height:38px;padding:8px 12px;border:0;border-radius:8px;background:none;font-family:inherit;font-size:13.5px;font-weight:500;color:var(--ink);cursor:pointer;text-align:left}
@@ -1260,7 +1270,10 @@
      (encodage de sélection unique) ; la pastille reste lisible sur le bleu grâce à son anneau. */
   .hs-row.on{background:var(--primary);color:var(--on-primary);font-weight:700}
   [data-theme="dark"] .hs-row.on{background:var(--primary-dk);color:var(--bg)}
-  .hs-row.on .hs-n{color:inherit;opacity:.75}
+  /* Rangée SÉLECTIONNÉE : sous-texte et compte HÉRITENT de l'encre inversée (--on-primary) —
+     jamais --ink-soft sur fond primaire (contraste < AA). Opacité .92 : hiérarchie visuelle
+     préservée en restant ≥ 4.5:1 sur tous les accents (WCAG 2.2 AA). */
+  .hs-row.on :is(.hs-n,.hs-sub){color:inherit;opacity:.92}
   .hs-row:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
   .hs-row .hs-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .hs-row>.hs-name{flex:1}
@@ -1311,8 +1324,6 @@
     .home-side{display:flex;flex-direction:column;gap:4px;flex:none;width:255px;background:var(--surface);border-right:1px solid var(--line);padding:16px 12px;overflow-y:auto;scrollbar-gutter:stable}
     .home-main{flex:1;min-width:0;overflow-y:auto;padding:18px 22px calc(24px + env(safe-area-inset-bottom));scrollbar-gutter:stable}
     .home-main>*{max-width:1320px}
-    .list-title{display:block;font-size:15px;font-weight:700;margin:0 0 12px}
-    .list-title span{font-weight:500;color:var(--ink-soft)}
     /* En large, bibliothèques et catégories vivent dans la colonne gauche (chips retirées du flux). */
     body.view-home :is(.scopebar,.catbar){display:none}
   }
@@ -1528,7 +1539,28 @@
   @media (min-width:780px){.chiprow{flex-wrap:nowrap}.catbar .chiprow,.scopebar .chiprow{flex-wrap:wrap;overflow-x:visible;padding:0;margin:0}}
   /* (Grille des cartes : règle unique auto-fill/minmax(300px,1fr) — cf. .cards plus haut.) */
   @media (max-width:560px){.read-head h2{font-size:21px}.row2{flex-direction:column;gap:0}.question{font-size:18px}}
-  @media (prefers-reduced-motion:reduce){*{transition:none!important}.tmcard.flash{animation:none}#crisisBand{animation:none}header.bar.titled.ttl-on #brandTitle{animation:none}.sess-dot::after{animation:none;opacity:0}}
+  /* ===== Micro-animations (v4.3.2) =====
+     Vocabulaire UNIQUE, aligné HIG/M3 : entrées 150-250 ms en décélération (--ease-out),
+     survols/appuis 120-150 ms. opacity/transform SEULEMENT (compositeur : rien ne bloque,
+     l'app reste utilisable pendant l'animation — règle QRH) ; AUCUNE animation de sortie
+     (fermer = immédiat, jamais d'attente) ; rien ne s'anime en boucle hors alarmes.
+     Les surfaces qui se RE-RENDENT au fil de la session (listes, blocs de la checklist)
+     ne portent PAS d'animation d'entrée : elles rejoueraient à chaque action. */
+  @keyframes veilIn{from{opacity:0}}
+  @keyframes riseIn{from{opacity:0;transform:translateY(10px) scale(.985)}}
+  @keyframes menuIn{from{opacity:0;transform:translateY(-4px) scale(.97)}}
+  /* Fenêtres : voile en fondu + carte en légère levée. La visionneuse PDF reste sèche
+     (rendu lourd : la priorité est d'afficher le document). */
+  .ai-modal.on{animation:veilIn .18s ease-out}
+  .ai-modal.on:not(.pdf-modal) .ai-card{animation:riseIn .22s cubic-bezier(.2,0,0,1)}
+  /* Menu ⋯ : dépliage ancré à son bouton (aucun déplacement de contexte, l'app reste tapable). */
+  .more-menu:not([hidden]){transform-origin:top right;animation:menuIn .16s cubic-bezier(.2,0,0,1)}
+  /* Bandeau système (INFO persistante, hors crise) : même entrée que le bandeau de crise. */
+  .sys-banner:not([hidden]){animation:cbIn .25s ease}
+  /* Survols des rangées/menus : fondu court au lieu du changement sec (aucun délai perçu). */
+  .hs-row,.hs-act,.hs-add,.mm-row,.att-row,.rt-collapsed,.hdr-back,.hdr-new,.hdr-theme,.hdr-more,.hdr-act2,.tlink{transition:background-color .15s,color .15s}
+  .card{transition:transform .12s cubic-bezier(.2,0,0,1),border-color .12s,box-shadow .15s}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}.tmcard.flash{animation:none}#crisisBand{animation:none}header.bar.titled.ttl-on #brandTitle{animation:none}.sess-dot::after{animation:none;opacity:0}.ai-modal.on,.ai-modal.on:not(.pdf-modal) .ai-card,.more-menu:not([hidden]),.sys-banner:not([hidden]){animation:none}}
   @media print{body{background:#fff}header.bar,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.sess-list,.notes-block{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}}
 </style><style>
   body{margin:0;padding:0}
