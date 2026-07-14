@@ -87,6 +87,22 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   un brouillon interrompu est proposé en « fantôme » (carte « Reprendre le brouillon » du
   dialogue Créer, lien « Repartir de la version enregistrée ») ; badge d'état
   « auto-enregistré » (+ « · synchro en attente » si le push a échoué).
+- **Parcours de soin (v4.4.0)** : la vue lecture d'une fiche est structurée par un rail vertical
+  numéroté (`<ol class="care-path">`, `aria-current="step"`) — ① **Confirmer le diagnostic**
+  (ex-bloc repliable « Confirmation diagnostique », son en-tête EST le titre d'étape :
+  « Confirmer le diagnostic » avant session, « Diagnostic confirmé » après ; bouton
+  « Confirmé — démarrer la session » ; lien « Tableau atypique ? » vers les différentiels) →
+  ② **Prise en charge** (minuteurs en étroit, carte des blocs SVG repliable en tête, fil
+  d'Ariane, bloc courant, contexte local, posologie en étroit) → ③ **Surveillances & pièges**
+  (À vérifier + différentiels, REMONTÉS sous l'algorithme) ; puis les annexes (journal, galerie,
+  documents, références, voir aussi, note). Pastilles du rail : bleu = active, vert ✓ = faite,
+  neutre cerclé = à venir — **jamais d'ambre/rouge dans le rail** (registres d'alerte) ; en
+  sombre l'encre des pastilles = `--bg` (AA). Étapes vides omises (numérotation recalculée) ;
+  une seule étape → pas de rail. La séquence est SUGGÉRÉE, jamais bloquante (1ʳᵉ action =
+  démarrage, inchangé) ; « Ne pas oublier » reste le CHAPEAU hors numérotation (> 4 rappels :
+  2 colonnes ≥ 780 px — jamais de repli — et garde-fou non bloquant dans l'éditeur,
+  `nfGuardTxt`). Tout re-rendu de DÉMARRAGE passe par `renderKeepAnchor` (l'élément déclencheur
+  ne bouge pas d'un pixel à l'écran — ECAM).
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, minuteurs de crise segmentés `#cbTimers` avec chrono **GLOBAL** — temps écoulé
   depuis la 1ʳᵉ action de session, décision produit —, badge de statut, Créer, thème, compte) ;

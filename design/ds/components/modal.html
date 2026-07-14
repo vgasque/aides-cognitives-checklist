@@ -606,8 +606,38 @@
   /* Démarrage EXPLICITE de session (v4.3.2) : sous la confirmation diagnostique (doctrine QRH :
      on confirme le tableau, PUIS on agit). Seul bouton --primary plein de l'écran avant session
      (« Continuer » vit aux registres idle/CONFIRMATION) ; disparaît dès la session démarrée. */
-  .sess-start{display:flex;align-items:center;gap:6px 14px;flex-wrap:wrap;margin:14px 0 18px}
+  .sess-start{display:flex;align-items:center;gap:6px 14px;flex-wrap:wrap;margin:14px 0 4px}
   .ss-hint{font-size:12px;color:var(--ink-soft)}
+  /* ----- Parcours de soin (v4.4.0, « option B ») : rail vertical numéroté ① Confirmer →
+     ② Prise en charge → ③ Surveillances & pièges. Pastilles : bleu = étape active,
+     vert ✓ = faite, neutre cerclé = à venir — JAMAIS d'ambre/rouge ici (registres d'alerte).
+     En sombre, l'encre des pastilles passe à --bg (mêmes raisons AA que .hs-row.on).
+     La ligne de liaison est décorative (aria-hidden porté par les pastilles ; l'état vit
+     dans le texte des en-têtes). Responsive : gouttière réduite < 430px. */
+  .care-path{list-style:none;margin:0 0 6px;padding:0}
+  .cp-stage{position:relative;padding:0 0 20px 40px}
+  .cp-stage:last-child{padding-bottom:6px}
+  .cp-stage:not(:last-child)::before{content:"";position:absolute;left:13px;top:34px;bottom:4px;width:2px;border-radius:1px;background:var(--line)}
+  .cp-n{position:absolute;left:0;top:1px;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:800;font-variant-numeric:tabular-nums}
+  .cp-stage.on .cp-n{background:var(--primary);color:var(--on-primary)}
+  .cp-stage.done .cp-n{background:var(--ok);color:#fff}
+  .cp-stage.off .cp-n{background:var(--surface);color:var(--ink-soft);border:2px solid var(--line-strong)}
+  [data-theme="dark"] .cp-stage.on .cp-n{background:var(--primary-dk);color:var(--bg)}
+  [data-theme="dark"] .cp-stage.done .cp-n{background:var(--ok);color:var(--bg)}
+  .cp-body{min-width:0}
+  /* En-tête d'étape : MÊME registre typographique que .block-h (un seul style de titres) —
+     seule la couleur suit l'état, comme h-verify/h-forget suivent le leur. */
+  .cp-h{margin:6px 0 10px}
+  .cp-stage.on>.cp-body>.cp-h{color:var(--primary-dk)}
+  @media (max-width:429.98px){.cp-stage{padding-left:33px}.cp-n{width:24px;height:24px;font-size:11.5px}.cp-stage:not(:last-child)::before{left:11px;top:30px}}
+  /* Lien « Tableau atypique ? » (étape ① -> différentiels de l'étape ③) : cible 44px (crise). */
+  .atyp-link{display:flex;align-items:center;width:100%;min-height:44px;background:none;border:0;border-top:1px solid var(--line);padding:6px 12px;font-family:inherit;font-size:12.5px;font-weight:700;color:var(--link);cursor:pointer;text-align:left}
+  .atyp-link:hover{background:var(--surface-2)}
+  .atyp-link:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
+  .diff-anchor{outline:none}
+  /* Garde-fou éditeur « Ne pas oublier » (> 4 rappels) : registre ATTENTION, texte seulement. */
+  .nf-guard{font-size:12.5px;line-height:1.5;color:var(--verify);margin:-8px 0 18px}
+  .nf-guard:empty{display:none}
   .block-h .pip{width:9px;height:9px;border-radius:3px;flex-shrink:0}.block-h .spc{flex:1}
   /* V5 : plus de badge d'icône — kicker textuel seul (le registre passe par la couleur du texte). */
   .block-h .sec-badge{display:none}
@@ -1518,6 +1548,11 @@
   .forget-strip .fs-k{font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--critical);margin-bottom:4px}
   .forget-strip .fs-i{display:flex;gap:9px;align-items:flex-start;font-size:14px;line-height:1.45;padding:2px 0;color:var(--ink)}
   .forget-strip .fs-i::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--critical);flex:none;margin-top:7px}
+  /* Bandeau LONG (v4.4.0) : > 4 rappels -> 2 colonnes en large pour contenir la hauteur du
+     chapeau (jamais de repli ni de troncature : un rappel caché n'existe plus). Une colonne
+     en étroit et au zoom 400 % (reflow WCAG 1.4.10). Le vrai remède reste éditorial
+     (garde-fou de l'éditeur au-delà de 4 rappels). */
+  @media (min-width:780px){.forget-strip.many{display:grid;grid-template-columns:1fr 1fr;gap:0 24px}.forget-strip.many .fs-k{grid-column:1/-1}}
   /* Panneau minuteurs REPLIÉ tant que rien n'est démarré : le contenu clinique passe devant. */
   .rt-collapsed{width:100%;display:flex;align-items:center;gap:9px;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;margin-bottom:14px;font-size:13px;font-weight:600;cursor:pointer;min-height:44px;text-align:left;box-shadow:var(--shadow)}
   .rt-collapsed:hover{border-color:var(--line-hover)}

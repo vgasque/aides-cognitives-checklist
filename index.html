@@ -232,7 +232,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-2ne7wCtwJ3pC6iZ8AIEe5gHgna5TqAj6s5fO9lpEXEk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-BuZzRRv9Qd84CyoyB1Ny8/8QtnJ5eGl4iu5nfeWX9OM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -859,8 +859,38 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Démarrage EXPLICITE de session (v4.3.2) : sous la confirmation diagnostique (doctrine QRH :
      on confirme le tableau, PUIS on agit). Seul bouton --primary plein de l'écran avant session
      (« Continuer » vit aux registres idle/CONFIRMATION) ; disparaît dès la session démarrée. */
-  .sess-start{display:flex;align-items:center;gap:6px 14px;flex-wrap:wrap;margin:14px 0 18px}
+  .sess-start{display:flex;align-items:center;gap:6px 14px;flex-wrap:wrap;margin:14px 0 4px}
   .ss-hint{font-size:12px;color:var(--ink-soft)}
+  /* ----- Parcours de soin (v4.4.0, « option B ») : rail vertical numéroté ① Confirmer →
+     ② Prise en charge → ③ Surveillances & pièges. Pastilles : bleu = étape active,
+     vert ✓ = faite, neutre cerclé = à venir — JAMAIS d'ambre/rouge ici (registres d'alerte).
+     En sombre, l'encre des pastilles passe à --bg (mêmes raisons AA que .hs-row.on).
+     La ligne de liaison est décorative (aria-hidden porté par les pastilles ; l'état vit
+     dans le texte des en-têtes). Responsive : gouttière réduite < 430px. */
+  .care-path{list-style:none;margin:0 0 6px;padding:0}
+  .cp-stage{position:relative;padding:0 0 20px 40px}
+  .cp-stage:last-child{padding-bottom:6px}
+  .cp-stage:not(:last-child)::before{content:"";position:absolute;left:13px;top:34px;bottom:4px;width:2px;border-radius:1px;background:var(--line)}
+  .cp-n{position:absolute;left:0;top:1px;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:800;font-variant-numeric:tabular-nums}
+  .cp-stage.on .cp-n{background:var(--primary);color:var(--on-primary)}
+  .cp-stage.done .cp-n{background:var(--ok);color:#fff}
+  .cp-stage.off .cp-n{background:var(--surface);color:var(--ink-soft);border:2px solid var(--line-strong)}
+  html[data-theme="dark"] .cp-stage.on .cp-n{background:var(--primary-dk);color:var(--bg)}
+  html[data-theme="dark"] .cp-stage.done .cp-n{background:var(--ok);color:var(--bg)}
+  .cp-body{min-width:0}
+  /* En-tête d'étape : MÊME registre typographique que .block-h (un seul style de titres) —
+     seule la couleur suit l'état, comme h-verify/h-forget suivent le leur. */
+  .cp-h{margin:6px 0 10px}
+  .cp-stage.on>.cp-body>.cp-h{color:var(--primary-dk)}
+  @media (max-width:429.98px){.cp-stage{padding-left:33px}.cp-n{width:24px;height:24px;font-size:11.5px}.cp-stage:not(:last-child)::before{left:11px;top:30px}}
+  /* Lien « Tableau atypique ? » (étape ① -> différentiels de l'étape ③) : cible 44px (crise). */
+  .atyp-link{display:flex;align-items:center;width:100%;min-height:44px;background:none;border:0;border-top:1px solid var(--line);padding:6px 12px;font-family:inherit;font-size:12.5px;font-weight:700;color:var(--link);cursor:pointer;text-align:left}
+  .atyp-link:hover{background:var(--surface-2)}
+  .atyp-link:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
+  .diff-anchor{outline:none}
+  /* Garde-fou éditeur « Ne pas oublier » (> 4 rappels) : registre ATTENTION, texte seulement. */
+  .nf-guard{font-size:12.5px;line-height:1.5;color:var(--verify);margin:-8px 0 18px}
+  .nf-guard:empty{display:none}
   .block-h .pip{width:9px;height:9px;border-radius:3px;flex-shrink:0}.block-h .spc{flex:1}
   /* V5 : plus de badge d'icône — kicker textuel seul (le registre passe par la couleur du texte). */
   .block-h .sec-badge{display:none}
@@ -1771,6 +1801,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .forget-strip .fs-k{font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--critical);margin-bottom:4px}
   .forget-strip .fs-i{display:flex;gap:9px;align-items:flex-start;font-size:14px;line-height:1.45;padding:2px 0;color:var(--ink)}
   .forget-strip .fs-i::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--critical);flex:none;margin-top:7px}
+  /* Bandeau LONG (v4.4.0) : > 4 rappels -> 2 colonnes en large pour contenir la hauteur du
+     chapeau (jamais de repli ni de troncature : un rappel caché n'existe plus). Une colonne
+     en étroit et au zoom 400 % (reflow WCAG 1.4.10). Le vrai remède reste éditorial
+     (garde-fou de l'éditeur au-delà de 4 rappels). */
+  @media (min-width:780px){.forget-strip.many{display:grid;grid-template-columns:1fr 1fr;gap:0 24px}.forget-strip.many .fs-k{grid-column:1/-1}}
   /* Panneau minuteurs REPLIÉ tant que rien n'est démarré : le contenu clinique passe devant. */
   .rt-collapsed{width:100%;display:flex;align-items:center;gap:9px;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;margin-bottom:14px;font-size:13px;font-weight:600;cursor:pointer;min-height:44px;text-align:left;box-shadow:var(--shadow)}
   .rt-collapsed:hover{border-color:var(--line-hover)}
@@ -1995,7 +2030,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.3.2';
+const APP_VERSION='4.4.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -4627,13 +4662,16 @@ function timekeeperPanel(){const ev=Runtime.events||[];const t0=ev.length?ev[0].
   return `<div class="tk-panel${ev.length?'':' empty'}"><div class="tk-head"><b>Journal des actions</b><button class="tk-add" id="tkAdd">${uiIcon('stopwatch',13)} Noter l’heure</button></div>${rows}</div>`;}
 
 /* ===== Read (mode crise / lecture) =====
-   renderRead() : affiche la fiche active. De haut en bas : titre + méta, contexte
-   local, BANDEAU minuteurs/compteurs, barre de SESSIONS (enregistrer / liste /
-   réinitialiser), confirmation diagnostique, PRISE EN CHARGE (bloc courant : soit
-   une liste d'étapes cochables avec "Continuer", soit une décision avec ses
-   options ; fil d'Ariane + aperçu algorithme optionnel), galerie d'images,
-   à vérifier / ne pas oublier / différentiels, références, actions (modifier /
-   imprimer / dupliquer / exporter / versions précédentes).
+   renderRead() : affiche la fiche active. De haut en bas : titre + méta, bandeau
+   « Ne pas oublier » (CHAPEAU, hors parcours), puis le PARCOURS DE SOIN numéroté
+   (v4.4.0) — ① Confirmer le diagnostic (repliable, bouton « Confirmé — démarrer »),
+   ② Prise en charge (minuteurs/compteurs en étroit, carte des blocs SVG repliable,
+   fil d'Ariane, bloc courant : étapes cochables ou décision, contexte local,
+   repères posologiques en étroit), ③ Surveillances & pièges (À vérifier +
+   différentiels) — puis les ANNEXES : journal des actions (étroit), galerie,
+   documents PDF, références, voir aussi, note personnelle. En large (>= 1000px),
+   minuteurs / posologie / journal vivent dans la colonne droite collante.
+   Actions de gestion (modifier / dupliquer / exporter / versions) : menu ⋯.
    La 2e moitié de la fonction RATTACHE tous les écouteurs : navigation entre blocs
    (push/pop sur state.nav), cochage des étapes, contrôles minuteurs/compteurs
    (mise à jour DOM directe, sans render), et gestion des sessions. */
@@ -4695,7 +4733,7 @@ function renderRead(){
   const forgetStrip=(()=>{const items=clean(f.notForget);if(!items.length)return '';
     // ftxt englobant : .fs-i est un flex (puce ::before + texte) — sans lui, chaque segment
     // autour d'un **gras** deviendrait un item flex séparé (texte éclaté, gaps parasites).
-    return `<div class="forget-strip"><div class="fs-k">■ Ne pas oublier</div>${items.map(x=>`<div class="fs-i"><span class="ftxt">${fmt(x)}</span></div>`).join('')}</div>`;})();
+    return `<div class="forget-strip${items.length>4?' many':''}"><div class="fs-k">■ Ne pas oublier</div>${items.map(x=>`<div class="fs-i"><span class="ftxt">${fmt(x)}</span></div>`).join('')}</div>`;})();
   // Historique = sessions de cette fiche, EN EXCLUANT la session vive courante (affichée par le bandeau).
   const ss=sessions.filter(s=>s.ficheId===f.id&&s.id!==Runtime.sessionId).sort((a,b)=>b.savedAt-a.savedAt);
   const started=Runtime.started;
@@ -4721,6 +4759,41 @@ function renderRead(){
   const posRail=posCards?`<div class="rail-sep"></div><div class="rail-title">Repères posologiques</div>${posCards}`:'';
   const gridOpen=wideRead?'<div class="read-grid"><div class="read-main">':'';
   const gridClose=wideRead?`</div><aside class="read-side">${rtH}${posRail}${tkH}</aside></div>`:'';
+  /* ----- PARCOURS DE SOIN (v4.4.0) : la fiche met en scène la séquence clinique
+     ① Confirmer le diagnostic → ② Prise en charge → ③ Surveillances & pièges.
+     <ol class="care-path"> sémantique : aria-current="step" sur l'étape active, état aussi
+     porté par le TEXTE (« Diagnostic confirmé ») et le glyphe ✓ — jamais la couleur seule
+     (WCAG 1.4.1). Rail = bleu (active) / vert (faite) / neutre (à venir) SEULEMENT — ambre
+     et rouge restent des registres d'alerte, jamais des états de parcours (ECAM). La séquence
+     est SUGGÉRÉE, pas imposée (QRH : jamais bloquant — cocher une étape démarre toujours).
+     « Ne pas oublier » reste le CHAPEAU hors numérotation (memory items transversaux).
+     Étapes vides omises, numérotation recalculée ; une seule étape non vide -> pas de rail
+     (pas de « 1 » orphelin). Le contenu des étapes faites/à venir reste pleinement lisible :
+     seul le numéro encode l'état. */
+  const confItems=clean(f.confirmation);
+  const verifyH=staticBlock('△ À vérifier — surveillances','h-verify',f.verify,'verify');
+  const diffH=staticBlock('Diagnostics différentiels — si tableau atypique','h-diff',f.differentials,'diff');
+  // Étape ① : l'ex-bloc « Confirmation diagnostique » (repliable V5) devient l'étape elle-même —
+  // son en-tête EST le titre d'étape. ENTRY CONDITION (doctrine QRH) : critères VISIBLES tant
+  // que la session n'a pas démarré (on confirme le tableau AVANT d'agir), repliés ensuite,
+  // ré-ouvrables d'un tap à tout moment (doute en cours d'algorithme) sans rien interrompre.
+  const confBlockH=(()=>{if(!confItems.length)return '';
+    const open=state.confOpen!==undefined?state.confOpen:!started;
+    return `<section class="conf-block"><button type="button" class="conf-head" id="confToggle" aria-expanded="${open?'true':'false'}"><span class="block-h h-confirm">${headerIcon('h-confirm')}${started?'Diagnostic confirmé':'Confirmer le diagnostic'}</span><span class="conf-sub">· ${confItems.length} élément${confItems.length>1?'s':''}</span><span class="conf-chev" aria-hidden="true">${open?'▴':'▾'}</span></button>${open?`<ul class="flat confirm">${confItems.map(x=>`<li><span class="ftxt">${fmt(x)}</span></li>`).join('')}</ul>${diffH?`<button type="button" class="atyp-link" id="atypLink">Tableau atypique ? → Diagnostics différentiels ▸</button>`:''}`:''}</section>`;})();
+  // Bouton de démarrage EXPLICITE : dans l'étape ① s'il y a des critères (« Confirmé — … » :
+  // le geste PORTE la confirmation), sinon en tête de « Prise en charge ». Un seul bouton
+  // rempli par écran ; la 1ʳᵉ action clinique démarre toujours aussi (jamais bloquant).
+  const sessStartH=(!preview&&!started)?`<div class="sess-start"><button class="btn primary" id="sessStart">${uiIcon('play',14)} ${confItems.length?'Confirmé — démarrer la session':'Démarrer la session'}</button><span class="ss-hint">chrono, minuteurs et journal — démarre aussi à la première action</span></div>`:'';
+  const algH=f.blocks&&f.blocks.length?`<div class="alg-panel"><button type="button" class="alg-head" id="flowToggle" aria-expanded="${state.showFlow?'true':'false'}"><span class="alg-k">Algorithme</span><span class="alg-sub">· carte des blocs — synchronisée${blockTot!=null?` · <span id="algCount">${blockDone}/${blockTot}</span> coché`:''}</span><span class="alg-chev" aria-hidden="true">${state.showFlow?'▴':'▾'}</span></button>${state.showFlow?flowBlock(f,cur)+'<div class="flow-hint">Schéma = vue d’ensemble · les étapes à cocher sont en dessous ↓</div>':''}</div>`:'';
+  const localH=f.localInfo&&f.localInfo.trim()?`<div class="local">${fmt(f.localInfo)}</div>`:'';
+  const stages=[];
+  if(confBlockH)stages.push({cls:started?'done':'on',head:'',body:confBlockH+sessStartH});
+  {const body=(confBlockH?'':sessStartH)+(wideRead?'':rtH)+algH+crumbsH+navHtml+navRowH+localH+(wideRead?'':posH);
+   if(body)stages.push({cls:state.flowEnded?'done':(started?'on':(confBlockH?'off':'on')),head:'Prise en charge',body});}
+  if(verifyH||diffH)stages.push({cls:state.flowEnded?'on':'off',head:'Surveillances &amp; pièges',body:verifyH+(diffH?`<div class="diff-anchor" id="diffBlock" tabindex="-1">${diffH}</div>`:'')});
+  const pathH=stages.length>1
+    ?`<ol class="care-path">${stages.map((s,i)=>`<li class="cp-stage ${s.cls}"${s.cls==='on'?' aria-current="step"':''}><span class="cp-n" aria-hidden="true">${s.cls==='done'?uiIcon('check',13,{sw:3.2,cls:''}):(i+1)}</span><div class="cp-body">${s.head?`<div class="block-h cp-h">${s.head}</div>`:''}${s.body}</div></li>`).join('')}</ol>`
+    :stages.map(s=>s.body).join('');
   main.innerHTML=`
     ${gridOpen}
     <div class="read-head"><h2>${esc(f.title)||'Sans titre'}</h2></div>
@@ -4728,28 +4801,10 @@ function renderRead(){
     ${f.status==='draft'?`<div class="notice">${uiIcon('warn',15)}<div><b>Brouillon</b> — cette fiche n'a pas encore été validée pour l'usage clinique.</div></div>`:''}
     ${f.status==='review'?`<div class="notice">${uiIcon('warn',15)}<div><b>À relire</b> — cette fiche est signalée à relire avant validation.</div></div>`:''}
     ${forgetStrip}
-    ${(()=>{const items=clean(f.confirmation);if(!items.length)return '';
-      // V5 (canvas turn 6) : bloc REPLIABLE — ouvert tant que la session n'a pas démarré (les
-      // critères servent à DÉCLENCHER la fiche), replié ensuite (place à la prise en charge).
-      // ENTRY CONDITION (doctrine QRH, arbitrage d'audit v4.5) : les critères de déclenchement
-      // restent VISIBLES tant que la session n'a pas démarré — on confirme le tableau AVANT
-      // d'agir ; repliés ensuite (place à la prise en charge). L'étiquette redevient exacte
-      // (« Confirmation diagnostique », pas « Après stabilisation » — contresens du canvas).
-      const open=state.confOpen!==undefined?state.confOpen:!started;
-      return `<section class="conf-block"><button type="button" class="conf-head" id="confToggle" aria-expanded="${open?'true':'false'}"><span class="block-h h-confirm">${headerIcon('h-confirm')}Confirmation diagnostique</span><span class="conf-sub">· ${items.length} élément${items.length>1?'s':''}</span><span class="conf-chev" aria-hidden="true">${open?'▴':'▾'}</span></button>${open?`<ul class="flat confirm">${items.map(x=>`<li><span class="ftxt">${fmt(x)}</span></li>`).join('')}</ul>`:''}</section>`;})()}
-    ${(!preview&&!started)?`<div class="sess-start"><button class="btn primary" id="sessStart">${uiIcon('play',14)} Démarrer la session</button><span class="ss-hint">chrono, minuteurs et journal — démarre aussi à la première action</span></div>`:''}
-    ${wideRead?'':rtH}
-    ${f.blocks&&f.blocks.length?`<div class="alg-panel"><button type="button" class="alg-head" id="flowToggle" aria-expanded="${state.showFlow?'true':'false'}"><span class="alg-k">Algorithme</span><span class="alg-sub">· carte des blocs — synchronisée${blockTot!=null?` · <span id="algCount">${blockDone}/${blockTot}</span> coché`:''}</span><span class="alg-chev" aria-hidden="true">${state.showFlow?'▴':'▾'}</span></button>${state.showFlow?flowBlock(f,cur)+'<div class="flow-hint">Schéma = vue d’ensemble · les étapes à cocher sont en dessous ↓</div>':''}</div>`:''}
-    ${crumbsH}
-    ${navHtml}
-    ${navRowH}
-    ${f.localInfo&&f.localInfo.trim()?`<div class="local">${fmt(f.localInfo)}</div>`:''}
+    ${pathH}
     ${wideRead?'':tkH}
     ${gallery}
     ${docs}
-    ${staticBlock('△ À vérifier — surveillances','h-verify',f.verify,'verify')}
-    ${wideRead?'':posH}
-    ${staticBlock('Diagnostics différentiels — si tableau atypique','h-diff',f.differentials,'diff')}
     ${refs.length?`<div class="refs"><b>Références</b><ol>${refs.map(r=>`<li>${fmt(r)}</li>`).join('')}</ol></div>`:''}
     ${(()=>{const rel=(f.related||[]).map(id=>relTarget(id)).filter(Boolean);return rel.length?`<div class="related"><b>Voir aussi</b><div class="related-row">${rel.map(r=>`<button class="btn sm" data-openrel="${esc(r.id)}">${uiIcon(relKindOf(r.id)==='p'?'book':'doc',13)}${esc(r.title)||'Sans titre'} →</button>`).join('')}</div></div>`:'';})()}
     ${preview?'':noteBlockHtml(f.id,started)}
@@ -4757,6 +4812,14 @@ function renderRead(){
     ${gridClose}`;
   bindReadEvents(f,blk,cur);
 }
+// Re-rendu de DÉMARRAGE de session (1ʳᵉ action) avec ANCRAGE : le bouton « Confirmé — démarrer »
+// disparaît du flux au re-rendu -> tout remonterait sous le doigt (ECAM : le contexte de travail
+// ne bouge pas). On mémorise la position ÉCRAN de l'élément déclencheur et on compense le scroll
+// pour qu'il ne bouge pas d'un pixel. `sel` = sélecteur re-trouvable après render().
+function renderKeepAnchor(sel){
+  const el=sel?main.querySelector(sel):null;const top=el?el.getBoundingClientRect().top:null;
+  render();
+  if(top!=null){const nl=main.querySelector(sel);if(nl){const d=nl.getBoundingClientRect().top-top;if(d)window.scrollBy(0,d);}}}
 // Câblage des écouteurs de la vue lecture (seconde moitié de l'ancien renderRead) : navigation entre
 // blocs, cochage des étapes, contrôles minuteurs/compteurs (mise à jour DOM directe, sans re-rendu),
 // journal des actions, sessions. `blk` = bloc affiché, `cur` = id du bloc courant (halo du flow).
@@ -4777,9 +4840,14 @@ function bindReadEvents(f,blk,cur){
   }
   // Confirmation diagnostique repliable (V5) : bascule mémorisée pour la fiche affichée.
   {const ct=document.getElementById('confToggle');if(ct)ct.onclick=()=>{const cur=state.confOpen!==undefined?state.confOpen:!Runtime.started;state.confOpen=!cur;render();};}
-  // Démarrage EXPLICITE de la session (v4.3.2) : même chemin que la 1ʳᵉ action (ensureStarted),
-  // pour lancer chrono et enregistrement AVANT le premier geste clinique.
-  {const sb=document.getElementById('sessStart');if(sb)sb.onclick=()=>{if(ensureStarted())render();};}
+  // Démarrage EXPLICITE de la session (v4.3.2) : même chemin que la 1ʳᵉ action (ensureStarted).
+  // « Confirmé — démarrer » REPLIE délibérément l'étape ① (acquittement par l'action, ECAM) —
+  // à la différence du démarrage implicite par cochage, qui FIGE l'état ouvert (ensureStarted)
+  // pour ne pas déplacer le contenu sous le doigt.
+  {const sb=document.getElementById('sessStart');if(sb)sb.onclick=()=>{state.confOpen=false;if(ensureStarted())render();};}
+  // « Tableau atypique ? » (étape ①) : saute aux Diagnostics différentiels (étape ③) —
+  // défilement INSTANTANÉ (pas de smooth : geste volontaire, prefers-reduced-motion respecté).
+  {const al=document.getElementById('atypLink');if(al)al.onclick=()=>{const d=document.getElementById('diffBlock');if(d){d.scrollIntoView();d.focus({preventScroll:true});}};}
   // Menu ⋯ (SPEC §4) — a remplacé la barre « Autorat » de bas de page. En crise, « Modifier »
   // reste visible mais désactivé (mention explicite) : l'édition demeure à deux taps délibérés.
   const started=Runtime.started;
@@ -4838,7 +4906,7 @@ function bindReadEvents(f,blk,cur){
   // première action démarre la session (le bandeau apparaît) -> re-rendu complet, une seule fois.
   main.querySelectorAll('[data-ck]').forEach(li=>{const tgl=kb=>{const k=li.dataset.ck;const on=!state.checked[k];state.checked[k]=on;
     const justStarted=ensureStarted();persistLive(Runtime);
-    if(justStarted){render();if(kb){const nl=main.querySelector('[data-ck="'+CSS.escape(k)+'"]');if(nl)nl.focus();}return;}
+    if(justStarted){renderKeepAnchor('[data-ck="'+CSS.escape(k)+'"]');if(kb){const nl=main.querySelector('[data-ck="'+CSS.escape(k)+'"]');if(nl)nl.focus();}return;}
     li.classList.toggle('done',on);li.setAttribute('aria-checked',on?'true':'false');
     const box=li.querySelector('.box');if(box)box.innerHTML=on?uiIcon('check',19,{sw:3,cls:''}):'';
     // V5 : « Continuer » passe au registre CONFIRMATION (vert) dès que TOUT le bloc est coché
@@ -4862,18 +4930,18 @@ function bindReadEvents(f,blk,cur){
   const swn=document.getElementById('soundWarn');if(swn)swn.onclick=()=>toast('Mode silencieux du téléphone : si le bouton latéral est sur silencieux, l\'alarme sonore peut ne pas être audible (indétectable depuis le navigateur ; la vibration non plus sur iPhone). Alerte de secours : l\'écran clignote à chaque fin de minuteur.',11000);
   // Lancer un minuteur DÉMARRE la session. Si elle vient de démarrer, on re-rend (le bandeau « en
   // cours » apparaît) ; sinon mise à jour DOM directe.
-  main.querySelectorAll('[data-tmtoggle]').forEach(b=>b.onclick=()=>{const t=Runtime.timers[b.dataset.tmtoggle];toggleTimer(t);const fresh=ensureStarted();persistLive(Runtime);if(fresh)render();else{syncTimerBtns(t);refreshTimersDOM();}});
+  main.querySelectorAll('[data-tmtoggle]').forEach(b=>b.onclick=()=>{const t=Runtime.timers[b.dataset.tmtoggle];toggleTimer(t);const fresh=ensureStarted();persistLive(Runtime);if(fresh)renderKeepAnchor('[data-tmtoggle="'+CSS.escape(b.dataset.tmtoggle)+'"]');else{syncTimerBtns(t);refreshTimersDOM();}});
   main.querySelectorAll('[data-tmreset]').forEach(b=>holdToReset(b,()=>{const t=Runtime.timers[b.dataset.tmreset];resetTimer(t);syncTimerBtns(t);refreshTimersDOM();persistLive(Runtime);}));
   main.querySelectorAll('[data-cninc]').forEach(b=>b.onclick=()=>{const id=b.dataset.cninc;Runtime.counters[id]=(Runtime.counters[id]||0)+(+b.dataset.step);
     // Compteur LIÉ (canvas : bolus adrénaline) : le « ＋ » RELANCE le minuteur associé (repart du plein).
     const cc=((Runtime.fiche&&Runtime.fiche.counters)||[]).find(x=>x.id===id);
     if(cc&&cc.timerId&&Runtime.timers[cc.timerId]){const t=Runtime.timers[cc.timerId];t.elapsedMs=0;t.lastStart=Date.now();t.running=true;ensureAudio();}
-    const fresh=ensureStarted();persistLive(Runtime);if(fresh)render();else setCounterVal(id);});
-  main.querySelectorAll('[data-cndec]').forEach(b=>b.onclick=()=>{const id=b.dataset.cndec;Runtime.counters[id]=Math.max(0,(Runtime.counters[id]||0)-(+b.dataset.step));const fresh=ensureStarted();persistLive(Runtime);if(fresh)render();else setCounterVal(id);});
+    const fresh=ensureStarted();persistLive(Runtime);if(fresh)renderKeepAnchor('[data-cninc="'+CSS.escape(id)+'"]');else setCounterVal(id);});
+  main.querySelectorAll('[data-cndec]').forEach(b=>b.onclick=()=>{const id=b.dataset.cndec;Runtime.counters[id]=Math.max(0,(Runtime.counters[id]||0)-(+b.dataset.step));const fresh=ensureStarted();persistLive(Runtime);if(fresh)renderKeepAnchor('[data-cndec="'+CSS.escape(id)+'"]');else setCounterVal(id);});
   // Réinit. d'un compteur : MAINTENIR (même geste anti-accidentel que les minuteurs). Repart de la valeur de départ.
   main.querySelectorAll('[data-cnreset]').forEach(b=>holdToReset(b,()=>{const id=b.dataset.cnreset;const c=(Runtime.fiche.counters||[]).find(x=>x.id===id);Runtime.counters[id]=c?(c.start||0):0;setCounterVal(id);persistLive(Runtime);}));
   // horodatage : ajout (re-rendu), édition du libellé (sans re-rendu, garde le focus), suppression.
-  const tkA=document.getElementById('tkAdd');if(tkA)tkA.onclick=()=>{Runtime.events=Runtime.events||[];Runtime.events.push({id:uid('e'),t:Date.now(),label:'Action '+(Runtime.events.length+1)});ensureStarted();persistLive(Runtime);render();};
+  const tkA=document.getElementById('tkAdd');if(tkA)tkA.onclick=()=>{Runtime.events=Runtime.events||[];Runtime.events.push({id:uid('e'),t:Date.now(),label:'Action '+(Runtime.events.length+1)});ensureStarted();persistLive(Runtime);renderKeepAnchor('#tkAdd');};
   main.querySelectorAll('[data-tklab]').forEach(inp=>inp.addEventListener('input',e=>{const ev=(Runtime.events||[]).find(x=>x.id===e.target.dataset.tklab);if(ev){ev.label=e.target.value;persistLive(Runtime);}}));
   main.querySelectorAll('[data-tkdel]').forEach(b=>b.onclick=()=>{Runtime.events=(Runtime.events||[]).filter(x=>x.id!==b.dataset.tkdel);persistLive(Runtime);render();});
   // Correction d'heure NON DESTRUCTIVE : la 1ère valeur (avant toute correction) est conservée dans
@@ -4935,6 +5003,10 @@ function bindReadEvents(f,blk,cur){
 // préfixe « ⚠ » reste dans la CHAÎNE stockée (format v3 et cartes rouges inchangés).
 function listEditor(legend,hint,key,arr,ordered,opts){opts=opts||{};const rows=(arr.length?arr:['']).map((v,i)=>{const crit=opts.crit&&stepIsCrit(v);
   return `<div class="li${crit?' li-crit':''}" data-i="${i}">${ordered?`<span class="li-num">${String(i+1).padStart(2,'0')}</span>`:''}<input type="text" value="${esc(opts.crit?stepText(v):v)}" data-key="${key}" data-idx="${i}"${opts.crit?' data-critlist':''} placeholder="…">${boldBtnHtml()}${opts.crit?`<button class="mini crit-tgl${crit?' on':''}" data-lcrit="${i}" data-lkey="${key}" title="${crit?'Ligne CRITIQUE (carte rouge) — toucher : normale':'Ligne normale — toucher : critique (carte rouge)'}">${uiIcon('warn',14)}</button>`:''}${ordered?`<button class="mini" data-mv="up" data-key="${key}" data-idx="${i}" aria-label="Monter">↑</button><button class="mini" data-mv="down" data-key="${key}" data-idx="${i}" aria-label="Descendre">↓</button>`:''}<button class="mini del" data-rm="${key}" data-idx="${i}" aria-label="Supprimer la ligne">×</button></div>`;}).join('');return `<fieldset class="field list-edit"><label>${legend}${hint?` <span class="hint">${hint}</span>`:''}</label>${rows}<button class="add-line" data-add="${key}">+ Ajouter une ligne</button></fieldset>`;}
+// Garde-fou « Ne pas oublier » (v4.4.0, non bloquant — registre ATTENTION) : au-delà de 4
+// memory items, plus rien n'est saillant (doctrine QRH : ils sont rares par construction).
+// On suggère le reclassement, on n'empêche rien.
+const nfGuardTxt=n=>n>4?('△ '+n+' rappels — au-delà de 4, plus rien n’est saillant. Un rappel lié à une étape précise est plus sûr en étape ⚠ du bloc concerné, une surveillance dans « À vérifier ».'):'';
 // Bouton « Gras » : entoure la sélection du champ voisin de ** (rendu <b> en lecture via fmt()).
 function boldBtnHtml(){return '<button type="button" class="mini bld" data-bold aria-label="Mettre la sélection en gras" title="Gras — sélectionnez du texte puis cliquez (ou Ctrl/Cmd-B). Réservez-le aux doses et interdictions critiques.">B</button>';}
 // Documents PDF joignables depuis les AUTRES fiches du MÊME périmètre (Perso, ou même bibliothèque
@@ -5084,6 +5156,7 @@ function renderEditor(){
     ${listEditor('À vérifier','','verify',f.verify)}
     ${listEditor('Repères posologiques','bouton ⚠ = carte rouge (dose critique) · **gras** possible','posology',f.posology,false,{crit:true})}
     ${listEditor('Ne pas oublier','points critiques','notForget',f.notForget)}
+    <p class="nf-guard" id="nfGuard" role="status">${nfGuardTxt(clean(f.notForget).length)}</p>
     ${listEditor('Diagnostics différentiels','','differentials',f.differentials)}
     <fieldset class="field"><label>Schémas & captures <span class="hint">stockées hors ligne dans l'app</span></label><div class="gallery">${(f.images||[]).map((im,i)=>`<div class="gthumb"><img src="${im.data}" alt="" loading="lazy" decoding="async"><input type="text" class="gcap" data-imgcap="${i}" value="${esc(im.caption||'')}" placeholder="Légende…" style="width:100%;margin-top:5px;padding:6px 8px;border:1px solid var(--line);border-radius:7px"><button class="btn sm danger" data-imgdel="${i}" style="width:100%;margin-top:5px">Retirer</button></div>`).join('')}</div><button class="add-line" id="addImg" style="margin-top:10px">+ Ajouter une image / capture</button></fieldset>
     ${attFieldsetHtml(f)}
@@ -5176,7 +5249,9 @@ function bindListEditors(d,rerender){d=d||state.draft;rerender=rerender||renderE
   main.querySelectorAll('input[data-key]').forEach(inp=>inp.addEventListener('input',e=>{
     const k=e.target.dataset.key,i=+e.target.dataset.idx;
     const pfx=e.target.hasAttribute('data-critlist')&&stepIsCrit(d[k][i]||'')?'⚠ ':'';
-    d[k][i]=pfx+e.target.value;}));
+    d[k][i]=pfx+e.target.value;
+    // Garde-fou memory items : recompté À LA FRAPPE (l'ajout/suppression de ligne re-rend, lui).
+    if(k==='notForget'){const g=document.getElementById('nfGuard');if(g)g.textContent=nfGuardTxt(clean(d.notForget).length);}}));
   main.querySelectorAll('[data-lcrit]').forEach(b=>b.onclick=()=>{const k=b.dataset.lkey,i=+b.dataset.lcrit;
     const v=String(d[k][i]||'');d[k][i]=stepIsCrit(v)?stepText(v):('⚠ '+stepText(v));rerender();});
   main.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{d[b.dataset.add].push('');rerender();});

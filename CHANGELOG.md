@@ -1,5 +1,52 @@
 # Journal des modifications
 
+## [4.4.0] — 2026-07-14
+Parcours de soin numéroté dans la vue fiche : la séquence « ① confirmer le diagnostic →
+② dérouler l'algorithme → ③ surveiller » devient la structure visible de l'écran de crise
+(option B des maquettes, prérequis QRH / ECAM / WCAG 2.2 AA).
+
+### Ajouté
+- **Rail « parcours de soin »** (`<ol class="care-path">`) dans la vue lecture d'une aide
+  cognitive : ① **Confirmer le diagnostic** → ② **Prise en charge** → ③ **Surveillances &
+  pièges**. Pastilles : bleu = étape active (`aria-current="step"`), vert ✓ = faite, neutre
+  cerclé = à venir — jamais d'ambre ni de rouge dans le rail (registres réservés à l'alerte,
+  ECAM « un signal = un sens ») ; en thème sombre l'encre des pastilles passe à l'encre du
+  fond (contrastes AA vérifiés dans les deux thèmes, ≥ 4.9:1). L'état est aussi porté par le
+  texte (« Diagnostic confirmé ») et le glyphe ✓ — jamais la couleur seule (WCAG 1.4.1).
+  Étapes vides omises (numérotation recalculée) ; une seule étape non vide → pas de rail.
+  La séquence est **suggérée, jamais bloquante** (QRH) : la première action clinique démarre
+  toujours la session.
+- **Lien « Tableau atypique ? → Diagnostics différentiels »** dans l'étape ① (affiché si la
+  fiche a des différentiels) : saut direct à l'étape ③, cible tactile 44 px, défilement
+  instantané (pas d'animation de déplacement — `prefers-reduced-motion` de fait respecté).
+- **Garde-fou « Ne pas oublier » dans l'éditeur** (non bloquant, registre ATTENTION) : au-delà
+  de 4 rappels, une note suggère de reclasser (étape ⚠ du bloc concerné, ou « À vérifier ») —
+  les memory items sont rares par construction. Recompté à la frappe.
+- **`renderKeepAnchor`** : tout re-rendu de démarrage de session (cocher, minuteur, compteur,
+  horodatage) compense le scroll pour que l'élément touché **ne bouge pas d'un pixel** à
+  l'écran (le bouton « Confirmé — démarrer » disparaît du flux au démarrage — sans ancrage,
+  le contenu remontait sous le doigt ; ECAM : le contexte de travail ne bouge jamais).
+
+### Modifié
+- **Étape ① = l'ex-bloc « Confirmation diagnostique »** : son en-tête repliable devient le
+  titre d'étape — « Confirmer le diagnostic » avant la session, « Diagnostic confirmé »
+  ensuite ; critères ré-ouvrables d'un tap à tout moment (doute en cours d'algorithme), la
+  session et les minuteurs continuent. Le bouton de démarrage devient « **Confirmé — démarrer
+  la session** » quand la fiche a des critères (le geste porte la confirmation) et REPLIE
+  délibérément l'étape ① (acquittement par l'action) ; sans critères, il reste « Démarrer la
+  session » en tête de l'étape ②.
+- **« À vérifier » et « Diagnostics différentiels » remontent ensemble** dans l'étape ③, juste
+  sous la prise en charge (ils étaient dispersés sous la galerie et les documents) ; la carte
+  des blocs (SVG) reste repliée en tête de l'étape ② — vue d'ensemble de la phase d'action,
+  pas une étape. Galerie, documents, références, voir aussi et note personnelle deviennent
+  les annexes de fin de page. En large (≥ 1000 px), minuteurs / posologie / journal restent
+  dans la colonne droite collante ; en étroit ils vivent dans l'étape ②.
+- **Bandeau « Ne pas oublier » long** : au-delà de 4 rappels, passage en **2 colonnes**
+  ≥ 780 px pour contenir la hauteur du chapeau — jamais de repli ni de troncature (un rappel
+  caché n'existe plus) ; une colonne en étroit et au zoom 400 % (reflow WCAG 1.4.10). Le
+  bandeau reste le chapeau de la fiche, hors numérotation (memory items transversaux),
+  visible avant et pendant la session.
+
 ## [4.3.2] — 2026-07-14
 Micro-animations harmonisées, bouton « Démarrer la session », tri alphabétique par défaut,
 et correctifs d'affichage (bandeau de bibliothèque partagée, contraste de la barre latérale,
