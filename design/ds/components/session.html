@@ -94,6 +94,10 @@
   html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
   body{font-family:var(--sans);color:var(--ink);background:var(--bg);line-height:1.5;-webkit-font-smoothing:antialiased;padding-bottom:env(safe-area-inset-bottom)}
   button{font-family:inherit;cursor:pointer}input,textarea,select{font-family:inherit;font-size:16px;max-width:100%}textarea{resize:vertical}
+  /* Écrans tactiles : sans ce réglage, Safari iOS attend ~350 ms après chaque tap (fenêtre du
+     double-tap zoom) — des taps rapprochés sur un bouton ou un menu semblent alors « ignorés ».
+     `manipulation` garde défilement et pincement, ne retire que le double-tap zoom. */
+  button,input,select,textarea,[role="button"]{touch-action:manipulation}
   /* overflow-x:clip = filet anti-débordement horizontal (un enfant trop large ne peut plus
      élargir la page ni créer de bande vide à droite sur iOS). 'clip' plutôt que 'hidden' :
      ne crée PAS de conteneur de défilement -> l'en-tête sticky et les scrollers internes
@@ -443,8 +447,15 @@
   .mem-email{font-size:13.5px;color:var(--ink);word-break:break-all}.mem-you{color:var(--ink-soft);font-weight:400}
   .mem-act{display:flex;gap:8px;align-items:center;flex:none}
   .mem-act select{padding:9px 11px;border:1px solid var(--line-strong);border-radius:9px;background:var(--input-bg);color:var(--ink);font-size:12.5px;font-weight:600}
-  .mem-act .mini.del{width:34px;height:34px;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:var(--ink-soft);font-size:16px}
+  .mem-act .mini.del{width:34px;height:34px;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:var(--ink-soft);font-size:16px;position:relative}
+  .mem-act .mini.del::after{content:"";position:absolute;inset:-5px}   /* halo -> cible tactile 44px */
   .mem-act .mini.del:hover{color:var(--critical);background:color-mix(in srgb,var(--critical) 8%,transparent)}
+  /* iPhone : un champ ou un menu < 16px déclenche le ZOOM AUTOMATIQUE de Safari au focus — la
+     page saute sous le doigt et le tap sur le sélecteur de rôle (ou les boutons voisins) semble
+     ne pas répondre. 16px sur écrans tactiles uniquement (le compact 12.5px reste au pointeur fin). */
+  @media (hover:none) and (pointer:coarse){
+    .mem-act select,.invite-row select,.invite-row input{font-size:16px}
+  }
   .invite-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
   .invite-row input{flex:1;min-width:0;padding:10px 12px;border:1px solid var(--line-strong);border-radius:9px;background:var(--input-bg);color:var(--ink);font-size:13.5px}
   .invite-row select{flex:none;padding:9px 11px;border:1px solid var(--line-strong);border-radius:9px;background:var(--input-bg);color:var(--ink);font-size:12.5px;font-weight:600}
@@ -460,8 +471,16 @@
   .btn.ghost-danger:hover{background:var(--critical-soft);border-color:transparent}
   /* SPEC gestion §3 : Annuler / CTA demi-largeur ; ZONE SENSIBLE sous séparateur, bouton
      CONTOUR rouge (jamais plein, jamais côte à côte avec le CTA principal). */
-  .dlg-actions{display:flex;gap:9px;align-items:center;margin-top:6px}
-  .dlg-actions .btn{flex:1;display:inline-flex;align-items:center;justify-content:center;min-height:44px;border-radius:9px;font-size:14px;font-weight:700;text-align:center}
+  /* Jumeaux demi-largeur : `min-width:0` neutralise le plancher min-content (sans lui, le
+     libellé le plus long — « Exporter mes données » — élargissait SON bouton sur mobile) ;
+     `stretch` égalise les hauteurs si un libellé passe sur deux lignes en très étroit. */
+  .dlg-actions{display:flex;gap:9px;align-items:stretch;margin-top:6px}
+  .dlg-actions .btn{flex:1;min-width:0;display:inline-flex;align-items:center;justify-content:center;min-height:44px;border-radius:9px;font-size:14px;font-weight:700;text-align:center}
+  @media (max-width:429.98px){.dlg-actions .btn{padding-left:10px;padding-right:10px}}
+  /* Fenêtre Compte : « Exporter mes données » ne tient pas sur une ligne en demi-largeur de
+     téléphone (159px à 12.5px/700 — sous le plancher 11px il déborde encore) -> la paire
+     s'empile en pleine largeur sous 430px, comme « Synchroniser maintenant » juste au-dessus. */
+  @media (max-width:429.98px){.dlg-actions.acct-two{flex-direction:column}}
   .dlg-actions .btn:not(.primary){border:1.5px solid var(--line-hover);background:transparent;color:var(--ink)}
   .dlg-actions .btn.primary{box-shadow:0 1px 2px rgba(23,71,127,.25)}
   .dlg-actions .btn.primary.is-locked{background:transparent;border:1.5px solid var(--line);color:var(--ink-soft);box-shadow:none;cursor:default}
@@ -1138,6 +1157,14 @@
   .dlg-confirm .ai-card{max-width:420px;box-shadow:0 12px 40px rgba(0,0,0,.3)}
   .dlg-confirm h3{font-size:17px;font-weight:800}
   .dlg-confirm .ai-x{font-size:17px;color:var(--ink-soft)}
+  /* v4.3.1 : les confirmations DESTRUCTRICES (#confirmModal, opts.danger — supprimer une fiche,
+     un protocole, la bibliothèque…) reprennent le registre du dialogue « Terminer la session »
+     (SPEC crise §3) : rouge système PLEIN (--critical-bd) + texte blanc, au lieu du contour rouge.
+     Les boutons « Supprimer » de fin de formulaire et des zones sensibles restent en CONTOUR
+     (règle SPEC gestion §3 : jamais plein hors confirmation finale). */
+  #confirmModal .btn.danger{background:var(--critical-bd);border-color:var(--critical-bd);color:#fff}
+  #confirmModal .btn.danger:hover{background:var(--critical-bd);border-color:var(--critical-bd);filter:brightness(1.06)}
+  [data-theme="dark"] #confirmModal .btn.danger{color:var(--bg)}
   .ai-card{background:var(--surface);border-radius:14px;max-width:720px;width:100%;margin:auto;padding:20px;box-shadow:var(--shadow)}
   /* La fenêtre « Gérer les catégories » ne dépasse jamais l'écran (encoche/horloge incluses) : la
      carte est plafonnée et la LISTE défile à l'intérieur ; l'en-tête reste visible. */

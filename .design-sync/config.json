@@ -1,0 +1,5 @@
+{
+  "projectId": "ded5aff6-1b5c-4813-919d-c9774c5163d1",
+  "shape": "custom",
+  "note": "Flux sur mesure : PWA monofichier vanille, pas de bibliothèque de composants. `node design/build.mjs` extrait tokens/PALETTE/CSS de index.html et génère design/ds/ (fiches HTML Fondations+Composants, tokens/tokens.css, GUIDELINES.md rédigé à la main). La synchro pousse design/ds/ tel quel — jamais le convertisseur standard du skill."
+}

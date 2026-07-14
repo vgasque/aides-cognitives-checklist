@@ -315,7 +315,24 @@ const modalDemo = `
     <div class="mem-danger"><p class="mem-section-h danger-h">Zone sensible</p><button class="btn outline-danger">Supprimer la bibliothèque…</button></div>
   </div>
 </div>
-<p class="ds-cap">.dlg-480 — gabarit UNIQUE des fenêtres de gestion (480px, titre 17px/800, croix 44px, Échap / tap hors carte, focus géré) ; plein écran &lt; 640px SAUF .dlg-confirm (confirmations 420px, TOUJOURS centrées). Annuler/Enregistrer vivent SOUS LE CHAMP qu'ils enregistrent (le nom) — les changements de membres, eux, s'appliquent immédiatement ; la ZONE SENSIBLE est séparée par un filet et vient en DERNIER, jamais près des actions courantes. Dialogue Créer : 3 méthodes en cartes 82px (icônes SVG uiIcon 26px uniformes), carte « Reprendre le brouillon » quand un brouillon auto-enregistré existe.</p>`;
+<p class="ds-cap">.dlg-480 — gabarit UNIQUE des fenêtres de gestion (480px, titre 17px/800, croix 44px, Échap / tap hors carte, focus géré) ; plein écran &lt; 640px SAUF .dlg-confirm (confirmations 420px, TOUJOURS centrées). Annuler/Enregistrer vivent SOUS LE CHAMP qu'ils enregistrent (le nom) — les changements de membres, eux, s'appliquent immédiatement ; la ZONE SENSIBLE est séparée par un filet et vient en DERNIER, jamais près des actions courantes. Dialogue Créer : 3 méthodes en cartes 82px (icônes SVG uiIcon 26px uniformes), carte « Reprendre le brouillon » quand un brouillon auto-enregistré existe.</p>
+<div style="max-width:400px">
+  <div class="ai-card endsess-dlg" style="box-shadow:var(--shadow-lg)">
+    <h3 class="dlg-title">Terminer la session ?</h3>
+    <p class="dlg-context"><strong>Arrêt cardiaque adulte</strong> — session en cours depuis <strong>12 min</strong>.</p>
+    <p class="dlg-consequences">Le chrono global et tous les minuteurs s'arrêtent. La session quitte l'accueil. Le déroulé horodaté reste consultable dans l'historique.</p>
+    <div class="endsess-actions"><button class="btn-continue-sess">Poursuivre</button><button class="btn-end-sess">Terminer</button></div>
+  </div>
+</div>
+<p class="ds-cap">Dialogue « Terminer la session ? » (SPEC crise §3, v4.3.0) — SEULE porte de sortie d'une session (menu ⋯, fin d'algorithme, ✕ du bandeau : jamais d'arrêt direct). Contexte (titre + durée) puis CONSÉQUENCES annoncées AVANT le choix ; « Poursuivre » = action sûre (contour, focus initial, Échap) ; « Terminer » = rouge système PLEIN (--critical-bd), l'un des SEULS de l'app — même largeur : la grammaire contour/plein porte seule la différence. Toujours centré, même sur mobile.</p>
+<div id="confirmModal" style="max-width:420px">
+  <div class="ai-card" style="box-shadow:var(--shadow-lg)">
+    <div class="ai-top"><h3>Confirmer</h3><button class="ai-x" aria-label="Fermer">×</button></div>
+    <p style="white-space:pre-line;font-size:14.5px;color:var(--ink)">Supprimer cette fiche ? Ses sessions archivées seront aussi supprimées.</p>
+    <div style="display:flex;gap:9px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px"><button class="btn">Annuler</button><button class="btn danger">Supprimer</button></div>
+  </div>
+</div>
+<p class="ds-cap">Confirmation DESTRUCTRICE (v4.3.1) — #confirmModal en mode danger (supprimer une fiche, un protocole, la bibliothèque…) reprend le registre du dialogue « Terminer la session » : bouton principal rouge PLEIN --critical-bd + texte blanc, UNIQUEMENT dans la fenêtre de confirmation finale. Les boutons « Supprimer » de fin de formulaire et des zones sensibles restent en CONTOUR (.outline-danger / .btn.danger hors confirmation = liseré vermillon). ✕ / Échap / fond = abandon, distinct du bouton secondaire.</p>`;
 
 /* ---- Fiches ---- */
 const cards = [
@@ -333,7 +350,7 @@ const cards = [
   { path: 'components/header.html', name: 'Barre d’en-tête', group: 'Composants', subtitle: 'Accueil (accent), bandeau de crise ALERTE, menu ⋯', h: 1600, demo: headerDemo, title: 'En-tête' },
   { path: 'components/runtime.html', name: 'Panneau temps réel', group: 'Composants', subtitle: 'Cartes à état textuel, échu ambre, ad hoc — suivent le thème', h: 1500, demo: runtimeDemo, title: 'Temps réel' },
   { path: 'components/session.html', name: 'Sessions', group: 'Composants', subtitle: 'Carte de session vive ; Terminer via menu ⋯, historique en modale', h: 800, demo: sessionDemo, title: 'Sessions' },
-  { path: 'components/modal.html', name: 'Modale', group: 'Composants', subtitle: 'dlg-480, dialogue Créer, zone sensible, confirmations 420px', h: 1500, demo: modalDemo, title: 'Modale' },
+  { path: 'components/modal.html', name: 'Modale', group: 'Composants', subtitle: 'dlg-480, dialogue Créer, Terminer la session ?, confirmations destructrices', h: 2150, demo: modalDemo, title: 'Modale' },
 ];
 
 for (const c of cards) {
