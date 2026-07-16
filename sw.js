@@ -2,14 +2,16 @@
 //  Service worker — fonctionnement hors ligne + MISE À JOUR AUTOMATIQUE du code.
 //
 //  Stratégie :
-//   - Navigation (la page index.html) : "réseau d'abord", BORNÉ à 1,5 s. Quand l'iPhone a du
-//     réseau, on récupère la dernière version en ligne, puis on la met en cache pour l'usage
-//     hors ligne. Hors ligne -> copie en cache, immédiatement. Réseau qui ne répond PAS
-//     (Wi-Fi hospitalier saturé, « lie-fi ») -> au-delà de 1,5 s on sert la copie en cache
-//     (app ouverte en urgence : attendre le timeout navigateur, parfois > 30 s, est exclu) ;
-//     le fetch continue en arrière-plan et rafraîchit le cache pour la prochaine ouverture.
-//     => une modif d'index.html en ligne s'applique automatiquement à la
-//        réouverture, sans bump de version manuel.
+//   - Navigation (la page index.html) : "CACHE D'ABORD" (v4.4.6). Dès qu'une copie locale
+//     existe, elle est servie IMMÉDIATEMENT — zéro attente réseau à l'ouverture, quel que soit
+//     l'état du Wi-Fi (l'app est ouverte en urgence : la v4.4.4 avait réduit l'attente
+//     réseau-d'abord de 3,5 à 1,5 s ; le cache d'abord la supprime). Le fetch réseau part
+//     quand même en arrière-plan et rafraîchit la copie pour l'ouverture suivante.
+//     => une modif d'index.html en ligne s'applique à la RÉOUVERTURE ; quand la version
+//        change (sw.js modifié), le nouveau worker s'active et la page affiche le bandeau
+//        « Nouvelle version disponible — Recharger » (invite NON bloquante, masquée en
+//        session de crise) : l'utilisateur applique quand IL le décide.
+//     Toute première visite (aucun cache) : on attend le réseau, comme avant.
 //   - Autres fichiers (icônes, manifest) : "stale-while-revalidate" = on sert
 //     vite le cache et on rafraîchit en arrière-plan.
 //   - pdf.js (vendorisé, FIGÉ) : cache SÉPARÉ versionné par la version de pdf.js, PAS par celle
@@ -26,7 +28,7 @@
 //  code et restent intactes à chaque mise à jour, tant que l'URL reste la même.
 // =============================================================================
 // IMPORTANT : garder cette version synchronisée avec APP_VERSION dans index.html.
-const CACHE = 'aides-cognitives-v4.4.5';
+const CACHE = 'aides-cognitives-v4.4.6';
 // Versionné par pdf.js (vendor/pdfjs/README.txt) : à changer UNIQUEMENT quand pdf.js est mis à jour.
 const PDFJS_CACHE = 'aides-cognitives-pdfjs-4.10.38';
 const PDFJS_ASSETS = [
@@ -43,13 +45,6 @@ const ASSETS = [
   './icon-512-maskable.png',
   './apple-touch-icon.png'
 ];
-// Délai au-delà duquel une navigation bascule sur la copie en cache (le réseau continue derrière).
-// 1,5 s depuis v4.4.4 (était 3,5 s) : en « lie-fi » (Wi-Fi hospitalier qui accepte la connexion
-// mais ne répond pas), c'était jusqu'à 3,5 s d'écran blanc à CHAQUE ouverture — inacceptable en
-// urgence. 1,5 s suffit largement à un réseau sain pour répondre ; au-delà, la copie en cache
-// est servie et le fetch continue en arrière-plan (la fraîcheur n'est pas sacrifiée).
-const NAV_TIMEOUT_MS = 1500;
-
 self.addEventListener('install', e => {
   e.waitUntil(Promise.all([
     caches.open(CACHE).then(c => c.addAll(ASSETS)),
@@ -66,8 +61,9 @@ self.addEventListener('activate', e => {
       .then(keys => Promise.all(keys.filter(k => k !== CACHE && k !== PDFJS_CACHE).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
       // Annonce la version du worker aux pages ouvertes : index.html la compare à son APP_VERSION
-      // et affiche le message JUSTE — « déjà à jour » (cas normal : la navigation réseau-d'abord a
-      // déjà servi le nouvel index.html) ou « rechargez » (page encore servie par l'ancien cache).
+      // et affiche le message JUSTE — « déjà à jour » (la page servie est déjà la nouvelle) ou,
+      // cas NORMAL depuis le cache-d'abord, le bandeau « Nouvelle version — Recharger » (la page
+      // en main vient du cache, donc de l'ancienne version ; le bouton applique sans forcer).
       .then(() => self.clients.matchAll({ type: 'window' }))
       .then(cs => cs.forEach(c => c.postMessage({ type: 'sw-activated', version: CACHE })))
   );
@@ -80,7 +76,7 @@ self.addEventListener('fetch', e => {
   if (new URL(req.url).origin !== self.location.origin) return;
   if (req.method !== 'GET') return;
 
-  // Page / navigation : réseau d'abord (borné), cache en secours (hors ligne ou réseau muet).
+  // Page / navigation : cache d'abord (ouverture instantanée), réseau en rafraîchissement de fond.
   const isNav = req.mode === 'navigate' ||
                 (req.headers.get('accept') || '').includes('text/html');
   if (isNav) {
@@ -109,14 +105,9 @@ self.addEventListener('fetch', e => {
     // d'abord servait cette copie figée hors ligne : version périmée).
     const cached = () => caches.match('./index.html').then(r => r || caches.match(req));
     e.respondWith((async () => {
-      const first = await Promise.race([
-        net.catch(() => null),
-        new Promise(r => setTimeout(() => r('slow'), NAV_TIMEOUT_MS))
-      ]);
-      if (first && first !== 'slow') return first;          // réseau OK dans les temps
       const c = await cached();
-      if (c) return c;                                      // hors ligne, ou réseau trop lent
-      return net.catch(() => Response.error());             // toute première visite : on attend le réseau
+      if (c) return c;                          // cache d'abord : ouverture instantanée, toujours
+      return net.catch(() => Response.error()); // toute première visite : on attend le réseau
     })());
     return;
   }

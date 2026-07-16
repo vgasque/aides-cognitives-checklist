@@ -232,7 +232,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-0Wul706r7j1BPleogZ5Jj2ntFLkVkgKVQWR5GssjVu0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-diKI8ExWX85UfS/QUrjFWCZIeAvD5r6rjyrnQeAjobQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1822,6 +1822,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      générée (ou sans binaire local), il porte l'icône document générique. */
   .att-thumb{flex:none;width:40px;height:52px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:6px;background:var(--surface-2);color:var(--primary);overflow:hidden}
   .att-timg{display:block;width:100%;height:100%;object-fit:cover;object-position:top center}
+  /* Badge « binaire pas encore sur cet appareil » (v4.4.6) : registre ATTENTION, glyphe + texte. */
+  .att-cloud{flex:none;font-size:11.5px;font-weight:700;color:var(--verify);white-space:nowrap}
   .att-erow{display:flex;align-items:center;gap:8px;margin-bottom:8px}
   /* Sélecteur de document existant : liste défilable, origine du document en 2e ligne. */
   .attpick-list{max-height:min(52vh,440px);overflow-y:auto;-webkit-overflow-scrolling:touch;margin-top:12px}
@@ -2175,7 +2177,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.4.5';
+const APP_VERSION='4.4.6';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -2929,6 +2931,25 @@ function togglePin(id){const i=pins.indexOf(id);if(i>=0)pins.splice(i,1);else pi
   // Marque le document perso « à pousser » (même mécanique que saveCats) et programme une synchro.
   try{localStorage.setItem(spaceKey('ac-cats-updated:'),String(Date.now()));localStorage.setItem(spaceKey('ac-cats-dirty:'),'1');}catch(e){}
   if(typeof Sync!=='undefined'&&typeof Auth!=='undefined'&&Auth.signedIn())Sync.schedule();}
+// ----- FRECENCY (v4.4.6) : fréquence + récence d'OUVERTURE par fiche/protocole, LOCALE à
+// l'appareil (même famille que ac-pins / ac-lib-usage, un espace par compte). N'ordonne QUE les
+// résultats de RECHERCHE : « ana » remonte la fiche qu'on ouvre le plus en tapant ça (Spotlight).
+// La liste par défaut reste ALPHABÉTIQUE (décision v4.3.2) et les épingles restent premières.
+// Le score est STABLE pendant la frappe (il ne dépend pas de la requête) : les cartes ne se
+// réordonnent pas sous le doigt — exigence de calme sous stress.
+let _frecency={};try{_frecency=JSON.parse(localStorage.getItem(spaceKey('ac-usage')))||{};}catch(e){}
+function bumpUsage(id){if(!id)return;
+  const u=_frecency[id]||{n:0,t:0};u.n=Math.min(9999,u.n+1);u.t=Date.now();_frecency[id]=u;
+  // Borne : les 200 usages les plus récents suffisent (localStorage n'est pas extensible).
+  const ids=Object.keys(_frecency);
+  if(ids.length>200)ids.sort((a,b)=>(_frecency[a].t||0)-(_frecency[b].t||0)).slice(0,ids.length-200).forEach(k=>{delete _frecency[k];});
+  try{localStorage.setItem(spaceKey('ac-usage'),JSON.stringify(_frecency));}catch(e){}}
+// Score PUR (testé via ?__actest) : le compte d'ouvertures, amorti par l'ancienneté du dernier
+// usage — pleine valeur ≤ 15 j, demi-valeur ≤ 60 j, quart au-delà (l'historique ancien compte
+// encore : en médecine d'urgence, une fiche saisonnière revient).
+function frecencyScore(u,now){if(!u||!u.n)return 0;
+  const days=Math.max(0,(now-(u.t||0))/86400000);
+  return u.n*(days<=15?1:(days<=60?0.5:0.25));}
 // Préférences par utilisateur (thème/taille/accent, v4.5) : même mécanique que togglePin — le document
 // perso est marqué « à pousser », la synchro embarque data.prefs au prochain passage.
 function schedulePrefsPush(){
@@ -4147,7 +4168,10 @@ function renderFiches(){
     // Recherche (q non vide) : porte sur TOUTES les bibliothèques accessibles (le tableau `fiches`
     // ne contient déjà que du contenu autorisé) ; brouillon visible si on peut éditer SA biblio
     // (canEditFiche, par item). Sans recherche : périmètre + catégorie courants, comme avant.
-    list:(q,canEdit)=>{const T=qTerms(q);return fiches.slice().sort((a,b)=>((isPinned(b.id)?1:0)-(isPinned(a.id)?1:0))||byTitle(a,b)).filter(f=>q?(hayMatch(ficheHaystack(f),T)&&(canEditFiche(f)||f.status!=='draft')):((state.scope?f.libraryId===state.scope:!f.libraryId)&&(!state.cat||f.category===state.cat)&&(canEdit||f.status!=='draft')));},
+    // Tri des RÉSULTATS de recherche (v4.4.6) : épinglées, puis frecency (les fiches qu'on ouvre
+    // le plus, récemment, en premier), puis alphabétique. Sans recherche : alphabétique inchangé.
+    list:(q,canEdit)=>{const T=qTerms(q);const now=Date.now();const sc=x=>q?frecencyScore(_frecency[x.id],now):0;
+      return fiches.slice().sort((a,b)=>((isPinned(b.id)?1:0)-(isPinned(a.id)?1:0))||(sc(b)-sc(a))||byTitle(a,b)).filter(f=>q?(hayMatch(ficheHaystack(f),T)&&(canEditFiche(f)||f.status!=='draft')):((state.scope?f.libraryId===state.scope:!f.libraryId)&&(!state.cat||f.category===state.cat)&&(canEdit||f.status!=='draft')));},
     // SESSIONS EN COURS (SPEC §5) : une CARTE par session (surface, liseré primaire 3px), point
     // vert + kicker + titre, CHRONO mono vivant (mis à jour par tickAll), « Reprendre » plein,
     // « Terminer » en texte rouge (destructif : jamais plein, jamais premier).
@@ -4186,7 +4210,9 @@ function renderProtocols(){
     countLbl:n=>'document'+(n>1?'s':''),
     // MÊME présentation que les fiches (harmonisation V5) : épinglés d'abord, liseré, statut,
     // épingle, chevron — un seul langage de carte sur tout l'accueil.
-    list:(q,canEdit)=>{const T=qTerms(q);return protocols.slice().sort((a,b)=>((isPinned(b.id)?1:0)-(isPinned(a.id)?1:0))||byTitle(a,b)).filter(p=>q?(hayMatch(protocolHaystack(p),T)&&(canEditFiche(p)||p.status!=='draft')):((state.scope?p.libraryId===state.scope:!p.libraryId)&&(!state.cat||p.category===state.cat)&&(canEdit||p.status!=='draft')));},
+    // Même tri de recherche que les fiches (v4.4.6) : épinglés > frecency > alphabétique.
+    list:(q,canEdit)=>{const T=qTerms(q);const now=Date.now();const sc=x=>q?frecencyScore(_frecency[x.id],now):0;
+      return protocols.slice().sort((a,b)=>((isPinned(b.id)?1:0)-(isPinned(a.id)?1:0))||(sc(b)-sc(a))||byTitle(a,b)).filter(p=>q?(hayMatch(protocolHaystack(p),T)&&(canEditFiche(p)||p.status!=='draft')):((state.scope?p.libraryId===state.scope:!p.libraryId)&&(!state.cat||p.category===state.cat)&&(canEdit||p.status!=='draft')));},
     card:p=>{const nDoc=(p.attachments||[]).length;const cc=catOf(p);return `
       <div class="card${cc?' striped':''}"${cc?` style="--stripe:${safeColor(cc.color)}"`:''}><div class="card-body"><h2><button class="card-open" data-open="${p.id}">${esc(p.title)||'Sans titre'}</button></h2>
         <div class="card-meta">${searchLibTag(p)}${statusChip(p.status,false)}${staleDate(p.validation)?`<span class="tag stale" title="${esc(fmtDate(p.validation))} — plus de 2 ans : à revérifier">△ à revoir</span>`:''}${catTag(p,true)}${nDoc?`<span class="tag sess" title="Documents PDF joints">${nDoc} PDF</span>`:''}${p.body&&p.body.trim()?'<span class="tag sess" title="Contenu rédigé dans l’app">Rédigé</span>':''}${p.code?`<span class="card-date" style="font-family:var(--mono)">${esc(p.code)}</span>`:''}</div>${txNorm(state.q)?searchSnippet(protoSnipParts(p),state.q):''}</div>
@@ -4208,16 +4234,34 @@ const _attThumbs=new Map();   // attId -> dataURL (session)
 let _thumbChain=Promise.resolve();
 const _idle=cb=>(window.requestIdleCallback?requestIdleCallback(cb,{timeout:2500}):setTimeout(cb,200));
 function attThumbHtml(a){return `<span class="att-thumb" data-thumb="${esc(a.id)}">${_attThumbs.has(a.id)?`<img class="att-timg" alt="" src="${_attThumbs.get(a.id)}">`:uiIcon('doc',16)}</span>`;}
+// Pose la vignette d'un document dans toutes ses rangées à l'écran (si générable).
+async function _applyThumb(id){
+  const url=await genAttThumb(id);
+  if(url)document.querySelectorAll(`[data-thumb="${id}"]`).forEach(el=>{
+    const im=new Image();im.className='att-timg';im.alt='';im.src=url;el.replaceChildren(im);});}
 function hydrateAttThumbs(entity){
   if(!supportsAttachments())return;
   (entity.attachments||[]).forEach(a=>{
-    if(_attThumbs.has(a.id))return;   // déjà inliné par attThumbHtml
+    if(_attThumbs.has(a.id))return;   // déjà inliné par attThumbHtml (donc binaire présent, badge caché au rendu)
     _thumbChain=_thumbChain
       .then(()=>new Promise(r=>_idle(r)))
-      .then(()=>genAttThumb(a.id))
-      .then(url=>{if(url)document.querySelectorAll(`[data-thumb="${a.id}"]`).forEach(el=>{
-        const im=new Image();im.className='att-timg';im.alt='';im.src=url;el.replaceChildren(im);});})
+      .then(async()=>{
+        // 1. Présence du binaire (v4.4.6) : le badge « à télécharger » se décide ICI, sur la
+        // vraie lecture IndexedDB — jamais sur l'échec de la vignette (un PDF endommagé mais
+        // présent garderait l'icône générique SANS badge, ce qui est le message juste).
+        let rec=null;try{rec=await IDB.getAtt(a.id);}catch(e){}
+        const present=!!attBuf(rec);
+        document.querySelectorAll(`[data-attcloud="${a.id}"]`).forEach(el=>{el.hidden=present;});
+        // 2. Vignette, seulement si le binaire est là.
+        if(present)await _applyThumb(a.id);
+      })
       .catch(()=>{});});}   // vignette impossible (PDF endommagé, pdfjs absent…) : icône générique, jamais bloquant
+// Un binaire vient d'ARRIVER (téléchargement de fond de la synchro) : si sa rangée est à
+// l'écran, on cache le badge et on pose la vignette — l'état se met à jour sous les yeux.
+function refreshAttRow(id){
+  document.querySelectorAll(`[data-attcloud="${id}"]`).forEach(el=>{el.hidden=true;});
+  if(document.querySelector(`[data-thumb="${id}"]`))
+    _thumbChain=_thumbChain.then(()=>_applyThumb(id)).catch(()=>{});}
 async function genAttThumb(id){
   if(_attThumbs.has(id))return _attThumbs.get(id);
   let rec=null;try{rec=await IDB.getAtt(id);}catch(e){}
@@ -4236,7 +4280,11 @@ async function genAttThumb(id){
     _attThumbs.set(id,url);return url;
   }finally{try{doc.destroy();}catch(e){}}}
 // Liste de boutons « Documents » (lecture) — même composant pour fiches et protocoles.
-function attListHtml(entity){return (entity.attachments||[]).length?`<section class="block"><div class="block-h h-doc">${headerIcon('h-doc')}Documents</div><div class="att-list">${entity.attachments.map(a=>`<button class="att-row" data-att="${esc(a.id)}" title="Ouvrir le document">${attThumbHtml(a)}<span class="att-name">${esc(a.name)}</span><span class="att-size">${fmtBytes(a.size)}</span></button>`).join('')}</div></section>`:'';}
+// Badge « △ à télécharger » (v4.4.6) : document ajouté sur un autre appareil dont le binaire
+// n'est pas encore arrivé ici — on le DÉCOUVRE à froid, jamais en crise. Caché par défaut
+// (l'état n'est connu qu'après la lecture IndexedDB de hydrateAttThumbs) ; registre ATTENTION
+// (glyphe + texte, jamais la couleur seule).
+function attListHtml(entity){return (entity.attachments||[]).length?`<section class="block"><div class="block-h h-doc">${headerIcon('h-doc')}Documents</div><div class="att-list">${entity.attachments.map(a=>`<button class="att-row" data-att="${esc(a.id)}" title="Ouvrir le document">${attThumbHtml(a)}<span class="att-name">${esc(a.name)}</span><span class="att-cloud" data-attcloud="${esc(a.id)}" hidden title="Ajouté sur un autre appareil — sera téléchargé à la prochaine synchronisation avec du réseau ; pas encore consultable hors ligne ici.">△ à télécharger</span><span class="att-size">${fmtBytes(a.size)}</span></button>`).join('')}</div></section>`:'';}
 function bindAttList(entity){main.querySelectorAll('[data-att]').forEach(b=>b.onclick=()=>{const a=(entity.attachments||[]).find(x=>x.id===b.dataset.att);if(a)openPdfViewer(a,entity);});
   hydrateAttThumbs(entity);}
 function renderProtocolRead(){
@@ -4609,7 +4657,7 @@ async function deleteProtocolDraft(){
   const id=state.pdraft.id;const p=protocols.find(x=>x.id===id)||state.pdraft;
   await softDeleteProtocol(p);await clearDraftParkIf('p',id);protocols=protocols.filter(x=>x.id!==id);
   state.pdraft=null;state.view='library';render();}
-function openProtocolRead(id){const p=protocols.find(x=>x.id===id);if(!p)return;state.protocol=p;state.view='protocolRead';render();}
+function openProtocolRead(id){const p=protocols.find(x=>x.id===id);if(!p)return;bumpUsage(id);state.protocol=p;state.view='protocolRead';render();}
 async function openProtocolEdit(id){const p=protocols.find(x=>x.id===id);if(!p)return;
   // Même revérification de rôle que openEdit (protocole partagé, en ligne).
   if(p.libraryId&&Auth.signedIn()&&Sync.online()){try{await Sync.loadProfile();}catch(e){}}
@@ -5902,7 +5950,7 @@ setInterval(()=>{const k=_editKind();if(!k){_lastParked=null;return;}
 // Ouvre une fiche en lecture. Si une SESSION VIVE existe pour cette fiche, on la rouvre telle quelle
 // (minuteurs toujours en cours). Sinon on garde le runtime transitoire de cette même fiche (s'il n'a
 // pas démarré), sinon on en crée un neuf.
-function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;flowScroll={left:null,top:0};state.rtOpen=false;state.noteEdit=false;state.confOpen=undefined;state.previewFrom=null;state.flowEnded=false;
+function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;bumpUsage(id);flowScroll={left:null,top:0};state.rtOpen=false;state.noteEdit=false;state.confOpen=undefined;state.previewFrom=null;state.flowEnded=false;
   if(liveSessions[id]){Runtime=liveSessions[id];Runtime.fiche=f;}
   else if(!(Runtime.fiche&&Runtime.ficheId===id&&!Runtime.started)){Runtime=buildRuntime(f,null);}
   // Algorithme REPLIÉ à l'ouverture : la 1ʳᵉ étape actionnable doit arriver le plus haut possible
@@ -7761,8 +7809,9 @@ const Sync={
     if(missing.length&&!this._attDl){this._attDl=true;
       (async()=>{try{for(const id of missing){
           try{const r=await storageReq('GET',paths[id]);const buf=await r.arrayBuffer();
-            await IDB.putAtt({id:id,buf:buf,size:buf.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:0,remotePath:paths[id]});}
-          catch(e){}}
+            await IDB.putAtt({id:id,buf:buf,size:buf.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:0,remotePath:paths[id]});
+            refreshAttRow(id);   // rangée à l'écran : badge « à télécharger » caché + vignette posée (v4.4.6)
+          }catch(e){}}
       }finally{this._attDl=false;}})();}
     if(firstErr)throw firstErr;
   },
@@ -8153,7 +8202,7 @@ if(location.search.indexOf('__actest')>=0){
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
     restErrStatus,isPersoRepairCandidate,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,
-    qTerms,hayMatch,markQTerms,searchSnippet,ficheSnipParts,protoSnipParts};
+    qTerms,hayMatch,markQTerms,searchSnippet,ficheSnipParts,protoSnipParts,frecencyScore};
 }else{
   /* ===== PWA =====
      Enregistre le service worker (cache hors ligne) si disponible. Capte
@@ -8163,9 +8212,13 @@ if(location.search.indexOf('__actest')>=0){
     // mais jusqu'ici en silence — une version cassée pouvait remplacer la copie hors-ligne sans
     // que personne ne le sache. À son activation, le worker ENVOIE sa version (postMessage,
     // cf. sw.js) ; on la compare à APP_VERSION pour afficher le message JUSTE :
-    //  - versions égales (cas normal : la navigation réseau-d'abord vient DÉJÀ de servir le
-    //    nouvel index.html) -> « vous utilisez déjà la nouvelle version » ;
-    //  - versions différentes (page encore servie par l'ancien cache) -> « rechargez la page ».
+    //  - versions différentes (cas NORMAL depuis le cache-d'abord, v4.4.6 : la page en main
+    //    vient du cache, donc de l'ANCIENNE version) -> bandeau persistant « Nouvelle version
+    //    disponible — Recharger » : invite NON bloquante (bouton #sbReload, ✕ pour ignorer),
+    //    masquée en session de crise (body.crisis-live) — on applique quand ON le décide,
+    //    sinon la nouvelle version arrive de toute façon à l'ouverture suivante ;
+    //  - versions égales (la page servie est déjà la nouvelle — ex. après le Recharger)
+    //    -> simple snackbar « vous utilisez déjà la nouvelle version ».
     // JAMAIS de rechargement forcé : en pleine crise, on ne recharge pas l'écran sous les doigts
     // de l'utilisateur. Silencieux à la toute 1ʳᵉ installation (hadController faux).
     const hadController=!!navigator.serviceWorker.controller;

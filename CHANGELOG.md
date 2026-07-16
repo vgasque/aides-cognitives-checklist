@@ -1,5 +1,36 @@
 # Journal des modifications
 
+## [4.4.6] — 2026-07-16
+Ouverture instantanée (cache d'abord), visibilité des documents pas encore téléchargés, et
+résultats de recherche classés par usage réel (frecency).
+
+### Modifié
+- **Ouverture instantanée — « cache d'abord »** : dès qu'une copie locale existe, l'app
+  s'affiche **immédiatement**, quel que soit l'état du réseau (la v4.4.4 avait réduit
+  l'attente réseau-d'abord de 3,5 s à 1,5 s ; cette version la supprime). Le réseau est
+  toujours consulté **en arrière-plan** : la copie hors-ligne est rafraîchie pour l'ouverture
+  suivante, et quand une nouvelle version s'installe, le bandeau persistant « Nouvelle version
+  disponible — **Recharger** » propose de l'appliquer tout de suite — invite **non bloquante**
+  (✕ pour ignorer, jamais de rechargement forcé, masquée pendant une session de crise) ; sans
+  action, la nouvelle version arrive de toute façon à l'ouverture suivante.
+
+### Ajouté
+- **Badge « △ à télécharger » sur les documents PDF** : un document ajouté sur un autre
+  appareil, dont le fichier n'est pas encore arrivé ici, l'annonce désormais **à froid** dans
+  la liste « Documents » (fiches et protocoles) — on ne découvre plus en pleine crise qu'un
+  PDF n'est pas consultable hors ligne. L'état est décidé sur la vraie lecture du stockage
+  local (un PDF endommagé mais présent garde l'icône générique **sans** badge — message
+  juste), et le badge disparaît **sous les yeux** (vignette posée dans la foulée) dès que le
+  téléchargement de fond de la synchronisation fait arriver le fichier — téléchargement déjà
+  retenté à chaque synchronisation avec du réseau.
+- **Frecency dans la recherche** : les résultats sont classés par usage réel — les fiches et
+  protocoles qu'on **ouvre le plus, récemment**, remontent en premier (compte d'ouvertures
+  amorti par l'ancienneté : pleine valeur ≤ 15 j, demi-valeur ≤ 60 j, quart au-delà). Préférence
+  **locale à l'appareil** (même famille que les épingles), plafonnée aux 200 usages les plus
+  récents. Les épingles restent toujours premières ; la **liste par défaut reste alphabétique**
+  (décision v4.3.2) ; le classement ne dépend pas de la requête, donc **les cartes ne se
+  réordonnent pas pendant la frappe** (calme sous stress). 7 tests ajoutés (367).
+
 ## [4.4.5] — 2026-07-16
 Navigation entre blocs instantanée : la mise à jour ciblée du cochage (v4.2) est étendue au
 geste de navigation lui-même.
