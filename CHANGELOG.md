@@ -1,5 +1,39 @@
 # Journal des modifications
 
+## [4.5.0] — 2026-07-16
+Les documents PDF voyagent enfin avec les exports : nouveau format `.zip` « avec documents »,
+au choix à l'export, accepté à l'import — et visionneuse plus robuste face aux PDF endommagés.
+
+### Ajouté
+- **Export « avec documents » (.zip)** : quand le contenu exporté référence des PDF joints,
+  l'app demande — **« Avec les documents (.zip) »** ou **« Sans les documents (.json) »**
+  (✕/Échap = export abandonné). Le `.zip` contient `donnees.json` (strictement le JSON
+  historique, format `version: 3` inchangé — un client antérieur peut l'extraire à la main et
+  l'importer) et `documents/<id>.pdf` (les binaires, dédoublonnés : un document partagé entre
+  plusieurs fiches n'est embarqué qu'une fois). Proposé partout où l'on exporte : fiche seule,
+  protocole seul, brouillons des éditeurs et « Exporter mes données » (fenêtre Compte). Un
+  document pas encore téléchargé sur l'appareil est exporté en référence seule, avec un
+  avertissement chiffré.
+- **Import du `.zip`** aux deux points d'entrée existants (sélecteur de fichier du dialogue
+  Créer et glisser-déposer), détecté à la **signature** du fichier, jamais à l'extension.
+  Règles de restauration : un import **n'écrase jamais** un document déjà présent (même
+  identifiant → le document local fait foi — importer ne peut pas modifier les PDF des autres
+  fiches) ; un binaire du zip n'est posé que s'il manque, signé `%PDF-` et sous le plafond de
+  15 Mo ; il repart ensuite vers le cloud à la synchronisation suivante. Venu d'un autre
+  espace, un export `.zip` transporte désormais ses documents (avant : références vidées).
+- **ZIP maison, zéro dépendance** : écriture sans compression (les PDF le sont déjà), lecture
+  STORE + DEFLATE via l'API native du navigateur (un export dézippé puis re-zippé par
+  macOS/Windows reste importable), CRC de chaque entrée vérifié (une archive endommagée est
+  rejetée d'un bloc — jamais d'import à moitié), bornes anti-« zip bomb ». 12 tests ajoutés
+  (389), vérifié de bout en bout (import, non-écrasement, export des deux formats).
+
+### Corrigé
+- **Visionneuse : PDF endommagé après un en-tête valide** — la lecture de la première page est
+  désormais sous le même garde-fou que l'ouverture du document : le message « fichier
+  endommagé » s'affiche au lieu d'un « Ouverture du document… » sans fin.
+- La taille affichée d'un document importé reflète le fichier réellement présent sur
+  l'appareil, pas celle déclarée par le fichier d'import.
+
 ## [4.4.7] — 2026-07-16
 Frecency synchronisée entre appareils, arrivée sur les éditeurs bien en haut de page, et
 recherche débarrassée des cartes « Session en cours ».

@@ -52,7 +52,7 @@ function _lum(hex){hex=hex.replace('#','');return 0.2126*_lin(parseInt(hex.subst
 function ratio(a,b){const l1=_lum(a),l2=_lum(b);return (Math.max(l1,l2)+0.05)/(Math.min(l1,l2)+0.05);}
 function tint15(hex){hex=hex.replace('#','');const f=i=>Math.round(255*0.85+parseInt(hex.substr(i,2),16)*0.15).toString(16).padStart(2,'0');return '#'+f(0)+f(2)+f(4);}
 
-function run(A){
+async function run(A){   // async : zipParse (lecture des exports .zip) renvoie une promesse
   group('esc() — échappement HTML');
   eq('échappe < > & "', A.esc('<b>&"x"'), '&lt;b&gt;&amp;&quot;x&quot;');
   eq('null → chaîne vide', A.esc(null), '');
@@ -569,6 +569,28 @@ function run(A){
   eq('non-tableau → tableau vide', A.migrate({title:'x',attachments:'zzz'}).attachments, []);
   eq('entrées invalides filtrées', A.migrate({title:'x',attachments:[{id:'__proto__'},null,'s',{id:'ok-1',name:'d.pdf',size:9}]}).attachments, [{id:'ok-1',name:'d.pdf',size:9}]);
   ok('plafonné à MAX_ATT_PER_ENTITY', A.migrate({title:'x',attachments:Array.from({length:99},(_,i)=>({id:'a'+i,name:'d',size:1}))}).attachments.length<=A.MAX_ATT_PER_ENTITY);
+
+  group('ZIP — export/import « avec documents » (v4.5.0)');
+  const zEnc=new TextEncoder();
+  eq('crc32 : vecteur de référence ("123456789")', A.crc32(zEnc.encode('123456789')), 0xCBF43926);
+  eq('crc32 : vide → 0', A.crc32(new Uint8Array(0)), 0);
+  ok('isPdfBytes : signature %PDF- acceptée', A.isPdfBytes(zEnc.encode('%PDF-1.7 xyz')));
+  ok('isPdfBytes : fichier renommé .pdf refusé', !A.isPdfBytes(zEnc.encode('<html>fake pdf</html>')));
+  ok('isPdfBytes : trop court ou absent refusé', !A.isPdfBytes(zEnc.encode('%PDF'))&&!A.isPdfBytes(null));
+  const zPdf=zEnc.encode('%PDF-1.4 contenu binaire du document  ÿ fin');
+  const zJson='{"version":3,"fiches":[]}';
+  const zip=A.zipBuild([{name:'donnees.json',data:zEnc.encode(zJson)},{name:'documents/a-1_B.pdf',data:zPdf}]);
+  ok('zipBuild : signature d’archive (PK)', zip[0]===0x50&&zip[1]===0x4B&&zip[2]===3&&zip[3]===4);
+  const zBack=await A.zipParse(zip);
+  eq('aller-retour : noms conservés', zBack.map(e=>e.name), ['donnees.json','documents/a-1_B.pdf']);
+  ok('aller-retour : octets du PDF identiques', zBack[1].data.length===zPdf.length&&zBack[1].data.every((b,i)=>b===zPdf[i]));
+  eq('aller-retour : donnees.json relisible', JSON.parse(new TextDecoder().decode(zBack[0].data)).version, 3);
+  eq('nom UTF-8 conservé (drapeau posé)', (await A.zipParse(A.zipBuild([{name:'documents/péri-arrêt.pdf',data:zPdf}])))[0].name, 'documents/péri-arrêt.pdf');
+  const zBad=zip.slice();zBad[50]^=0xFF;   // un octet du contenu altéré (données de donnees.json)
+  let zRej=false;try{await A.zipParse(zBad);}catch(e){zRej=true;}
+  ok('archive endommagée rejetée en bloc (CRC vérifié)', zRej);
+  let zRej2=false;try{await A.zipParse(zEnc.encode('pas une archive zip du tout — juste du texte'));}catch(e){zRej2=true;}
+  ok('fichier non-zip rejeté', zRej2);
 }
 
 // Ouvert en double-cliquant le fichier (file://) : le navigateur isole les iframes (origine
@@ -581,13 +603,13 @@ const FILE_HELP='Cette page doit être servie en http(s), pas ouverte comme fich
 if(location.protocol==='file:'){
   const s=document.getElementById('summary');s.className='ko';s.textContent=FILE_HELP;
 }
-document.getElementById('app').addEventListener('load',()=>{
+document.getElementById('app').addEventListener('load',async()=>{
   const s=document.getElementById('summary');
   if(location.protocol==='file:')return; // message déjà affiché ci-dessus
   try{
     const A=document.getElementById('app').contentWindow.__ac_test__;
     if(!A){s.className='ko';s.textContent='Échec : __ac_test__ introuvable (index.html non chargé en mode test ?).';return;}
-    run(A);
+    await run(A);
     s.className=fail?'ko':'ok';
     s.textContent=(fail?'✗ ':'✓ ')+pass+' réussis, '+fail+' échoués.';
   }catch(e){s.className='ko';s.textContent=(String(e.message).indexOf('cross-origin')>=0?FILE_HELP:'Erreur d’exécution des tests : '+e.message);}

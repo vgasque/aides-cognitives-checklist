@@ -118,7 +118,8 @@
     images:   [{ id, data(base64 WebP/JPEG réduit), caption }],
     attachments: [{ id, name, size }]  (MÉTADONNÉES d'un document PDF joint ; le PDF lui-même
               est un ARRAYBUFFER dans le store IndexedDB 'attachments' — jamais en base64 dans la
-              fiche, jamais dans l'export JSON. Un même id peut être référencé par PLUSIEURS
+              fiche, jamais dans l'export JSON ; l'export .zip (v4.5.0) peut l'embarquer en
+              fichier séparé documents/<id>.pdf. Un même id peut être référencé par PLUSIEURS
               fiches (document partagé) ; le blob n'est supprimé que quand plus aucune entité ne
               le référence — gcAttachments au démarrage),
     timers:   [{ id, label, type:'stopwatch'|'interval', seconds, autoloop }],
@@ -232,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-UjK+MuS6s1uOckkjZE5z/jfxABSBG/t53m1bB+8J1lc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-Betd89UYIA9yT8CJ/Kb9ay5OrwzFKoFaPClNagxELZE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -2036,7 +2037,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     </div>
     <div class="tools-status"><span class="lbl" id="count"></span><div class="sync-chip" id="syncChip" hidden></div></div>
     <div class="storage-gauge" id="storageInfo"></div>
-    <input type="file" id="importFile" accept="application/json" hidden></footer>
+    <input type="file" id="importFile" accept="application/json,.json,application/zip,.zip" hidden></footer>
 </div>
 <!-- Tab bar de section (accueil < 780px, V5) : élément STATIQUE, pastille glissante ; en large
      la colonne gauche de l'accueil porte les sections. Fixée en bas, au pouce (canvas turn 6). -->
@@ -2177,7 +2178,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.4.7';
+const APP_VERSION='4.5.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -2783,6 +2784,9 @@ const MAX_PDF_BYTES=15*1024*1024;   // 15 Mo par document (aligné sur la limite
 const MAX_ATT_PER_ENTITY=10;        // documents par fiche (ou protocole)
 // Nom de fichier affichable — PUR (testé) : borné, sans séparateur de chemin ni caractère de contrôle.
 const safeFileName=s=>sstr(s,150).replace(/[\/\\\u0000-\u001f\u007f]/g,'').trim();
+// Signature réelle d'un PDF (« %PDF- ») — PURE (testée). Partagée par l'ajout dans l'éditeur et
+// la restauration des documents d'un import .zip : un fichier renommé .pdf ne passe jamais.
+const isPdfBytes=u8=>!!u8&&u8.length>=5&&u8[0]===0x25&&u8[1]===0x50&&u8[2]===0x44&&u8[3]===0x46&&u8[4]===0x2d;
 // Métadonnée de pièce jointe — PURE (testée). L'id n'est JAMAIS régénéré (contrairement à safeId) :
 // un id inventé ne pointerait sur aucun blob -> entrée invalide REJETÉE (null, filtrée par migrate).
 function safeAttachment(a){if(!a||typeof a!=='object')return null;
@@ -3600,7 +3604,7 @@ function printReportDoc(){
     setTimeout(()=>{fr._ready=true;doPrint(fr);},150);};
   document.body.appendChild(fr);fr.srcdoc=_reportDoc;
 }
-function downloadReportDoc(){const blob=new Blob([_reportDoc],{type:'text/html'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=_reportName+'.html';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);}
+function downloadReportDoc(){dlBlob(new Blob([_reportDoc],{type:'text/html'}),_reportName+'.html');}
 bindModalDismiss(reportModal,()=>{reportModal.classList.remove('on');const fr=document.getElementById('reportFrame');if(fr)fr.remove();});
 document.getElementById('reportPrint').onclick=printReportDoc;
 document.getElementById('reportDownload').onclick=downloadReportDoc;
@@ -5661,9 +5665,9 @@ function bindAttEditor(entity,rerender){
   if(pdfInput)pdfInput.onchange=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;
     if(file.size>MAX_PDF_BYTES){toast('⚠ Document trop volumineux ('+fmtBytes(file.size)+') : '+fmtBytes(MAX_PDF_BYTES)+' maximum.');return;}
     // Lecture COMPLÈTE en ArrayBuffer dès l'ajout (stockage fiable partout, cf. IDB.putAtt) +
-    // CONTENU vérifié (signature %PDF-) en plus du type déclaré : un fichier renommé .pdf ne passe pas.
+    // CONTENU vérifié (signature %PDF-, cf. isPdfBytes) en plus du type déclaré.
     let buf=null;try{buf=await file.arrayBuffer();}catch(err){}
-    if(!buf||String.fromCharCode.apply(null,new Uint8Array(buf.slice(0,5)))!=='%PDF-'){toast('⚠ Ce fichier n\'est pas un PDF valide.');return;}
+    if(!buf||!isPdfBytes(new Uint8Array(buf))){toast('⚠ Ce fichier n\'est pas un PDF valide.');return;}
     const id=uid('a');
     try{await IDB.putAtt({id,buf,size:buf.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:1,remotePath:null});}
     catch(err){toast('⚠ Stockage saturé : document non enregistré.',9000);return;}
@@ -6127,12 +6131,15 @@ async function openPdfViewer(att,entity){
     sc.innerHTML='<div class="pdf-msg">'+uiIcon('warn',15)+' '+(location.protocol==='file:'
       ?'La visionneuse ne peut pas se charger quand l\'app est ouverte en fichier local (file://) : le navigateur bloque ses modules par sécurité. Servez le dossier en http — ex. « python3 -m http.server 8123 » puis http://localhost:8123/ — ou utilisez votre hébergement.'
       :'Visionneuse indisponible sur cet appareil : composant non encore téléchargé. Reconnectez-vous à Internet, rechargez la page, puis réessayez.')+'</div>';return;}
-  let doc;
-  try{doc=await lib.getDocument({data:await attBuf(rec)}).promise;}
+  let doc,p1,vp1;
+  // getPage(1) est DANS le même garde-fou que getDocument : un PDF à l'en-tête valide mais à la
+  // première page cassée doit afficher le même message « endommagé », pas rester sur « Ouverture… ».
+  try{doc=await lib.getDocument({data:await attBuf(rec)}).promise;
+    p1=await doc.getPage(1);vp1=p1.getViewport({scale:1});}
   catch(e){console.error('PDF illisible:',e);
+    if(doc){try{doc.destroy();}catch(e2){}}
     sc.innerHTML='<div class="pdf-msg">'+uiIcon('warn',15)+' Impossible d\'ouvrir ce document : le fichier semble endommagé ou dans un format non pris en charge. Retirez-le puis ajoutez-le à nouveau depuis le fichier d\'origine.</div>';return;}
   if(!pdfModal.classList.contains('on')){try{doc.destroy();}catch(e){}return;}   // fermée pendant le chargement
-  const p1=await doc.getPage(1);const vp1=p1.getViewport({scale:1});
   _pv={doc,pages:[],observer:null,z:1,cssW:0,baseW:vp1.width,baseH:vp1.height};
   _pv.z=pdfFitPageZ();   // zoom d'ouverture = page entière (<= 100 %), cf. commentaire d'intro
   sc.innerHTML='';
@@ -6503,8 +6510,8 @@ function renderCreateDlg(screen,park){
   if(screen==='import'){
     body.innerHTML=`
       <button class="crt-back" id="crtBack">‹ Autres méthodes</button>
-      <button class="crt-drop pad-lg" id="crtDrop" style="margin-top:10px">⤓ Glissez le fichier .json ici — ou cliquez pour choisir</button>
-      <p class="crt-note">Un export de l'app ou une génération IA (.json). Tout le contenu importé arrive en <strong>○ Brouillon</strong> — jamais « Validée » d'office.</p>`;
+      <button class="crt-drop pad-lg" id="crtDrop" style="margin-top:10px">⤓ Glissez le fichier .json ou .zip ici — ou cliquez pour choisir</button>
+      <p class="crt-note">Un export de l'app (.json, ou .zip avec les documents PDF) ou une génération IA (.json). Tout le contenu importé arrive en <strong>○ Brouillon</strong> — jamais « Validée » d'office.</p>`;
     document.getElementById('crtBack').onclick=async()=>renderCreateDlg('methods',await getDraftPark());
     bindCreateDrop(document.getElementById('crtDrop'),false);
     return;
@@ -6516,7 +6523,7 @@ function renderCreateDlg(screen,park){
     ${resume?crtCard('crtResume',uiIcon('undo',26),'Reprendre le brouillon en cours',esc(resume.draft.title||'Sans titre')+' — auto-enregistré à '+fmtHMS(resume.ts)):''}
     ${crtCard('crtManual',uiIcon('pen',26),'Manuellement',proto?'Texte structuré, documents joints':'Éditeur complet — blocs, décisions, minuteurs')}
     ${proto?'':crtCard('crtIA',uiIcon('sparkles',26),'Avec l\'IA','Copiez le prompt, générez le JSON avec votre IA, importez-le')}
-    ${crtCard('crtImport',uiIcon('download',26),'Importer un fichier .json','Depuis un export d\'équipe ou une génération IA')}
+    ${crtCard('crtImport',uiIcon('download',26),'Importer un fichier (.json ou .zip)','Depuis un export d\'équipe ou une génération IA')}
     </div>
     <p class="crt-note">Tout import arrive en état <strong>○ Brouillon</strong> — jamais « Validée » d'office.</p>`;
   {const rs=document.getElementById('crtResume');if(rs)rs.onclick=()=>{closeCreateDlg();
@@ -6595,6 +6602,12 @@ bindModalDismiss(catModal,closeCatMgr);
        fiches: [ <voir modèle ci-dessus> ]
      }
 
+   CONTENEUR .zip « avec documents » (v4.5.0) : quand le contenu exporté référence des PDF,
+   l'utilisateur peut choisir un .zip = donnees.json (STRICTEMENT le JSON ci-dessus, inchangé)
+   + documents/<attId>.pdf (les binaires). L'import accepte les deux formats — détection par
+   SIGNATURE (PK), jamais par extension ; le numéro `version` du JSON ne bouge pas : le zip
+   n'est qu'un emballage, un client antérieur peut l'ouvrir à la main et importer son JSON.
+
    Règles pour conserver la compatibilité au fil des mises à jour :
    1. Ne JAMAIS supprimer un champ existant du modèle fiche ou catégorie.
       Si un champ est abandonné, le laisser accepté en import (il sera ignoré).
@@ -6609,22 +6622,91 @@ bindModalDismiss(catModal,closeCatMgr);
    5. Ne pas oublier de mettre à jour le commentaire MODÈLE DE DONNÉES en tête
       de fichier quand le schéma évolue, pour que les prochains lecteurs/IAs
       aient une vue exacte de la structure attendue. */
+/* ----- ZIP maison (v4.5.0) : conteneur d'export « avec documents » -----
+   Écriture au format ZIP standard en méthode STORE uniquement (les PDF sont déjà compressés :
+   déflater ferait perdre du temps pour rien) ; lecture STORE + DEFLATE via DecompressionStream
+   NATIF (un export dézippé puis re-zippé par macOS/Windows reste importable). Zéro dépendance,
+   fonctions PURES (testées dans tests.html). Le CRC de chaque entrée est vérifié en lecture :
+   une archive endommagée est rejetée d'un bloc (« Fichier illisible »), jamais importée à moitié. */
+const _crcT=(()=>{const t=new Uint32Array(256);for(let i=0;i<256;i++){let c=i;for(let k=0;k<8;k++)c=(c&1)?(0xEDB88320^(c>>>1)):(c>>>1);t[i]=c;}return t;})();
+function crc32(u8){let c=0xFFFFFFFF;for(let i=0;i<u8.length;i++)c=_crcT[(c^u8[i])&0xFF]^(c>>>8);return (c^0xFFFFFFFF)>>>0;}
+// entries = [{name, data:Uint8Array}] -> Uint8Array de l'archive. Noms en UTF-8 (drapeau posé),
+// horodatage DOS fixe (1980-01-01 : un export au contenu identique produit des octets identiques).
+function zipBuild(entries){
+  const enc=new TextEncoder(),u16=v=>[v&255,(v>>>8)&255],u32=v=>[v&255,(v>>>8)&255,(v>>>16)&255,(v>>>24)&255];
+  const parts=[],cd=[];let off=0;
+  for(const e of entries){const name=enc.encode(e.name),data=e.data,crc=crc32(data);
+    const h=new Uint8Array([0x50,0x4B,3,4,...u16(20),...u16(0x0800),...u16(0),...u16(0),...u16(0x21),...u32(crc),...u32(data.length),...u32(data.length),...u16(name.length),...u16(0)]);
+    parts.push(h,name,data);cd.push({name,crc,size:data.length,off});off+=h.length+name.length+data.length;}
+  const cdp=[];let cdLen=0;
+  for(const c of cd){const h=new Uint8Array([0x50,0x4B,1,2,...u16(20),...u16(20),...u16(0x0800),...u16(0),...u16(0),...u16(0x21),...u32(c.crc),...u32(c.size),...u32(c.size),...u16(c.name.length),...u16(0),...u16(0),...u16(0),...u16(0),...u32(0),...u32(c.off)]);
+    cdp.push(h,c.name);cdLen+=h.length+c.name.length;}
+  const eocd=new Uint8Array([0x50,0x4B,5,6,...u16(0),...u16(0),...u16(cd.length),...u16(cd.length),...u32(cdLen),...u32(off),...u16(0)]);
+  const out=new Uint8Array(off+cdLen+eocd.length);let p=0;
+  for(const b of parts.concat(cdp,[eocd])){out.set(b,p);p+=b.length;}
+  return out;}
+// Uint8Array -> Promise<[{name, data:Uint8Array}]>. Lit depuis le répertoire central (fin de
+// fichier) ; bornes anti-« zip bomb » : 1000 entrées max, 64 Mo déclarés max par entrée.
+const ZIP_MAX_ENTRY=64*1024*1024;
+async function zipParse(u8){
+  if(!u8||u8.length<22)throw new Error('zip: archive vide');
+  const rd16=o=>u8[o]|(u8[o+1]<<8),rd32=o=>((u8[o]|(u8[o+1]<<8)|(u8[o+2]<<16))+u8[o+3]*0x1000000);
+  let e=-1;for(let i=u8.length-22,min=Math.max(0,u8.length-22-65535);i>=min;i--){if(u8[i]===0x50&&u8[i+1]===0x4B&&u8[i+2]===5&&u8[i+3]===6){e=i;break;}}
+  if(e<0)throw new Error('zip: répertoire introuvable');
+  const n=Math.min(rd16(e+10),1000);let o=rd32(e+16);const dec=new TextDecoder();const out=[];
+  for(let i=0;i<n;i++){
+    if(!(u8[o]===0x50&&u8[o+1]===0x4B&&u8[o+2]===1&&u8[o+3]===2))throw new Error('zip: entrée corrompue');
+    const method=rd16(o+10),crc=rd32(o+16),csize=rd32(o+20),usize=rd32(o+24),nl=rd16(o+28),xl=rd16(o+30),cl=rd16(o+32),lo=rd32(o+42);
+    if(csize>ZIP_MAX_ENTRY||usize>ZIP_MAX_ENTRY)throw new Error('zip: entrée trop volumineuse');
+    const name=dec.decode(u8.subarray(o+46,o+46+nl));
+    if(!(u8[lo]===0x50&&u8[lo+1]===0x4B&&u8[lo+2]===3&&u8[lo+3]===4))throw new Error('zip: entrée corrompue');
+    // Longueurs nom/extra relues dans l'EN-TÊTE LOCAL (elles peuvent différer du central).
+    const ds=lo+30+rd16(lo+26)+rd16(lo+28);
+    let data=u8.subarray(ds,ds+csize);
+    if(method===8){const st=new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'));data=new Uint8Array(await new Response(st).arrayBuffer());}
+    else if(method!==0)throw new Error('zip: méthode non prise en charge');
+    if(data.length!==usize||crc32(data)!==crc)throw new Error('zip: contenu endommagé');
+    out.push({name,data});o+=46+nl+xl+cl;}
+  return out;}
+// Téléchargement d'un fichier généré — UNIQUE (exports JSON/ZIP, compte-rendu de session).
+function dlBlob(blob,filename){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);}
 // Export réutilisable : `cats` par défaut = catégories réellement utilisées par `list`
 // (pour un export d'une seule fiche) ; l'export global passe toutes les catégories.
 // `protos` (facultatif, champ `protocols` du JSON — rétrocompatible : ignoré des anciennes
 // versions) : les protocoles à inclure (export global, ou export d'un protocole seul).
-function exportData(list,baseName,cats,protos){
+// DOCUMENTS PDF (v4.5.0) : si le contenu exporté en référence, l'utilisateur CHOISIT — .zip qui
+// embarque les binaires (donnees.json + documents/<id>.pdf), ou .json seul comme avant. Le JSON
+// du zip est STRICTEMENT le même fichier (version 3) : un client antérieur peut l'extraire à la
+// main et l'importer — aucune rupture de format.
+async function exportData(list,baseName,cats,protos){
   const strip=f=>{const c={...f};if(c.blocks)delete c.blocks._start;
     // On retire les champs de sync PUREMENT LOCAUX -> un contenu importé ailleurs devient celui de
     // l'importateur (pas d'owner/biblio d'autrui) ; `updatedAt` est conservé (last-write-wins).
     delete c.dirty;delete c.ownerId;delete c.libraryId;return c;};
   const out={version:3,origin:spaceTag(currentSpace()),categories:(cats||categories.filter(c=>list.some(f=>f.category===c.id))).map(c=>({id:c.id,name:c.name,color:c.color})),fiches:list.map(strip)};
   if(Array.isArray(protos)&&protos.length)out.protocols=protos.map(strip);
-  const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=baseName+'-'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);
-  // Les DOCUMENTS PDF ne voyagent PAS dans le JSON (le fichier resterait sinon illisible et
-  // énorme) : seules leurs métadonnées y figurent. On le dit à l'export — les PDF suivent le
-  // compte via la synchronisation cloud.
-  if(list.concat(protos||[]).some(f=>(f.attachments||[]).length))toast('Les documents PDF joints ne sont pas inclus dans le fichier exporté ; ils suivent votre compte via la synchronisation.',9000);}
+  // Documents référencés (dédoublonnés : un document partagé entre fiches n'est embarqué qu'une fois).
+  const attIds=[];{const seen=new Set();
+    list.concat(protos||[]).forEach(f=>(f.attachments||[]).forEach(a=>{if(a&&a.id&&!seen.has(a.id)){seen.add(a.id);attIds.push(a.id);}}));}
+  let withDocs=false;
+  if(attIds.length&&supportsAttachments()){
+    const c=await confirmDlg((attIds.length>1?'Ce contenu référence '+attIds.length+' documents PDF joints.':'Ce contenu référence un document PDF joint.')+' Les inclure dans le fichier exporté ?',
+      {title:'Exporter',yes:'Avec les documents (.zip)',no:'Sans les documents (.json)'});
+    if(c===null)return;   // ✕/Échap = export abandonné
+    withDocs=(c===true);}
+  const json=JSON.stringify(out,null,2),stamp=new Date().toISOString().slice(0,10);
+  if(!withDocs){
+    dlBlob(new Blob([json],{type:'application/json'}),baseName+'-'+stamp+'.json');
+    // Seules les métadonnées voyagent : on le dit (les PDF suivent le compte via la synchro).
+    if(attIds.length)toast('Les documents PDF joints ne sont pas inclus dans le fichier exporté ; ils suivent votre compte via la synchronisation.',9000);
+    return;}
+  const entries=[{name:'donnees.json',data:new TextEncoder().encode(json)}];
+  let missing=0;
+  for(const id of attIds){
+    let buf=null;try{buf=await attBuf(await IDB.getAtt(id));}catch(err){}
+    if(buf)entries.push({name:'documents/'+id+'.pdf',data:new Uint8Array(buf)});else missing++;}
+  dlBlob(new Blob([zipBuild(entries)],{type:'application/zip'}),baseName+'-'+stamp+'.zip');
+  if(missing)toast('⚠ '+missing+' document(s) pas encore téléchargé(s) sur cet appareil : référence(s) exportée(s) sans le fichier. Synchronisez avec du réseau puis ré-exportez pour les inclure.',9000);}
 // Nom de fichier s\u00fbr pour un export : m\u00eames r\u00e8gles que catSlug (accents retir\u00e9s, jeu [a-z0-9-]).
 const fileSlug=s=>catSlug(s).slice(0,40)||'fiche';
 // « Exporter mes données » vit dans la fenêtre Compte (V5) — cf. accountPrefsHtml/bindAccountPrefs.
@@ -6634,6 +6716,26 @@ function exportAll(){exportData(fiches,'aides-cognitives',categories,protocols);
 // prompt, et un éventuel BOM : on retire l'enrobage avant JSON.parse au lieu d'échouer
 // « Fichier illisible ». Fonction pure (testée dans tests.html via ?__actest).
 function stripJsonFences(s){s=String(s==null?'':s).replace(/^\uFEFF/,'').trim();const m=s.match(/^```[a-zA-Z0-9-]*\s*([\s\S]*?)\s*```$/);return m?m[1]:s;}
+// Références PDF d'une entité importée — RÈGLE : un import n'ÉCRASE JAMAIS un binaire existant
+// (même id -> le document déjà présent fait foi ; c'est la garantie « importer ne peut pas
+// modifier les PDF des autres fiches »). Un binaire du .zip n'est posé que s'il MANQUE, signé
+// %PDF- et sous le plafond. Référence gardée si le binaire est là — ou si le fichier vient du
+// même espace (le document peut suivre par la synchronisation) ; sinon retirée, comme avant :
+// jamais de bouton « Document indisponible ».
+async function importAtts(d,zipAtts,sameSpace){
+  if(!(d.attachments||[]).length)return;
+  if(!supportsAttachments()){d.attachments=[];return;}
+  const kept=[];
+  for(const a of d.attachments){
+    let have=null;try{have=await attBuf(await IDB.getAtt(a.id));}catch(err){}
+    if(have)a.size=have.byteLength;   // taille affichée = document RÉEL, pas celle déclarée par le fichier
+    const z=!have&&zipAtts?zipAtts.get(a.id):null;
+    if(z&&z.length<=MAX_PDF_BYTES&&isPdfBytes(z)){
+      const buf=z.buffer.slice(z.byteOffset,z.byteOffset+z.byteLength);
+      try{await IDB.putAtt({id:a.id,buf:buf,size:buf.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:1,remotePath:null});
+        a.size=buf.byteLength;have=buf;}catch(err){}}
+    if(have||sameSpace)kept.push(a);}
+  d.attachments=kept;}
 function readImportFile(file){const r=new FileReader();
   r.onload=async()=>{
     // État Brouillon forcé ? (import venu du dialogue « Créer » — SPEC §2.1). Drapeau consommé
@@ -6641,8 +6743,19 @@ function readImportFile(file){const r=new FileReader();
     const forceDraft=importForceDraft;importForceDraft=false;
     // PARSE séparé du reste : « Fichier illisible » ne doit être dit QUE si le fichier est
     // illisible — pas quand une étape ultérieure (stockage saturé en milieu d'import…) échoue.
-    let imp;
-    try{const data=JSON.parse(stripJsonFences(r.result));imp=Array.isArray(data)?{fiches:data,categories:[]}:data;if(!Array.isArray(imp.fiches))throw 0;}
+    // Deux formats acceptés (v4.5.0) : .json (historique) et .zip « avec documents » — détecté
+    // à la SIGNATURE (PK\x03\x04), jamais à l'extension : donnees.json + documents/<id>.pdf.
+    let imp,zipAtts=null;
+    try{const u8=new Uint8Array(r.result);let text;
+      if(u8[0]===0x50&&u8[1]===0x4B&&u8[2]===3&&u8[3]===4){
+        const entries=await zipParse(u8);
+        const j=entries.find(x=>/(^|\/)donnees\.json$/.test(x.name))||entries.find(x=>/\.json$/i.test(x.name));
+        if(!j)throw 0;
+        text=new TextDecoder().decode(j.data);
+        zipAtts=new Map();
+        entries.forEach(x=>{const m=/^documents\/([A-Za-z0-9_-]{1,64})\.pdf$/.exec(x.name);if(m)zipAtts.set(m[1],x.data);});
+      }else text=new TextDecoder().decode(u8);
+      const data=JSON.parse(stripJsonFences(text));imp=Array.isArray(data)?{fiches:data,categories:[]}:data;if(!Array.isArray(imp.fiches))throw 0;}
     catch(err){pendingOpenImport=false;toast('⚠ Fichier illisible.');return;}
     try{
     // DESTINATION : Perso par défaut. Si une bibliothèque PARTAGÉE ÉDITABLE est sélectionnée à
@@ -6692,9 +6805,9 @@ function readImportFile(file){const r=new FileReader();
     for(let d of imp.fiches){d=migrate(d);
       if(forceDraft)d.status='draft';   // dialogue « Créer » : jamais « Validée » d'office
       d.libraryId=targetLib;   // migrate() vide libraryId (sécurité) -> on pose la destination choisie
-      // Fichier d'un AUTRE espace : les blobs PDF référencés n'existent pas ici (et les ids sont
-      // de toute façon régénérés) -> références vidées, pas de boutons « Document indisponible ».
-      if(!sameSpace)d.attachments=[];
+      // Documents PDF : binaires du .zip restaurés s'ils manquent, références sans binaire
+      // conservées seulement en même espace (cf. importAtts — jamais d'écrasement d'un existant).
+      await importAtts(d,zipAtts,sameSpace);
       // Référence de catégorie orpheline (id absent du fichier importé ET du jeu de catégories de
       // la bibliothèque de destination) : on la vide plutôt que de laisser migrateCategories() la
       // transformer en catégorie fantôme (elle traiterait l'id brut comme un nom lisible).
@@ -6703,13 +6816,13 @@ function readImportFile(file){const r=new FileReader();
       else{if(!d.id||existing.has(d.id)||!sameSpace)d.id=uid();existing.add(d.id);if(await persist(d)){fiches.push(d);added.push(d.id);}}}
     // PROTOCOLES du fichier (champ facultatif `protocols`, absent des anciens exports) : mêmes
     // règles que les fiches (assainissement migrateProtocol, ids conservés si même espace,
-    // références PDF vidées sinon — les blobs n'existent pas ici).
+    // documents PDF restaurés/filtrés par importAtts).
     let addedP=0;
     if(hasProtos){const existingP=new Set(protocols.map(x=>x.id));
       for(let d of imp.protocols){d=migrateProtocol(d);
         if(forceDraft)d.status='draft';
         d.libraryId=targetLib;
-        if(!sameSpace)d.attachments=[];
+        await importAtts(d,zipAtts,sameSpace);
         if(d.category&&!categories.some(c=>c.id===d.category&&(c.libraryId||null)===targetLib))d.category='';
         if(d.id&&existingP.has(d.id)&&replace){if(await persistProtocol(d)){const i=protocols.findIndex(x=>x.id===d.id);if(i>=0)protocols[i]=d;else protocols.push(d);addedP++;}}
         else{if(!d.id||existingP.has(d.id)||!sameSpace)d.id=uid('p');existingP.add(d.id);if(await persistProtocol(d)){protocols.push(d);addedP++;}}}}
@@ -6723,7 +6836,7 @@ function readImportFile(file){const r=new FileReader();
     // Le fichier était lisible (parse passé plus haut) : un échec ICI est un problème de stockage
     // ou d'exécution, pas de fichier — message honnête, et ce qui a déjà été importé est conservé.
     catch(err){pendingOpenImport=false;toast('⚠ Import interrompu ('+(sstr((err&&err.message)||'',120)||'erreur inattendue')+') — les éléments déjà importés sont conservés.',9000);}};
-  r.readAsText(file);}
+  r.readAsArrayBuffer(file);}   // ArrayBuffer : nécessaire au .zip ; le .json est décodé en UTF-8
 document.getElementById('importFile').onchange=e=>{const file=e.target.files[0];e.target.value='';if(file)readImportFile(file);};
 
 /* ===== Compte & synchronisation (Supabase) =====
@@ -7210,7 +7323,7 @@ function storageExplainHtml(){return `<p class="auth-sub" style="margin-top:0">V
     <div class="stg-card stg-local"><div class="stg-h"><span class="stg-ic">${uiIcon('phone',19)}</span><b>Sur cet appareil (hors-ligne)</b></div>
       <p>Gardées <b>uniquement dans la mémoire de ce téléphone/ordinateur</b>, comme des notes sur un seul carnet.</p>
       <p class="stg-warn">${uiIcon('warn',13)} Si le navigateur fait du ménage, ou si l'appareil est perdu, cassé, réinitialisé ou changé, <b>vos fiches sont perdues</b> — aucune autre copie.</p>
-      <p class="stg-tip">${uiIcon('bulb',13)} Sans compte, pensez à <b>exporter</b> régulièrement (bouton Compte → « Exporter mes données ») : un fichier de sauvegarde à garder ailleurs et à réimporter au besoin (dialogue Créer → « Importer un fichier .json »).</p></div>
+      <p class="stg-tip">${uiIcon('bulb',13)} Sans compte, pensez à <b>exporter</b> régulièrement (bouton Compte → « Exporter mes données ») : un fichier de sauvegarde à garder ailleurs et à réimporter au besoin (dialogue Créer → « Importer un fichier (.json ou .zip) »).</p></div>
     <div class="stg-card stg-cloud"><div class="stg-h"><span class="stg-ic">${uiIcon('cloud',19)}</span><b>En ligne, avec un compte (synchronisation)</b></div>
       <p>En vous connectant, une <b>copie de sécurité</b> est aussi gardée dans un <b>espace en ligne protégé</b> (le « cloud »).</p>
       <ul class="stg-ul"><li>Appareil en panne ou perdu : <b>rien n'est perdu</b>.</li><li>Vous <b>retrouvez vos fiches sur n'importe quel appareil</b>.</li><li>Vous pouvez <b>partager</b> des bibliothèques avec votre équipe.</li></ul></div>`;}
@@ -8256,7 +8369,8 @@ if(location.search.indexOf('__actest')>=0){
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
     restErrStatus,isPersoRepairCandidate,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,
-    qTerms,hayMatch,markQTerms,searchSnippet,ficheSnipParts,protoSnipParts,frecencyScore,sanitizeUsage,mergeUsage};
+    qTerms,hayMatch,markQTerms,searchSnippet,ficheSnipParts,protoSnipParts,frecencyScore,sanitizeUsage,mergeUsage,
+    crc32,zipBuild,zipParse,isPdfBytes};
 }else{
   /* ===== PWA =====
      Enregistre le service worker (cache hors ligne) si disponible. Capte
