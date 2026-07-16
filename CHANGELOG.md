@@ -1,5 +1,24 @@
 # Journal des modifications
 
+## [4.7.0] — 2026-07-16
+L'organigramme devient **navigable** : taper un bloc dans le schéma y emmène directement, et le
+schéma se peint selon l'avancement de la session.
+
+### Ajouté
+- **Nœuds cliquables dans le schéma de l'algorithme** (panneau « Algorithme » et plein écran) :
+  taper un bloc = s'y rendre dans la checklist (bloc déjà visité → on y retourne sans rien
+  perdre ; bloc jamais visité → le parcours s'y étend). Jamais de cochage dans le schéma — la
+  coche reste un geste de la checklist, sur ses grandes cibles ; naviguer ne démarre pas de
+  session. Accessible au clavier (Tab + Entrée/Espace) ; l'aperçu de l'éditeur reste inerte.
+- **Le schéma montre l'avancement** : halo bleu = bloc où l'on est, badge ✓ vert = bloc
+  entièrement coché, blocs « hors chemin » atténués — mis à jour en direct à chaque coche et
+  chaque navigation, en thème clair comme sombre.
+
+### Modifié
+- **Performances** : la mise en page du schéma n'est plus jamais reconstruite pendant la crise
+  (elle l'était à chaque changement de bloc) — l'état est désormais peint par-dessus une
+  géométrie en cache.
+
 ## [4.6.0] — 2026-07-16
 Réfection du mode crise des aides cognitives : une **vue d'ensemble** montre désormais TOUT
 l'algorithme d'un coup — tous les blocs cochables à la suite, démarrage possible n'importe où,

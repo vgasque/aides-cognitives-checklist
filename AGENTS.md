@@ -122,7 +122,12 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   l'ancre du re-rendu de démarrage). Cocher ne re-rend JAMAIS (écouteurs DÉLÉGUÉS sur
   `.ov-wrap`, chirurgie `ovAfterCheck`/`ovPaintPath` ; `renderOvOnly` = pendant de
   `renderNavOnly`, qui dispatche). `minimapData` = source UNIQUE de l'état affichable par bloc
-  (réutilisée par les chips/minimap v4.8.0 et la peinture SVG v4.7.0). L'impression force la
+  (chips/minimap v4.8.0, peinture SVG v4.7.0). **SVG navigable (v4.7.0)** : taper un nœud de
+  l'organigramme = y ALLER (`jumpToBlock` : visité → curseur, sinon extension — JAMAIS de
+  cochage dans le SVG, JAMAIS de démarrage de session : naviguer ≠ agir) ; l'état est peint par
+  classes (`flowPaintState`), la géométrie n'est plus JAMAIS reconstruite à la navigation
+  (cache `_flowCache` sans état) ; toute nouvelle peinture SVG exige sa règle de
+  contre-inversion sombre (précédent `.flow-hl`). L'impression force la
   vue d'ensemble (blocs repliés rouverts par CSS `@media print` ; le SVG s'y imprime entier —
   fix du `max-height:300px`). L'aperçu d'éditeur reçoit un BAC À SABLE de navigation détaché
   du Runtime (les coches d'un brouillon ne polluent jamais une session vive d'une autre fiche).
@@ -318,7 +323,7 @@ modèle de données, règles de sécurité) : le lire en premier. Ensuite, dans 
 | Runtime | minuteurs/compteurs/audio (`tickAll`, `beep`), sessions vives (`liveSessions`) |
 | Sessions | auto-enregistrement (`persistLive`), reprise, compte-rendu |
 | Render | `render()` → `applyViewChrome` (chrome d'en-tête) puis `renderFiches`/`renderProtocols` / `renderRead` / `renderEditor` (template strings + écouteurs) ; en lecture de fiche, `overviewSection` (vue d'ensemble, défaut) ou `navSection` (vue guidée), re-rendus ciblés `renderOvOnly`/`renderNavOnly` |
-| Flow SVG | `buildFlowSVG` : organigramme auto de la prise en charge |
+| Flow SVG | `buildFlowSVG(f,cache)` : organigramme auto — géométrie PURE sans état (v4.7.0) ; l'état de session est PEINT par classes après insertion (`flowPaintState` : `fn-cur`/`fn-ok`/`fn-off`, halo et badge ✓ bakés masqués) et les nœuds sont NAVIGABLES en lecture (`bindSvgNav` → `jumpToBlock` — jamais de cochage dans le SVG, jamais de démarrage de session ; inerte dans l'éditeur) |
 | Visionneuse PDF | `pdfLib` (chargement paresseux de `vendor/pdfjs`), `openPdfViewer` (rendu virtualisé par IntersectionObserver ; zoom d'OUVERTURE = « page entière » calculé d'après le ratio du document et la fenêtre, `pdfFitPageZ`, bornes 25–400 %, boutons « Page »/« Largeur »), fenêtre `#pdfModal` ; miniatures de la 1ʳᵉ page dans les listes « Documents » (`attThumbHtml`/`genAttThumb` : paresseuses, une à la fois, cache mémoire de session — jamais de chargement de pdf.js au démarrage) ; badge « △ à télécharger » si le binaire n'est pas encore sur l'appareil (`hydrateAttThumbs`/`refreshAttRow` — état décidé sur la lecture IndexedDB, rafraîchi en direct par le téléchargement de fond de la synchro) |
 | Mini-Markdown | `mdBlocks`/`mdInline`/`mdRender`/`mdStrip`/`mdCells`/`mdCallout`/`mdTask` : parseur maison XSS-safe (esc() d'abord) du contenu rédigé des protocoles — titres, listes, citation, code, image, TABLEAUX (v4.4.2), ENCADRÉS TYPÉS et `==surligné==` (v4.4.3), LISTES COCHABLES `- [ ]` (v4.5.4). Registre et alignement viennent toujours d'un jeu FERMÉ posé en CLASSE, jamais d'un attribut piloté par l'utilisateur |
 | Protocoles | `blankProtocol`/`migrateProtocol` (point d'entrée sécurité/compat), `renderProtocols`/`renderProtocolRead`/`renderProtocolEdit`, sélecteur de section dans l'en-tête (`#hdrSec` statique, `state.section`) |

@@ -650,6 +650,10 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   const mD2=A.minimapData(ovF,['A','D'],[1,2],{},1).find(m=>m.id==='D');
   ok('minimapData : décision non répondue → incomplète, aucune option prise', mD2.dec===true&&mD2.complete===false&&mD2.taken===null);
   eq('format de session INCHANGÉ : la clé seq:bloc:index reste résoluble (compte-rendu)', A.stepTextFromKey(ovF,'5:R:0').step, 'r1');
+  const svgOut=A.buildFlowSVG(ovF);
+  ok('buildFlowSVG (v4.7.0) : un nœud interactif par bloc (data-fnode)', ['A','D','S','R','X'].every(id=>svgOut.indexOf('data-fnode="'+id+'"')>=0));
+  ok('buildFlowSVG : halo et badge ✓ bakés, AUCUN état peint dans la géométrie', svgOut.indexOf('flow-hl-glow')>=0&&svgOut.indexOf('fn-badge')>=0&&svgOut.indexOf('fn-cur')<0&&svgOut.indexOf('fn-ok')<0&&svgOut.indexOf('fn-off')<0);
+  ok('buildFlowSVG : nœuds accessibles au clavier (tabindex + role)', svgOut.indexOf('tabindex="0"')>=0&&svgOut.indexOf('role="button"')>=0);
 }
 
 // Ouvert en double-cliquant le fichier (file://) : le navigateur isole les iframes (origine
