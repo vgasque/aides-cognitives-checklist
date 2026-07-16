@@ -232,7 +232,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-diKI8ExWX85UfS/QUrjFWCZIeAvD5r6rjyrnQeAjobQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-UjK+MuS6s1uOckkjZE5z/jfxABSBG/t53m1bB+8J1lc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -2177,7 +2177,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.4.6';
+const APP_VERSION='4.4.7';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -2931,19 +2931,48 @@ function togglePin(id){const i=pins.indexOf(id);if(i>=0)pins.splice(i,1);else pi
   // Marque le document perso « à pousser » (même mécanique que saveCats) et programme une synchro.
   try{localStorage.setItem(spaceKey('ac-cats-updated:'),String(Date.now()));localStorage.setItem(spaceKey('ac-cats-dirty:'),'1');}catch(e){}
   if(typeof Sync!=='undefined'&&typeof Auth!=='undefined'&&Auth.signedIn())Sync.schedule();}
-// ----- FRECENCY (v4.4.6) : fréquence + récence d'OUVERTURE par fiche/protocole, LOCALE à
-// l'appareil (même famille que ac-pins / ac-lib-usage, un espace par compte). N'ordonne QUE les
-// résultats de RECHERCHE : « ana » remonte la fiche qu'on ouvre le plus en tapant ça (Spotlight).
+// ----- FRECENCY (v4.4.6) : fréquence + récence d'OUVERTURE par fiche/protocole (même famille
+// que ac-pins / ac-lib-usage, un espace par compte). N'ordonne QUE les résultats de RECHERCHE :
+// « ana » remonte la fiche qu'on ouvre le plus en tapant ça (Spotlight).
 // La liste par défaut reste ALPHABÉTIQUE (décision v4.3.2) et les épingles restent premières.
 // Le score est STABLE pendant la frappe (il ne dépend pas de la requête) : les cartes ne se
 // réordonnent pas sous le doigt — exigence de calme sous stress.
+// SYNCHRONISÉE entre appareils depuis v4.4.7 (connecté) : voyage dans le document de catégories
+// PERSO (data.usage, comme les épingles), mais FUSIONNÉE à l'arrivée au lieu d'être remplacée —
+// deux appareils comptent indépendamment, un remplacement en bloc perdrait les comptes de l'un
+// (mergeUsage : par fiche, l'entrée au n le plus grand ; max idempotent, jamais de double-compte).
+// Le push est THROTTLÉ (au plus toutes les 10 min) : ouvrir une fiche ne doit pas coûter une
+// écriture réseau à chaque tap — la fraîcheur inter-appareils n'a pas besoin du temps réel.
 let _frecency={};try{_frecency=JSON.parse(localStorage.getItem(spaceKey('ac-usage')))||{};}catch(e){}
+// Assainissement (import réseau) : ids sûrs, n entier 1-9999, t entier >= 0, 200 entrées max
+// (les plus récentes). Fonction PURE (testée via ?__actest).
+function sanitizeUsage(o){
+  const out={};if(!o||typeof o!=='object'||Array.isArray(o))return out;
+  Object.keys(o).forEach(id=>{if(!SAFE_ID.test(id)||BAD_KEYS.indexOf(id)>=0)return;
+    const u=o[id];if(!u||typeof u!=='object')return;
+    const n=Math.min(9999,Math.max(0,Math.floor(+u.n||0)));const t=Math.max(0,Math.floor(+u.t||0));
+    if(n>0)out[id]={n,t};});
+  const ids=Object.keys(out);
+  if(ids.length>200)ids.sort((a,b)=>out[a].t-out[b].t).slice(0,ids.length-200).forEach(k=>{delete out[k];});
+  return out;}
+// Fusion locale + distante : par id, l'entrée au n le plus GRAND (à égalité, t le plus récent).
+// Fonction PURE (testée via ?__actest) ; le plafond 200 est re-appliqué par sanitizeUsage.
+function mergeUsage(a,b){
+  const out={};[a||{},b||{}].forEach(src=>Object.keys(src).forEach(id=>{const u=src[id];const cur=out[id];
+    if(!cur||u.n>cur.n||(u.n===cur.n&&(u.t||0)>(cur.t||0)))out[id]={n:u.n,t:u.t||0};}));
+  return sanitizeUsage(out);}
 function bumpUsage(id){if(!id)return;
   const u=_frecency[id]||{n:0,t:0};u.n=Math.min(9999,u.n+1);u.t=Date.now();_frecency[id]=u;
   // Borne : les 200 usages les plus récents suffisent (localStorage n'est pas extensible).
   const ids=Object.keys(_frecency);
   if(ids.length>200)ids.sort((a,b)=>(_frecency[a].t||0)-(_frecency[b].t||0)).slice(0,ids.length-200).forEach(k=>{delete _frecency[k];});
-  try{localStorage.setItem(spaceKey('ac-usage'),JSON.stringify(_frecency));}catch(e){}}
+  try{localStorage.setItem(spaceKey('ac-usage'),JSON.stringify(_frecency));}catch(e){}
+  // Push throttlé : marque le document perso « à pousser » (même mécanique que togglePin)
+  // au plus toutes les 10 minutes — jamais une écriture réseau par simple ouverture.
+  try{const k=spaceKey('ac-usage-pushmark');
+    if(Date.now()-(+localStorage.getItem(k)||0)>600000){localStorage.setItem(k,String(Date.now()));
+      localStorage.setItem(spaceKey('ac-cats-updated:'),String(Date.now()));localStorage.setItem(spaceKey('ac-cats-dirty:'),'1');
+      if(typeof Sync!=='undefined'&&typeof Auth!=='undefined'&&Auth.signedIn())Sync.schedule();}}catch(e){}}
 // Score PUR (testé via ?__actest) : le compte d'ouvertures, amorti par l'ancienneté du dernier
 // usage — pleine valeur ≤ 15 j, demi-valeur ≤ 60 j, quart au-delà (l'historique ancien compte
 // encore : en médecine d'urgence, une fiche saisonnière revient).
@@ -3940,6 +3969,18 @@ function render(){
   const _fid=state.view==='read'&&state.fiche?state.fiche.id:null;
   if(state.view==='library'){if(_lastView&&_lastView!=='library')window.scrollTo(0,_libScrollY);}
   else if(state.view!=='read'||_lastView!=='read'||_fid!==_lastFicheId)window.scrollTo(0,0);
+  // ARRIVÉE sur un éditeur (création OU modification) : le haut de page est RÉ-AFFIRMÉ dans les
+  // instants qui suivent (v4.4.7). Le scrollTo(0,0) ci-dessus est posé au bon moment, mais
+  // Safari iOS peut re-décaler la page juste APRÈS (fermeture asynchrone du clavier de la
+  // recherche, restauration de focus à la fermeture du dialogue Créer) — constat : « j'arrive
+  // un peu descendu ». Garde-fous : seulement à l'ARRIVÉE (un re-rendu en cours d'édition ne
+  // repasse pas ici) et, pour l'échéance tardive, seulement si le décalage est PETIT (< 160 px :
+  // on corrige un artefact, jamais un défilement volontaire de l'utilisateur).
+  if((state.view==='edit'||state.view==='protocolEdit')&&_lastView!==state.view){
+    const v=state.view;
+    requestAnimationFrame(()=>{if(state.view===v&&window.scrollY)window.scrollTo(0,0);});
+    setTimeout(()=>{if(state.view===v&&window.scrollY&&window.scrollY<160)window.scrollTo(0,0);},300);
+  }
   _lastView=state.view;_lastFicheId=_fid;
 }
 // Re-rendu de l'ACCUEIL respectueux de l'onglet courant (Aides ↔ Protocoles). Tout code qui
@@ -4175,7 +4216,11 @@ function renderFiches(){
     // SESSIONS EN COURS (SPEC §5) : une CARTE par session (surface, liseré primaire 3px), point
     // vert + kicker + titre, CHRONO mono vivant (mis à jour par tickAll), « Reprendre » plein,
     // « Terminer » en texte rouge (destructif : jamais plein, jamais premier).
-    topHtml:()=>{const liveArr=Object.values(liveSessions).filter(R=>R.started&&R.fiche);
+    // En mode RECHERCHE, les cartes « Session en cours » s'effacent (v4.4.7) : on cherche AUTRE
+    // chose — la session reste signalée par le tag « ● En cours » de sa carte-résultat, par la
+    // barre de minuteurs de l'en-tête, et les cartes reviennent dès que la requête se vide.
+    topHtml:()=>{if(txNorm(state.q))return '';
+      const liveArr=Object.values(liveSessions).filter(R=>R.started&&R.fiche);
       return liveArr.length?`<div class="live-sessions">${liveArr.map(R=>`<div class="ls-card"><span class="sess-dot"></span><div class="ls-info" data-openlive="${R.ficheId}" role="button" tabindex="0"><b class="ls-k">Session en cours</b><span class="ls-t">${esc(R.fiche.title||'Sans titre')}</span></div><span class="ls-chrono" data-lschrono="${R.startedAt}">${fmtMs(Date.now()-R.startedAt)}</span><button class="btn sm primary" data-openlive="${R.ficheId}">Reprendre</button><button class="ls-end" data-endlive="${R.ficheId}">Terminer</button></div>`).join('')}</div>`:'';},
     notices:()=>`
       ${(!state.scope&&!noticeHidden())?`<div class="notice">${uiIcon('info',15)}<div>Vous êtes l'auteur et le responsable du contenu. Validez chaque fiche et tenez la date à jour.</div><button class="notice-x" id="noticeX" aria-label="Masquer">×</button></div>`:''}
@@ -6415,7 +6460,11 @@ async function pickCreateKind(s){setSection(s,true,{keepCat:true,silent:true});u
 createSeg.querySelectorAll('[data-createkind]').forEach(b=>b.onclick=()=>pickCreateKind(b.dataset.createkind));
 createSeg.onkeydown=e=>{if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;e.preventDefault();
   pickCreateKind(e.key==='ArrowLeft'?'fiches':'protocols').then(()=>{const a=createSeg.querySelector('.seg-btn.on');if(a)a.focus();});};
-async function openCreateDlg(){updateCreateSeg();renderCreateDlg('methods',await getDraftPark());createModal.classList.add('on');}
+// Le champ actif (souvent la RECHERCHE de l'en-tête) est délibérément défocalisé À L'OUVERTURE :
+// sur iOS, un clavier encore ouvert à cet instant se referme de façon asynchrone et re-décale
+// la page APRÈS le scrollTo(0,0) de l'éditeur qui suit (v4.4.7 — cf. garde-fou de render()).
+async function openCreateDlg(){try{if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();}catch(e){}
+  updateCreateSeg();renderCreateDlg('methods',await getDraftPark());createModal.classList.add('on');}
 function closeCreateDlg(){createModal.classList.remove('on');}
 function crtCard(id,glyph,t,d){return `<button class="crt-card" id="${id}"><span class="crt-ic" aria-hidden="true">${glyph}</span><span><span class="crt-t">${t}</span><br><span class="crt-d">${d}</span></span><span class="crt-chev" aria-hidden="true">›</span></button>`;}
 // Zone de dépôt : clic = sélecteur de fichier, glisser-déposer = lecture directe. Tout import
@@ -7833,6 +7882,10 @@ const Sync={
         // Document PERSO : il transporte aussi les épingles (data.pins) et les PRÉFÉRENCES
         // par utilisateur (data.prefs : thème + taille du texte + couleur d'accent, v4.5) — appliquées à l'arrivée.
         if(!s.libraryId&&remote.data&&Array.isArray(remote.data.pins)){pins=sanitizePins(remote.data.pins);try{localStorage.setItem(spaceKey('ac-pins'),JSON.stringify(pins));}catch(e){}}
+        // Frecency (v4.4.7) : FUSIONNÉE, jamais remplacée — chaque appareil compte ses propres
+        // ouvertures ; un remplacement en bloc (comme les épingles) perdrait les comptes locaux.
+        if(!s.libraryId&&remote.data&&remote.data.usage){_frecency=mergeUsage(_frecency,sanitizeUsage(remote.data.usage));
+          try{localStorage.setItem(spaceKey('ac-usage'),JSON.stringify(_frecency));}catch(e){}}
         if(!s.libraryId&&remote.data&&remote.data.prefs&&typeof remote.data.prefs==='object'){const pr=remote.data.prefs;
           const th=(pr.theme==='light'||pr.theme==='dark'||pr.theme==='auto')?pr.theme:null;
           const z=ZOOM_STEPS.indexOf(+pr.zoom)>=0?+pr.zoom:null;
@@ -7846,6 +7899,7 @@ const Sync={
       if(s.canPush&&(dirty||!remote)){const now=localTs||Date.now();
         const data={categories:catsForScope(s.libraryId).map(c=>({id:c.id,name:c.name,color:c.color,libraryId:s.libraryId}))};
         if(!s.libraryId)data.pins=sanitizePins(pins);   // épingles : uniquement dans le document perso
+        if(!s.libraryId)data.usage=sanitizeUsage(_frecency);   // frecency (v4.4.7) : idem, fusionnée côté lecteur
         // Préférences par utilisateur (V5) : voyagent avec le document perso.
         if(!s.libraryId)data.prefs={theme:localStorage.getItem(spaceKey('ac-theme'))||'auto',zoom:currentZoom(),accent:currentAccent()};
         try{await rest('POST','/rest/v1/category_sets',[{scope_key:s.scopeKey,owner:uidv,library_id:s.libraryId,data:data,updated_at:new Date(now).toISOString()}],{'Prefer':'resolution=merge-duplicates,return=minimal'});
@@ -8202,7 +8256,7 @@ if(location.search.indexOf('__actest')>=0){
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
     restErrStatus,isPersoRepairCandidate,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,
-    qTerms,hayMatch,markQTerms,searchSnippet,ficheSnipParts,protoSnipParts,frecencyScore};
+    qTerms,hayMatch,markQTerms,searchSnippet,ficheSnipParts,protoSnipParts,frecencyScore,sanitizeUsage,mergeUsage};
 }else{
   /* ===== PWA =====
      Enregistre le service worker (cache hors ligne) si disponible. Capte

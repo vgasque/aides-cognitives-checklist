@@ -1,5 +1,31 @@
 # Journal des modifications
 
+## [4.4.7] — 2026-07-16
+Frecency synchronisée entre appareils, arrivée sur les éditeurs bien en haut de page, et
+recherche débarrassée des cartes « Session en cours ».
+
+### Modifié
+- **Frecency synchronisée** (connecté) : le classement par usage des résultats de recherche
+  (v4.4.6) voyage désormais entre vos appareils, dans le document personnel — comme les
+  épingles et les préférences, mais **fusionné** au lieu d'être remplacé : chaque appareil
+  compte ses propres ouvertures, et à la synchronisation c'est l'entrée au compte le plus
+  grand qui gagne, par fiche (fusion idempotente : jamais de double-compte, assainie à
+  l'import — ids sûrs, bornes, plafond 200 entrées). L'envoi est **espacé d'au moins
+  10 minutes** : ouvrir une fiche ne coûte jamais une écriture réseau. 10 tests ajoutés (377).
+- **En mode recherche, les cartes « Session en cours » s'effacent** : quand on tape une
+  requête, on cherche autre chose. La session reste signalée par le tag « ● En cours » sur sa
+  carte-résultat et par la barre de minuteurs de l'en-tête ; les cartes reviennent dès que la
+  requête se vide.
+
+### Corrigé
+- **Arrivée sur un éditeur légèrement « descendue » (iOS)** : le haut de page était bien posé
+  au rendu, mais Safari pouvait re-décaler la page juste après (fermeture asynchrone du
+  clavier de la recherche, restauration de focus à la fermeture du dialogue Créer). Double
+  correctif : le champ actif est défocalisé dès l'ouverture du dialogue Créer, et le haut de
+  page est ré-affirmé dans les instants qui suivent l'arrivée — uniquement à l'arrivée (jamais
+  pendant l'édition) et seulement pour un petit décalage (< 160 px : on corrige un artefact,
+  jamais un défilement volontaire).
+
 ## [4.4.6] — 2026-07-16
 Ouverture instantanée (cache d'abord), visibilité des documents pas encore téléchargés, et
 résultats de recherche classés par usage réel (frecency).
