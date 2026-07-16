@@ -1,5 +1,25 @@
 # Journal des modifications
 
+## [4.4.5] — 2026-07-16
+Navigation entre blocs instantanée : la mise à jour ciblée du cochage (v4.2) est étendue au
+geste de navigation lui-même.
+
+### Modifié
+- **Naviguer dans l'algorithme ne reconstruit plus toute la vue** : « Continuer → », le choix
+  d'une option de décision, « Bloc précédent », le fil d'Ariane, « Repartir d'ici » et
+  « Recommencer » ne re-rendent plus que le nécessaire — fil d'Ariane, bloc courant, rangée de
+  navigation, compteur du panneau algorithme et halo du SVG (`renderNavOnly`). La galerie
+  d'images base64, le parcours de soin, les documents et la note ne sont plus reconstruits à
+  chaque pas (des dizaines de ms par tap sur mobile — or c'est le geste répété d'un arbre
+  décisionnel). La section navigation et ses écouteurs sont extraits de `renderRead` en
+  briques partagées (`navSection`/`bindNavEvents`) : rendu complet et rendu ciblé produisent
+  le MÊME HTML par construction.
+- **Les cas qui changent l'état global restent des rendus complets** (doctrine inchangée) :
+  fin d'algorithme (« Terminer l'algorithme ✓ » — les étapes ②/③ du rail changent d'état),
+  premier « Continuer » d'une session quand l'étape ① était ouverte (repli différé, v4.4.2),
+  démarrage de session par première action (`renderKeepAnchor`). Structure inattendue
+  (aperçu, fiche sans bloc) : repli automatique sur le rendu complet.
+
 ## [4.4.4] — 2026-07-16
 Documents PDF plus lisibles (miniatures, zoom d'ouverture « page entière »), recherche
 multi-mots avec extraits contextuels, démarrage plus rapide en réseau dégradé, et une salve

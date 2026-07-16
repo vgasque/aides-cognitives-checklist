@@ -232,7 +232,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-rXuWB5QvsgNXQovS98D6uKjLz9D8sd3EuD5xsufixVg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-0Wul706r7j1BPleogZ5Jj2ntFLkVkgKVQWR5GssjVu0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -2175,7 +2175,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.4.4';
+const APP_VERSION='4.4.5';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -5132,9 +5132,13 @@ function timekeeperPanel(){const ev=Runtime.events||[];const t0=ev.length?ev[0].
    La 2e moitié de la fonction RATTACHE tous les écouteurs : navigation entre blocs
    (push/pop sur state.nav), cochage des étapes, contrôles minuteurs/compteurs
    (mise à jour DOM directe, sans render), et gestion des sessions. */
-function renderRead(){
-  captureFlow();
-  const f=state.fiche;if(!f){state.view='library';return render();}
+/* Section NAVIGATION de la vue lecture (v4.4.5) : fil d'Ariane + bloc courant (étapes/décision)
+   + rangée « Bloc précédent / Recommencer », EXTRAITS de renderRead pour pouvoir être re-rendus
+   SEULS par renderNavOnly() — naviguer dans l'arbre décisionnel reconstruisait toute la vue
+   (galerie base64, parcours de soin, documents, note…) : le geste répété de la crise mérite la
+   même chirurgie que le cochage d'étape. Renvoie tout ce que renderRead ET renderNavOnly
+   consomment (le HTML des trois zones + le bloc courant pour le câblage et le halo du SVG). */
+function navSection(f){
   const npos=Math.min(state.navPos==null?state.nav.length-1:state.navPos,state.nav.length-1);state.navPos=npos;
   const cur=state.nav[npos];const curSeq=state.navSeq[npos]||1;const atTip=npos>=state.nav.length-1;const blk=f.blocks.find(b=>b.id===cur)||f.blocks.find(b=>b.id===f.start)||f.blocks[0];const flow=hasFlow(f);let navHtml='',crumbsH='',navRowH='',blockDone=null,blockTot=null;
   if(blk){const occ={},totOcc={};state.nav.forEach(id=>{totOcc[id]=(totOcc[id]||0)+1;});
@@ -5179,6 +5183,15 @@ function renderRead(){
         :(atTip?`<button class="btn cont ${allDone?'okay':'idle'}" id="navNext" data-contlbl="${esc(goLbl)}"${allDone?'':' aria-disabled="true"'}>${esc(contLbl)}</button>`:histBtn);
       blockDone=done;blockTot=steps.length;
       navHtml=`<div class="nav-wrap"><div class="node-title">Bloc · ${esc(blk.title)||'Étapes'}${passTag} — <span id="ntCount">${done}/${steps.length}</span> coché</div>${imgH}<ol class="steps">${steps.map((s,i)=>{const k=curSeq+':'+blk.id+':'+i;return `<li data-ck="${k}" class="${stepIsCrit(s)?'crit ':(stepIsVigil(s)?'vigil ':'')}${state.checked[k]?'done':''}" role="checkbox" aria-checked="${state.checked[k]?'true':'false'}" tabindex="0"><span class="box">${state.checked[k]?uiIcon('check',19,{sw:3,cls:''}):''}</span><span class="txt">${fmt(stepText(s))}</span></li>`;}).join('')}</ol><div class="flow-ctrl">${fwdc}</div></div>`;}}
+  return {blk,cur,atTip,crumbsH,navHtml,navRowH,blockDone,blockTot};}
+// Sous-titre du panneau « Algorithme » : compteur n/total quand le bloc courant est cochable —
+// partagé entre le rendu complet (renderRead) et la mise à jour ciblée (renderNavOnly).
+const algSubHtml=(done,tot)=>'· carte des blocs — synchronisée'+(tot!=null?` · <span id="algCount">${done}/${tot}</span> coché`:'');
+function renderRead(){
+  captureFlow();
+  const f=state.fiche;if(!f){state.view='library';return render();}
+  const N=navSection(f);
+  const blk=N.blk,cur=N.cur,crumbsH=N.crumbsH,navHtml=N.navHtml,navRowH=N.navRowH,blockDone=N.blockDone,blockTot=N.blockTot;
   const gallery=(f.images||[]).length?`<section class="block"><div class="block-h h-img">${headerIcon('h-img')}Schémas & captures</div><div class="gallery">${f.images.map(im=>`<div class="gthumb"><img src="${im.data}" data-full="${im.data}" data-cap="${esc(im.caption||'')}" alt="${esc(im.caption||'')}"${im.w&&im.h?` width="${im.w}" height="${im.h}"`:''} loading="lazy" decoding="async">${im.caption?`<div class="gcap">${esc(im.caption)}</div>`:''}</div>`).join('')}</div></section>`:'';
   // Documents PDF joints : liste de boutons (≥44 px, utilisables en crise) -> visionneuse intégrée.
   const docs=attListHtml(f);
@@ -5241,7 +5254,7 @@ function renderRead(){
   // le geste PORTE la confirmation), sinon en tête de « Prise en charge ». Un seul bouton
   // rempli par écran ; la 1ʳᵉ action clinique démarre toujours aussi (jamais bloquant).
   const sessStartH=(!preview&&!started)?`<div class="sess-start"><button class="btn primary" id="sessStart">${uiIcon('play',14)} ${confItems.length?'Confirmé — démarrer la session':'Démarrer la session'}</button><span class="ss-hint">chrono, minuteurs et journal — démarre aussi à la première action</span></div>`:'';
-  const algH=f.blocks&&f.blocks.length?`<div class="alg-panel"><button type="button" class="alg-head" id="flowToggle" aria-expanded="${state.showFlow?'true':'false'}"><span class="alg-k">Algorithme</span><span class="alg-sub">· carte des blocs — synchronisée${blockTot!=null?` · <span id="algCount">${blockDone}/${blockTot}</span> coché`:''}</span><span class="alg-chev" aria-hidden="true">${state.showFlow?'▴':'▾'}</span></button>${state.showFlow?flowBlock(f,cur,true)+'<div class="flow-hint">Schéma = vue d’ensemble · étapes à cocher en-dessous ↓</div>':''}</div>`:'';
+  const algH=f.blocks&&f.blocks.length?`<div class="alg-panel"><button type="button" class="alg-head" id="flowToggle" aria-expanded="${state.showFlow?'true':'false'}"><span class="alg-k">Algorithme</span><span class="alg-sub">${algSubHtml(blockDone,blockTot)}</span><span class="alg-chev" aria-hidden="true">${state.showFlow?'▴':'▾'}</span></button>${state.showFlow?flowBlock(f,cur,true)+'<div class="flow-hint">Schéma = vue d’ensemble · étapes à cocher en-dessous ↓</div>':''}</div>`:'';
   const localH=f.localInfo&&f.localInfo.trim()?`<div class="local">${fmt(f.localInfo)}</div>`:'';
   const stages=[];
   if(confBlockH)stages.push({cls:started?'done':'on',head:'',body:confBlockH+sessStartH});
@@ -5348,55 +5361,7 @@ function bindReadEvents(f,blk,cur){
   // ⟲ des rangées compactes : RELANCE le minuteur ad hoc (repart du plein, démarre aussitôt).
   main.querySelectorAll('[data-tmrestart]').forEach(b=>b.onclick=()=>{const t=Runtime.timers[b.dataset.tmrestart];if(!t)return;
     t.elapsedMs=0;t.lastStart=Date.now();t.running=true;ensureAudio();persistLive(Runtime,true);render();});
-  // Navigation NON DESTRUCTIVE : le fil d'Ariane et Précédent/Continuer déplacent seulement un
-  // CURSEUR (state.navPos) sans rien effacer -> on peut revenir en arrière puis ré-avancer en
-  // gardant toute la progression. Seul « Continuer/option » (au bout) étend le parcours, et
-  // « Repartir d'ici (efface la suite) » tronque volontairement la suite pour repartir d'ici.
-  const nx=document.getElementById('navNext');if(nx)nx.onclick=()=>{
-    if(nx.getAttribute('aria-disabled')==='true')return;   // étapes restantes : le libellé l'annonce, le clic est ignoré (ECAM)
-    // REPLI DIFFÉRÉ de l'étape ① (v4.4.2) : « Continuer → » est le premier geste qui ACQUITTE la
-    // phase de confirmation (le bloc précédent est entièrement coché) ET qui déplace déjà le
-    // contexte à la demande de l'utilisateur (scrollNavNext -> scrollNavIntoView, qui ne fait que
-    // REMONTER). Replier ici est donc gratuit et invisible : l'écran de crise s'épure sans qu'aucun
-    // contenu ne bouge sous le doigt — ce qu'un repli au cochage ne peut pas garantir (ensureStarted).
-    if(Runtime.started)state.confOpen=false;
-    // « Terminer l'algorithme ✓ » ≠ terminer la session : on AFFICHE l'état fin (§8), la session
-    // (chrono, minuteurs) continue — la clôture est un choix séparé et confirmé.
-    if(!(blk.next&&f.blocks.some(b=>b.id===blk.next))){state.flowEnded=true;render();return;}
-    state.nav.push(blk.next);state.navSeq.push(++Runtime.seq);state.navPos=state.nav.length-1;scrollNavNext=true;render();};
-  const fwb=document.getElementById('navFwd');if(fwb)fwb.onclick=()=>{state.navPos=Math.min(state.navPos+1,state.nav.length-1);scrollNavNext=true;render();};
-  const rsm=document.getElementById('navResume');if(rsm)rsm.onclick=()=>{state.nav.length=state.navPos+1;state.navSeq.length=state.navPos+1;render();};
-  const bk=document.getElementById('navBack');if(bk)bk.onclick=()=>{state.navPos=Math.max(0,state.navPos-1);scrollNavNext=true;render();};
-  const rs=document.getElementById('navReset');if(rs)holdToReset(rs,()=>{state.nav.length=0;state.navSeq.length=0;state.nav.push(f.start);state.navSeq.push(++Runtime.seq);state.navPos=0;scrollNavNext=true;render();});
-  main.querySelectorAll('[data-goto]').forEach(b=>b.onclick=()=>{const t=b.dataset.goto;if(t&&f.blocks.some(x=>x.id===t)){state.nav.push(t);state.navSeq.push(++Runtime.seq);state.navPos=state.nav.length-1;scrollNavNext=true;render();}});
-  const goCrumb=i=>{if(i>=0&&i<state.nav.length){state.navPos=i;render();}};
-  main.querySelectorAll('[data-crumb]').forEach(c=>{c.onclick=()=>goCrumb(+c.dataset.crumb);c.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();goCrumb(+c.dataset.crumb);}};});
-  // Fil d'Ariane à hauteur fixe : la position COURANTE est toujours visible (auto-centrée
-  // dans la ligne défilante — même logique que la chip de bibliothèque active de l'accueil).
-  {const cw=main.querySelector('.crumbs');const cc=cw&&cw.querySelector('.cb.cur');
-   if(cc&&cw.scrollWidth>cw.clientWidth)cw.scrollLeft=Math.max(0,cc.offsetLeft-cw.clientWidth/2+cc.clientWidth/2);}
-  // Cocher une étape DÉMARRE la session (1ʳᵉ action) et l'auto-enregistre.
-  // Accessible clavier/lecteur d'écran : role=checkbox + aria-checked (posés au rendu), Entrée/Espace.
-  // MISE À JOUR CIBLÉE du <li> coché, pas de render() : reconstruire toute la vue (galerie
-  // d'images base64 à re-parser, SVG de l'algorithme) coûtait des dizaines de ms par tap sur
-  // mobile — or c'est LE geste répété du mode crise. Seul lecteur de state.checked au rendu :
-  // la ligne d'étape elle-même (vérifié) -> rien d'autre à rafraîchir. Exception : la toute
-  // première action démarre la session (le bandeau apparaît) -> re-rendu complet, une seule fois.
-  main.querySelectorAll('[data-ck]').forEach(li=>{const tgl=kb=>{const k=li.dataset.ck;const on=!state.checked[k];state.checked[k]=on;
-    const justStarted=ensureStarted();persistLive(Runtime);
-    if(justStarted){renderKeepAnchor('[data-ck="'+CSS.escape(k)+'"]');if(kb){const nl=main.querySelector('[data-ck="'+CSS.escape(k)+'"]');if(nl)nl.focus();}return;}
-    li.classList.toggle('done',on);li.setAttribute('aria-checked',on?'true':'false');
-    const box=li.querySelector('.box');if(box)box.innerHTML=on?uiIcon('check',19,{sw:3,cls:''}):'';
-    // V5 : « Continuer » passe au registre CONFIRMATION (vert) dès que TOUT le bloc est coché
-    // (mise à jour DOM directe, cohérente avec le cochage sans re-rendu).
-    {const nn=document.getElementById('navNext');
-     if(nn){const boxes=[...main.querySelectorAll('[data-ck]')];const dn=boxes.filter(x=>state.checked[x.dataset.ck]).length;const all=dn>=boxes.length;
-       nn.classList.toggle('okay',all);nn.classList.toggle('idle',!all);
-       nn.textContent=all?(nn.dataset.contlbl||'Continuer →'):('Cochez les étapes restantes ('+(boxes.length-dn)+')');
-       if(all)nn.removeAttribute('aria-disabled');else{nn.setAttribute('aria-disabled','true');state.flowEnded=false;}
-       const nt=document.getElementById('ntCount');if(nt)nt.textContent=dn+'/'+boxes.length;
-       const ac=document.getElementById('algCount');if(ac)ac.textContent=dn+'/'+boxes.length;}}
-    if(kb)li.focus();};li.onclick=()=>tgl(false);li.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();tgl(true);}};});
+  bindNavEvents(f,blk);   // navigation entre blocs + cochage des étapes (rebranchés aussi par renderNavOnly)
   main.querySelectorAll('img[data-full]').forEach(im=>im.onclick=()=>openLightbox(im.dataset.full,im.dataset.cap||''));
   // Documents PDF -> visionneuse intégrée (le blob est lu dans IndexedDB à l'ouverture).
   bindAttList(f);
@@ -5455,6 +5420,96 @@ function bindReadEvents(f,blk,cur){
   flowCtx={f,curId:cur};
   bindFlowZoom();applyFlowZoom();restoreFlow();
   refreshTimersDOM();
+  if(scrollNavNext){scrollNavNext=false;scrollNavIntoView();}
+}
+// Écouteurs de la SECTION NAVIGATION (extraits de bindReadEvents, v4.4.5) : rebranchés par le
+// rendu complet ET par renderNavOnly (le remplacement du DOM orphelines les handlers).
+// Navigation NON DESTRUCTIVE : le fil d'Ariane et Précédent/Continuer déplacent seulement un
+// CURSEUR (state.navPos) sans rien effacer -> on peut revenir en arrière puis ré-avancer en
+// gardant toute la progression. Seul « Continuer/option » (au bout) étend le parcours, et
+// « Repartir d'ici (efface la suite) » tronque volontairement la suite pour repartir d'ici.
+function bindNavEvents(f,blk){
+  const nx=document.getElementById('navNext');if(nx)nx.onclick=()=>{
+    if(nx.getAttribute('aria-disabled')==='true')return;   // étapes restantes : le libellé l'annonce, le clic est ignoré (ECAM)
+    // REPLI DIFFÉRÉ de l'étape ① (v4.4.2) : « Continuer → » est le premier geste qui ACQUITTE la
+    // phase de confirmation (le bloc précédent est entièrement coché) ET qui déplace déjà le
+    // contexte à la demande de l'utilisateur (scrollNavNext -> scrollNavIntoView, qui ne fait que
+    // REMONTER). Replier ici est donc gratuit et invisible : l'écran de crise s'épure sans qu'aucun
+    // contenu ne bouge sous le doigt — ce qu'un repli au cochage ne peut pas garantir (ensureStarted).
+    const confWasOpen=(state.confOpen!==undefined?state.confOpen:!Runtime.started);
+    if(Runtime.started)state.confOpen=false;
+    // « Terminer l'algorithme ✓ » ≠ terminer la session : on AFFICHE l'état fin (§8), la session
+    // (chrono, minuteurs) continue — la clôture est un choix séparé et confirmé.
+    // Fin d'algorithme : l'ÉTAT des étapes ②/③ du parcours change -> rendu complet.
+    if(!(blk.next&&f.blocks.some(b=>b.id===blk.next))){state.flowEnded=true;render();return;}
+    state.nav.push(blk.next);state.navSeq.push(++Runtime.seq);state.navPos=state.nav.length-1;scrollNavNext=true;
+    // Seul « Continuer » qui touche AUTRE CHOSE que la navigation : le repli différé de l'étape ①
+    // (une fois par session) -> rendu complet ; ensuite, mise à jour ciblée.
+    if(Runtime.started&&confWasOpen)render();else renderNavOnly();};
+  const fwb=document.getElementById('navFwd');if(fwb)fwb.onclick=()=>{state.navPos=Math.min(state.navPos+1,state.nav.length-1);scrollNavNext=true;renderNavOnly();};
+  const rsm=document.getElementById('navResume');if(rsm)rsm.onclick=()=>{state.nav.length=state.navPos+1;state.navSeq.length=state.navPos+1;renderNavOnly();};
+  const bk=document.getElementById('navBack');if(bk)bk.onclick=()=>{state.navPos=Math.max(0,state.navPos-1);scrollNavNext=true;renderNavOnly();};
+  const rs=document.getElementById('navReset');if(rs)holdToReset(rs,()=>{state.nav.length=0;state.navSeq.length=0;state.nav.push(f.start);state.navSeq.push(++Runtime.seq);state.navPos=0;scrollNavNext=true;renderNavOnly();});
+  main.querySelectorAll('[data-goto]').forEach(b=>b.onclick=()=>{const t=b.dataset.goto;if(t&&f.blocks.some(x=>x.id===t)){state.nav.push(t);state.navSeq.push(++Runtime.seq);state.navPos=state.nav.length-1;scrollNavNext=true;renderNavOnly();}});
+  const goCrumb=i=>{if(i>=0&&i<state.nav.length){state.navPos=i;renderNavOnly();}};
+  main.querySelectorAll('[data-crumb]').forEach(c=>{c.onclick=()=>goCrumb(+c.dataset.crumb);c.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();goCrumb(+c.dataset.crumb);}};});
+  // Fil d'Ariane à hauteur fixe : la position COURANTE est toujours visible (auto-centrée
+  // dans la ligne défilante — même logique que la chip de bibliothèque active de l'accueil).
+  {const cw=main.querySelector('.crumbs');const cc=cw&&cw.querySelector('.cb.cur');
+   if(cc&&cw.scrollWidth>cw.clientWidth)cw.scrollLeft=Math.max(0,cc.offsetLeft-cw.clientWidth/2+cc.clientWidth/2);}
+  // Image du bloc courant -> plein écran (le rendu complet câble déjà toutes les images ;
+  // après une mise à jour ciblée, seule celle du nouveau bloc est à rebrancher).
+  main.querySelectorAll('.nav-wrap img[data-full]').forEach(im=>im.onclick=()=>openLightbox(im.dataset.full,im.dataset.cap||''));
+  // Cocher une étape DÉMARRE la session (1ʳᵉ action) et l'auto-enregistre.
+  // Accessible clavier/lecteur d'écran : role=checkbox + aria-checked (posés au rendu), Entrée/Espace.
+  // MISE À JOUR CIBLÉE du <li> coché, pas de render() : reconstruire toute la vue (galerie
+  // d'images base64 à re-parser, SVG de l'algorithme) coûtait des dizaines de ms par tap sur
+  // mobile — or c'est LE geste répété du mode crise. Seul lecteur de state.checked au rendu :
+  // la ligne d'étape elle-même (vérifié) -> rien d'autre à rafraîchir. Exception : la toute
+  // première action démarre la session (le bandeau apparaît) -> re-rendu complet, une seule fois.
+  main.querySelectorAll('[data-ck]').forEach(li=>{const tgl=kb=>{const k=li.dataset.ck;const on=!state.checked[k];state.checked[k]=on;
+    const justStarted=ensureStarted();persistLive(Runtime);
+    if(justStarted){renderKeepAnchor('[data-ck="'+CSS.escape(k)+'"]');if(kb){const nl=main.querySelector('[data-ck="'+CSS.escape(k)+'"]');if(nl)nl.focus();}return;}
+    li.classList.toggle('done',on);li.setAttribute('aria-checked',on?'true':'false');
+    const box=li.querySelector('.box');if(box)box.innerHTML=on?uiIcon('check',19,{sw:3,cls:''}):'';
+    // V5 : « Continuer » passe au registre CONFIRMATION (vert) dès que TOUT le bloc est coché
+    // (mise à jour DOM directe, cohérente avec le cochage sans re-rendu).
+    {const nn=document.getElementById('navNext');
+     if(nn){const boxes=[...main.querySelectorAll('[data-ck]')];const dn=boxes.filter(x=>state.checked[x.dataset.ck]).length;const all=dn>=boxes.length;
+       nn.classList.toggle('okay',all);nn.classList.toggle('idle',!all);
+       nn.textContent=all?(nn.dataset.contlbl||'Continuer →'):('Cochez les étapes restantes ('+(boxes.length-dn)+')');
+       if(all)nn.removeAttribute('aria-disabled');else{nn.setAttribute('aria-disabled','true');state.flowEnded=false;}
+       const nt=document.getElementById('ntCount');if(nt)nt.textContent=dn+'/'+boxes.length;
+       const ac=document.getElementById('algCount');if(ac)ac.textContent=dn+'/'+boxes.length;}}
+    if(kb)li.focus();};li.onclick=()=>tgl(false);li.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();tgl(true);}};});
+}
+/* Mise à jour CIBLÉE de la navigation entre blocs (v4.4.5) : remplace SEULEMENT le fil d'Ariane,
+   le bloc courant, la rangée « Bloc précédent / Recommencer », le compteur du panneau algorithme
+   et le halo du SVG — sans reconstruire le reste de la vue (galerie d'images base64, parcours de
+   soin, documents, note…), qui coûtait des dizaines de ms par tap sur mobile. Même philosophie
+   que le cochage d'étape (audit v4.4.4). Les cas qui changent l'état GLOBAL de la vue restent des
+   render() complets : fin d'algorithme (étapes ②/③ du rail changent), repli différé de l'étape ①.
+   Structure inattendue (pas de .nav-wrap : aperçu, fiche sans bloc) -> repli complet sûr. */
+function renderNavOnly(){
+  const f=state.fiche;
+  const wrap=main.querySelector('.nav-wrap');
+  if(!f||!wrap)return render();
+  captureFlow();
+  const N=navSection(f);
+  // Fil d'Ariane : remplacé / créé (2e bloc) / retiré, TOUJOURS accroché au bloc courant.
+  {const old=main.querySelector('.crumbs');if(old)old.remove();}
+  if(N.crumbsH)wrap.insertAdjacentHTML('beforebegin',N.crumbsH);
+  // Rangée « Bloc précédent / Recommencer » (état disabled du premier bloc recalculé).
+  {const old=main.querySelector('.flow-nav');if(old)old.remove();}
+  if(N.navRowH)wrap.insertAdjacentHTML('afterend',N.navRowH);
+  wrap.outerHTML=N.navHtml;   // le bloc courant (étapes cochables ou décision)
+  {const sub=main.querySelector('.alg-panel .alg-sub');if(sub)sub.innerHTML=algSubHtml(N.blockDone,N.blockTot);}
+  // Panneau algorithme ouvert : le SVG suit le bloc courant (halo) — nouveau bloc = un recalcul
+  // (le mémo _flowCache ne connaît que le dernier), mais le RESTE de la page n'est plus payé.
+  {const fs=main.querySelector('.alg-panel .flow-scroll');
+   if(fs){fs.innerHTML=buildFlowSVG(f,N.cur,true);applyFlowZoom();restoreFlow();bindSvgImages(fs);}}
+  flowCtx={f,curId:N.cur};
+  bindNavEvents(f,N.blk);
   if(scrollNavNext){scrollNavNext=false;scrollNavIntoView();}
 }
 
