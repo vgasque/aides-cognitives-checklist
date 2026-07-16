@@ -655,6 +655,23 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   ok('instComplete : bloc d’étapes tout coché pour CE passage', A.instComplete(ovF,['A'],[1],{'1:A:0':true,'1:A:1':true},0)===true&&A.instComplete(ovF,['A'],[1],{'1:A:0':true},0)===false);
   ok('instComplete : les coches d’un AUTRE passage ne comptent pas', A.instComplete(ovF,['A','D','R','D','R'],[1,2,3,4,5],{'3:R:0':true},4)===false);
   ok('instComplete : décision répondue / non répondue', A.instComplete(ovF,['A','D','S'],[1,2,3],{},1)===true&&A.instComplete(ovF,['A','D'],[1,2],{},1)===false);
+  // flowPlan (v4.10.0) : arbre indenté avec point de convergence (post-dominateur).
+  const pl1=A.flowPlan({start:'A',blocks:[
+    {id:'A',type:'steps',steps:['a'],next:'D1',title:'A'},
+    {id:'D1',type:'decision',title:'D1',options:[{label:'Oui',target:'B'},{label:'Non',target:'C'}]},
+    {id:'B',type:'steps',steps:['b'],next:'E',title:'B'},
+    {id:'C',type:'steps',steps:['c'],next:'E',title:'C'},
+    {id:'E',type:'steps',steps:['e'],next:null,title:'E'}]});
+  eq('flowPlan : ordre de lecture (branches puis tronc)', pl1.order, ['A','D1','B','C','E']);
+  ok('flowPlan : le TRONC reprend au point de convergence (E à la racine, pas dans une branche)',
+    pl1.items.some(it=>it.k==='block'&&it.id==='E'&&it.depth===0));
+  ok('flowPlan : chaque branche se termine par un lien vers la convergence',
+    pl1.items.filter(it=>it.k==='link'&&it.to==='E'&&it.back===false&&it.depth===1).length===2);
+  const pl2=A.flowPlan(ovF);
+  ok('flowPlan : boucle = lien « reprendre à » (back), jamais de re-rendu du bloc',
+    pl2.items.some(it=>it.k==='link'&&it.to==='D'&&it.back===true)&&pl2.order.filter(x=>x==='D').length===1);
+  ok('flowPlan : orphelin rattaché en fin de plan', pl2.order[pl2.order.length-1]==='X');
+  ok('flowPlan : un bloc n’apparaît qu’UNE fois', new Set(pl2.order).size===pl2.order.length&&pl2.order.length===5);
   const svgOut=A.buildFlowSVG(ovF);
   ok('buildFlowSVG (v4.7.0) : un nœud interactif par bloc (data-fnode)', ['A','D','S','R','X'].every(id=>svgOut.indexOf('data-fnode="'+id+'"')>=0));
   ok('buildFlowSVG : halo et badge ✓ bakés, AUCUN état peint dans la géométrie', svgOut.indexOf('flow-hl-glow')>=0&&svgOut.indexOf('fn-badge')>=0&&svgOut.indexOf('fn-cur')<0&&svgOut.indexOf('fn-ok')<0&&svgOut.indexOf('fn-off')<0);

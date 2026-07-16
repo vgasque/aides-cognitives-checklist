@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-8eHfg6q5G8UjUTfyrdvzveHV8QVOlSG/H51Hesx6nFE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-O7IPhLtTHX6l8OA5KbJSZKscdZ3T59IGtWJPG6/ioeQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1436,15 +1436,47 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .ov-block.closed.done.dec .ov-t{color:var(--ink)}
   .ov-ans{font-size:12.5px;font-weight:600;color:var(--ink-soft);margin-left:6px;white-space:nowrap}
   .ov-sec-h{font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft);margin:2px 0 8px}
-  .ov-suite-h{display:flex;align-items:center;gap:7px;margin:18px 0 8px;min-width:0}
-  .ov-suite-h .ovs-t{flex:none;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft)}
-  .ov-suite-h .ovs-sub{flex:1;min-width:0;font-size:11.5px;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .ov-suite-h .ovs-tgl{flex:none;min-height:44px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--link);font-size:12px;font-weight:700;padding:6px 11px;cursor:pointer;font-family:inherit}
-  .ov-suite-h .ovs-tgl:hover{background:var(--surface)}
-  .ov-suite-h .ovs-tgl:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-  /* Bloc de la SUITE : même carte, légèrement en retrait (aperçu — il « entre » au journal au 1er geste). */
-  .ov-block.ovs{border-style:dashed}
-  .ov-block.ovs.off{border-style:dashed}
+  /* ----- PLAN DE L'AIDE (v4.10.0) : arbre indenté façon algorithme papier ----- */
+  .ov-plan-h{display:flex;align-items:center;gap:7px;margin:18px 0 4px;min-width:0}
+  .ov-plan-h .ovs-t{flex:none;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft)}
+  .ov-plan-h .ovs-sub{flex:1;min-width:0;font-size:11.5px;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ov-plan-h .ovs-tgl{flex:none;min-height:44px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--link);font-size:12px;font-weight:700;padding:6px 11px;cursor:pointer;font-family:inherit}
+  .ov-plan-h .ovs-tgl:hover{background:var(--surface)}
+  .ov-plan-h .ovs-tgl:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* Nœud du plan : carte compacte NAVIGANTE (taper = y aller) — jamais de case à cocher ici. */
+  .pl-nd{display:flex;align-items:flex-start;gap:8px;border:1px solid var(--line);border-left:4px solid var(--line-strong);border-radius:9px;background:var(--surface);padding:8px 10px;margin-top:6px;cursor:pointer}
+  .pl-nd.dec{background:var(--verify-soft);border-color:var(--verify-bd);border-left-color:var(--verify-bd)}
+  .pl-nd.done{border-left-color:var(--done-line)}
+  .pl-nd.cur{border-color:var(--primary);border-left-color:var(--primary)}
+  .pl-nd.off{opacity:.55;border-style:dashed}
+  .pl-nd:hover{border-color:var(--primary)}
+  .pl-nd:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .pl-nd.flash{outline:3px solid var(--primary-soft);outline-offset:1px}
+  .pl-nn{width:22px;height:22px;border-radius:50%;flex:none;display:grid;place-items:center;font-family:var(--mono);font-size:11.5px;font-weight:700;color:var(--ink-soft);border:2px solid var(--line-strong);background:var(--surface);margin-top:1px}
+  .pl-nd.done .pl-nn{background:var(--ok);border-color:var(--ok);color:var(--surface)}
+  .pl-nd.cur .pl-nn{background:var(--primary);border-color:var(--primary);color:var(--on-primary)}
+  .pl-nt{flex:1;min-width:0;font-size:12.5px;font-weight:700;color:var(--ink);line-height:1.35}
+  .pl-nm{flex:none;font-size:11px;color:var(--ink-soft);font-family:var(--mono)}
+  .pl-x{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--primary);margin-left:6px}
+  .pl-here{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;background:var(--primary);color:var(--on-primary);padding:1px 8px;border-radius:999px;margin-left:6px;vertical-align:1px}
+  .pl-stp{margin:4px 0 0;padding:0;list-style:none}
+  .pl-stp li{font-size:11.5px;font-weight:400;color:var(--ink-soft);line-height:1.5;padding-left:13px;position:relative}
+  .pl-stp li::before{content:"·";position:absolute;left:4px}
+  .pl-stp li.crit{color:var(--critical);font-weight:600}
+  .pl-stp li.vig{color:var(--verify);font-weight:600}
+  .pl-q{font-size:11.5px;font-weight:400;font-style:italic;color:var(--ink-soft);margin-top:3px}
+  /* Branche d'une décision : en retrait, guide vertical, étiquette de l'option (✓ si prise). */
+  .pl-br{margin-left:13px;padding-left:11px;border-left:2px solid var(--line-strong);margin-top:7px}
+  .pl-br.off{opacity:.55}
+  .pl-bl{display:inline-flex;align-items:center;font-size:11px;font-weight:700;color:var(--verify);background:var(--verify-soft);border:1px solid var(--verify-bd);border-radius:999px;padding:2px 9px;max-width:100%}
+  .pl-bl .pl-tk{color:var(--ok)}
+  .pl-offtag{font-weight:600;color:var(--ink-soft)}
+  /* Liens de structure : convergence « → n » / reprise « ↺ n » — défilement DANS le plan. */
+  .pl-lnk{display:inline-flex;align-items:center;gap:5px;min-height:32px;font-size:11.5px;font-weight:700;color:var(--ink-soft);background:var(--tag-bg);border:1px solid var(--line);border-radius:999px;padding:4px 11px;margin-top:6px;cursor:pointer;font-family:inherit;text-align:left}
+  .pl-lnk.loop{color:var(--link);background:var(--primary-soft);border-color:var(--primary-soft)}
+  .pl-lnk:hover{border-color:var(--primary)}
+  .pl-lnk:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .pl-end{font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--ok);margin-top:7px}
   /* ----- SVG navigable (v4.7.0) : nœuds cliquables, état PEINT par classes ----- */
   /* Hex explicites = exception SVG documentée (le SVG n'utilise pas les tokens ; en sombre,
      l'inversion globale est contrée par les règles html[data-theme="dark"] plus haut). */
@@ -2319,7 +2351,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.9.0';
+const APP_VERSION='4.10.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -2672,12 +2704,12 @@ let state={view:'library',q:'',cat:'',scope:null,draft:null,fiche:null,nav:[],na
   // à zéro par openProtocolRead, JAMAIS persistées ni exportées (le body reste la seule vérité).
   // protoTasksSrc mémorise le body lié aux index (un corps remplacé par la synchro les invalide).
   protoTasks:null,protoTasksSrc:null,
-  // Mode de lecture du mode crise : 'overview' = JOURNAL DE PARCOURS (v4.9.0, défaut) +
-  // « Suite de l'algorithme » ; 'guided' = bloc à bloc historique. Posé à l'OUVERTURE
-  // (openRead/resumeSession) depuis la préférence. ovFold = replis manuels (clé = index
-  // d'instance du journal ou 's:'+idBloc pour la suite) ; ovSuiteFold = aperçu replié.
-  // Jamais persistés (par fiche ouverte).
-  readMode:'overview',ovFold:{},ovSuiteFold:false};
+  // Mode de lecture du mode crise : 'overview' = JOURNAL DE PARCOURS (v4.9.0) + PLAN DE
+  // L'AIDE (v4.10.0, arbre indenté de la structure complète) ; 'guided' = bloc à bloc
+  // historique. Posé à l'OUVERTURE (openRead/resumeSession) depuis la préférence.
+  // ovFold = replis manuels d'instances du journal (clé = index) ; ovPlanTitles = plan en
+  // titres seuls (défaut : étapes visibles). Jamais persistés (par fiche ouverte).
+  readMode:'overview',ovFold:{},ovPlanTitles:false};
 try{if(localStorage.getItem(spaceKey('ac-section'))==='protocols')state.section='protocols';}catch(e){}
 /* Préférence du mode de lecture (v4.6.0) — par utilisateur (spaceKey local), synchronisée via
    data.prefs.readMode. La synchro ne fait qu'ÉCRIRE la préférence locale : elle ne bascule JAMAIS
@@ -3505,8 +3537,73 @@ function instComplete(f,nav,navSeq,checked,idx){
   if(b.type==='decision')return (b.options||[]).some(o=>o&&o.target&&o.target===nav[idx+1]);
   const steps=clean(b.steps);const seq=(navSeq&&navSeq[idx])||1;
   return steps.every((s,i)=>!!(checked&&checked[seq+':'+b.id+':'+i]));}
-// État AFFICHABLE de chaque bloc (ordre flowOrder) — source unique des chips/minimap (v4.8.0)
-// et de la peinture du SVG (v4.7.0). seq=0 : bloc jamais visité
+/* ----- PLAN DE L'AIDE (v4.10.0) : l'algorithme ENTIER en arbre indenté -----
+   Mise en page des algorithmes papier / checklists conditionnelles QRH : DFS depuis le départ,
+   les branches d'une décision s'indentent sous leur option, et le TRONC reprend au POINT DE
+   CONVERGENCE (post-dominateur immédiat : le bloc où toutes les branches retombent — ex.
+   « Suivi post-critique » d'une anaphylaxie). Cible déjà décrite plus haut = lien
+   « ↺ reprendre à n » : les BOUCLES deviennent une structure lisible (ex. cycles 2 min d'un
+   ACR). Sortie : {items, order} — items = [{k:'block',id,depth} | {k:'bropen',dec,oi,label,
+   tgt,depth} | {k:'brclose'} | {k:'link',to,depth,back} | {k:'end',depth}] ; `order` = ordre
+   de LECTURE du plan, devenu la NUMÉROTATION COMMUNE (plan, journal, chips, rail, SVG-état).
+   Cache par OBJET fiche (jamais utilisé par l'éditeur, qui mute son brouillon en place). */
+const _planCache=new WeakMap();
+function flowPlan(f){
+  const hit=_planCache.get(f);if(hit)return hit;
+  const blocks=(f&&f.blocks)||[];const byId={};blocks.forEach(b=>{if(b&&b.id&&!byId[b.id])byId[b.id]=b;});
+  const items=[],order=[];const out={items,order};
+  if(!blocks.length){_planCache.set(f,out);return out;}
+  const X='#exit';   // sentinelle : les ids de blocs (SAFE_ID) ne contiennent jamais '#'
+  const ids=blocks.map(b=>b&&b.id).filter(id=>id&&byId[id]);
+  const succ=id=>{const b=byId[id];
+    if(b.type==='decision'){const t=(b.options||[]).map(o=>(o&&o.target&&byId[o.target])?o.target:X);return t.length?t:[X];}
+    return [(b.next&&byId[b.next])?b.next:X];};
+  // Post-dominateurs (itératif, graphes minuscules) : pdom[n] = {n} ∪ ∩ pdom(successeurs).
+  const pdom={};pdom[X]=new Set([X]);
+  ids.forEach(id=>{pdom[id]=new Set(ids.concat(X));});
+  let moved=true;
+  while(moved){moved=false;
+    ids.forEach(id=>{let inter=null;
+      succ(id).forEach(s=>{const ps=pdom[s];
+        inter=inter===null?new Set(ps):new Set([...inter].filter(x=>ps.has(x)));});
+      inter.add(id);
+      if(inter.size!==pdom[id].size){pdom[id]=inter;moved=true;}});}
+  // ipdom = le post-dominateur le plus PROCHE (propriété de chaîne : son pdom == pdom(n)\{n}).
+  const ipdom=id=>{const S=[...pdom[id]].filter(x=>x!==id);
+    let best=null;S.forEach(p=>{if(pdom[p]&&pdom[p].size===S.length)best=p;});
+    return best;};
+  const rendered=new Set();
+  const chain=(id,stop,depth)=>{let cur=id;
+    while(cur&&cur!==stop&&cur!==X){
+      if(rendered.has(cur)){items.push({k:'link',to:cur,depth,back:true});return;}
+      const b=byId[cur];if(!b)return;
+      rendered.add(cur);order.push(cur);
+      items.push({k:'block',id:cur,depth});
+      if(b.type==='decision'){
+        let join=ipdom(cur);if(join===X)join=null;
+        if(join&&rendered.has(join))join=null;   // convergence déjà décrite -> les branches lieront en ↺
+        (b.options||[]).forEach((o,oi)=>{
+          const tgt=(o&&o.target&&byId[o.target])?o.target:null;
+          items.push({k:'bropen',dec:cur,oi,label:(o&&o.label)||('Option '+(oi+1)),tgt,depth:depth+1});
+          if(!tgt)items.push({k:'end',depth:depth+1});
+          else if(tgt===join)items.push({k:'link',to:join,depth:depth+1,back:false});
+          else if(rendered.has(tgt))items.push({k:'link',to:tgt,depth:depth+1,back:true});
+          else chain(tgt,join,depth+1);
+          items.push({k:'brclose'});});
+        // Le tronc reprend au point de convergence — sauf s'il est déjà la butée du niveau
+        // ENGLOBANT (chaque branche vient d'y lier : un lien de plus serait du bruit).
+        if(join&&join!==stop){cur=join;continue;}
+        return;}
+      const nx=(b.next&&byId[b.next])?b.next:null;
+      if(!nx){items.push({k:'end',depth});return;}
+      cur=nx;}
+    // Branche qui atteint le point de convergence : lien explicite « → n » (le tronc le décrit).
+    if(cur===stop&&stop&&stop!==X)items.push({k:'link',to:stop,depth,back:rendered.has(stop)&&order.indexOf(stop)>=0});};
+  chain((f.start&&byId[f.start])?f.start:blocks[0].id,null,0);
+  blocks.forEach(b=>{if(b&&b.id&&byId[b.id]&&!rendered.has(b.id))chain(b.id,null,0);});
+  _planCache.set(f,out);return out;}
+// État AFFICHABLE de chaque bloc (ordre du PLAN — numérotation commune) — source unique des
+// chips/minimap (v4.8.0) et de la peinture du SVG (v4.7.0). seq=0 : bloc jamais visité
 // (sentinelle — les vrais seq commencent à 1 ; cocher déclenche alors l'EXTENSION DE VISITE).
 function minimapData(f,nav,navSeq,checked,navPos){const blocks=(f&&f.blocks)||[];
   const byId={};blocks.forEach(b=>{if(b&&b.id&&!byId[b.id])byId[b.id]=b;});
@@ -3514,7 +3611,7 @@ function minimapData(f,nav,navSeq,checked,navPos){const blocks=(f&&f.blocks)||[]
   const len=(nav||[]).length;
   const np=Math.max(0,Math.min(navPos==null?len-1:navPos,len-1));
   const curId=nav&&nav[np];
-  return flowOrder(f).map((id,i)=>{const b=byId[id];const lp=latestPass(nav,navSeq,id);
+  return flowPlan(f).order.map((id,i)=>{const b=byId[id];const lp=latestPass(nav,navSeq,id);
     const dec=b.type==='decision';
     const steps=dec?[]:clean(b.steps);
     const seq=lp?lp.seq:0;
@@ -4140,7 +4237,7 @@ bindModalDismiss(document.getElementById('endSessModal'),()=>_endSessClose(false
 async function endCurrentSession(){if(!Runtime.started)return;if(!await confirmEndSession(Runtime))return;const f=Runtime.fiche;endSession(Runtime);freshRuntime(f,null);state.fiche=null;state.view='library';render();}
 // Reprendre une session de l'historique (ou vive) : recharge dans un runtime, la réactive (vive) et
 // ouvre la fiche. Si une session vive existe déjà pour cette fiche, on la rouvre telle quelle.
-function resumeSession(id){const s=sessions.find(x=>x.id===id);if(!s)return;const f=fiches.find(x=>x.id===s.ficheId);if(!f){toast('⚠ Fiche introuvable.');return;}flowScroll={left:null,top:0};state.readMode=currentReadMode();state.ovFold={};state.ovSuiteFold=false;
+function resumeSession(id){const s=sessions.find(x=>x.id===id);if(!s)return;const f=fiches.find(x=>x.id===s.ficheId);if(!f){toast('⚠ Fiche introuvable.');return;}flowScroll={left:null,top:0};state.readMode=currentReadMode();state.ovFold={};state.ovPlanTitles=false;
   if(liveSessions[f.id]&&liveSessions[f.id].sessionId===id){Runtime=liveSessions[f.id];}
   else{Runtime=buildRuntime(f,s);Runtime.started=true;Runtime.startedAt=s.startedAt||Date.now();liveSessions[f.id]=Runtime;persistLive(Runtime,true);}
   Runtime.fiche=f;bindStateToRuntime();state.fiche=f;state.showFlow=false;state.showSess=false;state.view='read';render();}
@@ -5940,26 +6037,23 @@ function bindNavEvents(f,blk){
    RENDU suivant un geste de navigation — jamais sous le doigt pendant le cochage) ; une
    instance incomplète reste dépliée (elle appelle l'action) ; une décision repliée garde sa
    réponse en toutes lettres (→ option). Le journal n'a PAS de curseur : la position est le
-   BOUT (state.navPos = fin, la vue guidée garde son curseur). Sous le journal, la « SUITE DE
-   L'ALGORITHME » (blocs jamais visités, ordre flowOrder, DÉPLIÉE par défaut — décision
-   utilisateur : tout l'algorithme lisible d'emblée) : y cocher = EXTENSION DE VISITE (la carte
-   entre au bout du journal, re-rendu ANCRÉ sur la case tapée), branche écartée « hors chemin »
-   grisée mais jamais verrouillée. Cases neuves à CHAQUE passage (sémantique inchangée) ;
-   « ↺ Refaire » poste volontairement une nouvelle carte. Écouteurs DÉLÉGUÉS sur .ov-wrap. */
+   BOUT (state.navPos = fin, la vue guidée garde son curseur). Sous le journal, le « PLAN DE
+   L'AIDE » (v4.10.0, ovPlanHtml) : la STRUCTURE complète en arbre indenté — IMMUABLE et
+   INERTE côté cochage (leçon v4.6 : jamais d'état de passage sur une vue spatiale) ; taper un
+   bloc = y ALLER (jumpToBlock : visité → défilement vers sa dernière carte, jamais visité →
+   il entre au bout du journal) ; état LÉGER peint dessus (✓ dernier passage complet, ● ici,
+   ×n passages, branche hors chemin estompée). Cases neuves à CHAQUE passage (sémantique
+   inchangée) ; « ↺ Refaire » poste volontairement une nouvelle carte. DÉLÉGATION sur .ov-wrap. */
 function overviewSection(f){
   state.navPos=state.nav.length-1;   // le journal n'a pas de curseur : la position EST le bout
   const cur=state.nav[state.navPos];
   const blk=f.blocks.find(b=>b.id===cur)||f.blocks.find(b=>b.id===f.start)||f.blocks[0];
-  const topo={};flowOrder(f).forEach((id,i)=>{topo[id]=i+1;});
+  const topo={};flowPlan(f).order.forEach((id,i)=>{topo[id]=i+1;});   // numérotation commune = ordre du plan
   const insts=state.nav.map((id,i)=>ovInstHtml(f,id,i,topo)).join('');
   const endH=state.flowEnded?'<div class="flow-end">Algorithme terminé — surveillance en cours</div>':'';
   const controls=`<div class="ov-controls"><button type="button" class="btn sm btn-hold" id="ovReset" title="Maintenir pour recommencer (repart du début — ne touche ni au chrono ni aux minuteurs ; le compte-rendu garde tout)"><span class="tmr-lab">${uiIcon('undo',13)} Recommencer</span><span class="tmr-hint">maintenir</span></button></div>`;
-  const seen={};state.nav.forEach(id=>{seen[id]=true;});
-  const rest=flowOrder(f).filter(id=>!seen[id]);
-  const off=offPathSet(f,state.nav,state.navPos);
-  const suite=rest.length?`<div class="ov-suite-h"><span class="ovs-t">Suite de l'algorithme</span><span class="ovs-sub">· ${rest.length} bloc${rest.length>1?'s':''} — aperçu, tapez pour commencer</span><button type="button" class="ovs-tgl" id="ovSuiteTgl" aria-expanded="${state.ovSuiteFold?'false':'true'}">${state.ovSuiteFold?'▾ déplier':'▴ replier'}</button></div>${state.ovSuiteFold?'':rest.map(id=>ovSuiteHtml(f,id,topo,off)).join('')}`:'';
-  const secH=rest.length?`<div class="ov-sec-h">Parcours</div>`:'';
-  const inner=controls+secH+`<div class="ov-journal">${insts}${endH}</div>`+suite;
+  const secH=`<div class="ov-sec-h">Parcours</div>`;
+  const inner=controls+secH+`<div class="ov-journal">${insts}${endH}</div>`+ovPlanHtml(f);
   // Compteur du panneau Algorithme : l'instance du BOUT (là où l'on agit).
   const tipDone=(()=>{const b=f.blocks.find(x=>x.id===cur);if(!b||b.type==='decision')return {d:null,t:null};
     const steps=clean(b.steps);const seq=state.navSeq[state.navPos]||1;
@@ -6006,25 +6100,35 @@ function ovInstHtml(f,id,idx,topo){
   const takenH=taken?`<span class="ov-ans">→ ${esc(stripBold(taken.label)||'option')}</span>`:'';
   const redo=(!tip&&complete&&!dec)?`<button type="button" class="ov-redo" data-ovredo="${esc(id)}" title="Refaire ce bloc : nouvelle carte au bout du journal — celle-ci reste telle quelle">↺ Refaire</button>`:'';
   return `<section class="ov-block${tip?' cur':''}${complete?' done':''}${dec?' dec':''}${closed?' closed':''}" data-ovb="${esc(id)}" data-ovi="${idx}" data-ovn="${topo[id]||''}"${tip?' aria-current="step"':''}><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="${idx}" aria-expanded="${closed?'false':'true'}"><span class="ov-n" aria-hidden="true">${complete?uiIcon('check',13,{sw:3.2,cls:''}):(topo[id]||'·')}</span><span class="ov-t">${esc(b.title)||(dec?'Décision':'Étapes')}${passTag}${takenH} <span class="ov-here">Vous êtes ici</span></span><span class="ov-c">${count}</span><span class="ov-chev" aria-hidden="true">${closed?'▾':'▴'}</span></button>${redo}</div><div class="ov-body">${bodyH}</div></section>`;}
-// Un bloc de la SUITE (jamais visité) : aperçu COMPLET et actif — cocher une étape ou répondre
-// à une décision fait ENTRER le bloc dans le journal ; « Commencer ici → » y entre sans cocher.
-function ovSuiteHtml(f,id,topo,off){
-  const b=f.blocks.find(x=>x.id===id);if(!b)return '';
-  const dec=b.type==='decision';
-  const isOff=off.has(id);
-  const closed=state.ovFold['s:'+id]===true;
-  const imgH=b.image?`<img class="node-img" loading="lazy" decoding="async" src="${b.image}" data-full="${b.image}"${b.imageW&&b.imageH?` width="${b.imageW}" height="${b.imageH}"`:''} alt="">`:'';
-  let bodyH='',count='';
-  if(dec){
-    const opts=(b.options||[]).map((o,i)=>`<button type="button" class="opt" data-ovopt="${esc(o.target||'')}"><span class="ftxt">${fmt(o.label)||'Option '+(i+1)}</span><span class="arr">${uiIcon('chev',18,{sw:2.4,cls:''})}</span></button>`).join('');
-    bodyH=`${imgH}<div class="question">${fmt(b.question)||'…'}</div><div class="options">${opts}</div>`;
-    count='?';}
-  else{
-    const steps=clean(b.steps);
-    const lis=steps.map((s,i)=>{const k='0:'+id+':'+i;return `<li data-ck="${k}" class="${stepIsCrit(s)?'crit ':(stepIsVigil(s)?'vigil ':'')}" role="checkbox" aria-checked="false" tabindex="0"><span class="box"></span><span class="txt">${fmt(stepText(s))}</span></li>`;}).join('');
-    bodyH=`${imgH}<ol class="steps">${lis}</ol>`;
-    count=steps.length?'0/'+steps.length:'—';}
-  return `<section class="ov-block ovs${isOff?' off':''}${dec?' dec':''}${closed?' closed':''}" data-ovb="${esc(id)}" data-ovn="${topo[id]||''}"><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="s:${esc(id)}" aria-expanded="${closed?'false':'true'}"><span class="ov-n" aria-hidden="true">${topo[id]||'·'}</span><span class="ov-t">${esc(b.title)||(dec?'Décision':'Étapes')}<span class="ov-offtag">· hors chemin</span></span><span class="ov-c">${count}</span><span class="ov-chev" aria-hidden="true">${closed?'▾':'▴'}</span></button><button type="button" class="ov-redo" data-oventer="${esc(id)}" title="Entrer dans ce bloc (nouvelle carte au bout du journal)">Commencer ici →</button></div><div class="ov-body">${bodyH}</div></section>`;}
+// PLAN DE L'AIDE (v4.10.0) : rendu de flowPlan — arbre indenté de la structure COMPLÈTE,
+// façon algorithme papier. Le plan est INERTE côté cochage (pas de cases : la trace vit dans
+// le journal) et IMMUABLE dans sa forme ; il porte un état léger (✓/●/×n/hors chemin) et sert
+// à NAVIGUER : taper un bloc = y aller ; un lien « → / ↺ reprendre à » défile DANS le plan.
+function ovPlanHtml(f){
+  const plan=flowPlan(f);if(!plan.order.length)return '';
+  const num={};plan.order.forEach((id,i)=>{num[id]=i+1;});
+  const md={};minimapData(f,state.nav,state.navSeq,state.checked,state.navPos).forEach(m=>{md[m.id]=m;});
+  const off=offPathSet(f,state.nav,state.navPos);
+  const titles=!!state.ovPlanTitles;
+  let h='';
+  plan.items.forEach(it=>{
+    if(it.k==='bropen'){const isOff=it.tgt?off.has(it.tgt):false;
+      const dm=md[it.dec];const tk=!!(dm&&dm.taken&&it.tgt&&dm.taken===it.tgt);
+      h+=`<div class="pl-br${isOff?' off':''}"><span class="pl-bl">${tk?'<span class="pl-tk">✓ </span>':''}${fmt(it.label)}${isOff?'<span class="pl-offtag"> · hors chemin</span>':''}</span>`;return;}
+    if(it.k==='brclose'){h+='</div>';return;}
+    if(it.k==='link'){const t=f.blocks.find(x=>x.id===it.to);
+      h+=`<div><button type="button" class="pl-lnk${it.back?' loop':''}" data-plref="${esc(it.to)}">${it.back?'↺ reprendre à':'→'} ${num[it.to]||'?'} · ${esc((t&&t.title)||'?')}</button></div>`;return;}
+    if(it.k==='end'){h+='<div class="pl-end">▪ fin de l’algorithme</div>';return;}
+    if(it.k!=='block')return;
+    const b=f.blocks.find(x=>x.id===it.id);if(!b)return;
+    const dec=b.type==='decision';const m=md[it.id]||{};
+    const steps=dec?[]:clean(b.steps);
+    const detH=titles?'':(dec?(b.question?`<div class="pl-q">${fmt(b.question)}</div>`:'')
+      :(steps.length?`<ul class="pl-stp">${steps.map(s=>`<li class="${stepIsCrit(s)?'crit':(stepIsVigil(s)?'vig':'')}">${fmt(stepText(s))}</li>`).join('')}</ul>`:''));
+    const passB=(m.total||0)>1?`<span class="pl-x">×${m.total}</span>`:'';
+    const meta=dec?(m.complete?'✓':'?'):(steps.length?((m.done||0)+'/'+steps.length):'—');
+    h+=`<div class="pl-nd${dec?' dec':''}${m.complete?' done':''}${m.cur?' cur':''}${off.has(it.id)?' off':''}" data-plgo="${esc(it.id)}" role="button" tabindex="0" aria-label="${esc(stripBold(b.title||''))} — aller à ce bloc"><span class="pl-nn" aria-hidden="true">${m.complete?uiIcon('check',12,{sw:3.2,cls:''}):(num[it.id]||'·')}</span><div class="pl-nt">${esc(b.title)||(dec?'Décision':'Étapes')}${passB}${m.cur?'<span class="pl-here">ici</span>':''}${detH}</div><span class="pl-nm">${meta}</span></div>`;});
+  return `<div class="ov-plan-h"><span class="ovs-t">Plan de l’aide</span><span class="ovs-sub">· structure complète — taper un bloc = y aller</span><button type="button" class="ovs-tgl" id="ovPlanD" aria-pressed="${titles?'true':'false'}">${titles?'Afficher les étapes':'Titres seuls'}</button></div><div class="ov-plan">${h}</div>`;}
 // Peinture VIVANTE hors journal (le journal, lui, ne se réécrit qu'aux gestes de navigation) :
 // halo/✓/hors-chemin du SVG + chips/minimap — appelée après chaque coche et chaque navigation.
 function ovPaintLive(f){
@@ -6051,22 +6155,11 @@ function renderOvOnlyKeepAnchor(sel,kb){
   const d=nl.getBoundingClientRect().top-top;if(d)window.scrollBy(0,d);
   if(kb)nl.focus();}
 // Cochage dans le journal : chirurgie pure (toggle DOM, jamais de render() sous le doigt).
-// Cochage dans la SUITE (sentinelle seq=0) : EXTENSION DE VISITE posée AVANT ensureStarted
-// (clé définitive), puis re-rendu ANCRÉ — la carte entre au bout du journal sans bouger à l'écran.
+// (v4.10.0 : le cochage ne vit QUE dans le journal — le plan est inerte ; entrer dans un bloc
+// jamais visité passe par un tap sur son nœud du plan, jumpToBlock.)
 function ovToggleStep(f,li,kb){
-  let k=li.dataset.ck;
-  const sec=li.closest('.ov-block');const id=sec.dataset.ovb;
-  if(k.indexOf('0:')===0){
-    state.nav.push(id);state.navSeq.push(++Runtime.seq);
-    const seq=Runtime.seq;
-    sec.querySelectorAll('[data-ck]').forEach(x=>{x.dataset.ck=seq+x.dataset.ck.slice(1);});
-    k=li.dataset.ck;
-    state.checked[k]=true;
-    state.navPos=state.nav.length-1;
-    const justStarted=ensureStarted();persistLive(Runtime);
-    if(justStarted){renderKeepAnchor('[data-ck="'+CSS.escape(k)+'"]');if(kb){const nl=main.querySelector('[data-ck="'+CSS.escape(k)+'"]');if(nl)nl.focus();}return;}
-    renderOvOnlyKeepAnchor('[data-ck="'+CSS.escape(k)+'"]',kb);
-    return;}
+  const k=li.dataset.ck;
+  const sec=li.closest('.ov-block');
   const on=!state.checked[k];state.checked[k]=on;
   const justStarted=ensureStarted();persistLive(Runtime);
   if(justStarted){renderKeepAnchor('[data-ck="'+CSS.escape(k)+'"]');if(kb){const nl=main.querySelector('[data-ck="'+CSS.escape(k)+'"]');if(nl)nl.focus();}return;}
@@ -6127,7 +6220,12 @@ function bindOverviewEvents(f){
   const handle=(t,kb)=>{
     const st=t.closest('[data-ck]');if(st){ovToggleStep(f,st,kb);return;}
     const rd=t.closest('[data-ovredo]');if(rd){ovNewPass(f,rd.dataset.ovredo);return;}
-    const en2=t.closest('[data-oventer]');if(en2){ovNewPass(f,en2.dataset.oventer);return;}
+    // PLAN (v4.10.0) : nœud = y aller ; lien →/↺ = défilement DANS le plan ; bascule densité.
+    const pg=t.closest('[data-plgo]');if(pg){jumpToBlock(f,pg.dataset.plgo);return;}
+    const pr=t.closest('[data-plref]');
+    if(pr){const el=main.querySelector('.pl-nd[data-plgo="'+CSS.escape(pr.dataset.plref)+'"]');
+      if(el){ovScrollEl(el);el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),900);}return;}
+    if(t.closest('#ovPlanD')){state.ovPlanTitles=!state.ovPlanTitles;renderOvOnly();return;}
     const nx=t.closest('[data-ovnext]');
     if(nx){if(nx.getAttribute('aria-disabled')==='true')return;   // le libellé dit pourquoi (ECAM)
       // REPLI DIFFÉRÉ de l'étape ① : même doctrine que le « Continuer » guidé (v4.4.2) —
@@ -6145,11 +6243,10 @@ function bindOverviewEvents(f){
     const op=t.closest('[data-ovopt]');if(op){ovAnswer(f,op);return;}
     const en=t.closest('[data-ovend]');
     if(en){if(en.getAttribute('aria-disabled')==='true')return;   // le libellé dit pourquoi (ECAM)
-      state.flowEnded=true;render();return;}   // les étapes ②/③ du rail changent -> rendu complet
-    if(t.closest('#ovSuiteTgl')){state.ovSuiteFold=!state.ovSuiteFold;renderOvOnly();}};
+      state.flowEnded=true;render();return;}};   // les étapes ②/③ du rail changent -> rendu complet
   wrap.onclick=e=>handle(e.target,false);
   wrap.onkeydown=e=>{if(e.key!=='Enter'&&e.key!==' ')return;
-    const t=e.target.closest('[data-ck]');if(!t)return;e.preventDefault();handle(t,true);};
+    const t=e.target.closest('[data-ck],[data-plgo]');if(!t)return;e.preventDefault();handle(t,true);};
   const rs=wrap.querySelector('#ovReset');
   if(rs)holdToReset(rs,()=>{state.nav.length=0;state.navSeq.length=0;state.nav.push(f.start);state.navSeq.push(++Runtime.seq);state.navPos=0;state.ovFold={};if(Runtime.started)persistLive(Runtime);renderOvOnly();});}
 /* Re-rendu CIBLÉ de la vue d'ensemble (pendant de renderNavOnly) : reconstruit l'INTÉRIEUR de
@@ -6367,7 +6464,7 @@ function openDraftPreview(){state.previewFrom='edit';
   // session vive d'une AUTRE fiche ne doit jamais recevoir les coches ou le chemin d'un brouillon
   // (openRead/resumeSession relient state au Runtime à la prochaine vraie ouverture).
   state.checked={};state.nav=[state.fiche.start||(((state.fiche.blocks||[])[0]||{}).id)];state.navSeq=[++Runtime.seq];state.navPos=0;
-  state.readMode=currentReadMode();state.ovFold={};state.ovSuiteFold=false;state.flowEnded=false;state.confOpen=undefined;
+  state.readMode=currentReadMode();state.ovFold={};state.ovPlanTitles=false;state.flowEnded=false;state.confOpen=undefined;
   state.view='read';render();}
 function openPDraftPreview(){state.previewFrom='protocolEdit';
   state.protocol=migrateProtocol(JSON.parse(JSON.stringify(state.pdraft)));state.view='protocolRead';render();}
@@ -6627,7 +6724,7 @@ setInterval(()=>{const k=_editKind();if(!k){_lastParked=null;return;}
 // Ouvre une fiche en lecture. Si une SESSION VIVE existe pour cette fiche, on la rouvre telle quelle
 // (minuteurs toujours en cours). Sinon on garde le runtime transitoire de cette même fiche (s'il n'a
 // pas démarré), sinon on en crée un neuf.
-function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;bumpUsage(id);flowScroll={left:null,top:0};state.rtOpen=false;state.noteEdit=false;state.confOpen=undefined;state.previewFrom=null;state.flowEnded=false;state.readMode=currentReadMode();state.ovFold={};state.ovSuiteFold=false;
+function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;bumpUsage(id);flowScroll={left:null,top:0};state.rtOpen=false;state.noteEdit=false;state.confOpen=undefined;state.previewFrom=null;state.flowEnded=false;state.readMode=currentReadMode();state.ovFold={};state.ovPlanTitles=false;
   if(liveSessions[id]){Runtime=liveSessions[id];Runtime.fiche=f;}
   else if(!(Runtime.fiche&&Runtime.ficheId===id&&!Runtime.started)){Runtime=buildRuntime(f,null);}
   // Algorithme REPLIÉ à l'ouverture : la 1ʳᵉ étape actionnable doit arriver le plus haut possible
@@ -8085,12 +8182,12 @@ function exportPdfCurrent(){window.print();}
 // on le déplie le temps de l'impression, puis on restaure l'état exact (audit v4.5).
 let _printSaved=null;
 window.addEventListener('beforeprint',()=>{if(state.view!=='read'||!state.fiche)return;
-  _printSaved={confOpen:state.confOpen,showFlow:state.showFlow,readMode:state.readMode};
-  // v4.6.0 : la VUE D'ENSEMBLE est le format imprimé (tous les blocs, dans l'ordre) ; les blocs
+  _printSaved={confOpen:state.confOpen,showFlow:state.showFlow,readMode:state.readMode,ovPlanTitles:state.ovPlanTitles};
+  // La vue d'ensemble (journal + PLAN complet avec étapes) est le format imprimé ; les blocs
   // repliés sont rouverts par CSS @media print — aucun état de repli à toucher.
-  state.confOpen=true;state.showFlow=true;if(hasFlow(state.fiche))state.readMode='overview';render();});
+  state.confOpen=true;state.showFlow=true;state.ovPlanTitles=false;if(hasFlow(state.fiche))state.readMode='overview';render();});
 window.addEventListener('afterprint',()=>{if(!_printSaved)return;
-  state.confOpen=_printSaved.confOpen;state.showFlow=_printSaved.showFlow;state.readMode=_printSaved.readMode||state.readMode;_printSaved=null;
+  state.confOpen=_printSaved.confOpen;state.showFlow=_printSaved.showFlow;state.readMode=_printSaved.readMode||state.readMode;state.ovPlanTitles=!!_printSaved.ovPlanTitles;_printSaved=null;
   if(state.view==='read'&&state.fiche)render();});
 // Taille du texte : zoom CSS sur <html> (agrandit AUSSI les cibles tactiles, pas seulement la
 // police). Préférence par appareil. Cycle 100/110/125 % — suffisant sans casser la mise en page.
@@ -9011,7 +9108,7 @@ if(location.search.indexOf('__actest')>=0){
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
     restErrStatus,isPersoRepairCandidate,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,
     qTerms,hayMatch,markQTerms,searchSnippet,ficheSnipParts,protoSnipParts,frecencyScore,sanitizeUsage,mergeUsage,
-    crc32,zipBuild,zipParse,isPdfBytes,mdTask,flowOrder,latestPass,offPathSet,minimapData,passInfo,instComplete};
+    crc32,zipBuild,zipParse,isPdfBytes,mdTask,flowOrder,latestPass,offPathSet,minimapData,passInfo,instComplete,flowPlan};
 }else{
   /* ===== PWA =====
      Enregistre le service worker (cache hors ligne) si disponible. Capte

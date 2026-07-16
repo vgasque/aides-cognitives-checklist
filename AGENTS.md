@@ -122,15 +122,28 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   options restent actives partout (changer d'avis = nouveau passage décision+cible en bout de
   journal, traçabilité complète) ; l'avancement (« Continuer — … → » / « Terminer ») n'existe
   QUE sur l'instance du bout — une boucle est un simple Continuer ; « ↺ Refaire » poste
-  volontairement une nouvelle carte, tout ce qui précède reste tel quel. Sous le journal, la
-  « SUITE DE L'ALGORITHME » (blocs jamais visités, ordre `flowOrder`, DÉPLIÉE par défaut —
-  tout l'algorithme lisible d'emblée) : y cocher = EXTENSION DE VISITE (sentinelle `seq=0`,
-  `nav.push` AVANT `ensureStarted`, re-rendu ANCRÉ `renderOvOnlyKeepAnchor` — la carte entre
-  au bout du journal sans bouger sous le doigt) ; branche écartée « hors chemin »
-  (`offPathSet`) grisée mais jamais verrouillée (mention textuelle). Cocher dans une instance
-  ne re-rend JAMAIS (délégation sur `.ov-wrap`, chirurgie `ovAfterCheck`/`ovPaintLive` ;
+  volontairement une nouvelle carte, tout ce qui précède reste tel quel. Cocher dans une
+  instance ne re-rend JAMAIS (délégation sur `.ov-wrap`, chirurgie `ovAfterCheck`/`ovPaintLive` ;
   `renderOvOnly` = pendant de `renderNavOnly`, qui dispatche). Fonctions pures : `passInfo`
   (rang du passage), `instComplete` ; `minimapData` = source UNIQUE de l'état PAR BLOC.
+- **Plan de l'aide (v4.10.0, remplace la « Suite de l'algorithme » plate)** : sous le journal,
+  la STRUCTURE COMPLÈTE en ARBRE INDENTÉ façon algorithme papier / checklist conditionnelle
+  QRH — `flowPlan(f)` (pure, cache WeakMap par objet fiche, jamais l'éditeur) : DFS depuis le
+  départ, branches d'une décision indentées sous leur option (`.pl-br` + chip `.pl-bl`), le
+  TRONC reprend au POINT DE CONVERGENCE (post-dominateur immédiat — itératif, graphes
+  minuscules), cible déjà décrite = lien « ↺ reprendre à n » (les BOUCLES deviennent une
+  structure lisible, ex. cycles 2 min d'un ACR), chaque bloc n'apparaît qu'UNE fois.
+  `flowPlan().order` = NUMÉROTATION COMMUNE (plan, journal, chips, rail — `minimapData` la
+  suit). Le plan est IMMUABLE et INERTE côté cochage (leçon v4.6 : jamais d'état de passage
+  sur une vue spatiale — pas de cases, la trace vit dans le journal) ; il porte un état LÉGER
+  (✓ dernier passage complet, ● ici, ×n passages, branche « hors chemin » estompée avec
+  mention textuelle, `offPathSet`) et sert à NAVIGUER : taper un bloc = `jumpToBlock` (visité →
+  défilement vers sa dernière carte du journal ; jamais visité → il ENTRE au bout du journal) ;
+  un lien →/↺ défile DANS le plan. Étapes visibles par défaut (décision utilisateur), bascule
+  « Titres seuls » (`state.ovPlanTitles`, jamais persisté) ; l'impression force les étapes
+  visibles. Registres : chips d'option au registre ATTENTION (`--verify`, comme `.opt`) ;
+  liens neutres (`--tag-bg`), reprise `↺` en `--primary-soft` ; nœuds = même grammaire que
+  les cartes (liseré bleu = ici, vert = fait, ambre = décision).
   **Minimap (v4.8.0)** : bande de chips-blocs `#ovChips` STATIQUE dans l'en-tête sous
   `#crisisBand` (< 1000 px ; délégation posée UNE fois, contenu peint par `paintMinimaps` —
   masquée/vidée hors lecture par `applyViewChrome`) + panneau `#ovMap` du rail droit
@@ -338,7 +351,7 @@ modèle de données, règles de sécurité) : le lire en premier. Ensuite, dans 
 | Load | `chooseBackend`, `load()` (démarrage), `persist`, `softDelete` |
 | Runtime | minuteurs/compteurs/audio (`tickAll`, `beep`), sessions vives (`liveSessions`) |
 | Sessions | auto-enregistrement (`persistLive`), reprise, compte-rendu |
-| Render | `render()` → `applyViewChrome` (chrome d'en-tête) puis `renderFiches`/`renderProtocols` / `renderRead` / `renderEditor` (template strings + écouteurs) ; en lecture de fiche, `overviewSection` (JOURNAL de parcours + suite, défaut) ou `navSection` (vue guidée), re-rendus ciblés `renderOvOnly`/`renderNavOnly` |
+| Render | `render()` → `applyViewChrome` (chrome d'en-tête) puis `renderFiches`/`renderProtocols` / `renderRead` / `renderEditor` (template strings + écouteurs) ; en lecture de fiche, `overviewSection` (JOURNAL de parcours + PLAN de l'aide, défaut) ou `navSection` (vue guidée), re-rendus ciblés `renderOvOnly`/`renderNavOnly` |
 | Flow SVG | `buildFlowSVG(f,cache)` : organigramme auto — géométrie PURE sans état (v4.7.0) ; l'état de session est PEINT par classes après insertion (`flowPaintState` : `fn-cur`/`fn-ok`/`fn-off`, halo et badge ✓ bakés masqués) et les nœuds sont NAVIGABLES en lecture (`bindSvgNav` → `jumpToBlock` — jamais de cochage dans le SVG, jamais de démarrage de session ; inerte dans l'éditeur) |
 | Visionneuse PDF | `pdfLib` (chargement paresseux de `vendor/pdfjs`), `openPdfViewer` (rendu virtualisé par IntersectionObserver ; zoom d'OUVERTURE = « page entière » calculé d'après le ratio du document et la fenêtre, `pdfFitPageZ`, bornes 25–400 %, boutons « Page »/« Largeur »), fenêtre `#pdfModal` ; miniatures de la 1ʳᵉ page dans les listes « Documents » (`attThumbHtml`/`genAttThumb` : paresseuses, une à la fois, cache mémoire de session — jamais de chargement de pdf.js au démarrage) ; badge « △ à télécharger » si le binaire n'est pas encore sur l'appareil (`hydrateAttThumbs`/`refreshAttRow` — état décidé sur la lecture IndexedDB, rafraîchi en direct par le téléchargement de fond de la synchro) |
 | Mini-Markdown | `mdBlocks`/`mdInline`/`mdRender`/`mdStrip`/`mdCells`/`mdCallout`/`mdTask` : parseur maison XSS-safe (esc() d'abord) du contenu rédigé des protocoles — titres, listes, citation, code, image, TABLEAUX (v4.4.2), ENCADRÉS TYPÉS et `==surligné==` (v4.4.3), LISTES COCHABLES `- [ ]` (v4.5.4). Registre et alignement viennent toujours d'un jeu FERMÉ posé en CLASSE, jamais d'un attribut piloté par l'utilisateur |

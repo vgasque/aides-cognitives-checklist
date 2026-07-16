@@ -1,5 +1,30 @@
 # Journal des modifications
 
+## [4.10.0] — 2026-07-16
+La **structure globale** de l'aide devient enfin visible : sous le parcours, le nouveau
+**Plan de l'aide** affiche tout l'algorithme en arbre indenté, comme sur un algorithme papier —
+retour d'usage sur les fiches à décisions enchaînées (anaphylaxie enfant, ACR), où la liste
+plate « Suite de l'algorithme » ne montrait pas qui mène où.
+
+### Ajouté
+- **Plan de l'aide** (remplace la « Suite de l'algorithme ») : l'algorithme complet en arbre —
+  les branches d'une décision s'indentent sous leur option (« Oui », « Non — digestifs
+  isolés »), le tronc reprend au **point de convergence** (calculé automatiquement : sur une
+  anaphylaxie, toutes les branches retombent sur « Suivi post-critique », qui s'affiche donc
+  au niveau racine), et une boucle est une flèche explicite « ↺ reprendre à n » — la boucle
+  des cycles de 2 minutes d'un ACR devient une structure lisible. Chaque bloc n'apparaît
+  qu'une fois ; étapes visibles par défaut, bascule « Titres seuls » pour la structure pure.
+- Le plan est **immuable et sans cases à cocher** (la trace vit dans le parcours) ; il porte
+  un état léger — ✓ bloc fait, ● position, ×n passages, branche écartée « hors chemin »
+  estompée — et sert à naviguer : taper un bloc = y aller (un bloc jamais visité entre au
+  bout du parcours) ; les liens → / ↺ défilent dans le plan.
+- La **numérotation des blocs est désormais commune** au plan, au parcours, aux pastilles
+  mobiles et à la minimap du rail : l'ordre de lecture du plan.
+
+### Modifié
+- L'impression inclut le plan complet avec ses étapes (structure + contenu sur papier).
+- 6 tests ajoutés (436) sur `flowPlan` (convergence, boucles, orphelins, unicité).
+
 ## [4.9.0] — 2026-07-16
 La vue d'ensemble devient un **journal de parcours** : sur les algorithmes à boucles et à
 décisions, l'ancienne présentation (chaque bloc affiché une fois, remis à neuf à chaque passage)
