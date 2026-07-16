@@ -1,5 +1,21 @@
 # Journal des modifications
 
+## [4.5.1] — 2026-07-16
+L'animation de bascule Aides ↔ Protocoles ne se rejoue plus quand un re-rendu tombe pendant
+qu'elle joue.
+
+### Corrigé
+- **Animation d'apparition rejouée plusieurs fois** à la bascule de section : un re-rendu
+  survenant pendant les 300 ms de l'animation (typiquement une synchronisation qui se termine —
+  jusqu'à trois re-rendus d'affilée : catégories, contenu, documents téléchargés) remplaçait la
+  liste en plein vol, ce qui relançait l'animation depuis zéro à chaque fois — et laissait la
+  classe d'animation posée (la fin de l'animation de l'élément détruit n'arrivait jamais), donc
+  chaque re-rendu suivant la rejouait encore. Désormais tout rendu neutralise la classe de
+  bascule : l'animation voulue joue toujours sa fois unique (elle est posée après le rendu de
+  `setSection`), et un re-rendu en plein vol pose simplement le contenu, sans rejouer
+  l'apparition. Vérifié en conditions réelles : 1 seul départ d'animation, même avec deux
+  re-rendus parasites dans la fenêtre.
+
 ## [4.5.0] — 2026-07-16
 Les documents PDF voyagent enfin avec les exports : nouveau format `.zip` « avec documents »,
 au choix à l'export, accepté à l'import — et visionneuse plus robuste face aux PDF endommagés.
