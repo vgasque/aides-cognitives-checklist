@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-o0k6CN7e1nkvHW8/Hfx/Nmc95/TV8eSXbqKOHzxFc50='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-ty88l6hTVv3/keafoSrDvsLvu28ByLyeZJY7r/JmXVg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1731,7 +1731,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      gauche, statique entre les sections, ne bouge pas. */
   main.sec-anim-l .home-main{animation:secInL .3s cubic-bezier(.25,.1,.25,1)}
   main.sec-anim-r .home-main{animation:secInR .3s cubic-bezier(.25,.1,.25,1)}
-  @media (prefers-reduced-motion:reduce){.seg-pill,.seg-btn{transition:none}main.sec-anim-l .home-main,main.sec-anim-r .home-main{animation:none}ol.steps li.done .box svg,.card .pinbtn.on svg{animation:none}}
+  @media (prefers-reduced-motion:reduce){.seg-pill,.seg-btn{transition:none}main.sec-anim-l .home-main,main.sec-anim-r .home-main{animation:none}ol.steps li.done .box svg,.card .pinbtn.on svg,li.md-task.done .md-tkbox svg{animation:none}}
   /* ----- Contenu rédigé des protocoles (mini-Markdown) : lecture + éditeur ----- */
   .md-body{line-height:1.55;font-size:15px}
   /* Titres de section du contenu rédigé : MÊME registre typographique que les en-têtes de
@@ -1751,6 +1751,25 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .md-ul,.md-ol{margin:0 0 10px;padding-left:22px}
   .md-ul li,.md-ol li{margin:3px 0}
   .md-ul .md-ul,.md-ul .md-ol,.md-ol .md-ul,.md-ol .md-ol{margin:3px 0 0;padding-left:20px}
+  /* Listes cochables (v4.5.4) : case à GAUCHE (liste de prose, position GitHub — pas la checklist
+     de crise ol.steps). Cochée = registre CONFIRMATION (--ok), texte JAMAIS barré (lecture-
+     vérification : on doit pouvoir relire). Interactif en LECTURE seulement : role=checkbox posé
+     par bindProtoTasks — dans les aperçus la case est un simple dessin. Rangée entière cliquable
+     (min-height 32px = cible tactile), coche SVG toujours présente, révélée par .done. */
+  li.md-task{list-style:none;display:flex;align-items:flex-start;gap:10px;min-height:32px;padding:5px 8px;margin:3px 0 3px -30px;border-radius:8px}
+  .md-tkbox{flex:none;width:20px;height:20px;margin-top:1px;border:2px solid var(--line-strong);border-radius:6px;display:grid;place-items:center;background:transparent;color:var(--surface)}
+  /* Case centrée sur la PREMIÈRE ligne de texte quelle que soit la taille de police du contexte
+     (lecture 15px, aperçus compacts 12.5px, préférence S/M/L/XL) : 1lh = l'interligne hérité,
+     identique à celui du texte voisin. Repli (navigateurs sans lh) = le margin-top:1px ci-dessus,
+     calibré pour la lecture — écart résiduel < 3px dans les seuls aperçus. */
+  @supports (margin-top:1lh){.md-tkbox{margin-top:calc((1lh - 20px)/2)}}
+  .md-tkbox svg{display:none}
+  li.md-task.done .md-tkbox{background:var(--ok);border-color:var(--ok)}
+  li.md-task.done .md-tkbox svg{display:block;animation:pop .25s ease}
+  li.md-task.done .md-tktxt{color:var(--done-ink)}
+  li.md-task[role="checkbox"]{cursor:pointer;touch-action:manipulation}
+  li.md-task[role="checkbox"]:hover{background:var(--surface-2)}
+  li.md-task[role="checkbox"]:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .md-q{margin:0 0 10px;padding:6px 0 6px 12px;border-left:3px solid var(--line-strong);color:var(--ink-soft)}
   /* ENCADRÉS TYPÉS (v4.4.3) : grammaire des notices V5 — bord gauche 4px + bordure + teinte du
      registre, icône ET libellé en toutes lettres (la couleur n'est jamais seule, WCAG 1.4.1).
@@ -2186,7 +2205,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.5.3';
+const APP_VERSION='4.5.4';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -2534,7 +2553,11 @@ function loadProfileCache(){const k=profileCacheKey();if(!k)return;try{const p=J
 let state={view:'library',q:'',cat:'',scope:null,draft:null,fiche:null,nav:[],navSeq:[],navPos:0,checked:{},showFlow:false,showSess:false,rtOpen:false,libLimit:LIB_PAGE,
   noteEdit:false,  // édition de la note personnelle (lecture seule par défaut en mode crise)
   section:'fiches',        // page d'accueil : 'fiches' (aides cognitives) | 'protocols' (mémorisé par espace)
-  protocol:null,pdraft:null};  // protocole affiché (protocolRead) / brouillon (protocolEdit)
+  protocol:null,pdraft:null,   // protocole affiché (protocolRead) / brouillon (protocolEdit)
+  // Coches ÉPHÉMÈRES des listes cochables de la vue protocole (v4.5.4) : {index -> bool}, remises
+  // à zéro par openProtocolRead, JAMAIS persistées ni exportées (le body reste la seule vérité).
+  // protoTasksSrc mémorise le body lié aux index (un corps remplacé par la synchro les invalide).
+  protoTasks:null,protoTasksSrc:null};
 try{if(localStorage.getItem(spaceKey('ac-section'))==='protocols')state.section='protocols';}catch(e){}
 // Rôle/édition par bibliothèque. Perso (libraryId vide) = toujours éditable. Bibliothèque partagée : éditable
 // si role editor/admin. (La RLS reste l'arbitre côté serveur ; ceci n'est que l'ergonomie.)
@@ -2589,8 +2612,11 @@ const stripBold=s=>String(s==null?'':s).replace(BOLD_RX,'$1');
    d'indentation, UN niveau), > citation, `code` en ligne, ``` bloc de code, --- séparateur,
    **gras**, *italique*, [texte](https://…) lien externe, [texte](att:ID) ouvre un document PDF
    joint, ![légende](img:ID) image (référence à l'entrée p.images correspondante — data URL déjà
-   validée par safeImg dans migrateProtocol), et TABLEAUX (v4.4.2) : lignes « | a | b | » avec
-   une 2e ligne de séparation « |---|:-:|---:| » qui porte l'alignement (défaut / centré / droite).
+   validée par safeImg dans migrateProtocol), TABLEAUX (v4.4.2) : lignes « | a | b | » avec
+   une 2e ligne de séparation « |---|:-:|---:| » qui porte l'alignement (défaut / centré / droite),
+   et LISTES COCHABLES (v4.5.4) : « - [ ] tâche » / « - [x] cochée » (syntaxe GFM, aussi en liste
+   numérotée « 1. [ ] ») — coches ÉPHÉMÈRES par ouverture (state.protoTasks, cf. bindProtoTasks),
+   jamais écrites dans le body : export v3 strictement inchangé.
    Balisage non reconnu laissé VISIBLE tel quel (même philosophie que fmt : la coquille se voit
    en relecture, le rendu ne casse jamais) — un ancien client affiche donc un tableau comme des
    lignes de texte à pipes : dégradation lisible, export v3 inchangé (body reste une chaîne).
@@ -2617,6 +2643,15 @@ const MD_CALL={caution:'crit',alerte:'crit',alert:'crit',danger:'crit','⚠':'cr
   note:'info',info:'info',important:'info','ℹ':'info','ℹ️':'info',
   tip:'ok',ok:'ok',astuce:'ok','✓':'ok','✔':'ok'};
 const MD_CALL_LBL={crit:'Alerte',vig:'Attention',info:'Information',ok:'Confirmation'};
+/* LISTES COCHABLES (v4.5.4) — un item de liste (ul OU ol, GFM) peut porter un marqueur de tâche
+   « [ ] » / « [x] » en tête de texte. Marqueur STRICT (exactement un espace interne ou x/X, suivi
+   d'un blanc ou de la fin de ligne) : « [] » ou « [y] » restent du texte visible — la coquille se
+   voit en relecture, comme partout. UNE SEULE source de vérité pour la syntaxe : cette regex sert
+   au parseur (mdTask), à mdStrip (recherche) et au nettoyage de mdPrefixLines (éditeur). */
+const MD_TASK_RX=/^\[( |x|X)\](?:\s+|$)/;
+// Texte d'item -> {done, text} si l'item est une tâche, null sinon — PURE (testée).
+function mdTask(text){const m=String(text).match(MD_TASK_RX);
+  return m?{done:m[1]!==' ',text:text.slice(m[0].length)}:null;}
 // Marqueur en tête de la 1ʳᵉ ligne d'une citation -> {kind, text} (kind vide = citation neutre).
 function mdCallout(line){const s=String(line==null?'':line);
   let m=s.match(/^\s*\[!\s*([A-Za-zÀ-ÿ]{2,12})\s*\]\s*(.*)$/);
@@ -2656,8 +2691,9 @@ function mdInline(s){const h=esc(sstr(s,4000));
     // répandue (Obsidian, Typora, pandoc) ; un lecteur qui l'ignore affiche « ==texte== » en clair.
     x=x.replace(MD_MARK_RX,'<mark class="md-mk">$1</mark>');
     return x;}).join('');}
-// Découpe en blocs (ligne à ligne) : {t:'h1'|'h2'|'h3', text} | {t:'ul'|'ol', items:[{text,sub}]}
-// (sub = sous-liste {t,items:[textes]} d'UN niveau) | {t:'q', lines[]} (citation) |
+// Découpe en blocs (ligne à ligne) : {t:'h1'|'h2'|'h3', text} | {t:'ul'|'ol', items:[{text,sub,task}]}
+// (sub = sous-liste {t,items:[textes]} d'UN niveau ; task = {done} si l'item est une tâche « [ ] »,
+// null sinon — champ ADDITIF v4.5.4, les sous-items restent des chaînes) | {t:'q', lines[]} (citation) |
 // {t:'code', lines[]} (bloc ```) | {t:'hr'} | {t:'img', caption, id} | {t:'p', lines[]}.
 function mdBlocks(src){
   const lines=sstr(src,MD_MAX_CHARS).split('\n').slice(0,MD_MAX_LINES);
@@ -2666,6 +2702,8 @@ function mdBlocks(src){
   const flushList=()=>{if(list){out.push(list);list=null;}};
   const flushQuote=()=>{if(quote){out.push(quote);quote=null;}};
   const flushAll=()=>{flushPara();flushList();flushQuote();};
+  // Item de liste : la sémantique « [ ] »/« [x] » vit dans mdTask (une seule source, v4.5.4).
+  const listItem=t=>{const tk=mdTask(t);return tk?{text:tk.text,sub:null,task:{done:tk.done}}:{text:t,sub:null,task:null};};
   for(let i=0;i<lines.length;i++){const l=lines[i];let m;
     // Bloc de code : tout est LITTÉRAL jusqu'à la clôture ``` (aucun balisage interprété).
     // (Branche EN PREMIER : un « | » dans du code ne doit jamais devenir un tableau.)
@@ -2698,8 +2736,9 @@ function mdBlocks(src){
       const last=list.items[list.items.length-1],st=m[1]?'ol':'ul';
       if(!last.sub||last.sub.t!==st)last.sub={t:st,items:[]};
       last.sub.items.push(m[2]);continue;}
-    if((m=l.match(/^[-*]\s+(.*)$/))){flushPara();flushQuote();if(!list||list.t!=='ul'){flushList();list={t:'ul',items:[]};}list.items.push({text:m[1],sub:null});continue;}
-    if((m=l.match(/^\d{1,3}[.)]\s+(.*)$/))){flushPara();flushQuote();if(!list||list.t!=='ol'){flushList();list={t:'ol',items:[]};}list.items.push({text:m[1],sub:null});continue;}
+    // Item de liste (ul/ol) : détection de tâche « [ ] »/« [x] » partagée entre les deux branches.
+    if((m=l.match(/^[-*]\s+(.*)$/))){flushPara();flushQuote();if(!list||list.t!=='ul'){flushList();list={t:'ul',items:[]};}list.items.push(listItem(m[1]));continue;}
+    if((m=l.match(/^\d{1,3}[.)]\s+(.*)$/))){flushPara();flushQuote();if(!list||list.t!=='ol'){flushList();list={t:'ol',items:[]};}list.items.push(listItem(m[1]));continue;}
     flushList();flushQuote();para.push(l);}
   if(code)out.push(code);   // ``` non refermé : dégradation propre, le contenu reste visible
   flushAll();return out;}
@@ -2714,7 +2753,16 @@ function mdRender(src,ctx){ctx=ctx||{};
   // Défense propre à mdRender (indépendante de migrateProtocol) : clés BAD_KEYS jamais admises.
   const imgs=Object.create(null);(ctx.images||[]).forEach(im=>{if(im&&im.id&&BAD_KEYS.indexOf(im.id)<0)imgs[im.id]=im;});
   // Élément de liste (+ éventuelle sous-liste d'un niveau, balise ul/ol sûre par construction).
-  const li=it=>'<li>'+mdInline(it.text)+(it.sub?'<'+it.sub.t+' class="md-'+it.sub.t+'">'+it.sub.items.map(x=>'<li>'+mdInline(x)+'</li>').join('')+'</'+it.sub.t+'>':'')+'</li>';
+  // Item TÂCHE (v4.5.4) : data-task = index en ordre de document (compteur local -> stable pour un
+  // body donné, y compris entre deux rendus). Le rendu n'émet RIEN d'interactif (ni role ni
+  // tabindex) : les aperçus restent inertes, l'interactivité n'existe qu'en lecture
+  // (bindProtoTasks). La coche SVG est toujours émise (masquée hors .done par le CSS) : le toggle
+  // ne manipule que des classes, jamais d'innerHTML.
+  let tk=0;
+  const subHtml=it=>it.sub?'<'+it.sub.t+' class="md-'+it.sub.t+'">'+it.sub.items.map(x=>'<li>'+mdInline(x)+'</li>').join('')+'</'+it.sub.t+'>':'';
+  const li=it=>it.task
+    ?'<li class="md-task'+(it.task.done?' done':'')+'" data-task="'+(tk++)+'"><span class="md-tkbox" aria-hidden="true">'+uiIcon('check',13,{sw:3})+'</span><span class="md-tktxt">'+mdInline(it.text)+subHtml(it)+'</span></li>'
+    :'<li>'+mdInline(it.text)+subHtml(it)+'</li>';
   // Alignement des cellules : TABLE BLANCHE fermée au point d'insertion (défense en profondeur —
   // même idiome que la revalidation safeImg plus bas). Aucune valeur issue du texte utilisateur
   // n'atteint jamais un attribut ; le CONTENU des cellules passe par mdInline (donc esc() d'abord),
@@ -2759,7 +2807,9 @@ function mdStrip(src){return sstr(src,MD_MAX_CHARS).split('\n').map(l=>l
     .replace(MD_TROW,x=>mdCells(x).join(' '))
     // Citation, y compris TYPÉE : le marqueur de registre ne pollue pas l'index de recherche.
     .replace(/^#{1,3}\s+/,'').replace(/^>\s?/,'').replace(/^\[!\s*[A-Za-zÀ-ÿ]{2,12}\s*\]\s*/,'')
-    .replace(/^\s*[-*]\s+/,'').replace(/^\s*\d{1,3}[.)]\s+/,'')
+    // Marqueur de liste D'ABORD, puis marqueur de tâche : « - [x] Fait » -> « Fait » (un « [x] »
+    // ne doit jamais faire matcher une recherche « x »).
+    .replace(/^\s*[-*]\s+/,'').replace(/^\s*\d{1,3}[.)]\s+/,'').replace(MD_TASK_RX,'')
     .replace(/^!\[([^\]]*)\]\([^()]*\)\s*$/,'$1')
     .replace(/\[([^\]\n]{1,200})\]\([^()\s]{1,500}\)/g,'$1'))
   .join(' ').replace(BOLD_RX,'$1').replace(MD_ITAL_RX,'$1$2').replace(MD_MARK_RX,'$1').replace(/`([^`\n]+)`/g,'$1');}
@@ -4394,7 +4444,27 @@ function renderProtocolRead(){
   // Liens [texte](att:ID) du contenu rédigé -> même visionneuse que la section Documents.
   main.querySelectorAll('[data-mdatt]').forEach(a=>a.onclick=e=>{e.preventDefault();const at=(p.attachments||[]).find(x=>x.id===a.dataset.mdatt);if(at)openPdfViewer(at,p);else toast('⚠ Document lié introuvable dans ce protocole.');});
   main.querySelectorAll('img[data-full]').forEach(im=>im.onclick=()=>openLightbox(im.dataset.full,im.dataset.cap||''));
+  bindProtoTasks(p);
 }
+// Listes cochables (v4.5.4) : l'INTERACTIVITÉ n'existe qu'ici, en LECTURE — mdRender n'émet rien
+// d'interactif (aperçu live et mode Aperçu inertes : pas d'état résiduel sans openProtocolRead
+// pour le purger). Overlay des coches éphémères par-dessus l'état écrit ([x]/[ ]), puis
+// role/clavier/toggle. Le toggle est CIBLÉ (classes + aria sur le li) : jamais de render() —
+// même leçon que le cochage des fiches ([data-ck]).
+function bindProtoTasks(p){
+  if(state.previewFrom)return;
+  // Corps remplacé sous la vue (synchro) : les index de tâches ne sont plus fiables -> on repart
+  // de l'état écrit (plus sûr qu'un mapping faux). Sinon, les coches survivent aux re-rendus.
+  if(state.protoTasksSrc!==p.body){state.protoTasks={};state.protoTasksSrc=p.body;}
+  const t=state.protoTasks;
+  const setChecked=(li,on)=>{li.classList.toggle('done',on);li.setAttribute('aria-checked',on?'true':'false');};
+  main.querySelectorAll('.md-body li.md-task').forEach(li=>{
+    const i=li.dataset.task;
+    li.setAttribute('role','checkbox');li.tabIndex=0;
+    setChecked(li,t[i]!==undefined?t[i]:li.classList.contains('done'));
+    const tgl=()=>{t[i]=!li.classList.contains('done');setChecked(li,t[i]);};
+    li.onclick=e=>{if(e.target.closest('a'))return;tgl();};   // un lien dans la tâche reste un lien
+    li.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();tgl();}};});}
 /* Barre d'outils du contenu rédigé : insertions Markdown au curseur / sur la sélection.
    wrapBold (fiches) est réutilisé pour le gras ; les autres actions sont locales ici. */
 function mdWrapSel(inp,mark){const v=inp.value;let a=inp.selectionStart==null?v.length:inp.selectionStart,b=inp.selectionEnd==null?v.length:inp.selectionEnd;if(a>b){const t=a;a=b;b=t;}
@@ -4404,13 +4474,20 @@ function mdWrapSel(inp,mark){const v=inp.value;let a=inp.selectionStart==null?v.
 // Un titre POSÉ SUR UN TITRE remplace son niveau (H2 puis H1 donnait « # ## texte », v4.4.2).
 function mdPrefixLines(inp,prefix,numbered){const v=inp.value;let a=inp.selectionStart==null?v.length:inp.selectionStart,b=inp.selectionEnd==null?v.length:inp.selectionEnd;if(a>b){const t=a;a=b;b=t;}
   const ls=v.lastIndexOf('\n',a-1)+1;let end=v.indexOf('\n',b);if(end<0)end=v.length;
-  const head=/^#/.test(prefix),quo=/^>/.test(prefix);
+  const head=/^#/.test(prefix),quo=/^>/.test(prefix),tsk=/^- \[/.test(prefix);
   // Un titre posé sur un titre REMPLACE son niveau ; une citation typée posée sur une citation
-  // (typée ou non) REMPLACE son registre — jamais d'empilement « > [!TIP] > [!NOTE] ».
-  const clean=l=>head?l.replace(/^#{1,3}\s+/,''):(quo?l.replace(/^>\s?/,'').replace(/^\[!\s*[A-Za-zÀ-ÿ]{2,12}\s*\]\s*/,''):l);
+  // (typée ou non) REMPLACE son registre — jamais d'empilement « > [!TIP] > [!NOTE] ». Même
+  // doctrine pour « cochable » posé sur une liste : marqueurs de liste ET de tâche remplacés
+  // (jamais « - [ ] - texte »). MD_TASK_RX = la même regex que le parseur (une seule source).
+  const clean=l=>head?l.replace(/^#{1,3}\s+/,''):(quo?l.replace(/^>\s?/,'').replace(/^\[!\s*[A-Za-zÀ-ÿ]{2,12}\s*\]\s*/,'')
+    :(tsk?l.replace(/^\s*(?:[-*]|\d{1,3}[.)])\s+/,'').replace(MD_TASK_RX,''):l));
   const seg=v.slice(ls,end).split('\n').map((l,i)=>(numbered?(i+1)+'. ':prefix)+clean(l)).join('\n');
   inp.value=v.slice(0,ls)+seg+v.slice(end);
-  inp.focus();inp.dispatchEvent(new Event('input',{bubbles:false}));}
+  // Réécrire .value remet le curseur À LA FIN du textarea : on le repose en fin de segment
+  // modifié (même idiome que mdCalloutLines/mdInsertAt) — sinon la frappe suivante partait
+  // tout en bas du document.
+  inp.focus();const c=ls+seg.length;inp.setSelectionRange(c,c);
+  inp.dispatchEvent(new Event('input',{bubbles:false}));}
 /* Pose un ENCADRÉ TYPÉ sur les lignes sélectionnées, à la forme canonique de GitHub :
      > [!CAUTION]
      > texte
@@ -4464,6 +4541,7 @@ function renderProtocolEdit(){
         <button type="button" class="mini" data-mdtool="h3" aria-label="Sous-titre" title="Sous-titre — ### Sous-titre">H3</button>
         <button type="button" class="mini" data-mdtool="ul" aria-label="Liste à puces" title="Liste à puces — - élément (sous-liste : 2 espaces devant)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.4" fill="currentColor" stroke="none"/><circle cx="4.5" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="4.5" cy="18" r="1.4" fill="currentColor" stroke="none"/></svg></button>
         <button type="button" class="mini" data-mdtool="ol" aria-label="Liste numérotée" title="Liste numérotée — 1. élément"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M10 6h10M10 12h10M10 18h10"/><text x="2" y="8.6" font-size="8" font-weight="700" fill="currentColor" stroke="none">1</text><text x="2" y="14.6" font-size="8" font-weight="700" fill="currentColor" stroke="none">2</text><text x="2" y="20.6" font-size="8" font-weight="700" fill="currentColor" stroke="none">3</text></svg></button>
+        <button type="button" class="mini" data-mdtool="task" aria-label="Liste cochable" title="Liste cochable — - [ ] tâche (- [x] déjà cochée) · coches remises à zéro à chaque ouverture"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M8.5 12.3l2.6 2.6 4.9-5.4"/></svg></button>
         <button type="button" class="mini" data-mdtool="q" aria-label="Citation" title="Citation — > texte"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><path d="M10.2 6.5c-3 .9-4.7 3-4.7 6v5h5.1v-5.6H7.7c.2-1.7 1.2-2.9 3-3.5zM19.5 6.5c-3 .9-4.7 3-4.7 6v5h5.1v-5.6h-2.9c.2-1.7 1.2-2.9 3-3.5z"/></svg></button>
         <button type="button" class="mini" data-mdtool="code" aria-label="Code" title="Code — \`texte\` (bloc : \`\`\` sur une ligne)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 7.5L4 12l4.5 4.5M15.5 7.5L20 12l-4.5 4.5"/></svg></button>
         <button type="button" class="mini" data-mdtool="link" aria-label="Lien" title="Lien — [texte](https://…)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13.5a4.5 4.5 0 006.8.5l2.7-2.7a4.5 4.5 0 00-6.4-6.4l-1.5 1.5"/><path d="M14 10.5a4.5 4.5 0 00-6.8-.5l-2.7 2.7a4.5 4.5 0 006.4 6.4l1.5-1.5"/></svg></button>
@@ -4475,7 +4553,7 @@ function renderProtocolEdit(){
         <button type="button" class="mini" data-mdtool="img" aria-label="Insérer une image" title="Insérer une image (réduite et stockée hors ligne)">${uiIcon('img',16)}</button>
       </div>
       <textarea id="p-body" rows="12" placeholder="## Indication&#10;- Critère 1&#10;- Critère 2&#10;&#10;Texte libre, **gras**, *italique*…">${esc(p.body)}</textarea>
-      <p class="hint">Syntaxe : <code># titre</code> (##, ###), <code>- liste</code> / <code>1. liste</code> (sous-liste : 2 espaces devant), <code>&gt; citation</code>, <code>\`code\`</code> (bloc : <code>\`\`\`</code>), <code>---</code> séparateur, <code>**gras**</code>, <code>*italique*</code>, <code>==surligné==</code>, <code>[texte](https://…)</code>, <code>[texte](att:ID)</code> ouvre un document joint, <code>![légende](img:ID)</code> image (taille réglable ci-dessous).<br>Tableau : <code>| a | b |</code> puis, en 2ᵉ ligne, <code>|---|---|</code> — l'alignement se règle là (<code>|:-:|</code> centré, <code>|---:|</code> à droite). Un <code>|</code> dans une cellule s'écrit <code>\\|</code>.<br>Encadré coloré — syntaxe GitHub, tapable au clavier, le marqueur seul sur sa ligne puis le texte en dessous : <code>&gt; [!CAUTION]</code> alerte · <code>&gt; [!WARNING]</code> attention · <code>&gt; [!NOTE]</code> information · <code>&gt; [!TIP]</code> confirmation (les boutons ci-dessus les posent). Alias acceptés ici : <code>[!alerte]</code>, <code>[!attention]</code>, <code>[!info]</code>, <code>[!ok]</code>, et les glyphes ⚠ △ ℹ ✓.<br><span class="hint">Portabilité : les mots-clés en MAJUSCULES sont rendus en encadré par GitHub, GitLab, pandoc et Typora ; ailleurs (et avec les alias), le texte reste une citation lisible — rien n'est jamais perdu.</span></p>
+      <p class="hint">Syntaxe : <code># titre</code> (##, ###), <code>- liste</code> / <code>1. liste</code> (sous-liste : 2 espaces devant), <code>- [ ] tâche</code> liste cochable (<code>- [x]</code> déjà cochée) — en lecture, les coches repartent à zéro à chaque ouverture, <code>&gt; citation</code>, <code>\`code\`</code> (bloc : <code>\`\`\`</code>), <code>---</code> séparateur, <code>**gras**</code>, <code>*italique*</code>, <code>==surligné==</code>, <code>[texte](https://…)</code>, <code>[texte](att:ID)</code> ouvre un document joint, <code>![légende](img:ID)</code> image (taille réglable ci-dessous).<br>Tableau : <code>| a | b |</code> puis, en 2ᵉ ligne, <code>|---|---|</code> — l'alignement se règle là (<code>|:-:|</code> centré, <code>|---:|</code> à droite). Un <code>|</code> dans une cellule s'écrit <code>\\|</code>.<br>Encadré coloré — syntaxe GitHub, tapable au clavier, le marqueur seul sur sa ligne puis le texte en dessous : <code>&gt; [!CAUTION]</code> alerte · <code>&gt; [!WARNING]</code> attention · <code>&gt; [!NOTE]</code> information · <code>&gt; [!TIP]</code> confirmation (les boutons ci-dessus les posent). Alias acceptés ici : <code>[!alerte]</code>, <code>[!attention]</code>, <code>[!info]</code>, <code>[!ok]</code>, et les glyphes ⚠ △ ℹ ✓.<br><span class="hint">Portabilité : les mots-clés en MAJUSCULES sont rendus en encadré par GitHub, GitLab, pandoc et Typora, et <code>- [ ]</code> en case native ; ailleurs, encadrés et tâches restent une citation ou un « [ ] tâche » lisibles — rien n'est jamais perdu.</span></p>
       ${mdImagesHtml(p)}
       <p class="md-prev-h">Aperçu</p><div class="md-preview" id="mdPreview">${mdRender(p.body,{images:p.images})}</div></fieldset>
     ${listEditor('Références','sources du protocole (traçabilité)','references',p.references||[])}
@@ -4507,6 +4585,7 @@ function renderProtocolEdit(){
     else if(k==='h3')mdPrefixLines(ta,'### ');
     else if(k==='ul')mdPrefixLines(ta,'- ');
     else if(k==='ol')mdPrefixLines(ta,'',true);
+    else if(k==='task')mdPrefixLines(ta,'- [ ] ');
     else if(k==='q')mdPrefixLines(ta,'> ');
     else if(k==='tbl')mdInsertAt(ta,(ta.value&&!/\n$/.test(ta.value.slice(0,ta.selectionStart||0))?'\n':'')+'\n| Colonne | Colonne |\n|---|---|\n| … | … |\n');
     else if(k==='code')mdWrapSel(ta,'`');
@@ -4719,7 +4798,9 @@ async function deleteProtocolDraft(){
   const id=state.pdraft.id;const p=protocols.find(x=>x.id===id)||state.pdraft;
   await softDeleteProtocol(p);await clearDraftParkIf('p',id);protocols=protocols.filter(x=>x.id!==id);
   state.pdraft=null;state.view='library';render();}
-function openProtocolRead(id){const p=protocols.find(x=>x.id===id);if(!p)return;bumpUsage(id);state.protocol=p;state.view='protocolRead';render();}
+function openProtocolRead(id){const p=protocols.find(x=>x.id===id);if(!p)return;bumpUsage(id);state.protocol=p;
+  state.protoTasks={};state.protoTasksSrc=null;   // coches éphémères : chaque ouverture repart de l'état écrit
+  state.view='protocolRead';render();}
 async function openProtocolEdit(id){const p=protocols.find(x=>x.id===id);if(!p)return;
   // Même revérification de rôle que openEdit (protocole partagé, en ligne).
   if(p.libraryId&&Auth.signedIn()&&Sync.online()){try{await Sync.loadProfile();}catch(e){}}
@@ -8389,7 +8470,7 @@ if(location.search.indexOf('__actest')>=0){
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
     restErrStatus,isPersoRepairCandidate,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,
     qTerms,hayMatch,markQTerms,searchSnippet,ficheSnipParts,protoSnipParts,frecencyScore,sanitizeUsage,mergeUsage,
-    crc32,zipBuild,zipParse,isPdfBytes};
+    crc32,zipBuild,zipParse,isPdfBytes,mdTask};
 }else{
   /* ===== PWA =====
      Enregistre le service worker (cache hors ligne) si disponible. Capte

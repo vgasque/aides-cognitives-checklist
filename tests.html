@@ -545,6 +545,26 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   eq('citation/code/hr retirés', A.mdStrip('> a\n`b`\n---'), 'a b ');
   eq('tableau aplati (ni pipes ni tirets)', A.mdStrip('| a | b |\n|---|---|\n| 1 | 2 |'), 'a b  1 2');
 
+  group('mini-Markdown — listes cochables - [ ] (v4.6.0)');
+  eq('- [ ] a → tâche non cochée, texte nettoyé', A.mdTask('[ ] a'), {done:false,text:'a'});
+  eq('[x] et [X] → cochée', [A.mdTask('[x] a').done,A.mdTask('[X] a').done], [true,true]);
+  eq('tâche à libellé vide admise (GFM)', A.mdTask('[ ]'), {done:false,text:''});
+  eq('marqueur STRICT : [] / [y] / [ x] → pas une tâche', [A.mdTask('[] a'),A.mdTask('[y] a'),A.mdTask('[ x] a')], [null,null,null]);
+  ok('parsing dans mdBlocks (ul ET ol)', (()=>{const b=A.mdBlocks('- [ ] a\n\n1. [x] b');
+    return b[0].items[0].task&&b[0].items[0].task.done===false&&b[0].items[0].text==='a'
+        &&b[1].items[0].task&&b[1].items[0].task.done===true&&b[1].items[0].text==='b';})());
+  ok('item normal : task null, texte intact', (()=>{const it=A.mdBlocks('- [] a')[0].items[0];return it.task===null&&it.text==='[] a';})());
+  ok('sous-item : jamais une tâche (contrat chaînes)', (()=>{const it=A.mdBlocks('- a\n  - [ ] s')[0].items[0];return typeof it.sub.items[0]==='string'&&it.sub.items[0]==='[ ] s';})());
+  ok('-[ ] sans espace → paragraphe (coquille visible)', A.mdBlocks('-[ ] a')[0].t==='p');
+  ok('rendu : data-task en ordre de document, done initial', (()=>{const h=A.mdRender('- [ ] a\n\n1. [x] b');
+    return h.indexOf('data-task="0"')>=0&&h.indexOf('data-task="1"')>=0&&/md-task done"[^>]*data-task="1"/.test(h);})());
+  ok('rendu NON interactif (role/tabindex posés en lecture seulement)', (()=>{const h=A.mdRender('- [ ] a');
+    return h.indexOf('role=')<0&&h.indexOf('tabindex')<0;})());
+  ok('rendu stable (deux appels → même HTML)', A.mdRender('- [ ] a\n- [x] b')===A.mdRender('- [ ] a\n- [x] b'));
+  ok('XSS : texte de tâche échappé', A.mdRender('- [ ] <img src=x onerror=alert(1)>').indexOf('<img')<0);
+  ok('gras interprété dans la tâche', A.mdRender('- [ ] **vital**').indexOf('<b>vital</b>')>=0);
+  eq('mdStrip retire liste ET marqueur de tâche', A.mdStrip('- [x] Vérifier le ballon\n1. [ ] Fait'), 'Vérifier le ballon Fait');
+
   group('migrateProtocol() — protocole hostile neutralisé');
   const mp=A.migrateProtocol({id:'__proto__',title:'<b>x</b>',body:42,category:'c a t',
     images:[{id:'i',data:'javascript:alert(1)'}],attachments:[{id:'ok-1',name:'d.pdf',size:9},{id:'bad id'}]});

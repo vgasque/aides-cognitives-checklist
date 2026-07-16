@@ -1,5 +1,34 @@
 # Journal des modifications
 
+## [4.5.4] — 2026-07-16
+Les protocoles gagnent des listes cochables `- [ ]` pour les vérifications rapides en lecture.
+
+### Ajouté
+- **Listes cochables dans le contenu rédigé des protocoles** : syntaxe GitHub `- [ ] tâche`
+  (`- [x]` déjà cochée), aussi en liste numérotée — pour cocher du matériel ou des critères en
+  lisant (bouton dédié dans la barre d'outils de l'éditeur, case au registre CONFIRMATION,
+  texte jamais barré : on doit pouvoir relire). Les coches sont **éphémères** : elles survivent
+  aux re-rendus tant qu'on reste sur le protocole et repartent de l'état écrit à chaque
+  ouverture — pas de session, pas de trace (pour une checklist tracée avec minuteurs et
+  compte-rendu, créer une aide cognitive et la lier par « Voir aussi »). **Rien ne change dans
+  le format** : le corps reste une chaîne, export JSON identique ; une version antérieure de
+  l'app (ou tout lecteur Markdown qui ignore la syntaxe) affiche « [ ] tâche » en liste
+  normale, GitHub la rend en case native. Les aperçus de l'éditeur dessinent les cases sans les
+  rendre cliquables. 14 tests ajoutés (403), vérifié en conditions réelles (cochage
+  clic/clavier, lien dans une tâche, re-rendu de synchro, remise à zéro à la ré-ouverture).
+
+### Corrigé
+- **Curseur perdu après les boutons de mise en forme** (éditeur de protocole) : poser un titre,
+  une liste, une citation ou une liste cochable sur une ligne du milieu du texte modifiait bien
+  la ligne, mais la frappe suivante partait tout en bas du document (réécrire le contenu du
+  champ remet le curseur à la fin). Le curseur est désormais reposé en fin de ligne modifiée —
+  comme le faisaient déjà les boutons gras/encadrés/tableau.
+
+### Décision d'architecture
+- **Pas de section « Checklists » à part** : les aides cognitives SONT les checklists de l'app
+  (sessions, minuteurs, reprise, compte-rendu). Une troisième section aurait dupliqué ce
+  concept pour un coût élevé (stockage, synchronisation, navigation, import/export).
+
 ## [4.5.3] — 2026-07-16
 L'app dit quand elle travaille : « Chargement… » au démarrage, anneau tournant sur le bouton
 Compte pendant la synchronisation.
