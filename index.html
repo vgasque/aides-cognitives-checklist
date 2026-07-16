@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-cOVn+0SiQClAhuXZLhh3Qa/idWUlE02pPHWWQLa47vk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-8eHfg6q5G8UjUTfyrdvzveHV8QVOlSG/H51Hesx6nFE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1426,11 +1426,25 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .ov-body{padding:0 12px 12px}
   .ov-block.closed .ov-body{display:none}
   .ov-body .flow-ctrl{margin-top:10px}
-  /* Arête de boucle EXPLICITE d'un bloc d'étapes (next vers un bloc antérieur) : nouveau passage
-     volontaire — pointillé (grammaire « créer »), jamais un bouton plein. */
-  .ov-loop{margin-top:8px;min-height:44px;width:100%;border:1px dashed var(--line-strong);border-radius:8px;background:transparent;font-size:13px;font-weight:700;color:var(--link);cursor:pointer;font-family:inherit}
-  .ov-loop:hover{background:var(--surface)}
-  .ov-loop:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* ----- Journal de parcours (v4.9.0) : instances repliées = lignes d'état, suite, réponse ----- */
+  /* Instance COMPLÈTE repliée = LIGNE ECAM verte (relisible d'un tap) ; décision repliée garde
+     sa carte ambrée + sa réponse en toutes lettres (.ov-ans) — la couleur n'est jamais seule. */
+  .ov-block.closed .ov-tgl{min-height:44px;padding:6px 12px}
+  .ov-block.closed.done{background:var(--done-bg);border-color:var(--done-line);border-left-color:var(--done-line)}
+  .ov-block.closed.done .ov-t{color:var(--ok)}
+  .ov-block.closed.done.dec{background:var(--verify-soft);border-color:var(--verify-bd);border-left-color:var(--verify-bd)}
+  .ov-block.closed.done.dec .ov-t{color:var(--ink)}
+  .ov-ans{font-size:12.5px;font-weight:600;color:var(--ink-soft);margin-left:6px;white-space:nowrap}
+  .ov-sec-h{font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft);margin:2px 0 8px}
+  .ov-suite-h{display:flex;align-items:center;gap:7px;margin:18px 0 8px;min-width:0}
+  .ov-suite-h .ovs-t{flex:none;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft)}
+  .ov-suite-h .ovs-sub{flex:1;min-width:0;font-size:11.5px;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ov-suite-h .ovs-tgl{flex:none;min-height:44px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--link);font-size:12px;font-weight:700;padding:6px 11px;cursor:pointer;font-family:inherit}
+  .ov-suite-h .ovs-tgl:hover{background:var(--surface)}
+  .ov-suite-h .ovs-tgl:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* Bloc de la SUITE : même carte, légèrement en retrait (aperçu — il « entre » au journal au 1er geste). */
+  .ov-block.ovs{border-style:dashed}
+  .ov-block.ovs.off{border-style:dashed}
   /* ----- SVG navigable (v4.7.0) : nœuds cliquables, état PEINT par classes ----- */
   /* Hex explicites = exception SVG documentée (le SVG n'utilise pas les tokens ; en sombre,
      l'inversion globale est contrée par les règles html[data-theme="dark"] plus haut). */
@@ -2104,7 +2118,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .mem-act select,.invite-row select,.invite-row input,.mi-sc{font-size:16px}
     .tk-time-edit{width:96px}
   }
-  @media print{body{background:#fff}header.bar,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.sess-list,.notes-block,#readModeSeg,.ov-controls,.ov-redo,.ov-loop,.flow-zoom{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}
+  @media print{body{background:#fff}header.bar,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.sess-list,.notes-block,#readModeSeg,.ov-controls,.ov-redo,.ovs-tgl,.flow-zoom{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}
     /* Un conteneur à défilement s'imprime TRONQUÉ : à l'impression le tableau se déploie. */
     .md-tw{overflow:visible;break-inside:avoid}.md-tbl{min-width:0;font-size:11px}.md-tbl tr{break-inside:avoid}
     .forget-strip{break-inside:avoid}
@@ -2305,7 +2319,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.8.0';
+const APP_VERSION='4.9.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -2658,10 +2672,12 @@ let state={view:'library',q:'',cat:'',scope:null,draft:null,fiche:null,nav:[],na
   // à zéro par openProtocolRead, JAMAIS persistées ni exportées (le body reste la seule vérité).
   // protoTasksSrc mémorise le body lié aux index (un corps remplacé par la synchro les invalide).
   protoTasks:null,protoTasksSrc:null,
-  // Vue d'ensemble du mode crise (v4.6.0) : 'overview' = TOUS les blocs affichés à la suite
-  // (défaut), 'guided' = bloc à bloc historique. Posé à l'OUVERTURE (openRead/resumeSession)
-  // depuis la préférence ; ovClosed = blocs repliés manuellement (par fiche ouverte, jamais persisté).
-  readMode:'overview',ovClosed:{}};
+  // Mode de lecture du mode crise : 'overview' = JOURNAL DE PARCOURS (v4.9.0, défaut) +
+  // « Suite de l'algorithme » ; 'guided' = bloc à bloc historique. Posé à l'OUVERTURE
+  // (openRead/resumeSession) depuis la préférence. ovFold = replis manuels (clé = index
+  // d'instance du journal ou 's:'+idBloc pour la suite) ; ovSuiteFold = aperçu replié.
+  // Jamais persistés (par fiche ouverte).
+  readMode:'overview',ovFold:{},ovSuiteFold:false};
 try{if(localStorage.getItem(spaceKey('ac-section'))==='protocols')state.section='protocols';}catch(e){}
 /* Préférence du mode de lecture (v4.6.0) — par utilisateur (spaceKey local), synchronisée via
    data.prefs.readMode. La synchro ne fait qu'ÉCRIRE la préférence locale : elle ne bascule JAMAIS
@@ -3030,10 +3046,15 @@ function flowPaintState(container,f){if(!container||!f)return;
     g.classList.toggle('fn-off',!!(m&&m.off));});}
 function jumpToBlock(f,id){if(!f||!(f.blocks||[]).some(b=>b.id===id))return;
   const lp=latestPass(state.nav,state.navSeq,id);
-  if(lp)state.navPos=lp.idx;   // bloc visité : simple déplacement du curseur (non destructif)
+  if(state.readMode==='overview'&&hasFlow(f)){
+    // JOURNAL (v4.9.0) : bloc visité = simple défilement vers sa dernière carte (regarder ne
+    // réécrit rien) ; jamais visité = il ENTRE au bout du journal (nouvelle carte), puis défilement.
+    if(!lp){state.nav.push(id);state.navSeq.push(++Runtime.seq);state.navPos=state.nav.length-1;
+      if(Runtime.started)persistLive(Runtime);renderOvOnly();}
+    ovScrollTo(id);return;}
+  if(lp)state.navPos=lp.idx;   // guidé : bloc visité = déplacement du curseur (non destructif)
   else{state.nav.push(id);state.navSeq.push(++Runtime.seq);state.navPos=state.nav.length-1;if(Runtime.started)persistLive(Runtime);}
-  if(state.readMode==='overview'&&hasFlow(f)){ovPaintPath(f);ovScrollTo(id);}
-  else{scrollNavNext=true;renderNavOnly();}}
+  scrollNavNext=true;renderNavOnly();}
 function bindSvgNav(container,f,fromFull){if(!container)return;
   const jump=id=>{if(fromFull)closeFlowFull();jumpToBlock(f,id);};
   container.onclick=e=>{const g=e.target.closest?e.target.closest('g[data-fnode]'):null;if(g)jump(g.getAttribute('data-fnode'));};
@@ -3473,8 +3494,19 @@ function offPathSet(f,nav,navPos){const blocks=(f&&f.blocks)||[];const out=new S
     else if(b.next)q.push(b.next);}
   blocks.forEach(b=>{if(b&&b.id&&!keep[b.id])out.add(b.id);});
   return out;}
-// État AFFICHABLE de chaque bloc (ordre flowOrder) — source unique de la section vue d'ensemble,
-// des chips/minimap (v4.8.0) et de la peinture du SVG (v4.7.0). seq=0 : bloc jamais visité
+// Rang du passage de l'instance idx du journal parmi les visites du MÊME bloc (1-based) + total.
+function passInfo(nav,idx){const id=(nav||[])[idx];let pass=0,total=0;
+  for(let i=0;i<(nav||[]).length;i++)if(nav[i]===id){total++;if(i<=idx)pass++;}
+  return {pass,total};}
+// Instance COMPLÈTE ? Bloc d'étapes : toutes cochées pour CE passage (seq) — bloc vide : complet
+// d'emblée ; décision : RÉPONDUE (l'entrée suivante du chemin est l'une de ses cibles).
+function instComplete(f,nav,navSeq,checked,idx){
+  const b=((f&&f.blocks)||[]).find(x=>x&&x.id===(nav||[])[idx]);if(!b)return false;
+  if(b.type==='decision')return (b.options||[]).some(o=>o&&o.target&&o.target===nav[idx+1]);
+  const steps=clean(b.steps);const seq=(navSeq&&navSeq[idx])||1;
+  return steps.every((s,i)=>!!(checked&&checked[seq+':'+b.id+':'+i]));}
+// État AFFICHABLE de chaque bloc (ordre flowOrder) — source unique des chips/minimap (v4.8.0)
+// et de la peinture du SVG (v4.7.0). seq=0 : bloc jamais visité
 // (sentinelle — les vrais seq commencent à 1 ; cocher déclenche alors l'EXTENSION DE VISITE).
 function minimapData(f,nav,navSeq,checked,navPos){const blocks=(f&&f.blocks)||[];
   const byId={};blocks.forEach(b=>{if(b&&b.id&&!byId[b.id])byId[b.id]=b;});
@@ -4108,7 +4140,7 @@ bindModalDismiss(document.getElementById('endSessModal'),()=>_endSessClose(false
 async function endCurrentSession(){if(!Runtime.started)return;if(!await confirmEndSession(Runtime))return;const f=Runtime.fiche;endSession(Runtime);freshRuntime(f,null);state.fiche=null;state.view='library';render();}
 // Reprendre une session de l'historique (ou vive) : recharge dans un runtime, la réactive (vive) et
 // ouvre la fiche. Si une session vive existe déjà pour cette fiche, on la rouvre telle quelle.
-function resumeSession(id){const s=sessions.find(x=>x.id===id);if(!s)return;const f=fiches.find(x=>x.id===s.ficheId);if(!f){toast('⚠ Fiche introuvable.');return;}flowScroll={left:null,top:0};state.readMode=currentReadMode();state.ovClosed={};
+function resumeSession(id){const s=sessions.find(x=>x.id===id);if(!s)return;const f=fiches.find(x=>x.id===s.ficheId);if(!f){toast('⚠ Fiche introuvable.');return;}flowScroll={left:null,top:0};state.readMode=currentReadMode();state.ovFold={};state.ovSuiteFold=false;
   if(liveSessions[f.id]&&liveSessions[f.id].sessionId===id){Runtime=liveSessions[f.id];}
   else{Runtime=buildRuntime(f,s);Runtime.started=true;Runtime.startedAt=s.startedAt||Date.now();liveSessions[f.id]=Runtime;persistLive(Runtime,true);}
   Runtime.fiche=f;bindStateToRuntime();state.fiche=f;state.showFlow=false;state.showSess=false;state.view='read';render();}
@@ -5898,92 +5930,129 @@ function bindNavEvents(f,blk){
        const ac=document.getElementById('algCount');if(ac)ac.textContent=dn+'/'+boxes.length;}}
     if(kb)li.focus();};li.onclick=()=>tgl(false);li.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();tgl(true);}};});
 }
-/* ===== Vue d'ensemble (v4.6.0) =====
-   TOUS les blocs de l'algorithme affichés à la suite (ordre flowOrder), chacun repliable en
-   ligne d'état, tous cochables — la position « Vous êtes ici » suit la DERNIÈRE action.
-   Doctrine QRH/ECAM : rien n'est jamais verrouillé (options de décision toujours actives,
-   branche écartée GRISÉE mais tapable), rien ne bouge sous le doigt (cocher = mise à jour DOM
-   ciblée, jamais de render() hors démarrage de session), rien ne s'efface par une simple
-   navigation (les coches sont la TRACE du soin — cases neuves seulement par l'arête de boucle
-   d'une décision ou le bouton explicite « ↺ Refaire ce bloc », décision utilisateur v4.6.0).
-   Chaque bloc affiche son passage le PLUS RÉCENT (latestPass) ; un bloc jamais visité rend ses
-   cases avec la sentinelle seq=0 — y cocher ÉTEND le chemin (nav/navSeq) AVANT ensureStarted,
-   pour que l'ancre du re-rendu de démarrage retrouve la clé définitive. Les écouteurs sont
-   DÉLÉGUÉS à la racine .ov-wrap : remplacer une section (ovRebuildBlock) ne casse rien. */
+/* ===== Vue d'ensemble = JOURNAL DE PARCOURS (v4.9.0 — remplace la vue spatiale v4.6.0) =====
+   La vue spatiale (chaque bloc UNE fois, état peint dessus) perdait l'utilisateur dès qu'un
+   bloc vivait PLUSIEURS passages : coches remplacées sous les yeux, décision amnésique,
+   position qui remonte. Le journal aligne l'écran sur ce que le moteur fait déjà — nav[] EST
+   une chronologie : CHAQUE passage est une carte POSTÉE à la suite (modèle ECAM : les
+   procédures se postent, rien ne mute au-dessus, on lit toujours vers le bas). Une instance
+   COMPLÈTE et non-courante se replie en LIGNE D'ÉTAT verte relisible (le repli n'arrive qu'au
+   RENDU suivant un geste de navigation — jamais sous le doigt pendant le cochage) ; une
+   instance incomplète reste dépliée (elle appelle l'action) ; une décision repliée garde sa
+   réponse en toutes lettres (→ option). Le journal n'a PAS de curseur : la position est le
+   BOUT (state.navPos = fin, la vue guidée garde son curseur). Sous le journal, la « SUITE DE
+   L'ALGORITHME » (blocs jamais visités, ordre flowOrder, DÉPLIÉE par défaut — décision
+   utilisateur : tout l'algorithme lisible d'emblée) : y cocher = EXTENSION DE VISITE (la carte
+   entre au bout du journal, re-rendu ANCRÉ sur la case tapée), branche écartée « hors chemin »
+   grisée mais jamais verrouillée. Cases neuves à CHAQUE passage (sémantique inchangée) ;
+   « ↺ Refaire » poste volontairement une nouvelle carte. Écouteurs DÉLÉGUÉS sur .ov-wrap. */
 function overviewSection(f){
-  const len=state.nav.length;
-  const np=Math.max(0,Math.min(state.navPos==null?len-1:state.navPos,len-1));state.navPos=np;
-  const cur=state.nav[np];
+  state.navPos=state.nav.length-1;   // le journal n'a pas de curseur : la position EST le bout
+  const cur=state.nav[state.navPos];
   const blk=f.blocks.find(b=>b.id===cur)||f.blocks.find(b=>b.id===f.start)||f.blocks[0];
-  const md=minimapData(f,state.nav,state.navSeq,state.checked,np);
-  const allClosed=md.length>0&&md.every(m=>state.ovClosed[m.id]);
-  const controls=`<div class="ov-controls"><button type="button" class="btn sm" id="ovFold">${allClosed?'Tout déplier':'Tout replier'}</button><button type="button" class="btn sm btn-hold" id="ovReset" title="Maintenir pour recommencer (repart du début — ne touche ni au chrono ni aux minuteurs)"><span class="tmr-lab">${uiIcon('undo',13)} Recommencer</span><span class="tmr-hint">maintenir</span></button></div>`;
-  const inner=controls+md.map(m=>ovBlockHtml(f,m)).join('');
-  const curM=md.find(m=>m.id===cur);
+  const topo={};flowOrder(f).forEach((id,i)=>{topo[id]=i+1;});
+  const insts=state.nav.map((id,i)=>ovInstHtml(f,id,i,topo)).join('');
+  const endH=state.flowEnded?'<div class="flow-end">Algorithme terminé — surveillance en cours</div>':'';
+  const controls=`<div class="ov-controls"><button type="button" class="btn sm btn-hold" id="ovReset" title="Maintenir pour recommencer (repart du début — ne touche ni au chrono ni aux minuteurs ; le compte-rendu garde tout)"><span class="tmr-lab">${uiIcon('undo',13)} Recommencer</span><span class="tmr-hint">maintenir</span></button></div>`;
+  const seen={};state.nav.forEach(id=>{seen[id]=true;});
+  const rest=flowOrder(f).filter(id=>!seen[id]);
+  const off=offPathSet(f,state.nav,state.navPos);
+  const suite=rest.length?`<div class="ov-suite-h"><span class="ovs-t">Suite de l'algorithme</span><span class="ovs-sub">· ${rest.length} bloc${rest.length>1?'s':''} — aperçu, tapez pour commencer</span><button type="button" class="ovs-tgl" id="ovSuiteTgl" aria-expanded="${state.ovSuiteFold?'false':'true'}">${state.ovSuiteFold?'▾ déplier':'▴ replier'}</button></div>${state.ovSuiteFold?'':rest.map(id=>ovSuiteHtml(f,id,topo,off)).join('')}`:'';
+  const secH=rest.length?`<div class="ov-sec-h">Parcours</div>`:'';
+  const inner=controls+secH+`<div class="ov-journal">${insts}${endH}</div>`+suite;
+  // Compteur du panneau Algorithme : l'instance du BOUT (là où l'on agit).
+  const tipDone=(()=>{const b=f.blocks.find(x=>x.id===cur);if(!b||b.type==='decision')return {d:null,t:null};
+    const steps=clean(b.steps);const seq=state.navSeq[state.navPos]||1;
+    let d=0;steps.forEach((s,i)=>{if(state.checked[seq+':'+cur+':'+i])d++;});return {d,t:steps.length};})();
   return {blk,cur,navHtml:`<div class="ov-wrap">${inner}</div>`,inner,
-    blockDone:(curM&&!curM.dec)?curM.done:null,blockTot:(curM&&!curM.dec)?curM.tot:null};}
-// Une SECTION de bloc — en-tête ligne d'état (bouton repliable + « ↺ Refaire ») et corps
-// (étapes cochables / question + options). Réutilise le markup et le CSS des étapes de la vue
-// guidée (ol.steps, li[data-ck], crit/vigil/done) : une seule grammaire de cochage.
-function ovBlockHtml(f,m){
-  const b=f.blocks.find(x=>x.id===m.id);if(!b)return '';
-  const closed=!!state.ovClosed[m.id];
-  const passTag=m.total>1?` <span class="pass-n">passage ${m.pass}/${m.total}</span>`:'';
+    blockDone:tipDone.d,blockTot:tipDone.t};}
+// Une INSTANCE du journal (un passage d'un bloc) — en-tête ligne d'état (n° topologique, titre,
+// « passage k/N », réponse d'une décision, compteur, chevron, « ↺ Refaire ») et corps (étapes
+// cochables / question + options — même grammaire ol.steps que la vue guidée). Le bouton
+// d'avancement (« Continuer — … → » / « Terminer l'algorithme ✓ ») n'existe QUE sur l'instance
+// du bout : le journal avance par le bout, une boucle est un simple « Continuer ».
+function ovInstHtml(f,id,idx,topo){
+  const b=f.blocks.find(x=>x.id===id);if(!b)return '';
+  const dec=b.type==='decision';
+  const seq=state.navSeq[idx]||1;
+  const tip=idx===state.nav.length-1;
+  const pi=passInfo(state.nav,idx);
+  const complete=instComplete(f,state.nav,state.navSeq,state.checked,idx);
+  // Repli : AUTO pour une instance complète non-courante (ligne d'état) — appliqué au RENDU
+  // seulement, jamais pendant le cochage ; state.ovFold[idx] = choix manuel prioritaire.
+  const ovr=state.ovFold[idx];
+  const closed=ovr!=null?ovr:(complete&&!tip);
+  const passTag=pi.total>1?` <span class="pass-n">passage ${pi.pass}/${pi.total}</span>`:'';
   const imgH=b.image?`<img class="node-img" loading="lazy" decoding="async" src="${b.image}" data-full="${b.image}"${b.imageW&&b.imageH?` width="${b.imageW}" height="${b.imageH}"`:''} alt="">`:'';
+  const taken=dec?((b.options||[]).find(o=>o&&o.target&&o.target===state.nav[idx+1])||null):null;
   let bodyH='',count='';
-  if(m.dec){
-    const opts=(b.options||[]).map((o,i)=>{const sel=m.taken&&o.target===m.taken;return `<button type="button" class="opt${sel?' taken':''}" data-ovopt="${esc(o.target||'')}"><span class="ftxt">${fmt(o.label)||'Option '+(i+1)}</span><span class="arr">${sel?'✓':uiIcon('chev',18,{sw:2.4,cls:''})}</span></button>`;}).join('');
+  if(dec){
+    const opts=(b.options||[]).map((o,i)=>{const sel=taken&&o===taken;return `<button type="button" class="opt${sel?' taken':''}" data-ovopt="${esc(o.target||'')}"><span class="ftxt">${fmt(o.label)||'Option '+(i+1)}</span><span class="arr">${sel?'✓':uiIcon('chev',18,{sw:2.4,cls:''})}</span></button>`;}).join('');
     bodyH=`${imgH}<div class="question">${fmt(b.question)||'…'}</div><div class="options">${opts}</div>`;
-    count=m.complete?'✓':'?';}
+    count=taken?'✓':'?';}
   else{
     const steps=clean(b.steps);
-    const lis=steps.map((s,i)=>{const k=m.seq+':'+m.id+':'+i;const ck=!!state.checked[k];return `<li data-ck="${k}" class="${stepIsCrit(s)?'crit ':(stepIsVigil(s)?'vigil ':'')}${ck?'done':''}" role="checkbox" aria-checked="${ck?'true':'false'}" tabindex="0"><span class="box">${ck?uiIcon('check',19,{sw:3,cls:''}):''}</span><span class="txt">${fmt(stepText(s))}</span></li>`;}).join('');
-    // Bloc TERMINAL (pas de next valide) : « Terminer l'algorithme ✓ » — même sémantique §8
-    // qu'en guidé (n'arrête PAS la session ; fin déjà actée -> .flow-end).
-    const nxt=b.next?f.blocks.find(x=>x.id===b.next):null;
-    const allDone=steps.length===0?true:m.done>=m.tot;
-    let endH='';
-    if(!nxt){endH='<div class="flow-ctrl">'+((state.flowEnded&&allDone)
-      ?'<div class="flow-end">Algorithme terminé — surveillance en cours</div>'
-      :`<button type="button" class="btn cont ${allDone?'okay':'idle'}" data-ovend="${esc(m.id)}" data-contlbl="Terminer l’algorithme ✓"${allDone?'':' aria-disabled="true"'}>${allDone?'Terminer l’algorithme ✓':'Cochez les étapes restantes ('+(m.tot-m.done)+')'}</button>`)+'</div>';}
-    // Arête de BOUCLE explicite d'un bloc d'étapes (next vers un bloc antérieur dans l'ordre
-    // d'affichage) : sans elle, seul le mode guidé permettrait de « re-prendre » cette boucle.
-    const loopH=(nxt&&flowOrder(f).indexOf(b.next)<m.n-1)?`<button type="button" class="ov-loop" data-ovloop="${esc(b.next)}">↺ ${esc((b.nextLbl||'').trim()||nxt.title||'Continuer')} — nouveau passage</button>`:'';
-    bodyH=`${imgH}<ol class="steps">${lis}</ol>${loopH}${endH}`;
-    count=m.tot?m.done+'/'+m.tot:'—';}
-  const redo=(m.visited&&!m.dec&&m.done>0)?`<button type="button" class="ov-redo" data-ovredo title="Refaire ce bloc : nouvelles cases à cocher — le passage précédent reste dans le compte-rendu">↺ Refaire</button>`:'';
-  return `<section class="ov-block${m.cur?' cur':''}${m.complete?' done':''}${m.off?' off':''}${m.dec?' dec':''}${closed?' closed':''}" data-ovb="${esc(m.id)}"${m.cur?' aria-current="step"':''}><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl aria-expanded="${closed?'false':'true'}"><span class="ov-n" aria-hidden="true">${m.complete?uiIcon('check',13,{sw:3.2,cls:''}):m.n}</span><span class="ov-t">${esc(b.title)||(m.dec?'Décision':'Étapes')}${passTag}<span class="ov-offtag">· hors chemin</span> <span class="ov-here">Vous êtes ici</span></span><span class="ov-c" id="ovc-${esc(m.id)}">${count}</span><span class="ov-chev" aria-hidden="true">${closed?'▾':'▴'}</span></button>${redo}</div><div class="ov-body">${bodyH}</div></section>`;}
-// Une section re-rendue SEULE (réponse à une décision, « Refaire », boucle) — les écouteurs
-// délégués de .ov-wrap survivent ; seules les images de la section sont à recâbler.
-function ovRebuildBlock(f,id){
-  const sec=main.querySelector('.ov-block[data-ovb="'+CSS.escape(id)+'"]');if(!sec)return;
-  const m=minimapData(f,state.nav,state.navSeq,state.checked,state.navPos).find(x=>x.id===id);if(!m)return;
-  sec.outerHTML=ovBlockHtml(f,m);
-  const ns=main.querySelector('.ov-block[data-ovb="'+CSS.escape(id)+'"]');
-  if(ns)ns.querySelectorAll('img[data-full]').forEach(im=>im.onclick=()=>openLightbox(im.dataset.full,im.dataset.cap||''));}
-// Peinture du CHEMIN (position courante + hors-chemin) sur toutes les sections, + halo du SVG si
-// le panneau est ouvert et que le bloc courant a changé. Classes seulement : aucun re-rendu.
-function ovPaintPath(f){
-  const len=state.nav.length;
-  const np=Math.max(0,Math.min(state.navPos==null?len-1:state.navPos,len-1));state.navPos=np;
-  const cur=state.nav[np];
-  const off=offPathSet(f,state.nav,np);
-  main.querySelectorAll('.ov-block').forEach(s=>{const id=s.dataset.ovb;
-    s.classList.toggle('cur',id===cur);s.classList.toggle('off',off.has(id));
-    if(id===cur)s.setAttribute('aria-current','step');else s.removeAttribute('aria-current');});
-  flowCtx={f,curId:cur};
-  // Panneau algorithme ouvert : l'état est PEINT par classes (v4.7.0) — jamais de reconstruction.
+    const lis=steps.map((s,i)=>{const k=seq+':'+id+':'+i;const ck=!!state.checked[k];return `<li data-ck="${k}" class="${stepIsCrit(s)?'crit ':(stepIsVigil(s)?'vigil ':'')}${ck?'done':''}" role="checkbox" aria-checked="${ck?'true':'false'}" tabindex="0"><span class="box">${ck?uiIcon('check',19,{sw:3,cls:''}):''}</span><span class="txt">${fmt(stepText(s))}</span></li>`;}).join('');
+    let dn=0;steps.forEach((s,i)=>{if(state.checked[seq+':'+id+':'+i])dn++;});
+    let ctl='';
+    if(tip){const nxt=b.next?f.blocks.find(x=>x.id===b.next):null;
+      const allDone=steps.length===0?true:dn>=steps.length;
+      if(nxt){const lbl='Continuer — '+((b.nextLbl||'').trim()||(nxt.title||'').trim()||'suite')+' →';
+        ctl=`<div class="flow-ctrl"><button type="button" class="btn cont ${allDone?'okay':'idle'}" data-ovnext="${esc(b.next)}" data-contlbl="${esc(lbl)}"${allDone?'':' aria-disabled="true"'}>${allDone?esc(lbl):'Cochez les étapes restantes ('+(steps.length-dn)+')'}</button></div>`;}
+      else if(!state.flowEnded){
+        ctl=`<div class="flow-ctrl"><button type="button" class="btn cont ${allDone?'okay':'idle'}" data-ovend data-contlbl="Terminer l’algorithme ✓"${allDone?'':' aria-disabled="true"'}>${allDone?'Terminer l’algorithme ✓':'Cochez les étapes restantes ('+(steps.length-dn)+')'}</button></div>`;}}
+    bodyH=`${imgH}<ol class="steps">${lis}</ol>${ctl}`;
+    count=steps.length?dn+'/'+steps.length:'—';}
+  const takenH=taken?`<span class="ov-ans">→ ${esc(stripBold(taken.label)||'option')}</span>`:'';
+  const redo=(!tip&&complete&&!dec)?`<button type="button" class="ov-redo" data-ovredo="${esc(id)}" title="Refaire ce bloc : nouvelle carte au bout du journal — celle-ci reste telle quelle">↺ Refaire</button>`:'';
+  return `<section class="ov-block${tip?' cur':''}${complete?' done':''}${dec?' dec':''}${closed?' closed':''}" data-ovb="${esc(id)}" data-ovi="${idx}" data-ovn="${topo[id]||''}"${tip?' aria-current="step"':''}><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="${idx}" aria-expanded="${closed?'false':'true'}"><span class="ov-n" aria-hidden="true">${complete?uiIcon('check',13,{sw:3.2,cls:''}):(topo[id]||'·')}</span><span class="ov-t">${esc(b.title)||(dec?'Décision':'Étapes')}${passTag}${takenH} <span class="ov-here">Vous êtes ici</span></span><span class="ov-c">${count}</span><span class="ov-chev" aria-hidden="true">${closed?'▾':'▴'}</span></button>${redo}</div><div class="ov-body">${bodyH}</div></section>`;}
+// Un bloc de la SUITE (jamais visité) : aperçu COMPLET et actif — cocher une étape ou répondre
+// à une décision fait ENTRER le bloc dans le journal ; « Commencer ici → » y entre sans cocher.
+function ovSuiteHtml(f,id,topo,off){
+  const b=f.blocks.find(x=>x.id===id);if(!b)return '';
+  const dec=b.type==='decision';
+  const isOff=off.has(id);
+  const closed=state.ovFold['s:'+id]===true;
+  const imgH=b.image?`<img class="node-img" loading="lazy" decoding="async" src="${b.image}" data-full="${b.image}"${b.imageW&&b.imageH?` width="${b.imageW}" height="${b.imageH}"`:''} alt="">`:'';
+  let bodyH='',count='';
+  if(dec){
+    const opts=(b.options||[]).map((o,i)=>`<button type="button" class="opt" data-ovopt="${esc(o.target||'')}"><span class="ftxt">${fmt(o.label)||'Option '+(i+1)}</span><span class="arr">${uiIcon('chev',18,{sw:2.4,cls:''})}</span></button>`).join('');
+    bodyH=`${imgH}<div class="question">${fmt(b.question)||'…'}</div><div class="options">${opts}</div>`;
+    count='?';}
+  else{
+    const steps=clean(b.steps);
+    const lis=steps.map((s,i)=>{const k='0:'+id+':'+i;return `<li data-ck="${k}" class="${stepIsCrit(s)?'crit ':(stepIsVigil(s)?'vigil ':'')}" role="checkbox" aria-checked="false" tabindex="0"><span class="box"></span><span class="txt">${fmt(stepText(s))}</span></li>`;}).join('');
+    bodyH=`${imgH}<ol class="steps">${lis}</ol>`;
+    count=steps.length?'0/'+steps.length:'—';}
+  return `<section class="ov-block ovs${isOff?' off':''}${dec?' dec':''}${closed?' closed':''}" data-ovb="${esc(id)}" data-ovn="${topo[id]||''}"><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="s:${esc(id)}" aria-expanded="${closed?'false':'true'}"><span class="ov-n" aria-hidden="true">${topo[id]||'·'}</span><span class="ov-t">${esc(b.title)||(dec?'Décision':'Étapes')}<span class="ov-offtag">· hors chemin</span></span><span class="ov-c">${count}</span><span class="ov-chev" aria-hidden="true">${closed?'▾':'▴'}</span></button><button type="button" class="ov-redo" data-oventer="${esc(id)}" title="Entrer dans ce bloc (nouvelle carte au bout du journal)">Commencer ici →</button></div><div class="ov-body">${bodyH}</div></section>`;}
+// Peinture VIVANTE hors journal (le journal, lui, ne se réécrit qu'aux gestes de navigation) :
+// halo/✓/hors-chemin du SVG + chips/minimap — appelée après chaque coche et chaque navigation.
+function ovPaintLive(f){
+  flowCtx={f,curId:state.nav[state.navPos]};
   {const fs=main.querySelector('.alg-panel .flow-scroll');if(fs)flowPaintState(fs,f);}
-  paintMinimaps(f);}   // v4.8.0 : chips + rail suivent chaque coche/navigation
-// Défilement vers un bloc — GESTE DE NAVIGATION volontaire uniquement (le cochage, lui, ne
-// défile jamais) : instantané (prefers-reduced-motion respecté), calé sous l'en-tête fixe.
-function ovScrollTo(id){
-  const el=main.querySelector('.ov-block[data-ovb="'+CSS.escape(id)+'"]');if(!el)return;
+  paintMinimaps(f);}
+// Défilement vers un bloc (DERNIÈRE carte du bloc : instance la plus récente, sinon carte de la
+// suite) — GESTE DE NAVIGATION volontaire uniquement (le cochage, lui, ne défile jamais) :
+// instantané (prefers-reduced-motion respecté), calé sous l'en-tête fixe.
+function ovScrollEl(el){if(!el)return;
   const hdr=document.querySelector('header.bar');const hh=hdr?hdr.getBoundingClientRect().height:60;
   window.scrollTo(0,Math.max(0,Math.round(window.scrollY+el.getBoundingClientRect().top-hh-8)));}
-// Cochage en vue d'ensemble : même chirurgie qu'en guidé (toggle DOM, jamais de render() hors
-// démarrage), PLUS le déplacement de la position sur le bloc coché et, pour un bloc jamais
-// visité (sentinelle seq=0), l'EXTENSION DE VISITE posée AVANT ensureStarted.
+function ovScrollTo(id){
+  const els=main.querySelectorAll('.ov-block[data-ovb="'+CSS.escape(id)+'"]');
+  ovScrollEl(els[els.length-1]);}
+function ovScrollToInst(idx){ovScrollEl(main.querySelector('.ov-block[data-ovi="'+idx+'"]'));}
+// Re-rendu du journal ANCRÉ sur un élément (extension de visite : la carte migre de la suite au
+// bout du journal SANS bouger sous le doigt — même principe que renderKeepAnchor, en ciblé).
+function renderOvOnlyKeepAnchor(sel,kb){
+  const el=sel?main.querySelector(sel):null;const top=el?el.getBoundingClientRect().top:null;
+  renderOvOnly();
+  if(top==null)return;
+  const nl=main.querySelector(sel);if(!nl)return;
+  const d=nl.getBoundingClientRect().top-top;if(d)window.scrollBy(0,d);
+  if(kb)nl.focus();}
+// Cochage dans le journal : chirurgie pure (toggle DOM, jamais de render() sous le doigt).
+// Cochage dans la SUITE (sentinelle seq=0) : EXTENSION DE VISITE posée AVANT ensureStarted
+// (clé définitive), puis re-rendu ANCRÉ — la carte entre au bout du journal sans bouger à l'écran.
 function ovToggleStep(f,li,kb){
   let k=li.dataset.ck;
   const sec=li.closest('.ov-block');const id=sec.dataset.ovb;
@@ -5991,92 +6060,98 @@ function ovToggleStep(f,li,kb){
     state.nav.push(id);state.navSeq.push(++Runtime.seq);
     const seq=Runtime.seq;
     sec.querySelectorAll('[data-ck]').forEach(x=>{x.dataset.ck=seq+x.dataset.ck.slice(1);});
-    k=li.dataset.ck;}
+    k=li.dataset.ck;
+    state.checked[k]=true;
+    state.navPos=state.nav.length-1;
+    const justStarted=ensureStarted();persistLive(Runtime);
+    if(justStarted){renderKeepAnchor('[data-ck="'+CSS.escape(k)+'"]');if(kb){const nl=main.querySelector('[data-ck="'+CSS.escape(k)+'"]');if(nl)nl.focus();}return;}
+    renderOvOnlyKeepAnchor('[data-ck="'+CSS.escape(k)+'"]',kb);
+    return;}
   const on=!state.checked[k];state.checked[k]=on;
-  const lp=latestPass(state.nav,state.navSeq,id);
-  state.navPos=lp?lp.idx:state.nav.length-1;
   const justStarted=ensureStarted();persistLive(Runtime);
   if(justStarted){renderKeepAnchor('[data-ck="'+CSS.escape(k)+'"]');if(kb){const nl=main.querySelector('[data-ck="'+CSS.escape(k)+'"]');if(nl)nl.focus();}return;}
   li.classList.toggle('done',on);li.setAttribute('aria-checked',on?'true':'false');
   const box=li.querySelector('.box');if(box)box.innerHTML=on?uiIcon('check',19,{sw:3,cls:''}):'';
   if(!on)state.flowEnded=false;
-  ovAfterCheck(f,sec,id);
+  ovAfterCheck(f,sec,k);
   if(kb)li.focus();}
-// Après un cochage : compteur et état ✓ de la section, bouton « Terminer l'algorithme » du bloc
-// terminal, compteur du panneau Algorithme, position/hors-chemin — ciblé, sans render().
-function ovAfterCheck(f,sec,id){
+// Après un cochage dans une instance : compteur/✓ de la carte, bouton d'avancement du bout —
+// ciblé, sans render(). Le REPLI d'une instance complète n'arrive JAMAIS ici (rien ne bouge
+// sous le doigt) : il arrive au rendu du prochain geste de navigation (acquittement par l'action).
+function ovAfterCheck(f,sec,anchorKey){
   const boxes=[...sec.querySelectorAll('[data-ck]')];
   const dn=boxes.filter(x=>state.checked[x.dataset.ck]).length;
   const all=boxes.length>0&&dn>=boxes.length;
   const c=sec.querySelector('.ov-c');if(c)c.textContent=boxes.length?dn+'/'+boxes.length:'—';
   sec.classList.toggle('done',all);
-  {const n=sec.querySelector('.ov-n');if(n)n.innerHTML=all?uiIcon('check',13,{sw:3.2,cls:''}):String([...main.querySelectorAll('.ov-block')].indexOf(sec)+1);}
-  const end=sec.querySelector('[data-ovend]');
-  if(end){end.classList.toggle('okay',all);end.classList.toggle('idle',!all);
-    end.textContent=all?(end.dataset.contlbl||'Terminer l’algorithme ✓'):('Cochez les étapes restantes ('+(boxes.length-dn)+')');
-    if(all)end.removeAttribute('aria-disabled');else end.setAttribute('aria-disabled','true');}
-  // .flow-end affiché (fin déjà actée) mais on vient de décocher -> le bouton revient.
-  const fe=sec.querySelector('.flow-end');
-  if(fe&&!state.flowEnded)fe.outerHTML=`<button type="button" class="btn cont ${all?'okay':'idle'}" data-ovend="${esc(id)}" data-contlbl="Terminer l’algorithme ✓"${all?'':' aria-disabled="true"'}>${all?'Terminer l’algorithme ✓':'Cochez les étapes restantes ('+(boxes.length-dn)+')'}</button>`;
+  {const n=sec.querySelector('.ov-n');if(n)n.innerHTML=all?uiIcon('check',13,{sw:3.2,cls:''}):(sec.dataset.ovn||'·');}
+  const adv=sec.querySelector('[data-ovnext],[data-ovend]');
+  if(adv){adv.classList.toggle('okay',all);adv.classList.toggle('idle',!all);
+    adv.textContent=all?(adv.dataset.contlbl||'Continuer →'):('Cochez les étapes restantes ('+(boxes.length-dn)+')');
+    if(all)adv.removeAttribute('aria-disabled');else adv.setAttribute('aria-disabled','true');}
+  // Fin déjà actée (.flow-end en bout de journal) mais on vient de décocher : le bouton
+  // « Terminer » doit revenir dans l'instance du bout -> re-rendu ancré sur la case tapée.
+  if(!state.flowEnded&&main.querySelector('.ov-journal .flow-end')){renderOvOnlyKeepAnchor('[data-ck="'+CSS.escape(anchorKey)+'"]');return;}
   {const ac=document.getElementById('algCount');if(ac)ac.textContent=dn+'/'+boxes.length;}
-  ovPaintPath(f);}
-// Réponse à une décision : TOUJOURS active (jamais bloquant). Option déjà prise (au dernier
-// passage) = simple déplacement de position, RIEN ne s'efface ; sinon le chemin S'ÉTEND —
-// nouveau passage de la cible (cases neuves : l'arête « prescrit de refaire »), en passant par
-// un nouveau passage de la décision si elle n'est pas au bout du chemin (traçabilité).
+  ovPaintLive(f);}
+// Réponse à une décision : TOUJOURS active (jamais bloquant, où que soit l'instance).
+// Option déjà prise de CE passage = simple défilement vers la carte suivante (relecture, rien
+// ne s'efface). Sinon le chemin S'ÉTEND par le bout : nouvelle carte de la cible (cases neuves —
+// l'arête « prescrit de refaire »), précédée d'un nouveau passage de la décision si elle n'est
+// pas au bout (changement d'avis ou décision de la suite : traçabilité complète).
 function ovAnswer(f,btn){
   const sec=btn.closest('.ov-block');const dec=sec.dataset.ovb;const target=btn.dataset.ovopt;
   if(!target||!f.blocks.some(b=>b.id===target))return;
-  const lp=latestPass(state.nav,state.navSeq,dec);
-  if(lp&&state.nav[lp.idx+1]===target){state.navPos=lp.idx+1;ovPaintPath(f);ovScrollTo(target);return;}
+  const idx=sec.dataset.ovi!=null?+sec.dataset.ovi:null;
+  if(idx!=null&&state.nav[idx+1]===target){ovScrollToInst(idx+1);return;}
   if(state.nav[state.nav.length-1]!==dec){state.nav.push(dec);state.navSeq.push(++Runtime.seq);}
   state.nav.push(target);state.navSeq.push(++Runtime.seq);
   state.navPos=state.nav.length-1;
   if(Runtime.started)persistLive(Runtime);
-  ovRebuildBlock(f,dec);
-  ovRebuildBlock(f,target);   // nouveau passage -> cases neuves
-  ovPaintPath(f);
-  ovScrollTo(target);}
-// « ↺ Refaire ce bloc » / arête de boucle : NOUVEAU passage volontaire (cases neuves) — jamais
-// automatique ; l'ancien passage reste dans checked{} et au compte-rendu (trace du soin).
-function ovNewPass(f,id,scroll){
+  renderOvOnly();
+  ovScrollToInst(state.nav.length-1);}
+// « ↺ Refaire » (instance complète) / « Commencer ici → » (bloc de la suite) : NOUVELLE carte
+// postée au bout du journal — jamais automatique ; tout ce qui précède reste tel quel.
+function ovNewPass(f,id){
   if(!f.blocks.some(b=>b.id===id))return;
   state.nav.push(id);state.navSeq.push(++Runtime.seq);
   state.navPos=state.nav.length-1;
   if(Runtime.started)persistLive(Runtime);
-  ovRebuildBlock(f,id);ovPaintPath(f);
-  if(scroll)ovScrollTo(id);}
-// « Tout replier / Tout déplier » : bascule d'un coup, mémorisée par bloc (state.ovClosed).
-function ovFoldAll(){
-  const secs=[...main.querySelectorAll('.ov-block')];
-  const anyOpen=secs.some(s=>!s.classList.contains('closed'));
-  secs.forEach(s=>{s.classList.toggle('closed',anyOpen);state.ovClosed[s.dataset.ovb]=anyOpen;
-    const t=s.querySelector('[data-ovtgl]');if(t)t.setAttribute('aria-expanded',anyOpen?'false':'true');
-    const ch=s.querySelector('.ov-chev');if(ch)ch.textContent=anyOpen?'▾':'▴';});
-  const b=document.getElementById('ovFold');if(b)b.textContent=anyOpen?'Tout déplier':'Tout replier';}
-// Écouteurs de la vue d'ensemble : DÉLÉGATION sur .ov-wrap (survit aux ovRebuildBlock) ; seuls
+  renderOvOnly();
+  ovScrollToInst(state.nav.length-1);}
+// Écouteurs du journal : DÉLÉGATION sur .ov-wrap (survit aux re-rendus internes) ; seuls
 // « Recommencer » (geste maintenir) et les images sont câblés par élément. Le clavier n'est
 // intercepté que pour les étapes (role=checkbox) — les boutons ont leur activation native.
 function bindOverviewEvents(f){
   const wrap=main.querySelector('.ov-wrap');if(!wrap)return;
   const handle=(t,kb)=>{
     const st=t.closest('[data-ck]');if(st){ovToggleStep(f,st,kb);return;}
-    const rd=t.closest('[data-ovredo]');if(rd){ovNewPass(f,rd.closest('.ov-block').dataset.ovb,false);return;}
-    const lo=t.closest('[data-ovloop]');if(lo){ovNewPass(f,lo.dataset.ovloop,true);return;}
+    const rd=t.closest('[data-ovredo]');if(rd){ovNewPass(f,rd.dataset.ovredo);return;}
+    const en2=t.closest('[data-oventer]');if(en2){ovNewPass(f,en2.dataset.oventer);return;}
+    const nx=t.closest('[data-ovnext]');
+    if(nx){if(nx.getAttribute('aria-disabled')==='true')return;   // le libellé dit pourquoi (ECAM)
+      // REPLI DIFFÉRÉ de l'étape ① : même doctrine que le « Continuer » guidé (v4.4.2) —
+      // premier geste qui acquitte la confirmation ET déplace déjà le contexte à la demande.
+      const confWasOpen=(state.confOpen!==undefined?state.confOpen:!Runtime.started);
+      if(Runtime.started)state.confOpen=false;
+      state.nav.push(nx.dataset.ovnext);state.navSeq.push(++Runtime.seq);state.navPos=state.nav.length-1;
+      if(Runtime.started)persistLive(Runtime);
+      if(Runtime.started&&confWasOpen)render();else renderOvOnly();
+      ovScrollToInst(state.nav.length-1);return;}
     const tg=t.closest('[data-ovtgl]');
     if(tg){const sec=tg.closest('.ov-block');const closed=sec.classList.toggle('closed');
-      state.ovClosed[sec.dataset.ovb]=closed;tg.setAttribute('aria-expanded',closed?'false':'true');
+      state.ovFold[tg.dataset.ovtgl]=closed;tg.setAttribute('aria-expanded',closed?'false':'true');
       const ch=sec.querySelector('.ov-chev');if(ch)ch.textContent=closed?'▾':'▴';return;}
     const op=t.closest('[data-ovopt]');if(op){ovAnswer(f,op);return;}
     const en=t.closest('[data-ovend]');
     if(en){if(en.getAttribute('aria-disabled')==='true')return;   // le libellé dit pourquoi (ECAM)
       state.flowEnded=true;render();return;}   // les étapes ②/③ du rail changent -> rendu complet
-    if(t.closest('#ovFold'))ovFoldAll();};
+    if(t.closest('#ovSuiteTgl')){state.ovSuiteFold=!state.ovSuiteFold;renderOvOnly();}};
   wrap.onclick=e=>handle(e.target,false);
   wrap.onkeydown=e=>{if(e.key!=='Enter'&&e.key!==' ')return;
     const t=e.target.closest('[data-ck]');if(!t)return;e.preventDefault();handle(t,true);};
   const rs=wrap.querySelector('#ovReset');
-  if(rs)holdToReset(rs,()=>{state.nav.length=0;state.navSeq.length=0;state.nav.push(f.start);state.navSeq.push(++Runtime.seq);state.navPos=0;if(Runtime.started)persistLive(Runtime);renderOvOnly();});}
+  if(rs)holdToReset(rs,()=>{state.nav.length=0;state.navSeq.length=0;state.nav.push(f.start);state.navSeq.push(++Runtime.seq);state.navPos=0;state.ovFold={};if(Runtime.started)persistLive(Runtime);renderOvOnly();});}
 /* Re-rendu CIBLÉ de la vue d'ensemble (pendant de renderNavOnly) : reconstruit l'INTÉRIEUR de
    .ov-wrap (Recommencer, structures) sans toucher au reste de la vue — le conteneur garde ses
    écouteurs délégués. Structure inattendue -> repli complet sûr. */
@@ -6097,7 +6172,7 @@ function renderOvOnly(){
    crise (< 1000 px, élément STATIQUE #ovChips — délégation posée UNE fois, jamais recréé) et
    le panneau du rail droit (>= 1000 px, #ovMap, re-rendu avec la vue). Taper un bloc =
    jumpToBlock (même geste que le SVG navigable) ; « Dg » et « ③ Surv. » sautent vers les
-   sections ① et ③ (défilement volontaire). Repeinte par ovPaintPath à chaque coche/navigation. */
+   sections ① et ③ (défilement volontaire). Repeinte par ovPaintLive à chaque coche/navigation. */
 function ovChipTxt(m){return m.dec?(m.complete?'✓':'?'):(m.tot?(m.complete?'✓':m.done+'/'+m.tot):'—');}
 function ovChipsHtml(f){
   const md=minimapData(f,state.nav,state.navSeq,state.checked,state.navPos);
@@ -6292,7 +6367,7 @@ function openDraftPreview(){state.previewFrom='edit';
   // session vive d'une AUTRE fiche ne doit jamais recevoir les coches ou le chemin d'un brouillon
   // (openRead/resumeSession relient state au Runtime à la prochaine vraie ouverture).
   state.checked={};state.nav=[state.fiche.start||(((state.fiche.blocks||[])[0]||{}).id)];state.navSeq=[++Runtime.seq];state.navPos=0;
-  state.readMode=currentReadMode();state.ovClosed={};state.flowEnded=false;state.confOpen=undefined;
+  state.readMode=currentReadMode();state.ovFold={};state.ovSuiteFold=false;state.flowEnded=false;state.confOpen=undefined;
   state.view='read';render();}
 function openPDraftPreview(){state.previewFrom='protocolEdit';
   state.protocol=migrateProtocol(JSON.parse(JSON.stringify(state.pdraft)));state.view='protocolRead';render();}
@@ -6552,7 +6627,7 @@ setInterval(()=>{const k=_editKind();if(!k){_lastParked=null;return;}
 // Ouvre une fiche en lecture. Si une SESSION VIVE existe pour cette fiche, on la rouvre telle quelle
 // (minuteurs toujours en cours). Sinon on garde le runtime transitoire de cette même fiche (s'il n'a
 // pas démarré), sinon on en crée un neuf.
-function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;bumpUsage(id);flowScroll={left:null,top:0};state.rtOpen=false;state.noteEdit=false;state.confOpen=undefined;state.previewFrom=null;state.flowEnded=false;state.readMode=currentReadMode();state.ovClosed={};
+function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;bumpUsage(id);flowScroll={left:null,top:0};state.rtOpen=false;state.noteEdit=false;state.confOpen=undefined;state.previewFrom=null;state.flowEnded=false;state.readMode=currentReadMode();state.ovFold={};state.ovSuiteFold=false;
   if(liveSessions[id]){Runtime=liveSessions[id];Runtime.fiche=f;}
   else if(!(Runtime.fiche&&Runtime.ficheId===id&&!Runtime.started)){Runtime=buildRuntime(f,null);}
   // Algorithme REPLIÉ à l'ouverture : la 1ʳᵉ étape actionnable doit arriver le plus haut possible
@@ -8936,7 +9011,7 @@ if(location.search.indexOf('__actest')>=0){
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
     restErrStatus,isPersoRepairCandidate,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,
     qTerms,hayMatch,markQTerms,searchSnippet,ficheSnipParts,protoSnipParts,frecencyScore,sanitizeUsage,mergeUsage,
-    crc32,zipBuild,zipParse,isPdfBytes,mdTask,flowOrder,latestPass,offPathSet,minimapData};
+    crc32,zipBuild,zipParse,isPdfBytes,mdTask,flowOrder,latestPass,offPathSet,minimapData,passInfo,instComplete};
 }else{
   /* ===== PWA =====
      Enregistre le service worker (cache hors ligne) si disponible. Capte

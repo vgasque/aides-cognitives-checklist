@@ -1,5 +1,28 @@
 # Journal des modifications
 
+## [4.9.0] — 2026-07-16
+La vue d'ensemble devient un **journal de parcours** : sur les algorithmes à boucles et à
+décisions, l'ancienne présentation (chaque bloc affiché une fois, remis à neuf à chaque passage)
+perdait l'utilisateur — retour d'usage immédiat. Le journal suit le modèle ECAM : les étapes
+faites restent à l'écran, ce qui vient se poste à la suite.
+
+### Modifié
+- **La « Vue d'ensemble » est désormais chronologique** : chaque passage d'un bloc est une carte
+  postée à la suite — on lit toujours vers le bas, rien ne se réécrit au-dessus, rien ne
+  disparaît. Un bloc terminé se replie en **ligne d'état verte** relisible d'un tap (le repli
+  n'arrive jamais sous le doigt : il attend le geste suivant) ; un bloc quitté incomplet reste
+  déplié. Une décision repliée garde **sa réponse en toutes lettres** (« → Non — réfractaire »),
+  passage par passage — plus de décision amnésique. Reboucler = une nouvelle carte en bas avec
+  des cases neuves (tag « passage 2/2 »), l'ancien passage reste intact au-dessus.
+- **« Suite de l'algorithme »** : sous le journal, tous les blocs pas encore visités restent
+  lisibles en entier (dépliés par défaut — tout l'algorithme d'un coup dès l'ouverture) et
+  actifs : cocher une étape ou « Commencer ici → » fait entrer le bloc dans le journal, sans
+  que rien ne bouge sous le doigt. La branche écartée par une décision est marquée « hors
+  chemin », grisée mais jamais verrouillée.
+- Le schéma navigable (v4.7.0) et la minimap (v4.8.0) sont inchangés et suivent le journal ;
+  y taper un bloc déjà visité défile vers sa dernière carte, un bloc jamais visité y entre.
+- Format de session et export inchangés ; la vue guidée reste identique. 5 tests ajoutés (430).
+
 ## [4.8.0] — 2026-07-16
 La vue d'ensemble gagne sa **minimap** : où que l'on soit dans la page, la position dans
 l'algorithme reste visible et chaque bloc est à un tap.

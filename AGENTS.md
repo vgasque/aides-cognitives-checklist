@@ -105,23 +105,32 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   2 colonnes ≥ 780 px — jamais de repli — et garde-fou non bloquant dans l'éditeur,
   `nfGuardTxt`). Tout re-rendu de DÉMARRAGE passe par `renderKeepAnchor` (l'élément déclencheur
   ne bouge pas d'un pixel à l'écran — ECAM).
-- **Vue d'ensemble du mode crise (v4.6.0)** : la lecture d'une fiche À ALGORITHME a deux modes —
-  `overview` (défaut : TOUS les blocs affichés à la suite, ordre `flowOrder` = BFS depuis
-  `f.start`, orphelins en fin) ↔ `guided` (bloc à bloc historique, inchangé) ; bascule `.seg`
-  (`#readModeSeg`) en tête de l'étape ②, masquée si `!hasFlow` ; préférence PAR UTILISATEUR
-  (`spaceKey('ac-read-mode')` + `data.prefs.readMode` — le pull de synchro n'écrit QUE la
-  préférence locale, il ne bascule JAMAIS la vue ouverte). Les deux vues partagent le MÊME
-  Runtime : `nav`/`navSeq`/`checked` et l'export v3 STRICTEMENT inchangés. Doctrine (décisions
-  utilisateur figées) : chaque bloc affiche son passage le PLUS RÉCENT (`latestPass`, tag
-  « passage n/N ») ; les coches sont la TRACE du soin — jamais effacées par une navigation ;
-  cases neuves SEULEMENT par une arête de boucle (option de décision, `data-ovloop`) ou le
-  bouton explicite « ↺ Refaire ce bloc » ; branche écartée = « hors chemin » (`offPathSet` :
-  ni visité ni atteignable — un bloc VISITÉ n'est jamais grisé) ATTÉNUÉE mais jamais
-  verrouillée (mention textuelle, l'estompe n'est jamais seule) ; bloc jamais visité =
-  sentinelle `seq=0`, cocher = EXTENSION DE VISITE (`nav.push` AVANT `ensureStarted`, pour
-  l'ancre du re-rendu de démarrage). Cocher ne re-rend JAMAIS (écouteurs DÉLÉGUÉS sur
-  `.ov-wrap`, chirurgie `ovAfterCheck`/`ovPaintPath` ; `renderOvOnly` = pendant de
-  `renderNavOnly`, qui dispatche). `minimapData` = source UNIQUE de l'état affichable par bloc.
+- **Journal de parcours du mode crise (v4.9.0, remplace la vue spatiale v4.6.0)** : la lecture
+  d'une fiche À ALGORITHME a deux modes — `overview` (défaut : JOURNAL chronologique) ↔
+  `guided` (bloc à bloc historique, inchangé) ; bascule `.seg` (`#readModeSeg`) en tête de
+  l'étape ②, masquée si `!hasFlow` ; préférence PAR UTILISATEUR (`spaceKey('ac-read-mode')` +
+  `data.prefs.readMode` — le pull de synchro n'écrit QUE la préférence locale, il ne bascule
+  JAMAIS la vue ouverte). Les deux vues partagent le MÊME Runtime : `nav`/`navSeq`/`checked`
+  et l'export v3 STRICTEMENT inchangés. **Doctrine du journal (leçon v4.6→v4.9 : ne PAS poser
+  un état temporel sur une carte spatiale — un bloc à plusieurs passages y perd l'utilisateur)** :
+  `nav[]` EST la chronologie — chaque passage est une CARTE POSTÉE à la suite (modèle ECAM),
+  rien ne mute au-dessus, on lit toujours vers le bas ; le journal n'a PAS de curseur (la
+  position est le BOUT, `state.navPos=fin` — la vue guidée garde le sien) ; une instance
+  COMPLÈTE non-courante se replie en LIGNE D'ÉTAT verte relisible — repli appliqué AU RENDU
+  d'un geste de navigation, JAMAIS sous le doigt pendant le cochage ; une instance incomplète
+  reste dépliée ; une décision repliée garde sa réponse en toutes lettres (`.ov-ans`) et ses
+  options restent actives partout (changer d'avis = nouveau passage décision+cible en bout de
+  journal, traçabilité complète) ; l'avancement (« Continuer — … → » / « Terminer ») n'existe
+  QUE sur l'instance du bout — une boucle est un simple Continuer ; « ↺ Refaire » poste
+  volontairement une nouvelle carte, tout ce qui précède reste tel quel. Sous le journal, la
+  « SUITE DE L'ALGORITHME » (blocs jamais visités, ordre `flowOrder`, DÉPLIÉE par défaut —
+  tout l'algorithme lisible d'emblée) : y cocher = EXTENSION DE VISITE (sentinelle `seq=0`,
+  `nav.push` AVANT `ensureStarted`, re-rendu ANCRÉ `renderOvOnlyKeepAnchor` — la carte entre
+  au bout du journal sans bouger sous le doigt) ; branche écartée « hors chemin »
+  (`offPathSet`) grisée mais jamais verrouillée (mention textuelle). Cocher dans une instance
+  ne re-rend JAMAIS (délégation sur `.ov-wrap`, chirurgie `ovAfterCheck`/`ovPaintLive` ;
+  `renderOvOnly` = pendant de `renderNavOnly`, qui dispatche). Fonctions pures : `passInfo`
+  (rang du passage), `instComplete` ; `minimapData` = source UNIQUE de l'état PAR BLOC.
   **Minimap (v4.8.0)** : bande de chips-blocs `#ovChips` STATIQUE dans l'en-tête sous
   `#crisisBand` (< 1000 px ; délégation posée UNE fois, contenu peint par `paintMinimaps` —
   masquée/vidée hors lecture par `applyViewChrome`) + panneau `#ovMap` du rail droit
@@ -329,7 +338,7 @@ modèle de données, règles de sécurité) : le lire en premier. Ensuite, dans 
 | Load | `chooseBackend`, `load()` (démarrage), `persist`, `softDelete` |
 | Runtime | minuteurs/compteurs/audio (`tickAll`, `beep`), sessions vives (`liveSessions`) |
 | Sessions | auto-enregistrement (`persistLive`), reprise, compte-rendu |
-| Render | `render()` → `applyViewChrome` (chrome d'en-tête) puis `renderFiches`/`renderProtocols` / `renderRead` / `renderEditor` (template strings + écouteurs) ; en lecture de fiche, `overviewSection` (vue d'ensemble, défaut) ou `navSection` (vue guidée), re-rendus ciblés `renderOvOnly`/`renderNavOnly` |
+| Render | `render()` → `applyViewChrome` (chrome d'en-tête) puis `renderFiches`/`renderProtocols` / `renderRead` / `renderEditor` (template strings + écouteurs) ; en lecture de fiche, `overviewSection` (JOURNAL de parcours + suite, défaut) ou `navSection` (vue guidée), re-rendus ciblés `renderOvOnly`/`renderNavOnly` |
 | Flow SVG | `buildFlowSVG(f,cache)` : organigramme auto — géométrie PURE sans état (v4.7.0) ; l'état de session est PEINT par classes après insertion (`flowPaintState` : `fn-cur`/`fn-ok`/`fn-off`, halo et badge ✓ bakés masqués) et les nœuds sont NAVIGABLES en lecture (`bindSvgNav` → `jumpToBlock` — jamais de cochage dans le SVG, jamais de démarrage de session ; inerte dans l'éditeur) |
 | Visionneuse PDF | `pdfLib` (chargement paresseux de `vendor/pdfjs`), `openPdfViewer` (rendu virtualisé par IntersectionObserver ; zoom d'OUVERTURE = « page entière » calculé d'après le ratio du document et la fenêtre, `pdfFitPageZ`, bornes 25–400 %, boutons « Page »/« Largeur »), fenêtre `#pdfModal` ; miniatures de la 1ʳᵉ page dans les listes « Documents » (`attThumbHtml`/`genAttThumb` : paresseuses, une à la fois, cache mémoire de session — jamais de chargement de pdf.js au démarrage) ; badge « △ à télécharger » si le binaire n'est pas encore sur l'appareil (`hydrateAttThumbs`/`refreshAttRow` — état décidé sur la lecture IndexedDB, rafraîchi en direct par le téléchargement de fond de la synchro) |
 | Mini-Markdown | `mdBlocks`/`mdInline`/`mdRender`/`mdStrip`/`mdCells`/`mdCallout`/`mdTask` : parseur maison XSS-safe (esc() d'abord) du contenu rédigé des protocoles — titres, listes, citation, code, image, TABLEAUX (v4.4.2), ENCADRÉS TYPÉS et `==surligné==` (v4.4.3), LISTES COCHABLES `- [ ]` (v4.5.4). Registre et alignement viennent toujours d'un jeu FERMÉ posé en CLASSE, jamais d'un attribut piloté par l'utilisateur |

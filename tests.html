@@ -650,6 +650,11 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   const mD2=A.minimapData(ovF,['A','D'],[1,2],{},1).find(m=>m.id==='D');
   ok('minimapData : décision non répondue → incomplète, aucune option prise', mD2.dec===true&&mD2.complete===false&&mD2.taken===null);
   eq('format de session INCHANGÉ : la clé seq:bloc:index reste résoluble (compte-rendu)', A.stepTextFromKey(ovF,'5:R:0').step, 'r1');
+  eq('passInfo (journal v4.9.0) : rang du passage affiché', A.passInfo(['A','D','R','D','R'],4), {pass:2,total:2});
+  eq('passInfo : première visite d’un bloc rebouclé', A.passInfo(['A','D','R','D','R'],2), {pass:1,total:2});
+  ok('instComplete : bloc d’étapes tout coché pour CE passage', A.instComplete(ovF,['A'],[1],{'1:A:0':true,'1:A:1':true},0)===true&&A.instComplete(ovF,['A'],[1],{'1:A:0':true},0)===false);
+  ok('instComplete : les coches d’un AUTRE passage ne comptent pas', A.instComplete(ovF,['A','D','R','D','R'],[1,2,3,4,5],{'3:R:0':true},4)===false);
+  ok('instComplete : décision répondue / non répondue', A.instComplete(ovF,['A','D','S'],[1,2,3],{},1)===true&&A.instComplete(ovF,['A','D'],[1,2],{},1)===false);
   const svgOut=A.buildFlowSVG(ovF);
   ok('buildFlowSVG (v4.7.0) : un nœud interactif par bloc (data-fnode)', ['A','D','S','R','X'].every(id=>svgOut.indexOf('data-fnode="'+id+'"')>=0));
   ok('buildFlowSVG : halo et badge ✓ bakés, AUCUN état peint dans la géométrie', svgOut.indexOf('flow-hl-glow')>=0&&svgOut.indexOf('fn-badge')>=0&&svgOut.indexOf('fn-cur')<0&&svgOut.indexOf('fn-ok')<0&&svgOut.indexOf('fn-off')<0);
