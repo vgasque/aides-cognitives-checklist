@@ -1,5 +1,24 @@
 # Journal des modifications
 
+## [4.5.3] — 2026-07-16
+L'app dit quand elle travaille : « Chargement… » au démarrage, anneau tournant sur le bouton
+Compte pendant la synchronisation.
+
+### Ajouté
+- **Indicateur d'activité de la synchronisation** : pendant qu'une synchro tourne, la pastille
+  d'état du bouton Compte (en-tête) devient un **anneau tournant** discret — un seul endroit,
+  constant, visible dans toutes les vues. C'est un signal d'**activité**, pas une alerte :
+  registre INFORMATION (mouvement calme, bleu `--link`), les autres états gardent leur pastille
+  statique (vert en phase, rouge erreur, gris hors-ligne). Aucune nouvelle logique : l'anneau
+  est piloté par la source d'état existante (`setSyncChip`), en CSS seul ; il ralentit sous
+  `prefers-reduced-motion` et disparaît en session de crise (le bouton Compte y est déjà
+  masqué — jamais de signal non actionnable pendant un soin, doctrine ECAM). Le bandeau
+  système reste réservé à l'information actionnable (« Nouvelle version — Recharger ») : pas de
+  bandeau furtif à chaque ouverture.
+- **« Chargement… » au démarrage** : pendant la lecture initiale des données (IndexedDB), la
+  page affiche une petite roue et « Chargement… » au lieu d'une zone vide — placé dans le HTML
+  statique, remplacé par le tout premier rendu, zéro JavaScript ajouté.
+
 ## [4.5.2] — 2026-07-16
 L'accueil ne se reconstruit plus inutilement juste après l'ouverture : les premiers taps ne
 sont plus « avalés ».

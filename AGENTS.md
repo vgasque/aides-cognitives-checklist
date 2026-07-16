@@ -47,7 +47,9 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   les fusionner : `--critical` #a32e1f = TEXTE/icônes vital-destructif ; `--critical-bd`
   #c43d34 = BORDURES des cartes/bandeaux rouges ; PALETTE « Urgences » #b6382f = couleur de
   CATÉGORIE (liseré/pastille, jamais un signal d'alerte) ; états (pastilles compte/synchro) :
-  ok = `--ok`, attente = `--verify`, erreur = `--critical`, inactif = `--line-strong` ; survol
+  ok = `--ok`, attente = `--verify`, erreur = `--critical`, inactif = `--line-strong`, synchro
+  EN COURS = anneau tournant (`.acct-dot.busy`, v4.5.3 : activité ≠ alerte — mouvement discret,
+  jamais en crise, le bouton Compte y est masqué) ; survol
   des boutons remplis = `--primary-hi` (en sombre, `--primary-dk` est l'accent **texte** clair).
   Contraste texte ≥ 4.5:1, composants ≥ 3:1 (WCAG AA). Depuis l'audit v4.5 : `--soft` est
   **décoratif seulement** (jamais une couleur de TEXTE — texte secondaire = `--ink-soft`) ;
