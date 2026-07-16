@@ -1,5 +1,22 @@
 # Journal des modifications
 
+## [4.5.2] — 2026-07-16
+L'accueil ne se reconstruit plus inutilement juste après l'ouverture : les premiers taps ne
+sont plus « avalés ».
+
+### Corrigé
+- **App qui semble ne pas répondre à l'ouverture** : la synchronisation se lance à chaque
+  ouverture (et à chaque retour au premier plan), et son chargement de profil se terminait par
+  une reconstruction **inconditionnelle** de l'accueil — environ une seconde après
+  l'affichage, pile quand on commence à s'en servir. Comme le profil (bibliothèques, rôle) est
+  déjà restauré depuis le cache au démarrage, cette reconstruction ne changeait rien à l'écran…
+  mais remplaçait l'élément sous le doigt entre le toucher et le clic : le tap était perdu,
+  d'où l'impression d'une app « bloquée pendant le chargement ». Désormais le re-rendu n'a lieu
+  que si le profil a **réellement changé** (bibliothèque ajoutée/retirée, rôle modifié, comptes
+  en attente). Les autres re-rendus de synchro étaient déjà conditionnés à un vrai changement ;
+  à l'ouverture sans nouveauté distante, plus **aucune** reconstruction ne suit l'affichage
+  initial. Vérifié en conditions réelles (profil inchangé = zéro re-rendu).
+
 ## [4.5.1] — 2026-07-16
 L'animation de bascule Aides ↔ Protocoles ne se rejoue plus quand un re-rendu tombe pendant
 qu'elle joue.

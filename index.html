@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-nzsheSaekGHJhuuv/sy+c+2Oq7Y2sjo6hm3vB68QAnI='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-1O4HEOnPvNtkNlWx+5n+jUP6PfITD4ftzoPUU0MzQi0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -2178,7 +2178,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.5.1';
+const APP_VERSION='4.5.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -8071,6 +8071,12 @@ const Sync={
   // bibliothèques hors-ligne) ; en cas de succès, le profil est mis en cache (loadProfileCache
   // le restaure au démarrage). Une révocation réelle arrive, elle, par une réponse 200 réussie.
   async loadProfile(){
+    // Empreinte AVANT les requêtes : le re-rendu final n'a lieu que si le profil a RÉELLEMENT
+    // changé. loadProfile tourne à CHAQUE synchro (chaque ouverture, chaque retour au premier
+    // plan) et le cache de profil est déjà restauré au démarrage : le render() inconditionnel
+    // d'ici remplaçait l'accueil ~1 s après l'ouverture SANS RIEN Y CHANGER — le tap en cours
+    // tombait sur un élément détruit (« l'app ne répond pas »). Profil inchangé = zéro re-rendu.
+    const prev=JSON.stringify([myLibraries,myIsAppAdmin,myPendingCount]);
     let ok=true;
     try{const rows=await rest('GET','/rest/v1/memberships?select=role,library_id,libraries(id,name)')||[];
       // Déduplication par id (robustesse) : si une biblio remonte plusieurs fois, on garde le rôle le plus élevé.
@@ -8083,7 +8089,7 @@ const Sync={
     if(myIsAppAdmin){try{myPendingCount=(await rpc('list_unapproved_users')||[]).filter(u=>u.status==='pending').length;}catch(e){myPendingCount=0;}}
     else myPendingCount=0;
     if(ok)saveProfileCache();
-    if(state.view==='library')render();}   // render() aiguille selon la section (fiches/protocoles)
+    if(JSON.stringify([myLibraries,myIsAppAdmin,myPendingCount])!==prev&&state.view==='library')render();}   // render() aiguille selon la section (fiches/protocoles)
 };
 // Déclencheurs de synchro : retour en ligne, retour au premier plan.
 window.addEventListener('online',()=>{setSyncChip('ok','Synchronisé');Sync.full();});
