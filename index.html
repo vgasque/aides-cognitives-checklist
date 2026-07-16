@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-ty88l6hTVv3/keafoSrDvsLvu28ByLyeZJY7r/JmXVg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-KpLXPBqddzNlXvDuivU2lF520IdNbpUZxWsaiTmn7kg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1351,6 +1351,52 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .flow-nav .tmr-hint{font-size:11px;font-weight:700;opacity:.6;text-transform:uppercase;letter-spacing:.5px}
   /* §8 fin d'algorithme : état annoncé + la session CONTINUE (Terminer ≠ terminer la session). */
   .flow-end{margin-top:8px;padding:15px;text-align:center;border:2px solid var(--done-line);border-radius:8px;color:var(--ok);font-size:15px;font-weight:800;letter-spacing:1px}
+  /* ----- Vue d'ensemble du mode crise (v4.6.0) : tous les blocs à la suite ----- */
+  /* Bascule Vue d'ensemble / Vue guidée : même composant .seg que la tab bar. CAVEAT assumé :
+     contrairement à #tabBar, ce segment est RE-RENDU (render complet à la bascule) — la pastille
+     ne glisse pas, elle se repose (tout le contenu change dessous, le glissement serait invisible). */
+  .read-seg{background:var(--surface);border:1px solid var(--line);border-radius:24px;padding:3px;margin-bottom:10px}
+  .read-seg .seg-pill{width:calc(50% - 7px);left:3px;top:3px;bottom:3px}
+  .read-seg.i1 .seg-pill{transform:translateX(calc(100% + 8px))}
+  .ov-controls{display:flex;gap:8px;justify-content:flex-end;margin:0 0 10px}
+  .ov-controls .btn{min-height:44px}
+  /* Section de bloc : en-tête = LIGNE D'ÉTAT toujours visible (n°, titre, compteur, chevron),
+     corps repliable. Pastille : bleu = position courante, vert ✓ = bloc complet, neutre sinon —
+     jamais d'ambre/rouge (registres d'alerte) ; la décision garde sa carte ambrée (comme .nav-wrap.dec). */
+  .ov-block{border:1px solid var(--line-hover);border-left:4px solid var(--line-strong);border-radius:10px;margin-bottom:10px;scroll-margin-top:74px}
+  .ov-block.dec{background:var(--verify-soft);border-color:var(--verify-bd);border-left-color:var(--verify-bd)}
+  .ov-block.cur{border-color:var(--primary);border-left-color:var(--primary)}
+  .ov-block.done{border-left-color:var(--done-line)}
+  /* Hors chemin (branche écartée par une décision) : ATTÉNUÉ mais JAMAIS verrouillé — l'estompe
+     n'est jamais seule, la mention « hors chemin » l'accompagne (WCAG 1.4.1). */
+  .ov-block.off{opacity:.55;border-style:dashed}
+  .ov-head{display:flex;align-items:stretch}
+  .ov-tgl{flex:1;min-width:0;display:flex;align-items:center;gap:9px;min-height:52px;padding:9px 12px;background:none;border:0;cursor:pointer;font-family:inherit;text-align:left}
+  .ov-tgl:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
+  .ov-n{width:26px;height:26px;border-radius:50%;flex:none;display:grid;place-items:center;font-family:var(--mono);font-size:13px;font-weight:700;color:var(--ink-soft);border:2px solid var(--line-strong)}
+  .ov-block.cur .ov-n{background:var(--primary);border-color:var(--primary);color:var(--on-primary)}
+  .ov-block.done .ov-n{background:var(--ok);border-color:var(--ok);color:var(--surface)}
+  .ov-t{flex:1;min-width:0;font-size:14px;font-weight:800;color:var(--ink);line-height:1.3}
+  .ov-t .pass-n{font-family:var(--mono);font-weight:600;color:var(--primary);margin-left:7px;font-size:12px}
+  .ov-offtag{font-size:11.5px;font-weight:700;color:var(--ink-soft);margin-left:6px;display:none}
+  .ov-block.off .ov-offtag{display:inline}
+  /* Pastille de position DANS .ov-t : elle passe à la ligne en étroit au lieu d'écraser le titre. */
+  .ov-here{display:none;font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;background:var(--primary);color:var(--on-primary);padding:3px 9px;border-radius:999px;white-space:nowrap;vertical-align:1px}
+  .ov-block.cur .ov-here{display:inline-block}
+  .ov-c{flex:none;font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--ink-soft)}
+  .ov-block.done .ov-c{color:var(--ok)}
+  .ov-chev{flex:none;color:var(--link);font-size:15px;font-weight:800}
+  .ov-redo{flex:none;align-self:center;margin-right:10px;min-height:44px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--ink-soft);font-size:12px;font-weight:700;padding:6px 11px;cursor:pointer;white-space:nowrap}
+  .ov-redo:hover{background:var(--surface)}
+  .ov-redo:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .ov-body{padding:0 12px 12px}
+  .ov-block.closed .ov-body{display:none}
+  .ov-body .flow-ctrl{margin-top:10px}
+  /* Arête de boucle EXPLICITE d'un bloc d'étapes (next vers un bloc antérieur) : nouveau passage
+     volontaire — pointillé (grammaire « créer »), jamais un bouton plein. */
+  .ov-loop{margin-top:8px;min-height:44px;width:100%;border:1px dashed var(--line-strong);border-radius:8px;background:transparent;font-size:13px;font-weight:700;color:var(--link);cursor:pointer;font-family:inherit}
+  .ov-loop:hover{background:var(--surface)}
+  .ov-loop:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* §12 pied de contenu : défile avec la fiche, jamais fixe. */
   .crisis-footer{margin-top:16px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:11.5px;color:var(--ink-soft);font-weight:600}
   /* En SESSION de crise, l'état de stockage disparaît du pied de lecture — exactement comme il
@@ -2012,10 +2058,15 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .mem-act select,.invite-row select,.invite-row input,.mi-sc{font-size:16px}
     .tk-time-edit{width:96px}
   }
-  @media print{body{background:#fff}header.bar,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.sess-list,.notes-block{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}
+  @media print{body{background:#fff}header.bar,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.sess-list,.notes-block,#readModeSeg,.ov-controls,.ov-redo,.ov-loop,.flow-zoom{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}
     /* Un conteneur à défilement s'imprime TRONQUÉ : à l'impression le tableau se déploie. */
     .md-tw{overflow:visible;break-inside:avoid}.md-tbl{min-width:0;font-size:11px}.md-tbl tr{break-inside:avoid}
     .forget-strip{break-inside:avoid}
+    /* v4.6.0 : l'algorithme s'imprime ENTIER (le conteneur à défilement tronquait le SVG à
+       300 px) et la vue d'ensemble s'imprime DÉPLIÉE — blocs repliés rouverts par CSS (aucun
+       état à toucher), hors-chemin en pleine encre (la mention « hors chemin » reste le marqueur). */
+    .alg-panel .flow-scroll{max-height:none;overflow:visible}
+    .ov-block{break-inside:avoid}.ov-block.closed .ov-body{display:block}.ov-block.off{opacity:1}
     .crisis-footer .cf-stg{display:none}}
 </style>
 </head>
@@ -2205,7 +2256,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.5.4';
+const APP_VERSION='4.6.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -2557,8 +2608,18 @@ let state={view:'library',q:'',cat:'',scope:null,draft:null,fiche:null,nav:[],na
   // Coches ÉPHÉMÈRES des listes cochables de la vue protocole (v4.5.4) : {index -> bool}, remises
   // à zéro par openProtocolRead, JAMAIS persistées ni exportées (le body reste la seule vérité).
   // protoTasksSrc mémorise le body lié aux index (un corps remplacé par la synchro les invalide).
-  protoTasks:null,protoTasksSrc:null};
+  protoTasks:null,protoTasksSrc:null,
+  // Vue d'ensemble du mode crise (v4.6.0) : 'overview' = TOUS les blocs affichés à la suite
+  // (défaut), 'guided' = bloc à bloc historique. Posé à l'OUVERTURE (openRead/resumeSession)
+  // depuis la préférence ; ovClosed = blocs repliés manuellement (par fiche ouverte, jamais persisté).
+  readMode:'overview',ovClosed:{}};
 try{if(localStorage.getItem(spaceKey('ac-section'))==='protocols')state.section='protocols';}catch(e){}
+/* Préférence du mode de lecture (v4.6.0) — par utilisateur (spaceKey local), synchronisée via
+   data.prefs.readMode. La synchro ne fait qu'ÉCRIRE la préférence locale : elle ne bascule JAMAIS
+   la vue ouverte (changer l'écran pendant un soin serait une action non commandée — ECAM). */
+const READ_MODES=['overview','guided'];
+function currentReadMode(){try{const m=localStorage.getItem(spaceKey('ac-read-mode'))||'';return READ_MODES.indexOf(m)>=0?m:'overview';}catch(e){return 'overview';}}
+function setReadModePref(m){if(READ_MODES.indexOf(m)<0)return;try{localStorage.setItem(spaceKey('ac-read-mode'),m);}catch(e){}schedulePrefsPush();}
 // Rôle/édition par bibliothèque. Perso (libraryId vide) = toujours éditable. Bibliothèque partagée : éditable
 // si role editor/admin. (La RLS reste l'arbitre côté serveur ; ceci n'est que l'ergonomie.)
 function roleOf(libId){const l=myLibraries.find(x=>x.id===libId);return l?l.role:null;}
@@ -3298,6 +3359,62 @@ function migrateCategories(){const changed=[];const byName={};categories.forEach
   fiches.forEach(f=>{const cv=f.category;if(!cv)return;if(categories.some(c=>c.id===cv))return;const name=String(cv).trim();if(!name){f.category='';changed.push(f);return;}
     let id=byName[name.toLowerCase()];if(!id){id=newCatId(name,null);categories.push({id,name,color:PALETTE[pi++%PALETTE.length],libraryId:null});byName[name.toLowerCase()]=id;}f.category=id;changed.push(f);});return changed;}
 const hasFlow=f=>(f.blocks||[]).length>1||(f.blocks||[]).some(b=>b.type==='decision');
+/* ----- Vue d'ensemble du mode crise (v4.6.0) : fonctions PURES (testées via ?__actest) ----- */
+// Ordre TOPOLOGIQUE d'affichage : BFS depuis f.start (mêmes règles de parcours que bfsLevels du
+// SVG — next puis options[].target dans l'ordre du document, une seule visite par bloc, les
+// boucles ne re-poussent pas), puis les blocs jamais atteints (orphelins) dans l'ordre du document.
+function flowOrder(f){const blocks=(f&&f.blocks)||[];if(!blocks.length)return [];
+  const byId={};blocks.forEach(b=>{if(b&&b.id&&!byId[b.id])byId[b.id]=b;});
+  const out=[],seen={},q=[byId[f.start]?f.start:(blocks[0]&&blocks[0].id)];
+  while(q.length){const id=q.shift();if(!id||seen[id]||!byId[id])continue;seen[id]=true;out.push(id);
+    const b=byId[id];
+    if(b.type==='decision')(b.options||[]).forEach(o=>{if(o&&o.target)q.push(o.target);});
+    else if(b.next)q.push(b.next);}
+  blocks.forEach(b=>{if(b&&b.id&&!seen[b.id]){seen[b.id]=true;out.push(b.id);}});
+  return out;}
+// Dernier PASSAGE d'un bloc dans le chemin parcouru : {idx,seq,pass,total} (pass = rang du passage
+// affiché = total : la vue d'ensemble montre toujours le plus récent) ; null si jamais visité.
+function latestPass(nav,navSeq,blockId){nav=nav||[];let idx=-1,total=0;
+  for(let i=0;i<nav.length;i++)if(nav[i]===blockId){total++;idx=i;}
+  if(idx<0)return null;
+  return {idx,seq:(navSeq&&navSeq[idx])||1,pass:total,total};}
+// Blocs « HORS CHEMIN » : ni visités (nav — leurs actions ont été faites, on ne les grise jamais),
+// ni atteignables depuis la position courante (BFS sur TOUTES les arêtes sortantes). Un saut
+// n'insère jamais de visites fictives dans nav[] (traçabilité de session) : les blocs survolés
+// restent hors chemin tant qu'on n'y agit pas.
+function offPathSet(f,nav,navPos){const blocks=(f&&f.blocks)||[];const out=new Set();if(!blocks.length)return out;
+  const byId={};blocks.forEach(b=>{if(b&&b.id&&!byId[b.id])byId[b.id]=b;});
+  const keep={};(nav||[]).forEach(id=>{keep[id]=true;});
+  const len=(nav||[]).length;
+  const np=Math.max(0,Math.min(navPos==null?len-1:navPos,len-1));
+  // Tête de chemin irrésoluble (bloc supprimé par une édition, aperçu d'un brouillon) : repli
+  // sur le bloc de départ — sinon RIEN ne serait atteignable et tout serait grisé.
+  const head=nav&&nav[np];
+  const seen={},q=[byId[head]?head:(byId[f.start]?f.start:(blocks[0]&&blocks[0].id))];
+  while(q.length){const id=q.shift();if(!id||seen[id]||!byId[id])continue;seen[id]=true;keep[id]=true;
+    const b=byId[id];
+    if(b.type==='decision')(b.options||[]).forEach(o=>{if(o&&o.target)q.push(o.target);});
+    else if(b.next)q.push(b.next);}
+  blocks.forEach(b=>{if(b&&b.id&&!keep[b.id])out.add(b.id);});
+  return out;}
+// État AFFICHABLE de chaque bloc (ordre flowOrder) — source unique de la section vue d'ensemble,
+// des chips/minimap (v4.8.0) et de la peinture du SVG (v4.7.0). seq=0 : bloc jamais visité
+// (sentinelle — les vrais seq commencent à 1 ; cocher déclenche alors l'EXTENSION DE VISITE).
+function minimapData(f,nav,navSeq,checked,navPos){const blocks=(f&&f.blocks)||[];
+  const byId={};blocks.forEach(b=>{if(b&&b.id&&!byId[b.id])byId[b.id]=b;});
+  const off=offPathSet(f,nav,navPos);
+  const len=(nav||[]).length;
+  const np=Math.max(0,Math.min(navPos==null?len-1:navPos,len-1));
+  const curId=nav&&nav[np];
+  return flowOrder(f).map((id,i)=>{const b=byId[id];const lp=latestPass(nav,navSeq,id);
+    const dec=b.type==='decision';
+    const steps=dec?[]:clean(b.steps);
+    const seq=lp?lp.seq:0;
+    let done=0;steps.forEach((s,j)=>{if(checked&&checked[seq+':'+id+':'+j])done++;});
+    const taken=(dec&&lp&&(b.options||[]).some(o=>o&&o.target&&o.target===(nav[lp.idx+1]||null)))?nav[lp.idx+1]:null;
+    return {id,n:i+1,title:b.title||'',dec,off:off.has(id),cur:id===curId,visited:!!lp,seq,done,
+      tot:steps.length,complete:dec?!!taken:(steps.length>0&&done>=steps.length),taken,
+      pass:lp?lp.pass:0,total:lp?lp.total:0};});}
 const staleDate=v=>{if(!v)return false;const d=new Date(v.length===7?v+'-01':v);if(isNaN(d))return false;return (Date.now()-d.getTime())>730*864e5;};
 // Affichage de la date de validation : "AAAA-MM" -> "MM/AAAA" ; "AAAA-MM-JJ" -> "JJ/MM/AAAA".
 // « Validation : … » (neutre) et non « Validée … » : le même libellé sert aux fiches (féminin)
@@ -3915,7 +4032,7 @@ bindModalDismiss(document.getElementById('endSessModal'),()=>_endSessClose(false
 async function endCurrentSession(){if(!Runtime.started)return;if(!await confirmEndSession(Runtime))return;const f=Runtime.fiche;endSession(Runtime);freshRuntime(f,null);state.fiche=null;state.view='library';render();}
 // Reprendre une session de l'historique (ou vive) : recharge dans un runtime, la réactive (vive) et
 // ouvre la fiche. Si une session vive existe déjà pour cette fiche, on la rouvre telle quelle.
-function resumeSession(id){const s=sessions.find(x=>x.id===id);if(!s)return;const f=fiches.find(x=>x.id===s.ficheId);if(!f){toast('⚠ Fiche introuvable.');return;}flowScroll={left:null,top:0};
+function resumeSession(id){const s=sessions.find(x=>x.id===id);if(!s)return;const f=fiches.find(x=>x.id===s.ficheId);if(!f){toast('⚠ Fiche introuvable.');return;}flowScroll={left:null,top:0};state.readMode=currentReadMode();state.ovClosed={};
   if(liveSessions[f.id]&&liveSessions[f.id].sessionId===id){Runtime=liveSessions[f.id];}
   else{Runtime=buildRuntime(f,s);Runtime.started=true;Runtime.startedAt=s.startedAt||Date.now();liveSessions[f.id]=Runtime;persistLive(Runtime,true);}
   Runtime.fiche=f;bindStateToRuntime();state.fiche=f;state.showFlow=false;state.showSess=false;state.view='read';render();}
@@ -5381,8 +5498,13 @@ const algSubHtml=(done,tot)=>'· carte des blocs — synchronisée'+(tot!=null?`
 function renderRead(){
   captureFlow();
   const f=state.fiche;if(!f){state.view='library';return render();}
-  const N=navSection(f);
-  const blk=N.blk,cur=N.cur,crumbsH=N.crumbsH,navHtml=N.navHtml,navRowH=N.navRowH,blockDone=N.blockDone,blockTot=N.blockTot;
+  // v4.6.0 : DEUX modes de lecture de la prise en charge. 'overview' (défaut) = TOUS les blocs
+  // affichés à la suite (overviewSection) ; 'guided' = bloc à bloc historique (navSection).
+  // Une fiche SANS algorithme (un seul bloc, pas de décision) garde le rendu guidé : les deux
+  // vues y seraient identiques — la bascule n'est pas affichée non plus.
+  const useOv=state.readMode==='overview'&&hasFlow(f);
+  const N=useOv?overviewSection(f):navSection(f);
+  const blk=N.blk,cur=N.cur,crumbsH=N.crumbsH||'',navHtml=N.navHtml,navRowH=N.navRowH||'',blockDone=N.blockDone,blockTot=N.blockTot;
   const gallery=(f.images||[]).length?`<section class="block"><div class="block-h h-img">${headerIcon('h-img')}Schémas & captures</div><div class="gallery">${f.images.map(im=>`<div class="gthumb"><img src="${im.data}" data-full="${im.data}" data-cap="${esc(im.caption||'')}" alt="${esc(im.caption||'')}"${im.w&&im.h?` width="${im.w}" height="${im.h}"`:''} loading="lazy" decoding="async">${im.caption?`<div class="gcap">${esc(im.caption)}</div>`:''}</div>`).join('')}</div></section>`:'';
   // Documents PDF joints : liste de boutons (≥44 px, utilisables en crise) -> visionneuse intégrée.
   const docs=attListHtml(f);
@@ -5446,10 +5568,13 @@ function renderRead(){
   // rempli par écran ; la 1ʳᵉ action clinique démarre toujours aussi (jamais bloquant).
   const sessStartH=(!preview&&!started)?`<div class="sess-start"><button class="btn primary" id="sessStart">${uiIcon('play',14)} ${confItems.length?'Confirmé — démarrer la session':'Démarrer la session'}</button><span class="ss-hint">chrono, minuteurs et journal — démarre aussi à la première action</span></div>`:'';
   const algH=f.blocks&&f.blocks.length?`<div class="alg-panel"><button type="button" class="alg-head" id="flowToggle" aria-expanded="${state.showFlow?'true':'false'}"><span class="alg-k">Algorithme</span><span class="alg-sub">${algSubHtml(blockDone,blockTot)}</span><span class="alg-chev" aria-hidden="true">${state.showFlow?'▴':'▾'}</span></button>${state.showFlow?flowBlock(f,cur,true)+'<div class="flow-hint">Schéma = vue d’ensemble · étapes à cocher en-dessous ↓</div>':''}</div>`:'';
+  // Bascule Vue d'ensemble / Vue guidée (v4.6.0) : les deux vues partagent le même Runtime —
+  // basculer ne perd rien (coches, chemin, minuteurs). Masquée sans algorithme (vues identiques).
+  const modeSegH=hasFlow(f)?`<div class="seg read-seg${useOv?'':' i1'}" id="readModeSeg" role="tablist" aria-label="Affichage de la prise en charge"><span class="seg-pill" aria-hidden="true"></span><button type="button" class="seg-btn${useOv?' on':''}" role="tab" aria-selected="${useOv?'true':'false'}" data-readmode="overview" tabindex="${useOv?'0':'-1'}">Vue d’ensemble</button><button type="button" class="seg-btn${useOv?'':' on'}" role="tab" aria-selected="${useOv?'false':'true'}" data-readmode="guided" tabindex="${useOv?'-1':'0'}">Vue guidée</button></div>`:'';
   const localH=f.localInfo&&f.localInfo.trim()?`<div class="local">${fmt(f.localInfo)}</div>`:'';
   const stages=[];
   if(confBlockH)stages.push({cls:started?'done':'on',head:'',body:confBlockH+sessStartH});
-  {const body=(confBlockH?'':sessStartH)+(wideRead?'':rtH)+algH+crumbsH+navHtml+navRowH+localH+(wideRead?'':posH);
+  {const body=(confBlockH?'':sessStartH)+(wideRead?'':rtH)+modeSegH+algH+crumbsH+navHtml+navRowH+localH+(wideRead?'':posH);
    if(body)stages.push({cls:state.flowEnded?'done':(started?'on':(confBlockH?'off':'on')),head:'Prise en charge',body});}
   if(verifyH||diffH)stages.push({cls:state.flowEnded?'on':'off',head:'Surveillances &amp; pièges',body:verifyH+(diffH?`<div class="diff-anchor" id="diffBlock" tabindex="-1">${diffH}</div>`:'')});
   const pathH=stages.length>1
@@ -5552,7 +5677,15 @@ function bindReadEvents(f,blk,cur){
   // ⟲ des rangées compactes : RELANCE le minuteur ad hoc (repart du plein, démarre aussitôt).
   main.querySelectorAll('[data-tmrestart]').forEach(b=>b.onclick=()=>{const t=Runtime.timers[b.dataset.tmrestart];if(!t)return;
     t.elapsedMs=0;t.lastStart=Date.now();t.running=true;ensureAudio();persistLive(Runtime,true);render();});
-  bindNavEvents(f,blk);   // navigation entre blocs + cochage des étapes (rebranchés aussi par renderNavOnly)
+  // Bascule Vue d'ensemble / Vue guidée (v4.6.0) : renderKeepAnchor -> la bascule reste sous le
+  // doigt au re-rendu ; préférence mémorisée (spaceKey + data.prefs à la prochaine synchro).
+  {const seg=document.getElementById('readModeSeg');
+   if(seg){const go=m=>{if(state.readMode===m)return;state.readMode=m;setReadModePref(m);renderKeepAnchor('#readModeSeg');
+       const s2=document.getElementById('readModeSeg');const on=s2&&s2.querySelector('.seg-btn.on');if(on)on.focus({preventScroll:true});};
+     seg.querySelectorAll('[data-readmode]').forEach(b=>b.onclick=()=>go(b.dataset.readmode));
+     seg.onkeydown=e=>{if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;e.preventDefault();go(e.key==='ArrowLeft'?'overview':'guided');};}}
+  // Navigation + cochage — rebranchés aussi par renderNavOnly (guidé) / renderOvOnly (ensemble).
+  if(state.readMode==='overview'&&hasFlow(f))bindOverviewEvents(f);else bindNavEvents(f,blk);
   main.querySelectorAll('img[data-full]').forEach(im=>im.onclick=()=>openLightbox(im.dataset.full,im.dataset.cap||''));
   // Documents PDF -> visionneuse intégrée (le blob est lu dans IndexedDB à l'ouverture).
   bindAttList(f);
@@ -5674,6 +5807,199 @@ function bindNavEvents(f,blk){
        const ac=document.getElementById('algCount');if(ac)ac.textContent=dn+'/'+boxes.length;}}
     if(kb)li.focus();};li.onclick=()=>tgl(false);li.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();tgl(true);}};});
 }
+/* ===== Vue d'ensemble (v4.6.0) =====
+   TOUS les blocs de l'algorithme affichés à la suite (ordre flowOrder), chacun repliable en
+   ligne d'état, tous cochables — la position « Vous êtes ici » suit la DERNIÈRE action.
+   Doctrine QRH/ECAM : rien n'est jamais verrouillé (options de décision toujours actives,
+   branche écartée GRISÉE mais tapable), rien ne bouge sous le doigt (cocher = mise à jour DOM
+   ciblée, jamais de render() hors démarrage de session), rien ne s'efface par une simple
+   navigation (les coches sont la TRACE du soin — cases neuves seulement par l'arête de boucle
+   d'une décision ou le bouton explicite « ↺ Refaire ce bloc », décision utilisateur v4.6.0).
+   Chaque bloc affiche son passage le PLUS RÉCENT (latestPass) ; un bloc jamais visité rend ses
+   cases avec la sentinelle seq=0 — y cocher ÉTEND le chemin (nav/navSeq) AVANT ensureStarted,
+   pour que l'ancre du re-rendu de démarrage retrouve la clé définitive. Les écouteurs sont
+   DÉLÉGUÉS à la racine .ov-wrap : remplacer une section (ovRebuildBlock) ne casse rien. */
+function overviewSection(f){
+  const len=state.nav.length;
+  const np=Math.max(0,Math.min(state.navPos==null?len-1:state.navPos,len-1));state.navPos=np;
+  const cur=state.nav[np];
+  const blk=f.blocks.find(b=>b.id===cur)||f.blocks.find(b=>b.id===f.start)||f.blocks[0];
+  const md=minimapData(f,state.nav,state.navSeq,state.checked,np);
+  const allClosed=md.length>0&&md.every(m=>state.ovClosed[m.id]);
+  const controls=`<div class="ov-controls"><button type="button" class="btn sm" id="ovFold">${allClosed?'Tout déplier':'Tout replier'}</button><button type="button" class="btn sm btn-hold" id="ovReset" title="Maintenir pour recommencer (repart du début — ne touche ni au chrono ni aux minuteurs)"><span class="tmr-lab">${uiIcon('undo',13)} Recommencer</span><span class="tmr-hint">maintenir</span></button></div>`;
+  const inner=controls+md.map(m=>ovBlockHtml(f,m)).join('');
+  const curM=md.find(m=>m.id===cur);
+  return {blk,cur,navHtml:`<div class="ov-wrap">${inner}</div>`,inner,
+    blockDone:(curM&&!curM.dec)?curM.done:null,blockTot:(curM&&!curM.dec)?curM.tot:null};}
+// Une SECTION de bloc — en-tête ligne d'état (bouton repliable + « ↺ Refaire ») et corps
+// (étapes cochables / question + options). Réutilise le markup et le CSS des étapes de la vue
+// guidée (ol.steps, li[data-ck], crit/vigil/done) : une seule grammaire de cochage.
+function ovBlockHtml(f,m){
+  const b=f.blocks.find(x=>x.id===m.id);if(!b)return '';
+  const closed=!!state.ovClosed[m.id];
+  const passTag=m.total>1?` <span class="pass-n">passage ${m.pass}/${m.total}</span>`:'';
+  const imgH=b.image?`<img class="node-img" loading="lazy" decoding="async" src="${b.image}" data-full="${b.image}"${b.imageW&&b.imageH?` width="${b.imageW}" height="${b.imageH}"`:''} alt="">`:'';
+  let bodyH='',count='';
+  if(m.dec){
+    const opts=(b.options||[]).map((o,i)=>{const sel=m.taken&&o.target===m.taken;return `<button type="button" class="opt${sel?' taken':''}" data-ovopt="${esc(o.target||'')}"><span class="ftxt">${fmt(o.label)||'Option '+(i+1)}</span><span class="arr">${sel?'✓':uiIcon('chev',18,{sw:2.4,cls:''})}</span></button>`;}).join('');
+    bodyH=`${imgH}<div class="question">${fmt(b.question)||'…'}</div><div class="options">${opts}</div>`;
+    count=m.complete?'✓':'?';}
+  else{
+    const steps=clean(b.steps);
+    const lis=steps.map((s,i)=>{const k=m.seq+':'+m.id+':'+i;const ck=!!state.checked[k];return `<li data-ck="${k}" class="${stepIsCrit(s)?'crit ':(stepIsVigil(s)?'vigil ':'')}${ck?'done':''}" role="checkbox" aria-checked="${ck?'true':'false'}" tabindex="0"><span class="box">${ck?uiIcon('check',19,{sw:3,cls:''}):''}</span><span class="txt">${fmt(stepText(s))}</span></li>`;}).join('');
+    // Bloc TERMINAL (pas de next valide) : « Terminer l'algorithme ✓ » — même sémantique §8
+    // qu'en guidé (n'arrête PAS la session ; fin déjà actée -> .flow-end).
+    const nxt=b.next?f.blocks.find(x=>x.id===b.next):null;
+    const allDone=steps.length===0?true:m.done>=m.tot;
+    let endH='';
+    if(!nxt){endH='<div class="flow-ctrl">'+((state.flowEnded&&allDone)
+      ?'<div class="flow-end">Algorithme terminé — surveillance en cours</div>'
+      :`<button type="button" class="btn cont ${allDone?'okay':'idle'}" data-ovend="${esc(m.id)}" data-contlbl="Terminer l’algorithme ✓"${allDone?'':' aria-disabled="true"'}>${allDone?'Terminer l’algorithme ✓':'Cochez les étapes restantes ('+(m.tot-m.done)+')'}</button>`)+'</div>';}
+    // Arête de BOUCLE explicite d'un bloc d'étapes (next vers un bloc antérieur dans l'ordre
+    // d'affichage) : sans elle, seul le mode guidé permettrait de « re-prendre » cette boucle.
+    const loopH=(nxt&&flowOrder(f).indexOf(b.next)<m.n-1)?`<button type="button" class="ov-loop" data-ovloop="${esc(b.next)}">↺ ${esc((b.nextLbl||'').trim()||nxt.title||'Continuer')} — nouveau passage</button>`:'';
+    bodyH=`${imgH}<ol class="steps">${lis}</ol>${loopH}${endH}`;
+    count=m.tot?m.done+'/'+m.tot:'—';}
+  const redo=(m.visited&&!m.dec&&m.done>0)?`<button type="button" class="ov-redo" data-ovredo title="Refaire ce bloc : nouvelles cases à cocher — le passage précédent reste dans le compte-rendu">↺ Refaire</button>`:'';
+  return `<section class="ov-block${m.cur?' cur':''}${m.complete?' done':''}${m.off?' off':''}${m.dec?' dec':''}${closed?' closed':''}" data-ovb="${esc(m.id)}"${m.cur?' aria-current="step"':''}><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl aria-expanded="${closed?'false':'true'}"><span class="ov-n" aria-hidden="true">${m.complete?uiIcon('check',13,{sw:3.2,cls:''}):m.n}</span><span class="ov-t">${esc(b.title)||(m.dec?'Décision':'Étapes')}${passTag}<span class="ov-offtag">· hors chemin</span> <span class="ov-here">Vous êtes ici</span></span><span class="ov-c" id="ovc-${esc(m.id)}">${count}</span><span class="ov-chev" aria-hidden="true">${closed?'▾':'▴'}</span></button>${redo}</div><div class="ov-body">${bodyH}</div></section>`;}
+// Une section re-rendue SEULE (réponse à une décision, « Refaire », boucle) — les écouteurs
+// délégués de .ov-wrap survivent ; seules les images de la section sont à recâbler.
+function ovRebuildBlock(f,id){
+  const sec=main.querySelector('.ov-block[data-ovb="'+CSS.escape(id)+'"]');if(!sec)return;
+  const m=minimapData(f,state.nav,state.navSeq,state.checked,state.navPos).find(x=>x.id===id);if(!m)return;
+  sec.outerHTML=ovBlockHtml(f,m);
+  const ns=main.querySelector('.ov-block[data-ovb="'+CSS.escape(id)+'"]');
+  if(ns)ns.querySelectorAll('img[data-full]').forEach(im=>im.onclick=()=>openLightbox(im.dataset.full,im.dataset.cap||''));}
+// Peinture du CHEMIN (position courante + hors-chemin) sur toutes les sections, + halo du SVG si
+// le panneau est ouvert et que le bloc courant a changé. Classes seulement : aucun re-rendu.
+function ovPaintPath(f){
+  const len=state.nav.length;
+  const np=Math.max(0,Math.min(state.navPos==null?len-1:state.navPos,len-1));state.navPos=np;
+  const cur=state.nav[np];
+  const off=offPathSet(f,state.nav,np);
+  main.querySelectorAll('.ov-block').forEach(s=>{const id=s.dataset.ovb;
+    s.classList.toggle('cur',id===cur);s.classList.toggle('off',off.has(id));
+    if(id===cur)s.setAttribute('aria-current','step');else s.removeAttribute('aria-current');});
+  if(flowCtx.curId!==cur){flowCtx={f,curId:cur};
+    const fs=main.querySelector('.alg-panel .flow-scroll');
+    if(fs){captureFlow();fs.innerHTML=buildFlowSVG(f,cur,true);applyFlowZoom();restoreFlow();bindSvgImages(fs);}}}
+// Défilement vers un bloc — GESTE DE NAVIGATION volontaire uniquement (le cochage, lui, ne
+// défile jamais) : instantané (prefers-reduced-motion respecté), calé sous l'en-tête fixe.
+function ovScrollTo(id){
+  const el=main.querySelector('.ov-block[data-ovb="'+CSS.escape(id)+'"]');if(!el)return;
+  const hdr=document.querySelector('header.bar');const hh=hdr?hdr.getBoundingClientRect().height:60;
+  window.scrollTo(0,Math.max(0,Math.round(window.scrollY+el.getBoundingClientRect().top-hh-8)));}
+// Cochage en vue d'ensemble : même chirurgie qu'en guidé (toggle DOM, jamais de render() hors
+// démarrage), PLUS le déplacement de la position sur le bloc coché et, pour un bloc jamais
+// visité (sentinelle seq=0), l'EXTENSION DE VISITE posée AVANT ensureStarted.
+function ovToggleStep(f,li,kb){
+  let k=li.dataset.ck;
+  const sec=li.closest('.ov-block');const id=sec.dataset.ovb;
+  if(k.indexOf('0:')===0){
+    state.nav.push(id);state.navSeq.push(++Runtime.seq);
+    const seq=Runtime.seq;
+    sec.querySelectorAll('[data-ck]').forEach(x=>{x.dataset.ck=seq+x.dataset.ck.slice(1);});
+    k=li.dataset.ck;}
+  const on=!state.checked[k];state.checked[k]=on;
+  const lp=latestPass(state.nav,state.navSeq,id);
+  state.navPos=lp?lp.idx:state.nav.length-1;
+  const justStarted=ensureStarted();persistLive(Runtime);
+  if(justStarted){renderKeepAnchor('[data-ck="'+CSS.escape(k)+'"]');if(kb){const nl=main.querySelector('[data-ck="'+CSS.escape(k)+'"]');if(nl)nl.focus();}return;}
+  li.classList.toggle('done',on);li.setAttribute('aria-checked',on?'true':'false');
+  const box=li.querySelector('.box');if(box)box.innerHTML=on?uiIcon('check',19,{sw:3,cls:''}):'';
+  if(!on)state.flowEnded=false;
+  ovAfterCheck(f,sec,id);
+  if(kb)li.focus();}
+// Après un cochage : compteur et état ✓ de la section, bouton « Terminer l'algorithme » du bloc
+// terminal, compteur du panneau Algorithme, position/hors-chemin — ciblé, sans render().
+function ovAfterCheck(f,sec,id){
+  const boxes=[...sec.querySelectorAll('[data-ck]')];
+  const dn=boxes.filter(x=>state.checked[x.dataset.ck]).length;
+  const all=boxes.length>0&&dn>=boxes.length;
+  const c=sec.querySelector('.ov-c');if(c)c.textContent=boxes.length?dn+'/'+boxes.length:'—';
+  sec.classList.toggle('done',all);
+  {const n=sec.querySelector('.ov-n');if(n)n.innerHTML=all?uiIcon('check',13,{sw:3.2,cls:''}):String([...main.querySelectorAll('.ov-block')].indexOf(sec)+1);}
+  const end=sec.querySelector('[data-ovend]');
+  if(end){end.classList.toggle('okay',all);end.classList.toggle('idle',!all);
+    end.textContent=all?(end.dataset.contlbl||'Terminer l’algorithme ✓'):('Cochez les étapes restantes ('+(boxes.length-dn)+')');
+    if(all)end.removeAttribute('aria-disabled');else end.setAttribute('aria-disabled','true');}
+  // .flow-end affiché (fin déjà actée) mais on vient de décocher -> le bouton revient.
+  const fe=sec.querySelector('.flow-end');
+  if(fe&&!state.flowEnded)fe.outerHTML=`<button type="button" class="btn cont ${all?'okay':'idle'}" data-ovend="${esc(id)}" data-contlbl="Terminer l’algorithme ✓"${all?'':' aria-disabled="true"'}>${all?'Terminer l’algorithme ✓':'Cochez les étapes restantes ('+(boxes.length-dn)+')'}</button>`;
+  {const ac=document.getElementById('algCount');if(ac)ac.textContent=dn+'/'+boxes.length;}
+  ovPaintPath(f);}
+// Réponse à une décision : TOUJOURS active (jamais bloquant). Option déjà prise (au dernier
+// passage) = simple déplacement de position, RIEN ne s'efface ; sinon le chemin S'ÉTEND —
+// nouveau passage de la cible (cases neuves : l'arête « prescrit de refaire »), en passant par
+// un nouveau passage de la décision si elle n'est pas au bout du chemin (traçabilité).
+function ovAnswer(f,btn){
+  const sec=btn.closest('.ov-block');const dec=sec.dataset.ovb;const target=btn.dataset.ovopt;
+  if(!target||!f.blocks.some(b=>b.id===target))return;
+  const lp=latestPass(state.nav,state.navSeq,dec);
+  if(lp&&state.nav[lp.idx+1]===target){state.navPos=lp.idx+1;ovPaintPath(f);ovScrollTo(target);return;}
+  if(state.nav[state.nav.length-1]!==dec){state.nav.push(dec);state.navSeq.push(++Runtime.seq);}
+  state.nav.push(target);state.navSeq.push(++Runtime.seq);
+  state.navPos=state.nav.length-1;
+  if(Runtime.started)persistLive(Runtime);
+  ovRebuildBlock(f,dec);
+  ovRebuildBlock(f,target);   // nouveau passage -> cases neuves
+  ovPaintPath(f);
+  ovScrollTo(target);}
+// « ↺ Refaire ce bloc » / arête de boucle : NOUVEAU passage volontaire (cases neuves) — jamais
+// automatique ; l'ancien passage reste dans checked{} et au compte-rendu (trace du soin).
+function ovNewPass(f,id,scroll){
+  if(!f.blocks.some(b=>b.id===id))return;
+  state.nav.push(id);state.navSeq.push(++Runtime.seq);
+  state.navPos=state.nav.length-1;
+  if(Runtime.started)persistLive(Runtime);
+  ovRebuildBlock(f,id);ovPaintPath(f);
+  if(scroll)ovScrollTo(id);}
+// « Tout replier / Tout déplier » : bascule d'un coup, mémorisée par bloc (state.ovClosed).
+function ovFoldAll(){
+  const secs=[...main.querySelectorAll('.ov-block')];
+  const anyOpen=secs.some(s=>!s.classList.contains('closed'));
+  secs.forEach(s=>{s.classList.toggle('closed',anyOpen);state.ovClosed[s.dataset.ovb]=anyOpen;
+    const t=s.querySelector('[data-ovtgl]');if(t)t.setAttribute('aria-expanded',anyOpen?'false':'true');
+    const ch=s.querySelector('.ov-chev');if(ch)ch.textContent=anyOpen?'▾':'▴';});
+  const b=document.getElementById('ovFold');if(b)b.textContent=anyOpen?'Tout déplier':'Tout replier';}
+// Écouteurs de la vue d'ensemble : DÉLÉGATION sur .ov-wrap (survit aux ovRebuildBlock) ; seuls
+// « Recommencer » (geste maintenir) et les images sont câblés par élément. Le clavier n'est
+// intercepté que pour les étapes (role=checkbox) — les boutons ont leur activation native.
+function bindOverviewEvents(f){
+  const wrap=main.querySelector('.ov-wrap');if(!wrap)return;
+  const handle=(t,kb)=>{
+    const st=t.closest('[data-ck]');if(st){ovToggleStep(f,st,kb);return;}
+    const rd=t.closest('[data-ovredo]');if(rd){ovNewPass(f,rd.closest('.ov-block').dataset.ovb,false);return;}
+    const lo=t.closest('[data-ovloop]');if(lo){ovNewPass(f,lo.dataset.ovloop,true);return;}
+    const tg=t.closest('[data-ovtgl]');
+    if(tg){const sec=tg.closest('.ov-block');const closed=sec.classList.toggle('closed');
+      state.ovClosed[sec.dataset.ovb]=closed;tg.setAttribute('aria-expanded',closed?'false':'true');
+      const ch=sec.querySelector('.ov-chev');if(ch)ch.textContent=closed?'▾':'▴';return;}
+    const op=t.closest('[data-ovopt]');if(op){ovAnswer(f,op);return;}
+    const en=t.closest('[data-ovend]');
+    if(en){if(en.getAttribute('aria-disabled')==='true')return;   // le libellé dit pourquoi (ECAM)
+      state.flowEnded=true;render();return;}   // les étapes ②/③ du rail changent -> rendu complet
+    if(t.closest('#ovFold'))ovFoldAll();};
+  wrap.onclick=e=>handle(e.target,false);
+  wrap.onkeydown=e=>{if(e.key!=='Enter'&&e.key!==' ')return;
+    const t=e.target.closest('[data-ck]');if(!t)return;e.preventDefault();handle(t,true);};
+  const rs=wrap.querySelector('#ovReset');
+  if(rs)holdToReset(rs,()=>{state.nav.length=0;state.navSeq.length=0;state.nav.push(f.start);state.navSeq.push(++Runtime.seq);state.navPos=0;if(Runtime.started)persistLive(Runtime);renderOvOnly();});}
+/* Re-rendu CIBLÉ de la vue d'ensemble (pendant de renderNavOnly) : reconstruit l'INTÉRIEUR de
+   .ov-wrap (Recommencer, structures) sans toucher au reste de la vue — le conteneur garde ses
+   écouteurs délégués. Structure inattendue -> repli complet sûr. */
+function renderOvOnly(){
+  const f=state.fiche;const wrap=main.querySelector('.ov-wrap');
+  if(!f||!wrap)return render();
+  captureFlow();
+  const N=overviewSection(f);
+  wrap.innerHTML=N.inner;
+  wrap.querySelectorAll('img[data-full]').forEach(im=>im.onclick=()=>openLightbox(im.dataset.full,im.dataset.cap||''));
+  {const sub=main.querySelector('.alg-panel .alg-sub');if(sub)sub.innerHTML=algSubHtml(N.blockDone,N.blockTot);}
+  {const fs=main.querySelector('.alg-panel .flow-scroll');
+   if(fs){fs.innerHTML=buildFlowSVG(f,N.cur,true);applyFlowZoom();restoreFlow();bindSvgImages(fs);}}
+  flowCtx={f,curId:N.cur};
+  bindOverviewEvents(f);}
 /* Mise à jour CIBLÉE de la navigation entre blocs (v4.4.5) : remplace SEULEMENT le fil d'Ariane,
    le bloc courant, la rangée « Bloc précédent / Recommencer », le compteur du panneau algorithme
    et le halo du SVG — sans reconstruire le reste de la vue (galerie d'images base64, parcours de
@@ -5682,6 +6008,7 @@ function bindNavEvents(f,blk){
    render() complets : fin d'algorithme (étapes ②/③ du rail changent), repli différé de l'étape ①.
    Structure inattendue (pas de .nav-wrap : aperçu, fiche sans bloc) -> repli complet sûr. */
 function renderNavOnly(){
+  if(state.readMode==='overview'&&state.fiche&&hasFlow(state.fiche))return renderOvOnly();   // v4.6.0 : dispatcheur
   const f=state.fiche;
   const wrap=main.querySelector('.nav-wrap');
   if(!f||!wrap)return render();
@@ -5834,7 +6161,13 @@ function counterEditorRow(c,i,timers){const ivs=(timers||[]).filter(t=>t.type===
    (mini-rendu du brouillon, mis à jour à la saisie) + « Ouvrir l'aperçu complet » ; en dessous,
    le bouton « Aperçu » du pied d'éditeur ouvre la vue lecture du brouillon en MODE APERÇU. ----- */
 function openDraftPreview(){state.previewFrom='edit';
-  state.fiche=migrate(JSON.parse(JSON.stringify(state.draft)));state.view='read';render();}
+  state.fiche=migrate(JSON.parse(JSON.stringify(state.draft)));
+  // BAC À SABLE de navigation pour l'aperçu (v4.6.0) : coches/chemin DÉTACHÉS du Runtime — une
+  // session vive d'une AUTRE fiche ne doit jamais recevoir les coches ou le chemin d'un brouillon
+  // (openRead/resumeSession relient state au Runtime à la prochaine vraie ouverture).
+  state.checked={};state.nav=[state.fiche.start||(((state.fiche.blocks||[])[0]||{}).id)];state.navSeq=[++Runtime.seq];state.navPos=0;
+  state.readMode=currentReadMode();state.ovClosed={};state.flowEnded=false;state.confOpen=undefined;
+  state.view='read';render();}
 function openPDraftPreview(){state.previewFrom='protocolEdit';
   state.protocol=migrateProtocol(JSON.parse(JSON.stringify(state.pdraft)));state.view='protocolRead';render();}
 function editPreviewHtml(kind){
@@ -6093,7 +6426,7 @@ setInterval(()=>{const k=_editKind();if(!k){_lastParked=null;return;}
 // Ouvre une fiche en lecture. Si une SESSION VIVE existe pour cette fiche, on la rouvre telle quelle
 // (minuteurs toujours en cours). Sinon on garde le runtime transitoire de cette même fiche (s'il n'a
 // pas démarré), sinon on en crée un neuf.
-function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;bumpUsage(id);flowScroll={left:null,top:0};state.rtOpen=false;state.noteEdit=false;state.confOpen=undefined;state.previewFrom=null;state.flowEnded=false;
+function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;bumpUsage(id);flowScroll={left:null,top:0};state.rtOpen=false;state.noteEdit=false;state.confOpen=undefined;state.previewFrom=null;state.flowEnded=false;state.readMode=currentReadMode();state.ovClosed={};
   if(liveSessions[id]){Runtime=liveSessions[id];Runtime.fiche=f;}
   else if(!(Runtime.fiche&&Runtime.ficheId===id&&!Runtime.started)){Runtime=buildRuntime(f,null);}
   // Algorithme REPLIÉ à l'ouverture : la 1ʳᵉ étape actionnable doit arriver le plus haut possible
@@ -7551,10 +7884,12 @@ function exportPdfCurrent(){window.print();}
 // on le déplie le temps de l'impression, puis on restaure l'état exact (audit v4.5).
 let _printSaved=null;
 window.addEventListener('beforeprint',()=>{if(state.view!=='read'||!state.fiche)return;
-  _printSaved={confOpen:state.confOpen,showFlow:state.showFlow};
-  state.confOpen=true;state.showFlow=true;render();});
+  _printSaved={confOpen:state.confOpen,showFlow:state.showFlow,readMode:state.readMode};
+  // v4.6.0 : la VUE D'ENSEMBLE est le format imprimé (tous les blocs, dans l'ordre) ; les blocs
+  // repliés sont rouverts par CSS @media print — aucun état de repli à toucher.
+  state.confOpen=true;state.showFlow=true;if(hasFlow(state.fiche))state.readMode='overview';render();});
 window.addEventListener('afterprint',()=>{if(!_printSaved)return;
-  state.confOpen=_printSaved.confOpen;state.showFlow=_printSaved.showFlow;_printSaved=null;
+  state.confOpen=_printSaved.confOpen;state.showFlow=_printSaved.showFlow;state.readMode=_printSaved.readMode||state.readMode;_printSaved=null;
   if(state.view==='read'&&state.fiche)render();});
 // Taille du texte : zoom CSS sur <html> (agrandit AUSSI les cibles tactiles, pas seulement la
 // police). Préférence par appareil. Cycle 100/110/125 % — suffisant sans casser la mise en page.
@@ -8099,7 +8434,12 @@ const Sync={
           if(th&&th!==(localStorage.getItem(spaceKey('ac-theme'))||'auto'))applyTheme(th);
           if(z!==null&&z!==currentZoom())applyZoom(z);
           const ac=(typeof pr.accent==='string'&&ACCENT_IDS.indexOf(pr.accent)>=0)?pr.accent:null;
-          if(ac!==null&&ac!==currentAccent())applyAccent(ac);}
+          if(ac!==null&&ac!==currentAccent())applyAccent(ac);
+          // Mode de lecture (v4.6.0) : on n'écrit QUE la préférence locale — jamais de bascule
+          // de la vue ouverte depuis la synchro (l'écran ne change pas pendant un soin) ;
+          // la préférence s'applique à la prochaine ouverture de fiche.
+          const rm=(typeof pr.readMode==='string'&&READ_MODES.indexOf(pr.readMode)>=0)?pr.readMode:null;
+          if(rm){try{localStorage.setItem(spaceKey('ac-read-mode'),rm);}catch(e){}}}
         try{localStorage.setItem(spaceKey('ac-cats-updated:'+s.key),String(Date.parse(remote.updated_at)));localStorage.removeItem(spaceKey('ac-cats-dirty:'+s.key));}catch(e){}
         changed=true;continue;
       }
@@ -8108,7 +8448,7 @@ const Sync={
         if(!s.libraryId)data.pins=sanitizePins(pins);   // épingles : uniquement dans le document perso
         if(!s.libraryId)data.usage=sanitizeUsage(_frecency);   // frecency (v4.4.7) : idem, fusionnée côté lecteur
         // Préférences par utilisateur (V5) : voyagent avec le document perso.
-        if(!s.libraryId)data.prefs={theme:localStorage.getItem(spaceKey('ac-theme'))||'auto',zoom:currentZoom(),accent:currentAccent()};
+        if(!s.libraryId)data.prefs={theme:localStorage.getItem(spaceKey('ac-theme'))||'auto',zoom:currentZoom(),accent:currentAccent(),readMode:currentReadMode()};
         try{await rest('POST','/rest/v1/category_sets',[{scope_key:s.scopeKey,owner:uidv,library_id:s.libraryId,data:data,updated_at:new Date(now).toISOString()}],{'Prefer':'resolution=merge-duplicates,return=minimal'});
           try{localStorage.removeItem(spaceKey('ac-cats-dirty:'+s.key));}catch(e){}}catch(e){}
       }
@@ -8470,7 +8810,7 @@ if(location.search.indexOf('__actest')>=0){
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
     restErrStatus,isPersoRepairCandidate,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,
     qTerms,hayMatch,markQTerms,searchSnippet,ficheSnipParts,protoSnipParts,frecencyScore,sanitizeUsage,mergeUsage,
-    crc32,zipBuild,zipParse,isPdfBytes,mdTask};
+    crc32,zipBuild,zipParse,isPdfBytes,mdTask,flowOrder,latestPass,offPathSet,minimapData};
 }else{
   /* ===== PWA =====
      Enregistre le service worker (cache hors ligne) si disponible. Capte

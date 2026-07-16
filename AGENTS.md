@@ -105,6 +105,27 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   2 colonnes ≥ 780 px — jamais de repli — et garde-fou non bloquant dans l'éditeur,
   `nfGuardTxt`). Tout re-rendu de DÉMARRAGE passe par `renderKeepAnchor` (l'élément déclencheur
   ne bouge pas d'un pixel à l'écran — ECAM).
+- **Vue d'ensemble du mode crise (v4.6.0)** : la lecture d'une fiche À ALGORITHME a deux modes —
+  `overview` (défaut : TOUS les blocs affichés à la suite, ordre `flowOrder` = BFS depuis
+  `f.start`, orphelins en fin) ↔ `guided` (bloc à bloc historique, inchangé) ; bascule `.seg`
+  (`#readModeSeg`) en tête de l'étape ②, masquée si `!hasFlow` ; préférence PAR UTILISATEUR
+  (`spaceKey('ac-read-mode')` + `data.prefs.readMode` — le pull de synchro n'écrit QUE la
+  préférence locale, il ne bascule JAMAIS la vue ouverte). Les deux vues partagent le MÊME
+  Runtime : `nav`/`navSeq`/`checked` et l'export v3 STRICTEMENT inchangés. Doctrine (décisions
+  utilisateur figées) : chaque bloc affiche son passage le PLUS RÉCENT (`latestPass`, tag
+  « passage n/N ») ; les coches sont la TRACE du soin — jamais effacées par une navigation ;
+  cases neuves SEULEMENT par une arête de boucle (option de décision, `data-ovloop`) ou le
+  bouton explicite « ↺ Refaire ce bloc » ; branche écartée = « hors chemin » (`offPathSet` :
+  ni visité ni atteignable — un bloc VISITÉ n'est jamais grisé) ATTÉNUÉE mais jamais
+  verrouillée (mention textuelle, l'estompe n'est jamais seule) ; bloc jamais visité =
+  sentinelle `seq=0`, cocher = EXTENSION DE VISITE (`nav.push` AVANT `ensureStarted`, pour
+  l'ancre du re-rendu de démarrage). Cocher ne re-rend JAMAIS (écouteurs DÉLÉGUÉS sur
+  `.ov-wrap`, chirurgie `ovAfterCheck`/`ovPaintPath` ; `renderOvOnly` = pendant de
+  `renderNavOnly`, qui dispatche). `minimapData` = source UNIQUE de l'état affichable par bloc
+  (réutilisée par les chips/minimap v4.8.0 et la peinture SVG v4.7.0). L'impression force la
+  vue d'ensemble (blocs repliés rouverts par CSS `@media print` ; le SVG s'y imprime entier —
+  fix du `max-height:300px`). L'aperçu d'éditeur reçoit un BAC À SABLE de navigation détaché
+  du Runtime (les coches d'un brouillon ne polluent jamais une session vive d'une autre fiche).
 - **Couleur dans le contenu rédigé (v4.4.3)** : la SEULE couleur admise y est celle des REGISTRES,
   via des ENCADRÉS TYPÉS — jamais de couleur décorative libre (dans cette app, rouge = « ça tue si
   on l'oublie », ambre = « c'est là qu'on se trompe » : un rouge de mise en page dégraderait la
@@ -296,7 +317,7 @@ modèle de données, règles de sécurité) : le lire en premier. Ensuite, dans 
 | Load | `chooseBackend`, `load()` (démarrage), `persist`, `softDelete` |
 | Runtime | minuteurs/compteurs/audio (`tickAll`, `beep`), sessions vives (`liveSessions`) |
 | Sessions | auto-enregistrement (`persistLive`), reprise, compte-rendu |
-| Render | `render()` → `applyViewChrome` (chrome d'en-tête) puis `renderFiches`/`renderProtocols` / `renderRead` / `renderEditor` (template strings + écouteurs) |
+| Render | `render()` → `applyViewChrome` (chrome d'en-tête) puis `renderFiches`/`renderProtocols` / `renderRead` / `renderEditor` (template strings + écouteurs) ; en lecture de fiche, `overviewSection` (vue d'ensemble, défaut) ou `navSection` (vue guidée), re-rendus ciblés `renderOvOnly`/`renderNavOnly` |
 | Flow SVG | `buildFlowSVG` : organigramme auto de la prise en charge |
 | Visionneuse PDF | `pdfLib` (chargement paresseux de `vendor/pdfjs`), `openPdfViewer` (rendu virtualisé par IntersectionObserver ; zoom d'OUVERTURE = « page entière » calculé d'après le ratio du document et la fenêtre, `pdfFitPageZ`, bornes 25–400 %, boutons « Page »/« Largeur »), fenêtre `#pdfModal` ; miniatures de la 1ʳᵉ page dans les listes « Documents » (`attThumbHtml`/`genAttThumb` : paresseuses, une à la fois, cache mémoire de session — jamais de chargement de pdf.js au démarrage) ; badge « △ à télécharger » si le binaire n'est pas encore sur l'appareil (`hydrateAttThumbs`/`refreshAttRow` — état décidé sur la lecture IndexedDB, rafraîchi en direct par le téléchargement de fond de la synchro) |
 | Mini-Markdown | `mdBlocks`/`mdInline`/`mdRender`/`mdStrip`/`mdCells`/`mdCallout`/`mdTask` : parseur maison XSS-safe (esc() d'abord) du contenu rédigé des protocoles — titres, listes, citation, code, image, TABLEAUX (v4.4.2), ENCADRÉS TYPÉS et `==surligné==` (v4.4.3), LISTES COCHABLES `- [ ]` (v4.5.4). Registre et alignement viennent toujours d'un jeu FERMÉ posé en CLASSE, jamais d'un attribut piloté par l'utilisateur |

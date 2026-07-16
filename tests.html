@@ -611,6 +611,45 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   ok('archive endommagée rejetée en bloc (CRC vérifié)', zRej);
   let zRej2=false;try{await A.zipParse(zEnc.encode('pas une archive zip du tout — juste du texte'));}catch(e){zRej2=true;}
   ok('fichier non-zip rejeté', zRej2);
+
+  group('Vue d’ensemble du mode crise (v4.6.0) — flowOrder / latestPass / offPathSet / minimapData');
+  // Gabarit : A (étapes) → D (décision : Oui→S, Non→R), R (étapes) → D (boucle), S terminal, X orphelin.
+  const ovF={start:'A',blocks:[
+    {id:'A',type:'steps',title:'Actions',steps:['⚠ un','deux'],next:'D'},
+    {id:'D',type:'decision',title:'Amélioration ?',question:'?',options:[{label:'Oui',target:'S'},{label:'Non',target:'R'}]},
+    {id:'S',type:'steps',title:'Surveillance',steps:['s1','s2'],next:null},
+    {id:'R',type:'steps',title:'Pas de réponse',steps:['r1'],next:'D'},
+    {id:'X',type:'steps',title:'Orphelin',steps:['x1'],next:null}]};
+  eq('flowOrder : BFS depuis start, orphelin en fin', A.flowOrder(ovF), ['A','D','S','R','X']);
+  eq('flowOrder : start invalide → repli sur le premier bloc', A.flowOrder({start:'zz',blocks:ovF.blocks}), ['A','D','S','R','X']);
+  eq('flowOrder : boucle sans doublon ni blocage', A.flowOrder({start:'R',blocks:ovF.blocks}), ['R','D','S','A','X']);
+  eq('flowOrder : fiche sans bloc', A.flowOrder({blocks:[]}), []);
+  eq('latestPass : jamais visité → null', A.latestPass(['A','D'],[1,2],'S'), null);
+  eq('latestPass : visite unique', A.latestPass(['A','D','S'],[1,2,3],'D'), {idx:1,seq:2,pass:1,total:1});
+  eq('latestPass : boucle → le DERNIER passage', A.latestPass(['A','D','R','D','R'],[1,2,3,4,5],'R'), {idx:4,seq:5,pass:2,total:2});
+  const off0=A.offPathSet(ovF,['A'],0);
+  ok('offPathSet : rien de grisé avant toute décision', !off0.has('D')&&!off0.has('S')&&!off0.has('R'));
+  ok('offPathSet : orphelin non relié = hors chemin', off0.has('X'));
+  const offB=A.offPathSet(ovF,['A','D','S'],2);
+  ok('offPathSet : branche écartée grisée, chemin pris actif', offB.has('R')&&!offB.has('A')&&!offB.has('D')&&!offB.has('S'));
+  const offV=A.offPathSet(ovF,['A','D','S','D','R'],4);
+  ok('offPathSet : un bloc VISITÉ n’est jamais grisé (changement d’avis)', !offV.has('S')&&!offV.has('R'));
+  const offJ=A.offPathSet(ovF,['A','S'],1);
+  ok('offPathSet : saut — les blocs survolés restent hors chemin', offJ.has('D')&&offJ.has('R')&&!offJ.has('A')&&!offJ.has('S'));
+  const offC=A.offPathSet(ovF,['A','D','S'],1);
+  ok('offPathSet : curseur en milieu de pile → tout redevient atteignable', !offC.has('R')&&!offC.has('S'));
+  const offDead=A.offPathSet(ovF,['zz'],0);
+  ok('offPathSet : tête de chemin irrésoluble → repli sur start (rien de grisé à tort)', !offDead.has('D')&&!offDead.has('S')&&!offDead.has('R'));
+  const ovMd=A.minimapData(ovF,['A','D','R','D','R'],[1,2,3,4,5],{'3:R:0':true},4);
+  const mR=ovMd.find(m=>m.id==='R');
+  ok('minimapData : bloc rebouclé → dernier passage, cases NEUVES (l’ancien passage reste dans checked)', mR.seq===5&&mR.done===0&&mR.pass===2&&mR.total===2&&mR.cur===true);
+  const mS=A.minimapData(ovF,['A'],[1],{},0).find(m=>m.id==='S');
+  ok('minimapData : bloc jamais visité → sentinelle seq=0, rien de coché', mS.seq===0&&mS.done===0&&mS.visited===false);
+  const mD=A.minimapData(ovF,['A','D','S'],[1,2,3],{},2).find(m=>m.id==='D');
+  ok('minimapData : décision répondue → complète, option prise mémorisée', mD.dec===true&&mD.complete===true&&mD.taken==='S');
+  const mD2=A.minimapData(ovF,['A','D'],[1,2],{},1).find(m=>m.id==='D');
+  ok('minimapData : décision non répondue → incomplète, aucune option prise', mD2.dec===true&&mD2.complete===false&&mD2.taken===null);
+  eq('format de session INCHANGÉ : la clé seq:bloc:index reste résoluble (compte-rendu)', A.stepTextFromKey(ovF,'5:R:0').step, 'r1');
 }
 
 // Ouvert en double-cliquant le fichier (file://) : le navigateur isole les iframes (origine

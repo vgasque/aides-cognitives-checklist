@@ -1,5 +1,42 @@
 # Journal des modifications
 
+## [4.6.0] — 2026-07-16
+Réfection du mode crise des aides cognitives : une **vue d'ensemble** montre désormais TOUT
+l'algorithme d'un coup — tous les blocs cochables à la suite, démarrage possible n'importe où,
+retour en arrière jamais bloquant (doctrine QRH/ECAM).
+
+### Ajouté
+- **Vue d'ensemble de la prise en charge** (nouveau défaut des fiches à algorithme) : tous les
+  blocs affichés dans l'ordre du parcours (BFS depuis le départ), chacun avec sa ligne d'état
+  repliable (n°, titre, compteur x/y, ✓ vert quand complet) et ses étapes cochables. La position
+  « Vous êtes ici » suit la dernière action ; cocher dans un bloc jamais visité y déplace le
+  parcours (le chemin s'étend, rien n'est présumé). Boutons « Tout replier / Tout déplier » et
+  « ↺ Recommencer » (maintenir).
+- **Bascule « Vue d'ensemble ↔ Vue guidée »** en tête de l'étape ② : le mode bloc à bloc
+  historique reste disponible tel quel ; les deux vues partagent la même session (coches,
+  chemin, minuteurs — basculer ne perd rien). Préférence mémorisée par utilisateur et
+  synchronisée (elle s'applique à la prochaine ouverture, jamais à l'écran en cours).
+- **Décisions jamais bloquantes** : les options restent actives en permanence — changer d'avis
+  = un tap ; l'option prise est marquée ✓, la branche écartée est **grisée « hors chemin » mais
+  toujours cochable** (un bloc où l'on a agi n'est jamais grisé : les coches sont la trace du
+  soin).
+- **Boucles maîtrisées** : reboucler par l'algorithme (option de décision, arête « ↺ … —
+  nouveau passage ») redonne des cases neuves ; un simple coup d'œil en arrière ne modifie
+  JAMAIS les coches ; « ↺ Refaire ce bloc » permet de re-dérouler volontairement un bloc
+  (tag « passage n/N », l'ancien passage reste au compte-rendu).
+- 19 tests ajoutés (422) sur les nouvelles fonctions pures (`flowOrder`, `latestPass`,
+  `offPathSet`, `minimapData`).
+
+### Modifié
+- **Exporter en PDF / imprimer** : la fiche s'imprime désormais en vue d'ensemble (tous les
+  blocs, dans l'ordre, blocs repliés rouverts le temps de l'impression).
+- **Aperçu de l'éditeur** : l'aperçu d'un brouillon utilise un bac à sable de navigation —
+  cocher dans un aperçu ne touche plus jamais la session vive d'une autre fiche.
+
+### Corrigé
+- **Algorithme tronqué à l'impression** : le schéma SVG était coupé à 300 px de haut dans le
+  PDF ; il s'imprime désormais en entier.
+
 ## [4.5.4] — 2026-07-16
 Les protocoles gagnent des listes cochables `- [ ]` pour les vérifications rapides en lecture.
 
