@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-f6bLRZV8yMCTdg1wl26PsK4me4Fkuex8uH1RfenAAR8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-cOVn+0SiQClAhuXZLhh3Qa/idWUlE02pPHWWQLa47vk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -531,6 +531,36 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #crisisBand .cb-tag{flex:none;font-size:11px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:var(--critical)}
   /* Segments minuteurs de l'en-tête de crise (V5) : étiquette au-dessus du temps, GLOBAL = chrono
      de session (démarre à la 1ʳᵉ action), segment échu en ambre ; tap -> remonte au panneau. */
+  /* Bande de CHIPS-BLOCS (v4.8.0) : minimap mobile de la vue d'ensemble, collante sous le
+     bandeau de crise (l'en-tête est déjà sticky). Une ligne défilante sans barre (pattern
+     .crumbs), chip courante auto-centrée ; masquée >= 1000 px (la minimap vit alors dans le
+     rail droit). États : vert = bloc fait, bleu = position, ambre = décision, pointillé
+     estompé = hors chemin — jamais la couleur seule (n° + compteur portés par le texte). */
+  #ovChips{order:9;width:calc(100% + 36px);margin:8px -18px -8px;padding:7px 18px 9px;display:flex;flex-wrap:nowrap;gap:6px;align-items:center;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;border-top:1px solid var(--line)}
+  #ovChips::-webkit-scrollbar{display:none}
+  #ovChips[hidden]{display:none}
+  .ovchip{flex:none;display:inline-flex;align-items:center;gap:5px;min-height:44px;padding:5px 12px;border:1.5px solid var(--line-strong);border-radius:999px;background:var(--surface);color:var(--ink-soft);font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;touch-action:manipulation}
+  .ovchip .oc-n{font-family:var(--mono)}
+  .ovchip.done{border-color:var(--done-line);background:var(--done-bg);color:var(--ok)}
+  .ovchip.cur{background:var(--link);border-color:var(--link);color:var(--surface)}
+  .ovchip.dec{border-color:var(--verify)}
+  .ovchip.off{opacity:.55;border-style:dashed}
+  .ovchip:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  @media (min-width:1000px){#ovChips{display:none!important}}
+  /* Minimap du rail droit (>= 1000 px) : mêmes états, mêmes données (minimapData). */
+  #ovMap{display:flex;flex-direction:column;gap:5px}
+  .mm-row{display:flex;align-items:center;gap:8px;min-height:40px;padding:6px 10px;border:1px solid var(--line);border-left:4px solid var(--line-strong);border-radius:8px;background:var(--surface);font-family:inherit;font-size:12.5px;font-weight:600;color:var(--ink);cursor:pointer;text-align:left}
+  .mm-row .mm-n{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--ink-soft);width:16px;flex:none;text-align:center}
+  .mm-row .mm-t{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mm-row .mm-c{flex:none;font-family:var(--mono);font-size:11.5px;color:var(--ink-soft)}
+  .mm-row.cur{border-color:var(--primary);border-left-color:var(--primary)}
+  .mm-row.cur .mm-n{color:var(--primary)}
+  .mm-row.done{border-left-color:var(--done-line)}
+  .mm-row.done .mm-c{color:var(--ok)}
+  .mm-row.dec{border-left-color:var(--verify-bd)}
+  .mm-row.off{opacity:.55;border-style:dashed;border-left-style:solid}
+  .mm-row:hover{background:var(--primary-soft)}
+  .mm-row:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   #cbTimers{position:relative;margin-left:auto;flex:0 1 auto;min-width:0;display:inline-flex;align-items:stretch;background:var(--surface);border:1px solid var(--line-strong);color:var(--ink);border-radius:9px;padding:0;min-height:40px;font-family:inherit;cursor:pointer;overflow:hidden}
   /* Zone de tap >= 44px (règle « contrôle du mode crise ») : halo cliquable. */
   #cbTimers::after{content:"";position:absolute;inset:-4px}
@@ -2112,6 +2142,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     <!-- Bandeau d'état du MODE CRISE (V5) : rangée TITRE teintée au registre ALERTE — le titre de
          la fiche vit ici en permanence (toujours lisible en crise), « ■ MODE CRISE » à droite. -->
     <div id="crisisBand" hidden><span class="cb-ttl"></span><span class="cb-tag">■ Mode crise</span></div>
+    <!-- Bande de chips-blocs (v4.8.0) : minimap MOBILE de la vue d'ensemble, sous le bandeau de
+         crise. STATIQUE (délégation posée une fois, contenu peint par paintMinimaps). -->
+    <div id="ovChips" hidden role="navigation" aria-label="Position dans l'algorithme"></div>
     <!-- Menu ⋯ (SPEC gestion §4) : actions de GESTION ancrées à droite de l'en-tête — remplace
          toute barre d'actions en bas de page. Jamais d'action destructive ici. -->
     <div class="more-menu" id="moreMenu" hidden role="menu"></div></header>
@@ -2272,7 +2305,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.7.0';
+const APP_VERSION='4.8.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -4129,6 +4162,10 @@ function applyViewChrome(){
    cb.hidden=!crisis;
    if(crisis){cb.querySelector('.cb-ttl').textContent=state.fiche.title||'Sans titre';
      cb.querySelector('.cb-tag').textContent=state.previewFrom?'■ Aperçu':'■ Mode crise';}}
+  // Bande de chips de la vue d'ensemble (v4.8.0) : masquée/vidée hors lecture — la peinture
+  // (paintMinimaps) est faite par la vue lecture elle-même.
+  {const oc=document.getElementById('ovChips');
+   if(oc&&!(state.view==='read'&&state.fiche&&state.readMode==='overview'&&hasFlow(state.fiche))){oc.hidden=true;oc.innerHTML='';}}
   // Chrome de la rangée principale V5 (retour masqué sur l'accueil ; chaque vue pose son libellé
   // et son action via #hdrBack ; badge/Créer/recherche gérés ci-dessous).
   document.getElementById('hdrBack').hidden=(state.view==='library');
@@ -5592,7 +5629,7 @@ function renderRead(){
   const posH=posCards?`<section class="block pos-block"><div class="block-h h-pos">Repères posologiques</div>${posCards}</section>`:'';
   const posRail=posCards?`<div class="rail-sep"></div><div class="rail-title">Repères posologiques</div>${posCards}`:'';
   const gridOpen=wideRead?'<div class="read-grid"><div class="read-main">':'';
-  const gridClose=wideRead?`</div><aside class="read-side">${rtH}${posRail}${tkH}</aside></div>`:'';
+  const gridClose=wideRead?`</div><aside class="read-side">${rtH}${minimapPanel(f)}${posRail}${tkH}</aside></div>`:'';
   /* ----- PARCOURS DE SOIN (v4.4.0) : la fiche met en scène la séquence clinique
      ① Confirmer le diagnostic → ② Prise en charge → ③ Surveillances & pièges.
      <ol class="care-path"> sémantique : aria-current="step" sur l'étape active, état aussi
@@ -5737,6 +5774,9 @@ function bindReadEvents(f,blk,cur){
      seg.onkeydown=e=>{if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;e.preventDefault();go(e.key==='ArrowLeft'?'overview':'guided');};}}
   // Navigation + cochage — rebranchés aussi par renderNavOnly (guidé) / renderOvOnly (ensemble).
   if(state.readMode==='overview'&&hasFlow(f))bindOverviewEvents(f);else bindNavEvents(f,blk);
+  // Minimap (v4.8.0) : peinture initiale (chips + rail) et saut depuis le rail.
+  {const map=main.querySelector('#ovMap');if(map)map.onclick=e=>{const b=e.target.closest('[data-ovjump]');if(b)jumpToBlock(f,b.dataset.ovjump);};}
+  paintMinimaps(f);
   main.querySelectorAll('img[data-full]').forEach(im=>im.onclick=()=>openLightbox(im.dataset.full,im.dataset.cap||''));
   // Documents PDF -> visionneuse intégrée (le blob est lu dans IndexedDB à l'ouverture).
   bindAttList(f);
@@ -5933,7 +5973,8 @@ function ovPaintPath(f){
     if(id===cur)s.setAttribute('aria-current','step');else s.removeAttribute('aria-current');});
   flowCtx={f,curId:cur};
   // Panneau algorithme ouvert : l'état est PEINT par classes (v4.7.0) — jamais de reconstruction.
-  {const fs=main.querySelector('.alg-panel .flow-scroll');if(fs)flowPaintState(fs,f);}}
+  {const fs=main.querySelector('.alg-panel .flow-scroll');if(fs)flowPaintState(fs,f);}
+  paintMinimaps(f);}   // v4.8.0 : chips + rail suivent chaque coche/navigation
 // Défilement vers un bloc — GESTE DE NAVIGATION volontaire uniquement (le cochage, lui, ne
 // défile jamais) : instantané (prefers-reduced-motion respecté), calé sous l'en-tête fixe.
 function ovScrollTo(id){
@@ -6049,7 +6090,43 @@ function renderOvOnly(){
   {const sub=main.querySelector('.alg-panel .alg-sub');if(sub)sub.innerHTML=algSubHtml(N.blockDone,N.blockTot);}
   {const fs=main.querySelector('.alg-panel .flow-scroll');if(fs)flowPaintState(fs,f);}   // v4.7.0 : peinture, pas de reconstruction
   flowCtx={f,curId:N.cur};
+  paintMinimaps(f);
   bindOverviewEvents(f);}
+/* ===== Minimap (v4.8.0) =====
+   Deux coquilles, UNE source (minimapData) : la bande de chips collante sous le bandeau de
+   crise (< 1000 px, élément STATIQUE #ovChips — délégation posée UNE fois, jamais recréé) et
+   le panneau du rail droit (>= 1000 px, #ovMap, re-rendu avec la vue). Taper un bloc =
+   jumpToBlock (même geste que le SVG navigable) ; « Dg » et « ③ Surv. » sautent vers les
+   sections ① et ③ (défilement volontaire). Repeinte par ovPaintPath à chaque coche/navigation. */
+function ovChipTxt(m){return m.dec?(m.complete?'✓':'?'):(m.tot?(m.complete?'✓':m.done+'/'+m.tot):'—');}
+function ovChipsHtml(f){
+  const md=minimapData(f,state.nav,state.navSeq,state.checked,state.navPos);
+  const dg=clean(f.confirmation).length?`<button type="button" class="ovchip${Runtime.started?' done':''}" data-ovsec="dg" aria-label="Aller à la confirmation diagnostique">Dg${Runtime.started?' ✓':''}</button>`:'';
+  const srv=(clean(f.verify).length||clean(f.differentials).length)?`<button type="button" class="ovchip" data-ovsec="srv" aria-label="Aller aux surveillances et pièges">③ Surv.</button>`:'';
+  return dg+md.map(m=>`<button type="button" class="ovchip${m.cur?' cur':''}${m.complete?' done':''}${m.off?' off':''}${m.dec?' dec':''}" data-ovjump="${esc(m.id)}" aria-label="${esc(m.title)||'Bloc '+m.n} — aller à ce bloc"><span class="oc-n">${m.n}</span> ${ovChipTxt(m)}</button>`).join('')+srv;}
+function ovMapRowsHtml(f){
+  const md=minimapData(f,state.nav,state.navSeq,state.checked,state.navPos);
+  return md.map(m=>`<button type="button" class="mm-row${m.cur?' cur':''}${m.complete?' done':''}${m.off?' off':''}${m.dec?' dec':''}" data-ovjump="${esc(m.id)}"><span class="mm-n">${m.n}</span><span class="mm-t">${esc(m.title)||(m.dec?'Décision':'Étapes')}</span><span class="mm-c">${ovChipTxt(m)}</span></button>`).join('');}
+function minimapPanel(f){
+  if(!(state.readMode==='overview'&&hasFlow(f)))return '';
+  return `<div class="rail-sep"></div><div class="rail-title">Algorithme — position</div><div id="ovMap">${ovMapRowsHtml(f)}</div>`;}
+function ovJumpSection(which){
+  const el=which==='dg'?main.querySelector('.conf-block'):(document.getElementById('diffBlock')||[...main.querySelectorAll('.cp-stage')].pop());
+  if(!el)return;const hdr=document.querySelector('header.bar');const hh=hdr?hdr.getBoundingClientRect().height:60;
+  window.scrollTo(0,Math.max(0,Math.round(window.scrollY+el.getBoundingClientRect().top-hh-8)));}
+function paintMinimaps(f){
+  const strip=document.getElementById('ovChips');
+  const on=state.view==='read'&&!!f&&state.readMode==='overview'&&hasFlow(f);
+  if(strip){if(on){strip.innerHTML=ovChipsHtml(f);strip.hidden=false;
+      // Chip courante auto-centrée dans la ligne défilante (même logique que le fil d'Ariane).
+      const cc=strip.querySelector('.ovchip.cur');
+      if(cc&&strip.scrollWidth>strip.clientWidth)strip.scrollLeft=Math.max(0,cc.offsetLeft-strip.clientWidth/2+cc.clientWidth/2);}
+    else{strip.hidden=true;strip.innerHTML='';}}
+  const map=main.querySelector('#ovMap');if(map&&on)map.innerHTML=ovMapRowsHtml(f);}
+// Délégation UNIQUE de la bande de chips (élément statique de l'en-tête, pattern #cbTimers).
+{const oc=document.getElementById('ovChips');
+ if(oc)oc.onclick=e=>{const s=e.target.closest('[data-ovsec]');if(s){ovJumpSection(s.dataset.ovsec);return;}
+   const b=e.target.closest('[data-ovjump]');if(b&&state.fiche)jumpToBlock(state.fiche,b.dataset.ovjump);};}
 /* Mise à jour CIBLÉE de la navigation entre blocs (v4.4.5) : remplace SEULEMENT le fil d'Ariane,
    le bloc courant, la rangée « Bloc précédent / Recommencer », le compteur du panneau algorithme
    et le halo du SVG — sans reconstruire le reste de la vue (galerie d'images base64, parcours de

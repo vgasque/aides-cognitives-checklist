@@ -1,5 +1,19 @@
 # Journal des modifications
 
+## [4.8.0] — 2026-07-16
+La vue d'ensemble gagne sa **minimap** : où que l'on soit dans la page, la position dans
+l'algorithme reste visible et chaque bloc est à un tap.
+
+### Ajouté
+- **Bande de pastilles-blocs sur téléphone et tablette** (< 1000 px) : sous le bandeau de crise,
+  une ligne collante de pastilles d'état — vert ✓ = bloc fait, bleu = position actuelle,
+  cerclé ambre = décision, pointillé estompé = hors chemin — avec la pastille courante
+  auto-centrée. Taper une pastille = aller au bloc ; « Dg ✓ » et « ③ Surv. » sautent vers la
+  confirmation diagnostique et les surveillances. C'est la table des matières de crise.
+- **Minimap dans le rail droit sur ordinateur** (≥ 1000 px) : liste verticale des blocs
+  (n°, titre, avancement) sous les minuteurs, synchronisée en direct avec chaque coche et
+  chaque navigation — mêmes états, mêmes sauts.
+
 ## [4.7.0] — 2026-07-16
 L'organigramme devient **navigable** : taper un bloc dans le schéma y emmène directement, et le
 schéma se peint selon l'avancement de la session.

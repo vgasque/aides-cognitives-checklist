@@ -121,8 +121,15 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   sentinelle `seq=0`, cocher = EXTENSION DE VISITE (`nav.push` AVANT `ensureStarted`, pour
   l'ancre du re-rendu de démarrage). Cocher ne re-rend JAMAIS (écouteurs DÉLÉGUÉS sur
   `.ov-wrap`, chirurgie `ovAfterCheck`/`ovPaintPath` ; `renderOvOnly` = pendant de
-  `renderNavOnly`, qui dispatche). `minimapData` = source UNIQUE de l'état affichable par bloc
-  (chips/minimap v4.8.0, peinture SVG v4.7.0). **SVG navigable (v4.7.0)** : taper un nœud de
+  `renderNavOnly`, qui dispatche). `minimapData` = source UNIQUE de l'état affichable par bloc.
+  **Minimap (v4.8.0)** : bande de chips-blocs `#ovChips` STATIQUE dans l'en-tête sous
+  `#crisisBand` (< 1000 px ; délégation posée UNE fois, contenu peint par `paintMinimaps` —
+  masquée/vidée hors lecture par `applyViewChrome`) + panneau `#ovMap` du rail droit
+  (≥ 1000 px, sous les minuteurs — l'alarme reste dominante) ; chips « Dg ✓ » / « ③ Surv. » =
+  saut vers les sections ① et ③ ; taper un bloc = `jumpToBlock` (même geste que le SVG) ;
+  chip courante auto-centrée ; états : `.done` vert, `.cur` fond `--link` (indicateur de
+  sélection, pas un bouton rempli), `.dec` bordure `--verify`, `.off` pointillé estompé —
+  jamais la couleur seule (n° + compteur en texte). **SVG navigable (v4.7.0)** : taper un nœud de
   l'organigramme = y ALLER (`jumpToBlock` : visité → curseur, sinon extension — JAMAIS de
   cochage dans le SVG, JAMAIS de démarrage de session : naviguer ≠ agir) ; l'état est peint par
   classes (`flowPaintState`), la géométrie n'est plus JAMAIS reconstruite à la navigation
