@@ -2,10 +2,10 @@
 //  Service worker — fonctionnement hors ligne + MISE À JOUR AUTOMATIQUE du code.
 //
 //  Stratégie :
-//   - Navigation (la page index.html) : "réseau d'abord", BORNÉ à 3,5 s. Quand l'iPhone a du
+//   - Navigation (la page index.html) : "réseau d'abord", BORNÉ à 1,5 s. Quand l'iPhone a du
 //     réseau, on récupère la dernière version en ligne, puis on la met en cache pour l'usage
 //     hors ligne. Hors ligne -> copie en cache, immédiatement. Réseau qui ne répond PAS
-//     (Wi-Fi hospitalier saturé, « lie-fi ») -> au-delà de 3,5 s on sert la copie en cache
+//     (Wi-Fi hospitalier saturé, « lie-fi ») -> au-delà de 1,5 s on sert la copie en cache
 //     (app ouverte en urgence : attendre le timeout navigateur, parfois > 30 s, est exclu) ;
 //     le fetch continue en arrière-plan et rafraîchit le cache pour la prochaine ouverture.
 //     => une modif d'index.html en ligne s'applique automatiquement à la
@@ -26,7 +26,7 @@
 //  code et restent intactes à chaque mise à jour, tant que l'URL reste la même.
 // =============================================================================
 // IMPORTANT : garder cette version synchronisée avec APP_VERSION dans index.html.
-const CACHE = 'aides-cognitives-v4.4.3';
+const CACHE = 'aides-cognitives-v4.4.4';
 // Versionné par pdf.js (vendor/pdfjs/README.txt) : à changer UNIQUEMENT quand pdf.js est mis à jour.
 const PDFJS_CACHE = 'aides-cognitives-pdfjs-4.10.38';
 const PDFJS_ASSETS = [
@@ -44,7 +44,11 @@ const ASSETS = [
   './apple-touch-icon.png'
 ];
 // Délai au-delà duquel une navigation bascule sur la copie en cache (le réseau continue derrière).
-const NAV_TIMEOUT_MS = 3500;
+// 1,5 s depuis v4.4.4 (était 3,5 s) : en « lie-fi » (Wi-Fi hospitalier qui accepte la connexion
+// mais ne répond pas), c'était jusqu'à 3,5 s d'écran blanc à CHAQUE ouverture — inacceptable en
+// urgence. 1,5 s suffit largement à un réseau sain pour répondre ; au-delà, la copie en cache
+// est servie et le fetch continue en arrière-plan (la fraîcheur n'est pas sacrifiée).
+const NAV_TIMEOUT_MS = 1500;
 
 self.addEventListener('install', e => {
   e.waitUntil(Promise.all([

@@ -163,6 +163,32 @@ function run(A){
   ok('haystack inclut une question de décision', hay.indexOf('choquable')>=0);
   ok('haystack inclut un libellé d’option', hay.indexOf('oui choquable')>=0);
 
+  group('recherche multi-mots (v4.4.4) — qTerms/hayMatch');
+  eq('découpage + normalisation', A.qTerms(' Choc  Anaph '), ['choc','anaph']);
+  eq('requête vide → aucun terme', A.qTerms('   '), []);
+  ok('ET logique : mots non contigus trouvés', A.hayMatch(hay, A.qTerms('amiodarone choquable')));
+  ok('un mot absent suffit à exclure', !A.hayMatch(hay, A.qTerms('amiodarone adrenaline')));
+  ok('aucun terme → tout matche (liste non filtrée)', A.hayMatch(hay, []));
+
+  group('extrait contextuel (v4.4.4) — searchSnippet/markQTerms');
+  eq('terme mis en graisse, insensible aux accents', A.markQTerms('Adrénaline 0,5 mg', ['adrenaline']), '<b>Adrénaline</b> 0,5 mg');
+  eq('occurrences chevauchantes fusionnées', A.markQTerms('anaphylaxie', ['anaph','phylaxie']), '<b>anaphylaxie</b>');
+  ok('sans occurrence : texte échappé tel quel', A.markQTerms('<x> & y', ['zzz'])==='&lt;x&gt; &amp; y');
+  ok('XSS : le texte reste échappé autour du <b>', A.markQTerms('<img src=x> adrénaline', ['adrenaline']).indexOf('<img')<0);
+  {const f=A.migrate({title:'Anaphylaxie',notForget:[],blocks:[{type:'steps',title:'Traitement',steps:['⚠ Adrénaline 0,5 mg IM face antéro-latérale de cuisse']}]});
+   const sn=A.searchSnippet(A.ficheSnipParts(f),'adrénaline');
+   ok('extrait trouvé dans une étape', sn.indexOf('<b>Adrénaline</b>')>=0, sn);
+   ok('extrait sans le préfixe ⚠ (stepText)', sn.indexOf('⚠')<0);
+   eq('titre seul matché → pas d’extrait', A.searchSnippet(A.ficheSnipParts(f),'anaphylaxie'), '');
+   eq('aucune correspondance → vide', A.searchSnippet(A.ficheSnipParts(f),'zzz'), '');}
+  {const long='Contexte '+'x'.repeat(160)+' adrénaline titrée puis '+'y'.repeat(160)+' fin.';
+   const sn=A.searchSnippet([long],'titree');
+   ok('fenêtre bornée avec ellipses', sn.indexOf('… ')>=0&&sn.lastIndexOf(' …')>=0&&sn.length<400, sn.length+' car.');
+   ok('le terme reste dans la fenêtre', sn.indexOf('<b>titrée</b>')>=0);}
+  {const p=A.migrateProtocol({title:'Intubation',body:'# Prépa\nInduction en séquence rapide.',attachments:[{id:'a1',name:'ISR-service.pdf',size:10}]});
+   ok('protocole : extrait depuis le corps rédigé', A.searchSnippet(A.protoSnipParts(p),'sequence').indexOf('<b>séquence</b>')>=0);
+   ok('protocole : nom de PDF comme source', A.searchSnippet(A.protoSnipParts(p),'isr-service').indexOf('<b>')>=0);}
+
   group('sanitizePins()');
   eq('rejette ids invalides / borne à 50', A.sanitizePins(['ok_1','bad id','__proto__']), ['ok_1']);
   eq('non-tableau → []', A.sanitizePins('x'), []);

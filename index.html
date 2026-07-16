@@ -232,7 +232,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-9csispNurU2zZlDA+hV7D4Aeaf5sJr7C26MT/4vBIM4='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-rXuWB5QvsgNXQovS98D6uKjLz9D8sd3EuD5xsufixVg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -750,6 +750,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   @media (max-width:639.98px){.cards{grid-template-columns:1fr}}
   .card{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px 17px;box-shadow:var(--shadow);cursor:pointer;display:flex;align-items:center;gap:14px;transition:transform .08s,border-color .12s;overflow:hidden}
   .card:hover{border-color:var(--line-hover);transform:translateY(-1px);box-shadow:var(--shadow-lg)}
+  /* Tactile (v4.4.4) : le « soulèvement » au survol est un effet de POINTEUR — sur iOS le premier
+     tap pose l'état hover, et un hover qui bouge l'élément favorise le double-tap. Seule règle
+     :hover du fichier qui change la géométrie : les autres (fonds/bordures) sont inoffensives. */
+  @media (hover:none){.card:hover{transform:none;box-shadow:none}}
   /* Liseré de CATÉGORIE (V5) : bande 8px pleine hauteur à gauche — la couleur des catégories
      vit sur la tranche de la carte, les statuts restent achromatiques. */
   /* Liseré de catégorie : 4px (SPEC crise §1b, v4.3.0 — ex-8px) ; la couleur n'est jamais seule,
@@ -773,6 +777,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .card .pinbtn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .card-body{flex:1;min-width:0}.card h2{margin:0 0 5px;font-size:16.5px;font-weight:640}
   .card-meta{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+  /* Extrait contextuel d'un résultat de recherche (v4.4.4) : 2 lignes max, termes en GRAISSE
+     (jamais en couleur — les registres rouge/ambre gardent leur sens vital). */
+  .card-snip{margin-top:7px;font-size:12.5px;line-height:1.45;color:var(--ink-soft);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .card-snip b{color:var(--ink);font-weight:750}
   .tag{font-size:11px;font-weight:600;letter-spacing:.3px;background:var(--primary-soft);color:var(--primary-dk);padding:3px 9px;border-radius:20px}
   /* Étiquette de catégorie : texte en --ink (lisible dans les 2 thèmes) + pastille de couleur. */
   .catchip{color:var(--ink)}
@@ -1226,8 +1234,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .cat-chip-selected.none{background:transparent;border-color:var(--line-strong);color:var(--ink-soft)}
   .cat-chip-other{display:inline-flex;align-items:center;padding:8px 13px;border-radius:18px;border:1.5px solid var(--line-strong);background:transparent;color:var(--ink-soft);font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer}
   .cat-chip-other:hover,.cat-chip-selected:hover{filter:brightness(.97)}
-  /* Menu ancré (même patron que le menu ⋯) : rangées 44px pastille + nom + ✓ sur la courante. */
-  .catmenu{position:absolute;top:calc(100% + 6px);left:0;z-index:40;min-width:250px;max-width:min(340px,92vw);max-height:340px;overflow-y:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.18);padding:6px}
+  /* Menu ancré (même patron que le menu ⋯) : rangées 44px pastille + nom + ✓ sur la courante.
+     overscroll-behavior:contain (v4.4.4) : arrivé en butée de liste, le glissement ne « fuit »
+     plus vers la page derrière (la bottom sheet faisait défiler tout l'accueil). */
+  .catmenu{position:absolute;top:calc(100% + 6px);left:0;z-index:40;min-width:250px;max-width:min(340px,92vw);max-height:340px;overflow-y:auto;overscroll-behavior:contain;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.18);padding:6px}
+  /* En-tête COLLANT du menu (v4.4.4) : poignée (mobile) + filtre restent visibles pendant le
+     défilement de la liste — ils partaient hors écran avec elle. Fond plein : la liste passe
+     dessous, jamais au travers. top:-6px compense le padding du conteneur défilant. */
+  .catmenu-head{position:sticky;top:-6px;z-index:1;background:var(--surface);margin:-6px -6px 0;padding:6px 6px 0;border-radius:12px 12px 0 0}
   .catmenu-row{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:0 11px;border:0;background:none;border-radius:8px;font-family:inherit;font-size:13.5px;font-weight:600;color:var(--ink);cursor:pointer;text-align:left}
   .catmenu-row:hover{background:color-mix(in srgb,var(--primary) 8%,transparent)}
   .catmenu-row:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
@@ -1238,12 +1252,15 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .catmenu-new:hover{background:var(--surface-2)}
   .catmenu-filter{width:calc(100% - 4px);margin:2px 2px 6px;height:36px;padding:0 11px;border:1px solid var(--line-strong);border-radius:8px;background:var(--input-bg);color:var(--ink);font-family:inherit;font-size:13.5px}
   .catmenu-veil{display:none}
-  /* Mobile (< 780) : le menu devient une BOTTOM SHEET (poignée, voile, rangées 48px, au pouce). */
+  /* Mobile (< 780) : le menu devient une BOTTOM SHEET (poignée, voile, rangées 48px, au pouce).
+     La poignée vit dans l'en-tête collant (.catmenu-head) ; touch-action:none sur le voile :
+     un glissement sur le fond assombri ne doit jamais faire défiler la page derrière. */
   @media (max-width:779.98px){
     .catmenu{position:fixed;left:0;right:0;bottom:0;top:auto;max-width:none;min-width:0;max-height:min(70vh,480px);border-radius:16px 16px 0 0;padding-bottom:calc(10px + env(safe-area-inset-bottom));z-index:70}
-    .catmenu::before{content:"";display:block;width:44px;height:4px;border-radius:2px;background:var(--line-strong);margin:4px auto 10px}
+    .catmenu-head{border-radius:16px 16px 0 0}
+    .catmenu-head::before{content:"";display:block;width:44px;height:4px;border-radius:2px;background:var(--line-strong);margin:4px auto 10px}
     .catmenu-row{min-height:48px}
-    .catmenu-veil{display:block;position:fixed;inset:0;background:rgba(16,27,40,.45);z-index:69}
+    .catmenu-veil{display:block;position:fixed;inset:0;background:rgba(16,27,40,.45);z-index:69;touch-action:none}
   }
   /* Sélecteur d'ÉTAT segmenté (V5) : ○ Brouillon / △ À relire / ✓ Validé(e) + phrase d'aide. */
   .statuseg{display:flex;gap:6px;flex-wrap:wrap}
@@ -1801,6 +1818,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .att-ico{flex:none;display:inline-flex;color:var(--primary)}
   .att-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:560}
   .att-size{flex:none;font-size:12px;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+  /* Miniature de la 1re page (v4.4.4) : cadre au format « page » ; tant que la vignette n'est pas
+     générée (ou sans binaire local), il porte l'icône document générique. */
+  .att-thumb{flex:none;width:40px;height:52px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:6px;background:var(--surface-2);color:var(--primary);overflow:hidden}
+  .att-timg{display:block;width:100%;height:100%;object-fit:cover;object-position:top center}
   .att-erow{display:flex;align-items:center;gap:8px;margin-bottom:8px}
   /* Sélecteur de document existant : liste défilable, origine du document en 2e ligne. */
   .attpick-list{max-height:min(52vh,440px);overflow-y:auto;-webkit-overflow-scrolling:touch;margin-top:12px}
@@ -1842,9 +1863,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   :is(.field input[type=text],.field textarea,.field select,.search input,.auth-field,.cm-name,.cm-add input,.tk-lab,.blk-top input,.trow input,.optedit input,.optedit select,.gcap){border-color:var(--line-strong)}
   /* Placeholder maîtrisé (sinon gris navigateur non garanti sur nos fonds personnalisés). */
   ::placeholder{color:var(--ink-soft);opacity:1}
-  /* Lien d'évitement clavier : invisible jusqu'au focus. */
-  .skiplink{position:absolute;left:10px;top:-60px;z-index:200;background:var(--surface);color:var(--primary);font-weight:700;font-size:14px;padding:10px 16px;border-radius:10px;box-shadow:var(--shadow-lg);transition:top .12s}
-  .skiplink:focus-visible{top:calc(10px + env(safe-area-inset-top));outline:2px solid var(--primary);outline-offset:2px}
+  /* Lien d'évitement clavier : invisible jusqu'au focus. L'ombre ne vit QUE sur l'état focalisé :
+     posée sur l'état garé (top:-60px), elle « suintait » sous le bord supérieur gauche de l'écran
+     (flou 32 px + décalage 12 px de --shadow-lg, très visible en sombre — constat v4.4.4). */
+  .skiplink{position:absolute;left:10px;top:-60px;z-index:200;background:var(--surface);color:var(--primary);font-weight:700;font-size:14px;padding:10px 16px;border-radius:10px;transition:top .12s}
+  .skiplink:focus-visible{top:calc(10px + env(safe-area-inset-top));box-shadow:var(--shadow-lg);outline:2px solid var(--primary);outline-offset:2px}
   /* Session en cours : le pied de page se réduit à l'ÉTAT (nb de fiches, synchro) — Exporter/
      Importer/Thème/zoom n'ont rien à faire dans le champ visuel pendant une crise. */
   body.crisis-live footer.tools :is(.tools-actions,.storage-gauge){display:none}
@@ -2114,7 +2137,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
 <div class="ai-modal pdf-modal" id="pdfModal" role="dialog" aria-modal="true" aria-labelledby="pdfModalTitle">
   <div class="pdf-card">
     <div class="pdf-bar"><h3 id="pdfModalTitle" class="pdf-title">Document</h3>
-      <div class="pdf-tools"><button class="fz" data-pz="out" aria-label="Dézoomer">−</button><span class="fzv" id="pdfZoomVal">100%</span><button class="fz" data-pz="in" aria-label="Zoomer">+</button><button class="fz fz-r" data-pz="fit">Largeur</button></div>
+      <div class="pdf-tools"><button class="fz" data-pz="out" aria-label="Dézoomer">−</button><span class="fzv" id="pdfZoomVal">100%</span><button class="fz" data-pz="in" aria-label="Zoomer">+</button><button class="fz fz-r" data-pz="page">Page</button><button class="fz fz-r" data-pz="fit">Largeur</button></div>
       <button class="ai-x" id="pdfX" aria-label="Fermer le document">×</button></div>
     <div class="pdf-scroll" id="pdfScroll" tabindex="0"></div>
   </div>
@@ -2152,7 +2175,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.4.3';
+const APP_VERSION='4.4.4';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -2826,7 +2849,7 @@ function bindFlowZoom(){main.querySelectorAll('[data-zoom]').forEach(b=>b.onclic
 // (pinch natif aussi). On centre horizontalement à l'ouverture.
 function openFlowFull(f,curId){const ov=document.getElementById('flowFull');if(!ov)return;const sc=ov.querySelector('.ff-scroll');sc.innerHTML=buildFlowSVG(f,curId);ov.classList.add('on');applyFlowZoom();bindSvgImages(sc);sc.scrollLeft=centerOnStart(sc);sc.scrollTop=0;}
 function closeFlowFull(){const ov=document.getElementById('flowFull');if(ov){ov.classList.remove('on');const sc=ov.querySelector('.ff-scroll');if(sc)sc.innerHTML='';}}
-const flowBlock=(f,curId)=>`<div class="flow-zoom"><button class="fz" data-zoom="out" aria-label="Dézoomer">−</button><span class="fzv">${Math.round(flowZoom*100)}%</span><button class="fz" data-zoom="in" aria-label="Zoomer">+</button><button class="fz fz-r" data-zoom="reset">Rétablir</button><span class="fz-spc"></span><button class="fz" data-flowfull aria-label="Plein écran" title="Plein écran"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 3H5a2 2 0 00-2 2v3M16 3h3a2 2 0 012 2v3M8 21H5a2 2 0 01-2-2v-3M16 21h3a2 2 0 002-2v-3"/></svg></button></div><div class="flow-scroll">${buildFlowSVG(f,curId)}</div>`;
+const flowBlock=(f,curId,cache)=>`<div class="flow-zoom"><button class="fz" data-zoom="out" aria-label="Dézoomer">−</button><span class="fzv">${Math.round(flowZoom*100)}%</span><button class="fz" data-zoom="in" aria-label="Zoomer">+</button><button class="fz fz-r" data-zoom="reset">Rétablir</button><span class="fz-spc"></span><button class="fz" data-flowfull aria-label="Plein écran" title="Plein écran"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 3H5a2 2 0 00-2 2v3M16 3h3a2 2 0 012 2v3M8 21H5a2 2 0 01-2-2v-3M16 21h3a2 2 0 002-2v-3"/></svg></button></div><div class="flow-scroll">${buildFlowSVG(f,curId,cache)}</div>`;
 // Rafraîchit l'aperçu algorithme PENDANT la frappe (titres, étapes, réponses) sans reconstruire
 // tout le formulaire : on ne remplace que le SVG dans .flow-scroll -> le champ en cours de saisie
 // garde le focus et on évite un rendu complet à chaque touche. DÉBOUNCÉ (~300 ms) pour ne pas
@@ -2853,6 +2876,47 @@ function ficheHaystack(f){let h=_hayCache.get(f);
     (f.blocks||[]).forEach(b=>{parts.push(b&&b.title,b&&b.question);((b&&b.steps)||[]).forEach(s=>parts.push(s));((b&&b.options)||[]).forEach(o=>parts.push(o&&o.label));});
     h=txNorm(stripBold(parts.filter(Boolean).join(' ')));_hayCache.set(f,h);}
   return h+' '+txNorm(catName(f));}
+// Recherche MULTI-MOTS (v4.4.4) : chaque mot de la requête doit être présent, où qu'il soit
+// (ET logique) — « choc anaph » trouve la fiche dont le titre porte « anaphylactique » et une
+// étape « choc » ; l'ancien `includes` exigeait les mots CONTIGUS. Un seul mot : inchangé.
+const qTerms=q=>txNorm(q).split(/\s+/).filter(Boolean);
+const hayMatch=(hay,terms)=>terms.every(t=>hay.includes(t));
+// EXTRAIT CONTEXTUEL des résultats (v4.4.4) : sous le titre de la carte, la première ligne de
+// CONTENU où la requête matche — on comprend POURQUOI le résultat est là sans ouvrir la fiche.
+// Relief par la GRAISSE seule (<b>) : doctrine du projet — la couleur est un REGISTRE (rouge =
+// vital, ambre = vigilance), jamais un simple relief ; le surligneur ==…== reste réservé au
+// contenu rédigé. Le TITRE est exclu des sources (déjà affiché sur la carte : un extrait qui le
+// répéterait n'apporterait rien). Fonctions pures (testées via ?__actest).
+// markQTerms : occurrences des termes mises en <b> — intervalles fusionnés (termes qui se
+// chevauchent), correspondance insensible aux accents. Repose sur l'alignement 1:1 des index
+// entre la chaîne NFC et sa forme txNorm (chaque caractère composé donne un caractère nu).
+function markQTerms(s,terms){
+  const n=txNorm(s);const iv=[];
+  terms.forEach(t=>{let i=0;while(t&&(i=n.indexOf(t,i))>=0){iv.push([i,i+t.length]);i+=t.length;}});
+  if(!iv.length)return esc(s);
+  iv.sort((a,b)=>a[0]-b[0]);
+  const m=[];iv.forEach(([a,b])=>{const l=m[m.length-1];if(l&&a<=l[1])l[1]=Math.max(l[1],b);else m.push([a,b]);});
+  let out='',p=0;m.forEach(([a,b])=>{out+=esc(s.slice(p,a))+'<b>'+esc(s.slice(a,b))+'</b>';p=b;});
+  return out+esc(s.slice(p));}
+function searchSnippet(parts,q){
+  const T=qTerms(q);if(!T.length)return '';
+  for(const raw of parts){
+    const s=stripBold(String(raw||'')).normalize('NFC').trim();if(!s)continue;
+    const n=txNorm(s);
+    let first=-1;T.forEach(t=>{const i=n.indexOf(t);if(i>=0&&(first<0||i<first))first=i;});
+    if(first<0)continue;
+    // Fenêtre ~120 caractères autour du premier terme, coupée aux mots ; « … » aux bords tronqués.
+    let a=Math.max(0,first-36),b=Math.min(s.length,first+90);
+    if(a>0){const sp=s.indexOf(' ',a);if(sp>=0&&sp<first)a=sp+1;}
+    if(b<s.length){const sp=s.lastIndexOf(' ',b);if(sp>first)b=sp;}
+    return `<div class="card-snip">${a>0?'… ':''}${markQTerms(s.slice(a,b),T)}${b<s.length?' …':''}</div>`;}
+  return '';}
+// Sources de l'extrait, dans l'ordre de LECTURE de chaque entité (titre exclu).
+function ficheSnipParts(f){const p=[f.code,...(f.notForget||[]),...(f.confirmation||[])];
+  (f.blocks||[]).forEach(b=>{p.push(b&&b.title,b&&b.question);((b&&b.steps)||[]).forEach(s=>p.push(stepText(s)));((b&&b.options)||[]).forEach(o=>p.push(o&&o.label));});
+  p.push(...(f.verify||[]),...(f.posology||[]),...(f.differentials||[]),f.localInfo,...(f.references||[]));
+  return p;}
+function protoSnipParts(p){return [p.code,...mdStrip(p.body||'').split(/\n+/),...(p.attachments||[]).map(a=>a.name),...(p.references||[])];}
 // ÉPINGLAGE : préférence PAR UTILISATEUR. Stockée localement (localStorage) et, si connecté,
 // SYNCHRONISÉE entre ses appareils en voyageant dans le document de catégories PERSO
 // (category_sets, scope 'personal:<uid>' -> data.pins). Par-utilisateur : n'impose jamais
@@ -3839,7 +3903,7 @@ function render(){
   // Créer/Enregistrer/Aperçu, recherche, pied nomade) : extrait pour que render() se lise comme
   // « capture du défilement -> chrome -> dispatch de vue -> défilement final » (audit v4.1.0).
   applyViewChrome();
-  if(state.view==='library')(state.section==='protocols'?renderProtocols():renderFiches());
+  if(state.view==='library')renderLibrary();
   else if(state.view==='edit')renderEditor();
   else if(state.view==='protocolRead')renderProtocolRead();
   else if(state.view==='protocolEdit')renderProtocolEdit();
@@ -3857,6 +3921,10 @@ function render(){
   else if(state.view!=='read'||_lastView!=='read'||_fid!==_lastFicheId)window.scrollTo(0,0);
   _lastView=state.view;_lastFicheId=_fid;
 }
+// Re-rendu de l'ACCUEIL respectueux de l'onglet courant (Aides ↔ Protocoles). Tout code qui
+// rafraîchit la liste après une fenêtre (catégories, compte, bibliothèques…) passe par ici :
+// un renderFiches() direct affichait la liste des aides sous l'onglet Protocoles (bug v4.4.4).
+function renderLibrary(){state.section==='protocols'?renderProtocols():renderFiches();}
 // Titre courant dans la barre (fiche/protocole, lecture ou édition) : classe .titled tant qu'il
 // est non vide, sinon la marque revient. L'AFFICHAGE effectif attend le défilement (.ttl-on,
 // écouteur de scroll ci-dessous) : en haut de page, le corps porte déjà le titre — jamais deux
@@ -3987,9 +4055,10 @@ function crossHitsHtml(q,other){
   if(!q)return '';
   // Recherche transverse aux sections ET à toutes les bibliothèques (comme la liste principale).
   const vis=x=>canEditFiche(x)||x.status!=='draft';
+  const T=qTerms(q);
   const n=other==='protocols'
-    ?protocols.filter(p=>vis(p)&&protocolHaystack(p).includes(q)).length
-    :fiches.filter(f=>vis(f)&&ficheHaystack(f).includes(q)).length;
+    ?protocols.filter(p=>vis(p)&&hayMatch(protocolHaystack(p),T)).length
+    :fiches.filter(f=>vis(f)&&hayMatch(ficheHaystack(f),T)).length;
   if(!n)return '';
   const lbl=other==='protocols'?('protocole'+(n>1?'s':'')):('aide'+(n>1?'s':'')+' cognitive'+(n>1?'s':''));
   return `<button class="cross-hits" data-crosssec="${other}">${n} ${lbl} correspond${n>1?'ent':''} aussi à cette recherche${uiIcon('chev',15,{sw:2.2,cls:''})}</button>`;}
@@ -4078,7 +4147,7 @@ function renderFiches(){
     // Recherche (q non vide) : porte sur TOUTES les bibliothèques accessibles (le tableau `fiches`
     // ne contient déjà que du contenu autorisé) ; brouillon visible si on peut éditer SA biblio
     // (canEditFiche, par item). Sans recherche : périmètre + catégorie courants, comme avant.
-    list:(q,canEdit)=>fiches.slice().sort((a,b)=>((isPinned(b.id)?1:0)-(isPinned(a.id)?1:0))||byTitle(a,b)).filter(f=>q?(ficheHaystack(f).includes(q)&&(canEditFiche(f)||f.status!=='draft')):((state.scope?f.libraryId===state.scope:!f.libraryId)&&(!state.cat||f.category===state.cat)&&(canEdit||f.status!=='draft'))),
+    list:(q,canEdit)=>{const T=qTerms(q);return fiches.slice().sort((a,b)=>((isPinned(b.id)?1:0)-(isPinned(a.id)?1:0))||byTitle(a,b)).filter(f=>q?(hayMatch(ficheHaystack(f),T)&&(canEditFiche(f)||f.status!=='draft')):((state.scope?f.libraryId===state.scope:!f.libraryId)&&(!state.cat||f.category===state.cat)&&(canEdit||f.status!=='draft')));},
     // SESSIONS EN COURS (SPEC §5) : une CARTE par session (surface, liseré primaire 3px), point
     // vert + kicker + titre, CHRONO mono vivant (mis à jour par tickAll), « Reprendre » plein,
     // « Terminer » en texte rouge (destructif : jamais plein, jamais premier).
@@ -4090,7 +4159,7 @@ function renderFiches(){
     card:f=>{const sc=sessions.filter(s=>s.ficheId===f.id&&!s.live).length;const isLive=!!liveSessions[f.id];
       const cc=catOf(f);return `
       <div class="card${isLive?' has-live':''}${cc?' striped':''}"${cc?` style="--stripe:${safeColor(cc.color)}"`:''}><div class="card-body"><h2><button class="card-open" data-open="${f.id}">${esc(f.title)||'Sans titre'}</button></h2>
-        <div class="card-meta">${searchLibTag(f)}${isLive?'<span class="tag live">● En cours</span>':''}${statusChip(f.status,true)}${staleDate(f.validation)?`<span class="tag stale" title="${esc(fmtDate(f.validation))} — plus de 2 ans : à revérifier">△ à revoir</span>`:''}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo title="Reste à compléter : ${esc(sp.join(' · '))}">△ À compléter</span>`:'';})()}${catTag(f,true)}${sc?`<span class="tag sess" title="Sessions enregistrées dans l'historique">${sc} sauvegardée${sc>1?'s':''}</span>`:''}${f.code?`<span class="card-date" style="font-family:var(--mono)">${esc(f.code)}</span>`:''}</div></div>
+        <div class="card-meta">${searchLibTag(f)}${isLive?'<span class="tag live">● En cours</span>':''}${statusChip(f.status,true)}${staleDate(f.validation)?`<span class="tag stale" title="${esc(fmtDate(f.validation))} — plus de 2 ans : à revérifier">△ à revoir</span>`:''}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo title="Reste à compléter : ${esc(sp.join(' · '))}">△ À compléter</span>`:'';})()}${catTag(f,true)}${sc?`<span class="tag sess" title="Sessions enregistrées dans l'historique">${sc} sauvegardée${sc>1?'s':''}</span>`:''}${f.code?`<span class="card-date" style="font-family:var(--mono)">${esc(f.code)}</span>`:''}</div>${txNorm(state.q)?searchSnippet(ficheSnipParts(f),state.q):''}</div>
         <button class="pinbtn${isPinned(f.id)?' on':''}" data-pin="${f.id}" aria-label="${isPinned(f.id)?'Désépingler':'Épingler en haut de la liste'}" title="${isPinned(f.id)?'Désépingler':'Épingler en haut de la liste'}">${pinIcon(isPinned(f.id))}</button>
         ${uiIcon('chev',18,{sw:2.2,cls:'chev'})}</div>`;},
     remainLbl:n=>'restante'+(n>1?'s':''),
@@ -4117,19 +4186,59 @@ function renderProtocols(){
     countLbl:n=>'document'+(n>1?'s':''),
     // MÊME présentation que les fiches (harmonisation V5) : épinglés d'abord, liseré, statut,
     // épingle, chevron — un seul langage de carte sur tout l'accueil.
-    list:(q,canEdit)=>protocols.slice().sort((a,b)=>((isPinned(b.id)?1:0)-(isPinned(a.id)?1:0))||byTitle(a,b)).filter(p=>q?(protocolHaystack(p).includes(q)&&(canEditFiche(p)||p.status!=='draft')):((state.scope?p.libraryId===state.scope:!p.libraryId)&&(!state.cat||p.category===state.cat)&&(canEdit||p.status!=='draft'))),
+    list:(q,canEdit)=>{const T=qTerms(q);return protocols.slice().sort((a,b)=>((isPinned(b.id)?1:0)-(isPinned(a.id)?1:0))||byTitle(a,b)).filter(p=>q?(hayMatch(protocolHaystack(p),T)&&(canEditFiche(p)||p.status!=='draft')):((state.scope?p.libraryId===state.scope:!p.libraryId)&&(!state.cat||p.category===state.cat)&&(canEdit||p.status!=='draft')));},
     card:p=>{const nDoc=(p.attachments||[]).length;const cc=catOf(p);return `
       <div class="card${cc?' striped':''}"${cc?` style="--stripe:${safeColor(cc.color)}"`:''}><div class="card-body"><h2><button class="card-open" data-open="${p.id}">${esc(p.title)||'Sans titre'}</button></h2>
-        <div class="card-meta">${searchLibTag(p)}${statusChip(p.status,false)}${staleDate(p.validation)?`<span class="tag stale" title="${esc(fmtDate(p.validation))} — plus de 2 ans : à revérifier">△ à revoir</span>`:''}${catTag(p,true)}${nDoc?`<span class="tag sess" title="Documents PDF joints">${nDoc} PDF</span>`:''}${p.body&&p.body.trim()?'<span class="tag sess" title="Contenu rédigé dans l’app">Rédigé</span>':''}${p.code?`<span class="card-date" style="font-family:var(--mono)">${esc(p.code)}</span>`:''}</div></div>
+        <div class="card-meta">${searchLibTag(p)}${statusChip(p.status,false)}${staleDate(p.validation)?`<span class="tag stale" title="${esc(fmtDate(p.validation))} — plus de 2 ans : à revérifier">△ à revoir</span>`:''}${catTag(p,true)}${nDoc?`<span class="tag sess" title="Documents PDF joints">${nDoc} PDF</span>`:''}${p.body&&p.body.trim()?'<span class="tag sess" title="Contenu rédigé dans l’app">Rédigé</span>':''}${p.code?`<span class="card-date" style="font-family:var(--mono)">${esc(p.code)}</span>`:''}</div>${txNorm(state.q)?searchSnippet(protoSnipParts(p),state.q):''}</div>
         <button class="pinbtn${isPinned(p.id)?' on':''}" data-pin="${p.id}" aria-label="${isPinned(p.id)?'Désépingler':'Épingler en haut de la liste'}" title="${isPinned(p.id)?'Désépingler':'Épingler en haut de la liste'}">${pinIcon(isPinned(p.id))}</button>
         ${uiIcon('chev',18,{sw:2.2,cls:'chev'})}</div>`;},
     remainLbl:n=>'restant'+(n>1?'s':''),
     empty:{title:'Aucun protocole',libEdit:'Cette bibliothèque partagée est vide — ajoutez son premier protocole.',libRead:'Cette bibliothèque partagée ne contient pas encore de protocole.',anon:'Ajoutez un protocole : un ou plusieurs PDF, et/ou un contenu rédigé dans l’app.',cta:'Créer un protocole'},
     bind:()=>{main.querySelectorAll('[data-pin]').forEach(b=>b.onclick=e=>{e.stopPropagation();togglePin(b.dataset.pin);renderProtocols();});}});
 }
+// ----- Miniatures des documents PDF (v4.4.4) : la 1re page en vignette dans la liste
+// « Documents » des vues lecture (fiche ET protocole) — reconnaître un document d'un coup d'œil
+// avant de l'ouvrir, d'autant plus utile quand il y en a plusieurs. Génération PARESSEUSE :
+// rien au rendu de la vue (pdf.js n'est chargé qu'à la première vignette manquante, différée à
+// l'inactivité — jamais au démarrage, cf. AGENTS.md), UNE à la fois (chaîne _thumbChain :
+// mémoire canvas iOS), cache mémoire par session (_attThumbs, dataURL JPEG ~10 Ko) — les
+// re-rendus suivants inlinent la vignette d'emblée, sans repasser par pdf.js. Binaire absent
+// (document pas encore téléchargé) ou repli KV : l'icône générique reste en place.
+const _attThumbs=new Map();   // attId -> dataURL (session)
+let _thumbChain=Promise.resolve();
+const _idle=cb=>(window.requestIdleCallback?requestIdleCallback(cb,{timeout:2500}):setTimeout(cb,200));
+function attThumbHtml(a){return `<span class="att-thumb" data-thumb="${esc(a.id)}">${_attThumbs.has(a.id)?`<img class="att-timg" alt="" src="${_attThumbs.get(a.id)}">`:uiIcon('doc',16)}</span>`;}
+function hydrateAttThumbs(entity){
+  if(!supportsAttachments())return;
+  (entity.attachments||[]).forEach(a=>{
+    if(_attThumbs.has(a.id))return;   // déjà inliné par attThumbHtml
+    _thumbChain=_thumbChain
+      .then(()=>new Promise(r=>_idle(r)))
+      .then(()=>genAttThumb(a.id))
+      .then(url=>{if(url)document.querySelectorAll(`[data-thumb="${a.id}"]`).forEach(el=>{
+        const im=new Image();im.className='att-timg';im.alt='';im.src=url;el.replaceChildren(im);});})
+      .catch(()=>{});});}   // vignette impossible (PDF endommagé, pdfjs absent…) : icône générique, jamais bloquant
+async function genAttThumb(id){
+  if(_attThumbs.has(id))return _attThumbs.get(id);
+  let rec=null;try{rec=await IDB.getAtt(id);}catch(e){}
+  const bp=attBuf(rec);if(!bp)return null;   // pas de binaire local : pas de téléchargement pour une simple vignette
+  const lib=await pdfLib();
+  const doc=await lib.getDocument({data:await bp}).promise;
+  try{
+    const page=await doc.getPage(1);
+    const vp0=page.getViewport({scale:1});
+    const vp=page.getViewport({scale:96/vp0.width});   // 96 px de large = vignette 48 px @2x
+    const c=document.createElement('canvas');c.width=Math.round(vp.width);c.height=Math.round(vp.height);
+    const ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);
+    await page.render({canvasContext:ctx,viewport:vp}).promise;
+    const url=c.toDataURL('image/jpeg',0.8);
+    c.width=c.height=0;
+    _attThumbs.set(id,url);return url;
+  }finally{try{doc.destroy();}catch(e){}}}
 // Liste de boutons « Documents » (lecture) — même composant pour fiches et protocoles.
-function attListHtml(entity){return (entity.attachments||[]).length?`<section class="block"><div class="block-h h-doc">${headerIcon('h-doc')}Documents</div><div class="att-list">${entity.attachments.map(a=>`<button class="att-row" data-att="${esc(a.id)}" title="Ouvrir le document"><span class="att-ico">${uiIcon('doc',16)}</span><span class="att-name">${esc(a.name)}</span><span class="att-size">${fmtBytes(a.size)}</span></button>`).join('')}</div></section>`:'';}
-function bindAttList(entity){main.querySelectorAll('[data-att]').forEach(b=>b.onclick=()=>{const a=(entity.attachments||[]).find(x=>x.id===b.dataset.att);if(a)openPdfViewer(a,entity);});}
+function attListHtml(entity){return (entity.attachments||[]).length?`<section class="block"><div class="block-h h-doc">${headerIcon('h-doc')}Documents</div><div class="att-list">${entity.attachments.map(a=>`<button class="att-row" data-att="${esc(a.id)}" title="Ouvrir le document">${attThumbHtml(a)}<span class="att-name">${esc(a.name)}</span><span class="att-size">${fmtBytes(a.size)}</span></button>`).join('')}</div></section>`:'';}
+function bindAttList(entity){main.querySelectorAll('[data-att]').forEach(b=>b.onclick=()=>{const a=(entity.attachments||[]).find(x=>x.id===b.dataset.att);if(a)openPdfViewer(a,entity);});
+  hydrateAttThumbs(entity);}
 function renderProtocolRead(){
   const p=state.protocol;if(!p){state.view='library';return render();}
   const preview=!!state.previewFrom;
@@ -4374,7 +4483,7 @@ function openCatMenu(host,d,rerender,trigger){
   const cats=catsSorted(d.libraryId);
   const row=(id,name,col)=>`<button type="button" class="catmenu-row" role="option" aria-selected="${(d.category||'')===id?'true':'false'}" data-catopt="${esc(id)}"><span class="cat-dot" style="--catcol:${col||'var(--line-strong)'}"></span><span class="cm-nm">${esc(name)}</span>${(d.category||'')===id?`<span class="cm-ck">${uiIcon('check',15,{sw:2.6})}</span>`:''}</button>`;
   const menu=document.createElement('div');menu.className='catmenu';menu.setAttribute('role','listbox');menu.setAttribute('aria-label','Catégorie');
-  menu.innerHTML=`${cats.length>8?'<input class="catmenu-filter" type="text" placeholder="Filtrer…" aria-label="Filtrer les catégories">':''}
+  menu.innerHTML=`<div class="catmenu-head">${cats.length>8?'<input class="catmenu-filter" type="text" placeholder="Filtrer…" aria-label="Filtrer les catégories">':''}</div>
     ${row('','Sans catégorie','')}
     ${cats.map(c=>row(c.id,c.name,safeColor(c.color))).join('')}
     <div class="catmenu-sep"></div>
@@ -4660,7 +4769,18 @@ const labW=s=>{const t=shortLbl(s);return t?Math.max(20,Math.round(t.length*FLOW
 const labelTag=(x,y,txt)=>{const t=shortLbl(txt);if(!t)return '';const w=labW(txt);return `<g transform="translate(${Math.round(x)},${Math.round(y)})"><rect x="${Math.round(-w/2)}" y="-8.5" width="${w}" height="17" rx="8.5" fill="#fff" stroke="#c9a24a" stroke-width="1.3"/><text x="0" y="3.3" text-anchor="middle" font-size="9.5" font-weight="600" fill="#7a5900" font-family="system-ui">${esc(t)}</text></g>`;};
 // Orchestrateur : quatre étapes qui se passent un contexte C (algorithme détaillé dans le grand
 // commentaire ci-dessus ; chaque étape correspond à un point 1-4 de ce commentaire).
-function buildFlowSVG(f,curId){
+// Mémo du SVG (v4.4.4) : panneau algorithme ouvert, CHAQUE re-rendu de la vue lecture (minuteur
+// posé, horodatage, note…) reconstruisait toute la mise en page (mesure + BFS + routage). Cache
+// par OBJET fiche (WeakMap, même garantie que _hayCache : toute modification de contenu remplace
+// l'objet) + bloc courant. `cache` est un OPT-IN réservé à la vue lecture : l'éditeur passe son
+// BROUILLON, muté en place pendant la frappe — un cache par identité y servirait du périmé.
+const _flowCache=new WeakMap();
+function buildFlowSVG(f,curId,cache){
+  if(cache){const m=_flowCache.get(f);if(m&&m.curId===curId)return m.svg;}
+  const svg=_buildFlowSVG(f,curId);
+  if(cache)_flowCache.set(f,{curId,svg});
+  return svg;}
+function _buildFlowSVG(f,curId){
   const blocks=f.blocks||[];if(!blocks.length)return '<div style="padding:14px;color:var(--ink-soft);font-size:13px">Aucun bloc.</div>';
   const byId=Object.create(null);blocks.forEach(b=>byId[b.id]=b);const start=(f.start&&byId[f.start])?f.start:blocks[0].id;
   const C={blocks,byId,start,curId};
@@ -5036,7 +5156,7 @@ function renderRead(){
     const resetBtn=flow?'<button class="btn sm btn-hold" id="navReset" title="Maintenir pour recommencer (repart du début — ne touche ni au chrono ni aux minuteurs)"><span class="tmr-lab">'+uiIcon('undo',13)+' Recommencer</span><span class="tmr-hint">maintenir</span></button>':'';
     navRowH=(flow||npos>0)?`<div class="flow-nav">${backBtn}${resetBtn}</div>`:'';
     const histBtn=!atTip?'<button class="btn primary sm" id="navFwd">Continuer →</button><button class="btn sm" id="navResume">↺ Repartir d’ici (efface la suite)</button>':'';
-    const imgH=blk.image?`<img class="node-img" src="${blk.image}" data-full="${blk.image}"${blk.imageW&&blk.imageH?` width="${blk.imageW}" height="${blk.imageH}"`:''} alt="">`:'';
+    const imgH=blk.image?`<img class="node-img" loading="lazy" decoding="async" src="${blk.image}" data-full="${blk.image}"${blk.imageW&&blk.imageH?` width="${blk.imageW}" height="${blk.imageH}"`:''} alt="">`:'';
     if(blk.type==='decision'){const taken=state.nav[npos+1];
       const opts=(blk.options||[]).map((o,i)=>{const sel=!atTip&&o.target&&o.target===taken;const arr=sel?'<span class="arr">✓</span>':'<span class="arr">'+uiIcon('chev',18,{sw:2.4,cls:''})+'</span>';return `<button class="opt${sel?' taken':''}" ${atTip?`data-goto="${o.target||''}"`:'disabled'}><span class="ftxt">${fmt(o.label)||'Option '+(i+1)}</span>${arr}</button>`;}).join('');
       navHtml=`<div class="nav-wrap dec">${crumbsH?'':''}<div class="node-title">Décision · ${esc(blk.title)||'Réévaluation'}${passTag}</div>${imgH}<div class="question">${fmt(blk.question)||'…'}</div><div class="options">${opts}</div>${histBtn?`<div class="flow-ctrl">${histBtn}</div>`:''}</div>`;}
@@ -5121,7 +5241,7 @@ function renderRead(){
   // le geste PORTE la confirmation), sinon en tête de « Prise en charge ». Un seul bouton
   // rempli par écran ; la 1ʳᵉ action clinique démarre toujours aussi (jamais bloquant).
   const sessStartH=(!preview&&!started)?`<div class="sess-start"><button class="btn primary" id="sessStart">${uiIcon('play',14)} ${confItems.length?'Confirmé — démarrer la session':'Démarrer la session'}</button><span class="ss-hint">chrono, minuteurs et journal — démarre aussi à la première action</span></div>`:'';
-  const algH=f.blocks&&f.blocks.length?`<div class="alg-panel"><button type="button" class="alg-head" id="flowToggle" aria-expanded="${state.showFlow?'true':'false'}"><span class="alg-k">Algorithme</span><span class="alg-sub">· carte des blocs — synchronisée${blockTot!=null?` · <span id="algCount">${blockDone}/${blockTot}</span> coché`:''}</span><span class="alg-chev" aria-hidden="true">${state.showFlow?'▴':'▾'}</span></button>${state.showFlow?flowBlock(f,cur)+'<div class="flow-hint">Schéma = vue d’ensemble · étapes à cocher en-dessous ↓</div>':''}</div>`:'';
+  const algH=f.blocks&&f.blocks.length?`<div class="alg-panel"><button type="button" class="alg-head" id="flowToggle" aria-expanded="${state.showFlow?'true':'false'}"><span class="alg-k">Algorithme</span><span class="alg-sub">· carte des blocs — synchronisée${blockTot!=null?` · <span id="algCount">${blockDone}/${blockTot}</span> coché`:''}</span><span class="alg-chev" aria-hidden="true">${state.showFlow?'▴':'▾'}</span></button>${state.showFlow?flowBlock(f,cur,true)+'<div class="flow-hint">Schéma = vue d’ensemble · étapes à cocher en-dessous ↓</div>':''}</div>`:'';
   const localH=f.localInfo&&f.localInfo.trim()?`<div class="local">${fmt(f.localInfo)}</div>`:'';
   const stages=[];
   if(confBlockH)stages.push({cls:started?'done':'on',head:'',body:confBlockH+sessStartH});
@@ -5765,7 +5885,11 @@ document.getElementById('ffClose').onclick=closeFlowFull;
    Rendu VIRTUALISÉ : un conteneur par page à hauteur pré-calculée ; IntersectionObserver ne rend
    sur canvas que les pages proches de l'écran et DÉTRUIT les canvas éloignés (iOS plafonne la
    mémoire totale des canvas -> un long PDF entièrement rendu ferait planter l'onglet).
-   Zoom par boutons (comme l'algorithme) ; « Largeur » (100 %) = pleine largeur d'écran.
+   Zoom par boutons (comme l'algorithme) ; « Largeur » (100 %) = pleine largeur d'écran ;
+   « Page » = la 1re page tient en ENTIER dans la fenêtre (c'est le zoom d'OUVERTURE, v4.4.4 :
+   sur grand écran un A4 portrait s'ouvrait à pleine largeur, illisible sans défiler — le zoom
+   initial est calculé d'après le ratio réel du document ET les dimensions de la fenêtre, donc
+   juste en portrait comme en paysage ; sur téléphone le calcul retombe naturellement sur 100 %).
    Fenêtre .ai-modal -> focus / Échap / piège Tab gérés par l'accessibilité centralisée. */
 let _pdfjs=null;
 async function pdfLib(){if(!_pdfjs){const m=await import('./vendor/pdfjs/pdf.min.js');
@@ -5795,9 +5919,17 @@ function pdfApplyScale(){if(!_pv)return;const sc=document.getElementById('pdfScr
   _pv.pages.forEach(s=>{const w=s.vp?s.vp.width:_pv.baseW,h=s.vp?s.vp.height:_pv.baseH;
     s.el.style.width=_pv.cssW+'px';s.el.style.height=Math.round(h*(_pv.cssW/w))+'px';
     releasePdfPage(s);});}
+// Zoom « page entière » : z tel que la 1re page tient en HAUTEUR dans la fenêtre, borné à
+// 100 % (jamais plus large que l'écran) et au plancher commun 25 %. Ne dépend que du ratio
+// RÉEL du document (baseH/baseW) : un PDF paysage donne z=1 (déjà entier à pleine largeur).
+function pdfFitPageZ(){const sc=document.getElementById('pdfScroll');
+  const availW=Math.max(120,sc.clientWidth-20),availH=Math.max(120,sc.clientHeight-24);
+  const z=availH/(availW*(_pv.baseH/_pv.baseW));
+  return Math.max(0.25,Math.min(1,Math.floor(z*100)/100));}
 function pdfZoom(a){if(!_pv)return;
   if(a==='in')_pv.z=Math.min(4,Math.round((_pv.z+0.25)*100)/100);
-  else if(a==='out')_pv.z=Math.max(0.5,Math.round((_pv.z-0.25)*100)/100);
+  else if(a==='out')_pv.z=Math.max(0.25,Math.round((_pv.z-0.25)*100)/100);   // plancher 25 % (50 % restait grand pour survoler un long document)
+  else if(a==='page')_pv.z=pdfFitPageZ();
   else _pv.z=1;
   pdfApplyScale();pdfRenderNear();}
 function releasePdfPage(s){if(s.canvas){s.canvas.width=s.canvas.height=0;s.canvas.remove();s.canvas=null;}}
@@ -5854,6 +5986,7 @@ async function openPdfViewer(att,entity){
   if(!pdfModal.classList.contains('on')){try{doc.destroy();}catch(e){}return;}   // fermée pendant le chargement
   const p1=await doc.getPage(1);const vp1=p1.getViewport({scale:1});
   _pv={doc,pages:[],observer:null,z:1,cssW:0,baseW:vp1.width,baseH:vp1.height};
+  _pv.z=pdfFitPageZ();   // zoom d'ouverture = page entière (<= 100 %), cf. commentaire d'intro
   sc.innerHTML='';
   for(let i=1;i<=doc.numPages;i++){const el=document.createElement('div');el.className='pdf-page';el.dataset.p=i;sc.appendChild(el);
     _pv.pages.push({el,page:i===1?p1:null,vp:i===1?vp1:null,canvas:null,renderedW:0,rendering:false,vis:false});}
@@ -6255,7 +6388,7 @@ const catModal=document.getElementById('catModal');
 let catDelId=null,_catHost='catMgrBody';   // hôte courant : fenêtre (éditeur) ou panneau inline (accueil)
 const catCount=id=>fiches.filter(f=>f.category===id).length;
 function openCatMgr(){catDelId=null;_catHost='catMgrBody';catModal.classList.add('on');renderCatMgr();}
-function closeCatMgr(){catModal.classList.remove('on');if(state.view==='edit')renderEditor();else if(state.view==='protocolEdit')renderProtocolEdit();else if(state.view==='library')renderFiches();}
+function closeCatMgr(){catModal.classList.remove('on');if(state.view==='edit')renderEditor();else if(state.view==='protocolEdit')renderProtocolEdit();else if(state.view==='library')renderLibrary();}
 function renderCatMgr(){
   const body=document.getElementById(_catHost);if(!body)return;const scp=activeCatScope();const scoped=catsSorted(scp);
   body.innerHTML=`${scp?`<p class="cm-scope">Catégories de la bibliothèque <b>${esc(libName(scp)||'')}</b> (partagées avec ses membres).</p>`:'<p class="cm-scope">Catégories de votre espace personnel.</p>'}`+scoped.map(c=>{const n=catCount(c.id);
@@ -6621,7 +6754,7 @@ function renderAuth(){const body=document.getElementById('authBody');if(!body)re
       // arriver au même écran de connexion qu'une déconnexion sans effacement : l'option
       // « effacer » ne change QUE les données, jamais la destination.
       if(wipe){await wipeCurrentSpace();try{localStorage.setItem('ac-reopen-auth','1');}catch(e){}location.reload();return;}
-      resetAuthState();_authDelete=false;_authStep={mode:'email',email:'',msg:'',msgcls:''};renderAuth();setSyncChip();if(state.view==='library')renderFiches();};
+      resetAuthState();_authDelete=false;_authStep={mode:'email',email:'',msg:'',msgcls:''};renderAuth();setSyncChip();if(state.view==='library')renderLibrary();};
     // UN SEUL bouton « Se déconnecter » : l'ancien « Changer de compte » faisait EXACTEMENT la
     // même chose (doSignOut -> écran de connexion, où l'on peut saisir n'importe quel e-mail) ;
     // deux boutons voisins pour une seule action ajoutaient du bruit et un choix inutile. Le
@@ -7821,12 +7954,12 @@ async function renderMembers(){const body=document.getElementById('membersBody')
     if(nn===libName(_memLib)){closeMembers(true);return;}
     sv.disabled=true;
     try{await rest('PATCH','/rest/v1/libraries?id=eq.'+encodeURIComponent(_memLib),{name:nn},{'Prefer':'return=minimal'});
-      await Sync.loadProfile();closeMembers(true);if(state.view==='library')renderFiches();}
+      await Sync.loadProfile();closeMembers(true);if(state.view==='library')renderLibrary();}
     catch(e){sv.disabled=false;setNameMsg('Renommage impossible : '+e.message,'err');}};}
   const dl=body.querySelector('#libDelete');if(dl)dl.onclick=async()=>{
     if(!await confirmDlg('Supprimer DÉFINITIVEMENT la bibliothèque « '+libName(_memLib)+' » et TOUTES ses fiches partagées ? Action irréversible.',{title:'Supprimer la bibliothèque',yes:'Supprimer définitivement',danger:true}))return;
     try{await rest('DELETE','/rest/v1/libraries?id=eq.'+encodeURIComponent(_memLib),null,{'Prefer':'return=minimal'});
-      closeMembers();state.scope=null;await Sync.loadProfile();Sync.full();renderFiches();toast('Bibliothèque supprimée.');}
+      closeMembers();state.scope=null;await Sync.loadProfile();Sync.full();renderLibrary();toast('Bibliothèque supprimée.');}
     catch(e){toast('⚠ Suppression impossible : '+e.message);}};}
 bindModalDismiss(membersModal,closeMembers);
 // Fenêtre "Créer une bibliothèque" (app-admin uniquement ; la RLS rejette sinon si contournée) :
@@ -7856,7 +7989,7 @@ function renderNewLib(){const body=document.getElementById('newLibBody');if(!bod
     const id='lib-'+(catSlug(name).slice(0,32)||'x')+'-'+Math.random().toString(36).slice(2,6);
     try{await rest('POST','/rest/v1/libraries',[{id:id,name:name}],{'Prefer':'return=minimal'});
       await Sync.loadProfile();           // le trigger m'a ajouté comme admin -> apparaît dans la liste
-      closeNewLib(true);state.scope=id;renderFiches();toast('Bibliothèque « '+name+' » créée.');
+      closeNewLib(true);state.scope=id;renderLibrary();toast('Bibliothèque « '+name+' » créée.');
     }catch(e){btn.disabled=false;setMsg('Création impossible : '+e.message,'err');}};
   document.getElementById('newLibOk').onclick=submit;
   inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();submit();}};}
@@ -7964,7 +8097,8 @@ if(location.search.indexOf('__actest')>=0){
   window.__ac_test__={migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attStoragePath,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
-    restErrStatus,isPersoRepairCandidate,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES};
+    restErrStatus,isPersoRepairCandidate,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,
+    qTerms,hayMatch,markQTerms,searchSnippet,ficheSnipParts,protoSnipParts};
 }else{
   /* ===== PWA =====
      Enregistre le service worker (cache hors ligne) si disponible. Capte

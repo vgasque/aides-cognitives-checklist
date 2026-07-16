@@ -1,5 +1,59 @@
 # Journal des modifications
 
+## [4.4.4] — 2026-07-16
+Documents PDF plus lisibles (miniatures, zoom d'ouverture « page entière »), recherche
+multi-mots avec extraits contextuels, démarrage plus rapide en réseau dégradé, et une salve
+de corrections (onglet Protocoles, bottom sheet des catégories, ombre fantôme, tactile).
+
+### Ajouté
+- **Miniatures des documents PDF** : dans les listes « Documents » des vues lecture (fiches ET
+  protocoles), chaque rangée montre la **première page en vignette** — on reconnaît un document
+  d'un coup d'œil avant de l'ouvrir, d'autant plus utile quand il y en a plusieurs. Génération
+  **paresseuse** (pdf.js n'est chargé qu'à la première vignette manquante, différée à
+  l'inactivité — jamais au démarrage), une seule à la fois (plafond mémoire canvas d'iOS),
+  cache mémoire de session. Document pas encore téléchargé ou repli KV : icône générique.
+- **Zoom d'ouverture « page entière »** : la visionneuse s'ouvre au zoom qui montre la première
+  page **en entier**, calculé d'après le ratio réel du document (portrait comme paysage) et la
+  fenêtre — borné à 100 % (sur téléphone, rien ne change : le calcul y retombe sur la pleine
+  largeur). Nouveau bouton **« Page »** à côté de « Largeur » pour retrouver ce cadrage, et
+  **plancher de dézoom abaissé de 50 % à 25 %** (survoler un long document).
+- **Recherche multi-mots** : chaque mot de la requête doit être présent, où qu'il soit —
+  « choc anaph » trouve la fiche dont le titre porte « anaphylactique » et une étape « choc » ;
+  l'ancien comportement exigeait les mots contigus.
+- **Extraits contextuels dans les résultats** : sous le titre de chaque carte-résultat, la
+  première ligne de contenu où la requête matche, termes en **graisse** — on comprend pourquoi
+  le résultat est là sans ouvrir la fiche. Relief par la graisse SEULE (doctrine du projet : la
+  couleur est un registre — rouge = vital, ambre = vigilance — jamais un simple relief) ; le
+  titre est exclu des sources d'extrait (déjà affiché sur la carte). 17 tests ajoutés (360).
+
+### Modifié
+- **Démarrage en réseau dégradé** : le service worker basculait sur la copie hors-ligne après
+  **3,5 s** de réseau muet (« lie-fi » : Wi-Fi hospitalier qui accepte la connexion mais ne
+  répond pas) — jusqu'à 3,5 s d'écran blanc à chaque ouverture. Délai abaissé à **1,5 s** ; la
+  fraîcheur n'est pas sacrifiée (le fetch continue en arrière-plan pour l'ouverture suivante).
+- **Réactivité de la vue fiche** : le SVG de l'algorithme n'est plus reconstruit (mesure + BFS +
+  routage) à chaque re-rendu de session quand le panneau est ouvert — mémo par objet fiche +
+  bloc courant, réservé à la lecture (l'éditeur, qui mute son brouillon en place, recalcule
+  toujours) ; l'image d'un bloc passe en `loading="lazy" decoding="async"` (plus de re-décodage
+  synchrone à chaque navigation).
+- **Bottom sheet des catégories** (éditeurs, « Autre… ») : poignée et champ « Filtrer… » sont
+  désormais **épinglés en haut** (ils partaient hors écran avec la liste), le défilement est
+  **confiné à la feuille** (`overscroll-behavior:contain` — arrivé en butée, le glissement ne
+  faisait défiler toute la page derrière) et un glissement sur le voile ne défile plus rien.
+- **Tactile** : le « soulèvement » des cartes au survol est neutralisé sur écran tactile
+  (`@media (hover:none)`) — sur iOS, le premier tap pose l'état hover, et un hover qui bouge
+  l'élément favorise le double-tap. Seule règle `:hover` du fichier qui changeait la géométrie.
+
+### Corrigé
+- **Onglet Protocoles qui « retombait » sur les aides** : créer/modifier une catégorie puis
+  fermer la fenêtre (ou ouvrir/fermer « Gérer les catégories », fermer la fenêtre Compte,
+  modifier/créer/supprimer une bibliothèque) re-rendait toujours la liste des AIDES sous
+  l'onglet Protocoles. Tout re-rendu de l'accueil passe désormais par un répartiteur unique
+  (`renderLibrary`) qui respecte l'onglet courant.
+- **Ombre fantôme en haut à gauche** : le lien d'évitement clavier (« Aller au contenu »), garé
+  hors écran, laissait « suinter » son ombre portée sous le bord supérieur (très visible en
+  thème sombre). L'ombre ne vit plus que sur l'état focalisé.
+
 ## [4.4.3] — 2026-07-15
 De la couleur dans les protocoles — mais seulement celle des registres : encadrés typés à la
 syntaxe GitHub, surligneur achromatique, et taille d'affichage réglable image par image.
