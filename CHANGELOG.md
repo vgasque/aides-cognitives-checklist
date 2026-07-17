@@ -1,5 +1,32 @@
 # Journal des modifications
 
+## [4.11.0] — 2026-07-17
+Le mode crise devient un vrai support **challenge-response** au sens des checklists
+aviation (FAA AC 120-71B, philosophie Do-Verify) : la réponse attendue est séparée du
+challenge, une passe de vérification redéroule un bloc, et un mode lecteur plein écran
+outille le travail en binôme.
+
+### Ajouté
+- **Réponse attendue « challenge :: réponse »** : dans une étape, tapez `::` entre l'action et
+  sa valeur (`Adrénaline IM :: 0,01 mg/kg — max 0,5 mg`). En lecture, la réponse devient une
+  pilule distincte ; **cocher = confirmer la réponse constatée** (elle passe en readback vert
+  « ✓ … »), pas un simple « fait ». Visible aussi dans le plan et le schéma ; une étape sans
+  `::` est inchangée, un ancien client affiche le texte tel quel. Rien ne change au format.
+- **Mode Vérification (Do-Verify)** : sur tout bloc du parcours, « Vérifier » redéroule les
+  challenges **un à un** — « Constaté ✓ » coche l'étape, « △ Écart » passe **sans cocher**
+  (jamais de coche inventée, jamais de coche effacée) ; résumé final avec les écarts, qui
+  restent visibles dans le parcours. Quitter à tout moment : l'état est celui des cases.
+- **Mode lecteur (binôme)** : plein écran, un challenge à la fois en très grand, réponse
+  attendue en dessous, zone de validation géante (mains gantées) — le lecteur désigné lit à
+  voix haute, l'exécutant répond, le lecteur valide. Fin de bloc et décisions suivent les
+  mêmes règles que la checklist (pas d'avance tant que tout n'est pas confirmé, « Revoir »
+  ramène au premier écart) ; le chrono de session reste affiché, le flash d'alarme des
+  minuteurs reste visible par-dessus ; Échap/✕ quitte sans rien perdre. Entrées : bouton
+  « Lecteur » sur le bloc en cours et menu ⋯.
+- **Garde-fou télégraphique** dans l'éditeur (non bloquant) : signale un bloc de plus de
+  7 étapes ou un challenge de plus de 110 caractères, avec la marche à suivre (« une action
+  courte, la valeur en réponse :: »). 8 tests ajoutés (444).
+
 ## [4.10.0] — 2026-07-16
 La **structure globale** de l'aide devient enfin visible : sous le parcours, le nouveau
 **Plan de l'aide** affiche tout l'algorithme en arbre indenté, comme sur un algorithme papier —

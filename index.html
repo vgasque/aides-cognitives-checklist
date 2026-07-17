@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-O7IPhLtTHX6l8OA5KbJSZKscdZ3T59IGtWJPG6/ioeQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-1moKuP4otz/jfwlGGJfJvz/rWqrvTlZhtuj1isDZ41Q='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1477,6 +1477,55 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pl-lnk:hover{border-color:var(--primary)}
   .pl-lnk:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .pl-end{font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--ok);margin-top:7px}
+  /* ----- Challenge :: réponse (v4.11.0, AC 120-71B) : la pilule mono = RÉPONSE ATTENDUE ;
+     cocher = readback (✓ + vert), porté par le CSS seul — le toggle chirurgical n'y touche pas. */
+  ol.steps li .stp-r{display:inline-block;margin-left:8px;font-family:var(--mono);font-size:13px;font-weight:600;color:var(--link);background:var(--primary-soft);border-radius:7px;padding:2px 9px;vertical-align:1px;line-height:1.45}
+  ol.steps li.done .stp-r{color:var(--ok);background:var(--done-bg)}
+  ol.steps li.done .stp-r::before{content:"✓ "}
+  .pl-r{font-family:var(--mono);font-size:11px;color:var(--link)}
+  /* ----- Mode VÉRIFICATION (v4.11.0, Do-Verify) : challenges un à un, Constaté / Écart ----- */
+  .v-hint{font-size:11px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--link);margin:8px 0 2px}
+  .vstp{display:flex;gap:9px;align-items:flex-start;padding:8px 10px;border:1px solid var(--line);border-radius:8px;margin-top:6px;background:var(--surface);opacity:.45}
+  .vstp .vst{flex:none;width:20px;text-align:center;font-weight:700;color:var(--ink-soft)}
+  .vstp .txt{flex:1;min-width:0;font-size:14px;font-weight:600;line-height:1.4}
+  .vstp.vcur{opacity:1;border:2px solid var(--primary);padding:11px 10px}
+  .vstp.vcur .txt{font-size:16px;font-weight:800}
+  .vstp.ok2{opacity:.8;background:var(--done-bg);border-color:var(--done-line)}
+  .vstp.ok2 .vst{color:var(--ok)}
+  .vstp.vgap{opacity:1;background:var(--verify-soft);border-color:var(--verify)}
+  .vstp.vgap .vst{color:var(--verify)}
+  .v-act{display:flex;gap:9px;margin-top:12px}
+  .v-act .v-ok{flex:2;min-height:52px;border:0;border-radius:10px;background:var(--ok);color:var(--surface);font-size:15px;font-weight:800;cursor:pointer;font-family:inherit}
+  .v-act .v-gap{flex:1;min-height:52px;border:2px solid var(--verify-bd);border-radius:10px;background:var(--verify-soft);color:var(--verify);font-size:13.5px;font-weight:700;cursor:pointer;font-family:inherit}
+  .v-act button:focus-visible,.ov-block [data-ovvx]:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .v-end{margin-top:10px;border:1px solid var(--verify-bd);background:var(--verify-soft);border-radius:9px;padding:10px 12px;font-size:13px;color:var(--ink)}
+  .v-end.ok{border-color:var(--done-line);background:var(--done-bg);color:var(--ok)}
+  /* ----- MODE LECTEUR (v4.11.0) : challenge-response en binôme, plein écran -----
+     z-index 92 : SOUS #screenFlash (99) — le flash d'alarme minuteur reste visible par-dessus. */
+  #readerMode{position:fixed;inset:0;z-index:92;background:var(--bg);display:none;flex-direction:column}
+  #readerMode.on{display:flex}
+  #readerMode .rm-top{display:flex;align-items:center;gap:10px;padding:calc(9px + env(safe-area-inset-top)) 14px 9px;background:var(--surface);border-bottom:1px solid var(--line)}
+  #readerMode .rm-tag{flex:none;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--primary)}
+  #readerMode .rm-ttl{flex:1;min-width:0;font-size:13px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #readerMode .rm-time{flex:none;font-family:var(--mono);font-size:13px;font-weight:700;color:var(--ok)}
+  #readerMode .rm-block{display:flex;align-items:center;gap:8px;padding:10px 16px 0;font-size:12.5px;font-weight:700;color:var(--ink-soft);max-width:640px;width:100%;margin:0 auto}
+  #readerMode .rm-block #rmBlock{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #readerMode .rm-block #rmProg{font-family:var(--mono)}
+  #readerMode .rm-body{flex:1;display:flex;flex-direction:column;padding:18px 16px calc(16px + env(safe-area-inset-bottom));max-width:640px;width:100%;margin:0 auto;overflow-y:auto}
+  #readerMode .rm-hint{font-size:12px;color:var(--ink-soft);text-align:center;margin:0 0 12px}
+  #readerMode .rm-ch{font-size:26px;font-weight:800;line-height:1.25;text-align:center;color:var(--ink);margin:0}
+  #readerMode .rm-ch.crit{color:var(--critical)}
+  #readerMode .rm-ch.vig{color:var(--verify)}
+  #readerMode .rm-r{font-family:var(--mono);font-size:20px;font-weight:600;color:var(--link);background:var(--primary-soft);border-radius:12px;padding:14px;margin:16px 0 0;text-align:center;line-height:1.35}
+  #readerMode .rm-sp{flex:1;min-height:14px}
+  #readerMode .rm-ok{width:100%;min-height:72px;border:0;border-radius:12px;background:var(--ok);color:var(--surface);font-size:18px;font-weight:800;letter-spacing:.3px;cursor:pointer;font-family:inherit;padding:10px}
+  #readerMode .rm-ok.idle{background:transparent;border:2px solid var(--verify-bd);color:var(--verify)}
+  #readerMode .rm-gap{width:100%;min-height:44px;border:2px solid var(--verify-bd);border-radius:10px;background:var(--verify-soft);color:var(--verify);font-size:13.5px;font-weight:700;cursor:pointer;margin-top:9px;font-family:inherit}
+  #readerMode .rm-prev{width:100%;min-height:44px;border:none;background:none;color:var(--ink-soft);font-size:13px;font-weight:600;cursor:pointer;margin-top:6px;font-family:inherit}
+  #readerMode .rm-opt{width:100%;min-height:72px;border:2px solid var(--verify-bd);border-radius:12px;background:var(--surface);color:var(--ink);font-size:17px;font-weight:700;cursor:pointer;margin-top:10px;text-align:left;padding:12px 18px;font-family:inherit;line-height:1.3}
+  #readerMode .rm-opt:hover{border-color:var(--primary)}
+  #readerMode .rm-done{border:2px solid var(--done-line);border-radius:12px;color:var(--ok);font-size:16px;font-weight:800;text-align:center;padding:16px}
+  #readerMode button:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* ----- SVG navigable (v4.7.0) : nœuds cliquables, état PEINT par classes ----- */
   /* Hex explicites = exception SVG documentée (le SVG n'utilise pas les tokens ; en sombre,
      l'inversion globale est contrée par les règles html[data-theme="dark"] plus haut). */
@@ -2223,6 +2272,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
 <!-- Zone d'annonce pour lecteurs d'écran (fin de minuteur, alarmes) : invisible, aria-live. -->
 <div id="srLive" class="sr-only" role="alert" aria-live="assertive"></div>
 <div id="alerts"></div>
+<!-- MODE LECTEUR (v4.11.0) : challenge-response en binôme (AC 120-71B) — un challenge à la
+     fois, plein écran, piloté sur le BOUT du journal (mêmes clés de cochage, mêmes chemins
+     d'avancement). z-index 92 : le flash d'alarme (#screenFlash, 99) reste visible par-dessus. -->
+<div id="readerMode"><div class="rm-top"><span class="rm-tag">■ Mode lecteur</span><span class="rm-ttl" id="rmTitle"></span><span class="rm-time" id="rmTime" hidden></span><button class="fz fz-r" id="rmClose">Quitter ✕</button></div><div class="rm-block"><span id="rmBlock"></span><span id="rmProg"></span></div><div class="rm-body" id="rmBody"></div></div>
 <div id="flowFull"><div class="ff-bar"><button class="fz" data-zoomf="out" aria-label="Dézoomer">−</button><span class="fzv">100%</span><button class="fz" data-zoomf="in" aria-label="Zoomer">+</button><button class="fz fz-r" data-zoomf="reset">Rétablir</button><span class="fz-spc"></span><button class="fz fz-r" id="ffClose">Fermer ✕</button></div><div class="ff-scroll"></div></div>
 <div class="lightbox" id="lightbox"><button class="x" id="lbX" aria-label="Fermer l'image">×</button><img id="lbImg" alt=""><div class="cap" id="lbCap"></div></div>
 <!-- Dialogue « Créer » (SPEC gestion §2.1) : point d'entrée UNIQUE de la création — 3 méthodes
@@ -2351,7 +2404,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.10.0';
+const APP_VERSION='4.11.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -2708,8 +2761,9 @@ let state={view:'library',q:'',cat:'',scope:null,draft:null,fiche:null,nav:[],na
   // L'AIDE (v4.10.0, arbre indenté de la structure complète) ; 'guided' = bloc à bloc
   // historique. Posé à l'OUVERTURE (openRead/resumeSession) depuis la préférence.
   // ovFold = replis manuels d'instances du journal (clé = index) ; ovPlanTitles = plan en
-  // titres seuls (défaut : étapes visibles). Jamais persistés (par fiche ouverte).
-  readMode:'overview',ovFold:{},ovPlanTitles:false};
+  // titres seuls (défaut : étapes visibles) ; ovVerify = passe Do-Verify en cours
+  // ({idx,i,gaps} ou null). Jamais persistés (par fiche ouverte).
+  readMode:'overview',ovFold:{},ovPlanTitles:false,ovVerify:null};
 try{if(localStorage.getItem(spaceKey('ac-section'))==='protocols')state.section='protocols';}catch(e){}
 /* Préférence du mode de lecture (v4.6.0) — par utilisateur (spaceKey local), synchronisée via
    data.prefs.readMode. La synchro ne fait qu'ÉCRIRE la préférence locale : elle ne bascule JAMAIS
@@ -3327,6 +3381,19 @@ const STEP_VIG_RX=/^\s*△\s*/;
 const stepIsCrit=s=>STEP_CRIT_RX.test(String(s||''));
 const stepIsVigil=s=>!STEP_CRIT_RX.test(String(s||''))&&STEP_VIG_RX.test(String(s||''));
 const stepText=s=>String(s||'').replace(STEP_CRIT_RX,'').replace(STEP_VIG_RX,'');
+/* CHALLENGE :: RÉPONSE (v4.11.0, AC 120-71B) : séparateur explicite « :: » DANS la chaîne
+   d'étape — même philosophie que « ⚠ »/« △ » (opt-in de l'auteur, format et export v3
+   inchangés, un ancien client affiche « challenge :: réponse » : dégradation lisible).
+   stepCR opère APRÈS stepText (préfixe déjà retiré) ; première occurrence seulement (une
+   réponse peut contenir « :: ») ; moitié vide -> pas de zone réponse. */
+function stepCR(s){const t=String(s==null?'':s);const i=t.indexOf('::');
+  if(i<0)return {c:t.trim(),r:null};
+  const c=t.slice(0,i).trim(),r=t.slice(i+2).trim();
+  return (c&&r)?{c,r}:{c:c||r,r:null};}
+// Intérieur d'une rangée d'étape cochable (vue guidée + journal) : challenge, puis RÉPONSE
+// ATTENDUE en pilule mono — le readback « ✓ » du cochage est porté par le CSS (li.done).
+function stepTxtHtml(s){const cr=stepCR(stepText(s));
+  return `<span class="txt">${fmt(cr.c)}${cr.r?` <span class="stp-r">${fmt(cr.r)}</span>`:''}</span>`;}
 const TODO_RX=/[àa] compl[eé]ter/i;
 function completionSpots(f){if(!f||typeof f!=='object')return [];const spots=[];
   if(TODO_RX.test(String(f.localInfo||'')))spots.push('Contexte local');
@@ -4132,7 +4199,11 @@ window.addEventListener('resize',()=>{_rtShowDirty=true;},{passive:true});
 // le rôle de l'ancien rappel #rtStrip — visible quand un minuteur tourne ET que le panneau
 // minuteurs est sorti de l'écran ; tap -> remonte au panneau. Un seul bloc d'état dans la barre.
 let _rtsHtml='';
-function updateRtStrip(now){const el=document.getElementById('cbTimers');if(!el)return;
+function updateRtStrip(now){
+  // Chrono de session du MODE LECTEUR (v4.11.0) : même source, même cadence (tickAll).
+  {const rt=document.getElementById('rmTime');
+   if(rt&&Runtime.started&&document.getElementById('readerMode').classList.contains('on')){rt.hidden=false;rt.textContent='● '+fmtMs(now-Runtime.startedAt);}}
+  const el=document.getElementById('cbTimers');if(!el)return;
   now=now||Date.now();
   const crisis=state.view==='read'&&!!Runtime.fiche;
   // ÉCHU NON ACQUITTÉ (registre ATTENTION, règle ECAM v4.2.0) : un minuteur d'intervalle arrivé
@@ -4237,7 +4308,7 @@ bindModalDismiss(document.getElementById('endSessModal'),()=>_endSessClose(false
 async function endCurrentSession(){if(!Runtime.started)return;if(!await confirmEndSession(Runtime))return;const f=Runtime.fiche;endSession(Runtime);freshRuntime(f,null);state.fiche=null;state.view='library';render();}
 // Reprendre une session de l'historique (ou vive) : recharge dans un runtime, la réactive (vive) et
 // ouvre la fiche. Si une session vive existe déjà pour cette fiche, on la rouvre telle quelle.
-function resumeSession(id){const s=sessions.find(x=>x.id===id);if(!s)return;const f=fiches.find(x=>x.id===s.ficheId);if(!f){toast('⚠ Fiche introuvable.');return;}flowScroll={left:null,top:0};state.readMode=currentReadMode();state.ovFold={};state.ovPlanTitles=false;
+function resumeSession(id){const s=sessions.find(x=>x.id===id);if(!s)return;const f=fiches.find(x=>x.id===s.ficheId);if(!f){toast('⚠ Fiche introuvable.');return;}flowScroll={left:null,top:0};state.readMode=currentReadMode();state.ovFold={};state.ovPlanTitles=false;state.ovVerify=null;
   if(liveSessions[f.id]&&liveSessions[f.id].sessionId===id){Runtime=liveSessions[f.id];}
   else{Runtime=buildRuntime(f,s);Runtime.started=true;Runtime.startedAt=s.startedAt||Date.now();liveSessions[f.id]=Runtime;persistLive(Runtime,true);}
   Runtime.fiche=f;bindStateToRuntime();state.fiche=f;state.showFlow=false;state.showSess=false;state.view='read';render();}
@@ -5323,7 +5394,7 @@ function flowMeasure(C){const{blocks,start}=C;const{TH,LH,TLH,HPAD,TXT_MAX,TITLE
     const startStrip=isStart?17:0;
     const headerH=Math.max(TH,headerLines.length*TLH+12)+startStrip;const items=[];
     if(dec){if(b.question)items.push({kind:'q',lines:wrapText(stripBold(b.question),TXT_MAX)});(b.options||[]).filter(o=>o.label||o.target).forEach((o,i)=>items.push({kind:'opt',num:i+1,lines:wrapText(stripBold(o.label)||('Option '+(i+1)),TXT_MAX-3)}));}
-    else{clean(b.steps).forEach((s,i)=>items.push({kind:'step',num:i+1,crit:stepIsCrit(s),vig:stepIsVigil(s),lines:wrapText(stripBold(stepText(s)),TXT_MAX-3)}));}
+    else{clean(b.steps).forEach((s,i)=>{const cr=stepCR(stepText(s));items.push({kind:'step',num:i+1,crit:stepIsCrit(s),vig:stepIsVigil(s),lines:wrapText(stripBold(cr.r?cr.c+' — '+cr.r:cr.c),TXT_MAX-3)});});}
     const cl=items.reduce((n,it)=>n+it.lines.length,0);
     let mxc=0;headerLines.forEach(l=>{mxc=Math.max(mxc,l.length*1.12);});
     items.forEach(it=>it.lines.forEach((l,li)=>{const pre=(it.kind==='step'||it.kind==='opt')?(li===0?String(it.num).length+2:1.5):0;mxc=Math.max(mxc,l.length+pre);}));
@@ -5707,7 +5778,7 @@ function navSection(f){
         ?`<div class="flow-end">Algorithme terminé — surveillance en cours</div>`
         :(atTip?`<button class="btn cont ${allDone?'okay':'idle'}" id="navNext" data-contlbl="${esc(goLbl)}"${allDone?'':' aria-disabled="true"'}>${esc(contLbl)}</button>`:histBtn);
       blockDone=done;blockTot=steps.length;
-      navHtml=`<div class="nav-wrap"><div class="node-title">Bloc · ${esc(blk.title)||'Étapes'}${passTag} — <span id="ntCount">${done}/${steps.length}</span> coché</div>${imgH}<ol class="steps">${steps.map((s,i)=>{const k=curSeq+':'+blk.id+':'+i;return `<li data-ck="${k}" class="${stepIsCrit(s)?'crit ':(stepIsVigil(s)?'vigil ':'')}${state.checked[k]?'done':''}" role="checkbox" aria-checked="${state.checked[k]?'true':'false'}" tabindex="0"><span class="box">${state.checked[k]?uiIcon('check',19,{sw:3,cls:''}):''}</span><span class="txt">${fmt(stepText(s))}</span></li>`;}).join('')}</ol><div class="flow-ctrl">${fwdc}</div></div>`;}}
+      navHtml=`<div class="nav-wrap"><div class="node-title">Bloc · ${esc(blk.title)||'Étapes'}${passTag} — <span id="ntCount">${done}/${steps.length}</span> coché</div>${imgH}<ol class="steps">${steps.map((s,i)=>{const k=curSeq+':'+blk.id+':'+i;return `<li data-ck="${k}" class="${stepIsCrit(s)?'crit ':(stepIsVigil(s)?'vigil ':'')}${state.checked[k]?'done':''}" role="checkbox" aria-checked="${state.checked[k]?'true':'false'}" tabindex="0"><span class="box">${state.checked[k]?uiIcon('check',19,{sw:3,cls:''}):''}</span>${stepTxtHtml(s)}</li>`;}).join('')}</ol><div class="flow-ctrl">${fwdc}</div></div>`;}}
   return {blk,cur,atTip,crumbsH,navHtml,navRowH,blockDone,blockTot};}
 // Sous-titre du panneau « Algorithme » : compteur n/total quand le bloc courant est cochable —
 // partagé entre le rendu complet (renderRead) et la mise à jour ciblée (renderNavOnly).
@@ -5868,6 +5939,7 @@ function bindReadEvents(f,blk,cur){
   if(!state.previewFrom)setMoreMenu([
     {label:'Modifier',ic:uiIcon('pen',16),sub:started?'session en cours':(canEditFiche(f)?'hors urgence':'lecture seule'),disabled:started||!canEditFiche(f),act:()=>openEdit(f.id)},
     ...(canEditFiche(f)?[{label:f.libraryId?'Ma version écrasée':'Versions',ic:uiIcon('history',16),disabled:started,act:()=>openVersions(f.id)}]:[]),
+    ...(hasFlow(f)?[{label:'Mode lecteur (binôme)',ic:uiIcon('play',16),act:readerOpen}]:[]),
     'sep',
     {label:'Dupliquer dans « Perso »',ic:uiIcon('copy',16),act:()=>dupToPerso('f',f)},
     {label:'Exporter (.json)',ic:uiIcon('download',16),act:()=>exportData([f],'fiche-'+fileSlug(f.title))},
@@ -6086,8 +6158,26 @@ function ovInstHtml(f,id,idx,topo){
     count=taken?'✓':'?';}
   else{
     const steps=clean(b.steps);
-    const lis=steps.map((s,i)=>{const k=seq+':'+id+':'+i;const ck=!!state.checked[k];return `<li data-ck="${k}" class="${stepIsCrit(s)?'crit ':(stepIsVigil(s)?'vigil ':'')}${ck?'done':''}" role="checkbox" aria-checked="${ck?'true':'false'}" tabindex="0"><span class="box">${ck?uiIcon('check',19,{sw:3,cls:''}):''}</span><span class="txt">${fmt(stepText(s))}</span></li>`;}).join('');
+    // MODE VÉRIFICATION (v4.11.0, Do-Verify — AC 120-71B) : cette instance redéroule ses
+    // challenges UN À UN. « Constaté ✓ » coche la MÊME clé que le cochage normal ; « △ Écart »
+    // avance SANS cocher (jamais de coche inventée) ; le résumé final liste les non-cochées.
+    // La passe re-vérifie TOUTES les étapes, déjà cochées comprises (c'est le sens du Verify).
+    const vf=(state.ovVerify&&state.ovVerify.idx===idx)?state.ovVerify:null;
     let dn=0;steps.forEach((s,i)=>{if(state.checked[seq+':'+id+':'+i])dn++;});
+    if(vf&&steps.length){
+      const vi=Math.min(vf.i,steps.length);
+      const rows=steps.map((s,i2)=>{const ck2=!!state.checked[seq+':'+id+':'+i2];
+        const gap=!ck2&&vf.gaps.indexOf(i2)>=0;
+        return `<div class="vstp${i2===vi?' vcur':''}${ck2?' ok2':''}${gap?' vgap':''}"><span class="vst">${ck2?'✓':(gap?'△':(i2===vi?'▸':''))}</span>${stepTxtHtml(s)}</div>`;}).join('');
+      let act='';
+      if(vi>=steps.length){
+        const g=steps.map((s,i2)=>i2).filter(i2=>!state.checked[seq+':'+id+':'+i2]);
+        act=`<div class="v-end${g.length?'':' ok'}">${g.length?`<b>${steps.length-g.length}/${steps.length} vérifiées · ${g.length} écart${g.length>1?'s':''}</b> — étape${g.length>1?'s':''} ${g.map(x=>x+1).join(', ')} non cochée${g.length>1?'s':''} (elles restent visibles dans le parcours)`:`<b>${steps.length}/${steps.length} vérifiées — bloc confirmé ✓</b>`}</div><div class="flow-ctrl"><button type="button" class="btn cont${g.length?'':' okay'}" data-ovvx>Terminer la vérification</button></div>`;}
+      else act=`<div class="v-act"><button type="button" class="v-ok" data-ovvok>Constaté ✓</button><button type="button" class="v-gap" data-ovvgap>△ Écart</button></div>`;
+      bodyH=`<div class="v-hint">Vérification — lisez le challenge, constatez l'état réel</div>${rows}${act}`;
+      count=vi+'/'+steps.length;}
+    else{
+    const lis=steps.map((s,i)=>{const k=seq+':'+id+':'+i;const ck=!!state.checked[k];return `<li data-ck="${k}" class="${stepIsCrit(s)?'crit ':(stepIsVigil(s)?'vigil ':'')}${ck?'done':''}" role="checkbox" aria-checked="${ck?'true':'false'}" tabindex="0"><span class="box">${ck?uiIcon('check',19,{sw:3,cls:''}):''}</span>${stepTxtHtml(s)}</li>`;}).join('');
     let ctl='';
     if(tip){const nxt=b.next?f.blocks.find(x=>x.id===b.next):null;
       const allDone=steps.length===0?true:dn>=steps.length;
@@ -6096,10 +6186,17 @@ function ovInstHtml(f,id,idx,topo){
       else if(!state.flowEnded){
         ctl=`<div class="flow-ctrl"><button type="button" class="btn cont ${allDone?'okay':'idle'}" data-ovend data-contlbl="Terminer l’algorithme ✓"${allDone?'':' aria-disabled="true"'}>${allDone?'Terminer l’algorithme ✓':'Cochez les étapes restantes ('+(steps.length-dn)+')'}</button></div>`;}}
     bodyH=`${imgH}<ol class="steps">${lis}</ol>${ctl}`;
-    count=steps.length?dn+'/'+steps.length:'—';}
+    count=steps.length?dn+'/'+steps.length:'—';}}
   const takenH=taken?`<span class="ov-ans">→ ${esc(stripBold(taken.label)||'option')}</span>`:'';
-  const redo=(!tip&&complete&&!dec)?`<button type="button" class="ov-redo" data-ovredo="${esc(id)}" title="Refaire ce bloc : nouvelle carte au bout du journal — celle-ci reste telle quelle">↺ Refaire</button>`:'';
-  return `<section class="ov-block${tip?' cur':''}${complete?' done':''}${dec?' dec':''}${closed?' closed':''}" data-ovb="${esc(id)}" data-ovi="${idx}" data-ovn="${topo[id]||''}"${tip?' aria-current="step"':''}><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="${idx}" aria-expanded="${closed?'false':'true'}"><span class="ov-n" aria-hidden="true">${complete?uiIcon('check',13,{sw:3.2,cls:''}):(topo[id]||'·')}</span><span class="ov-t">${esc(b.title)||(dec?'Décision':'Étapes')}${passTag}${takenH} <span class="ov-here">Vous êtes ici</span></span><span class="ov-c">${count}</span><span class="ov-chev" aria-hidden="true">${closed?'▾':'▴'}</span></button>${redo}</div><div class="ov-body">${bodyH}</div></section>`;}
+  // Boutons d'en-tête : en vérification -> ✕ seulement ; sinon « Lecteur » (bout du journal,
+  // binôme), « Vérifier » (Do-Verify, blocs d'étapes) et « ↺ Refaire » (instance complète passée).
+  const verifying=state.ovVerify&&state.ovVerify.idx===idx;
+  const btns=verifying
+    ?`<button type="button" class="ov-redo" data-ovvx title="Quitter la vérification — l'état des cases est déjà enregistré">✕</button>`
+    :((tip&&hasFlow(f)?`<button type="button" class="ov-redo" data-ovreader title="Mode lecteur (binôme) : un challenge à la fois en plein écran — le lecteur lit, l'exécutant répond">Lecteur</button>`:'')
+      +((!dec&&clean(b.steps).length)?`<button type="button" class="ov-redo" data-ovverify="${idx}" title="Do-Verify : redérouler ce bloc en challenge-réponse — « Constaté » coche, « Écart » laisse non coché">Vérifier</button>`:'')
+      +((!tip&&complete&&!dec)?`<button type="button" class="ov-redo" data-ovredo="${esc(id)}" title="Refaire ce bloc : nouvelle carte au bout du journal — celle-ci reste telle quelle">↺ Refaire</button>`:''));
+  return `<section class="ov-block${tip?' cur':''}${complete?' done':''}${dec?' dec':''}${closed&&!verifying?' closed':''}" data-ovb="${esc(id)}" data-ovi="${idx}" data-ovn="${topo[id]||''}"${tip?' aria-current="step"':''}><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="${idx}" aria-expanded="${closed&&!verifying?'false':'true'}"><span class="ov-n" aria-hidden="true">${complete?uiIcon('check',13,{sw:3.2,cls:''}):(topo[id]||'·')}</span><span class="ov-t">${esc(b.title)||(dec?'Décision':'Étapes')}${passTag}${takenH} <span class="ov-here">Vous êtes ici</span></span><span class="ov-c">${count}</span><span class="ov-chev" aria-hidden="true">${closed&&!verifying?'▾':'▴'}</span></button>${btns}</div><div class="ov-body">${bodyH}</div></section>`;}
 // PLAN DE L'AIDE (v4.10.0) : rendu de flowPlan — arbre indenté de la structure COMPLÈTE,
 // façon algorithme papier. Le plan est INERTE côté cochage (pas de cases : la trace vit dans
 // le journal) et IMMUABLE dans sa forme ; il porte un état léger (✓/●/×n/hors chemin) et sert
@@ -6124,7 +6221,7 @@ function ovPlanHtml(f){
     const dec=b.type==='decision';const m=md[it.id]||{};
     const steps=dec?[]:clean(b.steps);
     const detH=titles?'':(dec?(b.question?`<div class="pl-q">${fmt(b.question)}</div>`:'')
-      :(steps.length?`<ul class="pl-stp">${steps.map(s=>`<li class="${stepIsCrit(s)?'crit':(stepIsVigil(s)?'vig':'')}">${fmt(stepText(s))}</li>`).join('')}</ul>`:''));
+      :(steps.length?`<ul class="pl-stp">${steps.map(s=>{const cr=stepCR(stepText(s));return `<li class="${stepIsCrit(s)?'crit':(stepIsVigil(s)?'vig':'')}">${fmt(cr.c)}${cr.r?` <span class="pl-r">${fmt(cr.r)}</span>`:''}</li>`;}).join('')}</ul>`:''));
     const passB=(m.total||0)>1?`<span class="pl-x">×${m.total}</span>`:'';
     const meta=dec?(m.complete?'✓':'?'):(steps.length?((m.done||0)+'/'+steps.length):'—');
     h+=`<div class="pl-nd${dec?' dec':''}${m.complete?' done':''}${m.cur?' cur':''}${off.has(it.id)?' off':''}" data-plgo="${esc(it.id)}" role="button" tabindex="0" aria-label="${esc(stripBold(b.title||''))} — aller à ce bloc"><span class="pl-nn" aria-hidden="true">${m.complete?uiIcon('check',12,{sw:3.2,cls:''}):(num[it.id]||'·')}</span><div class="pl-nt">${esc(b.title)||(dec?'Décision':'Étapes')}${passB}${m.cur?'<span class="pl-here">ici</span>':''}${detH}</div><span class="pl-nm">${meta}</span></div>`;});
@@ -6220,6 +6317,21 @@ function bindOverviewEvents(f){
   const handle=(t,kb)=>{
     const st=t.closest('[data-ck]');if(st){ovToggleStep(f,st,kb);return;}
     const rd=t.closest('[data-ovredo]');if(rd){ovNewPass(f,rd.dataset.ovredo);return;}
+    // VÉRIFICATION (v4.11.0, Do-Verify) : Constaté coche la même clé, Écart avance sans cocher.
+    const vv=t.closest('[data-ovverify]');
+    if(vv){state.ovVerify={idx:+vv.dataset.ovverify,i:0,gaps:[]};renderOvOnlyKeepAnchor('.ov-block[data-ovi="'+(+vv.dataset.ovverify)+'"]');return;}
+    const vok=t.closest('[data-ovvok]');
+    if(vok){const vf=state.ovVerify;if(!vf)return;const sec2=vok.closest('.ov-block');const id2=sec2.dataset.ovb;const seq2=state.navSeq[vf.idx]||1;
+      state.checked[seq2+':'+id2+':'+vf.i]=true;vf.i++;
+      const js2=ensureStarted();persistLive(Runtime);
+      if(js2){renderKeepAnchor('.ov-block[data-ovi="'+vf.idx+'"]');return;}
+      renderOvOnlyKeepAnchor('.ov-block[data-ovi="'+vf.idx+'"]');return;}
+    const vgp=t.closest('[data-ovvgap]');
+    if(vgp){const vf=state.ovVerify;if(!vf)return;vf.gaps.push(vf.i);vf.i++;renderOvOnlyKeepAnchor('.ov-block[data-ovi="'+vf.idx+'"]');return;}
+    const vx=t.closest('[data-ovvx]');
+    if(vx){const vf=state.ovVerify;state.ovVerify=null;renderOvOnlyKeepAnchor(vf?'.ov-block[data-ovi="'+vf.idx+'"]':null);return;}
+    // MODE LECTEUR (v4.11.0) : plein écran, piloté sur le bout du journal.
+    const rdr=t.closest('[data-ovreader]');if(rdr){readerOpen();return;}
     // PLAN (v4.10.0) : nœud = y aller ; lien →/↺ = défilement DANS le plan ; bascule densité.
     const pg=t.closest('[data-plgo]');if(pg){jumpToBlock(f,pg.dataset.plgo);return;}
     const pr=t.closest('[data-plref]');
@@ -6248,7 +6360,7 @@ function bindOverviewEvents(f){
   wrap.onkeydown=e=>{if(e.key!=='Enter'&&e.key!==' ')return;
     const t=e.target.closest('[data-ck],[data-plgo]');if(!t)return;e.preventDefault();handle(t,true);};
   const rs=wrap.querySelector('#ovReset');
-  if(rs)holdToReset(rs,()=>{state.nav.length=0;state.navSeq.length=0;state.nav.push(f.start);state.navSeq.push(++Runtime.seq);state.navPos=0;state.ovFold={};if(Runtime.started)persistLive(Runtime);renderOvOnly();});}
+  if(rs)holdToReset(rs,()=>{state.nav.length=0;state.navSeq.length=0;state.nav.push(f.start);state.navSeq.push(++Runtime.seq);state.navPos=0;state.ovFold={};state.ovVerify=null;if(Runtime.started)persistLive(Runtime);renderOvOnly();});}
 /* Re-rendu CIBLÉ de la vue d'ensemble (pendant de renderNavOnly) : reconstruit l'INTÉRIEUR de
    .ov-wrap (Recommencer, structures) sans toucher au reste de la vue — le conteneur garde ses
    écouteurs délégués. Structure inattendue -> repli complet sûr. */
@@ -6264,6 +6376,81 @@ function renderOvOnly(){
   flowCtx={f,curId:N.cur};
   paintMinimaps(f);
   bindOverviewEvents(f);}
+/* ===== MODE LECTEUR (v4.11.0) =====
+   Challenge-response en BINÔME (AC 120-71B) : le lecteur désigné tient l'écran, lit le
+   challenge à voix haute, l'exécutant répond, le lecteur valide — UN challenge à la fois,
+   plein écran (typographie lisible à bout de bras, zone de validation ≥ 72 px, mains gantées).
+   Piloté sur le BOUT du journal : « RÉPONDU » coche la même clé que la checklist, la fin d'un
+   bloc suit les mêmes règles que « Continuer » (jamais d'avance tant que tout n'est pas
+   confirmé — le libellé dit pourquoi, « Revoir » ramène au premier écart), une décision suit
+   le même chemin qu'une option. Quitter (✕/Échap) ne perd RIEN : l'état est déjà la session.
+   readerI est transitoire (jamais persisté) ; -1 = reprendre au premier challenge non coché. */
+let readerI=-1;
+function readerOpen(){const f=state.fiche;if(!f||!(f.blocks||[]).length)return;
+  const rm=document.getElementById('readerMode');
+  document.getElementById('rmTitle').textContent=f.title||'';
+  readerI=-1;
+  rm.classList.add('on');readerRender();
+  const b=rm.querySelector('.rm-ok,.rm-opt')||document.getElementById('rmClose');if(b)b.focus();}
+function readerClose(){const rm=document.getElementById('readerMode');if(!rm.classList.contains('on'))return;
+  rm.classList.remove('on');document.getElementById('rmBody').innerHTML='';
+  if(state.view==='read'&&state.fiche)render();}   // resynchronise la vue derrière (journal/guidé)
+function readerRender(){const f=state.fiche;const rm=document.getElementById('readerMode');
+  if(!f||!rm.classList.contains('on'))return;
+  state.navPos=state.nav.length-1;
+  const idx=state.navPos;const id=state.nav[idx];const seq=state.navSeq[idx]||1;
+  const b=(f.blocks||[]).find(x=>x.id===id);const body=document.getElementById('rmBody');
+  if(!b){readerClose();return;}
+  const num={};flowPlan(f).order.forEach((x,i)=>{num[x]=i+1;});
+  document.getElementById('rmBlock').textContent=(num[id]?num[id]+' · ':'')+((b.title||'').trim()||(b.type==='decision'?'Décision':'Étapes'));
+  const tEl=document.getElementById('rmTime');if(tEl)tEl.hidden=!Runtime.started;
+  if(b.type==='decision'){
+    document.getElementById('rmProg').textContent='décision';
+    body.innerHTML=`<p class="rm-hint">Lisez la question à voix haute — décidez ensemble</p><p class="rm-ch vig">${fmt(b.question)||esc(b.title)||'…'}</p><div class="rm-sp"></div>${(b.options||[]).map((o,i)=>`<button type="button" class="rm-opt" data-rmopt="${esc(o.target||'')}">${fmt(o.label)||'Option '+(i+1)} →</button>`).join('')}`;
+    return;}
+  const steps=clean(b.steps);
+  if(readerI<0){readerI=0;while(readerI<steps.length&&state.checked[seq+':'+id+':'+readerI])readerI++;}
+  if(readerI>=steps.length){
+    let dn=0;steps.forEach((s,i)=>{if(state.checked[seq+':'+id+':'+i])dn++;});
+    const all=steps.length===0||dn>=steps.length;
+    const nxt=b.next?f.blocks.find(x=>x.id===b.next):null;
+    document.getElementById('rmProg').textContent=dn+'/'+steps.length;
+    const lbl=nxt?('Continuer — '+((b.nextLbl||'').trim()||nxt.title||'suite')+' →'):'Terminer l’algorithme ✓';
+    body.innerHTML=all
+      ?`<div class="rm-sp"></div><div class="rm-done">Bloc confirmé — ${dn}/${steps.length||dn} ✓</div><div class="rm-sp"></div><button type="button" class="rm-ok" data-rmnext="${nxt?esc(b.next):''}">${esc(lbl)}</button><button type="button" class="rm-prev" data-rmprev>‹ challenge précédent</button>`
+      :`<div class="rm-sp"></div><p class="rm-ch vig" style="font-size:19px">${steps.length-dn} challenge${steps.length-dn>1?'s':''} non confirmé${steps.length-dn>1?'s':''}</p><div class="rm-sp"></div><button type="button" class="rm-ok idle" data-rmreview>Revoir les écarts (${steps.length-dn})</button><button type="button" class="rm-prev" data-rmprev>‹ challenge précédent</button>`;
+    return;}
+  const s=steps[readerI];const cr=stepCR(stepText(s));
+  document.getElementById('rmProg').textContent=(readerI+1)+'/'+steps.length;
+  body.innerHTML=`<p class="rm-hint">Lisez à voix haute — l'exécutant répond, vous validez</p><p class="rm-ch${stepIsCrit(s)?' crit':(stepIsVigil(s)?' vig':'')}">${fmt(cr.c)}</p>${cr.r?`<div class="rm-r">${fmt(cr.r)}</div>`:''}<div class="rm-sp"></div><button type="button" class="rm-ok" data-rmok>Répondu — conforme ✓</button><button type="button" class="rm-gap" data-rmgap>△ Écart — passer sans cocher</button>${readerI>0?'<button type="button" class="rm-prev" data-rmprev>‹ challenge précédent</button>':''}`;}
+// Écouteurs du mode lecteur : délégation UNIQUE (élément statique) + Échap/piège de focus minimal.
+{const rm=document.getElementById('readerMode');
+ if(rm){rm.addEventListener('click',e=>{const f=state.fiche;if(!f)return;
+   if(e.target.closest('#rmClose')){readerClose();return;}
+   const idx=state.nav.length-1;const id=state.nav[idx];const seq=state.navSeq[idx]||1;
+   if(e.target.closest('[data-rmok]')){state.checked[seq+':'+id+':'+readerI]=true;
+     const js=ensureStarted();persistLive(Runtime);if(js)render();   // derrière l'overlay (élément hors <main>)
+     readerI++;readerRender();return;}
+   if(e.target.closest('[data-rmgap]')){readerI++;readerRender();return;}
+   if(e.target.closest('[data-rmprev]')){readerI=Math.max(0,readerI-1);readerRender();return;}
+   if(e.target.closest('[data-rmreview]')){const b=(f.blocks||[]).find(x=>x.id===id);const st=clean((b&&b.steps)||[]);
+     readerI=0;while(readerI<st.length&&state.checked[seq+':'+id+':'+readerI])readerI++;readerRender();return;}
+   const nx=e.target.closest('[data-rmnext]');
+   if(nx){const t2=nx.dataset.rmnext;
+     if(!t2){state.flowEnded=true;readerClose();return;}   // Terminer -> retour vue (render via readerClose)
+     if(Runtime.started)state.confOpen=false;   // repli différé de l'étape ① — même doctrine que « Continuer »
+     state.nav.push(t2);state.navSeq.push(++Runtime.seq);state.navPos=state.nav.length-1;
+     if(Runtime.started)persistLive(Runtime);readerI=-1;readerRender();return;}
+   const op=e.target.closest('[data-rmopt]');
+   if(op){const t3=op.dataset.rmopt;if(!t3||!f.blocks.some(x=>x.id===t3))return;
+     state.nav.push(t3);state.navSeq.push(++Runtime.seq);state.navPos=state.nav.length-1;
+     if(Runtime.started)persistLive(Runtime);readerI=-1;readerRender();return;}});
+  document.addEventListener('keydown',e=>{if(!rm.classList.contains('on'))return;
+    if(e.key==='Escape'){e.preventDefault();readerClose();}
+    else if(e.key==='Tab'){const els=[...rm.querySelectorAll('button')].filter(x=>!x.disabled&&x.offsetParent);if(!els.length)return;
+      const i=els.indexOf(document.activeElement);
+      if(e.shiftKey&&i<=0){e.preventDefault();els[els.length-1].focus();}
+      else if(!e.shiftKey&&(i===els.length-1||i<0)){e.preventDefault();els[0].focus();}}});}}
 /* ===== Minimap (v4.8.0) =====
    Deux coquilles, UNE source (minimapData) : la bande de chips collante sous le bandeau de
    crise (< 1000 px, élément STATIQUE #ovChips — délégation posée UNE fois, jamais recréé) et
@@ -6356,6 +6543,13 @@ function listEditor(legend,hint,key,arr,ordered,opts){opts=opts||{};const rows=(
 // memory items, plus rien n'est saillant (doctrine QRH : ils sont rares par construction).
 // On suggère le reclassement, on n'empêche rien.
 const nfGuardTxt=n=>n>4?('△ '+n+' rappels — au-delà de 4, plus rien n’est saillant. Un rappel lié à une étape précise est plus sûr en étape ⚠ du bloc concerné, une surveillance dans « À vérifier ».'):'';
+// Garde-fou TÉLÉGRAPHIQUE des blocs d'étapes (v4.11.0, non bloquant — AC 120-71B) : une étape =
+// un challenge court (une action), la valeur en réponse « :: » ; un bloc lisible = 7 étapes max.
+function stepGuardTxt(steps){const s=clean(steps);const parts=[];
+  if(s.length>7)parts.push(s.length+' étapes — au-delà de 7, scinder le bloc (lisibilité sous stress)');
+  const long=s.filter(x=>stepCR(stepText(x)).c.length>110).length;
+  if(long)parts.push(long+' challenge'+(long>1?'s':'')+' très long'+(long>1?'s':'')+' — style télégraphique : une action courte, la valeur en réponse « challenge :: réponse »');
+  return parts.length?('△ '+parts.join(' · ')):'';}
 // Bouton « Gras » : entoure la sélection du champ voisin de ** (rendu <b> en lecture via fmt()).
 function boldBtnHtml(){return '<button type="button" class="mini bld" data-bold aria-label="Mettre la sélection en gras" title="Gras — sélectionnez du texte puis cliquez (ou Ctrl/Cmd-B). Réservez-le aux doses et interdictions critiques.">B</button>';}
 // Documents PDF joignables depuis les AUTRES fiches du MÊME périmètre (Perso, ou même bibliothèque
@@ -6450,7 +6644,7 @@ async function purgeDraftAtts(){const ids=draftNewAtts;draftNewAtts=[];
 function targetSelect(blocks,selfId,value){const opts=blocks.filter(b=>b.id!==selfId).map(b=>`<option value="${b.id}" ${b.id===value?'selected':''}>${esc(b.title)||'(bloc sans titre)'}</option>`).join('');return `<select data-target><option value="" ${!value?'selected':''}>— Fin / aucun —</option>${opts}</select>`;}
 function imageEditor(b){return `<div class="sub">Image du bloc (option)</div><div class="imgrow">${b.image?`<img src="${b.image}" alt=""><button class="btn sm danger" data-bimgdel>Retirer</button>`:`<button class="btn sm" data-bimg>+ Image / capture</button>`}</div>`;}
 function blockEditor(b,blocks){if(b.type==='decision'){return `<div class="blk" data-bid="${b.id}"><div class="blk-top"><span class="blk-type decision">Décision</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Réévaluation)"></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Question</div><input type="text" data-bf="question" value="${esc(b.question)}" placeholder="ex. Réponse à l'adrénaline ?" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)"><div class="sub">Réponses → bloc cible</div>${(b.options.length?b.options:[{label:'',target:''}]).map((o,i)=>`<div class="optedit" data-oi="${i}"><input type="text" data-of="label" value="${esc(o.label)}" placeholder="ex. Oui">${targetSelect(blocks,b.id,o.target)}<button class="mini del" data-rmopt="${i}" aria-label="Supprimer la réponse">×</button></div>`).join('')}<button class="add-line" data-addopt>+ Ajouter une réponse</button>${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="mini" data-bmv="up" aria-label="Monter le bloc">↑</button><button class="mini" data-bmv="down" aria-label="Descendre le bloc">↓</button><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
-  return `<div class="blk" data-bid="${b.id}"><div class="blk-top"><span class="blk-type steps">Étapes</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Mesures immédiates)"></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Étapes (cochables en mode crise)</div><div class="crit-guide"><b class="cg-r">${uiIcon('warn',11)} Rouge</b> : ce qui tue si on l'oublie (memory item, geste vital). <b class="cg-a">△ Ambre</b> : là où l'on risque de se tromper (dose/dilution à vérifier avant injection, contre-indication à écarter, confusion voie/site/produit, seuil à contrôler avant de poursuivre). Les deux → rouge.</div>${(b.steps.length?b.steps:['']).map((s,i)=>`<div class="li${stepIsCrit(s)?' li-crit':(stepIsVigil(s)?' li-vigil':'')}" data-si="${i}"><span class="li-num">${String(i+1).padStart(2,'0')}</span><input type="text" data-sf value="${esc(stepText(s))}" placeholder="…"><button class="mini crit-tgl${stepIsCrit(s)?' on':(stepIsVigil(s)?' vig':'')}" data-crit="${i}" title="${stepIsCrit(s)?'Étape CRITIQUE (rouge : ce qui tue si oublié) — toucher : vigilance (ambre)':(stepIsVigil(s)?'Étape VIGILANCE (ambre : risque d’erreur — dose, voie, seuil) — toucher : étape normale':'Étape normale — toucher : critique (rouge : ce qui tue si oublié)')}">${stepIsVigil(s)?'△':uiIcon('warn',14)}</button><button class="mini" data-smv="up" data-si="${i}" aria-label="Monter">↑</button><button class="mini" data-smv="down" data-si="${i}" aria-label="Descendre">↓</button><button class="mini del" data-rmstep="${i}" aria-label="Supprimer l'étape">×</button></div>`).join('')}<button class="add-line" data-addstep>+ Ajouter une étape</button><div class="sub">Étape suivante</div>${targetSelect(blocks,b.id,b.next)}${b.next?`<input type="text" data-bnextlbl value="${esc(b.nextLbl||'')}" maxlength="120" placeholder="Libellé du bouton Continuer (ex. réévaluation à 5 min)" style="margin-top:6px">`:''}${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="mini" data-bmv="up" aria-label="Monter le bloc">↑</button><button class="mini" data-bmv="down" aria-label="Descendre le bloc">↓</button><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
+  return `<div class="blk" data-bid="${b.id}"><div class="blk-top"><span class="blk-type steps">Étapes</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Mesures immédiates)"></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Étapes (cochables en mode crise)</div><div class="crit-guide"><b class="cg-r">${uiIcon('warn',11)} Rouge</b> : ce qui tue si on l'oublie (memory item, geste vital). <b class="cg-a">△ Ambre</b> : là où l'on risque de se tromper (dose/dilution à vérifier avant injection, contre-indication à écarter, confusion voie/site/produit, seuil à contrôler avant de poursuivre). Les deux → rouge. <b>Réponse attendue</b> : « challenge :: réponse » (ex. « Adrénaline IM :: 0,01 mg/kg — max 0,5 mg ») — la réponse devient la pilule à confirmer en lecture (challenge-response).</div>${(b.steps.length?b.steps:['']).map((s,i)=>`<div class="li${stepIsCrit(s)?' li-crit':(stepIsVigil(s)?' li-vigil':'')}" data-si="${i}"><span class="li-num">${String(i+1).padStart(2,'0')}</span><input type="text" data-sf value="${esc(stepText(s))}" placeholder="…"><button class="mini crit-tgl${stepIsCrit(s)?' on':(stepIsVigil(s)?' vig':'')}" data-crit="${i}" title="${stepIsCrit(s)?'Étape CRITIQUE (rouge : ce qui tue si oublié) — toucher : vigilance (ambre)':(stepIsVigil(s)?'Étape VIGILANCE (ambre : risque d’erreur — dose, voie, seuil) — toucher : étape normale':'Étape normale — toucher : critique (rouge : ce qui tue si oublié)')}">${stepIsVigil(s)?'△':uiIcon('warn',14)}</button><button class="mini" data-smv="up" data-si="${i}" aria-label="Monter">↑</button><button class="mini" data-smv="down" data-si="${i}" aria-label="Descendre">↓</button><button class="mini del" data-rmstep="${i}" aria-label="Supprimer l'étape">×</button></div>`).join('')}<p class="nf-guard" data-stepguard role="status">${stepGuardTxt(b.steps)}</p><button class="add-line" data-addstep>+ Ajouter une étape</button><div class="sub">Étape suivante</div>${targetSelect(blocks,b.id,b.next)}${b.next?`<input type="text" data-bnextlbl value="${esc(b.nextLbl||'')}" maxlength="120" placeholder="Libellé du bouton Continuer (ex. réévaluation à 5 min)" style="margin-top:6px">`:''}${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="mini" data-bmv="up" aria-label="Monter le bloc">↑</button><button class="mini" data-bmv="down" aria-label="Descendre le bloc">↓</button><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
 function timerEditorRow(t,i){const iv=t.type==='interval';const mm=Math.floor((t.seconds||0)/60),ss=(t.seconds||0)%60;return `<div class="trow" data-ti="${i}"><span class="blk-type ${iv?'decision':'steps'}">${iv?'Cycle':'Chrono'}</span><input type="text" data-tf="label" value="${esc(t.label)}" placeholder="${iv?'ex. Cycle adrénaline':'ex. Temps écoulé'}">${iv?`<input type="number" min="0" data-tmin value="${mm}" style="width:56px"><span>min</span><input type="number" min="0" max="59" data-tsec value="${ss}" style="width:56px"><span>s</span><label style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--ink-soft)"><input type="checkbox" data-tloop ${t.autoloop?'checked':''}>boucle</label>`:''}<button class="mini" data-tmv="up" aria-label="Monter">↑</button><button class="mini" data-tmv="down" aria-label="Descendre">↓</button><button class="mini del" data-tdel="${i}">×</button></div>`;}
 function counterEditorRow(c,i,timers){const ivs=(timers||[]).filter(t=>t.type==='interval');
   return `<div class="trow" data-ci="${i}"><input type="text" data-cf="label" value="${esc(c.label)}" placeholder="ex. Adrénaline (mg)"><span>pas</span><input type="number" data-cstep value="${c.step||1}" style="width:56px"><span>départ</span><input type="number" data-cstart value="${c.start||0}" style="width:56px">${ivs.length?`<select data-clink title="Le « ＋ » du compteur relance ce minuteur (ex. bolus -> cycle)"><option value="">＋ ne relance rien</option>${ivs.map(t=>`<option value="${esc(t.id)}"${c.timerId===t.id?' selected':''}>＋ relance « ${esc(t.label)||'Minuteur'} »</option>`).join('')}</select>`:''}<button class="mini" data-cmv="up" aria-label="Monter">↑</button><button class="mini" data-cmv="down" aria-label="Descendre">↓</button><button class="mini del" data-cdel="${i}">×</button></div>`;}
@@ -6464,7 +6658,7 @@ function openDraftPreview(){state.previewFrom='edit';
   // session vive d'une AUTRE fiche ne doit jamais recevoir les coches ou le chemin d'un brouillon
   // (openRead/resumeSession relient state au Runtime à la prochaine vraie ouverture).
   state.checked={};state.nav=[state.fiche.start||(((state.fiche.blocks||[])[0]||{}).id)];state.navSeq=[++Runtime.seq];state.navPos=0;
-  state.readMode=currentReadMode();state.ovFold={};state.ovPlanTitles=false;state.flowEnded=false;state.confOpen=undefined;
+  state.readMode=currentReadMode();state.ovFold={};state.ovPlanTitles=false;state.ovVerify=null;state.flowEnded=false;state.confOpen=undefined;
   state.view='read';render();}
 function openPDraftPreview(){state.previewFrom='protocolEdit';
   state.protocol=migrateProtocol(JSON.parse(JSON.stringify(state.pdraft)));state.view='protocolRead';render();}
@@ -6571,7 +6765,8 @@ function bindEditorEvents(f){
     // l'encadré coloré de la rangée + la bascule, et RE-PRÉFIXÉ ici (format chaîne inchangé).
     card.querySelectorAll('[data-sf]').forEach((inp,i)=>inp.addEventListener('input',e=>{
       const cur=String(b.steps[i]||'');const pfx=stepIsCrit(cur)?'⚠ ':(stepIsVigil(cur)?'△ ':'');
-      b.steps[i]=pfx+e.target.value;scheduleFlowPreview(f);}));
+      b.steps[i]=pfx+e.target.value;scheduleFlowPreview(f);
+      const g=card.querySelector('[data-stepguard]');if(g)g.textContent=stepGuardTxt(b.steps);}));
     const as=card.querySelector('[data-addstep]');if(as)as.onclick=()=>{b.steps.push('');renderEditor();};
     card.querySelectorAll('[data-rmstep]').forEach(btn=>btn.onclick=()=>{b.steps.splice(+btn.dataset.rmstep,1);if(!b.steps.length)b.steps.push('');renderEditor();});
     // Bascule du TYPE d'étape (SPEC §2.2) : cycle normale -> ⚠ critique (rouge) -> △ vigilance
@@ -6724,7 +6919,7 @@ setInterval(()=>{const k=_editKind();if(!k){_lastParked=null;return;}
 // Ouvre une fiche en lecture. Si une SESSION VIVE existe pour cette fiche, on la rouvre telle quelle
 // (minuteurs toujours en cours). Sinon on garde le runtime transitoire de cette même fiche (s'il n'a
 // pas démarré), sinon on en crée un neuf.
-function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;bumpUsage(id);flowScroll={left:null,top:0};state.rtOpen=false;state.noteEdit=false;state.confOpen=undefined;state.previewFrom=null;state.flowEnded=false;state.readMode=currentReadMode();state.ovFold={};state.ovPlanTitles=false;
+function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;bumpUsage(id);flowScroll={left:null,top:0};state.rtOpen=false;state.noteEdit=false;state.confOpen=undefined;state.previewFrom=null;state.flowEnded=false;state.readMode=currentReadMode();state.ovFold={};state.ovPlanTitles=false;state.ovVerify=null;
   if(liveSessions[id]){Runtime=liveSessions[id];Runtime.fiche=f;}
   else if(!(Runtime.fiche&&Runtime.ficheId===id&&!Runtime.started)){Runtime=buildRuntime(f,null);}
   // Algorithme REPLIÉ à l'ouverture : la 1ʳᵉ étape actionnable doit arriver le plus haut possible
@@ -8185,7 +8380,7 @@ window.addEventListener('beforeprint',()=>{if(state.view!=='read'||!state.fiche)
   _printSaved={confOpen:state.confOpen,showFlow:state.showFlow,readMode:state.readMode,ovPlanTitles:state.ovPlanTitles};
   // La vue d'ensemble (journal + PLAN complet avec étapes) est le format imprimé ; les blocs
   // repliés sont rouverts par CSS @media print — aucun état de repli à toucher.
-  state.confOpen=true;state.showFlow=true;state.ovPlanTitles=false;if(hasFlow(state.fiche))state.readMode='overview';render();});
+  state.confOpen=true;state.showFlow=true;state.ovPlanTitles=false;state.ovVerify=null;if(hasFlow(state.fiche))state.readMode='overview';render();});
 window.addEventListener('afterprint',()=>{if(!_printSaved)return;
   state.confOpen=_printSaved.confOpen;state.showFlow=_printSaved.showFlow;state.readMode=_printSaved.readMode||state.readMode;state.ovPlanTitles=!!_printSaved.ovPlanTitles;_printSaved=null;
   if(state.view==='read'&&state.fiche)render();});
@@ -9108,7 +9303,7 @@ if(location.search.indexOf('__actest')>=0){
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
     restErrStatus,isPersoRepairCandidate,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,
     qTerms,hayMatch,markQTerms,searchSnippet,ficheSnipParts,protoSnipParts,frecencyScore,sanitizeUsage,mergeUsage,
-    crc32,zipBuild,zipParse,isPdfBytes,mdTask,flowOrder,latestPass,offPathSet,minimapData,passInfo,instComplete,flowPlan};
+    crc32,zipBuild,zipParse,isPdfBytes,mdTask,flowOrder,latestPass,offPathSet,minimapData,passInfo,instComplete,flowPlan,stepCR,stepGuardTxt};
 }else{
   /* ===== PWA =====
      Enregistre le service worker (cache hors ligne) si disponible. Capte

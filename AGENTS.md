@@ -144,6 +144,25 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   visibles. Registres : chips d'option au registre ATTENTION (`--verify`, comme `.opt`) ;
   liens neutres (`--tag-bg`), reprise `↺` en `--primary-soft` ; nœuds = même grammaire que
   les cartes (liseré bleu = ici, vert = fait, ambre = décision).
+- **Challenge-response (v4.11.0, AC 120-71B / Do-Verify)** : trois briques, AUCUN champ modèle.
+  **« challenge :: réponse »** = séparateur explicite DANS la chaîne d'étape (même philosophie
+  que ⚠/△ : opt-in, export v3 inchangé, ancien client lisible) — `stepCR` (pure, APRÈS
+  `stepText`, première occurrence) ; rendu `stepTxtHtml` (guidé + journal : pilule mono
+  `.stp-r` = réponse attendue, readback « ✓ » vert au cochage porté par le CSS seul), plan
+  (`.pl-r`), SVG (« challenge — réponse ») ; le compte-rendu garde la chaîne brute.
+  **Mode Vérification** (Do-Verify, journal) : `state.ovVerify={idx,i,gaps}` transitoire ;
+  la passe redéroule TOUTES les étapes (déjà cochées comprises) — « Constaté ✓ » coche la
+  MÊME clé, « △ Écart » avance SANS cocher et ne DÉCOCHE JAMAIS (la coche est la trace ;
+  décocher = geste manuel dans le parcours) ; résumé final = liste des non-cochées.
+  **Mode lecteur** (binôme, plein écran `#readerMode`, statique + délégation unique) : un
+  challenge à la fois (26 px, réponse mono 20 px, zone verte ≥ 72 px), piloté sur le BOUT du
+  journal — « Répondu » coche la même clé, fin de bloc = mêmes règles que « Continuer »
+  (jamais d'avance tant que tout n'est pas confirmé, « Revoir » ramène au premier écart),
+  décision = même chemin qu'une option ; Échap/✕ quitte sans rien perdre ; z-index 92 SOUS
+  `#screenFlash` (99) — le flash d'alarme reste visible ; chrono de session via
+  `updateRtStrip` (`#rmTime`) ; entrées : bouton « Lecteur » sur l'instance du bout + menu ⋯.
+  **Garde-fou télégraphique** (`stepGuardTxt`, non bloquant, patron `nfGuardTxt`) : bloc
+  > 7 étapes ou challenge > 110 caractères (la réponse « :: » ne compte pas).
   **Minimap (v4.8.0)** : bande de chips-blocs `#ovChips` STATIQUE dans l'en-tête sous
   `#crisisBand` (< 1000 px ; délégation posée UNE fois, contenu peint par `paintMinimaps` —
   masquée/vidée hors lecture par `applyViewChrome`) + panneau `#ovMap` du rail droit
