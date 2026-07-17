@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-1moKuP4otz/jfwlGGJfJvz/rWqrvTlZhtuj1isDZ41Q='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-+TVYKIioPI9ndCLL+Okfvi7gtV3SPT4n0VUkFeATGSQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -547,20 +547,21 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .ovchip.off{opacity:.55;border-style:dashed}
   .ovchip:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   @media (min-width:1000px){#ovChips{display:none!important}}
-  /* Minimap du rail droit (>= 1000 px) : mêmes états, mêmes données (minimapData). */
+  /* Minimap du rail droit (>= 1000 px) : mêmes états, mêmes données (minimapData).
+     Classes .ovm-* — PAS .mm-* (déjà pris par les items du menu ⋯, collision v4.8.0→v4.11.1). */
   #ovMap{display:flex;flex-direction:column;gap:5px}
-  .mm-row{display:flex;align-items:center;gap:8px;min-height:40px;padding:6px 10px;border:1px solid var(--line);border-left:4px solid var(--line-strong);border-radius:8px;background:var(--surface);font-family:inherit;font-size:12.5px;font-weight:600;color:var(--ink);cursor:pointer;text-align:left}
-  .mm-row .mm-n{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--ink-soft);width:16px;flex:none;text-align:center}
-  .mm-row .mm-t{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .mm-row .mm-c{flex:none;font-family:var(--mono);font-size:11.5px;color:var(--ink-soft)}
-  .mm-row.cur{border-color:var(--primary);border-left-color:var(--primary)}
-  .mm-row.cur .mm-n{color:var(--primary)}
-  .mm-row.done{border-left-color:var(--done-line)}
-  .mm-row.done .mm-c{color:var(--ok)}
-  .mm-row.dec{border-left-color:var(--verify-bd)}
-  .mm-row.off{opacity:.55;border-style:dashed;border-left-style:solid}
-  .mm-row:hover{background:var(--primary-soft)}
-  .mm-row:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .ovm-row{display:flex;align-items:center;gap:8px;min-height:40px;padding:6px 10px;border:1px solid var(--line);border-left:4px solid var(--line-strong);border-radius:8px;background:var(--surface);font-family:inherit;font-size:12.5px;font-weight:600;color:var(--ink);cursor:pointer;text-align:left}
+  .ovm-row .ovm-n{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--ink-soft);width:16px;flex:none;text-align:center}
+  .ovm-row .ovm-t{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ovm-row .ovm-c{flex:none;font-family:var(--mono);font-size:11.5px;color:var(--ink-soft)}
+  .ovm-row.cur{border-color:var(--primary);border-left-color:var(--primary)}
+  .ovm-row.cur .ovm-n{color:var(--primary)}
+  .ovm-row.done{border-left-color:var(--done-line)}
+  .ovm-row.done .ovm-c{color:var(--ok)}
+  .ovm-row.dec{border-left-color:var(--verify-bd)}
+  .ovm-row.off{opacity:.55;border-style:dashed;border-left-style:solid}
+  .ovm-row:hover{background:var(--primary-soft)}
+  .ovm-row:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   #cbTimers{position:relative;margin-left:auto;flex:0 1 auto;min-width:0;display:inline-flex;align-items:stretch;background:var(--surface);border:1px solid var(--line-strong);color:var(--ink);border-radius:9px;padding:0;min-height:40px;font-family:inherit;cursor:pointer;overflow:hidden}
   /* Zone de tap >= 44px (règle « contrôle du mode crise ») : halo cliquable. */
   #cbTimers::after{content:"";position:absolute;inset:-4px}
@@ -2404,7 +2405,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.11.0';
+const APP_VERSION='4.11.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -3500,11 +3501,13 @@ function seed(catId){const b1=uid('b'),b2=uid('b'),b3=uid('b'),bd=uid('b');
     timers:[{id:uid('t'),label:'Réévaluation après adrénaline',type:'interval',seconds:300,autoloop:true}],
     counters:[{id:uid('n'),label:'Injections d’adrénaline',step:1,start:0}],
     start:b1,
+    // v4.11.1 : les exemples ILLUSTRENT les registres ⚠/△ et le format « challenge :: réponse »
+    // (la pilule = valeur à confirmer en lecture) — les valeurs restent des placeholders à adapter.
     blocks:[
-      {id:b1,type:'steps',title:'Mesures immédiates',image:null,steps:['Retirer / arrêter l’allergène si possible','Appeler à l’aide — désigner un lecteur','Adrénaline IM, face antéro-latérale de cuisse (protocole local)','Allonger, jambes surélevées','O₂ fort débit, voie veineuse, remplissage'],next:bd},
+      {id:b1,type:'steps',title:'Mesures immédiates',image:null,steps:['Retirer / arrêter l’allergène si possible','Appeler à l’aide — désigner un lecteur','⚠ Adrénaline IM, face antéro-latérale de cuisse :: dose du protocole local — noter l’heure','Allonger, jambes surélevées','O₂ fort débit, voie veineuse, remplissage'],next:bd},
       {id:bd,type:'decision',title:'Réévaluation',image:null,question:'Amélioration après adrénaline et remplissage ?',options:[{label:'Oui — stabilisé',target:b2},{label:'Non — réfractaire',target:b3}]},
       {id:b2,type:'steps',title:'Stabilisé',image:null,steps:['Surveillance prolongée (réaction biphasique)','Tracer doses et horaires','Orientation hospitalière, bilan allergologique à distance'],next:null},
-      {id:b3,type:'steps',title:'Réfractaire',image:null,steps:['Répéter l’adrénaline IM à 5 min','Renforcer le remplissage','Adrénaline IV titrée (équipe entraînée, protocole local)','Renfort réanimation / SMUR'],next:bd}
+      {id:b3,type:'steps',title:'Réfractaire',image:null,steps:['⚠ 2ᵉ adrénaline IM :: à 5 min','Renforcer le remplissage','△ Adrénaline IV titrée :: équipe entraînée, protocole local','Renfort réanimation / SMUR'],next:bd}
     ]});}
 // Deuxième fiche d'exemple : arrêt cardiaque. Illustre une DÉCISION rebouclée (le rythme est
 // réévalué à chaque cycle) et un minuteur À CYCLE de 2 min (RCP). À relire/valider avant tout usage.
@@ -3519,11 +3522,12 @@ function seed2(catId){const b1=uid('b'),bd=uid('b'),b2=uid('b'),b3=uid('b');
     timers:[{id:uid('t'),label:'Cycle RCP (2 min)',type:'interval',seconds:120,autoloop:true}],
     counters:[{id:uid('n'),label:'Chocs délivrés',step:1,start:0},{id:uid('n'),label:'Adrénaline (mg)',step:1,start:0}],
     start:b1,
+    // v4.11.1 : mêmes illustrations ⚠ + « challenge :: réponse » que la 1ʳᵉ fiche d'exemple.
     blocks:[
-      {id:b1,type:'steps',title:'Reconnaissance & alerte',image:null,steps:['Vérifier conscience et respiration','Alerter, appeler du renfort + défibrillateur','Débuter la RCP 30:2 sans délai'],next:bd},
+      {id:b1,type:'steps',title:'Reconnaissance & alerte',image:null,steps:['Vérifier conscience et respiration','Alerter, appeler du renfort + défibrillateur','⚠ RCP immédiate :: 30:2 — sans délai'],next:bd},
       {id:bd,type:'decision',title:'Analyse du rythme',image:null,question:'Rythme choquable (FV / TV sans pouls) ?',options:[{label:'Oui — choquable',target:b2},{label:'Non — non choquable',target:b3}]},
-      {id:b2,type:'steps',title:'Choquable (FV / TVsp)',image:null,steps:['Choc immédiat, puis reprise RCP 2 min','Adrénaline 1 mg après le 3ᵉ choc, puis /3–5 min','Amiodarone 300 mg après le 3ᵉ choc'],next:bd},
-      {id:b3,type:'steps',title:'Non choquable (AESP / asystolie)',image:null,steps:['RCP 2 min sans interruption','Adrénaline 1 mg immédiatement, puis /3–5 min','Traiter les causes réversibles (4H / 4T)'],next:bd}
+      {id:b2,type:'steps',title:'Choquable (FV / TVsp)',image:null,steps:['⚠ Choc immédiat :: puis reprise RCP 2 min','Adrénaline :: 1 mg après le 3ᵉ choc, puis / 3–5 min','Amiodarone :: 300 mg après le 3ᵉ choc'],next:bd},
+      {id:b3,type:'steps',title:'Non choquable (AESP / asystolie)',image:null,steps:['RCP 2 min sans interruption','⚠ Adrénaline :: 1 mg immédiatement, puis / 3–5 min','Traiter les causes réversibles :: 4H / 4T'],next:bd}
     ]});}
 // Ajout À LA DEMANDE des fiches d'exemple (bandeau « Besoin d'exemples ? » de l'accueil).
 // persist() les marque `dirty` -> elles se synchronisent normalement si un compte est connecté.
@@ -6465,7 +6469,7 @@ function ovChipsHtml(f){
   return dg+md.map(m=>`<button type="button" class="ovchip${m.cur?' cur':''}${m.complete?' done':''}${m.off?' off':''}${m.dec?' dec':''}" data-ovjump="${esc(m.id)}" aria-label="${esc(m.title)||'Bloc '+m.n} — aller à ce bloc"><span class="oc-n">${m.n}</span> ${ovChipTxt(m)}</button>`).join('')+srv;}
 function ovMapRowsHtml(f){
   const md=minimapData(f,state.nav,state.navSeq,state.checked,state.navPos);
-  return md.map(m=>`<button type="button" class="mm-row${m.cur?' cur':''}${m.complete?' done':''}${m.off?' off':''}${m.dec?' dec':''}" data-ovjump="${esc(m.id)}"><span class="mm-n">${m.n}</span><span class="mm-t">${esc(m.title)||(m.dec?'Décision':'Étapes')}</span><span class="mm-c">${ovChipTxt(m)}</span></button>`).join('');}
+  return md.map(m=>`<button type="button" class="ovm-row${m.cur?' cur':''}${m.complete?' done':''}${m.off?' off':''}${m.dec?' dec':''}" data-ovjump="${esc(m.id)}"><span class="ovm-n">${m.n}</span><span class="ovm-t">${esc(m.title)||(m.dec?'Décision':'Étapes')}</span><span class="ovm-c">${ovChipTxt(m)}</span></button>`).join('');}
 function minimapPanel(f){
   if(!(state.readMode==='overview'&&hasFlow(f)))return '';
   return `<div class="rail-sep"></div><div class="rail-title">Algorithme — position</div><div id="ovMap">${ovMapRowsHtml(f)}</div>`;}

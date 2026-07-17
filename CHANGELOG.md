@@ -1,5 +1,18 @@
 # Journal des modifications
 
+## [4.11.1] — 2026-07-17
+### Corrigé
+- **Menu ⋯ déformé** : les entrées du menu s'affichaient comme des cartes à bord gauche marqué
+  — la minimap du rail (v4.8.0) avait réutilisé par accident le nom de classe des items du
+  menu (`.mm-row`). Les classes de la minimap sont renommées (`.ovm-*`), le menu retrouve son
+  apparence.
+
+### Modifié
+- **Fiches d'exemple mises à niveau** : les deux exemples (Anaphylaxie, Arrêt cardiaque)
+  illustrent désormais les registres ⚠/△ et le format « challenge :: réponse » (« ⚠ Choc
+  immédiat :: puis reprise RCP 2 min », « Adrénaline :: 1 mg après le 3ᵉ choc… ») — les
+  valeurs restent des placeholders à relire et adapter avant tout usage clinique.
+
 ## [4.11.0] — 2026-07-17
 Le mode crise devient un vrai support **challenge-response** au sens des checklists
 aviation (FAA AC 120-71B, philosophie Do-Verify) : la réponse attendue est séparée du
