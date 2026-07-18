@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-+TVYKIioPI9ndCLL+Okfvi7gtV3SPT4n0VUkFeATGSQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-rCIoMyTsRtcHpTZPC26Pxa5bW160ky/4vlvsdDafUBg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1465,19 +1465,84 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pl-stp li::before{content:"·";position:absolute;left:4px}
   .pl-stp li.crit{color:var(--critical);font-weight:600}
   .pl-stp li.vig{color:var(--verify);font-weight:600}
-  .pl-q{font-size:11.5px;font-weight:400;font-style:italic;color:var(--ink-soft);margin-top:3px}
-  /* Branche d'une décision : en retrait, guide vertical, étiquette de l'option (✓ si prise). */
-  .pl-br{margin-left:13px;padding-left:11px;border-left:2px solid var(--line-strong);margin-top:7px}
-  .pl-br.off{opacity:.55}
-  .pl-bl{display:inline-flex;align-items:center;font-size:11px;font-weight:700;color:var(--verify);background:var(--verify-soft);border:1px solid var(--verify-bd);border-radius:999px;padding:2px 9px;max-width:100%}
+  .pl-q{font-size:11.5px;font-weight:400;font-style:italic;color:var(--ink-soft);margin:4px 2px 0}
+  /* ----- v4.12.0 : ORGANIGRAMME HYBRIDE — colonnes auto-fit (la règle responsive est CSS pur :
+     branches côte à côte quand >= 2 × 170 px tiennent, EMPILÉES sinon ; récursif de fait). */
+  .pl-decwrap{margin-top:2px}
+  /* 148 px = deux colonnes tiennent encore à 375 px (306 px utiles) — seuil VALIDÉ en maquette :
+     binaires en colonnes sur téléphone, triple/imbriqué en pile de rails. */
+  .pl-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:0 10px;align-items:start}
+  /* cN = nombre de branches EN COLONNE (les profondes s'étalent et ne comptent pas) : plafonne
+     les pistes auto-fit — sans lui, une branche pleine largeur force des pistes de 148 px et
+     coince les branches courtes dans des colonnes étroites même sur grand écran. */
+  .pl-cols.c1{grid-template-columns:1fr}
+  .pl-cols.c2{grid-template-columns:repeat(auto-fit,minmax(max(148px,calc(50% - 5px)),1fr))}
+  .pl-cols.c3{grid-template-columns:repeat(auto-fit,minmax(max(148px,calc(33.33% - 6.66px)),1fr))}
+  .pl-cols.c4{grid-template-columns:repeat(auto-fit,minmax(max(148px,calc(25% - 7.5px)),1fr))}
+  .pl-br.deep{grid-column:1/-1}
+  /* deepv = profonde par VOLUME d'étapes seulement : pleine largeur sous 640 px (colonnes
+     ~150 px, texte émietté) mais reste en colonne au-delà (>= ~190 px : lisible). */
+  @media (max-width:639.98px){ .pl-br.deepv{grid-column:1/-1} }
+  /* Branche : RAIL continu étiqueté (naît sous l'option, meurt au coude) — bleu = chemin pris,
+     pointillé estompé = hors chemin (la mention textuelle accompagne toujours l'estompe). */
+  .pl-br{position:relative;margin:7px 0 0 10px;padding-left:12px}
+  .pl-br::before{content:"";position:absolute;left:0;top:14px;bottom:8px;width:3px;border-radius:2px;background:var(--line-strong)}
+  .pl-br.taken::before{background:var(--primary)}
+  .pl-br.off::before{background:repeating-linear-gradient(var(--line-strong) 0 5px,transparent 5px 9px)}
+  .pl-br.off>:not(.pl-bl){opacity:.55}
+  .pl-br.off .pl-bl{opacity:.75}
+  .pl-br.folded::before{display:none}
+  /* Étiquette d'option = BOUTON de repli (ligne-bilan quand replié) ; collante en défilement. */
+  .pl-bl{position:relative;left:-12px;display:inline-flex;align-items:center;gap:5px;max-width:calc(100% + 12px);min-height:44px;font-size:11px;font-weight:700;color:var(--verify);background:var(--verify-soft);border:1px solid var(--verify-bd);border-radius:999px;padding:4px 11px;cursor:pointer;font-family:inherit;text-align:left}
   .pl-bl .pl-tk{color:var(--ok)}
+  .pl-bl .pl-sum{font-weight:600;color:var(--ink-soft);font-family:var(--mono);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pl-bl .pl-chv{color:var(--verify);font-size:11px;margin-left:2px}
+  .pl-bl:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .pl-offtag{font-weight:600;color:var(--ink-soft)}
+  /* FIL D'ANCÊTRES COLLANT : question (nœud .dec) + option de la branche restent épinglées
+     sous l'en-tête pendant le défilement — pile pd0..pd3 (48 px par rang), se décroche seul
+     en fin de conteneur (.pl-decwrap / .pl-br). Fonds opaques + z-index pour recouvrir. */
+  .pl-nd.dec.pd0{position:sticky;top:var(--pl-stick,64px);z-index:5}
+  .pl-nd.dec.pd1{position:sticky;top:calc(var(--pl-stick,64px) + 48px);z-index:5}
+  .pl-nd.dec.pd2{position:sticky;top:calc(var(--pl-stick,64px) + 96px);z-index:5}
+  .pl-nd.dec.pd3{position:sticky;top:calc(var(--pl-stick,64px) + 144px);z-index:5}
+  .pl-br:not(.folded)>.pl-bl.pd1{position:sticky;top:calc(var(--pl-stick,64px) + 48px);z-index:5}
+  .pl-br:not(.folded)>.pl-bl.pd2{position:sticky;top:calc(var(--pl-stick,64px) + 96px);z-index:5}
+  .pl-br:not(.folded)>.pl-bl.pd3{position:sticky;top:calc(var(--pl-stick,64px) + 144px);z-index:5}
+  /* Coude de sortie de branche : le rail se referme vers le lien de convergence. */
+  .pl-elbow{position:relative;margin-top:6px}
+  .pl-br>.pl-elbow::before{content:"";position:absolute;left:-12px;top:-8px;width:9px;height:18px;border-left:3px solid var(--line-strong);border-bottom:3px solid var(--line-strong);border-bottom-left-radius:9px}
+  .pl-br.taken>.pl-elbow::before{border-color:var(--primary)}
   /* Liens de structure : convergence « → n » / reprise « ↺ n » — défilement DANS le plan. */
   .pl-lnk{display:inline-flex;align-items:center;gap:5px;min-height:32px;font-size:11.5px;font-weight:700;color:var(--ink-soft);background:var(--tag-bg);border:1px solid var(--line);border-radius:999px;padding:4px 11px;margin-top:6px;cursor:pointer;font-family:inherit;text-align:left}
   .pl-lnk.loop{color:var(--link);background:var(--primary-soft);border-color:var(--primary-soft)}
   .pl-lnk:hover{border-color:var(--primary)}
   .pl-lnk:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .pl-end{font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--ok);margin-top:7px}
+  /* ----- v4.12.0 : ÉCHELLE ECAM (mode compact) — une ligne par bloc, renvois abrégés. ----- */
+  .pl-line{display:flex;align-items:baseline;gap:7px;min-height:44px;padding:7px 9px;border-left:3px solid var(--line-strong);border-bottom:1px solid var(--line);cursor:pointer}
+  .pl-line.d1{padding-left:19px}
+  .pl-line.d2{padding-left:29px}
+  .pl-line.d3{padding-left:39px}
+  .pl-line .n{font-family:var(--mono);font-size:11.5px;font-weight:700;color:var(--ink-soft);min-width:18px;flex:none;text-align:right}
+  .pl-line .t{flex:1;min-width:0;font-size:12.5px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pl-line .g{flex:none;font-family:var(--mono);font-size:11px;color:var(--ink-soft);white-space:nowrap}
+  .pl-line .g b{font-weight:700;color:var(--verify)}
+  .pl-line .g b.tk{color:var(--ok)}
+  .pl-line .g .fin{color:var(--ok);font-weight:700}
+  .pl-line .pl-ref{color:var(--link);font-weight:700;cursor:pointer;padding:0 1px}
+  .pl-line .pl-bl2{flex:none;font-size:11px;font-weight:700;color:var(--verify);background:var(--verify-soft);border:1px solid var(--verify-bd);border-radius:5px;padding:0 5px}
+  .pl-line.done{border-left-color:var(--done-line)}
+  .pl-line.done .n,.pl-line.done .t{color:var(--ok)}
+  .pl-line.dec{background:var(--verify-soft);border-left-color:var(--verify-bd)}
+  .pl-line.dec .t{color:var(--verify)}
+  .pl-line.cur{background:var(--primary-soft);border-left-color:var(--primary)}
+  .pl-line.cur .t{color:var(--primary-dk)}
+  .pl-line.off{opacity:.5}
+  .pl-line:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
+  .pl-line.flash{background:var(--primary-soft)}
+  .pl-lx{padding:6px 10px 10px 36px;background:var(--surface);border-bottom:1px solid var(--line)}
+  .pl-lx .pl-lxt{margin:0 0 3px;font-size:12.5px;font-weight:700;color:var(--ink)}
   /* ----- Challenge :: réponse (v4.11.0, AC 120-71B) : la pilule mono = RÉPONSE ATTENDUE ;
      cocher = readback (✓ + vert), porté par le CSS seul — le toggle chirurgical n'y touche pas. */
   ol.steps li .stp-r{display:inline-block;margin-left:8px;font-family:var(--mono);font-size:13px;font-weight:600;color:var(--link);background:var(--primary-soft);border-radius:7px;padding:2px 9px;vertical-align:1px;line-height:1.45}
@@ -2209,6 +2274,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        état à toucher), hors-chemin en pleine encre (la mention « hors chemin » reste le marqueur). */
     .alg-panel .flow-scroll{max-height:none;overflow:visible}
     .ov-block{break-inside:avoid}.ov-block.closed .ov-body{display:block}.ov-block.off{opacity:1}
+    /* v4.12.0 : plan imprimé en une colonne (flux de page), branches dépliées, sans sticky. */
+    .pl-cols{display:block}.pl-nd.dec,.pl-bl{position:static!important}.pl-br.folded::before{display:block}
+    .pl-nd{break-inside:avoid}.pl-br.off>:not(.pl-bl){opacity:1}
     .crisis-footer .cf-stg{display:none}}
 </style>
 </head>
@@ -2405,7 +2473,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.11.1';
+const APP_VERSION='4.12.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -2761,10 +2829,10 @@ let state={view:'library',q:'',cat:'',scope:null,draft:null,fiche:null,nav:[],na
   // Mode de lecture du mode crise : 'overview' = JOURNAL DE PARCOURS (v4.9.0) + PLAN DE
   // L'AIDE (v4.10.0, arbre indenté de la structure complète) ; 'guided' = bloc à bloc
   // historique. Posé à l'OUVERTURE (openRead/resumeSession) depuis la préférence.
-  // ovFold = replis manuels d'instances du journal (clé = index) ; ovPlanTitles = plan en
+  // ovFold = replis manuels d'instances du journal (clé = index) ; ovPlanCompact = plan en
   // titres seuls (défaut : étapes visibles) ; ovVerify = passe Do-Verify en cours
   // ({idx,i,gaps} ou null). Jamais persistés (par fiche ouverte).
-  readMode:'overview',ovFold:{},ovPlanTitles:false,ovVerify:null};
+  readMode:'overview',ovFold:{},ovPlanCompact:false,ovVerify:null};
 try{if(localStorage.getItem(spaceKey('ac-section'))==='protocols')state.section='protocols';}catch(e){}
 /* Préférence du mode de lecture (v4.6.0) — par utilisateur (spaceKey local), synchronisée via
    data.prefs.readMode. La synchro ne fait qu'ÉCRIRE la préférence locale : elle ne bascule JAMAIS
@@ -4312,7 +4380,7 @@ bindModalDismiss(document.getElementById('endSessModal'),()=>_endSessClose(false
 async function endCurrentSession(){if(!Runtime.started)return;if(!await confirmEndSession(Runtime))return;const f=Runtime.fiche;endSession(Runtime);freshRuntime(f,null);state.fiche=null;state.view='library';render();}
 // Reprendre une session de l'historique (ou vive) : recharge dans un runtime, la réactive (vive) et
 // ouvre la fiche. Si une session vive existe déjà pour cette fiche, on la rouvre telle quelle.
-function resumeSession(id){const s=sessions.find(x=>x.id===id);if(!s)return;const f=fiches.find(x=>x.id===s.ficheId);if(!f){toast('⚠ Fiche introuvable.');return;}flowScroll={left:null,top:0};state.readMode=currentReadMode();state.ovFold={};state.ovPlanTitles=false;state.ovVerify=null;
+function resumeSession(id){const s=sessions.find(x=>x.id===id);if(!s)return;const f=fiches.find(x=>x.id===s.ficheId);if(!f){toast('⚠ Fiche introuvable.');return;}flowScroll={left:null,top:0};state.readMode=currentReadMode();state.ovFold={};state.ovPlanCompact=false;state.ovVerify=null;
   if(liveSessions[f.id]&&liveSessions[f.id].sessionId===id){Runtime=liveSessions[f.id];}
   else{Runtime=buildRuntime(f,s);Runtime.started=true;Runtime.startedAt=s.startedAt||Date.now();liveSessions[f.id]=Runtime;persistLive(Runtime,true);}
   Runtime.fiche=f;bindStateToRuntime();state.fiche=f;state.showFlow=false;state.showSess=false;state.view='read';render();}
@@ -5982,6 +6050,7 @@ function bindReadEvents(f,blk,cur){
   // Minimap (v4.8.0) : peinture initiale (chips + rail) et saut depuis le rail.
   {const map=main.querySelector('#ovMap');if(map)map.onclick=e=>{const b=e.target.closest('[data-ovjump]');if(b)jumpToBlock(f,b.dataset.ovjump);};}
   paintMinimaps(f);
+  ovPlanStick();   // v4.12.0 : base du fil d'ancêtres collant du plan
   main.querySelectorAll('img[data-full]').forEach(im=>im.onclick=()=>openLightbox(im.dataset.full,im.dataset.cap||''));
   // Documents PDF -> visionneuse intégrée (le blob est lu dans IndexedDB à l'ouverture).
   bindAttList(f);
@@ -6201,35 +6270,126 @@ function ovInstHtml(f,id,idx,topo){
       +((!dec&&clean(b.steps).length)?`<button type="button" class="ov-redo" data-ovverify="${idx}" title="Do-Verify : redérouler ce bloc en challenge-réponse — « Constaté » coche, « Écart » laisse non coché">Vérifier</button>`:'')
       +((!tip&&complete&&!dec)?`<button type="button" class="ov-redo" data-ovredo="${esc(id)}" title="Refaire ce bloc : nouvelle carte au bout du journal — celle-ci reste telle quelle">↺ Refaire</button>`:''));
   return `<section class="ov-block${tip?' cur':''}${complete?' done':''}${dec?' dec':''}${closed&&!verifying?' closed':''}" data-ovb="${esc(id)}" data-ovi="${idx}" data-ovn="${topo[id]||''}"${tip?' aria-current="step"':''}><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="${idx}" aria-expanded="${closed&&!verifying?'false':'true'}"><span class="ov-n" aria-hidden="true">${complete?uiIcon('check',13,{sw:3.2,cls:''}):(topo[id]||'·')}</span><span class="ov-t">${esc(b.title)||(dec?'Décision':'Étapes')}${passTag}${takenH} <span class="ov-here">Vous êtes ici</span></span><span class="ov-c">${count}</span><span class="ov-chev" aria-hidden="true">${closed&&!verifying?'▾':'▴'}</span></button>${btns}</div><div class="ov-body">${bodyH}</div></section>`;}
-// PLAN DE L'AIDE (v4.10.0) : rendu de flowPlan — arbre indenté de la structure COMPLÈTE,
-// façon algorithme papier. Le plan est INERTE côté cochage (pas de cases : la trace vit dans
-// le journal) et IMMUABLE dans sa forme ; il porte un état léger (✓/●/×n/hors chemin) et sert
-// à NAVIGUER : taper un bloc = y aller ; un lien « → / ↺ reprendre à » défile DANS le plan.
+/* PLAN DE L'AIDE v2 (v4.12.0) : rendu de flowPlan — le plan reste INERTE côté cochage (la
+   trace vit dans le journal) et sert à NAVIGUER. Deux densités sur la bascule #ovPlanD :
+   - DÉTAILS = ORGANIGRAMME HYBRIDE (ovPlanTreeHtml) : tronc pleine largeur, branches d'une
+     décision en COLONNES côte à côte quand la place le permet, EMPILÉES sinon — règle locale
+     et récursive portée par le CSS SEUL (.pl-cols, grid auto-fit minmax) ; rails de branche
+     étiquetés (bleu = chemin pris, pointillé estompé = hors chemin) avec coude de sortie vers
+     la convergence ; REPLI PAR BRANCHE en ligne-bilan (hors chemin auto-replié, jamais
+     bloquant) ; FIL D'ANCÊTRES COLLANT (sticky) : question + option restent épinglées sous
+     l'en-tête pendant le défilement de la branche (pile pdN, plafond 3, --pl-stick posé par
+     ovPlanStick — le sticky se décroche seul en fin de conteneur .pl-decwrap/.pl-br).
+   - ÉCHELLE (ovPlanLadderHtml, mode compact ECAM) : une LIGNE par bloc, retraits de
+     profondeur AVEC étiquette de la réponse qui ouvre la branche (« OUI › »), renvois mono
+     abrégés (optAbbr : OUI→5 · ↺1 · ▪fin), tap ligne = détails in-place + « aller à ce bloc ». */
+// Abréviation des libellés d'options (échelle) : premier mot en capitales (6 car. max) ; deux
+// options d'une même décision au même premier mot → initiale du 2ᵉ mot, sinon rang. PURE.
+function optAbbr(labels){
+  const words=l=>String(stripBold(l==null?'':l)).trim().split(/\s+/);
+  const clean1=w=>String(w||'').toUpperCase().replace(/[^0-9A-ZÀ-ÖØ-Þ]/g,'');
+  const first=labels.map(l=>clean1(words(l)[0]).slice(0,6)||'OPT');
+  return first.map((a,i)=>{
+    if(first.filter(x=>x===a).length<2)return a;
+    const b2=clean1(words(labels[i])[1]).charAt(0);
+    return b2?(a+'·'+b2):(a+(i+1));});}
 function ovPlanHtml(f){
   const plan=flowPlan(f);if(!plan.order.length)return '';
   const num={};plan.order.forEach((id,i)=>{num[id]=i+1;});
   const md={};minimapData(f,state.nav,state.navSeq,state.checked,state.navPos).forEach(m=>{md[m.id]=m;});
   const off=offPathSet(f,state.nav,state.navPos);
-  const titles=!!state.ovPlanTitles;
-  let h='';
-  plan.items.forEach(it=>{
-    if(it.k==='bropen'){const isOff=it.tgt?off.has(it.tgt):false;
-      const dm=md[it.dec];const tk=!!(dm&&dm.taken&&it.tgt&&dm.taken===it.tgt);
-      h+=`<div class="pl-br${isOff?' off':''}"><span class="pl-bl">${tk?'<span class="pl-tk">✓ </span>':''}${fmt(it.label)}${isOff?'<span class="pl-offtag"> · hors chemin</span>':''}</span>`;return;}
-    if(it.k==='brclose'){h+='</div>';return;}
-    if(it.k==='link'){const t=f.blocks.find(x=>x.id===it.to);
-      h+=`<div><button type="button" class="pl-lnk${it.back?' loop':''}" data-plref="${esc(it.to)}">${it.back?'↺ reprendre à':'→'} ${num[it.to]||'?'} · ${esc((t&&t.title)||'?')}</button></div>`;return;}
-    if(it.k==='end'){h+='<div class="pl-end">▪ fin de l’algorithme</div>';return;}
-    if(it.k!=='block')return;
+  const compact=!!state.ovPlanCompact;
+  const body=compact?ovPlanLadderHtml(f,plan,num,md,off):ovPlanTreeHtml(f,plan,num,md,off);
+  return `<div class="ov-plan-h"><span class="ovs-t">Plan de l’aide</span><span class="ovs-sub">· ${compact?'échelle — une ligne par bloc, tap = détails':'structure complète — taper un bloc = y aller'}</span><button type="button" class="ovs-tgl" id="ovPlanD" aria-pressed="${compact?'true':'false'}">${compact?'Détails':'Échelle'}</button></div><div class="ov-plan${compact?' compact':''}">${body}</div>`;}
+// ----- ORGANIGRAMME HYBRIDE (mode Détails) -----
+function ovPlanTreeHtml(f,plan,num,md,off){
+  const items=plan.items;let i=0;
+  const node=(id,stick)=>{const b=f.blocks.find(x=>x.id===id);if(!b)return '';
+    const dec=b.type==='decision';const m=md[id]||{};
+    const steps=dec?[]:clean(b.steps);
+    // En arbre, la QUESTION d'une décision vit HORS du nœud (le nœud collant reste compact).
+    const detH=dec?'':(steps.length?`<ul class="pl-stp">${steps.map(s=>{const cr=stepCR(stepText(s));return `<li class="${stepIsCrit(s)?'crit':(stepIsVigil(s)?'vig':'')}">${fmt(cr.c)}${cr.r?` <span class="pl-r">${fmt(cr.r)}</span>`:''}</li>`;}).join('')}</ul>`:'');
+    const passB=(m.total||0)>1?`<span class="pl-x">×${m.total}</span>`:'';
+    const meta=dec?(m.complete?'✓':'?'):(steps.length?((m.done||0)+'/'+steps.length):'—');
+    return `<div class="pl-nd${dec?' dec pd'+Math.min(stick,3):''}${m.complete?' done':''}${m.cur?' cur':''}${off.has(id)?' off':''}" data-plgo="${esc(id)}" role="button" tabindex="0" aria-label="${esc(stripBold(b.title||''))} — aller à ce bloc"><span class="pl-nn" aria-hidden="true">${m.complete?uiIcon('check',12,{sw:3.2,cls:''}):(num[id]||'·')}</span><div class="pl-nt">${esc(b.title)||(dec?'Décision':'Étapes')}${passB}${m.cur?'<span class="pl-here">ici</span>':''}${detH}</div><span class="pl-nm">${meta}</span></div>`;};
+  const linkHtml=it=>{const t=f.blocks.find(x=>x.id===it.to);
+    return `<div class="pl-elbow"><button type="button" class="pl-lnk${it.back?' loop':''}" data-plref="${esc(it.to)}">${it.back?'↺ reprendre à':'→'} ${num[it.to]||'?'} · ${esc((t&&t.title)||'?')}</button></div>`;};
+  // Bilan d'une branche REPLIÉE : blocs, cochés (dernier passage), issue (dernier lien / fin).
+  const branchStats=(a,z)=>{let blocs=0,done=0,issue='';
+    for(let j=a;j<z;j++){const it=items[j];
+      if(it.k==='block'){blocs++;const m=md[it.id];if(m&&m.complete)done++;}
+      else if(it.k==='link')issue=(it.back?'↺ ':'→ ')+(num[it.to]||'?');
+      else if(it.k==='end')issue='▪ fin';}
+    return (blocs?blocs+' bloc'+(blocs>1?'s':'')+(done?' · '+done+' ✓':''):'')+(issue?(blocs?' · ':'')+issue:'');};
+  const walk=stick=>{let h='';
+    while(i<items.length){const it=items[i];
+      if(it.k==='brclose')return h;
+      if(it.k==='link'){h+=linkHtml(it);i++;continue;}
+      if(it.k==='end'){h+='<div class="pl-end">▪ fin de l’algorithme</div>';i++;continue;}
+      if(it.k==='bropen'){i++;continue;}   // garde-fou : jamais hors décision
+      const b=f.blocks.find(x=>x.id===it.id);
+      if(!b){i++;continue;}
+      if(b.type!=='decision'){h+=node(it.id,stick);i++;continue;}
+      // DÉCISION : nœud collant + question + branches (colonnes auto-fit OU pile de rails).
+      const decId=it.id;i++;
+      const qh=b.question?`<div class="pl-q">${fmt(b.question)}</div>`:'';
+      let brs='',nCols=0;
+      while(i<items.length&&items[i].k==='bropen'){
+        const bo=items[i];i++;
+        const isOff=bo.tgt?off.has(bo.tgt):false;
+        const dm=md[bo.dec];const tk=!!(dm&&dm.taken&&bo.tgt&&dm.taken===bo.tgt);
+        const a0=i;
+        const inner=walk(Math.min(stick+2,3));
+        if(items[i]&&items[i].k==='brclose')i++;
+        const foldKey='b:'+bo.dec+':'+bo.oi;
+        const manual=state.ovFold[foldKey];
+        const folded=manual!=null?!!manual:isOff;   // défaut : hors chemin = replié (jamais bloquant)
+        // Branche PROFONDE (> 2 blocs ou décision imbriquée) : pleine largeur — une chaîne
+        // longue dans une colonne étroite serait illisible ; les branches courtes restent
+        // en colonnes (règle validée en maquette). Une branche repliée redevient « courte ».
+        // deepv (volume : > 3 étapes) : pleine largeur SEULEMENT sous 640 px (via CSS).
+        let nb=0,nested=false,nSteps=0;
+        for(let j=a0;j<i-1;j++){if(items[j].k==='block'){nb++;const bb=f.blocks.find(x=>x.id===items[j].id);
+          if(bb&&bb.type==='decision')nested=true;else if(bb)nSteps+=clean(bb.steps).length;}}
+        const deep=!folded&&(nb>2||nested), deepv=!folded&&!deep&&nSteps>3;
+        if(!deep)nCols++;   // les profondes s'étalent : elles ne comptent pas comme colonne
+        const chip=`<button type="button" class="pl-bl pd${Math.min(stick+1,3)}${tk?' tk':''}" data-plfold="${esc(foldKey)}" aria-expanded="${folded?'false':'true'}">${tk?'<span class="pl-tk">✓ </span>':''}${fmt(bo.label)}${isOff?'<span class="pl-offtag"> · hors chemin</span>':''}${folded?`<span class="pl-sum"> — ${esc(branchStats(a0,i-1))}</span>`:''}<span class="pl-chv">${folded?'▸':'▾'}</span></button>`;
+        brs+=`<div class="pl-br${tk?' taken':''}${isOff?' off':''}${folded?' folded':''}${deep?' deep':''}${deepv?' deepv':''}">${chip}${folded?'':inner}</div>`;}
+      h+=`<div class="pl-decwrap">${node(decId,stick)}${qh}<div class="pl-cols c${Math.min(Math.max(nCols,1),4)}">${brs}</div></div>`;}
+    return h;};
+  return walk(0);}
+// ----- ÉCHELLE ECAM (mode compact) -----
+function ovPlanLadderHtml(f,plan,num,md,off){
+  const items=plan.items;let h='',depth=0;const pend=[];
+  const arrow=(from,to)=>((num[to]||1e9)<(num[from]||0)?'↺':'→')+(num[to]||'?');
+  items.forEach(it=>{
+    if(it.k==='bropen'){depth++;pend[depth]=it.label;return;}
+    if(it.k==='brclose'){pend[depth]=null;depth--;return;}
+    if(it.k!=='block')return;   // liens/fins : déjà encodés dans la colonne renvois des blocs
     const b=f.blocks.find(x=>x.id===it.id);if(!b)return;
     const dec=b.type==='decision';const m=md[it.id]||{};
     const steps=dec?[]:clean(b.steps);
-    const detH=titles?'':(dec?(b.question?`<div class="pl-q">${fmt(b.question)}</div>`:'')
-      :(steps.length?`<ul class="pl-stp">${steps.map(s=>{const cr=stepCR(stepText(s));return `<li class="${stepIsCrit(s)?'crit':(stepIsVigil(s)?'vig':'')}">${fmt(cr.c)}${cr.r?` <span class="pl-r">${fmt(cr.r)}</span>`:''}</li>`;}).join('')}</ul>`:''));
-    const passB=(m.total||0)>1?`<span class="pl-x">×${m.total}</span>`:'';
-    const meta=dec?(m.complete?'✓':'?'):(steps.length?((m.done||0)+'/'+steps.length):'—');
-    h+=`<div class="pl-nd${dec?' dec':''}${m.complete?' done':''}${m.cur?' cur':''}${off.has(it.id)?' off':''}" data-plgo="${esc(it.id)}" role="button" tabindex="0" aria-label="${esc(stripBold(b.title||''))} — aller à ce bloc"><span class="pl-nn" aria-hidden="true">${m.complete?uiIcon('check',12,{sw:3.2,cls:''}):(num[it.id]||'·')}</span><div class="pl-nt">${esc(b.title)||(dec?'Décision':'Étapes')}${passB}${m.cur?'<span class="pl-here">ici</span>':''}${detH}</div><span class="pl-nm">${meta}</span></div>`;});
-  return `<div class="ov-plan-h"><span class="ovs-t">Plan de l’aide</span><span class="ovs-sub">· structure complète — taper un bloc = y aller</span><button type="button" class="ovs-tgl" id="ovPlanD" aria-pressed="${titles?'true':'false'}">${titles?'Afficher les étapes':'Titres seuls'}</button></div><div class="ov-plan">${h}</div>`;}
+    let g='';
+    if(dec){const opts=b.options||[];const ab=optAbbr(opts.map(o=>(o&&o.label)||''));
+      g=opts.map((o,oi)=>{const tgt=(o&&o.target&&num[o.target])?o.target:null;
+        const tk2=!!(m.taken&&o&&o.target===m.taken);
+        return `<b${tk2?' class="tk"':''}>${tk2?'✓':''}${esc(ab[oi])}</b>${tgt?`<span class="pl-ref" data-plref="${esc(tgt)}">${arrow(it.id,tgt)}</span>`:'▪'}`;}).join(' ');}
+    else{const nx=(b.next&&num[b.next])?b.next:null;
+      g=(steps.length?((m.done||0)+'/'+steps.length):'—')+' '+(nx?`<span class="pl-ref" data-plref="${esc(nx)}">${arrow(it.id,nx)}</span>`:'<span class="fin">▪fin</span>');}
+    const lblRaw=pend[depth];if(pend[depth])pend[depth]=null;
+    const lbl=lblRaw?`<span class="pl-bl2">${esc(String(stripBold(lblRaw)).trim().split(/\s+/)[0].toUpperCase().slice(0,6))} ›</span>`:'';
+    const open=!!state.ovFold['l:'+it.id];
+    h+=`<div class="pl-line d${Math.min(it.depth,3)}${m.complete?' done':''}${m.cur?' cur':''}${off.has(it.id)?' off':''}${dec?' dec':''}" data-plln="${esc(it.id)}" role="button" tabindex="0" aria-expanded="${open?'true':'false'}">${lbl}<span class="n">${m.complete?'✓':(num[it.id]||'·')}</span><span class="t">${esc(b.title)||(dec?'Décision':'Étapes')}${(m.total||0)>1?`<span class="pl-x">×${m.total}</span>`:''}${m.cur?'<span class="pl-here">ici</span>':''}</span><span class="g">${g}</span></div>`;
+    if(open){
+      const det=dec?(b.question?`<div class="pl-q">${fmt(b.question)}</div>`:'')
+        :(steps.length?`<ul class="pl-stp">${steps.map(s=>{const cr=stepCR(stepText(s));return `<li class="${stepIsCrit(s)?'crit':(stepIsVigil(s)?'vig':'')}">${fmt(cr.c)}${cr.r?` <span class="pl-r">${fmt(cr.r)}</span>`:''}</li>`;}).join('')}</ul>`:'');
+      h+=`<div class="pl-lx"><p class="pl-lxt">${esc(b.title)||''}</p>${det}<button type="button" class="pl-lnk" data-plgo="${esc(it.id)}">→ aller à ce bloc</button></div>`;}
+  });
+  return h;}
+// Pose de --pl-stick (base du fil d'ancêtres collant) : bas réel de l'en-tête sticky de l'app.
+function ovPlanStick(){const pl=main.querySelector('.ov-plan');if(!pl)return;
+  const hb=document.querySelector('header.bar');
+  pl.style.setProperty('--pl-stick',Math.round((hb?hb.getBoundingClientRect().bottom:60)+4)+'px');}
 // Peinture VIVANTE hors journal (le journal, lui, ne se réécrit qu'aux gestes de navigation) :
 // halo/✓/hors-chemin du SVG + chips/minimap — appelée après chaque coche et chaque navigation.
 function ovPaintLive(f){
@@ -6337,11 +6497,22 @@ function bindOverviewEvents(f){
     // MODE LECTEUR (v4.11.0) : plein écran, piloté sur le bout du journal.
     const rdr=t.closest('[data-ovreader]');if(rdr){readerOpen();return;}
     // PLAN (v4.10.0) : nœud = y aller ; lien →/↺ = défilement DANS le plan ; bascule densité.
-    const pg=t.closest('[data-plgo]');if(pg){jumpToBlock(f,pg.dataset.plgo);return;}
+    // PLAN v2 (v4.12.0) : l'ordre compte — renvoi (dans une ligne) AVANT ligne, repli de
+    // branche AVANT nœud ; le dépliage d'une ligne d'échelle précède data-plgo (bouton du panneau).
     const pr=t.closest('[data-plref]');
-    if(pr){const el=main.querySelector('.pl-nd[data-plgo="'+CSS.escape(pr.dataset.plref)+'"]');
+    if(pr){const k5=CSS.escape(pr.dataset.plref);
+      const el=main.querySelector('.pl-nd[data-plgo="'+k5+'"]')||main.querySelector('.pl-line[data-plln="'+k5+'"]');
       if(el){ovScrollEl(el);el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),900);}return;}
-    if(t.closest('#ovPlanD')){state.ovPlanTitles=!state.ovPlanTitles;renderOvOnly();return;}
+    const pf=t.closest('[data-plfold]');
+    if(pf){const k6=pf.dataset.plfold;
+      // bascule par rapport à l'état AFFICHÉ (le défaut « hors chemin = replié » n'a pas de clé)
+      state.ovFold[k6]=pf.getAttribute('aria-expanded')!=='false';
+      renderOvOnlyKeepAnchor('[data-plfold="'+CSS.escape(k6)+'"]');return;}
+    const pl3=t.closest('[data-plln]');
+    if(pl3){const id3=pl3.dataset.plln;state.ovFold['l:'+id3]=!state.ovFold['l:'+id3];
+      renderOvOnlyKeepAnchor('[data-plln="'+CSS.escape(id3)+'"]');return;}
+    const pg=t.closest('[data-plgo]');if(pg){jumpToBlock(f,pg.dataset.plgo);return;}
+    if(t.closest('#ovPlanD')){state.ovPlanCompact=!state.ovPlanCompact;renderOvOnly();return;}
     const nx=t.closest('[data-ovnext]');
     if(nx){if(nx.getAttribute('aria-disabled')==='true')return;   // le libellé dit pourquoi (ECAM)
       // REPLI DIFFÉRÉ de l'étape ① : même doctrine que le « Continuer » guidé (v4.4.2) —
@@ -6362,7 +6533,7 @@ function bindOverviewEvents(f){
       state.flowEnded=true;render();return;}};   // les étapes ②/③ du rail changent -> rendu complet
   wrap.onclick=e=>handle(e.target,false);
   wrap.onkeydown=e=>{if(e.key!=='Enter'&&e.key!==' ')return;
-    const t=e.target.closest('[data-ck],[data-plgo]');if(!t)return;e.preventDefault();handle(t,true);};
+    const t=e.target.closest('[data-ck],[data-plgo],[data-plln]');if(!t)return;e.preventDefault();handle(t,true);};
   const rs=wrap.querySelector('#ovReset');
   if(rs)holdToReset(rs,()=>{state.nav.length=0;state.navSeq.length=0;state.nav.push(f.start);state.navSeq.push(++Runtime.seq);state.navPos=0;state.ovFold={};state.ovVerify=null;if(Runtime.started)persistLive(Runtime);renderOvOnly();});}
 /* Re-rendu CIBLÉ de la vue d'ensemble (pendant de renderNavOnly) : reconstruit l'INTÉRIEUR de
@@ -6379,6 +6550,7 @@ function renderOvOnly(){
   {const fs=main.querySelector('.alg-panel .flow-scroll');if(fs)flowPaintState(fs,f);}   // v4.7.0 : peinture, pas de reconstruction
   flowCtx={f,curId:N.cur};
   paintMinimaps(f);
+  ovPlanStick();   // v4.12.0 : base du fil d'ancêtres collant
   bindOverviewEvents(f);}
 /* ===== MODE LECTEUR (v4.11.0) =====
    Challenge-response en BINÔME (AC 120-71B) : le lecteur désigné tient l'écran, lit le
@@ -6662,7 +6834,7 @@ function openDraftPreview(){state.previewFrom='edit';
   // session vive d'une AUTRE fiche ne doit jamais recevoir les coches ou le chemin d'un brouillon
   // (openRead/resumeSession relient state au Runtime à la prochaine vraie ouverture).
   state.checked={};state.nav=[state.fiche.start||(((state.fiche.blocks||[])[0]||{}).id)];state.navSeq=[++Runtime.seq];state.navPos=0;
-  state.readMode=currentReadMode();state.ovFold={};state.ovPlanTitles=false;state.ovVerify=null;state.flowEnded=false;state.confOpen=undefined;
+  state.readMode=currentReadMode();state.ovFold={};state.ovPlanCompact=false;state.ovVerify=null;state.flowEnded=false;state.confOpen=undefined;
   state.view='read';render();}
 function openPDraftPreview(){state.previewFrom='protocolEdit';
   state.protocol=migrateProtocol(JSON.parse(JSON.stringify(state.pdraft)));state.view='protocolRead';render();}
@@ -6923,7 +7095,7 @@ setInterval(()=>{const k=_editKind();if(!k){_lastParked=null;return;}
 // Ouvre une fiche en lecture. Si une SESSION VIVE existe pour cette fiche, on la rouvre telle quelle
 // (minuteurs toujours en cours). Sinon on garde le runtime transitoire de cette même fiche (s'il n'a
 // pas démarré), sinon on en crée un neuf.
-function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;bumpUsage(id);flowScroll={left:null,top:0};state.rtOpen=false;state.noteEdit=false;state.confOpen=undefined;state.previewFrom=null;state.flowEnded=false;state.readMode=currentReadMode();state.ovFold={};state.ovPlanTitles=false;state.ovVerify=null;
+function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;bumpUsage(id);flowScroll={left:null,top:0};state.rtOpen=false;state.noteEdit=false;state.confOpen=undefined;state.previewFrom=null;state.flowEnded=false;state.readMode=currentReadMode();state.ovFold={};state.ovPlanCompact=false;state.ovVerify=null;
   if(liveSessions[id]){Runtime=liveSessions[id];Runtime.fiche=f;}
   else if(!(Runtime.fiche&&Runtime.ficheId===id&&!Runtime.started)){Runtime=buildRuntime(f,null);}
   // Algorithme REPLIÉ à l'ouverture : la 1ʳᵉ étape actionnable doit arriver le plus haut possible
@@ -8381,12 +8553,12 @@ function exportPdfCurrent(){window.print();}
 // on le déplie le temps de l'impression, puis on restaure l'état exact (audit v4.5).
 let _printSaved=null;
 window.addEventListener('beforeprint',()=>{if(state.view!=='read'||!state.fiche)return;
-  _printSaved={confOpen:state.confOpen,showFlow:state.showFlow,readMode:state.readMode,ovPlanTitles:state.ovPlanTitles};
+  _printSaved={confOpen:state.confOpen,showFlow:state.showFlow,readMode:state.readMode,ovPlanCompact:state.ovPlanCompact};
   // La vue d'ensemble (journal + PLAN complet avec étapes) est le format imprimé ; les blocs
   // repliés sont rouverts par CSS @media print — aucun état de repli à toucher.
-  state.confOpen=true;state.showFlow=true;state.ovPlanTitles=false;state.ovVerify=null;if(hasFlow(state.fiche))state.readMode='overview';render();});
+  state.confOpen=true;state.showFlow=true;state.ovPlanCompact=false;state.ovVerify=null;if(hasFlow(state.fiche))state.readMode='overview';render();});
 window.addEventListener('afterprint',()=>{if(!_printSaved)return;
-  state.confOpen=_printSaved.confOpen;state.showFlow=_printSaved.showFlow;state.readMode=_printSaved.readMode||state.readMode;state.ovPlanTitles=!!_printSaved.ovPlanTitles;_printSaved=null;
+  state.confOpen=_printSaved.confOpen;state.showFlow=_printSaved.showFlow;state.readMode=_printSaved.readMode||state.readMode;state.ovPlanCompact=!!_printSaved.ovPlanCompact;_printSaved=null;
   if(state.view==='read'&&state.fiche)render();});
 // Taille du texte : zoom CSS sur <html> (agrandit AUSSI les cibles tactiles, pas seulement la
 // police). Préférence par appareil. Cycle 100/110/125 % — suffisant sans casser la mise en page.
@@ -9307,7 +9479,7 @@ if(location.search.indexOf('__actest')>=0){
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
     restErrStatus,isPersoRepairCandidate,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,
     qTerms,hayMatch,markQTerms,searchSnippet,ficheSnipParts,protoSnipParts,frecencyScore,sanitizeUsage,mergeUsage,
-    crc32,zipBuild,zipParse,isPdfBytes,mdTask,flowOrder,latestPass,offPathSet,minimapData,passInfo,instComplete,flowPlan,stepCR,stepGuardTxt};
+    crc32,zipBuild,zipParse,isPdfBytes,mdTask,flowOrder,latestPass,offPathSet,minimapData,passInfo,instComplete,flowPlan,stepCR,stepGuardTxt,optAbbr};
 }else{
   /* ===== PWA =====
      Enregistre le service worker (cache hors ligne) si disponible. Capte

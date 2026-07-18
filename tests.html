@@ -681,6 +681,11 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   ok('stepGuardTxt : bloc trop long signalé (8 étapes), jamais bloquant', /8 étapes/.test(A.stepGuardTxt(['a','b','c','d','e','f','g','h'])));
   ok('stepGuardTxt : challenge trop long signalé, la réponse «::» ne compte pas', A.stepGuardTxt(['x'.repeat(120)])!==''&&A.stepGuardTxt(['court :: '+'y'.repeat(120)])==='');
   eq('stepGuardTxt : rien à signaler -> chaîne vide', A.stepGuardTxt(['ok','court']), '');
+  // optAbbr (v4.12.0) : renvois abrégés de l'échelle du plan.
+  eq('optAbbr : premier mot en capitales, tronqué à 6', A.optAbbr(['Oui (stabilisé)','Non (symptômes digestifs isolés)']), ['OUI','NON']);
+  eq('optAbbr : options multiples distinctes', A.optAbbr(['Choquable (FV/TV sans pouls)','Non choquable (AESP)','Signes de ROSC']), ['CHOQUA','NON','SIGNES']);
+  eq('optAbbr : même premier mot → initiale du 2ᵉ mot', A.optAbbr(['Non répondeur','Non stabilisé']), ['NON·R','NON·S']);
+  ok('optAbbr : libellé vide → OPT', A.optAbbr(['','Oui'])[0]==='OPT');
   const svgOut=A.buildFlowSVG(ovF);
   ok('buildFlowSVG (v4.7.0) : un nœud interactif par bloc (data-fnode)', ['A','D','S','R','X'].every(id=>svgOut.indexOf('data-fnode="'+id+'"')>=0));
   ok('buildFlowSVG : halo et badge ✓ bakés, AUCUN état peint dans la géométrie', svgOut.indexOf('flow-hl-glow')>=0&&svgOut.indexOf('fn-badge')>=0&&svgOut.indexOf('fn-cur')<0&&svgOut.indexOf('fn-ok')<0&&svgOut.indexOf('fn-off')<0);

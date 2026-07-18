@@ -1,5 +1,48 @@
 # Journal des modifications
 
+## [4.12.0] — 2026-07-18
+Le « Plan de l'aide » devient un **organigramme hybride** : la forme de l'arbre se voit
+enfin (branches côte à côte quand l'écran le permet), chaque branche est lisible et
+repliable, et un mode compact « Échelle » montre tout l'algorithme en une ligne par bloc,
+façon ECAM. Décisions figées en séances de maquettes sur fiches réelles (ACR adulte,
+anaphylaxie enfant) : le plan reste **inerte** (pas de cases — le cochage vit dans le
+parcours) ; la structure `flowPlan` (post-dominateurs, numérotation commune) est inchangée.
+
+### Ajouté
+- **Branches côte à côte (organigramme hybride)** : les branches d'une décision s'affichent
+  en colonnes quand au moins deux colonnes de 148 px tiennent, et s'empilent sinon — règle
+  CSS pure, locale et récursive (une décision imbriquée dans une colonne étroite retombe
+  d'elle-même en pile). Une branche **profonde** (plus de 2 blocs ou décision imbriquée)
+  s'étale toujours sur toute la largeur ; une branche **volumineuse** (plus de 3 étapes)
+  ne s'étale que sur téléphone, où une colonne de 150 px émietterait son texte. Le nombre
+  de pistes est plafonné au nombre réel de branches en colonne (sans quoi une branche
+  pleine largeur coinçait ses sœurs dans des colonnes étroites même sur grand écran).
+- **Rails de branche étiquetés** : chaque branche porte un rail continu de 3 px né sous son
+  option et raccordé à un coude de convergence (`→ n` / `↺ n`) — bleu = chemin pris,
+  pointillé estompé + mention « hors chemin » = branche écartée (la couleur n'est jamais
+  seule).
+- **Repli par branche** : le chip d'option est un bouton (≥ 44 px) ; replié, la branche
+  devient une ligne-bilan « n blocs · k ✓ · → n ». Les branches hors chemin se replient
+  d'elles-mêmes après une réponse ; un tap les rouvre — jamais verrouillées, jamais
+  bloquantes.
+- **Fil d'ancêtres collant** : en défilant dans une longue branche, la question et l'option
+  en cours restent épinglées sous l'en-tête (pile façon éditeur de code, 4 niveaux max) et
+  se décrochent d'elles-mêmes à la convergence — on sait toujours « dans quelle branche
+  on est », même au fond d'un ACR sur téléphone.
+- **Échelle ECAM (mode compact, remplace « Titres seuls »)** : une ligne par bloc — retrait
+  de profondeur avec chip d'étiquette (`OUI ›`), n°, titre, renvois abrégés en mono
+  (`OUI→5`, `↺1`, `▪fin`) — l'algorithme entier tient sur un écran de téléphone (14 lignes
+  pour l'ACR). Taper une ligne la déplie sur place (étapes en lecture seule + « → aller à
+  ce bloc ») ; taper un renvoi défile vers la ligne cible et la fait clignoter. Bascule
+  « Échelle » ↔ « Détails » ; l'impression sort toujours le plan détaillé.
+
+### Détails techniques
+- `ovPlanTreeHtml` (walker imbriqué), `ovPlanLadderHtml` (marche plate), `optAbbr` (pure,
+  abréviation des étiquettes de renvoi avec désambiguïsation, testée) ; état de repli dans
+  `state.ovFold` (`'b:…'` branches, `'l:…'` lignes de l'échelle), `state.ovPlanTitles` →
+  `state.ovPlanCompact` ; `--pl-stick` mesuré sur l'en-tête réel (`ovPlanStick`). Aucun
+  changement de modèle, de session ni d'export ; 448 tests.
+
 ## [4.11.1] — 2026-07-17
 ### Corrigé
 - **Menu ⋯ déformé** : les entrées du menu s'affichaient comme des cartes à bord gauche marqué

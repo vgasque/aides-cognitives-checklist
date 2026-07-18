@@ -126,24 +126,35 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   instance ne re-rend JAMAIS (délégation sur `.ov-wrap`, chirurgie `ovAfterCheck`/`ovPaintLive` ;
   `renderOvOnly` = pendant de `renderNavOnly`, qui dispatche). Fonctions pures : `passInfo`
   (rang du passage), `instComplete` ; `minimapData` = source UNIQUE de l'état PAR BLOC.
-- **Plan de l'aide (v4.10.0, remplace la « Suite de l'algorithme » plate)** : sous le journal,
-  la STRUCTURE COMPLÈTE en ARBRE INDENTÉ façon algorithme papier / checklist conditionnelle
-  QRH — `flowPlan(f)` (pure, cache WeakMap par objet fiche, jamais l'éditeur) : DFS depuis le
-  départ, branches d'une décision indentées sous leur option (`.pl-br` + chip `.pl-bl`), le
-  TRONC reprend au POINT DE CONVERGENCE (post-dominateur immédiat — itératif, graphes
-  minuscules), cible déjà décrite = lien « ↺ reprendre à n » (les BOUCLES deviennent une
-  structure lisible, ex. cycles 2 min d'un ACR), chaque bloc n'apparaît qu'UNE fois.
-  `flowPlan().order` = NUMÉROTATION COMMUNE (plan, journal, chips, rail — `minimapData` la
-  suit). Le plan est IMMUABLE et INERTE côté cochage (leçon v4.6 : jamais d'état de passage
-  sur une vue spatiale — pas de cases, la trace vit dans le journal) ; il porte un état LÉGER
-  (✓ dernier passage complet, ● ici, ×n passages, branche « hors chemin » estompée avec
-  mention textuelle, `offPathSet`) et sert à NAVIGUER : taper un bloc = `jumpToBlock` (visité →
-  défilement vers sa dernière carte du journal ; jamais visité → il ENTRE au bout du journal) ;
-  un lien →/↺ défile DANS le plan. Étapes visibles par défaut (décision utilisateur), bascule
-  « Titres seuls » (`state.ovPlanTitles`, jamais persisté) ; l'impression force les étapes
-  visibles. Registres : chips d'option au registre ATTENTION (`--verify`, comme `.opt`) ;
-  liens neutres (`--tag-bg`), reprise `↺` en `--primary-soft` ; nœuds = même grammaire que
-  les cartes (liseré bleu = ici, vert = fait, ambre = décision).
+- **Plan de l'aide (v4.10.0 arbre, v4.12.0 organigramme hybride)** : sous le journal, la
+  STRUCTURE COMPLÈTE façon algorithme papier / checklist conditionnelle QRH — `flowPlan(f)`
+  (pure, cache WeakMap par objet fiche, jamais l'éditeur) : DFS depuis le départ, le TRONC
+  reprend au POINT DE CONVERGENCE (post-dominateur immédiat — itératif, graphes minuscules),
+  cible déjà décrite = lien « ↺ reprendre à n » (les BOUCLES deviennent une structure lisible,
+  ex. cycles 2 min d'un ACR), chaque bloc n'apparaît qu'UNE fois. `flowPlan().order` =
+  NUMÉROTATION COMMUNE (plan, journal, chips, rail — `minimapData` la suit). Le plan est
+  IMMUABLE et INERTE côté cochage (leçon v4.6, décision RE-CONFIRMÉE en maquettes v4.12 :
+  jamais de cases — la trace vit dans le journal) ; il porte un état LÉGER (✓ dernier passage
+  complet, ● ici, ×n passages, `offPathSet`) et sert à NAVIGUER : taper un bloc = `jumpToBlock`,
+  un lien →/↺ défile DANS le plan (flash). **Organigramme hybride (v4.12.0)** : branches d'une
+  décision côte à côte quand l'écran le permet, empilées sinon — règle CSS PURE, locale et
+  récursive : `.pl-cols` grid `auto-fit minmax(148px,1fr)` (148 px = deux colonnes tiennent à
+  375 px, seuil validé en maquette), plafonnée par `c1…c4` (nombre de branches EN COLONNE —
+  sans lui, une branche pleine largeur force des pistes de 148 px sur grand écran) ; branche
+  PROFONDE (`deep` : > 2 blocs ou décision imbriquée) = pleine largeur toujours, `deepv`
+  (> 3 étapes) = pleine largeur sous 640 px seulement. RAIL de branche 3 px étiqueté
+  (bleu = prise, pointillé estompé + mention « hors chemin » = écartée, la couleur jamais
+  seule) avec COUDE de convergence (`.pl-elbow`) ; REPLI PAR BRANCHE en ligne-bilan
+  (`state.ovFold['b:…']`, chip-bouton ≥ 44 px « n blocs · k ✓ · → n ») — hors chemin
+  auto-repliée, JAMAIS bloquant ; FIL D'ANCÊTRES COLLANT (question + option épinglées sous
+  l'en-tête au défilement : `position:sticky` empilé `pd0-3`, `--pl-stick` mesuré sur
+  `header.bar` par `ovPlanStick`). **Échelle ECAM** (mode compact, remplace « Titres seuls » ;
+  `state.ovPlanCompact`, jamais persisté, impression = détails) : une ligne par bloc, retraits
+  d0-3 AVEC chips d'étiquette (`OUI ›`), renvois mono abrégés (`optAbbr` pure : `OUI→5`,
+  `↺1`, `▪fin`), ligne dépliable in-place (étapes lecture seule + « → aller à ce bloc »).
+  Registres : chips d'option au registre ATTENTION (`--verify`, comme `.opt`) ; liens neutres
+  (`--tag-bg`), reprise `↺` en `--primary-soft` ; nœuds = même grammaire que les cartes
+  (liseré bleu = ici, vert = fait, ambre = décision).
 - **Challenge-response (v4.11.0, AC 120-71B / Do-Verify)** : trois briques, AUCUN champ modèle.
   **« challenge :: réponse »** = séparateur explicite DANS la chaîne d'étape (même philosophie
   que ⚠/△ : opt-in, export v3 inchangé, ancien client lisible) — `stepCR` (pure, APRÈS
