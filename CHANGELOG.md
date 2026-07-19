@@ -1,5 +1,30 @@
 # Journal des modifications
 
+## [4.14.0] — 2026-07-19
+Trois évolutions demandées à l'usage : le fil d'ancêtres du plan retrouve ses niveaux, le
+mode Statique devient un document complet choisi dès l'entrée de la fiche, et les branches
+profondes s'affichent en colonnes.
+
+### Modifié
+- **Plan de l'aide — fil d'ancêtres à plusieurs niveaux (sans superposition)** : en
+  défilant dans les branches, une **pile de bulles flottantes** montre chaque décision
+  ancêtre, **indentée selon sa position dans l'arbre** comme avant — mais les bulles
+  s'empilent désormais selon leurs hauteurs réelles (le chevauchement est impossible), et
+  chaque bulle porte son « › Oui / › Non » **dans la même bulle** : deux niveaux avec des
+  options homonymes ne peuvent plus se confondre. Un tap sur une bulle va à sa décision.
+- **Mode Statique = document complet** : le tableau inclut désormais « Confirmer le
+  diagnostic » et « Éliminer — tableau atypique ? » côte à côte, le chapeau « ⚠ Ne pas
+  oublier », et « △ À vérifier — surveillances » en pied — comme la maquette validée ; le
+  bouton « démarrer la session » reste au-dessus. Le choix se fait dès l'entrée de la
+  fiche : **« Dynamique ↔ Statique »** en tête, et en Dynamique la bascule
+  **« Journal ↔ Guidé »** reste à sa place dans la prise en charge. Revenir en Dynamique
+  restaure le dernier sous-mode utilisé.
+- **Branches profondes en colonnes** : dans le tableau statique (dès 640 px), une branche
+  contenant plusieurs blocs ou une décision imbriquée reste **côte à côte** avec ses sœurs
+  — l'arbre dans l'arbre garde ses fourches gauche/droite au premier niveau (une colonne
+  courte à côté d'une longue, esprit SFAR papier) ; une décision imbriquée dans une colonne
+  étroite s'empile d'elle-même. Sur téléphone, tout reste en pile pleine largeur.
+
 ## [4.13.3] — 2026-07-19
 ### Corrigé
 - **Plan de l'aide (vue journal) — le fil d'ancêtres retrouve la bonne bulle** : la

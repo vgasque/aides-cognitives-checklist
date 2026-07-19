@@ -108,9 +108,12 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
 - **Journal de parcours du mode crise (v4.9.0, remplace la vue spatiale v4.6.0)** : la lecture
   d'une fiche À ALGORITHME a TROIS modes (v4.13.0) — `overview` « Journal » (défaut : JOURNAL
   chronologique) ↔ `guided` « Guidé » (bloc à bloc historique, inchangé) ↔ `static`
-  « Statique » (TABLEAU compact façon SFAR, cf. bullet dédié) ; bascule `.seg` à 3 segments
-  (`#readModeSeg`, `.read-seg.n3`, pastille au tiers `i0-2`) en tête de l'étape ②, masquée si
-  `!hasFlow` ; préférence PAR UTILISATEUR (`spaceKey('ac-read-mode')` + `data.prefs.readMode`
+  « Statique » (TABLEAU compact façon SFAR, cf. bullet dédié) ; bascule à DEUX NIVEAUX
+  (v4.14.0, décision utilisateur) : « Dynamique ↔ Statique » (`#readTopSeg`) EN TÊTE de fiche
+  — le statique absorbe confirmation/chapeau/surveillances — puis « Journal ↔ Guidé »
+  (`#readModeSeg`) dans l'étape ② en dynamique seulement ; revenir en dynamique restaure le
+  dernier sous-mode (clé LOCALE `ac-read-dyn`, non synchronisée) ; masquées si `!hasFlow` ;
+  préférence PAR UTILISATEUR (`spaceKey('ac-read-mode')` + `data.prefs.readMode`
   — le pull de synchro n'écrit QUE la préférence locale, il ne bascule JAMAIS la vue ouverte).
   Les trois vues partagent le MÊME Runtime : `nav`/`navSeq`/`checked` et l'export v3
   STRICTEMENT inchangés. **Doctrine du journal (leçon v4.6→v4.9 : ne PAS poser
@@ -148,17 +151,19 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   (bleu = prise, pointillé estompé + mention « hors chemin » = écartée, la couleur jamais
   seule) avec COUDE de convergence (`.pl-elbow`) ; REPLI PAR BRANCHE en ligne-bilan
   (`state.ovFold['b:…']`, chip-bouton ≥ 44 px « n blocs · k ✓ · → n ») — hors chemin
-  auto-repliée, JAMAIS bloquant ; FIL D'ANCÊTRES v3 (v4.13.3, après deux itérations sur
-  retours d'usage — la pile sticky pd0-3 + chips de v4.12 se SUPERPOSAIT, l'épingle unique
-  pd0 de v4.13.2 montrait la MAUVAISE question) : UNE bulle flottante SYNTHÉTIQUE
-  (`#plPin`, `position:fixed`, pilotée à CHAQUE défilement par `ovPlanPin` — quelques
-  rectangles, contenu reconstruit seulement quand (décision, branche) change) montre
-  TOUJOURS la question la plus PROCHE + « › option » de la branche courante, se REMPLACE en
-  traversant les décisions, disparaît à la convergence et en mode Échelle, tap = `data-plgo`
-  (délégation `.ov-wrap`), masquée à l'impression ; les classes pdN restent posées par le
-  walker (inertes) ; `--pl-stick` mesuré sur `header.bar` par `ovPlanStick` — ÷ `zoomF()` et
-  RECALÉ à chaque variation de hauteur de l'en-tête (repli `.condensed`/`.ttl-on` au
-  défilement, taille du texte, v4.13.1).
+  auto-repliée, JAMAIS bloquant ; FIL D'ANCÊTRES v4 (v4.14.0, après TROIS itérations sur
+  retours d'usage — pile sticky superposée v4.12, épingle unique = mauvaise question
+  v4.13.2, bulle unique = niveaux perdus v4.13.3) : PILE de bulles flottantes SYNTHÉTIQUES
+  (`#plPin`, `position:fixed`, flex column — la superposition est IMPOSSIBLE par
+  construction), UNE bulle PAR DÉCISION ANCÊTRE de la ligne de lecture, INDENTÉE selon sa
+  position réelle dans l'arbre (décision utilisateur), chacune portant « › option » de SA
+  branche (le Oui/Non reste attaché à sa question — jamais d'ambiguïté entre niveaux) ;
+  pilotée à CHAQUE défilement par `ovPlanPin` (quelques rectangles, contenu reconstruit
+  seulement quand la chaîne change), décroche à la convergence et en mode Échelle, tap =
+  `data-plgo` (délégation `.ov-wrap`), masquée à l'impression ; les classes pdN restent
+  posées par le walker (inertes) ; `--pl-stick` mesuré sur `header.bar` par `ovPlanStick` —
+  ÷ `zoomF()` et RECALÉ à chaque variation de hauteur de l'en-tête (repli
+  `.condensed`/`.ttl-on` au défilement, taille du texte, v4.13.1).
   **Échelle ECAM** (mode compact, remplace « Titres seuls » ;
   `state.ovPlanCompact`, jamais persisté, impression = détails) : une ligne par bloc, retraits
   d0-3 AVEC chips d'étiquette (`OUI ›`), renvois mono abrégés (`optAbbr` pure : `OUI→5`,
@@ -201,14 +206,21 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   vue d'ensemble (blocs repliés rouverts par CSS `@media print` ; le SVG s'y imprime entier —
   fix du `max-height:300px`). L'aperçu d'éditeur reçoit un BAC À SABLE de navigation détaché
   du Runtime (les coches d'un brouillon ne polluent jamais une session vive d'une autre fiche).
-- **Mode statique (v4.13.0, 3ᵉ mode de lecture)** : l'algorithme ENTIER en TABLEAU compact
-  façon aide SFAR/CAMR — cellules télégraphiques carrelées à joint 3 px, GÉNÉRÉ depuis
+- **Mode statique (v4.13.0, DOCUMENT complet v4.14.0)** : TOUTE l'aide en TABLEAU compact
+  façon aide SFAR/CAMR — cellules télégraphiques carrelées à joint 3 px. `svExtras` (v4.14.0)
+  absorbe les SECTIONS de la fiche en cellules INERTES : confirmation + différentiels côte à
+  côte en tête, chapeau « ⚠ Ne pas oublier » (bord `--critical-bd`), « △ À vérifier » en pied
+  (bord `--verify-bd`) — en statique, PAS de rail ①②③ ni de `forget-strip` (une seule étape),
+  le bouton « démarrer la session » reste au-dessus du tableau. L'algorithme est GÉNÉRÉ depuis
   `flowPlan` (numérotation commune) par `svTableHtml` : tronc = cellules pleine largeur
   (`.sv-cell`, titre en petites capitales, étapes ❑), décision = BANDE au registre ATTENTION
   (`.sv-band` : titre + question) + branches en colonnes (`.sv-cols` auto-fit minmax(148px)
   plafonné `c1…c4` ; **UNE SEULE COLONNE sous 640 px** — retour d'usage v4.13.1 : des
-  colonnes de ~145 px sur téléphone rendaient la lecture difficile ; règle `deep` du plan
-  répliquée pour ≥ 640, pas de `deepv`). INERTE côté cochage (doctrine du plan,
+  colonnes de ~145 px sur téléphone rendaient la lecture difficile ; **PAS de règle `deep`**
+  depuis v4.14.0, décision utilisateur : même une branche profonde reste EN COLONNE ≥ 640 —
+  l'arbre dans l'arbre garde ses fourches gauche/droite au 1ᵉʳ niveau, esprit SFAR ; une
+  décision imbriquée dans une colonne étroite retombe d'elle-même en pile, auto-fit
+  récursif). INERTE côté cochage (doctrine du plan,
   RE-CONFIRMÉE) : l'état de session est PEINT en lecture seule (✓/k coché du dernier passage,
   `● ici` = bout du journal, `aria-current`, hors chemin estompé + mention, chip d'option
   `✓ prise`) ; taper une cellule = `svJump` (jamais visité → ENTRE au bout du journal ; JAMAIS

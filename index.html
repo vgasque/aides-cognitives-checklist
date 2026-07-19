@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-VuCr9io6WWV5DWll/DqvxOw0XjibpUszE/mv1FrrIKY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-+VdAW+9AebNMlIfeLHGDNW1lIdgwyMLcWESgdXmNC1A='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1399,9 +1399,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .read-seg{background:var(--surface);border:1px solid var(--line);border-radius:24px;padding:3px;margin-bottom:10px}
   .read-seg .seg-pill{width:calc(50% - 7px);left:3px;top:3px;bottom:3px}
   .read-seg.i1 .seg-pill{transform:translateX(calc(100% + 8px))}
-  /* v4.13.0 : TROIS segments (Journal · Guidé · Statique) — pastille au tiers. */
-  .read-seg.n3 .seg-pill{width:calc(33.333% - 7.33px)}
-  .read-seg.n3.i2 .seg-pill{transform:translateX(calc(200% + 16px))}
   .ov-controls{display:flex;gap:8px;justify-content:flex-end;margin:0 0 10px}
   .ov-controls .btn{min-height:44px}
   /* Section de bloc : en-tête = LIGNE D'ÉTAT toujours visible (n°, titre, compteur, chevron),
@@ -1515,15 +1512,15 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pl-bl .pl-chv{color:var(--verify);font-size:11px;margin-left:2px}
   .pl-bl:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .pl-offtag{font-weight:600;color:var(--ink-soft)}
-  /* FIL D'ANCÊTRES v3 (v4.13.3) : UNE bulle flottante SYNTHÉTIQUE (#plPin, position:fixed,
-     pilotée au défilement par ovPlanPin) montre TOUJOURS la question la plus PROCHE + l'option
-     de la branche où l'on est — elle se REMPLACE en traversant les décisions, jamais de pile.
-     Historique : la pile sticky pd0-3 + chips (v4.12.0) se superposait (décalages figés 48 px
-     vs questions sur 2 lignes) ; l'épingle unique pd0 (v4.13.2) montrait la MAUVAISE question
-     (racine au lieu de la plus proche) et perdait le Oui/Non. Les classes pdN restent posées
-     par le walker (inertes) ; tap sur la bulle = data-plgo (délégation .ov-wrap existante). */
-  #plPin{position:fixed;z-index:6}
-  #plPin .pl-nd{margin:0;cursor:pointer}
+  /* FIL D'ANCÊTRES v4 (v4.14.0) : PILE de bulles flottantes SYNTHÉTIQUES (#plPin,
+     position:fixed, pilotée au défilement par ovPlanPin) — une bulle PAR DÉCISION ANCÊTRE,
+     INDENTÉE selon sa position réelle dans l'arbre (décision utilisateur), avec « › option »
+     de SA branche dans la même bulle (le Oui/Non reste attaché à sa question). Empilement en
+     flex column : les hauteurs réelles se suivent, la superposition de v4.12 (décalages figés
+     48 px) est IMPOSSIBLE par construction. Tap = data-plgo (délégation .ov-wrap existante). */
+  #plPin{position:fixed;z-index:6;display:flex;flex-direction:column;gap:3px;pointer-events:none}
+  #plPin[hidden]{display:none}
+  #plPin .pl-nd{margin:0;cursor:pointer;pointer-events:auto}
   #plPin .pl-nt{display:flex;align-items:center;gap:7px;min-width:0}
   #plPin .pnt{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   #plPin .pinchip{flex:none;font-size:11px;font-weight:700;color:var(--verify);background:var(--surface);border:1px solid var(--verify-bd);border-radius:999px;padding:2px 9px;max-width:45%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1611,12 +1608,18 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .sv-cols.c3{grid-template-columns:repeat(auto-fit,minmax(max(148px,calc(33.33% - 2px)),1fr))}
   .sv-cols.c4{grid-template-columns:repeat(auto-fit,minmax(max(148px,calc(25% - 2.25px)),1fr))}
   @media (max-width:639.98px){ .sv-cols,.sv-cols.c2,.sv-cols.c3,.sv-cols.c4{grid-template-columns:1fr} }
-  /* Branche PROFONDE (deep : > 2 blocs ou décision imbriquée) = pleine largeur (>= 640). */
-  .sv-br.deep{grid-column:1/-1}
   .sv-br{display:grid;gap:3px;min-width:0;align-content:start}
   .sv-opt{border:1px solid var(--verify-bd);border-radius:3px;background:var(--verify-soft);color:var(--verify);font-size:11px;font-weight:700;text-align:center;padding:4px 6px;min-height:28px;display:flex;align-items:center;justify-content:center;gap:4px;flex-wrap:wrap}
   .sv-opt .sv-tk{color:var(--ok)}
   .sv-offtag{font-weight:600;color:var(--ink-soft)}
+  /* Sections de la fiche en cellules (v4.14.0) : INERTES — pas de curseur main, registres
+     ALERTE (chapeau) et ATTENTION (surveillances) par bord gauche + titre (jamais la couleur seule). */
+  .sv-cell.sv-inert{cursor:default}
+  .sv-cell.sv-inert:hover{border-color:var(--line-strong)}
+  .sv-nf{border-left:4px solid var(--critical-bd)}
+  .sv-nf .sv-t{color:var(--critical)}
+  .sv-vf{border-left:4px solid var(--verify-bd)}
+  .sv-vf .sv-t{color:var(--verify)}
   /* Fourche (ambre) = bandeau local 16 px sous la bande ; convergence (grise) = ESPACE
      réservé 16 px, les brins vivent dans la superposition .sv-gut (ils partent du bas réel
      de chaque branche, v4.13.1). Masqués quand les branches s'empilent (.stacked) —
@@ -2570,7 +2573,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.13.3';
+const APP_VERSION='4.14.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -6035,18 +6038,24 @@ function renderRead(){
   const sessStartH=(!preview&&!started)?`<div class="sess-start"><button class="btn primary" id="sessStart">${uiIcon('play',14)} ${confItems.length?'Confirmé — démarrer la session':'Démarrer la session'}</button><span class="ss-hint">chrono, minuteurs et journal — démarre aussi à la première action</span></div>`:'';
   // v4.13.0 : en mode STATIQUE, pas de panneau « Algorithme » (le tableau EST la vue d'ensemble).
   const algH=(f.blocks&&f.blocks.length&&!useSv)?`<div class="alg-panel"><button type="button" class="alg-head" id="flowToggle" aria-expanded="${state.showFlow?'true':'false'}"><span class="alg-k">Algorithme</span><span class="alg-sub">${algSubHtml(blockDone,blockTot)}</span><span class="alg-chev" aria-hidden="true">${state.showFlow?'▴':'▾'}</span></button>${state.showFlow?flowBlock(f,true)+'<div class="flow-hint">Schéma = vue d’ensemble · un nœud = y aller · étapes à cocher en-dessous ↓</div>':''}</div>`:'';
-  // Bascule Vue d'ensemble / Vue guidée (v4.6.0) : les deux vues partagent le même Runtime —
-  // basculer ne perd rien (coches, chemin, minuteurs). Masquée sans algorithme (vues identiques).
-  // v4.13.0 : TROIS modes — Journal (overview), Guidé, Statique (tableau SFAR inerte).
-  const modeSegH=hasFlow(f)?(()=>{const mi=useOv?0:(useSv?2:1);
-    const btn=(m,ix,lbl,al)=>`<button type="button" class="seg-btn${mi===ix?' on':''}" role="tab" aria-selected="${mi===ix?'true':'false'}" aria-label="${al}" data-readmode="${m}" tabindex="${mi===ix?'0':'-1'}">${lbl}</button>`;
-    return `<div class="seg read-seg n3${mi?' i'+mi:''}" id="readModeSeg" role="tablist" aria-label="Affichage de la prise en charge"><span class="seg-pill" aria-hidden="true"></span>${btn('overview',0,'Journal','Journal du parcours')}${btn('guided',1,'Guidé','Vue guidée, bloc à bloc')}${btn('static',2,'Statique','Vue statique : tout l’algorithme en tableau')}</div>`;})():'';
+  // v4.14.0 : DEUX NIVEAUX de bascule (décision utilisateur). « Dynamique ↔ Statique » EN TÊTE
+  // de fiche — le statique est un DOCUMENT complet (confirmation, chapeau, algorithme,
+  // surveillances dans le tableau) ; le dynamique contient « Journal ↔ Guidé » dans l'étape ②.
+  // Les trois vues partagent le même Runtime — basculer ne perd rien.
+  const modeTopSegH=hasFlow(f)?`<div class="seg read-seg${useSv?' i1':''}" id="readTopSeg" role="tablist" aria-label="Mode de lecture"><span class="seg-pill" aria-hidden="true"></span><button type="button" class="seg-btn${useSv?'':' on'}" role="tab" aria-selected="${useSv?'false':'true'}" aria-label="Mode dynamique — journal ou vue guidée" data-readmode="dynamic" tabindex="${useSv?'-1':'0'}">Dynamique</button><button type="button" class="seg-btn${useSv?' on':''}" role="tab" aria-selected="${useSv?'true':'false'}" aria-label="Mode statique — toute l’aide en tableau" data-readmode="static" tabindex="${useSv?'0':'-1'}">Statique</button></div>`:'';
+  const modeSegH=(hasFlow(f)&&!useSv)?`<div class="seg read-seg${useOv?'':' i1'}" id="readModeSeg" role="tablist" aria-label="Affichage de la prise en charge"><span class="seg-pill" aria-hidden="true"></span><button type="button" class="seg-btn${useOv?' on':''}" role="tab" aria-selected="${useOv?'true':'false'}" aria-label="Journal du parcours" data-readmode="overview" tabindex="${useOv?'0':'-1'}">Journal</button><button type="button" class="seg-btn${useOv?'':' on'}" role="tab" aria-selected="${useOv?'false':'true'}" aria-label="Vue guidée, bloc à bloc" data-readmode="guided" tabindex="${useOv?'-1':'0'}">Guidé</button></div>`:'';
   const localH=f.localInfo&&f.localInfo.trim()?`<div class="local">${fmt(f.localInfo)}</div>`:'';
   const stages=[];
+  if(useSv){
+    // v4.14.0 : STATIQUE = document complet en tableau (confirmation, chapeau, algorithme,
+    // surveillances absorbés par svExtras) — une seule « étape », donc pas de rail ①②③.
+    stages.push({cls:'on',head:'',body:sessStartH+(wideRead?'':rtH)+navHtml+localH+(wideRead?'':posH)});
+  }else{
   if(confBlockH)stages.push({cls:started?'done':'on',head:'',body:confBlockH+sessStartH});
   {const body=(confBlockH?'':sessStartH)+(wideRead?'':rtH)+modeSegH+algH+crumbsH+navHtml+navRowH+localH+(wideRead?'':posH);
    if(body)stages.push({cls:state.flowEnded?'done':(started?'on':(confBlockH?'off':'on')),head:'Prise en charge',body});}
   if(verifyH||diffH)stages.push({cls:state.flowEnded?'on':'off',head:'Surveillances &amp; pièges',body:verifyH+(diffH?`<div class="diff-anchor" id="diffBlock" tabindex="-1">${diffH}</div>`:'')});
+  }
   const pathH=stages.length>1
     ?`<ol class="care-path">${stages.map((s,i)=>`<li class="cp-stage ${s.cls}"${s.cls==='on'?' aria-current="step"':''}><span class="cp-n" aria-hidden="true">${s.cls==='done'?uiIcon('check',13,{sw:3.2,cls:''}):(i+1)}</span><div class="cp-body">${s.head?`<div class="block-h cp-h">${s.head}</div>`:''}${s.body}</div></li>`).join('')}</ol>`
     :stages.map(s=>s.body).join('');
@@ -6056,7 +6065,8 @@ function renderRead(){
     <div class="read-meta">${f.libraryId?`<span class="tag libtag" title="Bibliothèque partagée">${uiIcon('book',12)}${esc(libName(f.libraryId)||'Partagée')}</span>`:''}${statusChip(f.status,true)}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo title="Reste à compléter : ${esc(sp.join(' · '))} — remplacez les mentions « à compléter » par vos informations locales.">△ À compléter</span>`:'';})()}${catTag(f)}${f.code?`<span class="card-date" style="font-family:var(--mono)">${esc(f.code)}</span>`:''}<span class="card-date${staleDate(f.validation)?' stale':''}">${esc(fmtDate(f.validation))}</span>${f.libraryId&&f.updatedBy?`<span class="card-date" title="Auteur de la dernière modification (pas forcément de toute la fiche)">· dernière modification par ${esc(f.updatedBy)}</span>`:''}</div>
     ${f.status==='draft'?`<div class="notice">${uiIcon('warn',15)}<div><b>Brouillon</b> — cette fiche n'a pas encore été validée pour l'usage clinique.</div></div>`:''}
     ${f.status==='review'?`<div class="notice">${uiIcon('warn',15)}<div><b>À relire</b> — cette fiche est signalée à relire avant validation.</div></div>`:''}
-    ${forgetStrip}
+    ${modeTopSegH}
+    ${useSv?'':forgetStrip}
     ${pathH}
     ${wideRead?'':tkH}
     ${gallery}
@@ -6150,11 +6160,21 @@ function bindReadEvents(f,blk,cur){
     t.elapsedMs=0;t.lastStart=Date.now();t.running=true;ensureAudio();persistLive(Runtime,true);render();});
   // Bascule Vue d'ensemble / Vue guidée (v4.6.0) : renderKeepAnchor -> la bascule reste sous le
   // doigt au re-rendu ; préférence mémorisée (spaceKey + data.prefs à la prochaine synchro).
-  {const seg=document.getElementById('readModeSeg');
-   if(seg){const go=m=>{if(state.readMode===m)return;state.readMode=m;setReadModePref(m);renderKeepAnchor('#readModeSeg');
-       const s2=document.getElementById('readModeSeg');const on=s2&&s2.querySelector('.seg-btn.on');if(on)on.focus({preventScroll:true});};
+  // v4.14.0 : DEUX bascules — « Dynamique ↔ Statique » (#readTopSeg) et « Journal ↔ Guidé »
+  // (#readModeSeg, en dynamique seulement). Revenir en dynamique restaure le DERNIER sous-mode
+  // (clé locale 'ac-read-dyn', non synchronisée — la préférence synchronisée reste readMode).
+  {const go=m=>{
+     if(m==='dynamic')m=(()=>{try{const d=localStorage.getItem(spaceKey('ac-read-dyn'));return (d==='guided'||d==='overview')?d:'overview';}catch(e){return 'overview';}})();
+     if(state.readMode===m)return;
+     state.readMode=m;setReadModePref(m);
+     if(m!=='static')try{localStorage.setItem(spaceKey('ac-read-dyn'),m);}catch(e){}
+     renderKeepAnchor('#readTopSeg');
+     const s2=document.getElementById('readModeSeg')||document.getElementById('readTopSeg');
+     const on=s2&&s2.querySelector('.seg-btn.on');if(on)on.focus({preventScroll:true});};
+   [['readTopSeg',['dynamic','static']],['readModeSeg',['overview','guided']]].forEach(([id,keys])=>{
+     const seg=document.getElementById(id);if(!seg)return;
      seg.querySelectorAll('[data-readmode]').forEach(b=>b.onclick=()=>go(b.dataset.readmode));
-     seg.onkeydown=e=>{if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;e.preventDefault();go(e.key==='ArrowLeft'?'overview':'guided');};}}
+     seg.onkeydown=e=>{if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;e.preventDefault();go(e.key==='ArrowLeft'?keys[0]:keys[1]);};});}
   // Navigation + cochage — rebranchés aussi par renderNavOnly (guidé) / renderOvOnly (ensemble).
   if(state.readMode==='overview'&&hasFlow(f))bindOverviewEvents(f);
   else if(state.readMode==='static'&&hasFlow(f)){bindStaticEvents(f);svPaintArrows();}
@@ -6509,37 +6529,42 @@ function ovPlanStick(){const pl=main.querySelector('.ov-plan');if(!pl)return;
   const hb=document.querySelector('header.bar');
   pl.style.setProperty('--pl-stick',Math.round((hb?hb.getBoundingClientRect().bottom/zoomF():60)+4)+'px');
   ovPlanPin();}
-// FIL D'ANCÊTRES v3 (v4.13.3) : bulle flottante synthétique — question la plus PROCHE
-// contenant la ligne de lecture + option de la branche courante. Piloté au DÉFILEMENT
-// (remplacement, jamais de pile) ; contenu reconstruit seulement quand (décision, branche)
-// change ; géométrie en px CSS (÷ zoomF, position:fixed suit le zoom de <html>).
+// FIL D'ANCÊTRES v4 (v4.14.0) : PILE de bulles flottantes synthétiques — UNE bulle par
+// décision ANCÊTRE de la ligne de lecture, chacune INDENTÉE selon sa position réelle dans
+// l'arbre (décision utilisateur : les niveaux et le décalage de v4.12, SANS la superposition
+// — la pile est un flex column, les hauteurs réelles s'empilent) et portant « › option » de
+// SA branche (le Oui/Non reste attaché à SA question — jamais d'ambiguïté entre niveaux).
+// Piloté au DÉFILEMENT ; contenu reconstruit seulement quand la chaîne change.
 function ovPlanPin(){
   const wrap=main.querySelector('.ov-wrap');const plan=wrap&&wrap.querySelector('.ov-plan');
   let pin=wrap&&wrap.querySelector('#plPin');
   const off=()=>{if(pin){pin.hidden=true;pin._k='';}};
   if(!plan||state.ovPlanCompact){off();return;}
+  const f=state.fiche;if(!f){off();return;}
   const Z=zoomF();
   const hb=document.querySelector('header.bar');
   const stickV=(hb?hb.getBoundingClientRect().bottom:60)+4*Z;   // px VISUELS
   const lineY=stickV+18*Z;
   const pr=plan.getBoundingClientRect();
   if(pr.top>stickV||pr.bottom<lineY){off();return;}
-  let best=null;
+  // Chaîne des décisions ancêtres (ordre document = extérieur -> intérieur).
+  const chain=[];
   plan.querySelectorAll('.pl-decwrap').forEach(dw=>{const r=dw.getBoundingClientRect();
-    if(r.top<lineY&&r.bottom>lineY+12*Z)best=dw;});   // petite marge basse : décroche à la convergence
-  if(!best){off();return;}
-  const nd=best.querySelector(':scope>.pl-nd.dec');const decId=nd?nd.dataset.plgo:'';
-  const f=state.fiche;const b=f&&(f.blocks||[]).find(x=>x.id===decId);
-  if(!b){off();return;}
-  let oi=-1;
-  best.querySelectorAll(':scope>.pl-cols>.pl-br').forEach((br,i)=>{const r=br.getBoundingClientRect();
-    if(r.top<lineY&&r.bottom>lineY)oi=i;});
+    if(!(r.top<lineY&&r.bottom>lineY+12*Z))return;   // petite marge basse : décroche à la convergence
+    const nd=dw.querySelector(':scope>.pl-nd.dec');const decId=nd?nd.dataset.plgo:'';
+    const b=(f.blocks||[]).find(x=>x.id===decId);if(!b)return;
+    let oi=-1;
+    dw.querySelectorAll(':scope>.pl-cols>.pl-br').forEach((br,i)=>{const br2=br.getBoundingClientRect();
+      if(br2.top<lineY&&br2.bottom>lineY)oi=i;});
+    chain.push({decId,b,oi,indent:Math.max(0,Math.round((r.left-pr.left)/Z))});});
+  if(!chain.length){off();return;}
   if(!pin){wrap.insertAdjacentHTML('beforeend','<div id="plPin" hidden aria-hidden="true"></div>');pin=wrap.querySelector('#plPin');}
-  const key=decId+':'+oi;
+  const key=chain.map(c=>c.decId+':'+c.oi).join('|');
   if(pin._k!==key){pin._k=key;
     const num={};flowPlan(f).order.forEach((id,i)=>{num[id]=i+1;});
-    const lbl=(oi>=0&&b.options&&b.options[oi])?String(stripBold(b.options[oi].label||'')).trim():'';
-    pin.innerHTML=`<div class="pl-nd dec" data-plgo="${esc(decId)}" tabindex="-1"><span class="pl-nn" aria-hidden="true">${num[decId]||'·'}</span><div class="pl-nt"><span class="pnt">${esc(b.title)||'Décision'}</span>${lbl?`<span class="pinchip">› ${esc(lbl)}</span>`:''}</div></div>`;}
+    pin.innerHTML=chain.map(c=>{
+      const lbl=(c.oi>=0&&c.b.options&&c.b.options[c.oi])?String(stripBold(c.b.options[c.oi].label||'')).trim():'';
+      return `<div class="pl-nd dec" data-plgo="${esc(c.decId)}" tabindex="-1" style="margin-left:${c.indent}px"><span class="pl-nn" aria-hidden="true">${num[c.decId]||'·'}</span><div class="pl-nt"><span class="pnt">${esc(c.b.title)||'Décision'}</span>${lbl?`<span class="pinchip">› ${esc(lbl)}</span>`:''}</div></div>`;}).join('');}
   pin.style.left=Math.round(pr.left/Z)+'px';
   pin.style.width=Math.round(pr.width/Z)+'px';
   pin.style.top=Math.round(stickV/Z)+'px';
@@ -6743,9 +6768,27 @@ function staticSection(f){
   const tipDone=(()=>{const b=f.blocks.find(x=>x.id===cur);if(!b||b.type==='decision')return {d:null,t:null};
     const steps=clean(b.steps);const seq=state.navSeq[state.navPos]||1;
     let d=0;steps.forEach((s,i)=>{if(state.checked[seq+':'+cur+':'+i])d++;});return {d,t:steps.length};})();
-  const inner=`<div class="sv-tb">${svTableHtml(f)}</div>`;
+  const inner=`<div class="sv-tb">${svExtras(f,'top')}${svTableHtml(f)}${svExtras(f,'bottom')}</div>`;
   return {blk,cur,navHtml:`<div class="sv-wrap">${inner}</div>`,inner,
     blockDone:tipDone.d,blockTot:tipDone.t};}
+// Sections de la fiche EN CELLULES du tableau statique (v4.14.0, maquette validée) :
+// confirmation + différentiels côte à côte, chapeau « Ne pas oublier » pleine largeur en
+// tête ; surveillances (À vérifier) en pied. Cellules INERTES (pas de data-svgo — ce sont
+// des repères de lecture, pas des blocs de l'algorithme).
+function svExtras(f,where){
+  const list=a=>`<ul class="sv-stp">${a.map(x=>`<li>${fmt(x)}</li>`).join('')}</ul>`;
+  const cell=(cls,title,items)=>`<div class="sv-cell sv-inert${cls}"><p class="sv-h"><span class="sv-t">${title}</span></p>${list(items)}</div>`;
+  if(where==='top'){
+    const conf=clean(f.confirmation),diff=clean(f.differentials),nf=clean(f.notForget);
+    const cells=[];
+    if(conf.length)cells.push(cell('','Confirmer le diagnostic',conf));
+    if(diff.length)cells.push(cell('','Éliminer — tableau atypique ?',diff));
+    let h='';
+    if(cells.length)h+=cells.length>1?`<div class="sv-cols c2">${cells.join('')}</div>`:cells[0];
+    if(nf.length)h+=cell(' sv-nf','⚠ Ne pas oublier',nf);
+    return h;}
+  const vf=clean(f.verify);
+  return vf.length?cell(' sv-vf','△ À vérifier — surveillances',vf):'';}
 function svTableHtml(f){
   const plan=flowPlan(f);if(!plan.order.length)return '';
   const items=plan.items;let i=0;
@@ -6788,19 +6831,17 @@ function svTableHtml(f){
       // Convergence : le tronc reprend juste après (flowPlan) — les branches qui y lient
       // fusionneront en flèche grise (svPaintArrows) quand elles sont en colonnes.
       const joinId=(items[i]&&items[i].k==='block')?items[i].id:null;
-      let anyMerge=false,nCols=0;
+      let anyMerge=false;
+      // v4.14.0 (décision utilisateur) : les branches PROFONDES restent EN COLONNES comme les
+      // autres — même avec un arbre dans l'arbre, le 1er niveau garde ses fourches
+      // gauche/droite (esprit SFAR : une colonne courte à côté d'une longue). Sous 640 px,
+      // tout s'empile de toute façon (CSS .sv-cols) ; une décision imbriquée dans une colonne
+      // étroite retombe d'elle-même en pile (auto-fit récursif).
       const brH=brs.map(br=>{
         const issue=svBranchIssue(items,br.a0,br.z);
         if(joinId&&issue&&issue.to===joinId&&!issue.back)anyMerge=true;
-        // Même règle que le plan v4.12 : branche PROFONDE (> 2 blocs ou décision imbriquée) =
-        // pleine largeur (>= 640 px ; en dessous, TOUT est en pile — CSS .sv-cols, v4.13.1).
-        let nb=0,nested=false;
-        for(let j=br.a0;j<br.z;j++){if(items[j].k==='block'){nb++;const bb=f.blocks.find(x=>x.id===items[j].id);
-          if(bb&&bb.type==='decision')nested=true;}}
-        const deep=nb>2||nested;
-        if(!deep)nCols++;   // les profondes s'étalent : elles ne comptent pas comme colonne
-        return `<div class="sv-br${br.tk?' taken':''}${br.isOff?' off':''}${deep?' deep':''}"><div class="sv-opt${br.tk?' tk':''}">${br.tk?'<span class="sv-tk">✓ </span>':''}${fmt(br.bo.label)}${br.isOff?'<span class="sv-offtag"> · hors chemin</span>':''}</div>${br.inner}</div>`;}).join('');
-      h+=`<div class="sv-decwrap"${joinId?` data-svjoin="${esc(joinId)}"`:''}><div class="sv-band${m.cur?' cur':''}${off.has(decId)?' off':''}" data-svgo="${esc(decId)}" role="button" tabindex="0"${m.cur?' aria-current="true"':''} aria-label="${esc(stripBold(b.title||'Décision'))} — aller à ce bloc"><span class="sv-n" aria-hidden="true">${num[decId]||'·'}</span><span class="sv-t"><b>${esc(b.title)||'Décision'}</b>${b.question?` — ${fmt(b.question)}`:''}</span><span class="sv-m">${metaH(decId,true)}</span></div><div class="sv-fork" aria-hidden="true"></div><div class="sv-cols c${Math.min(Math.max(nCols,1),4)}">${brH}</div>${anyMerge?'<div class="sv-merge" aria-hidden="true"></div>':''}</div>`;}
+        return `<div class="sv-br${br.tk?' taken':''}${br.isOff?' off':''}"><div class="sv-opt${br.tk?' tk':''}">${br.tk?'<span class="sv-tk">✓ </span>':''}${fmt(br.bo.label)}${br.isOff?'<span class="sv-offtag"> · hors chemin</span>':''}</div>${br.inner}</div>`;}).join('');
+      h+=`<div class="sv-decwrap"${joinId?` data-svjoin="${esc(joinId)}"`:''}><div class="sv-band${m.cur?' cur':''}${off.has(decId)?' off':''}" data-svgo="${esc(decId)}" role="button" tabindex="0"${m.cur?' aria-current="true"':''} aria-label="${esc(stripBold(b.title||'Décision'))} — aller à ce bloc"><span class="sv-n" aria-hidden="true">${num[decId]||'·'}</span><span class="sv-t"><b>${esc(b.title)||'Décision'}</b>${b.question?` — ${fmt(b.question)}`:''}</span><span class="sv-m">${metaH(decId,true)}</span></div><div class="sv-fork" aria-hidden="true"></div><div class="sv-cols c${Math.min(Math.max(brs.length,1),4)}">${brH}</div>${anyMerge?'<div class="sv-merge" aria-hidden="true"></div>':''}</div>`;}
     return h;};
   return walk();}
 // Peintre des flèches : fourches / convergences / gouttière des retours — positions RÉELLES
