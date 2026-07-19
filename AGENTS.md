@@ -121,8 +121,9 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   au-dessus, on lit toujours vers le bas ; le journal n'a PAS de curseur (la position est le
   BOUT, `state.navPos=fin`). **Fil condensé (v4.16.0, `ovPresList` PURE — décision utilisateur
   validée ECAM/QRH/AC 120-71B)** : trois présentations par passage — carte dépliée `'open'`,
-  LIGNE D'ÉTAT verte relisible `'line'`, CHIP `'chip'` (pastille n° + ✓ vert / « › réponse »
-  en toutes lettres tronquée pour une décision — la couleur jamais seule) ; règles : le BOUT
+  LIGNE D'ÉTAT verte relisible `'line'`, CHIP `'chip'` (pastille n° + TITRE ABRÉGÉ + ✓ vert,
+  ou n° + « › réponse » en toutes lettres tronquée pour une décision — v4.16.2, décision
+  utilisateur : « le numéro seul ne parle pas à un humain » ; la couleur jamais seule) ; règles : le BOUT
   est toujours une carte ; un passage INCOMPLET n'est JAMAIS une chip (l'invariant qui fait la
   conformité — repli manuel = ligne d'état au maximum) ; complets non-courants : les 2 plus
   récents en ligne, les plus anciens en chips ; SURCHARGE MANUELLE (v4.16.1) : le repli

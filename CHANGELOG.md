@@ -1,5 +1,14 @@
 # Journal des modifications
 
+## [4.16.2] — 2026-07-19
+### Modifié
+- **Chips du fil condensé — titre abrégé** (décision utilisateur : « le numéro seul ne
+  parle pas à un humain ») : une chip de bloc d'étapes affiche désormais **n° + titre
+  tronqué (~13 caractères) + ✓** (« 13 Non choquable… ✓ ») au lieu du numéro seul ; les
+  chips de décision gardent leur réponse en toutes lettres (« 5 › Choquable (FV/… »), qui
+  est la trace. Titre complet toujours en info-bulle ; vérifié à 375 px (1-2 chips par
+  rangée, aucun débordement) et en thème sombre.
+
 ## [4.16.1] — 2026-07-19
 ### Corrigé
 - **Fil condensé — une carte dépliée puis actée ne restait jamais recondensée** (retour
