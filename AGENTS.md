@@ -132,7 +132,12 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   par plan/SVG ; retour d'usage : une carte dépliée puis actée restait ouverte pour toujours) ;
   chips consécutives regroupées en rangées `.ov-crumbs`
   CHRONOLOGIQUES (une carte/ligne coupe la rangée) ; taper une chip = DÉPLIER la carte sur
-  place (`data-ovix` → `ovFold[idx]=false`) ; l'impression déplie tout (`_printingOv`).
+  place (`data-ovix` → `ovFold[idx]=false`) ; LIGNE-BILAN ECL (v4.16.4, décision
+  utilisateur — modèle Boeing ECL : une checklist terminée se referme en un statut d'une
+  ligne) : une rangée de PLUS DE 4 chips se replie en `.ov-runline` « ✓ n passages ·
+  a→b ▸ » (titres en info-bulle ; clé `ovFold['r:'+premierIdx]`, dépliage = consultation
+  transitoire comme les chips — `ovDropOpens` couvre les clés `r:`) ; l'impression déplie
+  tout (`_printingOv`).
   Condensation appliquée AU RENDU d'un geste de navigation, JAMAIS sous le doigt pendant le
   cochage ; une décision repliée garde sa réponse en toutes lettres (`.ov-ans`) et ses options
   restent actives partout (changer d'avis = nouveau passage décision+cible en bout de journal,

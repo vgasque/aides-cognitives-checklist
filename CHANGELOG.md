@@ -1,5 +1,15 @@
 # Journal des modifications
 
+## [4.16.4] — 2026-07-19
+### Modifié
+- **Fil condensé — ligne-bilan façon ECL** (retour d'usage : sur téléphone, une rangée de
+  15 chips titrées occupait tout l'écran) : une rangée de **plus de 4 chips** se replie en
+  une seule ligne de statut verte « **✓ 17 passages · 1→5 ▸** » — le modèle des ECL
+  Boeing, où une checklist terminée se referme en une ligne, le détail restant à la
+  demande. Un tap déplie la rangée de chips sur place (les titres complets sont aussi en
+  info-bulle) ; comme pour les chips, le dépliage est une consultation transitoire — le
+  prochain geste de navigation referme la ligne. L'impression déplie toujours tout.
+
 ## [4.16.3] — 2026-07-19
 ### Corrigé
 - **Journal — fin des « scrolls incessants » en avançant** (retour d'usage) : le re-rendu
