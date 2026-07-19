@@ -271,8 +271,10 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   (contribution à la piste = largeur d'origine) ; garde-fou résiduel : un brin n'est
   dessiné que si sa voie est réellement libre (sinon la branche garde sa pilule) et une
   pilule masquée reste en `visibility:hidden` (espace GARDÉ : pas d'oscillation du
-  ResizeObserver) ; ANCRAGES (v4.14.8) : la tige de fourche part du centre RÉEL de la
-  bande-question, le brin gris du centre du DERNIER BLOC VISIBLE de sa branche
+  ResizeObserver) ; ANCRAGES (v4.14.8-11) : la tige de fourche part du centre RÉEL de la
+  bande-question, le brin gris sort du bloc par un TRONÇON vertical de 10 px puis ne fait
+  le détour par la voie de bord QUE si le couloir central est obstrué (descente droite
+  sinon), le brin gris du centre du DERNIER BLOC VISIBLE de sa branche
   (v4.14.9 : la rangée-pilule en visibility:hidden réserve l'espace mais n'est pas le bloc
   de départ — le brin la TRAVERSE), la flèche d'arrivée vise le centre de la cellule de
   convergence — jamais le centre d'un bandeau élargi/décalé ;

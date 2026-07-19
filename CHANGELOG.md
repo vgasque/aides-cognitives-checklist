@@ -1,5 +1,15 @@
 # Journal des modifications
 
+## [4.14.11] — 2026-07-19
+### Corrigé
+- **Mode Statique — départ du brin gris lisible** : le brin sort désormais du bloc par un
+  **tronçon vertical de 10 px** avant tout coude (le départ collé au bloc n'était pas
+  lisible), et le **détour par la voie de bord ne se fait que si le couloir central est
+  réellement obstrué** — descente droite sinon (fin des détours inutiles). Vérifié :
+  anaphylaxie (1 coude légitime, 1 droit), ACR (2 droits, 1 coude légitime).
+- **Mode Statique — le contexte local (téléphones utiles) ne colle plus au tableau**
+  (marge de 18 px).
+
 ## [4.14.10] — 2026-07-19
 ### Amélioré
 - **Mode Statique — peinture des flèches ~3,5× plus rapide** : la passe de mesure/dessin
