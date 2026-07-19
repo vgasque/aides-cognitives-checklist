@@ -148,14 +148,17 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   (bleu = prise, pointillé estompé + mention « hors chemin » = écartée, la couleur jamais
   seule) avec COUDE de convergence (`.pl-elbow`) ; REPLI PAR BRANCHE en ligne-bilan
   (`state.ovFold['b:…']`, chip-bouton ≥ 44 px « n blocs · k ✓ · → n ») — hors chemin
-  auto-repliée, JAMAIS bloquant ; FIL COLLANT À UNE SEULE ÉPINGLE (v4.13.2, retour d'usage —
-  la pile pd0-3 + chips de v4.12 se superposait, offsets figés 48 px vs questions sur
-  2 lignes, et 3-4 boîtes épinglées gênaient la lecture) : seule la question de PROFONDEUR 0
-  (`.pl-nd.dec.pd0`) reste épinglée sous l'en-tête, se décroche en fin de `.pl-decwrap`
-  (deux décisions racines se remplacent naturellement) ; les classes pdN restent posées,
-  inertes au-delà de pd0 ; `--pl-stick` mesuré sur `header.bar` par `ovPlanStick` —
-  ÷ `zoomF()` et RECALÉ à chaque variation de hauteur de l'en-tête (repli
-  `.condensed`/`.ttl-on` au défilement, taille du texte, v4.13.1).
+  auto-repliée, JAMAIS bloquant ; FIL D'ANCÊTRES v3 (v4.13.3, après deux itérations sur
+  retours d'usage — la pile sticky pd0-3 + chips de v4.12 se SUPERPOSAIT, l'épingle unique
+  pd0 de v4.13.2 montrait la MAUVAISE question) : UNE bulle flottante SYNTHÉTIQUE
+  (`#plPin`, `position:fixed`, pilotée à CHAQUE défilement par `ovPlanPin` — quelques
+  rectangles, contenu reconstruit seulement quand (décision, branche) change) montre
+  TOUJOURS la question la plus PROCHE + « › option » de la branche courante, se REMPLACE en
+  traversant les décisions, disparaît à la convergence et en mode Échelle, tap = `data-plgo`
+  (délégation `.ov-wrap`), masquée à l'impression ; les classes pdN restent posées par le
+  walker (inertes) ; `--pl-stick` mesuré sur `header.bar` par `ovPlanStick` — ÷ `zoomF()` et
+  RECALÉ à chaque variation de hauteur de l'en-tête (repli `.condensed`/`.ttl-on` au
+  défilement, taille du texte, v4.13.1).
   **Échelle ECAM** (mode compact, remplace « Titres seuls » ;
   `state.ovPlanCompact`, jamais persisté, impression = détails) : une ligne par bloc, retraits
   d0-3 AVEC chips d'étiquette (`OUI ›`), renvois mono abrégés (`optAbbr` pure : `OUI→5`,

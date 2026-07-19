@@ -1,5 +1,16 @@
 # Journal des modifications
 
+## [4.13.3] — 2026-07-19
+### Corrigé
+- **Plan de l'aide (vue journal) — le fil d'ancêtres retrouve la bonne bulle** : la
+  simplification 4.13.2 épinglait la question de premier niveau — donc la mauvaise dès
+  qu'on lisait une branche imbriquée, et sans le Oui/Non. Désormais **une bulle flottante
+  unique** suit le défilement : toujours la question la plus **proche** de ce qu'on lit,
+  avec « › Oui / › Non » de la branche où l'on se trouve. Elle se remplace en traversant
+  les décisions (jamais d'empilement), disparaît aux convergences, et un tap y va
+  directement. Alignée quelle que soit la taille du texte ; absente du mode Échelle et de
+  l'impression.
+
 ## [4.13.2] — 2026-07-19
 ### Corrigé
 - **Plan de l'aide — fil collant simplifié** : la pile de questions et d'options épinglées

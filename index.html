@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-TTpF2Ni8iViBVo190dGmdENlw+7YbfB4hb7VOjwkn+s='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-VuCr9io6WWV5DWll/DqvxOw0XjibpUszE/mv1FrrIKY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1515,14 +1515,18 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pl-bl .pl-chv{color:var(--verify);font-size:11px;margin-left:2px}
   .pl-bl:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .pl-offtag{font-weight:600;color:var(--ink-soft)}
-  /* FIL COLLANT SIMPLIFIÉ (v4.13.2, retour d'usage) : UNE SEULE épingle — la question de
-     PROFONDEUR 0 (pd0) reste sous l'en-tête pendant qu'on défile dans ses branches, et se
-     décroche seule en fin de .pl-decwrap (deux décisions racines se REMPLACENT donc
-     naturellement). La pile pd1-3 + chips (v4.12.0) se superposait : décalages figés à
-     48 px alors qu'une question sur 2 lignes est plus haute, et 3-4 boîtes épinglées
-     rendaient la lecture difficile sur téléphone. Les classes pdN restent posées par le
-     walker (inertes au-delà de pd0). */
-  .pl-nd.dec.pd0{position:sticky;top:var(--pl-stick,64px);z-index:5}
+  /* FIL D'ANCÊTRES v3 (v4.13.3) : UNE bulle flottante SYNTHÉTIQUE (#plPin, position:fixed,
+     pilotée au défilement par ovPlanPin) montre TOUJOURS la question la plus PROCHE + l'option
+     de la branche où l'on est — elle se REMPLACE en traversant les décisions, jamais de pile.
+     Historique : la pile sticky pd0-3 + chips (v4.12.0) se superposait (décalages figés 48 px
+     vs questions sur 2 lignes) ; l'épingle unique pd0 (v4.13.2) montrait la MAUVAISE question
+     (racine au lieu de la plus proche) et perdait le Oui/Non. Les classes pdN restent posées
+     par le walker (inertes) ; tap sur la bulle = data-plgo (délégation .ov-wrap existante). */
+  #plPin{position:fixed;z-index:6}
+  #plPin .pl-nd{margin:0;cursor:pointer}
+  #plPin .pl-nt{display:flex;align-items:center;gap:7px;min-width:0}
+  #plPin .pnt{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #plPin .pinchip{flex:none;font-size:11px;font-weight:700;color:var(--verify);background:var(--surface);border:1px solid var(--verify-bd);border-radius:999px;padding:2px 9px;max-width:45%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   /* Coude de sortie de branche : le rail se referme vers le lien de convergence. */
   .pl-elbow{position:relative;margin-top:6px}
   .pl-br>.pl-elbow::before{content:"";position:absolute;left:-12px;top:-8px;width:9px;height:18px;border-left:3px solid var(--line-strong);border-bottom:3px solid var(--line-strong);border-bottom-left-radius:9px}
@@ -2358,7 +2362,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .mem-act select,.invite-row select,.invite-row input,.mi-sc{font-size:16px}
     .tk-time-edit{width:96px}
   }
-  @media print{body{background:#fff}header.bar,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.sess-list,.notes-block,#readModeSeg,.ov-controls,.ov-redo,.ovs-tgl,.flow-zoom{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}
+  @media print{body{background:#fff}header.bar,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.sess-list,.notes-block,#readModeSeg,.ov-controls,.ov-redo,.ovs-tgl,.flow-zoom,#plPin{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}
     /* Un conteneur à défilement s'imprime TRONQUÉ : à l'impression le tableau se déploie. */
     .md-tw{overflow:visible;break-inside:avoid}.md-tbl{min-width:0;font-size:11px}.md-tbl tr{break-inside:avoid}
     .forget-strip{break-inside:avoid}
@@ -2566,7 +2570,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.13.2';
+const APP_VERSION='4.13.3';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -4677,7 +4681,10 @@ window.addEventListener('scroll',()=>{const c=window.scrollY>24;
   // titres visibles à la fois (pattern « grand titre » iOS, symétrique du repli de l'accueil).
   const t=window.scrollY>110;
   if(t!==_hdrTtl){_hdrTtl=t;document.querySelector('header.bar').classList.toggle('ttl-on',t);
-    if(state.view==='read'&&state.readMode==='overview'&&state.fiche&&hasFlow(state.fiche))ovPlanStick();}},{passive:true});
+    if(state.view==='read'&&state.readMode==='overview'&&state.fiche&&hasFlow(state.fiche))ovPlanStick();}
+  // Fil d'ancêtres v3 : la bulle flottante du plan suit CHAQUE défilement (léger : quelques
+  // rectangles ; reconstruit son contenu seulement quand la décision/branche change).
+  if(state.view==='read'&&state.readMode==='overview'&&state.fiche&&hasFlow(state.fiche))ovPlanPin();},{passive:true});
 // keepQuery : bascule déclenchée par la RECHERCHE TRANSVERSALE -> la requête est conservée
 // (le filtre de catégorie, lui, est remis à zéro : il pourrait masquer les résultats attendus).
 // Mémoire de DÉFILEMENT par section (v4.4.1) : basculer Aides <-> Protocoles ne doit pas
@@ -6500,7 +6507,43 @@ function zoomF(){return (parseFloat(document.documentElement.style.zoom)||100)/1
 // Recalée aussi quand l'en-tête change de hauteur (repli .condensed au défilement, v4.13.1).
 function ovPlanStick(){const pl=main.querySelector('.ov-plan');if(!pl)return;
   const hb=document.querySelector('header.bar');
-  pl.style.setProperty('--pl-stick',Math.round((hb?hb.getBoundingClientRect().bottom/zoomF():60)+4)+'px');}
+  pl.style.setProperty('--pl-stick',Math.round((hb?hb.getBoundingClientRect().bottom/zoomF():60)+4)+'px');
+  ovPlanPin();}
+// FIL D'ANCÊTRES v3 (v4.13.3) : bulle flottante synthétique — question la plus PROCHE
+// contenant la ligne de lecture + option de la branche courante. Piloté au DÉFILEMENT
+// (remplacement, jamais de pile) ; contenu reconstruit seulement quand (décision, branche)
+// change ; géométrie en px CSS (÷ zoomF, position:fixed suit le zoom de <html>).
+function ovPlanPin(){
+  const wrap=main.querySelector('.ov-wrap');const plan=wrap&&wrap.querySelector('.ov-plan');
+  let pin=wrap&&wrap.querySelector('#plPin');
+  const off=()=>{if(pin){pin.hidden=true;pin._k='';}};
+  if(!plan||state.ovPlanCompact){off();return;}
+  const Z=zoomF();
+  const hb=document.querySelector('header.bar');
+  const stickV=(hb?hb.getBoundingClientRect().bottom:60)+4*Z;   // px VISUELS
+  const lineY=stickV+18*Z;
+  const pr=plan.getBoundingClientRect();
+  if(pr.top>stickV||pr.bottom<lineY){off();return;}
+  let best=null;
+  plan.querySelectorAll('.pl-decwrap').forEach(dw=>{const r=dw.getBoundingClientRect();
+    if(r.top<lineY&&r.bottom>lineY+12*Z)best=dw;});   // petite marge basse : décroche à la convergence
+  if(!best){off();return;}
+  const nd=best.querySelector(':scope>.pl-nd.dec');const decId=nd?nd.dataset.plgo:'';
+  const f=state.fiche;const b=f&&(f.blocks||[]).find(x=>x.id===decId);
+  if(!b){off();return;}
+  let oi=-1;
+  best.querySelectorAll(':scope>.pl-cols>.pl-br').forEach((br,i)=>{const r=br.getBoundingClientRect();
+    if(r.top<lineY&&r.bottom>lineY)oi=i;});
+  if(!pin){wrap.insertAdjacentHTML('beforeend','<div id="plPin" hidden aria-hidden="true"></div>');pin=wrap.querySelector('#plPin');}
+  const key=decId+':'+oi;
+  if(pin._k!==key){pin._k=key;
+    const num={};flowPlan(f).order.forEach((id,i)=>{num[id]=i+1;});
+    const lbl=(oi>=0&&b.options&&b.options[oi])?String(stripBold(b.options[oi].label||'')).trim():'';
+    pin.innerHTML=`<div class="pl-nd dec" data-plgo="${esc(decId)}" tabindex="-1"><span class="pl-nn" aria-hidden="true">${num[decId]||'·'}</span><div class="pl-nt"><span class="pnt">${esc(b.title)||'Décision'}</span>${lbl?`<span class="pinchip">› ${esc(lbl)}</span>`:''}</div></div>`;}
+  pin.style.left=Math.round(pr.left/Z)+'px';
+  pin.style.width=Math.round(pr.width/Z)+'px';
+  pin.style.top=Math.round(stickV/Z)+'px';
+  pin.hidden=false;}
 // Recalage AUTOMATIQUE : toute variation de hauteur de l'en-tête (taille du texte, bandeau de
 // crise, repli au défilement, rotation) recale la base du fil collant (v4.13.1).
 if(window.ResizeObserver){const _hbRO=new ResizeObserver(()=>{
