@@ -137,7 +137,11 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   cochage ; une décision repliée garde sa réponse en toutes lettres (`.ov-ans`) et ses options
   restent actives partout (changer d'avis = nouveau passage décision+cible en bout de journal,
   traçabilité complète) ; l'avancement (« Continuer — … → » / « Terminer ») n'existe QUE sur
-  l'instance du bout — une boucle est un simple Continuer ; « ↺ Refaire » poste volontairement
+  l'instance du bout — une boucle est un simple Continuer ; AVANCEMENT ANCRÉ (v4.16.3,
+  `ovAdvanceRender` — retour d'usage « scrolls incessants ») : le re-rendu d'un geste
+  d'avancement compense la condensation par un `scrollBy` ancré sur l'instance du geste
+  (dérive visuelle 0 px) et ne défile vers la nouvelle carte QUE si elle n'est pas déjà
+  entièrement visible ; « ↺ Refaire » poste volontairement
   une nouvelle carte, tout ce qui précède reste tel quel. Cocher dans une instance ne re-rend
   JAMAIS (délégation sur `.ov-wrap`, chirurgie `ovAfterCheck`/`ovPaintLive` ; `renderOvOnly` =
   pendant de `renderNavOnly`, qui dispatche). Fonctions pures : `passInfo` (rang du passage),
@@ -399,6 +403,12 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   `danger` (supprimer une fiche, un protocole, la bibliothèque…) est rouge plein
   `--critical-bd` + texte blanc — uniquement dans la fenêtre de CONFIRMATION finale ; les
   boutons « Supprimer » de fin de formulaire et des zones sensibles restent en contour.
+  **Carte-bilan de fin de session (v4.16.3, décision utilisateur)** : après « Terminer »,
+  l'accueil affiche une carte ÉPHÉMÈRE au registre CONFIRMATION (`.last-sess`,
+  `lastEndedSession` en mémoire seulement — jamais persisté, la vérité archivée est la
+  session) : titre · durée · k/n blocs ✓ + bouton « Compte-rendu » (`exportSessionReport`) ;
+  disparaît d'un tap (✕) ou au démarrage de la session suivante — le débriefing est
+  DISPONIBLE, jamais imposé (ECAM).
 - **Marqueur d'étape hors du champ (v4.3.0)** : dans les éditeurs, le préfixe `⚠ `/`△ ` ne vit
   plus DANS l'input (il était effaçable à la main = changement de type accidentel) — champ =
   texte nu, rangée **encadrée** au registre, préfixe re-posé par le handler (la CHAÎNE stockée

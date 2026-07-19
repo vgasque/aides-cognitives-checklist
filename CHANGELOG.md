@@ -1,5 +1,30 @@
 # Journal des modifications
 
+## [4.16.3] — 2026-07-19
+### Corrigé
+- **Journal — fin des « scrolls incessants » en avançant** (retour d'usage) : le re-rendu
+  d'un geste d'avancement (Continuer, réponse, ↺ Refaire) **ancre la vue sur la carte d'où
+  part le geste** (compensation du rétrécissement dû à la condensation en chips), puis ne
+  défile vers la nouvelle carte **que si elle n'est pas déjà entièrement visible**. Mesuré :
+  dérive visuelle 0 px sous le doigt — les chips restent en place.
+- **Mise à jour non proposée sur iPhone/Mac (PWA installée)** : une app installée peut
+  rester des jours sans « navigation », or c'est elle qui déclenche la vérification de
+  `sw.js` — la nouvelle version n'était donc jamais détectée. La vérification est désormais
+  forcée **à chaque retour au premier plan** (+ filet horaire). Ce correctif prendra effet
+  après une dernière mise à jour manuelle (Recharger).
+### Ajouté
+- **Carte-bilan de fin de session** (décision utilisateur — le débriefing est disponible,
+  jamais imposé) : après « Terminer », l'accueil affiche une carte éphémère au registre
+  confirmation — titre · durée · blocs réalisés ✓ — avec un bouton **Compte-rendu** (ouvre
+  le compte-rendu complet : chronologie, étapes, minuteurs). Elle disparaît d'un tap (✕)
+  ou au démarrage de la session suivante ; jamais persistée (la vérité reste la session
+  archivée, dans l'historique).
+### Modifié
+- **Icônes harmonisées et agrandies** : le glyphe (bouclier) passe de ~62 % à ~74 % du
+  cadre sur l'icône iPhone (apple-touch) et les tuiles favicon/PWA 192 et 512 (coins
+  arrondis préservés), et de ~49 % à ~60 % sur les icônes maskable (zone sûre respectée) —
+  l'icône paraît désormais de taille comparable sur iPhone, Mac et Android.
+
 ## [4.16.2] — 2026-07-19
 ### Modifié
 - **Chips du fil condensé — titre abrégé** (décision utilisateur : « le numéro seul ne
