@@ -125,8 +125,11 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   en toutes lettres tronquée pour une décision — la couleur jamais seule) ; règles : le BOUT
   est toujours une carte ; un passage INCOMPLET n'est JAMAIS une chip (l'invariant qui fait la
   conformité — repli manuel = ligne d'état au maximum) ; complets non-courants : les 2 plus
-  récents en ligne, les plus anciens en chips ; la SURCHARGE MANUELLE prime (`state.ovFold[idx]`
-  false = déplié, true = condensé) ; chips consécutives regroupées en rangées `.ov-crumbs`
+  récents en ligne, les plus anciens en chips ; SURCHARGE MANUELLE (v4.16.1) : le repli
+  (`ovFold[idx]=true`) PERSISTE, le dépliage (`false`) est une CONSULTATION TRANSITOIRE —
+  `ovDropOpens()` l'efface à chaque geste de NAVIGATION (Continuer, réponse, Refaire, entrée
+  par plan/SVG ; retour d'usage : une carte dépliée puis actée restait ouverte pour toujours) ;
+  chips consécutives regroupées en rangées `.ov-crumbs`
   CHRONOLOGIQUES (une carte/ligne coupe la rangée) ; taper une chip = DÉPLIER la carte sur
   place (`data-ovix` → `ovFold[idx]=false`) ; l'impression déplie tout (`_printingOv`).
   Condensation appliquée AU RENDU d'un geste de navigation, JAMAIS sous le doigt pendant le

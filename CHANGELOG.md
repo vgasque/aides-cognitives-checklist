@@ -1,5 +1,20 @@
 # Journal des modifications
 
+## [4.16.1] — 2026-07-19
+### Corrigé
+- **Fil condensé — une carte dépliée puis actée ne restait jamais recondensée** (retour
+  d'usage : visible surtout sur les décisions déjà répondues) : taper une chip posait une
+  surcharge « déplié » **permanente** — la condensation automatique n'avait plus jamais la
+  main sur cette carte. Le dépliage manuel (chip tapée, ligne rouverte) est désormais une
+  **consultation transitoire** : tout geste de navigation (Continuer, réponse à une décision,
+  ↺ Refaire, entrée d'un bloc par le plan/SVG) rend la main à la condensation automatique
+  (`ovDropOpens`). Le **repli** manuel, lui, persiste toujours. Rien ne bouge sous le doigt :
+  l'effacement n'a lieu qu'au rendu du geste de navigation, jamais pendant le cochage —
+  une carte dépliée reste donc ouverte tant qu'on lit ou qu'on coche.
+- Rappel des règles inchangées : un passage **incomplet** n'est jamais condensé en chip
+  (invariant — un bloc abandonné en cours reste visible ; son repli manuel s'arrête à la
+  ligne d'état), et les 2 passages complets les plus récents restent en ligne d'état.
+
 ## [4.16.0] — 2026-07-19
 ### Modifié
 - **Fusion des modes Journal et Guidé — le journal devient un FIL CONDENSÉ** : le mode

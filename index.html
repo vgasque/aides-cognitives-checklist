@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-IspLvyjprlmb1DL8TIUqtOWSZegGgbeX1oRzaKaLvUI='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-NDv9Cju9gnMAWjTk1frXxfX7uESP5cOLAVXvY5YmxVE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -2610,7 +2610,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.16.0';
+const APP_VERSION='4.16.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -3351,7 +3351,7 @@ function jumpToBlock(f,id){if(!f||!(f.blocks||[]).some(b=>b.id===id))return;
   if(state.readMode==='overview'&&hasFlow(f)){
     // JOURNAL (v4.9.0) : bloc visité = simple défilement vers sa dernière carte (regarder ne
     // réécrit rien) ; jamais visité = il ENTRE au bout du journal (nouvelle carte), puis défilement.
-    if(!lp){state.nav.push(id);state.navSeq.push(++Runtime.seq);state.navPos=state.nav.length-1;
+    if(!lp){ovDropOpens();state.nav.push(id);state.navSeq.push(++Runtime.seq);state.navPos=state.nav.length-1;
       if(Runtime.started)persistLive(Runtime);renderOvOnly();}
     ovScrollTo(id);return;}
   if(lp)state.navPos=lp.idx;   // guidé : bloc visité = déplacement du curseur (non destructif)
@@ -6742,6 +6742,11 @@ function ovAfterCheck(f,sec,anchorKey){
   if(!state.flowEnded&&main.querySelector('.ov-journal .flow-end')){renderOvOnlyKeepAnchor('[data-ck="'+CSS.escape(anchorKey)+'"]');return;}
   {const ac=document.getElementById('algCount');if(ac)ac.textContent=dn+'/'+boxes.length;}
   ovPaintLive(f);}
+// v4.16.1 : le DÉPLIAGE manuel d'une instance (chip tapée, ligne rouverte) est une
+// CONSULTATION transitoire — tout geste de NAVIGATION (Continuer, réponse, Refaire, entrée
+// par le plan/SVG) rend la main à la condensation automatique (retour d'usage : une carte
+// dépliée puis actée restait ouverte pour toujours). Le repli manuel (true), lui, persiste.
+function ovDropOpens(){for(const k of Object.keys(state.ovFold)){if(state.ovFold[k]===false&&/^\d+$/.test(k))delete state.ovFold[k];}}
 // Réponse à une décision : TOUJOURS active (jamais bloquant, où que soit l'instance).
 // Option déjà prise de CE passage = simple défilement vers la carte suivante (relecture, rien
 // ne s'efface). Sinon le chemin S'ÉTEND par le bout : nouvelle carte de la cible (cases neuves —
@@ -6752,6 +6757,7 @@ function ovAnswer(f,btn){
   if(!target||!f.blocks.some(b=>b.id===target))return;
   const idx=sec.dataset.ovi!=null?+sec.dataset.ovi:null;
   if(idx!=null&&state.nav[idx+1]===target){ovScrollToInst(idx+1);return;}
+  ovDropOpens();
   if(state.nav[state.nav.length-1]!==dec){state.nav.push(dec);state.navSeq.push(++Runtime.seq);}
   state.nav.push(target);state.navSeq.push(++Runtime.seq);
   state.navPos=state.nav.length-1;
@@ -6762,6 +6768,7 @@ function ovAnswer(f,btn){
 // postée au bout du journal — jamais automatique ; tout ce qui précède reste tel quel.
 function ovNewPass(f,id){
   if(!f.blocks.some(b=>b.id===id))return;
+  ovDropOpens();
   state.nav.push(id);state.navSeq.push(++Runtime.seq);
   state.navPos=state.nav.length-1;
   if(Runtime.started)persistLive(Runtime);
@@ -6817,6 +6824,7 @@ function bindOverviewEvents(f){
       // premier geste qui acquitte la confirmation ET déplace déjà le contexte à la demande.
       const confWasOpen=(state.confOpen!==undefined?state.confOpen:!Runtime.started);
       if(Runtime.started)state.confOpen=false;
+      ovDropOpens();
       state.nav.push(nx.dataset.ovnext);state.navSeq.push(++Runtime.seq);state.navPos=state.nav.length-1;
       if(Runtime.started)persistLive(Runtime);
       if(Runtime.started&&confWasOpen)render();else renderOvOnly();
@@ -6828,7 +6836,7 @@ function bindOverviewEvents(f){
     const op=t.closest('[data-ovopt]');if(op){ovAnswer(f,op);return;}
     const en=t.closest('[data-ovend]');
     if(en){if(en.getAttribute('aria-disabled')==='true')return;   // le libellé dit pourquoi (ECAM)
-      state.flowEnded=true;render();return;}};   // les étapes ②/③ du rail changent -> rendu complet
+      ovDropOpens();state.flowEnded=true;render();return;}};   // les étapes ②/③ du rail changent -> rendu complet
   wrap.onclick=e=>handle(e.target,false);
   wrap.onkeydown=e=>{if(e.key!=='Enter'&&e.key!==' ')return;
     const t=e.target.closest('[data-ck],[data-plgo],[data-plln]');if(!t)return;e.preventDefault();handle(t,true);};
