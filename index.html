@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-9HyvrZcI+ubHoiiAVjtj5fDcL9Wfp2YWfKHDS7rej7s='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-FyUhR6kfW/w8mjxD8955LSxNGBiPpwkVMJdjXThm7T8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -2584,7 +2584,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.14.11';
+const APP_VERSION='4.14.12';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -7046,7 +7046,10 @@ function svPaintArrows(){
       const y=Math.round(relY(p.r)+p.r.height/Z/2);
       if(y>yMax)yMax=y;ticks.push(y);});
     if(yMax<=yTo)return;
-    gh+=`<path class="lp" d="M${x} ${yMax} V${yTo}${ticks.map(y=>` M16 ${y} H${x}`).join('')}"/><path class="lph" d="M${x} ${yTo} L${x-4} ${yTo+7} L${x+4} ${yTo+7} Z"/>`;});
+    // v4.14.12 : ARRIVÉE HORIZONTALE — la voie remonte puis tourne et ENTRE dans le bord
+    // gauche du bloc cible (pointe vers la droite), symétrique des départs ; la gouttière
+    // reste à 16 px, aucune largeur de contenu sacrifiée.
+    gh+=`<path class="lp" d="M${x} ${yMax} V${yTo} M${x} ${yTo} H10${ticks.map(y=>` M16 ${y} H${x}`).join('')}"/><path class="lph" d="M15 ${yTo} L9 ${yTo-4} L9 ${yTo+4} Z"/>`;});
   {let gut=wrap.querySelector(':scope>.sv-gut');
    if(!gut){wrap.insertAdjacentHTML('beforeend','<svg class="sv-gut" aria-hidden="true"></svg>');gut=wrap.querySelector(':scope>.sv-gut');}
    const W2=Math.max(16,Math.round(wr.width/Z)),H=Math.max(16,Math.round(wr.height/Z));

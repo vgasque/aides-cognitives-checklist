@@ -1,5 +1,12 @@
 # Journal des modifications
 
+## [4.14.12] — 2026-07-19
+### Corrigé
+- **Mode Statique — arrivée horizontale des retours ↺** : la voie bleue de la gouttière
+  remonte puis **entre horizontalement dans le bord gauche du bloc cible** (pointe vers la
+  droite), au lieu d'une pointe verticale posée sur son sommet — symétrique des départs.
+  Gouttière inchangée (16 px) : aucune largeur de contenu sacrifiée.
+
 ## [4.14.11] — 2026-07-19
 ### Corrigé
 - **Mode Statique — départ du brin gris lisible** : le brin sort désormais du bloc par un

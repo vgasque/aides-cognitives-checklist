@@ -254,7 +254,9 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   (`--line-strong`) fusionnant les branches dont l'issue terminale (`svBranchIssue`, pure) est
   le bloc de reprise du tronc (pilules masquées ; brins partant du BAS RÉEL de chaque branche
   dans la superposition `.sv-gut` — jamais de segment flottant sous une colonne courte),
-  RETOURS bleus (`--link`) en GOUTTIÈRE gauche (16 px, `svLoopTargets` pure : plafond 2 voies) ;
+  RETOURS bleus (`--link`) en GOUTTIÈRE gauche (16 px, `svLoopTargets` pure : plafond
+  2 voies ; ARRIVÉE HORIZONTALE v4.14.12 : la voie remonte puis ENTRE dans le bord gauche
+  du bloc cible, pointe vers la droite — symétrique des départs, gouttière inchangée) ;
   ÉLARGISSEMENT des arbres imbriqués (v4.14.3-4, décision utilisateur — esprit papier QRH) :
   une décision imbriquée s'ÉTEND dans l'espace libéré, DANS LES DEUX SENS (sur les fiches
   réelles la branche courte est souvent à GAUCHE) — critère = test de COLLISION global
