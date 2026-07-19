@@ -352,6 +352,14 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   L'état vit sur la RACINE (`.seg.i1` = 2ᵉ segment) et la racine n'est JAMAIS re-rendue — sinon
   la pastille saute au lieu de glisser (`paintSeg` est le seul point d'écriture). Le segment du
   dialogue pilote `state.section` : choisir un type y bascule aussi l'onglet de l'accueil.
+  **Exception `#readTopSeg` (v4.21.0)** : la bascule Dynamique ↔ Statique est re-rendue avec la
+  fiche — le glissement y est REJOUÉ après re-rendu (`.seg-replay` : pastille posée sans
+  transition sur l'ancien segment, reflow, retrait) et le contenu (`.care-path`/`.ov-wrap` ou
+  `.sv-wrap`) entre dans le sens du geste (keyframes `secInL/R` réutilisées, transform/opacity
+  seulement = NON BLOQUANT, classes `rm-anim-l/r` retirées à `animationend`) ; sous
+  `prefers-reduced-motion` tout est inerte (règles sous `no-preference`, la garde `#plPin` —
+  fixed dans un ancêtre transformé — ne s'applique alors jamais) ; minuteurs et chapeau
+  « Ne pas oublier » n'animent jamais (ECAM : le mouvement y est réservé à l'alarme).
 - **Pieds de page (v4.4.2)** : UNE source de vérité pour l'état de stockage (`storageState`,
   pure) — variante LONGUE dans la sidebar de l'accueil (+ info-bulle), variante COURTE dans le
   pied des vues de LECTURE (fiche ET protocole, `readFooterHtml`). **Vérification hors-ligne
@@ -531,5 +539,5 @@ modèle de données, règles de sécurité) : le lire en premier. Ensuite, dans 
 | Protocoles | `blankProtocol`/`migrateProtocol` (point d'entrée sécurité/compat), `renderProtocols`/`renderProtocolRead`/`renderProtocolEdit`, sélecteur de section dans l'en-tête (`#hdrSec` statique, `state.section`) |
 | Export / Import | JSON `version: 3` + conteneur `.zip` « avec documents » (`zipBuild`/`zipParse` maison, `importAtts`) ; règles de rétrocompatibilité documentées sur place |
 | Compte & synchro | `Auth` (OTP e-mail), `Sync` (pull/push local-first), fenêtres associées |
-| Accessibilité | gestion centralisée des modales (focus, Échap, Tab) |
+| Accessibilité | gestion centralisée des modales (focus, Échap, Tab ; v4.21.0 : verrou du défilement de fond `_bgLock`/`_bgUnlock` — `body.modal-open` figé en place au toucher + `overscroll-behavior:contain` sur `.ai-modal`, position restaurée au pixel à la dernière fermeture) |
 | Mode test | hook `?__actest` : expose les fonctions pures pour `tests.html` |
