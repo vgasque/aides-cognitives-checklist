@@ -255,10 +255,13 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   (aucun contenu extérieur au sous-arbre dans le rectangle convoité, toutes profondeurs
   d'imbrication), appliqué dans `svPaintArrows` (remise à zéro d'abord, extérieur ->
   intérieur, width + margin-left négatif) ; si la bande chevauche encore une sœur, seules
-  fourche + colonnes s'élargissent ; un brin de convergence n'est dessiné que si son COULOIR
-  vertical est LIBRE (v4.14.5 — sinon la branche GARDE sa pilule : un bloc élargi sous une
-  branche courte serait traversé) et une pilule masquée reste en `visibility:hidden` (l'espace
-  est GARDÉ : pas d'oscillation du ResizeObserver, pas d'élargissement dans le couloir) ;
+  fourche + colonnes s'élargissent ; les COULOIRS des brins de convergence sont RÉSERVÉS AVANT
+  l'élargissement (v4.14.6, décision utilisateur : la FLÈCHE descendante prime — chaque
+  branche « → join » réserve sa colonne pilule -> coude, ± 10 px, et l'élargissement y
+  renonce ; un couloir interne au sous-arbre élargi ne bloque pas sa propre extension) ;
+  garde-fou résiduel : un brin n'est dessiné que si son couloir est réellement libre
+  (sinon la branche garde sa pilule) et une pilule masquée reste en `visibility:hidden`
+  (espace GARDÉ : pas d'oscillation du ResizeObserver) ;
   branches empilées (étroit) → `.stacked` : fourche/convergence masquées, les pilules
   re-suffisent — la flèche n'est JAMAIS seule (aria-hidden, l'info reste textuelle). En mode
   statique : pas de panneau « Algorithme » ni de minimap (le tableau EST la vue d'ensemble) ;

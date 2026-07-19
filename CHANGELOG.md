@@ -1,5 +1,16 @@
 # Journal des modifications
 
+## [4.14.6] — 2026-07-19
+### Corrigé
+- **Mode Statique — la flèche descendante prime sur l'élargissement** : la 4.14.5 évitait
+  la superposition en gardant la pilule « → 12 » au lieu de la flèche — mais la flèche de
+  convergence (ex. bloc 11 « symptômes gastro-intestinaux » → 12) doit être conservée.
+  Désormais les **couloirs des flèches sont réservés avant** le calcul d'élargissement :
+  chaque branche qui convergera en flèche réserve sa colonne de descente (de la pilule au
+  coude), et l'élargissement y renonce. Résultat sur l'anaphylaxie : flèche 11 → 12
+  dessinée, zéro superposition ; les fiches tachycardies conservent leurs élargissements
+  (leurs branches courtes se terminent sans flèche de convergence).
+
 ## [4.14.5] — 2026-07-19
 ### Corrigé
 - **Mode Statique — la flèche de convergence ne traverse plus les blocs élargis**
