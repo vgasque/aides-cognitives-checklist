@@ -1,5 +1,18 @@
 # Journal des modifications
 
+## [4.19.1] — 2026-07-19
+### Corrigé
+- **PWA iPhone : « Télécharger » affichait le PDF par-dessus l'app, sans retour possible**
+  (retour d'usage sur v4.19.0) : en application installée sur l'écran d'accueil, WebKit
+  ignore l'attribut `download` et **navigue** vers l'adresse `blob:` du fichier — le PDF
+  remplaçait l'app en plein écran, sans barre de navigation pour revenir (l'app semblait
+  corrompue ; rien n'était perdu, la relancer suffisait). Désormais, **en app installée,
+  tout téléchargement passe par la feuille de partage native** (Enregistrer dans Fichiers,
+  AirDrop, Imprimer…) — corrigé au point unique `dlBlob`, donc aussi pour les exports
+  `.json`/`.zip` et les comptes-rendus de session qui avaient le même défaut latent.
+  Annuler la feuille de partage ne fait rien (aucune erreur) ; dans un navigateur classique,
+  le téléchargement direct reste inchangé.
+
 ## [4.19.0] — 2026-07-19
 ### Ajouté
 - **Télécharger un document PDF joint** : la visionneuse gagne un bouton **⤓ Télécharger**
