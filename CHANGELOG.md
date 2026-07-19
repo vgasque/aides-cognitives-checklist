@@ -1,5 +1,24 @@
 # Journal des modifications
 
+## [4.14.2] — 2026-07-19
+### Corrigé
+- **Fil d'ancêtres — rangée partagée** : quand deux branches sont côte à côte et que l'une
+  est plus longue, la bulle réaffichait son option dès que la ligne de lecture dépassait le
+  bas de la plus courte — trompeur, la rangée parallèle étant encore à l'écran. L'option ne
+  s'affiche désormais que si la branche est **seule sur sa rangée** (aucun chevauchement
+  vertical avec une sœur).
+- **Fil d'ancêtres — entrée dans la pile** : une bande de décision pouvait disparaître
+  **derrière** la pile de bulles avant d'y être représentée (la détection se faisait à
+  hauteur fixe, sous une pile devenue plus haute) — on perdait la question et ses options.
+  La ligne de lecture vit maintenant au **bas réel de la pile** : tout ce que la pile
+  recouvre y est représenté, une bande y entre à l'instant où elle glisse dessous.
+
+### Modifié
+- **Mode Statique — bouton « Confirmé — démarrer la session »** déplacé dans le tableau,
+  **sous « Confirmer le diagnostic » et « Éliminer »** et avant « ⚠ Ne pas oublier »
+  (condition d'entrée : on confirme le tableau avant d'agir). Consulter reste inerte ;
+  démarrer est l'unique action de la page.
+
 ## [4.14.1] — 2026-07-19
 ### Corrigé
 - **Fil d'ancêtres du plan** : quand les branches d'une décision sont affichées **côte à

@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-IJQIbzLtrrOLtAJKKG9TaimEUEOPoh+c5PHBBkeZjXc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-+y5/woDW1R1OgPT0sr9qAmG0imBH95vZOFlrqMvkuOE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -2573,7 +2573,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.14.1';
+const APP_VERSION='4.14.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -6035,7 +6035,7 @@ function renderRead(){
   // Bouton de démarrage EXPLICITE : dans l'étape ① s'il y a des critères (« Confirmé — … » :
   // le geste PORTE la confirmation), sinon en tête de « Prise en charge ». Un seul bouton
   // rempli par écran ; la 1ʳᵉ action clinique démarre toujours aussi (jamais bloquant).
-  const sessStartH=(!preview&&!started)?`<div class="sess-start"><button class="btn primary" id="sessStart">${uiIcon('play',14)} ${confItems.length?'Confirmé — démarrer la session':'Démarrer la session'}</button><span class="ss-hint">chrono, minuteurs et journal — démarre aussi à la première action</span></div>`:'';
+  const sessStartH=sessStartHtml(f);
   // v4.13.0 : en mode STATIQUE, pas de panneau « Algorithme » (le tableau EST la vue d'ensemble).
   const algH=(f.blocks&&f.blocks.length&&!useSv)?`<div class="alg-panel"><button type="button" class="alg-head" id="flowToggle" aria-expanded="${state.showFlow?'true':'false'}"><span class="alg-k">Algorithme</span><span class="alg-sub">${algSubHtml(blockDone,blockTot)}</span><span class="alg-chev" aria-hidden="true">${state.showFlow?'▴':'▾'}</span></button>${state.showFlow?flowBlock(f,true)+'<div class="flow-hint">Schéma = vue d’ensemble · un nœud = y aller · étapes à cocher en-dessous ↓</div>':''}</div>`:'';
   // v4.14.0 : DEUX NIVEAUX de bascule (décision utilisateur). « Dynamique ↔ Statique » EN TÊTE
@@ -6049,7 +6049,9 @@ function renderRead(){
   if(useSv){
     // v4.14.0 : STATIQUE = document complet en tableau (confirmation, chapeau, algorithme,
     // surveillances absorbés par svExtras) — une seule « étape », donc pas de rail ①②③.
-    stages.push({cls:'on',head:'',body:sessStartH+(wideRead?'':rtH)+navHtml+localH+(wideRead?'':posH)});
+    // v4.14.2 : le bouton « démarrer » vit DANS le tableau, sous Confirmation/Éliminer
+    // (condition d'entrée QRH : on confirme le tableau avant d'agir) — pas ici.
+    stages.push({cls:'on',head:'',body:(wideRead?'':rtH)+navHtml+localH+(wideRead?'':posH)});
   }else{
   if(confBlockH)stages.push({cls:started?'done':'on',head:'',body:confBlockH+sessStartH});
   {const body=(confBlockH?'':sessStartH)+(wideRead?'':rtH)+modeSegH+algH+crumbsH+navHtml+navRowH+localH+(wideRead?'':posH);
@@ -6544,35 +6546,47 @@ function ovPlanPin(){
   const Z=zoomF();
   const hb=document.querySelector('header.bar');
   const stickV=(hb?hb.getBoundingClientRect().bottom:60)+4*Z;   // px VISUELS
-  const lineY=stickV+18*Z;
   const pr=plan.getBoundingClientRect();
-  if(pr.top>stickV||pr.bottom<lineY){off();return;}
-  // Chaîne des décisions ancêtres (ordre document = extérieur -> intérieur).
-  const chain=[];
-  plan.querySelectorAll('.pl-decwrap').forEach(dw=>{const r=dw.getBoundingClientRect();
-    if(!(r.top<lineY&&r.bottom>lineY+12*Z))return;   // petite marge basse : décroche à la convergence
-    const nd=dw.querySelector(':scope>.pl-nd.dec');const decId=nd?nd.dataset.plgo:'';
-    const b=(f.blocks||[]).find(x=>x.id===decId);if(!b)return;
-    // « › option » SEULEMENT si la ligne de lecture ne traverse qu'UNE branche : des branches
-    // CÔTE À CÔTE (colonnes) sont toutes les deux sous les yeux — en montrer une seule
-    // induirait en erreur (retour d'usage v4.14.1) ; la bulle ne garde alors que la question.
-    let oi=-1,nHit=0;
-    dw.querySelectorAll(':scope>.pl-cols>.pl-br').forEach((br,i)=>{const br2=br.getBoundingClientRect();
-      if(br2.top<lineY&&br2.bottom>lineY){nHit++;oi=i;}});
-    if(nHit>1)oi=-1;
-    chain.push({decId,b,oi,indent:Math.max(0,Math.round((r.left-pr.left)/Z))});});
-  if(!chain.length){off();return;}
+  if(pr.top>stickV){off();return;}
   if(!pin){wrap.insertAdjacentHTML('beforeend','<div id="plPin" hidden aria-hidden="true"></div>');pin=wrap.querySelector('#plPin');}
-  const key=chain.map(c=>c.decId+':'+c.oi).join('|');
-  if(pin._k!==key){pin._k=key;
-    const num={};flowPlan(f).order.forEach((id,i)=>{num[id]=i+1;});
+  // Chaîne des décisions ancêtres à une ligne de lecture donnée (extérieur -> intérieur).
+  const detect=lineY=>{const chain=[];
+    plan.querySelectorAll('.pl-decwrap').forEach(dw=>{const r=dw.getBoundingClientRect();
+      if(!(r.top<lineY&&r.bottom>lineY+12*Z))return;   // petite marge basse : décroche à la convergence
+      const nd=dw.querySelector(':scope>.pl-nd.dec');const decId=nd?nd.dataset.plgo:'';
+      const b=(f.blocks||[]).find(x=>x.id===decId);if(!b)return;
+      // « › option » SEULEMENT si la branche contenante est SEULE SUR SA RANGÉE : une autre
+      // branche qui la CHEVAUCHE verticalement (colonnes côte à côte) est aussi sous les
+      // yeux — même quand la ligne a dépassé le bas de la plus courte (v4.14.2), montrer
+      // une seule option induirait en erreur ; la bulle ne garde alors que la question.
+      let oi=-1,hitR=null;const rects=[];
+      dw.querySelectorAll(':scope>.pl-cols>.pl-br').forEach((br,i)=>{const r2=br.getBoundingClientRect();rects.push(r2);
+        if(r2.top<lineY&&r2.bottom>lineY){oi=i;hitR=r2;}});
+      if(hitR&&rects.some((r2,i)=>i!==oi&&r2.top<hitR.bottom-4&&r2.bottom>hitR.top+4))oi=-1;
+      chain.push({decId,b,oi,indent:Math.max(0,Math.round((r.left-pr.left)/Z))});});
+    return chain;};
+  // La ligne de lecture vit au BAS de la pile (et non à hauteur fixe) : tout ce que la pile
+  // RECOUVRE y est représenté — une bande de décision qui glisse dessous entre dans la pile
+  // à l'instant où elle disparaît (v4.14.2, retour d'usage : on la « perdait » avant qu'elle
+  // ne devienne collante). Point fixe en <= 3 itérations (la hauteur de la pile dépend du
+  // contenu, qui dépend de la ligne).
+  const num={};flowPlan(f).order.forEach((id,i)=>{num[id]=i+1;});
+  for(let iter=0;iter<3;iter++){
+    const pinH=(!pin.hidden&&pin._k)?pin.getBoundingClientRect().height:0;
+    const lineY=stickV+pinH+12*Z;
+    if(pr.bottom<lineY){off();return;}
+    const chain=detect(lineY);
+    if(!chain.length){off();return;}
+    const key=chain.map(c=>c.decId+':'+c.oi).join('|');
+    if(pin._k===key)break;
+    pin._k=key;
     pin.innerHTML=chain.map(c=>{
       const lbl=(c.oi>=0&&c.b.options&&c.b.options[c.oi])?String(stripBold(c.b.options[c.oi].label||'')).trim():'';
-      return `<div class="pl-nd dec" data-plgo="${esc(c.decId)}" tabindex="-1" style="margin-left:${c.indent}px"><span class="pl-nn" aria-hidden="true">${num[c.decId]||'·'}</span><div class="pl-nt"><span class="pnt">${esc(c.b.title)||'Décision'}</span>${lbl?`<span class="pinchip">› ${esc(lbl)}</span>`:''}</div></div>`;}).join('');}
+      return `<div class="pl-nd dec" data-plgo="${esc(c.decId)}" tabindex="-1" style="margin-left:${c.indent}px"><span class="pl-nn" aria-hidden="true">${num[c.decId]||'·'}</span><div class="pl-nt"><span class="pnt">${esc(c.b.title)||'Décision'}</span>${lbl?`<span class="pinchip">› ${esc(lbl)}</span>`:''}</div></div>`;}).join('');
+    pin.hidden=false;}
   pin.style.left=Math.round(pr.left/Z)+'px';
   pin.style.width=Math.round(pr.width/Z)+'px';
-  pin.style.top=Math.round(stickV/Z)+'px';
-  pin.hidden=false;}
+  pin.style.top=Math.round(stickV/Z)+'px';}
 // Recalage AUTOMATIQUE : toute variation de hauteur de l'en-tête (taille du texte, bandeau de
 // crise, repli au défilement, rotation) recale la base du fil collant (v4.13.1).
 if(window.ResizeObserver){const _hbRO=new ResizeObserver(()=>{
@@ -6779,6 +6793,12 @@ function staticSection(f){
 // confirmation + différentiels côte à côte, chapeau « Ne pas oublier » pleine largeur en
 // tête ; surveillances (À vérifier) en pied. Cellules INERTES (pas de data-svgo — ce sont
 // des repères de lecture, pas des blocs de l'algorithme).
+// Bouton de démarrage de session — partagé entre le parcours (dynamique) et le tableau
+// statique, où il vit SOUS Confirmation/Éliminer (v4.14.2, condition d'entrée QRH).
+function sessStartHtml(f){
+  if(state.previewFrom||Runtime.started)return '';
+  const n=clean(f.confirmation).length;
+  return `<div class="sess-start"><button class="btn primary" id="sessStart">${uiIcon('play',14)} ${n?'Confirmé — démarrer la session':'Démarrer la session'}</button><span class="ss-hint">chrono, minuteurs et journal — démarre aussi à la première action</span></div>`;}
 function svExtras(f,where){
   const list=a=>`<ul class="sv-stp">${a.map(x=>`<li>${fmt(x)}</li>`).join('')}</ul>`;
   const cell=(cls,title,items)=>`<div class="sv-cell sv-inert${cls}"><p class="sv-h"><span class="sv-t">${title}</span></p>${list(items)}</div>`;
@@ -6789,6 +6809,7 @@ function svExtras(f,where){
     if(diff.length)cells.push(cell('','Éliminer — tableau atypique ?',diff));
     let h='';
     if(cells.length)h+=cells.length>1?`<div class="sv-cols c2">${cells.join('')}</div>`:cells[0];
+    h+=sessStartHtml(f);   // sous Confirmation/Éliminer, avant le chapeau (v4.14.2)
     if(nf.length)h+=cell(' sv-nf','⚠ Ne pas oublier',nf);
     return h;}
   const vf=clean(f.verify);
@@ -6936,6 +6957,9 @@ function svJump(f,id){if(!f||!(f.blocks||[]).some(b=>b.id===id))return;
 function bindStaticEvents(f){
   const wrap=main.querySelector('.sv-wrap');if(!wrap)return;
   const handle=t=>{
+    // v4.14.2 : le bouton « démarrer » vit dans le tableau (sous Confirmation/Éliminer) —
+    // même geste que son homologue du parcours (délégation : survit à renderSvOnly).
+    if(t.closest('#sessStart')){state.confOpen=false;if(ensureStarted())render();return;}
     const jr=t.closest('[data-svref]');
     if(jr){const el=wrap.querySelector('[data-svgo="'+CSS.escape(jr.dataset.svref)+'"]');
       if(el){ovScrollEl(el);el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),900);}return;}
