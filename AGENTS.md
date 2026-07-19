@@ -227,7 +227,10 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   (`.sv-cell`, titre en petites capitales, étapes ❑), décision = BANDE au registre ATTENTION
   (`.sv-band` : titre + question) + branches en colonnes (`.sv-cols` auto-fit minmax(148px)
   plafonné `c1…c4` ; **UNE SEULE COLONNE sous 640 px** — retour d'usage v4.13.1 : des
-  colonnes de ~145 px sur téléphone rendaient la lecture difficile ; **PAS de règle `deep`**
+  colonnes de ~145 px sur téléphone rendaient la lecture difficile — avec INDENTATION
+  (v4.15.0, décision utilisateur) : ~17 px par niveau + RAIL de branche 3 px (grammaire du
+  plan : bleu = prise, pointillé = hors chemin), CSS pur récursif, plafonné au 4e niveau ;
+  la fourche étant masquée en pile, rail + chip portent la structure ; **PAS de règle `deep`**
   depuis v4.14.0, décision utilisateur : même une branche profonde reste EN COLONNE ≥ 640 —
   l'arbre dans l'arbre garde ses fourches gauche/droite au 1ᵉʳ niveau, esprit SFAR ; une
   décision imbriquée dans une colonne étroite retombe d'elle-même en pile, auto-fit

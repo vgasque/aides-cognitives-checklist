@@ -1,5 +1,15 @@
 # Journal des modifications
 
+## [4.15.0] — 2026-07-19
+### Ajouté
+- **Mode Statique — indentation des branches sur écran étroit** : sous 640 px (une seule
+  colonne), les blocs enfants d'une décision sont désormais **indentés** (~17 px par
+  niveau) et portent un **rail de branche** de 3 px — bleu = chemin pris, pointillé = hors
+  chemin, la même grammaire que le plan. L'imbrication redevient visible en pile (les
+  fourches y sont masquées : rail + étiquette d'option portent la structure), le tronc
+  reprend à gauche à chaque convergence. Plafonné au 4ᵉ niveau ; au plus profond il reste
+  ~289 px de largeur de lecture sur un écran de 375 px. CSS pur, récursif.
+
 ## [4.14.12] — 2026-07-19
 ### Corrigé
 - **Mode Statique — arrivée horizontale des retours ↺** : la voie bleue de la gouttière
