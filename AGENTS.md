@@ -158,8 +158,13 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   construction), UNE bulle PAR DÉCISION ANCÊTRE de la ligne de lecture, INDENTÉE selon sa
   position réelle dans l'arbre (décision utilisateur), chacune portant « › option » de SA
   branche (le Oui/Non reste attaché à sa question — jamais d'ambiguïté entre niveaux) ;
-  pilotée à CHAQUE défilement par `ovPlanPin` (quelques rectangles, contenu reconstruit
-  seulement quand la chaîne change), décroche à la convergence et en mode Échelle, tap =
+  pilotée à CHAQUE défilement par `ovPlanPin` — ENTRÉE/SORTIE en CUMUL DÉTERMINISTE
+  (v4.14.3 : le seuil de chaque bulle = bas de la pile au-dessus d'elle, hauteurs réelles
+  mémorisées `pin._hm`) + HYSTÉRÉSIS (~16 px entre seuils d'entrée et de sortie — le point
+  fixe précédent BATTAIT en fin de branche) ; « › option » seulement si la branche est SEULE
+  SUR SA RANGÉE (v4.14.2 : des colonnes côte à côte sont toutes sous les yeux) ; contenu
+  reconstruit seulement quand la chaîne change ; décroche à la convergence et en mode
+  Échelle, tap =
   `data-plgo` (délégation `.ov-wrap`), masquée à l'impression ; les classes pdN restent
   posées par le walker (inertes) ; `--pl-stick` mesuré sur `header.bar` par `ovPlanStick` —
   ÷ `zoomF()` et RECALÉ à chaque variation de hauteur de l'en-tête (repli
@@ -211,7 +216,9 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   absorbe les SECTIONS de la fiche en cellules INERTES : confirmation + différentiels côte à
   côte en tête, chapeau « ⚠ Ne pas oublier » (bord `--critical-bd`), « △ À vérifier » en pied
   (bord `--verify-bd`) — en statique, PAS de rail ①②③ ni de `forget-strip` (une seule étape),
-  le bouton « démarrer la session » reste au-dessus du tableau. L'algorithme est GÉNÉRÉ depuis
+  le bouton « démarrer la session » est une RANGÉE du carrelage sous
+  Confirmation/Éliminer (v4.14.2-3 : condition d'entrée QRH, coins 3 px, unique bouton
+  rempli, délégation `#sessStart` dans `bindStaticEvents`). L'algorithme est GÉNÉRÉ depuis
   `flowPlan` (numérotation commune) par `svTableHtml` : tronc = cellules pleine largeur
   (`.sv-cell`, titre en petites capitales, étapes ❑), décision = BANDE au registre ATTENTION
   (`.sv-band` : titre + question) + branches en colonnes (`.sv-cols` auto-fit minmax(148px)
@@ -238,6 +245,10 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   le bloc de reprise du tronc (pilules masquées ; brins partant du BAS RÉEL de chaque branche
   dans la superposition `.sv-gut` — jamais de segment flottant sous une colonne courte),
   RETOURS bleus (`--link`) en GOUTTIÈRE gauche (16 px, `svLoopTargets` pure : plafond 2 voies) ;
+  ÉLARGISSEMENT des arbres imbriqués (v4.14.3, décision utilisateur — esprit papier QRH) :
+  une décision imbriquée s'ÉTEND vers la droite quand toutes les branches sœurs à sa droite
+  sont TERMINÉES au-dessus (mesuré dans `svPaintArrows`, extérieur -> intérieur, remis à zéro
+  d'abord ; si la bande chevauche encore une sœur, seules fourche + colonnes s'élargissent) ;
   branches empilées (étroit) → `.stacked` : fourche/convergence masquées, les pilules
   re-suffisent — la flèche n'est JAMAIS seule (aria-hidden, l'info reste textuelle). En mode
   statique : pas de panneau « Algorithme » ni de minimap (le tableau EST la vue d'ensemble) ;

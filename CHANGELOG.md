@@ -1,5 +1,25 @@
 # Journal des modifications
 
+## [4.14.3] — 2026-07-19
+### Corrigé
+- **Fil d'ancêtres — plus de battements** : en fin de branche, les bulles pouvaient
+  apparaître et disparaître en rafale (la hauteur de la pile modifiait la ligne qui
+  décidait du contenu de la pile — boucle de rétroaction). L'entrée/sortie est désormais un
+  **cumul déterministe** (le seuil de chaque bulle est le bas de la pile au-dessus d'elle,
+  hauteurs réelles mémorisées) avec **hystérésis** (~16 px entre seuils d'entrée et de
+  sortie) : les transitions sont uniques et monotones, le décrochage est propre.
+
+### Modifié
+- **Mode Statique — les arbres imbriqués s'étendent** : quand toutes les branches sœurs à
+  droite d'une décision imbriquée sont terminées au-dessus d'elle (colonne devenue vide),
+  la décision **s'élargit** dans l'espace libéré — ses sous-branches gagnent en largeur,
+  comme sur un algorithme papier ; si la bande-question fait encore face à une sœur, seules
+  la fourche et les colonnes s'élargissent (jamais de collision). Recalculé au rendu et au
+  redimensionnement, flèches repeintes sur la géométrie finale.
+- **Mode Statique — bouton « démarrer la session » intégré au carrelage** : coins de 3 px,
+  pleine largeur de rangée, espacement du joint de la grille — il s'aligne avec les
+  cellules tout en restant l'unique bouton rempli de la page (≥ 44 px).
+
 ## [4.14.2] — 2026-07-19
 ### Corrigé
 - **Fil d'ancêtres — rangée partagée** : quand deux branches sont côte à côte et que l'une

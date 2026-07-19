@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-+y5/woDW1R1OgPT0sr9qAmG0imBH95vZOFlrqMvkuOE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-X3jYQf2q4JXkw00zNxa3PopjZE4MngnYVCj2UsNZ28I='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -918,6 +918,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .sess-start{margin:14px 0 4px}
   .sess-start .btn{width:100%;min-height:50px;font-weight:800;font-size:15px;letter-spacing:.3px;border-radius:9px;display:flex;align-items:center;justify-content:center;gap:7px}
   .ss-hint{display:block;text-align:center;margin-top:6px;font-size:12px;color:var(--ink-soft)}
+  /* Dans le TABLEAU statique (v4.14.3) : le bouton devient une RANGÉE du carrelage — coins
+     3 px, sans marges (le joint de la grille fait l'espacement), aide sur la même rangée.
+     Il reste l'unique bouton REMPLI de l'écran (saillance) et >= 44 px. */
+  .sv-tb .sess-start{margin:0}
+  .sv-tb .sess-start .btn{border-radius:3px;min-height:46px}
+  .sv-tb .ss-hint{margin-top:3px;font-size:11.5px}
   /* ----- Parcours de soin (v4.4.0, « option B ») : rail vertical numéroté ① Confirmer →
      ② Prise en charge → ③ Surveillances & pièges. Pastilles : bleu = étape active,
      vert ✓ = faite, neutre cerclé = à venir — JAMAIS d'ambre/rouge ici (registres d'alerte).
@@ -2573,7 +2579,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.14.2';
+const APP_VERSION='4.14.3';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -6549,41 +6555,46 @@ function ovPlanPin(){
   const pr=plan.getBoundingClientRect();
   if(pr.top>stickV){off();return;}
   if(!pin){wrap.insertAdjacentHTML('beforeend','<div id="plPin" hidden aria-hidden="true"></div>');pin=wrap.querySelector('#plPin');}
-  // Chaîne des décisions ancêtres à une ligne de lecture donnée (extérieur -> intérieur).
-  const detect=lineY=>{const chain=[];
-    plan.querySelectorAll('.pl-decwrap').forEach(dw=>{const r=dw.getBoundingClientRect();
-      if(!(r.top<lineY&&r.bottom>lineY+12*Z))return;   // petite marge basse : décroche à la convergence
-      const nd=dw.querySelector(':scope>.pl-nd.dec');const decId=nd?nd.dataset.plgo:'';
-      const b=(f.blocks||[]).find(x=>x.id===decId);if(!b)return;
-      // « › option » SEULEMENT si la branche contenante est SEULE SUR SA RANGÉE : une autre
-      // branche qui la CHEVAUCHE verticalement (colonnes côte à côte) est aussi sous les
-      // yeux — même quand la ligne a dépassé le bas de la plus courte (v4.14.2), montrer
-      // une seule option induirait en erreur ; la bulle ne garde alors que la question.
-      let oi=-1,hitR=null;const rects=[];
-      dw.querySelectorAll(':scope>.pl-cols>.pl-br').forEach((br,i)=>{const r2=br.getBoundingClientRect();rects.push(r2);
-        if(r2.top<lineY&&r2.bottom>lineY){oi=i;hitR=r2;}});
-      if(hitR&&rects.some((r2,i)=>i!==oi&&r2.top<hitR.bottom-4&&r2.bottom>hitR.top+4))oi=-1;
-      chain.push({decId,b,oi,indent:Math.max(0,Math.round((r.left-pr.left)/Z))});});
-    return chain;};
-  // La ligne de lecture vit au BAS de la pile (et non à hauteur fixe) : tout ce que la pile
-  // RECOUVRE y est représenté — une bande de décision qui glisse dessous entre dans la pile
-  // à l'instant où elle disparaît (v4.14.2, retour d'usage : on la « perdait » avant qu'elle
-  // ne devienne collante). Point fixe en <= 3 itérations (la hauteur de la pile dépend du
-  // contenu, qui dépend de la ligne).
+  // ENTRÉE/SORTIE de la pile (v4.14.3, remplace le point fixe qui BATTAIT en fin de branche —
+  // la hauteur de la pile modifiait la ligne qui décidait du contenu de la pile) :
+  // CUMUL DÉTERMINISTE — le seuil de CHAQUE bulle est le bas de la pile AU-DESSUS d'elle
+  // (sémantique du vrai sticky empilé : une bande entre quand elle glisse sous la pile,
+  // sort quand sa sous-arborescence est presque épuisée) + HYSTÉRÉSIS (seuils d'entrée et
+  // de sortie décalés de ~16 px : plus d'apparitions/disparitions en rafale au pixel près).
+  // Les hauteurs réelles des bulles sont mémorisées (pin._hm) pour les passes suivantes.
   const num={};flowPlan(f).order.forEach((id,i)=>{num[id]=i+1;});
-  for(let iter=0;iter<3;iter++){
-    const pinH=(!pin.hidden&&pin._k)?pin.getBoundingClientRect().height:0;
-    const lineY=stickV+pinH+12*Z;
-    if(pr.bottom<lineY){off();return;}
-    const chain=detect(lineY);
-    if(!chain.length){off();return;}
-    const key=chain.map(c=>c.decId+':'+c.oi).join('|');
-    if(pin._k===key)break;
-    pin._k=key;
+  const prevIds=new Set(pin._k?pin._k.split('|').map(s=>s.split(':')[0]):[]);
+  const hmap=pin._hm||{};
+  if(pr.bottom<stickV+40*Z){off();return;}
+  let acc=stickV;const picked=[];
+  plan.querySelectorAll('.pl-decwrap').forEach(dw=>{
+    const nd=dw.querySelector(':scope>.pl-nd.dec');const decId=nd?nd.dataset.plgo:'';
+    const b=(f.blocks||[]).find(x=>x.id===decId);if(!b)return;
+    const r=dw.getBoundingClientRect();
+    const was=prevIds.has(decId);
+    const hEst=hmap[decId]||46*Z;
+    const inTop=r.top<acc+(was?6:-6)*Z;
+    const inBot=r.bottom>acc+hEst+(was?10:26)*Z;
+    if(inTop&&inBot){picked.push({decId,b,dw,r});acc+=hEst+3*Z;}});
+  if(!picked.length){off();return;}
+  // « › option » à la ligne de lecture FINALE (bas de pile) — branche SEULE SUR SA RANGÉE
+  // uniquement (v4.14.2 : des colonnes côte à côte sont toutes sous les yeux).
+  const lineY=acc+8*Z;
+  const chain=picked.map(p=>{
+    let oi=-1,hitR=null;const rects=[];
+    p.dw.querySelectorAll(':scope>.pl-cols>.pl-br').forEach((br,i)=>{const r2=br.getBoundingClientRect();rects.push(r2);
+      if(r2.top<lineY&&r2.bottom>lineY){oi=i;hitR=r2;}});
+    if(hitR&&rects.some((r2,i)=>i!==oi&&r2.top<hitR.bottom-4&&r2.bottom>hitR.top+4))oi=-1;
+    return {decId:p.decId,b:p.b,oi,indent:Math.max(0,Math.round((p.r.left-pr.left)/Z))};});
+  const key=chain.map(c=>c.decId+':'+c.oi).join('|');
+  if(pin._k!==key){pin._k=key;
     pin.innerHTML=chain.map(c=>{
       const lbl=(c.oi>=0&&c.b.options&&c.b.options[c.oi])?String(stripBold(c.b.options[c.oi].label||'')).trim():'';
       return `<div class="pl-nd dec" data-plgo="${esc(c.decId)}" tabindex="-1" style="margin-left:${c.indent}px"><span class="pl-nn" aria-hidden="true">${num[c.decId]||'·'}</span><div class="pl-nt"><span class="pnt">${esc(c.b.title)||'Décision'}</span>${lbl?`<span class="pinchip">› ${esc(lbl)}</span>`:''}</div></div>`;}).join('');
-    pin.hidden=false;}
+    pin.hidden=false;   // AVANT la mesure ([hidden] = display:none -> hauteurs nulles)
+    const hm={};[...pin.children].forEach((el,i)=>{if(chain[i])hm[chain[i].decId]=el.getBoundingClientRect().height;});
+    pin._hm=Object.assign(hmap,hm);}
+  pin.hidden=false;
   pin.style.left=Math.round(pr.left/Z)+'px';
   pin.style.width=Math.round(pr.width/Z)+'px';
   pin.style.top=Math.round(stickV/Z)+'px';}
@@ -6876,6 +6887,37 @@ function svTableHtml(f){
 function svPaintArrows(){
   const wrap=main.querySelector('.sv-wrap');if(!wrap)return;
   const Z=zoomF();   // v4.13.1 : rectangles en px VISUELS -> tout est ramené en px CSS (÷ Z)
+  // ÉLARGISSEMENT des arbres imbriqués (v4.14.3, décision utilisateur — esprit papier QRH) :
+  // une décision imbriquée dans une colonne s'ÉTEND vers la droite quand TOUTES les branches
+  // sœurs situées à sa droite sont TERMINÉES au-dessus d'elle (l'espace est vide — ex. la
+  // branche « symptômes digestifs » finie pendant que la branche Oui continue). Mesuré au
+  // rendu/resize, extérieur -> intérieur (la largeur du parent change les rects de l'enfant),
+  // remis à zéro d'abord (idempotent) ; les flèches sont dessinées APRÈS, sur la géométrie finale.
+  {const tb=wrap.querySelector('.sv-tb');
+   if(tb){const nested=[...tb.querySelectorAll('.sv-br .sv-decwrap')];
+    nested.forEach(dw=>{dw.style.width='';
+      ['.sv-fork','.sv-cols','.sv-merge'].forEach(s=>{const el=dw.querySelector(':scope>'+s);if(el)el.style.width='';});});
+    const tbRight=()=>tb.getBoundingClientRect().right;
+    nested.forEach(dw=>{
+      const br=dw.closest('.sv-br');if(!br)return;
+      const pcols=br.parentElement;if(!pcols||!pcols.classList.contains('sv-cols'))return;
+      const brR=br.getBoundingClientRect();
+      const right=[...pcols.children].filter(x=>x!==br&&x.classList.contains('sv-br')&&x.getBoundingClientRect().left>brR.left+4*Z);
+      if(!right.length)return;
+      const freeAt=y=>right.every(s=>s.getBoundingClientRect().bottom<=y+4*Z);
+      const dwR=dw.getBoundingClientRect();
+      if(freeAt(dwR.top)){
+        const w=Math.round((tbRight()-dwR.left)/Z);
+        if(w>Math.round(dwR.width/Z)+20)dw.style.width=w+'px';return;}
+      // Bande encore en regard d'une sœur, mais la RANGÉE des branches commence sous
+      // l'espace libéré : seules la fourche et les colonnes s'élargissent (la bande reste
+      // dans sa colonne — pas de collision avec la sœur).
+      const cols=dw.querySelector(':scope>.sv-cols');if(!cols)return;
+      const cR=cols.getBoundingClientRect();
+      if(!freeAt(cR.top))return;
+      const w2=Math.round((tbRight()-cR.left)/Z);
+      if(w2<=Math.round(cR.width/Z)+20)return;
+      ['.sv-fork','.sv-cols','.sv-merge'].forEach(s=>{const el=dw.querySelector(':scope>'+s);if(el)el.style.width=w2+'px';});});}}
   const wr=wrap.getBoundingClientRect();
   // Superposition unique pleine page : convergences (grises) + retours ↺ (bleus) — les brins
   // partent du BAS RÉEL du contenu de chaque branche (plus de segment flottant sous une
