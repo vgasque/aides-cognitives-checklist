@@ -286,7 +286,10 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   RETOURS bleus (`--link`) en GOUTTIÈRE gauche (16 px, `svLoopTargets` pure : plafond
   2 voies ; ARRIVÉE HORIZONTALE v4.14.12 : la voie remonte puis ENTRE dans le bord gauche
   du bloc cible, pointe vers la droite — symétrique des départs, gouttière inchangée) ;
-  ÉLARGISSEMENT des arbres imbriqués (v4.14.3-4, décision utilisateur — esprit papier QRH) :
+  ÉLARGISSEMENT des arbres imbriqués (v4.14.3-4, décision utilisateur — esprit papier QRH ;
+  v4.18.2 : JAMAIS sous 640 px — au palier une-seule-colonne, la marge négative compensatoire
+  décalait la décision imbriquée à gauche et ANNULAIT l'indentation v4.15.0 des niveaux
+  profonds ; ≥ 640 vérifié identique au pixel avant/après) :
   une décision imbriquée s'ÉTEND dans l'espace libéré, DANS LES DEUX SENS (sur les fiches
   réelles la branche courte est souvent à GAUCHE) — critère = test de COLLISION global
   (aucun contenu extérieur au sous-arbre dans le rectangle convoité, toutes profondeurs

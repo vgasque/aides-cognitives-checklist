@@ -1,5 +1,18 @@
 # Journal des modifications
 
+## [4.18.2] — 2026-07-19
+### Corrigé
+- **Mode Statique sur téléphone — le 3ᵉ niveau de blocs conditionnels n'était plus
+  indenté** : ce n'était pas un plafond de lisibilité mais un bug — la passe
+  d'**élargissement** des arbres imbriqués (pensée pour les colonnes ≥ 640 px) s'appliquait
+  aussi en pile étroite, et sa marge négative compensatoire (jusqu'à −34 px) décalait la
+  décision imbriquée vers la gauche, annulant l'indentation. L'élargissement est désormais
+  **désactivé sous 640 px** (le palier même qui force la pile) : les niveaux profonds
+  retrouvent leurs +17 px et leur rail par niveau (6 → 23 → 40 px mesurés à 375 px), sans
+  débordement. Au-dessus de 640 px, rien ne change — vérifié **identique au pixel** à
+  v4.18.1 (largeurs 700/1024/1280 px, fiches SVT à 4 niveaux). Le plafond volontaire du
+  4ᵉ niveau (v4.15.0) reste en place.
+
 ## [4.18.1] — 2026-07-19
 ### Corrigé
 - **Icônes floues (retour d'usage sur v4.16.3)** : l'agrandissement bitmap du glyphe
