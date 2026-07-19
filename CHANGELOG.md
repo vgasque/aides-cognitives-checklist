@@ -1,5 +1,13 @@
 # Journal des modifications
 
+## [4.14.9] — 2026-07-19
+### Corrigé
+- **Mode Statique — le brin gris part du bon bloc** : il démarrait sous la rangée invisible
+  de la pilule remplacée (~40 px trop bas, comme venant d'un bloc d'en dessous). Il part
+  désormais directement sous le **dernier bloc visible** de sa branche et traverse la zone
+  réservée. Vérifié au pixel sur l'anaphylaxie (bloc 11) et l'ACR (chip « Non »), zéro
+  collision.
+
 ## [4.14.8] — 2026-07-19
 ### Corrigé
 - **Mode Statique — départs de flèches recentrés** : depuis l'élargissement, la tige des

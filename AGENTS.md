@@ -266,8 +266,10 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   dessiné que si sa voie est réellement libre (sinon la branche garde sa pilule) et une
   pilule masquée reste en `visibility:hidden` (espace GARDÉ : pas d'oscillation du
   ResizeObserver) ; ANCRAGES (v4.14.8) : la tige de fourche part du centre RÉEL de la
-  bande-question, le brin gris du centre du DERNIER BLOC de sa branche, la flèche d'arrivée
-  vise le centre de la cellule de convergence — jamais le centre d'un bandeau élargi/décalé ;
+  bande-question, le brin gris du centre du DERNIER BLOC VISIBLE de sa branche
+  (v4.14.9 : la rangée-pilule en visibility:hidden réserve l'espace mais n'est pas le bloc
+  de départ — le brin la TRAVERSE), la flèche d'arrivée vise le centre de la cellule de
+  convergence — jamais le centre d'un bandeau élargi/décalé ;
   branches empilées (étroit) → `.stacked` : fourche/convergence masquées, les pilules
   re-suffisent — la flèche n'est JAMAIS seule (aria-hidden, l'info reste textuelle). En mode
   statique : pas de panneau « Algorithme » ni de minimap (le tableau EST la vue d'ensemble) ;
