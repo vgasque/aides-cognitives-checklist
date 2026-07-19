@@ -265,7 +265,9 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   (contribution à la piste = largeur d'origine) ; garde-fou résiduel : un brin n'est
   dessiné que si sa voie est réellement libre (sinon la branche garde sa pilule) et une
   pilule masquée reste en `visibility:hidden` (espace GARDÉ : pas d'oscillation du
-  ResizeObserver) ;
+  ResizeObserver) ; ANCRAGES (v4.14.8) : la tige de fourche part du centre RÉEL de la
+  bande-question, le brin gris du centre du DERNIER BLOC de sa branche, la flèche d'arrivée
+  vise le centre de la cellule de convergence — jamais le centre d'un bandeau élargi/décalé ;
   branches empilées (étroit) → `.stacked` : fourche/convergence masquées, les pilules
   re-suffisent — la flèche n'est JAMAIS seule (aria-hidden, l'info reste textuelle). En mode
   statique : pas de panneau « Algorithme » ni de minimap (le tableau EST la vue d'ensemble) ;

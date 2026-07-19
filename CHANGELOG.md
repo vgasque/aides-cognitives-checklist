@@ -1,5 +1,15 @@
 # Journal des modifications
 
+## [4.14.8] — 2026-07-19
+### Corrigé
+- **Mode Statique — départs de flèches recentrés** : depuis l'élargissement, la tige des
+  fourches (ambre) partait du centre du bandeau élargi et non de la bande-question, et les
+  brins gris se référaient au centre de colonnes décalées. Chaque tracé est désormais ancré
+  sur l'élément réel : tige de fourche au **centre de la bande-question**, départ du brin
+  gris au **centre du dernier bloc de sa branche**, flèche d'arrivée au **centre de la
+  cellule de convergence**. Vérifié sur les 8 fiches : écart maximal de 1 px, zéro
+  collision.
+
 ## [4.14.7] — 2026-07-19
 ### Modifié
 - **Mode Statique — hybride flèche + élargissement** : plus besoin de choisir. Chaque
