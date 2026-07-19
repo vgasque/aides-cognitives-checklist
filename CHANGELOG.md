@@ -1,5 +1,17 @@
 # Journal des modifications
 
+## [4.19.0] — 2026-07-19
+### Ajouté
+- **Télécharger un document PDF joint** : la visionneuse gagne un bouton **⤓ Télécharger**
+  dans sa barre d'outils (fiches ET protocoles, y compris en mode crise — action passive,
+  déclenchée seulement au toucher : elle ne déplace ni ne masque rien du contexte de soin).
+  Le fichier téléchargé reprend le nom du document (extension `.pdf` garantie, jamais
+  dupliquée) et est relu **directement depuis le stockage local de l'appareil** — aucun
+  réseau nécessaire ; le bouton fonctionne même quand le rendu échoue (fichier endommagé :
+  on peut le récupérer pour l'examiner ailleurs). Détail technique : le binaire est relu
+  frais depuis IndexedDB — le buffer déjà confié à pdf.js est *transféré* à son worker et
+  laissé détaché, un blob resservi de mémoire serait vide (constaté en test de bout en bout).
+
 ## [4.18.2] — 2026-07-19
 ### Corrigé
 - **Mode Statique sur téléphone — le 3ᵉ niveau de blocs conditionnels n'était plus

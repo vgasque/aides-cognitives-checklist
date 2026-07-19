@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-9SeFqqxuXrva5HOsOAi94iaW/Jb4TejfT0aNvOFTNTU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-FMLcGqXelZziGrAzk/15iXuiVa7gi5X4A03ui5fA3ic='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -2558,7 +2558,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
 <div class="ai-modal pdf-modal" id="pdfModal" role="dialog" aria-modal="true" aria-labelledby="pdfModalTitle">
   <div class="pdf-card">
     <div class="pdf-bar"><h3 id="pdfModalTitle" class="pdf-title">Document</h3>
-      <div class="pdf-tools"><button class="fz" data-pz="out" aria-label="Dézoomer">−</button><span class="fzv" id="pdfZoomVal">100%</span><button class="fz" data-pz="in" aria-label="Zoomer">+</button><button class="fz fz-r" data-pz="page">Page</button><button class="fz fz-r" data-pz="fit">Largeur</button></div>
+      <div class="pdf-tools"><button class="fz" data-pz="out" aria-label="Dézoomer">−</button><span class="fzv" id="pdfZoomVal">100%</span><button class="fz" data-pz="in" aria-label="Zoomer">+</button><button class="fz fz-r" data-pz="page">Page</button><button class="fz fz-r" data-pz="fit">Largeur</button><button class="fz" id="pdfDl" title="Télécharger le document" aria-label="Télécharger le document"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M6 11l6 6 6-6"/><path d="M4 21h16"/></svg></button></div>
       <button class="ai-x" id="pdfX" aria-label="Fermer le document">×</button></div>
     <div class="pdf-scroll" id="pdfScroll" tabindex="0"></div>
   </div>
@@ -2596,7 +2596,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.18.2';
+const APP_VERSION='4.19.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -3248,6 +3248,10 @@ const MAX_PDF_BYTES=15*1024*1024;   // 15 Mo par document (aligné sur la limite
 const MAX_ATT_PER_ENTITY=10;        // documents par fiche (ou protocole)
 // Nom de fichier affichable — PUR (testé) : borné, sans séparateur de chemin ni caractère de contrôle.
 const safeFileName=s=>sstr(s,150).replace(/[\/\\\u0000-\u001f\u007f]/g,'').trim();
+// Nom du fichier TÉLÉCHARGÉ pour un document joint (bouton ⤓ de la visionneuse) — PUR (testé) :
+// nom nettoyé, extension .pdf garantie UNE seule fois (le libellé reste librement éditable en
+// mémoire dans l'éditeur — safeAttachment ne repasse qu'à la prochaine migration/rechargement).
+const attDlName=n=>{const s=safeFileName(n).replace(/\.pdf$/i,'').trim();return (s||'document')+'.pdf';};
 // Signature réelle d'un PDF (« %PDF- ») — PURE (testée). Partagée par l'ajout dans l'éditeur et
 // la restauration des documents d'un import .zip : un fichier renommé .pdf ne passe jamais.
 const isPdfBytes=u8=>!!u8&&u8.length>=5&&u8[0]===0x25&&u8[1]===0x50&&u8[2]===0x44&&u8[3]===0x46&&u8[4]===0x2d;
@@ -7803,12 +7807,23 @@ async function pdfLib(){if(!_pdfjs){const m=await import('./vendor/pdfjs/pdf.min
   m.GlobalWorkerOptions.workerSrc='./vendor/pdfjs/pdf.worker.min.js';_pdfjs=m;}return _pdfjs;}
 const pdfModal=document.getElementById('pdfModal');
 let _pv=null;   // état de la visionneuse ouverte {doc, pages[], observer, z, cssW, baseW, baseH}
+let _pvAtt=null; // métadonnées {id,name} du document affiché — posées dès que le binaire est
+                 // confirmé présent (AVANT pdf.js : ⤓ marche même si le rendu échoue)
 function closePdfViewer(){
   if(_pv){try{_pv.observer&&_pv.observer.disconnect();}catch(e){}try{_pv.doc.destroy();}catch(e){}_pv=null;}
+  _pvAtt=null;
   const sc=document.getElementById('pdfScroll');if(sc)sc.innerHTML='';
   pdfModal.classList.remove('on');}
 bindModalDismiss(pdfModal,closePdfViewer);
 pdfModal.querySelectorAll('[data-pz]').forEach(b=>b.onclick=()=>pdfZoom(b.dataset.pz));
+// Télécharger le document ouvert (v4.19.0) : relecture FRAÎCHE depuis IndexedDB (aucun réseau) —
+// jamais le buffer déjà passé à pdf.js : getDocument le TRANSFÈRE à son worker, qui le laisse
+// détaché (byteLength 0 — un blob resservi de mémoire serait VIDE, constaté en E2E) ; nom de
+// fichier = attDlName (libellé nettoyé, .pdf garanti).
+document.getElementById('pdfDl').onclick=async()=>{if(!_pvAtt)return;
+  let buf=null;try{buf=await attBuf(await IDB.getAtt(_pvAtt.id));}catch(e){}
+  if(!buf){toast('⚠ Document indisponible sur cet appareil.');return;}
+  dlBlob(new Blob([buf],{type:'application/pdf'}),attDlName(_pvAtt.name));};
 window.addEventListener('resize',()=>{if(_pv&&pdfModal.classList.contains('on')){pdfApplyScale();pdfRenderNear();}});
 // Rend IMMÉDIATEMENT les pages proches de l'écran (±1 hauteur d'écran), par géométrie : à
 // l'ouverture et après un zoom, on n'attend pas le premier passage de l'IntersectionObserver
@@ -7872,6 +7887,7 @@ async function openPdfViewer(att,entity){
       catch(e){toast('⚠ Document introuvable dans le cloud — il n\'a peut-être pas encore été envoyé depuis l\'appareil où il a été ajouté.',9000);return;}
     }else{toast('Document pas encore téléchargé sur cet appareil : connectez-vous avec du réseau pour le récupérer.',9000);return;}
   }
+  _pvAtt={id:att.id,name:att.name};
   const sc=document.getElementById('pdfScroll');
   document.getElementById('pdfModalTitle').textContent=att.name||'Document';
   sc.innerHTML='<div class="pdf-msg">Ouverture du document…</div>';
@@ -10139,7 +10155,7 @@ if(location.search.indexOf('__acdebug')>=0){
    PAS l'application : on expose juste les fonctions pures à tester. AUCUN effet en usage normal :
    sans ce paramètre, rien de tout ceci ne s'exécute et aucun global n'est ajouté. */
 if(location.search.indexOf('__actest')>=0){
-  window.__ac_test__={migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attStoragePath,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
+  window.__ac_test__={migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
     restErrStatus,isPersoRepairCandidate,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,
