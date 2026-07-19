@@ -539,5 +539,5 @@ modèle de données, règles de sécurité) : le lire en premier. Ensuite, dans 
 | Protocoles | `blankProtocol`/`migrateProtocol` (point d'entrée sécurité/compat), `renderProtocols`/`renderProtocolRead`/`renderProtocolEdit`, sélecteur de section dans l'en-tête (`#hdrSec` statique, `state.section`) |
 | Export / Import | JSON `version: 3` + conteneur `.zip` « avec documents » (`zipBuild`/`zipParse` maison, `importAtts`) ; règles de rétrocompatibilité documentées sur place |
 | Compte & synchro | `Auth` (OTP e-mail), `Sync` (pull/push local-first), fenêtres associées |
-| Accessibilité | gestion centralisée des modales (focus, Échap, Tab) |
+| Accessibilité | gestion centralisée des modales (focus, Échap, Tab ; v4.21.0 : verrou du défilement de fond `_bgLock`/`_bgUnlock` — `body.modal-open` figé en place au toucher + `overscroll-behavior:contain` sur `.ai-modal`, position restaurée au pixel à la dernière fermeture) |
 | Mode test | hook `?__actest` : expose les fonctions pures pour `tests.html` |
