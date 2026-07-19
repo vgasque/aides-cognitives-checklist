@@ -1,5 +1,15 @@
 # Journal des modifications
 
+## [4.18.1] — 2026-07-19
+### Corrigé
+- **Icônes floues (retour d'usage sur v4.16.3)** : l'agrandissement bitmap du glyphe
+  produisait du flou et des pixels parasites au raccord. Les cinq icônes (tuiles 192/512,
+  apple-touch, maskable 192/512) sont **redessinées en vectoriel** — même identité
+  (tuile bleue arrondie, bouclier, tracé de pouls, couleurs d'origine), tracés nets à
+  toutes les tailles, proportions harmonisées conservées (glyphe ~74 %, maskable ~60 %
+  dans la zone sûre). Sur iPhone, réinstaller l'app sur l'écran d'accueil si l'ancienne
+  icône reste en cache.
+
 ## [4.18.0] — 2026-07-19
 ### Modifié
 - **Le schéma SVG rejoint le Plan de l'aide** (décision utilisateur sur maquette — ordre
