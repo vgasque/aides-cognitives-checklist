@@ -1,5 +1,16 @@
 # Journal des modifications
 
+## [4.20.2] — 2026-07-19
+### Modifié
+- **Prompt IA — règle de cohérence des décisions** (piège rapporté sur une fiche
+  générée) : les vues abrégées de l'app n'affichent que le **titre** du bloc et la
+  **réponse** choisie — un titre « Stabilité hémodynamique » posé sur une question qui
+  liste les signes d'*instabilité* fait lire « Oui » comme « stable », l'inverse du
+  sens réel. Le prompt exige désormais que titre, question et options pointent dans le
+  même sens, recommande des libellés qui portent la conclusion (« Instable » /
+  « Stable ») plutôt que Oui/Non, et ajoute le point de contrôle final : chaque option
+  relue **seule sous le titre** doit donner la bonne conclusion.
+
 ## [4.20.1] — 2026-07-19
 ### Modifié
 - **Prompt IA de création mis à jour** (dialogue Créer → « Avec l'IA ») — il ignorait
