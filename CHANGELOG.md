@@ -1,5 +1,16 @@
 # Journal des modifications
 
+## [4.17.0] — 2026-07-19
+### Supprimé
+- **Minimaps (v4.8.0) retirées** (décision utilisateur — devenues redondantes) : la bande
+  de chips-blocs de l'en-tête de crise (< 1000 px) et le panneau « Algorithme — position »
+  du rail droit (≥ 1000 px) faisaient double emploi depuis que le **fil condensé** (chips
+  titrées, lignes-bilan, v4.16) et le **Plan de l'aide** (v4.10) portent la même
+  numérotation, les mêmes états et le même geste de navigation. L'en-tête de crise regagne
+  une rangée entière sur téléphone ; le rail droit se recentre sur les minuteurs et la
+  posologie. `minimapData` (la source de l'état par bloc) reste — elle nourrit le plan, le
+  mode statique et le SVG. CSS et délégations retirés avec le composant.
+
 ## [4.16.4] — 2026-07-19
 ### Modifié
 - **Fil condensé — ligne-bilan façon ECL** (retour d'usage : sur téléphone, une rangée de

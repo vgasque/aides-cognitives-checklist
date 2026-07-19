@@ -157,7 +157,7 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   reprend au POINT DE CONVERGENCE (post-dominateur immédiat — itératif, graphes minuscules),
   cible déjà décrite = lien « ↺ reprendre à n » (les BOUCLES deviennent une structure lisible,
   ex. cycles 2 min d'un ACR), chaque bloc n'apparaît qu'UNE fois. `flowPlan().order` =
-  NUMÉROTATION COMMUNE (plan, journal, chips, rail — `minimapData` la suit). Le plan est
+  NUMÉROTATION COMMUNE (plan, journal, chips du fil, statique — `minimapData` la suit). Le plan est
   IMMUABLE et INERTE côté cochage (leçon v4.6, décision RE-CONFIRMÉE en maquettes v4.12 :
   jamais de cases — la trace vit dans le journal) ; il porte un état LÉGER (✓ dernier passage
   complet, ● ici, ×n passages, `offPathSet`) et sert à NAVIGUER : taper un bloc = `jumpToBlock`,
@@ -219,14 +219,13 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   `updateRtStrip` (`#rmTime`) ; entrées : bouton « Lecteur » sur l'instance du bout + menu ⋯.
   **Garde-fou télégraphique** (`stepGuardTxt`, non bloquant, patron `nfGuardTxt`) : bloc
   > 7 étapes ou challenge > 110 caractères (la réponse « :: » ne compte pas).
-  **Minimap (v4.8.0)** : bande de chips-blocs `#ovChips` STATIQUE dans l'en-tête sous
-  `#crisisBand` (< 1000 px ; délégation posée UNE fois, contenu peint par `paintMinimaps` —
-  masquée/vidée hors lecture par `applyViewChrome`) + panneau `#ovMap` du rail droit
-  (≥ 1000 px, sous les minuteurs — l'alarme reste dominante) ; chips « Dg ✓ » / « ③ Surv. » =
-  saut vers les sections ① et ③ ; taper un bloc = `jumpToBlock` (même geste que le SVG) ;
-  chip courante auto-centrée ; états : `.done` vert, `.cur` fond `--link` (indicateur de
-  sélection, pas un bouton rempli), `.dec` bordure `--verify`, `.off` pointillé estompé —
-  jamais la couleur seule (n° + compteur en texte). **SVG navigable (v4.7.0)** : taper un nœud de
+  **Minimaps SUPPRIMÉES (v4.17.0, décision utilisateur)** : la bande de chips-blocs
+  `#ovChips` de l'en-tête (< 1000 px) et le panneau « Algorithme — position » `#ovMap` du
+  rail droit (≥ 1000 px), tous deux de v4.8.0, sont retirés — redondants depuis que le FIL
+  CONDENSÉ (chips titrées, lignes-bilan) et le PLAN portent la numérotation commune, l'état
+  par bloc et le saut `jumpToBlock`. `minimapData` RESTE (source unique de l'état par bloc,
+  consommée par plan/statique/SVG/tests). Ne pas réintroduire sans besoin d'usage constaté
+  (l'historique git — tag v4.16.4 — garde l'implémentation). **SVG navigable (v4.7.0)** : taper un nœud de
   l'organigramme = y ALLER (`jumpToBlock` : visité → curseur, sinon extension — JAMAIS de
   cochage dans le SVG, JAMAIS de démarrage de session : naviguer ≠ agir) ; l'état est peint par
   classes (`flowPaintState`), la géométrie n'est plus JAMAIS reconstruite à la navigation
@@ -305,7 +304,7 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   convergence — jamais le centre d'un bandeau élargi/décalé ;
   branches empilées (étroit) → `.stacked` : fourche/convergence masquées, les pilules
   re-suffisent — la flèche n'est JAMAIS seule (aria-hidden, l'info reste textuelle). En mode
-  statique : pas de panneau « Algorithme » ni de minimap (le tableau EST la vue d'ensemble) ;
+  statique : pas de panneau « Algorithme » (le tableau EST la vue d'ensemble) ;
   minuteurs/alarmes/sessions INCHANGÉS (emplacements constants, alarme = mêmes règles ECAM
   que le journal) ; l'impression force toujours le plan détaillé (`beforeprint` inchangé).
   Re-rendu ciblé `renderSvOnly` (délégation sur `.sv-wrap`) ; préfixe CSS `sv-` (st- était
