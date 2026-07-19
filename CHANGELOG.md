@@ -1,5 +1,20 @@
 # Journal des modifications
 
+## [4.13.2] — 2026-07-19
+### Corrigé
+- **Plan de l'aide — fil collant simplifié** : la pile de questions et d'options épinglées
+  en haut de l'écran (v4.12) se superposait — les décalages étaient figés à 48 px alors
+  qu'une question sur deux lignes est plus haute — et, même correcte, une pile de 3-4
+  boîtes gênait la lecture sur téléphone. Désormais **une seule épingle** : la question de
+  premier niveau reste visible pendant qu'on défile dans ses branches et se décroche à la
+  convergence ; le contexte de branche reste porté par les rails et les étiquettes
+  d'option, qui défilent normalement.
+- **Textes qui débordaient de leur cadre** : dans les bulles « À vérifier —
+  surveillances », les diagnostics différentiels, les options d'une décision, les rappels
+  « Ne pas oublier » et les questions, un mot long pouvait sortir du cadre ou pousser la
+  case/le chevron hors de la carte (journal ET vue guidée). Les textes peuvent maintenant
+  rétrécir et se couper proprement (césure française), comme les étapes en v4.13.1.
+
 ## [4.13.1] — 2026-07-19
 Audit design complet après retours d'usage sur v4.13.0 : taille du texte, petits écrans,
 flèches du mode statique et en-têtes du journal.
