@@ -1,5 +1,15 @@
 # Journal des modifications
 
+## [4.20.3] — 2026-07-19
+### Modifié
+- **Prompt IA raccourci de ~15 % à information constante** (21,5 k → 18,3 k
+  caractères) : réécriture télégraphique — justifications répétées et tournures
+  longues resserrées — sans supprimer une seule règle, un seul seuil ni un seul
+  exemple. Couverture vérifiée automatiquement (≈ 80 éléments-clés recherchés dans la
+  nouvelle version) ; les formulations-invariants gardées par les tests (parcimonie du
+  gras, une interdiction par ligne, gras exclu des étapes…) sont conservées à
+  l'identique.
+
 ## [4.20.2] — 2026-07-19
 ### Modifié
 - **Prompt IA — règle de cohérence des décisions** (piège rapporté sur une fiche
