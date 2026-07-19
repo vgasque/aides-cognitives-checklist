@@ -1,5 +1,33 @@
 # Journal des modifications
 
+## [4.13.1] — 2026-07-19
+Audit design complet après retours d'usage sur v4.13.0 : taille du texte, petits écrans,
+flèches du mode statique et en-têtes du journal.
+
+### Corrigé
+- **Réglage « Taille du texte » (cause racine de deux bugs)** : ce réglage est un zoom CSS,
+  et les positions mesurées à l'écran sont en pixels « visuels » (× zoom) alors que les
+  styles écrits sont en pixels CSS. Dès que la taille n'était pas à 100 %, le fil d'ancêtres
+  collant du plan dérivait (pastilles flottant sous l'en-tête ou glissant dessous) et les
+  flèches du mode statique se désalignaient. Toutes les mesures sont désormais ramenées en
+  pixels CSS (`zoomF()`), et la base du fil collant est recalée à chaque variation de
+  hauteur de l'en-tête (repli au défilement, bandeau de crise, changement de taille).
+- **Mode statique sur petit écran** : sous 640 px, les branches ne s'affichent plus côte à
+  côte (colonnes de ~145 px illisibles — retour d'usage) : tout s'empile en pleine largeur,
+  les pilules « → n » / « ↺ n » portent la structure. La pilule de réponse « :: » peut se
+  replier sur plusieurs lignes (elle débordait du cadre en nowrap), comme les titres et
+  étapes des cellules.
+- **Flèches de convergence** : les brins partent maintenant du bas réel de chaque branche
+  (chip comprise pour une branche vide) et traversent l'espace libre jusqu'au coude — plus
+  de segments flottants sous une colonne courte. Redessin automatique à tout changement de
+  géométrie du tableau (taille du texte, rotation, resize).
+- **Journal — en-tête d'instance** : sur petit écran, les boutons « Lecteur » et
+  « Vérifier » passent sous le titre (deux rangées) au lieu de l'écraser ; le chip « Vous
+  êtes ici » ne recouvre plus la ligne du dessus ; la réponse d'une décision repliée peut
+  se replier sur plusieurs lignes.
+- **Étapes de la checklist** : un mot long (« compressions ») ne pousse plus la case à
+  cocher hors du cadre en étroit / grande taille de texte (césure française automatique).
+
 ## [4.13.0] — 2026-07-19
 Un **troisième mode de lecture « Statique »** rejoint le Journal et la vue guidée : tout
 l'algorithme d'un coup d'œil, en tableau compact façon aide cognitive SFAR/CAMR — généré

@@ -150,7 +150,9 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   (`state.ovFold['b:…']`, chip-bouton ≥ 44 px « n blocs · k ✓ · → n ») — hors chemin
   auto-repliée, JAMAIS bloquant ; FIL D'ANCÊTRES COLLANT (question + option épinglées sous
   l'en-tête au défilement : `position:sticky` empilé `pd0-3`, `--pl-stick` mesuré sur
-  `header.bar` par `ovPlanStick`). **Échelle ECAM** (mode compact, remplace « Titres seuls » ;
+  `header.bar` par `ovPlanStick` — ÷ `zoomF()` et RECALÉ à chaque variation de hauteur de
+  l'en-tête : repli `.condensed`/`.ttl-on` au défilement, taille du texte, v4.13.1).
+  **Échelle ECAM** (mode compact, remplace « Titres seuls » ;
   `state.ovPlanCompact`, jamais persisté, impression = détails) : une ligne par bloc, retraits
   d0-3 AVEC chips d'étiquette (`OUI ›`), renvois mono abrégés (`optAbbr` pure : `OUI→5`,
   `↺1`, `▪fin`), ligne dépliable in-place (étapes lecture seule + « → aller à ce bloc »).
@@ -196,9 +198,10 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   façon aide SFAR/CAMR — cellules télégraphiques carrelées à joint 3 px, GÉNÉRÉ depuis
   `flowPlan` (numérotation commune) par `svTableHtml` : tronc = cellules pleine largeur
   (`.sv-cell`, titre en petites capitales, étapes ❑), décision = BANDE au registre ATTENTION
-  (`.sv-band` : titre + question) + branches en colonnes (`.sv-cols` auto-fit minmax(140px)
-  plafonné `c1…c4` — 140 et non 148 : la gouttière des retours prend 16 px ; règles
-  `deep`/`deepv` du plan v4.12 répliquées). INERTE côté cochage (doctrine du plan,
+  (`.sv-band` : titre + question) + branches en colonnes (`.sv-cols` auto-fit minmax(148px)
+  plafonné `c1…c4` ; **UNE SEULE COLONNE sous 640 px** — retour d'usage v4.13.1 : des
+  colonnes de ~145 px sur téléphone rendaient la lecture difficile ; règle `deep` du plan
+  répliquée pour ≥ 640, pas de `deepv`). INERTE côté cochage (doctrine du plan,
   RE-CONFIRMÉE) : l'état de session est PEINT en lecture seule (✓/k coché du dernier passage,
   `● ici` = bout du journal, `aria-current`, hors chemin estompé + mention, chip d'option
   `✓ prise`) ; taper une cellule = `svJump` (jamais visité → ENTRE au bout du journal ; JAMAIS
@@ -207,9 +210,14 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   bleu dans les cellules (décision utilisateur)** : réponse « :: » = pilule mono NEUTRE
   (`.sv-r`, ≠ `.stp-r` bleu du journal), renvois neutres — le bleu ne marque que la position
   (`● ici`) et la reprise `↺` (`--primary-soft`). **Flèches (svPaintArrows, mesures réelles
-  APRÈS rendu + resize rAF)** : FOURCHE ambre (`--verify-bd`) de la bande vers chaque chip
-  d'option, CONVERGENCE grise (`--line-strong`) fusionnant les branches dont l'issue terminale
-  (`svBranchIssue`, pure) est le bloc de reprise du tronc (leurs pilules sont alors masquées),
+  APRÈS rendu, redessin au resize + ResizeObserver sur `.sv-tb`)** : toute mesure est divisée
+  par `zoomF()` — **le réglage de taille du texte est un zoom CSS sur `<html>` :
+  `getBoundingClientRect` rend des px VISUELS (× zoom) alors que les styles/SVG posés sont en
+  px CSS ; toute mesure réinjectée doit être ÷ zoom (v4.13.1, vaut aussi pour `--pl-stick`)**.
+  FOURCHE ambre (`--verify-bd`) de la bande vers chaque chip d'option, CONVERGENCE grise
+  (`--line-strong`) fusionnant les branches dont l'issue terminale (`svBranchIssue`, pure) est
+  le bloc de reprise du tronc (pilules masquées ; brins partant du BAS RÉEL de chaque branche
+  dans la superposition `.sv-gut` — jamais de segment flottant sous une colonne courte),
   RETOURS bleus (`--link`) en GOUTTIÈRE gauche (16 px, `svLoopTargets` pure : plafond 2 voies) ;
   branches empilées (étroit) → `.stacked` : fourche/convergence masquées, les pilules
   re-suffisent — la flèche n'est JAMAIS seule (aria-hidden, l'info reste textuelle). En mode

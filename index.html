@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-8GT1RB3Q6rlWJ4cPC7Yjs5160IqbsqH4yYnS3cjr138='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-1+j6sLf1JIOCdEw4eI7V5TfMXdIp421mxsCfnVhLVlo='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1005,12 +1005,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   ol.steps{list-style:none;margin:0;padding:0;counter-reset:s}
   /* Rangée cochable (canvas section 6) : n° mono 14 · libellé 16.5/800 · case 36px à droite ;
      min 64px, rangée entière cliquable ; transition .25s vers l'état coché. */
-  ol.steps li{counter-increment:s;display:flex;gap:12px;align-items:center;min-height:64px;background:var(--surface);border:1px solid var(--line-hover);border-left:3px solid var(--ink);border-radius:8px;padding:12px;margin-bottom:6px;cursor:pointer;transition:opacity .25s,background .25s,border-color .25s}
+  ol.steps li{counter-increment:s;display:flex;gap:12px;align-items:center;min-height:64px;background:var(--surface);border:1px solid var(--line-hover);border-left:3px solid var(--ink);border-radius:8px;padding:12px;margin-bottom:6px;cursor:pointer;transition:opacity .25s,background .25s,border-color .25s;overflow-wrap:break-word}
   /* Numéro d'étape (v4.2.2) : 16px, CENTRÉ verticalement — c'est l'ancre de suivi de position
      de la lecture challenge-response (QRH) ; aligné sur l'axe de la case à cocher, sans voler
      la saillance du texte (mono, encre douce — les registres crit/vigil/done le recolorent). */
   ol.steps li::before{content:counter(s,decimal-leading-zero);font-family:var(--mono);font-size:16px;font-weight:700;color:var(--ink-soft);width:30px;flex:none;text-align:center;align-self:center}
-  ol.steps li .txt{flex:1;font-size:16.5px;font-weight:800;line-height:1.45}
+  /* v4.13.1 : min-width:0 + césure — sans eux, un mot long (« compressions ») fixe le
+     min-content du texte et pousse la CASE hors du cadre en étroit / grande taille de texte. */
+  ol.steps li .txt{flex:1;min-width:0;font-size:16.5px;font-weight:800;line-height:1.45;overflow-wrap:break-word;hyphens:auto}
   /* Case à cocher À DROITE (canvas), 36px, vide = bordure 2px grise sur fond transparent. */
   ol.steps li .box{order:3;width:36px;height:36px;border:2px solid var(--line-strong);border-radius:6px;flex-shrink:0;display:grid;place-items:center;color:var(--on-primary);background:transparent}
   ol.steps li .txt{order:2}
@@ -1408,23 +1410,28 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Hors chemin (branche écartée par une décision) : ATTÉNUÉ mais JAMAIS verrouillé — l'estompe
      n'est jamais seule, la mention « hors chemin » l'accompagne (WCAG 1.4.1). */
   .ov-block.off{opacity:.55;border-style:dashed}
-  .ov-head{display:flex;align-items:stretch}
-  .ov-tgl{flex:1;min-width:0;display:flex;align-items:center;gap:9px;min-height:52px;padding:9px 12px;background:none;border:0;cursor:pointer;font-family:inherit;text-align:left}
+  /* v4.13.1 : l'en-tête d'instance PEUT se replier sur deux rangées — en étroit, les boutons
+     « Lecteur »/« Vérifier » passent SOUS le titre (flex-wrap + base 230px) au lieu de
+     l'écraser (titre superposé au chip « Vous êtes ici », compteur expulsé). */
+  .ov-head{display:flex;align-items:stretch;flex-wrap:wrap;justify-content:flex-end}
+  .ov-tgl{flex:1 1 230px;min-width:0;display:flex;align-items:center;gap:9px;min-height:52px;padding:9px 12px;background:none;border:0;cursor:pointer;font-family:inherit;text-align:left}
   .ov-tgl:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
   .ov-n{width:26px;height:26px;border-radius:50%;flex:none;display:grid;place-items:center;font-family:var(--mono);font-size:13px;font-weight:700;color:var(--ink-soft);border:2px solid var(--line-strong)}
   .ov-block.cur .ov-n{background:var(--primary);border-color:var(--primary);color:var(--on-primary)}
   .ov-block.done .ov-n{background:var(--ok);border-color:var(--ok);color:var(--surface)}
-  .ov-t{flex:1;min-width:0;font-size:14px;font-weight:800;color:var(--ink);line-height:1.3}
+  .ov-t{flex:1;min-width:0;font-size:14px;font-weight:800;color:var(--ink);line-height:1.5;overflow-wrap:break-word}
   .ov-t .pass-n{font-family:var(--mono);font-weight:600;color:var(--primary);margin-left:7px;font-size:12px}
   .ov-offtag{font-size:11.5px;font-weight:700;color:var(--ink-soft);margin-left:6px;display:none}
   .ov-block.off .ov-offtag{display:inline}
   /* Pastille de position DANS .ov-t : elle passe à la ligne en étroit au lieu d'écraser le titre. */
-  .ov-here{display:none;font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;background:var(--primary);color:var(--on-primary);padding:3px 9px;border-radius:999px;white-space:nowrap;vertical-align:1px}
+  /* Chip compact : padding vertical 1px + vertical-align baseline — un chip plus haut que la
+     ligne recouvrait la ligne de titre PRÉCÉDENTE quand le titre se replie (v4.13.1). */
+  .ov-here{display:none;font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;background:var(--primary);color:var(--on-primary);padding:1px 8px;border-radius:999px;white-space:nowrap;vertical-align:baseline}
   .ov-block.cur .ov-here{display:inline-block}
   .ov-c{flex:none;font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--ink-soft)}
   .ov-block.done .ov-c{color:var(--ok)}
   .ov-chev{flex:none;color:var(--link);font-size:15px;font-weight:800}
-  .ov-redo{flex:none;align-self:center;margin-right:10px;min-height:44px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--ink-soft);font-size:12px;font-weight:700;padding:6px 11px;cursor:pointer;white-space:nowrap}
+  .ov-redo{flex:none;align-self:center;margin:0 10px 6px 0;min-height:44px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--ink-soft);font-size:12px;font-weight:700;padding:6px 11px;cursor:pointer;white-space:nowrap}
   .ov-redo:hover{background:var(--surface)}
   .ov-redo:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .ov-body{padding:0 12px 12px}
@@ -1438,7 +1445,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .ov-block.closed.done .ov-t{color:var(--ok)}
   .ov-block.closed.done.dec{background:var(--verify-soft);border-color:var(--verify-bd);border-left-color:var(--verify-bd)}
   .ov-block.closed.done.dec .ov-t{color:var(--ink)}
-  .ov-ans{font-size:12.5px;font-weight:600;color:var(--ink-soft);margin-left:6px;white-space:nowrap}
+  /* v4.13.1 : la réponse PEUT se replier (en nowrap, une réponse longue débordait de la
+     ligne d'état sur petit écran / grande taille de texte). */
+  .ov-ans{font-size:12.5px;font-weight:600;color:var(--ink-soft);margin-left:6px}
   .ov-sec-h{font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft);margin:2px 0 8px}
   /* ----- PLAN DE L'AIDE (v4.10.0) : arbre indenté façon algorithme papier ----- */
   .ov-plan-h{display:flex;align-items:center;gap:7px;margin:18px 0 4px;min-width:0}
@@ -1459,12 +1468,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pl-nn{width:22px;height:22px;border-radius:50%;flex:none;display:grid;place-items:center;font-family:var(--mono);font-size:11.5px;font-weight:700;color:var(--ink-soft);border:2px solid var(--line-strong);background:var(--surface);margin-top:1px}
   .pl-nd.done .pl-nn{background:var(--ok);border-color:var(--ok);color:var(--surface)}
   .pl-nd.cur .pl-nn{background:var(--primary);border-color:var(--primary);color:var(--on-primary)}
-  .pl-nt{flex:1;min-width:0;font-size:12.5px;font-weight:700;color:var(--ink);line-height:1.35}
+  .pl-nt{flex:1;min-width:0;font-size:12.5px;font-weight:700;color:var(--ink);line-height:1.35;overflow-wrap:break-word}
   .pl-nm{flex:none;font-size:11px;color:var(--ink-soft);font-family:var(--mono)}
   .pl-x{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--primary);margin-left:6px}
   .pl-here{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;background:var(--primary);color:var(--on-primary);padding:1px 8px;border-radius:999px;margin-left:6px;vertical-align:1px}
   .pl-stp{margin:4px 0 0;padding:0;list-style:none}
-  .pl-stp li{font-size:11.5px;font-weight:400;color:var(--ink-soft);line-height:1.5;padding-left:13px;position:relative}
+  .pl-stp li{font-size:11.5px;font-weight:400;color:var(--ink-soft);line-height:1.5;padding-left:13px;position:relative;overflow-wrap:break-word}
   .pl-stp li::before{content:"·";position:absolute;left:4px}
   .pl-stp li.crit{color:var(--critical);font-weight:600}
   .pl-stp li.vig{color:var(--verify);font-weight:600}
@@ -1565,19 +1574,21 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .sv-cell.flash,.sv-band.flash{outline:3px solid var(--primary-soft);outline-offset:1px}
   .sv-h{display:flex;align-items:baseline;gap:6px;margin:0;min-width:0}
   .sv-n{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink-soft);flex:none}
-  .sv-t{flex:1;min-width:0;font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--ink);line-height:1.4}
+  .sv-t{flex:1;min-width:0;font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--ink);line-height:1.4;overflow-wrap:break-word}
   .sv-m{flex:none;font-family:var(--mono);font-size:11px;color:var(--ink-soft);display:flex;gap:6px;align-items:baseline}
   .sv-m .sv-ok{color:var(--ok);font-weight:700}
   .sv-here{font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;background:var(--primary);color:var(--on-primary);padding:0 7px;border-radius:999px}
   .sv-off2{margin:2px 0 0;font-size:11px;font-weight:600;color:var(--ink-soft)}
   .sv-stp{margin:3px 0 0;padding:0;list-style:none}
-  .sv-stp li{position:relative;font-size:11.5px;line-height:1.5;color:var(--ink);padding-left:15px}
+  .sv-stp li{position:relative;font-size:11.5px;line-height:1.5;color:var(--ink);padding-left:15px;overflow-wrap:break-word}
   .sv-stp li::before{content:"❑";position:absolute;left:0;color:var(--ink-soft)}
   .sv-stp li.done{color:var(--ink-soft)}   /* coché = ✓ vert, texte JAMAIS barré (relecture) */
   .sv-stp li.done::before{content:"✓";color:var(--ok);font-weight:700}
   .sv-stp li.crit{color:var(--critical);font-weight:600}
   .sv-stp li.vig{color:var(--verify);font-weight:600}
-  .sv-r{font-family:var(--mono);font-size:11px;color:var(--ink);background:var(--tag-bg);border:1px solid var(--line);border-radius:7px;padding:0 6px;white-space:nowrap}
+  /* v4.13.1 : la pilule DOIT pouvoir se replier (une réponse longue en nowrap dépassait du
+     cadre de sa cellule) — box-decoration-break garde les coins sur chaque fragment. */
+  .sv-r{font-family:var(--mono);font-size:11px;color:var(--ink);background:var(--tag-bg);border:1px solid var(--line);border-radius:7px;padding:0 6px;overflow-wrap:break-word;-webkit-box-decoration-break:clone;box-decoration-break:clone}
   /* Bande de décision : registre ATTENTION — titre en petites capitales + question en clair. */
   .sv-band{display:flex;align-items:baseline;gap:6px;border:1px solid var(--verify-bd);border-radius:3px;background:var(--verify-soft);padding:6px 8px;cursor:pointer;min-width:0}
   .sv-band .sv-n{color:var(--verify)}
@@ -1585,30 +1596,29 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .sv-band .sv-t b{font-weight:800;letter-spacing:.5px;text-transform:uppercase;font-size:11px}
   .sv-band .sv-m{color:var(--verify)}
   /* Branches : colonnes auto-fit plafonnées cN (même piège auto-fit que le plan v4.12).
-     Seuil 140 px (et non 148 comme le plan) : la gouttière des retours prend 16 px —
-     à 375 px il reste ~290 px utiles, où deux colonnes de 140 tiennent encore. */
-  .sv-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:3px;align-items:start}
+     SOUS 640 px : UNE SEULE COLONNE — retour d'usage v4.13.1 : des branches côte à côte
+     de ~145 px sur téléphone rendaient la lecture difficile ; en pile, les pilules
+     « → n » / « ↺ n » portent la structure (les flèches se masquent, .stacked). */
+  .sv-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:3px;align-items:start}
   .sv-cols.c1{grid-template-columns:1fr}
-  .sv-cols.c2{grid-template-columns:repeat(auto-fit,minmax(max(140px,calc(50% - 1.5px)),1fr))}
-  .sv-cols.c3{grid-template-columns:repeat(auto-fit,minmax(max(140px,calc(33.33% - 2px)),1fr))}
-  .sv-cols.c4{grid-template-columns:repeat(auto-fit,minmax(max(140px,calc(25% - 2.25px)),1fr))}
-  /* Branche PROFONDE (deep : > 2 blocs ou décision imbriquée) = pleine largeur toujours ;
-     VOLUMINEUSE (deepv : > 3 étapes) = pleine largeur sous 640 px seulement (règle v4.12). */
+  .sv-cols.c2{grid-template-columns:repeat(auto-fit,minmax(max(148px,calc(50% - 1.5px)),1fr))}
+  .sv-cols.c3{grid-template-columns:repeat(auto-fit,minmax(max(148px,calc(33.33% - 2px)),1fr))}
+  .sv-cols.c4{grid-template-columns:repeat(auto-fit,minmax(max(148px,calc(25% - 2.25px)),1fr))}
+  @media (max-width:639.98px){ .sv-cols,.sv-cols.c2,.sv-cols.c3,.sv-cols.c4{grid-template-columns:1fr} }
+  /* Branche PROFONDE (deep : > 2 blocs ou décision imbriquée) = pleine largeur (>= 640). */
   .sv-br.deep{grid-column:1/-1}
-  @media (max-width:639.98px){ .sv-br.deepv{grid-column:1/-1} }
   .sv-br{display:grid;gap:3px;min-width:0;align-content:start}
   .sv-opt{border:1px solid var(--verify-bd);border-radius:3px;background:var(--verify-soft);color:var(--verify);font-size:11px;font-weight:700;text-align:center;padding:4px 6px;min-height:28px;display:flex;align-items:center;justify-content:center;gap:4px;flex-wrap:wrap}
   .sv-opt .sv-tk{color:var(--ok)}
   .sv-offtag{font-weight:600;color:var(--ink-soft)}
-  /* Fourche (ambre, sous la bande) et convergence (grise, avant la reprise du tronc) :
-     bandeaux de 16 px remplis par svPaintArrows ; masqués quand les branches s'empilent
-     (.stacked : la géométrie ne correspondrait plus) — les pilules restent. */
+  /* Fourche (ambre) = bandeau local 16 px sous la bande ; convergence (grise) = ESPACE
+     réservé 16 px, les brins vivent dans la superposition .sv-gut (ils partent du bas réel
+     de chaque branche, v4.13.1). Masqués quand les branches s'empilent (.stacked) —
+     les pilules restent. */
   .sv-fork,.sv-merge{height:16px;min-width:0;overflow:hidden}
-  .sv-fork svg,.sv-merge svg{display:block}
+  .sv-fork svg{display:block}
   .sv-fork .ln{fill:none;stroke:var(--verify-bd);stroke-width:1.6}
   .sv-fork .ah{fill:var(--verify-bd)}
-  .sv-merge .ln{fill:none;stroke:var(--line-strong);stroke-width:1.6}
-  .sv-merge .ah{fill:var(--line-strong)}
   .sv-decwrap{display:grid;gap:3px;min-width:0}
   .sv-decwrap.stacked>.sv-fork,.sv-decwrap.stacked>.sv-merge{display:none}
   /* Renvois : pilule neutre (convergence/saut) — la reprise ↺ garde le registre bleu doux. */
@@ -1622,6 +1632,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .sv-gut{position:absolute;left:0;top:0;pointer-events:none}
   .sv-gut .lp{fill:none;stroke:var(--link);stroke-width:1.6}
   .sv-gut .lph{fill:var(--link)}
+  .sv-gut .lg{fill:none;stroke:var(--line-strong);stroke-width:1.6}
+  .sv-gut .lgh{fill:var(--line-strong)}
   /* ----- Challenge :: réponse (v4.11.0, AC 120-71B) : la pilule mono = RÉPONSE ATTENDUE ;
      cocher = readback (✓ + vert), porté par le CSS seul — le toggle chirurgical n'y touche pas. */
   ol.steps li .stp-r{display:inline-block;margin-left:8px;font-family:var(--mono);font-size:13px;font-weight:600;color:var(--link);background:var(--primary-soft);border-radius:7px;padding:2px 9px;vertical-align:1px;line-height:1.45}
@@ -2552,7 +2564,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.13.0';
+const APP_VERSION='4.13.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -4654,12 +4666,16 @@ if(mqReadWide.addEventListener)mqReadWide.addEventListener('change',_onReadBp);e
 // les scrollTo() de render() déclenchent aussi l'évènement -> état toujours juste.
 let _hdrCond=false,_hdrTtl=false;
 window.addEventListener('scroll',()=>{const c=window.scrollY>24;
-  if(c!==_hdrCond){_hdrCond=c;document.querySelector('header.bar').classList.toggle('condensed',c);}
+  if(c!==_hdrCond){_hdrCond=c;document.querySelector('header.bar').classList.toggle('condensed',c);
+    // L'en-tête vient de changer de hauteur : recaler la base du fil d'ancêtres collant du
+    // plan (sinon les pastilles épinglées flottent sous — ou passent sous — l'en-tête, v4.13.1).
+    if(state.view==='read'&&state.readMode==='overview'&&state.fiche&&hasFlow(state.fiche))ovPlanStick();}
   // Vues fiche/protocole (.titled) : le titre n'entre dans la barre (.ttl-on) qu'une fois le
   // titre du CORPS sorti de l'écran (~110px : bouton retour + ligne de titre) — jamais deux
   // titres visibles à la fois (pattern « grand titre » iOS, symétrique du repli de l'accueil).
   const t=window.scrollY>110;
-  if(t!==_hdrTtl){_hdrTtl=t;document.querySelector('header.bar').classList.toggle('ttl-on',t);}},{passive:true});
+  if(t!==_hdrTtl){_hdrTtl=t;document.querySelector('header.bar').classList.toggle('ttl-on',t);
+    if(state.view==='read'&&state.readMode==='overview'&&state.fiche&&hasFlow(state.fiche))ovPlanStick();}},{passive:true});
 // keepQuery : bascule déclenchée par la RECHERCHE TRANSVERSALE -> la requête est conservée
 // (le filtre de catégorie, lui, est remis à zéro : il pourrait masquer les résultats attendus).
 // Mémoire de DÉFILEMENT par section (v4.4.1) : basculer Aides <-> Protocoles ne doit pas
@@ -6473,10 +6489,21 @@ function ovPlanLadderHtml(f,plan,num,md,off){
       h+=`<div class="pl-lx"><p class="pl-lxt">${esc(b.title)||''}</p>${det}<button type="button" class="pl-lnk" data-plgo="${esc(it.id)}">→ aller à ce bloc</button></div>`;}
   });
   return h;}
+// Facteur de la taille du texte (réglage utilisateur = zoom CSS sur <html>) : les rectangles
+// mesurés (getBoundingClientRect) sont en pixels VISUELS (× zoom) alors que les styles posés
+// (--pl-stick, tracés SVG) sont en pixels CSS — TOUTE mesure réinjectée doit être divisée
+// par ce facteur, sinon fil collant et flèches dérivent dès que la taille ≠ 100 % (v4.13.1).
+function zoomF(){return (parseFloat(document.documentElement.style.zoom)||100)/100;}
 // Pose de --pl-stick (base du fil d'ancêtres collant) : bas réel de l'en-tête sticky de l'app.
+// Recalée aussi quand l'en-tête change de hauteur (repli .condensed au défilement, v4.13.1).
 function ovPlanStick(){const pl=main.querySelector('.ov-plan');if(!pl)return;
   const hb=document.querySelector('header.bar');
-  pl.style.setProperty('--pl-stick',Math.round((hb?hb.getBoundingClientRect().bottom:60)+4)+'px');}
+  pl.style.setProperty('--pl-stick',Math.round((hb?hb.getBoundingClientRect().bottom/zoomF():60)+4)+'px');}
+// Recalage AUTOMATIQUE : toute variation de hauteur de l'en-tête (taille du texte, bandeau de
+// crise, repli au défilement, rotation) recale la base du fil collant (v4.13.1).
+if(window.ResizeObserver){const _hbRO=new ResizeObserver(()=>{
+  if(state.view==='read'&&state.readMode==='overview'&&state.fiche&&hasFlow(state.fiche))ovPlanStick();});
+  const _hb=document.querySelector('header.bar');if(_hb)_hbRO.observe(_hb);}
 // Peinture VIVANTE hors journal (le journal, lui, ne se réécrit qu'aux gestes de navigation) :
 // halo/✓/hors-chemin du SVG + chips/minimap — appelée après chaque coche et chaque navigation.
 function ovPaintLive(f){
@@ -6721,13 +6748,13 @@ function svTableHtml(f){
         const issue=svBranchIssue(items,br.a0,br.z);
         if(joinId&&issue&&issue.to===joinId&&!issue.back)anyMerge=true;
         // Même règle que le plan v4.12 : branche PROFONDE (> 2 blocs ou décision imbriquée) =
-        // pleine largeur toujours ; VOLUMINEUSE (> 3 étapes) = pleine largeur sous 640 px.
-        let nb=0,nested=false,nSteps=0;
+        // pleine largeur (>= 640 px ; en dessous, TOUT est en pile — CSS .sv-cols, v4.13.1).
+        let nb=0,nested=false;
         for(let j=br.a0;j<br.z;j++){if(items[j].k==='block'){nb++;const bb=f.blocks.find(x=>x.id===items[j].id);
-          if(bb&&bb.type==='decision')nested=true;else if(bb)nSteps+=clean(bb.steps).length;}}
-        const deep=nb>2||nested,deepv=!deep&&nSteps>3;
+          if(bb&&bb.type==='decision')nested=true;}}
+        const deep=nb>2||nested;
         if(!deep)nCols++;   // les profondes s'étalent : elles ne comptent pas comme colonne
-        return `<div class="sv-br${br.tk?' taken':''}${br.isOff?' off':''}${deep?' deep':''}${deepv?' deepv':''}"><div class="sv-opt${br.tk?' tk':''}">${br.tk?'<span class="sv-tk">✓ </span>':''}${fmt(br.bo.label)}${br.isOff?'<span class="sv-offtag"> · hors chemin</span>':''}</div>${br.inner}</div>`;}).join('');
+        return `<div class="sv-br${br.tk?' taken':''}${br.isOff?' off':''}${deep?' deep':''}"><div class="sv-opt${br.tk?' tk':''}">${br.tk?'<span class="sv-tk">✓ </span>':''}${fmt(br.bo.label)}${br.isOff?'<span class="sv-offtag"> · hors chemin</span>':''}</div>${br.inner}</div>`;}).join('');
       h+=`<div class="sv-decwrap"${joinId?` data-svjoin="${esc(joinId)}"`:''}><div class="sv-band${m.cur?' cur':''}${off.has(decId)?' off':''}" data-svgo="${esc(decId)}" role="button" tabindex="0"${m.cur?' aria-current="true"':''} aria-label="${esc(stripBold(b.title||'Décision'))} — aller à ce bloc"><span class="sv-n" aria-hidden="true">${num[decId]||'·'}</span><span class="sv-t"><b>${esc(b.title)||'Décision'}</b>${b.question?` — ${fmt(b.question)}`:''}</span><span class="sv-m">${metaH(decId,true)}</span></div><div class="sv-fork" aria-hidden="true"></div><div class="sv-cols c${Math.min(Math.max(nCols,1),4)}">${brH}</div>${anyMerge?'<div class="sv-merge" aria-hidden="true"></div>':''}</div>`;}
     return h;};
   return walk();}
@@ -6737,55 +6764,74 @@ function svTableHtml(f){
 // fourche et convergence masquées, les pilules re-suffisent.
 function svPaintArrows(){
   const wrap=main.querySelector('.sv-wrap');if(!wrap)return;
+  const Z=zoomF();   // v4.13.1 : rectangles en px VISUELS -> tout est ramené en px CSS (÷ Z)
+  const wr=wrap.getBoundingClientRect();
+  // Superposition unique pleine page : convergences (grises) + retours ↺ (bleus) — les brins
+  // partent du BAS RÉEL du contenu de chaque branche (plus de segment flottant sous une
+  // colonne courte, v4.13.1) ; les fourches restent des bandeaux locaux sous les bandes.
+  let gh='';
+  const relX=r=>(r.left-wr.left)/Z, relY=r=>(r.top-wr.top)/Z;
   wrap.querySelectorAll('.sv-decwrap').forEach(dw=>{
     const fork=dw.querySelector(':scope>.sv-fork'),cols=dw.querySelector(':scope>.sv-cols'),merge=dw.querySelector(':scope>.sv-merge');
     if(!fork||!cols)return;
     const brsEls=[...cols.querySelectorAll(':scope>.sv-br')];
     const chips=brsEls.map(br=>br.querySelector(':scope>.sv-opt')).filter(Boolean);
-    const tops=chips.map(c=>Math.round(c.getBoundingClientRect().top));
+    const tops=chips.map(c=>Math.round(c.getBoundingClientRect().top/Z));
     const columns=chips.length>1&&tops.every(t=>Math.abs(t-tops[0])<3);
     dw.classList.toggle('stacked',!columns);
     // Convergence : masquer les pilules « → join » SEULEMENT quand la flèche les remplace.
     const joinId=dw.dataset.svjoin||'';
-    const mXs=[];
+    const mBrs=[];
     brsEls.forEach(br=>{const rows=[...br.querySelectorAll(':scope>.sv-jrow')];const jr=rows[rows.length-1];
       const mg=!!(columns&&joinId&&jr&&jr.dataset.jto===joinId&&jr.dataset.jback==='0');
       if(jr)jr.classList.toggle('hid',mg);
-      if(mg)mXs.push(br);});
-    fork.innerHTML='';if(merge)merge.innerHTML='';
+      if(mg)mBrs.push(br);});
+    fork.innerHTML='';
     if(!columns)return;
-    const W=Math.round(fork.getBoundingClientRect().width);if(W<20)return;
     const fr=fork.getBoundingClientRect();
-    {const xs=chips.map(c=>{const r=c.getBoundingClientRect();return Math.round(r.left+r.width/2-fr.left);});
+    const W=Math.round(fr.width/Z);if(W<20)return;
+    {const xs=chips.map(c=>{const r=c.getBoundingClientRect();return Math.round((r.left+r.width/2-fr.left)/Z);});
      const cx=Math.round(W/2);
      let d=`M${cx} 0 V6`;xs.forEach(x=>{d+=` M${cx} 6 H${x} V11`;});
      const ah=xs.map(x=>`M${x-4} 10 L${x} 16 L${x+4} 10 Z`).join(' ');
      fork.innerHTML=`<svg viewBox="0 0 ${W} 16" width="${W}" height="16" aria-hidden="true"><path class="ln" d="${d}"/><path class="ah" d="${ah}"/></svg>`;}
-    if(merge&&mXs.length){const mr=merge.getBoundingClientRect();
-     const xs=mXs.map(br=>{const r=br.getBoundingClientRect();return Math.round(r.left+r.width/2-mr.left);});
-     const cx=Math.round(W/2);
-     let d='';xs.forEach(x=>{d+=`M${x} 0 V6 M${x} 6 H${cx} `;});d+=`M${cx} 6 V11`;
-     merge.innerHTML=`<svg viewBox="0 0 ${W} 16" width="${W}" height="16" aria-hidden="true"><path class="ln" d="${d}"/><path class="ah" d="M${cx-4} 10 L${cx} 16 L${cx+4} 10 Z"/></svg>`;}});
-  // Gouttière des retours ↺ (2 voies max, cf. svLoopTargets — même plafond ici, sur le DOM).
-  {let gut=wrap.querySelector(':scope>.sv-gut');
-   if(!gut){wrap.insertAdjacentHTML('beforeend','<svg class="sv-gut" aria-hidden="true"></svg>');gut=wrap.querySelector(':scope>.sv-gut');}
-   const wr=wrap.getBoundingClientRect();
-   const seen=[],has={};
+    if(merge&&mBrs.length){const mr=merge.getBoundingClientRect();
+     const yS=Math.round(relY(mr));const yA=yS+14;
+     const cx=Math.round(relX(mr)+mr.width/Z/2);
+     let d='';
+     mBrs.forEach(br=>{
+       // Bas RÉEL de la branche = dernier enfant VISIBLE (chip seule si branche vide).
+       const kids=[...br.children].filter(k=>k.offsetParent!==null);
+       const last=kids[kids.length-1]||br;const lr=last.getBoundingClientRect();
+       const x=Math.round(relX(br.getBoundingClientRect())+br.getBoundingClientRect().width/Z/2);
+       d+=`M${x} ${Math.round(relY(lr)+lr.height/Z)+2} V${yS+6} M${x} ${yS+6} H${cx} `;});
+     d+=`M${cx} ${yS+6} V${yA-5}`;
+     gh+=`<path class="lg" d="${d}"/><path class="lgh" d="M${cx-4} ${yA-6} L${cx} ${yA} L${cx+4} ${yA-6} Z"/>`;}});
+  // Retours ↺ en gouttière gauche (2 voies max, cf. svLoopTargets — même plafond ici, sur le DOM).
+  {const seen=[],has={};
    wrap.querySelectorAll('[data-svloop]').forEach(p=>{const t=p.dataset.svloop;if(!has[t]){has[t]=true;seen.push(t);}});
-   let h='';
    seen.slice(0,2).forEach((t,k)=>{
      const tgt=wrap.querySelector('[data-svgo="'+CSS.escape(t)+'"]');if(!tgt)return;
      const x=10-k*6;
-     const yTo=Math.round(tgt.getBoundingClientRect().top-wr.top+14);
+     const yTo=Math.round(relY(tgt.getBoundingClientRect())+14);
      let yMax=yTo;const ticks=[];
      wrap.querySelectorAll('[data-svloop="'+CSS.escape(t)+'"]').forEach(p=>{
-       const y=Math.round(p.getBoundingClientRect().top-wr.top+p.getBoundingClientRect().height/2);
+       const r=p.getBoundingClientRect();const y=Math.round(relY(r)+r.height/Z/2);
        if(y>yMax)yMax=y;ticks.push(y);});
      if(yMax<=yTo)return;
-     h+=`<path class="lp" d="M${x} ${yMax} V${yTo}${ticks.map(y=>` M14 ${y} H${x}`).join('')}"/><path class="lph" d="M${x} ${yTo} L${x-4} ${yTo+7} L${x+4} ${yTo+7} Z"/>`;});
-   const H=Math.round(wrap.scrollHeight);
-   gut.setAttribute('viewBox','0 0 16 '+H);gut.setAttribute('width','16');gut.setAttribute('height',H);
-   gut.innerHTML=h;}}
+     gh+=`<path class="lp" d="M${x} ${yMax} V${yTo}${ticks.map(y=>` M16 ${y} H${x}`).join('')}"/><path class="lph" d="M${x} ${yTo} L${x-4} ${yTo+7} L${x+4} ${yTo+7} Z"/>`;});}
+  {let gut=wrap.querySelector(':scope>.sv-gut');
+   if(!gut){wrap.insertAdjacentHTML('beforeend','<svg class="sv-gut" aria-hidden="true"></svg>');gut=wrap.querySelector(':scope>.sv-gut');}
+   const W2=Math.max(16,Math.round(wr.width/Z)),H=Math.max(16,Math.round(wr.height/Z));
+   gut.setAttribute('viewBox','0 0 '+W2+' '+H);gut.setAttribute('width',W2);gut.setAttribute('height',H);
+   gut.innerHTML=gh;}
+  // Redessin à TOUT changement de géométrie du tableau (taille du texte, police, viewport) :
+  // ResizeObserver rAF — la superposition est en absolu, la peinture ne re-déclenche donc rien.
+  if(!svPaintArrows._ro&&window.ResizeObserver){
+    svPaintArrows._ro=new ResizeObserver(()=>{clearTimeout(svPaintArrows._tm);
+      svPaintArrows._tm=setTimeout(()=>{if(state.view==='read'&&state.readMode==='static'&&state.fiche&&hasFlow(state.fiche))svPaintArrows();},40);});}
+  if(svPaintArrows._ro){svPaintArrows._ro.disconnect();
+    const tb=wrap.querySelector('.sv-tb');if(tb)svPaintArrows._ro.observe(tb);}}
 // Taper une cellule : bloc jamais visité -> il ENTRE au bout du journal (position ● ici) ;
 // déjà visité -> simple acquittement visuel. JAMAIS de défilement (la cellule est sous le
 // doigt), JAMAIS de démarrage de session (naviguer ≠ agir).
@@ -6818,10 +6864,10 @@ function renderSvOnly(){
   svPaintArrows();
   bindStaticEvents(f);}
 // Redessin des flèches au redimensionnement (les colonnes bougent) — rAF, jamais pendant un geste.
-{let _svRaf=0;
+{let _svTm=0;
  window.addEventListener('resize',()=>{
    if(!(state.view==='read'&&state.readMode==='static'&&state.fiche&&hasFlow(state.fiche)))return;
-   cancelAnimationFrame(_svRaf);_svRaf=requestAnimationFrame(svPaintArrows);});}
+   clearTimeout(_svTm);_svTm=setTimeout(svPaintArrows,40);});}
 /* ===== MODE LECTEUR (v4.11.0) =====
    Challenge-response en BINÔME (AC 120-71B) : le lecteur désigné tient l'écran, lit le
    challenge à voix haute, l'exécutant répond, le lecteur valide — UN challenge à la fois,
@@ -8843,7 +8889,13 @@ const ZOOM_STEPS=[90,100,115,130];
 const IS_IOS=/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 function applyZoom(z){z=ZOOM_STEPS.indexOf(z)>=0?z:100;document.documentElement.style.zoom=z===100?'':(z+'%');
   if(IS_IOS)document.documentElement.style.webkitTextSizeAdjust=z===100?'':(z+'%');
-  try{localStorage.setItem(spaceKey('ac-zoom'),String(z));localStorage.setItem('ac-zoom',String(z));}catch(e){}}
+  try{localStorage.setItem(spaceKey('ac-zoom'),String(z));localStorage.setItem('ac-zoom',String(z));}catch(e){}
+  // v4.13.1 : la taille du texte change toute la géométrie mesurée — recaler le fil collant
+  // du plan et redessiner les flèches du mode statique. Appel DIRECT (la mesure force le
+  // reflow ; un rAF peut ne jamais venir si l'onglet ne repeint pas).
+  if(state.view==='read'&&state.fiche&&hasFlow(state.fiche)){
+    if(state.readMode==='overview')ovPlanStick();
+    else if(state.readMode==='static')svPaintArrows();}}
 function currentZoom(){return +(localStorage.getItem(spaceKey('ac-zoom'))||localStorage.getItem('ac-zoom')||100);}
 applyZoom(currentZoom());
 // En mode Auto, suit en DIRECT les changements de thème du système.
