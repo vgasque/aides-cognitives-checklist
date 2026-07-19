@@ -1,5 +1,30 @@
 # Journal des modifications
 
+## [4.16.0] — 2026-07-19
+### Modifié
+- **Fusion des modes Journal et Guidé — le journal devient un FIL CONDENSÉ** : le mode
+  « Guidé » (bloc à bloc) disparaît pour les fiches à algorithme — le journal reprend son
+  rôle en condensant automatiquement l'historique. Trois présentations par passage
+  (`ovPresList`, pure) : le **bout** est toujours une carte dépliée (la surface d'action) ;
+  les 2 passages complets les plus récents restent en **ligne d'état** verte relisible ;
+  les plus anciens deviennent des **chips** regroupées en rangées chronologiques — n° + ✓
+  vert pour un bloc d'étapes, « › réponse » en toutes lettres (tronquée) pour une décision,
+  « ×n » pour les passages multiples. **Invariant de conformité (ECAM/QRH/AC 120-71B,
+  validé)** : un passage incomplet n'est JAMAIS condensé en chip — le travail non fait
+  reste sous les yeux ; le repli manuel d'un incomplet s'arrête à la ligne d'état.
+- **Taper une chip = déplier la carte sur place** (surcharge manuelle, prioritaire sur la
+  condensation automatique jusqu'au choix inverse via le chevron) ; la condensation ne
+  s'applique qu'au rendu d'un geste de navigation, jamais sous le doigt pendant le cochage.
+- **Bascule simplifiée** : un seul sélecteur « Dynamique ↔ Statique » en tête de fiche
+  (le sous-sélecteur « Journal ↔ Guidé » et la clé locale `ac-read-dyn` sont supprimés) ;
+  une préférence « Guidé » enregistrée est lue comme « Dynamique ». Les fiches SANS
+  algorithme gardent le rendu bloc-à-bloc historique (les deux vues y étaient identiques).
+- L'impression déplie l'intégralité du fil (aucune chip sur le papier). Session, cochage,
+  export v3, mode Vérification, mode Lecteur, plan et mode Statique inchangés.
+### Corrigé
+- 5 tests ajoutés (`ovPresList` : bout toujours déplié, incomplet jamais chip, 2 récents
+  en ligne, surcharges manuelles) — 461 au total.
+
 ## [4.15.0] — 2026-07-19
 ### Ajouté
 - **Mode Statique — indentation des branches sur écran étroit** : sous 640 px (une seule

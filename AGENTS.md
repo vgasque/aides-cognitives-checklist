@@ -105,32 +105,39 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   2 colonnes ≥ 780 px — jamais de repli — et garde-fou non bloquant dans l'éditeur,
   `nfGuardTxt`). Tout re-rendu de DÉMARRAGE passe par `renderKeepAnchor` (l'élément déclencheur
   ne bouge pas d'un pixel à l'écran — ECAM).
-- **Journal de parcours du mode crise (v4.9.0, remplace la vue spatiale v4.6.0)** : la lecture
-  d'une fiche À ALGORITHME a TROIS modes (v4.13.0) — `overview` « Journal » (défaut : JOURNAL
-  chronologique) ↔ `guided` « Guidé » (bloc à bloc historique, inchangé) ↔ `static`
-  « Statique » (TABLEAU compact façon SFAR, cf. bullet dédié) ; bascule à DEUX NIVEAUX
-  (v4.14.0, décision utilisateur) : « Dynamique ↔ Statique » (`#readTopSeg`) EN TÊTE de fiche
-  — le statique absorbe confirmation/chapeau/surveillances — puis « Journal ↔ Guidé »
-  (`#readModeSeg`) dans l'étape ② en dynamique seulement ; revenir en dynamique restaure le
-  dernier sous-mode (clé LOCALE `ac-read-dyn`, non synchronisée) ; masquées si `!hasFlow` ;
-  préférence PAR UTILISATEUR (`spaceKey('ac-read-mode')` + `data.prefs.readMode`
-  — le pull de synchro n'écrit QUE la préférence locale, il ne bascule JAMAIS la vue ouverte).
-  Les trois vues partagent le MÊME Runtime : `nav`/`navSeq`/`checked` et l'export v3
-  STRICTEMENT inchangés. **Doctrine du journal (leçon v4.6→v4.9 : ne PAS poser
-  un état temporel sur une carte spatiale — un bloc à plusieurs passages y perd l'utilisateur)** :
-  `nav[]` EST la chronologie — chaque passage est une CARTE POSTÉE à la suite (modèle ECAM),
-  rien ne mute au-dessus, on lit toujours vers le bas ; le journal n'a PAS de curseur (la
-  position est le BOUT, `state.navPos=fin` — la vue guidée garde le sien) ; une instance
-  COMPLÈTE non-courante se replie en LIGNE D'ÉTAT verte relisible — repli appliqué AU RENDU
-  d'un geste de navigation, JAMAIS sous le doigt pendant le cochage ; une instance incomplète
-  reste dépliée ; une décision repliée garde sa réponse en toutes lettres (`.ov-ans`) et ses
-  options restent actives partout (changer d'avis = nouveau passage décision+cible en bout de
-  journal, traçabilité complète) ; l'avancement (« Continuer — … → » / « Terminer ») n'existe
-  QUE sur l'instance du bout — une boucle est un simple Continuer ; « ↺ Refaire » poste
-  volontairement une nouvelle carte, tout ce qui précède reste tel quel. Cocher dans une
-  instance ne re-rend JAMAIS (délégation sur `.ov-wrap`, chirurgie `ovAfterCheck`/`ovPaintLive` ;
-  `renderOvOnly` = pendant de `renderNavOnly`, qui dispatche). Fonctions pures : `passInfo`
-  (rang du passage), `instComplete` ; `minimapData` = source UNIQUE de l'état PAR BLOC.
+- **Journal de parcours du mode crise (v4.9.0 ; FIL CONDENSÉ v4.16.0 — le mode guidé y est
+  FUSIONNÉ)** : la lecture d'une fiche À ALGORITHME a DEUX modes — `overview` « Dynamique »
+  (défaut : JOURNAL chronologique) ↔ `static` « Statique » (TABLEAU compact façon SFAR, cf.
+  bullet dédié) ; bascule UNIQUE `#readTopSeg` en tête de fiche, masquée si `!hasFlow` (fiche
+  mono-bloc : rendu guidé `navSection` conservé — les vues y seraient identiques). L'ex-mode
+  `guided` n'existe plus en vue : `currentReadMode()` mappe une préférence `'guided'`
+  enregistrée vers `'overview'` (la valeur reste tolérée en LECTURE de préférence, jamais
+  proposée). Préférence PAR UTILISATEUR (`spaceKey('ac-read-mode')` + `data.prefs.readMode` —
+  le pull de synchro n'écrit QUE la préférence locale, il ne bascule JAMAIS la vue ouverte).
+  Les vues partagent le MÊME Runtime : `nav`/`navSeq`/`checked` et l'export v3 STRICTEMENT
+  inchangés. **Doctrine du journal (leçon v4.6→v4.9 : ne PAS poser un état temporel sur une
+  carte spatiale — un bloc à plusieurs passages y perd l'utilisateur)** : `nav[]` EST la
+  chronologie — chaque passage est une CARTE POSTÉE à la suite (modèle ECAM), rien ne mute
+  au-dessus, on lit toujours vers le bas ; le journal n'a PAS de curseur (la position est le
+  BOUT, `state.navPos=fin`). **Fil condensé (v4.16.0, `ovPresList` PURE — décision utilisateur
+  validée ECAM/QRH/AC 120-71B)** : trois présentations par passage — carte dépliée `'open'`,
+  LIGNE D'ÉTAT verte relisible `'line'`, CHIP `'chip'` (pastille n° + ✓ vert / « › réponse »
+  en toutes lettres tronquée pour une décision — la couleur jamais seule) ; règles : le BOUT
+  est toujours une carte ; un passage INCOMPLET n'est JAMAIS une chip (l'invariant qui fait la
+  conformité — repli manuel = ligne d'état au maximum) ; complets non-courants : les 2 plus
+  récents en ligne, les plus anciens en chips ; la SURCHARGE MANUELLE prime (`state.ovFold[idx]`
+  false = déplié, true = condensé) ; chips consécutives regroupées en rangées `.ov-crumbs`
+  CHRONOLOGIQUES (une carte/ligne coupe la rangée) ; taper une chip = DÉPLIER la carte sur
+  place (`data-ovix` → `ovFold[idx]=false`) ; l'impression déplie tout (`_printingOv`).
+  Condensation appliquée AU RENDU d'un geste de navigation, JAMAIS sous le doigt pendant le
+  cochage ; une décision repliée garde sa réponse en toutes lettres (`.ov-ans`) et ses options
+  restent actives partout (changer d'avis = nouveau passage décision+cible en bout de journal,
+  traçabilité complète) ; l'avancement (« Continuer — … → » / « Terminer ») n'existe QUE sur
+  l'instance du bout — une boucle est un simple Continuer ; « ↺ Refaire » poste volontairement
+  une nouvelle carte, tout ce qui précède reste tel quel. Cocher dans une instance ne re-rend
+  JAMAIS (délégation sur `.ov-wrap`, chirurgie `ovAfterCheck`/`ovPaintLive` ; `renderOvOnly` =
+  pendant de `renderNavOnly`, qui dispatche). Fonctions pures : `passInfo` (rang du passage),
+  `instComplete`, `ovPresList` ; `minimapData` = source UNIQUE de l'état PAR BLOC.
 - **Plan de l'aide (v4.10.0 arbre, v4.12.0 organigramme hybride)** : sous le journal, la
   STRUCTURE COMPLÈTE façon algorithme papier / checklist conditionnelle QRH — `flowPlan(f)`
   (pure, cache WeakMap par objet fiche, jamais l'éditeur) : DFS depuis le départ, le TRONC

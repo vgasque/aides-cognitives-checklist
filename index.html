@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-/CBu35GHWVgUuvRxprdlp1UPC6wNLidvzRv/N9Bwp9s='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-IspLvyjprlmb1DL8TIUqtOWSZegGgbeX1oRzaKaLvUI='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1456,6 +1456,20 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      ligne d'état sur petit écran / grande taille de texte). */
   .ov-ans{font-size:12.5px;font-weight:600;color:var(--ink-soft);margin-left:6px}
   .ov-sec-h{font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft);margin:2px 0 8px}
+  /* ----- Fil condensé (v4.16.0) : les passages anciens complets deviennent des CHIPS ----- */
+  /* Rangée de chips = un TRONÇON chronologique du fil (l'ordre est préservé — une carte ou une
+     ligne d'état coupe la rangée) ; chip = bouton natif ≥ 44 px, tap = déplier sur place.
+     Étape faite = registre CONFIRMATION (fond --done-bg + ✓ vert) ; décision répondue = registre
+     ATTENTION (bordure --verify-bd) avec la réponse en toutes lettres — la couleur jamais seule. */
+  .ov-crumbs{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:2px 0 8px}
+  .ovc{display:inline-flex;align-items:center;gap:5px;min-height:44px;padding:5px 10px;border:1px solid var(--done-line);border-radius:9px;background:var(--done-bg);color:var(--ink-soft);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;touch-action:manipulation}
+  .ovc:hover{border-color:var(--primary)}
+  .ovc:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .ovc-n{font-family:var(--mono);font-size:11.5px;font-weight:700}
+  .ovc-ok{color:var(--ok);font-weight:800}
+  .ovc-x{font-family:var(--mono);font-size:11px;color:var(--ink-soft);font-weight:600}
+  .ovc.dec{background:var(--verify-soft);border-color:var(--verify-bd);color:var(--ink)}
+  .ovc-a{font-weight:700;max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   /* ----- PLAN DE L'AIDE (v4.10.0) : arbre indenté façon algorithme papier ----- */
   .ov-plan-h{display:flex;align-items:center;gap:7px;margin:18px 0 4px;min-width:0}
   .ov-plan-h .ovs-t{flex:none;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft)}
@@ -2388,7 +2402,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .mem-act select,.invite-row select,.invite-row input,.mi-sc{font-size:16px}
     .tk-time-edit{width:96px}
   }
-  @media print{body{background:#fff}header.bar,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.sess-list,.notes-block,#readModeSeg,.ov-controls,.ov-redo,.ovs-tgl,.flow-zoom,#plPin{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}
+  @media print{body{background:#fff}header.bar,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.sess-list,.notes-block,#readTopSeg,.ov-controls,.ov-redo,.ovs-tgl,.flow-zoom,#plPin{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}
     /* Un conteneur à défilement s'imprime TRONQUÉ : à l'impression le tableau se déploie. */
     .md-tw{overflow:visible;break-inside:avoid}.md-tbl{min-width:0;font-size:11px}.md-tbl tr{break-inside:avoid}
     .forget-strip{break-inside:avoid}
@@ -2596,7 +2610,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.15.0';
+const APP_VERSION='4.16.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -2949,9 +2963,9 @@ let state={view:'library',q:'',cat:'',scope:null,draft:null,fiche:null,nav:[],na
   // à zéro par openProtocolRead, JAMAIS persistées ni exportées (le body reste la seule vérité).
   // protoTasksSrc mémorise le body lié aux index (un corps remplacé par la synchro les invalide).
   protoTasks:null,protoTasksSrc:null,
-  // Mode de lecture du mode crise : 'overview' = JOURNAL DE PARCOURS (v4.9.0) + PLAN DE
-  // L'AIDE (v4.10.0, arbre indenté de la structure complète) ; 'guided' = bloc à bloc
-  // historique. Posé à l'OUVERTURE (openRead/resumeSession) depuis la préférence.
+  // Mode de lecture du mode crise : 'overview' = JOURNAL DE PARCOURS (v4.9.0, fil condensé
+  // v4.16.0 — l'ex-mode guidé y est fusionné) + PLAN DE L'AIDE (v4.10.0) ; 'static' =
+  // document tableau (v4.13.0). Posé à l'OUVERTURE (openRead/resumeSession) depuis la préférence.
   // ovFold = replis manuels d'instances du journal (clé = index) ; ovPlanCompact = plan en
   // titres seuls (défaut : étapes visibles) ; ovVerify = passe Do-Verify en cours
   // ({idx,i,gaps} ou null). Jamais persistés (par fiche ouverte).
@@ -2960,8 +2974,10 @@ try{if(localStorage.getItem(spaceKey('ac-section'))==='protocols')state.section=
 /* Préférence du mode de lecture (v4.6.0) — par utilisateur (spaceKey local), synchronisée via
    data.prefs.readMode. La synchro ne fait qu'ÉCRIRE la préférence locale : elle ne bascule JAMAIS
    la vue ouverte (changer l'écran pendant un soin serait une action non commandée — ECAM). */
-const READ_MODES=['overview','guided','static'];
-function currentReadMode(){try{const m=localStorage.getItem(spaceKey('ac-read-mode'))||'';return READ_MODES.indexOf(m)>=0?m:'overview';}catch(e){return 'overview';}}
+const READ_MODES=['overview','guided','static'];   // 'guided' toléré en LECTURE de préférence seulement (fusion v4.16.0)
+function currentReadMode(){try{const m=localStorage.getItem(spaceKey('ac-read-mode'))||'';
+  if(m==='guided')return 'overview';   // v4.16.0 : le guidé est FUSIONNÉ dans le journal (fil condensé)
+  return READ_MODES.indexOf(m)>=0?m:'overview';}catch(e){return 'overview';}}
 function setReadModePref(m){if(READ_MODES.indexOf(m)<0)return;try{localStorage.setItem(spaceKey('ac-read-mode'),m);}catch(e){}schedulePrefsPush();}
 // Rôle/édition par bibliothèque. Perso (libraryId vide) = toujours éditable. Bibliothèque partagée : éditable
 // si role editor/admin. (La RLS reste l'arbitre côté serveur ; ceci n'est que l'ergonomie.)
@@ -3800,6 +3816,25 @@ function offPathSet(f,nav,navPos){const blocks=(f&&f.blocks)||[];const out=new S
 function passInfo(nav,idx){const id=(nav||[])[idx];let pass=0,total=0;
   for(let i=0;i<(nav||[]).length;i++)if(nav[i]===id){total++;if(i<=idx)pass++;}
   return {pass,total};}
+/* PRÉSENTATION du fil FUSIONNÉ (v4.16.0 — le mode guidé est absorbé par le journal) : pour
+   chaque passage, 'open' (carte), 'line' (ligne d'état verte) ou 'chip' (pastille condensée).
+   RÈGLES (validées ECAM/QRH/AC 120-71B avec l'utilisateur) :
+   - le BOUT est toujours une carte (surface d'action) ;
+   - un passage INCOMPLET n'est JAMAIS condensé en chip (le non-fait reste sous les yeux —
+     l'invariant qui fait la conformité) ; repli manuel -> ligne d'état au maximum ;
+   - un passage COMPLET non-courant : les 2 plus récents -> ligne d'état, les autres -> chip ;
+   - la SURCHARGE MANUELLE prime (manual=false -> carte dépliée, manual=true -> condensé).
+   La condensation ne s'applique qu'AU RENDU d'un geste (jamais sous le doigt). PURE. */
+function ovPresList(arr){
+  const n=arr.length;const out=new Array(n).fill('open');
+  const rec=new Set();
+  for(let i=n-2;i>=0&&rec.size<2;i--)if(arr[i]&&arr[i].complete)rec.add(i);
+  for(let i=0;i<n;i++){const a=arr[i]||{};
+    if(i===n-1){out[i]='open';continue;}
+    if(a.manual===false){out[i]='open';continue;}
+    if(!a.complete){out[i]=a.manual===true?'line':'open';continue;}
+    out[i]=rec.has(i)?'line':'chip';}
+  return out;}
 // Instance COMPLÈTE ? Bloc d'étapes : toutes cochées pour CE passage (seq) — bloc vide : complet
 // d'emblée ; décision : RÉPONDUE (l'entrée suivante du chemin est l'une de ses cibles).
 function instComplete(f,nav,navSeq,checked,idx){
@@ -6000,7 +6035,9 @@ function renderRead(){
   // affichés à la suite (overviewSection) ; 'guided' = bloc à bloc historique (navSection).
   // Une fiche SANS algorithme (un seul bloc, pas de décision) garde le rendu guidé : les deux
   // vues y seraient identiques — la bascule n'est pas affichée non plus.
-  const rMode=hasFlow(f)?state.readMode:'guided';   // sans algorithme : rendu guidé, bascule masquée
+  // v4.16.0 : le mode guidé n'existe plus pour les fiches À ALGORITHME (fusionné dans le
+  // journal — fil condensé) ; il ne subsiste que pour les fiches mono-bloc (vues identiques).
+  const rMode=hasFlow(f)?(state.readMode==='static'?'static':'overview'):'guided';
   const useOv=rMode==='overview',useSv=rMode==='static';
   const N=useOv?overviewSection(f):(useSv?staticSection(f):navSection(f));
   const blk=N.blk,cur=N.cur,crumbsH=N.crumbsH||'',navHtml=N.navHtml,navRowH=N.navRowH||'',blockDone=N.blockDone,blockTot=N.blockTot;
@@ -6068,12 +6105,11 @@ function renderRead(){
   const sessStartH=sessStartHtml(f);
   // v4.13.0 : en mode STATIQUE, pas de panneau « Algorithme » (le tableau EST la vue d'ensemble).
   const algH=(f.blocks&&f.blocks.length&&!useSv)?`<div class="alg-panel"><button type="button" class="alg-head" id="flowToggle" aria-expanded="${state.showFlow?'true':'false'}"><span class="alg-k">Algorithme</span><span class="alg-sub">${algSubHtml(blockDone,blockTot)}</span><span class="alg-chev" aria-hidden="true">${state.showFlow?'▴':'▾'}</span></button>${state.showFlow?flowBlock(f,true)+'<div class="flow-hint">Schéma = vue d’ensemble · un nœud = y aller · étapes à cocher en-dessous ↓</div>':''}</div>`:'';
-  // v4.14.0 : DEUX NIVEAUX de bascule (décision utilisateur). « Dynamique ↔ Statique » EN TÊTE
-  // de fiche — le statique est un DOCUMENT complet (confirmation, chapeau, algorithme,
-  // surveillances dans le tableau) ; le dynamique contient « Journal ↔ Guidé » dans l'étape ②.
-  // Les trois vues partagent le même Runtime — basculer ne perd rien.
-  const modeTopSegH=hasFlow(f)?`<div class="seg read-seg${useSv?' i1':''}" id="readTopSeg" role="tablist" aria-label="Mode de lecture"><span class="seg-pill" aria-hidden="true"></span><button type="button" class="seg-btn${useSv?'':' on'}" role="tab" aria-selected="${useSv?'false':'true'}" aria-label="Mode dynamique — journal ou vue guidée" data-readmode="dynamic" tabindex="${useSv?'-1':'0'}">Dynamique</button><button type="button" class="seg-btn${useSv?' on':''}" role="tab" aria-selected="${useSv?'true':'false'}" aria-label="Mode statique — toute l’aide en tableau" data-readmode="static" tabindex="${useSv?'0':'-1'}">Statique</button></div>`:'';
-  const modeSegH=(hasFlow(f)&&!useSv)?`<div class="seg read-seg${useOv?'':' i1'}" id="readModeSeg" role="tablist" aria-label="Affichage de la prise en charge"><span class="seg-pill" aria-hidden="true"></span><button type="button" class="seg-btn${useOv?' on':''}" role="tab" aria-selected="${useOv?'true':'false'}" aria-label="Journal du parcours" data-readmode="overview" tabindex="${useOv?'0':'-1'}">Journal</button><button type="button" class="seg-btn${useOv?'':' on'}" role="tab" aria-selected="${useOv?'false':'true'}" aria-label="Vue guidée, bloc à bloc" data-readmode="guided" tabindex="${useOv?'-1':'0'}">Guidé</button></div>`:'';
+  // v4.16.0 : UNE bascule « Dynamique ↔ Statique » en tête de fiche — le statique est un
+  // DOCUMENT complet (confirmation, chapeau, algorithme, surveillances dans le tableau) ;
+  // le dynamique EST le journal (fil condensé — l'ex-mode guidé y est fusionné).
+  // Les deux vues partagent le même Runtime — basculer ne perd rien.
+  const modeTopSegH=hasFlow(f)?`<div class="seg read-seg${useSv?' i1':''}" id="readTopSeg" role="tablist" aria-label="Mode de lecture"><span class="seg-pill" aria-hidden="true"></span><button type="button" class="seg-btn${useSv?'':' on'}" role="tab" aria-selected="${useSv?'false':'true'}" aria-label="Mode dynamique — journal du parcours" data-readmode="dynamic" tabindex="${useSv?'-1':'0'}">Dynamique</button><button type="button" class="seg-btn${useSv?' on':''}" role="tab" aria-selected="${useSv?'true':'false'}" aria-label="Mode statique — toute l’aide en tableau" data-readmode="static" tabindex="${useSv?'0':'-1'}">Statique</button></div>`:'';
   const localH=f.localInfo&&f.localInfo.trim()?`<div class="local">${fmt(f.localInfo)}</div>`:'';
   const stages=[];
   if(useSv){
@@ -6084,7 +6120,7 @@ function renderRead(){
     stages.push({cls:'on',head:'',body:(wideRead?'':rtH)+navHtml+localH+(wideRead?'':posH)});
   }else{
   if(confBlockH)stages.push({cls:started?'done':'on',head:'',body:confBlockH+sessStartH});
-  {const body=(confBlockH?'':sessStartH)+(wideRead?'':rtH)+modeSegH+algH+crumbsH+navHtml+navRowH+localH+(wideRead?'':posH);
+  {const body=(confBlockH?'':sessStartH)+(wideRead?'':rtH)+algH+crumbsH+navHtml+navRowH+localH+(wideRead?'':posH);
    if(body)stages.push({cls:state.flowEnded?'done':(started?'on':(confBlockH?'off':'on')),head:'Prise en charge',body});}
   if(verifyH||diffH)stages.push({cls:state.flowEnded?'on':'off',head:'Surveillances &amp; pièges',body:verifyH+(diffH?`<div class="diff-anchor" id="diffBlock" tabindex="-1">${diffH}</div>`:'')});
   }
@@ -6190,26 +6226,25 @@ function bindReadEvents(f,blk,cur){
   // ⟲ des rangées compactes : RELANCE le minuteur ad hoc (repart du plein, démarre aussitôt).
   main.querySelectorAll('[data-tmrestart]').forEach(b=>b.onclick=()=>{const t=Runtime.timers[b.dataset.tmrestart];if(!t)return;
     t.elapsedMs=0;t.lastStart=Date.now();t.running=true;ensureAudio();persistLive(Runtime,true);render();});
-  // Bascule Vue d'ensemble / Vue guidée (v4.6.0) : renderKeepAnchor -> la bascule reste sous le
+  // Bascule Dynamique ↔ Statique (#readTopSeg) : renderKeepAnchor -> la bascule reste sous le
   // doigt au re-rendu ; préférence mémorisée (spaceKey + data.prefs à la prochaine synchro).
-  // v4.14.0 : DEUX bascules — « Dynamique ↔ Statique » (#readTopSeg) et « Journal ↔ Guidé »
-  // (#readModeSeg, en dynamique seulement). Revenir en dynamique restaure le DERNIER sous-mode
-  // (clé locale 'ac-read-dyn', non synchronisée — la préférence synchronisée reste readMode).
+  // v4.16.0 : le sous-mode Journal ↔ Guidé a disparu (fusion — le journal condense l'historique
+  // en chips, cf. ovPresList) ; « Dynamique » = le journal, tout court.
   {const go=m=>{
-     if(m==='dynamic')m=(()=>{try{const d=localStorage.getItem(spaceKey('ac-read-dyn'));return (d==='guided'||d==='overview')?d:'overview';}catch(e){return 'overview';}})();
+     if(m==='dynamic')m='overview';
      if(state.readMode===m)return;
      state.readMode=m;setReadModePref(m);
-     if(m!=='static')try{localStorage.setItem(spaceKey('ac-read-dyn'),m);}catch(e){}
      renderKeepAnchor('#readTopSeg');
-     const s2=document.getElementById('readModeSeg')||document.getElementById('readTopSeg');
+     const s2=document.getElementById('readTopSeg');
      const on=s2&&s2.querySelector('.seg-btn.on');if(on)on.focus({preventScroll:true});};
-   [['readTopSeg',['dynamic','static']],['readModeSeg',['overview','guided']]].forEach(([id,keys])=>{
-     const seg=document.getElementById(id);if(!seg)return;
-     seg.querySelectorAll('[data-readmode]').forEach(b=>b.onclick=()=>go(b.dataset.readmode));
-     seg.onkeydown=e=>{if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;e.preventDefault();go(e.key==='ArrowLeft'?keys[0]:keys[1]);};});}
+   const seg=document.getElementById('readTopSeg');
+   if(seg){seg.querySelectorAll('[data-readmode]').forEach(b=>b.onclick=()=>go(b.dataset.readmode));
+     seg.onkeydown=e=>{if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;e.preventDefault();go(e.key==='ArrowLeft'?'dynamic':'static');};}}
   // Navigation + cochage — rebranchés aussi par renderNavOnly (guidé) / renderOvOnly (ensemble).
-  if(state.readMode==='overview'&&hasFlow(f))bindOverviewEvents(f);
-  else if(state.readMode==='static'&&hasFlow(f)){bindStaticEvents(f);svPaintArrows();}
+  // Même résolution de mode que renderRead (v4.16.0 : sans algorithme = rendu guidé).
+  const rm=hasFlow(f)?(state.readMode==='static'?'static':'overview'):'guided';
+  if(rm==='overview')bindOverviewEvents(f);
+  else if(rm==='static'){bindStaticEvents(f);svPaintArrows();}
   else bindNavEvents(f,blk);
   // Minimap (v4.8.0) : peinture initiale (chips + rail) et saut depuis le rail.
   {const map=main.querySelector('#ovMap');if(map)map.onclick=e=>{const b=e.target.closest('[data-ovjump]');if(b)jumpToBlock(f,b.dataset.ovjump);};}
@@ -6353,12 +6388,25 @@ function bindNavEvents(f,blk){
    il entre au bout du journal) ; état LÉGER peint dessus (✓ dernier passage complet, ● ici,
    ×n passages, branche hors chemin estompée). Cases neuves à CHAQUE passage (sémantique
    inchangée) ; « ↺ Refaire » poste volontairement une nouvelle carte. DÉLÉGATION sur .ov-wrap. */
+let _printingOv=false;   // v4.16.0 : l'impression déplie TOUT le fil (aucune chip sur le papier)
 function overviewSection(f){
   state.navPos=state.nav.length-1;   // le journal n'a pas de curseur : la position EST le bout
   const cur=state.nav[state.navPos];
   const blk=f.blocks.find(b=>b.id===cur)||f.blocks.find(b=>b.id===f.start)||f.blocks[0];
   const topo={};flowPlan(f).order.forEach((id,i)=>{topo[id]=i+1;});   // numérotation commune = ordre du plan
-  const insts=state.nav.map((id,i)=>ovInstHtml(f,id,i,topo)).join('');
+  // FIL CONDENSÉ (v4.16.0) : présentation par passage (ovPresList — invariant : un passage
+  // incomplet n'est JAMAIS une chip), puis assemblage CHRONOLOGIQUE — les chips consécutives
+  // se regroupent en rangées, une carte/ligne coupe la rangée (l'ordre du fil est préservé).
+  const flags=state.nav.map((id,i)=>({complete:instComplete(f,state.nav,state.navSeq,state.checked,i),
+    manual:state.ovFold[i]===true?true:(state.ovFold[i]===false?false:null)}));
+  const pres=_printingOv?flags.map(()=>'open'):ovPresList(flags);
+  if(state.ovVerify&&pres[state.ovVerify.idx])pres[state.ovVerify.idx]='open';
+  let insts='';let run=[];
+  const flush=()=>{if(run.length){insts+=`<div class="ov-crumbs">${run.join('')}</div>`;run=[];}};
+  state.nav.forEach((id,i)=>{
+    if(pres[i]==='chip')run.push(ovChipHtml(f,id,i,topo));
+    else{flush();insts+=ovInstHtml(f,id,i,topo,pres[i]);}});
+  flush();
   const endH=state.flowEnded?'<div class="flow-end">Algorithme terminé — surveillance en cours</div>':'';
   const controls=`<div class="ov-controls"><button type="button" class="btn sm btn-hold" id="ovReset" title="Maintenir pour recommencer (repart du début — ne touche ni au chrono ni aux minuteurs ; le compte-rendu garde tout)"><span class="tmr-lab">${uiIcon('undo',13)} Recommencer</span><span class="tmr-hint">maintenir</span></button></div>`;
   const secH=`<div class="ov-sec-h">Parcours</div>`;
@@ -6374,17 +6422,26 @@ function overviewSection(f){
 // cochables / question + options — même grammaire ol.steps que la vue guidée). Le bouton
 // d'avancement (« Continuer — … → » / « Terminer l'algorithme ✓ ») n'existe QUE sur l'instance
 // du bout : le journal avance par le bout, une boucle est un simple « Continuer ».
-function ovInstHtml(f,id,idx,topo){
+// CHIP d'un passage condensé (v4.16.0) : n° topo + ✓ (étapes) ou « › réponse » en toutes
+// lettres tronquée (décision — la trace reste lisible sans déplier) ; tap = DÉPLIER la carte
+// sur place (surcharge manuelle, prioritaire jusqu'au choix inverse).
+function ovChipHtml(f,id,idx,topo){
+  const b=f.blocks.find(x=>x.id===id);if(!b)return '';
+  const dec=b.type==='decision';
+  const taken=dec?((b.options||[]).find(o=>o&&o.target&&o.target===state.nav[idx+1])||null):null;
+  const lbl=taken?String(stripBold(taken.label||'')).trim():'';
+  const pi=passInfo(state.nav,idx);
+  return `<button type="button" class="ovc${dec?' dec':''}" data-ovix="${idx}" title="${esc(stripBold(b.title||''))}${pi.total>1?` — passage ${pi.pass}/${pi.total}`:''} · taper pour déplier"><span class="ovc-n">${topo[id]||'·'}</span>${dec?`<span class="ovc-a">› ${esc(lbl.slice(0,14))}${lbl.length>14?'…':''}</span>`:'<span class="ovc-ok">✓</span>'}${pi.total>1?`<span class="ovc-x">×${pi.pass}</span>`:''}</button>`;}
+function ovInstHtml(f,id,idx,topo,pres){
   const b=f.blocks.find(x=>x.id===id);if(!b)return '';
   const dec=b.type==='decision';
   const seq=state.navSeq[idx]||1;
   const tip=idx===state.nav.length-1;
   const pi=passInfo(state.nav,idx);
   const complete=instComplete(f,state.nav,state.navSeq,state.checked,idx);
-  // Repli : AUTO pour une instance complète non-courante (ligne d'état) — appliqué au RENDU
-  // seulement, jamais pendant le cochage ; state.ovFold[idx] = choix manuel prioritaire.
-  const ovr=state.ovFold[idx];
-  const closed=ovr!=null?ovr:(complete&&!tip);
+  // Repli (v4.16.0) : la présentation vient d'ovPresList ('line' = ligne d'état) — calculée
+  // au RENDU seulement, jamais pendant le cochage ; le choix manuel y est déjà prioritaire.
+  const closed=pres==='line';
   const passTag=pi.total>1?` <span class="pass-n">passage ${pi.pass}/${pi.total}</span>`:'';
   const imgH=b.image?`<img class="node-img" loading="lazy" decoding="async" src="${b.image}" data-full="${b.image}"${b.imageW&&b.imageH?` width="${b.imageW}" height="${b.imageH}"`:''} alt="">`:'';
   const taken=dec?((b.options||[]).find(o=>o&&o.target&&o.target===state.nav[idx+1])||null):null;
@@ -6716,6 +6773,10 @@ function ovNewPass(f,id){
 function bindOverviewEvents(f){
   const wrap=main.querySelector('.ov-wrap');if(!wrap)return;
   const handle=(t,kb)=>{
+    // CHIP condensée (v4.16.0) : tap = DÉPLIER la carte sur place (surcharge manuelle — elle
+    // reste dépliée jusqu'au choix inverse via son chevron). Bouton natif : clavier gratuit.
+    const oc=t.closest('[data-ovix]');
+    if(oc){const ix=+oc.dataset.ovix;state.ovFold[ix]=false;renderOvOnly();ovScrollToInst(ix);return;}
     const st=t.closest('[data-ck]');if(st){ovToggleStep(f,st,kb);return;}
     const rd=t.closest('[data-ovredo]');if(rd){ovNewPass(f,rd.dataset.ovredo);return;}
     // VÉRIFICATION (v4.11.0, Do-Verify) : Constaté coche la même clé, Écart avance sans cocher.
@@ -9132,8 +9193,8 @@ window.addEventListener('beforeprint',()=>{if(state.view!=='read'||!state.fiche)
   _printSaved={confOpen:state.confOpen,showFlow:state.showFlow,readMode:state.readMode,ovPlanCompact:state.ovPlanCompact};
   // La vue d'ensemble (journal + PLAN complet avec étapes) est le format imprimé ; les blocs
   // repliés sont rouverts par CSS @media print — aucun état de repli à toucher.
-  state.confOpen=true;state.showFlow=true;state.ovPlanCompact=false;state.ovVerify=null;if(hasFlow(state.fiche))state.readMode='overview';render();});
-window.addEventListener('afterprint',()=>{if(!_printSaved)return;
+  state.confOpen=true;state.showFlow=true;state.ovPlanCompact=false;state.ovVerify=null;_printingOv=true;if(hasFlow(state.fiche))state.readMode='overview';render();});
+window.addEventListener('afterprint',()=>{_printingOv=false;if(!_printSaved)return;
   state.confOpen=_printSaved.confOpen;state.showFlow=_printSaved.showFlow;state.readMode=_printSaved.readMode||state.readMode;state.ovPlanCompact=!!_printSaved.ovPlanCompact;_printSaved=null;
   if(state.view==='read'&&state.fiche)render();});
 // Taille du texte : zoom CSS sur <html> (agrandit AUSSI les cibles tactiles, pas seulement la
@@ -10061,7 +10122,7 @@ if(location.search.indexOf('__actest')>=0){
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
     restErrStatus,isPersoRepairCandidate,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,
     qTerms,hayMatch,markQTerms,searchSnippet,ficheSnipParts,protoSnipParts,frecencyScore,sanitizeUsage,mergeUsage,
-    crc32,zipBuild,zipParse,isPdfBytes,mdTask,flowOrder,latestPass,offPathSet,minimapData,passInfo,instComplete,flowPlan,stepCR,stepGuardTxt,optAbbr,svBranchIssue,svLoopTargets};
+    crc32,zipBuild,zipParse,isPdfBytes,mdTask,flowOrder,latestPass,offPathSet,minimapData,passInfo,instComplete,flowPlan,stepCR,stepGuardTxt,optAbbr,svBranchIssue,svLoopTargets,ovPresList};
 }else{
   /* ===== PWA =====
      Enregistre le service worker (cache hors ligne) si disponible. Capte

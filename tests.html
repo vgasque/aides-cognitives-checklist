@@ -655,6 +655,14 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   ok('instComplete : bloc d’étapes tout coché pour CE passage', A.instComplete(ovF,['A'],[1],{'1:A:0':true,'1:A:1':true},0)===true&&A.instComplete(ovF,['A'],[1],{'1:A:0':true},0)===false);
   ok('instComplete : les coches d’un AUTRE passage ne comptent pas', A.instComplete(ovF,['A','D','R','D','R'],[1,2,3,4,5],{'3:R:0':true},4)===false);
   ok('instComplete : décision répondue / non répondue', A.instComplete(ovF,['A','D','S'],[1,2,3],{},1)===true&&A.instComplete(ovF,['A','D'],[1,2],{},1)===false);
+  // ovPresList (fil condensé v4.16.0) : 'open' carte / 'line' ligne d'état / 'chip' pastille.
+  const P=(list)=>A.ovPresList(list.map(([c,m])=>({complete:c,manual:m})));
+  eq('ovPresList : le bout est TOUJOURS une carte (même complet)', P([[true,null],[true,null]])[1], 'open');
+  eq('ovPresList : un passage INCOMPLET ancien reste déplié (invariant)', P([[false,null],[true,null],[true,null],[true,null],[true,null]])[0], 'open');
+  eq('ovPresList : complets anciens → 2 plus récents en ligne, le reste en chip',
+     P([[true,null],[true,null],[true,null],[true,null],[false,null]]), ['chip','chip','line','line','open']);
+  eq('ovPresList : surcharge manuelle « déplié » prime sur la condensation', P([[true,false],[true,null],[true,null],[true,null]])[0], 'open');
+  eq('ovPresList : repli manuel d’un incomplet → ligne d’état, jamais chip', P([[false,true],[true,null]])[0], 'line');
   // flowPlan (v4.10.0) : arbre indenté avec point de convergence (post-dominateur).
   const pl1=A.flowPlan({start:'A',blocks:[
     {id:'A',type:'steps',steps:['a'],next:'D1',title:'A'},
