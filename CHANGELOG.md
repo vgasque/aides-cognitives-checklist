@@ -1,5 +1,33 @@
 # Journal des modifications
 
+## [4.21.0] — 2026-07-19
+### Ajouté
+- **Micro-animations de la bascule Dynamique ↔ Statique** (lecture d'une fiche à
+  algorithme), **non bloquantes** : transform/opacité seulement (compositeur — la vue
+  reste utilisable pendant les 300 ms), jouées après le re-rendu, jamais avant.
+  - La **pastille glisse** désormais au lieu de se reposer : le composant étant
+    re-rendu avec la fiche, le glissement est rejoué (`.seg-replay` : pastille posée
+    sans transition sur l'ancien segment, reflow, retrait) — même geste visuel que la
+    tab bar.
+  - Le **contenu entre dans le sens du geste** (journal depuis la gauche, tableau
+    statique depuis la droite — mêmes keyframes que la bascule de section de
+    l'accueil). La bascule elle-même ne bouge pas d'un pixel sous le doigt.
+  - Registres respectés : **minuteurs et chapeau « Ne pas oublier » n'animent
+    jamais** (le mouvement y est réservé à l'alarme, ECAM) ; tout est inerte sous
+    `prefers-reduced-motion` ; le fil d'ancêtres (`#plPin`, fixed dans un ancêtre
+    transformé) est masqué le temps de l'animation.
+### Corrigé
+- **Mobile : le défilement ne « fuit » plus vers la page de fond quand une fenêtre
+  est ouverte** (retour d'usage : en lisant une fenêtre longue — ex. Compte &
+  synchronisation — l'accueil défilait derrière à son insu, et se retrouvait déplacé
+  à la fermeture). Deux ceintures : l'enchaînement de défilement s'arrête au voile
+  (`overscroll-behavior:contain` sur `.ai-modal`, même garde-fou que le menu des
+  catégories) et, **au toucher seulement**, la page de fond est figée en place par
+  l'accessibilité centralisée des modales tant qu'au moins une fenêtre est ouverte —
+  position **restaurée au pixel** à la fermeture de la dernière (fenêtres empilées
+  couvertes ; au pointeur fin, rien ne change : figer la page décalerait le fond
+  visible derrière le voile).
+
 ## [4.20.3] — 2026-07-19
 ### Modifié
 - **Prompt IA raccourci de ~15 % à information constante** (21,5 k → 18,3 k
