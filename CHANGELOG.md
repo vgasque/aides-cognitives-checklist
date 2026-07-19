@@ -1,5 +1,14 @@
 # Journal des modifications
 
+## [4.19.2] — 2026-07-19
+### Corrigé
+- **Visionneuse PDF sur écran étroit : le titre du document n'était plus lisible** (retour
+  d'usage sur v4.19.0 : avec le bouton ⤓, la rangée unique écrasait le titre à quelques
+  caractères). Sous 560 px, la barre d'outils passe sur **deux rangées** : titre + ✕ en
+  haut, outils (zoom, Page, Largeur, ⤓) en pleine largeur dessous. Le pourcentage de zoom —
+  masqué depuis v4.4.4 faute de place — retrouve au passage sa place sur téléphone.
+  Au-dessus de 560 px, rien ne change.
+
 ## [4.19.1] — 2026-07-19
 ### Corrigé
 - **PWA iPhone : « Télécharger » affichait le PDF par-dessus l'app, sans retour possible**
