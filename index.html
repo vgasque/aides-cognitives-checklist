@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-spvAvX+0FPn1bMahP5zrz7qOE9bvo5Nucf5UOs5tQRw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-RdD3obmBbvNGyTJE9Lj5I+VQOBCeQfdXpKj8lZcoXx8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1378,12 +1378,27 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* §8 fin d'algorithme : état annoncé + la session CONTINUE (Terminer ≠ terminer la session). */
   .flow-end{margin-top:8px;padding:15px;text-align:center;border:2px solid var(--done-line);border-radius:8px;color:var(--ok);font-size:15px;font-weight:800;letter-spacing:1px}
   /* ----- Vue d'ensemble du mode crise (v4.6.0) : tous les blocs à la suite ----- */
-  /* Bascule Vue d'ensemble / Vue guidée : même composant .seg que la tab bar. CAVEAT assumé :
-     contrairement à #tabBar, ce segment est RE-RENDU (render complet à la bascule) — la pastille
-     ne glisse pas, elle se repose (tout le contenu change dessous, le glissement serait invisible). */
+  /* Bascule Dynamique ↔ Statique : même composant .seg que la tab bar. Contrairement à #tabBar,
+     ce segment est RE-RENDU (render complet à la bascule) — le glissement de la pastille est
+     donc REJOUÉ par le handler (v4.21.0 : .seg-replay la pose sans transition sur l'ancien
+     segment, reflow, retrait -> la transition .seg-pill joue comme sur la tab bar). */
   .read-seg{background:var(--surface);border:1px solid var(--line);border-radius:24px;padding:3px;margin-bottom:10px}
   .read-seg .seg-pill{width:calc(50% - 7px);left:3px;top:3px;bottom:3px}
   .read-seg.i1 .seg-pill{transform:translateX(calc(100% + 8px))}
+  .seg.seg-replay .seg-pill{transition:none}
+  /* Entrée du contenu à la bascule de mode (v4.21.0) : mêmes keyframes/durée/courbe que la
+     bascule de section de l'accueil (secInL/R) — transform/opacity SEULEMENT (compositeur :
+     NON BLOQUANT, la vue reste utilisable pendant les 300 ms, aucune attente imposée).
+     Enveloppé dans no-preference : sous prefers-reduced-motion les classes sont INERTES et
+     aucun animationend ne les retire — la garde #plPin ne doit alors jamais s'appliquer. */
+  @media (prefers-reduced-motion:no-preference){
+    .rm-anim-l{animation:secInL .3s cubic-bezier(.25,.1,.25,1)}
+    .rm-anim-r{animation:secInR .3s cubic-bezier(.25,.1,.25,1)}
+    /* transform crée un containing block : #plPin (fil d'ancêtres, position:fixed) se
+       positionnerait par rapport au conteneur animé -> masqué le temps de l'animation
+       (le prochain défilement le repose, cf. ovPlanPin). */
+    :is(.rm-anim-l,.rm-anim-r) #plPin{display:none}
+  }
   .ov-controls{display:flex;gap:8px;justify-content:flex-end;margin:0 0 10px}
   .ov-controls .btn{min-height:44px}
   /* Section de bloc : en-tête = LIGNE D'ÉTAT toujours visible (n°, titre, compteur, chevron),
@@ -6298,9 +6313,29 @@ function bindReadEvents(f,blk,cur){
   {const go=m=>{
      if(m==='dynamic')m='overview';
      if(state.readMode===m)return;
+     const toStatic=m==='static';
      state.readMode=m;setReadModePref(m);
      renderKeepAnchor('#readTopSeg');
      const s2=document.getElementById('readTopSeg');
+     // Micro-animations de bascule (v4.21.0), NON BLOQUANTES — transform/opacity seulement,
+     // jouées APRÈS le re-rendu (jamais d'attente avant lui) :
+     // 1) la pastille GLISSE malgré le re-rendu : .seg-replay la pose sans transition sur
+     //    l'ancien segment, reflow, retrait -> la transition .seg-pill l'amène à l'état final
+     //    (déjà rendu — sous prefers-reduced-motion la transition est coupée, geste inerte) ;
+     // 2) le contenu ENTRE dans le sens du geste (secInL/R, grammaire de la bascule de section
+     //    de l'accueil). La bascule elle-même ne bouge pas (renderKeepAnchor), et minuteurs /
+     //    chapeau « Ne pas oublier » n'animent JAMAIS (ECAM : le mouvement y est réservé à
+     //    l'alarme — emplacements constants, rien ne clignote hors crise réelle).
+     if(s2){s2.classList.add('seg-replay');s2.classList.toggle('i1',!toStatic);
+       void s2.offsetWidth;
+       s2.classList.remove('seg-replay');s2.classList.toggle('i1',toStatic);}
+     const w=main.querySelector(toStatic?'.sv-wrap':'.care-path,.ov-wrap');
+     if(w){w.classList.add(toStatic?'rm-anim-r':'rm-anim-l');
+       // Retrait à animationend + filet 500 ms : sous prefers-reduced-motion l'animation ne joue
+       // pas (pas d'animationend) — la classe résiduelle rejouerait l'entrée si le réglage
+       // système changeait sans re-rendu. Élément détaché entre-temps -> retrait sans effet.
+       const off=()=>w.classList.remove('rm-anim-l','rm-anim-r');
+       w.addEventListener('animationend',off,{once:true});setTimeout(off,500);}
      const on=s2&&s2.querySelector('.seg-btn.on');if(on)on.focus({preventScroll:true});};
    const seg=document.getElementById('readTopSeg');
    if(seg){seg.querySelectorAll('[data-readmode]').forEach(b=>b.onclick=()=>go(b.dataset.readmode));
