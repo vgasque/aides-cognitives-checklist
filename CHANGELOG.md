@@ -1,5 +1,27 @@
 # Journal des modifications
 
+## [4.14.4] — 2026-07-19
+Corrections issues des essais sur les fiches tachycardies/SVT (6 algorithmes très
+ramifiés, imbrications à 4 niveaux).
+
+### Corrigé
+- **Mode Statique — l'élargissement fonctionne dans les deux sens** : sur ces fiches, la
+  branche courte (« instable → choc ») est à **gauche** et la longue à droite — l'extension
+  ne s'appliquait jamais (elle ne regardait qu'à droite) et l'algorithme restait coincé
+  dans une demi-colonne avec tout le côté gauche vide. Le critère devient un **test de
+  collision global** (l'espace convoité ne doit contenir aucun contenu extérieur, à toute
+  profondeur d'imbrication) et l'extension se fait à gauche comme à droite. Vérifié sur les
+  6 fiches : « Régularité du rythme » s'étend à pleine largeur, zéro collision, zéro
+  débordement, y compris sur l'orage rythmique à 4 niveaux.
+- **Fil d'ancêtres — hauteur stable** : l'apparition du « › Oui / › Non » dans une bulle ne
+  décale plus le texte vers le haut/bas (hauteur de ligne réservée).
+- **Vue guidée — plus de saut au « Continuer »** : valider une étape faisait défiler la vue
+  (~200 px d'alignement systématique + ~70 px de dérive du navigateur) même quand tout
+  était visible. Le remplacement du bloc est désormais **ancré** (le nouveau bloc apparaît
+  exactement là où était l'ancien) et le rattrapage ne se produit plus que si le fil
+  d'Ariane ou le bloc ne sont pas entièrement à l'écran. Mesuré sur 4 validations
+  successives : mouvement visuel nul.
+
 ## [4.14.3] — 2026-07-19
 ### Corrigé
 - **Fil d'ancêtres — plus de battements** : en fin de branche, les bulles pouvaient

@@ -173,6 +173,10 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   `state.ovPlanCompact`, jamais persisté, impression = détails) : une ligne par bloc, retraits
   d0-3 AVEC chips d'étiquette (`OUI ›`), renvois mono abrégés (`optAbbr` pure : `OUI→5`,
   `↺1`, `▪fin`), ligne dépliable in-place (étapes lecture seule + « → aller à ce bloc »).
+  DOCTRINE DU GUIDÉ (v4.14.4, ECAM) : le remplacement du bloc courant est ANCRÉ (le nouveau
+  bloc apparaît là où était l'ancien — compensation `scrollBy` dans `renderNavOnly` ; le
+  scroll-anchoring du navigateur seul faisait dériver de ~70 px) et `scrollNavIntoView` ne
+  bouge PLUS RIEN quand fil d'Ariane + bloc sont déjà entièrement visibles.
   Registres : chips d'option au registre ATTENTION (`--verify`, comme `.opt`) ; liens neutres
   (`--tag-bg`), reprise `↺` en `--primary-soft` ; nœuds = même grammaire que les cartes
   (liseré bleu = ici, vert = fait, ambre = décision).
@@ -245,10 +249,13 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   le bloc de reprise du tronc (pilules masquées ; brins partant du BAS RÉEL de chaque branche
   dans la superposition `.sv-gut` — jamais de segment flottant sous une colonne courte),
   RETOURS bleus (`--link`) en GOUTTIÈRE gauche (16 px, `svLoopTargets` pure : plafond 2 voies) ;
-  ÉLARGISSEMENT des arbres imbriqués (v4.14.3, décision utilisateur — esprit papier QRH) :
-  une décision imbriquée s'ÉTEND vers la droite quand toutes les branches sœurs à sa droite
-  sont TERMINÉES au-dessus (mesuré dans `svPaintArrows`, extérieur -> intérieur, remis à zéro
-  d'abord ; si la bande chevauche encore une sœur, seules fourche + colonnes s'élargissent) ;
+  ÉLARGISSEMENT des arbres imbriqués (v4.14.3-4, décision utilisateur — esprit papier QRH) :
+  une décision imbriquée s'ÉTEND dans l'espace libéré, DANS LES DEUX SENS (sur les fiches
+  réelles la branche courte est souvent à GAUCHE) — critère = test de COLLISION global
+  (aucun contenu extérieur au sous-arbre dans le rectangle convoité, toutes profondeurs
+  d'imbrication), appliqué dans `svPaintArrows` (remise à zéro d'abord, extérieur ->
+  intérieur, width + margin-left négatif) ; si la bande chevauche encore une sœur, seules
+  fourche + colonnes s'élargissent ;
   branches empilées (étroit) → `.stacked` : fourche/convergence masquées, les pilules
   re-suffisent — la flèche n'est JAMAIS seule (aria-hidden, l'info reste textuelle). En mode
   statique : pas de panneau « Algorithme » ni de minimap (le tableau EST la vue d'ensemble) ;
