@@ -686,6 +686,23 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   eq('optAbbr : options multiples distinctes', A.optAbbr(['Choquable (FV/TV sans pouls)','Non choquable (AESP)','Signes de ROSC']), ['CHOQUA','NON','SIGNES']);
   eq('optAbbr : même premier mot → initiale du 2ᵉ mot', A.optAbbr(['Non répondeur','Non stabilisé']), ['NON·R','NON·S']);
   ok('optAbbr : libellé vide → OPT', A.optAbbr(['','Oui'])[0]==='OPT');
+  // Mode statique (v4.13.0) : issue terminale d'une branche (fusion en flèche de convergence)
+  // et cibles des retours ↺ de la gouttière (plafond 2 voies).
+  const spans=its=>{const out=[];its.forEach((it,ix)=>{if(it.k==='bropen'){let d=1,j=ix+1;
+    while(j<its.length&&d>0){if(its[j].k==='bropen')d++;if(its[j].k==='brclose')d--;j++;}
+    out.push({a:ix+1,z:j-1});}});return out;};
+  const sp1=spans(pl1.items);
+  eq('svBranchIssue : branche qui converge -> {to, back:false}', A.svBranchIssue(pl1.items,sp1[0].a,sp1[0].z), {to:'E',back:false});
+  eq('svBranchIssue : les deux branches de pl1 convergent vers E', A.svBranchIssue(pl1.items,sp1[1].a,sp1[1].z), {to:'E',back:false});
+  ok('svBranchIssue : branche qui REBOUCLE -> back:true', (()=>{const sp2=spans(pl2.items);
+    return sp2.some(s=>{const r=A.svBranchIssue(pl2.items,s.a,s.z);return r&&r.back===true&&r.to==='D';});})());
+  eq('svBranchIssue : fin d’algorithme -> {end:true}', A.svBranchIssue([{k:'block',id:'z'},{k:'end'}],0,2), {end:true});
+  eq('svBranchIssue : un lien de branche IMBRIQUÉE ne compte pas (niveau propre seulement)',
+    A.svBranchIssue([{k:'bropen'},{k:'link',to:'x',back:false},{k:'brclose'},{k:'end'}],0,4), {end:true});
+  eq('svLoopTargets : les retours ↺ de ovF -> [D]', A.svLoopTargets(pl2.items), ['D']);
+  eq('svLoopTargets : aucun retour dans pl1', A.svLoopTargets(pl1.items), []);
+  eq('svLoopTargets : dédoublonné, ordre d’apparition, PLAFOND 2',
+    A.svLoopTargets([{k:'link',back:true,to:'a'},{k:'link',back:true,to:'b'},{k:'link',back:true,to:'a'},{k:'link',back:true,to:'c'}]), ['a','b']);
   const svgOut=A.buildFlowSVG(ovF);
   ok('buildFlowSVG (v4.7.0) : un nœud interactif par bloc (data-fnode)', ['A','D','S','R','X'].every(id=>svgOut.indexOf('data-fnode="'+id+'"')>=0));
   ok('buildFlowSVG : halo et badge ✓ bakés, AUCUN état peint dans la géométrie', svgOut.indexOf('flow-hl-glow')>=0&&svgOut.indexOf('fn-badge')>=0&&svgOut.indexOf('fn-cur')<0&&svgOut.indexOf('fn-ok')<0&&svgOut.indexOf('fn-off')<0);

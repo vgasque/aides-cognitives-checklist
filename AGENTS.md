@@ -106,12 +106,14 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   `nfGuardTxt`). Tout re-rendu de DÉMARRAGE passe par `renderKeepAnchor` (l'élément déclencheur
   ne bouge pas d'un pixel à l'écran — ECAM).
 - **Journal de parcours du mode crise (v4.9.0, remplace la vue spatiale v4.6.0)** : la lecture
-  d'une fiche À ALGORITHME a deux modes — `overview` (défaut : JOURNAL chronologique) ↔
-  `guided` (bloc à bloc historique, inchangé) ; bascule `.seg` (`#readModeSeg`) en tête de
-  l'étape ②, masquée si `!hasFlow` ; préférence PAR UTILISATEUR (`spaceKey('ac-read-mode')` +
-  `data.prefs.readMode` — le pull de synchro n'écrit QUE la préférence locale, il ne bascule
-  JAMAIS la vue ouverte). Les deux vues partagent le MÊME Runtime : `nav`/`navSeq`/`checked`
-  et l'export v3 STRICTEMENT inchangés. **Doctrine du journal (leçon v4.6→v4.9 : ne PAS poser
+  d'une fiche À ALGORITHME a TROIS modes (v4.13.0) — `overview` « Journal » (défaut : JOURNAL
+  chronologique) ↔ `guided` « Guidé » (bloc à bloc historique, inchangé) ↔ `static`
+  « Statique » (TABLEAU compact façon SFAR, cf. bullet dédié) ; bascule `.seg` à 3 segments
+  (`#readModeSeg`, `.read-seg.n3`, pastille au tiers `i0-2`) en tête de l'étape ②, masquée si
+  `!hasFlow` ; préférence PAR UTILISATEUR (`spaceKey('ac-read-mode')` + `data.prefs.readMode`
+  — le pull de synchro n'écrit QUE la préférence locale, il ne bascule JAMAIS la vue ouverte).
+  Les trois vues partagent le MÊME Runtime : `nav`/`navSeq`/`checked` et l'export v3
+  STRICTEMENT inchangés. **Doctrine du journal (leçon v4.6→v4.9 : ne PAS poser
   un état temporel sur une carte spatiale — un bloc à plusieurs passages y perd l'utilisateur)** :
   `nav[]` EST la chronologie — chaque passage est une CARTE POSTÉE à la suite (modèle ECAM),
   rien ne mute au-dessus, on lit toujours vers le bas ; le journal n'a PAS de curseur (la
@@ -190,6 +192,32 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   vue d'ensemble (blocs repliés rouverts par CSS `@media print` ; le SVG s'y imprime entier —
   fix du `max-height:300px`). L'aperçu d'éditeur reçoit un BAC À SABLE de navigation détaché
   du Runtime (les coches d'un brouillon ne polluent jamais une session vive d'une autre fiche).
+- **Mode statique (v4.13.0, 3ᵉ mode de lecture)** : l'algorithme ENTIER en TABLEAU compact
+  façon aide SFAR/CAMR — cellules télégraphiques carrelées à joint 3 px, GÉNÉRÉ depuis
+  `flowPlan` (numérotation commune) par `svTableHtml` : tronc = cellules pleine largeur
+  (`.sv-cell`, titre en petites capitales, étapes ❑), décision = BANDE au registre ATTENTION
+  (`.sv-band` : titre + question) + branches en colonnes (`.sv-cols` auto-fit minmax(140px)
+  plafonné `c1…c4` — 140 et non 148 : la gouttière des retours prend 16 px ; règles
+  `deep`/`deepv` du plan v4.12 répliquées). INERTE côté cochage (doctrine du plan,
+  RE-CONFIRMÉE) : l'état de session est PEINT en lecture seule (✓/k coché du dernier passage,
+  `● ici` = bout du journal, `aria-current`, hors chemin estompé + mention, chip d'option
+  `✓ prise`) ; taper une cellule = `svJump` (jamais visité → ENTRE au bout du journal ; JAMAIS
+  de démarrage de session, JAMAIS de défilement — rien ne bouge sous le doigt, flash
+  d'acquittement) ; renvoi `→ n` / `↺ n` = défilement + flash DANS le tableau. **AUCUN texte
+  bleu dans les cellules (décision utilisateur)** : réponse « :: » = pilule mono NEUTRE
+  (`.sv-r`, ≠ `.stp-r` bleu du journal), renvois neutres — le bleu ne marque que la position
+  (`● ici`) et la reprise `↺` (`--primary-soft`). **Flèches (svPaintArrows, mesures réelles
+  APRÈS rendu + resize rAF)** : FOURCHE ambre (`--verify-bd`) de la bande vers chaque chip
+  d'option, CONVERGENCE grise (`--line-strong`) fusionnant les branches dont l'issue terminale
+  (`svBranchIssue`, pure) est le bloc de reprise du tronc (leurs pilules sont alors masquées),
+  RETOURS bleus (`--link`) en GOUTTIÈRE gauche (16 px, `svLoopTargets` pure : plafond 2 voies) ;
+  branches empilées (étroit) → `.stacked` : fourche/convergence masquées, les pilules
+  re-suffisent — la flèche n'est JAMAIS seule (aria-hidden, l'info reste textuelle). En mode
+  statique : pas de panneau « Algorithme » ni de minimap (le tableau EST la vue d'ensemble) ;
+  minuteurs/alarmes/sessions INCHANGÉS (emplacements constants, alarme = mêmes règles ECAM
+  que le journal) ; l'impression force toujours le plan détaillé (`beforeprint` inchangé).
+  Re-rendu ciblé `renderSvOnly` (délégation sur `.sv-wrap`) ; préfixe CSS `sv-` (st- était
+  PRIS par le sélecteur de statut).
 - **Couleur dans le contenu rédigé (v4.4.3)** : la SEULE couleur admise y est celle des REGISTRES,
   via des ENCADRÉS TYPÉS — jamais de couleur décorative libre (dans cette app, rouge = « ça tue si
   on l'oublie », ambre = « c'est là qu'on se trompe » : un rouge de mise en page dégraderait la

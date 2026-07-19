@@ -1,5 +1,43 @@
 # Journal des modifications
 
+## [4.13.0] — 2026-07-19
+Un **troisième mode de lecture « Statique »** rejoint le Journal et la vue guidée : tout
+l'algorithme d'un coup d'œil, en tableau compact façon aide cognitive SFAR/CAMR — généré
+automatiquement depuis les blocs de la fiche, consultable sur téléphone, tablette et
+ordinateur. Direction visuelle et arbitrages (tableau à joints fins, petites flèches sur les
+décisions, aucun texte bleu dans les cellules) validés en séances de maquettes.
+
+### Ajouté
+- **Mode Statique** : bascule à trois segments « Journal · Guidé · Statique » en tête de la
+  prise en charge (préférence mémorisée et synchronisée, comme avant). Le tableau carrelle
+  des cellules télégraphiques — titre en petites capitales, étapes ❑, valeurs « :: » en
+  pilule mono **neutre** (le bleu ne marque plus que la position « ● ici » et les reprises
+  ↺) ; les décisions sont des bandes ambre pleine largeur (titre + question) dont les
+  branches s'affichent côte à côte quand l'écran le permet et s'empilent sinon (mêmes règles
+  de profondeur que le plan v4.12).
+- **Petites flèches dessinées** : fourche ambre de chaque décision vers ses options,
+  convergence grise qui fusionne les branches retombant sur le tronc, retours ↺ en trait
+  bleu dans la gouttière gauche (2 voies maximum). Dessinées sur les positions réelles après
+  le rendu et au redimensionnement ; quand les branches s'empilent, elles s'effacent et les
+  pilules « → n » / « ↺ n » — toujours présentes — reprennent seules le relais : la flèche
+  n'est jamais la seule information (accessibilité, impression).
+- **Navigation seule, aucune case** : le tableau est inerte côté cochage (la trace vit dans
+  le journal) mais montre l'état de session en lecture seule — ✓ du dernier passage, bloc
+  courant cerclé de bleu, réponse prise « ✓ » sur son option, hors chemin estompé avec la
+  mention en toutes lettres. Taper une cellule = y aller (un bloc jamais visité entre au
+  bout du journal, sans défilement ni démarrage de session) ; taper un renvoi = défiler
+  vers sa cible dans le tableau. Clavier : Entrée/Espace sur toute cellule.
+- Minuteurs, chrono, alarmes et sessions inchangés : mêmes emplacements dans les trois
+  modes, mêmes règles d'alarme (rien ne bouge sous les yeux) ; en Statique, le panneau
+  « Algorithme » et la minimap disparaissent — le tableau est la vue d'ensemble.
+
+### Détails techniques
+- `svTableHtml` (walker de `flowPlan`), `svPaintArrows` (mesures réelles + resize rAF),
+  `svBranchIssue`/`svLoopTargets` (pures, testées), `svJump`, `renderSvOnly` ;
+  `READ_MODES` accepte `static` ; préfixe CSS `sv-` (collision `st-` évitée) ; aucun
+  changement de modèle, de session ni d'export ; 456 tests ; vérifié de bout en bout sur
+  les deux fiches réelles (375/810/1280 px, thème sombre, synchro journal ↔ tableau).
+
 ## [4.12.0] — 2026-07-18
 Le « Plan de l'aide » devient un **organigramme hybride** : la forme de l'arbre se voit
 enfin (branches côte à côte quand l'écran le permet), chaque branche est lisible et

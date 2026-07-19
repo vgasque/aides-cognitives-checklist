@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-rCIoMyTsRtcHpTZPC26Pxa5bW160ky/4vlvsdDafUBg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-8GT1RB3Q6rlWJ4cPC7Yjs5160IqbsqH4yYnS3cjr138='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1393,6 +1393,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .read-seg{background:var(--surface);border:1px solid var(--line);border-radius:24px;padding:3px;margin-bottom:10px}
   .read-seg .seg-pill{width:calc(50% - 7px);left:3px;top:3px;bottom:3px}
   .read-seg.i1 .seg-pill{transform:translateX(calc(100% + 8px))}
+  /* v4.13.0 : TROIS segments (Journal · Guidé · Statique) — pastille au tiers. */
+  .read-seg.n3 .seg-pill{width:calc(33.333% - 7.33px)}
+  .read-seg.n3.i2 .seg-pill{transform:translateX(calc(200% + 16px))}
   .ov-controls{display:flex;gap:8px;justify-content:flex-end;margin:0 0 10px}
   .ov-controls .btn{min-height:44px}
   /* Section de bloc : en-tête = LIGNE D'ÉTAT toujours visible (n°, titre, compteur, chevron),
@@ -1543,6 +1546,82 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pl-line.flash{background:var(--primary-soft)}
   .pl-lx{padding:6px 10px 10px 36px;background:var(--surface);border-bottom:1px solid var(--line)}
   .pl-lx .pl-lxt{margin:0 0 3px;font-size:12.5px;font-weight:700;color:var(--ink)}
+  /* ===== MODE STATIQUE (v4.13.0) : TABLEAU compact façon aide SFAR/CAMR — généré depuis
+     flowPlan (numérotation commune), INERTE côté cochage (navigation seule). Cellules
+     carrelées à joint 3 px ; bandes de décision au registre ATTENTION ; fourches ambre,
+     convergences grises, retours bleus en gouttière — dessinés APRÈS le rendu
+     (svPaintArrows, positions mesurées) et JAMAIS seuls : les pilules → n / ↺ n restent
+     la vérité textuelle (pile étroite, impression). AUCUN texte bleu dans les cellules
+     (décision utilisateur) : bleu = position (● ici) et reprise ↺ uniquement ;
+     réponse « :: » = pilule mono NEUTRE (.sv-r). */
+  .sv-wrap{position:relative;margin-top:10px}
+  .sv-tb{display:grid;grid-template-columns:1fr;gap:3px;margin-left:16px}
+  .sv-cell{border:1px solid var(--line-strong);border-radius:3px;background:var(--surface);padding:6px 8px;cursor:pointer;min-width:0}
+  .sv-cell:hover,.sv-band:hover{border-color:var(--primary)}
+  .sv-cell:focus-visible,.sv-band:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .sv-cell.done{border-left:4px solid var(--done-line)}
+  .sv-cell.cur,.sv-band.cur{border-color:var(--primary);box-shadow:0 0 0 2px var(--primary-soft)}
+  .sv-cell.off,.sv-band.off{opacity:.55;border-style:dashed}
+  .sv-cell.flash,.sv-band.flash{outline:3px solid var(--primary-soft);outline-offset:1px}
+  .sv-h{display:flex;align-items:baseline;gap:6px;margin:0;min-width:0}
+  .sv-n{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink-soft);flex:none}
+  .sv-t{flex:1;min-width:0;font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--ink);line-height:1.4}
+  .sv-m{flex:none;font-family:var(--mono);font-size:11px;color:var(--ink-soft);display:flex;gap:6px;align-items:baseline}
+  .sv-m .sv-ok{color:var(--ok);font-weight:700}
+  .sv-here{font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;background:var(--primary);color:var(--on-primary);padding:0 7px;border-radius:999px}
+  .sv-off2{margin:2px 0 0;font-size:11px;font-weight:600;color:var(--ink-soft)}
+  .sv-stp{margin:3px 0 0;padding:0;list-style:none}
+  .sv-stp li{position:relative;font-size:11.5px;line-height:1.5;color:var(--ink);padding-left:15px}
+  .sv-stp li::before{content:"❑";position:absolute;left:0;color:var(--ink-soft)}
+  .sv-stp li.done{color:var(--ink-soft)}   /* coché = ✓ vert, texte JAMAIS barré (relecture) */
+  .sv-stp li.done::before{content:"✓";color:var(--ok);font-weight:700}
+  .sv-stp li.crit{color:var(--critical);font-weight:600}
+  .sv-stp li.vig{color:var(--verify);font-weight:600}
+  .sv-r{font-family:var(--mono);font-size:11px;color:var(--ink);background:var(--tag-bg);border:1px solid var(--line);border-radius:7px;padding:0 6px;white-space:nowrap}
+  /* Bande de décision : registre ATTENTION — titre en petites capitales + question en clair. */
+  .sv-band{display:flex;align-items:baseline;gap:6px;border:1px solid var(--verify-bd);border-radius:3px;background:var(--verify-soft);padding:6px 8px;cursor:pointer;min-width:0}
+  .sv-band .sv-n{color:var(--verify)}
+  .sv-band .sv-t{color:var(--verify);text-transform:none;font-weight:400;font-size:11.5px;letter-spacing:0}
+  .sv-band .sv-t b{font-weight:800;letter-spacing:.5px;text-transform:uppercase;font-size:11px}
+  .sv-band .sv-m{color:var(--verify)}
+  /* Branches : colonnes auto-fit plafonnées cN (même piège auto-fit que le plan v4.12).
+     Seuil 140 px (et non 148 comme le plan) : la gouttière des retours prend 16 px —
+     à 375 px il reste ~290 px utiles, où deux colonnes de 140 tiennent encore. */
+  .sv-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:3px;align-items:start}
+  .sv-cols.c1{grid-template-columns:1fr}
+  .sv-cols.c2{grid-template-columns:repeat(auto-fit,minmax(max(140px,calc(50% - 1.5px)),1fr))}
+  .sv-cols.c3{grid-template-columns:repeat(auto-fit,minmax(max(140px,calc(33.33% - 2px)),1fr))}
+  .sv-cols.c4{grid-template-columns:repeat(auto-fit,minmax(max(140px,calc(25% - 2.25px)),1fr))}
+  /* Branche PROFONDE (deep : > 2 blocs ou décision imbriquée) = pleine largeur toujours ;
+     VOLUMINEUSE (deepv : > 3 étapes) = pleine largeur sous 640 px seulement (règle v4.12). */
+  .sv-br.deep{grid-column:1/-1}
+  @media (max-width:639.98px){ .sv-br.deepv{grid-column:1/-1} }
+  .sv-br{display:grid;gap:3px;min-width:0;align-content:start}
+  .sv-opt{border:1px solid var(--verify-bd);border-radius:3px;background:var(--verify-soft);color:var(--verify);font-size:11px;font-weight:700;text-align:center;padding:4px 6px;min-height:28px;display:flex;align-items:center;justify-content:center;gap:4px;flex-wrap:wrap}
+  .sv-opt .sv-tk{color:var(--ok)}
+  .sv-offtag{font-weight:600;color:var(--ink-soft)}
+  /* Fourche (ambre, sous la bande) et convergence (grise, avant la reprise du tronc) :
+     bandeaux de 16 px remplis par svPaintArrows ; masqués quand les branches s'empilent
+     (.stacked : la géométrie ne correspondrait plus) — les pilules restent. */
+  .sv-fork,.sv-merge{height:16px;min-width:0;overflow:hidden}
+  .sv-fork svg,.sv-merge svg{display:block}
+  .sv-fork .ln{fill:none;stroke:var(--verify-bd);stroke-width:1.6}
+  .sv-fork .ah{fill:var(--verify-bd)}
+  .sv-merge .ln{fill:none;stroke:var(--line-strong);stroke-width:1.6}
+  .sv-merge .ah{fill:var(--line-strong)}
+  .sv-decwrap{display:grid;gap:3px;min-width:0}
+  .sv-decwrap.stacked>.sv-fork,.sv-decwrap.stacked>.sv-merge{display:none}
+  /* Renvois : pilule neutre (convergence/saut) — la reprise ↺ garde le registre bleu doux. */
+  .sv-jrow{display:flex;min-width:0}
+  .sv-jrow.hid{display:none}
+  .sv-jump{display:inline-flex;align-items:center;gap:5px;min-height:32px;max-width:100%;font-size:11px;font-weight:700;font-family:var(--mono);color:var(--ink-soft);background:var(--tag-bg);border:1px solid var(--line);border-radius:999px;padding:4px 10px;cursor:pointer;text-align:left}
+  .sv-jump.loop{color:var(--link);background:var(--primary-soft);border-color:var(--primary-soft)}
+  .sv-jump:hover{border-color:var(--primary)}
+  .sv-jump:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .sv-end{font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--ok);padding:2px 2px}
+  .sv-gut{position:absolute;left:0;top:0;pointer-events:none}
+  .sv-gut .lp{fill:none;stroke:var(--link);stroke-width:1.6}
+  .sv-gut .lph{fill:var(--link)}
   /* ----- Challenge :: réponse (v4.11.0, AC 120-71B) : la pilule mono = RÉPONSE ATTENDUE ;
      cocher = readback (✓ + vert), porté par le CSS seul — le toggle chirurgical n'y touche pas. */
   ol.steps li .stp-r{display:inline-block;margin-left:8px;font-family:var(--mono);font-size:13px;font-weight:600;color:var(--link);background:var(--primary-soft);border-radius:7px;padding:2px 9px;vertical-align:1px;line-height:1.45}
@@ -2473,7 +2552,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.12.0';
+const APP_VERSION='4.13.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -2837,7 +2916,7 @@ try{if(localStorage.getItem(spaceKey('ac-section'))==='protocols')state.section=
 /* Préférence du mode de lecture (v4.6.0) — par utilisateur (spaceKey local), synchronisée via
    data.prefs.readMode. La synchro ne fait qu'ÉCRIRE la préférence locale : elle ne bascule JAMAIS
    la vue ouverte (changer l'écran pendant un soin serait une action non commandée — ECAM). */
-const READ_MODES=['overview','guided'];
+const READ_MODES=['overview','guided','static'];
 function currentReadMode(){try{const m=localStorage.getItem(spaceKey('ac-read-mode'))||'';return READ_MODES.indexOf(m)>=0?m:'overview';}catch(e){return 'overview';}}
 function setReadModePref(m){if(READ_MODES.indexOf(m)<0)return;try{localStorage.setItem(spaceKey('ac-read-mode'),m);}catch(e){}schedulePrefsPush();}
 // Rôle/édition par bibliothèque. Perso (libraryId vide) = toujours éditable. Bibliothèque partagée : éditable
@@ -3201,6 +3280,7 @@ function flowPaintState(container,f){if(!container||!f)return;
     g.classList.toggle('fn-off',!!(m&&m.off));});}
 function jumpToBlock(f,id){if(!f||!(f.blocks||[]).some(b=>b.id===id))return;
   const lp=latestPass(state.nav,state.navSeq,id);
+  if(state.readMode==='static'&&hasFlow(f)){svJump(f,id);return;}   // v4.13.0 : tout est déjà à l'écran
   if(state.readMode==='overview'&&hasFlow(f)){
     // JOURNAL (v4.9.0) : bloc visité = simple défilement vers sa dernière carte (regarder ne
     // réécrit rien) ; jamais visité = il ENTRE au bout du journal (nouvelle carte), puis défilement.
@@ -5862,8 +5942,9 @@ function renderRead(){
   // affichés à la suite (overviewSection) ; 'guided' = bloc à bloc historique (navSection).
   // Une fiche SANS algorithme (un seul bloc, pas de décision) garde le rendu guidé : les deux
   // vues y seraient identiques — la bascule n'est pas affichée non plus.
-  const useOv=state.readMode==='overview'&&hasFlow(f);
-  const N=useOv?overviewSection(f):navSection(f);
+  const rMode=hasFlow(f)?state.readMode:'guided';   // sans algorithme : rendu guidé, bascule masquée
+  const useOv=rMode==='overview',useSv=rMode==='static';
+  const N=useOv?overviewSection(f):(useSv?staticSection(f):navSection(f));
   const blk=N.blk,cur=N.cur,crumbsH=N.crumbsH||'',navHtml=N.navHtml,navRowH=N.navRowH||'',blockDone=N.blockDone,blockTot=N.blockTot;
   const gallery=(f.images||[]).length?`<section class="block"><div class="block-h h-img">${headerIcon('h-img')}Schémas & captures</div><div class="gallery">${f.images.map(im=>`<div class="gthumb"><img src="${im.data}" data-full="${im.data}" data-cap="${esc(im.caption||'')}" alt="${esc(im.caption||'')}"${im.w&&im.h?` width="${im.w}" height="${im.h}"`:''} loading="lazy" decoding="async">${im.caption?`<div class="gcap">${esc(im.caption)}</div>`:''}</div>`).join('')}</div></section>`:'';
   // Documents PDF joints : liste de boutons (≥44 px, utilisables en crise) -> visionneuse intégrée.
@@ -5927,10 +6008,14 @@ function renderRead(){
   // le geste PORTE la confirmation), sinon en tête de « Prise en charge ». Un seul bouton
   // rempli par écran ; la 1ʳᵉ action clinique démarre toujours aussi (jamais bloquant).
   const sessStartH=(!preview&&!started)?`<div class="sess-start"><button class="btn primary" id="sessStart">${uiIcon('play',14)} ${confItems.length?'Confirmé — démarrer la session':'Démarrer la session'}</button><span class="ss-hint">chrono, minuteurs et journal — démarre aussi à la première action</span></div>`:'';
-  const algH=f.blocks&&f.blocks.length?`<div class="alg-panel"><button type="button" class="alg-head" id="flowToggle" aria-expanded="${state.showFlow?'true':'false'}"><span class="alg-k">Algorithme</span><span class="alg-sub">${algSubHtml(blockDone,blockTot)}</span><span class="alg-chev" aria-hidden="true">${state.showFlow?'▴':'▾'}</span></button>${state.showFlow?flowBlock(f,true)+'<div class="flow-hint">Schéma = vue d’ensemble · un nœud = y aller · étapes à cocher en-dessous ↓</div>':''}</div>`:'';
+  // v4.13.0 : en mode STATIQUE, pas de panneau « Algorithme » (le tableau EST la vue d'ensemble).
+  const algH=(f.blocks&&f.blocks.length&&!useSv)?`<div class="alg-panel"><button type="button" class="alg-head" id="flowToggle" aria-expanded="${state.showFlow?'true':'false'}"><span class="alg-k">Algorithme</span><span class="alg-sub">${algSubHtml(blockDone,blockTot)}</span><span class="alg-chev" aria-hidden="true">${state.showFlow?'▴':'▾'}</span></button>${state.showFlow?flowBlock(f,true)+'<div class="flow-hint">Schéma = vue d’ensemble · un nœud = y aller · étapes à cocher en-dessous ↓</div>':''}</div>`:'';
   // Bascule Vue d'ensemble / Vue guidée (v4.6.0) : les deux vues partagent le même Runtime —
   // basculer ne perd rien (coches, chemin, minuteurs). Masquée sans algorithme (vues identiques).
-  const modeSegH=hasFlow(f)?`<div class="seg read-seg${useOv?'':' i1'}" id="readModeSeg" role="tablist" aria-label="Affichage de la prise en charge"><span class="seg-pill" aria-hidden="true"></span><button type="button" class="seg-btn${useOv?' on':''}" role="tab" aria-selected="${useOv?'true':'false'}" data-readmode="overview" tabindex="${useOv?'0':'-1'}">Vue d’ensemble</button><button type="button" class="seg-btn${useOv?'':' on'}" role="tab" aria-selected="${useOv?'false':'true'}" data-readmode="guided" tabindex="${useOv?'-1':'0'}">Vue guidée</button></div>`:'';
+  // v4.13.0 : TROIS modes — Journal (overview), Guidé, Statique (tableau SFAR inerte).
+  const modeSegH=hasFlow(f)?(()=>{const mi=useOv?0:(useSv?2:1);
+    const btn=(m,ix,lbl,al)=>`<button type="button" class="seg-btn${mi===ix?' on':''}" role="tab" aria-selected="${mi===ix?'true':'false'}" aria-label="${al}" data-readmode="${m}" tabindex="${mi===ix?'0':'-1'}">${lbl}</button>`;
+    return `<div class="seg read-seg n3${mi?' i'+mi:''}" id="readModeSeg" role="tablist" aria-label="Affichage de la prise en charge"><span class="seg-pill" aria-hidden="true"></span>${btn('overview',0,'Journal','Journal du parcours')}${btn('guided',1,'Guidé','Vue guidée, bloc à bloc')}${btn('static',2,'Statique','Vue statique : tout l’algorithme en tableau')}</div>`;})():'';
   const localH=f.localInfo&&f.localInfo.trim()?`<div class="local">${fmt(f.localInfo)}</div>`:'';
   const stages=[];
   if(confBlockH)stages.push({cls:started?'done':'on',head:'',body:confBlockH+sessStartH});
@@ -6046,7 +6131,9 @@ function bindReadEvents(f,blk,cur){
      seg.querySelectorAll('[data-readmode]').forEach(b=>b.onclick=()=>go(b.dataset.readmode));
      seg.onkeydown=e=>{if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;e.preventDefault();go(e.key==='ArrowLeft'?'overview':'guided');};}}
   // Navigation + cochage — rebranchés aussi par renderNavOnly (guidé) / renderOvOnly (ensemble).
-  if(state.readMode==='overview'&&hasFlow(f))bindOverviewEvents(f);else bindNavEvents(f,blk);
+  if(state.readMode==='overview'&&hasFlow(f))bindOverviewEvents(f);
+  else if(state.readMode==='static'&&hasFlow(f)){bindStaticEvents(f);svPaintArrows();}
+  else bindNavEvents(f,blk);
   // Minimap (v4.8.0) : peinture initiale (chips + rail) et saut depuis le rail.
   {const map=main.querySelector('#ovMap');if(map)map.onclick=e=>{const b=e.target.closest('[data-ovjump]');if(b)jumpToBlock(f,b.dataset.ovjump);};}
   paintMinimaps(f);
@@ -6552,6 +6639,189 @@ function renderOvOnly(){
   paintMinimaps(f);
   ovPlanStick();   // v4.12.0 : base du fil d'ancêtres collant
   bindOverviewEvents(f);}
+/* ===== MODE STATIQUE (v4.13.0) : TABLEAU compact façon aide SFAR/CAMR =====
+   3e mode de lecture — l'algorithme ENTIER carrelé en cellules télégraphiques, GÉNÉRÉ depuis
+   flowPlan (post-dominateurs, numérotation commune) : tronc = cellules pleine largeur,
+   décision = bande ATTENTION + branches en colonnes (auto-fit plafonné cN, pile en étroit).
+   INERTE côté cochage (doctrine du plan) : l'état de session est PEINT en lecture seule
+   (✓ dernier passage, ● ici = bout du journal, hors chemin estompé + mention, coches du
+   dernier passage relisibles) ; taper une cellule = svJump (bloc jamais visité → il ENTRE au
+   bout du journal, comme jumpToBlock — JAMAIS de démarrage de session, JAMAIS de défilement :
+   rien ne bouge sous le doigt). Les FLÈCHES (fourche ambre, convergence grise, retour bleu en
+   gouttière) sont dessinées APRÈS le rendu par svPaintArrows sur les positions réelles, et ne
+   sont jamais la seule information : les pilules « → n » / « ↺ n » restent le texte de vérité
+   (branches empilées, impression, lecteurs d'écran — flèches aria-hidden). */
+// Issue TERMINALE d'une branche du plan (items[a..z[, niveau propre) : {to,back} | {end} | null. PURE.
+function svBranchIssue(items,a,z){let out=null,d=0;
+  for(let j=a;j<z;j++){const it=items[j];
+    if(it.k==='bropen')d++;
+    else if(it.k==='brclose')d--;
+    else if(d===0&&it.k==='link')out={to:it.to,back:!!it.back};
+    else if(d===0&&it.k==='end')out={end:true};}
+  return out;}
+// Cibles des RETOURS ↺ pour la gouttière : ordre d'apparition, PLAFOND 2 voies (au-delà, les
+// pilules suffisent — pas de plat de spaghettis sur une fiche très bouclée). PURE.
+function svLoopTargets(items){const seen=[],has={};
+  (items||[]).forEach(it=>{if(it&&it.k==='link'&&it.back&&!has[it.to]){has[it.to]=true;seen.push(it.to);}});
+  return seen.slice(0,2);}
+function staticSection(f){
+  state.navPos=state.nav.length-1;   // même règle que le journal : la position EST le bout
+  const cur=state.nav[state.navPos];
+  const blk=f.blocks.find(b=>b.id===cur)||f.blocks.find(b=>b.id===f.start)||f.blocks[0];
+  const tipDone=(()=>{const b=f.blocks.find(x=>x.id===cur);if(!b||b.type==='decision')return {d:null,t:null};
+    const steps=clean(b.steps);const seq=state.navSeq[state.navPos]||1;
+    let d=0;steps.forEach((s,i)=>{if(state.checked[seq+':'+cur+':'+i])d++;});return {d,t:steps.length};})();
+  const inner=`<div class="sv-tb">${svTableHtml(f)}</div>`;
+  return {blk,cur,navHtml:`<div class="sv-wrap">${inner}</div>`,inner,
+    blockDone:tipDone.d,blockTot:tipDone.t};}
+function svTableHtml(f){
+  const plan=flowPlan(f);if(!plan.order.length)return '';
+  const items=plan.items;let i=0;
+  const num={};plan.order.forEach((id,ix)=>{num[id]=ix+1;});
+  const md={};minimapData(f,state.nav,state.navSeq,state.checked,state.navPos).forEach(m=>{md[m.id]=m;});
+  const off=offPathSet(f,state.nav,state.navPos);
+  const metaH=(id,dec)=>{const m=md[id]||{};const bits=[];
+    if((m.total||0)>1)bits.push(`<span class="sv-x">×${m.total}</span>`);
+    if(m.cur)bits.push('<span class="sv-here">ici</span>');
+    bits.push(dec?(m.complete?'<span class="sv-ok">✓</span>':'?')
+      :(m.tot?(m.complete?`<span class="sv-ok">✓ ${m.done}/${m.tot}</span>`:`${m.done||0}/${m.tot}`):'—'));
+    return bits.join('');};
+  const cellH=id=>{const b=f.blocks.find(x=>x.id===id);if(!b)return '';
+    const m=md[id]||{};const isOff=off.has(id);
+    const steps=clean(b.steps);const seq=m.seq||0;
+    const lis=steps.length?`<ul class="sv-stp">${steps.map((s,ix)=>{const ck=!!(seq&&state.checked[seq+':'+id+':'+ix]);const cr=stepCR(stepText(s));
+      return `<li class="${stepIsCrit(s)?'crit ':(stepIsVigil(s)?'vig ':'')}${ck?'done':''}">${fmt(cr.c)}${cr.r?` <span class="sv-r">${fmt(cr.r)}</span>`:''}</li>`;}).join('')}</ul>`:'';
+    return `<div class="sv-cell${m.complete?' done':''}${m.cur?' cur':''}${isOff?' off':''}" data-svgo="${esc(id)}" role="button" tabindex="0"${m.cur?' aria-current="true"':''} aria-label="${esc(stripBold(b.title||'Étapes'))} — aller à ce bloc"><p class="sv-h"><span class="sv-n" aria-hidden="true">${num[id]||'·'}</span><span class="sv-t">${esc(b.title)||'Étapes'}</span><span class="sv-m">${metaH(id,false)}</span></p>${isOff?'<p class="sv-off2">hors chemin</p>':''}${lis}</div>`;};
+  const linkH=it=>{const t=f.blocks.find(x=>x.id===it.to);
+    return `<div class="sv-jrow" data-jto="${esc(it.to)}" data-jback="${it.back?1:0}"><button type="button" class="sv-jump${it.back?' loop':''}"${it.back?` data-svloop="${esc(it.to)}"`:''} data-svref="${esc(it.to)}">${it.back?'↺':'→'} ${num[it.to]||'?'} · ${esc(stripBold((t&&t.title)||'?'))}</button></div>`;};
+  const walk=()=>{let h='';
+    while(i<items.length){const it=items[i];
+      if(it.k==='brclose')return h;
+      if(it.k==='link'){h+=linkH(it);i++;continue;}
+      if(it.k==='end'){h+='<div class="sv-end">▪ fin de l’algorithme</div>';i++;continue;}
+      if(it.k==='bropen'){i++;continue;}   // garde-fou : jamais hors décision
+      const b=f.blocks.find(x=>x.id===it.id);
+      if(!b){i++;continue;}
+      if(b.type!=='decision'){h+=cellH(it.id);i++;continue;}
+      const decId=it.id;i++;
+      const m=md[decId]||{};
+      const brs=[];
+      while(i<items.length&&items[i].k==='bropen'){
+        const bo=items[i];i++;const a0=i;
+        const inner=walk();
+        if(items[i]&&items[i].k==='brclose')i++;
+        brs.push({bo,inner,a0,z:i-1,
+          isOff:bo.tgt?off.has(bo.tgt):false,
+          tk:!!(m.taken&&bo.tgt&&m.taken===bo.tgt)});}
+      // Convergence : le tronc reprend juste après (flowPlan) — les branches qui y lient
+      // fusionneront en flèche grise (svPaintArrows) quand elles sont en colonnes.
+      const joinId=(items[i]&&items[i].k==='block')?items[i].id:null;
+      let anyMerge=false,nCols=0;
+      const brH=brs.map(br=>{
+        const issue=svBranchIssue(items,br.a0,br.z);
+        if(joinId&&issue&&issue.to===joinId&&!issue.back)anyMerge=true;
+        // Même règle que le plan v4.12 : branche PROFONDE (> 2 blocs ou décision imbriquée) =
+        // pleine largeur toujours ; VOLUMINEUSE (> 3 étapes) = pleine largeur sous 640 px.
+        let nb=0,nested=false,nSteps=0;
+        for(let j=br.a0;j<br.z;j++){if(items[j].k==='block'){nb++;const bb=f.blocks.find(x=>x.id===items[j].id);
+          if(bb&&bb.type==='decision')nested=true;else if(bb)nSteps+=clean(bb.steps).length;}}
+        const deep=nb>2||nested,deepv=!deep&&nSteps>3;
+        if(!deep)nCols++;   // les profondes s'étalent : elles ne comptent pas comme colonne
+        return `<div class="sv-br${br.tk?' taken':''}${br.isOff?' off':''}${deep?' deep':''}${deepv?' deepv':''}"><div class="sv-opt${br.tk?' tk':''}">${br.tk?'<span class="sv-tk">✓ </span>':''}${fmt(br.bo.label)}${br.isOff?'<span class="sv-offtag"> · hors chemin</span>':''}</div>${br.inner}</div>`;}).join('');
+      h+=`<div class="sv-decwrap"${joinId?` data-svjoin="${esc(joinId)}"`:''}><div class="sv-band${m.cur?' cur':''}${off.has(decId)?' off':''}" data-svgo="${esc(decId)}" role="button" tabindex="0"${m.cur?' aria-current="true"':''} aria-label="${esc(stripBold(b.title||'Décision'))} — aller à ce bloc"><span class="sv-n" aria-hidden="true">${num[decId]||'·'}</span><span class="sv-t"><b>${esc(b.title)||'Décision'}</b>${b.question?` — ${fmt(b.question)}`:''}</span><span class="sv-m">${metaH(decId,true)}</span></div><div class="sv-fork" aria-hidden="true"></div><div class="sv-cols c${Math.min(Math.max(nCols,1),4)}">${brH}</div>${anyMerge?'<div class="sv-merge" aria-hidden="true"></div>':''}</div>`;}
+    return h;};
+  return walk();}
+// Peintre des flèches : fourches / convergences / gouttière des retours — positions RÉELLES
+// mesurées après le rendu (même philosophie que l'organigramme SVG : géométrie recalculée au
+// rendu et au resize, jamais pendant un geste). Branches EMPILÉES (étroit) -> .stacked :
+// fourche et convergence masquées, les pilules re-suffisent.
+function svPaintArrows(){
+  const wrap=main.querySelector('.sv-wrap');if(!wrap)return;
+  wrap.querySelectorAll('.sv-decwrap').forEach(dw=>{
+    const fork=dw.querySelector(':scope>.sv-fork'),cols=dw.querySelector(':scope>.sv-cols'),merge=dw.querySelector(':scope>.sv-merge');
+    if(!fork||!cols)return;
+    const brsEls=[...cols.querySelectorAll(':scope>.sv-br')];
+    const chips=brsEls.map(br=>br.querySelector(':scope>.sv-opt')).filter(Boolean);
+    const tops=chips.map(c=>Math.round(c.getBoundingClientRect().top));
+    const columns=chips.length>1&&tops.every(t=>Math.abs(t-tops[0])<3);
+    dw.classList.toggle('stacked',!columns);
+    // Convergence : masquer les pilules « → join » SEULEMENT quand la flèche les remplace.
+    const joinId=dw.dataset.svjoin||'';
+    const mXs=[];
+    brsEls.forEach(br=>{const rows=[...br.querySelectorAll(':scope>.sv-jrow')];const jr=rows[rows.length-1];
+      const mg=!!(columns&&joinId&&jr&&jr.dataset.jto===joinId&&jr.dataset.jback==='0');
+      if(jr)jr.classList.toggle('hid',mg);
+      if(mg)mXs.push(br);});
+    fork.innerHTML='';if(merge)merge.innerHTML='';
+    if(!columns)return;
+    const W=Math.round(fork.getBoundingClientRect().width);if(W<20)return;
+    const fr=fork.getBoundingClientRect();
+    {const xs=chips.map(c=>{const r=c.getBoundingClientRect();return Math.round(r.left+r.width/2-fr.left);});
+     const cx=Math.round(W/2);
+     let d=`M${cx} 0 V6`;xs.forEach(x=>{d+=` M${cx} 6 H${x} V11`;});
+     const ah=xs.map(x=>`M${x-4} 10 L${x} 16 L${x+4} 10 Z`).join(' ');
+     fork.innerHTML=`<svg viewBox="0 0 ${W} 16" width="${W}" height="16" aria-hidden="true"><path class="ln" d="${d}"/><path class="ah" d="${ah}"/></svg>`;}
+    if(merge&&mXs.length){const mr=merge.getBoundingClientRect();
+     const xs=mXs.map(br=>{const r=br.getBoundingClientRect();return Math.round(r.left+r.width/2-mr.left);});
+     const cx=Math.round(W/2);
+     let d='';xs.forEach(x=>{d+=`M${x} 0 V6 M${x} 6 H${cx} `;});d+=`M${cx} 6 V11`;
+     merge.innerHTML=`<svg viewBox="0 0 ${W} 16" width="${W}" height="16" aria-hidden="true"><path class="ln" d="${d}"/><path class="ah" d="M${cx-4} 10 L${cx} 16 L${cx+4} 10 Z"/></svg>`;}});
+  // Gouttière des retours ↺ (2 voies max, cf. svLoopTargets — même plafond ici, sur le DOM).
+  {let gut=wrap.querySelector(':scope>.sv-gut');
+   if(!gut){wrap.insertAdjacentHTML('beforeend','<svg class="sv-gut" aria-hidden="true"></svg>');gut=wrap.querySelector(':scope>.sv-gut');}
+   const wr=wrap.getBoundingClientRect();
+   const seen=[],has={};
+   wrap.querySelectorAll('[data-svloop]').forEach(p=>{const t=p.dataset.svloop;if(!has[t]){has[t]=true;seen.push(t);}});
+   let h='';
+   seen.slice(0,2).forEach((t,k)=>{
+     const tgt=wrap.querySelector('[data-svgo="'+CSS.escape(t)+'"]');if(!tgt)return;
+     const x=10-k*6;
+     const yTo=Math.round(tgt.getBoundingClientRect().top-wr.top+14);
+     let yMax=yTo;const ticks=[];
+     wrap.querySelectorAll('[data-svloop="'+CSS.escape(t)+'"]').forEach(p=>{
+       const y=Math.round(p.getBoundingClientRect().top-wr.top+p.getBoundingClientRect().height/2);
+       if(y>yMax)yMax=y;ticks.push(y);});
+     if(yMax<=yTo)return;
+     h+=`<path class="lp" d="M${x} ${yMax} V${yTo}${ticks.map(y=>` M14 ${y} H${x}`).join('')}"/><path class="lph" d="M${x} ${yTo} L${x-4} ${yTo+7} L${x+4} ${yTo+7} Z"/>`;});
+   const H=Math.round(wrap.scrollHeight);
+   gut.setAttribute('viewBox','0 0 16 '+H);gut.setAttribute('width','16');gut.setAttribute('height',H);
+   gut.innerHTML=h;}}
+// Taper une cellule : bloc jamais visité -> il ENTRE au bout du journal (position ● ici) ;
+// déjà visité -> simple acquittement visuel. JAMAIS de défilement (la cellule est sous le
+// doigt), JAMAIS de démarrage de session (naviguer ≠ agir).
+function svJump(f,id){if(!f||!(f.blocks||[]).some(b=>b.id===id))return;
+  const lp=latestPass(state.nav,state.navSeq,id);
+  if(!lp){state.nav.push(id);state.navSeq.push(++Runtime.seq);state.navPos=state.nav.length-1;
+    if(Runtime.started)persistLive(Runtime);renderSvOnly();}
+  const el=main.querySelector('.sv-wrap [data-svgo="'+CSS.escape(id)+'"]');
+  if(el){el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),900);}}
+// Délégation unique sur .sv-wrap (survit aux re-rendus internes) : renvoi = défilement + flash
+// DANS le tableau (lecture pure) ; cellule/bande = svJump. Clavier : Entrée/Espace.
+function bindStaticEvents(f){
+  const wrap=main.querySelector('.sv-wrap');if(!wrap)return;
+  const handle=t=>{
+    const jr=t.closest('[data-svref]');
+    if(jr){const el=wrap.querySelector('[data-svgo="'+CSS.escape(jr.dataset.svref)+'"]');
+      if(el){ovScrollEl(el);el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),900);}return;}
+    const go=t.closest('[data-svgo]');if(go){svJump(f,go.dataset.svgo);return;}};
+  wrap.onclick=e=>handle(e.target);
+  wrap.onkeydown=e=>{if(e.key!=='Enter'&&e.key!==' ')return;
+    const t=e.target.closest('[data-svgo],[data-svref]');if(!t)return;e.preventDefault();handle(t);};}
+// Re-rendu ciblé du tableau (pendant de renderOvOnly) : géométrie stable (les cellules ne
+// changent que de classes/méta) -> rien ne saute sous le doigt.
+function renderSvOnly(){
+  const f=state.fiche;const wrap=main.querySelector('.sv-wrap');
+  if(!f||!wrap)return render();
+  const N=staticSection(f);
+  wrap.innerHTML=N.inner;
+  flowCtx={f,curId:N.cur};
+  svPaintArrows();
+  bindStaticEvents(f);}
+// Redessin des flèches au redimensionnement (les colonnes bougent) — rAF, jamais pendant un geste.
+{let _svRaf=0;
+ window.addEventListener('resize',()=>{
+   if(!(state.view==='read'&&state.readMode==='static'&&state.fiche&&hasFlow(state.fiche)))return;
+   cancelAnimationFrame(_svRaf);_svRaf=requestAnimationFrame(svPaintArrows);});}
 /* ===== MODE LECTEUR (v4.11.0) =====
    Challenge-response en BINÔME (AC 120-71B) : le lecteur désigné tient l'écran, lit le
    challenge à voix haute, l'exécutant répond, le lecteur valide — UN challenge à la fois,
@@ -6671,6 +6941,7 @@ function paintMinimaps(f){
    Structure inattendue (pas de .nav-wrap : aperçu, fiche sans bloc) -> repli complet sûr. */
 function renderNavOnly(){
   if(state.readMode==='overview'&&state.fiche&&hasFlow(state.fiche))return renderOvOnly();   // v4.6.0 : dispatcheur
+  if(state.readMode==='static'&&state.fiche&&hasFlow(state.fiche))return renderSvOnly();     // v4.13.0
   const f=state.fiche;
   const wrap=main.querySelector('.nav-wrap');
   if(!f||!wrap)return render();
@@ -9479,7 +9750,7 @@ if(location.search.indexOf('__actest')>=0){
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
     restErrStatus,isPersoRepairCandidate,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,
     qTerms,hayMatch,markQTerms,searchSnippet,ficheSnipParts,protoSnipParts,frecencyScore,sanitizeUsage,mergeUsage,
-    crc32,zipBuild,zipParse,isPdfBytes,mdTask,flowOrder,latestPass,offPathSet,minimapData,passInfo,instComplete,flowPlan,stepCR,stepGuardTxt,optAbbr};
+    crc32,zipBuild,zipParse,isPdfBytes,mdTask,flowOrder,latestPass,offPathSet,minimapData,passInfo,instComplete,flowPlan,stepCR,stepGuardTxt,optAbbr,svBranchIssue,svLoopTargets};
 }else{
   /* ===== PWA =====
      Enregistre le service worker (cache hors ligne) si disponible. Capte
