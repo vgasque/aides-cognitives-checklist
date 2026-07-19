@@ -1,5 +1,21 @@
 # Journal des modifications
 
+## [4.14.7] — 2026-07-19
+### Modifié
+- **Mode Statique — hybride flèche + élargissement** : plus besoin de choisir. Chaque
+  flèche de convergence descend désormais par une **voie de bord** (le long du bord droit
+  de sa colonne, rejointe par un petit coude sous la pilule), et l'élargissement **s'écrête
+  au plus proche obstacle** au lieu d'y renoncer : les blocs s'étendent jusqu'à ~24 px de
+  la voie, la flèche passe à côté. Sur l'anaphylaxie : blocs élargis **et** flèche 11 → 12,
+  zéro superposition.
+
+### Corrigé
+- **Régression contenue avant publication** : l'élément élargi héritait de toute la piste
+  de sa grille de branche, ce qui étirait aussi ses cellules sœurs sur les colonnes
+  voisines (vu sur l'ACR) — compensé par des marges négatives : la piste garde sa largeur
+  d'origine. Audit final : zéro collision sur les 8 fiches (ACR, anaphylaxie, les 6
+  tachycardies), élargissements et flèches coexistant partout.
+
 ## [4.14.6] — 2026-07-19
 ### Corrigé
 - **Mode Statique — la flèche descendante prime sur l'élargissement** : la 4.14.5 évitait
