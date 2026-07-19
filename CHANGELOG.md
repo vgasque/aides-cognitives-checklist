@@ -1,5 +1,14 @@
 # Journal des modifications
 
+## [4.14.1] — 2026-07-19
+### Corrigé
+- **Fil d'ancêtres du plan** : quand les branches d'une décision sont affichées **côte à
+  côte**, la ligne de lecture traverse plusieurs branches à la fois — la bulle épinglée
+  affichait pourtant « › Oui » ou « › Non » arbitrairement, ce qui induisait en erreur.
+  Désormais l'option ne s'affiche que si la ligne de lecture ne traverse **qu'une seule**
+  branche (pile ou branche pleine largeur) ; sur une rangée de branches parallèles, la
+  bulle ne montre que la question.
+
 ## [4.14.0] — 2026-07-19
 Trois évolutions demandées à l'usage : le fil d'ancêtres du plan retrouve ses niveaux, le
 mode Statique devient un document complet choisi dès l'entrée de la fiche, et les branches

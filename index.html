@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-+VdAW+9AebNMlIfeLHGDNW1lIdgwyMLcWESgdXmNC1A='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-IJQIbzLtrrOLtAJKKG9TaimEUEOPoh+c5PHBBkeZjXc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -2573,7 +2573,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.14.0';
+const APP_VERSION='4.14.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -6553,9 +6553,13 @@ function ovPlanPin(){
     if(!(r.top<lineY&&r.bottom>lineY+12*Z))return;   // petite marge basse : décroche à la convergence
     const nd=dw.querySelector(':scope>.pl-nd.dec');const decId=nd?nd.dataset.plgo:'';
     const b=(f.blocks||[]).find(x=>x.id===decId);if(!b)return;
-    let oi=-1;
+    // « › option » SEULEMENT si la ligne de lecture ne traverse qu'UNE branche : des branches
+    // CÔTE À CÔTE (colonnes) sont toutes les deux sous les yeux — en montrer une seule
+    // induirait en erreur (retour d'usage v4.14.1) ; la bulle ne garde alors que la question.
+    let oi=-1,nHit=0;
     dw.querySelectorAll(':scope>.pl-cols>.pl-br').forEach((br,i)=>{const br2=br.getBoundingClientRect();
-      if(br2.top<lineY&&br2.bottom>lineY)oi=i;});
+      if(br2.top<lineY&&br2.bottom>lineY){nHit++;oi=i;}});
+    if(nHit>1)oi=-1;
     chain.push({decId,b,oi,indent:Math.max(0,Math.round((r.left-pr.left)/Z))});});
   if(!chain.length){off();return;}
   if(!pin){wrap.insertAdjacentHTML('beforeend','<div id="plPin" hidden aria-hidden="true"></div>');pin=wrap.querySelector('#plPin');}
