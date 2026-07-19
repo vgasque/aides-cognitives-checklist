@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-KikmQnhp+0niw2855fMw4wmlP46wskVF7mBuiC9w+Tk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-htoOMjLepiHURsQNzxTST4dOb4JBngcoBFZZJe/NvZE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -2607,7 +2607,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.20.0';
+const APP_VERSION='4.20.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -8060,8 +8060,15 @@ STRUCTURE
   - bloc « decision » = UNE question avec des options, chaque option pointant vers un
     bloc. Réserve les décisions aux VRAIS points de bifurcation, avec une question
     binaire et vérifiable d'un coup d'œil (ex. « Capnogramme présent ? »,
-    « Hémodynamique stabilisée ? ») — pas pour enchaîner une simple séquence ;
+    « Hémodynamique stabilisée ? ») — pas pour enchaîner une simple séquence.
+    Libellés d'options BREFS et discriminants dès le PREMIER MOT (« Choquable » /
+    « Non choquable », « Fuite présente » / « Fuite absente ») : les vues compactes de
+    l'application n'affichent parfois que le début du libellé ;
   - une option / « next » peut renvoyer vers un bloc précédent (boucle de réévaluation).
+- TITRES de blocs COURTS (2 à 4 mots), discriminants dès les premiers mots — l'application
+  les abrège dans son historique, son plan et son tableau (« Choc — drogues » plutôt que
+  « Prise en charge médicamenteuse après le choc ») ; deux blocs ne partagent jamais le
+  même début de titre.
 - RENFORT : dans le PREMIER bloc, une étape de mobilisation de l'aide adaptée aux DEUX
   contextes d'exercice :
   - en structure : appel à l'aide / renfort sur place → répartition des rôles ;
@@ -8090,12 +8097,13 @@ STRUCTURE
     (ex. « Causes à traiter ») avec son traitement, ou dans notForget si bref ;
   - references    = traçabilité (voir TRAÇABILITÉ) ;
   - localInfo     = particularités locales À COMPLÉTER par moi : génère la liste des
-    invites que la fiche appelle (« Tél renfort : à compléter », « Tél régulation :
-    à compléter », « Dilutions locales si différentes : à compléter »…) d'après la
-    source et le contenu de la fiche.
+    invites que la fiche appelle d'après la source et son contenu (téléphones
+    renfort/régulation, dilutions locales, circuits… — cf. règles RENFORT et
+    PRÉPARATIONS ; format « <invite> : à compléter », une par ligne).
 - DENSITÉ : l'application affiche la fiche bloc par bloc — le nombre total de blocs
-  n'est pas limité, c'est la densité PAR BLOC qui compte. Un bloc qui dépasse ~8 lignes
-  est un SIGNAL : condense (regroupement) ou sépare des PHASES cliniques distinctes
+  n'est pas limité, c'est la densité PAR BLOC qui compte. Un bloc de PLUS DE 7 ÉTAPES
+  est un SIGNAL (l'application elle-même le signale à l'édition) : condense
+  (regroupement) ou sépare des PHASES cliniques distinctes
   (mesures immédiates / 2e intention / surveillance) — ne coupe JAMAIS une séquence
   arbitrairement. Vise ≤ 7 items par section de liste (confirmation, verify) — notForget
   reste à 4 MAXIMUM (voir ci-dessus) ; au-delà, regroupe par catégorie. Si la source
@@ -8116,6 +8124,19 @@ STYLE DES ÉTAPES
   premier temps, la case masquerait le rappel du second. Deux moments = deux étapes.
 - Chaque étape doit être COCHABLE en situation (fais-le / vérifie-le) et PRONONÇABLE :
   lue à voix haute telle quelle par un lecteur, un coéquipier peut confirmer « fait ».
+- FORMAT « challenge :: réponse » (séparateur « :: » DANS le texte de l'étape) dès
+  qu'une étape attend un CONSTAT ou une VALEUR vérifiable : « <ce qu'on contrôle> ::
+  <attendu> ». L'application affiche la réponse en pilule à côté du challenge, la fait
+  confirmer en lecture à deux voix (le lecteur énonce le challenge, l'exécutant répond)
+  et la redemande lors d'une passe de vérification — c'est le format des checklists
+  critiques. Exemples de réécriture :
+    "Vérifier la position des électrodes"    -> "Pads :: antéro-latéraux, collés"
+    "S'assurer de la fuite au ballonnet"     -> "Test de fuite ballonnet dégonflé :: fuite audible"
+    "Régler le respirateur avant transport"  -> "Respirateur :: FiO2 100 % · VT 6 mL/kg"
+    "Contrôler la dilution avant injection"  -> "△ Dilution adrénaline :: 0,1 mg/mL"
+  Le préfixe ⚠/△ se combine librement avec « :: ». Challenge COURT, réponse
+  TÉLÉGRAPHIQUE (valeur, réglage, état constaté). N'utilise JAMAIS « :: » pour une
+  simple action (« Adrénaline 1 mg IV » reste une action, sans réponse attendue).
 - VERBES FLOUS INTERDITS dans les étapes : « envisager », « considérer », « discuter ».
   Reformule selon le sens de la source, au choix :
   - forme conditionnelle : « Si <condition observable> → <action> » (ou un vrai bloc
@@ -8243,7 +8264,7 @@ SCHÉMA EXACT
       "counters": [ { "id": "n1", "label": "Bolus", "step": 1, "start": 0 } ],
       "start": "b1",
       "blocks": [
-        { "id": "b1", "type": "steps",    "title": "Mesures immédiates", "image": null, "steps": ["Renfort : appel à l'aide / régulation (SMUR)", "..."], "next": "bd" },
+        { "id": "b1", "type": "steps",    "title": "Mesures immédiates", "image": null, "steps": ["Renfort : appel à l'aide / régulation (SMUR)", "Monitorage :: scope · SpO2 · PNI", "..."], "next": "bd" },
         { "id": "bd", "type": "decision", "title": "Réévaluation", "image": null, "question": "...?", "options": [ { "label": "Oui", "target": "b2" }, { "label": "Non", "target": "b3" } ] },
         { "id": "b2", "type": "steps",    "title": "Évolution favorable", "image": null, "steps": ["..."], "next": null },
         { "id": "b3", "type": "steps",    "title": "Réfractaire", "image": null, "steps": ["..."], "next": "bd" }
@@ -8267,7 +8288,9 @@ AVANT DE RÉPONDRE, VÉRIFIE
 4. Le renfort (appel à l'aide / régulation) est dans le premier bloc, ou tu m'as signalé
    pourquoi la source impose autre chose.
 5. Aucune étape ne contient « envisager / considérer / discuter » ; aucune étape ne
-   fusionne deux moments distincts (deux moments = deux étapes).
+   fusionne deux moments distincts (deux moments = deux étapes) ; les contrôles à
+   constat attendu utilisent « challenge :: réponse » — jamais « :: » sur une simple
+   action.
 6. Aucun geste unique n'est placé dans une boucle de réévaluation ; si la source parle
    de critères d'arrêt / limitation, ils sont dans la fiche ou en invite localInfo.
 7. Les cibles chiffrées sont dans verify ; les interdictions dans notForget (une par ligne).

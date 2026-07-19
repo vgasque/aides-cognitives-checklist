@@ -1,5 +1,23 @@
 # Journal des modifications
 
+## [4.20.1] — 2026-07-19
+### Modifié
+- **Prompt IA de création mis à jour** (dialogue Créer → « Avec l'IA ») — il ignorait
+  les évolutions d'affichage depuis v4.11 :
+  - **Format « challenge :: réponse »** enseigné avec exemples concrets de réécriture
+    (position des pads, test de fuite au ballonnet, réglages du respirateur, contrôle
+    de dilution) : à utiliser dès qu'une étape attend un constat ou une valeur
+    vérifiable — jamais sur une simple action ; combinable avec ⚠/△. L'app affiche la
+    réponse en pilule, la fait confirmer en lecture à deux voix et la redemande en
+    passe de vérification.
+  - **Titres de blocs courts** (2-4 mots, discriminants dès les premiers mots) et
+    **libellés d'options au premier mot distinctif** (« Choquable / Non choquable ») :
+    les vues compactes (chips du fil, plan, tableau statique) tronquent.
+  - Seuil de densité aligné sur le garde-fou de l'éditeur (**plus de 7 étapes par
+    bloc** = signal), exemple « :: » ajouté au schéma JSON, point de contrôle final
+    correspondant, et dédoublonnage des invites localInfo (énumérées trois fois).
+  Vérifié dans l'app : le prompt s'affiche et se copie correctement.
+
 ## [4.20.0] — 2026-07-19
 ### Ajouté
 - **Vérification hors-ligne des documents PDF** (besoin SMUR : en intervention, il n'y a
