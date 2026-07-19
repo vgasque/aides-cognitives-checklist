@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-LFUFo7bg37ytCh4oTZkhfV0dftjMhpPqmTUceG3GHFM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-otEVXh1efTpTto55cmPGpSUj5Ri+jVwtv2bv8swCm1c='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1640,7 +1640,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .sv-decwrap.stacked>.sv-fork,.sv-decwrap.stacked>.sv-merge{display:none}
   /* Renvois : pilule neutre (convergence/saut) — la reprise ↺ garde le registre bleu doux. */
   .sv-jrow{display:flex;min-width:0}
-  .sv-jrow.hid{display:none}
+  /* Pilule remplacée par un brin de convergence : INVISIBLE mais l'espace est GARDÉ
+     (v4.14.5 — display:none libérait sa rangée : l'élargissement s'y étendait puis le brin
+     la retraversait ; et le changement de hauteur faisait osciller le ResizeObserver). */
+  .sv-jrow.hid{visibility:hidden}
   .sv-jump{display:inline-flex;align-items:center;gap:5px;min-height:32px;max-width:100%;font-size:11px;font-weight:700;font-family:var(--mono);color:var(--ink-soft);background:var(--tag-bg);border:1px solid var(--line);border-radius:999px;padding:4px 10px;cursor:pointer;text-align:left}
   .sv-jump.loop{color:var(--link);background:var(--primary-soft);border-color:var(--primary-soft)}
   .sv-jump:hover{border-color:var(--primary)}
@@ -2581,7 +2584,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.14.4';
+const APP_VERSION='4.14.5';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -6946,11 +6949,23 @@ function svPaintArrows(){
     const tops=chips.map(c=>Math.round(c.getBoundingClientRect().top/Z));
     const columns=chips.length>1&&tops.every(t=>Math.abs(t-tops[0])<3);
     dw.classList.toggle('stacked',!columns);
-    // Convergence : masquer les pilules « → join » SEULEMENT quand la flèche les remplace.
+    // Convergence : masquer les pilules « → join » SEULEMENT quand la flèche les remplace
+    // ET que son COULOIR VERTICAL est LIBRE (v4.14.5 : un bloc élargi peut occuper l'espace
+    // sous une branche courte — le brin le traverserait ; la branche garde alors sa pilule).
     const joinId=dw.dataset.svjoin||'';
+    const merge0=dw.querySelector(':scope>.sv-merge');
+    const corridorFree=(br,jr)=>{if(!merge0)return false;
+      const brR=br.getBoundingClientRect(),jrR=jr.getBoundingClientRect(),mr0=merge0.getBoundingClientRect();
+      const x=brR.left+brR.width/2;
+      const y1=jrR.top+2,y2=mr0.top-2;
+      if(y2-y1<8*Z)return true;   // la pilule touche déjà la convergence : rien à traverser
+      return ![...wrap.querySelectorAll('.sv-cell,.sv-band,.sv-opt,.sv-end')].some(e=>{
+        if(br.contains(e))return false;
+        const r=e.getBoundingClientRect();if(r.width<2)return false;
+        return r.left<x+6*Z&&r.right>x-6*Z&&r.bottom>y1&&r.top<y2;});};
     const mBrs=[];
     brsEls.forEach(br=>{const rows=[...br.querySelectorAll(':scope>.sv-jrow')];const jr=rows[rows.length-1];
-      const mg=!!(columns&&joinId&&jr&&jr.dataset.jto===joinId&&jr.dataset.jback==='0');
+      const mg=!!(columns&&joinId&&jr&&jr.dataset.jto===joinId&&jr.dataset.jback==='0'&&corridorFree(br,jr));
       if(jr)jr.classList.toggle('hid',mg);
       if(mg)mBrs.push(br);});
     fork.innerHTML='';

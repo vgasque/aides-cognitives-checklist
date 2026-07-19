@@ -1,5 +1,17 @@
 # Journal des modifications
 
+## [4.14.5] — 2026-07-19
+### Corrigé
+- **Mode Statique — la flèche de convergence ne traverse plus les blocs élargis**
+  (ex. anaphylaxie : la flèche du bloc 11 « symptômes gastro-intestinaux » vers le bloc 12
+  passait sur les blocs élargis de la branche voisine). Cause : la pilule « → 12 »
+  remplacée par le brin libérait sa place, l'élargissement s'y étendait, puis le brin
+  redessiné traversait les cellules. Désormais : un brin n'est dessiné que si son **couloir
+  vertical est libre** — sinon la branche **garde sa pilule** (l'information reste locale au
+  bloc) ; et une pilule remplacée reste invisible **sans libérer son espace** (plus
+  d'oscillations de recalcul). Vérifié sur les 6 fiches tachycardies + ACR + anaphylaxie :
+  zéro superposition, élargissements et brins légitimes conservés.
+
 ## [4.14.4] — 2026-07-19
 Corrections issues des essais sur les fiches tachycardies/SVT (6 algorithmes très
 ramifiés, imbrications à 4 niveaux).
