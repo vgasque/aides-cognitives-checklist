@@ -67,7 +67,9 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   ne vit que dans le liseré). Surfaces : bandeau système persistant (`#sysBanner`, INFO), snackbar
   transitoire (`.toast`, ardoise `--rt-*` fixe dans les deux thèmes) ; **en session de crise,
   aucune notification flottante** — snackbars mis en attente (cf. `toast()`), bandeau système
-  masqué (`body.crisis-live`). Le panneau minuteurs suit le THÈME depuis V5 (plus de panneau
+  visible SEULEMENT sur l'accueil (`body.view-home`, v4.20.0 — en lecture il glissait sous
+  l'en-tête sticky, à moitié masqué par le bandeau rouge du titre ; recharger pendant un soin
+  n'est jamais souhaitable : l'invitation attend le retour à l'accueil). Le panneau minuteurs suit le THÈME depuis V5 (plus de panneau
   sombre forcé en clair).
 - **Statuts, code, étapes critiques (V5)** : fiches ET protocoles portent un statut à 3 états
   (`''` = validé(e) — défaut historique, `'review'` = à relire, `'draft'` = brouillon ;
@@ -352,7 +354,13 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   dialogue pilote `state.section` : choisir un type y bascule aussi l'onglet de l'accueil.
 - **Pieds de page (v4.4.2)** : UNE source de vérité pour l'état de stockage (`storageState`,
   pure) — variante LONGUE dans la sidebar de l'accueil (+ info-bulle), variante COURTE dans le
-  pied des vues de LECTURE (fiche ET protocole, `readFooterHtml`). Le pied de lecture ne répète
+  pied des vues de LECTURE (fiche ET protocole, `readFooterHtml`). **Vérification hors-ligne
+  des documents PDF (v4.20.0, besoin SMUR — aucun réseau en intervention)** : ligne
+  `#attOffline` du pied de la sidebar — ✓ vert « tous sur cet appareil (n) » (CONFIRMATION
+  positive) ou △ ambre « k pas encore sur cet appareil » + « Télécharger » immédiat
+  (`attMissingInfo` PURE testée — supprimés ignorés, dédoublonnage, chemins = règle de
+  `_syncAttachments` ; `refreshAttOffline`/`dlMissingAtts`), rafraîchie avec `updateStorageInfo`
+  et à la fin des téléchargements de fond de la synchro. Le pied de lecture ne répète
   ni le code court ni la date de validation (déjà dans la méta du haut). En session de crise,
   l'état de stockage disparaît des deux pieds (aucun signal non actionnable pendant un soin).
 - **Repli de l'étape ① (doctrine, v4.4.2)** : un démarrage IMPLICITE (cochage, minuteur,

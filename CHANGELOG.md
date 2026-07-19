@@ -1,5 +1,22 @@
 # Journal des modifications
 
+## [4.20.0] — 2026-07-19
+### Ajouté
+- **Vérification hors-ligne des documents PDF** (besoin SMUR : en intervention, il n'y a
+  parfois aucun réseau) : le pied de la barre latérale de l'accueil affiche désormais l'état
+  des documents référencés par vos fiches et protocoles — **✓ « Documents PDF : tous sur cet
+  appareil (n) »** quand tout est téléchargé (confirmation positive, consultable en zone
+  blanche), ou **△ « k document(s) pas encore sur cet appareil »** avec un bouton
+  **« Télécharger »** immédiat, sans attendre le téléchargement d'arrière-plan de la
+  prochaine synchronisation. La ligne se met à jour en direct à l'arrivée des fichiers.
+### Corrigé
+- **Bandeau « Nouvelle version disponible » en collision avec le bandeau rouge du titre**
+  (retour d'usage) : en lecture d'une aide, le bandeau de mise à jour glissait sous
+  l'en-tête épinglé au défilement et se retrouvait à moitié masqué par le bandeau rouge.
+  Il n'apparaît plus que **sur la page d'accueil** — recharger l'app depuis un écran de
+  soin n'est de toute façon jamais souhaitable ; l'invitation attend le retour à l'accueil
+  et la nouvelle version s'applique quoi qu'il arrive à l'ouverture suivante.
+
 ## [4.19.2] — 2026-07-19
 ### Corrigé
 - **Visionneuse PDF sur écran étroit : le titre du document n'était plus lisible** (retour

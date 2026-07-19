@@ -446,6 +446,20 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   eq('taille démesurée clampée au plafond', A.safeAttachment({id:'a1',name:'x',size:1e12}).size, A.MAX_PDF_BYTES);
   ok('nom avec chemin nettoyé', A.safeAttachment({id:'a1',name:'../x.pdf',size:1}).name.indexOf('/')<0);
 
+  group('attMissingInfo() — vérification hors-ligne des documents (v4.20.0)');
+  {const ents=[
+    {id:'f1',attachments:[{id:'a1',name:'x.pdf',size:1},{id:'a2',name:'y.pdf',size:1}]},
+    {id:'f2',libraryId:'lib9',attachments:[{id:'a2',name:'y.pdf',size:1},{id:'a3',name:'z.pdf',size:1}]},
+    {id:'f3',deletedAt:123,attachments:[{id:'a4',name:'w.pdf',size:1}]}];
+   const r=A.attMissingInfo(ents,['a1'],'u1');
+   eq('total dédoublonné, supprimés ignorés', r.total, 3);
+   eq('manquants = référencés sans binaire local', r.missing, ['a2','a3']);
+   eq('chemin perso pour la 1ʳᵉ entité référente', r.paths.a2, 'u/u1/a2.pdf');
+   eq('chemin bibliothèque suivi', r.paths.a3, 'l/lib9/a3.pdf');
+   eq('sans uid : aucun chemin', Object.keys(A.attMissingInfo(ents,[],null).paths).length, 0);
+   eq('tout présent → missing vide', A.attMissingInfo(ents,['a1','a2','a3'],'u1').missing, []);
+   eq('entrées nulles tolérées', A.attMissingInfo(null,null,null).total, 0);}
+
   group('attStoragePath() — le chemin cloud encode le périmètre');
   eq('perso -> u/<uid>/<id>.pdf', A.attStoragePath(null,'11111111-1111-1111-1111-111111111111','att1'), 'u/11111111-1111-1111-1111-111111111111/att1.pdf');
   eq('bibliothèque -> l/<lib>/<id>.pdf', A.attStoragePath('lib-team','11111111-1111-1111-1111-111111111111','att1'), 'l/lib-team/att1.pdf');

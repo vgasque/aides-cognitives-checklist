@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-CncFwwnXTFC5g/PKVEKizExQDcrv19u/4sT1Slbvt+o='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-KikmQnhp+0niw2855fMw4wmlP46wskVF7mBuiC9w+Tk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -614,7 +614,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .notice.sync-pending{background:var(--verify-soft);border-color:var(--verify);color:var(--verify);cursor:pointer}
   .notice.sync-pending svg{color:var(--verify)}
   /* Bandeau système (registre INFORMATION persistant : mise à jour de l'app) : pleine largeur
-     sous l'en-tête, rejetable, JAMAIS pendant une session de crise (cf. body.crisis-live). */
+     sous l'en-tête, rejetable, visible SEULEMENT SUR L'ACCUEIL (v4.20.0, retour d'usage : en
+     lecture de fiche il glissait sous l'en-tête sticky au défilement — à moitié masqué par le
+     bandeau rouge du titre ; et recharger depuis un écran de soin n'est jamais souhaitable —
+     l'invitation attend le retour à l'accueil, la nouvelle version arrive de toute façon à
+     l'ouverture suivante). */
   .sys-banner{display:flex;align-items:center;gap:9px;padding:9px 18px;background:var(--primary-soft);border-bottom:1px solid var(--primary-200);color:var(--ink);font-size:12.5px;line-height:1.35}
   .sys-banner[hidden]{display:none}
   .sys-banner .sb-ic{color:var(--primary-dk);flex:none;display:inline-flex}
@@ -624,7 +628,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .sys-banner .sb-x{background:none;border:0;color:var(--ink-soft);font-size:19px;line-height:1;min-width:32px;min-height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:7px;cursor:pointer;flex:none}
   .sys-banner .sb-x:hover{background:var(--primary-100)}
   .sys-banner :is(.sb-act,.sb-x):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-  body.crisis-live .sys-banner{display:none}
+  body:not(.view-home) .sys-banner{display:none}
   .search{flex:1;position:relative;display:flex;align-items:center}
   .search svg{position:absolute;left:12px;color:var(--ink-soft);pointer-events:none}
   .search input{width:100%;padding:11px 12px 11px 38px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--input-bg);color:var(--ink)}
@@ -2440,7 +2444,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
          toute barre d'actions en bas de page. Jamais d'action destructive ici. -->
     <div class="more-menu" id="moreMenu" hidden role="menu"></div></header>
   <!-- Bandeau système (registre INFORMATION persistant, ex. nouvelle version du service worker) :
-       sous l'en-tête, rejetable ; masqué pendant une session de crise (body.crisis-live). -->
+       sous l'en-tête, rejetable ; visible seulement sur l'accueil (body.view-home, v4.20.0). -->
   <div id="sysBanner" class="sys-banner" role="status" hidden><span class="sb-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01" stroke-linecap="round"/></svg></span><span class="sb-txt"></span><button class="sb-act" id="sbReload">Recharger</button><button class="sb-x" id="sbX" aria-label="Masquer">×</button></div>
   <main id="main" tabindex="-1"><div class="boot-load" role="status"><span class="spin" aria-hidden="true"></span>Chargement…</div></main>
   <!-- Pied de page : ACTIONS d'abord (interactives, les plus utilisées), puis l'ÉTAT passif
@@ -2455,6 +2459,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     </div>
     <div class="tools-status"><span class="lbl" id="count"></span><div class="sync-chip" id="syncChip" hidden></div></div>
     <div class="storage-gauge" id="storageInfo"></div>
+    <!-- Vérification hors-ligne des documents PDF (v4.20.0, besoin SMUR : savoir AVANT de
+         partir sans réseau si tous les PDF référencés sont bien SUR l'appareil). -->
+    <div class="storage-gauge att-offline" id="attOffline" hidden></div>
     <input type="file" id="importFile" accept="application/json,.json,application/zip,.zip" hidden></footer>
 </div>
 <!-- Tab bar de section (accueil < 780px, V5) : élément STATIQUE, pastille glissante ; en large
@@ -2600,7 +2607,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.19.2';
+const APP_VERSION='4.20.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -3982,6 +3989,7 @@ async function updateStorageInfo(){
     }
   }catch(e){_stgSnap=null;}
   paintStorage();
+  refreshAttOffline();   // même cadence : la ligne « Documents PDF » du pied de la sidebar
 }
 // Écrit le libellé aux deux endroits possibles (la sidebar est masquée en lecture, le pied de
 // lecture n'existe pas à l'accueil : chacun se remplit s'il est présent).
@@ -3991,6 +3999,56 @@ function paintStorage(){
   if(el){el.innerHTML=s?s.main:'';if(s)el.title=s.tip;}
   const cf=main&&main.querySelector?main.querySelector('.crisis-footer .cf-stg'):null;
   if(cf){cf.innerHTML=s?s.short:'';if(s)cf.title=s.tip;}
+}
+// Vérification hors-ligne des documents PDF (v4.20.0, besoin SMUR : en intervention il n'y a
+// parfois aucun réseau — il faut pouvoir VÉRIFIER AVANT de partir que tout est sur l'appareil).
+// Une ligne du pied de la sidebar : CONFIRMATION positive (✓ vert « tous sur cet appareil »)
+// ou compte des manquants (△ ambre, registre ATTENTION) avec bouton « Télécharger » immédiat —
+// sans attendre le téléchargement de fond de la prochaine synchro. Rafraîchie avec l'état de
+// stockage, à la fin des téléchargements de fond et après un téléchargement manuel.
+async function refreshAttOffline(){
+  const el=document.getElementById('attOffline');if(!el)return;
+  if(!supportsAttachments()){el.hidden=true;return;}
+  let info=null;
+  try{info=attMissingInfo((fiches||[]).concat(protocols||[]),await IDB.getAttIds(),
+    (typeof Auth!=='undefined'&&Auth.signedIn())?(Auth.user()||{}).id:null);}catch(e){}
+  if(!info||!info.total){el.hidden=true;return;}
+  el.hidden=false;
+  if(!info.missing.length){
+    el.innerHTML='<span class="pers-ok">'+uiIcon('check',12)+' Documents PDF : tous sur cet appareil ('+info.total+')</span>';
+    el.title='Les '+info.total+' documents PDF référencés par vos fiches et protocoles sont téléchargés : consultables sans aucun réseau (mode avion, zone blanche).';
+    return;}
+  const n=info.missing.length;
+  el.innerHTML='<span class="pers-warn">'+uiIcon('warn',12)+' '+n+' document'+(n>1?'s':'')+' PDF pas encore sur cet appareil</span>'
+    +(Object.keys(info.paths).length?' · <button class="tlink" id="attOffDl">Télécharger</button>':' · connectez-vous avec du réseau pour les récupérer');
+  el.title='Ces documents ne seraient pas consultables sans réseau. Téléchargez-les avant de partir en intervention.';
+  const b=document.getElementById('attOffDl');if(b)b.onclick=()=>dlMissingAtts();
+}
+// Téléchargement MANUEL des documents manquants (même chemin cloud que _syncAttachments —
+// séquentiel, progression affichée dans la ligne, bilan en snackbar). Une erreur par document
+// n'arrête pas les autres (un document jamais envoyé depuis son appareil d'origine est
+// introuvable côté cloud : on le dit, sans bloquer le reste).
+let _attOffBusy=false;
+async function dlMissingAtts(){
+  if(_attOffBusy)return;
+  if(typeof Auth==='undefined'||!Auth.signedIn()){toast('Connectez-vous pour récupérer les documents depuis le cloud.');return;}
+  if(navigator.onLine===false){toast('⚠ Aucun réseau : connectez-vous à Internet puis réessayez.');return;}
+  const el=document.getElementById('attOffline');
+  let info=null;
+  try{info=attMissingInfo((fiches||[]).concat(protocols||[]),await IDB.getAttIds(),(Auth.user()||{}).id);}catch(e){}
+  if(!info||!info.missing.length){refreshAttOffline();return;}
+  _attOffBusy=true;let ok=0,ko=0;
+  try{
+    for(let i=0;i<info.missing.length;i++){const id=info.missing[i];
+      if(el)el.innerHTML='Téléchargement des documents… '+(i+1)+'/'+info.missing.length;
+      try{const r=await storageReq('GET',info.paths[id]);const buf=await r.arrayBuffer();
+        await IDB.putAtt({id:id,buf:buf,size:buf.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:0,remotePath:info.paths[id]});
+        ok++;refreshAttRow(id);}
+      catch(e){ko++;}}
+  }finally{_attOffBusy=false;}
+  toast(ko?'⚠ '+ko+' document(s) impossible(s) à télécharger — pas encore envoyé(s) depuis l\'appareil où ils ont été ajoutés, ou réseau coupé. Réessayez plus tard.'
+    :'✓ Tous les documents PDF sont maintenant sur cet appareil.',7000);
+  refreshAttOffline();
 }
 // Pied de page COMMUN aux vues de lecture (fiche ET protocole) : état de stockage à gauche,
 // version à droite. Plus de « maj MM/AAAA » ni de code court : tous deux sont DÉJÀ dans la
@@ -9317,6 +9375,19 @@ const {toRow:protocolToRow,fromRow:protocolFromRow}=rowConverters(migrateProtoco
    = re-upload au nouveau chemin puis suppression de l'ancien (champ remotePath du blob). */
 // Chemin d'un document dans le bucket — PUR (testé).
 function attStoragePath(libraryId,ownerUid,attId){return libraryId?('l/'+libraryId+'/'+attId+'.pdf'):('u/'+ownerUid+'/'+attId+'.pdf');}
+// État hors-ligne des documents référencés — PURE (testée ; v4.20.0, besoin SMUR : en
+// intervention il n'y a parfois AUCUN réseau, il faut pouvoir vérifier AVANT que tout PDF
+// référencé est bien sur l'appareil). `entities` = fiches + protocoles (les supprimés sont
+// ignorés), `haveIds` = ids présents en IndexedDB, `uid` = utilisateur connecté (sans lui,
+// pas de chemins cloud). Dédoublonne les documents partagés ; le chemin suit la première
+// entité VIVANTE qui référence le document (même règle que _syncAttachments).
+function attMissingInfo(entities,haveIds,uid){
+  const have=new Set(haveIds||[]),seen=new Set(),paths=Object.create(null),missing=[];
+  (entities||[]).forEach(f=>{if(!f||f.deletedAt)return;(f.attachments||[]).forEach(a=>{
+    if(!a||!a.id||seen.has(a.id))return;seen.add(a.id);
+    if(uid)paths[a.id]=attStoragePath(f.libraryId||null,uid,a.id);
+    if(!have.has(a.id))missing.push(a.id);});});
+  return {total:seen.size,missing:missing,paths:paths};}
 // Appel direct de l'API Storage (corps BINAIRE : Auth.headers() imposerait un Content-Type JSON).
 // Erreurs au format 'REST <code> …' -> restErrStatus/explainSyncError les comprennent déjà.
 async function storageReq(method,path,body,ctype,extra){await Auth.ensureFresh();
@@ -9773,7 +9844,7 @@ const Sync={
             await IDB.putAtt({id:id,buf:buf,size:buf.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:0,remotePath:paths[id]});
             refreshAttRow(id);   // rangée à l'écran : badge « à télécharger » caché + vignette posée (v4.4.6)
           }catch(e){}}
-      }finally{this._attDl=false;}})();}
+      }finally{this._attDl=false;refreshAttOffline();}})();}   // v4.20.0 : la ligne « Documents PDF » reflète l'arrivée des binaires
     if(firstErr)throw firstErr;
   },
   async _syncCats(){
@@ -10175,7 +10246,7 @@ if(location.search.indexOf('__acdebug')>=0){
    PAS l'application : on expose juste les fonctions pures à tester. AUCUN effet en usage normal :
    sans ce paramètre, rien de tout ceci ne s'exécute et aucun global n'est ajouté. */
 if(location.search.indexOf('__actest')>=0){
-  window.__ac_test__={migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
+  window.__ac_test__={migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
     restErrStatus,isPersoRepairCandidate,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,
@@ -10193,8 +10264,9 @@ if(location.search.indexOf('__actest')>=0){
     //  - versions différentes (cas NORMAL depuis le cache-d'abord, v4.4.6 : la page en main
     //    vient du cache, donc de l'ANCIENNE version) -> bandeau persistant « Nouvelle version
     //    disponible — Recharger » : invite NON bloquante (bouton #sbReload, ✕ pour ignorer),
-    //    masquée en session de crise (body.crisis-live) — on applique quand ON le décide,
-    //    sinon la nouvelle version arrive de toute façon à l'ouverture suivante ;
+    //    visible SEULEMENT sur l'accueil (body.view-home, v4.20.0 — en lecture il entrait en
+    //    collision avec le bandeau rouge du titre, et recharger pendant un soin n'est jamais
+    //    souhaitable) ; la nouvelle version arrive de toute façon à l'ouverture suivante ;
     //  - versions égales (la page servie est déjà la nouvelle — ex. après le Recharger)
     //    -> simple snackbar « vous utilisez déjà la nouvelle version ».
     // JAMAIS de rechargement forcé : en pleine crise, on ne recharge pas l'écran sous les doigts
@@ -10205,7 +10277,7 @@ if(location.search.indexOf('__actest')>=0){
       const v=String(d.version||'').replace(/[^0-9.]/g,'');
       // Version déjà servie -> simple confirmation transitoire (snackbar). Version en attente ->
       // bandeau système PERSISTANT (registre INFORMATION, taxonomie V5) : visible jusqu'à action
-      // ou rejet, jamais pendant une session de crise (masqué par body.crisis-live).
+      // ou rejet, seulement sur l'accueil (body.view-home — il ATTEND le retour à l'accueil).
       if(v===APP_VERSION)toast('Application mise à jour (v'+APP_VERSION+') — vous utilisez déjà la nouvelle version.',9000);
       else{const b=document.getElementById('sysBanner');
         b.querySelector('.sb-txt').textContent='Nouvelle version disponible'+(v?' (v'+v+')':'')+' — rechargez la page pour l\'utiliser.';
