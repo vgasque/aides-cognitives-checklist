@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-4udi+knlHlwrO33BGMUDh2D24x81XNFb8755yu+Zv+I='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-m9QLlENyIXnuxE72hVfYx3pF/DIar7QMIDi2cA5hioo='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1460,6 +1460,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .ov-plan-h .ovs-tgl{flex:none;min-height:44px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--link);font-size:12px;font-weight:700;padding:6px 11px;cursor:pointer;font-family:inherit}
   .ov-plan-h .ovs-tgl:hover{background:var(--surface)}
   .ov-plan-h .ovs-tgl:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* v4.18.0 : sélecteur d'affichage du Plan (Détails / Échelle / Schéma) — l'état actif est
+     un indicateur de sélection (fond tonal), pas un bouton rempli (un seul rempli par écran). */
+  .ov-plan-h{flex-wrap:wrap}
+  .ov-plan-h .pl-views{flex:none;display:flex;gap:4px;margin-left:auto}
+  .ov-plan-h .ovs-tgl.on{background:var(--primary-soft);color:var(--primary-dk);border-color:var(--primary-300)}
+  .ov-plan.svgv{overflow:hidden}
   /* Nœud du plan : carte compacte NAVIGANTE (taper = y aller) — jamais de case à cocher ici. */
   .pl-nd{display:flex;align-items:flex-start;gap:8px;border:1px solid var(--line);border-left:4px solid var(--line-strong);border-radius:9px;background:var(--surface);padding:8px 10px;margin-top:6px;cursor:pointer}
   .pl-nd.dec{background:var(--verify-soft);border-color:var(--verify-bd);border-left-color:var(--verify-bd)}
@@ -2590,7 +2596,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.17.0';
+const APP_VERSION='4.18.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -2946,10 +2952,10 @@ let state={view:'library',q:'',cat:'',scope:null,draft:null,fiche:null,nav:[],na
   // Mode de lecture du mode crise : 'overview' = JOURNAL DE PARCOURS (v4.9.0, fil condensé
   // v4.16.0 — l'ex-mode guidé y est fusionné) + PLAN DE L'AIDE (v4.10.0) ; 'static' =
   // document tableau (v4.13.0). Posé à l'OUVERTURE (openRead/resumeSession) depuis la préférence.
-  // ovFold = replis manuels d'instances du journal (clé = index) ; ovPlanCompact = plan en
-  // titres seuls (défaut : étapes visibles) ; ovVerify = passe Do-Verify en cours
-  // ({idx,i,gaps} ou null). Jamais persistés (par fiche ouverte).
-  readMode:'overview',ovFold:{},ovPlanCompact:false,ovVerify:null};
+  // ovFold = replis manuels d'instances du journal (clé = index) ; ovPlanView = affichage du
+  // Plan ('plan' organigramme / 'ladder' échelle / 'svg' schéma — fusion v4.18.0) ; ovVerify =
+  // passe Do-Verify en cours ({idx,i,gaps} ou null). Jamais persistés (par fiche ouverte).
+  readMode:'overview',ovFold:{},ovPlanView:'plan',ovVerify:null};
 try{if(localStorage.getItem(spaceKey('ac-section'))==='protocols')state.section='protocols';}catch(e){}
 /* Préférence du mode de lecture (v4.6.0) — par utilisateur (spaceKey local), synchronisée via
    data.prefs.readMode. La synchro ne fait qu'ÉCRIRE la préférence locale : elle ne bascule JAMAIS
@@ -4533,7 +4539,7 @@ bindModalDismiss(document.getElementById('endSessModal'),()=>_endSessClose(false
 async function endCurrentSession(){if(!Runtime.started)return;if(!await confirmEndSession(Runtime))return;const f=Runtime.fiche;endSession(Runtime);freshRuntime(f,null);state.fiche=null;state.view='library';render();}
 // Reprendre une session de l'historique (ou vive) : recharge dans un runtime, la réactive (vive) et
 // ouvre la fiche. Si une session vive existe déjà pour cette fiche, on la rouvre telle quelle.
-function resumeSession(id){const s=sessions.find(x=>x.id===id);if(!s)return;const f=fiches.find(x=>x.id===s.ficheId);if(!f){toast('⚠ Fiche introuvable.');return;}flowScroll={left:null,top:0};state.readMode=currentReadMode();state.ovFold={};state.ovPlanCompact=false;state.ovVerify=null;
+function resumeSession(id){const s=sessions.find(x=>x.id===id);if(!s)return;const f=fiches.find(x=>x.id===s.ficheId);if(!f){toast('⚠ Fiche introuvable.');return;}flowScroll={left:null,top:0};state.readMode=currentReadMode();state.ovFold={};state.ovPlanView='plan';state.ovVerify=null;
   if(liveSessions[f.id]&&liveSessions[f.id].sessionId===id){Runtime=liveSessions[f.id];}
   else{Runtime=buildRuntime(f,s);Runtime.started=true;Runtime.startedAt=s.startedAt||Date.now();liveSessions[f.id]=Runtime;persistLive(Runtime,true);}
   Runtime.fiche=f;bindStateToRuntime();state.fiche=f;state.showFlow=false;state.showSess=false;state.view='read';render();}
@@ -6093,7 +6099,11 @@ function renderRead(){
   // rempli par écran ; la 1ʳᵉ action clinique démarre toujours aussi (jamais bloquant).
   const sessStartH=sessStartHtml(f);
   // v4.13.0 : en mode STATIQUE, pas de panneau « Algorithme » (le tableau EST la vue d'ensemble).
-  const algH=(f.blocks&&f.blocks.length&&!useSv)?`<div class="alg-panel"><button type="button" class="alg-head" id="flowToggle" aria-expanded="${state.showFlow?'true':'false'}"><span class="alg-k">Algorithme</span><span class="alg-sub">${algSubHtml(blockDone,blockTot)}</span><span class="alg-chev" aria-hidden="true">${state.showFlow?'▴':'▾'}</span></button>${state.showFlow?flowBlock(f,true)+'<div class="flow-hint">Schéma = vue d’ensemble · un nœud = y aller · étapes à cocher en-dessous ↓</div>':''}</div>`:'';
+  // v4.18.0 : en mode DYNAMIQUE, plus de panneau « Algorithme » AVANT le journal (ordre ECAM
+  // E/WD → SD : jamais un synoptique au-dessus de la surface d'action) — le SVG est devenu
+  // l'affichage « Schéma » de la section Plan, SOUS le journal. Le panneau ne subsiste que
+  // pour les fiches SANS algorithme (rendu guidé, pas de Plan).
+  const algH=(f.blocks&&f.blocks.length&&!useSv&&!useOv)?`<div class="alg-panel"><button type="button" class="alg-head" id="flowToggle" aria-expanded="${state.showFlow?'true':'false'}"><span class="alg-k">Algorithme</span><span class="alg-sub">${algSubHtml(blockDone,blockTot)}</span><span class="alg-chev" aria-hidden="true">${state.showFlow?'▴':'▾'}</span></button>${state.showFlow?flowBlock(f,true)+'<div class="flow-hint">Schéma = vue d’ensemble · un nœud = y aller · étapes à cocher en-dessous ↓</div>':''}</div>`:'';
   // v4.16.0 : UNE bascule « Dynamique ↔ Statique » en tête de fiche — le statique est un
   // DOCUMENT complet (confirmation, chapeau, algorithme, surveillances dans le tableau) ;
   // le dynamique EST le journal (fil condensé — l'ex-mode guidé y est fusionné).
@@ -6519,9 +6529,18 @@ function ovPlanHtml(f){
   const num={};plan.order.forEach((id,i)=>{num[id]=i+1;});
   const md={};minimapData(f,state.nav,state.navSeq,state.checked,state.navPos).forEach(m=>{md[m.id]=m;});
   const off=offPathSet(f,state.nav,state.navPos);
-  const compact=!!state.ovPlanCompact;
-  const body=compact?ovPlanLadderHtml(f,plan,num,md,off):ovPlanTreeHtml(f,plan,num,md,off);
-  return `<div class="ov-plan-h"><span class="ovs-t">Plan de l’aide</span><span class="ovs-sub">· ${compact?'échelle — une ligne par bloc, tap = détails':'structure complète — taper un bloc = y aller'}</span><button type="button" class="ovs-tgl" id="ovPlanD" aria-pressed="${compact?'true':'false'}">${compact?'Détails':'Échelle'}</button></div><div class="ov-plan${compact?' compact':''}">${body}</div>`;}
+  // v4.18.0 (fusion, décision utilisateur — ordre ECAM E/WD → SD : l'ACTION d'abord, la
+  // structure en annexe) : TROIS affichages — Détails (organigramme hybride), Échelle
+  // (une ligne par bloc), Schéma (le SVG spatial, ex-panneau « Algorithme » d'avant journal).
+  const view=state.ovPlanView==='ladder'?'ladder':(state.ovPlanView==='svg'?'svg':'plan');
+  const body=view==='ladder'?ovPlanLadderHtml(f,plan,num,md,off)
+    :(view==='svg'?flowBlock(f,true)+'<div class="flow-hint">Schéma = vue d’ensemble · un nœud = y aller</div>'
+    :ovPlanTreeHtml(f,plan,num,md,off));
+  const sub=view==='ladder'?'échelle — une ligne par bloc, tap = détails'
+    :(view==='svg'?'schéma — taper un nœud = y aller':'structure complète — taper un bloc = y aller');
+  const seg=[['plan','Détails'],['ladder','Échelle'],['svg','Schéma']].map(([k,lb])=>
+    `<button type="button" class="ovs-tgl${view===k?' on':''}" data-plview="${k}" aria-pressed="${view===k?'true':'false'}">${lb}</button>`).join('');
+  return `<div class="ov-plan-h"><span class="ovs-t">Plan de l’aide</span><span class="ovs-sub">· ${sub}</span><span class="pl-views">${seg}</span></div><div class="ov-plan${view==='ladder'?' compact':''}${view==='svg'?' svgv':''}">${body}</div>`;}
 // ----- ORGANIGRAMME HYBRIDE (mode Détails) -----
 function ovPlanTreeHtml(f,plan,num,md,off){
   const items=plan.items;let i=0;
@@ -6628,7 +6647,7 @@ function ovPlanPin(){
   const wrap=main.querySelector('.ov-wrap');const plan=wrap&&wrap.querySelector('.ov-plan');
   let pin=wrap&&wrap.querySelector('#plPin');
   const off=()=>{if(pin){pin.hidden=true;pin._k='';}};
-  if(!plan||state.ovPlanCompact){off();return;}
+  if(!plan||state.ovPlanView!=='plan'){off();return;}
   const f=state.fiche;if(!f){off();return;}
   const Z=zoomF();
   const hb=document.querySelector('header.bar');
@@ -6690,7 +6709,7 @@ if(window.ResizeObserver){const _hbRO=new ResizeObserver(()=>{
 // redondantes depuis le fil condensé et le plan qui portent numérotation, états et saut.)
 function ovPaintLive(f){
   flowCtx={f,curId:state.nav[state.navPos]};
-  {const fs=main.querySelector('.alg-panel .flow-scroll');if(fs)flowPaintState(fs,f);}}
+  {const fs=main.querySelector('.flow-scroll');if(fs)flowPaintState(fs,f);}}
 // Défilement vers un bloc (DERNIÈRE carte du bloc : instance la plus récente, sinon carte de la
 // suite) — GESTE DE NAVIGATION volontaire uniquement (le cochage, lui, ne défile jamais) :
 // instantané (prefers-reduced-motion respecté), calé sous l'en-tête fixe.
@@ -6838,7 +6857,8 @@ function bindOverviewEvents(f){
     if(pl3){const id3=pl3.dataset.plln;state.ovFold['l:'+id3]=!state.ovFold['l:'+id3];
       renderOvOnlyKeepAnchor('[data-plln="'+CSS.escape(id3)+'"]');return;}
     const pg=t.closest('[data-plgo]');if(pg){jumpToBlock(f,pg.dataset.plgo);return;}
-    if(t.closest('#ovPlanD')){state.ovPlanCompact=!state.ovPlanCompact;renderOvOnly();return;}
+    const pv=t.closest('[data-plview]');
+    if(pv){if(state.ovPlanView!==pv.dataset.plview){state.ovPlanView=pv.dataset.plview;renderOvOnlyKeepAnchor('.ov-plan-h');}return;}
     const nx=t.closest('[data-ovnext]');
     if(nx){if(nx.getAttribute('aria-disabled')==='true')return;   // le libellé dit pourquoi (ECAM)
       // REPLI DIFFÉRÉ de l'étape ① : même doctrine que le « Continuer » guidé (v4.4.2) —
@@ -6877,8 +6897,9 @@ function renderOvOnly(){
   const N=overviewSection(f);
   wrap.innerHTML=N.inner;
   wrap.querySelectorAll('img[data-full]').forEach(im=>im.onclick=()=>openLightbox(im.dataset.full,im.dataset.cap||''));
-  {const sub=main.querySelector('.alg-panel .alg-sub');if(sub)sub.innerHTML=algSubHtml(N.blockDone,N.blockTot);}
-  {const fs=main.querySelector('.alg-panel .flow-scroll');if(fs)flowPaintState(fs,f);}   // v4.7.0 : peinture, pas de reconstruction
+  // v4.18.0 : le SVG vit dans le Plan (affichage « Schéma ») — rebrancher zoom/plein
+  // écran/navigation après le re-rendu ciblé (bindFlowZoom peint aussi l'état, v4.7.0).
+  {const fs=main.querySelector('.flow-scroll');if(fs){bindFlowZoom();applyFlowZoom();restoreFlow();}}
   flowCtx={f,curId:N.cur};
   ovPlanStick();   // v4.12.0 : base du fil d'ancêtres collant
   bindOverviewEvents(f);}
@@ -7468,7 +7489,7 @@ function openDraftPreview(){state.previewFrom='edit';
   // session vive d'une AUTRE fiche ne doit jamais recevoir les coches ou le chemin d'un brouillon
   // (openRead/resumeSession relient state au Runtime à la prochaine vraie ouverture).
   state.checked={};state.nav=[state.fiche.start||(((state.fiche.blocks||[])[0]||{}).id)];state.navSeq=[++Runtime.seq];state.navPos=0;
-  state.readMode=currentReadMode();state.ovFold={};state.ovPlanCompact=false;state.ovVerify=null;state.flowEnded=false;state.confOpen=undefined;
+  state.readMode=currentReadMode();state.ovFold={};state.ovPlanView='plan';state.ovVerify=null;state.flowEnded=false;state.confOpen=undefined;
   state.view='read';render();}
 function openPDraftPreview(){state.previewFrom='protocolEdit';
   state.protocol=migrateProtocol(JSON.parse(JSON.stringify(state.pdraft)));state.view='protocolRead';render();}
@@ -7729,7 +7750,7 @@ setInterval(()=>{const k=_editKind();if(!k){_lastParked=null;return;}
 // Ouvre une fiche en lecture. Si une SESSION VIVE existe pour cette fiche, on la rouvre telle quelle
 // (minuteurs toujours en cours). Sinon on garde le runtime transitoire de cette même fiche (s'il n'a
 // pas démarré), sinon on en crée un neuf.
-function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;bumpUsage(id);flowScroll={left:null,top:0};state.rtOpen=false;state.noteEdit=false;state.confOpen=undefined;state.previewFrom=null;state.flowEnded=false;state.readMode=currentReadMode();state.ovFold={};state.ovPlanCompact=false;state.ovVerify=null;
+function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;bumpUsage(id);flowScroll={left:null,top:0};state.rtOpen=false;state.noteEdit=false;state.confOpen=undefined;state.previewFrom=null;state.flowEnded=false;state.readMode=currentReadMode();state.ovFold={};state.ovPlanView='plan';state.ovVerify=null;
   if(liveSessions[id]){Runtime=liveSessions[id];Runtime.fiche=f;}
   else if(!(Runtime.fiche&&Runtime.ficheId===id&&!Runtime.started)){Runtime=buildRuntime(f,null);}
   // Algorithme REPLIÉ à l'ouverture : la 1ʳᵉ étape actionnable doit arriver le plus haut possible
@@ -9187,12 +9208,12 @@ function exportPdfCurrent(){window.print();}
 // on le déplie le temps de l'impression, puis on restaure l'état exact (audit v4.5).
 let _printSaved=null;
 window.addEventListener('beforeprint',()=>{if(state.view!=='read'||!state.fiche)return;
-  _printSaved={confOpen:state.confOpen,showFlow:state.showFlow,readMode:state.readMode,ovPlanCompact:state.ovPlanCompact};
+  _printSaved={confOpen:state.confOpen,showFlow:state.showFlow,readMode:state.readMode,ovPlanView:state.ovPlanView};
   // La vue d'ensemble (journal + PLAN complet avec étapes) est le format imprimé ; les blocs
   // repliés sont rouverts par CSS @media print — aucun état de repli à toucher.
-  state.confOpen=true;state.showFlow=true;state.ovPlanCompact=false;state.ovVerify=null;_printingOv=true;if(hasFlow(state.fiche))state.readMode='overview';render();});
+  state.confOpen=true;state.showFlow=true;state.ovPlanView='plan';state.ovVerify=null;_printingOv=true;if(hasFlow(state.fiche))state.readMode='overview';render();});
 window.addEventListener('afterprint',()=>{_printingOv=false;if(!_printSaved)return;
-  state.confOpen=_printSaved.confOpen;state.showFlow=_printSaved.showFlow;state.readMode=_printSaved.readMode||state.readMode;state.ovPlanCompact=!!_printSaved.ovPlanCompact;_printSaved=null;
+  state.confOpen=_printSaved.confOpen;state.showFlow=_printSaved.showFlow;state.readMode=_printSaved.readMode||state.readMode;state.ovPlanView=_printSaved.ovPlanView||'plan';_printSaved=null;
   if(state.view==='read'&&state.fiche)render();});
 // Taille du texte : zoom CSS sur <html> (agrandit AUSSI les cibles tactiles, pas seulement la
 // police). Préférence par appareil. Cycle 100/110/125 % — suffisant sans casser la mise en page.

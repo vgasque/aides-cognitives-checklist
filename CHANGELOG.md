@@ -1,5 +1,21 @@
 # Journal des modifications
 
+## [4.18.0] — 2026-07-19
+### Modifié
+- **Le schéma SVG rejoint le Plan de l'aide** (décision utilisateur sur maquette — ordre
+  ECAM : l'écran d'actions au-dessus, les synoptiques en dessous, jamais l'inverse) : en
+  mode dynamique, le panneau « Algorithme ▾ » qui précédait le journal disparaît — le bloc
+  courant remonte d'autant — et le Plan gagne un **troisième affichage** : « **Détails /
+  Échelle / Schéma** ». « Schéma » est le SVG spatial complet, avec zoom, plein écran et
+  navigation par nœud conservés, et l'état de session peint en direct (✓, position, hors
+  chemin) comme dans les deux autres affichages. Une seule section « structure », sous
+  l'action, trois densités de la même donnée.
+- Le panneau « Algorithme » ne subsiste que pour les fiches **sans** algorithme (rendu
+  bloc-à-bloc, pas de Plan). L'impression force toujours le plan Détails (le SVG ne
+  s'imprime plus en mode dynamique). Le fil d'ancêtres flottant ne s'épingle qu'en
+  affichage Détails. Vérifié à 375 et 1280 px (sélecteur à la ligne en étroit, zéro
+  débordement).
+
 ## [4.17.0] — 2026-07-19
 ### Supprimé
 - **Minimaps (v4.8.0) retirées** (décision utilisateur — devenues redondantes) : la bande

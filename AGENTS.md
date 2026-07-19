@@ -189,8 +189,14 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   posées par le walker (inertes) ; `--pl-stick` mesuré sur `header.bar` par `ovPlanStick` —
   ÷ `zoomF()` et RECALÉ à chaque variation de hauteur de l'en-tête (repli
   `.condensed`/`.ttl-on` au défilement, taille du texte, v4.13.1).
-  **Échelle ECAM** (mode compact, remplace « Titres seuls » ;
-  `state.ovPlanCompact`, jamais persisté, impression = détails) : une ligne par bloc, retraits
+  **TROIS AFFICHAGES du Plan (v4.18.0, fusion — décision utilisateur, ordre ECAM E/WD → SD :
+  l'ACTION d'abord, la structure en annexe SOUS le journal)** : sélecteur `data-plview`
+  (`state.ovPlanView` 'plan'/'ladder'/'svg', jamais persisté, impression = 'plan') —
+  **Détails** (organigramme hybride), **Échelle**, **Schéma** (le SVG spatial : l'ex-panneau
+  « Algorithme » d'AVANT le journal est SUPPRIMÉ en dynamique — il ne subsiste que pour les
+  fiches SANS algorithme ; zoom/plein écran conservés, `renderOvOnly` rebranche
+  `bindFlowZoom` et `ovPaintLive` peint `.flow-scroll` où qu'il vive ; le fil d'ancêtres ne
+  s'épingle qu'en 'plan'). **Échelle ECAM** : une ligne par bloc, retraits
   d0-3 AVEC chips d'étiquette (`OUI ›`), renvois mono abrégés (`optAbbr` pure : `OUI→5`,
   `↺1`, `▪fin`), ligne dépliable in-place (étapes lecture seule + « → aller à ce bloc »).
   DOCTRINE DU GUIDÉ (v4.14.4, ECAM) : le remplacement du bloc courant est ANCRÉ (le nouveau
@@ -231,8 +237,9 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   classes (`flowPaintState`), la géométrie n'est plus JAMAIS reconstruite à la navigation
   (cache `_flowCache` sans état) ; toute nouvelle peinture SVG exige sa règle de
   contre-inversion sombre (précédent `.flow-hl`). L'impression force la
-  vue d'ensemble (blocs repliés rouverts par CSS `@media print` ; le SVG s'y imprime entier —
-  fix du `max-height:300px`). L'aperçu d'éditeur reçoit un BAC À SABLE de navigation détaché
+  vue d'ensemble (blocs repliés rouverts par CSS `@media print` ; depuis v4.18.0 la structure
+  imprimée est le plan Détails — le SVG ne s'imprime plus en mode dynamique). L'aperçu
+  d'éditeur reçoit un BAC À SABLE de navigation détaché
   du Runtime (les coches d'un brouillon ne polluent jamais une session vive d'une autre fiche).
 - **Mode statique (v4.13.0, DOCUMENT complet v4.14.0)** : TOUTE l'aide en TABLEAU compact
   façon aide SFAR/CAMR — cellules télégraphiques carrelées à joint 3 px. `svExtras` (v4.14.0)
