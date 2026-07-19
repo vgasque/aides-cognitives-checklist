@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-/ESGj0xlewVFy9AAPrwDTXD5tKldlEEtUw42s/6nzAM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-Fw7FYQQIDcB0+d6KfBWVUtsKPKbKiYjgG5JOqtr1LLg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -2584,7 +2584,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.14.9';
+const APP_VERSION='4.14.10';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -6898,150 +6898,146 @@ function svTableHtml(f){
 // fourche et convergence masquées, les pilules re-suffisent.
 function svPaintArrows(){
   const wrap=main.querySelector('.sv-wrap');if(!wrap)return;
+  const tb=wrap.querySelector('.sv-tb');if(!tb)return;
   const Z=zoomF();   // v4.13.1 : rectangles en px VISUELS -> tout est ramené en px CSS (÷ Z)
-  // ÉLARGISSEMENT des arbres imbriqués (v4.14.3, décision utilisateur — esprit papier QRH) :
-  // une décision imbriquée dans une colonne s'ÉTEND vers la droite quand TOUTES les branches
-  // sœurs situées à sa droite sont TERMINÉES au-dessus d'elle (l'espace est vide — ex. la
-  // branche « symptômes digestifs » finie pendant que la branche Oui continue). Mesuré au
-  // rendu/resize, extérieur -> intérieur (la largeur du parent change les rects de l'enfant),
-  // remis à zéro d'abord (idempotent) ; les flèches sont dessinées APRÈS, sur la géométrie finale.
-  {const tb=wrap.querySelector('.sv-tb');
-   if(tb){const nested=[...tb.querySelectorAll('.sv-br .sv-decwrap')];
-    nested.forEach(dw=>{['','.sv-fork','.sv-cols','.sv-merge'].forEach(s=>{const el=s?dw.querySelector(':scope>'+s):dw;
-      if(el){el.style.width='';el.style.marginLeft='';el.style.marginRight='';}});});
-    if(nested.length){
-     // Espace libre = test de COLLISION global (toutes profondeurs d'imbrication, DANS LES
-     // DEUX SENS — v4.14.4 : sur les fiches réelles la branche courte est souvent à GAUCHE,
-     // l'expansion uniquement à droite ne s'appliquait jamais) : le rectangle convoité ne
-     // doit contenir AUCUN contenu extérieur au sous-arbre élargi.
-     const CONTENT='.sv-cell,.sv-band,.sv-opt,.sv-jrow,.sv-end,.sess-start';
-     // COULOIRS DES FLÈCHES (v4.14.6-7, décision utilisateur : garder la flèche ET élargir) :
-     // chaque branche dont l'issue fusionnera en brin (« → join ») réserve une VOIE DE BORD
-     // (le long du bord droit de sa colonne, pilule -> coude, ± 8 px) — le brin y sera ROUTÉ
-     // par un petit coude, et l'élargissement s'ÉCRÊTE juste avant la voie au lieu d'y
-     // renoncer (ex. anaphylaxie : blocs élargis jusqu'à ~24 px du bord, flèche 11 -> 12 le
-     // long du bord). Même voie calculée dans le peintre (déterministe).
-     const corridors=[];
-     [...tb.querySelectorAll('.sv-decwrap[data-svjoin]')].forEach(dw2=>{
-       const join=dw2.dataset.svjoin;const mg2=dw2.querySelector(':scope>.sv-merge');if(!mg2)return;
-       [...dw2.querySelectorAll(':scope>.sv-cols>.sv-br')].forEach(br=>{
-         const rows=[...br.querySelectorAll(':scope>.sv-jrow')];const jr=rows[rows.length-1];
-         if(!(jr&&jr.dataset.jto===join&&jr.dataset.jback==='0'))return;
-         const brR=br.getBoundingClientRect(),jrR=jr.getBoundingClientRect(),mR=mg2.getBoundingClientRect();
-         const lane=brR.right-12*Z;
-         corridors.push({el:br,left:lane-8*Z,right:lane+8*Z,top:jrR.top,bottom:Math.max(mR.top,jrR.bottom)});});});
-     const grow=(dw,parts)=>{
-       const ref=parts[0];const refR=ref.getBoundingClientRect();
-       const tbB=tb.getBoundingClientRect();
-       // Un couloir INTERNE au sous-arbre élargi bouge avec lui : il ne bloque pas sa propre extension.
-       const obstacles=[...tb.querySelectorAll(CONTENT)].filter(e=>!dw.contains(e)&&!e.contains(dw))
-         .map(e=>e.getBoundingClientRect()).concat(corridors.filter(c=>!dw.contains(c.el)));
-       // ÉCRÊTAGE (v4.14.7) : on s'étend jusqu'AU PLUS PROCHE obstacle de chaque côté,
-       // au lieu de tout ou rien.
-       let L=tbB.left,R=tbB.right;
-       obstacles.forEach(r=>{if(r.bottom<=refR.top+2||r.top>=refR.bottom-2)return;
-         if(r.left>=refR.right-2)R=Math.min(R,r.left-4);
-         if(r.right<=refR.left+2)L=Math.max(L,r.right+4);});
-       R=Math.max(R,refR.right);L=Math.min(L,refR.left);
-       if(Math.round((R-L)/Z)<=Math.round(refR.width/Z)+20)return false;
-       // Marges négatives COMPENSATOIRES (v4.14.7) : la contribution de l'élément à sa piste
-       // de grille reste sa largeur d'ORIGINE — sinon la piste s'étire et TOUS ses frères
-       // (chip, cellules) s'étalent sur les colonnes voisines (régression vue sur l'ACR).
-       const extL=Math.round((refR.left-L)/Z),extR=Math.round((R-refR.right)/Z);
-       parts.forEach(el=>{el.style.width=Math.round((R-L)/Z)+'px';
-         el.style.marginLeft=(-extL)+'px';el.style.marginRight=(-extR)+'px';});
-       return true;};
-     nested.forEach(dw=>{
-       // Le decwrap ENTIER si l'espace est libre sur toute sa hauteur ; sinon seulement
-       // fourche + colonnes (la bande-question reste dans sa colonne, pas de collision).
-       if(grow(dw,[dw]))return;
-       const cols=dw.querySelector(':scope>.sv-cols');if(!cols)return;
-       const parts=[cols];['.sv-fork','.sv-merge'].forEach(s=>{const el=dw.querySelector(':scope>'+s);if(el)parts.push(el);});
-       grow(dw,parts);});}}}
-  const wr=wrap.getBoundingClientRect();
-  // Superposition unique pleine page : convergences (grises) + retours ↺ (bleus) — les brins
-  // partent du BAS RÉEL du contenu de chaque branche (plus de segment flottant sous une
-  // colonne courte, v4.13.1) ; les fourches restent des bandeaux locaux sous les bandes.
-  let gh='';
-  const relX=r=>(r.left-wr.left)/Z, relY=r=>(r.top-wr.top)/Z;
-  wrap.querySelectorAll('.sv-decwrap').forEach(dw=>{
-    const fork=dw.querySelector(':scope>.sv-fork'),cols=dw.querySelector(':scope>.sv-cols'),merge=dw.querySelector(':scope>.sv-merge');
-    if(!fork||!cols)return;
+  const CONTENT='.sv-cell,.sv-band,.sv-opt,.sv-jrow,.sv-end,.sess-start';
+  /* v4.14.10 — PERFORMANCE : la passe est réorganisée en PHASES lecture/écriture GROUPÉES
+     (l'ancienne alternance mesure/style forçait un recalcul de mise en page par décision :
+     30-50 ms par passe sur desktop, bien pire sur téléphone ; désormais ~4 recalculs fixes).
+     Discipline : dans une phase de lecture, AUCUNE écriture de style — et inversement. */
+  // ---------- P0 : RESET (écritures seules) ----------
+  const nested=[...tb.querySelectorAll('.sv-br .sv-decwrap')];
+  nested.forEach(dw=>{['','.sv-fork','.sv-cols','.sv-merge'].forEach(s=>{const el=s?dw.querySelector(':scope>'+s):dw;
+    if(el){el.style.width='';el.style.marginLeft='';el.style.marginRight='';}});});
+  // ---------- ÉLARGISSEMENT par NIVEAU d'imbrication (1 recalcul par niveau utile) ----------
+  // Doctrine inchangée (v4.14.4-7) : extension aux DEUX sens écrêtée au plus proche obstacle,
+  // couloirs des brins réservés, marges négatives compensatoires (la piste de grille garde
+  // sa largeur d'origine — sinon les FRÈRES s'étalent sur les colonnes voisines).
+  if(nested.length){
+    const levelOf=dw=>{let n=0,p=dw.parentElement;while(p&&p!==tb){if(p.classList&&p.classList.contains('sv-decwrap'))n++;p=p.parentElement;}return n;};
+    const byLevel=new Map();
+    nested.forEach(dw=>{const l=levelOf(dw);if(!byLevel.has(l))byLevel.set(l,[]);byLevel.get(l).push(dw);});
+    [...byLevel.keys()].sort((a,b)=>a-b).forEach(lv=>{
+      // PHASE LECTURE : un seul recalcul pour tout le niveau.
+      const tbR=tb.getBoundingClientRect();
+      const obst=[...tb.querySelectorAll(CONTENT)].map(e=>({el:e,r:e.getBoundingClientRect()}));
+      const corr=[];
+      [...tb.querySelectorAll('.sv-decwrap[data-svjoin]')].forEach(dw2=>{
+        const mg2=dw2.querySelector(':scope>.sv-merge');if(!mg2)return;
+        const join=dw2.dataset.svjoin;const mgR=mg2.getBoundingClientRect();
+        [...dw2.querySelectorAll(':scope>.sv-cols>.sv-br')].forEach(br=>{
+          const rows=[...br.querySelectorAll(':scope>.sv-jrow')];const jr=rows[rows.length-1];
+          if(!(jr&&jr.dataset.jto===join&&jr.dataset.jback==='0'))return;
+          const brR=br.getBoundingClientRect(),jrR=jr.getBoundingClientRect();
+          const lane=brR.right-12*Z;
+          corr.push({el:br,left:lane-8*Z,right:lane+8*Z,top:jrR.top,bottom:Math.max(mgR.top,jrR.bottom)});});});
+      const jobs=byLevel.get(lv).map(dw=>{const cols=dw.querySelector(':scope>.sv-cols');
+        return {dw,cols,dwR:dw.getBoundingClientRect(),colsR:cols?cols.getBoundingClientRect():null};});
+      // PHASE CALCUL (pur) puis ÉCRITURES groupées.
+      const writes=[];
+      jobs.forEach(j=>{
+        const compute=refR=>{
+          const obs=obst.filter(o=>!j.dw.contains(o.el)&&!o.el.contains(j.dw)).map(o=>o.r)
+            .concat(corr.filter(c=>!j.dw.contains(c.el)));
+          let L=tbR.left,R=tbR.right;
+          obs.forEach(r=>{if(r.bottom<=refR.top+2||r.top>=refR.bottom-2)return;
+            if(r.left>=refR.right-2)R=Math.min(R,r.left-4);
+            if(r.right<=refR.left+2)L=Math.max(L,r.right+4);});
+          R=Math.max(R,refR.right);L=Math.min(L,refR.left);
+          if(Math.round((R-L)/Z)<=Math.round(refR.width/Z)+20)return null;
+          return {W:Math.round((R-L)/Z),extL:Math.round((refR.left-L)/Z),extR:Math.round((R-refR.right)/Z)};};
+        let g=compute(j.dwR);
+        if(g){writes.push({els:[j.dw],g});return;}
+        if(!j.colsR)return;
+        g=compute(j.colsR);
+        if(g){const parts=[j.cols];['.sv-fork','.sv-merge'].forEach(s=>{const el=j.dw.querySelector(':scope>'+s);if(el)parts.push(el);});
+          writes.push({els:parts,g});}});
+      writes.forEach(w=>w.els.forEach(el=>{el.style.width=w.g.W+'px';
+        el.style.marginLeft=(-w.g.extL)+'px';el.style.marginRight=(-w.g.extR)+'px';}));});}
+  // ---------- COLONNES vs PILE (1 recalcul) puis toggles .stacked (écritures) ----------
+  const dws=[...wrap.querySelectorAll('.sv-decwrap')].map(dw=>{
+    const fork=dw.querySelector(':scope>.sv-fork'),cols=dw.querySelector(':scope>.sv-cols');
+    if(!fork||!cols)return null;
     const brsEls=[...cols.querySelectorAll(':scope>.sv-br')];
     const chips=brsEls.map(br=>br.querySelector(':scope>.sv-opt')).filter(Boolean);
     const tops=chips.map(c=>Math.round(c.getBoundingClientRect().top/Z));
-    const columns=chips.length>1&&tops.every(t=>Math.abs(t-tops[0])<3);
-    dw.classList.toggle('stacked',!columns);
-    // Convergence : masquer les pilules « → join » SEULEMENT quand la flèche les remplace
-    // ET que son COULOIR VERTICAL est LIBRE (v4.14.5 : un bloc élargi peut occuper l'espace
-    // sous une branche courte — le brin le traverserait ; la branche garde alors sa pilule).
-    const joinId=dw.dataset.svjoin||'';
-    const merge0=dw.querySelector(':scope>.sv-merge');
-    // Garde-fou : la VOIE DE BORD (bord droit de la colonne — même calcul que la réservation
-    // des couloirs, v4.14.7) doit être réellement libre, sinon la branche garde sa pilule.
-    const corridorFree=(br,jr)=>{if(!merge0)return false;
-      const brR=br.getBoundingClientRect(),jrR=jr.getBoundingClientRect(),mr0=merge0.getBoundingClientRect();
-      const x=brR.right-12*Z;
-      const y1=jrR.top+2,y2=mr0.top-2;
-      if(y2-y1<8*Z)return true;   // la pilule touche déjà la convergence : rien à traverser
-      return ![...wrap.querySelectorAll('.sv-cell,.sv-band,.sv-opt,.sv-end')].some(e=>{
-        if(br.contains(e))return false;
-        const r=e.getBoundingClientRect();if(r.width<2)return false;
-        return r.left<x+6*Z&&r.right>x-6*Z&&r.bottom>y1&&r.top<y2;});};
+    return {dw,fork,cols,merge:dw.querySelector(':scope>.sv-merge'),brsEls,chips,
+      columns:chips.length>1&&tops.every(t=>Math.abs(t-tops[0])<3)};}).filter(Boolean);
+  dws.forEach(d=>{d.dw.classList.toggle('stacked',!d.columns);d.fork.innerHTML='';});
+  // ---------- SNAPSHOT FLÈCHES (1 recalcul, lectures seules — géométrie FINALE) ----------
+  const wr=wrap.getBoundingClientRect();
+  const relX=r=>(r.left-wr.left)/Z, relY=r=>(r.top-wr.top)/Z;
+  const visContent=[...tb.querySelectorAll('.sv-cell,.sv-band,.sv-opt,.sv-end')]
+    .map(e=>({el:e,r:e.getBoundingClientRect()})).filter(o=>o.r.width>2);
+  dws.forEach(d=>{if(!d.columns)return;
+    d.frR=d.fork.getBoundingClientRect();
+    d.bandR=(d.dw.querySelector(':scope>.sv-band')||d.fork).getBoundingClientRect();
+    d.chipR=d.chips.map(c=>c.getBoundingClientRect());
+    d.joinId=d.dw.dataset.svjoin||'';
+    d.mergeR=d.merge?d.merge.getBoundingClientRect():null;
+    const joinEl=d.joinId?wrap.querySelector('[data-svgo="'+CSS.escape(d.joinId)+'"]'):null;
+    d.joinR=joinEl?joinEl.getBoundingClientRect():d.mergeR;
+    d.brData=d.brsEls.map(br=>{
+      const rows=[...br.querySelectorAll(':scope>.sv-jrow')];const jr=rows[rows.length-1];
+      return {br,jr,brR:br.getBoundingClientRect(),jrR:jr?jr.getBoundingClientRect():null,
+        kids:[...br.children].map(k=>({k,r:k.getBoundingClientRect(),vis:k.offsetParent!==null}))};});});
+  const loopPills=[...wrap.querySelectorAll('[data-svloop]')].map(p=>({t:p.dataset.svloop,r:p.getBoundingClientRect()}));
+  const loopSeen=[];{const has={};loopPills.forEach(p=>{if(!has[p.t]){has[p.t]=true;loopSeen.push(p.t);}});}
+  const loopTgtR={};loopSeen.slice(0,2).forEach(t=>{const el=wrap.querySelector('[data-svgo="'+CSS.escape(t)+'"]');if(el)loopTgtR[t]=el.getBoundingClientRect();});
+  // ---------- CALCUL des tracés + ÉCRITURES finales (fork/gutter : hauteur FIXE 16 px et
+  // superposition absolue -> ces écritures n'invalident PAS la géométrie mesurée ;
+  // .hid = visibility -> géométrie stable elle aussi) ----------
+  let gh='';
+  dws.forEach(d=>{
+    if(!d.columns){
+      d.brsEls.forEach(br=>{const rows=[...br.querySelectorAll(':scope>.sv-jrow')];const jr=rows[rows.length-1];if(jr)jr.classList.remove('hid');});
+      return;}
+    const W=Math.round(d.frR.width/Z);if(W<20)return;
     const mBrs=[];
-    brsEls.forEach(br=>{const rows=[...br.querySelectorAll(':scope>.sv-jrow')];const jr=rows[rows.length-1];
-      const mg=!!(columns&&joinId&&jr&&jr.dataset.jto===joinId&&jr.dataset.jback==='0'&&corridorFree(br,jr));
-      if(jr)jr.classList.toggle('hid',mg);
-      if(mg)mBrs.push(br);});
-    fork.innerHTML='';
-    if(!columns)return;
-    const fr=fork.getBoundingClientRect();
-    const W=Math.round(fr.width/Z);if(W<20)return;
-    {const xs=chips.map(c=>{const r=c.getBoundingClientRect();return Math.round((r.left+r.width/2-fr.left)/Z);});
-     // v4.14.8 : la TIGE part du centre RÉEL de la bande-question (après élargissement, le
-     // bandeau de fourche peut être plus large que la bande — W/2 n'était plus centré).
-     const band=dw.querySelector(':scope>.sv-band');
-     const bR=band?band.getBoundingClientRect():fr;
-     const cx=Math.max(4,Math.min(W-4,Math.round((bR.left+bR.width/2-fr.left)/Z)));
-     let d=`M${cx} 0 V6`;xs.forEach(x=>{d+=` M${cx} 6 H${x} V11`;});
-     const ah=xs.map(x=>`M${x-4} 10 L${x} 16 L${x+4} 10 Z`).join(' ');
-     fork.innerHTML=`<svg viewBox="0 0 ${W} 16" width="${W}" height="16" aria-hidden="true"><path class="ln" d="${d}"/><path class="ah" d="${ah}"/></svg>`;}
-    if(merge&&mBrs.length){const mr=merge.getBoundingClientRect();
-     const yS=Math.round(relY(mr));const yA=yS+14;
-     // v4.14.8 : la flèche d'ARRIVÉE vise le centre RÉEL de la cellule de convergence (le
-     // bandeau .sv-merge peut être élargi/décalé — son centre n'était plus le bon repère).
-     const joinEl=joinId?wrap.querySelector('[data-svgo="'+CSS.escape(joinId)+'"]'):null;
-     const jR=joinEl?joinEl.getBoundingClientRect():mr;
-     const cx=Math.round(relX(jR)+jR.width/Z/2);
-     let d='';
-     mBrs.forEach(br=>{
-       // Départ centré sous le dernier bloc VISIBLE de la branche (v4.14.9 : la rangée-pilule
-       // en visibility:hidden réserve l'espace mais n'est PAS le bloc de départ — le brin
-       // partait ~40 px trop bas, comme venant d'un bloc d'en dessous) ; il TRAVERSE ensuite
-       // la zone réservée, coude vers la VOIE DE BORD (v4.14.7) et descente le long du bord.
-       const kids=[...br.children].filter(k=>k.offsetParent!==null&&!k.classList.contains('hid'));
-       const last=kids[kids.length-1]||br;const lr=last.getBoundingClientRect();
-       const brR=br.getBoundingClientRect();
-       const xc=Math.round(relX(lr)+lr.width/Z/2);
-       const xl=Math.round(relX(brR)+brR.width/Z-12);
-       const y0=Math.round(relY(lr)+lr.height/Z)+2;
-       const jog=Math.abs(xl-xc)>3;const xd=jog?xl:xc;
-       d+=(jog?`M${xc} ${y0} H${xl} V${yS+6}`:`M${xc} ${y0} V${yS+6}`)+` M${xd} ${yS+6} H${cx} `;});
-     d+=`M${cx} ${yS+6} V${yA-5}`;
-     gh+=`<path class="lg" d="${d}"/><path class="lgh" d="M${cx-4} ${yA-6} L${cx} ${yA} L${cx+4} ${yA-6} Z"/>`;}});
-  // Retours ↺ en gouttière gauche (2 voies max, cf. svLoopTargets — même plafond ici, sur le DOM).
-  {const seen=[],has={};
-   wrap.querySelectorAll('[data-svloop]').forEach(p=>{const t=p.dataset.svloop;if(!has[t]){has[t]=true;seen.push(t);}});
-   seen.slice(0,2).forEach((t,k)=>{
-     const tgt=wrap.querySelector('[data-svgo="'+CSS.escape(t)+'"]');if(!tgt)return;
-     const x=10-k*6;
-     const yTo=Math.round(relY(tgt.getBoundingClientRect())+14);
-     let yMax=yTo;const ticks=[];
-     wrap.querySelectorAll('[data-svloop="'+CSS.escape(t)+'"]').forEach(p=>{
-       const r=p.getBoundingClientRect();const y=Math.round(relY(r)+r.height/Z/2);
-       if(y>yMax)yMax=y;ticks.push(y);});
-     if(yMax<=yTo)return;
-     gh+=`<path class="lp" d="M${x} ${yMax} V${yTo}${ticks.map(y=>` M16 ${y} H${x}`).join('')}"/><path class="lph" d="M${x} ${yTo} L${x-4} ${yTo+7} L${x+4} ${yTo+7} Z"/>`;});}
+    d.brData.forEach(bd=>{
+      const mergeable=!!(d.joinId&&bd.jr&&bd.jr.dataset.jto===d.joinId&&bd.jr.dataset.jback==='0');
+      let mg=false;
+      if(mergeable&&d.mergeR&&bd.jrR){
+        const x=bd.brR.right-12*Z;
+        const y1=bd.jrR.top+2,y2=d.mergeR.top-2;
+        mg=(y2-y1<8*Z)||!visContent.some(o=>{if(bd.br.contains(o.el))return false;
+          const r=o.r;return r.left<x+6*Z&&r.right>x-6*Z&&r.bottom>y1&&r.top<y2;});}
+      if(bd.jr)bd.jr.classList.toggle('hid',mg);
+      if(mg){
+        // dernier bloc VISIBLE (v4.14.9) : la rangée-pilule (masquée) n'est pas le départ.
+        const vis=bd.kids.filter(x=>x.vis&&x.k!==bd.jr&&!(x.k.classList&&x.k.classList.contains('hid')));
+        bd.lastR=(vis[vis.length-1]||bd.kids[0]||{r:bd.brR}).r;
+        mBrs.push(bd);}});
+    const xs=d.chipR.map(r=>Math.round((r.left+r.width/2-d.frR.left)/Z));
+    const cx=Math.max(4,Math.min(W-4,Math.round((d.bandR.left+d.bandR.width/2-d.frR.left)/Z)));
+    let dd=`M${cx} 0 V6`;xs.forEach(x=>{dd+=` M${cx} 6 H${x} V11`;});
+    const ah=xs.map(x=>`M${x-4} 10 L${x} 16 L${x+4} 10 Z`).join(' ');
+    d.forkHTML=`<svg viewBox="0 0 ${W} 16" width="${W}" height="16" aria-hidden="true"><path class="ln" d="${dd}"/><path class="ah" d="${ah}"/></svg>`;
+    if(d.mergeR&&mBrs.length){
+      const yS=Math.round(relY(d.mergeR));const yA=yS+14;
+      const jR=d.joinR||d.mergeR;
+      const mcx=Math.round(relX(jR)+jR.width/Z/2);
+      let dm='';
+      mBrs.forEach(bd=>{
+        const xc=Math.round(relX(bd.lastR)+bd.lastR.width/Z/2);
+        const xl=Math.round(relX(bd.brR)+bd.brR.width/Z-12);
+        const y0=Math.round(relY(bd.lastR)+bd.lastR.height/Z)+2;
+        const jog=Math.abs(xl-xc)>3;const xd=jog?xl:xc;
+        dm+=(jog?`M${xc} ${y0} H${xl} V${yS+6}`:`M${xc} ${y0} V${yS+6}`)+` M${xd} ${yS+6} H${mcx} `;});
+      dm+=`M${mcx} ${yS+6} V${yA-5}`;
+      gh+=`<path class="lg" d="${dm}"/><path class="lgh" d="M${mcx-4} ${yA-6} L${mcx} ${yA} L${mcx+4} ${yA-6} Z"/>`;}});
+  dws.forEach(d=>{if(d.forkHTML)d.fork.innerHTML=d.forkHTML;});
+  // Retours ↺ en gouttière gauche (2 voies max — mesures prises dans le snapshot).
+  loopSeen.slice(0,2).forEach((t,k)=>{
+    const tR=loopTgtR[t];if(!tR)return;
+    const x=10-k*6;
+    const yTo=Math.round(relY(tR)+14);
+    let yMax=yTo;const ticks=[];
+    loopPills.forEach(p=>{if(p.t!==t)return;
+      const y=Math.round(relY(p.r)+p.r.height/Z/2);
+      if(y>yMax)yMax=y;ticks.push(y);});
+    if(yMax<=yTo)return;
+    gh+=`<path class="lp" d="M${x} ${yMax} V${yTo}${ticks.map(y=>` M16 ${y} H${x}`).join('')}"/><path class="lph" d="M${x} ${yTo} L${x-4} ${yTo+7} L${x+4} ${yTo+7} Z"/>`;});
   {let gut=wrap.querySelector(':scope>.sv-gut');
    if(!gut){wrap.insertAdjacentHTML('beforeend','<svg class="sv-gut" aria-hidden="true"></svg>');gut=wrap.querySelector(':scope>.sv-gut');}
    const W2=Math.max(16,Math.round(wr.width/Z)),H=Math.max(16,Math.round(wr.height/Z));
@@ -7050,7 +7046,14 @@ function svPaintArrows(){
   // Redessin à TOUT changement de géométrie du tableau (taille du texte, police, viewport) :
   // ResizeObserver rAF — la superposition est en absolu, la peinture ne re-déclenche donc rien.
   if(!svPaintArrows._ro&&window.ResizeObserver){
-    svPaintArrows._ro=new ResizeObserver(()=>{clearTimeout(svPaintArrows._tm);
+    svPaintArrows._ro=new ResizeObserver(entries=>{
+      // v4.14.10 : ignorer les notifications SANS changement de taille (la passe précédente
+      // converge en 1-2 tours — au-delà, repeindre serait du travail pur et perdu).
+      const e=entries[entries.length-1];
+      const w=Math.round(e.contentRect.width),h=Math.round(e.contentRect.height);
+      if(svPaintArrows._sz&&svPaintArrows._sz.w===w&&svPaintArrows._sz.h===h)return;
+      svPaintArrows._sz={w,h};
+      clearTimeout(svPaintArrows._tm);
       svPaintArrows._tm=setTimeout(()=>{if(state.view==='read'&&state.readMode==='static'&&state.fiche&&hasFlow(state.fiche))svPaintArrows();},40);});}
   if(svPaintArrows._ro){svPaintArrows._ro.disconnect();
     const tb=wrap.querySelector('.sv-tb');if(tb)svPaintArrows._ro.observe(tb);}}

@@ -1,5 +1,16 @@
 # Journal des modifications
 
+## [4.14.10] — 2026-07-19
+### Amélioré
+- **Mode Statique — peinture des flèches ~3,5× plus rapide** : la passe de mesure/dessin
+  alternait lectures et écritures de géométrie, forçant le navigateur à recalculer la mise
+  en page des dizaines de fois (30-50 ms par passe sur ordinateur, bien plus sur
+  téléphone). Elle est réorganisée en phases groupées — un instantané de géométrie par
+  phase, écritures en bloc — soit ~4 recalculs fixes (~12 ms sur la fiche la plus
+  ramifiée). Le recalcul automatique ignore en outre les notifications sans changement de
+  taille. Comportement strictement identique : mêmes élargissements, mêmes flèches, zéro
+  collision sur les 8 fiches, fourches centrées au pixel.
+
 ## [4.14.9] — 2026-07-19
 ### Corrigé
 - **Mode Statique — le brin gris part du bon bloc** : il démarrait sous la rangée invisible

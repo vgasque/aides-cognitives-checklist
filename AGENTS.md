@@ -240,7 +240,13 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   bleu dans les cellules (décision utilisateur)** : réponse « :: » = pilule mono NEUTRE
   (`.sv-r`, ≠ `.stp-r` bleu du journal), renvois neutres — le bleu ne marque que la position
   (`● ici`) et la reprise `↺` (`--primary-soft`). **Flèches (svPaintArrows, mesures réelles
-  APRÈS rendu, redessin au resize + ResizeObserver sur `.sv-tb`)** : toute mesure est divisée
+  APRÈS rendu, redessin au resize + ResizeObserver sur `.sv-tb` — qui IGNORE les
+  notifications sans changement de taille)** : la passe est organisée en PHASES
+  lecture/écriture GROUPÉES (v4.14.10 : l'alternance mesure/style forçait un recalcul de
+  mise en page par décision, 30-50 ms par passe — désormais ~4 recalculs fixes, ~12 ms sur
+  le pire cas ; discipline à CONSERVER : dans une phase de lecture, aucune écriture de
+  style — les écritures de fork/gutter/hid n'invalident pas la géométrie : hauteurs fixes,
+  superposition absolue, visibility) ; toute mesure est divisée
   par `zoomF()` — **le réglage de taille du texte est un zoom CSS sur `<html>` :
   `getBoundingClientRect` rend des px VISUELS (× zoom) alors que les styles/SVG posés sont en
   px CSS ; toute mesure réinjectée doit être ÷ zoom (v4.13.1, vaut aussi pour `--pl-stick`)**.
