@@ -186,7 +186,11 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   pilotée à CHAQUE défilement par `ovPlanPin` — ENTRÉE/SORTIE en CUMUL DÉTERMINISTE
   (v4.14.3 : le seuil de chaque bulle = bas de la pile au-dessus d'elle, hauteurs réelles
   mémorisées `pin._hm`) + HYSTÉRÉSIS (~16 px entre seuils d'entrée et de sortie — le point
-  fixe précédent BATTAIT en fin de branche) ; « › option » seulement si la branche est SEULE
+  fixe précédent BATTAIT en fin de branche) ; l'ENTRÉE se mesure sur le BAS de la
+  CARTE-QUESTION réelle (v4.21.2, retour d'usage : mesurée sur le haut du conteneur, la
+  bulle apparaissait PAR-DESSUS sa propre carte encore visible — « doublon » — surtout aux
+  niveaux imbriqués ; une bulle n'apparaît que quand la carte qu'elle remplace a quitté
+  l'écran, la sortie reste mesurée sur le conteneur entier) ; « › option » seulement si la branche est SEULE
   SUR SA RANGÉE (v4.14.2 : des colonnes côte à côte sont toutes sous les yeux) ; contenu
   reconstruit seulement quand la chaîne change ; décroche à la convergence et en mode
   Échelle, tap =

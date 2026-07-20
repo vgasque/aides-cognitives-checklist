@@ -1,5 +1,20 @@
 # Journal des modifications
 
+## [4.21.2] — 2026-07-20
+### Corrigé
+- **Fil d'ancêtres du plan (`#plPin`) : plus de bulle posée sur sa propre carte**
+  (retour d'usage réel sur téléphone, suite du signalement v4.21.1). L'entrée d'une
+  bulle dans la pile se mesurait sur le **haut du conteneur** de la décision : la
+  bulle apparaissait pendant que la carte-question était encore à l'écran — et aux
+  niveaux imbriqués (seuil plus bas d'une pile), par-dessus une carte **pleinement
+  visible** qui dépassait autour de la bulle indentée (« doublon »). L'entrée se
+  mesure désormais sur le **bas de la carte-question réelle** : la bulle n'apparaît
+  que quand la carte qu'elle remplace a quitté l'écran. Hystérésis, cumul
+  déterministe et sortie à la convergence inchangés.
+  - Mesuré sur fiche à décisions imbriquées (393 px) : 4 positions de défilement en
+    doublon avant (jusqu'à 58 px de carte visible sous sa bulle), 0 après ; la pile
+    (1 puis 2 bulles selon la profondeur) se comporte à l'identique.
+
 ## [4.21.1] — 2026-07-20
 ### Corrigé
 - **Plan de l'aide, mode « Détails » : une seule colonne sous 640 px** (retour d'usage
