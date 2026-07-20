@@ -1,5 +1,20 @@
 # Journal des modifications
 
+## [4.21.1] — 2026-07-20
+### Corrigé
+- **Plan de l'aide, mode « Détails » : une seule colonne sous 640 px** (retour d'usage
+  réel sur téléphone — capture à l'appui) : les branches d'une décision s'affichaient
+  côte à côte dès que deux pistes de 148 px tenaient, et une fois retirés rails,
+  indentation et pastille numérotée, il ne restait que ~70–110 px de texte — les mots
+  cliniques se cassaient lettre à lettre (« Conver / sion », « appare / illé »).
+  Même décision que le mode statique en v4.13.1 : sous 640 px les branches
+  s'empilent, la structure est portée par les rails de branche et les chips
+  d'option ; à partir de 640 px, colonnes côte à côte inchangées.
+  - La classe `deepv` (branche pleine largeur sous 640 px par volume d'étapes,
+    v4.12.0) est absorbée par la règle une-colonne et supprimée (CSS + rendu) —
+    elle ne couvrait pas les branches courtes au texte long, précisément celles
+    de la capture.
+
 ## [4.21.0] — 2026-07-19
 ### Ajouté
 - **Micro-animations de la bascule Dynamique ↔ Statique** (lecture d'une fiche à

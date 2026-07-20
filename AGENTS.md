@@ -165,11 +165,14 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   complet, ● ici, ×n passages, `offPathSet`) et sert à NAVIGUER : taper un bloc = `jumpToBlock`,
   un lien →/↺ défile DANS le plan (flash). **Organigramme hybride (v4.12.0)** : branches d'une
   décision côte à côte quand l'écran le permet, empilées sinon — règle CSS PURE, locale et
-  récursive : `.pl-cols` grid `auto-fit minmax(148px,1fr)` (148 px = deux colonnes tiennent à
-  375 px, seuil validé en maquette), plafonnée par `c1…c4` (nombre de branches EN COLONNE —
-  sans lui, une branche pleine largeur force des pistes de 148 px sur grand écran) ; branche
-  PROFONDE (`deep` : > 2 blocs ou décision imbriquée) = pleine largeur toujours, `deepv`
-  (> 3 étapes) = pleine largeur sous 640 px seulement. RAIL de branche 3 px étiqueté
+  récursive ; **UNE SEULE COLONNE sous 640 px (v4.21.1, retour d'usage réel — même décision
+  que le statique v4.13.1 : des colonnes de ~150 px émiettaient les mots cliniques lettre à
+  lettre ; en pile, rails + chips d'option portent la structure)** ; à partir de 640 px,
+  `.pl-cols` grid `auto-fit minmax(148px,1fr)` plafonnée par `c1…c4` (nombre de branches EN
+  COLONNE — sans lui, une branche pleine largeur force des pistes de 148 px sur grand écran) ;
+  branche PROFONDE (`deep` : > 2 blocs ou décision imbriquée) = pleine largeur toujours
+  (l'ancienne `deepv` — > 3 étapes, pleine largeur < 640 seulement — est absorbée par la règle
+  une-colonne v4.21.1). RAIL de branche 3 px étiqueté
   (bleu = prise, pointillé estompé + mention « hors chemin » = écartée, la couleur jamais
   seule) avec COUDE de convergence (`.pl-elbow`) ; REPLI PAR BRANCHE en ligne-bilan
   (`state.ovFold['b:…']`, chip-bouton ≥ 44 px « n blocs · k ✓ · → n ») — hors chemin

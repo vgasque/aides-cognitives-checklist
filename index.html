@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-B7i8d7Pst/VmVdYaNJMQQDuK2klu6crFYRn2JXeZ8to='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-LbJ91t/cJqQxUjh2MuBHpzN3RDu+zdodzF+XevT2N4c='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1508,10 +1508,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pl-stp li.vig{color:var(--verify);font-weight:600}
   .pl-q{font-size:11.5px;font-weight:400;font-style:italic;color:var(--ink-soft);margin:4px 2px 0}
   /* ----- v4.12.0 : ORGANIGRAMME HYBRIDE — colonnes auto-fit (la règle responsive est CSS pur :
-     branches côte à côte quand >= 2 × 170 px tiennent, EMPILÉES sinon ; récursif de fait). */
+     branches côte à côte à partir de 640 px quand la place le permet, EMPILÉES sinon —
+     et toujours empilées sous 640 px (v4.21.1) ; récursif de fait). */
   .pl-decwrap{margin-top:2px}
-  /* 148 px = deux colonnes tiennent encore à 375 px (306 px utiles) — seuil VALIDÉ en maquette :
-     binaires en colonnes sur téléphone, triple/imbriqué en pile de rails. */
+  /* Colonnes >= 640 px SEULEMENT (sous 640 : pile, cf. média ci-dessous). 148 px = plancher
+     des pistes auto-fit ; en pratique les colonnes restent larges à ces tailles d'écran (une
+     branche à décision imbriquée est `deep`, donc pleine largeur : ses sous-colonnes ont la
+     place). */
   .pl-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:0 10px;align-items:start}
   /* cN = nombre de branches EN COLONNE (les profondes s'étalent et ne comptent pas) : plafonne
      les pistes auto-fit — sans lui, une branche pleine largeur force des pistes de 148 px et
@@ -1521,9 +1524,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pl-cols.c3{grid-template-columns:repeat(auto-fit,minmax(max(148px,calc(33.33% - 6.66px)),1fr))}
   .pl-cols.c4{grid-template-columns:repeat(auto-fit,minmax(max(148px,calc(25% - 7.5px)),1fr))}
   .pl-br.deep{grid-column:1/-1}
-  /* deepv = profonde par VOLUME d'étapes seulement : pleine largeur sous 640 px (colonnes
-     ~150 px, texte émietté) mais reste en colonne au-delà (>= ~190 px : lisible). */
-  @media (max-width:639.98px){ .pl-br.deepv{grid-column:1/-1} }
+  /* UNE SEULE COLONNE sous 640 px (v4.21.1, retour d'usage réel — même décision que le mode
+     statique v4.13.1) : des colonnes de ~150 px émiettent les mots cliniques lettre à lettre
+     (« Conver / sion ») ; en pile, rails + chips d'option portent la structure. c2…c4 sont
+     plus spécifiques que .pl-cols : les écraser nommément. L'ancienne classe `deepv`
+     (pleine largeur < 640 par volume d'étapes) est absorbée par cette règle. */
+  @media (max-width:639.98px){ .pl-cols,.pl-cols.c2,.pl-cols.c3,.pl-cols.c4{grid-template-columns:1fr} }
   /* Branche : RAIL continu étiqueté (naît sous l'option, meurt au coude) — bleu = chemin pris,
      pointillé estompé = hors chemin (la mention textuelle accompagne toujours l'estompe). */
   .pl-br{position:relative;margin:7px 0 0 10px;padding-left:12px}
@@ -2632,7 +2638,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.21.0';
+const APP_VERSION='4.21.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -6697,15 +6703,15 @@ function ovPlanTreeHtml(f,plan,num,md,off){
         const folded=manual!=null?!!manual:isOff;   // défaut : hors chemin = replié (jamais bloquant)
         // Branche PROFONDE (> 2 blocs ou décision imbriquée) : pleine largeur — une chaîne
         // longue dans une colonne étroite serait illisible ; les branches courtes restent
-        // en colonnes (règle validée en maquette). Une branche repliée redevient « courte ».
-        // deepv (volume : > 3 étapes) : pleine largeur SEULEMENT sous 640 px (via CSS).
-        let nb=0,nested=false,nSteps=0;
+        // en colonnes (>= 640 px ; sous 640 tout est en pile, règle CSS .pl-cols v4.21.1 —
+        // elle absorbe l'ancienne classe deepv). Une branche repliée redevient « courte ».
+        let nb=0,nested=false;
         for(let j=a0;j<i-1;j++){if(items[j].k==='block'){nb++;const bb=f.blocks.find(x=>x.id===items[j].id);
-          if(bb&&bb.type==='decision')nested=true;else if(bb)nSteps+=clean(bb.steps).length;}}
-        const deep=!folded&&(nb>2||nested), deepv=!folded&&!deep&&nSteps>3;
+          if(bb&&bb.type==='decision')nested=true;}}
+        const deep=!folded&&(nb>2||nested);
         if(!deep)nCols++;   // les profondes s'étalent : elles ne comptent pas comme colonne
         const chip=`<button type="button" class="pl-bl pd${Math.min(stick+1,3)}${tk?' tk':''}" data-plfold="${esc(foldKey)}" aria-expanded="${folded?'false':'true'}">${tk?'<span class="pl-tk">✓ </span>':''}${fmt(bo.label)}${isOff?'<span class="pl-offtag"> · hors chemin</span>':''}${folded?`<span class="pl-sum"> — ${esc(branchStats(a0,i-1))}</span>`:''}<span class="pl-chv">${folded?'▸':'▾'}</span></button>`;
-        brs+=`<div class="pl-br${tk?' taken':''}${isOff?' off':''}${folded?' folded':''}${deep?' deep':''}${deepv?' deepv':''}">${chip}${folded?'':inner}</div>`;}
+        brs+=`<div class="pl-br${tk?' taken':''}${isOff?' off':''}${folded?' folded':''}${deep?' deep':''}">${chip}${folded?'':inner}</div>`;}
       h+=`<div class="pl-decwrap">${node(decId,stick)}${qh}<div class="pl-cols c${Math.min(Math.max(nCols,1),4)}">${brs}</div></div>`;}
     return h;};
   return walk(0);}
