@@ -176,33 +176,40 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   (bleu = prise, pointillé estompé + mention « hors chemin » = écartée, la couleur jamais
   seule) avec COUDE de convergence (`.pl-elbow`) ; REPLI PAR BRANCHE en ligne-bilan
   (`state.ovFold['b:…']`, chip-bouton ≥ 44 px « n blocs · k ✓ · → n ») — hors chemin
-  auto-repliée, JAMAIS bloquant ; FIL D'ANCÊTRES v4 (v4.14.0, après TROIS itérations sur
-  retours d'usage — pile sticky superposée v4.12, épingle unique = mauvaise question
-  v4.13.2, bulle unique = niveaux perdus v4.13.3) : PILE de bulles flottantes SYNTHÉTIQUES
-  (`#plPin`, `position:fixed`, flex column — la superposition est IMPOSSIBLE par
-  construction), UNE bulle PAR DÉCISION ANCÊTRE de la ligne de lecture, INDENTÉE selon sa
-  position réelle dans l'arbre (décision utilisateur), chacune portant « › option » de SA
-  branche (le Oui/Non reste attaché à sa question — jamais d'ambiguïté entre niveaux) ;
-  pilotée à CHAQUE défilement par `ovPlanPin` — ENTRÉE/SORTIE en CUMUL DÉTERMINISTE
-  (v4.14.3 : le seuil de chaque bulle = bas de la pile au-dessus d'elle, hauteurs réelles
-  mémorisées `pin._hm`) + HYSTÉRÉSIS (~16 px entre seuils d'entrée et de sortie — le point
-  fixe précédent BATTAIT en fin de branche) ; l'ENTRÉE se mesure sur le BAS de la
-  CARTE-QUESTION réelle (v4.21.2, retour d'usage : mesurée sur le haut du conteneur, la
-  bulle apparaissait PAR-DESSUS sa propre carte encore visible — « doublon » — surtout aux
-  niveaux imbriqués ; une bulle n'apparaît que quand la carte qu'elle remplace a quitté
-  l'écran, la sortie reste mesurée sur le conteneur entier) ; micro-animation d'ENTRÉE
-  (v4.22.0, doctrine v4.21.0 : transform/opacité seulement, ~200 ms, inerte sous
-  prefers-reduced-motion) — la bulle « se dépose » depuis le haut, classe `.pin-in` posée
-  UNIQUEMENT sur ce qui est NOUVEAU d'un re-rendu (bulle absente du rendu précédent ; chip
-  `› option` seul si l'option change dans une bulle conservée), la SORTIE n'anime JAMAIS
-  (l'attention revient à la carte réelle qui réapparaît, pas au chrome) ; « › option » seulement si la branche est SEULE
-  SUR SA RANGÉE (v4.14.2 : des colonnes côte à côte sont toutes sous les yeux) ; contenu
-  reconstruit seulement quand la chaîne change ; décroche à la convergence et en mode
-  Échelle, tap =
-  `data-plgo` (délégation `.ov-wrap`), masquée à l'impression ; les classes pdN restent
-  posées par le walker (inertes) ; `--pl-stick` mesuré sur `header.bar` par `ovPlanStick` —
-  ÷ `zoomF()` et RECALÉ à chaque variation de hauteur de l'en-tête (repli
-  `.condensed`/`.ttl-on` au défilement, taille du texte, v4.13.1).
+  auto-repliée, JAMAIS bloquant ; FIL D'ANCÊTRES v5 — STICKY CONTINU (v4.22.1, décision
+  utilisateur « ce serait mieux si elle suivait de manière continue », après QUATRE
+  itérations — pile sticky à décalages FIGÉS superposée v4.12, épingle unique = mauvaise
+  question v4.13.2, bulle unique = niveaux perdus v4.13.3, pile de bulles flottantes
+  synthétiques `#plPin` v4.14 → v4.22.0) : les cartes-questions RÉELLES du plan s'épinglent
+  sous l'en-tête (`position:sticky`, top CUMULÉ MESURÉ posé par `ovPlanPin` = base + Σ
+  hauteurs des cartes ancêtres + 3 px — les hauteurs réelles de v4.14.3 résolvent ce qui
+  avait tué le sticky v4.12), la superposition étant stabilisée par la COMPACTION une-ligne
+  des cartes épinglées (`.stuck` : nowrap + ellipse — le chip injecté ne fait plus passer un
+  titre sur deux lignes). AUCUNE copie synthétique (`#plPin` SUPPRIMÉ avec sa clé, son
+  hystérésis, ses hauteurs mémorisées et sa garde v4.21.0 « fixed dans un ancêtre
+  transformé ») et AUCUN mouvement autonome : tout mouvement est le geste de défilement
+  (compositeur, réversible au pixel, rien à inhiber sous `prefers-reduced-motion`) ;
+  l'indentation réelle est conservée par construction, le tap = `data-plgo` (la carte est le
+  VRAI élément) ; décrochage à la convergence NATIF (sticky borné par `.pl-decwrap`) et
+  chaque niveau se replie DERRIÈRE son ancêtre au décrochage (z-ordre `pd0…pd3` décroissant,
+  en-tête à z 20 au-dessus — décision utilisateur, modèle ECL : une sous-procédure terminée
+  se referme dans sa procédure mère, et ré-émerge symétriquement à la remontée ; les classes
+  pdN posées par le walker depuis v4.14, inertes depuis, reprennent du service) ; chip
+  « › option » de la branche à la ligne de lecture INJECTÉ dans la carte épinglée (le
+  Oui/Non reste attaché à SA question ; règle inchangée v4.14.2 : branche SEULE sur sa
+  rangée — des colonnes côte à côte sont toutes sous les yeux), calé « NI AVANT NI APRÈS »
+  (mesuré au pixel) : le chip n'apparaît qu'à l'instant où l'ÉTIQUETTE d'option passe
+  DERRIÈRE la carte épinglée — il la REMPLACE (même doctrine de continuité que le sticky ;
+  tant qu'elle est visible, l'étiquette porte la réponse elle-même) — et les zones de
+  branches sont JOINTIVES (la zone d'une branche court jusqu'au haut de la suivante :
+  plus de clignotement du chip entre deux branches) — un chip qui APPARAÎT ou
+  CHANGE porte la micro-animation `pin-in` (v4.22.0 : transform/opacité ~200 ms, inerte
+  sous reduced-motion), sa disparition et les cartes n'animent JAMAIS ; discipline
+  lecture/écriture GROUPÉES dans `ovPlanPin` (précédent `svPaintArrows` ; un top qui change
+  se corrige à l'événement de défilement suivant) ; `ovPlanStick` reste le point d'entrée
+  « géométrie a changé » (re-rendu, repli de branche, hauteur d'en-tête via ResizeObserver,
+  taille du texte — l'ancienne variable `--pl-stick` n'existe plus) ; sur papier, carte
+  complète sans chip (`@media print`).
   **TROIS AFFICHAGES du Plan (v4.18.0, fusion — décision utilisateur, ordre ECAM E/WD → SD :
   l'ACTION d'abord, la structure en annexe SOUS le journal)** : sélecteur `data-plview`
   (`state.ovPlanView` 'plan'/'ladder'/'svg', jamais persisté, impression = 'plan') —
@@ -369,8 +376,9 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   transition sur l'ancien segment, reflow, retrait) et le contenu (`.care-path`/`.ov-wrap` ou
   `.sv-wrap`) entre dans le sens du geste (keyframes `secInL/R` réutilisées, transform/opacity
   seulement = NON BLOQUANT, classes `rm-anim-l/r` retirées à `animationend`) ; sous
-  `prefers-reduced-motion` tout est inerte (règles sous `no-preference`, la garde `#plPin` —
-  fixed dans un ancêtre transformé — ne s'applique alors jamais) ; minuteurs et chapeau
+  `prefers-reduced-motion` tout est inerte (règles sous `no-preference` ; l'ancienne garde
+  `#plPin` — fixed dans un ancêtre transformé — a disparu avec la pile synthétique en
+  v4.22.1, le sticky y est insensible) ; minuteurs et chapeau
   « Ne pas oublier » n'animent jamais (ECAM : le mouvement y est réservé à l'alarme).
 - **Pieds de page (v4.4.2)** : UNE source de vérité pour l'état de stockage (`storageState`,
   pure) — variante LONGUE dans la sidebar de l'accueil (+ info-bulle), variante COURTE dans le
