@@ -190,7 +190,12 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   CARTE-QUESTION réelle (v4.21.2, retour d'usage : mesurée sur le haut du conteneur, la
   bulle apparaissait PAR-DESSUS sa propre carte encore visible — « doublon » — surtout aux
   niveaux imbriqués ; une bulle n'apparaît que quand la carte qu'elle remplace a quitté
-  l'écran, la sortie reste mesurée sur le conteneur entier) ; « › option » seulement si la branche est SEULE
+  l'écran, la sortie reste mesurée sur le conteneur entier) ; micro-animation d'ENTRÉE
+  (v4.22.0, doctrine v4.21.0 : transform/opacité seulement, ~200 ms, inerte sous
+  prefers-reduced-motion) — la bulle « se dépose » depuis le haut, classe `.pin-in` posée
+  UNIQUEMENT sur ce qui est NOUVEAU d'un re-rendu (bulle absente du rendu précédent ; chip
+  `› option` seul si l'option change dans une bulle conservée), la SORTIE n'anime JAMAIS
+  (l'attention revient à la carte réelle qui réapparaît, pas au chrome) ; « › option » seulement si la branche est SEULE
   SUR SA RANGÉE (v4.14.2 : des colonnes côte à côte sont toutes sous les yeux) ; contenu
   reconstruit seulement quand la chaîne change ; décroche à la convergence et en mode
   Échelle, tap =

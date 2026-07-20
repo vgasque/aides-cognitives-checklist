@@ -1,5 +1,19 @@
 # Journal des modifications
 
+## [4.22.0] — 2026-07-20
+### Ajouté
+- **Micro-animation d'entrée des bulles du fil d'ancêtres** (`#plPin`), **non
+  bloquante** (doctrine v4.21.0 : transform/opacité seulement — compositeur —,
+  ~200 ms, courbe de décélération type HIG) : à l'instant où la carte-question
+  quitte l'écran (seuil corrigé en v4.21.2), sa bulle « se dépose » depuis le haut —
+  continuité d'identité, la bulle vient d'où la carte est partie.
+  - S'applique UNIQUEMENT à ce qui est nouveau d'un re-rendu : bulle absente du
+    rendu précédent, ou chip « › option » seul quand l'option change dans une
+    bulle conservée. La **sortie n'anime jamais** (esprit ECAM : l'attention
+    revient à la carte réelle qui réapparaît, pas au chrome).
+  - Inerte sous `prefers-reduced-motion` ; sans effet sur les hauteurs mémorisées
+    de la pile (translation seule) ni sur les seuils d'entrée/sortie.
+
 ## [4.21.2] — 2026-07-20
 ### Corrigé
 - **Fil d'ancêtres du plan (`#plPin`) : plus de bulle posée sur sa propre carte**
