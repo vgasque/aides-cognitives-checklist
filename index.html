@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-LbJ91t/cJqQxUjh2MuBHpzN3RDu+zdodzF+XevT2N4c='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-grpUmr2kt8SOQD2clK0W/3bz9rcZiyMAZQyrYMsiNAw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1560,6 +1560,17 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #plPin .pl-nt{display:flex;align-items:center;gap:7px;min-width:0;min-height:22px}
   #plPin .pnt{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   #plPin .pinchip{flex:none;font-size:11px;font-weight:700;color:var(--verify);background:var(--surface);border:1px solid var(--verify-bd);border-radius:999px;padding:2px 9px;max-width:45%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* v4.22.0 : micro-animation NON BLOQUANTE d'ENTRÉE d'une bulle (doctrine v4.21.0 —
+     transform/opacité seulement, compositeur) : la bulle « se dépose » depuis le haut à
+     l'instant où la carte qu'elle remplace quitte l'écran (continuité d'identité, HIG).
+     La SORTIE n'anime JAMAIS (ECAM : l'attention revient à la carte réelle qui réapparaît,
+     pas au chrome) ; ne s'applique qu'aux bulles NOUVELLES d'un re-rendu (classe posée par
+     ovPlanPin, jamais sur les bulles conservées) ; translateY n'altère pas les hauteurs
+     mémorisées (pin._hm). Inerte sous prefers-reduced-motion. */
+  @keyframes pinIn{from{opacity:0;transform:translateY(-7px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:no-preference){
+    #plPin .pl-nd.pin-in,#plPin .pinchip.pin-in{animation:pinIn .2s cubic-bezier(.2,.7,.3,1)}
+  }
   /* Coude de sortie de branche : le rail se referme vers le lien de convergence. */
   .pl-elbow{position:relative;margin-top:6px}
   .pl-br>.pl-elbow::before{content:"";position:absolute;left:-12px;top:-8px;width:9px;height:18px;border-left:3px solid var(--line-strong);border-bottom:3px solid var(--line-strong);border-bottom-left-radius:9px}
@@ -2638,7 +2649,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.21.1';
+const APP_VERSION='4.22.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -6779,8 +6790,18 @@ function ovPlanPin(){
   // sort quand sa sous-arborescence est presque épuisée) + HYSTÉRÉSIS (seuils d'entrée et
   // de sortie décalés de ~16 px : plus d'apparitions/disparitions en rafale au pixel près).
   // Les hauteurs réelles des bulles sont mémorisées (pin._hm) pour les passes suivantes.
+  // ENTRÉE = passage du BAS de la CARTE-QUESTION réelle sous le seuil (v4.21.2, retour
+  // d'usage réel : le haut du CONTENEUR .pl-decwrap — la carte en est le 1ᵉʳ enfant —
+  // faisait apparaître la bulle PAR-DESSUS sa propre carte encore visible ; aux niveaux
+  // imbriqués le seuil, plus bas d'une pile, posait la bulle sur une carte PLEINEMENT
+  // visible, qui dépassait autour de la bulle indentée — « doublon »). La bulle n'apparaît
+  // que quand la carte qu'elle remplace a quitté l'écran ; la SORTIE (fin de la
+  // sous-arborescence) reste mesurée sur le conteneur entier.
   const num={};flowPlan(f).order.forEach((id,i)=>{num[id]=i+1;});
   const prevIds=new Set(pin._k?pin._k.split('|').map(s=>s.split(':')[0]):[]);
+  // Option précédente par décision (v4.22.0) : détecte un chip « › option » qui change
+  // dans une bulle CONSERVÉE — seul le chip s'anime alors, jamais la bulle entière.
+  const prevOi={};if(pin._k)pin._k.split('|').forEach(s=>{const p=s.split(':');prevOi[p[0]]=p[1];});
   const hmap=pin._hm||{};
   if(pr.bottom<stickV+40*Z){off();return;}
   let acc=stickV;const picked=[];
@@ -6788,9 +6809,10 @@ function ovPlanPin(){
     const nd=dw.querySelector(':scope>.pl-nd.dec');const decId=nd?nd.dataset.plgo:'';
     const b=(f.blocks||[]).find(x=>x.id===decId);if(!b)return;
     const r=dw.getBoundingClientRect();
+    const rc=nd.getBoundingClientRect();   // carte-question réelle (pas le conteneur)
     const was=prevIds.has(decId);
     const hEst=hmap[decId]||46*Z;
-    const inTop=r.top<acc+(was?6:-6)*Z;
+    const inTop=rc.bottom<acc+(was?6:-6)*Z;
     const inBot=r.bottom>acc+hEst+(was?10:26)*Z;
     if(inTop&&inBot){picked.push({decId,b,dw,r});acc+=hEst+3*Z;}});
   if(!picked.length){off();return;}
@@ -6807,7 +6829,11 @@ function ovPlanPin(){
   if(pin._k!==key){pin._k=key;
     pin.innerHTML=chain.map(c=>{
       const lbl=(c.oi>=0&&c.b.options&&c.b.options[c.oi])?String(stripBold(c.b.options[c.oi].label||'')).trim():'';
-      return `<div class="pl-nd dec" data-plgo="${esc(c.decId)}" tabindex="-1" style="margin-left:${c.indent}px"><span class="pl-nn" aria-hidden="true">${num[c.decId]||'·'}</span><div class="pl-nt"><span class="pnt">${esc(c.b.title)||'Décision'}</span>${lbl?`<span class="pinchip">› ${esc(lbl)}</span>`:''}</div></div>`;}).join('');
+      // v4.22.0 : micro-animation d'entrée SEULEMENT sur ce qui est nouveau — bulle absente
+      // du rendu précédent, ou chip d'option qui change dans une bulle conservée.
+      const fresh=!prevIds.has(c.decId);
+      const chipNew=!fresh&&lbl&&String(c.oi)!==prevOi[c.decId];
+      return `<div class="pl-nd dec${fresh?' pin-in':''}" data-plgo="${esc(c.decId)}" tabindex="-1" style="margin-left:${c.indent}px"><span class="pl-nn" aria-hidden="true">${num[c.decId]||'·'}</span><div class="pl-nt"><span class="pnt">${esc(c.b.title)||'Décision'}</span>${lbl?`<span class="pinchip${chipNew?' pin-in':''}">› ${esc(lbl)}</span>`:''}</div></div>`;}).join('');
     pin.hidden=false;   // AVANT la mesure ([hidden] = display:none -> hauteurs nulles)
     const hm={};[...pin.children].forEach((el,i)=>{if(chain[i])hm[chain[i].decId]=el.getBoundingClientRect().height;});
     pin._hm=Object.assign(hmap,hm);}

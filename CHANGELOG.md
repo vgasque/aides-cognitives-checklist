@@ -1,5 +1,34 @@
 # Journal des modifications
 
+## [4.22.0] — 2026-07-20
+### Ajouté
+- **Micro-animation d'entrée des bulles du fil d'ancêtres** (`#plPin`), **non
+  bloquante** (doctrine v4.21.0 : transform/opacité seulement — compositeur —,
+  ~200 ms, courbe de décélération type HIG) : à l'instant où la carte-question
+  quitte l'écran (seuil corrigé en v4.21.2), sa bulle « se dépose » depuis le haut —
+  continuité d'identité, la bulle vient d'où la carte est partie.
+  - S'applique UNIQUEMENT à ce qui est nouveau d'un re-rendu : bulle absente du
+    rendu précédent, ou chip « › option » seul quand l'option change dans une
+    bulle conservée. La **sortie n'anime jamais** (esprit ECAM : l'attention
+    revient à la carte réelle qui réapparaît, pas au chrome).
+  - Inerte sous `prefers-reduced-motion` ; sans effet sur les hauteurs mémorisées
+    de la pile (translation seule) ni sur les seuils d'entrée/sortie.
+
+## [4.21.2] — 2026-07-20
+### Corrigé
+- **Fil d'ancêtres du plan (`#plPin`) : plus de bulle posée sur sa propre carte**
+  (retour d'usage réel sur téléphone, suite du signalement v4.21.1). L'entrée d'une
+  bulle dans la pile se mesurait sur le **haut du conteneur** de la décision : la
+  bulle apparaissait pendant que la carte-question était encore à l'écran — et aux
+  niveaux imbriqués (seuil plus bas d'une pile), par-dessus une carte **pleinement
+  visible** qui dépassait autour de la bulle indentée (« doublon »). L'entrée se
+  mesure désormais sur le **bas de la carte-question réelle** : la bulle n'apparaît
+  que quand la carte qu'elle remplace a quitté l'écran. Hystérésis, cumul
+  déterministe et sortie à la convergence inchangés.
+  - Mesuré sur fiche à décisions imbriquées (393 px) : 4 positions de défilement en
+    doublon avant (jusqu'à 58 px de carte visible sous sa bulle), 0 après ; la pile
+    (1 puis 2 bulles selon la profondeur) se comporte à l'identique.
+
 ## [4.21.1] — 2026-07-20
 ### Corrigé
 - **Plan de l'aide, mode « Détails » : une seule colonne sous 640 px** (retour d'usage
