@@ -32,7 +32,12 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
 - `npm run check` — vérifie la syntaxe des scripts inline (attrape les templates mal fermés).
 - `npm test` — exécute `tests.html` en headless (Playwright). À défaut de npm, ouvrir `tests.html`
   **servi en http** (pas en `file://` : les iframes cross-origin y sont bloquées).
-- L'intégration continue (`.github/workflows/ci.yml`) rejoue check + tests sur chaque push/PR.
+- **Si le CSS d'`index.html` a changé** : `npm run design:build` régénère `design/ds/` (source
+  de vérité = le monofichier) — puis committer la régénération. `npm run design:check` échoue si
+  `design/ds/` a dérivé du code (le CI le rejoue ; `release.sh` régénère automatiquement). Pousser
+  le résultat vers le projet Claude Design distant reste un geste explicite (skill `/design-sync`).
+- L'intégration continue (`.github/workflows/ci.yml`) rejoue check + tests + `design:check` sur
+  chaque push/PR.
 
 ## Conventions de code
 - **Design tokens** : aucune nouvelle couleur hex hors `:root` (tokens CSS) et `PALETTE`

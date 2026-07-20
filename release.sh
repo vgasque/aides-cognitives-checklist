@@ -40,6 +40,11 @@ fi
 #       CSP d'index.html + _headers. DOIT tourner APRÈS la synchro de version. Idempotent.
 node scripts/csp-hashes.mjs || { echo "Injection des hashs CSP échouée — publication interrompue."; exit 1; }
 
+# 3ter. Resynchroniser design/ds/ avec le CSS d'index.html (généré, jamais édité à la main).
+#        Non bloquant : la régénération reste dans l'arbre de travail et part avec le commit de
+#        version. Évite la dérive doc/code (les 15 fiches avaient pris 18 versions de retard).
+node scripts/design-check.mjs || true
+
 # 4. Vérification de syntaxe (sans dépendance) : garde-fou OBLIGATOIRE.
 node scripts/check-syntax.mjs || { echo "Syntaxe invalide — publication interrompue."; exit 1; }
 

@@ -6,7 +6,9 @@
   "scripts": {
     "check": "node scripts/check-syntax.mjs",
     "test": "node scripts/run-tests.mjs",
-    "ci": "npm run check && npm test"
+    "design:build": "node design/build.mjs",
+    "design:check": "node scripts/design-check.mjs --strict",
+    "ci": "npm run check && npm test && npm run design:check"
   },
   "devDependencies": {
     "playwright": "^1.44.0"

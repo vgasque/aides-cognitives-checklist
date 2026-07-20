@@ -16,6 +16,10 @@ jobs:
       # Vérification de syntaxe : ne nécessite aucune dépendance.
       - name: Vérifier la syntaxe (index.html, sw.js, tests.html)
         run: node scripts/check-syntax.mjs
+      # Garde-fou anti-dérive : design/ds/ doit refléter le CSS d'index.html (régénéré par
+      # design/build.mjs). Échoue si un changement de CSS a été poussé sans rejouer le build.
+      - name: Vérifier que design/ds/ est à jour
+        run: node scripts/design-check.mjs --strict
       # Tests fonctionnels headless (Playwright / Chromium).
       - name: Installer les dépendances de test
         run: npm install
