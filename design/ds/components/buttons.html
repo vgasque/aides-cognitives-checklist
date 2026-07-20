@@ -82,6 +82,10 @@
      -> bleu propre, et adaptation INSTANTANÉE au basculement de thème (pas de reconstruction du SVG). */
   [data-theme="dark"] :is(.flow-scroll,#flowFull .ff-scroll) svg .flow-hl{filter:invert(1) hue-rotate(180deg);stroke:#4e8fd9}
   [data-theme="dark"] :is(.flow-scroll,#flowFull .ff-scroll) svg .flow-hl-glow{opacity:.28}
+  /* v4.7.0 : bordure bleue du nœud courant/focalisé et badge ✓ vert — mêmes contre-inversions
+     que le halo (peints par classes, adaptation instantanée au thème). */
+  [data-theme="dark"] :is(.flow-scroll,#flowFull .ff-scroll) svg :is(.fnode.fn-cur .fn-bd,.fnode:focus-visible .fn-bd){filter:invert(1) hue-rotate(180deg);stroke:#4e8fd9}
+  [data-theme="dark"] :is(.flow-scroll,#flowFull .ff-scroll) svg .fn-badge{filter:invert(1) hue-rotate(180deg)}
   *{box-sizing:border-box}html,body{margin:0;padding:0}
   /* iOS Safari (paysage) : sans ce réglage, le « font boosting » agrandit certains textes de
      façon disproportionnée (jauge de stockage, en-têtes de section, bandeaux…). */
@@ -335,7 +339,12 @@
   /* Pastille d'état : tokens sémantiques (>= 3:1 sur --bg dans les deux thèmes, WCAG 1.4.11) ;
      la couleur n'est jamais seule : buste plein/contour + chip texte du pied de page. */
   .acct-dot{position:absolute;right:2px;bottom:2px;width:11px;height:11px;border-radius:50%;border:2px solid var(--surface);background:var(--ok)}
-  .acct-dot.busy{background:var(--verify)}.acct-dot.err{background:var(--critical)}.acct-dot.off{background:var(--line-strong)}
+  /* Synchro EN COURS : la pastille devient un anneau tournant (indicateur d'activité, registre
+     INFO — mouvement = « ça travaille », jamais une alerte). Un seul endroit, constant, dans
+     toutes les vues ; en crise le bouton Compte est masqué (body.crisis-live) -> aucun signal
+     non actionnable pendant un soin. Piloté par setSyncChip (source unique), zéro JS ajouté. */
+  .acct-dot.busy{background:transparent;border:2px solid var(--line);border-top-color:var(--link);animation:spin .8s linear infinite}
+  .acct-dot.err{background:var(--critical)}.acct-dot.off{background:var(--line-strong)}
   .acct-dot.pending{background:var(--verify)}.acct-dot.rejected{background:var(--critical)}
   main{flex:1;padding:18px}
   /* ===== TAXONOMIE DES NOTICES (V5, canvas turn 7) : 5 registres, du plus au moins impérieux —
@@ -351,7 +360,11 @@
   .notice.sync-pending{background:var(--verify-soft);border-color:var(--verify);color:var(--verify);cursor:pointer}
   .notice.sync-pending svg{color:var(--verify)}
   /* Bandeau système (registre INFORMATION persistant : mise à jour de l'app) : pleine largeur
-     sous l'en-tête, rejetable, JAMAIS pendant une session de crise (cf. body.crisis-live). */
+     sous l'en-tête, rejetable, visible SEULEMENT SUR L'ACCUEIL (v4.20.0, retour d'usage : en
+     lecture de fiche il glissait sous l'en-tête sticky au défilement — à moitié masqué par le
+     bandeau rouge du titre ; et recharger depuis un écran de soin n'est jamais souhaitable —
+     l'invitation attend le retour à l'accueil, la nouvelle version arrive de toute façon à
+     l'ouverture suivante). */
   .sys-banner{display:flex;align-items:center;gap:9px;padding:9px 18px;background:var(--primary-soft);border-bottom:1px solid var(--primary-200);color:var(--ink);font-size:12.5px;line-height:1.35}
   .sys-banner[hidden]{display:none}
   .sys-banner .sb-ic{color:var(--primary-dk);flex:none;display:inline-flex}
@@ -361,7 +374,7 @@
   .sys-banner .sb-x{background:none;border:0;color:var(--ink-soft);font-size:19px;line-height:1;min-width:32px;min-height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:7px;cursor:pointer;flex:none}
   .sys-banner .sb-x:hover{background:var(--primary-100)}
   .sys-banner :is(.sb-act,.sb-x):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-  body.crisis-live .sys-banner{display:none}
+  body:not(.view-home) .sys-banner{display:none}
   .search{flex:1;position:relative;display:flex;align-items:center}
   .search svg{position:absolute;left:12px;color:var(--ink-soft);pointer-events:none}
   .search input{width:100%;padding:11px 12px 11px 38px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--input-bg);color:var(--ink)}
@@ -464,7 +477,10 @@
   /* Spinner discret (chargements RÉSEAU uniquement — le local est synchrone, pas de skeleton). */
   .spin{display:inline-block;width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--link);border-radius:50%;vertical-align:-2px;margin-right:7px;animation:spin .8s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
-  @media (prefers-reduced-motion:reduce){.spin{animation-duration:2s}}
+  @media (prefers-reduced-motion:reduce){.spin,.acct-dot.busy{animation-duration:2s}}
+  /* Placeholder de DÉMARRAGE (HTML statique dans <main>, remplacé par le tout premier render()) :
+     l'app dit « Chargement… » au lieu d'une page vide pendant la lecture IndexedDB initiale. */
+  .boot-load{display:flex;align-items:center;justify-content:center;padding:56px 16px;color:var(--ink-soft);font-size:14px}
   .btn.ghost-danger{background:transparent;border-color:transparent;color:var(--critical)}
   .btn.ghost-danger:hover{background:var(--critical-soft);border-color:transparent}
   /* SPEC gestion §3 : Annuler / CTA demi-largeur ; ZONE SENSIBLE sous séparateur, bouton
@@ -621,6 +637,12 @@
   .sess-start{margin:14px 0 4px}
   .sess-start .btn{width:100%;min-height:50px;font-weight:800;font-size:15px;letter-spacing:.3px;border-radius:9px;display:flex;align-items:center;justify-content:center;gap:7px}
   .ss-hint{display:block;text-align:center;margin-top:6px;font-size:12px;color:var(--ink-soft)}
+  /* Dans le TABLEAU statique (v4.14.3) : le bouton devient une RANGÉE du carrelage — coins
+     3 px, sans marges (le joint de la grille fait l'espacement), aide sur la même rangée.
+     Il reste l'unique bouton REMPLI de l'écran (saillance) et >= 44 px. */
+  .sv-tb .sess-start{margin:0}
+  .sv-tb .sess-start .btn{border-radius:3px;min-height:46px}
+  .sv-tb .ss-hint{margin-top:3px;font-size:11.5px}
   /* ----- Parcours de soin (v4.4.0, « option B ») : rail vertical numéroté ① Confirmer →
      ② Prise en charge → ③ Surveillances & pièges. Pastilles : bleu = étape active,
      vert ✓ = faite, neutre cerclé = à venir — JAMAIS d'ambre/rouge ici (registres d'alerte).
@@ -708,12 +730,14 @@
   ol.steps{list-style:none;margin:0;padding:0;counter-reset:s}
   /* Rangée cochable (canvas section 6) : n° mono 14 · libellé 16.5/800 · case 36px à droite ;
      min 64px, rangée entière cliquable ; transition .25s vers l'état coché. */
-  ol.steps li{counter-increment:s;display:flex;gap:12px;align-items:center;min-height:64px;background:var(--surface);border:1px solid var(--line-hover);border-left:3px solid var(--ink);border-radius:8px;padding:12px;margin-bottom:6px;cursor:pointer;transition:opacity .25s,background .25s,border-color .25s}
+  ol.steps li{counter-increment:s;display:flex;gap:12px;align-items:center;min-height:64px;background:var(--surface);border:1px solid var(--line-hover);border-left:3px solid var(--ink);border-radius:8px;padding:12px;margin-bottom:6px;cursor:pointer;transition:opacity .25s,background .25s,border-color .25s;overflow-wrap:break-word}
   /* Numéro d'étape (v4.2.2) : 16px, CENTRÉ verticalement — c'est l'ancre de suivi de position
      de la lecture challenge-response (QRH) ; aligné sur l'axe de la case à cocher, sans voler
      la saillance du texte (mono, encre douce — les registres crit/vigil/done le recolorent). */
   ol.steps li::before{content:counter(s,decimal-leading-zero);font-family:var(--mono);font-size:16px;font-weight:700;color:var(--ink-soft);width:30px;flex:none;text-align:center;align-self:center}
-  ol.steps li .txt{flex:1;font-size:16.5px;font-weight:800;line-height:1.45}
+  /* v4.13.1 : min-width:0 + césure — sans eux, un mot long (« compressions ») fixe le
+     min-content du texte et pousse la CASE hors du cadre en étroit / grande taille de texte. */
+  ol.steps li .txt{flex:1;min-width:0;font-size:16.5px;font-weight:800;line-height:1.45;overflow-wrap:break-word;hyphens:auto}
   /* Case à cocher À DROITE (canvas), 36px, vide = bordure 2px grise sur fond transparent. */
   ol.steps li .box{order:3;width:36px;height:36px;border:2px solid var(--line-strong);border-radius:6px;flex-shrink:0;display:grid;place-items:center;color:var(--on-primary);background:transparent}
   ol.steps li .txt{order:2}
@@ -742,7 +766,11 @@
   ul.flat{list-style:none;margin:0;padding:0}
   ul.flat.verify{display:flex;flex-wrap:wrap;gap:8px}
   ul.flat.verify li{flex:1;min-width:250px;margin-bottom:0;border-radius:8px;padding:11px 14px;font-size:14.5px}
-  ul.flat li{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 14px;margin-bottom:8px;font-size:15px;display:flex;gap:11px;align-items:flex-start}
+  ul.flat li{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 14px;margin-bottom:8px;font-size:15px;display:flex;gap:11px;align-items:flex-start;overflow-wrap:break-word}
+  /* v4.13.2 : .ftxt vit dans des rangées FLEX (bulles À vérifier/différentiels, options,
+     rappels…) — sans min-width:0, le mot le plus long fixe le min-content et pousse le
+     texte HORS du cadre (en étroit / grande taille de texte). Césure française en secours. */
+  .ftxt{flex:1;min-width:0;overflow-wrap:break-word;hyphens:auto}
   ul.flat li::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;flex-shrink:0;margin-top:8px;opacity:.5}
   /* « À vérifier » : panneaux NEUTRES (V5) — l'ambre reste porté par l'en-tête de section
      (la couleur signale le registre, pas chaque item). */
@@ -762,7 +790,7 @@
   .node-title .pass-n{font-family:var(--mono);text-transform:none;letter-spacing:0;font-weight:600;color:var(--primary);margin-left:7px}
   .node-title{font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-soft);margin-bottom:10px}
   .nav-wrap.dec .node-title{color:var(--verify)}
-  .question{font-size:16px;font-weight:700;line-height:1.3;margin:2px 0 10px}
+  .question{font-size:16px;font-weight:700;line-height:1.3;margin:2px 0 10px;overflow-wrap:break-word}
   .options{display:grid;gap:10px}
   .options{gap:8px}
   /* Options de décision : MÊME hauteur que les rangées d'étapes (64px — retour utilisateur,
@@ -897,6 +925,12 @@
   /* Accueil : sessions en cours (SPEC §5) — une carte par session, empilées (gap 8px), surface
      + bordure primaire + liseré gauche 3px, chrono mono tabular, Terminer en TEXTE rouge. */
   .live-sessions{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+  /* Carte-bilan de fin de session (v4.16.3) : registre CONFIRMATION (bord gauche --ok),
+     éphémère et jamais bloquante — grammaire des notices (couleur + icône + texte). */
+  .last-sess{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--surface);border:1px solid var(--done-line);border-left:4px solid var(--ok);border-radius:10px;padding:10px 12px;margin-bottom:16px;box-shadow:var(--shadow)}
+  .last-sess .lsr-ic{flex:none;color:var(--ok);display:inline-flex}
+  .last-sess .lsr-tx{flex:1;min-width:180px;font-size:13.5px;color:var(--ink)}
+  .last-sess .lsr-tx b{color:var(--ok)}
   .ls-card{display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:var(--surface);border:1px solid var(--primary);border-left:3px solid var(--primary);border-radius:10px;padding:10px 12px;box-shadow:var(--shadow)}
   .ls-info{flex:1;min-width:150px;display:flex;flex-direction:column;line-height:1.25;cursor:pointer}
   .ls-info .ls-k{font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink-soft)}
@@ -1089,6 +1123,401 @@
   .flow-nav .tmr-hint{font-size:11px;font-weight:700;opacity:.6;text-transform:uppercase;letter-spacing:.5px}
   /* §8 fin d'algorithme : état annoncé + la session CONTINUE (Terminer ≠ terminer la session). */
   .flow-end{margin-top:8px;padding:15px;text-align:center;border:2px solid var(--done-line);border-radius:8px;color:var(--ok);font-size:15px;font-weight:800;letter-spacing:1px}
+  /* ----- Vue d'ensemble du mode crise (v4.6.0) : tous les blocs à la suite ----- */
+  /* Bascule Dynamique ↔ Statique : même composant .seg que la tab bar. Contrairement à #tabBar,
+     ce segment est RE-RENDU (render complet à la bascule) — le glissement de la pastille est
+     donc REJOUÉ par le handler (v4.21.0 : .seg-replay la pose sans transition sur l'ancien
+     segment, reflow, retrait -> la transition .seg-pill joue comme sur la tab bar). */
+  .read-seg{background:var(--surface);border:1px solid var(--line);border-radius:24px;padding:3px;margin-bottom:10px}
+  .read-seg .seg-pill{width:calc(50% - 7px);left:3px;top:3px;bottom:3px}
+  .read-seg.i1 .seg-pill{transform:translateX(calc(100% + 8px))}
+  .seg.seg-replay .seg-pill{transition:none}
+  /* Entrée du contenu à la bascule de mode (v4.21.0) : mêmes keyframes/durée/courbe que la
+     bascule de section de l'accueil (secInL/R) — transform/opacity SEULEMENT (compositeur :
+     NON BLOQUANT, la vue reste utilisable pendant les 300 ms, aucune attente imposée).
+     Enveloppé dans no-preference : sous prefers-reduced-motion les classes sont INERTES et
+     aucun animationend ne les retire. (L'ancienne garde #plPin — fixed dans un ancêtre
+     transformé — a disparu avec la pile synthétique, v4.22.1 : les cartes épinglées sont en
+     position:sticky, insensible au containing block créé par un transform.) */
+  @media (prefers-reduced-motion:no-preference){
+    .rm-anim-l{animation:secInL .3s cubic-bezier(.25,.1,.25,1)}
+    .rm-anim-r{animation:secInR .3s cubic-bezier(.25,.1,.25,1)}
+  }
+  .ov-controls{display:flex;gap:8px;justify-content:flex-end;margin:0 0 10px}
+  .ov-controls .btn{min-height:44px}
+  /* Section de bloc : en-tête = LIGNE D'ÉTAT toujours visible (n°, titre, compteur, chevron),
+     corps repliable. Pastille : bleu = position courante, vert ✓ = bloc complet, neutre sinon —
+     jamais d'ambre/rouge (registres d'alerte) ; la décision garde sa carte ambrée (comme .nav-wrap.dec). */
+  .ov-block{border:1px solid var(--line-hover);border-left:4px solid var(--line-strong);border-radius:10px;margin-bottom:10px;scroll-margin-top:74px}
+  .ov-block.dec{background:var(--verify-soft);border-color:var(--verify-bd);border-left-color:var(--verify-bd)}
+  .ov-block.cur{border-color:var(--primary);border-left-color:var(--primary)}
+  .ov-block.done{border-left-color:var(--done-line)}
+  /* Hors chemin (branche écartée par une décision) : ATTÉNUÉ mais JAMAIS verrouillé — l'estompe
+     n'est jamais seule, la mention « hors chemin » l'accompagne (WCAG 1.4.1). */
+  .ov-block.off{opacity:.55;border-style:dashed}
+  /* v4.13.1 : l'en-tête d'instance PEUT se replier sur deux rangées — en étroit, les boutons
+     « Lecteur »/« Vérifier » passent SOUS le titre (flex-wrap + base 230px) au lieu de
+     l'écraser (titre superposé au chip « Vous êtes ici », compteur expulsé). */
+  .ov-head{display:flex;align-items:stretch;flex-wrap:wrap;justify-content:flex-end}
+  .ov-tgl{flex:1 1 230px;min-width:0;display:flex;align-items:center;gap:9px;min-height:52px;padding:9px 12px;background:none;border:0;cursor:pointer;font-family:inherit;text-align:left}
+  .ov-tgl:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
+  .ov-n{width:26px;height:26px;border-radius:50%;flex:none;display:grid;place-items:center;font-family:var(--mono);font-size:13px;font-weight:700;color:var(--ink-soft);border:2px solid var(--line-strong)}
+  .ov-block.cur .ov-n{background:var(--primary);border-color:var(--primary);color:var(--on-primary)}
+  .ov-block.done .ov-n{background:var(--ok);border-color:var(--ok);color:var(--surface)}
+  .ov-t{flex:1;min-width:0;font-size:14px;font-weight:800;color:var(--ink);line-height:1.5;overflow-wrap:break-word}
+  .ov-t .pass-n{font-family:var(--mono);font-weight:600;color:var(--primary);margin-left:7px;font-size:12px}
+  .ov-offtag{font-size:11.5px;font-weight:700;color:var(--ink-soft);margin-left:6px;display:none}
+  .ov-block.off .ov-offtag{display:inline}
+  /* Pastille de position DANS .ov-t : elle passe à la ligne en étroit au lieu d'écraser le titre. */
+  /* Chip compact : padding vertical 1px + vertical-align baseline — un chip plus haut que la
+     ligne recouvrait la ligne de titre PRÉCÉDENTE quand le titre se replie (v4.13.1). */
+  .ov-here{display:none;font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;background:var(--primary);color:var(--on-primary);padding:1px 8px;border-radius:999px;white-space:nowrap;vertical-align:baseline}
+  .ov-block.cur .ov-here{display:inline-block}
+  .ov-c{flex:none;font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--ink-soft)}
+  .ov-block.done .ov-c{color:var(--ok)}
+  .ov-chev{flex:none;color:var(--link);font-size:15px;font-weight:800}
+  .ov-redo{flex:none;align-self:center;margin:0 10px 6px 0;min-height:44px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--ink-soft);font-size:12px;font-weight:700;padding:6px 11px;cursor:pointer;white-space:nowrap}
+  .ov-redo:hover{background:var(--surface)}
+  .ov-redo:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .ov-body{padding:0 12px 12px}
+  .ov-block.closed .ov-body{display:none}
+  .ov-body .flow-ctrl{margin-top:10px}
+  /* ----- Journal de parcours (v4.9.0) : instances repliées = lignes d'état, suite, réponse ----- */
+  /* Instance COMPLÈTE repliée = LIGNE ECAM verte (relisible d'un tap) ; décision repliée garde
+     sa carte ambrée + sa réponse en toutes lettres (.ov-ans) — la couleur n'est jamais seule. */
+  .ov-block.closed .ov-tgl{min-height:44px;padding:6px 12px}
+  .ov-block.closed.done{background:var(--done-bg);border-color:var(--done-line);border-left-color:var(--done-line)}
+  .ov-block.closed.done .ov-t{color:var(--ok)}
+  .ov-block.closed.done.dec{background:var(--verify-soft);border-color:var(--verify-bd);border-left-color:var(--verify-bd)}
+  .ov-block.closed.done.dec .ov-t{color:var(--ink)}
+  /* v4.13.1 : la réponse PEUT se replier (en nowrap, une réponse longue débordait de la
+     ligne d'état sur petit écran / grande taille de texte). */
+  .ov-ans{font-size:12.5px;font-weight:600;color:var(--ink-soft);margin-left:6px}
+  .ov-sec-h{font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft);margin:2px 0 8px}
+  /* ----- Fil condensé (v4.16.0) : les passages anciens complets deviennent des CHIPS ----- */
+  /* Rangée de chips = un TRONÇON chronologique du fil (l'ordre est préservé — une carte ou une
+     ligne d'état coupe la rangée) ; chip = bouton natif ≥ 44 px, tap = déplier sur place.
+     Étape faite = registre CONFIRMATION (fond --done-bg + ✓ vert) ; décision répondue = registre
+     ATTENTION (bordure --verify-bd) avec la réponse en toutes lettres — la couleur jamais seule. */
+  .ov-crumbs{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:2px 0 8px}
+  /* Ligne-bilan ECL (v4.16.4) : une rangée de + de 4 chips repliée en un statut synthétique
+     vert — même grammaire que la ligne d'état d'une instance complète, pleine largeur. */
+  .ov-runline{display:flex;align-items:center;gap:7px;width:100%;min-height:44px;margin:2px 0 8px;padding:6px 12px;border:1px solid var(--done-line);border-left:4px solid var(--done-line);border-radius:10px;background:var(--done-bg);color:var(--ink-soft);font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;text-align:left;touch-action:manipulation}
+  .ov-runline:hover{border-color:var(--primary)}
+  .ov-runline:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .ov-runline .ovr-ok{color:var(--ok);font-weight:800}
+  .ov-runline .ovr-chev{margin-left:auto;color:var(--link);font-weight:800}
+  .ovc{display:inline-flex;align-items:center;gap:5px;min-height:44px;padding:5px 10px;border:1px solid var(--done-line);border-radius:9px;background:var(--done-bg);color:var(--ink-soft);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;touch-action:manipulation}
+  .ovc:hover{border-color:var(--primary)}
+  .ovc:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .ovc-n{font-family:var(--mono);font-size:11.5px;font-weight:700}
+  .ovc-t{font-weight:700;white-space:nowrap}
+  .ovc-ok{color:var(--ok);font-weight:800}
+  .ovc-x{font-family:var(--mono);font-size:11px;color:var(--ink-soft);font-weight:600}
+  .ovc.dec{background:var(--verify-soft);border-color:var(--verify-bd);color:var(--ink)}
+  .ovc-a{font-weight:700;max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* ----- PLAN DE L'AIDE (v4.10.0) : arbre indenté façon algorithme papier ----- */
+  .ov-plan-h{display:flex;align-items:center;gap:7px;margin:18px 0 4px;min-width:0}
+  .ov-plan-h .ovs-t{flex:none;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft)}
+  .ov-plan-h .ovs-sub{flex:1;min-width:0;font-size:11.5px;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ov-plan-h .ovs-tgl{flex:none;min-height:44px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--link);font-size:12px;font-weight:700;padding:6px 11px;cursor:pointer;font-family:inherit}
+  .ov-plan-h .ovs-tgl:hover{background:var(--surface)}
+  .ov-plan-h .ovs-tgl:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* v4.18.0 : sélecteur d'affichage du Plan (Détails / Échelle / Schéma) — l'état actif est
+     un indicateur de sélection (fond tonal), pas un bouton rempli (un seul rempli par écran). */
+  .ov-plan-h{flex-wrap:wrap}
+  .ov-plan-h .pl-views{flex:none;display:flex;gap:4px;margin-left:auto}
+  .ov-plan-h .ovs-tgl.on{background:var(--primary-soft);color:var(--primary-dk);border-color:var(--primary-300)}
+  .ov-plan.svgv{overflow:hidden}
+  /* Nœud du plan : carte compacte NAVIGANTE (taper = y aller) — jamais de case à cocher ici. */
+  .pl-nd{display:flex;align-items:flex-start;gap:8px;border:1px solid var(--line);border-left:4px solid var(--line-strong);border-radius:9px;background:var(--surface);padding:8px 10px;margin-top:6px;cursor:pointer}
+  .pl-nd.dec{background:var(--verify-soft);border-color:var(--verify-bd);border-left-color:var(--verify-bd)}
+  .pl-nd.done{border-left-color:var(--done-line)}
+  .pl-nd.cur{border-color:var(--primary);border-left-color:var(--primary)}
+  .pl-nd.off{opacity:.55;border-style:dashed}
+  .pl-nd:hover{border-color:var(--primary)}
+  .pl-nd:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .pl-nd.flash{outline:3px solid var(--primary-soft);outline-offset:1px}
+  .pl-nn{width:22px;height:22px;border-radius:50%;flex:none;display:grid;place-items:center;font-family:var(--mono);font-size:11.5px;font-weight:700;color:var(--ink-soft);border:2px solid var(--line-strong);background:var(--surface);margin-top:1px}
+  .pl-nd.done .pl-nn{background:var(--ok);border-color:var(--ok);color:var(--surface)}
+  .pl-nd.cur .pl-nn{background:var(--primary);border-color:var(--primary);color:var(--on-primary)}
+  .pl-nt{flex:1;min-width:0;font-size:12.5px;font-weight:700;color:var(--ink);line-height:1.35;overflow-wrap:break-word}
+  .pl-nm{flex:none;font-size:11px;color:var(--ink-soft);font-family:var(--mono)}
+  .pl-x{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--primary);margin-left:6px}
+  .pl-here{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;background:var(--primary);color:var(--on-primary);padding:1px 8px;border-radius:999px;margin-left:6px;vertical-align:1px}
+  .pl-stp{margin:4px 0 0;padding:0;list-style:none}
+  .pl-stp li{font-size:11.5px;font-weight:400;color:var(--ink-soft);line-height:1.5;padding-left:13px;position:relative;overflow-wrap:break-word}
+  .pl-stp li::before{content:"·";position:absolute;left:4px}
+  .pl-stp li.crit{color:var(--critical);font-weight:600}
+  .pl-stp li.vig{color:var(--verify);font-weight:600}
+  .pl-q{font-size:11.5px;font-weight:400;font-style:italic;color:var(--ink-soft);margin:4px 2px 0}
+  /* ----- v4.12.0 : ORGANIGRAMME HYBRIDE — colonnes auto-fit (la règle responsive est CSS pur :
+     branches côte à côte à partir de 640 px quand la place le permet, EMPILÉES sinon —
+     et toujours empilées sous 640 px (v4.21.1) ; récursif de fait). */
+  .pl-decwrap{margin-top:2px}
+  /* Colonnes >= 640 px SEULEMENT (sous 640 : pile, cf. média ci-dessous). 148 px = plancher
+     des pistes auto-fit ; en pratique les colonnes restent larges à ces tailles d'écran (une
+     branche à décision imbriquée est `deep`, donc pleine largeur : ses sous-colonnes ont la
+     place). */
+  .pl-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:0 10px;align-items:start}
+  /* cN = nombre de branches EN COLONNE (les profondes s'étalent et ne comptent pas) : plafonne
+     les pistes auto-fit — sans lui, une branche pleine largeur force des pistes de 148 px et
+     coince les branches courtes dans des colonnes étroites même sur grand écran. */
+  .pl-cols.c1{grid-template-columns:1fr}
+  .pl-cols.c2{grid-template-columns:repeat(auto-fit,minmax(max(148px,calc(50% - 5px)),1fr))}
+  .pl-cols.c3{grid-template-columns:repeat(auto-fit,minmax(max(148px,calc(33.33% - 6.66px)),1fr))}
+  .pl-cols.c4{grid-template-columns:repeat(auto-fit,minmax(max(148px,calc(25% - 7.5px)),1fr))}
+  .pl-br.deep{grid-column:1/-1}
+  /* UNE SEULE COLONNE sous 640 px (v4.21.1, retour d'usage réel — même décision que le mode
+     statique v4.13.1) : des colonnes de ~150 px émiettent les mots cliniques lettre à lettre
+     (« Conver / sion ») ; en pile, rails + chips d'option portent la structure. c2…c4 sont
+     plus spécifiques que .pl-cols : les écraser nommément. L'ancienne classe `deepv`
+     (pleine largeur < 640 par volume d'étapes) est absorbée par cette règle. */
+  @media (max-width:639.98px){ .pl-cols,.pl-cols.c2,.pl-cols.c3,.pl-cols.c4{grid-template-columns:1fr} }
+  /* Branche : RAIL continu étiqueté (naît sous l'option, meurt au coude) — bleu = chemin pris,
+     pointillé estompé = hors chemin (la mention textuelle accompagne toujours l'estompe). */
+  .pl-br{position:relative;margin:7px 0 0 10px;padding-left:12px}
+  .pl-br::before{content:"";position:absolute;left:0;top:14px;bottom:8px;width:3px;border-radius:2px;background:var(--line-strong)}
+  .pl-br.taken::before{background:var(--primary)}
+  .pl-br.off::before{background:repeating-linear-gradient(var(--line-strong) 0 5px,transparent 5px 9px)}
+  .pl-br.off>:not(.pl-bl){opacity:.55}
+  .pl-br.off .pl-bl{opacity:.75}
+  .pl-br.folded::before{display:none}
+  /* Étiquette d'option = BOUTON de repli (ligne-bilan quand replié) ; collante en défilement. */
+  .pl-bl{position:relative;left:-12px;display:inline-flex;align-items:center;gap:5px;max-width:calc(100% + 12px);min-height:44px;font-size:11px;font-weight:700;color:var(--verify);background:var(--verify-soft);border:1px solid var(--verify-bd);border-radius:999px;padding:4px 11px;cursor:pointer;font-family:inherit;text-align:left}
+  .pl-bl .pl-tk{color:var(--ok)}
+  .pl-bl .pl-sum{font-weight:600;color:var(--ink-soft);font-family:var(--mono);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pl-bl .pl-chv{color:var(--verify);font-size:11px;margin-left:2px}
+  .pl-bl:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .pl-offtag{font-weight:600;color:var(--ink-soft)}
+  /* FIL D'ANCÊTRES v5 (v4.22.1) : STICKY CONTINU — les cartes-questions RÉELLES du plan
+     s'épinglent sous l'en-tête (position:sticky, top CUMULÉ MESURÉ posé par ovPlanPin :
+     base + Σ hauteurs des cartes ancêtres — la leçon v4.14.3 appliquée au sticky, ce qui
+     manquait à la pile v4.12 et ses décalages figés 48 px). Plus AUCUNE copie synthétique
+     (#plPin supprimé) ni mouvement autonome : tout mouvement est le défilement lui-même
+     (compositeur, réversible au pixel, rien à inhiber sous prefers-reduced-motion), la
+     carte se décroche seule à la fin de son conteneur .pl-decwrap (convergence), et
+     l'indentation réelle est conservée par construction. Tap = data-plgo (la carte est le
+     vrai élément — délégation .ov-wrap inchangée). */
+  .ov-plan .pl-decwrap>.pl-nd.dec{position:sticky}
+  /* Z-ORDRE PAR PROFONDEUR (décision utilisateur v4.22.1) : chaque niveau se replie
+     DERRIÈRE son ancêtre au décrochage — enfant sous parent, parent sous l'en-tête (z 20).
+     Modèle ECL (cf. v4.16.4) : une sous-procédure terminée se referme dans sa procédure
+     mère ; à la remontée elle RÉ-ÉMERGE de dessous, symétrique. Les classes pd0…pd3 posées
+     par le walker depuis v4.14 (inertes depuis) reprennent du service. */
+  .ov-plan .pl-nd.dec.pd0{z-index:8}.ov-plan .pl-nd.dec.pd1{z-index:7}
+  .ov-plan .pl-nd.dec.pd2{z-index:6}.ov-plan .pl-nd.dec.pd3{z-index:5}
+  /* Épinglée : ombre discrète + COMPACTION une-ligne du titre — hauteurs STABLES (le chip
+     injecté ne provoque pas de passage sur deux lignes, donc pas de re-mesure en cascade
+     des tops des niveaux plus profonds). */
+  .ov-plan .pl-nd.dec.stuck{box-shadow:0 2px 8px rgba(16,27,40,.22)}
+  .ov-plan .pl-nd.dec.stuck .pl-nt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* Chip « › option » de la branche à la ligne de lecture, INJECTÉ dans la carte épinglée
+     (le Oui/Non reste attaché à SA question — jamais d'ambiguïté entre niveaux). */
+  .ov-plan .pl-nd.dec>.pinchip{flex:none;align-self:center;font-size:11px;font-weight:700;color:var(--verify);background:var(--surface);border:1px solid var(--verify-bd);border-radius:999px;padding:2px 9px;max-width:45%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* v4.22.0 (conservée pour le CHIP seul) : micro-animation NON BLOQUANTE d'apparition ou
+     de changement d'option — transform/opacité, inerte sous prefers-reduced-motion. La
+     disparition n'anime jamais (registre SORTIE) ; les cartes n'animent jamais (leur
+     mouvement est le geste). */
+  @keyframes pinIn{from{opacity:0;transform:translateY(-7px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:no-preference){
+    .ov-plan .pl-nd.dec>.pinchip.pin-in{animation:pinIn .2s cubic-bezier(.2,.7,.3,1)}
+  }
+  /* Coude de sortie de branche : le rail se referme vers le lien de convergence. */
+  .pl-elbow{position:relative;margin-top:6px}
+  .pl-br>.pl-elbow::before{content:"";position:absolute;left:-12px;top:-8px;width:9px;height:18px;border-left:3px solid var(--line-strong);border-bottom:3px solid var(--line-strong);border-bottom-left-radius:9px}
+  .pl-br.taken>.pl-elbow::before{border-color:var(--primary)}
+  /* Liens de structure : convergence « → n » / reprise « ↺ n » — défilement DANS le plan. */
+  .pl-lnk{display:inline-flex;align-items:center;gap:5px;min-height:32px;font-size:11.5px;font-weight:700;color:var(--ink-soft);background:var(--tag-bg);border:1px solid var(--line);border-radius:999px;padding:4px 11px;margin-top:6px;cursor:pointer;font-family:inherit;text-align:left}
+  .pl-lnk.loop{color:var(--link);background:var(--primary-soft);border-color:var(--primary-soft)}
+  .pl-lnk:hover{border-color:var(--primary)}
+  .pl-lnk:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .pl-end{font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--ok);margin-top:7px}
+  /* ----- v4.12.0 : ÉCHELLE ECAM (mode compact) — une ligne par bloc, renvois abrégés. ----- */
+  .pl-line{display:flex;align-items:baseline;gap:7px;min-height:44px;padding:7px 9px;border-left:3px solid var(--line-strong);border-bottom:1px solid var(--line);cursor:pointer}
+  .pl-line.d1{padding-left:19px}
+  .pl-line.d2{padding-left:29px}
+  .pl-line.d3{padding-left:39px}
+  .pl-line .n{font-family:var(--mono);font-size:11.5px;font-weight:700;color:var(--ink-soft);min-width:18px;flex:none;text-align:right}
+  .pl-line .t{flex:1;min-width:0;font-size:12.5px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pl-line .g{flex:none;font-family:var(--mono);font-size:11px;color:var(--ink-soft);white-space:nowrap}
+  .pl-line .g b{font-weight:700;color:var(--verify)}
+  .pl-line .g b.tk{color:var(--ok)}
+  .pl-line .g .fin{color:var(--ok);font-weight:700}
+  .pl-line .pl-ref{color:var(--link);font-weight:700;cursor:pointer;padding:0 1px}
+  .pl-line .pl-bl2{flex:none;font-size:11px;font-weight:700;color:var(--verify);background:var(--verify-soft);border:1px solid var(--verify-bd);border-radius:5px;padding:0 5px}
+  .pl-line.done{border-left-color:var(--done-line)}
+  .pl-line.done .n,.pl-line.done .t{color:var(--ok)}
+  .pl-line.dec{background:var(--verify-soft);border-left-color:var(--verify-bd)}
+  .pl-line.dec .t{color:var(--verify)}
+  .pl-line.cur{background:var(--primary-soft);border-left-color:var(--primary)}
+  .pl-line.cur .t{color:var(--primary-dk)}
+  .pl-line.off{opacity:.5}
+  .pl-line:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
+  .pl-line.flash{background:var(--primary-soft)}
+  .pl-lx{padding:6px 10px 10px 36px;background:var(--surface);border-bottom:1px solid var(--line)}
+  .pl-lx .pl-lxt{margin:0 0 3px;font-size:12.5px;font-weight:700;color:var(--ink)}
+  /* ===== MODE STATIQUE (v4.13.0) : TABLEAU compact façon aide SFAR/CAMR — généré depuis
+     flowPlan (numérotation commune), INERTE côté cochage (navigation seule). Cellules
+     carrelées à joint 3 px ; bandes de décision au registre ATTENTION ; fourches ambre,
+     convergences grises, retours bleus en gouttière — dessinés APRÈS le rendu
+     (svPaintArrows, positions mesurées) et JAMAIS seuls : les pilules → n / ↺ n restent
+     la vérité textuelle (pile étroite, impression). AUCUN texte bleu dans les cellules
+     (décision utilisateur) : bleu = position (● ici) et reprise ↺ uniquement ;
+     réponse « :: » = pilule mono NEUTRE (.sv-r). */
+  .sv-wrap{position:relative;margin:10px 0 18px}   /* marge basse : le contexte local ne colle plus au tableau (v4.14.11) */
+  .sv-tb{display:grid;grid-template-columns:1fr;gap:3px;margin-left:16px}
+  .sv-cell{border:1px solid var(--line-strong);border-radius:3px;background:var(--surface);padding:6px 8px;cursor:pointer;min-width:0}
+  .sv-cell:hover,.sv-band:hover{border-color:var(--primary)}
+  .sv-cell:focus-visible,.sv-band:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .sv-cell.done{border-left:4px solid var(--done-line)}
+  .sv-cell.cur,.sv-band.cur{border-color:var(--primary);box-shadow:0 0 0 2px var(--primary-soft)}
+  .sv-cell.off,.sv-band.off{opacity:.55;border-style:dashed}
+  .sv-cell.flash,.sv-band.flash{outline:3px solid var(--primary-soft);outline-offset:1px}
+  .sv-h{display:flex;align-items:baseline;gap:6px;margin:0;min-width:0}
+  .sv-n{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink-soft);flex:none}
+  .sv-t{flex:1;min-width:0;font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--ink);line-height:1.4;overflow-wrap:break-word}
+  .sv-m{flex:none;font-family:var(--mono);font-size:11px;color:var(--ink-soft);display:flex;gap:6px;align-items:baseline}
+  .sv-m .sv-ok{color:var(--ok);font-weight:700}
+  .sv-here{font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;background:var(--primary);color:var(--on-primary);padding:0 7px;border-radius:999px}
+  .sv-off2{margin:2px 0 0;font-size:11px;font-weight:600;color:var(--ink-soft)}
+  .sv-stp{margin:3px 0 0;padding:0;list-style:none}
+  .sv-stp li{position:relative;font-size:11.5px;line-height:1.5;color:var(--ink);padding-left:15px;overflow-wrap:break-word}
+  .sv-stp li::before{content:"❑";position:absolute;left:0;color:var(--ink-soft)}
+  .sv-stp li.done{color:var(--ink-soft)}   /* coché = ✓ vert, texte JAMAIS barré (relecture) */
+  .sv-stp li.done::before{content:"✓";color:var(--ok);font-weight:700}
+  .sv-stp li.crit{color:var(--critical);font-weight:600}
+  .sv-stp li.vig{color:var(--verify);font-weight:600}
+  /* v4.13.1 : la pilule DOIT pouvoir se replier (une réponse longue en nowrap dépassait du
+     cadre de sa cellule) — box-decoration-break garde les coins sur chaque fragment. */
+  .sv-r{font-family:var(--mono);font-size:11px;color:var(--ink);background:var(--tag-bg);border:1px solid var(--line);border-radius:7px;padding:0 6px;overflow-wrap:break-word;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+  /* Bande de décision : registre ATTENTION — titre en petites capitales + question en clair. */
+  .sv-band{display:flex;align-items:baseline;gap:6px;border:1px solid var(--verify-bd);border-radius:3px;background:var(--verify-soft);padding:6px 8px;cursor:pointer;min-width:0}
+  .sv-band .sv-n{color:var(--verify)}
+  .sv-band .sv-t{color:var(--verify);text-transform:none;font-weight:400;font-size:11.5px;letter-spacing:0}
+  .sv-band .sv-t b{font-weight:800;letter-spacing:.5px;text-transform:uppercase;font-size:11px}
+  .sv-band .sv-m{color:var(--verify)}
+  /* Branches : colonnes auto-fit plafonnées cN (même piège auto-fit que le plan v4.12).
+     SOUS 640 px : UNE SEULE COLONNE — retour d'usage v4.13.1 : des branches côte à côte
+     de ~145 px sur téléphone rendaient la lecture difficile ; en pile, les pilules
+     « → n » / « ↺ n » portent la structure (les flèches se masquent, .stacked). */
+  .sv-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:3px;align-items:start}
+  .sv-cols.c1{grid-template-columns:1fr}
+  .sv-cols.c2{grid-template-columns:repeat(auto-fit,minmax(max(148px,calc(50% - 1.5px)),1fr))}
+  .sv-cols.c3{grid-template-columns:repeat(auto-fit,minmax(max(148px,calc(33.33% - 2px)),1fr))}
+  .sv-cols.c4{grid-template-columns:repeat(auto-fit,minmax(max(148px,calc(25% - 2.25px)),1fr))}
+  @media (max-width:639.98px){
+    .sv-cols,.sv-cols.c2,.sv-cols.c3,.sv-cols.c4{grid-template-columns:1fr}
+    /* v4.15.0 (décision utilisateur) : en PILE, l'imbrication redevient VISIBLE — indentation
+       ~15 px par niveau + RAIL de branche (grammaire du plan : bleu = prise, pointillé =
+       hors chemin, la couleur jamais seule — le chip d'option reste l'étiquette). Récursif
+       par construction (chaque .sv-br imbriquée ajoute son cran), PLAFONNÉ au 4e niveau
+       pour préserver la largeur de lecture. La fourche étant masquée en pile, rail + chip
+       portent la structure. */
+    .sv-br{margin-left:6px;padding-left:8px;border-left:3px solid var(--line-strong)}
+    .sv-br.taken{border-left-color:var(--primary)}
+    .sv-br.off{border-left-style:dashed}
+    .sv-br .sv-br .sv-br .sv-br{margin-left:0;padding-left:5px}
+  }
+  .sv-br{display:grid;gap:3px;min-width:0;align-content:start}
+  .sv-opt{border:1px solid var(--verify-bd);border-radius:3px;background:var(--verify-soft);color:var(--verify);font-size:11px;font-weight:700;text-align:center;padding:4px 6px;min-height:28px;display:flex;align-items:center;justify-content:center;gap:4px;flex-wrap:wrap}
+  .sv-opt .sv-tk{color:var(--ok)}
+  .sv-offtag{font-weight:600;color:var(--ink-soft)}
+  /* Sections de la fiche en cellules (v4.14.0) : INERTES — pas de curseur main, registres
+     ALERTE (chapeau) et ATTENTION (surveillances) par bord gauche + titre (jamais la couleur seule). */
+  .sv-cell.sv-inert{cursor:default}
+  .sv-cell.sv-inert:hover{border-color:var(--line-strong)}
+  .sv-nf{border-left:4px solid var(--critical-bd)}
+  .sv-nf .sv-t{color:var(--critical)}
+  .sv-vf{border-left:4px solid var(--verify-bd)}
+  .sv-vf .sv-t{color:var(--verify)}
+  /* Fourche (ambre) = bandeau local 16 px sous la bande ; convergence (grise) = ESPACE
+     réservé 16 px, les brins vivent dans la superposition .sv-gut (ils partent du bas réel
+     de chaque branche, v4.13.1). Masqués quand les branches s'empilent (.stacked) —
+     les pilules restent. */
+  .sv-fork,.sv-merge{height:16px;min-width:0;overflow:hidden}
+  .sv-fork svg{display:block}
+  .sv-fork .ln{fill:none;stroke:var(--verify-bd);stroke-width:1.6}
+  .sv-fork .ah{fill:var(--verify-bd)}
+  .sv-decwrap{display:grid;gap:3px;min-width:0}
+  .sv-decwrap.stacked>.sv-fork,.sv-decwrap.stacked>.sv-merge{display:none}
+  /* Renvois : pilule neutre (convergence/saut) — la reprise ↺ garde le registre bleu doux. */
+  .sv-jrow{display:flex;min-width:0}
+  /* Pilule remplacée par un brin de convergence : INVISIBLE mais l'espace est GARDÉ
+     (v4.14.5 — display:none libérait sa rangée : l'élargissement s'y étendait puis le brin
+     la retraversait ; et le changement de hauteur faisait osciller le ResizeObserver). */
+  .sv-jrow.hid{visibility:hidden}
+  .sv-jump{display:inline-flex;align-items:center;gap:5px;min-height:32px;max-width:100%;font-size:11px;font-weight:700;font-family:var(--mono);color:var(--ink-soft);background:var(--tag-bg);border:1px solid var(--line);border-radius:999px;padding:4px 10px;cursor:pointer;text-align:left}
+  .sv-jump.loop{color:var(--link);background:var(--primary-soft);border-color:var(--primary-soft)}
+  .sv-jump:hover{border-color:var(--primary)}
+  .sv-jump:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .sv-end{font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--ok);padding:2px 2px}
+  .sv-gut{position:absolute;left:0;top:0;pointer-events:none}
+  .sv-gut .lp{fill:none;stroke:var(--link);stroke-width:1.6}
+  .sv-gut .lph{fill:var(--link)}
+  .sv-gut .lg{fill:none;stroke:var(--line-strong);stroke-width:1.6}
+  .sv-gut .lgh{fill:var(--line-strong)}
+  /* ----- Challenge :: réponse (v4.11.0, AC 120-71B) : la pilule mono = RÉPONSE ATTENDUE ;
+     cocher = readback (✓ + vert), porté par le CSS seul — le toggle chirurgical n'y touche pas. */
+  ol.steps li .stp-r{display:inline-block;margin-left:8px;font-family:var(--mono);font-size:13px;font-weight:600;color:var(--link);background:var(--primary-soft);border-radius:7px;padding:2px 9px;vertical-align:1px;line-height:1.45}
+  ol.steps li.done .stp-r{color:var(--ok);background:var(--done-bg)}
+  ol.steps li.done .stp-r::before{content:"✓ "}
+  .pl-r{font-family:var(--mono);font-size:11px;color:var(--link)}
+  /* ----- Mode VÉRIFICATION (v4.11.0, Do-Verify) : challenges un à un, Constaté / Écart ----- */
+  .v-hint{font-size:11px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--link);margin:8px 0 2px}
+  .vstp{display:flex;gap:9px;align-items:flex-start;padding:8px 10px;border:1px solid var(--line);border-radius:8px;margin-top:6px;background:var(--surface);opacity:.45}
+  .vstp .vst{flex:none;width:20px;text-align:center;font-weight:700;color:var(--ink-soft)}
+  .vstp .txt{flex:1;min-width:0;font-size:14px;font-weight:600;line-height:1.4}
+  .vstp.vcur{opacity:1;border:2px solid var(--primary);padding:11px 10px}
+  .vstp.vcur .txt{font-size:16px;font-weight:800}
+  .vstp.ok2{opacity:.8;background:var(--done-bg);border-color:var(--done-line)}
+  .vstp.ok2 .vst{color:var(--ok)}
+  .vstp.vgap{opacity:1;background:var(--verify-soft);border-color:var(--verify)}
+  .vstp.vgap .vst{color:var(--verify)}
+  .v-act{display:flex;gap:9px;margin-top:12px}
+  .v-act .v-ok{flex:2;min-height:52px;border:0;border-radius:10px;background:var(--ok);color:var(--surface);font-size:15px;font-weight:800;cursor:pointer;font-family:inherit}
+  .v-act .v-gap{flex:1;min-height:52px;border:2px solid var(--verify-bd);border-radius:10px;background:var(--verify-soft);color:var(--verify);font-size:13.5px;font-weight:700;cursor:pointer;font-family:inherit}
+  .v-act button:focus-visible,.ov-block [data-ovvx]:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .v-end{margin-top:10px;border:1px solid var(--verify-bd);background:var(--verify-soft);border-radius:9px;padding:10px 12px;font-size:13px;color:var(--ink)}
+  .v-end.ok{border-color:var(--done-line);background:var(--done-bg);color:var(--ok)}
+  /* ----- MODE LECTEUR (v4.11.0) : challenge-response en binôme, plein écran -----
+     z-index 92 : SOUS #screenFlash (99) — le flash d'alarme minuteur reste visible par-dessus. */
+  #readerMode{position:fixed;inset:0;z-index:92;background:var(--bg);display:none;flex-direction:column}
+  #readerMode.on{display:flex}
+  #readerMode .rm-top{display:flex;align-items:center;gap:10px;padding:calc(9px + env(safe-area-inset-top)) 14px 9px;background:var(--surface);border-bottom:1px solid var(--line)}
+  #readerMode .rm-tag{flex:none;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--primary)}
+  #readerMode .rm-ttl{flex:1;min-width:0;font-size:13px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #readerMode .rm-time{flex:none;font-family:var(--mono);font-size:13px;font-weight:700;color:var(--ok)}
+  #readerMode .rm-block{display:flex;align-items:center;gap:8px;padding:10px 16px 0;font-size:12.5px;font-weight:700;color:var(--ink-soft);max-width:640px;width:100%;margin:0 auto}
+  #readerMode .rm-block #rmBlock{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #readerMode .rm-block #rmProg{font-family:var(--mono)}
+  #readerMode .rm-body{flex:1;display:flex;flex-direction:column;padding:18px 16px calc(16px + env(safe-area-inset-bottom));max-width:640px;width:100%;margin:0 auto;overflow-y:auto}
+  #readerMode .rm-hint{font-size:12px;color:var(--ink-soft);text-align:center;margin:0 0 12px}
+  #readerMode .rm-ch{font-size:26px;font-weight:800;line-height:1.25;text-align:center;color:var(--ink);margin:0}
+  #readerMode .rm-ch.crit{color:var(--critical)}
+  #readerMode .rm-ch.vig{color:var(--verify)}
+  #readerMode .rm-r{font-family:var(--mono);font-size:20px;font-weight:600;color:var(--link);background:var(--primary-soft);border-radius:12px;padding:14px;margin:16px 0 0;text-align:center;line-height:1.35}
+  #readerMode .rm-sp{flex:1;min-height:14px}
+  #readerMode .rm-ok{width:100%;min-height:72px;border:0;border-radius:12px;background:var(--ok);color:var(--surface);font-size:18px;font-weight:800;letter-spacing:.3px;cursor:pointer;font-family:inherit;padding:10px}
+  #readerMode .rm-ok.idle{background:transparent;border:2px solid var(--verify-bd);color:var(--verify)}
+  #readerMode .rm-gap{width:100%;min-height:44px;border:2px solid var(--verify-bd);border-radius:10px;background:var(--verify-soft);color:var(--verify);font-size:13.5px;font-weight:700;cursor:pointer;margin-top:9px;font-family:inherit}
+  #readerMode .rm-prev{width:100%;min-height:44px;border:none;background:none;color:var(--ink-soft);font-size:13px;font-weight:600;cursor:pointer;margin-top:6px;font-family:inherit}
+  #readerMode .rm-opt{width:100%;min-height:72px;border:2px solid var(--verify-bd);border-radius:12px;background:var(--surface);color:var(--ink);font-size:17px;font-weight:700;cursor:pointer;margin-top:10px;text-align:left;padding:12px 18px;font-family:inherit;line-height:1.3}
+  #readerMode .rm-opt:hover{border-color:var(--primary)}
+  #readerMode .rm-done{border:2px solid var(--done-line);border-radius:12px;color:var(--ok);font-size:16px;font-weight:800;text-align:center;padding:16px}
+  #readerMode button:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* ----- SVG navigable (v4.7.0) : nœuds cliquables, état PEINT par classes ----- */
+  /* Hex explicites = exception SVG documentée (le SVG n'utilise pas les tokens ; en sombre,
+     l'inversion globale est contrée par les règles [data-theme="dark"] plus haut). */
+  svg .fnode{cursor:pointer}
+  svg .fnode:focus{outline:none}
+  svg .fnode .flow-hl-glow{display:none}
+  svg .fnode.fn-cur .flow-hl-glow{display:block}
+  svg .fnode.fn-cur .fn-bd{stroke:#1f5fa6;stroke-width:2.5}
+  svg .fnode:focus-visible .fn-bd{stroke:#1f5fa6;stroke-width:3}
+  svg .fnode.fn-off{opacity:.45}
+  svg .fnode .fn-badge{display:none}
+  svg .fnode.fn-ok .fn-badge{display:block}
   /* §12 pied de contenu : défile avec la fiche, jamais fixe. */
   .crisis-footer{margin-top:16px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:11.5px;color:var(--ink-soft);font-weight:600}
   /* En SESSION de crise, l'état de stockage disparaît du pied de lecture — exactement comme il
@@ -1233,8 +1662,18 @@
   /* « ai- » : préfixe HISTORIQUE (première fenêtre = « Créer via IA ») devenu le préfixe GÉNÉRIQUE
      de toutes les modales (Compte, PDF, confirmations…) — ai-modal/ai-card/ai-x/ai-top/ai-actions.
      Ne pas y lire un lien avec l'IA ; renommer casserait sélecteurs CSS+JS pour un gain nul. */
-  .ai-modal{position:fixed;inset:0;background:rgba(16,27,40,.55);z-index:55;display:none;align-items:flex-start;justify-content:center;padding:calc(18px + env(safe-area-inset-top)) 14px calc(18px + env(safe-area-inset-bottom));overflow:auto}
+  .ai-modal{position:fixed;inset:0;background:rgba(16,27,40,.55);z-index:55;display:none;align-items:flex-start;justify-content:center;padding:calc(18px + env(safe-area-inset-top)) 14px calc(18px + env(safe-area-inset-bottom));overflow:auto;overscroll-behavior:contain}
   .ai-modal.on{display:flex}
+  /* Fenêtre ouverte = page de fond VERROUILLÉE (v4.21.0 — bug mobile : le glissement dans une
+     fenêtre longue « fuyait » vers l'accueil, déplacé à son insu). Deux ceintures :
+     overscroll-behavior:contain sur le voile ci-dessus (même garde-fou que .catmenu, v4.4.4)
+     et, AU TOUCHER seulement, body figé en place — position:fixed + top:-scrollY posés par
+     l'accessibilité centralisée des modales (_bgLock/_bgUnlock), position RESTAURÉE au pixel à
+     la fermeture de la dernière fenêtre. Limité au pointeur grossier : au pointeur fin, figer
+     body retirerait la barre de défilement et décalerait le fond visible derrière le voile. */
+  @media (pointer:coarse){
+    body.modal-open{position:fixed;left:0;right:0;width:100%}
+  }
   /* CONFIRMATIONS : petite carte CENTRÉE verticalement, à toutes les largeurs — jamais en plein
      écran (une question d'une ligne n'occupe pas 100dvh) ni collée en haut. */
   .ai-modal.dlg-confirm{align-items:center}
@@ -1469,7 +1908,7 @@
      gauche, statique entre les sections, ne bouge pas. */
   main.sec-anim-l .home-main{animation:secInL .3s cubic-bezier(.25,.1,.25,1)}
   main.sec-anim-r .home-main{animation:secInR .3s cubic-bezier(.25,.1,.25,1)}
-  @media (prefers-reduced-motion:reduce){.seg-pill,.seg-btn{transition:none}main.sec-anim-l .home-main,main.sec-anim-r .home-main{animation:none}ol.steps li.done .box svg,.card .pinbtn.on svg{animation:none}}
+  @media (prefers-reduced-motion:reduce){.seg-pill,.seg-btn{transition:none}main.sec-anim-l .home-main,main.sec-anim-r .home-main{animation:none}ol.steps li.done .box svg,.card .pinbtn.on svg,li.md-task.done .md-tkbox svg{animation:none}}
   /* ----- Contenu rédigé des protocoles (mini-Markdown) : lecture + éditeur ----- */
   .md-body{line-height:1.55;font-size:15px}
   /* Titres de section du contenu rédigé : MÊME registre typographique que les en-têtes de
@@ -1489,6 +1928,25 @@
   .md-ul,.md-ol{margin:0 0 10px;padding-left:22px}
   .md-ul li,.md-ol li{margin:3px 0}
   .md-ul .md-ul,.md-ul .md-ol,.md-ol .md-ul,.md-ol .md-ol{margin:3px 0 0;padding-left:20px}
+  /* Listes cochables (v4.5.4) : case à GAUCHE (liste de prose, position GitHub — pas la checklist
+     de crise ol.steps). Cochée = registre CONFIRMATION (--ok), texte JAMAIS barré (lecture-
+     vérification : on doit pouvoir relire). Interactif en LECTURE seulement : role=checkbox posé
+     par bindProtoTasks — dans les aperçus la case est un simple dessin. Rangée entière cliquable
+     (min-height 32px = cible tactile), coche SVG toujours présente, révélée par .done. */
+  li.md-task{list-style:none;display:flex;align-items:flex-start;gap:10px;min-height:32px;padding:5px 8px;margin:3px 0 3px -30px;border-radius:8px}
+  .md-tkbox{flex:none;width:20px;height:20px;margin-top:1px;border:2px solid var(--line-strong);border-radius:6px;display:grid;place-items:center;background:transparent;color:var(--surface)}
+  /* Case centrée sur la PREMIÈRE ligne de texte quelle que soit la taille de police du contexte
+     (lecture 15px, aperçus compacts 12.5px, préférence S/M/L/XL) : 1lh = l'interligne hérité,
+     identique à celui du texte voisin. Repli (navigateurs sans lh) = le margin-top:1px ci-dessus,
+     calibré pour la lecture — écart résiduel < 3px dans les seuls aperçus. */
+  @supports (margin-top:1lh){.md-tkbox{margin-top:calc((1lh - 20px)/2)}}
+  .md-tkbox svg{display:none}
+  li.md-task.done .md-tkbox{background:var(--ok);border-color:var(--ok)}
+  li.md-task.done .md-tkbox svg{display:block;animation:pop .25s ease}
+  li.md-task.done .md-tktxt{color:var(--done-ink)}
+  li.md-task[role="checkbox"]{cursor:pointer;touch-action:manipulation}
+  li.md-task[role="checkbox"]:hover{background:var(--surface-2)}
+  li.md-task[role="checkbox"]:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .md-q{margin:0 0 10px;padding:6px 0 6px 12px;border-left:3px solid var(--line-strong);color:var(--ink-soft)}
   /* ENCADRÉS TYPÉS (v4.4.3) : grammaire des notices V5 — bord gauche 4px + bordure + teinte du
      registre, icône ET libellé en toutes lettres (la couleur n'est jamais seule, WCAG 1.4.1).
@@ -1589,7 +2047,11 @@
   .pdf-page{position:relative;margin:0 auto 10px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.22)}
   .pdf-page canvas{display:block;width:100%;height:100%}
   .pdf-msg{color:var(--ink-soft);text-align:center;padding:34px 16px;font-size:14px}
-  @media (max-width:560px){.pdf-title{font-size:13px}.pdf-tools .fzv{display:none}}  /* petit écran : on garde « Largeur » (le plus utile), on masque le % */
+  /* Petit écran (v4.19.2, retour d'usage) : la barre passe sur DEUX rangées — titre + ✕ en
+     haut, outils en pleine largeur dessous. Depuis le bouton ⤓ (v4.19.0), une seule rangée
+     écrasait le titre à quelques caractères ; le % de zoom regagne au passage sa place
+     (il n'était masqué que par manque de place, v4.4.4). */
+  @media (max-width:560px){.pdf-title{font-size:13px}.pdf-bar{flex-wrap:wrap;row-gap:2px}.pdf-tools{flex-basis:100%;order:3}}
   .cm-row{border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:8px;background:var(--surface)}
   .cm-top{display:flex;gap:8px;align-items:center}
   .cm-dot{width:18px;height:18px;border-radius:6px;flex-shrink:0}
@@ -1731,10 +2193,22 @@
     .mem-act select,.invite-row select,.invite-row input,.mi-sc{font-size:16px}
     .tk-time-edit{width:96px}
   }
-  @media print{body{background:#fff}header.bar,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.sess-list,.notes-block{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}
+  @media print{body{background:#fff}header.bar,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.sess-list,.notes-block,#readTopSeg,.ov-controls,.ov-redo,.ovs-tgl,.flow-zoom{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}
     /* Un conteneur à défilement s'imprime TRONQUÉ : à l'impression le tableau se déploie. */
     .md-tw{overflow:visible;break-inside:avoid}.md-tbl{min-width:0;font-size:11px}.md-tbl tr{break-inside:avoid}
     .forget-strip{break-inside:avoid}
+    /* v4.6.0 : l'algorithme s'imprime ENTIER (le conteneur à défilement tronquait le SVG à
+       300 px) et la vue d'ensemble s'imprime DÉPLIÉE — blocs repliés rouverts par CSS (aucun
+       état à toucher), hors-chemin en pleine encre (la mention « hors chemin » reste le marqueur). */
+    .alg-panel .flow-scroll{max-height:none;overflow:visible}
+    .ov-block{break-inside:avoid}.ov-block.closed .ov-body{display:block}.ov-block.off{opacity:1}
+    /* v4.12.0 : plan imprimé en une colonne (flux de page), branches dépliées, sans sticky. */
+    .pl-cols{display:block}.pl-nd.dec,.pl-bl{position:static!important}.pl-br.folded::before{display:block}
+    .pl-nd{break-inside:avoid}.pl-br.off>:not(.pl-bl){opacity:1}
+    /* v4.22.1 : le fil épinglé est un état d'ÉCRAN — sur papier, carte complète et sans chip. */
+    .pl-nd.dec>.pinchip{display:none}
+    .pl-nd.dec.stuck{box-shadow:none}
+    .pl-nd.dec.stuck .pl-nt{white-space:normal;overflow:visible}
     .crisis-footer .cf-stg{display:none}}
 </style><style>
   body{margin:0;padding:0}
