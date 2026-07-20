@@ -1,5 +1,30 @@
 # Journal des modifications
 
+## [4.22.1] — 2026-07-20
+### Modifié
+- **Fil d'ancêtres du plan : STICKY CONTINU** (retour d'usage — « ce serait mieux si
+  elle suivait de manière continue ») : les cartes-questions **réelles** du plan
+  s'épinglent désormais sous l'en-tête (`position:sticky`, top cumulé **mesuré** =
+  base + hauteurs des cartes ancêtres — les hauteurs réelles de v4.14.3 résolvent la
+  superposition qui avait fait abandonner le sticky v4.12). Plus de moment discret :
+  la carte est *attrapée* par la pile, en continu, réversible au pixel — et plus
+  **aucun mouvement autonome** (tout mouvement est le geste de défilement).
+  - **Chaque niveau se replie DERRIÈRE son ancêtre** au décrochage (z-ordre `pd0…pd3`
+    décroissant — modèle ECL : une sous-procédure terminée se referme dans sa
+    procédure mère, et ré-émerge symétriquement à la remontée) ; le décrochage à la
+    convergence est natif (sticky borné par le conteneur de la décision).
+  - Carte épinglée : **compactée sur une ligne** (hauteurs stables) avec le chip
+    « › option » de la branche en cours de lecture injecté dans la carte — calé
+    **au pixel** sur la disparition de l'étiquette d'option (il la remplace à
+    l'instant où elle passe derrière la carte ; tant qu'elle est visible, elle porte
+    la réponse elle-même) et sans clignotement entre branches (zones jointives) ;
+    apparition et changement animés (micro-animation v4.22.0, inerte sous
+    `prefers-reduced-motion`), disparition instantanée.
+  - **La pile synthétique `#plPin` est supprimée** (avec sa clé, son hystérésis, ses
+    hauteurs mémorisées et la garde v4.21.0 « fixed dans un ancêtre transformé » —
+    le sticky y est insensible). La carte épinglée est le vrai élément : tap = y
+    aller, comme partout dans le plan. Sur papier : carte complète, sans chip.
+
 ## [4.22.0] — 2026-07-20
 ### Ajouté
 - **Micro-animation d'entrée des bulles du fil d'ancêtres** (`#plPin`), **non

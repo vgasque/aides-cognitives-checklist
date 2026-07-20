@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-grpUmr2kt8SOQD2clK0W/3bz9rcZiyMAZQyrYMsiNAw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-ZXMoOvdkUPBUJ/OBUn+8L9MbXKsQCIcM88yMrDxWMxg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1390,14 +1390,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      bascule de section de l'accueil (secInL/R) — transform/opacity SEULEMENT (compositeur :
      NON BLOQUANT, la vue reste utilisable pendant les 300 ms, aucune attente imposée).
      Enveloppé dans no-preference : sous prefers-reduced-motion les classes sont INERTES et
-     aucun animationend ne les retire — la garde #plPin ne doit alors jamais s'appliquer. */
+     aucun animationend ne les retire. (L'ancienne garde #plPin — fixed dans un ancêtre
+     transformé — a disparu avec la pile synthétique, v4.22.1 : les cartes épinglées sont en
+     position:sticky, insensible au containing block créé par un transform.) */
   @media (prefers-reduced-motion:no-preference){
     .rm-anim-l{animation:secInL .3s cubic-bezier(.25,.1,.25,1)}
     .rm-anim-r{animation:secInR .3s cubic-bezier(.25,.1,.25,1)}
-    /* transform crée un containing block : #plPin (fil d'ancêtres, position:fixed) se
-       positionnerait par rapport au conteneur animé -> masqué le temps de l'animation
-       (le prochain défilement le repose, cf. ovPlanPin). */
-    :is(.rm-anim-l,.rm-anim-r) #plPin{display:none}
   }
   .ov-controls{display:flex;gap:8px;justify-content:flex-end;margin:0 0 10px}
   .ov-controls .btn{min-height:44px}
@@ -1546,30 +1544,38 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pl-bl .pl-chv{color:var(--verify);font-size:11px;margin-left:2px}
   .pl-bl:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .pl-offtag{font-weight:600;color:var(--ink-soft)}
-  /* FIL D'ANCÊTRES v4 (v4.14.0) : PILE de bulles flottantes SYNTHÉTIQUES (#plPin,
-     position:fixed, pilotée au défilement par ovPlanPin) — une bulle PAR DÉCISION ANCÊTRE,
-     INDENTÉE selon sa position réelle dans l'arbre (décision utilisateur), avec « › option »
-     de SA branche dans la même bulle (le Oui/Non reste attaché à sa question). Empilement en
-     flex column : les hauteurs réelles se suivent, la superposition de v4.12 (décalages figés
-     48 px) est IMPOSSIBLE par construction. Tap = data-plgo (délégation .ov-wrap existante). */
-  #plPin{position:fixed;z-index:6;display:flex;flex-direction:column;gap:3px;pointer-events:none}
-  #plPin[hidden]{display:none}
-  #plPin .pl-nd{margin:0;cursor:pointer;pointer-events:auto}
-  /* min-height 22px = hauteur du chip « › option » : son apparition ne change PAS la hauteur
-     de la bulle — le texte ne se décale plus vers le haut/bas (v4.14.4). */
-  #plPin .pl-nt{display:flex;align-items:center;gap:7px;min-width:0;min-height:22px}
-  #plPin .pnt{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  #plPin .pinchip{flex:none;font-size:11px;font-weight:700;color:var(--verify);background:var(--surface);border:1px solid var(--verify-bd);border-radius:999px;padding:2px 9px;max-width:45%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  /* v4.22.0 : micro-animation NON BLOQUANTE d'ENTRÉE d'une bulle (doctrine v4.21.0 —
-     transform/opacité seulement, compositeur) : la bulle « se dépose » depuis le haut à
-     l'instant où la carte qu'elle remplace quitte l'écran (continuité d'identité, HIG).
-     La SORTIE n'anime JAMAIS (ECAM : l'attention revient à la carte réelle qui réapparaît,
-     pas au chrome) ; ne s'applique qu'aux bulles NOUVELLES d'un re-rendu (classe posée par
-     ovPlanPin, jamais sur les bulles conservées) ; translateY n'altère pas les hauteurs
-     mémorisées (pin._hm). Inerte sous prefers-reduced-motion. */
+  /* FIL D'ANCÊTRES v5 (v4.22.1) : STICKY CONTINU — les cartes-questions RÉELLES du plan
+     s'épinglent sous l'en-tête (position:sticky, top CUMULÉ MESURÉ posé par ovPlanPin :
+     base + Σ hauteurs des cartes ancêtres — la leçon v4.14.3 appliquée au sticky, ce qui
+     manquait à la pile v4.12 et ses décalages figés 48 px). Plus AUCUNE copie synthétique
+     (#plPin supprimé) ni mouvement autonome : tout mouvement est le défilement lui-même
+     (compositeur, réversible au pixel, rien à inhiber sous prefers-reduced-motion), la
+     carte se décroche seule à la fin de son conteneur .pl-decwrap (convergence), et
+     l'indentation réelle est conservée par construction. Tap = data-plgo (la carte est le
+     vrai élément — délégation .ov-wrap inchangée). */
+  .ov-plan .pl-decwrap>.pl-nd.dec{position:sticky}
+  /* Z-ORDRE PAR PROFONDEUR (décision utilisateur v4.22.1) : chaque niveau se replie
+     DERRIÈRE son ancêtre au décrochage — enfant sous parent, parent sous l'en-tête (z 20).
+     Modèle ECL (cf. v4.16.4) : une sous-procédure terminée se referme dans sa procédure
+     mère ; à la remontée elle RÉ-ÉMERGE de dessous, symétrique. Les classes pd0…pd3 posées
+     par le walker depuis v4.14 (inertes depuis) reprennent du service. */
+  .ov-plan .pl-nd.dec.pd0{z-index:8}.ov-plan .pl-nd.dec.pd1{z-index:7}
+  .ov-plan .pl-nd.dec.pd2{z-index:6}.ov-plan .pl-nd.dec.pd3{z-index:5}
+  /* Épinglée : ombre discrète + COMPACTION une-ligne du titre — hauteurs STABLES (le chip
+     injecté ne provoque pas de passage sur deux lignes, donc pas de re-mesure en cascade
+     des tops des niveaux plus profonds). */
+  .ov-plan .pl-nd.dec.stuck{box-shadow:0 2px 8px rgba(16,27,40,.22)}
+  .ov-plan .pl-nd.dec.stuck .pl-nt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* Chip « › option » de la branche à la ligne de lecture, INJECTÉ dans la carte épinglée
+     (le Oui/Non reste attaché à SA question — jamais d'ambiguïté entre niveaux). */
+  .ov-plan .pl-nd.dec>.pinchip{flex:none;align-self:center;font-size:11px;font-weight:700;color:var(--verify);background:var(--surface);border:1px solid var(--verify-bd);border-radius:999px;padding:2px 9px;max-width:45%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* v4.22.0 (conservée pour le CHIP seul) : micro-animation NON BLOQUANTE d'apparition ou
+     de changement d'option — transform/opacité, inerte sous prefers-reduced-motion. La
+     disparition n'anime jamais (registre SORTIE) ; les cartes n'animent jamais (leur
+     mouvement est le geste). */
   @keyframes pinIn{from{opacity:0;transform:translateY(-7px)}to{opacity:1;transform:none}}
   @media (prefers-reduced-motion:no-preference){
-    #plPin .pl-nd.pin-in,#plPin .pinchip.pin-in{animation:pinIn .2s cubic-bezier(.2,.7,.3,1)}
+    .ov-plan .pl-nd.dec>.pinchip.pin-in{animation:pinIn .2s cubic-bezier(.2,.7,.3,1)}
   }
   /* Coude de sortie de branche : le rail se referme vers le lien de convergence. */
   .pl-elbow{position:relative;margin-top:6px}
@@ -2441,7 +2447,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .mem-act select,.invite-row select,.invite-row input,.mi-sc{font-size:16px}
     .tk-time-edit{width:96px}
   }
-  @media print{body{background:#fff}header.bar,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.sess-list,.notes-block,#readTopSeg,.ov-controls,.ov-redo,.ovs-tgl,.flow-zoom,#plPin{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}
+  @media print{body{background:#fff}header.bar,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.sess-list,.notes-block,#readTopSeg,.ov-controls,.ov-redo,.ovs-tgl,.flow-zoom{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}
     /* Un conteneur à défilement s'imprime TRONQUÉ : à l'impression le tableau se déploie. */
     .md-tw{overflow:visible;break-inside:avoid}.md-tbl{min-width:0;font-size:11px}.md-tbl tr{break-inside:avoid}
     .forget-strip{break-inside:avoid}
@@ -2453,6 +2459,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     /* v4.12.0 : plan imprimé en une colonne (flux de page), branches dépliées, sans sticky. */
     .pl-cols{display:block}.pl-nd.dec,.pl-bl{position:static!important}.pl-br.folded::before{display:block}
     .pl-nd{break-inside:avoid}.pl-br.off>:not(.pl-bl){opacity:1}
+    /* v4.22.1 : le fil épinglé est un état d'ÉCRAN — sur papier, carte complète et sans chip. */
+    .pl-nd.dec>.pinchip{display:none}
+    .pl-nd.dec.stuck{box-shadow:none}
+    .pl-nd.dec.stuck .pl-nt{white-space:normal;overflow:visible}
     .crisis-footer .cf-stg{display:none}}
 </style>
 </head>
@@ -2649,7 +2659,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.22.0';
+const APP_VERSION='4.22.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -6636,9 +6646,10 @@ function ovInstHtml(f,id,idx,topo,pres){
      et récursive portée par le CSS SEUL (.pl-cols, grid auto-fit minmax) ; rails de branche
      étiquetés (bleu = chemin pris, pointillé estompé = hors chemin) avec coude de sortie vers
      la convergence ; REPLI PAR BRANCHE en ligne-bilan (hors chemin auto-replié, jamais
-     bloquant) ; FIL D'ANCÊTRES COLLANT (sticky) : question + option restent épinglées sous
-     l'en-tête pendant le défilement de la branche (pile pdN, plafond 3, --pl-stick posé par
-     ovPlanStick — le sticky se décroche seul en fin de conteneur .pl-decwrap/.pl-br).
+     bloquant) ; FIL D'ANCÊTRES STICKY CONTINU (v4.22.1) : les cartes-questions RÉELLES
+     s'épinglent sous l'en-tête (tops cumulés MESURÉS posés par ovPlanPin, chip « › option »
+     injecté, z-ordre pdN — le sticky se décroche seul en fin de conteneur .pl-decwrap et
+     chaque niveau se replie DERRIÈRE son ancêtre).
    - ÉCHELLE (ovPlanLadderHtml, mode compact ECAM) : une LIGNE par bloc, retraits de
      profondeur AVEC étiquette de la réponse qui ouvre la branche (« OUI › »), renvois mono
      abrégés (optAbbr : OUI→5 · ↺1 · ▪fin), tap ligne = détails in-place + « aller à ce bloc ». */
@@ -6756,93 +6767,92 @@ function ovPlanLadderHtml(f,plan,num,md,off){
   return h;}
 // Facteur de la taille du texte (réglage utilisateur = zoom CSS sur <html>) : les rectangles
 // mesurés (getBoundingClientRect) sont en pixels VISUELS (× zoom) alors que les styles posés
-// (--pl-stick, tracés SVG) sont en pixels CSS — TOUTE mesure réinjectée doit être divisée
-// par ce facteur, sinon fil collant et flèches dérivent dès que la taille ≠ 100 % (v4.13.1).
+// (tops sticky du plan, tracés SVG) sont en pixels CSS — TOUTE mesure réinjectée doit être
+// divisée par ce facteur, sinon fil épinglé et flèches dérivent dès que la taille ≠ 100 %
+// (v4.13.1).
 function zoomF(){return (parseFloat(document.documentElement.style.zoom)||100)/100;}
-// Pose de --pl-stick (base du fil d'ancêtres collant) : bas réel de l'en-tête sticky de l'app.
-// Recalée aussi quand l'en-tête change de hauteur (repli .condensed au défilement, v4.13.1).
-function ovPlanStick(){const pl=main.querySelector('.ov-plan');if(!pl)return;
-  const hb=document.querySelector('header.bar');
-  pl.style.setProperty('--pl-stick',Math.round((hb?hb.getBoundingClientRect().bottom/zoomF():60)+4)+'px');
-  ovPlanPin();}
-// FIL D'ANCÊTRES v4 (v4.14.0) : PILE de bulles flottantes synthétiques — UNE bulle par
-// décision ANCÊTRE de la ligne de lecture, chacune INDENTÉE selon sa position réelle dans
-// l'arbre (décision utilisateur : les niveaux et le décalage de v4.12, SANS la superposition
-// — la pile est un flex column, les hauteurs réelles s'empilent) et portant « › option » de
-// SA branche (le Oui/Non reste attaché à SA question — jamais d'ambiguïté entre niveaux).
-// Piloté au DÉFILEMENT ; contenu reconstruit seulement quand la chaîne change.
+// Point d'entrée « la géométrie a changé » du fil d'ancêtres (re-rendu du plan, repli de
+// branche, hauteur d'en-tête, taille du texte, rotation) : recalcule tops et état épinglé.
+// (v4.22.1 : l'ancienne variable CSS --pl-stick n'existe plus — les tops sont posés par
+// ovPlanPin, carte par carte.)
+function ovPlanStick(){ovPlanPin();}
+/* FIL D'ANCÊTRES v5 (v4.22.1) : STICKY CONTINU — plus de pile synthétique (#plPin SUPPRIMÉ,
+   avec sa clé, son hystérésis et ses hauteurs mémorisées ; historique : pile sticky à
+   décalages figés v4.12, bulles flottantes v4.14, seuil corrigé v4.21.2, animation v4.22.0).
+   Les cartes-questions RÉELLES s'épinglent (position:sticky) sous l'en-tête avec un top
+   CUMULÉ MESURÉ (base + Σ hauteurs des cartes ancêtres + 3 px) : la superposition qui avait
+   tué le sticky v4.12 est résolue par les hauteurs réelles (leçon v4.14.3), stabilisées par
+   la compaction une-ligne des cartes épinglées (CSS .stuck). Tout mouvement est le geste de
+   défilement (compositeur, réversible au pixel, rien à inhiber sous prefers-reduced-motion) ;
+   le décrochage à la convergence est natif (sticky borné par .pl-decwrap) et chaque niveau se
+   replie DERRIÈRE son ancêtre (z-ordre pd0…pd3 décroissant — décision utilisateur, modèle
+   ECL). Ce pilote, appelé au défilement, ne fait QUE : poser les tops, poser l'état .stuck,
+   injecter le chip « › option » de la branche à la ligne de lecture (règle inchangée v4.14.2 :
+   branche SEULE sur sa rangée — des colonnes côte à côte sont toutes sous les yeux).
+   Discipline lecture/écriture GROUPÉES (précédent svPaintArrows) : les décisions d'une passe
+   se fondent sur la géométrie d'AVANT ses écritures — un top qui change se corrige à
+   l'événement de défilement suivant (~16 ms, invisible). */
 function ovPlanPin(){
   const wrap=main.querySelector('.ov-wrap');const plan=wrap&&wrap.querySelector('.ov-plan');
-  let pin=wrap&&wrap.querySelector('#plPin');
-  const off=()=>{if(pin){pin.hidden=true;pin._k='';}};
-  if(!plan||state.ovPlanView!=='plan'){off();return;}
-  const f=state.fiche;if(!f){off();return;}
+  if(!plan||state.ovPlanView!=='plan')return;
+  const f=state.fiche;if(!f)return;
   const Z=zoomF();
   const hb=document.querySelector('header.bar');
   const stickV=(hb?hb.getBoundingClientRect().bottom:60)+4*Z;   // px VISUELS
-  const pr=plan.getBoundingClientRect();
-  if(pr.top>stickV){off();return;}
-  if(!pin){wrap.insertAdjacentHTML('beforeend','<div id="plPin" hidden aria-hidden="true"></div>');pin=wrap.querySelector('#plPin');}
-  // ENTRÉE/SORTIE de la pile (v4.14.3, remplace le point fixe qui BATTAIT en fin de branche —
-  // la hauteur de la pile modifiait la ligne qui décidait du contenu de la pile) :
-  // CUMUL DÉTERMINISTE — le seuil de CHAQUE bulle est le bas de la pile AU-DESSUS d'elle
-  // (sémantique du vrai sticky empilé : une bande entre quand elle glisse sous la pile,
-  // sort quand sa sous-arborescence est presque épuisée) + HYSTÉRÉSIS (seuils d'entrée et
-  // de sortie décalés de ~16 px : plus d'apparitions/disparitions en rafale au pixel près).
-  // Les hauteurs réelles des bulles sont mémorisées (pin._hm) pour les passes suivantes.
-  // ENTRÉE = passage du BAS de la CARTE-QUESTION réelle sous le seuil (v4.21.2, retour
-  // d'usage réel : le haut du CONTENEUR .pl-decwrap — la carte en est le 1ᵉʳ enfant —
-  // faisait apparaître la bulle PAR-DESSUS sa propre carte encore visible ; aux niveaux
-  // imbriqués le seuil, plus bas d'une pile, posait la bulle sur une carte PLEINEMENT
-  // visible, qui dépassait autour de la bulle indentée — « doublon »). La bulle n'apparaît
-  // que quand la carte qu'elle remplace a quitté l'écran ; la SORTIE (fin de la
-  // sous-arborescence) reste mesurée sur le conteneur entier.
-  const num={};flowPlan(f).order.forEach((id,i)=>{num[id]=i+1;});
-  const prevIds=new Set(pin._k?pin._k.split('|').map(s=>s.split(':')[0]):[]);
-  // Option précédente par décision (v4.22.0) : détecte un chip « › option » qui change
-  // dans une bulle CONSERVÉE — seul le chip s'anime alors, jamais la bulle entière.
-  const prevOi={};if(pin._k)pin._k.split('|').forEach(s=>{const p=s.split(':');prevOi[p[0]]=p[1];});
-  const hmap=pin._hm||{};
-  if(pr.bottom<stickV+40*Z){off();return;}
-  let acc=stickV;const picked=[];
-  plan.querySelectorAll('.pl-decwrap').forEach(dw=>{
-    const nd=dw.querySelector(':scope>.pl-nd.dec');const decId=nd?nd.dataset.plgo:'';
-    const b=(f.blocks||[]).find(x=>x.id===decId);if(!b)return;
-    const r=dw.getBoundingClientRect();
-    const rc=nd.getBoundingClientRect();   // carte-question réelle (pas le conteneur)
-    const was=prevIds.has(decId);
-    const hEst=hmap[decId]||46*Z;
-    const inTop=rc.bottom<acc+(was?6:-6)*Z;
-    const inBot=r.bottom>acc+hEst+(was?10:26)*Z;
-    if(inTop&&inBot){picked.push({decId,b,dw,r});acc+=hEst+3*Z;}});
-  if(!picked.length){off();return;}
-  // « › option » à la ligne de lecture FINALE (bas de pile) — branche SEULE SUR SA RANGÉE
-  // uniquement (v4.14.2 : des colonnes côte à côte sont toutes sous les yeux).
-  const lineY=acc+8*Z;
-  const chain=picked.map(p=>{
-    let oi=-1,hitR=null;const rects=[];
-    p.dw.querySelectorAll(':scope>.pl-cols>.pl-br').forEach((br,i)=>{const r2=br.getBoundingClientRect();rects.push(r2);
-      if(r2.top<lineY&&r2.bottom>lineY){oi=i;hitR=r2;}});
-    if(hitR&&rects.some((r2,i)=>i!==oi&&r2.top<hitR.bottom-4&&r2.bottom>hitR.top+4))oi=-1;
-    return {decId:p.decId,b:p.b,oi,indent:Math.max(0,Math.round((p.r.left-pr.left)/Z))};});
-  const key=chain.map(c=>c.decId+':'+c.oi).join('|');
-  if(pin._k!==key){pin._k=key;
-    pin.innerHTML=chain.map(c=>{
-      const lbl=(c.oi>=0&&c.b.options&&c.b.options[c.oi])?String(stripBold(c.b.options[c.oi].label||'')).trim():'';
-      // v4.22.0 : micro-animation d'entrée SEULEMENT sur ce qui est nouveau — bulle absente
-      // du rendu précédent, ou chip d'option qui change dans une bulle conservée.
-      const fresh=!prevIds.has(c.decId);
-      const chipNew=!fresh&&lbl&&String(c.oi)!==prevOi[c.decId];
-      return `<div class="pl-nd dec${fresh?' pin-in':''}" data-plgo="${esc(c.decId)}" tabindex="-1" style="margin-left:${c.indent}px"><span class="pl-nn" aria-hidden="true">${num[c.decId]||'·'}</span><div class="pl-nt"><span class="pnt">${esc(c.b.title)||'Décision'}</span>${lbl?`<span class="pinchip${chipNew?' pin-in':''}">› ${esc(lbl)}</span>`:''}</div></div>`;}).join('');
-    pin.hidden=false;   // AVANT la mesure ([hidden] = display:none -> hauteurs nulles)
-    const hm={};[...pin.children].forEach((el,i)=>{if(chain[i])hm[chain[i].decId]=el.getBoundingClientRect().height;});
-    pin._hm=Object.assign(hmap,hm);}
-  pin.hidden=false;
-  pin.style.left=Math.round(pr.left/Z)+'px';
-  pin.style.width=Math.round(pr.width/Z)+'px';
-  pin.style.top=Math.round(stickV/Z)+'px';}
+  const cards=[...plan.querySelectorAll('.pl-decwrap>.pl-nd.dec')];
+  if(!cards.length)return;
+  // PHASE LECTURE : rectangle de chaque carte + rectangles des branches directes de sa
+  // décision ET de leurs étiquettes d'option (aucune écriture de style dans cette phase).
+  const geo=new Map();
+  cards.forEach(nd=>{
+    const brs=[...nd.parentElement.querySelectorAll(':scope>.pl-cols>.pl-br')].map(br=>{
+      const lab=br.querySelector(':scope>.pl-bl');
+      return {r:br.getBoundingClientRect(),labBottom:lab?lab.getBoundingClientRect().bottom:-Infinity};});
+    geo.set(nd,{r:nd.getBoundingClientRect(),brs});});
+  // PHASE ÉCRITURE 1 : top sticky cumulé de chaque carte.
+  cards.forEach(nd=>{
+    let sum=0;
+    for(let el=nd.parentElement.parentElement;el&&el!==plan;el=el.parentElement){
+      if(el.classList&&el.classList.contains('pl-decwrap')){
+        const anc=el.querySelector(':scope>.pl-nd.dec');const g=anc&&geo.get(anc);
+        if(g)sum+=g.r.height+3*Z;}}
+    const topCss=Math.round((stickV+sum)/Z);
+    if(nd._stTop!==topCss){nd._stTop=topCss;nd.style.top=topCss+'px';}});
+  // PHASE ÉCRITURE 2 : état « stuck » + chip « › option ». Un chip qui APPARAÎT ou CHANGE
+  // s'anime (pin-in, v4.22.0) ; sa disparition est instantanée (registre SORTIE).
+  cards.forEach(nd=>{
+    const g=geo.get(nd);
+    const stuck=g.r.top<=nd._stTop*Z+1.5*Z;
+    nd.classList.toggle('stuck',stuck);
+    let lbl='';
+    if(stuck){
+      const lineY=g.r.bottom+8*Z;
+      // Régions JOINTIVES : la zone d'une branche court jusqu'au HAUT de la suivante (plus
+      // de trou de quelques px entre deux branches où le chip clignotait, mesuré v4.22.1).
+      let oi=-1;
+      g.brs.forEach((b2,i)=>{
+        const zTop=b2.r.top,zBot=(i+1<g.brs.length?g.brs[i+1].r.top:b2.r.bottom);
+        if(zTop<lineY&&zBot>lineY)oi=i;});
+      // Branches côte à côte (>= 640 px) : toutes sous les yeux, pas de chip (v4.14.2).
+      if(oi>=0){const hit=g.brs[oi].r;
+        if(g.brs.some((b2,i)=>i!==oi&&b2.r.top<hit.bottom-4&&b2.r.bottom>hit.top+4))oi=-1;}
+      // « NI AVANT NI APRÈS » (v4.22.1, retour d'usage — mesuré : le chip apparaissait
+      // l'étiquette encore ~50 px sous la carte) : le chip ne s'affiche qu'une fois
+      // l'ÉTIQUETTE d'option passée DERRIÈRE la carte épinglée — il la REMPLACE à
+      // l'instant où elle se cache (même doctrine de continuité que le sticky) ; tant
+      // qu'elle est visible, elle porte la réponse elle-même.
+      if(oi>=0&&g.brs[oi].labBottom>g.r.bottom+2*Z)oi=-1;
+      const b=(f.blocks||[]).find(x=>x.id===nd.dataset.plgo);
+      if(oi>=0&&b&&b.options&&b.options[oi])lbl=String(stripBold(b.options[oi].label||'')).trim();}
+    const chip=nd.querySelector(':scope>.pinchip');
+    if(lbl){
+      if(!chip)nd.insertAdjacentHTML('beforeend','<span class="pinchip pin-in">› '+esc(lbl)+'</span>');
+      else if(chip._lbl!==lbl){chip.textContent='› '+lbl;chip.classList.remove('pin-in');void chip.offsetWidth;chip.classList.add('pin-in');}
+      nd.querySelector(':scope>.pinchip')._lbl=lbl;
+    }else if(chip)chip.remove();
+  });}
 // Recalage AUTOMATIQUE : toute variation de hauteur de l'en-tête (taille du texte, bandeau de
-// crise, repli au défilement, rotation) recale la base du fil collant (v4.13.1).
+// crise, repli au défilement, rotation) recale les tops du fil épinglé (v4.13.1).
 if(window.ResizeObserver){const _hbRO=new ResizeObserver(()=>{
   if(state.view==='read'&&state.readMode==='overview'&&state.fiche&&hasFlow(state.fiche))ovPlanStick();});
   const _hb=document.querySelector('header.bar');if(_hb)_hbRO.observe(_hb);}
