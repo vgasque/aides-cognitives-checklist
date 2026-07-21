@@ -1,7 +1,7 @@
-<!-- @dsCard group="Composants" name="Formulaires" subtitle="Recherche, champs, sélecteur de catégories, code OTP" viewport="760x1350" -->
+<!-- @dsCard group="Mode crise" name="Plan de l’aide" subtitle="Organigramme hybride : rails, branches, repli, ↺ reprendre à n" viewport="760x1400" -->
 <!doctype html><html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Formulaires — Aides cognitives</title>
+<title>Plan de l’aide — Aides cognitives</title>
 <style>
   /* Tokens : TOUTE nouvelle couleur passe par ici (pas de hex ad hoc dans les règles).
      PALETTE V5 « bleu clinique » (canvas V5 Explorations, v4.0.4) : --primary bleu = identité et
@@ -2234,30 +2234,42 @@
 </style></head><body>
 <div class="ds-scope" data-theme="light"><p class="ds-lab">Thème clair</p>
 
-<div style="max-width:520px">
-  <div class="ds-row" style="flex-wrap:nowrap"><div class="search" style="flex:1"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input placeholder="Rechercher une fiche…"></div><button class="btn-new">Créer</button></div>
-  <div class="field"><label>Titre de la fiche</label><input type="text" value="Choc anaphylactique"></div>
-  <div class="row2">
-    <div class="field"><label>Catégorie</label><select><option>Urgence vitale</option></select></div>
-    <div class="field"><label>Validation <span class="hint">MM/AAAA</span></label><input type="text" value="03/2026"></div>
+<div style="max-width:680px">
+  <div class="ov-plan-h"><span class="ovs-t">Plan de l’aide</span><span class="ovs-sub">· structure complète — taper un bloc = y aller</span><span class="pl-views"><button type="button" class="ovs-tgl on" data-plview="plan" aria-pressed="true">Détails</button><button type="button" class="ovs-tgl" data-plview="ladder" aria-pressed="false">Échelle</button><button type="button" class="ovs-tgl" data-plview="svg" aria-pressed="false">Schéma</button></span></div>
+  <div class="ov-plan">
+    <div class="pl-nd done" role="button" tabindex="0"><span class="pl-nn" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg></span><div class="pl-nt">Reconnaître l’arrêt<ul class="pl-stp"><li class="crit">Absence de pouls carotidien</li></ul></div><span class="pl-nm">2/2</span></div>
+    <div class="pl-decwrap">
+      <div class="pl-nd dec pd0 cur" role="button" tabindex="0"><span class="pl-nn" aria-hidden="true">2</span><div class="pl-nt">Analyse du rythme<span class="pl-x">×3</span><span class="pl-here">ici</span></div><span class="pl-nm">✓</span></div>
+      <div class="pl-q">Le rythme est-il choquable&nbsp;?</div>
+      <div class="pl-cols c2">
+        <div class="pl-br taken"><button type="button" class="pl-bl pd1 tk" aria-expanded="true"><span class="pl-tk">✓ </span>Oui — FV / TV sans pouls<span class="pl-chv">▾</span></button>
+          <div class="pl-nd" role="button" tabindex="0"><span class="pl-nn" aria-hidden="true">3</span><div class="pl-nt">Choc électrique externe<ul class="pl-stp"><li class="crit">Choc biphasique <span class="pl-r">150–200 J</span></li><li class="vig">Reprise immédiate <span class="pl-r">2 min RCP</span></li></ul></div><span class="pl-nm">0/2</span></div>
+          <div class="pl-elbow"><button type="button" class="pl-lnk loop" data-plref="x">↺ reprendre à 2 · Analyse du rythme</button></div></div>
+        <div class="pl-br off folded"><button type="button" class="pl-bl pd1" aria-expanded="false">Non — asystolie<span class="pl-offtag"> · hors chemin</span><span class="pl-sum"> — 2 blocs · 1 ✓ · ↺ 2</span><span class="pl-chv">▸</span></button></div>
+      </div>
+    </div>
+    <div class="pl-end">▪ fin de l’algorithme</div>
   </div>
-  <div class="field"><label>Contexte local</label><textarea rows="3">Chariot d’urgence : salle 2. Adrénaline au réfrigérateur.</textarea></div>
-  <div class="field"><label>Catégorie</label><div class="cat-picker"><button class="cat-chip-selected" style="--catcol:#806311"><span class="cat-dot"></span>Toxicologie</button><button class="cat-chip-other">Autre…</button></div></div>
-  <input class="auth-field auth-code" value="482913" aria-label="Code reçu">
 </div>
-<p class="ds-cap">Fond des champs = --input-bg (jamais codé en dur) ; bordure --line-strong (≥ 3:1) ; focus = outline 2px --primary ; police 16px (anti-zoom iOS).</p></div>
+<p class="ds-cap">Structure complète façon algorithme papier / checklist conditionnelle QRH — flowPlan(f) PURE : le TRONC reprend au point de convergence (post-dominateur immédiat), une cible déjà décrite devient « ↺ reprendre à n » (les BOUCLES deviennent lisibles, ex. cycles 2 min d’un ACR), chaque bloc n’apparaît qu’UNE fois. flowPlan().order = NUMÉROTATION COMMUNE (plan, journal, chips, statique). Le plan est IMMUABLE et INERTE côté cochage (leçon v4.6, RE-CONFIRMÉE en v4.12 : jamais de cases — la trace vit dans le journal) ; il porte un état LÉGER (✓, ● ici, ×n) et sert à NAVIGUER. ORGANIGRAMME HYBRIDE : branches côte à côte quand l’écran le permet, empilées sinon — UNE SEULE COLONNE sous 640 px (v4.21.1, retour d’usage : des colonnes de ~150 px émiettaient les mots cliniques lettre à lettre) ; .pl-cols plafonnée par c1…c4 (sans ce plafond, auto-fit force des pistes de 148 px). RAIL de branche 3 px : bleu = prise, pointillé estompé + « hors chemin » = écartée — la couleur n’est JAMAIS seule. Repli par branche en ligne-bilan (≥ 44 px), hors chemin auto-repliée, jamais bloquant. TROIS AFFICHAGES (v4.18.0, ordre ECAM E/WD → SD) : Détails / Échelle / Schéma.</p></div>
 <div class="ds-scope" data-theme="dark"><p class="ds-lab">Thème sombre</p>
 
-<div style="max-width:520px">
-  <div class="ds-row" style="flex-wrap:nowrap"><div class="search" style="flex:1"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input placeholder="Rechercher une fiche…"></div><button class="btn-new">Créer</button></div>
-  <div class="field"><label>Titre de la fiche</label><input type="text" value="Choc anaphylactique"></div>
-  <div class="row2">
-    <div class="field"><label>Catégorie</label><select><option>Urgence vitale</option></select></div>
-    <div class="field"><label>Validation <span class="hint">MM/AAAA</span></label><input type="text" value="03/2026"></div>
+<div style="max-width:680px">
+  <div class="ov-plan-h"><span class="ovs-t">Plan de l’aide</span><span class="ovs-sub">· structure complète — taper un bloc = y aller</span><span class="pl-views"><button type="button" class="ovs-tgl on" data-plview="plan" aria-pressed="true">Détails</button><button type="button" class="ovs-tgl" data-plview="ladder" aria-pressed="false">Échelle</button><button type="button" class="ovs-tgl" data-plview="svg" aria-pressed="false">Schéma</button></span></div>
+  <div class="ov-plan">
+    <div class="pl-nd done" role="button" tabindex="0"><span class="pl-nn" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg></span><div class="pl-nt">Reconnaître l’arrêt<ul class="pl-stp"><li class="crit">Absence de pouls carotidien</li></ul></div><span class="pl-nm">2/2</span></div>
+    <div class="pl-decwrap">
+      <div class="pl-nd dec pd0 cur" role="button" tabindex="0"><span class="pl-nn" aria-hidden="true">2</span><div class="pl-nt">Analyse du rythme<span class="pl-x">×3</span><span class="pl-here">ici</span></div><span class="pl-nm">✓</span></div>
+      <div class="pl-q">Le rythme est-il choquable&nbsp;?</div>
+      <div class="pl-cols c2">
+        <div class="pl-br taken"><button type="button" class="pl-bl pd1 tk" aria-expanded="true"><span class="pl-tk">✓ </span>Oui — FV / TV sans pouls<span class="pl-chv">▾</span></button>
+          <div class="pl-nd" role="button" tabindex="0"><span class="pl-nn" aria-hidden="true">3</span><div class="pl-nt">Choc électrique externe<ul class="pl-stp"><li class="crit">Choc biphasique <span class="pl-r">150–200 J</span></li><li class="vig">Reprise immédiate <span class="pl-r">2 min RCP</span></li></ul></div><span class="pl-nm">0/2</span></div>
+          <div class="pl-elbow"><button type="button" class="pl-lnk loop" data-plref="x">↺ reprendre à 2 · Analyse du rythme</button></div></div>
+        <div class="pl-br off folded"><button type="button" class="pl-bl pd1" aria-expanded="false">Non — asystolie<span class="pl-offtag"> · hors chemin</span><span class="pl-sum"> — 2 blocs · 1 ✓ · ↺ 2</span><span class="pl-chv">▸</span></button></div>
+      </div>
+    </div>
+    <div class="pl-end">▪ fin de l’algorithme</div>
   </div>
-  <div class="field"><label>Contexte local</label><textarea rows="3">Chariot d’urgence : salle 2. Adrénaline au réfrigérateur.</textarea></div>
-  <div class="field"><label>Catégorie</label><div class="cat-picker"><button class="cat-chip-selected" style="--catcol:#806311"><span class="cat-dot"></span>Toxicologie</button><button class="cat-chip-other">Autre…</button></div></div>
-  <input class="auth-field auth-code" value="482913" aria-label="Code reçu">
 </div>
-<p class="ds-cap">Fond des champs = --input-bg (jamais codé en dur) ; bordure --line-strong (≥ 3:1) ; focus = outline 2px --primary ; police 16px (anti-zoom iOS).</p></div>
+<p class="ds-cap">Structure complète façon algorithme papier / checklist conditionnelle QRH — flowPlan(f) PURE : le TRONC reprend au point de convergence (post-dominateur immédiat), une cible déjà décrite devient « ↺ reprendre à n » (les BOUCLES deviennent lisibles, ex. cycles 2 min d’un ACR), chaque bloc n’apparaît qu’UNE fois. flowPlan().order = NUMÉROTATION COMMUNE (plan, journal, chips, statique). Le plan est IMMUABLE et INERTE côté cochage (leçon v4.6, RE-CONFIRMÉE en v4.12 : jamais de cases — la trace vit dans le journal) ; il porte un état LÉGER (✓, ● ici, ×n) et sert à NAVIGUER. ORGANIGRAMME HYBRIDE : branches côte à côte quand l’écran le permet, empilées sinon — UNE SEULE COLONNE sous 640 px (v4.21.1, retour d’usage : des colonnes de ~150 px émiettaient les mots cliniques lettre à lettre) ; .pl-cols plafonnée par c1…c4 (sans ce plafond, auto-fit force des pistes de 148 px). RAIL de branche 3 px : bleu = prise, pointillé estompé + « hors chemin » = écartée — la couleur n’est JAMAIS seule. Repli par branche en ligne-bilan (≥ 44 px), hors chemin auto-repliée, jamais bloquant. TROIS AFFICHAGES (v4.18.0, ordre ECAM E/WD → SD) : Détails / Échelle / Schéma.</p></div>
 </body></html>

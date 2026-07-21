@@ -1,4 +1,4 @@
-# Aides cognitives — Lignes directrices du design (v4.5)
+# Aides cognitives — Lignes directrices du design (v4.22)
 
 PWA médicale monofichier, utilisée **en urgence vitale, sous stress** : la clarté et la
 robustesse priment sur toute considération esthétique. Tout choix de design se juge à
@@ -123,3 +123,144 @@ vert/ambre/rouge en accent : les registres sémantiques sont réservés.
 - **Toast** : non bloquant, ardoise `--rt-*` fixe, barre de vie ; l'alerte de minuteur
   est une banderole ambre vif pulsée, distincte du chrome ; en session de crise, tout
   est mis en attente.
+
+## Parcours de soin — le rail ①②③ (v4.4.0)
+
+La vue lecture d'une fiche est structurée par un rail vertical numéroté
+(`<ol class="care-path">`) : ① **Confirmer le diagnostic** → ② **Prise en charge** →
+③ **Surveillances & pièges**, puis les annexes (journal, galerie, documents, note).
+
+- Pastilles : bleu = active (`aria-current="step"`), vert ✓ = faite, neutre cerclé =
+  à venir. **Jamais d'ambre ni de rouge dans le rail** : ce sont des registres d'alerte,
+  ils y perdraient leur sens.
+- La séquence est **SUGGÉRÉE, jamais bloquante** : la 1ʳᵉ action démarre la session, où
+  qu'elle soit. Étapes vides omises (numérotation recalculée) ; une seule étape → pas de rail.
+- « Ne pas oublier » reste le **CHAPEAU hors numérotation** (`.forget-strip`, bord
+  `--critical-bd`) : ce qui tue si on l'oublie se lit AVANT toute séquence.
+
+## Les deux modes de lecture d'une aide (v4.13.0, fusionnés v4.16.0)
+
+Une fiche À ALGORITHME se lit de deux façons, par une bascule **UNIQUE** en tête
+(`#readTopSeg`, masquée si la fiche n'a pas d'algorithme) :
+
+- **Dynamique** — le JOURNAL chronologique : ce que je fais, maintenant.
+- **Statique** — le TABLEAU complet façon aide SFAR : toute l'aide d'un coup d'œil.
+
+Les deux vues partagent le MÊME état de session ; la préférence est **par utilisateur**.
+L'ancien 3ᵉ mode « guidé » n'existe plus : il est fusionné dans le journal.
+
+## Journal de parcours & fil condensé (v4.9.0 / v4.16.0 — modèle ECAM)
+
+**Doctrine fondatrice (leçon v4.6→v4.9)** : ne JAMAIS poser un état temporel sur une carte
+spatiale — un bloc parcouru plusieurs fois y perd l'utilisateur. La chronologie EST la
+structure : chaque passage est une **carte POSTÉE à la suite**, rien ne mute au-dessus, on
+lit toujours vers le bas. Pas de curseur : la position est le BOUT.
+
+Trois présentations par passage, calculées par une fonction pure :
+
+1. **carte dépliée** — le bout, et tout passage incomplet ;
+2. **ligne d'état** relisible — un passage complet récent ;
+3. **chip** — n° + titre abrégé + ✓, ou n° + « › réponse » **en toutes lettres** pour une
+   décision (le numéro seul ne parle pas à un humain).
+
+**Invariants** : le BOUT est toujours une carte ; un passage **INCOMPLET n'est JAMAIS une
+chip** (c'est ce qui fait la conformité) ; une rangée de plus de 4 chips se replie en
+**ligne-bilan ECL** (« ✓ n passages · a→b ») — modèle Boeing : une checklist terminée se
+referme en un statut d'une ligne. Le repli manuel PERSISTE ; le dépliage est une
+**consultation transitoire**, effacée au geste de navigation suivant.
+
+Changer d'avis ne réécrit jamais le passé : c'est un **nouveau passage** en bout de journal.
+
+## Plan de l'aide (v4.10.0 / v4.12.0 / v4.18.0)
+
+Sous le journal, la **structure complète** façon algorithme papier / checklist
+conditionnelle QRH. Le tronc reprend au point de convergence, une cible déjà décrite
+devient « ↺ reprendre à n » (les BOUCLES deviennent lisibles), chaque bloc n'apparaît
+qu'UNE fois. Sa numérotation est **COMMUNE** à toutes les vues (journal, chips, statique).
+
+- **Le plan est IMMUABLE et INERTE côté cochage** (leçon v4.6, re-confirmée v4.12) :
+  jamais de cases — la trace vit dans le journal. Il porte un état LÉGER (✓, ● ici, ×n)
+  et sert à **NAVIGUER**.
+- **Organigramme hybride** : branches côte à côte quand l'écran le permet, empilées sinon
+  — **une seule colonne sous 640 px** (retour d'usage : des colonnes de ~150 px émiettaient
+  les mots cliniques lettre à lettre).
+- **Rail de branche 3 px** : bleu = prise, pointillé estompé + « hors chemin » = écartée.
+  La couleur n'est jamais seule. Branche hors chemin auto-repliée, jamais bloquant.
+- **Trois affichages** (ordre ECAM E/WD → SD : l'ACTION d'abord, la structure en annexe) :
+  **Détails** (organigramme), **Échelle** (une ligne par bloc), **Schéma** (le SVG spatial).
+- **Fil d'ancêtres sticky** : les cartes-questions RÉELLES s'épinglent sous l'en-tête —
+  aucune copie synthétique, aucun mouvement autonome (tout mouvement est le geste de
+  défilement). Chaque niveau se replie derrière son ancêtre au décrochage (modèle ECL :
+  une sous-procédure terminée se referme dans sa procédure mère).
+
+## Mode statique — le tableau (v4.13.0 / v4.14.0)
+
+Toute l'aide en **cellules télégraphiques carrelées** à joint 3 px, dans l'esprit des aides
+SFAR/CAMR. Tronc = cellules pleine largeur ; décision = **bande au registre ATTENTION**
+(titre + question) + branches en colonnes ; **une seule colonne sous 640 px**, avec
+indentation et rail de branche (la fourche étant masquée en pile, rail + chip portent la
+structure).
+
+- **INERTE côté cochage**, comme le plan : l'état de session est PEINT en lecture seule.
+- Taper une cellule = y aller. **Jamais de démarrage de session, jamais de défilement** :
+  rien ne bouge sous le doigt (flash d'acquittement).
+- **AUCUN texte bleu dans les cellules** : le bleu ne marque QUE la position (● ici) et la
+  reprise ↺. La réponse attendue y est une pilule mono **neutre**.
+- Les flèches (fourche ambre, convergence grise, retours bleus) sont **mesurées après
+  rendu**. Empilé, elles disparaissent : **la flèche n'est jamais seule**, l'information
+  reste textuelle.
+
+## Challenge-response (v4.11.0 — AC 120-71B, Do-Verify)
+
+Trois briques, **aucun champ ajouté au modèle** (l'export reste inchangé, un ancien client
+reste lisible) :
+
+1. **« challenge :: réponse »** — séparateur explicite DANS la chaîne d'étape (même
+   philosophie opt-in que ⚠/△). Rendu en pilule mono : la **réponse attendue**.
+2. **Mode Vérification** — la passe redéroule TOUTES les étapes, déjà cochées comprises.
+   « Constaté ✓ » coche ; « △ Écart » avance **sans cocher** et ne **DÉCOCHE JAMAIS** (la
+   coche est la trace). Résumé final = liste des non-cochées.
+3. **Mode lecteur** (binôme, plein écran) — UN challenge à la fois, gros caractères, zone
+   de validation ≥ 72 px. Jamais d'avance tant que tout n'est pas confirmé.
+
+**Garde-fou télégraphique** non bloquant : un bloc > 7 étapes ou un challenge > 110
+caractères est signalé à la rédaction — une checklist ne se lit pas en paragraphes.
+
+## Mouvement & ancrage (doctrine ECAM)
+
+Le mouvement est un signal, pas une décoration. En situation de soin :
+
+- **Rien ne bouge sous le doigt.** Tout re-rendu de démarrage ou d'avancement est **ANCRÉ** :
+  l'élément déclencheur ne se déplace pas d'un pixel à l'écran (compensation mesurée).
+- On ne défile vers une nouvelle carte que si elle n'est **pas déjà entièrement visible**.
+- Une **alarme ne déplace jamais le contexte de travail** quand la session est sous les yeux :
+  bip/vibration + flash bref, puis persistance en segment ambre. Banderole, flash écran et
+  notification système sont **réservés à la session hors de vue**.
+- Le mouvement est réservé à l'alarme : minuteurs et chapeau « Ne pas oublier » n'animent
+  jamais. Tout est en transform/opacity, et inerte sous `prefers-reduced-motion`.
+- **Piège de mesure** : le réglage de taille du texte est un zoom CSS — toute mesure relue
+  doit être divisée par ce zoom avant d'être réinjectée.
+
+## Contenu rédigé (v4.4.3 / v4.5.4)
+
+- La **seule couleur admise** y est celle des registres, via des **encadrés typés** (syntaxe
+  des alerts GitHub) — jamais de couleur décorative libre : ici, rouge = « ça tue si on
+  l'oublie », ambre = « c'est là qu'on se trompe ». Un rouge de mise en page dégraderait la
+  crédibilité du rouge des étapes critiques.
+- `==surligné==` = surligneur **achromatique** (registre MEMO) : faire ressortir un mot sans
+  emprunter une couleur qui a un sens vital.
+- **Listes cochables** `- [ ]` pour la vérification rapide en lecture : coches **éphémères**
+  par ouverture, case cochée au registre CONFIRMATION, **texte jamais barré** (on doit
+  pouvoir relire).
+- Taille des images réglée **par image dans le modèle** (jeu fermé), jamais dans la syntaxe,
+  et rendue par une CLASSE — jamais un nombre interpolé dans un style.
+
+## Ce qui a été RETIRÉ (ne pas réintroduire sans besoin constaté)
+
+- **Minimaps** (v4.17.0) : la bande de chips-blocs de l'en-tête et le panneau « Algorithme —
+  position » du rail droit sont supprimés — redondants depuis que le fil condensé et le plan
+  portent la numérotation commune, l'état par bloc et le saut vers un bloc.
+- **Panneau « Algorithme » avant le journal** (v4.18.0) : le SVG est devenu le 3ᵉ affichage du
+  plan ; il ne subsiste en tête que pour les fiches SANS algorithme.
+- **Bulles d'ancêtres synthétiques** du plan (v4.22.1) : remplacées par l'épinglage des cartes
+  RÉELLES — quatre itérations ont montré qu'une copie flottante coûte plus qu'elle ne rend.

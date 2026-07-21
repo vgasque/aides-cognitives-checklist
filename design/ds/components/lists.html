@@ -2227,11 +2227,15 @@
   .ds-static #alerts,.ds-static .alerts{position:static;padding:0;align-items:flex-start}
   .ds-type{margin:0 0 16px}
   .ds-type>small{display:block;font:600 10px/1 var(--mono);color:var(--ink-soft);margin-bottom:4px}
+  /* Le mode lecteur est un plein écran fixe (#readerMode{position:fixed;inset:0}) : on le
+   * ramène dans le flux pour l'aperçu, sans toucher à son CSS interne (rm-*). */
+  .ds-reader #readerMode{position:static;inset:auto;display:flex;height:470px;z-index:auto;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .ds-reader .rm-top{padding-top:9px}
 </style></head><body>
 <div class="ds-scope" data-theme="light"><p class="ds-lab">Thème clair</p>
 
 <div style="max-width:560px">
-  <div class="forget-strip"><div class="block-h h-forget"><span class="pip"></span>Ne pas oublier</div><ul class="forget-list"><li>Retirer l’allergène (perfusion, latex…)</li><li>Noter l’heure de la première adrénaline</li></ul></div>
+  <div class="forget-strip"><div class="fs-k">■ Ne pas oublier</div><div class="fs-list"><div class="fs-i"><span class="ftxt">Retirer l’allergène (perfusion, latex…)</span></div><div class="fs-i"><span class="ftxt">Noter l’heure de la première adrénaline</span></div></div></div>
   <div class="nav-wrap"><div class="node-title">Bloc · Mesures immédiates — <span>1/3</span> coché</div>
     <ol class="steps">
       <li class="done" role="checkbox" aria-checked="true"><span class="box">✓</span><span class="txt">Arrêter l’exposition à l’allergène</span></li>
@@ -2253,7 +2257,7 @@
 <div class="ds-scope" data-theme="dark"><p class="ds-lab">Thème sombre</p>
 
 <div style="max-width:560px">
-  <div class="forget-strip"><div class="block-h h-forget"><span class="pip"></span>Ne pas oublier</div><ul class="forget-list"><li>Retirer l’allergène (perfusion, latex…)</li><li>Noter l’heure de la première adrénaline</li></ul></div>
+  <div class="forget-strip"><div class="fs-k">■ Ne pas oublier</div><div class="fs-list"><div class="fs-i"><span class="ftxt">Retirer l’allergène (perfusion, latex…)</span></div><div class="fs-i"><span class="ftxt">Noter l’heure de la première adrénaline</span></div></div></div>
   <div class="nav-wrap"><div class="node-title">Bloc · Mesures immédiates — <span>1/3</span> coché</div>
     <ol class="steps">
       <li class="done" role="checkbox" aria-checked="true"><span class="box">✓</span><span class="txt">Arrêter l’exposition à l’allergène</span></li>

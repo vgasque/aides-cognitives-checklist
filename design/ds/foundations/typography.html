@@ -2227,6 +2227,10 @@
   .ds-static #alerts,.ds-static .alerts{position:static;padding:0;align-items:flex-start}
   .ds-type{margin:0 0 16px}
   .ds-type>small{display:block;font:600 10px/1 var(--mono);color:var(--ink-soft);margin-bottom:4px}
+  /* Le mode lecteur est un plein écran fixe (#readerMode{position:fixed;inset:0}) : on le
+   * ramène dans le flux pour l'aperçu, sans toucher à son CSS interne (rm-*). */
+  .ds-reader #readerMode{position:static;inset:auto;display:flex;height:470px;z-index:auto;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .ds-reader .rm-top{padding-top:9px}
 </style></head><body>
 <div class="ds-scope" data-theme="light"><p class="ds-lab">Thème clair</p>
 

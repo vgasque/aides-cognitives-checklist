@@ -20,11 +20,17 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const strict = process.argv.includes('--strict');
 const git = (...args) => execFileSync('git', args, { cwd: root, encoding: 'utf8' });
 
+// Seuls ces chemins sont PRODUITS par build.mjs. GUIDELINES.md, lui, est RÉDIGÉ À LA MAIN :
+// il ne doit ni compter comme une dérive, ni — surtout — être restauré par --strict (une
+// première version de ce script faisait `git checkout -- design/ds` et a effacé une
+// réécriture non committée de GUIDELINES.md).
+const GEN = ['design/ds/components', 'design/ds/foundations', 'design/ds/tokens'];
+
 // 1. Régénérer design/ds/ depuis index.html.
 execFileSync('node', ['design/build.mjs'], { cwd: root, stdio: 'inherit' });
 
-// 2. La sortie diffère-t-elle de ce qui est versionné ?
-const changed = git('status', '--porcelain', '--', 'design/ds').trim();
+// 2. La sortie GÉNÉRÉE diffère-t-elle de ce qui est versionné ?
+const changed = git('status', '--porcelain', '--', ...GEN).trim();
 
 if (!changed) {
   console.log('\n✓ design/ds/ est à jour avec index.html.');
@@ -35,8 +41,8 @@ console.log('\n⚠ design/ds/ a dérivé de index.html. Fiches concernées :');
 console.log(changed.split('\n').map(l => '   ' + l.trim()).join('\n'));
 
 if (strict) {
-  // Ne pas polluer l'espace de travail CI : restaurer la version versionnée.
-  git('checkout', '--', 'design/ds');
+  // Ne pas polluer l'espace de travail CI : restaurer les seuls fichiers GÉNÉRÉS.
+  git('checkout', '--', ...GEN);
   console.error('\n✗ Régénère et committe avant de pousser :  npm run design:build && git add design/ds');
   process.exit(1);
 }

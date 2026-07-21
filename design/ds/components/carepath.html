@@ -1,7 +1,7 @@
-<!-- @dsCard group="Composants" name="Formulaires" subtitle="Recherche, champs, sélecteur de catégories, code OTP" viewport="760x1350" -->
+<!-- @dsCard group="Mode crise" name="Parcours de soin" subtitle="Rail ①②③ (jamais d’ambre), bascule Dynamique / Statique" viewport="760x1250" -->
 <!doctype html><html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Formulaires — Aides cognitives</title>
+<title>Parcours de soin — Aides cognitives</title>
 <style>
   /* Tokens : TOUTE nouvelle couleur passe par ici (pas de hex ad hoc dans les règles).
      PALETTE V5 « bleu clinique » (canvas V5 Explorations, v4.0.4) : --primary bleu = identité et
@@ -2234,30 +2234,32 @@
 </style></head><body>
 <div class="ds-scope" data-theme="light"><p class="ds-lab">Thème clair</p>
 
-<div style="max-width:520px">
-  <div class="ds-row" style="flex-wrap:nowrap"><div class="search" style="flex:1"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input placeholder="Rechercher une fiche…"></div><button class="btn-new">Créer</button></div>
-  <div class="field"><label>Titre de la fiche</label><input type="text" value="Choc anaphylactique"></div>
-  <div class="row2">
-    <div class="field"><label>Catégorie</label><select><option>Urgence vitale</option></select></div>
-    <div class="field"><label>Validation <span class="hint">MM/AAAA</span></label><input type="text" value="03/2026"></div>
-  </div>
-  <div class="field"><label>Contexte local</label><textarea rows="3">Chariot d’urgence : salle 2. Adrénaline au réfrigérateur.</textarea></div>
-  <div class="field"><label>Catégorie</label><div class="cat-picker"><button class="cat-chip-selected" style="--catcol:#806311"><span class="cat-dot"></span>Toxicologie</button><button class="cat-chip-other">Autre…</button></div></div>
-  <input class="auth-field auth-code" value="482913" aria-label="Code reçu">
+<div style="max-width:560px">
+  <div class="seg read-seg" id="readTopSeg" role="tablist" aria-label="Mode de lecture"><span class="seg-pill" aria-hidden="true"></span><button type="button" class="seg-btn on" role="tab" aria-selected="true" data-readmode="dynamic">Dynamique</button><button type="button" class="seg-btn" role="tab" aria-selected="false" data-readmode="static">Statique</button></div>
+  <ol class="care-path">
+    <li class="cp-stage done"><span class="cp-n" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg></span><div class="cp-body"><div class="block-h cp-h">Diagnostic confirmé</div><ul class="flat"><li>Éruption + hypotension après injection</li></ul></div></li>
+    <li class="cp-stage on" aria-current="step"><span class="cp-n" aria-hidden="true">2</span><div class="cp-body"><div class="block-h cp-h">Prise en charge</div>
+      <div class="nav-wrap"><div class="node-title">Bloc · Mesures immédiates — <span>1/2</span> coché</div>
+        <ol class="steps"><li class="done" role="checkbox" aria-checked="true"><span class="box"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg></span><span class="txt">Arrêter l’exposition à l’allergène</span></li>
+        <li class="crit" role="checkbox" aria-checked="false"><span class="box"></span><span class="txt">Adrénaline IM 0,5&nbsp;mg</span></li></ol>
+      </div></div></li>
+    <li class="cp-stage off"><span class="cp-n" aria-hidden="true">3</span><div class="cp-body"><div class="block-h cp-h">Surveillances &amp; pièges</div><ul class="flat verify"><li>Pression artérielle toutes les 5&nbsp;min</li></ul></div></li>
+  </ol>
 </div>
-<p class="ds-cap">Fond des champs = --input-bg (jamais codé en dur) ; bordure --line-strong (≥ 3:1) ; focus = outline 2px --primary ; police 16px (anti-zoom iOS).</p></div>
+<p class="ds-cap">Rail vertical numéroté de la vue lecture (v4.4.0) : ① Confirmer le diagnostic → ② Prise en charge → ③ Surveillances &amp; pièges, puis les annexes. Pastilles : bleu = active (aria-current="step"), vert ✓ = faite, neutre cerclé = à venir — JAMAIS d’ambre ni de rouge dans le rail (ce sont des registres d’alerte, ils y perdraient leur sens). La séquence est SUGGÉRÉE, jamais bloquante : la 1ʳᵉ action démarre la session où qu’elle soit. Étapes vides omises (numérotation recalculée) ; une seule étape → pas de rail. « Ne pas oublier » reste le CHAPEAU, hors numérotation. Au-dessus, #readTopSeg (v4.16.0) = bascule UNIQUE Dynamique ↔ Statique, masquée si la fiche n’a pas d’algorithme ; c’est la seule .seg re-rendue avec son contenu, d’où le glissement REJOUÉ (.seg-replay).</p></div>
 <div class="ds-scope" data-theme="dark"><p class="ds-lab">Thème sombre</p>
 
-<div style="max-width:520px">
-  <div class="ds-row" style="flex-wrap:nowrap"><div class="search" style="flex:1"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input placeholder="Rechercher une fiche…"></div><button class="btn-new">Créer</button></div>
-  <div class="field"><label>Titre de la fiche</label><input type="text" value="Choc anaphylactique"></div>
-  <div class="row2">
-    <div class="field"><label>Catégorie</label><select><option>Urgence vitale</option></select></div>
-    <div class="field"><label>Validation <span class="hint">MM/AAAA</span></label><input type="text" value="03/2026"></div>
-  </div>
-  <div class="field"><label>Contexte local</label><textarea rows="3">Chariot d’urgence : salle 2. Adrénaline au réfrigérateur.</textarea></div>
-  <div class="field"><label>Catégorie</label><div class="cat-picker"><button class="cat-chip-selected" style="--catcol:#806311"><span class="cat-dot"></span>Toxicologie</button><button class="cat-chip-other">Autre…</button></div></div>
-  <input class="auth-field auth-code" value="482913" aria-label="Code reçu">
+<div style="max-width:560px">
+  <div class="seg read-seg" id="readTopSeg" role="tablist" aria-label="Mode de lecture"><span class="seg-pill" aria-hidden="true"></span><button type="button" class="seg-btn on" role="tab" aria-selected="true" data-readmode="dynamic">Dynamique</button><button type="button" class="seg-btn" role="tab" aria-selected="false" data-readmode="static">Statique</button></div>
+  <ol class="care-path">
+    <li class="cp-stage done"><span class="cp-n" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg></span><div class="cp-body"><div class="block-h cp-h">Diagnostic confirmé</div><ul class="flat"><li>Éruption + hypotension après injection</li></ul></div></li>
+    <li class="cp-stage on" aria-current="step"><span class="cp-n" aria-hidden="true">2</span><div class="cp-body"><div class="block-h cp-h">Prise en charge</div>
+      <div class="nav-wrap"><div class="node-title">Bloc · Mesures immédiates — <span>1/2</span> coché</div>
+        <ol class="steps"><li class="done" role="checkbox" aria-checked="true"><span class="box"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg></span><span class="txt">Arrêter l’exposition à l’allergène</span></li>
+        <li class="crit" role="checkbox" aria-checked="false"><span class="box"></span><span class="txt">Adrénaline IM 0,5&nbsp;mg</span></li></ol>
+      </div></div></li>
+    <li class="cp-stage off"><span class="cp-n" aria-hidden="true">3</span><div class="cp-body"><div class="block-h cp-h">Surveillances &amp; pièges</div><ul class="flat verify"><li>Pression artérielle toutes les 5&nbsp;min</li></ul></div></li>
+  </ol>
 </div>
-<p class="ds-cap">Fond des champs = --input-bg (jamais codé en dur) ; bordure --line-strong (≥ 3:1) ; focus = outline 2px --primary ; police 16px (anti-zoom iOS).</p></div>
+<p class="ds-cap">Rail vertical numéroté de la vue lecture (v4.4.0) : ① Confirmer le diagnostic → ② Prise en charge → ③ Surveillances &amp; pièges, puis les annexes. Pastilles : bleu = active (aria-current="step"), vert ✓ = faite, neutre cerclé = à venir — JAMAIS d’ambre ni de rouge dans le rail (ce sont des registres d’alerte, ils y perdraient leur sens). La séquence est SUGGÉRÉE, jamais bloquante : la 1ʳᵉ action démarre la session où qu’elle soit. Étapes vides omises (numérotation recalculée) ; une seule étape → pas de rail. « Ne pas oublier » reste le CHAPEAU, hors numérotation. Au-dessus, #readTopSeg (v4.16.0) = bascule UNIQUE Dynamique ↔ Statique, masquée si la fiche n’a pas d’algorithme ; c’est la seule .seg re-rendue avec son contenu, d’où le glissement REJOUÉ (.seg-replay).</p></div>
 </body></html>

@@ -2227,17 +2227,25 @@
   .ds-static #alerts,.ds-static .alerts{position:static;padding:0;align-items:flex-start}
   .ds-type{margin:0 0 16px}
   .ds-type>small{display:block;font:600 10px/1 var(--mono);color:var(--ink-soft);margin-bottom:4px}
+  /* Le mode lecteur est un plein écran fixe (#readerMode{position:fixed;inset:0}) : on le
+   * ramène dans le flux pour l'aperçu, sans toucher à son CSS interne (rm-*). */
+  .ds-reader #readerMode{position:static;inset:auto;display:flex;height:470px;z-index:auto;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .ds-reader .rm-top{padding-top:9px}
 </style></head><body>
 <div class="ds-scope" data-theme="light"><p class="ds-lab">Thème clair</p>
 
 <div style="max-width:560px">
   <div class="live-sessions"><div class="ls-card"><span class="sess-dot"></span><div class="ls-info" role="button" tabindex="0"><b class="ls-k">Session en cours</b><span class="ls-t">Choc anaphylactique</span></div><span class="ls-chrono">14:32</span><button class="btn sm primary">Reprendre</button><button class="ls-end">Terminer</button></div></div>
+  <div class="last-sess" style="margin-top:12px"><span class="lsr-ic" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg></span><div class="lsr-tx"><b>Session terminée</b> — Arrêt cardiaque adulte · 12 min · 5/6 blocs ✓</div><button class="btn sm">Compte-rendu</button><button class="notice-x" aria-label="Masquer le bilan">×</button></div>
 </div>
+<p class="ds-cap">CARTE-BILAN DE FIN DE SESSION (.last-sess, v4.16.3, décision utilisateur) : après « Terminer », l’accueil affiche une carte ÉPHÉMÈRE au registre CONFIRMATION — titre · durée · k/n blocs ✓ + « Compte-rendu ». Elle vit en MÉMOIRE seulement (lastEndedSession, jamais persistée : la vérité archivée est la session) et disparaît d’un tap ou au démarrage de la session suivante — le débriefing est DISPONIBLE, jamais imposé (ECAM).</p>
 <p class="ds-cap">Carte de session vive (accueil) : liseré primaire, point pulsé + « Session en cours » (état ANNONCÉ en texte), CHRONO mono vivant, « Reprendre » = seul bouton plein ; « Terminer » = TEXTE rouge, jamais plein, jamais premier (registre « raccrocher » : l’arrêt stoppe les minuteurs — ne pas le « corriger » en ambre). En lecture : plus de bandeau session dans le contenu — « Terminer la session… » vit dans le menu ⋯ (rangée danger) et l’« Historique des sessions » s’ouvre en MODALE (Rouvrir / supprimer). La carte d’accueil de la fiche porte « ● En cours ».</p></div>
 <div class="ds-scope" data-theme="dark"><p class="ds-lab">Thème sombre</p>
 
 <div style="max-width:560px">
   <div class="live-sessions"><div class="ls-card"><span class="sess-dot"></span><div class="ls-info" role="button" tabindex="0"><b class="ls-k">Session en cours</b><span class="ls-t">Choc anaphylactique</span></div><span class="ls-chrono">14:32</span><button class="btn sm primary">Reprendre</button><button class="ls-end">Terminer</button></div></div>
+  <div class="last-sess" style="margin-top:12px"><span class="lsr-ic" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg></span><div class="lsr-tx"><b>Session terminée</b> — Arrêt cardiaque adulte · 12 min · 5/6 blocs ✓</div><button class="btn sm">Compte-rendu</button><button class="notice-x" aria-label="Masquer le bilan">×</button></div>
 </div>
+<p class="ds-cap">CARTE-BILAN DE FIN DE SESSION (.last-sess, v4.16.3, décision utilisateur) : après « Terminer », l’accueil affiche une carte ÉPHÉMÈRE au registre CONFIRMATION — titre · durée · k/n blocs ✓ + « Compte-rendu ». Elle vit en MÉMOIRE seulement (lastEndedSession, jamais persistée : la vérité archivée est la session) et disparaît d’un tap ou au démarrage de la session suivante — le débriefing est DISPONIBLE, jamais imposé (ECAM).</p>
 <p class="ds-cap">Carte de session vive (accueil) : liseré primaire, point pulsé + « Session en cours » (état ANNONCÉ en texte), CHRONO mono vivant, « Reprendre » = seul bouton plein ; « Terminer » = TEXTE rouge, jamais plein, jamais premier (registre « raccrocher » : l’arrêt stoppe les minuteurs — ne pas le « corriger » en ambre). En lecture : plus de bandeau session dans le contenu — « Terminer la session… » vit dans le menu ⋯ (rangée danger) et l’« Historique des sessions » s’ouvre en MODALE (Rouvrir / supprimer). La carte d’accueil de la fiche porte « ● En cours ».</p></div>
 </body></html>

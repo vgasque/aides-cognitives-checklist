@@ -1,7 +1,7 @@
-<!-- @dsCard group="Composants" name="Formulaires" subtitle="Recherche, champs, sélecteur de catégories, code OTP" viewport="760x1350" -->
+<!-- @dsCard group="Mode crise" name="Mode statique" subtitle="Tableau SFAR : cellules, bande de décision, colonnes, renvois" viewport="760x1450" -->
 <!doctype html><html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Formulaires — Aides cognitives</title>
+<title>Mode statique — Aides cognitives</title>
 <style>
   /* Tokens : TOUTE nouvelle couleur passe par ici (pas de hex ad hoc dans les règles).
      PALETTE V5 « bleu clinique » (canvas V5 Explorations, v4.0.4) : --primary bleu = identité et
@@ -2234,30 +2234,50 @@
 </style></head><body>
 <div class="ds-scope" data-theme="light"><p class="ds-lab">Thème clair</p>
 
-<div style="max-width:520px">
-  <div class="ds-row" style="flex-wrap:nowrap"><div class="search" style="flex:1"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input placeholder="Rechercher une fiche…"></div><button class="btn-new">Créer</button></div>
-  <div class="field"><label>Titre de la fiche</label><input type="text" value="Choc anaphylactique"></div>
-  <div class="row2">
-    <div class="field"><label>Catégorie</label><select><option>Urgence vitale</option></select></div>
-    <div class="field"><label>Validation <span class="hint">MM/AAAA</span></label><input type="text" value="03/2026"></div>
+<div style="max-width:680px">
+<div class="sv-wrap"><div class="sv-tb">
+  <div class="sv-cols c2">
+    <div class="sv-cell sv-inert"><p class="sv-h"><span class="sv-t">Confirmer</span></p><ul class="sv-stp"><li>Éruption + hypotension</li><li>Bronchospasme brutal</li></ul></div>
+    <div class="sv-cell sv-inert"><p class="sv-h"><span class="sv-t">Éliminer</span></p><ul class="sv-stp"><li>Malaise vagal</li><li>Œdème de Quincke isolé</li></ul></div>
   </div>
-  <div class="field"><label>Contexte local</label><textarea rows="3">Chariot d’urgence : salle 2. Adrénaline au réfrigérateur.</textarea></div>
-  <div class="field"><label>Catégorie</label><div class="cat-picker"><button class="cat-chip-selected" style="--catcol:#806311"><span class="cat-dot"></span>Toxicologie</button><button class="cat-chip-other">Autre…</button></div></div>
-  <input class="auth-field auth-code" value="482913" aria-label="Code reçu">
+  <div class="sv-cell done" data-svgo="a" role="button" tabindex="0"><p class="sv-h"><span class="sv-n" aria-hidden="true">1</span><span class="sv-t">Mesures immédiates</span><span class="sv-m">2/2</span></p><ul class="sv-stp"><li class="crit done">Arrêter l’allergène</li><li class="done">Surélever les jambes <span class="sv-r">45°</span></li></ul></div>
+  <div class="sv-decwrap">
+    <div class="sv-band cur" data-svgo="b" role="button" tabindex="0" aria-current="true"><span class="sv-n" aria-hidden="true">2</span><span class="sv-t"><b>Réponse à l’adrénaline</b> — la pression remonte-t-elle&nbsp;?</span><span class="sv-m">✓</span></div>
+    <div class="sv-fork" aria-hidden="true"></div>
+    <div class="sv-cols c2">
+      <div class="sv-br taken"><div class="sv-opt tk"><span class="sv-tk">✓ </span>Oui — PAS &gt; 90</div>
+        <div class="sv-cell" data-svgo="c" role="button" tabindex="0"><p class="sv-h"><span class="sv-n" aria-hidden="true">3</span><span class="sv-t">Surveillance</span><span class="sv-m">0/2</span></p><ul class="sv-stp"><li class="vig">Rebond possible <span class="sv-r">4–6 h</span></li></ul></div></div>
+      <div class="sv-br off"><div class="sv-opt">Non — choc réfractaire<span class="sv-offtag"> · hors chemin</span></div>
+        <div class="sv-cell off" data-svgo="d" role="button" tabindex="0"><p class="sv-h"><span class="sv-n" aria-hidden="true">4</span><span class="sv-t">Remplissage</span><span class="sv-m">—</span></p><p class="sv-off2">hors chemin</p></div>
+        <div class="sv-jrow"><button type="button" class="sv-jump loop">↺ 2 · Réponse à l’adrénaline</button></div></div>
+    </div>
+    <div class="sv-merge" aria-hidden="true"></div>
+  </div>
+</div></div>
 </div>
-<p class="ds-cap">Fond des champs = --input-bg (jamais codé en dur) ; bordure --line-strong (≥ 3:1) ; focus = outline 2px --primary ; police 16px (anti-zoom iOS).</p></div>
+<p class="ds-cap">TOUTE l’aide en TABLEAU compact façon aide SFAR/CAMR — cellules télégraphiques carrelées à joint 3 px, générées depuis flowPlan (numérotation commune). Tronc = cellules pleine largeur ; décision = BANDE au registre ATTENTION (titre + question) + branches en colonnes (auto-fit minmax(148px) plafonné c1…c4). UNE SEULE COLONNE sous 640 px (retour d’usage v4.13.1 : des colonnes de ~145 px sur téléphone rendaient la lecture difficile), avec INDENTATION ~17 px par niveau + rail de branche (grammaire du plan) : la fourche étant masquée en pile, rail + chip portent la structure. PAS de règle « deep » (v4.14.0, décision utilisateur) : même une branche profonde reste en colonne ≥ 640 — esprit SFAR. INERTE côté cochage (doctrine du plan, re-confirmée) : l’état de session est PEINT en lecture seule ; taper une cellule = svJump, JAMAIS de démarrage de session, JAMAIS de défilement (rien ne bouge sous le doigt). AUCUN texte bleu dans les cellules (décision utilisateur) : réponse « :: » = pilule mono NEUTRE .sv-r (≠ .stp-r bleu du journal), renvois neutres — le bleu ne marque que la position (● ici) et la reprise ↺. Les FLÈCHES (fourche ambre, convergence grise, retours bleus en gouttière) sont mesurées APRÈS rendu par svPaintArrows, en phases lecture/écriture GROUPÉES, toute mesure divisée par zoomF() — le réglage de taille du texte est un zoom CSS : getBoundingClientRect rend des px VISUELS. Empilé → .stacked : fourche/convergence masquées, la flèche n’est JAMAIS seule (l’info reste textuelle).</p></div>
 <div class="ds-scope" data-theme="dark"><p class="ds-lab">Thème sombre</p>
 
-<div style="max-width:520px">
-  <div class="ds-row" style="flex-wrap:nowrap"><div class="search" style="flex:1"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input placeholder="Rechercher une fiche…"></div><button class="btn-new">Créer</button></div>
-  <div class="field"><label>Titre de la fiche</label><input type="text" value="Choc anaphylactique"></div>
-  <div class="row2">
-    <div class="field"><label>Catégorie</label><select><option>Urgence vitale</option></select></div>
-    <div class="field"><label>Validation <span class="hint">MM/AAAA</span></label><input type="text" value="03/2026"></div>
+<div style="max-width:680px">
+<div class="sv-wrap"><div class="sv-tb">
+  <div class="sv-cols c2">
+    <div class="sv-cell sv-inert"><p class="sv-h"><span class="sv-t">Confirmer</span></p><ul class="sv-stp"><li>Éruption + hypotension</li><li>Bronchospasme brutal</li></ul></div>
+    <div class="sv-cell sv-inert"><p class="sv-h"><span class="sv-t">Éliminer</span></p><ul class="sv-stp"><li>Malaise vagal</li><li>Œdème de Quincke isolé</li></ul></div>
   </div>
-  <div class="field"><label>Contexte local</label><textarea rows="3">Chariot d’urgence : salle 2. Adrénaline au réfrigérateur.</textarea></div>
-  <div class="field"><label>Catégorie</label><div class="cat-picker"><button class="cat-chip-selected" style="--catcol:#806311"><span class="cat-dot"></span>Toxicologie</button><button class="cat-chip-other">Autre…</button></div></div>
-  <input class="auth-field auth-code" value="482913" aria-label="Code reçu">
+  <div class="sv-cell done" data-svgo="a" role="button" tabindex="0"><p class="sv-h"><span class="sv-n" aria-hidden="true">1</span><span class="sv-t">Mesures immédiates</span><span class="sv-m">2/2</span></p><ul class="sv-stp"><li class="crit done">Arrêter l’allergène</li><li class="done">Surélever les jambes <span class="sv-r">45°</span></li></ul></div>
+  <div class="sv-decwrap">
+    <div class="sv-band cur" data-svgo="b" role="button" tabindex="0" aria-current="true"><span class="sv-n" aria-hidden="true">2</span><span class="sv-t"><b>Réponse à l’adrénaline</b> — la pression remonte-t-elle&nbsp;?</span><span class="sv-m">✓</span></div>
+    <div class="sv-fork" aria-hidden="true"></div>
+    <div class="sv-cols c2">
+      <div class="sv-br taken"><div class="sv-opt tk"><span class="sv-tk">✓ </span>Oui — PAS &gt; 90</div>
+        <div class="sv-cell" data-svgo="c" role="button" tabindex="0"><p class="sv-h"><span class="sv-n" aria-hidden="true">3</span><span class="sv-t">Surveillance</span><span class="sv-m">0/2</span></p><ul class="sv-stp"><li class="vig">Rebond possible <span class="sv-r">4–6 h</span></li></ul></div></div>
+      <div class="sv-br off"><div class="sv-opt">Non — choc réfractaire<span class="sv-offtag"> · hors chemin</span></div>
+        <div class="sv-cell off" data-svgo="d" role="button" tabindex="0"><p class="sv-h"><span class="sv-n" aria-hidden="true">4</span><span class="sv-t">Remplissage</span><span class="sv-m">—</span></p><p class="sv-off2">hors chemin</p></div>
+        <div class="sv-jrow"><button type="button" class="sv-jump loop">↺ 2 · Réponse à l’adrénaline</button></div></div>
+    </div>
+    <div class="sv-merge" aria-hidden="true"></div>
+  </div>
+</div></div>
 </div>
-<p class="ds-cap">Fond des champs = --input-bg (jamais codé en dur) ; bordure --line-strong (≥ 3:1) ; focus = outline 2px --primary ; police 16px (anti-zoom iOS).</p></div>
+<p class="ds-cap">TOUTE l’aide en TABLEAU compact façon aide SFAR/CAMR — cellules télégraphiques carrelées à joint 3 px, générées depuis flowPlan (numérotation commune). Tronc = cellules pleine largeur ; décision = BANDE au registre ATTENTION (titre + question) + branches en colonnes (auto-fit minmax(148px) plafonné c1…c4). UNE SEULE COLONNE sous 640 px (retour d’usage v4.13.1 : des colonnes de ~145 px sur téléphone rendaient la lecture difficile), avec INDENTATION ~17 px par niveau + rail de branche (grammaire du plan) : la fourche étant masquée en pile, rail + chip portent la structure. PAS de règle « deep » (v4.14.0, décision utilisateur) : même une branche profonde reste en colonne ≥ 640 — esprit SFAR. INERTE côté cochage (doctrine du plan, re-confirmée) : l’état de session est PEINT en lecture seule ; taper une cellule = svJump, JAMAIS de démarrage de session, JAMAIS de défilement (rien ne bouge sous le doigt). AUCUN texte bleu dans les cellules (décision utilisateur) : réponse « :: » = pilule mono NEUTRE .sv-r (≠ .stp-r bleu du journal), renvois neutres — le bleu ne marque que la position (● ici) et la reprise ↺. Les FLÈCHES (fourche ambre, convergence grise, retours bleus en gouttière) sont mesurées APRÈS rendu par svPaintArrows, en phases lecture/écriture GROUPÉES, toute mesure divisée par zoomF() — le réglage de taille du texte est un zoom CSS : getBoundingClientRect rend des px VISUELS. Empilé → .stacked : fourche/convergence masquées, la flèche n’est JAMAIS seule (l’info reste textuelle).</p></div>
 </body></html>

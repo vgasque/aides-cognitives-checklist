@@ -1,7 +1,7 @@
-<!-- @dsCard group="Composants" name="Formulaires" subtitle="Recherche, champs, sélecteur de catégories, code OTP" viewport="760x1350" -->
+<!-- @dsCard group="Mode crise" name="Journal & fil condensé" subtitle="Cartes postées, ligne d’état, chips titrées, ligne-bilan ECL" viewport="760x1450" -->
 <!doctype html><html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Formulaires — Aides cognitives</title>
+<title>Journal de parcours — Aides cognitives</title>
 <style>
   /* Tokens : TOUTE nouvelle couleur passe par ici (pas de hex ad hoc dans les règles).
      PALETTE V5 « bleu clinique » (canvas V5 Explorations, v4.0.4) : --primary bleu = identité et
@@ -2234,30 +2234,48 @@
 </style></head><body>
 <div class="ds-scope" data-theme="light"><p class="ds-lab">Thème clair</p>
 
-<div style="max-width:520px">
-  <div class="ds-row" style="flex-wrap:nowrap"><div class="search" style="flex:1"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input placeholder="Rechercher une fiche…"></div><button class="btn-new">Créer</button></div>
-  <div class="field"><label>Titre de la fiche</label><input type="text" value="Choc anaphylactique"></div>
-  <div class="row2">
-    <div class="field"><label>Catégorie</label><select><option>Urgence vitale</option></select></div>
-    <div class="field"><label>Validation <span class="hint">MM/AAAA</span></label><input type="text" value="03/2026"></div>
+<div style="max-width:560px">
+<div class="ov-wrap">
+  <div class="ov-controls"><button type="button" class="btn sm btn-hold"><span class="tmr-lab">↺ Recommencer</span><span class="tmr-hint">maintenir</span></button></div>
+  <div class="ov-sec-h">Parcours</div>
+  <div class="ov-journal">
+    <button type="button" class="ov-runline" aria-expanded="false"><span class="ovr-ok" aria-hidden="true">✓</span>6 passages · 1→4<span class="ovr-chev" aria-hidden="true">▸</span></button>
+    <div class="ov-crumbs">
+      <button type="button" class="ovc"><span class="ovc-n">5</span><span class="ovc-t">Massage cardi…</span><span class="ovc-ok">✓</span></button>
+      <button type="button" class="ovc dec"><span class="ovc-n">6</span><span class="ovc-a">› Rythme choc…</span></button>
+    </div>
+    <section class="ov-block done closed dec"><div class="ov-head"><button type="button" class="ov-tgl" aria-expanded="false"><span class="ov-n" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg></span><span class="ov-t">Analyse du rythme<span class="pass-n">passage 2/3</span><span class="ov-ans">→ Rythme choquable</span></span><span class="ov-c">✓</span><span class="ov-chev" aria-hidden="true">▾</span></button></div></section>
+    <section class="ov-block done closed"><div class="ov-head"><button type="button" class="ov-tgl" aria-expanded="false"><span class="ov-n" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg></span><span class="ov-t">Choc électrique externe<span class="pass-n">passage 2/3</span></span><span class="ov-c">2/2</span><span class="ov-chev" aria-hidden="true">▾</span></button></div></section>
+    <section class="ov-block cur" aria-current="step"><div class="ov-head"><button type="button" class="ov-tgl" aria-expanded="true"><span class="ov-n" aria-hidden="true">7</span><span class="ov-t">Reprise du massage <span class="ov-here">Vous êtes ici</span></span><span class="ov-c">1/2</span><span class="ov-chev" aria-hidden="true">▴</span></button></div>
+      <div class="ov-body"><ol class="steps">
+        <li class="done" role="checkbox" aria-checked="true"><span class="box"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg></span><span class="txt">Reprendre immédiatement 2&nbsp;min de RCP</span></li>
+        <li class="crit" role="checkbox" aria-checked="false"><span class="box"></span><span class="txt">Adrénaline 1&nbsp;mg IV <span class="stp-r">toutes les 4 min</span></span></li>
+      </ol><div class="flow-ctrl"><button class="btn cont idle" aria-disabled="true">Cochez l’étape restante (1)</button></div></div></section>
   </div>
-  <div class="field"><label>Contexte local</label><textarea rows="3">Chariot d’urgence : salle 2. Adrénaline au réfrigérateur.</textarea></div>
-  <div class="field"><label>Catégorie</label><div class="cat-picker"><button class="cat-chip-selected" style="--catcol:#806311"><span class="cat-dot"></span>Toxicologie</button><button class="cat-chip-other">Autre…</button></div></div>
-  <input class="auth-field auth-code" value="482913" aria-label="Code reçu">
 </div>
-<p class="ds-cap">Fond des champs = --input-bg (jamais codé en dur) ; bordure --line-strong (≥ 3:1) ; focus = outline 2px --primary ; police 16px (anti-zoom iOS).</p></div>
+</div>
+<p class="ds-cap">Le journal EST la chronologie (leçon v4.6→v4.9 : ne JAMAIS poser un état temporel sur une carte spatiale — un bloc à plusieurs passages y perd l’utilisateur). Chaque passage est une CARTE POSTÉE à la suite, rien ne mute au-dessus, on lit vers le bas ; pas de curseur — la position est le BOUT. FIL CONDENSÉ (v4.16.0, ovPresList pure) : trois présentations — carte dépliée, LIGNE D’ÉTAT relisible, CHIP (n° + titre abrégé + ✓, ou n° + « › réponse » en toutes lettres pour une décision : le numéro seul ne parle pas à un humain). INVARIANTS : le BOUT est toujours une carte ; un passage INCOMPLET n’est JAMAIS une chip (c’est ce qui fait la conformité) ; complets non courants = les 2 plus récents en ligne, les plus anciens en chips ; une rangée de PLUS DE 4 chips se replie en ligne-bilan ECL « ✓ n passages · a→b ▸ ». Le repli manuel PERSISTE, le dépliage est une consultation TRANSITOIRE (effacée au geste de navigation suivant). L’avancement n’existe QUE sur l’instance du bout ; cocher ne re-rend JAMAIS (chirurgie ovAfterCheck).</p></div>
 <div class="ds-scope" data-theme="dark"><p class="ds-lab">Thème sombre</p>
 
-<div style="max-width:520px">
-  <div class="ds-row" style="flex-wrap:nowrap"><div class="search" style="flex:1"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input placeholder="Rechercher une fiche…"></div><button class="btn-new">Créer</button></div>
-  <div class="field"><label>Titre de la fiche</label><input type="text" value="Choc anaphylactique"></div>
-  <div class="row2">
-    <div class="field"><label>Catégorie</label><select><option>Urgence vitale</option></select></div>
-    <div class="field"><label>Validation <span class="hint">MM/AAAA</span></label><input type="text" value="03/2026"></div>
+<div style="max-width:560px">
+<div class="ov-wrap">
+  <div class="ov-controls"><button type="button" class="btn sm btn-hold"><span class="tmr-lab">↺ Recommencer</span><span class="tmr-hint">maintenir</span></button></div>
+  <div class="ov-sec-h">Parcours</div>
+  <div class="ov-journal">
+    <button type="button" class="ov-runline" aria-expanded="false"><span class="ovr-ok" aria-hidden="true">✓</span>6 passages · 1→4<span class="ovr-chev" aria-hidden="true">▸</span></button>
+    <div class="ov-crumbs">
+      <button type="button" class="ovc"><span class="ovc-n">5</span><span class="ovc-t">Massage cardi…</span><span class="ovc-ok">✓</span></button>
+      <button type="button" class="ovc dec"><span class="ovc-n">6</span><span class="ovc-a">› Rythme choc…</span></button>
+    </div>
+    <section class="ov-block done closed dec"><div class="ov-head"><button type="button" class="ov-tgl" aria-expanded="false"><span class="ov-n" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg></span><span class="ov-t">Analyse du rythme<span class="pass-n">passage 2/3</span><span class="ov-ans">→ Rythme choquable</span></span><span class="ov-c">✓</span><span class="ov-chev" aria-hidden="true">▾</span></button></div></section>
+    <section class="ov-block done closed"><div class="ov-head"><button type="button" class="ov-tgl" aria-expanded="false"><span class="ov-n" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg></span><span class="ov-t">Choc électrique externe<span class="pass-n">passage 2/3</span></span><span class="ov-c">2/2</span><span class="ov-chev" aria-hidden="true">▾</span></button></div></section>
+    <section class="ov-block cur" aria-current="step"><div class="ov-head"><button type="button" class="ov-tgl" aria-expanded="true"><span class="ov-n" aria-hidden="true">7</span><span class="ov-t">Reprise du massage <span class="ov-here">Vous êtes ici</span></span><span class="ov-c">1/2</span><span class="ov-chev" aria-hidden="true">▴</span></button></div>
+      <div class="ov-body"><ol class="steps">
+        <li class="done" role="checkbox" aria-checked="true"><span class="box"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg></span><span class="txt">Reprendre immédiatement 2&nbsp;min de RCP</span></li>
+        <li class="crit" role="checkbox" aria-checked="false"><span class="box"></span><span class="txt">Adrénaline 1&nbsp;mg IV <span class="stp-r">toutes les 4 min</span></span></li>
+      </ol><div class="flow-ctrl"><button class="btn cont idle" aria-disabled="true">Cochez l’étape restante (1)</button></div></div></section>
   </div>
-  <div class="field"><label>Contexte local</label><textarea rows="3">Chariot d’urgence : salle 2. Adrénaline au réfrigérateur.</textarea></div>
-  <div class="field"><label>Catégorie</label><div class="cat-picker"><button class="cat-chip-selected" style="--catcol:#806311"><span class="cat-dot"></span>Toxicologie</button><button class="cat-chip-other">Autre…</button></div></div>
-  <input class="auth-field auth-code" value="482913" aria-label="Code reçu">
 </div>
-<p class="ds-cap">Fond des champs = --input-bg (jamais codé en dur) ; bordure --line-strong (≥ 3:1) ; focus = outline 2px --primary ; police 16px (anti-zoom iOS).</p></div>
+</div>
+<p class="ds-cap">Le journal EST la chronologie (leçon v4.6→v4.9 : ne JAMAIS poser un état temporel sur une carte spatiale — un bloc à plusieurs passages y perd l’utilisateur). Chaque passage est une CARTE POSTÉE à la suite, rien ne mute au-dessus, on lit vers le bas ; pas de curseur — la position est le BOUT. FIL CONDENSÉ (v4.16.0, ovPresList pure) : trois présentations — carte dépliée, LIGNE D’ÉTAT relisible, CHIP (n° + titre abrégé + ✓, ou n° + « › réponse » en toutes lettres pour une décision : le numéro seul ne parle pas à un humain). INVARIANTS : le BOUT est toujours une carte ; un passage INCOMPLET n’est JAMAIS une chip (c’est ce qui fait la conformité) ; complets non courants = les 2 plus récents en ligne, les plus anciens en chips ; une rangée de PLUS DE 4 chips se replie en ligne-bilan ECL « ✓ n passages · a→b ▸ ». Le repli manuel PERSISTE, le dépliage est une consultation TRANSITOIRE (effacée au geste de navigation suivant). L’avancement n’existe QUE sur l’instance du bout ; cocher ne re-rend JAMAIS (chirurgie ovAfterCheck).</p></div>
 </body></html>

@@ -1,7 +1,7 @@
-<!-- @dsCard group="Composants" name="Formulaires" subtitle="Recherche, champs, sélecteur de catégories, code OTP" viewport="760x1350" -->
+<!-- @dsCard group="Mode crise" name="Challenge-response" subtitle="Pilule « :: », mode Vérification (Do-Verify), mode lecteur" viewport="760x1550" -->
 <!doctype html><html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Formulaires — Aides cognitives</title>
+<title>Challenge-response — Aides cognitives</title>
 <style>
   /* Tokens : TOUTE nouvelle couleur passe par ici (pas de hex ad hoc dans les règles).
      PALETTE V5 « bleu clinique » (canvas V5 Explorations, v4.0.4) : --primary bleu = identité et
@@ -2234,30 +2234,48 @@
 </style></head><body>
 <div class="ds-scope" data-theme="light"><p class="ds-lab">Thème clair</p>
 
-<div style="max-width:520px">
-  <div class="ds-row" style="flex-wrap:nowrap"><div class="search" style="flex:1"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input placeholder="Rechercher une fiche…"></div><button class="btn-new">Créer</button></div>
-  <div class="field"><label>Titre de la fiche</label><input type="text" value="Choc anaphylactique"></div>
-  <div class="row2">
-    <div class="field"><label>Catégorie</label><select><option>Urgence vitale</option></select></div>
-    <div class="field"><label>Validation <span class="hint">MM/AAAA</span></label><input type="text" value="03/2026"></div>
+<div style="max-width:560px">
+  <ol class="steps" style="margin-bottom:14px">
+    <li role="checkbox" aria-checked="false"><span class="box"></span><span class="txt">Ballon relié à l’oxygène <span class="stp-r">15 L/min</span></span></li>
+    <li class="crit done" role="checkbox" aria-checked="true"><span class="box"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg></span><span class="txt">Adrénaline prête <span class="stp-r">1 mg / 10 mL</span></span></li>
+  </ol>
+  <div class="ov-body" style="margin-bottom:14px">
+    <div class="v-hint">Vérification — lisez le challenge, constatez l’état réel</div>
+    <div class="vstp ok2"><span class="vst">✓</span><span class="txt">Ballon relié à l’oxygène <span class="stp-r">15 L/min</span></span></div>
+    <div class="vstp vgap"><span class="vst">△</span><span class="txt">Voie veineuse en place <span class="stp-r">16 G</span></span></div>
+    <div class="vstp vcur"><span class="vst">▸</span><span class="txt">Aspiration fonctionnelle <span class="stp-r">testée</span></span></div>
+    <div class="v-act"><button type="button" class="v-ok">Constaté ✓</button><button type="button" class="v-gap">△ Écart</button></div>
   </div>
-  <div class="field"><label>Contexte local</label><textarea rows="3">Chariot d’urgence : salle 2. Adrénaline au réfrigérateur.</textarea></div>
-  <div class="field"><label>Catégorie</label><div class="cat-picker"><button class="cat-chip-selected" style="--catcol:#806311"><span class="cat-dot"></span>Toxicologie</button><button class="cat-chip-other">Autre…</button></div></div>
-  <input class="auth-field auth-code" value="482913" aria-label="Code reçu">
+  <div class="ds-reader">
+    <div id="readerMode" class="on">
+      <div class="rm-top"><span class="rm-tag">■ Mode lecteur</span><span class="rm-ttl">Intubation en séquence rapide</span><span class="rm-time">03:41</span><button class="fz fz-r">Quitter ✕</button></div>
+      <div class="rm-block"><span>Bloc · Préparation</span><span>2/5</span></div>
+      <div class="rm-body"><p class="rm-hint">Lisez à voix haute — l’exécutant répond, vous validez</p><p class="rm-ch crit">Adrénaline prête</p><div class="rm-r">1 mg / 10 mL</div><div class="rm-sp"></div><button type="button" class="rm-ok">Répondu — conforme ✓</button><button type="button" class="rm-gap">△ Écart — passer sans cocher</button></div>
+    </div>
+  </div>
 </div>
-<p class="ds-cap">Fond des champs = --input-bg (jamais codé en dur) ; bordure --line-strong (≥ 3:1) ; focus = outline 2px --primary ; police 16px (anti-zoom iOS).</p></div>
+<p class="ds-cap">Trois briques, AUCUN champ modèle ajouté (export v3 inchangé, ancien client lisible). ① « challenge :: réponse » = séparateur explicite DANS la chaîne d’étape (même philosophie que ⚠/△ : opt-in) — stepCR pure, appliquée APRÈS stepText ; rendu en pilule mono .stp-r = réponse ATTENDUE (readback ✓ vert au cochage, porté par le CSS seul), .pl-r dans le plan, .sv-r NEUTRE dans le statique. ② MODE VÉRIFICATION (Do-Verify) : la passe redéroule TOUTES les étapes, déjà cochées comprises — « Constaté ✓ » coche la MÊME clé, « △ Écart » avance SANS cocher et ne DÉCOCHE JAMAIS (la coche est la trace ; décocher reste un geste manuel du parcours) ; résumé final = liste des non-cochées. ③ MODE LECTEUR (binôme, plein écran) : UN challenge à la fois (26 px, réponse mono 20 px, zone verte ≥ 72 px), piloté sur le BOUT du journal — fin de bloc = mêmes règles que « Continuer » (jamais d’avance tant que tout n’est pas confirmé, « Revoir » ramène au 1ᵉʳ écart) ; z-index 92 SOUS #screenFlash (99) : le flash d’alarme reste visible. Garde-fou télégraphique non bloquant (stepGuardTxt) : bloc &gt; 7 étapes ou challenge &gt; 110 caractères, la réponse ne comptant pas.</p></div>
 <div class="ds-scope" data-theme="dark"><p class="ds-lab">Thème sombre</p>
 
-<div style="max-width:520px">
-  <div class="ds-row" style="flex-wrap:nowrap"><div class="search" style="flex:1"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input placeholder="Rechercher une fiche…"></div><button class="btn-new">Créer</button></div>
-  <div class="field"><label>Titre de la fiche</label><input type="text" value="Choc anaphylactique"></div>
-  <div class="row2">
-    <div class="field"><label>Catégorie</label><select><option>Urgence vitale</option></select></div>
-    <div class="field"><label>Validation <span class="hint">MM/AAAA</span></label><input type="text" value="03/2026"></div>
+<div style="max-width:560px">
+  <ol class="steps" style="margin-bottom:14px">
+    <li role="checkbox" aria-checked="false"><span class="box"></span><span class="txt">Ballon relié à l’oxygène <span class="stp-r">15 L/min</span></span></li>
+    <li class="crit done" role="checkbox" aria-checked="true"><span class="box"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg></span><span class="txt">Adrénaline prête <span class="stp-r">1 mg / 10 mL</span></span></li>
+  </ol>
+  <div class="ov-body" style="margin-bottom:14px">
+    <div class="v-hint">Vérification — lisez le challenge, constatez l’état réel</div>
+    <div class="vstp ok2"><span class="vst">✓</span><span class="txt">Ballon relié à l’oxygène <span class="stp-r">15 L/min</span></span></div>
+    <div class="vstp vgap"><span class="vst">△</span><span class="txt">Voie veineuse en place <span class="stp-r">16 G</span></span></div>
+    <div class="vstp vcur"><span class="vst">▸</span><span class="txt">Aspiration fonctionnelle <span class="stp-r">testée</span></span></div>
+    <div class="v-act"><button type="button" class="v-ok">Constaté ✓</button><button type="button" class="v-gap">△ Écart</button></div>
   </div>
-  <div class="field"><label>Contexte local</label><textarea rows="3">Chariot d’urgence : salle 2. Adrénaline au réfrigérateur.</textarea></div>
-  <div class="field"><label>Catégorie</label><div class="cat-picker"><button class="cat-chip-selected" style="--catcol:#806311"><span class="cat-dot"></span>Toxicologie</button><button class="cat-chip-other">Autre…</button></div></div>
-  <input class="auth-field auth-code" value="482913" aria-label="Code reçu">
+  <div class="ds-reader">
+    <div id="readerMode" class="on">
+      <div class="rm-top"><span class="rm-tag">■ Mode lecteur</span><span class="rm-ttl">Intubation en séquence rapide</span><span class="rm-time">03:41</span><button class="fz fz-r">Quitter ✕</button></div>
+      <div class="rm-block"><span>Bloc · Préparation</span><span>2/5</span></div>
+      <div class="rm-body"><p class="rm-hint">Lisez à voix haute — l’exécutant répond, vous validez</p><p class="rm-ch crit">Adrénaline prête</p><div class="rm-r">1 mg / 10 mL</div><div class="rm-sp"></div><button type="button" class="rm-ok">Répondu — conforme ✓</button><button type="button" class="rm-gap">△ Écart — passer sans cocher</button></div>
+    </div>
+  </div>
 </div>
-<p class="ds-cap">Fond des champs = --input-bg (jamais codé en dur) ; bordure --line-strong (≥ 3:1) ; focus = outline 2px --primary ; police 16px (anti-zoom iOS).</p></div>
+<p class="ds-cap">Trois briques, AUCUN champ modèle ajouté (export v3 inchangé, ancien client lisible). ① « challenge :: réponse » = séparateur explicite DANS la chaîne d’étape (même philosophie que ⚠/△ : opt-in) — stepCR pure, appliquée APRÈS stepText ; rendu en pilule mono .stp-r = réponse ATTENDUE (readback ✓ vert au cochage, porté par le CSS seul), .pl-r dans le plan, .sv-r NEUTRE dans le statique. ② MODE VÉRIFICATION (Do-Verify) : la passe redéroule TOUTES les étapes, déjà cochées comprises — « Constaté ✓ » coche la MÊME clé, « △ Écart » avance SANS cocher et ne DÉCOCHE JAMAIS (la coche est la trace ; décocher reste un geste manuel du parcours) ; résumé final = liste des non-cochées. ③ MODE LECTEUR (binôme, plein écran) : UN challenge à la fois (26 px, réponse mono 20 px, zone verte ≥ 72 px), piloté sur le BOUT du journal — fin de bloc = mêmes règles que « Continuer » (jamais d’avance tant que tout n’est pas confirmé, « Revoir » ramène au 1ᵉʳ écart) ; z-index 92 SOUS #screenFlash (99) : le flash d’alarme reste visible. Garde-fou télégraphique non bloquant (stepGuardTxt) : bloc &gt; 7 étapes ou challenge &gt; 110 caractères, la réponse ne comptant pas.</p></div>
 </body></html>
