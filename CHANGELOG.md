@@ -1,5 +1,34 @@
 # Journal des modifications
 
+## [4.22.4] — 2026-07-22
+### Modifié
+- **Favicon : coins arrondis, et un jeu complet pour tous les moteurs** (le liseré persistait sur
+  Safari seul après la v4.22.3). Deux causes distinctes, corrigées ensemble :
+  - **Forme.** Un carré à angles vifs posé dans un emplacement déjà arrondi jure avec le fond de
+    la case — c'est ce désaccord qui se lisait comme un liseré, pas un défaut du fichier. Le
+    favicon prend donc le rayon du master d'aperçu (22,5 %). **Divergence assumée et documentée** :
+    les icônes d'**application** restent des carrés pleins (iOS/Android posent leur propre masque,
+    les pré-arrondir donnerait le double arrondi corrigé en v4.22.2) ; seul le favicon s'arrondit,
+    parce que personne ne le masque.
+  - **Sélection par le navigateur.** WebKit exploite `sizes` moins finement que Blink et peut
+    retenir la dernière déclaration comprise — soit, en v4.22.3, `icon-192.png` et sa réduction
+    ×12. Ce `<link>` est **supprimé** (le manifest porte déjà le 192 pour l'installation, seul
+    endroit où cette taille sert) et la liste se termine désormais par le 32 px, si bien qu'un
+    repli naïf reste correct.
+### Ajouté
+- `favicon.ico` (**16+32+48**, entrées PNG) pour les moteurs anciens et la requête implicite de
+  `/favicon.ico`, et `favicon.svg` (vectoriel, net à toute taille). Avec les PNG 16/32, quatre
+  déclarations couvrent l'ensemble des moteurs. Les deux nouveaux fichiers entrent dans `ASSETS`
+  (`sw.js`) : hors ligne comme le reste.
+- **`scripts/build-favicons.mjs`** : les favicons sont désormais **générés** depuis le master
+  vectoriel de `design/icons/` (rendu à la taille finale — jamais un downscale de PNG —, `.ico`
+  écrit à la main). Dev seulement : ni CI, ni dépendance runtime.
+### Corrigé
+- `.claude/serve.js` : types MIME manquants (`.svg`, `.ico`, `.pdf`). Un type absent retombait sur
+  `application/octet-stream` — le fichier arrivait en 200 mais le navigateur refusait de le
+  décoder, ce qui faisait échouer une vérification locale alors que l'hébergeur, lui, sert le bon
+  type. Faux négatif rencontré en vérifiant ce correctif.
+
 ## [4.22.3] — 2026-07-22
 ### Corrigé
 - **Liseré blanc autour du favicon dans l'onglet** (retour d'usage) : l'onglet ne recevait que

@@ -21,9 +21,11 @@ Masters SVG du jeu d'icônes (handoff design, juillet 2026). Le glyphe associe u
 
 | Fichier | Taille | Origine | Référencé par |
 |---|---|---|---|
-| `favicon-16.png` | 16 | export carré plein | `<link rel="icon" sizes="16x16">` |
-| `favicon-32.png` | 32 | export carré plein | `<link rel="icon" sizes="32x32">` |
-| `icon-192.png` | 192 | export carré plein | `manifest.webmanifest` (`any`), `<link rel="icon" sizes="192x192">` |
+| `favicon.ico` | 16+32+48 | **généré** (`scripts/build-favicons.mjs`) | `<link rel="icon" sizes="any">` + requête implicite `/favicon.ico` |
+| `favicon.svg` | vectoriel | **généré** (copie du master arrondi) | `<link rel="icon" type="image/svg+xml">` |
+| `favicon-16.png` | 16 | **généré** | `<link rel="icon" sizes="16x16">` |
+| `favicon-32.png` | 32 | **généré** | `<link rel="icon" sizes="32x32">` |
+| `icon-192.png` | 192 | export carré plein | `manifest.webmanifest` (`any`) — **plus aucun `<link>`** |
 | `icon-512.png` | 512 | export carré plein | `manifest.webmanifest` (`any`) |
 | `icon-192-maskable.png` | 192 | foreground adaptive aplati sur `#1F5FA6` | `manifest.webmanifest` (`maskable`) |
 | `icon-512-maskable.png` | 512 | idem | `manifest.webmanifest` (`maskable`) |
@@ -33,8 +35,19 @@ Tous sont listés dans `ASSETS` (`sw.js`) : disponibles hors ligne dès l'instal
 
 ## Règles d'export
 
-- **Jamais de coins pré-arrondis** ni de transparence sur les icônes « any » / iOS : iOS et Android
-  appliquent leur propre masque (l'ancienne icône v4.x arrondissait elle-même — double arrondi).
+- **DEUX FORMES, volontairement divergentes** (ne pas « harmoniser ») :
+  - icônes d'**application** (`icon-*.png`, `apple-touch-icon.png`, maskables) = **carré plein**,
+    jamais de coins pré-arrondis ni de transparence : iOS et Android appliquent leur propre masque
+    (l'ancienne icône v4.x arrondissait elle-même — double arrondi, glyphe rogné) ;
+  - **favicon** (`favicon.*`) = **coins arrondis** (rx 22,5 %, master `icon-rounded-preview.svg`) :
+    il n'est masqué par personne et se pose dans un conteneur déjà arrondi — un carré à angles
+    vifs y jure avec le fond de l'emplacement (constaté sur Safari, v4.22.4).
+- Les favicons sont **générés**, jamais exportés à la main : `node scripts/build-favicons.mjs`
+  (rendu à la taille finale depuis le SVG, `.ico` 16+32+48 écrit à la main, zéro dépendance
+  runtime). Rejouer après toute retouche du master arrondi.
+- **Ordre des `<link rel="icon">`** : WebKit exploite `sizes` moins finement que Blink et peut
+  retenir la dernière déclaration comprise — terminer la liste par le **32 px** pour qu'un repli
+  naïf reste correct, et ne JAMAIS y déclarer une grande taille (le 192 y provoquait le liseré).
 - **Maskable** = calque *foreground* aplati sur `#1F5FA6` plein cadre : le glyphe occupe ≈ 62 % du
   canvas, donc reste dans le cercle sûr de 66 % quel que soit le masque du lanceur.
 - **Servir la taille NATIVE de l'emplacement.** Un favicon de 192 px dans un onglet de 16 px force
