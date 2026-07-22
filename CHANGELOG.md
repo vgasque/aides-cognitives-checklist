@@ -1,5 +1,20 @@
 # Journal des modifications
 
+## [4.22.3] — 2026-07-22
+### Corrigé
+- **Liseré blanc autour du favicon dans l'onglet** (retour d'usage) : l'onglet ne recevait que
+  `icon-192.png`, soit une réduction **×12** pour un emplacement de 16 px. À ce facteur, le
+  filtre du rasteriseur échantillonne au-delà du bord de l'image (traité comme du noir
+  transparent) et laisse une arête d'un pixel semi-transparente — lue comme un fin liseré
+  blanc sur la barre d'onglets claire. Le fichier lui-même était sain (contour 100 % opaque,
+  vérifié pixel à pixel sur les cinq PNG).
+  - Ajout des **tailles natives** `favicon-16.png` et `favicon-32.png` (mêmes masters), déclarées
+    avec leur attribut `sizes` ; `icon-192.png` reste déclaré en `192x192` pour les surfaces qui
+    demandent grand (favoris, tuiles). Plus aucun rééchantillonnage dans l'onglet.
+  - Les deux fichiers sont ajoutés à `ASSETS` (`sw.js`) : disponibles hors ligne comme le reste.
+  - Règle ajoutée à `design/icons/README.md` : **servir la taille native de l'emplacement**, et
+    vérifier qu'aucun pixel du contour n'a un alpha < 255 avant de livrer un export.
+
 ## [4.22.2] — 2026-07-22
 ### Modifié
 - **Nouvelle icône de l'application** (handoff design) : un **cerveau** (cognition,

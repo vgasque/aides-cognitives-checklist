@@ -28,7 +28,7 @@
 //  code et restent intactes à chaque mise à jour, tant que l'URL reste la même.
 // =============================================================================
 // IMPORTANT : garder cette version synchronisée avec APP_VERSION dans index.html.
-const CACHE = 'aides-cognitives-v4.22.2';
+const CACHE = 'aides-cognitives-v4.22.3';
 // Versionné par pdf.js (vendor/pdfjs/README.txt) : à changer UNIQUEMENT quand pdf.js est mis à jour.
 const PDFJS_CACHE = 'aides-cognitives-pdfjs-4.10.38';
 const PDFJS_ASSETS = [
@@ -43,7 +43,9 @@ const ASSETS = [
   './icon-192-maskable.png',
   './icon-512.png',
   './icon-512-maskable.png',
-  './apple-touch-icon.png'
+  './apple-touch-icon.png',
+  './favicon-16.png',
+  './favicon-32.png'
 ];
 self.addEventListener('install', e => {
   e.waitUntil(Promise.all([
