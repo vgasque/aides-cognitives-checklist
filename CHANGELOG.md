@@ -1,5 +1,30 @@
 # Journal des modifications
 
+## [4.22.2] — 2026-07-22
+### Modifié
+- **Nouvelle icône de l'application** (handoff design) : un **cerveau** (cognition,
+  mémoire) fusionné avec une **croix médicale**, glyphe blanc sur **bleu clinique
+  `#1F5FA6`** — elle remplace le bouclier au tracé ECG. Le glyphe est *plein* : il
+  reste lisible jusqu'à 16 px, sans variante simplifiée séparée.
+  - **Carré plein, jamais de coins pré-arrondis** : iOS et Android appliquent leur
+    propre masque. L'ancienne icône arrondissait elle-même ses angles — le masque du
+    système venait alors *par-dessus* cet arrondi (double arrondi, glyphe rogné).
+  - Les variantes **maskable** (192 et 512) sont construites sur le calque *adaptive
+    foreground* aplati sur le bleu de marque : le glyphe occupe ≈ 62 % du canvas,
+    donc reste dans le cercle sûr de 66 % quel que soit le masque du lanceur Android.
+    L'ancienne paire ne respectait pas cette zone.
+  - **Noms de fichiers inchangés** (`icon-192.png`, `icon-512.png`,
+    `icon-{192,512}-maskable.png`, `apple-touch-icon.png`) : ni `ASSETS` (`sw.js`) ni
+    `manifest.webmanifest` ne bougent — aucun risque sur la mise à jour du service
+    worker. Les couleurs du manifest (`theme_color`, `background_color`) restent
+    `#f2f5f8` : le splash garde la continuité avec l'app en thème clair, et la barre
+    système continue d'être pilotée par `index.html` (thème + flash d'alarme) sans
+    clignotement bleu à l'ouverture.
+  - Masters vectoriels archivés dans **`design/icons/`** (avec les règles d'export :
+    toute nouvelle taille se génère depuis les SVG, jamais par agrandissement d'un
+    PNG). Ce dossier n'est **ni servi ni précaché**, et reste hors du périmètre
+    généré par `design/build.mjs`.
+
 ## [4.22.1] — 2026-07-20
 ### Modifié
 - **Fil d'ancêtres du plan : STICKY CONTINU** (retour d'usage — « ce serait mieux si
