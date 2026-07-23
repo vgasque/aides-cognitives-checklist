@@ -25,7 +25,8 @@ Masters SVG du jeu d'icônes (handoff design, juillet 2026). Le glyphe associe u
 | `favicon.svg` | vectoriel | **généré** (copie du master arrondi) | `<link rel="icon" type="image/svg+xml">` |
 | `favicon-16.png` | 16 | **généré** | `<link rel="icon" sizes="16x16">` |
 | `favicon-32.png` | 32 | **généré** | `<link rel="icon" sizes="32x32">` |
-| `icon-192.png` | 192 | export carré plein | `manifest.webmanifest` (`any`) — **plus aucun `<link>`** |
+| `icon-192.png` | 192 | **généré** (`scripts/build-app-icons.mjs`, glyphe ~88 %) | `manifest.webmanifest` (`any`) — **plus aucun `<link>`** |
+| `icon-512.png` | 512 | **généré** (`scripts/build-app-icons.mjs`, glyphe ~88 %) | `manifest.webmanifest` (`any`) |
 | `icon-512.png` | 512 | export carré plein | `manifest.webmanifest` (`any`) |
 | `icon-192-maskable.png` | 192 | foreground adaptive aplati sur `#1F5FA6` | `manifest.webmanifest` (`maskable`) |
 | `icon-512-maskable.png` | 512 | idem | `manifest.webmanifest` (`maskable`) |
@@ -50,6 +51,12 @@ Tous sont listés dans `ASSETS` (`sw.js`) : disponibles hors ligne dès l'instal
   naïf reste correct, et ne JAMAIS y déclarer une grande taille (le 192 y provoquait le liseré).
 - **Maskable** = calque *foreground* aplati sur `#1F5FA6` plein cadre : le glyphe occupe ≈ 62 % du
   canvas, donc reste dans le cercle sûr de 66 % quel que soit le masque du lanceur.
+- **Taille du glyphe : deux réglages** (leçon v4.22.5). iOS pose l'icône PLEIN BORD → glyphe à
+  ~72 % sur `apple-touch-icon.png` (= ~72 % de la case). macOS (Safari « Ajouter au Dock », Chrome
+  installé) place l'icône du MANIFEST dans une tuile à ~80 % du canevas → un glyphe à 72 % n'y
+  ferait que ~58 % de la case. On COMPENSE : `icon-192/512.png` (`any`) portent un glyphe à **~88 %**
+  (`scripts/build-app-icons.mjs`), qui retrouve ~70 % de la case après la marge macOS. Ne PAS
+  agrandir `apple-touch-icon` — l'iPhone est déjà à la bonne taille.
 - **Servir la taille NATIVE de l'emplacement.** Un favicon de 192 px dans un onglet de 16 px force
   une réduction ×12 : le filtre du rasteriseur échantillonne hors de l'image et laisse une arête
   d'un pixel semi-transparente, lue comme un **liseré blanc** sur une barre d'onglets claire

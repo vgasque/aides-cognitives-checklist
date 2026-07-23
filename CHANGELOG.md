@@ -1,5 +1,20 @@
 # Journal des modifications
 
+## [4.22.5] — 2026-07-23
+### Modifié
+- **Icône plus grande sur macOS** (retour d'usage : « nickel sur iPhone, plus petite sur le Mac »).
+  Le fichier n'avait pas rétréci — c'est le **conteneur** qui diffère : iOS pose l'icône plein
+  bord, tandis que macOS (Safari « Ajouter au Dock », Chrome installé) place l'icône du manifest
+  dans une tuile qui n'occupe que ~80 % du canevas du Dock. Un glyphe à 72 % du fichier n'y faisait
+  plus que ~58 % de la case.
+  - `icon-192.png` / `icon-512.png` (icônes `any` du manifest, celles que lit le Mac) portent
+    désormais un glyphe à **~88 %** du fichier : après la marge macOS il retrouve ~70 % de la case,
+    très proche du rendu iPhone.
+  - **`apple-touch-icon.png` est inchangé** (glyphe ~72 %) : l'iPhone était déjà à la bonne taille,
+    et il lit un fichier distinct — l'agrandissement macOS ne l'affecte pas.
+  - Nouveau **`scripts/build-app-icons.mjs`** : régénère ces deux icônes depuis le master vectoriel
+    (glyphe centré à 88 %, carré plein). Dev seulement, aucune dépendance runtime.
+
 ## [4.22.4] — 2026-07-22
 ### Modifié
 - **Favicon : coins arrondis, et un jeu complet pour tous les moteurs** (le liseré persistait sur
