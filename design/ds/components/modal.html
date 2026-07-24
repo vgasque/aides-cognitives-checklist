@@ -1353,6 +1353,8 @@
      « Lecteur »/« Vérifier » passent SOUS le titre (flex-wrap + base 230px) au lieu de
      l'écraser (titre superposé au chip « Vous êtes ici », compteur expulsé). */
   .ov-head{display:flex;align-items:stretch;flex-wrap:wrap;justify-content:flex-end}
+  .ov-head .ov-tgl{flex:1 1 100%}   /* titre + compteur sur leur propre ligne */
+  .ov-acts{flex:1 1 100%;display:flex;gap:8px;justify-content:flex-end;margin-top:2px}   /* Lecteur/Vérifier côte à côte SOUS le titre (v4.23.7) */
   .ov-tgl{flex:1 1 230px;min-width:0;display:flex;align-items:center;gap:9px;min-height:52px;padding:9px 12px;background:none;border:0;cursor:pointer;font-family:inherit;text-align:left}
   .ov-tgl:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
   .ov-n{width:26px;height:26px;border-radius:50%;flex:none;display:grid;place-items:center;font-family:var(--mono);font-size:13px;font-weight:700;color:var(--ink-soft);border:2px solid var(--line-strong)}
@@ -1370,7 +1372,7 @@
   .ov-c{flex:none;font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--ink-soft)}
   .ov-block.done .ov-c{color:var(--ok)}
   .ov-chev{flex:none;color:var(--link);font-size:15px;font-weight:800}
-  .ov-redo{flex:none;align-self:center;margin:0 10px 6px 0;min-height:44px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--ink-soft);font-size:12px;font-weight:700;padding:6px 11px;cursor:pointer;white-space:nowrap}
+  .ov-redo{flex:none;align-self:center;margin:0;min-height:44px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--ink-soft);font-size:12px;font-weight:700;padding:6px 11px;cursor:pointer;white-space:nowrap}
   .ov-redo:hover{background:var(--surface)}
   .ov-redo:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .ov-body{padding:0 12px 12px}

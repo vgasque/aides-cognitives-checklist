@@ -1,5 +1,12 @@
 # Journal des modifications
 
+## [4.23.7] — 2026-07-24
+### Modifié
+- **En-tête d'un bloc du journal : « Lecteur » et « Vérifier » ne s'empilent plus.** Quand le titre
+  prenait la largeur, chaque bouton passait sur sa propre ligne (deux rangées gaspillées). Ils sont
+  désormais **groupés sur une seule rangée sous le titre** (titre + « 0/5 » sur la 1ʳᵉ ligne,
+  actions côte à côte sur la 2ᵉ), aligné à droite. Vérifié de 390 à 820 px.
+
 ## [4.23.6] — 2026-07-24
 ### Corrigé
 - **L'ordre des bibliothèques changeait de façon intermittente à la sélection** (ordi et téléphone).

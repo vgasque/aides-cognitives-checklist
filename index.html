@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-nRJ6bc5cCXYCz157THxuuNjkVHrnP6X7p/BjIOTfM3s='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-duEkwM6KMr8F7mYSk9l2HdxL5I5oG+cgveRNmy7sI1s='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1621,6 +1621,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      « Lecteur »/« Vérifier » passent SOUS le titre (flex-wrap + base 230px) au lieu de
      l'écraser (titre superposé au chip « Vous êtes ici », compteur expulsé). */
   .ov-head{display:flex;align-items:stretch;flex-wrap:wrap;justify-content:flex-end}
+  .ov-head .ov-tgl{flex:1 1 100%}   /* titre + compteur sur leur propre ligne */
+  .ov-acts{flex:1 1 100%;display:flex;gap:8px;justify-content:flex-end;margin-top:2px}   /* Lecteur/Vérifier côte à côte SOUS le titre (v4.23.7) */
   .ov-tgl{flex:1 1 230px;min-width:0;display:flex;align-items:center;gap:9px;min-height:52px;padding:9px 12px;background:none;border:0;cursor:pointer;font-family:inherit;text-align:left}
   .ov-tgl:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
   .ov-n{width:26px;height:26px;border-radius:50%;flex:none;display:grid;place-items:center;font-family:var(--mono);font-size:13px;font-weight:700;color:var(--ink-soft);border:2px solid var(--line-strong)}
@@ -1638,7 +1640,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .ov-c{flex:none;font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--ink-soft)}
   .ov-block.done .ov-c{color:var(--ok)}
   .ov-chev{flex:none;color:var(--link);font-size:15px;font-weight:800}
-  .ov-redo{flex:none;align-self:center;margin:0 10px 6px 0;min-height:44px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--ink-soft);font-size:12px;font-weight:700;padding:6px 11px;cursor:pointer;white-space:nowrap}
+  .ov-redo{flex:none;align-self:center;margin:0;min-height:44px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--ink-soft);font-size:12px;font-weight:700;padding:6px 11px;cursor:pointer;white-space:nowrap}
   .ov-redo:hover{background:var(--surface)}
   .ov-redo:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .ov-body{padding:0 12px 12px}
@@ -3109,7 +3111,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.23.6';
+const APP_VERSION='4.23.7';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -7439,7 +7441,7 @@ function ovInstHtml(f,id,idx,topo,pres){
     :((tip&&hasFlow(f)?`<button type="button" class="ov-redo" data-ovreader title="Mode lecteur (binôme) : un challenge à la fois en plein écran — le lecteur lit, l'exécutant répond">Lecteur</button>`:'')
       +((!dec&&clean(b.steps).length)?`<button type="button" class="ov-redo" data-ovverify="${idx}" title="Do-Verify : redérouler ce bloc en challenge-réponse — « Constaté » coche, « Écart » laisse non coché">Vérifier</button>`:'')
       +((!tip&&complete&&!dec)?`<button type="button" class="ov-redo" data-ovredo="${esc(id)}" title="Refaire ce bloc : nouvelle carte au bout du journal — celle-ci reste telle quelle">↺ Refaire</button>`:''));
-  return `<section class="ov-block${tip?' cur':''}${complete?' done':''}${dec?' dec':''}${closed&&!verifying?' closed':''}" data-ovb="${esc(id)}" data-ovi="${idx}" data-ovn="${topo[id]||''}"${tip?' aria-current="step"':''}><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="${idx}" aria-expanded="${closed&&!verifying?'false':'true'}"><span class="ov-n" aria-hidden="true">${complete?uiIcon('check',13,{sw:3.2,cls:''}):(topo[id]||'·')}</span><span class="ov-t">${esc(b.title)||(dec?'Décision':'Étapes')}${passTag}${takenH} <span class="ov-here">Vous êtes ici</span></span><span class="ov-c">${count}</span><span class="ov-chev" aria-hidden="true">${closed&&!verifying?'▾':'▴'}</span></button>${btns}</div><div class="ov-body">${bodyH}</div></section>`;}
+  return `<section class="ov-block${tip?' cur':''}${complete?' done':''}${dec?' dec':''}${closed&&!verifying?' closed':''}" data-ovb="${esc(id)}" data-ovi="${idx}" data-ovn="${topo[id]||''}"${tip?' aria-current="step"':''}><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="${idx}" aria-expanded="${closed&&!verifying?'false':'true'}"><span class="ov-n" aria-hidden="true">${complete?uiIcon('check',13,{sw:3.2,cls:''}):(topo[id]||'·')}</span><span class="ov-t">${esc(b.title)||(dec?'Décision':'Étapes')}${passTag}${takenH} <span class="ov-here">Vous êtes ici</span></span><span class="ov-c">${count}</span><span class="ov-chev" aria-hidden="true">${closed&&!verifying?'▾':'▴'}</span></button>${btns?`<div class="ov-acts">${btns}</div>`:''}</div><div class="ov-body">${bodyH}</div></section>`;}
 /* PLAN DE L'AIDE v2 (v4.12.0) : rendu de flowPlan — le plan reste INERTE côté cochage (la
    trace vit dans le journal) et sert à NAVIGUER. Deux densités sur la bascule #ovPlanD :
    - DÉTAILS = ORGANIGRAMME HYBRIDE (ovPlanTreeHtml) : tronc pleine largeur, branches d'une
