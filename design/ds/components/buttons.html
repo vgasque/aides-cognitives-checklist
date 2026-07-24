@@ -422,6 +422,21 @@
   .brand-logo{display:none;flex:none;width:34px;height:34px;background-color:currentColor;
     -webkit-mask:url(logo-glyph.svg) center/contain no-repeat;mask:url(logo-glyph.svg) center/contain no-repeat}
   header.bar.home .brand-logo{display:block}
+  /* PETITS ÉCRANS : le logo ne doit RIEN coûter en hauteur d'en-tête. Mesuré à 375px (iPhone SE),
+     la rangée d'identité ne débordait que de 7px (346 requis pour 339 disponibles) — mais
+     `flex-wrap` fait passer les ACTIONS à la ligne entière plutôt que de rétrécir, d'où +42px
+     d'en-tête. On récupère la dizaine de pixels nécessaire sans rapetisser le glyphe outre mesure :
+     34 → 30px (‑4) et l'écart de colonne 10 → 8px (‑2 par écart). Le logo n'étant pas interactif,
+     aucune règle de cible tactile ne s'y applique. */
+  @media (max-width:429.98px){
+    header.bar.home .brand-logo{width:30px;height:30px}
+    header.bar.home .id-row{column-gap:8px}
+    /* Le mot-marque descend d'un cran (20 → 18px) : à 360px — largeur Android très répandue — il
+       manquait encore 14px, et rapetisser le glyphe davantage l'aurait rendu illisible. 18px reste
+       très au-dessus du plancher typographique de 11px, et c'est le seul endroit où l'app affiche
+       son nom. Sans ça, la rangée passait à la ligne et l'en-tête gagnait 38px. */
+    header.bar.home .brand .brand-name{font-size:18px}
+  }
   .brand{display:flex;flex-direction:column;line-height:1.1;flex:1;min-width:0}
   /* h1 du document (plan lecteur d'écran) stylé comme la marque — pas de typo de h1 par défaut. */
   /* 20px (v4.4.2) : la marque était trop discrète. Plafond dur — au-delà, « Aides cognitives »

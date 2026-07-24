@@ -489,6 +489,14 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   ÉCARTÉE SUR MESURE : la tuile teintée (`--primary-soft` + glyphe `--primary`) — à 34 px elle ne
   se détache pas du fond et le glyphe s'y noie. `logo-glyph.svg` est servi depuis la racine et
   entre dans `ASSETS` (sw.js) : hors ligne comme le reste ; `design/` n'est ni servi ni précaché.
+  **COÛT NUL EN HAUTEUR D'EN-TÊTE SOUS 430 px (v4.23.4)** : la rangée d'identité est en
+  `flex-wrap:wrap`, or le flex CASSE LA LIGNE avant de rétrécir — un dépassement de 7 px suffisait
+  donc à renvoyer les ACTIONS à la ligne et à ajouter 42 px d'en-tête à 375 px (iPhone SE), 38 px à
+  360 px. Trois réglages rendent les pixels manquants sans rapetisser le glyphe outre mesure :
+  logo 34 → 30 px, écart de colonne 10 → 8 px, mot-marque 20 → 18 px (très au-dessus du plancher
+  de 11 px ; le logo n'étant pas interactif, aucune règle de cible ne s'y applique). Vérifié à 0 px
+  de surcoût de 360 à 431 px. Toute addition à cette rangée doit être re-mesurée à 360 px : c'est
+  la largeur la plus contrainte encore servie.
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.

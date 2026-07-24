@@ -1,5 +1,19 @@
 # Journal des modifications
 
+## [4.23.4] — 2026-07-24
+### Modifié
+- **Le logo de l'accueil ne coûte plus un seul pixel de hauteur d'en-tête sur petit écran.**
+  La rangée d'identité est en `flex-wrap:wrap`, et le flex **casse la ligne avant de rétrécir** :
+  un dépassement de **7 px** suffisait donc à renvoyer les boutons d'action à la ligne entière et à
+  ajouter **42 px** d'en-tête à 375 px (iPhone SE) — 38 px à 360 px. Trois réglages rendent les
+  pixels manquants sans rapetisser le glyphe outre mesure :
+  - logo **34 → 30 px** (il reste parfaitement lisible ; n'étant pas interactif, aucune règle de
+    cible tactile ne s'y applique) ;
+  - écart de colonne de la rangée **10 → 8 px** ;
+  - mot-marque **20 → 18 px** sous 430 px — nécessaire pour 360 px, une largeur Android très
+    répandue, et très au-dessus du plancher typographique de 11 px.
+  Vérifié à **0 px de surcoût de 360 à 431 px**, le logo restant visible et le nom entier.
+
 ## [4.23.3] — 2026-07-24
 ### Corrigé
 - **Bande vide en bas de page à l'ouverture de n'importe quelle fenêtre** (retour d'usage : Safari
