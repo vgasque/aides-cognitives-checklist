@@ -556,6 +556,21 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   deux modes PAIRS, aucun n'est la négation de l'autre — contrairement à « Son activé/coupé », qui
   est une propriété binaire. Un bouton d'état y serait ambigu (dit-il où je suis ou où je vais ?),
   et l'erreur coûterait le remplacement de toute la vue de travail en pleine réanimation.
+  **GÉOMÉTRIE DE LA PASTILLE — trois pièges cumulés (v4.25.1, retour d'usage)**, tous mesurés :
+  (1) `.seg` porte `gap:8px` (la tab bar en a besoin, sa pastille compense par
+  `translateX(calc(100% + 8px))`) — hérité tel quel, il décalait la pastille de 8 px ; et
+  `.mode-seg` ayant la MÊME spécificité que `.seg`, déclarée bien plus bas, c'est `.seg` qui
+  gagnait **par l'ordre** — d'où des règles passées par **`#modeSeg`** (un id l'emporte quel que
+  soit l'ordre). C'est le **3ᵉ piège de cascade de ce type** dans le projet (cf. `.read-grid`
+  v4.23.0, `.cbt-n` v4.23.5) : pour une GÉOMÉTRIE, ne jamais dépendre de l'ordre de déclaration.
+  (2) `flex:1 1 0` NE SUFFIT PAS à égaliser deux libellés de longueurs différentes : `min-width:auto`
+  recale chaque item sur son propre texte (mesuré : « Guidé » 64 px, « Statique » 81 px) — d'où une
+  **grille `1fr 1fr`**, dont les pistes égales adoptent la largeur du plus exigeant.
+  (3) Le fond de la pastille ne peut pas être `--surface` : il **s'inverse** d'un thème à l'autre
+  (plus clair que la piste en clair, plus SOMBRE qu'elle en sombre — elle s'y lisait comme
+  inactive). Registre de SÉLECTION (teinte `--primary-soft` + bordure `--primary`), lisible dans
+  les deux sens de contraste. Couvert par `scripts/audit-modeseg.mjs`, qui mesure l'écart
+  pastille/segment actif dans les DEUX thèmes.
   `#modeSeg` vit hors de `main` : câblé UNE FOIS, il survit aux re-rendus — donc plus besoin de
   rejouer le glissement de la pastille (`.seg-replay` n'a plus lieu d'être ici).
   **`--ctrl-h`** (posée par `syncHdrScroll`, ÷ `zoomF()`) = hauteur de la rangée de commandes : le

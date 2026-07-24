@@ -1,5 +1,25 @@
 # Journal des modifications
 
+## [4.25.1] — 2026-07-24
+### Corrigé
+- **La pastille du sélecteur « Guidé / Statique » ne tombait pas en face du segment actif**
+  (retour d'usage, capture à l'appui). Trois causes cumulées, toutes mesurées :
+  - le composant de base porte un écart de 8 px entre segments — dont la tab bar a besoin, mais qui
+    décalait la pastille ici ; et ma règle, de même spécificité que celle de base mais déclarée plus
+    haut dans le fichier, perdait **par l'ordre de déclaration** (3ᵉ piège de ce type dans le
+    projet — les règles de géométrie passent désormais par un identifiant, insensible à l'ordre) ;
+  - les deux libellés n'ont pas la même longueur (64 px contre 81 px), et une répartition en flex ne
+    peut pas les égaliser : chaque bouton reste calé sur son propre texte. Le sélecteur passe donc
+    en **grille à deux colonnes égales**, dont la largeur s'aligne sur le libellé le plus long ;
+  - en **thème sombre**, le fond de la pastille était plus foncé que sa piste — l'inverse du thème
+    clair — et le segment actif se lisait donc comme inactif. Elle adopte le registre de sélection
+    de l'application (teinte + bordure d'accent), lisible quel que soit le sens du contraste.
+  - Écart mesuré désormais **nul** dans les deux positions et les deux thèmes.
+
+### Interne
+- Nouveau harnais `scripts/audit-modeseg.mjs` (ajouté à `npm run audit`) : mesure l'alignement de la
+  pastille sur le segment actif, en thème clair **et** sombre.
+
 ## [4.25.0] — 2026-07-24
 Refonte de la zone haute et de la couche de consultation, à partir d'un audit qui a montré que
 l'application proposait **quatre représentations de la même structure** et mélangeait, dans une

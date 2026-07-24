@@ -337,14 +337,36 @@
   /* La bascule de mode : sélecteur segmenté (deux MODES pairs, jamais un interrupteur — aucun
      n'est la négation de l'autre). Même composant .seg que la tab bar, donc même pastille
      glissante ; l'élément n'étant plus re-rendu, la transition joue toute seule. */
-  .mode-seg{flex:none;background:var(--surface-3);border-radius:999px;padding:3px}
-  .mode-seg[hidden]{display:none}
-  .mode-seg .seg-pill{width:calc(50% - 3px);left:3px;top:3px;bottom:3px;border-radius:999px;background:var(--surface);box-shadow:0 1px 3px rgba(16,27,40,.16)}
-  .mode-seg.i1 .seg-pill{transform:translateX(100%)}
-  .mode-seg .seg-btn{position:relative;z-index:1;padding:6px 13px;border:0;background:none;border-radius:999px;font-family:inherit;font-size:13px;font-weight:700;color:var(--ink-soft);cursor:pointer;min-height:38px;white-space:nowrap}
-  .mode-seg .seg-btn.on{color:var(--primary-dk);font-weight:800}
-  .mode-seg .seg-btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-  @media (max-width:429.98px){.mode-seg .seg-btn{padding:6px 10px;font-size:12.5px}}
+  /* GÉOMÉTRIE DE LA PASTILLE — deux pièges du composant `.seg`, tous deux mesurés :
+     1. `.seg` porte `gap:8px` (la tab bar en a besoin, sa pastille compense par
+        `translateX(calc(100% + 8px))`). Hérité tel quel ici, il décalait la pastille de 8 px.
+        -> `gap:0` : la pastille EST la séparation.
+     2. Les deux libellés n'ont pas la même longueur (« Guidé » 64 px, « Statique » 81 px mesurés) :
+        des boutons à largeur automatique ne peuvent JAMAIS coïncider avec une pastille fixée à
+        50 %. -> `flex:1 1 0` : deux moitiés strictement égales.
+     Sans ces deux réglages, la pastille flottait à côté du segment actif (retour d'usage). */
+  /* SÉLECTEUR PAR ID, à dessein : `.mode-seg` et `.seg` ont la MÊME spécificité (0,1,0) et la
+     règle de base `.seg{gap:8px}` est déclarée BEAUCOUP PLUS BAS dans le fichier — elle gagnait
+     donc par simple ordre, et la pastille se retrouvait décalée de 8 px (retour d'usage). Un id
+     l'emporte quel que soit l'ordre : c'est le 3ᵉ piège de cascade de ce type dans le projet
+     (cf. .read-grid v4.23.0 et .cbt-n v4.23.5) — pour une géométrie, ne pas dépendre de l'ordre. */
+  /* GRILLE à deux pistes `1fr`, PAS un flex : en flex, `min-width:auto` recale chaque bouton sur
+     son propre texte (mesuré : « Guidé » 64 px, « Statique » 81 px) — `flex:1 1 0` ne suffit donc
+     PAS à les égaliser, et une pastille fixée à 50 % ne peut coïncider avec aucun des deux. Des
+     pistes `1fr` adoptent toutes la largeur du plus exigeant : les deux moitiés deviennent
+     strictement égales, et la pastille tombe juste par construction. */
+  #modeSeg{flex:none;display:grid;grid-template-columns:1fr 1fr;background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:3px;gap:0}
+  #modeSeg[hidden]{display:none}
+  /* Le segment actif prend le registre de SÉLECTION de l'app (teinte + bordure d'accent), et non
+     un simple fond clair : `--surface` s'INVERSE d'un thème à l'autre (plus clair que la piste en
+     clair, plus SOMBRE qu'elle en sombre — la pastille s'y lisait alors comme inactive). Teinte +
+     bordure restent lisibles dans les deux thèmes, sans dépendre du sens du contraste. */
+  #modeSeg .seg-pill{width:calc(50% - 3px);left:3px;top:3px;bottom:3px;border-radius:999px;background:var(--primary-soft);border:1px solid var(--primary)}
+  #modeSeg.i1 .seg-pill{transform:translateX(100%)}
+  #modeSeg .seg-btn{position:relative;z-index:1;padding:6px 13px;border:0;background:none;border-radius:999px;font-family:inherit;font-size:13px;font-weight:700;color:var(--ink-soft);cursor:pointer;min-height:38px;white-space:nowrap}
+  #modeSeg .seg-btn.on{color:var(--primary-dk);font-weight:800}
+  #modeSeg .seg-btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  @media (max-width:429.98px){#modeSeg .seg-btn{padding:6px 10px;font-size:12.5px}}
   /* RANGÉE D'ÉTAT — l'affichage : ce qui se passe. Collée SOUS la rangée de commandes : son `top`
      cumule la hauteur d'en-tête et celle des commandes (--ctrl-h, mesurée par syncHdrScroll). */
   #crisisDock{position:sticky;top:calc(var(--hdr-h,64px) + var(--ctrl-h,0px));z-index:15;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:0 1px 3px rgba(16,27,40,.05)}
