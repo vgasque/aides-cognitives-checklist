@@ -373,10 +373,15 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   régénérée : invalide → rangée rejetée par `migrate`). Modèle : QRH non-normal / mode
   failure-related ECAM — une complication ne s'entre pas par la position mais quand l'ÉVÉNEMENT
   survient, et **le RETOUR fait partie du dispositif** (jamais laissé à la mémoire).
-  DÉCLENCHEUR (décision utilisateur) : boutons `⚡ <événement>` sur la carte du BOUT (à côté de
-  l'avance — la bifurcation non-nominale près de l'avance nominale) + une entrée PAR complication
-  au menu ⋯ (accès constant, cas « perdu »). Registre ALERTE en CONTOUR, jamais rempli (un aplat
-  rouge permanent désensibilise) ; cible externe marquée `↗`.
+  DÉCLENCHEUR (v4.26.1, décision utilisateur — UN bouton CONSTANT, pas un par événement) :
+  `⚡ Complication(s) (n)` sur la carte du BOUT — étapes ET décision — qui ouvre l'INDEX
+  `#cxModal` (grandes rangées : événement + « interrompt le parcours — retour prévu » ou
+  « ouvre : <aide> ↗ ») + la MÊME entrée au menu ⋯. C'est le modèle QRH/Stanford : UN objet à
+  index par onglets, pas un bouton de cockpit par urgence — l'appel automatique ECAM ne vaut que
+  pour les pannes CAPTÉES, ce que l'app ne fait pas ; et N boutons rouges qui se ressemblent
+  obligeraient à LIRE chacun sous stress, quand un mot constant à position constante s'apprend.
+  Coût assumé : un tap de plus, payé en rangées larges. Registre ALERTE en CONTOUR, jamais rempli
+  (un aplat rouge permanent désensibilise).
   COMPORTEMENT : `cxEnter` = TOUJOURS un nouveau passage au bout — même bloc déjà visité, un
   événement qui se REproduit est un nouvel événement (≠ `jumpToBlock`, où revoir = défiler) ;
   passage marqué « ⚡ complication » en toutes lettres, pastille `⚡` si le bloc est hors tronc ;
@@ -390,9 +395,11 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   STRUCTURE : un bloc cible HORS séquence ne prend PAS de numéro de tronc (`flowPlan` l'exclut —
   numéroté, il se lisait « l'étape d'après », mesuré avant correction) ; il vit dans une section
   « ⚡ À tout moment » de l'Échelle ET du Statique. Les orphelins NON déclarés gardent le
-  comportement historique. Éditeur : rangées libellé + cible (blocs de la fiche PUIS autres
-  aides — demande utilisateur : « une complication peut ouvrir une nouvelle aide cognitive ») ;
-  garde-fou 1-3. Prompt IA : bloc dédié hors séquence, label = nom d'événement, 1-3 max, un
+  comportement historique. Éditeur (v4.26.1) : rangées libellé + bouton-cible ouvrant le
+  SÉLECTEUR FILTRABLE partagé (`openCxTargetPicker` sur `relPickModal` — même patron que « Voir
+  aussi »/« Joindre un document », demande utilisateur : la liste des aides peut être longue),
+  DEUX groupes — blocs de CETTE fiche d'abord, puis aides & protocoles ; contrairement à « Voir
+  aussi », une aide déjà liée reste sélectionnable ; garde-fou 1-3. Prompt IA : bloc dédié hors séquence, label = nom d'événement, 1-3 max, un
   événement relevant d'une AUTRE aide se SIGNALE (le JSON ne connaît pas les ids des autres
   fiches). Helpers purs `cxAll`/`cxDetached` (testés) ; harnais `scripts/audit-complications.mjs`.
 - **Mode statique (v4.13.0, DOCUMENT complet v4.14.0)** : TOUTE l'aide en TABLEAU compact

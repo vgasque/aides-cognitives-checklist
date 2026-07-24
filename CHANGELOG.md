@@ -1,5 +1,30 @@
 # Journal des modifications
 
+## [4.26.1] — 2026-07-25
+Deux retours d'usage sur les complications, tous deux retenus.
+
+### Modifié
+- **Un seul déclencheur constant, « ⚡ Complication(s) (n) », qui ouvre un index par événement** —
+  au lieu d'un bouton par complication. C'est le retour utilisateur, et il est plus doctrinal que
+  la version initiale : le QRH est **un** objet à index par onglets, le manuel de Stanford **un**
+  manuel à onglets d'événements — on ne met pas un bouton de cockpit par urgence. L'appel
+  automatique de l'ECAM ne vaut que pour les pannes *captées*, ce que l'application ne fait pas ;
+  l'analogue honnête est donc l'index. Bonus : mot et position constants quelle que soit la fiche
+  (plusieurs boutons rouges qui se ressemblent obligeraient à lire chacun sous stress), et l'écran
+  d'action se désencombre. Coût assumé : un tap de plus, payé en grandes rangées dans l'index
+  (événement + « interrompt le parcours — retour prévu » ou « ouvre : ‹aide› ↗ »).
+  - Le menu ⋯ porte la même entrée unique « Complications (n) ».
+  - **Le déclencheur vit désormais aussi sur un bloc de décision courant** (limite de la 4.26.0,
+    levée).
+- **Éditeur : la cible s'ouvre dans le sélecteur filtrable partagé** (même patron que « Voir
+  aussi » et « Joindre un document ») au lieu d'un menu déroulant — la liste des aides peut être
+  très longue. Deux groupes : **blocs de cette fiche** d'abord, puis **aides & protocoles** ;
+  contrairement à « Voir aussi », une aide déjà liée reste sélectionnable.
+
+### Interne
+- Harnais `audit-complications.mjs` réécrit pour le nouveau flux : 20 contrôles, dont l'index
+  (ouverture, contenu, Échap), le bloc de décision courant et le sélecteur d'éditeur.
+
 ## [4.26.0] — 2026-07-25
 ### Ajouté
 - **Complications « à tout moment »** — l'aboutissement de l'audit sur la fonction de l'app : une

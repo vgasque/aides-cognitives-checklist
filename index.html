@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-MaG/gftFeyAWdSFPXMNkd8H2NFRBXlukGO6tdX8MwQw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-IwmvTovKYD51ZnX6Un+KF9newDfAKRGZH2WZ5lELxmw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1318,11 +1318,22 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .cx-edit-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
   .cx-edit-row .cx-edit-ic{flex:none;color:var(--critical);font-weight:800}
   .cx-edit-row input{flex:1;min-width:0}
-  .cx-edit-row select{flex:1;min-width:0;max-width:46%}
+  .cx-edit-row .cx-tgt{flex:1;min-width:0;max-width:46%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
+  .cx-edit-row .cx-tgt-vide{color:var(--ink-soft);border-style:dashed}
+  .pick-h{margin:10px 2px 6px;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft)}
   .cx-btn{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:8px 14px;border:1px solid var(--critical-bd);border-radius:9px;background:transparent;color:var(--critical);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer}
   .cx-btn:hover{background:var(--critical-soft)}
   .cx-btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-  .cx-btn .cx-ext{font-weight:800;opacity:.75}
+  .cx-btn .cx-n{font-family:var(--mono);font-size:12px;background:var(--critical-soft);border-radius:999px;padding:1px 7px}
+  #cxModal .ai-card{max-width:440px}
+  .cx-note{font-size:13px;color:var(--ink-soft);margin:0 0 10px}
+  .cx-item{display:flex;align-items:center;gap:11px;width:100%;min-height:56px;padding:10px 13px;margin-bottom:8px;border:1px solid var(--critical-bd);border-radius:10px;background:transparent;font-family:inherit;text-align:left;cursor:pointer}
+  .cx-item:hover{background:var(--critical-soft)}
+  .cx-item:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .cx-item-ic{flex:none;font-size:17px}
+  .cx-item-tx{flex:1;min-width:0}
+  .cx-item-tx b{display:block;font-size:15.5px;color:var(--critical)}
+  .cx-item-sub{display:block;font-size:12px;color:var(--ink-soft);margin-top:1px}
   .cx-tag{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--critical);background:var(--critical-soft);border:1px solid var(--critical-line);border-radius:999px;padding:1px 8px;vertical-align:1px;white-space:nowrap}
   .pl-cxh{margin:14px 0 4px;font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--critical)}
   .pl-line.cxl .n{color:var(--critical)}
@@ -3097,6 +3108,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   <div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg><input id="relPickQ" placeholder="Filtrer par titre ou code…"></div>
   <div id="relPickList" class="att-list attpick-list"></div>
 </div></div>
+<!-- COMPLICATIONS « à tout moment » (v4.26.1) : UN déclencheur constant ouvre cet INDEX par
+     événement — le modèle QRH/Stanford (un manuel, des onglets), pas un bouton par urgence.
+     Rangées larges (crise), fermeture voile/✕/Échap par le gestionnaire central de modales. -->
+<div class="ai-modal dlg-confirm" id="cxModal" role="dialog" aria-modal="true" aria-labelledby="cxModalTitle"><div class="ai-card">
+  <div class="ai-top"><h3 id="cxModalTitle">⚡ Complications</h3><button class="ai-x" id="cxX" aria-label="Fermer">×</button></div>
+  <p class="cx-note">Tapez l'événement survenu — le parcours est interrompu, un retour est prévu.</p>
+  <div id="cxList"></div>
+</div></div>
 <!-- Visionneuse PDF (documents joints) : plein écran, rendu pdf.js page par page (virtualisé).
      Même gestion d'accessibilité que les autres fenêtres (.ai-modal : focus, Échap, piège Tab). -->
 <div class="ai-modal pdf-modal" id="pdfModal" role="dialog" aria-modal="true" aria-labelledby="pdfModalTitle">
@@ -3173,7 +3192,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.26.0';
+const APP_VERSION='4.26.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -3943,7 +3962,23 @@ function flowPaintState(container,f){if(!container||!f)return;
    cxResume : NOUVEAU passage du bloc interrompu, cases neuves — doctrine d'interruption
    AC 120-71B : après une interruption on RE-VÉRIFIE depuis une ancre sûre, on ne fait pas
    confiance aux coches d'avant l'événement (l'ancienne carte reste lisible juste au-dessus). */
-const cxRowHtml=list=>`<div class="cx-row" role="group" aria-label="Complications — à tout moment">${list.map(c=>`<button type="button" class="cx-btn" data-cxgo="${esc(c.target)}" title="${c.kind==='ext'?'Complication — ouvre une autre aide':'Complication — entre dans le parcours, retour prévu'}">⚡ ${esc(c.label)}${c.kind==='ext'?' <span class="cx-ext" aria-hidden="true">↗</span>':''}</button>`).join('')}</div>`;
+/* UN SEUL DÉCLENCHEUR, mot CONSTANT (v4.26.1, décision utilisateur — et plus doctrinal que la
+   rangée de boutons par événement de v4.26.0) : le QRH est UN objet à index par onglets, le manuel
+   de Stanford UN manuel à onglets d'événements — on ne met pas un bouton de cockpit par urgence.
+   L'appel automatique ECAM ne vaut que pour les pannes CAPTÉES ; l'app ne capte rien, l'analogue
+   honnête est donc l'index. Bonus : position ET libellé constants quelle que soit la fiche (N
+   boutons rouges qui se ressemblent obligeraient à LIRE chacun sous stress), et l'écran d'action
+   se désencombre. Coût assumé : un tap de plus, payé en rangées LARGES dans l'index. */
+const cxRowHtml=list=>`<div class="cx-row"><button type="button" class="cx-btn" data-cxopen title="Complications — à tout moment : interrompt le parcours, retour prévu">⚡ Complication${list.length>1?'s <span class="cx-n">'+list.length+'</span>':''}</button></div>`;
+function openCxDlg(f){
+  const list=cxAll(f);if(!list.length)return;
+  const box=document.getElementById('cxList');
+  box.innerHTML=list.map((c,i)=>{const t=c.kind==='ext'?relTarget(c.target):null;
+    return `<button type="button" class="cx-item" data-cxpick="${esc(c.target)}"><span class="cx-item-ic" aria-hidden="true">⚡</span><span class="cx-item-tx"><b>${esc(c.label)}</b><span class="cx-item-sub">${c.kind==='ext'?('ouvre : '+esc((t&&t.title)||'aide introuvable')+' ↗'):'interrompt le parcours — retour prévu'}</span></span></button>`;}).join('');
+  box.querySelectorAll('[data-cxpick]').forEach(b=>b.onclick=()=>{closeCxDlg();cxEnter(f,b.dataset.cxpick);});
+  cxModal.classList.add('on');
+  const f1=box.querySelector('.cx-item');if(f1)f1.focus();}
+function closeCxDlg(){cxModal.classList.remove('on');}
 function cxEnter(f,target){
   if(!f)return;
   const local=(f.blocks||[]).some(b=>b&&b.id===target);
@@ -3965,6 +4000,9 @@ function cxResume(f,backId){
   if(Runtime.started)persistLive(Runtime);
   if(state.readMode==='overview'&&hasFlow(f)){renderOvOnly();ovScrollTo(backId);}
   else render();}
+const cxModal=document.getElementById('cxModal');
+bindModalDismiss(cxModal,closeCxDlg);
+{const x=document.getElementById('cxX');if(x)x.onclick=closeCxDlg;}
 function jumpToBlock(f,id){if(!f||!(f.blocks||[]).some(b=>b.id===id))return;
   const lp=latestPass(state.nav,state.navSeq,id);
   if(state.readMode==='static'&&hasFlow(f)){svJump(f,id);return;}   // v4.13.0 : tout est déjà à l'écran
@@ -7247,7 +7285,7 @@ function bindReadEvents(f,blk,cur){
     ...(hasFlow(f)?[{label:'Schéma de l’algorithme',ic:uiIcon('flow',16),sub:'plein écran, zoom',act:()=>openFlowFull(f)}]:[]),
     ...(annexRowHtml(f)?[{label:'Consulter',ic:uiIcon('book',16),sub:'surveillances, documents…',act:()=>openRefSheet()}]:[]),
     ...(hasFlow(f)?[{label:'Mode lecteur (binôme)',ic:uiIcon('play',16),act:readerOpen}]:[]),
-    ...cxAll(f).map(c=>({label:c.label,ic:'⚡',sub:c.kind==='ext'?'complication — autre aide':'complication — à tout moment',act:()=>cxEnter(f,c.target)})),
+    ...(cxAll(f).length?[{label:'Complication'+(cxAll(f).length>1?'s ('+cxAll(f).length+')':''),ic:'⚡',sub:'à tout moment',act:()=>openCxDlg(f)}]:[]),
     ...(hasFlow(f)?[{label:'Recommencer le parcours',ic:uiIcon('undo',16),sub:'repart du début',act:()=>restartCourse(f)}]:[]),
     'sep',
     {label:'Dupliquer dans « Perso »',ic:uiIcon('copy',16),act:()=>dupToPerso('f',f)},
@@ -7343,7 +7381,7 @@ function bindReadEvents(f,blk,cur){
 // « Repartir d'ici (efface la suite) » tronque volontairement la suite pour repartir d'ici.
 function bindNavEvents(f,blk){
   // Complications (v4.26.0) — mêmes gestes qu'en journal ; câblage direct (pas de délégation ici).
-  main.querySelectorAll('[data-cxgo]').forEach(b=>b.onclick=()=>cxEnter(f,b.dataset.cxgo));
+  main.querySelectorAll('[data-cxopen]').forEach(b=>b.onclick=()=>openCxDlg(f));
   main.querySelectorAll('[data-cxback]').forEach(b=>b.onclick=()=>cxResume(f,b.dataset.cxback));
   const nx=document.getElementById('navNext');if(nx)nx.onclick=()=>{
     if(nx.getAttribute('aria-disabled')==='true')return;   // étapes restantes : le libellé l'annonce, le clic est ignoré (ECAM)
@@ -7497,7 +7535,7 @@ function ovInstHtml(f,id,idx,topo,pres){
   let bodyH='',count='';
   if(dec){
     const opts=(b.options||[]).map((o,i)=>{const sel=taken&&o===taken;return `<button type="button" class="opt${sel?' taken':''}" data-ovopt="${esc(o.target||'')}"><span class="ftxt">${fmt(o.label)||'Option '+(i+1)}</span><span class="arr">${sel?'✓':uiIcon('chev',18,{sw:2.4,cls:''})}</span></button>`;}).join('');
-    bodyH=`${imgH}<div class="question">${fmt(b.question)||'…'}</div><div class="options">${opts}</div>`;
+    bodyH=`${imgH}<div class="question">${fmt(b.question)||'…'}</div><div class="options">${opts}</div>${tip&&cxAll(f).length?cxRowHtml(cxAll(f)):''}`;
     count=taken?'✓':'?';}
   else{
     const steps=clean(b.steps);
@@ -8034,7 +8072,7 @@ function bindOverviewEvents(f){
     if(pl3){const id3=pl3.dataset.plln;state.ovFold['l:'+id3]=!state.ovFold['l:'+id3];
       renderOvOnlyKeepAnchor('[data-plln="'+CSS.escape(id3)+'"]');return;}
     const pg=t.closest('[data-plgo]');if(pg){jumpToBlock(f,pg.dataset.plgo);return;}
-    const cg=t.closest('[data-cxgo]');if(cg){cxEnter(f,cg.dataset.cxgo);return;}
+    const co=t.closest('[data-cxopen]');if(co){openCxDlg(f);return;}
     const cb2=t.closest('[data-cxback]');if(cb2){cxResume(f,cb2.dataset.cxback);return;}
     const nx=t.closest('[data-ovnext]');
     if(nx){if(nx.getAttribute('aria-disabled')==='true')return;   // le libellé dit pourquoi (ECAM)
@@ -8663,11 +8701,28 @@ function openAttPicker(entity,rerender){
    filtrable, lignes .att-row) — icône doc = aide, livre = protocole ; code en colonne droite. */
 const relPickModal=document.getElementById('relPickModal');
 let _relPickCtx=null;   // {entity, rerender} de l'éditeur appelant
-function closeRelPicker(){_relPickCtx=null;relPickModal.classList.remove('on');}
+let _cxPickCtx=null;
+function closeRelPicker(){_relPickCtx=null;_cxPickCtx=null;
+  document.getElementById('relPickTitle').textContent='Lier une aide ou un protocole';
+  relPickModal.classList.remove('on');}
 bindModalDismiss(relPickModal,closeRelPicker);
 function renderRelPickList(){
-  const box=document.getElementById('relPickList');if(!box||!_relPickCtx)return;
+  const box=document.getElementById('relPickList');if(!box||(!_relPickCtx&&!_cxPickCtx))return;
   const q=txNorm(document.getElementById('relPickQ').value);
+  /* Mode CIBLE DE COMPLICATION (v4.26.1) : deux groupes — les blocs de CETTE fiche d'abord (le
+     cas nominal : un bloc dédié type laryngospasme), puis toutes les aides & protocoles. Le filtre
+     porte sur les deux. Contrairement à « Voir aussi », une aide DÉJÀ liée reste sélectionnable. */
+  if(_cxPickCtx){const f=_cxPickCtx.f;
+    const bl=(f.blocks||[]).filter(b=>!q||txNorm(String(stripBold(b.title||''))).includes(q));
+    const oth=fiches.filter(x=>x.id!==f.id&&!x.deletedAt).concat(protocols.filter(x=>!x.deletedAt)).slice().sort(byTitle)
+      .filter(x=>!q||txNorm((x.title||'')+' '+(x.code||'')).includes(q));
+    box.innerHTML=(bl.length?`<p class="pick-h">Blocs de cette fiche</p>`+bl.map(b=>`<button class="att-row" data-pick="${esc(b.id)}"><span class="att-ico">⚡</span><span class="att-name">${esc(String(stripBold(b.title||''))||b.id)}</span></button>`).join(''):'')
+      +(oth.length?`<p class="pick-h">Aides & protocoles</p>`+oth.map(o=>`<button class="att-row" data-pick="${esc(o.id)}"><span class="att-ico">${uiIcon(protocols.some(x=>x.id===o.id)?'book':'doc',16)}</span><span class="att-name">${esc(o.title||'Sans titre')}</span></button>`).join(''):'')
+      ||('<p class="ai-note">Rien ne correspond au filtre.</p>');
+    box.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{
+      const ctx=_cxPickCtx;closeRelPicker();
+      if(ctx&&ctx.f.complications&&ctx.f.complications[ctx.i]){ctx.f.complications[ctx.i].target=b.dataset.pick;ctx.rerender();}});
+    return;}
   const opts=relCandidates(_relPickCtx.entity).filter(o=>!q||txNorm(o.title+' '+o.code).includes(q));
   box.innerHTML=opts.length?opts.map(o=>`<button class="att-row" data-pick="${esc(o.id)}"><span class="att-ico">${uiIcon(o.kind==='p'?'book':'doc',16)}</span><span class="att-name">${esc(o.title)}<span class="att-from">${o.kind==='p'?'Protocole':'Aide cognitive'}</span></span>${o.code?`<span class="att-size" style="font-family:var(--mono)">${esc(o.code)}</span>`:''}</button>`).join('')
     :'<p class="ai-note">Aucune fiche '+(q?'ne correspond au filtre.':'disponible.')+'</p>';
@@ -8677,7 +8732,12 @@ function renderRelPickList(){
 document.getElementById('relPickQ').addEventListener('input',renderRelPickList);
 function openRelPicker(entity,rerender){
   if((entity.related||[]).length>=20){toast('⚠ 20 liens maximum.');return;}   // même plafond que migrate()
-  _relPickCtx={entity:entity,rerender:rerender};
+  _relPickCtx={entity:entity,rerender:rerender};_cxPickCtx=null;
+  document.getElementById('relPickQ').value='';
+  relPickModal.classList.add('on');renderRelPickList();}
+function openCxTargetPicker(f,i,rerender){
+  _cxPickCtx={f:f,i:i,rerender:rerender};_relPickCtx=null;
+  document.getElementById('relPickTitle').textContent='Cible de la complication';
   document.getElementById('relPickQ').value='';
   relPickModal.classList.add('on');renderRelPickList();}
 // Blobs PDF ajoutés pendant l'édition COURANTE : purgés si on quitte sans enregistrer (le blob est
@@ -8696,10 +8756,13 @@ function blockEditor(b,blocks){if(b.type==='decision'){return `<div class="blk" 
    protocole (demande utilisateur : « une complication peut ouvrir une nouvelle aide cognitive ») —
    même résolution que « Voir aussi » (relTarget), l'id est une référence jamais régénérée. */
 function cxEditorRow(c,i,f){
-  const blocks=(f.blocks||[]).map(b=>`<option value="${esc(b.id)}"${c.target===b.id?' selected':''}>Bloc — ${esc(String(stripBold(b.title||b.id))).slice(0,48)}</option>`).join('');
-  const others=fiches.filter(x=>x.id!==f.id&&!x.deletedAt).concat(protocols.filter(x=>!x.deletedAt)).slice().sort(byTitle)
-    .map(x=>`<option value="${esc(x.id)}"${c.target===x.id?' selected':''}>${esc(x.title||'Sans titre')}</option>`).join('');
-  return `<div class="cx-edit-row"><span class="cx-edit-ic" aria-hidden="true">⚡</span><input data-cxlab="${i}" value="${esc(c.label)}" maxlength="120" placeholder="Événement (ex. Laryngospasme)"><select data-cxtgt="${i}" aria-label="Cible de la complication"><option value=""${c.target?'':' selected'}>— cible —</option><optgroup label="Blocs de cette fiche">${blocks}</optgroup><optgroup label="Autres aides & protocoles">${others}</optgroup></select><button type="button" class="tk-del" data-cxdel="${i}" aria-label="Supprimer cette complication">×</button></div>`;}
+  /* La CIBLE s'ouvre dans le SÉLECTEUR FILTRABLE partagé (v4.26.1, demande utilisateur : la liste
+     des aides peut être très longue — même patron que « Joindre un document » / « Voir aussi »),
+     avec les blocs de CETTE fiche en premier groupe, puis les aides & protocoles. */
+  const blk=(f.blocks||[]).find(b=>b.id===c.target);
+  const ext=blk?null:relTarget(c.target);
+  const nom=blk?('Bloc — '+(String(stripBold(blk.title||''))||blk.id)):(ext?(ext.title||'Sans titre'):'');
+  return `<div class="cx-edit-row"><span class="cx-edit-ic" aria-hidden="true">⚡</span><input data-cxlab="${i}" value="${esc(c.label)}" maxlength="120" placeholder="Événement (ex. Laryngospasme)"><button type="button" class="btn sm cx-tgt${nom?'':' cx-tgt-vide'}" data-cxpicker="${i}" aria-haspopup="dialog">${nom?esc(nom):'Choisir la cible…'}</button><button type="button" class="tk-del" data-cxdel="${i}" aria-label="Supprimer cette complication">×</button></div>`;}
 function timerEditorRow(t,i){const iv=t.type==='interval';const mm=Math.floor((t.seconds||0)/60),ss=(t.seconds||0)%60;return `<div class="trow" data-ti="${i}"><span class="blk-type ${iv?'decision':'steps'}">${iv?'Cycle':'Chrono'}</span><input type="text" data-tf="label" value="${esc(t.label)}" placeholder="${iv?'ex. Cycle adrénaline':'ex. Temps écoulé'}">${iv?`<input type="number" min="0" data-tmin value="${mm}" style="width:56px"><span>min</span><input type="number" min="0" max="59" data-tsec value="${ss}" style="width:56px"><span>s</span><label style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--ink-soft)"><input type="checkbox" data-tloop ${t.autoloop?'checked':''}>boucle</label>`:''}<button class="mini" data-tmv="up" aria-label="Monter">↑</button><button class="mini" data-tmv="down" aria-label="Descendre">↓</button><button class="mini del" data-tdel="${i}">×</button></div>`;}
 function counterEditorRow(c,i,timers){const ivs=(timers||[]).filter(t=>t.type==='interval');
   return `<div class="trow" data-ci="${i}"><input type="text" data-cf="label" value="${esc(c.label)}" placeholder="ex. Adrénaline (mg)"><span>pas</span><input type="number" data-cstep value="${c.step||1}" style="width:56px"><span>départ</span><input type="number" data-cstart value="${c.start||0}" style="width:56px">${ivs.length?`<select data-clink title="Le « ＋ » du compteur relance ce minuteur (ex. bolus -> cycle)"><option value="">＋ ne relance rien</option>${ivs.map(t=>`<option value="${esc(t.id)}"${c.timerId===t.id?' selected':''}>＋ relance « ${esc(t.label)||'Minuteur'} »</option>`).join('')}</select>`:''}<button class="mini" data-cmv="up" aria-label="Monter">↑</button><button class="mini" data-cmv="down" aria-label="Descendre">↓</button><button class="mini del" data-cdel="${i}">×</button></div>`;}
@@ -8794,7 +8857,7 @@ function bindEditorEvents(f){
   // Complications : édition en place (le libellé sans re-rendu — garde le focus — ; cible et
   // suppression re-rendent, la liste est courte). migrate() rejettera les rangées incomplètes.
   main.querySelectorAll('[data-cxlab]').forEach(inp=>inp.addEventListener('input',e=>{const i=+e.target.dataset.cxlab;if(f.complications&&f.complications[i])f.complications[i].label=e.target.value;}));
-  main.querySelectorAll('[data-cxtgt]').forEach(sel=>sel.onchange=e=>{const i=+e.target.dataset.cxtgt;if(f.complications&&f.complications[i])f.complications[i].target=e.target.value;});
+  main.querySelectorAll('[data-cxpicker]').forEach(b=>b.onclick=()=>openCxTargetPicker(f,+b.dataset.cxpicker,renderEditor));
   main.querySelectorAll('[data-cxdel]').forEach(b=>b.onclick=()=>{f.complications.splice(+b.dataset.cxdel,1);renderEditor();});
   {const ab=document.getElementById('addCx');if(ab)ab.onclick=()=>{(f.complications=f.complications||[]).push({label:'',target:''});renderEditor();};}
   bindEditSide('fiche');
