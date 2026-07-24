@@ -1046,6 +1046,18 @@
      Registre ALERTE en CONTOUR, jamais rempli : l'entrée d'un événement vital mérite le rouge
      (doctrine v4.2.2 : ce qui tue si on l'oublie), mais un aplat permanent désensibiliserait
      (règle du bandeau blanc). Glyphe ⚡ + mot en toutes lettres — la couleur jamais seule. */
+  /* ═══ MODE EXERCICE (v4.27.0) — annonciation « placard TRAINING » : hachures + mot, en BLEU
+     (ni rouge ni ambre : ce n'est pas une alerte). Le vert « ● Session » reste réservé au RÉEL. */
+  #crisisBand.exo{background:repeating-linear-gradient(-45deg,var(--surface),var(--surface) 14px,var(--surface-2) 14px,var(--surface-2) 22px)}
+  #crisisBand .cb-tag.exo,#hdrCrisis.exo{color:var(--primary-dk)}
+  #crisisBand .cb-tag.exo{background:var(--primary-soft);border:1px dashed var(--primary);border-radius:6px;padding:2px 8px}
+  #cbTimers .seg.glb.exo .seg-sess{color:var(--primary-dk)}
+  .sess-gh{margin:12px 2px 4px;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft)}
+  .sess-exotag,.tag.exo2{font-size:10px;font-weight:800;letter-spacing:.5px;color:var(--primary-dk);background:var(--primary-soft);border:1px dashed var(--primary);border-radius:6px;padding:1px 6px;white-space:nowrap}
+  .tag.exo2{font-size:11px;padding:2px 8px}
+  .last-sess.exo{border-left-color:var(--primary)}
+  .last-sess.exo .lsr-ic{color:var(--primary-dk);font-weight:800}
+  .last-sess.exo .lsr-tx b{color:var(--primary-dk)}
   .cx-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
   .cx-edit-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
   .cx-edit-row .cx-edit-ic{flex:none;color:var(--critical);font-weight:800}

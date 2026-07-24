@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-IwmvTovKYD51ZnX6Un+KF9newDfAKRGZH2WZ5lELxmw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-eIabCRE+eqzv63sV83UlJQag4BQp90eddqI7nfn17PQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1314,6 +1314,18 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      Registre ALERTE en CONTOUR, jamais rempli : l'entrée d'un événement vital mérite le rouge
      (doctrine v4.2.2 : ce qui tue si on l'oublie), mais un aplat permanent désensibiliserait
      (règle du bandeau blanc). Glyphe ⚡ + mot en toutes lettres — la couleur jamais seule. */
+  /* ═══ MODE EXERCICE (v4.27.0) — annonciation « placard TRAINING » : hachures + mot, en BLEU
+     (ni rouge ni ambre : ce n'est pas une alerte). Le vert « ● Session » reste réservé au RÉEL. */
+  #crisisBand.exo{background:repeating-linear-gradient(-45deg,var(--surface),var(--surface) 14px,var(--surface-2) 14px,var(--surface-2) 22px)}
+  #crisisBand .cb-tag.exo,#hdrCrisis.exo{color:var(--primary-dk)}
+  #crisisBand .cb-tag.exo{background:var(--primary-soft);border:1px dashed var(--primary);border-radius:6px;padding:2px 8px}
+  #cbTimers .seg.glb.exo .seg-sess{color:var(--primary-dk)}
+  .sess-gh{margin:12px 2px 4px;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft)}
+  .sess-exotag,.tag.exo2{font-size:10px;font-weight:800;letter-spacing:.5px;color:var(--primary-dk);background:var(--primary-soft);border:1px dashed var(--primary);border-radius:6px;padding:1px 6px;white-space:nowrap}
+  .tag.exo2{font-size:11px;padding:2px 8px}
+  .last-sess.exo{border-left-color:var(--primary)}
+  .last-sess.exo .lsr-ic{color:var(--primary-dk);font-weight:800}
+  .last-sess.exo .lsr-tx b{color:var(--primary-dk)}
   .cx-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
   .cx-edit-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
   .cx-edit-row .cx-edit-ic{flex:none;color:var(--critical);font-weight:800}
@@ -3192,7 +3204,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.26.1';
+const APP_VERSION='4.27.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -3604,7 +3616,7 @@ const RO_EDIT_TOAST='Lecture seule : vous n\'avez pas les droits d\'édition sur
    Portée : STOCKÉ DANS LA SESSION uniquement (stores `sessions`) — l'export v3 des FICHES et le
    format des clés (`seq:blocId:index`) restent strictement inchangés ; un client antérieur ignore
    simplement ces deux champs. */
-function makeRuntime(){return {fiche:null,ficheId:null,sessionId:null,name:'',started:false,startedAt:0,checked:{},verified:{},vgaps:{},cxBack:{},nav:[],navSeq:[],seq:0,counters:{},timers:{},events:[]};}
+function makeRuntime(){return {fiche:null,ficheId:null,sessionId:null,name:'',started:false,startedAt:0,exercise:false,checked:{},verified:{},vgaps:{},cxBack:{},nav:[],navSeq:[],seq:0,counters:{},timers:{},events:[]};}
 let Runtime=makeRuntime();
 const liveSessions={};
 let soundOn=true;
@@ -3979,6 +3991,25 @@ function openCxDlg(f){
   cxModal.classList.add('on');
   const f1=box.querySelector('.cx-item');if(f1)f1.focus();}
 function closeCxDlg(){cxModal.classList.remove('on');}
+/* MODE EXERCICE (v4.27.0 — pilier EMIC « se familiariser », gap n°2 de l'audit doctrinal).
+   Un drapeau de SESSION, rien de plus : les sessions sont locales (jamais dans l'export v3,
+   jamais synchronisées). L'écran reste STRICTEMENT identique au réel (fidélité = condition du
+   transfert d'entraînement, Greig 2023) — seule l'ANNONCIATION change (placard « TRAINING » des
+   simulateurs) : bandeau hachuré + « ▲ Exercice », chrono « ▲ Exercice » au lieu de « ● Session ».
+   PAS DE RAPPEL (décision utilisateur) : la date du dernier exercice s'affiche quand elle existe,
+   rien n'alerte jamais — et pas de pilule « jamais répétée » (un rappel déguisé). */
+async function startExercise(f){
+  if(!f)return;
+  if(Runtime.started&&!Runtime.exercise){
+    if(!await confirmDlg('Une session réelle est en cours sur cette fiche. La terminer pour passer en exercice ? Elle est archivée — son compte-rendu reste disponible.',{yes:'Terminer et exercer',danger:true}))return;
+    endSession(Runtime);}
+  else if(Runtime.started&&Runtime.exercise){
+    if(!await confirmDlg('Un exercice est déjà en cours. En recommencer un nouveau ?',{yes:'Nouvel exercice'}))return;
+    endSession(Runtime);}
+  freshRuntime(f,null);Runtime.fiche=f;liveSessions[f.id]=Runtime;
+  Runtime.exercise=true;
+  state.flowEnded=false;state.ovVerify=null;state.confOpen=undefined;
+  render();window.scrollTo(0,0);}
 function cxEnter(f,target){
   if(!f)return;
   const local=(f.blocks||[]).some(b=>b&&b.id===target);
@@ -3986,7 +4017,7 @@ function cxEnter(f,target){
   ovDropOpens();
   const from=state.nav[state.navPos];
   state.nav.push(target);state.navSeq.push(++Runtime.seq);state.navPos=state.nav.length-1;
-  Runtime.cxBack=Runtime.cxBack||{};if(from&&from!==target)Runtime.cxBack[Runtime.seq]=from;
+  Runtime.cxBack=Runtime.cxBack||{};if(from&&from!==target)Runtime.cxBack[Runtime.seq]={id:from,t:Date.now()};
   state.flowEnded=false;state.ovVerify=null;
   const just=ensureStarted();persistLive(Runtime);
   if(just){render();return;}
@@ -5066,6 +5097,10 @@ function buildRuntime(f,session){
   R.verified=session&&session.verified?{...session.verified}:{};
   R.vgaps=session&&session.vgaps?{...session.vgaps}:{};
   R.cxBack=session&&session.cxBack?{...session.cxBack}:{};   // retours de complication (v4.26.0)
+  // v4.27.0 : les valeurs deviennent {id,t} (l'heure d'entrée sert au compte-rendu) — une session
+  // enregistrée en v4.26.x portait des chaînes : normalisées ici, jamais ailleurs.
+  Object.keys(R.cxBack).forEach(k=>{if(typeof R.cxBack[k]==='string')R.cxBack[k]={id:R.cxBack[k],t:0};});
+  R.exercise=!!(session&&session.exercise);   // MODE EXERCICE (v4.27.0) — aucune trace clinique
   R.nav=(session&&session.nav&&session.nav.length)?session.nav.slice():[f.start||((f.blocks[0]||{}).id)];
   // navSeq : identifiant de VISITE unique par entrée de nav (parallèle à nav). Permet, lors
   // d'une boucle qui revient sur un bloc, d'avoir des cases à cocher NEUVES pour cette visite
@@ -5093,7 +5128,7 @@ function autoSessName(f){return (f&&f.title||'Session')+' — '+new Date().toLoc
 // Photographie de l'état vivant -> objet session persistable. live=true tant que la session est « en cours ».
 function snapshotSession(R,live){const now=Date.now();const tsnap={};
   Object.values(R.timers).forEach(t=>{const within=t.elapsedMs+(t.running?(now-t.lastStart):0);tsnap[t.id]={elapsedMs:t.type==='interval'?Math.min(t.seconds*1000,within):within,cycles:t.cycles};});
-  return {id:R.sessionId,ficheId:R.fiche.id,ficheTitle:R.fiche.title,name:R.name,savedAt:now,startedAt:R.startedAt||now,live:!!live,checked:{...R.checked},verified:{...(R.verified||{})},vgaps:{...(R.vgaps||{})},cxBack:{...(R.cxBack||{})},nav:R.nav.slice(),navSeq:R.navSeq.slice(),counters:{...R.counters},timers:tsnap,
+  return {id:R.sessionId,ficheId:R.fiche.id,ficheTitle:R.fiche.title,name:R.name,savedAt:now,startedAt:R.startedAt||now,live:!!live,checked:{...R.checked},verified:{...(R.verified||{})},vgaps:{...(R.vgaps||{})},cxBack:{...(R.cxBack||{})},exercise:!!R.exercise,nav:R.nav.slice(),navSeq:R.navSeq.slice(),counters:{...R.counters},timers:tsnap,
     extraTimers:Object.values(R.timers).filter(t=>t.adhoc).map(t=>({id:t.id,label:t.label,seconds:t.seconds,autoloop:!!t.autoloop})),
     events:(R.events||[]).map(e=>({...e}))};}
 // COMPTE-RENDU d'une session : chronologie horodatée (repères), étapes réalisées, compteurs et
@@ -5110,15 +5145,31 @@ function exportSessionReport(sessionId){
   const evs=(s.events||[]).slice().sort((a,b)=>a.t-b.t);
   const evRows=evs.length?evs.map(e=>`<tr><td>${esc(fmtHMS(e.t))}</td><td>+${esc(fmtMs(e.t-start))}</td><td>${esc(e.label||'')}</td></tr>`).join(''):'<tr><td colspan="3" class="muted">Aucun repère horodaté.</td></tr>';
   const steps=Object.keys(s.checked||{}).filter(k=>s.checked[k]).map(k=>stepTextFromKey(f,k)).filter(Boolean);
+  /* COMPLICATIONS & VÉRIFICATION (v4.27.0) : le compte-rendu — support du DÉBRIEF (pilier EMIC) —
+     restitue les excursions ⚡ (heure d'entrée mémorisée par cxEnter) et la trace do-verify
+     (constatations et ÉCARTS horodatés). Vaut pour TOUTES les sessions, réelles comme exercices. */
+  const cxRows=Object.entries(s.cxBack||{}).map(([sq,v])=>{const vv=(typeof v==='string')?{id:v,t:0}:v;
+    const ix=(s.navSeq||[]).indexOf(+sq);const bid=ix>=0?(s.nav||[])[ix]:null;
+    const bb=bid&&f?(f.blocks||[]).find(x=>x.id===bid):null;
+    const fromB=f?(f.blocks||[]).find(x=>x.id===vv.id):null;
+    return {t:vv.t||0,h:`${vv.t?esc(fmtHMS(vv.t)):'—'} — ⚡ ${esc((bb&&bb.title)||'Complication')}${fromB?` <span class="muted">(pendant : ${esc(fromB.title||'')})</span>`:''}`};})
+    .sort((a,b)=>a.t-b.t);
+  const nVer=Object.keys(s.verified||{}).length;
+  const gapRows=Object.entries(s.vgaps||{}).map(([k,ts])=>{const st=stepTextFromKey(f,k);
+    return st?{t:ts||0,h:`${ts?esc(fmtHMS(ts)):'—'} — △ écart : ${fmt(st.step)} <span class="muted">(${esc(st.block)})</span>`}:null;})
+    .filter(Boolean).sort((a,b)=>a.t-b.t);
   const stepRows=steps.length?steps.map(x=>`<li><span class="muted">${esc(x.block)} —</span> ${fmt(x.step)}</li>`).join(''):'<li class="muted">Aucune étape cochée.</li>';
   const counters=(f&&f.counters||[]).map(c=>`<tr><td>${esc(c.label||'Compteur')}</td><td>${esc(String((s.counters||{})[c.id]||0))}</td></tr>`).join('');
   const timers=(f&&f.timers||[]).map(t=>{const ts=(s.timers||{})[t.id]||{};const v=t.type==='interval'?(esc(fmtMs(ts.elapsedMs||0))+' · '+esc(String(ts.cycles||0))+' cycle(s)'):esc(fmtMs(ts.elapsedMs||0));return `<tr><td>${esc(t.label||(t.type==='interval'?'Minuteur':'Chronomètre'))}</td><td>${v}</td></tr>`;}).join('');
   // Contenu commun (aperçu app + document imprimable/téléchargeable).
   const inner=`<h1>Compte-rendu de session</h1>
 <div class="meta"><b>${title}</b>${f&&f.validation?' · '+esc(fmtDate(f.validation)):''}</div>
-<div class="meta">Session « ${esc(s.name||'sans nom')} » · début ${esc(new Date(start).toLocaleString('fr-FR'))} · durée ${esc(dur)}</div>
+${s.exercise?'<div class="wm">EXERCICE</div><div class="meta exo">▲ Exercice — répétition sans patient, aucune trace clinique</div>':''}
+<div class="meta">${s.exercise?'Exercice':'Session'} « ${esc(s.name||'sans nom')} » · début ${esc(new Date(start).toLocaleString('fr-FR'))} · durée ${esc(dur)}</div>
 <h2>Chronologie des actions</h2><table><thead><tr><td><b>Heure</b></td><td><b>Écoulé</b></td><td><b>Action</b></td></tr></thead><tbody>${evRows}</tbody></table>
 <h2>Étapes réalisées</h2><ul>${stepRows}</ul>
+${cxRows.length?`<h2>⚡ Complications</h2><ul>${cxRows.map(x=>`<li>${x.h}</li>`).join('')}</ul>`:''}
+${(nVer||gapRows.length)?`<h2>Vérification (do-verify)</h2><ul><li>${nVer} étape${nVer>1?'s':''} constatée${nVer>1?'s':''} ✓✓</li>${gapRows.map(x=>`<li>${x.h}</li>`).join('')}</ul>`:''}
 ${counters?`<h2>Compteurs</h2><table>${counters}</table>`:''}
 ${timers?`<h2>Minuteurs</h2><table>${timers}</table>`:''}
 <div class="foot">Document généré par Aides cognitives (v${esc(APP_VERSION)}) le ${esc(new Date().toLocaleString('fr-FR'))}. Aucune donnée patient. Relire et contextualiser avant archivage.</div>`;
@@ -5127,6 +5178,8 @@ h1{font-size:20px;margin:0 0 2px}h2{font-size:14px;text-transform:uppercase;lett
 .meta{color:#5b6570;font-size:13px;margin-bottom:6px}table{width:100%;border-collapse:collapse;font-size:13.5px}td{padding:5px 8px;border-bottom:1px solid #f2f5f8;vertical-align:top}
 td:first-child{white-space:nowrap}ul{margin:0;padding-left:20px;font-size:13.5px}.muted{color:#5b6570}
 .foot{margin-top:26px;font-size:11px;color:#5b6570;border-top:1px solid #d5dbe2;padding-top:8px}
+.wm{position:fixed;right:-34px;top:24px;transform:rotate(24deg);font-size:13px;font-weight:800;letter-spacing:3px;color:#17477f;background:#e3ecf7;border:1px dashed #1f5fa6;padding:4px 44px;z-index:2}
+.meta.exo{color:#17477f;font-weight:700}
 @media print{body{margin:0}}`;
   _reportDoc=`<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Compte-rendu — ${title}</title><style>${css}</style></head><body>${inner}</body></html>`;
   _reportName='compte-rendu-'+fileSlug((f&&f.title)||s.ficheTitle);
@@ -5206,7 +5259,7 @@ function endSession(R){if(!R||!R.fiche)return;
   const i=sessions.findIndex(x=>x.id===s.id);if(i>=0)sessions[i]=s;else sessions.push(s);
   try{const nv=R.nav||[];
     const done=nv.reduce((n,id,ix)=>n+(instComplete(R.fiche,nv,R.navSeq,R.checked,ix)?1:0),0);
-    lastEndedSession={id:s.id,title:R.fiche.title||'Aide cognitive',dur:Math.max(0,Date.now()-R.startedAt),passes:nv.length,done};}catch(e){}
+    lastEndedSession={id:s.id,title:R.fiche.title||'Aide cognitive',dur:Math.max(0,Date.now()-R.startedAt),passes:nv.length,done,exercise:!!R.exercise};}catch(e){}
   delete liveSessions[R.ficheId];R.started=false;R.sessionId=null;R.name='';}
 function requestNotifyPermission(){try{if('Notification'in window&&Notification.permission==='default')Notification.requestPermission();}catch(e){}}
 // Vibration. NB : iOS (Safari/PWA iPhone) n'expose PAS l'API Vibration -> aucune
@@ -5353,7 +5406,7 @@ function updateRtStrip(now){
   const moreOf=n=>(pool.length>n)?'<span class="cbt-n">+'+(pool.length-n)+'</span>':'';
   // « ● SESSION » : l'état est ANNONCÉ (point + mot, vert = actif nominal), pas déduit — même
   // vocabulaire que le bandeau d'accueil « ● Session en cours » et l'aperçu (« aucune session »).
-  const glob=started?'<span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">'+fmtMs(now-Runtime.startedAt)+'</span></span>':'';
+  const glob=started?'<span class="seg glb'+(Runtime.exercise?' exo':'')+'"><span class="seg-l seg-sess">'+(Runtime.exercise?'▲ Exercice':'● Session')+'</span><span class="seg-t">'+fmtMs(now-Runtime.startedAt)+'</span></span>':'';
   // Chevron = bascule du panneau en étroit ; rien en large (rail permanent, tap -> y défile).
   const chev=wideRail?'':'<span class="cbt-n" aria-hidden="true">'+(state.rtOpen?'▴':'▾')+'</span>';
   // ORDRE (v4.23.0, décision utilisateur) : « ● Session » ANCRÉ EN TÊTE, puis l'alarme / le
@@ -5514,8 +5567,14 @@ function applyViewChrome(){
    cb.hidden=!crisis;
    document.getElementById('hdrCrisis').hidden=!crisis;
    if(crisis){cb.querySelector('.cb-ttl').textContent=state.fiche.title||'Sans titre';
-     cb.querySelector('.cb-tag').textContent=state.previewFrom?'■ Aperçu':'■ Mode crise';
-     document.getElementById('hdrCrisis').textContent=state.previewFrom?'■ Aperçu':'■ Crise';}
+     const exo=!!Runtime.exercise&&Runtime.ficheId===state.fiche.id;
+     cb.classList.toggle('exo',exo);
+     cb.querySelector('.cb-tag').textContent=state.previewFrom?'■ Aperçu':(exo?'▲ Exercice':'■ Mode crise');
+     cb.querySelector('.cb-tag').classList.toggle('exo',exo);
+     const hc=document.getElementById('hdrCrisis');
+     hc.textContent=state.previewFrom?'■ Aperçu':(exo?'▲ Exercice':'■ Crise');
+     hc.classList.toggle('exo',exo);}
+   else cb.classList.remove('exo');
    // Accès permanent au Plan : seulement là où un plan existe (fiche À ALGORITHME), hors aperçu
    // de brouillon, et hors mode STATIQUE — où le tableau EST déjà la vue d'ensemble (doctrine
    // v4.13.0 : pas de panneau « Algorithme » en statique). Fermer la feuille si elle survivait
@@ -5914,7 +5973,7 @@ function renderFiches(){
       // débriefing est DISPONIBLE, jamais imposé) : éphémère (✕, prochaine session), registre
       // CONFIRMATION, jamais pendant une recherche ni au-dessus d'une session encore vive.
       if(lastEndedSession&&!sessions.some(x=>x.id===lastEndedSession.id))lastEndedSession=null;
-      const recapH=lastEndedSession?`<div class="last-sess"><span class="lsr-ic" aria-hidden="true">${uiIcon('check',15,{sw:3,cls:''})}</span><div class="lsr-tx"><b>Session terminée</b> — ${esc(lastEndedSession.title)} · ${esc(fmtMs(lastEndedSession.dur))} · ${lastEndedSession.done}/${lastEndedSession.passes} bloc${lastEndedSession.passes>1?'s':''} ✓</div><button class="btn sm" id="lsrReport">Compte-rendu</button><button class="notice-x" id="lsrX" aria-label="Masquer le bilan">×</button></div>`:'';
+      const recapH=lastEndedSession?`<div class="last-sess${lastEndedSession.exercise?' exo':''}"><span class="lsr-ic" aria-hidden="true">${lastEndedSession.exercise?'▲':uiIcon('check',15,{sw:3,cls:''})}</span><div class="lsr-tx"><b>${lastEndedSession.exercise?'Exercice terminé':'Session terminée'}</b> — ${esc(lastEndedSession.title)} · ${esc(fmtMs(lastEndedSession.dur))} · ${lastEndedSession.done}/${lastEndedSession.passes} bloc${lastEndedSession.passes>1?'s':''} ✓</div><button class="btn sm" id="lsrReport">Compte-rendu</button><button class="notice-x" id="lsrX" aria-label="Masquer le bilan">×</button></div>`:'';
       return recapH+(liveArr.length?`<div class="live-sessions">${liveArr.map(R=>`<div class="ls-card"><span class="sess-dot"></span><div class="ls-info" data-openlive="${R.ficheId}" role="button" tabindex="0"><b class="ls-k">Session en cours</b><span class="ls-t">${esc(R.fiche.title||'Sans titre')}</span></div><span class="ls-chrono" data-lschrono="${R.startedAt}">${fmtMs(Date.now()-R.startedAt)}</span><button class="btn sm primary" data-openlive="${R.ficheId}">Reprendre</button><button class="ls-end" data-endlive="${R.ficheId}">Terminer</button></div>`).join('')}</div>`:'');},
     notices:()=>`
       ${(!state.scope&&!noticeHidden())?`<div class="notice">${uiIcon('info',15)}<div>Vous êtes l'auteur et le responsable du contenu. Validez chaque fiche et tenez la date à jour.</div><button class="notice-x" id="noticeX" aria-label="Masquer">×</button></div>`:''}
@@ -7210,7 +7269,8 @@ function renderRead(){
   main.innerHTML=`
     ${gridOpen}
     <div class="read-head"><h2>${esc(f.title)||'Sans titre'}</h2></div>
-    <div class="read-meta">${f.libraryId?`<span class="tag libtag" title="Bibliothèque partagée">${uiIcon('book',12)}${esc(libName(f.libraryId)||'Partagée')}</span>`:''}${statusChip(f.status,true,{validation:f.validation})}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo title="Reste à compléter : ${esc(sp.join(' · '))} — remplacez les mentions « à compléter » par vos informations locales.">△ À compléter</span>`:'';})()}${catTag(f)}${f.code?`<span class="card-date" style="font-family:var(--mono)">${esc(f.code)}</span>`:''}<span class="card-date${staleDate(f.validation)?' stale':''}">${esc(fmtDate(f.validation))}</span>${f.libraryId&&f.updatedBy?`<span class="card-date" title="Auteur de la dernière modification (pas forcément de toute la fiche)">· dernière modification par ${esc(f.updatedBy)}</span>`:''}</div>
+    <div class="read-meta">${f.libraryId?`<span class="tag libtag" title="Bibliothèque partagée">${uiIcon('book',12)}${esc(libName(f.libraryId)||'Partagée')}</span>`:''}${statusChip(f.status,true,{validation:f.validation})}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo title="Reste à compléter : ${esc(sp.join(' · '))} — remplacez les mentions « à compléter » par vos informations locales.">△ À compléter</span>`:'';})()}${catTag(f)}${f.code?`<span class="card-date" style="font-family:var(--mono)">${esc(f.code)}</span>`:''}<span class="card-date${staleDate(f.validation)?' stale':''}">${esc(fmtDate(f.validation))}</span>${f.libraryId&&f.updatedBy?`<span class="card-date" title="Auteur de la dernière modification (pas forcément de toute la fiche)">· dernière modification par ${esc(f.updatedBy)}</span>`:''}${(()=>{const ts=sessions.reduce((m,x)=>(x.ficheId===f.id&&x.exercise&&x.savedAt>m)?x.savedAt:m,0);
+      return ts?`<span class="tag exo2" title="Dernière répétition en mode exercice">▲ Exercice : ${esc(new Date(ts).toLocaleDateString('fr-FR'))}</span>`:'';})()}</div>
     ${f.status==='draft'?`<div class="notice">${uiIcon('warn',15)}<div><b>Brouillon</b> — cette fiche n'a pas encore été validée pour l'usage clinique.</div></div>`:''}
     ${f.status==='review'?`<div class="notice">${uiIcon('warn',15)}<div><b>À relire</b> — cette fiche est signalée à relire avant validation.</div></div>`:''}
     ${modeTopSegH}
@@ -7286,6 +7346,7 @@ function bindReadEvents(f,blk,cur){
     ...(annexRowHtml(f)?[{label:'Consulter',ic:uiIcon('book',16),sub:'surveillances, documents…',act:()=>openRefSheet()}]:[]),
     ...(hasFlow(f)?[{label:'Mode lecteur (binôme)',ic:uiIcon('play',16),act:readerOpen}]:[]),
     ...(cxAll(f).length?[{label:'Complication'+(cxAll(f).length>1?'s ('+cxAll(f).length+')':''),ic:'⚡',sub:'à tout moment',act:()=>openCxDlg(f)}]:[]),
+    {label:'Répéter en exercice',ic:'▲',sub:'aucune trace clinique',act:()=>startExercise(f)},
     ...(hasFlow(f)?[{label:'Recommencer le parcours',ic:uiIcon('undo',16),sub:'repart du début',act:()=>restartCourse(f)}]:[]),
     'sep',
     {label:'Dupliquer dans « Perso »',ic:uiIcon('copy',16),act:()=>dupToPerso('f',f)},
@@ -7293,7 +7354,7 @@ function bindReadEvents(f,blk,cur){
     {label:'Exporter en PDF',ic:uiIcon('print',16),act:exportPdfCurrent},
     ...(()=>{const n=sessions.filter(s=>s.ficheId===f.id&&s.id!==Runtime.sessionId).length;
       return n?['sep',{label:'Historique des sessions ('+n+')',ic:uiIcon('history',16),act:()=>openSessHist(f.id)}]:[];})(),
-    ...(started?['sep',{label:'Terminer la session…',ic:uiIcon('stop',16),danger:true,act:endCurrentSession}]:[]),
+    ...(started?['sep',{label:Runtime.exercise?'Terminer l’exercice…':'Terminer la session…',ic:uiIcon('stop',16),danger:true,act:endCurrentSession}]:[]),
   ]);
   main.querySelectorAll('[data-openrel]').forEach(b=>b.onclick=()=>openRel(b.dataset.openrel));
   /* ÉCHELLE DU RAIL (v4.23.0) : mêmes gestes que dans le Plan — déplier une ligne, aller à un
@@ -7596,8 +7657,8 @@ function ovInstHtml(f,id,idx,topo,pres){
          toujours actif (non bloquant : on reprend quand l'événement est maîtrisé, pas quand
          toutes les cases sont cochées). */
       {const cxb=(Runtime.cxBack||{})[seq];
-       if(cxb){const bb=f.blocks.find(x=>x.id===cxb);
-         ctl+=`<div class="flow-ctrl"><button type="button" class="btn cont okay" data-cxback="${esc(cxb)}">↩ Reprendre — ${esc((bb&&bb.title)||'le parcours')} →</button></div>`;}
+       if(cxb){const bb=f.blocks.find(x=>x.id===cxb.id);
+         ctl+=`<div class="flow-ctrl"><button type="button" class="btn cont okay" data-cxback="${esc(cxb.id)}">↩ Reprendre — ${esc((bb&&bb.title)||'le parcours')} →</button></div>`;}
        const cxs=cxAll(f);
        if(cxs.length)ctl+=cxRowHtml(cxs);}}
     bodyH=`${imgH}<ol class="steps">${lis}</ol>${ctl}`;
@@ -11313,7 +11374,11 @@ function closeSessHist(){sessModal.classList.remove('on');_sessFiche=null;}
 function renderSessHist(){const body=document.getElementById('sessBody');if(!body||!_sessFiche)return;
   const ss=sessions.filter(x=>x.ficheId===_sessFiche&&x.id!==Runtime.sessionId).sort((a,b)=>b.savedAt-a.savedAt);
   if(!ss.length){body.innerHTML='<p class="auth-msg">Aucune session archivée pour cette fiche.</p>';return;}
-  body.innerHTML=`<div class="sess-list">${ss.map(x=>`<div class="sess-row"><div class="si"><div class="sn">${esc(x.name)}${x.live?' <span class="sess-livetag">en cours</span>':''}</div><div class="sd">${new Date(x.savedAt).toLocaleString('fr-FR')}</div></div><div class="sess-acts"><button class="btn sm" data-resume="${esc(x.id)}" title="Rouvre la session là où elle en était (étapes cochées, minuteurs, compteurs)">Rouvrir</button><button class="btn sm" data-report="${esc(x.id)}" title="Compte-rendu imprimable">Compte-rendu</button><button class="mini del" data-delsess="${esc(x.id)}" aria-label="Supprimer la session">×</button></div></div>`).join('')}</div>`;
+  /* EXERCICES À PART (v4.27.0) : les répétitions ne se mêlent JAMAIS aux sessions cliniques —
+     deux groupes, badge « ▲ EXERCICE » sur chaque rangée d'exercice. */
+  const row=x=>`<div class="sess-row"><div class="si"><div class="sn">${x.exercise?'<span class="sess-exotag">▲ EXERCICE</span> ':''}${esc(x.name)}${x.live?' <span class="sess-livetag">en cours</span>':''}</div><div class="sd">${new Date(x.savedAt).toLocaleString('fr-FR')}</div></div><div class="sess-acts"><button class="btn sm" data-resume="${esc(x.id)}" title="Rouvre la session là où elle en était (étapes cochées, minuteurs, compteurs)">Rouvrir</button><button class="btn sm" data-report="${esc(x.id)}" title="Compte-rendu imprimable">Compte-rendu</button><button class="mini del" data-delsess="${esc(x.id)}" aria-label="Supprimer la session">×</button></div></div>`;
+  const clin=ss.filter(x=>!x.exercise),exo=ss.filter(x=>x.exercise);
+  body.innerHTML=`<div class="sess-list">${clin.length?`<p class="sess-gh">Sessions cliniques (${clin.length})</p>`+clin.map(row).join(''):''}${exo.length?`<p class="sess-gh">Exercices (${exo.length})</p>`+exo.map(row).join(''):''}</div>`;
   body.querySelectorAll('[data-resume]').forEach(b=>b.onclick=()=>{closeSessHist();resumeSession(b.dataset.resume);});
   body.querySelectorAll('[data-report]').forEach(b=>b.onclick=()=>exportSessionReport(b.dataset.report));
   body.querySelectorAll('[data-delsess]').forEach(b=>b.onclick=async()=>{await deleteSession(b.dataset.delsess);renderSessHist();});

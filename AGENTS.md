@@ -402,6 +402,30 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   aussi », une aide déjà liée reste sélectionnable ; garde-fou 1-3. Prompt IA : bloc dédié hors séquence, label = nom d'événement, 1-3 max, un
   événement relevant d'une AUTRE aide se SIGNALE (le JSON ne connaît pas les ids des autres
   fiches). Helpers purs `cxAll`/`cxDetached` (testés) ; harnais `scripts/audit-complications.mjs`.
+- **MODE EXERCICE (v4.27.0 — pilier EMIC « s'entraîner » ; Greig 2023 : le transfert exige la
+  FIDÉLITÉ DE FORMAT)** : « Répéter en exercice » (menu ⋯) rejoue la fiche dans l'ÉCRAN RÉEL,
+  À L'IDENTIQUE — même journal, mêmes minuteurs, mêmes gestes ; un mode « simplifié » entraînerait
+  au mauvais outil. SEULE l'ANNONCIATION change (placard TRAINING aviation) : bandeau HACHURÉ
+  (`#crisisBand.exo`, repeating-linear-gradient) + pilule « ▲ Exercice » en BLEU pointillé — ni
+  rouge ni ambre (ce n'est pas une alerte), et le « ● Session » VERT reste réservé au réel (le
+  chrono d'état dit « ▲ Exercice », `.seg.glb.exo`). Le drapeau `Runtime.exercise` est posé par
+  `startExercise(f)` AVANT le démarrage (1ʳᵉ action → session marquée `exercise:true`) ; démarrer
+  un exercice sur une session réelle vive exige la confirmation danger « Terminer et exercer ».
+  **ZÉRO CONTAMINATION CLINIQUE** : les sessions vivent en IndexedDB local (jamais dans l'export
+  v3, jamais synchro — le drapeau y est donc sûr) ; l'historique les SÉPARE en deux groupes
+  « Sessions cliniques (n) » / « Exercices (n) » avec badge `▲ EXERCICE` par rangée (jamais
+  mélangés) ; carte-bilan « Exercice terminé » au registre exercice (`.last-sess.exo`) ;
+  compte-rendu FILIGRANÉ « EXERCICE » + méta « répétition sans patient ». La méta de fiche
+  affiche « ▲ Exercice : ‹date› » SEULEMENT si un exercice existe — **AUCUN rappel « jamais
+  répétée », aucune relance d'aucune sorte (décision utilisateur : pas de nudge)** ; le harnais
+  vérifie l'ABSENCE de ce texte dans le DOM rendu (piège : `document.body.textContent` remonte
+  le `<script>` inline — borner la sonde à `main`). **COMPTE-RENDU ENRICHI POUR TOUTES LES
+  SESSIONS, réelles comprises** (support du DÉBRIEF, 4ᵉ pilier EMIC) : section « ⚡ Complications »
+  (heure d'entrée mémorisée par `cxEnter` — `cxBack[seq]={id,t}`, les valeurs chaîne v4.26.x sont
+  normalisées à la lecture) et « Vérification (do-verify) » (n constatées ✓✓ + écarts △
+  horodatés, depuis `verified`/`vgaps` du snapshot). Terminer dit sa portée : « Terminer
+  l'exercice… » vs « Terminer la session… ». Harnais `scripts/audit-exercice.mjs` (16 contrôles,
+  dont « la session réelle est INCHANGÉE »).
 - **Mode statique (v4.13.0, DOCUMENT complet v4.14.0)** : TOUTE l'aide en TABLEAU compact
   façon aide SFAR/CAMR — cellules télégraphiques carrelées à joint 3 px. `svExtras` (v4.14.0)
   absorbe les SECTIONS de la fiche en cellules INERTES : confirmation + différentiels côte à

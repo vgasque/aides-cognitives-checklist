@@ -1,5 +1,40 @@
 # Journal des modifications
 
+## [4.27.0] — 2026-07-25
+Mode exercice — le second manque identifié par l'audit doctrinal (piliers EMIC : après « utiliser »
+et « débriefer », voici « s'entraîner ») — et compte-rendu enrichi pour TOUTES les sessions.
+
+### Ajouté
+- **« Répéter en exercice » (menu ⋯)** : rejoue la fiche dans l'écran RÉEL, à l'identique — même
+  journal, mêmes minuteurs, mêmes gestes. C'est un choix doctrinal, pas une facilité : Greig 2023
+  montre que le transfert de l'entraînement exige la **fidélité de format** — un mode « simplifié »
+  entraînerait au mauvais outil. Seule l'**annonciation** change, sur le modèle du placard TRAINING
+  aviation : bandeau de titre **hachuré** + pilule « ▲ Exercice » en bleu pointillé (ni rouge ni
+  ambre : un exercice n'est pas une alerte), et le chrono d'état dit « ▲ Exercice » — le
+  « ● Session » **vert reste réservé au réel**. Démarrer un exercice par-dessus une session réelle
+  vive exige une confirmation au registre danger (« Terminer et exercer »).
+- **Zéro contamination clinique** : la session d'exercice est marquée `exercise` (les sessions
+  vivent en local seulement — jamais dans l'export v3, jamais synchronisées : le drapeau est sûr) ;
+  l'historique **sépare** « Sessions cliniques (n) » et « Exercices (n) », badge « ▲ EXERCICE » sur
+  chaque rangée ; carte-bilan « **Exercice terminé** » au registre exercice ; compte-rendu
+  **filigrané « EXERCICE »** avec la mention « répétition sans patient ». « Terminer » dit sa
+  portée : « Terminer l'exercice… » vs « Terminer la session… » (AC 120-71B : une action dit
+  exactement ce qu'elle fait).
+- **Méta de fiche : « ▲ Exercice : ‹date› »** — seulement quand un exercice existe. **Aucun rappel
+  « jamais répétée », aucune relance** (décision utilisateur : pas de nudge) ; le harnais vérifie
+  l'ABSENCE de ce texte dans le DOM rendu.
+- **Compte-rendu enrichi pour toutes les sessions, réelles comprises** (support du débrief) :
+  section « ⚡ Complications » — chaque excursion horodatée (l'heure d'entrée est désormais
+  mémorisée : `cxBack[seq]={id,t}`, les sessions v4.26.x en format chaîne sont normalisées à la
+  lecture) — et section « Vérification (do-verify) » : n étapes constatées ✓✓ + chaque
+  « △ écart » horodaté avec le texte de l'étape.
+- Harnais `scripts/audit-exercice.mjs` (16 contrôles, dans `npm run audit`) — dont « la session
+  réelle est INCHANGÉE » et un contrôle d'absence de nudge. Piège consigné : le `<script>` inline
+  est un enfant de `body`, donc `document.body.textContent` remonte les commentaires du code —
+  borner ce genre de sonde à `main`.
+
+503 tests, 10 harnais verts.
+
 ## [4.26.1] — 2026-07-25
 Deux retours d'usage sur les complications, tous deux retenus.
 
