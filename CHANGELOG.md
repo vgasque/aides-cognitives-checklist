@@ -1,5 +1,21 @@
 # Journal des modifications
 
+## [4.27.1] — 2026-07-25
+### Modifié
+- **L'« Aperçu en direct » des éditeurs (colonne droite ≥ 1000 px) rattrape trois versions de
+  retard** : la miniature rendait encore la grammaire d'avant v4.23.0 — numéros `01/02` devant les
+  étapes (supprimés du rendu réel), chaque étape en boîte bordée (le réel est « normal = ligne,
+  signalé = boîte »), case à cocher à droite (elle est à gauche), bandeau teinté rouge (le bandeau
+  réel est blanc depuis v4.23.0 : jamais d'aplat rouge permanent). Une miniature qui montre
+  l'ancienne grammaire apprend le mauvais rendu à l'auteur pendant qu'il rédige. Elle suit
+  désormais le rendu réel : lignes à filet, boîtes teintées avec glyphe ⚠/△ en tête, pilule de
+  réponse « challenge :: réponse », et la rangée « ⚡ Complication(s) » apparaît dès qu'une
+  complication est déclarée. (L'aperçu PLEIN ÉCRAN, lui, passe par le vrai moteur de rendu et
+  n'a jamais dérivé — seule la miniature était figée.)
+
+Vérifié par sonde : glyphes, pilule, ligne plate, case à gauche, bandeau blanc, rangée ⚡.
+503 tests, 10 harnais verts.
+
 ## [4.27.0] — 2026-07-25
 Mode exercice — le second manque identifié par l'audit doctrinal (piliers EMIC : après « utiliser »
 et « débriefer », voici « s'entraîner ») — et compte-rendu enrichi pour TOUTES les sessions.
