@@ -1,5 +1,21 @@
 # Journal des modifications
 
+## [4.25.2] — 2026-07-24
+### Corrigé
+- **Le bandeau ambre qui restait sur une étape en écart est supprimé.** Ce liseré de 3 px est le
+  canal du **registre** de l'étape (⚠ critique / △ vigilance — une propriété de son *contenu*),
+  alors qu'un écart est un **état de la passe de vérification**. Réutiliser le même trait pour les
+  deux rendait le signal ambigu : impossible de dire si l'ambre annonçait « étape de vigilance » ou
+  « écart constaté ». L'état de la passe reste porté, sans ambiguïté, par la pilule « △ écart ».
+- **Le libellé est désormais identique pendant et après la vérification.** La passe disait
+  « constaté », la trace durable disait « vérifié », et les glyphes n'apparaissaient qu'après :
+  deux mots pour un même état. Partout « **✓✓ constaté** » et « **△ écart** » — le mot retenu est
+  celui du geste (le bouton dit « Constaté ✓ »), car un compte rendu reflète la réponse donnée
+  plutôt que de la reformuler.
+
+### Interne
+- Les deux points sont couverts par des tests dans `scripts/audit-verify-live.mjs`.
+
 ## [4.25.1] — 2026-07-24
 ### Corrigé
 - **La pastille du sélecteur « Guidé / Statique » ne tombait pas en face du segment actif**

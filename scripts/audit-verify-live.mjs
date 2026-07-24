@@ -37,11 +37,23 @@ t('une étape cochée AVANT la passe n’affiche pas de ✓ trompeur', !c0.tags.
 // « Constaté ✓ » puis « △ Écart »
 await p.evaluate(async()=>{document.querySelector('[data-ovvok]').click();await new Promise(r=>setTimeout(r,300));});
 const c1=await p.evaluate(()=>({tally:document.querySelector('.v-tally').textContent,tags:[...document.querySelectorAll('.v-tag')].map(x=>x.textContent)}));
-t('« Constaté » s’affiche IMMÉDIATEMENT sur l’étape', c1.tags.includes('constaté'), JSON.stringify(c1.tags));
+t('« Constaté » s’affiche IMMÉDIATEMENT sur l’étape', c1.tags.some(x=>/constaté/.test(x)), JSON.stringify(c1.tags));
 t('le bilan vivant se met à jour', /1 constaté/.test(c1.tally), c1.tally);
 await p.evaluate(async()=>{document.querySelector('[data-ovvgap]').click();await new Promise(r=>setTimeout(r,300));});
 const c2=await p.evaluate(()=>({tally:document.querySelector('.v-tally').textContent,tags:[...document.querySelectorAll('.v-tag')].map(x=>x.textContent)}));
-t('« Écart » s’affiche IMMÉDIATEMENT', c2.tags.includes('écart'), JSON.stringify(c2.tags));
+t('« Écart » s’affiche IMMÉDIATEMENT', c2.tags.some(x=>/écart/.test(x)), JSON.stringify(c2.tags));
+// v4.25.2 — MÊME vocabulaire pendant et après la passe, et AUCUN bandeau ambre sur l'étape :
+// le liseré inset appartient au REGISTRE (⚠/△), pas à l'état de la passe.
+{const sortie=await p.evaluate(async()=>{const x=document.querySelector('[data-ovvx]');if(x)x.click();
+   await new Promise(r=>setTimeout(r,450));
+   const li=document.querySelector('ol.steps li.vgap');
+   return {apres:[...document.querySelectorAll('.stp-vf')].map(e=>e.textContent),
+     bandeau:li?getComputedStyle(li).boxShadow:'aucune ligne en écart'};});
+ t('le libellé est IDENTIQUE pendant et après la passe',
+   sortie.apres.some(x=>/constaté/.test(x))&&!sortie.apres.some(x=>/vérifié/.test(x)), JSON.stringify(sortie.apres));
+ t('aucun bandeau ambre sur l’étape en écart (canal du registre préservé)',
+   sortie.bandeau==='none'||/aucune/.test(sortie.bandeau), ''+sortie.bandeau);}
 t('le bilan annonce l’écart sans attendre la fin', /1 écart/.test(c2.tally), c2.tally);
+
 await p.close();await br.close();srv.close();
 console.log(`\n${ok}/${ok+ko} OK${ko?` — ${ko} ÉCHEC(S)`:''}`);process.exit(ko?1:0);

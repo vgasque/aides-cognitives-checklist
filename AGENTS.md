@@ -321,7 +321,15 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   passe existe pour produire (AC 120-71B : en do-verify la réponse vient de l'état CONSTATÉ, pas du
   souvenir d'avoir fait le geste ; la circulaire ne prescrit en revanche AUCUN modèle de données —
   le choix d'enregistrer la trace est une décision de conception, pas une exigence littérale).
-  Rendu durable : pilule « ✓✓ vérifié » / « △ écart » sur la ligne. Un geste MANUEL invalide la
+  Rendu durable : pilule « ✓✓ constaté » / « △ écart » sur la ligne — **MÊME libellé pendant et
+  après la passe** (v4.25.2) : la trace disait « vérifié » là où la passe disait « constaté », et
+  les glyphes n'apparaissaient qu'après. Deux mots pour un même état, c'est ce qu'AC 120-71B
+  proscrit ; le mot retenu est celui du GESTE (le bouton dit « Constaté ✓ »), car un compte rendu
+  reflète la réponse donnée, il ne la reformule pas. **AUCUN bandeau ambre sur l'étape en écart** :
+  le liseré inset de 3 px est le canal du REGISTRE (⚠/△, une propriété du CONTENU — doctrine
+  « normal = ligne, signalé = boîte », v4.24.0), l'écart est un ÉTAT DE LA PASSE. Réutiliser le même
+  trait rendait le signal ambigu — on ne pouvait plus dire si l'ambre annonçait « étape de
+  vigilance » ou « écart constaté ». La pilule, mot + glyphe, suffit. Un geste MANUEL invalide la
   trace (cocher lève l'écart, décocher retire la constatation) — et comme le cochage est
   CHIRURGICAL (sans re-rendu), le marqueur doit être repeint sur place par `paintStepTrace`, sinon
   il reste périmé à l'écran alors que l'état est juste (défaut trouvé par `scripts/audit-verify.mjs`).

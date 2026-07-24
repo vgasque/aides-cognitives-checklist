@@ -957,12 +957,17 @@
      (rouge/ambre), distingue ⚠ de △ sans dépendre de la teinte de la bande. */
   ol.steps li .txt .stp-mk{font-weight:800;margin-right:7px}
   /* TRACE DE VÉRIFICATION (v4.23.0) — visible APRÈS la passe, donc durable. Pilule compacte :
-     « ✓✓ vérifié » (CONFIRMATION) ou « △ écart » (ATTENTION). Le glyphe et le mot portent le sens,
+     « ✓✓ constaté » (CONFIRMATION) ou « △ écart » (ATTENTION). Le glyphe et le mot portent le sens,
      la couleur ne fait que le renforcer (WCAG 1.4.1). */
   ol.steps li .stp-vf{flex:none;margin-left:8px;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:800;white-space:nowrap;letter-spacing:.2px}
   ol.steps li .stp-vf.ok{color:var(--ok);background:var(--ok-soft);border:1px solid var(--done-line)}
   ol.steps li .stp-vf.gap{color:var(--verify);background:var(--verify-soft);border:1px solid var(--verify-bd)}
-  ol.steps li.vgap{box-shadow:inset 3px 0 0 var(--verify-bd)}
+  /* PAS de bandeau ambre sur une étape en écart (retiré v4.25.2, retour d'usage). Le liseré
+     inset de 3 px est le canal du REGISTRE de l'étape (⚠/△ — une propriété du CONTENU, cf. la
+     doctrine « normal = ligne, signalé = boîte » de v4.24.0). L'écart, lui, est un ÉTAT DE LA
+     PASSE de vérification. Réutiliser le même trait pour les deux rendait le signal ambigu : on ne
+     pouvait plus dire si l'ambre annonçait « étape de vigilance » ou « écart constaté ». L'état de
+     la passe est déjà porté, sans ambiguïté, par la pilule « △ écart » — mot + glyphe. */
   /* Case à cocher À GAUCHE (v4.23.0) : ordre naturel du DOM, aucune propriété `order`. Le côté
      DROIT venait du canvas V5 et ne valait que pour cette surface — les listes cochables des
      protocoles (`li.md-task`) ont toujours eu la case à GAUCHE : les deux sont désormais

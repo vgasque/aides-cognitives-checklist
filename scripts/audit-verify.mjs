@@ -1,5 +1,5 @@
 /* AUDIT — TRACE DE VÉRIFICATION (Do-Verify, AC 120-71B). Prouve qu'une passe laisse un résultat
-   CONSULTABLE : « ✓✓ vérifié » (constaté) et « △ écart » distincts de la simple coche, invalidés
+   CONSULTABLE : « ✓✓ constaté » (constaté) et « △ écart » distincts de la simple coche, invalidés
    par un geste manuel, et enregistrés dans la session. */
 import { createServer } from 'node:http';import { readFile } from 'node:fs/promises';import { extname } from 'node:path';import { chromium } from 'playwright';
 const ROOT=decodeURIComponent(new URL('../',import.meta.url).pathname);
@@ -34,10 +34,10 @@ const r=await p.evaluate(()=>{
    tag:(li.querySelector('.stp-vf')||{}).textContent||''})),
   verifiedN:Object.keys(Runtime.verified||{}).length,gapsN:Object.keys(Runtime.vgaps||{}).length};});
 r.marks.forEach(m=>console.log(`   ${m.txt} : coché=${m.done} trace="${m.tag}"`));
-t('l’étape pré-cochée puis CONSTATÉE porte « ✓✓ vérifié »', /vérifié/.test(r.marks[0].tag));
+t('l’étape pré-cochée puis CONSTATÉE porte « ✓✓ constaté »', /constaté/.test(r.marks[0].tag));
 t('l’étape en ÉCART garde une trace « △ écart » après la passe', /écart/.test(r.marks[1].tag));
 t('l’écart ne DÉCOCHE pas et reste non coché ici', r.marks[1].done===false);
-t('la 3e constatée porte aussi « ✓✓ vérifié »', /vérifié/.test(r.marks[2].tag));
+t('la 3e constatée porte aussi « ✓✓ constaté »', /constaté/.test(r.marks[2].tag));
 t('verified et vgaps sont distincts de checked', r.verifiedN===2&&r.gapsN===1, JSON.stringify(r));
 // invalidation : cocher l'étape en écart doit lever l'écart
 const r2=await p.evaluate(async()=>{document.querySelectorAll('ol.steps li')[1].click();await new Promise(r=>setTimeout(r,260));

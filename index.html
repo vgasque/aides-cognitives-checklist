@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-bxD2SCt7Ozi2XNXB0xdmmA/B3XrlZkrEkJ8qEh/3I40='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-lq3nnovK62cvD1WJ9sZxXat/dsQ0TufeDs7XhpjHVAU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1225,12 +1225,17 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      (rouge/ambre), distingue ⚠ de △ sans dépendre de la teinte de la bande. */
   ol.steps li .txt .stp-mk{font-weight:800;margin-right:7px}
   /* TRACE DE VÉRIFICATION (v4.23.0) — visible APRÈS la passe, donc durable. Pilule compacte :
-     « ✓✓ vérifié » (CONFIRMATION) ou « △ écart » (ATTENTION). Le glyphe et le mot portent le sens,
+     « ✓✓ constaté » (CONFIRMATION) ou « △ écart » (ATTENTION). Le glyphe et le mot portent le sens,
      la couleur ne fait que le renforcer (WCAG 1.4.1). */
   ol.steps li .stp-vf{flex:none;margin-left:8px;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:800;white-space:nowrap;letter-spacing:.2px}
   ol.steps li .stp-vf.ok{color:var(--ok);background:var(--ok-soft);border:1px solid var(--done-line)}
   ol.steps li .stp-vf.gap{color:var(--verify);background:var(--verify-soft);border:1px solid var(--verify-bd)}
-  ol.steps li.vgap{box-shadow:inset 3px 0 0 var(--verify-bd)}
+  /* PAS de bandeau ambre sur une étape en écart (retiré v4.25.2, retour d'usage). Le liseré
+     inset de 3 px est le canal du REGISTRE de l'étape (⚠/△ — une propriété du CONTENU, cf. la
+     doctrine « normal = ligne, signalé = boîte » de v4.24.0). L'écart, lui, est un ÉTAT DE LA
+     PASSE de vérification. Réutiliser le même trait pour les deux rendait le signal ambigu : on ne
+     pouvait plus dire si l'ambre annonçait « étape de vigilance » ou « écart constaté ». L'état de
+     la passe est déjà porté, sans ambiguïté, par la pilule « △ écart » — mot + glyphe. */
   /* Case à cocher À GAUCHE (v4.23.0) : ordre naturel du DOM, aucune propriété `order`. Le côté
      DROIT venait du canvas V5 et ne valait que pour cette surface — les listes cochables des
      protocoles (`li.md-task`) ont toujours eu la case à GAUCHE : les deux sont désormais
@@ -3150,7 +3155,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.25.1';
+const APP_VERSION='4.25.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -7432,7 +7437,12 @@ function ovInstHtml(f,id,idx,topo,pres){
       const rows=steps.map((s,i2)=>{const k2=seq+':'+id+':'+i2;
         const done2=!!(state.verified||{})[k2], gap=!!(state.vgaps||{})[k2];
         const passe=i2<vi;   // déjà traité dans cette passe
-        return `<div class="vstp${i2===vi?' vcur':''}${done2?' ok2':''}${gap?' vgap':''}"><span class="vst">${done2?'✓✓':(gap?'△':(i2===vi?'▸':(passe?'·':'')))}</span>${stepTxtHtml(s)}${done2?'<span class="v-tag ok">constaté</span>':(gap?'<span class="v-tag gap">écart</span>':'')}</div>`;}).join('');
+        // MÊME LIBELLÉ PENDANT ET APRÈS (v4.25.2, retour d'usage) : la trace disait « vérifié » là
+        // où la passe disait « constaté », et les glyphes ✓✓/△ n'apparaissaient qu'après. Deux mots
+        // pour un même état, c'est exactement ce qu'AC 120-71B proscrit. Le mot retenu est celui du
+        // GESTE — le bouton dit « Constaté ✓ » —, car le compte rendu doit refléter la réponse
+        // donnée, pas la reformuler.
+        return `<div class="vstp${i2===vi?' vcur':''}${done2?' ok2':''}${gap?' vgap':''}"><span class="vst">${done2?'✓✓':(gap?'△':(i2===vi?'▸':(passe?'·':'')))}</span>${stepTxtHtml(s)}${done2?'<span class="v-tag ok">✓✓ constaté</span>':(gap?'<span class="v-tag gap">△ écart</span>':'')}</div>`;}).join('');
       // Bilan VIVANT : on sait à tout instant où l'on en est, sans attendre la fin.
       const nOk=steps.filter((s,i2)=>(state.verified||{})[seq+':'+id+':'+i2]).length;
       const nGap=steps.filter((s,i2)=>(state.vgaps||{})[seq+':'+id+':'+i2]).length;
@@ -7448,11 +7458,12 @@ function ovInstHtml(f,id,idx,topo,pres){
     else{
     const lis=steps.map((s,i)=>{const k=seq+':'+id+':'+i;const ck=!!state.checked[k];
       // TRACE DE VÉRIFICATION (v4.23.0) : une passe Do-Verify laisse une marque DURABLE et lisible —
-      // « ✓✓ vérifié » (constaté par observation) ou « △ écart » (constaté absent). Sans elle, la
+      // « ✓✓ constaté » (observé) ou « △ écart » (constaté absent) — MÊME libellé que pendant la
+      // passe (v4.25.2) : deux mots pour un état, c'est ce qu'AC 120-71B proscrit. Sans elle, la
       // vérification ne produisait aucun résultat consultable une fois terminée.
       const vg=!!(state.vgaps||{})[k],vv=!vg&&!!(state.verified||{})[k];
       const tag=vg?'<span class="stp-vf gap" title="Écart constaté pendant la vérification">△ écart</span>'
-        :(vv?'<span class="stp-vf ok" title="Constaté pendant la vérification">✓✓ vérifié</span>':'');
+        :(vv?'<span class="stp-vf ok" title="Constaté pendant la vérification">✓✓ constaté</span>':'');
       return `<li data-ck="${k}" class="${stepIsCrit(s)?'crit ':(stepIsVigil(s)?'vigil ':'')}${ck?'done':''}${vg?' vgap':''}" role="checkbox" aria-checked="${ck?'true':'false'}" tabindex="0"><span class="box">${ck?uiIcon('check',19,{sw:3,cls:''}):''}</span>${stepTxtHtml(s,{mark:true})}${tag}</li>`;}).join('');
     let ctl='';
     if(tip){const nxt=b.next?f.blocks.find(x=>x.id===b.next):null;
@@ -7790,7 +7801,7 @@ function paintStepTrace(li,k){
   if(!vg&&!vv){if(el)el.remove();return;}
   if(!el){el=document.createElement('span');li.appendChild(el);}
   el.className='stp-vf '+(vg?'gap':'ok');
-  el.textContent=vg?'△ écart':'✓✓ vérifié';
+  el.textContent=vg?'△ écart':'✓✓ constaté';
   el.title=vg?'Écart constaté pendant la vérification':'Constaté pendant la vérification';}
 function ovToggleStep(f,li,kb){
   const k=li.dataset.ck;
