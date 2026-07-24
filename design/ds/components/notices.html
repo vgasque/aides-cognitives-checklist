@@ -320,7 +320,34 @@
      l'encoche, la taille du texte et la rotation — une constante aurait laissé le quai flotter
      sous la barre ou passer dessous). Un top:0 le ferait glisser SOUS l'en-tête.
      z-index 15 : au-dessus du contenu, sous l'en-tête (20) et sous les modales (55). */
-  #crisisDock{position:sticky;top:var(--hdr-h,64px);z-index:15;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:0 1px 3px rgba(16,27,40,.05)}
+  /* RANGÉE DE COMMANDES (v4.25.0) — l'ECP : ce que je commande. Collée directement sous
+     l'en-tête, au-dessus de l'état, parce que le MODE gouverne l'existence de « Se repérer ». */
+  #crisisCtrl{position:sticky;top:var(--hdr-h,64px);z-index:16;background:var(--surface);border-bottom:1px solid var(--line)}
+  #crisisCtrl[hidden]{display:none}
+  #crisisCtrl .dock-in{align-items:center;gap:8px;padding:6px 10px}
+  /* L'ESPACE fait la séparation des deux natures — le mode (un état, on le lit) puis les
+     ouvertures (des actions, on les vise). Aucun trait ajouté : la proximité de Gestalt suffit,
+     et un trait de moins vaut mieux qu'un trait de plus sur un écran de crise.
+     ÉCART FIXE, pas un `flex:1` : pousser les ouvertures au bord droit les éloignerait de tout le
+     reste sur grand écran, et contredirait la règle du projet (le cluster se groupe À GAUCHE, le
+     blanc part au bord droit). Un écart constant garde en prime des POSITIONS IDENTIQUES quelle
+     que soit la largeur — la constance positionnelle ECAM, appliquée aussi entre appareils. */
+  .ctrl-sp{flex:none;width:22px}
+  @media (max-width:429.98px){.ctrl-sp{width:12px}}
+  /* La bascule de mode : sélecteur segmenté (deux MODES pairs, jamais un interrupteur — aucun
+     n'est la négation de l'autre). Même composant .seg que la tab bar, donc même pastille
+     glissante ; l'élément n'étant plus re-rendu, la transition joue toute seule. */
+  .mode-seg{flex:none;background:var(--surface-3);border-radius:999px;padding:3px}
+  .mode-seg[hidden]{display:none}
+  .mode-seg .seg-pill{width:calc(50% - 3px);left:3px;top:3px;bottom:3px;border-radius:999px;background:var(--surface);box-shadow:0 1px 3px rgba(16,27,40,.16)}
+  .mode-seg.i1 .seg-pill{transform:translateX(100%)}
+  .mode-seg .seg-btn{position:relative;z-index:1;padding:6px 13px;border:0;background:none;border-radius:999px;font-family:inherit;font-size:13px;font-weight:700;color:var(--ink-soft);cursor:pointer;min-height:38px;white-space:nowrap}
+  .mode-seg .seg-btn.on{color:var(--primary-dk);font-weight:800}
+  .mode-seg .seg-btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  @media (max-width:429.98px){.mode-seg .seg-btn{padding:6px 10px;font-size:12.5px}}
+  /* RANGÉE D'ÉTAT — l'affichage : ce qui se passe. Collée SOUS la rangée de commandes : son `top`
+     cumule la hauteur d'en-tête et celle des commandes (--ctrl-h, mesurée par syncHdrScroll). */
+  #crisisDock{position:sticky;top:calc(var(--hdr-h,64px) + var(--ctrl-h,0px));z-index:15;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:0 1px 3px rgba(16,27,40,.05)}
   #crisisDock[hidden]{display:none}
   /* Le BANDEAU est pleine largeur (c'est une bande de statut), mais son CONTENU est plafonné et
      centré sur la même grille que la vue lecture (1282px) : sans ça, à 1280px les segments en
@@ -333,7 +360,7 @@
      segments remplissent la hauteur (bande de statut ECAM), rien ne change. `:has` est réévalué
      en direct quand updateRtStrip masque/affiche #cbTimers. ID -> l'emporte sans dépendre de
      l'ordre sur la règle ≥ 780. */
-  #crisisDock:not(:has(#cbTimers:not([hidden]))) .dock-in{align-items:center;padding-top:6px;padding-bottom:6px}
+
   #cbTimers{flex:1;min-width:0;align-items:stretch;background:none;border:0;color:var(--ink);border-radius:0;padding:0;min-height:52px;font-family:inherit;cursor:pointer;text-align:left;overflow:hidden}
   /* Accès au Plan : contour, jamais rempli (« un seul bouton rempli par écran » — le rempli est
      « Continuer », dans l'action). Libellé en toutes lettres dès qu'il y a la place ; en dessous,
@@ -344,7 +371,7 @@
      d'action de l'écran, lu à bout de bras et sous stress. La saillance doit suivre le rôle. */
   /* Plan est le PREMIER segment de la bande (< 780) : pas de filet à gauche (bord du quai), un
      filet à DROITE le sépare de « ● Session ». À ≥ 780 il redevient une carte détachée. */
-  .dock-plan{flex:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:52px;min-height:52px;padding:0 14px;border:0;border-right:1px solid var(--line);background:none;color:var(--link);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer}
+  .dock-plan{flex:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:38px;padding:0 12px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--link);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap}
   .dock-plan[hidden]{display:none}
   .dock-plan:hover{background:var(--primary-soft)}
   .dock-plan:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
@@ -1325,9 +1352,6 @@
      ce segment est RE-RENDU (render complet à la bascule) — le glissement de la pastille est
      donc REJOUÉ par le handler (v4.21.0 : .seg-replay la pose sans transition sur l'ancien
      segment, reflow, retrait -> la transition .seg-pill joue comme sur la tab bar). */
-  .read-seg{background:var(--surface);border:1px solid var(--line);border-radius:24px;padding:3px;margin-bottom:10px}
-  .read-seg .seg-pill{width:calc(50% - 7px);left:3px;top:3px;bottom:3px}
-  .read-seg.i1 .seg-pill{transform:translateX(calc(100% + 8px))}
   .seg.seg-replay .seg-pill{transition:none}
   /* Entrée du contenu à la bascule de mode (v4.21.0) : mêmes keyframes/durée/courbe que la
      bascule de section de l'accueil (secInL/R) — transform/opacity SEULEMENT (compositeur :
@@ -1440,47 +1464,21 @@
   .ov-plan-h .pl-views{flex:none;display:flex;gap:4px;margin-left:auto}
   :is(.ov-plan-h,.pm-views) .ovs-tgl.on{background:var(--primary-soft);color:var(--primary-dk);border-color:var(--primary)}
   /* Intitulé de groupe : sans lui, trois boutons voisins ne disent pas de QUOI ils sont l'axe. */
-  .pm-views .pv-lab{flex:none;align-self:center;margin-right:2px;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft)}
   .ov-plan.svgv{overflow:hidden}
   /* Nœud du plan : carte compacte NAVIGANTE (taper = y aller) — jamais de case à cocher ici. */
-  .pl-nd{display:flex;align-items:flex-start;gap:8px;min-height:44px;border:1px solid var(--line);border-left:4px solid var(--line-strong);border-radius:9px;background:var(--surface);padding:8px 10px;margin-top:6px;cursor:pointer}
-  .pl-nd.dec{background:var(--verify-soft);border-color:var(--verify-bd);border-left-color:var(--verify-bd)}
-  .pl-nd.done{border-left-color:var(--done-line)}
-  .pl-nd.cur{border-color:var(--primary);border-left-color:var(--primary)}
-  .pl-nd.off{opacity:.55;border-style:dashed}
-  .pl-nd:hover{border-color:var(--primary)}
-  .pl-nd:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-  .pl-nd.flash{outline:3px solid var(--primary-soft);outline-offset:1px}
-  .pl-nn{width:22px;height:22px;border-radius:50%;flex:none;display:grid;place-items:center;font-family:var(--mono);font-size:11.5px;font-weight:700;color:var(--ink-soft);border:2px solid var(--line-strong);background:var(--surface);margin-top:1px}
-  .pl-nd.done .pl-nn{background:var(--ok);border-color:var(--ok);color:var(--surface)}
-  .pl-nd.cur .pl-nn{background:var(--primary);border-color:var(--primary);color:var(--on-primary)}
-  .pl-nt{flex:1;min-width:0;font-size:12.5px;font-weight:700;color:var(--ink);line-height:1.35;overflow-wrap:break-word}
-  .pl-nm{flex:none;font-size:11px;color:var(--ink-soft);font-family:var(--mono)}
   .pl-x{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--primary);margin-left:6px}
   .pl-here{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;background:var(--primary);color:var(--on-primary);padding:1px 8px;border-radius:999px;margin-left:6px;vertical-align:1px}
-  .pl-stp{margin:4px 0 0;padding:0;list-style:none}
-  .pl-stp li{font-size:11.5px;font-weight:400;color:var(--ink-soft);line-height:1.5;padding-left:13px;position:relative;overflow-wrap:break-word}
-  .pl-stp li::before{content:"·";position:absolute;left:4px}
-  .pl-stp li.crit{color:var(--critical);font-weight:600}
-  .pl-stp li.vig{color:var(--verify);font-weight:600}
   .pl-q{font-size:11.5px;font-weight:400;font-style:italic;color:var(--ink-soft);margin:4px 2px 0}
   /* ----- v4.12.0 : ORGANIGRAMME HYBRIDE — colonnes auto-fit (la règle responsive est CSS pur :
      branches côte à côte à partir de 640 px quand la place le permet, EMPILÉES sinon —
      et toujours empilées sous 640 px (v4.21.1) ; récursif de fait). */
-  .pl-decwrap{margin-top:2px}
   /* Colonnes >= 640 px SEULEMENT (sous 640 : pile, cf. média ci-dessous). 148 px = plancher
      des pistes auto-fit ; en pratique les colonnes restent larges à ces tailles d'écran (une
      branche à décision imbriquée est `deep`, donc pleine largeur : ses sous-colonnes ont la
      place). */
-  .pl-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:0 10px;align-items:start}
   /* cN = nombre de branches EN COLONNE (les profondes s'étalent et ne comptent pas) : plafonne
      les pistes auto-fit — sans lui, une branche pleine largeur force des pistes de 148 px et
      coince les branches courtes dans des colonnes étroites même sur grand écran. */
-  .pl-cols.c1{grid-template-columns:1fr}
-  .pl-cols.c2{grid-template-columns:repeat(auto-fit,minmax(max(148px,calc(50% - 5px)),1fr))}
-  .pl-cols.c3{grid-template-columns:repeat(auto-fit,minmax(max(148px,calc(33.33% - 6.66px)),1fr))}
-  .pl-cols.c4{grid-template-columns:repeat(auto-fit,minmax(max(148px,calc(25% - 7.5px)),1fr))}
-  .pl-br.deep{grid-column:1/-1}
   /* UNE SEULE COLONNE sous 640 px (v4.21.1, retour d'usage réel — même décision que le mode
      statique v4.13.1) : des colonnes de ~150 px émiettent les mots cliniques lettre à lettre
      (« Conver / sion ») ; en pile, rails + chips d'option portent la structure. c2…c4 sont
@@ -1489,19 +1487,7 @@
   @media (max-width:639.98px){ .pl-cols,.pl-cols.c2,.pl-cols.c3,.pl-cols.c4{grid-template-columns:1fr} }
   /* Branche : RAIL continu étiqueté (naît sous l'option, meurt au coude) — bleu = chemin pris,
      pointillé estompé = hors chemin (la mention textuelle accompagne toujours l'estompe). */
-  .pl-br{position:relative;margin:7px 0 0 10px;padding-left:12px}
-  .pl-br::before{content:"";position:absolute;left:0;top:14px;bottom:8px;width:3px;border-radius:2px;background:var(--line-strong)}
-  .pl-br.taken::before{background:var(--primary)}
-  .pl-br.off::before{background:repeating-linear-gradient(var(--line-strong) 0 5px,transparent 5px 9px)}
-  .pl-br.off>:not(.pl-bl){opacity:.55}
-  .pl-br.off .pl-bl{opacity:.75}
-  .pl-br.folded::before{display:none}
   /* Étiquette d'option = BOUTON de repli (ligne-bilan quand replié) ; collante en défilement. */
-  .pl-bl{position:relative;left:-12px;display:inline-flex;align-items:center;gap:5px;max-width:calc(100% + 12px);min-height:44px;font-size:11px;font-weight:700;color:var(--verify);background:var(--verify-soft);border:1px solid var(--verify-bd);border-radius:999px;padding:4px 11px;cursor:pointer;font-family:inherit;text-align:left}
-  .pl-bl .pl-tk{color:var(--ok)}
-  .pl-bl .pl-sum{font-weight:600;color:var(--ink-soft);font-family:var(--mono);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .pl-bl .pl-chv{color:var(--verify);font-size:11px;margin-left:2px}
-  .pl-bl:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .pl-offtag{font-weight:600;color:var(--ink-soft)}
   /* FIL D'ANCÊTRES v5 (v4.22.1) : STICKY CONTINU — les cartes-questions RÉELLES du plan
      s'épinglent sous l'en-tête (position:sticky, top CUMULÉ MESURÉ posé par ovPlanPin :
@@ -1537,9 +1523,6 @@
     .ov-plan .pl-nd.dec>.pinchip.pin-in{animation:pinIn .2s cubic-bezier(.2,.7,.3,1)}
   }
   /* Coude de sortie de branche : le rail se referme vers le lien de convergence. */
-  .pl-elbow{position:relative;margin-top:6px}
-  .pl-br>.pl-elbow::before{content:"";position:absolute;left:-12px;top:-8px;width:9px;height:18px;border-left:3px solid var(--line-strong);border-bottom:3px solid var(--line-strong);border-bottom-left-radius:9px}
-  .pl-br.taken>.pl-elbow::before{border-color:var(--primary)}
   /* Liens de structure : convergence « → n » / reprise « ↺ n » — défilement DANS le plan. */
   .pl-lnk{display:inline-flex;align-items:center;gap:5px;min-height:44px;font-size:11.5px;font-weight:700;color:var(--ink-soft);background:var(--tag-bg);border:1px solid var(--line);border-radius:999px;padding:4px 11px;margin-top:6px;cursor:pointer;font-family:inherit;text-align:left}
   .pl-lnk.loop{color:var(--link);background:var(--primary-soft);border-color:var(--primary-soft)}
@@ -1915,7 +1898,6 @@
   :is(.plan-modal,.ref-modal) .ai-card{max-width:none;width:100%;min-height:calc(100dvh / var(--zf,1));border-radius:0;margin:0;padding:0;display:flex;flex-direction:column;box-shadow:none}
   :is(.pm-bar,.rs-bar){position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:var(--surface);border-bottom:1px solid var(--line)}
   :is(.pm-ttl,.rs-ttl){flex:1;min-width:0;margin:0;font-size:15px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .pm-views{flex:none;display:flex;gap:4px}
   /* En étroit, le sélecteur passe à la LIGNE plutôt que d'écraser le titre (mesuré : « Plan —
      Anaphylaxie (choc anaphylactique) » tombait à « Plan — A… » à 390px). L'ordre visuel garde
      titre puis ✕ sur la 1ʳᵉ ligne — la fermeture reste au même endroit qu'ailleurs. */
@@ -2233,7 +2215,6 @@
     .rail-lad .pl-line.done .n{color:var(--ok)}
     .rail-lad .pl-line.cur .n{color:var(--link)}
     .rail-lad .pl-line.dec .n{color:var(--verify)}
-    .rail-lad .pl-bl2{color:var(--ink-soft);background:none;border-color:var(--line-strong)}
     .rail-lad .pl-line .g b{color:var(--ink-soft)}
     /* « Hors chemin » : PAS d'opacité (un texte à 50% tombe sous le seuil AA — audit v4.23.0) ;
        encre douce + la mention en toutes lettres, la couleur n'est jamais seule. */
@@ -2611,12 +2592,7 @@
     .alg-panel .flow-scroll{max-height:none;overflow:visible}
     .ov-block{break-inside:avoid}.ov-block.closed .ov-body{display:block}.ov-block.off{opacity:1}
     /* v4.12.0 : plan imprimé en une colonne (flux de page), branches dépliées, sans sticky. */
-    .pl-cols{display:block}.pl-nd.dec,.pl-bl{position:static!important}.pl-br.folded::before{display:block}
-    .pl-nd{break-inside:avoid}.pl-br.off>:not(.pl-bl){opacity:1}
     /* v4.22.1 : le fil épinglé est un état d'ÉCRAN — sur papier, carte complète et sans chip. */
-    .pl-nd.dec>.pinchip{display:none}
-    .pl-nd.dec.stuck{box-shadow:none}
-    .pl-nd.dec.stuck .pl-nt{white-space:normal;overflow:visible}
     .crisis-footer .cf-stg{display:none}}
 </style><style>
   body{margin:0;padding:0}

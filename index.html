@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-/99Da20yrx0AZpKVDETtiq7qv35SCeb2sHWyNYcHL8s='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-7+dKO5bvlQqwBwd3KreU6YMK7jJzHVyLbw+71GlyCog='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -588,7 +588,34 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      l'encoche, la taille du texte et la rotation — une constante aurait laissé le quai flotter
      sous la barre ou passer dessous). Un top:0 le ferait glisser SOUS l'en-tête.
      z-index 15 : au-dessus du contenu, sous l'en-tête (20) et sous les modales (55). */
-  #crisisDock{position:sticky;top:var(--hdr-h,64px);z-index:15;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:0 1px 3px rgba(16,27,40,.05)}
+  /* RANGÉE DE COMMANDES (v4.25.0) — l'ECP : ce que je commande. Collée directement sous
+     l'en-tête, au-dessus de l'état, parce que le MODE gouverne l'existence de « Se repérer ». */
+  #crisisCtrl{position:sticky;top:var(--hdr-h,64px);z-index:16;background:var(--surface);border-bottom:1px solid var(--line)}
+  #crisisCtrl[hidden]{display:none}
+  #crisisCtrl .dock-in{align-items:center;gap:8px;padding:6px 10px}
+  /* L'ESPACE fait la séparation des deux natures — le mode (un état, on le lit) puis les
+     ouvertures (des actions, on les vise). Aucun trait ajouté : la proximité de Gestalt suffit,
+     et un trait de moins vaut mieux qu'un trait de plus sur un écran de crise.
+     ÉCART FIXE, pas un `flex:1` : pousser les ouvertures au bord droit les éloignerait de tout le
+     reste sur grand écran, et contredirait la règle du projet (le cluster se groupe À GAUCHE, le
+     blanc part au bord droit). Un écart constant garde en prime des POSITIONS IDENTIQUES quelle
+     que soit la largeur — la constance positionnelle ECAM, appliquée aussi entre appareils. */
+  .ctrl-sp{flex:none;width:22px}
+  @media (max-width:429.98px){.ctrl-sp{width:12px}}
+  /* La bascule de mode : sélecteur segmenté (deux MODES pairs, jamais un interrupteur — aucun
+     n'est la négation de l'autre). Même composant .seg que la tab bar, donc même pastille
+     glissante ; l'élément n'étant plus re-rendu, la transition joue toute seule. */
+  .mode-seg{flex:none;background:var(--surface-3);border-radius:999px;padding:3px}
+  .mode-seg[hidden]{display:none}
+  .mode-seg .seg-pill{width:calc(50% - 3px);left:3px;top:3px;bottom:3px;border-radius:999px;background:var(--surface);box-shadow:0 1px 3px rgba(16,27,40,.16)}
+  .mode-seg.i1 .seg-pill{transform:translateX(100%)}
+  .mode-seg .seg-btn{position:relative;z-index:1;padding:6px 13px;border:0;background:none;border-radius:999px;font-family:inherit;font-size:13px;font-weight:700;color:var(--ink-soft);cursor:pointer;min-height:38px;white-space:nowrap}
+  .mode-seg .seg-btn.on{color:var(--primary-dk);font-weight:800}
+  .mode-seg .seg-btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  @media (max-width:429.98px){.mode-seg .seg-btn{padding:6px 10px;font-size:12.5px}}
+  /* RANGÉE D'ÉTAT — l'affichage : ce qui se passe. Collée SOUS la rangée de commandes : son `top`
+     cumule la hauteur d'en-tête et celle des commandes (--ctrl-h, mesurée par syncHdrScroll). */
+  #crisisDock{position:sticky;top:calc(var(--hdr-h,64px) + var(--ctrl-h,0px));z-index:15;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:0 1px 3px rgba(16,27,40,.05)}
   #crisisDock[hidden]{display:none}
   /* Le BANDEAU est pleine largeur (c'est une bande de statut), mais son CONTENU est plafonné et
      centré sur la même grille que la vue lecture (1282px) : sans ça, à 1280px les segments en
@@ -601,7 +628,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      segments remplissent la hauteur (bande de statut ECAM), rien ne change. `:has` est réévalué
      en direct quand updateRtStrip masque/affiche #cbTimers. ID -> l'emporte sans dépendre de
      l'ordre sur la règle ≥ 780. */
-  #crisisDock:not(:has(#cbTimers:not([hidden]))) .dock-in{align-items:center;padding-top:6px;padding-bottom:6px}
+
   #cbTimers{flex:1;min-width:0;align-items:stretch;background:none;border:0;color:var(--ink);border-radius:0;padding:0;min-height:52px;font-family:inherit;cursor:pointer;text-align:left;overflow:hidden}
   /* Accès au Plan : contour, jamais rempli (« un seul bouton rempli par écran » — le rempli est
      « Continuer », dans l'action). Libellé en toutes lettres dès qu'il y a la place ; en dessous,
@@ -612,7 +639,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      d'action de l'écran, lu à bout de bras et sous stress. La saillance doit suivre le rôle. */
   /* Plan est le PREMIER segment de la bande (< 780) : pas de filet à gauche (bord du quai), un
      filet à DROITE le sépare de « ● Session ». À ≥ 780 il redevient une carte détachée. */
-  .dock-plan{flex:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:52px;min-height:52px;padding:0 14px;border:0;border-right:1px solid var(--line);background:none;color:var(--link);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer}
+  .dock-plan{flex:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:38px;padding:0 12px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--link);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap}
   .dock-plan[hidden]{display:none}
   .dock-plan:hover{background:var(--primary-soft)}
   .dock-plan:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
@@ -1593,9 +1620,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      ce segment est RE-RENDU (render complet à la bascule) — le glissement de la pastille est
      donc REJOUÉ par le handler (v4.21.0 : .seg-replay la pose sans transition sur l'ancien
      segment, reflow, retrait -> la transition .seg-pill joue comme sur la tab bar). */
-  .read-seg{background:var(--surface);border:1px solid var(--line);border-radius:24px;padding:3px;margin-bottom:10px}
-  .read-seg .seg-pill{width:calc(50% - 7px);left:3px;top:3px;bottom:3px}
-  .read-seg.i1 .seg-pill{transform:translateX(calc(100% + 8px))}
   .seg.seg-replay .seg-pill{transition:none}
   /* Entrée du contenu à la bascule de mode (v4.21.0) : mêmes keyframes/durée/courbe que la
      bascule de section de l'accueil (secInL/R) — transform/opacity SEULEMENT (compositeur :
@@ -1708,47 +1732,21 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .ov-plan-h .pl-views{flex:none;display:flex;gap:4px;margin-left:auto}
   :is(.ov-plan-h,.pm-views) .ovs-tgl.on{background:var(--primary-soft);color:var(--primary-dk);border-color:var(--primary)}
   /* Intitulé de groupe : sans lui, trois boutons voisins ne disent pas de QUOI ils sont l'axe. */
-  .pm-views .pv-lab{flex:none;align-self:center;margin-right:2px;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft)}
   .ov-plan.svgv{overflow:hidden}
   /* Nœud du plan : carte compacte NAVIGANTE (taper = y aller) — jamais de case à cocher ici. */
-  .pl-nd{display:flex;align-items:flex-start;gap:8px;min-height:44px;border:1px solid var(--line);border-left:4px solid var(--line-strong);border-radius:9px;background:var(--surface);padding:8px 10px;margin-top:6px;cursor:pointer}
-  .pl-nd.dec{background:var(--verify-soft);border-color:var(--verify-bd);border-left-color:var(--verify-bd)}
-  .pl-nd.done{border-left-color:var(--done-line)}
-  .pl-nd.cur{border-color:var(--primary);border-left-color:var(--primary)}
-  .pl-nd.off{opacity:.55;border-style:dashed}
-  .pl-nd:hover{border-color:var(--primary)}
-  .pl-nd:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-  .pl-nd.flash{outline:3px solid var(--primary-soft);outline-offset:1px}
-  .pl-nn{width:22px;height:22px;border-radius:50%;flex:none;display:grid;place-items:center;font-family:var(--mono);font-size:11.5px;font-weight:700;color:var(--ink-soft);border:2px solid var(--line-strong);background:var(--surface);margin-top:1px}
-  .pl-nd.done .pl-nn{background:var(--ok);border-color:var(--ok);color:var(--surface)}
-  .pl-nd.cur .pl-nn{background:var(--primary);border-color:var(--primary);color:var(--on-primary)}
-  .pl-nt{flex:1;min-width:0;font-size:12.5px;font-weight:700;color:var(--ink);line-height:1.35;overflow-wrap:break-word}
-  .pl-nm{flex:none;font-size:11px;color:var(--ink-soft);font-family:var(--mono)}
   .pl-x{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--primary);margin-left:6px}
   .pl-here{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;background:var(--primary);color:var(--on-primary);padding:1px 8px;border-radius:999px;margin-left:6px;vertical-align:1px}
-  .pl-stp{margin:4px 0 0;padding:0;list-style:none}
-  .pl-stp li{font-size:11.5px;font-weight:400;color:var(--ink-soft);line-height:1.5;padding-left:13px;position:relative;overflow-wrap:break-word}
-  .pl-stp li::before{content:"·";position:absolute;left:4px}
-  .pl-stp li.crit{color:var(--critical);font-weight:600}
-  .pl-stp li.vig{color:var(--verify);font-weight:600}
   .pl-q{font-size:11.5px;font-weight:400;font-style:italic;color:var(--ink-soft);margin:4px 2px 0}
   /* ----- v4.12.0 : ORGANIGRAMME HYBRIDE — colonnes auto-fit (la règle responsive est CSS pur :
      branches côte à côte à partir de 640 px quand la place le permet, EMPILÉES sinon —
      et toujours empilées sous 640 px (v4.21.1) ; récursif de fait). */
-  .pl-decwrap{margin-top:2px}
   /* Colonnes >= 640 px SEULEMENT (sous 640 : pile, cf. média ci-dessous). 148 px = plancher
      des pistes auto-fit ; en pratique les colonnes restent larges à ces tailles d'écran (une
      branche à décision imbriquée est `deep`, donc pleine largeur : ses sous-colonnes ont la
      place). */
-  .pl-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:0 10px;align-items:start}
   /* cN = nombre de branches EN COLONNE (les profondes s'étalent et ne comptent pas) : plafonne
      les pistes auto-fit — sans lui, une branche pleine largeur force des pistes de 148 px et
      coince les branches courtes dans des colonnes étroites même sur grand écran. */
-  .pl-cols.c1{grid-template-columns:1fr}
-  .pl-cols.c2{grid-template-columns:repeat(auto-fit,minmax(max(148px,calc(50% - 5px)),1fr))}
-  .pl-cols.c3{grid-template-columns:repeat(auto-fit,minmax(max(148px,calc(33.33% - 6.66px)),1fr))}
-  .pl-cols.c4{grid-template-columns:repeat(auto-fit,minmax(max(148px,calc(25% - 7.5px)),1fr))}
-  .pl-br.deep{grid-column:1/-1}
   /* UNE SEULE COLONNE sous 640 px (v4.21.1, retour d'usage réel — même décision que le mode
      statique v4.13.1) : des colonnes de ~150 px émiettent les mots cliniques lettre à lettre
      (« Conver / sion ») ; en pile, rails + chips d'option portent la structure. c2…c4 sont
@@ -1757,19 +1755,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   @media (max-width:639.98px){ .pl-cols,.pl-cols.c2,.pl-cols.c3,.pl-cols.c4{grid-template-columns:1fr} }
   /* Branche : RAIL continu étiqueté (naît sous l'option, meurt au coude) — bleu = chemin pris,
      pointillé estompé = hors chemin (la mention textuelle accompagne toujours l'estompe). */
-  .pl-br{position:relative;margin:7px 0 0 10px;padding-left:12px}
-  .pl-br::before{content:"";position:absolute;left:0;top:14px;bottom:8px;width:3px;border-radius:2px;background:var(--line-strong)}
-  .pl-br.taken::before{background:var(--primary)}
-  .pl-br.off::before{background:repeating-linear-gradient(var(--line-strong) 0 5px,transparent 5px 9px)}
-  .pl-br.off>:not(.pl-bl){opacity:.55}
-  .pl-br.off .pl-bl{opacity:.75}
-  .pl-br.folded::before{display:none}
   /* Étiquette d'option = BOUTON de repli (ligne-bilan quand replié) ; collante en défilement. */
-  .pl-bl{position:relative;left:-12px;display:inline-flex;align-items:center;gap:5px;max-width:calc(100% + 12px);min-height:44px;font-size:11px;font-weight:700;color:var(--verify);background:var(--verify-soft);border:1px solid var(--verify-bd);border-radius:999px;padding:4px 11px;cursor:pointer;font-family:inherit;text-align:left}
-  .pl-bl .pl-tk{color:var(--ok)}
-  .pl-bl .pl-sum{font-weight:600;color:var(--ink-soft);font-family:var(--mono);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .pl-bl .pl-chv{color:var(--verify);font-size:11px;margin-left:2px}
-  .pl-bl:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .pl-offtag{font-weight:600;color:var(--ink-soft)}
   /* FIL D'ANCÊTRES v5 (v4.22.1) : STICKY CONTINU — les cartes-questions RÉELLES du plan
      s'épinglent sous l'en-tête (position:sticky, top CUMULÉ MESURÉ posé par ovPlanPin :
@@ -1805,9 +1791,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .ov-plan .pl-nd.dec>.pinchip.pin-in{animation:pinIn .2s cubic-bezier(.2,.7,.3,1)}
   }
   /* Coude de sortie de branche : le rail se referme vers le lien de convergence. */
-  .pl-elbow{position:relative;margin-top:6px}
-  .pl-br>.pl-elbow::before{content:"";position:absolute;left:-12px;top:-8px;width:9px;height:18px;border-left:3px solid var(--line-strong);border-bottom:3px solid var(--line-strong);border-bottom-left-radius:9px}
-  .pl-br.taken>.pl-elbow::before{border-color:var(--primary)}
   /* Liens de structure : convergence « → n » / reprise « ↺ n » — défilement DANS le plan. */
   .pl-lnk{display:inline-flex;align-items:center;gap:5px;min-height:44px;font-size:11.5px;font-weight:700;color:var(--ink-soft);background:var(--tag-bg);border:1px solid var(--line);border-radius:999px;padding:4px 11px;margin-top:6px;cursor:pointer;font-family:inherit;text-align:left}
   .pl-lnk.loop{color:var(--link);background:var(--primary-soft);border-color:var(--primary-soft)}
@@ -2183,7 +2166,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   :is(.plan-modal,.ref-modal) .ai-card{max-width:none;width:100%;min-height:calc(100dvh / var(--zf,1));border-radius:0;margin:0;padding:0;display:flex;flex-direction:column;box-shadow:none}
   :is(.pm-bar,.rs-bar){position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:var(--surface);border-bottom:1px solid var(--line)}
   :is(.pm-ttl,.rs-ttl){flex:1;min-width:0;margin:0;font-size:15px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .pm-views{flex:none;display:flex;gap:4px}
   /* En étroit, le sélecteur passe à la LIGNE plutôt que d'écraser le titre (mesuré : « Plan —
      Anaphylaxie (choc anaphylactique) » tombait à « Plan — A… » à 390px). L'ordre visuel garde
      titre puis ✕ sur la 1ʳᵉ ligne — la fermeture reste au même endroit qu'ailleurs. */
@@ -2501,7 +2483,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .rail-lad .pl-line.done .n{color:var(--ok)}
     .rail-lad .pl-line.cur .n{color:var(--link)}
     .rail-lad .pl-line.dec .n{color:var(--verify)}
-    .rail-lad .pl-bl2{color:var(--ink-soft);background:none;border-color:var(--line-strong)}
     .rail-lad .pl-line .g b{color:var(--ink-soft)}
     /* « Hors chemin » : PAS d'opacité (un texte à 50% tombe sous le seuil AA — audit v4.23.0) ;
        encre douce + la mention en toutes lettres, la couleur n'est jamais seule. */
@@ -2879,12 +2860,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .alg-panel .flow-scroll{max-height:none;overflow:visible}
     .ov-block{break-inside:avoid}.ov-block.closed .ov-body{display:block}.ov-block.off{opacity:1}
     /* v4.12.0 : plan imprimé en une colonne (flux de page), branches dépliées, sans sticky. */
-    .pl-cols{display:block}.pl-nd.dec,.pl-bl{position:static!important}.pl-br.folded::before{display:block}
-    .pl-nd{break-inside:avoid}.pl-br.off>:not(.pl-bl){opacity:1}
     /* v4.22.1 : le fil épinglé est un état d'ÉCRAN — sur papier, carte complète et sans chip. */
-    .pl-nd.dec>.pinchip{display:none}
-    .pl-nd.dec.stuck{box-shadow:none}
-    .pl-nd.dec.stuck .pl-nt{white-space:normal;overflow:visible}
     .crisis-footer .cf-stg{display:none}}
 </style>
 </head>
@@ -2937,9 +2913,22 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        Plan et Session sont AVANT la partie variable (les minuteurs) : ils gardent donc une
        position FIXE quel que soit le nombre de minuteurs, qui coulent à leur droite. Placer Plan
        APRÈS les minuteurs le faisait glisser (largeur variable de #cbTimers) — inacceptable ECAM. -->
+  <!-- DEUX RANGÉES, DEUX NATURES (v4.25.0) — l'architecture ECAM à la lettre : sur un Airbus, on
+       n'appelle pas un synoptique depuis l'écran, les commandes vivent sur l'ECP, un panneau
+       DISTINCT de l'affichage. Nous avions fusionné les deux, d'où une bagarre permanente pour la
+       place à chaque ajout. Séparées, plus aucun arbitrage.
+       #crisisCtrl = ce que je COMMANDE (mode + ouvertures) · #crisisDock = ce qui SE PASSE (état).
+       Dans la rangée de commandes : le MODE d'abord — il gouverne l'existence même de « Se
+       repérer » (masqué en Statique), le dessiner après serait une inversion de hiérarchie ;
+       puis les deux ouvertures poussées à DROITE (l'espace sépare les deux natures, sans ajouter
+       de trait). Même glyphe ⤢ pour les deux : elles font exactement la même chose. -->
+  <div id="crisisCtrl" hidden><div class="dock-in">
+    <div class="seg mode-seg" id="modeSeg" role="tablist" aria-label="Mode de lecture" hidden><span class="seg-pill" aria-hidden="true"></span><button type="button" class="seg-btn on" role="tab" aria-selected="true" data-readmode="dynamic">Guidé</button><button type="button" class="seg-btn" role="tab" aria-selected="false" data-readmode="static">Statique</button></div>
+    <span class="ctrl-sp"></span>
+    <button id="planBtn" hidden class="dock-plan" aria-haspopup="dialog" aria-label="Se repérer — échelle des blocs"><span class="dp-ic" aria-hidden="true">⤢</span><span class="dp-lbl">Se repérer</span></button>
+    <button id="refBtn" hidden class="dock-plan" aria-haspopup="dialog" aria-label="Consulter — surveillances, différentiels, documents"><span class="dp-ic" aria-hidden="true">⤢</span><span class="dp-lbl"><span class="dp-full">Consulter</span><span class="dp-ab">Cons.</span></span></button>
+  </div></div>
   <div id="crisisDock" hidden><div class="dock-in">
-    <button id="planBtn" hidden class="dock-plan" aria-haspopup="dialog" aria-label="Plan de l’aide — vue d’ensemble"><span class="dp-ic" aria-hidden="true">⤢</span><span class="dp-lbl">Plan</span></button>
-    <button id="refBtn" hidden class="dock-plan" aria-haspopup="dialog" aria-label="Consulter — surveillances, différentiels, documents"><span class="dp-ic" aria-hidden="true">▸</span><span class="dp-lbl"><span class="dp-full">Consulter</span><span class="dp-ab">Cons.</span></span></button>
     <button id="cbTimers" hidden aria-label="Minuteurs en cours — afficher le panneau"></button>
   </div></div>
   <!-- Bandeau système (registre INFORMATION persistant, ex. nouvelle version du service worker) :
@@ -3083,8 +3072,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
 <div class="ai-modal plan-modal sheet-full" id="planModal" role="dialog" aria-modal="true" aria-labelledby="planModalTitle">
   <div class="ai-card">
     <div class="pm-bar">
-      <h3 class="pm-ttl" id="planModalTitle">Plan — <span id="pmName"></span></h3>
-      <div class="pm-views" id="pmViews"></div>
+      <h3 class="pm-ttl" id="planModalTitle">Se repérer — <span id="pmName"></span></h3>
       <button class="ai-x" id="planX" aria-label="Fermer le plan">×</button>
     </div>
     <div class="pm-body" id="planBody"></div>
@@ -3140,7 +3128,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.24.0';
+const APP_VERSION='4.25.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -3499,7 +3487,7 @@ let state={view:'library',q:'',cat:'',scope:null,draft:null,fiche:null,nav:[],na
   // ovFold = replis manuels d'instances du journal (clé = index) ; ovPlanView = affichage du
   // Plan ('plan' organigramme / 'ladder' échelle / 'svg' schéma — fusion v4.18.0) ; ovVerify =
   // passe Do-Verify en cours ({idx,i,gaps} ou null). Jamais persistés (par fiche ouverte).
-  readMode:'overview',ovFold:{},ovPlanView:'plan',ovVerify:null};
+  readMode:'overview',ovFold:{},ovVerify:null};
 try{if(localStorage.getItem(spaceKey('ac-section'))==='protocols')state.section='protocols';}catch(e){}
 /* Préférence du mode de lecture (v4.6.0) — par utilisateur (spaceKey local), synchronisée via
    data.prefs.readMode. La synchro ne fait qu'ÉCRIRE la préférence locale : elle ne bascule JAMAIS
@@ -3515,10 +3503,7 @@ function setReadModePref(m){if(READ_MODES.indexOf(m)<0)return;try{localStorage.s
    LOCAL SEULEMENT, volontairement : ce n'est pas un état de la fiche ni un mode opératoire, mais
    le dessin d'une feuille transitoire — ça n'a pas sa place dans la charge utile de synchro
    (contrairement à readMode, qui change ce qu'EST la fiche). */
-const PLAN_VIEWS=['plan','ladder','svg'];
-function currentPlanView(){try{const v=localStorage.getItem(spaceKey('ac-plan-view'))||'';
-  return PLAN_VIEWS.indexOf(v)>=0?v:'plan';}catch(e){return 'plan';}}
-function setPlanViewPref(v){if(PLAN_VIEWS.indexOf(v)<0)return;try{localStorage.setItem(spaceKey('ac-plan-view'),v);}catch(e){}}
+// (PLAN_VIEWS / currentPlanView / setPlanViewPref supprimés en v4.25.0 : le Plan n'a plus qu'une vue.)
 // Rôle/édition par bibliothèque. Perso (libraryId vide) = toujours éditable. Bibliothèque partagée : éditable
 // si role editor/admin. (La RLS reste l'arbitre côté serveur ; ceci n'est que l'ergonomie.)
 function roleOf(libId){const l=myLibraries.find(x=>x.id===libId);return l?l.role:null;}
@@ -5332,7 +5317,7 @@ bindModalDismiss(document.getElementById('endSessModal'),()=>_endSessClose(false
 async function endCurrentSession(){if(!Runtime.started)return;if(!await confirmEndSession(Runtime))return;const f=Runtime.fiche;endSession(Runtime);freshRuntime(f,null);state.fiche=null;state.view='library';render();}
 // Reprendre une session de l'historique (ou vive) : recharge dans un runtime, la réactive (vive) et
 // ouvre la fiche. Si une session vive existe déjà pour cette fiche, on la rouvre telle quelle.
-function resumeSession(id){const s=sessions.find(x=>x.id===id);if(!s)return;const f=fiches.find(x=>x.id===s.ficheId);if(!f){toast('⚠ Fiche introuvable.');return;}flowScroll={left:null,top:0};state.readMode=currentReadMode();state.ovFold={};state.ovPlanView=currentPlanView();state.ovVerify=null;
+function resumeSession(id){const s=sessions.find(x=>x.id===id);if(!s)return;const f=fiches.find(x=>x.id===s.ficheId);if(!f){toast('⚠ Fiche introuvable.');return;}flowScroll={left:null,top:0};state.readMode=currentReadMode();state.ovFold={};state.ovVerify=null;
   if(liveSessions[f.id]&&liveSessions[f.id].sessionId===id){Runtime=liveSessions[f.id];}
   else{Runtime=buildRuntime(f,s);Runtime.started=true;Runtime.startedAt=s.startedAt||Date.now();liveSessions[f.id]=Runtime;persistLive(Runtime,true);}
   Runtime.fiche=f;bindStateToRuntime();state.fiche=f;state.showFlow=false;state.showSess=false;state.view='read';render();}
@@ -5401,6 +5386,16 @@ function applyViewChrome(){
     if(!okPlan)closePlanSheet();}
    // « Réf. » : accès permanent à la couche de consultation. Pas de condition d'algorithme (une
    // fiche mono-bloc a aussi des annexes) ; masqué en aperçu de brouillon et hors lecture.
+   // MODE : la bascule vit dans la rangée de COMMANDES depuis v4.25.0 (elle gouverne l'existence
+   // de « Se repérer », donc elle vient AVANT lui). Masquée sans algorithme — les deux vues y
+   // seraient identiques (règle inchangée depuis v4.16.0).
+   {const ms=document.getElementById('modeSeg');
+    const okMode=crisis&&!state.previewFrom&&hasFlow(state.fiche);
+    ms.hidden=!okMode;
+    if(okMode){const st=state.readMode==='static';
+      ms.classList.toggle('i1',st);
+      ms.querySelectorAll('[data-readmode]').forEach(b=>{const on=(b.dataset.readmode==='static')===st;
+        b.classList.toggle('on',on);b.setAttribute('aria-selected',on?'true':'false');b.tabIndex=on?0:-1;});}}
    {const rb=document.getElementById('refBtn');
     const okRef=crisis&&!state.previewFrom&&!!annexRowHtml(state.fiche);
     rb.hidden=!okRef;
@@ -5550,7 +5545,7 @@ const _onReadBp=()=>{if(state.view==='read')render();};
 // « GRAND TITRE » : sur l'accueil, la ligne d'identité se replie dès qu'on défile (.condensed,
 // cf. CSS — il ne reste que les onglets) et réapparaît en haut de page. Écouteur passif ;
 // les scrollTo() de render() déclenchent aussi l'évènement -> état toujours juste.
-let _hdrCond=false,_hdrTtl=false,_hdrHCss='',_stickCss='';
+let _hdrCond=false,_hdrTtl=false,_hdrHCss='',_stickCss='',_ctrlHCss='';
 // v4.23.0 : extrait en fonction NOMMÉE — render() la rappelle en fin de rendu. Sans ça, ouvrir
 // une fiche depuis une page déjà en haut ne produit aucun évènement de défilement et l'état
 // .ttl-on héritait de la vue précédente (barre condensée sur une page au repos, ou l'inverse).
@@ -5574,6 +5569,12 @@ function syncHdrScroll(){const c=window.scrollY>24;
   const _hbB=_hb.getBoundingClientRect().bottom;
   {const h=Math.round(_hbB/zoomF())+'px';
    if(_hdrHCss!==h){_hdrHCss=h;document.documentElement.style.setProperty('--hdr-h',h);}}
+  // --ctrl-h : hauteur de la rangée de COMMANDES, mesurée — c'est le décalage supplémentaire
+  // auquel la rangée d'ÉTAT vient se coller. Deux couches collantes empilées : chacune doit
+  // connaître le bas de celle du dessus (même discipline que --hdr-h).
+  {const ct=document.getElementById('crisisCtrl');
+   const v=Math.round(((ct&&!ct.hidden)?ct.getBoundingClientRect().height:0)/zoomF())+'px';
+   if(_ctrlHCss!==v){_ctrlHCss=v;document.documentElement.style.setProperty('--ctrl-h',v);}}
   // --stick-top : bas de TOUT ce qui est déjà collé en haut (en-tête + quai de crise). Le rail
   // de lecture s'y accroche ; sans ça il passerait sous le quai. Même mesure que la base
   // d'épinglage d'ovPlanPin — une seule vérité pour « où commence la zone libre ».
@@ -5585,7 +5586,7 @@ function syncHdrScroll(){const c=window.scrollY>24;
     if(state.view==='read'&&state.readMode==='overview'&&state.fiche&&hasFlow(state.fiche))ovPlanStick();}
   // Fil d'ancêtres v3 : la bulle flottante du plan suit CHAQUE défilement (léger : quelques
   // rectangles ; reconstruit son contenu seulement quand la décision/branche change).
-  if(state.view==='read'&&state.readMode==='overview'&&state.fiche&&hasFlow(state.fiche))ovPlanPin();}
+}
 window.addEventListener('scroll',syncHdrScroll,{passive:true});
 // keepQuery : bascule déclenchée par la RECHERCHE TRANSVERSALE -> la requête est conservée
 // (le filtre de catégorie, lui, est remis à zéro : il pourrait masquer les résultats attendus).
@@ -6322,6 +6323,8 @@ function pinIcon(on){return '<svg width="18" height="18" viewBox="0 0 24 24" fil
 function uiIcon(name,size,opts){opts=opts||{};const P={
   gear:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33h0a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51h0a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82v0a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>',
   bell:'<path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/>',
+  // Organigramme (v4.25.0) : un nœud en haut, deux branches — le Schéma de l'algorithme.
+  flow:'<rect x="9" y="3" width="6" height="4.5" rx="1"/><rect x="2.5" y="16.5" width="6" height="4.5" rx="1"/><rect x="15.5" y="16.5" width="6" height="4.5" rx="1"/><path d="M12 7.5v3.5M5.5 16.5V11h13v5.5"/>',
   belloff:'<path d="M13.7 21a2 2 0 01-3.4 0"/><path d="M18.6 13c-.4-1.4-.6-3-.6-5a6 6 0 00-9.3-5"/><path d="M6.3 6.3C6.1 6.9 6 7.4 6 8c0 7-3 9-3 9h14"/><path d="M2 2l20 20"/>',
   moon:'<path d="M21 12.8A9 9 0 1111.2 3 7 7 0 0021 12.8z"/>',
   // Plan de l'aide (v4.23.0) : organigramme — un nœud, deux branches. Lisible à 16px.
@@ -7035,7 +7038,7 @@ function renderRead(){
   // DOCUMENT complet (confirmation, chapeau, algorithme, surveillances dans le tableau) ;
   // le dynamique EST le journal (fil condensé — l'ex-mode guidé y est fusionné).
   // Les deux vues partagent le même Runtime — basculer ne perd rien.
-  const modeTopSegH=hasFlow(f)?`<div class="seg read-seg${useSv?' i1':''}" id="readTopSeg" role="tablist" aria-label="Mode de lecture"><span class="seg-pill" aria-hidden="true"></span><button type="button" class="seg-btn${useSv?'':' on'}" role="tab" aria-selected="${useSv?'false':'true'}" aria-label="Mode dynamique — journal du parcours" data-readmode="dynamic" tabindex="${useSv?'-1':'0'}">Dynamique</button><button type="button" class="seg-btn${useSv?' on':''}" role="tab" aria-selected="${useSv?'true':'false'}" aria-label="Mode statique — toute l’aide en tableau" data-readmode="static" tabindex="${useSv?'0':'-1'}">Statique</button></div>`:'';
+  const modeTopSegH='';   // v4.25.0 : la bascule vit dans la rangée de COMMANDES (#modeSeg)
   const localH=f.localInfo&&f.localInfo.trim()?`<div class="local">${fmt(f.localInfo)}</div>`:'';
   const stages=[];
   if(useSv){
@@ -7138,7 +7141,8 @@ function bindReadEvents(f,blk,cur){
   if(!state.previewFrom)setMoreMenu([
     {label:'Modifier',ic:uiIcon('pen',16),sub:started?'session en cours':(canEditFiche(f)?'hors urgence':'lecture seule'),disabled:started||!canEditFiche(f),act:()=>openEdit(f.id)},
     ...(canEditFiche(f)?[{label:f.libraryId?'Ma version écrasée':'Versions',ic:uiIcon('history',16),disabled:started,act:()=>openVersions(f.id)}]:[]),
-    ...(hasFlow(f)&&state.readMode!=='static'?[{label:'Plan de l’aide',ic:uiIcon('plan',16),sub:'vue d’ensemble',act:openPlanSheet}]:[]),
+    ...(hasFlow(f)&&state.readMode!=='static'?[{label:'Se repérer',ic:uiIcon('plan',16),sub:'échelle des blocs',act:openPlanSheet}]:[]),
+    ...(hasFlow(f)?[{label:'Schéma de l’algorithme',ic:uiIcon('flow',16),sub:'plein écran, zoom',act:()=>openFlowFull(f)}]:[]),
     ...(annexRowHtml(f)?[{label:'Consulter',ic:uiIcon('book',16),sub:'surveillances, documents…',act:()=>openRefSheet()}]:[]),
     ...(hasFlow(f)?[{label:'Mode lecteur (binôme)',ic:uiIcon('play',16),act:readerOpen}]:[]),
     ...(hasFlow(f)?[{label:'Recommencer le parcours',ic:uiIcon('undo',16),sub:'repart du début',act:()=>restartCourse(f)}]:[]),
@@ -7186,40 +7190,7 @@ function bindReadEvents(f,blk,cur){
   // ⟲ des rangées compactes : RELANCE le minuteur ad hoc (repart du plein, démarre aussitôt).
   main.querySelectorAll('[data-tmrestart]').forEach(b=>b.onclick=()=>{const t=Runtime.timers[b.dataset.tmrestart];if(!t)return;
     t.elapsedMs=0;t.lastStart=Date.now();t.running=true;ensureAudio();persistLive(Runtime,true);render();});
-  // Bascule Dynamique ↔ Statique (#readTopSeg) : renderKeepAnchor -> la bascule reste sous le
-  // doigt au re-rendu ; préférence mémorisée (spaceKey + data.prefs à la prochaine synchro).
-  // v4.16.0 : le sous-mode Journal ↔ Guidé a disparu (fusion — le journal condense l'historique
-  // en chips, cf. ovPresList) ; « Dynamique » = le journal, tout court.
-  {const go=m=>{
-     if(m==='dynamic')m='overview';
-     if(state.readMode===m)return;
-     const toStatic=m==='static';
-     state.readMode=m;setReadModePref(m);
-     renderKeepAnchor('#readTopSeg');
-     const s2=document.getElementById('readTopSeg');
-     // Micro-animations de bascule (v4.21.0), NON BLOQUANTES — transform/opacity seulement,
-     // jouées APRÈS le re-rendu (jamais d'attente avant lui) :
-     // 1) la pastille GLISSE malgré le re-rendu : .seg-replay la pose sans transition sur
-     //    l'ancien segment, reflow, retrait -> la transition .seg-pill l'amène à l'état final
-     //    (déjà rendu — sous prefers-reduced-motion la transition est coupée, geste inerte) ;
-     // 2) le contenu ENTRE dans le sens du geste (secInL/R, grammaire de la bascule de section
-     //    de l'accueil). La bascule elle-même ne bouge pas (renderKeepAnchor), et minuteurs /
-     //    chapeau « Ne pas oublier » n'animent JAMAIS (ECAM : le mouvement y est réservé à
-     //    l'alarme — emplacements constants, rien ne clignote hors crise réelle).
-     if(s2){s2.classList.add('seg-replay');s2.classList.toggle('i1',!toStatic);
-       void s2.offsetWidth;
-       s2.classList.remove('seg-replay');s2.classList.toggle('i1',toStatic);}
-     const w=main.querySelector(toStatic?'.sv-wrap':'.care-path,.ov-wrap');
-     if(w){w.classList.add(toStatic?'rm-anim-r':'rm-anim-l');
-       // Retrait à animationend + filet 500 ms : sous prefers-reduced-motion l'animation ne joue
-       // pas (pas d'animationend) — la classe résiduelle rejouerait l'entrée si le réglage
-       // système changeait sans re-rendu. Élément détaché entre-temps -> retrait sans effet.
-       const off=()=>w.classList.remove('rm-anim-l','rm-anim-r');
-       w.addEventListener('animationend',off,{once:true});setTimeout(off,500);}
-     const on=s2&&s2.querySelector('.seg-btn.on');if(on)on.focus({preventScroll:true});};
-   const seg=document.getElementById('readTopSeg');
-   if(seg){seg.querySelectorAll('[data-readmode]').forEach(b=>b.onclick=()=>go(b.dataset.readmode));
-     seg.onkeydown=e=>{if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;e.preventDefault();go(e.key==='ArrowLeft'?'dynamic':'static');};}}
+  // (La bascule de mode est câblée UNE FOIS, hors de `main` — cf. #modeSeg plus bas.)
   // Navigation + cochage — rebranchés aussi par renderNavOnly (guidé) / renderOvOnly (ensemble).
   // Même résolution de mode que renderRead (v4.16.0 : sans algorithme = rendu guidé).
   const rm=hasFlow(f)?(state.readMode==='static'?'static':'overview'):'guided';
@@ -7509,18 +7480,17 @@ function ovPlanHtml(f){
   const num={};plan.order.forEach((id,i)=>{num[id]=i+1;});
   const md={};minimapData(f,state.nav,state.navSeq,state.checked,state.navPos).forEach(m=>{md[m.id]=m;});
   const off=offPathSet(f,state.nav,state.navPos);
-  // v4.18.0 (fusion, décision utilisateur — ordre ECAM E/WD → SD : l'ACTION d'abord, la
-  // structure en annexe) : TROIS affichages — Détails (organigramme hybride), Échelle
-  // (une ligne par bloc), Schéma (le SVG spatial, ex-panneau « Algorithme » d'avant journal).
-  const view=state.ovPlanView==='ladder'?'ladder':(state.ovPlanView==='svg'?'svg':'plan');
-  const body=view==='ladder'?ovPlanLadderHtml(f,plan,num,md,off)
-    :(view==='svg'?flowBlock(f,true)+'<div class="flow-hint">Schéma = vue d’ensemble · un nœud = y aller</div>'
-    :ovPlanTreeHtml(f,plan,num,md,off));
-  const sub=view==='ladder'?'échelle — une ligne par bloc, tap = détails'
-    :(view==='svg'?'schéma — taper un nœud = y aller':'structure complète — taper un bloc = y aller');
-  const seg=[['plan','Détails'],['ladder','Échelle'],['svg','Schéma']].map(([k,lb])=>
-    `<button type="button" class="ovs-tgl${view===k?' on':''}" data-plview="${k}" aria-pressed="${view===k?'true':'false'}">${lb}</button>`).join('');
-  return `<div class="ov-plan-h"><span class="ovs-t">Plan de l’aide</span><span class="ovs-sub">· ${sub}</span><span class="pl-views">${seg}</span></div><div class="ov-plan${view==='ladder'?' compact':''}${view==='svg'?' svgv':''}">${body}</div>`;}
+  /* UNE SEULE VUE (v4.25.0, audit Plan/Statique) — l'ÉCHELLE. Le sélecteur à trois onglets
+     disparaît avec « Détails ».
+     POURQUOI « Détails » est supprimé : mesuré, c'était la seule des trois à RECOPIER LES ÉTAPES
+     (12 listes affichées, contre 0 pour Échelle et Schéma). Elle rejouait donc la vue d'action au
+     lieu d'être un synoptique — or l'ECAM veut qu'un SD montre AUTRE CHOSE que l'E/WD, pas la même
+     chose autrement disposée. Étant de surcroît la vue PAR DÉFAUT, c'est elle qui faisait
+     ressembler « Plan » à « Statique » (66 % de son contenu s'y retrouve, sections en plus).
+     Le SCHÉMA n'est pas perdu : il rejoint le menu ⋯ et s'ouvre en PLEIN ÉCRAN avec zoom
+     (`openFlowFull`, visionneuse préexistante) — un accès direct chacun, comme l'ECP d'Airbus a
+     une touche par page plutôt qu'un onglet à faire défiler. */
+  return `<div class="ov-plan-h"><span class="ovs-t">Se repérer</span><span class="ovs-sub">· une ligne par bloc, tap = détails</span></div><div class="ov-plan compact">${ovPlanLadderHtml(f,plan,num,md,off)}</div>`;}
 /* ===== FEUILLE « PLAN » plein écran (v4.23.0) =====
    Le Plan sert la VUE D'ENSEMBLE ; le fil LOCAL, lui, est déjà dans le journal. Il quitte donc
    le flux et s'ouvre en pleine largeur, où les intitulés cliniques tiennent entiers et où les
@@ -7532,32 +7502,37 @@ function ovPlanHtml(f){
    Les AFFICHAGES restent les trois de v4.18.0 (Détails · Échelle · Schéma) : « Tableau » du
    canvas serait une seconde porte vers le mode statique, dont #readTopSeg est le seul maître. */
 const planModal=document.getElementById('planModal');
-let _planScroll={};   // v4.23.6 : scroll INDÉPENDANT par vue du Plan (Détails/Échelle/Schéma)
 function planSheetOpen(){return planModal.classList.contains('on');}
 function renderPlanSheet(){
   const f=state.fiche;if(!f||!planSheetOpen())return;
   document.getElementById('pmName').textContent=f.title||'Sans titre';
-  const h=ovPlanHtml(f);
-  // ovPlanHtml rend son propre en-tête (masqué par CSS dans la feuille) : on en EXTRAIT le
-  // sélecteur d'affichage pour le remonter dans la barre collante — une seule source de vérité
-  // pour les trois boutons, aucune duplication de libellés ni d'états aria.
-  const body=document.getElementById('planBody');body.innerHTML=h;
-  const seg=body.querySelector('.pl-views');
-  const views=document.getElementById('pmViews');
-  views.innerHTML=seg?('<span class="pv-lab" aria-hidden="true">Affichage</span>'+seg.innerHTML):'';
-  views.setAttribute('role','group');
-  views.setAttribute('aria-label','Affichage du plan');
-  // Affichage « Schéma » : zoom, images et peinture d'état comme en place — puis on REDÉFINIT la
-  // navigation du SVG pour qu'un nœud ferme la feuille avant d'y aller.
-  if(state.ovPlanView==='svg'){bindFlowZoom(body);
-    bindSvgNav(body.querySelector('.flow-scroll'),f,closePlanSheet);}
-  ovPlanStick();}
+  // Une seule vue depuis v4.25.0 : plus de sélecteur à remonter dans la barre collante.
+  document.getElementById('planBody').innerHTML=ovPlanHtml(f);}
 function openPlanSheet(){
   const f=state.fiche;if(!f||!hasFlow(f))return;
-  _planScroll={};planModal.classList.add('on');renderPlanSheet();}
+  planModal.classList.add('on');renderPlanSheet();}
 function closePlanSheet(){if(planSheetOpen())planModal.classList.remove('on');}
 bindModalDismiss(planModal,closePlanSheet);
 {const pb=document.getElementById('planBtn');if(pb)pb.onclick=openPlanSheet;}
+/* BASCULE DE MODE (v4.25.0) — câblée UNE SEULE FOIS : #modeSeg vit dans la rangée de commandes,
+   hors de `main`, donc il survit aux re-rendus (comme les boutons du quai). Plus besoin de
+   rejouer le glissement de la pastille (.seg-replay) : l'élément n'étant plus reconstruit, la
+   transition CSS de .seg-pill se joue naturellement — et reste inerte sous prefers-reduced-motion.
+   Le contenu entre dans le sens du geste, comme avant. */
+{const seg=document.getElementById('modeSeg');
+ if(seg){const go=m=>{
+   if(m==='dynamic')m='overview';
+   if(state.readMode===m)return;
+   const toStatic=m==='static';
+   state.readMode=m;setReadModePref(m);
+   render();window.scrollTo(0,0);   // vue entièrement différente : on repart du haut
+   const w=main.querySelector(toStatic?'.sv-wrap':'.care-path,.ov-wrap');
+   if(w){w.classList.add(toStatic?'rm-anim-r':'rm-anim-l');
+     const off=()=>w.classList.remove('rm-anim-l','rm-anim-r');
+     w.addEventListener('animationend',off,{once:true});setTimeout(off,500);}
+   const on=seg.querySelector('.seg-btn.on');if(on)on.focus({preventScroll:true});};
+  seg.querySelectorAll('[data-readmode]').forEach(b=>b.onclick=()=>go(b.dataset.readmode));
+  seg.onkeydown=e=>{if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;e.preventDefault();go(e.key==='ArrowLeft'?'dynamic':'static');};}}
 /* ===== FEUILLE « CONSULTER » (v4.23.0) =====
    Deux natures de contenu, à ne pas confondre :
      • des COPIES de ce qui doit rester joignable à tout instant — rappels, surveillances,
@@ -7588,7 +7563,13 @@ function annexRowHtml(f){
   if(!has.length)return '';
   return `<button type="button" class="annex-row" id="annexRow" aria-haspopup="dialog"><span class="ax-lead">${uiIcon('book',15)}Consulter</span><span class="ax-sub">${esc(has.join(' · '))}</span><span class="ax-ch" aria-hidden="true">›</span></button>`;}
 function refSheetHtml(f){
-  const sec=(key,title,inner,open)=>inner?`<details class="rs-sec"${open?' open':''} data-rs="${key}"><summary>${esc(title)}</summary><div class="rs-in">${inner}</div></details>`:'';
+  /* DOCUMENT, PAS MENU (v4.25.0) — audit : quatre sections sur cinq étaient repliées, soit 216 px
+     de titres pour ~380 px de vide, et la seule ouverte d'office était une COPIE de ce qui est déjà
+     dans le flux. On ouvrait donc une liste de choses à ouvrir. Mesuré : tout déplié tient en
+     ~977 px, soit une chiquenaude de défilement — contre quatre taps et l'invisibilité totale.
+     En QRH, la section amplifiée est un document qu'on FAIT DÉFILER. Les replis restent possibles
+     (jamais persistés), mais l'état initial est OUVERT. */
+  const sec=(key,title,inner)=>inner?`<details class="rs-sec" open data-rs="${key}"><summary>${esc(title)}</summary><div class="rs-in">${inner}</div></details>`:'';
   const verify=staticBlock('△ À vérifier — surveillances','h-verify',f.verify,'verify');
   const diff=staticBlock('Diagnostics différentiels — si tableau atypique','h-diff',f.differentials,'diff');
   const poso=posoCardsHtml(f.posology,curBlockHay(f));
@@ -7601,8 +7582,15 @@ function refSheetHtml(f){
   // v4.23.0 : PAS de copie du chapeau « Ne pas oublier » ici (décision utilisateur). Il est déjà
   // en tête de fiche, entier et jamais replié ; un pavé rouge rouvert à chaque consultation
   // repoussait ce qu'on vient réellement chercher (une dose, un différentiel) sans rien apporter.
-  const body=sec('verify','△ Surveillances & à vérifier',verify,true)
-    +sec('diff','Diagnostics différentiels',diff)
+  /* ORDRE PAR UTILITÉ (v4.25.0) : l'UNIQUE avant les COPIES, l'urgent avant la traçabilité.
+     Les différentiels passent en tête — c'est le motif principal d'ouverture en cours de soin
+     (« ça ne colle pas »), et le seul contenu clinique qu'on ne trouve nulle part ailleurs.
+     Surveillances et posologie SUIVENT : ce sont des copies (elles restent dans le flux, cf. la
+     règle AC 120-71B « ce qui se consulte pendant un geste reste près du geste ») — on les garde
+     ici pour ne pas avoir à fermer la feuille afin de vérifier une dose, mais elles ne méritent
+     pas la première place. Documentation et traçabilité ferment la marche. */
+  const body=sec('diff','Diagnostics différentiels',diff)
+    +sec('verify','△ Surveillances & à vérifier',verify)
     +sec('poso','Repères posologiques',poso)
     +sec('gal','Schémas & captures',gal)
     +sec('docs','Documents ('+((f.attachments||[]).length)+')',docs)
@@ -7638,12 +7626,7 @@ bindModalDismiss(refModal,closeRefSheet);
  const card=planModal.querySelector('.ai-card');
  const act=(t)=>{
    const f=state.fiche;if(!f)return;
-   const pv=t.closest('[data-plview]');
-   if(pv){if(state.ovPlanView!==pv.dataset.plview){
-     _planScroll[state.ovPlanView]=planModal.scrollTop;   // mémorise où on en était dans la vue quittée
-     state.ovPlanView=pv.dataset.plview;setPlanViewPref(state.ovPlanView);renderPlanSheet();
-     planModal.scrollTop=_planScroll[state.ovPlanView]||0;   // restaure la vue rejointe (0 à la 1ʳᵉ visite)
-   }return;}
+
    const pr=t.closest('[data-plref]');
    if(pr){const k=CSS.escape(pr.dataset.plref);
      const el=body.querySelector('.pl-nd[data-plgo="'+k+'"]')||body.querySelector('.pl-line[data-plln="'+k+'"]');
@@ -7658,74 +7641,23 @@ bindModalDismiss(refModal,closeRefSheet);
    if(pg){closePlanSheet();jumpToBlock(f,pg.dataset.plgo);return;}};
  if(card){card.onclick=e=>act(e.target);
    card.onkeydown=e=>{if(e.key!=='Enter'&&e.key!==' ')return;
-     const t=e.target.closest('[data-plgo],[data-plln],[data-plview],[data-plfold],[data-plref]');
+     const t=e.target.closest('[data-plgo],[data-plln],[data-plfold],[data-plref]');
      if(!t)return;e.preventDefault();act(t);};}}
 {const px=document.getElementById('planX');if(px)px.onclick=closePlanSheet;}
 // La feuille a son PROPRE défileur : l'évènement de défilement de la page ne l'atteint pas.
 // Le fil d'ancêtres collant doit donc suivre CE défilement-là (même passage lecture/écriture).
-planModal.addEventListener('scroll',()=>{if(planSheetOpen())ovPlanPin();},{passive:true});
+
 // Le quai n'existe que s'il porte quelque chose (minuteurs vivants et/ou accès au Plan).
-function syncDock(){const d=document.getElementById('crisisDock');if(!d)return;
-  const t=document.getElementById('cbTimers'),p=document.getElementById('planBtn');
-  d.hidden=!!((!t||t.hidden)&&(!p||p.hidden));}
+function syncDock(){
+  // Rangée d'ÉTAT : visible si un état vit (session ou minuteur).
+  {const d=document.getElementById('crisisDock'),t=document.getElementById('cbTimers');
+   if(d)d.hidden=!t||t.hidden;}
+  // Rangée de COMMANDES : visible si au moins une commande l'est.
+  {const c=document.getElementById('crisisCtrl');
+   if(c){const ms=document.getElementById('modeSeg'),pb=document.getElementById('planBtn'),rb=document.getElementById('refBtn');
+     c.hidden=(!ms||ms.hidden)&&(!pb||pb.hidden)&&(!rb||rb.hidden);}}
+  syncHdrScroll();}
 // ----- ORGANIGRAMME HYBRIDE (mode Détails) -----
-function ovPlanTreeHtml(f,plan,num,md,off){
-  const items=plan.items;let i=0;
-  const node=(id,stick)=>{const b=f.blocks.find(x=>x.id===id);if(!b)return '';
-    const dec=b.type==='decision';const m=md[id]||{};
-    const steps=dec?[]:clean(b.steps);
-    // En arbre, la QUESTION d'une décision vit HORS du nœud (le nœud collant reste compact).
-    const detH=dec?'':(steps.length?`<ul class="pl-stp">${steps.map(s=>{const cr=stepCR(stepText(s));return `<li class="${stepIsCrit(s)?'crit':(stepIsVigil(s)?'vig':'')}">${fmt(cr.c)}${cr.r?` <span class="pl-r">${fmt(cr.r)}</span>`:''}</li>`;}).join('')}</ul>`:'');
-    const passB=(m.total||0)>1?`<span class="pl-x">×${m.total}</span>`:'';
-    const meta=dec?(m.complete?'✓':'?'):(steps.length?((m.done||0)+'/'+steps.length):'—');
-    return `<div class="pl-nd${dec?' dec pd'+Math.min(stick,3):''}${m.complete?' done':''}${m.cur?' cur':''}${off.has(id)?' off':''}" data-plgo="${esc(id)}" role="button" tabindex="0" aria-label="${esc(stripBold(b.title||''))} — aller à ce bloc"><span class="pl-nn" aria-hidden="true">${m.complete?uiIcon('check',12,{sw:3.2,cls:''}):(num[id]||'·')}</span><div class="pl-nt">${esc(b.title)||(dec?'Décision':'Étapes')}${passB}${m.cur?'<span class="pl-here">ici</span>':''}${detH}</div><span class="pl-nm">${meta}</span></div>`;};
-  const linkHtml=it=>{const t=f.blocks.find(x=>x.id===it.to);
-    return `<div class="pl-elbow"><button type="button" class="pl-lnk${it.back?' loop':''}" data-plref="${esc(it.to)}">${it.back?'↺ reprendre à':'→'} ${num[it.to]||'?'} · ${esc((t&&t.title)||'?')}</button></div>`;};
-  // Bilan d'une branche REPLIÉE : blocs, cochés (dernier passage), issue (dernier lien / fin).
-  const branchStats=(a,z)=>{let blocs=0,done=0,issue='';
-    for(let j=a;j<z;j++){const it=items[j];
-      if(it.k==='block'){blocs++;const m=md[it.id];if(m&&m.complete)done++;}
-      else if(it.k==='link')issue=(it.back?'↺ ':'→ ')+(num[it.to]||'?');
-      else if(it.k==='end')issue='▪ fin';}
-    return (blocs?blocs+' bloc'+(blocs>1?'s':'')+(done?' · '+done+' ✓':''):'')+(issue?(blocs?' · ':'')+issue:'');};
-  const walk=stick=>{let h='';
-    while(i<items.length){const it=items[i];
-      if(it.k==='brclose')return h;
-      if(it.k==='link'){h+=linkHtml(it);i++;continue;}
-      if(it.k==='end'){h+='<div class="pl-end">▪ fin de l’algorithme</div>';i++;continue;}
-      if(it.k==='bropen'){i++;continue;}   // garde-fou : jamais hors décision
-      const b=f.blocks.find(x=>x.id===it.id);
-      if(!b){i++;continue;}
-      if(b.type!=='decision'){h+=node(it.id,stick);i++;continue;}
-      // DÉCISION : nœud collant + question + branches (colonnes auto-fit OU pile de rails).
-      const decId=it.id;i++;
-      const qh=b.question?`<div class="pl-q">${fmt(b.question)}</div>`:'';
-      let brs='',nCols=0;
-      while(i<items.length&&items[i].k==='bropen'){
-        const bo=items[i];i++;
-        const isOff=bo.tgt?off.has(bo.tgt):false;
-        const dm=md[bo.dec];const tk=!!(dm&&dm.taken&&bo.tgt&&dm.taken===bo.tgt);
-        const a0=i;
-        const inner=walk(Math.min(stick+2,3));
-        if(items[i]&&items[i].k==='brclose')i++;
-        const foldKey='b:'+bo.dec+':'+bo.oi;
-        const manual=state.ovFold[foldKey];
-        const folded=manual!=null?!!manual:isOff;   // défaut : hors chemin = replié (jamais bloquant)
-        // Branche PROFONDE (> 2 blocs ou décision imbriquée) : pleine largeur — une chaîne
-        // longue dans une colonne étroite serait illisible ; les branches courtes restent
-        // en colonnes (>= 640 px ; sous 640 tout est en pile, règle CSS .pl-cols v4.21.1 —
-        // elle absorbe l'ancienne classe deepv). Une branche repliée redevient « courte ».
-        let nb=0,nested=false;
-        for(let j=a0;j<i-1;j++){if(items[j].k==='block'){nb++;const bb=f.blocks.find(x=>x.id===items[j].id);
-          if(bb&&bb.type==='decision')nested=true;}}
-        const deep=!folded&&(nb>2||nested);
-        if(!deep)nCols++;   // les profondes s'étalent : elles ne comptent pas comme colonne
-        const chip=`<button type="button" class="pl-bl pd${Math.min(stick+1,3)}${tk?' tk':''}" data-plfold="${esc(foldKey)}" aria-expanded="${folded?'false':'true'}">${tk?'<span class="pl-tk">✓ </span>':''}${fmt(bo.label)}${isOff?'<span class="pl-offtag"> · hors chemin</span>':''}${folded?`<span class="pl-sum"> — ${esc(branchStats(a0,i-1))}</span>`:''}<span class="pl-chv">${folded?'▸':'▾'}</span></button>`;
-        brs+=`<div class="pl-br${tk?' taken':''}${isOff?' off':''}${folded?' folded':''}${deep?' deep':''}">${chip}${folded?'':inner}</div>`;}
-      h+=`<div class="pl-decwrap">${node(decId,stick)}${qh}<div class="pl-cols c${Math.min(Math.max(nCols,1),4)}">${brs}</div></div>`;}
-    return h;};
-  return walk(0);}
-// ----- ÉCHELLE ECAM (mode compact) -----
 function ovPlanLadderHtml(f,plan,num,md,off){
   const items=plan.items;let h='',depth=0;const pend=[];
   const arrow=(from,to)=>((num[to]||1e9)<(num[from]||0)?'↺':'→')+(num[to]||'?');
@@ -7763,102 +7695,13 @@ function zoomF(){return (parseFloat(document.documentElement.style.zoom)||100)/1
 // branche, hauteur d'en-tête, taille du texte, rotation) : recalcule tops et état épinglé.
 // (v4.22.1 : l'ancienne variable CSS --pl-stick n'existe plus — les tops sont posés par
 // ovPlanPin, carte par carte.)
-function ovPlanStick(){ovPlanPin();}
-/* FIL D'ANCÊTRES v5 (v4.22.1) : STICKY CONTINU — plus de pile synthétique (#plPin SUPPRIMÉ,
-   avec sa clé, son hystérésis et ses hauteurs mémorisées ; historique : pile sticky à
-   décalages figés v4.12, bulles flottantes v4.14, seuil corrigé v4.21.2, animation v4.22.0).
-   Les cartes-questions RÉELLES s'épinglent (position:sticky) sous l'en-tête avec un top
-   CUMULÉ MESURÉ (base + Σ hauteurs des cartes ancêtres + 3 px) : la superposition qui avait
-   tué le sticky v4.12 est résolue par les hauteurs réelles (leçon v4.14.3), stabilisées par
-   la compaction une-ligne des cartes épinglées (CSS .stuck). Tout mouvement est le geste de
-   défilement (compositeur, réversible au pixel, rien à inhiber sous prefers-reduced-motion) ;
-   le décrochage à la convergence est natif (sticky borné par .pl-decwrap) et chaque niveau se
-   replie DERRIÈRE son ancêtre (z-ordre pd0…pd3 décroissant — décision utilisateur, modèle
-   ECL). Ce pilote, appelé au défilement, ne fait QUE : poser les tops, poser l'état .stuck,
-   injecter le chip « › option » de la branche à la ligne de lecture (règle inchangée v4.14.2 :
-   branche SEULE sur sa rangée — des colonnes côte à côte sont toutes sous les yeux).
-   Discipline lecture/écriture GROUPÉES (précédent svPaintArrows) : les décisions d'une passe
-   se fondent sur la géométrie d'AVANT ses écritures — un top qui change se corrige à
-   l'événement de défilement suivant (~16 ms, invisible). */
-function ovPlanPin(){
-  // v4.23.0 : le plan vit dans la FEUILLE plein écran. Elle a son propre défileur et sa propre
-  // barre collante — la base d'épinglage n'est donc PAS celle de la page.
-  const sheet=planSheetOpen()?document.getElementById('planBody'):null;
-  const plan=sheet?sheet.querySelector('.ov-plan')
-    :(()=>{const w=main.querySelector('.ov-wrap');return w&&w.querySelector('.ov-plan');})();
-  if(!plan||state.ovPlanView!=='plan')return;
-  const f=state.fiche;if(!f)return;
-  const Z=zoomF();
-  // Base d'épinglage = le bas de ce qui est DÉJÀ collé en haut du défileur concerné :
-  //   • dans la feuille : sa barre .pm-bar ;
-  //   • en page : l'en-tête, et le QUAI (minuteurs + Plan) quand il est calé dessous — sans lui
-  //     les cartes-questions épinglées passaient dessous (deux couches collantes, une seule
-  //     prise en compte).
-  let base;
-  if(sheet){const b=document.querySelector('.pm-bar');base=b?b.getBoundingClientRect().bottom:0;}
-  else base=stickBase();
-  const stickV=base+4*Z;   // px VISUELS
-  const cards=[...plan.querySelectorAll('.pl-decwrap>.pl-nd.dec')];
-  if(!cards.length)return;
-  // PHASE LECTURE : rectangle de chaque carte + rectangles des branches directes de sa
-  // décision ET de leurs étiquettes d'option (aucune écriture de style dans cette phase).
-  const geo=new Map();
-  cards.forEach(nd=>{
-    const brs=[...nd.parentElement.querySelectorAll(':scope>.pl-cols>.pl-br')].map(br=>{
-      const lab=br.querySelector(':scope>.pl-bl');
-      return {r:br.getBoundingClientRect(),labBottom:lab?lab.getBoundingClientRect().bottom:-Infinity};});
-    geo.set(nd,{r:nd.getBoundingClientRect(),brs});});
-  // PHASE ÉCRITURE 1 : top sticky cumulé de chaque carte.
-  cards.forEach(nd=>{
-    let sum=0;
-    for(let el=nd.parentElement.parentElement;el&&el!==plan;el=el.parentElement){
-      if(el.classList&&el.classList.contains('pl-decwrap')){
-        const anc=el.querySelector(':scope>.pl-nd.dec');const g=anc&&geo.get(anc);
-        if(g)sum+=g.r.height+3*Z;}}
-    const topCss=Math.round((stickV+sum)/Z);
-    if(nd._stTop!==topCss){nd._stTop=topCss;nd.style.top=topCss+'px';}});
-  // PHASE ÉCRITURE 2 : état « stuck » + chip « › option ». Un chip qui APPARAÎT ou CHANGE
-  // s'anime (pin-in, v4.22.0) ; sa disparition est instantanée (registre SORTIE).
-  cards.forEach(nd=>{
-    const g=geo.get(nd);
-    const stuck=g.r.top<=nd._stTop*Z+1.5*Z;
-    nd.classList.toggle('stuck',stuck);
-    let lbl='';
-    if(stuck){
-      const lineY=g.r.bottom+8*Z;
-      // Régions JOINTIVES : la zone d'une branche court jusqu'au HAUT de la suivante (plus
-      // de trou de quelques px entre deux branches où le chip clignotait, mesuré v4.22.1).
-      let oi=-1;
-      g.brs.forEach((b2,i)=>{
-        const zTop=b2.r.top,zBot=(i+1<g.brs.length?g.brs[i+1].r.top:b2.r.bottom);
-        if(zTop<lineY&&zBot>lineY)oi=i;});
-      // Branches côte à côte (>= 640 px) : toutes sous les yeux, pas de chip (v4.14.2).
-      if(oi>=0){const hit=g.brs[oi].r;
-        if(g.brs.some((b2,i)=>i!==oi&&b2.r.top<hit.bottom-4&&b2.r.bottom>hit.top+4))oi=-1;}
-      // « NI AVANT NI APRÈS » (v4.22.1, retour d'usage — mesuré : le chip apparaissait
-      // l'étiquette encore ~50 px sous la carte) : le chip ne s'affiche qu'une fois
-      // l'ÉTIQUETTE d'option passée DERRIÈRE la carte épinglée — il la REMPLACE à
-      // l'instant où elle se cache (même doctrine de continuité que le sticky) ; tant
-      // qu'elle est visible, elle porte la réponse elle-même.
-      if(oi>=0&&g.brs[oi].labBottom>g.r.bottom+2*Z)oi=-1;
-      const b=(f.blocks||[]).find(x=>x.id===nd.dataset.plgo);
-      if(oi>=0&&b&&b.options&&b.options[oi])lbl=String(stripBold(b.options[oi].label||'')).trim();}
-    const chip=nd.querySelector(':scope>.pinchip');
-    if(lbl){
-      if(!chip)nd.insertAdjacentHTML('beforeend','<span class="pinchip pin-in">› '+esc(lbl)+'</span>');
-      else if(chip._lbl!==lbl){chip.textContent='› '+lbl;chip.classList.remove('pin-in');void chip.offsetWidth;chip.classList.add('pin-in');}
-      nd.querySelector(':scope>.pinchip')._lbl=lbl;
-    }else if(chip)chip.remove();
-  });}
-// Recalage AUTOMATIQUE : toute variation de hauteur de l'en-tête (taille du texte, bandeau de
-// crise, repli au défilement, rotation) recale les tops du fil épinglé (v4.13.1).
-if(window.ResizeObserver){const _hbRO=new ResizeObserver(()=>{
-  if(state.view==='read'&&state.readMode==='overview'&&state.fiche&&hasFlow(state.fiche))ovPlanStick();});
-  const _hb=document.querySelector('header.bar');if(_hb)_hbRO.observe(_hb);}
-// Peinture VIVANTE hors journal (le journal, lui, ne se réécrit qu'aux gestes de navigation) :
-// halo/✓/hors-chemin du SVG — appelée après chaque coche et chaque navigation.
-// (v4.17.0 : les minimaps v4.8.0 — bande #ovChips et panneau du rail — sont SUPPRIMÉES,
-// redondantes depuis le fil condensé et le plan qui portent numérotation, états et saut.)
+/* SUPPRIMÉS EN v4.25.0 (audit Plan/Statique) : `ovPlanTreeHtml` (l'organigramme « Détails ») et
+   tout le FIL D'ANCÊTRES COLLANT qui n'existait que pour lui (`ovPlanStick`/`ovPlanPin`, tops
+   cumulés mesurés, chips d'option injectés, z-ordre pdN). Détails était la seule vue du Plan à
+   RECOPIER LES ÉTAPES : elle rejouait la vue d'action au lieu d'être un synoptique, ce qu'un SD
+   ECAM ne fait pas. Le Plan n'a plus qu'une vue — l'Échelle — qui n'a pas d'ancêtres à épingler.
+   Historique complet dans git (tag v4.24.0) si la question devait être rouverte. */
+function ovPlanStick(){}   // conservée en no-op : appelée depuis le défilement et les re-rendus
 function ovPaintLive(f){
   flowCtx={f,curId:state.nav[state.navPos]};
   {const fs=main.querySelector('.flow-scroll');if(fs)flowPaintState(fs,f);}}
@@ -7870,8 +7713,11 @@ function ovPaintLive(f){
    bloc visé SOUS le quai (constaté : ~52px masqués). */
 function stickBase(){
   const hb=document.querySelector('header.bar');
+  const ct=document.getElementById('crisisCtrl');
   const dk=document.getElementById('crisisDock');
-  return Math.max(hb?hb.getBoundingClientRect().bottom:60,(dk&&!dk.hidden)?dk.getBoundingClientRect().bottom:0);}
+  return Math.max(hb?hb.getBoundingClientRect().bottom:60,
+    (ct&&!ct.hidden)?ct.getBoundingClientRect().bottom:0,
+    (dk&&!dk.hidden)?dk.getBoundingClientRect().bottom:0);}
 function ovScrollEl(el){if(!el)return;
   window.scrollTo(0,Math.max(0,Math.round(window.scrollY+el.getBoundingClientRect().top-stickBase()-8)));}
 /* Défilement DANS un conteneur, sans toucher à la page. `scrollIntoView` remonte TOUS les
@@ -8047,8 +7893,6 @@ function bindOverviewEvents(f){
     if(pl3){const id3=pl3.dataset.plln;state.ovFold['l:'+id3]=!state.ovFold['l:'+id3];
       renderOvOnlyKeepAnchor('[data-plln="'+CSS.escape(id3)+'"]');return;}
     const pg=t.closest('[data-plgo]');if(pg){jumpToBlock(f,pg.dataset.plgo);return;}
-    const pv=t.closest('[data-plview]');
-    if(pv){if(state.ovPlanView!==pv.dataset.plview){state.ovPlanView=pv.dataset.plview;setPlanViewPref(state.ovPlanView);renderOvOnlyKeepAnchor('.ov-plan-h');}return;}
     const nx=t.closest('[data-ovnext]');
     if(nx){if(nx.getAttribute('aria-disabled')==='true')return;   // le libellé dit pourquoi (ECAM)
       // REPLI DIFFÉRÉ de l'étape ① : même doctrine que le « Continuer » guidé (v4.4.2) —
@@ -8709,7 +8553,7 @@ function openDraftPreview(){state.previewFrom='edit';
   // session vive d'une AUTRE fiche ne doit jamais recevoir les coches ou le chemin d'un brouillon
   // (openRead/resumeSession relient state au Runtime à la prochaine vraie ouverture).
   state.checked={};state.verified={};state.vgaps={};state.nav=[state.fiche.start||(((state.fiche.blocks||[])[0]||{}).id)];state.navSeq=[++Runtime.seq];state.navPos=0;
-  state.readMode=currentReadMode();state.ovFold={};state.ovPlanView=currentPlanView();state.ovVerify=null;state.flowEnded=false;state.confOpen=undefined;
+  state.readMode=currentReadMode();state.ovFold={};state.ovVerify=null;state.flowEnded=false;state.confOpen=undefined;
   state.view='read';render();}
 function openPDraftPreview(){state.previewFrom='protocolEdit';
   state.protocol=migrateProtocol(JSON.parse(JSON.stringify(state.pdraft)));state.view='protocolRead';render();}
@@ -8974,7 +8818,7 @@ setInterval(()=>{const k=_editKind();if(!k){_lastParked=null;return;}
 // Ouvre une fiche en lecture. Si une SESSION VIVE existe pour cette fiche, on la rouvre telle quelle
 // (minuteurs toujours en cours). Sinon on garde le runtime transitoire de cette même fiche (s'il n'a
 // pas démarré), sinon on en crée un neuf.
-function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;bumpUsage(id);flowScroll={left:null,top:0};state.rtOpen=false;state.noteEdit=false;state.confOpen=undefined;state.previewFrom=null;state.flowEnded=false;state.readMode=currentReadMode();state.ovFold={};state.ovPlanView=currentPlanView();state.ovVerify=null;
+function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;bumpUsage(id);flowScroll={left:null,top:0};state.rtOpen=false;state.noteEdit=false;state.confOpen=undefined;state.previewFrom=null;state.flowEnded=false;state.readMode=currentReadMode();state.ovFold={};state.ovVerify=null;
   if(liveSessions[id]){Runtime=liveSessions[id];Runtime.fiche=f;}
   else if(!(Runtime.fiche&&Runtime.ficheId===id&&!Runtime.started)){Runtime=buildRuntime(f,null);}
   // Algorithme REPLIÉ à l'ouverture : la 1ʳᵉ étape actionnable doit arriver le plus haut possible
@@ -10490,14 +10334,14 @@ function exportPdfCurrent(){window.print();}
 // on le déplie le temps de l'impression, puis on restaure l'état exact (audit v4.5).
 let _printSaved=null;
 window.addEventListener('beforeprint',()=>{if(state.view!=='read'||!state.fiche)return;
-  _printSaved={confOpen:state.confOpen,showFlow:state.showFlow,readMode:state.readMode,ovPlanView:state.ovPlanView};
+  _printSaved={confOpen:state.confOpen,showFlow:state.showFlow,readMode:state.readMode};
   // La vue d'ensemble (journal + PLAN complet avec étapes) est le format imprimé ; les blocs
   // repliés sont rouverts par CSS @media print — aucun état de repli à toucher.
   // 'plan' FORCÉ (jamais la préférence) : sur papier la structure imprimée est le plan Détails —
   // ni l'échelle ni le SVG (règle inchangée depuis v4.18.0).
-  state.confOpen=true;state.showFlow=true;state.ovPlanView='plan';state.ovVerify=null;_printingOv=true;if(hasFlow(state.fiche))state.readMode='overview';render();});
+  state.confOpen=true;state.showFlow=true;state.ovVerify=null;_printingOv=true;if(hasFlow(state.fiche))state.readMode='overview';render();});
 window.addEventListener('afterprint',()=>{_printingOv=false;if(!_printSaved)return;
-  state.confOpen=_printSaved.confOpen;state.showFlow=_printSaved.showFlow;state.readMode=_printSaved.readMode||state.readMode;state.ovPlanView=_printSaved.ovPlanView||'plan';_printSaved=null;
+  state.confOpen=_printSaved.confOpen;state.showFlow=_printSaved.showFlow;state.readMode=_printSaved.readMode||state.readMode;_printSaved=null;
   if(state.view==='read'&&state.fiche)render();});
 // Taille du texte : zoom CSS sur <html> (agrandit AUSSI les cibles tactiles, pas seulement la
 // police). Préférence par appareil. Cycle 100/110/125 % — suffisant sans casser la mise en page.

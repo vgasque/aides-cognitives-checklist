@@ -1,5 +1,45 @@
 # Journal des modifications
 
+## [4.25.0] — 2026-07-24
+Refonte de la zone haute et de la couche de consultation, à partir d'un audit qui a montré que
+l'application proposait **quatre représentations de la même structure** et mélangeait, dans une
+seule rangée, ce qu'on **commande** et ce qui **se passe**.
+
+### Modifié
+- **Deux rangées collantes au lieu d'une : les commandes au-dessus, l'état en dessous.** C'est
+  l'architecture ECAM à la lettre — sur un avion, les commandes vivent sur un panneau distinct de
+  l'affichage. Les deux étaient fusionnés, d'où une bagarre pour la place à chaque ajout. Séparés,
+  l'arbitrage disparaît, et la rangée d'état retrouve la place d'afficher deux minuteurs étiquetés
+  sur téléphone au lieu d'un seul. Coût assumé : ~50 px permanents, soit 6 % de la colonne d'action.
+- **La bascule Guidé / Statique rejoint la rangée de commandes, en première position.** Elle était
+  dans le flux et **disparaissait au défilement** : être perdu en cours de soin obligeait à remonter
+  toute la fiche pour changer de vue. Elle est désormais joignable à tout instant.
+  - Elle passe **devant** « Se repérer », qu'elle gouverne (ce bouton s'efface en mode Statique) :
+    le dessiner après était une inversion de hiérarchie.
+  - Elle reste un **sélecteur segmenté**, pas un bouton à bascule : Guidé et Statique sont deux
+    modes de rang égal, dont aucun n'est la négation de l'autre.
+  - « Dynamique » devient « **Guidé** » — le mot dit ce que c'est.
+- **« Plan » devient « Se repérer », et n'a plus qu'une vue : l'Échelle.** L'affichage « Détails »
+  est supprimé : c'était la seule des trois vues à **recopier les étapes** (12 listes affichées
+  contre 0 pour les autres). Elle rejouait donc la vue d'action au lieu d'être une vue d'ensemble —
+  et, étant la vue par défaut, c'est elle qui faisait ressembler « Plan » à « Statique ».
+  - **Le Schéma n'est pas perdu** : il rejoint le menu ⋯ et s'ouvre en **plein écran avec zoom**.
+    Un accès direct chacun, plutôt qu'un sélecteur à faire défiler.
+- **« Se repérer » et « Consulter » partagent le même glyphe ⤢** — elles font exactement la même
+  chose, ouvrir une feuille plein écran ; l'un des deux affichait un ▸ qui suggérait « avancer ».
+- **La feuille « Consulter » devient un document, plus un menu.** Toutes les sections sont dépliées
+  par défaut : quatre sur cinq étaient repliées, et la seule ouverte d'office était une copie de ce
+  qui est déjà dans le flux — on ouvrait donc une liste de choses à ouvrir. Tout déplié tient en
+  ~977 px, soit une chiquenaude de défilement, contre quatre taps.
+  - **Réordonnée par utilité** : différentiels d'abord (le motif principal d'ouverture en cours de
+    soin, et le seul contenu clinique qu'on ne trouve nulle part ailleurs), puis surveillances et
+    posologie (des copies), puis documentation et traçabilité.
+
+### Interne
+- Suppression du code devenu orphelin avec « Détails » : l'organigramme, tout le fil d'ancêtres
+  collant, le sélecteur d'affichage, la préférence de vue, le défilement par vue de la 4.23.6, et
+  ~51 règles CSS. L'historique reste dans git (tag `v4.24.0`) si la question devait être rouverte.
+
 ## [4.24.0] — 2026-07-24
 ### Ajouté
 - **Mode « Vérifier » : le résultat s'affiche immédiatement**, item par item, au lieu d'attendre la

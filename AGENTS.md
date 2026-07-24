@@ -537,6 +537,57 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   ≈ 794 px, donc contenu EN DOUBLE), et le titre changeait de corps (21 / 24 px). `@media print`
   neutralise les trois (`html{zoom:1}`, `.read-side{display:none}`, `.read-grid` en bloc, titre
   22 px). Vérifié : pagination identique sur trois configurations opposées.
+- **DEUX RANGÉES COLLANTES, DEUX NATURES (v4.25.0, décision utilisateur)** — `#crisisCtrl`
+  (COMMANDES : bascule de mode, ⤢ Se repérer, ⤢ Consulter) **au-dessus** de `#crisisDock` (ÉTAT :
+  chrono de session, minuteurs). C'est l'architecture ECAM à la lettre : sur un Airbus les commandes
+  vivent sur l'**ECP**, un panneau DISTINCT de l'affichage — on n'appelle pas un synoptique depuis
+  l'écran. Les deux étaient fusionnés, d'où une bagarre pour la place à **chaque** ajout ; séparés,
+  l'arbitrage disparaît (et l'état retrouve la place d'afficher deux minuteurs étiquetés à 390 px
+  au lieu d'un). Coût assumé : ~50 px permanents de plus sur téléphone, soit 6 % de la colonne
+  d'action — mesuré, aucune étape ne disparaît de l'écran.
+  **ORDRE DANS LA RANGÉE DE COMMANDES** : le MODE d'abord — il **gouverne l'existence** de
+  « Se repérer » (masqué en Statique) ; le dessiner après serait une inversion de hiérarchie. Puis
+  un ÉCART FIXE (`.ctrl-sp`, 22 px / 12 px en étroit), puis les deux ouvertures. L'écart sépare les
+  deux natures sans ajouter de trait (Gestalt de proximité) ; il est FIXE et non `flex:1` — pousser
+  les ouvertures au bord droit les éloignerait de tout sur grand écran et contredirait la règle
+  « le cluster se groupe à gauche, le blanc part au bord droit ». Positions donc identiques quelle
+  que soit la largeur.
+  **BASCULE DE MODE = SÉLECTEUR SEGMENTÉ, JAMAIS UN INTERRUPTEUR** : « Guidé » et « Statique » sont
+  deux modes PAIRS, aucun n'est la négation de l'autre — contrairement à « Son activé/coupé », qui
+  est une propriété binaire. Un bouton d'état y serait ambigu (dit-il où je suis ou où je vais ?),
+  et l'erreur coûterait le remplacement de toute la vue de travail en pleine réanimation.
+  `#modeSeg` vit hors de `main` : câblé UNE FOIS, il survit aux re-rendus — donc plus besoin de
+  rejouer le glissement de la pastille (`.seg-replay` n'a plus lieu d'être ici).
+  **`--ctrl-h`** (posée par `syncHdrScroll`, ÷ `zoomF()`) = hauteur de la rangée de commandes : le
+  quai d'état s'y colle. Toute couche collante ajoutée en haut doit entrer dans `stickBase()`.
+- **PLAN = UNE SEULE VUE, L'ÉCHELLE (v4.25.0, audit Plan/Statique)** — « Détails » (l'organigramme
+  hybride) est SUPPRIMÉ. Mesuré : c'était la seule des trois vues à **recopier les étapes** (12
+  listes affichées, contre 0 pour Échelle et Schéma) — elle rejouait donc la vue d'action au lieu
+  d'être un synoptique, or un SD ECAM montre AUTRE CHOSE que l'E/WD, pas la même chose autrement
+  disposée. Étant la vue PAR DÉFAUT, c'est elle qui faisait ressembler « Plan » à « Statique »
+  (66 % de son contenu s'y retrouve, sections en plus). Supprimés avec elle : `ovPlanTreeHtml`, tout
+  le FIL D'ANCÊTRES COLLANT (`ovPlanPin`, tops cumulés, chips injectés, z-ordre pdN — `ovPlanStick`
+  reste en **no-op** : appelée depuis le défilement et les re-rendus), le sélecteur `data-plview`,
+  `PLAN_VIEWS`/`currentPlanView`/`setPlanViewPref`/`state.ovPlanView`, le scroll par vue de v4.23.6,
+  et ~51 règles CSS (`.pl-cols`, `.pl-br`, `.pl-bl`, `.pl-elbow`, `.pl-decwrap`, `.pl-nd*`,
+  `.pm-views`, `.ovs-tgl`, `.read-seg`…). **Le SCHÉMA n'est pas perdu** : il rejoint le menu ⋯ et
+  s'ouvre en PLEIN ÉCRAN avec zoom (`openFlowFull`, visionneuse préexistante) — un accès direct
+  chacun, comme l'ECP a une touche par page plutôt qu'un onglet à faire défiler.
+  **NOMMAGE PAR LA FONCTION** : « Se repérer » et « Consulter » (deux verbes) au lieu de « Plan »
+  (nom) + « Consulter » (verbe) ; **même glyphe ⤢** pour les deux, puisqu'elles font exactement la
+  même chose — ouvrir une feuille plein écran. Abréviation sous 560 px : « Cons. », **troncature du
+  même mot** (jamais un autre nom — cf. « Réf. », retiré en v4.23.5).
+- **FEUILLE CONSULTER = UN DOCUMENT, PAS UN MENU (v4.25.0)** — toutes les sections sont **dépliées
+  par défaut**. Audit : quatre sur cinq étaient repliées (216 px de titres pour ~380 px de vide), et
+  la seule ouverte d'office était une COPIE de ce qui est déjà dans le flux. Mesuré, tout déplié
+  tient en ~977 px, soit une chiquenaude de défilement — contre quatre taps et l'invisibilité
+  totale. En QRH, la section amplifiée est un document qu'on FAIT DÉFILER.
+  **ORDRE PAR UTILITÉ** : différentiels → surveillances → posologie → schémas → documents →
+  références → voir aussi. L'UNIQUE avant les COPIES (surveillances et posologie restent dans le
+  flux, la feuille n'en porte qu'une copie), l'urgent avant la traçabilité : les différentiels sont
+  le motif principal d'ouverture en cours de soin (« ça ne colle pas ») et le seul contenu clinique
+  qu'on ne trouve nulle part ailleurs. **« Voir aussi » est CONSERVÉ** (décision utilisateur) bien
+  qu'il relève de la navigation vers une AUTRE fiche plutôt que de l'amplification de celle-ci.
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.
