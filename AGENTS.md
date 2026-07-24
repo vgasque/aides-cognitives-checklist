@@ -135,6 +135,14 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   leur (`:is(.crit,.vigil)+li:not(.crit):not(.vigil)`). **Un REPÈRE POSOLOGIQUE est toujours ambre** (jamais rouge,
   v4.23.0) : c'est une référence, pas un geste — cf. la règle détaillée au rail. Le **gras est exclu des étapes** (texte déjà en gras à
   l'affichage — le relief passe par le TYPE d'étape) ; il reste disponible dans les listes.
+  **UN REGISTRE N'EST JAMAIS MASQUÉ PAR UN ÉTAT (v4.24.0, décision utilisateur)** : un bloc de
+  DÉCISION garde sa bordure ambre même quand il est le bloc courant (`.ov-block.dec.cur`). Avant,
+  `.cur` était déclarée après `.dec` et repeignait la bordure en bleu : le même bloc changeait de
+  couleur selon qu'on venait d'y arriver ou qu'on y remontait. La POSITION reste portée, toujours
+  en bleu et sans ambiguïté, par la pilule « VOUS ÊTES ICI » (`.ov-here`, visible sur `.cur` seul) —
+  un canal par signification. Les **options de branche** (`.opt`) sont à **16,5 px** comme
+  `ol.steps li .txt` : choisir une branche engage au moins autant que cocher une étape, rien ne
+  justifiait de le rendre moins lisible (graisse 700, pas 800 : c'est un choix, pas une action).
   Le cochage passe au **vert `--ok`** et
   « Continuer » au registre CONFIRMATION quand tout le bloc est coché. Les éditeurs offrent un
   **aperçu du brouillon** (bouton « Aperçu » + colonne « Aperçu en direct » à ≥ 1000 px) via
@@ -317,6 +325,13 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   trace (cocher lève l'écart, décocher retire la constatation) — et comme le cochage est
   CHIRURGICAL (sans re-rendu), le marqueur doit être repeint sur place par `paintStepTrace`, sinon
   il reste périmé à l'écran alors que l'état est juste (défaut trouvé par `scripts/audit-verify.mjs`).
+  **RETOUR IMMÉDIAT (v4.24.0, demande utilisateur — et PLUS conforme AC 120-71B)** : le résultat de
+  chaque item s'affiche DÈS qu'il est prononcé (pilule « constaté » / « écart » + bilan vivant
+  « n constatés · n écarts · n restantes »), au lieu d'attendre la fin du bloc. La boucle do-verify
+  est challenge → réponse → CONFIRMATION ; différer la confirmation à la fin du bloc casse la
+  boucle. Le marqueur lit `verified`/`vgaps`, PAS `checked` : une étape cochée AVANT la passe
+  n'affiche donc plus un ✓ trompeur — elle reste « à constater » tant qu'on ne l'a pas observée,
+  ce qui est tout le sens du Do-Verify.
   Portée : stocké dans la SESSION seulement — l'export v3 des fiches et le format des clés
   (`seq:blocId:index`) sont inchangés ; un client antérieur ignore les deux champs.
   **Mode lecteur** (binôme, plein écran `#readerMode`, statique + délégation unique) : un
@@ -508,6 +523,20 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   on restaure la position laissée (`_scopeScroll`) et on suit les défilements, exactement comme les
   catégories (qui, elles, n'ont jamais eu de recentrage). Règle : une zone à défilement propre doit
   voir sa position CAPTURÉE avant un re-rendu et RESTAURÉE après — jamais recalculée.
+- **HAUTEURS RELATIVES À LA FENÊTRE SOUS ZOOM (v4.24.0)** : le réglage « taille du texte » est un
+  `zoom` sur `<html>` ; une hauteur en `vh`/`dvh` se résout AVANT le zoom puis se fait agrandir par
+  lui. À 130 %, `100dvh` occupait donc **1,3 écran** : le bas des rails (accueil ET lecture) devenait
+  inatteignable, et `min-height:100vh` faisait défiler **dans le vide** une page courte (240 px
+  mesurés sur 800 px de haut). Toute hauteur relative à la fenêtre s'écrit donc
+  `calc(100dvh / var(--zf,1))` — `--zf` est posée par `applyZoom`, pendant CSS de `zoomF()` pour le
+  JS (règle v4.13.1). Corollaire : **ne jamais réintroduire un `vh`/`dvh` nu** ; couvert par
+  `scripts/audit-zoom-scroll.mjs`.
+- **SORTIE PDF UNIFIÉE (v4.24.0)** : « Exporter en PDF » doit rendre le MÊME document quel que soit
+  l'appareil. Mesurée avant correction, la sortie variait sur trois axes — le ZOOM s'appliquait au
+  papier (0,9 / 1 / 1,3), le RAIL s'imprimait dès que la page faisait ≥ 780 px (soit toujours sur A4
+  ≈ 794 px, donc contenu EN DOUBLE), et le titre changeait de corps (21 / 24 px). `@media print`
+  neutralise les trois (`html{zoom:1}`, `.read-side{display:none}`, `.read-grid` en bloc, titre
+  22 px). Vérifié : pagination identique sur trois configurations opposées.
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.

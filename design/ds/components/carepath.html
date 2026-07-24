@@ -121,7 +121,7 @@
        protocole: <= 780px À TOUTES les largeurs
        éditeurs : MÊMES largeurs que la lecture correspondante (demande utilisateur v4.5) —
                   fiche : formulaire <= 860 + aperçu 320 -> 360 ; protocole : <= 780 + aperçu 360 */
-  .app{max-width:none;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;overflow-x:clip}
+  .app{max-width:none;margin:0 auto;min-height:calc(100vh / var(--zf,1));display:flex;flex-direction:column;overflow-x:clip}
   body.view-home main{width:100%;max-width:1622px;margin:0 auto}
   body.view-read main{width:100%;max-width:1282px;margin:0 auto}
   body.view-edit main{width:100%;max-width:1282px;margin:0 auto}
@@ -979,7 +979,10 @@
   .options{gap:8px}
   /* Options de décision : MÊME hauteur que les rangées d'étapes (64px — retour utilisateur,
      conforme au canvas) ; une seule échelle de cliquables dans le parcours. */
-  .opt{display:flex;align-items:center;gap:10px;text-align:left;background:transparent;border:1px solid var(--verify-bd);border-radius:8px;padding:11px 13px;min-height:64px;font-size:15px;font-weight:600;color:var(--ink);width:100%;cursor:pointer}
+  /* 16.5px comme `ol.steps li .txt` (v4.24.0) : choisir une branche est au moins aussi engageant
+     que cocher une étape — rien ne justifiait de le rendre MOINS lisible. La graisse reste 700 (et
+     non 800) : c'est un CHOIX, pas une action. */
+  .opt{display:flex;align-items:center;gap:10px;text-align:left;background:transparent;border:1px solid var(--verify-bd);border-radius:8px;padding:11px 13px;min-height:64px;font-size:16.5px;font-weight:700;color:var(--ink);width:100%;cursor:pointer}
   .opt:hover{background:var(--surface)}.opt .arr{margin-left:auto;color:var(--verify)}
   .nav-wrap.dec{background:var(--verify-soft);border:1px solid var(--verify-bd);border-left:4px solid var(--verify-bd)}
   .opt[disabled]{opacity:.55;cursor:default}.opt.taken{opacity:1;background:var(--primary-soft);border-left-color:var(--primary)}.opt.taken .arr{color:var(--primary)}
@@ -1343,6 +1346,13 @@
   .ov-block{border:1px solid var(--line-hover);border-left:4px solid var(--line-strong);border-radius:10px;margin-bottom:10px;scroll-margin-top:74px}
   .ov-block.dec{background:var(--verify-soft);border-color:var(--verify-bd);border-left-color:var(--verify-bd)}
   .ov-block.cur{border-color:var(--primary);border-left-color:var(--primary)}
+  /* Un bloc de DÉCISION garde son ambre même quand il est le bloc courant (v4.24.0, décision
+     utilisateur). Avant, `.cur` était déclarée APRÈS `.dec` et repeignait la bordure en bleu : le
+     même bloc changeait de couleur selon qu'on venait d'y arriver ou qu'on y remontait — le
+     REGISTRE (une décision est toujours une décision) était masqué par un ÉTAT transitoire, ce
+     qu'ECAM interdit. La POSITION reste portée, sans ambiguïté et toujours en bleu, par la pilule
+     « VOUS ÊTES ICI » (`.ov-here`), qui n'apparaît que sur `.cur` : un canal par signification. */
+  .ov-block.dec.cur{border-color:var(--verify-bd);border-left-color:var(--verify-bd)}
   .ov-block.done{border-left-color:var(--done-line)}
   /* Hors chemin (branche écartée par une décision) : ATTÉNUÉ mais JAMAIS verrouillé — l'estompe
      n'est jamais seule, la mention « hors chemin » l'accompagne (WCAG 1.4.1). */
@@ -1677,6 +1687,13 @@
   .vstp.ok2 .vst{color:var(--ok)}
   .vstp.vgap{opacity:1;background:var(--verify-soft);border-color:var(--verify)}
   .vstp.vgap .vst{color:var(--verify)}
+  /* Étiquette de résultat, posée dès le geste (v4.24.0) : le mot double le glyphe et la couleur. */
+  .vstp .v-tag{flex:none;align-self:center;margin-left:8px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;padding:2px 8px;border-radius:999px;white-space:nowrap}
+  .vstp .v-tag.ok{color:var(--ok);background:var(--ok-soft);border:1px solid var(--done-line)}
+  .vstp .v-tag.gap{color:var(--verify);background:var(--verify-soft);border:1px solid var(--verify-bd)}
+  /* Bilan VIVANT de la passe : constatés / écarts / restantes, mis à jour à chaque geste. */
+  .v-tally{display:flex;flex-wrap:wrap;gap:10px;margin:6px 0 2px;font-size:12px;font-weight:800}
+  .v-tally .ok{color:var(--ok)}.v-tally .gap{color:var(--verify)}.v-tally .rest{color:var(--ink-soft);font-weight:700}
   .v-act{display:flex;gap:9px;margin-top:12px}
   .v-act .v-ok{flex:2;min-height:52px;border:0;border-radius:10px;background:var(--ok);color:var(--surface);font-size:15px;font-weight:800;cursor:pointer;font-family:inherit}
   .v-act .v-gap{flex:1;min-height:52px;border:2px solid var(--verify-bd);border-radius:10px;background:var(--verify-soft);color:var(--verify);font-size:13.5px;font-weight:700;cursor:pointer;font-family:inherit}
@@ -1895,7 +1912,7 @@
      geste ne se propage NI à la page NI au navigateur (rebond, tirer-pour-recharger). La feuille
      est opaque et plein écran — rien derrière elle ne doit bouger, jamais. */
   :is(.plan-modal,.ref-modal){padding:0;background:var(--bg);overscroll-behavior:none}
-  :is(.plan-modal,.ref-modal) .ai-card{max-width:none;width:100%;min-height:100dvh;border-radius:0;margin:0;padding:0;display:flex;flex-direction:column;box-shadow:none}
+  :is(.plan-modal,.ref-modal) .ai-card{max-width:none;width:100%;min-height:calc(100dvh / var(--zf,1));border-radius:0;margin:0;padding:0;display:flex;flex-direction:column;box-shadow:none}
   :is(.pm-bar,.rs-bar){position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:var(--surface);border-bottom:1px solid var(--line)}
   :is(.pm-ttl,.rs-ttl){flex:1;min-width:0;margin:0;font-size:15px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .pm-views{flex:none;display:flex;gap:4px}
@@ -1965,7 +1982,7 @@
   .ai-card{background:var(--surface);border-radius:14px;max-width:720px;width:100%;margin:auto;padding:20px;box-shadow:var(--shadow)}
   /* La fenêtre « Gérer les catégories » ne dépasse jamais l'écran (encoche/horloge incluses) : la
      carte est plafonnée et la LISTE défile à l'intérieur ; l'en-tête reste visible. */
-  #catModal .ai-card{display:flex;flex-direction:column;max-height:calc(100dvh - 36px - env(safe-area-inset-top) - env(safe-area-inset-bottom));overflow:hidden}
+  #catModal .ai-card{display:flex;flex-direction:column;max-height:calc(100dvh / var(--zf,1) - 36px - env(safe-area-inset-top) - env(safe-area-inset-bottom));overflow:hidden}
   #catModal #catMgrBody{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;min-height:0}
   .ai-card .ai-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
   .ai-card h3{margin:0;font-size:18px;font-weight:680;flex:1}
@@ -2026,7 +2043,7 @@
      voile) — fenêtre centrée min(480px,100%) au-dessus. La visionneuse PDF a déjà son plein écran. */
   @media (max-width:779.98px){
     .ai-modal:not(.pdf-modal):not(.dlg-confirm){padding:0;background:var(--bg)}
-    .ai-modal:not(.pdf-modal):not(.dlg-confirm) .ai-card{max-width:none;width:100%;min-height:100dvh;border-radius:0;margin:0;padding:calc(18px + env(safe-area-inset-top)) 16px calc(18px + env(safe-area-inset-bottom))}
+    .ai-modal:not(.pdf-modal):not(.dlg-confirm) .ai-card{max-width:none;width:100%;min-height:calc(100dvh / var(--zf,1));border-radius:0;margin:0;padding:calc(18px + env(safe-area-inset-top)) 16px calc(18px + env(safe-area-inset-bottom))}
   }
   /* ----- ACCUEIL V5 (canvas turn 6) : une seule interface responsive. < 780px : recherche pleine
      largeur, chips bibliothèques/catégories, TAB BAR basse à pastille glissante (au pouce).
@@ -2107,8 +2124,8 @@
        « colle » : plus aucun scroll de page, donc plus aucun déplacement possible à la bascule
        Aides <-> Protocoles. min-height:0 : sans lui, flexbox refuse de rétrécir le corps et le
        scroll interne casse. */
-    body.view-home{height:100dvh;overflow:hidden}
-    body.view-home .app{height:100dvh;min-height:0;padding-bottom:0}
+    body.view-home{height:calc(100dvh / var(--zf,1));overflow:hidden}
+    body.view-home .app{height:calc(100dvh / var(--zf,1));min-height:0;padding-bottom:0}
     body.view-home header.bar{flex:none}
     body.view-home footer.tools{flex:none}
     body.view-home main{flex:1;min-height:0;display:flex;gap:0;padding:0;max-width:none;margin:0;overflow:hidden}
@@ -2138,7 +2155,7 @@
     /* HAUTEUR DÉFINIE (pas max-height) : les trois zones se répartissent l'espace, et chacune
        borne son propre débordement — sans hauteur définie, `flex:1` sur l'Échelle n'aurait rien
        à répartir et tout retomberait dans un défileur unique (le défaut corrigé v4.23.0). */
-    body.view-read .read-side{position:sticky;top:calc(var(--stick-top,64px) + 8px);height:calc(100vh - var(--stick-top,64px) - 20px);overflow-y:auto;
+    body.view-read .read-side{position:sticky;top:calc(var(--stick-top,64px) + 8px);height:calc(100vh / var(--zf,1) - var(--stick-top,64px) - 20px);overflow-y:auto;
       border-left:1px solid var(--line);padding:14px 2px 16px 16px;display:flex;flex-direction:column}
     /* UN SEUL DÉFILEUR (v4.23.0, retour d'usage). Un temps découpé en trois zones bornées
        défilant chacune sur elle-même : la posologie ne se faisait plus repousser, mais chaque
@@ -2236,7 +2253,7 @@
        haut), protocole 780+360 centré. */
     :is(body.view-edit,body.view-pedit) .read-grid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:0 26px;align-items:start}
     body.view-pedit .read-grid{grid-template-columns:minmax(0,780px) 360px;justify-content:center}
-    :is(body.view-edit,body.view-pedit) .read-side{position:sticky;top:96px;max-height:calc(100vh - 110px);overflow-y:auto;padding:2px}
+    :is(body.view-edit,body.view-pedit) .read-side{position:sticky;top:96px;max-height:calc(100vh / var(--zf,1) - 110px);overflow-y:auto;padding:2px}
     /* L'aperçu Markdown inline du protocole devient redondant avec la colonne : masqué en large. */
     body.view-pedit .md-prev-h,body.view-pedit .md-preview{display:none}
   }
@@ -2411,7 +2428,7 @@
   .att-erow input[type="text"]{flex:1;min-width:0;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--input-bg);color:var(--ink)}
   /* ----- Visionneuse PDF : fenêtre plein écran (barre d'outils + pages défilantes) ----- */
   .pdf-modal{padding:0}
-  .pdf-card{display:flex;flex-direction:column;width:100%;height:100dvh;background:var(--bg)}
+  .pdf-card{display:flex;flex-direction:column;width:100%;height:calc(100dvh / var(--zf,1));background:var(--bg)}
   .pdf-bar{display:flex;align-items:center;gap:8px;flex:none;padding:calc(8px + env(safe-area-inset-top)) calc(10px + env(safe-area-inset-right)) 8px calc(12px + env(safe-area-inset-left));background:var(--surface);border-bottom:1px solid var(--line)}
   .pdf-title{flex:1;min-width:0;font-size:14.5px;font-weight:620;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink)}
   .pdf-tools{display:flex;align-items:center;gap:6px;flex:none}
@@ -2567,6 +2584,23 @@
   /* #crisisBand / #cbTimers : zone haute d'ÉCRAN (état de session vivante) — sans objet sur
      papier, où la fiche s'imprime comme un document. Ils ne sont plus dans header.bar depuis
      v4.23.0, donc ils doivent être masqués explicitement. */
+  /* ═══ SORTIE PDF UNIFIÉE (v4.24.0) ═══════════════════════════════════════════════════════════
+     « Exporter en PDF » doit rendre le MÊME document quel que soit l'appareil : mesuré avant
+     correction, la sortie variait sur trois axes — le ZOOM du réglage « taille du texte » (0,9 / 1
+     / 1,3) s'appliquait au papier, le RAIL de lecture s'imprimait dès que la page faisait ≥ 780 px
+     (soit toujours sur A4 ≈ 794 px : le contenu du rail était donc imprimé EN DOUBLE), et le titre
+     changeait de corps (21 / 24 px). Un document clinique imprimé ne peut pas dépendre de la
+     fenêtre où l'on se trouvait au moment de l'impression. On neutralise donc les trois. */
+  @media print{
+    /* 1. Le zoom de confort d'écran n'a aucun sens sur papier : le PDF part toujours à 100 %. */
+    html{zoom:1!important}
+    /* 2. Le RAIL est une commodité d'écran : minuteurs, posologie et Échelle sont déjà dans le
+          flux ou dans le Plan imprimé. L'imprimer duplique le contenu. */
+    .read-side{display:none!important}
+    /* 3. Une seule colonne, largeur du papier — plus de grille dépendante de la largeur. */
+    .read-grid{display:block!important;grid-template-columns:none!important;gap:0!important;max-width:none!important}
+    .read-head h2{font-size:22px!important}   /* corps unique, ni 21 ni 24 selon l'écran */
+  }
   @media print{body{background:#fff}header.bar,#crisisBand,#cbTimers,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.sess-list,.notes-block,#readTopSeg,.ov-redo,.ovs-tgl,.flow-zoom{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}
     /* Un conteneur à défilement s'imprime TRONQUÉ : à l'impression le tableau se déploie. */
     .md-tw{overflow:visible;break-inside:avoid}.md-tbl{min-width:0;font-size:11px}.md-tbl tr{break-inside:avoid}

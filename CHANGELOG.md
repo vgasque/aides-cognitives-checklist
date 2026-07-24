@@ -1,5 +1,41 @@
 # Journal des modifications
 
+## [4.24.0] — 2026-07-24
+### Ajouté
+- **Mode « Vérifier » : le résultat s'affiche immédiatement**, item par item, au lieu d'attendre la
+  fin du bloc. Chaque étape prend sa pilule « constaté » ou « écart » dès qu'elle est prononcée, et
+  un **bilan vivant** (« n constatés · n écarts · n restantes ») coiffe la passe.
+  - Plus conforme, pas moins : la boucle do-verify d'AC 120-71B est *challenge → réponse →
+    confirmation*, et différer la confirmation à la fin du bloc casse la boucle.
+  - Le marqueur lit la trace de la passe, **pas** l'état des cases : une étape cochée **avant** la
+    vérification n'affiche donc plus un ✓ trompeur — elle reste « à constater » tant qu'elle n'a pas
+    été observée, ce qui est tout le sens du Do-Verify.
+
+### Corrigé
+- **« Exporter en PDF » rend enfin le même document sur tous les appareils.** La sortie variait sur
+  trois axes, mesurés : le réglage « taille du texte » s'appliquait au papier (0,9 / 1 / 1,3), le
+  **rail de lecture s'imprimait** dès que la page atteignait 780 px — soit toujours sur A4 (≈ 794 px),
+  donc son contenu sortait **en double** — et le titre changeait de corps (21 / 24 px). Les trois
+  sont neutralisés à l'impression. Vérifié : pagination identique depuis un téléphone en texte XL,
+  une tablette en texte M et un grand écran en texte S.
+- **Défilement cassé quand la taille du texte est augmentée.** Le réglage est un zoom sur la page, et
+  une hauteur en `vh`/`dvh` est calculée **avant** le zoom puis agrandie par lui : à 130 %, une
+  hauteur « plein écran » occupait 1,3 écran. D'où les deux symptômes signalés — le bas des barres
+  latérales (accueil et lecture) devenait **inatteignable**, et une fiche courte défilait **dans le
+  vide** (240 px mesurés). Corrigé partout où une hauteur dépend de la fenêtre : rails, coque de
+  l'accueil, feuilles plein écran, visionneuse PDF, fenêtre de catégories.
+- **Un bloc de décision changeait de couleur selon qu'on y arrivait ou qu'on y remontait** (bordure
+  bleue quand il était le bloc courant, ambre sinon). Il garde désormais **toujours son ambre** : le
+  registre appartient au contenu, pas à un état de passage. La position reste marquée, toujours en
+  bleu, par la pilule « VOUS ÊTES ICI » — un canal par signification.
+- **Les options de branche (Oui / Non) étaient plus petites que les étapes cochables** (15 px contre
+  16,5). Aucune raison documentée : choisir une branche engage au moins autant que cocher une étape.
+  Alignées à 16,5 px.
+
+### Interne
+- Deux harnais ajoutés à `npm run audit` : `audit-zoom-scroll.mjs` (hauteurs de fenêtre sous zoom)
+  et `audit-verify-live.mjs` (retour immédiat, registre des décisions, taille des options).
+
 ## [4.23.8] — 2026-07-24
 ### Modifié
 - **« Recommencer » devient « Recommencer le parcours » et rejoint le menu ⋯.** Deux gestes voisins
