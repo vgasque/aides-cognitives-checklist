@@ -1337,8 +1337,6 @@
     .rm-anim-l{animation:secInL .3s cubic-bezier(.25,.1,.25,1)}
     .rm-anim-r{animation:secInR .3s cubic-bezier(.25,.1,.25,1)}
   }
-  .ov-controls{display:flex;gap:8px;justify-content:flex-end;margin:0 0 10px}
-  .ov-controls .btn{min-height:44px}
   /* Section de bloc : en-tête = LIGNE D'ÉTAT toujours visible (n°, titre, compteur, chevron),
      corps repliable. Pastille : bleu = position courante, vert ✓ = bloc complet, neutre sinon —
      jamais d'ambre/rouge (registres d'alerte) ; la décision garde sa carte ambrée (comme .nav-wrap.dec). */
@@ -1354,7 +1352,7 @@
      l'écraser (titre superposé au chip « Vous êtes ici », compteur expulsé). */
   .ov-head{display:flex;align-items:stretch;flex-wrap:wrap;justify-content:flex-end}
   .ov-head .ov-tgl{flex:1 1 100%}   /* titre + compteur sur leur propre ligne */
-  .ov-acts{flex:1 1 100%;display:flex;gap:8px;justify-content:flex-end;margin-top:2px}   /* Lecteur/Vérifier côte à côte SOUS le titre (v4.23.7) */
+  .ov-acts{flex:1 1 100%;display:flex;gap:8px;justify-content:flex-end;padding:0 12px 10px}   /* Lecteur/Vérifier côte à côte SOUS le titre ; le rembourrage REMPLACE la marge que portaient les boutons — sans lui ils touchaient le bord droit et le bas de la carte (v4.23.8) */
   .ov-tgl{flex:1 1 230px;min-width:0;display:flex;align-items:center;gap:9px;min-height:52px;padding:9px 12px;background:none;border:0;cursor:pointer;font-family:inherit;text-align:left}
   .ov-tgl:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
   .ov-n{width:26px;height:26px;border-radius:50%;flex:none;display:grid;place-items:center;font-family:var(--mono);font-size:13px;font-weight:700;color:var(--ink-soft);border:2px solid var(--line-strong)}
@@ -2518,9 +2516,6 @@
   .rt-collapsed .rtc-open{color:var(--ink-soft);font-size:12px;white-space:nowrap}
   .rt-collapsed:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* Bouton à MAINTENIR sur fond clair (Recommencer l'algorithme) : même geste anti-accidentel que les minuteurs. */
-  .btn.btn-hold{flex-direction:column;gap:0;line-height:1.05;touch-action:none;padding-top:5px;padding-bottom:5px}
-  .btn.btn-hold .tmr-hint{font-size:11px;font-weight:700;opacity:.6;text-transform:uppercase;letter-spacing:.5px;margin-top:1px}
-  .btn.btn-hold.holding{background-image:linear-gradient(color-mix(in srgb,var(--alarm) 45%,transparent),color-mix(in srgb,var(--alarm) 45%,transparent));background-repeat:no-repeat;background-size:0% 100%;animation:holdfill .8s linear forwards}
   /* Compteurs : « + » (geste principal) plus large et teinté ; « − » (correction) plus discret. */
   .cn-btn[data-cninc]{flex:1.4;background:var(--surface);border:1.5px solid var(--link);color:var(--link)}
   .cn-btn[data-cninc]:hover{background:var(--primary-soft)}
@@ -2572,7 +2567,7 @@
   /* #crisisBand / #cbTimers : zone haute d'ÉCRAN (état de session vivante) — sans objet sur
      papier, où la fiche s'imprime comme un document. Ils ne sont plus dans header.bar depuis
      v4.23.0, donc ils doivent être masqués explicitement. */
-  @media print{body{background:#fff}header.bar,#crisisBand,#cbTimers,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.sess-list,.notes-block,#readTopSeg,.ov-controls,.ov-redo,.ovs-tgl,.flow-zoom{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}
+  @media print{body{background:#fff}header.bar,#crisisBand,#cbTimers,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.sess-list,.notes-block,#readTopSeg,.ov-redo,.ovs-tgl,.flow-zoom{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}
     /* Un conteneur à défilement s'imprime TRONQUÉ : à l'impression le tableau se déploie. */
     .md-tw{overflow:visible;break-inside:avoid}.md-tbl{min-width:0;font-size:11px}.md-tbl tr{break-inside:avoid}
     .forget-strip{break-inside:avoid}
@@ -2615,7 +2610,6 @@
 
 <div style="max-width:560px">
 <div class="ov-wrap">
-  <div class="ov-controls"><button type="button" class="btn sm btn-hold"><span class="tmr-lab">↺ Recommencer</span><span class="tmr-hint">maintenir</span></button></div>
   <div class="ov-sec-h">Parcours</div>
   <div class="ov-journal">
     <button type="button" class="ov-runline" aria-expanded="false"><span class="ovr-ok" aria-hidden="true">✓</span>6 passages · 1→4<span class="ovr-chev" aria-hidden="true">▸</span></button>
@@ -2638,7 +2632,6 @@
 
 <div style="max-width:560px">
 <div class="ov-wrap">
-  <div class="ov-controls"><button type="button" class="btn sm btn-hold"><span class="tmr-lab">↺ Recommencer</span><span class="tmr-hint">maintenir</span></button></div>
   <div class="ov-sec-h">Parcours</div>
   <div class="ov-journal">
     <button type="button" class="ov-runline" aria-expanded="false"><span class="ovr-ok" aria-hidden="true">✓</span>6 passages · 1→4<span class="ovr-chev" aria-hidden="true">▸</span></button>

@@ -376,7 +376,6 @@ const carePathDemo = `
 const journalDemo = `
 <div style="max-width:560px">
 <div class="ov-wrap">
-  <div class="ov-controls"><button type="button" class="btn sm btn-hold"><span class="tmr-lab">↺ Recommencer</span><span class="tmr-hint">maintenir</span></button></div>
   <div class="ov-sec-h">Parcours</div>
   <div class="ov-journal">
     <button type="button" class="ov-runline" aria-expanded="false"><span class="ovr-ok" aria-hidden="true">✓</span>6 passages · 1→4<span class="ovr-chev" aria-hidden="true">▸</span></button>

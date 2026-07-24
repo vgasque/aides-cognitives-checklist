@@ -1,5 +1,29 @@
 # Journal des modifications
 
+## [4.23.8] — 2026-07-24
+### Modifié
+- **« Recommencer » devient « Recommencer le parcours » et rejoint le menu ⋯.** Deux gestes voisins
+  portaient presque le même nom : `↺ Refaire` ne reprend **qu'un bloc**, tandis que « Recommencer »
+  effaçait **tout le chemin parcouru** — le libellé laissait croire à une action locale. Il annonce
+  désormais sa portée, et quitte le haut du journal où il flottait, rattaché à rien.
+  - Justification : ECAM réserve l'affichage permanent à ce qui sert la conduite **en cours** et
+    appelle le reste à la demande ; AC 120-71B veut que la checklist montre ce qui aide à exécuter
+    l'**étape courante** — « repartir du début » ne conduit rien. La constance positionnelle ECAM
+    est mieux servie par le menu que par un bouton flottant.
+  - Le geste « maintenir » n'existant pas dans un menu, la protection passe par une **fenêtre de
+    confirmation** en registre danger, qui annonce ce qui est effacé **et ce qui est conservé**
+    (chrono de session, minuteurs, compteurs, compte-rendu).
+
+### Corrigé
+- **« Lecteur » / « Vérifier » / « ↺ Refaire » touchaient le bord droit et le bas de la carte** du
+  bloc : en les groupant sur une rangée (v4.23.7), leur marge individuelle avait disparu sans être
+  reportée sur la rangée. Rembourrage rétabli, aligné sur la gouttière du titre.
+
+### Interne
+- CSS orphelin retiré avec le composant : `.ov-controls`, `.btn.btn-hold` et son exception dans
+  `holdToReset` (les seuls boutons « maintenir » restants sont ceux des minuteurs et compteurs) ;
+  démo du design system mise à jour.
+
 ## [4.23.7] — 2026-07-24
 ### Modifié
 - **En-tête d'un bloc du journal : « Lecteur » et « Vérifier » ne s'empilent plus.** Quand le titre

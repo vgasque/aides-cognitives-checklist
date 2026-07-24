@@ -734,6 +734,22 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   des éditeurs = « **une sélectionnée + Autre…** » : chip teinté 14 % (la seule teinte autorisée
   — prévisualise liseré/pastille) + menu ancré (bottom sheet < 780) avec « ＋ Nouvelle
   catégorie » ; plus jamais la rangée de toutes les catégories.
+- **PORTÉE D'UNE ACTION DE REPRISE (v4.23.8, question utilisateur)** : deux gestes voisins ne
+  doivent PAS porter le même nom. **`↺ Refaire`** = UN bloc (nouvelle carte au bout du journal, le
+  reste intact) ; **« Recommencer LE PARCOURS »** = TOUT le chemin effacé, retour au bloc de départ.
+  L'ancien libellé « Recommencer », seul, laissait croire à un geste local alors qu'il était global
+  (AC 120-71B : une action dit exactement ce qu'elle fait). Ce bouton FLOTTAIT en tête du journal,
+  rattaché à rien : il vit désormais dans le **menu ⋯**, avec les autres actions de portée globale.
+  Justification : ECAM réserve l'affichage permanent (E/WD) à ce qui sert la conduite EN COURS et
+  appelle le reste à la demande (SD) ; AC 120-71B veut que la checklist montre ce qui aide à
+  exécuter l'ÉTAPE COURANTE — « repartir du début » ne conduit rien. La règle ECAM de constance
+  positionnelle n'est pas enfreinte : elle exige qu'un contrôle soit TOUJOURS AU MÊME ENDROIT, ce
+  que le menu garantit mieux qu'un bouton flottant. **Le geste « maintenir » n'existant pas dans un
+  menu, la protection passe par `confirmDlg` en registre danger** (doctrine v4.3.1) et l'annonce dit
+  ce qui est effacé ET ce qui est CONSERVÉ (chrono, minuteurs, compteurs, compte-rendu) — une action
+  destructive s'annonce AVANT le choix. `restartCourse(f)` est le point d'entrée unique des deux
+  modes. CSS retiré avec le composant : `.ov-controls`, `.btn.btn-hold` et son exception dans
+  `holdToReset` (les seuls « maintenir » restants sont `.tm-reset`/`.cn-reset`).
 - **Dialogue « Terminer la session ? » (SPEC crise §3, v4.3.0)** : SEULE porte de sortie d'une
   session (menu ⋯, fin d'algorithme, ✕ du bandeau sessions — jamais d'arrêt direct). Contexte
   (titre + durée) et **conséquences annoncées avant le choix** ; « Poursuivre » = action sûre

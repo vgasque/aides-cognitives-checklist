@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-duEkwM6KMr8F7mYSk9l2HdxL5I5oG+cgveRNmy7sI1s='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-gIGQw5BsMBM6A1bmI5kZcir5xDQkMeik7woV8lj0ZEY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1605,8 +1605,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .rm-anim-l{animation:secInL .3s cubic-bezier(.25,.1,.25,1)}
     .rm-anim-r{animation:secInR .3s cubic-bezier(.25,.1,.25,1)}
   }
-  .ov-controls{display:flex;gap:8px;justify-content:flex-end;margin:0 0 10px}
-  .ov-controls .btn{min-height:44px}
   /* Section de bloc : en-tête = LIGNE D'ÉTAT toujours visible (n°, titre, compteur, chevron),
      corps repliable. Pastille : bleu = position courante, vert ✓ = bloc complet, neutre sinon —
      jamais d'ambre/rouge (registres d'alerte) ; la décision garde sa carte ambrée (comme .nav-wrap.dec). */
@@ -1622,7 +1620,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      l'écraser (titre superposé au chip « Vous êtes ici », compteur expulsé). */
   .ov-head{display:flex;align-items:stretch;flex-wrap:wrap;justify-content:flex-end}
   .ov-head .ov-tgl{flex:1 1 100%}   /* titre + compteur sur leur propre ligne */
-  .ov-acts{flex:1 1 100%;display:flex;gap:8px;justify-content:flex-end;margin-top:2px}   /* Lecteur/Vérifier côte à côte SOUS le titre (v4.23.7) */
+  .ov-acts{flex:1 1 100%;display:flex;gap:8px;justify-content:flex-end;padding:0 12px 10px}   /* Lecteur/Vérifier côte à côte SOUS le titre ; le rembourrage REMPLACE la marge que portaient les boutons — sans lui ils touchaient le bord droit et le bas de la carte (v4.23.8) */
   .ov-tgl{flex:1 1 230px;min-width:0;display:flex;align-items:center;gap:9px;min-height:52px;padding:9px 12px;background:none;border:0;cursor:pointer;font-family:inherit;text-align:left}
   .ov-tgl:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
   .ov-n{width:26px;height:26px;border-radius:50%;flex:none;display:grid;place-items:center;font-family:var(--mono);font-size:13px;font-weight:700;color:var(--ink-soft);border:2px solid var(--line-strong)}
@@ -2786,9 +2784,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .rt-collapsed .rtc-open{color:var(--ink-soft);font-size:12px;white-space:nowrap}
   .rt-collapsed:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* Bouton à MAINTENIR sur fond clair (Recommencer l'algorithme) : même geste anti-accidentel que les minuteurs. */
-  .btn.btn-hold{flex-direction:column;gap:0;line-height:1.05;touch-action:none;padding-top:5px;padding-bottom:5px}
-  .btn.btn-hold .tmr-hint{font-size:11px;font-weight:700;opacity:.6;text-transform:uppercase;letter-spacing:.5px;margin-top:1px}
-  .btn.btn-hold.holding{background-image:linear-gradient(color-mix(in srgb,var(--alarm) 45%,transparent),color-mix(in srgb,var(--alarm) 45%,transparent));background-repeat:no-repeat;background-size:0% 100%;animation:holdfill .8s linear forwards}
   /* Compteurs : « + » (geste principal) plus large et teinté ; « − » (correction) plus discret. */
   .cn-btn[data-cninc]{flex:1.4;background:var(--surface);border:1.5px solid var(--link);color:var(--link)}
   .cn-btn[data-cninc]:hover{background:var(--primary-soft)}
@@ -2840,7 +2835,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* #crisisBand / #cbTimers : zone haute d'ÉCRAN (état de session vivante) — sans objet sur
      papier, où la fiche s'imprime comme un document. Ils ne sont plus dans header.bar depuis
      v4.23.0, donc ils doivent être masqués explicitement. */
-  @media print{body{background:#fff}header.bar,#crisisBand,#cbTimers,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.sess-list,.notes-block,#readTopSeg,.ov-controls,.ov-redo,.ovs-tgl,.flow-zoom{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}
+  @media print{body{background:#fff}header.bar,#crisisBand,#cbTimers,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.sess-list,.notes-block,#readTopSeg,.ov-redo,.ovs-tgl,.flow-zoom{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}
     /* Un conteneur à défilement s'imprime TRONQUÉ : à l'impression le tableau se déploie. */
     .md-tw{overflow:visible;break-inside:avoid}.md-tbl{min-width:0;font-size:11px}.md-tbl tr{break-inside:avoid}
     .forget-strip{break-inside:avoid}
@@ -3111,7 +3106,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.23.7';
+const APP_VERSION='4.23.8';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -5271,10 +5266,7 @@ function holdToReset(btn,doAction){if(!btn)return;let to=null;const lbl=btn.inne
     document.body.classList.add('hold-noselect');void btn.offsetWidth;btn.classList.add('holding');
     // On ne change QUE le libellé (pas tout le bouton) -> la structure sur 2 lignes est conservée :
     // la HAUTEUR du bouton ne change pas pendant l'appui (sinon il « rapetissait » au clic).
-    // EXCEPTION .btn-hold (barre d'étapes) : bouton à largeur AUTO dans une rangée flex -> échanger
-    // le texte ferait varier sa largeur en plein appui (et décalerait les boutons voisins). La jauge
-    // qui se remplit + la mention « maintenir » persistante suffisent comme retour visuel.
-    if(!btn.classList.contains('btn-hold')){const lab=btn.querySelector('.tmr-lab');if(lab)lab.textContent='Maintenir…';else btn.textContent='Maintenir…';}
+    const lab=btn.querySelector('.tmr-lab');if(lab)lab.textContent='Maintenir…';else btn.textContent='Maintenir…';
     to=setTimeout(()=>{to=null;btn.classList.remove('holding');document.body.classList.remove('hold-noselect');clearSel();doAction();},800);};
   btn.addEventListener('pointerdown',begin);['pointerup','pointerleave','pointercancel'].forEach(ev=>btn.addEventListener(ev,cancel));
   btn.addEventListener('contextmenu',e=>e.preventDefault());
@@ -6867,7 +6859,7 @@ function navSection(f){
     // précédent, on évite la surcharge de boutons (« Repartir d'ici » + le fil d'Ariane suffisent).
     // MAINTENIR pour recommencer : efface tout le chemin parcouru -> même geste anti-accidentel
     // que la réinitialisation d'un minuteur (un appui bref, même en stress, ne déclenche rien).
-    const resetBtn=flow?'<button class="btn sm btn-hold" id="navReset" title="Maintenir pour recommencer (repart du début — ne touche ni au chrono ni aux minuteurs)"><span class="tmr-lab">'+uiIcon('undo',13)+' Recommencer</span><span class="tmr-hint">maintenir</span></button>':'';
+    const resetBtn='';   // v4.23.8 : « Recommencer le parcours » vit dans le menu ⋯ (restartCourse)
     navRowH=(flow||npos>0)?`<div class="flow-nav">${backBtn}${resetBtn}</div>`:'';
     const histBtn=!atTip?'<button class="btn primary sm" id="navFwd">Continuer →</button><button class="btn sm" id="navResume">↺ Repartir d’ici (efface la suite)</button>':'';
     const imgH=blk.image?`<img class="node-img" loading="lazy" decoding="async" src="${blk.image}" data-full="${blk.image}"${blk.imageW&&blk.imageH?` width="${blk.imageW}" height="${blk.imageH}"`:''} alt="">`:'';
@@ -7115,6 +7107,7 @@ function bindReadEvents(f,blk,cur){
     ...(hasFlow(f)&&state.readMode!=='static'?[{label:'Plan de l’aide',ic:uiIcon('plan',16),sub:'vue d’ensemble',act:openPlanSheet}]:[]),
     ...(annexRowHtml(f)?[{label:'Consulter',ic:uiIcon('book',16),sub:'surveillances, documents…',act:()=>openRefSheet()}]:[]),
     ...(hasFlow(f)?[{label:'Mode lecteur (binôme)',ic:uiIcon('play',16),act:readerOpen}]:[]),
+    ...(hasFlow(f)?[{label:'Recommencer le parcours',ic:uiIcon('undo',16),sub:'repart du début',act:()=>restartCourse(f)}]:[]),
     'sep',
     {label:'Dupliquer dans « Perso »',ic:uiIcon('copy',16),act:()=>dupToPerso('f',f)},
     {label:'Exporter (.json)',ic:uiIcon('download',16),act:()=>exportData([f],'fiche-'+fileSlug(f.title))},
@@ -7261,7 +7254,7 @@ function bindNavEvents(f,blk){
   const fwb=document.getElementById('navFwd');if(fwb)fwb.onclick=()=>{state.navPos=Math.min(state.navPos+1,state.nav.length-1);scrollNavNext=true;renderNavOnly();};
   const rsm=document.getElementById('navResume');if(rsm)rsm.onclick=()=>{state.nav.length=state.navPos+1;state.navSeq.length=state.navPos+1;renderNavOnly();};
   const bk=document.getElementById('navBack');if(bk)bk.onclick=()=>{state.navPos=Math.max(0,state.navPos-1);scrollNavNext=true;renderNavOnly();};
-  const rs=document.getElementById('navReset');if(rs)holdToReset(rs,()=>{state.nav.length=0;state.navSeq.length=0;state.nav.push(f.start);state.navSeq.push(++Runtime.seq);state.navPos=0;state.flowEnded=false;scrollNavNext=true;renderNavOnly();});
+
   main.querySelectorAll('[data-goto]').forEach(b=>b.onclick=()=>{const t=b.dataset.goto;if(t&&f.blocks.some(x=>x.id===t)){state.nav.push(t);state.navSeq.push(++Runtime.seq);state.navPos=state.nav.length-1;scrollNavNext=true;renderNavOnly();}});
   const goCrumb=i=>{if(i>=0&&i<state.nav.length){state.navPos=i;renderNavOnly();}};
   main.querySelectorAll('[data-crumb]').forEach(c=>{c.onclick=()=>goCrumb(+c.dataset.crumb);c.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();goCrumb(+c.dataset.crumb);}};});
@@ -7346,7 +7339,7 @@ function overviewSection(f){
     else{flush();insts+=ovInstHtml(f,id,i,topo,pres[i]);}});
   flush();
   const endH=state.flowEnded?'<div class="flow-end">Algorithme terminé — surveillance en cours</div>':'';
-  const controls=`<div class="ov-controls"><button type="button" class="btn sm btn-hold" id="ovReset" title="Maintenir pour recommencer (repart du début — ne touche ni au chrono ni aux minuteurs ; le compte-rendu garde tout)"><span class="tmr-lab">${uiIcon('undo',13)} Recommencer</span><span class="tmr-hint">maintenir</span></button></div>`;
+  const controls='';   // v4.23.8 : « Recommencer » a rejoint le menu ⋯ (cf. restartCourse)
   const secH=`<div class="ov-sec-h">Parcours</div>`;
   // v4.23.0 : le PLAN a quitté le journal — il vit dans la feuille plein écran #planModal,
   // appelée d'un tap depuis le quai (⤢). Dans le flux il alourdissait la page et s'éloignait à
@@ -8037,8 +8030,23 @@ function bindOverviewEvents(f){
   wrap.onclick=e=>handle(e.target,false);
   wrap.onkeydown=e=>{if(e.key!=='Enter'&&e.key!==' ')return;
     const t=e.target.closest('[data-ck],[data-plgo],[data-plln]');if(!t)return;e.preventDefault();handle(t,true);};
-  const rs=wrap.querySelector('#ovReset');
-  if(rs)holdToReset(rs,()=>{state.nav.length=0;state.navSeq.length=0;state.nav.push(f.start);state.navSeq.push(++Runtime.seq);state.navPos=0;state.flowEnded=false;state.ovFold={};state.ovVerify=null;if(Runtime.started)persistLive(Runtime);renderOvOnly();});}
+}
+/* RECOMMENCER LE PARCOURS (v4.23.8) — action GLOBALE : efface tout le chemin parcouru et repart
+   du bloc de départ. Elle vit dans le menu ⋯, avec les autres actions de portée globale (Terminer
+   la session, Historique) : ECAM réserve l'affichage permanent à ce qui sert la conduite EN COURS,
+   et AC 120-71B veut que la checklist montre ce qui aide à exécuter l'étape courante — « repartir
+   du début » ne conduit rien. Le libellé porte sa PORTÉE (« le parcours ») : « Recommencer » seul
+   se confondait avec « ↺ Refaire » (un seul bloc), alors que celui-ci efface TOUT.
+   Le geste « maintenir » n'existant pas dans un menu, la protection passe par confirmDlg en
+   registre danger — et l'annonce dit ce qui est effacé ET ce qui est préservé. */
+async function restartCourse(f){
+  if(!f)return;
+  if(!await confirmDlg('Recommencer le parcours ? Le chemin parcouru est effacé et l’aide repart du début. Le chrono de session, les minuteurs, les compteurs et le compte-rendu sont CONSERVÉS.',
+    {yes:'Recommencer',danger:true}))return;
+  state.nav.length=0;state.navSeq.length=0;state.nav.push(f.start);state.navSeq.push(++Runtime.seq);
+  state.navPos=0;state.flowEnded=false;state.ovFold={};state.ovVerify=null;
+  if(Runtime.started)persistLive(Runtime);
+  if(state.readMode==='overview'&&hasFlow(f))renderOvOnly();else{scrollNavNext=true;render();}}
 /* Re-rendu CIBLÉ de la vue d'ensemble (pendant de renderNavOnly) : reconstruit l'INTÉRIEUR de
    .ov-wrap (Recommencer, structures) sans toucher au reste de la vue — le conteneur garde ses
    écouteurs délégués. Structure inattendue -> repli complet sûr. */
