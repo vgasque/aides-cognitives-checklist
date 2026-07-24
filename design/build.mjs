@@ -213,7 +213,7 @@ const listsDemo = `
   <div class="nav-wrap"><div class="node-title">Bloc · Mesures immédiates — <span>1/3</span> coché</div>
     <ol class="steps">
       <li class="done" role="checkbox" aria-checked="true"><span class="box">✓</span><span class="txt">Arrêter l’exposition à l’allergène</span></li>
-      <li class="crit" role="checkbox" aria-checked="false"><span class="box"></span><span class="txt">Adrénaline IM 0,5&nbsp;mg face antéro-latérale de cuisse</span></li>
+      <li class="crit" role="checkbox" aria-checked="false"><span class="box"></span><span class="txt"><span class="sr-only">Étape critique. </span><span class="stp-mk" aria-hidden="true">⚠</span>Adrénaline IM 0,5&nbsp;mg face antéro-latérale de cuisse</span></li>
       <li class="vigil" role="checkbox" aria-checked="false"><span class="box"></span><span class="txt">Surveiller la pression artérielle en continu</span></li>
     </ol>
     <div class="flow-ctrl"><button class="btn cont idle" aria-disabled="true">Cochez les étapes restantes (2)</button></div>
@@ -262,12 +262,26 @@ const headerDemo = `
 </div>
 <p class="ds-cap">Barre d’accueil CLAIRE (couleur du fond) : recherche FIXE, boutons 40px (halo 44px), menu ⋯, compte en initiales. Connecté, la couleur d’ACCENT du compte teinte l’accueil entier et l’en-tête de toutes les vues — le contenu clinique reste bleu.</p>
 <div style="max-width:560px;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:16px">
-  <header class="bar titled ttl-on crisis" style="position:static">
-    <div class="id-row"><button class="back">‹</button><button id="cbTimers" style="position:static"><span class="seg"><span class="seg-l">Adré</span><span class="seg-t">04:32</span></span><span class="cbt-n">+1</span><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">12:07</span></span></button><button class="bar-acct on ini-on" style="position:static"><span class="acct-ini">VG</span><span class="acct-dot"></span></button></div>
-    <div id="crisisBand"><span class="cb-ttl">Choc anaphylactique</span><span class="cb-tag">■ Mode crise</span></div>
+  <header class="bar crisis" style="position:static">
+    <div class="id-row"><button class="back">‹</button><div class="brand"></div><span class="hdr-crisis">■ Crise</span><div class="hdr-acts"><button class="hdr-theme" style="position:static">☾</button><button class="bar-acct on ini-on" style="position:static"><span class="acct-ini">VG</span><span class="acct-dot"></span></button></div></div>
   </header>
+  <div id="crisisBand"><span class="cb-ttl">Choc anaphylactique</span><span class="cb-tag">■ Mode crise</span></div>
+  <div id="crisisDock"><div class="dock-in">
+    <button class="dock-plan" style="position:static"><span class="dp-ic">⤢</span><span class="dp-lbl">Plan</span></button>
+    <button id="cbTimers" style="position:static"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">12:07</span></span><span class="seg due"><span class="seg-l">Adrénaline</span><span class="seg-t">00:00</span></span><span class="cbt-n">+1</span></button>
+  </div></div>
 </div>
-<p class="ds-cap">En crise : bandeau TITRE permanent au registre ALERTE (fond --critical-soft + « ■ MODE CRISE » : texte, couleur ET position) ; minuteurs segmentés dans la barre à TOUTES les largeurs, suivis du chrono GLOBAL « ● Session » (temps écoulé depuis la 1ʳᵉ action). UNE seule zone fixe, en haut — jamais en bas.</p>
+<p class="ds-cap">ZONE HAUTE DE CRISE, hors en-tête (v4.23.0). Bandeau TITRE à fond BLANC : un bandeau d’état PERMANENT teinté en rouge désensibiliserait au rouge, que l’ECAM réserve aux alertes réelles — le statut s’annonce en TEXTE (« ■ Mode crise »). Puis le QUAI COLLANT, ordre FIXE <b>⤢ Plan · ● Session · minuteurs</b> : Plan et Session sont AVANT la partie variable, ils gardent donc une position immobile quel que soit le nombre de minuteurs, qui coulent à leur droite (le blanc part au bord droit — barre d’outils normale, aucun vide central). Échu en ambre = registre ATTENTION, « ● Session » en vert = actif nominal.</p>
+<div style="max-width:560px;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:16px">
+  <header class="bar titled ttl-on crisis" style="position:static">
+    <div class="id-row"><button class="back">‹</button><div class="brand"><span id="brandTitle" style="display:block">Choc anaphylactique</span></div><span class="hdr-crisis" style="display:inline">■ Crise</span><div class="hdr-acts"><button class="hdr-theme" style="position:static">☾</button><button class="bar-acct on ini-on" style="position:static"><span class="acct-ini">VG</span><span class="acct-dot"></span></button></div></div>
+  </header>
+  <div id="crisisDock"><div class="dock-in">
+    <button class="dock-plan" style="position:static"><span class="dp-ic">⤢</span><span class="dp-lbl">Plan</span></button>
+    <button id="cbTimers" style="position:static"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">12:07</span></span><span class="seg due"><span class="seg-l">Adrénaline</span><span class="seg-t">00:00</span></span><span class="cbt-n">+1</span></button>
+  </div></div>
+</div>
+<p class="ds-cap">AU DÉFILEMENT : le bandeau (titre, information CONSTANTE) s’en va et l’en-tête en prend le relais — titre + « ■ Crise » — à l’instant MESURÉ où il passe dessous. Le QUAI (Plan + état vivant) reste COLLÉ sous l’en-tête et ne quitte jamais l’écran : zone de statut permanente, aucun relais miniature à loger dans la barre.</p>
 <div class="more-menu" style="position:static;margin-top:16px">
   <button class="mm-row">Modifier</button>
   <button class="mm-row">Versions</button>
@@ -351,7 +365,7 @@ const carePathDemo = `
     <li class="cp-stage on" aria-current="step"><span class="cp-n" aria-hidden="true">2</span><div class="cp-body"><div class="block-h cp-h">Prise en charge</div>
       <div class="nav-wrap"><div class="node-title">Bloc · Mesures immédiates — <span>1/2</span> coché</div>
         <ol class="steps"><li class="done" role="checkbox" aria-checked="true"><span class="box">${chk(19, 3)}</span><span class="txt">Arrêter l’exposition à l’allergène</span></li>
-        <li class="crit" role="checkbox" aria-checked="false"><span class="box"></span><span class="txt">Adrénaline IM 0,5&nbsp;mg</span></li></ol>
+        <li class="crit" role="checkbox" aria-checked="false"><span class="box"></span><span class="txt"><span class="sr-only">Étape critique. </span><span class="stp-mk" aria-hidden="true">⚠</span>Adrénaline IM 0,5&nbsp;mg</span></li></ol>
       </div></div></li>
     <li class="cp-stage off"><span class="cp-n" aria-hidden="true">3</span><div class="cp-body"><div class="block-h cp-h">Surveillances &amp; pièges</div><ul class="flat verify"><li>Pression artérielle toutes les 5&nbsp;min</li></ul></div></li>
   </ol>
@@ -375,7 +389,7 @@ const journalDemo = `
     <section class="ov-block cur" aria-current="step"><div class="ov-head"><button type="button" class="ov-tgl" aria-expanded="true"><span class="ov-n" aria-hidden="true">7</span><span class="ov-t">Reprise du massage <span class="ov-here">Vous êtes ici</span></span><span class="ov-c">1/2</span><span class="ov-chev" aria-hidden="true">▴</span></button></div>
       <div class="ov-body"><ol class="steps">
         <li class="done" role="checkbox" aria-checked="true"><span class="box">${chk(19, 3)}</span><span class="txt">Reprendre immédiatement 2&nbsp;min de RCP</span></li>
-        <li class="crit" role="checkbox" aria-checked="false"><span class="box"></span><span class="txt">Adrénaline 1&nbsp;mg IV <span class="stp-r">toutes les 4 min</span></span></li>
+        <li class="crit" role="checkbox" aria-checked="false"><span class="box"></span><span class="txt"><span class="sr-only">Étape critique. </span><span class="stp-mk" aria-hidden="true">⚠</span>Adrénaline 1&nbsp;mg IV <span class="stp-r">toutes les 4 min</span></span></li>
       </ol><div class="flow-ctrl"><button class="btn cont idle" aria-disabled="true">Cochez l’étape restante (1)</button></div></div></section>
   </div>
 </div>
@@ -433,7 +447,7 @@ const challengeDemo = `
 <div style="max-width:560px">
   <ol class="steps" style="margin-bottom:14px">
     <li role="checkbox" aria-checked="false"><span class="box"></span><span class="txt">Ballon relié à l’oxygène <span class="stp-r">15 L/min</span></span></li>
-    <li class="crit done" role="checkbox" aria-checked="true"><span class="box">${chk(19, 3)}</span><span class="txt">Adrénaline prête <span class="stp-r">1 mg / 10 mL</span></span></li>
+    <li class="crit done" role="checkbox" aria-checked="true"><span class="box">${chk(19, 3)}</span><span class="txt"><span class="sr-only">Étape critique. </span><span class="stp-mk" aria-hidden="true">⚠</span>Adrénaline prête <span class="stp-r">1 mg / 10 mL</span></span></li>
   </ol>
   <div class="ov-body" style="margin-bottom:14px">
     <div class="v-hint">Vérification — lisez le challenge, constatez l’état réel</div>

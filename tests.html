@@ -737,6 +737,44 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   ok('buildFlowSVG (v4.7.0) : un nœud interactif par bloc (data-fnode)', ['A','D','S','R','X'].every(id=>svgOut.indexOf('data-fnode="'+id+'"')>=0));
   ok('buildFlowSVG : halo et badge ✓ bakés, AUCUN état peint dans la géométrie', svgOut.indexOf('flow-hl-glow')>=0&&svgOut.indexOf('fn-badge')>=0&&svgOut.indexOf('fn-cur')<0&&svgOut.indexOf('fn-ok')<0&&svgOut.indexOf('fn-off')<0);
   ok('buildFlowSVG : nœuds accessibles au clavier (tabindex + role)', svgOut.indexOf('tabindex="0"')>=0&&svgOut.indexOf('role="button"')>=0);
+
+  group('Repères posologiques — rapprochement RÉSILIENT (v4.23.0)');
+  eq('posoName : ce qui précède le premier « : »', A.posoName('**Adrénaline IM** : adulte 0,5 mg'), 'Adrénaline IM');
+  eq('posoName : préfixe ⚠ retiré', A.posoName('⚠ Adrénaline IV : titrée'), 'Adrénaline IV');
+  eq('posoTokens : accents, casse et grammaire retirés', A.posoTokens('Adrénaline  pour  la  voie'), ['adrenaline']);
+  eq('posoTokens : « intramusculaire » canonisé en « im »', A.posoTokens('intramusculaire'), ['im']);
+  eq('posoTokens : « sous-cutanée » recollée puis canonisée', A.posoTokens('sous-cutanée'), ['sc']);
+  eq('posoTokens : locution « per os » canonisée', A.posoTokens('per os'), ['po']);
+  // Les deux cas de résilience demandés (retour utilisateur).
+  ok('« Adré » rapproche « Adrénaline IM » (troncature)',
+    A.posoScore('Adrénaline IM', '2e adré à 5 min') > 0);
+  ok('« IM » rapproche « Adrénaline intramusculaire » (voie, table)',
+    A.posoScore('Adrénaline intramusculaire', 'Adrénaline IM face antéro-latérale') > 0);
+  ok('« IV » rapproche « intraveineuse »', A.posoScore('Noradrénaline intraveineuse', 'noradré IV titrée') > 0);
+  ok('un produit sans rapport ne score pas', A.posoScore('Amiodarone IV', 'Adrénaline IM 0,5 mg') === 0);
+  ok('le produit (1er jeton) pèse plus que la voie seule',
+    A.posoScore('Adrénaline IM', 'adrénaline') > A.posoScore('Amiodarone IM', 'produit IM'));
+  // INVARIANT DE SÛRETÉ : on réordonne, on ne retire jamais.
+  {const items=['Adrénaline IM : 0,5 mg','Amiodarone : 300 mg','Salbutamol : aérosol'];
+   const r=A.posoRank(items,'Adrénaline IM face antéro-latérale');
+   eq('posoRank : rien n’est perdu', r.length, items.length);
+   eq('posoRank : le repère rapproché passe en tête', r[0].s, 'Adrénaline IM : 0,5 mg');
+   const r2=A.posoRank(items,'texte sans aucun rapport');
+   eq('posoRank : sans rapprochement, l’ordre de l’auteur est conservé', r2.map(x=>x.i), [0,1,2]);}
+  {const items=['A : 1','B : 2','C : 3','D : 4','⚠ Vital : 9'];
+   const sp=A.posoSplit(items,'texte sans rapport');
+   eq('posoSplit : rien n’est perdu (tête + reste = tout)', sp.head.length+sp.rest.length, items.length);
+   ok('posoSplit : un repère ⚠ n’est JAMAIS replié', sp.head.some(x=>x.crit)&&!sp.rest.some(x=>x.crit));
+   ok('posoSplit : jamais de tête vide', sp.head.length>0);}
+  // La doctrine v4.23.0 marque les repères posologiques en △ (le rouge est réservé aux ACTIONS) :
+  // la protection contre le repli doit donc couvrir l'ambre, sans quoi elle ne protège plus rien.
+  {const items=['A : 1','B : 2','C : 3','D : 4','△ Dilution adrénaline : 0,1 mg/mL'];
+   const sp=A.posoSplit(items,'texte sans rapport');
+   ok('posoSplit : un repère △ (registre de la posologie) n’est JAMAIS replié',
+     sp.head.some(x=>/Dilution/.test(x.s)) && !sp.rest.some(x=>/Dilution/.test(x.s)));
+   eq('posoSplit : rien n’est perdu non plus avec un △', sp.head.length+sp.rest.length, items.length);}
+  {const short=['A : 1','B : 2','C : 3'];
+   eq('posoSplit : liste courte -> tout visible, aucun pli', A.posoSplit(short,'rien').rest.length, 0);}
 }
 
 // Ouvert en double-cliquant le fichier (file://) : le navigateur isole les iframes (origine

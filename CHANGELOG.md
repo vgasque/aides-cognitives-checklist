@@ -1,5 +1,82 @@
 # Journal des modifications
 
+## [4.23.0] — 2026-07-24
+Refonte du chrome de crise à partir des maquettes hi-fi (téléphone / tablette / ordinateur),
+conduite en lots vérifiés un à un, puis audit transverse. Chaque décision ci-dessous a été
+**mesurée** sur l'app réelle, pas seulement affirmée.
+
+### Ajouté
+- **Zone haute de crise** hors de `header.bar` : `#crisisBand` (le TITRE, information constante,
+  qui s'en va au défilement) et `#crisisDock` (l'ÉTAT VIVANT, rangée pleine largeur COLLANTE qui
+  ne quitte jamais l'écran). La hauteur d'en-tête reste constante — zéro saut, rien à inhiber sous
+  `prefers-reduced-motion`. **Ordre fixe `⤢ Plan · ▸ Consulter · ● Session · minuteurs`** : les
+  contrôles constants sont AVANT la partie variable, sans quoi ils glissent (constance
+  positionnelle ECAM).
+- **Feuille « Plan » plein écran** (`#planModal`) — trois affichages persistés : Détails, Échelle,
+  Schéma.
+- **Feuille « Consulter »** (`#refModal`) : surveillances, différentiels, schémas, documents,
+  références, voir aussi quittent la colonne d'action et s'ouvrent **en pull** (rangée de fin
+  d'action, bouton du quai, menu ⋯) — jamais d'ouverture automatique. Restent DANS le flux :
+  « Ne pas oublier », « △ À vérifier » et les repères posologiques (ce qui se consulte PENDANT un
+  geste reste près du geste ; ce qui se consulte ENTRE deux gestes part dans la feuille).
+- **Rail de lecture dès 780 px** : minuteurs → repères posologiques → Plan « Échelle » →
+  horodatage. Colonne **entièrement continue, sans aucun sous-défileur borné**.
+- **Rapprochement des repères posologiques** du bloc courant (`posoRank`/`posoSplit`) : troncature
+  (« Adré » trouve « Adrénaline ») et table des voies dans les deux sens (« IM » ↔
+  « intramusculaire »). Ce classement **RÉORDONNE, il ne FILTRE JAMAIS**.
+- **Trace de vérification** (Do-Verify) : `verified` et `vgaps`, **distincts de `checked`**.
+  Une passe laisse enfin un résultat consultable — « ✓✓ vérifié » (constaté par observation) et
+  « △ écart » qui **survit à la sortie** de la passe. Stocké dans la SESSION seulement : export v3
+  des fiches et format des clés inchangés.
+- **Trois harnais d'audit** (`npm run audit`) qui MESURENT au lieu d'affirmer : `audit-a11y.mjs`
+  (6 surfaces × 2 thèmes), `audit-doctrine.mjs` (ECAM/QRH/AC 120-71B en invariants observables),
+  `audit-verify.mjs`.
+
+### Modifié
+- **Liste d'étapes épurée** : la box parente à bord bleu porte l'emphase « ici l'action », donc les
+  étapes n'ont plus à être des boîtes elles-mêmes (ce double encadrement était la faute d'origine).
+  Lignes plates uniformes à filet fin ; une étape signalée est une **bande intégrée** (teinte +
+  liseré) qui file jusqu'aux bords du bloc. **Numéro `01/02/03` supprimé** (on coche dans n'importe
+  quel ordre, et les renvois →/↺ visent le numéro de BLOC, conservé). **Case à cocher à gauche**,
+  en colonne alignée au pixel — les listes cochables des protocoles l'avaient déjà à gauche, les
+  deux sont désormais cohérentes. Glyphe ⚠/△ obligatoire : sans lui, rouge et ambre ne se
+  distingueraient que par la teinte (WCAG 1.4.1).
+- **Repère posologique = registre AMBRE, jamais rouge.** L'app se contredisait : la doctrine range
+  « dose/dilution à vérifier » dans la vigilance et réserve le rouge à ce qui TUE si on l'oublie.
+  Résultat constaté : trois masses rouges d'égale valeur à l'écran, donc inflation du rouge. Un `⚠`
+  hérité reste LU et s'affiche en ambre — aucune migration de données.
+- **« ✓ Validé(e) » ne s'affiche plus là où la DATE de validation est visible** (la date dit la même
+  chose, en plus précis) ; sans date, la pastille reste. Les cartes affichent désormais la date.
+- **Prompt IA** : règle d'or « la couleur est l'exception » avec **plafond de 2 étapes colorées par
+  bloc, ⚠ + △ confondus** (souvent zéro) ; conséquences de la feuille Consulter et du rail sur la
+  rédaction ; format porteur des repères posologiques.
+- Bouton d'accès aux annexes nommé **« Consulter »** (abrégé « Cons. » sous 560 px — troncature du
+  même mot, jamais un autre nom).
+
+### Corrigé
+- **Une zone d'état n'ampute jamais un nombre** : `fmtMs` ne bornait pas les minutes (3 h 25
+  s'écrivait « 205:13 », illisible et assez large pour être rogné) → `h:mm:ss` au-delà de l'heure.
+  Le quai **ajuste par la mesure** : tant que ça déborde il retire un segment (qui repasse dans
+  « +n », donc annoncé), puis en dernier recours le chevron (décoratif) — jamais le « +n », jamais
+  un chiffre. Des seuils de largeur en dur avaient été essayés et se sont révélés faux.
+- **Débordement du quai jamais silencieux** : le « +n » n'était calculé qu'en étroit — à ≥ 780 px,
+  trois minuteurs échus n'en montraient que deux, le troisième disparaissait sans un mot.
+- **Ancrage et défilement** : `stickBase()` devient la source UNIQUE du « bas de ce qui est collé
+  en haut » (un saut déposait le bloc visé ~52 px SOUS le quai, donc masqué), et `scrollWithin`
+  remplace `scrollIntoView` pour toute navigation interne à un panneau (un renvoi tapé dans le rail
+  déplaçait la PAGE de 261 px).
+- **Verrou de fond des feuilles plein écran** (`.sheet-full`) à TOUS les pointeurs : la règle
+  existante était bornée au tactile, la page continuait donc de défiler derrière sur ordinateur.
+- **Un repère signalé n'est jamais replié — `⚠` ET `△`** : la protection ne testait que `⚠`, or la
+  doctrine v4.23.0 marque la posologie en `△` ; elle ne couvrait donc plus rien, et une dilution à
+  vérifier pouvait se replier.
+- **Accessibilité (audit) — écarts anciens que le rail a mis sous les yeux** : `.tm-label`
+  10,5 → 11 px ; cibles portées à 44 px (`.cn-btn`, `.tm-reset` — qui ÉCRASAIT le `min-height` de
+  `.cn-reset` —, `.rt-add`, `.tk-add`, `.pl-nd`, `.pl-lnk`, `.rail-exp`) ; `--line-strong` retiré
+  comme couleur de TEXTE (3,93:1) et `--primary` remplacé par `--link` en thème sombre (3,75:1).
+- Chevron dupliqué sur les cartes d'accueil ; variables mortes (`gallery`/`docs`/`refs`) du flux
+  fiche, orphelines depuis le déplacement vers la feuille Consulter.
+
 ## [4.22.5] — 2026-07-23
 ### Modifié
 - **Icône plus grande sur macOS** (retour d'usage : « nickel sur iPhone, plus petite sur le Mac »).

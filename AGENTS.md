@@ -36,6 +36,24 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   de vérité = le monofichier) — puis committer la régénération. `npm run design:check` échoue si
   `design/ds/` a dérivé du code (le CI le rejoue ; `release.sh` régénère automatiquement). Pousser
   le résultat vers le projet Claude Design distant reste un geste explicite (skill `/design-sync`).
+- `npm run audit` — **audit transverse (v4.23.0)**, à rejouer dès qu'on touche au chrome de crise,
+  au rail, aux feuilles Plan/Consulter ou à un token de couleur. Deux harnais Playwright qui
+  MESURENT au lieu d'affirmer (hors CI : plus lents, et un échec y demande un arbitrage humain,
+  pas un blocage de merge) :
+  - `scripts/audit-a11y.mjs` — 6 surfaces × 2 thèmes : plancher typographique 11 px, contraste
+    calculé sur le fond EFFECTIF (remontée des ancêtres + composition alpha, exemption « grand
+    texte »), cibles (44 px en crise, 24 px ailleurs, halo `::after` compté), `--soft` en couleur
+    de texte, « hors chemin » signalé par la seule opacité, et **focus visible sous de VRAIES
+    touches Tab** — un `.focus()` programmatique ne déclenche pas `:focus-visible` et produisait
+    des faux positifs en série. L'anneau est cherché sur l'élément ET ses ancêtres (motif
+    `.card:has(.card-open:focus-visible)` : le bouton pose `outline:none`, la CARTE porte
+    l'anneau, 3 niveaux plus haut) — mais sur un ancêtre on n'accepte QUE l'outline, son
+    `box-shadow` étant en général une élévation permanente qui masquerait un vrai défaut.
+  - `scripts/audit-doctrine.mjs` — ECAM/QRH/AC 120-71B traduits en invariants observables :
+    ordre du quai et position en px des boutons Plan/Réf. INCHANGÉS quel que soit l'état,
+    débordement annoncé, memory items dans le flux et non recopiés dans la feuille, feuille
+    Consulter inerte (0 coche, 0 démarrage), taper un nœud du plan ne démarre ni ne coche,
+    snackbar mis en attente en session, mouvement nul sous `prefers-reduced-motion`.
 - L'intégration continue (`.github/workflows/ci.yml`) rejoue check + tests + `design:check` sur
   chaque push/PR.
 
@@ -66,7 +84,17 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   (`--critical`), ATTENTION (`--verify`), INFORMATION (`--primary` : `.notice`, `#sysBanner`),
   CONFIRMATION (`--ok` : `.flow-end`, étape cochée), MEMO (neutre). Grammaire : bord gauche 4 px + bordure de la
   couleur sémantique ; la couleur n'est jamais seule. **Statuts achromatiques** : pilule `.status-tag` unique
-  pour les 3 états (✓ Validé(e) — affiché lui aussi depuis v4.5 —, △ À compléter, ○ Brouillon ;
+  pour les 3 états. **v4.23.0 — « ✓ Validé(e) » ne s'affiche PLUS là où la DATE de validation est
+  visible** (cartes et vues de lecture) : la date dit la même chose, en plus précis, et une carte
+  ne porte un statut que si elle ATTEND quelque chose (Brouillon, À relire, À compléter,
+  À revérifier). **CONDITION** : sans date, la pastille RESTE — sinon rien ne distinguerait une
+  fiche validée d'une fiche sans statut. `statusChip(st,fem,{validation})`, `opts.always` pour les
+  éditeurs et le badge d'en-tête où le statut est l'objet du réglage. (Le commentaire du code
+  décrivait cette règle depuis v4.5 sans que la fonction ait le paramètre pour l'appliquer, et
+  AGENTS.md affirmait le contraire : contradiction levée.) Les cartes affichent désormais la DATE
+  (elle en était absente) ; périmée > 2 ans = « △ À revérifier » (ex-« △ à revoir ») + date en
+  ambre. Le chevron d'ouverture EXISTAIT déjà (`uiIcon('chev')`) — ne pas en ajouter un second.
+  Anciennement (△ À compléter, ○ Brouillon ;
   tokens `--tag-bg`/`--tag-ink`) — la couleur reste réservée au danger et aux catégories
   (liserés de cartes ; sur les cartes d'accueil la pilule de catégorie est NEUTRE, la couleur
   ne vit que dans le liseré). Surfaces : bandeau système persistant (`#sysBanner`, INFO), snackbar
@@ -85,7 +113,23 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   le SVG, bascule ⚠ dans l'éditeur de blocs. **Doctrine d'usage (v4.2.2)** : rouge = ce qui TUE
   si on l'oublie (memory item, geste vital) ; ambre (`△`, vigilance) = là où l'on risque de SE
   TROMPER (dose/dilution à vérifier, contre-indication, confusion voie/site/produit, seuil) ;
-  une étape des deux registres → rouge. Le **gras est exclu des étapes** (texte déjà en gras à
+  une étape des deux registres → rouge.
+  **LISTE D'ÉTAPES — normal = LIGNE, signalé = BOÎTE (lot 8, v4.23.0, décision utilisateur ;
+  même doctrine app-wide que le rail et la posologie)** : `ol.steps li` normale est une LIGNE À
+  FILET (`border-top`), sans cadre, sans fond, sans liseré — et **sans le numéro `01/02/03`**
+  (retiré : on coche dans n'importe quel ordre, et les renvois →/↺ visaient le numéro de BLOC
+  `.ov-n`, conservé, jamais celui des étapes ; `counter` supprimé). Seule une étape `⚠`/`△` est
+  une BOÎTE teintée (`.crit`/`.vigil` : fond + cadre + liseré 3px + texte + **glyphe de tête**).
+  Ainsi la couleur RESSORT au lieu de se noyer dans des cadres partout — c'est ce qui règle le
+  « 3 étapes colorées sur 5 » (retour d'usage). **Le glyphe ⚠/△ est OBLIGATOIRE** (option `mark`
+  de `stepTxtHtml`, + étiquette `.sr-only`) : depuis que le normal est plat, `⚠` rouge et `△`
+  ambre ne se distingueraient QUE par la hue sans lui (WCAG 1.4.1) ; NON passé au mode lecteur
+  (`.vstp`, dont le `△` signifie « écart »). Étape COCHÉE = aplatie (plus de fond de boîte pour
+  une normale — la coche verte + texte grisé barré + opacité suffisent ; une étape signalée
+  cochée garde sa boîte au cadre vert doux). Le filet d'une ligne juste après une boîte est
+  supprimé (la boîte a déjà sa bordure basse), mais deux boîtes consécutives gardent chacune la
+  leur (`:is(.crit,.vigil)+li:not(.crit):not(.vigil)`). **Un REPÈRE POSOLOGIQUE est toujours ambre** (jamais rouge,
+  v4.23.0) : c'est une référence, pas un geste — cf. la règle détaillée au rail. Le **gras est exclu des étapes** (texte déjà en gras à
   l'affichage — le relief passe par le TYPE d'étape) ; il reste disponible dans les listes.
   Le cochage passe au **vert `--ok`** et
   « Continuer » au registre CONFIRMATION quand tout le bloc est coché. Les éditeurs offrent un
@@ -96,6 +140,14 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   un brouillon interrompu est proposé en « fantôme » (carte « Reprendre le brouillon » du
   dialogue Créer, lien « Repartir de la version enregistrée ») ; badge d'état
   « auto-enregistré » (+ « · synchro en attente » si le push a échoué).
+- **Liseré gauche 4 px — DÉCISION DE NE PAS TOUCHER (v4.23.0)** : le bord gauche épais des cartes
+  (`.ov-block`, `.notice`, `.last-sess`, cartes d'accueil…) est une SIGNATURE partagée, et sur
+  `.ov-block` sa COULEUR porte l'état (neutre = à venir, bleu = ici, vert = fait, ambre = décision).
+  Objection soulevée et RETENUE comme fondée : sur le bloc COURANT (`.cur`) toute la bordure passe
+  déjà au bleu, donc les 4 px de gauche n'ajoutent alors aucune information et ne produisent qu'une
+  asymétrie. **Statu quo décidé par l'utilisateur** : uniformiser sur le seul bloc courant casserait
+  la signature partagée avec les autres cartes. Ne pas « corriger » cette asymétrie sans rouvrir la
+  question sur TOUTES les surfaces à la fois.
 - **Parcours de soin (v4.4.0)** : la vue lecture d'une fiche est structurée par un rail vertical
   numéroté (`<ol class="care-path">`, `aria-current="step"`) — ① **Confirmer le diagnostic**
   (ex-bloc repliable « Confirmation diagnostique », son en-tête EST le titre d'étape :
@@ -242,6 +294,20 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   la passe redéroule TOUTES les étapes (déjà cochées comprises) — « Constaté ✓ » coche la
   MÊME clé, « △ Écart » avance SANS cocher et ne DÉCOCHE JAMAIS (la coche est la trace ;
   décocher = geste manuel dans le parcours) ; résumé final = liste des non-cochées.
+  **TRACE DE VÉRIFICATION (v4.23.0, retour d'usage « une fois vérifié on ne sait plus ce qu'on a
+  vérifié »)** : `Runtime.verified` et `Runtime.vgaps` sont des états **DISTINCTS de `checked`**.
+  Avant, « Constaté ✓ » écrivait la MÊME clé que le cochage et `vf.gaps` était JETÉ à la sortie :
+  une étape cochée à l'exécution devenait indiscernable d'une étape CONSTATÉE par observation, et
+  un « △ Écart » d'une étape jamais atteinte — or c'est précisément la distinction que la seconde
+  passe existe pour produire (AC 120-71B : en do-verify la réponse vient de l'état CONSTATÉ, pas du
+  souvenir d'avoir fait le geste ; la circulaire ne prescrit en revanche AUCUN modèle de données —
+  le choix d'enregistrer la trace est une décision de conception, pas une exigence littérale).
+  Rendu durable : pilule « ✓✓ vérifié » / « △ écart » sur la ligne. Un geste MANUEL invalide la
+  trace (cocher lève l'écart, décocher retire la constatation) — et comme le cochage est
+  CHIRURGICAL (sans re-rendu), le marqueur doit être repeint sur place par `paintStepTrace`, sinon
+  il reste périmé à l'écran alors que l'état est juste (défaut trouvé par `scripts/audit-verify.mjs`).
+  Portée : stocké dans la SESSION seulement — l'export v3 des fiches et le format des clés
+  (`seq:blocId:index`) sont inchangés ; un client antérieur ignore les deux champs.
   **Mode lecteur** (binôme, plein écran `#readerMode`, statique + délégation unique) : un
   challenge à la fois (26 px, réponse mono 20 px, zone verte ≥ 72 px), piloté sur le BOUT du
   journal — « Répondu » coche la même clé, fin de bloc = mêmes règles que « Continuer »
@@ -403,11 +469,182 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   doigt (bug v4.3.2, en pire). Le repli n'appartient qu'aux gestes qui l'ACQUITTENT : le bouton
   « Confirmé — démarrer la session » et la première navigation « Continuer → ».
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
-  l'accueil, minuteurs de crise segmentés `#cbTimers` avec chrono **GLOBAL** — temps écoulé
-  depuis la 1ʳᵉ action de session, décision produit —, badge de statut, Créer, thème, compte) ;
-  en crise, bandeau TITRE teinté au registre ALERTE (`#crisisBand`, titre permanent +
-  « ■ MODE CRISE »). Le sélecteur de section vit dans la tab bar basse (< 780) ou la colonne
-  gauche (≥ 780), jamais dans la barre. **Menu ⋯ (v4.5)** : en lecture, toutes les actions
+  l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
+  section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.
+- **ZONE HAUTE DE CRISE (v4.23.0)** : deux éléments **hors de `header.bar`**, frères directs de
+  `.app`, aux comportements délibérément opposés — `#crisisBand` (le TITRE, information
+  **CONSTANTE**) vit dans le flux et s'en va au défilement, `#hdrCrisis` en prenant le relais
+  dans la rangée d'identité au pixel MESURÉ où il passe sous la barre ; `#cbTimers` (l'ÉTAT
+  VIVANT — minuteurs segmentés, chrono **GLOBAL** = temps écoulé depuis la 1ʳᵉ action de
+  session, segment échu en ambre, « +n » en fin) est une rangée **pleine largeur COLLANTE**
+  (`top:var(--hdr-h)`, hauteur d'en-tête mesurée par `syncHdrScroll` ÷ `zoomF()`) qui ne quitte
+  jamais l'écran — donc **aucun chrono miniature dans la barre** (une version condensée y était
+  illisible, retour d'usage). Le quai `#crisisDock` porte aussi l'accès permanent **⤢ Plan**.
+  `#crisisDock` est un frère de `.app`, JAMAIS un enfant du bandeau : un élément collant ne colle
+  que dans les bornes de son bloc conteneur.
+  **ORDRE FIXE `⤢ Plan · ● Session · minuteurs` (ECAM — invariant à ne jamais casser)** : Plan et
+  Session sont AVANT la partie variable (les minuteurs). C'est **géométrique** : un contrôle placé
+  APRÈS un nombre variable de minuteurs ne peut rester immobile qu'ancré au bord (→ vide central
+  qui varie) ou avec des créneaux réservés vides (→ trou) ; placé AVANT, il est immobile ET sans
+  vide, les minuteurs coulant à sa droite (le blanc part au bord droit — barre d'outils normale).
+  Plan est 1ᵉʳ (constant), Session 2ᵉ (constant car Plan a une largeur fixe), les minuteurs
+  suivent. La règle cardinale d'une zone de statut ECAM est la CONSTANCE POSITIONNELLE : on
+  apprend où regarder, l'œil y va sans lire. NE PAS remettre Plan à droite « pour la logique
+  d'action » : il se remettrait à glisser (bug corrigé v4.23.0), et le vide central marronnait les
+  deux extrémités (proximité Gestalt rompue — retour d'usage). L'alarme n'a pas besoin de la 1ʳᵉ
+  place, elle a déjà teinte ambre + mot « échu » + flash + son. Piège CSS résolu :
+  `.seg:first-child{border-left:0}` (le filet des bandes étroites) l'emportait en spécificité sur
+  la carte `border:1px` ≥ 780 → la 1ʳᵉ carte paraissait coupée à gauche ; la suppression est
+  bornée à `< 780 px`.
+  **RÉPARTITION QUAI / RAIL** : `.dock-in` plafonne le contenu à 1282 px et le centre sur la
+  grille de la vue lecture ; à partir de **780 px** les segments deviennent des CARTES détachées,
+  bordées sur leurs 4 côtés (contour neutre — seule l'échue prend le registre ATTENTION : une
+  bande de statut ne se colore pas) et le cluster `⤢ Plan · ● Session · minuteurs` se groupe à
+  gauche, le blanc au bord droit ; **dès 780 px (`mqRail`, PAS 1000 — la doc l'a affirmé à tort
+  jusqu'en v4.23.0 : le seuil suit le RAIL, descendu à 780 au lot 5)** le quai ne garde QUE Plan, le
+  chrono de session et le minuteur ÉCHU — les minuteurs nominaux vivent dans le rail, les répéter ferait deux
+  sources pour la même valeur. La redondance de l'ALARME à deux endroits est voulue, celle du
+  nominal non. **Débordement JAMAIS silencieux (ECAM ; corrigé par l'audit du lot 7)** : le `+n`
+  n'était calculé qu'en étroit — à ≥ 1000 px, trois minuteurs échus n'en montraient que deux et
+  le troisième disparaissait sans un mot d'une zone d'ÉTAT. Le décompte suit désormais la liste
+  réellement affichée (`pool` = les échus en large, tous les minuteurs en étroit). Que le rail
+  droit les affiche en grand ne suffit pas : il DÉFILE, donc le 3ᵉ peut être sous la ligne de
+  flottaison — une zone de statut annonce ce qu'elle cache, toujours. Le rail et cette réduction
+  sont pilotés par LA MÊME media query (`mqRail` = `wideRead`) : les minuteurs ne peuvent donc
+  jamais disparaître des deux endroits à la fois — invariant à préserver si l'un des deux bouge.
+  **UNE ZONE D'ÉTAT N'AMPUTE JAMAIS UN NOMBRE (v4.23.0, retour d'usage)** : `fmtMs` ne bornait pas
+  les minutes (3 h 25 s'écrivait « 205:13 » — illisible, et assez large pour être rogné) ; il passe
+  en `h:mm:ss` au-delà de l'heure, `mm:ss` inchangé en dessous. Et le quai AJUSTE PAR LA MESURE :
+  on écrit, et tant que ça déborde on retire un segment (il repasse dans « +n », donc annoncé),
+  puis en dernier recours le CHEVRON (décoratif, `aria-hidden`) — jamais le « +n », jamais un
+  chiffre. Des seuils de largeur en dur avaient été essayés et se sont révélés FAUX (320 et 430
+  débordaient encore) ; la décision mesurée est mémorisée sur une clé (largeur + nombre de
+  caractères, chiffres tabulaires) et n'est donc pas recalculée à chaque seconde. Le libellé du
+  bouton s'abrège en « Cons. » sous 560 px — TRONCATURE du même mot, jamais un autre mot (« Réf. »
+  a été retiré pour cette raison : deux noms pour un bouton, « on s'y perd ») — et le rembourrage
+  des pastilles « +n »/chevron (des `<span>` DANS le bouton, jamais tapables seuls, donc non
+  soumis à la règle des 44 px) est resserré : c'est ce qui rend la place d'un segment de minuteur
+  à 390 et 430 px. **Piège de cascade rencontré une seconde fois** : cette media query doit être
+  déclarée APRÈS la règle de base de `.cbt-n` — placée avant, à spécificité égale, elle était
+  silencieusement sans effet.
+  **Pourquoi hors de l'en-tête** : un en-tête qui se replie raccourcit son propre encombrement
+  de flux et fait remonter tout le contenu d'un coup. Ici la hauteur d'en-tête est CONSTANTE —
+  zéro saut, zéro compensation de scroll, rien à inhiber sous `prefers-reduced-motion` (le seul
+  mouvement est le geste de défilement : même doctrine que le fil d'ancêtres collant v4.22.1).
+  Corollaire : toute couche collante ajoutée en haut doit entrer dans la base d'épinglage
+  d'`ovPlanPin` (`max` des bas de l'en-tête et de `#cbTimers`), sinon les cartes-questions du
+  plan passent dessous.
+  **BANDEAU BLANC** (décision utilisateur, ECAM) : un bandeau d'état **permanent** teinté en
+  rouge désensibilise au rouge — la couleur est réservée aux alertes RÉELLES (minuteur échu en
+  ambre, étapes critiques en rouge). Le statut s'annonce en TEXTE : « ■ Mode crise » (glyphe +
+  libellé + encre `--critical`), jamais un aplat. Ne pas « corriger » en re-teintant le fond.
+- **RAIL DE LECTURE dès 780 px (v4.23.0, décision utilisateur « action + structure de front »)** :
+  la largeur suffit à tenir la colonne d'ACTION et le rail d'ORIENTATION côte à côte — l'idéal
+  ECAM (E/WD et SD simultanés). Contenu, de haut en bas : **minuteurs ÉPINGLÉS** → **Plan
+  « Échelle »** (seule partie qui peut être longue, donc la seule qui défile ; `⤢ complet` ouvre
+  la feuille Plan) → **repères posologiques** (déjà classés pour le bloc courant).
+  **UNE COLONNE ENTIÈREMENT CONTINUE — AUCUN SOUS-DÉFILEUR** (v4.23.0, trois retours d'usage).
+  Étape 1 — un défileur unique : une Échelle longue ou des minuteurs nombreux repoussaient la
+  posologie tout en bas. Étape 2 — trois zones bornées défilant chacune sur elle-même : la
+  posologie n'était plus repoussée, mais chaque section devenait un HUBLOT (minuteurs à 132 px
+  pour 1559 px de contenu) et on perdait la vue d'ensemble. Étape 3 — une seule section bornée
+  (les minuteurs) : **le compteur et le bouton « ＋ Minuteur PA » ont DISPARU de l'écran** —
+  327 px affichés pour 413 px de contenu, et la barre de défilement étant invisible au repos
+  (macOS/iOS), rien ne signalait la troncature.
+  **LEÇON À NE PAS REPERDRE : dans une colonne déjà défilante, un sous-conteneur borné ne « range »
+  pas, il ESCAMOTE.** Le rail est donc une colonne entièrement continue, et le seul dispositif
+  retenu contre l'enterrement de la posologie est l'**ORDRE** : minuteurs → posologie → Échelle →
+  horodatage, c'est-à-dire **ce qui est de longueur ILLIMITÉE en DERNIER**. Avec beaucoup de
+  minuteurs on défile le rail — c'est normal, et la posologie reste par ailleurs joignable sans
+  défilement par la feuille Consulter (`▸ Réf.` du quai). Ne jamais réintroduire de `max-height` +
+  `overflow` sur une section du rail.
+  **ANNONCE DU TOTAL (`.rail-n`) — exigence ECAM** : chaque en-tête de zone porte le nombre total
+  d'éléments. Les barres de défilement sont invisibles au repos (macOS/iOS) : sans ce compte, une
+  zone tronquée **paraît complète**, ce que l'ECAM interdit (il signale toujours son débordement).
+  Même vocabulaire que « +n » du quai et « n autres repères ». Ne pas retirer ces comptes.
+  Vérifié à 6 minuteurs + 8 repères, de 900 px à 560 px de haut et jusqu'au réglage de texte le
+  plus grand : 1ʳᵉ carte de posologie entièrement lisible partout, aucun contenu perdu, focus
+  atteignable en fin de chaque zone. Largeurs **300 / 320 (≥ 1000) / 360
+  (≥ 1200)** ; la checklist reste plafonnée à **860 px** — la règle de largeurs n'est pas amendée,
+  le rail prend l'espace EXCÉDENTAIRE.
+  **DEUX SEUILS DISTINCTS, à ne pas refusionner** : `mqRail` (780) = rail de LECTURE ; `mqReadWide`
+  (1000) = aperçu en direct des ÉDITEURS (règle v4.5 inchangée). Ils partageaient la même règle
+  `.read-grid`, d'où la scission par classe de vue. **Piège de cascade rencontré** : la règle du
+  palier 1200 est déclarée en tête de fichier (§ LARGEURS) et perdait contre le bloc 1000 ajouté
+  plus bas à spécificité égale — elle est RÉAFFIRMÉE après ; toute nouvelle règle `.read-grid`
+  doit vérifier cet ordre.
+  **REGISTRE D'UN REPÈRE POSOLOGIQUE = AMBRE, JAMAIS ROUGE (v4.23.0, décision utilisateur)** :
+  la doctrine v4.2.2 range explicitement « dose/dilution à vérifier » dans le registre VIGILANCE
+  (`△`, là où l'on risque de SE TROMPER) et réserve le rouge à ce qui TUE SI ON L'OUBLIE (memory
+  item, geste vital). L'app se contredisait : elle offrait « ⚠ = carte au registre ALERTE » sur
+  les repères. Résultat constaté à l'écran — trois masses rouges d'égale valeur (chapeau + deux
+  repères) : **inflation du rouge**, les memory items perdaient leur prééminence. C'est aussi la
+  règle ECAM : une valeur hors limites est une CAUTION ambre, un WARNING rouge appelle une action
+  immédiate. Une dose est une RÉFÉRENCE, pas une action.
+  Donc : `.pos-card.vig` (ambre) remplace `.pos-card.crit` ; la bascule de l'éditeur écrit `△` et
+  n'offre plus `⚠` ; l'amorce IA l'impose aussi. **Compatibilité ascendante** : un `⚠` hérité
+  d'une fiche antérieure reste LU comme un signalement et s'affiche en ambre — rien n'est perdu,
+  aucune migration de données. **Une seule masse rouge par écran** (le chapeau « Ne pas oublier » ;
+  les étapes vitales du journal en sont l'autre, mais ce sont des GESTES).
+  **REPÈRES DU RAIL — chrome désaturé, registre CONSERVÉ** : doctrine ECAM appliquée finement — on
+  calme la PRÉSENTATION, jamais la sémantique d'une donnée anormale. Les repères ordinaires sont
+  des LIGNES (ni cadre, ni fond, nom en `--ink` et non en bleu : le bleu est l'accent d'ACTION, il
+  n'a rien à faire dans une colonne qui oriente) ; un repère **`⚠` garde sa carte teintée et son
+  encre rouge** — une erreur de dilution tue, c'est une alerte sur la donnée. Le contraste entre
+  les deux devient ainsi porteur de sens au lieu d'être uniforme, et des lignes tiennent bien moins
+  de place que des cartes (85 px → 58 px, mesuré). **La DOSE reste en encre pleine** : la hiérarchie
+  avec le nom passe par la GRAISSE, jamais par l'encre — adoucir un dosage serait l'inversion à ne
+  pas faire (erreur commise puis corrigée en v4.23.0).
+  **ÉCHELLE DÉSATURÉE (`.rail-lad`)** : le rail oriente, la colonne agit. S'il reprenait les
+  aplats bleus/verts/ambre de l'action, deux surfaces se disputeraient le regard au même niveau de
+  saillance. L'état n'y est plus porté que par le **marqueur** (✓ vert, ● bleu, ⑂ ambre) —
+  l'information reste intégralement, seule la compétition disparaît. Le « hors chemin » n'y est
+  **pas** en `opacity` (un texte à 50 % tombe sous AA) mais en encre douce + la **mention en
+  toutes lettres**. Lignes à 44 px (cible de navigation). Même `flowPlan`, même numérotation
+  commune, même `minimapData` : aucune seconde source de vérité.
+  `--stick-top` (posée par `syncHdrScroll`) = bas de tout ce qui est déjà collé en haut (en-tête +
+  quai) : le rail s'y accroche, sinon il passerait sous le quai.
+- **ANCRAGE ET DÉFILEMENT (v4.23.0, deux bogues corrigés — retour d'usage « le scroll n'est pas
+  bon du tout »)** : `stickBase()` est la **source UNIQUE** du « bas de ce qui est collé en haut »
+  (en-tête + `#crisisDock`) — consommée par `ovScrollEl`, `syncHdrScroll` (`--stick-top`) et
+  `ovPlanPin`. `ovScrollEl` ne comptait que la hauteur de l'en-tête : depuis le quai, tout saut
+  déposait le bloc visé ~52 px **sous** le quai, donc masqué. Toute nouvelle couche collante en
+  haut doit entrer dans `stickBase()`, nulle part ailleurs.
+  **`scrollWithin(box,el)` remplace `scrollIntoView` pour toute navigation INTERNE à un panneau**
+  (renvois du rail et de la feuille Plan, ciblage de section de la feuille Consulter) :
+  `scrollIntoView` remonte TOUS les ancêtres défilables — mesuré, un renvoi tapé dans le rail
+  déplaçait la PAGE de 261 px pendant que la zone du rail ne bougeait pas. `scrollWithin` n'écrit
+  que le `scrollTop` du conteneur visé.
+- **FEUILLE « CONSULTER » (v4.23.0, `#refModal`)** : la couche de CONSULTATION quitte la colonne
+  d'action — différentiels, schémas, documents, références, voir aussi. Accès en **PULL** : rangée
+  `#annexRow` en fin d'action, bouton `▸ Réf.` du quai, menu ⋯ ; **jamais d'ouverture automatique**
+  (seule l'alarme pousse). **PAS de copie du chapeau « Ne pas oublier »** (décision utilisateur,
+  v4.23.0) : il est déjà en tête de fiche, entier et jamais replié ; un pavé rouge rouvert à chaque
+  consultation repoussait ce qu'on vient réellement y chercher (une dose, un différentiel) sans
+  rien apporter. Feuille plein écran `.sheet-full` (mêmes garanties que le Plan : verrou
+  de fond tous pointeurs, focus, Échap, retour au pixel) ; elle vit HORS de `main`, donc survit aux
+  re-rendus — d'où le re-câblage local de `[data-att]`/`[data-openrel]`/`img[data-full]` dans
+  `renderRefSheet`.
+  **CE QUI NE PART JAMAIS (AC 120-71B)** : le chapeau « Ne pas oublier », « △ À vérifier » (③) et
+  les **repères posologiques** restent DANS LE FLUX — la feuille n'en porte qu'une COPIE (même
+  source, aucune divergence possible). Critère : ce qui se consulte PENDANT un geste reste à côté
+  du geste ; ce qui se consulte ENTRE deux gestes part dans la feuille. La NOTE personnelle reste
+  aussi dans le flux : seul bloc à état éditable (son bouton re-rend la vue et restaure le
+  défilement — logique de flux). Le lien « Tableau atypique ? » de l'étape ① **doit** atterrir
+  directement sur les différentiels dépliés (`openRefSheet('diff')`) : sans ce ciblage on
+  remplacerait un accès direct par une chasse au trésor.
+- **REPÈRES POSOLOGIQUES — rapprochement du bloc courant (v4.23.0)** : `posoRank`/`posoSplit`
+  **RÉORDONNENT, ne FILTRENT JAMAIS**. C'est cette garantie qui autorise un rapprochement
+  volontairement permissif — troncature (« Adré » trouve « Adrénaline », préfixe ≥ 4 caractères) et
+  table des voies dans les deux sens (« IM » ↔ « intramusculaire », `POSO_SYN`/`POSO_PHRASE`). Un
+  faux positif coûte un rang, un faux négatif un défilement, **jamais une dose manquante** — un
+  filtre silencieux ferait disparaître un repère à l'instant où on le cherche. Liste > 3 : le reste
+  se replie derrière un `<details>` qui **annonce son nombre** (un pli muet serait un filtre
+  déguisé) ; un repère **SIGNALÉ n'est JAMAIS replié — `⚠` ET `△`** (piège trouvé par l'audit du
+  lot 7 : `crit` ne testait que `stepIsCrit`, or la doctrine v4.23.0 réserve `⚠` aux ACTIONS et
+  marque la posologie en `△` ; la protection ne couvrait donc plus RIEN, et une dilution à
+  vérifier — motif même du registre — pouvait se replier) ; sans rapprochement l'ordre de
+  l'auteur est conservé. Source unique `posoCardsHtml` partagée par le flux et la feuille. **Menu ⋯ (v4.5)** : en lecture, toutes les actions
   secondaires (Modifier, Versions, Dupliquer, Export .json, Exporter en PDF, Historique des
   sessions, Terminer la session… — rangée `danger` en dernier, séparateurs entre groupes)
   vivent dans le menu ⋯ de la barre — il remplace les anciennes barres « Autorat » de bas de
@@ -428,7 +665,15 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   éditeurs = actions dans la barre (Enregistrer à droite), AUCUN pied d'éditeur ; crise = une
   seule zone fixe en haut, jamais en bas. Plancher typographique **11 px** (app consultée sous
   stress : rien en dessous, nulle part) ; cibles tactiles ≥ 44 px (halo sur les contrôles 36 px
-  de la barre).
+  de la barre). **Corrigés par l'audit v4.23.0** — des écarts ANCIENS, que le rail a mis sous
+  les yeux : `.tm-label` 10,5 → 11 px ; `.cn-btn` 38 → 44 ; `.tm-reset` 36 → 44 (il ÉCRASAIT le
+  `min-height:44px` de `.cn-reset` — un override plus tardif suffit à annuler une règle de
+  sûreté, sans que rien ne le signale) ; `.rt-add` 38 → 44 ; `.tk-add` → 44 ; `.pl-nd` 41 → 44 ;
+  `.pl-lnk` 32 → 44 ; `.rail-exp` 40 → 44. **Règle de token qui se laisse oublier** :
+  `--line-strong` et `--soft` visent 3:1 (BORDURES) — en couleur de TEXTE ils échouent à 4,5:1
+  (`.annex-row .ax-ch` mesuré à 3,93:1) ; et en SOMBRE `--primary` est un remplissage (3,75:1 en
+  texte), l'accent TEXTE est `--link` (= `--primary-dk`), seul admis pour un numéro ou un
+  libellé accentué.
 - **Saillance & registres (audit v4.0.3)** : **un seul bouton rempli** (`--primary` plein) par
   écran — si deux actions coexistent, la moins critique passe en tonal (`--primary-soft`,
   cf. `.btn-new.tonal` : « Créer » s'efface quand « Reprendre » est affiché). **Un seul registre
@@ -564,5 +809,5 @@ modèle de données, règles de sécurité) : le lire en premier. Ensuite, dans 
 | Protocoles | `blankProtocol`/`migrateProtocol` (point d'entrée sécurité/compat), `renderProtocols`/`renderProtocolRead`/`renderProtocolEdit`, sélecteur de section dans l'en-tête (`#hdrSec` statique, `state.section`) |
 | Export / Import | JSON `version: 3` + conteneur `.zip` « avec documents » (`zipBuild`/`zipParse` maison, `importAtts`) ; règles de rétrocompatibilité documentées sur place |
 | Compte & synchro | `Auth` (OTP e-mail), `Sync` (pull/push local-first), fenêtres associées |
-| Accessibilité | gestion centralisée des modales (focus, Échap, Tab ; v4.21.0 : verrou du défilement de fond `_bgLock`/`_bgUnlock` — `body.modal-open` figé en place au toucher + `overscroll-behavior:contain` sur `.ai-modal`, position restaurée au pixel à la dernière fermeture) |
+| Accessibilité | gestion centralisée des modales (focus, Échap, Tab ; v4.21.0 : verrou du défilement de fond `_bgLock`/`_bgUnlock` — `body.modal-open` figé en place au toucher + `overscroll-behavior:contain` sur `.ai-modal`, position restaurée au pixel à la dernière fermeture). **v4.23.0** : une fenêtre marquée `.sheet-full` (OPAQUE et plein écran, ex. feuille Plan) verrouille le fond à **TOUS les pointeurs** (`body.modal-full`) — la restriction au toucher n'existe que parce que figer `body` au pointeur fin décale le fond visible AUTOUR d'un petit dialogue ; une feuille opaque ne laisse rien voir du fond, et sans verrou la page continue de défiler derrière (constaté sur ordinateur) |
 | Mode test | hook `?__actest` : expose les fonctions pures pour `tests.html` |

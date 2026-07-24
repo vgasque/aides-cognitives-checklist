@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-nPqIXV9zctsand11XZp2xFoTqPIbqxB6qisuAv/V+rc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-tRheoqKCFWYYnlR09Ci6gzfWa374YbW54v8uOqmiFts='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -458,8 +458,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   }
   .id-row .brand{flex:0 1 auto}
   header.bar:not(.home) .id-row .brand{flex:1}
-  /* En crise, la marque s'efface : le bandeau titre (2e rangée) porte l'identité de la vue. */
-  header.bar.crisis .brand{display:none}
+  /* En crise, la marque s'efface tant que la zone haute est visible : c'est #crisisBand qui porte
+     l'identité de la vue. UNE FOIS DÉFILÉE (.ttl-on, v4.23.0), le bloc revient pour porter
+     #brandTitle — le titre de la fiche n'est donc jamais absent, seulement porté par l'un ou
+     l'autre (jamais les deux : les règles .titled masquent alors .brand-name). */
+  header.bar.crisis:not(.ttl-on) .brand{display:none}
+  header.bar.crisis #brandSub{display:none}
+  /* (Le titre condensé tenait auparavant dans ~76px à 390px, parce qu'un chrono miniature lui
+     disputait la rangée. Ce chrono n'existe plus — la rangée de minuteurs est collante — et le
+     titre dispose de ~136px à 360px : il reste donc affiché à TOUTES les largeurs.) */
+  @media (max-width:429.98px){body.view-read header.bar.crisis .id-row{gap:8px 7px}}
   /* Groupe d'actions à droite de la rangée principale (V5) : minuteurs, badge, Créer, thème, compte. */
   .hdr-acts{display:flex;align-items:center;gap:8px;margin-left:auto;flex:0 1 auto;min-width:0}
   /* Boutons de la rangée principale (V5). Retour : vues internes (fiche, protocole, éditeurs). */
@@ -516,8 +524,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .hdr-act2[hidden]{display:none}
   .hdr-act2:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* Invariant SPEC §7 : cible tactile >= 44px sur les contrôles 36px de la barre (halo). */
-  :is(.hdr-new,.hdr-theme,.hdr-act2,.bar-acct){position:relative}
-  :is(.hdr-new,.hdr-theme,.hdr-act2,.bar-acct)::after{content:"";position:absolute;inset:-4px}
+  /* .hdr-back ajouté v4.23.0 : mesuré à 40px de haut, sous les 44px exigés d'un contrôle du mode
+     crise (défaut antérieur au lot — le halo existait pour ses voisins, pas pour lui). */
+  :is(.hdr-new,.hdr-theme,.hdr-act2,.bar-acct,.hdr-back){position:relative}
+  :is(.hdr-new,.hdr-theme,.hdr-act2,.bar-acct,.hdr-back)::after{content:"";position:absolute;inset:-4px}
   .hdr-badge{flex:none;font-size:11px;font-weight:700;background:var(--surface-3);color:var(--ink-soft);border-radius:10px;padding:3px 10px;white-space:nowrap;max-width:34vw;overflow:hidden;text-overflow:ellipsis}
   .hdr-badge[hidden]{display:none}
   /* Recherche FIXE dans l'en-tête (accueil, V5, canvas turn 6) : en ligne dans la rangée en
@@ -538,31 +548,128 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #homeChrome .catbar{margin-bottom:0}
   /* V5 : bandeau TITRE du mode crise — le titre de la fiche vit ici en permanence (toujours
      lisible en crise, canvas turn 6), « ■ MODE CRISE » à droite, registre ALERTE, bord à bord. */
-  #crisisBand{order:8;width:calc(100% + 36px);margin:2px -18px -8px;min-height:44px;padding:8px 18px 9px;background:var(--critical-soft);color:var(--ink);border-top:1px solid var(--critical-line);display:flex;align-items:center;gap:10px;animation:cbIn .3s ease}
+  /* ZONE HAUTE DE CRISE (v4.23.0) — deux éléments, deux comportements, hors de l'en-tête :
+       #crisisBand  = le TITRE. Information CONSTANTE -> il vit dans le flux et s'en va au
+                      défilement ; #hdrCrisis en prend le relais dans la rangée d'identité.
+       #cbTimers    = l'ÉTAT VIVANT (session, minuteur échu). Information qui CHANGE -> rangée
+                      COLLANTE sous l'en-tête, elle ne quitte jamais l'écran. C'est la zone de
+                      statut permanente de l'ECAM : ce qui bouge reste sous les yeux, et il n'y
+                      a donc AUCUN chrono condensé à loger dans la barre (une version miniature
+                      y était illisible — retour d'usage).
+     Ni l'un ni l'autre n'est DANS header.bar : un en-tête qui se replie raccourcit son propre
+     encombrement de flux et fait remonter tout le contenu d'un coup. Ici la hauteur d'en-tête
+     est CONSTANTE, le bandeau glisse dessous et la rangée se cale — aucun saut, aucune
+     compensation de scroll à écrire, rien à inhiber sous prefers-reduced-motion (le seul
+     mouvement est le geste de défilement : compositeur, réversible au pixel — même doctrine
+     que le fil d'ancêtres collant, v4.22.1).
+     BANDEAU BLANC (décision utilisateur) : un bandeau d'état PERMANENT teinté en rouge
+     désensibilise au rouge. L'ECAM réserve la couleur aux alertes RÉELLES — ici le minuteur
+     échu (ambre) et les étapes critiques (rouge) ; le statut, lui, s'annonce en TEXTE. Le rouge
+     du mode crise ne subsiste donc que dans le libellé « ■ Mode crise » et son glyphe. */
+  #crisisBand{min-height:44px;padding:9px 18px 10px;background:var(--surface);color:var(--ink);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;animation:cbIn .3s ease}
   #crisisBand[hidden]{display:none}
-  header.bar.crisis{border-bottom:2px solid var(--critical)}
+  /* Étiquette d'état condensée : n'apparaît que quand le bandeau est passé dessous (.ttl-on) —
+     l'annonce « mode crise » n'est donc jamais absente, seulement portée par l'un ou l'autre. */
+  .hdr-crisis{display:none;flex:none;font-size:11px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:var(--critical);white-space:nowrap}
+  header.bar.ttl-on .hdr-crisis:not([hidden]){display:inline}
   #crisisBand .cb-ttl{flex:1;min-width:0;font-size:18px;font-weight:800;letter-spacing:-.2px;line-height:1.15;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   #crisisBand .cb-tag{flex:none;font-size:11px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:var(--critical)}
-  /* Segments minuteurs de l'en-tête de crise (V5) : étiquette au-dessus du temps, GLOBAL = chrono
-     de session (démarre à la 1ʳᵉ action), segment échu en ambre ; tap -> remonte au panneau. */
-  #cbTimers{position:relative;margin-left:auto;flex:0 1 auto;min-width:0;display:inline-flex;align-items:stretch;background:var(--surface);border:1px solid var(--line-strong);color:var(--ink);border-radius:9px;padding:0;min-height:40px;font-family:inherit;cursor:pointer;overflow:hidden}
-  /* Zone de tap >= 44px (règle « contrôle du mode crise ») : halo cliquable. */
-  #cbTimers::after{content:"";position:absolute;inset:-4px}
+  /* QUAI DE CRISE (v4.23.0, canvas 2a/3a) : rangée PLEINE LARGEUR et COLLANTE sous l'en-tête.
+     Elle porte l'état vivant (minuteurs) et l'accès permanent au Plan — les deux choses qui
+     doivent rester joignables où que l'on soit dans le journal.
+     52px de haut : chaque cible dépasse les 44px exigés d'un contrôle du mode crise.
+     --hdr-h : hauteur RÉELLE de l'en-tête, mesurée et posée par syncHdrScroll (elle varie avec
+     l'encoche, la taille du texte et la rotation — une constante aurait laissé le quai flotter
+     sous la barre ou passer dessous). Un top:0 le ferait glisser SOUS l'en-tête.
+     z-index 15 : au-dessus du contenu, sous l'en-tête (20) et sous les modales (55). */
+  #crisisDock{position:sticky;top:var(--hdr-h,64px);z-index:15;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:0 1px 3px rgba(16,27,40,.05)}
+  #crisisDock[hidden]{display:none}
+  /* Le BANDEAU est pleine largeur (c'est une bande de statut), mais son CONTENU est plafonné et
+     centré sur la même grille que la vue lecture (1282px) : sans ça, à 1280px les segments en
+     flex:1 s'étiraient à ~640px chacun et les chiffres se retrouvaient aux deux bouts de l'écran
+     — l'œil devait balayer, l'inverse d'une bande de statut. */
+  .dock-in{display:flex;align-items:stretch;width:100%;max-width:1282px;margin:0 auto}
+  /* Sans session, le quai ne porte AUCUN statut (minuteurs masqués) : ce n'est plus une bande
+     de statut mais une simple barre de navigation. Les boutons ne doivent pas être étirés d'un
+     bord à l'autre — on les centre avec une petite marge. Avec session (#cbTimers visible), les
+     segments remplissent la hauteur (bande de statut ECAM), rien ne change. `:has` est réévalué
+     en direct quand updateRtStrip masque/affiche #cbTimers. ID -> l'emporte sans dépendre de
+     l'ordre sur la règle ≥ 780. */
+  #crisisDock:not(:has(#cbTimers:not([hidden]))) .dock-in{align-items:center;padding-top:6px;padding-bottom:6px}
+  #cbTimers{flex:1;min-width:0;align-items:stretch;background:none;border:0;color:var(--ink);border-radius:0;padding:0;min-height:52px;font-family:inherit;cursor:pointer;text-align:left;overflow:hidden}
+  /* Accès au Plan : contour, jamais rempli (« un seul bouton rempli par écran » — le rempli est
+     « Continuer », dans l'action). Libellé en toutes lettres dès qu'il y a la place ; en dessous,
+     le glyphe seul garde son aria-label. */
+  /* 15px : même corps que ‹ Bibliothèque (.hdr-back), l'autre contrôle de navigation du chrome
+     de crise. 13px n'était en défaut d'AUCUNE règle (WCAG 2.2 ne fixe pas de taille minimale, le
+     plancher projet est à 11px et la cible fait 52px) — mais c'était le plus petit libellé
+     d'action de l'écran, lu à bout de bras et sous stress. La saillance doit suivre le rôle. */
+  /* Plan est le PREMIER segment de la bande (< 780) : pas de filet à gauche (bord du quai), un
+     filet à DROITE le sépare de « ● Session ». À ≥ 780 il redevient une carte détachée. */
+  .dock-plan{flex:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:52px;min-height:52px;padding:0 14px;border:0;border-right:1px solid var(--line);background:none;color:var(--link);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer}
+  .dock-plan[hidden]{display:none}
+  .dock-plan:hover{background:var(--primary-soft)}
+  .dock-plan:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
+  .dock-plan .dp-ic{font-size:15px;line-height:1}
+  /* « Cons. » sous 560px : TRONCATURE du même mot, pas un autre mot — c'est ce qui distingue cette
+     abréviation de l'ancien « Réf. », qui donnait deux NOMS au même bouton (retour d'usage : « on
+     s'y perd »). Le mot tronqué reste reconnaissable, l'identité du bouton ne change pas. Objectif
+     mesuré : rendre au quai la largeur d'un segment de minuteur en étroit. */
+  .dock-plan .dp-ab{display:none}
+  @media (max-width:559.98px){.dock-plan .dp-full{display:none}.dock-plan .dp-ab{display:inline}}
+  /* Le libellé « Plan » ne disparaît à AUCUNE largeur : le glyphe ⤢ jouxte le chevron ▾ des
+     minuteurs, et deux pictogrammes voisins sans mot se confondent sous stress. Ce sont les
+     segments de minuteurs qui cèdent la place (ils s'ellipsent déjà). */
+  @media (max-width:429.98px){.dock-plan{padding:0 10px;gap:5px;font-size:14px}}
   #cbTimers[hidden]{display:none}
-  #cbTimers:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-  #cbTimers .seg{display:flex;flex-direction:column;justify-content:center;gap:1px;padding:3px 10px;min-width:0;border-left:1px solid var(--line)}
-  #cbTimers .seg:first-child{border-left:0}
+  #cbTimers:not([hidden]){display:flex}
+  #cbTimers:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
+  #cbTimers .seg{flex:1 1 0;display:flex;flex-direction:column;justify-content:center;gap:2px;padding:6px 16px;border-left:1px solid var(--line)}
+  /* < 780 : les segments sont des bandes JOINTIVES séparées par un filet — la 1ʳᵉ n'a pas de
+     filet à gauche (bord du quai). ≥ 780 elles deviennent des cartes détachées, chacune bordée
+     sur ses 4 côtés : cette suppression est alors REMISE (cf. le bloc ≥ 780). */
+  @media (max-width:779.98px){#cbTimers .seg:first-child{border-left:0}}
   #cbTimers .seg-l.seg-sess{color:var(--ok)}   /* ● SESSION : vert actif nominal (ECAM), jamais rouge/ambre */
-  #cbTimers .seg-l{font-size:11px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--ink-soft);line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:16vw}
-  /* Très étroit : « ● SESSION » doit se lire EN ENTIER (l'annonce d'état ne se tronque pas) —
-     mais l'INTITULÉ d'un minuteur garde un plafond (ellipse) : sans lui, un libellé long poussait
-     le temps hors du cadre (overflow:hidden le COUPAIT). Segments resserrés (padding 8px) ;
-     plafond 18vw = la barre tient à 375px AVEC le bouton thème (gardé en crise, v4.2.0). */
-  @media (max-width:429.98px){#cbTimers .seg{padding:3px 8px}#cbTimers .seg-l{font-size:11px;letter-spacing:.2px;max-width:18vw}#cbTimers .seg-l.seg-sess{max-width:none}}
-  #cbTimers .seg-t{font-family:var(--mono);font-size:15px;font-weight:700;letter-spacing:.5px;line-height:1.1;font-variant-numeric:tabular-nums;color:var(--ink)}
+  #cbTimers .seg-l{font-size:11px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--ink-soft);line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* Très étroit : segments resserrés — l'ellipse des intitulés vient du min-width:0 du segment
+     (plus de plafond en vw : la rangée occupe toute la largeur, elle n'a plus à se disputer la
+     place avec le thème et le compte comme dans l'ancienne pastille d'en-tête). */
+  @media (max-width:429.98px){#cbTimers .seg{padding:5px 11px}#cbTimers .seg-l{letter-spacing:.2px}}
+  /* Très petits écrans : même à 0 segment de minuteur, chrono + « +n » + chevron dépassaient
+     (mesuré : 176 pour 155 à 320px). On resserre le rembourrage plutôt que de rogner un nombre. */
+  @media (max-width:359.98px){#cbTimers .seg{padding:5px 7px}}
+  #cbTimers .seg-t{white-space:nowrap;font-family:var(--mono);font-size:17px;font-weight:700;letter-spacing:.5px;line-height:1.1;font-variant-numeric:tabular-nums;color:var(--ink)}
   #cbTimers .seg.due{background:var(--verify-soft)}
   #cbTimers .seg.due :is(.seg-l,.seg-t){color:var(--verify)}
-  #cbTimers .cbt-n{display:flex;align-items:center;padding:0 8px;font-size:11px;font-weight:800;color:var(--ink-soft);border-left:1px solid var(--line)}
+  #cbTimers .cbt-n{display:flex;align-items:center;flex:none;padding:0 14px;font-size:11px;font-weight:800;color:var(--ink-soft);border-left:1px solid var(--line)}
+  /* « +n » et chevron sont des <span> DANS le bouton #cbTimers (jamais tapables seuls) : leur
+     rembourrage de 14px n'obéit à aucune règle de cible et coûtait 78px à eux deux. En étroit on
+     le resserre — mesuré, c'est ce qui rend la place d'un segment de minuteur. DÉCLARÉE APRÈS la
+     règle de base : à spécificité égale une media query ne l'emporte QUE par l'ordre (piège déjà
+     rencontré sur .read-grid — placée avant, elle était silencieusement sans effet). */
+  @media (max-width:559.98px){#cbTimers .cbt-n{padding:0 7px}}
+  /* ≥ 780px : les segments cessent de s'étirer et deviennent des CARTES détachées (le vocabulaire
+     du rail des maquettes tablette/desktop). Les cartes nominales restent en contour NEUTRE —
+     seule l'échue prend le registre ATTENTION : une bande de statut ne se colore pas.
+     CLUSTER À GAUCHE (ECAM) : ⤢ Plan puis ● Session, tous deux AVANT les minuteurs — donc à
+     position FIXE quel que soit leur nombre ; les minuteurs coulent à droite, le blanc part au
+     bord droit (barre d'outils normale). Aucun vide central, aucun élément qui se déplace. */
+  @media (min-width:780px){
+    .dock-in{padding:0 18px;align-items:center;gap:10px}
+    /* overflow:visible : en bande étroite `overflow:hidden` cache le trop-plein d'un intitulé ;
+       en cartes détachées il rognerait au contraire les coins arrondis et bordures de la 1ʳᵉ. */
+    #cbTimers{flex:0 1 auto;gap:10px;padding:7px 0;align-items:center;overflow:visible}
+    #cbTimers .seg{flex:0 0 auto;min-width:132px;border:1px solid var(--line);border-radius:10px;padding:6px 14px}
+    /* Remet la bordure gauche que le filet-séparateur des bandes étroites avait retirée : en
+       carte, chaque segment est bordé sur ses 4 côtés. border-left-width seul : la couleur suit
+       le raccourci `border` (--line en nominal, --verify-bd en échu). */
+    #cbTimers .seg:first-child{border-left-width:1px}
+    #cbTimers .seg.due{border-color:var(--verify-bd)}
+    #cbTimers .cbt-n{border-left:0;padding:0 4px}
+    /* Plan : 1ʳᵉ carte du cluster gauche (plus de filet-séparateur ni de margin auto). */
+    .dock-plan{border:1px solid var(--line);border-radius:10px;min-height:46px;padding:0 16px}
+    .dock-plan:hover{background:var(--primary-soft)}
+  }
   @keyframes cbIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
   .brand{display:flex;flex-direction:column;line-height:1.1;flex:1;min-width:0}
   /* h1 du document (plan lecteur d'écran) stylé comme la marque — pas de typo de h1 par défaut. */
@@ -861,7 +968,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .rel-x{background:none;border:0;color:var(--primary-dk);font-size:16px;line-height:1;min-width:24px;min-height:24px;border-radius:50%;cursor:pointer}
   .rel-x:hover{background:rgba(0,0,0,.08)}
   /* Date à revoir : registre ATTENTION (le rouge reste réservé au danger vital, V5). */
-  .card-date{font-size:12px;color:var(--ink-soft)}.card-date.stale{color:var(--verify)}
+  .card-date{font-size:12px;color:var(--ink-soft)}.card-date.stale{color:var(--verify);font-weight:700}
+
   .chev{color:var(--line-strong);flex-shrink:0}
   .empty{text-align:center;padding:54px 20px;color:var(--ink-soft);border:1.5px dashed var(--line);border-radius:var(--radius);background:rgba(255,255,255,.5)}
   /* Échec de démarrage : overlay plein écran centré, carte au registre ALERTE. */
@@ -988,47 +1096,89 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pos-name{font-size:14.5px;font-weight:800;color:var(--link)}
   .pos-body{margin-top:5px;font-size:14px;line-height:1.5}
   .pos-card>.pos-body:first-child{margin-top:0}
-  .pos-card.crit{background:var(--critical-soft);border-color:var(--critical-bd)}
-  .pos-card.crit .pos-name{color:var(--critical)}
-  .pos-card.crit b{color:var(--critical)}
+  /* Registre VIGILANCE (ambre) — voir posoCardsHtml : un dosage relève du « risque d'erreur »,
+     pas de l'« oubli mortel ». Le rouge reste au chapeau « Ne pas oublier » et aux étapes vitales,
+     qui sont des GESTES. Une seule masse rouge par écran. */
+  .pos-card.vig{background:var(--verify-soft);border-color:var(--verify-bd)}
+  .pos-card.vig .pos-name{color:var(--verify)}
+  .pos-card.vig b{color:var(--verify)}
+  /* Repli du RESTE des repères (v4.23.0) : liste longue -> ceux qui concernent le bloc courant
+     restent visibles, les autres passent derrière un dépliant qui ANNONCE SON NOMBRE (un pli
+     muet serait un filtre déguisé). <details> natif : clavier et lecteur d'écran gratuits, et
+     aucun état à mémoriser — un changement de bloc re-classe et re-plie, ce qui est la bonne
+     remise à zéro. Un repère « ⚠ » n'y arrive jamais (cf. posoSplit). */
+  .pos-more{margin-bottom:6px}
+  .pos-more>summary{list-style:none;display:flex;align-items:center;gap:7px;min-height:44px;padding:0 4px;
+    color:var(--link);font-size:13.5px;font-weight:700;cursor:pointer;border-radius:8px}
+  .pos-more>summary::-webkit-details-marker{display:none}
+  .pos-more>summary::before{content:"＋";font-weight:800}
+  .pos-more[open]>summary::before{content:"−"}
+  .pos-more>summary:hover{background:var(--primary-soft)}
+  .pos-more>summary:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .read-side .pos-block{margin-bottom:14px}
   /* Indice reliant le schéma (vue d'ensemble) à la checklist d'étapes en dessous. */
   .flow-hint{font-size:11.5px;color:var(--ink-soft);text-align:center;margin:-4px 0 12px}
   .rt-ic{flex-shrink:0}
-  ol.steps{list-style:none;margin:0;padding:0;counter-reset:s}
-  /* Rangée cochable (canvas section 6) : n° mono 14 · libellé 16.5/800 · case 36px à droite ;
-     min 64px, rangée entière cliquable ; transition .25s vers l'état coché. */
-  ol.steps li{counter-increment:s;display:flex;gap:12px;align-items:center;min-height:64px;background:var(--surface);border:1px solid var(--line-hover);border-left:3px solid var(--ink);border-radius:8px;padding:12px;margin-bottom:6px;cursor:pointer;transition:opacity .25s,background .25s,border-color .25s;overflow-wrap:break-word}
-  /* Numéro d'étape (v4.2.2) : 16px, CENTRÉ verticalement — c'est l'ancre de suivi de position
-     de la lecture challenge-response (QRH) ; aligné sur l'axe de la case à cocher, sans voler
-     la saillance du texte (mono, encre douce — les registres crit/vigil/done le recolorent). */
-  ol.steps li::before{content:counter(s,decimal-leading-zero);font-family:var(--mono);font-size:16px;font-weight:700;color:var(--ink-soft);width:30px;flex:none;text-align:center;align-self:center}
+  /* --step-bleed : de combien une BANDE signalée déborde pour toucher les bords du bloc parent.
+     Les deux parents n'ont pas le même retrait — carte du journal `.ov-body` : 12px ; vue guidée
+     `.nav-wrap` : 0. Une valeur en dur serait donc fausse dans l'une des deux vues. */
+  ol.steps{list-style:none;margin:0;padding:0;--step-bleed:0px}
+  .ov-body ol.steps{--step-bleed:12px}
+  /* Rangée cochable (lot 8, v4.23.0 — retours d'usage successifs : « box dans box surchargé »,
+     puis « tout plat = immonde et on identifie moins bien les items non colorés »). RÈGLE RETENUE :
+     c'est la BOX PARENTE À BORD BLEU qui porte l'emphase « ici l'action » — les étapes à
+     l'intérieur n'ont donc PAS besoin d'être des boîtes elles-mêmes (ce double encadrement était
+     la faute d'origine). Dedans : lignes plates uniformes à filet fin, et une étape signalée est
+     une BANDE INTÉGRÉE (teinte + liseré) qui file jusqu'aux bords du bloc — jamais une boîte
+     arrondie détachée, qui écrasait visuellement les lignes voisines.
+     Le NUMÉRO d'étape est SUPPRIMÉ : on coche dans n'importe quel ordre et il n'ancrait aucune
+     référence croisée (les renvois →/↺ visent le numéro de BLOC, `.ov-n`, conservé). */
+  ol.steps li{display:flex;gap:13px;align-items:center;min-height:54px;padding:10px 4px;cursor:pointer;transition:opacity .25s,background .25s,color .25s;overflow-wrap:break-word;border-top:1px solid var(--line)}
+  ol.steps li:first-child{border-top:0}
   /* v4.13.1 : min-width:0 + césure — sans eux, un mot long (« compressions ») fixe le
      min-content du texte et pousse la CASE hors du cadre en étroit / grande taille de texte. */
   ol.steps li .txt{flex:1;min-width:0;font-size:16.5px;font-weight:800;line-height:1.45;overflow-wrap:break-word;hyphens:auto}
-  /* Case à cocher À DROITE (canvas), 36px, vide = bordure 2px grise sur fond transparent. */
-  ol.steps li .box{order:3;width:36px;height:36px;border:2px solid var(--line-strong);border-radius:6px;flex-shrink:0;display:grid;place-items:center;color:var(--on-primary);background:transparent}
-  ol.steps li .txt{order:2}
-  /* Étape CRITIQUE (préfixe « ⚠ » dans la chaîne, V5) : registre ALERTE — fond, liseré et texte.
-     Déclarée AVANT .done : une étape critique cochée redevient « faite » (verte, barrée). */
-  ol.steps li.crit{background:var(--critical-soft);border-color:var(--critical-bd);border-left-color:var(--critical-bd)}
-  ol.steps li.crit .txt{color:var(--critical);font-weight:700}
-  ol.steps li.crit::before{color:var(--critical)}
+  /* Glyphe de registre en tête d'une étape signalée (lot 8) : hérite la couleur du .txt
+     (rouge/ambre), distingue ⚠ de △ sans dépendre de la teinte de la bande. */
+  ol.steps li .txt .stp-mk{font-weight:800;margin-right:7px}
+  /* TRACE DE VÉRIFICATION (v4.23.0) — visible APRÈS la passe, donc durable. Pilule compacte :
+     « ✓✓ vérifié » (CONFIRMATION) ou « △ écart » (ATTENTION). Le glyphe et le mot portent le sens,
+     la couleur ne fait que le renforcer (WCAG 1.4.1). */
+  ol.steps li .stp-vf{flex:none;margin-left:8px;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:800;white-space:nowrap;letter-spacing:.2px}
+  ol.steps li .stp-vf.ok{color:var(--ok);background:var(--ok-soft);border:1px solid var(--done-line)}
+  ol.steps li .stp-vf.gap{color:var(--verify);background:var(--verify-soft);border:1px solid var(--verify-bd)}
+  ol.steps li.vgap{box-shadow:inset 3px 0 0 var(--verify-bd)}
+  /* Case à cocher À GAUCHE (v4.23.0) : ordre naturel du DOM, aucune propriété `order`. Le côté
+     DROIT venait du canvas V5 et ne valait que pour cette surface — les listes cochables des
+     protocoles (`li.md-task`) ont toujours eu la case à GAUCHE : les deux sont désormais
+     cohérentes. À gauche, les cases forment une COLONNE que l'œil descend (scannabilité) —
+     d'où l'exigence absolue ci-dessous : cette colonne ne doit JAMAIS se décaler. */
+  ol.steps li .box{width:36px;height:36px;border:2px solid var(--line-strong);border-radius:6px;flex-shrink:0;display:grid;place-items:center;color:var(--on-primary);background:transparent}
+  /* Étape SIGNALÉE = BANDE INTÉGRÉE. Le liseré est un `inset box-shadow`, PAS une bordure : une
+     bordure décalerait le contenu de 3px et briserait l'alignement de la colonne de cases (tout
+     l'intérêt du passage à gauche). Le débordement est compensé au pixel par le padding, donc la
+     case reste EXACTEMENT sur la même verticale que celle des lignes normales. */
+  ol.steps li:is(.crit,.vigil){border-top:0;
+    margin-left:calc(-1 * var(--step-bleed));margin-right:calc(-1 * var(--step-bleed));
+    padding-left:calc(4px + var(--step-bleed));padding-right:calc(4px + var(--step-bleed))}
+  ol.steps li.crit{background:var(--critical-soft);box-shadow:inset 3px 0 0 var(--critical-bd)}
+  ol.steps li.crit .txt{color:var(--critical);font-weight:800}
   ol.steps li.crit .box{border-color:var(--critical-bd)}
-  /* Étape VIGILANCE (préfixe « △ ») : registre ATTENTION — ambre, même grammaire que « ⚠ ». */
-  ol.steps li.vigil{background:var(--verify-soft);border-color:var(--verify);border-left-color:var(--verify)}
-  ol.steps li.vigil .txt{color:var(--verify);font-weight:700}
-  ol.steps li.vigil::before{color:var(--verify)}
+  /* VIGILANCE « △ » : registre ATTENTION — ambre, même grammaire de bande. */
+  ol.steps li.vigil{background:var(--verify-soft);box-shadow:inset 3px 0 0 var(--verify-bd)}
+  ol.steps li.vigil .txt{color:var(--verify);font-weight:800}
   ol.steps li.vigil .box{border-color:var(--verify)}
-  /* Étape COCHÉE : registre CONFIRMATION (coche et liseré VERTS, V5 — canvas turn 6). La coche
-     ENTRE avec le « pop » du canvas (échelle .6 -> 1.15 -> 1, transform seul : composité). */
-  /* Cochée : les deux types (action ET critique) CONVERGENT vers le même vert doux — l'urgence
-     est traitée (canvas). Fond/bordure/texte --done-*, opacité .6, coche verte pleine 19px. */
-  ol.steps li.done{background:var(--done-bg);opacity:.6;border-color:var(--done-line);border-left-color:var(--done-line)}
+  /* Pas de filet sur la ligne qui suit une bande (la bande borne déjà la séparation). */
+  ol.steps li:is(.crit,.vigil)+li{border-top:0}
+  /* Étape COCHÉE : l'état « fait » s'aplatit avec la ligne — l'information est portée par la
+     COCHE verte pleine + texte grisé barré + opacité. La coche ENTRE avec le « pop » (canvas ;
+     transform seul, composité). Une étape SIGNALÉE cochée CONVERGE vers le vert doux (doctrine V5 :
+     l'urgence est traitée) : sa bande perd sa teinte d'alerte et son liseré passe au vert. */
+  ol.steps li.done{opacity:.6}
+  ol.steps li:is(.crit,.vigil).done{background:var(--done-bg);box-shadow:inset 3px 0 0 var(--done-line)}
   ol.steps li.done .box{background:var(--ok);border-color:var(--ok);color:var(--surface)}
   ol.steps li.done .box svg{animation:pop .25s ease}
   ol.steps li.done .txt{text-decoration:line-through;color:var(--done-ink);font-weight:400}
-  ol.steps li.done::before{color:var(--done-ink)}
   @keyframes pop{0%{transform:scale(.6)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
   .card .pinbtn.on svg{animation:pop .25s ease}
   ul.flat{list-style:none;margin:0;padding:0}
@@ -1124,9 +1274,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #screenFlash{position:fixed;inset:0;pointer-events:none;z-index:99;opacity:0;background:var(--alert-hi);display:none}
   #screenFlash.on{display:block;animation:sf 2s ease-out forwards}
   @keyframes sf{0%{opacity:.55}60%{opacity:.3}100%{opacity:0}}
-  .tm-label{display:flex;align-items:center;gap:6px;font-size:10.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--tcol);margin-bottom:6px}
+  .tm-label{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--tcol);margin-bottom:6px}
   .cncard .tm-label{justify-content:center;color:var(--ink-soft)}
-  .rt-add{margin-top:10px;min-height:38px;border:1.5px dashed var(--line);border-radius:8px;color:var(--link);font-size:12.5px;font-weight:700}
+  .rt-add{margin-top:10px;min-height:44px;border:1.5px dashed var(--line);border-radius:8px;color:var(--link);font-size:12.5px;font-weight:700}
   .read-side .rt-add{margin-top:0}
   .tm-val,.cn-val{font-family:var(--mono);font-size:26px;font-weight:700;line-height:1.15;font-variant-numeric:tabular-nums}
   .tm-val{color:var(--tcol)}
@@ -1147,7 +1297,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      cycle) et aux gestes destructifs, jamais à un état neutre qui tourne. */
   .tm-main.run{background:var(--surface);border-color:var(--link);color:var(--link)}.tm-main.run:hover{background:var(--primary-soft)}
   .tm-btn:disabled{opacity:.32;cursor:default}.tm-btn:disabled:hover{background:var(--surface)}
-  .cn-btn{flex:1;min-height:38px;border-radius:7px;border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);font-size:20px;font-weight:600}
+  .cn-btn{flex:1;min-height:44px;border-radius:7px;border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);font-size:20px;font-weight:600}
   .cn-btn:hover{background:var(--surface-2)}
   /* Réinit. d'un compteur (maintenir) : secondaire, sous les boutons +/−. */
   .cn-reset{margin:9px auto 0;min-width:120px;padding:6px 14px;min-height:44px;background:var(--surface);color:var(--ink-soft);border:1px solid var(--line-strong);border-radius:8px;font-size:11.5px;font-weight:600;-webkit-user-select:none;user-select:none}
@@ -1156,7 +1306,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .tk-panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:13px 14px;margin-bottom:14px}
   .tk-head{display:flex;align-items:center;gap:10px;margin-bottom:9px}
   .tk-head b{color:var(--ink-soft);font-size:11px;letter-spacing:1px;text-transform:uppercase;flex:1}
-  .tk-add{background:var(--primary);color:var(--on-primary);border:0;border-radius:var(--radius-sm);padding:8px 13px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
+  .tk-add{background:var(--primary);color:var(--on-primary);border:0;border-radius:var(--radius-sm);min-height:44px;padding:8px 13px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
   .tk-add:hover{background:var(--primary-hi)}
   .tk-item{border-top:1px solid var(--line)}
   .tk-row{display:flex;gap:9px;align-items:center;padding:8px 0}
@@ -1354,7 +1504,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .btn.danger{color:var(--critical);border-color:var(--critical-line)}.btn.danger:hover{background:var(--critical-soft)}
   /* « Maintenir pour réinitialiser » un minuteur : jauge = fond qui se remplit pendant l'appui
      (le texte reste lisible au-dessus). Libellé sur 2 lignes -> indice « maintenir » visible. */
-  .tm-reset{touch-action:none;display:flex;flex-direction:column;justify-content:center;line-height:1.05;padding-top:4px;padding-bottom:4px;min-height:36px}
+  .tm-reset{touch-action:none;display:flex;flex-direction:column;justify-content:center;line-height:1.05;padding-top:4px;padding-bottom:4px;min-height:44px}
   /* Minuteurs ADDITIONNELS (ad hoc) : rangée compacte 48px — libellé · temps · ⟲ · ✕. */
   .tm-mini{display:flex;align-items:center;gap:10px;min-height:48px;padding:8px 12px;margin-top:8px;background:var(--surface);border:1px solid var(--line);border-radius:8px}
   .read-side .tm-mini{margin-top:0}
@@ -1488,17 +1638,26 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .ov-plan-h{display:flex;align-items:center;gap:7px;margin:18px 0 4px;min-width:0}
   .ov-plan-h .ovs-t{flex:none;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft)}
   .ov-plan-h .ovs-sub{flex:1;min-width:0;font-size:11.5px;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .ov-plan-h .ovs-tgl{flex:none;min-height:44px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--link);font-size:12px;font-weight:700;padding:6px 11px;cursor:pointer;font-family:inherit}
-  .ov-plan-h .ovs-tgl:hover{background:var(--surface)}
-  .ov-plan-h .ovs-tgl:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* Sélecteur d'AFFICHAGE du plan (v4.23.0, option B). Volontairement PAS le segment glissant
+     de la bascule Dynamique ↔ Statique : celle-ci change ce qu'EST la fiche et se persiste comme
+     mode de lecture, alors qu'ici on ne change que le DESSIN d'une feuille transitoire. Deux
+     contrôles d'apparence identique aux conséquences très inégales, c'est le terrain de l'erreur
+     de mode — la saillance doit rester proportionnée à la conséquence.
+     Renforcé en revanche : 14px (le libellé était le plus petit de la barre), état sélectionné
+     franc (fond tonal + bordure --primary + graisse 800), et le choix se MÉMORISE. */
+  :is(.ov-plan-h,.pm-views) .ovs-tgl{flex:none;min-height:44px;border:1px solid var(--line-strong);border-radius:8px;background:transparent;color:var(--link);font-size:14px;font-weight:700;padding:6px 13px;cursor:pointer;font-family:inherit}
+  :is(.ov-plan-h,.pm-views) .ovs-tgl:hover{background:var(--surface)}
+  :is(.ov-plan-h,.pm-views) .ovs-tgl:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* v4.18.0 : sélecteur d'affichage du Plan (Détails / Échelle / Schéma) — l'état actif est
      un indicateur de sélection (fond tonal), pas un bouton rempli (un seul rempli par écran). */
   .ov-plan-h{flex-wrap:wrap}
   .ov-plan-h .pl-views{flex:none;display:flex;gap:4px;margin-left:auto}
-  .ov-plan-h .ovs-tgl.on{background:var(--primary-soft);color:var(--primary-dk);border-color:var(--primary-300)}
+  :is(.ov-plan-h,.pm-views) .ovs-tgl.on{background:var(--primary-soft);color:var(--primary-dk);border-color:var(--primary)}
+  /* Intitulé de groupe : sans lui, trois boutons voisins ne disent pas de QUOI ils sont l'axe. */
+  .pm-views .pv-lab{flex:none;align-self:center;margin-right:2px;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft)}
   .ov-plan.svgv{overflow:hidden}
   /* Nœud du plan : carte compacte NAVIGANTE (taper = y aller) — jamais de case à cocher ici. */
-  .pl-nd{display:flex;align-items:flex-start;gap:8px;border:1px solid var(--line);border-left:4px solid var(--line-strong);border-radius:9px;background:var(--surface);padding:8px 10px;margin-top:6px;cursor:pointer}
+  .pl-nd{display:flex;align-items:flex-start;gap:8px;min-height:44px;border:1px solid var(--line);border-left:4px solid var(--line-strong);border-radius:9px;background:var(--surface);padding:8px 10px;margin-top:6px;cursor:pointer}
   .pl-nd.dec{background:var(--verify-soft);border-color:var(--verify-bd);border-left-color:var(--verify-bd)}
   .pl-nd.done{border-left-color:var(--done-line)}
   .pl-nd.cur{border-color:var(--primary);border-left-color:var(--primary)}
@@ -1596,7 +1755,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pl-br>.pl-elbow::before{content:"";position:absolute;left:-12px;top:-8px;width:9px;height:18px;border-left:3px solid var(--line-strong);border-bottom:3px solid var(--line-strong);border-bottom-left-radius:9px}
   .pl-br.taken>.pl-elbow::before{border-color:var(--primary)}
   /* Liens de structure : convergence « → n » / reprise « ↺ n » — défilement DANS le plan. */
-  .pl-lnk{display:inline-flex;align-items:center;gap:5px;min-height:32px;font-size:11.5px;font-weight:700;color:var(--ink-soft);background:var(--tag-bg);border:1px solid var(--line);border-radius:999px;padding:4px 11px;margin-top:6px;cursor:pointer;font-family:inherit;text-align:left}
+  .pl-lnk{display:inline-flex;align-items:center;gap:5px;min-height:44px;font-size:11.5px;font-weight:700;color:var(--ink-soft);background:var(--tag-bg);border:1px solid var(--line);border-radius:999px;padding:4px 11px;margin-top:6px;cursor:pointer;font-family:inherit;text-align:left}
   .pl-lnk.loop{color:var(--link);background:var(--primary-soft);border-color:var(--primary-soft)}
   .pl-lnk:hover{border-color:var(--primary)}
   .pl-lnk:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
@@ -1942,6 +2101,77 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   @media (pointer:coarse){
     body.modal-open{position:fixed;left:0;right:0;width:100%}
   }
+  /* FEUILLE PLEIN ÉCRAN OPAQUE (v4.23.0) : le verrou vaut à TOUS les pointeurs, pas seulement au
+     toucher. La restriction ci-dessus existe parce que figer body au pointeur fin retire la barre
+     de défilement et DÉCALE le fond visible autour d'un petit dialogue — mais une feuille opaque
+     qui couvre l'écran ne laisse rien voir du fond : il n'y a aucun décalage à craindre, et sans
+     verrou la page continue de défiler derrière (constaté sur ordinateur). */
+  body.modal-full{position:fixed;left:0;right:0;width:100%}
+  /* FEUILLE « PLAN » (v4.23.0) : PLEIN ÉCRAN à toutes les largeurs — c'est une vue d'ensemble,
+     elle a besoin de toute la place (les intitulés cliniques ne se tronquent pas). Barre collante
+     en tête de la carte : titre, sélecteur d'affichage, ✕. Le corps est le seul défileur. */
+  /* align-items reste à flex-start (valeur de .ai-modal) : avec `stretch`, la carte est FIGÉE à
+     la hauteur de l'écran, le plan déborde sans être défilable — et le seul défileur qui reste
+     est la page DERRIÈRE (bogue constaté). Ici la carte GRANDIT avec son contenu et c'est la
+     modale qui défile (overflow:auto + overscroll-behavior:contain hérités de .ai-modal), donc
+     le fond ne bouge jamais. min-height:100dvh : un plan court remplit quand même l'écran. */
+  /* overscroll-behavior:none (plus strict que le `contain` de .ai-modal) : au bout du plan, le
+     geste ne se propage NI à la page NI au navigateur (rebond, tirer-pour-recharger). La feuille
+     est opaque et plein écran — rien derrière elle ne doit bouger, jamais. */
+  :is(.plan-modal,.ref-modal){padding:0;background:var(--bg);overscroll-behavior:none}
+  :is(.plan-modal,.ref-modal) .ai-card{max-width:none;width:100%;min-height:100dvh;border-radius:0;margin:0;padding:0;display:flex;flex-direction:column;box-shadow:none}
+  :is(.pm-bar,.rs-bar){position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:var(--surface);border-bottom:1px solid var(--line)}
+  :is(.pm-ttl,.rs-ttl){flex:1;min-width:0;margin:0;font-size:15px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pm-views{flex:none;display:flex;gap:4px}
+  /* En étroit, le sélecteur passe à la LIGNE plutôt que d'écraser le titre (mesuré : « Plan —
+     Anaphylaxie (choc anaphylactique) » tombait à « Plan — A… » à 390px). L'ordre visuel garde
+     titre puis ✕ sur la 1ʳᵉ ligne — la fermeture reste au même endroit qu'ailleurs. */
+  @media (max-width:559.98px){.pm-views{order:3;flex-basis:100%;margin-top:2px}}
+  :is(.plan-modal,.ref-modal) .ai-x{flex:none;position:static}
+  /* Pas de min-height:0 ici : il autoriserait le corps à se comprimer sous la taille de son
+     contenu — c'est ce qui rendait le plan invisible au-delà d'un écran. */
+  :is(.pm-body,.rs-body){flex:1;padding:14px 16px calc(24px + env(safe-area-inset-bottom))}
+  /* Feuille « Consulter » : sections repliables natives (<details> — clavier et lecteur d'écran
+     gratuits, aucun état à mémoriser). Surveillances dépliée d'office : registre le plus
+     impérieux de la feuille. Les copies (rappels, surveillances, posologie) ne se replient pas
+     comme les couches de consultation — elles s'ouvrent d'emblée. */
+  /* Corps plafonné et centré (mêmes 860px que la checklist) ; la barre suit le MÊME plafond pour
+     que le titre et le ✕ s'alignent sur les bords du contenu, pas sur ceux de l'écran. */
+  .rs-body{display:flex;flex-direction:column;gap:11px;max-width:860px;margin:0 auto;width:100%}
+  @media (min-width:924px){.rs-bar{padding-left:calc(50% - 430px);padding-right:calc(50% - 430px)}}
+  .rs-sec{background:var(--surface);border:1px solid var(--line);border-radius:11px;overflow:hidden}
+  .rs-sec>summary{list-style:none;display:flex;align-items:center;gap:9px;min-height:52px;padding:0 13px;
+    font-size:13.5px;font-weight:800;color:var(--ink);cursor:pointer}
+  .rs-sec>summary::-webkit-details-marker{display:none}
+  .rs-sec>summary::after{content:"▾";margin-left:auto;color:var(--line-strong);font-size:13px;flex:none}
+  .rs-sec[open]>summary::after{content:"▴"}
+  .rs-sec>summary:hover{background:var(--surface-2)}
+  .rs-sec>summary:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
+  .rs-sec .rs-in{padding:0 13px 13px}
+  /* Les sections rendues par staticBlock/attListHtml apportent leur propre .block : on neutralise
+     leur cadre pour ne pas empiler deux cartes. */
+  .rs-body :is(.block,.notes-block){background:none;border:0;border-radius:0;padding:0;margin:0;box-shadow:none}
+  /* staticBlock/attListHtml portent leur propre titre de section : dans la feuille c'est le
+     <summary> qui l'énonce — sans ça le titre s'affiche deux fois de suite. */
+  .rs-sec .rs-in .block-h{display:none}
+  /* Rangée d'accès en fin d'action : contour (jamais rempli — le rempli est « Continuer »). */
+  .annex-row{display:flex;align-items:center;gap:10px;width:100%;min-height:52px;margin:10px 0 0;padding:11px 13px;
+    background:var(--surface);border:1px solid var(--line);border-radius:11px;
+    font-family:inherit;font-size:13.5px;font-weight:700;color:var(--ink);cursor:pointer;text-align:left}
+  .annex-row:hover{border-color:var(--primary);background:var(--primary-soft)}
+  .annex-row:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .annex-row .ax-lead{flex:none;display:inline-flex;align-items:center;gap:7px;color:var(--primary-dk)}
+  .annex-row .ax-sub{flex:1;min-width:0;font-weight:500;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .annex-row .ax-ch{flex:none;color:var(--ink-soft);font-size:17px}
+  @media (max-width:429.98px){.annex-row .ax-sub{display:none}}
+  .rs-flash{animation:rsFlash 1.1s ease}
+  @keyframes rsFlash{0%,100%{box-shadow:none}18%{box-shadow:0 0 0 3px var(--primary-200)}}
+  @media (prefers-reduced-motion:reduce){.rs-flash{animation:none}}
+  /* Dans la feuille, le plan n'a plus d'en-tête propre (la barre la porte) et prend toute la
+     largeur utile — plafonnée pour que les branches côte à côte restent lisibles. */
+  .pm-body .ov-plan-h{display:none}
+  .pm-body .ov-plan{max-width:1100px;margin:0 auto}
+  @media (max-width:429.98px){:is(.pm-bar,.rs-bar){gap:8px;padding-left:12px;padding-right:12px}:is(.pm-body,.rs-body){padding-left:12px;padding-right:12px}}
   /* CONFIRMATIONS : petite carte CENTRÉE verticalement, à toutes les largeurs — jamais en plein
      écran (une question d'une ligne n'occupe pas 100dvh) ni collée en haut. */
   .ai-modal.dlg-confirm{align-items:center}
@@ -2117,28 +2347,115 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     /* En large, bibliothèques et catégories vivent dans la colonne gauche (chips retirées du flux). */
     body.view-home :is(.scopebar,.catbar){display:none}
   }
-  /* Vue fiche V5 (>= 1000px, canvas turn 6) : colonne droite COLLANTE — minuteurs/compteurs et
-     horodatage sous les yeux pendant toute la checklist ; dans les ÉDITEURS, la colonne porte
-     l'« Aperçu en direct » du brouillon. */
-  @media (min-width:1000px){
-    .read-grid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:0 26px;align-items:start}
-    /* Éditeurs : mêmes plafonds que la lecture — fiche 1fr+320 (860+360 à >= 1200, cf. plus
-       haut), protocole 780+360 centré. */
-    body.view-pedit .read-grid{grid-template-columns:minmax(0,780px) 360px;justify-content:center}
-    .read-side{position:sticky;top:96px;max-height:calc(100vh - 110px);overflow-y:auto;padding:2px}
-    /* Rail « MINUTEURS & COMPTEURS » du mode crise (canvas) : frère droit du contenu, scroll
-       propre, bordure gauche 1px, cartes posées DIRECTEMENT sur le rail (plus de boîte). */
-    body.view-read .read-side{border-left:1px solid var(--line);padding:16px 2px 16px 18px;display:flex;flex-direction:column;gap:12px}
+  /* RAIL DE LECTURE — dès 780px (v4.23.0, décision utilisateur « action + structure de front ») :
+     la largeur suffit à tenir la colonne d'ACTION et le rail d'ORIENTATION côte à côte, l'idéal
+     ECAM (E/WD et SD simultanés). Le rail porte, de haut en bas : minuteurs ÉPINGLÉS, plan
+     « Échelle » (seule partie qui peut être longue, donc la seule qui défile), repères
+     posologiques ÉPINGLÉS. La checklist reste plafonnée à 860px (>= 1200) : la règle de largeurs
+     n'est pas amendée, le rail prend l'espace EXCÉDENTAIRE.
+     Séparé des ÉDITEURS, qui gardent leur aperçu à >= 1000px (règle v4.5 inchangée) — les deux
+     partageaient la même règle `.read-grid`, d'où la scission par classe de vue. */
+  @media (min-width:780px){
+    body.view-read .read-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:0 22px;align-items:start}
+    /* --stick-top : bas de ce qui est DÉJÀ collé en haut (en-tête + quai de crise), mesuré par
+       syncHdrScroll — une constante laisserait le rail passer sous le quai. */
+    /* HAUTEUR DÉFINIE (pas max-height) : les trois zones se répartissent l'espace, et chacune
+       borne son propre débordement — sans hauteur définie, `flex:1` sur l'Échelle n'aurait rien
+       à répartir et tout retomberait dans un défileur unique (le défaut corrigé v4.23.0). */
+    body.view-read .read-side{position:sticky;top:calc(var(--stick-top,64px) + 8px);height:calc(100vh - var(--stick-top,64px) - 20px);overflow-y:auto;
+      border-left:1px solid var(--line);padding:14px 2px 16px 16px;display:flex;flex-direction:column}
+    /* UN SEUL DÉFILEUR (v4.23.0, retour d'usage). Un temps découpé en trois zones bornées
+       défilant chacune sur elle-même : la posologie ne se faisait plus repousser, mais chaque
+       section devenait un HUBLOT (les minuteurs tombaient à 132px pour 1559px de contenu) et on
+       perdait la vue d'ensemble d'une section. Sur-correction.
+       L'invariant réellement nécessaire est plus faible : **ce qui est de longueur ILLIMITÉE
+       passe en DERNIER**. Ordre = minuteurs → posologie → Échelle → horodatage : la posologie est
+       avant l'Échelle, donc plus rien ne peut l'enterrer, et le rail redevient une colonne
+       continue qu'on lit d'un trait.
+       Ce qui rend cet allègement sûr : l'état critique (session + minuteur ÉCHU) est déjà porté
+       en permanence par le QUAI — le rail n'a donc pas à l'épingler une seconde fois. */
+    .rail-sec+.rail-sec{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+    /* REPÈRES DU RAIL — chrome désaturé, registre CONSERVÉ. Doctrine ECAM appliquée finement : on
+       calme la PRÉSENTATION, jamais la sémantique d'une donnée anormale. Les repères ordinaires
+       sont des LIGNES (ni cadre ni fond, nom en `--ink` et non en bleu — le bleu est l'accent
+       d'ACTION, il n'a rien à faire dans une colonne qui oriente) ; un repère « ⚠ » GARDE sa carte
+       teintée et son encre rouge : une erreur de dilution tue. Le contraste entre les deux devient
+       porteur de sens au lieu d'être uniforme, et une ligne tient 58px là où une carte en prenait
+       85. La DOSE reste en encre PLEINE : la hiérarchie avec le nom passe par la GRAISSE, jamais
+       par l'encre — adoucir un dosage serait l'inversion à ne pas faire. */
+    .read-side .pos-card{background:none;border:0;border-radius:0;padding:9px 2px;margin:0}
+    .read-side .pos-card+.pos-card{border-top:1px solid var(--line)}
+    .read-side .pos-name{font-size:13px;color:var(--ink)}
+    .read-side .pos-body{margin-top:2px;font-size:13px;line-height:1.45;color:var(--ink)}
+    .read-side .pos-card.vig{background:var(--verify-soft);border:1px solid var(--verify-bd);
+      border-radius:8px;padding:9px 11px;margin:8px 0}   /* 8 (pas 2) : deux boîtes ambre
+      consécutives se collaient — les marges verticales fusionnent au MAX, 2+2 -> 2px */
+    .read-side .pos-card.vig+.pos-card{border-top:0}
+    .read-side .pos-card.vig .pos-name{color:var(--verify)}
+    /* AUCUNE section bornée (v4.23.0, retour d'usage « où sont passés mes minuteurs ? »).
+       Une tentative de borner la seule section minuteurs a suffi à FAIRE DISPARAÎTRE le compteur
+       et le bouton « ＋ Minuteur PA » : 327px affichés pour 413px de contenu, et la barre de
+       défilement étant invisible au repos (macOS/iOS), rien ne signalait la troncature.
+       LEÇON : dans une colonne déjà défilante, un sous-conteneur borné ne « range » pas, il
+       ESCAMOTE. Le rail est donc une colonne ENTIÈREMENT continue ; le seul dispositif retenu
+       contre l'enterrement de la posologie est l'ORDRE (l'illimité en dernier). */
     .rail-head{display:flex;align-items:center;gap:8px}
     .rail-title{font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--ink-soft)}
     .rail-head :is(.rt-sound,.rt-warn){margin-left:auto}
     .rail-head .rt-sound~.rt-sound,.rail-head .rt-warn~.rt-sound{margin-left:0}
     .rail-sep{height:1px;background:var(--line);margin:2px 0;flex:none}
+    /* Compte total de la zone : ANNONCE le contenu au-delà du bord visible. Une barre de
+       défilement est invisible au repos (macOS/iOS) — sans ce compte, une zone tronquée paraît
+       complète, ce que l'ECAM interdit (il signale toujours le débordement). */
+    .rail-n{flex:none;font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink-soft);
+      background:var(--tag-bg);border-radius:5px;padding:1px 6px}
+    .rail-exp{margin-left:auto;min-height:44px;padding:6px 8px;border:0;border-radius:8px;background:none;
+      color:var(--link);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer}
+    .rail-exp:hover{background:var(--primary-soft)}
+    .rail-exp:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+    /* ÉCHELLE DÉSATURÉE : mêmes lignes que le Plan, mais l'état n'est plus porté que par le
+       MARQUEUR (✓ vert = fait, ● bleu = ici, ⑂ ambre = décision). On retire les APLATS et les
+       liserés colorés : le rail oriente, il ne doit pas rivaliser de saillance avec l'action.
+       L'information reste intégralement — seule la compétition visuelle disparaît. */
+    .rail-lad{margin-top:6px}
+    .rail-lad .pl-line{border-left-color:transparent;padding-left:6px}
+    .rail-lad .pl-line.d1{padding-left:16px}
+    .rail-lad .pl-line.d2{padding-left:26px}
+    .rail-lad .pl-line.d3{padding-left:36px}
+    .rail-lad .pl-line:is(.dec,.cur,.done){background:none}
+    .rail-lad .pl-line.cur{border-left-color:var(--primary)}
+    .rail-lad .pl-line:is(.dec,.cur,.done) .t{color:var(--ink)}
+    .rail-lad .pl-line.cur .t{font-weight:800}
+    .rail-lad .pl-line.done .n{color:var(--ok)}
+    .rail-lad .pl-line.cur .n{color:var(--link)}
+    .rail-lad .pl-line.dec .n{color:var(--verify)}
+    .rail-lad .pl-bl2{color:var(--ink-soft);background:none;border-color:var(--line-strong)}
+    .rail-lad .pl-line .g b{color:var(--ink-soft)}
+    /* « Hors chemin » : PAS d'opacité (un texte à 50% tombe sous le seuil AA — audit v4.23.0) ;
+       encre douce + la mention en toutes lettres, la couleur n'est jamais seule. */
+    .rail-lad .pl-line.off{opacity:1}
+    .rail-lad .pl-line.off :is(.n,.t,.g){color:var(--ink-soft)}
+    .rail-lad .pl-line.off .t::after{content:" · hors chemin";font-weight:500;font-size:11px;color:var(--ink-soft)}
+    .rail-lad .pl-here{background:var(--primary-soft);color:var(--primary-dk)}
     body.view-read .read-side .rt-grid,body.view-read .read-side .rt-counters{margin-top:0}
     /* Rail étroit : UNE carte minuteur/compteur par rangée (boutons jamais tronqués). */
     .read-side .rt-grid,.read-side .rt-counters{grid-template-columns:1fr}
+  }
+  @media (min-width:1000px){
+    body.view-read .read-grid{grid-template-columns:minmax(0,1fr) 320px;gap:0 26px}
+    /* Éditeurs : mêmes plafonds que la lecture — fiche 1fr+320 (860+360 à >= 1200, cf. plus
+       haut), protocole 780+360 centré. */
+    :is(body.view-edit,body.view-pedit) .read-grid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:0 26px;align-items:start}
+    body.view-pedit .read-grid{grid-template-columns:minmax(0,780px) 360px;justify-content:center}
+    :is(body.view-edit,body.view-pedit) .read-side{position:sticky;top:96px;max-height:calc(100vh - 110px);overflow-y:auto;padding:2px}
     /* L'aperçu Markdown inline du protocole devient redondant avec la colonne : masqué en large. */
     body.view-pedit .md-prev-h,body.view-pedit .md-preview{display:none}
+  }
+  /* Palier 1200 RÉAFFIRMÉ ici : la règle d'origine (§ LARGEURS, haut du fichier) est déclarée
+     AVANT le bloc 1000 ci-dessus et perdait donc la cascade à spécificité égale — la checklist
+     restait en 1fr au lieu de son plafond de 860px. Collision constatée par mesure. */
+  @media (min-width:1200px){
+    body.view-read .read-grid{grid-template-columns:minmax(0,860px) 360px;justify-content:center}
   }
   /* Aperçu en direct de l'éditeur (colonne droite >= 1000px) : mini-rendu du brouillon. */
   .ep-h{font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-soft);margin:0 0 8px}
@@ -2461,7 +2778,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .mem-act select,.invite-row select,.invite-row input,.mi-sc{font-size:16px}
     .tk-time-edit{width:96px}
   }
-  @media print{body{background:#fff}header.bar,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.sess-list,.notes-block,#readTopSeg,.ov-controls,.ov-redo,.ovs-tgl,.flow-zoom{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}
+  /* #crisisBand / #cbTimers : zone haute d'ÉCRAN (état de session vivante) — sans objet sur
+     papier, où la fiche s'imprime comme un document. Ils ne sont plus dans header.bar depuis
+     v4.23.0, donc ils doivent être masqués explicitement. */
+  @media print{body{background:#fff}header.bar,#crisisBand,#cbTimers,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.sess-list,.notes-block,#readTopSeg,.ov-controls,.ov-redo,.ovs-tgl,.flow-zoom{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}
     /* Un conteneur à défilement s'imprime TRONQUÉ : à l'impression le tableau se déploie. */
     .md-tw{overflow:visible;break-inside:avoid}.md-tbl{min-width:0;font-size:11px}.md-tbl tr{break-inside:avoid}
     .forget-strip{break-inside:avoid}
@@ -2490,9 +2810,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   <header class="bar"><div class="id-row">
     <button class="hdr-back" id="hdrBack" hidden><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg><span id="hdrBackLbl">Bibliothèque</span></button>
     <div class="brand"><h1 class="brand-name">Aides cognitives</h1><span id="brandSub">Bibliothèque</span><span id="brandTitle"></span></div>
+    <!-- Étiquette d'état CONDENSÉE du mode crise (v4.23.0) : n'apparaît qu'une fois le bandeau
+         #crisisBand passé sous la barre (.ttl-on) — elle en prend le relais. L'annonce d'état ne
+         disparaît donc JAMAIS. (Les minuteurs, eux, n'ont pas de relais : leur rangée est
+         COLLANTE et ne quitte jamais l'écran.) -->
+    <span class="hdr-crisis" id="hdrCrisis" hidden>■ Crise</span>
     <div class="hdr-search" id="hdrSearch"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg><input id="q" placeholder="Rechercher une aide, un protocole…" aria-label="Rechercher"></div>
     <div class="hdr-acts">
-    <button id="cbTimers" hidden aria-label="Minuteurs en cours — afficher le panneau"></button>
     <span class="hdr-badge" id="hdrBadge" hidden></span>
     <button class="hdr-new" id="hdrNew" hidden><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span class="hdr-new-lbl">Créer</span></button>
     <button class="hdr-act2" id="hdrPreview" hidden title="Voir le brouillon tel qu'il s'affichera (aucune session)" aria-label="Aperçu"><span class="pv-ic" aria-hidden="true">⛶</span><span class="pv-lbl">Aperçu</span></button>
@@ -2503,12 +2827,32 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     <!-- Chips bibliothèques/catégories de l'accueil ÉTROIT : dans l'en-tête sticky (fixes au
          défilement, canvas turn 6), remplies par renderHomeList. -->
     <div id="homeChrome" hidden></div>
-    <!-- Bandeau d'état du MODE CRISE (V5) : rangée TITRE teintée au registre ALERTE — le titre de
-         la fiche vit ici en permanence (toujours lisible en crise), « ■ MODE CRISE » à droite. -->
-    <div id="crisisBand" hidden><span class="cb-ttl"></span><span class="cb-tag">■ Mode crise</span></div>
     <!-- Menu ⋯ (SPEC gestion §4) : actions de GESTION ancrées à droite de l'en-tête — remplace
          toute barre d'actions en bas de page. Jamais d'action destructive ici. -->
     <div class="more-menu" id="moreMenu" hidden role="menu"></div></header>
+  <!-- ZONE HAUTE DE CRISE (v4.23.0, canvas « Fiche urgence » 2a/3a). Deux éléments, HORS de
+       l'en-tête, aux comportements délibérément différents (cf. CSS) :
+         #crisisBand — le TITRE, information CONSTANTE : il défile et #hdrCrisis en prend le
+                       relais dans la rangée d'identité. FOND BLANC (décision utilisateur) : un
+                       bandeau d'état permanent teinté en rouge désensibilise au rouge, que
+                       l'ECAM réserve aux alertes réelles ; le statut s'annonce en TEXTE.
+         #cbTimers   — l'ÉTAT VIVANT, information qui CHANGE : rangée COLLANTE, jamais perdue.
+       Aucun des deux n'est dans header.bar : un en-tête qui se replie raccourcit son propre
+       encombrement de flux et ferait remonter tout le contenu d'un coup. -->
+  <div id="crisisBand" hidden><span class="cb-ttl"></span><span class="cb-tag">■ Mode crise</span></div>
+  <!-- QUAI DE CRISE : rangée COLLANTE sous l'en-tête (v4.23.0) = état vivant (minuteurs) + accès
+       permanent au Plan. FRÈRE direct de .app, jamais enfant de #crisisBand : un élément collant
+       ne colle QUE dans les bornes de son bloc conteneur — logé dans le bandeau, il se serait
+       décroché au bout de 60px. -->
+  <!-- ORDRE (v4.23.0, décision utilisateur — ECAM strict) : ⤢ Plan · ● Session · minuteurs.
+       Plan et Session sont AVANT la partie variable (les minuteurs) : ils gardent donc une
+       position FIXE quel que soit le nombre de minuteurs, qui coulent à leur droite. Placer Plan
+       APRÈS les minuteurs le faisait glisser (largeur variable de #cbTimers) — inacceptable ECAM. -->
+  <div id="crisisDock" hidden><div class="dock-in">
+    <button id="planBtn" hidden class="dock-plan" aria-haspopup="dialog" aria-label="Plan de l’aide — vue d’ensemble"><span class="dp-ic" aria-hidden="true">⤢</span><span class="dp-lbl">Plan</span></button>
+    <button id="refBtn" hidden class="dock-plan" aria-haspopup="dialog" aria-label="Consulter — surveillances, différentiels, documents"><span class="dp-ic" aria-hidden="true">▸</span><span class="dp-lbl"><span class="dp-full">Consulter</span><span class="dp-ab">Cons.</span></span></button>
+    <button id="cbTimers" hidden aria-label="Minuteurs en cours — afficher le panneau"></button>
+  </div></div>
   <!-- Bandeau système (registre INFORMATION persistant, ex. nouvelle version du service worker) :
        sous l'en-tête, rejetable ; visible seulement sur l'accueil (body.view-home, v4.20.0). -->
   <div id="sysBanner" class="sys-banner" role="status" hidden><span class="sb-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01" stroke-linecap="round"/></svg></span><span class="sb-txt"></span><button class="sb-act" id="sbReload">Recharger</button><button class="sb-x" id="sbX" aria-label="Masquer">×</button></div>
@@ -2640,6 +2984,40 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     <div class="pdf-scroll" id="pdfScroll" tabindex="0"></div>
   </div>
 </div>
+<!-- FEUILLE « PLAN » (v4.23.0) : la structure complète de l'aide, en PLEIN ÉCRAN, appelée d'un
+     tap depuis le quai de crise (⤢) ou le menu ⋯ — et relâchée d'un ✕/Échap qui rend la page
+     exactement où elle était. C'est une FEUILLE, pas un onglet : un onglet est un état qu'on
+     peut oublier ouvert pendant qu'une alarme tombe ; une feuille se ferme. Modèle ECAM E/WD
+     (l'action, permanente) + SD (le synoptique, appelé puis relâché).
+     Le plan ne vit plus DANS le journal : il l'alourdissait et s'éloignait à mesure que le
+     journal grandissait — il fallait dérouler tout le parcours pour l'atteindre. -->
+<div class="ai-modal plan-modal sheet-full" id="planModal" role="dialog" aria-modal="true" aria-labelledby="planModalTitle">
+  <div class="ai-card">
+    <div class="pm-bar">
+      <h3 class="pm-ttl" id="planModalTitle">Plan — <span id="pmName"></span></h3>
+      <div class="pm-views" id="pmViews"></div>
+      <button class="ai-x" id="planX" aria-label="Fermer le plan">×</button>
+    </div>
+    <div class="pm-body" id="planBody"></div>
+  </div>
+</div>
+<!-- FEUILLE « CONSULTER » (v4.23.0) : la couche de CONSULTATION — différentiels, schémas,
+     documents, références, voir aussi — plus une COPIE de ce qui doit rester joignable à tout
+     moment (rappels, surveillances, posologie). Rien n'y est déplacé de ce qui tue : le chapeau
+     « Ne pas oublier » et « △ À vérifier » gardent leur place dans le flux, la feuille n'en porte
+     qu'un double (AC 120-71B : un memory item ne doit jamais exiger une consultation).
+     Accès en PULL uniquement (rangée en fin d'action, bouton du quai, menu ⋯) — jamais d'ouverture
+     automatique : seule l'alarme pousse. La NOTE personnelle reste dans le flux (seul bloc à état
+     éditable : l'y déplacer casserait la restauration de défilement de son éditeur). -->
+<div class="ai-modal ref-modal sheet-full" id="refModal" role="dialog" aria-modal="true" aria-labelledby="refModalTitle">
+  <div class="ai-card">
+    <div class="rs-bar">
+      <h3 class="rs-ttl" id="refModalTitle">Consulter</h3>
+      <button class="ai-x" id="refX" aria-label="Fermer">×</button>
+    </div>
+    <div class="rs-body" id="refBody"></div>
+  </div>
+</div>
 <!-- Dialogue « Terminer la session ? » (SPEC crise §3, v4.3.0) : TOUJOURS cette confirmation,
      jamais d'arrêt direct — contexte (fiche + durée) puis CONSÉQUENCES annoncées AVANT le choix
      (QRS : annoncer l'effet, pas demander la confiance), puis Poursuivre (sûr, contour, focus
@@ -2673,7 +3051,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.22.5';
+const APP_VERSION='4.23.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -3018,7 +3396,7 @@ const sanitizeLibs=a=>(Array.isArray(a)?a:[]).slice(0,200).map(l=>({id:safeMetaI
 function profileCacheKey(){const u=Auth.user();return (u&&u.id)?('ac-profile-'+u.id):null;}
 function saveProfileCache(){const k=profileCacheKey();if(!k)return;try{localStorage.setItem(k,JSON.stringify({libraries:myLibraries,isAppAdmin:myIsAppAdmin}));}catch(e){}}
 function loadProfileCache(){const k=profileCacheKey();if(!k)return;try{const p=JSON.parse(localStorage.getItem(k)||'null');if(!p)return;myLibraries=sanitizeLibs(p.libraries);myIsAppAdmin=p.isAppAdmin===true;}catch(e){}}
-let state={view:'library',q:'',cat:'',scope:null,draft:null,fiche:null,nav:[],navSeq:[],navPos:0,checked:{},showFlow:false,showSess:false,rtOpen:false,libLimit:LIB_PAGE,
+let state={view:'library',q:'',cat:'',scope:null,draft:null,fiche:null,nav:[],navSeq:[],navPos:0,checked:{},verified:{},vgaps:{},showFlow:false,showSess:false,rtOpen:false,libLimit:LIB_PAGE,
   noteEdit:false,  // édition de la note personnelle (lecture seule par défaut en mode crise)
   section:'fiches',        // page d'accueil : 'fiches' (aides cognitives) | 'protocols' (mémorisé par espace)
   protocol:null,pdraft:null,   // protocole affiché (protocolRead) / brouillon (protocolEdit)
@@ -3042,6 +3420,16 @@ function currentReadMode(){try{const m=localStorage.getItem(spaceKey('ac-read-mo
   if(m==='guided')return 'overview';   // v4.16.0 : le guidé est FUSIONNÉ dans le journal (fil condensé)
   return READ_MODES.indexOf(m)>=0?m:'overview';}catch(e){return 'overview';}}
 function setReadModePref(m){if(READ_MODES.indexOf(m)<0)return;try{localStorage.setItem(spaceKey('ac-read-mode'),m);}catch(e){}schedulePrefsPush();}
+/* Affichage du PLAN (v4.23.0) : Détails / Échelle / Schéma. Mémorisé par utilisateur — sans
+   quoi on re-choisissait à CHAQUE ouverture de la feuille, alors que la préférence de lecture
+   d'un synoptique est stable (on lit toujours son plan de la même façon).
+   LOCAL SEULEMENT, volontairement : ce n'est pas un état de la fiche ni un mode opératoire, mais
+   le dessin d'une feuille transitoire — ça n'a pas sa place dans la charge utile de synchro
+   (contrairement à readMode, qui change ce qu'EST la fiche). */
+const PLAN_VIEWS=['plan','ladder','svg'];
+function currentPlanView(){try{const v=localStorage.getItem(spaceKey('ac-plan-view'))||'';
+  return PLAN_VIEWS.indexOf(v)>=0?v:'plan';}catch(e){return 'plan';}}
+function setPlanViewPref(v){if(PLAN_VIEWS.indexOf(v)<0)return;try{localStorage.setItem(spaceKey('ac-plan-view'),v);}catch(e){}}
 // Rôle/édition par bibliothèque. Perso (libraryId vide) = toujours éditable. Bibliothèque partagée : éditable
 // si role editor/admin. (La RLS reste l'arbitre côté serveur ; ceci n'est que l'ergonomie.)
 function roleOf(libId){const l=myLibraries.find(x=>x.id===libId);return l?l.role:null;}
@@ -3065,7 +3453,17 @@ const RO_EDIT_TOAST='Lecture seule : vous n\'avez pas les droits d\'édition sur
    buildRuntime() = objet CONSTRUIT depuis une fiche (+ session reprise éventuelle), sans le poser ;
    freshRuntime() = build + POSE comme Runtime courant + relie state.checked/state.nav dessus ;
    resetRuntime() = repose un objet vierge (invalidation après édition de la fiche). */
-function makeRuntime(){return {fiche:null,ficheId:null,sessionId:null,name:'',started:false,startedAt:0,checked:{},nav:[],navSeq:[],seq:0,counters:{},timers:{},events:[]};}
+/* VÉRIFICATION (Do-Verify, v4.23.0) — `verified` et `vgaps` sont VOLONTAIREMENT distincts de
+   `checked`. Avant, « Constaté ✓ » écrivait la MÊME clé que le cochage courant et les écarts
+   étaient jetés à la sortie : une étape cochée pendant l'exécution devenait indiscernable d'une
+   étape CONSTATÉE par observation, et un « △ Écart » d'une étape jamais atteinte. Or c'est
+   exactement la distinction que la seconde passe existe pour produire (AC 120-71B : en do-verify,
+   la réponse doit venir de l'état CONSTATÉ, pas du souvenir d'avoir fait le geste) — la conflater
+   en un seul bit détruit le résultat de la vérification.
+   Portée : STOCKÉ DANS LA SESSION uniquement (stores `sessions`) — l'export v3 des FICHES et le
+   format des clés (`seq:blocId:index`) restent strictement inchangés ; un client antérieur ignore
+   simplement ces deux champs. */
+function makeRuntime(){return {fiche:null,ficheId:null,sessionId:null,name:'',started:false,startedAt:0,checked:{},verified:{},vgaps:{},nav:[],navSeq:[],seq:0,counters:{},timers:{},events:[]};}
 let Runtime=makeRuntime();
 const liveSessions={};
 let soundOn=true;
@@ -3424,13 +3822,19 @@ function jumpToBlock(f,id){if(!f||!(f.blocks||[]).some(b=>b.id===id))return;
   if(lp)state.navPos=lp.idx;   // guidé : bloc visité = déplacement du curseur (non destructif)
   else{state.nav.push(id);state.navSeq.push(++Runtime.seq);state.navPos=state.nav.length-1;if(Runtime.started)persistLive(Runtime);}
   scrollNavNext=true;renderNavOnly();}
-function bindSvgNav(container,f,fromFull){if(!container)return;
-  const jump=id=>{if(fromFull)closeFlowFull();jumpToBlock(f,id);};
+// `before` : true = fermer le plein écran de l'algorithme (compat historique), ou une FONCTION
+// à exécuter avant le saut (v4.23.0 : la feuille Plan y passe closePlanSheet — taper un nœud,
+// c'est y ALLER, donc rendre la main à l'action).
+function bindSvgNav(container,f,before){if(!container)return;
+  const jump=id=>{if(typeof before==='function')before();else if(before===true)closeFlowFull();jumpToBlock(f,id);};
   container.onclick=e=>{const g=e.target.closest?e.target.closest('g[data-fnode]'):null;if(g)jump(g.getAttribute('data-fnode'));};
   container.onkeydown=e=>{if(e.key!=='Enter'&&e.key!==' ')return;const g=e.target.closest?e.target.closest('g[data-fnode]'):null;if(g){e.preventDefault();jump(g.getAttribute('data-fnode'));}};}
-function bindFlowZoom(){main.querySelectorAll('[data-zoom]').forEach(b=>b.onclick=()=>zoomStep(b.dataset.zoom));
-  main.querySelectorAll('[data-flowfull]').forEach(b=>b.onclick=()=>{if(flowCtx.f)openFlowFull(flowCtx.f);});
-  {const fs=main.querySelector('.flow-scroll');bindSvgImages(fs);
+// `root` (v4.23.0) : le schéma ne vit plus seulement dans main — la feuille Plan en héberge une
+// instance. Par défaut main, pour tous les appels historiques.
+function bindFlowZoom(root){const R=root||main;
+  R.querySelectorAll('[data-zoom]').forEach(b=>b.onclick=()=>zoomStep(b.dataset.zoom));
+  R.querySelectorAll('[data-flowfull]').forEach(b=>b.onclick=()=>{if(flowCtx.f)openFlowFull(flowCtx.f);});
+  {const fs=R.querySelector('.flow-scroll');bindSvgImages(fs);
    // v4.7.0 : en LECTURE (aperçu de brouillon compris — bac à sable), l'organigramme est
    // navigable et peint selon l'état ; dans l'ÉDITEUR il reste inerte (pas d'état de session).
    if(fs&&state.view==='read'&&state.fiche){flowPaintState(fs,state.fiche);bindSvgNav(fs,state.fiche);}}}
@@ -3612,9 +4016,16 @@ function catChipHtml(c,selected,cls,attr){const col=safeColor(c.color);
    (la couleur reste réservée au danger et aux catégories). ----- */
 const statusKey=st=>st==='draft'?'draft':(st==='review'?'review':'valid');
 function statusLbl(st,fem){return {draft:'○ Brouillon',review:'△ À relire',valid:'✓ Validé'+(fem?'e':'')}[statusKey(st)];}
-// Pastille de statut des cartes/vues : Validé(e) n'affiche PAS de pastille hors des éditeurs
-// (la date de validation parle déjà) — sauf `always` (badge d'en-tête, éditeurs).
-function statusChip(st,fem){return `<span class="status-tag">${statusLbl(st,fem)}</span>`;}
+/* Pastille de statut (v4.23.0 — l'intention était écrite ici depuis longtemps sans être codée :
+   `statusChip` n'avait pas le paramètre qui l'aurait permise, et AGENTS.md affirmait l'inverse).
+   RÈGLE : une carte ne porte un statut que si elle ATTEND QUELQUE CHOSE de vous (Brouillon,
+   À relire) — « Validé(e) » ne dit rien de plus que la date de validation, qui est plus précise.
+   CONDITION (décision utilisateur) : si la date MANQUE, la pastille reste — sinon plus rien ne
+   distinguerait une fiche validée d'une fiche sans statut.
+   `opts.always` : éditeurs et badge d'en-tête, où le statut est l'objet même du réglage. */
+function statusChip(st,fem,opts){opts=opts||{};
+  if(!opts.always&&statusKey(st)==='valid'&&opts.validation)return '';
+  return `<span class="status-tag">${statusLbl(st,fem)}</span>`;}
 // Sélecteur segmenté des éditeurs, avec phrase d'aide contextuelle.
 function statusSegHtml(st,fem,shared){const k=statusKey(st);
   const e=fem?'e':'';
@@ -3625,7 +4036,12 @@ function statusSegHtml(st,fem,shared){const k=statusKey(st);
 // Badge de statut dans la barre d'en-tête (éditeurs, lecture de protocole).
 function updateHdrStatusBadge(st,fem,extra){const b=document.getElementById('hdrBadge');if(!b)return;
   b.hidden=false;b.textContent=statusLbl(st,fem)+(extra?' · '+extra:'');}
-const fmtMs=ms=>{ms=Math.max(0,Math.floor(ms/1000));const m=Math.floor(ms/60),s=ms%60;return (m<10?'0':'')+m+':'+(s<10?'0':'')+s;};
+const fmtMs=ms=>{ms=Math.max(0,Math.floor(ms/1000));const h=Math.floor(ms/3600),m=Math.floor(ms/60)%60,s=ms%60;
+  const mm=(m<10?'0':'')+m,ss=(s<10?'0':'')+s;
+  // Au-delà de l'heure on passe en h:mm:ss — sans borne, 3h25 s'affichait « 205:13 » : illisible
+  // sous stress, et assez large pour se faire ROGNER dans le quai (zone d'état). Sous l'heure,
+  // le format mm:ss est INCHANGÉ (cas courant : cycles, délais de dose).
+  return h?h+':'+mm+':'+ss:mm+':'+ss;};
 // Taille lisible (octets -> o/Ko/Mo/Go). Utilisé par la jauge de stockage et l'état de l'instance.
 const fmtBytes=n=>{n=+n||0;if(n<1024)return n+' o';if(n<1048576)return Math.round(n/1024)+' Ko';if(n<1073741824)return (n/1048576).toFixed(1)+' Mo';return (n/1073741824).toFixed(2)+' Go';};
 const fmtHMS=t=>{const d=new Date(t);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+':'+String(d.getSeconds()).padStart(2,'0');};
@@ -3675,8 +4091,117 @@ function stepCR(s){const t=String(s==null?'':s);const i=t.indexOf('::');
   return (c&&r)?{c,r}:{c:c||r,r:null};}
 // Intérieur d'une rangée d'étape cochable (vue guidée + journal) : challenge, puis RÉPONSE
 // ATTENDUE en pilule mono — le readback « ✓ » du cochage est porté par le CSS (li.done).
-function stepTxtHtml(s){const cr=stepCR(stepText(s));
-  return `<span class="txt">${fmt(cr.c)}${cr.r?` <span class="stp-r">${fmt(cr.r)}</span>`:''}</span>`;}
+function stepTxtHtml(s,opts){const cr=stepCR(stepText(s));
+  // opts.mark : glyphe de registre EN TÊTE (lot 8) — indispensable depuis que les étapes normales
+  // sont des lignes plates : sans lui, CRITIQUE (boîte rouge) et VIGILANCE (boîte ambre) ne se
+  // distinguaient que par la HUE (WCAG 1.4.1). Le glyphe ⚠/△ + l'étiquette lecteur d'écran portent
+  // le sens hors couleur. NON passé au mode lecteur (`.vstp`), dont le △ signifie « écart » (autre sens).
+  const mk=(opts&&opts.mark)?(stepIsCrit(s)?'<span class="sr-only">Étape critique. </span><span class="stp-mk" aria-hidden="true">⚠</span>':(stepIsVigil(s)?'<span class="sr-only">Étape de vigilance. </span><span class="stp-mk" aria-hidden="true">△</span>':'')):'';
+  return `<span class="txt">${mk}${fmt(cr.c)}${cr.r?` <span class="stp-r">${fmt(cr.r)}</span>`:''}</span>`;}
+/* ===== PERTINENCE DES REPÈRES POSOLOGIQUES (v4.23.0) =====
+   Une liste de repères peut être longue ; on veut voir en tête ceux qui concernent le bloc en
+   cours. RÈGLE DE SÛRETÉ ABSOLUE : ce classement RÉORDONNE, il ne FILTRE JAMAIS. C'est ce qui
+   autorise un rapprochement volontairement permissif — un faux positif coûte un rang, un faux
+   négatif coûte un défilement, jamais une dose manquante. Un filtre silencieux, lui, ferait
+   disparaître un repère à l'instant précis où on le cherche : c'est le seul mode de défaillance
+   inacceptable ici (le décluttering ECAM n'est sûr que parce que sa sélection est exhaustive).
+   Corollaire tenu par le rendu : un repère « ⚠ » (registre ALERTE) n'est JAMAIS replié.
+   Résilience demandée (retour utilisateur) : « Adré » doit trouver « Adrénaline » (préfixe) et
+   « IM » doit trouver « intramusculaire » (table de voies, dans les deux sens). */
+// Voies et formes : chaque variante -> un jeton CANONIQUE ; « im » et « intramusculaire »
+// donnent tous deux 'im', donc l'un trouve l'autre sans règle supplémentaire.
+const POSO_SYN={im:'im',intramusculaire:'im',intramusculaires:'im',
+  iv:'iv',ivl:'iv',ivd:'iv',intraveineux:'iv',intraveineuse:'iv',intraveineuses:'iv',
+  ivse:'ivse',pse:'ivse',
+  sc:'sc',souscutane:'sc',souscutanee:'sc',
+  io:'io',intraosseux:'io',intraosseuse:'io',
+  po:'po',oral:'po',orale:'po',
+  intranasal:'in',intranasale:'in',
+  sl:'sl',sublingual:'sl',sublinguale:'sl',
+  inhale:'inh',inhalee:'inh',aerosol:'inh',nebulisation:'inh',nebulise:'inh'};
+// Locutions en DEUX mots : remplacées avant la découpe (les formes à trait d'union sont déjà
+// recollées par posoNorm, « sous-cutané » -> « souscutane »).
+const POSO_PHRASE=[[/\bper os\b/g,'po'],[/\bvoie orale\b/g,'po'],[/\bseringue electrique\b/g,'ivse'],
+  [/\bpousse seringue\b/g,'ivse'],[/\bintra musculaire\b/g,'im'],[/\bintra veineuse?\b/g,'iv'],
+  [/\bsous cutanee?\b/g,'sc'],[/\bintra osseuse?\b/g,'io'],[/\bintra nasale?\b/g,'in']];
+// Mots de grammaire et UNITÉS : présents partout, ils rapprocheraient tout de tout (ils ne
+// nuisent pas à la sûreté — seulement à l'utilité du classement).
+const POSO_STOP=new Set(['de','du','des','la','le','les','un','une','au','aux','en','et','ou','par',
+  'pour','sur','dans','avec','si','puis','selon','apres','avant','mg','ml','g','kg','mcg','ug','ui',
+  'min','mn','h','dose','doses','voie','voies','max','maxi','soit','puis','fois']);
+const posoNorm=s=>txNorm(s).replace(/[’']/g,' ').replace(/-/g,'').replace(/[^a-z0-9]+/g,' ').trim();
+function posoTokens(s){let t=posoNorm(s);
+  POSO_PHRASE.forEach(([rx,to])=>{t=t.replace(rx,to);});
+  return t.split(' ').filter(Boolean).map(w=>POSO_SYN[w]||w).filter(w=>!POSO_STOP.has(w));}
+// Nom d'un repère = ce qui précède le premier « : » (même découpe que le rendu des cartes).
+function posoName(s){const t=stepText(String(s==null?'':s));const i=t.indexOf(' : ');
+  return stripBold(i>0?t.slice(0,i):t).trim();}
+/* Score de proximité entre le NOM d'un repère et le texte du bloc courant. Jamais un booléen :
+   un score dégrade proprement (0 = pas rapproché, on reste dans la liste, plus bas). */
+function posoScore(name,hay){
+  const A=posoTokens(name),B=posoTokens(hay);
+  if(!A.length||!B.length)return 0;
+  const set=new Set(B);let sc=0;
+  A.forEach((t,i)=>{
+    let hit=0;
+    if(set.has(t))hit=3;
+    // Troncature : « adre » ⊂ « adrenaline ». Plancher de 4 caractères — en deçà, les
+    // abréviations passent par POSO_SYN, pas par le préfixe (« iv » ⊄ « ivresse »).
+    else for(const u of B){if(t.length>=4&&u.length>=4&&(u.startsWith(t)||t.startsWith(u))){hit=2;break;}}
+    // Le produit est en tête du nom (« Adrénaline IM : … ») : ce jeton pèse plus que la voie.
+    if(hit)sc+=hit+(i===0?1:0);});
+  return sc;}
+/* Classement d'une liste de repères pour un bloc. Renvoie TOUS les items, annotés — le rendu
+   décide seulement de l'ordre et du pli. Tri stable : ⚠ d'abord, puis score, puis ordre d'origine
+   (deux repères non rapprochés gardent l'ordre voulu par l'auteur). */
+function posoRank(items,hay){
+  // « crit » = repère SIGNALÉ, jamais repliable. Il couvre les DEUX registres : ⚠ (rouge) et
+  // △ (ambre). Depuis v4.23.0 la doctrine réserve ⚠ aux ACTIONS et marque les repères
+  // posologiques en △ — ne protéger que ⚠ ici ne protégerait donc plus RIEN (une dilution à
+  // vérifier, motif même du registre, aurait pu se replier derrière « n autres repères »).
+  return clean(items).map((s,i)=>({s,i,crit:stepIsCrit(s)||stepIsVigil(s),score:posoScore(posoName(s),hay)}))
+    .sort((a,b)=>(b.crit-a.crit)||(b.score-a.score)||(a.i-b.i));}
+/* Ce qui est VISIBLE d'emblée : les ⚠ (jamais repliés) et les repères rapprochés du bloc. Liste
+   courte (<= 3) -> tout est visible, on ne change pas le cas simple. Aucun rapprochement ->
+   les 2 premiers, pour que le bloc ne soit jamais vide. Le reste est REPLIÉ, jamais retiré, et
+   son nombre est ANNONCÉ par le rendu (un pli muet serait un filtre déguisé). */
+function posoSplit(items,hay,cap){
+  const r=posoRank(items,hay);
+  if(r.length<=(cap||3))return {head:r,rest:[]};
+  let head=r.filter(x=>x.crit||x.score>0);
+  if(!head.length)head=r.slice(0,2);
+  const keep=new Set(head.map(x=>x.i));
+  return {head,rest:r.filter(x=>!keep.has(x.i))};}
+/* Texte du bloc COURANT — le « foin » contre lequel on rapproche les repères. Lu depuis le
+   Runtime (bout du journal), donc valable aussi bien pendant le rendu de la fiche que depuis la
+   feuille Consulter, qui peut être ouverte à n'importe quel moment. */
+function curBlockHay(f){
+  const b=(f&&f.blocks||[]).find(x=>x.id===state.nav[state.navPos]);
+  if(!b)return '';
+  return [stripBold(b.title||'')].concat(clean(b.steps).map(s=>stepText(s))).join(' ');}
+/* Cartes de repères posologiques, classées pour le bloc courant : les rapprochés (et tous les
+   « ⚠ ») en tête, le reste replié derrière un dépliant qui ANNONCE SON NOMBRE. Source unique,
+   partagée par le flux et la feuille Consulter — les deux rendus ne peuvent pas diverger. */
+function posoCardsHtml(list,hay){
+  const items=clean(list);if(!items.length)return '';
+  /* REGISTRE D'UN REPÈRE (v4.23.0, décision utilisateur) : AMBRE, jamais rouge. La doctrine
+     v4.2.2 range explicitement « dose/dilution à vérifier » dans le registre VIGILANCE — là où
+     l'on risque de SE TROMPER — et réserve le rouge à ce qui TUE SI ON L'OUBLIE (memory item,
+     geste vital). Rendu en rouge, un repère prenait le même poids visuel que le chapeau « Ne pas
+     oublier » : trois masses rouges d'égale valeur à l'écran, donc inflation du rouge et perte de
+     prééminence des memory items (retour d'usage). C'est aussi la règle ECAM — une valeur hors
+     limites est une CAUTION ambre, pas un WARNING rouge.
+     Le « ⚠ » n'est plus proposé à la saisie (cf. listEditor), mais reste LU comme un signalement
+     sur les fiches existantes : il s'affiche alors en ambre, sans rien perdre. */
+  const card=x=>{const t=stepText(x);const i=t.indexOf(' : ');
+    const name=i>0?stripBold(t.slice(0,i)).trim():'';const body=i>0?t.slice(i+3):t;
+    const flag=stepIsCrit(x)||stepIsVigil(x);
+    return `<div class="pos-card${flag?' vig':''}">${name?`<div class="pos-name">${esc(name)}</div>`:''}<div class="pos-body">${fmt(body)}</div></div>`;};
+  const sp=posoSplit(items,hay||'');
+  const head=sp.head.map(o=>card(o.s)).join('');
+  if(!sp.rest.length)return head;
+  const n=sp.rest.length;
+  return head+`<details class="pos-more"><summary>${n} autre${n>1?'s':''} repère${n>1?'s':''}</summary>${sp.rest.map(o=>card(o.s)).join('')}</details>`;}
 const TODO_RX=/[àa] compl[eé]ter/i;
 function completionSpots(f){if(!f||typeof f!=='object')return [];const spots=[];
   if(TODO_RX.test(String(f.localInfo||'')))spots.push('Contexte local');
@@ -4322,6 +4847,8 @@ function buildRuntime(f,session){
   R.fiche=f;R.ficheId=f.id;R.sessionId=session?session.id:null;R.name=session?(session.name||''):'';
   R.started=!!session;R.startedAt=session&&session.startedAt?session.startedAt:0;
   R.checked=session&&session.checked?{...session.checked}:{};
+  R.verified=session&&session.verified?{...session.verified}:{};
+  R.vgaps=session&&session.vgaps?{...session.vgaps}:{};
   R.nav=(session&&session.nav&&session.nav.length)?session.nav.slice():[f.start||((f.blocks[0]||{}).id)];
   // navSeq : identifiant de VISITE unique par entrée de nav (parallèle à nav). Permet, lors
   // d'une boucle qui revient sur un bloc, d'avoir des cases à cocher NEUVES pour cette visite
@@ -4341,7 +4868,7 @@ function buildRuntime(f,session){
   R.events=(session&&Array.isArray(session.events))?session.events.map(e=>({...e})):[];
   return R;
 }
-function bindStateToRuntime(){state.checked=Runtime.checked;state.nav=Runtime.nav;state.navSeq=Runtime.navSeq;state.navPos=Runtime.nav.length-1;}
+function bindStateToRuntime(){state.checked=Runtime.checked;state.verified=Runtime.verified=Runtime.verified||{};state.vgaps=Runtime.vgaps=Runtime.vgaps||{};state.nav=Runtime.nav;state.navSeq=Runtime.navSeq;state.navPos=Runtime.nav.length-1;}
 function freshRuntime(f,session){Runtime=buildRuntime(f,session);bindStateToRuntime();}
 function resetRuntime(){Runtime=makeRuntime();}
 // ----- Cycle de vie des sessions vives -----
@@ -4349,7 +4876,7 @@ function autoSessName(f){return (f&&f.title||'Session')+' — '+new Date().toLoc
 // Photographie de l'état vivant -> objet session persistable. live=true tant que la session est « en cours ».
 function snapshotSession(R,live){const now=Date.now();const tsnap={};
   Object.values(R.timers).forEach(t=>{const within=t.elapsedMs+(t.running?(now-t.lastStart):0);tsnap[t.id]={elapsedMs:t.type==='interval'?Math.min(t.seconds*1000,within):within,cycles:t.cycles};});
-  return {id:R.sessionId,ficheId:R.fiche.id,ficheTitle:R.fiche.title,name:R.name,savedAt:now,startedAt:R.startedAt||now,live:!!live,checked:{...R.checked},nav:R.nav.slice(),navSeq:R.navSeq.slice(),counters:{...R.counters},timers:tsnap,
+  return {id:R.sessionId,ficheId:R.fiche.id,ficheTitle:R.fiche.title,name:R.name,savedAt:now,startedAt:R.startedAt||now,live:!!live,checked:{...R.checked},verified:{...(R.verified||{})},vgaps:{...(R.vgaps||{})},nav:R.nav.slice(),navSeq:R.navSeq.slice(),counters:{...R.counters},timers:tsnap,
     extraTimers:Object.values(R.timers).filter(t=>t.adhoc).map(t=>({id:t.id,label:t.label,seconds:t.seconds,autoloop:!!t.autoloop})),
     events:(R.events||[]).map(e=>({...e}))};}
 // COMPTE-RENDU d'une session : chronologie horodatée (repères), étapes réalisées, compteurs et
@@ -4561,7 +5088,7 @@ window.addEventListener('resize',()=>{_rtShowDirty=true;},{passive:true});
 // FUSIONNÉ dans le bandeau de crise : le chrono compact #cbTimers (à droite du bandeau) reprend
 // le rôle de l'ancien rappel #rtStrip — visible quand un minuteur tourne ET que le panneau
 // minuteurs est sorti de l'écran ; tap -> remonte au panneau. Un seul bloc d'état dans la barre.
-let _rtsHtml='';
+let _rtsHtml='',_rtsFitKey='',_rtsFit=0,_rtsNoChev=false;
 function updateRtStrip(now){
   // Chrono de session du MODE LECTEUR (v4.11.0) : même source, même cadence (tickAll).
   {const rt=document.getElementById('rmTime');
@@ -4577,33 +5104,78 @@ function updateRtStrip(now){
   const started=crisis&&Runtime.started;
   // V5 : la barre segmentée est visible dès que la session vit OU qu'un minuteur tourne —
   // vision permanente d'un coup d'œil (canvas turn 6), tap -> remonte au panneau détaillé.
-  if(!run.length&&!started){el.hidden=true;_rtsHtml='';return;}
+  if(!run.length&&!started){el.hidden=true;_rtsHtml='';syncDock();return;}
   // Segments : jusqu'à DEUX minuteurs étiquetés (échus d'abord, puis les plus urgents), « +n »,
   // puis GLOBAL (chrono de session — démarre à la 1ʳᵉ action, décision produit V5) et « remonter ».
   const withRem=run.map(t=>{const d=timerDisplay(t,now);
     const rem=dueDone(t)?-1:(t.type==='interval'?Math.max(0,(t.seconds*1000||0)-(t.elapsedMs+(t.running?(now-t.lastStart):0))):Infinity);
     return {t,d,rem,due:t.type==='interval'&&d.val==='00:00'};}).sort((a,b)=>a.rem-b.rem);
-  // Les CHRONOMÈTRES vivent dans l'en-tête à TOUTES les largeurs (décision utilisateur) :
-  // en étroit UN minuteur étiqueté + « +n » (la barre tient sur 375px), en large DEUX ;
-  // toujours suivis du chrono GLOBAL de session.
-  const wideRail=mqReadWide.matches;
-  const maxSeg=wideRail?2:1;
-  const seg=withRem.slice(0,maxSeg).map(x=>{const lbl=esc(x.t.label)||(x.t.type==='interval'?'Minuteur':'Chrono');
+  const wideRail=mqRail.matches;
+  // CE QUE PORTE LE QUAI (v4.23.0, décision utilisateur) :
+  //   < 1000px : le chrono de session, UN minuteur étiqueté (l'échu / le plus urgent) et « +n ».
+  //   ≥ 1000px : le rail droit porte DÉJÀ tous les minuteurs, avec leurs grands chiffres et leurs
+  //     boutons — les répéter ici ferait deux sources pour la même valeur. Le quai ne garde que ce
+  //     qui doit vivre dans une zone de statut FIXE : l'état de session et l'ALARME (un minuteur
+  //     échu). La redondance de l'alarme à deux endroits est VOULUE ; celle du nominal, non.
+  const dueList=withRem.filter(x=>x.due||x.rem===-1);
+  /* PLACE DISPONIBLE EN ÉTROIT (v4.23.0) : passé l'heure, le chrono de session s'écrit h:mm:ss et
+     occupe presque la largeur d'un segment entier. Deux segments étiquetés ne tiennent alors plus
+     sous ~430px : le quai débordait et ROGNAIT (or une zone d'état n'ampute jamais un nombre —
+     et le « +n » existe précisément pour annoncer ce qu'elle ne montre pas). Dans ce cas on ne
+     garde un segment de minuteur QUE s'il est ÉCHU : l'ALARME prime sur le nominal, qui reste
+     compté dans « +n » et accessible d'un tap sur le quai. */
+  const want=wideRail?dueList.slice(0,2):withRem.slice(0,1);
+  const segOf=list=>list.map(x=>{const lbl=esc(x.t.label)||(x.t.type==='interval'?'Minuteur':'Chrono');
     return '<span class="seg'+(x.due?' due':'')+'"><span class="seg-l">'+lbl+'</span><span class="seg-t">'+x.d.val+'</span></span>';}).join('');
-  const more=run.length>maxSeg?'<span class="cbt-n">+'+(run.length-maxSeg)+'</span>':'';
+  // DÉBORDEMENT JAMAIS SILENCIEUX (ECAM, v4.23.0) : une zone d'état ne peut pas cacher une
+  // alarme sans le dire. En étroit le quai porte tous les minuteurs (« +n » sur le reste) ; en
+  // large il ne porte que les ÉCHUS, plafonnés à deux — au-delà, « +n » compte les échus NON
+  // MONTRÉS (le rail droit les affiche en grand, mais il DÉFILE : le 3ᵉ peut être sous la ligne
+  // de flottaison, donc le quai doit l'annoncer). Le décompte suit toujours la liste affichée.
+  const pool=wideRail?dueList:run;
+  const moreOf=n=>(pool.length>n)?'<span class="cbt-n">+'+(pool.length-n)+'</span>':'';
   // « ● SESSION » : l'état est ANNONCÉ (point + mot, vert = actif nominal), pas déduit — même
   // vocabulaire que le bandeau d'accueil « ● Session en cours » et l'aperçu (« aucune session »).
   const glob=started?'<span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">'+fmtMs(now-Runtime.startedAt)+'</span></span>':'';
   // Chevron = bascule du panneau en étroit ; rien en large (rail permanent, tap -> y défile).
   const chev=wideRail?'':'<span class="cbt-n" aria-hidden="true">'+(state.rtOpen?'▴':'▾')+'</span>';
-  const html=seg+more+glob+chev;
-  if(html!==_rtsHtml){_rtsHtml=html;el.innerHTML=html;}   // réécrire l'innerHTML 3×/s sans changement = churn DOM inutile
-  el.hidden=false;}
+  // ORDRE (v4.23.0, décision utilisateur) : « ● Session » ANCRÉ EN TÊTE, puis l'alarme / le
+  // minuteur, puis « +n », puis le chevron. Le chrono de session était placé APRÈS les minuteurs :
+  // sa position glissait donc à droite dès qu'un minuteur apparaissait, à gauche quand il
+  // disparaissait. Or la règle cardinale d'une zone de statut ECAM est la CONSTANCE POSITIONNELLE
+  // (on apprend où regarder, l'œil y va sans lire) ; une valeur qui bouge doit être re-cherchée.
+  // Le chrono est le seul élément TOUJOURS présent : c'est lui l'ancre. L'alarme n'a pas besoin
+  // de la 1ʳᵉ place pour être saillante — elle a déjà la teinte ambre, le mot « échu », le flash
+  // et le son.
+  /* AJUSTEMENT MESURÉ (v4.23.0) — « une zone d'état n'ampute jamais un nombre ». Passé l'heure le
+     chrono s'écrit h:mm:ss et, avec un segment de minuteur, le quai débordait donc ROGNAIT ses
+     chiffres. Des seuils de largeur en dur se sont montrés faux (320 et 430 débordaient encore) :
+     on MESURE. On écrit la version voulue, et tant qu'elle déborde on RETIRE un segment — il n'est
+     pas perdu, il repasse dans « +n » (annonce ECAM) et reste accessible d'un tap.
+     La décision ne dépend QUE de la largeur, du nombre de minuteurs et du NOMBRE DE CARACTÈRES
+     des valeurs (chiffres tabulaires : même compte = même largeur) — elle est donc mémorisée et
+     re-mesurée seulement quand cette clé change, jamais à chaque tic de seconde. */
+  const fitKey=window.innerWidth+'|'+wideRail+'|'+pool.length+'|'+want.length+'|'
+    +(started?fmtMs(now-Runtime.startedAt).length:0)+'|'+want.map(x=>x.d.val.length).join(',');
+  const write=(n,noChev)=>{const h=glob+segOf(want.slice(0,n))+moreOf(n)+(noChev?'':chev);
+    if(h!==_rtsHtml){_rtsHtml=h;el.innerHTML=h;}return h;};
+  if(!glob&&!want.length){el.hidden=true;_rtsHtml='';syncDock();return;}   // ≥780 sans session ni échu : le rail suffit
+  el.hidden=false;
+  const fits=()=>el.scrollWidth<=el.clientWidth+1;
+  if(fitKey!==_rtsFitKey){
+    _rtsFitKey=fitKey;_rtsFit=want.length;_rtsNoChev=false;
+    while(_rtsFit>0){write(_rtsFit,false);if(fits())break;_rtsFit--;}
+    // Dernier recours (très petits écrans) : on sacrifie le CHEVRON, purement décoratif
+    // (aria-hidden, la barre entière est déjà tapable) — jamais le « +n », qui est l'ANNONCE.
+    if(!fits()){write(0,true);_rtsNoChev=fits();}
+  }
+  write(_rtsFit,_rtsNoChev);
+  syncDock();}
 {const cbt=document.getElementById('cbTimers');
  // V5 : la barre BASCULE le panneau minuteurs en étroit (< 1000px, chevron ▾/▴) ; en large la
  // colonne droite l'affiche déjà -> simple défilement jusqu'au panneau.
  if(cbt)cbt.onclick=()=>{
-   if(!mqReadWide.matches){state.rtOpen=!state.rtOpen;render();
+   if(!mqRail.matches){state.rtOpen=!state.rtOpen;render();
      if(state.rtOpen){const p=document.querySelector('.rt-panel');if(p)p.scrollIntoView({behavior:'smooth',block:'start'});}return;}
    const p=document.querySelector('.rt-panel');if(p)p.scrollIntoView({behavior:'smooth',block:'start'});};}
 function refreshTimersDOM(now){now=now||Date.now();
@@ -4671,7 +5243,7 @@ bindModalDismiss(document.getElementById('endSessModal'),()=>_endSessClose(false
 async function endCurrentSession(){if(!Runtime.started)return;if(!await confirmEndSession(Runtime))return;const f=Runtime.fiche;endSession(Runtime);freshRuntime(f,null);state.fiche=null;state.view='library';render();}
 // Reprendre une session de l'historique (ou vive) : recharge dans un runtime, la réactive (vive) et
 // ouvre la fiche. Si une session vive existe déjà pour cette fiche, on la rouvre telle quelle.
-function resumeSession(id){const s=sessions.find(x=>x.id===id);if(!s)return;const f=fiches.find(x=>x.id===s.ficheId);if(!f){toast('⚠ Fiche introuvable.');return;}flowScroll={left:null,top:0};state.readMode=currentReadMode();state.ovFold={};state.ovPlanView='plan';state.ovVerify=null;
+function resumeSession(id){const s=sessions.find(x=>x.id===id);if(!s)return;const f=fiches.find(x=>x.id===s.ficheId);if(!f){toast('⚠ Fiche introuvable.');return;}flowScroll={left:null,top:0};state.readMode=currentReadMode();state.ovFold={};state.ovPlanView=currentPlanView();state.ovVerify=null;
   if(liveSessions[f.id]&&liveSessions[f.id].sessionId===id){Runtime=liveSessions[f.id];}
   else{Runtime=buildRuntime(f,s);Runtime.started=true;Runtime.startedAt=s.startedAt||Date.now();liveSessions[f.id]=Runtime;persistLive(Runtime,true);}
   Runtime.fiche=f;bindStateToRuntime();state.fiche=f;state.showFlow=false;state.showSess=false;state.view='read';render();}
@@ -4721,10 +5293,30 @@ function applyViewChrome(){
      :state.view==='library'?(state.section==='protocols'?'Protocoles':'Bibliothèque'):'Aide cognitive';}
   // Bandeau TITRE du MODE CRISE (V5) : le titre de la fiche vit dans la rangée teintée de
   // l'en-tête sticky — toujours lisible en crise ; « ■ MODE CRISE » statique à droite.
-  {const cb=document.getElementById('crisisBand');const crisis=state.view==='read'&&!!state.fiche;
+  // v4.23.0 : le bandeau vit HORS en-tête (cf. CSS) et défile ; #hdrCrisis est son relais dans la
+  // rangée d'identité. La rangée de minuteurs, elle, est collante et n'a pas de relais.
+  {const cb=document.getElementById('crisisBand');
+   const crisis=state.view==='read'&&!!state.fiche;
    cb.hidden=!crisis;
+   document.getElementById('hdrCrisis').hidden=!crisis;
    if(crisis){cb.querySelector('.cb-ttl').textContent=state.fiche.title||'Sans titre';
-     cb.querySelector('.cb-tag').textContent=state.previewFrom?'■ Aperçu':'■ Mode crise';}}
+     cb.querySelector('.cb-tag').textContent=state.previewFrom?'■ Aperçu':'■ Mode crise';
+     document.getElementById('hdrCrisis').textContent=state.previewFrom?'■ Aperçu':'■ Crise';}
+   // Accès permanent au Plan : seulement là où un plan existe (fiche À ALGORITHME), hors aperçu
+   // de brouillon, et hors mode STATIQUE — où le tableau EST déjà la vue d'ensemble (doctrine
+   // v4.13.0 : pas de panneau « Algorithme » en statique). Fermer la feuille si elle survivait
+   // à un changement de vue ou de mode.
+   {const pb=document.getElementById('planBtn');
+    const okPlan=crisis&&!state.previewFrom&&hasFlow(state.fiche)&&state.readMode!=='static';
+    pb.hidden=!okPlan;
+    if(!okPlan)closePlanSheet();}
+   // « Réf. » : accès permanent à la couche de consultation. Pas de condition d'algorithme (une
+   // fiche mono-bloc a aussi des annexes) ; masqué en aperçu de brouillon et hors lecture.
+   {const rb=document.getElementById('refBtn');
+    const okRef=crisis&&!state.previewFrom&&!!annexRowHtml(state.fiche);
+    rb.hidden=!okRef;
+    if(!okRef)closeRefSheet();}
+   syncDock();}
   // Chrome de la rangée principale V5 (retour masqué sur l'accueil ; chaque vue pose son libellé
   // et son action via #hdrBack ; badge/Créer/recherche gérés ci-dessous).
   document.getElementById('hdrBack').hidden=(state.view==='library');
@@ -4753,8 +5345,11 @@ function applyViewChrome(){
   // Recherche FIXE de l'en-tête : valeur resynchronisée (bascule de section, filtres) sans
   // écraser une saisie en cours (champ focalisé = source de vérité).
   {const qi=document.getElementById('q');if(state.view==='library'&&document.activeElement!==qi&&qi.value!==state.q)qi.value=state.q;}
-  // Titre au défilement (.titled) : protocoles et éditeurs — en crise le bandeau titre est permanent.
-  setBarTitle(state.view==='protocolRead'&&state.protocol?state.protocol.title
+  // Titre au défilement (.titled) : protocoles, éditeurs — et DEPUIS v4.23.0 la fiche en crise,
+  // dont le titre passe dans la rangée d'identité quand #crisisBand est passé dessous (le bandeau
+  // le portait seul auparavant, parce qu'il ne défilait pas).
+  setBarTitle(state.view==='read'&&state.fiche?state.fiche.title
+    :state.view==='protocolRead'&&state.protocol?state.protocol.title
     :state.view==='edit'&&state.draft?state.draft.title
     :state.view==='protocolEdit'&&state.pdraft?state.pdraft.title:'');
   // Session en cours : pied de page réduit à l'état (les actions Exporter/Importer/Thème sortent
@@ -4805,6 +5400,10 @@ function render(){
     setTimeout(()=>{if(state.view===v&&window.scrollY&&window.scrollY<160)window.scrollTo(0,0);},300);
   }
   _lastView=state.view;_lastFicheId=_fid;
+  // État de l'en-tête resynchronisé APRÈS le défilement final : un changement de vue sans
+  // évènement de scroll (on était déjà en haut) laissait sinon .condensed/.ttl-on hérités de la
+  // vue précédente — barre condensée sur une page au repos, ou zone haute annoncée deux fois.
+  syncHdrScroll();
 }
 // Re-rendu de l'ACCUEIL respectueux de l'onglet courant (Aides ↔ Protocoles). Tout code qui
 // rafraîchit la liste après une fenêtre (catégories, compte, bibliothèques…) passe par ici :
@@ -4854,13 +5453,19 @@ if(mqHomeWide.addEventListener)mqHomeWide.addEventListener('change',_onHomeBp);e
 // Vue fiche TRÈS large (>= 1000px, canvas turn 6) : minuteurs/compteurs + horodatage passent en
 // COLONNE DROITE collante (toujours visibles pendant la checklist) — re-rendu au seuil.
 const mqReadWide=window.matchMedia('(min-width:1000px)');
+// v4.23.0 : le RAIL de lecture s'ouvre dès 780px (décision « action + structure de front ») ;
+// mqReadWide reste le seuil des ÉDITEURS (aperçu en direct à >= 1000, règle v4.5 inchangée).
+const mqRail=window.matchMedia('(min-width:780px)');
 const _onReadBp=()=>{if(state.view==='read')render();};
-if(mqReadWide.addEventListener)mqReadWide.addEventListener('change',_onReadBp);else if(mqReadWide.addListener)mqReadWide.addListener(_onReadBp);
+[mqReadWide,mqRail].forEach(mq=>{if(mq.addEventListener)mq.addEventListener('change',_onReadBp);else if(mq.addListener)mq.addListener(_onReadBp);});
 // « GRAND TITRE » : sur l'accueil, la ligne d'identité se replie dès qu'on défile (.condensed,
 // cf. CSS — il ne reste que les onglets) et réapparaît en haut de page. Écouteur passif ;
 // les scrollTo() de render() déclenchent aussi l'évènement -> état toujours juste.
-let _hdrCond=false,_hdrTtl=false;
-window.addEventListener('scroll',()=>{const c=window.scrollY>24;
+let _hdrCond=false,_hdrTtl=false,_hdrHCss='',_stickCss='';
+// v4.23.0 : extrait en fonction NOMMÉE — render() la rappelle en fin de rendu. Sans ça, ouvrir
+// une fiche depuis une page déjà en haut ne produit aucun évènement de défilement et l'état
+// .ttl-on héritait de la vue précédente (barre condensée sur une page au repos, ou l'inverse).
+function syncHdrScroll(){const c=window.scrollY>24;
   if(c!==_hdrCond){_hdrCond=c;document.querySelector('header.bar').classList.toggle('condensed',c);
     // L'en-tête vient de changer de hauteur : recaler la base du fil d'ancêtres collant du
     // plan (sinon les pastilles épinglées flottent sous — ou passent sous — l'en-tête, v4.13.1).
@@ -4868,12 +5473,31 @@ window.addEventListener('scroll',()=>{const c=window.scrollY>24;
   // Vues fiche/protocole (.titled) : le titre n'entre dans la barre (.ttl-on) qu'une fois le
   // titre du CORPS sorti de l'écran (~110px : bouton retour + ligne de titre) — jamais deux
   // titres visibles à la fois (pattern « grand titre » iOS, symétrique du repli de l'accueil).
-  const t=window.scrollY>110;
-  if(t!==_hdrTtl){_hdrTtl=t;document.querySelector('header.bar').classList.toggle('ttl-on',t);
+  // FICHE EN CRISE (v4.23.0) : le seuil n'est PAS un nombre — c'est le passage RÉEL du bas du
+  // BANDEAU sous le bas de l'en-tête, MESURÉ. Le relais (titre + ■ Crise) se prend donc « ni
+  // avant ni après » : à l'instant exact où le bandeau disparaît, jamais dans un intervalle où
+  // l'état ne serait annoncé nulle part. Les MINUTEURS n'ont pas de seuil : leur rangée est
+  // collante, elle ne disparaît pas.
+  // --hdr-h est posée ici parce que la hauteur de l'en-tête est déjà mesurée : c'est le `top`
+  // de cette rangée collante. Division par zoomF() — getBoundingClientRect rend des px VISUELS
+  // (× zoom du réglage de taille du texte) alors que `top` se consomme en px CSS (règle v4.13.1).
+  const _hb=document.querySelector('header.bar');
+  const _hbB=_hb.getBoundingClientRect().bottom;
+  {const h=Math.round(_hbB/zoomF())+'px';
+   if(_hdrHCss!==h){_hdrHCss=h;document.documentElement.style.setProperty('--hdr-h',h);}}
+  // --stick-top : bas de TOUT ce qui est déjà collé en haut (en-tête + quai de crise). Le rail
+  // de lecture s'y accroche ; sans ça il passerait sous le quai. Même mesure que la base
+  // d'épinglage d'ovPlanPin — une seule vérité pour « où commence la zone libre ».
+  {const v=Math.round(stickBase()/zoomF())+'px';
+   if(_stickCss!==v){_stickCss=v;document.documentElement.style.setProperty('--stick-top',v);}}
+  const _cb=document.getElementById('crisisBand');
+  const t=(_cb&&!_cb.hidden)?_cb.getBoundingClientRect().bottom<=_hbB:window.scrollY>110;
+  if(t!==_hdrTtl){_hdrTtl=t;_hb.classList.toggle('ttl-on',t);
     if(state.view==='read'&&state.readMode==='overview'&&state.fiche&&hasFlow(state.fiche))ovPlanStick();}
   // Fil d'ancêtres v3 : la bulle flottante du plan suit CHAQUE défilement (léger : quelques
   // rectangles ; reconstruit son contenu seulement quand la décision/branche change).
-  if(state.view==='read'&&state.readMode==='overview'&&state.fiche&&hasFlow(state.fiche))ovPlanPin();},{passive:true});
+  if(state.view==='read'&&state.readMode==='overview'&&state.fiche&&hasFlow(state.fiche))ovPlanPin();}
+window.addEventListener('scroll',syncHdrScroll,{passive:true});
 // keepQuery : bascule déclenchée par la RECHERCHE TRANSVERSALE -> la requête est conservée
 // (le filtre de catégorie, lui, est remis à zéro : il pourrait masquer les résultats attendus).
 // Mémoire de DÉFILEMENT par section (v4.4.1) : basculer Aides <-> Protocoles ne doit pas
@@ -5062,7 +5686,7 @@ function renderFiches(){
     card:f=>{const sc=sessions.filter(s=>s.ficheId===f.id&&!s.live).length;const isLive=!!liveSessions[f.id];
       const cc=catOf(f);return `
       <div class="card${isLive?' has-live':''}${cc?' striped':''}"${cc?` style="--stripe:${safeColor(cc.color)}"`:''}><div class="card-body"><h2><button class="card-open" data-open="${f.id}">${esc(f.title)||'Sans titre'}</button></h2>
-        <div class="card-meta">${searchLibTag(f)}${isLive?'<span class="tag live">● En cours</span>':''}${statusChip(f.status,true)}${staleDate(f.validation)?`<span class="tag stale" title="${esc(fmtDate(f.validation))} — plus de 2 ans : à revérifier">△ à revoir</span>`:''}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo title="Reste à compléter : ${esc(sp.join(' · '))}">△ À compléter</span>`:'';})()}${catTag(f,true)}${sc?`<span class="tag sess" title="Sessions enregistrées dans l'historique">${sc} sauvegardée${sc>1?'s':''}</span>`:''}${f.code?`<span class="card-date" style="font-family:var(--mono)">${esc(f.code)}</span>`:''}</div>${txNorm(state.q)?searchSnippet(ficheSnipParts(f),state.q):''}</div>
+        <div class="card-meta">${searchLibTag(f)}${isLive?'<span class="tag live">● En cours</span>':''}${statusChip(f.status,true,{validation:f.validation})}${staleDate(f.validation)?`<span class="tag stale" title="${esc(fmtDate(f.validation))} — plus de 2 ans : à revérifier">△ À revérifier</span>`:''}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo title="Reste à compléter : ${esc(sp.join(' · '))}">△ À compléter</span>`:'';})()}${catTag(f,true)}${sc?`<span class="tag sess" title="Sessions enregistrées dans l'historique">${sc} sauvegardée${sc>1?'s':''}</span>`:''}${f.code?`<span class="card-date" style="font-family:var(--mono)">${esc(f.code)}</span>`:''}${f.validation?`<span class="card-date${staleDate(f.validation)?' stale':''}">${esc(fmtDate(f.validation))}</span>`:''}</div>${txNorm(state.q)?searchSnippet(ficheSnipParts(f),state.q):''}</div>
         <button class="pinbtn${isPinned(f.id)?' on':''}" data-pin="${f.id}" aria-label="${isPinned(f.id)?'Désépingler':'Épingler en haut de la liste'}" title="${isPinned(f.id)?'Désépingler':'Épingler en haut de la liste'}">${pinIcon(isPinned(f.id))}</button>
         ${uiIcon('chev',18,{sw:2.2,cls:'chev'})}</div>`;},
     remainLbl:n=>'restante'+(n>1?'s':''),
@@ -5096,7 +5720,7 @@ function renderProtocols(){
       return protocols.slice().sort((a,b)=>((isPinned(b.id)?1:0)-(isPinned(a.id)?1:0))||(sc(b)-sc(a))||byTitle(a,b)).filter(p=>q?(hayMatch(protocolHaystack(p),T)&&(canEditFiche(p)||p.status!=='draft')):((state.scope?p.libraryId===state.scope:!p.libraryId)&&(!state.cat||p.category===state.cat)&&(canEdit||p.status!=='draft')));},
     card:p=>{const nDoc=(p.attachments||[]).length;const cc=catOf(p);return `
       <div class="card${cc?' striped':''}"${cc?` style="--stripe:${safeColor(cc.color)}"`:''}><div class="card-body"><h2><button class="card-open" data-open="${p.id}">${esc(p.title)||'Sans titre'}</button></h2>
-        <div class="card-meta">${searchLibTag(p)}${statusChip(p.status,false)}${staleDate(p.validation)?`<span class="tag stale" title="${esc(fmtDate(p.validation))} — plus de 2 ans : à revérifier">△ à revoir</span>`:''}${catTag(p,true)}${nDoc?`<span class="tag sess" title="Documents PDF joints">${nDoc} PDF</span>`:''}${p.body&&p.body.trim()?'<span class="tag sess" title="Contenu rédigé dans l’app">Rédigé</span>':''}${p.code?`<span class="card-date" style="font-family:var(--mono)">${esc(p.code)}</span>`:''}</div>${txNorm(state.q)?searchSnippet(protoSnipParts(p),state.q):''}</div>
+        <div class="card-meta">${searchLibTag(p)}${statusChip(p.status,false,{validation:p.validation})}${staleDate(p.validation)?`<span class="tag stale" title="${esc(fmtDate(p.validation))} — plus de 2 ans : à revérifier">△ À revérifier</span>`:''}${catTag(p,true)}${nDoc?`<span class="tag sess" title="Documents PDF joints">${nDoc} PDF</span>`:''}${p.body&&p.body.trim()?'<span class="tag sess" title="Contenu rédigé dans l’app">Rédigé</span>':''}${p.code?`<span class="card-date" style="font-family:var(--mono)">${esc(p.code)}</span>`:''}${p.validation?`<span class="card-date${staleDate(p.validation)?' stale':''}">${esc(fmtDate(p.validation))}</span>`:''}</div>${txNorm(state.q)?searchSnippet(protoSnipParts(p),state.q):''}</div>
         <button class="pinbtn${isPinned(p.id)?' on':''}" data-pin="${p.id}" aria-label="${isPinned(p.id)?'Désépingler':'Épingler en haut de la liste'}" title="${isPinned(p.id)?'Désépingler':'Épingler en haut de la liste'}">${pinIcon(isPinned(p.id))}</button>
         ${uiIcon('chev',18,{sw:2.2,cls:'chev'})}</div>`;},
     remainLbl:n=>'restant'+(n>1?'s':''),
@@ -5165,7 +5789,7 @@ async function genAttThumb(id){
 // n'est pas encore arrivé ici — on le DÉCOUVRE à froid, jamais en crise. Caché par défaut
 // (l'état n'est connu qu'après la lecture IndexedDB de hydrateAttThumbs) ; registre ATTENTION
 // (glyphe + texte, jamais la couleur seule).
-function attListHtml(entity){return (entity.attachments||[]).length?`<section class="block"><div class="block-h h-doc">${headerIcon('h-doc')}Documents</div><div class="att-list">${entity.attachments.map(a=>`<button class="att-row" data-att="${esc(a.id)}" title="Ouvrir le document">${attThumbHtml(a)}<span class="att-name">${esc(a.name)}</span><span class="att-cloud" data-attcloud="${esc(a.id)}" hidden title="Ajouté sur un autre appareil — sera téléchargé à la prochaine synchronisation avec du réseau ; pas encore consultable hors ligne ici.">△ à télécharger</span><span class="att-size">${fmtBytes(a.size)}</span></button>`).join('')}</div></section>`:'';}
+function attListHtml(entity){const _n=(entity.attachments||[]).length;return _n?`<section class="block"><div class="block-h h-doc">${headerIcon('h-doc')}Documents (${_n})</div><div class="att-list">${entity.attachments.map(a=>`<button class="att-row" data-att="${esc(a.id)}" title="Ouvrir le document">${attThumbHtml(a)}<span class="att-name">${esc(a.name)}</span><span class="att-cloud" data-attcloud="${esc(a.id)}" hidden title="Ajouté sur un autre appareil — sera téléchargé à la prochaine synchronisation avec du réseau ; pas encore consultable hors ligne ici.">△ à télécharger</span><span class="att-size">${fmtBytes(a.size)}</span></button>`).join('')}</div></section>`:'';}
 function bindAttList(entity){main.querySelectorAll('[data-att]').forEach(b=>b.onclick=()=>{const a=(entity.attachments||[]).find(x=>x.id===b.dataset.att);if(a)openPdfViewer(a,entity);});
   hydrateAttThumbs(entity);}
 function renderProtocolRead(){
@@ -5177,12 +5801,12 @@ function renderProtocolRead(){
   const rel=(p.related||[]).map(id=>relTarget(id)).filter(Boolean);
   main.innerHTML=`
     <div class="read-head"><h2>${esc(p.title)||'Sans titre'}</h2></div>
-    <div class="read-meta">${p.libraryId?`<span class="tag libtag" title="Bibliothèque partagée">${uiIcon('book',12)}${esc(libName(p.libraryId)||'Partagée')}</span>`:''}${statusChip(p.status,false)}${catTag(p)}${p.code?`<span class="card-date" style="font-family:var(--mono)">${esc(p.code)}</span>`:''}<span class="card-date${staleDate(p.validation)?' stale':''}">${esc(fmtDate(p.validation))}</span>${p.libraryId&&p.updatedBy?`<span class="card-date" title="Auteur de la dernière modification">· dernière modification par ${esc(p.updatedBy)}</span>`:''}</div>
+    <div class="read-meta">${p.libraryId?`<span class="tag libtag" title="Bibliothèque partagée">${uiIcon('book',12)}${esc(libName(p.libraryId)||'Partagée')}</span>`:''}${statusChip(p.status,false,{validation:p.validation})}${catTag(p)}${p.code?`<span class="card-date" style="font-family:var(--mono)">${esc(p.code)}</span>`:''}<span class="card-date${staleDate(p.validation)?' stale':''}">${esc(fmtDate(p.validation))}</span>${p.libraryId&&p.updatedBy?`<span class="card-date" title="Auteur de la dernière modification">· dernière modification par ${esc(p.updatedBy)}</span>`:''}</div>
     ${p.status==='draft'?`<div class="notice">${uiIcon('warn',15)}<div><b>Brouillon</b> — ce protocole n'a pas encore été validé pour l'usage clinique.</div></div>`:''}
     ${p.status==='review'?`<div class="notice">${uiIcon('warn',15)}<div><b>À relire</b> — ce protocole est signalé à relire avant validation.</div></div>`:''}
     ${docs}
     ${body}
-    ${rel.length?`<div class="related"><b>Voir aussi</b><div class="related-row">${rel.map(r=>`<button class="btn sm" data-openrel="${esc(r.id)}">${uiIcon(relKindOf(r.id)==='p'?'book':'doc',13)}${esc(r.title)||'Sans titre'} →</button>`).join('')}</div></div>`:''}
+    ${rel.length?`<div class="related"><b>Voir aussi (${rel.length})</b><div class="related-row">${rel.map(r=>`<button class="btn sm" data-openrel="${esc(r.id)}">${uiIcon(relKindOf(r.id)==='p'?'book':'doc',13)}${esc(r.title)||'Sans titre'} →</button>`).join('')}</div></div>`:''}
     ${(()=>{const refs=clean(p.references||[]);return refs.length?`<div class="refs"><b>Références</b><ol>${refs.map(r=>`<li>${fmt(r)}</li>`).join('')}</ol></div>`:'';})()}
     ${(!docs&&!body)?'<div class="empty"><b>Protocole vide</b>Ajoutez un PDF ou un contenu rédigé via « Modifier ».</div>':''}
     ${readFooterHtml()}
@@ -5605,6 +6229,8 @@ function uiIcon(name,size,opts){opts=opts||{};const P={
   bell:'<path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/>',
   belloff:'<path d="M13.7 21a2 2 0 01-3.4 0"/><path d="M18.6 13c-.4-1.4-.6-3-.6-5a6 6 0 00-9.3-5"/><path d="M6.3 6.3C6.1 6.9 6 7.4 6 8c0 7-3 9-3 9h14"/><path d="M2 2l20 20"/>',
   moon:'<path d="M21 12.8A9 9 0 1111.2 3 7 7 0 0021 12.8z"/>',
+  // Plan de l'aide (v4.23.0) : organigramme — un nœud, deux branches. Lisible à 16px.
+  plan:'<rect x="9" y="3" width="6" height="4" rx="1"/><rect x="3" y="17" width="6" height="4" rx="1"/><rect x="15" y="17" width="6" height="4" rx="1"/><path d="M12 7v4M6 17v-2h12v2"/>',
   sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
   autotheme:'<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 010 18z" fill="currentColor" stroke="none"/>',
   cloud:'<path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/>',
@@ -6063,12 +6689,13 @@ function runtimePanel(f){const tl=Object.values(Runtime.timers).filter(t=>!t.adh
   // en dessous, il reste REPLIÉ (le contenu clinique d'abord — la barre segmentée de l'en-tête
   // donne les temps d'un coup d'œil) et s'ouvre par la barre (#cbTimers), la rangée repliée,
   // ou automatiquement à l'échéance d'un minuteur (onTimerFired).
-  if(!mqReadWide.matches&&!state.rtOpen){const parts=[];const nt=tl.length+minis.length;if(nt)parts.push(nt+' minuteur'+(nt>1?'s':''));if(cl.length)parts.push(cl.length+' compteur'+(cl.length>1?'s':''));
+  if(!mqRail.matches&&!state.rtOpen){const parts=[];const nt=tl.length+minis.length;if(nt)parts.push(nt+' minuteur'+(nt>1?'s':''));if(cl.length)parts.push(cl.length+' compteur'+(cl.length>1?'s':''));
     return `<button class="rt-collapsed" id="rtOpen" aria-expanded="false">${uiIcon('stopwatch',16,{cls:'rt-ic'})}<span class="rtc-i">Minuteurs & compteurs · ${parts.join(' · ')}</span><span class="rtc-open">▾ Afficher</span></button>`;}
   const sound=`${IS_TOUCH?`<button class="rt-warn" id="soundWarn" title="Mode silencieux du téléphone" style="${soundOn?'':'display:none'}">${uiIcon('warn',12)} silencieux ?</button>`:''}<button class="rt-sound${soundOn?'':' off'}" id="soundToggle" aria-pressed="${soundOn?'true':'false'}" title="${soundOn?'Le son est activé — appuyer pour couper':'Le son est coupé — appuyer pour activer'}">${soundOn?uiIcon('bell',13)+' Son activé':uiIcon('belloff',13)+' Son coupé'}</button>`;
   const cards=`${tl.length?`<div class="rt-grid">${tl.map(timerCard).join('')}</div>`:''}${cl.length?`<div class="rt-counters">${cl.map(counterCard).join('')}</div>`:''}${minis.map(timerMiniRow).join('')}<button class="add-line rt-add" data-rtadd title="Ajouter un minuteur de surveillance PA (5 min) pour cette session">＋ Minuteur PA 5:00</button>`;
   // LARGE (rail) : titre de section + cartes À NU (canvas) — pas de boîte, pas de ✕.
-  if(mqReadWide.matches)return `<div class="rail-head"><span class="rail-title">Minuteurs & compteurs</span>${sound}</div>${cards}`;
+  if(mqRail.matches){const nAll=tl.length+minis.length+cl.length;
+    return `<div class="rail-head"><span class="rail-title">Minuteurs & compteurs</span>${nAll>1?`<span class="rail-n">${nAll}</span>`:''}${sound}</div>${cards}`;}
   // ÉTROIT : boîte repliable (✕) inchangée.
   return `<div class="rt-panel"><div class="rt-head">${uiIcon('stopwatch',16,{cls:'rt-ic'})}<b>Minuteurs & compteurs</b>${sound}<button class="rt-x" id="rtClose" aria-label="Replier les minuteurs">×</button></div>${cards}</div>`;}
 /* timekeeperPanel : journal d'horodatage. Bouton « Horodater » -> ajoute un repère à l'heure
@@ -6150,7 +6777,7 @@ function navSection(f){
         ?`<div class="flow-end">Algorithme terminé — surveillance en cours</div>`
         :(atTip?`<button class="btn cont ${allDone?'okay':'idle'}" id="navNext" data-contlbl="${esc(goLbl)}"${allDone?'':' aria-disabled="true"'}>${esc(contLbl)}</button>`:histBtn);
       blockDone=done;blockTot=steps.length;
-      navHtml=`<div class="nav-wrap"><div class="node-title">Bloc · ${esc(blk.title)||'Étapes'}${passTag} — <span id="ntCount">${done}/${steps.length}</span> coché</div>${imgH}<ol class="steps">${steps.map((s,i)=>{const k=curSeq+':'+blk.id+':'+i;return `<li data-ck="${k}" class="${stepIsCrit(s)?'crit ':(stepIsVigil(s)?'vigil ':'')}${state.checked[k]?'done':''}" role="checkbox" aria-checked="${state.checked[k]?'true':'false'}" tabindex="0"><span class="box">${state.checked[k]?uiIcon('check',19,{sw:3,cls:''}):''}</span>${stepTxtHtml(s)}</li>`;}).join('')}</ol><div class="flow-ctrl">${fwdc}</div></div>`;}}
+      navHtml=`<div class="nav-wrap"><div class="node-title">Bloc · ${esc(blk.title)||'Étapes'}${passTag} — <span id="ntCount">${done}/${steps.length}</span> coché</div>${imgH}<ol class="steps">${steps.map((s,i)=>{const k=curSeq+':'+blk.id+':'+i;return `<li data-ck="${k}" class="${stepIsCrit(s)?'crit ':(stepIsVigil(s)?'vigil ':'')}${state.checked[k]?'done':''}" role="checkbox" aria-checked="${state.checked[k]?'true':'false'}" tabindex="0"><span class="box">${state.checked[k]?uiIcon('check',19,{sw:3,cls:''}):''}</span>${stepTxtHtml(s,{mark:true})}</li>`;}).join('')}</ol><div class="flow-ctrl">${fwdc}</div></div>`;}}
   return {blk,cur,atTip,crumbsH,navHtml,navRowH,blockDone,blockTot};}
 // Sous-titre du panneau « Algorithme » : compteur n/total quand le bloc courant est cochable —
 // partagé entre le rendu complet (renderRead) et la mise à jour ciblée (renderNavOnly).
@@ -6168,10 +6795,8 @@ function renderRead(){
   const useOv=rMode==='overview',useSv=rMode==='static';
   const N=useOv?overviewSection(f):(useSv?staticSection(f):navSection(f));
   const blk=N.blk,cur=N.cur,crumbsH=N.crumbsH||'',navHtml=N.navHtml,navRowH=N.navRowH||'',blockDone=N.blockDone,blockTot=N.blockTot;
-  const gallery=(f.images||[]).length?`<section class="block"><div class="block-h h-img">${headerIcon('h-img')}Schémas & captures</div><div class="gallery">${f.images.map(im=>`<div class="gthumb"><img src="${im.data}" data-full="${im.data}" data-cap="${esc(im.caption||'')}" alt="${esc(im.caption||'')}"${im.w&&im.h?` width="${im.w}" height="${im.h}"`:''} loading="lazy" decoding="async">${im.caption?`<div class="gcap">${esc(im.caption)}</div>`:''}</div>`).join('')}</div></section>`:'';
-  // Documents PDF joints : liste de boutons (≥44 px, utilisables en crise) -> visionneuse intégrée.
-  const docs=attListHtml(f);
-  const refs=clean(f.references);
+  // (gallery / docs / refs vivaient ici avant le lot 4 : ils sont désormais rendus par la feuille
+  // Consulter — refSheetHtml — et n'ont plus de place dans le flux d'action ; retirés v4.23.0.)
   // « Ne pas oublier » : bandeau compact SOUS le titre (un rappel critique doit être vu AVANT
   // d'être violé, pas après avoir tout déroulé).
   // « Ne pas oublier » : kicker ■ + UNE LIGNE PAR ÉLÉMENT (les rappels critiques se lisent
@@ -6191,20 +6816,49 @@ function renderRead(){
   // MODE APERÇU (ouvert depuis l'éditeur) : rendu du BROUILLON — pas de session, pas de
   // minuteurs/notes/outils de gestion, bandeau + barre « Retour à l'édition ».
   const preview=!!state.previewFrom;
-  const wideRead=mqReadWide.matches;
+  const wideRead=mqRail.matches;   // v4.23.0 : rail dès 780px
   const rtH=preview?'':runtimePanel(f),tkH=preview?'':timekeeperPanel();
   // Repères posologiques (canvas) : cartes — préfixe « ⚠ » = carte au registre ALERTE.
   // Inline sous « À vérifier » en étroit, dans la colonne droite en large.
   // Repères posologiques : carte = NOM (avant le premier « : », gras retiré) + corps —
   // « ⚠ » en tête = vitale (rouge) ; sans « : », toute la ligne sert de corps.
-  const posCards=(()=>{const items=clean(f.posology);if(!items.length)return '';
-    return items.map(x=>{const t=stepText(x);const i=t.indexOf(' : ');
-      const name=i>0?stripBold(t.slice(0,i)).trim():'';const body=i>0?t.slice(i+3):t;
-      return `<div class="pos-card${stepIsCrit(x)?' crit':''}">${name?`<div class="pos-name">${esc(name)}</div>`:''}<div class="pos-body">${fmt(body)}</div></div>`;}).join('');})();
+  // v4.23.0 : repères classés pour le BLOC COURANT (rapprochement permissif qui RÉORDONNE et
+  // ne filtre jamais) — même fonction que la feuille Consulter, donc aucun risque de divergence.
+  const posCards=posoCardsHtml(f.posology,curBlockHay(f));
   const posH=posCards?`<section class="block pos-block"><div class="block-h h-pos">Repères posologiques</div>${posCards}</section>`:'';
-  const posRail=posCards?`<div class="rail-sep"></div><div class="rail-title">Repères posologiques</div>${posCards}`:'';
+  const posRail=(()=>{if(!posCards)return '';const n=clean(f.posology).length;
+    return `<div class="rail-head"><span class="rail-title">Repères posologiques</span>${n>1?`<span class="rail-n">${n}</span>`:''}</div>${posCards}`;})();
   const gridOpen=wideRead?'<div class="read-grid"><div class="read-main">':'';
-  const gridClose=wideRead?`</div><aside class="read-side">${rtH}${posRail}${tkH}</aside></div>`:'';
+  /* ÉCHELLE DU RAIL (v4.23.0) : la structure de l'aide, une ligne par bloc, à côté de l'action.
+     Même `flowPlan`, même numérotation commune, même `minimapData` que le Plan — aucune seconde
+     source de vérité. DÉSATURÉE (cf. CSS .rail-lad) : le rail ORIENTE, la colonne AGIT ; s'il
+     reprenait les aplats de l'action, deux surfaces se disputeraient le regard au même niveau de
+     saillance. L'état n'y est plus porté que par le MARQUEUR. « ⤢ complet » ouvre la feuille.
+     Absent en mode statique (le tableau EST déjà la vue d'ensemble) et en aperçu de brouillon. */
+  const ladRail=(()=>{
+    if(!wideRead||useSv||preview||!hasFlow(f))return '';
+    const plan=flowPlan(f);if(!plan.order.length)return '';
+    const num={};plan.order.forEach((id,i)=>{num[id]=i+1;});
+    const md={};minimapData(f,state.nav,state.navSeq,state.checked,state.navPos).forEach(m=>{md[m.id]=m;});
+    const off=offPathSet(f,state.nav,state.navPos);
+    return `<div class="rail-head"><span class="rail-title">Plan — Échelle</span><span class="rail-n">${plan.order.length}</span><button type="button" class="rail-exp" id="railPlanFull" aria-haspopup="dialog">⤢ complet</button></div><div class="ov-plan compact rail-lad">${ovPlanLadderHtml(f,plan,num,md,off)}</div>`;})();
+  /* RAIL EN TROIS ZONES (v4.23.0) — retour d'usage : empilées dans un seul défileur, une Échelle
+     longue ou des minuteurs nombreux repoussaient les repères posologiques tout en bas.
+     Ordre par URGENCE DÉCROISSANTE, et surtout : la seule zone de longueur NON BORNÉE (l'Échelle)
+     passe en DERNIER, où elle ne peut plus rien repousser.
+       1. minuteurs — état vivant, plafonné et défilant sur lui-même s'il y en a beaucoup ;
+       2. posologie — lue PENDANT le geste, donc toujours visible sans défiler ;
+       3. Échelle + horodatage — orientation et journal, prennent le reste et défilent seuls.
+     Chaque zone borne son propre débordement : aucune ne peut chasser les autres. */
+  /* RAIL — colonne CONTINUE (v4.23.0). Seule règle : la ou les sections de longueur ILLIMITÉE
+     (Échelle, horodatage) passent en DERNIER, où elles ne peuvent rien repousser. La posologie,
+     placée avant, reste donc lisible sans défiler quelle que soit la taille du plan. */
+  const gridClose=wideRead?`</div><aside class="read-side">`
+    +`<div class="rail-sec">${rtH}</div>`
+    +(posRail?`<div class="rail-sec">${posRail}</div>`:'')
+    +(ladRail?`<div class="rail-sec">${ladRail}</div>`:'')
+    +(tkH?`<div class="rail-sec">${tkH}</div>`:'')
+    +`</aside></div>`:'';
   /* ----- PARCOURS DE SOIN (v4.4.0) : la fiche met en scène la séquence clinique
      ① Confirmer le diagnostic → ② Prise en charge → ③ Surveillances & pièges.
      <ol class="care-path"> sémantique : aria-current="step" sur l'étape active, état aussi
@@ -6253,7 +6907,11 @@ function renderRead(){
   if(confBlockH)stages.push({cls:started?'done':'on',head:'',body:confBlockH+sessStartH});
   {const body=(confBlockH?'':sessStartH)+(wideRead?'':rtH)+algH+crumbsH+navHtml+navRowH+localH+(wideRead?'':posH);
    if(body)stages.push({cls:state.flowEnded?'done':(started?'on':(confBlockH?'off':'on')),head:'Prise en charge',body});}
-  if(verifyH||diffH)stages.push({cls:state.flowEnded?'on':'off',head:'Surveillances &amp; pièges',body:verifyH+(diffH?`<div class="diff-anchor" id="diffBlock" tabindex="-1">${diffH}</div>`:'')});
+  // v4.23.0 : ③ ne garde que « △ À vérifier » — ce qui tue si on l'oublie reste dans le FLUX
+  // (AC 120-71B). Les DIFFÉRENTIELS, eux, sont de la consultation (on les ouvre quand le
+  // tableau est atypique, pour re-décider) : ils partent dans la feuille, où le lien
+  // « Tableau atypique ? » de l'étape ① atterrit directement.
+  if(verifyH)stages.push({cls:state.flowEnded?'on':'off',head:'Surveillances &amp; pièges',body:verifyH});
   }
   const pathH=stages.length>1
     ?`<ol class="care-path">${stages.map((s,i)=>`<li class="cp-stage ${s.cls}"${s.cls==='on'?' aria-current="step"':''}><span class="cp-n" aria-hidden="true">${s.cls==='done'?uiIcon('check',13,{sw:3.2,cls:''}):(i+1)}</span><div class="cp-body">${s.head?`<div class="block-h cp-h">${s.head}</div>`:''}${s.body}</div></li>`).join('')}</ol>`
@@ -6261,17 +6919,14 @@ function renderRead(){
   main.innerHTML=`
     ${gridOpen}
     <div class="read-head"><h2>${esc(f.title)||'Sans titre'}</h2></div>
-    <div class="read-meta">${f.libraryId?`<span class="tag libtag" title="Bibliothèque partagée">${uiIcon('book',12)}${esc(libName(f.libraryId)||'Partagée')}</span>`:''}${statusChip(f.status,true)}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo title="Reste à compléter : ${esc(sp.join(' · '))} — remplacez les mentions « à compléter » par vos informations locales.">△ À compléter</span>`:'';})()}${catTag(f)}${f.code?`<span class="card-date" style="font-family:var(--mono)">${esc(f.code)}</span>`:''}<span class="card-date${staleDate(f.validation)?' stale':''}">${esc(fmtDate(f.validation))}</span>${f.libraryId&&f.updatedBy?`<span class="card-date" title="Auteur de la dernière modification (pas forcément de toute la fiche)">· dernière modification par ${esc(f.updatedBy)}</span>`:''}</div>
+    <div class="read-meta">${f.libraryId?`<span class="tag libtag" title="Bibliothèque partagée">${uiIcon('book',12)}${esc(libName(f.libraryId)||'Partagée')}</span>`:''}${statusChip(f.status,true,{validation:f.validation})}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo title="Reste à compléter : ${esc(sp.join(' · '))} — remplacez les mentions « à compléter » par vos informations locales.">△ À compléter</span>`:'';})()}${catTag(f)}${f.code?`<span class="card-date" style="font-family:var(--mono)">${esc(f.code)}</span>`:''}<span class="card-date${staleDate(f.validation)?' stale':''}">${esc(fmtDate(f.validation))}</span>${f.libraryId&&f.updatedBy?`<span class="card-date" title="Auteur de la dernière modification (pas forcément de toute la fiche)">· dernière modification par ${esc(f.updatedBy)}</span>`:''}</div>
     ${f.status==='draft'?`<div class="notice">${uiIcon('warn',15)}<div><b>Brouillon</b> — cette fiche n'a pas encore été validée pour l'usage clinique.</div></div>`:''}
     ${f.status==='review'?`<div class="notice">${uiIcon('warn',15)}<div><b>À relire</b> — cette fiche est signalée à relire avant validation.</div></div>`:''}
     ${modeTopSegH}
     ${useSv?'':forgetStrip}
     ${pathH}
     ${wideRead?'':tkH}
-    ${gallery}
-    ${docs}
-    ${refs.length?`<div class="refs"><b>Références</b><ol>${refs.map(r=>`<li>${fmt(r)}</li>`).join('')}</ol></div>`:''}
-    ${(()=>{const rel=(f.related||[]).map(id=>relTarget(id)).filter(Boolean);return rel.length?`<div class="related"><b>Voir aussi</b><div class="related-row">${rel.map(r=>`<button class="btn sm" data-openrel="${esc(r.id)}">${uiIcon(relKindOf(r.id)==='p'?'book':'doc',13)}${esc(r.title)||'Sans titre'} →</button>`).join('')}</div></div>`:'';})()}
+    ${annexRowHtml(f)}
     ${preview?'':noteBlockHtml(f.id,started)}
     ${readFooterHtml()}
     ${gridClose}`;
@@ -6323,13 +6978,19 @@ function bindReadEvents(f,blk,cur){
   {const sb=document.getElementById('sessStart');if(sb)sb.onclick=()=>{state.confOpen=false;if(ensureStarted())render();};}
   // « Tableau atypique ? » (étape ①) : saute aux Diagnostics différentiels (étape ③) —
   // défilement INSTANTANÉ (pas de smooth : geste volontaire, prefers-reduced-motion respecté).
-  {const al=document.getElementById('atypLink');if(al)al.onclick=()=>{const d=document.getElementById('diffBlock');if(d){d.scrollIntoView();d.focus({preventScroll:true});}};}
+  // « Tableau atypique ? » (étape ①) : les différentiels vivent désormais dans la feuille
+  // Consulter (v4.23.0). Le lien y atterrit DIRECTEMENT, section dépliée et mise en évidence —
+  // sans ce ciblage on aurait remplacé un accès direct par une chasse au trésor.
+  {const al=document.getElementById('atypLink');if(al)al.onclick=()=>openRefSheet('diff');}
+  {const ar=document.getElementById('annexRow');if(ar)ar.onclick=()=>openRefSheet();}
   // Menu ⋯ (SPEC §4) — a remplacé la barre « Autorat » de bas de page. En crise, « Modifier »
   // reste visible mais désactivé (mention explicite) : l'édition demeure à deux taps délibérés.
   const started=Runtime.started;
   if(!state.previewFrom)setMoreMenu([
     {label:'Modifier',ic:uiIcon('pen',16),sub:started?'session en cours':(canEditFiche(f)?'hors urgence':'lecture seule'),disabled:started||!canEditFiche(f),act:()=>openEdit(f.id)},
     ...(canEditFiche(f)?[{label:f.libraryId?'Ma version écrasée':'Versions',ic:uiIcon('history',16),disabled:started,act:()=>openVersions(f.id)}]:[]),
+    ...(hasFlow(f)&&state.readMode!=='static'?[{label:'Plan de l’aide',ic:uiIcon('plan',16),sub:'vue d’ensemble',act:openPlanSheet}]:[]),
+    ...(annexRowHtml(f)?[{label:'Consulter',ic:uiIcon('book',16),sub:'surveillances, documents…',act:()=>openRefSheet()}]:[]),
     ...(hasFlow(f)?[{label:'Mode lecteur (binôme)',ic:uiIcon('play',16),act:readerOpen}]:[]),
     'sep',
     {label:'Dupliquer dans « Perso »',ic:uiIcon('copy',16),act:()=>dupToPerso('f',f)},
@@ -6340,6 +7001,24 @@ function bindReadEvents(f,blk,cur){
     ...(started?['sep',{label:'Terminer la session…',ic:uiIcon('stop',16),danger:true,act:endCurrentSession}]:[]),
   ]);
   main.querySelectorAll('[data-openrel]').forEach(b=>b.onclick=()=>openRel(b.dataset.openrel));
+  /* ÉCHELLE DU RAIL (v4.23.0) : mêmes gestes que dans le Plan — déplier une ligne, aller à un
+     bloc, suivre un renvoi. Délégation propre au rail : il n'est pas dans `.ov-wrap`, donc les
+     écouteurs du journal ne l'atteignent pas. Re-rendu ANCRÉ sur la ligne touchée (le rail ne
+     doit pas sauter sous le doigt). */
+  {const lad=main.querySelector('.rail-lad');
+   if(lad){
+     const act=t=>{
+       const pr=t.closest('[data-plref]');
+       if(pr){const k=CSS.escape(pr.dataset.plref);const el=lad.querySelector('[data-plln="'+k+'"]');
+         if(el){scrollWithin(main.querySelector('.read-side'),el);el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),900);}return;}
+       const pg=t.closest('[data-plgo]');if(pg){jumpToBlock(state.fiche,pg.dataset.plgo);return;}
+       const pl=t.closest('[data-plln]');
+       if(pl){const id=pl.dataset.plln;state.ovFold['l:'+id]=!state.ovFold['l:'+id];
+         renderKeepAnchor('.rail-lad [data-plln="'+CSS.escape(id)+'"]');}};
+     lad.onclick=e=>act(e.target);
+     lad.onkeydown=e=>{if(e.key!=='Enter'&&e.key!==' ')return;
+       const t=e.target.closest('[data-plln],[data-plgo],[data-plref]');if(!t)return;e.preventDefault();act(t);};}}
+  {const rf=document.getElementById('railPlanFull');if(rf)rf.onclick=openPlanSheet;}
   if(!state.previewFrom)bindNoteBlock(f.id,render);   // note personnelle (absente en mode aperçu)
   const ft=document.getElementById('flowToggle');if(ft)ft.onclick=()=>{state.showFlow=!state.showFlow;render();};
   // Déplier / replier le panneau minuteurs (canvas : rangée repliée, ✕ du panneau, barre d'en-tête).
@@ -6504,10 +7183,12 @@ function bindNavEvents(f,blk){
   // la ligne d'étape elle-même (vérifié) -> rien d'autre à rafraîchir. Exception : la toute
   // première action démarre la session (le bandeau apparaît) -> re-rendu complet, une seule fois.
   main.querySelectorAll('[data-ck]').forEach(li=>{const tgl=kb=>{const k=li.dataset.ck;const on=!state.checked[k];state.checked[k]=on;
+    if(on){delete state.vgaps[k];}else{delete state.verified[k];}   // cf. ovToggleStep : trace caduque
     const justStarted=ensureStarted();persistLive(Runtime);
     if(justStarted){renderKeepAnchor('[data-ck="'+CSS.escape(k)+'"]');if(kb){const nl=main.querySelector('[data-ck="'+CSS.escape(k)+'"]');if(nl)nl.focus();}return;}
     li.classList.toggle('done',on);li.setAttribute('aria-checked',on?'true':'false');
     const box=li.querySelector('.box');if(box)box.innerHTML=on?uiIcon('check',19,{sw:3,cls:''}):'';
+    paintStepTrace(li,k);
     // V5 : « Continuer » passe au registre CONFIRMATION (vert) dès que TOUT le bloc est coché
     // (mise à jour DOM directe, cohérente avec le cochage sans re-rendu).
     {const nn=document.getElementById('navNext');
@@ -6570,7 +7251,10 @@ function overviewSection(f){
   const endH=state.flowEnded?'<div class="flow-end">Algorithme terminé — surveillance en cours</div>':'';
   const controls=`<div class="ov-controls"><button type="button" class="btn sm btn-hold" id="ovReset" title="Maintenir pour recommencer (repart du début — ne touche ni au chrono ni aux minuteurs ; le compte-rendu garde tout)"><span class="tmr-lab">${uiIcon('undo',13)} Recommencer</span><span class="tmr-hint">maintenir</span></button></div>`;
   const secH=`<div class="ov-sec-h">Parcours</div>`;
-  const inner=controls+secH+`<div class="ov-journal">${insts}${endH}</div>`+ovPlanHtml(f);
+  // v4.23.0 : le PLAN a quitté le journal — il vit dans la feuille plein écran #planModal,
+  // appelée d'un tap depuis le quai (⤢). Dans le flux il alourdissait la page et s'éloignait à
+  // mesure que le journal grandissait : il fallait dérouler tout le parcours pour l'atteindre.
+  const inner=controls+secH+`<div class="ov-journal">${insts}${endH}</div>`;
   // Compteur du panneau Algorithme : l'instance du BOUT (là où l'on agit).
   const tipDone=(()=>{const b=f.blocks.find(x=>x.id===cur);if(!b||b.type==='decision')return {d:null,t:null};
     const steps=clean(b.steps);const seq=state.navSeq[state.navPos]||1;
@@ -6628,12 +7312,20 @@ function ovInstHtml(f,id,idx,topo,pres){
       let act='';
       if(vi>=steps.length){
         const g=steps.map((s,i2)=>i2).filter(i2=>!state.checked[seq+':'+id+':'+i2]);
+        if(Runtime.started)persistLive(Runtime,true);
         act=`<div class="v-end${g.length?'':' ok'}">${g.length?`<b>${steps.length-g.length}/${steps.length} vérifiées · ${g.length} écart${g.length>1?'s':''}</b> — étape${g.length>1?'s':''} ${g.map(x=>x+1).join(', ')} non cochée${g.length>1?'s':''} (elles restent visibles dans le parcours)`:`<b>${steps.length}/${steps.length} vérifiées — bloc confirmé ✓</b>`}</div><div class="flow-ctrl"><button type="button" class="btn cont${g.length?'':' okay'}" data-ovvx>Terminer la vérification</button></div>`;}
       else act=`<div class="v-act"><button type="button" class="v-ok" data-ovvok>Constaté ✓</button><button type="button" class="v-gap" data-ovvgap>△ Écart</button></div>`;
       bodyH=`<div class="v-hint">Vérification — lisez le challenge, constatez l'état réel</div>${rows}${act}`;
       count=vi+'/'+steps.length;}
     else{
-    const lis=steps.map((s,i)=>{const k=seq+':'+id+':'+i;const ck=!!state.checked[k];return `<li data-ck="${k}" class="${stepIsCrit(s)?'crit ':(stepIsVigil(s)?'vigil ':'')}${ck?'done':''}" role="checkbox" aria-checked="${ck?'true':'false'}" tabindex="0"><span class="box">${ck?uiIcon('check',19,{sw:3,cls:''}):''}</span>${stepTxtHtml(s)}</li>`;}).join('');
+    const lis=steps.map((s,i)=>{const k=seq+':'+id+':'+i;const ck=!!state.checked[k];
+      // TRACE DE VÉRIFICATION (v4.23.0) : une passe Do-Verify laisse une marque DURABLE et lisible —
+      // « ✓✓ vérifié » (constaté par observation) ou « △ écart » (constaté absent). Sans elle, la
+      // vérification ne produisait aucun résultat consultable une fois terminée.
+      const vg=!!(state.vgaps||{})[k],vv=!vg&&!!(state.verified||{})[k];
+      const tag=vg?'<span class="stp-vf gap" title="Écart constaté pendant la vérification">△ écart</span>'
+        :(vv?'<span class="stp-vf ok" title="Constaté pendant la vérification">✓✓ vérifié</span>':'');
+      return `<li data-ck="${k}" class="${stepIsCrit(s)?'crit ':(stepIsVigil(s)?'vigil ':'')}${ck?'done':''}${vg?' vgap':''}" role="checkbox" aria-checked="${ck?'true':'false'}" tabindex="0"><span class="box">${ck?uiIcon('check',19,{sw:3,cls:''}):''}</span>${stepTxtHtml(s,{mark:true})}${tag}</li>`;}).join('');
     let ctl='';
     if(tip){const nxt=b.next?f.blocks.find(x=>x.id===b.next):null;
       const allDone=steps.length===0?true:dn>=steps.length;
@@ -6694,6 +7386,148 @@ function ovPlanHtml(f){
   const seg=[['plan','Détails'],['ladder','Échelle'],['svg','Schéma']].map(([k,lb])=>
     `<button type="button" class="ovs-tgl${view===k?' on':''}" data-plview="${k}" aria-pressed="${view===k?'true':'false'}">${lb}</button>`).join('');
   return `<div class="ov-plan-h"><span class="ovs-t">Plan de l’aide</span><span class="ovs-sub">· ${sub}</span><span class="pl-views">${seg}</span></div><div class="ov-plan${view==='ladder'?' compact':''}${view==='svg'?' svgv':''}">${body}</div>`;}
+/* ===== FEUILLE « PLAN » plein écran (v4.23.0) =====
+   Le Plan sert la VUE D'ENSEMBLE ; le fil LOCAL, lui, est déjà dans le journal. Il quitte donc
+   le flux et s'ouvre en pleine largeur, où les intitulés cliniques tiennent entiers et où les
+   branches d'une décision peuvent se ranger côte à côte.
+   C'est une FEUILLE, jamais un onglet : un onglet est un état persistant qu'on peut oublier
+   ouvert pendant qu'une alarme tombe — modèle ECAM E/WD (l'action, permanente) + SD (le
+   synoptique, appelé puis relâché). Rien n'est dupliqué : même flowPlan, même numérotation
+   commune, même état peint, mêmes gestes (data-plgo / data-plref / data-plfold / data-plview).
+   Les AFFICHAGES restent les trois de v4.18.0 (Détails · Échelle · Schéma) : « Tableau » du
+   canvas serait une seconde porte vers le mode statique, dont #readTopSeg est le seul maître. */
+const planModal=document.getElementById('planModal');
+function planSheetOpen(){return planModal.classList.contains('on');}
+function renderPlanSheet(){
+  const f=state.fiche;if(!f||!planSheetOpen())return;
+  document.getElementById('pmName').textContent=f.title||'Sans titre';
+  const h=ovPlanHtml(f);
+  // ovPlanHtml rend son propre en-tête (masqué par CSS dans la feuille) : on en EXTRAIT le
+  // sélecteur d'affichage pour le remonter dans la barre collante — une seule source de vérité
+  // pour les trois boutons, aucune duplication de libellés ni d'états aria.
+  const body=document.getElementById('planBody');body.innerHTML=h;
+  const seg=body.querySelector('.pl-views');
+  const views=document.getElementById('pmViews');
+  views.innerHTML=seg?('<span class="pv-lab" aria-hidden="true">Affichage</span>'+seg.innerHTML):'';
+  views.setAttribute('role','group');
+  views.setAttribute('aria-label','Affichage du plan');
+  // Affichage « Schéma » : zoom, images et peinture d'état comme en place — puis on REDÉFINIT la
+  // navigation du SVG pour qu'un nœud ferme la feuille avant d'y aller.
+  if(state.ovPlanView==='svg'){bindFlowZoom(body);
+    bindSvgNav(body.querySelector('.flow-scroll'),f,closePlanSheet);}
+  ovPlanStick();}
+function openPlanSheet(){
+  const f=state.fiche;if(!f||!hasFlow(f))return;
+  planModal.classList.add('on');renderPlanSheet();}
+function closePlanSheet(){if(planSheetOpen())planModal.classList.remove('on');}
+bindModalDismiss(planModal,closePlanSheet);
+{const pb=document.getElementById('planBtn');if(pb)pb.onclick=openPlanSheet;}
+/* ===== FEUILLE « CONSULTER » (v4.23.0) =====
+   Deux natures de contenu, à ne pas confondre :
+     • des COPIES de ce qui doit rester joignable à tout instant — rappels, surveillances,
+       posologie. L'original ne bouge pas du flux ; la feuille évite seulement d'avoir à
+       remonter/descendre un journal qui grandit. Une même source, deux rendus : jamais de
+       divergence possible.
+     • les ORIGINAUX de ce qui se consulte — différentiels, schémas, documents, références,
+       voir aussi. Ceux-là quittent réellement la colonne d'action.
+   La NOTE personnelle reste dans le flux : seul bloc à état éditable (son bouton re-rend la vue
+   et restaure le défilement — logique de flux, pas de feuille).
+   Ouverture en PULL seulement ; `sect` déplie et met en évidence une section précise, ce qui
+   permet au lien « Tableau atypique ? » de l'étape ① d'atterrir DIRECTEMENT sur les
+   différentiels (sans ce ciblage, on remplacerait un accès direct par une chasse au trésor). */
+const refModal=document.getElementById('refModal');
+function refSheetOpen(){return refModal.classList.contains('on');}
+/* Rangée d'accès en fin de colonne d'action. Elle fait ce que le bouton du quai ne sait pas
+   faire : ÉNONCER ce qui existe (son sous-titre nomme les sections présentes) — une icône
+   persistante donne l'accès, pas la découverte. Les deux coexistent pour ça. */
+function annexRowHtml(f){
+  const has=[];
+  if(clean(f.verify).length)has.push('Surveillances');
+  if(clean(f.differentials).length)has.push('Différentiels');
+  if(clean(f.posology).length)has.push('Posologie');
+  if((f.images||[]).length)has.push('Schémas');
+  if((f.attachments||[]).length)has.push('Documents');
+  if(clean(f.references).length)has.push('Références');
+  if(((f.related||[]).map(id=>relTarget(id)).filter(Boolean)).length)has.push('Voir aussi');
+  if(!has.length)return '';
+  return `<button type="button" class="annex-row" id="annexRow" aria-haspopup="dialog"><span class="ax-lead">${uiIcon('book',15)}Consulter</span><span class="ax-sub">${esc(has.join(' · '))}</span><span class="ax-ch" aria-hidden="true">›</span></button>`;}
+function refSheetHtml(f){
+  const sec=(key,title,inner,open)=>inner?`<details class="rs-sec"${open?' open':''} data-rs="${key}"><summary>${esc(title)}</summary><div class="rs-in">${inner}</div></details>`:'';
+  const verify=staticBlock('△ À vérifier — surveillances','h-verify',f.verify,'verify');
+  const diff=staticBlock('Diagnostics différentiels — si tableau atypique','h-diff',f.differentials,'diff');
+  const poso=posoCardsHtml(f.posology,curBlockHay(f));
+  const gal=(f.images||[]).length?`<div class="gallery">${f.images.map(im=>`<div class="gthumb"><img src="${im.data}" data-full="${im.data}" data-cap="${esc(im.caption||'')}" alt="${esc(im.caption||'')}"${im.w&&im.h?` width="${im.w}" height="${im.h}"`:''} loading="lazy" decoding="async">${im.caption?`<div class="gcap">${esc(im.caption)}</div>`:''}</div>`).join('')}</div>`:'';
+  const docs=attListHtml(f);
+  const refs=clean(f.references);
+  const refsH=refs.length?`<ol>${refs.map(r=>`<li>${fmt(r)}</li>`).join('')}</ol>`:'';
+  const rel=(f.related||[]).map(id=>relTarget(id)).filter(Boolean);
+  const relH=rel.length?`<div class="related-row">${rel.map(r=>`<button class="btn sm" data-openrel="${esc(r.id)}">${uiIcon(relKindOf(r.id)==='p'?'book':'doc',13)}${esc(r.title)||'Sans titre'} →</button>`).join('')}</div>`:'';
+  // v4.23.0 : PAS de copie du chapeau « Ne pas oublier » ici (décision utilisateur). Il est déjà
+  // en tête de fiche, entier et jamais replié ; un pavé rouge rouvert à chaque consultation
+  // repoussait ce qu'on vient réellement chercher (une dose, un différentiel) sans rien apporter.
+  const body=sec('verify','△ Surveillances & à vérifier',verify,true)
+    +sec('diff','Diagnostics différentiels',diff)
+    +sec('poso','Repères posologiques',poso)
+    +sec('gal','Schémas & captures',gal)
+    +sec('docs','Documents ('+((f.attachments||[]).length)+')',docs)
+    +sec('refs','Références',refsH)
+    +sec('rel','Voir aussi ('+rel.length+')',relH);
+  return body||'<p class="ai-note" style="text-align:center">Cette fiche n’a pas encore de contenu à consulter.</p>';}
+function renderRefSheet(sect){
+  const f=state.fiche;if(!f||!refSheetOpen())return;
+  const body=document.getElementById('refBody');
+  body.innerHTML=refSheetHtml(f);
+  // Mêmes gestes qu'en flux, re-câblés dans la feuille (les câblages d'origine sont portés par
+  // `main`, qui ne la contient pas — elle survit ainsi aux re-rendus, comme la feuille Plan).
+  body.querySelectorAll('[data-att]').forEach(b=>b.onclick=()=>{const a=(f.attachments||[]).find(x=>x.id===b.dataset.att);if(a)openPdfViewer(a,f);});
+  hydrateAttThumbs(f);
+  body.querySelectorAll('[data-openrel]').forEach(b=>b.onclick=()=>{closeRefSheet();openRel(b.dataset.openrel);});
+  body.querySelectorAll('img[data-full]').forEach(im=>im.onclick=()=>openLightbox(im.dataset.full,im.dataset.cap||''));
+  if(sect){const d=body.querySelector('[data-rs="'+sect+'"]');
+    if(d){d.open=true;scrollWithin(refModal,d,'start');d.classList.add('rs-flash');setTimeout(()=>d.classList.remove('rs-flash'),1200);}}}
+function openRefSheet(sect){
+  if(!state.fiche)return;
+  refModal.classList.add('on');renderRefSheet(sect);}
+function closeRefSheet(){if(refSheetOpen())refModal.classList.remove('on');}
+bindModalDismiss(refModal,closeRefSheet);
+{const rx=document.getElementById('refX');if(rx)rx.onclick=closeRefSheet;
+ const rb=document.getElementById('refBtn');if(rb)rb.onclick=()=>openRefSheet();}
+/* Délégation de la feuille : EXACTEMENT les gestes du plan en place (aucun comportement propre
+   à la feuille), plus la fermeture automatique quand le geste DÉPLACE le parcours — taper un
+   bloc, c'est y aller : on rend la main à l'action, pile sur le bloc visé. */
+{const body=document.getElementById('planBody');
+ // Délégation posée sur la CARTE, pas sur le corps : le sélecteur d'affichage est remonté dans
+ // la barre collante (#pmViews) et ne serait jamais atteint depuis #planBody. Pas sur la modale
+ // elle-même non plus — son onclick appartient à bindModalDismiss (fermeture au voile).
+ const card=planModal.querySelector('.ai-card');
+ const act=(t)=>{
+   const f=state.fiche;if(!f)return;
+   const pv=t.closest('[data-plview]');
+   if(pv){if(state.ovPlanView!==pv.dataset.plview){state.ovPlanView=pv.dataset.plview;setPlanViewPref(state.ovPlanView);renderPlanSheet();}return;}
+   const pr=t.closest('[data-plref]');
+   if(pr){const k=CSS.escape(pr.dataset.plref);
+     const el=body.querySelector('.pl-nd[data-plgo="'+k+'"]')||body.querySelector('.pl-line[data-plln="'+k+'"]');
+     if(el){scrollWithin(planModal,el);el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),900);}return;}
+   const pf=t.closest('[data-plfold]');
+   if(pf){const k=pf.dataset.plfold;state.ovFold[k]=pf.getAttribute('aria-expanded')!=='false';renderPlanSheet();return;}
+   const pl=t.closest('[data-plln]');
+   if(pl){const id=pl.dataset.plln;state.ovFold['l:'+id]=!state.ovFold['l:'+id];renderPlanSheet();return;}
+   // (Les nœuds du SVG sont câblés par bindSvgNav, pas ici : un double traitement produirait
+   //  deux sauts, donc deux passages dans le journal.)
+   const pg=t.closest('[data-plgo]');
+   if(pg){closePlanSheet();jumpToBlock(f,pg.dataset.plgo);return;}};
+ if(card){card.onclick=e=>act(e.target);
+   card.onkeydown=e=>{if(e.key!=='Enter'&&e.key!==' ')return;
+     const t=e.target.closest('[data-plgo],[data-plln],[data-plview],[data-plfold],[data-plref]');
+     if(!t)return;e.preventDefault();act(t);};}}
+{const px=document.getElementById('planX');if(px)px.onclick=closePlanSheet;}
+// La feuille a son PROPRE défileur : l'évènement de défilement de la page ne l'atteint pas.
+// Le fil d'ancêtres collant doit donc suivre CE défilement-là (même passage lecture/écriture).
+planModal.addEventListener('scroll',()=>{if(planSheetOpen())ovPlanPin();},{passive:true});
+// Le quai n'existe que s'il porte quelque chose (minuteurs vivants et/ou accès au Plan).
+function syncDock(){const d=document.getElementById('crisisDock');if(!d)return;
+  const t=document.getElementById('cbTimers'),p=document.getElementById('planBtn');
+  d.hidden=!!((!t||t.hidden)&&(!p||p.hidden));}
 // ----- ORGANIGRAMME HYBRIDE (mode Détails) -----
 function ovPlanTreeHtml(f,plan,num,md,off){
   const items=plan.items;let i=0;
@@ -6807,12 +7641,23 @@ function ovPlanStick(){ovPlanPin();}
    se fondent sur la géométrie d'AVANT ses écritures — un top qui change se corrige à
    l'événement de défilement suivant (~16 ms, invisible). */
 function ovPlanPin(){
-  const wrap=main.querySelector('.ov-wrap');const plan=wrap&&wrap.querySelector('.ov-plan');
+  // v4.23.0 : le plan vit dans la FEUILLE plein écran. Elle a son propre défileur et sa propre
+  // barre collante — la base d'épinglage n'est donc PAS celle de la page.
+  const sheet=planSheetOpen()?document.getElementById('planBody'):null;
+  const plan=sheet?sheet.querySelector('.ov-plan')
+    :(()=>{const w=main.querySelector('.ov-wrap');return w&&w.querySelector('.ov-plan');})();
   if(!plan||state.ovPlanView!=='plan')return;
   const f=state.fiche;if(!f)return;
   const Z=zoomF();
-  const hb=document.querySelector('header.bar');
-  const stickV=(hb?hb.getBoundingClientRect().bottom:60)+4*Z;   // px VISUELS
+  // Base d'épinglage = le bas de ce qui est DÉJÀ collé en haut du défileur concerné :
+  //   • dans la feuille : sa barre .pm-bar ;
+  //   • en page : l'en-tête, et le QUAI (minuteurs + Plan) quand il est calé dessous — sans lui
+  //     les cartes-questions épinglées passaient dessous (deux couches collantes, une seule
+  //     prise en compte).
+  let base;
+  if(sheet){const b=document.querySelector('.pm-bar');base=b?b.getBoundingClientRect().bottom:0;}
+  else base=stickBase();
+  const stickV=base+4*Z;   // px VISUELS
   const cards=[...plan.querySelectorAll('.pl-decwrap>.pl-nd.dec')];
   if(!cards.length)return;
   // PHASE LECTURE : rectangle de chaque carte + rectangles des branches directes de sa
@@ -6880,9 +7725,24 @@ function ovPaintLive(f){
 // Défilement vers un bloc (DERNIÈRE carte du bloc : instance la plus récente, sinon carte de la
 // suite) — GESTE DE NAVIGATION volontaire uniquement (le cochage, lui, ne défile jamais) :
 // instantané (prefers-reduced-motion respecté), calé sous l'en-tête fixe.
+/* Bas de TOUT ce qui est collé en haut : l'en-tête ET le quai de crise (v4.23.0). Source unique —
+   ovScrollEl, syncHdrScroll (--stick-top) et ovPlanPin doivent s'accorder, sinon un saut dépose le
+   bloc visé SOUS le quai (constaté : ~52px masqués). */
+function stickBase(){
+  const hb=document.querySelector('header.bar');
+  const dk=document.getElementById('crisisDock');
+  return Math.max(hb?hb.getBoundingClientRect().bottom:60,(dk&&!dk.hidden)?dk.getBoundingClientRect().bottom:0);}
 function ovScrollEl(el){if(!el)return;
-  const hdr=document.querySelector('header.bar');const hh=hdr?hdr.getBoundingClientRect().height:60;
-  window.scrollTo(0,Math.max(0,Math.round(window.scrollY+el.getBoundingClientRect().top-hh-8)));}
+  window.scrollTo(0,Math.max(0,Math.round(window.scrollY+el.getBoundingClientRect().top-stickBase()-8)));}
+/* Défilement DANS un conteneur, sans toucher à la page. `scrollIntoView` remonte TOUS les
+   ancêtres défilables : un renvoi tapé dans le rail déplaçait la PAGE de 261px alors que la zone
+   du rail ne bougeait pas (retour d'usage « le scroll n'est pas bon du tout »). Ici on n'écrit
+   que le scrollTop du conteneur visé. */
+function scrollWithin(box,el,mode){
+  if(!box||!el)return;
+  const br=box.getBoundingClientRect(),er=el.getBoundingClientRect();
+  const d=(mode==='start')?(er.top-br.top-8):(er.top-br.top-Math.max(0,(box.clientHeight-er.height)/2));
+  box.scrollTop=Math.max(0,Math.round(box.scrollTop+d));}
 function ovScrollTo(id){
   const els=main.querySelectorAll('.ov-block[data-ovb="'+CSS.escape(id)+'"]');
   ovScrollEl(els[els.length-1]);}
@@ -6915,14 +7775,28 @@ function renderOvOnlyKeepAnchor(sel,kb){
 // Cochage dans le journal : chirurgie pure (toggle DOM, jamais de render() sous le doigt).
 // (v4.10.0 : le cochage ne vit QUE dans le journal — le plan est inerte ; entrer dans un bloc
 // jamais visité passe par un tap sur son nœud du plan, jumpToBlock.)
+function paintStepTrace(li,k){
+  const vg=!!(state.vgaps||{})[k],vv=!vg&&!!(state.verified||{})[k];
+  li.classList.toggle('vgap',vg);
+  let el=li.querySelector('.stp-vf');
+  if(!vg&&!vv){if(el)el.remove();return;}
+  if(!el){el=document.createElement('span');li.appendChild(el);}
+  el.className='stp-vf '+(vg?'gap':'ok');
+  el.textContent=vg?'△ écart':'✓✓ vérifié';
+  el.title=vg?'Écart constaté pendant la vérification':'Constaté pendant la vérification';}
 function ovToggleStep(f,li,kb){
   const k=li.dataset.ck;
   const sec=li.closest('.ov-block');
   const on=!state.checked[k];state.checked[k]=on;
+  /* Un geste MANUEL rend la trace de vérification caduque : cocher lève l'écart (il est résolu),
+     décocher retire la constatation (elle ne décrit plus l'état). La trace doit refléter ce qui a
+     été CONSTATÉ, jamais un souvenir périmé. */
+  if(on){delete state.vgaps[k];}else{delete state.verified[k];}
   const justStarted=ensureStarted();persistLive(Runtime);
   if(justStarted){renderKeepAnchor('[data-ck="'+CSS.escape(k)+'"]');if(kb){const nl=main.querySelector('[data-ck="'+CSS.escape(k)+'"]');if(nl)nl.focus();}return;}
   li.classList.toggle('done',on);li.setAttribute('aria-checked',on?'true':'false');
   const box=li.querySelector('.box');if(box)box.innerHTML=on?uiIcon('check',19,{sw:3,cls:''}):'';
+  paintStepTrace(li,k);
   if(!on)state.flowEnded=false;
   ovAfterCheck(f,sec,k);
   if(kb)li.focus();}
@@ -6998,12 +7872,21 @@ function bindOverviewEvents(f){
     if(vv){state.ovVerify={idx:+vv.dataset.ovverify,i:0,gaps:[]};renderOvOnlyKeepAnchor('.ov-block[data-ovi="'+(+vv.dataset.ovverify)+'"]');return;}
     const vok=t.closest('[data-ovvok]');
     if(vok){const vf=state.ovVerify;if(!vf)return;const sec2=vok.closest('.ov-block');const id2=sec2.dataset.ovb;const seq2=state.navSeq[vf.idx]||1;
-      state.checked[seq2+':'+id2+':'+vf.i]=true;vf.i++;
+      const k2=seq2+':'+id2+':'+vf.i;
+      state.checked[k2]=true;state.verified[k2]=Date.now();delete state.vgaps[k2];vf.i++;
       const js2=ensureStarted();persistLive(Runtime);
       if(js2){renderKeepAnchor('.ov-block[data-ovi="'+vf.idx+'"]');return;}
       renderOvOnlyKeepAnchor('.ov-block[data-ovi="'+vf.idx+'"]');return;}
     const vgp=t.closest('[data-ovvgap]');
-    if(vgp){const vf=state.ovVerify;if(!vf)return;vf.gaps.push(vf.i);vf.i++;renderOvOnlyKeepAnchor('.ov-block[data-ovi="'+vf.idx+'"]');return;}
+    if(vgp){const vf=state.ovVerify;if(!vf)return;
+      const sec3=vgp.closest('.ov-block'),id3=sec3.dataset.ovb,seq3=state.navSeq[vf.idx]||1;
+      const k3=seq3+':'+id3+':'+vf.i;
+      // L'écart SURVIT à la sortie de la passe : sans ça, « constaté absent » et « jamais atteint »
+      // étaient le même état (rien). Il ne DÉCOCHE jamais (la coche reste la trace de l'exécution).
+      state.vgaps[k3]=Date.now();delete state.verified[k3];
+      vf.gaps.push(vf.i);vf.i++;
+      if(Runtime.started)persistLive(Runtime);
+      renderOvOnlyKeepAnchor('.ov-block[data-ovi="'+vf.idx+'"]');return;}
     const vx=t.closest('[data-ovvx]');
     if(vx){const vf=state.ovVerify;state.ovVerify=null;renderOvOnlyKeepAnchor(vf?'.ov-block[data-ovi="'+vf.idx+'"]':null);return;}
     // MODE LECTEUR (v4.11.0) : plein écran, piloté sur le bout du journal.
@@ -7025,7 +7908,7 @@ function bindOverviewEvents(f){
       renderOvOnlyKeepAnchor('[data-plln="'+CSS.escape(id3)+'"]');return;}
     const pg=t.closest('[data-plgo]');if(pg){jumpToBlock(f,pg.dataset.plgo);return;}
     const pv=t.closest('[data-plview]');
-    if(pv){if(state.ovPlanView!==pv.dataset.plview){state.ovPlanView=pv.dataset.plview;renderOvOnlyKeepAnchor('.ov-plan-h');}return;}
+    if(pv){if(state.ovPlanView!==pv.dataset.plview){state.ovPlanView=pv.dataset.plview;setPlanViewPref(state.ovPlanView);renderOvOnlyKeepAnchor('.ov-plan-h');}return;}
     const nx=t.closest('[data-ovnext]');
     if(nx){if(nx.getAttribute('aria-disabled')==='true')return;   // le libellé dit pourquoi (ECAM)
       // REPLI DIFFÉRÉ de l'étape ① : même doctrine que le « Continuer » guidé (v4.4.2) —
@@ -7068,6 +7951,12 @@ function renderOvOnly(){
   // écran/navigation après le re-rendu ciblé (bindFlowZoom peint aussi l'état, v4.7.0).
   {const fs=main.querySelector('.flow-scroll');if(fs){bindFlowZoom();applyFlowZoom();restoreFlow();}}
   flowCtx={f,curId:N.cur};
+  // v4.23.0 : le plan n'est plus dans .ov-wrap — s'il est OUVERT en feuille, il porte l'état de
+  // session (✓, ● ici, hors chemin) et doit donc se repeindre avec le journal.
+  if(planSheetOpen())renderPlanSheet();
+  // Idem pour Consulter : les repères posologiques y sont classés pour le BLOC COURANT, qui
+  // vient de changer.
+  if(refSheetOpen())renderRefSheet();
   ovPlanStick();   // v4.12.0 : base du fil d'ancêtres collant
   bindOverviewEvents(f);}
 /* ===== MODE STATIQUE (v4.13.0) : TABLEAU compact façon aide SFAR/CAMR =====
@@ -7536,11 +8425,16 @@ function renderNavOnly(){
    downscale()       : réduit une image (canvas) avant stockage base64.
    saveDraft()       : nettoie/normalise le brouillon, persiste, puis ouvre la fiche.
    deleteDraft()     : supprime la fiche ET ses sessions associées. */
-// opts.crit (v4.3.0, repères posologiques) : bascule ⚠ par BOUTON (le signe est intapable au
-// clavier) — le champ affiche le texte NU, la rangée encadrée rouge porte le registre, le
-// préfixe « ⚠ » reste dans la CHAÎNE stockée (format v3 et cartes rouges inchangés).
-function listEditor(legend,hint,key,arr,ordered,opts){opts=opts||{};const rows=(arr.length?arr:['']).map((v,i)=>{const crit=opts.crit&&stepIsCrit(v);
-  return `<div class="li${crit?' li-crit':''}" data-i="${i}">${ordered?`<span class="li-num">${String(i+1).padStart(2,'0')}</span>`:''}<input type="text" value="${esc(opts.crit?stepText(v):v)}" data-key="${key}" data-idx="${i}"${opts.crit?' data-critlist':''} placeholder="…">${boldBtnHtml()}${opts.crit?`<button class="mini crit-tgl${crit?' on':''}" data-lcrit="${i}" data-lkey="${key}" title="${crit?'Ligne CRITIQUE (carte rouge) — toucher : normale':'Ligne normale — toucher : critique (carte rouge)'}">${uiIcon('warn',14)}</button>`:''}${ordered?`<button class="mini" data-mv="up" data-key="${key}" data-idx="${i}" aria-label="Monter">↑</button><button class="mini" data-mv="down" data-key="${key}" data-idx="${i}" aria-label="Descendre">↓</button>`:''}<button class="mini del" data-rm="${key}" data-idx="${i}" aria-label="Supprimer la ligne">×</button></div>`;}).join('');return `<fieldset class="field list-edit"><label>${legend}${hint?` <span class="hint">${hint}</span>`:''}</label>${rows}<button class="add-line" data-add="${key}">+ Ajouter une ligne</button></fieldset>`;}
+// opts.crit (v4.3.0, repères posologiques) : bascule par BOUTON (le signe est intapable au
+// clavier) — le champ affiche le texte NU, la rangée encadrée porte le registre, le préfixe reste
+// dans la CHAÎNE stockée (format v3 inchangé).
+// v4.23.0 : ce registre est la VIGILANCE (« △ », ambre), plus l'ALERTE — un dosage est une
+// RÉFÉRENCE où l'on risque de se tromper, pas un geste dont l'oubli tue (doctrine v4.2.2). La
+// rangée, le bouton et la carte de lecture portent donc tous les trois l'ambre. Un « ⚠ » hérité
+// d'une fiche antérieure est encore RECONNU (stepIsCrit||stepIsVigil) et affiché en ambre :
+// aucune migration de données, aucun contenu perdu.
+function listEditor(legend,hint,key,arr,ordered,opts){opts=opts||{};const rows=(arr.length?arr:['']).map((v,i)=>{const crit=opts.crit&&(stepIsCrit(v)||stepIsVigil(v));
+  return `<div class="li${crit?' li-vigil':''}" data-i="${i}">${ordered?`<span class="li-num">${String(i+1).padStart(2,'0')}</span>`:''}<input type="text" value="${esc(opts.crit?stepText(v):v)}" data-key="${key}" data-idx="${i}"${opts.crit?' data-critlist':''} placeholder="…">${boldBtnHtml()}${opts.crit?`<button class="mini crit-tgl${crit?' vig':''}" data-lcrit="${i}" data-lkey="${key}" title="${crit?'Repère à VÉRIFIER (carte ambre : risque d’erreur — dose, dilution, voie) — toucher : normal':'Repère normal — toucher : à vérifier (carte ambre)'}">△</button>`:''}${ordered?`<button class="mini" data-mv="up" data-key="${key}" data-idx="${i}" aria-label="Monter">↑</button><button class="mini" data-mv="down" data-key="${key}" data-idx="${i}" aria-label="Descendre">↓</button>`:''}<button class="mini del" data-rm="${key}" data-idx="${i}" aria-label="Supprimer la ligne">×</button></div>`;}).join('');return `<fieldset class="field list-edit"><label>${legend}${hint?` <span class="hint">${hint}</span>`:''}</label>${rows}<button class="add-line" data-add="${key}">+ Ajouter une ligne</button></fieldset>`;}
 // Garde-fou « Ne pas oublier » (v4.4.0, non bloquant — registre ATTENTION) : au-delà de 4
 // memory items, plus rien n'est saillant (doctrine QRH : ils sont rares par construction).
 // On suggère le reclassement, on n'empêche rien.
@@ -7659,8 +8553,8 @@ function openDraftPreview(){state.previewFrom='edit';
   // BAC À SABLE de navigation pour l'aperçu (v4.6.0) : coches/chemin DÉTACHÉS du Runtime — une
   // session vive d'une AUTRE fiche ne doit jamais recevoir les coches ou le chemin d'un brouillon
   // (openRead/resumeSession relient state au Runtime à la prochaine vraie ouverture).
-  state.checked={};state.nav=[state.fiche.start||(((state.fiche.blocks||[])[0]||{}).id)];state.navSeq=[++Runtime.seq];state.navPos=0;
-  state.readMode=currentReadMode();state.ovFold={};state.ovPlanView='plan';state.ovVerify=null;state.flowEnded=false;state.confOpen=undefined;
+  state.checked={};state.verified={};state.vgaps={};state.nav=[state.fiche.start||(((state.fiche.blocks||[])[0]||{}).id)];state.navSeq=[++Runtime.seq];state.navPos=0;
+  state.readMode=currentReadMode();state.ovFold={};state.ovPlanView=currentPlanView();state.ovVerify=null;state.flowEnded=false;state.confOpen=undefined;
   state.view='read';render();}
 function openPDraftPreview(){state.previewFrom='protocolEdit';
   state.protocol=migrateProtocol(JSON.parse(JSON.stringify(state.pdraft)));state.view='protocolRead';render();}
@@ -7709,7 +8603,7 @@ function renderEditor(){
       <p class="sub2">Minuteurs</p>${(f.timers||[]).map((t,i)=>timerEditorRow(t,i)).join('')}<div class="add-blocks"><button class="btn sm" id="addStopwatch">+ Chronomètre</button><button class="btn sm" id="addInterval">+ Minuteur (cycle)</button></div>
       <p class="sub2" style="margin-top:14px">Compteurs</p>${(f.counters||[]).map((c,i)=>counterEditorRow(c,i,f.timers)).join('')}<button class="add-line" id="addCounter">+ Ajouter un compteur</button></fieldset>
     <div class="field"><div class="lab-row"><label>Contexte local <span class="hint">numéros utiles, particularités</span></label>${boldBtnHtml()}</div><textarea id="f-localInfo" rows="2" placeholder="Réanimateur de garde, pharmacie…">${esc(f.localInfo)}</textarea></div>
-    ${listEditor('Repères posologiques','bouton ⚠ = carte rouge (dose critique) · **gras** possible','posology',f.posology,false,{crit:true})}
+    ${listEditor('Repères posologiques','bouton △ = carte ambre (dose à vérifier) · le rouge reste aux memory items · **gras** possible','posology',f.posology,false,{crit:true})}
     ${listEditor('À vérifier','','verify',f.verify)}
     ${listEditor('Diagnostics différentiels','','differentials',f.differentials)}
     <fieldset class="field"><label>Schémas & captures <span class="hint">stockées hors ligne dans l'app</span></label><div class="gallery">${(f.images||[]).map((im,i)=>`<div class="gthumb"><img src="${im.data}" alt="" loading="lazy" decoding="async"><input type="text" class="gcap" data-imgcap="${i}" value="${esc(im.caption||'')}" placeholder="Légende…" style="width:100%;margin-top:5px;padding:6px 8px;border:1px solid var(--line);border-radius:7px"><button class="btn sm danger" data-imgdel="${i}" style="width:100%;margin-top:5px">Retirer</button></div>`).join('')}</div><button class="add-line" id="addImg" style="margin-top:10px">+ Ajouter une image / capture</button></fieldset>
@@ -7808,7 +8702,11 @@ function bindListEditors(d,rerender){d=d||state.draft;rerender=rerender||renderE
     // Garde-fou memory items : recompté À LA FRAPPE (l'ajout/suppression de ligne re-rend, lui).
     if(k==='notForget'){const g=document.getElementById('nfGuard');if(g)g.textContent=nfGuardTxt(clean(d.notForget).length);}}));
   main.querySelectorAll('[data-lcrit]').forEach(b=>b.onclick=()=>{const k=b.dataset.lkey,i=+b.dataset.lcrit;
-    const v=String(d[k][i]||'');d[k][i]=stepIsCrit(v)?stepText(v):('⚠ '+stepText(v));rerender();});
+    // v4.23.0 : la bascule des repères écrit « △ » (VIGILANCE), jamais « ⚠ ». Un « ⚠ » hérité
+    // d'une fiche antérieure est traité comme signalé et le geste le REMET à plat, d'où
+    // stepIsCrit||stepIsVigil en test.
+    const v=String(d[k][i]||'');const on=stepIsCrit(v)||stepIsVigil(v);
+    d[k][i]=on?stepText(v):('△ '+stepText(v));rerender();});
   main.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{d[b.dataset.add].push('');rerender();});
   main.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{const a=d[b.dataset.rm];a.splice(+b.dataset.idx,1);if(!a.length)a.push('');rerender();});
   main.querySelectorAll('[data-mv]').forEach(b=>b.onclick=()=>{moveItem(d[b.dataset.key],+b.dataset.idx,b.dataset.mv==='up'?-1:1);rerender();});
@@ -7921,7 +8819,7 @@ setInterval(()=>{const k=_editKind();if(!k){_lastParked=null;return;}
 // Ouvre une fiche en lecture. Si une SESSION VIVE existe pour cette fiche, on la rouvre telle quelle
 // (minuteurs toujours en cours). Sinon on garde le runtime transitoire de cette même fiche (s'il n'a
 // pas démarré), sinon on en crée un neuf.
-function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;bumpUsage(id);flowScroll={left:null,top:0};state.rtOpen=false;state.noteEdit=false;state.confOpen=undefined;state.previewFrom=null;state.flowEnded=false;state.readMode=currentReadMode();state.ovFold={};state.ovPlanView='plan';state.ovVerify=null;
+function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;bumpUsage(id);flowScroll={left:null,top:0};state.rtOpen=false;state.noteEdit=false;state.confOpen=undefined;state.previewFrom=null;state.flowEnded=false;state.readMode=currentReadMode();state.ovFold={};state.ovPlanView=currentPlanView();state.ovVerify=null;
   if(liveSessions[id]){Runtime=liveSessions[id];Runtime.fiche=f;}
   else if(!(Runtime.fiche&&Runtime.ficheId===id&&!Runtime.started)){Runtime=buildRuntime(f,null);}
   // Algorithme REPLIÉ à l'ouverture : la 1ʳᵉ étape actionnable doit arriver le plus haut possible
@@ -8164,7 +9062,8 @@ STRUCTURE
     relue SEULE sous le titre, sans la question ;
   - une option / un « next » peut viser un bloc précédent (boucle de réévaluation).
 - TITRES de blocs COURTS (2-4 mots), discriminants dès les premiers mots —
-  l'application les abrège dans son historique, son plan et son tableau (« Choc —
+  l'application les abrège dans son historique, son plan, son tableau et son RAIL latéral
+  (colonne d'environ 320 px : c'est là que la troncature mord le plus fort) (« Choc —
   drogues » plutôt que « Prise en charge médicamenteuse après le choc ») ; jamais deux
   blocs au même début de titre.
 - RENFORT : dans le PREMIER bloc, une étape adaptée aux DEUX contextes — structure :
@@ -8173,7 +9072,14 @@ STRUCTURE
   (« Renfort : appel à l'aide (intra-hosp.) / régulation (SMUR) ») + les DEUX invites
   localInfo (tél. renfort, tél. régulation). Critères d'escalade (qui appeler, sur quel
   seuil, vers où transférer) → explicites. Jamais le renfort en fin de parcours.
-- SECTIONS :
+- SECTIONS — CE QUI EST SOUS LES YEUX vs CE QUI EST APPELÉ. L'application sépare
+  matériellement les deux, comme une check-list abrégée et son manuel : dans le fil de la
+  prise en charge vivent en permanence les BLOCS et notForget ; verify, differentials,
+  references et les documents sont regroupés dans une feuille « Consulter » ouverte À LA
+  DEMANDE. CONSÉQUENCE DE RÉDACTION : ne mets JAMAIS dans verify ou differentials ce qui
+  doit sauter aux yeux sans être demandé — cela appartient à une étape « ⚠ »/« △ » du bloc
+  concerné, ou à notForget (4 max). Inversement, tout ce qui n'est utile QUE si l'on se pose
+  la question descend dans ces sections : elles ne coûtent plus de place au fil.
   - confirmation  = critères qui CONFIRMENT le diagnostic / déclenchent la fiche,
     signes de gravité EN PREMIER, un critère cochable par ligne (regroupés par
     catégorie : « Signes neuro : convulsions / troubles de conscience ») ;
@@ -8291,19 +9197,43 @@ CHAMPS IMPOSÉS
   arrive en BROUILLON non daté — c'est moi qui relis, valide et date dans l'app.
 
 TYPES D'ÉTAPES (préfixe au DÉBUT du libellé)
+- RÈGLE D'OR — LA COULEUR EST L'EXCEPTION, PAS LA RÈGLE. Une étape colorée n'a de valeur
+  que si elle RESSORT ; un bloc où la moitié des lignes sont rouges/ambre est un bloc où
+  PLUS RIEN ne ressort (c'est le défaut le plus fréquent — 3 lignes colorées sur 5 : à
+  proscrire). La grande majorité des étapes sont des ACTIONS NORMALES, sans préfixe. Une
+  étape n'est colorée que si son omission ou une erreur dessus change l'issue pour le
+  patient — sinon elle reste nue, même si elle est « importante ». « Important » n'est pas
+  un critère : presque tout l'est dans une aide de crise ; le critère est « létal si oublié »
+  (rouge) ou « c'est ICI qu'on se trompe » (ambre).
+- PLAFOND PAR BLOC, TOUS REGISTRES CONFONDUS : au plus 2 étapes colorées (⚠ + △ réunis) par
+  bloc, et idéalement 1. Si tu en as marqué davantage, tu SUR-signales : garde la ou les 2
+  qui priment vraiment, laisse les autres en action normale (une dose n'a pas besoin de △
+  pour être lue — elle est déjà dans l'étape). Un bloc entièrement nu est parfaitement
+  normal et souhaitable.
 - « ⚠ » = CRITIQUE, affichée en ROUGE : ce qui TUE si on l'oublie — memory item, geste
   vital time-critical dont l'omission ou le retard est immédiatement dangereux
   (ex. « ⚠ Adrénaline IM 0,5 mg — face antéro-latérale de cuisse »). 1 à 2 par bloc
-  MAXIMUM (tout critique = rien de critique).
+  MAXIMUM, et souvent ZÉRO (tout critique = rien de critique).
 - « △ » = VIGILANCE, affichée en AMBRE : là où l'on risque de SE TROMPER — dose/dilution
   à vérifier avant injection, contre-indication à écarter, confusion voie/site/produit,
-  seuil à contrôler avant de poursuivre. Parcimonie également.
-- Les deux registres → « ⚠ » (rouge). Sans préfixe = action normale.
+  seuil à contrôler avant de poursuivre. Même parcimonie, et le plafond ci-dessus s'applique
+  au TOTAL ⚠ + △, pas à chaque registre séparément.
+- Les deux registres sur une même étape → « ⚠ » (rouge). Sans préfixe = action normale, et
+  c'est le cas le PLUS courant.
 
 REPÈRES POSOLOGIQUES (section posology)
 - Une ligne par médicament/geste dosé : « **NOM — voie** : posologie exacte de la
-  source » (nom en gras) ; préfixe « ⚠ » pour la 1re intention time-critical (carte
-  rouge). Doses à l'IDENTIQUE (cf. FIDÉLITÉ) ; section vide si la source ne dose rien.
+  source » (nom en gras) ; préfixe « △ » (JAMAIS « ⚠ ») pour une dose à vérifier avant
+  injection — dilution, dose pédiatrique au poids, seuil : carte AMBRE. Le rouge est
+  réservé aux memory items et aux gestes vitaux, qui sont des ACTIONS, pas des
+  références. Doses à l'IDENTIQUE (cf. FIDÉLITÉ) ; section vide si la source ne dose rien.
+- LE FORMAT EST PORTEUR : nom du produit EN PREMIER, puis la voie, puis « : » et la
+  posologie. L'application rapproche automatiquement du bloc affiché les repères dont le
+  début de ligne correspond à ce qu'il mentionne (le rapprochement tolère les troncatures
+  et les synonymes de voie : « adré » retrouve ADRÉNALINE, « IM » retrouve
+  « intramusculaire ») ; un nom noyé en fin de phrase ne serait pas rapproché. Rien n'est
+  jamais retiré : au-delà de trois repères, ceux qui ne correspondent pas se replient
+  derrière un compte annoncé — et un repère « △ » n'est jamais replié.
 
 COHÉRENCE DES IDENTIFIANTS (très important)
 - "id" de bloc unique dans la fiche (ex. "b1", "b2", "bd") ; "start" = id d'un bloc
@@ -8327,7 +9257,7 @@ SCHÉMA EXACT
       "localInfo": "Tél renfort : à compléter\nTél régulation : à compléter\n(autres invites selon la source)",
       "confirmation": ["..."],
       "verify": ["..."],
-      "posology": ["⚠ **ADRÉNALINE — IM** : adulte 0,5 mg · enfant 0,01 mg/kg (max 0,5 mg)", "**REMPLISSAGE** : cristalloïdes 20 mL/kg en débit libre"],
+      "posology": ["△ **ADRÉNALINE — IM** : adulte 0,5 mg · enfant 0,01 mg/kg (max 0,5 mg)", "**REMPLISSAGE** : cristalloïdes 20 mL/kg en débit libre"],
       "notForget": ["..."],
       "differentials": ["..."],
       "references": ["Titre — Organisme, année — URL", "Fiche générée par IA le JJ/MM/AAAA à partir de la source ci-dessus — à relire et valider avant usage."],
@@ -9408,6 +10338,8 @@ window.addEventListener('beforeprint',()=>{if(state.view!=='read'||!state.fiche)
   _printSaved={confOpen:state.confOpen,showFlow:state.showFlow,readMode:state.readMode,ovPlanView:state.ovPlanView};
   // La vue d'ensemble (journal + PLAN complet avec étapes) est le format imprimé ; les blocs
   // repliés sont rouverts par CSS @media print — aucun état de repli à toucher.
+  // 'plan' FORCÉ (jamais la préférence) : sur papier la structure imprimée est le plan Détails —
+  // ni l'échelle ni le SVG (règle inchangée depuis v4.18.0).
   state.confOpen=true;state.showFlow=true;state.ovPlanView='plan';state.ovVerify=null;_printingOv=true;if(hasFlow(state.fiche))state.readMode='overview';render();});
 window.addEventListener('afterprint',()=>{_printingOv=false;if(!_printSaved)return;
   state.confOpen=_printSaved.confOpen;state.showFlow=_printSaved.showFlow;state.readMode=_printSaved.readMode||state.readMode;state.ovPlanView=_printSaved.ovPlanView||'plan';_printSaved=null;
@@ -10307,11 +11239,19 @@ function _focusables(el){return [...el.querySelectorAll('a[href],button:not([dis
 // figé EN PLACE (top:-scrollY, la règle position:fixed ne s'applique qu'au pointeur grossier)
 // et la position est restaurée AU PIXEL à la fermeture de la dernière fenêtre — la restauration
 // est conditionnée au même média que la règle : au pointeur fin, rien n'a bougé, ne rien forcer.
-let _bgScrollY=0;
-function _bgLock(){_bgScrollY=window.scrollY;document.body.style.top=(-_bgScrollY)+'px';document.body.classList.add('modal-open');}
+let _bgScrollY=0,_bgWasFull=false;
+// `.sheet-full` = fenêtre OPAQUE couvrant l'écran (feuille Plan…) : elle mérite le verrou à tous
+// les pointeurs, un petit dialogue non (cf. la règle body.modal-full).
+function _bgLock(){_bgScrollY=window.scrollY;document.body.style.top=(-_bgScrollY)+'px';
+  _bgWasFull=_openModals().some(m=>m.classList.contains('sheet-full'));
+  document.body.classList.add('modal-open');
+  document.body.classList.toggle('modal-full',_bgWasFull);}
 function _bgUnlock(){if(!document.body.classList.contains('modal-open'))return;
-  document.body.classList.remove('modal-open');document.body.style.top='';
-  if(matchMedia('(pointer:coarse)').matches)window.scrollTo(0,_bgScrollY);}
+  document.body.classList.remove('modal-open','modal-full');document.body.style.top='';
+  // Restaurer si le corps a RÉELLEMENT été figé : au toucher (règle .modal-open) ou en feuille
+  // plein écran (règle .modal-full). Sinon rien n'a bougé — ne rien forcer.
+  if(_bgWasFull||matchMedia('(pointer:coarse)').matches)window.scrollTo(0,_bgScrollY);
+  _bgWasFull=false;}
 new MutationObserver(muts=>{muts.forEach(m=>{
   const el=m.target;if(!el.classList||!el.classList.contains('ai-modal'))return;
   const wasOn=/\bon\b/.test(m.oldValue||''),isOn=el.classList.contains('on');
@@ -10364,7 +11304,8 @@ if(location.search.indexOf('__actest')>=0){
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
     restErrStatus,isPersoRepairCandidate,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,
     qTerms,hayMatch,markQTerms,searchSnippet,ficheSnipParts,protoSnipParts,frecencyScore,sanitizeUsage,mergeUsage,
-    crc32,zipBuild,zipParse,isPdfBytes,mdTask,flowOrder,latestPass,offPathSet,minimapData,passInfo,instComplete,flowPlan,stepCR,stepGuardTxt,optAbbr,svBranchIssue,svLoopTargets,ovPresList};
+    crc32,zipBuild,zipParse,isPdfBytes,mdTask,flowOrder,latestPass,offPathSet,minimapData,passInfo,instComplete,flowPlan,stepCR,stepGuardTxt,optAbbr,svBranchIssue,svLoopTargets,ovPresList,
+    posoTokens,posoName,posoScore,posoRank,posoSplit};
 }else{
   /* ===== PWA =====
      Enregistre le service worker (cache hors ligne) si disponible. Capte

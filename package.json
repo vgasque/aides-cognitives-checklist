@@ -1,6 +1,6 @@
 {
   "name": "aides-cognitives-checklist",
-  "version": "4.22.5",
+  "version": "4.23.0",
   "description": "PWA d'aides cognitives cliniques, hors-ligne, sans dépendance runtime.",
   "private": true,
   "scripts": {
@@ -8,7 +8,8 @@
     "test": "node scripts/run-tests.mjs",
     "design:build": "node design/build.mjs",
     "design:check": "node scripts/design-check.mjs --strict",
-    "ci": "npm run check && npm test && npm run design:check"
+    "ci": "npm run check && npm test && npm run design:check",
+    "audit": "node scripts/audit-a11y.mjs && node scripts/audit-doctrine.mjs && node scripts/audit-verify.mjs"
   },
   "devDependencies": {
     "playwright": "^1.44.0"
