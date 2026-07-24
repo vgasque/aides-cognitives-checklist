@@ -54,6 +54,10 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
     débordement annoncé, memory items dans le flux et non recopiés dans la feuille, feuille
     Consulter inerte (0 coche, 0 démarrage), taper un nœud du plan ne démarre ni ne coche,
     snackbar mis en attente en session, mouvement nul sous `prefers-reduced-motion`.
+  - `scripts/audit-verify.mjs` — la passe Do-Verify laisse un résultat CONSULTABLE (cf. trace de
+    vérification). **Les sondes JETABLES s'écrivent à la racine en `.nom.mjs`** (pour trouver
+    `playwright` dans `node_modules`) et sont ignorées par git ; seuls les harnais qui RESTENT
+    vivent dans `scripts/`.
 - L'intégration continue (`.github/workflows/ci.yml`) rejoue check + tests + `design:check` sur
   chaque push/PR.
 
@@ -786,6 +790,13 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
 - Fonctions pures testables : les exposer via le hook `?__actest` (fin de `index.html`) et ajouter
   un test dans `tests.html`.
 - Ne jamais supprimer un champ du modèle fiche/catégorie (compatibilité ascendante).
+- **Collision de noms de classe (leçon v4.23.2)** : `.tk-panel.empty` réutilisait la classe
+  GÉNÉRIQUE `.empty` (états vides « Aucune fiche », « Protocole vide ») et en héritait deux styles
+  invisibles à la relecture — `.empty b{display:block;margin-bottom:6px}`, qui décentrait le titre
+  « Journal des actions » de 3 px (car `align-items:center` centre la boîte de MARGE), et
+  `html[data-theme="dark"] .empty{background:…}` qui, de spécificité SUPÉRIEURE à `.tk-panel`,
+  écrasait le fond du panneau en thème sombre. Un modificateur d'état ne doit JAMAIS emprunter le
+  nom d'une classe autonome : préfixer par le composant (`.tk-slim`, pas `.empty`).
 - **Hygiène de suppression** : retirer un composant = retirer AUSSI son CSS orphelin ET mettre à
   jour la doc qui le cite (AGENTS.md, `design/`). Une classe morte documentée (`.endcap` après
   V5) fait diverger doc et code. Toute suppression de fichier référencé (ex. une SPEC) implique de

@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-Rx6oE0tWjQc7mybWjSlCy1weOQagrm/oBlf7Ek3eo3k='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-ngFXoenIZqe0Mfx3C5coMNc6ZUMTIylpxYEQU0obpaw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1336,7 +1336,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .tk-lab:focus{outline:2px solid var(--primary);border-color:transparent}
   .tk-del{flex-shrink:0;width:38px;height:44px;border:0;border-radius:8px;background:var(--bg);color:var(--ink-soft);font-size:17px}
   .tk-del:hover{background:var(--critical-soft);color:var(--critical)}
-  .tk-panel.empty .tk-head{margin-bottom:0}
+  /* MODIFICATEUR RENOMMÉ (v4.23.2) : c'était `.tk-panel.empty`, qui entrait en COLLISION avec la
+     classe générique `.empty` (états vides « Protocole vide »). Deux fuites réelles en résultaient :
+     `.empty b{display:block;margin-bottom:6px}` s'appliquait au titre — et comme `align-items:center`
+     centre la boîte de MARGE, « Journal des actions » montait de 3px (non centré verticalement,
+     retour d'usage) ; et `html[data-theme="dark"] .empty{background:…}`, de spécificité supérieure
+     à `.tk-panel`, écrasait le fond du panneau en thème SOMBRE. Un nom propre supprime les deux. */
+  .tk-panel.tk-slim .tk-head{margin-bottom:0}
   /* Halo animé en transform/opacity sur un pseudo-élément (COMPOSITÉ) : l'ancienne animation de
      box-shadow forçait un repaint continu pendant toute la durée d'une session, crise comprise. */
   .sess-dot{--pulse:29,122,56;width:9px;height:9px;border-radius:50%;background:var(--ok);flex-shrink:0;position:relative}
@@ -2412,10 +2418,20 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        LEÇON : dans une colonne déjà défilante, un sous-conteneur borné ne « range » pas, il
        ESCAMOTE. Le rail est donc une colonne ENTIÈREMENT continue ; le seul dispositif retenu
        contre l'enterrement de la posologie est l'ORDRE (l'illimité en dernier). */
-    .rail-head{display:flex;align-items:center;gap:8px}
+    .rail-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
     .rail-title{font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--ink-soft)}
     .rail-head :is(.rt-sound,.rt-warn){margin-left:auto}
     .rail-head .rt-sound~.rt-sound,.rail-head .rt-warn~.rt-sound{margin-left:0}
+    /* HARMONISATION (v4.23.2, retour d'usage « ils ne se ressemblent pas ») : « Son activé » et
+       « ⤢ complet » occupent le MÊME emplacement (fin d'en-tête de zone du rail) et avaient des
+       formes opposées — pilule blanche bordée d'un côté, texte nu de l'autre. Même FORME désormais
+       (fantôme, sans cadre, même rembourrage et même graisse) ; c'est la COULEUR qui porte le rôle :
+       bleu `--link` = ACTION (ouvrir la feuille), encre douce = ÉTAT (un interrupteur).
+       EXCEPTION VOULUE : le son COUPÉ garde sa pilule AMBRE — c'est l'état risqué en crise (on
+       n'entendra pas l'alarme), il doit ressortir ; le calme est réservé à l'état nominal. */
+    .rail-head .rt-sound{border:0;background:none;padding:6px 8px;font-weight:700}
+    .rail-head .rt-sound:hover{background:var(--surface-2)}
+    .rail-head .rt-sound.off{border:1px solid var(--verify);background:var(--verify-soft);color:var(--verify);padding:6px 11px}
     .rail-sep{height:1px;background:var(--line);margin:2px 0;flex:none}
     /* Compte total de la zone : ANNONCE le contenu au-delà du bord visible. Une barre de
        défilement est invisible au repos (macOS/iOS) — sans ce compte, une zone tronquée paraît
@@ -2450,7 +2466,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .rail-lad .pl-line.off :is(.n,.t,.g){color:var(--ink-soft)}
     .rail-lad .pl-line.off .t::after{content:" · hors chemin";font-weight:500;font-size:11px;color:var(--ink-soft)}
     .rail-lad .pl-here{background:var(--primary-soft);color:var(--primary-dk)}
-    body.view-read .read-side .rt-grid,body.view-read .read-side .rt-counters{margin-top:0}
+    /* Seule la PREMIÈRE grille colle à l'en-tête ; `.rt-counters` GARDE son margin-top, sinon la
+       dernière carte de minuteur et la première de compteur se touchent (retour d'usage). */
+    body.view-read .read-side .rt-grid{margin-top:0}
     /* Rail étroit : UNE carte minuteur/compteur par rangée (boutons jamais tronqués). */
     .read-side .rt-grid,.read-side .rt-counters{grid-template-columns:1fr}
   }
@@ -3065,7 +3083,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.23.1';
+const APP_VERSION='4.23.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -6725,7 +6743,7 @@ function timekeeperPanel(){const ev=Runtime.events||[];const t0=ev.length?ev[0].
     return `<div class="tk-item"><div class="tk-row"><span class="tk-time" data-tktime="${e.id}" role="button" tabindex="0" title="Cliquer pour corriger l'heure">${fmtHMS(e.t)}</span><span class="tk-el">${el}</span><input class="tk-lab" data-tklab="${e.id}" value="${esc(e.label||'')}" placeholder="Libellé…"><button class="tk-del" data-tkdel="${e.id}" aria-label="Supprimer">×</button></div>${origRow}</div>`;}).join(''):'';
   // Outil SECONDAIRE : compact tant qu'on n'a rien noté (juste le bouton). « Journal des actions » =
   // suite horodatée des gestes clés (pour la traçabilité / le compte-rendu après coup).
-  return `<div class="tk-panel${ev.length?'':' empty'}"><div class="tk-head"><b>Journal des actions</b><button class="tk-add" id="tkAdd">${uiIcon('stopwatch',13)} Noter l’heure</button></div>${rows}</div>`;}
+  return `<div class="tk-panel${ev.length?'':' tk-slim'}"><div class="tk-head"><b>Journal des actions</b><button class="tk-add" id="tkAdd">${uiIcon('stopwatch',13)} Noter l’heure</button></div>${rows}</div>`;}
 
 /* ===== Read (mode crise / lecture) =====
    renderRead() : affiche la fiche active. De haut en bas : titre + méta, bandeau

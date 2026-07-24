@@ -1,5 +1,35 @@
 # Journal des modifications
 
+## [4.23.2] — 2026-07-24
+### Corrigé
+Quatre défauts d'affichage du **rail de lecture**, tous signalés à l'usage et mesurés avant/après.
+- **« Son activé » collait à la carte du dessous** : l'en-tête d'une zone du rail (`.rail-head`)
+  n'avait aucune marge basse — le bouton, haut de 44 px, touchait la première carte. Écart mesuré
+  0 px → **10 px**.
+- **Cartes de minuteurs collées** : la remise à zéro `margin-top` du rail visait à la fois
+  `.rt-grid` **et** `.rt-counters` ; elle ne doit viser que la première (celle qui suit l'en-tête).
+  La dernière carte de minuteur et la première de compteur se touchaient. Écarts mesurés
+  `[0, 10]` → **`[10, 10]`**.
+- **« Journal des actions » non centré verticalement** quand le journal est vide — cause réelle :
+  une **collision de noms de classe**. `.tk-panel.empty` réutilisait la classe générique `.empty`
+  (états vides « Protocole vide ») et en héritait `.empty b{display:block;margin-bottom:6px}` ;
+  comme `align-items:center` centre la boîte de **marge**, le titre montait de 3 px. Le
+  modificateur est renommé `.tk-slim`. Centre du texte 19 → **22**, exactement celui de l'en-tête.
+  - Cette même collision faisait aussi hériter `html[data-theme="dark"] .empty{background:…}`, de
+    spécificité supérieure à `.tk-panel` : le panneau du journal avait donc un **mauvais fond en
+    thème sombre**. Corrigé par le même renommage.
+- **« ⤢ complet » et « Son activé » ne se ressemblaient pas** alors qu'ils occupent le même
+  emplacement (fin d'en-tête de zone, même hauteur) : pilule blanche bordée d'un côté, texte nu de
+  l'autre. Même **forme** désormais (fantôme, même rembourrage, même graisse) ; c'est la **couleur**
+  qui porte le rôle — bleu = action (ouvrir la feuille), encre douce = état (un interrupteur).
+  Le **son coupé** garde volontairement sa pilule ambre : c'est l'état risqué en crise, il doit
+  ressortir ; le calme est réservé au nominal.
+
+### Interne
+- **`.gitignore`** : les sondes jetables écrites à la racine (`.nom.mjs`, `.nom.png`) sont désormais
+  ignorées. Huit captures temporaires s'étaient glissées dans le commit v4.23.1 via un `git add -A` ;
+  ce commit (non poussé) a été corrigé à la source. Les harnais qui restent vivent dans `scripts/`.
+
 ## [4.23.1] — 2026-07-24
 ### Ajouté
 - **Logo de marque sur l'accueil**, à gauche du nom de l'application. Posé en **masque CSS**

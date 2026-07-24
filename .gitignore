@@ -3,3 +3,10 @@
 node_modules/
 /test-results/
 /playwright-report/
+
+# Sondes et captures temporaires (harnais Playwright jetables écrits à la racine pour trouver
+# `playwright` dans node_modules). Huit PNG de ce type se sont retrouvés dans le commit v4.23.1
+# via un `git add -A` : ce garde-fou évite la récidive. Les harnais QUI RESTENT vivent dans
+# `scripts/` (audit-*.mjs) et sont, eux, versionnés.
+/.[a-z0-9-]*.mjs
+/.[a-z0-9-]*.png

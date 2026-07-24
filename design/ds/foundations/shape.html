@@ -1068,7 +1068,13 @@
   .tk-lab:focus{outline:2px solid var(--primary);border-color:transparent}
   .tk-del{flex-shrink:0;width:38px;height:44px;border:0;border-radius:8px;background:var(--bg);color:var(--ink-soft);font-size:17px}
   .tk-del:hover{background:var(--critical-soft);color:var(--critical)}
-  .tk-panel.empty .tk-head{margin-bottom:0}
+  /* MODIFICATEUR RENOMMÉ (v4.23.2) : c'était `.tk-panel.empty`, qui entrait en COLLISION avec la
+     classe générique `.empty` (états vides « Protocole vide »). Deux fuites réelles en résultaient :
+     `.empty b{display:block;margin-bottom:6px}` s'appliquait au titre — et comme `align-items:center`
+     centre la boîte de MARGE, « Journal des actions » montait de 3px (non centré verticalement,
+     retour d'usage) ; et `[data-theme="dark"] .empty{background:…}`, de spécificité supérieure
+     à `.tk-panel`, écrasait le fond du panneau en thème SOMBRE. Un nom propre supprime les deux. */
+  .tk-panel.tk-slim .tk-head{margin-bottom:0}
   /* Halo animé en transform/opacity sur un pseudo-élément (COMPOSITÉ) : l'ancienne animation de
      box-shadow forçait un repaint continu pendant toute la durée d'une session, crise comprise. */
   .sess-dot{--pulse:29,122,56;width:9px;height:9px;border-radius:50%;background:var(--ok);flex-shrink:0;position:relative}
@@ -2144,10 +2150,20 @@
        LEÇON : dans une colonne déjà défilante, un sous-conteneur borné ne « range » pas, il
        ESCAMOTE. Le rail est donc une colonne ENTIÈREMENT continue ; le seul dispositif retenu
        contre l'enterrement de la posologie est l'ORDRE (l'illimité en dernier). */
-    .rail-head{display:flex;align-items:center;gap:8px}
+    .rail-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
     .rail-title{font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--ink-soft)}
     .rail-head :is(.rt-sound,.rt-warn){margin-left:auto}
     .rail-head .rt-sound~.rt-sound,.rail-head .rt-warn~.rt-sound{margin-left:0}
+    /* HARMONISATION (v4.23.2, retour d'usage « ils ne se ressemblent pas ») : « Son activé » et
+       « ⤢ complet » occupent le MÊME emplacement (fin d'en-tête de zone du rail) et avaient des
+       formes opposées — pilule blanche bordée d'un côté, texte nu de l'autre. Même FORME désormais
+       (fantôme, sans cadre, même rembourrage et même graisse) ; c'est la COULEUR qui porte le rôle :
+       bleu `--link` = ACTION (ouvrir la feuille), encre douce = ÉTAT (un interrupteur).
+       EXCEPTION VOULUE : le son COUPÉ garde sa pilule AMBRE — c'est l'état risqué en crise (on
+       n'entendra pas l'alarme), il doit ressortir ; le calme est réservé à l'état nominal. */
+    .rail-head .rt-sound{border:0;background:none;padding:6px 8px;font-weight:700}
+    .rail-head .rt-sound:hover{background:var(--surface-2)}
+    .rail-head .rt-sound.off{border:1px solid var(--verify);background:var(--verify-soft);color:var(--verify);padding:6px 11px}
     .rail-sep{height:1px;background:var(--line);margin:2px 0;flex:none}
     /* Compte total de la zone : ANNONCE le contenu au-delà du bord visible. Une barre de
        défilement est invisible au repos (macOS/iOS) — sans ce compte, une zone tronquée paraît
@@ -2182,7 +2198,9 @@
     .rail-lad .pl-line.off :is(.n,.t,.g){color:var(--ink-soft)}
     .rail-lad .pl-line.off .t::after{content:" · hors chemin";font-weight:500;font-size:11px;color:var(--ink-soft)}
     .rail-lad .pl-here{background:var(--primary-soft);color:var(--primary-dk)}
-    body.view-read .read-side .rt-grid,body.view-read .read-side .rt-counters{margin-top:0}
+    /* Seule la PREMIÈRE grille colle à l'en-tête ; `.rt-counters` GARDE son margin-top, sinon la
+       dernière carte de minuteur et la première de compteur se touchent (retour d'usage). */
+    body.view-read .read-side .rt-grid{margin-top:0}
     /* Rail étroit : UNE carte minuteur/compteur par rangée (boutons jamais tronqués). */
     .read-side .rt-grid,.read-side .rt-counters{grid-template-columns:1fr}
   }
