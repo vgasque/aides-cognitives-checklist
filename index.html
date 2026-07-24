@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-ngFXoenIZqe0Mfx3C5coMNc6ZUMTIylpxYEQU0obpaw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-RAw+QCv7hPLqOAJwiWTBKLNNb+kiwy9odyVkk5TrWoU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -363,7 +363,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      (en-tête/bandeau de crise arrêtés avant le bord, éléments fixed allant eux jusqu'au bord).
      L'anti-décalage de la bascule Aides <-> Protocoles vit désormais DANS les panneaux
      défilants de l'accueil large (.home-side/.home-main), seul endroit où il agit encore. */
-  html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+  /* FOND SUR `html` AUSSI (v4.23.3) — pas seulement sur `body`. Sans lui, le canevas n'est peint
+     que par propagation depuis `body` ; or le verrou de fond des fenêtres met `body` en
+     `position:fixed` (tactile, cf. `_bgLock`), donc HORS DU FLUX : la zone qu'il ne couvre plus
+     reste non peinte et apparaît comme une BANDE VIDE en bas de page à l'ouverture de n'importe
+     quelle fenêtre (retour d'usage, mobile). `--bg` est défini sur `:root`, donc cette règle suit
+     le thème clair/sombre toute seule. */
+  html{-webkit-text-size-adjust:100%;text-size-adjust:100%;background:var(--bg)}
   body{font-family:var(--sans);color:var(--ink);background:var(--bg);line-height:1.5;-webkit-font-smoothing:antialiased;padding-bottom:env(safe-area-inset-bottom)}
   button{font-family:inherit;cursor:pointer}input,textarea,select{font-family:inherit;font-size:16px;max-width:100%}textarea{resize:vertical}
   /* Écrans tactiles : sans ce réglage, Safari iOS attend ~350 ms après chaque tap (fenêtre du
@@ -1368,6 +1374,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .last-sess .lsr-ic{flex:none;color:var(--ok);display:inline-flex}
   .last-sess .lsr-tx{flex:1;min-width:180px;font-size:13.5px;color:var(--ink)}
   .last-sess .lsr-tx b{color:var(--ok)}
+  /* Le ✕ existait depuis v4.16.3 mais était INVISIBLE : `.notice-x` est `position:absolute` et
+     `.last-sess` n'est pas `position:relative` — il se calait donc sur un ancêtre lointain, hors
+     de la carte. La carte est une rangée flex : on le remet dans le FLUX, à sa fin. */
+  .last-sess .notice-x{position:static;flex:none;margin-left:2px}
   .ls-card{display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:var(--surface);border:1px solid var(--primary);border-left:3px solid var(--primary);border-radius:10px;padding:10px 12px;box-shadow:var(--shadow)}
   .ls-info{flex:1;min-width:150px;display:flex;flex-direction:column;line-height:1.25;cursor:pointer}
   .ls-info .ls-k{font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink-soft)}
@@ -2118,14 +2128,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      la fermeture de la dernière fenêtre. Limité au pointeur grossier : au pointeur fin, figer
      body retirerait la barre de défilement et décalerait le fond visible derrière le voile. */
   @media (pointer:coarse){
-    body.modal-open{position:fixed;left:0;right:0;width:100%}
+    body.modal-open{position:fixed;left:0;right:0;width:100%;min-height:100%}
   }
   /* FEUILLE PLEIN ÉCRAN OPAQUE (v4.23.0) : le verrou vaut à TOUS les pointeurs, pas seulement au
      toucher. La restriction ci-dessus existe parce que figer body au pointeur fin retire la barre
      de défilement et DÉCALE le fond visible autour d'un petit dialogue — mais une feuille opaque
      qui couvre l'écran ne laisse rien voir du fond : il n'y a aucun décalage à craindre, et sans
      verrou la page continue de défiler derrière (constaté sur ordinateur). */
-  body.modal-full{position:fixed;left:0;right:0;width:100%}
+  body.modal-full{position:fixed;left:0;right:0;width:100%;min-height:100%}
   /* FEUILLE « PLAN » (v4.23.0) : PLEIN ÉCRAN à toutes les largeurs — c'est une vue d'ensemble,
      elle a besoin de toute la place (les intitulés cliniques ne se tronquent pas). Barre collante
      en tête de la carte : titre, sélecteur d'affichage, ✕. Le corps est le seul défileur. */
@@ -3083,7 +3093,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.23.2';
+const APP_VERSION='4.23.3';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -5710,6 +5720,7 @@ function renderFiches(){
       // CARTE-BILAN de fin de session (v4.16.3, décision utilisateur — esprit ECAM : le
       // débriefing est DISPONIBLE, jamais imposé) : éphémère (✕, prochaine session), registre
       // CONFIRMATION, jamais pendant une recherche ni au-dessus d'une session encore vive.
+      if(lastEndedSession&&!sessions.some(x=>x.id===lastEndedSession.id))lastEndedSession=null;
       const recapH=lastEndedSession?`<div class="last-sess"><span class="lsr-ic" aria-hidden="true">${uiIcon('check',15,{sw:3,cls:''})}</span><div class="lsr-tx"><b>Session terminée</b> — ${esc(lastEndedSession.title)} · ${esc(fmtMs(lastEndedSession.dur))} · ${lastEndedSession.done}/${lastEndedSession.passes} bloc${lastEndedSession.passes>1?'s':''} ✓</div><button class="btn sm" id="lsrReport">Compte-rendu</button><button class="notice-x" id="lsrX" aria-label="Masquer le bilan">×</button></div>`:'';
       return recapH+(liveArr.length?`<div class="live-sessions">${liveArr.map(R=>`<div class="ls-card"><span class="sess-dot"></span><div class="ls-info" data-openlive="${R.ficheId}" role="button" tabindex="0"><b class="ls-k">Session en cours</b><span class="ls-t">${esc(R.fiche.title||'Sans titre')}</span></div><span class="ls-chrono" data-lschrono="${R.startedAt}">${fmtMs(Date.now()-R.startedAt)}</span><button class="btn sm primary" data-openlive="${R.ficheId}">Reprendre</button><button class="ls-end" data-endlive="${R.ficheId}">Terminer</button></div>`).join('')}</div>`:'');},
     notices:()=>`

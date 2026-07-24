@@ -728,7 +728,13 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   l'accueil affiche une carte ÉPHÉMÈRE au registre CONFIRMATION (`.last-sess`,
   `lastEndedSession` en mémoire seulement — jamais persisté, la vérité archivée est la
   session) : titre · durée · k/n blocs ✓ + bouton « Compte-rendu » (`exportSessionReport`) ;
-  disparaît d'un tap (✕) ou au démarrage de la session suivante — le débriefing est
+  disparaît d'un tap (✕) ou au démarrage de la session suivante. **Le ✕ doit rester DANS LE FLUX**
+  (`.last-sess .notice-x{position:static}`) : `.notice-x` est `position:absolute` et la carte n'est
+  pas `position:relative` — le ✕ se calait donc sur un ancêtre lointain et était INVISIBLE de
+  v4.16.3 à v4.23.2. **La carte disparaît aussi quand SA session est supprimée de l'historique** :
+  garde posée AU RENDU (`!sessions.some(...)`), pas dans chaque chemin de suppression — il y en a
+  trois (session seule, suppression de fiche, purge) et un quatrième serait oublié ; sans elle, le
+  bouton « Compte-rendu » menait à un rapport introuvable — le débriefing est
   DISPONIBLE, jamais imposé (ECAM).
 - **Marqueur d'étape hors du champ (v4.3.0)** : dans les éditeurs, le préfixe `⚠ `/`△ ` ne vit
   plus DANS l'input (il était effaçable à la main = changement de type accidentel) — champ =

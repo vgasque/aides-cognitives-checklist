@@ -1,5 +1,32 @@
 # Journal des modifications
 
+## [4.23.3] — 2026-07-24
+### Corrigé
+- **Bande vide en bas de page à l'ouverture de n'importe quelle fenêtre** (retour d'usage : Safari
+  iOS et PWA installée). Cause : le canevas n'était peint que par **propagation** depuis `body` —
+  or le verrou de fond des fenêtres met `body` en `position:fixed` sur écran tactile, donc **hors
+  du flux** ; la zone qu'il ne couvre plus restait non peinte. En PWA standalone, la zone d'accueil
+  (`env(safe-area-inset-bottom)`) est précisément une bande que `body` ne peint pas. `html` porte
+  désormais le fond `--bg` lui aussi (il suit le thème, le token vivant sur `:root`), et le `body`
+  verrouillé reçoit `min-height:100%`.
+  - Non reproductible dans le harnais (Playwright n'émule ni la barre d'URL d'iOS ni les zones de
+    sécurité) : la correction vise le mécanisme, vérifiée par la mesure que le canevas est bien
+    peint et identique au fond de `body` dans les deux thèmes.
+- **Le ✕ de la carte « Session terminée » était invisible** — il existait depuis la v4.16.3 mais
+  `.notice-x` est `position:absolute` alors que la carte n'est pas `position:relative` : il se
+  calait sur un ancêtre lointain, hors de la carte. Remis **dans le flux**, à la fin de la rangée.
+  (Rien à trancher côté ECAM/QRH : fermer un bilan **consultatif** est un geste sûr et réversible —
+  la vérité archivée reste la session ; le bandeau n'est pas une alarme.)
+- **La carte « Session terminée » survivait à la suppression de sa session** dans l'historique, et
+  son bouton « Compte-rendu » menait alors à un rapport introuvable. Garde posée **au rendu**
+  (`!sessions.some(...)`) plutôt que dans chaque chemin de suppression — il y en a trois (session
+  seule, suppression de fiche, purge) et un quatrième aurait été oublié.
+
+### Interne
+- Nouveau harnais `scripts/audit-session-card.mjs` (ajouté à `npm run audit`) : couvre les deux
+  régressions ci-dessus — ✕ visible, dans la carte et cliquable ; carte retirée quand sa session
+  disparaît.
+
 ## [4.23.2] — 2026-07-24
 ### Corrigé
 Quatre défauts d'affichage du **rail de lecture**, tous signalés à l'usage et mesurés avant/après.
