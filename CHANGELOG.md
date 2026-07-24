@@ -1,5 +1,29 @@
 # Journal des modifications
 
+## [4.23.1] — 2026-07-24
+### Ajouté
+- **Logo de marque sur l'accueil**, à gauche du nom de l'application. Posé en **masque CSS**
+  (`logo-glyph.svg`, le master sans tuile — seul son canal alpha sert) sur un aplat de couleur :
+  un `<img>` ne se teinte pas, or un bleu fixe jurait avec les accents violet/framboise et pesait
+  en thème sombre. Sa couleur est l'**encre** (`currentColor`), donc il suit le thème tout seul et
+  ne concurrence aucun accent — l'accent colore déjà la loupe, les boutons et les liens de
+  l'accueil. Le fichier est servi depuis la racine et **précaché** (`sw.js`) : hors ligne comme le
+  reste. Affiché sur l'accueil uniquement, comme le nom qu'il accompagne.
+  - Écartée sur mesure : la variante « tuile teintée » — à 34 px la tuile ne se détache pas du fond
+    et le glyphe s'y noie.
+
+### Modifié
+- **Liseré des étapes signalées supprimé** (retour d'usage). Le vrai défaut n'était pas l'épaisseur
+  du bord du bloc mais un **doublement** : la bande d'une étape ⚠/△ portait en plus son propre
+  liseré de 3 px, collé au bord du bloc — deux traits verticaux parallèles. Les **fusionner** a été
+  envisagé puis écarté : le bord du bloc est le canal de l'état du BLOC (le bleu « vous êtes ici »
+  doit rester continu), le liseré d'une bande celui du registre de l'ÉTAPE ; les confondre ferait
+  porter deux sens au même trait et hacherait le bleu. C'est donc le liseré de la bande qui part —
+  teinte, case colorée, texte coloré et glyphe ⚠/△ marquent déjà l'étape sans ambiguïté.
+- Le liseré gauche de 4 px des cartes reste **inchangé** (décision utilisateur) : l'asymétrie sur le
+  bloc courant est réelle, mais uniformiser sur cette seule surface casserait la signature partagée
+  avec les notices, la carte de fin de session et les cartes d'accueil.
+
 ## [4.23.0] — 2026-07-24
 Refonte du chrome de crise à partir des maquettes hi-fi (téléphone / tablette / ordinateur),
 conduite en lots vérifiés un à un, puis audit transverse. Chaque décision ci-dessous a été

@@ -148,6 +148,13 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   asymétrie. **Statu quo décidé par l'utilisateur** : uniformiser sur le seul bloc courant casserait
   la signature partagée avec les autres cartes. Ne pas « corriger » cette asymétrie sans rouvrir la
   question sur TOUTES les surfaces à la fois.
+  **SUITE (v4.23.1) — le vrai défaut était un DOUBLEMENT, pas l'épaisseur** : la bande d'une étape
+  signalée portait EN PLUS son propre liseré de 3 px, collé au bord du bloc → deux traits verticaux
+  parallèles. FUSIONNER les deux a été envisagé et ÉCARTÉ : le bord du bloc est le canal de l'état
+  du BLOC (le bleu « vous êtes ici » doit rester CONTINU), le liseré d'une bande celui du registre
+  de l'ÉTAPE — les confondre ferait porter deux sens au même trait et hacherait le bleu. C'est donc
+  le liseré de la BANDE qui est supprimé : teinte + case colorée + texte coloré + glyphe ⚠/△
+  marquent déjà l'étape sans ambiguïté. Ne pas le réintroduire.
 - **Parcours de soin (v4.4.0)** : la vue lecture d'une fiche est structurée par un rail vertical
   numéroté (`<ol class="care-path">`, `aria-current="step"`) — ① **Confirmer le diagnostic**
   (ex-bloc repliable « Confirmation diagnostique », son en-tête EST le titre d'étape :
@@ -468,6 +475,16 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   retirée` : sur une page courte ou en haut de fiche, replier ferait sauter le contenu sous le
   doigt (bug v4.3.2, en pire). Le repli n'appartient qu'aux gestes qui l'ACQUITTENT : le bouton
   « Confirmé — démarrer la session » et la première navigation « Continuer → ».
+- **LOGO DE MARQUE (v4.23.1)** : `.brand-logo` sur l'ACCUEIL seulement (comme le nom qu'il
+  accompagne, SPEC §5). Posé en **masque CSS** (`logo-glyph.svg` = le master SANS tuile, seul son
+  canal alpha sert) sur un aplat de couleur — un `<img>` ne se teinte pas, or un bleu FIXE jurait
+  avec les accents violet/framboise et pesait en thème sombre. Couleur = **`currentColor`, donc
+  l'ENCRE** (décision utilisateur) : elle suit le thème toute seule et ne concurrence AUCUN accent
+  — l'accent colore déjà la loupe, les boutons et les liens de l'accueil, une marque neutre s'y lit
+  comme une marque. Variante « suit l'accent » = remplacer par `var(--primary)` (un seul mot).
+  ÉCARTÉE SUR MESURE : la tuile teintée (`--primary-soft` + glyphe `--primary`) — à 34 px elle ne
+  se détache pas du fond et le glyphe s'y noie. `logo-glyph.svg` est servi depuis la racine et
+  entre dans `ASSETS` (sw.js) : hors ligne comme le reste ; `design/` n'est ni servi ni précaché.
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.

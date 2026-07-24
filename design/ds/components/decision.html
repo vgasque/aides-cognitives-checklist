@@ -403,6 +403,19 @@
     .dock-plan:hover{background:var(--primary-soft)}
   }
   @keyframes cbIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
+  /* LOGO DE MARQUE (v4.23.1) — ACCUEIL SEULEMENT, comme le nom de l'app qu'il accompagne
+     (règle SPEC §5 : la marque ne vit que sur l'accueil ; ailleurs la barre porte le retour et le
+     titre du contenu). On sert `favicon.svg` : c'est le master VECTORIEL à coins arrondis, déjà
+     précaché par sw.js (donc hors ligne) — les icônes d'application, elles, sont des carrés pleins
+     destinés au masque d'iOS/Android et afficheraient un angle vif ici. `alt=""` : le nom « Aides
+     cognitives » est juste à côté, le logo n'ajoute aucune information pour un lecteur d'écran.
+     COLORABLE PAR MASQUE : on ne peut pas teinter un <img>, donc le glyphe (`logo-glyph.svg` —
+     le master SANS tuile, seul son canal alpha sert) est posé en masque sur un aplat de couleur.
+     Il suit ainsi le THÈME et l'ACCENT par construction, au lieu d'être un bleu fixe qui jurait
+     avec les accents violet/framboise et pesait en thème sombre. */
+  .brand-logo{display:none;flex:none;width:34px;height:34px;background-color:currentColor;
+    -webkit-mask:url(logo-glyph.svg) center/contain no-repeat;mask:url(logo-glyph.svg) center/contain no-repeat}
+  header.bar.home .brand-logo{display:block}
   .brand{display:flex;flex-direction:column;line-height:1.1;flex:1;min-width:0}
   /* h1 du document (plan lecteur d'écran) stylé comme la marque — pas de typo de h1 par défaut. */
   /* 20px (v4.4.2) : la marque était trop discrète. Plafond dur — au-delà, « Aides cognitives »
@@ -893,11 +906,11 @@
   ol.steps li:is(.crit,.vigil){border-top:0;
     margin-left:calc(-1 * var(--step-bleed));margin-right:calc(-1 * var(--step-bleed));
     padding-left:calc(4px + var(--step-bleed));padding-right:calc(4px + var(--step-bleed))}
-  ol.steps li.crit{background:var(--critical-soft);box-shadow:inset 3px 0 0 var(--critical-bd)}
+  ol.steps li.crit{background:var(--critical-soft)}
   ol.steps li.crit .txt{color:var(--critical);font-weight:800}
   ol.steps li.crit .box{border-color:var(--critical-bd)}
   /* VIGILANCE « △ » : registre ATTENTION — ambre, même grammaire de bande. */
-  ol.steps li.vigil{background:var(--verify-soft);box-shadow:inset 3px 0 0 var(--verify-bd)}
+  ol.steps li.vigil{background:var(--verify-soft)}
   ol.steps li.vigil .txt{color:var(--verify);font-weight:800}
   ol.steps li.vigil .box{border-color:var(--verify)}
   /* Pas de filet sur la ligne qui suit une bande (la bande borne déjà la séparation). */
@@ -907,7 +920,7 @@
      transform seul, composité). Une étape SIGNALÉE cochée CONVERGE vers le vert doux (doctrine V5 :
      l'urgence est traitée) : sa bande perd sa teinte d'alerte et son liseré passe au vert. */
   ol.steps li.done{opacity:.6}
-  ol.steps li:is(.crit,.vigil).done{background:var(--done-bg);box-shadow:inset 3px 0 0 var(--done-line)}
+  ol.steps li:is(.crit,.vigil).done{background:var(--done-bg)}
   ol.steps li.done .box{background:var(--ok);border-color:var(--ok);color:var(--surface)}
   ol.steps li.done .box svg{animation:pop .25s ease}
   ol.steps li.done .txt{text-decoration:line-through;color:var(--done-ink);font-weight:400}
