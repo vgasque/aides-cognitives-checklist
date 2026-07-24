@@ -738,6 +738,34 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   ok('buildFlowSVG : halo et badge ✓ bakés, AUCUN état peint dans la géométrie', svgOut.indexOf('flow-hl-glow')>=0&&svgOut.indexOf('fn-badge')>=0&&svgOut.indexOf('fn-cur')<0&&svgOut.indexOf('fn-ok')<0&&svgOut.indexOf('fn-off')<0);
   ok('buildFlowSVG : nœuds accessibles au clavier (tabindex + role)', svgOut.indexOf('tabindex="0"')>=0&&svgOut.indexOf('role="button"')>=0);
 
+  group('Complications « à tout moment » (v4.26.0)');
+  {const f=A.migrate({title:'Sédation',blocks:[
+     {id:'b1',type:'steps',title:'Sédation titrée',steps:['Titration'],next:null},
+     {id:'cx1',type:'steps',title:'Laryngospasme',steps:['⚠ PPC + subluxation'],next:null}],
+     start:'b1',
+     complications:[{label:'Laryngospasme',target:'cx1'},{label:'ACR',target:'fiche_acr_01'},
+       {label:'',target:'cx1'},{label:'Sans cible',target:''},{label:'Injection',target:'x"><script>'},'pasunobjet']});
+   eq('migrate : rangées valides conservées, invalides rejetées', f.complications.length, 2);
+   eq('migrate : une cible invalide (id non sûr) est REJETÉE, jamais régénérée',
+     f.complications.map(c=>c.label).join(','), 'Laryngospasme,ACR');
+   const all=A.cxAll(f);
+   eq('cxAll : nature résolue — bloc de la fiche vs référence externe',
+     all.map(c=>c.kind).join(','), 'block,ext');
+   const det=A.cxDetached(f);
+   eq('cxDetached : le bloc cible HORS séquence est détaché', det.length, 1);
+   ok('flowPlan : le bloc de complication ne prend PAS de numéro de tronc',
+     A.flowPlan(f).order.indexOf('cx1')<0);
+   ok('flowPlan : le tronc, lui, est numéroté normalement', A.flowPlan(f).order.indexOf('b1')===0);}
+  {const f2=A.migrate({title:'X',blocks:[
+     {id:'b1',type:'steps',title:'A',steps:['a'],next:'cx1'},
+     {id:'cx1',type:'steps',title:'B',steps:['b'],next:null}],start:'b1',
+     complications:[{label:'B direct',target:'cx1'}]});
+   ok('un bloc cible AUSSI atteint par la séquence garde son numéro (pas de trou dans le tronc)',
+     A.flowPlan(f2).order.indexOf('cx1')>=0);
+   eq('cxDetached : rien à détacher quand la cible est dans le tronc', A.cxDetached(f2).length, 0);}
+  {const f3=A.migrate({title:'Sans',blocks:[{id:'b1',type:'steps',title:'A',steps:['a'],next:null}],start:'b1'});
+   eq('fiche sans champ : défaut [], aucun bouton', A.cxAll(f3).length, 0);}
+
   group('Repères posologiques — rapprochement RÉSILIENT (v4.23.0)');
   eq('posoName : ce qui précède le premier « : »', A.posoName('**Adrénaline IM** : adulte 0,5 mg'), 'Adrénaline IM');
   eq('posoName : préfixe ⚠ retiré', A.posoName('⚠ Adrénaline IV : titrée'), 'Adrénaline IV');

@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-ZWbl9PZo2tQxcX4fWmbZgMR4tLB/iNl6D+t3IJrWOlw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-MaG/gftFeyAWdSFPXMNkd8H2NFRBXlukGO6tdX8MwQw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1310,6 +1310,24 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .opt[disabled]{opacity:.55;cursor:default}.opt.taken{opacity:1;background:var(--primary-soft);border-left-color:var(--primary)}.opt.taken .arr{color:var(--primary)}
   .flow-ctrl{display:flex;gap:9px;margin-top:14px;flex-wrap:wrap}
   /* Masqué visuellement mais lu par les lecteurs d'écran (zone aria-live). */
+  /* ═══ COMPLICATIONS « à tout moment » (v4.26.0) ═══
+     Registre ALERTE en CONTOUR, jamais rempli : l'entrée d'un événement vital mérite le rouge
+     (doctrine v4.2.2 : ce qui tue si on l'oublie), mais un aplat permanent désensibiliserait
+     (règle du bandeau blanc). Glyphe ⚡ + mot en toutes lettres — la couleur jamais seule. */
+  .cx-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+  .cx-edit-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .cx-edit-row .cx-edit-ic{flex:none;color:var(--critical);font-weight:800}
+  .cx-edit-row input{flex:1;min-width:0}
+  .cx-edit-row select{flex:1;min-width:0;max-width:46%}
+  .cx-btn{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:8px 14px;border:1px solid var(--critical-bd);border-radius:9px;background:transparent;color:var(--critical);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer}
+  .cx-btn:hover{background:var(--critical-soft)}
+  .cx-btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .cx-btn .cx-ext{font-weight:800;opacity:.75}
+  .cx-tag{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--critical);background:var(--critical-soft);border:1px solid var(--critical-line);border-radius:999px;padding:1px 8px;vertical-align:1px;white-space:nowrap}
+  .pl-cxh{margin:14px 0 4px;font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--critical)}
+  .pl-line.cxl .n{color:var(--critical)}
+  .sv-band.sv-cxband{border-color:var(--critical-bd);color:var(--critical);background:var(--critical-soft)}
+  .sv-cell.sv-cx .sv-n{color:var(--critical)}
   .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
   /* Navigation en mode crise (Continuer / Précédent / Recommencer…) : cible tactile confortable (>= 44px).
      Sélecteur .btn.sm (spécificité supérieure) pour l'emporter sur la règle .btn.sm générique. */
@@ -3155,7 +3173,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.25.3';
+const APP_VERSION='4.26.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -3567,7 +3585,7 @@ const RO_EDIT_TOAST='Lecture seule : vous n\'avez pas les droits d\'édition sur
    Portée : STOCKÉ DANS LA SESSION uniquement (stores `sessions`) — l'export v3 des FICHES et le
    format des clés (`seq:blocId:index`) restent strictement inchangés ; un client antérieur ignore
    simplement ces deux champs. */
-function makeRuntime(){return {fiche:null,ficheId:null,sessionId:null,name:'',started:false,startedAt:0,checked:{},verified:{},vgaps:{},nav:[],navSeq:[],seq:0,counters:{},timers:{},events:[]};}
+function makeRuntime(){return {fiche:null,ficheId:null,sessionId:null,name:'',started:false,startedAt:0,checked:{},verified:{},vgaps:{},cxBack:{},nav:[],navSeq:[],seq:0,counters:{},timers:{},events:[]};}
 let Runtime=makeRuntime();
 const liveSessions={};
 let soundOn=true;
@@ -3914,6 +3932,39 @@ function flowPaintState(container,f){if(!container||!f)return;
     g.classList.toggle('fn-cur',!!(m&&m.cur));
     g.classList.toggle('fn-ok',!!(m&&m.complete));
     g.classList.toggle('fn-off',!!(m&&m.off));});}
+/* ═══ COMPLICATIONS « À TOUT MOMENT » (v4.26.0) — entrée PAR L'ÉVÉNEMENT ═══
+   Modèle : QRH non-normal / mode failure-related ECAM — une complication ne s'entre pas par la
+   séquence mais quand l'événement survient, et le RETOUR fait partie du dispositif (ECAM : on
+   traite, puis on REVIENT — jamais laissé à la mémoire).
+   cxEnter, cible LOCALE : TOUJOURS un nouveau passage au bout du journal — même bloc déjà visité,
+   un événement qui se REproduit est un nouvel événement (≠ jumpToBlock, où revoir = défiler).
+   Le bloc interrompu est mémorisé (Runtime.cxBack[seq]) pour le retour. Cible EXTERNE : ouvre
+   l'autre aide — la session courante reste vive (multi-sessions).
+   cxResume : NOUVEAU passage du bloc interrompu, cases neuves — doctrine d'interruption
+   AC 120-71B : après une interruption on RE-VÉRIFIE depuis une ancre sûre, on ne fait pas
+   confiance aux coches d'avant l'événement (l'ancienne carte reste lisible juste au-dessus). */
+const cxRowHtml=list=>`<div class="cx-row" role="group" aria-label="Complications — à tout moment">${list.map(c=>`<button type="button" class="cx-btn" data-cxgo="${esc(c.target)}" title="${c.kind==='ext'?'Complication — ouvre une autre aide':'Complication — entre dans le parcours, retour prévu'}">⚡ ${esc(c.label)}${c.kind==='ext'?' <span class="cx-ext" aria-hidden="true">↗</span>':''}</button>`).join('')}</div>`;
+function cxEnter(f,target){
+  if(!f)return;
+  const local=(f.blocks||[]).some(b=>b&&b.id===target);
+  if(!local){if(relTarget(target))openRel(target);return;}
+  ovDropOpens();
+  const from=state.nav[state.navPos];
+  state.nav.push(target);state.navSeq.push(++Runtime.seq);state.navPos=state.nav.length-1;
+  Runtime.cxBack=Runtime.cxBack||{};if(from&&from!==target)Runtime.cxBack[Runtime.seq]=from;
+  state.flowEnded=false;state.ovVerify=null;
+  const just=ensureStarted();persistLive(Runtime);
+  if(just){render();return;}
+  if(state.readMode==='overview'&&hasFlow(f)){renderOvOnly();ovScrollTo(target);}
+  else render();}
+function cxResume(f,backId){
+  if(!f||!(f.blocks||[]).some(b=>b&&b.id===backId))return;
+  ovDropOpens();
+  state.nav.push(backId);state.navSeq.push(++Runtime.seq);state.navPos=state.nav.length-1;
+  state.flowEnded=false;
+  if(Runtime.started)persistLive(Runtime);
+  if(state.readMode==='overview'&&hasFlow(f)){renderOvOnly();ovScrollTo(backId);}
+  else render();}
 function jumpToBlock(f,id){if(!f||!(f.blocks||[]).some(b=>b.id===id))return;
   const lp=latestPass(state.nav,state.navSeq,id);
   if(state.readMode==='static'&&hasFlow(f)){svJump(f,id);return;}   // v4.13.0 : tout est déjà à l'écran
@@ -4167,7 +4218,7 @@ function blankFiche(){const b={id:uid('b'),type:'steps',title:'Prise en charge',
   // localInfo pré-rempli avec les invites de renfort des DEUX contextes d'exercice (structure /
   // SMUR) : une fiche déployée avec un « ☎ : … » vide entraîne à ignorer la ligne — on incite à
   // les renseigner (badge « À compléter » tant qu'une invite reste).
-  return{id:uid(),title:'',code:'',category:'',validation:'',localInfo:'Tél renfort : à compléter\nTél régulation : à compléter',confirmation:[''],verify:[''],posology:[''],notForget:[''],differentials:[''],references:[''],images:[],attachments:[],timers:[],counters:[],blocks:[b],start:b.id,order:Date.now()};}
+  return{id:uid(),title:'',code:'',category:'',validation:'',localInfo:'Tél renfort : à compléter\nTél régulation : à compléter',complications:[],confirmation:[''],verify:[''],posology:[''],notForget:[''],differentials:[''],references:[''],images:[],attachments:[],timers:[],counters:[],blocks:[b],start:b.id,order:Date.now()};}
 // Invites laissées en suspens : où la fiche contient-elle encore le texte « à compléter »
 // (gabarit local non renseigné, manque « ⚠ À COMPLÉTER : … » signalé par la génération IA) ?
 // completionSpots(f) renvoie la liste des EMPLACEMENTS (libellés des sections / blocs), affichée
@@ -4353,6 +4404,14 @@ function migrate(f){if(!f||typeof f!=='object')f={};
   sanitizeEntityCommon(f,'f',200);
   f.localInfo=sstr(f.localInfo,4000);
   ['confirmation','verify','notForget','differentials','references','posology'].forEach(k=>f[k]=sarr(f[k],500));
+  /* COMPLICATIONS « à tout moment » (v4.26.0 — modèle QRH non-normal / mode failure-related ECAM) :
+     [{label, target}] où target = id d'un BLOC de cette fiche (laryngospasme) OU id d'une AUTRE
+     fiche/protocole (ACR pendant une sédation). Champ FACULTATIF : un export v3 antérieur n'en a
+     pas (défaut []), un ancien client l'ignore. La cible est une RÉFÉRENCE — jamais régénérée
+     (même règle que les documents) : id invalide => rangée rejetée, pas de cible inventée. */
+  f.complications=(Array.isArray(f.complications)?f.complications:[]).slice(0,8)
+    .map(c=>(c&&typeof c==='object')?{label:sstr(c.label,120),target:(typeof c.target==='string'&&SAFE_ID.test(c.target)&&BAD_KEYS.indexOf(c.target)<0)?c.target:''}:null)
+    .filter(c=>c&&c.label&&c.target);
   // Ancienne fiche "steps" plate -> un bloc d'étapes.
   if(!Array.isArray(f.blocks)){const b={id:uid('b'),type:'steps',title:sstr(f.title||'Prise en charge',300),steps:sarr(f.steps,500),image:null,next:null};f.blocks=[b];f.start=b.id;}
   delete f.steps;f.blocks=f.blocks.slice(0,400).filter(b=>b&&typeof b==='object');
@@ -4601,8 +4660,23 @@ function flowPlan(f){
     // Branche qui atteint le point de convergence : lien explicite « → n » (le tronc le décrit).
     if(cur===stop&&stop&&stop!==X)items.push({k:'link',to:stop,depth,back:rendered.has(stop)&&order.indexOf(stop)>=0});};
   chain((f.start&&byId[f.start])?f.start:blocks[0].id,null,0);
-  blocks.forEach(b=>{if(b&&b.id&&byId[b.id]&&!rendered.has(b.id))chain(b.id,null,0);});
+  // Un bloc CIBLE DE COMPLICATION jamais atteint par la séquence reste HORS du tronc : le
+  // numéroter à la suite le ferait lire comme « l'étape d'après » (mesuré : « 5 Laryngospasme »),
+  // alors qu'il s'entre PAR L'ÉVÉNEMENT (AC 120-71B : les non-normales ne sont pas des normales).
+  // Les orphelins non déclarés gardent le comportement historique (visibles, numérotés).
+  const cxT=new Set((f&&Array.isArray(f.complications)?f.complications:[]).map(c=>c&&c.target).filter(Boolean));
+  blocks.forEach(b=>{if(b&&b.id&&byId[b.id]&&!rendered.has(b.id)&&!cxT.has(b.id))chain(b.id,null,0);});
   _planCache.set(f,out);return out;}
+/* COMPLICATIONS — helpers purs (v4.26.0). cxAll = déclarations valides, résolues par nature :
+   kind 'block' (bloc de la fiche) ou 'ext' (autre fiche/protocole — résolution du titre à
+   l'AFFICHAGE, la bibliothèque change). cxDetached = cibles-blocs HORS du tronc de flowPlan
+   (elles ont leur section « À tout moment » dans l'Échelle et le Statique). */
+function cxAll(f){if(!f||!Array.isArray(f.complications))return [];
+  const ids=new Set(((f.blocks)||[]).map(b=>b&&b.id).filter(Boolean));
+  return f.complications.filter(c=>c&&c.label&&c.target)
+    .map(c=>({label:c.label,target:c.target,kind:ids.has(c.target)?'block':'ext'}));}
+function cxDetached(f){const order=new Set(flowPlan(f).order);
+  return cxAll(f).filter(c=>c.kind==='block'&&!order.has(c.target));}
 // État AFFICHABLE de chaque bloc (ordre du PLAN — numérotation commune) — source unique des
 // chips/minimap (v4.8.0) et de la peinture du SVG (v4.7.0). seq=0 : bloc jamais visité
 // (sentinelle — les vrais seq commencent à 1 ; cocher déclenche alors l'EXTENSION DE VISITE).
@@ -4953,6 +5027,7 @@ function buildRuntime(f,session){
   R.checked=session&&session.checked?{...session.checked}:{};
   R.verified=session&&session.verified?{...session.verified}:{};
   R.vgaps=session&&session.vgaps?{...session.vgaps}:{};
+  R.cxBack=session&&session.cxBack?{...session.cxBack}:{};   // retours de complication (v4.26.0)
   R.nav=(session&&session.nav&&session.nav.length)?session.nav.slice():[f.start||((f.blocks[0]||{}).id)];
   // navSeq : identifiant de VISITE unique par entrée de nav (parallèle à nav). Permet, lors
   // d'une boucle qui revient sur un bloc, d'avoir des cases à cocher NEUVES pour cette visite
@@ -4980,7 +5055,7 @@ function autoSessName(f){return (f&&f.title||'Session')+' — '+new Date().toLoc
 // Photographie de l'état vivant -> objet session persistable. live=true tant que la session est « en cours ».
 function snapshotSession(R,live){const now=Date.now();const tsnap={};
   Object.values(R.timers).forEach(t=>{const within=t.elapsedMs+(t.running?(now-t.lastStart):0);tsnap[t.id]={elapsedMs:t.type==='interval'?Math.min(t.seconds*1000,within):within,cycles:t.cycles};});
-  return {id:R.sessionId,ficheId:R.fiche.id,ficheTitle:R.fiche.title,name:R.name,savedAt:now,startedAt:R.startedAt||now,live:!!live,checked:{...R.checked},verified:{...(R.verified||{})},vgaps:{...(R.vgaps||{})},nav:R.nav.slice(),navSeq:R.navSeq.slice(),counters:{...R.counters},timers:tsnap,
+  return {id:R.sessionId,ficheId:R.fiche.id,ficheTitle:R.fiche.title,name:R.name,savedAt:now,startedAt:R.startedAt||now,live:!!live,checked:{...R.checked},verified:{...(R.verified||{})},vgaps:{...(R.vgaps||{})},cxBack:{...(R.cxBack||{})},nav:R.nav.slice(),navSeq:R.navSeq.slice(),counters:{...R.counters},timers:tsnap,
     extraTimers:Object.values(R.timers).filter(t=>t.adhoc).map(t=>({id:t.id,label:t.label,seconds:t.seconds,autoloop:!!t.autoloop})),
     events:(R.events||[]).map(e=>({...e}))};}
 // COMPTE-RENDU d'une session : chronologie horodatée (repères), étapes réalisées, compteurs et
@@ -6948,7 +7023,7 @@ function navSection(f){
         ?`<div class="flow-end">Algorithme terminé — surveillance en cours</div>`
         :(atTip?`<button class="btn cont ${allDone?'okay':'idle'}" id="navNext" data-contlbl="${esc(goLbl)}"${allDone?'':' aria-disabled="true"'}>${esc(contLbl)}</button>`:histBtn);
       blockDone=done;blockTot=steps.length;
-      navHtml=`<div class="nav-wrap"><div class="node-title">Bloc · ${esc(blk.title)||'Étapes'}${passTag} — <span id="ntCount">${done}/${steps.length}</span> coché</div>${imgH}<ol class="steps">${steps.map((s,i)=>{const k=curSeq+':'+blk.id+':'+i;return `<li data-ck="${k}" class="${stepIsCrit(s)?'crit ':(stepIsVigil(s)?'vigil ':'')}${state.checked[k]?'done':''}" role="checkbox" aria-checked="${state.checked[k]?'true':'false'}" tabindex="0"><span class="box">${state.checked[k]?uiIcon('check',19,{sw:3,cls:''}):''}</span>${stepTxtHtml(s,{mark:true})}</li>`;}).join('')}</ol><div class="flow-ctrl">${fwdc}</div></div>`;}}
+      navHtml=`<div class="nav-wrap"><div class="node-title">Bloc · ${esc(blk.title)||'Étapes'}${passTag} — <span id="ntCount">${done}/${steps.length}</span> coché</div>${imgH}<ol class="steps">${steps.map((s,i)=>{const k=curSeq+':'+blk.id+':'+i;return `<li data-ck="${k}" class="${stepIsCrit(s)?'crit ':(stepIsVigil(s)?'vigil ':'')}${state.checked[k]?'done':''}" role="checkbox" aria-checked="${state.checked[k]?'true':'false'}" tabindex="0"><span class="box">${state.checked[k]?uiIcon('check',19,{sw:3,cls:''}):''}</span>${stepTxtHtml(s,{mark:true})}</li>`;}).join('')}</ol><div class="flow-ctrl">${fwdc}</div>${cxAll(f).length?cxRowHtml(cxAll(f)):''}</div>`;}}
   return {blk,cur,atTip,crumbsH,navHtml,navRowH,blockDone,blockTot};}
 // Sous-titre du panneau « Algorithme » : compteur n/total quand le bloc courant est cochable —
 // partagé entre le rendu complet (renderRead) et la mise à jour ciblée (renderNavOnly).
@@ -7172,6 +7247,7 @@ function bindReadEvents(f,blk,cur){
     ...(hasFlow(f)?[{label:'Schéma de l’algorithme',ic:uiIcon('flow',16),sub:'plein écran, zoom',act:()=>openFlowFull(f)}]:[]),
     ...(annexRowHtml(f)?[{label:'Consulter',ic:uiIcon('book',16),sub:'surveillances, documents…',act:()=>openRefSheet()}]:[]),
     ...(hasFlow(f)?[{label:'Mode lecteur (binôme)',ic:uiIcon('play',16),act:readerOpen}]:[]),
+    ...cxAll(f).map(c=>({label:c.label,ic:'⚡',sub:c.kind==='ext'?'complication — autre aide':'complication — à tout moment',act:()=>cxEnter(f,c.target)})),
     ...(hasFlow(f)?[{label:'Recommencer le parcours',ic:uiIcon('undo',16),sub:'repart du début',act:()=>restartCourse(f)}]:[]),
     'sep',
     {label:'Dupliquer dans « Perso »',ic:uiIcon('copy',16),act:()=>dupToPerso('f',f)},
@@ -7266,6 +7342,9 @@ function bindReadEvents(f,blk,cur){
 // gardant toute la progression. Seul « Continuer/option » (au bout) étend le parcours, et
 // « Repartir d'ici (efface la suite) » tronque volontairement la suite pour repartir d'ici.
 function bindNavEvents(f,blk){
+  // Complications (v4.26.0) — mêmes gestes qu'en journal ; câblage direct (pas de délégation ici).
+  main.querySelectorAll('[data-cxgo]').forEach(b=>b.onclick=()=>cxEnter(f,b.dataset.cxgo));
+  main.querySelectorAll('[data-cxback]').forEach(b=>b.onclick=()=>cxResume(f,b.dataset.cxback));
   const nx=document.getElementById('navNext');if(nx)nx.onclick=()=>{
     if(nx.getAttribute('aria-disabled')==='true')return;   // étapes restantes : le libellé l'annonce, le clic est ignoré (ECAM)
     // REPLI DIFFÉRÉ de l'étape ① (v4.4.2) : « Continuer → » est le premier geste qui ACQUITTE la
@@ -7411,6 +7490,8 @@ function ovInstHtml(f,id,idx,topo,pres){
   // au RENDU seulement, jamais pendant le cochage ; le choix manuel y est déjà prioritaire.
   const closed=pres==='line';
   const passTag=pi.total>1?` <span class="pass-n">passage ${pi.pass}/${pi.total}</span>`:'';
+  // Passage entré par une COMPLICATION : annoncé en toutes lettres (⚡ + mot, jamais le glyphe seul).
+  const cxTag=(Runtime.cxBack||{})[seq]?' <span class="cx-tag">⚡ complication</span>':'';
   const imgH=b.image?`<img class="node-img" loading="lazy" decoding="async" src="${b.image}" data-full="${b.image}"${b.imageW&&b.imageH?` width="${b.imageW}" height="${b.imageH}"`:''} alt="">`:'';
   const taken=dec?((b.options||[]).find(o=>o&&o.target&&o.target===state.nav[idx+1])||null):null;
   let bodyH='',count='';
@@ -7470,8 +7551,17 @@ function ovInstHtml(f,id,idx,topo,pres){
       const allDone=steps.length===0?true:dn>=steps.length;
       if(nxt){const lbl='Continuer — '+((b.nextLbl||'').trim()||(nxt.title||'').trim()||'suite')+' →';
         ctl=`<div class="flow-ctrl"><button type="button" class="btn cont ${allDone?'okay':'idle'}" data-ovnext="${esc(b.next)}" data-contlbl="${esc(lbl)}"${allDone?'':' aria-disabled="true"'}>${allDone?esc(lbl):'Cochez les étapes restantes ('+(steps.length-dn)+')'}</button></div>`;}
-      else if(!state.flowEnded){
-        ctl=`<div class="flow-ctrl"><button type="button" class="btn cont ${allDone?'okay':'idle'}" data-ovend data-contlbl="Terminer l’algorithme ✓"${allDone?'':' aria-disabled="true"'}>${allDone?'Terminer l’algorithme ✓':'Cochez les étapes restantes ('+(steps.length-dn)+')'}</button></div>`;}}
+      else if(!state.flowEnded&&!(Runtime.cxBack||{})[seq]){
+        ctl=`<div class="flow-ctrl"><button type="button" class="btn cont ${allDone?'okay':'idle'}" data-ovend data-contlbl="Terminer l’algorithme ✓"${allDone?'':' aria-disabled="true"'}>${allDone?'Terminer l’algorithme ✓':'Cochez les étapes restantes ('+(steps.length-dn)+')'}</button></div>`;}
+      /* EXCURSION DE COMPLICATION (v4.26.0) : « Terminer l'algorithme » n'a pas de sens ici — le
+         parcours n'est pas fini, il est INTERROMPU. Le contrôle de l'excursion est le RETOUR,
+         toujours actif (non bloquant : on reprend quand l'événement est maîtrisé, pas quand
+         toutes les cases sont cochées). */
+      {const cxb=(Runtime.cxBack||{})[seq];
+       if(cxb){const bb=f.blocks.find(x=>x.id===cxb);
+         ctl+=`<div class="flow-ctrl"><button type="button" class="btn cont okay" data-cxback="${esc(cxb)}">↩ Reprendre — ${esc((bb&&bb.title)||'le parcours')} →</button></div>`;}
+       const cxs=cxAll(f);
+       if(cxs.length)ctl+=cxRowHtml(cxs);}}
     bodyH=`${imgH}<ol class="steps">${lis}</ol>${ctl}`;
     count=steps.length?dn+'/'+steps.length:'—';}}
   const takenH=taken?`<span class="ov-ans">→ ${esc(stripBold(taken.label)||'option')}</span>`:'';
@@ -7483,7 +7573,7 @@ function ovInstHtml(f,id,idx,topo,pres){
     :((tip&&hasFlow(f)?`<button type="button" class="ov-redo" data-ovreader title="Mode lecteur (binôme) : un challenge à la fois en plein écran — le lecteur lit, l'exécutant répond">Lecteur</button>`:'')
       +((!dec&&clean(b.steps).length)?`<button type="button" class="ov-redo" data-ovverify="${idx}" title="Do-Verify : redérouler ce bloc en challenge-réponse — « Constaté » coche, « Écart » laisse non coché">Vérifier</button>`:'')
       +((!tip&&complete&&!dec)?`<button type="button" class="ov-redo" data-ovredo="${esc(id)}" title="Refaire ce bloc : nouvelle carte au bout du journal — celle-ci reste telle quelle">↺ Refaire</button>`:''));
-  return `<section class="ov-block${tip?' cur':''}${complete?' done':''}${dec?' dec':''}${closed&&!verifying?' closed':''}" data-ovb="${esc(id)}" data-ovi="${idx}" data-ovn="${topo[id]||''}"${tip?' aria-current="step"':''}><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="${idx}" aria-expanded="${closed&&!verifying?'false':'true'}"><span class="ov-n" aria-hidden="true">${complete?uiIcon('check',13,{sw:3.2,cls:''}):(topo[id]||'·')}</span><span class="ov-t">${esc(b.title)||(dec?'Décision':'Étapes')}${passTag}${takenH} <span class="ov-here">Vous êtes ici</span></span><span class="ov-c">${count}</span><span class="ov-chev" aria-hidden="true">${closed&&!verifying?'▾':'▴'}</span></button>${btns?`<div class="ov-acts">${btns}</div>`:''}</div><div class="ov-body">${bodyH}</div></section>`;}
+  return `<section class="ov-block${tip?' cur':''}${complete?' done':''}${dec?' dec':''}${closed&&!verifying?' closed':''}" data-ovb="${esc(id)}" data-ovi="${idx}" data-ovn="${topo[id]||''}"${tip?' aria-current="step"':''}><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="${idx}" aria-expanded="${closed&&!verifying?'false':'true'}"><span class="ov-n" aria-hidden="true">${complete?uiIcon('check',13,{sw:3.2,cls:''}):(topo[id]||((Runtime.cxBack||{})[seq]?'⚡':'·'))}</span><span class="ov-t">${esc(b.title)||(dec?'Décision':'Étapes')}${passTag}${cxTag}${takenH} <span class="ov-here">Vous êtes ici</span></span><span class="ov-c">${count}</span><span class="ov-chev" aria-hidden="true">${closed&&!verifying?'▾':'▴'}</span></button>${btns?`<div class="ov-acts">${btns}</div>`:''}</div><div class="ov-body">${bodyH}</div></section>`;}
 /* PLAN DE L'AIDE v2 (v4.12.0) : rendu de flowPlan — le plan reste INERTE côté cochage (la
    trace vit dans le journal) et sert à NAVIGUER. Deux densités sur la bascule #ovPlanD :
    - DÉTAILS = ORGANIGRAMME HYBRIDE (ovPlanTreeHtml) : tronc pleine largeur, branches d'une
@@ -7728,6 +7818,13 @@ function ovPlanLadderHtml(f,plan,num,md,off){
         :(steps.length?`<ul class="pl-stp">${steps.map(s=>{const cr=stepCR(stepText(s));return `<li class="${stepIsCrit(s)?'crit':(stepIsVigil(s)?'vig':'')}">${fmt(cr.c)}${cr.r?` <span class="pl-r">${fmt(cr.r)}</span>`:''}</li>`;}).join('')}</ul>`:'');
       h+=`<div class="pl-lx"><p class="pl-lxt">${esc(b.title)||''}</p>${det}<button type="button" class="pl-lnk" data-plgo="${esc(it.id)}">→ aller à ce bloc</button></div>`;}
   });
+  /* Section « À TOUT MOMENT » (v4.26.0) : les blocs de complication HORS tronc, SANS numéro de
+     séquence (ils s'entrent par l'événement, pas par la position — les numéroter les ferait lire
+     comme « l'étape d'après »). Tap = y aller (navigation, sémantique jumpToBlock du plan). */
+  {const det=cxDetached(f);
+   if(det.length){h+='<div class="pl-cxh">⚡ À tout moment</div>';
+     det.forEach(c=>{const lp=latestPass(state.nav,state.navSeq,c.target);
+       h+=`<div class="pl-line cxl" data-plgo="${esc(c.target)}" role="button" tabindex="0"><span class="n" aria-hidden="true">⚡</span><span class="t">${esc(c.label)}${lp&&lp.total>1?`<span class="pl-x">×${lp.total}</span>`:''}</span><span class="g">${lp?'passé':''}</span></div>`;});}}
   return h;}
 // Facteur de la taille du texte (réglage utilisateur = zoom CSS sur <html>) : les rectangles
 // mesurés (getBoundingClientRect) sont en pixels VISUELS (× zoom) alors que les styles posés
@@ -7937,6 +8034,8 @@ function bindOverviewEvents(f){
     if(pl3){const id3=pl3.dataset.plln;state.ovFold['l:'+id3]=!state.ovFold['l:'+id3];
       renderOvOnlyKeepAnchor('[data-plln="'+CSS.escape(id3)+'"]');return;}
     const pg=t.closest('[data-plgo]');if(pg){jumpToBlock(f,pg.dataset.plgo);return;}
+    const cg=t.closest('[data-cxgo]');if(cg){cxEnter(f,cg.dataset.cxgo);return;}
+    const cb2=t.closest('[data-cxback]');if(cb2){cxResume(f,cb2.dataset.cxback);return;}
     const nx=t.closest('[data-ovnext]');
     if(nx){if(nx.getAttribute('aria-disabled')==='true')return;   // le libellé dit pourquoi (ECAM)
       // REPLI DIFFÉRÉ de l'étape ① : même doctrine que le « Continuer » guidé (v4.4.2) —
@@ -8116,7 +8215,15 @@ function svTableHtml(f){
         return `<div class="sv-br${br.tk?' taken':''}${br.isOff?' off':''}"><div class="sv-opt${br.tk?' tk':''}">${br.tk?'<span class="sv-tk">✓ </span>':''}${fmt(br.bo.label)}${br.isOff?'<span class="sv-offtag"> · hors chemin</span>':''}</div>${br.inner}</div>`;}).join('');
       h+=`<div class="sv-decwrap"${joinId?` data-svjoin="${esc(joinId)}"`:''}><div class="sv-band${m.cur?' cur':''}${off.has(decId)?' off':''}" data-svgo="${esc(decId)}" role="button" tabindex="0"${m.cur?' aria-current="true"':''} aria-label="${esc(stripBold(b.title||'Décision'))} — aller à ce bloc"><span class="sv-n" aria-hidden="true">${num[decId]||'·'}</span><span class="sv-t"><b>${esc(b.title)||'Décision'}</b>${b.question?` — ${fmt(b.question)}`:''}</span><span class="sv-m">${metaH(decId,true)}</span></div><div class="sv-fork" aria-hidden="true"></div><div class="sv-cols c${Math.min(Math.max(brs.length,1),4)}">${brH}</div>${anyMerge?'<div class="sv-merge" aria-hidden="true"></div>':''}</div>`;}
     return h;};
-  return walk();}
+  /* Section « À TOUT MOMENT » (v4.26.0) : mêmes cellules que le tronc mais SANS numéro (⚡ à la
+     place) — une complication s'entre par l'événement, pas par la position. Tap = svJump (entre au
+     bout du journal), comme toute cellule du tableau. */
+  const cxCells=()=>{const det=cxDetached(f);if(!det.length)return '';
+    return `<div class="sv-band sv-cxband">⚡ À tout moment</div>`+det.map(c=>{
+      const b=f.blocks.find(x=>x.id===c.target);if(!b)return '';
+      const steps=clean(b.steps);
+      return `<div class="sv-cell sv-cx" data-svgo="${esc(c.target)}" role="button" tabindex="0" aria-label="${esc(c.label)} — aller à ce bloc"><p class="sv-h"><span class="sv-n" aria-hidden="true">⚡</span><span class="sv-t">${esc(c.label)}</span></p><ul class="sv-stp">${steps.map(st=>{const cr=stepCR(stepText(st));return `<li class="${stepIsCrit(st)?'crit':(stepIsVigil(st)?'vig':'')}">${fmt(cr.c)}${cr.r?` <span class="sv-r">${fmt(cr.r)}</span>`:''}</li>`;}).join('')}</ul></div>`;}).join('');};
+  return walk()+cxCells();}
 // Peintre des flèches : fourches / convergences / gouttière des retours — positions RÉELLES
 // mesurées après le rendu (même philosophie que l'organigramme SVG : géométrie recalculée au
 // rendu et au resize, jamais pendant un geste). Branches EMPILÉES (étroit) -> .stacked :
@@ -8584,6 +8691,15 @@ function targetSelect(blocks,selfId,value){const opts=blocks.filter(b=>b.id!==se
 function imageEditor(b){return `<div class="sub">Image du bloc (option)</div><div class="imgrow">${b.image?`<img src="${b.image}" alt=""><button class="btn sm danger" data-bimgdel>Retirer</button>`:`<button class="btn sm" data-bimg>+ Image / capture</button>`}</div>`;}
 function blockEditor(b,blocks){if(b.type==='decision'){return `<div class="blk" data-bid="${b.id}"><div class="blk-top"><span class="blk-type decision">Décision</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Réévaluation)"></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Question</div><input type="text" data-bf="question" value="${esc(b.question)}" placeholder="ex. Réponse à l'adrénaline ?" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)"><div class="sub">Réponses → bloc cible</div>${(b.options.length?b.options:[{label:'',target:''}]).map((o,i)=>`<div class="optedit" data-oi="${i}"><input type="text" data-of="label" value="${esc(o.label)}" placeholder="ex. Oui">${targetSelect(blocks,b.id,o.target)}<button class="mini del" data-rmopt="${i}" aria-label="Supprimer la réponse">×</button></div>`).join('')}<button class="add-line" data-addopt>+ Ajouter une réponse</button>${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="mini" data-bmv="up" aria-label="Monter le bloc">↑</button><button class="mini" data-bmv="down" aria-label="Descendre le bloc">↓</button><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
   return `<div class="blk" data-bid="${b.id}"><div class="blk-top"><span class="blk-type steps">Étapes</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Mesures immédiates)"></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Étapes (cochables en mode crise)</div><div class="crit-guide"><b class="cg-r">${uiIcon('warn',11)} Rouge</b> : ce qui tue si on l'oublie (memory item, geste vital). <b class="cg-a">△ Ambre</b> : là où l'on risque de se tromper (dose/dilution à vérifier avant injection, contre-indication à écarter, confusion voie/site/produit, seuil à contrôler avant de poursuivre). Les deux → rouge. <b>Réponse attendue</b> : « challenge :: réponse » (ex. « Adrénaline IM :: 0,01 mg/kg — max 0,5 mg ») — la réponse devient la pilule à confirmer en lecture (challenge-response).</div>${(b.steps.length?b.steps:['']).map((s,i)=>`<div class="li${stepIsCrit(s)?' li-crit':(stepIsVigil(s)?' li-vigil':'')}" data-si="${i}"><span class="li-num">${String(i+1).padStart(2,'0')}</span><input type="text" data-sf value="${esc(stepText(s))}" placeholder="…"><button class="mini crit-tgl${stepIsCrit(s)?' on':(stepIsVigil(s)?' vig':'')}" data-crit="${i}" title="${stepIsCrit(s)?'Étape CRITIQUE (rouge : ce qui tue si oublié) — toucher : vigilance (ambre)':(stepIsVigil(s)?'Étape VIGILANCE (ambre : risque d’erreur — dose, voie, seuil) — toucher : étape normale':'Étape normale — toucher : critique (rouge : ce qui tue si oublié)')}">${stepIsVigil(s)?'△':uiIcon('warn',14)}</button><button class="mini" data-smv="up" data-si="${i}" aria-label="Monter">↑</button><button class="mini" data-smv="down" data-si="${i}" aria-label="Descendre">↓</button><button class="mini del" data-rmstep="${i}" aria-label="Supprimer l'étape">×</button></div>`).join('')}<p class="nf-guard" data-stepguard role="status">${stepGuardTxt(b.steps)}</p><button class="add-line" data-addstep>+ Ajouter une étape</button><div class="sub">Étape suivante</div>${targetSelect(blocks,b.id,b.next)}${b.next?`<input type="text" data-bnextlbl value="${esc(b.nextLbl||'')}" maxlength="120" placeholder="Libellé du bouton Continuer (ex. réévaluation à 5 min)" style="margin-top:6px">`:''}${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="mini" data-bmv="up" aria-label="Monter le bloc">↑</button><button class="mini" data-bmv="down" aria-label="Descendre le bloc">↓</button><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
+/* Éditeur des COMPLICATIONS (v4.26.0) : libellé de l'ÉVÉNEMENT + cible. La cible est soit un
+   bloc de CETTE fiche (le sélecteur liste les blocs en premier), soit une AUTRE aide ou un
+   protocole (demande utilisateur : « une complication peut ouvrir une nouvelle aide cognitive ») —
+   même résolution que « Voir aussi » (relTarget), l'id est une référence jamais régénérée. */
+function cxEditorRow(c,i,f){
+  const blocks=(f.blocks||[]).map(b=>`<option value="${esc(b.id)}"${c.target===b.id?' selected':''}>Bloc — ${esc(String(stripBold(b.title||b.id))).slice(0,48)}</option>`).join('');
+  const others=fiches.filter(x=>x.id!==f.id&&!x.deletedAt).concat(protocols.filter(x=>!x.deletedAt)).slice().sort(byTitle)
+    .map(x=>`<option value="${esc(x.id)}"${c.target===x.id?' selected':''}>${esc(x.title||'Sans titre')}</option>`).join('');
+  return `<div class="cx-edit-row"><span class="cx-edit-ic" aria-hidden="true">⚡</span><input data-cxlab="${i}" value="${esc(c.label)}" maxlength="120" placeholder="Événement (ex. Laryngospasme)"><select data-cxtgt="${i}" aria-label="Cible de la complication"><option value=""${c.target?'':' selected'}>— cible —</option><optgroup label="Blocs de cette fiche">${blocks}</optgroup><optgroup label="Autres aides & protocoles">${others}</optgroup></select><button type="button" class="tk-del" data-cxdel="${i}" aria-label="Supprimer cette complication">×</button></div>`;}
 function timerEditorRow(t,i){const iv=t.type==='interval';const mm=Math.floor((t.seconds||0)/60),ss=(t.seconds||0)%60;return `<div class="trow" data-ti="${i}"><span class="blk-type ${iv?'decision':'steps'}">${iv?'Cycle':'Chrono'}</span><input type="text" data-tf="label" value="${esc(t.label)}" placeholder="${iv?'ex. Cycle adrénaline':'ex. Temps écoulé'}">${iv?`<input type="number" min="0" data-tmin value="${mm}" style="width:56px"><span>min</span><input type="number" min="0" max="59" data-tsec value="${ss}" style="width:56px"><span>s</span><label style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--ink-soft)"><input type="checkbox" data-tloop ${t.autoloop?'checked':''}>boucle</label>`:''}<button class="mini" data-tmv="up" aria-label="Monter">↑</button><button class="mini" data-tmv="down" aria-label="Descendre">↓</button><button class="mini del" data-tdel="${i}">×</button></div>`;}
 function counterEditorRow(c,i,timers){const ivs=(timers||[]).filter(t=>t.type==='interval');
   return `<div class="trow" data-ci="${i}"><input type="text" data-cf="label" value="${esc(c.label)}" placeholder="ex. Adrénaline (mg)"><span>pas</span><input type="number" data-cstep value="${c.step||1}" style="width:56px"><span>départ</span><input type="number" data-cstart value="${c.start||0}" style="width:56px">${ivs.length?`<select data-clink title="Le « ＋ » du compteur relance ce minuteur (ex. bolus -> cycle)"><option value="">＋ ne relance rien</option>${ivs.map(t=>`<option value="${esc(t.id)}"${c.timerId===t.id?' selected':''}>＋ relance « ${esc(t.label)||'Minuteur'} »</option>`).join('')}</select>`:''}<button class="mini" data-cmv="up" aria-label="Monter">↑</button><button class="mini" data-cmv="down" aria-label="Descendre">↓</button><button class="mini del" data-cdel="${i}">×</button></div>`;}
@@ -8645,6 +8761,9 @@ function renderEditor(){
     <fieldset class="field"><label>Minuteurs & compteurs <span class="hint">disponibles pendant la session</span></label>
       <p class="sub2">Minuteurs</p>${(f.timers||[]).map((t,i)=>timerEditorRow(t,i)).join('')}<div class="add-blocks"><button class="btn sm" id="addStopwatch">+ Chronomètre</button><button class="btn sm" id="addInterval">+ Minuteur (cycle)</button></div>
       <p class="sub2" style="margin-top:14px">Compteurs</p>${(f.counters||[]).map((c,i)=>counterEditorRow(c,i,f.timers)).join('')}<button class="add-line" id="addCounter">+ Ajouter un compteur</button></fieldset>
+    <fieldset class="field"><label>⚡ Complications — à tout moment <span class="hint">1 à 3 : l'essentiel — chaque bouton de plus dilue les autres. Cible = un bloc dédié de cette fiche, ou une autre aide</span></label>
+      ${(f.complications||[]).map((c,i)=>cxEditorRow(c,i,f)).join('')}
+      <button type="button" class="add-line" id="addCx">＋ Complication</button></fieldset>
     <div class="field"><div class="lab-row"><label>Contexte local <span class="hint">numéros utiles, particularités</span></label>${boldBtnHtml()}</div><textarea id="f-localInfo" rows="2" placeholder="Réanimateur de garde, pharmacie…">${esc(f.localInfo)}</textarea></div>
     ${listEditor('Repères posologiques','bouton △ = carte ambre (dose à vérifier) · le rouge reste aux memory items · **gras** possible','posology',f.posology,false,{crit:true})}
     ${listEditor('À vérifier','','verify',f.verify)}
@@ -8672,6 +8791,12 @@ function bindEditorEvents(f){
     onCleanNew:d=>saveNote(d.id,''),openExisting:id=>{resetRuntime();openRead(id);}});
   bindEditorMetaFields(f,'f',{fem:true,rerender:renderEditor,preview:openDraftPreview});
   document.getElementById('f-localInfo').addEventListener('input',e=>{state.draft.localInfo=e.target.value;});
+  // Complications : édition en place (le libellé sans re-rendu — garde le focus — ; cible et
+  // suppression re-rendent, la liste est courte). migrate() rejettera les rangées incomplètes.
+  main.querySelectorAll('[data-cxlab]').forEach(inp=>inp.addEventListener('input',e=>{const i=+e.target.dataset.cxlab;if(f.complications&&f.complications[i])f.complications[i].label=e.target.value;}));
+  main.querySelectorAll('[data-cxtgt]').forEach(sel=>sel.onchange=e=>{const i=+e.target.dataset.cxtgt;if(f.complications&&f.complications[i])f.complications[i].target=e.target.value;});
+  main.querySelectorAll('[data-cxdel]').forEach(b=>b.onclick=()=>{f.complications.splice(+b.dataset.cxdel,1);renderEditor();});
+  {const ab=document.getElementById('addCx');if(ab)ab.onclick=()=>{(f.complications=f.complications||[]).push({label:'',target:''});renderEditor();};}
   bindEditSide('fiche');
   bindListEditors();
   // images
@@ -9217,6 +9342,21 @@ MINUTEURS, COMPTEURS, BOUCLES
 - PLUSIEURS minuteurs bienvenus si la prise en charge le justifie (ex. bolus à durée
   fixe + cycle de surveillance qui reboucle).
 
+COMPLICATIONS « À TOUT MOMENT » (champ complications, facultatif)
+- Si la source décrit un événement pouvant survenir À TOUT MOMENT du parcours (laryngospasme
+  pendant une sédation, hypoglycémie sous insuline…) : crée un BLOC DÉDIÉ HORS SÉQUENCE (aucun
+  « next » n'y mène ; son propre next: null) avec les gestes immédiats, et déclare-le dans
+  "complications": [{ "label": "<événement>", "target": "<id de ce bloc>" }].
+- Le label = le NOM DE L'ÉVÉNEMENT, discriminant au premier mot (« Laryngospasme », jamais
+  « En cas de survenue d'un laryngospasme ») : il devient un bouton ⚡ tapé sous stress.
+- 1 à 3 MAXIMUM (chaque bouton de plus dilue les autres) ; seulement des événements que la source
+  traite réellement — ne fabrique pas de bloc pour un événement qu'elle ne fait que mentionner.
+- L'application affiche ces blocs dans une section « ⚡ À tout moment », HORS numérotation, avec
+  un RETOUR automatique au bloc interrompu : ne les relie à RIEN dans la séquence.
+- Événement relevant d'une AUTRE aide entière (ex. arrêt cardiaque pendant une sédation) : ne
+  crée PAS le bloc — SIGNALE-le-moi ; je lierai l'aide existante dans l'application (le JSON ne
+  connaît pas les identifiants de mes autres fiches).
+
 TRAÇABILITÉ (section references — obligatoire)
 - Une ligne par source : « Titre — Organisme, année (version si connue) — URL ou DOI » ;
   reporte le niveau de preuve / grade s'il figure.
@@ -9284,6 +9424,7 @@ COHÉRENCE DES IDENTIFIANTS (très important)
 - Bloc "steps" : "next" = id existant ou null (null = fin de prise en charge — le
   dernier bloc d'un parcours finit par next: null, jamais par un renvoi accidentel).
 - Bloc "decision" : chaque "target" d'option = id existant.
+- "complications[].target" = id d'un bloc existant HORS chaîne (aucun next n'y mène).
 - PAS de champ "id" au niveau de la fiche (généré à l'import).
 
 SCHÉMA EXACT
@@ -9301,6 +9442,7 @@ SCHÉMA EXACT
       "confirmation": ["..."],
       "verify": ["..."],
       "posology": ["△ **ADRÉNALINE — IM** : adulte 0,5 mg · enfant 0,01 mg/kg (max 0,5 mg)", "**REMPLISSAGE** : cristalloïdes 20 mL/kg en débit libre"],
+      "complications": [ { "label": "Laryngospasme", "target": "cx1" } ],
       "notForget": ["..."],
       "differentials": ["..."],
       "references": ["Titre — Organisme, année — URL", "Fiche générée par IA le JJ/MM/AAAA à partir de la source ci-dessus — à relire et valider avant usage."],
@@ -9314,7 +9456,8 @@ SCHÉMA EXACT
         { "id": "b1", "type": "steps",    "title": "Mesures immédiates", "image": null, "steps": ["Renfort : appel à l'aide / régulation (SMUR)", "Monitorage :: scope · SpO2 · PNI", "..."], "next": "bd" },
         { "id": "bd", "type": "decision", "title": "Réévaluation", "image": null, "question": "...?", "options": [ { "label": "Oui", "target": "b2" }, { "label": "Non", "target": "b3" } ] },
         { "id": "b2", "type": "steps",    "title": "Évolution favorable", "image": null, "steps": ["..."], "next": null },
-        { "id": "b3", "type": "steps",    "title": "Réfractaire", "image": null, "steps": ["..."], "next": "bd" }
+        { "id": "b3", "type": "steps",    "title": "Réfractaire", "image": null, "steps": ["..."], "next": "bd" },
+        { "id": "cx1", "type": "steps",   "title": "Laryngospasme", "image": null, "steps": ["Arrêter la stimulation", "⚠ ...gestes immédiats de la source..."], "next": null }
       ]
     }
   ]
@@ -11351,7 +11494,7 @@ if(location.search.indexOf('__actest')>=0){
   window.__ac_test__={migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
-    restErrStatus,isPersoRepairCandidate,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,
+    restErrStatus,isPersoRepairCandidate,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,cxAll,cxDetached,
     qTerms,hayMatch,markQTerms,searchSnippet,ficheSnipParts,protoSnipParts,frecencyScore,sanitizeUsage,mergeUsage,
     crc32,zipBuild,zipParse,isPdfBytes,mdTask,flowOrder,latestPass,offPathSet,minimapData,passInfo,instComplete,flowPlan,stepCR,stepGuardTxt,optAbbr,svBranchIssue,svLoopTargets,ovPresList,
     posoTokens,posoName,posoScore,posoRank,posoSplit};

@@ -1,5 +1,38 @@
 # Journal des modifications
 
+## [4.26.0] — 2026-07-25
+### Ajouté
+- **Complications « à tout moment »** — l'aboutissement de l'audit sur la fonction de l'app : une
+  complication (laryngospasme pendant une sédation, ACR pendant une analgésie…) ne s'entre pas par
+  la séquence mais **quand l'événement survient**. C'est le modèle des procédures non-normales du
+  QRH et du mode *failure-related* de l'ECAM, et l'écart le plus net que l'audit doctrinal avait
+  identifié.
+  - **Nouveau champ facultatif** `complications` sur la fiche : libellé d'événement + cible — un
+    **bloc dédié de la fiche** ou **une autre aide cognitive entière** (demande explicite : une
+    complication peut ouvrir une nouvelle aide ; la session en cours reste vive).
+  - **Déclencheur** : boutons `⚡ Événement` sur la carte du bloc courant, à côté de l'avance — la
+    bifurcation non-nominale près de l'avance nominale — plus une entrée par complication au
+    menu ⋯ (accès constant si l'on est perdu). Registre alerte en contour, jamais rempli. Aucun
+    chrome si la fiche n'en déclare pas.
+  - **Excursion tracée** : chaque occurrence crée un **nouveau passage** au bout du journal (un
+    événement qui se reproduit est un nouvel événement), marqué « ⚡ complication » en toutes
+    lettres. « Terminer l'algorithme » disparaît pendant l'excursion — le parcours n'est pas fini,
+    il est interrompu.
+  - **Retour prévu, jamais laissé à la mémoire** : « ↩ Reprendre — ‹bloc interrompu› → », toujours
+    actif (non bloquant). La reprise ouvre un **nouveau passage à cases neuves** : c'est la
+    doctrine d'interruption d'AC 120-71B — après une interruption, on re-vérifie ; l'ancienne
+    carte reste lisible juste au-dessus.
+  - **Structure honnête** : un bloc de complication hors séquence ne prend **pas** de numéro de
+    tronc (avant, il se lisait « l'étape d'après ») ; il vit dans une section « ⚡ À tout moment »
+    de l'Échelle et du mode Statique.
+  - Éditeur dédié (libellé + cible, blocs de la fiche puis autres aides), prompt IA mis à jour
+    (bloc dédié hors séquence, 1 à 3 max, un événement relevant d'une autre aide se signale).
+  - Export v3 inchangé : champ facultatif, un ancien client l'ignore et le bloc reste un bloc.
+
+### Interne
+- 9 tests purs (`migrate`, `cxAll`, `cxDetached`, exclusion `flowPlan`) — 503 au total — et nouveau
+  harnais `scripts/audit-complications.mjs` (15 contrôles de bout en bout, dans `npm run audit`).
+
 ## [4.25.3] — 2026-07-24
 ### Modifié
 - **La fenêtre « Consulter » ne contient plus que ce qui n'existe nulle part ailleurs.**

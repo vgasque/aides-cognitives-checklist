@@ -367,6 +367,34 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   imprimée est le plan Détails — le SVG ne s'imprime plus en mode dynamique). L'aperçu
   d'éditeur reçoit un BAC À SABLE de navigation détaché
   du Runtime (les coches d'un brouillon ne polluent jamais une session vive d'une autre fiche).
+- **COMPLICATIONS « À TOUT MOMENT » (v4.26.0 — entrée PAR L'ÉVÉNEMENT)** : champ FACULTATIF
+  `complications:[{label,target}]` sur la fiche — `target` = bloc de la fiche (laryngospasme) OU
+  autre aide/protocole (ACR pendant une sédation ; résolution `relTarget`, id = référence JAMAIS
+  régénérée : invalide → rangée rejetée par `migrate`). Modèle : QRH non-normal / mode
+  failure-related ECAM — une complication ne s'entre pas par la position mais quand l'ÉVÉNEMENT
+  survient, et **le RETOUR fait partie du dispositif** (jamais laissé à la mémoire).
+  DÉCLENCHEUR (décision utilisateur) : boutons `⚡ <événement>` sur la carte du BOUT (à côté de
+  l'avance — la bifurcation non-nominale près de l'avance nominale) + une entrée PAR complication
+  au menu ⋯ (accès constant, cas « perdu »). Registre ALERTE en CONTOUR, jamais rempli (un aplat
+  rouge permanent désensibilise) ; cible externe marquée `↗`.
+  COMPORTEMENT : `cxEnter` = TOUJOURS un nouveau passage au bout — même bloc déjà visité, un
+  événement qui se REproduit est un nouvel événement (≠ `jumpToBlock`, où revoir = défiler) ;
+  passage marqué « ⚡ complication » en toutes lettres, pastille `⚡` si le bloc est hors tronc ;
+  « Terminer l'algorithme » SUPPRIMÉ pendant l'excursion (le parcours n'est pas fini, il est
+  INTERROMPU) ; `↩ Reprendre — <bloc> →` TOUJOURS actif (non bloquant : on reprend quand
+  l'événement est maîtrisé, pas quand les cases sont cochées) = LE contrôle rempli de l'écran
+  pendant l'excursion. `cxResume` = NOUVEAU passage du bloc interrompu, cases neuves — doctrine
+  d'interruption AC 120-71B : on RE-vérifie après une interruption, l'ancienne carte reste
+  lisible juste au-dessus. `Runtime.cxBack={seq→blocId}` persiste dans la SESSION (export v3 des
+  fiches inchangé ; un ancien client ignore le champ ET la carte — le bloc reste un bloc).
+  STRUCTURE : un bloc cible HORS séquence ne prend PAS de numéro de tronc (`flowPlan` l'exclut —
+  numéroté, il se lisait « l'étape d'après », mesuré avant correction) ; il vit dans une section
+  « ⚡ À tout moment » de l'Échelle ET du Statique. Les orphelins NON déclarés gardent le
+  comportement historique. Éditeur : rangées libellé + cible (blocs de la fiche PUIS autres
+  aides — demande utilisateur : « une complication peut ouvrir une nouvelle aide cognitive ») ;
+  garde-fou 1-3. Prompt IA : bloc dédié hors séquence, label = nom d'événement, 1-3 max, un
+  événement relevant d'une AUTRE aide se SIGNALE (le JSON ne connaît pas les ids des autres
+  fiches). Helpers purs `cxAll`/`cxDetached` (testés) ; harnais `scripts/audit-complications.mjs`.
 - **Mode statique (v4.13.0, DOCUMENT complet v4.14.0)** : TOUTE l'aide en TABLEAU compact
   façon aide SFAR/CAMR — cellules télégraphiques carrelées à joint 3 px. `svExtras` (v4.14.0)
   absorbe les SECTIONS de la fiche en cellules INERTES : confirmation + différentiels côte à
