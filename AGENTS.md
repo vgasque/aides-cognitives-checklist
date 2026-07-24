@@ -497,6 +497,17 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   de 11 px ; le logo n'étant pas interactif, aucune règle de cible ne s'y applique). Vérifié à 0 px
   de surcoût de 360 à 431 px. Toute addition à cette rangée doit être re-mesurée à 360 px : c'est
   la largeur la plus contrainte encore servie.
+- **DÉFILEMENT PRÉSERVÉ, PAS RECONSTRUIT (v4.23.5, plusieurs retours d'usage)** — trois surfaces
+  ont chacune leur propre défilement qu'un `render()` (qui reconstruit le DOM) remettait à zéro :
+  (1) le RAIL de lecture `.read-side` (`overflow-y:auto`) « remontait » dès qu'on touchait un bouton
+  (minuteur, compteur, son, « +Minuteur PA », « Noter l'heure ») — capture/restaure `scrollTop`
+  autour de `main.innerHTML` dans `renderRead` (`_railY`), et le journal des actions passe par une
+  mise à jour CHIRURGICALE `renderTkOnly` (le panneau étant en fin de rail, ajouter une ligne pousse
+  vers le bas sans rien déplacer au-dessus) ; (2) la bande horizontale des BIBLIOTHÈQUES
+  `.scopebar .chiprow` SAUTAIT à chaque sélection car on RE-CENTRAIT la biblio active — désormais
+  on restaure la position laissée (`_scopeScroll`) et on suit les défilements, exactement comme les
+  catégories (qui, elles, n'ont jamais eu de recentrage). Règle : une zone à défilement propre doit
+  voir sa position CAPTURÉE avant un re-rendu et RESTAURÉE après — jamais recalculée.
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.

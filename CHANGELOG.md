@@ -1,5 +1,32 @@
 # Journal des modifications
 
+## [4.23.5] — 2026-07-24
+### Corrigé
+- **La barre latérale de lecture « remontait » dès qu'on touchait n'importe quel bouton** (minuteur,
+  compteur, son, « +Minuteur PA », « Noter l'heure »). Le rail a son propre `overflow-y:auto`, et
+  un re-rendu reconstruit tout le DOM : son `scrollTop` retombait à 0. On capture la position avant
+  et on la restaure après (comme le défilement du schéma). Le journal des actions passe en plus par
+  une mise à jour **chirurgicale** (le seul panneau, sans re-rendu global).
+- **Sélectionner une bibliothèque sur l'accueil faisait sauter le défilement horizontal** de la
+  bande, contrairement aux catégories. On **re-centrait** la bibliothèque active à chaque rendu ;
+  désormais la bande reste où on l'a laissée — même comportement que les catégories.
+- **Minuteurs : libellé débordant et boutons tronqués sur écrans étroits** (retour d'usage, capture
+  à l'appui). Un libellé à token long sans espace (« CUTANÉS/MUQUEUX/DIGESTIFS ») débordait la carte
+  (→ `overflow-wrap:anywhere`) ; « Démarrer » et « Remettre à zéro » côte à côte tronquaient leur
+  texte (« 05… », « MAIN… ») dès que deux cartes se partageaient une vue étroite — ils s'empilent
+  maintenant sous 780 px (le palier 430 ne couvrait pas la bande 431-779 : tablette, fenêtre
+  réduite, paysage). Cartes moins étroites en milieu de gamme (grille minmax 140 → 160 px).
+- **« Recommencer » laissait « Algorithme terminé — surveillance en cours » affiché** : l'état
+  `flowEnded` n'était pas remis à zéro (dans les deux modes, guidé et journal).
+- **Espacements « collés »** : « +Minuteur PA » contre les cartes (un `margin-top:0` du rail écrasait
+  le `margin-top` de base), la ✕ de suppression d'heure contre le filet du dessous (rangée à
+  padding-bas nul), « Algorithme terminé » et le bloc « Contexte local » (numéros utiles) contre ce
+  qui les précède.
+
+### Modifié
+- **« Son coupé » adopte la même forme que « Son activé »** dans le rail (fantôme, sans pilule) —
+  l'état reste porté par l'icône barrée, le mot « coupé » et l'encre ambre (jamais la couleur seule).
+
 ## [4.23.4] — 2026-07-24
 ### Modifié
 - **Le logo de l'accueil ne coûte plus un seul pixel de hauteur d'en-tête sur petit écran.**

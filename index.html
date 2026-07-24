@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-eGJujC6eN7j/eJ5oc2RpbpW4a49oElz5zBj0L2vrsyk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-FYW+tM9mWK9WaMoGf0qoUEPW/eqKtqaoKQofOCMvFUc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1019,7 +1019,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      sert plus qu'à l'impression (l'en-tête est masqué en print). */
   @media screen{body.view-read .read-head{display:none}}
   .read-meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0 18px}
-  .local{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 14px;margin-bottom:18px;font-size:14px;color:var(--ink-soft);white-space:pre-wrap}
+  .local{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 14px;margin-top:14px;margin-bottom:18px;font-size:14px;color:var(--ink-soft);white-space:pre-wrap}
   section.block{margin-bottom:22px}
   /* En-têtes de section = KICKERS simples du canvas (11px/800, espacés) : la couleur du texte
      porte le registre, plus de badge d'icône ni de pip (chrome retiré, V5). */
@@ -1288,11 +1288,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Son COUPÉ = état risqué en crise -> signalé en ambre (pas seulement un changement de libellé). */
   .rt-sound.off{color:var(--verify);border-color:var(--verify);background:var(--verify-soft)}
   .rt-warn{background:var(--verify-soft);border:0;color:var(--verify);border-radius:8px;padding:6px 9px;min-height:44px;font-size:11.5px;font-weight:600;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
-  .rt-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+  .rt-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
   /* Petits écrans (iPhone) : on garde AU MOINS 2 minuteurs par ligne (compact), mais on EMPILE les
      boutons de chaque carte -> chacun prend toute la largeur de la carte, sans texte tronqué. */
-  @media (max-width:430px){.tm-ctrl{flex-direction:column}.tm-btn{flex:0 0 auto;width:100%;font-size:12.5px}}
-  .rt-counters{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:10px}
+  @media (max-width:779.98px){.tm-ctrl{flex-direction:column}.tm-btn{flex:0 0 auto;width:100%;font-size:12.5px}}
+  .rt-counters{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-top:10px}
   /* Anatomie du canvas (rail droit) : UNE variable d'état --tcol pilote libellé + temps +
      barre (+ bordure via --tbd) ; courant = bleu, ÉCHU = AMBRE (le rouge reste réservé aux
      memory items / vital), en pause = encre douce + texte « — EN PAUSE » (jamais couleur seule). */
@@ -1308,10 +1308,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #screenFlash{position:fixed;inset:0;pointer-events:none;z-index:99;opacity:0;background:var(--alert-hi);display:none}
   #screenFlash.on{display:block;animation:sf 2s ease-out forwards}
   @keyframes sf{0%{opacity:.55}60%{opacity:.3}100%{opacity:0}}
-  .tm-label{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--tcol);margin-bottom:6px}
+  .tm-label{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--tcol);margin-bottom:6px;overflow-wrap:anywhere;word-break:break-word}
   .cncard .tm-label{justify-content:center;color:var(--ink-soft)}
   .rt-add{margin-top:10px;min-height:44px;border:1.5px dashed var(--line);border-radius:8px;color:var(--link);font-size:12.5px;font-weight:700}
-  .read-side .rt-add{margin-top:0}
+  .read-side .rt-add{margin-top:10px}   /* respire comme l'écart des cartes ; 0 le collait (v4.23.5) */
   .tm-val,.cn-val{font-family:var(--mono);font-size:26px;font-weight:700;line-height:1.15;font-variant-numeric:tabular-nums}
   .tm-val{color:var(--tcol)}
   .tm-cyc{font-size:12px;color:var(--ink-soft);margin-top:3px}
@@ -1344,7 +1344,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .tk-add:hover{background:var(--primary-hi)}
   .tk-item{border-top:1px solid var(--line)}
   .tk-row{display:flex;gap:9px;align-items:center;padding:8px 0}
-  .tk-item .tk-row{padding-bottom:0}
+  .tk-item .tk-row{padding-bottom:8px}   /* symétrique : 0 collait le ✕ (44px) au filet du bas (v4.23.5) */
   .tk-item:has(.tk-orig-row) .tk-row{padding-bottom:2px}
   .tk-time{font-family:var(--mono);font-size:14px;color:var(--ink);white-space:nowrap;cursor:pointer;border-radius:6px;padding:2px 6px;min-height:32px;display:inline-flex;align-items:center;margin:-2px 0}
   .tk-time:hover{background:var(--primary-soft)}
@@ -1584,7 +1584,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .flow-nav>button[disabled]:hover{background:transparent}
   .flow-nav .tmr-hint{font-size:11px;font-weight:700;opacity:.6;text-transform:uppercase;letter-spacing:.5px}
   /* §8 fin d'algorithme : état annoncé + la session CONTINUE (Terminer ≠ terminer la session). */
-  .flow-end{margin-top:8px;padding:15px;text-align:center;border:2px solid var(--done-line);border-radius:8px;color:var(--ok);font-size:15px;font-weight:800;letter-spacing:1px}
+  .flow-end{margin-top:16px;padding:15px;text-align:center;border:2px solid var(--done-line);border-radius:8px;color:var(--ok);font-size:15px;font-weight:800;letter-spacing:1px}
   /* ----- Vue d'ensemble du mode crise (v4.6.0) : tous les blocs à la suite ----- */
   /* Bascule Dynamique ↔ Statique : même composant .seg que la tab bar. Contrairement à #tabBar,
      ce segment est RE-RENDU (render complet à la bascule) — le glissement de la pastille est
@@ -2456,7 +2456,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        n'entendra pas l'alarme), il doit ressortir ; le calme est réservé à l'état nominal. */
     .rail-head .rt-sound{border:0;background:none;padding:6px 8px;font-weight:700}
     .rail-head .rt-sound:hover{background:var(--surface-2)}
-    .rail-head .rt-sound.off{border:1px solid var(--verify);background:var(--verify-soft);color:var(--verify);padding:6px 11px}
+    .rail-head .rt-sound.off{color:var(--verify)}   /* fantôme comme « activé » ; icône barrée + mot « coupé » portent l'état (v4.23.5) */
     .rail-sep{height:1px;background:var(--line);margin:2px 0;flex:none}
     /* Compte total de la zone : ANNONCE le contenu au-delà du bord visible. Une barre de
        défilement est invisible au repos (macOS/iOS) — sans ce compte, une zone tronquée paraît
@@ -3108,7 +3108,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.23.4';
+const APP_VERSION='4.23.5';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -5474,7 +5474,7 @@ function setBarTitle(t){t=(t||'').trim();
   const bt=document.getElementById('brandTitle');bt.textContent=t;bt.style.display=t?'block':'none';
   document.querySelector('header.bar').classList.toggle('titled',!!t);}
 // Transition de vue (défilement ci-dessus) : vue du rendu précédent, fiche affichée, position bibliothèque.
-let _lastView=null,_lastFicheId=null,_libScrollY=0;
+let _lastView=null,_lastFicheId=null,_libScrollY=0,_scopeScroll=0;
 let _qDebounce=null;   // debounce du champ de recherche (voir l'écouteur 'input' ci-dessous)
 /* ----- Chrome COMMUN de la page d'accueil (partagé entre renderFiches et renderProtocols,
    jamais dupliqué) : sélecteur de section, barre de bibliothèques, rangée de catégories. ----- */
@@ -5650,8 +5650,13 @@ function bindHomeChrome(rerender){
   qsa('[data-libedit]').forEach(b=>b.onclick=e=>{e.stopPropagation();openMembers(b.dataset.libedit);});
   // Sections dans la colonne gauche (accueil large) — la tab bar, statique, est câblée à part.
   main.querySelectorAll('[data-section]').forEach(b=>b.onclick=()=>setSection(b.dataset.section));
-  // Toujours montrer la bibliothèque ACTIVE même si la barre défile (centrée dans sa ligne).
-  const act=hc.querySelector('.scopebar .scopebtn.on');if(act){const row=act.closest('.chiprow');if(row&&row.scrollWidth>row.clientWidth)row.scrollLeft=Math.max(0,act.offsetLeft-row.clientWidth/2+act.clientWidth/2);}
+  // DÉFILEMENT HORIZONTAL DES BIBLIOTHÈQUES PRÉSERVÉ (v4.23.5, retour d'usage). Avant, on
+  // RE-CENTRAIT la bibliothèque active à chaque rendu : sélectionner une biblio faisait « sauter »
+  // la bande — contrairement aux catégories, qui ne bougent pas. On restaure plutôt la position où
+  // l'utilisateur l'a laissée (le rerender reconstruit la ligne, donc scrollLeft retombe à 0) et on
+  // suit ses défilements. Résultat : la bande reste fixe à la sélection, comme les catégories.
+  {const row=hc.querySelector('.scopebar .chiprow');
+   if(row){row.scrollLeft=_scopeScroll;row.addEventListener('scroll',()=>{_scopeScroll=row.scrollLeft;},{passive:true});}}
 }
 /* ----- ACCUEIL GÉNÉRIQUE fiches/protocoles — même patron que _pullTable/_pushTable : le
    squelette (barre bibliothèques, recherche + Créer, catégories, résultats croisés, pagination,
@@ -6770,6 +6775,52 @@ function timekeeperPanel(){const ev=Runtime.events||[];const t0=ev.length?ev[0].
   // Outil SECONDAIRE : compact tant qu'on n'a rien noté (juste le bouton). « Journal des actions » =
   // suite horodatée des gestes clés (pour la traçabilité / le compte-rendu après coup).
   return `<div class="tk-panel${ev.length?'':' tk-slim'}"><div class="tk-head"><b>Journal des actions</b><button class="tk-add" id="tkAdd">${uiIcon('stopwatch',13)} Noter l’heure</button></div>${rows}</div>`;}
+/* Câblage du JOURNAL DES ACTIONS, isolé pour être REJOUÉ après une mise à jour chirurgicale du seul
+   panneau (`renderTkOnly`). Un `render()` complet reconstruit tout le DOM et remet à 0 le `scrollTop`
+   du RAIL (`overflow-y:auto`) : la barre latérale « remontait » à chaque « Noter l'heure » (retour
+   d'usage). Un ajout/suppression/correction d'horodatage n'affecte QUE ce panneau — jamais les
+   minuteurs, le plan ou la posologie —, donc on le remplace en place. */
+function bindTk(){
+  const tkA=document.getElementById('tkAdd');
+  if(tkA)tkA.onclick=()=>{Runtime.events=Runtime.events||[];Runtime.events.push({id:uid('e'),t:Date.now(),label:'Action '+(Runtime.events.length+1)});
+    const started=ensureStarted();persistLive(Runtime);
+    // 1ʳᵉ action de la session : le bandeau apparaît -> re-rendu complet obligatoire, une seule fois
+    // (le rail est de toute façon en haut au démarrage). Ensuite : le seul panneau.
+    if(started)render();else renderTkOnly();};
+  document.querySelectorAll('.tk-panel [data-tklab]').forEach(inp=>inp.addEventListener('input',e=>{const ev=(Runtime.events||[]).find(x=>x.id===e.target.dataset.tklab);if(ev){ev.label=e.target.value;persistLive(Runtime);}}));
+  document.querySelectorAll('.tk-panel [data-tkdel]').forEach(b=>b.onclick=()=>{Runtime.events=(Runtime.events||[]).filter(x=>x.id!==b.dataset.tkdel);persistLive(Runtime);renderTkOnly();});
+  // Correction d'heure NON DESTRUCTIVE : la 1ère valeur (avant toute correction) est conservée dans
+  // e.origT (jamais écrasée par une correction suivante) et reste visible + réversible (↺ revenir).
+  // role=button -> équivalent clavier obligatoire (Entrée/Espace ouvrent l'édition de l'heure).
+  document.querySelectorAll('.tk-panel [data-tktime]').forEach(span=>{span.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();span.click();}};span.onclick=()=>{
+    const ev=(Runtime.events||[]).find(x=>x.id===span.dataset.tktime);if(!ev)return;
+    const inp=document.createElement('input');inp.className='tk-time-edit';inp.inputMode='numeric';inp.value=fmtHMS(ev.t);
+    span.replaceWith(inp);inp.focus();inp.select();
+    const commit=()=>{const m=(inp.value||'').trim().match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+      if(m){const h=Math.min(23,parseInt(m[1],10)),mi=Math.min(59,parseInt(m[2],10)),s=Math.min(59,parseInt(m[3]||'0',10));
+        const base=new Date(ev.t);base.setHours(h,mi,s,0);const nt=base.getTime();
+        // Heure INCHANGÉE (même seconde affichée) -> aucune « correction » : on ne pose pas
+        // origT (sinon « à l'origine HH:MM:SS » s'affichait avec la même heure, ce qui sème le doute).
+        if(Math.floor(nt/1000)!==Math.floor(ev.t/1000)){
+          if(typeof ev.origT!=='number')ev.origT=ev.t;
+          ev.t=nt;
+          Runtime.events.sort((a,b)=>a.t-b.t);
+          persistLive(Runtime);}}
+      renderTkOnly();};
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();inp.blur();}
+      else if(e.key==='Escape'){e.preventDefault();inp.removeEventListener('blur',commit);renderTkOnly();}});
+    inp.addEventListener('blur',commit);};});
+  document.querySelectorAll('.tk-panel [data-tkrevert]').forEach(b=>b.onclick=()=>{
+    const ev=(Runtime.events||[]).find(x=>x.id===b.dataset.tkrevert);if(!ev||typeof ev.origT!=='number')return;
+    ev.t=ev.origT;delete ev.origT;Runtime.events.sort((a,b)=>a.t-b.t);persistLive(Runtime);renderTkOnly();});}
+/* Remplace le SEUL panneau du journal (dans le rail OU dans le flux mono-bloc) et rebranche ses
+   écouteurs, sans toucher au reste du DOM — donc sans réinitialiser le scrollTop du rail. Le panneau
+   étant en fin de rail, l'ajout d'une ligne pousse vers le BAS : rien ne bouge au-dessus. */
+function renderTkOnly(){
+  const old=document.querySelector('.tk-panel');if(!old)return false;
+  const tmp=document.createElement('div');tmp.innerHTML=timekeeperPanel();
+  old.replaceWith(tmp.firstElementChild);
+  bindTk();return true;}
 
 /* ===== Read (mode crise / lecture) =====
    renderRead() : affiche la fiche active. De haut en bas : titre + méta, bandeau
@@ -6974,6 +7025,13 @@ function renderRead(){
   const pathH=stages.length>1
     ?`<ol class="care-path">${stages.map((s,i)=>`<li class="cp-stage ${s.cls}"${s.cls==='on'?' aria-current="step"':''}><span class="cp-n" aria-hidden="true">${s.cls==='done'?uiIcon('check',13,{sw:3.2,cls:''}):(i+1)}</span><div class="cp-body">${s.head?`<div class="block-h cp-h">${s.head}</div>`:''}${s.body}</div></li>`).join('')}</ol>`
     :stages.map(s=>s.body).join('');
+  // DÉFILEMENT DU RAIL PRÉSERVÉ (v4.23.5) : `.read-side` a son propre `overflow-y:auto` ; comme
+  // `main.innerHTML` reconstruit tout, son `scrollTop` retombait à 0 à CHAQUE re-rendu — la barre
+  // latérale « remontait » dès qu'on touchait n'importe quel bouton (minuteur, compteur, son,
+  // « +Minuteur PA »…). On capture avant, on restaure après (même principe que `flowScroll` pour le
+  // SVG). Vaut pour tous les chemins ; les mises à jour chirurgicales (renderTkOnly, boutons de
+  // minuteur sans re-rendu) restent préférables, ceci est le FILET GLOBAL.
+  const _railY=(()=>{const s=document.querySelector('.read-side');return s?s.scrollTop:0;})();
   main.innerHTML=`
     ${gridOpen}
     <div class="read-head"><h2>${esc(f.title)||'Sans titre'}</h2></div>
@@ -6989,6 +7047,7 @@ function renderRead(){
     ${readFooterHtml()}
     ${gridClose}`;
   updateStorageInfo();   // remplit le pied (mesure asynchrone) — même libellé que la sidebar
+  if(_railY){const s=document.querySelector('.read-side');if(s)s.scrollTop=_railY;}
   bindReadEvents(f,blk,cur);
 }
 /* Re-rendu de DÉMARRAGE de session (1ʳᵉ action) avec ANCRAGE : le bouton « Confirmé — démarrer »
@@ -7156,34 +7215,8 @@ function bindReadEvents(f,blk,cur){
   main.querySelectorAll('[data-cndec]').forEach(b=>b.onclick=()=>{const id=b.dataset.cndec;Runtime.counters[id]=Math.max(0,(Runtime.counters[id]||0)-(+b.dataset.step));const fresh=ensureStarted();persistLive(Runtime);if(fresh)renderKeepAnchor('[data-cndec="'+CSS.escape(id)+'"]');else setCounterVal(id);});
   // Réinit. d'un compteur : MAINTENIR (même geste anti-accidentel que les minuteurs). Repart de la valeur de départ.
   main.querySelectorAll('[data-cnreset]').forEach(b=>holdToReset(b,()=>{const id=b.dataset.cnreset;const c=(Runtime.fiche.counters||[]).find(x=>x.id===id);Runtime.counters[id]=c?(c.start||0):0;setCounterVal(id);persistLive(Runtime);}));
-  // horodatage : ajout (re-rendu), édition du libellé (sans re-rendu, garde le focus), suppression.
-  const tkA=document.getElementById('tkAdd');if(tkA)tkA.onclick=()=>{Runtime.events=Runtime.events||[];Runtime.events.push({id:uid('e'),t:Date.now(),label:'Action '+(Runtime.events.length+1)});ensureStarted();persistLive(Runtime);renderKeepAnchor('#tkAdd');};
-  main.querySelectorAll('[data-tklab]').forEach(inp=>inp.addEventListener('input',e=>{const ev=(Runtime.events||[]).find(x=>x.id===e.target.dataset.tklab);if(ev){ev.label=e.target.value;persistLive(Runtime);}}));
-  main.querySelectorAll('[data-tkdel]').forEach(b=>b.onclick=()=>{Runtime.events=(Runtime.events||[]).filter(x=>x.id!==b.dataset.tkdel);persistLive(Runtime);render();});
-  // Correction d'heure NON DESTRUCTIVE : la 1ère valeur (avant toute correction) est conservée dans
-  // e.origT (jamais écrasée par une correction suivante) et reste visible + réversible (↺ revenir).
-  // role=button -> équivalent clavier obligatoire (Entrée/Espace ouvrent l'édition de l'heure).
-  main.querySelectorAll('[data-tktime]').forEach(span=>{span.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();span.click();}};span.onclick=()=>{
-    const ev=(Runtime.events||[]).find(x=>x.id===span.dataset.tktime);if(!ev)return;
-    const inp=document.createElement('input');inp.className='tk-time-edit';inp.inputMode='numeric';inp.value=fmtHMS(ev.t);
-    span.replaceWith(inp);inp.focus();inp.select();
-    const commit=()=>{const m=(inp.value||'').trim().match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
-      if(m){const h=Math.min(23,parseInt(m[1],10)),mi=Math.min(59,parseInt(m[2],10)),s=Math.min(59,parseInt(m[3]||'0',10));
-        const base=new Date(ev.t);base.setHours(h,mi,s,0);const nt=base.getTime();
-        // Heure INCHANGÉE (même seconde affichée) -> aucune « correction » : on ne pose pas
-        // origT (sinon « à l'origine HH:MM:SS » s'affichait avec la même heure, ce qui sème le doute).
-        if(Math.floor(nt/1000)!==Math.floor(ev.t/1000)){
-          if(typeof ev.origT!=='number')ev.origT=ev.t;
-          ev.t=nt;
-          Runtime.events.sort((a,b)=>a.t-b.t);
-          persistLive(Runtime);}}
-      render();};
-    inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();inp.blur();}
-      else if(e.key==='Escape'){e.preventDefault();inp.removeEventListener('blur',commit);render();}});
-    inp.addEventListener('blur',commit);};});
-  main.querySelectorAll('[data-tkrevert]').forEach(b=>b.onclick=()=>{
-    const ev=(Runtime.events||[]).find(x=>x.id===b.dataset.tkrevert);if(!ev||typeof ev.origT!=='number')return;
-    ev.t=ev.origT;delete ev.origT;Runtime.events.sort((a,b)=>a.t-b.t);persistLive(Runtime);render();});
+  // horodatage : câblage extrait (bindTk) pour être REJOUÉ après une mise à jour chirurgicale.
+  bindTk();
   // sessions : Enregistrer (nommer) / Réinitialiser / Terminer / Historique
   const es=document.getElementById('endSess');if(es)es.onclick=endCurrentSession;
   // (L'historique des sessions s'ouvre en fenêtre via le menu ⋯ — openSessHist.)
@@ -7222,7 +7255,7 @@ function bindNavEvents(f,blk){
   const fwb=document.getElementById('navFwd');if(fwb)fwb.onclick=()=>{state.navPos=Math.min(state.navPos+1,state.nav.length-1);scrollNavNext=true;renderNavOnly();};
   const rsm=document.getElementById('navResume');if(rsm)rsm.onclick=()=>{state.nav.length=state.navPos+1;state.navSeq.length=state.navPos+1;renderNavOnly();};
   const bk=document.getElementById('navBack');if(bk)bk.onclick=()=>{state.navPos=Math.max(0,state.navPos-1);scrollNavNext=true;renderNavOnly();};
-  const rs=document.getElementById('navReset');if(rs)holdToReset(rs,()=>{state.nav.length=0;state.navSeq.length=0;state.nav.push(f.start);state.navSeq.push(++Runtime.seq);state.navPos=0;scrollNavNext=true;renderNavOnly();});
+  const rs=document.getElementById('navReset');if(rs)holdToReset(rs,()=>{state.nav.length=0;state.navSeq.length=0;state.nav.push(f.start);state.navSeq.push(++Runtime.seq);state.navPos=0;state.flowEnded=false;scrollNavNext=true;renderNavOnly();});
   main.querySelectorAll('[data-goto]').forEach(b=>b.onclick=()=>{const t=b.dataset.goto;if(t&&f.blocks.some(x=>x.id===t)){state.nav.push(t);state.navSeq.push(++Runtime.seq);state.navPos=state.nav.length-1;scrollNavNext=true;renderNavOnly();}});
   const goCrumb=i=>{if(i>=0&&i<state.nav.length){state.navPos=i;renderNavOnly();}};
   main.querySelectorAll('[data-crumb]').forEach(c=>{c.onclick=()=>goCrumb(+c.dataset.crumb);c.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();goCrumb(+c.dataset.crumb);}};});
@@ -7994,7 +8027,7 @@ function bindOverviewEvents(f){
   wrap.onkeydown=e=>{if(e.key!=='Enter'&&e.key!==' ')return;
     const t=e.target.closest('[data-ck],[data-plgo],[data-plln]');if(!t)return;e.preventDefault();handle(t,true);};
   const rs=wrap.querySelector('#ovReset');
-  if(rs)holdToReset(rs,()=>{state.nav.length=0;state.navSeq.length=0;state.nav.push(f.start);state.navSeq.push(++Runtime.seq);state.navPos=0;state.ovFold={};state.ovVerify=null;if(Runtime.started)persistLive(Runtime);renderOvOnly();});}
+  if(rs)holdToReset(rs,()=>{state.nav.length=0;state.navSeq.length=0;state.nav.push(f.start);state.navSeq.push(++Runtime.seq);state.navPos=0;state.flowEnded=false;state.ovFold={};state.ovVerify=null;if(Runtime.started)persistLive(Runtime);renderOvOnly();});}
 /* Re-rendu CIBLÉ de la vue d'ensemble (pendant de renderNavOnly) : reconstruit l'INTÉRIEUR de
    .ov-wrap (Recommencer, structures) sans toucher au reste de la vue — le conteneur garde ses
    écouteurs délégués. Structure inattendue -> repli complet sûr. */

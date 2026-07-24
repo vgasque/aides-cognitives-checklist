@@ -751,7 +751,7 @@
      sert plus qu'à l'impression (l'en-tête est masqué en print). */
   @media screen{body.view-read .read-head{display:none}}
   .read-meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0 18px}
-  .local{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 14px;margin-bottom:18px;font-size:14px;color:var(--ink-soft);white-space:pre-wrap}
+  .local{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 14px;margin-top:14px;margin-bottom:18px;font-size:14px;color:var(--ink-soft);white-space:pre-wrap}
   section.block{margin-bottom:22px}
   /* En-têtes de section = KICKERS simples du canvas (11px/800, espacés) : la couleur du texte
      porte le registre, plus de badge d'icône ni de pip (chrome retiré, V5). */
@@ -1020,11 +1020,11 @@
   /* Son COUPÉ = état risqué en crise -> signalé en ambre (pas seulement un changement de libellé). */
   .rt-sound.off{color:var(--verify);border-color:var(--verify);background:var(--verify-soft)}
   .rt-warn{background:var(--verify-soft);border:0;color:var(--verify);border-radius:8px;padding:6px 9px;min-height:44px;font-size:11.5px;font-weight:600;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
-  .rt-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+  .rt-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
   /* Petits écrans (iPhone) : on garde AU MOINS 2 minuteurs par ligne (compact), mais on EMPILE les
      boutons de chaque carte -> chacun prend toute la largeur de la carte, sans texte tronqué. */
-  @media (max-width:430px){.tm-ctrl{flex-direction:column}.tm-btn{flex:0 0 auto;width:100%;font-size:12.5px}}
-  .rt-counters{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:10px}
+  @media (max-width:779.98px){.tm-ctrl{flex-direction:column}.tm-btn{flex:0 0 auto;width:100%;font-size:12.5px}}
+  .rt-counters{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-top:10px}
   /* Anatomie du canvas (rail droit) : UNE variable d'état --tcol pilote libellé + temps +
      barre (+ bordure via --tbd) ; courant = bleu, ÉCHU = AMBRE (le rouge reste réservé aux
      memory items / vital), en pause = encre douce + texte « — EN PAUSE » (jamais couleur seule). */
@@ -1040,10 +1040,10 @@
   #screenFlash{position:fixed;inset:0;pointer-events:none;z-index:99;opacity:0;background:var(--alert-hi);display:none}
   #screenFlash.on{display:block;animation:sf 2s ease-out forwards}
   @keyframes sf{0%{opacity:.55}60%{opacity:.3}100%{opacity:0}}
-  .tm-label{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--tcol);margin-bottom:6px}
+  .tm-label{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--tcol);margin-bottom:6px;overflow-wrap:anywhere;word-break:break-word}
   .cncard .tm-label{justify-content:center;color:var(--ink-soft)}
   .rt-add{margin-top:10px;min-height:44px;border:1.5px dashed var(--line);border-radius:8px;color:var(--link);font-size:12.5px;font-weight:700}
-  .read-side .rt-add{margin-top:0}
+  .read-side .rt-add{margin-top:10px}   /* respire comme l'écart des cartes ; 0 le collait (v4.23.5) */
   .tm-val,.cn-val{font-family:var(--mono);font-size:26px;font-weight:700;line-height:1.15;font-variant-numeric:tabular-nums}
   .tm-val{color:var(--tcol)}
   .tm-cyc{font-size:12px;color:var(--ink-soft);margin-top:3px}
@@ -1076,7 +1076,7 @@
   .tk-add:hover{background:var(--primary-hi)}
   .tk-item{border-top:1px solid var(--line)}
   .tk-row{display:flex;gap:9px;align-items:center;padding:8px 0}
-  .tk-item .tk-row{padding-bottom:0}
+  .tk-item .tk-row{padding-bottom:8px}   /* symétrique : 0 collait le ✕ (44px) au filet du bas (v4.23.5) */
   .tk-item:has(.tk-orig-row) .tk-row{padding-bottom:2px}
   .tk-time{font-family:var(--mono);font-size:14px;color:var(--ink);white-space:nowrap;cursor:pointer;border-radius:6px;padding:2px 6px;min-height:32px;display:inline-flex;align-items:center;margin:-2px 0}
   .tk-time:hover{background:var(--primary-soft)}
@@ -1316,7 +1316,7 @@
   .flow-nav>button[disabled]:hover{background:transparent}
   .flow-nav .tmr-hint{font-size:11px;font-weight:700;opacity:.6;text-transform:uppercase;letter-spacing:.5px}
   /* §8 fin d'algorithme : état annoncé + la session CONTINUE (Terminer ≠ terminer la session). */
-  .flow-end{margin-top:8px;padding:15px;text-align:center;border:2px solid var(--done-line);border-radius:8px;color:var(--ok);font-size:15px;font-weight:800;letter-spacing:1px}
+  .flow-end{margin-top:16px;padding:15px;text-align:center;border:2px solid var(--done-line);border-radius:8px;color:var(--ok);font-size:15px;font-weight:800;letter-spacing:1px}
   /* ----- Vue d'ensemble du mode crise (v4.6.0) : tous les blocs à la suite ----- */
   /* Bascule Dynamique ↔ Statique : même composant .seg que la tab bar. Contrairement à #tabBar,
      ce segment est RE-RENDU (render complet à la bascule) — le glissement de la pastille est
@@ -2188,7 +2188,7 @@
        n'entendra pas l'alarme), il doit ressortir ; le calme est réservé à l'état nominal. */
     .rail-head .rt-sound{border:0;background:none;padding:6px 8px;font-weight:700}
     .rail-head .rt-sound:hover{background:var(--surface-2)}
-    .rail-head .rt-sound.off{border:1px solid var(--verify);background:var(--verify-soft);color:var(--verify);padding:6px 11px}
+    .rail-head .rt-sound.off{color:var(--verify)}   /* fantôme comme « activé » ; icône barrée + mot « coupé » portent l'état (v4.23.5) */
     .rail-sep{height:1px;background:var(--line);margin:2px 0;flex:none}
     /* Compte total de la zone : ANNONCE le contenu au-delà du bord visible. Une barre de
        défilement est invisible au repos (macOS/iOS) — sans ce compte, une zone tronquée paraît
