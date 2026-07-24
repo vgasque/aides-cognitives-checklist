@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-FYW+tM9mWK9WaMoGf0qoUEPW/eqKtqaoKQofOCMvFUc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-nRJ6bc5cCXYCz157THxuuNjkVHrnP6X7p/BjIOTfM3s='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -616,7 +616,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .dock-plan[hidden]{display:none}
   .dock-plan:hover{background:var(--primary-soft)}
   .dock-plan:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
-  .dock-plan .dp-ic{font-size:15px;line-height:1}
+  .dock-plan .dp-ic{font-size:18px;line-height:1}   /* ⤢/▸ : glyphes peu remplis, agrandis pour équilibrer le libellé (v4.23.6) */
   /* « Cons. » sous 560px : TRONCATURE du même mot, pas un autre mot — c'est ce qui distingue cette
      abréviation de l'ancien « Réf. », qui donnait deux NOMS au même bouton (retour d'usage : « on
      s'y perd »). Le mot tronqué reste reconnaissable, l'identité du bouton ne change pas. Objectif
@@ -2464,7 +2464,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .rail-n{flex:none;font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink-soft);
       background:var(--tag-bg);border-radius:5px;padding:1px 6px}
     .rail-exp{margin-left:auto;min-height:44px;padding:6px 8px;border:0;border-radius:8px;background:none;
-      color:var(--link);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer}
+      color:var(--link);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+    .rail-exp .rx-ic{font-size:17px;line-height:1}
     .rail-exp:hover{background:var(--primary-soft)}
     .rail-exp:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
     /* ÉCHELLE DÉSATURÉE : mêmes lignes que le Plan, mais l'état n'est plus porté que par le
@@ -3108,7 +3109,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.23.5';
+const APP_VERSION='4.23.6';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -3494,9 +3495,12 @@ function libName(libId){const l=myLibraries.find(x=>x.id===libId);return l?l.nam
 function canEditScope(scope){if(!scope)return true;const r=roleOf(scope);return r==='editor'||r==='admin';}
 function canEditFiche(f){return (f&&f.libraryId)?canEditScope(f.libraryId):true;}
 // Tri des bibliothèques : les PLUS UTILISÉES d'abord (compteur local), puis ordre alphabétique.
-function libUsage(){try{return JSON.parse(localStorage.getItem(spaceKey('ac-lib-usage'))||'{}');}catch(e){return {};}}
-function bumpLibUsage(id){if(!id)return;try{const u=libUsage();u[id]=(u[id]||0)+1;localStorage.setItem(spaceKey('ac-lib-usage'),JSON.stringify(u));}catch(e){}}
-function sortedLibraries(){const u=libUsage();return myLibraries.slice().sort((a,b)=>((u[b.id]||0)-(u[a.id]||0))||String(a.name).localeCompare(String(b.name)));}
+// ORDRE STABLE (v4.23.6) : tri par NOM, exactement comme les catégories (byCatName). L'ancien tri
+// par USAGE remontait la biblio à chaque sélection (bumpLibUsage l'incrémentait) -> la liste
+// « changeait d'ordre » de façon intermittente, sur ordi comme sur téléphone (retour d'usage). Une
+// liste de navigation doit être PRÉVISIBLE : on apprend où se trouve chaque entrée. (libUsage/
+// bumpLibUsage supprimés avec le tri par usage — plus aucun lecteur.)
+function sortedLibraries(){return myLibraries.slice().sort((a,b)=>String(a.name).localeCompare(String(b.name)));}
 // Déplace l'élément i d'un tableau d'un cran (dir -1 = haut, +1 = bas). Réutilisé pour minuteurs/compteurs.
 function moveItem(arr,i,dir){const j=i+dir;if(!arr||j<0||j>=arr.length)return;const t=arr[i];arr[i]=arr[j];arr[j]=t;}
 // Plusieurs sessions VIVES en parallèle : un runtime par fiche dont la session a démarré. Leurs
@@ -5644,7 +5648,7 @@ function bindHomeChrome(rerender){
   {const ch=main.querySelector('[data-crosssec]');if(ch)ch.onclick=()=>setSection(ch.dataset.crosssec,true);}
   qsa('[data-cat]').forEach(b=>b.onclick=()=>{const c=b.dataset.cat;state.cat=(c&&state.cat===c)?'':c;state.libLimit=LIB_PAGE;rerender();});
   qsa('[data-catmgr]').forEach(b=>b.onclick=openCatMgr);
-  qsa('[data-scope]').forEach(b=>b.onclick=()=>{state.scope=b.dataset.scope||null;bumpLibUsage(b.dataset.scope);state.cat='';state.libLimit=LIB_PAGE;rerender();});
+  qsa('[data-scope]').forEach(b=>b.onclick=()=>{state.scope=b.dataset.scope||null;state.cat='';state.libLimit=LIB_PAGE;rerender();});
   qsa('[data-newlib]').forEach(b=>b.onclick=openNewLib);
   // Crayon ✎ des rangées/chips bibliothèque (SPEC §3) : ouvre le dialogue « Modifier la bibliothèque ».
   qsa('[data-libedit]').forEach(b=>b.onclick=e=>{e.stopPropagation();openMembers(b.dataset.libedit);});
@@ -6950,7 +6954,7 @@ function renderRead(){
     const num={};plan.order.forEach((id,i)=>{num[id]=i+1;});
     const md={};minimapData(f,state.nav,state.navSeq,state.checked,state.navPos).forEach(m=>{md[m.id]=m;});
     const off=offPathSet(f,state.nav,state.navPos);
-    return `<div class="rail-head"><span class="rail-title">Plan — Échelle</span><span class="rail-n">${plan.order.length}</span><button type="button" class="rail-exp" id="railPlanFull" aria-haspopup="dialog">⤢ complet</button></div><div class="ov-plan compact rail-lad">${ovPlanLadderHtml(f,plan,num,md,off)}</div>`;})();
+    return `<div class="rail-head"><span class="rail-title">Plan — Échelle</span><span class="rail-n">${plan.order.length}</span><button type="button" class="rail-exp" id="railPlanFull" aria-haspopup="dialog"><span class="rx-ic" aria-hidden="true">⤢</span> complet</button></div><div class="ov-plan compact rail-lad">${ovPlanLadderHtml(f,plan,num,md,off)}</div>`;})();
   /* RAIL EN TROIS ZONES (v4.23.0) — retour d'usage : empilées dans un seul défileur, une Échelle
      longue ou des minuteurs nombreux repoussaient les repères posologiques tout en bas.
      Ordre par URGENCE DÉCROISSANTE, et surtout : la seule zone de longueur NON BORNÉE (l'Échelle)
@@ -7488,6 +7492,7 @@ function ovPlanHtml(f){
    Les AFFICHAGES restent les trois de v4.18.0 (Détails · Échelle · Schéma) : « Tableau » du
    canvas serait une seconde porte vers le mode statique, dont #readTopSeg est le seul maître. */
 const planModal=document.getElementById('planModal');
+let _planScroll={};   // v4.23.6 : scroll INDÉPENDANT par vue du Plan (Détails/Échelle/Schéma)
 function planSheetOpen(){return planModal.classList.contains('on');}
 function renderPlanSheet(){
   const f=state.fiche;if(!f||!planSheetOpen())return;
@@ -7509,7 +7514,7 @@ function renderPlanSheet(){
   ovPlanStick();}
 function openPlanSheet(){
   const f=state.fiche;if(!f||!hasFlow(f))return;
-  planModal.classList.add('on');renderPlanSheet();}
+  _planScroll={};planModal.classList.add('on');renderPlanSheet();}
 function closePlanSheet(){if(planSheetOpen())planModal.classList.remove('on');}
 bindModalDismiss(planModal,closePlanSheet);
 {const pb=document.getElementById('planBtn');if(pb)pb.onclick=openPlanSheet;}
@@ -7594,7 +7599,11 @@ bindModalDismiss(refModal,closeRefSheet);
  const act=(t)=>{
    const f=state.fiche;if(!f)return;
    const pv=t.closest('[data-plview]');
-   if(pv){if(state.ovPlanView!==pv.dataset.plview){state.ovPlanView=pv.dataset.plview;setPlanViewPref(state.ovPlanView);renderPlanSheet();}return;}
+   if(pv){if(state.ovPlanView!==pv.dataset.plview){
+     _planScroll[state.ovPlanView]=planModal.scrollTop;   // mémorise où on en était dans la vue quittée
+     state.ovPlanView=pv.dataset.plview;setPlanViewPref(state.ovPlanView);renderPlanSheet();
+     planModal.scrollTop=_planScroll[state.ovPlanView]||0;   // restaure la vue rejointe (0 à la 1ʳᵉ visite)
+   }return;}
    const pr=t.closest('[data-plref]');
    if(pr){const k=CSS.escape(pr.dataset.plref);
      const el=body.querySelector('.pl-nd[data-plgo="'+k+'"]')||body.querySelector('.pl-line[data-plln="'+k+'"]');

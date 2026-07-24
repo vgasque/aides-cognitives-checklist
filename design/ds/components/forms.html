@@ -348,7 +348,7 @@
   .dock-plan[hidden]{display:none}
   .dock-plan:hover{background:var(--primary-soft)}
   .dock-plan:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
-  .dock-plan .dp-ic{font-size:15px;line-height:1}
+  .dock-plan .dp-ic{font-size:18px;line-height:1}   /* ⤢/▸ : glyphes peu remplis, agrandis pour équilibrer le libellé (v4.23.6) */
   /* « Cons. » sous 560px : TRONCATURE du même mot, pas un autre mot — c'est ce qui distingue cette
      abréviation de l'ancien « Réf. », qui donnait deux NOMS au même bouton (retour d'usage : « on
      s'y perd »). Le mot tronqué reste reconnaissable, l'identité du bouton ne change pas. Objectif
@@ -2196,7 +2196,8 @@
     .rail-n{flex:none;font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink-soft);
       background:var(--tag-bg);border-radius:5px;padding:1px 6px}
     .rail-exp{margin-left:auto;min-height:44px;padding:6px 8px;border:0;border-radius:8px;background:none;
-      color:var(--link);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer}
+      color:var(--link);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+    .rail-exp .rx-ic{font-size:17px;line-height:1}
     .rail-exp:hover{background:var(--primary-soft)}
     .rail-exp:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
     /* ÉCHELLE DÉSATURÉE : mêmes lignes que le Plan, mais l'état n'est plus porté que par le

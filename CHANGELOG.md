@@ -1,5 +1,21 @@
 # Journal des modifications
 
+## [4.23.6] — 2026-07-24
+### Corrigé
+- **L'ordre des bibliothèques changeait de façon intermittente à la sélection** (ordi et téléphone).
+  Elles étaient triées par USAGE, et sélectionner une bibliothèque incrémentait son usage → elle
+  remontait dans la liste. Tri désormais **par nom**, exactement comme les catégories : une liste de
+  navigation doit être prévisible. (Le compteur d'usage `libUsage`/`bumpLibUsage`, devenu inutile,
+  est supprimé.)
+- **Le Plan partageait un seul défilement entre Détails / Échelle / Schéma.** Chaque vue **mémorise
+  maintenant sa propre position** : scroller au milieu dans Détails, aller tout en bas dans Échelle,
+  revenir à Détails → on retrouve le milieu. Chaque ouverture de la feuille repart du haut.
+
+### Modifié
+- **Icônes du quai (⤢ Plan, ▸ Consulter) et « ⤢ complet » agrandies.** Ces glyphes remplissent peu
+  leur cadre et paraissaient petits ; portés de 15 à 18 px (quai) et le ⤢ de « complet » à 17 px,
+  pour équilibrer le libellé.
+
 ## [4.23.5] — 2026-07-24
 ### Corrigé
 - **La barre latérale de lecture « remontait » dès qu'on touchait n'importe quel bouton** (minuteur,
