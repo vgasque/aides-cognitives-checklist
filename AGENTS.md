@@ -605,8 +605,22 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   la seule ouverte d'office était une COPIE de ce qui est déjà dans le flux. Mesuré, tout déplié
   tient en ~977 px, soit une chiquenaude de défilement — contre quatre taps et l'invisibilité
   totale. En QRH, la section amplifiée est un document qu'on FAIT DÉFILER.
-  **ORDRE PAR UTILITÉ** : différentiels → surveillances → posologie → schémas → documents →
-  références → voir aussi. L'UNIQUE avant les COPIES (surveillances et posologie restent dans le
+  **ELLE NE PORTE QUE L'UNIQUE (v4.25.3, audit d'utilité)** : différentiels → schémas → documents
+  → références → voir aussi. Surveillances et posologie en sont RETIRÉES — mesuré, elles pesaient
+  **57 % de la hauteur** (451 px sur 790) alors qu'elles existent déjà ailleurs : les surveillances
+  dans le flux (③) et en Statique, la posologie dans le flux, le rail (≥ 780) ET en Statique, soit
+  QUATRE exemplaires. Ces copies repoussaient de ~450 px le contenu réellement unique : on faisait
+  défiler ce qu'on avait déjà sous les yeux pour atteindre ce qu'on venait chercher — l'inverse du
+  decluttering ECAM, qui montre ce qui manque et tait ce qu'on a déjà.
+  **CE SONT LES DIFFÉRENTIELS QUI JUSTIFIENT LE BOUTON DU QUAI** : de la documentation seule irait
+  au menu ⋯ ; le « ça ne colle pas » mérite un tap. C'est aussi pourquoi le nom « **Consulter** »
+  est CONSERVÉ — « Documents » ou « Annexes » sous-vendrait les différentiels, et personne dont le
+  tableau ne colle pas n'ouvrirait un bouton nommé « Documents » : le pire mode de défaillance
+  serait un nom qui décourage l'usage qui compte.
+  **INVARIANT — AUCUN BOUTON MORT** : `annexRowHtml` (qui conditionne AUSSI le bouton du quai) doit
+  lister EXACTEMENT ce que la feuille contient. Sans ça, une fiche n'ayant que des surveillances et
+  une posologie afficherait le bouton et ouvrirait une feuille VIDE. Couvert par
+  `scripts/audit-consulter.mjs`. L'UNIQUE avant les COPIES (surveillances et posologie restent dans le
   flux, la feuille n'en porte qu'une copie), l'urgent avant la traçabilité : les différentiels sont
   le motif principal d'ouverture en cours de soin (« ça ne colle pas ») et le seul contenu clinique
   qu'on ne trouve nulle part ailleurs. **« Voir aussi » est CONSERVÉ** (décision utilisateur) bien

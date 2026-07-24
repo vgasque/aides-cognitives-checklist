@@ -1,5 +1,29 @@
 # Journal des modifications
 
+## [4.25.3] — 2026-07-24
+### Modifié
+- **La fenêtre « Consulter » ne contient plus que ce qui n'existe nulle part ailleurs.**
+  Surveillances et repères posologiques en sont retirés : mesuré, ils pesaient **57 % de sa
+  hauteur** (451 px sur 790) alors qu'ils sont déjà présents dans le fil de la prise en charge, en
+  mode Statique, et — pour la posologie — dans la barre latérale sur grand écran, soit **quatre
+  exemplaires**. Ces copies repoussaient de ~450 px le contenu réellement unique : on faisait
+  défiler ce qu'on avait déjà sous les yeux pour atteindre ce qu'on venait chercher.
+  - Elle contient désormais : différentiels → schémas → documents → références → voir aussi.
+  - Hauteur mesurée sur une fiche réelle : **790 → 339 px**.
+  - **Le nom « Consulter » est conservé** : ce sont les différentiels qui justifient son bouton
+    permanent, et l'appeler « Documents » découragerait de l'ouvrir quand le tableau ne colle pas —
+    précisément le cas où elle sert.
+
+### Corrigé
+- **Bouton mort possible** : la rangée d'accès (qui conditionne aussi le bouton de la barre)
+  annonçait « Surveillances » et « Posologie ». Une fiche n'ayant que ces deux contenus aurait donc
+  affiché le bouton… et ouvert une fenêtre vide. La condition suit désormais exactement le contenu
+  de la fenêtre.
+
+### Interne
+- Nouveau harnais `scripts/audit-consulter.mjs` (ajouté à `npm run audit`) : composition, hauteur,
+  présence des contenus retirés dans le flux, et invariant « aucun bouton sans contenu ».
+
 ## [4.25.2] — 2026-07-24
 ### Corrigé
 - **Le bandeau ambre qui restait sur une étape en écart est supprimé.** Ce liseré de 3 px est le
