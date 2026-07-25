@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-8QVK12XM5zo3FZ65zPQjjcI3/D/U6ZsUgUpD+mYrI9c='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-yyzo33VuECw2KJdvx+f6/3aIj5VS+cpbLxWSSZ+6PeM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -2279,8 +2279,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      la fenêtre s'arrête toujours au bord réellement visible. ÷ --zf (règle v4.24.0) ; les
      navigateurs sans dvh gardent `inset:0` (état antérieur). Chromium/desktop : strictement
      identique (dvh = viewport), vérifié par sonde à 90/100/130 %. */
+  /* v4.29.4 : sur l'appareil réel (PWA installée, AUCUNE barre dynamique), la fenêtre restait
+     coupée ~60 px au-dessus du bord — `100dvh` ment donc sur iOS dans certaines configurations
+     (viewport visuel non restauré après clavier, quirks standalone). La seule source de vérité
+     est `window.visualViewport.height` : --vvh est posée et tenue à jour par JS (resize/scroll
+     du visualViewport), dvh ne sert plus que de REPLI avant la première mesure. Même division
+     par --zf que toute hauteur de fenêtre (règle v4.24.0). */
   @supports (height:100dvh){
-    .ai-modal,.lightbox,#readerMode,#flowFull{bottom:auto;height:calc(100dvh / var(--zf,1))}
+    .ai-modal,.lightbox,#readerMode,#flowFull{bottom:auto;height:calc(var(--vvh,100dvh) / var(--zf,1))}
   }
   .ai-modal.on{display:flex}
   /* Fenêtre ouverte = page de fond VERROUILLÉE (v4.21.0 — bug mobile : le glissement dans une
@@ -3292,7 +3298,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.29.3';
+const APP_VERSION='4.29.4';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -10650,6 +10656,10 @@ function accountPrefsHtml(slot){
       <div class="inst-stat"><span class="is-v">${fiches.length}</span><span class="is-k">aide${fiches.length>1?'s':''}</span></div>
       <div class="inst-stat"><span class="is-v">${protocols.length}</span><span class="is-k">protocole${protocols.length>1?'s':''}</span></div>
       <div class="inst-stat"><span class="is-v">${nl}</span><span class="is-k">bibliothèque${nl>1?'s':''}</span></div></div>
+    ${''/* DIAG TEMPORAIRE v4.29.4 (bug « fenêtre coupée en bas » iOS, non reproductible hors
+       appareil) : les quatre mesures de hauteur — celle qui diverge désigne le coupable.
+       À RETIRER une fois le bug clos. */}
+    <p class="auth-note" style="font-family:var(--mono);font-size:11px">diag : ih ${window.innerHeight} · vv ${window.visualViewport?Math.round(window.visualViewport.height):'—'} · dvh ${(()=>{const d=document.createElement('div');d.style.cssText='position:fixed;top:0;height:100dvh;width:0';document.body.appendChild(d);const h=Math.round(d.getBoundingClientRect().height/zoomF());d.remove();return h;})()} · sab ${(()=>{const d=document.createElement('div');d.style.cssText='position:fixed;top:0;height:env(safe-area-inset-bottom);width:0';document.body.appendChild(d);const h=Math.round(d.getBoundingClientRect().height/zoomF());d.remove();return h;})()} · scr ${screen.height}</p>
     ${slot?`<div class="auth-actions" style="margin-bottom:14px">${slot}</div>`:''}
     <div class="auth-stats-h">Taille du texte</div>
     <div class="statuseg" role="radiogroup" aria-label="Taille du texte">${ZOOM_STEPS.map(s=>`<button type="button" class="st-seg ts-seg ts-${s}${z===s?' on':''}" data-zoom="${s}" role="radio" aria-checked="${z===s?'true':'false'}" title="${HINT[s]}" aria-label="Taille du texte ${HINT[s]}">A</button>`).join('')}</div>
@@ -10929,6 +10939,12 @@ function applyZoom(z){z=ZOOM_STEPS.indexOf(z)>=0?z:100;document.documentElement.
     else if(state.readMode==='static')svPaintArrows();}}
 function currentZoom(){return +(localStorage.getItem(spaceKey('ac-zoom'))||localStorage.getItem('ac-zoom')||100);}
 applyZoom(currentZoom());
+/* --vvh (v4.29.4) : hauteur RÉELLEMENT visible, depuis visualViewport — la seule mesure fiable
+   sur iOS (barre d'outils, clavier, PWA installée). En px CSS non zoomés, comme innerHeight :
+   les consommateurs divisent par --zf. Mise à jour à chaque changement du viewport visuel. */
+{const vv=window.visualViewport;
+ if(vv){const set=()=>document.documentElement.style.setProperty('--vvh',vv.height+'px');
+  vv.addEventListener('resize',set);vv.addEventListener('scroll',set);set();}}
 // En mode Auto, suit en DIRECT les changements de thème du système.
 if(window.matchMedia){try{matchMedia('(prefers-color-scheme:dark)').addEventListener('change',()=>{if((localStorage.getItem(spaceKey('ac-theme'))||localStorage.getItem('ac-theme')||'auto')==='auto')applyTheme('auto');});}catch(e){}}
 applyTheme(localStorage.getItem(spaceKey('ac-theme'))||localStorage.getItem('ac-theme')||'auto');

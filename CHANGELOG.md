@@ -1,5 +1,21 @@
 # Journal des modifications
 
+## [4.29.4] — 2026-07-26
+### Corrigé
+- **Fenêtres coupées en bas (iOS, suite)** : la capture sur appareil montre que le défaut existe
+  aussi en **PWA installée** — sans barre d'outils dynamique, donc `100dvh` (v4.29.3) ne suffit
+  pas : cette unité ment sur cet appareil. Les overlays sont désormais dimensionnés par la seule
+  source de vérité, **`window.visualViewport.height`** (variable `--vvh`, tenue à jour à chaque
+  changement du viewport visuel — barre Safari, clavier, PWA), `100dvh` ne servant plus que de
+  repli avant la première mesure. Effet secondaire bienvenu : clavier ouvert, les fenêtres se
+  redimensionnent au lieu de passer dessous. Vérifié au pixel sur Chromium et WebKit à
+  90/100/130 %.
+- **Ligne de diagnostic temporaire** dans la fenêtre Compte (sous « Sur cet appareil ») :
+  `ih / vv / dvh / sab / scr` — les quatre mesures de hauteur de l'appareil ; celle qui diverge
+  désignera le coupable si la coupure persiste. À retirer une fois le bug clos.
+
+503 tests, 11 harnais verts.
+
 ## [4.29.3] — 2026-07-25
 ### Corrigé
 - **iOS Safari/PWA : les fenêtres plein écran n'étaient pas seulement recouvertes d'une bande —

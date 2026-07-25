@@ -2011,8 +2011,14 @@
      la fenêtre s'arrête toujours au bord réellement visible. ÷ --zf (règle v4.24.0) ; les
      navigateurs sans dvh gardent `inset:0` (état antérieur). Chromium/desktop : strictement
      identique (dvh = viewport), vérifié par sonde à 90/100/130 %. */
+  /* v4.29.4 : sur l'appareil réel (PWA installée, AUCUNE barre dynamique), la fenêtre restait
+     coupée ~60 px au-dessus du bord — `100dvh` ment donc sur iOS dans certaines configurations
+     (viewport visuel non restauré après clavier, quirks standalone). La seule source de vérité
+     est `window.visualViewport.height` : --vvh est posée et tenue à jour par JS (resize/scroll
+     du visualViewport), dvh ne sert plus que de REPLI avant la première mesure. Même division
+     par --zf que toute hauteur de fenêtre (règle v4.24.0). */
   @supports (height:100dvh){
-    .ai-modal,.lightbox,#readerMode,#flowFull{bottom:auto;height:calc(100dvh / var(--zf,1))}
+    .ai-modal,.lightbox,#readerMode,#flowFull{bottom:auto;height:calc(var(--vvh,100dvh) / var(--zf,1))}
   }
   .ai-modal.on{display:flex}
   /* Fenêtre ouverte = page de fond VERROUILLÉE (v4.21.0 — bug mobile : le glissement dans une
