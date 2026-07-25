@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-qh84LAsjHP5LSRhs/J6ZemUlC6Prodvtdo67QK7lKEk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-PGS/DFg5FYzKTQXqGY347Qm8O4UBlLCR7qepacIjm7I='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -632,7 +632,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #modeSeg .seg-pill{width:calc(50% - 3px);left:3px;top:3px;bottom:3px;border-radius:999px;background:var(--primary-soft);border:1px solid var(--primary)}
   #modeSeg.i1 .seg-pill{transform:translateX(100%)}
   #modeSeg .seg-btn{position:relative;z-index:1;padding:6px 13px;border:0;background:none;border-radius:999px;font-family:inherit;font-size:13px;font-weight:700;color:var(--ink-soft);cursor:pointer;min-height:38px;white-space:nowrap}
-  #modeSeg .seg-btn.on{color:var(--primary-dk);font-weight:800}
+  /* v4.29.0 (retour utilisateur « le texte se décale ») : la graisse ne change PLUS avec
+     l'état — 700→800 élargissait le mot, les deux libellés bougeaient à chaque bascule.
+     L'état est porté par la pastille (teinte + bordure) et la couleur : ça suffit. */
+  #modeSeg .seg-btn.on{color:var(--primary-dk)}
   #modeSeg .seg-btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   @media (max-width:429.98px){#modeSeg .seg-btn{padding:6px 10px;font-size:12.5px}}
   /* RANGÉE D'ÉTAT — l'affichage : ce qui se passe. Collée SOUS la rangée de commandes : son `top`
@@ -1322,18 +1325,34 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      Et le placard ne quitte plus l'écran : le QUAI COLLANT (#crisisDock.exo) porte les mêmes
      hachures (les segments reprennent un fond plein pour rester lisibles dessus), et le relais
      d'en-tête #hdrCrisis.exo devient la même pilule bleu pointillé que .cb-tag.exo. */
-  #crisisBand.exo,#crisisDock.exo{background:repeating-linear-gradient(-45deg,var(--surface),var(--surface) 14px,var(--primary-soft) 14px,var(--primary-soft) 22px)}
-  #crisisDock.exo .seg{background:var(--surface)}
-  #hdrCrisis.exo{background:var(--primary-soft);border:1px dashed var(--primary);border-radius:6px;padding:2px 8px;letter-spacing:.6px}
+  #crisisBand.exo{background:repeating-linear-gradient(-45deg,var(--surface),var(--surface) 14px,var(--primary-soft) 14px,var(--primary-soft) 22px)}
+  /* v4.29.0 (retour utilisateur : hachurer le QUAI était illisible — « immonde ») : la hachure
+     SUIT LE TITRE. Tant que le bandeau-titre est visible, lui seul est hachuré ; au pixel où il
+     passe sous la barre (.ttl-on, mécanique du relais #hdrCrisis), c'est L'EN-TÊTE qui prend la
+     hachure — même texture, même relais que le titre lui-même. Le quai reste une zone d'état
+     PROPRE (les chiffres n'ont pas à vivre sur une texture). */
+  header.bar.exo.ttl-on{background:repeating-linear-gradient(-45deg,var(--surface),var(--surface) 14px,var(--primary-soft) 14px,var(--primary-soft) 22px)}
+  #hdrCrisis.exo{background:var(--surface);border:1px dashed var(--primary);border-radius:6px;padding:2px 8px;letter-spacing:.6px}
   .cb-exoquit{flex:none;position:relative;min-height:36px;border:1px dashed var(--primary);border-radius:9px;background:var(--surface);color:var(--primary-dk);font-size:12.5px;font-weight:800;cursor:pointer;padding:0 12px;font-family:inherit}
   .cb-exoquit::after{content:"";position:absolute;inset:-5px}
   .cb-exoquit:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* MICRO-ANIMATIONS (v4.29.0, demande utilisateur) — NON BLOQUANTES : fond/transform/opacité
+     seulement, aucun verrou d'entrée, l'app reste utilisable pendant l'effet ; inertes sous
+     prefers-reduced-motion (les keyframes ne sont posées que sous no-preference). */
+  @media (prefers-reduced-motion:no-preference){
+    #crisisBand.exo-anim{animation:exoSlide .45s ease}
+    #crisisBand.exo-anim .cb-tag{animation:exoPop .3s ease}
+    main.back-anim{animation:secInL .28s ease}
+    .ov-block.cx-return{animation:cxReturn .3s ease}
+  }
+  @keyframes exoSlide{from{background-position:-44px 0}to{background-position:0 0}}
+  @keyframes exoPop{from{transform:scale(.85);opacity:0}to{transform:none;opacity:1}}
+  @keyframes cxReturn{from{opacity:.35;transform:translateX(-14px)}to{opacity:1;transform:none}}
   #crisisBand .cb-tag.exo,#hdrCrisis.exo{color:var(--primary-dk)}
   #crisisBand .cb-tag.exo{background:var(--primary-soft);border:1px dashed var(--primary);border-radius:6px;padding:2px 8px}
   #cbTimers .seg.glb.exo .seg-sess{color:var(--primary-dk)}
   .sess-gh{margin:12px 2px 4px;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft)}
-  .sess-exotag,.tag.exo2{font-size:10px;font-weight:800;letter-spacing:.5px;color:var(--primary-dk);background:var(--primary-soft);border:1px dashed var(--primary);border-radius:6px;padding:1px 6px;white-space:nowrap}
-  .tag.exo2{font-size:11px;padding:2px 8px}
+  .sess-exotag{font-size:11px;font-weight:800;letter-spacing:.5px;color:var(--primary-dk);background:var(--primary-soft);border:1px dashed var(--primary);border-radius:6px;padding:1px 6px;white-space:nowrap}
   .last-sess.exo{border-left-color:var(--primary)}
   .last-sess.exo .lsr-ic{color:var(--primary-dk);font-weight:800}
   .last-sess.exo .lsr-tx b{color:var(--primary-dk)}
@@ -2413,8 +2432,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .seg{position:relative;display:flex;gap:8px}
   .seg-pill{position:absolute;top:0;bottom:0;left:0;width:calc(50% - 4px);background:var(--primary-soft);border-radius:22px;transform:translateX(0);transition:transform .3s cubic-bezier(.3,1.2,.4,1);pointer-events:none}
   .seg.i1 .seg-pill{transform:translateX(calc(100% + 8px))}
-  .seg-btn{flex:1;position:relative;display:flex;align-items:center;justify-content:center;gap:9px;min-height:44px;border-radius:22px;border:0;background:none;font-family:inherit;font-size:14px;font-weight:600;color:var(--ink-soft);cursor:pointer;transition:color .3s}
-  .seg-btn.on{color:var(--primary-dk);font-weight:800}
+  .seg-btn{flex:1;position:relative;display:flex;align-items:center;justify-content:center;gap:9px;min-height:44px;border-radius:22px;border:0;background:none;font-family:inherit;font-size:14px;font-weight:700;color:var(--ink-soft);cursor:pointer;transition:color .3s}
+  .seg-btn.on{color:var(--primary-dk)}   /* graisse CONSTANTE (v4.29.0) : le mot ne bouge pas */
   .seg-btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   #tabBar .seg{max-width:560px;margin:0 auto}   /* skin tab bar : plafond + centrage */
   #createSeg{margin:2px 0 16px}                  /* skin dialogue Créer : respiration */
@@ -3244,7 +3263,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.28.0';
+const APP_VERSION='4.29.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -4049,13 +4068,16 @@ async function startExercise(f){
   freshRuntime(f,null);Runtime.fiche=f;liveSessions[f.id]=Runtime;
   Runtime.exercise=true;
   state.flowEnded=false;state.ovVerify=null;state.confOpen=undefined;
-  render();window.scrollTo(0,0);}
+  render();window.scrollTo(0,0);_exoPulse();}
 /* QUITTER L'EXERCICE (v4.28.0, demande utilisateur) : sortie DIRECTE sur le placard. Avant la
    1ʳᵉ action il n'y a rien à archiver — on repose une fiche neuve ; après, MÊME dialogue
    « Terminer » que le menu ⋯ (une action dit sa portée, et la porte de sortie reste unique). */
+function _exoPulse(){const cb=document.getElementById('crisisBand');if(!cb)return;
+  cb.classList.remove('exo-anim');void cb.offsetWidth;cb.classList.add('exo-anim');
+  setTimeout(()=>cb.classList.remove('exo-anim'),600);}
 async function quitExercise(){
   if(!Runtime.exercise)return;
-  if(!Runtime.started){const f=Runtime.fiche;freshRuntime(f,null);if(f)liveSessions[f.id]=Runtime;state.flowEnded=false;render();return;}
+  if(!Runtime.started){const f=Runtime.fiche;freshRuntime(f,null);if(f)liveSessions[f.id]=Runtime;state.flowEnded=false;render();_exoPulse();return;}
   endCurrentSession();}
 {const qb=document.getElementById('cbExoQuit');if(qb)qb.onclick=quitExercise;}
 function cxEnter(f,target){
@@ -4084,6 +4106,8 @@ function cxResume(f,backId){
   if(Runtime.started)persistLive(Runtime);
   if(state.readMode==='overview'&&hasFlow(f)){renderOvOnly();ovScrollTo(backId);}
   else render();
+  {const cards=document.querySelectorAll('.ov-wrap .ov-block');const last=cards[cards.length-1];
+   if(last){last.classList.add('cx-return');last.addEventListener('animationend',()=>last.classList.remove('cx-return'),{once:true});}}
   _rmSync();}
 const cxModal=document.getElementById('cxModal');
 bindModalDismiss(cxModal,closeCxDlg);
@@ -5642,10 +5666,10 @@ function applyViewChrome(){
      const hc=document.getElementById('hdrCrisis');
      hc.textContent=state.previewFrom?'■ Aperçu':(exo?'▲ Exercice':'■ Crise');
      hc.classList.toggle('exo',exo);
-     const dk=document.getElementById('crisisDock');if(dk)dk.classList.toggle('exo',exo);
+     document.querySelector('header.bar').classList.toggle('exo',exo);
      const qb=document.getElementById('cbExoQuit');if(qb)qb.hidden=!exo||!!state.previewFrom;}
    else {cb.classList.remove('exo');
-     const dk=document.getElementById('crisisDock');if(dk)dk.classList.remove('exo');}
+     document.querySelector('header.bar').classList.remove('exo');}
    // Accès permanent au Plan : seulement là où un plan existe (fiche À ALGORITHME), hors aperçu
    // de brouillon, et hors mode STATIQUE — où le tableau EST déjà la vue d'ensemble (doctrine
    // v4.13.0 : pas de panneau « Algorithme » en statique). Fermer la feuille si elle survivait
@@ -6200,6 +6224,7 @@ function renderProtocolRead(){
         const hb=document.getElementById('hdrBack');if(hb){hb.classList.add('guarded');setTimeout(()=>hb.classList.remove('guarded'),700);}
         state.protocol=null;
         if(org.kind==='p')openProtocolRead(org.id);else openRead(org.id);
+        _backAnim();
       }else{state.view='library';state.protocol=null;render();}};
   }
   // Menu ⋯ (SPEC §4) — a remplacé la barre « Autorat » de bas de page.
@@ -6417,6 +6442,8 @@ function relFieldsetHtml(entity){
    dispositif, jamais laissé à la mémoire ; les bandeaux de l'accueil restent la redondance,
    mais ils n'existent que si une session a DÉMARRÉ — une fiche consultée sans session n'y
    laisse aucune trace. Plafond 8 ; la pile est vidée au retour à l'accueil. */
+function _backAnim(){main.classList.remove('back-anim');void main.offsetWidth;
+  main.classList.add('back-anim');main.addEventListener('animationend',()=>main.classList.remove('back-anim'),{once:true});}
 function pushReadStack(o){state.readStack=state.readStack||[];
   const top=state.readStack[state.readStack.length-1];
   if(top&&top.id===o.id)return;
@@ -7372,8 +7399,7 @@ function renderRead(){
   main.innerHTML=`
     ${gridOpen}
     <div class="read-head"><h2>${esc(f.title)||'Sans titre'}</h2></div>
-    <div class="read-meta">${f.libraryId?`<span class="tag libtag" title="Bibliothèque partagée">${uiIcon('book',12)}${esc(libName(f.libraryId)||'Partagée')}</span>`:''}${statusChip(f.status,true,{validation:f.validation})}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo title="Reste à compléter : ${esc(sp.join(' · '))} — remplacez les mentions « à compléter » par vos informations locales.">△ À compléter</span>`:'';})()}${catTag(f)}${f.code?`<span class="card-date" style="font-family:var(--mono)">${esc(f.code)}</span>`:''}<span class="card-date${staleDate(f.validation)?' stale':''}">${esc(fmtDate(f.validation))}</span>${f.libraryId&&f.updatedBy?`<span class="card-date" title="Auteur de la dernière modification (pas forcément de toute la fiche)">· dernière modification par ${esc(f.updatedBy)}</span>`:''}${(()=>{const ts=sessions.reduce((m,x)=>(x.ficheId===f.id&&x.exercise&&x.savedAt>m)?x.savedAt:m,0);
-      return ts?`<span class="tag exo2" title="Dernière répétition en mode exercice">▲ Exercice : ${esc(new Date(ts).toLocaleDateString('fr-FR'))}</span>`:'';})()}</div>
+    <div class="read-meta">${f.libraryId?`<span class="tag libtag" title="Bibliothèque partagée">${uiIcon('book',12)}${esc(libName(f.libraryId)||'Partagée')}</span>`:''}${statusChip(f.status,true,{validation:f.validation})}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo title="Reste à compléter : ${esc(sp.join(' · '))} — remplacez les mentions « à compléter » par vos informations locales.">△ À compléter</span>`:'';})()}${catTag(f)}${f.code?`<span class="card-date" style="font-family:var(--mono)">${esc(f.code)}</span>`:''}<span class="card-date${staleDate(f.validation)?' stale':''}">${esc(fmtDate(f.validation))}</span>${f.libraryId&&f.updatedBy?`<span class="card-date" title="Auteur de la dernière modification (pas forcément de toute la fiche)">· dernière modification par ${esc(f.updatedBy)}</span>`:''}</div>
     ${f.status==='draft'?`<div class="notice">${uiIcon('warn',15)}<div><b>Brouillon</b> — cette fiche n'a pas encore été validée pour l'usage clinique.</div></div>`:''}
     ${f.status==='review'?`<div class="notice">${uiIcon('warn',15)}<div><b>À relire</b> — cette fiche est signalée à relire avant validation.</div></div>`:''}
     ${modeTopSegH}
@@ -7435,6 +7461,7 @@ function bindReadEvents(f,blk,cur){
         const hb=document.getElementById('hdrBack');if(hb){hb.classList.add('guarded');setTimeout(()=>hb.classList.remove('guarded'),700);}
         if(org.kind==='p'){state.fiche=null;state.showFlow=false;openProtocolRead(org.id);}
         else openRead(org.id);
+        _backAnim();
       }else{state.view='library';state.fiche=null;state.showFlow=false;render();}};
   }
   // Confirmation diagnostique repliable (V5) : bascule mémorisée pour la fiche affichée.
@@ -7467,7 +7494,8 @@ function bindReadEvents(f,blk,cur){
     ...(hasFlow(f)?[{label:'Schéma de l’algorithme',ic:uiIcon('flow',16),sub:'plein écran, zoom',act:()=>openFlowFull(f)}]:[]),
     ...(annexRowHtml(f)?[{label:'Consulter',ic:uiIcon('book',16),sub:'surveillances, documents…',act:()=>openRefSheet()}]:[]),
     'sep',
-    {label:'Répéter en exercice',ic:'▲',sub:'aucune trace clinique',act:()=>startExercise(f)},
+    {label:'Répéter en exercice',ic:'▲',sub:(()=>{const ts=sessions.reduce((m,x)=>(x.ficheId===f.id&&x.exercise&&x.savedAt>m)?x.savedAt:m,0);
+      return ts?'dernier : '+new Date(ts).toLocaleDateString('fr-FR'):'aucune trace clinique';})(),act:()=>startExercise(f)},
     ...(hasFlow(f)?[{label:'Recommencer le parcours',ic:uiIcon('undo',16),sub:'repart du début',act:()=>restartCourse(f)}]:[]),
     ...(()=>{const n=sessions.filter(s=>s.ficheId===f.id&&s.id!==Runtime.sessionId).length;
       return n?[{label:'Historique des sessions ('+n+')',ic:uiIcon('archive',16),act:()=>openSessHist(f.id)}]:[];})(),
@@ -7878,6 +7906,39 @@ bindModalDismiss(planModal,closePlanSheet);
      w.addEventListener('animationend',off,{once:true});setTimeout(off,500);}
    const on=seg.querySelector('.seg-btn.on');if(on)on.focus({preventScroll:true});};
   seg.querySelectorAll('[data-readmode]').forEach(b=>b.onclick=()=>go(b.dataset.readmode));
+  /* GLISSER LA PASTILLE (v4.29.0, HIG iOS — demande utilisateur) : sur un sélecteur segmenté la
+     pastille se laisse TRAÎNER au doigt, engagement au RELÂCHEMENT (≥ moitié du trajet). Direct
+     manipulation : la pastille suit le doigt même sous prefers-reduced-motion (c'est le geste
+     lui-même, pas un mouvement autonome) ; seul le rattrapage final passe par la transition CSS.
+     Un tap reste un tap (seuil 6 px) ; un drag n'émet jamais le click du bouton sous le doigt
+     (garde isTrusted). Vaut AUSSI pour la tab bar Aides/Protocoles et le dialogue Créer : les
+     trois sont des sélecteurs segmentés à pastille (pas de vraies tab bars iOS), et le commit ne
+     se fait qu'au relâchement — rien de lourd ne se re-rend pendant le geste. */
+  window.bindSegDrag=function(root){
+    if(!root)return;const pill=root.querySelector('.seg-pill');if(!pill)return;
+    let x0=0,drag=false,pid=null,wv=0,base=0,cur=0,just=false;
+    root.addEventListener('pointerdown',e=>{
+      if(e.button)return;const btns=root.querySelectorAll('.seg-btn');if(btns.length<2)return;
+      x0=e.clientX;drag=false;pid=e.pointerId;cur=base=root.classList.contains('i1')?1:0;
+      wv=btns[1].getBoundingClientRect().left-btns[0].getBoundingClientRect().left;});
+    root.addEventListener('pointermove',e=>{
+      if(pid!==e.pointerId||wv<=0)return;
+      const dx=e.clientX-x0;
+      if(!drag){if(Math.abs(dx)<6)return;drag=true;try{root.setPointerCapture(pid);}catch(_){}pill.style.transition='none';}
+      cur=Math.max(0,Math.min(1,base+dx/wv));
+      pill.style.transform='translateX('+(cur*wv/zoomF())+'px)';});
+    const end=e=>{
+      if(pid!==e.pointerId)return;pid=null;
+      if(!drag)return;
+      drag=false;pill.style.transition='';pill.style.transform='';
+      just=true;setTimeout(()=>{just=false;},120);
+      const to=cur>=0.5?1:0;
+      if(to!==base){const btns=root.querySelectorAll('.seg-btn');if(btns[to])btns[to].click();}};
+    root.addEventListener('pointerup',end);root.addEventListener('pointercancel',end);
+    root.addEventListener('click',e=>{if(just&&e.isTrusted){e.stopPropagation();e.preventDefault();}},true);};
+  bindSegDrag(seg);
+  bindSegDrag(document.getElementById('tabSeg'));
+  bindSegDrag(document.getElementById('createSeg'));
   seg.onkeydown=e=>{if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;e.preventDefault();go(e.key==='ArrowLeft'?'dynamic':'static');};}}
 /* ===== FEUILLE « CONSULTER » (v4.23.0) =====
    Deux natures de contenu, à ne pas confondre :

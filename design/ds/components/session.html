@@ -364,7 +364,10 @@
   #modeSeg .seg-pill{width:calc(50% - 3px);left:3px;top:3px;bottom:3px;border-radius:999px;background:var(--primary-soft);border:1px solid var(--primary)}
   #modeSeg.i1 .seg-pill{transform:translateX(100%)}
   #modeSeg .seg-btn{position:relative;z-index:1;padding:6px 13px;border:0;background:none;border-radius:999px;font-family:inherit;font-size:13px;font-weight:700;color:var(--ink-soft);cursor:pointer;min-height:38px;white-space:nowrap}
-  #modeSeg .seg-btn.on{color:var(--primary-dk);font-weight:800}
+  /* v4.29.0 (retour utilisateur « le texte se décale ») : la graisse ne change PLUS avec
+     l'état — 700→800 élargissait le mot, les deux libellés bougeaient à chaque bascule.
+     L'état est porté par la pastille (teinte + bordure) et la couleur : ça suffit. */
+  #modeSeg .seg-btn.on{color:var(--primary-dk)}
   #modeSeg .seg-btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   @media (max-width:429.98px){#modeSeg .seg-btn{padding:6px 10px;font-size:12.5px}}
   /* RANGÉE D'ÉTAT — l'affichage : ce qui se passe. Collée SOUS la rangée de commandes : son `top`
@@ -1054,18 +1057,34 @@
      Et le placard ne quitte plus l'écran : le QUAI COLLANT (#crisisDock.exo) porte les mêmes
      hachures (les segments reprennent un fond plein pour rester lisibles dessus), et le relais
      d'en-tête #hdrCrisis.exo devient la même pilule bleu pointillé que .cb-tag.exo. */
-  #crisisBand.exo,#crisisDock.exo{background:repeating-linear-gradient(-45deg,var(--surface),var(--surface) 14px,var(--primary-soft) 14px,var(--primary-soft) 22px)}
-  #crisisDock.exo .seg{background:var(--surface)}
-  #hdrCrisis.exo{background:var(--primary-soft);border:1px dashed var(--primary);border-radius:6px;padding:2px 8px;letter-spacing:.6px}
+  #crisisBand.exo{background:repeating-linear-gradient(-45deg,var(--surface),var(--surface) 14px,var(--primary-soft) 14px,var(--primary-soft) 22px)}
+  /* v4.29.0 (retour utilisateur : hachurer le QUAI était illisible — « immonde ») : la hachure
+     SUIT LE TITRE. Tant que le bandeau-titre est visible, lui seul est hachuré ; au pixel où il
+     passe sous la barre (.ttl-on, mécanique du relais #hdrCrisis), c'est L'EN-TÊTE qui prend la
+     hachure — même texture, même relais que le titre lui-même. Le quai reste une zone d'état
+     PROPRE (les chiffres n'ont pas à vivre sur une texture). */
+  header.bar.exo.ttl-on{background:repeating-linear-gradient(-45deg,var(--surface),var(--surface) 14px,var(--primary-soft) 14px,var(--primary-soft) 22px)}
+  #hdrCrisis.exo{background:var(--surface);border:1px dashed var(--primary);border-radius:6px;padding:2px 8px;letter-spacing:.6px}
   .cb-exoquit{flex:none;position:relative;min-height:36px;border:1px dashed var(--primary);border-radius:9px;background:var(--surface);color:var(--primary-dk);font-size:12.5px;font-weight:800;cursor:pointer;padding:0 12px;font-family:inherit}
   .cb-exoquit::after{content:"";position:absolute;inset:-5px}
   .cb-exoquit:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* MICRO-ANIMATIONS (v4.29.0, demande utilisateur) — NON BLOQUANTES : fond/transform/opacité
+     seulement, aucun verrou d'entrée, l'app reste utilisable pendant l'effet ; inertes sous
+     prefers-reduced-motion (les keyframes ne sont posées que sous no-preference). */
+  @media (prefers-reduced-motion:no-preference){
+    #crisisBand.exo-anim{animation:exoSlide .45s ease}
+    #crisisBand.exo-anim .cb-tag{animation:exoPop .3s ease}
+    main.back-anim{animation:secInL .28s ease}
+    .ov-block.cx-return{animation:cxReturn .3s ease}
+  }
+  @keyframes exoSlide{from{background-position:-44px 0}to{background-position:0 0}}
+  @keyframes exoPop{from{transform:scale(.85);opacity:0}to{transform:none;opacity:1}}
+  @keyframes cxReturn{from{opacity:.35;transform:translateX(-14px)}to{opacity:1;transform:none}}
   #crisisBand .cb-tag.exo,#hdrCrisis.exo{color:var(--primary-dk)}
   #crisisBand .cb-tag.exo{background:var(--primary-soft);border:1px dashed var(--primary);border-radius:6px;padding:2px 8px}
   #cbTimers .seg.glb.exo .seg-sess{color:var(--primary-dk)}
   .sess-gh{margin:12px 2px 4px;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft)}
-  .sess-exotag,.tag.exo2{font-size:10px;font-weight:800;letter-spacing:.5px;color:var(--primary-dk);background:var(--primary-soft);border:1px dashed var(--primary);border-radius:6px;padding:1px 6px;white-space:nowrap}
-  .tag.exo2{font-size:11px;padding:2px 8px}
+  .sess-exotag{font-size:11px;font-weight:800;letter-spacing:.5px;color:var(--primary-dk);background:var(--primary-soft);border:1px dashed var(--primary);border-radius:6px;padding:1px 6px;white-space:nowrap}
   .last-sess.exo{border-left-color:var(--primary)}
   .last-sess.exo .lsr-ic{color:var(--primary-dk);font-weight:800}
   .last-sess.exo .lsr-tx b{color:var(--primary-dk)}
@@ -2145,8 +2164,8 @@
   .seg{position:relative;display:flex;gap:8px}
   .seg-pill{position:absolute;top:0;bottom:0;left:0;width:calc(50% - 4px);background:var(--primary-soft);border-radius:22px;transform:translateX(0);transition:transform .3s cubic-bezier(.3,1.2,.4,1);pointer-events:none}
   .seg.i1 .seg-pill{transform:translateX(calc(100% + 8px))}
-  .seg-btn{flex:1;position:relative;display:flex;align-items:center;justify-content:center;gap:9px;min-height:44px;border-radius:22px;border:0;background:none;font-family:inherit;font-size:14px;font-weight:600;color:var(--ink-soft);cursor:pointer;transition:color .3s}
-  .seg-btn.on{color:var(--primary-dk);font-weight:800}
+  .seg-btn{flex:1;position:relative;display:flex;align-items:center;justify-content:center;gap:9px;min-height:44px;border-radius:22px;border:0;background:none;font-family:inherit;font-size:14px;font-weight:700;color:var(--ink-soft);cursor:pointer;transition:color .3s}
+  .seg-btn.on{color:var(--primary-dk)}   /* graisse CONSTANTE (v4.29.0) : le mot ne bouge pas */
   .seg-btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   #tabBar .seg{max-width:560px;margin:0 auto}   /* skin tab bar : plafond + centrage */
   #createSeg{margin:2px 0 16px}                  /* skin dialogue Créer : respiration */

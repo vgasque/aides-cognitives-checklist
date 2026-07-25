@@ -1,5 +1,39 @@
 # Journal des modifications
 
+## [4.29.0] — 2026-07-25
+Cinq retours utilisateur : le placard exercice suit le titre, le sélecteur ne bouge plus d'un
+pixel, la pastille se glisse au doigt, trois micro-animations, et la méta de lecture se désencombre.
+
+### Modifié
+- **Le placard exercice SUIT LE TITRE** (retour utilisateur : hachurer le quai était illisible —
+  annulé) : tant que le bandeau-titre est visible, lui seul porte la hachure ; au pixel où il
+  passe sous la barre, c'est **l'en-tête** qui la prend — même mécanique de relais que la pilule
+  « ▲ Exercice ». Le quai redevient une zone d'état propre : des chiffres n'ont pas à vivre sur
+  une texture. Vérifié en capture dans les deux thèmes.
+- **Guidé/Statique : les libellés ne bougent plus d'un pixel** à la bascule — la graisse passait
+  de 700 à 800 sur le segment actif, ce qui élargissait le mot et décalait les deux libellés.
+  Graisse constante partout (tab bar comprise, qui passait de 600 à 800) : l'état est porté par
+  la pastille et la couleur. Mesuré à 0 px par le harnais.
+- **La méta de lecture perd la pastille « ▲ Exercice : date »** (retour utilisateur : elle
+  captait l'œil à côté de la date de validation pour une information non clinique) — la date du
+  dernier exercice vit désormais en sous-titre de « Répéter en exercice » au menu ⋯
+  (« dernier : ‹date› », sinon « aucune trace clinique ») et dans l'historique scindé.
+
+### Ajouté
+- **Glisser la pastille au doigt** (HIG iOS) sur les trois sélecteurs segmentés — Guidé/Statique,
+  la tab bar Aides/Protocoles de l'accueil et le dialogue Créer (aucun n'est une vraie tab bar
+  iOS : le geste y fait sens partout). Engagement au relâchement seulement (≥ moitié du trajet —
+  rien de lourd ne se re-rend pendant le geste), un tap reste un tap (seuil 6 px), un drag
+  n'émet jamais le clic du bouton sous le doigt.
+- **Micro-animations non bloquantes** (transform/opacité/fond seulement, l'app reste utilisable
+  pendant l'effet, inertes sous `prefers-reduced-motion`) : entrée/sortie du mode exercice
+  (glissement de la hachure + pop de la pilule), retour par la pile d'origine (la vue entre dans
+  le sens du geste), reprise après complication (la carte de reprise glisse en place).
+
+`audit-modeseg` mesure désormais l'immobilité des libellés et rejoue un drag réel ;
+`audit-exercice` vérifie le placard suiveur (en-tête hachuré au défilement, quai propre).
+503 tests, 11 harnais verts.
+
 ## [4.28.0] — 2026-07-25
 Quatre retours utilisateur d'un coup : pile de retour, mode lecteur enrichi, placard exercice
 visible partout + bouton Quitter, menu ⋯ réordonné.

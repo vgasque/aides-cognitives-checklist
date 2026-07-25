@@ -427,10 +427,15 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   rouge ni ambre (ce n'est pas une alerte), et le « ● Session » VERT reste réservé au réel (le
   chrono d'état dit « ▲ Exercice », `.seg.glb.exo`). **v4.28.0 (deux retours utilisateur)** :
   les hachures alternent `--surface`/`--primary-soft` (surface/surface-2 était quasi invisible en
-  SOMBRE — delta mesuré par le harnais dans les DEUX thèmes ; le registre bleu porte la texture) ;
-  le placard NE QUITTE PLUS L'ÉCRAN — le quai collant est hachuré aussi (`#crisisDock.exo`, les
-  `.seg` reprennent un fond plein pour rester lisibles) et `#hdrCrisis.exo` devient la même pilule
-  bleu pointillé que `.cb-tag.exo` ; bouton « **Quitter l'exercice…** » sur le bandeau
+  SOMBRE — delta mesuré par le harnais dans les DEUX thèmes ; le registre bleu porte la texture).
+  **v4.29.0 — LE PLACARD SUIT LE TITRE (retour utilisateur : hachurer le QUAI était illisible,
+  « immonde » — annulé)** : tant que le bandeau-titre est visible, LUI SEUL est hachuré ; au pixel
+  où il passe sous la barre, c'est L'EN-TÊTE qui prend la hachure (`header.bar.exo.ttl-on` — même
+  mécanique de relais que `#hdrCrisis`, qui reste la pilule bleu pointillé sur fond `--surface`
+  plein). Le QUAI reste une zone d'état PROPRE : des chiffres n'ont pas à vivre sur une texture.
+  Micro-animation d'entrée/sortie du mode (`_exoPulse` : glissement de la hachure + pop de la
+  pilule, transform/opacité/fond seulement, inerte sous reduced-motion) ;
+  bouton « **Quitter l'exercice…** » sur le bandeau
   (`#cbExoQuit` → `quitExercise` : avant la 1ʳᵉ action on repose une fiche neuve, après c'est le
   MÊME dialogue Terminer que le menu ⋯ — titré « Terminer l'exercice ? » par `confirmEndSession`,
   qui dit désormais la portée). Le drapeau `Runtime.exercise` est posé par
@@ -440,8 +445,11 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   v3, jamais synchro — le drapeau y est donc sûr) ; l'historique les SÉPARE en deux groupes
   « Sessions cliniques (n) » / « Exercices (n) » avec badge `▲ EXERCICE` par rangée (jamais
   mélangés) ; carte-bilan « Exercice terminé » au registre exercice (`.last-sess.exo`) ;
-  compte-rendu FILIGRANÉ « EXERCICE » + méta « répétition sans patient ». La méta de fiche
-  affiche « ▲ Exercice : ‹date› » SEULEMENT si un exercice existe — **AUCUN rappel « jamais
+  compte-rendu FILIGRANÉ « EXERCICE » + méta « répétition sans patient ». **v4.29.0 : PAS de
+  pastille « ▲ Exercice : date » dans la méta de lecture** (retour utilisateur : elle captait
+  l'œil à côté de la date de validation pour une information non clinique) — la date du dernier
+  exercice vit en SOUS-TITRE de la rangée « Répéter en exercice » du menu ⋯ (« dernier : ‹date› »,
+  sinon « aucune trace clinique ») et dans l'historique scindé. **AUCUN rappel « jamais
   répétée », aucune relance d'aucune sorte (décision utilisateur : pas de nudge)** ; le harnais
   vérifie l'ABSENCE de ce texte dans le DOM rendu (piège : `document.body.textContent` remonte
   le `<script>` inline — borner la sonde à `main`). **COMPTE-RENDU ENRICHI POUR TOUTES LES
@@ -463,7 +471,10 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   même mécanique `_backGuardT`/`.guarded` que le retour d'aperçu) : deux taps nerveux ne
   traversent JAMAIS deux niveaux — on ne se retrouve pas à la bibliothèque sans l'avoir voulu ;
   la garde est vérifiée par les DEUX handlers (fiche et protocole), origine supprimée
-  entre-temps = repli bibliothèque silencieux. Harnais : `scripts/audit-lecteur.mjs`.
+  entre-temps = repli bibliothèque silencieux. Micro-animations v4.29.0 (non bloquantes,
+  inertes sous reduced-motion) : le retour par la pile fait entrer la vue d'origine dans le sens
+  du geste (`main.back-anim`, keyframes `secInL` réutilisées) et la carte de reprise d'une
+  complication glisse en place (`.ov-block.cx-return`). Harnais : `scripts/audit-lecteur.mjs`.
 - **Mode statique (v4.13.0, DOCUMENT complet v4.14.0)** : TOUTE l'aide en TABLEAU compact
   façon aide SFAR/CAMR — cellules télégraphiques carrelées à joint 3 px. `svExtras` (v4.14.0)
   absorbe les SECTIONS de la fiche en cellules INERTES : confirmation + différentiels côte à
@@ -674,8 +685,19 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   (3) Le fond de la pastille ne peut pas être `--surface` : il **s'inverse** d'un thème à l'autre
   (plus clair que la piste en clair, plus SOMBRE qu'elle en sombre — elle s'y lisait comme
   inactive). Registre de SÉLECTION (teinte `--primary-soft` + bordure `--primary`), lisible dans
-  les deux sens de contraste. Couvert par `scripts/audit-modeseg.mjs`, qui mesure l'écart
-  pastille/segment actif dans les DEUX thèmes.
+  les deux sens de contraste. **(4) v4.29.0 — la GRAISSE ne change pas avec l'état** :
+  `.seg-btn.on` en 800 contre 700 élargissait le mot, les DEUX libellés se décalaient à chaque
+  bascule (retour utilisateur) — l'état est porté par la pastille + la couleur, graisse constante
+  partout (vaut aussi pour la tab bar, qui passait de 600 à 800). **GLISSER LA PASTILLE (v4.29.0,
+  HIG iOS, demande utilisateur)** : `bindSegDrag` — la pastille se laisse traîner au doigt (seuil
+  6 px, un tap reste un tap), commit au RELÂCHEMENT seulement (≥ moitié du trajet — rien de lourd
+  ne se re-rend pendant le geste), un drag n'émet jamais le click du bouton sous le doigt (garde
+  `isTrusted` ; le commit programmatique passe). Posé sur `#modeSeg`, la tab bar `#tabSeg`
+  Aides/Protocoles ET `#createSeg` : les trois sont des sélecteurs segmentés à pastille (pas de
+  vraies tab bars iOS — le glisser y fait sens partout). La pastille suit le doigt MÊME sous
+  reduced-motion (direct manipulation = le geste lui-même, pas un mouvement autonome) ; seul le
+  rattrapage final passe par la transition CSS. Couvert par `scripts/audit-modeseg.mjs` : écart
+  pastille/segment actif dans les DEUX thèmes + immobilité des libellés à la bascule + drag réel.
   `#modeSeg` vit hors de `main` : câblé UNE FOIS, il survit aux re-rendus — donc plus besoin de
   rejouer le glissement de la pastille (`.seg-replay` n'a plus lieu d'être ici).
   **`--ctrl-h`** (posée par `syncHdrScroll`, ÷ `zoomF()`) = hauteur de la rangée de commandes : le

@@ -28,12 +28,21 @@ const e1=await p.evaluate(async()=>{
  const cb=document.getElementById('crisisBand');
  return {row:true,exo:cb.classList.contains('exo'),tag:cb.querySelector('.cb-tag').textContent,
   flag:Runtime.exercise,started:Runtime.started,
-  dock:document.getElementById('crisisDock').classList.contains('exo'),
   hatch:getComputedStyle(cb).backgroundImage.includes('repeating')};});
 t('« Répéter en exercice » au menu ⋯', e1.row);
 t('bandeau HACHURÉ + « ▲ Exercice » (jamais confondable)', e1.exo&&/Exercice/.test(e1.tag)&&e1.hatch, JSON.stringify(e1));
-t('le PLACARD ne quitte pas l’écran : quai collant hachuré (#crisisDock.exo)', e1.dock);
 t('le drapeau est posé AVANT le démarrage (session pas encore démarrée)', e1.flag&&!e1.started);
+// v4.29.0 : le placard SUIT LE TITRE (retour utilisateur — hachurer le quai était illisible) :
+// au défilement, l'EN-TÊTE prend la hachure (.ttl-on), le quai reste PROPRE.
+const e1c=await p.evaluate(async()=>{
+ window.scrollTo(0,700);await new Promise(r=>setTimeout(r,400));
+ const h=document.querySelector('header.bar');
+ const res={ttl:h.classList.contains('ttl-on'),exo:h.classList.contains('exo'),
+  bg:getComputedStyle(h).backgroundImage.includes('repeating'),
+  dockNet:getComputedStyle(document.getElementById('crisisDock')).backgroundImage==='none'};
+ window.scrollTo(0,0);await new Promise(r=>setTimeout(r,300));
+ return res;});
+t('le placard SUIT LE TITRE : en-tête hachuré au défilement, quai PROPRE', e1c.ttl&&e1c.exo&&e1c.bg&&e1c.dockNet, JSON.stringify(e1c));
 // Lisibilité des hachures DANS LES DEUX THÈMES (v4.28.0, retour utilisateur : surface/surface-2
 // était quasi invisible en sombre) : delta mesuré entre les deux bandes (surface vs primary-soft).
 const e1b=await p.evaluate(async()=>{
@@ -107,8 +116,12 @@ t('historique : groupe « Exercices (1) », badge sur la rangée', e5.gh.some(x=
 const e6=await p.evaluate(async()=>{
  openRead(window.__fid);await new Promise(r=>setTimeout(r,450));
  const pill=document.querySelector('.read-meta .tag.exo2');
- return {pill:pill?pill.textContent:null,jamais:document.querySelector('main').textContent.indexOf('jamais répétée')>=0};});
-t('méta : « ▲ Exercice : ‹date› » affiché', !!e6.pill&&/Exercice :/.test(e6.pill), ''+e6.pill);
+ document.getElementById('hdrMore').click();await new Promise(r=>setTimeout(r,250));
+ const row=[...document.querySelectorAll('#moreMenu .mm-row')].find(x=>/Répéter en exercice/.test(x.textContent));
+ const sub=row?row.textContent.replace(/\s+/g,' '):'';
+ document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));await new Promise(r=>setTimeout(r,200));
+ return {pill:!!pill,sub,jamais:document.querySelector('main').textContent.indexOf('jamais répétée')>=0};});
+t('méta SANS pastille exercice (v4.29.0 : elle captait l’œil pour rien) — la date vit au menu ⋯', e6.pill===false&&/dernier :/.test(e6.sub), JSON.stringify({pill:e6.pill,sub:e6.sub}));
 t('AUCUN rappel « jamais répétée » nulle part (décision utilisateur)', e6.jamais===false);
 console.log('=== session RÉELLE : rien ne change, compte-rendu enrichi aussi ===');
 const e7=await p.evaluate(async()=>{

@@ -32,6 +32,20 @@ console.log('  STATIQUE actif:',JSON.stringify(b));
 const ok=Math.abs(a.ecartX)<=2&&Math.abs(a.ecartL)<=2&&Math.abs(b.ecartX)<=2&&Math.abs(b.ecartL)<=2;
 console.log(ok?'  ✓ la pastille épouse le segment actif':`  ✗ DÉCALAGE : x ${a.ecartX}/${b.ecartX} px · largeur ${a.ecartL}/${b.ecartL} px`);
 if(!ok)KO++;
+/* v4.29.0 — les LIBELLÉS ne bougent pas d'un pixel à la bascule (la graisse 700→800 les
+   élargissait : « le texte se décale », retour utilisateur). Mesure : mêmes boîtes avant/après. */
+const shift=Math.max(...a.boutons.flatMap((x,i)=>[Math.abs(x.x-b.boutons[i].x),Math.abs(x.l-b.boutons[i].l)]));
+console.log(shift<=0.5?'  ✓ libellés immobiles à la bascule (0 px)':`  ✗ LIBELLÉS DÉCALÉS : ${shift} px`);
+if(shift>0.5)KO++;
+/* v4.29.0 — GLISSER la pastille (HIG iOS) : drag de gauche à droite -> mode statique. */
+await p.evaluate(async()=>{[...document.querySelectorAll('#modeSeg [data-readmode]')].find(x=>x.dataset.readmode==='dynamic').click();await new Promise(r=>setTimeout(r,500));});
+const sb=await p.locator('#modeSeg').boundingBox();
+await p.mouse.move(sb.x+25,sb.y+sb.height/2);await p.mouse.down();
+await p.mouse.move(sb.x+sb.width-15,sb.y+sb.height/2,{steps:8});await p.mouse.up();
+await p.waitForTimeout(600);
+const drag=await p.evaluate(()=>state.readMode);
+console.log(drag==='static'?'  ✓ drag de la pastille -> Statique (commit au relâchement)':`  ✗ drag sans effet (readMode=${drag})`);
+if(drag!=='static')KO++;
 await p.close();}
 await br.close();srv.close();
 console.log(KO?`\n${KO} thème(s) en échec`:'\n2/2 thèmes OK — pastille alignée');
