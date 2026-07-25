@@ -1,5 +1,16 @@
 # Journal des modifications
 
+## [4.29.6] — 2026-07-26
+### Diagnostic (bande basse iOS, suite du dossier)
+- Après réinstallation de la PWA, le diag sur appareil est redevenu SAIN : `ih 874 · vv 874 ·
+  dvh 874 · sat 62 · scr 874` — la WebView couvre à nouveau l'écran entier (la géométrie était
+  bien figée à l'installation, bug iOS `black-translucent`). **Mais une bande résiduelle est
+  encore rapportée malgré ces mesures saines** : la cause est donc ailleurs (piste : padding
+  bas de sécurité des cartes ? autre fenêtre ? viewport rétréci après clavier non restauré ?).
+  La ligne de diag est CONSERVÉE dans la fenêtre Compte tant que le dossier n'est pas clos ;
+  une capture de la bande actuelle (fenêtre concernée, thème clair de préférence) est attendue
+  pour trancher.
+
 ## [4.29.5] — 2026-07-26
 ### Diagnostic (bande basse iOS, suite)
 - Le diag v4.29.4 sur l'appareil tranche : `ih 812 · vv 812 · dvh 812 · scr 874` — les trois

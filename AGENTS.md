@@ -661,7 +661,16 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   un `bottom:auto; height:calc(100dvh / var(--zf,1))` : la fenêtre s'arrête au bord réellement
   VISIBLE et suit la barre dynamique ; sans dvh, `inset:0` inchangé. Vérifié au pixel sur
   Chromium ET WebKit à 90/100/130 % ; tout NOUVEL overlay plein écran doit entrer dans cette
-  liste.
+  liste. **ÉPILOGUE (v4.29.4-6, mesuré sur appareil)** : la hauteur est en réalité pilotée par
+  `--vvh` (= `window.visualViewport.height`, tenue à jour par JS — la seule mesure qu'iOS ne
+  fausse jamais ; `100dvh` n'est que le repli avant la première mesure). Le résidu constaté
+  (WebView de 812 px sur un écran de 874 — amputée d'exactement la hauteur de la barre d'état,
+  bug iOS du mode `black-translucent` où la géométrie est FIGÉE À L'INSTALLATION de la PWA) se
+  répare en RÉINSTALLANT l'app sur l'écran d'accueil, pas en CSS : diag avant `ih/vv/dvh 812`,
+  après réinstallation `874` partout. Si une « bande morte » réapparaît en bas d'une PWA :
+  vérifier d'abord ces mesures avant de toucher au code. DOSSIER ENCORE OUVERT : une bande
+  résiduelle est rapportée MALGRÉ la géométrie saine — le diag reste dans la fenêtre Compte
+  tant que la cause n'est pas identifiée (capture attendue).
 - **SORTIE PDF UNIFIÉE (v4.24.0)** : « Exporter en PDF » doit rendre le MÊME document quel que soit
   l'appareil. Mesurée avant correction, la sortie variait sur trois axes — le ZOOM s'appliquait au
   papier (0,9 / 1 / 1,3), le RAIL s'imprimait dès que la page faisait ≥ 780 px (soit toujours sur A4
