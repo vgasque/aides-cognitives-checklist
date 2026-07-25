@@ -29,6 +29,18 @@ console.log('\n=== ✕ de la carte-bilan ===');
 t('la carte-bilan s’affiche', !!r, JSON.stringify(r));
 t('le ✕ est DANS la carte', r&&r.dansLaCarte, JSON.stringify(r));
 t('le ✕ est visible et cliquable', r&&r.visible&&r.auPointDuClic, JSON.stringify(r));
+/* v4.29.2 (retour utilisateur) : sur PETIT écran la carte passe en plusieurs lignes et le ✕
+   « dans le flux » (contournement v4.23.2) atterrissait AU MILIEU, collé à « Compte-rendu ».
+   Le ✕ est désormais ANCRÉ en haut à droite (carte position:relative) — vérifié en étroit. */
+const rN=await p.evaluate(async()=>{
+ const old=[window.innerWidth,window.innerHeight];return old;});
+await p.setViewportSize({width:360,height:740});await p.waitForTimeout(300);
+const rEtroit=await p.evaluate(()=>{const c=document.querySelector('.last-sess');if(!c)return null;
+ const x=c.querySelector('.notice-x');const cr=c.getBoundingClientRect(),xr=x.getBoundingClientRect();
+ return {hautDroit:(xr.top-cr.top)<=14&&(cr.right-xr.right)<=14,
+   dansLaCarte:xr.right<=cr.right+1&&xr.top>=cr.top-1&&xr.bottom<=cr.bottom+1};});
+t('360 px : le ✕ est ancré au COIN HAUT-DROIT de la carte', rEtroit&&rEtroit.hautDroit&&rEtroit.dansLaCarte, JSON.stringify(rEtroit));
+await p.setViewportSize({width:1000,height:820});await p.waitForTimeout(300);
 // le ✕ ferme
 const r2=await p.evaluate(async()=>{document.querySelector('.last-sess .notice-x').click();await new Promise(r=>setTimeout(r,300));
  return !!document.querySelector('.last-sess');});

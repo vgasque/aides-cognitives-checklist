@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-WN03l+R6a8heuKGi+EPA5l42+9CeFH7U0YFEZ1XjYbM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-hfPUSPVMcktaAGEDhHbWTYUXi90jFg6jdtBO2z65Eak='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1527,14 +1527,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .live-sessions{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
   /* Carte-bilan de fin de session (v4.16.3) : registre CONFIRMATION (bord gauche --ok),
      éphémère et jamais bloquante — grammaire des notices (couleur + icône + texte). */
-  .last-sess{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--surface);border:1px solid var(--done-line);border-left:4px solid var(--ok);border-radius:10px;padding:10px 12px;margin-bottom:16px;box-shadow:var(--shadow)}
+  .last-sess{position:relative;display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--surface);border:1px solid var(--done-line);border-left:4px solid var(--ok);border-radius:10px;padding:10px 40px 10px 12px;margin-bottom:16px;box-shadow:var(--shadow)}
   .last-sess .lsr-ic{flex:none;color:var(--ok);display:inline-flex}
   .last-sess .lsr-tx{flex:1;min-width:180px;font-size:13.5px;color:var(--ink)}
   .last-sess .lsr-tx b{color:var(--ok)}
-  /* Le ✕ existait depuis v4.16.3 mais était INVISIBLE : `.notice-x` est `position:absolute` et
-     `.last-sess` n'est pas `position:relative` — il se calait donc sur un ancêtre lointain, hors
-     de la carte. La carte est une rangée flex : on le remet dans le FLUX, à sa fin. */
-  .last-sess .notice-x{position:static;flex:none;margin-left:2px}
+  /* Historique du ✕ : invisible de v4.16.3 à v4.23.2 (absolute sans ancêtre positionné), remis
+     dans le FLUX en v4.23.2 — mais dès que la carte passait en plusieurs lignes (petit écran),
+     il atterrissait AU MILIEU, collé à « Compte-rendu » (retour utilisateur v4.29.2). Le geste
+     standard : carte `position:relative`, ✕ ANCRÉ en haut à droite à toutes les largeurs —
+     le padding droit de la carte lui réserve la place, le texte ne passe jamais dessous. */
+  .last-sess .notice-x{top:6px;right:6px}
   .ls-card{display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:var(--surface);border:1px solid var(--primary);border-left:3px solid var(--primary);border-radius:10px;padding:10px 12px;box-shadow:var(--shadow)}
   .ls-info{flex:1;min-width:150px;display:flex;flex-direction:column;line-height:1.25;cursor:pointer}
   .ls-info .ls-k{font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink-soft)}
@@ -2427,7 +2429,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* SPEC §6 : en dessous de 780px, les DIALOGUES passent en PLEIN ÉCRAN (100 %, sans arrondi ni
      voile) — fenêtre centrée min(480px,100%) au-dessus. La visionneuse PDF a déjà son plein écran. */
   @media (max-width:779.98px){
-    .ai-modal:not(.pdf-modal):not(.dlg-confirm){padding:0;background:var(--bg)}
+    /* Fond = celui de la CARTE (v4.29.2) : sur iOS, le rebond de défilement révélait le fond
+       du conteneur au-delà de la carte — bande étrangère en bas des dialogues plein écran. */
+    .ai-modal:not(.pdf-modal):not(.dlg-confirm){padding:0;background:var(--surface)}
     .ai-modal:not(.pdf-modal):not(.dlg-confirm) .ai-card{max-width:none;width:100%;min-height:calc(100dvh / var(--zf,1));border-radius:0;margin:0;padding:calc(18px + env(safe-area-inset-top)) 16px calc(18px + env(safe-area-inset-bottom))}
   }
   /* ----- ACCUEIL V5 (canvas turn 6) : une seule interface responsive. < 780px : recherche pleine
@@ -3277,7 +3281,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.29.1';
+const APP_VERSION='4.29.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -7508,7 +7512,8 @@ function bindReadEvents(f,blk,cur){
     ...(hasFlow(f)?[{label:'Schéma de l’algorithme',ic:uiIcon('flow',16),sub:'plein écran, zoom',act:()=>openFlowFull(f)}]:[]),
     ...(annexRowHtml(f)?[{label:'Consulter',ic:uiIcon('book',16),sub:'surveillances, documents…',act:()=>openRefSheet()}]:[]),
     'sep',
-    {label:'Répéter en exercice',ic:'▲',sub:(()=>{const ts=sessions.reduce((m,x)=>(x.ficheId===f.id&&x.exercise&&x.savedAt>m)?x.savedAt:m,0);
+    {label:'Répéter en exercice',ic:'▲',disabled:started&&!Runtime.exercise,
+      sub:started&&!Runtime.exercise?'session en cours':(()=>{const ts=sessions.reduce((m,x)=>(x.ficheId===f.id&&x.exercise&&x.savedAt>m)?x.savedAt:m,0);
       return ts?'dernier : '+new Date(ts).toLocaleDateString('fr-FR'):'aucune trace clinique';})(),act:()=>startExercise(f)},
     ...(hasFlow(f)?[{label:'Recommencer le parcours',ic:uiIcon('undo',16),sub:'repart du début',act:()=>restartCourse(f)}]:[]),
     ...(()=>{const n=sessions.filter(s=>s.ficheId===f.id&&s.id!==Runtime.sessionId).length;

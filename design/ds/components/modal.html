@@ -1259,14 +1259,16 @@
   .live-sessions{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
   /* Carte-bilan de fin de session (v4.16.3) : registre CONFIRMATION (bord gauche --ok),
      éphémère et jamais bloquante — grammaire des notices (couleur + icône + texte). */
-  .last-sess{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--surface);border:1px solid var(--done-line);border-left:4px solid var(--ok);border-radius:10px;padding:10px 12px;margin-bottom:16px;box-shadow:var(--shadow)}
+  .last-sess{position:relative;display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--surface);border:1px solid var(--done-line);border-left:4px solid var(--ok);border-radius:10px;padding:10px 40px 10px 12px;margin-bottom:16px;box-shadow:var(--shadow)}
   .last-sess .lsr-ic{flex:none;color:var(--ok);display:inline-flex}
   .last-sess .lsr-tx{flex:1;min-width:180px;font-size:13.5px;color:var(--ink)}
   .last-sess .lsr-tx b{color:var(--ok)}
-  /* Le ✕ existait depuis v4.16.3 mais était INVISIBLE : `.notice-x` est `position:absolute` et
-     `.last-sess` n'est pas `position:relative` — il se calait donc sur un ancêtre lointain, hors
-     de la carte. La carte est une rangée flex : on le remet dans le FLUX, à sa fin. */
-  .last-sess .notice-x{position:static;flex:none;margin-left:2px}
+  /* Historique du ✕ : invisible de v4.16.3 à v4.23.2 (absolute sans ancêtre positionné), remis
+     dans le FLUX en v4.23.2 — mais dès que la carte passait en plusieurs lignes (petit écran),
+     il atterrissait AU MILIEU, collé à « Compte-rendu » (retour utilisateur v4.29.2). Le geste
+     standard : carte `position:relative`, ✕ ANCRÉ en haut à droite à toutes les largeurs —
+     le padding droit de la carte lui réserve la place, le texte ne passe jamais dessous. */
+  .last-sess .notice-x{top:6px;right:6px}
   .ls-card{display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:var(--surface);border:1px solid var(--primary);border-left:3px solid var(--primary);border-radius:10px;padding:10px 12px;box-shadow:var(--shadow)}
   .ls-info{flex:1;min-width:150px;display:flex;flex-direction:column;line-height:1.25;cursor:pointer}
   .ls-info .ls-k{font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink-soft)}
@@ -2159,7 +2161,9 @@
   /* SPEC §6 : en dessous de 780px, les DIALOGUES passent en PLEIN ÉCRAN (100 %, sans arrondi ni
      voile) — fenêtre centrée min(480px,100%) au-dessus. La visionneuse PDF a déjà son plein écran. */
   @media (max-width:779.98px){
-    .ai-modal:not(.pdf-modal):not(.dlg-confirm){padding:0;background:var(--bg)}
+    /* Fond = celui de la CARTE (v4.29.2) : sur iOS, le rebond de défilement révélait le fond
+       du conteneur au-delà de la carte — bande étrangère en bas des dialogues plein écran. */
+    .ai-modal:not(.pdf-modal):not(.dlg-confirm){padding:0;background:var(--surface)}
     .ai-modal:not(.pdf-modal):not(.dlg-confirm) .ai-card{max-width:none;width:100%;min-height:calc(100dvh / var(--zf,1));border-radius:0;margin:0;padding:calc(18px + env(safe-area-inset-top)) 16px calc(18px + env(safe-area-inset-bottom))}
   }
   /* ----- ACCUEIL V5 (canvas turn 6) : une seule interface responsive. < 780px : recherche pleine

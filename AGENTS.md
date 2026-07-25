@@ -1014,10 +1014,12 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   l'accueil affiche une carte ÉPHÉMÈRE au registre CONFIRMATION (`.last-sess`,
   `lastEndedSession` en mémoire seulement — jamais persisté, la vérité archivée est la
   session) : titre · durée · k/n blocs ✓ + bouton « Compte-rendu » (`exportSessionReport`) ;
-  disparaît d'un tap (✕) ou au démarrage de la session suivante. **Le ✕ doit rester DANS LE FLUX**
-  (`.last-sess .notice-x{position:static}`) : `.notice-x` est `position:absolute` et la carte n'est
-  pas `position:relative` — le ✕ se calait donc sur un ancêtre lointain et était INVISIBLE de
-  v4.16.3 à v4.23.2. **La carte disparaît aussi quand SA session est supprimée de l'historique** :
+  disparaît d'un tap (✕) ou au démarrage de la session suivante. **✕ ANCRÉ EN HAUT À DROITE
+  (v4.29.2)** : le ✕ était invisible de v4.16.3 à v4.23.2 (`.notice-x` absolute sans ancêtre
+  positionné) ; le contournement v4.23.2 (« dans le flux ») le laissait atterrir AU MILIEU de la
+  carte dès qu'elle passait en plusieurs lignes sur petit écran (retour utilisateur). Le geste
+  standard est rétabli proprement : la carte est `position:relative`, le ✕ ancré `top/right`,
+  et le `padding-right:40px` de la carte lui réserve la place à toutes les largeurs. **La carte disparaît aussi quand SA session est supprimée de l'historique** :
   garde posée AU RENDU (`!sessions.some(...)`), pas dans chaque chemin de suppression — il y en a
   trois (session seule, suppression de fiche, purge) et un quatrième serait oublié ; sans elle, le
   bouton « Compte-rendu » menait à un rapport introuvable — le débriefing est

@@ -1,5 +1,27 @@
 # Journal des modifications
 
+## [4.29.2] — 2026-07-25
+### Corrigé
+- **Le ✕ de la carte-bilan de fin de session est ancré en haut à droite** (retour utilisateur) :
+  sur petit écran, la carte passe en plusieurs lignes et le ✕ « dans le flux » (contournement
+  v4.23.2) atterrissait au milieu, collé au bouton « Compte-rendu ». Rétabli proprement : carte
+  `position:relative`, ✕ ancré `top/right`, place réservée par le padding — vérifié à 320/360/390
+  et couvert par le harnais (contrôle « coin haut-droit » à 360 px).
+- **Piste bande vide en bas (iOS Safari/PWA)** : les dialogues plein écran (< 780 px) avaient un
+  conteneur au fond `--bg` sous une carte `--surface` — le rebond de défilement iOS révélait ce
+  fond au-delà de la carte (bande étrangère en bas, invisible sur Chromium où le rebond n'existe
+  pas). Le conteneur prend le fond de la carte. **À confirmer sur appareil** : si la bande
+  persiste, une capture d'écran (quelle vue, quelle fenêtre ouverte) permettra de viser juste.
+
+### Modifié
+- **« Répéter en exercice » est grisé pendant une session réelle** (sous-titre « session en
+  cours » — même patron que « Modifier ») : modèle *inhibit* ECAM, on ne propose pas
+  l'entraînement pendant un soin. La rangée reste active pendant un exercice (la recommencer
+  est justement son usage) ; la confirmation danger « Terminer et exercer » reste dans le code
+  en garde-fou, mais n'a plus de chemin d'accès accidentel.
+
+503 tests, 11 harnais verts.
+
 ## [4.29.1] — 2026-07-25
 ### Corrigé
 - **L'entrée et la sortie du mode exercice ne sautent plus** (retour utilisateur) : la hachure
