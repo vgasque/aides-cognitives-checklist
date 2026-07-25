@@ -349,6 +349,23 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   décision = même chemin qu'une option ; Échap/✕ quitte sans rien perdre ; z-index 92 SOUS
   `#screenFlash` (99) — le flash d'alarme reste visible ; chrono de session via
   `updateRtStrip` (`#rmTime`) ; entrées : bouton « Lecteur » sur l'instance du bout + menu ⋯.
+  **ENRICHI v4.28.0 (audit + décision utilisateur, 3 volets)** — le public du lecteur est un
+  PROFESSIONNEL qui connaît à peu près le contenu (l'anticipation a de la valeur), et le
+  un-item-à-la-fois N'EST PAS le modèle aviation (ECL Boeing = liste entière + curseur, ECAM =
+  actions restantes sous les yeux ; Degani & Wiener : perdre sa place est un mode de défaillance
+  premier) : (1) **bande minuteurs propre** `#rmTimers` (l'overlay couvrait le quai — or l'ÉTAT ne
+  disparaît jamais : le segment ambre d'un échu est le canal d'acquittement de l'alarme) — TOUS
+  les minuteurs, échus d'abord en ambre + mot « échu », PAS de « +n » (la bande passe à la ligne,
+  rien n'est caché) ; chrono `#rmTime` en « ▲ » bleu pendant un exercice ; (2) **carte des blocs**
+  `#rmMap` (pastilles du rail : vert ✓ fait, bleu ● ici, neutre à venir — jamais d'alerte ; même
+  `minimapData`) + **contexte local** `.rm-ctx` (précédent avec « ✓ », « suivant : … » — le
+  challenge courant reste SEUL en 26 px) ; (3) **⚡ Complication(s)** dans la rangée de bloc —
+  même index `#cxModal`, monté à `z-index:94` (AU-DESSUS du lecteur, sous le flash 99) ; le
+  lecteur RESTE OUVERT pendant l'excursion (doctrine QRH : le binôme change de checklist, pas de
+  support — `_rmSync` le repilote depuis `cxEnter`/`cxResume`, y compris vers une fiche EXTERNE :
+  `rmTitle` est re-posé à chaque `readerRender`) ; en fin de bloc d'excursion, JAMAIS
+  « Terminer » — « ↩ Reprendre — bloc → » (rempli, non bloquant : présent même avec des étapes
+  non confirmées). Harnais `scripts/audit-lecteur.mjs`.
   **Garde-fou télégraphique** (`stepGuardTxt`, non bloquant, patron `nfGuardTxt`) : bloc
   > 7 étapes ou challenge > 110 caractères (la réponse « :: » ne compte pas).
   **Minimaps SUPPRIMÉES (v4.17.0, décision utilisateur)** : la bande de chips-blocs
@@ -408,7 +425,15 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   au mauvais outil. SEULE l'ANNONCIATION change (placard TRAINING aviation) : bandeau HACHURÉ
   (`#crisisBand.exo`, repeating-linear-gradient) + pilule « ▲ Exercice » en BLEU pointillé — ni
   rouge ni ambre (ce n'est pas une alerte), et le « ● Session » VERT reste réservé au réel (le
-  chrono d'état dit « ▲ Exercice », `.seg.glb.exo`). Le drapeau `Runtime.exercise` est posé par
+  chrono d'état dit « ▲ Exercice », `.seg.glb.exo`). **v4.28.0 (deux retours utilisateur)** :
+  les hachures alternent `--surface`/`--primary-soft` (surface/surface-2 était quasi invisible en
+  SOMBRE — delta mesuré par le harnais dans les DEUX thèmes ; le registre bleu porte la texture) ;
+  le placard NE QUITTE PLUS L'ÉCRAN — le quai collant est hachuré aussi (`#crisisDock.exo`, les
+  `.seg` reprennent un fond plein pour rester lisibles) et `#hdrCrisis.exo` devient la même pilule
+  bleu pointillé que `.cb-tag.exo` ; bouton « **Quitter l'exercice…** » sur le bandeau
+  (`#cbExoQuit` → `quitExercise` : avant la 1ʳᵉ action on repose une fiche neuve, après c'est le
+  MÊME dialogue Terminer que le menu ⋯ — titré « Terminer l'exercice ? » par `confirmEndSession`,
+  qui dit désormais la portée). Le drapeau `Runtime.exercise` est posé par
   `startExercise(f)` AVANT le démarrage (1ʳᵉ action → session marquée `exercise:true`) ; démarrer
   un exercice sur une session réelle vive exige la confirmation danger « Terminer et exercer ».
   **ZÉRO CONTAMINATION CLINIQUE** : les sessions vivent en IndexedDB local (jamais dans l'export
@@ -426,6 +451,19 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   horodatés, depuis `verified`/`vgaps` du snapshot). Terminer dit sa portée : « Terminer
   l'exercice… » vs « Terminer la session… ». Harnais `scripts/audit-exercice.mjs` (16 contrôles,
   dont « la session réelle est INCHANGÉE »).
+- **PILE DE RETOUR fiche → fiche (v4.28.0, décision utilisateur)** : naviguer vers une autre
+  fiche/protocole (« Voir aussi », complication EXTERNE, feuille Consulter — tout passe par
+  `openRel`, qui pousse l'origine) mémorise D'OÙ l'on vient dans `state.readStack` (plafond 8,
+  vidée à CHAQUE rendu de l'accueil) : le « ‹ » d'en-tête porte le TITRE de la fiche d'origine
+  (ellipse CSS `.hdr-back span`) et y RAMÈNE ; pile vide → « Bibliothèque », inchangé. Doctrine :
+  AC 120-71B — le retour d'une interruption est PRÉVU par le dispositif, jamais laissé à la
+  mémoire ; les bandeaux de session de l'accueil restent la REDONDANCE, mais ils n'existent que
+  si une session a DÉMARRÉ (une fiche consultée sans cocher n'y laisse aucune trace — c'est le
+  cas que la pile couvre). **GARDE ANTI DOUBLE-TAP 700 ms** (demande utilisateur explicite,
+  même mécanique `_backGuardT`/`.guarded` que le retour d'aperçu) : deux taps nerveux ne
+  traversent JAMAIS deux niveaux — on ne se retrouve pas à la bibliothèque sans l'avoir voulu ;
+  la garde est vérifiée par les DEUX handlers (fiche et protocole), origine supprimée
+  entre-temps = repli bibliothèque silencieux. Harnais : `scripts/audit-lecteur.mjs`.
 - **Mode statique (v4.13.0, DOCUMENT complet v4.14.0)** : TOUTE l'aide en TABLEAU compact
   façon aide SFAR/CAMR — cellules télégraphiques carrelées à joint 3 px. `svExtras` (v4.14.0)
   absorbe les SECTIONS de la fiche en cellules INERTES : confirmation + différentiels côte à
@@ -860,11 +898,20 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   lot 7 : `crit` ne testait que `stepIsCrit`, or la doctrine v4.23.0 réserve `⚠` aux ACTIONS et
   marque la posologie en `△` ; la protection ne couvrait donc plus RIEN, et une dilution à
   vérifier — motif même du registre — pouvait se replier) ; sans rapprochement l'ordre de
-  l'auteur est conservé. Source unique `posoCardsHtml` partagée par le flux et la feuille. **Menu ⋯ (v4.5)** : en lecture, toutes les actions
-  secondaires (Modifier, Versions, Dupliquer, Export .json, Exporter en PDF, Historique des
-  sessions, Terminer la session… — rangée `danger` en dernier, séparateurs entre groupes)
-  vivent dans le menu ⋯ de la barre — il remplace les anciennes barres « Autorat » de bas de
-  page. **Pied de page nomade** : `#appFooter` (Installer l'app, version, pastille synchro,
+  l'auteur est conservé. Source unique `posoCardsHtml` partagée par le flux et la feuille. **Menu ⋯ (v4.5 ; ORDRE REFAIT v4.28.0, retour utilisateur)** : en lecture, toutes les
+  actions secondaires vivent dans le menu ⋯ de la barre. **Ordre = logique ECAM E/WD → SD** :
+  la CONDUITE EN COURS d'abord (⚡ Complications, Mode lecteur, Se repérer, Schéma, Consulter),
+  puis le CYCLE DE VIE de la session (Répéter en exercice, Recommencer le parcours, Historique),
+  puis la GESTION (Modifier, Versions, Dupliquer), puis les EXPORTS ; la rangée `danger`
+  (Terminer…) ferme toujours la liste. Avant, « Modifier »/« Versions » — DÉSACTIVÉES pendant
+  une session — trônaient en tête : deux rangées mortes au moment où le menu sert le plus.
+  `setMoreMenu` NORMALISE les séparateurs (jamais en tête/queue, jamais deux de suite : un groupe
+  conditionnel vide disparaît sans que l'appelant s'en soucie). **ICÔNES : jamais deux entrées
+  d'un même menu avec le même dessin, ni deux dessins quasi identiques côte à côte** —
+  « Historique des sessions » a reçu `archive` (boîte, distinct de l'horloge-flèche `history`
+  gardée par Versions) et « Se repérer » a reçu `ladder` (rail + lignes indentées = l'Échelle
+  elle-même ; l'ex-icône `plan` — nœud + deux branches, quasi identique à `flow` juste
+  en-dessous — est SUPPRIMÉE). Couvert par `scripts/audit-lecteur.mjs`. **Pied de page nomade** : `#appFooter` (Installer l'app, version, pastille synchro,
   jauge de stockage) ne vit plus qu'en bas de la sidebar de l'accueil — il est DÉPLACÉ
   (`placeFooter`/`rescueFooter`), jamais recréé (écouteurs vivants) ; « Exporter mes données »
   est dans la fenêtre Compte, l'import dans le dialogue Créer.

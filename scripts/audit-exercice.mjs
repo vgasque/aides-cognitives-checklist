@@ -27,10 +27,25 @@ const e1=await p.evaluate(async()=>{
  row.click();await new Promise(r=>setTimeout(r,450));
  const cb=document.getElementById('crisisBand');
  return {row:true,exo:cb.classList.contains('exo'),tag:cb.querySelector('.cb-tag').textContent,
-  flag:Runtime.exercise,started:Runtime.started};});
+  flag:Runtime.exercise,started:Runtime.started,
+  dock:document.getElementById('crisisDock').classList.contains('exo'),
+  hatch:getComputedStyle(cb).backgroundImage.includes('repeating')};});
 t('« Répéter en exercice » au menu ⋯', e1.row);
-t('bandeau HACHURÉ + « ▲ Exercice » (jamais confondable)', e1.exo&&/Exercice/.test(e1.tag), JSON.stringify(e1));
+t('bandeau HACHURÉ + « ▲ Exercice » (jamais confondable)', e1.exo&&/Exercice/.test(e1.tag)&&e1.hatch, JSON.stringify(e1));
+t('le PLACARD ne quitte pas l’écran : quai collant hachuré (#crisisDock.exo)', e1.dock);
 t('le drapeau est posé AVANT le démarrage (session pas encore démarrée)', e1.flag&&!e1.started);
+// Lisibilité des hachures DANS LES DEUX THÈMES (v4.28.0, retour utilisateur : surface/surface-2
+// était quasi invisible en sombre) : delta mesuré entre les deux bandes (surface vs primary-soft).
+const e1b=await p.evaluate(async()=>{
+ const probe=c=>{const d=document.createElement('div');d.style.color=`var(${c})`;document.body.appendChild(d);
+   const v=getComputedStyle(d).color;d.remove();return (v.match(/\d+/g)||[0,0,0]).slice(0,3).map(Number);};
+ const delta=()=>{const a=probe('--surface'),b=probe('--primary-soft');return a.reduce((t2,x,i)=>t2+Math.abs(x-b[i]),0);};
+ const dl=delta();
+ document.documentElement.dataset.theme='dark';await new Promise(r=>setTimeout(r,120));
+ const dd=delta();
+ document.documentElement.dataset.theme='light';await new Promise(r=>setTimeout(r,120));
+ return {dl,dd};});
+t('hachures LISIBLES dans les deux thèmes (delta bande/bande ≥ 30, clair ET sombre)', e1b.dl>=30&&e1b.dd>=30, JSON.stringify(e1b));
 const e2=await p.evaluate(async()=>{
  document.querySelector('.ov-block.cur ol.steps li').click();await new Promise(r=>setTimeout(r,400));
  return {started:Runtime.started,strip:document.getElementById('cbTimers').textContent,
@@ -38,6 +53,18 @@ const e2=await p.evaluate(async()=>{
   snapExo:(sessions.find(x=>x.id===Runtime.sessionId)||{}).exercise};});
 t('la 1ʳᵉ action démarre une session MARQUÉE exercise', e2.started&&e2.snapExo===true);
 t('le chrono d’état dit « ▲ Exercice », pas « ● Session »', e2.exoChip&&/Exercice/.test(e2.strip)&&!/● Session/.test(e2.strip), e2.strip);
+// BOUTON « Quitter l'exercice… » sur le placard (v4.28.0, demande utilisateur) : même dialogue
+// que le menu ⋯, titre à la PORTÉE de l'action ; « Poursuivre » n'interrompt rien.
+const e2b=await p.evaluate(async()=>{
+ const qb=document.getElementById('cbExoQuit');
+ const vis=!qb.hidden,txt=qb.textContent;
+ qb.click();await new Promise(r=>setTimeout(r,350));
+ const ttl=document.getElementById('endSessTitle').textContent;
+ document.getElementById('endSessNo').click();await new Promise(r=>setTimeout(r,250));
+ return {vis,txt,ttl,encore:Runtime.exercise&&Runtime.started};});
+t('bouton « Quitter l’exercice… » sur le placard → dialogue « Terminer l’exercice ? »',
+  e2b.vis&&/Quitter l’exercice/.test(e2b.txt)&&/Terminer l’exercice \?/.test(e2b.ttl), JSON.stringify(e2b));
+t('« Poursuivre » n’interrompt rien (l’exercice continue)', e2b.encore);
 // matière pour le compte-rendu : une complication + une passe de vérification avec écart
 await p.evaluate(async()=>{
  document.querySelector('[data-cxopen]').click();await new Promise(r=>setTimeout(r,300));

@@ -1,5 +1,49 @@
 # Journal des modifications
 
+## [4.28.0] — 2026-07-25
+Quatre retours utilisateur d'un coup : pile de retour, mode lecteur enrichi, placard exercice
+visible partout + bouton Quitter, menu ⋯ réordonné.
+
+### Ajouté
+- **Pile de retour fiche → fiche** : ouvrir une autre aide depuis une fiche (« Voir aussi »,
+  complication externe, feuille Consulter) mémorise l'origine — le « ‹ » d'en-tête porte le
+  **titre de la fiche d'origine** et y ramène ; il ne dit « Bibliothèque » que quand la pile est
+  vide (AC 120-71B : le retour d'une interruption est prévu par le dispositif, pas laissé à la
+  mémoire — les bandeaux de l'accueil restent la redondance, mais ils n'existent que si une
+  session a démarré). **Garde anti double-tap 700 ms** (même mécanique que le retour d'aperçu) :
+  deux taps nerveux ne traversent jamais deux niveaux.
+- **Mode lecteur enrichi** (audit : le « un item à la fois » n'est pas le modèle aviation — l'ECL
+  Boeing montre la liste entière avec un curseur, et le binôme soignant anticipe) :
+  **bande minuteurs propre** — l'overlay couvrait le quai, or l'état ne disparaît jamais : tous
+  les minuteurs, échus d'abord en ambre avec le mot « échu », sans « +n » (la bande passe à la
+  ligne) ; **carte des blocs** (pastilles ✓/●/○ du rail, même `minimapData`) + **contexte local**
+  (item précédent avec ✓, « suivant : … ») autour du challenge courant qui reste seul en 26 px ;
+  **⚡ Complication(s)** accessible sans quitter le lecteur — l'index passe au-dessus de
+  l'overlay, le lecteur reste ouvert pendant l'excursion (doctrine QRH : on change de checklist,
+  pas de support) et la fin d'un bloc d'excursion propose « ↩ Reprendre », jamais « Terminer ».
+- **« Quitter l'exercice… »** directement sur le placard hachuré ; le dialogue de fin est titré
+  « Terminer l'exercice ? » (une action dit sa portée).
+
+### Modifié
+- **Placard exercice visible partout et dans les deux thèmes** (retour utilisateur) : les
+  hachures alternent désormais surface/`--primary-soft` (le couple surface/surface-2 était quasi
+  invisible en sombre — delta mesuré par le harnais dans les deux thèmes), et le **quai collant
+  est hachuré aussi** : l'annonciation TRAINING ne quitte plus l'écran au défilement ; le relais
+  d'en-tête devient la même pilule bleu pointillé.
+- **Menu ⋯ réordonné** (retour utilisateur) : conduite en cours d'abord (⚡, Lecteur, Se repérer,
+  Schéma, Consulter), puis cycle de vie de session (Exercice, Recommencer, Historique), puis
+  gestion (Modifier, Versions, Dupliquer), puis exports ; Terminer… ferme toujours la liste.
+  Avant, Modifier/Versions — désactivées en session — trônaient en tête : deux rangées mortes au
+  moment où le menu sert le plus. `setMoreMenu` normalise les séparateurs (un groupe vide
+  disparaît). **Icônes désambiguïsées** : « Historique des sessions » reçoit une boîte d'archives
+  (elle partageait l'horloge-flèche de « Versions » — deux entrées, même dessin) et
+  « Se repérer » reçoit un rail à lignes indentées, l'Échelle elle-même (l'ex-icône « plan »,
+  quasi identique au « flow » du Schéma juste en dessous, est supprimée).
+
+Nouveau harnais `scripts/audit-lecteur.mjs` (13 contrôles) ; `audit-exercice.mjs` passe à
+20 contrôles (placard collant, delta des hachures par thème, bouton Quitter). 503 tests,
+11 harnais verts.
+
 ## [4.27.1] — 2026-07-25
 ### Modifié
 - **L'« Aperçu en direct » des éditeurs (colonne droite ≥ 1000 px) rattrape trois versions de

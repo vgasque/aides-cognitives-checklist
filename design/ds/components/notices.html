@@ -1048,7 +1048,18 @@
      (règle du bandeau blanc). Glyphe ⚡ + mot en toutes lettres — la couleur jamais seule. */
   /* ═══ MODE EXERCICE (v4.27.0) — annonciation « placard TRAINING » : hachures + mot, en BLEU
      (ni rouge ni ambre : ce n'est pas une alerte). Le vert « ● Session » reste réservé au RÉEL. */
-  #crisisBand.exo{background:repeating-linear-gradient(-45deg,var(--surface),var(--surface) 14px,var(--surface-2) 14px,var(--surface-2) 22px)}
+  /* HACHURES BLEUTÉES (v4.28.0, retour utilisateur) : surface/surface-2 était quasi invisible
+     en SOMBRE (#121d2b vs #101823, delta infime) — les bandes alternent désormais avec
+     --primary-soft : le REGISTRE exercice (bleu) porte la texture, lisible dans les deux thèmes.
+     Et le placard ne quitte plus l'écran : le QUAI COLLANT (#crisisDock.exo) porte les mêmes
+     hachures (les segments reprennent un fond plein pour rester lisibles dessus), et le relais
+     d'en-tête #hdrCrisis.exo devient la même pilule bleu pointillé que .cb-tag.exo. */
+  #crisisBand.exo,#crisisDock.exo{background:repeating-linear-gradient(-45deg,var(--surface),var(--surface) 14px,var(--primary-soft) 14px,var(--primary-soft) 22px)}
+  #crisisDock.exo .seg{background:var(--surface)}
+  #hdrCrisis.exo{background:var(--primary-soft);border:1px dashed var(--primary);border-radius:6px;padding:2px 8px;letter-spacing:.6px}
+  .cb-exoquit{flex:none;position:relative;min-height:36px;border:1px dashed var(--primary);border-radius:9px;background:var(--surface);color:var(--primary-dk);font-size:12.5px;font-weight:800;cursor:pointer;padding:0 12px;font-family:inherit}
+  .cb-exoquit::after{content:"";position:absolute;inset:-5px}
+  .cb-exoquit:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   #crisisBand .cb-tag.exo,#hdrCrisis.exo{color:var(--primary-dk)}
   #crisisBand .cb-tag.exo{background:var(--primary-soft);border:1px dashed var(--primary);border-radius:6px;padding:2px 8px}
   #cbTimers .seg.glb.exo .seg-sess{color:var(--primary-dk)}
@@ -1777,6 +1788,29 @@
   #readerMode .rm-opt:hover{border-color:var(--primary)}
   #readerMode .rm-done{border:2px solid var(--done-line);border-radius:12px;color:var(--ok);font-size:16px;font-weight:800;text-align:center;padding:16px}
   #readerMode button:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* v4.28.0 — l'ÉTAT ne disparaît jamais (ECAM) : l'overlay couvrait le quai #cbTimers, donc le
+     lecteur porte sa PROPRE bande de minuteurs (tous, échus d'abord en ambre + mot « échu » ;
+     pas de « +n » : la bande passe à la ligne, rien n'est caché). Carte des blocs = modèle ECL
+     (la liste reste visible autour du curseur — un item isolé fait perdre sa place) : mêmes
+     pastilles que le rail de soin (vert ✓ fait, bleu ici, neutre à venir — jamais d'alerte). */
+  #readerMode .rm-strip{display:flex;flex-wrap:wrap;gap:6px;padding:8px 16px 0;max-width:640px;width:100%;margin:0 auto;box-sizing:border-box}
+  #readerMode .rm-strip[hidden]{display:none}
+  #readerMode .rm-seg{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line-strong);border-radius:8px;padding:4px 10px;font-size:12px}
+  #readerMode .rm-seg .l{color:var(--ink-soft);font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+  #readerMode .rm-seg .v{font-family:var(--mono);font-weight:700;font-variant-numeric:tabular-nums}
+  #readerMode .rm-seg.due{border-color:var(--verify-bd);background:var(--verify-soft)}
+  #readerMode .rm-seg.due .l,#readerMode .rm-seg.due .v{color:var(--verify)}
+  #readerMode .rm-map{display:flex;flex-wrap:wrap;gap:5px;padding:8px 16px 0;max-width:640px;width:100%;margin:0 auto;box-sizing:border-box}
+  #readerMode .rm-map[hidden]{display:none}
+  #readerMode .rm-nd{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--line-strong);display:inline-flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:800;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+  #readerMode .rm-nd.ok{border-color:var(--ok);background:var(--ok);color:var(--surface)}
+  #readerMode .rm-nd.cur{border-color:var(--primary);background:var(--primary);color:var(--on-primary,#fff)}
+  #readerMode .rm-ctx{font-size:13px;color:var(--ink-soft);text-align:center;margin:0 0 12px;line-height:1.35}
+  #readerMode .rm-ctx.next{margin:14px 0 0}
+  #readerMode .rm-cx{flex:none;position:relative;min-height:36px;border:1.5px solid var(--critical-bd);border-radius:9px;background:var(--surface);color:var(--critical);font-size:12px;font-weight:800;cursor:pointer;padding:0 10px;font-family:inherit}
+  #readerMode .rm-cx::after{content:"";position:absolute;inset:-5px}
+  #readerMode .rm-time.exo{color:var(--primary-dk)}
+  #cxModal{z-index:94}   /* l'index ⚡ passe AU-DESSUS du mode lecteur (92), sous #screenFlash (99) */
   /* ----- SVG navigable (v4.7.0) : nœuds cliquables, état PEINT par classes ----- */
   /* Hex explicites = exception SVG documentée (le SVG n'utilise pas les tokens ; en sombre,
      l'inversion globale est contrée par les règles [data-theme="dark"] plus haut). */
@@ -2334,7 +2368,7 @@
   .ep-step.vig .ep-box{border-color:var(--verify)}
   .ep-g{flex:none;font-size:11px}
   .ep-t{flex:1;min-width:0}
-  .ep-r{flex:none;font-family:var(--mono);font-size:10.5px;font-weight:700;color:var(--link);background:var(--primary-soft);border-radius:6px;padding:1px 6px;max-width:40%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ep-r{flex:none;font-family:var(--mono);font-size:11px;font-weight:700;color:var(--link);background:var(--primary-soft);border-radius:6px;padding:1px 6px;max-width:40%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .ep-box{width:15px;height:15px;border:1.5px solid var(--line-strong);border-radius:4px;flex:none}
   .ep-step.crit .ep-box{border-color:var(--critical)}
   .ep-cx{margin-top:8px;align-self:flex-start;font-size:11px;font-weight:800;color:var(--critical);border:1.5px solid var(--critical-bd);border-radius:8px;padding:4px 10px;background:var(--surface)}
