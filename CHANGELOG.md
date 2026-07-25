@@ -1,5 +1,26 @@
 # Journal des modifications
 
+## [4.29.9] — 2026-07-26
+### Corrigé (bande basse iOS — LE COUPABLE)
+- La règle visuelle (v4.29.8) a produit la preuve : sur l'ACCUEIL, `bottom:0` touche le bord
+  physique de l'écran — la WebView est saine ; **fenêtre ouverte, il flotte ~60 px au-dessus**.
+  Ce qui change entre les deux états : le verrou de fond passait `body` en
+  `position:fixed; top:-scrollY` (v4.21.0). Sur iPhone, un body fixé RÉTRÉCIT le rendu des
+  éléments fixés qui en descendent (~60 px coupés en bas) sans qu'aucune mesure web ne le voie
+  (`ih/vv/dvh/vvV` disaient tous 874) — et cette bande était MASQUÉE depuis v4.23.3 par le fond
+  peint sur `html` (le commentaire de l'époque décrivait déjà « une bande vide en bas à
+  l'ouverture de n'importe quelle fenêtre » : il masquait le symptôme, le rétrécissement
+  restait). **Le verrou change de technique** : `overflow:hidden` sur `html` et `body` (fiable
+  depuis iOS 16), qui bloque le défilement de fond sans toucher au repère des fixés ; position
+  restaurée au pixel en ceinture ; même périmètre qu'avant (toucher pour les dialogues, tous
+  pointeurs pour les feuilles opaques). Vérifié par sonde : couverture 0→874, fond immobile au
+  geste, position restaurée, déverrouillage propre (Chromium et WebKit).
+- La bascule de la barre d'état vers `default` (entamée en cours d'investigation) est ANNULÉE :
+  l'accueil est parfait en `black-translucent`, la meta n'était pas en cause.
+- Diag + règle visuelle CONSERVÉS jusqu'à confirmation sur l'appareil ; retrait prévu ensuite.
+
+503 tests, 11 harnais verts.
+
 ## [4.29.8] — 2026-07-26
 ### Diagnostic (bande basse iOS — instrumentation visuelle)
 - Le diag v4.29.7 sur appareil est PARFAIT (`vvV 874px · sc 1.00 · ot 0` — la variable effective

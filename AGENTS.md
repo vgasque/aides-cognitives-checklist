@@ -668,9 +668,12 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   bug iOS du mode `black-translucent` où la géométrie est FIGÉE À L'INSTALLATION de la PWA) se
   répare en RÉINSTALLANT l'app sur l'écran d'accueil, pas en CSS : diag avant `ih/vv/dvh 812`,
   après réinstallation `874` partout. Si une « bande morte » réapparaît en bas d'une PWA :
-  vérifier d'abord ces mesures avant de toucher au code. DOSSIER ENCORE OUVERT : une bande
-  résiduelle est rapportée MALGRÉ la géométrie saine — le diag reste dans la fenêtre Compte
-  tant que la cause n'est pas identifiée (capture attendue).
+  vérifier d'abord ces mesures avant de toucher au code. DÉNOUEMENT (v4.29.9) : la bande
+  résiduelle malgré géométrie saine venait du VERROU DE FOND (`body{position:fixed}` — iOS
+  rétrécit le rendu des fixés descendant d'un body lui-même fixé : accueil parfait, fenêtres
+  coupées, aucune mesure web ne le voit) ; verrou remplacé par `html{overflow:hidden}`. Diag
+  `ih/vv/dvh/sat/vvV/sc/ot` + règle visuelle (`_vvRuler`, tap sur la ligne diag) CONSERVÉS dans
+  la fenêtre Compte jusqu'à confirmation sur appareil, puis à retirer.
 - **SORTIE PDF UNIFIÉE (v4.24.0)** : « Exporter en PDF » doit rendre le MÊME document quel que soit
   l'appareil. Mesurée avant correction, la sortie variait sur trois axes — le ZOOM s'appliquait au
   papier (0,9 / 1 / 1,3), le RAIL s'imprimait dès que la page faisait ≥ 780 px (soit toujours sur A4
@@ -1149,5 +1152,5 @@ modèle de données, règles de sécurité) : le lire en premier. Ensuite, dans 
 | Protocoles | `blankProtocol`/`migrateProtocol` (point d'entrée sécurité/compat), `renderProtocols`/`renderProtocolRead`/`renderProtocolEdit`, sélecteur de section dans l'en-tête (`#hdrSec` statique, `state.section`) |
 | Export / Import | JSON `version: 3` + conteneur `.zip` « avec documents » (`zipBuild`/`zipParse` maison, `importAtts`) ; règles de rétrocompatibilité documentées sur place |
 | Compte & synchro | `Auth` (OTP e-mail), `Sync` (pull/push local-first), fenêtres associées |
-| Accessibilité | gestion centralisée des modales (focus, Échap, Tab ; v4.21.0 : verrou du défilement de fond `_bgLock`/`_bgUnlock` — `body.modal-open` figé en place au toucher + `overscroll-behavior:contain` sur `.ai-modal`, position restaurée au pixel à la dernière fermeture). **v4.23.0** : une fenêtre marquée `.sheet-full` (OPAQUE et plein écran, ex. feuille Plan) verrouille le fond à **TOUS les pointeurs** (`body.modal-full`) — la restriction au toucher n'existe que parce que figer `body` au pointeur fin décale le fond visible AUTOUR d'un petit dialogue ; une feuille opaque ne laisse rien voir du fond, et sans verrou la page continue de défiler derrière (constaté sur ordinateur) |
+| Accessibilité | gestion centralisée des modales (focus, Échap, Tab ; v4.21.0 : verrou du défilement de fond `_bgLock`/`_bgUnlock` + `overscroll-behavior:contain` sur `.ai-modal`, position restaurée au pixel à la dernière fermeture ; **TECHNIQUE CHANGÉE v4.29.9** : le verrou est `overflow:hidden` sur `html` ET `body` (classes posées sur LES DEUX éléments), plus JAMAIS `body{position:fixed;top:-scrollY}` — sur iPhone, un body fixé RÉTRÉCISSAIT le rendu des fenêtres fixées de ~60 px en bas [« bande morte », dossier v4.29.x prouvé à la règle visuelle : accueil sain, fenêtre coupée dès le verrou] sans qu'AUCUNE mesure web ne le voie, et la bande était MASQUÉE depuis v4.23.3 par le fond peint sur html ; ne pas réintroduire de position:fixed sur body). **v4.23.0** : une fenêtre marquée `.sheet-full` (OPAQUE et plein écran, ex. feuille Plan) verrouille le fond à **TOUS les pointeurs** (`body.modal-full`) — la restriction au toucher n'existe que parce que figer `body` au pointeur fin décale le fond visible AUTOUR d'un petit dialogue ; une feuille opaque ne laisse rien voir du fond, et sans verrou la page continue de défiler derrière (constaté sur ordinateur) |
 | Mode test | hook `?__actest` : expose les fonctions pures pour `tests.html` |

@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-rN7ZWQQqrnpeVzvsdUrghdOPveWh+b+wogyCE7ezM2c='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-zR+DHT1M+94vCpJYMBd1ec410e9wWCUsoRLdmVO2N9o='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -363,12 +363,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      (en-tête/bandeau de crise arrêtés avant le bord, éléments fixed allant eux jusqu'au bord).
      L'anti-décalage de la bascule Aides <-> Protocoles vit désormais DANS les panneaux
      défilants de l'accueil large (.home-side/.home-main), seul endroit où il agit encore. */
-  /* FOND SUR `html` AUSSI (v4.23.3) — pas seulement sur `body`. Sans lui, le canevas n'est peint
-     que par propagation depuis `body` ; or le verrou de fond des fenêtres met `body` en
-     `position:fixed` (tactile, cf. `_bgLock`), donc HORS DU FLUX : la zone qu'il ne couvre plus
-     reste non peinte et apparaît comme une BANDE VIDE en bas de page à l'ouverture de n'importe
-     quelle fenêtre (retour d'usage, mobile). `--bg` est défini sur `:root`, donc cette règle suit
-     le thème clair/sombre toute seule. */
+  /* FOND SUR `html` AUSSI (v4.23.3) — pas seulement sur `body`. Historique : l'ancien verrou de
+     fond mettait `body` en position:fixed, dont la zone non couverte apparaissait comme une bande
+     vide en bas — cette règle la MASQUAIT en peignant html. v4.29.9 : ce verrou est REMPLACÉ
+     (html{overflow:hidden}) car sur iPhone il ne faisait pas que dépeindre : il RÉTRÉCISSAIT le
+     rendu des fenêtres fixées (~60 px coupés en bas, cf. la règle du verrou). Le fond sur html
+     RESTE : ceinture universelle (rebond iOS, zones hors flux), suit le thème via :root. */
   html{-webkit-text-size-adjust:100%;text-size-adjust:100%;background:var(--bg)}
   body{font-family:var(--sans);color:var(--ink);background:var(--bg);line-height:1.5;-webkit-font-smoothing:antialiased;padding-bottom:env(safe-area-inset-bottom)}
   button{font-family:inherit;cursor:pointer}input,textarea,select{font-family:inherit;font-size:16px;max-width:100%}textarea{resize:vertical}
@@ -2289,22 +2289,22 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .ai-modal,.lightbox,#readerMode,#flowFull{bottom:auto;height:calc(var(--vvh,100dvh) / var(--zf,1))}
   }
   .ai-modal.on{display:flex}
-  /* Fenêtre ouverte = page de fond VERROUILLÉE (v4.21.0 — bug mobile : le glissement dans une
-     fenêtre longue « fuyait » vers l'accueil, déplacé à son insu). Deux ceintures :
-     overscroll-behavior:contain sur le voile ci-dessus (même garde-fou que .catmenu, v4.4.4)
-     et, AU TOUCHER seulement, body figé en place — position:fixed + top:-scrollY posés par
-     l'accessibilité centralisée des modales (_bgLock/_bgUnlock), position RESTAURÉE au pixel à
-     la fermeture de la dernière fenêtre. Limité au pointeur grossier : au pointeur fin, figer
-     body retirerait la barre de défilement et décalerait le fond visible derrière le voile. */
+  /* Fenêtre ouverte = page de fond VERROUILLÉE (v4.21.0 ; TECHNIQUE CHANGÉE v4.29.9). L'ancien
+     verrou figeait body en position:fixed + top:-scrollY — or c'est LUI qui produisait la
+     « bande morte » d'~60 px en bas des fenêtres sur iPhone (dossier v4.29.x, prouvé à la règle
+     visuelle : accueil sans verrou → bottom:0 AU bord physique ; fenêtre ouverte, body fixé →
+     bottom:0 flotte 60 px AU-DESSUS — iOS rétrécit l'espace des fixés descendant d'un body
+     lui-même fixé, sans qu'AUCUNE mesure web ne le voie : ih/vv/dvh disaient tous 874).
+     Nouveau verrou : overflow:hidden sur html ET body (fiable depuis iOS 16), qui BLOQUE le
+     défilement de fond SANS reparenter le repère des fixés ni perdre la position (restaurée en
+     ceinture à la fermeture). overscroll-behavior:none coupe le chaînage du rebond. Les fenêtres
+     (position:fixed) restent leurs propres défileurs. AU TOUCHER pour les dialogues (au pointeur
+     fin, masquer la barre de défilement décalerait le fond visible), à TOUS les pointeurs pour
+     les feuilles opaques (.modal-full, v4.23.0 : rien du fond n'est visible). */
   @media (pointer:coarse){
-    body.modal-open{position:fixed;left:0;right:0;width:100%;min-height:100%}
+    html.modal-open,html.modal-open body{overflow:hidden;overscroll-behavior:none}
   }
-  /* FEUILLE PLEIN ÉCRAN OPAQUE (v4.23.0) : le verrou vaut à TOUS les pointeurs, pas seulement au
-     toucher. La restriction ci-dessus existe parce que figer body au pointeur fin retire la barre
-     de défilement et DÉCALE le fond visible autour d'un petit dialogue — mais une feuille opaque
-     qui couvre l'écran ne laisse rien voir du fond : il n'y a aucun décalage à craindre, et sans
-     verrou la page continue de défiler derrière (constaté sur ordinateur). */
-  body.modal-full{position:fixed;left:0;right:0;width:100%;min-height:100%}
+  html.modal-full,html.modal-full body{overflow:hidden;overscroll-behavior:none}
   /* FEUILLE « PLAN » (v4.23.0) : PLEIN ÉCRAN à toutes les largeurs — c'est une vue d'ensemble,
      elle a besoin de toute la place (les intitulés cliniques ne se tronquent pas). Barre collante
      en tête de la carte : titre, sélecteur d'affichage, ✕. Le corps est le seul défileur. */
@@ -3298,7 +3298,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.29.8';
+const APP_VERSION='4.29.9';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -11852,14 +11852,20 @@ function _focusables(el){return [...el.querySelectorAll('a[href],button:not([dis
 let _bgScrollY=0,_bgWasFull=false;
 // `.sheet-full` = fenêtre OPAQUE couvrant l'écran (feuille Plan…) : elle mérite le verrou à tous
 // les pointeurs, un petit dialogue non (cf. la règle body.modal-full).
-function _bgLock(){_bgScrollY=window.scrollY;document.body.style.top=(-_bgScrollY)+'px';
+function _bgLock(){_bgScrollY=window.scrollY;
   _bgWasFull=_openModals().some(m=>m.classList.contains('sheet-full'));
+  // v4.29.9 : les classes vivent sur HTML (le verrou est html{overflow:hidden} — body seul est
+  // ignoré par iOS) ; body les garde par compatibilité de sélecteurs. AUCUN position:fixed :
+  // c'est lui qui coupait le bas des fenêtres sur iPhone (cf. la règle CSS).
+  document.documentElement.classList.add('modal-open');
+  document.documentElement.classList.toggle('modal-full',_bgWasFull);
   document.body.classList.add('modal-open');
   document.body.classList.toggle('modal-full',_bgWasFull);}
 function _bgUnlock(){if(!document.body.classList.contains('modal-open'))return;
-  document.body.classList.remove('modal-open','modal-full');document.body.style.top='';
-  // Restaurer si le corps a RÉELLEMENT été figé : au toucher (règle .modal-open) ou en feuille
-  // plein écran (règle .modal-full). Sinon rien n'a bougé — ne rien forcer.
+  document.documentElement.classList.remove('modal-open','modal-full');
+  document.body.classList.remove('modal-open','modal-full');
+  // Ceinture : overflow:hidden ne déplace pas le défilement, mais on restaure quand même la
+  // position mémorisée (un moteur qui aurait bougé pendant le verrou revient au pixel).
   if(_bgWasFull||matchMedia('(pointer:coarse)').matches)window.scrollTo(0,_bgScrollY);
   _bgWasFull=false;}
 new MutationObserver(muts=>{muts.forEach(m=>{
