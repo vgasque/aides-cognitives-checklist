@@ -1,5 +1,18 @@
 # Journal des modifications
 
+## [4.29.8] — 2026-07-26
+### Diagnostic (bande basse iOS — instrumentation visuelle)
+- Le diag v4.29.7 sur appareil est PARFAIT (`vvV 874px · sc 1.00 · ot 0` — la variable effective
+  n'était même pas périmée) et la bande persiste, indépendante du défilement (confirmé
+  utilisateur ET par sonde : fond verrouillé après défilement, fenêtre au pixel sur les
+  3 moteurs). Toutes les hypothèses mesurables par des NOMBRES sont épuisées : les métriques
+  disent « parfait », l'écran dit « coupé ». **Règle visuelle** : toucher la ligne diag dessine
+  un calque ROUGE = la boîte que le CSS croit poser de `top:0` à `--vvh` (géométrie des
+  overlays, graduée tous les 100 px, bords pleins) et un trait BLEU = là où le CSS croit que
+  `bottom:0` se trouve. Une capture d'écran comparera la croyance CSS à la réalité physique :
+  bord rouge bas au-dessus du bord d'écran = boîte déplacée/raccourcie au RENDU ; trait bleu
+  au-dessus du bord = c'est `bottom:0` lui-même qui ment. Re-toucher retire la règle.
+
 ## [4.29.7] — 2026-07-26
 ### Corrigé (bande basse iOS, suite du dossier)
 - Les captures en thème clair montrent DEUX anomalies : la bande basse (~60 px, les trois
