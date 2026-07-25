@@ -433,8 +433,14 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   où il passe sous la barre, c'est L'EN-TÊTE qui prend la hachure (`header.bar.exo.ttl-on` — même
   mécanique de relais que `#hdrCrisis`, qui reste la pilule bleu pointillé sur fond `--surface`
   plein). Le QUAI reste une zone d'état PROPRE : des chiffres n'ont pas à vivre sur une texture.
-  Micro-animation d'entrée/sortie du mode (`_exoPulse` : glissement de la hachure + pop de la
-  pilule, transform/opacité/fond seulement, inerte sous reduced-motion) ;
+  **v4.29.1 (retour utilisateur « ça saute »)** : la hachure vit sur un `::before` en FONDU
+  d'opacité (~300 ms) — l'entrée/sortie du mode ET le passage bandeau → en-tête au défilement
+  sont fondus, plus d'aplat instantané (les sondes lisent donc `getComputedStyle(el,'::before')`,
+  pas l'élément) ; les enfants passent en `z-index:1` (le ::before couvre le fond, jamais le
+  contenu) ; et le bouton Quitter est COMPACTÉ à ≥ 780 px (24 px + halo → cible 44) : le bandeau
+  réel y fait 44 px de haut, un bouton de 36 px l'épaississait de 12 px à l'entrée en exercice —
+  Δ mesuré à 0 px sur 360/390/430/780. Micro-animation d'entrée/sortie du mode (`_exoPulse` :
+  glissement de la hachure + pop de la pilule, inerte sous reduced-motion) ;
   bouton « **Quitter l'exercice…** » sur le bandeau
   (`#cbExoQuit` → `quitExercise` : avant la 1ʳᵉ action on repose une fiche neuve, après c'est le
   MÊME dialogue Terminer que le menu ⋯ — titré « Terminer l'exercice ? » par `confirmEndSession`,

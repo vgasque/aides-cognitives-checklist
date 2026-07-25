@@ -28,7 +28,7 @@ const e1=await p.evaluate(async()=>{
  const cb=document.getElementById('crisisBand');
  return {row:true,exo:cb.classList.contains('exo'),tag:cb.querySelector('.cb-tag').textContent,
   flag:Runtime.exercise,started:Runtime.started,
-  hatch:getComputedStyle(cb).backgroundImage.includes('repeating')};});
+  hatch:getComputedStyle(cb,'::before').backgroundImage.includes('repeating')&&getComputedStyle(cb,'::before').opacity==='1'};});
 t('« Répéter en exercice » au menu ⋯', e1.row);
 t('bandeau HACHURÉ + « ▲ Exercice » (jamais confondable)', e1.exo&&/Exercice/.test(e1.tag)&&e1.hatch, JSON.stringify(e1));
 t('le drapeau est posé AVANT le démarrage (session pas encore démarrée)', e1.flag&&!e1.started);
@@ -38,11 +38,12 @@ const e1c=await p.evaluate(async()=>{
  window.scrollTo(0,700);await new Promise(r=>setTimeout(r,400));
  const h=document.querySelector('header.bar');
  const res={ttl:h.classList.contains('ttl-on'),exo:h.classList.contains('exo'),
-  bg:getComputedStyle(h).backgroundImage.includes('repeating'),
-  dockNet:getComputedStyle(document.getElementById('crisisDock')).backgroundImage==='none'};
+  bg:getComputedStyle(h,'::before').backgroundImage.includes('repeating')&&getComputedStyle(h,'::before').opacity==='1',
+  dockNet:getComputedStyle(document.getElementById('crisisDock')).backgroundImage==='none',
+  fade:getComputedStyle(document.getElementById('crisisBand'),'::before').transitionDuration!=='0s'};
  window.scrollTo(0,0);await new Promise(r=>setTimeout(r,300));
  return res;});
-t('le placard SUIT LE TITRE : en-tête hachuré au défilement, quai PROPRE', e1c.ttl&&e1c.exo&&e1c.bg&&e1c.dockNet, JSON.stringify(e1c));
+t('le placard SUIT LE TITRE : en-tête hachuré au défilement, quai PROPRE, hachure en FONDU', e1c.ttl&&e1c.exo&&e1c.bg&&e1c.dockNet&&e1c.fade, JSON.stringify(e1c));
 // Lisibilité des hachures DANS LES DEUX THÈMES (v4.28.0, retour utilisateur : surface/surface-2
 // était quasi invisible en sombre) : delta mesuré entre les deux bandes (surface vs primary-soft).
 const e1b=await p.evaluate(async()=>{

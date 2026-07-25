@@ -1,5 +1,17 @@
 # Journal des modifications
 
+## [4.29.1] — 2026-07-25
+### Corrigé
+- **L'entrée et la sortie du mode exercice ne sautent plus** (retour utilisateur) : la hachure
+  vit désormais sur un `::before` en **fondu d'opacité** (~300 ms) — l'apparition, le retrait,
+  **et le passage bandeau → en-tête au défilement** sont fondus au lieu d'un aplat instantané ;
+  le fondu est neutralisé sous `prefers-reduced-motion`. Et le **saut de hauteur** est éliminé :
+  à ≥ 780 px le bouton « Quitter l'exercice… » épaississait le bandeau de 12 px (bouton 36 px
+  dans un bandeau de 44) — compacté à ce palier, halo conservant la cible de 44 px. Δ mesuré à
+  **0 px** sur 360/390/430/780.
+
+503 tests, 11 harnais verts (les sondes lisent la hachure sur le `::before`).
+
 ## [4.29.0] — 2026-07-25
 Cinq retours utilisateur : le placard exercice suit le titre, le sélecteur ne bouge plus d'un
 pixel, la pastille se glisse au doigt, trois micro-animations, et la méta de lecture se désencombre.

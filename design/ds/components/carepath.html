@@ -1057,23 +1057,37 @@
      Et le placard ne quitte plus l'écran : le QUAI COLLANT (#crisisDock.exo) porte les mêmes
      hachures (les segments reprennent un fond plein pour rester lisibles dessus), et le relais
      d'en-tête #hdrCrisis.exo devient la même pilule bleu pointillé que .cb-tag.exo. */
-  #crisisBand.exo{background:repeating-linear-gradient(-45deg,var(--surface),var(--surface) 14px,var(--primary-soft) 14px,var(--primary-soft) 22px)}
   /* v4.29.0 (retour utilisateur : hachurer le QUAI était illisible — « immonde ») : la hachure
      SUIT LE TITRE. Tant que le bandeau-titre est visible, lui seul est hachuré ; au pixel où il
      passe sous la barre (.ttl-on, mécanique du relais #hdrCrisis), c'est L'EN-TÊTE qui prend la
      hachure — même texture, même relais que le titre lui-même. Le quai reste une zone d'état
-     PROPRE (les chiffres n'ont pas à vivre sur une texture). */
-  header.bar.exo.ttl-on{background:repeating-linear-gradient(-45deg,var(--surface),var(--surface) 14px,var(--primary-soft) 14px,var(--primary-soft) 22px)}
+     PROPRE (les chiffres n'ont pas à vivre sur une texture).
+     v4.29.1 (retour utilisateur « ça saute ») : la hachure vit sur un ::before en FONDU
+     d'opacité — l'entrée/sortie du mode ET le passage bandeau → en-tête au défilement se font
+     en ~300 ms au lieu d'un aplat instantané ; le fondu est neutralisé par la règle globale
+     prefers-reduced-motion (transition:none). Les enfants passent en z-index:1 : le ::before
+     est AU-DESSUS du fond de l'élément, jamais au-dessus de son contenu. */
+  #crisisBand{position:relative}
+  #crisisBand::before,header.bar.exo::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(-45deg,var(--surface),var(--surface) 14px,var(--primary-soft) 14px,var(--primary-soft) 22px);opacity:0;transition:opacity .3s ease;pointer-events:none}
+  #crisisBand.exo::before{opacity:1}
+  header.bar.exo.ttl-on::before{opacity:1}
+  #crisisBand>*,header.bar.exo>*{position:relative;z-index:1}
   #hdrCrisis.exo{background:var(--surface);border:1px dashed var(--primary);border-radius:6px;padding:2px 8px;letter-spacing:.6px}
   .cb-exoquit{flex:none;position:relative;min-height:36px;border:1px dashed var(--primary);border-radius:9px;background:var(--surface);color:var(--primary-dk);font-size:12.5px;font-weight:800;cursor:pointer;padding:0 12px;font-family:inherit}
   .cb-exoquit::after{content:"";position:absolute;inset:-5px}
+  /* ≥ 780 : le bandeau réel fait 44 px de haut (titre une ligne) — un bouton de 36 px l'aurait
+     ÉPAISSI de 12 px à l'entrée en exercice (saut mesuré) ; compacté, le halo garde la cible
+     à 44 px (26 + 2×9). Sous 780 le bandeau fait déjà ~61 px : aucun saut, bouton inchangé. */
+  @media (min-width:780px){.cb-exoquit{min-height:24px;font-size:12px;padding:0 10px}.cb-exoquit::after{inset:-10px}}
   .cb-exoquit:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* MICRO-ANIMATIONS (v4.29.0, demande utilisateur) — NON BLOQUANTES : fond/transform/opacité
      seulement, aucun verrou d'entrée, l'app reste utilisable pendant l'effet ; inertes sous
      prefers-reduced-motion (les keyframes ne sont posées que sous no-preference). */
   @media (prefers-reduced-motion:no-preference){
-    #crisisBand.exo-anim{animation:exoSlide .45s ease}
-    #crisisBand.exo-anim .cb-tag{animation:exoPop .3s ease}
+    #crisisBand.exo-anim::before{animation:exoSlide .45s ease}
+    #crisisBand.exo-anim .cb-tag.exo{animation:exoPop .3s ease}
+    header.bar.ttl-on .hdr-crisis.exo{animation:exoPop .25s ease}
+    #crisisBand.exo .cb-exoquit:not([hidden]){animation:exoPop .3s ease}
     main.back-anim{animation:secInL .28s ease}
     .ov-block.cx-return{animation:cxReturn .3s ease}
   }
