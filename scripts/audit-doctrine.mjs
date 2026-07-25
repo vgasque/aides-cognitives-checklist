@@ -131,6 +131,27 @@ console.log('\n══ ECAM · pas d\'alerte flottante en session ══');
   await page.close();
 }
 
+// ══ ECAM — rangée de COMMANDES sans rognage (v4.30.0, audit externe) ════════
+// Mesuré AVANT correctif : #crisisCtrl exigeait 386 px — « Cons. » rogné de 11 px à 375
+// (iPhone SE/mini) et 26 px à 360 (Android standard), sans défilement horizontal : pixels
+// INACCESSIBLES. Un débordement silencieux dans la zone de crise — l'écart que ce harnais
+// existe pour attraper (il mesurait le quai, pas la rangée de commandes juste au-dessus).
+console.log('\n══ ECAM · rangée de commandes sans rognage (360/375/390) ══');
+{
+  const page=await session(360);
+  for(const w of [360,375,390]){
+    await page.setViewportSize({width:w,height:820});
+    await page.waitForTimeout(180);
+    const r=await page.evaluate(()=>{
+      const btns=[...document.querySelectorAll('#crisisCtrl button')].filter(b=>b.offsetParent);
+      const right=Math.max(...btns.map(b=>b.getBoundingClientRect().right));
+      return {right:Math.round(right),vw:innerWidth,doc:document.documentElement.scrollWidth};});
+    t(`aucun bouton de commande hors écran à ${w} px`, r.right<=r.vw&&r.doc<=r.vw,
+      `bord droit ${r.right} px / viewport ${r.vw} px`);
+  }
+  await page.close();
+}
+
 // ══ WCAG 2.3.3 / projet — mouvement inhibé sous prefers-reduced-motion ═════
 console.log('\n══ WCAG · prefers-reduced-motion ══');
 {

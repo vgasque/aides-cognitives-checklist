@@ -1,5 +1,47 @@
 # Journal des modifications
 
+## [4.30.0] — 2026-07-26
+Correctifs P0/P1/P2 de l'audit design externe (axe « conformité aux normes »).
+
+### Corrigé (P0 — mesurés avant/après)
+- **WCAG 2.2 § 2.4.11 « Focus Not Obscured » (AA) : NON-CONFORMITÉ levée.** Un Shift+Tab
+  remontant déposait l'élément focalisé ENTIÈREMENT sous les couches collantes (en-tête +
+  commandes + quai : 238 px mesurés à 360 px en session — dont la case « Alerter, appeler du
+  renfort » et l'étape critique « ⚠ RCP immédiate », masquées à 100 %). Le défilement déclenché
+  par le focus clavier est celui du navigateur, que `stickBase()` ne voit pas : seul
+  `scroll-padding` le pilote — `html{scroll-padding-top:calc(var(--stick-top,64px)+8px)}`
+  (la variable existait déjà, mesurée et divisée par le zoom). Corollaire : le
+  `scroll-margin-top:130px` forfaitaire de `.rt-panel` (qui s'ADDITIONNE désormais) est ramené
+  à 6 px. Vérifié : 0 masquage après correctif ; sonde 2.4.11 ajoutée à `audit-a11y.mjs`
+  (73/73).
+- **Rangée de commandes `#crisisCtrl` rognée sur les deux largeurs mobiles les plus répandues.**
+  Elle exigeait 386 px : « Cons. » perdait 11 px à 375 (iPhone SE/mini) et 26 px à 360 (Android
+  standard), sans défilement horizontal — pixels INACCESSIBLES, débordement silencieux dans la
+  zone de crise. Compression mesurée sous 400 px (gaps/paddings, recette v4.23.4) : ~346 px à
+  360 après, positions constantes conservées. Sondes « sans rognage » à 360/375/390 ajoutées à
+  `audit-doctrine.mjs` (15/15).
+
+### Ajouté (P1)
+- **Le retour SYSTÈME (Android, geste/bouton) ne sort plus de l'app en pleine session.**
+  History API branchée (0 pushState/popstate jusqu'ici) : une entrée sentinelle ré-armée, le
+  popstate empruntant le MÊME chemin que l'affordance visible — fenêtre du dessus (✕ ou clic de
+  voile : « Terminer la session ? » ferme sur Poursuivre, jamais Terminer), sinon lecteur,
+  schéma plein écran, visionneuse, sinon le « ‹ » d'en-tête (pile readStack + garde double-tap
+  700 ms héritées). À l'accueil nu, le retour sort réellement (aucun appui mort) ; une
+  sentinelle survivant à un rechargement est neutralisée au boot. Vérifié en scénario réel :
+  dialogue fermé sans terminer la session, puis retour à la bibliothèque, puis sortie.
+
+### Ajouté (P2)
+- **Filet `forced-colors` (Windows High Contrast)** : `.acct-dot`, `.cat-dot` et `.seg-pill`
+  gardent leur couleur (`forced-color-adjust:none`) — le reste s'appuie sur « la couleur jamais
+  seule ». Filet minimal, à valider sur machine Windows réelle.
+- **Dialogue de bienvenue : « Commencer » ancré en bas de la feuille sur mobile** (zone du
+  pouce). Sous 780 px la fenêtre est plein écran : le bouton flottait à mi-écran dans ~700 px
+  de vide. Carte en colonne flex, action au bord bas ; ordinateur inchangé.
+
+503 tests, 11 harnais verts (a11y 73/73 avec la sonde 2.4.11, doctrine 15/15 avec les sondes
+anti-rognage).
+
 ## [4.29.10] — 2026-07-26
 ### Retiré
 - **Dossier « bande basse iOS » clos — correctif v4.29.9 confirmé sur appareil.**

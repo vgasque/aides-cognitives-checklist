@@ -183,6 +183,50 @@ for (const theme of ['light','dark']) {
     await page.close();
   }
 }
+// ---- WCAG 2.2 § 2.4.11 « Focus Not Obscured (Minimum) » ------------------------------------
+// Un Shift+Tab remontant ne doit JAMAIS déposer l'élément focalisé ENTIÈREMENT sous les couches
+// collantes (en-tête + commandes + quai). Sonde ajoutée par l'audit externe v4.30.0 — échec
+// mesuré AVANT correctif : 3 masquages TOTAUX à 360 px en session (dont l'étape critique
+// « ⚠ RCP immédiate »). Correctif : html{scroll-padding-top:calc(var(--stick-top)+8px)}.
+// On émule le cas réel : l'élément est envoyé AU-DESSUS du viewport, puis focalisé — le
+// défilement déclenché par le focus est celui du navigateur, le seul que scroll-padding pilote.
+console.log('\n══════ WCAG 2.2 · 2.4.11 focus non masqué (session, 360 px) ══════');
+{
+  const page = await browser.newPage({ viewport:{width:360,height:780} });
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'),null,{timeout:10000});
+  await page.evaluate(async()=>{
+    const w=[...document.querySelectorAll('button')].find(b=>/Commencer/.test(b.textContent)); if(w)w.click();
+    await new Promise(r=>setTimeout(r,120));
+    const s=[...document.querySelectorAll('button')].find(b=>b.textContent.includes("fiches d'exemple")); if(s)s.click();
+    await new Promise(r=>setTimeout(r,320));
+    [...document.querySelectorAll('.card-open')].find(x=>/Arrêt cardiaque/.test(x.textContent)).click();
+    await new Promise(r=>setTimeout(r,200));
+    document.getElementById('sessStart').click();
+    await new Promise(r=>setTimeout(r,300));
+  });
+  const bad = await page.evaluate(async()=>{
+    const layers=['header.bar','#crisisCtrl','#crisisDock'].map(s=>document.querySelector(s)).filter(Boolean);
+    const stick=()=>Math.max(...layers.map(e=>e.getBoundingClientRect().bottom));
+    const foc=[...document.querySelectorAll('main a[href],main button,main input,main [tabindex="0"]')].filter(e=>e.offsetParent);
+    const out=[];
+    for(const el of foc){
+      const y=el.getBoundingClientRect().top+scrollY;
+      scrollTo(0,y+400);                      // l'élément passe AU-DESSUS du viewport (cas Shift+Tab)
+      el.focus();
+      const r=el.getBoundingClientRect();
+      if(r.height>0&&r.bottom<=stick())out.push((el.textContent||'').trim().slice(0,32)||el.className);
+    }
+    scrollTo(0,0); return out;
+  });
+  checks++;
+  if(bad.length){ fails++;
+    console.log(`  ✗ focus ENTIÈREMENT masqué sous les couches collantes (${bad.length})`);
+    bad.slice(0,6).forEach(x=>console.log('      '+x));
+  } else console.log('  ✓ aucun élément focalisé entièrement masqué');
+  await page.close();
+}
+
 await browser.close(); srv.close();
 if(errs.length){console.log('\nErreurs page :');[...new Set(errs)].forEach(e=>console.log('  '+e));}
 console.log(`\n${checks-fails}/${checks} contrôles OK${fails?` — ${fails} ÉCHEC(S)`:''}${errs.length?` — ${errs.length} erreur(s)`:''}`);

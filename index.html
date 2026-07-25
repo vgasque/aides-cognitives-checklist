@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-mU9TAfPncfduMSgFRkqxRZ3HPiVEr1Hw2RMMH8TRMHc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-NeFklozkyN9WBV7CDVvocwiMJNThFkA0rIN9KzsCvOk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -371,6 +371,15 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      RESTE : ceinture universelle (rebond iOS, zones hors flux), suit le thème via :root. */
   html{-webkit-text-size-adjust:100%;text-size-adjust:100%;background:var(--bg)}
   body{font-family:var(--sans);color:var(--ink);background:var(--bg);line-height:1.5;-webkit-font-smoothing:antialiased;padding-bottom:env(safe-area-inset-bottom)}
+  /* WCAG 2.2 § 2.4.11 « Focus Not Obscured » (v4.30.0, audit externe) : le défilement déclenché
+     par le FOCUS CLAVIER est celui du navigateur, pas le nôtre — stickBase() ne gouverne que les
+     défilements PROGRAMMÉS. Sans scroll-padding, un Shift+Tab remontant déposait l'élément
+     focalisé ENTIÈREMENT sous les couches collantes (en-tête + commandes + quai : 238 px mesurés
+     à 360 px en session) — masquage TOTAL, interdit au niveau AA. `--stick-top` est déjà posée
+     sur <html> par syncHdrScroll, déjà divisée par le zoom : une ligne suffit, et elle profite à
+     tout défilement natif (focus clavier, ancres, recherche dans la page, scrollIntoView du
+     panneau minuteurs). Harnais : sonde 2.4.11 d'audit-a11y.mjs. */
+  html{scroll-padding-top:calc(var(--stick-top,64px) + 8px)}
   button{font-family:inherit;cursor:pointer}input,textarea,select{font-family:inherit;font-size:16px;max-width:100%}textarea{resize:vertical}
   /* Écrans tactiles : sans ce réglage, Safari iOS attend ~350 ms après chaque tap (fenêtre du
      double-tap zoom) — des taps rapprochés sur un bouton ou un menu semblent alors « ignorés ».
@@ -679,6 +688,21 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      minuteurs, et deux pictogrammes voisins sans mot se confondent sous stress. Ce sont les
      segments de minuteurs qui cèdent la place (ils s'ellipsent déjà). */
   @media (max-width:429.98px){.dock-plan{padding:0 10px;gap:5px;font-size:14px}}
+  /* SOUS 400 px (v4.30.0, audit externe — MESURÉ) : la rangée de commandes exigeait 386 px — à
+     375 px (iPhone SE/mini) 11 px du bouton « Cons. » étaient ROGNÉS, 26 px à 360 px (Android
+     standard), sans défilement horizontal : des pixels INACCESSIBLES. Un débordement SILENCIEUX,
+     précisément la catégorie d'écart que ce projet s'interdit (ECAM), dans la zone de crise
+     elle-même. On rend les pixels par COMPRESSION (gaps/paddings — recette v4.23.4 de la rangée
+     d'identité), JAMAIS par un renommage (règle « troncature du même mot ») ni une 2ᵉ ligne (la
+     hauteur de crise est un coût permanent). Mesuré après correctif : ~346 px à 360. Bloc déclaré
+     APRÈS les règles 429.98 px (spécificité égale : l'ordre décide — 4ᵉ piège de cascade du
+     projet, cf. .cbt-n v4.23.5). Harnais : audit-doctrine « rangée de commandes sans rognage ». */
+  @media (max-width:399.98px){
+    #crisisCtrl .dock-in{gap:6px;padding:6px 8px}
+    .ctrl-sp{width:4px}
+    #modeSeg .seg-btn{padding:6px 7px}
+    .dock-plan{padding:0 8px;gap:4px}
+  }
   #cbTimers[hidden]{display:none}
   #cbTimers:not([hidden]){display:flex}
   #cbTimers:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
@@ -2451,6 +2475,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .ai-modal:not(.pdf-modal):not(.dlg-confirm){padding:0;background:var(--surface)}
     .ai-modal:not(.pdf-modal):not(.dlg-confirm) .ai-card{max-width:none;width:100%;min-height:calc(100dvh / var(--zf,1));border-radius:0;margin:0;padding:calc(18px + env(safe-area-inset-top)) 16px calc(18px + env(safe-area-inset-bottom))}
   }
+  /* Rangée d'action du dialogue de bienvenue. Sous 780 px la fenêtre est PLEIN ÉCRAN (règle
+     ci-dessus) : le contenu s'arrête à mi-écran et « Commencer » flottait dans ~700 px de vide,
+     hors zone du pouce (v4.30.0, audit externe — HIG et Material convergent : sur une feuille
+     plein écran mobile, les actions s'ancrent en BAS). La carte devient une colonne flex et
+     l'action descend au bord bas ; sur ordinateur (dialogue centré), rien ne change. */
+  .wl-act{display:flex;justify-content:flex-end;margin-top:14px}
+  @media (max-width:779.98px){
+    #welcomeModal .ai-card{display:flex;flex-direction:column}
+    #welcomeModal .wl-act{margin-top:auto;padding-top:14px}
+  }
   /* ----- ACCUEIL V5 (canvas turn 6) : une seule interface responsive. < 780px : recherche pleine
      largeur, chips bibliothèques/catégories, TAB BAR basse à pastille glissante (au pouce).
      >= 780px : colonne gauche (sections, bibliothèques, catégories) + grille de cartes fluide.
@@ -2888,8 +2922,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      étroit) : en lecture et en édition (aides ET protocoles), rien en bas d'écran — l'input
      d'import invisible qu'il héberge reste fonctionnel (clic programmatique). */
   :is(body.view-read,body.view-pread,body.view-edit,body.view-pedit) footer.tools{display:none}
-  /* Cible du rappel minuteurs : arriver SOUS l'en-tête sticky (plus haut avec la 2e ligne). */
-  .rt-panel{scroll-margin-top:130px}
+  /* Cible du rappel minuteurs : le gros de la compensation vient désormais du scroll-padding
+     global (html, § 2.4.11 — mesuré via --stick-top) ; l'ancien 130 px FORFAITAIRE s'y serait
+     AJOUTÉ (scroll-margin et scroll-padding se cumulent) et déposait le panneau ~130 px trop
+     bas. Ne reste qu'une petite marge de respiration. */
+  .rt-panel{scroll-margin-top:6px}
   /* Focus clavier visible sur TOUS les contrôles interactifs (uniforme avec .btn/.card). */
   :is(.catchip,.cat-chip-selected,.cat-chip-other,.catmenu-new,.tlink,.linkbtn,.mini,.fz,.scopebtn,.opt,.startbtn,.add-line,.notice-x,.tk-add,.tk-del,.cm-del,.ai-x,.rel-x,.back,.crumbs .cb,ol.steps li):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .rt-panel :is(.tm-btn,.cn-btn,.rt-sound,.tm-reset,.cn-reset):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
@@ -3024,6 +3061,18 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     /* v4.12.0 : plan imprimé en une colonne (flux de page), branches dépliées, sans sticky. */
     /* v4.22.1 : le fil épinglé est un état d'ÉCRAN — sur papier, carte complète et sans chip. */
     .crisis-footer .cf-stg{display:none}}
+  /* ===== Windows High Contrast (forced-colors) — v4.30.0, premier filet =====
+     Le mode contraste forcé SUPPRIME fonds et dégradés. La doctrine « la couleur n'est jamais
+     seule » (glyphe + mot partout) protège l'essentiel ; restent les états portés par la seule
+     couleur d'une PASTILLE : compte/synchro (.acct-dot) et catégorie (.cat-dot) gardent leur
+     couleur (l'information EST la couleur — WHCM l'autorise pour les couleurs porteuses de
+     sens), et la pastille du sélecteur segmenté garde teinte + bordure (sinon la sélection
+     disparaissait, l'état n'étant plus porté que par la graisse constante… qui ne change pas).
+     Filet MINIMAL, pas une conformité testée sous Windows réel — à valider sur machine avant
+     d'étendre. */
+  @media (forced-colors:active){
+    .acct-dot,.cat-dot,.seg-pill{forced-color-adjust:none}
+  }
 </style>
 </head>
 <body>
@@ -3189,7 +3238,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   <p><strong>1 · Vous rédigez, vous validez.</strong> L'app ne contient aucun protocole imposé : vous créez vos fiches (à la main ou via « Créer via IA ») et vous restez responsable du contenu clinique. Deux fiches d'exemple peuvent être ajoutées depuis l'accueil — relisez-les avant tout usage.</p>
   <p><strong>2 · Le mode crise ne vous interrompt jamais.</strong> Ouvrez une fiche : étapes cochables, minuteurs, compteurs et horodatage. Tout est enregistré automatiquement en session, même hors-ligne.</p>
   <p><strong>3 · Vos données restent sur l'appareil.</strong> Sans compte, rien ne quitte votre téléphone (pensez à « Exporter mes données », dans la fenêtre Compte). Le bouton Compte active aussi la synchronisation multi-appareils, facultative.</p>
-  <div style="display:flex;justify-content:flex-end;margin-top:14px"><button class="btn primary" id="welcomeGo">Commencer</button></div>
+  <div class="wl-act"><button class="btn primary" id="welcomeGo">Commencer</button></div>
 </div></div>
 <!-- Aperçu de compte-rendu de session : visualisation DANS l'app, puis Imprimer / Télécharger.
      Aucune impression automatique (l'utilisateur voit d'abord, puis choisit). -->
@@ -3298,7 +3347,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.29.10';
+const APP_VERSION='4.30.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -4177,7 +4226,7 @@ function bindFlowZoom(root){const R=root||main;
    if(fs&&state.view==='read'&&state.fiche){flowPaintState(fs,state.fiche);bindSvgNav(fs,state.fiche);}}}
 // Plein écran de l'algorithme : superpose le SVG (même peinture d'état), zoom + défilement
 // (pinch natif aussi). On centre horizontalement à l'ouverture. Taper un nœud = fermer + y aller.
-function openFlowFull(f){const ov=document.getElementById('flowFull');if(!ov)return;const sc=ov.querySelector('.ff-scroll');sc.innerHTML=buildFlowSVG(f);ov.classList.add('on');applyFlowZoom();bindSvgImages(sc);
+function openFlowFull(f){const ov=document.getElementById('flowFull');if(!ov)return;const sc=ov.querySelector('.ff-scroll');sc.innerHTML=buildFlowSVG(f);ov.classList.add('on');_histArm();applyFlowZoom();bindSvgImages(sc);
   if(state.view==='read'&&state.fiche===f){flowPaintState(sc,f);bindSvgNav(sc,f,true);}
   sc.scrollLeft=centerOnStart(sc);sc.scrollTop=0;}
 function closeFlowFull(){const ov=document.getElementById('flowFull');if(ov){ov.classList.remove('on');const sc=ov.querySelector('.ff-scroll');if(sc)sc.innerHTML='';}}
@@ -5815,6 +5864,9 @@ function render(){
     setTimeout(()=>{if(state.view===v&&window.scrollY&&window.scrollY<160)window.scrollTo(0,0);},300);
   }
   _lastView=state.view;_lastFicheId=_fid;
+  // Retour système (v4.30.0) : hors accueil, la sentinelle d'historique doit être armée —
+  // idempotent, et render() est LE point de passage de tout changement de vue.
+  if(state.view!=='library')_histArm();
   // État de l'en-tête resynchronisé APRÈS le défilement final : un changement de vue sans
   // évènement de scroll (on était déjà en haut) laissait sinon .condensed/.ttl-on hérités de la
   // vue précédente — barre condensée sur une page au repos, ou zone haute annoncée deux fois.
@@ -8776,6 +8828,7 @@ function renderSvOnly(){
    readerI est transitoire (jamais persisté) ; -1 = reprendre au premier challenge non coché. */
 let readerI=-1;
 function readerOpen(){const f=state.fiche;if(!f||!(f.blocks||[]).length)return;
+  _histArm();   // retour système (v4.30.0) : le lecteur est une surface plein écran
   const rm=document.getElementById('readerMode');
   document.getElementById('rmTitle').textContent=f.title||'';
   readerI=-1;
@@ -9384,7 +9437,7 @@ function newFiche(){if(!canEditScope(state.scope)){toast('Lecture seule : vous n
 
 /* ===== Lightbox ===== (agrandissement d'une image au clic, avec légende) */
 const lb=document.getElementById('lightbox');
-function openLightbox(src,cap){document.getElementById('lbImg').src=src;document.getElementById('lbCap').textContent=cap||'';lb.classList.add('on');}
+function openLightbox(src,cap){document.getElementById('lbImg').src=src;document.getElementById('lbCap').textContent=cap||'';lb.classList.add('on');_histArm();}
 function closeLightbox(){lb.classList.remove('on');document.getElementById('lbImg').src='';}
 document.getElementById('lbX').onclick=closeLightbox;lb.onclick=e=>{if(e.target===lb)closeLightbox();};
 // Plein écran de l'algorithme : boutons de zoom (mêmes que l'aperçu) + fermeture.
@@ -11853,7 +11906,7 @@ function _bgUnlock(){if(!document.body.classList.contains('modal-open'))return;
 new MutationObserver(muts=>{muts.forEach(m=>{
   const el=m.target;if(!el.classList||!el.classList.contains('ai-modal'))return;
   const wasOn=/\bon\b/.test(m.oldValue||''),isOn=el.classList.contains('on');
-  if(isOn&&!wasOn){if(_openModals().length<=1){_modalReturnFocus=document.activeElement;_bgLock();}const f=_focusables(el);(f[0]||el).focus();}
+  if(isOn&&!wasOn){if(_openModals().length<=1){_modalReturnFocus=document.activeElement;_bgLock();}const f=_focusables(el);(f[0]||el).focus();_histArm();}
   else if(!isOn&&wasOn&&!_topModal()){_bgUnlock();
     if(_modalReturnFocus){try{_modalReturnFocus.focus();}catch(_){}_modalReturnFocus=null;}}
 });}).observe(document.body,{subtree:true,attributes:true,attributeFilter:['class'],attributeOldValue:true});
@@ -11882,6 +11935,56 @@ const _kbText=el=>!!(el&&el.matches&&(el.matches('textarea,select,[contenteditab
   (el.matches('input')&&!/^(checkbox|radio|range|button|submit|reset|color|file)$/.test(el.type))));
 document.addEventListener('focusin',e=>{if(_kbText(e.target))document.body.classList.add('kb-open');});
 document.addEventListener('focusout',e=>{if(!_kbText(e.relatedTarget))document.body.classList.remove('kb-open');});
+
+/* ===== Bouton retour SYSTÈME (History API — v4.30.0, P1 de l'audit externe) =====
+   Aucun pushState/popstate jusqu'ici : sur Android (PWA ou navigateur), le geste retour SORTAIT
+   de l'app depuis une fiche en pleine session, le lecteur, un PDF ou une feuille plein écran —
+   l'écran disparaissait en pleine réanimation (les données, elles, survivaient : persistAllLive
+   sur beforeunload/visibilitychange + reprise de session). Contrat Material (predictive back),
+   implémenté SANS routing (cohérent monofichier) : UNE entrée SENTINELLE, ré-armée à chaque
+   consommation. Le retour système emprunte le MÊME chemin que l'affordance visible — doctrine du
+   gestionnaire de modales ci-dessus (« réutilise son bouton ✕, donc ses effets de bord ») :
+   fenêtre du dessus, sinon lecteur, sinon schéma plein écran, sinon visionneuse d'image, sinon
+   le « ‹ » d'en-tête — qui porte déjà la pile readStack ET la garde anti double-tap 700 ms : le
+   retour système en hérite. À l'accueil nu : le retour SORT de l'app (on re-recule d'un cran
+   par-dessus l'entrée d'origine — aucun « appui mort »). Un popstate vers l'AVANT (retour sur la
+   sentinelle) ne fait que re-noter l'armement : jamais de fermeture sur un geste avant.
+   scrollRestoration='manual' : les deux entrées partagent le même document, laisser le moteur
+   « restaurer » un défilement entre elles ferait sauter la page (doctrine : le seul mouvement
+   est le geste). */
+try{history.scrollRestoration='manual';}catch(e){}
+// Une sentinelle SURVIVANTE d'un rechargement (même document, entrée conservée) redevient une
+// entrée ordinaire — sinon le premier retour tombait dessus, était lu comme un geste « avant »
+// et ne fermait rien (appui mort, constaté à la sonde).
+if(history.state&&history.state.ac)try{history.replaceState(null,'');}catch(e){}
+let _histArmed=false;
+function _histArm(){if(_histArmed)return;try{history.pushState({ac:1},'');_histArmed=true;}catch(e){}}
+function _histBackAction(){
+  const m=_topModal();
+  if(m){const x=m.querySelector('.ai-x');
+    // Sans ✕ (ex. « Terminer la session ? ») : un clic SUR la fenêtre (cible = le voile) emprunte
+    // le chemin de bindModalDismiss — pour ce dialogue, « Poursuivre », JAMAIS « Terminer ».
+    return()=>{if(x)x.click();else m.dispatchEvent(new MouseEvent('click',{bubbles:true}));};}
+  const rm=document.getElementById('readerMode');
+  if(rm&&rm.classList.contains('on'))return readerClose;
+  const ff=document.getElementById('flowFull');
+  if(ff&&ff.classList.contains('on'))return closeFlowFull;
+  if(typeof lb!=='undefined'&&lb&&lb.classList.contains('on'))return closeLightbox;
+  const hb=document.getElementById('hdrBack');
+  if(hb&&!hb.hidden&&state.view!=='library')return()=>hb.click();
+  return null;
+}
+window.addEventListener('popstate',e=>{
+  _histArmed=!!(e.state&&e.state.ac);
+  const act=_histBackAction();
+  // Un popstate est un GESTE de l'utilisateur : s'il reste une surface à fermer, on la ferme —
+  // même si l'entrée d'arrivée est une sentinelle résiduelle (le cas « avant » qui fermerait à
+  // tort est marginal et sans danger : la surface se rouvre d'un tap ; l'appui mort, lui, était
+  // systématique après rechargement).
+  if(act){try{act();}catch(_){/* le prochain geste retombera sur le bon chemin */}_histArm();}
+  else if(!_histArmed){try{history.back();}catch(_){}}   // accueil nu : traverser l'origine = sortir
+  // accueil nu SUR une sentinelle : rien à fermer, rien à faire — le prochain retour sortira.
+});
 
 /* ===== Mode débogage (?__acdebug) =====
    L'app avale volontairement beaucoup d'erreurs best-effort (localStorage, vibration, audio…) :

@@ -84,6 +84,10 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   v4.5 : `--verify-bd`/`--verify-hi` (bordure/emphase du registre ATTENTION, ex. minuteur
   échu), `--critical-bd`, `--done-bg/-line/-ink` (étape cochée), `--tag-bg/-ink` (pilules
   neutres), `--link` (liens ET temps d'un minuteur en cours — ancien `--timer-run` fusionné).
+  Sous `forced-colors` (Windows High Contrast, v4.30.0) : filet MINIMAL — `.acct-dot`, `.cat-dot`
+  et `.seg-pill` gardent leur couleur (`forced-color-adjust:none`, l'information EST la couleur) ;
+  le reste s'appuie sur « la couleur jamais seule » (glyphe + mot). Non testé sur Windows réel —
+  à valider sur machine avant d'étendre.
 - **Taxonomie des notices (V5)** : 5 registres, du plus au moins impérieux — ALERTE
   (`--critical`), ATTENTION (`--verify`), INFORMATION (`--primary` : `.notice`, `#sysBanner`),
   CONFIRMATION (`--ok` : `.flow-end`, étape cochée), MEMO (neutre). Grammaire : bord gauche 4 px + bordure de la
@@ -481,6 +485,27 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   inertes sous reduced-motion) : le retour par la pile fait entrer la vue d'origine dans le sens
   du geste (`main.back-anim`, keyframes `secInL` réutilisées) et la carte de reprise d'une
   complication glisse en place (`.ov-block.cx-return`). Harnais : `scripts/audit-lecteur.mjs`.
+- **RETOUR SYSTÈME (History API, v4.30.0 — P1 de l'audit externe)** : avant, 0 pushState/popstate —
+  sur Android (PWA ou navigateur), le geste retour SORTAIT de l'app depuis une fiche en pleine
+  session, le lecteur, un PDF ou une feuille plein écran (les données survivaient via
+  `persistAllLive`, mais l'écran disparaissait en pleine réanimation). Contrat implémenté SANS
+  routing (cohérent monofichier) : UNE entrée SENTINELLE (`_histArm`, état `{ac:1}`), ré-armée à
+  chaque consommation ; le popstate emprunte le MÊME chemin que l'affordance visible (doctrine du
+  gestionnaire de modales : « réutilise son ✕, donc ses effets de bord ») — fenêtre du dessus
+  (✕, ou CLIC DE VOILE synthétique si pas de ✕ : « Terminer la session ? » ferme sur Poursuivre,
+  JAMAIS Terminer), sinon lecteur, sinon schéma plein écran, sinon visionneuse d'image, sinon le
+  « ‹ » d'en-tête — qui porte déjà la pile `readStack` ET la garde anti double-tap 700 ms : le
+  retour système en hérite. Accueil nu = sortie réelle (on traverse l'entrée d'origine — aucun
+  « appui mort »). Une sentinelle SURVIVANT à un rechargement est neutralisée au boot
+  (`replaceState(null)`) — sans ça, le premier retour tombait dessus, était lu comme un geste
+  « avant » et ne fermait rien (constaté à la sonde). `history.scrollRestoration='manual'` (deux
+  entrées, même document : une « restauration » de défilement entre elles ferait sauter la page).
+  Toute nouvelle surface plein écran doit appeler `_histArm()` à l'ouverture et entrer dans
+  `_histBackAction()`. **PIÈGE (vécu deux fois cette version)** : toute édition du script inline
+  exige `node scripts/csp-hashes.mjs` — sinon la CSP par hashs bloque le script et l'app ne boote
+  plus ; et en DEV le service worker ressert l'ancien HTML tant qu'on ne l'a pas désinscrit
+  (caches purgés) — tester un correctif sur la version précachée fait conclure à tort qu'il ne
+  marche pas.
 - **Mode statique (v4.13.0, DOCUMENT complet v4.14.0)** : TOUTE l'aide en TABLEAU compact
   façon aide SFAR/CAMR — cellules télégraphiques carrelées à joint 3 px. `svExtras` (v4.14.0)
   absorbe les SECTIONS de la fiche en cellules INERTES : confirmation + différentiels côte à
@@ -696,6 +721,14 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   les ouvertures au bord droit les éloignerait de tout sur grand écran et contredirait la règle
   « le cluster se groupe à gauche, le blanc part au bord droit ». Positions donc identiques quelle
   que soit la largeur.
+  **SOUS 400 px (v4.30.0, audit externe — MESURÉ)** : la rangée exigeait 386 px — « Cons. » rogné
+  de 11 px à 375 (iPhone SE/mini) et de 26 px à 360 (Android standard), sans défilement
+  horizontal : pixels INACCESSIBLES, un débordement SILENCIEUX dans la zone de crise elle-même.
+  Pixels rendus par COMPRESSION (gaps/paddings, recette v4.23.4 de la rangée d'identité — ~346 px
+  à 360 après), JAMAIS par un renommage (règle « troncature du même mot ») ni une 2ᵉ ligne (la
+  hauteur de crise est un coût permanent). Harnais : audit-doctrine « rangée de commandes sans
+  rognage » (360/375/390) — toute addition à cette rangée se re-mesure là, comme la rangée
+  d'identité se re-mesure à 360.
   **BASCULE DE MODE = SÉLECTEUR SEGMENTÉ, JAMAIS UN INTERRUPTEUR** : « Guidé » et « Statique » sont
   deux modes PAIRS, aucun n'est la négation de l'autre — contrairement à « Son activé/coupé », qui
   est une propriété binaire. Un bouton d'état y serait ambigu (dit-il où je suis ou où je vais ?),
@@ -919,6 +952,15 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   `scrollIntoView` remonte TOUS les ancêtres défilables — mesuré, un renvoi tapé dans le rail
   déplaçait la PAGE de 261 px pendant que la zone du rail ne bougeait pas. `scrollWithin` n'écrit
   que le `scrollTop` du conteneur visé.
+  **FOCUS CLAVIER (v4.30.0, WCAG 2.2 § 2.4.11 « Focus Not Obscured », audit externe)** : le
+  défilement déclenché par le focus est celui du NAVIGATEUR — `stickBase()` ne le voit jamais,
+  seul `scroll-padding` le pilote. `html{scroll-padding-top:calc(var(--stick-top,64px)+8px)}` :
+  sans lui, un Shift+Tab remontant déposait l'élément focalisé ENTIÈREMENT sous les couches
+  collantes (238 px mesurés à 360 en session, dont l'étape critique « ⚠ RCP immédiate » —
+  masquage TOTAL, interdit au niveau AA). Corollaire : `scroll-margin` s'ADDITIONNE au
+  scroll-padding — l'ancien `scroll-margin-top:130px` forfaitaire de `.rt-panel` est ramené à
+  6 px, sinon le panneau atterrissait ~130 px trop bas. Sonde dédiée dans `audit-a11y.mjs`
+  (élément envoyé AU-DESSUS du viewport puis focalisé, masquage total = échec).
 - **FEUILLE « CONSULTER » (v4.23.0, `#refModal`)** : la couche de CONSULTATION quitte la colonne
   d'action — différentiels, schémas, documents, références, voir aussi. Accès en **PULL** : rangée
   `#annexRow` en fin d'action, bouton `▸ Réf.` du quai, menu ⋯ ; **jamais d'ouverture automatique**
