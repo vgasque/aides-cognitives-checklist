@@ -1,5 +1,18 @@
 # Journal des modifications
 
+## [4.29.5] — 2026-07-26
+### Diagnostic (bande basse iOS, suite)
+- Le diag v4.29.4 sur l'appareil tranche : `ih 812 · vv 812 · dvh 812 · scr 874` — les trois
+  mesures CONCORDENT. La WebView de la PWA fait réellement 812 px sur un écran de 874 : il
+  manque exactement la hauteur de la barre d'état (62 px), **hors de la zone accordée par iOS**
+  — aucun contenu web ne peut s'y peindre (la tab bar s'arrête à la même ligne, invisible en
+  sombre). Les fenêtres remplissent depuis v4.29.4 100 % de ce qu'iOS accorde ; le reste est un
+  problème de coquille PWA (géométrie figée à l'installation ou style de barre d'état), pas de
+  CSS. Ajout de `sat` (safe-area haut) au diag pour départager : `sat ≈ 59` = WebView ancrée en
+  haut de l'écran et AMPUTÉE en bas (bug iOS `black-translucent`, se corrige souvent en
+  réinstallant la PWA) ; `sat = 0` = WebView déjà sous la barre d'état (le style
+  `black-translucent` est alors à abandonner).
+
 ## [4.29.4] — 2026-07-26
 ### Corrigé
 - **Fenêtres coupées en bas (iOS, suite)** : la capture sur appareil montre que le défaut existe

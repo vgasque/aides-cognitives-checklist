@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-yyzo33VuECw2KJdvx+f6/3aIj5VS+cpbLxWSSZ+6PeM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-ynTBwpeGNDZxYVHeb2RZQJhpFDOsuEa9+2ivl90jDpI='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -3298,7 +3298,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.29.4';
+const APP_VERSION='4.29.5';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -10659,7 +10659,7 @@ function accountPrefsHtml(slot){
     ${''/* DIAG TEMPORAIRE v4.29.4 (bug « fenêtre coupée en bas » iOS, non reproductible hors
        appareil) : les quatre mesures de hauteur — celle qui diverge désigne le coupable.
        À RETIRER une fois le bug clos. */}
-    <p class="auth-note" style="font-family:var(--mono);font-size:11px">diag : ih ${window.innerHeight} · vv ${window.visualViewport?Math.round(window.visualViewport.height):'—'} · dvh ${(()=>{const d=document.createElement('div');d.style.cssText='position:fixed;top:0;height:100dvh;width:0';document.body.appendChild(d);const h=Math.round(d.getBoundingClientRect().height/zoomF());d.remove();return h;})()} · sab ${(()=>{const d=document.createElement('div');d.style.cssText='position:fixed;top:0;height:env(safe-area-inset-bottom);width:0';document.body.appendChild(d);const h=Math.round(d.getBoundingClientRect().height/zoomF());d.remove();return h;})()} · scr ${screen.height}</p>
+    <p class="auth-note" style="font-family:var(--mono);font-size:11px">diag : ih ${window.innerHeight} · vv ${window.visualViewport?Math.round(window.visualViewport.height):'—'} · dvh ${(()=>{const d=document.createElement('div');d.style.cssText='position:fixed;top:0;height:100dvh;width:0';document.body.appendChild(d);const h=Math.round(d.getBoundingClientRect().height/zoomF());d.remove();return h;})()} · sab ${(()=>{const d=document.createElement('div');d.style.cssText='position:fixed;top:0;height:env(safe-area-inset-bottom);width:0';document.body.appendChild(d);const h=Math.round(d.getBoundingClientRect().height/zoomF());d.remove();return h;})()} · sat ${(()=>{const d=document.createElement('div');d.style.cssText='position:fixed;top:0;height:env(safe-area-inset-top);width:0';document.body.appendChild(d);const h=Math.round(d.getBoundingClientRect().height/zoomF());d.remove();return h;})()} · scr ${screen.height}</p>
     ${slot?`<div class="auth-actions" style="margin-bottom:14px">${slot}</div>`:''}
     <div class="auth-stats-h">Taille du texte</div>
     <div class="statuseg" role="radiogroup" aria-label="Taille du texte">${ZOOM_STEPS.map(s=>`<button type="button" class="st-seg ts-seg ts-${s}${z===s?' on':''}" data-zoom="${s}" role="radio" aria-checked="${z===s?'true':'false'}" title="${HINT[s]}" aria-label="Taille du texte ${HINT[s]}">A</button>`).join('')}</div>
