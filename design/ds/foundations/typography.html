@@ -2003,6 +2003,17 @@
      de toutes les modales (Compte, PDF, confirmations…) — ai-modal/ai-card/ai-x/ai-top/ai-actions.
      Ne pas y lire un lien avec l'IA ; renommer casserait sélecteurs CSS+JS pour un gain nul. */
   .ai-modal{position:fixed;inset:0;background:rgba(16,27,40,.55);z-index:55;display:none;align-items:flex-start;justify-content:center;padding:calc(18px + env(safe-area-inset-top)) 14px calc(18px + env(safe-area-inset-bottom));overflow:auto;overscroll-behavior:contain}
+  /* iOS Safari — LA FENÊTRE ÉTAIT COUPÉE EN BAS (retour utilisateur v4.29.3 : « le contenu ne
+     scrolle pas sur cette bande ») : un overlay `fixed; inset:0` se dimensionne sur le GRAND
+     viewport iOS (barre d'outils repliée) — barre visible, le bas de l'overlay passe DERRIÈRE
+     elle, et comme l'overlay est aussi le DÉFILEUR, la fin du contenu est inatteignable (on peut
+     scroller jusqu'au bout, mais le bout est sous la barre). `100dvh` suit le viewport DYNAMIQUE :
+     la fenêtre s'arrête toujours au bord réellement visible. ÷ --zf (règle v4.24.0) ; les
+     navigateurs sans dvh gardent `inset:0` (état antérieur). Chromium/desktop : strictement
+     identique (dvh = viewport), vérifié par sonde à 90/100/130 %. */
+  @supports (height:100dvh){
+    .ai-modal,.lightbox,#readerMode,#flowFull{bottom:auto;height:calc(100dvh / var(--zf,1))}
+  }
   .ai-modal.on{display:flex}
   /* Fenêtre ouverte = page de fond VERROUILLÉE (v4.21.0 — bug mobile : le glissement dans une
      fenêtre longue « fuyait » vers l'accueil, déplacé à son insu). Deux ceintures :

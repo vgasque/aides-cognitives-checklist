@@ -652,7 +652,16 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   mesurés sur 800 px de haut). Toute hauteur relative à la fenêtre s'écrit donc
   `calc(100dvh / var(--zf,1))` — `--zf` est posée par `applyZoom`, pendant CSS de `zoomF()` pour le
   JS (règle v4.13.1). Corollaire : **ne jamais réintroduire un `vh`/`dvh` nu** ; couvert par
-  `scripts/audit-zoom-scroll.mjs`.
+  `scripts/audit-zoom-scroll.mjs`. **OVERLAYS PLEIN ÉCRAN (v4.29.3, retour utilisateur iOS)** :
+  un overlay `position:fixed; inset:0` se dimensionne sur le GRAND viewport iOS (barre d'outils
+  Safari repliée) — barre visible, son bas passe DERRIÈRE elle, et comme l'overlay est aussi le
+  DÉFILEUR, la fin du contenu est INATTEIGNABLE (« le contenu ne scrolle pas sur cette bande, la
+  fenêtre est coupée »). Tous les overlays défilables (`.ai-modal` — donc feuilles Plan/Consulter
+  et PDF —, `.lightbox`, `#readerMode`, `#flowFull`) reçoivent sous `@supports (height:100dvh)`
+  un `bottom:auto; height:calc(100dvh / var(--zf,1))` : la fenêtre s'arrête au bord réellement
+  VISIBLE et suit la barre dynamique ; sans dvh, `inset:0` inchangé. Vérifié au pixel sur
+  Chromium ET WebKit à 90/100/130 % ; tout NOUVEL overlay plein écran doit entrer dans cette
+  liste.
 - **SORTIE PDF UNIFIÉE (v4.24.0)** : « Exporter en PDF » doit rendre le MÊME document quel que soit
   l'appareil. Mesurée avant correction, la sortie variait sur trois axes — le ZOOM s'appliquait au
   papier (0,9 / 1 / 1,3), le RAIL s'imprimait dès que la page faisait ≥ 780 px (soit toujours sur A4

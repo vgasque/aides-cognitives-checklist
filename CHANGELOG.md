@@ -1,5 +1,21 @@
 # Journal des modifications
 
+## [4.29.3] — 2026-07-25
+### Corrigé
+- **iOS Safari/PWA : les fenêtres plein écran n'étaient pas seulement recouvertes d'une bande —
+  elles étaient COUPÉES en bas** (retour utilisateur : « le contenu ne scrolle pas sur cette
+  bande »). Cause : un overlay `position:fixed; inset:0` se dimensionne sur le *grand* viewport
+  iOS (barre d'outils repliée) ; barre visible, le bas de l'overlay passe derrière elle — et
+  comme l'overlay est aussi le défileur, la fin du contenu est inatteignable : on peut scroller
+  jusqu'au bout, mais le bout vit sous la barre. Correctif : tous les overlays défilables
+  (dialogues, feuilles Plan/Consulter, visionneuse PDF, lightbox, mode lecteur, schéma plein
+  écran) passent en `height:100dvh` (viewport *dynamique* : la fenêtre s'arrête au bord
+  réellement visible et suit la barre), divisé par `--zf` (règle zoom v4.24.0), sous
+  `@supports` — les navigateurs sans `dvh` gardent le comportement antérieur. Vérifié au pixel
+  sur Chromium et WebKit à 90/100/130 % ; à confirmer sur l'appareil.
+
+503 tests, 11 harnais verts.
+
 ## [4.29.2] — 2026-07-25
 ### Corrigé
 - **Le ✕ de la carte-bilan de fin de session est ancré en haut à droite** (retour utilisateur) :
