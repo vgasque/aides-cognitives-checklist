@@ -1,5 +1,22 @@
 # Journal des modifications
 
+## [4.29.7] — 2026-07-26
+### Corrigé (bande basse iOS, suite du dossier)
+- Les captures en thème clair montrent DEUX anomalies : la bande basse (~60 px, les trois
+  fenêtres) et les feuilles Se repérer/Consulter décalées vers le bas. Or le diag lit 874
+  partout… au moment où il se calcule. Suspect principal : **`--vvh` posée au lancement (quand
+  iOS annonçait encore 812) et jamais rafraîchie** — iOS corrige la géométrie de la WebView
+  SANS émettre `resize` sur `visualViewport`. La variable est désormais resynchronisée sur tous
+  les canaux (resize/scroll du visualViewport, resize fenêtre, orientation, retour au premier
+  plan) ET à chaque tic d'horloge (~1 s, écriture seulement si la valeur change) : une hauteur
+  périmée ne peut plus survivre plus d'une seconde.
+- Diag enrichi : `vvV` (valeur EFFECTIVE de `--vvh`, celle que les fenêtres utilisent — si elle
+  diverge de `vv`, l'obsolescence est prouvée), `sc` (échelle du viewport visuel — un zoom
+  automatique résiduel se verrait ici) et `ot` (décalage vertical du viewport visuel — piste du
+  décalage des feuilles). Champ e-mail vérifié à 16 px (pas d'auto-zoom iOS).
+
+503 tests, 11 harnais verts.
+
 ## [4.29.6] — 2026-07-26
 ### Diagnostic (bande basse iOS, suite du dossier)
 - Après réinstallation de la PWA, le diag sur appareil est redevenu SAIN : `ih 874 · vv 874 ·
