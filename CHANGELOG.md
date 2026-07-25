@@ -1,5 +1,17 @@
 # Journal des modifications
 
+## [4.29.10] — 2026-07-26
+### Retiré
+- **Dossier « bande basse iOS » clos — correctif v4.29.9 confirmé sur appareil.**
+  L'instrumentation temporaire est retirée : ligne de diagnostic de la fenêtre Compte
+  (`ih/vv/dvh/sab/sat/scr/vvV/sc/ot`) et règle visuelle (`_vvRuler`, calque rouge + trait bleu
+  au toucher). Pour ré-instrumenter un jour : tags v4.29.5 à v4.29.9. Restent en place, acquis
+  durables du dossier : le verrou de fond par `overflow:hidden` (jamais de `position:fixed` sur
+  `body`), les overlays dimensionnés par `--vvh` (visualViewport, resynchronisée en continu),
+  et le fond peint sur `html` (ceinture rebond).
+
+503 tests, 11 harnais verts.
+
 ## [4.29.9] — 2026-07-26
 ### Corrigé (bande basse iOS — LE COUPABLE)
 - La règle visuelle (v4.29.8) a produit la preuve : sur l'ACCUEIL, `bottom:0` touche le bord

@@ -671,9 +671,10 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   vérifier d'abord ces mesures avant de toucher au code. DÉNOUEMENT (v4.29.9) : la bande
   résiduelle malgré géométrie saine venait du VERROU DE FOND (`body{position:fixed}` — iOS
   rétrécit le rendu des fixés descendant d'un body lui-même fixé : accueil parfait, fenêtres
-  coupées, aucune mesure web ne le voit) ; verrou remplacé par `html{overflow:hidden}`. Diag
-  `ih/vv/dvh/sat/vvV/sc/ot` + règle visuelle (`_vvRuler`, tap sur la ligne diag) CONSERVÉS dans
-  la fenêtre Compte jusqu'à confirmation sur appareil, puis à retirer.
+  coupées, aucune mesure web ne le voit) ; verrou remplacé par `html{overflow:hidden}`. CONFIRMÉ
+  RÉSOLU sur appareil (v4.29.10) — l'instrumentation (diag + règle visuelle) est RETIRÉE ; pour
+  ré-instrumenter un jour : tags v4.29.5-9 (ligne diag ih/vv/dvh/sat/vvV/sc/ot dans la fenêtre
+  Compte, règle visuelle `_vvRuler` rouge/bleu au tap).
 - **SORTIE PDF UNIFIÉE (v4.24.0)** : « Exporter en PDF » doit rendre le MÊME document quel que soit
   l'appareil. Mesurée avant correction, la sortie variait sur trois axes — le ZOOM s'appliquait au
   papier (0,9 / 1 / 1,3), le RAIL s'imprimait dès que la page faisait ≥ 780 px (soit toujours sur A4
