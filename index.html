@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-3fvkc+KIH5CDjl60qCapZn8L/FErhXApH+NZCKFFQeI='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-IpQez4lbKkMkgG8Q+wRkOOTPVO7K8/j4nulYLRzUwfs='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -686,7 +686,17 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      d'action de l'écran, lu à bout de bras et sous stress. La saillance doit suivre le rôle. */
   /* Plan est le PREMIER segment de la bande (< 780) : pas de filet à gauche (bord du quai), un
      filet à DROITE le sépare de « ● Session ». À ≥ 780 il redevient une carte détachée. */
-  .dock-plan{flex:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:38px;padding:0 12px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--link);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap}
+  .dock-plan{flex:none;position:relative;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:38px;padding:0 12px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--link);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap}
+  /* HALO DE CIBLE (v4.32.0) : ces deux boutons vivent dans la zone de CRISE, où le seuil est de
+     44 px — ils étaient mesurés à 38. Le défaut a échappé au harnais parce que son SCOPE listait
+     #crisisDock (l'état) mais PAS #crisisCtrl (les commandes) : le trou de couverture cachait un
+     défaut réel, sur la surface la moins permissive de l'app.
+     Halo plutôt que grossissement : la hauteur de la zone haute est un coût PERMANENT en crise
+     (177 px sur 640 déjà) et passer à 44 px l'aurait épaissie de 6 px. C'est le patron déjà
+     employé pour les contrôles de 36 px de la barre. VERTICAL SEULEMENT (`inset:-3px 0`) : en
+     latéral il empiéterait sur le bouton voisin, les deux étant côte à côte. Vérifié à la sonde :
+     aucun chevauchement avec le quai d'état en dessous. */
+  .dock-plan::after{content:"";position:absolute;inset:-3px 0}
   .dock-plan[hidden]{display:none}
   .dock-plan:hover{background:var(--primary-soft)}
   .dock-plan:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
@@ -1064,7 +1074,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Tag de statut (canvas V5 « ✓ Validée ») : pilule ACHROMATIQUE, identique pour les 3
      états — glyphe + libellé suffisent (ECAM : jamais la couleur seule ; ici, pas de couleur
      du tout). L'espace avant la méta vient du gap du conteneur. */
-  .status-tag{display:inline-block;vertical-align:middle;font-size:10.5px;font-weight:700;line-height:1.5;padding:2px 8px;border-radius:10px;background:var(--tag-bg);color:var(--tag-ink)}
+  .status-tag{display:inline-block;vertical-align:middle;font-size:11px;font-weight:700;line-height:1.5;padding:2px 8px;border-radius:10px;background:var(--tag-bg);color:var(--tag-ink)}
   .tag.draft{background:var(--tag-bg);color:var(--tag-ink)}
   /* Soulignement pointillé = affordance « détail au tap » (sinon le badge paraît statique). */
   .tag.todo{background:var(--tag-bg);color:var(--tag-ink);position:relative;cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px}
@@ -1106,7 +1116,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .read-head h2{margin:0;font-size:24px;font-weight:680;line-height:1.18}
   /* V5 : en crise le TITRE vit dans le bandeau d'en-tête sticky — le grand titre du corps ne
      sert plus qu'à l'impression (l'en-tête est masqué en print). */
-  @media screen{body.view-read .read-head{display:none}}
+  /* Le titre du corps ne sert visuellement à rien en lecture (le bandeau de crise le porte),
+     mais il est le SEUL heading de la vue : `display:none` le retirait aussi de l'arbre
+     d'accessibilité, laissant la surface CLINIQUE sans aucun titre à parcourir — or la navigation
+     par titres est le mode de parcours dominant des lecteurs d'écran (WCAG 2.4.6, 1.3.1).
+     Mis HORS ÉCRAN plutôt que supprimé (mêmes propriétés que .sr-only) : rien ne change à l'œil. */
+  @media screen{body.view-read .read-head{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}}
   .read-meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0 18px}
   /* En SESSION VIVE, la gouvernance documentaire s'efface (v4.31.0, audit externe) : statut,
      catégorie et date de validation ont été vus à l'OUVERTURE de la fiche — pendant le soin ils
@@ -1434,7 +1449,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .cx-item-tx{flex:1;min-width:0}
   .cx-item-tx b{display:block;font-size:15.5px;color:var(--critical)}
   .cx-item-sub{display:block;font-size:12px;color:var(--ink-soft);margin-top:1px}
-  .cx-tag{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--critical);background:var(--critical-soft);border:1px solid var(--critical-line);border-radius:999px;padding:1px 8px;vertical-align:1px;white-space:nowrap}
+  .cx-tag{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--critical);background:var(--critical-soft);border:1px solid var(--critical-line);border-radius:999px;padding:1px 8px;vertical-align:1px;white-space:nowrap}
   .pl-cxh{margin:14px 0 4px;font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--critical)}
   .pl-line.cxl .n{color:var(--critical)}
   .sv-band.sv-cxband{border-color:var(--critical-bd);color:var(--critical);background:var(--critical-soft)}
@@ -1687,7 +1702,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      La poignée vit dans l'en-tête collant (.catmenu-head) ; touch-action:none sur le voile :
      un glissement sur le fond assombri ne doit jamais faire défiler la page derrière. */
   @media (max-width:779.98px){
-    .catmenu{position:fixed;left:0;right:0;bottom:0;top:auto;max-width:none;min-width:0;max-height:min(70vh,480px);border-radius:16px 16px 0 0;padding-bottom:calc(10px + env(safe-area-inset-bottom));z-index:70}
+    .catmenu{position:fixed;left:0;right:0;bottom:0;top:auto;max-width:none;min-width:0;max-height:min(calc(70vh / var(--zf,1)),480px);border-radius:16px 16px 0 0;padding-bottom:calc(10px + env(safe-area-inset-bottom));z-index:70}
     .catmenu-head{border-radius:16px 16px 0 0}
     .catmenu-head::before{content:"";display:block;width:44px;height:4px;border-radius:2px;background:var(--line-strong);margin:4px auto 10px}
     .catmenu-row{min-height:48px}
@@ -1714,7 +1729,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .crit-guide .cg-r{color:var(--critical)}
   .crit-guide .cg-a{color:var(--verify)}
   .flow-prev-h{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--ink-soft);margin:0 0 7px}
-  .flow-scroll{width:100%;overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--paper);padding:8px;-webkit-overflow-scrolling:touch;margin-bottom:14px;max-height:75vh}
+  .flow-scroll{width:100%;overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--paper);padding:8px;-webkit-overflow-scrolling:touch;margin-bottom:14px;max-height:calc(75vh / var(--zf,1))}
   .flow-zoom{display:flex;align-items:center;gap:7px;margin-bottom:7px}
   .fz{border:1px solid var(--line);background:var(--surface);color:var(--ink);width:42px;height:40px;border-radius:var(--radius-sm);font-size:18px;font-weight:600;line-height:1;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
   .fz:hover{background:var(--surface-2)}.fz-r{width:auto;padding:0 11px;font-size:12.5px}
@@ -1918,6 +1933,23 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pl-line.flash{background:var(--primary-soft)}
   .pl-lx{padding:6px 10px 10px 36px;background:var(--surface);border-bottom:1px solid var(--line)}
   .pl-lx .pl-lxt{margin:0 0 3px;font-size:12.5px;font-weight:700;color:var(--ink)}
+  /* Étapes du détail d'une ligne de l'Échelle. RESTAURÉES À L'IDENTIQUE (valeurs de v4.24.0) :
+     la purge v4.25.0 a emporté ces cinq règles alors que `ovPlanLadderHtml` émet TOUJOURS
+     `.pl-stp` — une étape ⚠ (memory item) s'affichait donc en encre ordinaire, avec les puces
+     disque du navigateur, indiscernable d'une étape banale, dans une surface visible en
+     permanence dans le rail dès 780 px et ouvrable d'un tap du quai de crise. Le pendant statique
+     (`.sv-stp li.crit`) n'a jamais cessé d'être stylé : deux surfaces de la même app donnaient une
+     lecture différente du même contenu vital. Leçon : une suppression de composant doit vérifier
+     au grep que chaque classe retirée est bien à ZÉRO émission — celle-ci en avait une.
+     (La distinction ⚠ rouge / △ ambre repose ici sur la teinte ET la graisse, sans glyphe, comme
+     en statique : `stepText` retire le préfixe. Sujet TRANSVERSE aux deux vues, à traiter d'un
+     seul geste — ne pas le corriger dans une seule, ce serait recréer l'écart qu'on vient de
+     refermer.) */
+  .pl-stp{margin:4px 0 0;padding:0;list-style:none}
+  .pl-stp li{font-size:11.5px;font-weight:400;color:var(--ink-soft);line-height:1.5;padding-left:13px;position:relative;overflow-wrap:break-word}
+  .pl-stp li::before{content:"·";position:absolute;left:4px}
+  .pl-stp li.crit{color:var(--critical);font-weight:600}
+  .pl-stp li.vig{color:var(--verify);font-weight:600}
   /* ===== MODE STATIQUE (v4.13.0) : TABLEAU compact façon aide SFAR/CAMR — généré depuis
      flowPlan (numérotation commune), INERTE côté cochage (navigation seule). Cellules
      carrelées à joint 3 px ; bandes de décision au registre ATTENTION ; fourches ambre,
@@ -1941,6 +1973,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .sv-m{flex:none;font-family:var(--mono);font-size:11px;color:var(--ink-soft);display:flex;gap:6px;align-items:baseline}
   .sv-m .sv-ok{color:var(--ok);font-weight:700}
   .sv-here{font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;background:var(--primary);color:var(--on-primary);padding:0 7px;border-radius:999px}
+  /* Compteur de passages « ×n ». Il était ÉMIS sans aucune règle : rendu à la taille du texte
+     courant, sans chiffres tabulaires, il se confondait avec le contenu de la cellule. Encre
+     DOUCE et non bleue, contrairement à son jumeau `.pl-x` du Plan : dans le statique, « aucun
+     texte bleu dans les cellules » (décision utilisateur) — le bleu n'y marque que la POSITION
+     (`● ici`) et la reprise `↺`. Copier `.pl-x` aurait réparé la taille en cassant la doctrine. */
+  .sv-x{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--ink-soft);margin-left:6px}
   .sv-off2{margin:2px 0 0;font-size:11px;font-weight:600;color:var(--ink-soft)}
   .sv-stp{margin:3px 0 0;padding:0;list-style:none}
   .sv-stp li{position:relative;font-size:11.5px;line-height:1.5;color:var(--ink);padding-left:15px;overflow-wrap:break-word}
@@ -2079,7 +2117,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #readerMode{position:fixed;inset:0;z-index:92;background:var(--bg);display:none;flex-direction:column}
   #readerMode.on{display:flex}
   #readerMode .rm-top{display:flex;align-items:center;gap:10px;padding:calc(9px + env(safe-area-inset-top)) 14px 9px;background:var(--surface);border-bottom:1px solid var(--line)}
-  #readerMode .rm-tag{flex:none;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--primary)}
+  #readerMode .rm-tag{flex:none;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--link)}
   #readerMode .rm-ttl{flex:1;min-width:0;font-size:13px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   #readerMode .rm-time{flex:none;font-family:var(--mono);font-size:13px;font-weight:700;color:var(--ok)}
   #readerMode .rm-block{display:flex;align-items:center;gap:8px;padding:10px 16px 0;font-size:12.5px;font-weight:700;color:var(--ink-soft);max-width:640px;width:100%;margin:0 auto}
@@ -2249,7 +2287,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   html[data-theme="dark"] .stg-tip{background:rgba(255,255,255,.05)}
   .stg-ul{margin:7px 0 0;padding-left:18px;font-size:13.5px;line-height:1.55;color:var(--ink)}.stg-ul li{margin:3px 0}
   .auth-why{margin-top:16px;border-top:1px solid var(--line);padding-top:10px}
-  .auth-why>summary{cursor:pointer;font-size:14px;font-weight:650;color:var(--primary);list-style:none;display:flex;align-items:center;gap:7px;padding:4px 0}
+  .auth-why>summary{cursor:pointer;font-size:14px;font-weight:650;color:var(--link);list-style:none;display:flex;align-items:center;gap:7px;padding:4px 0}
   .auth-why>summary::-webkit-details-marker{display:none}
   .auth-why>summary::before{content:"▸";font-size:11px;opacity:.8;transition:transform .15s}
   .auth-why[open]>summary::before{transform:rotate(90deg)}
@@ -2273,7 +2311,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .diff-line.add{color:var(--primary-dk)}.diff-line.del{color:var(--critical)}
   .diff-note{font-size:11.5px;color:var(--ink-soft);margin:8px 0 2px}
   .lightbox{position:fixed;inset:0;background:rgba(16,27,40,.92);z-index:100;display:none;align-items:center;justify-content:center;padding:20px;flex-direction:column;gap:14px}
-  .lightbox.on{display:flex}.lightbox img{max-width:100%;max-height:82vh;border-radius:8px}
+  .lightbox.on{display:flex}.lightbox img{max-width:100%;max-height:calc(82vh / var(--zf,1));border-radius:8px}
   .lightbox .cap{color:var(--lb-cap);font-size:13px;text-align:center;max-width:600px}
   .lightbox .x{position:absolute;top:calc(14px + env(safe-area-inset-top));right:16px;background:rgba(255,255,255,.15);color:var(--lb-ink);border:0;width:46px;height:46px;border-radius:50%;font-size:24px}
   /* « ai- » : préfixe HISTORIQUE (première fenêtre = « Créer via IA ») devenu le préfixe GÉNÉRIQUE
@@ -2404,7 +2442,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .ai-card p{font-size:13px;color:var(--ink-soft);margin:0 0 10px;line-height:1.5}
   .ai-card ol{font-size:13px;color:var(--ink-soft);margin:0 0 12px;padding-left:20px;line-height:1.5}
   /* Aperçu de compte-rendu (dans la fenêtre) : reprend le style du document imprimé, en zone défilable. */
-  .report-preview{max-height:min(60vh,520px);overflow:auto;border:1px solid var(--line);border-radius:10px;padding:16px 18px;background:var(--surface)}
+  .report-preview{max-height:min(calc(60vh / var(--zf,1)),520px);overflow:auto;border:1px solid var(--line);border-radius:10px;padding:16px 18px;background:var(--surface)}
   .report-preview h1{display:none}  /* redondant avec le titre de la fenêtre ; conservé dans le document imprimé/téléchargé */
   .report-preview h2{font-size:13px;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-soft);margin:20px 0 7px;border-bottom:1px solid var(--line);padding-bottom:4px}
   .report-preview .meta{color:var(--ink-soft);font-size:13px;margin-bottom:5px}
@@ -2850,7 +2888,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .att-cloud{flex:none;font-size:11.5px;font-weight:700;color:var(--verify);white-space:nowrap}
   .att-erow{display:flex;align-items:center;gap:8px;margin-bottom:8px}
   /* Sélecteur de document existant : liste défilable, origine du document en 2e ligne. */
-  .attpick-list{max-height:min(52vh,440px);overflow-y:auto;-webkit-overflow-scrolling:touch;margin-top:12px}
+  .attpick-list{max-height:min(calc(52vh / var(--zf,1)),440px);overflow-y:auto;-webkit-overflow-scrolling:touch;margin-top:12px}
   .attpick-list .att-row{margin-bottom:8px}
   .att-from{display:block;font-size:11.5px;font-weight:400;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .att-erow input[type="text"]{flex:1;min-width:0;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--input-bg);color:var(--ink)}
@@ -2896,7 +2934,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Lien d'évitement clavier : invisible jusqu'au focus. L'ombre ne vit QUE sur l'état focalisé :
      posée sur l'état garé (top:-60px), elle « suintait » sous le bord supérieur gauche de l'écran
      (flou 32 px + décalage 12 px de --shadow-lg, très visible en sombre — constat v4.4.4). */
-  .skiplink{position:absolute;left:10px;top:-60px;z-index:200;background:var(--surface);color:var(--primary);font-weight:700;font-size:14px;padding:10px 16px;border-radius:10px;transition:top .12s}
+  .skiplink{position:absolute;left:10px;top:-60px;z-index:200;background:var(--surface);color:var(--link);font-weight:700;font-size:14px;padding:10px 16px;border-radius:10px;transition:top .12s}
   .skiplink:focus-visible{top:calc(10px + env(safe-area-inset-top));box-shadow:var(--shadow-lg);outline:2px solid var(--primary);outline-offset:2px}
   /* Session en cours : le pied de page se réduit à l'ÉTAT (nb de fiches, synchro) — Exporter/
      Importer/Thème/zoom n'ont rien à faire dans le champ visuel pendant une crise. */
@@ -3170,8 +3208,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      fois, plein écran, piloté sur le BOUT du journal (mêmes clés de cochage, mêmes chemins
      d'avancement). z-index 92 : le flash d'alarme (#screenFlash, 99) reste visible par-dessus. -->
 <div id="readerMode"><div class="rm-top"><span class="rm-tag">■ Mode lecteur</span><span class="rm-ttl" id="rmTitle"></span><span class="rm-time" id="rmTime" hidden></span><button class="fz fz-r" id="rmClose">Quitter ✕</button></div><div class="rm-strip" id="rmTimers" hidden></div><div class="rm-block"><span id="rmBlock"></span><span id="rmProg"></span><button type="button" class="rm-cx" id="rmCx" hidden>⚡ Complication(s)</button></div><div class="rm-map" id="rmMap" hidden></div><div class="rm-body" id="rmBody"></div></div>
-<div id="flowFull"><div class="ff-bar"><button class="fz" data-zoomf="out" aria-label="Dézoomer">−</button><span class="fzv">100%</span><button class="fz" data-zoomf="in" aria-label="Zoomer">+</button><button class="fz fz-r" data-zoomf="reset">Rétablir</button><span class="fz-spc"></span><button class="fz fz-r" id="ffClose">Fermer ✕</button></div><div class="ff-scroll"></div></div>
-<div class="lightbox" id="lightbox"><button class="x" id="lbX" aria-label="Fermer l'image">×</button><img id="lbImg" alt=""><div class="cap" id="lbCap"></div></div>
+<div id="flowFull" role="dialog" aria-modal="true" aria-label="Schéma de l'algorithme — plein écran"><div class="ff-bar"><button class="fz" data-zoomf="out" aria-label="Dézoomer">−</button><span class="fzv">100%</span><button class="fz" data-zoomf="in" aria-label="Zoomer">+</button><button class="fz fz-r" data-zoomf="reset">Rétablir</button><span class="fz-spc"></span><button class="fz fz-r" id="ffClose">Fermer ✕</button></div><div class="ff-scroll"></div></div>
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Image agrandie"><button class="x" id="lbX" aria-label="Fermer l'image">×</button><img id="lbImg" alt=""><div class="cap" id="lbCap"></div></div>
 <!-- Dialogue « Créer » (SPEC gestion §2.1) : point d'entrée UNIQUE de la création — 3 méthodes
      en cartes verticales ; la méthode IA est un SOUS-ÉCRAN du même dialogue (retour « ‹ Autres
      méthodes »). Tout import (IA ou .json) arrive en état Brouillon. -->
@@ -3339,7 +3377,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.32.0';
+const APP_VERSION='4.33.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -4217,10 +4255,10 @@ function bindFlowZoom(root){const R=root||main;
    if(fs&&state.view==='read'&&state.fiche){flowPaintState(fs,state.fiche);bindSvgNav(fs,state.fiche);}}}
 // Plein écran de l'algorithme : superpose le SVG (même peinture d'état), zoom + défilement
 // (pinch natif aussi). On centre horizontalement à l'ouverture. Taper un nœud = fermer + y aller.
-function openFlowFull(f){const ov=document.getElementById('flowFull');if(!ov)return;const sc=ov.querySelector('.ff-scroll');sc.innerHTML=buildFlowSVG(f);ov.classList.add('on');_histArm();applyFlowZoom();bindSvgImages(sc);
+function openFlowFull(f){const ov=document.getElementById('flowFull');if(!ov)return;const sc=ov.querySelector('.ff-scroll');sc.innerHTML=buildFlowSVG(f);ov.classList.add('on');_layerEnter(ov);_histArm();applyFlowZoom();bindSvgImages(sc);
   if(state.view==='read'&&state.fiche===f){flowPaintState(sc,f);bindSvgNav(sc,f,true);}
   sc.scrollLeft=centerOnStart(sc);sc.scrollTop=0;}
-function closeFlowFull(){const ov=document.getElementById('flowFull');if(ov){ov.classList.remove('on');const sc=ov.querySelector('.ff-scroll');if(sc)sc.innerHTML='';}}
+function closeFlowFull(){const ov=document.getElementById('flowFull');if(ov){ov.classList.remove('on');const sc=ov.querySelector('.ff-scroll');if(sc)sc.innerHTML='';_layerLeave();}}
 const flowBlock=(f,cache)=>`<div class="flow-zoom"><button class="fz" data-zoom="out" aria-label="Dézoomer">−</button><span class="fzv">${Math.round(flowZoom*100)}%</span><button class="fz" data-zoom="in" aria-label="Zoomer">+</button><button class="fz fz-r" data-zoom="reset">Rétablir</button><span class="fz-spc"></span><button class="fz" data-flowfull aria-label="Plein écran" title="Plein écran"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 3H5a2 2 0 00-2 2v3M16 3h3a2 2 0 012 2v3M8 21H5a2 2 0 01-2-2v-3M16 21h3a2 2 0 002-2v-3"/></svg></button></div><div class="flow-scroll">${buildFlowSVG(f,cache)}</div>`;
 // Rafraîchit l'aperçu algorithme PENDANT la frappe (titres, étapes, réponses) sans reconstruire
 // tout le formulaire : on ne remplace que le SVG dans .flow-scroll -> le champ en cours de saisie
@@ -6261,7 +6299,7 @@ async function genAttThumb(id){
 // n'est pas encore arrivé ici — on le DÉCOUVRE à froid, jamais en crise. Caché par défaut
 // (l'état n'est connu qu'après la lecture IndexedDB de hydrateAttThumbs) ; registre ATTENTION
 // (glyphe + texte, jamais la couleur seule).
-function attListHtml(entity){const _n=(entity.attachments||[]).length;return _n?`<section class="block"><div class="block-h h-doc">${headerIcon('h-doc')}Documents (${_n})</div><div class="att-list">${entity.attachments.map(a=>`<button class="att-row" data-att="${esc(a.id)}" title="Ouvrir le document">${attThumbHtml(a)}<span class="att-name">${esc(a.name)}</span><span class="att-cloud" data-attcloud="${esc(a.id)}" hidden title="Ajouté sur un autre appareil — sera téléchargé à la prochaine synchronisation avec du réseau ; pas encore consultable hors ligne ici.">△ à télécharger</span><span class="att-size">${fmtBytes(a.size)}</span></button>`).join('')}</div></section>`:'';}
+function attListHtml(entity){const _n=(entity.attachments||[]).length;return _n?`<section class="block"><div role="heading" aria-level="2" class="block-h h-doc">${headerIcon('h-doc')}Documents (${_n})</div><div class="att-list">${entity.attachments.map(a=>`<button class="att-row" data-att="${esc(a.id)}" title="Ouvrir le document">${attThumbHtml(a)}<span class="att-name">${esc(a.name)}</span><span class="att-cloud" data-attcloud="${esc(a.id)}" hidden title="Ajouté sur un autre appareil — sera téléchargé à la prochaine synchronisation avec du réseau ; pas encore consultable hors ligne ici.">△ à télécharger</span><span class="att-size">${fmtBytes(a.size)}</span></button>`).join('')}</div></section>`:'';}
 function bindAttList(entity){main.querySelectorAll('[data-att]').forEach(b=>b.onclick=()=>{const a=(entity.attachments||[]).find(x=>x.id===b.dataset.att);if(a)openPdfViewer(a,entity);});
   hydrateAttThumbs(entity);}
 function renderProtocolRead(){
@@ -6780,7 +6818,7 @@ function headerIcon(cls){const P={
 // Le <li> est un conteneur flex (puce en ::before) : le texte est TOUJOURS enveloppé dans un
 // <span> unique, sinon le gras de fmt() (<b>) éclate la ligne en plusieurs éléments flex.
 // o (option) : {sec, ul} pour surclasser la classe de section / de liste (bandeau « Ne pas oublier »).
-function staticBlock(title,cls,arr,liClass,o){o=o||{};const items=clean(arr);if(!items.length)return '';return `<section class="block${o.sec?' '+o.sec:''}"><div class="block-h ${cls}">${headerIcon(cls)}${title}</div><ul class="${o.ul||'flat '+liClass}">${items.map(x=>`<li><span class="ftxt">${fmt(x)}</span></li>`).join('')}</ul></section>`;}
+function staticBlock(title,cls,arr,liClass,o){o=o||{};const items=clean(arr);if(!items.length)return '';return `<section class="block${o.sec?' '+o.sec:''}"><div role="heading" aria-level="2" class="block-h ${cls}">${headerIcon(cls)}${title}</div><ul class="${o.ul||'flat '+liClass}">${items.map(x=>`<li><span class="ftxt">${fmt(x)}</span></li>`).join('')}</ul></section>`;}
 /* Note personnelle : COMPOSANT PARTAGÉ entre la lecture (mode crise) et l'éditeur (y compris à la
    CRÉATION d'une fiche : l'id du brouillon existe déjà). Lecture seule par défaut — rien d'éditable
    par accident en crise — édition sur geste explicite (Modifier / + Ajouter), auto-enregistrement.
@@ -6792,10 +6830,10 @@ function noteBlockHtml(id,locked){
   // (un écran de crise ne propose pas une action indisponible) ; note existante -> lecture seule.
   if(locked&&!nt)return '';
   if(!nt&&!state.noteEdit)return `<button class="note-add" id="noteEditBtn">${uiIcon('pen',13)} Ajouter une note personnelle</button>`;
-  if(locked)return `<section class="block notes-block"><div class="block-h h-notes">${headerIcon('h-notes')}Notes personnelles<span class="spc"></span><button class="btn sm" disabled title="Non modifiable pendant une session en cours">Modifier</button></div>
+  if(locked)return `<section class="block notes-block"><div role="heading" aria-level="2" class="block-h h-notes">${headerIcon('h-notes')}Notes personnelles<span class="spc"></span><button class="btn sm" disabled title="Non modifiable pendant une session en cours">Modifier</button></div>
     <div class="note-txt">${esc(nt)}</div>
     <div class="note-meta">Note de la fiche, non modifiable pendant la session — pour annoter la session, utilisez le journal des actions.</div></section>`;
-  return `<section class="block notes-block"><div class="block-h h-notes">${headerIcon('h-notes')}Notes personnelles<span class="spc"></span><button class="btn sm${state.noteEdit?' primary':''}" id="noteEditBtn">${state.noteEdit?'Terminer':'Modifier'}</button></div>
+  return `<section class="block notes-block"><div role="heading" aria-level="2" class="block-h h-notes">${headerIcon('h-notes')}Notes personnelles<span class="spc"></span><button class="btn sm${state.noteEdit?' primary':''}" id="noteEditBtn">${state.noteEdit?'Terminer':'Modifier'}</button></div>
     ${state.noteEdit
       ?`<textarea class="note-ta" id="noteTa" rows="3" placeholder="Vos notes sur cette fiche.">${esc(nt)}</textarea><div class="note-meta" id="noteMeta">Jamais partagée : visible par vous seulement.</div>`
       :`<div class="note-txt">${esc(nt)}</div>`}</section>`;}
@@ -7379,7 +7417,7 @@ function renderRead(){
   // v4.23.0 : repères classés pour le BLOC COURANT (rapprochement permissif qui RÉORDONNE et
   // ne filtre jamais) — même fonction que la feuille Consulter, donc aucun risque de divergence.
   const posCards=posoCardsHtml(f.posology,curBlockHay(f));
-  const posH=posCards?`<section class="block pos-block"><div class="block-h h-pos">Repères posologiques</div>${posCards}</section>`:'';
+  const posH=posCards?`<section class="block pos-block"><div role="heading" aria-level="2" class="block-h h-pos">Repères posologiques</div>${posCards}</section>`:'';
   const posRail=(()=>{if(!posCards)return '';const n=clean(f.posology).length;
     return `<div class="rail-head"><span class="rail-title">Repères posologiques</span>${n>1?`<span class="rail-n">${n}</span>`:''}</div>${posCards}`;})();
   const gridOpen=wideRead?'<div class="read-grid"><div class="read-main">':'';
@@ -7433,7 +7471,7 @@ function renderRead(){
   // ré-ouvrables d'un tap à tout moment (doute en cours d'algorithme) sans rien interrompre.
   const confBlockH=(()=>{if(!confItems.length)return '';
     const open=state.confOpen!==undefined?state.confOpen:!started;
-    return `<section class="conf-block"><button type="button" class="conf-head" id="confToggle" aria-expanded="${open?'true':'false'}"><span class="block-h h-confirm">${headerIcon('h-confirm')}${started?'Diagnostic confirmé':'Confirmer le diagnostic'}</span><span class="conf-sub">· ${confItems.length} élément${confItems.length>1?'s':''}</span><span class="conf-chev" aria-hidden="true">${open?'▴':'▾'}</span></button>${open?`<ul class="flat confirm">${confItems.map(x=>`<li><span class="ftxt">${fmt(x)}</span></li>`).join('')}</ul>${diffH?`<button type="button" class="atyp-link" id="atypLink">Tableau atypique ? → Diagnostics différentiels ▸</button>`:''}`:''}</section>`;})();
+    return `<section class="conf-block"><button type="button" class="conf-head" id="confToggle" aria-expanded="${open?'true':'false'}"><span role="heading" aria-level="2" class="block-h h-confirm">${headerIcon('h-confirm')}${started?'Diagnostic confirmé':'Confirmer le diagnostic'}</span><span class="conf-sub">· ${confItems.length} élément${confItems.length>1?'s':''}</span><span class="conf-chev" aria-hidden="true">${open?'▴':'▾'}</span></button>${open?`<ul class="flat confirm">${confItems.map(x=>`<li><span class="ftxt">${fmt(x)}</span></li>`).join('')}</ul>${diffH?`<button type="button" class="atyp-link" id="atypLink">Tableau atypique ? → Diagnostics différentiels ▸</button>`:''}`:''}</section>`;})();
   // Bouton de démarrage EXPLICITE : dans l'étape ① s'il y a des critères (« Confirmé — … » :
   // le geste PORTE la confirmation), sinon en tête de « Prise en charge ». Un seul bouton
   // rempli par écran ; la 1ʳᵉ action clinique démarre toujours aussi (jamais bloquant).
@@ -7468,7 +7506,7 @@ function renderRead(){
   if(verifyH)stages.push({cls:state.flowEnded?'on':'off',head:'Surveillances &amp; pièges',body:verifyH});
   }
   const pathH=stages.length>1
-    ?`<ol class="care-path">${stages.map((s,i)=>`<li class="cp-stage ${s.cls}"${s.cls==='on'?' aria-current="step"':''}><span class="cp-n" aria-hidden="true">${s.cls==='done'?uiIcon('check',13,{sw:3.2,cls:''}):(i+1)}</span><div class="cp-body">${s.head?`<div class="block-h cp-h">${s.head}</div>`:''}${s.body}</div></li>`).join('')}</ol>`
+    ?`<ol class="care-path">${stages.map((s,i)=>`<li class="cp-stage ${s.cls}"${s.cls==='on'?' aria-current="step"':''}><span class="cp-n" aria-hidden="true">${s.cls==='done'?uiIcon('check',13,{sw:3.2,cls:''}):(i+1)}</span><div class="cp-body">${s.head?`<div role="heading" aria-level="2" class="block-h cp-h">${s.head}</div>`:''}${s.body}</div></li>`).join('')}</ol>`
     :stages.map(s=>s.body).join('');
   // DÉFILEMENT DU RAIL PRÉSERVÉ (v4.23.5) : `.read-side` a son propre `overflow-y:auto` ; comme
   // `main.innerHTML` reconstruit tout, son `scrollTop` retombait à 0 à CHAQUE re-rendu — la barre
@@ -9130,7 +9168,7 @@ async function purgeDraftAtts(){const ids=draftNewAtts;draftNewAtts=[];
   if(!ids.length||!supportsAttachments())return;
   const ref=new Set();fiches.concat(protocols).forEach(x=>(x.attachments||[]).forEach(a=>ref.add(a.id)));
   for(const id of ids){if(!ref.has(id)){try{await IDB.delAtt(id);}catch(e){}}}}
-function targetSelect(blocks,selfId,value){const opts=blocks.filter(b=>b.id!==selfId).map(b=>`<option value="${b.id}" ${b.id===value?'selected':''}>${esc(b.title)||'(bloc sans titre)'}</option>`).join('');return `<select data-target><option value="" ${!value?'selected':''}>— Fin / aucun —</option>${opts}</select>`;}
+function targetSelect(blocks,selfId,value){const opts=blocks.filter(b=>b.id!==selfId).map(b=>`<option value="${b.id}" ${b.id===value?'selected':''}>${esc(b.title)||'(bloc sans titre)'}</option>`).join('');return `<select data-target aria-label="Bloc suivant"><option value="" ${!value?'selected':''}>— Fin / aucun —</option>${opts}</select>`;}
 function imageEditor(b){return `<div class="sub">Image du bloc (option)</div><div class="imgrow">${b.image?`<img src="${b.image}" alt=""><button class="btn sm danger" data-bimgdel>Retirer</button>`:`<button class="btn sm" data-bimg>+ Image / capture</button>`}</div>`;}
 function blockEditor(b,blocks){if(b.type==='decision'){return `<div class="blk" data-bid="${b.id}"><div class="blk-top"><span class="blk-type decision">Décision</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Réévaluation)"></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Question</div><input type="text" data-bf="question" value="${esc(b.question)}" placeholder="ex. Réponse à l'adrénaline ?" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)"><div class="sub">Réponses → bloc cible</div>${(b.options.length?b.options:[{label:'',target:''}]).map((o,i)=>`<div class="optedit" data-oi="${i}"><input type="text" data-of="label" value="${esc(o.label)}" placeholder="ex. Oui">${targetSelect(blocks,b.id,o.target)}<button class="mini del" data-rmopt="${i}" aria-label="Supprimer la réponse">×</button></div>`).join('')}<button class="add-line" data-addopt>+ Ajouter une réponse</button>${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="mini" data-bmv="up" aria-label="Monter le bloc">↑</button><button class="mini" data-bmv="down" aria-label="Descendre le bloc">↓</button><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
   return `<div class="blk" data-bid="${b.id}"><div class="blk-top"><span class="blk-type steps">Étapes</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Mesures immédiates)"></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Étapes (cochables en mode crise)</div><details class="crit-guide"${(()=>{try{return localStorage.getItem('ac-cg-folded')?'':' open';}catch(e){return ' open';}})()}><summary>${uiIcon('warn',11)} Rouge, △ ambre, réponse attendue — règles d'usage</summary><b class="cg-r">${uiIcon('warn',11)} Rouge</b> : ce qui tue si on l'oublie (memory item, geste vital). <b class="cg-a">△ Ambre</b> : là où l'on risque de se tromper (dose/dilution à vérifier avant injection, contre-indication à écarter, confusion voie/site/produit, seuil à contrôler avant de poursuivre). Les deux → rouge. <b>Réponse attendue</b> : « challenge :: réponse » (ex. « Adrénaline IM :: 0,01 mg/kg — max 0,5 mg ») — la réponse devient la pilule à confirmer en lecture (challenge-response).</details>${(b.steps.length?b.steps:['']).map((s,i)=>`<div class="li${stepIsCrit(s)?' li-crit':(stepIsVigil(s)?' li-vigil':'')}" data-si="${i}"><span class="li-num">${String(i+1).padStart(2,'0')}</span><input type="text" data-sf value="${esc(stepText(s))}" placeholder="…"><button class="mini crit-tgl${stepIsCrit(s)?' on':(stepIsVigil(s)?' vig':'')}" data-crit="${i}" title="${stepIsCrit(s)?'Étape CRITIQUE (rouge : ce qui tue si oublié) — toucher : vigilance (ambre)':(stepIsVigil(s)?'Étape VIGILANCE (ambre : risque d’erreur — dose, voie, seuil) — toucher : étape normale':'Étape normale — toucher : critique (rouge : ce qui tue si oublié)')}">${stepIsVigil(s)?'△':uiIcon('warn',14)}</button><button class="mini" data-smv="up" data-si="${i}" aria-label="Monter">↑</button><button class="mini" data-smv="down" data-si="${i}" aria-label="Descendre">↓</button><button class="mini del" data-rmstep="${i}" aria-label="Supprimer l'étape">×</button></div>`).join('')}<p class="nf-guard" data-stepguard role="status">${stepGuardTxt(b.steps)}</p><button class="add-line" data-addstep>+ Ajouter une étape</button><div class="sub">Étape suivante</div>${targetSelect(blocks,b.id,b.next)}${b.next?`<input type="text" data-bnextlbl value="${esc(b.nextLbl||'')}" maxlength="120" placeholder="Libellé du bouton Continuer (ex. réévaluation à 5 min)" style="margin-top:6px">`:''}${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="mini" data-bmv="up" aria-label="Monter le bloc">↑</button><button class="mini" data-bmv="down" aria-label="Descendre le bloc">↓</button><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
@@ -9146,9 +9184,9 @@ function cxEditorRow(c,i,f){
   const ext=blk?null:relTarget(c.target);
   const nom=blk?('Bloc — '+(String(stripBold(blk.title||''))||blk.id)):(ext?(ext.title||'Sans titre'):'');
   return `<div class="cx-edit-row"><span class="cx-edit-ic" aria-hidden="true">⚡</span><input data-cxlab="${i}" value="${esc(c.label)}" maxlength="120" placeholder="Événement (ex. Laryngospasme)"><button type="button" class="btn sm cx-tgt${nom?'':' cx-tgt-vide'}" data-cxpicker="${i}" aria-haspopup="dialog">${nom?esc(nom):'Choisir la cible…'}</button><button type="button" class="tk-del" data-cxdel="${i}" aria-label="Supprimer cette complication">×</button></div>`;}
-function timerEditorRow(t,i){const iv=t.type==='interval';const mm=Math.floor((t.seconds||0)/60),ss=(t.seconds||0)%60;return `<div class="trow" data-ti="${i}"><span class="blk-type ${iv?'decision':'steps'}">${iv?'Cycle':'Chrono'}</span><input type="text" data-tf="label" value="${esc(t.label)}" placeholder="${iv?'ex. Cycle adrénaline':'ex. Temps écoulé'}">${iv?`<input type="number" min="0" data-tmin value="${mm}" style="width:56px"><span>min</span><input type="number" min="0" max="59" data-tsec value="${ss}" style="width:56px"><span>s</span><label style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--ink-soft)"><input type="checkbox" data-tloop ${t.autoloop?'checked':''}>boucle</label>`:''}<button class="mini" data-tmv="up" aria-label="Monter">↑</button><button class="mini" data-tmv="down" aria-label="Descendre">↓</button><button class="mini del" data-tdel="${i}">×</button></div>`;}
+function timerEditorRow(t,i){const iv=t.type==='interval';const mm=Math.floor((t.seconds||0)/60),ss=(t.seconds||0)%60;return `<div class="trow" data-ti="${i}"><span class="blk-type ${iv?'decision':'steps'}">${iv?'Cycle':'Chrono'}</span><input type="text" data-tf="label" value="${esc(t.label)}" placeholder="${iv?'ex. Cycle adrénaline':'ex. Temps écoulé'}">${iv?`<input type="number" min="0" data-tmin value="${mm}" style="width:56px" aria-label="Durée du cycle — minutes"><span aria-hidden="true">min</span><input type="number" min="0" max="59" data-tsec value="${ss}" style="width:56px" aria-label="Durée du cycle — secondes"><span aria-hidden="true">s</span><label style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--ink-soft)"><input type="checkbox" data-tloop ${t.autoloop?'checked':''} aria-label="Relancer le cycle automatiquement">boucle</label>`:''}<button class="mini" data-tmv="up" aria-label="Monter">↑</button><button class="mini" data-tmv="down" aria-label="Descendre">↓</button><button class="mini del" data-tdel="${i}" aria-label="Supprimer ce minuteur">×</button></div>`;}
 function counterEditorRow(c,i,timers){const ivs=(timers||[]).filter(t=>t.type==='interval');
-  return `<div class="trow" data-ci="${i}"><input type="text" data-cf="label" value="${esc(c.label)}" placeholder="ex. Adrénaline (mg)"><span>pas</span><input type="number" data-cstep value="${c.step||1}" style="width:56px"><span>départ</span><input type="number" data-cstart value="${c.start||0}" style="width:56px">${ivs.length?`<select data-clink title="Le « ＋ » du compteur relance ce minuteur (ex. bolus -> cycle)"><option value="">＋ ne relance rien</option>${ivs.map(t=>`<option value="${esc(t.id)}"${c.timerId===t.id?' selected':''}>＋ relance « ${esc(t.label)||'Minuteur'} »</option>`).join('')}</select>`:''}<button class="mini" data-cmv="up" aria-label="Monter">↑</button><button class="mini" data-cmv="down" aria-label="Descendre">↓</button><button class="mini del" data-cdel="${i}">×</button></div>`;}
+  return `<div class="trow" data-ci="${i}"><input type="text" data-cf="label" value="${esc(c.label)}" placeholder="ex. Adrénaline (mg)"><span aria-hidden="true">pas</span><input type="number" data-cstep value="${c.step||1}" style="width:56px" aria-label="Pas du compteur"><span aria-hidden="true">départ</span><input type="number" data-cstart value="${c.start||0}" style="width:56px" aria-label="Valeur de départ du compteur">${ivs.length?`<select data-clink title="Le « ＋ » du compteur relance ce minuteur (ex. bolus -> cycle)"><option value="">＋ ne relance rien</option>${ivs.map(t=>`<option value="${esc(t.id)}"${c.timerId===t.id?' selected':''}>＋ relance « ${esc(t.label)||'Minuteur'} »</option>`).join('')}</select>`:''}<button class="mini" data-cmv="up" aria-label="Monter">↑</button><button class="mini" data-cmv="down" aria-label="Descendre">↓</button><button class="mini del" data-cdel="${i}" aria-label="Supprimer ce compteur">×</button></div>`;}
 
 /* ----- APERÇU EN DIRECT des éditeurs (V5, canvas turn 6) : colonne droite collante à >= 1000px
    (mini-rendu du brouillon, mis à jour à la saisie) + « Ouvrir l'aperçu complet » ; en dessous,
@@ -9459,8 +9497,12 @@ function newFiche(){if(!canEditScope(state.scope)){toast('Lecture seule : vous n
 
 /* ===== Lightbox ===== (agrandissement d'une image au clic, avec légende) */
 const lb=document.getElementById('lightbox');
-function openLightbox(src,cap){document.getElementById('lbImg').src=src;document.getElementById('lbCap').textContent=cap||'';lb.classList.add('on');_histArm();}
-function closeLightbox(){lb.classList.remove('on');document.getElementById('lbImg').src='';}
+function openLightbox(src,cap){const im=document.getElementById('lbImg');im.src=src;
+  // Le nom accessible de l'image est sa LÉGENDE quand elle en a une : `alt=""` la rendait
+  // décorative alors qu'elle est le contenu même de la couche.
+  im.alt=cap||'Image agrandie';
+  document.getElementById('lbCap').textContent=cap||'';lb.classList.add('on');_layerEnter(lb);_histArm();}
+function closeLightbox(){lb.classList.remove('on');document.getElementById('lbImg').src='';_layerLeave();}
 document.getElementById('lbX').onclick=closeLightbox;lb.onclick=e=>{if(e.target===lb)closeLightbox();};
 // Plein écran de l'algorithme : boutons de zoom (mêmes que l'aperçu) + fermeture.
 document.querySelectorAll('#flowFull [data-zoomf]').forEach(b=>b.onclick=()=>zoomStep(b.dataset.zoomf));
@@ -11943,6 +11985,20 @@ let _modalReturnFocus=null;
 function _openModals(){return [...document.querySelectorAll('.ai-modal.on')];}
 function _topModal(){const m=_openModals();return m[m.length-1]||null;}
 function _focusables(el){return [...el.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')].filter(x=>x.offsetParent!==null);}
+/* CALQUES OPAQUES plein écran (#flowFull, #lightbox) — traités comme des fenêtres pour le FOCUS,
+   le verrou de fond et le piège Tab, sans être des `.ai-modal` (CSS distinct, et Échap leur est
+   déjà câblé nommément). `_layerTop()` sert au piège Tab ; il ne touche pas à `_topModal()`, dont
+   dépendent Échap et le retour système. */
+const LAYERS='#flowFull,#lightbox';
+function _layerTop(){const l=[...document.querySelectorAll(LAYERS)].filter(e=>e.classList.contains('on'));return l[l.length-1]||null;}
+let _layerReturnFocus=null;
+function _layerEnter(el){
+  if(!_topModal())_layerReturnFocus=document.activeElement;
+  if(!document.body.classList.contains('modal-open'))_bgLock();
+  const f=_focusables(el);(f[0]||el).focus();}
+function _layerLeave(){
+  if(!_topModal()&&!_layerTop())_bgUnlock();
+  if(_layerReturnFocus){try{_layerReturnFocus.focus();}catch(_){}_layerReturnFocus=null;}}
 // Verrou du défilement de fond (v4.21.0, bug mobile) : tant qu'une fenêtre est ouverte, la page
 // derrière ne doit pas bouger — au toucher, l'enchaînement de défilement faisait défiler
 // l'accueil pendant qu'on lisait une fenêtre longue (ex. Compte & synchronisation). body est
@@ -11983,7 +12039,9 @@ document.addEventListener('keydown',e=>{
     if(lb&&lb.classList.contains('on')){e.preventDefault();closeLightbox();}
     return;
   }
-  if(e.key==='Tab'&&modal){
+  const layer=modal||_layerTop();   // un calque opaque piège le focus comme une fenêtre
+  if(e.key==='Tab'&&layer){
+    const modal=layer;
     const f=_focusables(modal);if(!f.length){e.preventDefault();return;}
     const first=f[0],last=f[f.length-1];
     if(!modal.contains(document.activeElement)){e.preventDefault();first.focus();}

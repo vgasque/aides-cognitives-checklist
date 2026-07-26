@@ -43,7 +43,11 @@ const AUDIT = `(() => {
   const ownText=el=>[...el.childNodes].some(n=>n.nodeType===3&&n.textContent.trim().length);
 
   const out={typo:[],contrast:[],targets:[],soft:[],misc:[]};
-  const SCOPE='#crisisBand,#hdrCrisis,#crisisDock,#planModal,#refModal,.read-side,.annex-row,.cards,.list-edit,.pos-more';
+  // #crisisCtrl AJOUTÉ en v4.32.0 : le SCOPE listait le quai d'ÉTAT (#crisisDock) mais pas la
+  // rangée de COMMANDES, séparée de lui en v4.25.0. Le trou cachait un défaut réel — les boutons
+  // « Se repérer » / « Consulter » mesuraient 38 px là où la crise exige 44. Une surface ajoutée
+  // à l'app doit être ajoutée ICI dans le même geste, sinon elle n'est jamais mesurée.
+  const SCOPE='#crisisBand,#hdrCrisis,#crisisCtrl,#crisisDock,#planModal,#refModal,.read-side,.annex-row,.cards,.list-edit,.pos-more';
   const roots=[...document.querySelectorAll(SCOPE)].filter(visible);
   const seen=new Set();
   roots.forEach(root=>{

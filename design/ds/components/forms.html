@@ -418,7 +418,17 @@
      d'action de l'écran, lu à bout de bras et sous stress. La saillance doit suivre le rôle. */
   /* Plan est le PREMIER segment de la bande (< 780) : pas de filet à gauche (bord du quai), un
      filet à DROITE le sépare de « ● Session ». À ≥ 780 il redevient une carte détachée. */
-  .dock-plan{flex:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:38px;padding:0 12px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--link);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap}
+  .dock-plan{flex:none;position:relative;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:38px;padding:0 12px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--link);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap}
+  /* HALO DE CIBLE (v4.32.0) : ces deux boutons vivent dans la zone de CRISE, où le seuil est de
+     44 px — ils étaient mesurés à 38. Le défaut a échappé au harnais parce que son SCOPE listait
+     #crisisDock (l'état) mais PAS #crisisCtrl (les commandes) : le trou de couverture cachait un
+     défaut réel, sur la surface la moins permissive de l'app.
+     Halo plutôt que grossissement : la hauteur de la zone haute est un coût PERMANENT en crise
+     (177 px sur 640 déjà) et passer à 44 px l'aurait épaissie de 6 px. C'est le patron déjà
+     employé pour les contrôles de 36 px de la barre. VERTICAL SEULEMENT (`inset:-3px 0`) : en
+     latéral il empiéterait sur le bouton voisin, les deux étant côte à côte. Vérifié à la sonde :
+     aucun chevauchement avec le quai d'état en dessous. */
+  .dock-plan::after{content:"";position:absolute;inset:-3px 0}
   .dock-plan[hidden]{display:none}
   .dock-plan:hover{background:var(--primary-soft)}
   .dock-plan:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
@@ -796,7 +806,7 @@
   /* Tag de statut (canvas V5 « ✓ Validée ») : pilule ACHROMATIQUE, identique pour les 3
      états — glyphe + libellé suffisent (ECAM : jamais la couleur seule ; ici, pas de couleur
      du tout). L'espace avant la méta vient du gap du conteneur. */
-  .status-tag{display:inline-block;vertical-align:middle;font-size:10.5px;font-weight:700;line-height:1.5;padding:2px 8px;border-radius:10px;background:var(--tag-bg);color:var(--tag-ink)}
+  .status-tag{display:inline-block;vertical-align:middle;font-size:11px;font-weight:700;line-height:1.5;padding:2px 8px;border-radius:10px;background:var(--tag-bg);color:var(--tag-ink)}
   .tag.draft{background:var(--tag-bg);color:var(--tag-ink)}
   /* Soulignement pointillé = affordance « détail au tap » (sinon le badge paraît statique). */
   .tag.todo{background:var(--tag-bg);color:var(--tag-ink);position:relative;cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px}
@@ -838,7 +848,12 @@
   .read-head h2{margin:0;font-size:24px;font-weight:680;line-height:1.18}
   /* V5 : en crise le TITRE vit dans le bandeau d'en-tête sticky — le grand titre du corps ne
      sert plus qu'à l'impression (l'en-tête est masqué en print). */
-  @media screen{body.view-read .read-head{display:none}}
+  /* Le titre du corps ne sert visuellement à rien en lecture (le bandeau de crise le porte),
+     mais il est le SEUL heading de la vue : `display:none` le retirait aussi de l'arbre
+     d'accessibilité, laissant la surface CLINIQUE sans aucun titre à parcourir — or la navigation
+     par titres est le mode de parcours dominant des lecteurs d'écran (WCAG 2.4.6, 1.3.1).
+     Mis HORS ÉCRAN plutôt que supprimé (mêmes propriétés que .sr-only) : rien ne change à l'œil. */
+  @media screen{body.view-read .read-head{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}}
   .read-meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0 18px}
   /* En SESSION VIVE, la gouvernance documentaire s'efface (v4.31.0, audit externe) : statut,
      catégorie et date de validation ont été vus à l'OUVERTURE de la fiche — pendant le soin ils
@@ -1166,7 +1181,7 @@
   .cx-item-tx{flex:1;min-width:0}
   .cx-item-tx b{display:block;font-size:15.5px;color:var(--critical)}
   .cx-item-sub{display:block;font-size:12px;color:var(--ink-soft);margin-top:1px}
-  .cx-tag{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--critical);background:var(--critical-soft);border:1px solid var(--critical-line);border-radius:999px;padding:1px 8px;vertical-align:1px;white-space:nowrap}
+  .cx-tag{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--critical);background:var(--critical-soft);border:1px solid var(--critical-line);border-radius:999px;padding:1px 8px;vertical-align:1px;white-space:nowrap}
   .pl-cxh{margin:14px 0 4px;font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--critical)}
   .pl-line.cxl .n{color:var(--critical)}
   .sv-band.sv-cxband{border-color:var(--critical-bd);color:var(--critical);background:var(--critical-soft)}
@@ -1419,7 +1434,7 @@
      La poignée vit dans l'en-tête collant (.catmenu-head) ; touch-action:none sur le voile :
      un glissement sur le fond assombri ne doit jamais faire défiler la page derrière. */
   @media (max-width:779.98px){
-    .catmenu{position:fixed;left:0;right:0;bottom:0;top:auto;max-width:none;min-width:0;max-height:min(70vh,480px);border-radius:16px 16px 0 0;padding-bottom:calc(10px + env(safe-area-inset-bottom));z-index:70}
+    .catmenu{position:fixed;left:0;right:0;bottom:0;top:auto;max-width:none;min-width:0;max-height:min(calc(70vh / var(--zf,1)),480px);border-radius:16px 16px 0 0;padding-bottom:calc(10px + env(safe-area-inset-bottom));z-index:70}
     .catmenu-head{border-radius:16px 16px 0 0}
     .catmenu-head::before{content:"";display:block;width:44px;height:4px;border-radius:2px;background:var(--line-strong);margin:4px auto 10px}
     .catmenu-row{min-height:48px}
@@ -1446,7 +1461,7 @@
   .crit-guide .cg-r{color:var(--critical)}
   .crit-guide .cg-a{color:var(--verify)}
   .flow-prev-h{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--ink-soft);margin:0 0 7px}
-  .flow-scroll{width:100%;overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--paper);padding:8px;-webkit-overflow-scrolling:touch;margin-bottom:14px;max-height:75vh}
+  .flow-scroll{width:100%;overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--paper);padding:8px;-webkit-overflow-scrolling:touch;margin-bottom:14px;max-height:calc(75vh / var(--zf,1))}
   .flow-zoom{display:flex;align-items:center;gap:7px;margin-bottom:7px}
   .fz{border:1px solid var(--line);background:var(--surface);color:var(--ink);width:42px;height:40px;border-radius:var(--radius-sm);font-size:18px;font-weight:600;line-height:1;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
   .fz:hover{background:var(--surface-2)}.fz-r{width:auto;padding:0 11px;font-size:12.5px}
@@ -1650,6 +1665,23 @@
   .pl-line.flash{background:var(--primary-soft)}
   .pl-lx{padding:6px 10px 10px 36px;background:var(--surface);border-bottom:1px solid var(--line)}
   .pl-lx .pl-lxt{margin:0 0 3px;font-size:12.5px;font-weight:700;color:var(--ink)}
+  /* Étapes du détail d'une ligne de l'Échelle. RESTAURÉES À L'IDENTIQUE (valeurs de v4.24.0) :
+     la purge v4.25.0 a emporté ces cinq règles alors que `ovPlanLadderHtml` émet TOUJOURS
+     `.pl-stp` — une étape ⚠ (memory item) s'affichait donc en encre ordinaire, avec les puces
+     disque du navigateur, indiscernable d'une étape banale, dans une surface visible en
+     permanence dans le rail dès 780 px et ouvrable d'un tap du quai de crise. Le pendant statique
+     (`.sv-stp li.crit`) n'a jamais cessé d'être stylé : deux surfaces de la même app donnaient une
+     lecture différente du même contenu vital. Leçon : une suppression de composant doit vérifier
+     au grep que chaque classe retirée est bien à ZÉRO émission — celle-ci en avait une.
+     (La distinction ⚠ rouge / △ ambre repose ici sur la teinte ET la graisse, sans glyphe, comme
+     en statique : `stepText` retire le préfixe. Sujet TRANSVERSE aux deux vues, à traiter d'un
+     seul geste — ne pas le corriger dans une seule, ce serait recréer l'écart qu'on vient de
+     refermer.) */
+  .pl-stp{margin:4px 0 0;padding:0;list-style:none}
+  .pl-stp li{font-size:11.5px;font-weight:400;color:var(--ink-soft);line-height:1.5;padding-left:13px;position:relative;overflow-wrap:break-word}
+  .pl-stp li::before{content:"·";position:absolute;left:4px}
+  .pl-stp li.crit{color:var(--critical);font-weight:600}
+  .pl-stp li.vig{color:var(--verify);font-weight:600}
   /* ===== MODE STATIQUE (v4.13.0) : TABLEAU compact façon aide SFAR/CAMR — généré depuis
      flowPlan (numérotation commune), INERTE côté cochage (navigation seule). Cellules
      carrelées à joint 3 px ; bandes de décision au registre ATTENTION ; fourches ambre,
@@ -1673,6 +1705,12 @@
   .sv-m{flex:none;font-family:var(--mono);font-size:11px;color:var(--ink-soft);display:flex;gap:6px;align-items:baseline}
   .sv-m .sv-ok{color:var(--ok);font-weight:700}
   .sv-here{font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;background:var(--primary);color:var(--on-primary);padding:0 7px;border-radius:999px}
+  /* Compteur de passages « ×n ». Il était ÉMIS sans aucune règle : rendu à la taille du texte
+     courant, sans chiffres tabulaires, il se confondait avec le contenu de la cellule. Encre
+     DOUCE et non bleue, contrairement à son jumeau `.pl-x` du Plan : dans le statique, « aucun
+     texte bleu dans les cellules » (décision utilisateur) — le bleu n'y marque que la POSITION
+     (`● ici`) et la reprise `↺`. Copier `.pl-x` aurait réparé la taille en cassant la doctrine. */
+  .sv-x{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--ink-soft);margin-left:6px}
   .sv-off2{margin:2px 0 0;font-size:11px;font-weight:600;color:var(--ink-soft)}
   .sv-stp{margin:3px 0 0;padding:0;list-style:none}
   .sv-stp li{position:relative;font-size:11.5px;line-height:1.5;color:var(--ink);padding-left:15px;overflow-wrap:break-word}
@@ -1811,7 +1849,7 @@
   #readerMode{position:fixed;inset:0;z-index:92;background:var(--bg);display:none;flex-direction:column}
   #readerMode.on{display:flex}
   #readerMode .rm-top{display:flex;align-items:center;gap:10px;padding:calc(9px + env(safe-area-inset-top)) 14px 9px;background:var(--surface);border-bottom:1px solid var(--line)}
-  #readerMode .rm-tag{flex:none;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--primary)}
+  #readerMode .rm-tag{flex:none;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--link)}
   #readerMode .rm-ttl{flex:1;min-width:0;font-size:13px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   #readerMode .rm-time{flex:none;font-family:var(--mono);font-size:13px;font-weight:700;color:var(--ok)}
   #readerMode .rm-block{display:flex;align-items:center;gap:8px;padding:10px 16px 0;font-size:12.5px;font-weight:700;color:var(--ink-soft);max-width:640px;width:100%;margin:0 auto}
@@ -1981,7 +2019,7 @@
   [data-theme="dark"] .stg-tip{background:rgba(255,255,255,.05)}
   .stg-ul{margin:7px 0 0;padding-left:18px;font-size:13.5px;line-height:1.55;color:var(--ink)}.stg-ul li{margin:3px 0}
   .auth-why{margin-top:16px;border-top:1px solid var(--line);padding-top:10px}
-  .auth-why>summary{cursor:pointer;font-size:14px;font-weight:650;color:var(--primary);list-style:none;display:flex;align-items:center;gap:7px;padding:4px 0}
+  .auth-why>summary{cursor:pointer;font-size:14px;font-weight:650;color:var(--link);list-style:none;display:flex;align-items:center;gap:7px;padding:4px 0}
   .auth-why>summary::-webkit-details-marker{display:none}
   .auth-why>summary::before{content:"▸";font-size:11px;opacity:.8;transition:transform .15s}
   .auth-why[open]>summary::before{transform:rotate(90deg)}
@@ -2005,7 +2043,7 @@
   .diff-line.add{color:var(--primary-dk)}.diff-line.del{color:var(--critical)}
   .diff-note{font-size:11.5px;color:var(--ink-soft);margin:8px 0 2px}
   .lightbox{position:fixed;inset:0;background:rgba(16,27,40,.92);z-index:100;display:none;align-items:center;justify-content:center;padding:20px;flex-direction:column;gap:14px}
-  .lightbox.on{display:flex}.lightbox img{max-width:100%;max-height:82vh;border-radius:8px}
+  .lightbox.on{display:flex}.lightbox img{max-width:100%;max-height:calc(82vh / var(--zf,1));border-radius:8px}
   .lightbox .cap{color:var(--lb-cap);font-size:13px;text-align:center;max-width:600px}
   .lightbox .x{position:absolute;top:calc(14px + env(safe-area-inset-top));right:16px;background:rgba(255,255,255,.15);color:var(--lb-ink);border:0;width:46px;height:46px;border-radius:50%;font-size:24px}
   /* « ai- » : préfixe HISTORIQUE (première fenêtre = « Créer via IA ») devenu le préfixe GÉNÉRIQUE
@@ -2136,7 +2174,7 @@
   .ai-card p{font-size:13px;color:var(--ink-soft);margin:0 0 10px;line-height:1.5}
   .ai-card ol{font-size:13px;color:var(--ink-soft);margin:0 0 12px;padding-left:20px;line-height:1.5}
   /* Aperçu de compte-rendu (dans la fenêtre) : reprend le style du document imprimé, en zone défilable. */
-  .report-preview{max-height:min(60vh,520px);overflow:auto;border:1px solid var(--line);border-radius:10px;padding:16px 18px;background:var(--surface)}
+  .report-preview{max-height:min(calc(60vh / var(--zf,1)),520px);overflow:auto;border:1px solid var(--line);border-radius:10px;padding:16px 18px;background:var(--surface)}
   .report-preview h1{display:none}  /* redondant avec le titre de la fenêtre ; conservé dans le document imprimé/téléchargé */
   .report-preview h2{font-size:13px;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-soft);margin:20px 0 7px;border-bottom:1px solid var(--line);padding-bottom:4px}
   .report-preview .meta{color:var(--ink-soft);font-size:13px;margin-bottom:5px}
@@ -2582,7 +2620,7 @@
   .att-cloud{flex:none;font-size:11.5px;font-weight:700;color:var(--verify);white-space:nowrap}
   .att-erow{display:flex;align-items:center;gap:8px;margin-bottom:8px}
   /* Sélecteur de document existant : liste défilable, origine du document en 2e ligne. */
-  .attpick-list{max-height:min(52vh,440px);overflow-y:auto;-webkit-overflow-scrolling:touch;margin-top:12px}
+  .attpick-list{max-height:min(calc(52vh / var(--zf,1)),440px);overflow-y:auto;-webkit-overflow-scrolling:touch;margin-top:12px}
   .attpick-list .att-row{margin-bottom:8px}
   .att-from{display:block;font-size:11.5px;font-weight:400;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .att-erow input[type="text"]{flex:1;min-width:0;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--input-bg);color:var(--ink)}
@@ -2628,7 +2666,7 @@
   /* Lien d'évitement clavier : invisible jusqu'au focus. L'ombre ne vit QUE sur l'état focalisé :
      posée sur l'état garé (top:-60px), elle « suintait » sous le bord supérieur gauche de l'écran
      (flou 32 px + décalage 12 px de --shadow-lg, très visible en sombre — constat v4.4.4). */
-  .skiplink{position:absolute;left:10px;top:-60px;z-index:200;background:var(--surface);color:var(--primary);font-weight:700;font-size:14px;padding:10px 16px;border-radius:10px;transition:top .12s}
+  .skiplink{position:absolute;left:10px;top:-60px;z-index:200;background:var(--surface);color:var(--link);font-weight:700;font-size:14px;padding:10px 16px;border-radius:10px;transition:top .12s}
   .skiplink:focus-visible{top:calc(10px + env(safe-area-inset-top));box-shadow:var(--shadow-lg);outline:2px solid var(--primary);outline-offset:2px}
   /* Session en cours : le pied de page se réduit à l'ÉTAT (nb de fiches, synchro) — Exporter/
      Importer/Thème/zoom n'ont rien à faire dans le champ visuel pendant une crise. */

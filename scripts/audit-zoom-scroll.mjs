@@ -32,6 +32,34 @@ for(const z of [100,130]){
   // scrollHeight/clientHeight sont dans le MÊME repère (px CSS) : leur différence est l'excédent réel.
   return {scrollable:Math.round(doc.scrollHeight-doc.clientHeight)};});
  t(`page courte : pas de défilement dans le vide (excédent ≤ 40px)`, b2.scrollable<=40, 'excédent='+b2.scrollable+'px');
+ // C. SONDE GÉNÉRIQUE (v4.32.0) — le harnais ne regardait que deux surfaces nommées, et cinq
+ // `vh` NUS avaient traversé le balayage : `.lightbox img` (82vh) faisait sortir la légende de
+ // 51 px à 130 %, sans défilement possible. On lit ici le CSS RÉSOLU de tout élément visible et
+ // on échoue sur toute hauteur relative à la fenêtre qui la dépasse — indépendamment du nom.
+ const c=await p.evaluate(()=>{
+  const zf=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--zf'))||1;
+  const H=window.innerHeight;   // px VISUELS
+  const bad=[];
+  for(const e of document.querySelectorAll('*')){
+   const cs=getComputedStyle(e);
+   if(cs.display==='none'||cs.visibility==='hidden')continue;
+   for(const prop of ['maxHeight','height','minHeight']){
+    const v=cs[prop];
+    if(!v||v==='none'||v.indexOf('px')<0)continue;
+    // La valeur résolue est en px CSS ; à l'écran elle occupe v × zf px visuels.
+    const px=parseFloat(v);
+    if(!Number.isFinite(px)||px<=0)continue;
+    if(px*zf>H+2){
+     // Seules comptent les hauteurs BORNANTES (une height de contenu long est légitime si
+     // l'élément défile) : on ne retient que ce qui n'a pas de défilement propre.
+     const scrolls=/(auto|scroll)/.test(cs.overflowY);
+     if(!scrolls)bad.push((e.id?'#'+e.id:'.'+String(e.className).split(' ')[0])+' '+prop+'='+v);
+    }
+   }
+  }
+  return {zf,H,bad:[...new Set(bad)].slice(0,6)};});
+ t(`aucune hauteur bornante ne dépasse la fenêtre (balayage global)`, c.bad.length===0,
+   `zf=${c.zf} fenêtre=${c.H} → ${c.bad.join(' | ')}`);
  await p.close();
 }
 await br.close();srv.close();
