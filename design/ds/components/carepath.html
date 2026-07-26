@@ -134,10 +134,18 @@
      panneau minuteurs). Harnais : sonde 2.4.11 d'audit-a11y.mjs. */
   html{scroll-padding-top:calc(var(--stick-top,64px) + 8px)}
   button{font-family:inherit;cursor:pointer}input,textarea,select{font-family:inherit;font-size:16px;max-width:100%}textarea{resize:vertical}
-  /* Écrans tactiles : sans ce réglage, Safari iOS attend ~350 ms après chaque tap (fenêtre du
-     double-tap zoom) — des taps rapprochés sur un bouton ou un menu semblent alors « ignorés ».
-     `manipulation` garde défilement et pincement, ne retire que le double-tap zoom. */
-  button,input,select,textarea,[role="button"]{touch-action:manipulation}
+  /* Écrans tactiles : `manipulation` garde défilement et pincement, ne retire que le DOUBLE-TAP
+     ZOOM. Ce que ce réglage évite AUJOURD'HUI, ce n'est plus le délai de ~350 ms (Safari ne l'a
+     plus depuis iOS 9.3 pour un viewport `width=device-width`, ce qui est notre cas — la version
+     précédente de ce commentaire l'affirmait encore, et cette erreur a servi à justifier de ne pas
+     étendre la règle) : c'est le ZOOM PARASITE quand deux taps rapprochés tombent à moins de ~40 px
+     l'un de l'autre. En réanimation, on coche des étapes voisines à la chaîne — 12 px mesurés entre
+     deux points de tap réalistes. `[role="checkbox"]` a été AJOUTÉ ici (v4.41.0) : les étapes
+     cochables du parcours en sont, et 5 d'entre elles restaient en `touch-action:auto` en session
+     vive alors qu'AGENTS.md § Interactif énonce l'invariant « tous les contrôles portent
+     touch-action:manipulation ». Le précédent `li.md-task[role="checkbox"]` (listes cochables des
+     protocoles) le posait déjà : la règle était connue, appliquée à un endroit sur deux. */
+  button,input,select,textarea,[role="button"],[role="checkbox"]{touch-action:manipulation}
   /* overflow-x:clip = filet anti-débordement horizontal (un enfant trop large ne peut plus
      élargir la page ni créer de bande vide à droite sur iOS). 'clip' plutôt que 'hidden' :
      ne crée PAS de conteneur de défilement -> l'en-tête sticky et les scrollers internes
@@ -1266,7 +1274,24 @@
   .tm-cyc{font-size:12px;color:var(--ink-soft);margin-top:3px}
   /* Barre de progression : proportion du temps RESTANT — elle SE VIDE (canvas). */
   .tm-bar-wrap{height:4px;background:var(--line);border-radius:2px;margin:6px 0;overflow:hidden}
-  .tm-bar{height:100%;background:var(--tcol);width:100%;transition:width 1s linear}
+  /* La barre est TOUJOURS pleine largeur et se vide par `scaleX` — JAMAIS par `width` (v4.41.0).
+     `width` est une propriété de MISE EN PAGE : animée en continu, elle faisait tourner une passe
+     de layout par image pendant TOUTE la durée d'une réanimation. Mesuré (médiane de 3, fenêtre
+     de 6 s sans aucun geste, session vive + 1 minuteur d'intervalle, CDP Performance.getMetrics) :
+     118 layouts/s et 123 recalculs de style/s, pour 126,8 ms/s de fil principal à CPU nominal,
+     206,9 à ×4 et 377,3 à ×6 — soit jusqu'à 38 % d'un cœur consommés à ne rien faire d'autre.
+     En `scaleX` (composé, hors mise en page) : 2 layouts/s, 17 recalculs/s, 13,3 / 14,3 / 27,7 ms/s
+     — autant que supprimer l'animation (11,7 / 14,7 / 21,5), mais SANS changer le rendu. WebKit,
+     hors CDP : +9,7 % de débit utile du fil principal, contre +9,3 % pour la suppression.
+     RENDU, mesuré et non supposé : la géométrie peinte est identique à 0,01 px près à valeurs
+     figées (198,36 px contre 198,36 à 76 % sur un wrap de 261 px), et la comparaison AU PIXEL des
+     deux captures ne diffère que sur UNE colonne de 4 px — l'anticrénelage du bord mobile, écart
+     max 73/255 — plus les deux extrémités arrondies à 100 % (écart ≤ 9/255). Identique dans les
+     deux thèmes. Invisible sur un bord qui se déplace de toute façon en continu, mais ce n'est pas
+     bit-à-bit : ne pas écrire « rendu identique » sans cette nuance.
+     Précédent interne : `.t-life` (barre de vie des toasts) fait déjà exactement cela.
+     `transform-origin:left` est OBLIGATOIRE (sans lui la barre se viderait par les deux bords). */
+  .tm-bar{height:100%;background:var(--tcol);width:100%;transform-origin:left;transition:transform 1s linear}
   .tm-ctrl,.cn-ctrl{display:flex;gap:6px;margin-top:9px}
   .cn-ctrl{justify-content:center}
   /* Bordure --line-strong = délimitation du bouton >= 3:1 (WCAG 1.4.11) ;

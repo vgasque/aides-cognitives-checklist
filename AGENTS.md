@@ -29,7 +29,7 @@ ne s'apprend en lisant le code** — elles viennent d'incidents mesurés, et plu
    notes et taguer. Ne JAMAIS éditer les numéros de version à la main (un décalage entre
    `APP_VERSION` et `CACHE` casse la mise à jour du service worker). **Jamais de `git push` sans
    demande explicite.**
-2. **Avant chaque commit** : `npm run check` (syntaxe · couleurs · classes émises · hashs CSP) et
+2. **Avant chaque commit** : `npm run check` (syntaxe · couleurs · classes émises · animations · hashs CSP) et
    `npm test` (Chromium **et** WebKit). Si le CSS a changé : `npm run design:build`.
 3. **Toute édition du script inline exige `node scripts/csp-hashes.mjs`.** Sans cela, la CSP par
    hashs bloque le seul script de l'application et **elle ne démarre plus**. Le piège s'est produit
@@ -74,7 +74,7 @@ en gras de « Conventions de code » sont ses vraies entrées ; voici la carte, 
 | **Couleur, registres, accents** | Design tokens · Taxonomie des notices · Couleur dans le contenu rédigé · Saillance & registres · Couleur d'accent · Code couleur des catégories |
 | **Étapes, statuts, contenu clinique** | Statuts, code, étapes critiques · Liseré gauche 4 px · Taille des images · Listes cochables · Marqueur d'étape hors du champ · Liens « Voir aussi » |
 | **Mode crise — parcours et vues** | Parcours de soin · Journal de parcours · Plan de l'aide · PLAN = UNE SEULE VUE · Mode statique · Challenge-response · COMPLICATIONS · MODE EXERCICE · Alarme de minuteur · Dialogue « Terminer la session ? » · PORTÉE D'UNE ACTION DE REPRISE |
-| **Chrome, navigation, géométrie** | En-têtes V5 · ZONE HAUTE DE CRISE · DEUX RANGÉES COLLANTES · RAIL DE LECTURE · ANCRAGE ET DÉFILEMENT · DÉFILEMENT PRÉSERVÉ · HAUTEURS RELATIVES À LA FENÊTRE · Largeurs & échelles fermées · PILE DE RETOUR · RETOUR SYSTÈME · Sélecteur segmenté · Repli de l'étape ① · LOGO DE MARQUE · Pieds de page · Indicateur de mode des éditeurs · Interactif |
+| **Chrome, navigation, géométrie** | ON ANIME LA COMPOSITION · En-têtes V5 · ZONE HAUTE DE CRISE · DEUX RANGÉES COLLANTES · RAIL DE LECTURE · ANCRAGE ET DÉFILEMENT · DÉFILEMENT PRÉSERVÉ · HAUTEURS RELATIVES À LA FENÊTRE · Largeurs & échelles fermées · PILE DE RETOUR · RETOUR SYSTÈME · Sélecteur segmenté · Repli de l'étape ① · LOGO DE MARQUE · Pieds de page · Indicateur de mode des éditeurs · Interactif |
 | **Consultation et références** | FEUILLE « CONSULTER » · FEUILLE CONSULTER = UN DOCUMENT · REPÈRES POSOLOGIQUES · SORTIE PDF UNIFIÉE |
 | **Données, stockage, sécurité** | Documents PDF · Export/import « avec documents » · Nommage SQL · (et les points 4 à 6 ci-dessus) |
 | **Leçons de maintenance** | Collision de noms de classe · Hygiène de suppression |
@@ -110,6 +110,15 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   attribut `on*=` dans `index.html` : sous une CSP à hashs, `'unsafe-inline'` est ignoré et un
   gestionnaire inline est du code MORT et silencieux (c'est arrivé au bouton « Recharger » de
   l'écran d'échec de démarrage, seul recours d'une app installée).
+  `check-anim.mjs` (v4.41.0) complète la série : **aucune propriété de MISE EN PAGE dans un
+  `transition` ni dans un `@keyframes`** (cf. « ON ANIME LA COMPOSITION » dans Conventions). Les
+  propriétés de PEINTURE seule (couleurs, ombres, contours) ne sont pas concernées — elles
+  repeignent, elles ne remettent pas en page. UNE exemption, motivée dans le fichier :
+  `.skiplink` (glissement de 120 ms, une fois par focus — pas une animation continue, et le
+  convertir mettrait en jeu une position dépendant d'`env(safe-area-inset-top)`, soit un risque
+  d'accessibilité pour un gain nul). Le contrôle a été vérifié CAPABLE D'ÉCHOUER (défaut
+  réintroduit puis fichier restauré à l'octet) : un garde-fou qui ne peut pas échouer ne prouve
+  rien — leçon v4.31.1.
 - `npm test` — exécute `tests.html` en headless sur **DEUX moteurs, Chromium ET WebKit** (v4.34.0 :
   iOS Safari est la cible principale et n'était jamais testé — toute la suite tournait sur Blink
   seul, alors que le dossier « bande basse iOS » a montré qu'un comportement WebKit peut couper
@@ -816,6 +825,25 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   on restaure la position laissée (`_scopeScroll`) et on suit les défilements, exactement comme les
   catégories (qui, elles, n'ont jamais eu de recentrage). Règle : une zone à défilement propre doit
   voir sa position CAPTURÉE avant un re-rendu et RESTAURÉE après — jamais recalculée.
+- **ON ANIME LA COMPOSITION, JAMAIS LA MISE EN PAGE (v4.41.0, phase 3)** : une `transition` ou une
+  `@keyframes` ne porte que sur `transform` et `opacity`. Animer `width`, `height`, `top`/`left`,
+  `margin` ou `padding` force une passe de mise en page **par image**, pendant toute la durée de
+  l'animation. Le cas mesuré : `.tm-bar`, la barre de progression d'un minuteur, était en
+  `transition:width 1s linear` — donc en réanimation, avec un minuteur d'intervalle armé et le
+  panneau ouvert, **118 layouts/s et 123 recalculs de style/s en continu**, soit 126,8 ms/s de fil
+  principal à CPU nominal, 206,9 à ×4 et 377,3 à ×6 : jusqu'à **38 % d'un cœur** consommés sans
+  qu'aucun geste ne soit fait et sans qu'aucun JS ne s'exécute. En `transform:scaleX()` +
+  `transform-origin:left` : 2 layouts/s, 17 recalculs/s, 13,3 / 14,3 / 27,7 ms/s — **autant que
+  supprimer l'animation** (11,7 / 14,7 / 21,5) mais **sans changer le rendu d'un pixel**. WebKit,
+  hors CDP : +9,7 % de débit utile du fil principal, contre +9,3 % pour la suppression. Le gain
+  est de la MARGE CPU et de l'AUTONOMIE sur appareil lent, pas de la fluidité (120 fps et latence
+  de cochage identiques dans les deux cas) — ne pas le vendre pour autre chose. Précédent interne
+  antérieur : `.t-life` (barre de vie des toasts) était déjà en `scaleX`. **Corollaire de
+  cohérence** : quand un gabarit et un tick écrivent la même valeur, elle passe par UNE fonction
+  (`barTf`) — le tick compare avant d'écrire (anti-churn, ~3,3 passages/s), et deux formats
+  seulement équivalents (`scaleX(0.76)` vs `scaleX(0.7600)`) feraient échouer la comparaison et
+  réécriraient le style à chaque passage. Le reste de la feuille est déjà conforme : 19 keyframes
+  sur 19 n'animent que des propriétés composées.
 - **HAUTEURS RELATIVES À LA FENÊTRE SOUS ZOOM (v4.24.0)** : le réglage « taille du texte » est un
   `zoom` sur `<html>` ; une hauteur en `vh`/`dvh` se résout AVANT le zoom puis se fait agrandir par
   lui. À 130 %, `100dvh` occupait donc **1,3 écran** : le bas des rails (accueil ET lecture) devenait
