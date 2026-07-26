@@ -47,7 +47,7 @@ const AUDIT = `(() => {
   // rangée de COMMANDES, séparée de lui en v4.25.0. Le trou cachait un défaut réel — les boutons
   // « Se repérer » / « Consulter » mesuraient 38 px là où la crise exige 44. Une surface ajoutée
   // à l'app doit être ajoutée ICI dans le même geste, sinon elle n'est jamais mesurée.
-  const SCOPE='#crisisBand,#hdrCrisis,#crisisCtrl,#crisisDock,#planModal,#refModal,.read-side,.annex-row,.cards,.list-edit,.pos-more';
+  const SCOPE=window.__acScope||'#crisisBand,#hdrCrisis,#crisisCtrl,#crisisDock,#planModal,#refModal,.read-side,.annex-row,.cards,.list-edit,.pos-more';
   const roots=[...document.querySelectorAll(SCOPE)].filter(visible);
   const seen=new Set();
   roots.forEach(root=>{
@@ -107,6 +107,10 @@ const SURFACES = [
   { nom:'feuille Plan',        w:1280, prep:'plan' },
   { nom:'feuille Consulter',   w:1280, prep:'ref'  },
   { nom:'éditeur',             w:1100, prep:'edit' },
+  { nom:'dialogue Créer',      w:390,  prep:'dlg:openCreateDlg',  scope:'#createModal' },
+  { nom:'gérer catégories',    w:390,  prep:'dlg:openCatMgr',     scope:'#catModal' },
+  { nom:'fenêtre Compte',      w:390,  prep:'dlg:openAuth',       scope:'#authModal' },
+  { nom:'où sont mes fiches',  w:390,  prep:'dlg:openStorageInfo',scope:'#storageModal' },
 ];
 
 for (const theme of ['light','dark']) {
@@ -135,7 +139,15 @@ for (const theme of ['light','dark']) {
       await new Promise(r=>setTimeout(r,300));
       if(kind==='plan'){document.getElementById('planBtn').click();await new Promise(r=>setTimeout(r,300));}
       if(kind==='ref'){const rb=document.getElementById('refBtn');if(rb)rb.click();await new Promise(r=>setTimeout(r,300));}
-    }, S.prep);
+    }, S.prep && S.prep.indexOf('dlg:')===0 ? null : S.prep);
+    // Fenêtres ouvertes par leur VRAI point d'entrée (jamais un classList.add('on') : une modale
+    // forcée vide n'a pas le contenu qu'on veut mesurer, et produirait des verdicts faux).
+    if (S.prep && S.prep.indexOf('dlg:') === 0) {
+      const fn = S.prep.slice(4);
+      await page.evaluate(async (f) => { try { window[f] ? window[f]() : eval(f + '()'); } catch (e) {}
+        await new Promise(r => setTimeout(r, 400)); }, fn);
+    }
+    if (S.scope) await page.evaluate(s => { window.__acScope = s; }, S.scope);
     await page.waitForTimeout(250);
 
     const res = await page.evaluate(AUDIT);

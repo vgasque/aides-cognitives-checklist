@@ -29,7 +29,7 @@
      Échelle responsive FERMÉE : 430 / 560 / 640 / 780 / 900 / 1000 px (1000 = colonne droite de
      la vue fiche, V5). Plancher typographique : 11px (app consultée sous stress — rien en dessous).
      --line-hover : bordure des survols de boutons/chips (un seul gris au lieu de trois). */
-  :root{--ink:#101b28;--ink-soft:#5b6570;--line:#d5dbe2;--line-strong:#75828e;--line-hover:#c3ccd6;--bg:#f2f5f8;--surface:#fff;--surface-2:#eff2f6;--surface-3:#e8ecf1;--primary:#1f5fa6;--primary-dk:#17477f;--primary-hi:#17477f;--primary-soft:#e3ecf7;--primary-100:#dce7f5;--primary-200:#b9cde6;--primary-300:#8fb4de;--on-primary:#fff;--ok:#1d7a38;--ok-soft:#eaf6ee;--critical:#a32e1f;--critical-soft:#fbe9e4;--critical-line:#ecc4bc;--verify:#7a5900;--verify-soft:#fbf3dc;--verify-line:#eddfb6;--verify-bd:#b7791f;--verify-hi:#b45309;--critical-bd:#c43d34;--done-bg:#eff5f0;--done-line:#bfd8c6;--done-ink:#5b6570;--tag-bg:#e8ecf1;--tag-ink:#3c464f;--link:#1f5fa6;--soft:#8a94a0;--alert:#f0a431;--alert-hi:#ffb454;--alert-strong:#c98a18;--alert-ink:#3a2a02;--rt-card:#1c2a3c;--rt-line:#2c3d52;--rt-ink:#e8eef7;--alarm:#d1543c;--input-bg:#fff;--radius:14px;--radius-md:11px;--radius-sm:9px;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--shadow:0 1px 2px rgba(16,27,40,.04),0 4px 16px rgba(16,27,40,.06);--shadow-lg:0 2px 6px rgba(16,27,40,.06),0 12px 32px rgba(16,27,40,.10);--shadow-primary:0 1px 2px rgba(23,71,127,.2),0 4px 12px rgba(23,71,127,.16);--shadow-primary-sm:0 1px 2px rgba(23,71,127,.25);--lb-cap:#cfe0dd;--lb-ink:#fff;--paper:#fff;--flow-cur:#1f5fa6;}
+  :root{--ink:#101b28;--ink-soft:#5b6570;--line:#d5dbe2;--line-strong:#75828e;--line-hover:#c3ccd6;--bg:#f2f5f8;--surface:#fff;--surface-2:#eff2f6;--surface-3:#e8ecf1;--primary:#1f5fa6;--primary-dk:#17477f;--primary-hi:#17477f;--primary-soft:#e3ecf7;--primary-100:#dce7f5;--primary-200:#b9cde6;--primary-300:#8fb4de;--on-primary:#fff;--ok:#1d7a38;--ok-soft:#eaf6ee;--critical:#a32e1f;--critical-soft:#fbe9e4;--critical-line:#ecc4bc;--verify:#7a5900;--verify-soft:#fbf3dc;--verify-line:#eddfb6;--verify-bd:#b7791f;--verify-hi:#b45309;--critical-bd:#c43d34;--done-bg:#eff5f0;--done-line:#bfd8c6;--done-ink:#5b6570;--tag-bg:#e8ecf1;--tag-ink:#3c464f;--link:#1f5fa6;--soft:#8a94a0;--alert:#f0a431;--alert-hi:#ffb454;--alert-strong:#c98a18;--alert-ink:#3a2a02;--rt-card:#1c2a3c;--rt-line:#2c3d52;--rt-ink:#e8eef7;--alarm:#d1543c;--input-bg:#fff;--radius:14px;--radius-md:11px;--radius-sm:9px;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--shadow:0 1px 2px rgba(16,27,40,.04),0 4px 16px rgba(16,27,40,.06);--shadow-lg:0 2px 6px rgba(16,27,40,.06),0 12px 32px rgba(16,27,40,.10);--shadow-primary:0 1px 2px rgba(23,71,127,.2),0 4px 12px rgba(23,71,127,.16);--shadow-primary-sm:0 1px 2px rgba(23,71,127,.25);--lb-cap:#cfe0dd;--lb-ink:#fff;--paper:#fff;--flow-cur:#1f5fa6;/* VOILES (scrim) et ÉLÉVATIONS À L'ENCRE — tokenisés en v4.37.0. Ces cinq valeurs étaient des COPIES DÉCIMALES de --ink (#101b28 = 16,27,40) : le garde-fou couleurs ne voyait que les hex, elles passaient donc au travers, et un changement de --ink les aurait laissées derrière. Valeurs reprises à l'identique. Pas d'override sombre : c'est l'état actuel, en ajouter un serait un changement visible. */--scrim-soft:rgba(16,27,40,.45);--scrim:rgba(16,27,40,.55);--scrim-full:rgba(16,27,40,.92);--shadow-dock:0 1px 3px rgba(16,27,40,.05);--shadow-bar:0 1px 6px rgba(16,27,40,.06);}
   /* --shadow-primary(-sm) : élévation TEINTÉE PRIMAIRE des boutons remplis (v4.31.0 — les
      rgba(23,71,127,…) éparses sont consolidées ici). Tokens FIXES des deux thèmes (jamais
      surchargés en sombre, comme --rt-*) : --lb-cap/--lb-ink = légende et glyphe de la lightbox
@@ -97,6 +97,16 @@
      que le halo (peints par classes, adaptation instantanée au thème). */
   [data-theme="dark"] :is(.flow-scroll,#flowFull .ff-scroll) svg :is(.fnode.fn-cur .fn-bd,.fnode:focus-visible .fn-bd){filter:invert(1) hue-rotate(180deg);stroke:var(--flow-hl-dk)}
   [data-theme="dark"] :is(.flow-scroll,#flowFull .ff-scroll) svg .fn-badge{filter:invert(1) hue-rotate(180deg)}
+  /* [hidden] EST UNE INSTRUCTION, PAS UNE SUGGESTION (v4.37.0). La feuille du navigateur pose
+     display:none pour cet attribut, mais avec une spécificité si faible que TOUTE règle de classe
+     portant un display l'écrase. Le projet compensait par une règle ponctuelle par composant
+     (.hdr-back[hidden], .hdr-new[hidden]… vingt au total), qu'il fallait penser à écrire — et
+     .tlink avait été oublié : #authAnon, pourtant marqué hidden, s'affichait en bouton VIDE de
+     20×32 px dans la fenêtre Compte. Défaut trouvé en élargissant le harnais d'accessibilité à
+     cette fenêtre, jamais auditée jusque-là. Une règle globale ferme la classe entière de bugs ;
+     les vingt ponctuelles deviennent redondantes et peuvent rester en place sans nuire.
+     Vérifié : aucune règle du fichier n'affiche volontairement un élément [hidden]. */
+  [hidden]{display:none!important}
   *{box-sizing:border-box}html,body{margin:0;padding:0}
   /* iOS Safari (paysage) : sans ce réglage, le « font boosting » agrandit certains textes de
      façon disproportionnée (jauge de stockage, en-têtes de section, bandeaux…). */
@@ -400,7 +410,7 @@
   @media (max-width:429.98px){#modeSeg .seg-btn{padding:6px 10px;font-size:12.5px}}
   /* RANGÉE D'ÉTAT — l'affichage : ce qui se passe. Collée SOUS la rangée de commandes : son `top`
      cumule la hauteur d'en-tête et celle des commandes (--ctrl-h, mesurée par syncHdrScroll). */
-  #crisisDock{position:sticky;top:calc(var(--hdr-h,64px) + var(--ctrl-h,0px));z-index:15;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:0 1px 3px rgba(16,27,40,.05)}
+  #crisisDock{position:sticky;top:calc(var(--hdr-h,64px) + var(--ctrl-h,0px));z-index:15;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:var(--shadow-dock)}
   #crisisDock[hidden]{display:none}
   /* Le BANDEAU est pleine largeur (c'est une bande de statut), mais son CONTENU est plafonné et
      centré sur la même grille que la vue lecture (1282px) : sans ça, à 1280px les segments en
@@ -1444,7 +1454,7 @@
     .catmenu-head{border-radius:16px 16px 0 0}
     .catmenu-head::before{content:"";display:block;width:44px;height:4px;border-radius:2px;background:var(--line-strong);margin:4px auto 10px}
     .catmenu-row{min-height:48px}
-    .catmenu-veil{display:block;position:fixed;inset:0;background:rgba(16,27,40,.45);z-index:69;touch-action:none}
+    .catmenu-veil{display:block;position:fixed;inset:0;background:var(--scrim-soft);z-index:69;touch-action:none}
   }
   /* Sélecteur d'ÉTAT segmenté (V5) : ○ Brouillon / △ À relire / ✓ Validé(e) + phrase d'aide. */
   .statuseg{display:flex;gap:6px;flex-wrap:wrap}
@@ -1476,7 +1486,7 @@
   /* Plein écran de l'algorithme SVG (zoom + défilement, pinch natif) */
   #flowFull{position:fixed;inset:0;z-index:90;background:var(--bg);display:none;flex-direction:column}
   #flowFull.on{display:flex}
-  #flowFull .ff-bar{display:flex;align-items:center;gap:7px;padding:calc(9px + env(safe-area-inset-top)) 12px 9px;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:0 1px 6px rgba(16,27,40,.06)}
+  #flowFull .ff-bar{display:flex;align-items:center;gap:7px;padding:calc(9px + env(safe-area-inset-top)) 12px 9px;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:var(--shadow-bar)}
   #flowFull .ff-scroll{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px;background:var(--paper)}
   .blk{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
   .blk-top{display:flex;align-items:center;gap:8px;margin-bottom:11px}
@@ -2048,14 +2058,14 @@
   .diff-line{font-size:13px;line-height:1.45;padding:1px 0}
   .diff-line.add{color:var(--primary-dk)}.diff-line.del{color:var(--critical)}
   .diff-note{font-size:11.5px;color:var(--ink-soft);margin:8px 0 2px}
-  .lightbox{position:fixed;inset:0;background:rgba(16,27,40,.92);z-index:100;display:none;align-items:center;justify-content:center;padding:20px;flex-direction:column;gap:14px}
+  .lightbox{position:fixed;inset:0;background:var(--scrim-full);z-index:100;display:none;align-items:center;justify-content:center;padding:20px;flex-direction:column;gap:14px}
   .lightbox.on{display:flex}.lightbox img{max-width:100%;max-height:calc(82vh / var(--zf,1));border-radius:8px}
   .lightbox .cap{color:var(--lb-cap);font-size:13px;text-align:center;max-width:600px}
   .lightbox .x{position:absolute;top:calc(14px + env(safe-area-inset-top));right:16px;background:rgba(255,255,255,.15);color:var(--lb-ink);border:0;width:46px;height:46px;border-radius:50%;font-size:24px}
   /* « ai- » : préfixe HISTORIQUE (première fenêtre = « Créer via IA ») devenu le préfixe GÉNÉRIQUE
      de toutes les modales (Compte, PDF, confirmations…) — ai-modal/ai-card/ai-x/ai-top/ai-actions.
      Ne pas y lire un lien avec l'IA ; renommer casserait sélecteurs CSS+JS pour un gain nul. */
-  .ai-modal{position:fixed;inset:0;background:rgba(16,27,40,.55);z-index:55;display:none;align-items:flex-start;justify-content:center;padding:calc(18px + env(safe-area-inset-top)) 14px calc(18px + env(safe-area-inset-bottom));overflow:auto;overscroll-behavior:contain}
+  .ai-modal{position:fixed;inset:0;background:var(--scrim);z-index:55;display:none;align-items:flex-start;justify-content:center;padding:calc(18px + env(safe-area-inset-top)) 14px calc(18px + env(safe-area-inset-bottom));overflow:auto;overscroll-behavior:contain}
   /* iOS Safari — LA FENÊTRE ÉTAIT COUPÉE EN BAS (retour utilisateur v4.29.3 : « le contenu ne
      scrolle pas sur cette bande ») : un overlay `fixed; inset:0` se dimensionne sur le GRAND
      viewport iOS (barre d'outils repliée) — barre visible, le bas de l'overlay passe DERRIÈRE
@@ -2213,7 +2223,9 @@
   #crtIA .crt-ic{color:var(--alert-strong)}
   .crt-t{font-size:15px;font-weight:700}
   .crt-d{font-size:12.5px;color:var(--ink-soft);margin-top:2px;line-height:1.35}
-  .crt-chev{margin-left:auto;color:var(--line-strong);font-weight:700;font-size:17px;flex:none}
+  /* --ink-soft et non --line-strong : ce dernier vise 3:1 (BORDURES) et tombe à 4,32:1 en couleur
+     de TEXTE — mesuré par le harnais une fois le dialogue Créer entré dans son périmètre. */
+  .crt-chev{margin-left:auto;color:var(--ink-soft);font-weight:700;font-size:17px;flex:none}
   .crt-back{display:inline-flex;align-items:center;gap:3px;border:0;background:none;padding:0;min-height:40px;margin-bottom:2px;font-family:inherit;font-size:13.5px;font-weight:700;color:var(--primary-dk);cursor:pointer}
   .crt-back:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:6px}
   .crt-step{font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft);margin:14px 0 6px}
