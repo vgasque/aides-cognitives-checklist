@@ -10,7 +10,12 @@ vitale, sous stress : clarté et robustesse priment.
 > **Exception UNIQUE à la règle zéro-dépendance : pdf.js** (visionneuse des documents PDF).
 > Vendorisé dans `vendor/pdfjs/` (version figée, notée dans `vendor/pdfjs/README.txt`), chargé
 > **paresseusement** (`import()` au premier document ouvert — jamais au démarrage), **précaché
-> par `sw.js`** (hors ligne dès l'installation). Mettre à jour pdf.js = décision explicite +
+> par `sw.js`** (hors ligne dès l'installation).
+> **LA VIGNETTE D'UN DOCUMENT COMPTE COMME UNE OUVERTURE** et suit donc la même règle (v4.36.0) :
+> `bindAttList` appelait `hydrateAttThumbs` inconditionnellement, si bien qu'ouvrir une FICHE
+> portant un PDF chargeait 1 773 Ko de pdf.js — pour 0 rangée à l'écran, les documents ayant
+> déménagé dans la feuille « Consulter » en v4.23.0. Ne générer une vignette que si une rangée est
+> réellement dans le flux : `if(main.querySelector('[data-thumb]'))`. Mettre à jour pdf.js = décision explicite +
 > test hors-ligne complet (mode avion, PDF 50+ pages, iPhone). **Aucune autre dépendance runtime
 > n'est autorisée** ; tout nouveau fichier servi doit être ajouté à `ASSETS` (`sw.js`).
 

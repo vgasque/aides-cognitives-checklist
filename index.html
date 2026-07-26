@@ -238,7 +238,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-BJPsfIQjNzmPxBqPcve8F3mxdaaKQiOup+wcFDN6C5c='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-Y9o79jBeref9+YVagRJ9kGvWEsV6wnKGQvEIBn2xjzo='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -3391,7 +3391,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.35.0';
+const APP_VERSION='4.36.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -6315,7 +6315,16 @@ async function genAttThumb(id){
 // (glyphe + texte, jamais la couleur seule).
 function attListHtml(entity){const _n=(entity.attachments||[]).length;return _n?`<section class="block"><div role="heading" aria-level="2" class="block-h h-doc">${headerIcon('h-doc')}Documents (${_n})</div><div class="att-list">${entity.attachments.map(a=>`<button class="att-row" data-att="${esc(a.id)}" title="Ouvrir le document">${attThumbHtml(a)}<span class="att-name">${esc(a.name)}</span><span class="att-cloud" data-attcloud="${esc(a.id)}" hidden title="Ajouté sur un autre appareil — sera téléchargé à la prochaine synchronisation avec du réseau ; pas encore consultable hors ligne ici.">△ à télécharger</span><span class="att-size">${fmtBytes(a.size)}</span></button>`).join('')}</div></section>`:'';}
 function bindAttList(entity){main.querySelectorAll('[data-att]').forEach(b=>b.onclick=()=>{const a=(entity.attachments||[]).find(x=>x.id===b.dataset.att);if(a)openPdfViewer(a,entity);});
-  hydrateAttThumbs(entity);}
+  // Vignettes SEULEMENT si une rangée est réellement dans le flux (v4.36.0). Générer une vignette
+  // exige pdf.js : 1 773 Ko (389 + 1 384) à parser et un worker à démarrer. Or depuis v4.23.0 la
+  // liste « Documents » d'une FICHE a quitté la colonne d'action pour la feuille « Consulter »,
+  // qui ne s'ouvre qu'à la demande — l'appel inconditionnel payait donc ce prix à l'ouverture de
+  // CHAQUE fiche portant un PDF, pour zéro rangée et zéro vignette à peindre (mesuré : 0
+  // `[data-att]`, 0 `[data-thumb]` dans toute la page). Travail intégralement perdu, sur l'écran
+  // de soin, et redondant : `renderRefSheet` rappelle hydrateAttThumbs à l'ouverture de la
+  // feuille, là où les rangées existent. Les PROTOCOLES gardent leur comportement — leurs
+  // documents sont dans le flux, donc la condition est vraie pour eux.
+  if(main.querySelector('[data-thumb]'))hydrateAttThumbs(entity);}
 function renderProtocolRead(){
   const p=state.protocol;if(!p){state.view='library';return render();}
   const preview=!!state.previewFrom;

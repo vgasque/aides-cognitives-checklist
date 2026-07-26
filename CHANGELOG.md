@@ -1,5 +1,42 @@
 # Journal des modifications
 
+## [4.36.0] — 2026-07-26
+### Corrigé — 1,77 Mo chargés pour ne rien dessiner
+Ouvrir une fiche portant un PDF déclenchait le chargement de **pdf.js en entier** — `pdf.min.js`
+389 Ko à +106 ms, `pdf.worker.min.js` 1 384 Ko à +181 ms — alors qu'aucun document n'avait été tapé.
+Cela contredisait la règle du projet (« pdf.js chargé paresseusement, `import()` au premier document
+OUVERT, jamais au démarrage »), sur l'écran de soin lui-même.
+
+**Et c'était pire que ça.** Depuis la v4.23.0, la liste « Documents » d'une FICHE a quitté la colonne
+d'action pour la feuille « Consulter », qui ne s'ouvre qu'à la demande. Mesuré à l'ouverture d'une
+fiche : **0 rangée `[data-att]`, 0 emplacement `[data-thumb]` dans toute la page** — les 1,77 Mo
+n'avaient littéralement rien à peindre. La chaîne `bindReadEvents` → `bindAttList` →
+`hydrateAttThumbs` appelait la génération de vignettes **inconditionnellement**, alors que
+`bindAttList` cherche ses rangées dans `main`, où il n'y en a plus. Travail intégralement perdu, et
+redondant de surcroît : `renderRefSheet` rappelle `hydrateAttThumbs` à l'ouverture de la feuille,
+là où les rangées existent.
+
+Correctif d'une ligne — ne générer les vignettes que si une rangée est réellement dans le flux :
+`if(main.querySelector('[data-thumb]')) hydrateAttThumbs(entity);`. Vérifié sur les trois cas qui
+comptent : fiche seule → **0 Ko au lieu de 1 773** ; feuille « Consulter » ouverte → pdf.js chargé
+et vignette peinte (96×128 px) ; **protocole → comportement inchangé** (ses documents sont dans le
+flux, la condition est vraie pour lui).
+
+> Nuance conservée pour la suite : ce n'est pas du réseau en usage normal (`sw.js` précache pdf.js à
+> l'installation), mais le PARSING de 1,8 Mo de JS minifié et le démarrage d'un worker, en CPU, sur
+> la vue utilisée pendant un soin. Le travail était différé par `_idle()` — donc il ne bloquait pas
+> le premier rendu — mais une tâche d'idle n'est pas préemptible une fois commencée.
+
+### Sécurité serveur — réserve de v4.34.0 LEVÉE
+Les modifications SQL n'avaient pas pu être exécutées ici (ni Postgres ni Docker sur le poste) et
+étaient livrées relues à la main. **Elles ont été rejouées sur l'instance réelle** : `schema.sql`
+appliqué sans erreur, et `rls-tests.sql` répond « ✅ TOUS LES TESTS RLS PASSENT » — donc la
+**section 13** (élévation de privilège, rôle anonyme, invitation à e-mail non vérifié) passe, et le
+durcissement (`revoke all … from anon`, `alter default privileges`, `email_confirmed_at` exigé)
+n'a rien cassé du flux existant.
+
+510 tests × 2 moteurs, 22/22 doctrine, 73/73 accessibilité, 135 contrôles d'audit, 10 sondes.
+
 ## [4.35.0] — 2026-07-26
 **Phase 4 de l'audit externe : simplification de la structure**, validée sur plan. Aucune ligne de
 code applicatif touchée — documentation, arborescence et maintenance du dépôt. Les mesures ont
