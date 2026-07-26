@@ -1,5 +1,34 @@
 # Journal des modifications
 
+## [4.38.0] — 2026-07-26
+### Tous les champs de l'éditeur ont enfin un nom
+**39 champs sur 53 n'étaient nommés que par leur `placeholder`** — qui disparaît dès qu'on tape.
+Concrètement : on revient sur un champ déjà rempli, et plus rien ne dit ce qu'il contient ; un
+lecteur d'écran annonce « champ, texte » sur ce qui est peut-être la dose d'un protocole de
+réanimation. C'est WCAG 3.3.2 et 4.1.2, et c'est l'antipattern le plus répandu des formulaires.
+
+Le diagnostic a montré que ces 39 champs n'étaient **pas de même nature**, et qu'un `aria-label`
+uniforme aurait été la mauvaise réponse :
+- **4 gabarits avaient déjà un `<label>` visible ET un `id`** : il suffisait de les associer
+  (`for=`). Aucune duplication, et le libellé devient cliquable pour focaliser le champ.
+- **Les autres sont des LIGNES DE LISTE** — « Ne pas oublier », étapes d'un bloc, options d'une
+  décision — coiffées par un `<label>` de section qui ne peut être associé à aucune en particulier.
+  Elles reçoivent un nom qui dit leur liste ET leur rang : « Ne pas oublier — ligne 1 »,
+  « Étape 3 », « Libellé de la réponse 2 ».
+- **Les rangées de minuteur et de compteur** reçoivent le nom de ce qu'elles règlent (« Nom du
+  cycle », « Nom du chronomètre », « Nom du compteur »), et le sélecteur de relance — jusqu'ici
+  nommé par un simple `title`, pis-aller que tous les lecteurs ne lisent pas et qui n'existe pas
+  sur mobile — reçoit un vrai `aria-label`.
+
+Vérifié : **0 champ anonyme et 0 champ nommé par son placeholder** sur les 53 de l'éditeur, et
+**aucun nom n'est une simple copie du placeholder** (contrôlé explicitement — recopier « ex. Oui »
+n'aurait rien nommé du tout).
+
+Aucun changement de rendu : le diff est de 11 lignes modifiées pour 11, uniquement des attributs,
+et aucune règle CSS du fichier ne cible `label[for]` ni `[aria-label]` (vérifié).
+
+510 tests × 2 moteurs, 22/22 doctrine, 121/121 accessibilité, 143 contrôles d'audit, 10 sondes.
+
 ## [4.37.0] — 2026-07-26
 Deux garde-fous élargis, et **un bouton fantôme trouvé grâce à l'un d'eux**. Aucun changement de
 rendu voulu — et aucun constaté, vérifié par comparaison des couleurs calculées avant/après dans
