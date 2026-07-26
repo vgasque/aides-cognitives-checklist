@@ -13,17 +13,44 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      # Vérification de syntaxe : ne nécessite aucune dépendance.
-      - name: Vérifier la syntaxe (index.html, sw.js, tests.html)
-        run: node scripts/check-syntax.mjs
+          cache: npm
+
+      # `npm run check` EN ENTIER, et non son premier maillon appelé en direct : il porte la
+      # syntaxe des scripts inline, le garde-fou couleurs et la fraîcheur des hashs CSP. Aucun des
+      # trois ne demande de dépendance, d'où sa place avant l'installation (échec en quelques
+      # secondes). Auparavant seul check-syntax.mjs était appelé : check-colors.mjs, présenté
+      # comme « auto-exécutoire », ne tournait dans AUCUNE barrière automatique.
+      - name: Vérifier syntaxe, couleurs et hashs CSP
+        run: npm run check
+
       # Garde-fou anti-dérive : design/ds/ doit refléter le CSS d'index.html (régénéré par
       # design/build.mjs). Échoue si un changement de CSS a été poussé sans rejouer le build.
       - name: Vérifier que design/ds/ est à jour
         run: node scripts/design-check.mjs --strict
-      # Tests fonctionnels headless (Playwright / Chromium).
+
+      # `npm ci` et non `npm install` : installe EXACTEMENT le contenu du lock, donc une CI
+      # reproductible — `npm install` peut résoudre une autre version d'un jour à l'autre.
       - name: Installer les dépendances de test
-        run: npm install
+        run: npm ci
+
+      - name: Cache des navigateurs Playwright
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
       - name: Installer Chromium
         run: npx playwright install --with-deps chromium
+
       - name: Lancer la suite de tests
         run: npm test
+
+      # AUDIT TRANSVERSE — NON BLOQUANT, à dessein. AGENTS.md pose qu'un échec d'audit « demande
+      # un arbitrage humain, pas un blocage de merge » : ces harnais MESURENT des invariants de
+      # doctrine (contraste sur le fond effectif, cibles tactiles, ordre du quai, compression sous
+      # 400 px…) dont la correction relève parfois d'une décision de conception. Ne pas les jouer
+      # du tout laissait pourtant leurs 180+ contrôles dépendre du fait que quelqu'un y pense :
+      # ils tournent donc à chaque push, visibles dans le journal, sans bloquer la fusion.
+      - name: Audit transverse (accessibilité, doctrine, surfaces) — indicatif
+        continue-on-error: true
+        run: npm run audit

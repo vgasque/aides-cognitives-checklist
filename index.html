@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-7CE6ZJdbOosy8FgccoFYwlcpf1/ipThZ2ludx8FHSlI='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-3fvkc+KIH5CDjl60qCapZn8L/FErhXApH+NZCKFFQeI='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -430,9 +430,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      Le MODE CRISE se signale par le BANDEAU D'ÉTAT étiqueté #crisisBand sous la barre (pattern
      des systèmes critiques : texte + couleur + position, trois canaux redondants) — la barre
      reste identique, le titre de la fiche prend l'emplacement et le corps du titre d'accueil. */
-  /* Barre à ESPACES CONFORTABLES : la compacité vient du REPLI AU DÉFILEMENT (pattern « grand
-     titre » iOS) — sur l'accueil, la ligne d'identité se replie dès qu'on défile (.condensed,
-     posée par l'écouteur de scroll) et il ne reste que les onglets (~52px). Jamais de texte tassé. */
+  /* Barre à ESPACES CONFORTABLES, de hauteur CONSTANTE : rien ne se replie au défilement. Un
+     repli « grand titre » iOS était décrit ici, mais sa règle n'a jamais existé — et il serait
+     contraire à la doctrine du chrome de crise (un en-tête qui raccourcit son encombrement de
+     flux fait remonter tout le contenu d'un coup). Seul le TITRE entre dans la barre, par relais
+     mesuré (.ttl-on), sans changer sa hauteur. Jamais de texte tassé. */
   header.bar{position:sticky;top:0;z-index:20;background:var(--surface);color:var(--ink);border-bottom:1px solid var(--line);padding:calc(12px + env(safe-area-inset-top)) 18px 8px;display:flex;flex-wrap:wrap;align-items:center;gap:14px;row-gap:8px}
   .id-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;width:100%;min-width:0}
   /* HORS ACCUEIL, l'en-tête tient sur UNE ligne à toutes les largeurs : pas de repli — les
@@ -1187,7 +1189,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .atyp-link{display:flex;align-items:center;width:100%;min-height:44px;background:none;border:0;border-top:1px solid var(--line);padding:6px 12px;font-family:inherit;font-size:12.5px;font-weight:700;color:var(--link);cursor:pointer;text-align:left}
   .atyp-link:hover{background:var(--surface-2)}
   .atyp-link:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
-  .diff-anchor{outline:none}
   /* Garde-fou éditeur « Ne pas oublier » (> 4 rappels) : registre ATTENTION, texte seulement. */
   .nf-guard{font-size:12.5px;line-height:1.5;color:var(--verify);margin:-8px 0 18px}
   .nf-guard:empty{display:none}
@@ -1811,7 +1812,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .ov-block.done{border-left-color:var(--done-line)}
   /* Hors chemin (branche écartée par une décision) : ATTÉNUÉ mais JAMAIS verrouillé — l'estompe
      n'est jamais seule, la mention « hors chemin » l'accompagne (WCAG 1.4.1). */
-  .ov-block.off{opacity:.55;border-style:dashed}
   /* v4.13.1 : l'en-tête d'instance PEUT se replier sur deux rangées — en étroit, les boutons
      « Lecteur »/« Vérifier » passent SOUS le titre (flex-wrap + base 230px) au lieu de
      l'écraser (titre superposé au chip « Vous êtes ici », compteur expulsé). */
@@ -1825,8 +1825,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .ov-block.done .ov-n{background:var(--ok);border-color:var(--ok);color:var(--surface)}
   .ov-t{flex:1;min-width:0;font-size:14px;font-weight:800;color:var(--ink);line-height:1.5;overflow-wrap:break-word}
   .ov-t .pass-n{font-family:var(--mono);font-weight:600;color:var(--primary);margin-left:7px;font-size:12px}
-  .ov-offtag{font-size:11.5px;font-weight:700;color:var(--ink-soft);margin-left:6px;display:none}
-  .ov-block.off .ov-offtag{display:inline}
   /* Pastille de position DANS .ov-t : elle passe à la ligne en étroit au lieu d'écraser le titre. */
   /* Chip compact : padding vertical 1px + vertical-align baseline — un chip plus haut que la
      ligne recouvrait la ligne de titre PRÉCÉDENTE quand le titre se replie (v4.13.1). */
@@ -1886,80 +1884,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      de mode — la saillance doit rester proportionnée à la conséquence.
      Renforcé en revanche : 14px (le libellé était le plus petit de la barre), état sélectionné
      franc (fond tonal + bordure --primary + graisse 800), et le choix se MÉMORISE. */
-  :is(.ov-plan-h,.pm-views) .ovs-tgl{flex:none;min-height:44px;border:1px solid var(--line-strong);border-radius:8px;background:transparent;color:var(--link);font-size:14px;font-weight:700;padding:6px 13px;cursor:pointer;font-family:inherit}
-  :is(.ov-plan-h,.pm-views) .ovs-tgl:hover{background:var(--surface)}
-  :is(.ov-plan-h,.pm-views) .ovs-tgl:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-  /* v4.18.0 : sélecteur d'affichage du Plan (Détails / Échelle / Schéma) — l'état actif est
-     un indicateur de sélection (fond tonal), pas un bouton rempli (un seul rempli par écran). */
   .ov-plan-h{flex-wrap:wrap}
-  .ov-plan-h .pl-views{flex:none;display:flex;gap:4px;margin-left:auto}
-  :is(.ov-plan-h,.pm-views) .ovs-tgl.on{background:var(--primary-soft);color:var(--primary-dk);border-color:var(--primary)}
-  /* Intitulé de groupe : sans lui, trois boutons voisins ne disent pas de QUOI ils sont l'axe. */
-  .ov-plan.svgv{overflow:hidden}
   /* Nœud du plan : carte compacte NAVIGANTE (taper = y aller) — jamais de case à cocher ici. */
   .pl-x{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--primary);margin-left:6px}
   .pl-here{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;background:var(--primary);color:var(--on-primary);padding:1px 8px;border-radius:999px;margin-left:6px;vertical-align:1px}
   .pl-q{font-size:11.5px;font-weight:400;font-style:italic;color:var(--ink-soft);margin:4px 2px 0}
-  /* ----- v4.12.0 : ORGANIGRAMME HYBRIDE — colonnes auto-fit (la règle responsive est CSS pur :
-     branches côte à côte à partir de 640 px quand la place le permet, EMPILÉES sinon —
-     et toujours empilées sous 640 px (v4.21.1) ; récursif de fait). */
-  /* Colonnes >= 640 px SEULEMENT (sous 640 : pile, cf. média ci-dessous). 148 px = plancher
-     des pistes auto-fit ; en pratique les colonnes restent larges à ces tailles d'écran (une
-     branche à décision imbriquée est `deep`, donc pleine largeur : ses sous-colonnes ont la
-     place). */
-  /* cN = nombre de branches EN COLONNE (les profondes s'étalent et ne comptent pas) : plafonne
-     les pistes auto-fit — sans lui, une branche pleine largeur force des pistes de 148 px et
-     coince les branches courtes dans des colonnes étroites même sur grand écran. */
-  /* UNE SEULE COLONNE sous 640 px (v4.21.1, retour d'usage réel — même décision que le mode
-     statique v4.13.1) : des colonnes de ~150 px émiettent les mots cliniques lettre à lettre
-     (« Conver / sion ») ; en pile, rails + chips d'option portent la structure. c2…c4 sont
-     plus spécifiques que .pl-cols : les écraser nommément. L'ancienne classe `deepv`
-     (pleine largeur < 640 par volume d'étapes) est absorbée par cette règle. */
-  @media (max-width:639.98px){ .pl-cols,.pl-cols.c2,.pl-cols.c3,.pl-cols.c4{grid-template-columns:1fr} }
-  /* Branche : RAIL continu étiqueté (naît sous l'option, meurt au coude) — bleu = chemin pris,
-     pointillé estompé = hors chemin (la mention textuelle accompagne toujours l'estompe). */
-  /* Étiquette d'option = BOUTON de repli (ligne-bilan quand replié) ; collante en défilement. */
-  .pl-offtag{font-weight:600;color:var(--ink-soft)}
-  /* FIL D'ANCÊTRES v5 (v4.22.1) : STICKY CONTINU — les cartes-questions RÉELLES du plan
-     s'épinglent sous l'en-tête (position:sticky, top CUMULÉ MESURÉ posé par ovPlanPin :
-     base + Σ hauteurs des cartes ancêtres — la leçon v4.14.3 appliquée au sticky, ce qui
-     manquait à la pile v4.12 et ses décalages figés 48 px). Plus AUCUNE copie synthétique
-     (#plPin supprimé) ni mouvement autonome : tout mouvement est le défilement lui-même
-     (compositeur, réversible au pixel, rien à inhiber sous prefers-reduced-motion), la
-     carte se décroche seule à la fin de son conteneur .pl-decwrap (convergence), et
-     l'indentation réelle est conservée par construction. Tap = data-plgo (la carte est le
-     vrai élément — délégation .ov-wrap inchangée). */
-  .ov-plan .pl-decwrap>.pl-nd.dec{position:sticky}
-  /* Z-ORDRE PAR PROFONDEUR (décision utilisateur v4.22.1) : chaque niveau se replie
-     DERRIÈRE son ancêtre au décrochage — enfant sous parent, parent sous l'en-tête (z 20).
-     Modèle ECL (cf. v4.16.4) : une sous-procédure terminée se referme dans sa procédure
-     mère ; à la remontée elle RÉ-ÉMERGE de dessous, symétrique. Les classes pd0…pd3 posées
-     par le walker depuis v4.14 (inertes depuis) reprennent du service. */
-  .ov-plan .pl-nd.dec.pd0{z-index:8}.ov-plan .pl-nd.dec.pd1{z-index:7}
-  .ov-plan .pl-nd.dec.pd2{z-index:6}.ov-plan .pl-nd.dec.pd3{z-index:5}
-  /* Épinglée : ombre discrète + COMPACTION une-ligne du titre — hauteurs STABLES (le chip
-     injecté ne provoque pas de passage sur deux lignes, donc pas de re-mesure en cascade
-     des tops des niveaux plus profonds). */
-  .ov-plan .pl-nd.dec.stuck{box-shadow:0 2px 8px rgba(16,27,40,.22)}
-  .ov-plan .pl-nd.dec.stuck .pl-nt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  /* Chip « › option » de la branche à la ligne de lecture, INJECTÉ dans la carte épinglée
-     (le Oui/Non reste attaché à SA question — jamais d'ambiguïté entre niveaux). */
-  .ov-plan .pl-nd.dec>.pinchip{flex:none;align-self:center;font-size:11px;font-weight:700;color:var(--verify);background:var(--surface);border:1px solid var(--verify-bd);border-radius:999px;padding:2px 9px;max-width:45%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  /* v4.22.0 (conservée pour le CHIP seul) : micro-animation NON BLOQUANTE d'apparition ou
-     de changement d'option — transform/opacité, inerte sous prefers-reduced-motion. La
-     disparition n'anime jamais (registre SORTIE) ; les cartes n'animent jamais (leur
-     mouvement est le geste). */
-  @keyframes pinIn{from{opacity:0;transform:translateY(-7px)}to{opacity:1;transform:none}}
-  @media (prefers-reduced-motion:no-preference){
-    .ov-plan .pl-nd.dec>.pinchip.pin-in{animation:pinIn .2s cubic-bezier(.2,.7,.3,1)}
-  }
-  /* Coude de sortie de branche : le rail se referme vers le lien de convergence. */
   /* Liens de structure : convergence « → n » / reprise « ↺ n » — défilement DANS le plan. */
   .pl-lnk{display:inline-flex;align-items:center;gap:5px;min-height:44px;font-size:11.5px;font-weight:700;color:var(--ink-soft);background:var(--tag-bg);border:1px solid var(--line);border-radius:999px;padding:4px 11px;margin-top:6px;cursor:pointer;font-family:inherit;text-align:left}
   .pl-lnk.loop{color:var(--link);background:var(--primary-soft);border-color:var(--primary-soft)}
   .pl-lnk:hover{border-color:var(--primary)}
   .pl-lnk:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-  .pl-end{font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--ok);margin-top:7px}
   /* ----- v4.12.0 : ÉCHELLE ECAM (mode compact) — une ligne par bloc, renvois abrégés. ----- */
   .pl-line{display:flex;align-items:baseline;gap:7px;min-height:44px;padding:7px 9px;border-left:3px solid var(--line-strong);border-bottom:1px solid var(--line);cursor:pointer}
   .pl-line.d1{padding-left:19px}
@@ -2045,6 +1979,32 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .sv-br.taken{border-left-color:var(--primary)}
     .sv-br.off{border-left-style:dashed}
     .sv-br .sv-br .sv-br .sv-br{margin-left:0;padding-left:5px}
+    /* INTITULÉ DE DÉCISION COLLANT (petits écrans seulement) — la question ne quitte plus l'écran
+       tant qu'on lit ses branches. MESURÉ avant : en PILE, sur une décision imbriquée à 360×640,
+       844 px de contenu se lisaient SANS la question ; côte à côte (≥ 640 px) le défaut n'existe
+       pas (0 px), d'où le bornage à ce palier — pas un réglage esthétique, la borne du problème.
+       Base = --stick-top, la source UNIQUE du bas de ce qui est déjà collé en haut (en-tête +
+       quai) ; le décalage CUMULÉ de chaque niveau imbriqué est posé par svStickBands.
+       La hauteur n'est JAMAIS forcée : compacter à une ligne tronquerait une question longue,
+       or la question EST l'information. C'est pourquoi le décalage se mesure au lieu d'être
+       arithmétique — une mesure UNIQUE par rendu, pas une pile tenue à jour au défilement
+       (l'ex-fil d'ancêtres de la vue « Détails » mesurait, lui, à chaque évènement).
+       Décrochage NATIF : chaque bande est bornée par son .sv-decwrap, elle se détache seule à la
+       convergence. z-index DÉCROISSANT avec la profondeur et sous #crisisDock (15) : une bande
+       enfant ne masque jamais son parent, ni le quai de crise. */
+    .sv-wrap .sv-decwrap>.sv-band{position:sticky;top:var(--stick-top,64px);z-index:12;box-shadow:var(--shadow)}
+    .sv-wrap .sv-decwrap .sv-decwrap>.sv-band{z-index:11}
+    .sv-wrap .sv-decwrap .sv-decwrap .sv-decwrap>.sv-band{z-index:10}
+    /* PLAFOND À 3 NIVEAUX : au-delà, la pile mangerait la colonne d'action — la zone haute
+       atteint déjà 177 px sur 640 en session. Le 4e niveau et les suivants restent dans le flux. */
+    .sv-wrap .sv-decwrap .sv-decwrap .sv-decwrap .sv-decwrap>.sv-band{position:static;box-shadow:none}
+    /* FOCUS CLAVIER (WCAG 2.4.11 « Focus Not Obscured ») : le défilement déclenché par le focus
+       est celui du NAVIGATEUR — ni --stick-top ni le top cumulé ne le voient, seul scroll-margin
+       le pilote. Il s'AJOUTE au scroll-padding-top de html (qui couvre déjà --stick-top), d'où
+       une valeur qui ne compte QUE la pile de bandes (~2 niveaux) et non la zone haute entière —
+       même arbitrage que .rt-panel, ramené de 130 à 6 px en v4.30.0. Ciblé sur les seuls
+       éléments SOUS une décision : ailleurs, aucune bande ne peut masquer le focus. */
+    .sv-wrap .sv-decwrap .sv-cell,.sv-wrap .sv-decwrap .sv-opt{scroll-margin-top:96px}
   }
   .sv-br{display:grid;gap:3px;min-width:0;align-content:start}
   .sv-opt{border:1px solid var(--verify-bd);border-radius:3px;background:var(--verify-soft);color:var(--verify);font-size:11px;font-weight:700;text-align:center;padding:4px 6px;min-height:28px;display:flex;align-items:center;justify-content:center;gap:4px;flex-wrap:wrap}
@@ -2372,7 +2332,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* En étroit, le sélecteur passe à la LIGNE plutôt que d'écraser le titre (mesuré : « Plan —
      Anaphylaxie (choc anaphylactique) » tombait à « Plan — A… » à 390px). L'ordre visuel garde
      titre puis ✕ sur la 1ʳᵉ ligne — la fermeture reste au même endroit qu'ailleurs. */
-  @media (max-width:559.98px){.pm-views{order:3;flex-basis:100%;margin-top:2px}}
   :is(.plan-modal,.ref-modal) .ai-x{flex:none;position:static}
   /* Pas de min-height:0 ici : il autoriserait le corps à se comprimer sous la taille de son
      contenu — c'est ce qui rendait le plan invisible au-delà d'un écran. */
@@ -2671,7 +2630,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .rail-head .rt-sound{border:0;background:none;padding:6px 8px;font-weight:700}
     .rail-head .rt-sound:hover{background:var(--surface-2)}
     .rail-head .rt-sound.off{color:var(--verify)}   /* fantôme comme « activé » ; icône barrée + mot « coupé » portent l'état (v4.23.5) */
-    .rail-sep{height:1px;background:var(--line);margin:2px 0;flex:none}
     /* Compte total de la zone : ANNONCE le contenu au-delà du bord visible. Une barre de
        défilement est invisible au repos (macOS/iOS) — sans ce compte, une zone tronquée paraît
        complète, ce que l'ECAM interdit (il signale toujours le débordement). */
@@ -3074,7 +3032,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .read-grid{display:block!important;grid-template-columns:none!important;gap:0!important;max-width:none!important}
     .read-head h2{font-size:22px!important}   /* corps unique, ni 21 ni 24 selon l'écran */
   }
-  @media print{body{background:var(--paper)}header.bar,#crisisBand,#cbTimers,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.sess-list,.notes-block,#readTopSeg,.ov-redo,.ovs-tgl,.flow-zoom{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}
+  @media print{body{background:var(--paper)}header.bar,#crisisBand,#cbTimers,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.sess-list,.notes-block,#readTopSeg,.ov-redo,.flow-zoom{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}
     /* Un conteneur à défilement s'imprime TRONQUÉ : à l'impression le tableau se déploie. */
     .md-tw{overflow:visible;break-inside:avoid}.md-tbl{min-width:0;font-size:11px}.md-tbl tr{break-inside:avoid}
     .forget-strip{break-inside:avoid}
@@ -3082,7 +3040,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        300 px) et la vue d'ensemble s'imprime DÉPLIÉE — blocs repliés rouverts par CSS (aucun
        état à toucher), hors-chemin en pleine encre (la mention « hors chemin » reste le marqueur). */
     .alg-panel .flow-scroll{max-height:none;overflow:visible}
-    .ov-block{break-inside:avoid}.ov-block.closed .ov-body{display:block}.ov-block.off{opacity:1}
+    .ov-block{break-inside:avoid}.ov-block.closed .ov-body{display:block}
     /* v4.12.0 : plan imprimé en une colonne (flux de page), branches dépliées, sans sticky. */
     /* v4.22.1 : le fil épinglé est un état d'ÉCRAN — sur papier, carte complète et sans chip. */
     .crisis-footer .cf-stg{display:none}}
@@ -3115,7 +3073,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   <!-- .id-row = RANGÉE PRINCIPALE de l'en-tête V5 : retour (vues internes) OU marque (accueil),
        recherche (accueil : fixe, en ligne en large / rangée propre en étroit), minuteurs de crise
        (#cbTimers, segments + GLOBAL), badge de statut (protocoles/éditeurs), Créer, thème, compte.
-       Repliée au défilement sur l'accueil (marque seulement, cf. .condensed). -->
+       Hauteur CONSTANTE : elle ne se replie pas au défilement (cf. la règle CSS de header.bar). -->
   <header class="bar"><div class="id-row">
     <button class="hdr-back" id="hdrBack" hidden><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg><span id="hdrBackLbl">Bibliothèque</span></button>
     <span class="brand-logo" aria-hidden="true"></span>
@@ -3381,7 +3339,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.31.0';
+const APP_VERSION='4.32.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -3737,9 +3695,9 @@ let state={view:'library',readStack:[],q:'',cat:'',scope:null,draft:null,fiche:n
   // Mode de lecture du mode crise : 'overview' = JOURNAL DE PARCOURS (v4.9.0, fil condensé
   // v4.16.0 — l'ex-mode guidé y est fusionné) + PLAN DE L'AIDE (v4.10.0) ; 'static' =
   // document tableau (v4.13.0). Posé à l'OUVERTURE (openRead/resumeSession) depuis la préférence.
-  // ovFold = replis manuels d'instances du journal (clé = index) ; ovPlanView = affichage du
-  // Plan ('plan' organigramme / 'ladder' échelle / 'svg' schéma — fusion v4.18.0) ; ovVerify =
-  // passe Do-Verify en cours ({idx,i,gaps} ou null). Jamais persistés (par fiche ouverte).
+  // ovFold = replis manuels d'instances du journal (clé = index) ; ovVerify = passe Do-Verify en
+  // cours ({idx,i,gaps} ou null). Jamais persistés (par fiche ouverte). Il n'y a PLUS de champ
+  // d'affichage du Plan : il n'a qu'une vue depuis v4.25.0 (cf. plus bas).
   readMode:'overview',ovFold:{},ovVerify:null};
 try{if(localStorage.getItem(spaceKey('ac-section'))==='protocols')state.section='protocols';}catch(e){}
 /* Préférence du mode de lecture (v4.6.0) — par utilisateur (spaceKey local), synchronisée via
@@ -3750,13 +3708,12 @@ function currentReadMode(){try{const m=localStorage.getItem(spaceKey('ac-read-mo
   if(m==='guided')return 'overview';   // v4.16.0 : le guidé est FUSIONNÉ dans le journal (fil condensé)
   return READ_MODES.indexOf(m)>=0?m:'overview';}catch(e){return 'overview';}}
 function setReadModePref(m){if(READ_MODES.indexOf(m)<0)return;try{localStorage.setItem(spaceKey('ac-read-mode'),m);}catch(e){}schedulePrefsPush();}
-/* Affichage du PLAN (v4.23.0) : Détails / Échelle / Schéma. Mémorisé par utilisateur — sans
-   quoi on re-choisissait à CHAQUE ouverture de la feuille, alors que la préférence de lecture
-   d'un synoptique est stable (on lit toujours son plan de la même façon).
-   LOCAL SEULEMENT, volontairement : ce n'est pas un état de la fiche ni un mode opératoire, mais
-   le dessin d'une feuille transitoire — ça n'a pas sa place dans la charge utile de synchro
-   (contrairement à readMode, qui change ce qu'EST la fiche). */
-// (PLAN_VIEWS / currentPlanView / setPlanViewPref supprimés en v4.25.0 : le Plan n'a plus qu'une vue.)
+/* Le PLAN n'a plus qu'UNE vue (l'Échelle) depuis v4.25.0 : PLAN_VIEWS / currentPlanView /
+   setPlanViewPref et le champ state.ovPlanView ont été supprimés avec le sélecteur d'affichage.
+   Rien à mémoriser, donc — et si un jour une seconde vue revenait, sa préférence resterait LOCALE
+   (ce n'est pas un état de la fiche ni un mode opératoire, mais le dessin d'une feuille
+   transitoire : ça n'a pas sa place dans la charge utile de synchro, contrairement à readMode,
+   qui change ce qu'EST la fiche). */
 // Rôle/édition par bibliothèque. Perso (libraryId vide) = toujours éditable. Bibliothèque partagée : éditable
 // si role editor/admin. (La RLS reste l'arbitre côté serveur ; ceci n'est que l'ergonomie.)
 function roleOf(libId){const l=myLibraries.find(x=>x.id===libId);return l?l.role:null;}
@@ -5906,8 +5863,8 @@ function render(){
   // idempotent, et render() est LE point de passage de tout changement de vue.
   if(state.view!=='library')_histArm();
   // État de l'en-tête resynchronisé APRÈS le défilement final : un changement de vue sans
-  // évènement de scroll (on était déjà en haut) laissait sinon .condensed/.ttl-on hérités de la
-  // vue précédente — barre condensée sur une page au repos, ou zone haute annoncée deux fois.
+  // évènement de scroll (on était déjà en haut) laissait sinon .ttl-on et les variables de
+  // couches collantes hérités de la vue précédente — zone haute annoncée deux fois, ou pas du tout.
   syncHdrScroll();
 }
 // Re-rendu de l'ACCUEIL respectueux de l'onglet courant (Aides ↔ Protocoles). Tout code qui
@@ -5963,18 +5920,19 @@ const mqReadWide=window.matchMedia('(min-width:1000px)');
 const mqRail=window.matchMedia('(min-width:780px)');
 const _onReadBp=()=>{if(state.view==='read')render();};
 [mqReadWide,mqRail].forEach(mq=>{if(mq.addEventListener)mq.addEventListener('change',_onReadBp);else if(mq.addListener)mq.addListener(_onReadBp);});
-// « GRAND TITRE » : sur l'accueil, la ligne d'identité se replie dès qu'on défile (.condensed,
-// cf. CSS — il ne reste que les onglets) et réapparaît en haut de page. Écouteur passif ;
-// les scrollTo() de render() déclenchent aussi l'évènement -> état toujours juste.
-let _hdrCond=false,_hdrTtl=false,_hdrHCss='',_stickCss='',_ctrlHCss='';
+// La hauteur de l'en-tête est CONSTANTE : rien ne se replie au défilement. Un repli de la rangée
+// d'identité de l'accueil (classe `.condensed`) a été décrit ici et à deux autres endroits, au
+// présent et avec renvoi « cf. CSS », mais la règle correspondante n'a JAMAIS existé dans le
+// dépôt (vérifié sur tout l'historique) : la classe était posée sur un sélecteur sans déclaration.
+// Le toggle est donc retiré — aucun changement visuel possible. Ne pas réintroduire de repli sans
+// écrire la règle ET reprendre la doctrine du chrome de crise : un en-tête qui raccourcit son
+// propre encombrement de flux fait remonter tout le contenu d'un coup (c'est exactement pour
+// l'éviter que #crisisBand et #cbTimers vivent HORS de header.bar, v4.23.0).
+let _hdrTtl=false,_hdrHCss='',_stickCss='',_ctrlHCss='';
 // v4.23.0 : extrait en fonction NOMMÉE — render() la rappelle en fin de rendu. Sans ça, ouvrir
 // une fiche depuis une page déjà en haut ne produit aucun évènement de défilement et l'état
 // .ttl-on héritait de la vue précédente (barre condensée sur une page au repos, ou l'inverse).
-function syncHdrScroll(){const c=window.scrollY>24;
-  if(c!==_hdrCond){_hdrCond=c;document.querySelector('header.bar').classList.toggle('condensed',c);
-    // L'en-tête vient de changer de hauteur : recaler la base du fil d'ancêtres collant du
-    // plan (sinon les pastilles épinglées flottent sous — ou passent sous — l'en-tête, v4.13.1).
-    if(state.view==='read'&&state.readMode==='overview'&&state.fiche&&hasFlow(state.fiche))ovPlanStick();}
+function syncHdrScroll(){
   // Vues fiche/protocole (.titled) : le titre n'entre dans la barre (.ttl-on) qu'une fois le
   // titre du CORPS sorti de l'écran (~110px : bouton retour + ligne de titre) — jamais deux
   // titres visibles à la fois (pattern « grand titre » iOS, symétrique du repli de l'accueil).
@@ -6003,10 +5961,7 @@ function syncHdrScroll(){const c=window.scrollY>24;
    if(_stickCss!==v){_stickCss=v;document.documentElement.style.setProperty('--stick-top',v);}}
   const _cb=document.getElementById('crisisBand');
   const t=(_cb&&!_cb.hidden)?_cb.getBoundingClientRect().bottom<=_hbB:window.scrollY>110;
-  if(t!==_hdrTtl){_hdrTtl=t;_hb.classList.toggle('ttl-on',t);
-    if(state.view==='read'&&state.readMode==='overview'&&state.fiche&&hasFlow(state.fiche))ovPlanStick();}
-  // Fil d'ancêtres v3 : la bulle flottante du plan suit CHAQUE défilement (léger : quelques
-  // rectangles ; reconstruit son contenu seulement quand la décision/branche change).
+  if(t!==_hdrTtl){_hdrTtl=t;_hb.classList.toggle('ttl-on',t);}
 }
 window.addEventListener('scroll',syncHdrScroll,{passive:true});
 // keepQuery : bascule déclenchée par la RECHERCHE TRANSVERSALE -> la requête est conservée
@@ -7678,7 +7633,6 @@ function bindReadEvents(f,blk,cur){
   if(rm==='overview')bindOverviewEvents(f);
   else if(rm==='static'){bindStaticEvents(f);svPaintArrows();}
   else bindNavEvents(f,blk);
-  ovPlanStick();   // v4.12.0 : base du fil d'ancêtres collant du plan
   main.querySelectorAll('img[data-full]').forEach(im=>im.onclick=()=>openLightbox(im.dataset.full,im.dataset.cap||''));
   // Documents PDF -> visionneuse intégrée (le blob est lu dans IndexedDB à l'ouverture).
   bindAttList(f);
@@ -7952,20 +7906,16 @@ function ovInstHtml(f,id,idx,topo,pres){
       +((!dec&&clean(b.steps).length)?`<button type="button" class="ov-redo" data-ovverify="${idx}" title="Do-Verify : redérouler ce bloc en challenge-réponse — « Constaté » coche, « Écart » laisse non coché">Vérifier</button>`:'')
       +((!tip&&complete&&!dec)?`<button type="button" class="ov-redo" data-ovredo="${esc(id)}" title="Refaire ce bloc : nouvelle carte au bout du journal — celle-ci reste telle quelle">↺ Refaire</button>`:''));
   return `<section class="ov-block${tip?' cur':''}${complete?' done':''}${dec?' dec':''}${closed&&!verifying?' closed':''}" data-ovb="${esc(id)}" data-ovi="${idx}" data-ovn="${topo[id]||''}"${tip?' aria-current="step"':''}><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="${idx}" aria-expanded="${closed&&!verifying?'false':'true'}"><span class="ov-n" aria-hidden="true">${complete?uiIcon('check',13,{sw:3.2,cls:''}):(topo[id]||((Runtime.cxBack||{})[seq]?'⚡':'·'))}</span><span class="ov-t">${esc(b.title)||(dec?'Décision':'Étapes')}${passTag}${cxTag}${takenH} <span class="ov-here">Vous êtes ici</span></span><span class="ov-c">${count}</span><span class="ov-chev" aria-hidden="true">${closed&&!verifying?'▾':'▴'}</span></button>${btns?`<div class="ov-acts">${btns}</div>`:''}</div><div class="ov-body">${bodyH}</div></section>`;}
-/* PLAN DE L'AIDE v2 (v4.12.0) : rendu de flowPlan — le plan reste INERTE côté cochage (la
-   trace vit dans le journal) et sert à NAVIGUER. Deux densités sur la bascule #ovPlanD :
-   - DÉTAILS = ORGANIGRAMME HYBRIDE (ovPlanTreeHtml) : tronc pleine largeur, branches d'une
-     décision en COLONNES côte à côte quand la place le permet, EMPILÉES sinon — règle locale
-     et récursive portée par le CSS SEUL (.pl-cols, grid auto-fit minmax) ; rails de branche
-     étiquetés (bleu = chemin pris, pointillé estompé = hors chemin) avec coude de sortie vers
-     la convergence ; REPLI PAR BRANCHE en ligne-bilan (hors chemin auto-replié, jamais
-     bloquant) ; FIL D'ANCÊTRES STICKY CONTINU (v4.22.1) : les cartes-questions RÉELLES
-     s'épinglent sous l'en-tête (tops cumulés MESURÉS posés par ovPlanPin, chip « › option »
-     injecté, z-ordre pdN — le sticky se décroche seul en fin de conteneur .pl-decwrap et
-     chaque niveau se replie DERRIÈRE son ancêtre).
-   - ÉCHELLE (ovPlanLadderHtml, mode compact ECAM) : une LIGNE par bloc, retraits de
-     profondeur AVEC étiquette de la réponse qui ouvre la branche (« OUI › »), renvois mono
-     abrégés (optAbbr : OUI→5 · ↺1 · ▪fin), tap ligne = détails in-place + « aller à ce bloc ». */
+/* PLAN DE L'AIDE — « Se repérer » (v4.12.0, réduit à UNE vue en v4.25.0) : rendu de flowPlan.
+   Le plan reste INERTE côté cochage (la trace vit dans le journal) et sert à NAVIGUER.
+   UNE SEULE VUE, l'ÉCHELLE (ovPlanLadderHtml, mode compact ECAM) : une LIGNE par bloc, retraits
+   de profondeur AVEC étiquette de la réponse qui ouvre la branche (« OUI › »), renvois mono
+   abrégés (optAbbr : OUI→5 · ↺1 · ▪fin), tap ligne = détails in-place + « aller à ce bloc ».
+   L'ex-vue « DÉTAILS » (organigramme hybride ovPlanTreeHtml, ses colonnes .pl-cols, ses rails
+   de branche et son FIL D'ANCÊTRES STICKY ovPlanPin) est SUPPRIMÉE : seule des trois à recopier
+   les étapes, elle rejouait la vue d'action au lieu de montrer autre chose — un SD ECAM ne redit
+   jamais l'E/WD. Son CSS et ses commentaires ont été retirés avec elle (v4.31.1) ; l'épinglage de
+   question survit ailleurs, en CSS quasi pur, sur les bandes du mode STATIQUE (svStickBands). */
 // Abréviation des libellés d'options (échelle) : premier mot en capitales (6 car. max) ; deux
 // options d'une même décision au même premier mot → initiale du 2ᵉ mot, sinon rang. PURE.
 function optAbbr(labels){
@@ -7999,9 +7949,12 @@ function ovPlanHtml(f){
    C'est une FEUILLE, jamais un onglet : un onglet est un état persistant qu'on peut oublier
    ouvert pendant qu'une alarme tombe — modèle ECAM E/WD (l'action, permanente) + SD (le
    synoptique, appelé puis relâché). Rien n'est dupliqué : même flowPlan, même numérotation
-   commune, même état peint, mêmes gestes (data-plgo / data-plref / data-plfold / data-plview).
-   Les AFFICHAGES restent les trois de v4.18.0 (Détails · Échelle · Schéma) : « Tableau » du
-   canvas serait une seconde porte vers le mode statique, dont #readTopSeg est le seul maître. */
+   commune, même état peint, mêmes gestes (data-plgo / data-plref / data-plln).
+   UNE SEULE VUE depuis v4.25.0, l'ÉCHELLE : « Détails » (l'organigramme hybride) était la seule
+   des trois à RECOPIER les étapes — elle rejouait la vue d'action au lieu de montrer autre chose,
+   ce qu'un SD ECAM ne fait jamais. Le Schéma a rejoint le menu ⋯ (openFlowFull). Pas de
+   « Tableau » ici : ce serait une seconde porte vers le mode statique, dont #readTopSeg est le
+   seul maître. */
 const planModal=document.getElementById('planModal');
 function planSheetOpen(){return planModal.classList.contains('on');}
 function renderPlanSheet(){
@@ -8174,10 +8127,11 @@ bindModalDismiss(refModal,closeRefSheet);
 
    const pr=t.closest('[data-plref]');
    if(pr){const k=CSS.escape(pr.dataset.plref);
-     const el=body.querySelector('.pl-nd[data-plgo="'+k+'"]')||body.querySelector('.pl-line[data-plln="'+k+'"]');
+     // Une seule structure possible : la LIGNE de l'Échelle. Le repli `.pl-nd[data-plgo]` visait
+     // l'organigramme « Détails » supprimé en v4.25.0 — il ne pouvait que renvoyer null, tout en
+     // laissant croire que deux structures coexistaient (donc qu'il fallait maintenir les deux).
+     const el=body.querySelector('.pl-line[data-plln="'+k+'"]');
      if(el){scrollWithin(planModal,el);el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),900);}return;}
-   const pf=t.closest('[data-plfold]');
-   if(pf){const k=pf.dataset.plfold;state.ovFold[k]=pf.getAttribute('aria-expanded')!=='false';renderPlanSheet();return;}
    const pl=t.closest('[data-plln]');
    if(pl){const id=pl.dataset.plln;state.ovFold['l:'+id]=!state.ovFold['l:'+id];renderPlanSheet();return;}
    // (Les nœuds du SVG sont câblés par bindSvgNav, pas ici : un double traitement produirait
@@ -8186,7 +8140,7 @@ bindModalDismiss(refModal,closeRefSheet);
    if(pg){closePlanSheet();jumpToBlock(f,pg.dataset.plgo);return;}};
  if(card){card.onclick=e=>act(e.target);
    card.onkeydown=e=>{if(e.key!=='Enter'&&e.key!==' ')return;
-     const t=e.target.closest('[data-plgo],[data-plln],[data-plfold],[data-plref]');
+     const t=e.target.closest('[data-plgo],[data-plln],[data-plref]');
      if(!t)return;e.preventDefault();act(t);};}}
 {const px=document.getElementById('planX');if(px)px.onclick=closePlanSheet;}
 // La feuille a son PROPRE défileur : l'évènement de défilement de la page ne l'atteint pas.
@@ -8243,17 +8197,18 @@ function ovPlanLadderHtml(f,plan,num,md,off){
 // divisée par ce facteur, sinon fil épinglé et flèches dérivent dès que la taille ≠ 100 %
 // (v4.13.1).
 function zoomF(){return (parseFloat(document.documentElement.style.zoom)||100)/100;}
-// Point d'entrée « la géométrie a changé » du fil d'ancêtres (re-rendu du plan, repli de
-// branche, hauteur d'en-tête, taille du texte, rotation) : recalcule tops et état épinglé.
-// (v4.22.1 : l'ancienne variable CSS --pl-stick n'existe plus — les tops sont posés par
-// ovPlanPin, carte par carte.)
-/* SUPPRIMÉS EN v4.25.0 (audit Plan/Statique) : `ovPlanTreeHtml` (l'organigramme « Détails ») et
-   tout le FIL D'ANCÊTRES COLLANT qui n'existait que pour lui (`ovPlanStick`/`ovPlanPin`, tops
-   cumulés mesurés, chips d'option injectés, z-ordre pdN). Détails était la seule vue du Plan à
-   RECOPIER LES ÉTAPES : elle rejouait la vue d'action au lieu d'être un synoptique, ce qu'un SD
-   ECAM ne fait pas. Le Plan n'a plus qu'une vue — l'Échelle — qui n'a pas d'ancêtres à épingler.
+/* SUPPRIMÉS EN v4.25.0 (audit Plan/Statique), nettoyage achevé en v4.31.1 : `ovPlanTreeHtml`
+   (l'organigramme « Détails ») et tout le FIL D'ANCÊTRES COLLANT qui n'existait que pour lui
+   (`ovPlanStick`, `ovPlanPin`, tops cumulés mesurés, chips d'option injectés, z-ordre pdN, la
+   variable --pl-stick). Détails était la seule vue du Plan à RECOPIER LES ÉTAPES : elle rejouait
+   la vue d'action au lieu d'être un synoptique, ce qu'un SD ECAM ne fait pas. Le Plan n'a plus
+   qu'une vue — l'Échelle — qui n'a pas d'ancêtres à épingler.
+   v4.25.0 avait laissé derrière elle ~20 règles CSS, deux `querySelector` qui ne pouvaient que
+   renvoyer null, quatre branches de délégation `data-plfold` inatteignables, une fonction vide
+   appelée depuis quatre sites, et une démo du design system qui publiait le composant disparu —
+   tout cela est parti en v4.31.1. L'épinglage de question, lui, SURVIT ailleurs et en mieux :
+   sur les bandes du mode STATIQUE (`svStickBands`), où une seule mesure par rendu suffit.
    Historique complet dans git (tag v4.24.0) si la question devait être rouverte. */
-function ovPlanStick(){}   // conservée en no-op : appelée depuis le défilement et les re-rendus
 function ovPaintLive(f){
   flowCtx={f,curId:state.nav[state.navPos]};
   {const fs=main.querySelector('.flow-scroll');if(fs)flowPaintState(fs,f);}}
@@ -8429,18 +8384,14 @@ function bindOverviewEvents(f){
     if(vx){const vf=state.ovVerify;state.ovVerify=null;renderOvOnlyKeepAnchor(vf?'.ov-block[data-ovi="'+vf.idx+'"]':null);return;}
     // MODE LECTEUR (v4.11.0) : plein écran, piloté sur le bout du journal.
     const rdr=t.closest('[data-ovreader]');if(rdr){readerOpen();return;}
-    // PLAN (v4.10.0) : nœud = y aller ; lien →/↺ = défilement DANS le plan ; bascule densité.
-    // PLAN v2 (v4.12.0) : l'ordre compte — renvoi (dans une ligne) AVANT ligne, repli de
-    // branche AVANT nœud ; le dépliage d'une ligne d'échelle précède data-plgo (bouton du panneau).
+    // PLAN (v4.10.0) : nœud = y aller ; lien →/↺ = défilement DANS le plan.
+    // L'ORDRE COMPTE : le renvoi (qui vit DANS une ligne) est traité AVANT la ligne elle-même,
+    // et le dépliage d'une ligne d'échelle précède data-plgo (bouton du panneau déplié).
     const pr=t.closest('[data-plref]');
     if(pr){const k5=CSS.escape(pr.dataset.plref);
-      const el=main.querySelector('.pl-nd[data-plgo="'+k5+'"]')||main.querySelector('.pl-line[data-plln="'+k5+'"]');
+      // Cf. la feuille « Se repérer » : seule la LIGNE d'échelle existe depuis v4.25.0.
+      const el=main.querySelector('.pl-line[data-plln="'+k5+'"]');
       if(el){ovScrollEl(el);el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),900);}return;}
-    const pf=t.closest('[data-plfold]');
-    if(pf){const k6=pf.dataset.plfold;
-      // bascule par rapport à l'état AFFICHÉ (le défaut « hors chemin = replié » n'a pas de clé)
-      state.ovFold[k6]=pf.getAttribute('aria-expanded')!=='false';
-      renderOvOnlyKeepAnchor('[data-plfold="'+CSS.escape(k6)+'"]');return;}
     const pl3=t.closest('[data-plln]');
     if(pl3){const id3=pl3.dataset.plln;state.ovFold['l:'+id3]=!state.ovFold['l:'+id3];
       renderOvOnlyKeepAnchor('[data-plln="'+CSS.escape(id3)+'"]');return;}
@@ -8510,7 +8461,6 @@ function renderOvOnly(){
   // Idem pour Consulter : les repères posologiques y sont classés pour le BLOC COURANT, qui
   // vient de changer.
   if(refSheetOpen())renderRefSheet();
-  ovPlanStick();   // v4.12.0 : base du fil d'ancêtres collant
   bindOverviewEvents(f);}
 /* ===== MODE STATIQUE (v4.13.0) : TABLEAU compact façon aide SFAR/CAMR =====
    3e mode de lecture — l'algorithme ENTIER carrelé en cellules télégraphiques, GÉNÉRÉ depuis
@@ -8815,7 +8765,41 @@ function svPaintArrows(){
       clearTimeout(svPaintArrows._tm);
       svPaintArrows._tm=setTimeout(()=>{if(state.view==='read'&&state.readMode==='static'&&state.fiche&&hasFlow(state.fiche))svPaintArrows();},40);});}
   if(svPaintArrows._ro){svPaintArrows._ro.disconnect();
-    const tb=wrap.querySelector('.sv-tb');if(tb)svPaintArrows._ro.observe(tb);}}
+    const tb=wrap.querySelector('.sv-tb');if(tb)svPaintArrows._ro.observe(tb);}
+  svStickBands(wrap);}
+// INTITULÉS DE DÉCISION COLLANTS (petits écrans) — pose le décalage CUMULÉ de chaque bande de
+// décision épinglée : la base vient du CSS (--stick-top, bas de tout ce qui est déjà collé en
+// haut), le décalage est la somme des hauteurs des bandes ANCÊTRES, de sorte que chaque niveau
+// imbriqué se range SOUS son parent au lieu de le recouvrir.
+// Pourquoi mesurer plutôt que compter : forcer une hauteur uniforme rendrait le décalage
+// arithmétique (donc du CSS pur) mais tronquerait toute question de plus de deux lignes — or la
+// question EST l'information de cette bande. La mesure est donc conservée, mais réduite à UNE
+// passe par rendu (lectures groupées, puis écritures — jamais d'alternance), là où l'ex-fil
+// d'ancêtres de la vue « Détails » recalculait à chaque évènement de défilement.
+// Divisions par zoomF() : getBoundingClientRect rend des px VISUELS alors qu'un `top` se
+// consomme en px CSS (règle v4.13.1). Au-delà du 3e niveau on ne pose rien : le CSS y remet la
+// bande dans le flux (la pile mangerait la colonne d'action).
+function svStickBands(wrap){
+  if(!wrap)return;
+  const bands=[...wrap.querySelectorAll('.sv-decwrap>.sv-band')];
+  if(!bands.length)return;
+  if(!matchMedia('(max-width:639.98px)').matches){bands.forEach(b=>{b.style.top='';});return;}
+  const Z=zoomF();
+  // ---------- LECTURES groupées (aucune écriture de style ici) ----------
+  const info=bands.map(b=>{
+    const anc=[];
+    let p=b.parentElement?b.parentElement.parentElement:null;
+    while(p&&p!==wrap){
+      if(p.classList&&p.classList.contains('sv-decwrap')){
+        const ab=p.querySelector(':scope>.sv-band');if(ab)anc.push(ab);}
+      p=p.parentElement;}
+    return {b,anc,h:b.getBoundingClientRect().height/Z};});
+  const hOf=new Map(info.map(o=>[o.b,o.h]));
+  // ---------- ÉCRITURES groupées ----------
+  info.forEach(o=>{
+    if(o.anc.length>=3){o.b.style.top='';return;}
+    const off=Math.round(o.anc.reduce((s,a)=>s+(hOf.get(a)||0),0));
+    o.b.style.top=off?'calc(var(--stick-top,64px) + '+off+'px)':'';});}
 // Taper une cellule : bloc jamais visité -> il ENTRE au bout du journal (position ● ici) ;
 // déjà visité -> simple acquittement visuel. JAMAIS de défilement (la cellule est sous le
 // doigt), JAMAIS de démarrage de session (naviguer ≠ agir).
@@ -10158,26 +10142,55 @@ function zipBuild(entries){
   for(const b of parts.concat(cdp,[eocd])){out.set(b,p);p+=b.length;}
   return out;}
 // Uint8Array -> Promise<[{name, data:Uint8Array}]>. Lit depuis le répertoire central (fin de
-// fichier) ; bornes anti-« zip bomb » : 1000 entrées max, 64 Mo déclarés max par entrée.
+// fichier). BORNES ANTI-« ZIP BOMB », toutes nécessaires — un .zip est le format de partage d'une
+// bibliothèque entre collègues : il circule par mail ou clé USB, sans aucun contrôle.
+//   1. 1000 entrées max (n, plus bas) ;
+//   2. 64 Mo par entrée, déclaré ET réel ;
+//   3. 256 Mo CUMULÉS sur toute l'archive — la borne qui manquait : chaque entrée passait
+//      individuellement, et rien ne bornait la somme ;
+//   4. un même en-tête local ne peut être consommé qu'UNE fois — sans quoi N entrées de noms
+//      distincts pointaient sur le MÊME flux compressé, ce qui multipliait le volume produit
+//      sans grossir l'archive (PoC exécuté : 18 Ko -> 256 Mio en 16 entrées) ; `zipBuild`
+//      n'en produit jamais, la contrainte est donc gratuite pour les exports de l'app ;
+//   5. la décompression elle-même est BORNÉE (inflateBounded) : `usize` est lu DANS le fichier,
+//      il peut mentir. La vérification `data.length!==usize` d'avant n'arrivait qu'APRÈS avoir
+//      matérialisé les octets — la mémoire était déjà consommée quand on rejetait l'entrée.
 const ZIP_MAX_ENTRY=64*1024*1024;
+const ZIP_MAX_TOTAL=256*1024*1024;
+// Décompresse en s'ARRÊTANT NET au-delà de `limit` octets produits (lecture par morceaux, flux
+// annulé dès le dépassement) au lieu de tout matérialiser puis vérifier.
+async function inflateBounded(data,limit){
+  const rd=new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw')).getReader();
+  const parts=[];let len=0;
+  for(;;){const r=await rd.read();if(r.done)break;
+    len+=r.value.length;
+    if(len>limit){try{await rd.cancel();}catch(e){}throw new Error('zip: contenu trop volumineux');}
+    parts.push(r.value);}
+  const out=new Uint8Array(len);let p=0;for(const b of parts){out.set(b,p);p+=b.length;}
+  return out;}
 async function zipParse(u8){
   if(!u8||u8.length<22)throw new Error('zip: archive vide');
   const rd16=o=>u8[o]|(u8[o+1]<<8),rd32=o=>((u8[o]|(u8[o+1]<<8)|(u8[o+2]<<16))+u8[o+3]*0x1000000);
   let e=-1;for(let i=u8.length-22,min=Math.max(0,u8.length-22-65535);i>=min;i--){if(u8[i]===0x50&&u8[i+1]===0x4B&&u8[i+2]===5&&u8[i+3]===6){e=i;break;}}
   if(e<0)throw new Error('zip: répertoire introuvable');
   const n=Math.min(rd16(e+10),1000);let o=rd32(e+16);const dec=new TextDecoder();const out=[];
+  let total=0;const seenLo=new Set();
   for(let i=0;i<n;i++){
     if(!(u8[o]===0x50&&u8[o+1]===0x4B&&u8[o+2]===1&&u8[o+3]===2))throw new Error('zip: entrée corrompue');
     const method=rd16(o+10),crc=rd32(o+16),csize=rd32(o+20),usize=rd32(o+24),nl=rd16(o+28),xl=rd16(o+30),cl=rd16(o+32),lo=rd32(o+42);
     if(csize>ZIP_MAX_ENTRY||usize>ZIP_MAX_ENTRY)throw new Error('zip: entrée trop volumineuse');
+    if(total+usize>ZIP_MAX_TOTAL)throw new Error('zip: archive trop volumineuse');
     const name=dec.decode(u8.subarray(o+46,o+46+nl));
     if(!(u8[lo]===0x50&&u8[lo+1]===0x4B&&u8[lo+2]===3&&u8[lo+3]===4))throw new Error('zip: entrée corrompue');
+    if(seenLo.has(lo))throw new Error('zip: entrée dupliquée');
+    seenLo.add(lo);
     // Longueurs nom/extra relues dans l'EN-TÊTE LOCAL (elles peuvent différer du central).
     const ds=lo+30+rd16(lo+26)+rd16(lo+28);
     let data=u8.subarray(ds,ds+csize);
-    if(method===8){const st=new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'));data=new Uint8Array(await new Response(st).arrayBuffer());}
+    if(method===8)data=await inflateBounded(data,usize);
     else if(method!==0)throw new Error('zip: méthode non prise en charge');
     if(data.length!==usize||crc32(data)!==crc)throw new Error('zip: contenu endommagé');
+    total+=data.length;
     out.push({name,data});o+=46+nl+xl+cl;}
   return out;}
 // Téléchargement d'un fichier généré — UNIQUE (exports JSON/ZIP, compte-rendu de session,
@@ -10863,8 +10876,14 @@ async function repairApp(){
   // HORS CONNEXION, purger SW + caches rendrait l'app INDISPONIBLE (le reload n'aurait plus ni
   // worker ni copie locale du code -> page blanche jusqu'au retour du réseau). On sonde le réseau
   // AVANT de toucher quoi que ce soit (vraie requête bornée à 4 s : navigator.onLine ment souvent).
+  // L'URL porte un JETON UNIQUE : `cache:'no-store'` ne pilote que le cache HTTP du navigateur, PAS
+  // le Cache API du service worker — sans jeton, la requête tombait dans le stale-while-revalidate
+  // de sw.js, qui avait mis sw.js EN CACHE au premier appel en ligne. La sonde répondait alors 200
+  // hors ligne, la purge s'exécutait et le rechargement donnait une page blanche : le worker qu'on
+  // s'apprête à détruire répondait à la question « ai-je du réseau ? ». Une clé de cache inédite
+  // à chaque appel ne peut jamais correspondre (sw.js refuse en outre de se cacher lui-même).
   try{const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),4000);
-    await fetch('./sw.js',{cache:'no-store',signal:ctl.signal});clearTimeout(t);}
+    await fetch('./sw.js?_probe='+Date.now(),{cache:'no-store',signal:ctl.signal});clearTimeout(t);}
   catch(e){toast('⚠ Réparation impossible sans connexion : elle retirerait la copie hors-ligne de l\'application. Réessayez avec du réseau.',9000);return false;}
   try{if('serviceWorker' in navigator){const regs=await navigator.serviceWorker.getRegistrations();for(const r of regs)await r.unregister();}}catch(e){}
   try{if(window.caches){const keys=await caches.keys();for(const k of keys)await caches.delete(k);}}catch(e){}
@@ -11022,9 +11041,7 @@ function applyZoom(z){z=ZOOM_STEPS.indexOf(z)>=0?z:100;document.documentElement.
   // v4.13.1 : la taille du texte change toute la géométrie mesurée — recaler le fil collant
   // du plan et redessiner les flèches du mode statique. Appel DIRECT (la mesure force le
   // reflow ; un rAF peut ne jamais venir si l'onglet ne repeint pas).
-  if(state.view==='read'&&state.fiche&&hasFlow(state.fiche)){
-    if(state.readMode==='overview')ovPlanStick();
-    else if(state.readMode==='static')svPaintArrows();}}
+  if(state.view==='read'&&state.fiche&&hasFlow(state.fiche)&&state.readMode==='static')svPaintArrows();}
 function currentZoom(){return +(localStorage.getItem(spaceKey('ac-zoom'))||localStorage.getItem('ac-zoom')||100);}
 applyZoom(currentZoom());
 /* --vvh (v4.29.4) : hauteur RÉELLEMENT visible, depuis visualViewport — la seule mesure fiable
@@ -11314,7 +11331,17 @@ const Sync={
     const cur=localStorage.getItem(spaceKey(cfg.cursorKey));
     // Recouvrement de 2 s + application idempotente (LWW) -> aucun enregistrement manqué aux bornes.
     let since=cur?new Date((Date.parse(cur)||0)-2000).toISOString():'1970-01-01T00:00:00Z';
-    let maxTs=cur?Date.parse(cur):0;const conflicts=[];let total=0;
+    // `applied` compte les lignes RÉELLEMENT écrites en local (puts + dels), et NON les lignes
+    // rapatriées : c'est lui qui décide du re-rendu, plus bas. Avant, on comptait `rows.length`
+    // AVANT qu'applyRow ne décide quoi que ce soit — or la décision LWW « le local est plus récent
+    // ou identique, on garde » n'écrit rien. Conséquence mesurée : `_pushTable` pousse
+    // `updated_at = updatedAt LOCAL` et, dans `full()`, le pull PRÉCÈDE le push ; la ligne que cet
+    // appareil vient de pousser dépasse donc le curseur, revient au pull suivant, n'est PAS
+    // appliquée (horodatages égaux)... et déclenchait quand même un render() complet. Il suffisait
+    // d'avoir modifié une fiche SOI-MÊME pour que le DOM entier soit reconstruit au retour de l'app
+    // au premier plan — focus perdu, journal de plusieurs milliers de nœuds réécrit, en pleine
+    // session. Compter les écritures effectives supprime des re-rendus qui ne peignaient rien.
+    let maxTs=cur?Date.parse(cur):0;const conflicts=[];let applied=0;
     // Object.create(null) : les ids viennent du SERVEUR (éditeur potentiellement hostile d'une
     // bibliothèque) — avec un objet {} ordinaire, id='__proto__' matcherait Object.prototype et
     // ferait ignorer la ligne entrante (fiche partagée invisible chez les coéquipiers).
@@ -11343,13 +11370,13 @@ const Sync={
     const PAGE=1000;
     for(let p=0;p<50;p++){
       const rows=await rest('GET','/rest/v1/'+cfg.table+'?select=*&updated_at=gt.'+encodeURIComponent(since)+'&order=updated_at.asc&limit='+PAGE)||[];
-      total+=rows.length;
       // Écritures BUFFERISÉES puis appliquées en une fois par page (Data.applyRows) : une
       // transaction par ligne rendait la première synchro d'une grosse bibliothèque très lente.
       const puts=[],dels=[];
       for(const row of rows){const rts=Date.parse(row.updated_at)||0;if(rts>maxTs)maxTs=rts;
         await applyRow(row,puts,dels);}
       await Data.applyRows(cfg.table,puts,dels);
+      applied+=puts.length+dels.length;
       if(rows.length<PAGE)break;
       const next=new Date(maxTs).toISOString();if(next===since)break;since=next;
     }
@@ -11367,17 +11394,17 @@ const Sync={
         missed=missed.concat(pullMissedIds(rows,byId));
         if(rows.length<PAGE)break;after=String(rows[rows.length-1].id);
       }
-      total+=missed.length;
       // Lots de 60 ids (URL <= ~4 Ko avec des ids de 64 caractères max) : requête toujours sûre.
       for(let i=0;i<missed.length;i+=60){
         const rows=await rest('GET','/rest/v1/'+cfg.table+'?select=*&id=in.('+missed.slice(i,i+60).join(',')+')')||[];
         const puts=[],dels=[];
         for(const row of rows)await applyRow(row,puts,dels);
         await Data.applyRows(cfg.table,puts,dels);
+        applied+=puts.length+dels.length;
       }
     }
     if(maxTs)localStorage.setItem(spaceKey(cfg.cursorKey),new Date(maxTs).toISOString());
-    if(total)render();
+    if(applied)render();
     return conflicts;},
   async _pull(){return this._pullTable({table:'fiches',cursorKey:this._cursorKey,
     getAllLocal:()=>Data.getAll(),fromRow:ficheFromRow,
@@ -12124,13 +12151,20 @@ if(location.search.indexOf('__actest')>=0){
   load().catch(err=>{try{
     // Écran d'échec CENTRÉ, au registre ALERTE de la taxonomie (bord gauche 4px critique) —
     // overlay fixe : lisible quel que soit l'état de la mise en page au moment de l'échec.
+    // LE BOUTON EST CÂBLÉ EN DOM, JAMAIS EN `onclick=` : la CSP porte des hashs de script
+    // (script-src 'self' 'unsafe-inline' 'sha256-…'), et dès qu'un hash est présent les
+    // navigateurs IGNORENT 'unsafe-inline' — un attribut on*= exigerait 'unsafe-hashes', absent.
+    // C'était le SEUL attribut inline du fichier, et il ne faisait donc RIEN : sur cet écran, le
+    // dernier recours d'une app installée (ni barre d'adresse, ni bouton recharger) était mort.
+    // Ne pas « réparer » en assouplissant la CSP : c'est le balisage qui doit s'y conformer.
     const d=document.createElement('div');d.className='boot-fail';
     d.innerHTML='<div class="boot-card" role="alertdialog" aria-labelledby="bfTitle">'
       +'<h2 id="bfTitle">L\'application n\'a pas pu démarrer</h2>'
       +'<p>Le stockage local n\'a pas répondu ('+esc(sstr((err&&err.message)||'erreur inconnue',160))+').</p>'
       +'<p>Vos fiches ne sont pas effacées : rechargez la page ; si le problème persiste, libérez de l\'espace de stockage puis réessayez.</p>'
-      +'<button class="btn primary" onclick="location.reload()">Recharger</button></div>';
+      +'<button class="btn primary" id="bfReload">Recharger</button></div>';
     document.body.appendChild(d);
+    d.querySelector('#bfReload').addEventListener('click',()=>location.reload());
   }catch(e){}});
 }
 </script>

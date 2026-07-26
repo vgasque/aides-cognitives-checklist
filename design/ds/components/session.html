@@ -162,9 +162,11 @@
      Le MODE CRISE se signale par le BANDEAU D'ÉTAT étiqueté #crisisBand sous la barre (pattern
      des systèmes critiques : texte + couleur + position, trois canaux redondants) — la barre
      reste identique, le titre de la fiche prend l'emplacement et le corps du titre d'accueil. */
-  /* Barre à ESPACES CONFORTABLES : la compacité vient du REPLI AU DÉFILEMENT (pattern « grand
-     titre » iOS) — sur l'accueil, la ligne d'identité se replie dès qu'on défile (.condensed,
-     posée par l'écouteur de scroll) et il ne reste que les onglets (~52px). Jamais de texte tassé. */
+  /* Barre à ESPACES CONFORTABLES, de hauteur CONSTANTE : rien ne se replie au défilement. Un
+     repli « grand titre » iOS était décrit ici, mais sa règle n'a jamais existé — et il serait
+     contraire à la doctrine du chrome de crise (un en-tête qui raccourcit son encombrement de
+     flux fait remonter tout le contenu d'un coup). Seul le TITRE entre dans la barre, par relais
+     mesuré (.ttl-on), sans changer sa hauteur. Jamais de texte tassé. */
   header.bar{position:sticky;top:0;z-index:20;background:var(--surface);color:var(--ink);border-bottom:1px solid var(--line);padding:calc(12px + env(safe-area-inset-top)) 18px 8px;display:flex;flex-wrap:wrap;align-items:center;gap:14px;row-gap:8px}
   .id-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;width:100%;min-width:0}
   /* HORS ACCUEIL, l'en-tête tient sur UNE ligne à toutes les largeurs : pas de repli — les
@@ -919,7 +921,6 @@
   .atyp-link{display:flex;align-items:center;width:100%;min-height:44px;background:none;border:0;border-top:1px solid var(--line);padding:6px 12px;font-family:inherit;font-size:12.5px;font-weight:700;color:var(--link);cursor:pointer;text-align:left}
   .atyp-link:hover{background:var(--surface-2)}
   .atyp-link:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
-  .diff-anchor{outline:none}
   /* Garde-fou éditeur « Ne pas oublier » (> 4 rappels) : registre ATTENTION, texte seulement. */
   .nf-guard{font-size:12.5px;line-height:1.5;color:var(--verify);margin:-8px 0 18px}
   .nf-guard:empty{display:none}
@@ -1543,7 +1544,6 @@
   .ov-block.done{border-left-color:var(--done-line)}
   /* Hors chemin (branche écartée par une décision) : ATTÉNUÉ mais JAMAIS verrouillé — l'estompe
      n'est jamais seule, la mention « hors chemin » l'accompagne (WCAG 1.4.1). */
-  .ov-block.off{opacity:.55;border-style:dashed}
   /* v4.13.1 : l'en-tête d'instance PEUT se replier sur deux rangées — en étroit, les boutons
      « Lecteur »/« Vérifier » passent SOUS le titre (flex-wrap + base 230px) au lieu de
      l'écraser (titre superposé au chip « Vous êtes ici », compteur expulsé). */
@@ -1557,8 +1557,6 @@
   .ov-block.done .ov-n{background:var(--ok);border-color:var(--ok);color:var(--surface)}
   .ov-t{flex:1;min-width:0;font-size:14px;font-weight:800;color:var(--ink);line-height:1.5;overflow-wrap:break-word}
   .ov-t .pass-n{font-family:var(--mono);font-weight:600;color:var(--primary);margin-left:7px;font-size:12px}
-  .ov-offtag{font-size:11.5px;font-weight:700;color:var(--ink-soft);margin-left:6px;display:none}
-  .ov-block.off .ov-offtag{display:inline}
   /* Pastille de position DANS .ov-t : elle passe à la ligne en étroit au lieu d'écraser le titre. */
   /* Chip compact : padding vertical 1px + vertical-align baseline — un chip plus haut que la
      ligne recouvrait la ligne de titre PRÉCÉDENTE quand le titre se replie (v4.13.1). */
@@ -1618,80 +1616,16 @@
      de mode — la saillance doit rester proportionnée à la conséquence.
      Renforcé en revanche : 14px (le libellé était le plus petit de la barre), état sélectionné
      franc (fond tonal + bordure --primary + graisse 800), et le choix se MÉMORISE. */
-  :is(.ov-plan-h,.pm-views) .ovs-tgl{flex:none;min-height:44px;border:1px solid var(--line-strong);border-radius:8px;background:transparent;color:var(--link);font-size:14px;font-weight:700;padding:6px 13px;cursor:pointer;font-family:inherit}
-  :is(.ov-plan-h,.pm-views) .ovs-tgl:hover{background:var(--surface)}
-  :is(.ov-plan-h,.pm-views) .ovs-tgl:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-  /* v4.18.0 : sélecteur d'affichage du Plan (Détails / Échelle / Schéma) — l'état actif est
-     un indicateur de sélection (fond tonal), pas un bouton rempli (un seul rempli par écran). */
   .ov-plan-h{flex-wrap:wrap}
-  .ov-plan-h .pl-views{flex:none;display:flex;gap:4px;margin-left:auto}
-  :is(.ov-plan-h,.pm-views) .ovs-tgl.on{background:var(--primary-soft);color:var(--primary-dk);border-color:var(--primary)}
-  /* Intitulé de groupe : sans lui, trois boutons voisins ne disent pas de QUOI ils sont l'axe. */
-  .ov-plan.svgv{overflow:hidden}
   /* Nœud du plan : carte compacte NAVIGANTE (taper = y aller) — jamais de case à cocher ici. */
   .pl-x{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--primary);margin-left:6px}
   .pl-here{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;background:var(--primary);color:var(--on-primary);padding:1px 8px;border-radius:999px;margin-left:6px;vertical-align:1px}
   .pl-q{font-size:11.5px;font-weight:400;font-style:italic;color:var(--ink-soft);margin:4px 2px 0}
-  /* ----- v4.12.0 : ORGANIGRAMME HYBRIDE — colonnes auto-fit (la règle responsive est CSS pur :
-     branches côte à côte à partir de 640 px quand la place le permet, EMPILÉES sinon —
-     et toujours empilées sous 640 px (v4.21.1) ; récursif de fait). */
-  /* Colonnes >= 640 px SEULEMENT (sous 640 : pile, cf. média ci-dessous). 148 px = plancher
-     des pistes auto-fit ; en pratique les colonnes restent larges à ces tailles d'écran (une
-     branche à décision imbriquée est `deep`, donc pleine largeur : ses sous-colonnes ont la
-     place). */
-  /* cN = nombre de branches EN COLONNE (les profondes s'étalent et ne comptent pas) : plafonne
-     les pistes auto-fit — sans lui, une branche pleine largeur force des pistes de 148 px et
-     coince les branches courtes dans des colonnes étroites même sur grand écran. */
-  /* UNE SEULE COLONNE sous 640 px (v4.21.1, retour d'usage réel — même décision que le mode
-     statique v4.13.1) : des colonnes de ~150 px émiettent les mots cliniques lettre à lettre
-     (« Conver / sion ») ; en pile, rails + chips d'option portent la structure. c2…c4 sont
-     plus spécifiques que .pl-cols : les écraser nommément. L'ancienne classe `deepv`
-     (pleine largeur < 640 par volume d'étapes) est absorbée par cette règle. */
-  @media (max-width:639.98px){ .pl-cols,.pl-cols.c2,.pl-cols.c3,.pl-cols.c4{grid-template-columns:1fr} }
-  /* Branche : RAIL continu étiqueté (naît sous l'option, meurt au coude) — bleu = chemin pris,
-     pointillé estompé = hors chemin (la mention textuelle accompagne toujours l'estompe). */
-  /* Étiquette d'option = BOUTON de repli (ligne-bilan quand replié) ; collante en défilement. */
-  .pl-offtag{font-weight:600;color:var(--ink-soft)}
-  /* FIL D'ANCÊTRES v5 (v4.22.1) : STICKY CONTINU — les cartes-questions RÉELLES du plan
-     s'épinglent sous l'en-tête (position:sticky, top CUMULÉ MESURÉ posé par ovPlanPin :
-     base + Σ hauteurs des cartes ancêtres — la leçon v4.14.3 appliquée au sticky, ce qui
-     manquait à la pile v4.12 et ses décalages figés 48 px). Plus AUCUNE copie synthétique
-     (#plPin supprimé) ni mouvement autonome : tout mouvement est le défilement lui-même
-     (compositeur, réversible au pixel, rien à inhiber sous prefers-reduced-motion), la
-     carte se décroche seule à la fin de son conteneur .pl-decwrap (convergence), et
-     l'indentation réelle est conservée par construction. Tap = data-plgo (la carte est le
-     vrai élément — délégation .ov-wrap inchangée). */
-  .ov-plan .pl-decwrap>.pl-nd.dec{position:sticky}
-  /* Z-ORDRE PAR PROFONDEUR (décision utilisateur v4.22.1) : chaque niveau se replie
-     DERRIÈRE son ancêtre au décrochage — enfant sous parent, parent sous l'en-tête (z 20).
-     Modèle ECL (cf. v4.16.4) : une sous-procédure terminée se referme dans sa procédure
-     mère ; à la remontée elle RÉ-ÉMERGE de dessous, symétrique. Les classes pd0…pd3 posées
-     par le walker depuis v4.14 (inertes depuis) reprennent du service. */
-  .ov-plan .pl-nd.dec.pd0{z-index:8}.ov-plan .pl-nd.dec.pd1{z-index:7}
-  .ov-plan .pl-nd.dec.pd2{z-index:6}.ov-plan .pl-nd.dec.pd3{z-index:5}
-  /* Épinglée : ombre discrète + COMPACTION une-ligne du titre — hauteurs STABLES (le chip
-     injecté ne provoque pas de passage sur deux lignes, donc pas de re-mesure en cascade
-     des tops des niveaux plus profonds). */
-  .ov-plan .pl-nd.dec.stuck{box-shadow:0 2px 8px rgba(16,27,40,.22)}
-  .ov-plan .pl-nd.dec.stuck .pl-nt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  /* Chip « › option » de la branche à la ligne de lecture, INJECTÉ dans la carte épinglée
-     (le Oui/Non reste attaché à SA question — jamais d'ambiguïté entre niveaux). */
-  .ov-plan .pl-nd.dec>.pinchip{flex:none;align-self:center;font-size:11px;font-weight:700;color:var(--verify);background:var(--surface);border:1px solid var(--verify-bd);border-radius:999px;padding:2px 9px;max-width:45%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  /* v4.22.0 (conservée pour le CHIP seul) : micro-animation NON BLOQUANTE d'apparition ou
-     de changement d'option — transform/opacité, inerte sous prefers-reduced-motion. La
-     disparition n'anime jamais (registre SORTIE) ; les cartes n'animent jamais (leur
-     mouvement est le geste). */
-  @keyframes pinIn{from{opacity:0;transform:translateY(-7px)}to{opacity:1;transform:none}}
-  @media (prefers-reduced-motion:no-preference){
-    .ov-plan .pl-nd.dec>.pinchip.pin-in{animation:pinIn .2s cubic-bezier(.2,.7,.3,1)}
-  }
-  /* Coude de sortie de branche : le rail se referme vers le lien de convergence. */
   /* Liens de structure : convergence « → n » / reprise « ↺ n » — défilement DANS le plan. */
   .pl-lnk{display:inline-flex;align-items:center;gap:5px;min-height:44px;font-size:11.5px;font-weight:700;color:var(--ink-soft);background:var(--tag-bg);border:1px solid var(--line);border-radius:999px;padding:4px 11px;margin-top:6px;cursor:pointer;font-family:inherit;text-align:left}
   .pl-lnk.loop{color:var(--link);background:var(--primary-soft);border-color:var(--primary-soft)}
   .pl-lnk:hover{border-color:var(--primary)}
   .pl-lnk:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-  .pl-end{font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--ok);margin-top:7px}
   /* ----- v4.12.0 : ÉCHELLE ECAM (mode compact) — une ligne par bloc, renvois abrégés. ----- */
   .pl-line{display:flex;align-items:baseline;gap:7px;min-height:44px;padding:7px 9px;border-left:3px solid var(--line-strong);border-bottom:1px solid var(--line);cursor:pointer}
   .pl-line.d1{padding-left:19px}
@@ -1777,6 +1711,32 @@
     .sv-br.taken{border-left-color:var(--primary)}
     .sv-br.off{border-left-style:dashed}
     .sv-br .sv-br .sv-br .sv-br{margin-left:0;padding-left:5px}
+    /* INTITULÉ DE DÉCISION COLLANT (petits écrans seulement) — la question ne quitte plus l'écran
+       tant qu'on lit ses branches. MESURÉ avant : en PILE, sur une décision imbriquée à 360×640,
+       844 px de contenu se lisaient SANS la question ; côte à côte (≥ 640 px) le défaut n'existe
+       pas (0 px), d'où le bornage à ce palier — pas un réglage esthétique, la borne du problème.
+       Base = --stick-top, la source UNIQUE du bas de ce qui est déjà collé en haut (en-tête +
+       quai) ; le décalage CUMULÉ de chaque niveau imbriqué est posé par svStickBands.
+       La hauteur n'est JAMAIS forcée : compacter à une ligne tronquerait une question longue,
+       or la question EST l'information. C'est pourquoi le décalage se mesure au lieu d'être
+       arithmétique — une mesure UNIQUE par rendu, pas une pile tenue à jour au défilement
+       (l'ex-fil d'ancêtres de la vue « Détails » mesurait, lui, à chaque évènement).
+       Décrochage NATIF : chaque bande est bornée par son .sv-decwrap, elle se détache seule à la
+       convergence. z-index DÉCROISSANT avec la profondeur et sous #crisisDock (15) : une bande
+       enfant ne masque jamais son parent, ni le quai de crise. */
+    .sv-wrap .sv-decwrap>.sv-band{position:sticky;top:var(--stick-top,64px);z-index:12;box-shadow:var(--shadow)}
+    .sv-wrap .sv-decwrap .sv-decwrap>.sv-band{z-index:11}
+    .sv-wrap .sv-decwrap .sv-decwrap .sv-decwrap>.sv-band{z-index:10}
+    /* PLAFOND À 3 NIVEAUX : au-delà, la pile mangerait la colonne d'action — la zone haute
+       atteint déjà 177 px sur 640 en session. Le 4e niveau et les suivants restent dans le flux. */
+    .sv-wrap .sv-decwrap .sv-decwrap .sv-decwrap .sv-decwrap>.sv-band{position:static;box-shadow:none}
+    /* FOCUS CLAVIER (WCAG 2.4.11 « Focus Not Obscured ») : le défilement déclenché par le focus
+       est celui du NAVIGATEUR — ni --stick-top ni le top cumulé ne le voient, seul scroll-margin
+       le pilote. Il s'AJOUTE au scroll-padding-top de html (qui couvre déjà --stick-top), d'où
+       une valeur qui ne compte QUE la pile de bandes (~2 niveaux) et non la zone haute entière —
+       même arbitrage que .rt-panel, ramené de 130 à 6 px en v4.30.0. Ciblé sur les seuls
+       éléments SOUS une décision : ailleurs, aucune bande ne peut masquer le focus. */
+    .sv-wrap .sv-decwrap .sv-cell,.sv-wrap .sv-decwrap .sv-opt{scroll-margin-top:96px}
   }
   .sv-br{display:grid;gap:3px;min-width:0;align-content:start}
   .sv-opt{border:1px solid var(--verify-bd);border-radius:3px;background:var(--verify-soft);color:var(--verify);font-size:11px;font-weight:700;text-align:center;padding:4px 6px;min-height:28px;display:flex;align-items:center;justify-content:center;gap:4px;flex-wrap:wrap}
@@ -2104,7 +2064,6 @@
   /* En étroit, le sélecteur passe à la LIGNE plutôt que d'écraser le titre (mesuré : « Plan —
      Anaphylaxie (choc anaphylactique) » tombait à « Plan — A… » à 390px). L'ordre visuel garde
      titre puis ✕ sur la 1ʳᵉ ligne — la fermeture reste au même endroit qu'ailleurs. */
-  @media (max-width:559.98px){.pm-views{order:3;flex-basis:100%;margin-top:2px}}
   :is(.plan-modal,.ref-modal) .ai-x{flex:none;position:static}
   /* Pas de min-height:0 ici : il autoriserait le corps à se comprimer sous la taille de son
      contenu — c'est ce qui rendait le plan invisible au-delà d'un écran. */
@@ -2403,7 +2362,6 @@
     .rail-head .rt-sound{border:0;background:none;padding:6px 8px;font-weight:700}
     .rail-head .rt-sound:hover{background:var(--surface-2)}
     .rail-head .rt-sound.off{color:var(--verify)}   /* fantôme comme « activé » ; icône barrée + mot « coupé » portent l'état (v4.23.5) */
-    .rail-sep{height:1px;background:var(--line);margin:2px 0;flex:none}
     /* Compte total de la zone : ANNONCE le contenu au-delà du bord visible. Une barre de
        défilement est invisible au repos (macOS/iOS) — sans ce compte, une zone tronquée paraît
        complète, ce que l'ECAM interdit (il signale toujours le débordement). */
@@ -2806,7 +2764,7 @@
     .read-grid{display:block!important;grid-template-columns:none!important;gap:0!important;max-width:none!important}
     .read-head h2{font-size:22px!important}   /* corps unique, ni 21 ni 24 selon l'écran */
   }
-  @media print{body{background:var(--paper)}header.bar,#crisisBand,#cbTimers,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.sess-list,.notes-block,#readTopSeg,.ov-redo,.ovs-tgl,.flow-zoom{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}
+  @media print{body{background:var(--paper)}header.bar,#crisisBand,#cbTimers,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.sess-list,.notes-block,#readTopSeg,.ov-redo,.flow-zoom{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}
     /* Un conteneur à défilement s'imprime TRONQUÉ : à l'impression le tableau se déploie. */
     .md-tw{overflow:visible;break-inside:avoid}.md-tbl{min-width:0;font-size:11px}.md-tbl tr{break-inside:avoid}
     .forget-strip{break-inside:avoid}
@@ -2814,7 +2772,7 @@
        300 px) et la vue d'ensemble s'imprime DÉPLIÉE — blocs repliés rouverts par CSS (aucun
        état à toucher), hors-chemin en pleine encre (la mention « hors chemin » reste le marqueur). */
     .alg-panel .flow-scroll{max-height:none;overflow:visible}
-    .ov-block{break-inside:avoid}.ov-block.closed .ov-body{display:block}.ov-block.off{opacity:1}
+    .ov-block{break-inside:avoid}.ov-block.closed .ov-body{display:block}
     /* v4.12.0 : plan imprimé en une colonne (flux de page), branches dépliées, sans sticky. */
     /* v4.22.1 : le fil épinglé est un état d'ÉCRAN — sur papier, carte complète et sans chip. */
     .crisis-footer .cf-stg{display:none}}

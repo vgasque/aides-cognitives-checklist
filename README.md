@@ -89,7 +89,10 @@ inaudible : le flash d'écran sert d'alerte de secours.
   CHANGELOG et committe avec les notes de version. Ne jamais modifier le numéro à la main (voir `AGENTS.md`).
 - **Tests** : `npm test` (Playwright headless) ou ouvrir `tests.html` **servi en http**
   (`python3 -m http.server` puis `http://localhost:8000/tests.html`). `npm run check` vérifie la
-  syntaxe. L'intégration continue rejoue le tout à chaque push (`.github/workflows/ci.yml`).
+  syntaxe des scripts inline, les couleurs (tokens) et la fraîcheur des hashs CSP ; `npm run audit`
+  rejoue les onze harnais de mesure (accessibilité, doctrine, surfaces). L'intégration continue
+  (`.github/workflows/ci.yml`) rejoue check + `design:check` + tests à chaque push, et l'audit en
+  mode indicatif (non bloquant).
 
 ## Sécurité & confidentialité
 - **Aucune dépendance externe** : un seul fichier HTML en JavaScript « vanille », sans CDN ni

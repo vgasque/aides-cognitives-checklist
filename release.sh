@@ -21,12 +21,25 @@ update() { # fichier  regex-perl
 update index.html "s/const APP_VERSION='[0-9.]+';/const APP_VERSION='$VER';/"
 update sw.js      "s/const CACHE = 'aides-cognitives-v[0-9.]+';/const CACHE = 'aides-cognitives-v$VER';/"
 update package.json 's/"version": "[0-9.]+"/"version": "'"$VER"'"/'
+# package-lock.json : édité comme du JSON, JAMAIS par regex — le fichier répète « version » pour
+# chaque dépendance, et une substitution positionnelle finirait par en écraser une. Oublié jusqu'ici,
+# le lock est resté figé à 4.3.0 pendant 28 versions ; `npm ci` installe d'après ce fichier, une
+# version fausse y rend toute trace d'installation trompeuse.
+if [[ -f package-lock.json ]]; then
+  node -e '
+    const fs=require("fs"),p="package-lock.json",v=process.argv[1];
+    const j=JSON.parse(fs.readFileSync(p,"utf8"));
+    j.version=v; if(j.packages&&j.packages[""])j.packages[""].version=v;
+    fs.writeFileSync(p,JSON.stringify(j,null,2)+"\n");' "$VER"
+fi
 
-# 2. Vérifier que les trois valeurs correspondent bien maintenant.
+# 2. Vérifier que les valeurs correspondent bien maintenant.
 grep -q "const APP_VERSION='$VER';" index.html || { echo "Échec MAJ index.html"; exit 1; }
 grep -q "aides-cognitives-v$VER'" sw.js       || { echo "Échec MAJ sw.js"; exit 1; }
 grep -q "\"version\": \"$VER\"" package.json  || { echo "Échec MAJ package.json"; exit 1; }
-echo "Versions mises à jour → $VER (index.html + sw.js + package.json)"
+[[ ! -f package-lock.json ]] || head -12 package-lock.json | grep -q "\"version\": \"$VER\"" \
+  || { echo "Échec MAJ package-lock.json"; exit 1; }
+echo "Versions mises à jour → $VER (index.html + sw.js + package.json + package-lock.json)"
 
 # 3. Insérer une entrée CHANGELOG si la version n'y est pas déjà.
 DATE="$(date +%Y-%m-%d)"

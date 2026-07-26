@@ -105,10 +105,16 @@ console.log('\n══ ECAM · naviguer ≠ agir ══');
     await new Promise(r=>setTimeout(r,250));});
   const before=await page.evaluate(()=>({live:Object.keys(liveSessions||{}).length,
     checked:JSON.stringify(Runtime.checked||{})}));
+  // Le nœud du plan est une LIGNE de l'Échelle (.pl-line[data-plln]) — l'ancien sélecteur .pl-nd
+  // visait l'organigramme « Détails » supprimé en v4.25.0 : il ne matchait plus rien, si bien que
+  // ces deux contrôles passaient SANS avoir rien cliqué (faux positif permanent). D'où le
+  // `clique` remonté et vérifié : un contrôle qui ne peut pas échouer ne prouve rien.
   const after=await page.evaluate(async()=>{
-    const nd=document.querySelector('.pl-nd');if(nd)nd.click();
+    const nd=document.querySelector('.pl-line[data-plln]');
+    if(nd)nd.click();
     await new Promise(r=>setTimeout(r,300));
-    return {live:Object.keys(liveSessions||{}).length,checked:JSON.stringify(Runtime.checked||{})};});
+    return {clique:!!nd,live:Object.keys(liveSessions||{}).length,checked:JSON.stringify(Runtime.checked||{})};});
+  t('un nœud du plan est bien présent et cliqué (le contrôle n\'est pas vide)', after.clique===true);
   t('taper un nœud du plan ne DÉMARRE pas de session', before.live===after.live, `${before.live} → ${after.live}`);
   t('taper un nœud du plan ne COCHE rien', before.checked===after.checked);
   await page.close();
@@ -176,6 +182,98 @@ console.log('\n══ WCAG · prefers-reduced-motion ══');
     return [...new Set(bad)];});
   t('aucun mouvement autonome sous reduced-motion', anim.length===0, anim.slice(0,4).join('\n      '));
   await page.close();
+}
+
+// ══ QRH / Degani & Wiener — l'intitulé d'une décision ne quitte pas l'écran ═
+// En mode STATIQUE sur petit écran les branches sont EMPILÉES : sans épinglage, la bande-question
+// sortait de l'écran pendant qu'on lisait encore ses étapes (mesuré : 844 px de contenu lus sans
+// elle sur une décision imbriquée à 360×640). Perdre sa place est un mode de défaillance premier ;
+// au-delà de 640 px les branches sont côte à côte et le défaut n'existe pas — d'où les deux volets.
+console.log('\n══ QRH · intitulé de décision toujours visible (statique empilé) ══');
+{
+  const st=n=>Array.from({length:n},(_,i)=>`Étape ${i+1} du protocole, libellé réaliste`);
+  const FICHE={id:'aud-sb',title:'Audit — décision imbriquée',start:'a',blocks:[
+    {id:'a',type:'steps',title:'Début',steps:st(3),next:'d1'},
+    {id:'d1',type:'decision',title:'Analyse du rythme',question:'Le rythme est-il choquable (FV / TV sans pouls) ?',
+      options:[{label:'Choquable',target:'b1'},{label:'Non choquable',target:'b9'}]},
+    {id:'b1',type:'steps',title:'Choc',steps:st(4),next:'d2'},
+    {id:'d2',type:'decision',title:'Réévaluation',question:'Reprise d\'activité circulatoire spontanée ?',
+      options:[{label:'Non',target:'b6'},{label:'Oui',target:'b8'}]},
+    {id:'b6',type:'steps',title:'Poursuite',steps:st(6),next:'fin'},
+    {id:'b8',type:'steps',title:'Post-arrêt',steps:st(3),next:'fin'},
+    {id:'b9',type:'steps',title:'Sans choc',steps:st(4),next:'fin'},
+    {id:'fin',type:'steps',title:'Surveillance',steps:st(2),next:null}],
+    timers:[],counters:[],confirmation:[],verify:[],notForget:[],differentials:[],references:[],images:[]};
+  const openStatic=async(w,h)=>{
+    const page=await br.newPage({viewport:{width:w,height:h}});
+    await page.goto(`http://localhost:${port}/index.html`);
+    await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+    await page.evaluate(async f=>{
+      const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();
+      await new Promise(r=>setTimeout(r,120));
+      const nf=migrate(JSON.parse(JSON.stringify(f)));await Data.put(nf);fiches.push(nf);
+      state.view='read';state.fiche=nf;state.readMode='static';render();
+      await new Promise(r=>setTimeout(r,650));},FICHE);
+    return page;};
+  {
+    const page=await openStatic(360,640);
+    const r=await page.evaluate(async()=>{
+      const bands=[...document.querySelectorAll('.sv-decwrap>.sv-band')];
+      const inner=[...document.querySelectorAll('.sv-decwrap .sv-cell')];
+      const H=innerHeight;const out={sans:0,positions:0,overlap:0,sticky:bands.map(b=>getComputedStyle(b).position)};
+      for(let y=0;y<document.documentElement.scrollHeight-H;y+=60){
+        scrollTo(0,y);await new Promise(r=>requestAnimationFrame(r));
+        const sTop=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--stick-top'))||64;
+        const lues=inner.filter(c=>{const q=c.getBoundingClientRect();return q.top>sTop&&q.bottom<H;});
+        if(!lues.length)continue;
+        out.positions++;
+        for(const c of lues){
+          let p=c.parentElement,band=null;
+          while(p){if(p.classList&&p.classList.contains('sv-decwrap')){band=p.querySelector(':scope>.sv-band');break;}p=p.parentElement;}
+          if(!band)continue;
+          const q=band.getBoundingClientRect();
+          if(!(q.bottom>0&&q.top<H-4&&q.height>4))out.sans++;}
+        // Deux bandes COLLÉES (chacune à son top résolu) ne doivent pas se chevaucher ; pendant
+        // l'approche, l'enfant glisse DERRIÈRE son ancêtre — comportement ECL voulu, pas un défaut.
+        const colle=[];
+        for(const b of bands){const q=b.getBoundingClientRect();if(q.height<4)continue;
+          const cible=parseFloat(getComputedStyle(b).top);
+          if(Number.isFinite(cible)&&Math.abs(q.top-cible)<=2)colle.push(q);}
+        for(let i=0;i<colle.length;i++)for(let j=i+1;j<colle.length;j++)
+          if(colle[i].top<colle[j].bottom-1&&colle[j].top<colle[i].bottom-1)out.overlap++;}
+      scrollTo(0,0);
+      const o=document.querySelector('.sv-decwrap>.sv-band'),n=document.querySelector('.sv-decwrap .sv-decwrap>.sv-band');
+      out.zOk=+getComputedStyle(n).zIndex<+getComputedStyle(o).zIndex;
+      return out;});
+    t('360 px : les bandes de décision sont collantes', r.sticky.every(p=>p==='sticky'), JSON.stringify(r.sticky));
+    t('360 px : aucune étape lue sans sa question visible', r.sans===0, `${r.sans} cas sur ${r.positions} positions balayées`);
+    t('360 px : deux bandes collées ne se chevauchent pas', r.overlap===0, r.overlap+' chevauchement(s)');
+    t('360 px : z-ordre décroissant (l\'enfant se replie derrière son ancêtre)', r.zOk===true);
+    // DÉCROCHAGE : une bande épinglée alors que sa décision a quitté l'écran serait un bandeau
+    // permanent — exactement ce que le décrochage natif (bornage par .sv-decwrap) doit empêcher.
+    const dec=await page.evaluate(async()=>{
+      const bands=[...document.querySelectorAll('.sv-decwrap>.sv-band')];
+      const fautes=[];
+      for(let y=0;y<document.documentElement.scrollHeight-innerHeight;y+=80){
+        scrollTo(0,y);await new Promise(r=>requestAnimationFrame(r));
+        for(const b of bands){
+          const dw=b.closest('.sv-decwrap');
+          const bq=b.getBoundingClientRect(),dq=dw.getBoundingClientRect();
+          if(bq.bottom>0&&bq.top<innerHeight&&!(dq.bottom>0&&dq.top<innerHeight))
+            fautes.push(y);}}
+      scrollTo(0,0);return fautes;});
+    t('360 px : la bande se décroche dès que sa décision quitte l\'écran', dec.length===0,
+      dec.length+' position(s) fautive(s)');
+    await page.close();
+  }
+  {
+    const page=await openStatic(1280,900);
+    const r=await page.evaluate(()=>[...document.querySelectorAll('.sv-decwrap>.sv-band')]
+      .map(b=>getComputedStyle(b).position+'|'+(b.style.top||'-')));
+    t('1280 px : aucun épinglage, les bandes restent dans le flux',
+      r.every(x=>x==='static|-'), JSON.stringify(r));
+    await page.close();
+  }
 }
 await br.close();srv.close();
 console.log(`\n${ok}/${ok+ko} contrôles doctrine OK${ko?` — ${ko} ÉCHEC(S)`:''}`);

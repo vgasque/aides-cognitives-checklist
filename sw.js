@@ -28,15 +28,19 @@
 //  code et restent intactes à chaque mise à jour, tant que l'URL reste la même.
 // =============================================================================
 // IMPORTANT : garder cette version synchronisée avec APP_VERSION dans index.html.
-const CACHE = 'aides-cognitives-v4.31.0';
+const CACHE = 'aides-cognitives-v4.32.0';
 // Versionné par pdf.js (vendor/pdfjs/README.txt) : à changer UNIQUEMENT quand pdf.js est mis à jour.
 const PDFJS_CACHE = 'aides-cognitives-pdfjs-4.10.38';
 const PDFJS_ASSETS = [
   './vendor/pdfjs/pdf.min.js',
   './vendor/pdfjs/pdf.worker.min.js'
 ];
+// TOUT fichier servi par l'app entre ici (règle d'AGENTS.md) — liste unique à maintenir.
+// `'./'` N'Y EST PLUS : c'était le MÊME document que './index.html' sous une seconde URL, soit
+// 290 Ko téléchargés et stockés en double à chaque publication, pour une entrée JAMAIS servie
+// (le repli de navigation cherche './index.html' d'abord — seule clé que le fetch de navigation
+// rafraîchit ; cf. le commentaire de ce repli, plus bas).
 const ASSETS = [
-  './',
   './index.html',
   './manifest.webmanifest',
   './icon-192.png',
@@ -50,12 +54,35 @@ const ASSETS = [
   './favicon.svg',
   './logo-glyph.svg'
 ];
+// Sous-ensemble OBLIGATOIRE d'ASSETS : sans ces deux fichiers il n'y a pas d'application, donc
+// eux SEULS peuvent faire échouer l'installation. Tout le reste (icônes, favicons) dégrade
+// l'apparence sans empêcher l'usage : un ajout futur à ASSETS est best-effort par défaut, ce qui
+// est le bon défaut pour une app dont la fonction première est d'exister hors ligne.
+const CORE_ASSETS = ['./index.html', './manifest.webmanifest'];
 self.addEventListener('install', e => {
   e.waitUntil(Promise.all([
-    caches.open(CACHE).then(c => c.addAll(ASSETS)),
+    // `addAll` est TOUT-OU-RIEN : réservé au noyau, c'est la propriété qu'on veut. Étendu aux 10
+    // icônes, il faisait échouer l'installation ENTIÈRE — donc supprimer tout le hors-ligne —
+    // pour un simple favicon en 404. Mesuré sous sonde : {active:false, controller:false}.
+    caches.open(CACHE).then(async c => {
+      await c.addAll(CORE_ASSETS);
+      for (const a of ASSETS) {
+        if (CORE_ASSETS.indexOf(a) >= 0) continue;
+        try { await c.add(a); } catch (err) {}
+      }
+    }),
     // pdf.js : ne télécharger QUE ce qui manque (le cache survit aux versions de l'app).
+    // BEST-EFFORT, JAMAIS BLOQUANT : ces 1,73 Mio sont une dépendance de CONFORT (la visionneuse
+    // PDF). Sans le try/catch, un 503 ou une coupure pendant leur téléchargement faisait rejeter
+    // l'install ENTIÈRE -> aucun worker actif -> l'app d'urgence n'existait plus hors ligne, et
+    // le `.catch(()=>{})` de son enregistrement rendait la panne silencieuse. Mesuré : worker en
+    // 503 => {active:false, controller:false} avant, {active:true, controller:true} après.
+    // Un PDF non précaché reste ouvrable en ligne et sera précaché à la prochaine installation.
     caches.open(PDFJS_CACHE).then(async c => {
-      for (const a of PDFJS_ASSETS) if (!(await c.match(a))) await c.add(a);
+      for (const a of PDFJS_ASSETS) {
+        if (await c.match(a)) continue;
+        try { await c.add(a); } catch (e) {}
+      }
     })
   ]).then(() => self.skipWaiting()));
 });
@@ -81,6 +108,14 @@ self.addEventListener('fetch', e => {
   if (new URL(req.url).origin !== self.location.origin) return;
   if (req.method !== 'GET') return;
 
+  // Le WORKER LUI-MÊME n'entre JAMAIS dans un cache : réseau direct, toujours. Sans ce garde, le
+  // stale-while-revalidate ci-dessous mettait sw.js en cache au premier `fetch('./sw.js')` de la
+  // page, puis répondait 200 hors ligne — c'est-à-dire qu'il MENTAIT à la sonde réseau de
+  // « Réparer l'application » (index.html, repairApp), qui purgeait alors tout et laissait une
+  // page blanche sans réseau. Un worker n'a par ailleurs aucune raison de se servir de sa propre
+  // copie périmée : _headers le sert déjà en `no-cache` pour la même raison.
+  if (new URL(req.url).pathname === new URL('./sw.js', self.location).pathname) return;
+
   // Page / navigation : cache d'abord (ouverture instantanée), réseau en rafraîchissement de fond.
   const isNav = req.mode === 'navigate' ||
                 (req.headers.get('accept') || '').includes('text/html');
@@ -105,9 +140,10 @@ self.addEventListener('fetch', e => {
         return caches.open(CACHE).then(c => c.put('./index.html', copy));
       }
     }).catch(() => {}));
-    // Repli : './index.html' D'ABORD — c'est la SEULE clé rafraîchie par le put ci-dessus ;
-    // l'entrée './' d'ASSETS, elle, date de l'installation du worker (matcher la requête brute
-    // d'abord servait cette copie figée hors ligne : version périmée).
+    // Repli : './index.html' D'ABORD — c'est la SEULE clé écrite, par l'installation comme par le
+    // put ci-dessus. Matcher la requête brute ('/') d'abord servait une copie figée à l'install,
+    // donc une version périmée hors ligne ; cette seconde clé n'est plus alimentée du tout (voir
+    // CORE_ASSETS), le `caches.match(req)` final ne reste que par ceinture.
     const cached = () => caches.match('./index.html').then(r => r || caches.match(req));
     e.respondWith((async () => {
       const c = await cached();
@@ -119,17 +155,24 @@ self.addEventListener('fetch', e => {
 
   // Autres ressources : stale-while-revalidate. Le rafraîchissement (fetch + put) est couvert
   // par waitUntil ; pdf.js est rangé dans SON cache (pérenne entre versions de l'app).
-  const refresh = fetch(req).then(resp => {
+  //
+  // LA RÉPONSE SERVIE EST DÉCOUPLÉE DE L'ÉCRITURE EN CACHE — même patron que la branche de
+  // navigation ci-dessus. Avant, la promesse rendue à la page ÉTAIT celle qui contenait le `put` :
+  // un `put` qui rejette (quota dépassé, réponse que l'API Cache refuse) transformait une réponse
+  // réseau parfaitement valide en ÉCHEC de chargement pour la page, dès lors que la ressource
+  // n'était pas déjà en cache. Victime désignée : pdf.worker.min.js (1,4 Mio, chargé
+  // paresseusement) — la visionneuse cassait sous pression de quota, exactement quand le
+  // hors-ligne est déjà fragile, et le symptôme était indiscernable d'une coupure réseau.
+  const net = fetch(req);
+  e.waitUntil(net.then(resp => {
     // Même garde-fou que pour la navigation : jamais d'erreur mise en cache.
     if (resp.ok && resp.type === 'basic') {
       const isPdfjs = new URL(req.url).pathname.indexOf('/vendor/pdfjs/') >= 0;
       const copy = resp.clone();
-      return caches.open(isPdfjs ? PDFJS_CACHE : CACHE).then(c => c.put(req, copy)).then(() => resp);
+      return caches.open(isPdfjs ? PDFJS_CACHE : CACHE).then(c => c.put(req, copy));
     }
-    return resp;
-  });
-  e.waitUntil(refresh.catch(() => {}));
+  }).catch(() => {}));
   e.respondWith(
-    caches.match(req).then(cached => cached || refresh.catch(() => cached))
+    caches.match(req).then(cached => cached || net)
   );
 });

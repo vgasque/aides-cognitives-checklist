@@ -16,7 +16,20 @@
  *
  * Rejoué à CHAQUE release (le hash change avec le code) : appelé par release.sh. Idempotent.
  *
- *   node scripts/csp-hashes.mjs
+ *   node scripts/csp-hashes.mjs            injecte les hashs (écrit index.html et _headers)
+ *   node scripts/csp-hashes.mjs --check    ne rien écrire ; ÉCHOUER si les hashs ont dérivé
+ *
+ * Le mode --check existe parce que ce piège s'est produit trois fois : on édite le script inline,
+ * on oublie de rejouer ce script, et la CSP bloque alors le SEUL script de l'application — l'app
+ * ne démarre plus du tout, et le symptôme (page blanche, ou « __ac_test__ introuvable » côté
+ * tests) ne désigne pas sa cause. Le contrôle est branché sur `npm run check`, donc rejoué avant
+ * chaque commit et par la CI : la règle n'est plus une consigne qu'il faut se rappeler.
+ *
+ * Il vérifie AUSSI l'absence d'attribut `on*=` dans index.html : dès qu'un hash est présent, les
+ * navigateurs ignorent `'unsafe-inline'` et un gestionnaire inline exige `'unsafe-hashes'`
+ * (absent, et à ne pas ajouter : il rouvrirait tous les handlers inline). Un `onclick=` y est donc
+ * du code MORT et silencieux — c'est arrivé au bouton « Recharger » de l'écran d'échec de
+ * démarrage, seul recours d'une app installée, resté inerte sans que rien ne le signale.
  */
 import { readFileSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -49,6 +62,32 @@ const reDirective = /script-src 'self' 'unsafe-inline'(?: 'sha256-[^']*')*/;
 function inject(text, label) {
   if (!reDirective.test(text)) { console.error(`Directive script-src introuvable dans ${label}.`); process.exit(1); }
   return text.replace(reDirective, scriptSrc);
+}
+
+// ---------- Mode vérification : ne rien écrire, échouer sur toute dérive ----------
+if (process.argv.includes('--check')) {
+  const problems = [];
+  const hdrTxt = readFileSync(hdrPath, 'utf8');
+  for (const [label, text] of [['index.html', html], ['_headers', hdrTxt]]) {
+    const found = text.match(reDirective);
+    if (!found) { problems.push(`${label} : directive script-src introuvable.`); continue; }
+    if (found[0] !== scriptSrc) {
+      problems.push(`${label} : les hashs CSP ne correspondent plus au(x) script(s) inline.`);
+    }
+  }
+  // Gestionnaires inline : inertes sous une CSP à hashs (cf. en-tête de ce fichier).
+  const inline = html.match(/\son(?:abort|blur|change|click|dblclick|error|focus|input|keydown|keypress|keyup|load|mousedown|mouseover|mouseup|reset|scroll|select|submit|toggle|touchstart|touchend)\s*=\s*["']/gi);
+  if (inline) {
+    problems.push(`index.html : ${inline.length} gestionnaire(s) d'évènement inline (${[...new Set(inline.map(s => s.trim()))].join(', ')}) — inertes sous la CSP à hashs. Câbler en DOM (addEventListener).`);
+  }
+  if (problems.length) {
+    console.error('✗ CSP :');
+    problems.forEach(p => console.error('    ' + p));
+    console.error('  -> lancer `node scripts/csp-hashes.mjs` (sans --check) après toute édition du script inline.');
+    process.exit(1);
+  }
+  console.log(`✓ csp-hashes : ${hashes.length} hash(s) à jour, aucun gestionnaire inline.`);
+  process.exit(0);
 }
 
 html = inject(html, 'index.html');

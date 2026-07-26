@@ -29,7 +29,15 @@ Versionnage sémantique : correctif → patch (Z), nouvelle fonctionnalité → 
 Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
 
 ## Avant chaque commit
-- `npm run check` — vérifie la syntaxe des scripts inline (attrape les templates mal fermés).
+- `npm run check` — trois garde-fous sans dépendance : **syntaxe** des scripts inline (attrape les
+  templates mal fermés), **couleurs** (`check-colors.mjs`, cf. Conventions), et **fraîcheur des
+  hashs CSP** (`csp-hashes.mjs --check`). Ce dernier existe parce que le piège s'est produit trois
+  fois : on édite le script inline, on oublie de rejouer `node scripts/csp-hashes.mjs`, et la CSP
+  bloque le SEUL script de l'app — elle ne démarre plus, et le symptôme (page blanche, ou
+  « `__ac_test__` introuvable » côté tests) ne désigne pas sa cause. Le même contrôle refuse tout
+  attribut `on*=` dans `index.html` : sous une CSP à hashs, `'unsafe-inline'` est ignoré et un
+  gestionnaire inline est du code MORT et silencieux (c'est arrivé au bouton « Recharger » de
+  l'écran d'échec de démarrage, seul recours d'une app installée).
 - `npm test` — exécute `tests.html` en headless (Playwright). À défaut de npm, ouvrir `tests.html`
   **servi en http** (pas en `file://` : les iframes cross-origin y sont bloquées).
 - **Si le CSS d'`index.html` a changé** : `npm run design:build` régénère `design/ds/` (source
@@ -37,9 +45,12 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   `design/ds/` a dérivé du code (le CI le rejoue ; `release.sh` régénère automatiquement). Pousser
   le résultat vers le projet Claude Design distant reste un geste explicite (skill `/design-sync`).
 - `npm run audit` — **audit transverse (v4.23.0)**, à rejouer dès qu'on touche au chrome de crise,
-  au rail, aux feuilles Plan/Consulter ou à un token de couleur. Deux harnais Playwright qui
-  MESURENT au lieu d'affirmer (hors CI : plus lents, et un échec y demande un arbitrage humain,
-  pas un blocage de merge) :
+  au rail, aux feuilles Plan/Consulter ou à un token de couleur. **ONZE** harnais Playwright qui
+  MESURENT au lieu d'affirmer (liste exacte dans `package.json`, script `audit` : a11y, doctrine,
+  verify, verify-live, session-card, zoom-scroll, modeseg, consulter, complications, exercice,
+  lecteur). Ils tournent en CI en mode **NON BLOQUANT** (`continue-on-error`) : visibles à chaque
+  push, mais un échec y demande un arbitrage humain, pas un blocage de merge. Les trois plus
+  anciens, en détail :
   - `scripts/audit-a11y.mjs` — 6 surfaces × 2 thèmes : plancher typographique 11 px, contraste
     calculé sur le fond EFFECTIF (remontée des ancêtres + composition alpha, exemption « grand
     texte »), cibles (44 px en crise, 24 px ailleurs, halo `::after` compté), `--soft` en couleur
@@ -58,8 +69,11 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
     vérification). **Les sondes JETABLES s'écrivent à la racine en `.nom.mjs`** (pour trouver
     `playwright` dans `node_modules`) et sont ignorées par git ; seuls les harnais qui RESTENT
     vivent dans `scripts/`.
-- L'intégration continue (`.github/workflows/ci.yml`) rejoue check + tests + `design:check` sur
-  chaque push/PR.
+- L'intégration continue (`.github/workflows/ci.yml`) rejoue, sur chaque push/PR :
+  `npm run check` (syntaxe + couleurs + hashs CSP), `design:check --strict`, `npm ci`, `npm test`,
+  puis `npm run audit` **en non bloquant**. `npm ci` (et non `npm install`) : la CI installe
+  exactement le contenu du lock, donc reproductible — `release.sh` synchronise désormais la
+  version de `package-lock.json` avec les trois autres fichiers (elle était restée à 4.3.0).
 
 ## Conventions de code
 - **Design tokens** : aucune nouvelle couleur hex hors `:root` (tokens CSS) et `PALETTE`
@@ -536,7 +550,27 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   colonnes de ~145 px sur téléphone rendaient la lecture difficile — avec INDENTATION
   (v4.15.0, décision utilisateur) : ~17 px par niveau + RAIL de branche 3 px (grammaire du
   plan : bleu = prise, pointillé = hors chemin), CSS pur récursif, plafonné au 4e niveau ;
-  la fourche étant masquée en pile, rail + chip portent la structure ; **PAS de règle `deep`**
+  la fourche étant masquée en pile, rail + chip portent la structure ;
+  **INTITULÉ DE DÉCISION COLLANT SOUS 640 px (décision utilisateur, `svStickBands`)** : en PILE,
+  la bande-question sortait de l'écran pendant qu'on lisait encore ses étapes — MESURÉ à 844 px
+  de contenu lus sans elle sur une décision imbriquée à 360×640, contre **0 px côte à côte**
+  (≥ 640 px). Le bornage à ce palier n'est donc pas esthétique : c'est la borne du problème.
+  La bande s'épingle sous `--stick-top` (source UNIQUE du bas de ce qui est déjà collé), chaque
+  niveau imbriqué se rangeant SOUS son ancêtre. **La hauteur n'est JAMAIS forcée** : compacter à
+  une ligne rendrait le décalage arithmétique (donc CSS pur) mais TRONQUERAIT une question de
+  plus de deux lignes — or la question EST l'information de cette bande. D'où une MESURE, mais
+  réduite à UNE passe par rendu, en fin de `svPaintArrows` (lectures groupées puis écritures,
+  ÷ `zoomF()` — règle v4.13.1) ; l'ex-fil d'ancêtres de la vue « Détails » recalculait, lui, à
+  chaque évènement de défilement. Décrochage NATIF (chaque bande est bornée par son
+  `.sv-decwrap`, elle se détache seule à la convergence) ; z-index DÉCROISSANT avec la
+  profondeur et sous `#crisisDock` (15) — un niveau imbriqué se replie DERRIÈRE son ancêtre
+  pendant l'approche, modèle ECL retenu en v4.22.1, ce n'est pas un chevauchement fautif ;
+  **PLAFOND 3 niveaux** (au-delà, `position:static` : la zone haute atteint déjà 177 px sur 640
+  en session) ; `scroll-margin-top` sur les cellules SOUS une décision (WCAG 2.4.11 — le
+  défilement du focus est celui du NAVIGATEUR, et scroll-margin s'AJOUTE au scroll-padding de
+  `html`, d'où une valeur qui ne compte QUE la pile de bandes). Couvert par
+  `scripts/audit-doctrine.mjs` (balayage complet du défilement à 360 px : aucune étape lue sans
+  sa question ; et à 1280 px, AUCUN épinglage). **PAS de règle `deep`**
   depuis v4.14.0, décision utilisateur : même une branche profonde reste EN COLONNE ≥ 640 —
   l'arbre dans l'arbre garde ses fourches gauche/droite au 1ᵉʳ niveau, esprit SFAR ; une
   décision imbriquée dans une colonne étroite retombe d'elle-même en pile, auto-fit
@@ -796,8 +830,19 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   le FIL D'ANCÊTRES COLLANT (`ovPlanPin`, tops cumulés, chips injectés, z-ordre pdN — `ovPlanStick`
   reste en **no-op** : appelée depuis le défilement et les re-rendus), le sélecteur `data-plview`,
   `PLAN_VIEWS`/`currentPlanView`/`setPlanViewPref`/`state.ovPlanView`, le scroll par vue de v4.23.6,
-  et ~51 règles CSS (`.pl-cols`, `.pl-br`, `.pl-bl`, `.pl-elbow`, `.pl-decwrap`, `.pl-nd*`,
-  `.pm-views`, `.ovs-tgl`, `.read-seg`…). **Le SCHÉMA n'est pas perdu** : il rejoint le menu ⋯ et
+  et ses règles CSS (`.pl-cols`, `.pl-br`, `.pl-bl`, `.pl-elbow`, `.pl-decwrap`, `.pl-nd*`,
+  `.pm-views`, `.ovs-tgl`, `.read-seg`…). **NETTOYAGE ACHEVÉ SEULEMENT EN v4.31.1** — cette
+  section affirmait la suppression faite alors qu'elle l'était à moitié, ce qui est la pire
+  configuration : qui lisait AGENTS.md croyait le terrain propre. Étaient restés ~20 règles CSS
+  avec 45 lignes de commentaires décrivant en détail un composant inexistant, deux `querySelector`
+  qui ne pouvaient que renvoyer `null` (`.pl-nd[data-plgo]`), quatre branches de délégation
+  `data-plfold` inatteignables, `ovPlanStick()` vide appelée depuis quatre sites, la démo
+  `planDemo` de `design/build.mjs` qui PUBLIAIT le composant disparu (sept de ses classes sans
+  aucune règle), et — plus grave — un contrôle d'`audit-doctrine.mjs` qui cliquait sur `.pl-nd` :
+  ne matchant plus rien, il passait sans avoir rien testé, si bien que l'invariant « taper un nœud
+  du plan ne démarre ni ne coche » n'était plus vérifié depuis v4.25.0. Leçon : une suppression
+  annoncée doit être VÉRIFIÉE au grep (émissions hors CSS = 0), et un contrôle qui ne peut pas
+  échouer ne prouve rien. **Le SCHÉMA n'est pas perdu** : il rejoint le menu ⋯ et
   s'ouvre en PLEIN ÉCRAN avec zoom (`openFlowFull`, visionneuse préexistante) — un accès direct
   chacun, comme l'ECP a une touche par page plutôt qu'un onglet à faire défiler.
   **NOMMAGE PAR LA FONCTION** : « Se repérer » et « Consulter » (deux verbes) au lieu de « Plan »

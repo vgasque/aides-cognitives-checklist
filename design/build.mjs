@@ -395,26 +395,23 @@ const journalDemo = `
 </div>
 <p class="ds-cap">Le journal EST la chronologie (leçon v4.6→v4.9 : ne JAMAIS poser un état temporel sur une carte spatiale — un bloc à plusieurs passages y perd l’utilisateur). Chaque passage est une CARTE POSTÉE à la suite, rien ne mute au-dessus, on lit vers le bas ; pas de curseur — la position est le BOUT. FIL CONDENSÉ (v4.16.0, ovPresList pure) : trois présentations — carte dépliée, LIGNE D’ÉTAT relisible, CHIP (n° + titre abrégé + ✓, ou n° + « › réponse » en toutes lettres pour une décision : le numéro seul ne parle pas à un humain). INVARIANTS : le BOUT est toujours une carte ; un passage INCOMPLET n’est JAMAIS une chip (c’est ce qui fait la conformité) ; complets non courants = les 2 plus récents en ligne, les plus anciens en chips ; une rangée de PLUS DE 4 chips se replie en ligne-bilan ECL « ✓ n passages · a→b ▸ ». Le repli manuel PERSISTE, le dépliage est une consultation TRANSITOIRE (effacée au geste de navigation suivant). L’avancement n’existe QUE sur l’instance du bout ; cocher ne re-rend JAMAIS (chirurgie ovAfterCheck).</p>`;
 
-/* ---- Plan de l'aide : organigramme hybride (v4.10.0, v4.12.0, v4.18.0) ---- */
+/* ---- Plan de l'aide : « Se repérer », l'ÉCHELLE ECAM (v4.10.0 → v4.25.0) ----
+   Cette démo a longtemps montré la vue « Détails » (organigramme hybride en .pl-nd/.pl-cols),
+   SUPPRIMÉE en v4.25.0 : elle recopiait les étapes, donc rejouait la vue d'action au lieu d'être
+   un synoptique. Le design system la publiait encore — et la publiait CASSÉE, sept de ses classes
+   n'ayant plus aucune règle. Elle est ici reconstruite sur le balisage RÉELLEMENT émis par
+   ovPlanLadderHtml (relevé sur l'app en session), seule vue du Plan qui subsiste. */
 const planDemo = `
 <div style="max-width:680px">
-  <div class="ov-plan-h"><span class="ovs-t">Plan de l’aide</span><span class="ovs-sub">· structure complète — taper un bloc = y aller</span><span class="pl-views"><button type="button" class="ovs-tgl on" data-plview="plan" aria-pressed="true">Détails</button><button type="button" class="ovs-tgl" data-plview="ladder" aria-pressed="false">Échelle</button><button type="button" class="ovs-tgl" data-plview="svg" aria-pressed="false">Schéma</button></span></div>
-  <div class="ov-plan">
-    <div class="pl-nd done" role="button" tabindex="0"><span class="pl-nn" aria-hidden="true">${chk(12)}</span><div class="pl-nt">Reconnaître l’arrêt<ul class="pl-stp"><li class="crit">Absence de pouls carotidien</li></ul></div><span class="pl-nm">2/2</span></div>
-    <div class="pl-decwrap">
-      <div class="pl-nd dec pd0 cur" role="button" tabindex="0"><span class="pl-nn" aria-hidden="true">2</span><div class="pl-nt">Analyse du rythme<span class="pl-x">×3</span><span class="pl-here">ici</span></div><span class="pl-nm">✓</span></div>
-      <div class="pl-q">Le rythme est-il choquable&nbsp;?</div>
-      <div class="pl-cols c2">
-        <div class="pl-br taken"><button type="button" class="pl-bl pd1 tk" aria-expanded="true"><span class="pl-tk">✓ </span>Oui — FV / TV sans pouls<span class="pl-chv">▾</span></button>
-          <div class="pl-nd" role="button" tabindex="0"><span class="pl-nn" aria-hidden="true">3</span><div class="pl-nt">Choc électrique externe<ul class="pl-stp"><li class="crit">Choc biphasique <span class="pl-r">150–200 J</span></li><li class="vig">Reprise immédiate <span class="pl-r">2 min RCP</span></li></ul></div><span class="pl-nm">0/2</span></div>
-          <div class="pl-elbow"><button type="button" class="pl-lnk loop" data-plref="x">↺ reprendre à 2 · Analyse du rythme</button></div></div>
-        <div class="pl-br off folded"><button type="button" class="pl-bl pd1" aria-expanded="false">Non — asystolie<span class="pl-offtag"> · hors chemin</span><span class="pl-sum"> — 2 blocs · 1 ✓ · ↺ 2</span><span class="pl-chv">▸</span></button></div>
-      </div>
-    </div>
-    <div class="pl-end">▪ fin de l’algorithme</div>
+  <div class="ov-plan compact rail-lad">
+    <div class="pl-line d0 cur" role="button" tabindex="0" aria-expanded="false"><span class="n">1</span><span class="t">Reconnaissance &amp; alerte<span class="pl-here">ici</span></span><span class="g">0/3 <span class="pl-ref">→2</span></span></div>
+    <div class="pl-line d0 dec" role="button" tabindex="0" aria-expanded="false"><span class="n">2</span><span class="t">Analyse du rythme</span><span class="g"><b>OUI</b><span class="pl-ref">→3</span> <b>NON</b><span class="pl-ref">→4</span></span></div>
+    <div class="pl-line d1" role="button" tabindex="0" aria-expanded="true"><span class="pl-bl2">OUI ›</span><span class="n">3</span><span class="t">Choquable (FV / TVsp)</span><span class="g">0/3 <span class="pl-ref">↺2</span></span></div>
+    <div class="pl-lx"><p class="pl-lxt">Choquable (FV / TVsp)</p><ul class="pl-stp"><li class="crit">Choc immédiat <span class="pl-r">150–200 J</span></li><li class="vig">Reprise sans délai <span class="pl-r">2 min</span></li><li>Relayer l’opérateur</li></ul><button type="button" class="pl-lnk">→ aller à ce bloc</button></div>
+    <div class="pl-line d1" role="button" tabindex="0" aria-expanded="false"><span class="pl-bl2">NON ›</span><span class="n">4</span><span class="t">Non choquable (AESP / asystolie)</span><span class="g">0/3 <span class="pl-ref">↺2</span></span></div>
   </div>
 </div>
-<p class="ds-cap">Structure complète façon algorithme papier / checklist conditionnelle QRH — flowPlan(f) PURE : le TRONC reprend au point de convergence (post-dominateur immédiat), une cible déjà décrite devient « ↺ reprendre à n » (les BOUCLES deviennent lisibles, ex. cycles 2 min d’un ACR), chaque bloc n’apparaît qu’UNE fois. flowPlan().order = NUMÉROTATION COMMUNE (plan, journal, chips, statique). Le plan est IMMUABLE et INERTE côté cochage (leçon v4.6, RE-CONFIRMÉE en v4.12 : jamais de cases — la trace vit dans le journal) ; il porte un état LÉGER (✓, ● ici, ×n) et sert à NAVIGUER. ORGANIGRAMME HYBRIDE : branches côte à côte quand l’écran le permet, empilées sinon — UNE SEULE COLONNE sous 640 px (v4.21.1, retour d’usage : des colonnes de ~150 px émiettaient les mots cliniques lettre à lettre) ; .pl-cols plafonnée par c1…c4 (sans ce plafond, auto-fit force des pistes de 148 px). RAIL de branche 3 px : bleu = prise, pointillé estompé + « hors chemin » = écartée — la couleur n’est JAMAIS seule. Repli par branche en ligne-bilan (≥ 44 px), hors chemin auto-repliée, jamais bloquant. TROIS AFFICHAGES (v4.18.0, ordre ECAM E/WD → SD) : Détails / Échelle / Schéma.</p>`;
+<p class="ds-cap">« Se repérer » : UNE seule vue depuis v4.25.0, l’ÉCHELLE — une ligne par bloc, retraits d0-3 avec chips d’étiquette (OUI ›), renvois mono abrégés (optAbbr pure : →3, ↺2, ▪fin), ligne dépliable in-place (étapes en lecture seule + « → aller à ce bloc »). Générée par flowPlan(f) PURE : le TRONC reprend au point de convergence (post-dominateur immédiat), une cible déjà décrite devient « ↺ reprendre à n » (les BOUCLES deviennent lisibles, ex. cycles 2 min d’un ACR), chaque bloc n’apparaît qu’UNE fois. flowPlan().order = NUMÉROTATION COMMUNE (plan, journal, chips, statique). INERTE côté cochage (leçon v4.6, RE-CONFIRMÉE en v4.12 : jamais de cases — la trace vit dans le journal) ; état LÉGER (✓, ● ici, ×n) et navigation seule. CHROME DÉSATURÉ dans le rail : l’état n’y est porté que par le marqueur, le rail oriente quand la colonne agit — s’il reprenait les aplats de l’action, deux surfaces se disputeraient le regard. Le « hors chemin » n’y est PAS en opacity (un texte à 50 % tombe sous AA) mais en encre douce + la mention en toutes lettres. La vue « Détails » (organigramme hybride) a été supprimée en v4.25.0 : seule des trois à recopier les étapes, elle rejouait la vue d’action au lieu de montrer AUTRE CHOSE — un SD ECAM ne redit pas l’E/WD.</p>`;
 
 /* ---- Mode statique : tableau SFAR (v4.13.0, document complet v4.14.0) ---- */
 const staticDemo = `
