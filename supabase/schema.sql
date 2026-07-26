@@ -171,6 +171,18 @@ grant execute on function public.is_app_admin()   to authenticated;
 grant execute on function public.is_member(text)  to authenticated;
 grant execute on function public.member_role(text) to authenticated;
 -- public.app_admins : volontairement AUCUN grant.
+-- INTERDICTION EXPLICITE POUR anon (et non simple absence de grant). La clé publishable est
+-- publiée en clair dans index.html : anon est donc utilisable par n'importe qui contre l'API
+-- REST. Ne rien lui ACCORDER ici ne garantit rien si le projet porte des privilèges par défaut
+-- hérités de sa création — invisibles depuis ce dépôt. On révoque donc, et on révoque aussi les
+-- privilèges FUTURS, pour qu'une table ajoutée plus tard ne soit pas exposée par oubli.
+-- (L'app n'a AUCUN flux non authentifié : rien à casser. Vérifié par la section 13 de
+--  rls-tests.sql, qui interroge chaque table publique en tant qu'anon.)
+revoke all on all tables in schema public from anon;
+revoke all on all functions in schema public from anon;
+revoke all on schema public from anon;
+alter default privileges in schema public revoke all on tables from anon;
+alter default privileges in schema public revoke all on functions from anon;
 
 -- ---------- 5bis. Invitation d'un membre par e-mail (Lot 3) -----------------
 -- Recherche un compte par e-mail (table auth.users protégée) et lui attribue un rôle.
@@ -192,7 +204,16 @@ begin
     raise exception 'not allowed';
   end if;
   if p_role not in ('viewer','editor','admin') then p_role := 'viewer'; end if;
-  select id into v_uid from auth.users where lower(email) = lower(trim(p_email));
+  -- E-MAIL VÉRIFIÉ EXIGÉ : sans cette condition, on pouvait inviter un compte créé par la simple
+  -- DEMANDE d'un code (create_user:true) mais jamais confirmé. Il n'a pas encore de ligne
+  -- user_status, la garde d'approbation ci-dessous lit donc NULL et laisse passer ; puis sa
+  -- première connexion crée user_status='pending', ce qui déclenche revoke_memberships et EFFACE
+  -- l'adhésion tout juste accordée. Le contrat documenté plus haut (« l'invité doit s'être
+  -- connecté au moins une fois ») n'était donc pas tenu par le code : il l'est maintenant, et
+  -- l'appelant reçoit 'not_found' — le message client doit dire « cette personne doit d'abord se
+  -- connecter une fois ».
+  select id into v_uid from auth.users
+   where lower(email) = lower(trim(p_email)) and email_confirmed_at is not null;
   if v_uid is null then return 'not_found'; end if;
   if not exists(select 1 from public.app_admins where user_id = v_uid) then
     select status into v_status from public.user_status where user_id = v_uid;
@@ -484,6 +505,11 @@ begin
   return new;
 end;$$;
 drop trigger if exists user_status_revoke_memberships on public.user_status;
+-- MAINTENU SUR « insert or update » À DESSEIN : le restreindre à UPDATE ouvrirait un trou (une
+-- ligne 'rejected' insérée directement ne révoquerait plus rien). Le scénario fautif qu'il
+-- provoquait — purger l'adhésion d'un invité à sa première connexion — est fermé À LA SOURCE par
+-- la condition email_confirmed_at d'invite_member : un compte non confirmé ne peut plus être
+-- invité, il n'y a donc plus d'adhésion à effacer quand handle_new_user crée sa ligne 'pending'.
 create trigger user_status_revoke_memberships
   after insert or update of status on public.user_status
   for each row when (new.status <> 'approved')

@@ -149,8 +149,14 @@
   @media (min-width:1000px){body.view-pedit main{max-width:1202px}}   /* 780 + 26 + 360 + marges */
   body.view-pread main{width:100%;max-width:816px;margin:0 auto}
   @media (min-width:1200px){
-    /* Fiche : lecture plafonnée 860px + rail élargi 360px (chiffres lisibles à distance). */
-    body.view-read .read-grid,body.view-edit .read-grid{grid-template-columns:minmax(0,860px) 360px;justify-content:center}
+    /* Fiche : lecture plafonnée 860px + rail élargi 360px (chiffres lisibles à distance).
+       `body.view-edit` N'EST PAS LISTÉ ICI — et ne doit pas l'être : le bloc 1000 (§ éditeurs,
+       plus bas) le reprend à spécificité ÉGALE et gagne par l'ordre de déclaration, si bien que la
+       règle serait MORTE tout en donnant l'illusion d'être appliquée. C'est le 4ᵉ incident de ce
+       type dans ce fichier (cf. .read-grid v4.23.0, .cbt-n v4.23.5, .mode-seg v4.25.1) : pour une
+       GÉOMÉTRIE, ne jamais dépendre de l'ordre. L'éditeur rend donc 1fr+320 au-delà de 1200 px —
+       mesuré, et c'est ce que dit AGENTS.md depuis v4.34.0. */
+    body.view-read .read-grid{grid-template-columns:minmax(0,860px) 360px;justify-content:center}
     body.view-read .read-side .tm-val,body.view-read .read-side .cn-val{font-size:34px}
   }
   /* EN-TÊTE CLAIR par défaut (inversion 4.0.0) : la barre prend la couleur du fond de page —
@@ -2443,6 +2449,9 @@
     body.view-read .read-grid{grid-template-columns:minmax(0,1fr) 320px;gap:0 26px}
     /* Éditeurs : mêmes plafonds que la lecture — fiche 1fr+320 (860+360 à >= 1200, cf. plus
        haut), protocole 780+360 centré. */
+    /* ÉDITEURS : la colonne d'édition prend la place disponible (1fr) et l'aperçu 320px — y
+       compris au-delà de 1200 px, où cette règle l'emporte sur le palier déclaré en tête de
+       feuille (spécificité égale, déclaration plus tardive). Mesuré à 1400 px : 936+320. */
     :is(body.view-edit,body.view-pedit) .read-grid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:0 26px;align-items:start}
     body.view-pedit .read-grid{grid-template-columns:minmax(0,780px) 360px;justify-content:center}
     :is(body.view-edit,body.view-pedit) .read-side{position:sticky;top:96px;max-height:calc(100vh / var(--zf,1) - 110px);overflow-y:auto;padding:2px}

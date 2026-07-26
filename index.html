@@ -230,10 +230,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#ffffff">
+<!-- Referrer-Policy en <meta> : c'est le SEUL des cinq en-têtes de `_headers` qui ait un
+     équivalent balise, donc le seul récupérable là où `_headers` est ignoré (GitHub Pages,
+     intranet nu — cf. docs/deploiement-et-conformite.md § 1.1). HSTS, nosniff, X-Frame-Options
+     et frame-ancestors n'existent qu'en en-tête HTTP : rien à faire côté document. -->
+<meta name="referrer" content="no-referrer">
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-IpQez4lbKkMkgG8Q+wRkOOTPVO7K8/j4nulYLRzUwfs='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-+VmAyQU/hFXTS7gCGmUuFofjRJBT4XUwE98YGKS2GIA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -417,8 +422,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   @media (min-width:1000px){body.view-pedit main{max-width:1202px}}   /* 780 + 26 + 360 + marges */
   body.view-pread main{width:100%;max-width:816px;margin:0 auto}
   @media (min-width:1200px){
-    /* Fiche : lecture plafonnée 860px + rail élargi 360px (chiffres lisibles à distance). */
-    body.view-read .read-grid,body.view-edit .read-grid{grid-template-columns:minmax(0,860px) 360px;justify-content:center}
+    /* Fiche : lecture plafonnée 860px + rail élargi 360px (chiffres lisibles à distance).
+       `body.view-edit` N'EST PAS LISTÉ ICI — et ne doit pas l'être : le bloc 1000 (§ éditeurs,
+       plus bas) le reprend à spécificité ÉGALE et gagne par l'ordre de déclaration, si bien que la
+       règle serait MORTE tout en donnant l'illusion d'être appliquée. C'est le 4ᵉ incident de ce
+       type dans ce fichier (cf. .read-grid v4.23.0, .cbt-n v4.23.5, .mode-seg v4.25.1) : pour une
+       GÉOMÉTRIE, ne jamais dépendre de l'ordre. L'éditeur rend donc 1fr+320 au-delà de 1200 px —
+       mesuré, et c'est ce que dit AGENTS.md depuis v4.34.0. */
+    body.view-read .read-grid{grid-template-columns:minmax(0,860px) 360px;justify-content:center}
     body.view-read .read-side .tm-val,body.view-read .read-side .cn-val{font-size:34px}
   }
   /* EN-TÊTE CLAIR par défaut (inversion 4.0.0) : la barre prend la couleur du fond de page —
@@ -2711,6 +2722,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     body.view-read .read-grid{grid-template-columns:minmax(0,1fr) 320px;gap:0 26px}
     /* Éditeurs : mêmes plafonds que la lecture — fiche 1fr+320 (860+360 à >= 1200, cf. plus
        haut), protocole 780+360 centré. */
+    /* ÉDITEURS : la colonne d'édition prend la place disponible (1fr) et l'aperçu 320px — y
+       compris au-delà de 1200 px, où cette règle l'emporte sur le palier déclaré en tête de
+       feuille (spécificité égale, déclaration plus tardive). Mesuré à 1400 px : 936+320. */
     :is(body.view-edit,body.view-pedit) .read-grid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:0 26px;align-items:start}
     body.view-pedit .read-grid{grid-template-columns:minmax(0,780px) 360px;justify-content:center}
     :is(body.view-edit,body.view-pedit) .read-side{position:sticky;top:96px;max-height:calc(100vh / var(--zf,1) - 110px);overflow-y:auto;padding:2px}
@@ -3377,7 +3391,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.33.0';
+const APP_VERSION='4.34.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.

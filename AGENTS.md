@@ -38,8 +38,12 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   attribut `on*=` dans `index.html` : sous une CSP à hashs, `'unsafe-inline'` est ignoré et un
   gestionnaire inline est du code MORT et silencieux (c'est arrivé au bouton « Recharger » de
   l'écran d'échec de démarrage, seul recours d'une app installée).
-- `npm test` — exécute `tests.html` en headless (Playwright). À défaut de npm, ouvrir `tests.html`
-  **servi en http** (pas en `file://` : les iframes cross-origin y sont bloquées).
+- `npm test` — exécute `tests.html` en headless sur **DEUX moteurs, Chromium ET WebKit** (v4.34.0 :
+  iOS Safari est la cible principale et n'était jamais testé — toute la suite tournait sur Blink
+  seul, alors que le dossier « bande basse iOS » a montré qu'un comportement WebKit peut couper
+  l'écran sans qu'aucune mesure ne le voie). WebKit manquant = AVERTISSEMENT, pas échec
+  (`npx playwright install webkit`). À défaut de npm, ouvrir `tests.html` **servi en http**
+  (pas en `file://` : les iframes cross-origin y sont bloquées).
 - **Si le CSS d'`index.html` a changé** : `npm run design:build` régénère `design/ds/` (source
   de vérité = le monofichier) — puis committer la régénération. `npm run design:check` échoue si
   `design/ds/` a dérivé du code (le CI le rejoue ; `release.sh` régénère automatiquement). Pousser
@@ -1082,9 +1086,17 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   référence) : cadre `.app` FLUIDE (en-tête/pied pleine largeur partout), contenus
   plafonnés ET centrés par vue — accueil = sidebar 240 px + grille ≤ 1320 px (auto-fill
   minmax(300px,1fr), gap 12 px, 1 colonne < 640) ; fiche = checklist ≤ 860 px (≥ 1200) + rail
-  320 → 360 px (chiffres 34 px) ; protocole ≤ 780 px partout ; éditeurs alignés sur leur vue
-  de lecture (fiche ≤ 860 px, protocole ≤ 780 px) + aperçu sticky 360 px
-  (≥ 1000). L'accueil ≥ 780 est une COQUE FIXE (`body.view-home` : 100dvh, overflow hidden ;
+  320 → 360 px (chiffres 34 px) ; protocole ≤ 780 px partout ; éditeurs = colonne d'édition
+  FLUIDE (1fr) + aperçu sticky 320 px dès 1000 px — l'éditeur de PROTOCOLE, lui, est bien plafonné
+  (780 px + aperçu 360). **Cette ligne affirmait « éditeurs alignés sur leur vue de lecture
+  (fiche ≤ 860 px) » : c'était FAUX, et mesuré tel quel (1400 px → 900+320, jamais 860+360).** La
+  règle du palier 1200 listait bien `body.view-edit`, mais le bloc 1000 la reprend
+  2 293 lignes plus bas à spécificité ÉGALE (`:is()` prend le max de ses arguments) et gagne par
+  l'ORDRE — 4ᵉ incident de ce type après `.read-grid` (v4.23.0), `.cbt-h` (v4.23.5) et
+  `.mode-seg` (v4.25.1). Le membre inopérant a été RETIRÉ de la règle du palier plutôt que
+  réaffirmé plus bas : aligner l'éditeur sur 860+360 serait un changement VISIBLE, à décider
+  séparément. Règle générale : pour une GÉOMÉTRIE, ne jamais dépendre de l'ordre de déclaration —
+  passer par un `#id` ou vérifier la position dans la feuille. L'accueil ≥ 780 est une COQUE FIXE (`body.view-home` : 100dvh, overflow hidden ;
   seuls `.home-side` et `.home-main` défilent — la sidebar ne bouge jamais à la bascule de
   section). Breakpoints : 430 / 560 / 640 / 780 / 900 / 1000 / 1200 px — pas de
   nouveau palier sans décision explicite. En-têtes (SPEC §5) : marque uniquement sur l'accueil ;
@@ -1250,9 +1262,20 @@ recommandation individualisée : voir `docs/deploiement-et-conformite.md` (§ 2,
 non-dispositif-médical). Toute fonctionnalité qui produirait une sortie individualisée
 (ex. calcul de doses) doit être évaluée au regard de ce statut **avant** développement.
 
-## Se repérer dans `index.html` (monofichier, ~5 600 lignes)
+## Se repérer dans `index.html` (monofichier, ~12 250 lignes)
 Le fichier s'ouvre sur un **grand commentaire d'architecture** (objectif, règles de conception,
-modèle de données, règles de sécurité) : le lire en premier. Ensuite, dans l'ordre :
+modèle de données, règles de sécurité) : le lire en premier. Ensuite, dans l'ordre.
+
+> **Le tableau ci-dessous est un RÉSUMÉ, pas un index** : il décrit une vingtaine de sections sur
+> les **54** bannières `/* ===== … ===== */` du fichier, et volontairement sans numéros de ligne —
+> ils seraient périmés au commit suivant. Pour l'index EXACT et à jour, une commande :
+>
+> ```bash
+> grep -n '^/\* ===== \|^  /\* ===== ' index.html
+> ```
+>
+> Découpage global : CSS ≈ lignes 273-3110, coque HTML statique ≈ 3112-3375 (dont **19 fenêtres
+> modales** déclarées en dur), JavaScript ≈ 3376 à la fin.
 
 | Section (bannières `/* ===== … ===== */`) | Contenu |
 |---|---|

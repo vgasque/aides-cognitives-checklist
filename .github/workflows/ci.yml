@@ -39,10 +39,13 @@ jobs:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
 
-      - name: Installer Chromium
-        run: npx playwright install --with-deps chromium
+      # WebKit EN PLUS de Chromium : iOS Safari est la cible principale (PWA installée sur iPhone)
+      # et n'était jamais testé — toute la suite tournait sur Blink seul. `npm test` joue les deux
+      # moteurs ; WebKit absent produit un avertissement, pas un échec.
+      - name: Installer Chromium et WebKit
+        run: npx playwright install --with-deps chromium webkit
 
-      - name: Lancer la suite de tests
+      - name: Lancer la suite de tests (Chromium + WebKit)
         run: npm test
 
       # AUDIT TRANSVERSE — NON BLOQUANT, à dessein. AGENTS.md pose qu'un échec d'audit « demande

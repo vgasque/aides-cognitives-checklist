@@ -37,12 +37,22 @@ Durée : ~30 min. Aucune compétence serveur avancée requise.
    | CSP | balise `<meta>` d'`index.html` seulement | `<meta>` **et** en-tête HTTP (`_headers`) |
    | HSTS, `nosniff`, anti-iframe (`X-Frame-Options`) | ✗ non appliqués | ✓ appliqués |
    | `Cache-Control: no-cache` sur `sw.js` | ✗ (cache ~10 min par défaut) | ✓ appliqué |
+   | `Cache-Control: no-cache` sur `/` et `/index.html` | ✗ non appliqué | ✓ appliqué |
+   | `Referrer-Policy` | ✓ via la balise `<meta name="referrer">` | ✓ en-tête **et** balise |
 
    Les deux hébergent l'app correctement — l'essentiel de la sécurité (échappement du contenu,
    politiques RLS) est dans le code et côté serveur — mais **Netlify / Cloudflare Pages offrent la
    posture complète**. Sur GitHub Pages, accepter explicitement la perte des en-têtes HTTP
    ci-dessus (la mise à jour du service worker reste fonctionnelle : les navigateurs revérifient
    `sw.js` au plus tard toutes les 24 h).
+
+   **Conséquence du `no-cache` manquant sur la PAGE.** Le service worker sert l'application
+   « cache d'abord » et rafraîchit sa copie en arrière-plan ; ce rafraîchissement suppose que son
+   `fetch` atteigne le SERVEUR. Servi depuis un cache HTTP intermédiaire, il peut ramener une
+   copie périmée et la réécrire dans le cache hors-ligne — une nouvelle version met alors plus
+   longtemps à arriver. Ce n'est pas une panne (la publication suivante corrige d'elle-même), mais
+   c'est la raison pour laquelle `_headers` pose `no-cache` sur `/` et `/index.html` autant que
+   sur `sw.js`.
 3. Ouvrir l'URL : l'app doit se charger et proposer « Installer l'app ».
 
 > **Risque résiduel assumé (défense en profondeur).** L'architecture monofichier impose une CSP

@@ -30,6 +30,7 @@ declare
   gina  uuid := '77777777-7777-7777-7777-777777777777';
   v_hack text;
   v_cnt  int;
+  v_leak int;
 begin
   ------------------------------------------------------------------ SEED (propriétaire)
   reset role;
@@ -556,6 +557,108 @@ begin
   select data->>'updatedBy' into v_hack from public.fiches where id='f-team';
   if v_hack is distinct from 'admin@ops.local' then
     raise exception 'ÉCHEC : une écriture sans JWT a été écrasée (%) — la maintenance serait cassée', coalesce(v_hack,'NULL'); end if;
+
+  ------------------------------------------------------------------ 13
+  -- ÉLÉVATION DE PRIVILÈGE — le trou de forme le plus coûteux de cette suite (v4.34.0).
+  -- Les onze écritures existantes sur memberships et user_status sont TOUTES faites en tant que
+  -- propriétaire de table (rôle owner), qui CONTOURNE la RLS : les politiques mem_write,
+  -- lib_update, lib_delete et user_status_write n'étaient donc JAMAIS exercées. Or memberships
+  -- est la table dont dépendent toutes les autres politiques partagées (member_role() est
+  -- consultée par fiches_shared_write, prot_shared_write, cats_shared_write, att_lib_read,
+  -- att_lib_write) : une faille d'écriture y compromettrait tout d'un seul coup.
+  -- Chaque test s'exécute donc en « set local role authenticated », le seul rôle que l'API expose.
+
+  -- 13.1 Un VIEWER ne peut pas s'élever lui-même au rôle admin.
+  perform set_config('request.jwt.claims', json_build_object('sub',frank,'email','frank@test.local','role','authenticated')::text, true);
+  set local role authenticated;
+  begin
+    update public.memberships set role='admin' where user_id=frank and library_id='lib-team';
+  exception when insufficient_privilege then null;   -- refus par grant : aussi acceptable
+  end;
+  reset role;
+  select count(*) into v_cnt from public.memberships
+   where user_id=frank and library_id='lib-team' and role='admin';
+  if v_cnt <> 0 then raise exception 'ÉCHEC 13.1 : un viewer s''est élevé au rôle admin'; end if;
+
+  -- 13.2 Un NON-MEMBRE ne peut pas s'ajouter à une bibliothèque.
+  perform set_config('request.jwt.claims', json_build_object('sub',gina,'email','gina@test.local','role','authenticated')::text, true);
+  set local role authenticated;
+  begin
+    insert into public.memberships(user_id,library_id,role) values (gina,'lib-team','editor');
+  exception when insufficient_privilege or check_violation then null;
+  end;
+  reset role;
+  select count(*) into v_cnt from public.memberships where user_id=gina and library_id='lib-team';
+  if v_cnt <> 0 then raise exception 'ÉCHEC 13.2 : un non-membre s''est ajouté à une bibliothèque'; end if;
+
+  -- 13.3 Un membre (même editor) ne peut pas RENOMMER ni SUPPRIMER la bibliothèque.
+  perform set_config('request.jwt.claims', json_build_object('sub',erin,'email','erin@test.local','role','authenticated')::text, true);
+  set local role authenticated;
+  begin update public.libraries set name='détournée' where id='lib-team';
+  exception when insufficient_privilege then null; end;
+  begin delete from public.libraries where id='lib-team';
+  exception when insufficient_privilege then null; end;
+  reset role;
+  select count(*) into v_cnt from public.libraries where id='lib-team' and name='détournée';
+  if v_cnt <> 0 then raise exception 'ÉCHEC 13.3a : un editor a renommé la bibliothèque'; end if;
+  select count(*) into v_cnt from public.libraries where id='lib-team';
+  if v_cnt <> 1 then raise exception 'ÉCHEC 13.3b : un editor a supprimé la bibliothèque'; end if;
+
+  -- 13.4 Personne ne s'approuve soi-même (user_status est la porte d'entrée de tout le reste).
+  perform set_config('request.jwt.claims', json_build_object('sub',gina,'email','gina@test.local','role','authenticated')::text, true);
+  set local role authenticated;
+  begin
+    insert into public.user_status(user_id,email,status) values (gina,'gina@test.local','approved');
+  exception when insufficient_privilege or unique_violation then null; end;
+  begin
+    update public.user_status set status='approved' where user_id=gina;
+  exception when insufficient_privilege then null; end;
+  reset role;
+  select count(*) into v_cnt from public.user_status where user_id=gina and status='approved';
+  if v_cnt <> 0 then raise exception 'ÉCHEC 13.4 : un compte s''est approuvé lui-même'; end if;
+
+  -- 13.5 LE RÔLE ANONYME NE LIT RIEN. La clé publishable est publiée en clair dans index.html :
+  -- anon est utilisable par quiconque contre l'API REST. La posture affichée du schéma est
+  -- « grants restrictifs PUIS RLS », mais anon n'était vérifié que contre storage.objects —
+  -- jamais contre les tables de contenu. Le refus attendu peut venir du grant (insufficient_
+  -- privilege) OU de la RLS (0 ligne) : les deux sont acceptables, une LECTURE ne l'est pas.
+  perform set_config('request.jwt.claims', json_build_object('role','anon')::text, true);
+  set local role anon;
+  begin select count(*) into v_leak from public.fiches;         exception when insufficient_privilege then v_leak := 0; end;
+  if v_leak <> 0 then raise exception 'ÉCHEC 13.5 : anon lit public.fiches (% lignes)', v_leak; end if;
+  begin select count(*) into v_leak from public.protocols;      exception when insufficient_privilege then v_leak := 0; end;
+  if v_leak <> 0 then raise exception 'ÉCHEC 13.5 : anon lit public.protocols'; end if;
+  begin select count(*) into v_leak from public.category_sets;  exception when insufficient_privilege then v_leak := 0; end;
+  if v_leak <> 0 then raise exception 'ÉCHEC 13.5 : anon lit public.category_sets'; end if;
+  begin select count(*) into v_leak from public.fiche_notes;    exception when insufficient_privilege then v_leak := 0; end;
+  if v_leak <> 0 then raise exception 'ÉCHEC 13.5 : anon lit public.fiche_notes'; end if;
+  begin select count(*) into v_leak from public.memberships;    exception when insufficient_privilege then v_leak := 0; end;
+  if v_leak <> 0 then raise exception 'ÉCHEC 13.5 : anon lit public.memberships'; end if;
+  begin select count(*) into v_leak from public.libraries;      exception when insufficient_privilege then v_leak := 0; end;
+  if v_leak <> 0 then raise exception 'ÉCHEC 13.5 : anon lit public.libraries'; end if;
+  begin select count(*) into v_leak from public.user_status;    exception when insufficient_privilege then v_leak := 0; end;
+  if v_leak <> 0 then raise exception 'ÉCHEC 13.5 : anon lit public.user_status'; end if;
+  reset role;
+
+  -- 13.6 invite_member EXIGE un e-mail vérifié (correctif v4.34.0). Un compte créé par la simple
+  -- DEMANDE d'un code (create_user:true) mais jamais confirmé était invité avec succès, puis
+  -- perdait son adhésion à sa première vraie connexion — sans trace ni message.
+  insert into auth.users(id,email,email_confirmed_at)
+    values ('88888888-8888-8888-8888-888888888888','henri@test.local',null)
+    on conflict (id) do nothing;
+  reset role;
+  -- La bibliothèque AVANT l'adhésion : memberships.library_id la référence (clé étrangère).
+  -- Et la colonne est `created_by`, non `owner` (relu sur le schéma, pas supposé).
+  insert into public.libraries(id,name,created_by) values ('lib-inv','Invitations',erin)
+    on conflict (id) do nothing;
+  insert into public.memberships(user_id,library_id,role) values (erin,'lib-inv','admin')
+    on conflict do nothing;
+  perform set_config('request.jwt.claims', json_build_object('sub',erin,'email','erin@test.local','role','authenticated')::text, true);
+  set local role authenticated;
+  select public.invite_member('lib-inv','henri@test.local','viewer') into v_hack;
+  reset role;
+  if v_hack is distinct from 'not_found' then
+    raise exception 'ÉCHEC 13.6 : un compte à l''e-mail NON vérifié a été invité (retour %)', coalesce(v_hack,'NULL'); end if;
 
   ------------------------------------------------------------------ FIN
   reset role;
