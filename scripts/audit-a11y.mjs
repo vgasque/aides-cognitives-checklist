@@ -125,18 +125,18 @@ const SURFACES = [
         okText:'Supprimer',danger:true}); } },
   { nom:'historique sessions', w:390,  scope:'#sessModal', fn: async()=>{
       const f=fiches.find(x=>/Arrêt cardiaque/.test(x.title));
-      state.view='read';state.fiche=f;render();await new Promise(r=>setTimeout(r,300));
-      const g=document.getElementById('sessStart');if(g)g.click();await new Promise(r=>setTimeout(r,350));
+      openRead(f.id);await new Promise(r=>setTimeout(r,400));
+      document.getElementById('sessStart').click();await new Promise(r=>setTimeout(r,450));
       openSessHist(); } },
   { nom:'terminer la session', w:390,  scope:'#endSessModal', fn: async()=>{
       const f=fiches.find(x=>/Arrêt cardiaque/.test(x.title));
-      state.view='read';state.fiche=f;render();await new Promise(r=>setTimeout(r,300));
-      const g=document.getElementById('sessStart');if(g)g.click();await new Promise(r=>setTimeout(r,350));
+      openRead(f.id);await new Promise(r=>setTimeout(r,400));
+      document.getElementById('sessStart').click();await new Promise(r=>setTimeout(r,450));
       confirmEndSession(f); } },
   { nom:'complications',       w:390,  scope:'#cxModal', fn: async()=>{
       const f=fiches.find(x=>/Arrêt cardiaque/.test(x.title));
       f.complications=[{label:'Laryngospasme',target:f.blocks[1].id}];
-      await Data.put(f);state.view='read';state.fiche=f;render();await new Promise(r=>setTimeout(r,400));
+      await Data.put(f);openRead(f.id);await new Promise(r=>setTimeout(r,400));
       openCxDlg(f); } },
   { nom:'versions précédentes',w:390,  scope:'#versModal', fn: async()=>{
       const f=fiches.find(x=>/Arrêt cardiaque/.test(x.title));
@@ -153,6 +153,33 @@ const SURFACES = [
       if(typeof openPending==='function')openPending(); } },
   { nom:'erreur de synchro',   w:390,  scope:'#syncErrModal', fn: async()=>{
       if(typeof openSyncErr==='function')openSyncErr('La synchronisation a échoué : réseau indisponible.'); } },
+  { nom:'joindre un document', w:390,  scope:'#attPickModal', fn: async()=>{
+      const f=fiches.find(x=>/Arrêt cardiaque/.test(x.title));
+      const by=new TextEncoder().encode('%PDF-1.4\ntrailer<</Root 1 0 R>>');
+      await IDB.putAtt({id:'att-y',buf:by.buffer,size:by.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:0});
+      // Un document joint AILLEURS : sans lui, la liste filtrable serait vide et ne mesurerait rien.
+      const g=fiches.find(x=>x.id!==f.id);
+      if(g){g.attachments=[{id:'att-y',name:'Annexe partagée.pdf',size:by.byteLength}];await Data.put(g);}
+      openEdit(f.id);await new Promise(r=>setTimeout(r,500));
+      openAttPicker(state.draft,()=>{}); } },
+  { nom:'lier une aide',       w:390,  scope:'#relPickModal', fn: async()=>{
+      const f=fiches.find(x=>/Arrêt cardiaque/.test(x.title));
+      openEdit(f.id);await new Promise(r=>setTimeout(r,500));
+      openRelPicker(state.draft,()=>{}); } },
+  { nom:'compte-rendu',        w:390,  scope:'#reportModal', fn: async()=>{
+      // exportSessionReport prend un ID et lit `sessions` (les ARCHIVÉES) : le seul chemin est
+      // donc de dérouler la session complète — ouvrir, démarrer, terminer.
+      const f=fiches.find(x=>/Arrêt cardiaque/.test(x.title));
+      openRead(f.id);await new Promise(r=>setTimeout(r,400));
+      document.getElementById('sessStart').click();await new Promise(r=>setTimeout(r,500));
+      confirmEndSession(f);await new Promise(r=>setTimeout(r,300));
+      document.getElementById('endSessYes').click();await new Promise(r=>setTimeout(r,800));
+      const last=sessions[sessions.length-1];
+      if(last)exportSessionReport(last.id); } },
+  { nom:'nouvelle biblio.',    w:390,  scope:'#newLibModal', fn: async()=>{
+      // openNewLib est gardée par myIsAppAdmin : garde MÉTIER légitime, dont la vraie barrière
+      // est la RLS serveur. On la lève pour auditer le RENDU, ce qui est l'objet du harnais.
+      myIsAppAdmin=true; openNewLib(); } },
 ];
 
 for (const theme of ['light','dark']) {

@@ -127,7 +127,8 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   lecteur). Ils tournent en CI en mode **NON BLOQUANT** (`continue-on-error`) : visibles à chaque
   push, mais un échec y demande un arbitrage humain, pas un blocage de merge. Les trois plus
   anciens, en détail :
-  - `scripts/audit-a11y.mjs` — 6 surfaces × 2 thèmes : plancher typographique 11 px, contraste
+  - `scripts/audit-a11y.mjs` — **22 surfaces × 2 thèmes, dont les 20 `.ai-modal` du monofichier**
+    (v4.40.0) : plancher typographique 11 px, contraste
     calculé sur le fond EFFECTIF (remontée des ancêtres + composition alpha, exemption « grand
     texte »), cibles (44 px en crise, 24 px ailleurs, halo `::after` compté), `--soft` en couleur
     de texte, « hors chemin » signalé par la seule opacité, et **focus visible sous de VRAIES
@@ -136,6 +137,17 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
     `.card:has(.card-open:focus-visible)` : le bouton pose `outline:none`, la CARTE porte
     l'anneau, 3 niveaux plus haut) — mais sur un ancêtre on n'accepte QUE l'outline, son
     `box-shadow` étant en général une élévation permanente qui masquerait un vrai défaut.
+    **UNE SONDE OUVRE PAR LE VRAI POINT D'ENTRÉE, ELLE NE RECONSTRUIT JAMAIS L'ÉTAT (v4.40.0)** :
+    ni `classList.add('on')` sur une fenêtre (elle serait vide — rien à mesurer, verdicts faux), ni
+    `state.view='read'; state.fiche=f; render()` à la main — c'est `openRead(id)` qui appelle
+    `buildRuntime` + `bindStateToRuntime`, et sans lui le clic sur « démarrer la session » ne
+    démarre RIEN (mesuré : `Runtime.started=false`, `liveSessions=0`). Trois surfaces ont ainsi
+    mesuré pendant une version un contexte SANS session vive tout en annonçant l'inverse. Chaque
+    fenêtre CONSTRUIT donc son contexte par les fonctions de l'app (session vive, sauvegarde de
+    version, document joint, complication déclarée, session archivée pour le compte-rendu — qui
+    exige le parcours complet, `exportSessionReport` prenant un **ID** et lisant les sessions
+    ARCHIVÉES). `prep` accepte une FONCTION, sérialisée par Playwright : la CSP du projet interdit
+    `eval()`, une sonde qui passe du code en chaîne est bloquée.
   - `scripts/audit-doctrine.mjs` — ECAM/QRH/AC 120-71B traduits en invariants observables :
     ordre du quai et position en px des boutons Plan/Réf. INCHANGÉS quel que soit l'état,
     débordement annoncé, memory items dans le flux et non recopiés dans la feuille, feuille
@@ -1346,8 +1358,9 @@ modèle de données, règles de sécurité) : le lire en premier. Ensuite, dans 
 > grep -n '^/\* ===== \|^  /\* ===== ' index.html
 > ```
 >
-> Découpage global : CSS ≈ lignes 273-3110, coque HTML statique ≈ 3112-3375 (dont **19 fenêtres
-> modales** déclarées en dur), JavaScript ≈ 3376 à la fin.
+> Découpage global : CSS ≈ lignes 273-3110, coque HTML statique ≈ 3112-3375 (dont **20 fenêtres
+> modales** déclarées en dur — `grep -c 'class="ai-modal' index.html`, toutes auditées par
+> `audit-a11y.mjs`), JavaScript ≈ 3376 à la fin.
 
 | Section (bannières `/* ===== … ===== */`) | Contenu |
 |---|---|
