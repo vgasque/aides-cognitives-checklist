@@ -74,7 +74,14 @@ const AUDIT = `(() => {
       }
       // cibles interactives
       if(el.matches('button,[role="button"],a[href],summary,input,select,[tabindex="0"]')){
-        const r=el.getBoundingClientRect();
+        // La CIBLE est la zone qui accepte le pointeur, pas le seul élément (WCAG 2.5.8).
+        // Une case à cocher DANS un <label> est activée par tout le label : mesurer la case seule
+        // produisait un faux positif — #pendToggle fait 13×13 px, mais son label 358×65, et
+        // cliquer sur le texte coche bien la case (vérifié). Même esprit que la recherche de
+        // l'anneau de focus sur les ANCÊTRES, déjà en place plus haut.
+        const lab=(el.tagName==='INPUT'||el.tagName==='SELECT')?el.closest('label'):null;
+        const cible=lab||el;
+        const r=cible.getBoundingClientRect();
         const cs2=getComputedStyle(el);
         const halo=cs2.position==='relative'?8:0;   // ::after inset:-4px du chrome
         const h=Math.round(r.height+halo),w=Math.round(r.width+halo);
@@ -111,6 +118,41 @@ const SURFACES = [
   { nom:'gérer catégories',    w:390,  prep:'dlg:openCatMgr',     scope:'#catModal' },
   { nom:'fenêtre Compte',      w:390,  prep:'dlg:openAuth',       scope:'#authModal' },
   { nom:'où sont mes fiches',  w:390,  prep:'dlg:openStorageInfo',scope:'#storageModal' },
+  { nom:'bienvenue',           w:390,  scope:'#welcomeModal', noSeed:true, fn: async()=>{} },
+  { nom:'confirmation',        w:390,  scope:'#confirmModal', fn: async()=>{
+      confirmDlg({title:'Supprimer la fiche ?',
+        msg:'Cette action est irréversible. Les sessions liées restent dans l\'historique.',
+        okText:'Supprimer',danger:true}); } },
+  { nom:'historique sessions', w:390,  scope:'#sessModal', fn: async()=>{
+      const f=fiches.find(x=>/Arrêt cardiaque/.test(x.title));
+      state.view='read';state.fiche=f;render();await new Promise(r=>setTimeout(r,300));
+      const g=document.getElementById('sessStart');if(g)g.click();await new Promise(r=>setTimeout(r,350));
+      openSessHist(); } },
+  { nom:'terminer la session', w:390,  scope:'#endSessModal', fn: async()=>{
+      const f=fiches.find(x=>/Arrêt cardiaque/.test(x.title));
+      state.view='read';state.fiche=f;render();await new Promise(r=>setTimeout(r,300));
+      const g=document.getElementById('sessStart');if(g)g.click();await new Promise(r=>setTimeout(r,350));
+      confirmEndSession(f); } },
+  { nom:'complications',       w:390,  scope:'#cxModal', fn: async()=>{
+      const f=fiches.find(x=>/Arrêt cardiaque/.test(x.title));
+      f.complications=[{label:'Laryngospasme',target:f.blocks[1].id}];
+      await Data.put(f);state.view='read';state.fiche=f;render();await new Promise(r=>setTimeout(r,400));
+      openCxDlg(f); } },
+  { nom:'versions précédentes',w:390,  scope:'#versModal', fn: async()=>{
+      const f=fiches.find(x=>/Arrêt cardiaque/.test(x.title));
+      await Data.putBackup({bid:uid('bk'),ficheId:f.id,at:Date.now(),data:JSON.parse(JSON.stringify(f))});
+      openVersions(f.id); } },
+  { nom:'visionneuse PDF',     w:390,  scope:'#pdfModal', fn: async()=>{
+      const f=fiches.find(x=>/Arrêt cardiaque/.test(x.title));
+      const by=new TextEncoder().encode('%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 300 400]>>endobj\ntrailer<</Root 1 0 R>>');
+      await IDB.putAtt({id:'att-x',buf:by.buffer,size:by.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:0});
+      await openPdfViewer({id:'att-x',name:'Protocole.pdf',size:by.byteLength},f); } },
+  { nom:'membres bibliothèque',w:390,  scope:'#membersModal', fn: async()=>{
+      if(typeof openMembers==='function')openMembers('lib-x'); } },
+  { nom:'comptes en attente',  w:390,  scope:'#pendingModal', fn: async()=>{
+      if(typeof openPending==='function')openPending(); } },
+  { nom:'erreur de synchro',   w:390,  scope:'#syncErrModal', fn: async()=>{
+      if(typeof openSyncErr==='function')openSyncErr('La synchronisation a échoué : réseau indisponible.'); } },
 ];
 
 for (const theme of ['light','dark']) {
@@ -118,10 +160,14 @@ for (const theme of ['light','dark']) {
   for (const S of SURFACES) {
     const page = await browser.newPage({ viewport:{width:S.w,height:900}, colorScheme:theme });
     page.on('pageerror',e=>errs.push(`${S.nom}/${theme}: ${e.message}`));
-    page.on('console',m=>{ if(m.type()==='error') errs.push(`${S.nom}/${theme}: ${m.text()}`); });
+    // Les fenêtres liées au COMPTE interrogent Supabase : hors réseau, la console crie
+    // « ERR_INTERNET_DISCONNECTED ». C est le contexte de la sonde, pas un défaut de la page —
+    // on ne filtre QUE ce motif, pour ne pas masquer une vraie erreur.
+    const bruitReseau=/ERR_INTERNET_DISCONNECTED|Failed to load resource|net::ERR_/;
+    page.on('console',m=>{ if(m.type()==='error'&&!bruitReseau.test(m.text())) errs.push(`${S.nom}/${theme}: ${m.text()}`); });
     await page.goto(`http://localhost:${port}/index.html`);
     await page.waitForFunction(()=>!document.querySelector('.boot-load'),null,{timeout:10000});
-    await page.evaluate(async(kind)=>{
+    if (!S.noSeed) await page.evaluate(async(kind)=>{
       const w=[...document.querySelectorAll('button')].find(b=>/Commencer/.test(b.textContent)); if(w)w.click();
       await new Promise(r=>setTimeout(r,120));
       const s=[...document.querySelectorAll('button')].find(b=>b.textContent.includes("fiches d'exemple")); if(s)s.click();
@@ -147,6 +193,8 @@ for (const theme of ['light','dark']) {
       await page.evaluate(async (f) => { try { window[f] ? window[f]() : eval(f + '()'); } catch (e) {}
         await new Promise(r => setTimeout(r, 400)); }, fn);
     }
+    // Fenêtres à contexte construit : leur préparation est une vraie fonction.
+    if (S.fn) { await page.evaluate(S.fn); await page.waitForTimeout(700); }
     if (S.scope) await page.evaluate(s => { window.__acScope = s; }, S.scope);
     await page.waitForTimeout(250);
 

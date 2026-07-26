@@ -2013,7 +2013,17 @@
   .auth-hero-ic.danger{background:var(--critical-soft);color:var(--critical)}
   .auth-del .auth-sub{text-align:left}
   .auth-check{display:flex;gap:9px;align-items:flex-start;text-align:left;font-size:13.5px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px 12px;margin:4px 0 6px;cursor:pointer}
-  .auth-check input{margin-top:2px;flex:none}
+  /* CASES À COCHER — dimensionnées (v4.39.0, retour utilisateur). Aucune règle ne les touchait :
+     elles gardaient la taille par défaut du navigateur, ~13×13 px. La CIBLE était pourtant
+     conforme (le <label> parent fait 358×65 et coche la case au clic — c est ce que le harnais
+     mesure désormais), mais 13 px se LISENT mal, et l une d elles est l interrupteur de sécurité
+     « Exiger une validation pour les nouveaux comptes ». 20 px les rend nettes sans les rendre
+     encombrantes, et accent-color leur donne le bleu de l app au lieu du bleu système — la case
+     cochée entre ainsi dans la palette au lieu de jurer avec elle. Vaut pour les QUATRE cases de
+     l app (confirmation, suppression locale, validation des comptes, boucle d un minuteur) :
+     les styler une par une aurait recréé l incohérence. */
+  input[type="checkbox"]{width:20px;height:20px;accent-color:var(--primary);flex:none;cursor:pointer}
+  .auth-check input{margin-top:1px;flex:none}
   /* .auth-check pose display:flex -> l'attribut [hidden] (UA : display:none) est moins spécifique
      et ne masquerait pas la case ; règle explicite pour la case optionnelle de confirmDlg. */
   .auth-check[hidden]{display:none}
