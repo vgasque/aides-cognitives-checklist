@@ -505,7 +505,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   const SS_OFF=A.storageState({signed:false,pers:false,usage:3e6,quota:3e9,attBytes:0});
   ok('connecté -> « Cloud » dans les deux variantes', SS_ON.main.indexOf('Cloud')>=0&&SS_ON.short.indexOf('Cloud')>=0);
   ok('déconnecté + persistant -> « Cet appareil seulement »', SS_PERS.short.indexOf('Cet appareil seulement')>=0);
-  ok('déconnecté sans persistance -> registre ATTENTION', SS_OFF.short.indexOf('pers-warn')>=0);
+  ok('déconnecté sans persistance -> registre NEUTRE (v4.31.0 : un état permanent ne crie pas — l\'ambre est réservé à l\'actionnable : « presque plein », PDF manquants)', SS_OFF.main.indexOf('pers-warn')<0&&SS_OFF.short.indexOf('pers-warn')<0&&SS_OFF.main.indexOf('non protégé')>=0);
   ok('« copie unique » / « non protégé » : variante LONGUE seulement', SS_PERS.main.indexOf('copie unique')>=0&&SS_PERS.short.indexOf('copie unique')<0&&SS_OFF.short.indexOf('non protégé')<0);
   ok('« presque plein » : variante LONGUE seulement', (()=>{const s=A.storageState({signed:true,pers:true,usage:2.9e9,quota:3e9,attBytes:0});return s.main.indexOf('presque plein')>=0&&s.short.indexOf('presque plein')<0;})());
   ok('poids des PDF joints ajouté à l\'info-bulle', A.storageState({signed:true,pers:true,usage:3e6,quota:3e9,attBytes:1e6}).tip.indexOf('documents PDF joints')>=0);

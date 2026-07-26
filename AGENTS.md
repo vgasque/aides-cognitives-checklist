@@ -87,7 +87,18 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   Sous `forced-colors` (Windows High Contrast, v4.30.0) : filet MINIMAL — `.acct-dot`, `.cat-dot`
   et `.seg-pill` gardent leur couleur (`forced-color-adjust:none`, l'information EST la couleur) ;
   le reste s'appuie sur « la couleur jamais seule » (glyphe + mot). Non testé sur Windows réel —
-  à valider sur machine avant d'étendre.
+  à valider sur machine avant d'étendre. Sous `prefers-contrast: more` (v4.31.0) : `--ink-soft`
+  passe à `--ink` et `--line` à `--line-strong` (bloc déclaré en FIN de feuille — à spécificité
+  égale il doit gagner sur les tokens des deux thèmes).
+  **GARDE-FOU AUTO-EXÉCUTOIRE (v4.31.0, `scripts/check-colors.mjs`, dans `npm run check`)** : un
+  hex n'est admis dans le CSS que dans une DÉCLARATION DE TOKEN (propriété `--…`, où qu'elle
+  vive — `:root`, bloc sombre, blocs `data-accent`) ; seule exception listée, les nuanciers
+  littéraux `.acc-sw`. La règle ci-dessus n'est donc plus déclarative. Tokens ajoutés à cette
+  occasion : `--shadow-primary(-sm)` (élévation teintée des boutons remplis — les
+  `rgba(23,71,127,…)` éparses), `--hover-dk(-hi)` et `--flow-hl-dk` (ex-hex des overrides
+  sombres), et les FIXES deux-thèmes `--lb-cap`/`--lb-ink` (lightbox), `--paper` (canevas SVG,
+  pages PDF, impression), `--flow-cur` (nœud courant du SVG — primaire CLAIR baké, le sombre
+  passe par la contre-inversion).
 - **Taxonomie des notices (V5)** : 5 registres, du plus au moins impérieux — ALERTE
   (`--critical`), ATTENTION (`--verify`), INFORMATION (`--primary` : `.notice`, `#sysBanner`),
   CONFIRMATION (`--ok` : `.flow-end`, étape cochée), MEMO (neutre). Grammaire : bord gauche 4 px + bordure de la
@@ -352,7 +363,11 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   (jamais d'avance tant que tout n'est pas confirmé, « Revoir » ramène au premier écart),
   décision = même chemin qu'une option ; Échap/✕ quitte sans rien perdre ; z-index 92 SOUS
   `#screenFlash` (99) — le flash d'alarme reste visible ; chrono de session via
-  `updateRtStrip` (`#rmTime`) ; entrées : bouton « Lecteur » sur l'instance du bout + menu ⋯.
+  `updateRtStrip` (`#rmTime`) ; entrées : bouton « ⤢ Lecteur » sur l'instance du bout + menu ⋯
+  (v4.31.0 : le glyphe ⤢ — grammaire des ouvertures plein écran, cf. Se repérer/Consulter — le
+  fait lire comme une SURFACE et non un mode ; décision d'audit : PAS d'entrée dans le chrome de
+  crise — 12 px libres mesurés à 360, et une commande qui apparaît/disparaît selon la largeur
+  romprait la constance positionnelle).
   **ENRICHI v4.28.0 (audit + décision utilisateur, 3 volets)** — le public du lecteur est un
   PROFESSIONNEL qui connaît à peu près le contenu (l'anticipation a de la valeur), et le
   un-item-à-la-fois N'EST PAS le modèle aviation (ECL Boeing = liste entière + curseur, ECAM =
@@ -635,6 +650,15 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   et à la fin des téléchargements de fond de la synchro. Le pied de lecture ne répète
   ni le code court ni la date de validation (déjà dans la méta du haut). En session de crise,
   l'état de stockage disparaît des deux pieds (aucun signal non actionnable pendant un soin).
+  **REGISTRE DU « NON PROTÉGÉ » = NEUTRE (v4.31.0, audit externe — décision utilisateur)** : un
+  état PERMANENT en ambre s'use (banner blindness) et émousse l'ambre des états réellement
+  actionnables. Le mot « non protégé » + la bulle d'aide portent l'information ; `pers-warn`
+  (ambre) est réservé à « presque plein » et aux documents PDF manquants — un test unitaire
+  encode cette règle (ne pas « re-corriger » en ambre). MÊME DOCTRINE côté lecture (v4.31.0) :
+  en SESSION VIVE, la rangée `.read-meta` (statut, catégorie, validation) est masquée — vue à
+  l'ouverture, elle ne conduit rien pendant le soin ; sélecteur
+  `body.view-read:has(#cbTimers:not([hidden]))`, écran seulement (le papier garde la méta), saut
+  absorbé par `renderKeepAnchor`.
 - **Repli de l'étape ① (doctrine, v4.4.2)** : un démarrage IMPLICITE (cochage, minuteur,
   compteur, horodatage) ne replie JAMAIS « Confirmation diagnostique » — `ensureStarted` fige
   l'état ouvert. `renderKeepAnchor` ne peut compenser le scroll que si `window.scrollY ≥ hauteur
@@ -808,6 +832,8 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.
+  **Raccourci clavier (v4.31.0)** : « / » et Cmd/Ctrl+K focalisent la recherche — inerte dans un
+  champ, sous une fenêtre ouverte, et hors accueil (la recherche n'existe que là).
 - **ZONE HAUTE DE CRISE (v4.23.0)** : deux éléments **hors de `header.bar`**, frères directs de
   `.app`, aux comportements délibérément opposés — `#crisisBand` (le TITRE, information
   **CONSTANTE**) vit dans le flux et s'en va au défilement, `#hdrCrisis` en prenant le relais
@@ -1092,7 +1118,11 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   plus DANS l'input (il était effaçable à la main = changement de type accidentel) — champ =
   texte nu, rangée **encadrée** au registre, préfixe re-posé par le handler (la CHAÎNE stockée
   garde le préfixe : format v3 inchangé). Les repères posologiques ont la même bascule ⚠ par
-  bouton (le signe est intapable au clavier).
+  bouton (le signe est intapable au clavier). **Le guide rouge/ambre de l'éditeur de blocs
+  (`.crit-guide`) est un `<details>` (v4.31.0, audit externe)** : ouvert tant que l'utilisateur
+  ne l'a pas replié, puis son CHOIX persiste (clé `ac-cg-folded`, listener `toggle` global en
+  capture — l'événement ne bulle pas) : un utilisateur régulier ne relit pas la leçon à chaque
+  session d'édition, un nouveau la voit d'office.
 - **Indicateur de mode des éditeurs (v4.3.0)** : la barre affiche en permanence
   « ÉDITION/CRÉATION — AIDE COGNITIVE/PROTOCOLE » (micro-titre 11px/800, encre douce — informe,
   n'alerte pas), tronqué au mode seul < 560 px ; le badge de statut n'y disparaît JAMAIS

@@ -233,7 +233,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-NeFklozkyN9WBV7CDVvocwiMJNThFkA0rIN9KzsCvOk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-7CE6ZJdbOosy8FgccoFYwlcpf1/ipThZ2ludx8FHSlI='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -297,10 +297,21 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      Échelle responsive FERMÉE : 430 / 560 / 640 / 780 / 900 / 1000 px (1000 = colonne droite de
      la vue fiche, V5). Plancher typographique : 11px (app consultée sous stress — rien en dessous).
      --line-hover : bordure des survols de boutons/chips (un seul gris au lieu de trois). */
-  :root{--ink:#101b28;--ink-soft:#5b6570;--line:#d5dbe2;--line-strong:#75828e;--line-hover:#c3ccd6;--bg:#f2f5f8;--surface:#fff;--surface-2:#eff2f6;--surface-3:#e8ecf1;--primary:#1f5fa6;--primary-dk:#17477f;--primary-hi:#17477f;--primary-soft:#e3ecf7;--primary-100:#dce7f5;--primary-200:#b9cde6;--primary-300:#8fb4de;--on-primary:#fff;--ok:#1d7a38;--ok-soft:#eaf6ee;--critical:#a32e1f;--critical-soft:#fbe9e4;--critical-line:#ecc4bc;--verify:#7a5900;--verify-soft:#fbf3dc;--verify-line:#eddfb6;--verify-bd:#b7791f;--verify-hi:#b45309;--critical-bd:#c43d34;--done-bg:#eff5f0;--done-line:#bfd8c6;--done-ink:#5b6570;--tag-bg:#e8ecf1;--tag-ink:#3c464f;--link:#1f5fa6;--soft:#8a94a0;--alert:#f0a431;--alert-hi:#ffb454;--alert-strong:#c98a18;--alert-ink:#3a2a02;--rt-card:#1c2a3c;--rt-line:#2c3d52;--rt-ink:#e8eef7;--alarm:#d1543c;--input-bg:#fff;--radius:14px;--radius-md:11px;--radius-sm:9px;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--shadow:0 1px 2px rgba(16,27,40,.04),0 4px 16px rgba(16,27,40,.06);--shadow-lg:0 2px 6px rgba(16,27,40,.06),0 12px 32px rgba(16,27,40,.10);}
+  :root{--ink:#101b28;--ink-soft:#5b6570;--line:#d5dbe2;--line-strong:#75828e;--line-hover:#c3ccd6;--bg:#f2f5f8;--surface:#fff;--surface-2:#eff2f6;--surface-3:#e8ecf1;--primary:#1f5fa6;--primary-dk:#17477f;--primary-hi:#17477f;--primary-soft:#e3ecf7;--primary-100:#dce7f5;--primary-200:#b9cde6;--primary-300:#8fb4de;--on-primary:#fff;--ok:#1d7a38;--ok-soft:#eaf6ee;--critical:#a32e1f;--critical-soft:#fbe9e4;--critical-line:#ecc4bc;--verify:#7a5900;--verify-soft:#fbf3dc;--verify-line:#eddfb6;--verify-bd:#b7791f;--verify-hi:#b45309;--critical-bd:#c43d34;--done-bg:#eff5f0;--done-line:#bfd8c6;--done-ink:#5b6570;--tag-bg:#e8ecf1;--tag-ink:#3c464f;--link:#1f5fa6;--soft:#8a94a0;--alert:#f0a431;--alert-hi:#ffb454;--alert-strong:#c98a18;--alert-ink:#3a2a02;--rt-card:#1c2a3c;--rt-line:#2c3d52;--rt-ink:#e8eef7;--alarm:#d1543c;--input-bg:#fff;--radius:14px;--radius-md:11px;--radius-sm:9px;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--shadow:0 1px 2px rgba(16,27,40,.04),0 4px 16px rgba(16,27,40,.06);--shadow-lg:0 2px 6px rgba(16,27,40,.06),0 12px 32px rgba(16,27,40,.10);--shadow-primary:0 1px 2px rgba(23,71,127,.2),0 4px 12px rgba(23,71,127,.16);--shadow-primary-sm:0 1px 2px rgba(23,71,127,.25);--lb-cap:#cfe0dd;--lb-ink:#fff;--paper:#fff;--flow-cur:#1f5fa6;}
+  /* --shadow-primary(-sm) : élévation TEINTÉE PRIMAIRE des boutons remplis (v4.31.0 — les
+     rgba(23,71,127,…) éparses sont consolidées ici). Tokens FIXES des deux thèmes (jamais
+     surchargés en sombre, comme --rt-*) : --lb-cap/--lb-ink = légende et glyphe de la lightbox
+     (fond noir constant) ; --paper = canevas BLANC du SVG d'algorithme, des pages PDF et de
+     l'impression (le SVG est peint pour fond clair puis contre-inversé en sombre, une page PDF
+     est du papier) ; --flow-cur = trait du nœud courant du SVG, primaire CLAIR baké (même
+     logique — la version sombre passe par --flow-hl-dk après inversion). */
   /* ===== THÈME SOMBRE (usage dans le noir) : on redéfinit les variables + quelques fonds codés en dur.
      Contraste maintenu pour la lisibilité en situation critique. ===== */
-  html[data-theme="dark"]{--ink:#e8eef7;--ink-soft:#93a5b5;--line:#24303f;--line-hover:#3b4b5d;--bg:#0c1420;--surface:#121d2b;--surface-2:#101823;--surface-3:#1b2836;--primary:#2e71c2;--primary-dk:#8fb8e8;--primary-hi:#4685d2;--primary-soft:#16324f;--primary-100:#16324f;--primary-200:#2c4b6e;--primary-300:#2c4b6e;--on-primary:#fff;--ok:#37d67a;--ok-soft:#0e2618;--critical:#ff8a84;--critical-soft:#3a0e0c;--critical-line:#7a2b26;--verify:#ffb454;--verify-soft:#241d0c;--verify-line:#5c4a1e;--verify-bd:#ffb454;--verify-hi:#ffb454;--critical-bd:#ff5a52;--done-bg:#101b14;--done-line:#1f4a2e;--done-ink:#4e6e58;--tag-bg:#24303f;--tag-ink:#b9c6d4;--link:#8fb8e8;--soft:#5e7186;--input-bg:#0a111b;--shadow:0 1px 2px rgba(0,0,0,.45),0 4px 16px rgba(0,0,0,.5);--shadow-lg:0 2px 6px rgba(0,0,0,.5),0 12px 32px rgba(0,0,0,.65);}
+  html[data-theme="dark"]{--ink:#e8eef7;--ink-soft:#93a5b5;--line:#24303f;--line-hover:#3b4b5d;--bg:#0c1420;--surface:#121d2b;--surface-2:#101823;--surface-3:#1b2836;--primary:#2e71c2;--primary-dk:#8fb8e8;--primary-hi:#4685d2;--primary-soft:#16324f;--primary-100:#16324f;--primary-200:#2c4b6e;--primary-300:#2c4b6e;--on-primary:#fff;--ok:#37d67a;--ok-soft:#0e2618;--critical:#ff8a84;--critical-soft:#3a0e0c;--critical-line:#7a2b26;--verify:#ffb454;--verify-soft:#241d0c;--verify-line:#5c4a1e;--verify-bd:#ffb454;--verify-hi:#ffb454;--critical-bd:#ff5a52;--done-bg:#101b14;--done-line:#1f4a2e;--done-ink:#4e6e58;--tag-bg:#24303f;--tag-ink:#b9c6d4;--link:#8fb8e8;--soft:#5e7186;--input-bg:#0a111b;--shadow:0 1px 2px rgba(0,0,0,.45),0 4px 16px rgba(0,0,0,.5);--shadow-lg:0 2px 6px rgba(0,0,0,.5),0 12px 32px rgba(0,0,0,.65);--hover-dk:#1b2634;--hover-dk-hi:#22364d;--flow-hl-dk:#4e8fd9;}
+  /* --hover-dk(-hi) : survols du thème sombre (générique / sur surface élevée, ex-hex en dur des
+     règles de survol) ; --flow-hl-dk : trait de contre-inversion du SVG sombre (la couleur est
+     choisie pour rendre juste APRÈS le filtre invert+hue-rotate). v4.31.0 : plus AUCUN hex hors
+     déclaration de token — garde-fou scripts/check-colors.mjs (npm run check). */
   html[data-theme="dark"]{color-scheme:dark;}
   html[data-theme="dark"] .empty{background:rgba(255,255,255,.03)}
   /* ===== PALETTES D'ACCENT (par utilisateur, connecté seulement) =====
@@ -340,7 +351,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      Exclut aussi .holding : le raccourci `background:` remettait background-image à zéro et
      EFFAÇAIT la jauge rouge du « maintenir pour réinitialiser » (le tap déclenche :hover sur
      mobile -> jauge invisible en mode sombre, visible en clair : affichage « inconstant »). */
-  html[data-theme="dark"] :is(.btn:not(.primary):not(.danger):not(.holding):hover,.mini:hover,.fz:hover,.opt:hover,.catchip:not(.on):hover){background:#1b2634;border-color:var(--line-hover)}
+  html[data-theme="dark"] :is(.btn:not(.primary):not(.danger):not(.holding):hover,.mini:hover,.fz:hover,.opt:hover,.catchip:not(.on):hover){background:var(--hover-dk);border-color:var(--line-hover)}
   /* SVG de l'algorithme : inversion + rotation de teinte -> rendu sombre cohérent (les couleurs
      bleu/ambre restent distinctes ; pas d'images réelles dans le SVG, seulement des pavés). */
   html[data-theme="dark"] :is(.flow-scroll,#flowFull .ff-scroll) svg{filter:invert(1) hue-rotate(180deg)}
@@ -348,11 +359,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   html[data-theme="dark"] :is(.flow-scroll,#flowFull .ff-scroll) svg image{filter:invert(1) hue-rotate(180deg)}
   /* Surlignage du bloc en cours : on annule l'inversion globale ET on pilote teinte/opacité en CSS
      -> bleu propre, et adaptation INSTANTANÉE au basculement de thème (pas de reconstruction du SVG). */
-  html[data-theme="dark"] :is(.flow-scroll,#flowFull .ff-scroll) svg .flow-hl{filter:invert(1) hue-rotate(180deg);stroke:#4e8fd9}
+  html[data-theme="dark"] :is(.flow-scroll,#flowFull .ff-scroll) svg .flow-hl{filter:invert(1) hue-rotate(180deg);stroke:var(--flow-hl-dk)}
   html[data-theme="dark"] :is(.flow-scroll,#flowFull .ff-scroll) svg .flow-hl-glow{opacity:.28}
   /* v4.7.0 : bordure bleue du nœud courant/focalisé et badge ✓ vert — mêmes contre-inversions
      que le halo (peints par classes, adaptation instantanée au thème). */
-  html[data-theme="dark"] :is(.flow-scroll,#flowFull .ff-scroll) svg :is(.fnode.fn-cur .fn-bd,.fnode:focus-visible .fn-bd){filter:invert(1) hue-rotate(180deg);stroke:#4e8fd9}
+  html[data-theme="dark"] :is(.flow-scroll,#flowFull .ff-scroll) svg :is(.fnode.fn-cur .fn-bd,.fnode:focus-visible .fn-bd){filter:invert(1) hue-rotate(180deg);stroke:var(--flow-hl-dk)}
   html[data-theme="dark"] :is(.flow-scroll,#flowFull .ff-scroll) svg .fn-badge{filter:invert(1) hue-rotate(180deg)}
   *{box-sizing:border-box}html,body{margin:0;padding:0}
   /* iOS Safari (paysage) : sans ce réglage, le « font boosting » agrandit certains textes de
@@ -864,7 +875,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .search svg{position:absolute;left:12px;color:var(--ink-soft);pointer-events:none}
   .search input{width:100%;padding:11px 12px 11px 38px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--input-bg);color:var(--ink)}
   .search input:focus{outline:2px solid var(--primary);border-color:transparent}
-  .btn-new{background:var(--primary);color:var(--on-primary);border:0;border-radius:var(--radius-md);padding:0 16px;font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:7px;white-space:nowrap;box-shadow:0 1px 2px rgba(23,71,127,.2),0 4px 12px rgba(23,71,127,.16);transition:background .12s,transform .06s}
+  .btn-new{background:var(--primary);color:var(--on-primary);border:0;border-radius:var(--radius-md);padding:0 16px;font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:7px;white-space:nowrap;box-shadow:var(--shadow-primary);transition:background .12s,transform .06s}
   .btn-new:hover{background:var(--primary-hi)}.btn-new:active{transform:translateY(1px)}
   /* UN SEUL bouton rempli par écran : quand l'accueil affiche déjà « Reprendre » (session en
      cours, bleu plein), « Créer » (autorat, action rare) passe en TONAL — la crise garde la
@@ -981,7 +992,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      s'empile en pleine largeur sous 430px, comme « Synchroniser maintenant » juste au-dessus. */
   @media (max-width:429.98px){.dlg-actions.acct-two{flex-direction:column}}
   .dlg-actions .btn:not(.primary){border:1.5px solid var(--line-hover);background:transparent;color:var(--ink)}
-  .dlg-actions .btn.primary{box-shadow:0 1px 2px rgba(23,71,127,.25)}
+  .dlg-actions .btn.primary{box-shadow:var(--shadow-primary-sm)}
   .dlg-actions .btn.primary.is-locked{background:transparent;border:1.5px solid var(--line);color:var(--ink-soft);box-shadow:none;cursor:default}
   .mem-danger{border-top:1px solid var(--line);margin-top:18px;padding-top:14px}
   .mem-danger .danger-h{color:var(--critical)}
@@ -1095,6 +1106,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      sert plus qu'à l'impression (l'en-tête est masqué en print). */
   @media screen{body.view-read .read-head{display:none}}
   .read-meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0 18px}
+  /* En SESSION VIVE, la gouvernance documentaire s'efface (v4.31.0, audit externe) : statut,
+     catégorie et date de validation ont été vus à l'OUVERTURE de la fiche — pendant le soin ils
+     ne conduisent rien (même doctrine que l'état de stockage retiré des pieds de page en crise :
+     aucun signal non actionnable pendant un soin). #cbTimers n'est dévoilé que par une session
+     vive : le sélecteur suit l'état sans une ligne de JS (patron :has de #crisisDock). Écran
+     seulement — sur papier la méta reste (un compte rendu dit ce qu'on a utilisé). Le saut de
+     hauteur au démarrage est absorbé par renderKeepAnchor, comme le repli de l'étape ①. */
+  @media screen{body.view-read:has(#cbTimers:not([hidden])) .read-meta{display:none}}
   .local{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 14px;margin-top:14px;margin-bottom:18px;font-size:14px;color:var(--ink-soft);white-space:pre-wrap}
   section.block{margin-bottom:22px}
   /* En-têtes de section = KICKERS simples du canvas (11px/800, espacés) : la couleur du texte
@@ -1141,7 +1160,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .cp-stage:not(:last-child)::before{content:"";position:absolute;left:13px;top:34px;bottom:4px;width:2px;border-radius:1px;background:var(--line)}
   .cp-n{position:absolute;left:0;top:1px;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:800;font-variant-numeric:tabular-nums}
   .cp-stage.on .cp-n{background:var(--primary);color:var(--on-primary)}
-  .cp-stage.done .cp-n{background:var(--ok);color:#fff}
+  .cp-stage.done .cp-n{background:var(--ok);color:var(--on-primary)}
   .cp-stage.off .cp-n{background:var(--surface);color:var(--ink-soft);border:2px solid var(--line-strong)}
   html[data-theme="dark"] .cp-stage.on .cp-n{background:var(--primary-dk);color:var(--bg)}
   html[data-theme="dark"] .cp-stage.done .cp-n{background:var(--ok);color:var(--bg)}
@@ -1318,7 +1337,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .crumbs{display:flex;flex-wrap:nowrap;gap:5px;align-items:center;font-size:11px;font-weight:700;color:var(--ink-soft);margin:2px 0 8px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
   .crumbs::-webkit-scrollbar{display:none}
   .crumbs .cb{flex:none;background:var(--tag-bg);color:var(--ink-soft);padding:5px 10px;min-height:32px;display:inline-flex;align-items:center;border-radius:12px;cursor:pointer;white-space:nowrap}.crumbs .cb:not(.cur):hover{background:var(--primary-200)}.crumbs .cb.cur{background:var(--link);color:var(--surface);cursor:default}
-  html[data-theme="dark"] .crumbs .cb:not(.cur):hover{background:#22364d}
+  html[data-theme="dark"] .crumbs .cb:not(.cur):hover{background:var(--hover-dk-hi)}
   .crumbs .cb-n{font-family:var(--mono);font-size:11px;opacity:.7;margin-left:2px}
   .node-title .pass-n{font-family:var(--mono);text-transform:none;letter-spacing:0;font-weight:600;color:var(--primary);margin-left:7px}
   .node-title{font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-soft);margin-bottom:10px}
@@ -1629,7 +1648,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .endsess-actions{display:flex;gap:9px}
   .btn-continue-sess{flex:1;min-height:46px;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--line-hover);border-radius:9px;background:transparent;color:var(--ink);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer}
   .btn-continue-sess:hover{background:var(--surface-2)}
-  .btn-end-sess{flex:1;min-height:46px;display:flex;align-items:center;justify-content:center;background:var(--critical-bd);color:#fff;border:0;border-radius:9px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer}
+  .btn-end-sess{flex:1;min-height:46px;display:flex;align-items:center;justify-content:center;background:var(--critical-bd);color:var(--on-primary);border:0;border-radius:9px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer}
   html[data-theme="dark"] .btn-end-sess{color:var(--bg)}
   .btn-end-sess:hover{filter:brightness(1.06)}
   :is(.btn-continue-sess,.btn-end-sess):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
@@ -1685,10 +1704,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Consigne d'usage rouge/ambre (v4.2.2) : affichée UNE fois par bloc d'étapes, au point de
      décision (doctrine utilisateur — rouge = ce qui tue si oublié ; ambre = risque d'erreur). */
   .crit-guide{font-size:11.5px;color:var(--ink-soft);line-height:1.55;margin:-2px 0 8px}
+  /* v4.31.0 (audit externe) : le guide est un <details> — pavé pédagogique OUVERT tant que
+     l'utilisateur ne l'a pas replié, puis son choix PERSISTE (clé ac-cg-folded, écrite par le
+     listener 'toggle' global) : un utilisateur régulier ne relit pas la leçon à chaque bloc. */
+  .crit-guide summary{cursor:pointer;font-weight:700;padding:3px 0;color:var(--ink-soft)}
+  .crit-guide summary:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .crit-guide[open] summary{margin-bottom:2px}
   .crit-guide .cg-r{color:var(--critical)}
   .crit-guide .cg-a{color:var(--verify)}
   .flow-prev-h{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--ink-soft);margin:0 0 7px}
-  .flow-scroll{width:100%;overflow:auto;border:1px solid var(--line);border-radius:10px;background:#fff;padding:8px;-webkit-overflow-scrolling:touch;margin-bottom:14px;max-height:75vh}
+  .flow-scroll{width:100%;overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--paper);padding:8px;-webkit-overflow-scrolling:touch;margin-bottom:14px;max-height:75vh}
   .flow-zoom{display:flex;align-items:center;gap:7px;margin-bottom:7px}
   .fz{border:1px solid var(--line);background:var(--surface);color:var(--ink);width:42px;height:40px;border-radius:var(--radius-sm);font-size:18px;font-weight:600;line-height:1;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
   .fz:hover{background:var(--surface-2)}.fz-r{width:auto;padding:0 11px;font-size:12.5px}
@@ -1698,7 +1723,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #flowFull{position:fixed;inset:0;z-index:90;background:var(--bg);display:none;flex-direction:column}
   #flowFull.on{display:flex}
   #flowFull .ff-bar{display:flex;align-items:center;gap:7px;padding:calc(9px + env(safe-area-inset-top)) 12px 9px;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:0 1px 6px rgba(16,27,40,.06)}
-  #flowFull .ff-scroll{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px;background:#fff}
+  #flowFull .ff-scroll{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px;background:var(--paper)}
   .blk{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
   .blk-top{display:flex;align-items:center;gap:8px;margin-bottom:11px}
   .blk-type{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;padding:3px 8px;border-radius:6px}
@@ -1712,7 +1737,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .add-blocks{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:6px}
   .btn{padding:11px 17px;border-radius:var(--radius-md);font-size:14px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ink);transition:background .12s,border-color .12s,box-shadow .12s,transform .06s;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px}
   .btn:active{transform:translateY(1px)}
-  .btn:hover{background:var(--surface-2);border-color:var(--line-hover)}.btn.primary{background:var(--primary);color:var(--on-primary);border-color:var(--primary);box-shadow:0 1px 2px rgba(23,71,127,.2),0 4px 12px rgba(23,71,127,.16)}.btn.primary:hover{background:var(--primary-hi);border-color:var(--primary-hi)}
+  .btn:hover{background:var(--surface-2);border-color:var(--line-hover)}.btn.primary{background:var(--primary);color:var(--on-primary);border-color:var(--primary);box-shadow:var(--shadow-primary)}.btn.primary:hover{background:var(--primary-hi);border-color:var(--primary-hi)}
   .btn.danger{color:var(--critical);border-color:var(--critical-line)}.btn.danger:hover{background:var(--critical-soft)}
   /* « Maintenir pour réinitialiser » un minuteur : jauge = fond qui se remplit pendant l'appui
      (le texte reste lisible au-dessus). Libellé sur 2 lignes -> indice « maintenir » visible. */
@@ -2131,7 +2156,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #readerMode .rm-map[hidden]{display:none}
   #readerMode .rm-nd{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--line-strong);display:inline-flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:800;color:var(--ink-soft);font-variant-numeric:tabular-nums}
   #readerMode .rm-nd.ok{border-color:var(--ok);background:var(--ok);color:var(--surface)}
-  #readerMode .rm-nd.cur{border-color:var(--primary);background:var(--primary);color:var(--on-primary,#fff)}
+  #readerMode .rm-nd.cur{border-color:var(--primary);background:var(--primary);color:var(--on-primary)}
   #readerMode .rm-ctx{font-size:13px;color:var(--ink-soft);text-align:center;margin:0 0 12px;line-height:1.35}
   #readerMode .rm-ctx.next{margin:14px 0 0}
   #readerMode .rm-cx{flex:none;position:relative;min-height:36px;border:1.5px solid var(--critical-bd);border-radius:9px;background:var(--surface);color:var(--critical);font-size:12px;font-weight:800;cursor:pointer;padding:0 10px;font-family:inherit}
@@ -2145,8 +2170,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   svg .fnode:focus{outline:none}
   svg .fnode .flow-hl-glow{display:none}
   svg .fnode.fn-cur .flow-hl-glow{display:block}
-  svg .fnode.fn-cur .fn-bd{stroke:#1f5fa6;stroke-width:2.5}
-  svg .fnode:focus-visible .fn-bd{stroke:#1f5fa6;stroke-width:3}
+  svg .fnode.fn-cur .fn-bd{stroke:var(--flow-cur);stroke-width:2.5}
+  svg .fnode:focus-visible .fn-bd{stroke:var(--flow-cur);stroke-width:3}
   svg .fnode.fn-off{opacity:.45}
   svg .fnode .fn-badge{display:none}
   svg .fnode.fn-ok .fn-badge{display:block}
@@ -2289,8 +2314,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .diff-note{font-size:11.5px;color:var(--ink-soft);margin:8px 0 2px}
   .lightbox{position:fixed;inset:0;background:rgba(16,27,40,.92);z-index:100;display:none;align-items:center;justify-content:center;padding:20px;flex-direction:column;gap:14px}
   .lightbox.on{display:flex}.lightbox img{max-width:100%;max-height:82vh;border-radius:8px}
-  .lightbox .cap{color:#cfe0dd;font-size:13px;text-align:center;max-width:600px}
-  .lightbox .x{position:absolute;top:calc(14px + env(safe-area-inset-top));right:16px;background:rgba(255,255,255,.15);color:#fff;border:0;width:46px;height:46px;border-radius:50%;font-size:24px}
+  .lightbox .cap{color:var(--lb-cap);font-size:13px;text-align:center;max-width:600px}
+  .lightbox .x{position:absolute;top:calc(14px + env(safe-area-inset-top));right:16px;background:rgba(255,255,255,.15);color:var(--lb-ink);border:0;width:46px;height:46px;border-radius:50%;font-size:24px}
   /* « ai- » : préfixe HISTORIQUE (première fenêtre = « Créer via IA ») devenu le préfixe GÉNÉRIQUE
      de toutes les modales (Compte, PDF, confirmations…) — ai-modal/ai-card/ai-x/ai-top/ai-actions.
      Ne pas y lire un lien avec l'IA ; renommer casserait sélecteurs CSS+JS pour un gain nul. */
@@ -2404,7 +2429,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      (SPEC crise §3) : rouge système PLEIN (--critical-bd) + texte blanc, au lieu du contour rouge.
      Les boutons « Supprimer » de fin de formulaire et des zones sensibles restent en CONTOUR
      (règle SPEC gestion §3 : jamais plein hors confirmation finale). */
-  #confirmModal .btn.danger{background:var(--critical-bd);border-color:var(--critical-bd);color:#fff}
+  #confirmModal .btn.danger{background:var(--critical-bd);border-color:var(--critical-bd);color:var(--on-primary)}
   #confirmModal .btn.danger:hover{background:var(--critical-bd);border-color:var(--critical-bd);filter:brightness(1.06)}
   html[data-theme="dark"] #confirmModal .btn.danger{color:var(--bg)}
   .ai-card{background:var(--surface);border-radius:14px;max-width:720px;width:100%;margin:auto;padding:20px;box-shadow:var(--shadow)}
@@ -2880,7 +2905,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pdf-bar .ai-x{background:none;border:0;color:var(--ink-soft);font-size:24px;line-height:1;width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;border-radius:10px;flex:none}
   .pdf-bar .ai-x:hover{background:var(--surface-2);color:var(--ink)}
   .pdf-scroll{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px calc(10px + env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left))}
-  .pdf-page{position:relative;margin:0 auto 10px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.22)}
+  .pdf-page{position:relative;margin:0 auto 10px;background:var(--paper);box-shadow:0 1px 4px rgba(0,0,0,.22)}
   .pdf-page canvas{display:block;width:100%;height:100%}
   .pdf-msg{color:var(--ink-soft);text-align:center;padding:34px 16px;font-size:14px}
   /* Petit écran (v4.19.2, retour d'usage) : la barre passe sur DEUX rangées — titre + ✕ en
@@ -3049,7 +3074,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .read-grid{display:block!important;grid-template-columns:none!important;gap:0!important;max-width:none!important}
     .read-head h2{font-size:22px!important}   /* corps unique, ni 21 ni 24 selon l'écran */
   }
-  @media print{body{background:#fff}header.bar,#crisisBand,#cbTimers,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.sess-list,.notes-block,#readTopSeg,.ov-redo,.ovs-tgl,.flow-zoom{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}
+  @media print{body{background:var(--paper)}header.bar,#crisisBand,#cbTimers,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.sess-list,.notes-block,#readTopSeg,.ov-redo,.ovs-tgl,.flow-zoom{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}
     /* Un conteneur à défilement s'imprime TRONQUÉ : à l'impression le tableau se déploie. */
     .md-tw{overflow:visible;break-inside:avoid}.md-tbl{min-width:0;font-size:11px}.md-tbl tr{break-inside:avoid}
     .forget-strip{break-inside:avoid}
@@ -3072,6 +3097,15 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      d'étendre. */
   @media (forced-colors:active){
     .acct-dot,.cat-dot,.seg-pill{forced-color-adjust:none}
+  }
+  /* ===== prefers-contrast: more (v4.31.0, audit externe) =====
+     L'utilisateur demande explicitement PLUS de contraste : le texte secondaire passe à l'encre
+     pleine et les filets au gris de composant (3:1). La hiérarchie par l'encre s'aplatit — c'est
+     le choix de l'utilisateur, la graisse et la taille la portent seules. Déclaré en FIN de
+     feuille : à spécificité égale, il doit gagner sur les définitions de tokens des deux thèmes
+     (piège de cascade documenté). --soft reste décoratif (jamais du texte, règle v4.5). */
+  @media (prefers-contrast:more){
+    :root,html[data-theme="dark"]{--line:var(--line-strong);--ink-soft:var(--ink)}
   }
 </style>
 </head>
@@ -3347,7 +3381,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.30.0';
+const APP_VERSION='4.31.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -4961,8 +4995,12 @@ function storageState(o){
     short='Cet appareil seulement · '+used;
     tip='Sans compte, cet appareil contient votre SEULE copie ('+used+' / '+fmt(o.quota)+'), ici à l\'abri d\'un effacement automatique du navigateur. Connectez-vous pour la sauvegarder dans le cloud et y accéder depuis vos autres appareils.';
   }else{
-    main='<span class="pers-warn">'+uiIcon('warn',13)+' <b>Cet appareil seulement</b> · '+used+' · non protégé</span>';
-    short='<span class="pers-warn">'+uiIcon('warn',12)+' Cet appareil seulement</span> · '+used;
+    // v4.31.0 (audit externe) : registre NEUTRE — un état PERMANENT en ambre s'use (banner
+    // blindness) et émousse l'ambre des états réellement actionnables (« presque plein »,
+    // documents PDF manquants). L'information reste entière : le mot « non protégé » + la
+    // bulle d'aide disent le risque ; l'ambre est réservé à ce qui appelle un geste MAINTENANT.
+    main='<b>Cet appareil seulement</b> · '+used+' · non protégé';
+    short='Cet appareil seulement · '+used;
     tip='Sans compte, cet appareil contient votre SEULE copie ('+used+' / '+fmt(o.quota)+') et le navigateur pourrait l\'effacer. Pour éviter toute perte : connectez-vous (sauvegarde dans le cloud) ou installez l\'app sur l\'écran d\'accueil.';
   }
   // « presque plein » : variante LONGUE seulement (le pied de lecture reste court et non alarmant).
@@ -7910,7 +7948,7 @@ function ovInstHtml(f,id,idx,topo,pres){
   const verifying=state.ovVerify&&state.ovVerify.idx===idx;
   const btns=verifying
     ?`<button type="button" class="ov-redo" data-ovvx title="Quitter la vérification — l'état des cases est déjà enregistré">✕</button>`
-    :((tip&&hasFlow(f)?`<button type="button" class="ov-redo" data-ovreader title="Mode lecteur (binôme) : un challenge à la fois en plein écran — le lecteur lit, l'exécutant répond">Lecteur</button>`:'')
+    :((tip&&hasFlow(f)?`<button type="button" class="ov-redo" data-ovreader title="Mode lecteur (binôme) : un challenge à la fois en plein écran — le lecteur lit, l'exécutant répond"><span aria-hidden="true">⤢</span> Lecteur</button>`:'')
       +((!dec&&clean(b.steps).length)?`<button type="button" class="ov-redo" data-ovverify="${idx}" title="Do-Verify : redérouler ce bloc en challenge-réponse — « Constaté » coche, « Écart » laisse non coché">Vérifier</button>`:'')
       +((!tip&&complete&&!dec)?`<button type="button" class="ov-redo" data-ovredo="${esc(id)}" title="Refaire ce bloc : nouvelle carte au bout du journal — celle-ci reste telle quelle">↺ Refaire</button>`:''));
   return `<section class="ov-block${tip?' cur':''}${complete?' done':''}${dec?' dec':''}${closed&&!verifying?' closed':''}" data-ovb="${esc(id)}" data-ovi="${idx}" data-ovn="${topo[id]||''}"${tip?' aria-current="step"':''}><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="${idx}" aria-expanded="${closed&&!verifying?'false':'true'}"><span class="ov-n" aria-hidden="true">${complete?uiIcon('check',13,{sw:3.2,cls:''}):(topo[id]||((Runtime.cxBack||{})[seq]?'⚡':'·'))}</span><span class="ov-t">${esc(b.title)||(dec?'Décision':'Étapes')}${passTag}${cxTag}${takenH} <span class="ov-here">Vous êtes ici</span></span><span class="ov-c">${count}</span><span class="ov-chev" aria-hidden="true">${closed&&!verifying?'▾':'▴'}</span></button>${btns?`<div class="ov-acts">${btns}</div>`:''}</div><div class="ov-body">${bodyH}</div></section>`;}
@@ -9111,7 +9149,7 @@ async function purgeDraftAtts(){const ids=draftNewAtts;draftNewAtts=[];
 function targetSelect(blocks,selfId,value){const opts=blocks.filter(b=>b.id!==selfId).map(b=>`<option value="${b.id}" ${b.id===value?'selected':''}>${esc(b.title)||'(bloc sans titre)'}</option>`).join('');return `<select data-target><option value="" ${!value?'selected':''}>— Fin / aucun —</option>${opts}</select>`;}
 function imageEditor(b){return `<div class="sub">Image du bloc (option)</div><div class="imgrow">${b.image?`<img src="${b.image}" alt=""><button class="btn sm danger" data-bimgdel>Retirer</button>`:`<button class="btn sm" data-bimg>+ Image / capture</button>`}</div>`;}
 function blockEditor(b,blocks){if(b.type==='decision'){return `<div class="blk" data-bid="${b.id}"><div class="blk-top"><span class="blk-type decision">Décision</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Réévaluation)"></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Question</div><input type="text" data-bf="question" value="${esc(b.question)}" placeholder="ex. Réponse à l'adrénaline ?" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)"><div class="sub">Réponses → bloc cible</div>${(b.options.length?b.options:[{label:'',target:''}]).map((o,i)=>`<div class="optedit" data-oi="${i}"><input type="text" data-of="label" value="${esc(o.label)}" placeholder="ex. Oui">${targetSelect(blocks,b.id,o.target)}<button class="mini del" data-rmopt="${i}" aria-label="Supprimer la réponse">×</button></div>`).join('')}<button class="add-line" data-addopt>+ Ajouter une réponse</button>${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="mini" data-bmv="up" aria-label="Monter le bloc">↑</button><button class="mini" data-bmv="down" aria-label="Descendre le bloc">↓</button><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
-  return `<div class="blk" data-bid="${b.id}"><div class="blk-top"><span class="blk-type steps">Étapes</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Mesures immédiates)"></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Étapes (cochables en mode crise)</div><div class="crit-guide"><b class="cg-r">${uiIcon('warn',11)} Rouge</b> : ce qui tue si on l'oublie (memory item, geste vital). <b class="cg-a">△ Ambre</b> : là où l'on risque de se tromper (dose/dilution à vérifier avant injection, contre-indication à écarter, confusion voie/site/produit, seuil à contrôler avant de poursuivre). Les deux → rouge. <b>Réponse attendue</b> : « challenge :: réponse » (ex. « Adrénaline IM :: 0,01 mg/kg — max 0,5 mg ») — la réponse devient la pilule à confirmer en lecture (challenge-response).</div>${(b.steps.length?b.steps:['']).map((s,i)=>`<div class="li${stepIsCrit(s)?' li-crit':(stepIsVigil(s)?' li-vigil':'')}" data-si="${i}"><span class="li-num">${String(i+1).padStart(2,'0')}</span><input type="text" data-sf value="${esc(stepText(s))}" placeholder="…"><button class="mini crit-tgl${stepIsCrit(s)?' on':(stepIsVigil(s)?' vig':'')}" data-crit="${i}" title="${stepIsCrit(s)?'Étape CRITIQUE (rouge : ce qui tue si oublié) — toucher : vigilance (ambre)':(stepIsVigil(s)?'Étape VIGILANCE (ambre : risque d’erreur — dose, voie, seuil) — toucher : étape normale':'Étape normale — toucher : critique (rouge : ce qui tue si oublié)')}">${stepIsVigil(s)?'△':uiIcon('warn',14)}</button><button class="mini" data-smv="up" data-si="${i}" aria-label="Monter">↑</button><button class="mini" data-smv="down" data-si="${i}" aria-label="Descendre">↓</button><button class="mini del" data-rmstep="${i}" aria-label="Supprimer l'étape">×</button></div>`).join('')}<p class="nf-guard" data-stepguard role="status">${stepGuardTxt(b.steps)}</p><button class="add-line" data-addstep>+ Ajouter une étape</button><div class="sub">Étape suivante</div>${targetSelect(blocks,b.id,b.next)}${b.next?`<input type="text" data-bnextlbl value="${esc(b.nextLbl||'')}" maxlength="120" placeholder="Libellé du bouton Continuer (ex. réévaluation à 5 min)" style="margin-top:6px">`:''}${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="mini" data-bmv="up" aria-label="Monter le bloc">↑</button><button class="mini" data-bmv="down" aria-label="Descendre le bloc">↓</button><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
+  return `<div class="blk" data-bid="${b.id}"><div class="blk-top"><span class="blk-type steps">Étapes</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Mesures immédiates)"></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Étapes (cochables en mode crise)</div><details class="crit-guide"${(()=>{try{return localStorage.getItem('ac-cg-folded')?'':' open';}catch(e){return ' open';}})()}><summary>${uiIcon('warn',11)} Rouge, △ ambre, réponse attendue — règles d'usage</summary><b class="cg-r">${uiIcon('warn',11)} Rouge</b> : ce qui tue si on l'oublie (memory item, geste vital). <b class="cg-a">△ Ambre</b> : là où l'on risque de se tromper (dose/dilution à vérifier avant injection, contre-indication à écarter, confusion voie/site/produit, seuil à contrôler avant de poursuivre). Les deux → rouge. <b>Réponse attendue</b> : « challenge :: réponse » (ex. « Adrénaline IM :: 0,01 mg/kg — max 0,5 mg ») — la réponse devient la pilule à confirmer en lecture (challenge-response).</details>${(b.steps.length?b.steps:['']).map((s,i)=>`<div class="li${stepIsCrit(s)?' li-crit':(stepIsVigil(s)?' li-vigil':'')}" data-si="${i}"><span class="li-num">${String(i+1).padStart(2,'0')}</span><input type="text" data-sf value="${esc(stepText(s))}" placeholder="…"><button class="mini crit-tgl${stepIsCrit(s)?' on':(stepIsVigil(s)?' vig':'')}" data-crit="${i}" title="${stepIsCrit(s)?'Étape CRITIQUE (rouge : ce qui tue si oublié) — toucher : vigilance (ambre)':(stepIsVigil(s)?'Étape VIGILANCE (ambre : risque d’erreur — dose, voie, seuil) — toucher : étape normale':'Étape normale — toucher : critique (rouge : ce qui tue si oublié)')}">${stepIsVigil(s)?'△':uiIcon('warn',14)}</button><button class="mini" data-smv="up" data-si="${i}" aria-label="Monter">↑</button><button class="mini" data-smv="down" data-si="${i}" aria-label="Descendre">↓</button><button class="mini del" data-rmstep="${i}" aria-label="Supprimer l'étape">×</button></div>`).join('')}<p class="nf-guard" data-stepguard role="status">${stepGuardTxt(b.steps)}</p><button class="add-line" data-addstep>+ Ajouter une étape</button><div class="sub">Étape suivante</div>${targetSelect(blocks,b.id,b.next)}${b.next?`<input type="text" data-bnextlbl value="${esc(b.nextLbl||'')}" maxlength="120" placeholder="Libellé du bouton Continuer (ex. réévaluation à 5 min)" style="margin-top:6px">`:''}${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="mini" data-bmv="up" aria-label="Monter le bloc">↑</button><button class="mini" data-bmv="down" aria-label="Descendre le bloc">↓</button><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
 /* Éditeur des COMPLICATIONS (v4.26.0) : libellé de l'ÉVÉNEMENT + cible. La cible est soit un
    bloc de CETTE fiche (le sélecteur liste les blocs en premier), soit une AUTRE aide ou un
    protocole (demande utilisateur : « une complication peut ouvrir une nouvelle aide cognitive ») —
@@ -11952,6 +11990,29 @@ document.addEventListener('focusout',e=>{if(!_kbText(e.relatedTarget))document.b
    scrollRestoration='manual' : les deux entrées partagent le même document, laisser le moteur
    « restaurer » un défilement entre elles ferait sauter la page (doctrine : le seul mouvement
    est le geste). */
+/* ===== Guide rouge/ambre de l'éditeur : repli PERSISTANT (v4.31.0, audit externe) =====
+   'toggle' ne bulle pas -> écoute en CAPTURE. Le choix de l'utilisateur survit aux re-rendus de
+   l'éditeur (le markup relit la clé) et aux sessions. */
+document.addEventListener('toggle',e=>{
+  const d=e.target;
+  if(d&&d.matches&&d.matches('details.crit-guide')){try{localStorage.setItem('ac-cg-folded',d.open?'':'1');}catch(_){}}
+},true);
+
+/* ===== Raccourci clavier vers la recherche (v4.31.0, audit externe) =====
+   « / » ou Cmd/Ctrl+K focalisent la recherche de l'accueil — convention 2026 (palette ⌘K).
+   Inerte quand on tape déjà dans un champ, quand une fenêtre est ouverte, ou hors accueil
+   (la recherche n'existe que là — SPEC §5 : recherche FIXE de l'accueil). */
+document.addEventListener('keydown',e=>{
+  const k=(e.key==='/'&&!e.metaKey&&!e.ctrlKey&&!e.altKey)||((e.metaKey||e.ctrlKey)&&!e.altKey&&(e.key==='k'||e.key==='K'));
+  if(!k)return;
+  const t=e.target;
+  if(t&&t.matches&&t.matches('input,textarea,select,[contenteditable]'))return;
+  if(_topModal())return;
+  const q=document.getElementById('q');
+  if(!q||q.offsetParent===null)return;
+  e.preventDefault();q.focus();q.select();
+});
+
 try{history.scrollRestoration='manual';}catch(e){}
 // Une sentinelle SURVIVANTE d'un rechargement (même document, entrée conservée) redevient une
 // entrée ordinaire — sinon le premier retour tombait dessus, était lu comme un geste « avant »
