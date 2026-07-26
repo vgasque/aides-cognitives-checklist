@@ -14,6 +14,70 @@ vitale, sous stress : clarté et robustesse priment.
 > test hors-ligne complet (mode avion, PDF 50+ pages, iPhone). **Aucune autre dépendance runtime
 > n'est autorisée** ; tout nouveau fichier servi doit être ajouté à `ASSETS` (`sw.js`).
 
+## Si vous ne lisez qu'une chose
+
+Quatorze règles qui ne se négocient pas. Le reste de ce fichier les explique et les étend ; **aucune
+ne s'apprend en lisant le code** — elles viennent d'incidents mesurés, et plusieurs ont déjà été
+« corrigées » par erreur faute d'être lues.
+
+1. **Publier** = `./release.sh X.Y.Z`, puis rédiger le `CHANGELOG`, puis committer avec de vraies
+   notes et taguer. Ne JAMAIS éditer les numéros de version à la main (un décalage entre
+   `APP_VERSION` et `CACHE` casse la mise à jour du service worker). **Jamais de `git push` sans
+   demande explicite.**
+2. **Avant chaque commit** : `npm run check` (syntaxe · couleurs · classes émises · hashs CSP) et
+   `npm test` (Chromium **et** WebKit). Si le CSS a changé : `npm run design:build`.
+3. **Toute édition du script inline exige `node scripts/csp-hashes.mjs`.** Sans cela, la CSP par
+   hashs bloque le seul script de l'application et **elle ne démarre plus**. Le piège s'est produit
+   trois fois ; `npm run check` le détecte désormais.
+4. **`esc()` sur toute donnée affichée.** C'est la SEULE barrière anti-XSS (la CSP monofichier
+   impose `'unsafe-inline'` pour les styles). Ne jamais interpoler une valeur externe brute dans un
+   attribut ou un `style=` : couleur → `safeColor()`, image → `safeImg()`, identifiant → `esc()`.
+5. **Toute donnée entrante passe par `migrate()` / `sanitizeCats()`** — chargement, import, ZIP,
+   duplication ET pull cloud. N'ajoutez jamais un chemin qui contourne ces points d'entrée.
+6. **Tout identifiant servant de CLÉ d'objet passe par `safeId()`** (`__proto__` banni) et les
+   tables temporaires par `Object.create(null)` : sinon, pollution de prototype.
+7. **Aucune couleur littérale hors déclaration de token** (`--…`). Vérifié par
+   `scripts/check-colors.mjs`.
+8. **Les registres ne se mélangent pas** : `--critical` rouge = ce qui TUE si on l'oublie ;
+   `--verify` ambre = là où l'on risque de SE TROMPER (dose, dilution, seuil) ; `--ok` vert =
+   confirmation. Une couleur n'est JAMAIS seule : toujours un glyphe et un mot.
+9. **Plancher typographique 11 px, partout.** Cibles tactiles ≥ 44 px dans le mode crise (halo
+   `::after` admis pour ne pas épaissir la zone haute), ≥ 32 px ailleurs. Champs ≥ 16 px sur écran
+   tactile (sous 16 px, Safari iOS zoome au focus et les taps se perdent).
+10. **Toute hauteur relative à la fenêtre s'écrit `calc(100dvh / var(--zf,1))`.** Le réglage de
+    taille du texte est un `zoom` sur `<html>` : un `vh` nu se fait agrandir par lui et le bas de
+    l'écran devient inatteignable. Idem pour toute mesure JS réinjectée : diviser par `zoomF()`.
+11. **Le mode crise n'est jamais interrompu** : aucune modale, aucune synchro intrusive, aucun
+    défilement automatique, aucune notification flottante. Une alarme s'annonce sur place.
+12. **Ne jamais supprimer un champ du modèle** fiche / catégorie / protocole : un export v3 doit
+    rester lisible par un client antérieur.
+13. **Aucune dépendance runtime**, à l'unique exception de pdf.js vendorisé (chargé paresseusement,
+    précaché). Tout fichier servi doit entrer dans `ASSETS` (`sw.js`).
+14. **Une suppression de composant se VÉRIFIE au grep** (zéro émission hors CSS) et emporte son CSS,
+    ses commentaires et la doc qui le cite. Une purge à moitié faite est pire qu'aucune purge : la
+    doctrine affirme alors un nettoyage qui n'a pas eu lieu — c'est arrivé en v4.25.0, et le CSS
+    d'une classe encore ÉMISE (`.pl-stp`) est parti avec, faisant disparaître le registre ⚠ d'une
+    étape vitale pendant six versions.
+
+## Où trouver quoi
+
+Ce fichier est dense à dessein — chaque règle porte la trace de ce qui l'a motivée. Les intitulés
+en gras de « Conventions de code » sont ses vraies entrées ; voici la carte, par sujet :
+
+| Sujet | Chercher les intitulés |
+|---|---|
+| **Couleur, registres, accents** | Design tokens · Taxonomie des notices · Couleur dans le contenu rédigé · Saillance & registres · Couleur d'accent · Code couleur des catégories |
+| **Étapes, statuts, contenu clinique** | Statuts, code, étapes critiques · Liseré gauche 4 px · Taille des images · Listes cochables · Marqueur d'étape hors du champ · Liens « Voir aussi » |
+| **Mode crise — parcours et vues** | Parcours de soin · Journal de parcours · Plan de l'aide · PLAN = UNE SEULE VUE · Mode statique · Challenge-response · COMPLICATIONS · MODE EXERCICE · Alarme de minuteur · Dialogue « Terminer la session ? » · PORTÉE D'UNE ACTION DE REPRISE |
+| **Chrome, navigation, géométrie** | En-têtes V5 · ZONE HAUTE DE CRISE · DEUX RANGÉES COLLANTES · RAIL DE LECTURE · ANCRAGE ET DÉFILEMENT · DÉFILEMENT PRÉSERVÉ · HAUTEURS RELATIVES À LA FENÊTRE · Largeurs & échelles fermées · PILE DE RETOUR · RETOUR SYSTÈME · Sélecteur segmenté · Repli de l'étape ① · LOGO DE MARQUE · Pieds de page · Indicateur de mode des éditeurs · Interactif |
+| **Consultation et références** | FEUILLE « CONSULTER » · FEUILLE CONSULTER = UN DOCUMENT · REPÈRES POSOLOGIQUES · SORTIE PDF UNIFIÉE |
+| **Données, stockage, sécurité** | Documents PDF · Export/import « avec documents » · Nommage SQL · (et les points 4 à 6 ci-dessus) |
+| **Leçons de maintenance** | Collision de noms de classe · Hygiène de suppression |
+
+Les deux autres sections : **Périmètre réglementaire** (statut non-dispositif-médical — à consulter
+AVANT toute fonctionnalité produisant une sortie individualisée) et **Se repérer dans `index.html`**
+(carte du monofichier, avec la commande qui en donne l'index exact).
+
 ## Règle de publication (IMPÉRATIF)
 Publier une version = trois étapes, dans cet ordre :
 
@@ -25,6 +89,9 @@ Publier une version = trois étapes, dans cet ordre :
    `vX.Y.Z : <résumé en français des changements>` — puis taguer `vX.Y.Z`.
 
 Les étapes 2 et 3 sont le travail de l'IA (ou de l'humain), jamais du script.
+**Le CHANGELOG garde les 20 dernières versions** ; au-delà, déplacer les plus anciennes
+dans `CHANGELOG-archive.md` — telles quelles, sans réécriture. La règle existait et n'avait servi
+qu'une fois en 112 entrées : le fichier pesait alors 221 Ko, la moitié de toute la documentation.
 Versionnage sémantique : correctif → patch (Z), nouvelle fonctionnalité → mineure (Y).
 Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
 

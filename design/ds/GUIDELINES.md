@@ -1,4 +1,4 @@
-# Aides cognitives — Lignes directrices du design (v4.22)
+# Aides cognitives — Lignes directrices du design (v4.34)
 
 PWA médicale monofichier, utilisée **en urgence vitale, sous stress** : la clarté et la
 robustesse priment sur toute considération esthétique. Tout choix de design se juge à
@@ -186,12 +186,17 @@ qu'UNE fois. Sa numérotation est **COMMUNE** à toutes les vues (journal, chips
   les mots cliniques lettre à lettre).
 - **Rail de branche 3 px** : bleu = prise, pointillé estompé + « hors chemin » = écartée.
   La couleur n'est jamais seule. Branche hors chemin auto-repliée, jamais bloquant.
-- **Trois affichages** (ordre ECAM E/WD → SD : l'ACTION d'abord, la structure en annexe) :
-  **Détails** (organigramme), **Échelle** (une ligne par bloc), **Schéma** (le SVG spatial).
-- **Fil d'ancêtres sticky** : les cartes-questions RÉELLES s'épinglent sous l'en-tête —
-  aucune copie synthétique, aucun mouvement autonome (tout mouvement est le geste de
-  défilement). Chaque niveau se replie derrière son ancêtre au décrochage (modèle ECL :
-  une sous-procédure terminée se referme dans sa procédure mère).
+- **UNE SEULE VUE depuis v4.25.0, l'Échelle** (une ligne par bloc, retraits de profondeur avec
+  chips d'étiquette, renvois mono abrégés). « Détails » — l'organigramme — était la seule des trois
+  à RECOPIER les étapes : elle rejouait la vue d'action au lieu de montrer autre chose, ce qu'un SD
+  ECAM ne fait jamais. Le Schéma a rejoint le menu ⋯, en plein écran avec zoom.
+- **Le fil d'ancêtres sticky est mort avec elle** — il n'existait que pour ses cartes-questions, et
+  l'Échelle n'a pas d'ancêtres à épingler. Son idée SURVIT ailleurs et en mieux : en mode STATIQUE
+  sur petit écran (v4.32.0), les bandes-questions RÉELLES s'épinglent, chaque niveau imbriqué se
+  rangeant sous son ancêtre, avec le même z-ordre décroissant (modèle ECL : une sous-procédure
+  terminée se referme dans sa procédure mère). Différence décisive : une seule mesure par rendu au
+  lieu d'un recalcul à chaque événement de défilement — la hauteur n'est pas forcée, car compacter
+  à une ligne tronquerait une question longue, et la question EST l'information.
 
 ## Mode statique — le tableau (v4.13.0 / v4.14.0)
 
@@ -260,7 +265,11 @@ Le mouvement est un signal, pas une décoration. En situation de soin :
 - **Minimaps** (v4.17.0) : la bande de chips-blocs de l'en-tête et le panneau « Algorithme —
   position » du rail droit sont supprimés — redondants depuis que le fil condensé et le plan
   portent la numérotation commune, l'état par bloc et le saut vers un bloc.
-- **Panneau « Algorithme » avant le journal** (v4.18.0) : le SVG est devenu le 3ᵉ affichage du
-  plan ; il ne subsiste en tête que pour les fiches SANS algorithme.
+- **Panneau « Algorithme » avant le journal** (v4.18.0) : le SVG est devenu un affichage du plan,
+  puis (v4.25.0) une entrée du menu ⋯ en plein écran ; il ne subsiste en tête que pour les fiches
+  SANS algorithme.
+- **Vue « Détails » du plan** (v4.25.0) : supprimée — voir ci-dessus. Son CSS orphelin et ses
+  vestiges JS n'ont été purgés qu'en v4.32.0 : une suppression annoncée doit être VÉRIFIÉE au grep,
+  faute de quoi la doctrine affirme un nettoyage qui n'a pas eu lieu.
 - **Bulles d'ancêtres synthétiques** du plan (v4.22.1) : remplacées par l'épinglage des cartes
   RÉELLES — quatre itérations ont montré qu'une copie flottante coûte plus qu'elle ne rend.

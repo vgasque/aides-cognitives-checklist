@@ -4,7 +4,7 @@
 //   node scripts/build-favicons.mjs
 //
 // Produit à la racine : favicon.svg, favicon.ico (16+32+48), favicon-16.png, favicon-32.png.
-// Ces quatre fichiers sont servis et listés dans `ASSETS` (sw.js) — cf. `design/icons/README.md`.
+// Ces quatre fichiers sont servis et listés dans `ASSETS` (sw.js) — cf. `design/README.md` (§ 2).
 //
 // POURQUOI un script plutôt qu'un export à la main (leçon v4.22.2 → v4.22.4) :
 //   1. Un favicon doit être servi à la TAILLE NATIVE de son emplacement. Servir un PNG de 192 px
