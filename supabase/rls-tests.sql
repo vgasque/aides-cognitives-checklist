@@ -28,9 +28,24 @@ declare
   erin  uuid := '55555555-5555-5555-5555-555555555555';
   frank uuid := '66666666-6666-6666-6666-666666666666';
   gina  uuid := '77777777-7777-7777-7777-777777777777';
+  -- Compte dédié au §14.10 : la suppression RGPD refuse un app-admin, et Alice en est un
+  -- depuis le §11. Réutiliser Alice faisait échouer le test sur « super-admin account cannot
+  -- be self-deleted » — un refus légitime, mais qui ne testait plus ce qu'on voulait tester.
+  ivan  uuid := '99999999-9999-9999-9999-999999999999';
   v_hack text;
   v_cnt  int;
   v_leak int;
+  v_tbl  text;
+  v_tbls text[];
+  v_list text;
+  -- Liste blanche des fonctions du schéma `public` que le rôle anon a le droit d'exécuter.
+  -- VIDE aujourd'hui, et c'est la posture du projet. À n'étendre qu'avec une justification
+  -- écrite dans schema.sql, jamais « pour faire passer le test ».
+  v_anon_fns_ok text[] := array['share_join','share_pull','share_push'];
+  v_j    jsonb;
+  v_j2   jsonb;
+  v_code text;
+  v_sec  text;
 begin
   ------------------------------------------------------------------ SEED (propriétaire)
   reset role;
@@ -617,27 +632,76 @@ begin
   select count(*) into v_cnt from public.user_status where user_id=gina and status='approved';
   if v_cnt <> 0 then raise exception 'ÉCHEC 13.4 : un compte s''est approuvé lui-même'; end if;
 
-  -- 13.5 LE RÔLE ANONYME NE LIT RIEN. La clé publishable est publiée en clair dans index.html :
-  -- anon est utilisable par quiconque contre l'API REST. La posture affichée du schéma est
-  -- « grants restrictifs PUIS RLS », mais anon n'était vérifié que contre storage.objects —
-  -- jamais contre les tables de contenu. Le refus attendu peut venir du grant (insufficient_
-  -- privilege) OU de la RLS (0 ligne) : les deux sont acceptables, une LECTURE ne l'est pas.
+  -- 13.5 LE RÔLE ANONYME N'A RIEN. La clé publishable est publiée en clair dans index.html :
+  -- anon est utilisable par quiconque contre l'API REST. C'est donc LE contrôle sur lequel repose
+  -- toute la confiance dans la posture du schéma.
+  --
+  -- REFONTE — ce contrôle était AVEUGLE À CE QU'IL PRÉTEND COUVRIR, deux fois :
+  --   (a) il énumérait SEPT tables NOMMÉES EN DUR. Toute table ajoutée ensuite échappait au
+  --       balayage, et le script continuait d'afficher « ✅ TOUS LES TESTS RLS PASSENT » — le vert
+  --       était exactement le même qu'avant, personne n'aurait vu la différence ;
+  --   (b) il ne testait AUCUNE FONCTION. Or la « prohibition » du schéma ne portait pas sur le
+  --       pseudo-rôle PUBLIC, à qui PostgreSQL accorde EXECUTE par défaut sur toute fonction et
+  --       dont anon hérite : les fonctions étaient appelables sans compte, et ce test ne pouvait
+  --       pas le voir (correctif : schema.sql § 5quater).
+  -- On passe donc d'assertions ÉNUMÉRATIVES à des assertions de CATALOGUE : elles ne peuvent plus
+  -- prendre de retard sur le schéma, et une table ou une fonction ajoutée demain est couverte
+  -- d'office. (Leçon v4.31.1 / v4.44.1 : un contrôle qui ne peut pas échouer ne prouve rien.)
+
+  -- 13.5a AUCUN grant de table pour anon, quelle que soit la table.
+  -- Casts EXPLICITES vers text : les colonnes d'information_schema sont des domaines
+  -- (`sql_identifier` sur `name`) et `pg_proc.proname` est de type `name` ; s'en remettre à la
+  -- coercition implicite pour résoudre `||` et `string_agg` marche, mais dépend de la version.
+  select string_agg(distinct table_name::text || '(' || privilege_type::text || ')', ', ')
+    into v_list
+    from information_schema.role_table_grants
+   where grantee = 'anon' and table_schema = 'public';
+  if v_list is not null then
+    raise exception 'ÉCHEC 13.5a : anon détient des privilèges de table -> %', v_list; end if;
+
+  -- 13.5b Les fonctions exécutables par anon sont EXACTEMENT la liste blanche (vide par défaut).
+  -- `has_function_privilege` tient compte de l'héritage depuis PUBLIC : c'est précisément ce que
+  -- le `revoke ... from anon` seul ne voyait pas.
+  select string_agg(p.proname::text, ', ' order by p.proname) into v_list
+    from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+   where n.nspname = 'public'
+     and has_function_privilege('anon', p.oid, 'execute')
+     and not (p.proname::text = any (v_anon_fns_ok));
+  if v_list is not null then
+    raise exception 'ÉCHEC 13.5b : anon peut exécuter des fonctions hors liste blanche -> %', v_list; end if;
+
+  -- 13.5c BALAYAGE EXHAUSTIF ET DYNAMIQUE de toutes les tables du schéma : le refus peut venir du
+  -- grant (insufficient_privilege) OU de la RLS (0 ligne) — les deux conviennent, une LECTURE non.
+  -- LA LISTE SE CONSTRUIT AVANT LE CHANGEMENT DE RÔLE, et c'est le point à ne pas rater :
+  -- `information_schema.tables` ne montre à un rôle que les tables sur lesquelles il a un
+  -- privilège. Énumérée SOUS anon — qui n'en a aucun — elle serait VIDE, la boucle ne tournerait
+  -- pas, et le test passerait au vert sans avoir rien balayé. Encore le même piège.
+  select array_agg(table_name::text order by table_name) into v_tbls
+    from information_schema.tables
+   where table_schema = 'public' and table_type = 'BASE TABLE';
+  if v_tbls is null or array_length(v_tbls,1) < 5 then
+    raise exception 'ÉCHEC 13.5c : liste de tables invraisemblable (%) — balayage non probant',
+      coalesce(array_length(v_tbls,1),0); end if;
   perform set_config('request.jwt.claims', json_build_object('role','anon')::text, true);
   set local role anon;
-  begin select count(*) into v_leak from public.fiches;         exception when insufficient_privilege then v_leak := 0; end;
-  if v_leak <> 0 then raise exception 'ÉCHEC 13.5 : anon lit public.fiches (% lignes)', v_leak; end if;
-  begin select count(*) into v_leak from public.protocols;      exception when insufficient_privilege then v_leak := 0; end;
-  if v_leak <> 0 then raise exception 'ÉCHEC 13.5 : anon lit public.protocols'; end if;
-  begin select count(*) into v_leak from public.category_sets;  exception when insufficient_privilege then v_leak := 0; end;
-  if v_leak <> 0 then raise exception 'ÉCHEC 13.5 : anon lit public.category_sets'; end if;
-  begin select count(*) into v_leak from public.fiche_notes;    exception when insufficient_privilege then v_leak := 0; end;
-  if v_leak <> 0 then raise exception 'ÉCHEC 13.5 : anon lit public.fiche_notes'; end if;
-  begin select count(*) into v_leak from public.memberships;    exception when insufficient_privilege then v_leak := 0; end;
-  if v_leak <> 0 then raise exception 'ÉCHEC 13.5 : anon lit public.memberships'; end if;
-  begin select count(*) into v_leak from public.libraries;      exception when insufficient_privilege then v_leak := 0; end;
-  if v_leak <> 0 then raise exception 'ÉCHEC 13.5 : anon lit public.libraries'; end if;
-  begin select count(*) into v_leak from public.user_status;    exception when insufficient_privilege then v_leak := 0; end;
-  if v_leak <> 0 then raise exception 'ÉCHEC 13.5 : anon lit public.user_status'; end if;
+  foreach v_tbl in array v_tbls
+  loop
+    begin
+      execute format('select count(*) from public.%I', v_tbl) into v_leak;
+    exception when insufficient_privilege then v_leak := 0; end;
+    if v_leak <> 0 then
+      raise exception 'ÉCHEC 13.5c : anon lit public.% (% lignes)', v_tbl, v_leak; end if;
+  end loop;
+
+  -- 13.5d is_approved() ne doit JAMAIS être vraie sans compte : c'est le prédicat sur lequel
+  -- s'appuient les politiques de l'espace perso, et un futur garde-fou écrit avec lui doit tenir.
+  begin
+    if public.is_approved() then
+      raise exception 'ÉCHEC 13.5d : is_approved() est VRAIE pour anon'; end if;
+    if public.my_status() is not null then
+      raise exception 'ÉCHEC 13.5d : my_status() répond « % » à anon', public.my_status(); end if;
+  exception when insufficient_privilege then null;   -- refus par le grant : parfait aussi
+  end;
   reset role;
 
   -- 13.6 invite_member EXIGE un e-mail vérifié (correctif v4.34.0). Un compte créé par la simple
@@ -659,6 +723,211 @@ begin
   reset role;
   if v_hack is distinct from 'not_found' then
     raise exception 'ÉCHEC 13.6 : un compte à l''e-mail NON vérifié a été invité (retour %)', coalesce(v_hack,'NULL'); end if;
+
+  ------------------------------------------------------------------ 14. PARTAGE DE SESSION
+  -- Première surface NON AUTHENTIFIÉE du projet : c'est la section qui compte le plus. Chaque
+  -- test correspond à une faille identifiée AVANT l'écriture du schéma, et vérifie qu'elle est
+  -- bien fermée — pas que la fonctionnalité « marche ».
+  reset role;
+  insert into auth.users(id,email) values (alice,'alice@test.local') on conflict (id) do nothing;
+
+  -- 14.1 Un compte NON APPROUVÉ ne peut pas ouvrir un partage (le partage ne doit pas devenir un
+  -- contournement du gate d'approbation).
+  insert into public.user_status(user_id,email,status) values (gina,'gina@test.local','pending')
+    on conflict (user_id) do update set status='pending';
+  update public.app_settings set require_approval = true where id;
+  perform set_config('request.jwt.claims', json_build_object('sub',gina,'role','authenticated')::text, true);
+  set local role authenticated;
+  v_j := public.share_open('sh-ko','s1','f1','{"title":"T"}'::jsonb,'scribe',60);
+  if (v_j->>'ok')::boolean then raise exception 'ÉCHEC 14.1 : un compte pending a ouvert un partage'; end if;
+  reset role;
+  update public.app_settings set require_approval = false where id;
+
+  -- 14.2 Ouverture nominale par Alice (approuvée) : code renvoyé, ligne d'hôte créée.
+  perform set_config('request.jwt.claims', json_build_object('sub',alice,'role','authenticated')::text, true);
+  set local role authenticated;
+  v_j := public.share_open('sh-1','sess-1','fic-1','{"title":"ACR"}'::jsonb,'scribe',60);
+  reset role;
+  if not (v_j->>'ok')::boolean then raise exception 'ÉCHEC 14.2 : ouverture refusée (%)', v_j->>'err'; end if;
+  v_code := v_j->>'code';
+  if length(v_code) <> 8 then raise exception 'ÉCHEC 14.2 : code de longueur % au lieu de 8', length(v_code); end if;
+  select count(*) into v_cnt from public.session_participants where share_id='sh-1' and is_owner;
+  if v_cnt <> 1 then raise exception 'ÉCHEC 14.2 : ligne d''hôte absente'; end if;
+
+  -- 14.3 Un INVITÉ SANS COMPTE rejoint avec le code, et reçoit un secret. C'est le cœur du besoin.
+  perform set_config('request.jwt.claims', json_build_object('role','anon')::text, true);
+  set local role anon;
+  v_j := public.share_join(v_code, 'IDE');
+  if not (v_j->>'ok')::boolean then raise exception 'ÉCHEC 14.3 : jointure anon refusée (%)', v_j->>'err'; end if;
+  v_sec := v_j->>'secret';
+  if v_sec is null or length(v_sec) < 16 then raise exception 'ÉCHEC 14.3 : secret absent ou trop court'; end if;
+  if v_j->'fiche'->>'title' is distinct from 'ACR' then raise exception 'ÉCHEC 14.3 : instantané de fiche non transmis'; end if;
+
+  -- 14.4 LE CODE EST CONSOMMÉ. Un lien ou une capture qui circulerait ensuite n'ouvre plus rien —
+  -- c'est ce qui rend la coupure d'un invité effective plutôt que décorative.
+  v_j2 := public.share_join(v_code, 'Curieux');
+  if (v_j2->>'ok')::boolean then raise exception 'ÉCHEC 14.4 : le code a resservi après consommation'; end if;
+
+  -- 14.5 CAPACITÉS. Un scribe peut cocher ; il ne peut NI naviguer, NI arrêter un minuteur
+  -- (arrêt d'un processus vivant = registre critique), NI terminer la session.
+  v_j := public.share_push(v_sec, null, jsonb_build_array(
+           jsonb_build_object('event_id', gen_random_uuid(), 'kind','check',      'payload','{}'::jsonb),
+           jsonb_build_object('event_id', gen_random_uuid(), 'kind','nav',        'payload','{}'::jsonb),
+           jsonb_build_object('event_id', gen_random_uuid(), 'kind','timer_stop', 'payload','{}'::jsonb),
+           jsonb_build_object('event_id', gen_random_uuid(), 'kind','end',        'payload','{}'::jsonb)));
+  if not (v_j->>'ok')::boolean then raise exception 'ÉCHEC 14.5 : push refusé en bloc (%)', v_j->>'err'; end if;
+  if (v_j->>'accepted')::int <> 1 or (v_j->>'rejected')::int <> 3 then
+    raise exception 'ÉCHEC 14.5 : capacités du scribe non appliquées (accepté %, rejeté %)',
+      v_j->>'accepted', v_j->>'rejected'; end if;
+
+  -- 14.6 L'ACTEUR N'EST PAS FALSIFIABLE. Même en glissant un `actor` dans le payload, la ligne
+  -- écrite porte le participant DÉDUIT du secret. L'attribution est tout l'objet du contrôle que
+  -- l'hôte demande (« savoir ce qui a été modifié par l'invité ») : si elle se forge, il n'a rien.
+  v_j := public.share_push(v_sec, null, jsonb_build_array(jsonb_build_object(
+           'event_id', gen_random_uuid(), 'kind','mark',
+           'payload', jsonb_build_object('actor','00000000-0000-0000-0000-000000000000'))));
+  reset role;
+  select count(*) into v_cnt from public.session_events e
+    join public.session_participants p on p.share_id=e.share_id and p.participant=e.actor
+   where e.share_id='sh-1' and p.is_owner;
+  if v_cnt <> 0 then raise exception 'ÉCHEC 14.6 : un évènement d''invité est attribué à l''hôte'; end if;
+
+  -- 14.7 COUPURE. L'hôte coupe l'invité : la lecture doit DIRE « revoked », jamais se taire —
+  -- un invité qui prendrait la coupure pour une panne réseau continuerait de cocher dans le vide,
+  -- ce qui est le pire mode de défaillance du dispositif.
+  perform set_config('request.jwt.claims', json_build_object('sub',alice,'role','authenticated')::text, true);
+  set local role authenticated;
+  update public.session_participants set revoked_at = now()
+   where share_id='sh-1' and not is_owner;
+  reset role;
+  perform set_config('request.jwt.claims', json_build_object('role','anon')::text, true);
+  set local role anon;
+  v_j := public.share_pull(v_sec, null, 0);
+  if v_j->>'status' is distinct from 'revoked' then
+    raise exception 'ÉCHEC 14.7 : un invité coupé lit « % » au lieu de « revoked »', v_j->>'status'; end if;
+  v_j := public.share_push(v_sec, null, jsonb_build_array(jsonb_build_object(
+           'event_id', gen_random_uuid(), 'kind','check', 'payload','{}'::jsonb)));
+  if (v_j->>'ok')::boolean then raise exception 'ÉCHEC 14.7 : un invité coupé écrit encore'; end if;
+  if v_j->>'err' is distinct from 'revoked' then
+    raise exception 'ÉCHEC 14.7 : refus non motivé (%)', v_j->>'err'; end if;
+
+  -- 14.8 Un secret INCONNU n'ouvre rien, et un partage d'autrui reste invisible.
+  v_j := public.share_pull('secret-totalement-invente-mais-assez-long', null, 0);
+  if (v_j->>'ok')::boolean then raise exception 'ÉCHEC 14.8 : un secret inventé a été accepté'; end if;
+  v_j := public.share_pull(null, 'sh-1', 0);
+  if (v_j->>'ok')::boolean then raise exception 'ÉCHEC 14.8 : anon a lu un partage en le nommant'; end if;
+  reset role;
+
+  -- 14.8bis DÉTACHEMENT — « je continue seul », le repli hors dispositif quand le réseau ne
+  -- revient pas. Deux propriétés à garantir, et elles se testent ensemble :
+  --   (a) un lot qui porte un `detach` NE PORTE QUE LUI. Les actions relevées pendant la
+  --       désynchronisation ne doivent pas s'écrire sur la session vive de l'hôte, qui a avancé
+  --       entre-temps : ce serait un enregistrement faux. Elles restent la trace de la session
+  --       autonome de l'invité, sur son appareil ;
+  --   (b) le détachement est TERMINAL. Le même secret ne réécrit plus jamais — on ne se
+  --       re-synchronise pas en douce après dix minutes de divergence. Revenir exige une
+  --       NOUVELLE jointure, donc un geste de l'hôte : la porte se rouvre par devant.
+  reset role;
+  perform set_config('request.jwt.claims', json_build_object('sub',alice,'role','authenticated')::text, true);
+  set local role authenticated;
+  v_j := public.share_admit('sh-1', 120);
+  reset role;
+  if not (v_j->>'ok')::boolean then raise exception 'ÉCHEC 14.8bis : share_admit refusé'; end if;
+  v_code := v_j->>'code';
+  select count(*) into v_cnt from public.session_events where share_id='sh-1';   -- TÉMOIN, figé ici
+  perform set_config('request.jwt.claims', json_build_object('role','anon')::text, true);
+  set local role anon;
+  v_j  := public.share_join(v_code, 'Interne');
+  v_sec := v_j->>'secret';
+  if v_sec is null then raise exception 'ÉCHEC 14.8bis : seconde jointure refusée'; end if;
+
+  -- (a) Un lot portant un `detach` ne porte QUE lui.
+  v_j := public.share_push(v_sec, null, jsonb_build_array(
+           jsonb_build_object('event_id', gen_random_uuid(), 'kind','check',  'payload','{}'::jsonb),
+           jsonb_build_object('event_id', gen_random_uuid(), 'kind','mark',   'payload','{}'::jsonb),
+           jsonb_build_object('event_id', gen_random_uuid(), 'kind','detach', 'payload','{}'::jsonb)));
+  if (v_j->>'accepted')::int <> 1 then
+    raise exception 'ÉCHEC 14.8bis(a) : % évènements acceptés avec un detach dans le lot (attendu 1)',
+      v_j->>'accepted'; end if;
+  reset role;
+  select count(*) into v_leak from public.session_events where share_id='sh-1';
+  if v_leak <> v_cnt + 1 then
+    raise exception 'ÉCHEC 14.8bis(a) : % évènement(s) écrit(s) au lieu du seul detach', v_leak - v_cnt; end if;
+
+  -- (b) Son ÉTAT ne repasse plus : une coche est rejetée, et la lecture le dit en toutes lettres.
+  perform set_config('request.jwt.claims', json_build_object('role','anon')::text, true);
+  set local role anon;
+  v_j := public.share_push(v_sec, null, jsonb_build_array(jsonb_build_object(
+           'event_id', gen_random_uuid(), 'kind','check', 'payload','{}'::jsonb)));
+  if (v_j->>'accepted')::int <> 0 then
+    raise exception 'ÉCHEC 14.8bis(b) : un détaché a réécrit l''état (accepté %)', v_j->>'accepted'; end if;
+  v_j := public.share_pull(v_sec, null, 0);
+  if v_j->>'status' is distinct from 'detached' then
+    raise exception 'ÉCHEC 14.8bis(b) : la lecture d''un détaché dit « % »', v_j->>'status'; end if;
+
+  -- (c) …MAIS SON RELEVÉ REMONTE. C'est tout l'écart entre « ne pas fusionner » et « perdre » :
+  -- celui qui a poursuivi seul détient la trace d'une intervention réelle. Elle rejoint le
+  -- compte-rendu de l'hôte en ANNEXE attribuée et datée — jamais en écrasant son état.
+  v_j := public.share_push(v_sec, null, jsonb_build_array(jsonb_build_object(
+           'event_id', gen_random_uuid(), 'kind','offline_mark',
+           'ts', to_char(now() - interval '3 minutes', 'YYYY-MM-DD"T"HH24:MI:SSOF'),
+           'payload', jsonb_build_object('ref', jsonb_build_object('type','core','k','adre')))));
+  if (v_j->>'accepted')::int <> 1 then
+    raise exception 'ÉCHEC 14.8bis(c) : l''annexe d''un détaché est refusée (accepté %)',
+      v_j->>'accepted'; end if;
+  reset role;
+  select count(*) into v_leak from public.session_events where share_id='sh-1';
+  if v_leak <> v_cnt + 2 then
+    raise exception 'ÉCHEC 14.8bis(c) : total % au lieu de % (detach + annexe)', v_leak, v_cnt + 2; end if;
+  -- L'heure retenue est celle du GESTE, pas celle du retour du réseau — sans quoi le compte-rendu
+  -- rangerait une action de 14:32 après une action de 14:35.
+  select count(*) into v_leak from public.session_events
+   where share_id='sh-1' and kind='offline_mark' and client_ts < now() - interval '2 minutes';
+  if v_leak <> 1 then raise exception 'ÉCHEC 14.8bis(c) : l''annexe a perdu l''heure du geste'; end if;
+  select count(*) into v_leak from public.session_participants
+   where share_id='sh-1' and detached_at is not null;
+  if v_leak <> 1 then raise exception 'ÉCHEC 14.8bis : detached_at non posé (l''hôte ne saura pas)'; end if;
+
+  -- 14.9 PURGE AUTO-EXÉCUTOIRE : un partage expiré depuis plus de 30 min disparaît au premier
+  -- appel, sans ordonnanceur (l'hébergement est statique : personne ne lancerait une tâche).
+  perform set_config('request.jwt.claims', json_build_object('sub',alice,'role','authenticated')::text, true);
+  set local role authenticated;
+  v_j := public.share_open('sh-old','sess-old','fic-1','{"title":"Vieux"}'::jsonb,'scribe',60);
+  reset role;
+  update public.shared_sessions set expires_at = now() - interval '2 hours' where id='sh-old';
+  perform public.share_purge();
+  select count(*) into v_cnt from public.shared_sessions where id='sh-old';
+  if v_cnt <> 0 then raise exception 'ÉCHEC 14.9 : un partage expiré depuis 2 h a survécu à la purge'; end if;
+
+  -- 14.10 RGPD : la suppression de compte emporte les partages. Sans le `delete` explicite, soit
+  -- ils survivent, soit la violation de clé étrangère annule TOUTE la fonction — et le droit à
+  -- l'effacement disparaît pour quiconque a partagé une seule fois.
+  -- Compte DÉDIÉ (Ivan) : la fonction refuse à juste titre de supprimer un app-admin, et Alice
+  -- en est devenu un au §11. Au passage, ce bloc couvre le chemin HÔTE de `share_push` — un
+  -- propriétaire authentifié écrit sans secret, son identité venant du JWT.
+  reset role;
+  insert into auth.users(id,email) values (ivan,'ivan@test.local') on conflict (id) do nothing;
+  insert into public.user_status(user_id,email,status) values (ivan,'ivan@test.local','approved')
+    on conflict (user_id) do update set status='approved';
+  perform set_config('request.jwt.claims', json_build_object('sub',ivan,'role','authenticated')::text, true);
+  set local role authenticated;
+  v_j := public.share_open('sh-2','sess-2','fic-2','{"title":"Anaphylaxie"}'::jsonb,'scribe',60);
+  if not (v_j->>'ok')::boolean then raise exception 'ÉCHEC 14.10 : ouverture par Ivan refusée (%)', v_j->>'err'; end if;
+  -- L'hôte pousse SANS secret : `share_resolve` le reconnaît par son JWT. Et il a le rôle `lead`,
+  -- donc `nav` — interdit au scribe en 14.5 — doit passer ici.
+  v_j := public.share_push(null, 'sh-2', jsonb_build_array(
+           jsonb_build_object('event_id', gen_random_uuid(), 'kind','nav', 'payload','{}'::jsonb)));
+  if not (v_j->>'ok')::boolean or (v_j->>'accepted')::int <> 1 then
+    raise exception 'ÉCHEC 14.10 : l''hôte authentifié ne peut pas écrire (%, accepté %)',
+      v_j->>'err', v_j->>'accepted'; end if;
+  perform set_config('request.jwt.claims', json_build_object('sub',ivan,'role','authenticated',
+    'amr',json_build_array(json_build_object('method','otp','timestamp',extract(epoch from now())::bigint)))::text, true);
+  perform public.delete_my_account();
+  reset role;
+  select count(*) into v_cnt from public.shared_sessions where owner=ivan;
+  if v_cnt <> 0 then raise exception 'ÉCHEC 14.10 : des partages ont survécu à la suppression du compte'; end if;
+  select count(*) into v_cnt from public.session_events where share_id='sh-2';
+  if v_cnt <> 0 then raise exception 'ÉCHEC 14.10 : des évènements ont survécu (cascade absente)'; end if;
 
   ------------------------------------------------------------------ FIN
   reset role;

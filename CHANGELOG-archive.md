@@ -1,7 +1,291 @@
-# Journal des modifications — archive (versions 3.0.0 à 3.5.5)
+# Journal des modifications — archive (versions 3.0.0 à 4.29.8)
 
 > Entrées anciennes déplacées depuis [`CHANGELOG.md`](CHANGELOG.md) pour garder le journal
 > courant lisible. Même format (keep-a-changelog).
+
+## [4.29.8] — 2026-07-26
+### Diagnostic (bande basse iOS — instrumentation visuelle)
+- Le diag v4.29.7 sur appareil est PARFAIT (`vvV 874px · sc 1.00 · ot 0` — la variable effective
+  n'était même pas périmée) et la bande persiste, indépendante du défilement (confirmé
+  utilisateur ET par sonde : fond verrouillé après défilement, fenêtre au pixel sur les
+  3 moteurs). Toutes les hypothèses mesurables par des NOMBRES sont épuisées : les métriques
+  disent « parfait », l'écran dit « coupé ». **Règle visuelle** : toucher la ligne diag dessine
+  un calque ROUGE = la boîte que le CSS croit poser de `top:0` à `--vvh` (géométrie des
+  overlays, graduée tous les 100 px, bords pleins) et un trait BLEU = là où le CSS croit que
+  `bottom:0` se trouve. Une capture d'écran comparera la croyance CSS à la réalité physique :
+  bord rouge bas au-dessus du bord d'écran = boîte déplacée/raccourcie au RENDU ; trait bleu
+  au-dessus du bord = c'est `bottom:0` lui-même qui ment. Re-toucher retire la règle.
+
+## [4.29.7] — 2026-07-26
+### Corrigé (bande basse iOS, suite du dossier)
+- Les captures en thème clair montrent DEUX anomalies : la bande basse (~60 px, les trois
+  fenêtres) et les feuilles Se repérer/Consulter décalées vers le bas. Or le diag lit 874
+  partout… au moment où il se calcule. Suspect principal : **`--vvh` posée au lancement (quand
+  iOS annonçait encore 812) et jamais rafraîchie** — iOS corrige la géométrie de la WebView
+  SANS émettre `resize` sur `visualViewport`. La variable est désormais resynchronisée sur tous
+  les canaux (resize/scroll du visualViewport, resize fenêtre, orientation, retour au premier
+  plan) ET à chaque tic d'horloge (~1 s, écriture seulement si la valeur change) : une hauteur
+  périmée ne peut plus survivre plus d'une seconde.
+- Diag enrichi : `vvV` (valeur EFFECTIVE de `--vvh`, celle que les fenêtres utilisent — si elle
+  diverge de `vv`, l'obsolescence est prouvée), `sc` (échelle du viewport visuel — un zoom
+  automatique résiduel se verrait ici) et `ot` (décalage vertical du viewport visuel — piste du
+  décalage des feuilles). Champ e-mail vérifié à 16 px (pas d'auto-zoom iOS).
+
+503 tests, 11 harnais verts.
+
+## [4.29.6] — 2026-07-26
+### Diagnostic (bande basse iOS, suite du dossier)
+- Après réinstallation de la PWA, le diag sur appareil est redevenu SAIN : `ih 874 · vv 874 ·
+  dvh 874 · sat 62 · scr 874` — la WebView couvre à nouveau l'écran entier (la géométrie était
+  bien figée à l'installation, bug iOS `black-translucent`). **Mais une bande résiduelle est
+  encore rapportée malgré ces mesures saines** : la cause est donc ailleurs (piste : padding
+  bas de sécurité des cartes ? autre fenêtre ? viewport rétréci après clavier non restauré ?).
+  La ligne de diag est CONSERVÉE dans la fenêtre Compte tant que le dossier n'est pas clos ;
+  une capture de la bande actuelle (fenêtre concernée, thème clair de préférence) est attendue
+  pour trancher.
+
+## [4.29.5] — 2026-07-26
+### Diagnostic (bande basse iOS, suite)
+- Le diag v4.29.4 sur l'appareil tranche : `ih 812 · vv 812 · dvh 812 · scr 874` — les trois
+  mesures CONCORDENT. La WebView de la PWA fait réellement 812 px sur un écran de 874 : il
+  manque exactement la hauteur de la barre d'état (62 px), **hors de la zone accordée par iOS**
+  — aucun contenu web ne peut s'y peindre (la tab bar s'arrête à la même ligne, invisible en
+  sombre). Les fenêtres remplissent depuis v4.29.4 100 % de ce qu'iOS accorde ; le reste est un
+  problème de coquille PWA (géométrie figée à l'installation ou style de barre d'état), pas de
+  CSS. Ajout de `sat` (safe-area haut) au diag pour départager : `sat ≈ 59` = WebView ancrée en
+  haut de l'écran et AMPUTÉE en bas (bug iOS `black-translucent`, se corrige souvent en
+  réinstallant la PWA) ; `sat = 0` = WebView déjà sous la barre d'état (le style
+  `black-translucent` est alors à abandonner).
+
+## [4.29.4] — 2026-07-26
+### Corrigé
+- **Fenêtres coupées en bas (iOS, suite)** : la capture sur appareil montre que le défaut existe
+  aussi en **PWA installée** — sans barre d'outils dynamique, donc `100dvh` (v4.29.3) ne suffit
+  pas : cette unité ment sur cet appareil. Les overlays sont désormais dimensionnés par la seule
+  source de vérité, **`window.visualViewport.height`** (variable `--vvh`, tenue à jour à chaque
+  changement du viewport visuel — barre Safari, clavier, PWA), `100dvh` ne servant plus que de
+  repli avant la première mesure. Effet secondaire bienvenu : clavier ouvert, les fenêtres se
+  redimensionnent au lieu de passer dessous. Vérifié au pixel sur Chromium et WebKit à
+  90/100/130 %.
+- **Ligne de diagnostic temporaire** dans la fenêtre Compte (sous « Sur cet appareil ») :
+  `ih / vv / dvh / sab / scr` — les quatre mesures de hauteur de l'appareil ; celle qui diverge
+  désignera le coupable si la coupure persiste. À retirer une fois le bug clos.
+
+503 tests, 11 harnais verts.
+
+## [4.29.3] — 2026-07-25
+### Corrigé
+- **iOS Safari/PWA : les fenêtres plein écran n'étaient pas seulement recouvertes d'une bande —
+  elles étaient COUPÉES en bas** (retour utilisateur : « le contenu ne scrolle pas sur cette
+  bande »). Cause : un overlay `position:fixed; inset:0` se dimensionne sur le *grand* viewport
+  iOS (barre d'outils repliée) ; barre visible, le bas de l'overlay passe derrière elle — et
+  comme l'overlay est aussi le défileur, la fin du contenu est inatteignable : on peut scroller
+  jusqu'au bout, mais le bout vit sous la barre. Correctif : tous les overlays défilables
+  (dialogues, feuilles Plan/Consulter, visionneuse PDF, lightbox, mode lecteur, schéma plein
+  écran) passent en `height:100dvh` (viewport *dynamique* : la fenêtre s'arrête au bord
+  réellement visible et suit la barre), divisé par `--zf` (règle zoom v4.24.0), sous
+  `@supports` — les navigateurs sans `dvh` gardent le comportement antérieur. Vérifié au pixel
+  sur Chromium et WebKit à 90/100/130 % ; à confirmer sur l'appareil.
+
+503 tests, 11 harnais verts.
+
+## [4.29.2] — 2026-07-25
+### Corrigé
+- **Le ✕ de la carte-bilan de fin de session est ancré en haut à droite** (retour utilisateur) :
+  sur petit écran, la carte passe en plusieurs lignes et le ✕ « dans le flux » (contournement
+  v4.23.2) atterrissait au milieu, collé au bouton « Compte-rendu ». Rétabli proprement : carte
+  `position:relative`, ✕ ancré `top/right`, place réservée par le padding — vérifié à 320/360/390
+  et couvert par le harnais (contrôle « coin haut-droit » à 360 px).
+- **Piste bande vide en bas (iOS Safari/PWA)** : les dialogues plein écran (< 780 px) avaient un
+  conteneur au fond `--bg` sous une carte `--surface` — le rebond de défilement iOS révélait ce
+  fond au-delà de la carte (bande étrangère en bas, invisible sur Chromium où le rebond n'existe
+  pas). Le conteneur prend le fond de la carte. **À confirmer sur appareil** : si la bande
+  persiste, une capture d'écran (quelle vue, quelle fenêtre ouverte) permettra de viser juste.
+
+### Modifié
+- **« Répéter en exercice » est grisé pendant une session réelle** (sous-titre « session en
+  cours » — même patron que « Modifier ») : modèle *inhibit* ECAM, on ne propose pas
+  l'entraînement pendant un soin. La rangée reste active pendant un exercice (la recommencer
+  est justement son usage) ; la confirmation danger « Terminer et exercer » reste dans le code
+  en garde-fou, mais n'a plus de chemin d'accès accidentel.
+
+503 tests, 11 harnais verts.
+
+## [4.29.1] — 2026-07-25
+### Corrigé
+- **L'entrée et la sortie du mode exercice ne sautent plus** (retour utilisateur) : la hachure
+  vit désormais sur un `::before` en **fondu d'opacité** (~300 ms) — l'apparition, le retrait,
+  **et le passage bandeau → en-tête au défilement** sont fondus au lieu d'un aplat instantané ;
+  le fondu est neutralisé sous `prefers-reduced-motion`. Et le **saut de hauteur** est éliminé :
+  à ≥ 780 px le bouton « Quitter l'exercice… » épaississait le bandeau de 12 px (bouton 36 px
+  dans un bandeau de 44) — compacté à ce palier, halo conservant la cible de 44 px. Δ mesuré à
+  **0 px** sur 360/390/430/780.
+
+503 tests, 11 harnais verts (les sondes lisent la hachure sur le `::before`).
+
+## [4.29.0] — 2026-07-25
+Cinq retours utilisateur : le placard exercice suit le titre, le sélecteur ne bouge plus d'un
+pixel, la pastille se glisse au doigt, trois micro-animations, et la méta de lecture se désencombre.
+
+### Modifié
+- **Le placard exercice SUIT LE TITRE** (retour utilisateur : hachurer le quai était illisible —
+  annulé) : tant que le bandeau-titre est visible, lui seul porte la hachure ; au pixel où il
+  passe sous la barre, c'est **l'en-tête** qui la prend — même mécanique de relais que la pilule
+  « ▲ Exercice ». Le quai redevient une zone d'état propre : des chiffres n'ont pas à vivre sur
+  une texture. Vérifié en capture dans les deux thèmes.
+- **Guidé/Statique : les libellés ne bougent plus d'un pixel** à la bascule — la graisse passait
+  de 700 à 800 sur le segment actif, ce qui élargissait le mot et décalait les deux libellés.
+  Graisse constante partout (tab bar comprise, qui passait de 600 à 800) : l'état est porté par
+  la pastille et la couleur. Mesuré à 0 px par le harnais.
+- **La méta de lecture perd la pastille « ▲ Exercice : date »** (retour utilisateur : elle
+  captait l'œil à côté de la date de validation pour une information non clinique) — la date du
+  dernier exercice vit désormais en sous-titre de « Répéter en exercice » au menu ⋯
+  (« dernier : ‹date› », sinon « aucune trace clinique ») et dans l'historique scindé.
+
+### Ajouté
+- **Glisser la pastille au doigt** (HIG iOS) sur les trois sélecteurs segmentés — Guidé/Statique,
+  la tab bar Aides/Protocoles de l'accueil et le dialogue Créer (aucun n'est une vraie tab bar
+  iOS : le geste y fait sens partout). Engagement au relâchement seulement (≥ moitié du trajet —
+  rien de lourd ne se re-rend pendant le geste), un tap reste un tap (seuil 6 px), un drag
+  n'émet jamais le clic du bouton sous le doigt.
+- **Micro-animations non bloquantes** (transform/opacité/fond seulement, l'app reste utilisable
+  pendant l'effet, inertes sous `prefers-reduced-motion`) : entrée/sortie du mode exercice
+  (glissement de la hachure + pop de la pilule), retour par la pile d'origine (la vue entre dans
+  le sens du geste), reprise après complication (la carte de reprise glisse en place).
+
+`audit-modeseg` mesure désormais l'immobilité des libellés et rejoue un drag réel ;
+`audit-exercice` vérifie le placard suiveur (en-tête hachuré au défilement, quai propre).
+503 tests, 11 harnais verts.
+
+## [4.28.0] — 2026-07-25
+Quatre retours utilisateur d'un coup : pile de retour, mode lecteur enrichi, placard exercice
+visible partout + bouton Quitter, menu ⋯ réordonné.
+
+### Ajouté
+- **Pile de retour fiche → fiche** : ouvrir une autre aide depuis une fiche (« Voir aussi »,
+  complication externe, feuille Consulter) mémorise l'origine — le « ‹ » d'en-tête porte le
+  **titre de la fiche d'origine** et y ramène ; il ne dit « Bibliothèque » que quand la pile est
+  vide (AC 120-71B : le retour d'une interruption est prévu par le dispositif, pas laissé à la
+  mémoire — les bandeaux de l'accueil restent la redondance, mais ils n'existent que si une
+  session a démarré). **Garde anti double-tap 700 ms** (même mécanique que le retour d'aperçu) :
+  deux taps nerveux ne traversent jamais deux niveaux.
+- **Mode lecteur enrichi** (audit : le « un item à la fois » n'est pas le modèle aviation — l'ECL
+  Boeing montre la liste entière avec un curseur, et le binôme soignant anticipe) :
+  **bande minuteurs propre** — l'overlay couvrait le quai, or l'état ne disparaît jamais : tous
+  les minuteurs, échus d'abord en ambre avec le mot « échu », sans « +n » (la bande passe à la
+  ligne) ; **carte des blocs** (pastilles ✓/●/○ du rail, même `minimapData`) + **contexte local**
+  (item précédent avec ✓, « suivant : … ») autour du challenge courant qui reste seul en 26 px ;
+  **⚡ Complication(s)** accessible sans quitter le lecteur — l'index passe au-dessus de
+  l'overlay, le lecteur reste ouvert pendant l'excursion (doctrine QRH : on change de checklist,
+  pas de support) et la fin d'un bloc d'excursion propose « ↩ Reprendre », jamais « Terminer ».
+- **« Quitter l'exercice… »** directement sur le placard hachuré ; le dialogue de fin est titré
+  « Terminer l'exercice ? » (une action dit sa portée).
+
+### Modifié
+- **Placard exercice visible partout et dans les deux thèmes** (retour utilisateur) : les
+  hachures alternent désormais surface/`--primary-soft` (le couple surface/surface-2 était quasi
+  invisible en sombre — delta mesuré par le harnais dans les deux thèmes), et le **quai collant
+  est hachuré aussi** : l'annonciation TRAINING ne quitte plus l'écran au défilement ; le relais
+  d'en-tête devient la même pilule bleu pointillé.
+- **Menu ⋯ réordonné** (retour utilisateur) : conduite en cours d'abord (⚡, Lecteur, Se repérer,
+  Schéma, Consulter), puis cycle de vie de session (Exercice, Recommencer, Historique), puis
+  gestion (Modifier, Versions, Dupliquer), puis exports ; Terminer… ferme toujours la liste.
+  Avant, Modifier/Versions — désactivées en session — trônaient en tête : deux rangées mortes au
+  moment où le menu sert le plus. `setMoreMenu` normalise les séparateurs (un groupe vide
+  disparaît). **Icônes désambiguïsées** : « Historique des sessions » reçoit une boîte d'archives
+  (elle partageait l'horloge-flèche de « Versions » — deux entrées, même dessin) et
+  « Se repérer » reçoit un rail à lignes indentées, l'Échelle elle-même (l'ex-icône « plan »,
+  quasi identique au « flow » du Schéma juste en dessous, est supprimée).
+
+Nouveau harnais `scripts/audit-lecteur.mjs` (13 contrôles) ; `audit-exercice.mjs` passe à
+20 contrôles (placard collant, delta des hachures par thème, bouton Quitter). 503 tests,
+11 harnais verts.
+
+## [4.27.1] — 2026-07-25
+### Modifié
+- **L'« Aperçu en direct » des éditeurs (colonne droite ≥ 1000 px) rattrape trois versions de
+  retard** : la miniature rendait encore la grammaire d'avant v4.23.0 — numéros `01/02` devant les
+  étapes (supprimés du rendu réel), chaque étape en boîte bordée (le réel est « normal = ligne,
+  signalé = boîte »), case à cocher à droite (elle est à gauche), bandeau teinté rouge (le bandeau
+  réel est blanc depuis v4.23.0 : jamais d'aplat rouge permanent). Une miniature qui montre
+  l'ancienne grammaire apprend le mauvais rendu à l'auteur pendant qu'il rédige. Elle suit
+  désormais le rendu réel : lignes à filet, boîtes teintées avec glyphe ⚠/△ en tête, pilule de
+  réponse « challenge :: réponse », et la rangée « ⚡ Complication(s) » apparaît dès qu'une
+  complication est déclarée. (L'aperçu PLEIN ÉCRAN, lui, passe par le vrai moteur de rendu et
+  n'a jamais dérivé — seule la miniature était figée.)
+
+Vérifié par sonde : glyphes, pilule, ligne plate, case à gauche, bandeau blanc, rangée ⚡.
+503 tests, 10 harnais verts.
+
+## [4.27.0] — 2026-07-25
+Mode exercice — le second manque identifié par l'audit doctrinal (piliers EMIC : après « utiliser »
+et « débriefer », voici « s'entraîner ») — et compte-rendu enrichi pour TOUTES les sessions.
+
+### Ajouté
+- **« Répéter en exercice » (menu ⋯)** : rejoue la fiche dans l'écran RÉEL, à l'identique — même
+  journal, mêmes minuteurs, mêmes gestes. C'est un choix doctrinal, pas une facilité : Greig 2023
+  montre que le transfert de l'entraînement exige la **fidélité de format** — un mode « simplifié »
+  entraînerait au mauvais outil. Seule l'**annonciation** change, sur le modèle du placard TRAINING
+  aviation : bandeau de titre **hachuré** + pilule « ▲ Exercice » en bleu pointillé (ni rouge ni
+  ambre : un exercice n'est pas une alerte), et le chrono d'état dit « ▲ Exercice » — le
+  « ● Session » **vert reste réservé au réel**. Démarrer un exercice par-dessus une session réelle
+  vive exige une confirmation au registre danger (« Terminer et exercer »).
+- **Zéro contamination clinique** : la session d'exercice est marquée `exercise` (les sessions
+  vivent en local seulement — jamais dans l'export v3, jamais synchronisées : le drapeau est sûr) ;
+  l'historique **sépare** « Sessions cliniques (n) » et « Exercices (n) », badge « ▲ EXERCICE » sur
+  chaque rangée ; carte-bilan « **Exercice terminé** » au registre exercice ; compte-rendu
+  **filigrané « EXERCICE »** avec la mention « répétition sans patient ». « Terminer » dit sa
+  portée : « Terminer l'exercice… » vs « Terminer la session… » (AC 120-71B : une action dit
+  exactement ce qu'elle fait).
+- **Méta de fiche : « ▲ Exercice : ‹date› »** — seulement quand un exercice existe. **Aucun rappel
+  « jamais répétée », aucune relance** (décision utilisateur : pas de nudge) ; le harnais vérifie
+  l'ABSENCE de ce texte dans le DOM rendu.
+- **Compte-rendu enrichi pour toutes les sessions, réelles comprises** (support du débrief) :
+  section « ⚡ Complications » — chaque excursion horodatée (l'heure d'entrée est désormais
+  mémorisée : `cxBack[seq]={id,t}`, les sessions v4.26.x en format chaîne sont normalisées à la
+  lecture) — et section « Vérification (do-verify) » : n étapes constatées ✓✓ + chaque
+  « △ écart » horodaté avec le texte de l'étape.
+- Harnais `scripts/audit-exercice.mjs` (16 contrôles, dans `npm run audit`) — dont « la session
+  réelle est INCHANGÉE » et un contrôle d'absence de nudge. Piège consigné : le `<script>` inline
+  est un enfant de `body`, donc `document.body.textContent` remonte les commentaires du code —
+  borner ce genre de sonde à `main`.
+
+503 tests, 10 harnais verts.
+
+## [4.26.1] — 2026-07-25
+Deux retours d'usage sur les complications, tous deux retenus.
+
+### Modifié
+- **Un seul déclencheur constant, « ⚡ Complication(s) (n) », qui ouvre un index par événement** —
+  au lieu d'un bouton par complication. C'est le retour utilisateur, et il est plus doctrinal que
+  la version initiale : le QRH est **un** objet à index par onglets, le manuel de Stanford **un**
+  manuel à onglets d'événements — on ne met pas un bouton de cockpit par urgence. L'appel
+  automatique de l'ECAM ne vaut que pour les pannes *captées*, ce que l'application ne fait pas ;
+  l'analogue honnête est donc l'index. Bonus : mot et position constants quelle que soit la fiche
+  (plusieurs boutons rouges qui se ressemblent obligeraient à lire chacun sous stress), et l'écran
+  d'action se désencombre. Coût assumé : un tap de plus, payé en grandes rangées dans l'index
+  (événement + « interrompt le parcours — retour prévu » ou « ouvre : ‹aide› ↗ »).
+  - Le menu ⋯ porte la même entrée unique « Complications (n) ».
+  - **Le déclencheur vit désormais aussi sur un bloc de décision courant** (limite de la 4.26.0,
+    levée).
+- **Éditeur : la cible s'ouvre dans le sélecteur filtrable partagé** (même patron que « Voir
+  aussi » et « Joindre un document ») au lieu d'un menu déroulant — la liste des aides peut être
+  très longue. Deux groupes : **blocs de cette fiche** d'abord, puis **aides & protocoles** ;
+  contrairement à « Voir aussi », une aide déjà liée reste sélectionnable.
+
+### Interne
+- Harnais `audit-complications.mjs` réécrit pour le nouveau flux : 20 contrôles, dont l'index
+  (ouverture, contenu, Échap), le bloc de décision courant et le sélecteur d'éditeur.
+
+---
+
+Les versions **antérieures à 4.26.1** (jusqu'à 4.26.0 incluse) sont dans
+[`CHANGELOG-archive.md`](CHANGELOG-archive.md), déplacées **telles quelles** — aucune ligne
+réécrite ni perdue.
+
+> **Règle d'archivage** : ce fichier garde les **20 dernières versions**. Au-delà, déplacer les plus
+> anciennes dans l'archive au moment de la publication. Elle n'avait été appliquée qu'une fois en
+> 112 entrées, et ce fichier pesait alors 221 Ko — la moitié de toute la documentation du projet.
 
 ## [4.26.0] — 2026-07-25
 ### Ajouté

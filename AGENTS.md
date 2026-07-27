@@ -476,7 +476,20 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   Registres : chips d'option au registre ATTENTION (`--verify`, comme `.opt`) ; liens neutres
   (`--tag-bg`), reprise `↺` en `--primary-soft` ; nœuds = même grammaire que les cartes
   (liseré bleu = ici, vert = fait, ambre = décision).
-- **Challenge-response (v4.11.0, AC 120-71B / Do-Verify)** : trois briques, AUCUN champ modèle.
+- **Challenge-response (v4.11.0, FAA Order 8900.1 Vol. 3 Ch. 32 §3-3403.A / Do-Verify)** : trois
+  briques, AUCUN champ modèle.
+  > **CORRECTION DE SOURCE (vérifiée sur le texte primaire, ne pas re-inverser).** Ce fichier
+  > attribuait « Do-Verify » et « Challenge-Do-Verify » à l'**AC 120-71B**. Ces chaînes n'y
+  > figurent NULLE PART (recherche exhaustive sur le document intégral : 6 chapitres + Appendix A,
+  > 0 occurrence) — la révision B indique elle-même avoir « removed many of the examples previously
+  > found in the appendices ». Elles viennent de l'**AC 120-71A (2003), que la révision B ANNULE**,
+  > où elles ne sont que des INTITULÉS d'une liste de sujets qu'un SOP devrait couvrir, sans
+  > définition ni prescription. Les définitions rédigées qui circulent en ligne (« The DV method
+  > allows the flightcrew to use flow patterns from memory… ») ne proviennent d'aucun document FAA
+  > retrouvable. La source correcte pour la MÉTHODE est le **FAA Order 8900.1, Vol. 3, Ch. 32,
+  > §3-3403.A** ; pour la répartition à deux, l'AC 120-71B **§5.2.2.1** dit bien « one crewmember
+  > reading the checklist and the second crewmember confirming and responding ».
+  > La pratique implémentée ne change pas d'un pixel — seule la référence était fausse.
   **« challenge :: réponse »** = séparateur explicite DANS la chaîne d'étape (même philosophie
   que ⚠/△ : opt-in, export v3 inchangé, ancien client lisible) — `stepCR` (pure, APRÈS
   `stepText`, première occurrence) ; rendu `stepTxtHtml` (guidé + journal : pilule mono
@@ -491,9 +504,15 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   Avant, « Constaté ✓ » écrivait la MÊME clé que le cochage et `vf.gaps` était JETÉ à la sortie :
   une étape cochée à l'exécution devenait indiscernable d'une étape CONSTATÉE par observation, et
   un « △ Écart » d'une étape jamais atteinte — or c'est précisément la distinction que la seconde
-  passe existe pour produire (AC 120-71B : en do-verify la réponse vient de l'état CONSTATÉ, pas du
-  souvenir d'avoir fait le geste ; la circulaire ne prescrit en revanche AUCUN modèle de données —
-  le choix d'enregistrer la trace est une décision de conception, pas une exigence littérale).
+  passe existe pour produire. La règle « la réponse porte l'état CONSTATÉ, jamais un simple *fait* »
+  est de **Degani & Wiener** (ligne directrice n°1 de « Cockpit Checklists: Concepts, Design, and
+  Use », Human Factors 35(2), 1993, établie à partir d'un rapport ASRS) — et non de l'AC 120-71B,
+  qui exige seulement que l'autre pilote vérifie que l'item a été correctement accompli (§5.2.2.2)
+  et que les items critiques le soient par les DEUX (§5.2.2.5). Aucune de ces sources ne prescrit
+  de MODÈLE DE DONNÉES : enregistrer la trace est une décision de conception, pas une exigence
+  littérale. L'argument empirique de la distinction est ailleurs : au CVR de l'accident Delta 1141,
+  la réponse au challenge « flaps » arrive en moins d'une seconde — matériellement trop vite pour
+  avoir été constatée.
   Rendu durable : pilule « ✓✓ constaté » / « △ écart » sur la ligne — **MÊME libellé pendant et
   après la passe** (v4.25.2) : la trace disait « vérifié » là où la passe disait « constaté », et
   les glyphes n'apparaissaient qu'après. Deux mots pour un même état, c'est ce qu'AC 120-71B

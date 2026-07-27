@@ -381,9 +381,18 @@ console.log('\n══ ECAM · ancrage — résidu nul au geste de première acti
     const li=document.querySelector('[data-ck]');if(li)li.click();
     await new Promise(r=>setTimeout(r,500));return window.__anc;});
   t('1ʳᵉ action : l\'ancrage est bien invoqué',a.length>0,'aucun appel de keepAnchor');
+  // « PAS MESURÉ » N'EST PAS « N'A PAS BOUGÉ ». Si l'ancre DISPARAÎT pendant le re-rendu (une
+  // condensation du journal transforme la carte visée en chip, par exemple), `keepAnchor` ne peut
+  // rien compenser et la sonde ne peut calculer aucune dérive. Or `Math.abs(null)` vaut 0 : le
+  // contrôle ci-dessous passait donc au VERT sans avoir rien mesuré, exactement sur le cas qu'il
+  // prétend couvrir. On exige d'abord que la mesure ait EU LIEU (leçon v4.31.1, 3ᵉ occurrence).
+  if(a.length)t('1ʳᵉ action : le résidu est réellement MESURÉ (ancre retrouvée)',
+    a[0].residu!==null&&a[0].derive!==null,
+    `résidu ${a[0].residu}, dérive ${a[0].derive} — ancre perdue pendant le re-rendu ?`);
   // Tolérance 1 px : c'est du SOUS-PIXEL de compositeur (WebKit rend 1 px là où Blink rend 0,
   // arithmétique identique) — pas un défaut d'ancrage. Au-delà, la vue a réellement sauté.
-  if(a.length)t('1ʳᵉ action : l\'étape tapée ne bouge pas (≤ 1 px)',Math.abs(a[0].derive)<=1,
+  if(a.length)t('1ʳᵉ action : l\'étape tapée ne bouge pas (≤ 1 px)',
+    a[0].derive!==null&&Math.abs(a[0].derive)<=1,
     `dérive ${a[0].derive} px, résidu ${a[0].residu} px`);
   // Rendu GUIDÉ (fiche à un bloc) : le remplacement chirurgical est ancré lui aussi.
   const g=await page.evaluate(async()=>{
@@ -397,7 +406,11 @@ console.log('\n══ ECAM · ancrage — résidu nul au geste de première acti
     await new Promise(r=>setTimeout(r,400));return window.__anc;});
   t('guidé : le remplacement du bloc est ancré',g.length>0&&g[0].sel.indexOf('nav-wrap')>=0,
     JSON.stringify(g));
-  if(g.length)t('guidé : le bloc ne bouge pas (≤ 1 px)',Math.abs(g[0].derive)<=1,
+  if(g.length)t('guidé : le résidu est réellement MESURÉ (ancre retrouvée)',
+    g[0].residu!==null&&g[0].derive!==null,
+    `résidu ${g[0].residu}, dérive ${g[0].derive} — ancre perdue pendant le re-rendu ?`);
+  if(g.length)t('guidé : le bloc ne bouge pas (≤ 1 px)',
+    g[0].derive!==null&&Math.abs(g[0].derive)<=1,
     `dérive ${g[0].derive} px`);
   await page.close();
 }

@@ -238,7 +238,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-mGGHMDYcsoxAcFUwyVvELewgtBoQ5LiR8dYGm0PisJA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-1j1P1yh8Vbb8nw2lOYSPkN1dWkXu3XuaBCZue+2wnMk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -302,7 +302,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      Échelle responsive FERMÉE : 430 / 560 / 640 / 780 / 900 / 1000 px (1000 = colonne droite de
      la vue fiche, V5). Plancher typographique : 11px (app consultée sous stress — rien en dessous).
      --line-hover : bordure des survols de boutons/chips (un seul gris au lieu de trois). */
-  :root{--ink:#101b28;--ink-soft:#5b6570;--line:#d5dbe2;--line-strong:#75828e;--line-hover:#c3ccd6;--bg:#f2f5f8;--surface:#fff;--surface-2:#eff2f6;--surface-3:#e8ecf1;--primary:#1f5fa6;--primary-dk:#17477f;--primary-hi:#17477f;--primary-soft:#e3ecf7;--primary-100:#dce7f5;--primary-200:#b9cde6;--primary-300:#8fb4de;--on-primary:#fff;--ok-rgb:29,122,56;--ok:rgb(var(--ok-rgb));--ok-soft:#eaf6ee;--critical:#a32e1f;--critical-soft:#fbe9e4;--critical-line:#ecc4bc;--verify:#7a5900;--verify-soft:#fbf3dc;--verify-line:#eddfb6;--verify-bd:#b7791f;--verify-hi:#b45309;--critical-bd:#c43d34;--done-bg:#eff5f0;--done-line:#bfd8c6;--done-ink:#5b6570;--tag-bg:#e8ecf1;--tag-ink:#3c464f;--link:#1f5fa6;--soft:#8a94a0;--alert:#f0a431;--alert-hi:#ffb454;--alert-strong:#c98a18;--alert-ink:#3a2a02;--rt-card:#1c2a3c;--rt-line:#2c3d52;--rt-ink:#e8eef7;--alarm:#d1543c;--input-bg:#fff;--radius:14px;--radius-md:11px;--radius-sm:9px;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--shadow:0 1px 2px rgba(16,27,40,.04),0 4px 16px rgba(16,27,40,.06);--shadow-lg:0 2px 6px rgba(16,27,40,.06),0 12px 32px rgba(16,27,40,.10);--shadow-primary:0 1px 2px rgba(23,71,127,.2),0 4px 12px rgba(23,71,127,.16);--shadow-primary-sm:0 1px 2px rgba(23,71,127,.25);--lb-cap:#cfe0dd;--lb-ink:#fff;--paper:#fff;--flow-cur:#1f5fa6;/* VOILES (scrim) et ÉLÉVATIONS À L'ENCRE — tokenisés en v4.37.0. Ces cinq valeurs étaient des COPIES DÉCIMALES de --ink (#101b28 = 16,27,40) : le garde-fou couleurs ne voyait que les hex, elles passaient donc au travers, et un changement de --ink les aurait laissées derrière. Valeurs reprises à l'identique. Pas d'override sombre : c'est l'état actuel, en ajouter un serait un changement visible. */--scrim-soft:rgba(16,27,40,.45);--scrim:rgba(16,27,40,.55);--scrim-full:rgba(16,27,40,.92);--shadow-dock:0 1px 3px rgba(16,27,40,.05);--shadow-bar:0 1px 6px rgba(16,27,40,.06);}
+  :root{--ink:#101b28;--ink-soft:#5b6570;--line:#d5dbe2;--line-strong:#75828e;--line-hover:#c3ccd6;--bg:#f2f5f8;--surface:#fff;--surface-2:#eff2f6;--surface-3:#e8ecf1;--primary:#1f5fa6;--primary-dk:#17477f;--primary-hi:#17477f;--primary-soft:#e3ecf7;--primary-100:#dce7f5;--primary-200:#b9cde6;--primary-300:#8fb4de;--on-primary:#fff;--ok-rgb:29,122,56;--ok:rgb(var(--ok-rgb));--ok-soft:#eaf6ee;--critical:#a32e1f;--critical-soft:#fbe9e4;--critical-line:#ecc4bc;--verify:#7a5900;--verify-soft:#fbf3dc;--verify-line:#eddfb6;--verify-bd:#b7791f;--verify-hi:#b45309;--critical-bd:#c43d34;--done-bg:#eff5f0;--done-line:#bfd8c6;--done-ink:#5b6570;--tag-bg:#e8ecf1;--tag-ink:#3c464f;--link:#1f5fa6;--soft:#8a94a0;--alert:#f0a431;--alert-hi:#ffb454;--alert-strong:#c98a18;--alert-ink:#3a2a02;--rt-card:#1c2a3c;--rt-line:#2c3d52;--rt-ink:#e8eef7;--alarm:#d1543c;--input-bg:#fff;--radius:14px;--radius-md:11px;--radius-sm:9px;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--shadow:0 1px 2px rgba(16,27,40,.04),0 4px 16px rgba(16,27,40,.06);--shadow-lg:0 2px 6px rgba(16,27,40,.06),0 12px 32px rgba(16,27,40,.10);--shadow-primary:0 1px 2px rgba(23,71,127,.2),0 4px 12px rgba(23,71,127,.16);--shadow-primary-sm:0 1px 2px rgba(23,71,127,.25);--lb-cap:#cfe0dd;--lb-ink:#fff;--paper:#fff;--qr-ink:#101b28;--flow-cur:#1f5fa6;/* VOILES (scrim) et ÉLÉVATIONS À L'ENCRE — tokenisés en v4.37.0. Ces cinq valeurs étaient des COPIES DÉCIMALES de --ink (#101b28 = 16,27,40) : le garde-fou couleurs ne voyait que les hex, elles passaient donc au travers, et un changement de --ink les aurait laissées derrière. Valeurs reprises à l'identique. Pas d'override sombre : c'est l'état actuel, en ajouter un serait un changement visible. */--scrim-soft:rgba(16,27,40,.45);--scrim:rgba(16,27,40,.55);--scrim-full:rgba(16,27,40,.92);--shadow-dock:0 1px 3px rgba(16,27,40,.05);--shadow-bar:0 1px 6px rgba(16,27,40,.06);}
   /* --shadow-primary(-sm) : élévation TEINTÉE PRIMAIRE des boutons remplis (v4.31.0 — les
      rgba(23,71,127,…) éparses sont consolidées ici). Tokens FIXES des deux thèmes (jamais
      surchargés en sombre, comme --rt-*) : --lb-cap/--lb-ink = légende et glyphe de la lightbox
@@ -1804,6 +1804,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .crit-guide .cg-a{color:var(--verify)}
   .flow-prev-h{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--ink-soft);margin:0 0 7px}
   .flow-scroll{width:100%;overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--paper);padding:8px;-webkit-overflow-scrolling:touch;margin-bottom:14px;max-height:calc(75vh / var(--zf,1))}
+  /* CODE QR — taille en px et non en %, parce qu'un QR se scanne : trop petit, le lecteur cale.
+     ~200 px met chaque module au-dessus de 4 px dès la version 10, ce qui passe partout à 30 cm.
+     Encre et fond fixes dans les deux thèmes (cf. --qr-ink), bordure pour détacher la zone de
+     silence d'un fond clair — sans elle le blanc du QR se fond dans la surface et le lecteur
+     perd le repère. */
+  .qr{display:block;width:200px;height:200px;max-width:100%;border-radius:8px;border:1px solid var(--line)}
   .flow-zoom{display:flex;align-items:center;gap:7px;margin-bottom:7px}
   .fz{border:1px solid var(--line);background:var(--surface);color:var(--ink);width:42px;height:40px;border-radius:var(--radius-sm);font-size:18px;font-weight:600;line-height:1;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
   .fz:hover{background:var(--surface-2)}.fz-r{width:auto;padding:0 11px;font-size:12.5px}
@@ -3465,7 +3471,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.45.0';
+const APP_VERSION='4.46.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -7350,6 +7356,288 @@ function flowNodesSVG(C){const{blocks,pos,LAY,start}=C;const{LH,TLH,HPAD,IMG_H,I
     nodes+=`<g class="fnode" data-fnode="${esc(b.id)}" transform="translate(${p.x},${p.y})" tabindex="0" role="button" aria-label="${esc(stripBold(b.title||(dec?'Décision':'Étapes')))} — aller à ce bloc">${g}</g>`;});
   return nodes;}
 
+/* ===== CODE QR (encodeur) =====
+   Sert à UNE chose : afficher sur l'écran de l'hôte le code d'appariement d'une session partagée,
+   pour que le collègue PRÉSENT DANS LA PIÈCE le scanne avec son appareil photo. L'app n'a donc
+   besoin d'AUCUN décodeur — iOS et Android décodent nativement depuis l'appareil photo — et c'est
+   cette asymétrie qui rend la fonctionnalité abordable : un encodeur seul, sans dépendance
+   (règle 13 intacte, aucun fichier servi de plus).
+   Un QR affiché à l'écran ne peut être scanné que par quelqu'un qui est là : le code ne transite
+   par aucun message, aucun journal d'accès, aucun historique de navigateur.
+
+   PÉRIMÈTRE VOLONTAIREMENT ÉTROIT : mode OCTET, correction M, versions 1 à 10. La charge utile
+   est une URL courte — la v3 suffit déjà, la v10 laisse dix fois la marge. Élargir le domaine
+   multiplierait les tables, donc les erreurs de recopie, pour un besoin qui n'existe pas.
+
+   POURQUOI SI PEU DE TABLES. La seule vraie table est (correction par bloc, nombre de blocs) par
+   version : 20 nombres. TOUT LE RESTE SE DÉRIVE, et c'est le choix de conception central — une
+   table recopiée est une erreur qui dort, une dérivation se vérifie. Le total de mots-code vient
+   de la géométrie (`qrRawBits`), le découpage en blocs courts/longs de la division euclidienne,
+   les positions d'alignement d'une formule. Le test unitaire recoupe les deux chemins : pour
+   chaque version, données + correction doit tomber EXACTEMENT sur le total géométrique — une
+   faute de frappe dans les 20 nombres est donc attrapée.
+
+   VÉRIFIÉ, PAS AFFIRMÉ. Trois niveaux, parce qu'un encodeur qui « a l'air bon » produit des codes
+   illisibles : (1) les syndromes Reed-Solomon du mot produit sont nuls — preuve MATHÉMATIQUE
+   indépendante de l'encodeur, qui n'emprunte rien à sa division polynomiale ; c'est elle qui a
+   attrapé, à l'écriture, un polynôme générateur construit à l'envers (terme dominant non
+   unitaire) que tous les contrôles de cohérence interne auraient laissé passer ; (2) l'information
+   de format est relue depuis la matrice et vérifiée comme mot BCH valide ; (3) `scripts/audit-qr.mjs`
+   fait RELIRE les codes produits par le décodeur d'Apple (CoreImage), c'est-à-dire celui de
+   l'appareil photo de l'iPhone. */
+const QR_ECW = [10,16,26,18,24,16,18,22,22,26];   // correction PAR BLOC, versions 1..10, niveau M
+const QR_BLK = [1,1,1,2,2,4,4,4,5,5];             // nombre de blocs
+const QR_MAXVER = 10;
+// Modules de données bruts (en BITS) : surface totale moins les motifs de fonction.
+function qrRawBits(ver){let r=(16*ver+128)*ver+64;
+  if(ver>=2){const na=Math.floor(ver/7)+2;r-=(25*na-10)*na-55;if(ver>=7)r-=36;}
+  return r;}
+function qrTotalCw(ver){return Math.floor(qrRawBits(ver)/8);}
+// Corps de Galois GF(256), polynôme primitif 0x11D (celui du QR).
+const QR_EXP=new Uint8Array(512),QR_LOG=new Uint8Array(256);
+(function(){let x=1;for(let i=0;i<255;i++){QR_EXP[i]=x;QR_LOG[x]=i;x<<=1;if(x&0x100)x^=0x11d;}
+  for(let i=255;i<512;i++)QR_EXP[i]=QR_EXP[i-255];})();
+function qrMul(a,b){return (a===0||b===0)?0:QR_EXP[QR_LOG[a]+QR_LOG[b]];}
+// Générateur de degré n = produit des (x + α^i). Le terme dominant DOIT rester unitaire :
+// l'inverser produit un code dont les syndromes ne s'annulent pas (défaut vécu à l'écriture).
+function qrGen(n){let g=[1];
+  for(let i=0;i<n;i++){const ng=new Array(g.length+1).fill(0);
+    for(let j=0;j<g.length;j++){ng[j]^=g[j];ng[j+1]^=qrMul(g[j],QR_EXP[i]);}
+    g=ng;}
+  return g;}
+function qrRs(data,n){const g=qrGen(n),rem=new Uint8Array(n);
+  for(const d of data){const f=d^rem[0];rem.copyWithin(0,1);rem[n-1]=0;
+    for(let j=0;j<n;j++)rem[j]^=qrMul(g[j+1],f);}
+  return rem;}
+function qrAlign(ver){if(ver===1)return [];
+  const na=Math.floor(ver/7)+2,size=ver*4+17,step=Math.ceil((ver*4+4)/(na*2-2))*2,res=[6];
+  for(let pos=size-7;res.length<na;pos-=step)res.splice(1,0,pos);
+  return res;}
+// Assemblage : indicateur de mode octet, longueur, données, terminateur, remplissage normalisé.
+function qrDataCw(bytes,ver){
+  const total=qrTotalCw(ver),blocks=QR_BLK[ver-1],ecw=QR_ECW[ver-1],dataCw=total-blocks*ecw;
+  const ccBits=ver<=9?8:16;
+  if(4+ccBits+8*bytes.length>dataCw*8)return null;
+  const bits=[],put=(v,n)=>{for(let i=n-1;i>=0;i--)bits.push((v>>i)&1);};
+  put(0b0100,4);put(bytes.length,ccBits);
+  for(const b of bytes)put(b,8);
+  put(0,Math.min(4,dataCw*8-bits.length));
+  while(bits.length%8)bits.push(0);
+  const out=new Uint8Array(dataCw);
+  for(let i=0;i<bits.length;i+=8)out[i>>3]=bits.slice(i,i+8).reduce((a,b)=>(a<<1)|b,0);
+  for(let i=bits.length>>3,k=0;i<dataCw;i++,k++)out[i]=k%2?0x11:0xec;
+  return out;}
+// Blocs + entrelacement. Les longueurs se DÉDUISENT : `total % blocks` blocs portent un mot de
+// données de plus que les autres — aucune table de découpage à recopier.
+function qrInterleave(dataCw,ver){
+  const total=qrTotalCw(ver),blocks=QR_BLK[ver-1],ecw=QR_ECW[ver-1];
+  const nShort=blocks-(total%blocks),shortLen=Math.floor(total/blocks)-ecw;
+  const dat=[],ec=[];let off=0;
+  for(let b=0;b<blocks;b++){const len=shortLen+(b<nShort?0:1);
+    const d=dataCw.slice(off,off+len);off+=len;dat.push(d);ec.push(qrRs(d,ecw));}
+  const out=[];
+  for(let i=0;i<shortLen+1;i++)for(let b=0;b<blocks;b++)if(i<dat[b].length)out.push(dat[b][i]);
+  for(let i=0;i<ecw;i++)for(let b=0;b<blocks;b++)out.push(ec[b][i]);
+  return Uint8Array.from(out);}
+function qrMaskAt(k,x,y){switch(k){
+  case 0:return (x+y)%2===0; case 1:return y%2===0; case 2:return x%3===0; case 3:return (x+y)%3===0;
+  case 4:return (Math.floor(y/2)+Math.floor(x/3))%2===0; case 5:return (x*y)%2+(x*y)%3===0;
+  case 6:return ((x*y)%2+(x*y)%3)%2===0; default:return ((x+y)%2+(x*y)%3)%2===0;}}
+// Pénalité normalisée (4 règles). Elle ne décide QUE du masque retenu : n'importe lequel donne un
+// code valide, une pénalité imparfaite dégraderait au pire la facilité de lecture.
+function qrPenalty(n,m){const at=(x,y)=>m[y*n+x];let p=0;
+  for(let d=0;d<2;d++)for(let a=0;a<n;a++){let run=1;
+    for(let b=1;b<n;b++){const cur=d?at(a,b):at(b,a),prev=d?at(a,b-1):at(b-1,a);
+      if(cur===prev){run++;if(run===5)p+=3;else if(run>5)p+=1;}else run=1;}}
+  for(let y=0;y<n-1;y++)for(let x=0;x<n-1;x++){const v=at(x,y);
+    if(v===at(x+1,y)&&v===at(x,y+1)&&v===at(x+1,y+1))p+=3;}
+  const A=[1,0,1,1,1,0,1,0,0,0,0],B=[0,0,0,0,1,0,1,1,1,0,1];
+  for(let d=0;d<2;d++)for(let a=0;a<n;a++){const line=[];
+    for(let b=0;b<n;b++)line.push(d?at(a,b):at(b,a));
+    for(let i=0;i+11<=n;i++){const w=line.slice(i,i+11);
+      if(A.every((v,j)=>v===w[j])||B.every((v,j)=>v===w[j]))p+=40;}}
+  let dark=0;for(let i=0;i<n*n;i++)dark+=m[i];
+  return p+Math.floor(Math.abs(dark*100/(n*n)-50)/5)*10;}
+function qrBuild(cw,ver,mask){
+  const n=ver*4+17,m=new Uint8Array(n*n),fn=new Uint8Array(n*n);
+  const set=(x,y,v)=>{m[y*n+x]=v?1:0;fn[y*n+x]=1;};
+  for(const oxy of [[0,0],[n-7,0],[0,n-7]])for(let dy=-1;dy<=7;dy++)for(let dx=-1;dx<=7;dx++){
+    const x=oxy[0]+dx,y=oxy[1]+dy;if(x<0||y<0||x>=n||y>=n)continue;
+    const d=Math.max(Math.abs(dx-3),Math.abs(dy-3));set(x,y,d!==2&&d<=3);}
+  for(let i=8;i<n-8;i++){set(i,6,i%2===0);set(6,i,i%2===0);}
+  const al=qrAlign(ver);
+  for(const ay of al)for(const ax of al){
+    if((ax===6&&ay===6)||(ax===6&&ay===n-7)||(ax===n-7&&ay===6))continue;
+    for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++)
+      set(ax+dx,ay+dy,Math.max(Math.abs(dx),Math.abs(dy))!==1);}
+  // Réserve des zones de format PUIS module sombre — dans cet ordre : la réserve balaie la
+  // colonne 8 jusqu'en bas et remettrait le module sombre à clair si on le posait avant.
+  for(let i=0;i<=8;i++){if(i!==6){set(i,8,0);set(8,i,0);}}
+  for(let i=0;i<8;i++){set(n-1-i,8,0);set(8,n-1-i,0);}
+  set(8,n-8,1);
+  if(ver>=7){let r=ver;for(let i=0;i<12;i++)r=(r<<1)^((r>>11)*0x1f25);
+    const bits=(ver<<12)|r;
+    for(let i=0;i<18;i++){const b=(bits>>i)&1,a=Math.floor(i/3),c=i%3;
+      set(a,n-11+c,b);set(n-11+c,a,b);}}
+  let i=0,up=true;
+  for(let right=n-1;right>=1;right-=2){
+    if(right===6)right=5;
+    for(let v=0;v<n;v++){const y=up?n-1-v:v;
+      for(let c=0;c<2;c++){const x=right-c;if(fn[y*n+x])continue;
+        let bit=i<cw.length*8?(cw[i>>3]>>(7-(i&7)))&1:0;i++;
+        if(qrMaskAt(mask,x,y))bit^=1;
+        m[y*n+x]=bit;}}
+    up=!up;}
+  // Information de format : 5 bits (niveau M = 00, puis le masque) + BCH(15,5), masqués par
+  // 0x5412, écrits DEUX fois. Placement normatif, donc écrit pas à pas et sans astuce.
+  const fd=(0b00<<3)|mask;let fr=fd;
+  for(let k=0;k<10;k++)fr=(fr<<1)^((fr>>9)*0x537);
+  const fmt=((fd<<10)|fr)^0x5412,bit=k=>(fmt>>k)&1,put=(x,y,v)=>{m[y*n+x]=v;};
+  for(let k=0;k<=5;k++)put(8,k,bit(k));
+  put(8,7,bit(6));put(8,8,bit(7));put(7,8,bit(8));
+  for(let k=9;k<15;k++)put(14-k,8,bit(k));
+  for(let k=0;k<8;k++)put(n-1-k,8,bit(k));
+  for(let k=8;k<15;k++)put(8,n-15+k,bit(k));
+  return {n:n,m:m};}
+// Renvoie {n, m, version} — m = matrice n×n de 0/1, lignes du haut vers le bas. null si trop long
+// (l'appelant décide : jamais d'échec muet).
+function qrEncode(text){
+  const bytes=new TextEncoder().encode(String(text));
+  let ver=0,cw=null;
+  for(let v=1;v<=QR_MAXVER;v++){const d=qrDataCw(bytes,v);if(d){ver=v;cw=qrInterleave(d,v);break;}}
+  if(!ver)return null;
+  let best=null,bestP=Infinity;
+  for(let k=0;k<8;k++){const r=qrBuild(cw,ver,k),pen=qrPenalty(r.n,r.m);
+    if(pen<bestP){bestP=pen;best=r;}}
+  best.version=ver;return best;}
+/* Rendu SVG. Encre et fond FIXES dans les deux thèmes (`--qr-ink` sur `--paper`) : `--ink` est
+   clair en sombre, un QR peint avec lui serait blanc sur blanc — donc invisible, et le défaut ne
+   se verrait qu'au moment de scanner. Zone de silence de 4 modules : elle fait partie de la
+   norme, sans elle un lecteur peut refuser le code. `shape-rendering=crispEdges` : sans lui
+   l'anticrénelage brouille les bords des modules et dégrade la lecture à petite taille. */
+function qrSvg(text,label){
+  const q=qrEncode(text);if(!q)return '';
+  const quiet=4,n=q.n,side=n+quiet*2;let d='';
+  for(let y=0;y<n;y++)for(let x=0;x<n;x++)if(q.m[y*n+x])d+='M'+(x+quiet)+' '+(y+quiet)+'h1v1h-1z';
+  return '<svg class="qr" viewBox="0 0 '+side+' '+side+'" shape-rendering="crispEdges" '+
+    'role="img" aria-label="'+esc(label||'Code à scanner')+'">'+
+    '<rect width="'+side+'" height="'+side+'" fill="var(--paper)"/>'+
+    '<path d="'+d+'" fill="var(--qr-ink)"/></svg>';}
+
+/* ===== PARTAGE DE SESSION — noyau pur =====
+   Fonctions SANS effet de bord, testables une par une (?__actest). Tout ce qui touche au réseau,
+   au DOM ou au Runtime vit ailleurs : ici on ne décide que de CE QUI VOYAGE et de CE QUE ÇA VAUT.
+
+   1. PROJECTION DE LA FICHE (`sharePayload`) — ce n'est PAS la fiche. Envoyer l'objet entier
+      expédierait `localInfo` (pré-rempli « Tél renfort / Tél régulation »), jusqu'à 24 Mo
+      d'images en base64, et des références de documents que l'invité ne pourra jamais ouvrir
+      (aucun droit sur le bucket). Deux listes EXPLICITES, et un test qui échoue si un champ du
+      modèle n'est classé ni dans l'une ni dans l'autre : ajouter demain un champ à `blankFiche`
+      sans décider s'il se partage devient impossible.
+   2. CAPACITÉS (`shareCan`) — MIROIR de `share_kind_allowed` côté serveur. Le client n'est
+      qu'ergonomie : la vraie barrière est en SQL. Cette copie sert à masquer les commandes
+      interdites, jamais à autoriser quoi que ce soit.
+   3. PLI (`shareFold`) — l'état est un PLI du journal d'évènements, jamais une ligne mutée.
+      `offline_mark` en est EXCLU par construction : le relevé d'un participant détaché est un
+      rapport, pas une commande — il rejoint le journal, il ne touche pas l'état.
+   4. EMPREINTE (`shareStateHash`) — détecte la DIVERGENCE SILENCIEUSE, celle qu'un indicateur
+      de péremption ne verra jamais : les mises à jour arrivent à l'heure et sont fausses. Deux
+      miroirs qui ne calculent pas la même empreinte ne s'accordent pas, et celui qui diverge se
+      déclare périmé plutôt que d'afficher un état plausible.
+   5. HORLOGE (`shareOffset`) — algorithme de Cristian. L'en-tête HTTP `Date` n'est PAS lisible
+      en fetch cross-origin (hors liste CORS-safelisted) : l'heure serveur voyage donc dans le
+      CORPS. Une mesure dont l'aller-retour dépasse le seuil est REJETÉE — en 4G dégradée on
+      garde le dernier bon décalage plutôt qu'un mauvais frais. */
+const SHARE_KEEP = ['id','title','code','status','validation','blocks','start','timers','counters',
+  'confirmation','verify','notForget','differentials','posology'];
+const SHARE_DROP = ['category','localInfo','complications','references','images','attachments',
+  'related','order','updatedBy','updatedAt','deletedAt','ownerId','libraryId'];
+/* `complications` est DÉLIBÉRÉMENT écarté, et ce n'est pas un oubli : entrer en complication est
+   une capacité du seul `lead` (le scribe ne navigue pas), et les cibles peuvent désigner d'AUTRES
+   aides que l'invité ne possède pas. Le transmettre n'offrirait rien d'utilisable et ferait fuiter
+   la liste des aides liées. */
+function sharePayload(f){
+  const out={};
+  for(const k of SHARE_KEEP)if(f&&f[k]!==undefined)out[k]=f[k];
+  // Les blocs portent une référence d'image (`b.image`) ; sans le tableau `images`, elle pendrait
+  // dans le vide. On la retire ici plutôt que de laisser le rendu échouer côté invité.
+  out.blocks=((f&&f.blocks)||[]).map(b=>{const c=Object.assign({},b);delete c.image;return c;});
+  return JSON.parse(JSON.stringify(out));}
+/* Vocabulaire FERMÉ des évènements. Toute valeur hors de cette liste est refusée par le serveur ;
+   la liste est ici pour que le client sache quoi émettre, pas pour arbitrer. */
+const SHARE_KINDS_ANY=['check','verify','gap','counter','timer_arm','mark','presence','detach','offline_mark'];
+const SHARE_KINDS_LEAD=['uncheck','nav','flow_end','timer_stop','timer_reset','cx','handoff','end'];
+function shareCan(role,kind){
+  if(SHARE_KINDS_ANY.indexOf(kind)>=0)return role==='scribe'||role==='lead';
+  if(SHARE_KINDS_LEAD.indexOf(kind)>=0)return role==='lead';
+  return false;}
+/* ÉTAT DE SESSION vs ÉTAT DE VUE. `snapshotSession` ne sérialise pas `flowEnded` — or c'est un
+   état de SESSION : il pilote la bannière « Algorithme terminé » et les étapes ②/③ du rail. Sans
+   lui, le pilote bascule et l'invité voit encore « Continuer ». Les autres (`confOpen`, `ovFold`,
+   `ovVerify`, `readerI`) sont PROPRES À CHAQUE ÉCRAN et ne doivent surtout pas voyager : imposer
+   son repli ou sa position de lecture à l'autre serait un mouvement non commandé. La frontière
+   est écrite ICI et vérifiée par un test — sinon elle se re-perdra au prochain champ ajouté. */
+const SHARE_TRAVELS=['checked','verified','vgaps','nav','navSeq','counters','timers','events','flowEnded','cxBack'];
+const SHARE_LOCAL  =['confOpen','ovFold','ovVerify','readerI','navPos','rtOpen','showFlow','readMode','previewFrom'];
+/* Pli du journal : évènements -> état. Déterministe et pur — deux appareils qui appliquent la
+   même suite obtiennent le même état, ce que l'empreinte vérifie ensuite. */
+function shareFold(events,base){
+  const s=Object.assign({checked:{},verified:{},vgaps:{},counters:{},timers:{},nav:[],navSeq:[],
+    events:[],flowEnded:false,annex:[]},base||{});
+  for(const e of (events||[])){
+    const p=e.payload||{};
+    switch(e.kind){
+      case 'check':   if(p.k)s.checked[p.k]=true; break;
+      // Décochage : réservé au lead côté serveur. Il RETIRE la clé (l'absence = non coché), mais
+      // l'évènement reste dans le journal — la trace de qui a décoché, et quand, ne s'efface pas.
+      case 'uncheck': if(p.k)delete s.checked[p.k]; break;
+      case 'verify':  if(p.k){s.verified[p.k]={a:e.actor,t:p.t||e.ts};delete s.vgaps[p.k];} break;
+      case 'gap':     if(p.k){s.vgaps[p.k]={a:e.actor,t:p.t||e.ts};delete s.verified[p.k];} break;
+      case 'counter': if(p.id!=null)s.counters[p.id]=+p.v||0; break;
+      case 'timer_arm': case 'timer_stop': case 'timer_reset':
+        if(p.id!=null)s.timers[p.id]={running:!!p.running,elapsedMs:+p.elapsedMs||0,
+          cycles:+p.cycles||0,anchor:+p.anchor||0};
+        break;
+      case 'nav':     if(Array.isArray(p.nav)&&Array.isArray(p.navSeq)&&p.nav.length===p.navSeq.length){
+                        s.nav=p.nav.slice();s.navSeq=p.navSeq.slice();} break;
+      case 'flow_end':s.flowEnded=!!p.on; break;
+      case 'mark':    s.events.push({id:p.id,t:p.t||e.ts,ref:p.ref||null,a:e.actor}); break;
+      // ANNEXE — le relevé d'un participant qui a poursuivi seul. Il rejoint le journal et le
+      // compte-rendu, il ne touche JAMAIS l'état : fusionner deux états divergents produirait un
+      // état que personne ne peut attribuer.
+      case 'offline_mark': s.annex.push({t:p.t||e.ts,ref:p.ref||null,a:e.actor}); break;
+    }
+  }
+  return s;}
+/* Empreinte stable d'un état. FNV-1a 32 bits — même algorithme que `spaceTag`. Les clés sont
+   TRIÉES : sans cela deux appareils ayant reçu les mêmes évènements dans un ordre d'insertion
+   différent obtiendraient des empreintes différentes et se déclareraient périmés à tort. */
+function shareStateHash(s){
+  const parts=[];
+  parts.push('c:'+Object.keys(s.checked||{}).filter(k=>s.checked[k]).sort().join(','));
+  parts.push('v:'+Object.keys(s.verified||{}).sort().join(','));
+  parts.push('g:'+Object.keys(s.vgaps||{}).sort().join(','));
+  parts.push('n:'+(s.nav||[]).join(',')+'|'+(s.navSeq||[]).join(','));
+  parts.push('k:'+Object.keys(s.counters||{}).sort().map(k=>k+'='+s.counters[k]).join(','));
+  parts.push('t:'+Object.keys(s.timers||{}).sort().map(k=>k+'='+((s.timers[k]||{}).cycles||0)).join(','));
+  parts.push('f:'+(s.flowEnded?1:0));
+  let h=0x811c9dc5;const str=parts.join(';');
+  for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,0x01000193)>>>0;}
+  return h.toString(36);}
+/* Décalage d'horloge (Cristian). `samples` = [{t0, t1, srv}] en millisecondes : t0 = départ,
+   t1 = réception, srv = heure serveur lue dans le CORPS de la réponse.
+   Une mesure dont l'aller-retour dépasse `maxRtt` est REJETÉE : son incertitude vaut la moitié du
+   RTT, et un décalage faux est pire qu'un décalage vieux — c'est lui qui daterait les gestes du
+   compte-rendu, et qui ferait sonner deux minuteurs à des instants différents dans la même pièce.
+   Médiane et non moyenne : une seule mesure aberrante ne doit pas tirer le résultat. */
+function shareOffset(samples,maxRtt){
+  const lim=maxRtt||400;
+  const offs=(samples||[]).map(s=>({rtt:s.t1-s.t0,off:s.srv+(s.t1-s.t0)/2-s.t1}))
+    .filter(x=>x.rtt>=0&&x.rtt<=lim).map(x=>x.off).sort((a,b)=>a-b);
+  if(!offs.length)return null;
+  const m=offs.length>>1;
+  return Math.round(offs.length%2?offs[m]:(offs[m-1]+offs[m])/2);}
+
 /* ===== Runtime panel (rendu des minuteurs/compteurs en lecture) =====
    timerCard(t)   : carte d'un minuteur. 'stopwatch' -> temps qui monte ;
      'interval' -> temps restant qui descend + barre de progression + "Cycles : n".
@@ -7721,7 +8009,8 @@ function renderRead(){
    scrollBy ne peut pas descendre sous 0 : il reste un résidu de (S - scrollY) px. C'est sans
    conséquence pour S ≈ une centaine de px (le bouton), mais cela interdit d'y adosser le repli
    d'un BLOC entier (cf. la doctrine de state.confOpen dans ensureStarted).
-   Renvoie le RÉSIDU en px (0 = l'ancre n'a pas bougé) -> testable, et garde-fou pour l'avenir. */
+   Renvoie le RÉSIDU en px (0 = l'ancre n'a pas bougé), ou `null` si AUCUNE mesure n'a pu être
+   faite -> testable, et garde-fou pour l'avenir. */
 /* ANCRAGE — SOURCE UNIQUE (v4.45.0). Le motif « mesurer la position écran d'une ancre, re-rendre,
    compenser le défilement » existait en QUATRE copies : `renderKeepAnchor` (render complet),
    `renderOvOnlyKeepAnchor` et `ovAdvanceRender` (journal), et le remplacement chirurgical de
@@ -7737,15 +8026,25 @@ function renderRead(){
    la respecter, et rouvrirait le bug v4.3.2.
    Ce qui reste PROPRE À CHAQUE APPELANT et ne doit pas être unifié : le focus clavier (seul le
    journal le déplace) et la règle de visibilité (seul `ovAdvanceRender` défile vers la nouvelle
-   carte, et seulement si elle n'est pas déjà entièrement à l'écran). */
+   carte, et seulement si elle n'est pas déjà entièrement à l'écran).
+   « PAS MESURÉ » N'EST PAS « N'A PAS BOUGÉ » (correctif) : les trois sorties sans mesure
+   renvoyaient `0`, c'est-à-dire la valeur qui signifie « ancrage parfait ». La plus grave est la
+   troisième — l'ancre A DISPARU pendant le re-rendu. Elle n'est pas théorique : une condensation
+   du journal (`ovPresList` : carte -> chip, puis rangée -> `.ov-runline`) fait disparaître le
+   `[data-ck="…"]` que l'on visait, et la page peut alors sauter de plusieurs centaines de px
+   pendant que la fonction annonce `0`. Le contrôle « dérive 0 px » d'`audit-doctrine` serait donc
+   VERT exactement sur le cas qu'il prétend couvrir — troisième occurrence de la leçon v4.31.1 :
+   un contrôle aveugle au défaut qu'il couvre ne vaut rien. D'où `null`, que le harnais refuse.
+   Aucun appelant ne se branche sur la valeur de retour (vérifié : 8 sites l'ignorent,
+   `renderOvOnlyKeepAnchor` se contente de la relayer) — le changement est donc sans effet visible. */
 function keepAnchor(sel,rerender){
   const el=sel?main.querySelector(sel):null;const top=el?el.getBoundingClientRect().top:null;
   rerender();
-  if(top==null)return 0;
-  const nl=sel?main.querySelector(sel):null;if(!nl)return 0;
+  if(top==null)return null;                                   // pas de sélecteur, ou ancre absente AVANT
+  const nl=sel?main.querySelector(sel):null;if(!nl)return null;   // ancre DISPARUE pendant le re-rendu
   const d=nl.getBoundingClientRect().top-top;if(d)window.scrollBy(0,d);
   const r=main.querySelector(sel);
-  return r?Math.round(r.getBoundingClientRect().top-top):0;}
+  return r?Math.round(r.getBoundingClientRect().top-top):null;}
 function renderKeepAnchor(sel){return keepAnchor(sel,render);}
 // Câblage des écouteurs de la vue lecture (seconde moitié de l'ancien renderRead) : navigation entre
 // blocs, cochage des étapes, contrôles minuteurs/compteurs (mise à jour DOM directe, sans re-rendu),
@@ -10644,6 +10943,33 @@ document.getElementById('importFile').onchange=e=>{const file=e.target.files[0];
    (RGPD) ; la synchronisation des DONNÉES est dans l'objet `Sync` (plus bas).
    Tout est OPTIONNEL : déconnecté, l'app fonctionne exactement comme sans compte (local). */
 const SUPA={url:'https://xhvgiwcxaqcnacuiovhh.supabase.co',key:'sb_publishable_X6kvCMh6XiCvKQEOc1c0PQ_BrMZDIQd'};
+/* DÉLAI DE GARDE SUR TOUT APPEL RÉSEAU (correctif) — AUCUN `fetch` du fichier n'en avait.
+   Sur iOS, un fetch qui ne trouve pas de route ne rejette qu'au bout de 60 à 75 s. Trois
+   conséquences, toutes vécues comme « la synchro est bloquée » :
+     • `Sync.running` reste vrai pendant tout ce temps, donc aucune autre tentative ne part ;
+     • le repli exponentiel (5/10/20…120 s) ne s'arme qu'APRÈS la première erreur — il ne peut
+       donc pas raccourcir cette première minute, il ne fait que la suivre ;
+     • `Auth.refresh()` est attendu par `ensureFresh()` avant CHAQUE appel REST : un
+       rafraîchissement suspendu bloque tout ce qui vient derrière, y compris ce qui n'aurait
+       pas eu besoin du réseau.
+   `navigator.onLine` ne rattrape rien et ne peut pas servir de garde : en ascenseur, en
+   sous-sol ou derrière un portail captif, l'interface radio reste « up » et il répond `true`
+   (c'est pourquoi `Sync.online()` n'est utilisé QUE comme échec rapide, jamais comme preuve
+   qu'on est joignable).
+   Deux délais, parce que deux natures : les appels JSON sont courts par construction (au pire
+   une page de 1 000 lignes), un binaire PDF ne l'est pas — lui donner 25 s casserait un
+   téléversement légitime sur réseau lent, ce qui serait un défaut de plus, pas un correctif.
+   Sans AbortController on garde le `fetch` nu : non borné, mais jamais refusé faute d'API. */
+const NET_TIMEOUT_MS=25000,NET_TIMEOUT_BLOB_MS=120000;
+function acFetch(url,init,ms){
+  if(typeof AbortController!=='function')return fetch(url,init);
+  const ac=new AbortController(),lim=ms||NET_TIMEOUT_MS;
+  const to=setTimeout(()=>{try{ac.abort();}catch(e){}},lim);
+  return fetch(url,Object.assign({},init,{signal:ac.signal}))
+    // Message DISTINCT de « REST <code> » : `restErrStatus` ne doit pas y lire un statut HTTP
+    // (un délai dépassé n'est pas un refus du serveur — il se réessaie, il ne se répare pas).
+    .catch(e=>{if(e&&e.name==='AbortError')throw new Error('NET timeout '+lim+' ms');throw e;})
+    .finally(()=>clearTimeout(to));}
 const Auth={
   session:null,
   _load(){try{this.session=JSON.parse(localStorage.getItem('ac-auth')||'null');}catch(e){this.session=null;}},
@@ -10653,7 +10979,7 @@ const Auth={
   token(){return (this.session&&this.session.access_token)||SUPA.key;},
   // apikey = clé publishable (toujours) ; Authorization = jeton utilisateur si connecté, sinon la clé (rôle anon).
   headers(extra){return Object.assign({'apikey':SUPA.key,'Authorization':'Bearer '+this.token(),'Content-Type':'application/json'},extra||{});},
-  async _post(path,body){const r=await fetch(SUPA.url+path,{method:'POST',headers:this.headers(),body:JSON.stringify(body)});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.msg||j.message||j.error_description||j.error||('HTTP '+r.status));return j;},
+  async _post(path,body){const r=await acFetch(SUPA.url+path,{method:'POST',headers:this.headers(),body:JSON.stringify(body)});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.msg||j.message||j.error_description||j.error||('HTTP '+r.status));return j;},
   _setSession(j){if(!j||!j.access_token)return;this.session={access_token:j.access_token,refresh_token:j.refresh_token,expires_at:j.expires_at||(Math.floor(Date.now()/1000)+(j.expires_in||3600)),user:j.user};this._save();},
   async sendCode(email){await this._post('/auth/v1/otp',{email:email,create_user:true});},
   async verifyCode(email,code){const j=await this._post('/auth/v1/verify',{type:'email',email:email,token:code});this._setSession(j);return j;},
@@ -10668,7 +10994,9 @@ const Auth={
     if(this._refreshP)return this._refreshP;
     this._refreshP=(async()=>{
       if(!this.session||!this.session.refresh_token)return false;
-      let r;try{r=await fetch(SUPA.url+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:this.headers(),body:JSON.stringify({refresh_token:this.session.refresh_token})});}catch(e){return false;}
+      // Un délai dépassé passe par ce même `catch` : on renvoie false (« pas rafraîchi »), donc
+      // AUCUNE déconnexion — exactement le traitement voulu pour une panne réseau.
+      let r;try{r=await acFetch(SUPA.url+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:this.headers(),body:JSON.stringify({refresh_token:this.session.refresh_token})});}catch(e){return false;}
       const j=await r.json().catch(()=>({}));
       if(!r.ok){if(r.status===400||r.status===401||r.status===403)await this.signOut();return false;}
       this._setSession(j);return true;
@@ -10681,7 +11009,7 @@ const Auth={
     // incrémental, chaque compte a le sien. L'espace local ne change pas non plus : les fiches
     // restent affichées hors-ligne (promesse local-first) — il ne bascule qu'à la connexion
     // d'un AUTRE compte.
-    if(tok){try{await fetch(SUPA.url+'/auth/v1/logout',{method:'POST',headers:{'apikey':SUPA.key,'Authorization':'Bearer '+tok}});}catch(e){}}},
+    if(tok){try{await acFetch(SUPA.url+'/auth/v1/logout',{method:'POST',headers:{'apikey':SUPA.key,'Authorization':'Bearer '+tok}});}catch(e){}}},
   // Suppression RGPD : efface compte + données perso côté serveur (RPC SECURITY DEFINER).
   async deleteAccount(){await this._post('/rest/v1/rpc/delete_my_account',{});}
 };
@@ -11336,7 +11664,7 @@ applyTheme(localStorage.getItem(spaceKey('ac-theme'))||localStorage.getItem('ac-
    silencieux côté usage (l'app reste pleinement utilisable hors-ligne). */
 // Appel REST générique vers PostgREST. Rafraîchit le jeton au besoin. Lève en cas d'erreur HTTP.
 async function rest(method,path,body,extra){await Auth.ensureFresh();
-  const r=await fetch(SUPA.url+path,{method:method,headers:Auth.headers(extra),body:body?JSON.stringify(body):undefined});
+  const r=await acFetch(SUPA.url+path,{method:method,headers:Auth.headers(extra),body:body?JSON.stringify(body):undefined});
   if(!r.ok){const t=await r.text().catch(()=>'');throw new Error('REST '+r.status+' '+String(t).slice(0,200));}
   const ct=r.headers.get('content-type')||'';return ct.indexOf('application/json')>=0?r.json():null;}
 // Appel d'une fonction Postgres exposée par PostgREST (toujours en POST). Raccourci de rest() pour
@@ -11382,7 +11710,7 @@ function attMissingInfo(entities,haveIds,uid){
 async function storageReq(method,path,body,ctype,extra){await Auth.ensureFresh();
   const h=Object.assign({'apikey':SUPA.key,'Authorization':'Bearer '+Auth.token()},extra||{});
   if(ctype)h['Content-Type']=ctype;
-  const r=await fetch(SUPA.url+'/storage/v1/object/attachments/'+path,{method:method,headers:h,body:body});
+  const r=await acFetch(SUPA.url+'/storage/v1/object/attachments/'+path,{method:method,headers:h,body:body},NET_TIMEOUT_BLOB_MS);
   if(!r.ok){const t=await r.text().catch(()=>'');const err=new Error('REST '+r.status+' '+String(t).slice(0,200));err.status=r.status;throw err;}
   return r;}
 // File LOCALE des suppressions distantes à rejouer (un chemin n'y entre que quand plus AUCUNE
@@ -12389,7 +12717,11 @@ if(location.search.indexOf('__actest')>=0){
     restErrStatus,isPersoRepairCandidate,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,cxAll,cxDetached,
     qTerms,hayMatch,markQTerms,searchSnippet,ficheSnipParts,protoSnipParts,frecencyScore,sanitizeUsage,mergeUsage,
     crc32,zipBuild,zipParse,isPdfBytes,mdTask,flowOrder,latestPass,offPathSet,minimapData,passInfo,instComplete,flowPlan,stepCR,stepGuardTxt,optAbbr,svBranchIssue,svLoopTargets,ovPresList,
-    posoTokens,posoName,posoScore,posoRank,posoSplit};
+    posoTokens,posoName,posoScore,posoRank,posoSplit,
+    qrRawBits,qrTotalCw,qrGen,qrRs,qrAlign,qrDataCw,qrInterleave,qrEncode,qrSvg,qrMul,
+    QR_ECW,QR_BLK,QR_MAXVER,QR_EXP,QR_LOG,
+    sharePayload,shareCan,shareFold,shareStateHash,shareOffset,blankFiche,
+    SHARE_KEEP,SHARE_DROP,SHARE_TRAVELS,SHARE_LOCAL,SHARE_KINDS_ANY,SHARE_KINDS_LEAD};
 }else{
   /* ===== PWA =====
      Enregistre le service worker (cache hors ligne) si disponible. Capte

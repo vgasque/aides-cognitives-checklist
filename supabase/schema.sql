@@ -201,6 +201,9 @@ revoke all on all functions in schema public from anon;
 revoke all on schema public from anon;
 alter default privileges in schema public revoke all on tables from anon;
 alter default privileges in schema public revoke all on functions from anon;
+-- ATTENTION : ces quatre lignes ne suffisent PAS côté FONCTIONS — elles ne retirent rien à
+-- PUBLIC, dont anon hérite, et à qui PostgreSQL accorde EXECUTE par défaut. Le correctif est en
+-- section 5quater, en FIN de fichier (il doit courir après la dernière définition de fonction).
 
 -- ---------- 5bis. Invitation d'un membre par e-mail (Lot 3) -----------------
 -- Recherche un compte par e-mail (table auth.users protégée) et lui attribue un rôle.
@@ -402,11 +405,24 @@ alter table public.app_settings enable row level security;
 -- migration incomplète...) est réputé APPROUVÉ, comme le rapporte my_status(). L'ancien
 -- `exists(... status='approved')` le refusait : l'app affichait alors « Connecté » (my_status)
 -- pendant que TOUTES les écritures étaient rejetées en 403 — panne de synchro inexplicable.
+-- ELLE RENVOYAIT **TRUE POUR anon** (correctif) — et c'était le plus insidieux des deux défauts
+-- de cette famille, parce qu'il a l'air solide. Sous le rôle anon, `auth.uid()` vaut NULL : la
+-- sous-requête sur user_status ne ramène rien, le `coalesce` retombe sur 'approved', et la
+-- troisième branche est VRAIE. Sur une instance neuve, `require_approval` valant false par
+-- défaut, la DEUXIÈME branche suffisait déjà à elle seule. Le laxisme délibéré « pas de ligne
+-- user_status = approuvé » (documenté ci-dessus, et qui reste INTACT) s'appliquait donc à
+-- l'absence de compte tout court.
+-- Aujourd'hui c'est sans conséquence : les politiques qui l'appellent exigent TOUTES en plus
+-- `owner = auth.uid()` ou `user_id = auth.uid()`, qui est faux pour anon. C'est donc un correctif
+-- de PRINCIPE : le jour où quelqu'un écrit un garde-fou en s'appuyant sur `is_approved()` seule,
+-- il doit tenir. RÈGLE ÉCRITE : un gate anon s'écrit `auth.uid() is not null`, jamais
+-- `is_approved()`. Aucun changement pour un compte connecté — `auth.uid()` y est toujours non nul.
 create or replace function public.is_approved()
 returns boolean language sql stable security definer set search_path = public, pg_temp as $$
-  select public.is_app_admin()
-    or not coalesce((select require_approval from public.app_settings limit 1), true)
-    or coalesce((select status from public.user_status where user_id = auth.uid()), 'approved') = 'approved';
+  select auth.uid() is not null
+    and (public.is_app_admin()
+      or not coalesce((select require_approval from public.app_settings limit 1), true)
+      or coalesce((select status from public.user_status where user_id = auth.uid()), 'approved') = 'approved');
 $$;
 grant execute on function public.is_approved() to authenticated;
 
@@ -450,9 +466,14 @@ create trigger notes_clamp_updated before insert or update on public.fiche_notes
 -- synchro) : reflète EXACTEMENT is_approved() (si la validation est désactivée globalement, ou si
 -- aucune ligne n'existe -> 'approved', pour ne jamais afficher "en attente" à quelqu'un dont la
 -- synchro fonctionne déjà réellement).
+-- Même correctif que is_approved() (dont elle doit rester le REFLET EXACT) : sans compte, elle
+-- répondait 'approved'. Elle renvoie désormais NULL — exactement ce que le client stocke déjà
+-- lui-même quand il n'est pas connecté (`refreshAccountStatus` : `myAccountStatus=null`), donc
+-- aucun changement de comportement côté app.
 create or replace function public.my_status()
 returns text language sql stable security definer set search_path = public, pg_temp as $$
   select case
+    when auth.uid() is null then null
     when public.is_app_admin() then 'approved'
     when not coalesce((select require_approval from public.app_settings limit 1), true) then 'approved'
     else coalesce((select status from public.user_status where user_id = auth.uid()), 'approved')
@@ -657,6 +678,16 @@ begin
   delete from public.fiches        where owner = uid and library_id is null;
   delete from public.protocols     where owner = uid and library_id is null;
   delete from public.category_sets where owner = uid and library_id is null;
+  -- PARTAGES DE SESSION — suppression EXPLICITE, et non « par cascade ». Deux raisons, chacune
+  -- suffisante : (1) `session_participants.user_id` référence `auth.users`, donc sans cette ligne
+  -- la cascade partirait de l'utilisateur et pourrait laisser des partages orphelins dont
+  -- l'`owner` n'existe plus ; (2) surtout, une contrainte non satisfaite lèverait ici une
+  -- `foreign_key_violation` — et comme tout ce corps plpgsql est UNE SEULE transaction, la
+  -- fonction entière serait annulée : le droit à l'effacement disparaîtrait purement et
+  -- simplement pour quiconque a partagé une session ne serait-ce qu'une fois. Le commentaire de
+  -- la ligne `delete from auth.users` affirme déjà une cascade ; c'est exactement ce genre
+  -- d'affirmation non vérifiée que le projet a payé cher en v4.44.1.
+  delete from public.shared_sessions where owner = uid;   -- cascade -> participants, events
   -- Documents PDF perso du bucket : rendus inaccessibles par la RLS dès la suppression du compte ;
   -- leurs objets orphelins remontent dans list_orphan_attachments() (purge manuelle app-admin).
   delete from auth.users where id = uid;   -- cascade -> memberships, app_admins, sessions…
@@ -788,6 +819,595 @@ language sql stable security definer set search_path = public, storage, pg_temp 
   order by o.created_at;
 $$;
 grant execute on function public.list_orphan_attachments() to authenticated;
+
+-- ============================================================================================
+-- ---------- 8. PARTAGE DE SESSION EN DIRECT --------------------------------------------------
+-- ============================================================================================
+-- Une session de crise (checklist en cours : cases cochées, minuteurs, compteurs, repères
+-- horodatés) devient consultable et remplissable par un SECOND appareil, avec ou sans compte.
+--
+-- CE QUE CETTE SECTION N'EST PAS. Ce n'est pas un partage d'AIDE COGNITIVE — les bibliothèques
+-- partagées font déjà cela, avec memberships et RLS. Ici la portée est UNE session, elle meurt
+-- avec elle, et l'invité ne conserve rien. `auth.uid()` ne sert donc QU'À L'ATTRIBUTION (nommer
+-- un participant qui a un compte), JAMAIS à l'accès : l'accès vient toujours du secret de
+-- participant. Il n'existe qu'un seul chemin d'accès à auditer.
+--
+-- RELAIS, PAS ENTREPÔT. Le serveur relaie et purge ; la trace durable reste locale, sur chaque
+-- appareil, comme elle l'a toujours été. C'est ce qui permet d'écrire au registre RGPD « relais
+-- transitoire, sans conservation » — et ce qui rend sans objet la question de l'hébergement
+-- certifié HDS, qui ne s'était jamais posée tant que rien ne sortait de l'appareil.
+--
+-- QUATRE RÈGLES DE CONCEPTION, chacune réparant une faille identifiée AVANT écriture :
+--  1. AUCUNE IDENTITÉ EN PARAMÈTRE. L'acteur d'un évènement est DÉDUIT du secret présenté.
+--     Passer un `participant` en argument rendrait l'attribution forgeable par tout porteur du
+--     code — or l'attribution EST le contrôle que l'hôte demande (« savoir ce que l'invité a
+--     modifié »), et elle alimente le compte-rendu de débriefing.
+--  2. UN SECRET PAR PARTICIPANT, généré ICI (gen_random_bytes), jamais par le client — dont le
+--     seul générateur maison (`uid()`) rend ~41 bits et retombe sur Math.random. Seul le sha-256
+--     est stocké. C'est ce qui rend la coupure d'un invité EFFECTIVE : sans lui, le coupé
+--     rejoindrait avec le même code, et la seule coupure qui mordrait serait celle de tout le
+--     monde — en pleine réanimation.
+--  3. FENÊTRE D'ADMISSION. Le code n'ouvre la porte que pendant quelques dizaines de secondes,
+--     armées par un geste de l'hôte. Un code re-diffusé plus tard n'ouvre plus rien.
+--  4. APPEND-ONLY STRICT. Un invité n'écrit QUE des lignes dans `session_events` ; il ne met à
+--     jour aucun état partagé. L'état est un PLI calculé par chaque client — exactement la
+--     doctrine du journal de parcours (« nav[] EST la chronologie, rien ne mute au-dessus »).
+--     Un état matérialisé imposerait un lire-modifier-écrire, donc un verrou tenu par la file
+--     d'un invité, derrière lequel L'HÔTE ATTENDRAIT SES PROPRES ÉCRITURES.
+--
+-- Aucune exception ne doit traverser jusqu'à un appelant anonyme : PostgREST recopie mot pour mot
+-- `message`, `detail` et `hint`. Les fonctions renvoient donc une valeur normalisée, et le motif
+-- du refus n'est détaillé qu'au propriétaire authentifié.
+
+-- pgcrypto : `gen_random_bytes` et `digest`. Déjà présent sur une instance Supabase (schéma
+-- `extensions`) ; la ligne est idempotente et ne fait rien dans ce cas.
+create extension if not exists pgcrypto;
+
+create table if not exists public.shared_sessions (
+  id              text primary key,                 -- 'sh…', minté par le client (safeId)
+  owner           uuid not null default auth.uid(),
+  session_id      text not null,                    -- id de la session LOCALE de l'hôte
+  fiche_id        text not null,
+  -- PROJECTION DÉCLARÉE de la fiche (`sharePayload` côté client), jamais la fiche entière :
+  -- `localInfo` est pré-rempli « Tél renfort / Tél régulation », et une image y pèse jusqu'à
+  -- 4,5 Mo. Le plafond ci-dessous est la deuxième barrière, celle qui ne dépend pas du client.
+  fiche_snap      jsonb not null,
+  code_hash       text,                             -- sha-256 du code d'appariement ; NULL = porte close
+  join_open_until timestamptz,                      -- fenêtre d'admission ; NULL = close
+  max_guests      smallint not null default 3 check (max_guests between 1 and 8),
+  guest_role      text not null default 'scribe' check (guest_role in ('scribe','lead')),
+  status          text not null default 'active' check (status in ('active','ended','revoked')),
+  -- ALLOCATEUR DE SÉQUENCE, PAR PARTAGE. Surtout PAS un `bigserial` : un serial alloue son numéro
+  -- à l'INSERT, pas au COMMIT. Deux écrivains concurrents peuvent donc valider dans le désordre,
+  -- et un lecteur qui a déjà avancé son curseur ne verra JAMAIS la ligne restée dessous — une
+  -- case cochée, un minuteur armé, perdus en silence. Ici le numéro est pris sous verrou de
+  -- ligne dans la transaction d'écriture : l'ordre des numéros EST l'ordre de visibilité.
+  last_seq        bigint not null default 0,
+  expires_at      timestamptz not null,
+  created_at      timestamptz not null default now(),
+  updated_at      timestamptz not null default now()
+);
+create index if not exists shared_sessions_owner_idx   on public.shared_sessions (owner, updated_at);
+create index if not exists shared_sessions_expires_idx on public.shared_sessions (expires_at);
+create unique index if not exists shared_sessions_code_idx
+  on public.shared_sessions (code_hash) where code_hash is not null;
+
+create table if not exists public.session_participants (
+  share_id     text not null references public.shared_sessions(id) on delete cascade,
+  participant  uuid not null default gen_random_uuid(),   -- identifiant PUBLIC opaque
+  user_id      uuid references auth.users on delete cascade,  -- NULL = invité sans compte
+  secret_hash  text,                                      -- NULL pour l'hôte : son JWT suffit
+  label        text not null default 'Invité' check (length(label) between 1 and 24),
+  role         text not null default 'scribe' check (role in ('scribe','lead')),
+  is_owner     boolean not null default false,
+  joined_at    timestamptz not null default now(),
+  last_seen_at timestamptz not null default now(),
+  revoked_at   timestamptz,
+  -- L'invité a quitté le partage pour POURSUIVRE SEUL (perte de réseau durable). Ce n'est pas une
+  -- panne : c'est le repli hors dispositif exigé par l'AC 120-64 §9.a, et il se TRACE — l'hôte
+  -- doit pouvoir lire, dans son compte-rendu, à quelle minute il a cessé d'être suivi.
+  detached_at  timestamptz,
+  events_count integer not null default 0,
+  window_start timestamptz not null default now(),
+  window_count integer not null default 0,
+  primary key (share_id, participant)
+);
+create index if not exists session_participants_secret_idx
+  on public.session_participants (secret_hash) where secret_hash is not null;
+
+create table if not exists public.session_events (
+  share_id  text not null references public.shared_sessions(id) on delete cascade,
+  seq       bigint not null,
+  event_id  uuid   not null,          -- fourni par le client : déduplication d'un rejeu
+  actor     uuid   not null,          -- session_participants.participant, DÉDUIT du secret
+  kind      text   not null,
+  payload   jsonb  not null default '{}'::jsonb,
+  -- DEUX HORLOGES, ET C'EST LE POINT QUI REND LE HORS-LIGNE HONNÊTE. `at` = arrivée au serveur ;
+  -- `client_ts` = instant du GESTE, corrigé du décalage d'horloge mesuré pendant que la liaison
+  -- était bonne. Une action relevée hors réseau et rejouée dix minutes plus tard doit apparaître
+  -- au compte-rendu à l'heure où le soignant l'a faite, pas à celle où le réseau est revenu :
+  -- sans `client_ts`, « Choc n°2 » se rangerait après « Adrénaline » alors qu'il la précède.
+  -- (Danger n°2 du palmarès ECRI 2015 : intégrité des données, dont la désynchronisation
+  -- d'horloges entre appareils est un mécanisme nommé.)
+  client_ts timestamptz,
+  at        timestamptz not null default now(),
+  primary key (share_id, seq)
+);
+create unique index if not exists session_events_dedup_idx on public.session_events (share_id, event_id);
+
+do $$ begin
+  alter table public.shared_sessions add constraint shared_snap_size_chk
+    check (octet_length(fiche_snap::text) <= 2*1024*1024);
+exception when duplicate_object then null; end $$;
+do $$ begin
+  -- Un évènement de checklist est une coche, un minuteur, un compteur : quelques dizaines
+  -- d'octets. Le plafond vaut CONTRE LE CLIENT (un appel REST direct ignore toute borne écrite
+  -- en JavaScript) et contre le remplissage de la base, dont le quota est PARTAGÉ avec les fiches.
+  alter table public.session_events add constraint session_events_payload_size_chk
+    check (octet_length(payload::text) <= 4096);
+exception when duplicate_object then null; end $$;
+
+alter table public.shared_sessions      enable row level security;
+alter table public.session_participants enable row level security;
+alter table public.session_events       enable row level security;
+
+-- RLS : le PROPRIÉTAIRE seul touche ces tables en direct (lister ses partages, couper, terminer).
+-- Les invités n'ont AUCUN accès de table — ils passent exclusivement par les trois fonctions.
+drop policy if exists shared_own on public.shared_sessions;
+create policy shared_own on public.shared_sessions for all
+  using      (owner = auth.uid() and public.is_approved())
+  with check (owner = auth.uid() and public.is_approved());
+drop policy if exists sparts_own on public.session_participants;
+create policy sparts_own on public.session_participants for all
+  using      (exists (select 1 from public.shared_sessions s
+                       where s.id = share_id and s.owner = auth.uid() and public.is_approved()))
+  with check (exists (select 1 from public.shared_sessions s
+                       where s.id = share_id and s.owner = auth.uid() and public.is_approved()));
+drop policy if exists sevents_own on public.session_events;
+create policy sevents_own on public.session_events for select
+  using (exists (select 1 from public.shared_sessions s
+                  where s.id = share_id and s.owner = auth.uid() and public.is_approved()));
+
+grant select, insert, update, delete on public.shared_sessions      to authenticated;
+grant select,               update, delete on public.session_participants to authenticated;
+grant select                                on public.session_events       to authenticated;
+
+-- ---------- 8bis. Vocabulaire fermé et capacités ---------------------------------------------
+-- Le rôle borne ce qu'un participant a le DROIT d'écrire, et le contrôle est ICI, pas dans le
+-- client (qui n'est qu'ergonomie). Deux principes, tous deux doctrinaux :
+--  • le scribe ne reçoit que des droits ADDITIFS et IDEMPOTENTS. Il coche, constate, incrémente,
+--    horodate, ARME un minuteur — il n'en arrête ni n'en remet aucun à zéro : AGENTS.md range
+--    l'arrêt d'un processus vivant au registre `--critical`, et une commande d'arrêt émise à
+--    1 à 3 s de retard sur un écran périmé est exactement la bêtise à rendre impossible ;
+--  • la NAVIGATION appartient au seul `lead`. Un seul curseur, un seul détenteur à tout instant
+--    (AC 120-71B §6.4 pt 1 et §6.6.2.1). C'est aussi ce qui garantit qu'un seul participant mine
+--    des numéros de visite, donc qu'aucune clé de cochage `seq:blocId:index` ne peut se
+--    télescoper — la propriété technique découle de la règle doctrinale, pas l'inverse.
+-- `offline_mark` est à part et mérite son mot : c'est le RELEVÉ D'UN PARTICIPANT DÉTACHÉ, rapporté
+-- après coup. Il ne se fond JAMAIS dans l'état (ni coche, ni navigation, ni minuteur) — il vient
+-- s'ajouter au journal comme un brin distinct, attribué et horodaté à l'heure du geste. C'est ce
+-- qui permet de tout rapporter sans jamais fusionner deux états. Le pli côté client DOIT l'ignorer
+-- pour le calcul d'état : c'est un document, pas une commande.
+create or replace function public.share_kind_allowed(p_role text, p_kind text)
+returns boolean language sql immutable set search_path = public, pg_temp as $$
+  select case
+    when p_kind in ('check','verify','gap','counter','timer_arm','mark','presence','detach','offline_mark')
+      then p_role in ('scribe','lead')
+    when p_kind in ('uncheck','nav','flow_end','timer_stop','timer_reset','cx','handoff','end')
+      then p_role = 'lead'
+    else false
+  end;
+$$;
+
+-- ---------- 8ter. Purge — auto-exécutoire, jamais planifiée -----------------------------------
+-- L'hébergement est statique : il n'y a personne pour lancer une tâche de ménage. Une purge
+-- annoncée et non câblée serait pire que pas de purge — elle ferait écrire au registre une durée
+-- de conservation fausse. Elle tourne donc en tête de CHAQUE appel, bornée pour ne jamais
+-- allonger une requête de soin. Même doctrine que `check-sw.mjs`, qui rend la règle 13 exécutoire.
+create or replace function public.share_purge()
+returns void language sql volatile security definer set search_path = public, pg_temp as $$
+  delete from public.shared_sessions
+   where id in (select id from public.shared_sessions
+                 where expires_at < now() - interval '30 minutes' limit 50);
+$$;
+
+-- ---------- 8quater. Code d'appariement -------------------------------------------------------
+-- 8 caractères d'un alphabet de 32 symboles, soit 40 bits, valables quelques dizaines de secondes
+-- et à usage unique : hors de portée d'une recherche exhaustive dans cette fenêtre.
+-- L'alphabet exclut `I` et `O`, seuls réellement confondables avec `1` et `0` — qui n'y sont pas ;
+-- `L` et `U` peuvent donc rester, ce qui porte le compte à 32 EXACTEMENT. Ce n'est pas cosmétique :
+-- 256 étant divisible par 32, le `% 32` ci-dessous n'introduit AUCUN biais modulo, là où un
+-- alphabet de 30 symboles rendrait les 16 premiers plus probables.
+-- LE CODE EST TIRÉ ICI, jamais par le client : le seul générateur maison (`uid()`) préfixe
+-- `Date.now()`, tronque à 8 caractères et retombe sur `Math.random()` — ~41 bits réels, et une
+-- suite reconstructible. Un secret de session clinique ne peut pas en dépendre.
+create or replace function public.share_new_code()
+returns text language sql volatile set search_path = public, extensions, pg_temp as $$
+  select string_agg(substr('23456789ABCDEFGHJKLMNPQRSTUVWXYZ', 1 + (get_byte(t.b, i) % 32), 1), '')
+    from (select gen_random_bytes(8) as b) t, generate_series(0, 7) as i;
+$$;
+
+-- Résolution de l'appelant. LE SECRET EST LA CAPACITÉ : il désigne à lui seul le partage ET le
+-- participant, donc aucun identifiant n'a jamais besoin d'être passé en argument (c'est ce qui
+-- rend l'attribution infalsifiable). L'hôte, lui, s'authentifie par son JWT.
+-- Renvoie AUSSI `revoked_at` / `detached_at` : les appelants doivent pouvoir distinguer « coupé »
+-- de « injoignable ». Un invité coupé qui ne recevrait qu'un refus muet croirait à une panne
+-- réseau et continuerait de cocher — exactement la bêtise que ce dispositif doit rendre impossible.
+-- Aucun grant : seules les fonctions SECURITY DEFINER de cette section l'appellent.
+create or replace function public.share_resolve(p_secret text, p_share text)
+returns table(share_id text, participant uuid, role text, is_owner boolean,
+              revoked_at timestamptz, detached_at timestamptz,
+              status text, expires_at timestamptz, owner uuid)
+language plpgsql stable security definer set search_path = public, extensions, pg_temp as $$
+declare v_h text;
+begin
+  if p_secret is not null and length(p_secret) >= 16 then
+    v_h := encode(digest(p_secret, 'sha256'), 'hex');
+    return query
+      select p.share_id, p.participant, p.role, p.is_owner, p.revoked_at, p.detached_at,
+             s.status, s.expires_at, s.owner
+        from public.session_participants p
+        join public.shared_sessions s on s.id = p.share_id
+       where p.secret_hash = v_h;
+  elsif auth.uid() is not null and p_share is not null then
+    return query
+      select p.share_id, p.participant, p.role, p.is_owner, p.revoked_at, p.detached_at,
+             s.status, s.expires_at, s.owner
+        from public.session_participants p
+        join public.shared_sessions s on s.id = p.share_id
+       where p.share_id = p_share and p.is_owner and s.owner = auth.uid();
+  end if;
+end; $$;
+
+-- ---------- 8quinquies. OUVERTURE (hôte authentifié) ------------------------------------------
+-- Crée le partage, la ligne du propriétaire, et ouvre une PREMIÈRE fenêtre d'admission.
+-- Le partage ne s'ouvre que sur une session DÉJÀ démarrée (garanti côté client) : sinon la
+-- première action de l'invité déclencherait `ensureStarted` chez l'hôte, donc un `render()`
+-- complet et l'apparition de ~53 px de chrome collant AU-DESSUS de son doigt, en pleine crise.
+create or replace function public.share_open(p_id text, p_session_id text, p_fiche_id text,
+                                             p_fiche_snap jsonb, p_guest_role text, p_ttl_min int)
+returns jsonb language plpgsql volatile security definer
+set search_path = public, extensions, pg_temp as $$
+declare v_code text; v_ttl int; v_win int := 120;
+begin
+  perform public.share_purge();
+  if auth.uid() is null or not public.is_approved() then
+    return jsonb_build_object('ok', false, 'err', 'refused'); end if;
+  -- Validation SANS ancre de regex (« longueur » + « aucun caractère interdit ») : plus lisible,
+  -- et cela évite un « $ » isolé dans le fichier, que le garde-fou check-sql.mjs doit pouvoir
+  -- lire comme la signature d'un délimiteur mutilé sans avoir à faire d'exception.
+  if p_id is null or length(p_id) not between 1 and 64 or p_id ~ '[^A-Za-z0-9_-]'
+     or p_fiche_snap is null or jsonb_typeof(p_fiche_snap) <> 'object' then
+    return jsonb_build_object('ok', false, 'err', 'bad_request'); end if;
+  -- Une fiche NON VALIDÉE ne se diffuse pas hors du compte. Le statut « brouillon » n'était
+  -- jusqu'ici masqué que côté client — borne acceptable tant que seuls des membres authentifiés
+  -- accédaient au contenu, plus du tout dès qu'un appareil sans compte le reçoit.
+  if coalesce(p_fiche_snap->>'status', '') = 'draft' then
+    return jsonb_build_object('ok', false, 'err', 'draft'); end if;
+  v_ttl  := least(greatest(coalesce(p_ttl_min, 180), 10), 720);
+  v_code := public.share_new_code();
+  insert into public.shared_sessions(id, owner, session_id, fiche_id, fiche_snap, code_hash,
+                                     join_open_until, guest_role, expires_at)
+    values (p_id, auth.uid(), p_session_id, p_fiche_id, p_fiche_snap,
+            encode(digest(v_code, 'sha256'), 'hex'),
+            now() + make_interval(secs => v_win),
+            case when p_guest_role = 'lead' then 'lead' else 'scribe' end,
+            now() + make_interval(mins => v_ttl));
+  insert into public.session_participants(share_id, user_id, label, role, is_owner)
+    values (p_id, auth.uid(), 'Hôte', 'lead', true);
+  return jsonb_build_object('ok', true, 'share', p_id, 'code', v_code,
+    'join_open_until', now() + make_interval(secs => v_win),
+    'expires_at', now() + make_interval(mins => v_ttl), 'server_time', now());
+exception when others then return jsonb_build_object('ok', false, 'err', 'refused');
+end; $$;
+
+-- Ré-ouvre la porte pour quelques dizaines de secondes, avec un code NEUF (l'ancien meurt).
+-- C'est la contrepartie de la fenêtre : couper un invité a du sens parce que rejoindre exige un
+-- geste de l'hôte, sur SON écran.
+create or replace function public.share_admit(p_share text, p_seconds int)
+returns jsonb language plpgsql volatile security definer
+set search_path = public, extensions, pg_temp as $$
+declare v_code text; v_sec int;
+begin
+  perform public.share_purge();
+  if auth.uid() is null then return jsonb_build_object('ok', false, 'err', 'refused'); end if;
+  v_sec  := least(greatest(coalesce(p_seconds, 120), 15), 600);
+  v_code := public.share_new_code();
+  update public.shared_sessions
+     set code_hash = encode(digest(v_code, 'sha256'), 'hex'),
+         join_open_until = now() + make_interval(secs => v_sec), updated_at = now()
+   where id = p_share and owner = auth.uid() and status = 'active';
+  if not found then return jsonb_build_object('ok', false, 'err', 'refused'); end if;
+  return jsonb_build_object('ok', true, 'code', v_code,
+    'join_open_until', now() + make_interval(secs => v_sec), 'server_time', now());
+exception when others then return jsonb_build_object('ok', false, 'err', 'refused');
+end; $$;
+
+-- ---------- 8sexies. JOINTURE (invité, avec ou sans compte) ----------------------------------
+create or replace function public.share_join(p_code text, p_label text)
+returns jsonb language plpgsql volatile security definer
+set search_path = public, extensions, pg_temp as $$
+declare v_s public.shared_sessions%rowtype; v_secret text; v_part uuid; v_n int;
+begin
+  perform public.share_purge();
+  if p_code is null or length(p_code) <> 8 then
+    return jsonb_build_object('ok', false, 'err', 'refused'); end if;
+  select * into v_s from public.shared_sessions
+   where code_hash = encode(digest(upper(p_code), 'sha256'), 'hex')
+     and status = 'active' and join_open_until is not null
+     and now() <= join_open_until and now() < expires_at
+   for update;
+  if not found then return jsonb_build_object('ok', false, 'err', 'refused'); end if;
+  select count(*) into v_n from public.session_participants
+   where share_id = v_s.id and not is_owner and revoked_at is null and detached_at is null;
+  if v_n >= v_s.max_guests then return jsonb_build_object('ok', false, 'err', 'refused'); end if;
+  v_secret := encode(gen_random_bytes(18), 'base64');
+  insert into public.session_participants(share_id, user_id, secret_hash, label, role)
+    values (v_s.id, auth.uid(),
+            encode(digest(v_secret, 'sha256'), 'hex'),
+            coalesce(nullif(substr(coalesce(p_label, ''), 1, 24), ''), 'Invité'),
+            v_s.guest_role)
+    returning participant into v_part;
+  -- Le code est CONSOMMÉ : la porte se referme derrière celui qui entre. Un lien ou une capture
+  -- qui circulerait ensuite n'ouvre plus rien ; l'hôte ré-arme s'il veut un second participant.
+  update public.shared_sessions set code_hash = null, join_open_until = null, updated_at = now()
+   where id = v_s.id;
+  return jsonb_build_object('ok', true, 'share', v_s.id, 'me', v_part, 'secret', v_secret,
+    'role', v_s.guest_role, 'fiche', v_s.fiche_snap, 'since', 0,
+    'expires_at', v_s.expires_at, 'server_time', now());
+exception when others then return jsonb_build_object('ok', false, 'err', 'refused');
+end; $$;
+
+-- ---------- 8septies. LECTURE ----------------------------------------------------------------
+-- Renvoie le delta depuis `p_since`, l'état du partage, la liste des participants (LIBELLÉS
+-- seulement — jamais un user_id, jamais un secret), et DEUX quantités qui servent au client à
+-- détecter une divergence silencieuse : `seq` (dernier numéro alloué) et `n_events` (total réel).
+-- Un miroir qui n'obtient pas le même compte se déclare PÉRIMÉ et redemande tout, au lieu
+-- d'afficher un état plausible mais faux — le mode de défaillance qu'un simple indicateur de
+-- silence ne verrait jamais, puisque les mises à jour arrivent à l'heure et sont fausses.
+create or replace function public.share_pull(p_secret text, p_share text, p_since bigint)
+returns jsonb language plpgsql volatile security definer
+set search_path = public, extensions, pg_temp as $$
+declare a record; v_ev jsonb; v_parts jsonb; v_seq bigint; v_n int; v_state text;
+begin
+  perform public.share_purge();
+  select * into a from public.share_resolve(p_secret, p_share) limit 1;
+  if a.share_id is null then return jsonb_build_object('ok', false, 'err', 'refused'); end if;
+  -- ÉTAT EXPLICITE, TOUJOURS. « coupé », « terminé » et « expiré » ne doivent jamais se présenter
+  -- comme un silence : c'est ce qui permet à l'écran de l'invité de dire POURQUOI il s'arrête.
+  v_state := case when a.revoked_at  is not null then 'revoked'
+                  when a.detached_at is not null then 'detached'
+                  when a.expires_at  <  now()    then 'expired'
+                  else a.status end;
+  update public.session_participants set last_seen_at = now()
+   where share_id = a.share_id and participant = a.participant;
+  select coalesce(jsonb_agg(jsonb_build_object('seq', e.seq, 'actor', e.actor, 'kind', e.kind,
+                                               'payload', e.payload, 'ts', e.client_ts, 'at', e.at)
+                            order by e.seq), '[]'::jsonb)
+    into v_ev
+    from (select * from public.session_events
+           where share_id = a.share_id and seq > coalesce(p_since, 0)
+           order by seq limit 500) e;
+  select s.last_seq into v_seq from public.shared_sessions s where s.id = a.share_id;
+  select count(*)   into v_n   from public.session_events where share_id = a.share_id;
+  select coalesce(jsonb_agg(jsonb_build_object('id', p.participant, 'label', p.label,
+           'role', p.role, 'owner', p.is_owner, 'seen', p.last_seen_at,
+           'revoked', p.revoked_at is not null, 'detached', p.detached_at is not null)
+         order by p.joined_at), '[]'::jsonb)
+    into v_parts from public.session_participants p where p.share_id = a.share_id;
+  return jsonb_build_object('ok', true, 'status', v_state, 'role', a.role, 'me', a.participant,
+    'owner', a.is_owner, 'events', v_ev, 'seq', v_seq, 'n_events', v_n,
+    'participants', v_parts, 'expires_at', a.expires_at, 'server_time', now());
+exception when others then return jsonb_build_object('ok', false, 'err', 'refused');
+end; $$;
+
+-- ---------- 8octies. ÉCRITURE ----------------------------------------------------------------
+-- Un participant n'écrit QUE des lignes d'évènement, jamais un état. Le numéro de séquence est
+-- pris sous verrou de la ligne du partage, dans la transaction : c'est ce qui sérialise les
+-- écritures concurrentes et garantit que l'ordre des numéros est l'ordre de visibilité.
+-- Le verrou est tenu le temps d'un `update` d'un entier suivi d'un `insert` — jamais le temps
+-- d'une lecture-modification-écriture d'état, qui ferait attendre l'hôte derrière un invité.
+create or replace function public.share_push(p_secret text, p_share text, p_events jsonb)
+returns jsonb language plpgsql volatile security definer
+set search_path = public, extensions, pg_temp as $$
+declare a record; v_n int; v_base bigint; v_win int; v_ok int; v_state text; v_det boolean;
+begin
+  perform public.share_purge();
+  select * into a from public.share_resolve(p_secret, p_share) limit 1;
+  if a.share_id is null then return jsonb_build_object('ok', false, 'err', 'refused'); end if;
+  v_state := case when a.revoked_at  is not null then 'revoked'
+                  when a.expires_at  <  now()    then 'expired'
+                  when a.detached_at is not null then 'detached'
+                  else a.status end;
+  -- UN DÉTACHÉ N'ÉCRIT PLUS L'ÉTAT, MAIS IL PEUT ENCORE RAPPORTER — et c'est tout l'écart entre
+  -- « ne pas fusionner » et « perdre l'information ». Celui qui a poursuivi seul détient un relevé
+  -- RÉEL d'une intervention réelle : le laisser mourir sur son appareil serait une perte, pas une
+  -- précaution. Il peut donc pousser des `offline_mark`, et RIEN d'autre : son journal remonte,
+  -- son état ne remonte pas. L'hôte voit apparaître un brin annexe, daté et attribué, à côté du
+  -- sien — et c'est LUI qui décide quoi en faire. Le dispositif rend l'écart VISIBLE ; il ne
+  -- tranche pas à la place du soignant (AC 120-71B §5.2.2.2 : constater qu'une action requise
+  -- manque OBLIGE à le signaler — signaler, précisément, pas corriger d'autorité).
+  -- Un participant COUPÉ par l'hôte, lui, ne rapporte rien : la coupure est une décision, pas
+  -- une panne, et son relevé reste chez lui.
+  if v_state <> 'active' and v_state <> 'detached' then
+    return jsonb_build_object('ok', false, 'err', v_state, 'status', v_state, 'server_time', now());
+  end if;
+  if jsonb_typeof(p_events) <> 'array' then
+    return jsonb_build_object('ok', false, 'err', 'bad_request'); end if;
+  v_n := jsonb_array_length(p_events);
+  if v_n = 0 then
+    return jsonb_build_object('ok', true, 'accepted', 0, 'status', v_state, 'server_time', now()); end if;
+  if v_n > 50 then return jsonb_build_object('ok', false, 'err', 'too_many'); end if;
+  -- Limiteur de débit par participant : le quota de base est PARTAGÉ avec les fiches cliniques,
+  -- et il n'existe aucun serveur applicatif où poser une limite. Fenêtre glissante de 10 s.
+  update public.session_participants
+     set window_count = case when window_start < now() - interval '10 seconds' then v_n
+                             else window_count + v_n end,
+         window_start = case when window_start < now() - interval '10 seconds' then now()
+                             else window_start end,
+         events_count = events_count + v_n, last_seen_at = now()
+   where share_id = a.share_id and participant = a.participant
+   returning window_count into v_win;
+  if v_win > 120 or (select events_count from public.session_participants
+                      where share_id = a.share_id and participant = a.participant) > 5000 then
+    return jsonb_build_object('ok', false, 'err', 'rate'); end if;
+  -- UN LOT QUI PORTE UN « detach » NE PORTE QUE LUI. L'invité qui a choisi de poursuivre seul a
+  -- devant lui une file d'actions relevées PENDANT qu'il était déjà désynchronisé : les rejouer
+  -- sur la session vive de l'hôte, qui a avancé entre-temps, écrirait des coches sur des passages
+  -- qu'il a quittés — un enregistrement FAUX, et précisément ce que la réconciliation existe pour
+  -- éviter. Ces actions restent la trace de SA session autonome, sur SON appareil.
+  -- La règle est appliquée ICI plutôt que laissée à une convention de client : le serveur est la
+  -- seule barrière réelle, le client n'est qu'ergonomie.
+  v_det := exists (select 1 from jsonb_array_elements(p_events) e where e->>'kind' = 'detach');
+  update public.shared_sessions set last_seq = last_seq + v_n, updated_at = now()
+   where id = a.share_id returning last_seq - v_n into v_base;
+  -- Les évènements sont RECONSTRUITS champ par champ sur une liste fermée de clés : insérer le
+  -- jsonb reçu tel quel permettrait à un participant d'y glisser son propre `actor` et de signer
+  -- une action du nom d'un autre. `actor` vient de la résolution du secret, point.
+  with src as (
+    select (e->>'event_id')::uuid                              as event_id,
+           e->>'kind'                                          as kind,
+           case when jsonb_typeof(e->'payload') = 'object' then e->'payload'
+                else '{}'::jsonb end                           as payload,
+           nullif(e->>'ts','')::timestamptz                     as client_ts,
+           ord
+      from jsonb_array_elements(p_events) with ordinality t(e, ord)),
+  ins as (
+    insert into public.session_events(share_id, seq, event_id, actor, kind, payload, client_ts)
+    select a.share_id, v_base + src.ord, src.event_id, a.participant, src.kind,
+           src.payload, coalesce(src.client_ts, now())
+      from src
+     where src.event_id is not null
+       and public.share_kind_allowed(a.role, src.kind)
+       -- Trois régimes, dans l'ordre de spécificité :
+       --   détaché  -> SEULES les annexes remontent (son état a divergé, il ne l'impose pas) ;
+       --   lot avec `detach` -> seul le detach passe (le reste de la file appartient déjà à sa
+       --                        session autonome et écrirait sur des passages quittés) ;
+       --   sinon    -> les capacités du rôle font foi.
+       and (case when v_state = 'detached' then src.kind = 'offline_mark'
+                 when v_det                then src.kind = 'detach'
+                 else true end)
+    on conflict (share_id, event_id) do nothing
+    returning 1)
+  select count(*) into v_ok from ins;
+  -- « Je continue seul » : l'invité quitte le miroir pour reprendre l'aide en session AUTONOME
+  -- sur son appareil (repli hors dispositif, AC 120-64 §9.a). Ce n'est pas une panne, c'est une
+  -- décision — elle se DATE, pour que le compte-rendu de l'hôte dise à quelle minute il a cessé
+  -- d'être suivi. Si le réseau ne revient jamais, l'évènement ne part pas : le silence, lui,
+  -- reste lisible dans `last_seen_at`.
+  if exists (select 1 from jsonb_array_elements(p_events) e where e->>'kind' = 'detach') then
+    update public.session_participants set detached_at = now()
+     where share_id = a.share_id and participant = a.participant and not is_owner;
+  end if;
+  return jsonb_build_object('ok', true, 'accepted', v_ok, 'rejected', v_n - v_ok,
+    'seq', v_base + v_n, 'status', v_state, 'server_time', now());
+exception when others then return jsonb_build_object('ok', false, 'err', 'refused');
+end; $$;
+
+-- Ouverture et ré-admission : réservées à l'hôte CONNECTÉ, donc jamais accordées à anon — cela
+-- garde la surface non authentifiée à trois fonctions exactement.
+grant execute on function public.share_open(text,text,text,jsonb,text,int) to authenticated;
+grant execute on function public.share_admit(text,int)                     to authenticated;
+-- `share_purge`, `share_resolve`, `share_new_code` et `share_kind_allowed` ne reçoivent AUCUN
+-- grant : elles ne sont appelées que depuis les fonctions SECURITY DEFINER ci-dessus, qui
+-- s'exécutent avec les droits du définisseur. Les exposer n'apporterait rien et donnerait à
+-- `share_resolve` — qui prend un secret — une surface d'appel directe.
+
+-- État de l'instance : RE-CRÉÉE une TROISIÈME fois, ici, pour la même raison qu'après la table
+-- `protocols` — une fonction `language sql` est intégralement résolue À SA CRÉATION, elle ne peut
+-- donc pas référencer une table déclarée plus bas dans le fichier (`42P01: relation … does not
+-- exist`). Les fonctions `language plpgsql` échappent à cette contrainte : leur corps n'est
+-- analysé qu'à la première exécution — c'est pourquoi `delete_my_account`, qui supprime pourtant
+-- la même table, n'a pas eu besoin d'être déplacée.
+create or replace function public.get_instance_stats()
+returns jsonb language sql stable security definer set search_path = public, auth, pg_temp as $$
+  select case when not public.is_app_admin() then null else jsonb_build_object(
+    'users',        (select count(*) from auth.users),
+    'pending',      (select count(*) from public.user_status where status = 'pending'),
+    'rejected',     (select count(*) from public.user_status where status = 'rejected'),
+    'libraries',    (select count(*) from public.libraries),
+    'fiches_perso', (select count(*) from public.fiches where library_id is null and deleted_at is null),
+    'fiches_shared',(select count(*) from public.fiches where library_id is not null and deleted_at is null),
+    'protocols',    (select count(*) from public.protocols where deleted_at is null),
+    -- Partages VIVANTS d'abord, mais AUSSI le total de lignes : un total qui gonflerait pendant
+    -- que le compte des vivants reste bas est la signature d'une purge qui ne tourne pas — le
+    -- seul symptôme observable d'un dispositif dont la durée de conservation est écrite au
+    -- registre RGPD. C'est ce qu'on veut pouvoir constater sans ouvrir la base.
+    'shares_live',  (select count(*) from public.shared_sessions
+                      where status = 'active' and expires_at > now()),
+    'shares_rows',  (select count(*) from public.shared_sessions),
+    'storage_bytes',(select coalesce(sum(octet_length(data::text)),0) from public.fiches where deleted_at is null)
+                    + (select coalesce(sum(octet_length(data::text)),0) from public.category_sets)
+                    + (select coalesce(sum(octet_length(data::text)),0) from public.protocols where deleted_at is null),
+    'attachments_bytes',(select coalesce(sum((o.metadata->>'size')::bigint),0)
+                         from storage.objects o where o.bucket_id = 'attachments')
+  ) end;
+$$;
+grant execute on function public.get_instance_stats() to authenticated;
+
+-- ---------- 5quater. LA PROHIBITION anon NE PORTAIT PAS SUR PUBLIC (correctif) --------------
+-- Le bloc « GRANTS » plus haut annonce une « INTERDICTION EXPLICITE POUR anon ». Elle ne faisait
+-- pas ce qu'elle disait, et l'écart est structurel, pas un oubli :
+--   • `revoke ... from anon` ne retire QUE les privilèges accordés NOMMÉMENT à anon ;
+--   • or PostgreSQL accorde EXECUTE à **PUBLIC** par défaut sur TOUTE fonction (asymétrie avec
+--     les tables, qui n'en reçoivent aucun — d'où un revoke efficace côté tables et INOPÉRANT
+--     côté fonctions), et PUBLIC détient aussi USAGE sur le schéma `public` ;
+--   • tout rôle, anon compris, hérite de PUBLIC.
+-- Conséquence mesurable AVANT ce correctif : les fonctions de ce schéma étaient appelables SANS
+-- COMPTE. Aucune escalade directe — chacune se protège par `auth.uid()` / `is_app_admin()` — mais
+-- la garantie annoncée n'existait pas, et un futur helper écrit en s'y fiant serait sans défense.
+-- (C'est le pendant exact du contrôle aveugle de la v4.44.1 : la phrase couvrait un cas, le code
+--  en couvrait un autre.)
+--
+-- POURQUOI ICI, EN FIN DE FICHIER, et non dans le bloc 5 : `revoke ... on all functions` n'agit
+-- que sur les fonctions EXISTANT à cet instant, et six d'entre elles sont définies plus bas.
+-- Surtout, `create or replace function` CONSERVE l'ACL d'une fonction déjà présente : au rejeu du
+-- schéma sur une instance existante, un revoke placé en amont laisserait intactes toutes celles
+-- redéfinies ensuite. Placé en fin de fichier, il les couvre TOUTES, à chaque rejeu.
+--
+-- INNOCUITÉ VÉRIFIÉE avant écriture (inventaire fonction par fonction) : les 15 fonctions
+-- appelables par l'app portent chacune leur `grant execute ... to authenticated` explicite ; les
+-- 5 restantes (clamp_updated_at, stamp_updated_by, handle_new_user, lib_add_creator,
+-- revoke_memberships) sont des fonctions de TRIGGER, invoquées par le moteur — le privilège
+-- EXECUTE n'y est contrôlé qu'à la CRÉATION du trigger, jamais à son déclenchement.
+-- USAGE sur le schéma n'est délibérément PAS retiré à PUBLIC : sans EXECUTE il n'ouvre rien
+-- (les tables n'ont aucun grant PUBLIC), et le retirer toucherait des rôles internes de
+-- l'instance pour un gain nul.
+-- LIMITE ASSUMÉE, comme pour les deux lignes du bloc 5 : `alter default privileges` sans
+-- `for role` ne lie que le rôle qui l'exécute (postgres, depuis l'éditeur SQL). Une migration
+-- jouée par un autre rôle recréerait le grant PUBLIC — c'est le balayage anon de rls-tests.sql
+-- (§13.5, refondu en assertions de CATALOGUE) qui le rattrape, pas ce fichier.
+-- Les deux `revoke ... from anon` du bloc 5 sont REJOUÉS ici, et ce n'est pas une redondance
+-- décorative : Supabase pose à la création du projet un `alter default privileges ... grant all
+-- on functions to postgres, anon, authenticated, service_role`. Si cet ALTER a été exécuté par un
+-- autre rôle que celui qui joue ce fichier, le nôtre ne l'annule pas — et chaque fonction créée
+-- APRÈS le bloc 5 (il y en a six) repartirait avec un grant anon nominatif. Rejouer en fin de
+-- fichier attrape tout, quel que soit l'ordre. Idempotent, et vérifié empiriquement par le
+-- balayage 13.5b de rls-tests.sql (qui lit le CATALOGUE, pas nos intentions).
+revoke execute on all functions in schema public from public;
+revoke all on all functions in schema public from anon;
+revoke all on all tables    in schema public from anon;
+alter default privileges in schema public revoke execute on functions from public;
+
+-- ---------- 5quinquies. LA SEULE SURFACE NON AUTHENTIFIÉE DU PROJET --------------------------
+-- TROIS fonctions, nommées une par une, et rien d'autre — jamais une table, jamais un
+-- `on all functions`. C'est la contrepartie assumée d'un besoin clinique précis : qu'un collègue
+-- présent dans la pièce puisse suivre et remplir une session sur SON téléphone, sans compte,
+-- sans installer l'app, pour cette session-là uniquement.
+-- CES LIGNES DOIVENT RESTER APRÈS LE BLOC CI-DESSUS : la révocation à PUBLIC porte sur « toutes
+-- les fonctions du schéma », donc sur celles-ci aussi. Placées avant, elles seraient effacées
+-- quelques lignes plus bas — en silence, et le partage cesserait de fonctionner sans qu'aucun
+-- message ne désigne la cause.
+-- POURQUOI C'EST TENABLE : ces trois fonctions n'exposent que le partage désigné par le SECRET
+-- présenté ; elles ne prennent aucune identité en paramètre ; elles ne laissent échapper aucune
+-- exception PostgreSQL (PostgREST recopierait `message`, `detail` et `hint` mot pour mot) ; et
+-- le balayage §13.5b de rls-tests.sql vérifie, PAR LE CATALOGUE, que la liste des fonctions
+-- exécutables par anon est EXACTEMENT celle-ci — un quatrième grant, même accidentel, fait
+-- échouer le test.
+grant usage on schema public to anon;   -- sans USAGE, aucun `grant execute` n'est utilisable
+grant execute on function public.share_join(text,text)         to anon, authenticated;
+grant execute on function public.share_pull(text,text,bigint)  to anon, authenticated;
+grant execute on function public.share_push(text,text,jsonb)   to anon, authenticated;
 
 -- ---------- 6. Recharge du cache PostgREST ----------------------------------
 notify pgrst, 'reload schema';

@@ -856,6 +856,166 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    // (c) Non-régression du chemin normal : une archive intacte reste lisible après ces gardes.
    eq('l’archive intacte reste lisible (aucune borne déclenchée à tort)',
      (await A.zipParse(z)).length, 3);}
+
+  group('Code QR — encodeur du code d’appariement');
+  // LA TABLE RECOUPÉE PAR LA GÉOMÉTRIE. Le seul tableau recopié de l'encodeur, ce sont 20 nombres
+  // (correction par bloc et nombre de blocs, versions 1 à 10). Tout le reste se dérive : le total
+  // de mots-code vient de la SURFACE, le découpage en blocs de la division euclidienne. Les deux
+  // chemins doivent tomber sur le même nombre — une faute de frappe dans les 20 casse l'égalité.
+  {let bon=true,det='';
+   for(let v=1;v<=A.QR_MAXVER;v++){
+     const total=A.qrTotalCw(v),blocs=A.QR_BLK[v-1],ecw=A.QR_ECW[v-1];
+     const nCourt=blocs-(total%blocs),lCourt=Math.floor(total/blocs)-ecw;
+     const data=nCourt*lCourt+(blocs-nCourt)*(lCourt+1);
+     if(data+blocs*ecw!==total||lCourt<=0){bon=false;det='v'+v+' : '+data+'+'+blocs+'×'+ecw+'≠'+total;break;}}
+   ok('les 10 versions : données + correction = total géométrique',bon,det);}
+  eq('totaux de mots-code connus (v1, v5, v10)',
+    [A.qrTotalCw(1),A.qrTotalCw(5),A.qrTotalCw(10)],[26,134,346]);
+
+  // PREUVE MATHÉMATIQUE, INDÉPENDANTE DE L'ENCODEUR. Un mot Reed-Solomon valide s'annule en
+  // α⁰ … α^(n-1). Ce contrôle ÉVALUE le polynôme, là où l'encodeur le DIVISE : il n'emprunte donc
+  // rien à ce qu'il vérifie. C'est lui qui a attrapé, à l'écriture, un polynôme générateur
+  // construit à l'envers — un défaut qu'aucun contrôle de cohérence interne n'aurait vu, et qui
+  // aurait produit des codes parfaitement dessinés et parfaitement illisibles.
+  {const syndromesNuls=(mot,n)=>{
+     for(let i=0;i<n;i++){let s=0;
+       for(const c of mot)s=A.qrMul(s,A.QR_EXP[i])^c;
+       if(s!==0)return false;}
+     return true;};
+   let bon=true,det='';
+   for(const n of [10,16,18,22,24,26]){
+     const data=Uint8Array.from({length:30},(_,i)=>(i*37+11)&255);
+     if(!syndromesNuls([...data,...A.qrRs(data,n)],n)){bon=false;det='RS('+n+')';break;}}
+   ok('Reed-Solomon : les syndromes du mot produit sont tous nuls',bon,det);}
+  ok('GF(256) : exp et log sont réciproques',(()=>{
+    for(let i=1;i<255;i++)if(A.QR_EXP[A.QR_LOG[i]]!==i)return false;return true;})());
+  ok('le générateur reste unitaire (terme dominant = 1)',A.qrGen(10)[0]===1,
+    'g[0]='+A.qrGen(10)[0]);
+
+  // Structure de la matrice + information de format relue DEPUIS la matrice et vérifiée comme
+  // mot BCH valide : on ne se contente pas de croire qu'elle a été écrite au bon endroit.
+  {const q=A.qrEncode('https://exemple.fr/#j=K7M2P4Q9'),n=q.n,at=(x,y)=>q.m[y*n+x];
+   ok('taille cohérente avec la version',n===q.version*4+17,'v'+q.version+' n='+n);
+   ok('trois motifs de recherche, séparateurs compris',
+     at(3,3)===1&&at(n-4,3)===1&&at(3,n-4)===1&&at(1,1)===0&&at(2,2)===1);
+   ok('motifs de synchronisation alternés',(()=>{
+     for(let i=8;i<n-8;i++)if(at(i,6)!==(i%2===0?1:0))return false;return true;})());
+   ok('module sombre présent en (8, n-8)',at(8,n-8)===1);
+   let fmt=0;
+   for(let k=0;k<=5;k++)fmt|=at(8,k)<<k;
+   fmt|=at(8,7)<<6;fmt|=at(8,8)<<7;fmt|=at(7,8)<<8;
+   for(let k=9;k<15;k++)fmt|=at(14-k,8)<<k;
+   let r=fmt^0x5412;
+   for(let i=14;i>=10;i--)if((r>>i)&1)r^=0x537<<(i-10);
+   ok('information de format : mot BCH valide (reste nul)',r===0,'reste='+r);
+   ok('niveau de correction relu = M',(((fmt^0x5412)>>13)&3)===0);}
+
+  // La version choisie doit CROÎTRE avec la charge, et un texte trop long échoue FRANCHEMENT
+  // (null) plutôt que de produire un code tronqué — un QR muet vaut mieux qu'un QR menteur.
+  ok('la version s’adapte à la longueur',
+    A.qrEncode('K7M2P4Q9').version < A.qrEncode('x'.repeat(200)).version);
+  ok('au-delà de la capacité : null, jamais un code tronqué',A.qrEncode('x'.repeat(500))===null);
+  // Le rendu ne peint jamais avec `--ink` : clair en thème sombre, le code serait invisible.
+  {const s=A.qrSvg('K7M2P4Q9','Code');
+   ok('le SVG utilise l’encre FIXE deux-thèmes',s.indexOf('var(--qr-ink)')>=0&&s.indexOf('var(--paper)')>=0);
+   ok('le SVG porte une étiquette accessible',s.indexOf('role="img"')>=0&&s.indexOf('aria-label')>=0);}
+
+  group('Partage de session — noyau pur');
+  // LE GARDE-FOU QUI COMPTE. Ajouter demain un champ au modèle de fiche sans décider s'il se
+  // partage doit être IMPOSSIBLE. Les deux listes doivent couvrir exactement le modèle migré :
+  // ni oubli (un champ partirait sans décision), ni surplus (une liste qui a pris du retard).
+  {const modele=Object.keys(A.migrate(A.blankFiche())).sort();
+   const classes=A.SHARE_KEEP.concat(A.SHARE_DROP).sort();
+   const nonClasses=modele.filter(k=>classes.indexOf(k)<0);
+   const fantomes=classes.filter(k=>modele.indexOf(k)<0);
+   ok('tout champ du modèle de fiche est classé (gardé ou écarté)',nonClasses.length===0,
+     'non classé(s) : '+nonClasses.join(', '));
+   ok('aucun champ classé n’a disparu du modèle',fantomes.length===0,'fantôme(s) : '+fantomes.join(', '));
+   ok('les deux listes sont disjointes',
+     A.SHARE_KEEP.every(k=>A.SHARE_DROP.indexOf(k)<0));}
+  // Ce que la projection NE DOIT PAS transporter : le gabarit local (numéros de renfort et de
+  // régulation, pré-remplis par blankFiche), les images (jusqu'à 24 Mo), les documents que
+  // l'invité ne pourra jamais ouvrir, et les identifiants de compte/bibliothèque.
+  {const f=A.migrate(A.blankFiche());
+   f.title='ACR';f.blocks[0].steps=['Adrénaline 1 mg'];f.blocks[0].image='i1';
+   f.images=[{id:'i1',data:'data:image/png;base64,AAAA',w:10,h:10,caption:'',scale:100}];
+   f.ownerId='u1';f.libraryId='lib1';
+   const p=A.sharePayload(f);
+   ok('le gabarit local (téléphones) ne part pas',p.localInfo===undefined);
+   ok('les images ne partent pas',p.images===undefined);
+   ok('les documents joints ne partent pas',p.attachments===undefined);
+   ok('propriétaire et bibliothèque ne partent pas',p.ownerId===undefined&&p.libraryId===undefined);
+   ok('le contenu clinique part bien',p.title==='ACR'&&p.blocks[0].steps[0]==='Adrénaline 1 mg');
+   ok('la référence d’image d’un bloc est retirée (sinon elle pendrait dans le vide)',
+     p.blocks[0].image===undefined);
+   ok('aucune clé hors liste blanche dans la projection',
+     Object.keys(p).every(k=>A.SHARE_KEEP.indexOf(k)>=0),Object.keys(p).join(','));}
+
+  // Capacités : miroir de share_kind_allowed. Le scribe n'a que des droits ADDITIFS — il n'arrête
+  // ni ne remet à zéro un minuteur (arrêt d'un processus vivant = registre critique), et il ne
+  // navigue pas (un seul curseur, un seul détenteur).
+  ok('le scribe peut cocher, constater, incrémenter, armer, horodater',
+    ['check','verify','gap','counter','timer_arm','mark'].every(k=>A.shareCan('scribe',k)));
+  ok('le scribe ne navigue pas, n’arrête pas un minuteur, ne termine pas',
+    ['nav','timer_stop','timer_reset','end','uncheck','flow_end','cx','handoff']
+      .every(k=>!A.shareCan('scribe',k)));
+  ok('le lead peut tout ce qui est au vocabulaire',
+    A.SHARE_KINDS_ANY.concat(A.SHARE_KINDS_LEAD).every(k=>A.shareCan('lead',k)));
+  ok('un genre inconnu est refusé aux deux rôles',
+    !A.shareCan('lead','rm -rf')&&!A.shareCan('scribe','check_'));
+  ok('un rôle inconnu n’obtient rien',!A.shareCan('admin','check'));
+
+  // La frontière « voyage / local » : imposer son repli ou sa position de lecture à l'autre écran
+  // serait un mouvement non commandé. flowEnded, lui, est un état de SESSION et doit voyager.
+  ok('flowEnded voyage (sinon les deux écrans divergent sur « algorithme terminé »)',
+    A.SHARE_TRAVELS.indexOf('flowEnded')>=0);
+  ok('le repli, la passe de vérification et la position du lecteur restent locaux',
+    ['confOpen','ovFold','ovVerify','readerI'].every(k=>A.SHARE_LOCAL.indexOf(k)>=0));
+  ok('les deux listes sont disjointes',A.SHARE_TRAVELS.every(k=>A.SHARE_LOCAL.indexOf(k)<0));
+
+  // Pli du journal : déterministe, et l'annexe d'un détaché n'entre JAMAIS dans l'état.
+  {const ev=[
+     {kind:'check',actor:'a',payload:{k:'1:b1:0'}},
+     {kind:'check',actor:'b',payload:{k:'1:b1:1'}},
+     {kind:'uncheck',actor:'a',payload:{k:'1:b1:0'}},
+     {kind:'counter',actor:'a',payload:{id:'c1',v:3}},
+     {kind:'gap',actor:'b',ts:5,payload:{k:'1:b1:2'}},
+     {kind:'verify',actor:'a',ts:6,payload:{k:'1:b1:2'}},
+     {kind:'flow_end',actor:'a',payload:{on:true}},
+     {kind:'offline_mark',actor:'c',ts:9,payload:{ref:{type:'core',k:'adre'}}}];
+   const s=A.shareFold(ev);
+   ok('décocher retire la clé, cocher l’ajoute',!s.checked['1:b1:0']&&s.checked['1:b1:1']===true);
+   ok('le compteur porte la dernière valeur',s.counters.c1===3);
+   ok('« constaté » chasse « écart » sur la même clé',!!s.verified['1:b1:2']&&!s.vgaps['1:b1:2']);
+   ok('la constatation retient QUI et QUAND',s.verified['1:b1:2'].a==='a'&&s.verified['1:b1:2'].t===6);
+   ok('flowEnded suit l’évènement',s.flowEnded===true);
+   ok('l’annexe d’un détaché va au journal, PAS à l’état',
+     s.annex.length===1&&Object.keys(s.checked).length===1);
+   // Déterminisme : c'est ce que l'empreinte vérifie entre deux appareils.
+   eq('le pli est déterministe',A.shareStateHash(s),A.shareStateHash(A.shareFold(ev)));}
+
+  // Empreinte : elle doit VOIR une divergence, et ignorer un simple écart d'ordre d'insertion.
+  {const a=A.shareFold([{kind:'check',actor:'x',payload:{k:'1:b1:0'}},
+                        {kind:'check',actor:'x',payload:{k:'1:b1:1'}}]);
+   const b=A.shareFold([{kind:'check',actor:'x',payload:{k:'1:b1:1'}},
+                        {kind:'check',actor:'x',payload:{k:'1:b1:0'}}]);
+   eq('même contenu, ordre d’insertion différent : MÊME empreinte',
+     A.shareStateHash(a),A.shareStateHash(b));
+   const c=A.shareFold([{kind:'check',actor:'x',payload:{k:'1:b1:0'}}]);
+   ok('un évènement manquant : empreinte DIFFÉRENTE (la divergence se voit)',
+     A.shareStateHash(a)!==A.shareStateHash(c));}
+
+  // Horloge de Cristian : une mesure trop lente est rejetée — un décalage faux daterait les
+  // gestes du compte-rendu et ferait sonner deux minuteurs à des instants différents.
+  eq('décalage nul quand les horloges concordent',
+    A.shareOffset([{t0:1000,t1:1100,srv:1050}]),0);
+  eq('serveur en avance de 5 s : décalage +5000',
+    A.shareOffset([{t0:1000,t1:1100,srv:6050}]),5000);
+  ok('une mesure dont l’aller-retour dépasse le seuil est rejetée',
+    A.shareOffset([{t0:0,t1:5000,srv:2500}])===null);
+  eq('médiane et non moyenne : une mesure aberrante ne tire pas le résultat',
+    A.shareOffset([{t0:0,t1:100,srv:1050},{t0:0,t1:100,srv:50},{t0:0,t1:100,srv:60}]),10);
+  ok('aucune mesure exploitable : null, jamais une valeur inventée',A.shareOffset([])===null);
 }
 
 // Ouvert en double-cliquant le fichier (file://) : le navigateur isole les iframes (origine

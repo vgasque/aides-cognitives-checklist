@@ -42,6 +42,11 @@ for (const rel of FICHIERS) {
       const av = code[m.index - 1], ap = code[m.index + m[0].length];
       // `$nom$` : un dollar suivi d'un identifiant puis d'un dollar — forme légitime.
       if (m[0].length === 1 && /[A-Za-z_]/.test(ap || '')) continue;
+      // Dollar PRÉCÉDÉ d'une lettre : c'est l'ANCRE DE FIN D'UNE REGEX (`'…\.pdf$'`), pas un
+      // délimiteur. Tolérance étroite et voulue — la mutilation que ce contrôle traque produit
+      // toujours un `$` précédé d'une espace ou d'un début de ligne (`as $$` -> `as $`), jamais
+      // d'une lettre, donc elle reste attrapée. Préférer malgré tout une validation sans ancre
+      // quand c'est possible : moins d'exceptions à raisonner (cf. share_open dans schema.sql).
       if (m[0].length === 1 && /[A-Za-z_]/.test(av || '')) continue;
       if (m[0].length !== 2)
         fautes.push(`${rel}:${i + 1} — suite de ${m[0].length} dollar(s) « ${m[0]} » : un délimiteur de corps s'écrit « $$ »\n        ${l.trim().slice(-72)}`);
@@ -65,6 +70,57 @@ for (const rel of FICHIERS) {
     if (/;/.test(entete.replace(/--.*$/gm, '')))
       fautes.push(`${rel} : l'en-tête de « ${f[1]} » contient un « ; » avant son corps — délimiteur probablement mutilé`);
   }
+
+  /* 3. SURFACE NON AUTHENTIFIÉE — LISTE BLANCHE.
+        Le rôle `anon` est utilisable par n'importe qui : la clé publishable est en clair dans
+        index.html. Le projet lui ouvre TROIS fonctions nommées, et rien d'autre.
+        Le scénario redouté n'est pas la malveillance, c'est le dépannage : PostgREST accompagne
+        un refus 42501 d'un `hint` qui nomme le grant manquant, et la réponse la plus répandue en
+        ligne est la forme GLOBALE. À trois heures du matin, devant un partage qui ne marche pas,
+        ce qui se colle dans l'éditeur SQL est `grant execute on all functions … to anon` — et
+        rien, jusqu'ici, ne l'aurait vu passer en revue. */
+  /* 4. ORDRE DE DÉFINITION — le piège propre aux fonctions `language sql`.
+        Une fonction SQL est intégralement RÉSOLUE À SA CRÉATION : elle ne peut référencer aucun
+        objet déclaré plus bas dans le fichier, sous peine d'un `42P01: relation … does not exist`
+        au collage. Une fonction `language plpgsql`, elle, n'analyse son corps qu'à la première
+        exécution et n'a donc pas cette contrainte — d'où une asymétrie qui ne se voit pas à la
+        relecture, et qui a déjà coûté deux re-créations de `get_instance_stats`.
+        Le défaut ne se manifeste QUE dans l'éditeur SQL de Supabase, c'est-à-dire sur une
+        instance de production : exactement le trou que ce fichier existe pour fermer. */
+  const defAt = new Map();
+  for (const m of sql.matchAll(/create\s+table\s+(?:if\s+not\s+exists\s+)?public\.([a-z0-9_]+)/gi))
+    if (!defAt.has(m[1].toLowerCase())) defAt.set(m[1].toLowerCase(), m.index);
+  for (const m of sql.matchAll(/create\s+(?:or\s+replace\s+)?function\s+public\.([a-z0-9_]+)/gi))
+    if (!defAt.has(m[1].toLowerCase())) defAt.set(m[1].toLowerCase(), m.index);
+  for (const m of sql.matchAll(/create\s+(?:or\s+replace\s+)?function\s+public\.([a-z0-9_]+)/gi)) {
+    const open = sql.indexOf('$$', m.index);
+    if (open < 0) continue;
+    if (!/language\s+sql\b/i.test(sql.slice(m.index, open))) continue;   // plpgsql : hors contrainte
+    const close = sql.indexOf('$$', open + 2);
+    const corps = sql.slice(open + 2, close < 0 ? sql.length : close);
+    const vus = new Set();
+    for (const r of corps.matchAll(/\bpublic\.([a-z0-9_]+)/gi)) {
+      const nom = r[1].toLowerCase();
+      if (vus.has(nom)) continue;
+      vus.add(nom);
+      const at = defAt.get(nom);
+      if (at !== undefined && at > m.index)
+        fautes.push(`${rel} : « ${m[1]} » est en « language sql » et référence « public.${nom} », défini PLUS BAS dans le fichier — résolution à la création, donc 42P01 au collage. Déplacer la fonction après, ou la re-créer une seconde fois.`);
+    }
+  }
+
+  const ANON_FN_OK = ['share_join', 'share_pull', 'share_push'];
+  lignes.forEach((l, i) => {
+    const code = l.replace(/--.*$/, '').trim();
+    if (!/^grant\b/i.test(code)) return;
+    if (/\bon\s+all\s+(functions|tables|sequences|routines)\b/i.test(code))
+      fautes.push(`${rel}:${i + 1} — « grant … on all … » est refusé quel que soit le rôle : accorder objet par objet\n        ${code.slice(0, 72)}`);
+    if (!/\bto\b[^;]*\banon\b/i.test(code)) return;
+    if (/^grant\s+usage\s+on\s+schema\s+public\s+to\s+anon\s*;?$/i.test(code)) return;   // seule exception non-fonction
+    const m = code.match(/\bon\s+function\s+public\.([a-z0-9_]+)\s*\(/i);
+    if (!m || !ANON_FN_OK.includes(m[1]))
+      fautes.push(`${rel}:${i + 1} — grant à « anon » hors liste blanche (${ANON_FN_OK.join(', ')})\n        ${code.slice(0, 72)}`);
+  });
 }
 
 if (fautes.length) {
