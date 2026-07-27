@@ -21,6 +21,7 @@ begin;
 
 do $$
 declare
+  v_snap jsonb;
   alice uuid := '11111111-1111-1111-1111-111111111111';
   bob   uuid := '22222222-2222-2222-2222-222222222222';
   carol uuid := '33333333-3333-3333-3333-333333333333';
@@ -949,6 +950,71 @@ begin
   if v_cnt <> 0 then raise exception 'ÉCHEC 14.10 : des partages ont survécu à la suppression du compte'; end if;
   select count(*) into v_cnt from public.session_events where share_id='sh-2';
   if v_cnt <> 0 then raise exception 'ÉCHEC 14.10 : des évènements ont survécu (cascade absente)'; end if;
+
+  ---------------------------------------------------------------- 14.11
+  -- LA LISTE BLANCHE DES CHAMPS EST SERVEUR, PAS SEULEMENT CLIENT. Elle n'existait qu'en
+  -- JavaScript : un appel REST direct la traversait, et `images` (jusqu'à 24 Mo de base64),
+  -- `localInfo` (téléphones de renfort et de régulation) ou la liste des documents partaient
+  -- avec la fiche. On pousse ici EXACTEMENT ce qu'un appelant hostile pousserait.
+  perform set_config('request.jwt.claims', json_build_object('sub',alice,'role','authenticated',
+    'amr',json_build_array(json_build_object('method','otp','timestamp',extract(epoch from now())::bigint)))::text, true);
+  set local role authenticated;
+  v_j := public.share_open('sh-wl','sess-wl','f-wl', jsonb_build_object(
+           'id','f-wl','title','Fiche','status','', 'blocks', jsonb_build_array(
+              jsonb_build_object('id','b1','steps',jsonb_build_array('a'),'image','data:image/png;base64,AAAA')),
+           'localInfo','Tél renfort 06…','images',jsonb_build_array('data:image/png;base64,BBBB'),
+           'attachments',jsonb_build_array(jsonb_build_object('id','att','name','x.pdf')),
+           'references',jsonb_build_array('ref'),'ownerId',alice::text,'libraryId','lib-1'),
+         'scribe', 60);
+  if not (v_j->>'ok')::boolean then
+    raise exception 'ÉCHEC 14.11 : ouverture refusée (%)', v_j->>'err'; end if;
+  reset role;
+  select fiche_snap into v_snap from public.shared_sessions where id='sh-wl';
+  if v_snap ? 'localInfo' or v_snap ? 'images' or v_snap ? 'attachments'
+     or v_snap ? 'references' or v_snap ? 'ownerId' or v_snap ? 'libraryId' then
+    raise exception 'ÉCHEC 14.11 : un champ interdit a été stocké (%)', v_snap; end if;
+  if not (v_snap ? 'title') or not (v_snap ? 'blocks') then
+    raise exception 'ÉCHEC 14.11 : un champ autorisé a été perdu'; end if;
+  if (v_snap->'blocks'->0) ? 'image' then
+    raise exception 'ÉCHEC 14.11 : l''image d''un BLOC a survécu'; end if;
+
+  ---------------------------------------------------------------- 14.12
+  -- PLAFOND DE PARTAGES VIVANTS PAR PROPRIÉTAIRE. Il n'en existait aucun : un compte — qui coûte
+  -- une adresse jetable, l'approbation étant désactivée par défaut — pouvait en ouvrir sans fin.
+  perform set_config('request.jwt.claims', json_build_object('sub',alice,'role','authenticated',
+    'amr',json_build_array(json_build_object('method','otp','timestamp',extract(epoch from now())::bigint)))::text, true);
+  set local role authenticated;
+  for v_cnt in 1..6 loop
+    v_j := public.share_open('sh-cap-'||v_cnt, 'sess-cap', 'f-cap',
+             jsonb_build_object('id','f-cap','title','T','status',''), 'scribe', 60);
+  end loop;
+  if (v_j->>'ok')::boolean then
+    raise exception 'ÉCHEC 14.12 : aucun plafond de partages vivants'; end if;
+  if v_j->>'err' <> 'too_many_shares' then
+    raise exception 'ÉCHEC 14.12 : motif inattendu (%)', v_j->>'err'; end if;
+  reset role;
+
+  ---------------------------------------------------------------- 14.13
+  -- `share_admit` VÉRIFIE L'EXPIRATION ET LE QUOTA. Il ne le faisait pas : sur un partage expiré
+  -- ou plein, il rendait un code NEUF que `share_join` refusait aussitôt — deux boucles infinies,
+  -- invisibles des deux côtés, et il écrasait au passage un code peut-être encore vivant.
+  update public.shared_sessions set expires_at = now() - interval '1 minute' where id='sh-wl';
+  perform set_config('request.jwt.claims', json_build_object('sub',alice,'role','authenticated',
+    'amr',json_build_array(json_build_object('method','otp','timestamp',extract(epoch from now())::bigint)))::text, true);
+  set local role authenticated;
+  v_j := public.share_admit('sh-wl', 120);
+  if (v_j->>'ok')::boolean then
+    raise exception 'ÉCHEC 14.13 : un partage EXPIRÉ a rendu un code neuf'; end if;
+  if v_j->>'err' <> 'expired' then
+    raise exception 'ÉCHEC 14.13 : motif inattendu (%)', v_j->>'err'; end if;
+  reset role;
+
+  ---------------------------------------------------------------- 14.14
+  -- `session_start` — l'heure du SOIN — est réservée à celui qui conduit.
+  if public.share_kind_allowed('scribe','session_start') then
+    raise exception 'ÉCHEC 14.14 : un scribe peut redater le début du soin'; end if;
+  if not public.share_kind_allowed('lead','session_start') then
+    raise exception 'ÉCHEC 14.14 : le lead ne peut pas dater le début du soin'; end if;
 
   ------------------------------------------------------------------ FIN
   reset role;

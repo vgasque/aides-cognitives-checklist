@@ -1,5 +1,132 @@
 # Journal des modifications
 
+## [4.49.0] — 2026-07-27
+### Le repli hors dispositif, le bridage du scribe, et le filtre de contenu qui n'existait qu'en JavaScript
+
+Dernière version du chantier de partage. Elle apporte les deux fonctions qui manquaient — poursuivre
+seul quand le lien tombe, et brider le scribe sans rien lui masquer — et referme côté SERVEUR ce que
+seul le client protégeait.
+
+### « Continuer seul » : la trace remonte, l'état non
+Le serveur savait tout faire depuis la v4.46.0 — colonne `detached_at`, genre `detach` autorisé,
+règle « un lot qui porte un detach ne porte que lui », assertions RLS — mais **aucun code client ne
+l'appelait**, et l'annexe qu'un détaché peut remonter n'était lue par personne. Quatre murs, tous
+tombés :
+
+**Au détachement, la file était JETÉE.** Au moment précis où la bifurcation devient officielle, on
+détruisait la seule chose qui devait encore remonter. Elle est désormais **convertie** : chaque
+geste en attente devient un `offline_mark`, qui rejoint le journal de l'hôte en annexe. Un détaché
+ne peut plus écrire d'ÉTAT — ses coches porteraient sur des passages que l'hôte a quittés — mais il
+peut écrire des repères horodatés : une heure reste une heure.
+
+**Un détaché cessait de sonder.** Ses annexes n'auraient donc jamais atteint l'hôte. Un cycle lent
+reste armé tant que sa file n'est pas vide.
+
+**Chez l'hôte, l'annexe entre au journal et NULLE PART ailleurs**, à sa place chronologique, inerte
+(ni champ ni bouton — on ne corrige pas le relevé d'un autre), avec la mention « rapporté — poursuit
+seul ». L'état ne fusionne jamais : après la bifurcation, les numéros de visite sont mintés
+indépendamment des deux côtés, si bien que « la visite 6 » de l'un et celle de l'autre désignent
+deux passages différents. Ce n'est pas un conflit arbitrable, c'est une collision d'espace de noms —
+fusionner produirait un résultat non pas discutable mais **faux, et plausible**.
+
+### Le scribe ajoute, il ne défait pas
+Forme canonique du travail à deux (AC 120-71B §5.2.2.1), pas un compromis. Ouvert au scribe : cocher,
+constater, signaler un écart, **incrémenter** un compteur, **armer** un minuteur, poser et annuler un
+repère. Fermé : décocher, avancer, terminer, choisir une branche, sauter à un bloc, **arrêter** ou
+remettre à zéro. La distinction n'est pas arbitraire — ajouter est additif et réversible par le
+journal, remettre à zéro détruit un décompte que personne ne peut restituer.
+
+**Jamais par masquage** : masquer ferait sauter le contenu clinique de 46 px (mesuré), et sur
+évènement DISTANT si le rôle change — sous le doigt de quelqu'un qui n'a rien demandé. La boîte
+reste, la géométrie est identique refus ou non (mesuré ≤ 1 px), et le refus s'annonce sur `#srLive`,
+seul canal admis pendant un soin.
+
+**Une seule liste de verbes**, consommée par le CSS et par une garde déléguée en phase de capture ;
+un contrôle du harnais lit la liste **depuis le script** et vérifie que chaque élément rendu porte
+l'apparence désactivée — c'est la faille de la v4.42.0 prise à la racine. Deux gestes dépendent de
+leur DIRECTION et ne peuvent pas être bridés en CSS : le cochage (`data-ck` porte cocher *et*
+décocher) et le minuteur (armer *ou* arrêter) ; ils sont gardés dans leurs handlers, et pour le
+cochage par un prédicat **unique** appelé aux deux copies du cœur.
+
+### Le serveur ne se fiait qu'au client
+**La liste blanche des champs de fiche n'existait qu'en JavaScript.** Un appel REST direct la
+traversait : `images` (jusqu'à 24 Mo de base64), `localInfo` (les téléphones de renfort et de
+régulation), la liste des documents, `ownerId`, `libraryId` — tout pouvait partir. Le schéma avait
+pourtant déjà tiré cette leçon pour la TAILLE (« le plafond vaut contre le client ») sans jamais
+l'appliquer au CONTENU. C'est une liste **blanche**, pas noire : on ne garde que les quatorze champs
+autorisés, une liste noire oubliant ce qu'on ajoutera demain. Les images de BLOC sont retirées
+séparément, elles vivent à l'intérieur de `blocks`.
+
+**`is_approved()` traitait un JWT anonyme comme un compte approuvé.** Un tel jeton porte un
+`auth.uid()` non nul et n'a aucune ligne dans `user_status` : le `coalesce` retombait sur
+`'approved'` — y compris pour ouvrir un partage, c'est-à-dire faire sortir du contenu clinique de
+l'instance. La porte n'était fermée que parce que personne n'avait activé l'option au tableau de
+bord ; elle l'est maintenant par le schéma.
+
+**`share_admit` ouvrait deux boucles infinies.** Il ne vérifiait ni l'expiration ni le quota : sur un
+partage expiré ou plein, il rendait un code NEUF que l'hôte dictait et que `share_join` refusait
+aussitôt, sans que personne, des deux côtés, ne puisse comprendre — et il écrasait au passage un code
+peut-être encore vivant. Le motif est désormais détaillé, parce que l'appelant est le propriétaire
+authentifié : l'argument d'oracle ne vaut que face à un anonyme, et le schéma le promettait sans
+l'appliquer nulle part.
+
+S'ajoutent un **plafond de cinq partages vivants par propriétaire** (il n'en existait aucun, alors
+qu'un compte coûte une adresse jetable), le bornage de `session_id` — seul champ texte libre non
+contraint —, les **octets des partages dans le total de stockage** et leur affichage au tableau de
+bord (le serveur les calculait, l'écran ne les montrait pas : l'exploitant était aveugle au seul
+poste que le partage fait croître), et le genre **`session_start`** : l'heure du soin voyage,
+réservée à celui qui conduit. Un renfort arrivé à 14 h 12 sur une réanimation débutée à 13 h 55 ne
+date plus le début du soin à son arrivée.
+
+### Quatre signalements d'usage, et ce qu'ils étaient vraiment
+**Le code du partage ne grandissait pas.** Il a été agrandi trois fois sans le moindre effet à
+l'écran : `.ai-card p` pèse (0,1,1) — une classe ET un type — et l'emportait sur `.sh-code` (0,1,0)
+en le ramenant à 13 px, **quel que soit l'ordre de déclaration**. C'est le 7ᵉ incident de cascade du
+projet et le premier par SPÉCIFICITÉ ; les six précédents tenaient à l'ordre. Toute la typographie
+des deux fenêtres passe par des sélecteurs à `#id`, et un contrôle mesure désormais la taille
+**rendue**, jamais la valeur écrite. Le code fait 40 px (34 sous 360).
+
+**Le QR portait le code seul.** Une « correction » de la veille faisait retomber `localhost` sur le
+code, ce qui privait de la fonctionnalité au moment même où on l'essaie : toute origine http(s)
+donne à nouveau l'URL complète, et le **lien entier est écrit en clair** sous le QR, sélectionnable
+d'un appui — c'est lui qu'on dicte ou qu'on envoie quand la caméra ne sert pas. Le harnais QR, lui,
+ne décodait que la MATRICE : il capture maintenant l'**image réellement peinte** et la donne au
+décodeur d'Apple, à quatre configurations dont le thème sombre.
+
+**La confirmation d'arrêt s'affichait derrière la fenêtre** (z-index 55 contre 94) : invisible, avec
+le focus piégé dedans. Portée à 95.
+
+**Les deux fenêtres du partage étaient les plus étroites de l'application** (420 et 460 px) : elles
+prennent `dlg-480`, la largeur standard partagée par cinq autres. Et sous 780 px, où l'app transforme
+toute fenêtre en feuille pleine largeur, leur contenu — majoritairement centré — courait d'un bord à
+l'autre : mesuré, carte 744 × 1133 px pour 643 px de contenu. Le CORPS est borné à 460 px ; le titre
+et le ✕, eux, restent au bord de la feuille, **identiques au pixel à une fenêtre existante** (mesuré
+contre `#catModal` à 390, 744 et 1280 px) — fermer une fenêtre est le geste le plus appris de
+l'application, le déplacer pour une seule d'entre elles était une faute.
+
+### Rejoindre se tape dans la recherche
+La rangée était dans le dialogue « Créer » : rejoindre n'ajoute rien à la bibliothèque, et quelqu'un
+à qui l'on dicte un code n'irait pas le chercher sous « + ». Une ligne permanente en tête d'accueil a
+été essayée puis écartée — 44 px d'attention à chaque ouverture pour un geste rare, alors que la
+doctrine ECAM réserve le permanent à ce qui sert la conduite en cours. **Le code se tape dans le
+champ de recherche** : huit caractères d'un alphabet fermé sont reconnaissables sans ambiguïté, la
+ligne s'AJOUTE aux résultats sans les remplacer, et l'accueil au repos est **identique au pixel**
+(mesuré). Registre INFORMATION, bouton rempli : à l'instant où elle paraît, elle est la seule action
+de l'écran.
+
+### Vérification
+701 tests × 2 moteurs (+4), 13 harnais verts, **184/184 contrôles partage** (+41, sur les deux
+moteurs), 9/9 QR, 301 contrôles d'accessibilité, 94/94 doctrine, `npm run check` vert. Quatre
+assertions RLS nouvelles (§14.11 à 14.14) couvrent la liste blanche serveur, le plafond de partages,
+les deux refus de `share_admit` et la réserve de `session_start`. `supabase/schema.sql` et
+`rls-tests.sql` ont été rejoués sur l'instance avec succès.
+
+Trois contrôles écrits pendant ce chantier ont dû être **corrigés parce qu'ils mesuraient le
+mécanisme et non la propriété** : « le mode d'application vaut `none` » là où il fallait vérifier que
+l'annexe ne touche pas l'état, « `started` vaut faux » là où il fallait vérifier qu'aucun dossier
+n'est créé, et « pas de lien en local » qui encodait une règle infirmée. C'est la même erreur que la
+taille du code, sous une autre forme : vérifier ce qu'on a écrit plutôt que ce que ça produit.
+
 ## [4.48.0] — 2026-07-27
 ### Le partage fonctionne enfin de bout en bout — et le miroir de l'invité était en lecture seule
 
@@ -1405,78 +1532,3 @@ utilisateur.
   le menu ⋯.
 
 503 tests (dont le test du registre de stockage mis à jour), 11 harnais verts.
-
-## [4.30.0] — 2026-07-26
-Correctifs P0/P1/P2 de l'audit design externe (axe « conformité aux normes »).
-
-### Corrigé (P0 — mesurés avant/après)
-- **WCAG 2.2 § 2.4.11 « Focus Not Obscured » (AA) : NON-CONFORMITÉ levée.** Un Shift+Tab
-  remontant déposait l'élément focalisé ENTIÈREMENT sous les couches collantes (en-tête +
-  commandes + quai : 238 px mesurés à 360 px en session — dont la case « Alerter, appeler du
-  renfort » et l'étape critique « ⚠ RCP immédiate », masquées à 100 %). Le défilement déclenché
-  par le focus clavier est celui du navigateur, que `stickBase()` ne voit pas : seul
-  `scroll-padding` le pilote — `html{scroll-padding-top:calc(var(--stick-top,64px)+8px)}`
-  (la variable existait déjà, mesurée et divisée par le zoom). Corollaire : le
-  `scroll-margin-top:130px` forfaitaire de `.rt-panel` (qui s'ADDITIONNE désormais) est ramené
-  à 6 px. Vérifié : 0 masquage après correctif ; sonde 2.4.11 ajoutée à `audit-a11y.mjs`
-  (73/73).
-- **Rangée de commandes `#crisisCtrl` rognée sur les deux largeurs mobiles les plus répandues.**
-  Elle exigeait 386 px : « Cons. » perdait 11 px à 375 (iPhone SE/mini) et 26 px à 360 (Android
-  standard), sans défilement horizontal — pixels INACCESSIBLES, débordement silencieux dans la
-  zone de crise. Compression mesurée sous 400 px (gaps/paddings, recette v4.23.4) : ~346 px à
-  360 après, positions constantes conservées. Sondes « sans rognage » à 360/375/390 ajoutées à
-  `audit-doctrine.mjs` (15/15).
-
-### Ajouté (P1)
-- **Le retour SYSTÈME (Android, geste/bouton) ne sort plus de l'app en pleine session.**
-  History API branchée (0 pushState/popstate jusqu'ici) : une entrée sentinelle ré-armée, le
-  popstate empruntant le MÊME chemin que l'affordance visible — fenêtre du dessus (✕ ou clic de
-  voile : « Terminer la session ? » ferme sur Poursuivre, jamais Terminer), sinon lecteur,
-  schéma plein écran, visionneuse, sinon le « ‹ » d'en-tête (pile readStack + garde double-tap
-  700 ms héritées). À l'accueil nu, le retour sort réellement (aucun appui mort) ; une
-  sentinelle survivant à un rechargement est neutralisée au boot. Vérifié en scénario réel :
-  dialogue fermé sans terminer la session, puis retour à la bibliothèque, puis sortie.
-
-### Ajouté (P2)
-- **Filet `forced-colors` (Windows High Contrast)** : `.acct-dot`, `.cat-dot` et `.seg-pill`
-  gardent leur couleur (`forced-color-adjust:none`) — le reste s'appuie sur « la couleur jamais
-  seule ». Filet minimal, à valider sur machine Windows réelle.
-- **Dialogue de bienvenue : « Commencer » ancré en bas de la feuille sur mobile** (zone du
-  pouce). Sous 780 px la fenêtre est plein écran : le bouton flottait à mi-écran dans ~700 px
-  de vide. Carte en colonne flex, action au bord bas ; ordinateur inchangé.
-
-503 tests, 11 harnais verts (a11y 73/73 avec la sonde 2.4.11, doctrine 15/15 avec les sondes
-anti-rognage).
-
-## [4.29.10] — 2026-07-26
-### Retiré
-- **Dossier « bande basse iOS » clos — correctif v4.29.9 confirmé sur appareil.**
-  L'instrumentation temporaire est retirée : ligne de diagnostic de la fenêtre Compte
-  (`ih/vv/dvh/sab/sat/scr/vvV/sc/ot`) et règle visuelle (`_vvRuler`, calque rouge + trait bleu
-  au toucher). Pour ré-instrumenter un jour : tags v4.29.5 à v4.29.9. Restent en place, acquis
-  durables du dossier : le verrou de fond par `overflow:hidden` (jamais de `position:fixed` sur
-  `body`), les overlays dimensionnés par `--vvh` (visualViewport, resynchronisée en continu),
-  et le fond peint sur `html` (ceinture rebond).
-
-503 tests, 11 harnais verts.
-
-## [4.29.9] — 2026-07-26
-### Corrigé (bande basse iOS — LE COUPABLE)
-- La règle visuelle (v4.29.8) a produit la preuve : sur l'ACCUEIL, `bottom:0` touche le bord
-  physique de l'écran — la WebView est saine ; **fenêtre ouverte, il flotte ~60 px au-dessus**.
-  Ce qui change entre les deux états : le verrou de fond passait `body` en
-  `position:fixed; top:-scrollY` (v4.21.0). Sur iPhone, un body fixé RÉTRÉCIT le rendu des
-  éléments fixés qui en descendent (~60 px coupés en bas) sans qu'aucune mesure web ne le voie
-  (`ih/vv/dvh/vvV` disaient tous 874) — et cette bande était MASQUÉE depuis v4.23.3 par le fond
-  peint sur `html` (le commentaire de l'époque décrivait déjà « une bande vide en bas à
-  l'ouverture de n'importe quelle fenêtre » : il masquait le symptôme, le rétrécissement
-  restait). **Le verrou change de technique** : `overflow:hidden` sur `html` et `body` (fiable
-  depuis iOS 16), qui bloque le défilement de fond sans toucher au repère des fixés ; position
-  restaurée au pixel en ceinture ; même périmètre qu'avant (toucher pour les dialogues, tous
-  pointeurs pour les feuilles opaques). Vérifié par sonde : couverture 0→874, fond immobile au
-  geste, position restaurée, déverrouillage propre (Chromium et WebKit).
-- La bascule de la barre d'état vers `default` (entamée en cours d'investigation) est ANNULÉE :
-  l'accueil est parfait en `black-translucent`, la meta n'était pas en cause.
-- Diag + règle visuelle CONSERVÉS jusqu'à confirmation sur l'appareil ; retrait prévu ensuite.
-
-503 tests, 11 harnais verts.

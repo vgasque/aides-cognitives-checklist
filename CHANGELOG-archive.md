@@ -1,9 +1,84 @@
-# Journal des modifications — archive (versions 3.0.0 à 4.29.8)
+# Journal des modifications — archive (versions 3.0.0 à 4.30.0)
 
 > Entrées anciennes déplacées depuis [`CHANGELOG.md`](CHANGELOG.md) pour garder le journal
 > courant lisible. Même format (keep-a-changelog).
 
-## [4.29.8] — 2026-07-26
+## [4.30.0] — 2026-07-26
+Correctifs P0/P1/P2 de l'audit design externe (axe « conformité aux normes »).
+
+### Corrigé (P0 — mesurés avant/après)
+- **WCAG 2.2 § 2.4.11 « Focus Not Obscured » (AA) : NON-CONFORMITÉ levée.** Un Shift+Tab
+  remontant déposait l'élément focalisé ENTIÈREMENT sous les couches collantes (en-tête +
+  commandes + quai : 238 px mesurés à 360 px en session — dont la case « Alerter, appeler du
+  renfort » et l'étape critique « ⚠ RCP immédiate », masquées à 100 %). Le défilement déclenché
+  par le focus clavier est celui du navigateur, que `stickBase()` ne voit pas : seul
+  `scroll-padding` le pilote — `html{scroll-padding-top:calc(var(--stick-top,64px)+8px)}`
+  (la variable existait déjà, mesurée et divisée par le zoom). Corollaire : le
+  `scroll-margin-top:130px` forfaitaire de `.rt-panel` (qui s'ADDITIONNE désormais) est ramené
+  à 6 px. Vérifié : 0 masquage après correctif ; sonde 2.4.11 ajoutée à `audit-a11y.mjs`
+  (73/73).
+- **Rangée de commandes `#crisisCtrl` rognée sur les deux largeurs mobiles les plus répandues.**
+  Elle exigeait 386 px : « Cons. » perdait 11 px à 375 (iPhone SE/mini) et 26 px à 360 (Android
+  standard), sans défilement horizontal — pixels INACCESSIBLES, débordement silencieux dans la
+  zone de crise. Compression mesurée sous 400 px (gaps/paddings, recette v4.23.4) : ~346 px à
+  360 après, positions constantes conservées. Sondes « sans rognage » à 360/375/390 ajoutées à
+  `audit-doctrine.mjs` (15/15).
+
+### Ajouté (P1)
+- **Le retour SYSTÈME (Android, geste/bouton) ne sort plus de l'app en pleine session.**
+  History API branchée (0 pushState/popstate jusqu'ici) : une entrée sentinelle ré-armée, le
+  popstate empruntant le MÊME chemin que l'affordance visible — fenêtre du dessus (✕ ou clic de
+  voile : « Terminer la session ? » ferme sur Poursuivre, jamais Terminer), sinon lecteur,
+  schéma plein écran, visionneuse, sinon le « ‹ » d'en-tête (pile readStack + garde double-tap
+  700 ms héritées). À l'accueil nu, le retour sort réellement (aucun appui mort) ; une
+  sentinelle survivant à un rechargement est neutralisée au boot. Vérifié en scénario réel :
+  dialogue fermé sans terminer la session, puis retour à la bibliothèque, puis sortie.
+
+### Ajouté (P2)
+- **Filet `forced-colors` (Windows High Contrast)** : `.acct-dot`, `.cat-dot` et `.seg-pill`
+  gardent leur couleur (`forced-color-adjust:none`) — le reste s'appuie sur « la couleur jamais
+  seule ». Filet minimal, à valider sur machine Windows réelle.
+- **Dialogue de bienvenue : « Commencer » ancré en bas de la feuille sur mobile** (zone du
+  pouce). Sous 780 px la fenêtre est plein écran : le bouton flottait à mi-écran dans ~700 px
+  de vide. Carte en colonne flex, action au bord bas ; ordinateur inchangé.
+
+503 tests, 11 harnais verts (a11y 73/73 avec la sonde 2.4.11, doctrine 15/15 avec les sondes
+anti-rognage).
+
+## [4.29.10] — 2026-07-26
+### Retiré
+- **Dossier « bande basse iOS » clos — correctif v4.29.9 confirmé sur appareil.**
+  L'instrumentation temporaire est retirée : ligne de diagnostic de la fenêtre Compte
+  (`ih/vv/dvh/sab/sat/scr/vvV/sc/ot`) et règle visuelle (`_vvRuler`, calque rouge + trait bleu
+  au toucher). Pour ré-instrumenter un jour : tags v4.29.5 à v4.29.9. Restent en place, acquis
+  durables du dossier : le verrou de fond par `overflow:hidden` (jamais de `position:fixed` sur
+  `body`), les overlays dimensionnés par `--vvh` (visualViewport, resynchronisée en continu),
+  et le fond peint sur `html` (ceinture rebond).
+
+503 tests, 11 harnais verts.
+
+## [4.29.9] — 2026-07-26
+### Corrigé (bande basse iOS — LE COUPABLE)
+- La règle visuelle (v4.29.8) a produit la preuve : sur l'ACCUEIL, `bottom:0` touche le bord
+  physique de l'écran — la WebView est saine ; **fenêtre ouverte, il flotte ~60 px au-dessus**.
+  Ce qui change entre les deux états : le verrou de fond passait `body` en
+  `position:fixed; top:-scrollY` (v4.21.0). Sur iPhone, un body fixé RÉTRÉCIT le rendu des
+  éléments fixés qui en descendent (~60 px coupés en bas) sans qu'aucune mesure web ne le voie
+  (`ih/vv/dvh/vvV` disaient tous 874) — et cette bande était MASQUÉE depuis v4.23.3 par le fond
+  peint sur `html` (le commentaire de l'époque décrivait déjà « une bande vide en bas à
+  l'ouverture de n'importe quelle fenêtre » : il masquait le symptôme, le rétrécissement
+  restait). **Le verrou change de technique** : `overflow:hidden` sur `html` et `body` (fiable
+  depuis iOS 16), qui bloque le défilement de fond sans toucher au repère des fixés ; position
+  restaurée au pixel en ceinture ; même périmètre qu'avant (toucher pour les dialogues, tous
+  pointeurs pour les feuilles opaques). Vérifié par sonde : couverture 0→874, fond immobile au
+  geste, position restaurée, déverrouillage propre (Chromium et WebKit).
+- La bascule de la barre d'état vers `default` (entamée en cours d'investigation) est ANNULÉE :
+  l'accueil est parfait en `black-translucent`, la meta n'était pas en cause.
+- Diag + règle visuelle CONSERVÉS jusqu'à confirmation sur l'appareil ; retrait prévu ensuite.
+
+503 tests, 11 harnais verts.
+
+## [ [4.29.8] — 2026-07-26
 ### Diagnostic (bande basse iOS — instrumentation visuelle)
 - Le diag v4.29.7 sur appareil est PARFAIT (`vvV 874px · sc 1.00 · ot 0` — la variable effective
   n'était même pas périmée) et la bande persiste, indépendante du défilement (confirmé

@@ -506,6 +506,10 @@ for (const [w, h] of [[320, 568], [390, 844]]) {
     const out = {
       ouverte: !!document.querySelector('#shareModal.on'),
       code: (document.getElementById('shCode') || {}).textContent || '',
+      codePx: (() => { const e = document.getElementById('shCode');
+        return e ? Math.round(parseFloat(getComputedStyle(e).fontSize)) : 0; })(),
+      lien: (document.getElementById('shLink') || {}).textContent || '',
+      qrTexte: (() => { try { return shareJoinUrl('K7M2P4Q9'); } catch (e) { return null; } })(),
       titre: (document.querySelector('#shareModal .sh-fiche') || {}).textContent || '',
       qrLarge: qr ? Math.round(qr.getBoundingClientRect().width) : 0,
       carte: cr ? Math.round(cr.height) : 0, fenetre: window.innerHeight,
@@ -532,6 +536,10 @@ for (const [w, h] of [[320, 568], [390, 844]]) {
     await new Promise(x => setTimeout(x, 500));
     out.apresCoche = (Share.pending() + pousses.length) - av;
     out.genres = pousses.map(e => e.kind).concat(Share._q.map(e => e.kind));
+    // Le vocabulaire est LU DEPUIS L'APP, jamais recopié ici : une liste en dur dans le harnais
+    // divergerait du jour où l'on ajoute un genre — et le contrôle passerait au vert sans rien
+    // couvrir. C'est la même règle que pour les verbes réservés au lead.
+    out.vocab = SHARE_KINDS_ANY.concat(SHARE_KINDS_LEAD);
     /* COUPER : « en attente » tant que le serveur n'a pas confirmé — aucun affichage optimiste.
        Ici le réseau n'existe pas, donc la requête ÉCHOUE : on mesure les deux moments, l'attente
        immédiate puis le RETOUR EN ARRIÈRE. Un bouton qui laisserait « coupé » affiché après un
@@ -559,6 +567,20 @@ for (const [w, h] of [[320, 568], [390, 844]]) {
   });
   t(`${w}×${h} · la fenêtre s'ouvre`, r.ouverte, JSON.stringify(r).slice(0, 200));
   t(`${w}×${h} · le code est affiché en clair`, /K7M2-P4Q9/.test(r.code), r.code);
+  /* LA TAILLE RENDUE, PAS LA VALEUR ÉCRITE. Le code a été agrandi trois fois sans le moindre
+     effet à l'écran : `.ai-card p` (spécificité 0,1,1 — une classe ET un type) l'emportait sur
+     `.sh-code` (0,1,0) et le ramenait à 13 px, quel que soit l'ordre de déclaration. C'est le 7ᵉ
+     incident de cascade du projet et le PREMIER par spécificité — les six précédents tenaient à
+     l'ordre. Une valeur écrite dans la feuille ne prouve rien : on mesure ce que le navigateur
+     calcule. */
+  t(`${w}×${h} · et il est RÉELLEMENT grand à l'écran`, r.codePx >= 30,
+    `${r.codePx} px calculés`);
+  /* LE QR PORTE LE LIEN, PAS SEULEMENT LE CODE : scanné, il ouvre l'application AVEC le code
+     déjà rempli — c'est tout l'intérêt. Et le lien est écrit en clair pour qu'on puisse le dicter
+     ou l'envoyer quand la caméra ne sert pas. */
+  t(`${w}×${h} · le QR encode l'URL AVEC le code`, /^https?:\/\/.*#j=K7M2P4Q9$/.test(r.qrTexte||''),
+    r.qrTexte);
+  t(`${w}×${h} · et le lien complet est donné en clair`, /#j=K7M2P4Q9$/.test(r.lien||''), r.lien);
   t(`${w}×${h} · le TITRE DE L'AIDE est à côté du code`, /Arrêt cardiaque/.test(r.titre), r.titre);
   t(`${w}×${h} · le QR est présent et plafonné à 200 px`, r.qrLarge > 60 && r.qrLarge <= 200, `${r.qrLarge} px`);
   /* CE QU'ON EXIGE VRAIMENT DE « ARRÊTER LE PARTAGE ». La première version de ce contrôle
@@ -581,8 +603,9 @@ for (const [w, h] of [[320, 568], [390, 844]]) {
   t(`${w}×${h} · l'hôte n'apparaît pas dans sa propre liste`, r.participants.join() === 'IADE', r.participants.join());
   t(`${w}×${h} · l'ouverture verse l'état COURANT dans le fil`, r.fileOuverture > 0, `${r.fileOuverture} évènement(s)`);
   t(`${w}×${h} · un geste local produit un évènement`, r.apresCoche >= 1, `${r.apresCoche}`);
-  t(`${w}×${h} · et il appartient au vocabulaire fermé`, r.genres.every(k => /^(check|uncheck|verify|gap|counter|timer_arm|timer_stop|mark|mark_void|nav|flow_end)$/.test(k)),
-    r.genres.join(','));
+  t(`${w}×${h} · et il appartient au vocabulaire fermé`,
+    r.genres.every(k => r.vocab.indexOf(k) >= 0),
+    r.genres.filter(k => r.vocab.indexOf(k) < 0).join(',') || r.genres.join(','));
   t(`${w}×${h} · une coupure s'affiche EN ATTENTE, jamais acquise d'office`, /coupure/.test(r.attente), r.attente);
   /* L'ADRESSE EN CLAIR : c'est elle qu'on dicte quand le QR ne peut pas servir, et c'est aussi ce
      qui rend l'écran d'entrée trouvable. Le QR ne vaut que si l'appareil qui le scanne peut
@@ -606,7 +629,7 @@ for (const [w, h] of [[320, 568], [390, 844]]) {
    s'étalait sur 700 px. D'où des sélecteurs par `#id`, comme la règle l'impose pour toute
    géométrie. On verrouille les deux ici. */
 console.log(`\n══ PARTAGE · les fenêtres suivent la grammaire de l'app — moteur ${NOM_MOTEUR} ══`);
-for (const [w, h] of [[390, 844], [760, 900], [1280, 900]]) {
+for (const [w, h] of [[390, 844], [744, 1133], [760, 900], [1280, 900]]) {
   const page = await br.newPage({ viewport: { width: w, height: h } });
   await session(page);
   const r = await page.evaluate(async () => {
@@ -618,10 +641,25 @@ for (const [w, h] of [[390, 844], [760, 900], [1280, 900]]) {
     Share._io.push = async () => ({ ok: true, server_time: new Date().toISOString() });
     Auth.signedIn = () => true;
     const mes = (el) => { if (!el) return null; const b = el.getBoundingClientRect();
-      return { w: Math.round(b.width), top: Math.round(b.top), bas: Math.round(b.bottom) }; };
+      return { w: Math.round(b.width), top: Math.round(b.top), bas: Math.round(b.bottom),
+        g: Math.round(b.left), d: Math.round(b.right) }; };
     // 1. La fenêtre d'appariement, ouverte par son vrai chemin.
     await startShare(state.fiche); await new Promise(x => setTimeout(x, 900));
     const part = mes(document.querySelector('#shareModal .ai-card'));
+    // SOUS 780 px l'app transforme toute fenêtre en feuille PLEINE LARGEUR : c'est sa convention.
+    // Ce qui doit rester borné, c'est le CONTENU — sinon le code et le QR se perdent au milieu
+    // d'une surface de 744 px sur tablette (mesuré : carte 744x1133 pour 643 px de contenu).
+    const corps = mes(document.getElementById('shareBody'));
+    /* COHÉRENCE AVEC LES AUTRES FENÊTRES (retour utilisateur) : le titre et le ✕ doivent occuper
+       la largeur de la FEUILLE et vivre à son coin, comme partout ailleurs — fermer une fenêtre est
+       le geste le plus appris de l'application. On compare donc au pixel à une fenêtre EXISTANTE,
+       dans les mêmes conditions, plutôt qu'à une valeur écrite à la main. */
+    const monTop = mes(document.querySelector('#shareModal .ai-top'));
+    const monX = mes(document.querySelector('#shareModal .ai-x'));
+    closeShareSheet(); openCatMgr(); await new Promise(x => setTimeout(x, 250));
+    const refTop = mes(document.querySelector('#catModal .ai-top'));
+    const refX = mes(document.querySelector('#catModal .ai-x'));
+    closeCatMgr(); openShareSheet(); await new Promise(x => setTimeout(x, 250));
     const partCard = !!document.querySelector('#shareModal .ai-card');
     closeShareSheet(); Share.stop();
     // 2. L'écran d'entrée de l'invité.
@@ -630,12 +668,16 @@ for (const [w, h] of [[390, 844], [760, 900], [1280, 900]]) {
     const joinCard = !!document.querySelector('.join-card.ai-card');
     const titre = !!document.querySelector('#joinScreen .ai-top h3');
     document.getElementById('joinScreen').hidden = true;
-    return { part, partCard, join, joinCard, titre, ecran: window.innerHeight };
+    return { part, partCard, corps, monTop, monX, refTop, refX, join, joinCard, titre, ecran: window.innerHeight };
   });
   t(`${w}×${h} · l'appariement utilise la carte standard`, r.partCard);
   t(`${w}×${h} · l'entrée invité aussi, avec un titre h3`, r.joinCard && r.titre);
-  t(`${w}×${h} · l'appariement garde une largeur de fenêtre`, r.part && r.part.w <= 440,
-    `${r.part && r.part.w} px`);
+  t(`${w}×${h} · le CONTENU de l'appariement reste borné`, r.corps && r.corps.w <= 480,
+    `${r.corps && r.corps.w} px`);
+  t(`${w}×${h} · son en-tête a la MÊME largeur qu'une fenêtre existante`,
+    r.monTop && r.refTop && r.monTop.w === r.refTop.w, `${r.monTop&&r.monTop.w} vs ${r.refTop&&r.refTop.w}`);
+  t(`${w}×${h} · et son ✕ est au MÊME endroit`,
+    r.monX && r.refX && Math.abs(r.monX.d - r.refX.d) <= 1, `${r.monX&&r.monX.d} vs ${r.refX&&r.refX.d}`);
   t(`${w}×${h} · l'entrée invité garde une largeur de fenêtre`, r.join && r.join.w <= 480,
     `${r.join && r.join.w} px`);
   // Centrage vertical : quand l'écran a de la place, la carte n'est pas collée en haut. On mesure
@@ -645,6 +687,277 @@ for (const [w, h] of [[390, 844], [760, 900], [1280, 900]]) {
     t(`${w}×${h} · l'entrée invité est centrée verticalement`, Math.abs(haut - bas) <= 24,
       `${haut} px au-dessus, ${bas} px en dessous`);
   }
+  await page.close();
+}
+
+/* ══ CONTINUER SEUL : LA TRACE REMONTE, L'ÉTAT NON (v4.48.0) ══════════════════════════════════
+   Le repli hors dispositif (AC 120-64 §9.a). Trois propriétés, et chacune répare un mur trouvé en
+   contre-expertise : (1) au détachement, la file n'est pas JETÉE mais CONVERTIE en annexes — elle
+   l'était, au moment précis où son contenu devenait la seule chose qui doive encore remonter ;
+   (2) un détaché continue de sondier lentement, sinon ses annexes n'atteignent jamais l'hôte ;
+   (3) chez l'hôte, l'annexe entre au JOURNAL et NULLE PART ailleurs — fusionner l'état d'un
+   appareil qui a bifurqué produirait un résultat plausible et faux. */
+console.log(`\n══ PARTAGE · continuer seul — moteur ${NOM_MOTEUR} ══`);
+{
+  const page = await br.newPage({ viewport: { width: 390, height: 844 } });
+  await session(page);
+  const r = await page.evaluate(async () => {
+    const f = fiches.find(x => /Arrêt/.test(x.title)) || fiches[0];
+    const pousses = [];
+    Share._io.join = async () => ({ ok: true, share: 's1', secret: 'x'.repeat(24), me: 'p1',
+      role: 'scribe', fiche: sharePayload(f), server_time: new Date().toISOString() });
+    Share._io.pull = async () => ({ ok: true, status: 'active', events: [], seq: 0, n_events: 0,
+      participants: [], server_time: new Date().toISOString() });
+    // Le réseau tombe à la POUSSÉE : la file grossit, exactement le cas où le repli sert.
+    Share._io.push = async (s, sh, ev) => { pousses.push(...ev); throw new Error('réseau'); };
+    openJoinScreen('K7M2P4Q9'); await joinGo(); await new Promise(x => setTimeout(x, 400));
+    const ck = [...document.querySelectorAll('[data-ck]')].slice(0, 2);
+    for (const c of ck) { c.click(); await new Promise(x => setTimeout(x, 120)); }
+    const avant = Share.pending();
+    const genresAvant = Share._q.map(e => e.kind).join(',');
+    await Share.detach();
+    await new Promise(x => setTimeout(x, 200));
+    return { avant, genresAvant, statut: Share.status,
+      apres: Share.pending(), genresApres: Share._q.map(e => e.kind).join(','),
+      // Le lot de détachement ne porte QUE lui (règle serveur).
+      lotDetach: pousses.filter(e => e.kind === 'detach').length === 1 &&
+                 pousses.length >= 1 && pousses[pousses.length - 1].kind === 'detach',
+      cycle: !!Share._timer, mode: Share.mode };
+  });
+  t('la file contenait bien des évènements d’état', r.avant >= 1, `${r.avant} : ${r.genresAvant}`);
+  t('au détachement, la file est CONVERTIE, jamais jetée', r.apres === r.avant,
+    `${r.avant} → ${r.apres}`);
+  t('et convertie en ANNEXES (aucun état ne remonte)',
+    r.genresApres.split(',').every(k => k === 'offline_mark'), r.genresApres);
+  t('le statut passe à « détaché »', r.statut === 'detached');
+  t('le mode reste « invité » (l’écran survit au lien)', r.mode === 'guest');
+  t('un cycle de retransmission reste armé', r.cycle === true);
+  t('le lot qui porte le détachement ne porte que lui', r.lotDetach === true);
+  await page.close();
+}
+{
+  // Côté HÔTE : l'annexe entre au journal, et nulle part ailleurs.
+  const page = await br.newPage({ viewport: { width: 390, height: 844 } });
+  await session(page);
+  const r = await page.evaluate(async () => {
+    Share.mode = 'host'; Share.role = 'lead'; Share.me = 'moi'; Share.status = 'active';
+    Share.lastOk = Date.now(); Share.offset = 0;
+    const avant = { coches: Object.keys(state.checked).length, ev: (Runtime.events || []).length,
+      nav: state.nav.length };
+    Share.onEvents([
+      { seq: 9, id: 'ax1', actor: 'renfort', kind: 'offline_mark',
+        payload: { t: Date.now() - 60000, ref: null } },
+      { seq: 10, id: 'ax2', actor: 'renfort', kind: 'offline_mark',
+        payload: { t: Date.now() - 30000, ref: null } },
+      // Rejoué : le fil peut resservir un lot après une reprise — jamais de doublon.
+      { seq: 9, id: 'ax1', actor: 'renfort', kind: 'offline_mark',
+        payload: { t: Date.now() - 60000, ref: null } },
+    ]);
+    await new Promise(x => setTimeout(x, 300));
+    const rows = [...document.querySelectorAll('.tk-annex')];
+    return { avant, coches: Object.keys(state.checked).length, nav: state.nav.length,
+      ev: (Runtime.events || []).length, rangees: rows.length,
+      inerte: rows.every(x => !x.querySelector('input') && !x.querySelector('button')),
+      mention: rows.length ? /poursuit seul/.test(rows[0].textContent) : false,
+      chrono: (Runtime.events || []).every((e, i, a) => i === 0 || a[i - 1].t <= e.t) };
+  });
+  t('l’annexe entre au journal de l’hôte', r.ev === r.avant.ev + 2, `${r.avant.ev} → ${r.ev}`);
+  t('sans doublon quand le fil rejoue un lot', r.rangees === 2, `${r.rangees} rangée(s)`);
+  t('et sans toucher l’état (ni coche, ni navigation)',
+    r.coches === r.avant.coches && r.nav === r.avant.nav);
+  t('elle est INERTE : ni champ, ni bouton', r.inerte === true);
+  t('et se dit rapportée', r.mention === true);
+  t('le journal reste chronologique', r.chrono === true);
+  await page.close();
+}
+
+/* ══ BRIDAGE : LE SCRIBE AJOUTE, IL NE DÉFAIT PAS (v4.48.0) ═══════════════════════════════════
+   Forme canonique du travail à deux (AC 120-71B §5.2.2.1), pas un compromis. Trois exigences :
+   (1) il PEUT cocher — sinon le dispositif n'a plus d'objet ; (2) il ne peut PAS décocher, parce
+   que décocher détruit une information que personne d'autre ne peut restituer ; (3) le refus ne
+   DÉPLACE RIEN — même géométrie, même DOM, aucune banderole (règle 11) : c'est une annonce au
+   lecteur d'écran et une ligne qui ne change pas d'état. Un masquage aurait fait sauter le
+   contenu clinique de 46 px, mesuré, et sur ÉVÈNEMENT DISTANT si le rôle change.
+   Et le cœur du cochage existe en DEUX COPIES : on mesure les deux, sinon on retombe sur la
+   divergence de la v4.42.0. */
+console.log(`\n══ PARTAGE · le scribe ajoute, il ne défait pas — moteur ${NOM_MOTEUR} ══`);
+{
+  const page = await br.newPage({ viewport: { width: 390, height: 844 } });
+  await session(page);
+  const r = await page.evaluate(async () => {
+    const f = fiches.find(x => /Arrêt/.test(x.title)) || fiches[0];
+    Share._io.join = async () => ({ ok: true, share: 's1', secret: 'x'.repeat(24), me: 'p1',
+      role: 'scribe', fiche: sharePayload(f), server_time: new Date().toISOString() });
+    Share._io.pull = async () => ({ ok: true, status: 'active', events: [], seq: 0, n_events: 0,
+      participants: [], server_time: new Date().toISOString() });
+    // On COMPTE ce qui est réellement poussé : mesurer la file seule donnerait 0 dès qu'un envoi
+    // réussit — elle se vide. Le témoin doit être l'émission, pas son résidu.
+    const pousses = [];
+    Share._io.push = async (s, sh, ev) => { pousses.push(...ev); return { ok: true, server_time: new Date().toISOString() }; };
+    const emis = () => Share.pending() + pousses.length;
+    openJoinScreen('K7M2P4Q9'); await joinGo(); await new Promise(x => setTimeout(x, 500));
+    // Les banderoles d'AMORÇAGE (« 2 fiches d'exemple ajoutées ») sont un bruit de démarrage, émis
+    // hors session : on mesure le DELTA, pas un total absolu.
+    const toastsAvant = document.querySelectorAll('.toast').length;
+    const li = document.querySelector('[data-ck]'); if (!li) return { err: 'aucune étape' };
+    const k = li.dataset.ck;
+    const geo = () => { const b = li.getBoundingClientRect(); return Math.round(b.top); };
+    // 1. COCHER : autorisé, et transmis.
+    const y0 = geo(), q0 = emis();
+    li.click(); await new Promise(x => setTimeout(x, 250));
+    const coche = !!state.checked[k], q1 = emis(), y1 = geo();
+    // 2. DÉCOCHER : refusé — l'état ne bouge pas, rien n'est émis, rien ne se déplace.
+    li.click(); await new Promise(x => setTimeout(x, 250));
+    const toujours = !!state.checked[k], q2 = emis(), y2 = geo();
+    const noeud = document.contains(li);
+    // 3. Le prédicat, aux deux copies du cœur de cochage.
+    const predicat = { cocheOK: canToggleStep(true), decocheKO: !canToggleStep(false) };
+    // 4. Lien figé : plus rien n'est transmis, même une coche.
+    Share.lastOk = Date.now() - 600000;
+    const q3 = emis();
+    const li2 = document.querySelectorAll('[data-ck]')[1];
+    if (li2) li2.click(); await new Promise(x => setTimeout(x, 250));
+    const q4 = emis(), fige = !canToggleStep(true);
+    return { coche, emisCoche: q1 - q0, toujours, emisDecoche: q2 - q1,
+      derive: [y1 - y0, y2 - y1], noeud, predicat, fige, emisFige: q4 - q3,
+      toasts: document.querySelectorAll('.toast').length - toastsAvant,
+      modales: document.querySelectorAll('.ai-modal.on').length };
+  });
+  t('le scribe PEUT cocher', r.coche === true, JSON.stringify(r).slice(0, 160));
+  t('et sa coche part sur le fil', r.emisCoche >= 1, `${r.emisCoche}`);
+  t('il ne peut PAS décocher', r.toujours === true);
+  t('et rien n’est émis quand c’est refusé', r.emisDecoche === 0, `${r.emisDecoche}`);
+  t('le refus ne déplace RIEN (≤ 1 px)', r.derive.every(d => Math.abs(d) <= 1), r.derive.join(' / '));
+  t('la ligne n’est pas reconstruite', r.noeud === true);
+  t('le prédicat est le même aux deux copies du cochage',
+    r.predicat.cocheOK === true && r.predicat.decocheKO === true, JSON.stringify(r.predicat));
+  t('lien figé : plus rien n’est transmis', r.fige === true && r.emisFige === 0, `${r.emisFige}`);
+  t('aucune banderole, aucune fenêtre (règle 11)', r.toasts === 0 && r.modales === 0);
+  await page.close();
+}
+
+/* ══ REJOINDRE SE TAPE DANS LA RECHERCHE (v4.48.0, décision utilisateur) ══════════════════════
+   Rejoindre est une action APPELÉE, pas permanente : une ligne en tête d'accueil ferait payer
+   44 px d'attention à CHAQUE ouverture pour un geste rare. Le champ de recherche est déjà
+   l'endroit où l'on tape ce qu'on cherche, et un code est reconnaissable sans ambiguïté (8
+   caractères d'un alphabet fermé de 32 symboles, sans 0/1/I/O). Ce qu'on mesure : la ligne
+   apparaît sur un code, JAMAIS sur un mot, et l'accueil au repos est identique au pixel — c'est
+   la propriété qui justifie ce choix plutôt qu'une ligne permanente. */
+console.log(`\n══ PARTAGE · rejoindre se tape dans la recherche — moteur ${NOM_MOTEUR} ══`);
+{
+  const page = await br.newPage({ viewport: { width: 390, height: 844 } });
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(() => !document.querySelector('.boot-load'));
+  await page.evaluate(async () => {
+    const b = [...document.querySelectorAll('button')].find(x => /Commencer/.test(x.textContent)); if (b) b.click();
+    await new Promise(r => setTimeout(r, 120));
+    const s = [...document.querySelectorAll('button')].find(x => x.textContent.includes("fiches d'exemple")); if (s) s.click();
+    await new Promise(r => setTimeout(r, 400));
+  });
+  const r = await page.evaluate(async () => {
+    const haut = () => document.getElementById('main').scrollHeight;
+    const repos = haut(), sansCode = !document.getElementById('homeJoin');
+    state.q = 'K7M2P4Q9'; renderFiches(); await new Promise(x => setTimeout(x, 200));
+    const b = document.getElementById('homeJoin');
+    const j = document.querySelector('.home-join');
+    const cs = j ? getComputedStyle(j) : null, gs = b ? getComputedStyle(b) : null;
+    const avec = { present: !!b, code: b ? b.dataset.code : null,
+      cible: b ? Math.round(b.getBoundingClientRect().height) : 0,
+      // ELLE DOIT SAUTER AUX YEUX (retour utilisateur) : bouton REMPLI et bord gauche de registre.
+      rempli: gs ? gs.backgroundColor !== 'rgba(0, 0, 0, 0)' && gs.backgroundColor !== 'transparent' : false,
+      bord: cs ? Math.round(parseFloat(cs.borderLeftWidth)) : 0,
+      titrePx: j && j.querySelector('b') ? Math.round(parseFloat(getComputedStyle(j.querySelector('b')).fontSize)) : 0 };
+    // Formaté à la main, avec le tiret : le même code doit être reconnu.
+    state.q = 'k7m2-p4q9'; renderFiches(); await new Promise(x => setTimeout(x, 200));
+    const minusc = !!document.getElementById('homeJoin');
+    state.q = 'adrénaline'; renderFiches(); await new Promise(x => setTimeout(x, 200));
+    const mot = !document.getElementById('homeJoin');
+    state.q = 'ABC'; renderFiches(); await new Promise(x => setTimeout(x, 200));
+    const court = !document.getElementById('homeJoin');
+    state.q = ''; renderFiches(); await new Promise(x => setTimeout(x, 200));
+    return { sansCode, avec, minusc, mot, court, reposIdentique: haut() === repos };
+  });
+  t('au repos, l’accueil ne porte AUCUNE ligne de jointure', r.sansCode === true);
+  t('un code tapé fait apparaître la ligne', r.avec.present === true && r.avec.code === 'K7M2P4Q9',
+    JSON.stringify(r.avec));
+  t('minuscules et tiret sont reconnus', r.minusc === true);
+  t('un mot ordinaire ne la déclenche jamais', r.mot === true);
+  t('un fragment trop court non plus', r.court === true);
+  t('la cible fait au moins 44 px', r.avec.cible >= 44, `${r.avec.cible} px`);
+  t('le bouton est REMPLI (c'+String.fromCharCode(39)+'est la seule action de cet écran)', r.avec.rempli === true);
+  t('la ligne porte le bord gauche de registre', r.avec.bord >= 3, `${r.avec.bord} px`);
+  t('et son titre est réellement grand', r.avec.titrePx >= 15, `${r.avec.titrePx} px`);
+  t('et l’accueil au repos est identique au pixel', r.reposIdentique === true);
+  await page.close();
+}
+
+/* ══ BRIDAGE VISIBLE DES GESTES DU LEAD (v4.48.0) ═════════════════════════════════════════════
+   Deux exigences, et la seconde est celle qui a coûté cher au projet par le passé.
+   (1) VISIBLE, JAMAIS MASQUÉ : masquer ferait sauter le contenu clinique de 46 px, et sur
+       évènement DISTANT si le rôle change — sous le doigt de quelqu'un qui n'a rien demandé.
+   (2) UNE SEULE LISTE : le CSS (apparence désactivée) et le script (garde déléguée) énumèrent les
+       mêmes verbes. Deux listes divergeraient en silence, exactement comme les deux copies du
+       cœur de cochage en v4.42.0. On lit donc la liste DEPUIS LE SCRIPT et on vérifie que chaque
+       élément réellement rendu porte l'apparence désactivée : une divergence devient mesurable. */
+console.log(`\n══ PARTAGE · le bridage se VOIT, et les deux listes ne divergent pas — moteur ${NOM_MOTEUR} ══`);
+{
+  const page = await br.newPage({ viewport: { width: 390, height: 844 } });
+  await session(page);
+  const r = await page.evaluate(async () => {
+    const f = fiches.find(x => /Arrêt/.test(x.title)) || fiches[0];
+    Share._io.join = async () => ({ ok: true, share: 's1', secret: 'x'.repeat(24), me: 'p1',
+      role: 'scribe', fiche: sharePayload(f), server_time: new Date().toISOString() });
+    Share._io.pull = async () => ({ ok: true, status: 'active', events: [], seq: 0, n_events: 0,
+      participants: [], server_time: new Date().toISOString() });
+    const pousses = [];
+    Share._io.push = async (s, sh, ev) => { pousses.push(...ev); return { ok: true, server_time: new Date().toISOString() }; };
+    openJoinScreen('K7M2P4Q9'); await joinGo(); await new Promise(x => setTimeout(x, 500));
+
+    const tA = document.querySelectorAll('.toast').length;   // bruit d'amorçage : on mesure le DELTA
+    const scribe = document.body.classList.contains('share-scribe');
+    // La liste vient du SCRIPT, pas d'une copie dans ce fichier.
+    const sel = LEAD_ONLY_SEL;
+    const els = [...document.querySelectorAll(sel)];
+    const muet = getComputedStyle(document.documentElement).getPropertyValue('--ink-soft').trim();
+    const vus = els.map(e => ({ tag: (e.tagName || '').toLowerCase(),
+      attrs: [...e.attributes].map(a => a.name).filter(n => n.startsWith('data-')).join('+'),
+      curseur: getComputedStyle(e).cursor,
+      ariaOff: e.getAttribute('aria-disabled')==='true',
+      encre: getComputedStyle(e).color }));
+    // Un geste réservé : tenté, il ne fait RIEN et n'émet RIEN.
+    const nav0 = state.nav.length, q0 = Share.pending() + pousses.length;
+    const suiv = document.querySelector('[data-ovnext],[data-ovend]');
+    let geo0 = null, geo1 = null;
+    if (suiv) { geo0 = Math.round(suiv.getBoundingClientRect().top); suiv.click();
+      await new Promise(x => setTimeout(x, 300)); geo1 = Math.round(suiv.getBoundingClientRect().top); }
+    const nav1 = state.nav.length, q1 = Share.pending() + pousses.length;
+    // Un geste ADDITIF reste ouvert : incrémenter un compteur.
+    const inc = document.querySelector('[data-cninc]');
+    let cptAvant = null, cptApres = null;
+    if (inc) { const id = inc.dataset.cninc; cptAvant = Runtime.counters[id];
+      inc.click(); await new Promise(x => setTimeout(x, 300)); cptApres = Runtime.counters[id]; }
+    // Promotion en lead : tout redevient possible, SANS re-rendu ni déplacement.
+    Share.role = 'lead'; render(); await new Promise(x => setTimeout(x, 200));
+    const promu = !document.body.classList.contains('share-scribe');
+    return { scribe, nb: els.length, vus, muet,
+      navBloque: nav1 === nav0, rienEmis: q1 === q0,
+      derive: (geo0 !== null && geo1 !== null) ? geo1 - geo0 : 0,
+      cptAvant, cptApres, promu,
+      toasts: document.querySelectorAll('.toast').length - tA,
+      modales: document.querySelectorAll('.ai-modal.on').length };
+  });
+  t('le corps porte la classe de bridage', r.scribe === true);
+  t('des contrôles réservés au lead sont bien à l’écran', r.nb >= 1, `${r.nb} élément(s)`);
+  t('ils portent TOUS l’apparence désactivée (les deux listes coïncident)',
+    r.vus.length > 0 && r.vus.every(v => v.curseur === 'not-allowed' || v.ariaOff),
+    r.vus.filter(v => v.curseur !== 'not-allowed' && !v.ariaOff).map(v => v.tag + '[' + v.attrs + ']:' + v.curseur).join(', '));
+  t('un geste réservé ne fait RIEN', r.navBloque === true);
+  t('et n’émet rien', r.rienEmis === true);
+  t('le refus ne déplace rien (≤ 1 px)', Math.abs(r.derive) <= 1, `${r.derive} px`);
+  t('mais incrémenter un compteur reste ouvert au scribe',
+    r.cptApres === null || r.cptApres > r.cptAvant, `${r.cptAvant} → ${r.cptApres}`);
+  t('promu lead, le bridage tombe', r.promu === true);
+  t('aucune banderole, aucune fenêtre (règle 11)', r.toasts === 0 && r.modales === 0);
   await page.close();
 }
 

@@ -1390,6 +1390,13 @@
      PLEINE (c'est la donnée clinique ; l'estomper serait l'inversion à ne pas faire, cf. la règle
      des doses du rail), et le barré porte l'information sans dépendre d'une couleur seule. */
   .tk-void .tk-lab{text-decoration:line-through;color:var(--ink-soft);background:var(--surface-2)}
+  /* Brin ANNEXE : un rapport, pas un geste de cette session. Registre MEMO (neutre) — ni alerte ni
+     confirmation : il n'affirme rien sur la conduite, il rapporte ce qu'un autre a relevé ailleurs.
+     Ni champ, ni bouton : on ne corrige pas le relevé de quelqu'un d'autre. */
+  .tk-annex .tk-rep{flex:1;min-width:0;padding:7px 10px;border:1px dashed var(--line-strong);
+    border-radius:8px;background:var(--surface-2);color:var(--ink-soft);font-size:14px}
+  .tk-annex .tk-from{display:block;font-size:11px;font-weight:700;letter-spacing:.3px;
+    text-transform:uppercase;color:var(--ink-soft);margin-top:2px}
   .tk-void .tk-el{opacity:.55}
   .tk-del:hover{background:var(--critical-soft);color:var(--critical)}
   /* MODIFICATEUR RENOMMÉ (v4.23.2) : c'était `.tk-panel.empty`, qui entrait en COLLISION avec la
@@ -1417,6 +1424,50 @@
   .live-sessions{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
   /* Carte-bilan de fin de session (v4.16.3) : registre CONFIRMATION (bord gauche --ok),
      éphémère et jamais bloquante — grammaire des notices (couleur + icône + texte). */
+  /* REJOINDRE UNE SESSION — ligne discrète de la zone des sessions. Ni carte, ni bouton rempli :
+     ce n'est pas l'action principale de l'accueil, et la doctrine n'admet qu'un seul bouton rempli
+     par écran. Cible 44 px quand même : on la tape sous stress, avec le code d'un collègue en
+     tête. Elle ne porte AUCUN liseré de gauche — ce canal appartient aux registres (état d'une
+     session, alerte), et rejoindre n'est pas un état. */
+  /* BRIDAGE VISIBLE — JAMAIS PAR MASQUAGE. Masquer les contrôles réservés au lead ferait sauter le
+     contenu clinique de 46 px (mesuré), et sur ÉVÈNEMENT DISTANT si le rôle change : quelqu'un qui
+     n'a rien demandé verrait sa checklist bouger sous son doigt. La boîte reste donc en place, à
+     la même géométrie, et le scribe APPREND où sont les choses.
+     PAS D'`opacity` : un texte à 50 % tombe sous le seuil AA, et le projet a déjà tranché ce point
+     pour le « hors chemin » du rail. On passe par l'encre secondaire, qui est conforme, plus le
+     curseur — et le refus s'annonce au lecteur d'écran quand le geste est tenté.
+     LA LISTE EST LA MÊME QUE `LEAD_ONLY_SEL` côté script : deux listes divergeraient, d'où un
+     contrôle de harnais qui parcourt la liste du SCRIPT et vérifie que chaque élément rendu porte
+     bien l'apparence désactivée. */
+  /* DEUX SÉLECTEURS, ET LE SECOND N'EST PAS DÉCORATIF : `.btn.cont.okay` pèse (0,3,0) et
+     l'emportait sur un `body.share-scribe :is([attr])` à (0,3,1)… non, à (0,2,1) — un scribe
+     voyait donc un « Continuer » pleinement vert, prêt à l'emploi, alors que le geste lui est
+     fermé. La variante `.btn:is(…)` monte à (0,3,1) et reprend la main. Même leçon que les six
+     pièges de cascade précédents, sous sa forme la plus fine : ici ce n'est pas l'ORDRE qui
+     trompe, c'est la SPÉCIFICITÉ. */
+  body.share-scribe :is([data-ovnext],[data-ovend],[data-ovredo],[data-ovopt],[data-plgo],
+    [data-svgo],[data-svref],[data-tmreset],[data-cnreset]),
+  body.share-scribe .btn:is([data-ovnext],[data-ovend],[data-ovredo],[data-ovopt],[data-plgo],
+    [data-svgo],[data-svref],[data-tmreset],[data-cnreset]){
+    color:var(--ink-soft);border-color:var(--line);background:var(--surface-2);
+    box-shadow:none;cursor:not-allowed;font-weight:600}
+  /* ELLE DOIT SAUTER AUX YEUX (retour utilisateur). Cette ligne n'apparaît QUE lorsqu'un code a
+     été reconnu — elle n'a donc aucun coût d'attention le reste du temps, et à l'instant où elle
+     s'affiche elle est la seule chose à faire sur cet écran. Registre INFORMATION de la taxonomie
+     (bord gauche 4 px + teinte primaire, comme `.notice`), et son bouton est PLEIN : la règle « un
+     seul bouton rempli par écran » est respectée, puisqu'en recherche « Créer » n'est pas rendu. */
+  .home-join{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 16px;
+    padding:12px 14px;background:var(--primary-soft);border:1px solid var(--primary-200);
+    border-left:4px solid var(--primary);border-radius:10px;box-shadow:var(--shadow)}
+  .home-join .hj-ic{flex:none;font-size:22px;line-height:1;color:var(--primary)}
+  .home-join .hj-tx{flex:1;min-width:150px;font-size:14px;color:var(--ink)}
+  .home-join .hj-tx b{display:block;font-size:15px;font-weight:800;color:var(--ink)}
+  .home-join .hj-sub{display:block;font-size:12.5px;color:var(--ink-soft);margin-top:1px}
+  .hj-go{flex:none;min-height:48px;padding:0 18px;background:var(--primary);border:1px solid var(--primary);
+    border-radius:10px;color:var(--on-primary);font:inherit;font-size:15px;font-weight:700;
+    cursor:pointer;touch-action:manipulation;box-shadow:var(--shadow-primary-sm)}
+  .hj-go:hover{background:var(--primary-hi);border-color:var(--primary-hi)}
+  .hj-go:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .last-sess{position:relative;display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--surface);border:1px solid var(--done-line);border-left:4px solid var(--ok);border-radius:10px;padding:10px 40px 10px 12px;margin-bottom:16px;box-shadow:var(--shadow)}
   .last-sess .lsr-ic{flex:none;color:var(--ok);display:inline-flex}
   .last-sess .lsr-tx{flex:1;min-width:180px;font-size:13.5px;color:var(--ink)}
@@ -2194,36 +2245,41 @@
      partage » tombait sous la ligne de flottaison, et chaque participant ajoutait 56 px. On place
      donc EN HAUT ce qui se dicte à voix haute (le titre de l'aide et le code), le QR ensuite et
      plafonné, la liste bornée, l'arrêt en pied — jamais à l'intérieur d'une liste qui grandit. */
-  .sh-lead{margin:0 0 10px;font-size:13px;line-height:1.4;color:var(--ink-soft)}
-  .sh-fiche{margin:0 0 4px;font-size:12px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--ink-soft)}
+  #shareModal .sh-lead{margin:0 0 10px;font-size:13px;line-height:1.4;color:var(--ink-soft)}
+  #shareModal .sh-fiche{margin:0 0 4px;font-size:12px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--ink-soft)}
   /* Le code se lit à voix haute dans une pièce bruyante : mono, très grand, chiffres tabulaires,
      et un espacement qui sépare les caractères sans les détacher en deux mots. */
   /* C'EST LE TEXTE QU'ON DICTE À VOIX HAUTE, souvent en tendant le téléphone à bout de bras : il
      est le plus gros de la fenêtre, devant le titre. 34 px mesurés tenables jusqu'à 320 px avec le
      reste de la carte au-dessus de la ligne de flottaison. */
-  .sh-code{margin:0 0 6px;font-family:var(--mono);font-size:40px;font-weight:700;letter-spacing:5px;
+  #shareModal .sh-code{margin:0 0 6px;font-family:var(--mono);font-size:40px;font-weight:700;letter-spacing:5px;
     text-align:center;color:var(--ink);font-variant-numeric:tabular-nums;user-select:all}
-  .sh-adr{margin:0 0 12px;font-size:12px;line-height:1.4;text-align:center;color:var(--ink-soft)}
-  .sh-adr.warn{color:var(--verify);text-align:left}
-  .sh-when{margin:0 0 12px;font-size:12px;text-align:center;color:var(--ink-soft)}
-  .sh-when.closed{color:var(--verify)}
+  /* Le lien complet : sélectionnable d'un appui, coupé proprement s'il est long, jamais tronqué
+     par une ellipse — on doit pouvoir le lire en entier pour le dicter. */
+  #shareModal .sh-lnk{margin:0 0 4px;padding:8px 10px;font-family:var(--mono);font-size:12.5px;
+    line-height:1.45;text-align:center;color:var(--link);background:var(--surface-2);
+    border-radius:8px;overflow-wrap:anywhere;user-select:all}
+  #shareModal .sh-adr{margin:0 0 12px;font-size:12px;line-height:1.4;text-align:center;color:var(--ink-soft)}
+  #shareModal .sh-adr.warn{color:var(--verify);text-align:left}
+  #shareModal .sh-when{margin:0 0 12px;font-size:12px;text-align:center;color:var(--ink-soft)}
+  #shareModal .sh-when.closed{color:var(--verify)}
   .sh-qr{display:flex;justify-content:center;margin:0 0 10px}
   /* Le QR est PLAFONNÉ, et rétréci au palier le plus contraint : à 320×568 la carte dépassait de
      2 px et « Arrêter le partage » perdait 6 px de sa cible — pour un code qui reste scannable
      bien en dessous (4,8 px par module à 197 px, relu par le décodeur d'Apple ; à 141 px on est
      encore à 3,4 px par module, au-dessus du seuil pratique d'un appareil photo à 20 cm). */
   .sh-qr .qr{width:min(200px,52vw);height:auto}
-  @media (max-width:359.98px){.sh-qr .qr{width:40vw}.sh-code{font-size:34px;letter-spacing:3px}}
-  .sh-h{margin:14px 0 6px;font-size:11px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--ink-soft)}
+  @media (max-width:359.98px){#shareModal .sh-qr .qr{width:40vw}#shareModal .sh-code{font-size:34px;letter-spacing:3px}}
+  #shareModal .sh-h{margin:14px 0 6px;font-size:11px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--ink-soft)}
   .sh-p{display:flex;align-items:center;gap:9px;min-height:44px;padding:5px 0;border-top:1px solid var(--line)}
   .sh-p .n{flex:1;min-width:0;font-size:14px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .sh-p .r{flex:none;font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--ink-soft)}
   .sh-p.off .n{color:var(--ink-soft);text-decoration:line-through}
   .sh-p.wait .r{color:var(--verify)}
-  .sh-none{margin:6px 0 0;font-size:13px;color:var(--ink-soft)}
+  #shareModal .sh-none{margin:6px 0 0;font-size:13px;color:var(--ink-soft)}
   .sh-acts{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}
   .sh-acts .btn{flex:1 1 auto;min-height:44px}
-  .sh-note{margin:12px 0 0;font-size:12px;line-height:1.45;color:var(--ink-soft)}
+  #shareModal .sh-note{margin:12px 0 0;font-size:12px;line-height:1.45;color:var(--ink-soft)}
   /* ÉCRAN D'ENTRÉE D'UN INVITÉ (v4.47.0). Plein écran, opaque, et le SEUL contenu de la page : il
      s'affiche à la place de l'application, pas par-dessus — l'amorçage normal n'a pas eu lieu (ni
      base, ni service worker, ni la moindre écriture), et c'est précisément ce que la notice
@@ -2243,9 +2299,22 @@
      sur 700 px et les paragraphes couraient sur toute la largeur. C'est le 6ᵉ incident de cascade
      du projet (cf. `.read-grid`, `.cbt-n`, `.mode-seg`, les éditeurs) et la règle est écrite :
      pour une GÉOMÉTRIE, on ne dépend jamais de l'ordre de déclaration. */
-  #joinScreen .join-card{max-width:460px}
-  #shareModal .ai-card{max-width:420px}
-  .join-eye{margin:0 0 2px;font-size:11px;font-weight:800;letter-spacing:1.1px;text-transform:uppercase;color:var(--ink-soft)}
+  /* Les deux fenêtres du partage prennent la largeur STANDARD des dialogues du projet (480 px,
+     comme Créer, Compte, Catégories, Membres, Nouvelle bibliothèque). Elles étaient à 420 et
+     460 px — les plus étroites de l'application, ce qui se voyait.
+     ET LE CONTENU EST BORNÉ À L'INTÉRIEUR. Sous 780 px, l'application transforme TOUTE fenêtre en
+     feuille pleine largeur (`max-width:none; width:100%`) — c'est sa convention, et on n'y touche
+     pas. Mais le contenu de celle-ci est majoritairement CENTRÉ (le code, le QR) : sur une tablette
+     à 744 px il courait d'un bord à l'autre, avec le code perdu au milieu d'une surface vide.
+     Mesuré : carte 744×1133 pour 643 px de contenu. On borne donc l'intérieur, pas la feuille —
+     la convention est respectée, la lecture redevient celle d'un dialogue.
+     LE TITRE ET LA CROIX NE SONT PAS BORNÉS, et c'est une exigence de cohérence : dans toutes les
+     fenêtres de l'application, l'en-tête occupe la largeur de la feuille et le ✕ vit à son coin
+     supérieur droit. Les rentrer avec le contenu aurait fait de celle-ci la seule fenêtre où l'on
+     ferme ailleurs qu'ailleurs — or c'est le geste le plus appris de toutes. Seul le CORPS, dont
+     la lecture souffre d'une largeur excessive, est ramené à une colonne. */
+  #shareModal #shareBody{width:100%;max-width:460px;margin-left:auto;margin-right:auto}
+  #joinScreen .join-eye{margin:0 0 2px;font-size:11px;font-weight:800;letter-spacing:1.1px;text-transform:uppercase;color:var(--ink-soft)}
   .join-lab{display:block;margin:0 0 5px;font-size:12px;font-weight:700;color:var(--ink-soft)}
   /* MONO, TRÈS GRAND : on recopie un code lu sur l'écran d'un collègue, souvent debout, parfois de
      loin. Très au-dessus des 16 px sous lesquels Safari iOS zoome au focus (règle 9). */
@@ -2255,9 +2324,9 @@
   @media (max-width:359.98px){.join-code{font-size:23px;letter-spacing:3px}}
   .join-sel{width:100%;box-sizing:border-box;margin:0 0 14px;padding:11px 12px;font-size:16px;
     color:var(--ink);background:var(--input-bg);border:1px solid var(--line-strong);border-radius:10px}
-  .join-err{margin:0 0 12px;padding:9px 11px;font-size:13px;line-height:1.4;color:var(--critical);
+  #joinScreen .join-err{margin:0 0 12px;padding:9px 11px;font-size:13px;line-height:1.4;color:var(--critical);
     background:var(--critical-soft);border-left:4px solid var(--critical-bd);border-radius:0 8px 8px 0}
-  .join-err[hidden]{display:none}
+  #joinScreen .join-err[hidden]{display:none}
   .join-go{width:100%;min-height:48px;font-size:16px}
   .join-info{margin:16px 0 0;font-size:13px;color:var(--ink-soft)}
   .join-info>summary{cursor:pointer;min-height:32px;display:flex;align-items:center;font-weight:700;color:var(--link)}
@@ -2417,11 +2486,6 @@
   .crt-drop.on,.crt-drop:hover{border-color:var(--primary);background:var(--primary-soft)}
   .crt-drop:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .crt-note{font-size:11.5px;color:var(--ink-soft);line-height:1.5;margin:8px 0 0}
-  /* Rejoindre : séparé des méthodes de création par un filet — ce n'est pas une méthode de plus. */
-  .crt-join{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:14px 0 0;padding-top:12px;
-    border-top:1px solid var(--line);font-size:13px;color:var(--ink-soft)}
-  .crt-join span{flex:1;min-width:150px}
-  .crt-join .btn{min-height:44px}
   /* SPEC §6 : en dessous de 780px, les DIALOGUES passent en PLEIN ÉCRAN (100 %, sans arrondi ni
      voile) — fenêtre centrée min(480px,100%) au-dessus. La visionneuse PDF a déjà son plein écran. */
   @media (max-width:779.98px){

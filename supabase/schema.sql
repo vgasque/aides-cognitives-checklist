@@ -417,9 +417,19 @@ alter table public.app_settings enable row level security;
 -- de PRINCIPE : le jour où quelqu'un écrit un garde-fou en s'appuyant sur `is_approved()` seule,
 -- il doit tenir. RÈGLE ÉCRITE : un gate anon s'écrit `auth.uid() is not null`, jamais
 -- `is_approved()`. Aucun changement pour un compte connecté — `auth.uid()` y est toujours non nul.
+-- UN JWT ANONYME N'EST PAS UN COMPTE APPROUVÉ (v4.49.0). Supabase peut émettre des jetons pour des
+-- utilisateurs ANONYMES (`is_anonymous` dans le JWT) si l'option est activée au tableau de bord.
+-- Un tel jeton porte un `auth.uid()` non nul et n'a AUCUNE ligne dans `user_status` : le `coalesce`
+-- ci-dessous retombait donc sur 'approved' et le traitait comme un compte en règle — y compris pour
+-- ouvrir un partage, c'est-à-dire faire sortir du contenu clinique de l'instance. La porte était
+-- fermée uniquement parce que personne n'avait coché la case ; elle est maintenant fermée par le
+-- schéma. Décision volontaire et documentée : le projet n'utilise PAS les connexions anonymes
+-- (lignes dans auth.users, pollution de la liste d'attente, comptage MAU) — cf. le choix du
+-- transport par sondage, motivé au §8.
 create or replace function public.is_approved()
 returns boolean language sql stable security definer set search_path = public, pg_temp as $$
   select auth.uid() is not null
+    and not coalesce((auth.jwt() ->> 'is_anonymous')::boolean, false)
     and (public.is_app_admin()
       or not coalesce((select require_approval from public.app_settings limit 1), true)
       or coalesce((select status from public.user_status where user_id = auth.uid()), 'approved') = 'approved');
@@ -474,6 +484,9 @@ create or replace function public.my_status()
 returns text language sql stable security definer set search_path = public, pg_temp as $$
   select case
     when auth.uid() is null then null
+    -- Même raison qu'`is_approved` : un jeton anonyme n'est pas un compte, et l'interface ne doit
+    -- pas lui annoncer « approuvé » — ce serait la seule chose que l'utilisateur verrait.
+    when coalesce((auth.jwt() ->> 'is_anonymous')::boolean, false) then 'rejected'
     when public.is_app_admin() then 'approved'
     when not coalesce((select require_approval from public.app_settings limit 1), true) then 'approved'
     else coalesce((select status from public.user_status where user_id = auth.uid()), 'approved')
@@ -824,7 +837,11 @@ grant execute on function public.list_orphan_attachments() to authenticated;
 -- ---------- 8. PARTAGE DE SESSION EN DIRECT --------------------------------------------------
 -- ============================================================================================
 -- Une session de crise (checklist en cours : cases cochées, minuteurs, compteurs, repères
--- horodatés) devient consultable et remplissable par un SECOND appareil, avec ou sans compte.
+-- horodatés) devient consultable et remplissable par un SECOND appareil, dont le porteur peut
+-- n'avoir AUCUN compte. L'asymétrie est délibérée et il faut la lire dans ce sens : REJOINDRE ne
+-- demande rien, OUVRIR un partage exige un compte approuvé (cf. share_open). La formule
+-- symétrique qui figurait ici — « avec ou sans compte » — ne nommait aucun rôle et se lisait dans
+-- les deux sens ; elle a effectivement conduit à poser la question.
 --
 -- CE QUE CETTE SECTION N'EST PAS. Ce n'est pas un partage d'AIDE COGNITIVE — les bibliothèques
 -- partagées font déjà cela, avec memberships et RLS. Ici la portée est UNE session, elle meurt
@@ -997,7 +1014,12 @@ returns boolean language sql immutable set search_path = public, pg_temp as $$
     -- destructrice, et la règle qui réserve celles-ci au lead ne s'y applique pas.
     when p_kind in ('check','verify','gap','counter','timer_arm','mark','mark_void','presence','detach','offline_mark')
       then p_role in ('scribe','lead')
-    when p_kind in ('uncheck','nav','flow_end','timer_stop','timer_reset','cx','handoff','end')
+    -- `session_start` porte l'heure à laquelle le SOIN a commencé, pas celle de la jointure. Sans
+    -- lui, un renfort arrivé à 14 h 12 sur une réanimation débutée à 13 h 55 date le début du soin
+    -- à son arrivée — et son compte rendu, comme celui de l'hôte, devient inexploitable au débrief.
+    -- Réservé au lead : c'est un fait sur LA session, pas un geste de participant.
+    when p_kind in ('uncheck','nav','flow_end','timer_stop','timer_reset','cx','handoff','end',
+                    'session_start')
       then p_role = 'lead'
     else false
   end;
@@ -1072,7 +1094,7 @@ create or replace function public.share_open(p_id text, p_session_id text, p_fic
                                              p_fiche_snap jsonb, p_guest_role text, p_ttl_min int)
 returns jsonb language plpgsql volatile security definer
 set search_path = public, extensions, pg_temp as $$
-declare v_code text; v_ttl int; v_win int := 120;
+declare v_code text; v_ttl int; v_win int := 120; v_snap jsonb; v_live int;
 begin
   perform public.share_purge();
   if auth.uid() is null or not public.is_approved() then
@@ -1080,19 +1102,46 @@ begin
   -- Validation SANS ancre de regex (« longueur » + « aucun caractère interdit ») : plus lisible,
   -- et cela évite un « $ » isolé dans le fichier, que le garde-fou check-sql.mjs doit pouvoir
   -- lire comme la signature d'un délimiteur mutilé sans avoir à faire d'exception.
+  -- `p_session_id` est borné de la même façon que `p_id` : c'était le SEUL champ texte de la table
+  -- sans aucune contrainte, et il est destiné à devenir une clé de jointure vers l'historique.
   if p_id is null or length(p_id) not between 1 and 64 or p_id ~ '[^A-Za-z0-9_-]'
+     or p_session_id is null or length(p_session_id) not between 1 and 64
+     or p_session_id ~ '[^A-Za-z0-9_-]'
      or p_fiche_snap is null or jsonb_typeof(p_fiche_snap) <> 'object' then
     return jsonb_build_object('ok', false, 'err', 'bad_request'); end if;
+  /* LISTE BLANCHE DES CHAMPS, CÔTÉ SERVEUR (v4.49.0). La projection de fiche était filtrée
+     EXCLUSIVEMENT en JavaScript (`SHARE_KEEP` / `SHARE_DROP`) : un appel REST direct ne traverse
+     pas ce filtre, si bien que `images` (jusqu'à 24 Mo de base64), `localInfo` (les téléphones de
+     renfort et de régulation) et la liste des documents pouvaient encore partir. Le schéma avait
+     déjà tiré cette leçon pour la TAILLE — « le plafond vaut CONTRE LE CLIENT » — sans l'appliquer
+     au CONTENU. On ne retire donc pas les champs interdits, on ne GARDE que les autorisés : une
+     liste noire oublie ce qu'on ajoutera demain, une liste blanche le refuse par défaut.
+     Les images de BLOC sont retirées séparément : elles vivent dans chaque élément de `blocks`. */
+  select coalesce(jsonb_object_agg(k, v), '{}'::jsonb) into v_snap
+    from jsonb_each(p_fiche_snap) as e(k, v)
+   where k in ('id','title','code','status','validation','blocks','start','timers','counters',
+               'confirmation','verify','notForget','differentials','posology');
+  if v_snap ? 'blocks' and jsonb_typeof(v_snap->'blocks') = 'array' then
+    select jsonb_set(v_snap, '{blocks}', coalesce(jsonb_agg(b - 'image' - 'images'), '[]'::jsonb))
+      into v_snap from jsonb_array_elements(v_snap->'blocks') as b;
+  end if;
+  /* PLAFOND DE PARTAGES VIVANTS PAR PROPRIÉTAIRE. Il n'en existait AUCUN : un compte — qui coûte
+     une adresse jetable, l'approbation étant désactivée par défaut — pouvait ouvrir des partages
+     en boucle et remplir la base. Ce plafond ne gêne aucun usage réel (on ne conduit pas cinq
+     réanimations à la fois) et il borne l'abus sans rien demander à personne. */
+  select count(*) into v_live from public.shared_sessions
+   where owner = auth.uid() and status = 'active' and expires_at > now();
+  if v_live >= 5 then return jsonb_build_object('ok', false, 'err', 'too_many_shares'); end if;
   -- Une fiche NON VALIDÉE ne se diffuse pas hors du compte. Le statut « brouillon » n'était
   -- jusqu'ici masqué que côté client — borne acceptable tant que seuls des membres authentifiés
   -- accédaient au contenu, plus du tout dès qu'un appareil sans compte le reçoit.
-  if coalesce(p_fiche_snap->>'status', '') = 'draft' then
+  if coalesce(v_snap->>'status', '') = 'draft' then
     return jsonb_build_object('ok', false, 'err', 'draft'); end if;
   v_ttl  := least(greatest(coalesce(p_ttl_min, 180), 10), 720);
   v_code := public.share_new_code();
   insert into public.shared_sessions(id, owner, session_id, fiche_id, fiche_snap, code_hash,
                                      join_open_until, guest_role, expires_at)
-    values (p_id, auth.uid(), p_session_id, p_fiche_id, p_fiche_snap,
+    values (p_id, auth.uid(), p_session_id, p_fiche_id, v_snap,
             encode(digest(v_code, 'sha256'), 'hex'),
             now() + make_interval(secs => v_win),
             case when p_guest_role = 'lead' then 'lead' else 'scribe' end,
@@ -1111,10 +1160,29 @@ end; $$;
 create or replace function public.share_admit(p_share text, p_seconds int)
 returns jsonb language plpgsql volatile security definer
 set search_path = public, extensions, pg_temp as $$
-declare v_code text; v_sec int;
+declare v_code text; v_sec int; v_s public.shared_sessions%rowtype; v_n int;
 begin
   perform public.share_purge();
   if auth.uid() is null then return jsonb_build_object('ok', false, 'err', 'refused'); end if;
+  /* DEUX BOUCLES INFINIES FERMÉES ICI (v4.49.0). `share_admit` ne vérifiait NI l'expiration NI le
+     quota : sur un partage expiré ou déjà plein, il rendait un code NEUF — que l'hôte lisait à voix
+     haute et que `share_join` refusait aussitôt, sans que personne, des deux côtés, ne puisse
+     comprendre pourquoi. Pire, il ÉCRASAIT au passage un code peut-être encore vivant.
+     Le motif est détaillé ici parce que l'appelant est le PROPRIÉTAIRE authentifié : l'argument
+     d'indifférenciation ne vaut que face à un anonyme, pour ne pas faire du serveur un oracle.
+     C'est aussi ce que le schéma promet plus haut — « le motif du refus n'est détaillé qu'au
+     propriétaire authentifié » — et qui n'était appliqué nulle part. */
+  select * into v_s from public.shared_sessions
+   where id = p_share and owner = auth.uid() limit 1;
+  if v_s.id is null then return jsonb_build_object('ok', false, 'err', 'refused'); end if;
+  if v_s.status <> 'active' then
+    return jsonb_build_object('ok', false, 'err', 'ended'); end if;
+  if v_s.expires_at <= now() then
+    return jsonb_build_object('ok', false, 'err', 'expired'); end if;
+  select count(*) into v_n from public.session_participants
+   where share_id = v_s.id and not is_owner and revoked_at is null and detached_at is null;
+  if v_n >= v_s.max_guests then
+    return jsonb_build_object('ok', false, 'err', 'full', 'guests', v_n, 'max', v_s.max_guests); end if;
   v_sec  := least(greatest(coalesce(p_seconds, 120), 15), 600);
   v_code := public.share_new_code();
   update public.shared_sessions
@@ -1362,9 +1430,15 @@ returns jsonb language sql stable security definer set search_path = public, aut
     'shares_live',  (select count(*) from public.shared_sessions
                       where status = 'active' and expires_at > now()),
     'shares_rows',  (select count(*) from public.shared_sessions),
+    -- LES OCTETS DES PARTAGES ENTRENT DANS LE TOTAL (v4.49.0). Ils en étaient absents : la base
+    -- pouvait grossir de plusieurs centaines de mégaoctets sans que le tableau de bord ne bouge
+    -- d'un octet — l'exploitant était aveugle au seul poste que le partage fait croître, et c'est
+    -- précisément celui dont la durée de conservation est écrite au registre RGPD.
     'storage_bytes',(select coalesce(sum(octet_length(data::text)),0) from public.fiches where deleted_at is null)
                     + (select coalesce(sum(octet_length(data::text)),0) from public.category_sets)
-                    + (select coalesce(sum(octet_length(data::text)),0) from public.protocols where deleted_at is null),
+                    + (select coalesce(sum(octet_length(data::text)),0) from public.protocols where deleted_at is null)
+                    + (select coalesce(sum(octet_length(fiche_snap::text)),0) from public.shared_sessions)
+                    + (select coalesce(sum(octet_length(payload::text)),0) from public.session_events),
     'attachments_bytes',(select coalesce(sum((o.metadata->>'size')::bigint),0)
                          from storage.objects o where o.bucket_id = 'attachments')
   ) end;

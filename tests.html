@@ -1194,7 +1194,23 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   eq('cocher s’applique en direct, par chirurgie',A.shareApplyMode('check'),'live');
   eq('naviguer s’applique aussi, mais ANCRÉ',A.shareApplyMode('nav'),'anchored');
   eq('la passe do-verify d’un autre est DIFFÉRÉE',A.shareApplyMode('verify'),'deferred');
-  eq('l’annexe d’un détaché ne touche jamais la checklist',A.shareApplyMode('offline_mark'),'none');
+  /* L'ANNEXE NE TOUCHE JAMAIS LA CHECKLIST — et on le mesure sur l'ÉTAT, plus sur le mode
+     d'application. Ce test exigeait `'none'`, c'est-à-dire « pas peint » ; or l'annexe DOIT être
+     peinte (elle entre au journal, à sa place chronologique) sans pour autant entrer dans l'état.
+     Le mode n'était qu'un témoin, et il mesurait la mauvaise chose : la propriété qui compte est
+     qu'un `offline_mark` ne produise aucune coche, aucune navigation, aucun compteur, aucun
+     minuteur. Fusionner l'état d'un appareil qui a bifurqué donnerait un résultat plausible et
+     faux — les numéros de visite sont mintés indépendamment des deux côtés. */
+  {const pli=A.shareFold([
+     {seq:1,id:'a',actor:'x',kind:'offline_mark',payload:{t:1000,ref:{type:'timer',id:'t1'}}},
+     {seq:2,id:'b',actor:'x',kind:'offline_mark',payload:{t:2000,ref:null}}]);
+   eq('l’annexe d’un détaché entre en ANNEXE',pli.annex.length,2);
+   eq('… et ne produit aucune coche',Object.keys(pli.checked).length,0);
+   eq('… aucune navigation',pli.nav.length,0);
+   eq('… aucun compteur ni minuteur',
+      [Object.keys(pli.counters).length,Object.keys(pli.timers).length],[0,0]);
+   eq('… et rien au journal de l’état (le journal est peint, pas plié)',pli.events.length,0);
+   ok('elle porte son acteur et son heure',pli.annex[0].a==='x'&&pli.annex[0].t===1000);}
   eq('un genre inconnu est différé — le défaut prudent',A.shareApplyMode('zzz'),'deferred');
 
   // Trace do-verify : ancienne forme (horodatage nu) et nouvelle ({a,t}) lues par la même
@@ -1333,6 +1349,16 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    eq('une navigation émet UN évènement',dn.length,1);
    eq('portant les DEUX tableaux',[dn[0].payload.nav.length,dn[0].payload.navSeq.length],[2,2]);
    eq('la fin d’algorithme voyage',A_.shareDiff(vide,A_.shareSnap(R(),true)).map(e=>e.kind),['flow_end']);
+   /* L'HEURE DE DÉBUT DU SOIN VOYAGE — sans elle, un renfort arrivé à 14 h 12 sur une réanimation
+      débutée à 13 h 55 date le début à son arrivée, et les deux comptes rendus d'un même soin ne
+      se recoupent plus. C'est un fait sur LA session, donc réservé au lead. */
+   {const t0=A_.shareSnap(R({startedAt:1700000000000}),false);
+    const d0=A_.shareDiff(vide,t0);
+    eq('l’heure de début du soin voyage',d0.map(e=>e.kind),['session_start']);
+    eq('… avec sa valeur',d0[0].payload.t,1700000000000);
+    eq('… et elle se plie',A_.shareFold([{seq:1,id:'x',actor:'h',kind:'session_start',payload:{t:1700000000000}}]).startedAt,1700000000000);
+    ok('elle est réservée à celui qui conduit',
+       A_.shareCan('lead','session_start')&&!A_.shareCan('scribe','session_start'));}
    /* ALLER-RETOUR : la propriété qui rend l'émission digne de confiance. On part d'un état riche,
       on diffe contre le vide, on PLIE les évènements obtenus — et on doit retrouver l'état. */
    {const riche=A_.shareSnap(R({checked:{'1:b1:0':true,'1:b1:1':true},counters:{c1:2},
@@ -1363,12 +1389,12 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
      utilisable ». Dans ce cas on encode le CODE SEUL, lisible comme texte et recopiable.
      Le test tourne dans une iframe servie en http://localhost : `shareJoinUrl` doit donc y rendre
      `null`, ce qui est aussi la démonstration que la règle mord. */
-  {const A_=A;
-   ok('en local, aucune adresse de jointure n’est proposée',A_.shareJoinUrl('K7M2P4Q9')===null,
-      String(A_.shareJoinUrl('K7M2P4Q9')));
-   // La forme produite AILLEURS est vérifiée par construction : origine + chemin + fragment.
-   ok('le fragment porte le code, jamais la query',
-      !/[?]/.test('#j=K7M2P4Q9')&&'#j=K7M2P4Q9'.indexOf('#j=')===0);}
+  {const A_=A;const u=A_.shareJoinUrl('K7M2P4Q9');
+   ok('toute origine http(s) donne un LIEN, y compris en développement',/^https?:\/\//.test(u||''),String(u));
+   ok('et ce lien PORTE le code',/#j=K7M2P4Q9$/.test(u||''),String(u));
+   // Le code voyage dans le FRAGMENT, jamais dans la query : un fragment n'est pas envoyé au
+   // serveur, n'entre dans aucun journal d'accès et ne suit pas un Referer.
+   ok('le code voyage dans le fragment, jamais dans la query',!/[?]/.test(u||'x?'));}
 
   group('Partage de session — code d’appariement');
   // On teste les PROPRIÉTÉS de l'alphabet, pas sa valeur : le serveur en est la seule autorité, et
