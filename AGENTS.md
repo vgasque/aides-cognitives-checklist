@@ -1552,9 +1552,34 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   RPC** (l'hébergement est statique : personne ne lance de tâche planifiée, et une durée annoncée
   sans mécanisme serait fausse au registre). `is_approved()` refuse le rôle `anon` **et** les JWT
   anonymes (qui portent un `auth.uid()` non nul et retombaient sur `'approved'`).
+- **TROIS RÉGIMES D'APPLICATION, ET ILS NE SE CONFONDENT PAS (`SHARE_APPLY`)** : `live` = chirurgie
+  pure dans `main` ; `anchored` = le journal est reconstruit, donc **ancré** (`keepAnchor`) et
+  **annoncé**, appliqué tout de suite ; `deferred` = attend un geste local. Une seule ligne rangeait
+  `anchored` et `deferred` dans la même file — **jamais vidée** : l'invité voyait les coches du bloc
+  courant et plus rien ensuite, **le miroir se figeait au premier « Continuer » de l'hôte**. Deux
+  pièges à connaître si l'on y retouche : `state.nav` est un **ALIAS** du tableau de `Runtime`
+  (`bindStateToRuntime`) — lui affecter un tableau neuf casse l'alias en silence et l'application
+  lit alors deux navigations différentes selon l'endroit ; et `Runtime.seq` doit être relevé au
+  maximum des numéros reçus, sinon une visite locale ultérieure réutiliserait un numéro déjà pris,
+  donc **deux passages partageraient leurs clés de cochage**.
+  **LE LECTEUR INVERSE LE RÉGIME** : sa clé d'étape est calculée AU CLIC depuis `state.nav`, jamais
+  depuis le DOM peint — une navigation distante arrivant entre le `pointerdown` et le `click` ferait
+  cocher **la mauvaise étape**, et le compte-rendu l'imprimerait comme réalisée. Tant que
+  `#readerMode` est ouvert, une navigation distante est donc REFUSÉE, mise en attente, et
+  **annoncée sur place** (`rmBanHtml`, registre INFORMATION) ; `rmResume` l'applique au geste local.
+  Le repaint du lecteur sur évènement distant passe par `readerRepaint` (position CONSERVÉE), jamais
+  par `_rmSync`, qui repositionne le curseur et ferait sauter le lecteur sous ses yeux.
+- **LE BILLET DE REPRISE (`sessionStorage`)** — un onglet mobile meurt tout seul, et l'invité
+  perdait sa participation SANS RETOUR (rien n'était persisté, et son code est consommé). Le billet
+  ne porte que l'identifiant du partage et le secret : **aucune donnée clinique**. Sa portée est
+  *cet onglet, cette navigation* — effacé à la fermeture, jamais partagé, hors IndexedDB et hors
+  `localStorage` : l'invariant d'étanchéité est tenu là où il compte, rien de DURABLE sur le
+  téléphone d'un tiers. Il survit à `freeze` (le lien meurt, l'écran reste) et meurt avec `stop`
+  (l'écran est quitté). `share_pull` ne renvoie la fiche **que sur une reprise complète**
+  (`p_since = 0`) : les sondages ordinaires n'ont aucun besoin d'un instantané de plusieurs dizaines
+  de kilo-octets toutes les deux secondes.
 - **CE QU'ON NE FAIT JAMAIS** : (a) un `render()` sur évènement distant — application chirurgicale
-  seule, les verbes re-rendants sont mis en file et appliqués au prochain geste **local** de
-  navigation ; (b) recalculer la condensation `ovPresList` sur un évènement distant — rien ne mute
+  ou ancrée seulement, jamais un rendu complet ; (b) recalculer la condensation `ovPresList` sur un évènement distant — rien ne mute
   au-dessus ; (c) attendre un appel réseau du partage dans un chemin d'interface (**règle 15**) ;
   (d) loger un contrôle dans le quai — il réécrit son `innerHTML` une fois par seconde, et un tap y
   est AVALÉ dans 13 % des cas, mesuré identique sur les deux moteurs ; (e) ajouter un segment au

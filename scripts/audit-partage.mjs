@@ -985,6 +985,178 @@ console.log(`\n══ PARTAGE · le bridage se VOIT, et les deux listes ne diver
   await page.close();
 }
 
+/* ── LE MIROIR SUIT L'HÔTE QUAND IL CHANGE DE BLOC ────────────────────────────────────────────
+   Le défaut mesuré : `SHARE_APPLY` distingue 'live', 'anchored' et 'deferred', mais une seule
+   ligne rangeait 'anchored' ET 'deferred' dans la même file — laquelle n'était vidée NULLE PART
+   (grep : aucun site de drainage). Conséquence : l'invité voyait les coches du bloc courant, et
+   plus rien ensuite. Le miroir se figeait au premier « Continuer » de l'hôte.
+   Deux régimes à vérifier, et ils sont OPPOSÉS À DESSEIN :
+    · lecteur FERMÉ  -> la navigation s'applique, ancrée (rien ne bouge sous le doigt) ;
+    · lecteur OUVERT -> elle est REFUSÉE et ANNONCÉE. La clé de l'étape y est calculée AU CLIC
+      depuis `state.nav` : une navigation qui arrive entre le pointerdown et le click ferait
+      cocher la mauvaise étape, et le compte-rendu l'imprimerait comme réalisée. */
+console.log(`\n══ PARTAGE · le miroir suit quand l'hôte avance — moteur ${NOM_MOTEUR} ══`);
+{
+  const page = await br.newPage({ viewport: { width: 390, height: 844 } });
+  await session(page);
+  const r = await page.evaluate(async () => {
+    Share.mode = 'guest'; Share.role = 'scribe'; Share.me = 'inv'; Share.status = 'active';
+    Share.lastOk = Date.now(); Share.offset = 0; Share._defer = [];
+    window.scrollTo(0, 300);
+    await new Promise(x => setTimeout(x, 250));
+
+    const blocs = (state.fiche.blocks || []).map(b => b.id);
+    const cible = blocs.find(id => Runtime.nav.indexOf(id) < 0);
+    const navApres = Runtime.nav.concat([cible]);
+    const seqApres = Runtime.navSeq.concat([(Runtime.seq || 1) + 1]);
+
+    // Témoin de dérive : une carte visible du journal, AVANT l'arrivée du lot.
+    const temoin = main.querySelector('.ov-block');
+    const avant = temoin ? temoin.getBoundingClientRect().top : null;
+    // Comptage RELATIF : l'amorçage produit une banderole légitime (« fiches d'exemple ajoutées »),
+    // émise hors session. Un total absolu ferait échouer la sonde sur du bruit de démarrage — ce
+    // qu'on veut savoir, c'est si L'ARRIVÉE DISTANTE en produit une.
+    const toastsAvant = document.querySelectorAll('.toast').length;
+
+    Share.onEvents([{ seq: 11, id: 'n1', actor: 'hote', kind: 'nav',
+      payload: { nav: navApres, navSeq: seqApres } }]);
+    await new Promise(x => setTimeout(x, 500));
+    const t2 = main.querySelector('.ov-block');
+    const apres = t2 ? t2.getBoundingClientRect().top : null;
+
+    const out = {
+      applique: Runtime.nav.indexOf(cible) >= 0,
+      // L'alias `state.nav` <-> `Runtime.nav` doit TENIR : lui affecter un tableau neuf le casse
+      // en silence, et l'application lit alors deux navigations différentes selon l'endroit.
+      aliasIntact: state.nav === Runtime.nav && state.navSeq === Runtime.navSeq,
+      seqMonte: (Runtime.seq || 0) >= seqApres[seqApres.length - 1],
+      cartes: main.querySelectorAll('.ov-block').length,
+      derive: (avant != null && apres != null) ? Math.round(apres - avant) : null,
+      toasts: document.querySelectorAll('.toast').length - toastsAvant,
+      modales: document.querySelectorAll('.ai-modal.on').length,
+    };
+
+    // ── Lecteur OUVERT : le régime s'inverse.
+    readerOpen();
+    await new Promise(x => setTimeout(x, 350));
+    const navAvantLecteur = Runtime.nav.slice();
+    const cible2 = blocs.find(id => navAvantLecteur.indexOf(id) < 0) || blocs[0];
+    Share.onEvents([{ seq: 12, id: 'n2', actor: 'hote', kind: 'nav',
+      payload: { nav: navAvantLecteur.concat([cible2]),
+                 navSeq: Runtime.navSeq.concat([(Runtime.seq || 1) + 1]) } }]);
+    await new Promise(x => setTimeout(x, 450));
+    out.lecteurRefuse = Runtime.nav.join('|') === navAvantLecteur.join('|');
+    out.banniere = !!document.querySelector('#readerMode [data-rmresume]');
+    out.banniereTexte = (document.querySelector('#readerMode [data-rmresume]') || {}).textContent || '';
+
+    // Le geste LOCAL qui lève l'attente — et lui seul.
+    const b = document.querySelector('#readerMode [data-rmresume]');
+    if (b) b.click();
+    await new Promise(x => setTimeout(x, 400));
+    out.apresReprise = Runtime.nav.indexOf(cible2) >= 0;
+    out.banniereApres = !!document.querySelector('#readerMode [data-rmresume]');
+    return out;
+  });
+  t('l’hôte avance : la navigation ATTEINT l’écran', r.applique === true, JSON.stringify(r).slice(0, 220));
+  t('… l’alias state/Runtime tient', r.aliasIntact === true);
+  t('… le compteur de visites ne redescend pas', r.seqMonte === true);
+  t('… une carte de plus au journal', r.cartes >= 2, `${r.cartes} carte(s)`);
+  t('… et rien ne bouge sous le doigt (≤ 1 px)', r.derive === null || Math.abs(r.derive) <= 1, `${r.derive} px`);
+  t('… sans banderole ni fenêtre (règle 11)', r.toasts === 0 && r.modales === 0);
+  t('lecteur ouvert : la navigation est REFUSÉE', r.lecteurRefuse === true);
+  t('… mais elle est ANNONCÉE sur place', r.banniere === true && /avanc/i.test(r.banniereTexte), r.banniereTexte);
+  t('… et un geste LOCAL la reprend', r.apresReprise === true);
+  t('… la bannière disparaît une fois reprise', r.banniereApres === false);
+  await page.close();
+}
+
+/* ── UN RECHARGEMENT NE DOIT PLUS TOUT PERDRE ────────────────────────────────────────────────
+   Le cas est banal et il était terminal : un onglet mobile meurt tout seul (iOS recycle les
+   onglets en arrière-plan), et l'invité perdait sa participation SANS RETOUR — rien n'était
+   persisté, et son code d'appariement est consommé, donc il ne pouvait pas rejoindre.
+   Le billet vit en `sessionStorage` : CET onglet, CETTE navigation. On vérifie les deux moitiés
+   de l'arbitrage — il survit au rechargement (sinon il ne sert à rien) ET il ne contient aucune
+   donnée clinique (sinon l'étanchéité écrite au registre serait fausse). */
+console.log(`\n══ PARTAGE · un rechargement ne perd plus la session — moteur ${NOM_MOTEUR} ══`);
+{
+  const page = await br.newPage({ viewport: { width: 390, height: 844 } });
+  await session(page);
+  const r = await page.evaluate(async () => {
+    const snapFiche = JSON.parse(JSON.stringify(state.fiche));
+    Share._io.join = async () => ({ ok: true, share: 's9', secret: 'SECRET-0123456789abcd',
+      me: 'p9', role: 'scribe', fiche: snapFiche, since: 0,
+      expires_at: new Date(Date.now() + 3600e3).toISOString(), server_time: new Date().toISOString() });
+    Share._io.pull = async (k, sh, since) => ({ ok: true, status: 'active', role: 'scribe', me: 'p9',
+      events: [], seq: 0, n_events: 0, participants: [],
+      fiche: since === 0 ? snapFiche : undefined,
+      expires_at: new Date(Date.now() + 3600e3).toISOString(), server_time: new Date().toISOString() });
+
+    await Share.joinByCode('K7M2P4Q9', 'IADE');
+    const brut = sessionStorage.getItem('ac-share-tk') || '';
+    const out = {
+      billet: !!brut,
+      // AUCUNE DONNÉE CLINIQUE dans le billet : il ne porte que de quoi rouvrir le tuyau. Le titre
+      // de la fiche est le témoin le plus simple — s'il y est, tout le reste peut y être.
+      sansClinique: brut.indexOf(state.fiche.title) < 0 && brut.indexOf('blocks') < 0,
+      porteLeSecret: brut.indexOf('SECRET-0123456789abcd') >= 0,
+      // Le LIEN peut mourir sans que l'écran soit quitté : le billet doit survivre à `freeze`,
+      // sinon un invité coupé puis réadmis ne pourrait plus reprendre après un rechargement.
+      apresFreeze: (() => { Share.freeze('ended'); return !!sessionStorage.getItem('ac-share-tk'); })(),
+    };
+    // `stop` = l'écran est quitté : là seulement, plus rien ne subsiste.
+    Share.mode = 'guest'; Share.secret = 'SECRET-0123456789abcd';
+    Share.stop();
+    out.apresStop = !sessionStorage.getItem('ac-share-tk');
+
+    // REPRISE : on repose un billet et on rejoue le chemin du rechargement.
+    sessionStorage.setItem('ac-share-tk', JSON.stringify({ s: 's9', k: 'SECRET-0123456789abcd', m: 'p9', r: 'scribe' }));
+    out.lu = !!Share._ticketRead();
+    out.repris = await Share.resume();
+    out.ficheRevenue = !!(Share.fiche && Share.fiche.title);
+    out.modeInvite = Share.mode === 'guest';
+
+    // Un serveur qui REFUSE (partage purgé, participant coupé) ne doit pas laisser traîner le jeton.
+    Share.stop();
+    sessionStorage.setItem('ac-share-tk', JSON.stringify({ s: 'sX', k: 'SECRET-0123456789abcd', m: 'p9', r: 'scribe' }));
+    Share._io.pull = async () => ({ ok: false, err: 'refused' });
+    out.reprisRefus = await Share.resume();
+    out.billetNettoye = !sessionStorage.getItem('ac-share-tk');
+    return out;
+  });
+  t('la jointure écrit un billet', r.billet === true);
+  t('… qui porte le secret', r.porteLeSecret === true);
+  t('… et AUCUNE donnée clinique', r.sansClinique === true);
+  t('le billet survit à la mort du lien', r.apresFreeze === true);
+  t('… mais pas au départ de l’écran', r.apresStop === true);
+  t('après rechargement, le billet est relu', r.lu === true);
+  t('… la reprise rouvre le fil', r.repris === true && r.modeInvite === true);
+  t('… et la fiche revient du serveur', r.ficheRevenue === true);
+  t('un refus du serveur ne laisse pas traîner le jeton', r.reprisRefus === false && r.billetNettoye === true);
+
+  /* LE RECHARGEMENT RÉEL — `sessionStorage` survit, l'écran d'entrée ne doit PAS reparaître :
+     l'invité n'a rien à saisir, son code est brûlé depuis longtemps. */
+  await page.evaluate(() => sessionStorage.setItem('ac-share-tk',
+    JSON.stringify({ s: 's9', k: 'SECRET-0123456789abcd', m: 'p9', r: 'scribe' })));
+  await page.reload();
+  await page.waitForFunction(() => !document.querySelector('.boot-load'));
+  await page.waitForTimeout(800);
+  const ap = await page.evaluate(() => ({
+    billet: !!sessionStorage.getItem('ac-share-tk'),
+    entree: !document.getElementById('joinScreen').hidden,
+    demarree: !!document.querySelector('main')  &&
+              (document.querySelector('main').textContent || '').trim().length > 0,
+  }));
+  /* ICI IL N'Y A PAS DE SERVEUR : la reprise échoue, donc le billet est NETTOYÉ et l'application
+     démarre normalement. C'est exactement le comportement voulu — un invité dont le partage a été
+     purgé se retrouve CHEZ LUI, pas devant une erreur qu'il ne peut pas résoudre. Ce que la sonde
+     prouve, c'est que le chemin de reprise ne casse pas le démarrage et ne fait pas reparaître un
+     écran de saisie que l'invité ne peut pas remplir (son code est brûlé). */
+  t('un rechargement ne fait PAS reparaître l’écran d’entrée', ap.entree === false);
+  t('… et un serveur injoignable ne bloque pas le démarrage', ap.demarree === true);
+  t('… le billet mort ne traîne pas', ap.billet === false);
+  await page.close();
+}
+
 await br.close(); srv.close();
 console.log(`\n${ok}/${ok + ko} contrôles partage OK` + (ko ? ` — ${ko} ÉCHEC(S)` : ''));
 process.exit(ko ? 1 : 0);

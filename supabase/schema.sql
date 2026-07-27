@@ -1289,9 +1289,20 @@ begin
            'revoked', p.revoked_at is not null, 'detached', p.detached_at is not null)
          order by p.joined_at), '[]'::jsonb)
     into v_parts from public.session_participants p where p.share_id = a.share_id;
+  /* LA FICHE N'EST RENVOYÉE QUE SUR UNE REPRISE COMPLÈTE (`p_since = 0`), jamais aux sondages
+     ordinaires — qui passent toutes les deux à dix secondes et n'ont aucun besoin d'un instantané
+     de plusieurs dizaines de kilo-octets. Elle sert au cas où un invité RECHARGE sa page : son
+     code est consommé, il ne peut donc pas rejoindre, mais il détient encore son secret ; il
+     reprend le fil avec lui, et il lui faut de quoi repeindre. Aucune donnée nouvelle ne sort :
+     c'est le même `fiche_snap` que `share_join` lui a déjà remis, filtré par la même liste
+     blanche à l'ouverture. */
   return jsonb_build_object('ok', true, 'status', v_state, 'role', a.role, 'me', a.participant,
     'owner', a.is_owner, 'events', v_ev, 'seq', v_seq, 'n_events', v_n, 'stream', v_stream,
-    'participants', v_parts, 'expires_at', a.expires_at, 'server_time', now());
+    'participants', v_parts, 'expires_at', a.expires_at, 'server_time', now())
+    || case when coalesce(p_since, 0) = 0 and not a.is_owner
+         then jsonb_build_object('fiche',
+                (select s.fiche_snap from public.shared_sessions s where s.id = a.share_id))
+         else '{}'::jsonb end;
 exception when others then return jsonb_build_object('ok', false, 'err', 'refused');
 end; $$;
 

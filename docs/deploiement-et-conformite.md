@@ -331,9 +331,17 @@ conserve rien.
    pas être élargie. *Ce point est identifié comme à durcir côté serveur.*
 
 **Ce qui ne sort jamais.** Le compte rendu de session reste **local**, sur l'appareil de chaque
-participant. Un invité **sans compte** ne dépose rien sur son appareil : le stockage bascule en
-mémoire, aucun service worker n'est installé, aucun stockage permanent n'est demandé. Un invité
-**connecté** ne voit ni sa bibliothèque, ni ses catégories, ni son historique modifiés.
+participant. Un invité **sans compte** ne dépose **rien de durable** sur son appareil : le stockage
+bascule en mémoire, aucun service worker n'est installé, aucun stockage permanent n'est demandé. Un
+invité **connecté** ne voit ni sa bibliothèque, ni ses catégories, ni son historique modifiés.
+
+**Une seule exception, et elle est bornée à l'onglet.** Depuis la v4.51.0, la jointure écrit un
+**billet** dans le `sessionStorage` du navigateur : l'identifiant du partage et le secret de
+participant — **aucune donnée clinique**, ni fiche, ni coche, ni horaire. Sa portée est *cet onglet,
+cette navigation* : il n'est partagé avec aucun autre onglet et disparaît à la fermeture. Il existe
+pour un cas banal et jusqu'ici terminal — un onglet mobile que le système recycle, ou un
+rechargement involontaire : le code d'appariement étant consommé, l'invité ne pouvait plus revenir
+du tout. Avec le billet, il reprend le fil ; sans billet valide, l'application démarre normalement.
 
 **Ce que l'application dit aux participants.** Avant de rejoindre, tout invité lit une notice
 (article 13) qui nomme le responsable (« le soignant qui vous a montré le code — lui, ou son

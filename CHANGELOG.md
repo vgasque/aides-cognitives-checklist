@@ -1,5 +1,69 @@
 # Journal des modifications
 
+## [4.51.0] — 2026-07-27
+### Le miroir se figeait au premier « Continuer » de l'hôte
+
+Annoncé en fin de v4.50.0, corrigé ici. Deux défauts, et le second n'était visible que parce que le
+premier le masquait.
+
+### La file était remplie et jamais vidée
+`SHARE_APPLY` distingue trois régimes et les motive : `live` (chirurgie pure dans la checklist),
+`anchored` (« reconstruit le journal, **donc** ancré et annoncé »), `deferred` (attend un geste
+local). **Une seule ligne rangeait `anchored` et `deferred` dans la même file** — laquelle n'était
+drainée nulle part.
+
+Conséquence, mesurée : après une navigation distante, `Runtime.nav` ne contenait pas le bloc cible ;
+au grep, aucun site de drainage. **L'invité voyait les coches du bloc courant, et plus rien
+ensuite** — le contraire d'un miroir, et la fonction même pour laquelle le partage existe. C'est la
+quatrième moitié de chemin de ce chantier, après `canWrite()` sans appelant, l'annexe d'un détaché
+que personne ne lisait, et `fold.exercise` sans émetteur.
+
+Une navigation distante s'applique désormais **ancrée** : on mesure la position d'un repère, on
+re-rend, on compense le résidu — dérive **0 px** mesurée. Et on ne défile **pas** vers la nouvelle
+carte : le geste n'est pas le sien. C'est la différence exacte avec `ovAdvanceRender`, qui défile
+parce que c'est l'utilisateur qui vient d'appuyer sur « Continuer ».
+
+Deux pièges rencontrés, tous deux attrapés par la sonde et non par la relecture : `state.nav` est un
+**alias** du tableau de `Runtime` — lui affecter un tableau neuf casse l'alias en silence, et
+l'application se met à lire deux navigations différentes selon l'endroit ; et `Runtime.seq` doit
+être relevé au maximum des numéros reçus, faute de quoi une visite locale ultérieure réutiliserait
+un numéro déjà pris — **deux passages partageraient alors leurs clés de cochage**.
+
+### Le mode lecteur inverse la règle, et il le dit
+Sa clé d'étape est calculée **au clic** depuis `state.nav`, jamais depuis le DOM peint : une
+navigation distante arrivant entre le `pointerdown` et le `click` ferait cocher **la mauvaise
+étape**, et le compte rendu l'imprimerait comme réalisée. Tant que le lecteur est ouvert, une
+navigation distante est donc **refusée** — et **annoncée sur place** : « Le soignant a avancé —
+reprendre à sa position », registre INFORMATION, levée par un geste local. Ne pas suivre en silence
+était le pire des deux mondes : l'autre a avancé, et celui qui lit à voix haute l'ignore.
+
+### Un rechargement ne perd plus la session
+Un onglet mobile meurt tout seul — iOS recycle les onglets en arrière-plan — et l'invité perdait sa
+participation **sans retour** : rien n'était persisté, et son code d'appariement est consommé, donc
+il ne pouvait pas rejoindre. C'était l'invariant « l'invité ne garde rien » appliqué au-delà de ce
+qu'il protège.
+
+Un **billet** est écrit dans le `sessionStorage` : l'identifiant du partage et le secret,
+**aucune donnée clinique** — vérifié par un contrôle qui cherche le titre de la fiche dans le
+billet. Sa portée est *cet onglet, cette navigation* : effacé à la fermeture, jamais partagé, hors
+IndexedDB et hors `localStorage`. L'étanchéité est tenue là où elle compte — rien de **durable** sur
+le téléphone d'un tiers. Il survit à `freeze` (le lien meurt, l'écran reste) et meurt avec `stop`
+(l'écran est quitté) ; un serveur qui refuse l'efface plutôt que de le laisser traîner.
+
+Côté serveur, `share_pull` renvoie la fiche **uniquement sur une reprise complète** (`p_since = 0`,
+et jamais à l'hôte) : les sondages ordinaires passent toutes les deux à dix secondes et n'ont aucun
+besoin d'un instantané de plusieurs dizaines de kilo-octets. Aucune donnée nouvelle ne sort — c'est
+le même instantané, filtré par la même liste blanche, que la jointure avait déjà remis.
+
+### Vérification
+706 tests × 2 moteurs, **214/214 contrôles partage** (+22, sur les deux moteurs), 13 harnais verts,
+9/9 QR, 301 contrôles d'accessibilité, 94/94 doctrine, `npm run check` vert. Les dix contrôles du
+miroir ont été **vérifiés capables d'échouer** : le défaut réintroduit en fait tomber cinq, fichier
+restauré à l'octet. Le registre RGPD (§ 3.1) et `AGENTS.md` sont mis à jour dans le même commit —
+le billet est une exception à un invariant écrit, elle se documente là où l'invariant est écrit.
+
+**`supabase/schema.sql` est à rejouer** (`share_pull` seul est modifié), puis `rls-tests.sql`.
+
 ## [4.50.0] — 2026-07-27
 ### La conformité écrite noir sur blanc — et le placard d'exercice qui ne traversait pas le partage
 
@@ -1474,118 +1538,3 @@ qui ne l'était pas. Deux découvertes faites en cours de route, hors du relevé
   commentaires citent les classes qu'ils expliquent : noté dans le fichier.
 
 510 tests, 22/22 doctrine, 73/73 accessibilité, 135 contrôles d'audit, 9 sondes dédiées.
-
-## [4.32.0] — 2026-07-26
-Premier lot d'un audit externe complet (phase 1 : relevé de 138 constats mesurés, 3 réfutés par
-contre-audit ; phase 2 : correctifs à comportement INCHANGÉ). Trois défauts critiques éliminés,
-chacun reproduit AVANT correction puis vérifié APRÈS par sonde Playwright — plus une demande
-utilisateur : l'intitulé d'une décision reste sous les yeux en mode statique sur téléphone.
-
-### Corrigé — trois chemins vers une page blanche
-- **« Réparer l'application » pouvait rendre l'app INDISPONIBLE hors ligne.** Sa sonde réseau
-  (`fetch('./sw.js')`) était interceptée par le service worker qu'elle s'apprêtait à détruire :
-  `cache:'no-store'` pilote le cache HTTP, PAS le Cache API. Dès qu'un appel avait réussi une fois
-  en ligne, `sw.js` était dans le cache stale-while-revalidate ; hors ligne la sonde répondait 200,
-  la purge s'exécutait, et le rechargement donnait un écran blanc — en intervention, sans réseau.
-  Le commentaire du code énonçait exactement ce risque et croyait s'en prémunir. Deux verrous :
-  jeton unique par appel (`?_probe=`+Date.now(), clé de cache inédite) et **le worker refuse
-  désormais de se mettre lui-même en cache**. Reproduit hors ligne, serveur arrêté : la sonde
-  rejette maintenant avec ET sans jeton.
-- **Un échec sur pdf.js supprimait TOUT le hors-ligne, silencieusement.** Le précache de 1,73 Mio
-  vivait dans le même `waitUntil` que le noyau ; un 503 ou une coupure faisait rejeter
-  l'installation entière (mesuré : `{active:false, controller:false}`, app non servie hors ligne),
-  et le `.catch(()=>{})` de l'enregistrement rendait la panne invisible. Précache pdf.js
-  best-effort ; `addAll` (tout-ou-rien) réservé à `CORE_ASSETS` = index.html + manifest, les
-  10 icônes passant en best-effort — un favicon en 404 ne peut plus emporter l'app avec lui.
-- **Le bouton « Recharger » de l'écran d'échec de démarrage était MORT.** Seul attribut `onclick=`
-  du fichier, il était inerte : dès qu'un hash figure dans `script-src`, les navigateurs ignorent
-  `'unsafe-inline'` et un gestionnaire inline exigerait `'unsafe-hashes'` (absent). C'était le
-  dernier recours quand IndexedDB ne répond pas — et en PWA installée, il n'y a ni barre d'adresse
-  ni bouton de rechargement. Câblé en DOM (jamais en assouplissant la CSP), avec témoin de
-  non-régression : un `onclick` inline reste bloqué, violation CSP journalisée.
-
-### Sécurité
-- **`zipParse` : les bornes anti-« zip bomb » annoncées n'existaient qu'à moitié.** Rien ne bornait
-  la SOMME des tailles, et N entrées de noms distincts pouvaient pointer sur le MÊME en-tête local
-  (PoC exécuté : **18 Ko → 256 Mio**). Un `.zip` est le format de partage d'une bibliothèque : il
-  circule par mail ou clé USB, sans contrôle. Trois bornes ajoutées — 256 Mo cumulés, offsets
-  locaux dédoublonnés, et `inflateBounded` qui **arrête net la décompression** au-delà de la taille
-  déclarée (`usize` est lu DANS le fichier : il peut mentir, et la vérification d'après ne servait
-  à rien puisque la mémoire était déjà consommée). **Sept tests** ajoutés : la fonction, qui lit
-  des octets étrangers, n'était couverte par aucun.
-
-### Ajouté
-- **INTITULÉ DE DÉCISION COLLANT en mode statique sous 640 px** (demande utilisateur, `svStickBands`).
-  En pile, la bande-question sortait de l'écran pendant qu'on lisait encore ses étapes : **844 px
-  de contenu lus sans elle** sur une décision imbriquée à 360×640, contre **0 px côte à côte** —
-  le bornage à ce palier est donc celui du problème, pas un réglage esthétique. La bande s'épingle
-  sous `--stick-top`, chaque niveau imbriqué se rangeant SOUS son ancêtre.
-  **La hauteur n'est PAS forcée** : compacter à une ligne aurait rendu les décalages arithmétiques
-  (donc CSS pur) mais TRONQUÉ toute question de plus de deux lignes — or la question EST
-  l'information. D'où une mesure, réduite à UNE passe par rendu en fin de `svPaintArrows`
-  (lectures groupées puis écritures, ÷ `zoomF()`), là où l'ex-fil d'ancêtres de la vue « Détails »
-  recalculait à chaque événement de défilement. Décrochage NATIF (bornage par `.sv-decwrap`),
-  z-ordre décroissant (modèle ECL : un niveau se replie DERRIÈRE son ancêtre), plafond 3 niveaux,
-  `scroll-margin-top` pour le focus clavier (WCAG 2.4.11). Six contrôles au harnais de doctrine.
-- **Garde-fou de fraîcheur des hashs CSP** (`csp-hashes.mjs --check`, dans `npm run check`) : le
-  piège « on édite le script inline, on oublie de rejouer csp-hashes, la CSP bloque le seul script
-  de l'app » s'était produit trois fois, dont une pendant cette session. Le même contrôle refuse
-  tout attribut `on*=`, ce qui rend le correctif ci-dessus non-régressable. Contre-épreuve faite.
-- CI : `npm run check` EN ENTIER (elle n'appelait que son premier maillon — `check-colors.mjs`,
-  présenté comme « auto-exécutoire », ne tournait dans AUCUNE barrière automatique), `npm ci` au
-  lieu de `npm install` (CI reproductible), cache des navigateurs Playwright, et les **11 harnais
-  d'audit** en mode non bloquant — la doctrine était jusqu'ici vérifiée seulement si quelqu'un y
-  pensait, mais un échec y demande un arbitrage humain, pas un blocage de merge.
-
-### Supprimé — la purge v4.25.0, achevée
-`AGENTS.md` affirmait la suppression du Plan « Détails » faite alors qu'elle l'était à moitié : la
-pire configuration, puisque celui qui lit la doctrine croit le terrain propre. Étaient restés
-**20 classes CSS mortes** (38 lignes, avec 45 lignes de commentaires décrivant en détail un
-composant inexistant) : `.pl-cols`, `.pl-decwrap`, `.pl-nd*`, `.pm-views`, `.ovs-tgl`, `.pinchip`,
-`.stuck`, `@keyframes pinIn`, `.pd0…pd3`, `.pl-end`, `.pl-offtag`, `.svgv`, `.diff-anchor`,
-`.rail-sep`, `.ov-offtag`, `.ov-block.off` — chacune vérifiée à ZÉRO émission dans tout le dépôt
-avant retrait. Plus quatre branches de délégation `data-plfold` inatteignables, deux
-`querySelector('.pl-nd[data-plgo]')` qui ne pouvaient que renvoyer `null` (leur repli `||` faisait
-croire à deux structures possibles), `ovPlanStick()` vide appelée depuis quatre sites, et la démo
-`planDemo` de `design/build.mjs` qui PUBLIAIT le composant disparu — sept de ses classes n'ayant
-plus aucune règle, le design system le documentait cassé (réécrite sur l'Échelle, à partir du
-balisage réellement émis).
-- **Un faux positif du harnais, plus grave que le CSS mort** : `audit-doctrine.mjs` cliquait sur
-  `.pl-nd`, classe plus jamais émise — le contrôle passait SANS avoir rien cliqué, si bien que
-  l'invariant « taper un nœud du plan ne DÉMARRE ni ne COCHE » n'était plus vérifié depuis v4.25.0.
-  Corrigé sur `.pl-line[data-plln]`, avec une assertion qui vérifie que le clic a bien eu lieu :
-  un contrôle qui ne peut pas échouer ne prouve rien.
-- `.condensed` : le repli d'en-tête au défilement était décrit au présent par trois commentaires,
-  renvoi « cf. CSS » compris, et la classe était posée par le JS — mais **la règle n'a jamais
-  existé dans tout l'historique du dépôt** (vérifié). Ce n'était donc pas une régression mais une
-  intention jamais implémentée : le toggle est retiré (aucun changement visuel possible) et la
-  hauteur d'en-tête constante est désormais énoncée pour ce qu'elle est.
-
-### Performance
-- **`index.html` était téléchargé DEUX FOIS par publication** : `ASSETS` listait `'./'` ET
-  `'./index.html'`, soit le même document sous deux URL que le cache HTTP ne peut pas dédupliquer —
-  290 Ko en double, pour une entrée JAMAIS servie (le repli de navigation cherche
-  `'./index.html'` d'abord). Entrée retirée : une seule copie en cache au lieu de deux.
-- **La synchro reconstruisait tout le DOM après VOS PROPRES modifications.** `_pullTable` comptait
-  les lignes REÇUES et non APPLIQUÉES : or `_pushTable` pousse l'horodatage LOCAL et, dans `full()`,
-  le pull précède le push — la ligne qu'on vient de pousser revient au pull suivant, n'est pas
-  appliquée (horodatages égaux) et déclenchait quand même un `render()` complet, focus perdu et
-  journal de plusieurs milliers de nœuds réécrit, en pleine session. Le compteur porte désormais
-  sur les écritures effectives (`puts`+`dels`).
-- Une réponse que le cache REFUSE d'enregistrer (quota, réponse partielle) devenait un ÉCHEC RÉSEAU
-  pour la page : `respondWith` recevait la promesse qui contenait le `put`. Découplé, comme le fait
-  déjà la branche de navigation — reproduit avec une réponse 206, qui atteint maintenant la page.
-
-### Documentation
-- `AGENTS.md` et `README.md` disaient que la CI rejouait `check` (faux pour sa moitié) et
-  annonçaient « deux harnais Playwright » là où il y en a onze. Corrigé, avec la leçon de la purge
-  incomplète consignée à l'endroit fautif.
-- Six blocs de commentaires décrivaient au présent des symboles inexistants (`ovPlanTreeHtml`,
-  `ovPlanPin`, `state.ovPlanView`, `#ovPlanD`, `data-plview`, `--pl-stick`) : un commentaire qui
-  décrit un mécanisme absent est pire qu'absent — il envoie le lecteur suivant, humain ou IA,
-  chercher ce qui n'existe pas.
-- `release.sh` synchronise désormais `package-lock.json` (resté figé à 4.3.0 pendant 28 versions,
-  alors que `npm ci` installe d'après ce fichier) — édité comme du JSON, jamais par regex.
-
-510 tests (503 + 7), 22/22 contrôles de doctrine (16 avant), 133 contrôles d'audit, 3 sondes
-dédiées (critiques 9/9, service worker 6/6, intitulé collant 8/8).

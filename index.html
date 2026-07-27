@@ -238,7 +238,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-ifXx2NF8lQMYXpBOThqOXCc68/gDFD28AMhVsWx9uf8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-3lbr1jKo7qAh7drsgErhE9gqYEqzpSMvffAf6MkZU5g='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -2293,6 +2293,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #readerMode .rm-sp{flex:1;min-height:14px}
   #readerMode .rm-ok{width:100%;min-height:72px;border:0;border-radius:12px;background:var(--ok);color:var(--surface);font-size:18px;font-weight:800;letter-spacing:.3px;cursor:pointer;font-family:inherit;padding:10px}
   #readerMode .rm-ok.idle{background:transparent;border:2px solid var(--verify-bd);color:var(--verify)}
+  /* « Le soignant a avancé » : registre INFORMATION (une nouvelle, pas une alerte), pleine
+     largeur en tête du corps du lecteur, cible 44 px comme tous les contrôles de crise. */
+  #readerMode .rm-ban{width:100%;min-height:44px;border:2px solid var(--primary);border-radius:10px;
+    background:var(--primary-soft);color:var(--primary-dk);font-size:13.5px;font-weight:800;
+    cursor:pointer;margin:0 0 10px;font-family:inherit;text-align:left;padding:8px 12px}
   #readerMode .rm-gap{width:100%;min-height:44px;border:2px solid var(--verify-bd);border-radius:10px;background:var(--verify-soft);color:var(--verify);font-size:13.5px;font-weight:700;cursor:pointer;margin-top:9px;font-family:inherit}
   #readerMode .rm-prev{width:100%;min-height:44px;border:none;background:none;color:var(--ink-soft);font-size:13px;font-weight:600;cursor:pointer;margin-top:6px;font-family:inherit}
   #readerMode .rm-opt{width:100%;min-height:72px;border:2px solid var(--verify-bd);border-radius:12px;background:var(--surface);color:var(--ink);font-size:17px;font-weight:700;cursor:pointer;margin-top:10px;text-align:left;padding:12px 18px;font-family:inherit;line-height:1.3}
@@ -3713,7 +3718,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.50.0';
+const APP_VERSION='4.51.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -4587,6 +4592,24 @@ function _rmSync(){const rm=document.getElementById('readerMode');
    c'est tout. */
 function readerRepaint(){const rm=document.getElementById('readerMode');
   if(rm&&rm.classList.contains('on'))readerRender();}
+/* BANNIÈRE « le pilote a avancé » — un ÉTAT sur place, jamais une fenêtre ni un défilement (règle
+   11). Registre INFORMATION : ce n'est pas une alerte, c'est une nouvelle. Elle porte le geste qui
+   la lève, et ce geste est LOCAL — c'est toute la doctrine de l'acquittement par l'action. */
+function rmBanHtml(){return _rmPending
+  ? '<button type="button" class="rm-ban" data-rmresume>Le soignant a avancé — reprendre à sa position</button>'
+  : '';}
+function _rmOn(){const rm=document.getElementById('readerMode');
+  return !!(rm&&rm.classList.contains('on'));}
+/* « LE PILOTE A AVANCÉ » — un état, pas une interruption. Il vit dans le lecteur, sur place, et
+   se lève par un GESTE LOCAL : reprendre. C'est le briefing de reprise d'AC 120-71B §6.4 pt 7,
+   qui veut qu'un équipier qui revient reçoive une synthèse et non l'état brut. */
+let _rmPending=false;
+function rmResume(){
+  _rmPending=false;
+  const q=Share._defer||[];Share._defer=[];
+  const f=Runtime.fiche;
+  if(f&&q.length)shareApplyAnchored(f,q);
+  readerI=-1;readerRender();}
 function cxResume(f,backId){
   if(!f||!(f.blocks||[]).some(b=>b&&b.id===backId))return;
   ovDropOpens();
@@ -8132,10 +8155,16 @@ function shareGlobTag(){
    Le fragment est retiré de l'historique IMMÉDIATEMENT : un code d'appariement n'a rien à faire
    dans l'URL d'un onglet qu'on rouvre, ni dans la barre d'adresse d'un téléphone prêté — et
    `_histArm()` recopie l'URL courante, fragment compris. */
-let SHARE_JOIN=null, SHARE_NOTRACE=false;
+let SHARE_JOIN=null, SHARE_NOTRACE=false, SHARE_RESUME=false;
 function shareBootDecide(){
   let c=null;
   try{c=shareCodeFromHash(location.hash);}catch(e){}
+  /* UN BILLET EN COURS L'EMPORTE SUR TOUT. Il n'y en a que si CET onglet suivait déjà une session
+     et vient d'être rechargé — le cas où l'invité perdait tout. On ne montre donc pas l'écran
+     d'entrée : il n'a rien à saisir, son code est brûlé depuis longtemps. */
+  try{if(Share._ticketRead()){SHARE_RESUME=true;
+    if(c)try{history.replaceState(null,'',location.pathname+location.search);}catch(e){}
+    return false;}}catch(e){}
   if(!c)return false;
   SHARE_JOIN=c;
   try{history.replaceState(null,'',location.pathname+location.search);}catch(e){}
@@ -9674,6 +9703,43 @@ function paintStepTrace(li,k){
    `_shareRemote` marque la provenance pendant l'application : c'est ce drapeau qui empêche
    `ovAfterCheck` de re-rendre le journal sur un geste que l'utilisateur n'a pas fait. */
 let _shareRemote=false;
+/* APPLICATION ANCRÉE — l'hôte a avancé, et l'écran de l'autre doit suivre SANS bouger sous son
+   doigt. Le journal est reconstruit (une navigation poste une carte au bout, la condensation peut
+   replier des passages plus haut), donc on passe par `keepAnchor` : on mesure la position d'un
+   repère avant, on re-rend, on compense le résidu. Le repère choisi est la DERNIÈRE carte du
+   journal — celle que l'utilisateur a sous les yeux ; si elle n'existe pas encore, `keepAnchor`
+   rend `null` et l'on n'invente rien.
+   ON NE DÉFILE PAS vers la nouvelle carte : le geste n'est pas le sien. Il apprend qu'elle est là
+   par `#srLive` et par la carte elle-même, à l'endroit où le journal l'a posée. C'est la
+   différence exacte avec `ovAdvanceRender`, qui défile parce que c'est l'utilisateur qui vient
+   d'appuyer sur « Continuer ». */
+function shareApplyAnchored(f,evs){
+  let n=0;
+  for(const e of evs){
+    const p=e.payload||{};
+    if(e.kind==='nav'){
+      if(Array.isArray(p.nav)&&Array.isArray(p.navSeq)&&p.nav.length===p.navSeq.length&&p.nav.length){
+        /* ÉCRIRE DANS `Runtime`, PUIS RE-LIER — jamais dans `state` seul. `bindStateToRuntime`
+           fait de `state.nav` un ALIAS du tableau de `Runtime` : lui affecter un tableau NEUF
+           casse l'alias en silence, et l'application se met à lire deux navigations différentes
+           selon l'endroit. C'est ce qui s'est produit à la première écriture de cette fonction,
+           attrapé par la sonde et non par la relecture. */
+        Runtime.nav=p.nav.slice();Runtime.navSeq=p.navSeq.slice();
+        // Le compteur de visites doit dépasser tout ce qui a été minté ailleurs, sinon une visite
+        // LOCALE ultérieure réutiliserait un numéro déjà pris — et deux passages partageraient
+        // leurs clés de cochage.
+        Runtime.seq=Math.max(Runtime.seq||0,...p.navSeq.map(x=>+x||0));
+        bindStateToRuntime();      // pose aussi navPos au BOUT : le journal n'a pas de curseur
+        n++;}
+    }
+    else if(e.kind==='flow_end'){state.flowEnded=!!p.on;n++;}
+  }
+  if(!n)return 0;
+  const cartes=main.querySelectorAll('.ov-block[data-ovi]');
+  const dern=cartes.length?cartes[cartes.length-1].getAttribute('data-ovi'):null;
+  keepAnchor(dern!=null?'.ov-block[data-ovi="'+dern+'"]':null,renderOvOnly);
+  readerRepaint();
+  return n;}
 function sharePaintLive(f,e){
   const p=e.payload||{};
   if(e.kind==='check'||e.kind==='uncheck'){
@@ -10351,7 +10417,7 @@ function readerRender(){const f=state.fiche;const rm=document.getElementById('re
   const tEl=document.getElementById('rmTime');if(tEl)tEl.hidden=!Runtime.started;
   if(b.type==='decision'){
     document.getElementById('rmProg').textContent='décision';
-    body.innerHTML=`<p class="rm-hint">Lisez la question à voix haute — décidez ensemble</p><p class="rm-ch vig">${fmt(b.question)||esc(b.title)||'…'}</p><div class="rm-sp"></div>${(b.options||[]).map((o,i)=>`<button type="button" class="rm-opt" data-rmopt="${esc(o.target||'')}">${fmt(o.label)||'Option '+(i+1)} →</button>`).join('')}`;
+    body.innerHTML=`${rmBanHtml()}<p class="rm-hint">Lisez la question à voix haute — décidez ensemble</p><p class="rm-ch vig">${fmt(b.question)||esc(b.title)||'…'}</p><div class="rm-sp"></div>${(b.options||[]).map((o,i)=>`<button type="button" class="rm-opt" data-rmopt="${esc(o.target||'')}">${fmt(o.label)||'Option '+(i+1)} →</button>`).join('')}`;
     return;}
   const steps=clean(b.steps);
   if(readerI<0){readerI=0;while(readerI<steps.length&&state.checked[seq+':'+id+':'+readerI])readerI++;}
@@ -10381,7 +10447,7 @@ function readerRender(){const f=state.fiche;const rm=document.getElementById('re
   const nx2=readerI<steps.length-1?steps[readerI+1]:null;
   const pvH=pv?`<p class="rm-ctx">${state.checked[seq+':'+id+':'+(readerI-1)]?'✓ ':''}${fmt(stepCR(stepText(pv)).c)}</p>`:'';
   const nxH=nx2?`<p class="rm-ctx next">suivant : ${fmt(stepCR(stepText(nx2)).c)}</p>`:'';
-  body.innerHTML=`<p class="rm-hint">Lisez à voix haute — l'exécutant répond, vous validez</p>${pvH}<p class="rm-ch${stepIsCrit(s)?' crit':(stepIsVigil(s)?' vig':'')}">${fmt(cr.c)}</p>${cr.r?`<div class="rm-r">${fmt(cr.r)}</div>`:''}${nxH}<div class="rm-sp"></div><button type="button" class="rm-ok" data-rmok>Répondu — conforme ✓</button><button type="button" class="rm-gap" data-rmgap>△ Écart — passer sans cocher</button>${readerI>0?'<button type="button" class="rm-prev" data-rmprev>‹ challenge précédent</button>':''}`;}
+  body.innerHTML=`${rmBanHtml()}<p class="rm-hint">Lisez à voix haute — l'exécutant répond, vous validez</p>${pvH}<p class="rm-ch${stepIsCrit(s)?' crit':(stepIsVigil(s)?' vig':'')}">${fmt(cr.c)}</p>${cr.r?`<div class="rm-r">${fmt(cr.r)}</div>`:''}${nxH}<div class="rm-sp"></div><button type="button" class="rm-ok" data-rmok>Répondu — conforme ✓</button><button type="button" class="rm-gap" data-rmgap>△ Écart — passer sans cocher</button>${readerI>0?'<button type="button" class="rm-prev" data-rmprev>‹ challenge précédent</button>':''}`;}
 // Écouteurs du mode lecteur : délégation UNIQUE (élément statique) + Échap/piège de focus minimal.
 {const rm=document.getElementById('readerMode');
  if(rm){rm.addEventListener('click',e=>{const f=state.fiche;if(!f)return;
@@ -10393,6 +10459,7 @@ function readerRender(){const f=state.fiche;const rm=document.getElementById('re
    if(e.target.closest('[data-rmgap]')){readerI++;readerRender();return;}
    const rb=e.target.closest('[data-rmback]');
    if(rb){cxResume(f,rb.dataset.rmback);return;}
+   if(e.target.closest('[data-rmresume]')){rmResume();return;}
    if(e.target.closest('[data-rmprev]')){readerI=Math.max(0,readerI-1);readerRender();return;}
    if(e.target.closest('[data-rmreview]')){const b=(f.blocks||[]).find(x=>x.id===id);const st=clean((b&&b.steps)||[]);
      readerI=0;while(readerI<st.length&&state.checked[seq+':'+id+':'+readerI])readerI++;readerRender();return;}
@@ -13474,14 +13541,32 @@ const Share={
   _defer:[],
   onEvents(ev){
     if(state.view!=='read'||!Runtime.fiche)return;      // rien à peindre : le pli suffit
-    const f=Runtime.fiche;let peint=0;
+    const f=Runtime.fiche;let peint=0;const anc=[];let anno=false;
     for(const e of ev){
       if(e.actor&&e.actor===this.me)continue;           // (3) jamais ses propres évènements
       const mode=shareApplyMode(e.kind);
       if(mode==='none')continue;
+      /* LA FILE ÉTAIT REMPLIE ET JAMAIS VIDÉE — le miroir se figeait dès que l'hôte changeait de
+         bloc. `SHARE_APPLY` décrit pourtant deux régimes DISTINCTS et cette ligne les confondait :
+         'anchored' veut dire « reconstruit le journal, DONC ancré et annoncé » — appliqué tout de
+         suite, sans que rien ne bouge sous le doigt —, quand seul 'deferred' attend un geste
+         local. Mesuré avant correctif : après une navigation distante, `Runtime.nav` ne contenait
+         pas le bloc cible, et aucun site du fichier ne drainait `_defer`. L'invité voyait les
+         coches du bloc courant et plus rien ensuite : le contraire d'un miroir. */
+      /* LE LECTEUR EST LE CAS LE PLUS DANGEREUX, et il l'était déjà avant le partage : la clé de
+         l'étape est calculée AU CLIC depuis `state.nav`, jamais depuis le DOM peint. Une
+         navigation distante arrivant entre le pointerdown et le click ferait donc cocher LA
+         MAUVAISE ÉTAPE, et le compte-rendu l'imprimerait comme réalisée. Tant que le lecteur est
+         ouvert, une navigation distante est donc REFUSÉE et mise en attente ; elle s'applique au
+         prochain geste local (doctrine « acquittement par l'action »), et la bannière le dit —
+         car ne pas suivre en silence serait le pire des deux mondes : l'autre a avancé, et celui
+         qui lit à voix haute l'ignore. */
+      if(mode==='anchored'&&_rmOn()){this._defer.push(e);if(!_rmPending){_rmPending=true;anno=true;}continue;}
+      if(mode==='anchored'){anc.push(e);continue;}
       if(mode!=='live'){this._defer.push(e);continue;}
       if(sharePaintLive(f,e))peint++;
     }
+    if(anc.length)peint+=shareApplyAnchored(f,anc);
     // Une seule annonce pour le lot : le lecteur d'écran ne doit pas être noyé, et c'est le SEUL
     // canal admis pendant un soin — invisible à l'écran, donc règle 11 respectée.
     // La base de diff suit ce qu'on vient d'APPLIQUER : sans ce recalage, le prochain
@@ -13496,7 +13581,10 @@ const Share={
        premier item non coché — un mouvement autonome sous les yeux du lecteur, précisément ce que
        la règle 11 interdit. On rend donc à position CONSERVÉE : le challenge courant reste le
        challenge courant, seuls son état et son contexte se mettent à jour. */
-    if(peint)readerRepaint();
+    // La bannière du lecteur est un rendu à part entière : elle apparaît même quand RIEN n'a été
+    // peint dans la checklist, puisque c'est précisément le cas où l'on a refusé d'appliquer.
+    if(peint||anno)readerRepaint();
+    if(anno)announce('Le soignant a avancé — reprendre depuis le mode lecteur.');
     if(peint)announce(peint===1?'Une action d’un participant':peint+' actions d’un participant');},
   onDesync(){}, onStatus(){},
 
@@ -13566,8 +13654,46 @@ const Share={
     this.fiche=r.fiche;this.fold=null;this.lastOk=Date.now();this._fails=0;this._act=Date.now();this._ids=[];
     this._samples=[];this._sample(t0,r.server_time);
     await this._loadQ(r.share);
+    this._ticketSave();
     this._kick(0);
     return r;},
+
+  /* LE BILLET DE L'INVITÉ — `sessionStorage`, et ce choix EST l'arbitrage.
+     Un rechargement involontaire mettait fin à la participation SANS RETOUR : rien n'était
+     persisté (décision v4.46.0, « l'invité ne garde rien ») et le code est consommé, donc il ne
+     pouvait pas revenir sans que l'hôte réarme une porte. Or un onglet mobile meurt tout seul —
+     iOS recycle les onglets en arrière-plan —, et c'est le seul écran de la personne qui relève.
+     `sessionStorage` a exactement la portée qu'il faut : CET onglet, CETTE navigation. Il survit
+     au rechargement, il est effacé à la fermeture, il n'est partagé avec aucun autre onglet, et
+     il ne touche ni IndexedDB, ni `localStorage`, ni les espaces de l'application. L'invariant
+     d'étanchéité n'est donc pas abandonné — il est tenu là où il compte : rien de DURABLE ne
+     reste sur le téléphone d'un tiers.
+     Le billet ne porte que ce qui rouvre le tuyau. Aucune donnée clinique : la fiche et l'état
+     sont redemandés au serveur, qui reste la source. */
+  _tk(){return 'ac-share-tk';},
+  _ticketSave(){try{if(this.mode!=='guest'||!this.secret)return;
+    sessionStorage.setItem(this._tk(),JSON.stringify({s:this.share,k:this.secret,m:this.me,r:this.role}));}catch(e){}},
+  _ticketClear(){try{sessionStorage.removeItem(this._tk());}catch(e){}},
+  _ticketRead(){try{const j=JSON.parse(sessionStorage.getItem(this._tk())||'null');
+    return (j&&j.s&&j.k)?j:null;}catch(e){return null;}},
+  /* REPRISE APRÈS RECHARGEMENT. On ne rejoint pas (le code est brûlé) : on REPREND le fil avec le
+     secret déjà obtenu, depuis le début du journal — c'est ce qui reconstruit le pli, donc l'état.
+     Un refus (partage terminé, purgé, participant coupé) efface le billet : on ne laisse pas
+     traîner un jeton qui ne sert plus. */
+  async resume(){
+    const tk=this._ticketRead();if(!tk)return false;
+    const t0=Date.now();
+    let r=null;try{r=await this._io.pull(tk.k,tk.s,0);}catch(e){}
+    if(!r||!r.ok||!r.fiche){this._ticketClear();return false;}
+    this.mode='guest';this.share=tk.s;this.secret=tk.k;this.me=r.me||tk.m;this.role=r.role||tk.r;
+    this.status=r.status||'active';this.cursor=0;this.applied=0;this.seq=0;this.nEvents=0;
+    this.fiche=r.fiche;this.fold=null;this.lastOk=Date.now();this._fails=0;this._act=Date.now();this._ids=[];
+    this._samples=[];this._sample(t0,r.server_time);
+    if(Array.isArray(r.events)&&r.events.length){this.fold=shareFold(r.events);
+      this.cursor=r.events[r.events.length-1].seq||0;for(const e of r.events)this._ids.push(e.seq+':'+e.id);}
+    this.participants=r.participants||[];
+    this._kick(0);
+    return true;},
 
   /* DEUX SORTIES, ET LA DISTINCTION EST DOCTRINALE, pas cosmétique.
      `freeze` = le LIEN meurt (coupé par l'hôte, expiré, détaché, session terminée) : le sondage
@@ -13606,7 +13732,8 @@ const Share={
     try{await this._io.push(this.secret,this.share,[e]);}catch(err){}
     this.freeze('detached');
     return true;},
-  stop(){this.mode='off';this.status='off';clearTimeout(this._timer);this._timer=null;this._ids=[];
+  stop(){this._ticketClear();
+    this.mode='off';this.status='off';clearTimeout(this._timer);this._timer=null;this._ids=[];
     this._q=[];this._saveQ();this.share=this.secret=this.me=this.role=null;
     this.participants=[];this.fiche=this.fold=null;}
 };
@@ -14471,7 +14598,14 @@ if(location.search.indexOf('__actest')>=0){
       if(!c)return;
       SHARE_JOIN=c;shareEntryArrived();
     }catch(e){}});}}catch(e){}
-  load().then(()=>{if(_entree&&!SHARE_NOTRACE)shareEntryArrived();}).catch(err=>{try{
+  load().then(async()=>{
+    /* REPRISE APRÈS RECHARGEMENT — avant tout le reste, et sans écran intermédiaire : l'invité
+       n'a rien demandé, il vient de perdre son onglet. Si le serveur refuse (partage terminé,
+       purgé, participant coupé), le billet est effacé et l'application démarre normalement — il
+       se retrouve chez lui, pas devant une erreur qu'il ne peut pas résoudre. */
+    if(SHARE_RESUME){try{if(await Share.resume()&&Share.fiche){openSharedFiche();return;}}catch(e){}}
+    if(_entree&&!SHARE_NOTRACE)shareEntryArrived();
+  }).catch(err=>{try{
     // Écran d'échec CENTRÉ, au registre ALERTE de la taxonomie (bord gauche 4px critique) —
     // overlay fixe : lisible quel que soit l'état de la mise en page au moment de l'échec.
     // LE BOUTON EST CÂBLÉ EN DOM, JAMAIS EN `onclick=` : la CSP porte des hashs de script
