@@ -267,7 +267,7 @@ create or replace function public.clamp_updated_at()
 -- search_path épinglé (v4.44.0) : cette fonction tourne à chaque écriture de fiches et de
 -- category_sets. Elle n'est PAS security definer — elle s'exécute avec les droits de l'appelant,
 -- donc l'enjeu n'est pas une élévation mais l'indépendance vis-à-vis du search_path du client.
-returns trigger language plpgsql set search_path = public, pg_temp as $
+returns trigger language plpgsql set search_path = public, pg_temp as $$
 begin if new.updated_at is null or new.updated_at > now() then new.updated_at = now(); end if; return new; end;
 $$;
 drop trigger if exists fiches_clamp_updated   on public.fiches;
@@ -697,7 +697,7 @@ $$;
 --     toujours une chaîne e-mail ou absent, jamais un null JSON.
 create or replace function public.stamp_updated_by()
 -- search_path épinglé (v4.44.0), même raison que clamp_updated_at ci-dessus.
-returns trigger language plpgsql set search_path = public, pg_temp as $
+returns trigger language plpgsql set search_path = public, pg_temp as $$
 declare
   claims  jsonb := coalesce(nullif(current_setting('request.jwt.claims', true), ''), '{}')::jsonb;
   v_email text  := claims->>'email';

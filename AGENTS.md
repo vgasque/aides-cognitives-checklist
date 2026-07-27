@@ -30,7 +30,7 @@ ne s'apprend en lisant le code** — elles viennent d'incidents mesurés, et plu
    `APP_VERSION` et `CACHE` casse la mise à jour du service worker). **Jamais de `git push` sans
    demande explicite.**
 2. **Avant chaque commit** : `npm run check` (syntaxe · couleurs · classes émises · animations ·
-   service worker · hashs CSP) et
+   service worker · SQL · hashs CSP) et
    `npm test` (Chromium **et** WebKit). Si le CSS a changé : `npm run design:build`.
 3. **Toute édition du script inline exige `node scripts/csp-hashes.mjs`.** Sans cela, la CSP par
    hashs bloque le seul script de l'application et **elle ne démarre plus**. Le piège s'est produit
@@ -184,6 +184,19 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
     vérification). **Les sondes JETABLES s'écrivent à la racine en `.nom.mjs`** (pour trouver
     `playwright` dans `node_modules`) et sont ignorées par git ; seuls les harnais qui RESTENT
     vivent dans `scripts/`.
+  - `check-sql.mjs` (v4.44.1) — `supabase/*.sql` n'était couvert par RIEN : ni servi, ni chargé
+    par les tests, l'erreur ne se voyant qu'au collage dans l'éditeur SQL de Supabase, donc **sur
+    une instance de production**. Vérifie les runs de dollars (un délimiteur de corps s'écrit
+    `$$`), leur parité, et qu'aucun en-tête de fonction ne contient un `;` avant son corps.
+    **PIÈGE À CONNAÎTRE AVANT TOUT PATCH SCRIPTÉ** : `String.prototype.replace()` interprète
+    `$$` DANS LA CHAÎNE DE REMPLACEMENT comme un dollar littéral unique — comme `$&`, `` $` ``,
+    `$'` et `$1`. Un script qui réinjecte du SQL contenant `$$` le mutile donc **en silence** :
+    c'est arrivé en v4.44.0 sur deux fonctions trigger, et l'utilisateur l'a découvert en rejouant
+    le schéma. Remède : passer une **fonction** de remplacement (aucune substitution n'y est
+    faite), ou `split().join()`. Corollaire de méthode : le contrôle qui avait été fait à
+    l'époque comptait les `$$` et vérifiait la PARITÉ — or un `$$` amputé ne matche plus le
+    motif, il disparaît du compte des deux côtés et la parité reste vraie. Un contrôle aveugle au
+    défaut qu'il prétend couvrir ne vaut rien (leçon v4.31.1, redite ici au prix fort).
 - L'intégration continue (`.github/workflows/ci.yml`) rejoue, sur chaque push/PR :
   `npm run check` (syntaxe + couleurs + hashs CSP), `design:check --strict`, `npm ci`, `npm test`,
   puis `npm run audit` **en non bloquant**. `npm ci` (et non `npm install`) : la CI installe
