@@ -168,6 +168,17 @@ const SURFACES = [
       document.getElementById('endSessYes').click();await new Promise(r=>setTimeout(r,800));
       const last=sessions[sessions.length-1];
       if(last)exportSessionReport(last.id); } },
+  /* ÉCRAN D'ENTRÉE D'UN INVITÉ (v4.47.0) : la SEULE surface que verra un soignant sans compte, sur
+     son propre téléphone, en pleine intervention. Elle n'est pas une `.ai-modal` — elle échappait
+     donc au balayage des 20 fenêtres. Mesurée à 320 px, la largeur la plus contrainte servie :
+     c'est un écran qu'on remplit debout, sur l'appareil qu'on a en main.
+     Point d'entrée RÉEL (`openJoinScreen`, la fonction qu'appellent le démarrage par appariement
+     ET le bandeau système), jamais un `hidden=false` posé à la main. Le dépliage de la notice est
+     le geste de l'utilisateur, pas une reconstruction d'état : sans lui, le texte qui porte
+     l'information légale ne serait pas mesuré du tout. */
+  { nom:'entrée invité',       w:320,  scope:'#joinScreen', fn: async()=>{
+      openJoinScreen('K7M2P4Q9');
+      const d=document.querySelector('#joinScreen .join-info'); if(d)d.open=true; } },
   { nom:'nouvelle biblio.',    w:390,  scope:'#newLibModal', fn: async()=>{
       // openNewLib est gardée par myIsAppAdmin : garde MÉTIER légitime, dont la vraie barrière
       // est la RLS serveur. On la lève pour auditer le RENDU, ce qui est l'objet du harnais.

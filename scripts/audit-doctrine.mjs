@@ -7,18 +7,20 @@ const br=await moteur().launch();
 let ok=0,ko=0;
 const t=(nom,cond,det)=>{if(cond){ok++;console.log('  ✓ '+nom);}else{ko++;console.log('  ✗ '+nom+(det?'\n      '+det:''));}};
 
-async function session(w){
+async function session(w,demarrer){
   const page=await br.newPage({viewport:{width:w,height:820}});
   await page.goto(`http://localhost:${port}/index.html`);
   await page.waitForFunction(()=>!document.querySelector('.boot-load'));
-  await page.evaluate(async()=>{
+  await page.evaluate(async(demarrer)=>{
     const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();
     await new Promise(r=>setTimeout(r,120));
     const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();
     await new Promise(r=>setTimeout(r,350));
     const c=[...document.querySelectorAll('.card-open')].find(x=>/Arrêt cardiaque/.test(x.textContent));
     c.click();await new Promise(r=>setTimeout(r,150));
-    document.getElementById('sessStart').click();await new Promise(r=>setTimeout(r,350));});
+    // `demarrer===false` = l'écran d'un INVITÉ : la fiche est ouverte, mais rien n'a démarré
+    // localement — c'est le principe même du miroir, et c'est ce qui faisait disparaître le quai.
+    if(demarrer!==false){document.getElementById('sessStart').click();await new Promise(r=>setTimeout(r,350));}},demarrer);
   return page;
 }
 
@@ -412,6 +414,219 @@ console.log('\n══ ECAM · ancrage — résidu nul au geste de première acti
   if(g.length)t('guidé : le bloc ne bouge pas (≤ 1 px)',
     g[0].derive!==null&&Math.abs(g[0].derive)<=1,
     `dérive ${g[0].derive} px`);
+  await page.close();
+}
+
+/* ══ LA RANGÉE D'ÉTAT NE ROGNE PAS, MÊME AVEC UN LIBELLÉ LONG (v4.47.0) ══
+   `audit-doctrine` contrôlait déjà le débordement de la rangée de COMMANDES à 320/360/375/390.
+   La rangée d'ÉTAT n'avait AUCUN contrôle symétrique — alors que `#cbTimers` est en
+   `overflow:hidden` : un débordement n'y produit ni barre de défilement, ni glissement possible,
+   RIEN. Et la clé de la boucle d'ajustement était aveugle aux INTITULÉS (elle ne décrivait que le
+   nombre de chiffres) : renommer un minuteur faisait déborder le quai en silence — mesuré à
+   119 px à 320 px avant correctif. Ce contrôle mesure les deux : intitulé long ET libellé de
+   session étendu, ce dernier étant l'emplacement où le partage écrira (Lot 4). */
+console.log('\n══ ECAM · la rangée d\'ÉTAT ne rogne jamais ══');
+for(const w of [320,360,390]){
+  const page=await session(w);
+  const r=await page.evaluate(async()=>{
+    /* DEUX TEMPS, et c'est tout le contrôle. Changer plusieurs choses d'un coup ferait bouger la
+       clé d'ajustement par un AUTRE terme (nombre de minuteurs, chiffres du chrono) et la boucle
+       se re-mesurerait — le contrôle passerait au vert sans rien prouver.
+       Temps 1 : on installe le pire cas réaliste et on laisse la boucle se stabiliser.
+       Temps 2 : on RENOMME un minuteur, et RIEN d'autre. C'est le scénario exact du défaut. */
+    const ids=Object.keys(Runtime.timers).slice(0,3);
+    ids.forEach(id=>{const t=Runtime.timers[id];t.running=true;t.lastStart=Date.now();});
+    Runtime.startedAt=Date.now()-3*3600*1000;      // chrono à h:mm:ss, le cas le plus large
+    updateRtStrip();await new Promise(x=>setTimeout(x,400));
+    const el=document.getElementById('cbTimers');
+    const depAvant=el.scrollWidth-el.clientWidth;
+    if(ids[0])Runtime.timers[ids[0]].label='Cycle de compressions thoraciques profondes';
+    updateRtStrip();await new Promise(x=>setTimeout(x,400));
+    const dep=el.scrollWidth-el.clientWidth;
+    const nb=el.querySelectorAll('.seg').length;
+    const plus=!!el.querySelector('.cbt-n');
+    return {depAvant,dep,nb,plus,arme:ids.length};
+  });
+  t(`${w} px · état stable avant renommage : aucun débordement`,r.depAvant<=1,
+    `déborde déjà de ${r.depAvant} px`);
+  // Tolérance 1 px : sous-pixel de compositeur, comme pour la rangée de commandes.
+  t(`${w} px · 3 minuteurs + intitulé long : la rangée d'état ne rogne pas`,r.dep<=1,
+    `déborde de ${r.dep} px`);
+  // Et si elle a dû retirer un segment, le « +n » DOIT l'annoncer — une zone d'état ne cache
+  // jamais une alarme en silence.
+  t(`${w} px · ce qui est retiré est annoncé par « +n »`,r.nb>=1&&(r.arme<=r.nb-1||r.plus),
+    `${r.nb} segment(s), +n ${r.plus?'présent':'absent'}`);
+  await page.close();
+}
+
+/* ══ L'ALARME NE TOMBE JAMAIS AVANT LE DÉCORATIF (v4.47.0) ══
+   Le segment ambre d'un minuteur ÉCHU est le canal d'ACQUITTEMENT de l'alarme : c'est la seule
+   trace qui persiste dans une zone qui ne quitte jamais l'écran une fois le bip passé. Or la
+   boucle d'ajustement retirait les segments un à un et n'essayait « sans chevron » qu'arrivée à
+   ZÉRO segment : elle sacrifiait donc l'alarme pour garder un glyphe `aria-hidden` que son propre
+   commentaire dit « purement décoratif ». Et si même cette version ne tenait pas, elle REMETTAIT
+   le chevron par-dessus — réécrivant un état qu'elle venait de mesurer comme débordant.
+   Le contrôle mesure les deux : à toutes les largeurs de téléphone, avec un intitulé long sur le
+   minuteur échu, `.seg.due` est PRÉSENT et le quai ne rogne pas. */
+console.log('\n══ ECAM · l\'alarme survit au décoratif ══');
+for(const w of [320,360,390]){
+  const page=await session(w);
+  const r=await page.evaluate(async()=>{
+    const ids=Object.keys(Runtime.timers).slice(0,3);
+    ids.forEach((id,i)=>{const t=Runtime.timers[id];
+      t.type='interval';t.seconds=120;t.running=i>0;t.lastStart=Date.now();
+      t.elapsedMs=i===0?125000:0;});                       // le 1ᵉʳ est ÉCHU
+    if(ids[0])Runtime.timers[ids[0]].label='Cycle de compressions thoraciques profondes';
+    Runtime.startedAt=Date.now()-3*3600*1000;              // chrono h:mm:ss, le cas le plus large
+    updateRtStrip();await new Promise(x=>setTimeout(x,400));
+    const el=document.getElementById('cbTimers');
+    const due=el.querySelector('.seg.due');
+    const lu=()=>({dep:el.scrollWidth-el.clientWidth, alarme:!!el.querySelector('.seg.due'),
+      txt:el.textContent.trim().slice(0,90)});
+    const nu=lu();
+    /* PIRE CAS DU LOT 4 : le libellé du chrono porte EN PLUS le jeton de partage. C'est la
+       combinaison que la contre-expertise annonçait fatale à l'alarme — elle ne l'est plus, mais
+       elle doit être mesurée ici, pas supposée. */
+    Share.mode='guest';Share.status='active';Share.role='scribe';
+    Share.lastOk=Date.now();Share._act=Date.now();
+    updateRtStrip();await new Promise(x=>setTimeout(x,250));
+    const avecJeton=lu(), jeton=/suit/.test(el.textContent);
+    Share.mode='off';Share.status='off';
+    return {dep:nu.dep, alarme:nu.alarme,
+      glyphe:!!due&&/△/.test(due.textContent),
+      mot:!!due&&/échu/.test(due.textContent),
+      avecJeton, jeton, txt:nu.txt};
+  });
+  t(`${w} px · le segment ÉCHU reste affiché`,r.alarme,`quai : « ${r.txt} »`);
+  t(`${w} px · l'échu porte le glyphe △ ET le mot (lecteur d'écran)`,r.glyphe&&r.mot,
+    `glyphe ${r.glyphe?'oui':'NON'}, mot ${r.mot?'oui':'NON'}`);
+  t(`${w} px · la rangée d'état ne rogne pas pour autant`,r.dep<=1,`déborde de ${r.dep} px`);
+  t(`${w} px · jeton de partage EN PLUS : l'alarme survit et rien ne rogne`,
+    r.jeton&&r.avecJeton.alarme&&r.avecJeton.dep<=1,
+    `jeton ${r.jeton?'écrit':'ABSENT'}, alarme ${r.avecJeton.alarme?'là':'PERDUE'}, déborde de ${r.avecJeton.dep} px\n      « ${r.avecJeton.txt} »`);
+  await page.close();
+}
+
+/* ══ LE QUAI DE L'INVITÉ EXISTE, ET IL DIT LA MAIN (v4.47.0) ══
+   AC 120-71B §6.4 pt 1 : à tout instant, qui tient la checklist ne souffre AUCUNE ambiguïté. Or le
+   quai n'apparaissait que si une session avait démarré LOCALEMENT — un invité qui suit n'a rien
+   démarré, c'est le principe du miroir : tant qu'aucun minuteur ne tournait, il n'avait ni le
+   détenteur de la main ni l'indicateur de péremption. Les deux informations que la doctrine veut
+   permanentes n'avaient pas de conteneur.
+   On vérifie AUSSI qu'elles sont LISIBLES : l'ellipse du quai fonctionne désormais (cf. plancher de
+   112 px), donc un jeton trop long ne déborderait plus — il serait TRONQUÉ, c'est-à-dire muet. */
+console.log('\n══ AC 120-71B · le quai de l\'invité dit qui tient la main ══');
+for(const w of [320,360,390]){
+  const page=await session(w,false);
+  const r=await page.evaluate(async()=>{
+    const el=document.getElementById('cbTimers');
+    const avant=el.hidden;                                  // aucune session locale : quai absent
+    Share.mode='guest';Share.status='active';Share.role='scribe';
+    Share.lastOk=Date.now();Share._act=Date.now();
+    Runtime.startedAt=Date.now()-65000;                     // le chrono REÇU de l'hôte
+    updateRtStrip();await new Promise(x=>setTimeout(x,250));
+    const lu=()=>{const l=el.querySelector('.seg-l.seg-sess');
+      return {txt:l?l.textContent:'',coupe:!!l&&l.scrollWidth>Math.round(l.getBoundingClientRect().width)+1};};
+    const suit=lu(), dep1=el.scrollWidth-el.clientWidth, cache=el.hidden;
+    Share.role='lead';updateRtStrip();await new Promise(x=>setTimeout(x,120));
+    const main=lu();
+    Share.lastOk=Date.now()-120000;updateRtStrip();await new Promise(x=>setTimeout(x,120));
+    const fige=lu(), off=!!el.querySelector('.seg-l.seg-sess.off');
+    Share.lastOk=Date.now();Share.status='revoked';updateRtStrip();await new Promise(x=>setTimeout(x,120));
+    const coupe=lu(), toujours=!el.hidden;
+    Share.mode='off';Share.status='off';
+    return {avant,cache,dep1,suit,main,fige,off,coupe,toujours};
+  });
+  t(`${w} px · sans partage, aucune session locale : pas de quai`,r.avant,'le quai était déjà là');
+  t(`${w} px · invité : le quai EXISTE sans session locale`,!r.cache);
+  t(`${w} px · il dit « suit », entièrement lisible`,/suit/.test(r.suit.txt)&&!r.suit.coupe,
+    `« ${r.suit.txt} »${r.suit.coupe?' — TRONQUÉ':''}`);
+  t(`${w} px · la main prise : « main », lisible`,/main/.test(r.main.txt)&&!r.main.coupe,
+    `« ${r.main.txt} »${r.main.coupe?' — TRONQUÉ':''}`);
+  t(`${w} px · lien figé : le mot le dit et le vert cesse d'affirmer`,
+    /figé/.test(r.fige.txt)&&!r.fige.coupe&&r.off,`« ${r.fige.txt} », neutre ${r.off}`);
+  t(`${w} px · coupé : le quai reste, le mot change`,
+    /coupé/.test(r.coupe.txt)&&!r.coupe.coupe&&r.toujours,`« ${r.coupe.txt} »`);
+  t(`${w} px · et la rangée ne rogne pas`,r.dep1<=1,`déborde de ${r.dep1} px`);
+  await page.close();
+}
+
+/* ══ INCRÉMENTER UN COMPTEUR HORODATE — et ne fait pas remonter le rail (v4.47.0) ══
+   « Choc n° 3 à 14:32 » est exactement ce qu'on oublie de noter sous stress, et l'heure est ce
+   qui compte cliniquement. Le repère porte une RÉFÉRENCE, pas un mot : son libellé se dérive de
+   la fiche, il traverse donc le partage sans texte libre et suit le compteur si on le renomme.
+   Le contrôle mesure les deux moitiés : le repère EXISTE, et le rail NE BOUGE PAS — le journal
+   vit en fin de rail, qui a son propre défilement, et un rendu complet le remettrait à zéro
+   (retour d'usage v4.23.5, « la barre latérale remontait à chaque Noter l'heure »). */
+console.log('\n══ Journal · incrémenter un compteur pose un repère horodaté ══');
+{
+  const page=await session(1280);   // >= 1000 px : le panneau compteurs est dans le DOM
+  const r=await page.evaluate(async()=>{
+    const inc=document.querySelector('[data-cninc]');
+    if(!inc)return {err:'aucun compteur à l\'écran'};
+    const cid=inc.dataset.cninc;
+    const cLab=((Runtime.fiche.counters||[]).find(x=>x.id===cid)||{}).label||'';
+    const rail=document.querySelector('.read-side');
+    if(rail)rail.scrollTop=60;
+    await new Promise(x=>setTimeout(x,200));
+    const railAvant=rail?rail.scrollTop:null;
+    const avant=(Runtime.events||[]).length;
+    // Deux incréments : le second doit porter le rang 2, pas répéter le premier.
+    inc.click();await new Promise(x=>setTimeout(x,250));
+    const inc2=document.querySelector('[data-cninc="'+CSS.escape(cid)+'"]');
+    if(inc2)inc2.click();
+    await new Promise(x=>setTimeout(x,300));
+    const ev=Runtime.events||[];
+    const labs=window.__acTkLabels?window.__acTkLabels(ev,Runtime.fiche):null;
+    const lignes=[...document.querySelectorAll('.tk-panel .tk-lab')].map(i=>i.value);
+    return {err:null,cLab,avant,apres:ev.length,
+      refs:ev.filter(e=>e.ref&&e.ref.type==='counter').map(e=>e.ref.v),
+      lignes,railApres:rail?rail.scrollTop:null,railAvant,
+      compteur:Runtime.counters[cid],
+      incAttache:!!(inc2&&document.contains(inc2))};
+  });
+  t('un compteur est bien à l\'écran à 1280 px',!r.err,r.err||'');
+  if(!r.err){
+    t('deux incréments posent deux repères',r.apres===r.avant+2,`${r.avant} -> ${r.apres}`);
+    t('les repères portent le rang du compteur (1 puis 2)',
+      JSON.stringify(r.refs.slice(-2))==='[1,2]',JSON.stringify(r.refs));
+    t('le libellé affiché dérive du compteur',
+      r.lignes.some(l=>l===r.cLab+' n° 2'),JSON.stringify(r.lignes));
+    t('le compteur lui-même est à 2',r.compteur===2,String(r.compteur));
+    // Le cœur du contrôle : la mise à jour est CHIRURGICALE, donc le rail garde sa position et le
+    // bouton reste le même nœud. Un render() complet casserait les deux.
+    t('le rail ne remonte pas',r.railAvant===r.railApres,`${r.railAvant} -> ${r.railApres}`);
+    t('le bouton reste le MÊME nœud (aucun rendu complet)',r.incAttache===true);
+  }
+  /* ANNULER N'EST PAS SUPPRIMER. Le × effaçait le repère d'un simple tap : contraire à la règle
+     du projet sur les gestes destructeurs en crise, et surtout intenable pour une TRACE qui
+     alimente le compte-rendu. On vérifie l'aller-retour complet — et surtout qu'à AUCUN moment le
+     repère ne quitte le journal. */
+  const v=await page.evaluate(async()=>{
+    const n0=(Runtime.events||[]).length;
+    const b=document.querySelector('.tk-panel [data-tkdel]');
+    if(!b)return {err:'aucun repère à annuler'};
+    const id=b.dataset.tkdel;
+    b.click();await new Promise(x=>setTimeout(x,250));
+    const apresAnnul={n:(Runtime.events||[]).length,
+      voidAt:!!(Runtime.events.find(e=>e.id===id)||{}).voidAt,
+      barre:!!document.querySelector('.tk-panel .tk-item.tk-void'),
+      libelle:(document.querySelector('.tk-panel [data-tkdel="'+CSS.escape(id)+'"]')||{}).textContent};
+    const b2=document.querySelector('.tk-panel [data-tkdel="'+CSS.escape(id)+'"]');
+    if(b2)b2.click();await new Promise(x=>setTimeout(x,250));
+    return {err:null,n0,apresAnnul,
+      apresRetour:{n:(Runtime.events||[]).length,
+        voidAt:!!(Runtime.events.find(e=>e.id===id)||{}).voidAt,
+        barre:!!document.querySelector('.tk-panel .tk-item.tk-void')}};
+  }).catch(e=>({err:String(e).slice(0,80)}));
+  t('un repère est annulable',!v.err,v.err||'');
+  if(!v.err){
+    t('annuler NE SUPPRIME PAS la ligne',v.apresAnnul.n===v.n0,`${v.n0} -> ${v.apresAnnul.n}`);
+    t('la ligne est marquée annulée et barrée',v.apresAnnul.voidAt&&v.apresAnnul.barre);
+    t('le × est devenu un retour (↺)',v.apresAnnul.libelle==='↺',String(v.apresAnnul.libelle));
+    t('on peut se raviser : le repère est rétabli',
+      !v.apresRetour.voidAt&&!v.apresRetour.barre&&v.apresRetour.n===v.n0);
+  }
   await page.close();
 }
 

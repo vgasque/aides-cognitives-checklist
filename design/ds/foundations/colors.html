@@ -518,13 +518,37 @@
   #cbTimers[hidden]{display:none}
   #cbTimers:not([hidden]){display:flex}
   #cbTimers:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
-  #cbTimers .seg{flex:1 1 0;display:flex;flex-direction:column;justify-content:center;gap:2px;padding:6px 16px;border-left:1px solid var(--line)}
+  /* L'ELLIPSE DES INTITULÉS N'A JAMAIS FONCTIONNÉ (correctif v4.47.0). `.seg-l` déclare
+     `text-overflow:ellipsis` depuis l'origine et le commentaire ci-dessous l'attribuait à un
+     « min-width:0 du segment » — qui n'existait pas. Sans plancher explicite, `min-width:auto`
+     dimensionne le segment sur son contenu le plus large ; en colonne, la règle flex qui annule le
+     minimum automatique porte sur l'axe PRINCIPAL, donc sur la hauteur, jamais sur cette largeur.
+     Un intitulé un peu long ne se coupait donc pas : il ÉLARGISSAIT le segment (mesuré 346 px pour
+     320 de large), la boucle d'ajustement voyait un débordement et EXPULSAIT le segment — quand
+     c'était l'ALARME, elle disparaissait au profit d'un « +1 » muet.
+     Le plancher est CHIFFRÉ, et c'est ce qui tient les deux bouts : 112 px = la valeur réelle la
+     plus large (« 999:59:59 », 95 px) plus les rembourrages du palier étroit. En dessous du
+     plancher l'intitulé s'ellipse — un MOT se tronque, c'est admis (cf. « Cons. ») ; au-dessus, la
+     valeur ne peut jamais être rognée — un NOMBRE ne se tronque pas, et si la place manque
+     vraiment le segment déborde POUR DE BON, donc la boucle en retire un et le « +n » l'annonce.
+     Vérifié aux deux extrêmes sur Chromium ET WebKit. Le bloc ≥ 780 px porte déjà son propre
+     plancher (132 px, cartes détachées). */
+  #cbTimers .seg{flex:1 1 0;min-width:112px;display:flex;flex-direction:column;justify-content:center;gap:2px;padding:6px 16px;border-left:1px solid var(--line)}
   /* < 780 : les segments sont des bandes JOINTIVES séparées par un filet — la 1ʳᵉ n'a pas de
      filet à gauche (bord du quai). ≥ 780 elles deviennent des cartes détachées, chacune bordée
      sur ses 4 côtés : cette suppression est alors REMISE (cf. le bloc ≥ 780). */
   @media (max-width:779.98px){#cbTimers .seg:first-child{border-left:0}}
   #cbTimers .seg-l.seg-sess{color:var(--ok)}   /* ● SESSION : vert actif nominal (ECAM), jamais rouge/ambre */
-  #cbTimers .seg-l{font-size:11px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--ink-soft);line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* Lien de partage non nominal (figé, coupé, terminé) : le vert AFFIRME un état nominal, il doit
+     donc cesser — sans passer à l'ambre, réservé au minuteur échu. Le mot du jeton porte le sens. */
+  #cbTimers .seg-l.seg-sess.off{color:var(--ink-soft)}
+  /* `position:relative` N'EST PAS DÉCORATIF ICI. L'étiquette `.sr-only` du minuteur échu est en
+     `position:absolute` : sans ancêtre positionné, son bloc conteneur est extérieur au segment,
+     elle échappe donc au `overflow:hidden` de l'intitulé et se pose à sa position statique dans le
+     flux NON coupé — mesuré à 488 px sur un quai de 320. Elle gonflait `scrollWidth`, c'est-à-dire
+     qu'elle MENTAIT à la boucle d'ajustement, qui retirait un segment pour un débordement
+     imaginaire. Confinée ici, elle est coupée avec le reste et ne pèse plus rien. */
+  #cbTimers .seg-l{position:relative;font-size:11px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--ink-soft);line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   /* Très étroit : segments resserrés — l'ellipse des intitulés vient du min-width:0 du segment
      (plus de plafond en vw : la rangée occupe toute la largeur, elle n'a plus à se disputer la
      place avec le thème et le compte comme dans l'ancienne pastille d'en-tête). */
@@ -1361,6 +1385,12 @@
   .tk-lab{flex:1;min-width:0;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--input-bg);color:var(--ink);font-size:14px}
   .tk-lab:focus{outline:2px solid var(--primary);border-color:transparent}
   .tk-del{flex-shrink:0;width:38px;height:44px;border:0;border-radius:8px;background:var(--bg);color:var(--ink-soft);font-size:17px}
+  /* REPÈRE ANNULÉ — barré et estompé, jamais retiré : le journal alimente le compte-rendu, et une
+     trace qu'un tap efface sans laisser de marque n'est pas une trace. L'heure reste EN ENCRE
+     PLEINE (c'est la donnée clinique ; l'estomper serait l'inversion à ne pas faire, cf. la règle
+     des doses du rail), et le barré porte l'information sans dépendre d'une couleur seule. */
+  .tk-void .tk-lab{text-decoration:line-through;color:var(--ink-soft);background:var(--surface-2)}
+  .tk-void .tk-el{opacity:.55}
   .tk-del:hover{background:var(--critical-soft);color:var(--critical)}
   /* MODIFICATEUR RENOMMÉ (v4.23.2) : c'était `.tk-panel.empty`, qui entrait en COLLISION avec la
      classe générique `.empty` (états vides « Protocole vide »). Deux fuites réelles en résultaient :
@@ -2150,8 +2180,36 @@
      du visualViewport), dvh ne sert plus que de REPLI avant la première mesure. Même division
      par --zf que toute hauteur de fenêtre (règle v4.24.0). */
   @supports (height:100dvh){
-    .ai-modal,.lightbox,#readerMode,#flowFull{bottom:auto;height:calc(var(--vvh,100dvh) / var(--zf,1))}
+    .ai-modal,.lightbox,#readerMode,#flowFull,#joinScreen{bottom:auto;height:calc(var(--vvh,100dvh) / var(--zf,1))}
   }
+  /* ÉCRAN D'ENTRÉE D'UN INVITÉ (v4.47.0). Plein écran, opaque, et le SEUL contenu de la page : il
+     s'affiche à la place de l'application, pas par-dessus — l'amorçage normal n'a pas eu lieu (ni
+     base, ni service worker, ni la moindre écriture), et c'est précisément ce que la notice
+     ci-dessous promet. Aucun z-index de course : rien d'autre n'existe à ce moment. */
+  #joinScreen{position:fixed;inset:0;z-index:96;background:var(--bg);overflow-y:auto;
+    display:flex;align-items:flex-start;justify-content:center;
+    padding:calc(20px + env(safe-area-inset-top)) 16px calc(20px + env(safe-area-inset-bottom))}
+  #joinScreen[hidden]{display:none}
+  .join-card{width:100%;max-width:460px;background:var(--surface);border:1px solid var(--line);
+    border-radius:14px;padding:20px 18px;box-shadow:var(--shadow)}
+  .join-eye{margin:0;font-size:11px;font-weight:800;letter-spacing:1.1px;text-transform:uppercase;color:var(--ink-soft)}
+  .join-card h1{margin:4px 0 10px;font-size:22px;line-height:1.2;color:var(--ink)}
+  .join-lead{margin:0 0 16px;font-size:14px;line-height:1.5;color:var(--ink)}
+  .join-lab{display:block;margin:0 0 5px;font-size:12px;font-weight:700;color:var(--ink-soft)}
+  /* 22 px et mono : on recopie un code lu sur l'écran d'un collègue, souvent debout. Le champ est
+     très au-dessus des 16 px sous lesquels Safari iOS zoome au focus (règle 9). */
+  .join-code{width:100%;box-sizing:border-box;margin:0 0 14px;padding:12px 14px;font-family:var(--mono);
+    font-size:22px;letter-spacing:3px;text-align:center;text-transform:uppercase;color:var(--ink);
+    background:var(--input-bg);border:1px solid var(--line-strong);border-radius:10px}
+  .join-sel{width:100%;box-sizing:border-box;margin:0 0 14px;padding:11px 12px;font-size:16px;
+    color:var(--ink);background:var(--input-bg);border:1px solid var(--line-strong);border-radius:10px}
+  .join-err{margin:0 0 12px;padding:9px 11px;font-size:13px;line-height:1.4;color:var(--critical);
+    background:var(--critical-soft);border-left:4px solid var(--critical-bd);border-radius:0 8px 8px 0}
+  .join-err[hidden]{display:none}
+  .join-go{width:100%;min-height:48px;font-size:16px}
+  .join-info{margin:16px 0 0;font-size:13px;color:var(--ink-soft)}
+  .join-info>summary{cursor:pointer;min-height:32px;display:flex;align-items:center;font-weight:700;color:var(--link)}
+  .join-info p{margin:9px 0 0;line-height:1.5}
   .ai-modal.on{display:flex}
   /* Fenêtre ouverte = page de fond VERROUILLÉE (v4.21.0 ; TECHNIQUE CHANGÉE v4.29.9). L'ancien
      verrou figeait body en position:fixed + top:-scrollY — or c'est LUI qui produisait la

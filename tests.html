@@ -1016,6 +1016,363 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   eq('médiane et non moyenne : une mesure aberrante ne tire pas le résultat',
     A.shareOffset([{t0:0,t1:100,srv:1050},{t0:0,t1:100,srv:50},{t0:0,t1:100,srv:60}]),10);
   ok('aucune mesure exploitable : null, jamais une valeur inventée',A.shareOffset([])===null);
+
+  group('Partage de session — transport');
+  // La couture `_io` est NEUTRALISÉE : sans cela ces tests partiraient sur le réseau. C'est la
+  // même couture que le harnais remplacera par un bus en processus pour faire dialoguer deux pages.
+  {const S=A.Share, io=S._io, iso=()=>new Date().toISOString();
+   S._io={join:async()=>({ok:false}),open:async()=>({}),admit:async()=>({}),
+     push:async()=>({ok:true,server_time:iso()}),
+     pull:async()=>({ok:true,status:'active',events:[],seq:0,n_events:0,participants:[],server_time:iso()})};
+
+   // CADENCE ADAPTATIVE : vive juste après une action, calme au repos. Gigue ±20 %, donc on teste
+   // un INTERVALLE — un test qui exigerait la valeur exacte serait instable par construction.
+   S.mode='guest';S.role='scribe';S.status='active';S._fails=0;
+   const dans=(v,lo,hi)=>v>=lo&&v<=hi;
+   S._act=Date.now();
+   ok('juste après une action : ~2 s',dans(S._delay(),1600,2400),String(S._delay()));
+   S._act=Date.now()-60000;
+   ok('après 1 min sans mouvement : ~5 s',dans(S._delay(),4000,6000),String(S._delay()));
+   S._act=Date.now()-300000;
+   ok('après 5 min sans mouvement : ~10 s',dans(S._delay(),8000,12000),String(S._delay()));
+   // Le repli exponentiel ALLONGE les tentatives — il ne doit pas raccourcir la cadence nominale.
+   S._act=Date.now();S._fails=4;
+   ok('en échec répété, l’intervalle s’allonge',S._delay()>=8000*0.8,String(S._delay()));
+   S._fails=0;
+
+   /* PÉREMPTION = CONTRAT, indépendant du repli — mais SOLIDAIRE DE LA CADENCE NOMINALE.
+      Le seuil était une CONSTANTE de 4 s, donc INFÉRIEUR à la période au repos (5 s dès 30 s sans
+      action, 10 s après deux minutes) : avec un réseau parfait, l'écran se serait déclaré « figé »
+      environ une seconde sur cinq au repos, et six sur dix pendant un cycle de RCP de deux
+      minutes — c'est-à-dire dans le cas d'usage phare. Un indicateur qui crie au loup les deux
+      tiers du temps n'est plus lu quand la panne est réelle. */
+   S._act=Date.now();S.lastOk=Date.now();
+   ok('contact frais : pas périmé',!S.isStale());
+   ok('le seuil ne descend jamais sous la constante plancher',S.staleLimit()>=A.SHARE_STALE_MS,
+      String(S.staleLimit()));
+   S.lastOk=Date.now()-S.staleLimit()-500;
+   ok('au-delà du seuil : périmé',S.isStale());
+   S._fails=6;
+   ok('la péremption NE DÉPEND PAS du repli exponentiel',S.isStale());
+   S._fails=0;
+   ok('un invité périmé perd l’écriture, visiblement',!S.canWrite('check'));
+   // AU REPOS LA CADENCE RALENTIT, ET LE SEUIL SUIT : un silence de 6 s est NORMAL quand on ne
+   // sonde que toutes les 5 s. C'est exactement le faux positif que la constante produisait.
+   S._act=Date.now()-60000;S.lastOk=Date.now()-6000;
+   ok('repos 1 min · silence de 6 s : pas périmé',!S.isStale(),'seuil '+S.staleLimit());
+   S._act=Date.now()-300000;S.lastOk=Date.now()-12000;
+   ok('repos 5 min · silence de 12 s : pas périmé',!S.isStale(),'seuil '+S.staleLimit());
+   // …mais DEUX cycles manqués restent une péremption, à toutes les cadences.
+   S.lastOk=Date.now()-30000;
+   ok('repos 5 min · silence de 30 s : périmé',S.isStale(),'seuil '+S.staleLimit());
+   S._act=Date.now();S.lastOk=Date.now();
+   S.lastOk=Date.now();
+   ok('contact frais : le scribe peut cocher',S.canWrite('check'));
+   ok('mais jamais naviguer, même à jour',!S.canWrite('nav'));
+   S.status='revoked';
+   ok('coupé : plus aucune écriture',!S.canWrite('check'));
+   S.status='detached';
+   ok('détaché : plus aucune écriture d’état',!S.canWrite('check'));
+   S.status='active';
+
+   // ÉMISSION : identifiant de déduplication, heure du GESTE, et filtrage par capacité.
+   S._q=[];S.offset=0;
+   const id=S.emit('check',{k:'1:b1:0'});
+   ok('un évènement émis reçoit un identifiant de déduplication',
+     /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(id||''),String(id));
+   ok('il entre dans la file',S._q.length===1&&S._q[0].kind==='check');
+   ok('il porte une heure ISO (celle du geste)',!isNaN(Date.parse(S._q[0].ts)));
+   ok('un genre hors capacité du rôle n’est pas mis en file',
+     S.emit('nav',{})===null&&S._q.length===1);
+   // L'heure émise suit le décalage serveur : c'est ce qui range correctement une action relevée
+   // hors réseau et transmise plus tard.
+   S.offset=60000;S._q=[];S.emit('mark',{});
+   ok('l’heure émise applique le décalage d’horloge',
+     Date.parse(S._q[0].ts)-Date.now()>50000);
+   S.offset=0;
+
+   ok('à l’arrêt, plus rien n’est émis',(S.stop(),S.emit('check',{k:'x'})===null));
+   S._io=io;}
+
+  group('Partage de session — curseur et détection de divergence');
+  {const S=A.Share, io=S._io, onD=S.onDesync, iso=()=>new Date().toISOString();
+   let reponse=null, desync=0;
+   S._io={push:async()=>({ok:true,server_time:iso()}),pull:async()=>reponse,
+     join:async()=>({ok:false}),open:async()=>({}),admit:async()=>({})};
+   S.onDesync=()=>{desync++;};
+   const armer=()=>{S.mode='guest';S.role='scribe';S.status='active';S.cursor=0;S.applied=0;
+     S._q=[];S._fails=0;S._resync=false;desync=0;};
+   const cycle=async()=>{await S._cycle();clearTimeout(S._timer);};
+
+   // (a) TROU DE NUMÉROTATION. Un scribe qui pousse [cocher, naviguer] consomme DEUX numéros et
+   // n'écrit qu'une ligne : le second est refusé par ses capacités. Le trou ne se comblera jamais.
+   // Si le curseur se calait sur le dernier évènement REÇU, il resterait éternellement sous la
+   // borne du serveur — et la détection, qui exige d'être à jour, deviendrait un contrôle MORT.
+   armer();
+   reponse={ok:true,status:'active',role:'scribe',me:'g1',participants:[],
+     events:[{seq:1,actor:'g1',kind:'check',payload:{k:'1:b1:0'}}],seq:3,n_events:1,
+     server_time:iso()};
+   await cycle();
+   eq('un trou de numérotation ne bloque pas le curseur',S.cursor,3);
+   eq('aucune divergence signalée quand le compte est juste',desync,0);
+
+   // (b) LOT TRONQUÉ. Le serveur renvoie 500 évènements au plus : sauter jusqu'à la borne haute
+   // perdrait pour de bon tout ce qui reste dessous.
+   armer();
+   const gros=[];for(let i=1;i<=500;i++)gros.push({seq:i,actor:'g1',kind:'mark',payload:{}});
+   reponse={ok:true,status:'active',role:'scribe',me:'g1',participants:[],
+     events:gros,seq:1200,n_events:1200,server_time:iso()};
+   await cycle();
+   eq('lot tronqué : le curseur reste au dernier évènement reçu',S.cursor,500);
+   eq('et aucune divergence n’est criée à tort (on n’est pas à jour)',desync,0);
+
+   // (c) PERTE RÉELLE. On est à jour sur la borne, mais on détient MOINS d'évènements que le
+   // serveur n'en compte : quelque chose a été sauté. C'est le mode de défaillance qu'un simple
+   // indicateur de péremption ne verrait JAMAIS — les réponses arrivent à l'heure, et elles sont
+   // fausses. Le miroir redemande TOUT plutôt que d'afficher un état plausible non vérifié.
+   armer();
+   reponse={ok:true,status:'active',role:'scribe',me:'g1',participants:[],
+     events:[{seq:9,actor:'g1',kind:'check',payload:{k:'1:b1:0'}}],seq:9,n_events:4,
+     server_time:iso()};
+   await cycle();
+   eq('perte détectée : une resynchronisation est demandée',desync,1);
+   eq('le curseur repart de zéro pour tout redemander',S.cursor,0);
+
+   // (d) Et elle ne se redéclenche pas en boucle tant que le rattrapage est en cours.
+   reponse={ok:true,status:'active',role:'scribe',me:'g1',participants:[],
+     events:[{seq:9,actor:'g1',kind:'check',payload:{k:'1:b1:0'}}],seq:9,n_events:4,
+     server_time:iso()};
+   await cycle();
+   eq('pas de boucle de resynchronisation',desync,1);
+
+   // (e) DOUBLON. Un lot réappliqué compte double : le contrôle est SYMÉTRIQUE, il ne suffit pas
+   // de guetter le manque. Un doublon de « cocher » est idempotent, mais un doublon de repère
+   // horodaté ferait apparaître deux fois la même action au compte-rendu.
+   armer();
+   reponse={ok:true,status:'active',role:'scribe',me:'g1',participants:[],
+     events:[{seq:1,id:'e1',actor:'g1',kind:'mark',payload:{}},
+             {seq:2,id:'e2',actor:'g1',kind:'mark',payload:{}}],seq:2,n_events:1,
+     server_time:iso()};
+   await cycle();
+   eq('un évènement EN TROP est détecté aussi',desync,1);
+
+   // (f) EMPREINTE DU FLUX. Le compte est juste, et pourtant le flux reçu n'est pas celui qui a
+   // été écrit — identifiant corrompu, ordre faux, substitution. C'est précisément ce qu'un
+   // compteur ne peut pas voir : deux écrans plausibles qui se contredisent.
+   armer();
+   reponse={ok:true,status:'active',role:'scribe',me:'g1',participants:[],
+     events:[{seq:1,id:'e1',actor:'g1',kind:'check',payload:{k:'1:b1:0'}}],seq:1,n_events:1,
+     stream:'0000000000000000000000000000000000000000000000000000000000000000',
+     server_time:iso()};
+   await cycle();
+   eq('compte juste mais empreinte fausse : divergence détectée',desync,1);
+   eq('le motif est distingué du simple manque',S._resync,true);
+
+   // (g) Contre-épreuve : avec la VRAIE empreinte du flux reçu, rien n'est signalé. Sans elle, le
+   // test (f) prouverait seulement que la sonde crie à tout — pas qu'elle sait distinguer.
+   armer();
+   S._ids=['1:e1'];
+   const vraie=await S._streamHash();
+   S._ids=[];
+   reponse={ok:true,status:'active',role:'scribe',me:'g1',participants:[],
+     events:[{seq:1,id:'e1',actor:'g1',kind:'check',payload:{k:'1:b1:0'}}],seq:1,n_events:1,
+     stream:vraie,server_time:iso()};
+   await cycle();
+   eq('flux conforme : aucune divergence criée à tort',desync,0);
+   ok('l’empreinte est bien un SHA-256 hexadécimal',/^[0-9a-f]{64}$/.test(vraie),vraie);
+
+   S.stop();S._io=io;S.onDesync=onD;}
+
+  group('Partage de session — application et trace');
+  // Le classement des verbes n'est pas « chirurgical vs re-rendant » : le critère est « est-ce que
+  // ça déplace le sol sous le doigt, et est-ce légitime ? ». Une navigation distante DOIT être
+  // suivie (le pilote avance, ECAM montre le même E/WD aux deux postes) — mais ancrée. Une passe
+  // do-verify d'un autre, non : elle réorganiserait l'écran sans que rien ne l'ait demandé.
+  ok('tout genre du vocabulaire est classé',
+    A.SHARE_KINDS_ANY.concat(A.SHARE_KINDS_LEAD).every(k=>!!A.SHARE_APPLY[k]),
+    A.SHARE_KINDS_ANY.concat(A.SHARE_KINDS_LEAD).filter(k=>!A.SHARE_APPLY[k]).join(','));
+  eq('cocher s’applique en direct, par chirurgie',A.shareApplyMode('check'),'live');
+  eq('naviguer s’applique aussi, mais ANCRÉ',A.shareApplyMode('nav'),'anchored');
+  eq('la passe do-verify d’un autre est DIFFÉRÉE',A.shareApplyMode('verify'),'deferred');
+  eq('l’annexe d’un détaché ne touche jamais la checklist',A.shareApplyMode('offline_mark'),'none');
+  eq('un genre inconnu est différé — le défaut prudent',A.shareApplyMode('zzz'),'deferred');
+
+  // Trace do-verify : ancienne forme (horodatage nu) et nouvelle ({a,t}) lues par la même
+  // fonction. Aucune migration de données — un export antérieur reste lisible.
+  eq('un horodatage nu se lit encore',A.vfTime(1700000000000),1700000000000);
+  eq('la nouvelle forme porte QUI',A.vfActor({a:'g2',t:5}),'g2');
+  eq('une valeur absente ne fabrique pas d’heure',A.vfTime(null),0);
+  {const m=A.vfMapNorm({'1:b:0':1700000000000,'1:b:1':{a:'g2',t:42}});
+   ok('la normalisation accepte les deux formes',
+     m['1:b:0'].t===1700000000000&&m['1:b:0'].a===null&&m['1:b:1'].a==='g2');}
+
+  // navSeq : sur une session PARTAGÉE, la régénération 1..n orphelinerait toutes les coches —
+  // 48 sur une fiche de 8 blocs à 6 étapes, sans un message. On garde ce qu'on a reçu et on lève
+  // un drapeau : échouer bruyamment, jamais deviner.
+  {const f=A.migrate(A.blankFiche());
+   const b2={id:'b2',type:'steps',title:'Second',steps:['x'],next:null};
+   f.blocks.push(b2);
+   const sess={nav:[f.blocks[0].id,'b2'],navSeq:[7],checked:{}};
+   const loc=A.buildRuntime(f,sess);
+   eq('session LOCALE : la régénération reste le repli normal',loc.navSeq,[1,2]);
+   ok('et rien n’est signalé',!loc.navBad);
+   const par=A.buildRuntime(f,Object.assign({shared:true},sess));
+   eq('session PARTAGÉE : aucune renumérotation',par.navSeq,[7]);
+   ok('et le drapeau est levé pour redemander un instantané',par.navBad===true);}
+
+  // crisis-live gouverne la mise en attente des snackbars (règle 11). Un invité qui SUIT une
+  // session partagée n'a rien démarré localement : sans cet élargissement, toutes les banderoles
+  // flottantes lui passeraient par-dessus la checklist.
+  {const S=A.Share, st=A.state, R=A.Runtime, vue=st.view, fic=R.fiche;
+   st.view='read';R.fiche=null;
+   S.mode='off';
+   ok('hors partage, le critère reste « ma session a démarré »',!A.crisisOnScreen());
+   S.mode='guest';S.status='active';R.fiche={id:'f1'};
+   ok('un invité qui suit une session partagée compte comme une crise à l’écran',A.crisisOnScreen());
+   /* LA FIN DU PARTAGE N'EST PAS LA FIN DU SOIN. Le critère s'écrivait `status==='active'` : à
+      l'instant où l'hôte coupait, `crisis-live` tombait sur l'écran de l'invité et déversait sur
+      sa checklist les snackbars mises en attente pendant tout le soin. Il tient encore la fiche
+      en main : la coupure se déclare sur place, elle ne déverrouille pas le chrome. */
+   S.status='revoked';
+   ok('coupé, la fiche est encore en main : toujours une crise à l’écran',A.crisisOnScreen());
+   S.status='ended';
+   ok('idem pour une session terminée par l’hôte',A.crisisOnScreen());
+   R.fiche=null;S.status='active';
+   ok('mais plus rien à peindre : plus de crise à l’écran',!A.crisisOnScreen());
+   st.view='library';R.fiche={id:'f1'};
+   ok('et jamais hors de la vue lecture',!A.crisisOnScreen());
+   // `freeze` arrête le lien SANS quitter le mode : c'est ce qui garde l'écran de l'invité intact.
+   S.mode='guest';S.status='active';S._q=[{event_id:'x'}];
+   S.freeze('revoked');
+   ok('freeze : le lien est mort, le mode reste « invité »',S.mode==='guest'&&S.status==='revoked');
+   ok('freeze : la file part (rien ne sera jamais délivré)',S.pending()===0);
+   S.stop();
+   ok('stop : plus rien du partage ne subsiste',S.mode==='off'&&S.share===null);
+   S.mode='off';st.view=vue;R.fiche=fic;}
+
+  /* JETON D'ÉTAT DU QUAI. Deux informations doivent être permanentes et à position constante sur
+     les DEUX écrans : qui tient la main, et si ce qu'on voit est encore vrai. Elles vivent dans le
+     libellé du chrono — le seul emplacement à coût de mise en page NUL (le segment est déjà étiré
+     par le flex) et le seul que la boucle d'ajustement ne peut pas expulser.
+     Ce test encode la BORNE : le jeu est fermé et court. Un jeton long y serait tronqué par
+     l'ellipse — donc muet — et c'est précisément ce qu'on refuse. */
+  {const S=A.Share, sv={mode:S.mode,status:S.status,role:S.role,lastOk:S.lastOk,act:S._act,part:S.participants};
+   S.mode='off';
+   eq('hors partage, aucun jeton',A.shareGlobTag(),'');
+   S.mode='guest';S.status='active';S.role='scribe';S._act=Date.now();S.lastOk=Date.now();
+   eq('invité scribe : il SUIT',A.shareGlobTag(),'suit');
+   S.role='lead';
+   eq('invité qui a la main : MAIN',A.shareGlobTag(),'main');
+   S.mode='host';S.participants=[{revoked_at:null},{revoked_at:null}];
+   eq('hôte : le nombre de participants',A.shareGlobTag(),'⇄2');
+   S.participants=[{revoked_at:null},{revoked_at:'2026-01-01'}];
+   eq('un participant coupé ne compte plus',A.shareGlobTag(),'⇄1');
+   /* LE LIEN REMPLACE LA MAIN, il ne s'y ajoute pas. Ce n'est pas une économie de place : quand le
+      lien n'est plus nominal, le rôle et le compte de participants ne sont PLUS CONNUS — les
+      afficher serait la donnée périmée présentée comme vivante (danger n° 2, ECRI 2015). */
+   S.lastOk=Date.now()-60000;
+   eq('lien figé : le jeton le dit, et rien d’autre',A.shareGlobTag(),'figé');
+   S.lastOk=Date.now();S.status='revoked';
+   eq('coupé par l’hôte',A.shareGlobTag(),'coupé');
+   S.status='detached';
+   eq('détaché : on poursuit SEUL',A.shareGlobTag(),'seul');
+   S.status='ended';
+   eq('session terminée par l’hôte',A.shareGlobTag(),'fini');
+   S.status='active';S.mode='guest';S.role='scribe';
+   // La borne géométrique : le libellé complet doit rester sous la troncature de 18 caractères,
+   // sinon l'ellipse mangerait le jeton en silence — un état muet vaut moins qu'aucun état.
+   let plusLong=0;
+   for(const k in A.SHARE_STATUS_TAG){const v=A.SHARE_STATUS_TAG[k];if(v.length>plusLong)plusLong=v.length;}
+   ok('tout jeton de statut tient en 5 caractères',plusLong<=5,String(plusLong));
+   ok('« ▲ Exercice · coupé » tient sous la borne de 18',('▲ Exercice · coupé').length<=18);
+   S.mode=sv.mode;S.status=sv.status;S.role=sv.role;S.lastOk=sv.lastOk;S._act=sv.act;S.participants=sv.part;}
+
+  group('Partage de session — code d’appariement');
+  // On teste les PROPRIÉTÉS de l'alphabet, pas sa valeur : le serveur en est la seule autorité, et
+  // ce test tient encore s'il change de jeu tant que les propriétés tiennent. 32 symboles est ce
+  // qui rend le tirage sans biais modulo (256 divisible par 32) ; l'absence de 0/1/I/O est ce qui
+  // rend le code recopiable à la main sans confusion.
+  eq('l’alphabet compte exactement 32 symboles',A.SHARE_ALPHA.length,32);
+  ok('aucun symbole confondable (0, 1, I, O)',
+    !/[01IO]/.test(A.SHARE_ALPHA),A.SHARE_ALPHA);
+  ok('aucun doublon dans l’alphabet',
+    new Set(A.SHARE_ALPHA.split('')).size===32);
+  // Normalisation : on accepte la mise en forme humaine (minuscules, tiret, espaces), on refuse le
+  // reste. Le séparateur d'affichage n'est JAMAIS transmis.
+  eq('minuscules, tiret et espaces sont absorbés',A.shareCodeNorm(' k7m2-p4q9 '),'K7M2P4Q9');
+  ok('un code bien formé est accepté',A.shareCodeValid('K7M2-P4Q9'));
+  ok('un code trop court est refusé',!A.shareCodeValid('K7M2P4Q'));
+  ok('un code trop long est refusé',!A.shareCodeValid('K7M2P4Q99'));
+  // ON NE DEVINE PAS : 0/1/I/O n'existent dans aucun code, on refuse et on dit lesquels — les
+  // « corriger » d'office consommerait une tentative sur un code limité en essais, pour un
+  // caractère choisi à la place de l'utilisateur.
+  ok('un code contenant un caractère absent du jeu est refusé',!A.shareCodeValid('K7M2P4QO'));
+  eq('et les caractères fautifs sont nommés',A.shareCodeBadChars('K7M2I4QO'),['I','O']);
+  eq('affichage en deux groupes de quatre',A.shareCodeFmt('K7M2P4Q9'),'K7M2-P4Q9');
+  eq('un code incomplet n’est pas groupé à tort',A.shareCodeFmt('K7M2'),'K7M2');
+  // Le code voyage dans le FRAGMENT : jamais envoyé à un serveur, donc absent des journaux
+  // d'accès, des proxys d'établissement et du service worker.
+  eq('code lu depuis le fragment',A.shareCodeFromHash('#j=K7M2P4Q9'),'K7M2P4Q9');
+  eq('lu aussi quand il suit un autre paramètre',A.shareCodeFromHash('#x=1&j=K7M2-P4Q9'),'K7M2P4Q9');
+  ok('un fragment sans code ne renvoie rien',A.shareCodeFromHash('#autre')===null);
+  ok('un code invalide dans le fragment est rejeté, pas corrigé',
+    A.shareCodeFromHash('#j=K7M2P4QO')===null);
+  ok('aucun fragment : rien',A.shareCodeFromHash('')===null);
+
+  group('Journal des actions — repères référentiels');
+  {const f={counters:[{id:'c1',label:'Chocs'},{id:'c2',label:'Adrénaline'}]};
+   const ev=[
+     {id:'e1',t:1000,label:''},
+     {id:'e2',t:2000,label:'',ref:{type:'counter',id:'c1',v:1}},
+     {id:'e3',t:3000,label:''},
+     {id:'e4',t:4000,label:'',ref:{type:'counter',id:'c2',v:2}},
+     {id:'e5',t:5000,label:'Intubation'}];
+   const l=A.tkLabels(ev,f);
+   eq('un repère de compteur prend le nom du compteur et son rang',l[1],'Chocs n° 1');
+   eq('et suit le compteur, pas l’ordre du journal',l[3],'Adrénaline n° 2');
+   eq('un libellé saisi à la main est souverain',l[4],'Intubation');
+   // « Action N » se compte parmi les repères GÉNÉRIQUES seulement : intercaler un « Chocs n° 1 »
+   // ne doit pas faire sauter la numérotation de ceux qu'on a notés à la main.
+   eq('« Action N » ne compte que les repères génériques',[l[0],l[2]],['Action 1','Action 2']);
+   // Le libellé se calcule au RENDU : deux appareils qui reçoivent les mêmes repères affichent la
+   // même chose, là où l'ancien calcul à l'écriture produisait deux « Action 4 » puis un saut.
+   const melange=[ev[2],ev[0]];   // mêmes repères, ordre différent
+   eq('le rang suit l’ordre présenté, pas l’ordre d’écriture',
+     A.tkLabels(melange,f),['Action 1','Action 2']);
+   // Compteur supprimé de la fiche depuis : le repère reste lisible, il ne devient pas « undefined ».
+   eq('un compteur disparu ne casse pas le journal',
+     A.tkLabels([{id:'x',t:1,label:'',ref:{type:'counter',id:'zz',v:3}}],f),['Compteur n° 3']);
+   eq('une liste vide ne produit rien',A.tkLabels([],f),[]);}
+  // Une référence venue du fil n'est pas plus digne de confiance qu'un import : elle est nettoyée.
+  {eq('une référence valide est normalisée',A.tkRefNorm({type:'counter',id:'c1',v:'3'}),
+     {type:'counter',id:'c1',v:3});
+   ok('un type inconnu est rejeté',A.tkRefNorm({type:'zzz',id:'c1',v:1})===null);
+   ok('une valeur non objet est rejetée',A.tkRefNorm('counter')===null&&A.tkRefNorm(null)===null);
+   // `safeId` SUBSTITUE plutôt que de rejeter : la clé interdite ne survit pas, et la référence
+   // devient simplement introuvable — inoffensive, et lisible (« Compteur n° 1 »).
+   {const r=A.tkRefNorm({type:'counter',id:'__proto__',v:1});
+    ok('un identifiant interdit ne survit pas dans la référence',
+      !!r&&r.id!=='__proto__'&&A.SAFE_ID.test(r.id),JSON.stringify(r));}
+   eq('une valeur négative est ramenée à zéro',
+     A.tkRefNorm({type:'counter',id:'c1',v:-5}),{type:'counter',id:'c1',v:0});}
+
+  // ANNULER N'EST PAS SUPPRIMER. Le journal alimente le compte-rendu : une trace qu'un tap efface
+  // sans laisser de marque n'est pas une trace. Le pli garde donc le repère et pose son heure
+  // d'annulation — et le geste est réversible, ce qui est précisément pourquoi il reste ouvert au
+  // scribe là où décocher (qui, lui, détruit) est réservé au lead.
+  {const ev=[{kind:'mark',actor:'a',ts:100,payload:{id:'m1',t:100}},
+             {kind:'mark',actor:'b',ts:200,payload:{id:'m2',t:200}},
+             {kind:'mark_void',actor:'b',ts:300,payload:{id:'m2',on:true,t:300}}];
+   const s=A.shareFold(ev);
+   eq('le repère annulé RESTE dans le journal',s.events.length,2);
+   eq('et porte l’heure de son annulation',s.events[1].voidAt,300);
+   ok('le repère actif n’est pas touché',!s.events[0].voidAt);
+   const s2=A.shareFold(ev.concat([{kind:'mark_void',actor:'b',ts:400,payload:{id:'m2',on:false}}]));
+   ok('se raviser rétablit le repère',!s2.events[1].voidAt);}
+  ok('annuler un repère est ouvert au scribe (geste réversible, non destructeur)',
+    A.shareCan('scribe','mark_void'));
+  ok('mais décocher reste réservé au lead (geste destructeur)',!A.shareCan('scribe','uncheck'));
+  eq('l’annulation s’applique en direct, par chirurgie',A.shareApplyMode('mark_void'),'live');
 }
 
 // Ouvert en double-cliquant le fichier (file://) : le navigateur isole les iframes (origine

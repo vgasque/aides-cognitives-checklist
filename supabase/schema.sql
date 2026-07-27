@@ -991,7 +991,11 @@ grant select                                on public.session_events       to au
 create or replace function public.share_kind_allowed(p_role text, p_kind text)
 returns boolean language sql immutable set search_path = public, pg_temp as $$
   select case
-    when p_kind in ('check','verify','gap','counter','timer_arm','mark','presence','detach','offline_mark')
+    -- `mark_void` est ouvert au scribe là où `uncheck` ne l'est pas, et ce n'est pas une
+    -- inconséquence : décocher DÉTRUIT une information, annuler un repère la CONSERVE (la ligne
+    -- reste, barrée, attribuée, datée) et le geste est réversible. Ce n'est donc pas une action
+    -- destructrice, et la règle qui réserve celles-ci au lead ne s'y applique pas.
+    when p_kind in ('check','verify','gap','counter','timer_arm','mark','mark_void','presence','detach','offline_mark')
       then p_role in ('scribe','lead')
     when p_kind in ('uncheck','nav','flow_end','timer_stop','timer_reset','cx','handoff','end')
       then p_role = 'lead'
@@ -1168,7 +1172,7 @@ end; $$;
 create or replace function public.share_pull(p_secret text, p_share text, p_since bigint)
 returns jsonb language plpgsql volatile security definer
 set search_path = public, extensions, pg_temp as $$
-declare a record; v_ev jsonb; v_parts jsonb; v_seq bigint; v_n int; v_state text;
+declare a record; v_ev jsonb; v_parts jsonb; v_seq bigint; v_n int; v_state text; v_stream text;
 begin
   perform public.share_purge();
   select * into a from public.share_resolve(p_secret, p_share) limit 1;
@@ -1181,8 +1185,9 @@ begin
                   else a.status end;
   update public.session_participants set last_seen_at = now()
    where share_id = a.share_id and participant = a.participant;
-  select coalesce(jsonb_agg(jsonb_build_object('seq', e.seq, 'actor', e.actor, 'kind', e.kind,
-                                               'payload', e.payload, 'ts', e.client_ts, 'at', e.at)
+  select coalesce(jsonb_agg(jsonb_build_object('seq', e.seq, 'id', e.event_id, 'actor', e.actor,
+                                               'kind', e.kind, 'payload', e.payload,
+                                               'ts', e.client_ts, 'at', e.at)
                             order by e.seq), '[]'::jsonb)
     into v_ev
     from (select * from public.session_events
@@ -1190,13 +1195,34 @@ begin
            order by seq limit 500) e;
   select s.last_seq into v_seq from public.shared_sessions s where s.id = a.share_id;
   select count(*)   into v_n   from public.session_events where share_id = a.share_id;
+  /* EMPREINTE DU FLUX D'ENTRÉE — et surtout PAS de l'état.
+     Un compte d'évènements ne détecte qu'une PERTE. Il ne voit ni un doublon appliqué, ni un
+     ordre faux, ni un identifiant corrompu — trois façons d'obtenir un écran plausible et faux,
+     avec des réponses qui arrivent parfaitement à l'heure. C'est le danger n°2 du palmarès ECRI
+     (intégrité des données) et il ne se traite pas par la confiance.
+     ON HACHE LES ENTRÉES, PAS L'ÉTAT, et ce n'est pas un raccourci : hacher l'état obligerait le
+     serveur à REJOUER le pli, donc à savoir ce qu'un « cocher » signifie — une seconde
+     implémentation de la sémantique, en PL/pgSQL, qui divergerait du client. C'est exactement la
+     duplication qui a coûté le défaut de v4.42.0. Ici le serveur n'aligne que des couples
+     (numéro, identifiant) : des données, aucune sémantique. Et comme le pli client est PUR et son
+     déterminisme prouvé par un test unitaire, mêmes entrées ⇒ même état.
+     SHA-256 des deux côtés : natif ici (`sha256`, PostgreSQL ≥ 11) comme dans le navigateur
+     (`crypto.subtle`). Aucun code de hachage maison à tenir synchronisé entre deux langages.
+     COÛT : un parcours des évènements du partage par lecture, borné par le plafond de 5 000 et
+     servi par la clé primaire (share_id, seq) — quelques dizaines de microsecondes sur une
+     session réelle d'environ 150 évènements. */
+  select encode(sha256(convert_to(
+           coalesce(string_agg(e.seq::text || ':' || e.event_id::text, ',' order by e.seq), ''),
+           'UTF8')), 'hex')
+    into v_stream
+    from public.session_events e where e.share_id = a.share_id;
   select coalesce(jsonb_agg(jsonb_build_object('id', p.participant, 'label', p.label,
            'role', p.role, 'owner', p.is_owner, 'seen', p.last_seen_at,
            'revoked', p.revoked_at is not null, 'detached', p.detached_at is not null)
          order by p.joined_at), '[]'::jsonb)
     into v_parts from public.session_participants p where p.share_id = a.share_id;
   return jsonb_build_object('ok', true, 'status', v_state, 'role', a.role, 'me', a.participant,
-    'owner', a.is_owner, 'events', v_ev, 'seq', v_seq, 'n_events', v_n,
+    'owner', a.is_owner, 'events', v_ev, 'seq', v_seq, 'n_events', v_n, 'stream', v_stream,
     'participants', v_parts, 'expires_at', a.expires_at, 'server_time', now());
 exception when others then return jsonb_build_object('ok', false, 'err', 'refused');
 end; $$;

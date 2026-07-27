@@ -780,12 +780,33 @@ begin
     raise exception 'ÉCHEC 14.5 : capacités du scribe non appliquées (accepté %, rejeté %)',
       v_j->>'accepted', v_j->>'rejected'; end if;
 
+  -- 14.5bis CONTRAT DE LECTURE. Le client dépend de deux champs pour détecter une divergence
+  -- silencieuse : l'IDENTIFIANT de chaque évènement (il en calcule l'empreinte du flux reçu) et
+  -- l'EMPREINTE que le serveur calcule sur le flux écrit. Les oublier ne casserait rien de
+  -- visible — le partage marcherait, et la détection serait morte sans que rien ne le dise.
+  v_j := public.share_pull(v_sec, null, 0);
+  if v_j->'events'->0->>'id' is null then
+    raise exception 'ÉCHEC 14.5bis : les évènements ne portent pas leur identifiant'; end if;
+  -- Validation sans ancre de regex (longueur + aucun caractère interdit) : évite un « $ » isolé,
+  -- que check-sql.mjs doit pouvoir lire comme la signature d'un délimiteur mutilé.
+  if coalesce(length(v_j->>'stream'), 0) <> 64 or v_j->>'stream' ~ '[^0-9a-f]' then
+    raise exception 'ÉCHEC 14.5bis : empreinte de flux absente ou mal formée (%)',
+      coalesce(v_j->>'stream','NULL'); end if;
+  -- Et elle doit RÉELLEMENT dépendre du flux : deux partages de contenus différents ne peuvent
+  -- pas produire la même. (Contre-épreuve : sans elle, une constante passerait le test ci-dessus.)
+  v_hack := v_j->>'stream';
+
   -- 14.6 L'ACTEUR N'EST PAS FALSIFIABLE. Même en glissant un `actor` dans le payload, la ligne
   -- écrite porte le participant DÉDUIT du secret. L'attribution est tout l'objet du contrôle que
   -- l'hôte demande (« savoir ce qui a été modifié par l'invité ») : si elle se forge, il n'a rien.
   v_j := public.share_push(v_sec, null, jsonb_build_array(jsonb_build_object(
            'event_id', gen_random_uuid(), 'kind','mark',
            'payload', jsonb_build_object('actor','00000000-0000-0000-0000-000000000000'))));
+  -- L'empreinte doit avoir CHANGÉ : un évènement de plus, un flux différent. Sans ce contrôle,
+  -- une constante ou un hachage d'entrée vide passerait le test de forme ci-dessus.
+  v_j := public.share_pull(v_sec, null, 0);
+  if v_j->>'stream' = v_hack then
+    raise exception 'ÉCHEC 14.5bis : l''empreinte ne dépend pas du flux (inchangée après écriture)'; end if;
   reset role;
   select count(*) into v_cnt from public.session_events e
     join public.session_participants p on p.share_id=e.share_id and p.participant=e.actor
