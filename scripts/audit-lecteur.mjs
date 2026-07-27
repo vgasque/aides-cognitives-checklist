@@ -26,7 +26,7 @@ const m=await p.evaluate(async()=>{
  document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));await new Promise(r=>setTimeout(r,150));
  const ix=re=>rows.findIndex(x=>re.test(x));
  return {rows,noLeadSep:rows[0]!=='—',noDblSep:!rows.some((x,i)=>x==='—'&&rows[i-1]==='—'),
-  ordre:ix(/^Complication/)<ix(/Mode lecteur/)&&ix(/Mode lecteur/)<ix(/Se repérer/)&&ix(/Se repérer/)<ix(/Répéter en exercice/)&&ix(/Répéter en exercice/)<ix(/^Modifier/)&&ix(/^Modifier/)<ix(/Exporter \(\.json\)/),
+  ordre:ix(/^Complication/)<ix(/Mode lecteur/)&&ix(/Mode lecteur/)<ix(/Se repérer/)&&ix(/Se repérer/)<ix(/Répéter en exercice/)&&ix(/Répéter en exercice/)<ix(/^Modifier/)&&ix(/^Modifier/)<ix(/^Exporter /),
   icons:uiIcon('ladder')!==uiIcon('flow')&&uiIcon('archive')!==uiIcon('history')&&uiIcon('ladder').includes('svg')&&uiIcon('archive').includes('svg')};});
 t('conduite → session → gestion → export (⚡ < lecteur < repérer < exercice < Modifier < export)', m.ordre, JSON.stringify(m.rows));
 t('séparateurs normalisés (jamais en tête, jamais doublés)', m.noLeadSep&&m.noDblSep);

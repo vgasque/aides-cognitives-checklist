@@ -1359,6 +1359,23 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
     eq('… et elle se plie',A_.shareFold([{seq:1,id:'x',actor:'h',kind:'session_start',payload:{t:1700000000000}}]).startedAt,1700000000000);
     ok('elle est réservée à celui qui conduit',
        A_.shareCan('lead','session_start')&&!A_.shareCan('scribe','session_start'));}
+   /* CADENCE — la promesse de fraîcheur du miroir, et le plancher qui la tient pendant un soin.
+      L'inactivité du SUPPORT n'est pas l'inactivité du SOIN : pendant un cycle de compressions de
+      deux minutes personne ne touche l'écran, des deux côtés. Sans plancher, le premier geste à la
+      fin du cycle — le moment où le rythme se réévalue — pouvait mettre jusqu'à 10 s à
+      apparaître. */
+   {const S=A_.Share;
+    const base=(idleMs,crise)=>{const av=S._act, avC=A_.crisisOnScreen;
+      S._act=Date.now()-idleMs; A_.setCrisisOnScreenForTest?0:0;
+      const v=S._base(); S._act=av; return v;};
+    S._act=Date.now();                    eq('action récente : 2 s',S._base(),2000);
+    S._act=Date.now()-60000;              eq('après 30 s : 5 s',S._base(),5000);
+    S._act=Date.now();
+    // La péremption est SOLIDAIRE de la cadence nominale — jamais du repli exponentiel, sinon un
+    // invité en erreur répétée croirait son écran vivant.
+    ok('le seuil de péremption vaut deux cycles',S.staleLimit()>=2*S._base()*0.9);
+    ok('… et jamais moins de 4 s',S.staleLimit()>=4000);}
+
    /* ═══ VOCABULAIRE DU JOURNAL — un repère voyage comme une RÉFÉRENCE, jamais comme un mot ═══
       Avant, `ref` n'existait que pour les compteurs : un repère posé par l'hôte s'affichait
       « Action 3 » chez l'invité — l'heure juste, le mot manquant. On vérifie ici les DEUX

@@ -1,7 +1,84 @@
-# Journal des modifications — archive (versions 3.0.0 à 4.33.0)
+# Journal des modifications — archive (versions 3.0.0 à 4.34.0)
 
 > Entrées anciennes déplacées depuis [`CHANGELOG.md`](CHANGELOG.md) pour garder le journal
 > courant lisible. Même format (keep-a-changelog).
+
+## [4.34.0] — 2026-07-26
+Troisième lot de l'audit externe : **sécurité serveur, couverture de test et documentation**. Aucun
+changement de rendu. Un point à connaître : les modifications SQL n'ont PAS pu être exécutées ici
+(ni Postgres ni Docker sur ce poste) — elles sont relues à la main, et doivent être rejouées sur une
+instance de test avant d'atteindre la production.
+
+### Sécurité serveur — trois trous de la suite RLS
+- **Un membre invité perdait silencieusement son accès à sa première connexion.** Chaîne complète :
+  `invite_member` cherchait le compte par e-mail SANS exiger `email_confirmed_at`, or la simple
+  DEMANDE d'un code crée déjà la ligne `auth.users` (le client passe `create_user:true`) ; un tel
+  compte n'a pas encore de ligne `user_status`, la garde d'approbation lisait donc NULL →
+  `coalesce(…,'approved')` → invitation ACCEPTÉE ; puis sa première vraie connexion créait
+  `user_status='pending'`, ce qui déclenchait `revoke_memberships` et EFFAÇAIT l'adhésion. L'admin
+  voyait « ok », la personne apparaissait dans la liste des membres, et l'accès disparaissait sans
+  trace ni message — le scénario le plus banal (« je t'ajoute, connecte-toi »). L'e-mail vérifié est
+  désormais exigé : l'invitation prématurée retourne `not_found`, ce que le message client annonçait
+  DÉJÀ (« la personne doit d'abord se connecter une fois ») — c'était le SQL qui ne tenait pas le
+  contrat, pas l'interface. Le trigger de purge reste sur `insert or update` à dessein (le
+  restreindre à UPDATE ouvrirait un trou) : la cause est fermée à la source, et c'est documenté sur
+  place pour que la question ne se rouvre pas.
+- **« Rien pour le rôle anonyme » était une ABSENCE de grant, pas une interdiction.** Le schéma
+  n'ôtait jamais un privilège (0 `revoke` dans tout le fichier) : ne rien accorder à `anon` ne
+  garantit rien si le projet porte des privilèges par défaut hérités de sa création, invisibles
+  depuis le dépôt. Or la clé publishable est publiée en clair dans `index.html` : `anon` est
+  utilisable par quiconque contre l'API REST. La posture affichée — « grants restrictifs PUIS
+  RLS » — n'avait donc qu'un seul rempart démontrable. Ajout de `revoke all … from anon` sur les
+  tables et les fonctions, **et sur les privilèges FUTURS** (`alter default privileges`), pour
+  qu'une table ajoutée plus tard ne soit pas exposée par oubli.
+- **Les politiques d'ÉLÉVATION DE PRIVILÈGE n'étaient jamais exercées.** Les onze écritures de la
+  suite sur `memberships` et `user_status` étaient TOUTES faites en tant que propriétaire de table,
+  qui CONTOURNE la RLS : `mem_write`, `lib_update`, `lib_delete` et `user_status_write` n'avaient
+  jamais été testées, alors que `memberships` est la table dont dépendent toutes les autres
+  politiques partagées (`member_role()` est consultée par cinq d'entre elles — une faille d'écriture
+  y compromettrait tout d'un coup). **Section 13** ajoutée, chaque test en `set local role
+  authenticated` : un viewer ne s'élève pas admin, un non-membre ne s'ajoute pas, un editor ne
+  renomme ni ne supprime la bibliothèque, personne ne s'approuve soi-même, `anon` ne lit AUCUNE des
+  sept tables publiques, et une invitation à un e-mail non vérifié est refusée.
+
+### Tests — la cible principale n'était pas testée
+- **`npm test` joue désormais Chromium ET WebKit.** iOS Safari est la cible principale (PWA
+  installée sur iPhone, usage SMUR) et toute la suite tournait sur Blink seul — alors que le dossier
+  « bande basse iOS » (v4.29.x) a précisément montré qu'un comportement WebKit peut couper l'écran
+  sans qu'aucune mesure web ne le voie. Les fonctions pures ne sont pas à l'abri non plus
+  (`DecompressionStream` de l'import .zip, regex, normalisation Unicode). WebKit absent produit un
+  AVERTISSEMENT et non un échec, même dégradation douce que pour Playwright lui-même ; la CI
+  l'installe. Résultat : **510 tests verts sur les deux moteurs**.
+- `run-tests.mjs` ne JETTE plus les erreurs console quand la page ne boote pas : c'est le mode
+  d'échec le plus probable (hashs CSP périmés, erreur de syntaxe) et il produisait jusqu'ici la
+  sortie la moins lisible — l'exception emportait la seule information utile.
+
+### Sécurité côté document
+- **`<meta name="referrer" content="no-referrer">`** : c'est le SEUL des cinq en-têtes de `_headers`
+  qui ait un équivalent balise, donc le seul récupérable là où `_headers` est ignoré — GitHub Pages,
+  intranet nu. HSTS, `nosniff`, `X-Frame-Options` et `frame-ancestors` n'existent qu'en en-tête HTTP :
+  rien à faire côté document, et c'est dit.
+- La doc de déploiement sous-estimait la perte sur GitHub Pages : son tableau citait le `no-cache`
+  sur `sw.js` mais omettait celui sur `/` et `/index.html`. Or la stratégie « cache d'abord »
+  suppose que le rafraîchissement de fond atteigne le SERVEUR : servi depuis un cache
+  intermédiaire, il peut réécrire une copie périmée dans le cache hors-ligne. Deux lignes ajoutées
+  au tableau, et la conséquence expliquée.
+
+### Documentation — trois affirmations fausses
+- « **éditeurs alignés sur leur vue de lecture (fiche ≤ 860 px)** » : mesuré faux — l'éditeur rend
+  1fr+320 au-delà de 1200 px. La règle du palier listait bien `body.view-edit`, mais le bloc 1000 la
+  reprend **2 293 lignes plus bas** à spécificité ÉGALE (`:is()` prend le max de ses arguments) et
+  gagne par l'ORDRE : la règle était MORTE tout en donnant l'illusion d'être appliquée. **4ᵉ incident
+  de ce type** après `.read-grid`, `.cbt-n` et `.mode-seg`. Le membre inopérant est RETIRÉ de la
+  règle du palier — zéro changement visuel, prouvé à 1400 px — plutôt que réaffirmé plus bas :
+  aligner réellement l'éditeur sur 860+360 serait un changement VISIBLE, à décider séparément.
+- Le **plan du monofichier** annonçait « ~5 600 lignes » pour 12 250 et décrivait 16 sections sur
+  **54**. Il est présenté pour ce qu'il est — un RÉSUMÉ, pas un index — avec la commande `grep` qui
+  donne l'index exact et à jour, et le découpage global en lignes. Des numéros de ligne figés dans
+  la doc seraient périmés au commit suivant : mieux vaut la commande.
+- `AGENTS.md` disait `npm test` sur un seul moteur.
+
+510 tests × 2 moteurs, 22/22 doctrine, 73/73 accessibilité, 135 contrôles d'audit, 9 sondes dédiées.
 
 ## [4.33.0] — 2026-07-26
 Second lot de l'audit externe : les correctifs dont le RENDU change, volontairement séparés du lot

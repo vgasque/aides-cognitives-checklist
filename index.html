@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-ZM2GwGVjNgFRkgxjhqpWABEdRd64PfssZEJvqdR9hSA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-08w7e5JANsd7JIlmIb6ZVR5spZNBzEntJG6u9vbCS/w='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -3774,7 +3774,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.52.0';
+const APP_VERSION='4.53.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -5981,7 +5981,16 @@ function endSession(R){if(!R||!R.fiche)return;
   try{const nv=R.nav||[];
     const done=nv.reduce((n,id,ix)=>n+(instComplete(R.fiche,nv,R.navSeq,R.checked,ix)?1:0),0);
     lastEndedSession={id:s.id,title:R.fiche.title||'Aide cognitive',dur:Math.max(0,Date.now()-R.startedAt),passes:nv.length,done,exercise:!!R.exercise};}catch(e){}
-  delete liveSessions[R.ficheId];R.started=false;R.sessionId=null;R.name='';}
+  delete liveSessions[R.ficheId];R.started=false;R.sessionId=null;R.name='';
+  /* LA FIN DE LA SESSION EST LA FIN DU PARTAGE — il n'y avait rien ici, et le partage survivait à
+     la session qu'il reflétait : la fenêtre de l'hôte continuait d'annoncer « Partage en cours »,
+     l'invité continuait de sonder un miroir que plus rien n'alimentait, et le code d'appariement
+     restait vivant jusqu'à son terme. Un partage sans session n'a pas d'objet.
+     `endShare` est asynchrone (un PATCH) mais on ne l'ATTEND PAS : la règle 12 interdit qu'un
+     chemin d'interface attende un appel réseau du partage, et fermer sa session ne doit pas
+     dépendre du réseau. Si le PATCH échoue, la ligne expirera d'elle-même et sera purgée — c'est
+     précisément à cela que sert un relais transitoire. */
+  try{if(Share.mode==='host')Share.endShare();else if(Share.mode!=='off')Share.stop();}catch(e){}}
 function requestNotifyPermission(){try{if('Notification'in window&&Notification.permission==='default')Notification.requestPermission();}catch(e){}}
 // Vibration. NB : iOS (Safari/PWA iPhone) n'expose PAS l'API Vibration -> aucune
 // vibration possible depuis le web sur iPhone (le flash d'écran sert d'alerte de secours).
@@ -7006,8 +7015,8 @@ function renderProtocolRead(){
     {label:'Modifier',ic:uiIcon('pen',16),sub:canEditFiche(p)?'hors urgence':'lecture seule',disabled:!canEditFiche(p),act:()=>openProtocolEdit(p.id)},
     'sep',
     {label:'Dupliquer dans « Perso »',ic:uiIcon('copy',16),act:()=>dupToPerso('p',p)},
-    {label:'Exporter (.json)',ic:uiIcon('download',16),act:()=>exportData([],'protocole-'+fileSlug(p.title),categories.filter(c=>c.id===p.category),[p])},
-    {label:'Exporter en PDF',ic:uiIcon('print',16),act:exportPdfCurrent},
+    {label:'Exporter le protocole (.json)',ic:uiIcon('download',16),act:()=>exportData([],'protocole-'+fileSlug(p.title),categories.filter(c=>c.id===p.category),[p])},
+    {label:'Exporter le protocole en PDF',ic:uiIcon('print',16),act:exportPdfCurrent},
   ]);
   main.querySelectorAll('[data-openrel]').forEach(b=>b.onclick=()=>{state.previewFrom=null;openRel(b.dataset.openrel);});
   bindAttList(p);
@@ -7182,7 +7191,7 @@ function renderProtocolEdit(){
   // Menu ⋯ d'éditeur (SPEC §4, sans « Modifier ») : agit sur le BROUILLON tel qu'affiché.
   setMoreMenu([
     {label:'Dupliquer dans « Perso »',ic:uiIcon('copy',16),act:()=>dupToPerso('p',state.pdraft)},
-    {label:'Exporter (.json)',ic:uiIcon('download',16),act:()=>exportData([],'protocole-'+fileSlug(state.pdraft.title),categories.filter(c=>c.id===state.pdraft.category),[migrateProtocol(JSON.parse(JSON.stringify(state.pdraft)))])},
+    {label:'Exporter le protocole (.json)',ic:uiIcon('download',16),act:()=>exportData([],'protocole-'+fileSlug(state.pdraft.title),categories.filter(c=>c.id===state.pdraft.category),[migrateProtocol(JSON.parse(JSON.stringify(state.pdraft)))])},
   ]);
 }
 /* ----- « Voir aussi » (liens croisés, v4.2.0) : une AIDE ou un PROTOCOLE peut être lié aux
@@ -9208,8 +9217,15 @@ function bindReadEvents(f,blk,cur){
     ...(canEditFiche(f)?[{label:f.libraryId?'Ma version écrasée':'Versions',ic:uiIcon('history',16),disabled:started,act:()=>openVersions(f.id)}]:[]),
     {label:'Dupliquer dans « Perso »',ic:uiIcon('copy',16),act:()=>dupToPerso('f',f)},
     'sep',
-    {label:'Exporter (.json)',ic:uiIcon('download',16),act:()=>exportData([f],'fiche-'+fileSlug(f.title))},
-    {label:'Exporter en PDF',ic:uiIcon('print',16),act:exportPdfCurrent},
+    /* NOMMER L'OBJET. « Exporter (.json) » et « Exporter en PDF » ne disaient pas CE QUI est
+       exporté — et dans une vue où une session tourne, avec « Compte-rendu » à portée, le doute
+       porte précisément sur ce qui compte : l'aide, ou ce qui s'est passé ? Une action dit
+       exactement ce qu'elle fait (AC 120-71B). Le sous-titre nomme l'autre chemin plutôt que de
+       laisser l'utilisateur le chercher. */
+    {label:'Exporter l’aide (.json)',ic:uiIcon('download',16),
+      sub:'le contenu de la fiche, pas la session',act:()=>exportData([f],'fiche-'+fileSlug(f.title))},
+    {label:'Exporter l’aide en PDF',ic:uiIcon('print',16),
+      sub:started?'la session s’exporte par « Compte-rendu »':'le contenu de la fiche',act:exportPdfCurrent},
     ...(started?['sep',{label:Runtime.exercise?'Terminer l’exercice…':'Terminer la session…',ic:uiIcon('stop',16),danger:true,act:endCurrentSession}]:[]),
   ]);
   main.querySelectorAll('[data-openrel]').forEach(b=>b.onclick=()=>openRel(b.dataset.openrel));
@@ -11098,7 +11114,7 @@ function bindEditorEvents(f){
   setMoreMenu([
     ...(fiches.some(x=>x.id===f.id)?[{label:f.libraryId?'Ma version écrasée':'Versions',ic:uiIcon('history',16),act:()=>openVersions(f.id)},'sep']:[]),
     {label:'Dupliquer dans « Perso »',ic:uiIcon('copy',16),act:()=>dupToPerso('f',state.draft)},
-    {label:'Exporter (.json)',ic:uiIcon('download',16),act:()=>exportData([migrate(JSON.parse(JSON.stringify(state.draft)))],'fiche-'+fileSlug(state.draft.title))},
+    {label:'Exporter l’aide (.json)',ic:uiIcon('download',16),act:()=>exportData([migrate(JSON.parse(JSON.stringify(state.draft)))],'fiche-'+fileSlug(state.draft.title))},
   ]);
 }
 // d / rerender : brouillon et re-rendu de l'éditeur hôte — fiche par défaut (compat historique),
@@ -13689,7 +13705,16 @@ const Share={
     // qui continuent de tourner.
     if(typeof document!=='undefined'&&document.visibilityState==='hidden')return 15000;
     const idle=Date.now()-this._act;
-    return idle<30000?SHARE_NOMINAL_MS:(idle<120000?5000:10000);},
+    /* PLANCHER DE 5 s TANT QU'UNE CRISE EST À L'ÉCRAN. La dégradation à 10 s suppose que
+       « personne ne fait rien » — or pendant un cycle de compressions de deux minutes, PERSONNE NE
+       TOUCHE L'ÉCRAN, des deux côtés : l'inactivité du support n'est pas l'inactivité du soin.
+       Sans ce plancher, le premier geste de l'un à la fin du cycle — exactement le moment où le
+       rythme se réévalue — pouvait mettre jusqu'à 10 s à apparaître chez l'autre. Le surcoût est
+       de six requêtes vides par minute ; le coût de l'autre côté est un miroir qui retarde au pire
+       instant. `crisisOnScreen` est le prédicat unique de « une crise est à l'écran », déjà
+       employé par le quai et la mise en attente des banderoles. */
+    const sol=(typeof crisisOnScreen==='function'&&crisisOnScreen())?5000:10000;
+    return idle<30000?SHARE_NOMINAL_MS:(idle<120000?5000:sol);},
   _delay(){
     const back=this._fails?Math.min(30000,SHARE_NOMINAL_MS*Math.pow(2,this._fails)):0;
     return Math.round(Math.max(this._base(),back)*(0.8+Math.random()*0.4));},   // gigue ±20 %
@@ -14806,7 +14831,7 @@ if(location.search.indexOf('__actest')>=0){
     crc32,zipBuild,zipParse,isPdfBytes,mdTask,flowOrder,latestPass,offPathSet,minimapData,passInfo,instComplete,flowPlan,stepCR,stepGuardTxt,optAbbr,svBranchIssue,svLoopTargets,ovPresList,
     posoTokens,posoName,posoScore,posoRank,posoSplit,
     qrRawBits,qrTotalCw,qrGen,qrRs,qrAlign,qrDataCw,qrInterleave,qrEncode,qrSvg,qrMul,
-    TAG_CORE,sanitizeTags,tagAll,tagLabel,tagRank,tkRefNorm,tkLabels,
+    TAG_CORE,sanitizeTags,tagAll,tagLabel,tagRank,tkRefNorm,tkLabels,Share,
     QR_ECW,QR_BLK,QR_MAXVER,QR_EXP,QR_LOG,
     sharePayload,shareCan,shareFold,shareStateHash,shareOffset,blankFiche,Share,
     shareSnap,shareDiff,

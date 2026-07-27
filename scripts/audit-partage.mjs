@@ -1231,6 +1231,48 @@ console.log(`\n══ PARTAGE · le journal référentiel — moteur ${NOM_MOTEU
   await page.close();
 }
 
+/* ── LA FIN DE LA SESSION EST LA FIN DU PARTAGE ──────────────────────────────────────────────
+   Signalé à l'usage : l'hôte terminait sa session et la fenêtre continuait d'annoncer « Partage
+   en cours ». Le partage survivait à la session qu'il reflétait — l'invité sondait un miroir que
+   plus rien n'alimentait, et le code d'appariement restait vivant jusqu'à son terme. Un partage
+   sans session n'a pas d'objet. */
+console.log(`\n══ PARTAGE · terminer la session coupe le partage — moteur ${NOM_MOTEUR} ══`);
+{
+  const page = await br.newPage({ viewport: { width: 390, height: 844 } });
+  await session(page);
+  const r = await page.evaluate(async () => {
+    let patchs = 0;
+    Share._io.open = async () => ({ ok: true, share: 's1', code: 'K7M2P4Q9',
+      join_open_until: new Date(Date.now() + 120e3).toISOString(),
+      expires_at: new Date(Date.now() + 3600e3).toISOString(), server_time: new Date().toISOString() });
+    Share._io.pull = async () => ({ ok: true, status: 'active', events: [], seq: 0, n_events: 0,
+      participants: [{ id: 'p0', label: 'Hôte', role: 'lead', owner: true }],
+      server_time: new Date().toISOString() });
+    Share._io.push = async () => ({ ok: true, server_time: new Date().toISOString() });
+    const vrai = window.rest;
+    window.rest = async (m, u, b, h) => {
+      if (/shared_sessions/.test(u) && m === 'PATCH') { patchs++; return {}; }
+      return vrai(m, u, b, h); };
+    Auth.signedIn = () => true;
+
+    await startShare(state.fiche);
+    await new Promise(x => setTimeout(x, 1200));
+    const avant = { mode: Share.mode, sonde: !!Share._timer };
+    endSession(Runtime);
+    await new Promise(x => setTimeout(x, 600));
+    return { avant, mode: Share.mode, share: Share.share, sonde: !!Share._timer, patchs };
+  });
+  t('témoin : le partage tournait bien', r.avant.mode === 'host' && r.avant.sonde === true, JSON.stringify(r.avant));
+  t('terminer la session ferme le partage', r.mode === 'off', r.mode);
+  t('… n’en garde pas l’identifiant', r.share === null, String(r.share));
+  t('… arrête le sondage', r.sonde === false);
+  /* L'arrêt est ANNONCÉ au serveur, mais jamais ATTENDU (règle 12) : fermer sa session ne dépend
+     pas du réseau. Si le PATCH échoue, la ligne expirera et sera purgée — c'est à cela que sert un
+     relais transitoire. */
+  t('… et l’annonce au serveur est partie', r.patchs >= 1, `${r.patchs} PATCH`);
+  await page.close();
+}
+
 await br.close(); srv.close();
 console.log(`\n${ok}/${ok + ko} contrôles partage OK` + (ko ? ` — ${ko} ÉCHEC(S)` : ''));
 process.exit(ko ? 1 : 0);

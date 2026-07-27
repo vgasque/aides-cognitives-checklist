@@ -1,5 +1,60 @@
 # Journal des modifications
 
+## [4.53.0] — 2026-07-28
+### Le partage survivait à la session qu'il reflétait — et la cadence supposait qu'un soin fait du bruit
+
+Trois signalements d'usage, dont un qui n'a été trouvé qu'en cherchant à répondre à une question
+sur la fréquence de rafraîchissement.
+
+### Terminer la session ne coupait pas le partage
+Signalé : *« la fenêtre hôte affiche toujours partage en cours »*. Vérifié — `endSession` ne touchait
+pas au partage. Celui-ci **survivait à la session qu'il reflétait** : la fenêtre continuait
+d'annoncer un partage vivant, l'invité sondait un miroir que plus rien n'alimentait, et le code
+d'appariement restait valide jusqu'à son terme. Un partage sans session n'a pas d'objet.
+
+L'arrêt est **annoncé** au serveur mais jamais **attendu** (règle 12) : fermer sa session ne doit
+pas dépendre du réseau. Si l'annonce échoue, la ligne expire et sera purgée — c'est exactement à
+cela que sert un relais transitoire. Cinq contrôles, **vérifiés capables d'échouer** (le correctif
+retiré en fait tomber quatre, fichier restauré à l'octet).
+
+### L'inactivité du support n'est pas l'inactivité du soin
+En répondant à la question *« à quelle fréquence, sans websocket ? »*, la mesure a montré un trou.
+La cadence se dégrade avec l'inactivité : 2 s dans les trente secondes d'un geste, 5 s ensuite,
+**10 s au-delà de deux minutes**. Or pendant un cycle de compressions de deux minutes, **personne ne
+touche l'écran, des deux côtés** — et le premier geste à la fin du cycle, c'est-à-dire au moment
+précis où le rythme se réévalue, pouvait mettre jusqu'à 10 s à apparaître chez l'autre.
+
+Plancher de 5 s tant qu'une crise est à l'écran. Le surcoût est de six requêtes vides par minute ;
+le coût inverse était un miroir qui retarde au pire instant. `crisisOnScreen` sert de prédicat —
+le même que le quai et la mise en attente des banderoles, pas un second critère qui divergerait.
+
+Latences réelles, calculées sur les constantes du fichier (poussée débouncée à 250 ms, gigue ±20 %) :
+
+| Situation | Période | Latence moyenne | Pire cas |
+|---|---|---|---|
+| Dans les 30 s d'un geste | 2 s | 1,25 s | 2,65 s |
+| De 30 s à 2 min | 5 s | 2,75 s | 6,25 s |
+| Au-delà de 2 min, **crise à l'écran** | 5 s | 2,75 s | 6,25 s |
+| Au-delà de 2 min, hors crise | 10 s | 5,25 s | 12,25 s |
+
+**Ce que la cadence ne retarde pas, et c'est l'essentiel** : les minuteurs voyagent avec une **ancre
+absolue**, donc les deux appareils calculent la même valeur en continu **sans rien échanger** — un
+cycle de deux minutes est exact des deux côtés même hors réseau, et le passage à « échu » ne dépend
+d'aucun sondage.
+
+### « Exporter » ne disait pas quoi
+Signalé : dans le menu ⋯, *« exporter PDF et json, pas clair si on parle d'exporter la fiche ou une
+session »*. Le doute portait précisément sur ce qui compte, dans une vue où une session tourne et où
+« Compte-rendu » est à portée. Les libellés nomment désormais leur objet — « Exporter **l'aide**
+(.json) », « Exporter **le protocole** en PDF » — et le sous-titre nomme l'autre chemin plutôt que
+de laisser le chercher : pendant une session, « la session s'exporte par *Compte-rendu* ».
+
+### Vérification
+738 tests × 2 moteurs (+4), **232/232 contrôles partage** (+5, sur les deux moteurs), 13 harnais
+verts, 301 contrôles d'accessibilité, 94/94 doctrine, `npm run check` vert. Un contrôle du harnais
+qui visait un libellé exact (`Exporter (.json)`) a été élargi au groupe : il aurait échoué au moindre
+renommage sans que rien ne soit cassé. **Rien à rejouer côté serveur.**
+
 ## [4.52.0] — 2026-07-28
 ### Le journal parle enfin des deux côtés — sans qu'un seul mot traverse le réseau
 
@@ -1444,82 +1499,5 @@ Le plan annonçait « 433 Ko → ~230 Ko » de documentation. **C'est faux, et l
 légèrement** (464 Ko) : les 92 entrées archivées sont DÉPLACÉES, pas supprimées, et le socle ajoute
 6 Ko. Le gain réel porte sur le fichier qu'on LIT et que les outils chargent — `CHANGELOG.md`, −76 %
 — et sur la navigabilité, pas sur le volume du dépôt.
-
-510 tests × 2 moteurs, 22/22 doctrine, 73/73 accessibilité, 135 contrôles d'audit, 9 sondes dédiées.
-
-## [4.34.0] — 2026-07-26
-Troisième lot de l'audit externe : **sécurité serveur, couverture de test et documentation**. Aucun
-changement de rendu. Un point à connaître : les modifications SQL n'ont PAS pu être exécutées ici
-(ni Postgres ni Docker sur ce poste) — elles sont relues à la main, et doivent être rejouées sur une
-instance de test avant d'atteindre la production.
-
-### Sécurité serveur — trois trous de la suite RLS
-- **Un membre invité perdait silencieusement son accès à sa première connexion.** Chaîne complète :
-  `invite_member` cherchait le compte par e-mail SANS exiger `email_confirmed_at`, or la simple
-  DEMANDE d'un code crée déjà la ligne `auth.users` (le client passe `create_user:true`) ; un tel
-  compte n'a pas encore de ligne `user_status`, la garde d'approbation lisait donc NULL →
-  `coalesce(…,'approved')` → invitation ACCEPTÉE ; puis sa première vraie connexion créait
-  `user_status='pending'`, ce qui déclenchait `revoke_memberships` et EFFAÇAIT l'adhésion. L'admin
-  voyait « ok », la personne apparaissait dans la liste des membres, et l'accès disparaissait sans
-  trace ni message — le scénario le plus banal (« je t'ajoute, connecte-toi »). L'e-mail vérifié est
-  désormais exigé : l'invitation prématurée retourne `not_found`, ce que le message client annonçait
-  DÉJÀ (« la personne doit d'abord se connecter une fois ») — c'était le SQL qui ne tenait pas le
-  contrat, pas l'interface. Le trigger de purge reste sur `insert or update` à dessein (le
-  restreindre à UPDATE ouvrirait un trou) : la cause est fermée à la source, et c'est documenté sur
-  place pour que la question ne se rouvre pas.
-- **« Rien pour le rôle anonyme » était une ABSENCE de grant, pas une interdiction.** Le schéma
-  n'ôtait jamais un privilège (0 `revoke` dans tout le fichier) : ne rien accorder à `anon` ne
-  garantit rien si le projet porte des privilèges par défaut hérités de sa création, invisibles
-  depuis le dépôt. Or la clé publishable est publiée en clair dans `index.html` : `anon` est
-  utilisable par quiconque contre l'API REST. La posture affichée — « grants restrictifs PUIS
-  RLS » — n'avait donc qu'un seul rempart démontrable. Ajout de `revoke all … from anon` sur les
-  tables et les fonctions, **et sur les privilèges FUTURS** (`alter default privileges`), pour
-  qu'une table ajoutée plus tard ne soit pas exposée par oubli.
-- **Les politiques d'ÉLÉVATION DE PRIVILÈGE n'étaient jamais exercées.** Les onze écritures de la
-  suite sur `memberships` et `user_status` étaient TOUTES faites en tant que propriétaire de table,
-  qui CONTOURNE la RLS : `mem_write`, `lib_update`, `lib_delete` et `user_status_write` n'avaient
-  jamais été testées, alors que `memberships` est la table dont dépendent toutes les autres
-  politiques partagées (`member_role()` est consultée par cinq d'entre elles — une faille d'écriture
-  y compromettrait tout d'un coup). **Section 13** ajoutée, chaque test en `set local role
-  authenticated` : un viewer ne s'élève pas admin, un non-membre ne s'ajoute pas, un editor ne
-  renomme ni ne supprime la bibliothèque, personne ne s'approuve soi-même, `anon` ne lit AUCUNE des
-  sept tables publiques, et une invitation à un e-mail non vérifié est refusée.
-
-### Tests — la cible principale n'était pas testée
-- **`npm test` joue désormais Chromium ET WebKit.** iOS Safari est la cible principale (PWA
-  installée sur iPhone, usage SMUR) et toute la suite tournait sur Blink seul — alors que le dossier
-  « bande basse iOS » (v4.29.x) a précisément montré qu'un comportement WebKit peut couper l'écran
-  sans qu'aucune mesure web ne le voie. Les fonctions pures ne sont pas à l'abri non plus
-  (`DecompressionStream` de l'import .zip, regex, normalisation Unicode). WebKit absent produit un
-  AVERTISSEMENT et non un échec, même dégradation douce que pour Playwright lui-même ; la CI
-  l'installe. Résultat : **510 tests verts sur les deux moteurs**.
-- `run-tests.mjs` ne JETTE plus les erreurs console quand la page ne boote pas : c'est le mode
-  d'échec le plus probable (hashs CSP périmés, erreur de syntaxe) et il produisait jusqu'ici la
-  sortie la moins lisible — l'exception emportait la seule information utile.
-
-### Sécurité côté document
-- **`<meta name="referrer" content="no-referrer">`** : c'est le SEUL des cinq en-têtes de `_headers`
-  qui ait un équivalent balise, donc le seul récupérable là où `_headers` est ignoré — GitHub Pages,
-  intranet nu. HSTS, `nosniff`, `X-Frame-Options` et `frame-ancestors` n'existent qu'en en-tête HTTP :
-  rien à faire côté document, et c'est dit.
-- La doc de déploiement sous-estimait la perte sur GitHub Pages : son tableau citait le `no-cache`
-  sur `sw.js` mais omettait celui sur `/` et `/index.html`. Or la stratégie « cache d'abord »
-  suppose que le rafraîchissement de fond atteigne le SERVEUR : servi depuis un cache
-  intermédiaire, il peut réécrire une copie périmée dans le cache hors-ligne. Deux lignes ajoutées
-  au tableau, et la conséquence expliquée.
-
-### Documentation — trois affirmations fausses
-- « **éditeurs alignés sur leur vue de lecture (fiche ≤ 860 px)** » : mesuré faux — l'éditeur rend
-  1fr+320 au-delà de 1200 px. La règle du palier listait bien `body.view-edit`, mais le bloc 1000 la
-  reprend **2 293 lignes plus bas** à spécificité ÉGALE (`:is()` prend le max de ses arguments) et
-  gagne par l'ORDRE : la règle était MORTE tout en donnant l'illusion d'être appliquée. **4ᵉ incident
-  de ce type** après `.read-grid`, `.cbt-n` et `.mode-seg`. Le membre inopérant est RETIRÉ de la
-  règle du palier — zéro changement visuel, prouvé à 1400 px — plutôt que réaffirmé plus bas :
-  aligner réellement l'éditeur sur 860+360 serait un changement VISIBLE, à décider séparément.
-- Le **plan du monofichier** annonçait « ~5 600 lignes » pour 12 250 et décrivait 16 sections sur
-  **54**. Il est présenté pour ce qu'il est — un RÉSUMÉ, pas un index — avec la commande `grep` qui
-  donne l'index exact et à jour, et le découpage global en lignes. Des numéros de ligne figés dans
-  la doc seraient périmés au commit suivant : mieux vaut la commande.
-- `AGENTS.md` disait `npm test` sur un seul moteur.
 
 510 tests × 2 moteurs, 22/22 doctrine, 73/73 accessibilité, 135 contrôles d'audit, 9 sondes dédiées.
