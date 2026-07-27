@@ -29,7 +29,7 @@
      Échelle responsive FERMÉE : 430 / 560 / 640 / 780 / 900 / 1000 px (1000 = colonne droite de
      la vue fiche, V5). Plancher typographique : 11px (app consultée sous stress — rien en dessous).
      --line-hover : bordure des survols de boutons/chips (un seul gris au lieu de trois). */
-  :root{--ink:#101b28;--ink-soft:#5b6570;--line:#d5dbe2;--line-strong:#75828e;--line-hover:#c3ccd6;--bg:#f2f5f8;--surface:#fff;--surface-2:#eff2f6;--surface-3:#e8ecf1;--primary:#1f5fa6;--primary-dk:#17477f;--primary-hi:#17477f;--primary-soft:#e3ecf7;--primary-100:#dce7f5;--primary-200:#b9cde6;--primary-300:#8fb4de;--on-primary:#fff;--ok:#1d7a38;--ok-soft:#eaf6ee;--critical:#a32e1f;--critical-soft:#fbe9e4;--critical-line:#ecc4bc;--verify:#7a5900;--verify-soft:#fbf3dc;--verify-line:#eddfb6;--verify-bd:#b7791f;--verify-hi:#b45309;--critical-bd:#c43d34;--done-bg:#eff5f0;--done-line:#bfd8c6;--done-ink:#5b6570;--tag-bg:#e8ecf1;--tag-ink:#3c464f;--link:#1f5fa6;--soft:#8a94a0;--alert:#f0a431;--alert-hi:#ffb454;--alert-strong:#c98a18;--alert-ink:#3a2a02;--rt-card:#1c2a3c;--rt-line:#2c3d52;--rt-ink:#e8eef7;--alarm:#d1543c;--input-bg:#fff;--radius:14px;--radius-md:11px;--radius-sm:9px;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--shadow:0 1px 2px rgba(16,27,40,.04),0 4px 16px rgba(16,27,40,.06);--shadow-lg:0 2px 6px rgba(16,27,40,.06),0 12px 32px rgba(16,27,40,.10);--shadow-primary:0 1px 2px rgba(23,71,127,.2),0 4px 12px rgba(23,71,127,.16);--shadow-primary-sm:0 1px 2px rgba(23,71,127,.25);--lb-cap:#cfe0dd;--lb-ink:#fff;--paper:#fff;--flow-cur:#1f5fa6;/* VOILES (scrim) et ÉLÉVATIONS À L'ENCRE — tokenisés en v4.37.0. Ces cinq valeurs étaient des COPIES DÉCIMALES de --ink (#101b28 = 16,27,40) : le garde-fou couleurs ne voyait que les hex, elles passaient donc au travers, et un changement de --ink les aurait laissées derrière. Valeurs reprises à l'identique. Pas d'override sombre : c'est l'état actuel, en ajouter un serait un changement visible. */--scrim-soft:rgba(16,27,40,.45);--scrim:rgba(16,27,40,.55);--scrim-full:rgba(16,27,40,.92);--shadow-dock:0 1px 3px rgba(16,27,40,.05);--shadow-bar:0 1px 6px rgba(16,27,40,.06);}
+  :root{--ink:#101b28;--ink-soft:#5b6570;--line:#d5dbe2;--line-strong:#75828e;--line-hover:#c3ccd6;--bg:#f2f5f8;--surface:#fff;--surface-2:#eff2f6;--surface-3:#e8ecf1;--primary:#1f5fa6;--primary-dk:#17477f;--primary-hi:#17477f;--primary-soft:#e3ecf7;--primary-100:#dce7f5;--primary-200:#b9cde6;--primary-300:#8fb4de;--on-primary:#fff;--ok-rgb:29,122,56;--ok:rgb(var(--ok-rgb));--ok-soft:#eaf6ee;--critical:#a32e1f;--critical-soft:#fbe9e4;--critical-line:#ecc4bc;--verify:#7a5900;--verify-soft:#fbf3dc;--verify-line:#eddfb6;--verify-bd:#b7791f;--verify-hi:#b45309;--critical-bd:#c43d34;--done-bg:#eff5f0;--done-line:#bfd8c6;--done-ink:#5b6570;--tag-bg:#e8ecf1;--tag-ink:#3c464f;--link:#1f5fa6;--soft:#8a94a0;--alert:#f0a431;--alert-hi:#ffb454;--alert-strong:#c98a18;--alert-ink:#3a2a02;--rt-card:#1c2a3c;--rt-line:#2c3d52;--rt-ink:#e8eef7;--alarm:#d1543c;--input-bg:#fff;--radius:14px;--radius-md:11px;--radius-sm:9px;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--shadow:0 1px 2px rgba(16,27,40,.04),0 4px 16px rgba(16,27,40,.06);--shadow-lg:0 2px 6px rgba(16,27,40,.06),0 12px 32px rgba(16,27,40,.10);--shadow-primary:0 1px 2px rgba(23,71,127,.2),0 4px 12px rgba(23,71,127,.16);--shadow-primary-sm:0 1px 2px rgba(23,71,127,.25);--lb-cap:#cfe0dd;--lb-ink:#fff;--paper:#fff;--flow-cur:#1f5fa6;/* VOILES (scrim) et ÉLÉVATIONS À L'ENCRE — tokenisés en v4.37.0. Ces cinq valeurs étaient des COPIES DÉCIMALES de --ink (#101b28 = 16,27,40) : le garde-fou couleurs ne voyait que les hex, elles passaient donc au travers, et un changement de --ink les aurait laissées derrière. Valeurs reprises à l'identique. Pas d'override sombre : c'est l'état actuel, en ajouter un serait un changement visible. */--scrim-soft:rgba(16,27,40,.45);--scrim:rgba(16,27,40,.55);--scrim-full:rgba(16,27,40,.92);--shadow-dock:0 1px 3px rgba(16,27,40,.05);--shadow-bar:0 1px 6px rgba(16,27,40,.06);}
   /* --shadow-primary(-sm) : élévation TEINTÉE PRIMAIRE des boutons remplis (v4.31.0 — les
      rgba(23,71,127,…) éparses sont consolidées ici). Tokens FIXES des deux thèmes (jamais
      surchargés en sombre, comme --rt-*) : --lb-cap/--lb-ink = légende et glyphe de la lightbox
@@ -39,7 +39,7 @@
      logique — la version sombre passe par --flow-hl-dk après inversion). */
   /* ===== THÈME SOMBRE (usage dans le noir) : on redéfinit les variables + quelques fonds codés en dur.
      Contraste maintenu pour la lisibilité en situation critique. ===== */
-  [data-theme="dark"]{--ink:#e8eef7;--ink-soft:#93a5b5;--line:#24303f;--line-hover:#3b4b5d;--bg:#0c1420;--surface:#121d2b;--surface-2:#101823;--surface-3:#1b2836;--primary:#2e71c2;--primary-dk:#8fb8e8;--primary-hi:#4685d2;--primary-soft:#16324f;--primary-100:#16324f;--primary-200:#2c4b6e;--primary-300:#2c4b6e;--on-primary:#fff;--ok:#37d67a;--ok-soft:#0e2618;--critical:#ff8a84;--critical-soft:#3a0e0c;--critical-line:#7a2b26;--verify:#ffb454;--verify-soft:#241d0c;--verify-line:#5c4a1e;--verify-bd:#ffb454;--verify-hi:#ffb454;--critical-bd:#ff5a52;--done-bg:#101b14;--done-line:#1f4a2e;--done-ink:#4e6e58;--tag-bg:#24303f;--tag-ink:#b9c6d4;--link:#8fb8e8;--soft:#5e7186;--input-bg:#0a111b;--shadow:0 1px 2px rgba(0,0,0,.45),0 4px 16px rgba(0,0,0,.5);--shadow-lg:0 2px 6px rgba(0,0,0,.5),0 12px 32px rgba(0,0,0,.65);--hover-dk:#1b2634;--hover-dk-hi:#22364d;--flow-hl-dk:#4e8fd9;}
+  [data-theme="dark"]{--ink:#e8eef7;--ink-soft:#93a5b5;--line:#24303f;--line-hover:#3b4b5d;--bg:#0c1420;--surface:#121d2b;--surface-2:#101823;--surface-3:#1b2836;--primary:#2e71c2;--primary-dk:#8fb8e8;--primary-hi:#4685d2;--primary-soft:#16324f;--primary-100:#16324f;--primary-200:#2c4b6e;--primary-300:#2c4b6e;--on-primary:#fff;--ok-rgb:55,214,122;--ok:rgb(var(--ok-rgb));--ok-soft:#0e2618;--critical:#ff8a84;--critical-soft:#3a0e0c;--critical-line:#7a2b26;--verify:#ffb454;--verify-soft:#241d0c;--verify-line:#5c4a1e;--verify-bd:#ffb454;--verify-hi:#ffb454;--critical-bd:#ff5a52;--done-bg:#101b14;--done-line:#1f4a2e;--done-ink:#4e6e58;--tag-bg:#24303f;--tag-ink:#b9c6d4;--link:#8fb8e8;--soft:#5e7186;--input-bg:#0a111b;--shadow:0 1px 2px rgba(0,0,0,.45),0 4px 16px rgba(0,0,0,.5);--shadow-lg:0 2px 6px rgba(0,0,0,.5),0 12px 32px rgba(0,0,0,.65);--hover-dk:#1b2634;--hover-dk-hi:#22364d;--flow-hl-dk:#4e8fd9;}
   /* --hover-dk(-hi) : survols du thème sombre (générique / sur surface élevée, ex-hex en dur des
      règles de survol) ; --flow-hl-dk : trait de contre-inversion du SVG sombre (la couleur est
      choisie pour rendre juste APRÈS le filtre invert+hue-rotate). v4.31.0 : plus AUCUN hex hors
@@ -562,7 +562,6 @@
     #cbTimers .cbt-n{border-left:0;padding:0 4px}
     /* Plan : 1ʳᵉ carte du cluster gauche (plus de filet-séparateur ni de margin auto). */
     .dock-plan{border:1px solid var(--line);border-radius:10px;min-height:46px;padding:0 16px}
-    .dock-plan:hover{background:var(--primary-soft)}
   }
   @keyframes cbIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
   /* LOGO DE MARQUE (v4.23.1) — ACCUEIL SEULEMENT, comme le nom de l'app qu'il accompagne
@@ -728,7 +727,6 @@
      taps destinés au ✎ imbriqué -> neutralisé (le ✎ passe aussi au-dessus via z-index). */
   .scopebtn.on::after{pointer-events:none}
   .scopebtn.on.edit{padding-right:5px}
-  .catchip{position:relative}
   /* Pastille ✎ DANS la chip active (canvas) : 34×34 translucide sur le fond plein de la chip,
      débordant à droite pour ne pas la gonfler ; hérite du blanc de la chip active. */
   .chip-edit{position:relative;z-index:1;display:inline-grid;place-items:center;width:28px;height:28px;margin:-9px 0 -9px 6px;border-radius:14px;background:color-mix(in srgb,var(--on-primary) 18%,transparent);color:inherit;border:0;cursor:pointer;vertical-align:middle}
@@ -1373,12 +1371,9 @@
   .tk-panel.tk-slim .tk-head{margin-bottom:0}
   /* Halo animé en transform/opacity sur un pseudo-élément (COMPOSITÉ) : l'ancienne animation de
      box-shadow forçait un repaint continu pendant toute la durée d'une session, crise comprise. */
-  .sess-dot{--pulse:29,122,56;width:9px;height:9px;border-radius:50%;background:var(--ok);flex-shrink:0;position:relative}
-  .sess-dot::after{content:'';position:absolute;inset:0;border-radius:50%;background:rgba(var(--pulse),.45);animation:pulse 2s infinite;pointer-events:none}
+  .sess-dot{width:9px;height:9px;border-radius:50%;background:var(--ok);flex-shrink:0;position:relative}
+  .sess-dot::after{content:'';position:absolute;inset:0;border-radius:50%;background:rgba(var(--ok-rgb),.45);animation:pulse 2s infinite;pointer-events:none}
   @keyframes pulse{0%{transform:scale(1);opacity:1}70%{transform:scale(2.6);opacity:0}100%{transform:scale(2.6);opacity:0}}
-  [data-theme="dark"] .sess-dot{--pulse:55,214,122}
-  /* Rappel « session en cours » dans l'en-tête : pastille verte (--ok). */
-  #brandSub .sess-dot{display:inline-block;width:8px;height:8px;background:var(--ok);vertical-align:0;margin:0 1px}
   .sess-livetag{font-size:11px;font-weight:700;color:var(--primary-dk);background:var(--primary-soft);padding:1px 7px;border-radius:10px;margin-left:6px}
   .sess-list{background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius-md);padding:6px 10px;margin-bottom:18px}
   /* Rangée d'historique : les ACTIONS passent sous le titre quand elles ne tiennent pas (téléphone),
@@ -2288,7 +2283,6 @@
      à des tailles inégales selon la police) ; colonne fixe 34px, centrée. */
   .crt-ic{flex:none;display:flex;align-items:center;justify-content:center;width:34px;color:var(--ink)}
   .crt-ic svg.tic{vertical-align:0}
-  #crtIA .crt-ic{color:var(--alert-strong)}
   .crt-t{font-size:15px;font-weight:700}
   .crt-d{font-size:12.5px;color:var(--ink-soft);margin-top:2px;line-height:1.35}
   /* --ink-soft et non --line-strong : ce dernier vise 3:1 (BORDURES) et tombe à 4,32:1 en couleur

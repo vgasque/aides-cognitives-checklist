@@ -238,7 +238,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-tFa+BckJg79+IP5kXvxO2eTC0+d+LC9UY8cPWAqIVHA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-8TK2+Gwy/jHUlCi4o9VZQphw5zWs/xisqw6C0aTuV9s='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -302,7 +302,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      Échelle responsive FERMÉE : 430 / 560 / 640 / 780 / 900 / 1000 px (1000 = colonne droite de
      la vue fiche, V5). Plancher typographique : 11px (app consultée sous stress — rien en dessous).
      --line-hover : bordure des survols de boutons/chips (un seul gris au lieu de trois). */
-  :root{--ink:#101b28;--ink-soft:#5b6570;--line:#d5dbe2;--line-strong:#75828e;--line-hover:#c3ccd6;--bg:#f2f5f8;--surface:#fff;--surface-2:#eff2f6;--surface-3:#e8ecf1;--primary:#1f5fa6;--primary-dk:#17477f;--primary-hi:#17477f;--primary-soft:#e3ecf7;--primary-100:#dce7f5;--primary-200:#b9cde6;--primary-300:#8fb4de;--on-primary:#fff;--ok:#1d7a38;--ok-soft:#eaf6ee;--critical:#a32e1f;--critical-soft:#fbe9e4;--critical-line:#ecc4bc;--verify:#7a5900;--verify-soft:#fbf3dc;--verify-line:#eddfb6;--verify-bd:#b7791f;--verify-hi:#b45309;--critical-bd:#c43d34;--done-bg:#eff5f0;--done-line:#bfd8c6;--done-ink:#5b6570;--tag-bg:#e8ecf1;--tag-ink:#3c464f;--link:#1f5fa6;--soft:#8a94a0;--alert:#f0a431;--alert-hi:#ffb454;--alert-strong:#c98a18;--alert-ink:#3a2a02;--rt-card:#1c2a3c;--rt-line:#2c3d52;--rt-ink:#e8eef7;--alarm:#d1543c;--input-bg:#fff;--radius:14px;--radius-md:11px;--radius-sm:9px;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--shadow:0 1px 2px rgba(16,27,40,.04),0 4px 16px rgba(16,27,40,.06);--shadow-lg:0 2px 6px rgba(16,27,40,.06),0 12px 32px rgba(16,27,40,.10);--shadow-primary:0 1px 2px rgba(23,71,127,.2),0 4px 12px rgba(23,71,127,.16);--shadow-primary-sm:0 1px 2px rgba(23,71,127,.25);--lb-cap:#cfe0dd;--lb-ink:#fff;--paper:#fff;--flow-cur:#1f5fa6;/* VOILES (scrim) et ÉLÉVATIONS À L'ENCRE — tokenisés en v4.37.0. Ces cinq valeurs étaient des COPIES DÉCIMALES de --ink (#101b28 = 16,27,40) : le garde-fou couleurs ne voyait que les hex, elles passaient donc au travers, et un changement de --ink les aurait laissées derrière. Valeurs reprises à l'identique. Pas d'override sombre : c'est l'état actuel, en ajouter un serait un changement visible. */--scrim-soft:rgba(16,27,40,.45);--scrim:rgba(16,27,40,.55);--scrim-full:rgba(16,27,40,.92);--shadow-dock:0 1px 3px rgba(16,27,40,.05);--shadow-bar:0 1px 6px rgba(16,27,40,.06);}
+  :root{--ink:#101b28;--ink-soft:#5b6570;--line:#d5dbe2;--line-strong:#75828e;--line-hover:#c3ccd6;--bg:#f2f5f8;--surface:#fff;--surface-2:#eff2f6;--surface-3:#e8ecf1;--primary:#1f5fa6;--primary-dk:#17477f;--primary-hi:#17477f;--primary-soft:#e3ecf7;--primary-100:#dce7f5;--primary-200:#b9cde6;--primary-300:#8fb4de;--on-primary:#fff;--ok-rgb:29,122,56;--ok:rgb(var(--ok-rgb));--ok-soft:#eaf6ee;--critical:#a32e1f;--critical-soft:#fbe9e4;--critical-line:#ecc4bc;--verify:#7a5900;--verify-soft:#fbf3dc;--verify-line:#eddfb6;--verify-bd:#b7791f;--verify-hi:#b45309;--critical-bd:#c43d34;--done-bg:#eff5f0;--done-line:#bfd8c6;--done-ink:#5b6570;--tag-bg:#e8ecf1;--tag-ink:#3c464f;--link:#1f5fa6;--soft:#8a94a0;--alert:#f0a431;--alert-hi:#ffb454;--alert-strong:#c98a18;--alert-ink:#3a2a02;--rt-card:#1c2a3c;--rt-line:#2c3d52;--rt-ink:#e8eef7;--alarm:#d1543c;--input-bg:#fff;--radius:14px;--radius-md:11px;--radius-sm:9px;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--shadow:0 1px 2px rgba(16,27,40,.04),0 4px 16px rgba(16,27,40,.06);--shadow-lg:0 2px 6px rgba(16,27,40,.06),0 12px 32px rgba(16,27,40,.10);--shadow-primary:0 1px 2px rgba(23,71,127,.2),0 4px 12px rgba(23,71,127,.16);--shadow-primary-sm:0 1px 2px rgba(23,71,127,.25);--lb-cap:#cfe0dd;--lb-ink:#fff;--paper:#fff;--flow-cur:#1f5fa6;/* VOILES (scrim) et ÉLÉVATIONS À L'ENCRE — tokenisés en v4.37.0. Ces cinq valeurs étaient des COPIES DÉCIMALES de --ink (#101b28 = 16,27,40) : le garde-fou couleurs ne voyait que les hex, elles passaient donc au travers, et un changement de --ink les aurait laissées derrière. Valeurs reprises à l'identique. Pas d'override sombre : c'est l'état actuel, en ajouter un serait un changement visible. */--scrim-soft:rgba(16,27,40,.45);--scrim:rgba(16,27,40,.55);--scrim-full:rgba(16,27,40,.92);--shadow-dock:0 1px 3px rgba(16,27,40,.05);--shadow-bar:0 1px 6px rgba(16,27,40,.06);}
   /* --shadow-primary(-sm) : élévation TEINTÉE PRIMAIRE des boutons remplis (v4.31.0 — les
      rgba(23,71,127,…) éparses sont consolidées ici). Tokens FIXES des deux thèmes (jamais
      surchargés en sombre, comme --rt-*) : --lb-cap/--lb-ink = légende et glyphe de la lightbox
@@ -312,7 +312,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      logique — la version sombre passe par --flow-hl-dk après inversion). */
   /* ===== THÈME SOMBRE (usage dans le noir) : on redéfinit les variables + quelques fonds codés en dur.
      Contraste maintenu pour la lisibilité en situation critique. ===== */
-  html[data-theme="dark"]{--ink:#e8eef7;--ink-soft:#93a5b5;--line:#24303f;--line-hover:#3b4b5d;--bg:#0c1420;--surface:#121d2b;--surface-2:#101823;--surface-3:#1b2836;--primary:#2e71c2;--primary-dk:#8fb8e8;--primary-hi:#4685d2;--primary-soft:#16324f;--primary-100:#16324f;--primary-200:#2c4b6e;--primary-300:#2c4b6e;--on-primary:#fff;--ok:#37d67a;--ok-soft:#0e2618;--critical:#ff8a84;--critical-soft:#3a0e0c;--critical-line:#7a2b26;--verify:#ffb454;--verify-soft:#241d0c;--verify-line:#5c4a1e;--verify-bd:#ffb454;--verify-hi:#ffb454;--critical-bd:#ff5a52;--done-bg:#101b14;--done-line:#1f4a2e;--done-ink:#4e6e58;--tag-bg:#24303f;--tag-ink:#b9c6d4;--link:#8fb8e8;--soft:#5e7186;--input-bg:#0a111b;--shadow:0 1px 2px rgba(0,0,0,.45),0 4px 16px rgba(0,0,0,.5);--shadow-lg:0 2px 6px rgba(0,0,0,.5),0 12px 32px rgba(0,0,0,.65);--hover-dk:#1b2634;--hover-dk-hi:#22364d;--flow-hl-dk:#4e8fd9;}
+  html[data-theme="dark"]{--ink:#e8eef7;--ink-soft:#93a5b5;--line:#24303f;--line-hover:#3b4b5d;--bg:#0c1420;--surface:#121d2b;--surface-2:#101823;--surface-3:#1b2836;--primary:#2e71c2;--primary-dk:#8fb8e8;--primary-hi:#4685d2;--primary-soft:#16324f;--primary-100:#16324f;--primary-200:#2c4b6e;--primary-300:#2c4b6e;--on-primary:#fff;--ok-rgb:55,214,122;--ok:rgb(var(--ok-rgb));--ok-soft:#0e2618;--critical:#ff8a84;--critical-soft:#3a0e0c;--critical-line:#7a2b26;--verify:#ffb454;--verify-soft:#241d0c;--verify-line:#5c4a1e;--verify-bd:#ffb454;--verify-hi:#ffb454;--critical-bd:#ff5a52;--done-bg:#101b14;--done-line:#1f4a2e;--done-ink:#4e6e58;--tag-bg:#24303f;--tag-ink:#b9c6d4;--link:#8fb8e8;--soft:#5e7186;--input-bg:#0a111b;--shadow:0 1px 2px rgba(0,0,0,.45),0 4px 16px rgba(0,0,0,.5);--shadow-lg:0 2px 6px rgba(0,0,0,.5),0 12px 32px rgba(0,0,0,.65);--hover-dk:#1b2634;--hover-dk-hi:#22364d;--flow-hl-dk:#4e8fd9;}
   /* --hover-dk(-hi) : survols du thème sombre (générique / sur surface élevée, ex-hex en dur des
      règles de survol) ; --flow-hl-dk : trait de contre-inversion du SVG sombre (la couleur est
      choisie pour rendre juste APRÈS le filtre invert+hue-rotate). v4.31.0 : plus AUCUN hex hors
@@ -835,7 +835,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     #cbTimers .cbt-n{border-left:0;padding:0 4px}
     /* Plan : 1ʳᵉ carte du cluster gauche (plus de filet-séparateur ni de margin auto). */
     .dock-plan{border:1px solid var(--line);border-radius:10px;min-height:46px;padding:0 16px}
-    .dock-plan:hover{background:var(--primary-soft)}
   }
   @keyframes cbIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
   /* LOGO DE MARQUE (v4.23.1) — ACCUEIL SEULEMENT, comme le nom de l'app qu'il accompagne
@@ -1001,7 +1000,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      taps destinés au ✎ imbriqué -> neutralisé (le ✎ passe aussi au-dessus via z-index). */
   .scopebtn.on::after{pointer-events:none}
   .scopebtn.on.edit{padding-right:5px}
-  .catchip{position:relative}
   /* Pastille ✎ DANS la chip active (canvas) : 34×34 translucide sur le fond plein de la chip,
      débordant à droite pour ne pas la gonfler ; hérite du blanc de la chip active. */
   .chip-edit{position:relative;z-index:1;display:inline-grid;place-items:center;width:28px;height:28px;margin:-9px 0 -9px 6px;border-radius:14px;background:color-mix(in srgb,var(--on-primary) 18%,transparent);color:inherit;border:0;cursor:pointer;vertical-align:middle}
@@ -1646,12 +1644,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .tk-panel.tk-slim .tk-head{margin-bottom:0}
   /* Halo animé en transform/opacity sur un pseudo-élément (COMPOSITÉ) : l'ancienne animation de
      box-shadow forçait un repaint continu pendant toute la durée d'une session, crise comprise. */
-  .sess-dot{--pulse:29,122,56;width:9px;height:9px;border-radius:50%;background:var(--ok);flex-shrink:0;position:relative}
-  .sess-dot::after{content:'';position:absolute;inset:0;border-radius:50%;background:rgba(var(--pulse),.45);animation:pulse 2s infinite;pointer-events:none}
+  .sess-dot{width:9px;height:9px;border-radius:50%;background:var(--ok);flex-shrink:0;position:relative}
+  .sess-dot::after{content:'';position:absolute;inset:0;border-radius:50%;background:rgba(var(--ok-rgb),.45);animation:pulse 2s infinite;pointer-events:none}
   @keyframes pulse{0%{transform:scale(1);opacity:1}70%{transform:scale(2.6);opacity:0}100%{transform:scale(2.6);opacity:0}}
-  html[data-theme="dark"] .sess-dot{--pulse:55,214,122}
-  /* Rappel « session en cours » dans l'en-tête : pastille verte (--ok). */
-  #brandSub .sess-dot{display:inline-block;width:8px;height:8px;background:var(--ok);vertical-align:0;margin:0 1px}
   .sess-livetag{font-size:11px;font-weight:700;color:var(--primary-dk);background:var(--primary-soft);padding:1px 7px;border-radius:10px;margin-left:6px}
   .sess-list{background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius-md);padding:6px 10px;margin-bottom:18px}
   /* Rangée d'historique : les ACTIONS passent sous le titre quand elles ne tiennent pas (téléphone),
@@ -2561,7 +2556,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      à des tailles inégales selon la police) ; colonne fixe 34px, centrée. */
   .crt-ic{flex:none;display:flex;align-items:center;justify-content:center;width:34px;color:var(--ink)}
   .crt-ic svg.tic{vertical-align:0}
-  #crtIA .crt-ic{color:var(--alert-strong)}
   .crt-t{font-size:15px;font-weight:700}
   .crt-d{font-size:12.5px;color:var(--ink-soft);margin-top:2px;line-height:1.35}
   /* --ink-soft et non --line-strong : ce dernier vise 3:1 (BORDURES) et tombe à 4,32:1 en couleur
@@ -3471,7 +3465,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.43.0';
+const APP_VERSION='4.44.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -3780,7 +3774,9 @@ function switchToAnonSpace(){
      fiche     = fiche affichée en lecture
      nav       = pile des blocs visités (fil d'Ariane / parcours guidé)
      checked   = { 'seqVisite:idBloc:index': true } étapes cochées (partagé avec Runtime)
-     showFlow/showSess = panneaux dépliés (aperçu algorithme / historique de sessions)
+     showFlow  = panneau « aperçu de l'algorithme » déplié
+     (showSess a été SUPPRIMÉ en v4.44.0 : écrit deux fois, jamais lu — l'historique des
+      sessions vit dans sa propre fenêtre #sessModal depuis longtemps)
    `Runtime` : état VIVANT d'une fiche utilisée en mode crise. Persiste tant
      qu'on reste sur la même fiche (ficheId), pour ne pas perdre des minuteurs
      en cours en revenant à la bibliothèque. Contient les minuteurs (avec leur
@@ -3816,7 +3812,7 @@ const sanitizeLibs=a=>(Array.isArray(a)?a:[]).slice(0,200).map(l=>({id:safeMetaI
 function profileCacheKey(){const u=Auth.user();return (u&&u.id)?('ac-profile-'+u.id):null;}
 function saveProfileCache(){const k=profileCacheKey();if(!k)return;try{localStorage.setItem(k,JSON.stringify({libraries:myLibraries,isAppAdmin:myIsAppAdmin}));}catch(e){}}
 function loadProfileCache(){const k=profileCacheKey();if(!k)return;try{const p=JSON.parse(localStorage.getItem(k)||'null');if(!p)return;myLibraries=sanitizeLibs(p.libraries);myIsAppAdmin=p.isAppAdmin===true;}catch(e){}}
-let state={view:'library',readStack:[],q:'',cat:'',scope:null,draft:null,fiche:null,nav:[],navSeq:[],navPos:0,checked:{},verified:{},vgaps:{},showFlow:false,showSess:false,rtOpen:false,libLimit:LIB_PAGE,
+let state={view:'library',readStack:[],q:'',cat:'',scope:null,draft:null,fiche:null,nav:[],navSeq:[],navPos:0,checked:{},verified:{},vgaps:{},showFlow:false,rtOpen:false,libLimit:LIB_PAGE,
   noteEdit:false,  // édition de la note personnelle (lecture seule par défaut en mode crise)
   section:'fiches',        // page d'accueil : 'fiches' (aides cognitives) | 'protocols' (mémorisé par espace)
   protocol:null,pdraft:null,   // protocole affiché (protocolRead) / brouillon (protocolEdit)
@@ -3896,7 +3892,27 @@ const uid=p=>{let r='';
   return (p||'f')+Date.now().toString(36)+(r+'00000000').slice(0,8);};
 // esc/clean COERCENT toujours en chaîne -> jamais d'exception si une donnée importée n'est pas une
 // chaîne (sinon `(obj).replace` lèverait et casserait tout le rendu = écran blanc).
-const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+/* L'APOSTROPHE ET LE BACKTICK SONT ÉCHAPPÉS AUSSI (v4.44.0). La doctrine fait de `esc()` « la
+   SEULE barrière anti-XSS » (la CSP monofichier impose `style-src 'unsafe-inline'`) : une barrière
+   qui laisse passer `'` n'est pas une barrière, c'est une barrière conditionnée à un invariant
+   que personne ne vérifie — « aucun attribut n'est jamais délimité par une apostrophe ». Cet
+   invariant est vrai aujourd'hui (mesuré : 0 occurrence de `='${`) et le restera jusqu'au jour où
+   quelqu'un écrira un attribut à l'apostrophe sans savoir que la sûreté de tout le fichier en
+   dépendait.
+   LE BACKTICK, LUI, N'EST PAS ÉCHAPPÉ — et c'est une décision, pas un oubli. Il a été ajouté puis
+   RETIRÉ : trois tests du mini-Markdown tombent aussitôt (« code en ligne », « balisage non
+   interprété dans le code en ligne », « pas de surlignage dans du code »). La raison est
+   structurelle : `mdInline` échappe D'ABORD puis reconnaît la syntaxe, donc un backtick devenu
+   `&#96;` n'est plus reconnu comme délimiteur de code. Et le backtick n'est pas un métacaractère
+   HTML : dans le contexte où va la sortie d'`esc()` — du texte et des attributs à guillemets — il
+   n'ouvre aucune brèche. L'échapper coûtait une fonctionnalité documentée pour zéro sûreté.
+   INNOCUITÉ VÉRIFIÉE avant d'écrire : 278 sites d'appel, dont 0 `textContent`, 0 `setAttribute`
+   et 0 comparaison de chaîne — la sortie de `esc()` ne va QUE dans du HTML, où `&#39;` est
+   re-décodé en `'` par l'analyseur. Un titre français en contient presque toujours un
+   (« fiches d'exemple ») : le contrôle qui compte est qu'AUCUN `&#39;` ne remonte à l'écran, et
+   il est joué sur les deux moteurs. Entité numérique et non `&apos;` : universellement comprise,
+   y compris par un analyseur HTML4. */
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 // Mise en évidence **gras** dans les textes de fiche (étapes, listes, question, contexte local).
 // esc() d'ABORD, puis chaque paire **…** devient <b>…</b>. Dégradation PROPRE : balisage non
 // apparié, vide ou multiligne laissé tel quel (la coquille reste visible en relecture, le rendu
@@ -4688,9 +4704,16 @@ function curBlockHay(f){
   const b=(f&&f.blocks||[]).find(x=>x.id===state.nav[state.navPos]);
   if(!b)return '';
   return [stripBold(b.title||'')].concat(clean(b.steps).map(s=>stepText(s))).join(' ');}
-/* Cartes de repères posologiques, classées pour le bloc courant : les rapprochés (et tous les
-   « ⚠ ») en tête, le reste replié derrière un dépliant qui ANNONCE SON NOMBRE. Source unique,
-   partagée par le flux et la feuille Consulter — les deux rendus ne peuvent pas diverger. */
+/* Cartes de repères posologiques, classées pour le bloc courant : les rapprochés et TOUS LES
+   SIGNALÉS — `⚠` comme `△`, via `posoRank().crit` — en tête, le reste replié derrière un
+   dépliant qui ANNONCE SON NOMBRE (un pli muet serait un filtre déguisé).
+   CORRIGÉ v4.44.0 : cette entête affirmait « source unique, partagée par le flux et la feuille
+   Consulter — les deux rendus ne peuvent pas diverger ». C'est FAUX depuis v4.25.3, qui a retiré
+   la posologie de la feuille Consulter (elle y pesait, avec les surveillances, 57 % de la hauteur
+   pour un contenu déjà présent quatre fois ailleurs). Il ne reste qu'UN site d'appel, dans
+   `renderRead`. Le commentaire promettait donc une garantie de non-divergence entre deux rendus
+   dont l'un n'existe plus — le genre d'affirmation qui survit à ce qu'elle décrit et qu'un
+   contributeur applique par imitation. */
 function posoCardsHtml(list,hay){
   const items=clean(list);if(!items.length)return '';
   /* REGISTRE D'UN REPÈRE (v4.23.0, décision utilisateur) : AMBRE, jamais rouge. La doctrine
@@ -5669,12 +5692,15 @@ function tickAll(){
    que le panneau minuteurs est sorti de l'écran (on a déroulé les étapes), l'en-tête affiche le
    temps restant/écoulé en permanence — le cas d'usage cardinal (« adrénaline / 5 min ») ne doit
    jamais exiger de remonter la page pour LIRE le temps. Tap -> re-scrolle au panneau. */
-// Visibilité du panneau minuteurs : elle ne change qu'au DÉFILEMENT, au redimensionnement ou à un
-// re-rendu — on ne relit la géométrie (getBoundingClientRect = reflow forcé) que quand un de ces
-// événements l'a invalidée, PAS à chaque tick de 300 ms.
-let _rtShowDirty=true;
-window.addEventListener('scroll',()=>{_rtShowDirty=true;},{passive:true});
-window.addEventListener('resize',()=>{_rtShowDirty=true;},{passive:true});
+// `_rtShowDirty` SUPPRIMÉ en v4.44.0 (règle 14). C'était un cache d'invalidation pour ne relire la
+// géométrie du panneau minuteurs qu'après un défilement, un redimensionnement ou un re-rendu — le
+// commentaire d'origine décrivait fidèlement cette intention. Mais le drapeau était ÉCRIT quatre
+// fois et LU zéro fois : deux écouteurs globaux (`scroll`, `resize`) tournaient pour maintenir une
+// valeur que personne ne consultait. Le mécanisme a dû perdre son lecteur lors d'une refonte du
+// quai, et le commentaire a survécu à la logique qu'il expliquait — il affirmait donc une
+// optimisation qui n'existait plus. Ne pas « réparer » en réintroduisant un lecteur sans mesure :
+// la Phase 3 a chronométré ce que coûte réellement la relecture de géométrie du quai (0,5 ms/s de
+// mise en page pour le tick complet, gain d'un cache : 0,10 ms/s). Il n'y a rien à gagner ici.
 // FUSIONNÉ dans le bandeau de crise : le chrono compact #cbTimers (à droite du bandeau) reprend
 // le rôle de l'ancien rappel #rtStrip — visible quand un minuteur tourne ET que le panneau
 // minuteurs est sorti de l'écran ; tap -> remonte au panneau. Un seul bloc d'état dans la barre.
@@ -5847,7 +5873,7 @@ async function endCurrentSession(){if(!Runtime.started)return;if(!await confirmE
 function resumeSession(id){const s=sessions.find(x=>x.id===id);if(!s)return;const f=fiches.find(x=>x.id===s.ficheId);if(!f){toast('⚠ Fiche introuvable.');return;}flowScroll={left:null,top:0};state.readMode=currentReadMode();state.ovFold={};state.ovVerify=null;
   if(liveSessions[f.id]&&liveSessions[f.id].sessionId===id){Runtime=liveSessions[f.id];}
   else{Runtime=buildRuntime(f,s);Runtime.started=true;Runtime.startedAt=s.startedAt||Date.now();liveSessions[f.id]=Runtime;persistLive(Runtime,true);}
-  Runtime.fiche=f;bindStateToRuntime();state.fiche=f;state.showFlow=false;state.showSess=false;state.view='read';render();}
+  Runtime.fiche=f;bindStateToRuntime();state.fiche=f;state.showFlow=false;state.view='read';render();}
 async function deleteSession(id){if(!await confirmDlg('Supprimer cette session ?',{yes:'Supprimer',danger:true}))return;try{await Data.delSession(id);}catch(e){}sessions=sessions.filter(x=>x.id!==id);Object.values(liveSessions).forEach(R=>{if(R.sessionId===id){delete liveSessions[R.ficheId];R.started=false;R.sessionId=null;R.name='';}});render();}
 
 /* ===== Render =====
@@ -5997,7 +6023,7 @@ function render(){
   else if(state.view==='protocolRead')renderProtocolRead();
   else if(state.view==='protocolEdit')renderProtocolEdit();
   else renderRead();
-  _rtShowDirty=true;updateRtStrip();   // APRÈS le rendu de la vue : position réelle du panneau minuteurs
+  updateRtStrip();   // APRÈS le rendu de la vue : position réelle du panneau minuteurs
   // Pied de page allégé : les comptes fiches/protocoles vivent dans la sidebar — seule la version reste.
   document.getElementById('count').textContent='v'+APP_VERSION;
   // Défilement selon la TRANSITION de vue (et pas seulement la vue) :
@@ -7576,7 +7602,7 @@ function renderRead(){
     const num={};plan.order.forEach((id,i)=>{num[id]=i+1;});
     const md={};minimapData(f,state.nav,state.navSeq,state.checked,state.navPos).forEach(m=>{md[m.id]=m;});
     const off=offPathSet(f,state.nav,state.navPos);
-    return `<div class="rail-head"><span class="rail-title">Plan — Échelle</span><span class="rail-n">${plan.order.length}</span><button type="button" class="rail-exp" id="railPlanFull" aria-haspopup="dialog"><span class="rx-ic" aria-hidden="true">⤢</span> complet</button></div><div class="ov-plan compact rail-lad">${ovPlanLadderHtml(f,plan,num,md,off)}</div>`;})();
+    return `<div class="rail-head"><span class="rail-title">Plan — Échelle</span><span class="rail-n">${plan.order.length}</span><button type="button" class="rail-exp" id="railPlanFull" aria-haspopup="dialog"><span class="rx-ic" aria-hidden="true">⤢</span> complet</button></div><div class="ov-plan rail-lad">${ovPlanLadderHtml(f,plan,num,md,off)}</div>`;})();
   /* RAIL EN TROIS ZONES (v4.23.0) — retour d'usage : empilées dans un seul défileur, une Échelle
      longue ou des minuteurs nombreux repoussaient les repères posologiques tout en bas.
      Ordre par URGENCE DÉCROISSANTE, et surtout : la seule zone de longueur NON BORNÉE (l'Échelle)
@@ -8138,7 +8164,7 @@ function ovPlanHtml(f){
      Le SCHÉMA n'est pas perdu : il rejoint le menu ⋯ et s'ouvre en PLEIN ÉCRAN avec zoom
      (`openFlowFull`, visionneuse préexistante) — un accès direct chacun, comme l'ECP d'Airbus a
      une touche par page plutôt qu'un onglet à faire défiler. */
-  return `<div class="ov-plan-h"><span class="ovs-t">Se repérer</span><span class="ovs-sub">· une ligne par bloc, tap = détails</span></div><div class="ov-plan compact">${ovPlanLadderHtml(f,plan,num,md,off)}</div>`;}
+  return `<div class="ov-plan-h"><span class="ovs-t">Se repérer</span><span class="ovs-sub">· une ligne par bloc, tap = détails</span></div><div class="ov-plan">${ovPlanLadderHtml(f,plan,num,md,off)}</div>`;}
 /* ===== FEUILLE « PLAN » plein écran (v4.23.0) =====
    Le Plan sert la VUE D'ENSEMBLE ; le fil LOCAL, lui, est déjà dans le journal. Il quitte donc
    le flux et s'ouvre en pleine largeur, où les intitulés cliniques tiennent entiers et où les
@@ -8581,18 +8607,16 @@ function bindOverviewEvents(f){
     if(vx){const vf=state.ovVerify;state.ovVerify=null;renderOvOnlyKeepAnchor(vf?'.ov-block[data-ovi="'+vf.idx+'"]':null);return;}
     // MODE LECTEUR (v4.11.0) : plein écran, piloté sur le bout du journal.
     const rdr=t.closest('[data-ovreader]');if(rdr){readerOpen();return;}
-    // PLAN (v4.10.0) : nœud = y aller ; lien →/↺ = défilement DANS le plan.
-    // L'ORDRE COMPTE : le renvoi (qui vit DANS une ligne) est traité AVANT la ligne elle-même,
-    // et le dépliage d'une ligne d'échelle précède data-plgo (bouton du panneau déplié).
-    const pr=t.closest('[data-plref]');
-    if(pr){const k5=CSS.escape(pr.dataset.plref);
-      // Cf. la feuille « Se repérer » : seule la LIGNE d'échelle existe depuis v4.25.0.
-      const el=main.querySelector('.pl-line[data-plln="'+k5+'"]');
-      if(el){ovScrollEl(el);el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),900);}return;}
-    const pl3=t.closest('[data-plln]');
-    if(pl3){const id3=pl3.dataset.plln;state.ovFold['l:'+id3]=!state.ovFold['l:'+id3];
-      renderOvOnlyKeepAnchor('[data-plln="'+CSS.escape(id3)+'"]');return;}
-    const pg=t.closest('[data-plgo]');if(pg){jumpToBlock(f,pg.dataset.plgo);return;}
+    // (Les trois branches du PLAN — data-plref / data-plln / data-plgo — ont été SUPPRIMÉES ici
+    //  en v4.44.0 : elles étaient INATTEIGNABLES. Ce gestionnaire délègue sur `.ov-wrap`, le
+    //  JOURNAL ; or le plan a quitté le journal en v4.23.0 pour vivre dans le RAIL (`.rail-lad`,
+    //  câblé par `bindReadEvents`) et dans la FEUILLE plein écran (`#planModal`, câblée à part).
+    //  Mesuré avant retrait, dans 21 configurations — 3 largeurs (390/800/1280) × 7 états
+    //  (journal, session vive, passages, feuille ouverte, feuille refermée, statique, retour) :
+    //  `.ov-wrap [data-plln],[data-plgo],[data-plref]` = 0 partout, pendant que le rail en portait
+    //  9 dès 800 px et la feuille 9 une fois ouverte. Les deux copies VIVANTES restent, et elles
+    //  divergent — ne pas les factoriser sans décision : la version du rail ancre sur
+    //  `.rail-lad`, celle de la feuille sur son propre corps.)
     const co=t.closest('[data-cxopen]');if(co){openCxDlg(f);return;}
     const cb2=t.closest('[data-cxback]');if(cb2){cxResume(f,cb2.dataset.cxback);return;}
     const nx=t.closest('[data-ovnext]');
@@ -8620,7 +8644,9 @@ function bindOverviewEvents(f){
       ovDropOpens();state.flowEnded=true;render();return;}};   // les étapes ②/③ du rail changent -> rendu complet
   wrap.onclick=e=>handle(e.target,false);
   wrap.onkeydown=e=>{if(e.key!=='Enter'&&e.key!==' ')return;
-    const t=e.target.closest('[data-ck],[data-plgo],[data-plln]');if(!t)return;e.preventDefault();handle(t,true);};
+    // `[data-plgo]`/`[data-plln]` retirés du sélecteur avec leurs branches (v4.44.0) : le plan
+    // n'est pas dans `.ov-wrap`, ce clavier ne pouvait donc jamais les atteindre non plus.
+    const t=e.target.closest('[data-ck]');if(!t)return;e.preventDefault();handle(t,true);};
 }
 /* RECOMMENCER LE PARCOURS (v4.23.8) — action GLOBALE : efface tout le chemin parcouru et repart
    du bloc de départ. Elle vit dans le menu ⋯, avec les autres actions de portée globale (Terminer
@@ -9637,7 +9663,7 @@ function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;bumpUsage(i
   else if(!(Runtime.fiche&&Runtime.ficheId===id&&!Runtime.started)){Runtime=buildRuntime(f,null);}
   // Algorithme REPLIÉ à l'ouverture : la 1ʳᵉ étape actionnable doit arriver le plus haut possible
   // sous stress ; le schéma (vue d'ensemble, utile à froid) reste à un tap (« Voir l'algorithme »).
-  bindStateToRuntime();state.fiche=Runtime.fiche;state.showFlow=false;state.showSess=false;state.view='read';render();}
+  bindStateToRuntime();state.fiche=Runtime.fiche;state.showFlow=false;state.view='read';render();}
 async function openEdit(id){const f=fiches.find(x=>x.id===id);if(!f)return;
   // Le rôle peut avoir changé côté serveur pendant que l'app était ouverte (pas de synchro
   // périodique) : fiche PARTAGÉE + en ligne -> profil revérifié AVANT le contrôle local.
@@ -11255,7 +11281,14 @@ applyZoom(currentZoom());
   /* v4.29.7 : iOS peut CORRIGER la géométrie de la WebView (ex. après le bug de la PWA amputée)
      SANS émettre resize sur visualViewport — une valeur posée au lancement restait alors fausse
      pour toute la session. On écoute large (fenêtre, orientation, retour au premier plan) ET on
-     resynchronise à chaque tic d'horloge (tickAll, ~1 s — écriture seulement si ça a changé). */
+     resynchronise à chaque tic d'horloge — c'est-à-dire toutes les 300 ms, soit ~3,3 fois par
+     seconde, et non « ~1 s » comme l'annonçait ce commentaire jusqu'en v4.44.0 : `tickAll` est
+     branché sur `setInterval(…,300)`, et l'appel est placé AVANT le garde d'activité, donc il
+     tourne aussi au repos. Ce que ça coûte, mesuré : RIEN — `vv.height` est une propriété déjà
+     calculée (aucune lecture de géométrie forcée, 0 layout), et l'écriture de `--vvh` n'a lieu
+     que si la valeur a bougé d'au moins 0,5 px. Le chiffre est corrigé parce qu'un commentaire
+     faux sur une fréquence est ce qui fait ensuite « optimiser » au jugé une boucle qui ne coûte
+     rien — la Phase 3 a chronométré exactement cette famille de faux problèmes. */
   vv.addEventListener('resize',set);vv.addEventListener('scroll',set);
   window.addEventListener('resize',set);
   window.addEventListener('orientationchange',()=>setTimeout(set,350));

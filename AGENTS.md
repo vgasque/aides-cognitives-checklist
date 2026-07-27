@@ -29,7 +29,8 @@ ne s'apprend en lisant le code** — elles viennent d'incidents mesurés, et plu
    notes et taguer. Ne JAMAIS éditer les numéros de version à la main (un décalage entre
    `APP_VERSION` et `CACHE` casse la mise à jour du service worker). **Jamais de `git push` sans
    demande explicite.**
-2. **Avant chaque commit** : `npm run check` (syntaxe · couleurs · classes émises · animations · hashs CSP) et
+2. **Avant chaque commit** : `npm run check` (syntaxe · couleurs · classes émises · animations ·
+   service worker · hashs CSP) et
    `npm test` (Chromium **et** WebKit). Si le CSS a changé : `npm run design:build`.
 3. **Toute édition du script inline exige `node scripts/csp-hashes.mjs`.** Sans cela, la CSP par
    hashs bloque le seul script de l'application et **elle ne démarre plus**. Le piège s'est produit
@@ -37,6 +38,11 @@ ne s'apprend en lisant le code** — elles viennent d'incidents mesurés, et plu
 4. **`esc()` sur toute donnée affichée.** C'est la SEULE barrière anti-XSS (la CSP monofichier
    impose `'unsafe-inline'` pour les styles). Ne jamais interpoler une valeur externe brute dans un
    attribut ou un `style=` : couleur → `safeColor()`, image → `safeImg()`, identifiant → `esc()`.
+   Depuis v4.44.0 elle échappe aussi **l'apostrophe** (`&#39;`) : elle ne pouvait pas rester
+   suspendue à l'invariant non vérifié « aucun attribut n'est délimité par une apostrophe ». Le
+   **backtick reste intact**, et c'est une décision mesurée, pas un oubli — l'échapper tuait le
+   code en ligne du mini-Markdown (`mdInline` échappe d'abord, reconnaît ensuite : 3 tests rouges)
+   pour zéro sûreté, le backtick n'étant pas un métacaractère HTML.
 5. **Toute donnée entrante passe par `migrate()` / `sanitizeCats()`** — chargement, import, ZIP,
    duplication ET pull cloud. N'ajoutez jamais un chemin qui contourne ces points d'entrée.
 6. **Tout identifiant servant de CLÉ d'objet passe par `safeId()`** (`__proto__` banni) et les
@@ -119,6 +125,18 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   d'accessibilité pour un gain nul). Le contrôle a été vérifié CAPABLE D'ÉCHOUER (défaut
   réintroduit puis fichier restauré à l'octet) : un garde-fou qui ne peut pas échouer ne prouve
   rien — leçon v4.31.1.
+  `check-sw.mjs` (v4.44.0) ferme le trou le plus gênant du dispositif : **la fonction dont tout
+  dépend en intervention — exister hors ligne — était la seule que rien ne mesurait**, aucun des
+  onze harnais ne regardant `sw.js` ni le manifeste (trois des défauts les plus graves de l'audit
+  vivaient là et n'ont été trouvés qu'à la lecture). Quatre contrôles STATIQUES, donc instantanés,
+  donc jouables à chaque commit : (1) toute entrée d'`ASSETS`/`CORE_ASSETS`/`PDFJS_ASSETS` existe
+  sur le disque — une entrée fantôme dans `CORE_ASSETS` fait échouer `addAll`, qui est
+  tout-ou-rien, et supprime le hors-ligne ENTIER ; (2) `CORE_ASSETS` ⊆ `ASSETS` ; (3) tout fichier
+  servable de la RACINE est dans `ASSETS` — la règle 13 ne s'auto-exécutait pas (les fichiers en
+  point sont exclus : ce sont les sondes gitignorées) ; (4) `CACHE` aligné sur `APP_VERSION`,
+  c'est-à-dire la règle 1. Le comportement DYNAMIQUE (install, fetch, hors-ligne réel) reste hors
+  de portée : il demande un navigateur et deux précautions documentées — désinscrire le worker et
+  purger les caches entre exécutions (piège v4.30.0), sans quoi on teste la version précachée.
 - `npm test` — exécute `tests.html` en headless sur **DEUX moteurs, Chromium ET WebKit** (v4.34.0 :
   iOS Safari est la cible principale et n'était jamais testé — toute la suite tournait sur Blink
   seul, alors que le dossier « bande basse iOS » a montré qu'un comportement WebKit peut couper
@@ -1191,7 +1209,11 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   lot 7 : `crit` ne testait que `stepIsCrit`, or la doctrine v4.23.0 réserve `⚠` aux ACTIONS et
   marque la posologie en `△` ; la protection ne couvrait donc plus RIEN, et une dilution à
   vérifier — motif même du registre — pouvait se replier) ; sans rapprochement l'ordre de
-  l'auteur est conservé. Source unique `posoCardsHtml` partagée par le flux et la feuille. **Menu ⋯ (v4.5 ; ORDRE REFAIT v4.28.0, retour utilisateur)** : en lecture, toutes les
+  l'auteur est conservé. `posoCardsHtml` a UN SEUL site d'appel, dans le flux (`renderRead`) —
+  cette ligne disait « source unique partagée par le flux et la feuille », ce qui contredisait le
+  paragraphe « FEUILLE CONSULTER » deux sections plus haut : v4.25.3 a précisément RETIRÉ la
+  posologie de la feuille. Corrigé en v4.44.0, avec le commentaire du code qui portait la même
+  affirmation. **Menu ⋯ (v4.5 ; ORDRE REFAIT v4.28.0, retour utilisateur)** : en lecture, toutes les
   actions secondaires vivent dans le menu ⋯ de la barre. **Ordre = logique ECAM E/WD → SD** :
   la CONDUITE EN COURS d'abord (⚡ Complications, Mode lecteur, Se repérer, Schéma, Consulter),
   puis le CYCLE DE VIE de la session (Répéter en exercice, Recommencer le parcours, Historique),

@@ -55,6 +55,21 @@ function tint15(hex){hex=hex.replace('#','');const f=i=>Math.round(255*0.85+pars
 async function run(A){   // async : zipParse (lecture des exports .zip) renvoie une promesse
   group('esc() — échappement HTML');
   eq('échappe < > & "', A.esc('<b>&"x"'), '&lt;b&gt;&amp;&quot;x&quot;');
+  // v4.44.0 — l'APOSTROPHE aussi. `esc()` est LA barrière anti-XSS du projet : la laisser dépendre
+  // de l'invariant non vérifié « aucun attribut n'est délimité par une apostrophe » revenait à
+  // faire reposer la sûreté de tout le fichier sur une convention que rien n'impose. Le second
+  // contrôle est le scénario réel : une valeur qui referme l'attribut et en ouvre un autre.
+  eq('échappe aussi l' + "'" + 'apostrophe',
+     A.esc("'" + 'x'), '&#39;x');
+  // Le BACKTICK, lui, reste INTACT — et c'est un invariant, pas un oubli : il a été échappé puis
+  // rétabli, parce que `mdInline` échappe d'abord et reconnaît la syntaxe ensuite ; un backtick
+  // devenu `&#96;` tuait le code en ligne (3 tests rouges, mesuré). Et ce n'est pas un
+  // métacaractère HTML : dans du texte ou un attribut à guillemets, il n'ouvre rien.
+  eq('le backtick reste intact (délimiteur du code en ligne)',
+     A.esc("`" + 'code' + "`"), "`" + 'code' + "`");
+  eq('un attribut à l' + "'" + 'apostrophe ne peut plus être refermé',
+     A.esc("'" + ' onerror=alert(1) x=' + "'"),
+     '&#39; onerror=alert(1) x=&#39;');
   eq('null → chaîne vide', A.esc(null), '');
 
   group('safeId() — anti-pollution & format');

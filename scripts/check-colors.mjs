@@ -15,8 +15,17 @@ if (!m) { console.error('check-colors : <style> introuvable'); process.exit(1); 
 
 let css = m[1]
   .replace(/\/\*[\s\S]*?\*\//g, '')          // commentaires
-  .replace(/^.*\.acc-sw\..*$/gm, '');        // nuanciers littéraux du sélecteur d'accent (les
-                                             // deux lignes : claire ET html[data-theme="dark"])
+  /* EXEMPTION À LA RÈGLE, PLUS À LA LIGNE (v4.44.0). Elle était `^.*\.acc-sw\..*$` — donc
+     LIGNE ENTIÈRE. Le CSS de ce projet écrit plusieurs règles par ligne : trois lignes étaient
+     exemptées, dont DEUX portant SIX règles chacune (les nuanciers clair et sombre), et une
+     troisième — `.acc-sw.on` — qui ne contient aucun hex et bénéficiait du blanc-seing pour
+     rien. Un hex collé en fin de l'une de ces lignes passait donc inaperçu (démontré : `exit 0`
+     avec la fuite en place, `exit 1` la même déclaration écrite une ligne plus haut).
+     Ne sont désormais exemptées que les règles dont le SÉLECTEUR nomme un nuancier, c'est-à-dire
+     `.acc-sw.a-…` : ce sont les seules qui doivent porter une couleur littérale, puisqu'elles
+     montrent chaque accent quel que soit l'accent actif — un `var()` y serait faux par
+     construction. Tout le reste de ces mêmes lignes redevient inspecté. */
+  .replace(/[^{}]*\.acc-sw\.a-[^{}]*\{[^}]*\}/g, '');
 
 /* ÉLARGI EN v4.37.0 aux fonctions de couleur. Le contrôle ne voyait que les hex : `--ink` recopié
    en DÉCIMAL (`rgba(16,27,40,.45)`) passait au travers, et c'est exactement la dérive que la règle

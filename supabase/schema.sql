@@ -66,18 +66,18 @@ exception when duplicate_object then null; end $$;
 -- tables sans rien divulguer (aucun paramètre ne permet de lire les droits d'autrui).
 
 create or replace function public.is_app_admin()
-returns boolean language sql stable security definer set search_path = public as $$
+returns boolean language sql stable security definer set search_path = public, pg_temp as $$
   select exists (select 1 from public.app_admins where user_id = auth.uid());
 $$;
 
 create or replace function public.is_member(lib text)
-returns boolean language sql stable security definer set search_path = public as $$
+returns boolean language sql stable security definer set search_path = public, pg_temp as $$
   select exists (select 1 from public.memberships
                  where user_id = auth.uid() and library_id = lib);
 $$;
 
 create or replace function public.member_role(lib text)
-returns text language sql stable security definer set search_path = public as $$
+returns text language sql stable security definer set search_path = public, pg_temp as $$
   select role from public.memberships
   where user_id = auth.uid() and library_id = lib;
 $$;
@@ -90,6 +90,24 @@ alter table public.fiches        enable row level security;
 alter table public.category_sets enable row level security;
 
 -- app_admins : AUCUNE politique + AUCUN grant -> totalement invisible de l'API.
+
+-- « FORCE ROW LEVEL SECURITY » N'EST PAS ACTIVÉ, ET C'EST DÉLIBÉRÉ (v4.44.0).
+-- `enable row level security` ci-dessus soumet déjà tous les clients de l'API (rôles
+-- `anon` et `authenticated`) aux politiques : c'est ce qui protège les données. `force`
+-- ajoute UNE chose de plus : soumettre aussi le PROPRIÉTAIRE des tables aux politiques.
+--
+-- L'activer par réflexe casserait toute l'administration, et le mécanisme mérite d'être écrit
+-- une fois pour toutes : `app_admins` et `app_settings` n'ont VOLONTAIREMENT ni politique ni
+-- grant (voir juste au-dessus). Elles ne sont lisibles que par `is_app_admin()` et
+-- `is_approved()`, qui sont `security definer` — donc exécutées avec les droits du
+-- propriétaire, précisément pour traverser cette invisibilité. Sous `force`, le propriétaire
+-- redevient soumis aux politiques ; comme il n'y en a AUCUNE sur ces deux tables, les deux
+-- fonctions renverraient systématiquement faux : plus aucun app-admin, donc plus aucune
+-- création de bibliothèque ni validation de compte, sur toute l'instance.
+--
+-- Si `force` devait être adopté un jour, il faudrait D'ABORD donner à ces deux tables des
+-- politiques explicites pour le rôle propriétaire — et rejouer `supabase/rls-tests.sql` en
+-- entier, la section 13 comprise. Ne pas l'ajouter table par table « pour faire propre ».
 
 -- NB : Postgres n'a pas de « create policy if not exists » -> chaque politique est précédée
 -- d'un drop if exists pour que schema.sql soit REJOUABLE en entier sur une instance existante.
@@ -148,7 +166,7 @@ create policy mem_write on public.memberships for all
 
 -- ---------- 4. Trigger : le créateur d'une biblio en devient admin ----------
 create or replace function public.lib_add_creator()
-returns trigger language plpgsql security definer set search_path = public as $$
+returns trigger language plpgsql security definer set search_path = public, pg_temp as $$
 begin
   insert into public.memberships(user_id, library_id, role)
   values (new.created_by, new.id, 'admin')
@@ -197,7 +215,7 @@ alter default privileges in schema public revoke all on functions from anon;
 -- à n'importe quel compte de sonder le statut d'approbation d'un autre (cf. commentaire des
 -- helpers SECURITY DEFINER ci-dessus : « aucun paramètre ne permet de lire les droits d'autrui »).
 create or replace function public.invite_member(p_library text, p_email text, p_role text default 'viewer')
-returns text language plpgsql security definer set search_path = public as $$
+returns text language plpgsql security definer set search_path = public, pg_temp as $$
 declare v_uid uuid; v_status text;
 begin
   if not (public.member_role(p_library) = 'admin' or public.is_app_admin()) then
@@ -233,7 +251,7 @@ grant execute on function public.invite_member(text,text,text) to authenticated;
 -- nécessaire car auth.users n'est pas accessible via l'API publique.
 create or replace function public.list_members(p_library text)
 returns table(user_id uuid, email text, role text)
-language sql security definer set search_path = public as $$
+language sql security definer set search_path = public, pg_temp as $$
   select m.user_id, u.email::text, m.role
   from public.memberships m join auth.users u on u.id = m.user_id
   where m.library_id = p_library
@@ -246,7 +264,10 @@ grant execute on function public.list_members(text) to authenticated;
 -- Empêche un client de postdater updated_at pour « gagner » indûment un conflit (last-write-wins).
 -- On clampe seulement les valeurs dans le futur -> aucune nuisance pour les écritures normales.
 create or replace function public.clamp_updated_at()
-returns trigger language plpgsql as $$
+-- search_path épinglé (v4.44.0) : cette fonction tourne à chaque écriture de fiches et de
+-- category_sets. Elle n'est PAS security definer — elle s'exécute avec les droits de l'appelant,
+-- donc l'enjeu n'est pas une élévation mais l'indépendance vis-à-vis du search_path du client.
+returns trigger language plpgsql set search_path = public, pg_temp as $
 begin if new.updated_at is null or new.updated_at > now() then new.updated_at = now(); end if; return new; end;
 $$;
 drop trigger if exists fiches_clamp_updated   on public.fiches;
@@ -265,7 +286,7 @@ create trigger catsets_clamp_updated before insert or update on public.category_
 -- la boîte mail du compte juste avant. C'est le pendant serveur du parcours de l'app
 -- (SUPPRIMER -> code OTP -> suppression) ; toute anomalie de claim bloque (fail-closed).
 create or replace function public.delete_my_account()
-returns void language plpgsql security definer set search_path = public, auth as $$
+returns void language plpgsql security definer set search_path = public, auth, pg_temp as $$
 declare
   uid    uuid  := auth.uid();
   claims jsonb := coalesce(nullif(current_setting('request.jwt.claims', true), ''), '{}')::jsonb;
@@ -317,7 +338,7 @@ create table if not exists public.user_status (
 -- sans ce garde, n'importe qui pouvait remplir la liste d'attente d'adresses jamais
 -- confirmées (pollution + risque qu'un admin approuve une adresse non vérifiée).
 create or replace function public.handle_new_user()
-returns trigger language plpgsql security definer set search_path = public as $$
+returns trigger language plpgsql security definer set search_path = public, pg_temp as $$
 declare v_status text := 'pending';
 begin
   if new.email_confirmed_at is null then return new; end if;  -- e-mail pas encore vérifié -> rien
@@ -382,7 +403,7 @@ alter table public.app_settings enable row level security;
 -- `exists(... status='approved')` le refusait : l'app affichait alors « Connecté » (my_status)
 -- pendant que TOUTES les écritures étaient rejetées en 403 — panne de synchro inexplicable.
 create or replace function public.is_approved()
-returns boolean language sql stable security definer set search_path = public as $$
+returns boolean language sql stable security definer set search_path = public, pg_temp as $$
   select public.is_app_admin()
     or not coalesce((select require_approval from public.app_settings limit 1), true)
     or coalesce((select status from public.user_status where user_id = auth.uid()), 'approved') = 'approved';
@@ -430,7 +451,7 @@ create trigger notes_clamp_updated before insert or update on public.fiche_notes
 -- aucune ligne n'existe -> 'approved', pour ne jamais afficher "en attente" à quelqu'un dont la
 -- synchro fonctionne déjà réellement).
 create or replace function public.my_status()
-returns text language sql stable security definer set search_path = public as $$
+returns text language sql stable security definer set search_path = public, pg_temp as $$
   select case
     when public.is_app_admin() then 'approved'
     when not coalesce((select require_approval from public.app_settings limit 1), true) then 'approved'
@@ -442,13 +463,13 @@ grant execute on function public.my_status() to authenticated;
 -- Lecture/écriture de l'interrupteur (écran « Comptes en attente »). Lecture ouverte à tout
 -- utilisateur connecté (ne révèle rien de sensible) ; écriture réservée à l'app-admin.
 create or replace function public.get_approval_required()
-returns boolean language sql stable security definer set search_path = public as $$
+returns boolean language sql stable security definer set search_path = public, pg_temp as $$
   select coalesce((select require_approval from public.app_settings limit 1), true);
 $$;
 grant execute on function public.get_approval_required() to authenticated;
 
 create or replace function public.set_approval_required(p_value boolean)
-returns void language plpgsql security definer set search_path = public as $$
+returns void language plpgsql security definer set search_path = public, pg_temp as $$
 begin
   if not public.is_app_admin() then raise exception 'not allowed'; end if;
   update public.app_settings set require_approval = p_value where id = true;
@@ -458,7 +479,7 @@ grant execute on function public.set_approval_required(boolean) to authenticated
 -- Comptes pending/rejected (app-admin uniquement ; vide sinon) -> écran « Comptes en attente ».
 create or replace function public.list_unapproved_users()
 returns table(user_id uuid, email text, status text, created_at timestamptz)
-language sql security definer set search_path = public as $$
+language sql security definer set search_path = public, pg_temp as $$
   select s.user_id, s.email, s.status, s.created_at from public.user_status s
   where s.status in ('pending','rejected') and public.is_app_admin()
   order by s.created_at;
@@ -472,7 +493,7 @@ grant execute on function public.list_unapproved_users() to authenticated;
 -- l'UPDATE exécuté par cette fonction, mais AUSSI sur un UPDATE direct de user_status
 -- (app-admin via l'API REST, politique user_status_write) ou une édition au dashboard.
 create or replace function public.set_user_status(p_user uuid, p_status text)
-returns void language plpgsql security definer set search_path = public as $$
+returns void language plpgsql security definer set search_path = public, pg_temp as $$
 begin
   if not public.is_app_admin() then raise exception 'not allowed'; end if;
   if p_status not in ('pending','approved','rejected') then raise exception 'invalid status'; end if;
@@ -499,7 +520,7 @@ grant execute on function public.set_user_status(uuid, text) to authenticated;
 -- SECURITY DEFINER : la purge doit aboutir quel que soit le rôle qui a modifié le statut
 -- (défense en profondeur, indépendante des politiques RLS de memberships).
 create or replace function public.revoke_memberships()
-returns trigger language plpgsql security definer set search_path = public as $$
+returns trigger language plpgsql security definer set search_path = public, pg_temp as $$
 begin
   delete from public.memberships where user_id = new.user_id;
   return new;
@@ -520,7 +541,7 @@ create trigger user_status_revoke_memberships
 -- de "pending" via le trigger on_auth_user_created). Restreint volontairement aux comptes rejected
 -- (pas pending/approved) -> pas d'usage détourné pour supprimer n'importe quel compte via cette RPC.
 create or replace function public.delete_rejected_user(p_user uuid)
-returns void language plpgsql security definer set search_path = public, auth as $$
+returns void language plpgsql security definer set search_path = public, auth, pg_temp as $$
 begin
   if not public.is_app_admin() then raise exception 'not allowed'; end if;
   if not exists(select 1 from public.user_status where user_id = p_user and status = 'rejected') then
@@ -557,7 +578,7 @@ exception when duplicate_object then null; end $$;
 -- + des jeux de catégories). Réservé aux app-admins (renvoie NULL sinon). SECURITY DEFINER car il
 -- agrège des tables/comptes que l'appelant ne peut pas lire ligne à ligne.
 create or replace function public.get_instance_stats()
-returns jsonb language sql stable security definer set search_path = public, auth as $$
+returns jsonb language sql stable security definer set search_path = public, auth, pg_temp as $$
   select case when not public.is_app_admin() then null else jsonb_build_object(
     'users',        (select count(*) from auth.users),
     'pending',      (select count(*) from public.user_status where status = 'pending'),
@@ -616,7 +637,7 @@ grant select, insert, update, delete on public.protocols to authenticated;
 
 -- La suppression de compte (RGPD) emporte aussi les protocoles perso.
 create or replace function public.delete_my_account()
-returns void language plpgsql security definer set search_path = public, auth as $$
+returns void language plpgsql security definer set search_path = public, auth, pg_temp as $$
 declare
   uid    uuid  := auth.uid();
   claims jsonb := coalesce(nullif(current_setting('request.jwt.claims', true), ''), '{}')::jsonb;
@@ -644,7 +665,7 @@ end; $$;
 -- État de l'instance : RE-CRÉÉE ici (après la table protocols, qu'une fonction SQL ne peut
 -- référencer avant sa création) avec les compteurs de protocoles et le poids du bucket.
 create or replace function public.get_instance_stats()
-returns jsonb language sql stable security definer set search_path = public, auth as $$
+returns jsonb language sql stable security definer set search_path = public, auth, pg_temp as $$
   select case when not public.is_app_admin() then null else jsonb_build_object(
     'users',        (select count(*) from auth.users),
     'pending',      (select count(*) from public.user_status where status = 'pending'),
@@ -675,7 +696,8 @@ $$;
 --     migrateProtocol() tolèrent l'absence mais attendent une chaîne : le champ reste donc
 --     toujours une chaîne e-mail ou absent, jamais un null JSON.
 create or replace function public.stamp_updated_by()
-returns trigger language plpgsql as $$
+-- search_path épinglé (v4.44.0), même raison que clamp_updated_at ci-dessus.
+returns trigger language plpgsql set search_path = public, pg_temp as $
 declare
   claims  jsonb := coalesce(nullif(current_setting('request.jwt.claims', true), ''), '{}')::jsonb;
   v_email text  := claims->>'email';
@@ -750,7 +772,7 @@ create policy att_lib_write on storage.objects for all
 -- dashboard Storage ou l'API — jamais de destruction automatique côté serveur.
 create or replace function public.list_orphan_attachments()
 returns table(name text, size_bytes bigint, created_at timestamptz)
-language sql stable security definer set search_path = public, storage as $$
+language sql stable security definer set search_path = public, storage, pg_temp as $$
   select o.name, coalesce((o.metadata->>'size')::bigint, 0), o.created_at
   from storage.objects o
   where o.bucket_id = 'attachments'
