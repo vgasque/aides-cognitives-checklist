@@ -112,6 +112,59 @@ for (const [nom, texte] of CAS) {
 }
 
 await page.close();
+
+/* ══ LE QR RÉELLEMENT PEINT, PAS LA MATRICE (v4.47.0) ═════════════════════════════════════════
+   Tout ce qui précède prouve que l'ENCODEUR est juste. Un utilisateur a pourtant rapporté
+   « aucune donnée utilisable trouvée » en scannant la fenêtre d'appariement avec un iPhone : ces
+   contrôles étaient donc aveugles au défaut qu'ils prétendent couvrir. Entre la matrice et
+   l'appareil photo il y a la génération du SVG, deux variables CSS de couleur, un
+   `shape-rendering`, une largeur en `vw` et un rendu sous-pixel — aucun de ces maillons n'était
+   mesuré. On capture donc l'ÉLÉMENT PEINT dans la page, à chaque largeur servie, et on le donne
+   au décodeur d'Apple. */
+console.log(`\n══ QR · l'image PEINTE dans la fenêtre d'appariement — moteur ${NOM_MOTEUR} ══`);
+for (const [w, h, theme] of [[320, 568, 'light'], [390, 844, 'light'], [390, 844, 'dark'], [760, 900, 'light']]) {
+  const p = await br.newPage({ viewport: { width: w, height: h }, colorScheme: theme,
+    deviceScaleFactor: 2 });
+  await p.goto(`http://localhost:${port}/index.html`);
+  await p.waitForFunction(() => !document.querySelector('.boot-load'));
+  await p.evaluate(async () => {
+    const b = [...document.querySelectorAll('button')].find(x => /Commencer/.test(x.textContent)); if (b) b.click();
+    await new Promise(r => setTimeout(r, 120));
+    const s = [...document.querySelectorAll('button')].find(x => x.textContent.includes("fiches d'exemple")); if (s) s.click();
+    await new Promise(r => setTimeout(r, 400));
+    const f = fiches.find(x => /Arrêt/.test(x.title)) || fiches[0]; openRead(f.id);
+    await new Promise(r => setTimeout(r, 300)); document.getElementById('sessStart').click();
+    await new Promise(r => setTimeout(r, 300));
+  });
+  const url = await p.evaluate(async () => {
+    Share._io.open = async () => ({ ok: true, share: 's1', code: 'K7M2P4Q9',
+      join_open_until: new Date(Date.now() + 120e3).toISOString(),
+      expires_at: new Date(Date.now() + 3600e3).toISOString(), server_time: new Date().toISOString() });
+    Share._io.pull = async () => ({ ok: true, status: 'active', events: [], seq: 0, n_events: 0,
+      participants: [], server_time: new Date().toISOString() });
+    Share._io.push = async () => ({ ok: true, server_time: new Date().toISOString() });
+    Auth.signedIn = () => true;
+    await startShare(state.fiche); await new Promise(x => setTimeout(x, 900));
+    /* CE QU'ON ATTEND EST CE QUE L'APP A DÉCIDÉ D'ENCODER, et cette décision dépend de l'origine :
+       une URL n'a de valeur dans un QR que si le téléphone qui le scanne peut l'ATTEINDRE. Servi
+       depuis `localhost` — comme ici, et comme sur un poste de développement — c'est le CODE SEUL
+       qui est encodé, que l'appareil photo affiche comme du texte. C'est précisément le défaut
+       rapporté : l'ancienne version encodait une adresse locale, décodée puis inutilisable, d'où
+       « aucune donnée utilisable trouvée ». La règle elle-même est vérifiée à part, en test
+       unitaire (`shareJoinUrl`) ; ici on vérifie que l'IMAGE PEINTE rend bien cette décision. */
+    return shareJoinUrl('K7M2P4Q9') || 'K7M2P4Q9';
+  });
+  const el = await p.$('#shareModal .qr');
+  if (!el) { t(`${w}×${h} ${theme} · le QR est peint`, false, 'aucun élément .qr'); await p.close(); continue; }
+  const png = join(tmp, `qr-${w}-${theme}.png`);
+  await el.screenshot({ path: png });
+  let out = '';
+  try { out = execFileSync(bin, [png], { encoding: 'utf8' }).trim(); } catch (e) { out = 'ERR:exécution'; }
+  t(`${w}×${h} ${theme} · l'image peinte est relue par le décodeur d'Apple`, out === 'OK:' + url,
+    `attendu « ${url} », obtenu « ${out} »`);
+  await p.close();
+}
+
 await br.close(); srv.close();
 console.log(`\n${ok}/${ok + ko} contrôles QR OK`);
 process.exit(ko ? 1 : 0);

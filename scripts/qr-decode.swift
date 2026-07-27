@@ -12,7 +12,25 @@ import Foundation
 import CoreImage
 import AppKit
 
+/* DEUX ENTRÉES, ET LA SECONDE EXISTE PARCE QUE LA PREMIÈRE ÉTAIT AVEUGLE (v4.47.0).
+   Décoder la MATRICE prouve que l'encodeur est juste. Elle ne prouve RIEN sur ce qu'un iPhone
+   photographie : entre la matrice et l'appareil photo il y a la génération du SVG, des variables
+   CSS de couleur, un `shape-rendering`, une taille en `vw` et un rendu sous-pixel. Un utilisateur
+   a rapporté « aucune donnée utilisable trouvée » sur un QR que ce harnais déclarait bon — le
+   contrôle était donc aveugle au défaut qu'il prétend couvrir (leçon v4.31.1).
+   Passer un fichier `.png` décode donc l'IMAGE RÉELLEMENT PEINTE, capturée dans le navigateur. */
 let args = CommandLine.arguments
+if args.count >= 2, args[1].hasSuffix(".png") {
+    guard let img = NSImage(contentsOfFile: args[1]),
+          let tiff = img.tiffRepresentation,
+          let rep = NSBitmapImageRep(data: tiff),
+          let cgp = rep.cgImage else { print("ERR:png"); exit(2) }
+    let det = CIDetector(ofType: CIDetectorTypeQRCode, context: nil,
+                         options: [CIDetectorAccuracy: CIDetectorAccuracyHigh])!
+    let f = det.features(in: CIImage(cgImage: cgp)).compactMap { ($0 as? CIQRCodeFeature)?.messageString }
+    if let s = f.first { print("OK:" + s) } else { print("ERR:indéchiffrable") }
+    exit(0)
+}
 guard args.count >= 2, let txt = try? String(contentsOfFile: args[1], encoding: .utf8) else {
     print("ERR:lecture"); exit(2)
 }

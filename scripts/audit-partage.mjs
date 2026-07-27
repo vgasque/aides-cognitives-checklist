@@ -333,6 +333,321 @@ for (const [w, h] of [[320, 568], [360, 640], [390, 844]]) {
     ![r.scan.txt, r.tape.txt, r.redit.txt].some(s => /\b(minute|participant|\d+\s*(min|s)\b)/i.test(s)));
 }
 
+/* ══ LE MIROIR DE L'INVITÉ : PAS DE BOUTON MORT, PAS DE CUL-DE-SAC (v4.47.0) ══════════════════
+   Trois défauts mesurés sur la première version de l'écran invité. (1) Le bouton « Confirmé —
+   démarrer la session » — contrôle PLEIN, registre d'action primaire, le plus visible de l'écran —
+   était rendu chez lui alors qu'il ne démarre RIEN (`ensureStarted` refuse une session locale à
+   qui suit celle d'un autre). (2) La première étape cochable tombait à y=827 pour une fenêtre de
+   844 : hors écran, derrière un bloc de confirmation diagnostique qu'il n'a pas à confirmer.
+   (3) Il n'avait AUCUNE porte de sortie : `Share.stop()` n'avait aucun appelant, et le « ‹ »
+   d'en-tête changeait la vue en laissant le mode et le sondage armés.
+   On mesure sur un miroir RÉEL, ouvert par le vrai chemin (`joinGo` → `openSharedFiche`), avec un
+   instantané produit par `sharePayload` d'une vraie fiche — jamais un état reconstruit à la main. */
+console.log(`\n══ PARTAGE · le miroir de l'invité — moteur ${NOM_MOTEUR} ══`);
+for (const [w, h] of [[320, 568], [390, 844]]) {
+  const ctx = await br.newContext({ viewport: { width: w, height: h } });
+  const page = await ctx.newPage();
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(() => !document.querySelector('.boot-load'));
+  await page.evaluate(async () => {
+    const b = [...document.querySelectorAll('button')].find(x => /Commencer/.test(x.textContent)); if (b) b.click();
+    await new Promise(r => setTimeout(r, 120));
+    const s = [...document.querySelectorAll('button')].find(x => x.textContent.includes("fiches d'exemple")); if (s) s.click();
+    await new Promise(r => setTimeout(r, 400));
+  });
+  const r = await page.evaluate(async () => {
+    const f = fiches.find(x => /Arrêt cardiaque/.test(x.title)) || fiches[0];
+    // Serveur bouchonné : une jointure RÉUSSIE, avec la projection réelle de la fiche.
+    Share._io.join = async () => ({ ok: true, share: 's1', secret: 'x'.repeat(24), me: 'p1',
+      role: 'scribe', fiche: sharePayload(f), since: new Date().toISOString(),
+      expires_at: new Date(Date.now() + 3600e3).toISOString(), server_time: new Date().toISOString() });
+    Share._io.pull = async () => ({ ok: true, status: 'active', events: [], seq: 0, n_events: 0,
+      participants: [], server_time: new Date().toISOString() });
+    openJoinScreen('K7M2P4Q9');
+    await joinGo(); await new Promise(x => setTimeout(x, 500));
+    const etape = document.querySelector('[data-ck]');
+    const ecran = window.innerHeight;
+    const out = {
+      miroir: state.view === 'read' && Share.mode === 'guest',
+      /* LE TITRE RESTE LISIBLE, PAR LE CANAL PRÉVU. `#crisisBand` porte l'information CONSTANTE et
+         s'en va au défilement — c'est sa nature, documentée : `#hdrCrisis` et `#brandTitle` en
+         prennent le relais dans la barre au pixel où il passe dessous. L'entrée de l'invité défile
+         jusqu'au point d'action, donc le titre vit dans le relais : on mesure LÀ, pas dans le
+         bandeau. Mesurer le bandeau seul reviendrait à exiger que l'invité soit le seul
+         utilisateur à ne jamais défiler. */
+      titreVu: (() => { const t = document.querySelector('#crisisBand .cb-ttl');
+        const b = document.getElementById('brandTitle');
+        const vu = x => { if (!x) return false; const r = x.getBoundingClientRect();
+          return r.top >= 0 && r.bottom <= ecran && r.width > 2; };
+        return (vu(t) || vu(b)) && /Arrêt cardiaque/.test((b || {}).textContent || '');
+      })(),
+      boutonMort: !!document.getElementById('sessStart'),
+      etapeY: etape ? Math.round(etape.getBoundingClientRect().top) : null,
+      etapeVue: !!etape && etape.getBoundingClientRect().top < ecran && etape.getBoundingClientRect().bottom > 0,
+      ecran,
+      /* CE QU'ON MESURE : qu'AUCUN DOSSIER n'est créé — pas que le drapeau `started` vaut faux.
+         Le contrôle mesurait le mécanisme, et le mécanisme était le défaut : `started` à faux
+         faisait sauter une trentaine de sites de mutation gardés par `if(Runtime.started)`, si
+         bien que le miroir de l'invité était EN LECTURE SEULE et que ses coches ne quittaient
+         jamais son téléphone. L'invariant vrai est l'étanchéité : rien dans son stockage, rien
+         dans son historique, aucune session vive à son nom. */
+      sessions: sessions.length, vives: Object.keys(liveSessions).length,
+      dossier: !!Runtime.sessionId,
+      annonce: (document.getElementById('srLive') || {}).textContent || '',
+      emis: 0,
+    };
+    /* IL ÉMET. C'est la contrepartie de l'invariant précédent, et le défaut qu'il masquait :
+       l'invité doit pouvoir CONTRIBUER, sinon tout le dispositif se réduit à un écran de
+       consultation et il coche dans le vide en croyant aider. */
+    { const av = Share.pending();
+      const ck = document.querySelector('[data-ck]'); if (ck) ck.click();
+      await new Promise(x => setTimeout(x, 400));
+      out.emis = Share.pending() - av; }
+    // Le menu ⋯ : ce qu'il propose, et ce qu'il ne propose plus.
+    document.getElementById('hdrMore').click();
+    await new Promise(x => setTimeout(x, 150));
+    out.menu = [...document.querySelectorAll('#moreMenu [data-mmi]')]
+      .map(e => e.textContent.trim()).join(' | ');
+    document.body.click(); await new Promise(x => setTimeout(x, 100));
+    return out;
+  });
+  t(`${w}×${h} · le miroir s'ouvre par le vrai chemin`, r.miroir, JSON.stringify(r).slice(0, 160));
+  t(`${w}×${h} · aucun dossier de session n'est créé chez l'invité`,
+    r.sessions === 0 && r.vives === 0 && r.dossier === false,
+    `${r.sessions} archivée(s), ${r.vives} vive(s), dossier ${r.dossier}`);
+  // Et pourtant il ÉMET : c'est tout l'enjeu du correctif. Une coche doit partir sur le fil.
+  t(`${w}×${h} · mais ses gestes partent bien sur le fil`, r.emis >= 1, `${r.emis} évènement(s)`);
+  t(`${w}×${h} · le bouton de démarrage MORT a disparu`, !r.boutonMort);
+  t(`${w}×${h} · le titre de l'aide est visible sans défiler`, r.titreVu);
+  t(`${w}×${h} · la première étape cochable est visible sans défiler`, r.etapeVue,
+    `étape à y=${r.etapeY} pour une fenêtre de ${r.ecran}`);
+  t(`${w}×${h} · l'arrivée est annoncée au lecteur d'écran`, /Vous suivez/.test(r.annonce), r.annonce);
+  t(`${w}×${h} · le menu offre une PORTE DE SORTIE`, /Quitter le partage/.test(r.menu), r.menu.slice(0, 200));
+  t(`${w}×${h} · et plus aucune rangée d'écriture ou d'export`,
+    !/(Modifier|Versions|Dupliquer|Exporter|Répéter en exercice|Recommencer)/.test(r.menu), r.menu.slice(0, 200));
+  await ctx.close();
+}
+/* La sortie doit RÉELLEMENT sortir : mode éteint, sondage désarmé, et aucun évènement `detach`
+   émis — dater un « je poursuis seul » dans le compte-rendu de l'hôte serait affirmer à sa place. */
+{
+  const ctx = await br.newContext({ viewport: { width: 390, height: 844 } });
+  const page = await ctx.newPage();
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(() => !document.querySelector('.boot-load'));
+  await page.evaluate(async () => {
+    const b = [...document.querySelectorAll('button')].find(x => /Commencer/.test(x.textContent)); if (b) b.click();
+    await new Promise(r => setTimeout(r, 120));
+    const s = [...document.querySelectorAll('button')].find(x => x.textContent.includes("fiches d'exemple")); if (s) s.click();
+    await new Promise(r => setTimeout(r, 400));
+  });
+  const r = await page.evaluate(async () => {
+    const f = fiches.find(x => /Arrêt cardiaque/.test(x.title)) || fiches[0];
+    const pousses = [];
+    Share._io.join = async () => ({ ok: true, share: 's1', secret: 'x'.repeat(24), me: 'p1', role: 'scribe',
+      fiche: sharePayload(f), server_time: new Date().toISOString() });
+    Share._io.pull = async () => ({ ok: true, status: 'active', events: [], seq: 0, n_events: 0,
+      participants: [], server_time: new Date().toISOString() });
+    Share._io.push = async (s, sh, ev) => { pousses.push(...ev); return { ok: true, server_time: new Date().toISOString() }; };
+    openJoinScreen('K7M2P4Q9'); await joinGo(); await new Promise(x => setTimeout(x, 400));
+    const avant = { mode: Share.mode, fiche: !!Runtime.fiche };
+    const p = quitShare();                                  // le dialogue s'ouvre…
+    await new Promise(x => setTimeout(x, 250));
+    const dlg = document.querySelector('#confirmModal.on');
+    const oui = dlg && [...dlg.querySelectorAll('button')].find(b => /Quitter/.test(b.textContent));
+    if (oui) oui.click();
+    await p; await new Promise(x => setTimeout(x, 400));
+    return { avant, mode: Share.mode, timer: !!Share._timer, vue: state.view,
+      fiche: !!Runtime.fiche, detach: pousses.some(e => e.kind === 'detach'),
+      dialogue: !!dlg };
+  });
+  t('quitter passe par une confirmation (jamais un simple tap)', r.dialogue);
+  t('quitter éteint le mode partagé', r.avant.mode === 'guest' && r.mode === 'off');
+  t('quitter désarme le sondage', !r.timer);
+  t('quitter libère le miroir et revient à la bibliothèque', r.vue === 'library' && !r.fiche);
+  t('quitter n’émet AUCUN « detach » (on n’affirme pas à sa place)', !r.detach);
+  await ctx.close();
+}
+
+/* ══ LA FENÊTRE D'APPARIEMENT DE L'HÔTE (v4.47.0) ═════════════════════════════════════════════
+   Trois exigences mesurables. (1) L'ORDRE : une maquette « QR d'abord » faisait 572 px de carte
+   pour une fenêtre de 568 à 320×568 — « Arrêter le partage » sous la ligne de flottaison. On place
+   donc en haut ce qui se DICTE (titre de l'aide et code), le QR ensuite et plafonné. (2) LE FOND
+   N'EST PAS VERROUILLÉ : toute `.ai-modal` fige le défilement derrière elle au pointeur grossier,
+   et celle-ci reste ouverte pendant toute la fenêtre d'admission — la checklist de crise de l'hôte
+   deviendrait indéfilable. (3) L'ÉMISSION EXISTE : sans elle, on ouvrirait un partage, quelqu'un
+   rejoindrait, et rien ne bougerait jamais — une façade. */
+console.log(`\n══ PARTAGE · la fenêtre d'appariement de l'hôte — moteur ${NOM_MOTEUR} ══`);
+for (const [w, h] of [[320, 568], [390, 844]]) {
+  const page = await br.newPage({ viewport: { width: w, height: h } });
+  await session(page);
+  const r = await page.evaluate(async () => {
+    // Serveur bouchonné : ouverture réussie, puis un participant qui rejoint.
+    let admis = 0;
+    Share._io.open = async () => ({ ok: true, share: 's1', code: 'K7M2P4Q9',
+      join_open_until: new Date(Date.now() + 120e3).toISOString(),
+      expires_at: new Date(Date.now() + 3600e3).toISOString(), server_time: new Date().toISOString() });
+    Share._io.admit = async () => { admis++; return { ok: true, code: 'RSTU5678',
+      join_open_until: new Date(Date.now() + 120e3).toISOString(), server_time: new Date().toISOString() }; };
+    Share._io.pull = async () => ({ ok: true, status: 'active', events: [], seq: 0, n_events: 0,
+      participants: [{ id: 'p0', label: 'Hôte', role: 'lead', owner: true },
+                     { id: 'p1', label: 'IADE', role: 'scribe', owner: false }],
+      server_time: new Date().toISOString() });
+    const pousses = [];
+    Share._io.push = async (s, sh, ev) => { pousses.push(...ev); return { ok: true, server_time: new Date().toISOString() }; };
+    Auth.signedIn = () => true;                       // l'hébergement exige un compte
+
+    await startShare(state.fiche);
+    await new Promise(x => setTimeout(x, 1600));
+    const card = document.querySelector('#shareModal .ai-card');
+    const stop = document.getElementById('shEnd');
+    const qr = document.querySelector('#shareModal .qr');
+    const cr = card ? card.getBoundingClientRect() : null;
+    const sr = stop ? stop.getBoundingClientRect() : null;
+    const out = {
+      ouverte: !!document.querySelector('#shareModal.on'),
+      code: (document.getElementById('shCode') || {}).textContent || '',
+      titre: (document.querySelector('#shareModal .sh-fiche') || {}).textContent || '',
+      qrLarge: qr ? Math.round(qr.getBoundingClientRect().width) : 0,
+      carte: cr ? Math.round(cr.height) : 0, fenetre: window.innerHeight,
+      stopBas: sr ? Math.round(sr.bottom) : null,
+      stopVisible: sr ? Math.round(Math.max(0, Math.min(sr.bottom, window.innerHeight) - Math.max(sr.top, 0))) : 0,
+      // Dernier élément de la carte : rien ne peut le repousser, aucune liste ne peut l'engloutir.
+      stopDernier: !!stop && !!stop.closest('.sh-acts') &&
+        !stop.closest('.sh-acts').parentElement.querySelector('.sh-acts ~ .sh-p'),
+      apresStop: stop ? [...stop.closest('.sh-acts').parentElement.children]
+        .indexOf(stop.closest('.sh-acts')) >= 0
+        ? [...stop.closest('.sh-acts').parentElement.children].length -
+          [...stop.closest('.sh-acts').parentElement.children].indexOf(stop.closest('.sh-acts')) - 1 : -1 : -1,
+      defilable: (() => { const m = document.getElementById('shareModal');
+        return !!m && m.scrollHeight > m.clientHeight - 1 && /auto|scroll/.test(getComputedStyle(m).overflowY); })(),
+      fondVerrouille: document.documentElement.classList.contains('modal-open'),
+      participants: [...document.querySelectorAll('#shareModal .sh-p .n')].map(e => e.textContent),
+      // L'ÉMISSION : l'ouverture doit avoir versé l'état COURANT dans la file (la session est
+      // démarrée depuis le bootstrap), sinon un invité arriverait devant une fiche vierge.
+      fileOuverture: Share.pending() + pousses.length,
+    };
+    // Un geste local doit produire un évènement — c'est tout l'objet du raccrochage à persistLive.
+    const av = Share.pending() + pousses.length;
+    const ck = document.querySelector('[data-ck]'); if (ck) ck.click();
+    await new Promise(x => setTimeout(x, 500));
+    out.apresCoche = (Share.pending() + pousses.length) - av;
+    out.genres = pousses.map(e => e.kind).concat(Share._q.map(e => e.kind));
+    /* COUPER : « en attente » tant que le serveur n'a pas confirmé — aucun affichage optimiste.
+       Ici le réseau n'existe pas, donc la requête ÉCHOUE : on mesure les deux moments, l'attente
+       immédiate puis le RETOUR EN ARRIÈRE. Un bouton qui laisserait « coupé » affiché après un
+       échec dirait à l'hôte qu'il a retiré un accès qu'il n'a pas retiré. */
+    const cut = document.querySelector('[data-shcut]');
+    if (cut) { cut.click(); await Promise.resolve(); await Promise.resolve(); }
+    out.attente = (document.querySelector('#shareModal .sh-p.wait .r') || {}).textContent || '';
+    await new Promise(x => setTimeout(x, 600));
+    out.repli = !document.querySelector('#shareModal .sh-p.wait')
+      && !!document.querySelector('#shareModal [data-shcut]');
+    out.adresse = (document.querySelector('#shareModal .sh-adr') || {}).textContent || '';
+    // La confirmation d'arrêt doit DOMINER la fenêtre qui l'ouvre : elle héritait du z-index 55
+    // des fenêtres ordinaires et s'affichait DERRIÈRE la fenêtre d'appariement (94), invisible
+    // alors même que le focus y était piégé.
+    document.getElementById('shEnd').click();
+    await new Promise(x => setTimeout(x, 250));
+    out.zPartage = +getComputedStyle(document.getElementById('shareModal')).zIndex || 0;
+    out.zConf = +getComputedStyle(document.getElementById('confirmModal')).zIndex || 0;
+    out.confAuDessus = !!document.querySelector('#confirmModal.on') && out.zConf > out.zPartage;
+    { const no = [...document.querySelectorAll('#confirmModal button')].find(b => /Poursuivre|Annuler/i.test(b.textContent));
+      if (no) no.click(); else document.getElementById('confirmModal').classList.remove('on'); }
+    await new Promise(x => setTimeout(x, 150));
+    Share.stop();
+    return out;
+  });
+  t(`${w}×${h} · la fenêtre s'ouvre`, r.ouverte, JSON.stringify(r).slice(0, 200));
+  t(`${w}×${h} · le code est affiché en clair`, /K7M2-P4Q9/.test(r.code), r.code);
+  t(`${w}×${h} · le TITRE DE L'AIDE est à côté du code`, /Arrêt cardiaque/.test(r.titre), r.titre);
+  t(`${w}×${h} · le QR est présent et plafonné à 200 px`, r.qrLarge > 60 && r.qrLarge <= 200, `${r.qrLarge} px`);
+  /* CE QU'ON EXIGE VRAIMENT DE « ARRÊTER LE PARTAGE ». La première version de ce contrôle
+     demandait qu'il soit visible SANS DÉFILER à toutes les largeurs. C'était trop, et cela se
+     payait sur ce qui compte davantage : à 320×568, avec un code réellement lisible, un QR
+     scannable et l'adresse écrite en clair, la carte fait 734 px — aucune mise en page honnête ne
+     tient dans 568. L'objection d'origine n'était d'ailleurs pas celle-là : elle disait que le
+     bouton ne devait jamais se retrouver À L'INTÉRIEUR d'une liste qui grandit, et qu'il devait
+     rester atteignable. C'est donc cela qu'on mesure — plus la visibilité sans défilement sur le
+     téléphone courant (390×844), où elle est atteignable sans rien sacrifier. */
+  t(`${w}×${h} · « Arrêter le partage » ferme la carte (jamais dans la liste)`, r.stopDernier === true,
+    `${r.apresStop} élément(s) après lui`);
+  t(`${w}×${h} · il est atteignable (visible, ou la fenêtre défile jusqu'à lui)`,
+    (r.stopBas <= r.fenetre && r.stopVisible >= 44) || r.defilable === true,
+    `${r.stopVisible} px visibles, bas ${r.stopBas} / ${r.fenetre} — carte ${r.carte} px, défilable ${r.defilable}`);
+  if (h >= 844) t(`${w}×${h} · et sur un téléphone courant, sans défiler`,
+    r.stopVisible >= 44 && r.stopBas <= r.fenetre,
+    `${r.stopVisible} px visibles, bas ${r.stopBas} / ${r.fenetre}`);
+  t(`${w}×${h} · le fond N'EST PAS verrouillé (la checklist reste défilable)`, !r.fondVerrouille);
+  t(`${w}×${h} · l'hôte n'apparaît pas dans sa propre liste`, r.participants.join() === 'IADE', r.participants.join());
+  t(`${w}×${h} · l'ouverture verse l'état COURANT dans le fil`, r.fileOuverture > 0, `${r.fileOuverture} évènement(s)`);
+  t(`${w}×${h} · un geste local produit un évènement`, r.apresCoche >= 1, `${r.apresCoche}`);
+  t(`${w}×${h} · et il appartient au vocabulaire fermé`, r.genres.every(k => /^(check|uncheck|verify|gap|counter|timer_arm|timer_stop|mark|mark_void|nav|flow_end)$/.test(k)),
+    r.genres.join(','));
+  t(`${w}×${h} · une coupure s'affiche EN ATTENTE, jamais acquise d'office`, /coupure/.test(r.attente), r.attente);
+  /* L'ADRESSE EN CLAIR : c'est elle qu'on dicte quand le QR ne peut pas servir, et c'est aussi ce
+     qui rend l'écran d'entrée trouvable. Le QR ne vaut que si l'appareil qui le scanne peut
+     ATTEINDRE ce qu'il contient — servi depuis un fichier local ou `localhost`, il décode une URL
+     que le téléphone d'un collègue ne joindra jamais. */
+  t(`${w}×${h} · l'adresse de jointure est écrite en clair`, /localhost|adresse/.test(r.adresse),
+    r.adresse);
+  t(`${w}×${h} · la confirmation d'arrêt passe AU-DESSUS de la fenêtre`, r.confAuDessus === true,
+    `partage z=${r.zPartage}, confirmation z=${r.zConf}`);
+  t(`${w}×${h} · une coupure non transmise revient en arrière`, r.repli === true);
+  await page.close();
+}
+
+/* ══ LES DEUX FENÊTRES DU PARTAGE SONT DES FENÊTRES DE L'APP (v4.47.0) ════════════════════════
+   Retour utilisateur : « pourquoi le design n'est pas calqué sur les autres fenêtres ? — là ça
+   s'affiche mal sur écrans de moyenne largeur ». Mesuré : l'écran d'entrée n'utilisait pas
+   `.ai-card`, donc ni son `margin:auto` (centrage vertical) ni son échelle typographique — la
+   carte restait collée en haut d'une page opaque, au-dessus de 450 px de vide à 760 px de large.
+   Et une fois `.ai-card` adoptée, le 6ᵉ piège de cascade du projet : `.join-card` et `.ai-card`
+   ont la même spécificité, la `max-width:720px` déclarée PLUS BAS l'emportait et la carte
+   s'étalait sur 700 px. D'où des sélecteurs par `#id`, comme la règle l'impose pour toute
+   géométrie. On verrouille les deux ici. */
+console.log(`\n══ PARTAGE · les fenêtres suivent la grammaire de l'app — moteur ${NOM_MOTEUR} ══`);
+for (const [w, h] of [[390, 844], [760, 900], [1280, 900]]) {
+  const page = await br.newPage({ viewport: { width: w, height: h } });
+  await session(page);
+  const r = await page.evaluate(async () => {
+    Share._io.open = async () => ({ ok: true, share: 's1', code: 'K7M2P4Q9',
+      join_open_until: new Date(Date.now() + 120e3).toISOString(),
+      expires_at: new Date(Date.now() + 3600e3).toISOString(), server_time: new Date().toISOString() });
+    Share._io.pull = async () => ({ ok: true, status: 'active', events: [], seq: 0, n_events: 0,
+      participants: [], server_time: new Date().toISOString() });
+    Share._io.push = async () => ({ ok: true, server_time: new Date().toISOString() });
+    Auth.signedIn = () => true;
+    const mes = (el) => { if (!el) return null; const b = el.getBoundingClientRect();
+      return { w: Math.round(b.width), top: Math.round(b.top), bas: Math.round(b.bottom) }; };
+    // 1. La fenêtre d'appariement, ouverte par son vrai chemin.
+    await startShare(state.fiche); await new Promise(x => setTimeout(x, 900));
+    const part = mes(document.querySelector('#shareModal .ai-card'));
+    const partCard = !!document.querySelector('#shareModal .ai-card');
+    closeShareSheet(); Share.stop();
+    // 2. L'écran d'entrée de l'invité.
+    openJoinScreen('K7M2P4Q9'); await new Promise(x => setTimeout(x, 200));
+    const join = mes(document.querySelector('.join-card'));
+    const joinCard = !!document.querySelector('.join-card.ai-card');
+    const titre = !!document.querySelector('#joinScreen .ai-top h3');
+    document.getElementById('joinScreen').hidden = true;
+    return { part, partCard, join, joinCard, titre, ecran: window.innerHeight };
+  });
+  t(`${w}×${h} · l'appariement utilise la carte standard`, r.partCard);
+  t(`${w}×${h} · l'entrée invité aussi, avec un titre h3`, r.joinCard && r.titre);
+  t(`${w}×${h} · l'appariement garde une largeur de fenêtre`, r.part && r.part.w <= 440,
+    `${r.part && r.part.w} px`);
+  t(`${w}×${h} · l'entrée invité garde une largeur de fenêtre`, r.join && r.join.w <= 480,
+    `${r.join && r.join.w} px`);
+  // Centrage vertical : quand l'écran a de la place, la carte n'est pas collée en haut. On mesure
+  // la symétrie des marges plutôt qu'une valeur absolue — c'est ce que `margin:auto` produit.
+  if (h - (r.join ? r.join.bas - r.join.top : 0) > 120) {
+    const haut = r.join.top, bas = r.ecran - r.join.bas;
+    t(`${w}×${h} · l'entrée invité est centrée verticalement`, Math.abs(haut - bas) <= 24,
+      `${haut} px au-dessus, ${bas} px en dessous`);
+  }
+  await page.close();
+}
+
 await br.close(); srv.close();
 console.log(`\n${ok}/${ok + ko} contrôles partage OK` + (ko ? ` — ${ko} ÉCHEC(S)` : ''));
 process.exit(ko ? 1 : 0);

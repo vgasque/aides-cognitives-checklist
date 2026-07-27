@@ -1998,6 +1998,13 @@
   #readerMode .rm-cx::after{content:"";position:absolute;inset:-5px}
   #readerMode .rm-time.exo{color:var(--primary-dk)}
   #cxModal{z-index:94}   /* l'index ⚡ passe AU-DESSUS du mode lecteur (92), sous #screenFlash (99) */
+  #shareModal{z-index:94}   /* même raison : ouvrable pendant que le lecteur (92) est affiché */
+  /* LA CONFIRMATION PASSE AU-DESSUS DE TOUT CE QU'ELLE CONFIRME. `#confirmModal` héritait du
+     z-index 55 des fenêtres ordinaires : demander « Arrêter le partage ? » depuis la fenêtre
+     d'appariement (94) affichait le dialogue DERRIÈRE elle — invisible, alors que le focus y était
+     piégé. Une confirmation doit dominer sa surface d'origine, quelle qu'elle soit ; 95 la place
+     au-dessus des deux fenêtres hautes (⚡ et partage) et sous le flash d'alarme (99). */
+  #confirmModal{z-index:95}
   /* ----- SVG navigable (v4.7.0) : nœuds cliquables, état PEINT par classes ----- */
   /* Hex explicites = exception SVG documentée (le SVG n'utilise pas les tokens ; en sombre,
      l'inversion globale est contrée par les règles [data-theme="dark"] plus haut). */
@@ -2182,6 +2189,41 @@
   @supports (height:100dvh){
     .ai-modal,.lightbox,#readerMode,#flowFull,#joinScreen{bottom:auto;height:calc(var(--vvh,100dvh) / var(--zf,1))}
   }
+  /* FENÊTRE D'APPARIEMENT (v4.47.0). ORDRE IMPOSÉ PAR LA MESURE, pas par l'esthétique : à 320×568
+     une maquette « QR d'abord » faisait 572 px de carte pour 568 de fenêtre — « Arrêter le
+     partage » tombait sous la ligne de flottaison, et chaque participant ajoutait 56 px. On place
+     donc EN HAUT ce qui se dicte à voix haute (le titre de l'aide et le code), le QR ensuite et
+     plafonné, la liste bornée, l'arrêt en pied — jamais à l'intérieur d'une liste qui grandit. */
+  .sh-lead{margin:0 0 10px;font-size:13px;line-height:1.4;color:var(--ink-soft)}
+  .sh-fiche{margin:0 0 4px;font-size:12px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--ink-soft)}
+  /* Le code se lit à voix haute dans une pièce bruyante : mono, très grand, chiffres tabulaires,
+     et un espacement qui sépare les caractères sans les détacher en deux mots. */
+  /* C'EST LE TEXTE QU'ON DICTE À VOIX HAUTE, souvent en tendant le téléphone à bout de bras : il
+     est le plus gros de la fenêtre, devant le titre. 34 px mesurés tenables jusqu'à 320 px avec le
+     reste de la carte au-dessus de la ligne de flottaison. */
+  .sh-code{margin:0 0 6px;font-family:var(--mono);font-size:40px;font-weight:700;letter-spacing:5px;
+    text-align:center;color:var(--ink);font-variant-numeric:tabular-nums;user-select:all}
+  .sh-adr{margin:0 0 12px;font-size:12px;line-height:1.4;text-align:center;color:var(--ink-soft)}
+  .sh-adr.warn{color:var(--verify);text-align:left}
+  .sh-when{margin:0 0 12px;font-size:12px;text-align:center;color:var(--ink-soft)}
+  .sh-when.closed{color:var(--verify)}
+  .sh-qr{display:flex;justify-content:center;margin:0 0 10px}
+  /* Le QR est PLAFONNÉ, et rétréci au palier le plus contraint : à 320×568 la carte dépassait de
+     2 px et « Arrêter le partage » perdait 6 px de sa cible — pour un code qui reste scannable
+     bien en dessous (4,8 px par module à 197 px, relu par le décodeur d'Apple ; à 141 px on est
+     encore à 3,4 px par module, au-dessus du seuil pratique d'un appareil photo à 20 cm). */
+  .sh-qr .qr{width:min(200px,52vw);height:auto}
+  @media (max-width:359.98px){.sh-qr .qr{width:40vw}.sh-code{font-size:34px;letter-spacing:3px}}
+  .sh-h{margin:14px 0 6px;font-size:11px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--ink-soft)}
+  .sh-p{display:flex;align-items:center;gap:9px;min-height:44px;padding:5px 0;border-top:1px solid var(--line)}
+  .sh-p .n{flex:1;min-width:0;font-size:14px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sh-p .r{flex:none;font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--ink-soft)}
+  .sh-p.off .n{color:var(--ink-soft);text-decoration:line-through}
+  .sh-p.wait .r{color:var(--verify)}
+  .sh-none{margin:6px 0 0;font-size:13px;color:var(--ink-soft)}
+  .sh-acts{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}
+  .sh-acts .btn{flex:1 1 auto;min-height:44px}
+  .sh-note{margin:12px 0 0;font-size:12px;line-height:1.45;color:var(--ink-soft)}
   /* ÉCRAN D'ENTRÉE D'UN INVITÉ (v4.47.0). Plein écran, opaque, et le SEUL contenu de la page : il
      s'affiche à la place de l'application, pas par-dessus — l'amorçage normal n'a pas eu lieu (ni
      base, ni service worker, ni la moindre écriture), et c'est précisément ce que la notice
@@ -2190,17 +2232,27 @@
     display:flex;align-items:flex-start;justify-content:center;
     padding:calc(20px + env(safe-area-inset-top)) 16px calc(20px + env(safe-area-inset-bottom))}
   #joinScreen[hidden]{display:none}
-  .join-card{width:100%;max-width:460px;background:var(--surface);border:1px solid var(--line);
-    border-radius:14px;padding:20px 18px;box-shadow:var(--shadow)}
-  .join-eye{margin:0;font-size:11px;font-weight:800;letter-spacing:1.1px;text-transform:uppercase;color:var(--ink-soft)}
-  .join-card h1{margin:4px 0 10px;font-size:22px;line-height:1.2;color:var(--ink)}
-  .join-lead{margin:0 0 16px;font-size:14px;line-height:1.5;color:var(--ink)}
+  /* CALQUÉE SUR LES AUTRES FENÊTRES DE L'APP, et pas seulement par cohérence de style : `.ai-card`
+     apporte `margin:auto`, donc le CENTRAGE VERTICAL dans le conteneur flex. Sans lui la carte
+     restait collée en haut d'une page opaque — acceptable sur un téléphone où elle occupe presque
+     tout l'écran, franchement cassé à 760 px de large où elle flottait au-dessus de 450 px de vide.
+     On hérite aussi de l'échelle typographique (titre 18 px, paragraphes 13 px) : un `h1` à 22 px
+     n'existe nulle part ailleurs dans l'application. */
+  /* PAR UN `#id`, JAMAIS PAR L'ORDRE. `.join-card` et `.ai-card` ont la même spécificité : la
+     largeur maximale de 720 px d'`.ai-card`, déclarée PLUS BAS, l'emportait — la carte s'étalait
+     sur 700 px et les paragraphes couraient sur toute la largeur. C'est le 6ᵉ incident de cascade
+     du projet (cf. `.read-grid`, `.cbt-n`, `.mode-seg`, les éditeurs) et la règle est écrite :
+     pour une GÉOMÉTRIE, on ne dépend jamais de l'ordre de déclaration. */
+  #joinScreen .join-card{max-width:460px}
+  #shareModal .ai-card{max-width:420px}
+  .join-eye{margin:0 0 2px;font-size:11px;font-weight:800;letter-spacing:1.1px;text-transform:uppercase;color:var(--ink-soft)}
   .join-lab{display:block;margin:0 0 5px;font-size:12px;font-weight:700;color:var(--ink-soft)}
-  /* 22 px et mono : on recopie un code lu sur l'écran d'un collègue, souvent debout. Le champ est
-     très au-dessus des 16 px sous lesquels Safari iOS zoome au focus (règle 9). */
+  /* MONO, TRÈS GRAND : on recopie un code lu sur l'écran d'un collègue, souvent debout, parfois de
+     loin. Très au-dessus des 16 px sous lesquels Safari iOS zoome au focus (règle 9). */
   .join-code{width:100%;box-sizing:border-box;margin:0 0 14px;padding:12px 14px;font-family:var(--mono);
-    font-size:22px;letter-spacing:3px;text-align:center;text-transform:uppercase;color:var(--ink);
-    background:var(--input-bg);border:1px solid var(--line-strong);border-radius:10px}
+    font-size:26px;font-weight:700;letter-spacing:4px;text-align:center;text-transform:uppercase;color:var(--ink);
+    font-variant-numeric:tabular-nums;background:var(--input-bg);border:1px solid var(--line-strong);border-radius:10px}
+  @media (max-width:359.98px){.join-code{font-size:23px;letter-spacing:3px}}
   .join-sel{width:100%;box-sizing:border-box;margin:0 0 14px;padding:11px 12px;font-size:16px;
     color:var(--ink);background:var(--input-bg);border:1px solid var(--line-strong);border-radius:10px}
   .join-err{margin:0 0 12px;padding:9px 11px;font-size:13px;line-height:1.4;color:var(--critical);
@@ -2365,6 +2417,11 @@
   .crt-drop.on,.crt-drop:hover{border-color:var(--primary);background:var(--primary-soft)}
   .crt-drop:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .crt-note{font-size:11.5px;color:var(--ink-soft);line-height:1.5;margin:8px 0 0}
+  /* Rejoindre : séparé des méthodes de création par un filet — ce n'est pas une méthode de plus. */
+  .crt-join{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:14px 0 0;padding-top:12px;
+    border-top:1px solid var(--line);font-size:13px;color:var(--ink-soft)}
+  .crt-join span{flex:1;min-width:150px}
+  .crt-join .btn{min-height:44px}
   /* SPEC §6 : en dessous de 780px, les DIALOGUES passent en PLEIN ÉCRAN (100 %, sans arrondi ni
      voile) — fenêtre centrée min(480px,100%) au-dessus. La visionneuse PDF a déjà son plein écran. */
   @media (max-width:779.98px){

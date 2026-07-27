@@ -1263,10 +1263,17 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    eq('invité scribe : il SUIT',A.shareGlobTag(),'suit');
    S.role='lead';
    eq('invité qui a la main : MAIN',A.shareGlobTag(),'main');
-   S.mode='host';S.participants=[{revoked_at:null},{revoked_at:null}];
-   eq('hôte : le nombre de participants',A.shareGlobTag(),'⇄2');
-   S.participants=[{revoked_at:null},{revoked_at:'2026-01-01'}];
+   /* FORME RÉELLE DU SERVEUR, pas celle de la table : `share_pull` renvoie des BOOLÉENS calculés
+      (`revoked`, `detached`, `owner`), jamais les horodatages `revoked_at`/`detached_at`. Ce test
+      encodait la mauvaise forme et validait donc un filtre toujours vrai — l'hôte aurait lu
+      « ⇄ 2 » avec un seul participant présent. Un compte faux dans une zone d'état est pire
+      qu'aucun compte. */
+   S.mode='host';S.participants=[{owner:true},{revoked:false},{revoked:false}];
+   eq('hôte : le nombre de participants, sans se compter lui-même',A.shareGlobTag(),'⇄2');
+   S.participants=[{owner:true},{revoked:false},{revoked:true}];
    eq('un participant coupé ne compte plus',A.shareGlobTag(),'⇄1');
+   S.participants=[{owner:true},{revoked:false},{detached:true}];
+   eq('un participant détaché non plus',A.shareGlobTag(),'⇄1');
    /* LE LIEN REMPLACE LA MAIN, il ne s'y ajoute pas. Ce n'est pas une économie de place : quand le
       lien n'est plus nominal, le rôle et le compte de participants ne sont PLUS CONNUS — les
       afficher serait la donnée périmée présentée comme vivante (danger n° 2, ECRI 2015). */
@@ -1286,6 +1293,82 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    ok('tout jeton de statut tient en 5 caractères',plusLong<=5,String(plusLong));
    ok('« ▲ Exercice · coupé » tient sous la borne de 18',('▲ Exercice · coupé').length<=18);
    S.mode=sv.mode;S.status=sv.status;S.role=sv.role;S.lastOk=sv.lastOk;S._act=sv.act;S.participants=sv.part;}
+
+  group('Partage de session — émission par différence');
+  /* L'émission s'accroche à UN SEUL point (`persistLive`) et diffe l'état. Le recensement avait
+     trouvé SOIXANTE verbes de mutation : les instrumenter un par un aurait garanti l'oubli, et
+     surtout l'oubli SILENCIEUX de toute mutation ajoutée plus tard. On teste donc la fonction
+     pure, et surtout la propriété qui compte : ÉMETTRE PUIS PLIER REDONNE L'ÉTAT DE DÉPART.
+     C'est l'aller-retour complet — sans navigateur, sans réseau, sans horloge. */
+  {const A_=A;
+   const R=(o)=>Object.assign({fiche:{id:'f'},checked:{},verified:{},vgaps:{},counters:{},timers:{},
+     events:[],nav:['b1'],navSeq:[1]},o||{});
+   const vide=A_.shareSnap(R(),false);
+   eq('deux états identiques n’émettent RIEN',A_.shareDiff(vide,vide).length,0);
+   const cochee=A_.shareSnap(R({checked:{'1:b1:0':true}}),false);
+   eq('une coche apparue émet « check »',A_.shareDiff(vide,cochee).map(e=>e.kind),['check']);
+   eq('et elle porte la clé',A_.shareDiff(vide,cochee)[0].payload.k,'1:b1:0');
+   eq('une coche retirée émet « uncheck »',A_.shareDiff(cochee,vide).map(e=>e.kind),['uncheck']);
+   const cpt=A_.shareSnap(R({counters:{c1:3}}),false);
+   eq('un compteur qui change émet « counter »',A_.shareDiff(vide,cpt).map(e=>e.kind),['counter']);
+   eq('avec sa valeur',A_.shareDiff(vide,cpt)[0].payload.v,3);
+   /* Le minuteur perd `lastStart` — une heure LOCALE — au profit d'une ancre absolue : deux
+      appareils dont les horloges divergent doivent calculer la MÊME valeur restante. */
+   const tm=A_.shareSnap(R({timers:{t1:{running:true,elapsedMs:0,cycles:0,lastStart:1700}}}),false);
+   eq('un minuteur armé émet « timer_arm »',A_.shareDiff(vide,tm).map(e=>e.kind),['timer_arm']);
+   eq('et transmet une ANCRE, jamais une heure locale de départ',A_.shareDiff(vide,tm)[0].payload.anchor,1700);
+   const arr=A_.shareSnap(R({timers:{t1:{running:false,elapsedMs:5000,cycles:1,lastStart:1700}}}),false);
+   eq('un minuteur arrêté émet « timer_stop »',A_.shareDiff(tm,arr).map(e=>e.kind),['timer_stop']);
+   // Journal : append-only des deux côtés, et l'annulation est un ÉVÈNEMENT réversible.
+   const m1=A_.shareSnap(R({events:[{id:'e1',t:100,ref:{type:'counter',id:'c1',v:1}}]}),false);
+   eq('un repère posé émet « mark »',A_.shareDiff(vide,m1).map(e=>e.kind),['mark']);
+   ok('le repère porte une RÉFÉRENCE, jamais un mot',!('label' in A_.shareDiff(vide,m1)[0].payload)
+     &&A_.shareDiff(vide,m1)[0].payload.ref.type==='counter');
+   const m2=A_.shareSnap(R({events:[{id:'e1',t:100,ref:null,voidAt:200}]}),false);
+   eq('une annulation émet « mark_void »',A_.shareDiff(m1,m2).map(e=>e.kind),['mark_void']);
+   eq('… et se lève symétriquement',A_.shareDiff(m2,m1)[0].payload.on,false);
+   // nav et navSeq voyagent en COUPLE : transmettre l'un sans l'autre orphelinerait les coches.
+   const nv=A_.shareSnap(R({nav:['b1','b2'],navSeq:[1,2]}),false);
+   const dn=A_.shareDiff(vide,nv);
+   eq('une navigation émet UN évènement',dn.length,1);
+   eq('portant les DEUX tableaux',[dn[0].payload.nav.length,dn[0].payload.navSeq.length],[2,2]);
+   eq('la fin d’algorithme voyage',A_.shareDiff(vide,A_.shareSnap(R(),true)).map(e=>e.kind),['flow_end']);
+   /* ALLER-RETOUR : la propriété qui rend l'émission digne de confiance. On part d'un état riche,
+      on diffe contre le vide, on PLIE les évènements obtenus — et on doit retrouver l'état. */
+   {const riche=A_.shareSnap(R({checked:{'1:b1:0':true,'1:b1:1':true},counters:{c1:2},
+      timers:{t1:{running:true,elapsedMs:1000,cycles:2,lastStart:900}},
+      events:[{id:'e1',t:100,ref:{type:'timer',id:'t1'}},{id:'e2',t:200,ref:null,voidAt:250}],
+      nav:['b1','b2'],navSeq:[1,2],verified:{'1:b1:0':{a:'x',t:50}}}),true);
+    const evs=A_.shareDiff(vide,riche).map((e,i)=>({seq:i+1,id:'x'+i,actor:'moi',kind:e.kind,payload:e.payload}));
+    const plie=A_.shareFold(evs);
+    eq('aller-retour · les coches',Object.keys(plie.checked).sort(),['1:b1:0','1:b1:1']);
+    eq('aller-retour · le compteur',plie.counters.c1,2);
+    eq('aller-retour · le minuteur',[plie.timers.t1.running,plie.timers.t1.cycles,plie.timers.t1.anchor],[true,2,900]);
+    eq('aller-retour · la navigation',[plie.nav,plie.navSeq],[['b1','b2'],[1,2]]);
+    eq('aller-retour · la fin d’algorithme',plie.flowEnded,true);
+    eq('aller-retour · les repères',plie.events.map(x=>x.id),['e1','e2']);
+    ok('aller-retour · l’annulation est conservée',!!plie.events[1].voidAt&&!plie.events[0].voidAt);
+    eq('aller-retour · la trace do-verify',plie.verified['1:b1:0'].t,50);}
+   // Un évènement émis est TOUJOURS du vocabulaire fermé — sinon le serveur le refuserait en
+   // silence et l'écran de l'autre serait faux sans que rien ne le dise.
+   {const tous=A_.shareDiff(vide,A_.shareSnap(R({checked:{k:true},counters:{c:1},
+      timers:{t:{running:true,elapsedMs:0,cycles:0,lastStart:1}},events:[{id:'e',t:1}],
+      nav:['a','b'],navSeq:[1,2]}),true)).map(e=>e.kind);
+    ok('tout genre émis appartient au vocabulaire fermé',
+      tous.every(k=>A_.SHARE_KINDS_ANY.indexOf(k)>=0||A_.SHARE_KINDS_LEAD.indexOf(k)>=0),tous.join(','));}}
+
+  /* ADRESSE DE JOINTURE. Un QR ne vaut que si l'appareil qui le scanne peut ATTEINDRE ce qu'il
+     contient : servi depuis un fichier local ou `localhost`, il décode une adresse que le
+     téléphone d'un collègue ne joindra jamais — l'appareil photo dit alors « aucune donnée
+     utilisable ». Dans ce cas on encode le CODE SEUL, lisible comme texte et recopiable.
+     Le test tourne dans une iframe servie en http://localhost : `shareJoinUrl` doit donc y rendre
+     `null`, ce qui est aussi la démonstration que la règle mord. */
+  {const A_=A;
+   ok('en local, aucune adresse de jointure n’est proposée',A_.shareJoinUrl('K7M2P4Q9')===null,
+      String(A_.shareJoinUrl('K7M2P4Q9')));
+   // La forme produite AILLEURS est vérifiée par construction : origine + chemin + fragment.
+   ok('le fragment porte le code, jamais la query',
+      !/[?]/.test('#j=K7M2P4Q9')&&'#j=K7M2P4Q9'.indexOf('#j=')===0);}
 
   group('Partage de session — code d’appariement');
   // On teste les PROPRIÉTÉS de l'alphabet, pas sa valeur : le serveur en est la seule autorité, et

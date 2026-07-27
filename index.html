@@ -238,7 +238,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-CRBptF8hSv007k1xB9Mcd7l7lzqsb5Jtf9wevUwc6wo='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-GwBxE2nGQuh1Y/AuO53XAdZKM8uKr0hhuPxj3QBpcSU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -2271,6 +2271,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #readerMode .rm-cx::after{content:"";position:absolute;inset:-5px}
   #readerMode .rm-time.exo{color:var(--primary-dk)}
   #cxModal{z-index:94}   /* l'index ⚡ passe AU-DESSUS du mode lecteur (92), sous #screenFlash (99) */
+  #shareModal{z-index:94}   /* même raison : ouvrable pendant que le lecteur (92) est affiché */
+  /* LA CONFIRMATION PASSE AU-DESSUS DE TOUT CE QU'ELLE CONFIRME. `#confirmModal` héritait du
+     z-index 55 des fenêtres ordinaires : demander « Arrêter le partage ? » depuis la fenêtre
+     d'appariement (94) affichait le dialogue DERRIÈRE elle — invisible, alors que le focus y était
+     piégé. Une confirmation doit dominer sa surface d'origine, quelle qu'elle soit ; 95 la place
+     au-dessus des deux fenêtres hautes (⚡ et partage) et sous le flash d'alarme (99). */
+  #confirmModal{z-index:95}
   /* ----- SVG navigable (v4.7.0) : nœuds cliquables, état PEINT par classes ----- */
   /* Hex explicites = exception SVG documentée (le SVG n'utilise pas les tokens ; en sombre,
      l'inversion globale est contrée par les règles html[data-theme="dark"] plus haut). */
@@ -2455,6 +2462,41 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   @supports (height:100dvh){
     .ai-modal,.lightbox,#readerMode,#flowFull,#joinScreen{bottom:auto;height:calc(var(--vvh,100dvh) / var(--zf,1))}
   }
+  /* FENÊTRE D'APPARIEMENT (v4.47.0). ORDRE IMPOSÉ PAR LA MESURE, pas par l'esthétique : à 320×568
+     une maquette « QR d'abord » faisait 572 px de carte pour 568 de fenêtre — « Arrêter le
+     partage » tombait sous la ligne de flottaison, et chaque participant ajoutait 56 px. On place
+     donc EN HAUT ce qui se dicte à voix haute (le titre de l'aide et le code), le QR ensuite et
+     plafonné, la liste bornée, l'arrêt en pied — jamais à l'intérieur d'une liste qui grandit. */
+  .sh-lead{margin:0 0 10px;font-size:13px;line-height:1.4;color:var(--ink-soft)}
+  .sh-fiche{margin:0 0 4px;font-size:12px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--ink-soft)}
+  /* Le code se lit à voix haute dans une pièce bruyante : mono, très grand, chiffres tabulaires,
+     et un espacement qui sépare les caractères sans les détacher en deux mots. */
+  /* C'EST LE TEXTE QU'ON DICTE À VOIX HAUTE, souvent en tendant le téléphone à bout de bras : il
+     est le plus gros de la fenêtre, devant le titre. 34 px mesurés tenables jusqu'à 320 px avec le
+     reste de la carte au-dessus de la ligne de flottaison. */
+  .sh-code{margin:0 0 6px;font-family:var(--mono);font-size:40px;font-weight:700;letter-spacing:5px;
+    text-align:center;color:var(--ink);font-variant-numeric:tabular-nums;user-select:all}
+  .sh-adr{margin:0 0 12px;font-size:12px;line-height:1.4;text-align:center;color:var(--ink-soft)}
+  .sh-adr.warn{color:var(--verify);text-align:left}
+  .sh-when{margin:0 0 12px;font-size:12px;text-align:center;color:var(--ink-soft)}
+  .sh-when.closed{color:var(--verify)}
+  .sh-qr{display:flex;justify-content:center;margin:0 0 10px}
+  /* Le QR est PLAFONNÉ, et rétréci au palier le plus contraint : à 320×568 la carte dépassait de
+     2 px et « Arrêter le partage » perdait 6 px de sa cible — pour un code qui reste scannable
+     bien en dessous (4,8 px par module à 197 px, relu par le décodeur d'Apple ; à 141 px on est
+     encore à 3,4 px par module, au-dessus du seuil pratique d'un appareil photo à 20 cm). */
+  .sh-qr .qr{width:min(200px,52vw);height:auto}
+  @media (max-width:359.98px){.sh-qr .qr{width:40vw}.sh-code{font-size:34px;letter-spacing:3px}}
+  .sh-h{margin:14px 0 6px;font-size:11px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--ink-soft)}
+  .sh-p{display:flex;align-items:center;gap:9px;min-height:44px;padding:5px 0;border-top:1px solid var(--line)}
+  .sh-p .n{flex:1;min-width:0;font-size:14px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sh-p .r{flex:none;font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--ink-soft)}
+  .sh-p.off .n{color:var(--ink-soft);text-decoration:line-through}
+  .sh-p.wait .r{color:var(--verify)}
+  .sh-none{margin:6px 0 0;font-size:13px;color:var(--ink-soft)}
+  .sh-acts{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}
+  .sh-acts .btn{flex:1 1 auto;min-height:44px}
+  .sh-note{margin:12px 0 0;font-size:12px;line-height:1.45;color:var(--ink-soft)}
   /* ÉCRAN D'ENTRÉE D'UN INVITÉ (v4.47.0). Plein écran, opaque, et le SEUL contenu de la page : il
      s'affiche à la place de l'application, pas par-dessus — l'amorçage normal n'a pas eu lieu (ni
      base, ni service worker, ni la moindre écriture), et c'est précisément ce que la notice
@@ -2463,17 +2505,27 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     display:flex;align-items:flex-start;justify-content:center;
     padding:calc(20px + env(safe-area-inset-top)) 16px calc(20px + env(safe-area-inset-bottom))}
   #joinScreen[hidden]{display:none}
-  .join-card{width:100%;max-width:460px;background:var(--surface);border:1px solid var(--line);
-    border-radius:14px;padding:20px 18px;box-shadow:var(--shadow)}
-  .join-eye{margin:0;font-size:11px;font-weight:800;letter-spacing:1.1px;text-transform:uppercase;color:var(--ink-soft)}
-  .join-card h1{margin:4px 0 10px;font-size:22px;line-height:1.2;color:var(--ink)}
-  .join-lead{margin:0 0 16px;font-size:14px;line-height:1.5;color:var(--ink)}
+  /* CALQUÉE SUR LES AUTRES FENÊTRES DE L'APP, et pas seulement par cohérence de style : `.ai-card`
+     apporte `margin:auto`, donc le CENTRAGE VERTICAL dans le conteneur flex. Sans lui la carte
+     restait collée en haut d'une page opaque — acceptable sur un téléphone où elle occupe presque
+     tout l'écran, franchement cassé à 760 px de large où elle flottait au-dessus de 450 px de vide.
+     On hérite aussi de l'échelle typographique (titre 18 px, paragraphes 13 px) : un `h1` à 22 px
+     n'existe nulle part ailleurs dans l'application. */
+  /* PAR UN `#id`, JAMAIS PAR L'ORDRE. `.join-card` et `.ai-card` ont la même spécificité : la
+     largeur maximale de 720 px d'`.ai-card`, déclarée PLUS BAS, l'emportait — la carte s'étalait
+     sur 700 px et les paragraphes couraient sur toute la largeur. C'est le 6ᵉ incident de cascade
+     du projet (cf. `.read-grid`, `.cbt-n`, `.mode-seg`, les éditeurs) et la règle est écrite :
+     pour une GÉOMÉTRIE, on ne dépend jamais de l'ordre de déclaration. */
+  #joinScreen .join-card{max-width:460px}
+  #shareModal .ai-card{max-width:420px}
+  .join-eye{margin:0 0 2px;font-size:11px;font-weight:800;letter-spacing:1.1px;text-transform:uppercase;color:var(--ink-soft)}
   .join-lab{display:block;margin:0 0 5px;font-size:12px;font-weight:700;color:var(--ink-soft)}
-  /* 22 px et mono : on recopie un code lu sur l'écran d'un collègue, souvent debout. Le champ est
-     très au-dessus des 16 px sous lesquels Safari iOS zoome au focus (règle 9). */
+  /* MONO, TRÈS GRAND : on recopie un code lu sur l'écran d'un collègue, souvent debout, parfois de
+     loin. Très au-dessus des 16 px sous lesquels Safari iOS zoome au focus (règle 9). */
   .join-code{width:100%;box-sizing:border-box;margin:0 0 14px;padding:12px 14px;font-family:var(--mono);
-    font-size:22px;letter-spacing:3px;text-align:center;text-transform:uppercase;color:var(--ink);
-    background:var(--input-bg);border:1px solid var(--line-strong);border-radius:10px}
+    font-size:26px;font-weight:700;letter-spacing:4px;text-align:center;text-transform:uppercase;color:var(--ink);
+    font-variant-numeric:tabular-nums;background:var(--input-bg);border:1px solid var(--line-strong);border-radius:10px}
+  @media (max-width:359.98px){.join-code{font-size:23px;letter-spacing:3px}}
   .join-sel{width:100%;box-sizing:border-box;margin:0 0 14px;padding:11px 12px;font-size:16px;
     color:var(--ink);background:var(--input-bg);border:1px solid var(--line-strong);border-radius:10px}
   .join-err{margin:0 0 12px;padding:9px 11px;font-size:13px;line-height:1.4;color:var(--critical);
@@ -2638,6 +2690,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .crt-drop.on,.crt-drop:hover{border-color:var(--primary);background:var(--primary-soft)}
   .crt-drop:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .crt-note{font-size:11.5px;color:var(--ink-soft);line-height:1.5;margin:8px 0 0}
+  /* Rejoindre : séparé des méthodes de création par un filet — ce n'est pas une méthode de plus. */
+  .crt-join{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:14px 0 0;padding-top:12px;
+    border-top:1px solid var(--line);font-size:13px;color:var(--ink-soft)}
+  .crt-join span{flex:1;min-width:150px}
+  .crt-join .btn{min-height:44px}
   /* SPEC §6 : en dessous de 780px, les DIALOGUES passent en PLEIN ÉCRAN (100 %, sans arrondi ni
      voile) — fenêtre centrée min(480px,100%) au-dessus. La visionneuse PDF a déjà son plein écran. */
   @media (max-width:779.98px){
@@ -3415,18 +3472,27 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   <p class="ai-note" id="versNote"></p>
 </div></div>
 <!-- Accueil première ouverture : 3 repères, une seule fois (localStorage ac-onboarded). -->
+<!-- FENÊTRE D'APPARIEMENT DE L'HÔTE (v4.47.0). `sheet-live` = fenêtre qui NE VERROUILLE PAS le fond :
+     toute `.ai-modal` fige le défilement de la page derrière elle au pointeur grossier, et celle-ci
+     reste ouverte pendant toute la fenêtre d'admission — la checklist de crise de l'hôte
+     deviendrait indéfilable au moment précis où il en a besoin. Le piège de superposition est
+     connu (z 55 pour une `.ai-modal`, 92 pour le mode lecteur) : elle monte au-dessus, comme
+     `#cxModal`. -->
+<div class="ai-modal sheet-live" id="shareModal" role="dialog" aria-modal="true" aria-labelledby="shareTitle"><div class="ai-card">
+  <div class="ai-top"><h3 id="shareTitle">Partager cette session</h3><button class="ai-x" id="shareX" aria-label="Fermer">×</button></div>
+  <div id="shareBody"></div>
+</div></div>
 <!-- ÉCRAN D'ENTRÉE D'UN INVITÉ (v4.47.0) — PAS une `.ai-modal`, et c'est délibéré : il n'y a rien
      derrière lui (l'application n'est pas amorcée), donc ni verrou de fond, ni ✕, ni Échap — on ne
      « ferme » pas cet écran, on rejoint ou on s'en va. Il s'affiche AVANT toute écriture sur
      l'appareil : c'est la contrepartie de l'information préalable, qui ne vaut rien si la collecte
      a déjà eu lieu quand on l'affiche. -->
 <div id="joinScreen" hidden>
-  <div class="join-card" role="dialog" aria-modal="true" aria-labelledby="joinTitle">
+  <div class="ai-card join-card" role="dialog" aria-modal="true" aria-labelledby="joinTitle">
     <p class="join-eye">Aides cognitives</p>
-    <h1 id="joinTitle">Rejoindre une session</h1>
-    <p class="join-lead">Vous allez suivre <b>en direct</b> la session ouverte par le soignant qui
-      vous a montré ce code. <b>Rien n'est installé sur cet appareil</b>, et l'accès s'arrête avec
-      la session.</p>
+    <div class="ai-top"><h3 id="joinTitle">Rejoindre une session</h3></div>
+    <p>Vous allez suivre <b>en direct</b> la session ouverte par le soignant qui vous a montré ce
+      code. <b>Rien n'est installé sur cet appareil</b>, et l'accès s'arrête avec la session.</p>
     <label class="join-lab" for="joinCode">Code affiché sur son écran</label>
     <input id="joinCode" class="join-code" inputmode="text" autocapitalize="characters"
       autocomplete="off" spellcheck="false" maxlength="9" aria-describedby="joinErr" placeholder="XXXX-XXXX">
@@ -3576,7 +3642,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.47.0';
+const APP_VERSION='4.48.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -5697,6 +5763,19 @@ function warnSessionSaveFailed(){const now=Date.now();if(now-_sessWarnAt<60000)r
 function _putSessionSafe(s){try{const p=Data.putSession(s);if(p&&p.catch)p.catch(warnSessionSaveFailed);}catch(e){warnSessionSaveFailed();}}
 // Persistance (auto-save) débouncée par runtime ; immediate=true pour figer sur sortie/alarme.
 function persistLive(R,immediate){if(!R||!R.started||!R.fiche)return;
+  /* L'ÉMISSION S'ACCROCHE ICI, ET NULLE PART AILLEURS. Toute modification de session passe déjà
+     par l'enregistrement local ; le partage hérite donc mécaniquement de sa couverture, y compris
+     pour les mutations qu'on ajoutera demain. Placée AVANT la temporisation de 700 ms : ce qui
+     compte pour l'autre écran, c'est l'heure du geste, pas celle de l'écriture sur disque. */
+  shareEmitDiff(R);
+  /* L'INVITÉ ÉMET, MAIS N'ÉCRIT RIEN. Sa session EST vive — c'est celle de l'hôte, il la suit et
+     il y contribue — donc `Runtime.started` vaut vrai chez lui : sans quoi la moitié des sites
+     d'appel, gardés par `if(Runtime.started)`, ne passeraient même pas ici et son miroir serait EN
+     LECTURE SEULE. C'était le cas, et c'est le pire mode de défaillance du dispositif : cocher
+     dans le vide en croyant contribuer à une réanimation en cours.
+     Ce qui lui est refusé n'est donc pas la session, c'est l'ENREGISTREMENT : aucune écriture dans
+     son stockage, aucune entrée dans son historique. Le dossier appartient à l'hôte. */
+  if(Share.mode==='guest')return;
   const doIt=()=>{R._pt=null;const s=snapshotSession(R,true);_putSessionSafe(s);const i=sessions.findIndex(x=>x.id===s.id);if(i>=0)sessions[i]=s;else sessions.push(s);};
   if(immediate){if(R._pt){clearTimeout(R._pt);R._pt=null;}doIt();}else{if(R._pt)return;R._pt=setTimeout(doIt,700);}}
 function persistAllLive(){Object.values(liveSessions).forEach(R=>persistLive(R,true));}
@@ -7905,7 +7984,12 @@ function shareGlobTag(){
     if(Share.mode==='off')return '';
     if(Share.status!=='active')return SHARE_STATUS_TAG[Share.status]||'coupé';
     if(Share.isStale())return 'figé';
-    if(Share.mode==='host')return '⇄'+(Share.participants||[]).filter(p=>p&&!p.revoked_at).length;
+    /* `revoked` / `detached`, PAS `revoked_at` : c'est ce que le serveur envoie (booléens calculés
+       dans `share_pull`). Le champ `revoked_at` n'existe que dans la table, donc le filtre était
+       toujours vrai et le compte incluait les coupés — l'hôte aurait lu « ⇄ 2 » avec un seul
+       participant réellement présent. Un compte faux dans une zone d'état est pire qu'aucun. */
+    if(Share.mode==='host')return '⇄'+(Share.participants||[])
+      .filter(p=>p&&!p.owner&&!p.revoked&&!p.detached).length;
     return Share.role==='lead'?'main':'suit';
   }catch(e){return '';}}
 /* ═══ ENTRÉE PAR APPARIEMENT — UNE DÉCISION DE DÉMARRAGE, PAS UNE CLASSE CSS ═════════════════
@@ -7978,6 +8062,73 @@ function shareFold(events,base){
     }
   }
   return s;}
+/* ÉMISSION PAR DIFFÉRENCE — UN SEUL POINT D'ACCROCHE, ET C'EST DÉLIBÉRÉ.
+   L'alternative était d'appeler `Share.emit` depuis chaque verbe de mutation. Le recensement en a
+   trouvé SOIXANTE (41 attributs `data-*` en vue lecture, plus 19 contrôles à `id` sans aucun
+   `data-*`) : autant d'endroits où un oubli serait silencieux, et où toute mutation ajoutée demain
+   échapperait au partage sans que rien ne le signale. On DIFFE donc l'état, en un seul endroit —
+   `persistLive`, par où passe déjà toute modification de session. Ce qui est couvert par
+   l'enregistrement local l'est mécaniquement par le partage.
+   `shareSnap` est PURE et normalise ce qui doit voyager : les minuteurs perdent `lastStart` (une
+   heure LOCALE) au profit d'une ancre absolue, la trace do-verify passe par `vfMapNorm`. Ce qui
+   ne voyage pas n'entre pas dans l'instantané — c'est la liste SHARE_TRAVELS, testée.
+   `shareDiff` est PURE aussi : deux instantanés donnent une suite d'évènements du vocabulaire
+   fermé. C'est ce qui rend l'émission testable sans navigateur, sans réseau et sans horloge. */
+function shareSnap(R,flowEnded){
+  R=R||{};
+  const tm={};for(const k in (R.timers||{})){const t=R.timers[k]||{};
+    tm[k]={running:!!t.running,elapsedMs:+t.elapsedMs||0,cycles:+t.cycles||0,anchor:+t.lastStart||0};}
+  const cn={};for(const k in (R.counters||{}))cn[k]=+R.counters[k]||0;
+  return {checked:Object.assign({},R.checked),verified:vfMapNorm(R.verified),vgaps:vfMapNorm(R.vgaps),
+    counters:cn,timers:tm,
+    events:(R.events||[]).map(e=>({id:e.id,t:+e.t||0,ref:e.ref||null,voidAt:e.voidAt||null})),
+    nav:(R.nav||[]).slice(),navSeq:(R.navSeq||[]).slice(),flowEnded:!!flowEnded};}
+function shareDiff(a,b){
+  a=a||shareSnap(null,false);b=b||shareSnap(null,false);
+  const out=[];
+  // COCHAGE. L'ordre importe : `check` avant `uncheck` ne changerait rien au pli (les clés sont
+  // disjointes), mais l'ordre du JOURNAL est celui des évènements — et le journal se relit.
+  for(const k in b.checked)if(!a.checked[k])out.push({kind:'check',payload:{k:k}});
+  for(const k in a.checked)if(!b.checked[k])out.push({kind:'uncheck',payload:{k:k}});
+  for(const k in b.verified){const x=a.verified[k],y=b.verified[k];
+    if(!x||x.t!==y.t||x.a!==y.a)out.push({kind:'verify',payload:{k:k,t:y.t}});}
+  for(const k in b.vgaps){const x=a.vgaps[k],y=b.vgaps[k];
+    if(!x||x.t!==y.t||x.a!==y.a)out.push({kind:'gap',payload:{k:k,t:y.t}});}
+  for(const k in b.counters)if(a.counters[k]!==b.counters[k])
+    out.push({kind:'counter',payload:{id:k,v:b.counters[k]}});
+  for(const k in b.timers){const x=a.timers[k]||{},y=b.timers[k];
+    if(x.running!==y.running||x.elapsedMs!==y.elapsedMs||x.cycles!==y.cycles||x.anchor!==y.anchor)
+      out.push({kind:y.running?'timer_arm':'timer_stop',
+        payload:{id:k,running:y.running,elapsedMs:y.elapsedMs,cycles:y.cycles,anchor:y.anchor}});}
+  // JOURNAL D'ACTIONS : append-only des deux côtés. Un repère ne disparaît pas — il s'annule, et
+  // l'annulation est elle-même réversible, donc elle voyage comme un évènement à part entière.
+  {const vus={};a.events.forEach(e=>{vus[e.id]=e;});
+   for(const e of b.events){
+     if(!vus[e.id]){out.push({kind:'mark',payload:{id:e.id,t:e.t,ref:e.ref}});
+       if(e.voidAt)out.push({kind:'mark_void',payload:{id:e.id,on:true,t:e.voidAt}});continue;}
+     if((vus[e.id].voidAt||null)!==(e.voidAt||null))
+       out.push({kind:'mark_void',payload:{id:e.id,on:!!e.voidAt,t:e.voidAt||0}});}}
+  // NAVIGATION : le couple nav/navSeq voyage INDISSOCIABLE — les clés de cochage valent
+  // « visite:bloc:index », et transmettre l'un sans l'autre orphelinerait toutes les coches.
+  if(a.nav.join('|')!==b.nav.join('|')||a.navSeq.join('|')!==b.navSeq.join('|'))
+    out.push({kind:'nav',payload:{nav:b.nav.slice(),navSeq:b.navSeq.slice()}});
+  if(a.flowEnded!==b.flowEnded)out.push({kind:'flow_end',payload:{on:b.flowEnded}});
+  return out;}
+/* Base de comparaison de l'émission. Remise à jour APRÈS l'application d'un lot distant : sans
+   cela, ce qu'on vient de recevoir serait re-diffé et RENVOYÉ à l'expéditeur — un écho qui ferait
+   grossir le fil indéfiniment et compterait double au compte-rendu. */
+let _shareBase=null;
+function shareEmitDiff(R){
+  try{
+    if(Share.mode==='off'||!R||!R.fiche)return 0;
+    const now=shareSnap(R,!!state.flowEnded);
+    if(!_shareBase){_shareBase=now;return 0;}
+    const evs=shareDiff(_shareBase,now);
+    _shareBase=now;
+    for(const e of evs)Share.emit(e.kind,e.payload);
+    return evs.length;
+  }catch(e){return 0;}}
+function shareRebase(){try{if(Share.mode!=='off')_shareBase=shareSnap(Runtime,!!state.flowEnded);}catch(e){}}
 /* Empreinte stable d'un état. FNV-1a 32 bits — même algorithme que `spaceTag`. Les clés sont
    TRIÉES : sans cela deux appareils ayant reçu les mêmes évènements dans un ordre d'insertion
    différent obtiendraient des empreintes différentes et se déclareraient périmés à tort. */
@@ -8134,7 +8285,7 @@ function timekeeperPanel(){const ev=Runtime.events||[];const t0=ev.length?ev[0].
 function bindTk(){
   const tkA=document.getElementById('tkAdd');
   // Libellé LAISSÉ VIDE : « Action N » se calcule au rendu, par rang chronologique (cf. tkLabels).
-  if(tkA)tkA.onclick=()=>{Runtime.events=Runtime.events||[];Runtime.events.push({id:uid('e'),t:Date.now(),label:''});
+  if(tkA)tkA.onclick=()=>{Runtime.events=Runtime.events||[];Runtime.events.push({id:uid('e'),t:vfNow(),label:''});
     const started=ensureStarted();persistLive(Runtime);
     // 1ʳᵉ action de la session : le bandeau apparaît -> re-rendu complet obligatoire, une seule fois
     // (le rail est de toute façon en haut au démarrage). Ensuite : le seul panneau.
@@ -8519,13 +8670,50 @@ function bindReadEvents(f,blk,cur){
      (modifier, versions, dupliquer), puis les EXPORTS ; l'action dangereuse ferme la liste
      (doctrine v4.5, inchangée). Avant, « Modifier »/« Versions » — DÉSACTIVÉES pendant une
      session — trônaient en tête : deux rangées mortes au moment où le menu sert le plus. */
-  if(!state.previewFrom)setMoreMenu([
+  /* MENU DE L'INVITÉ — CE QU'IL PEUT, ET UNE PORTE DE SORTIE (v4.47.0).
+     Le menu ordinaire lui offrait des rangées qui, chez lui, sont fausses ou muettes : « Répéter en
+     exercice » créerait une session locale sur un téléphone emprunté, « Recommencer le parcours »
+     est un geste de portée globale réservé à celui qui conduit, « Modifier »/« Versions »/
+     « Dupliquer » et les exports rouvriraient la porte dérobée que l'étanchéité ferme (un
+     compte-rendu complet contient le texte des étapes, donc l'aide elle-même).
+     ET IL N'AVAIT AUCUNE SORTIE : `Share.stop()` n'avait aucun appelant, le seul geste disponible
+     — le « ‹ » d'en-tête — changeait la vue en laissant le mode et le sondage armés, sans chemin
+     de retour vers le miroir. Un dispositif dont on ne peut pas sortir n'est pas un dispositif de
+     confiance, et le collègue à qui l'on tend un QR mérite de savoir qu'il peut partir. */
+  if(!state.previewFrom&&Share.mode==='guest')setMoreMenu([
+    ...(hasFlow(f)?[{label:'Mode lecteur (binôme)',ic:uiIcon('play',16),act:readerOpen}]:[]),
+    ...(hasFlow(f)&&state.readMode!=='static'?[{label:'Se repérer',ic:uiIcon('ladder',16),sub:'échelle des blocs',act:openPlanSheet}]:[]),
+    ...(hasFlow(f)?[{label:'Schéma de l’algorithme',ic:uiIcon('flow',16),sub:'plein écran, zoom',act:()=>openFlowFull(f)}]:[]),
+    ...(annexRowHtml(f)?[{label:'Consulter',ic:uiIcon('book',16),sub:'ce qui a été transmis',act:()=>openRefSheet()}]:[]),
+    'sep',
+    {label:'Quitter le partage…',ic:uiIcon('stop',16),danger:true,sub:'vous ne suivrez plus la session',act:quitShare}
+  ]);
+  else if(!state.previewFrom)setMoreMenu([
     ...(cxAll(f).length?[{label:'Complication'+(cxAll(f).length>1?'s ('+cxAll(f).length+')':''),ic:'⚡',sub:'à tout moment',act:()=>openCxDlg(f)}]:[]),
     ...(hasFlow(f)?[{label:'Mode lecteur (binôme)',ic:uiIcon('play',16),act:readerOpen}]:[]),
     ...(hasFlow(f)&&state.readMode!=='static'?[{label:'Se repérer',ic:uiIcon('ladder',16),sub:'échelle des blocs',act:openPlanSheet}]:[]),
     ...(hasFlow(f)?[{label:'Schéma de l’algorithme',ic:uiIcon('flow',16),sub:'plein écran, zoom',act:()=>openFlowFull(f)}]:[]),
     ...(annexRowHtml(f)?[{label:'Consulter',ic:uiIcon('book',16),sub:'surveillances, documents…',act:()=>openRefSheet()}]:[]),
     'sep',
+    /* PARTAGER — dans le groupe de la CONDUITE EN COURS, jamais dans le chrome de crise : la
+       rangée de commandes n'a que 2,1 px de marge à 320 px, et un contrôle qui apparaîtrait selon
+       la largeur romprait la constance positionnelle. Le partage ne s'ouvre que sur une session
+       DÉMARRÉE : proposé sans elle, il ferait démarrer la session de l'hôte par la première action
+       de l'invité — donc un re-rendu complet sous son doigt. */
+    ...(Share.mode==='host'
+      ? [{label:'Partage en cours ('+(Share.participants||[]).filter(p=>!p.owner&&!p.revoked).length+')',
+          ic:'⇄',sub:'code, participants, arrêt',act:openShareSheet}]
+      /* JAMAIS GRISÉE (décision utilisateur, v4.47.0). Le partage exige une session démarrée — la
+         contrainte est réelle : sans elle, la première action de l'invité déclencherait
+         `ensureStarted` chez l'hôte, donc un re-rendu complet sous son doigt. Mais faire porter
+         cette contrainte par une rangée MORTE oblige l'utilisateur à deviner l'ordre des gestes.
+         La rangée reste donc active et PROPOSE de démarrer : un dialogue, parce que démarrer une
+         session n'est pas anodin (chrono, minuteurs, journal, entrée dans l'historique) et ne doit
+         pas se produire par surprise au détour d'un menu. Le geste reste à un tap de plus, jamais
+         à une découverte. */
+      : [{label:'Partager la session…',ic:'⇄',
+          sub:started?'un collègue suit sur son téléphone':'démarre la session, puis partage',
+          act:()=>startShare(f)}]),
     {label:'Répéter en exercice',ic:'▲',disabled:started&&!Runtime.exercise,
       sub:started&&!Runtime.exercise?'session en cours':(()=>{const ts=sessions.reduce((m,x)=>(x.ficheId===f.id&&x.exercise&&x.savedAt>m)?x.savedAt:m,0);
       return ts?'dernier : '+new Date(ts).toLocaleDateString('fr-FR'):'aucune trace clinique';})(),act:()=>startExercise(f)},
@@ -8610,7 +8798,7 @@ function bindReadEvents(f,blk,cur){
        dernier réécrirait un journal qui est append-only par doctrine, et rien ne garantit que la
        correction porte sur le dernier. La valeur affichée, elle, est bien corrigée. */
     Runtime.events=Runtime.events||[];
-    Runtime.events.push({id:uid('e'),t:Date.now(),label:'',
+    Runtime.events.push({id:uid('e'),t:vfNow(),label:'',
       ref:{type:'counter',id:id,v:Runtime.counters[id]}});
     const fresh=ensureStarted();persistLive(Runtime);
     // Le journal vit en FIN de rail : y ajouter une ligne pousse vers le bas sans rien déplacer
@@ -9302,7 +9490,9 @@ function sharePaintLive(f,e){
     // La RÉFÉRENCE traverse, jamais le mot : le libellé est rendu ici depuis NOTRE copie de la
     // fiche. `tkRefNorm` la valide — un `ref` venu du fil n'est pas plus digne de confiance qu'un
     // import (règle 5 : toute donnée entrante passe par un point d'entrée qui la nettoie).
-    Runtime.events.push({id:safeId(p.id,'e'),t:+p.t||Share.now(),
+    // L'ACTEUR SUIT LE REPÈRE. `shareFold` le conserve, la peinture le perdait : un compte-rendu
+    // ne peut pas dire qui a fait quoi si l'attribution s'arrête au pli.
+    Runtime.events.push({id:safeId(p.id,'e'),t:+p.t||Share.now(),a:e.actor||null,
       label:sstr(p.label,120),ref:tkRefNorm(p.ref)});
     Runtime.events.sort((a,b)=>a.t-b.t);renderTkOnly();return true;}
   if(e.kind==='mark_void'){
@@ -9547,6 +9737,12 @@ function staticSection(f){
 // statique, où il vit SOUS Confirmation/Éliminer (v4.14.2, condition d'entrée QRH).
 function sessStartHtml(f){
   if(state.previewFrom||Runtime.started)return '';
+  /* CHEZ L'INVITÉ, CE BOUTON EST MORT (v4.47.0). Il ne démarre rien : `ensureStarted` refuse de
+     créer une session locale sur l'appareil de quelqu'un qui suit celle d'un autre (étanchéité).
+     Le laisser affiché, c'est offrir le contrôle le plus visible de l'écran — un bouton PLEIN,
+     registre d'action primaire — à un geste sans effet, au-dessus du contenu clinique et au
+     moment où l'on a le moins de temps pour découvrir qu'il ne fait rien. */
+  try{if(Share.mode==='guest')return '';}catch(e){}
   const n=clean(f.confirmation).length;
   return `<div class="sess-start"><button class="btn primary" id="sessStart">${uiIcon('play',14)} ${n?'Confirmé — démarrer la session':'Démarrer la session'}</button><span class="ss-hint">chrono, minuteurs et journal — démarre aussi à la première action</span></div>`;}
 function svExtras(f,where){
@@ -11066,7 +11262,15 @@ function renderCreateDlg(screen,park){
     ${proto?'':crtCard('crtIA',uiIcon('sparkles',26),'Avec l\'IA','Copiez le prompt, générez le JSON avec votre IA, importez-le')}
     ${crtCard('crtImport',uiIcon('download',26),'Importer un fichier (.json ou .zip)','Depuis un export d\'équipe ou une génération IA')}
     </div>
-    <p class="crt-note">Tout import arrive en état <strong>○ Brouillon</strong> — jamais « Validée » d'office.</p>`;
+    <p class="crt-note">Tout import arrive en état <strong>○ Brouillon</strong> — jamais « Validée » d'office.</p>
+    <!-- REJOINDRE N'EST PAS CRÉER, et la rangée le dit : séparée des cartes de méthode, sous un
+         filet, formulée comme une question. Elle est ici parce que ce dialogue est le seul point
+         d'entrée « que voulez-vous commencer ? » atteignable à TOUTES les largeurs (le « + » de la
+         barre) — l'accueil n'a ni menu ⋯, ni barre latérale sous 780 px. Sans elle, l'écran de
+         saisie du code n'était joignable que par un QR ou un lien : introuvable pour qui a
+         simplement le code dicté au téléphone. -->
+    <div class="crt-join"><span>Un collègue partage sa session&nbsp;?</span>
+      <button class="btn sm" id="crtJoin">⇄ Entrer un code</button></div>`;
   {const rs=document.getElementById('crtResume');if(rs)rs.onclick=()=>{closeCreateDlg();
     if(proto){state.pdraft=migrateProtocol(JSON.parse(JSON.stringify(resume.draft)));state.view='protocolEdit';}
     else{state.draft=migrate(JSON.parse(JSON.stringify(resume.draft)));state.view='edit';}
@@ -11075,6 +11279,8 @@ function renderCreateDlg(screen,park){
   document.getElementById('crtManual').onclick=()=>{closeCreateDlg();(proto?newProtocol:newFiche)();};
   {const ia=document.getElementById('crtIA');if(ia)ia.onclick=()=>renderCreateDlg('ia');}
   document.getElementById('crtImport').onclick=()=>renderCreateDlg('import');
+  {const j=document.getElementById('crtJoin');
+   if(j)j.onclick=()=>{closeCreateDlg();openJoinScreen('');};}
 }
 bindModalDismiss(createModal,closeCreateDlg);
 
@@ -12083,7 +12289,13 @@ function exportPdfCurrent(){window.print();}
 // Le contenu REPLIÉ (confirmation diagnostique, carte des blocs) n'existe pas dans le DOM :
 // on le déplie le temps de l'impression, puis on restaure l'état exact (audit v4.5).
 let _printSaved=null;
+/* L'ÉTANCHÉITÉ PROTÉGEAIT UNE PORTE À CÔTÉ D'UNE FENÊTRE OUVERTE. On refuse l'export à l'invité au
+   motif qu'un compte-rendu contient le texte des étapes, donc l'aide — mais ce gestionnaire n'était
+   gardé que par la VUE : un invité qui faisait Partager → Imprimer sur iOS obtenait la fiche
+   ENTIÈRE, mise en page pour le papier. Tant que cette fenêtre restait ouverte, l'argument
+   d'étanchéité contre l'export n'était pas recevable. */
 window.addEventListener('beforeprint',()=>{if(state.view!=='read'||!state.fiche)return;
+  try{if(Share.mode==='guest')return;}catch(e){}
   _printSaved={confOpen:state.confOpen,showFlow:state.showFlow,readMode:state.readMode};
   // La vue d'ensemble (journal + PLAN complet avec étapes) est le format imprimé ; les blocs
   // repliés sont rouverts par CSS @media print — aucun état de repli à toucher.
@@ -12822,6 +13034,7 @@ const SHARE_NOMINAL_MS=2000, SHARE_STALE_MS=4000, SHARE_MAX_BATCH=50;
 const Share={
   mode:'off',                 // 'off' | 'host' | 'guest'
   fold:null,                  // état PLIÉ du fil — l'unique état de l'invité (jamais chez l'hôte)
+  code:null, joinUntil:0, expiresAt:0,   // ce que l'HÔTE dicte, et jusqu'à quand (côté hôte seul)
   share:null, secret:null, me:null, role:null,
   status:'off',               // 'active' | 'revoked' | 'detached' | 'expired' | 'ended'
   cursor:0, seq:0, nEvents:0, applied:0, offset:0,
@@ -12897,7 +13110,13 @@ const Share={
      l'a faite. La file est PERSISTÉE — tout l'état vivant du projet l'est, précisément parce qu'un
      onglet mobile meurt, et une file en mémoire perdrait la trace au moment où elle compte. */
   emit(kind,payload){
-    if(this.mode==='off'||!shareCan(this.role,kind))return null;
+    /* `canWrite` PLUTÔT QUE `shareCan` : le rôle ne suffit pas. Un invité coupé, détaché, ou dont
+       l'écran est PÉRIMÉ ne doit rien émettre — sinon il alimente le fil depuis un état dont il
+       sait qu'il n'est plus garanti. Le prédicat existait et n'avait aucun appelant : le
+       commentaire promettait « un invité périmé ou coupé PERD VISIBLEMENT l'écriture » et rien ne
+       le rendait vrai. (Ce qu'il coche localement reste à l'écran, marqué non transmis : c'est
+       l'objet du bridage visible, à venir — mais rien ne part.) */
+    if(this.mode==='off'||!this.canWrite(kind))return null;
     const e={event_id:this._uuid(),kind:kind,payload:payload||{},
       ts:new Date(this.now()).toISOString()};
     this._q.push(e);this._act=Date.now();this._saveQ();this._kick(250);
@@ -13017,9 +13236,69 @@ const Share={
     }
     // Une seule annonce pour le lot : le lecteur d'écran ne doit pas être noyé, et c'est le SEUL
     // canal admis pendant un soin — invisible à l'écran, donc règle 11 respectée.
+    // La base de diff suit ce qu'on vient d'APPLIQUER : sans ce recalage, le prochain
+    // enregistrement re-diffuserait à l'expéditeur ce qu'il vient d'envoyer.
+    shareRebase();
     if(peint)announce(peint===1?'Une action d’un participant':peint+' actions d’un participant');},
   onDesync(){}, onStatus(){},
 
+  /* OUVERTURE PAR L'HÔTE. Le partage ne s'ouvre QUE sur une session déjà démarrée — sinon la
+     première action de l'invité déclencherait `ensureStarted` chez l'hôte, donc un `render()`
+     complet et une cinquantaine de pixels de chrome collant apparaissant AU-DESSUS de son doigt.
+     L'ÉTAT COURANT EST ÉMIS À L'OUVERTURE, et ce n'est pas un détail : l'instantané transmis est
+     la FICHE (`sharePayload`), jamais la session. Un partage ouvert après vingt coches laisserait
+     donc l'invité devant une fiche vierge, à jour et fausse. On amorce la base de diff sur un
+     Runtime VIDE, puis on diffe : tout ce qui est déjà fait part comme évènements, dans l'ordre. */
+  async host(f,ttlMin){
+    const R=Runtime;
+    if(!R||!R.started||!R.fiche)return {ok:false,err:'not_started'};
+    const t0=Date.now();
+    const snap=sharePayload(f);
+    const id=uid('sh');
+    const r=await this._io.open(id,R.sessionId||id,f.id,snap,'scribe',ttlMin||180);
+    if(!r||!r.ok)return r||{ok:false,err:'refused'};
+    this.mode='host';this.status='active';this.share=r.share;this.secret=null;
+    this.me=null;this.role='lead';this.fiche=snap;this.fold=null;
+    this.code=r.code;this.joinUntil=Date.parse(r.join_open_until)||0;
+    this.expiresAt=Date.parse(r.expires_at)||0;
+    this.participants=[];this.cursor=0;this.applied=0;this.seq=0;this.nEvents=0;this._ids=[];
+    this.lastOk=Date.now();this._fails=0;this._act=Date.now();this._q=[];
+    this._samples=[];this._sample(t0,r.server_time);
+    _shareBase=shareSnap(null,false);shareEmitDiff(R);
+    this._kick(0);
+    return r;},
+  // Ré-ouvrir la porte : code NEUF, l'ancien meurt. C'est ce qui rend une coupure effective —
+  // revenir exige un geste de l'hôte, sur SON écran.
+  async admit(seconds){
+    if(this.mode!=='host'||!this.share)return {ok:false,err:'refused'};
+    const r=await this._io.admit(this.share,seconds||120);
+    if(r&&r.ok){this.code=r.code;this.joinUntil=Date.parse(r.join_open_until)||0;}
+    return r||{ok:false,err:'refused'};},
+  /* COUPER UN PARTICIPANT. Il n'existe pas de RPC dédiée : l'hôte est authentifié, et la politique
+     RLS `sparts_own` lui donne l'écriture sur les participants de SES partages — c'est le chemin
+     prévu. La coupure mord sur le SECRET, jamais sur une identité : le coupé ne peut pas revenir
+     avec le même code (il est consommé), mais il le pourrait avec un code NEUF, et sa place au
+     quota lui est rendue immédiatement. L'écran de l'hôte doit donc dire « coupé », pas « banni ».
+     AUCUN AFFICHAGE OPTIMISTE : on n'écrit pas « coupé » sur la foi de notre propre requête. La
+     rangée reste « coupure en attente » jusqu'à ce que le SONDAGE rapporte `revoked` — c'est le
+     serveur qui fait foi, et un bouton qui ment sur un droit d'accès est pire que pas de bouton. */
+  async revoke(pid){
+    if(this.mode!=='host'||!this.share||!pid)return false;
+    try{await rest('PATCH','/rest/v1/session_participants?share_id=eq.'+encodeURIComponent(this.share)
+      +'&participant=eq.'+encodeURIComponent(pid),{revoked_at:new Date().toISOString()},
+      {'Prefer':'return=minimal'});
+      this._kick(0);return true;}catch(e){return false;}},
+  /* ARRÊTER LE PARTAGE. `status='ended'` fait dire aux invités POURQUOI leur écran s'arrête ; et
+     `expires_at` est ramené à maintenant — sans quoi la ligne vivrait jusqu'à son terme (jusqu'à
+     12 h) alors que la notice affichée à l'invité annonce une purge peu après la fin. C'est le
+     code qui s'aligne sur la promesse, pas l'inverse. La purge passe 30 min plus tard. */
+  async endShare(){
+    if(this.mode!=='host'||!this.share)return false;
+    let ok=false;
+    try{await rest('PATCH','/rest/v1/shared_sessions?id=eq.'+encodeURIComponent(this.share),
+      {status:'ended',expires_at:new Date().toISOString()},{'Prefer':'return=minimal'});ok=true;}catch(e){}
+    this.stop();_shareBase=null;
+    return ok;},
   async joinByCode(code,label){
     const t0=Date.now();
     const r=await this._io.join(String(code||'').toUpperCase().trim(),label||'Invité');
@@ -13043,9 +13322,9 @@ const Share={
      du partage ne subsiste. */
   freeze(status){this.status=status||'ended';clearTimeout(this._timer);this._timer=null;
     this._q=[];this._saveQ();},
-  stop(){this.mode='off';this.status='off';clearTimeout(this._timer);this._ids=[];
+  stop(){this.mode='off';this.status='off';clearTimeout(this._timer);this._timer=null;this._ids=[];
     this._q=[];this._saveQ();this.share=this.secret=this.me=this.role=null;
-    this.participants=[];this.fiche=null;}
+    this.participants=[];this.fiche=this.fold=null;}
 };
 /* ═══ ÉCRAN D'ENTRÉE DE L'INVITÉ ═══════════════════════════════════════════════════════════════
    OUVERTURE DE LA FICHE MIROIR. `openRead` est INUTILISABLE ici, et pas seulement par commodité :
@@ -13061,7 +13340,13 @@ function openSharedFiche(){
   const f=migrate(JSON.parse(JSON.stringify(snap)));
   const fold=Share.fold||shareFold([]);
   Runtime=buildRuntime(f,Object.assign({shared:true},fold));
-  Runtime.started=false;
+  /* `started` VRAI, et c'est le correctif central. Il valait faux pour empêcher l'enregistrement
+     local — mais une trentaine de sites de mutation sont gardés par `if(Runtime.started)`, si bien
+     que l'invité ne parvenait même pas jusqu'à l'émission : ses coches ne quittaient jamais son
+     téléphone. Le refus d'enregistrer a désormais lieu là où il a un sens, dans `persistLive`, et
+     non en faisant croire à l'application qu'aucune session n'est en cours. */
+  Runtime.started=true;
+  Runtime.sessionId=null;                 // aucun dossier local : rien à écrire, rien à rouvrir
   Runtime.startedAt=fold.startedAt||Date.now();
   Runtime.exercise=!!fold.exercise;
   bindStateToRuntime();
@@ -13073,7 +13358,171 @@ function openSharedFiche(){
      démarrage repousseraient la première étape actionnable sous la ligne de flottaison. */
   state.confOpen=false;
   state.fiche=f;state.view='read';state.readStack=[];
-  render();return true;}
+  /* BASE DE DIFF AMORCÉE ICI, sinon le PREMIER geste de l'invité est avalé : `shareEmitDiff` sans
+     base établie se contente de la poser et n'émet rien. Chez l'hôte l'amorçage se fait à
+     l'ouverture du partage ; chez l'invité, c'est ce moment-ci. */
+  shareRebase();
+  render();
+  /* ACCUSÉ DE RÉCEPTION À COÛT NUL. Un écran de confirmation « vous rejoignez <titre> » a été
+     envisagé et ÉCARTÉ, mesures à l'appui : le titre est déjà peint dans CETTE image par
+     `#crisisBand` (visible sans défiler à 320×568 comme à 390×844), la jointure est irréversible
+     à cet instant (ligne participant écrite, code brûlé, place tenue sur le quota), et l'écran
+     intermédiaire aurait coûté un tap plus une lecture pour zéro information — au moment le plus
+     contraint. Ce qui manquait n'est donc pas une surface : c'est l'annonce à qui ne voit pas
+     l'écran. `#srLive` est le seul canal admis pendant un soin (règle 11) : invisible, sans pixel.
+     ENTRÉE AU BOUT DU JOURNAL, PAS EN TÊTE DE FICHE. Mesuré avant correctif : la première étape
+     cochable tombait à y=827 pour une fenêtre de 844, et à y=910 pour 568 — hors écran dans les
+     deux cas, derrière un bloc de confirmation diagnostique que l'invité n'a pas à confirmer et un
+     bouton de démarrage qui ne démarre rien chez lui. Le défilement est ici la conséquence directe
+     de SON geste (il vient de taper « Rejoindre »), jamais un mouvement autonome : la règle 11
+     proscrit le défilement déclenché par un évènement DISTANT, pas l'arrivée sur le point d'action
+     de sa propre entrée. Même arithmétique d'ancrage que partout ailleurs (`stickBase`). */
+  try{announce('Vous suivez : '+f.title);}catch(e){}
+  try{const cur=document.querySelector('.ov-wrap .ov-block:last-of-type,.nav-wrap');
+    if(cur)ovScrollEl(cur);}catch(e){}
+  return true;}
+/* ═══ FENÊTRE D'APPARIEMENT DE L'HÔTE ═════════════════════════════════════════════════════════
+   Le QR n'est PAS un raccourci esthétique : un code affiché à l'écran ne peut être scanné que par
+   quelqu'un qui est LÀ, dans la pièce. Il ne transite par aucun message, aucun serveur de courrier,
+   aucun journal d'accès — c'est ce qui rend l'appariement défendable sans authentifier l'invité.
+   RIEN N'EST PEINT DE FAÇON OPTIMISTE. La liste des participants vient du SONDAGE, donc du
+   serveur ; une coupure demandée s'affiche « en attente » jusqu'à ce qu'il la confirme. Et la
+   liste est APPEND-ONLY, jamais réordonnée : une rangée qui change de place sous le doigt pendant
+   qu'on vise « Couper » est un mode de défaillance, pas un détail d'affichage.
+   MISE À JOUR CHIRURGICALE : le compte à rebours vit dans un nœud texte isolé, la liste n'est
+   reconstruite que si sa signature change. Une fenêtre qui se réécrit en bloc chaque seconde
+   avale les taps — 13 % mesurés sur le quai, qui fait exactement cela. */
+const shareModal=document.getElementById('shareModal');
+let _shTimer=null,_shSig='',_shPend={};
+function shOpenMs(){return Math.max(0,(Share.joinUntil||0)-Share.now());}
+/* ADRESSE DE JOINTURE — et le cas où il n'y en a pas. Un QR n'a de valeur que si l'appareil qui le
+   scanne peut ATTEINDRE ce qu'il contient. Servie depuis un fichier local, une origine nulle ou
+   `localhost`, l'URL est inutilisable depuis le téléphone d'un collègue : l'appareil photo la
+   décode et n'en fait rien — c'est le « aucune donnée utilisable » qu'un utilisateur a rapporté.
+   Dans ce cas on encode le CODE SEUL : le téléphone l'affiche comme du texte, et l'invité le
+   recopie sur l'écran d'entrée. L'adresse est de toute façon ÉCRITE EN CLAIR dans la fenêtre —
+   c'est elle qu'on dicte quand le QR ne peut pas servir, et c'est aussi ce qui rend l'écran
+   d'entrée trouvable sans scanner quoi que ce soit. */
+function shareJoinUrl(code){
+  try{
+    const o=location.origin||'';
+    if(/^https?:/i.test(o)&&!/^https?:\/\/(localhost|127\.|0\.0\.0\.0|\[?::1)/i.test(o))
+      return o+location.pathname+'#j='+code;
+  }catch(e){}
+  return null;}
+function shareSheetHtml(){
+  const f=Runtime.fiche,code=Share.code||'';
+  const url=shareJoinUrl(code);
+  const adresse=url?url.replace(/^https?:\/\//,'').replace(/#j=.*$/,''):'';
+  const parts=(Share.participants||[]).filter(p=>!p.owner);
+  const rows=parts.map(p=>{
+    const att=_shPend[p.id]&&!p.revoked;
+    const cls=p.revoked?' off':(p.detached?' off':(att?' wait':''));
+    const etat=p.revoked?'coupé':(p.detached?'seul':(att?'coupure…':(p.role==='lead'?'conduit':'relève')));
+    return '<div class="sh-p'+cls+'"><span class="n">'+esc(p.label||'Invité')+'</span>'
+      +'<span class="r">'+etat+'</span>'
+      +(p.revoked||p.detached?'':'<button class="btn sm" data-shcut="'+esc(p.id)+'">Couper</button>')+'</div>';}).join('');
+  return '<p class="sh-fiche">'+esc(f?f.title:'')+'</p>'
+    +'<p class="sh-lead">Faites-le scanner, ou dictez-le. Il ne sert <b>qu\'une fois</b>.</p>'
+    +'<p class="sh-code" id="shCode">'+esc(shareCodeFmt(code))+'</p>'
+    +'<p class="sh-when'+(shOpenMs()?'':' closed')+'" id="shWhen"></p>'
+    +'<div class="sh-qr">'+(code?qrSvg(url||code,'Code de session à scanner'):'')+'</div>'
+    +(adresse
+      ? '<p class="sh-adr">Sans scanner : ouvrir <b>'+esc(adresse)+'</b> puis saisir le code.</p>'
+      : '<p class="sh-adr warn">Cette adresse n’est pas joignable depuis un autre appareil : '
+        +'le code seul est encodé. Donnez à votre collègue l’adresse de l’application.</p>')
+    +'<p class="sh-h">Participants ('+parts.length+')</p>'
+    +(rows||'<p class="sh-none">Personne n\'a encore rejoint.</p>')
+    +'<div class="sh-acts">'
+    +'<button class="btn" id="shAdmit">Nouveau code</button>'
+    +'<button class="btn danger" id="shEnd">Arrêter le partage…</button></div>'
+    +'<p class="sh-note">Couper quelqu\'un lui retire l\'écriture immédiatement et lui rend sa place ; '
+    +'il ne peut revenir qu\'avec un nouveau code, que vous seul pouvez donner.</p>';}
+function shPaintWhen(){
+  const el=document.getElementById('shWhen');if(!el)return;
+  const ms=shOpenMs();
+  const t=ms?('ouvert encore '+Math.ceil(ms/1000)+' s'):'porte fermée — demandez un nouveau code pour un autre participant';
+  if(el.textContent!==t)el.textContent=t;
+  el.classList.toggle('closed',!ms);}
+function renderShareSheet(force){
+  const body=document.getElementById('shareBody');if(!body)return;
+  const sig=[Share.code,(Share.participants||[]).map(p=>p.id+':'+p.label+':'+p.role+':'+(p.revoked?1:0)+(p.detached?1:0)).join(','),
+    Object.keys(_shPend).join(',')].join('|');
+  if(force||sig!==_shSig){
+    _shSig=sig;body.innerHTML=shareSheetHtml();
+    body.querySelectorAll('[data-shcut]').forEach(b=>b.onclick=async()=>{
+      const id=b.dataset.shcut;_shPend[id]=1;renderShareSheet(true);
+      if(!await Share.revoke(id)){delete _shPend[id];renderShareSheet(true);
+        toast('⚠ La coupure n\'a pas pu être transmise — réessayez.',6000);}});
+    const ad=document.getElementById('shAdmit');
+    if(ad)ad.onclick=async()=>{ad.disabled=true;const r=await Share.admit(120);ad.disabled=false;
+      if(r&&r.ok)renderShareSheet(true);else toast('⚠ Impossible d\'ouvrir un nouveau code.',6000);};
+    const en=document.getElementById('shEnd');
+    if(en)en.onclick=async()=>{
+      if(!await confirmDlg('Les participants ne suivront plus la session. Votre session, elle, '
+        +'continue — et le relevé de chacun reste dans votre compte-rendu.',
+        {title:'Arrêter le partage ?',yes:'Arrêter',danger:true}))return;
+      await Share.endShare();closeShareSheet();render();};
+  }
+  shPaintWhen();}
+function openShareSheet(){
+  if(!shareModal)return;
+  shareModal.classList.add('on');_shSig='';renderShareSheet(true);
+  clearInterval(_shTimer);_shTimer=setInterval(()=>{if(shareModal.classList.contains('on'))renderShareSheet();},1000);}
+function closeShareSheet(){if(!shareModal)return;
+  shareModal.classList.remove('on');clearInterval(_shTimer);_shTimer=null;}
+if(shareModal)bindModalDismiss(shareModal,closeShareSheet);
+/* DÉMARRER UN PARTAGE. Deux refus honnêtes AVANT tout appel réseau : sans compte, la session ne
+   peut pas transiter par le serveur (l'hébergement d'un partage exige un compte — l'invité, lui,
+   n'en a pas besoin) ; et sans session démarrée, il n'y a rien à partager. Le motif est dit sur
+   place, jamais un « refusé » indifférencié : celui-ci n'a de raison d'être que face à un appelant
+   anonyme, pour ne pas devenir un oracle. */
+async function startShare(f){
+  if(!Auth.signedIn()){toast('Partager une session demande un compte : la session transite par le '
+    +'serveur. Votre renfort, lui, n\'en a pas besoin — il rejoint avec un code.',9000);return;}
+  /* SESSION NON DÉMARRÉE : on ne renvoie pas l'utilisateur à un autre bouton, on lui propose de
+     faire les deux d'un coup. Le dialogue dit ce que démarrer ENGAGE — c'est un évènement
+     clinique (chrono, minuteurs, journal, entrée à l'historique), pas un réglage. */
+  if(!Runtime.started){
+    if(!await confirmDlg('Partager exige une session en cours. Démarrer la session maintenant '
+      +'(chrono, minuteurs et journal des actions) puis ouvrir le partage ?',
+      {title:'Démarrer et partager ?',yes:'Démarrer et partager'}))return;
+    state.confOpen=false;
+    if(!ensureStarted())return;
+    render();}
+  const r=await Share.host(f).catch(()=>null);
+  if(!r||!r.ok){
+    toast(r&&r.err==='draft'
+      ? '⚠ Une fiche en brouillon ne se diffuse pas hors du compte.'
+      : '⚠ Le partage n\'a pas pu être ouvert. Vérifiez votre connexion, puis réessayez.',8000);
+    return;}
+  openShareSheet();render();}
+/* QUITTER LE PARTAGE — `Share.stop()`, JAMAIS `emit('detach')`. La distinction n'est pas
+   technique : un évènement `detach` DATE un « je poursuis seul » dans le compte-rendu de l'hôte,
+   c'est-à-dire qu'il affirme que l'invité a continué le soin de son côté. Quelqu'un qui ferme
+   simplement l'écran n'a rien affirmé de tel, et un compte-rendu qui le prétendrait serait faux là
+   où il compte — au débriefing. Le départ est donc SILENCIEUX côté serveur ; la ligne participant
+   reste inscrite jusqu'à la purge, ce que l'hôte lira comme une présence qui ne rafraîchit plus.
+   CE QUI RESTE, ET QU'ON DIT : ce qui a déjà été relevé appartient au compte-rendu du soignant.
+   C'est un enregistrement de soin, il ne s'efface pas rétroactivement — la notice d'entrée
+   l'annonce déjà, le dialogue le redit au moment où la question se pose vraiment.
+   Le dialogue de confirmation est ici LÉGITIME malgré la règle 11 : c'est exactement le patron du
+   « Terminer la session ? », que la doctrine désigne comme la SEULE porte de sortie d'une session
+   et qui est un dialogue confirmé, précisément parce qu'un arrêt ne doit pas tenir à un tap. */
+async function quitShare(){
+  const perdu=SHARE_NOTRACE
+    ? 'Pour revenir, il faudra un NOUVEAU code : un code ne sert qu’une fois.'
+    : 'Votre bibliothèque et vos fiches sont inchangées.';
+  if(!await confirmDlg('Vous ne verrez plus cette session. Ce que vous avez déjà relevé reste dans '
+    +'le compte-rendu du soignant — c’est un enregistrement de soin. '+perdu,
+    {title:'Quitter le partage ?',yes:'Quitter',danger:true}))return;
+  Share.stop();
+  Runtime=makeRuntime();
+  state.view='library';state.fiche=null;
+  render();
+  // Sans empreinte, il n'y a rien derrière : on repose l'écran d'entrée, qui dit lui-même
+  // pourquoi le code sous les yeux de l'invité ne servira plus.
+  if(SHARE_NOTRACE)openJoinScreen('');}
 const joinScreen=document.getElementById('joinScreen');
 function joinErrShow(m){const e=document.getElementById('joinErr');if(!e)return;
   e.textContent=m;e.hidden=false;}
@@ -13458,7 +13907,12 @@ function _bgUnlock(){if(!document.body.classList.contains('modal-open'))return;
 new MutationObserver(muts=>{muts.forEach(m=>{
   const el=m.target;if(!el.classList||!el.classList.contains('ai-modal'))return;
   const wasOn=/\bon\b/.test(m.oldValue||''),isOn=el.classList.contains('on');
-  if(isOn&&!wasOn){if(_openModals().length<=1){_modalReturnFocus=document.activeElement;_bgLock();}const f=_focusables(el);(f[0]||el).focus();_histArm();}
+  /* `sheet-live` : fenêtre qui NE VERROUILLE PAS le fond. Une `.ai-modal` fige le défilement de la
+     page derrière elle au pointeur grossier — bon comportement pour un dialogue bref, ruineux pour
+     la fenêtre d'appariement, qui reste ouverte pendant toute la fenêtre d'admission et rendrait la
+     checklist de crise INDÉFILABLE au moment où l'hôte en a besoin. Tout le reste du gestionnaire
+     (focus initial, piège Tab, Échap, retour système) s'applique inchangé. */
+  if(isOn&&!wasOn){if(_openModals().length<=1&&!el.classList.contains('sheet-live')){_modalReturnFocus=document.activeElement;_bgLock();}const f=_focusables(el);(f[0]||el).focus();_histArm();}
   else if(!isOn&&wasOn&&!_topModal()){_bgUnlock();
     if(_modalReturnFocus){try{_modalReturnFocus.focus();}catch(_){}_modalReturnFocus=null;}}
 });}).observe(document.body,{subtree:true,attributes:true,attributeFilter:['class'],attributeOldValue:true});
@@ -13587,8 +14041,9 @@ if(location.search.indexOf('__actest')>=0){
     qrRawBits,qrTotalCw,qrGen,qrRs,qrAlign,qrDataCw,qrInterleave,qrEncode,qrSvg,qrMul,
     QR_ECW,QR_BLK,QR_MAXVER,QR_EXP,QR_LOG,
     sharePayload,shareCan,shareFold,shareStateHash,shareOffset,blankFiche,Share,
+    shareSnap,shareDiff,
     shareApplyMode,vfNorm,vfTime,vfActor,vfMapNorm,buildRuntime,crisisOnScreen,state,Runtime,
-    shareGlobTag,SHARE_STATUS_TAG,
+    shareGlobTag,SHARE_STATUS_TAG,shareJoinUrl,
     shareCodeNorm,shareCodeValid,shareCodeBadChars,shareCodeFmt,shareCodeFromHash,tkLabels,tkRefNorm,
     SHARE_ALPHA,SHARE_CODE_LEN,
     SHARE_KEEP,SHARE_DROP,SHARE_TRAVELS,SHARE_LOCAL,SHARE_KINDS_ANY,SHARE_KINDS_LEAD,
