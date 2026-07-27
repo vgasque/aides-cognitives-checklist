@@ -1,13 +1,40 @@
 # En-têtes de sécurité — pris en charge par Netlify et Cloudflare Pages (fichier « _headers »).
 # La CSP reste aussi présente en balise <meta> dans index.html pour l'ouverture hors hébergeur ;
 # la servir en en-tête HTTP est plus robuste (couvre aussi les réponses non-HTML).
+#
+# DÉCISION D'HÉBERGEMENT (2026-07-27, utilisateur) : la PRODUCTION est GitHub Pages, et l'app doit
+# RESTER DÉPLOYABLE AILLEURS (Netlify, Cloudflare Pages, intranet hospitalier HTTPS). Ce fichier
+# est donc maintenu à jour bien que GitHub Pages l'IGNORE TOTALEMENT : il n'est pas décoratif, il
+# est la posture servie partout ailleurs. Ce que GitHub Pages fait perdre est nommé et accepté
+# dans docs/deploiement-et-conformite.md § 1.1 — la CSP <meta> d'index.html reste, elle, active
+# partout, et c'est elle qui porte l'essentiel (script-src par hashs).
 /*
-  Content-Security-Policy: default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-eEPCQNBqJdyKGxA/bgHZtum3FUtAPFkwT5/RQJu3+Ug='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-tFa+BckJg79+IP5kXvxO2eTC0+d+LC9UY8cPWAqIVHA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'; frame-ancestors 'none'
   Strict-Transport-Security: max-age=31536000; includeSubDomains
   X-Content-Type-Options: nosniff
   Referrer-Policy: no-referrer
   X-Frame-Options: DENY
-  Permissions-Policy: geolocation=(), camera=(), microphone=()
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Resource-Policy: same-origin
+  Permissions-Policy: accelerometer=(), ambient-light-sensor=(), battery=(), browsing-topics=(), camera=(), display-capture=(), encrypted-media=(), gamepad=(), geolocation=(), gyroscope=(), hid=(), idle-detection=(), magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), serial=(), usb=(), xr-spatial-tracking=()
+
+# COOP/CORP ajoutés en v4.43.0. `window.open` est absent du code (vérifié : 0 occurrence), donc
+# `same-origin` ne peut casser aucun échange avec une fenêtre tierce.
+# COEP `require-corp` est DÉLIBÉRÉMENT ABSENT : il n'apporte rien ici (aucun SharedArrayBuffer,
+# aucune ressource cross-origin embarquée — seul Supabase est joint, en fetch CORS) et il casse
+# au premier ajout d'une ressource externe. Un en-tête qui ne protège rien et qui casse plus tard
+# est une dette, pas une posture.
+#
+# LA LISTE DES CAPACITÉS FERMÉES EST MESURÉE, PAS RECOPIÉE. Trois absences sont VOLONTAIRES et ne
+# doivent pas être « complétées » :
+#   - `autoplay` : le bip d'alarme passe par WebAudio, qui est soumis à la politique d'autoplay.
+#     Le fermer rendrait l'alarme de minuteur MUETTE — la sortie la plus critique de l'app.
+#   - `screen-wake-lock` : jamais utilisé aujourd'hui (0 occurrence), mais garder l'écran allumé
+#     pendant une réanimation est un besoin plausible ; interdire d'avance une capacité qu'on
+#     voudra peut-être demain n'a aucun bénéfice de sécurité ici.
+#   - `web-share` et `clipboard-write` : `navigator.share` est le chemin OBLIGATOIRE du
+#     téléchargement d'un PDF en PWA installée (v4.19.1 — WebKit ignore `download` en standalone
+#     et navigue vers l'URL blob:). Les fermer casserait une fonction clinique.
 
 # Le service worker ne doit jamais être servi depuis un cache figé (sinon MAJ bloquées).
 /sw.js

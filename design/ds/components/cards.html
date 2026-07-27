@@ -240,6 +240,17 @@
     :is(body.view-edit,body.view-pedit) #brandSub{letter-spacing:1px}
     :is(body.view-edit,body.view-pedit) .hdr-badge{min-width:36px}
   }
+  /* 320 px (v4.43.0, décision utilisateur) — le commentaire ci-dessus visait 360 px et le tenait ;
+     à 320, `⋯` sortait de 6,2 px de l'écran (mesuré Chromium ET WebKit, bouton VISIBLE
+     `display:grid`, donc des pixels inatteignables). Même recette que la rangée de crise, sur les
+     écarts et les rembourrages seuls : ~12 px rendus pour 6,2 nécessaires. Rien n'est éjecté, la
+     répartition de la pénurie décrite plus haut (badge compressible, indicateur de mode à
+     plancher) est inchangée. Déclaré APRÈS le bloc 429.98 : à spécificité égale, l'ordre décide. */
+  @media (max-width:359.98px){
+    header.bar:not(.home) .id-row{gap:4px}
+    :is(body.view-edit,body.view-pedit) .hdr-acts{gap:4px}
+    :is(body.view-edit,body.view-pedit) .hdr-act2{padding:0 8px}
+  }
   .id-row .brand{flex:0 1 auto}
   header.bar:not(.home) .id-row .brand{flex:1}
   /* En crise, la marque s'efface tant que la zone haute est visible : c'est #crisisBand qui porte
@@ -481,6 +492,28 @@
     .ctrl-sp{width:4px}
     #modeSeg .seg-btn{padding:6px 7px}
     .dock-plan{padding:0 8px;gap:4px}
+  }
+  /* 320 px SERVI (v4.43.0, décision utilisateur) — WCAG 1.4.10 « Reflow » fixe le plancher à
+     320 px, et la rangée y exigeait 348 px : 28 px de contenu ROGNÉS, sans défilement, dans la
+     zone de crise. Le bouton restait opérable (44 px visibles, aria-label intact) mais se lisait
+     « ⤢ Con », coupé en plein mot. Mesuré identique sur Chromium et WebKit.
+     LES PIXELS VIENNENT DE QUATRE POSTES, aucun d'eux n'étant `.ctrl-sp` : bord de rangée 8→4
+     (8 px), écarts 6→4 sur trois intervalles (6 px), rembourrage des deux segments de mode 7→4
+     (12 px), rembourrage des deux ouvertures 8→6 (8 px). Budget rendu 34 px pour 28 nécessaires,
+     donc 6 px de marge — la recette v4.23.4 n'était pas épuisée, elle n'avait simplement jamais
+     été appliquée à ces postes-là.
+     CE QUI N'EST PAS TOUCHÉ, et pourquoi : `.ctrl-sp` reste à 4 px — c'est l'écart de Gestalt qui
+     sépare le MODE (un état qu'on lit) des OUVERTURES (des actions qu'on vise), la raison d'être
+     de la séparation ECP/ECAM de v4.25.0 ; le supprimer rendrait bien 4 px et coûterait la seule
+     chose qui distingue deux natures de contrôle sans ajouter de trait. Aucun renommage non plus
+     (règle « troncature du même mot ») et pas de 2ᵉ ligne (la hauteur de crise est un coût
+     permanent). Les positions restent constantes entre appareils : seules les MARGES bougent.
+     Déclaré APRÈS le bloc 399.98 (spécificité égale, l'ordre décide — 5ᵉ piège de cascade du
+     projet). Harnais : audit-doctrine mesure désormais 320 en plus de 360/375/390. */
+  @media (max-width:359.98px){
+    #crisisCtrl .dock-in{gap:4px;padding:6px 4px}
+    #modeSeg .seg-btn{padding:6px 4px}
+    .dock-plan{padding:0 5px}
   }
   #cbTimers[hidden]{display:none}
   #cbTimers:not([hidden]){display:flex}

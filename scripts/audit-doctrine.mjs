@@ -142,18 +142,59 @@ console.log('\n══ ECAM · pas d\'alerte flottante en session ══');
 // (iPhone SE/mini) et 26 px à 360 (Android standard), sans défilement horizontal : pixels
 // INACCESSIBLES. Un débordement silencieux dans la zone de crise — l'écart que ce harnais
 // existe pour attraper (il mesurait le quai, pas la rangée de commandes juste au-dessus).
-console.log('\n══ ECAM · rangée de commandes sans rognage (360/375/390) ══');
+// 320 px AJOUTÉ en v4.43.0 (décision utilisateur « oui pour 320 px ») : c'est le plancher de
+// WCAG 1.4.10 « Reflow », et la rangée y exigeait 348 px pour 320 — 28 px rognés en silence.
+// On mesure aussi le ROGNAGE INTERNE (bord droit du dernier bouton contre la boîte cliente de
+// `.dock-in`) : un bouton peut tenir dans le viewport tout en étant coupé par son conteneur,
+// et c'est exactement le cas qui se produisait.
+console.log('\n══ ECAM · rangée de commandes sans rognage (320/360/375/390) ══');
 {
   const page=await session(360);
-  for(const w of [360,375,390]){
+  for(const w of [320,360,375,390]){
     await page.setViewportSize({width:w,height:820});
-    await page.waitForTimeout(180);
+    await page.waitForTimeout(220);
     const r=await page.evaluate(()=>{
       const btns=[...document.querySelectorAll('#crisisCtrl button')].filter(b=>b.offsetParent);
       const right=Math.max(...btns.map(b=>b.getBoundingClientRect().right));
-      return {right:Math.round(right),vw:innerWidth,doc:document.documentElement.scrollWidth};});
+      const din=document.querySelector('#crisisCtrl .dock-in');
+      const db=din.getBoundingClientRect(),ds=getComputedStyle(din);
+      const bordInterne=db.right-parseFloat(ds.paddingRight);
+      return {right:+right.toFixed(1),vw:innerWidth,doc:document.documentElement.scrollWidth,
+        bordInterne:+bordInterne.toFixed(1),deborde:+(din.scrollWidth-din.clientWidth).toFixed(1)};});
     t(`aucun bouton de commande hors écran à ${w} px`, r.right<=r.vw&&r.doc<=r.vw,
       `bord droit ${r.right} px / viewport ${r.vw} px`);
+    t(`aucun rognage par le conteneur à ${w} px`, r.right<=r.bordInterne+0.5&&r.deborde<=0.5,
+      `dernier bouton à ${r.right} px, bord interne ${r.bordInterne} px, débordement ${r.deborde} px`);
+  }
+  await page.close();
+}
+
+// La MÊME règle vaut hors crise : un débordement silencieux reste un débordement. L'ÉDITEUR
+// sortait « ⋯ » de 6,2 px à 320 px (bouton VISIBLE, donc pixels inatteignables) — le commentaire
+// du CSS visait 360 et le tenait, personne n'avait mesuré en dessous.
+console.log('\n══ ECAM · barre d\'éditeur sans rognage (320/360) ══');
+{
+  const page=await br.newPage({viewport:{width:320,height:844}});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await page.evaluate(async()=>{
+    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();
+    await new Promise(r=>setTimeout(r,120));
+    const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();
+    await new Promise(r=>setTimeout(r,400));
+    const f=fiches.find(x=>/Arrêt cardiaque/.test(x.title))||fiches[0];
+    await openEdit(f.id);await new Promise(r=>setTimeout(r,600));});
+  for(const w of [320,360]){
+    await page.setViewportSize({width:w,height:844});
+    await page.waitForTimeout(250);
+    const r=await page.evaluate(()=>{
+      // Seulement ce qui est RÉELLEMENT peint : `hidden` et `display:none` ne débordent de rien.
+      const vis=[...document.querySelectorAll('header.bar button')]
+        .filter(e=>!e.hidden&&getComputedStyle(e).display!=='none'&&e.getBoundingClientRect().width>0);
+      const pire=vis.reduce((a,e)=>{const b=e.getBoundingClientRect();return b.right>a.r?{r:b.right,id:e.id||e.className}:a;},{r:0,id:'—'});
+      return {r:+pire.r.toFixed(1),id:pire.id,vw:innerWidth,n:vis.length};});
+    t(`aucun bouton d'éditeur hors écran à ${w} px`, r.r<=r.vw+0.5,
+      `${r.id} finit à ${r.r} px pour un écran de ${r.vw} px (${r.n} boutons visibles)`);
   }
   await page.close();
 }

@@ -812,8 +812,22 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   360 px. Trois réglages rendent les pixels manquants sans rapetisser le glyphe outre mesure :
   logo 34 → 30 px, écart de colonne 10 → 8 px, mot-marque 20 → 18 px (très au-dessus du plancher
   de 11 px ; le logo n'étant pas interactif, aucune règle de cible ne s'y applique). Vérifié à 0 px
-  de surcoût de 360 à 431 px. Toute addition à cette rangée doit être re-mesurée à 360 px : c'est
-  la largeur la plus contrainte encore servie.
+  de surcoût de 360 à 431 px. Toute addition à cette rangée doit être re-mesurée à **320 px**
+  (v4.43.0 — c'était 360 jusque-là) : c'est désormais la largeur la plus contrainte servie.
+- **320 px EST SERVI (v4.43.0, décision utilisateur)** — c'est le plancher de WCAG 1.4.10
+  « Reflow », et deux surfaces y rognaient en silence : la **rangée de commandes de crise**
+  exigeait 348 px pour 320 (28 px inatteignables, « ⤢ Cons. » coupé en plein mot) et le **`⋯` de
+  l'éditeur** sortait de 6,2 px, bouton pourtant `display:grid` — mesuré identique sur Chromium et
+  WebKit. Les pixels viennent de la recette v4.23.4 (écarts et rembourrages), jamais d'un
+  renommage ni d'une 2ᵉ ligne : 34 px rendus pour 28 nécessaires dans la crise, ~12 pour 6,2 dans
+  l'éditeur. **`.ctrl-sp` n'est PAS un poste d'économie** : ces 4 px sont l'écart de Gestalt qui
+  sépare le MODE des OUVERTURES (raison d'être de la séparation ECP/ECAM de v4.25.0) ; une analyse
+  antérieure concluait à tort qu'il fallait le sacrifier, faute d'avoir regardé les rembourrages
+  des segments et des boutons. Deux paliers `359.98` ajoutés, DÉCLARÉS APRÈS les blocs `429.98`
+  et `399.98` (spécificité égale : l'ordre décide — 5ᵉ piège de cascade du projet). Harnais :
+  `audit-doctrine` mesure la rangée de crise à **320/360/375/390** avec, en plus du hors-écran, un
+  contrôle de **rognage par le conteneur** (un bouton peut tenir dans la fenêtre tout en étant
+  coupé par sa boîte de contenu — c'est ce qui se produisait), et la barre d'éditeur à 320/360.
 - **DÉFILEMENT PRÉSERVÉ, PAS RECONSTRUIT (v4.23.5, plusieurs retours d'usage)** — trois surfaces
   ont chacune leur propre défilement qu'un `render()` (qui reconstruit le DOM) remettait à zéro :
   (1) le RAIL de lecture `.read-side` (`overflow-y:auto`) « remontait » dès qu'on touchait un bouton
@@ -1210,8 +1224,9 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   séparément. Règle générale : pour une GÉOMÉTRIE, ne jamais dépendre de l'ordre de déclaration —
   passer par un `#id` ou vérifier la position dans la feuille. L'accueil ≥ 780 est une COQUE FIXE (`body.view-home` : 100dvh, overflow hidden ;
   seuls `.home-side` et `.home-main` défilent — la sidebar ne bouge jamais à la bascule de
-  section). Breakpoints : 430 / 560 / 640 / 780 / 900 / 1000 / 1200 px — pas de
-  nouveau palier sans décision explicite. En-têtes (SPEC §5) : marque uniquement sur l'accueil ;
+  section). Breakpoints : **360** / 400 / 430 / 560 / 640 / 780 / 900 / 1000 / 1200 px — pas de
+  nouveau palier sans décision explicite (360 et 400 étaient DÉJÀ dans le code, décidés en v4.30.0
+  et v4.43.0 ; c'est cette liste qui n'avait pas suivi). En-têtes (SPEC §5) : marque uniquement sur l'accueil ;
   éditeurs = actions dans la barre (Enregistrer à droite), AUCUN pied d'éditeur ; crise = une
   seule zone fixe en haut, jamais en bas. Plancher typographique **11 px** (app consultée sous
   stress : rien en dessous, nulle part) ; cibles tactiles ≥ 44 px (halo sur les contrôles 36 px

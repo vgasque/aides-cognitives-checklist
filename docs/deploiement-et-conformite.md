@@ -46,6 +46,30 @@ Durée : ~30 min. Aucune compétence serveur avancée requise.
    ci-dessus (la mise à jour du service worker reste fonctionnelle : les navigateurs revérifient
    `sw.js` au plus tard toutes les 24 h).
 
+   **DÉCISION DATÉE (2026-07-27).** La production est **GitHub Pages**, et l'application doit
+   **rester déployable ailleurs** (Netlify, Cloudflare Pages, intranet hospitalier HTTPS). Deux
+   conséquences pratiques, à ne pas « simplifier » plus tard :
+
+   - `_headers` est **maintenu à jour bien qu'inappliqué en production**. Il n'est pas décoratif :
+     c'est la posture servie sur tout autre hébergeur, et le supprimer ferait perdre le seul
+     endroit où elle est écrite. Il a reçu en v4.43.0 `Cross-Origin-Opener-Policy` et
+     `Cross-Origin-Resource-Policy` (`same-origin` — sans risque, `window.open` étant absent du
+     code) et une `Permissions-Policy` étendue à 21 capacités. **COEP `require-corp` est
+     délibérément absent** : il n'apporte rien ici et casserait au premier ajout de ressource
+     externe. Trois capacités restent **volontairement ouvertes** et ne doivent pas être fermées
+     par zèle — `autoplay` (le bip d'alarme passe par WebAudio, le fermer rendrait l'alarme
+     muette), `screen-wake-lock` (besoin plausible en réanimation) et `web-share` (chemin
+     obligatoire du téléchargement PDF en PWA installée). Le détail est commenté dans `_headers`.
+   - **`"id": "./"` du manifeste NE DOIT PAS ÊTRE MODIFIÉ.** Par spécification, `id` se résout
+     par rapport à l'**origine**, pas au chemin du manifeste : sur un déploiement en
+     sous-répertoire (`<compte>.github.io/<dépôt>/`), l'identité vaut donc l'origine entière.
+     C'est une **porte à sens unique** : changer `id` ferait apparaître l'app comme une NOUVELLE
+     application chez tout utilisateur l'ayant déjà installée — donc un doublon sur l'écran
+     d'accueil, l'ancienne installation restant figée sur son propre cache. Contrainte qui en
+     découle, à respecter : **ne pas héberger une seconde PWA sur la même origine**. Un
+     déploiement sur une autre origine (Netlify, intranet) est en revanche sans problème :
+     l'identité y vaut cette origine-là.
+
    **Conséquence du `no-cache` manquant sur la PAGE.** Le service worker sert l'application
    « cache d'abord » et rafraîchit sa copie en arrière-plan ; ce rafraîchissement suppose que son
    `fetch` atteigne le SERVEUR. Servi depuis un cache HTTP intermédiaire, il peut ramener une
