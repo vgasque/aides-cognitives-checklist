@@ -147,7 +147,23 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   de vérité = le monofichier) — puis committer la régénération. `npm run design:check` échoue si
   `design/ds/` a dérivé du code (le CI le rejoue ; `release.sh` régénère automatiquement). Pousser
   le résultat vers le projet Claude Design distant reste un geste explicite (skill `/design-sync`).
-- `npm run audit` — **audit transverse (v4.23.0)**, à rejouer dès qu'on touche au chrome de crise,
+- `npm run audit` — **audit transverse (v4.23.0 ; SOCLE COMMUN + MOTEUR CHOISISSABLE v4.45.0)**.
+  Les onze harnais partagent `scripts/harness.mjs` (serveur statique, table MIME, choix du
+  moteur) : ils recopiaient le même bloc, et la DIVERGENCE avait déjà commencé —
+  `audit-lecteur.mjs` était le seul dont la table MIME omettait `.ico`. Surtout, les onze
+  lançaient `chromium.launch()` EN DUR : **iOS Safari, la cible principale déclarée, n'était
+  auditée par AUCUN harnais**, alors que `npm test` tourne sur deux moteurs depuis v4.34.0. Le
+  moteur se choisit désormais par `AC_ENGINE` (`chromium` par défaut, donc rien ne change sans
+  décision ; un nom inconnu échoue bruyamment plutôt que de retomber en silence sur chromium) :
+  `AC_ENGINE=webkit npm run audit`.
+  **Le premier passage sur WebKit a immédiatement payé** : la sonde WCAG 2.4.11 signalait 8
+  masquages sur 11 cibles, tous avec un bas NÉGATIF — les éléments n'étaient pas encore revenus
+  à l'écran. Sur WebKit, le défilement induit par un focus PROGRAMMATIQUE est **asynchrone** ;
+  la sonde lisait la géométrie d'avant et mesurait la synchronicité du moteur, pas
+  l'application. Avec 60 ms d'attente : 0 sur les deux moteurs, à sélecteur et scénario
+  identiques (variable isolée). RÈGLE : toute sonde qui lit une géométrie après `focus()` doit
+  attendre. Il ne s'agissait donc pas d'un défaut d'accessibilité — mais on ne pouvait pas le
+  savoir tant que les harnais ne tournaient que sur Blink., à rejouer dès qu'on touche au chrome de crise,
   au rail, aux feuilles Plan/Consulter ou à un token de couleur. **ONZE** harnais Playwright qui
   MESURENT au lieu d'affirmer (liste exacte dans `package.json`, script `audit` : a11y, doctrine,
   verify, verify-live, session-card, zoom-scroll, modeseg, consulter, complications, exercice,

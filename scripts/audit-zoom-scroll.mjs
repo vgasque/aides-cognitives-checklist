@@ -1,12 +1,10 @@
 /* AUDIT — HAUTEURS DE FENÊTRE SOUS ZOOM. `zoom` sur <html> agrandit une hauteur en vh/dvh APRÈS
    sa résolution : à 130 %, `100dvh` occupe 1,3 écran (bas inatteignable) et `min-height:100vh`
    crée du défilement dans le vide. Prouve que --zf corrige les deux. */
-import { createServer } from 'node:http';import { readFile } from 'node:fs/promises';import { extname } from 'node:path';import { chromium } from 'playwright';
-const ROOT=decodeURIComponent(new URL('../',import.meta.url).pathname);
-const T={'.html':'text/html','.js':'text/javascript','.json':'application/json','.webmanifest':'application/manifest+json','.png':'image/png','.svg':'image/svg+xml','.ico':'image/x-icon'};
-const srv=createServer(async(q,r)=>{try{let p=decodeURIComponent(q.url.split('?')[0]);if(p==='/')p='/index.html';const b=await readFile(ROOT+p.replace(/^\/+/,''));r.writeHead(200,{'content-type':T[extname(p)]||'application/octet-stream'});r.end(b);}catch{r.writeHead(404);r.end('nf');}});
-const port=await new Promise(r=>srv.listen(0,()=>r(srv.address().port)));
-const br=await chromium.launch();let ok=0,ko=0;
+import { serveApp, moteur, NOM_MOTEUR, ROOT } from './harness.mjs';
+
+const { port, srv } = await serveApp();
+const br=await moteur().launch();let ok=0,ko=0;
 const t=(n,c,d)=>{if(c){ok++;console.log('  ✓ '+n);}else{ko++;console.log('  ✗ '+n+(d?' — '+d:''));}};
 for(const z of [100,130]){
  const p=await br.newPage({viewport:{width:1200,height:800}});

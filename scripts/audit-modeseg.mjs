@@ -2,12 +2,10 @@
    `.seg` (même spécificité, déclarée plus bas -> elle gagnait par l'ORDRE), `min-width:auto` des
    items flex qui empêche `flex:1 1 0` d'égaliser deux libellés de longueurs différentes (d'où la
    grille `1fr 1fr`), et un fond de pastille qui s'INVERSE entre thèmes. */
-import { createServer } from 'node:http';import { readFile } from 'node:fs/promises';import { extname } from 'node:path';import { chromium } from 'playwright';
-const ROOT=decodeURIComponent(new URL('../',import.meta.url).pathname);
-const T={'.html':'text/html','.js':'text/javascript','.json':'application/json','.webmanifest':'application/manifest+json','.png':'image/png','.svg':'image/svg+xml','.ico':'image/x-icon'};
-const srv=createServer(async(q,r)=>{try{let p=decodeURIComponent(q.url.split('?')[0]);if(p==='/')p='/index.html';const b=await readFile(ROOT+p.replace(/^\/+/,''));r.writeHead(200,{'content-type':T[extname(p)]||'application/octet-stream'});r.end(b);}catch{r.writeHead(404);r.end('nf');}});
-const port=await new Promise(r=>srv.listen(0,()=>r(srv.address().port)));
-const br=await chromium.launch();let KO=0;
+import { serveApp, moteur, NOM_MOTEUR, ROOT } from './harness.mjs';
+
+const { port, srv } = await serveApp();
+const br=await moteur().launch();let KO=0;
 for(const TH of ['light','dark']){
 const p=await br.newPage({viewport:{width:900,height:800},colorScheme:TH,deviceScaleFactor:2});
 await p.goto(`http://localhost:${port}/index.html`);await p.waitForFunction(()=>!document.querySelector('.boot-load'));

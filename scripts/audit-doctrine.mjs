@@ -1,15 +1,9 @@
 /* LOT 7 — volet DOCTRINE : ECAM / QRH / FAA AC 120-71B, mesuré sur l'app réelle.
    Chaque contrôle traduit une règle de sûreté en invariant observable. */
-import { createServer } from 'node:http';
-import { readFile } from 'node:fs/promises';
-import { extname } from 'node:path';
-import { chromium } from 'playwright';
-const ROOT=decodeURIComponent(new URL('../',import.meta.url).pathname);
-const T={'.html':'text/html','.js':'text/javascript','.json':'application/json','.webmanifest':'application/manifest+json','.png':'image/png','.svg':'image/svg+xml','.ico':'image/x-icon'};
-const srv=createServer(async(q,r)=>{try{let p=decodeURIComponent(q.url.split('?')[0]);if(p==='/')p='/index.html';
- const b=await readFile(ROOT+p.replace(/^\/+/,''));r.writeHead(200,{'content-type':T[extname(p)]||'application/octet-stream'});r.end(b);}catch{r.writeHead(404);r.end('nf');}});
-const port=await new Promise(r=>srv.listen(0,()=>r(srv.address().port)));
-const br=await chromium.launch();
+import { serveApp, moteur, NOM_MOTEUR, ROOT } from './harness.mjs';
+
+const { port, srv } = await serveApp();
+const br=await moteur().launch();
 let ok=0,ko=0;
 const t=(nom,cond,det)=>{if(cond){ok++;console.log('  ✓ '+nom);}else{ko++;console.log('  ✗ '+nom+(det?'\n      '+det:''));}};
 
@@ -353,6 +347,58 @@ console.log('\n══ Rendu guidé · décocher annule la fin de l\'algorithme �
   t('décocher remet state.flowEnded à false',r.flowEnded===false);
   t('décocher retire la bannière « Algorithme terminé »',r.banniere===false,'bannière encore présente');
   t('décocher fait revenir le bouton d\'avancement',r.bouton===true,'#navNext absent');
+  await page.close();
+}
+
+// ══ ECAM — « rien ne bouge sous le doigt » : le RÉSIDU d'ancrage ═══════════
+// Le motif « mesurer, re-rendre, compenser » vivait en QUATRE copies dont UNE SEULE renvoyait son
+// résidu (v4.45.0 : `keepAnchor`, source unique). L'invariant le plus cité du projet devient donc
+// mesurable — encore faut-il le mesurer. Le résidu est BORNÉ par le haut de page : on défile
+// exprès avant le geste, sinon `scrollBy` ne peut pas descendre sous 0 et le contrôle mesurerait
+// la limite structurelle au lieu de l'ancrage (cf. la doctrine de `state.confOpen`).
+console.log('\n══ ECAM · ancrage — résidu nul au geste de première action ══');
+{
+  const page=await br.newPage({viewport:{width:390,height:844}});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await page.evaluate(async()=>{
+    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();
+    await new Promise(r=>setTimeout(r,120));
+    const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();
+    await new Promise(r=>setTimeout(r,400));
+    window.__anc=[];const o=window.keepAnchor;
+    window.keepAnchor=function(sel,rr){const el=sel?main.querySelector(sel):null;
+      const av=el?el.getBoundingClientRect().top:null;
+      const r=o.call(this,sel,rr);const ap=sel?main.querySelector(sel):null;
+      window.__anc.push({sel:String(sel).slice(0,24),residu:r,
+        derive:(av!=null&&ap)?Math.round(ap.getBoundingClientRect().top-av):null});return r;};});
+  // 1ʳᵉ action de session : cocher SANS avoir cliqué « démarrer » -> renderKeepAnchor.
+  const a=await page.evaluate(async()=>{
+    const f=fiches.find(x=>/Arrêt cardiaque/.test(x.title))||fiches[0];
+    openRead(f.id);await new Promise(r=>setTimeout(r,350));
+    window.scrollTo(0,600);await new Promise(r=>setTimeout(r,250));
+    window.__anc=[];
+    const li=document.querySelector('[data-ck]');if(li)li.click();
+    await new Promise(r=>setTimeout(r,500));return window.__anc;});
+  t('1ʳᵉ action : l\'ancrage est bien invoqué',a.length>0,'aucun appel de keepAnchor');
+  // Tolérance 1 px : c'est du SOUS-PIXEL de compositeur (WebKit rend 1 px là où Blink rend 0,
+  // arithmétique identique) — pas un défaut d'ancrage. Au-delà, la vue a réellement sauté.
+  if(a.length)t('1ʳᵉ action : l\'étape tapée ne bouge pas (≤ 1 px)',Math.abs(a[0].derive)<=1,
+    `dérive ${a[0].derive} px, résidu ${a[0].residu} px`);
+  // Rendu GUIDÉ (fiche à un bloc) : le remplacement chirurgical est ancré lui aussi.
+  const g=await page.evaluate(async()=>{
+    const f=migrate({id:'ancd',title:'Ancre guidée',blocks:[
+      {id:'b1',type:'steps',title:'Bloc unique',steps:['a','b','c','d','e','f']}],start:'b1'});
+    await Data.put(f);fiches.push(f);
+    openRead(f.id);await new Promise(r=>setTimeout(r,350));
+    document.getElementById('sessStart').click();await new Promise(r=>setTimeout(r,350));
+    window.scrollTo(0,300);await new Promise(r=>setTimeout(r,250));
+    window.__anc=[];renderNavOnly();
+    await new Promise(r=>setTimeout(r,400));return window.__anc;});
+  t('guidé : le remplacement du bloc est ancré',g.length>0&&g[0].sel.indexOf('nav-wrap')>=0,
+    JSON.stringify(g));
+  if(g.length)t('guidé : le bloc ne bouge pas (≤ 1 px)',Math.abs(g[0].derive)<=1,
+    `dérive ${g[0].derive} px`);
   await page.close();
 }
 

@@ -2,12 +2,10 @@
    sa hauteur était de la redite (surveillances, posologie), qui repoussait le contenu unique.
    Verrouille aussi l'invariant du BOUTON MORT : la rangée d'accès et le bouton du quai ne
    doivent exister que si la feuille a réellement du contenu. */
-import { createServer } from 'node:http';import { readFile } from 'node:fs/promises';import { extname } from 'node:path';import { chromium } from 'playwright';
-const ROOT=decodeURIComponent(new URL('../',import.meta.url).pathname);
-const T={'.html':'text/html','.js':'text/javascript','.json':'application/json','.webmanifest':'application/manifest+json','.png':'image/png','.svg':'image/svg+xml','.ico':'image/x-icon'};
-const srv=createServer(async(q,r)=>{try{let p=decodeURIComponent(q.url.split('?')[0]);if(p==='/')p='/index.html';const b=await readFile(ROOT+p.replace(/^\/+/,''));r.writeHead(200,{'content-type':T[extname(p)]||'application/octet-stream'});r.end(b);}catch{r.writeHead(404);r.end('nf');}});
-const port=await new Promise(r=>srv.listen(0,()=>r(srv.address().port)));
-const br=await chromium.launch();const p=await br.newPage({viewport:{width:420,height:900},deviceScaleFactor:2});
+import { serveApp, moteur, NOM_MOTEUR, ROOT } from './harness.mjs';
+
+const { port, srv } = await serveApp();
+const br=await moteur().launch();const p=await br.newPage({viewport:{width:420,height:900},deviceScaleFactor:2});
 let ok=0,ko=0;const t=(n,c,d)=>{if(c){ok++;console.log('  ✓ '+n);}else{ko++;console.log('  ✗ '+n+(d?' — '+d:''));}};
 p.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
 await p.goto(`http://localhost:${port}/index.html`);await p.waitForFunction(()=>!document.querySelector('.boot-load'));

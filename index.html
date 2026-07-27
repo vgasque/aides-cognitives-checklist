@@ -238,7 +238,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-N/nMsmZIMBP3hwRU096/3HhWpJH/BYpLYI0qnHKux1M='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-mGGHMDYcsoxAcFUwyVvELewgtBoQ5LiR8dYGm0PisJA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -3465,7 +3465,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.44.1';
+const APP_VERSION='4.45.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -5712,6 +5712,20 @@ function updateRtStrip(now){
   // au bout et non bouclé RESTE affiché en AMBRE dans la barre tant qu'il n'est ni relancé ni
   // réarmé — l'alerte persiste dans la zone dédiée (l'état la porte : aucun drapeau à part).
   const dueDone=t=>t.type==='interval'&&!t.running&&(t.seconds*1000||0)>0&&t.elapsedMs>=t.seconds*1000;
+  /* Enrichissement d'un minuteur pour les DEUX zones d'état — le quai `#cbTimers` et la bande du
+     mode lecteur `#rmTimers`. Source unique depuis v4.45.0 : le calcul du temps restant (qui sert
+     au TRI : échus d'abord, puis les plus urgents) était écrit DEUX FOIS, à l'identique, et le
+     prédicat « échu » y était rédigé de DEUX FAÇONS DIFFÉRENTES — `dueDone(t)||(interval &&
+     val==='00:00')` d'un côté, `interval && val==='00:00'` de l'autre. Les deux sont équivalents,
+     et la démonstration mérite d'être écrite parce qu'elle n'est pas évidente : `dueDone` impose
+     déjà `type==='interval'`, et un minuteur échu et arrêté donne `within >= per`, donc
+     `fmtMs(max(0, per-within))` vaut « 00:00 » — le premier disjoint est absorbé par le second.
+     L'extraction est donc ISO-SORTIE, pas une harmonisation qui trancherait entre deux règles.
+     Une FONCTION appliquée deux fois, jamais un tableau partagé : chaque zone garde son propre
+     tri et sa propre troncature, et rien n'est mutable en commun. */
+  const rtWith=t=>{const d=timerDisplay(t,now);
+    return {t,d,due:t.type==='interval'&&d.val==='00:00',
+      rem:dueDone(t)?-1:(t.type==='interval'?Math.max(0,(t.seconds*1000||0)-(t.elapsedMs+(t.running?(now-t.lastStart):0))):Infinity)};};
   const run=crisis?Object.values(Runtime.timers).filter(t=>t.running||dueDone(t)):[];
   /* MODE LECTEUR (v4.28.0) : l'overlay (z 92) COUVRE le quai #cbTimers — or une zone d'état ne
      disparaît JAMAIS (le segment ambre d'un échu est le canal d'acquittement de l'alarme). Le
@@ -5723,9 +5737,7 @@ function updateRtStrip(now){
      rt.textContent=(Runtime.exercise?'▲ ':'● ')+fmtMs(now-Runtime.startedAt);}
    const rs=document.getElementById('rmTimers');
    if(rs){if(!rmOn||!run.length){rs.hidden=true;_rmSegHtml='';}
-     else{const ws=run.map(t=>{const d=timerDisplay(t,now);
-        const rem=dueDone(t)?-1:(t.type==='interval'?Math.max(0,(t.seconds*1000||0)-(t.elapsedMs+(t.running?(now-t.lastStart):0))):Infinity);
-        return {t,d,rem,due:dueDone(t)||(t.type==='interval'&&d.val==='00:00')};}).sort((a,b)=>a.rem-b.rem);
+     else{const ws=run.map(rtWith).sort((a,b)=>a.rem-b.rem);
        const h=ws.map(x=>'<span class="rm-seg'+(x.due?' due':'')+'"><span class="l">'+(esc(x.t.label)||(x.t.type==='interval'?'Minuteur':'Chrono'))+(x.due?' — échu':'')+'</span><span class="v">'+x.d.val+'</span></span>').join('');
        if(h!==_rmSegHtml){_rmSegHtml=h;rs.innerHTML=h;}
        rs.hidden=false;}}}
@@ -5736,9 +5748,7 @@ function updateRtStrip(now){
   if(!run.length&&!started){el.hidden=true;_rtsHtml='';syncDock();return;}
   // Segments : jusqu'à DEUX minuteurs étiquetés (échus d'abord, puis les plus urgents), « +n »,
   // puis GLOBAL (chrono de session — démarre à la 1ʳᵉ action, décision produit V5) et « remonter ».
-  const withRem=run.map(t=>{const d=timerDisplay(t,now);
-    const rem=dueDone(t)?-1:(t.type==='interval'?Math.max(0,(t.seconds*1000||0)-(t.elapsedMs+(t.running?(now-t.lastStart):0))):Infinity);
-    return {t,d,rem,due:t.type==='interval'&&d.val==='00:00'};}).sort((a,b)=>a.rem-b.rem);
+  const withRem=run.map(rtWith).sort((a,b)=>a.rem-b.rem);
   const wideRail=mqRail.matches;
   // CE QUE PORTE LE QUAI (v4.23.0, décision utilisateur) :
   //   < 1000px : le chrono de session, UN minuteur étiqueté (l'échu / le plus urgent) et « +n ».
@@ -7712,14 +7722,31 @@ function renderRead(){
    conséquence pour S ≈ une centaine de px (le bouton), mais cela interdit d'y adosser le repli
    d'un BLOC entier (cf. la doctrine de state.confOpen dans ensureStarted).
    Renvoie le RÉSIDU en px (0 = l'ancre n'a pas bougé) -> testable, et garde-fou pour l'avenir. */
-function renderKeepAnchor(sel){
+/* ANCRAGE — SOURCE UNIQUE (v4.45.0). Le motif « mesurer la position écran d'une ancre, re-rendre,
+   compenser le défilement » existait en QUATRE copies : `renderKeepAnchor` (render complet),
+   `renderOvOnlyKeepAnchor` et `ovAdvanceRender` (journal), et le remplacement chirurgical de
+   `renderNavOnly`. Or c'est l'invariant le plus cité du projet — « rien ne bouge sous le doigt »,
+   doctrine ECAM — et UNE SEULE des quatre mesurait son résidu : les trois autres l'appliquaient
+   sans jamais pouvoir dire si elles y arrivaient. Il est désormais vérifiable partout.
+   LE RÉSIDU EST RENVOYÉ, JAMAIS CORRIGÉ, et ce n'est pas un détail : la compensation est BORNÉE
+   par le haut de page. Si le re-rendu retire S pixels AU-DESSUS de l'ancre alors que
+   `window.scrollY < S`, `scrollBy` ne peut pas descendre sous 0 et il reste (S - scrollY) px.
+   C'est sans conséquence pour S ≈ une centaine de px (un bouton qui disparaît), mais cela
+   INTERDIT d'y adosser le repli d'un BLOC entier — c'est exactement ce qui fonde la doctrine de
+   `state.confOpen` dans `ensureStarted`. « Corriger » ce résidu masquerait la limite au lieu de
+   la respecter, et rouvrirait le bug v4.3.2.
+   Ce qui reste PROPRE À CHAQUE APPELANT et ne doit pas être unifié : le focus clavier (seul le
+   journal le déplace) et la règle de visibilité (seul `ovAdvanceRender` défile vers la nouvelle
+   carte, et seulement si elle n'est pas déjà entièrement à l'écran). */
+function keepAnchor(sel,rerender){
   const el=sel?main.querySelector(sel):null;const top=el?el.getBoundingClientRect().top:null;
-  render();
+  rerender();
   if(top==null)return 0;
-  const nl=main.querySelector(sel);if(!nl)return 0;
+  const nl=sel?main.querySelector(sel):null;if(!nl)return 0;
   const d=nl.getBoundingClientRect().top-top;if(d)window.scrollBy(0,d);
   const r=main.querySelector(sel);
   return r?Math.round(r.getBoundingClientRect().top-top):0;}
+function renderKeepAnchor(sel){return keepAnchor(sel,render);}
 // Câblage des écouteurs de la vue lecture (seconde moitié de l'ancien renderRead) : navigation entre
 // blocs, cochage des étapes, contrôles minuteurs/compteurs (mise à jour DOM directe, sans re-rendu),
 // journal des actions, sessions. `blk` = bloc affiché, `cur` = id du bloc courant (halo du flow).
@@ -8470,10 +8497,9 @@ function ovScrollToInst(idx){ovScrollEl(main.querySelector('.ov-block[data-ovi="
    Résultat : avancer bloc à bloc ne fait plus « sauter » l'écran ni disparaître les chips. */
 function ovAdvanceRender(anchorIdx,idx){
   const sel=anchorIdx!=null?'.ov-block[data-ovi="'+anchorIdx+'"]':null;
-  const el=sel?main.querySelector(sel):null;const top=el?el.getBoundingClientRect().top:null;
-  renderOvOnly();
-  if(top!=null){const nl=main.querySelector(sel);
-    if(nl){const d=nl.getBoundingClientRect().top-top;if(d)window.scrollBy(0,d);}}
+  keepAnchor(sel,renderOvOnly);
+  // La règle de VISIBILITÉ est propre à cet appelant : on ne défile vers la nouvelle carte que
+  // si elle n'est pas déjà entièrement à l'écran (sinon avancer ferait sauter la vue sans raison).
   const nb=main.querySelector('.ov-block[data-ovi="'+idx+'"]');if(!nb)return;
   const r=nb.getBoundingClientRect();
   const hdr=document.querySelector('header.bar');const hh=hdr?hdr.getBoundingClientRect().bottom:60;
@@ -8482,12 +8508,15 @@ function ovAdvanceRender(anchorIdx,idx){
 // Re-rendu du journal ANCRÉ sur un élément (extension de visite : la carte migre de la suite au
 // bout du journal SANS bouger sous le doigt — même principe que renderKeepAnchor, en ciblé).
 function renderOvOnlyKeepAnchor(sel,kb){
-  const el=sel?main.querySelector(sel):null;const top=el?el.getBoundingClientRect().top:null;
-  renderOvOnly();
-  if(top==null)return;
-  const nl=main.querySelector(sel);if(!nl)return;
-  const d=nl.getBoundingClientRect().top-top;if(d)window.scrollBy(0,d);
-  if(kb)nl.focus();}
+  const r=keepAnchor(sel,renderOvOnly);
+  // Le focus est PROPRE à cet appelant (reprise au clavier après extension de visite) : il reste
+  // ici plutôt que dans `keepAnchor`, où il s'appliquerait à des chemins qui n'en veulent pas.
+  // NOTE (v4.45.0) : `focus()` est laissé SANS `{preventScroll:true}`, à l'identique de l'existant.
+  // Le mettre serait cohérent avec les deux autres restaurations de focus du fichier et
+  // protégerait l'ancrage qu'on vient d'appliquer (un focus peut re-défiler) — mais c'est un
+  // CHANGEMENT DE COMPORTEMENT, et un lot de factorisation n'en embarque pas. À trancher à part.
+  if(kb&&sel){const nl=main.querySelector(sel);if(nl)nl.focus();}
+  return r;}
 // Cochage dans le journal : chirurgie pure (toggle DOM, jamais de render() sous le doigt).
 // (v4.10.0 : le cochage ne vit QUE dans le journal — le plan est inerte ; entrer dans un bloc
 // jamais visité passe par un tap sur son nœud du plan, jumpToBlock.)
@@ -9181,17 +9210,16 @@ function renderNavOnly(){
   // était l'ancien (le mélange insertions ± scroll-anchoring du navigateur faisait dériver
   // la vue de ~70 px à chaque « Continuer ») ; le rattrapage éventuel reste à
   // scrollNavIntoView, qui ne bouge plus rien quand tout est déjà visible.
-  const _navTop0=wrap.getBoundingClientRect().top;
-  const N=navSection(f);
+  const N=navSection(f);   // pur générateur de HTML : ne touche pas au DOM, donc hors de l'ancrage
   // Fil d'Ariane : remplacé / créé (2e bloc) / retiré, TOUJOURS accroché au bloc courant.
   {const old=main.querySelector('.crumbs');if(old)old.remove();}
-  if(N.crumbsH)wrap.insertAdjacentHTML('beforebegin',N.crumbsH);
-  // Rangée « Bloc précédent / Recommencer » (état disabled du premier bloc recalculé).
-  {const old=main.querySelector('.flow-nav');if(old)old.remove();}
-  if(N.navRowH)wrap.insertAdjacentHTML('afterend',N.navRowH);
-  wrap.outerHTML=N.navHtml;   // le bloc courant (étapes cochables ou décision)
-  {const nw=main.querySelector('.nav-wrap');
-   if(nw){const d=nw.getBoundingClientRect().top-_navTop0;if(d)window.scrollBy(0,d);}}
+  keepAnchor('.nav-wrap',()=>{
+    if(N.crumbsH)wrap.insertAdjacentHTML('beforebegin',N.crumbsH);
+    // Rangée « Bloc précédent / Recommencer » (état disabled du premier bloc recalculé).
+    {const old=main.querySelector('.flow-nav');if(old)old.remove();}
+    if(N.navRowH)wrap.insertAdjacentHTML('afterend',N.navRowH);
+    wrap.outerHTML=N.navHtml;   // le bloc courant (étapes cochables ou décision)
+  });
   {const sub=main.querySelector('.alg-panel .alg-sub');if(sub)sub.innerHTML=algSubHtml(N.blockDone,N.blockTot);}
   // Panneau algorithme ouvert : le SVG suit le bloc courant par PEINTURE de classes (v4.7.0) —
   // plus aucune reconstruction de la mise en page à la navigation.

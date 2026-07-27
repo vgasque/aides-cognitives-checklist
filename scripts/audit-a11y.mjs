@@ -6,18 +6,10 @@
      • focus visible au CLAVIER (parcours Tab réel, pas un .focus() programmatique)
      • règles projet : jamais --soft en couleur de texte, « hors chemin » jamais par opacité seule
 */
-import { createServer } from 'node:http';
-import { readFile } from 'node:fs/promises';
-import { extname } from 'node:path';
-import { chromium } from 'playwright';
+import { serveApp, moteur, NOM_MOTEUR, ROOT } from './harness.mjs';
 
-const ROOT = decodeURIComponent(new URL('../', import.meta.url).pathname);
-const T = { '.html':'text/html','.js':'text/javascript','.json':'application/json',
-  '.webmanifest':'application/manifest+json','.png':'image/png','.svg':'image/svg+xml','.ico':'image/x-icon' };
-const srv = createServer(async (q,r)=>{ try{ let p=decodeURIComponent(q.url.split('?')[0]); if(p==='/')p='/index.html';
-  const b=await readFile(ROOT+p.replace(/^\/+/,'')); r.writeHead(200,{'content-type':T[extname(p)]||'application/octet-stream'}); r.end(b);
-} catch { r.writeHead(404); r.end('nf'); } });
-const port = await new Promise(r=>srv.listen(0,()=>r(srv.address().port)));
+
+const { port, srv } = await serveApp();
 
 const AUDIT = `(() => {
   const px=v=>parseFloat(v)||0;
@@ -99,7 +91,7 @@ const AUDIT = `(() => {
   return out;
 })()`;
 
-const browser = await chromium.launch();
+const browser = await moteur().launch();
 const errs=[]; let fails=0, checks=0;
 const report=(label,arr,fmt)=>{ checks++; if(!arr.length){return;} fails++;
   console.log('  ✗ '+label);
@@ -305,6 +297,14 @@ console.log('\n══════ WCAG 2.2 · 2.4.11 focus non masqué (session,
       const y=el.getBoundingClientRect().top+scrollY;
       scrollTo(0,y+400);                      // l'élément passe AU-DESSUS du viewport (cas Shift+Tab)
       el.focus();
+      // ATTENDRE LE DÉFILEMENT (v4.45.0) : sur WebKit — la cible iOS — le défilement induit par un
+      // focus programmatique est ASYNCHRONE. Lire la géométrie dans la foulée, comme on le faisait,
+      // renvoyait la position d'AVANT : 8 « masquages » signalés sur 11 cibles, avec des bas
+      // NÉGATIFS (-352, -237, -138 px), c'est-à-dire des éléments encore hors écran. Le harnais
+      // mesurait la synchronicité du moteur, pas la conformité de l'app. Avec l'attente : 0 sur
+      // les deux moteurs, à sélecteur et scénario identiques (variable isolée). Le défaut n'est
+      // apparu qu'en jouant enfin les harnais sur WebKit — ils lançaient tous Chromium en dur.
+      await new Promise(r=>setTimeout(r,60));
       const r=el.getBoundingClientRect();
       if(r.height>0&&r.bottom<=stick())out.push((el.textContent||'').trim().slice(0,32)||el.className);
     }
