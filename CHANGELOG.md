@@ -1,5 +1,77 @@
 # Journal des modifications
 
+## [4.52.0] — 2026-07-28
+### Le journal parle enfin des deux côtés — sans qu'un seul mot traverse le réseau
+
+Lot 5 du chantier de partage. Un repère du journal voyageait comme `{identifiant, heure}` et rien
+d'autre : chez l'invité, il s'affichait « Action 3 ». L'heure était juste — c'est ce qui compte
+cliniquement — mais le mot manquait, et le compte rendu d'un même soin devenait difficile à
+recouper.
+
+### Une référence, jamais un mot
+Un repère porte désormais une **référence**, et chaque appareil rend le libellé depuis **sa** copie
+de la fiche. C'est ce qui tient la règle 15 sans condamner le journal au mutisme. Quatre sources,
+cumulatives :
+
+1. **La fiche elle-même** — minuteurs, compteurs, étapes, repères posologiques. Toute aide apporte
+   son vocabulaire sans qu'on ait rien à déclarer, et il suit ses mises à jour.
+2. **Un noyau universel livré** — ce qui se note dans toute intervention : renfort, régulation,
+   départ de la base, arrivée sur place, bilan, transmission, relève, départ, arrivée à l'hôpital.
+   **« Autre » n'y est pas, et ce n'est pas un oubli** : l'absence de référence *est* « autre », et
+   une étiquette qui ne distingue rien n'apprend rien à qui relit.
+3. **Le vocabulaire personnel, avec alias** — édité **à froid** dans la fenêtre Compte, synchronisé
+   comme le thème. C'est là que vivent les abréviations qu'on se découvre à l'usage : « mru »
+   trouve « Médecin régulateur ».
+4. **Rien du tout**, et c'est le cas nominal. « Noter l'heure » reste **un tap** : l'heure est
+   capturée, toujours, sans dépendre d'aucun vocabulaire. L'étiquetage est facultatif. Pire cas
+   d'un vocabulaire incomplet : un repère non étiqueté côté partagé, et le mot exact **en local**
+   chez celui qui l'a tapé.
+
+**La résolution échoue proprement**, et c'est cette garantie qui autorise à faire voyager des
+références : fiche d'une autre version, étape supprimée, étiquette effacée — le repère retombe sur
+« Action n », **jamais sur un mot inventé**. Six contrôles l'encodent.
+
+**On réordonne, on ne filtre jamais** — la règle des repères posologiques, appliquée telle quelle,
+avec la même machinerie (troncature à partir de quatre caractères, table de synonymes). Un faux
+positif coûte un rang ; un faux négatif coûte un mot au moment où on le cherche.
+
+### Ce qui ne pouvait pas être une fenêtre
+La règle 11 interdit les modales pendant un soin. Les propositions sont donc une rangée de chips
+**sous** la ligne du journal — lequel vit en fin de rail, si bien que ce qui apparaît pousse vers le
+bas et jamais vers le haut. Cibles 44 px, rien sous deux caractères saisis (tout ressemble à tout),
+quatre propositions au plus.
+
+Tant qu'aucune proposition n'est choisie, **le texte tapé reste strictement local** : mesuré, il
+n'entre pas dans ce qui est émis. Choisir pose la référence et efface le libellé manuel — le mot
+devient dérivé, donc identique sur les deux écrans.
+
+**Une asymétrie est dite plutôt que tue** : une étiquette *personnelle* se résout sur les appareils
+du même compte, pas chez un collègue qui ne l'a pas. Pendant un partage, elle est donc marquée
+« · vous seul ». La taire aurait laissé croire à un mot partagé.
+
+### La règle 15 vaut aussi à la réception
+La réception d'un repère distant lisait un `label` venu du réseau. Inoffensif entre deux clients de
+cette version — aucun émetteur n'en met — mais c'était une **porte** : un client modifié aurait
+affiché un mot arbitraire sur l'écran d'en face. La lecture est supprimée ; le libellé se dérive de
+la référence, et de rien d'autre. Le contrôle du harnais qui vérifiait l'inverse — il **encodait le
+trou** — a été retourné : il pousse maintenant un `label` hostile et vérifie qu'il n'apparaît nulle
+part.
+
+### Un défaut d'accessibilité sur iOS, trouvé en jouant le harnais sur le bon moteur
+Le `<select>` de rôle de l'écran d'entrée mesurait **23 px de haut sur WebKit** contre 44 sur Blink
+— sous le plancher de cible, sur le seul écran qu'un invité sans compte verra jamais, et sur la
+cible principale déclarée du projet. Invisible tant que le harnais d'accessibilité ne tournait que
+sur Chromium : c'est la leçon de la v4.45.0, redite. Hauteur explicite et chevron dessiné
+(`appearance:none` — sans lui, imposer une hauteur à un select natif iOS ne déplace pas son texte).
+
+### Vérification
+734 tests × 2 moteurs (+28), **227/227 contrôles partage** (+13, sur les deux moteurs), 13 harnais
+verts, 301 contrôles d'accessibilité **sur les deux moteurs**, 94/94 doctrine, `npm run check` vert.
+Le contrôle « le texte tapé n'est pas émis » est vérifié **capable d'échouer** (le libellé remis
+dans l'instantané le fait tomber, fichier restauré à l'octet). Le commentaire de modèle du fichier,
+qui décrivait un repère par trois clés depuis l'origine, en décrit désormais les huit — et dit
+lesquelles voyagent. **Rien à rejouer côté serveur.**
+
 ## [4.51.0] — 2026-07-27
 ### Le miroir se figeait au premier « Continuer » de l'hôte
 
@@ -1451,90 +1523,3 @@ instance de test avant d'atteindre la production.
 - `AGENTS.md` disait `npm test` sur un seul moteur.
 
 510 tests × 2 moteurs, 22/22 doctrine, 73/73 accessibilité, 135 contrôles d'audit, 9 sondes dédiées.
-
-## [4.33.0] — 2026-07-26
-Second lot de l'audit externe : les correctifs dont le RENDU change, volontairement séparés du lot
-invisible de v4.32.0. Chacun restaure une doctrine que le code violait, ou rend audible une surface
-qui ne l'était pas. Deux découvertes faites en cours de route, hors du relevé initial.
-
-### Corrigé — registres perdus
-- **`.pl-stp` : la régression jumelle de v4.25.0.** La purge du Plan « Détails » avait emporté les
-  cinq règles de cette classe alors que `ovPlanLadderHtml` l'émet TOUJOURS : pendant six versions,
-  une étape **⚠ (memory item)** s'affichait en encre ordinaire dans le détail de « Se repérer »,
-  avec les puces disque du navigateur, indiscernable d'une étape banale — dans une surface visible
-  en permanence dans le rail dès 780 px et ouvrable d'un tap du quai de crise. Le pendant statique
-  (`.sv-stp li.crit`), lui, n'avait jamais cessé d'être peint : deux surfaces de la même app
-  donnaient une lecture différente du même contenu vital. Règles restaurées à l'identique de
-  v4.24.0 ; vérifié dans les deux thèmes (⚠ = `--critical`, △ = `--verify`, graisse renforcée en
-  second canal non chromatique, corps 11,5 px, puces « · »).
-- **`.sv-x`** (compteur de passages « ×n » du statique) était émis sans aucune règle. Stylé en encre
-  DOUCE et non bleue, contrairement à son jumeau `.pl-x` : dans le statique, « aucun texte bleu dans
-  les cellules » — le bleu n'y marque que la position et la reprise. Copier `.pl-x` aurait réparé la
-  taille en cassant la doctrine.
-
-### Corrigé — contenu qui sortait de l'écran
-- **Cinq `vh` NUS** subsistaient malgré la règle « toute hauteur relative à la fenêtre s'écrit
-  `calc(…/var(--zf))` » : le réglage de taille du texte est un `zoom` sur `<html>`, qui agrandit la
-  valeur APRÈS sa résolution. Conséquence mesurée à 130 % : dans la visionneuse d'image, 8 px
-  d'image et **51 px de légende hors écran**, sans aucun défilement possible — et c'est précisément
-  l'utilisateur qui a AGRANDI le texte qui voit mal. Corrigés (visionneuse, schéma, compte-rendu,
-  feuille de catégories, sélecteur de documents) ; vérifié à 100 / 115 / 130 %.
-- Le harnais qui prétendait couvrir cette règle ne regardait que deux surfaces nommées : il reçoit
-  une **sonde générique** qui balaie le CSS résolu de tout élément visible et échoue sur toute
-  hauteur bornante dépassant la fenêtre, quel que soit son nom.
-
-### Accessibilité
-- **La vue de lecture n'avait AUCUN titre.** Son unique `<h2>` était éteint par `display:none` à
-  l'écran (il ne servait qu'à l'impression) — donc absent de l'arbre d'accessibilité — et les sept
-  intertitres de section sont des `<div>`/`<span>`. Sur la surface CLINIQUE, il n'y avait donc rien
-  à parcourir : il fallait traverser toute la fiche linéairement pour atteindre « Repères
-  posologiques ». Le titre passe HORS ÉCRAN (propriétés de `.sr-only`, rien ne change à l'œil) et
-  les intertitres reçoivent `role="heading" aria-level="2"` — sémantique sans changer la balise ni
-  le CSS. Mesuré : **0 → 25 titres** parcourables, en portrait comme en paysage.
-- **`#flowFull` et `.lightbox` : calques OPAQUES plein écran sans sémantique de dialogue.** Ni rôle,
-  ni nom, ni déplacement du focus : mesuré, **14 tabulations sur 14 sortaient derrière le calque**,
-  atterrissant sur « ⤢ Se repérer » ou des étapes cochables invisibles, en pleine session. C'est
-  WCAG 2.4.11, le défaut corrigé en v4.30.0 pour les couches collantes et resté entier pour les
-  overlays. Rôle + `aria-modal` + nom, focus déplacé à l'ouverture et RENDU à la fermeture, verrou
-  de fond, piège Tab. Ils ne deviennent pas des `.ai-modal` (CSS distinct, et Échap leur est câblé
-  nommément — les inscrire dans `_topModal()` aurait cassé leur fermeture, qui cherche un `.ai-x`
-  qu'ils n'ont pas) : de nouvelles primitives `_layerEnter`/`_layerLeave` réutilisent les mêmes
-  briques. L'image agrandie reçoit enfin un `alt` — sa LÉGENDE : `alt=""` la rendait décorative
-  alors qu'elle est le contenu même de la couche. Vérifié : 0 sortie sur 14.
-- **`--primary` en couleur de TEXTE** sur trois contrôles (lien d'évitement, pilule du mode lecteur,
-  « Pourquoi créer un compte ? ») : 3,44:1 en thème sombre, sous le seuil AA. La règle du projet
-  l'énonce déjà — en sombre `--primary` est un REMPLISSAGE, l'accent TEXTE est `--link` (8,24:1).
-  Les trois y échappaient parce qu'ils vivent hors du périmètre du harnais.
-- **Plancher typographique 11 px** : `.status-tag` (présent sur les cartes d'accueil, les vues de
-  lecture et les éditeurs) et `.cx-tag` étaient à 10,5 px. Plus rien sous 11 px dans tout le fichier.
-- **Six gabarits sans nom accessible** → 0 contrôle anonyme sur 53 (13 avant) : sélecteur de bloc
-  suivant, durée d'un cycle (minutes/secondes), pas et valeur de départ d'un compteur, case
-  « boucle », boutons de suppression. Les libellés « min », « s », « pas », « départ » étaient des
-  `<span>` VOISINS, jamais associés — un lecteur d'écran annonçait « champ numérique, vide » sur la
-  durée d'un cycle de réanimation. Reste 39 champs nommés par leur seul `placeholder` (antipattern
-  connu : il disparaît à la saisie) — chantier distinct, consigné.
-- **Orientation libérée** (`"any"`, décision utilisateur) : le manifeste verrouillait le portrait, si
-  bien que l'app INSTALLÉE refusait le paysage — WCAG 1.3.4, et une tablette fixée au chariot
-  d'urgence était inutilisable. Mesuré à 844×390 : aucun débordement, et le rail d'orientation
-  APPARAÎT, donnant « action + structure de front » — l'idéal ECAM que le portrait n'atteint pas
-  à 390 px.
-
-### Découvert en cours de route (hors relevé initial)
-- **Une cible tactile sous le seuil DANS la zone de crise** : `.dock-plan` (« Se repérer » /
-  « Consulter ») mesurait **38 px** là où la crise exige 44. Le défaut avait échappé au harnais
-  parce que son périmètre listait `#crisisDock` — le quai d'ÉTAT — mais pas `#crisisCtrl`, la rangée
-  de COMMANDES qui en a été séparée en v4.25.0 : le trou de couverture cachait un défaut réel sur la
-  surface la moins permissive de l'app. Corrigé par **halo** (`inset:-3px 0`) et non par
-  grossissement : la hauteur de la zone haute est un coût PERMANENT en crise (177 px sur 640 déjà)
-  et passer à 44 px l'aurait épaissie de 6 px ; c'est le patron déjà employé pour les contrôles de
-  36 px de la barre. Vérifié à 360/390/1280 : cible 44 px, visuel inchangé, rangée toujours à
-  59 px, aucun empiètement sur le quai. `#crisisCtrl` entre dans le périmètre du harnais.
-- **GARDE-FOU « une classe émise a une règle »** (`scripts/check-classes.mjs`, dans `npm run check`).
-  C'est le contrôle qui manquait pour attraper une purge ASYMÉTRIQUE — celle qui retire du CSS mort
-  et, dans le même geste, du CSS vivant. Contre-épreuve faite : retirer les cinq règles `.pl-stp` le
-  fait échouer. Il a d'ailleurs trouvé seul le défaut `.sv-x`. Trois exemptions documentées, toutes
-  des CROCHETS de délégation JS (`.ov-wrap`, `.ov-journal`, `.seg-ic`). Son premier jet portait le
-  faux négatif exact qu'il combat — il extrayait les sélecteurs commentaires COMPRIS, or les
-  commentaires citent les classes qu'ils expliquent : noté dans le fichier.
-
-510 tests, 22/22 doctrine, 73/73 accessibilité, 135 contrôles d'audit, 9 sondes dédiées.

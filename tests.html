@@ -1359,6 +1359,69 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
     eq('… et elle se plie',A_.shareFold([{seq:1,id:'x',actor:'h',kind:'session_start',payload:{t:1700000000000}}]).startedAt,1700000000000);
     ok('elle est réservée à celui qui conduit',
        A_.shareCan('lead','session_start')&&!A_.shareCan('scribe','session_start'));}
+   /* ═══ VOCABULAIRE DU JOURNAL — un repère voyage comme une RÉFÉRENCE, jamais comme un mot ═══
+      Avant, `ref` n'existait que pour les compteurs : un repère posé par l'hôte s'affichait
+      « Action 3 » chez l'invité — l'heure juste, le mot manquant. On vérifie ici les DEUX
+      propriétés qui rendent la chose sûre : la résolution ÉCHOUE PROPREMENT quand la référence ne
+      correspond à rien (jamais un mot inventé), et le rapprochement RÉORDONNE sans jamais filtrer. */
+   {const F={id:'f1',title:'ACR',
+      timers:[{id:'t1',label:'Cycle RCP'}],
+      counters:[{id:'c1',label:'Choc'}],
+      posology:['Adrénaline IV : 1 mg'],
+      blocks:[{id:'b1',steps:['⚠ Adrénaline 1 mg IV : toutes les 4 min','Masser']}]};
+    const TAGS=[{k:'mru',l:'Médecin régulateur',a:['mru','regul']}];
+
+    eq('un compteur se résout depuis la fiche',A_.tagLabel({type:'counter',id:'c1',v:3},F,[]),'Choc n° 3');
+    // `v` FACULTATIF : une étiquette choisie à la main ne compte rien, un compteur incrémenté si.
+    eq('… sans numéro quand il n’en porte pas',A_.tagLabel({type:'counter',id:'c1'},F,[]),'Choc');
+    eq('un minuteur aussi',A_.tagLabel({type:'timer',id:'t1'},F,[]),'Cycle RCP');
+    eq('une étape aussi',A_.tagLabel({type:'step',b:'b1',i:1},F,[]),'Masser');
+    eq('le noyau universel est livré',A_.tagLabel({type:'core',k:'renfort'},F,[]),'Renfort demandé');
+    eq('une étiquette personnelle se résout',A_.tagLabel({type:'tag',k:'mru'},F,TAGS),'Médecin régulateur');
+    /* LA RÉSOLUTION ÉCHOUE PROPREMENT — c'est la garantie qui autorise à faire voyager des
+       références : les deux appareils n'ont pas forcément la MÊME version de la fiche. */
+    ok('une étape disparue ne rend rien',A_.tagLabel({type:'step',b:'b1',i:9},F,[])===null);
+    ok('un bloc inconnu ne rend rien',A_.tagLabel({type:'step',b:'zz',i:0},F,[])===null);
+    ok('une étiquette effacée ne rend rien',A_.tagLabel({type:'tag',k:'mru'},F,[])===null);
+    ok('un type inconnu ne rend rien',A_.tagLabel({type:'zzz',k:'x'},F,[])===null);
+    // … et le repère retombe alors sur « Action n », jamais sur un mot inventé.
+    eq('un repère non résolu redevient « Action n »',
+       A_.tkLabels([{id:'e1',t:1,ref:{type:'step',b:'zz',i:0}}],F,[]),['Action 1']);
+    eq('le renommage manuel reste souverain',
+       A_.tkLabels([{id:'e1',t:1,label:'Mon mot',ref:{type:'core',k:'bilan'}}],F,[]),['Mon mot']);
+
+    /* LE POINT D'ENTRÉE BORNE LA RÉFÉRENCE (règle 5) : elle vient du réseau. Jeu FERMÉ de types. */
+    ok('un type non prévu est REJETÉ',A_.tkRefNorm({type:'script',id:'x'})===null);
+    ok('une clé de noyau inventée est rejetée',A_.tkRefNorm({type:'core',k:'nimporte'})===null);
+    eq('une clé de noyau réelle passe',A_.tkRefNorm({type:'core',k:'bilan'}).k,'bilan');
+    ok('un index d’étape absurde est rejeté',A_.tkRefNorm({type:'step',b:'b1',i:-1})===null);
+    ok('… et un index géant aussi',A_.tkRefNorm({type:'step',b:'b1',i:1e9})===null);
+    // Pollution de prototype : la clé sert d'INDEX, elle passe donc par safeId (règle 6).
+    ok('__proto__ ne traverse pas',A_.tkRefNorm({type:'tag',k:'__proto__'}).k!=='__proto__');
+
+    /* RAPPROCHEMENT : on RÉORDONNE, on ne FILTRE JAMAIS. Un faux positif coûte un rang ; un faux
+       négatif coûte un mot au moment où on le cherche. */
+    const V=A_.tagAll(F,TAGS);
+    ok('le vocabulaire vient des quatre sources',
+       V.some(x=>x.src==='fiche')&&V.some(x=>x.src==='noyau')&&V.some(x=>x.src==='perso'));
+    const R=A_.tagRank('regul',V);
+    eq('rien n’est retiré du classement',R.length,V.length);
+    eq('un ALIAS fait remonter son étiquette',R[0].label,'Médecin régulateur');
+    eq('la troncature marche aussi',A_.tagRank('adré',V)[0].label.indexOf('Adr'),0);
+    // Requête vide : aucun rapprochement, mais la liste ENTIÈRE reste là, dans l'ordre d'origine.
+    const R0=A_.tagRank('',V);
+    eq('une requête vide ne filtre rien',R0.length,V.length);
+    eq('… et conserve l’ordre',R0[0].label,V[0].label);
+
+    /* ASSAINISSEMENT DU VOCABULAIRE PERSONNEL (règle 5) : plafonds, déduplication, alias bornés. */
+    eq('les doublons de clé sont écartés',
+       A_.sanitizeTags([{k:'a',l:'Un'},{k:'a',l:'Deux'}]).length,1);
+    eq('une étiquette sans libellé est écartée',A_.sanitizeTags([{k:'a',l:'  '}]).length,0);
+    ok('le nombre d’étiquettes est plafonné',
+       A_.sanitizeTags(Array.from({length:200},(_,i)=>({k:'k'+i,l:'L'+i}))).length<=40);
+    ok('le nombre d’alias aussi',
+       A_.sanitizeTags([{k:'a',l:'Un',a:Array.from({length:50},(_,i)=>'x'+i)}])[0].a.length<=8);}
+
    /* LE PLACARD D'EXERCICE VOYAGE AVEC ELLE. `openSharedFiche` lisait `fold.exercise` depuis
       l'origine — mais AUCUN émetteur ne l'a jamais posé : moitié de chemin écrite, et la ligne se
       lisait comme si elle marchait. Mesuré avant correctif : hôte en répétition = bandeau hachuré

@@ -94,7 +94,7 @@ en gras de « Conventions de code » sont ses vraies entrées ; voici la carte, 
 | **Chrome, navigation, géométrie** | ON ANIME LA COMPOSITION · En-têtes V5 · ZONE HAUTE DE CRISE · DEUX RANGÉES COLLANTES · RAIL DE LECTURE · ANCRAGE ET DÉFILEMENT · DÉFILEMENT PRÉSERVÉ · HAUTEURS RELATIVES À LA FENÊTRE · Largeurs & échelles fermées · PILE DE RETOUR · RETOUR SYSTÈME · Sélecteur segmenté · Repli de l'étape ① · LOGO DE MARQUE · Pieds de page · Indicateur de mode des éditeurs · Interactif |
 | **Consultation et références** | FEUILLE « CONSULTER » · FEUILLE CONSULTER = UN DOCUMENT · REPÈRES POSOLOGIQUES · SORTIE PDF UNIFIÉE |
 | **Données, stockage, sécurité** | Documents PDF · Export/import « avec documents » · Nommage SQL · (et les points 4 à 6 ci-dessus) |
-| **Partage de session en direct** | PARTAGE DE SESSION · CE QUI VOYAGE · RÔLES ET CAPACITÉS · L'INVITÉ NE DÉPOSE RIEN · CONTINUER SEUL |
+| **Partage de session en direct** | PARTAGE DE SESSION · CE QUI VOYAGE · RÔLES ET CAPACITÉS · L'INVITÉ NE DÉPOSE RIEN · CONTINUER SEUL · TROIS RÉGIMES D'APPLICATION · JOURNAL RÉFÉRENTIEL · BILLET DE REPRISE |
 | **Leçons de maintenance** | Collision de noms de classe · Hygiène de suppression |
 
 Les deux autres sections : **Périmètre réglementaire** (statut non-dispositif-médical — à consulter
@@ -1569,6 +1569,31 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   **annoncée sur place** (`rmBanHtml`, registre INFORMATION) ; `rmResume` l'applique au geste local.
   Le repaint du lecteur sur évènement distant passe par `readerRepaint` (position CONSERVÉE), jamais
   par `_rmSync`, qui repositionne le curseur et ferait sauter le lecteur sous ses yeux.
+- **JOURNAL RÉFÉRENTIEL (v4.52.0) — UN REPÈRE VOYAGE COMME UNE RÉFÉRENCE, JAMAIS COMME UN MOT.**
+  `ref` n'existait que pour les compteurs : un repère posé par l'hôte s'affichait « Action 3 » chez
+  l'invité — l'heure juste, le mot manquant. **QUATRE SOURCES** cumulatives : la FICHE elle-même
+  (minuteurs, compteurs, étapes, repères posologiques — toute aide apporte donc son vocabulaire
+  sans qu'on déclare rien), un NOYAU UNIVERSEL livré (`TAG_CORE`, 9 entrées), le VOCABULAIRE
+  PERSONNEL avec alias (`data.prefs.tags`, déjà synchronisé, édité **à froid** dans la fenêtre
+  Compte), et **rien du tout** — le cas nominal : « Noter l'heure » reste UN TAP qui capture
+  l'heure, ce qui compte cliniquement, sans dépendre d'aucun vocabulaire. Pire cas d'un vocabulaire
+  incomplet : un repère non étiqueté côté partagé, et le mot exact EN LOCAL chez celui qui l'a tapé.
+  **« AUTRE » N'EST PAS DANS LE NOYAU** : l'absence de référence EST « autre », et une étiquette
+  qui ne distingue rien n'apprend rien à qui relit.
+  **LA RÉSOLUTION ÉCHOUE PROPREMENT** — `tagLabel` rend `null` (fiche d'une autre version, étape
+  supprimée, étiquette effacée) et le repère retombe sur « Action n », jamais sur un mot inventé :
+  c'est CETTE garantie qui autorise à faire voyager des références.
+  **ON RÉORDONNE, ON NE FILTRE JAMAIS** (`tagRank`, machinerie de `posoScore`) : un faux positif
+  coûte un rang, un faux négatif coûte un mot au moment où on le cherche. Les ALIAS sont notés
+  comme le libellé — c'est tout l'objet du champ (« mru » doit trouver « Médecin régulateur »).
+  **LA RÈGLE 15 VAUT AUSSI À LA RÉCEPTION** : aucun `label` n'est lu d'un payload distant. La ligne
+  qui le faisait était inoffensive entre deux clients de cette version, mais c'était une PORTE —
+  un client modifié aurait affiché un mot arbitraire sur l'écran d'en face.
+  **PAS DE FENÊTRE POUR CHOISIR** : la règle 11 les interdit pendant un soin. Les propositions sont
+  une rangée de chips SOUS la ligne, et le journal vit en fin de rail — ce qui apparaît pousse vers
+  le bas, jamais vers le haut. Une étiquette PERSONNELLE se résout sur les appareils du même compte
+  seulement : pendant un partage elle est marquée « · vous seul », parce que la taire laisserait
+  croire à un mot partagé.
 - **LE BILLET DE REPRISE (`sessionStorage`)** — un onglet mobile meurt tout seul, et l'invité
   perdait sa participation SANS RETOUR (rien n'était persisté, et son code est consommé). Le billet
   ne porte que l'identifiant du partage et le secret : **aucune donnée clinique**. Sa portée est

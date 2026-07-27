@@ -64,6 +64,22 @@
   body.view-home[data-accent="ardoise"],body[data-accent="ardoise"] header.bar{--primary:#475569;--primary-dk:#334155;--primary-hi:#3f4c5f;--link:#475569;--primary-soft:color-mix(in srgb,#475569 11%,#fff);--primary-100:color-mix(in srgb,#475569 16%,#fff);--primary-200:color-mix(in srgb,#475569 31%,#fff);--primary-300:color-mix(in srgb,#475569 47%,#fff)}
   [data-theme="dark"] body.view-home[data-accent="ardoise"],[data-theme="dark"] body[data-accent="ardoise"] header.bar{--primary:#64748b;--primary-dk:#cbd5e1;--primary-hi:#718299;--link:#cbd5e1;--primary-soft:color-mix(in srgb,#64748b 27%,#0c1420);--primary-100:color-mix(in srgb,#64748b 27%,#0c1420);--primary-200:color-mix(in srgb,#64748b 46%,#0c1420);--primary-300:color-mix(in srgb,#64748b 46%,#0c1420)}
   /* Pastilles de choix (fenêtre Compte) : mêmes teintes, sélection = anneau (pattern .sw). */
+  /* Vocabulaire du journal (v4.52.0) — édité à froid, dans la fenêtre Compte. Champs à 16 px :
+     sous ce seuil, Safari iOS zoome au focus et les taps se perdent (règle 9). */
+  .tg-list{display:grid;gap:8px;margin-bottom:8px}
+  .tg-row{display:grid;grid-template-columns:1fr 1fr auto;gap:6px;align-items:center}
+  .tg-row input{min-height:44px;padding:8px 10px;border:1px solid var(--line-strong);
+    border-radius:8px;background:var(--input-bg);color:var(--ink);font-size:16px;
+    font-family:inherit;min-width:0}
+  .tg-row .tg-a{font-size:14px;color:var(--ink-soft)}
+  .tg-del{min-width:44px;min-height:44px;border:1px solid var(--line-strong);border-radius:8px;
+    background:var(--surface);color:var(--critical);font-size:18px;font-weight:800;cursor:pointer;
+    font-family:inherit;touch-action:manipulation}
+  .tg-none{margin:0 0 6px;color:var(--ink-soft);font-size:13px}
+  .tg-add{margin-bottom:6px}
+  @media (max-width:479.98px){.tg-row{grid-template-columns:1fr auto}
+    .tg-row .tg-a{grid-column:1 / -1}}
+
   .accent-row{display:flex;gap:8px;flex-wrap:wrap}
   .acc-sw{position:relative;width:34px;height:34px;border-radius:50%;border:2px solid transparent;cursor:pointer;flex:none}
   .acc-sw::after{content:"";position:absolute;inset:-5px}
@@ -1382,6 +1398,22 @@
   .tk-orig{background:none;border:0;color:var(--ink-soft);font-size:11px;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
   .tk-orig:hover{color:var(--primary)}
   .tk-el{font-family:var(--mono);font-size:11px;color:var(--ink-soft);white-space:nowrap;min-width:46px}
+  /* PROPOSITIONS DE VOCABULAIRE (v4.52.0). Registre NEUTRE : ce n'est ni une alerte, ni une
+     confirmation — c'est une offre. Cible 44 px comme tout ce qui se tape en crise, et la rangée
+     passe à la ligne plutôt que de défiler : une proposition qu'il faut aller chercher hors écran
+     n'est pas une proposition. */
+  .tk-sug{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 2px;padding-left:2px}
+  .tk-sug[hidden]{display:none}
+  .tk-pick{min-height:44px;padding:6px 12px;border:1px solid var(--line-strong);border-radius:99px;
+    background:var(--surface-2);color:var(--ink);font-size:13px;font-weight:600;cursor:pointer;
+    font-family:inherit;touch-action:manipulation;max-width:100%;overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap}
+  .tk-pick .tk-own{font-weight:700;color:var(--ink-soft);font-size:11px}
+  .tk-pick.own{border-style:dashed}
+
+  .tk-pick:hover{background:var(--primary-soft);border-color:var(--primary)}
+  .tk-pick:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+
   .tk-lab{flex:1;min-width:0;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--input-bg);color:var(--ink);font-size:14px}
   .tk-lab:focus{outline:2px solid var(--primary);border-color:transparent}
   .tk-del{flex-shrink:0;width:38px;height:44px;border:0;border-radius:8px;background:var(--bg);color:var(--ink-soft);font-size:17px}
@@ -2327,8 +2359,20 @@
     font-size:26px;font-weight:700;letter-spacing:4px;text-align:center;text-transform:uppercase;color:var(--ink);
     font-variant-numeric:tabular-nums;background:var(--input-bg);border:1px solid var(--line-strong);border-radius:10px}
   @media (max-width:359.98px){.join-code{font-size:23px;letter-spacing:3px}}
-  .join-sel{width:100%;box-sizing:border-box;margin:0 0 14px;padding:11px 12px;font-size:16px;
-    color:var(--ink);background:var(--input-bg);border:1px solid var(--line-strong);border-radius:10px}
+  /* HAUTEUR EXPLICITE, et c'est un correctif iOS. Un `<select>` natif ne suit pas son `padding`
+     de la même façon sur les deux moteurs : mesuré à 23 px de haut sur WebKit contre 44 sur Blink,
+     donc SOUS le plancher de cible, sur le seul écran qu'un invité sans compte verra jamais et sur
+     la cible principale déclarée du projet. Le défaut est resté invisible tant que le harnais
+     d'accessibilité ne tournait que sur Chromium — leçon v4.45.0, redite ici.
+     `appearance:none` + chevron dessiné : sans lui, imposer une hauteur à un select natif iOS ne
+     déplace pas son texte, qui reste collé en haut. */
+  .join-sel{width:100%;box-sizing:border-box;margin:0 0 14px;padding:11px 34px 11px 12px;font-size:16px;
+    min-height:44px;line-height:1.3;-webkit-appearance:none;appearance:none;
+    background-image:linear-gradient(45deg,transparent 50%,var(--ink-soft) 50%),
+                     linear-gradient(135deg,var(--ink-soft) 50%,transparent 50%);
+    background-position:calc(100% - 18px) calc(50% + 2px),calc(100% - 13px) calc(50% + 2px);
+    background-size:5px 5px,5px 5px;background-repeat:no-repeat;
+    color:var(--ink);background-color:var(--input-bg);border:1px solid var(--line-strong);border-radius:10px}
   #joinScreen .join-err{margin:0 0 12px;padding:9px 11px;font-size:13px;line-height:1.4;color:var(--critical);
     background:var(--critical-soft);border-left:4px solid var(--critical-bd);border-radius:0 8px 8px 0}
   #joinScreen .join-err[hidden]{display:none}

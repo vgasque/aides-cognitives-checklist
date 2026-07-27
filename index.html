@@ -162,8 +162,20 @@
                   les cases des visites précédentes ne sont pas effacées),
                 counters{idCompteur:valeur},
                 timers{idMinuteur:{elapsedMs, cycles}},
-                events[ {id, t(horodatage ms), label} ] (journal d'horodatage des
-                  actions ; libellé auto "Action N", renommable même a posteriori),
+                events[ {id, t(horodatage ms), label?, ref?, origT?, voidAt?, a?, annex?} ]
+                  (journal d'horodatage des actions. `id` et `t` seuls sont TOUJOURS présents ;
+                   les six autres clés dépendent du chemin qui a créé le repère.
+                   `label` = renommage MANUEL, souverain et STRICTEMENT LOCAL — il ne traverse
+                     jamais le réseau, ni à l'émission ni à la réception (règle 15) ;
+                   `ref`   = RÉFÉRENCE résolue en mot par `tagLabel` — c'est ELLE qui voyage, et
+                     six types sont admis : counter, timer, step{b,i}, poso{i}, core{k}, tag{k} ;
+                   `origT` = heure d'origine après correction (réversible) ;
+                   `voidAt`= heure d'annulation (réversible ; la ligne reste, barrée) ;
+                   `a`     = acteur en session partagée ; `annex` = relevé d'un participant qui a
+                     poursuivi seul, INERTE et jamais plié dans l'état.
+                   Sans `label` NI `ref` résoluble : libellé auto « Action N », calculé À
+                   L'AFFICHAGE par rang chronologique — jamais à l'écriture, sinon deux appareils
+                   produiraient deux « Action 4 »),
                 extraTimers[ {id,label,seconds,autoloop} ] (v4.5 : minuteurs AD HOC ajoutés en
                   session — « ＋ Minuteur PA 5:00 » —, restaurés en pause à la reprise) }
 
@@ -238,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-3lbr1jKo7qAh7drsgErhE9gqYEqzpSMvffAf6MkZU5g='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-ZM2GwGVjNgFRkgxjhqpWABEdRd64PfssZEJvqdR9hSA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -337,6 +349,22 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   body.view-home[data-accent="ardoise"],body[data-accent="ardoise"] header.bar{--primary:#475569;--primary-dk:#334155;--primary-hi:#3f4c5f;--link:#475569;--primary-soft:color-mix(in srgb,#475569 11%,#fff);--primary-100:color-mix(in srgb,#475569 16%,#fff);--primary-200:color-mix(in srgb,#475569 31%,#fff);--primary-300:color-mix(in srgb,#475569 47%,#fff)}
   html[data-theme="dark"] body.view-home[data-accent="ardoise"],html[data-theme="dark"] body[data-accent="ardoise"] header.bar{--primary:#64748b;--primary-dk:#cbd5e1;--primary-hi:#718299;--link:#cbd5e1;--primary-soft:color-mix(in srgb,#64748b 27%,#0c1420);--primary-100:color-mix(in srgb,#64748b 27%,#0c1420);--primary-200:color-mix(in srgb,#64748b 46%,#0c1420);--primary-300:color-mix(in srgb,#64748b 46%,#0c1420)}
   /* Pastilles de choix (fenêtre Compte) : mêmes teintes, sélection = anneau (pattern .sw). */
+  /* Vocabulaire du journal (v4.52.0) — édité à froid, dans la fenêtre Compte. Champs à 16 px :
+     sous ce seuil, Safari iOS zoome au focus et les taps se perdent (règle 9). */
+  .tg-list{display:grid;gap:8px;margin-bottom:8px}
+  .tg-row{display:grid;grid-template-columns:1fr 1fr auto;gap:6px;align-items:center}
+  .tg-row input{min-height:44px;padding:8px 10px;border:1px solid var(--line-strong);
+    border-radius:8px;background:var(--input-bg);color:var(--ink);font-size:16px;
+    font-family:inherit;min-width:0}
+  .tg-row .tg-a{font-size:14px;color:var(--ink-soft)}
+  .tg-del{min-width:44px;min-height:44px;border:1px solid var(--line-strong);border-radius:8px;
+    background:var(--surface);color:var(--critical);font-size:18px;font-weight:800;cursor:pointer;
+    font-family:inherit;touch-action:manipulation}
+  .tg-none{margin:0 0 6px;color:var(--ink-soft);font-size:13px}
+  .tg-add{margin-bottom:6px}
+  @media (max-width:479.98px){.tg-row{grid-template-columns:1fr auto}
+    .tg-row .tg-a{grid-column:1 / -1}}
+
   .accent-row{display:flex;gap:8px;flex-wrap:wrap}
   .acc-sw{position:relative;width:34px;height:34px;border-radius:50%;border:2px solid transparent;cursor:pointer;flex:none}
   .acc-sw::after{content:"";position:absolute;inset:-5px}
@@ -1655,6 +1683,22 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .tk-orig{background:none;border:0;color:var(--ink-soft);font-size:11px;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
   .tk-orig:hover{color:var(--primary)}
   .tk-el{font-family:var(--mono);font-size:11px;color:var(--ink-soft);white-space:nowrap;min-width:46px}
+  /* PROPOSITIONS DE VOCABULAIRE (v4.52.0). Registre NEUTRE : ce n'est ni une alerte, ni une
+     confirmation — c'est une offre. Cible 44 px comme tout ce qui se tape en crise, et la rangée
+     passe à la ligne plutôt que de défiler : une proposition qu'il faut aller chercher hors écran
+     n'est pas une proposition. */
+  .tk-sug{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 2px;padding-left:2px}
+  .tk-sug[hidden]{display:none}
+  .tk-pick{min-height:44px;padding:6px 12px;border:1px solid var(--line-strong);border-radius:99px;
+    background:var(--surface-2);color:var(--ink);font-size:13px;font-weight:600;cursor:pointer;
+    font-family:inherit;touch-action:manipulation;max-width:100%;overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap}
+  .tk-pick .tk-own{font-weight:700;color:var(--ink-soft);font-size:11px}
+  .tk-pick.own{border-style:dashed}
+
+  .tk-pick:hover{background:var(--primary-soft);border-color:var(--primary)}
+  .tk-pick:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+
   .tk-lab{flex:1;min-width:0;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--input-bg);color:var(--ink);font-size:14px}
   .tk-lab:focus{outline:2px solid var(--primary);border-color:transparent}
   .tk-del{flex-shrink:0;width:38px;height:44px;border:0;border-radius:8px;background:var(--bg);color:var(--ink-soft);font-size:17px}
@@ -2600,8 +2644,20 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     font-size:26px;font-weight:700;letter-spacing:4px;text-align:center;text-transform:uppercase;color:var(--ink);
     font-variant-numeric:tabular-nums;background:var(--input-bg);border:1px solid var(--line-strong);border-radius:10px}
   @media (max-width:359.98px){.join-code{font-size:23px;letter-spacing:3px}}
-  .join-sel{width:100%;box-sizing:border-box;margin:0 0 14px;padding:11px 12px;font-size:16px;
-    color:var(--ink);background:var(--input-bg);border:1px solid var(--line-strong);border-radius:10px}
+  /* HAUTEUR EXPLICITE, et c'est un correctif iOS. Un `<select>` natif ne suit pas son `padding`
+     de la même façon sur les deux moteurs : mesuré à 23 px de haut sur WebKit contre 44 sur Blink,
+     donc SOUS le plancher de cible, sur le seul écran qu'un invité sans compte verra jamais et sur
+     la cible principale déclarée du projet. Le défaut est resté invisible tant que le harnais
+     d'accessibilité ne tournait que sur Chromium — leçon v4.45.0, redite ici.
+     `appearance:none` + chevron dessiné : sans lui, imposer une hauteur à un select natif iOS ne
+     déplace pas son texte, qui reste collé en haut. */
+  .join-sel{width:100%;box-sizing:border-box;margin:0 0 14px;padding:11px 34px 11px 12px;font-size:16px;
+    min-height:44px;line-height:1.3;-webkit-appearance:none;appearance:none;
+    background-image:linear-gradient(45deg,transparent 50%,var(--ink-soft) 50%),
+                     linear-gradient(135deg,var(--ink-soft) 50%,transparent 50%);
+    background-position:calc(100% - 18px) calc(50% + 2px),calc(100% - 13px) calc(50% + 2px);
+    background-size:5px 5px,5px 5px;background-repeat:no-repeat;
+    color:var(--ink);background-color:var(--input-bg);border:1px solid var(--line-strong);border-radius:10px}
   #joinScreen .join-err{margin:0 0 12px;padding:9px 11px;font-size:13px;line-height:1.4;color:var(--critical);
     background:var(--critical-soft);border-left:4px solid var(--critical-bd);border-radius:0 8px 8px 0}
   #joinScreen .join-err[hidden]{display:none}
@@ -3718,7 +3774,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.51.0';
+const APP_VERSION='4.52.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -5783,7 +5839,7 @@ function exportSessionReport(sessionId){
   const evs=(s.events||[]).slice().sort((a,b)=>a.t-b.t);
   // Libellés dérivés APRÈS le tri chronologique : « Action N » suit l'ordre réel des gestes, et un
   // repère de compteur porte le nom du compteur tel qu'il est aujourd'hui dans la fiche.
-  const evLabs=tkLabels(evs,f);
+  const evLabs=tkLabels(evs,f,myTags());
   // Un repère ANNULÉ reste dans la chronologie, barré et dit comme tel : le retirer du document
   // rendrait le compte-rendu muet sur une décision qui a bien été prise, et à quelle heure.
   const evRows=evs.length?evs.map((e,ix)=>{const vd=!!e.voidAt;
@@ -8475,24 +8531,156 @@ function runtimePanel(f){const tl=Object.values(Runtime.timers).filter(t=>!t.adh
         numéro puis sautait. Il se calcule maintenant au RENDU, par rang chronologique.
    Un libellé SAISI À LA MAIN gagne toujours : le renommage existant reste souverain, et un
    enregistrement antérieur (qui porte « Action 3 » en dur) s'affiche exactement comme avant. */
+/* ═══ VOCABULAIRE DU JOURNAL — DES RÉFÉRENCES, JAMAIS DES MOTS (v4.52.0) ═══════════════════════
+   Un repère partagé ne porte AUCUN mot : il porte une RÉFÉRENCE, et chaque appareil rend le
+   libellé depuis SA copie de la fiche. C'est ce qui tient la promesse « aucun texte libre ne
+   traverse le réseau » (règle 15) sans condamner le journal au mutisme — jusqu'ici `ref` n'existait
+   QUE pour les compteurs, si bien qu'un repère posé par l'hôte s'affichait « Action 3 » chez
+   l'invité : l'heure était juste, le mot manquait.
+   QUATRE SOURCES, cumulatives, et rien n'est jamais perdu :
+    1. LA FICHE elle-même — minuteurs, compteurs, étapes, repères posologiques. Toute aide apporte
+       donc son vocabulaire sans qu'on ait rien à déclarer, et il suit ses mises à jour.
+    2. UN NOYAU UNIVERSEL livré (ci-dessous) : ce qui se note dans toute intervention, quelle que
+       soit la fiche.
+    3. LE VOCABULAIRE PERSONNEL avec alias (`data.prefs.tags`, déjà synchronisé), édité À FROID.
+       C'est là que vivent les abréviations qu'on se découvre à l'usage.
+    4. RIEN DU TOUT — et c'est le cas nominal. « Noter l'heure » reste UN TAP qui capture l'heure,
+       c'est-à-dire ce qui compte cliniquement, sans dépendre d'aucun vocabulaire. L'étiquetage est
+       facultatif et différable au débrief. Pire cas d'un vocabulaire incomplet : un repère non
+       étiqueté côté partagé, et le mot exact EN LOCAL chez celui qui l'a tapé.
+   « AUTRE » N'EST PAS DANS LE NOYAU, et ce n'est pas un oubli : l'absence de référence EST
+   « autre ». Une étiquette qui ne distingue rien n'apprend rien à qui relit le compte-rendu.
+   RÉSOLUTION FAILLIBLE PAR CONSTRUCTION : `tagLabel` rend `null` quand la référence ne se résout
+   pas — fiche d'une autre version, étape supprimée, étiquette effacée. Le repère retombe alors sur
+   « Action n », jamais sur un mot inventé. */
+const TAG_MAX=40, TAG_ALIAS_MAX=8;
+const TAG_CORE=[
+  {k:'renfort', l:'Renfort demandé'},
+  {k:'regul',   l:'Régulation'},
+  {k:'dep-base',l:'Départ de la base'},
+  {k:'arr-lieu',l:'Arrivée sur place'},
+  {k:'bilan',   l:'Bilan passé'},
+  {k:'transm',  l:'Transmission'},
+  {k:'releve',  l:'Relève'},
+  {k:'depart',  l:'Départ des lieux'},
+  {k:'arr-hop', l:'Arrivée à l’hôpital'}];
+/* Vocabulaire personnel — forme COURTE dans les préférences (`k` clé, `l` libellé, `a` alias) :
+   il voyage dans le même document que le thème et l'accent, et une clé longue y pèserait pour
+   rien. Assaini au même titre que toute donnée entrante (règle 5) : plafonds, `safeId` sur la clé
+   (règle 6 — elle sert d'index), déduplication. */
+function sanitizeTags(v){
+  const out=[],seen=Object.create(null);
+  (Array.isArray(v)?v:[]).slice(0,TAG_MAX).forEach(t=>{
+    if(!t||typeof t!=='object')return;
+    const l=sstr(t.l!=null?t.l:t.label,40).trim();if(!l)return;
+    const k=safeId(t.k||('t-'+txNorm(l).replace(/[^a-z0-9]+/g,'-').slice(0,24)),'t');
+    if(seen[k])return;seen[k]=1;
+    const a=sarr(t.a!=null?t.a:t.alias,TAG_ALIAS_MAX).map(x=>sstr(x,24).trim()).filter(Boolean);
+    out.push({k:k,l:l,a:a});});
+  return out;}
+/* Le vocabulaire disponible ICI, MAINTENANT. Pur : la fiche et les étiquettes entrent, une liste
+   annotée sort. Aucun filtrage — c'est `tagRank` qui ordonne, et le rendu qui décide combien il
+   en montre. */
+function tagAll(f,tags){
+  const out=[],vus=Object.create(null);
+  const add=(ref,label,src,alias)=>{
+    const l=sstr(label,80).trim();if(!l)return;
+    const cle=ref.type+':'+(ref.id||ref.k||(ref.b+'/'+ref.i)||ref.i);
+    if(vus[cle])return;vus[cle]=1;
+    out.push({ref:ref,label:l,src:src,alias:alias||[]});};
+  ((f&&f.timers)||[]).forEach(t=>add({type:'timer',id:t.id},t.label,'fiche'));
+  ((f&&f.counters)||[]).forEach(c=>add({type:'counter',id:c.id},c.label,'fiche'));
+  ((f&&f.blocks)||[]).forEach(b=>clean(b&&b.steps).forEach((st,i)=>
+    add({type:'step',b:b.id,i:i},posoName(stepText(st)),'fiche')));
+  clean(f&&f.posology).forEach((pp,i)=>add({type:'poso',i:i},posoName(pp),'fiche'));
+  TAG_CORE.forEach(c=>add({type:'core',k:c.k},c.l,'noyau'));
+  sanitizeTags(tags).forEach(t=>add({type:'tag',k:t.k},t.l,'perso',t.a));
+  return out;}
+/* Résolution d'une référence en libellé. `null` = introuvable (voir plus haut) : c'est une
+   RÉPONSE, pas un échec. */
+function tagLabel(ref,f,tags){
+  const r=ref;if(!r||typeof r!=='object')return null;
+  if(r.type==='counter'){const c=(((f&&f.counters)||[]).find(x=>x.id===r.id));
+    const base=(c&&c.label)||'Compteur';
+    return r.v==null?base:base+' n° '+(+r.v||0);}
+  if(r.type==='timer'){const t=(((f&&f.timers)||[]).find(x=>x.id===r.id));return (t&&t.label)||null;}
+  if(r.type==='step'){const b=(((f&&f.blocks)||[]).find(x=>x.id===r.b));
+    const st=(b&&Array.isArray(b.steps))?b.steps[+r.i]:null;
+    return st?posoName(stepText(st)):null;}
+  if(r.type==='poso'){const pp=((f&&f.posology)||[])[+r.i];return pp?posoName(pp):null;}
+  if(r.type==='core'){const c=TAG_CORE.find(x=>x.k===r.k);return c?c.l:null;}
+  if(r.type==='tag'){const t=sanitizeTags(tags).find(x=>x.k===r.k);return t?t.l:null;}
+  return null;}
+/* RAPPROCHEMENT — on RÉORDONNE, on ne FILTRE JAMAIS, exactement comme les repères posologiques :
+   un faux positif coûte un rang, un faux négatif coûte un mot qu'on ne retrouve pas au moment où
+   on le cherche. La machinerie est celle de `posoScore` (troncature à partir de 4 caractères,
+   table de synonymes) — et les ALIAS d'une étiquette personnelle sont notés comme le libellé, ce
+   qui est tout l'objet du champ : « mru » et « regul » doivent trouver « Médecin régulateur ». */
+/* Le vocabulaire personnel VIT DANS LES PRÉFÉRENCES (`data.prefs.tags`) : il est donc déjà
+   synchronisé entre les appareils d'un même compte, et disponible AVANT le soin sur celui qu'on a
+   en main. Cache mémoire : `tagAll` est appelé à chaque frappe du sélecteur, relire et assainir le
+   stockage à chaque touche serait du gaspillage pur. */
+let _tags=null;
+function myTags(){
+  if(_tags)return _tags;
+  try{_tags=sanitizeTags(JSON.parse(localStorage.getItem(spaceKey('ac-tags'))||'[]'));}
+  catch(e){_tags=[];}
+  return _tags;}
+/* DEUX ÉCRITURES, ET LA DISTINCTION N'EST PAS COSMÉTIQUE. `_tagsWrite` pose la valeur sans rien
+   marquer : c'est le chemin du PULL. `setMyTags` marque en plus le document perso à pousser :
+   c'est le chemin de l'ÉDITEUR. Les confondre créerait un écho — on repousserait au serveur ce
+   qu'on vient d'en recevoir, à chaque synchro, indéfiniment. */
+function _tagsWrite(v){
+  _tags=sanitizeTags(v);
+  try{localStorage.setItem(spaceKey('ac-tags'),JSON.stringify(_tags));}catch(e){}
+  return _tags;}
+function setMyTags(v){
+  _tagsWrite(v);
+  // Les préférences voyagent avec le document perso : même marqueur que le thème ou l'accent.
+  try{localStorage.setItem(spaceKey('ac-cats-updated:'),String(Date.now()));
+      localStorage.setItem(spaceKey('ac-cats-dirty:'),'1');}catch(e){}
+  return _tags;}
+function tagRank(q,items){
+  const hay=String(q==null?'':q);
+  return (items||[]).map((it,i)=>{
+    let sc=posoScore(it.label,hay);
+    (it.alias||[]).forEach(a=>{const s2=posoScore(a,hay);if(s2>sc)sc=s2;});
+    return {ref:it.ref,label:it.label,src:it.src,i:i,score:sc};})
+    .sort((a,b)=>(b.score-a.score)||(a.i-b.i));}
 function tkRefNorm(r){
   if(!r||typeof r!=='object')return null;
-  if(r.type!=='counter')return null;
   // `safeId` SUBSTITUE un identifiant interdit (`__proto__`…) par un neuf, il ne le rejette pas :
-  // la référence devient alors inoffensive et simplement introuvable, et `tkLabels` rend
-  // « Compteur n° N » au lieu de planter. Pas de branche de rejet ici, elle serait morte.
-  return {type:'counter',id:safeId(r.id,'c'),v:Math.max(0,Math.round(+r.v)||0)};}
-function tkLabels(events,f){
+  // la référence devient alors inoffensive et simplement introuvable, et le libellé retombe sur
+  // « Action n » au lieu de planter. Pas de branche de rejet ici, elle serait morte.
+  // Jeu FERMÉ de types : tout ce qui n'est pas reconnu est REJETÉ (null), jamais recopié — une
+  // référence vient du réseau, et c'est le point d'entrée qui la borne (règle 5).
+  if(r.type==='counter'){const o={type:'counter',id:safeId(r.id,'c')};
+    // `v` est FACULTATIF depuis v4.52.0 : un compteur incrémenté pose « n° 3 », une étiquette
+    // choisie à la main ne compte rien. Distinguer `null` de 0 est donc porteur de sens.
+    if(r.v!=null)o.v=Math.max(0,Math.round(+r.v)||0);
+    return o;}
+  if(r.type==='timer')return {type:'timer',id:safeId(r.id,'t')};
+  if(r.type==='step'){const i=Math.round(+r.i);
+    if(!(i>=0&&i<10000))return null;
+    return {type:'step',b:safeId(r.b,'b'),i:i};}
+  if(r.type==='poso'){const i=Math.round(+r.i);
+    if(!(i>=0&&i<10000))return null;
+    return {type:'poso',i:i};}
+  if(r.type==='core'){const k=sstr(r.k,32);
+    // Le noyau est une liste FERMÉE et livrée : une clé inconnue n'est pas « à tolérer », elle
+    // n'existe pas. La rejeter vaut mieux que la garder pour ne rien pouvoir en dire.
+    return TAG_CORE.some(x=>x.k===k)?{type:'core',k:k}:null;}
+  if(r.type==='tag')return {type:'tag',k:safeId(r.k,'t')};
+  return null;}
+function tkLabels(events,f,tags){
   let n=0;
   return (events||[]).map(e=>{
     if(e&&typeof e.label==='string'&&e.label)return e.label;   // renommage manuel : souverain
-    const r=e&&e.ref;
-    if(r&&r.type==='counter'){
-      const c=((f&&f.counters)||[]).find(x=>x.id===r.id);
-      return ((c&&c.label)||'Compteur')+' n° '+(+r.v||0);}
+    const l=tagLabel(e&&e.ref,f,tags);
+    if(l)return l;
     n++;return 'Action '+n;});}   // rang parmi les repères GÉNÉRIQUES seulement
 function timekeeperPanel(){const ev=Runtime.events||[];const t0=ev.length?ev[0].t:0;
-  const labs=tkLabels(ev,Runtime.fiche);
+  const labs=tkLabels(ev,Runtime.fiche,myTags());
   const rows=ev.length?ev.map((e,ix)=>{const diff=e.t-t0;const el=diff===0?'—':(diff>0?'+':'−')+fmtMs(Math.abs(diff));
     const origRow=(typeof e.origT==='number')?`<div class="tk-orig-row">à l'origine ${fmtHMS(e.origT)}<button class="tk-orig" data-tkrevert="${e.id}">↺ revenir</button></div>`:'';
     const vd=!!e.voidAt;
@@ -8502,7 +8690,11 @@ function timekeeperPanel(){const ev=Runtime.events||[];const t0=ev.length?ev[0].
        d'œil comme distinct, et n'est ni modifiable ni annulable : on ne corrige pas le relevé de
        quelqu'un d'autre. Le dispositif rend visible ; le soignant décide. */
     if(e.annex)return `<div class="tk-item tk-annex"><div class="tk-row"><span class="tk-time">${fmtHMS(e.t)}</span><span class="tk-el">${el}</span><span class="tk-lab tk-rep">${esc(labs[ix])}<span class="tk-from">rapporté — poursuit seul</span></span></div></div>`;
-    return `<div class="tk-item${vd?' tk-void':''}"><div class="tk-row"><span class="tk-time" data-tktime="${e.id}" role="button" tabindex="0" title="Cliquer pour corriger l'heure">${fmtHMS(e.t)}</span><span class="tk-el">${el}</span><input class="tk-lab" data-tklab="${e.id}" value="${esc(labs[ix])}" placeholder="Libellé…"${vd?' disabled':''}><button class="tk-del" data-tkdel="${e.id}" aria-label="${vd?'Rétablir ce repère':'Annuler ce repère'}" title="${vd?'Rétablir':'Annuler'}">${vd?'↺':'×'}</button></div>${origRow}</div>`;}).join(''):'';
+    /* RANGÉE DE PROPOSITIONS — VIDE AU REPOS, remplie à la frappe. Elle vit SOUS la ligne et le
+       journal vit en FIN de rail : ce qui apparaît pousse vers le bas, jamais vers le haut, donc
+       rien ne bouge sous le doigt. Ce n'est pas une fenêtre, et ce ne pouvait pas en être une —
+       la règle 11 les interdit pendant un soin. */
+    return `<div class="tk-item${vd?' tk-void':''}"><div class="tk-row"><span class="tk-time" data-tktime="${e.id}" role="button" tabindex="0" title="Cliquer pour corriger l'heure">${fmtHMS(e.t)}</span><span class="tk-el">${el}</span><input class="tk-lab" data-tklab="${e.id}" value="${esc(labs[ix])}" placeholder="Libellé…"${vd?' disabled':''}><button class="tk-del" data-tkdel="${e.id}" aria-label="${vd?'Rétablir ce repère':'Annuler ce repère'}" title="${vd?'Rétablir':'Annuler'}">${vd?'↺':'×'}</button></div><div class="tk-sug" data-tksug="${e.id}" hidden></div>${origRow}</div>`;}).join(''):'';
   // Outil SECONDAIRE : compact tant qu'on n'a rien noté (juste le bouton). « Journal des actions » =
   // suite horodatée des gestes clés (pour la traçabilité / le compte-rendu après coup).
   return `<div class="tk-panel${ev.length?'':' tk-slim'}"><div class="tk-head"><b>Journal des actions</b><button class="tk-add" id="tkAdd">${uiIcon('stopwatch',13)} Noter l’heure</button></div>${rows}</div>`;}
@@ -8519,7 +8711,38 @@ function bindTk(){
     // 1ʳᵉ action de la session : le bandeau apparaît -> re-rendu complet obligatoire, une seule fois
     // (le rail est de toute façon en haut au démarrage). Ensuite : le seul panneau.
     if(started)render();else renderTkOnly();};
-  document.querySelectorAll('.tk-panel [data-tklab]').forEach(inp=>inp.addEventListener('input',e=>{const ev=(Runtime.events||[]).find(x=>x.id===e.target.dataset.tklab);if(ev){ev.label=e.target.value;persistLive(Runtime);}}));
+  /* ÉTIQUETER, C'EST FACULTATIF — et c'est le filet de sécurité de tout le dispositif. Le geste
+     primaire reste « Noter l'heure » : UN TAP, l'heure capturée, ce qui compte cliniquement, sans
+     dépendre d'aucun vocabulaire. Ce qui suit ne fait qu'OFFRIR un mot partageable à qui en veut
+     un : tant qu'aucune proposition n'est choisie, le texte tapé reste STRICTEMENT LOCAL — il ne
+     traverse pas le réseau (règle 15), et le repère voyage comme une heure nue.
+     ON PROPOSE, ON NE CORRIGE PAS : la saisie n'est jamais réécrite sous les doigts. */
+  document.querySelectorAll('.tk-panel [data-tklab]').forEach(inp=>inp.addEventListener('input',e=>{
+    const ev=(Runtime.events||[]).find(x=>x.id===e.target.dataset.tklab);
+    if(!ev)return;
+    ev.label=e.target.value;
+    // Un mot tapé à la main REMPLACE la référence : les deux se contrediraient, et c'est la main
+    // qui gagne (« renommage manuel : souverain », déjà la règle de `tkLabels`).
+    if(ev.ref)delete ev.ref;
+    persistLive(Runtime);
+    tkPaintSug(ev.id,e.target.value);}));
+  document.querySelectorAll('.tk-panel [data-tklab]').forEach(inp=>{
+    inp.addEventListener('focus',e=>tkPaintSug(e.target.dataset.tklab,e.target.value));
+    // Le repli est DIFFÉRÉ : sans cela, le `blur` provoqué par le tap sur une proposition
+    // détruirait la proposition avant que son `click` n'arrive.
+    inp.addEventListener('blur',e=>{const id=e.target.dataset.tklab;
+      setTimeout(()=>{const z=document.querySelector('.tk-sug[data-tksug="'+CSS.escape(id)+'"]');
+        if(z&&!z.contains(document.activeElement)){z.hidden=true;z.innerHTML='';}},180);});});
+  document.querySelectorAll('.tk-panel .tk-sug').forEach(z=>z.addEventListener('click',e=>{
+    const b=e.target.closest('[data-tkpick]');if(!b)return;
+    const ev=(Runtime.events||[]).find(x=>x.id===z.dataset.tksug);if(!ev)return;
+    let ref=null;try{ref=tkRefNorm(JSON.parse(b.dataset.tkpick));}catch(_){}
+    if(!ref)return;
+    // La référence prend la place du mot tapé : le libellé se DÉRIVE désormais, donc il est le
+    // même sur les deux écrans — c'est tout l'objet du journal référentiel.
+    ev.ref=ref;ev.label='';
+    persistLive(Runtime);renderTkOnly();
+    announce('Repère étiqueté : '+(tagLabel(ref,Runtime.fiche,myTags())||''));}));
   /* ANNULER, PAS SUPPRIMER (v4.47.0). Le × effaçait le repère d'un simple tap — ce qui enfreignait
      la règle du projet (« action destructrice en situation de crise = geste MAINTENIR ») et,
      surtout, ce qui n'est pas soutenable pour une TRACE : le journal alimente le compte-rendu,
@@ -8564,6 +8787,30 @@ function bindTk(){
 /* Remplace le SEUL panneau du journal (dans le rail OU dans le flux mono-bloc) et rebranche ses
    écouteurs, sans toucher au reste du DOM — donc sans réinitialiser le scrollTop du rail. Le panneau
    étant en fin de rail, l'ajout d'une ligne pousse vers le BAS : rien ne bouge au-dessus. */
+/* PEINTURE DES PROPOSITIONS. Bornée à QUATRE : au-delà, on ne lit plus, on balaye — et la place
+   manque en bas de rail. Seules les entrées RAPPROCHÉES sont montrées (score > 0) : proposer le
+   vocabulaire entier à qui n'a rien tapé serait un menu, pas une aide. Sous les deux caractères on
+   ne propose rien — tout ressemble à tout. */
+function tkPaintSug(id,q){
+  const z=document.querySelector('.tk-sug[data-tksug="'+CSS.escape(String(id))+'"]');
+  if(!z)return;
+  const txt=String(q||'').trim();
+  if(txt.length<2){z.hidden=true;z.innerHTML='';return;}
+  const hits=tagRank(txt,tagAll(Runtime.fiche,myTags())).filter(x=>x.score>0).slice(0,4);
+  if(!hits.length){z.hidden=true;z.innerHTML='';return;}
+  /* UNE ÉTIQUETTE PERSONNELLE NE VOYAGE PAS JUSQU'À UN INCONNU, et il faut le dire. Elle se
+     résout depuis `data.prefs`, qui suit le COMPTE : sur vos appareils, le mot arrive ; chez un
+     collègue qui n'a pas ce vocabulaire, la référence ne résout rien et le repère retombe sur
+     « Action n ». C'est le comportement juste — son vocabulaire est le sien — mais le taire
+     laisserait croire à un mot partagé. On ne le signale QUE pendant un partage : hors partage la
+     question ne se pose pas, et la mention serait du bruit. Un mot, jamais une couleur seule. */
+  const part=(typeof Share!=='undefined')&&Share.mode!=='off';
+  z.innerHTML=hits.map(h=>{
+    const perso=part&&h.src==='perso';
+    return '<button type="button" class="tk-pick'+(perso?' own':'')+'" data-tkpick="'
+      +esc(JSON.stringify(h.ref))+'"'+(perso?' title="Votre vocabulaire : ce mot n’apparaîtra pas chez les autres participants"':'')
+      +'>'+esc(h.label)+(perso?'<span class="tk-own"> · vous seul</span>':'')+'</button>';}).join('');
+  z.hidden=false;}
 function renderTkOnly(){
   const old=document.querySelector('.tk-panel');if(!old)return false;
   const tmp=document.createElement('div');tmp.innerHTML=timekeeperPanel();
@@ -9768,7 +10015,12 @@ function sharePaintLive(f,e){
     const id=safeId('ax-'+(p.t||0)+'-'+(e.seq||0),'e');
     if(Runtime.events.some(x=>x.id===id))return false;      // le fil peut rejouer un lot
     Runtime.events.push({id:id,t:+p.t||Share.now(),a:e.actor||null,annex:true,
-      label:sstr(p.label,120),ref:tkRefNorm(p.ref)});
+      /* AUCUN LIBELLÉ N'EST LU DU RÉSEAU. Cette ligne lisait `p.label` — vestige inoffensif entre
+         deux clients de cette version (aucun émetteur n'en met), mais c'était une PORTE : un
+         client modifié aurait pu pousser un mot arbitraire, qui se serait affiché sur l'écran
+         d'en face. La règle 15 vaut aussi à la RÉCEPTION, sinon elle ne vaut rien. Le libellé se
+         DÉRIVE de la référence, et de rien d'autre. */
+      ref:tkRefNorm(p.ref)});
     Runtime.events.sort((a,b)=>a.t-b.t);renderTkOnly();return true;}
   if(e.kind==='session_start'){
     if(!(+p.t))return false;
@@ -9791,7 +10043,12 @@ function sharePaintLive(f,e){
     // L'ACTEUR SUIT LE REPÈRE. `shareFold` le conserve, la peinture le perdait : un compte-rendu
     // ne peut pas dire qui a fait quoi si l'attribution s'arrête au pli.
     Runtime.events.push({id:safeId(p.id,'e'),t:+p.t||Share.now(),a:e.actor||null,
-      label:sstr(p.label,120),ref:tkRefNorm(p.ref)});
+      /* AUCUN LIBELLÉ N'EST LU DU RÉSEAU. Cette ligne lisait `p.label` — vestige inoffensif entre
+         deux clients de cette version (aucun émetteur n'en met), mais c'était une PORTE : un
+         client modifié aurait pu pousser un mot arbitraire, qui se serait affiché sur l'écran
+         d'en face. La règle 15 vaut aussi à la RÉCEPTION, sinon elle ne vaut rien. Le libellé se
+         DÉRIVE de la référence, et de rien d'autre. */
+      ref:tkRefNorm(p.ref)});
     Runtime.events.sort((a,b)=>a.t-b.t);renderTkOnly();return true;}
   if(e.kind==='mark_void'){
     const m=(Runtime.events||[]).find(x=>x.id===p.id);if(!m)return false;
@@ -12339,10 +12596,47 @@ function accountPrefsHtml(slot){
     <div class="st-hint" style="margin-bottom:4px">S'applique à toute l'application · enregistrée pour votre compte, comme le thème (bouton de l'en-tête)</div>
     ${Auth.signedIn()?`<div class="auth-stats-h" style="margin-top:14px">Couleur d'accent</div>
     <div class="accent-row" role="radiogroup" aria-label="Couleur d'accent">${ACCENT_IDS.map(a=>`<button type="button" class="acc-sw a-${a||'clinique'}${currentAccent()===a?' on':''}" data-accent="${a}" role="radio" aria-checked="${currentAccent()===a?'true':'false'}" title="${ACCENT_LBL[a]}" aria-label="Accent ${ACCENT_LBL[a]}"></button>`).join('')}</div>
-    <div class="st-hint" style="margin-bottom:4px">Identifie votre session d'un coup d'œil — colore l'accueil et l'en-tête de toutes les vues ; le contenu des fiches en crise et des protocoles garde le bleu clinique.</div>`:''}</div>`;}
+    <div class="st-hint" style="margin-bottom:4px">Identifie votre session d'un coup d'œil — colore l'accueil et l'en-tête de toutes les vues ; le contenu des fiches en crise et des protocoles garde le bleu clinique.</div>`:''}
+    ${tagsPrefHtml()}</div>`;}
+/* ═══ VOCABULAIRE PERSONNEL DU JOURNAL — ÉDITÉ À FROID, JAMAIS PENDANT UN SOIN ════════════════
+   Il vit ici, avec le thème et la taille du texte, parce que c'est la même nature : une
+   préférence qui suit l'utilisateur d'un appareil à l'autre. Et il s'édite ICI parce qu'on ne
+   rédige pas son vocabulaire en réanimation — pendant le soin, on n'a qu'à taper et choisir.
+   Les ALIAS sont la raison d'être du dispositif : c'est là qu'on écrit « mru », « regul »,
+   « dbase », tout ce qu'on abrège au micro et qu'on ne retrouverait jamais en tapant le nom
+   entier. Le rapprochement les note comme le libellé (cf. `tagRank`). */
+function tagsPrefHtml(){
+  const T=myTags();
+  const rows=T.map(t=>`<div class="tg-row" data-tgk="${esc(t.k)}">`
+    +`<input class="tg-l" data-tgl="${esc(t.k)}" value="${esc(t.l)}" maxlength="40" aria-label="Libellé de l'étiquette">`
+    +`<input class="tg-a" data-tga="${esc(t.k)}" value="${esc((t.a||[]).join(', '))}" maxlength="200" placeholder="abréviations, séparées par des virgules" aria-label="Alias de l'étiquette">`
+    +`<button type="button" class="tg-del" data-tgdel="${esc(t.k)}" aria-label="Supprimer l'étiquette ${esc(t.l)}">×</button></div>`).join('');
+  return `<div class="auth-stats-h" style="margin-top:14px">Vocabulaire du journal (${T.length})</div>
+    <div class="tg-list">${rows||'<p class="tg-none">Aucune étiquette pour l’instant.</p>'}</div>
+    ${T.length<TAG_MAX?'<button type="button" class="btn sm tg-add" id="tgAdd">＋ Nouvelle étiquette</button>':''}
+    <div class="st-hint" style="margin-bottom:4px">Vos mots pour le journal des actions : pendant un soin, tapez et choisissez — l’étiquette voyage alors comme une <b>référence</b>, jamais comme du texte. Les abréviations la font remonter (« mru » trouve « Médecin régulateur »). Elle se résout sur <b>vos</b> appareils ; un collègue qui ne l’a pas voit un repère horodaté sans mot.</div>`;}
+function bindTagsPref(body){
+  const maj=()=>{renderAuth();};
+  const lire=()=>myTags().map(t=>({k:t.k,l:t.l,a:t.a}));
+  body.querySelectorAll('[data-tgl]').forEach(inp=>inp.addEventListener('change',e=>{
+    const v=lire();const t=v.find(x=>x.k===e.target.dataset.tgl);if(!t)return;
+    t.l=e.target.value;setMyTags(v);schedulePrefsPush();}));
+  body.querySelectorAll('[data-tga]').forEach(inp=>inp.addEventListener('change',e=>{
+    const v=lire();const t=v.find(x=>x.k===e.target.dataset.tga);if(!t)return;
+    t.a=String(e.target.value||'').split(',').map(x=>x.trim()).filter(Boolean);
+    setMyTags(v);schedulePrefsPush();}));
+  body.querySelectorAll('[data-tgdel]').forEach(b2=>b2.onclick=()=>{
+    setMyTags(lire().filter(x=>x.k!==b2.dataset.tgdel));schedulePrefsPush();maj();});
+  {const ad=body.querySelector('#tgAdd');if(ad)ad.onclick=()=>{
+    /* Clé mintée ICI et jamais dérivée du libellé : on renomme une étiquette sans casser les
+       repères déjà posés — la référence pointe la CLÉ, pas le mot. */
+    setMyTags(lire().concat([{k:uid('t'),l:'Nouvelle étiquette',a:[]}]));schedulePrefsPush();maj();
+    setTimeout(()=>{const ins=document.querySelectorAll('#authModal [data-tgl]');
+      const last=ins[ins.length-1];if(last){last.focus();last.select();}},60);};}}
 function bindAccountPrefs(body){
   body.querySelectorAll('[data-zoom]').forEach(b=>b.onclick=()=>{applyZoom(+b.dataset.zoom);schedulePrefsPush();renderAuth();});
   body.querySelectorAll('[data-accent]').forEach(b=>b.onclick=()=>{applyAccent(b.dataset.accent);schedulePrefsPush();renderAuth();});
+  bindTagsPref(body);
   {const ex=body.querySelector('#authExport');if(ex)ex.onclick=exportAll;}}
 // Écran de connexion (déconnecté) : saisie de l'e-mail puis du code OTP reçu.
 function renderAuthLogin(body){
@@ -13219,7 +13513,11 @@ const Sync={
           // de la vue ouverte depuis la synchro (l'écran ne change pas pendant un soin) ;
           // la préférence s'applique à la prochaine ouverture de fiche.
           const rm=(typeof pr.readMode==='string'&&READ_MODES.indexOf(pr.readMode)>=0)?pr.readMode:null;
-          if(rm){try{localStorage.setItem(spaceKey('ac-read-mode'),rm);}catch(e){}}}
+          if(rm){try{localStorage.setItem(spaceKey('ac-read-mode'),rm);}catch(e){}}
+          /* ÉTIQUETTES : REMPLACÉES, pas fusionnées — comme les épingles, et à la différence de la
+             frecency. Une fusion ferait RESSUSCITER une étiquette supprimée sur un autre appareil,
+             et le vocabulaire est une liste qu'on TIENT, pas un compteur qu'on additionne. */
+          if(Array.isArray(pr.tags))_tagsWrite(pr.tags);}
         try{localStorage.setItem(spaceKey('ac-cats-updated:'+s.key),String(Date.parse(remote.updated_at)));localStorage.removeItem(spaceKey('ac-cats-dirty:'+s.key));}catch(e){}
         changed=true;continue;
       }
@@ -13228,7 +13526,11 @@ const Sync={
         if(!s.libraryId)data.pins=sanitizePins(pins);   // épingles : uniquement dans le document perso
         if(!s.libraryId)data.usage=sanitizeUsage(_frecency);   // frecency (v4.4.7) : idem, fusionnée côté lecteur
         // Préférences par utilisateur (V5) : voyagent avec le document perso.
-        if(!s.libraryId)data.prefs={theme:localStorage.getItem(spaceKey('ac-theme'))||'auto',zoom:currentZoom(),accent:currentAccent(),readMode:currentReadMode()};
+        if(!s.libraryId)data.prefs={theme:localStorage.getItem(spaceKey('ac-theme'))||'auto',zoom:currentZoom(),accent:currentAccent(),readMode:currentReadMode(),
+          // Vocabulaire personnel du journal (v4.52.0) : des MOTS, mais des mots que l'utilisateur
+          // écrit À FROID pour lui-même — ce ne sont pas des données de soin, et ils ne partent
+          // jamais dans un partage : seule la RÉFÉRENCE voyage, le mot est rendu localement.
+          tags:myTags()};
         try{await rest('POST','/rest/v1/category_sets',[{scope_key:s.scopeKey,owner:uidv,library_id:s.libraryId,data:data,updated_at:new Date(now).toISOString()}],{'Prefer':'resolution=merge-duplicates,return=minimal'});
           try{localStorage.removeItem(spaceKey('ac-cats-dirty:'+s.key));}catch(e){}}catch(e){}
       }
@@ -14504,6 +14806,7 @@ if(location.search.indexOf('__actest')>=0){
     crc32,zipBuild,zipParse,isPdfBytes,mdTask,flowOrder,latestPass,offPathSet,minimapData,passInfo,instComplete,flowPlan,stepCR,stepGuardTxt,optAbbr,svBranchIssue,svLoopTargets,ovPresList,
     posoTokens,posoName,posoScore,posoRank,posoSplit,
     qrRawBits,qrTotalCw,qrGen,qrRs,qrAlign,qrDataCw,qrInterleave,qrEncode,qrSvg,qrMul,
+    TAG_CORE,sanitizeTags,tagAll,tagLabel,tagRank,tkRefNorm,tkLabels,
     QR_ECW,QR_BLK,QR_MAXVER,QR_EXP,QR_LOG,
     sharePayload,shareCan,shareFold,shareStateHash,shareOffset,blankFiche,Share,
     shareSnap,shareDiff,

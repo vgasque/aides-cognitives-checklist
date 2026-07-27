@@ -1,7 +1,94 @@
-# Journal des modifications — archive (versions 3.0.0 à 4.32.0)
+# Journal des modifications — archive (versions 3.0.0 à 4.33.0)
 
 > Entrées anciennes déplacées depuis [`CHANGELOG.md`](CHANGELOG.md) pour garder le journal
 > courant lisible. Même format (keep-a-changelog).
+
+## [4.33.0] — 2026-07-26
+Second lot de l'audit externe : les correctifs dont le RENDU change, volontairement séparés du lot
+invisible de v4.32.0. Chacun restaure une doctrine que le code violait, ou rend audible une surface
+qui ne l'était pas. Deux découvertes faites en cours de route, hors du relevé initial.
+
+### Corrigé — registres perdus
+- **`.pl-stp` : la régression jumelle de v4.25.0.** La purge du Plan « Détails » avait emporté les
+  cinq règles de cette classe alors que `ovPlanLadderHtml` l'émet TOUJOURS : pendant six versions,
+  une étape **⚠ (memory item)** s'affichait en encre ordinaire dans le détail de « Se repérer »,
+  avec les puces disque du navigateur, indiscernable d'une étape banale — dans une surface visible
+  en permanence dans le rail dès 780 px et ouvrable d'un tap du quai de crise. Le pendant statique
+  (`.sv-stp li.crit`), lui, n'avait jamais cessé d'être peint : deux surfaces de la même app
+  donnaient une lecture différente du même contenu vital. Règles restaurées à l'identique de
+  v4.24.0 ; vérifié dans les deux thèmes (⚠ = `--critical`, △ = `--verify`, graisse renforcée en
+  second canal non chromatique, corps 11,5 px, puces « · »).
+- **`.sv-x`** (compteur de passages « ×n » du statique) était émis sans aucune règle. Stylé en encre
+  DOUCE et non bleue, contrairement à son jumeau `.pl-x` : dans le statique, « aucun texte bleu dans
+  les cellules » — le bleu n'y marque que la position et la reprise. Copier `.pl-x` aurait réparé la
+  taille en cassant la doctrine.
+
+### Corrigé — contenu qui sortait de l'écran
+- **Cinq `vh` NUS** subsistaient malgré la règle « toute hauteur relative à la fenêtre s'écrit
+  `calc(…/var(--zf))` » : le réglage de taille du texte est un `zoom` sur `<html>`, qui agrandit la
+  valeur APRÈS sa résolution. Conséquence mesurée à 130 % : dans la visionneuse d'image, 8 px
+  d'image et **51 px de légende hors écran**, sans aucun défilement possible — et c'est précisément
+  l'utilisateur qui a AGRANDI le texte qui voit mal. Corrigés (visionneuse, schéma, compte-rendu,
+  feuille de catégories, sélecteur de documents) ; vérifié à 100 / 115 / 130 %.
+- Le harnais qui prétendait couvrir cette règle ne regardait que deux surfaces nommées : il reçoit
+  une **sonde générique** qui balaie le CSS résolu de tout élément visible et échoue sur toute
+  hauteur bornante dépassant la fenêtre, quel que soit son nom.
+
+### Accessibilité
+- **La vue de lecture n'avait AUCUN titre.** Son unique `<h2>` était éteint par `display:none` à
+  l'écran (il ne servait qu'à l'impression) — donc absent de l'arbre d'accessibilité — et les sept
+  intertitres de section sont des `<div>`/`<span>`. Sur la surface CLINIQUE, il n'y avait donc rien
+  à parcourir : il fallait traverser toute la fiche linéairement pour atteindre « Repères
+  posologiques ». Le titre passe HORS ÉCRAN (propriétés de `.sr-only`, rien ne change à l'œil) et
+  les intertitres reçoivent `role="heading" aria-level="2"` — sémantique sans changer la balise ni
+  le CSS. Mesuré : **0 → 25 titres** parcourables, en portrait comme en paysage.
+- **`#flowFull` et `.lightbox` : calques OPAQUES plein écran sans sémantique de dialogue.** Ni rôle,
+  ni nom, ni déplacement du focus : mesuré, **14 tabulations sur 14 sortaient derrière le calque**,
+  atterrissant sur « ⤢ Se repérer » ou des étapes cochables invisibles, en pleine session. C'est
+  WCAG 2.4.11, le défaut corrigé en v4.30.0 pour les couches collantes et resté entier pour les
+  overlays. Rôle + `aria-modal` + nom, focus déplacé à l'ouverture et RENDU à la fermeture, verrou
+  de fond, piège Tab. Ils ne deviennent pas des `.ai-modal` (CSS distinct, et Échap leur est câblé
+  nommément — les inscrire dans `_topModal()` aurait cassé leur fermeture, qui cherche un `.ai-x`
+  qu'ils n'ont pas) : de nouvelles primitives `_layerEnter`/`_layerLeave` réutilisent les mêmes
+  briques. L'image agrandie reçoit enfin un `alt` — sa LÉGENDE : `alt=""` la rendait décorative
+  alors qu'elle est le contenu même de la couche. Vérifié : 0 sortie sur 14.
+- **`--primary` en couleur de TEXTE** sur trois contrôles (lien d'évitement, pilule du mode lecteur,
+  « Pourquoi créer un compte ? ») : 3,44:1 en thème sombre, sous le seuil AA. La règle du projet
+  l'énonce déjà — en sombre `--primary` est un REMPLISSAGE, l'accent TEXTE est `--link` (8,24:1).
+  Les trois y échappaient parce qu'ils vivent hors du périmètre du harnais.
+- **Plancher typographique 11 px** : `.status-tag` (présent sur les cartes d'accueil, les vues de
+  lecture et les éditeurs) et `.cx-tag` étaient à 10,5 px. Plus rien sous 11 px dans tout le fichier.
+- **Six gabarits sans nom accessible** → 0 contrôle anonyme sur 53 (13 avant) : sélecteur de bloc
+  suivant, durée d'un cycle (minutes/secondes), pas et valeur de départ d'un compteur, case
+  « boucle », boutons de suppression. Les libellés « min », « s », « pas », « départ » étaient des
+  `<span>` VOISINS, jamais associés — un lecteur d'écran annonçait « champ numérique, vide » sur la
+  durée d'un cycle de réanimation. Reste 39 champs nommés par leur seul `placeholder` (antipattern
+  connu : il disparaît à la saisie) — chantier distinct, consigné.
+- **Orientation libérée** (`"any"`, décision utilisateur) : le manifeste verrouillait le portrait, si
+  bien que l'app INSTALLÉE refusait le paysage — WCAG 1.3.4, et une tablette fixée au chariot
+  d'urgence était inutilisable. Mesuré à 844×390 : aucun débordement, et le rail d'orientation
+  APPARAÎT, donnant « action + structure de front » — l'idéal ECAM que le portrait n'atteint pas
+  à 390 px.
+
+### Découvert en cours de route (hors relevé initial)
+- **Une cible tactile sous le seuil DANS la zone de crise** : `.dock-plan` (« Se repérer » /
+  « Consulter ») mesurait **38 px** là où la crise exige 44. Le défaut avait échappé au harnais
+  parce que son périmètre listait `#crisisDock` — le quai d'ÉTAT — mais pas `#crisisCtrl`, la rangée
+  de COMMANDES qui en a été séparée en v4.25.0 : le trou de couverture cachait un défaut réel sur la
+  surface la moins permissive de l'app. Corrigé par **halo** (`inset:-3px 0`) et non par
+  grossissement : la hauteur de la zone haute est un coût PERMANENT en crise (177 px sur 640 déjà)
+  et passer à 44 px l'aurait épaissie de 6 px ; c'est le patron déjà employé pour les contrôles de
+  36 px de la barre. Vérifié à 360/390/1280 : cible 44 px, visuel inchangé, rangée toujours à
+  59 px, aucun empiètement sur le quai. `#crisisCtrl` entre dans le périmètre du harnais.
+- **GARDE-FOU « une classe émise a une règle »** (`scripts/check-classes.mjs`, dans `npm run check`).
+  C'est le contrôle qui manquait pour attraper une purge ASYMÉTRIQUE — celle qui retire du CSS mort
+  et, dans le même geste, du CSS vivant. Contre-épreuve faite : retirer les cinq règles `.pl-stp` le
+  fait échouer. Il a d'ailleurs trouvé seul le défaut `.sv-x`. Trois exemptions documentées, toutes
+  des CROCHETS de délégation JS (`.ov-wrap`, `.ov-journal`, `.seg-ic`). Son premier jet portait le
+  faux négatif exact qu'il combat — il extrayait les sélecteurs commentaires COMPRIS, or les
+  commentaires citent les classes qu'ils expliquent : noté dans le fichier.
+
+510 tests, 22/22 doctrine, 73/73 accessibilité, 135 contrôles d'audit, 9 sondes dédiées.
 
 ## [4.32.0] — 2026-07-26
 Premier lot d'un audit externe complet (phase 1 : relevé de 138 constats mesurés, 3 réfutés par

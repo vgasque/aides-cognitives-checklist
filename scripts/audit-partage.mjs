@@ -76,6 +76,10 @@ console.log(`\n══ PARTAGE · un évènement distant ne déplace rien — mot
       cid ? { seq: 3, id: 'e3', actor: 'autre', kind: 'counter', payload: { id: cid, v: 4 } } : null,
       tid ? { seq: 4, id: 'e4', actor: 'autre', kind: 'timer_arm',
               payload: { id: tid, running: true, elapsedMs: 0, cycles: 0, anchor: Date.now() } } : null,
+      /* CE PAYLOAD PORTE UN `label`, ET C'EST VOLONTAIRE : aucun émetteur de l'application n'en
+         met, mais un client MODIFIÉ le pourrait. On vérifie donc que la réception l'IGNORE — la
+         règle 15 (« aucun texte libre ne traverse le réseau ») vaut aussi à l'arrivée, sinon elle
+         ne vaut rien. Le repère doit entrer au journal ; le mot, non. */
       { seq: 5, id: 'e5', actor: 'autre', kind: 'mark', payload: { id: 'em1', t: Date.now(), label: 'Adrénaline' } },
       // Différé : il ne doit RIEN peindre maintenant.
       { seq: 6, id: 'e6', actor: 'autre', kind: 'gap', payload: { k: cle0 } },
@@ -95,7 +99,9 @@ console.log(`\n══ PARTAGE · un évènement distant ne déplace rien — mot
       // qu'une étape hors écran. Le peinturage DOM se mesure au scénario large, plus bas.
       compteurDom: cid ? !!document.getElementById('cnval-' + cid) : null,
       minuteurArme: tid ? !!Runtime.timers[tid].running : null,
-      repere: (Runtime.events || []).some(x => x.label === 'Adrénaline'),
+      repere: (Runtime.events || []).some(x => x.id === 'em1'),
+      motDuReseau: (Runtime.events || []).some(x => x.label === 'Adrénaline') ||
+        (main.textContent || '').indexOf('Adrénaline') >= 0,
       differes: Share._defer.length,
       soiIgnore: !state.checked[cibles[2].dataset.ck],
       toastsNouveaux: document.querySelectorAll('.toast').length - toastsAvant,
@@ -111,6 +117,7 @@ console.log(`\n══ PARTAGE · un évènement distant ne déplace rien — mot
   t('le compteur distant est à jour dans l’état', r.compteur === 4, `état ${r.compteur}`);
   t('le minuteur distant est armé', r.minuteurArme === true);
   t('le repère horodaté distant entre au journal', r.repere === true);
+  t('… mais un LIBELLÉ venu du réseau n’est jamais lu (règle 15)', r.motDuReseau === false);
   t('un genre DIFFÉRÉ est mis en file, pas peint', r.differes === 1, `file : ${r.differes}`);
   t('ses PROPRES évènements ne sont jamais ré-appliqués', r.soiIgnore === true);
   // Règle 11 : l'arrivée distante ne produit ni banderole flottante, ni fenêtre.
@@ -1154,6 +1161,73 @@ console.log(`\n══ PARTAGE · un rechargement ne perd plus la session — mot
   t('un rechargement ne fait PAS reparaître l’écran d’entrée', ap.entree === false);
   t('… et un serveur injoignable ne bloque pas le démarrage', ap.demarree === true);
   t('… le billet mort ne traîne pas', ap.billet === false);
+  await page.close();
+}
+
+/* ── LE JOURNAL RÉFÉRENTIEL : LE MOT ARRIVE, LE TEXTE LIBRE NON ─────────────────────────────
+   Un repère partagé ne portait AUCUN mot : `ref` n'existait que pour les compteurs, si bien qu'un
+   repère posé par l'hôte s'affichait « Action 3 » chez l'invité — l'heure juste, le mot manquant.
+   On vérifie les deux moitiés de la promesse, et elles se contredisent si l'on se trompe :
+   le MOT doit arriver (sinon la fonctionnalité ne sert à rien), et le TEXTE LIBRE ne doit JAMAIS
+   partir (sinon la règle 15 et le registre RGPD deviennent faux). */
+console.log(`\n══ PARTAGE · le journal référentiel — moteur ${NOM_MOTEUR} ══`);
+{
+  const page = await br.newPage({ viewport: { width: 390, height: 844 } });
+  await session(page);
+  const r = await page.evaluate(async () => {
+    Share.mode = 'host'; Share.role = 'lead'; Share.me = 'moi'; Share.status = 'active';
+    setMyTags([{ k: 'mru', l: 'Médecin régulateur', a: ['mru', 'regul'] }]);
+    document.getElementById('tkAdd').click();
+    await new Promise(x => setTimeout(x, 400));
+    const inp = document.querySelector('.tk-panel [data-tklab]');
+    inp.value = 'regul';
+    inp.dispatchEvent(new Event('input', { bubbles: true }));
+    await new Promise(x => setTimeout(x, 250));
+    const chips = [...document.querySelectorAll('.tk-sug:not([hidden]) [data-tkpick]')];
+    const out = {
+      propositions: chips.map(c => c.textContent),
+      cible44: chips.length > 0 && chips.every(c => c.getBoundingClientRect().height >= 43.5),
+      // Une étiquette PERSONNELLE ne se résout que sur les appareils du même compte : pendant un
+      // partage, le taire laisserait croire à un mot partagé.
+      persoSignalee: chips.some(c => /vous seul/i.test(c.textContent)),
+    };
+    // AVANT de choisir : le texte tapé est LOCAL, et rien de lui ne doit entrer dans l'émission.
+    const ev0 = Runtime.events[Runtime.events.length - 1];
+    out.tapeLocal = ev0.label === 'regul';
+    out.emisAvant = JSON.stringify(shareSnap(Runtime, false).events.slice(-1));
+    out.texteNEmisPas = out.emisAvant.indexOf('regul') < 0;
+
+    if (chips[0]) chips[0].click();
+    await new Promise(x => setTimeout(x, 350));
+    const ev1 = Runtime.events[Runtime.events.length - 1];
+    out.refPosee = JSON.stringify(ev1.ref || null);
+    out.labelEfface = ev1.label === '';
+    out.affiche = (document.querySelector('.tk-panel [data-tklab]') || {}).value;
+
+    // LE CHEMIN COMPLET : on émet, on plie, on résout — c'est ce que fait l'appareil d'en face.
+    const evs = shareDiff(shareSnap(null, false), shareSnap(Runtime, false))
+      .map((e, i) => ({ seq: i + 1, id: 'z' + i, actor: 'hote', ...e }));
+    const plie = shareFold(evs);
+    const recu = plie.events[plie.events.length - 1];
+    out.motRecu = tkLabels([recu], Runtime.fiche, myTags())[0];
+    out.sansVocab = tkLabels([recu], Runtime.fiche, [])[0];
+    out.rienDeTape = JSON.stringify(evs).indexOf('regul') < 0;
+    return out;
+  });
+  t('taper propose des entrées RAPPROCHÉES', r.propositions.length > 0, JSON.stringify(r).slice(0, 200));
+  t('… dont l’étiquette trouvée par son ALIAS', r.propositions.some(x => /Médecin régulateur/.test(x)), r.propositions.join(' | '));
+  t('… cibles ≥ 44 px', r.cible44 === true);
+  t('… et le « vous seul » est dit pendant un partage', r.persoSignalee === true, r.propositions.join(' | '));
+  t('avant de choisir, le texte tapé reste LOCAL', r.tapeLocal === true);
+  t('… et n’entre pas dans ce qui est émis (règle 15)', r.texteNEmisPas === true, r.emisAvant);
+  t('choisir pose la référence', /"type":"tag"/.test(r.refPosee), r.refPosee);
+  t('… et efface le libellé manuel', r.labelEfface === true);
+  t('… l’écran affiche le mot résolu', r.affiche === 'Médecin régulateur', r.affiche);
+  t('LE MOT ARRIVE CHEZ L’AUTRE', r.motRecu === 'Médecin régulateur', r.motRecu);
+  t('… sans jamais faire voyager le texte tapé', r.rienDeTape === true);
+  /* La résolution ÉCHOUE PROPREMENT chez qui n'a pas ce vocabulaire : « Action n », jamais un mot
+     inventé. C'est la garantie qui autorise à faire voyager des références plutôt que des mots. */
+  t('… et retombe sur « Action n » sans le vocabulaire', /^Action /.test(r.sansVocab), r.sansVocab);
   await page.close();
 }
 
