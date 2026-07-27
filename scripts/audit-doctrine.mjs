@@ -275,6 +275,46 @@ console.log('\n══ QRH · intitulé de décision toujours visible (statique e
     await page.close();
   }
 }
+// ══ Le RENDU GUIDÉ, jusqu'ici couvert par RIEN ═══════════════════════════════
+// `grep -rn 'nav-wrap\|navNext\|bindNavEvents' tests.html scripts/` rendait 0 : la vue guidée
+// (celle d'une fiche SANS algorithme — c'est-à-dire ce que produit `blankFiche()`, donc toute
+// fiche neuve) n'était mesurée nulle part. C'est ce trou qui a laissé vivre le défaut v4.42.0 :
+// décocher après « Terminer l'algorithme » laissait la bannière de fin à l'écran, parce que le
+// reset de `state.flowEnded` était enfermé dans un `if(nn)` alors que `#navNext` n'existe
+// justement plus à cet instant. Le journal, lui, faisait les deux — la divergence entre les deux
+// copies du cochage était invisible faute de sonde.
+console.log('\n══ Rendu guidé · décocher annule la fin de l\'algorithme ══');
+{
+  const page=await br.newPage({viewport:{width:390,height:844}});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await page.evaluate(async()=>{
+    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();
+    await new Promise(r=>setTimeout(r,120));
+    const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();
+    await new Promise(r=>setTimeout(r,400));});
+  const r=await page.evaluate(async()=>{
+    // Fiche MONO-BLOC : pas d'algorithme -> rendu guidé (`navSection`), pas le journal.
+    const f=migrate({id:'dgui',title:'Sonde guidée',blocks:[
+      {id:'b1',type:'steps',title:'Bloc unique',steps:['Étape A','Étape B']}],start:'b1'});
+    await Data.put(f);fiches.push(f);
+    openRead(f.id);await new Promise(r=>setTimeout(r,350));
+    const guide=!document.querySelector('#readTopSeg')&&!!document.querySelector('.nav-wrap');
+    for(const li of document.querySelectorAll('[data-ck]')){li.click();await new Promise(r=>setTimeout(r,250));}
+    const nn=document.getElementById('navNext');if(nn)nn.click();
+    await new Promise(r=>setTimeout(r,350));
+    const finActee=!!document.querySelector('.flow-end')&&state.flowEnded===true;
+    document.querySelector('[data-ck]').click();await new Promise(r=>setTimeout(r,400));
+    return {guide,finActee,flowEnded:state.flowEnded,
+      banniere:!!document.querySelector('.flow-end'),bouton:!!document.getElementById('navNext')};});
+  t('la fiche mono-bloc rend bien la vue GUIDÉE (.nav-wrap, pas de bascule de mode)',r.guide);
+  t('« Terminer l\'algorithme » acte la fin (bannière + drapeau)',r.finActee);
+  t('décocher remet state.flowEnded à false',r.flowEnded===false);
+  t('décocher retire la bannière « Algorithme terminé »',r.banniere===false,'bannière encore présente');
+  t('décocher fait revenir le bouton d\'avancement',r.bouton===true,'#navNext absent');
+  await page.close();
+}
+
 await br.close();srv.close();
 console.log(`\n${ok}/${ok+ko} contrôles doctrine OK${ko?` — ${ko} ÉCHEC(S)`:''}`);
 process.exit(ko?1:0);

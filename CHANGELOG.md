@@ -1,5 +1,71 @@
 # Journal des modifications
 
+## [4.42.0] — 2026-07-27
+### Le reliquat d'audit trié : 36 % était périmé
+Les 70 constats jamais traités de la Phase 1 ont été reconfrontés au code actuel, chacun sous
+contre-expertise. **25 sont tombés** : 2 déjà corrigés, 5 mal fondés, 18 dont la preuve se
+reproduit mais dont le verdict s'inverse (victime inexistante ou remède pire que le mal). Restent
+45, dont **22 sont des questions à trancher** et 23 des corrections — dont **4 seulement changent
+quelque chose pour un soignant**. Ce sont ces quatre-là.
+
+Deux familles se sont effondrées en bloc. Les constats de **performance** mesuraient des *comptes
+d'appels* sans chronomètre : le tick de 300 ms coûte 0,5 ms/s de mise en page, le resize PDF
+0,26 ms, `syncHdrScroll` 0,10 ms/s de gain potentiel — à comparer aux 126,8 ms/s du seul vrai
+levier de v4.41.0. Les constats **« le dépôt ne documente pas X »** reposaient sur des greps qui
+excluaient `CHANGELOG-archive.md`, qui est pourtant le canal de décision du projet.
+
+### Décocher ne défaisait pas la fin de l'algorithme, en mode guidé
+Le cœur du cochage existe en deux copies, guidé et journal, et elles avaient divergé. Le journal
+remet `state.flowEnded` à false puis re-rend si la bannière traîne. Le guidé faisait le reset dans
+la branche `else` d'un `if(nn)` — or quand la fin est actée, `#navNext` **n'existe plus** :
+`navSection` le remplace par la bannière `.flow-end`. `nn` étant null, le bloc entier était sauté
+et le reset ne s'exécutait **jamais dans le seul cas où il sert**. Mesuré sur une fiche mono-bloc
+(ce que rend `blankFiche()`, donc toute fiche neuve) : « Algorithme terminé — surveillance en
+cours » restait affiché après décochage et « Terminer l'algorithme » ne revenait pas.
+
+**Ce chemin n'était couvert par aucun test** : `grep -rn 'nav-wrap\|navNext\|bindNavEvents'
+tests.html scripts/` rendait 0. Cinq contrôles ajoutés à `audit-doctrine.mjs` (27/27), vérifiés
+capables d'échouer — défaut réintroduit, 3 échecs, fichier restauré à l'octet.
+
+### L'alarme routée était muette pour les lecteurs d'écran
+Session hors de vue (autre fiche, autre vue), un minuteur sonne : banderole visuelle, flash écran,
+et notification système **seulement si l'app est en arrière-plan**. Restait le bip — qui dit qu'un
+minuteur a sonné, jamais **lequel** ni **sur quelle fiche**. C'est précisément le cas où
+l'information manque : une session vive sur une autre fiche pendant qu'on lit un différentiel.
+`announce()` écrit désormais dans `#srLive` (`role=alert`, `aria-live=assertive`) : audible côté
+lecteur d'écran, **invisible à l'écran** — la règle 11 tient, rien ne bouge et rien ne se pose
+par-dessus la checklist. Vérifié : une seule banderole ajoutée, pas deux (WCAG 4.1.3).
+
+### Trois minuteurs de même id n'en armaient qu'un
+`migrate()` déduplique les ids de blocs (`while(used[nid])`) mais pas ceux des minuteurs ni des
+compteurs. Or `Runtime.timers` est indexé par id : trois entrées de même id, **une seule armée, la
+dernière**, sans le moindre signal — et les ids DOM (`tmval-`, `cnval-`) se télescopent. Une fiche
+importée, dupliquée ou reçue d'une bibliothèque partagée passe par là, et la règle 5 veut que
+`migrate()` soit le point où une donnée entrante devient sûre. Le premier garde son id (les
+références `counters[].timerId` continuent de résoudre sur lui) ; les suivants en reçoivent un
+neuf. Mesuré : 3/3 ids distincts, 3/3 minuteurs armés, 3/3 cartes, 2/2 compteurs.
+
+### Un pull de synchro avalait un tap en pleine réanimation
+`if(applied)render()` reconstruisait tout le DOM dès qu'une seule ligne distante était écrite —
+y compris en session vive. La règle 11 l'interdit déjà en toutes lettres (« aucune synchro
+intrusive ») : ce n'était donc pas un arbitrage. Il suffisait qu'un coéquipier modifie une ligne
+d'une bibliothèque partagée.
+
+Le premier contrôle que j'avais écrit était faux, et il faut le dire : un `.click()` programmatique
+sur un nœud détaché déclenche quand même son handler (la fermeture survit), et je comptais des
+*clés* de `state.checked` alors que décocher écrit `false` et conserve la clé. Un tap réel est
+`pointerdown → pointerup → click`, et le click n'est émis que si les deux atterrissent sur le même
+élément : le défaut est donc « DOM remplacé entre les deux ». Reproduit à la vraie souris,
+Chromium **et** WebKit — **témoin : 0 → 0 coche** (tap avalé) ; **après correctif : 0 → 1**, sans
+re-rendu ; et hors session le rendu se déclenche toujours.
+
+Rien n'est perdu pendant ce temps : la mémoire est déjà à jour, et toute sortie de crise passe par
+`render()`. Ce qui reste vrai, et c'est voulu : **la fiche ouverte ne change pas sous les yeux du
+soignant** — une aide partagée réécrite à distance en pleine réanimation ne se substitue pas à
+celle qu'on déroule ; la nouvelle version arrive à la réouverture.
+
+510 tests × 2 moteurs, 11 harnais verts (dont 27/27 en doctrine), 289 contrôles d'accessibilité.
+
 ## [4.41.0] — 2026-07-27
 ### Phase 3 (optimisation) — premier lot : le seul vrai levier de performance, et deux invariants
 La campagne de mesure a couvert six dimensions (démarrage, re-rendus, calcul répété, service

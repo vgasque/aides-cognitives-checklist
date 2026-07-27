@@ -238,7 +238,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-8ueni4EFzduE3QnExUkjiNjq5mda+4SykiDZsHsotXs='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-eEPCQNBqJdyKGxA/bgHZtum3FUtAPFkwT5/RQJu3+Ug='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -3438,7 +3438,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.41.0';
+const APP_VERSION='4.42.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -4745,10 +4745,23 @@ function migrate(f){if(!f||typeof f!=='object')f={};
     else{b.type='steps';b.steps=sarr(b.steps,500);b.next=mapId(b.next);b.nextLbl=sstr(b.nextLbl,120);delete b.options;delete b.question;}
     return b;});
   f.start=mapId(f.start)||(f.blocks[0]?f.blocks[0].id:null);
-  f.timers=(Array.isArray(f.timers)?f.timers:[]).slice(0,40).map(t=>({id:safeId(t&&t.id,'t'),label:sstr(t&&t.label,120),type:(t&&t.type==='interval')?'interval':'stopwatch',seconds:Math.max(0,Math.min(86400,Math.round(Number(t&&t.seconds))||0)),autoloop:!!(t&&t.autoloop)}));
+  // IDS UNIQUES, comme pour les blocs ci-dessus (v4.42.0). `Runtime.timers` et `Runtime.counters`
+  // sont des objets INDEXÉS PAR ID : deux entrées de même id et la seconde ÉCRASE la première —
+  // une fiche déclarant trois minuteurs n'en arme qu'UN, le dernier, sans le moindre signal ; et
+  // les ids DOM (`tmval-<id>`, `cnval-<id>`) se télescopent. Le cas n'est pas théorique : une
+  // fiche importée, dupliquée ou reçue d'une bibliothèque partagée passe par ici, et la règle 5
+  // veut que `migrate()` soit le point où une donnée entrante devient sûre. Le PREMIER garde son
+  // id (les références `counters[].timerId` continuent donc de résoudre sur lui, ce qui est le
+  // comportement attendu) ; les suivants en reçoivent un neuf. Un `used` par collection : les
+  // deux familles ont des espaces d'ids et des préfixes DOM distincts, elles ne peuvent pas se
+  // percuter entre elles.
+  const _uniq=(arr,pfx)=>{const u=Object.create(null);return arr.map(x=>{let n=safeId(x&&x.id,pfx);while(u[n])n=uid(pfx);u[n]=1;return n;});};
+  {const tl=(Array.isArray(f.timers)?f.timers:[]).slice(0,40);const ids=_uniq(tl,'t');
+   f.timers=tl.map((t,i)=>({id:ids[i],label:sstr(t&&t.label,120),type:(t&&t.type==='interval')?'interval':'stopwatch',seconds:Math.max(0,Math.min(86400,Math.round(Number(t&&t.seconds))||0)),autoloop:!!(t&&t.autoloop)}));}
   // timerId (facultatif, v4.5) : le « ＋ » du compteur RELANCE ce minuteur (canvas : bolus
   //   adrénaline -> repart le cycle). Référence, jamais régénérée : invalide -> '' (cf. safeCatRef).
-  f.counters=(Array.isArray(f.counters)?f.counters:[]).slice(0,40).map(c=>({id:safeId(c&&c.id,'n'),label:sstr(c&&c.label,120),step:Math.max(1,Math.min(9999,Math.round(Number(c&&c.step))||1)),start:Math.max(0,Math.min(1e9,Math.round(Number(c&&c.start))||0)),timerId:safeCatRef(c&&c.timerId)}));
+  {const cl=(Array.isArray(f.counters)?f.counters:[]).slice(0,40);const ids=_uniq(cl,'n');
+   f.counters=cl.map((c,i)=>({id:ids[i],label:sstr(c&&c.label,120),step:Math.max(1,Math.min(9999,Math.round(Number(c&&c.step))||1)),start:Math.max(0,Math.min(1e9,Math.round(Number(c&&c.start))||0)),timerId:safeCatRef(c&&c.timerId)}));}
   // Rappel du modèle (champs communs posés par sanitizeEntityCommon, tous rétrocompatibles) :
   //   status '' = validée (défaut historique) | 'review' (badge △) | 'draft' (bandeau, masquée aux
   //   lecteurs d'une biblio partagée ; un ancien client traite 'review' comme validée) ;
@@ -5568,7 +5581,17 @@ function onTimerFired(R,t){beep();
   const activeVisible=(R===Runtime)&&state.view==='read'&&document.visibilityState!=='hidden';
   const ft=R.fiche?(R.fiche.title||'Aide cognitive'):'Aide cognitive';const tl=t.label||(t.type==='interval'?'Minuteur':'Chronomètre');
   if(activeVisible){flash(t.id);}   // carte clignotée si visible + flash écran bref (cf. flash())
-  else{showBanner(R.ficheId,ft,tl);flashScreen();if(document.visibilityState==='hidden')osNotify('⏰ '+tl+' — terminé',ft,R.ficheId);}}
+  else{showBanner(R.ficheId,ft,tl);flashScreen();
+    // L'alerte ROUTÉE était muette pour un lecteur d'écran (v4.42.0, WCAG 4.1.3) : la banderole
+    // est un nœud ajouté sans `role`, le flash est visuel, et la notification système n'existe
+    // que si l'app est en ARRIÈRE-PLAN. Restait le bip — qui dit qu'un minuteur a sonné, jamais
+    // LEQUEL ni SUR QUELLE FICHE. Or c'est exactement le cas où l'information manque le plus :
+    // une session vive sur une AUTRE fiche (adrénaline 4 min pendant qu'on lit un différentiel).
+    // `announce()` écrit dans #srLive (role=alert, aria-live=assertive) — sonore côté lecteur
+    // d'écran, INVISIBLE à l'écran : la règle 11 (le mode crise ne s'interrompt pas) est
+    // respectée, rien ne bouge et rien ne se pose par-dessus la checklist.
+    announce('Minuteur terminé : '+tl+' — '+ft);
+    if(document.visibilityState==='hidden')osNotify('⏰ '+tl+' — terminé',ft,R.ficheId);}}
 // Reprise d'un minuteur d'intervalle DÉJÀ TERMINÉ (non bouclé) = nouveau cycle (repart du plein) —
 // sinon « Relancer » semble ne rien faire (le temps est déjà à 0).
 function toggleTimer(t){const now=Date.now();
@@ -7847,13 +7870,29 @@ function bindNavEvents(f,blk){
     li.classList.toggle('done',on);li.setAttribute('aria-checked',on?'true':'false');
     const box=li.querySelector('.box');if(box)box.innerHTML=on?uiIcon('check',19,{sw:3,cls:''}):'';
     paintStepTrace(li,k);
+    // DÉCOCHER ANNULE LA FIN DE L'ALGORITHME (v4.42.0) — symétrique du journal, qui le fait en
+    // deux temps (`ovToggleStep` remet le drapeau à false, puis `ovAfterCheck` re-rend en ancré
+    // si la bannière traîne encore). Ici le reset vivait dans la branche `else` du bloc `if(nn)`
+    // ci-dessous — or quand la fin est actée, `#navNext` N'EXISTE PLUS : `navSection` le REMPLACE
+    // par la bannière `.flow-end`. `nn` étant null, tout le bloc était sauté et le reset ne
+    // s'exécutait JAMAIS dans le seul cas où il sert. Mesuré en mode guidé (une fiche mono-bloc,
+    // ce que rend `blankFiche()`) : « Algorithme terminé — surveillance en cours » restait à
+    // l'écran après décochage, et « Terminer l'algorithme » ne revenait pas. Le journal, lui,
+    // faisait les deux — c'est la divergence que la duplication de ce cœur de cochage a laissé
+    // s'installer. Re-rendu ANCRÉ : l'étape tapée ne bouge pas d'un pixel (doctrine ECAM).
+    if(!on&&state.flowEnded){state.flowEnded=false;
+      renderKeepAnchor('[data-ck="'+CSS.escape(k)+'"]');
+      if(kb){const nl=main.querySelector('[data-ck="'+CSS.escape(k)+'"]');if(nl)nl.focus();}
+      return;}
     // V5 : « Continuer » passe au registre CONFIRMATION (vert) dès que TOUT le bloc est coché
     // (mise à jour DOM directe, cohérente avec le cochage sans re-rendu).
     {const nn=document.getElementById('navNext');
      if(nn){const boxes=[...main.querySelectorAll('[data-ck]')];const dn=boxes.filter(x=>state.checked[x.dataset.ck]).length;const all=dn>=boxes.length;
        nn.classList.toggle('okay',all);nn.classList.toggle('idle',!all);
        nn.textContent=all?(nn.dataset.contlbl||'Continuer →'):('Cochez les étapes restantes ('+(boxes.length-dn)+')');
-       if(all)nn.removeAttribute('aria-disabled');else{nn.setAttribute('aria-disabled','true');state.flowEnded=false;}
+       // (Le `state.flowEnded=false` qui vivait ici est remonté au-dessus, hors du `if(nn)` :
+       //  à cet endroit il ne pouvait plus rien remettre à false — voir le commentaire.)
+       if(all)nn.removeAttribute('aria-disabled');else nn.setAttribute('aria-disabled','true');
        const nt=document.getElementById('ntCount');if(nt)nt.textContent=dn+'/'+boxes.length;
        const ac=document.getElementById('algCount');if(ac)ac.textContent=dn+'/'+boxes.length;}}
     if(kb)li.focus();};li.onclick=()=>tgl(false);li.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();tgl(true);}};});
@@ -11533,7 +11572,24 @@ const Sync={
       }
     }
     if(maxTs)localStorage.setItem(spaceKey(cfg.cursorKey),new Date(maxTs).toISOString());
-    if(applied)render();
+    // JAMAIS DE RE-RENDU PENDANT UN SOIN (v4.42.0) — règle 11 : « le mode crise n'est jamais
+    // interrompu : aucune modale, AUCUNE SYNCHRO INTRUSIVE ». Un `render()` reconstruit `main` :
+    // le nœud sous le doigt est détaché et **un tap en vol est avalé** (mesuré avec témoin sur
+    // Chromium ET WebKit : l'étape reste décochée avec re-rendu, se coche sans). Il suffisait
+    // qu'un coéquipier modifie UNE ligne d'une bibliothèque partagée pour que ça tombe en pleine
+    // réanimation. Le compte `applied` (v4.32.0) avait déjà supprimé les re-rendus qui ne
+    // peignaient rien ; celui-ci peint quelque chose, mais au pire moment.
+    // Rien n'est perdu : `addMem`/`replaceMem`/`dropMem` ont déjà mis À JOUR LA MÉMOIRE, et toute
+    // sortie de crise passe par `render()` (fermer la session, revenir à l'accueil, ouvrir une
+    // autre fiche) — l'écran se met donc à jour au premier instant où c'est sans danger. Pas de
+    // drapeau à tenir : ce serait un second état à synchroniser pour rien.
+    // CE QUI RESTE VRAI PENDANT CE TEMPS, et c'est voulu : la fiche OUVERTE ne change pas sous
+    // les yeux du soignant. `state.fiche` et `Runtime.fiche` pointent l'objet d'AVANT ; le
+    // contenu clinique en cours d'exécution est figé jusqu'à la fin du soin. Une aide partagée
+    // réécrite à distance en pleine réanimation ne doit pas se substituer à celle qu'on déroule.
+    // Le mécanisme de reprise (`openRead` re-pointe `Runtime.fiche` sur la version fraîche) reste
+    // inchangé : la nouvelle version arrive à la RÉOUVERTURE, jamais en cours de geste.
+    if(applied&&!document.body.classList.contains('crisis-live'))render();
     return conflicts;},
   async _pull(){return this._pullTable({table:'fiches',cursorKey:this._cursorKey,
     getAllLocal:()=>Data.getAll(),fromRow:ficheFromRow,
