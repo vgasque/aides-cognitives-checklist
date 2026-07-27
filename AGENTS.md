@@ -21,7 +21,7 @@ vitale, sous stress : clarté et robustesse priment.
 
 ## Si vous ne lisez qu'une chose
 
-Quatorze règles qui ne se négocient pas. Le reste de ce fichier les explique et les étend ; **aucune
+Quinze règles qui ne se négocient pas. Le reste de ce fichier les explique et les étend ; **aucune
 ne s'apprend en lisant le code** — elles viennent d'incidents mesurés, et plusieurs ont déjà été
 « corrigées » par erreur faute d'être lues.
 
@@ -69,6 +69,17 @@ ne s'apprend en lisant le code** — elles viennent d'incidents mesurés, et plu
     doctrine affirme alors un nettoyage qui n'a pas eu lieu — c'est arrivé en v4.25.0, et le CSS
     d'une classe encore ÉMISE (`.pl-stp`) est parti avec, faisant disparaître le registre ⚠ d'une
     étape vitale pendant six versions.
+15. **Le partage de session est un miroir ADDITIF, jamais une dépendance.** Aucun chemin
+    d'interface n'attend jamais un appel réseau du partage — ni au tap, ni au rendu, ni à la fin de
+    session ; couper le réseau ne doit changer, chez l'hôte, **qu'un mot dans le quai d'état**. Et
+    **aucun texte libre ne traverse le réseau** : ce n'est pas un filtrage mais une propriété du
+    format transmis (`shareSnap`/`shareDiff` ne portent que des références et des heures — le
+    libellé d'un repère reste sur l'appareil qui l'a écrit). Une seule chaîne saisie voyage, et ce
+    n'est pas un texte libre dans l'application : le **rôle** du participant, choisi dans un
+    `<select>` de neuf intitulés — le serveur le borne à 24 caractères sans imposer la liste, donc
+    ne jamais transformer ce `<select>` en champ. Les deux moitiés de cette règle sont
+    la promesse faite aux utilisateurs dans la notice de l'écran d'entrée et au registre RGPD
+    (`docs/deploiement-et-conformite.md` § 3.1) : les changer, c'est changer un document opposable.
 
 ## Où trouver quoi
 
@@ -83,6 +94,7 @@ en gras de « Conventions de code » sont ses vraies entrées ; voici la carte, 
 | **Chrome, navigation, géométrie** | ON ANIME LA COMPOSITION · En-têtes V5 · ZONE HAUTE DE CRISE · DEUX RANGÉES COLLANTES · RAIL DE LECTURE · ANCRAGE ET DÉFILEMENT · DÉFILEMENT PRÉSERVÉ · HAUTEURS RELATIVES À LA FENÊTRE · Largeurs & échelles fermées · PILE DE RETOUR · RETOUR SYSTÈME · Sélecteur segmenté · Repli de l'étape ① · LOGO DE MARQUE · Pieds de page · Indicateur de mode des éditeurs · Interactif |
 | **Consultation et références** | FEUILLE « CONSULTER » · FEUILLE CONSULTER = UN DOCUMENT · REPÈRES POSOLOGIQUES · SORTIE PDF UNIFIÉE |
 | **Données, stockage, sécurité** | Documents PDF · Export/import « avec documents » · Nommage SQL · (et les points 4 à 6 ci-dessus) |
+| **Partage de session en direct** | PARTAGE DE SESSION · CE QUI VOYAGE · RÔLES ET CAPACITÉS · L'INVITÉ NE DÉPOSE RIEN · CONTINUER SEUL |
 | **Leçons de maintenance** | Collision de noms de classe · Hygiène de suppression |
 
 Les deux autres sections : **Périmètre réglementaire** (statut non-dispositif-médical — à consulter
@@ -148,9 +160,9 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   `design/ds/` a dérivé du code (le CI le rejoue ; `release.sh` régénère automatiquement). Pousser
   le résultat vers le projet Claude Design distant reste un geste explicite (skill `/design-sync`).
 - `npm run audit` — **audit transverse (v4.23.0 ; SOCLE COMMUN + MOTEUR CHOISISSABLE v4.45.0)**.
-  Les onze harnais partagent `scripts/harness.mjs` (serveur statique, table MIME, choix du
+  Les harnais partagent `scripts/harness.mjs` (serveur statique, table MIME, choix du
   moteur) : ils recopiaient le même bloc, et la DIVERGENCE avait déjà commencé —
-  `audit-lecteur.mjs` était le seul dont la table MIME omettait `.ico`. Surtout, les onze
+  `audit-lecteur.mjs` était le seul dont la table MIME omettait `.ico`. Surtout, les onze d'alors
   lançaient `chromium.launch()` EN DUR : **iOS Safari, la cible principale déclarée, n'était
   auditée par AUCUN harnais**, alors que `npm test` tourne sur deux moteurs depuis v4.34.0. Le
   moteur se choisit désormais par `AC_ENGINE` (`chromium` par défaut, donc rien ne change sans
@@ -164,14 +176,14 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   identiques (variable isolée). RÈGLE : toute sonde qui lit une géométrie après `focus()` doit
   attendre. Il ne s'agissait donc pas d'un défaut d'accessibilité — mais on ne pouvait pas le
   savoir tant que les harnais ne tournaient que sur Blink., à rejouer dès qu'on touche au chrome de crise,
-  au rail, aux feuilles Plan/Consulter ou à un token de couleur. **ONZE** harnais Playwright qui
+  au rail, aux feuilles Plan/Consulter ou à un token de couleur. **TREIZE** harnais Playwright qui
   MESURENT au lieu d'affirmer (liste exacte dans `package.json`, script `audit` : a11y, doctrine,
-  verify, verify-live, session-card, zoom-scroll, modeseg, consulter, complications, exercice,
-  lecteur). Ils tournent en CI en mode **NON BLOQUANT** (`continue-on-error`) : visibles à chaque
+  verify, session-card, zoom-scroll, verify-live, modeseg, consulter, complications, exercice,
+  lecteur, **qr**, **partage**). Ils tournent en CI en mode **NON BLOQUANT** (`continue-on-error`) : visibles à chaque
   push, mais un échec y demande un arbitrage humain, pas un blocage de merge. Les trois plus
   anciens, en détail :
-  - `scripts/audit-a11y.mjs` — **22 surfaces × 2 thèmes, dont les 20 `.ai-modal` du monofichier**
-    (v4.40.0) : plancher typographique 11 px, contraste
+  - `scripts/audit-a11y.mjs` — **25 surfaces × 2 thèmes, dont les 21 `.ai-modal` du monofichier
+    et l'écran d'entrée de l'invité** (v4.40.0) : plancher typographique 11 px, contraste
     calculé sur le fond EFFECTIF (remontée des ancêtres + composition alpha, exemption « grand
     texte »), cibles (44 px en crise, 24 px ailleurs, halo `::after` compté), `--soft` en couleur
     de texte, « hors chemin » signalé par la seule opacité, et **focus visible sous de VRAIES
@@ -1453,27 +1465,144 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   `l/<libId>/…` partagé) ; les contrôles client ne sont que de l'ergonomie. Toute évolution du
   schéma OU des politiques du bucket doit être revalidée avec `supabase/rls-tests.sql`.
 
+- **PARTAGE DE SESSION EN DIRECT (v4.46.0 → v4.49.0)** — un soignant ouvre le partage de la session
+  qu'il déroule ; un collègue **présent auprès de lui** rejoint par un code à 8 caractères montré à
+  l'écran (porté par un QR, alphabet de 32 symboles sans `0/1/I/O`) et voit la même checklist se
+  remplir. **CE N'EST PAS UN PARTAGE D'AIDE COGNITIVE** — les bibliothèques partagées font cela,
+  avec adhésions et RLS : ici la portée est **une** session, elle meurt avec elle, l'invité ne
+  conserve rien, et `auth.uid()` ne sert QU'À L'ATTRIBUTION, jamais à l'accès (qui vient toujours du
+  secret de participant). Il n'existe donc **qu'un seul chemin d'accès à auditer**. Doctrine :
+  AC 120-71B §5.2.2.1 — « one crewmember reading the checklist and the second confirming and
+  responding ». La co-édition symétrique **n'existe dans aucune source** ; toutes décrivent une
+  asymétrie, et Airbus la garantit par le MATÉRIEL (un seul ECAM Control Panel). La « vue dégradée »
+  de l'invité n'est pas un compromis, c'est la forme canonique.
+- **CE QUI VOYAGE — un vocabulaire FERMÉ, et un seul point d'émission.** `shareSnap(R,flowEnded)` et
+  `shareDiff(a,b)` sont PURES et testées : deux instantanés donnent une suite d'évènements
+  (`check`, `uncheck`, `verify`, `gap`, `counter`, `timer_arm`, `timer_stop`, `mark`, `mark_void`,
+  `nav`, `flow_end`, `session_start`, plus `detach`/`offline_mark`). L'émission est accrochée à
+  **`persistLive`** — un seul crochet, et non les **soixante** verbes de mutation recensés (41
+  attributs `data-*` en vue lecture + 19 contrôles à `id` sans aucun `data-*`) : ce qui est couvert
+  par l'enregistrement local l'est mécaniquement par le partage, et toute mutation ajoutée demain
+  aussi. **`shareRebase()` après application d'un lot distant**, sans quoi ce qu'on vient de
+  recevoir serait re-diffé et RENVOYÉ — un écho qui compterait double au compte-rendu.
+  **AUCUN TEXTE LIBRE (règle 15)** : le libellé d'un repère de journal n'est pas dans le format —
+  seuls `{id, t, ref, voidAt}` voyagent —, `localInfo` et les images sont retirés de la fiche, et
+  `SHARE_TRAVELS`/`SHARE_LOCAL` classent explicitement chaque champ (un test échoue si un champ de
+  `snapshotSession` n'est classé nulle part). `flowEnded` EST un état de session et voyage ; `nav`
+  et `navSeq` voyagent **indissociables** — les clés de cochage valent `visite:bloc:index`, et
+  transmettre l'un sans l'autre orphelinerait toutes les coches.
+- **RÔLES ET CAPACITÉS — le scribe AJOUTE, il ne DÉFAIT pas.** `SHARE_KINDS_ANY` (cocher, constater,
+  signaler un écart, **incrémenter** un compteur, **armer** un minuteur, poser et annuler un repère)
+  contre `SHARE_KINDS_LEAD` (décocher, avancer, terminer, choisir une branche, **arrêter** ou
+  remettre à zéro, passer la main). La distinction n'est pas arbitraire : ajouter est additif et
+  réversible par le journal, remettre à zéro détruit un décompte que personne ne peut restituer.
+  **JAMAIS PAR MASQUAGE** : masquer `#modeSeg`/`#planBtn`/`#refBtn` replie `#crisisCtrl` et fait
+  remonter le contenu clinique de **46 px** — sous les yeux de quelqu'un qui n'a rien demandé, et
+  sur évènement DISTANT si le rôle change. La boîte reste, la géométrie est identique refus ou non
+  (mesuré ≤ 1 px), et le refus s'annonce sur `#srLive` (règle 11 : aucune notification flottante).
+  **UNE SEULE LISTE de verbes** (`LEAD_ONLY_SEL`) consommée par le CSS (`body.share-scribe`) ET par
+  une garde déléguée en capture (`bindLeadGuard`) ; un contrôle du harnais lit la liste **depuis le
+  script**. Deux gestes dépendent de leur DIRECTION et ne peuvent pas être bridés en CSS —
+  `data-ck` porte cocher *et* décocher, le minuteur armer *ou* arrêter : gardés dans les handlers,
+  et pour le cochage par le prédicat **unique** `canToggleStep(on)` appelé aux **deux** copies du
+  cœur, celles qui avaient divergé en v4.42.0.
+- **L'INVITÉ NE DÉPOSE RIEN, ET C'EST UNE DÉCISION DE DÉMARRAGE.** Mesuré avant correction :
+  `index.html#j=CODE` déposait **3,17 Mo** (deux caches dont pdf.js), une base IndexedDB, quatre
+  clés `localStorage`, un service worker, et appelait `navigator.storage.persist()` — **avant** que
+  le premier mot de la notice puisse s'afficher. `shareBootDecide()` tranche donc AVANT `load()` :
+  code sur appareil vierge → backend **mémoire**, aucun worker, aucune persistance demandée, écran
+  d'entrée **à la place** de l'application. `openRead(id)` est inutilisable ici (il cherche la fiche
+  dans `fiches`, où elle ne doit JAMAIS entrer, puis appelle `bumpUsage` qui écrit chez l'invité) :
+  chemin distinct `openSharedFiche()`. `ensureStarted` **refuse de démarrer** chez un invité — c'est
+  le point exact où l'étanchéité se joue, sans quoi sa première coche créerait un enregistrement de
+  session sur un téléphone emprunté. Le fragment `#j=` est retiré de l'historique immédiatement
+  (`_histArm()` fait un `pushState` **sans URL**, donc recopie l'URL courante, fragment compris).
+  **Un seul message de refus** pour les six causes que le serveur ne distingue pas : les séparer
+  ferait de `share_join` un oracle (« ce code existe », « la session est pleine »).
+- **CONTINUER SEUL — la trace remonte, l'état NON (AC 120-64 §9.a).** Si le réseau ne revient pas,
+  l'invité bascule sa copie en session locale normale. `Share.detach()` est un ACTE, jamais un
+  accident : le serveur le date (`detached_at`), ce qui donne à l'hôte l'heure à laquelle il a cessé
+  d'être suivi. **La file en attente est CONVERTIE, pas jetée** — chaque geste devient un
+  `offline_mark` qui rejoint le journal de l'hôte en **annexe**, à sa place chronologique, INERTE
+  (ni champ ni bouton : on ne corrige pas le relevé d'un autre). **L'état ne fusionne JAMAIS**, et
+  la raison est structurelle et non doctrinale : après la bifurcation, les numéros de visite sont
+  mintés **indépendamment** des deux côtés — « la visite 6 » de l'un et celle de l'autre désignent
+  deux passages différents. Ce n'est pas un conflit arbitrable, c'est une **collision d'espace de
+  noms**, et fusionner produirait un résultat non pas discutable mais FAUX ET PLAUSIBLE. Un
+  participant **coupé** par l'hôte, lui, ne rapporte rien : la coupure est une décision, pas une
+  panne. Distinguer `Share.freeze(status)` (le lien meurt, l'écran survit, le mode `guest` reste)
+  de `Share.stop()` (l'écran est quitté) : à l'instant où l'hôte coupait, `crisisOnScreen()` tombait
+  et déversait jusqu'à 8 snackbars retenues sur la checklist que le collègue tient encore en main.
+  **`crisisOnScreen()` est LE prédicat unique** de « une crise est à l'écran » (quai, mise en
+  attente des banderoles, masquage de la méta) — deux critères concurrents finiraient par diverger.
+- **LE SERVEUR EST L'AUTORITÉ, PAS LE CLIENT.** Cinq règles écrites dans `schema.sql`, chacune
+  réparant une faille identifiée : (1) **aucune identité en paramètre** — l'acteur est DÉDUIT du
+  secret présenté, sinon tout porteur du code signerait du nom d'un autre, or l'attribution EST le
+  contrôle demandé ; (2) **un secret par participant**, tiré par `gen_random_bytes`, seul son
+  SHA-256 stocké — c'est ce qui rend la coupure EFFECTIVE, sans quoi le coupé rejoindrait avec le
+  même code ; (3) **fenêtre d'admission de 120 s** et code **consommé** à la première jointure ;
+  (4) **append-only strict** — l'état est un PLI calculé par chaque client (doctrine du journal de
+  parcours), un état matérialisé imposerait un verrou derrière lequel **l'hôte attendrait ses
+  propres écritures** ; (5) **liste BLANCHE des 14 champs de fiche, côté serveur** (v4.49.0) — elle
+  n'existait qu'en JavaScript, et un appel REST direct la traversait avec `images` et `localInfo`
+  (les téléphones de renfort et de régulation). Liste blanche, jamais noire : une liste noire oublie
+  ce qu'on ajoutera demain. La séquence est allouée **sous verrou de ligne, par partage** — surtout
+  pas un `bigserial`, qui alloue à l'INSERT et non au COMMIT : un évènement validé en retard
+  resterait sous le curseur, définitivement et en silence. Purge auto-exécutoire **en tête de chaque
+  RPC** (l'hébergement est statique : personne ne lance de tâche planifiée, et une durée annoncée
+  sans mécanisme serait fausse au registre). `is_approved()` refuse le rôle `anon` **et** les JWT
+  anonymes (qui portent un `auth.uid()` non nul et retombaient sur `'approved'`).
+- **CE QU'ON NE FAIT JAMAIS** : (a) un `render()` sur évènement distant — application chirurgicale
+  seule, les verbes re-rendants sont mis en file et appliqués au prochain geste **local** de
+  navigation ; (b) recalculer la condensation `ovPresList` sur un évènement distant — rien ne mute
+  au-dessus ; (c) attendre un appel réseau du partage dans un chemin d'interface (**règle 15**) ;
+  (d) loger un contrôle dans le quai — il réécrit son `innerHTML` une fois par seconde, et un tap y
+  est AVALÉ dans 13 % des cas, mesuré identique sur les deux moteurs ; (e) ajouter un segment au
+  quai — l'insertion déplace le segment d'alarme de 45 à 57 px selon la largeur, sur évènement
+  distant, ce que la constance positionnelle ECAM interdit ; le jeu de jetons est **fermé**
+  (`main`, `suit`, `⇄n`, `figé`, `coupé`, `fini`, `seul` — 8 caractères maximum), et **le lien
+  REMPLACE la main** quand il n'est plus nominal, parce qu'alors le rôle n'est plus CONNU :
+  l'afficher serait la donnée périmée présentée comme vivante (danger n°2 du palmarès ECRI 2015).
+  Harnais : `scripts/audit-partage.mjs` (deux pages, bus en processus, les deux moteurs) et
+  `scripts/audit-qr.mjs` (décodage par CoreImage de l'image **réellement peinte**, macOS seulement,
+  avertit sans échouer ailleurs).
+
 ## Périmètre réglementaire
 L'app est un **support de contenu** rédigé et validé par l'utilisateur, sans calcul ni
 recommandation individualisée : voir `docs/deploiement-et-conformite.md` (§ 2, statut
 non-dispositif-médical). Toute fonctionnalité qui produirait une sortie individualisée
 (ex. calcul de doses) doit être évaluée au regard de ce statut **avant** développement.
 
-## Se repérer dans `index.html` (monofichier, ~12 250 lignes)
+**Le partage de session a été passé à la grille explicitement** (§ 2, sous-section dédiée) : il ne
+calcule rien, il **recopie** un état d'un écran à l'autre — qualification MDCG 2019-11
+« communiquer ». La ligne à ne pas franchir est nommée : le jour où le partage **déduirait** quelque
+chose de l'état partagé (score d'adhérence, alerte « étape non cochée depuis n minutes », suggestion
+de reprise), la qualification serait à rouvrir. Et **ne jamais présenter le partage comme un outil
+de supervision ou de contrôle de qualité** : ce vocabulaire suggère une évaluation par le logiciel.
+
+**Le registre RGPD est un document opposable, et il est à jour** : `docs/deploiement-et-conformite.md`
+§ 3 et surtout **§ 3.1**, qui énumère ce qui sort de l'appareil (les 14 champs de fiche, les
+références, l'identifiant opaque + le rôle déclaré), les durées mesurées (fenêtre 120 s, partage 3 h
+par défaut borné à 12 h, purge 30 min après expiration) et ce qui ne sort jamais. **Il doit rester
+cohérent avec la notice affichée à l'invité** (`#joinScreen`) : les deux évoluent ensemble, ou
+aucun.
+
+## Se repérer dans `index.html` (monofichier, ~14 400 lignes)
 Le fichier s'ouvre sur un **grand commentaire d'architecture** (objectif, règles de conception,
 modèle de données, règles de sécurité) : le lire en premier. Ensuite, dans l'ordre.
 
 > **Le tableau ci-dessous est un RÉSUMÉ, pas un index** : il décrit une vingtaine de sections sur
-> les **54** bannières `/* ===== … ===== */` du fichier, et volontairement sans numéros de ligne —
+> les **57** bannières `/* ===== … ===== */` du fichier, et volontairement sans numéros de ligne —
 > ils seraient périmés au commit suivant. Pour l'index EXACT et à jour, une commande :
 >
 > ```bash
 > grep -n '^/\* ===== \|^  /\* ===== ' index.html
 > ```
 >
-> Découpage global : CSS ≈ lignes 273-3110, coque HTML statique ≈ 3112-3375 (dont **20 fenêtres
+> Découpage global : CSS ≈ lignes 273-3379, coque HTML statique ≈ 3381-3697 (dont **21 fenêtres
 > modales** déclarées en dur — `grep -c 'class="ai-modal' index.html`, toutes auditées par
-> `audit-a11y.mjs`), JavaScript ≈ 3376 à la fin.
+> `audit-a11y.mjs` —, plus deux surfaces plein écran qui n'en sont pas : `#readerMode` et
+> `#joinScreen`), JavaScript ≈ 3699 à la fin.
 
 | Section (bannières `/* ===== … ===== */`) | Contenu |
 |---|---|
@@ -1491,5 +1620,6 @@ modèle de données, règles de sécurité) : le lire en premier. Ensuite, dans 
 | Protocoles | `blankProtocol`/`migrateProtocol` (point d'entrée sécurité/compat), `renderProtocols`/`renderProtocolRead`/`renderProtocolEdit`, sélecteur de section dans l'en-tête (`#hdrSec` statique, `state.section`) |
 | Export / Import | JSON `version: 3` + conteneur `.zip` « avec documents » (`zipBuild`/`zipParse` maison, `importAtts`) ; règles de rétrocompatibilité documentées sur place |
 | Compte & synchro | `Auth` (OTP e-mail), `Sync` (pull/push local-first), fenêtres associées |
+| Partage de session | `Share` (sondage REST, cadence adaptative, file hors-ligne, horloge de Cristian), noyau PUR `shareSnap`/`shareDiff`/`shareFold`/`shareCan`, application chirurgicale `SHARE_APPLY`/`sharePaintLive`, décision de démarrage `shareBootDecide` + écran `#joinScreen`, fenêtre d'appariement `#shareModal` et encodeur QR maison. Le serveur (`supabase/schema.sql`, section « partage de session ») est l'autorité : liste blanche des champs, secret par participant, code consommé, append-only, purge |
 | Accessibilité | gestion centralisée des modales (focus, Échap, Tab ; v4.21.0 : verrou du défilement de fond `_bgLock`/`_bgUnlock` + `overscroll-behavior:contain` sur `.ai-modal`, position restaurée au pixel à la dernière fermeture ; **TECHNIQUE CHANGÉE v4.29.9** : le verrou est `overflow:hidden` sur `html` ET `body` (classes posées sur LES DEUX éléments), plus JAMAIS `body{position:fixed;top:-scrollY}` — sur iPhone, un body fixé RÉTRÉCISSAIT le rendu des fenêtres fixées de ~60 px en bas [« bande morte », dossier v4.29.x prouvé à la règle visuelle : accueil sain, fenêtre coupée dès le verrou] sans qu'AUCUNE mesure web ne le voie, et la bande était MASQUÉE depuis v4.23.3 par le fond peint sur html ; ne pas réintroduire de position:fixed sur body). **v4.23.0** : une fenêtre marquée `.sheet-full` (OPAQUE et plein écran, ex. feuille Plan) verrouille le fond à **TOUS les pointeurs** (`body.modal-full`) — la restriction au toucher n'existe que parce que figer `body` au pointeur fin décale le fond visible AUTOUR d'un petit dialogue ; une feuille opaque ne laisse rien voir du fond, et sans verrou la page continue de défiler derrière (constaté sur ordinateur) |
 | Mode test | hook `?__actest` : expose les fonctions pures pour `tests.html` |

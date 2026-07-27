@@ -488,10 +488,16 @@ for (const [w, h] of [[320, 568], [390, 844]]) {
       expires_at: new Date(Date.now() + 3600e3).toISOString(), server_time: new Date().toISOString() });
     Share._io.admit = async () => { admis++; return { ok: true, code: 'RSTU5678',
       join_open_until: new Date(Date.now() + 120e3).toISOString(), server_time: new Date().toISOString() }; };
+    /* PERSONNE N'A ENCORE REJOINT — et c'est la première moitié du contrat. Le harnais renvoyait
+       d'emblée un participant, donc il mesurait la fenêtre APRÈS jointure tout en exigeant le code
+       affiché : il encodait le défaut. Un code est consommé par la première jointure ; tant qu'elle
+       n'a pas eu lieu, il doit être lisible, grand, avec son QR et son lien. */
+    let rejoint = false;
     Share._io.pull = async () => ({ ok: true, status: 'active', events: [], seq: 0, n_events: 0,
-      participants: [{ id: 'p0', label: 'Hôte', role: 'lead', owner: true },
-                     { id: 'p1', label: 'IADE', role: 'scribe', owner: false }],
+      participants: [{ id: 'p0', label: 'Hôte', role: 'lead', owner: true }].concat(
+        rejoint ? [{ id: 'p1', label: 'IADE', role: 'scribe', owner: false }] : []),
       server_time: new Date().toISOString() });
+    window.__rejoindre = () => { rejoint = true; };
     const pousses = [];
     Share._io.push = async (s, sh, ev) => { pousses.push(...ev); return { ok: true, server_time: new Date().toISOString() }; };
     Auth.signedIn = () => true;                       // l'hébergement exige un compte
@@ -525,11 +531,26 @@ for (const [w, h] of [[320, 568], [390, 844]]) {
       defilable: (() => { const m = document.getElementById('shareModal');
         return !!m && m.scrollHeight > m.clientHeight - 1 && /auto|scroll/.test(getComputedStyle(m).overflowY); })(),
       fondVerrouille: document.documentElement.classList.contains('modal-open'),
+      // Capturées PORTE OUVERTE : une fois le code consommé, ni l'adresse ni le QR n'ont de sens.
+      adresse: (document.querySelector('#shareModal .sh-adr') || {}).textContent || '',
       participants: [...document.querySelectorAll('#shareModal .sh-p .n')].map(e => e.textContent),
       // L'ÉMISSION : l'ouverture doit avoir versé l'état COURANT dans la file (la session est
       // démarrée depuis le bootstrap), sinon un invité arriverait devant une fiche vierge.
       fileOuverture: Share.pending() + pousses.length,
     };
+    /* SECONDE MOITIÉ DU CONTRAT — LE CODE MEURT DÈS QUE QUELQU'UN ENTRE.
+       `share_join` met `code_hash` et `join_open_until` à NULL : la porte se referme derrière celui
+       qui entre, AVANT l'échéance des 120 s. L'hôte, lui, gardait sa copie et continuait d'afficher
+       le code avec un décompte — il dictait un code déjà consommé et lisait « ouvert encore 97 s »
+       sur une porte fermée. Donnée périmée présentée comme vivante (danger n°2 ECRI 2015). */
+    window.__rejoindre();
+    await new Promise(x => setTimeout(x, 2600));
+    out.codeApres = (document.getElementById('shCode') || {}).textContent || '';
+    out.qrApres = !!document.querySelector('#shareModal .qr');
+    out.diApres = (document.querySelector('#shareModal .sh-lead') || {}).textContent || '';
+    out.admetApres = !!document.getElementById('shAdmit');
+    out.participants = [...document.querySelectorAll('#shareModal .sh-p .n')].map(e => e.textContent);
+
     // Un geste local doit produire un évènement — c'est tout l'objet du raccrochage à persistLive.
     const av = Share.pending() + pousses.length;
     const ck = document.querySelector('[data-ck]'); if (ck) ck.click();
@@ -550,7 +571,6 @@ for (const [w, h] of [[320, 568], [390, 844]]) {
     await new Promise(x => setTimeout(x, 600));
     out.repli = !document.querySelector('#shareModal .sh-p.wait')
       && !!document.querySelector('#shareModal [data-shcut]');
-    out.adresse = (document.querySelector('#shareModal .sh-adr') || {}).textContent || '';
     // La confirmation d'arrêt doit DOMINER la fenêtre qui l'ouvre : elle héritait du z-index 55
     // des fenêtres ordinaires et s'affichait DERRIÈRE la fenêtre d'appariement (94), invisible
     // alors même que le focus y était piégé.
@@ -566,6 +586,10 @@ for (const [w, h] of [[320, 568], [390, 844]]) {
     return out;
   });
   t(`${w}×${h} · la fenêtre s'ouvre`, r.ouverte, JSON.stringify(r).slice(0, 200));
+  t(`${w}×${h} · le code DISPARAÎT dès qu'un participant entre`, !r.codeApres, r.codeApres);
+  t(`${w}×${h} · … et le QR avec lui`, r.qrApres === false, 'QR encore peint');
+  t(`${w}×${h} · … la fenêtre dit QUI l'a consommé`, /IADE/.test(r.diApres) && /servi/i.test(r.diApres), r.diApres);
+  t(`${w}×${h} · … et « Nouveau code » reste offert`, r.admetApres, 'bouton absent');
   t(`${w}×${h} · le code est affiché en clair`, /K7M2-P4Q9/.test(r.code), r.code);
   /* LA TAILLE RENDUE, PAS LA VALEUR ÉCRITE. Le code a été agrandi trois fois sans le moindre
      effet à l'écran : `.ai-card p` (spécificité 0,1,1 — une classe ET un type) l'emportait sur

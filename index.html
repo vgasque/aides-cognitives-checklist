@@ -238,7 +238,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-F5j9lONNpbJ/6/hLjrxvKL3zwhq64AkP1dhpZQrVIy4='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-ifXx2NF8lQMYXpBOThqOXCc68/gDFD28AMhVsWx9uf8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -3554,7 +3554,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
 <div id="joinScreen" hidden>
   <div class="ai-card dlg-480 join-card" role="dialog" aria-modal="true" aria-labelledby="joinTitle">
     <p class="join-eye">Aides cognitives</p>
-    <div class="ai-top"><h3 id="joinTitle">Rejoindre une session</h3></div>
+    <!-- SORTIE CONDITIONNELLE. L'écran d'entrée a été conçu comme le REMPLACEMENT de l'application
+         sur un appareil vierge : il n'y a alors rien derrière, et une croix n'aurait mené nulle
+         part. Mais on y arrive aussi depuis l'accueil, en tapant le code dans la recherche — et
+         là, une application tourne derrière, avec la bibliothèque de quelqu'un. Sans sortie, un
+         code mal recopié enfermait l'utilisateur dans un écran qu'il n'avait pas demandé. La croix
+         n'apparaît donc QUE s'il y a un « derrière » (`SHARE_NOTRACE` faux). -->
+    <div class="ai-top"><h3 id="joinTitle">Rejoindre une session</h3>
+      <button class="ai-x" id="joinX" aria-label="Fermer" hidden>&times;</button></div>
     <p>Vous allez suivre <b>en direct</b> la session ouverte par le soignant qui vous a montré ce
       code. <b>Rien n'est installé sur cet appareil</b>, et l'accès s'arrête avec la session.</p>
     <label class="join-lab" for="joinCode">Code affiché sur son écran</label>
@@ -3706,7 +3713,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.49.0';
+const APP_VERSION='4.50.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -4574,6 +4581,12 @@ function cxEnter(f,target){
    normale pour la non-normale SANS changer de support) — il est repiloté sur le nouveau bout. */
 function _rmSync(){const rm=document.getElementById('readerMode');
   if(rm&&rm.classList.contains('on')){readerI=-1;readerRender();}}
+/* REPEINDRE LE LECTEUR SANS LE DÉPLACER. Distinct de `_rmSync`, qui REPOSITIONNE (readerI=-1) :
+   celui-là appartient aux gestes qui CHANGENT DE CHECKLIST (complication, reprise). Une action
+   arrivée de l'autre appareil ne doit rien déplacer — elle met à jour ce qui est affiché, et
+   c'est tout. */
+function readerRepaint(){const rm=document.getElementById('readerMode');
+  if(rm&&rm.classList.contains('on'))readerRender();}
 function cxResume(f,backId){
   if(!f||!(f.blocks||[]).some(b=>b&&b.id===backId))return;
   ovDropOpens();
@@ -6310,7 +6323,13 @@ function applyViewChrome(){
      hc.textContent=state.previewFrom?'■ Aperçu':(exo?'▲ Exercice':'■ Crise');
      hc.classList.toggle('exo',exo);
      document.querySelector('header.bar').classList.toggle('exo',exo);
-     const qb=document.getElementById('cbExoQuit');if(qb)qb.hidden=!exo||!!state.previewFrom;}
+     /* « Quitter l'exercice… » appartient à CELUI QUI RÉPÈTE. Un invité qui suit une répétition
+        doit voir le placard (c'est tout l'objet de l'annonciation) mais ne peut pas y mettre fin :
+        le bouton appellerait `quitExercise` sur SON Runtime, sans rien changer chez l'hôte — un
+        contrôle qui ment sur sa portée. Il quitte par « Quitter le partage… », qui dit ce qu'il
+        fait. */
+     const qb=document.getElementById('cbExoQuit');
+     if(qb)qb.hidden=!exo||!!state.previewFrom||Share.mode==='guest';}
    else {cb.classList.remove('exo');
      document.querySelector('header.bar').classList.remove('exo');}
    // Accès permanent au Plan : seulement là où un plan existe (fiche À ALGORITHME), hors aperçu
@@ -8187,7 +8206,7 @@ function vfNow(){try{return Share.mode!=='off'?Share.now():Date.now();}catch(e){
    même suite obtiennent le même état, ce que l'empreinte vérifie ensuite. */
 function shareFold(events,base){
   const s=Object.assign({checked:{},verified:{},vgaps:{},counters:{},timers:{},nav:[],navSeq:[],
-    events:[],flowEnded:false,annex:[],startedAt:0},base||{});
+    events:[],flowEnded:false,annex:[],startedAt:0,exercise:false},base||{});
   for(const e of (events||[])){
     const p=e.payload||{};
     switch(e.kind){
@@ -8209,7 +8228,7 @@ function shareFold(events,base){
          arrivé à 14 h 12 sur une réanimation débutée à 13 h 55 voyait son chrono partir de zéro et
          son compte rendu dater le début du soin à son arrivée — les deux documents d'un même soin
          devenaient alors impossibles à recouper au débrief. */
-      case 'session_start': if(+p.t)s.startedAt=+p.t; break;
+      case 'session_start': if(+p.t)s.startedAt=+p.t; s.exercise=!!p.exo; break;
       case 'mark':    s.events.push({id:p.id,t:p.t||e.ts,ref:p.ref||null,a:e.actor}); break;
       // Annulation RÉVERSIBLE : le repère n'est jamais retiré du pli — il porte l'heure de son
       // annulation, ou repasse à null si l'on se ravise. Le journal reste append-only.
@@ -8243,6 +8262,13 @@ function shareSnap(R,flowEnded){
     counters:cn,timers:tm,
     events:(R.events||[]).map(e=>({id:e.id,t:+e.t||0,ref:e.ref||null,voidAt:e.voidAt||null})),
     nav:(R.nav||[]).slice(),navSeq:(R.navSeq||[]).slice(),flowEnded:!!flowEnded,
+    /* LE PLACARD D'EXERCICE VOYAGE (v4.50.0). `openSharedFiche` lisait déjà `fold.exercise` — mais
+       AUCUN émetteur ne l'a jamais posé : moitié de chemin écrite, et la ligne se lisait comme si
+       elle marchait. Mesuré : hôte en répétition = bandeau hachuré, en-tête hachuré, pilule
+       « ▲ Exercice » ; invité = « ■ Crise » et « ● Session ». Or l'annonciation EST la raison
+       d'être du mode exercice (placard TRAINING, v4.27.0) : un renfort qui rejoint une RÉPÉTITION
+       en la croyant réelle est précisément ce que le placard existe pour empêcher. */
+    exercise:!!R.exercise,
     startedAt:+R.startedAt||0};}
 function shareDiff(a,b){
   a=a||shareSnap(null,false);b=b||shareSnap(null,false);
@@ -8274,7 +8300,13 @@ function shareDiff(a,b){
   if(a.nav.join('|')!==b.nav.join('|')||a.navSeq.join('|')!==b.navSeq.join('|'))
     out.push({kind:'nav',payload:{nav:b.nav.slice(),navSeq:b.navSeq.slice()}});
   if(a.flowEnded!==b.flowEnded)out.push({kind:'flow_end',payload:{on:b.flowEnded}});
-  if(a.startedAt!==b.startedAt&&b.startedAt)out.push({kind:'session_start',payload:{t:b.startedAt}});
+  /* `session_start` PORTE AUSSI LE PLACARD, et c'est le bon véhicule : le drapeau d'exercice est
+     posé par `startExercise` qui appelle `freshRuntime` — il ne peut donc changer QU'AVEC le
+     démarrage, jamais pendant. Aucun genre nouveau, donc aucune modification du schéma : le
+     serveur valide le `kind`, pas la forme du payload, et `session_start` est déjà réservé au
+     lead — un scribe ne peut pas déguiser une session réelle en répétition. */
+  if(a.startedAt!==b.startedAt&&b.startedAt)
+    out.push({kind:'session_start',payload:{t:b.startedAt,exo:!!b.exercise}});
   return out;}
 /* Base de comparaison de l'émission. Remise à jour APRÈS l'application d'un lot distant : sans
    cela, ce qu'on vient de recevoir serait re-diffé et RENVOYÉ à l'expéditeur — un écho qui ferait
@@ -13228,6 +13260,7 @@ const Share={
   mode:'off',                 // 'off' | 'host' | 'guest'
   fold:null,                  // état PLIÉ du fil — l'unique état de l'invité (jamais chez l'hôte)
   code:null, joinUntil:0, expiresAt:0,   // ce que l'HÔTE dicte, et jusqu'à quand (côté hôte seul)
+  codeTakenBy:null,                      // qui l'a consommé — pour le DIRE, jamais pour l'accès
   share:null, secret:null, me:null, role:null,
   status:'off',               // 'active' | 'revoked' | 'detached' | 'expired' | 'ended'
   cursor:0, seq:0, nEvents:0, applied:0, offset:0,
@@ -13350,6 +13383,21 @@ const Share={
         // qu'on prendrait pour un réseau capricieux.
         if(this.status!=='active'&&this.status!==stAv){this.freeze(this.status);}
         if(this.status!==stAv){try{this.onStatus(this.status,stAv);}catch(e){}}
+        /* LE CODE EST MORT DÈS QUE QUELQU'UN ENTRE — et l'hôte doit le voir.
+           `share_join` met `code_hash` et `join_open_until` à NULL : la porte se referme derrière
+           celui qui entre, avant l'échéance des 120 s. Or l'hôte gardait `code` et `joinUntil` de
+           son côté et continuait d'afficher le code AVEC un décompte : il dictait un code déjà
+           consommé, et voyait « ouvert encore 97 s » sur une porte fermée. C'est la donnée périmée
+           présentée comme vivante — danger n°2 du palmarès ECRI 2015, que la doctrine du quai
+           nomme déjà pour les minuteurs. Aucune modification du schéma n'est nécessaire : une
+           jointure est la SEULE chose qui consomme un code, donc l'apparition d'un participant
+           EST l'observation. On en profite pour l'annoncer — l'hôte obtient enfin l'accusé de
+           réception d'appariement que l'échange en trois temps (AC 61-115) suppose. */
+        {const av=(this.participants||[]).filter(x=>!x.owner).map(x=>x.id);
+         const ap=(p.participants||[]).filter(x=>!x.owner);
+         const neuf=ap.find(x=>av.indexOf(x.id)<0);
+         if(neuf&&this.code){this.code=null;this.joinUntil=0;this.codeTakenBy=neuf.label||'Invité';
+           try{announce((neuf.label||'Un participant')+' a rejoint la session.');}catch(e){}}}
         this.participants=p.participants||[];
         this.seq=p.seq||0;this.nEvents=p.n_events||0;
         const ev=p.events||[];
@@ -13439,6 +13487,16 @@ const Share={
     // La base de diff suit ce qu'on vient d'APPLIQUER : sans ce recalage, le prochain
     // enregistrement re-diffuserait à l'expéditeur ce qu'il vient d'envoyer.
     shareRebase();
+    /* LE MODE LECTEUR VIT HORS DE `main` — il ne se repeignait donc JAMAIS. Mesuré : coche
+       distante appliquée à l'état et peinte dans le journal (témoin `done` posé), lecteur
+       inchangé — le binôme qui lit à voix haute récitait un état périmé, et son contexte annonçait
+       encore « suivant : … » sur une étape déjà faite. C'est l'inverse exact de sa raison d'être
+       (Degani & Wiener : perdre sa place est un mode de défaillance premier).
+       REPEINDRE, SANS DÉPLACER. `_rmSync` remet `readerI` à -1, ce qui ferait SAUTER le lecteur au
+       premier item non coché — un mouvement autonome sous les yeux du lecteur, précisément ce que
+       la règle 11 interdit. On rend donc à position CONSERVÉE : le challenge courant reste le
+       challenge courant, seuls son état et son contexte se mettent à jour. */
+    if(peint)readerRepaint();
     if(peint)announce(peint===1?'Une action d’un participant':peint+' actions d’un participant');},
   onDesync(){}, onStatus(){},
 
@@ -13472,7 +13530,7 @@ const Share={
   async admit(seconds){
     if(this.mode!=='host'||!this.share)return {ok:false,err:'refused'};
     const r=await this._io.admit(this.share,seconds||120);
-    if(r&&r.ok){this.code=r.code;this.joinUntil=Date.parse(r.join_open_until)||0;}
+    if(r&&r.ok){this.code=r.code;this.joinUntil=Date.parse(r.join_open_until)||0;this.codeTakenBy=null;}
     return r||{ok:false,err:'refused'};},
   /* COUPER UN PARTICIPANT. Il n'existe pas de RPC dédiée : l'hôte est authentifié, et la politique
      RLS `sparts_own` lui donne l'écriture sur les participants de SES partages — c'est le chemin
@@ -13650,16 +13708,26 @@ function shareSheetHtml(){
     return '<div class="sh-p'+cls+'"><span class="n">'+esc(p.label||'Invité')+'</span>'
       +'<span class="r">'+etat+'</span>'
       +(p.revoked||p.detached?'':'<button class="btn sm" data-shcut="'+esc(p.id)+'">Couper</button>')+'</div>';}).join('');
+  /* PORTE FERMÉE = ON N'AFFICHE PLUS DE CODE. Tant que le code restait peint, l'hôte le dictait
+     alors qu'il était déjà consommé (une jointure le brûle, avant l'échéance) : il croyait donner
+     un accès, l'autre lisait « refusé », et personne ne pouvait comprendre. On dit ce qui s'est
+     passé, et « Nouveau code » devient l'action évidente. */
+  const porte=!!code;
   return '<p class="sh-fiche">'+esc(f?f.title:'')+'</p>'
-    +'<p class="sh-lead">Faites-le scanner, ou dictez-le. Il ne sert <b>qu\'une fois</b>.</p>'
-    +'<p class="sh-code" id="shCode">'+esc(shareCodeFmt(code))+'</p>'
-    +'<p class="sh-when'+(shOpenMs()?'':' closed')+'" id="shWhen"></p>'
-    +'<div class="sh-qr">'+(code?qrSvg(url||code,'Code de session à scanner'):'')+'</div>'
+    +(porte
+      ? '<p class="sh-lead">Faites-le scanner, ou dictez-le. Il ne sert <b>qu\'une fois</b>.</p>'
+        +'<p class="sh-code" id="shCode">'+esc(shareCodeFmt(code))+'</p>'
+      : '<p class="sh-lead">'+(Share.codeTakenBy
+          ? '<b>'+esc(Share.codeTakenBy)+'</b> a rejoint — le code a servi.'
+          : 'La porte est fermée.')+' Un code ne sert qu\'une fois.</p>')
+    +(porte?'<p class="sh-when'+(shOpenMs()?'':' closed')+'" id="shWhen"></p>':'')
+    +(porte?'<div class="sh-qr">'+qrSvg(url||code,'Code de session à scanner')+'</div>':'')
     /* LE LIEN, EN CLAIR ET COMPLET. Le QR ne sert qu'à celui qui peut photographier l'écran ; au
        téléphone, dans une autre pièce, ou quand la caméra refuse, c'est ce lien qu'on dicte ou
        qu'on envoie. Il porte le code : l'invité n'a alors rien à saisir. `user-select:all` pour
        qu'un seul appui le sélectionne en entier. */
-    +(url
+    +(!porte ? ''
+      : url
       ? '<p class="sh-lnk" id="shLink">'+esc(url)+'</p>'
         +'<p class="sh-adr">Ce lien contient le code — ouvrez-le, ou dictez l’adresse puis le code.</p>'
       : '<p class="sh-adr warn">Cette page n’a pas d’adresse partageable (fichier local) : '
@@ -13783,8 +13851,22 @@ function openJoinScreen(code){
   if(inp)inp.value=shareCodeFmt(shareCodeNorm(code||SHARE_JOIN||''));
   const e=document.getElementById('joinErr');if(e){e.hidden=true;e.textContent='';}
   _joinRefuse=null;
+  const x=document.getElementById('joinX');
+  if(x)x.hidden=SHARE_NOTRACE;          // pas de « derrière » sur un appareil vierge : pas de sortie
   joinScreen.hidden=false;
   if(inp&&!inp.value)try{inp.focus();}catch(_){}}
+/* FERMER L'ÉCRAN D'ENTRÉE. Trois chemins pour un seul geste — la croix, Échap, et le retour
+   système —, tous vers `closeJoinScreen`, comme le veut la doctrine des fenêtres (« le popstate
+   emprunte le MÊME chemin que l'affordance visible, donc ses effets de bord »). Refuse de
+   s'exécuter sans empreinte : là, l'écran EST l'application. */
+function closeJoinScreen(){
+  if(!joinScreen||joinScreen.hidden||SHARE_NOTRACE)return false;
+  joinScreen.hidden=true;SHARE_JOIN=null;
+  const inp=document.getElementById('joinCode');if(inp)inp.value='';
+  return true;}
+{const x=document.getElementById('joinX');if(x)x.onclick=closeJoinScreen;}
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&joinScreen&&!joinScreen.hidden&&closeJoinScreen())e.stopPropagation();},true);
 /* REFUS DE JOINTURE — LE SERVEUR NE DIT QU'UN MOT, LE CLIENT N'EN INVENTE PAS DAVANTAGE.
    `share_join` répond « refusé » pour SEPT causes atteignables depuis cet écran (code inconnu,
    porte fermée, partage expiré, partage non actif, quota atteint, code déjà consommé, partage
@@ -14242,6 +14324,11 @@ if(history.state&&history.state.ac)try{history.replaceState(null,'');}catch(e){}
 let _histArmed=false;
 function _histArm(){if(_histArmed)return;try{history.pushState({ac:1},'');_histArmed=true;}catch(e){}}
 function _histBackAction(){
+  /* L'ÉCRAN D'ENTRÉE PASSE AVANT LES FENÊTRES : il est au-dessus de tout (z 96), et sur un
+     appareil vierge il n'a AUCUNE sortie — `closeJoinScreen` refuse alors, et le retour tombe
+     naturellement sur les chemins suivants. */
+  const js=document.getElementById('joinScreen');
+  if(js&&!js.hidden&&!SHARE_NOTRACE)return closeJoinScreen;
   const m=_topModal();
   if(m){const x=m.querySelector('.ai-x');
     // Sans ✕ (ex. « Terminer la session ? ») : un clic SUR la fenêtre (cible = le voile) emprunte

@@ -1,5 +1,100 @@
 # Journal des modifications
 
+## [4.50.0] — 2026-07-27
+### La conformité écrite noir sur blanc — et le placard d'exercice qui ne traversait pas le partage
+
+Lot 7 du chantier de partage : la documentation opposable. Traité **avant** les lots 5 et 6, et pas
+par ordre de numéro — c'est le seul reliquat qui engage l'établissement. Trois signalements d'usage
+sont corrigés au passage, et un défaut a été trouvé **en écrivant la documentation**, ce qui est
+exactement à quoi elle sert.
+
+### Le placard d'exercice ne traversait pas
+`openSharedFiche` lisait `fold.exercise` — **et aucun émetteur ne l'a jamais posé**. Moitié de
+chemin écrite, la ligne se lisant comme si elle marchait : troisième occurrence dans ce chantier,
+après `canWrite()` sans appelant et l'annexe d'un détaché que personne ne lisait.
+
+Mesuré, témoin à l'appui : hôte en répétition = bandeau hachuré, en-tête hachuré, pilule
+« ▲ Exercice », chrono « ▲ Exercice » ; **invité = « ■ Crise » et « ● Session »**. Un renfort qui
+rejoint une répétition en la croyant réelle est précisément ce que le placard TRAINING existe pour
+empêcher — l'annonciation **est** la raison d'être du mode exercice (v4.27.0), le reste étant
+identique par construction.
+
+Le drapeau voyage désormais sur `session_start`, et ce véhicule n'est pas un pis-aller : le drapeau
+est posé par `startExercise`, qui passe par `freshRuntime` — il ne peut donc changer **qu'avec** le
+démarrage. Aucun genre nouveau, donc **aucun schéma à rejouer** ; et `session_start` étant déjà
+réservé au lead, un scribe ne peut pas déguiser une session réelle en répétition. Cinq tests, dont
+**trois tombent** quand on réintroduit le défaut (fichier restauré à l'octet). « Quitter
+l'exercice… » disparaît chez l'invité : le bouton appellerait `quitExercise` sur **son** Runtime
+sans rien changer chez l'hôte — un contrôle qui ment sur sa portée.
+
+### Trois signalements d'usage
+**La fenêtre d'entrée n'avait pas de sortie.** Elle a été conçue comme le *remplacement* de
+l'application sur un appareil vierge, où il n'y a rien derrière et où une croix ne mènerait nulle
+part. Mais on y arrive aussi **depuis l'accueil**, en tapant le code dans la recherche : une
+application tourne alors derrière, et un code mal recopié enfermait l'utilisateur. Croix, Échap et
+retour système — les trois par le même chemin, comme le veut la doctrine des fenêtres —, affichés
+**uniquement** s'il y a un « derrière ».
+
+**L'hôte dictait un code déjà mort.** `share_join` met `code_hash` et `join_open_until` à NULL : la
+porte se referme **derrière celui qui entre**, avant l'échéance des 120 s. L'hôte, lui, gardait sa
+copie et affichait le code *avec son décompte* — « ouvert encore 97 s » sur une porte fermée. C'est
+la donnée périmée présentée comme vivante, danger n°2 du palmarès ECRI 2015, que la doctrine du quai
+nomme déjà pour les minuteurs. Corrigé **sans toucher au schéma** : une jointure est la seule chose
+qui consomme un code, donc l'apparition d'un participant *est* l'observation. Le code et son QR
+disparaissent, la fenêtre dit « **Untel a rejoint — le code a servi** », et « Nouveau code » devient
+l'action évidente. Bénéfice second, non cherché : l'hôte obtient enfin l'**accusé de réception**
+d'appariement que l'échange en trois temps suppose (AC 61-115).
+
+**Le mode lecteur ne suivait pas.** Il vit hors de `main`, que `sharePaintLive` est seul à peindre :
+mesuré, coche distante appliquée à l'état et peinte dans le journal (témoin `done` posé), **lecteur
+inchangé** — le binôme qui lit à voix haute annonçait « suivant : … » sur une étape déjà faite.
+Il se repeint désormais **à position conservée** : `_rmSync` remet le curseur à zéro et ferait
+sauter le lecteur au premier item non coché, ce qui serait un mouvement autonome sous ses yeux.
+La première sonde écrite pour ce défaut mesurait le **chrono** du lecteur et le voyait donc changer
+à chaque seconde : elle a été refaite avant toute conclusion.
+
+### La conformité, sourcée ligne à ligne
+`docs/deploiement-et-conformite.md` affirmait encore « **Sessions : locales à l'appareil** » — faux
+depuis la v4.46.0 — et sous-évaluait la conservation. Nouveau **§ 3.1** qui énumère, avec le SQL en
+regard : les **14 champs** de la liste blanche serveur (et ce qu'elle retire — images, documents,
+et `localInfo`, pré-rempli des téléphones de renfort et de régulation) ; ce qu'un geste transmet
+(une référence et une heure — le libellé d'un repère **reste sur l'appareil qui l'a écrit**) ; ce
+qu'est l'identité d'un participant (un identifiant opaque tiré par le serveur, un rôle choisi dans
+une liste fermée de neuf intitulés) ; et les durées **mesurées** : fenêtre d'admission 120 s, partage
+3 h par défaut borné à 12 h, purge 30 min après expiration, en cascade, déclenchée **en tête de
+chaque appel** faute de tâche planifiée sur un hébergement statique.
+
+Deux précisions qu'une lecture rapide du schéma ne donne pas, et qu'un DPO doit avoir : le contrôle
+d'accès des invités **ne repose pas sur la RLS** mais sur la possession d'un secret (trois fonctions
+`security definer`, seule surface non authentifiée de l'installation) ; et « couper un participant »
+retire **l'écriture**, pas la lecture — le serveur lui répond `revoked` et c'est **son application**
+qui gèle son écran. La formulation affichée à l'hôte est exacte sur ce point et ne doit pas être
+élargie ; le durcissement serveur est identifié.
+
+Le **§ 2** passe le partage à la grille MDCG 2019-11 : il ne calcule rien, il **recopie** un état
+d'un écran à l'autre — qualification « communiquer ». L'argument contraire est écrit **et** réfuté
+(il prouve trop : il vaudrait pour un tableau blanc), et la ligne à ne pas franchir est nommée — le
+jour où le partage **déduirait** quelque chose de l'état partagé, la qualification serait à rouvrir.
+Précaution de vocabulaire conservée : ne jamais présenter le partage comme un outil de *supervision*.
+
+`AGENTS.md` reçoit une section « partage de session » complète et une **règle 15** — miroir additif,
+jamais une dépendance ; aucun texte libre sur le réseau. Ses compteurs périmés sont corrigés :
+onze → **treize** harnais, ~12 250 → **~14 400** lignes, 20 → **21** fenêtres modales, 22 → **25**
+surfaces auditées en accessibilité.
+
+### Ce qui reste, et qui est dit ici plutôt que découvert plus tard
+La file `_defer` est **remplie et jamais vidée** : tout ce qui est classé `anchored` (`nav`,
+`flow_end`, `cx`) ou `deferred` (`verify`, `gap`) n'atteint jamais l'écran de l'invité — **le miroir
+se fige dès que l'hôte change de bloc**. Mesuré (`Runtime.nav` ne contient pas le bloc cible après
+une navigation distante) et confirmé au grep (aucun site de drainage). Le commentaire de
+`SHARE_APPLY` décrit pourtant le bon comportement. Et un invité qui recharge sa page **perd tout** :
+rien n'est persisté, le code est consommé, il ne peut pas revenir. Les deux sont la prochaine
+version.
+
+706 tests × 2 moteurs (+5), 13 harnais verts, **192/192 contrôles partage** (+8, sur les deux
+moteurs), 9/9 QR, 301 contrôles d'accessibilité, 94/94 doctrine, `npm run check` vert. **Rien à
+rejouer côté serveur.**
+
 ## [4.49.0] — 2026-07-27
 ### Le repli hors dispositif, le bridage du scribe, et le filtre de contenu qui n'existait qu'en JavaScript
 
@@ -1494,41 +1589,3 @@ balisage réellement émis).
 
 510 tests (503 + 7), 22/22 contrôles de doctrine (16 avant), 133 contrôles d'audit, 3 sondes
 dédiées (critiques 9/9, service worker 6/6, intitulé collant 8/8).
-
-## [4.31.0] — 2026-07-26
-Second lot de l'audit design externe (axes couleurs / hiérarchie / priorisation), décisions
-utilisateur.
-
-### Ajouté
-- **Garde-fou couleurs auto-exécutoire** (`scripts/check-colors.mjs`, dans `npm run check`) :
-  un hex n'est admis dans le CSS que dans une déclaration de token (`--…`), où qu'elle vive
-  (`:root`, bloc sombre, blocs d'accent) ; seuls les nuanciers littéraux `.acc-sw` sont
-  exemptés. La règle d'AGENTS.md n'est plus déclarative. Le garde-fou a d'ailleurs trouvé PLUS
-  que les 4 hex de l'audit : des `#fff` de canevas et deux `stroke:#1f5fa6` — copie hex du
-  token primaire, la dérive exacte que la règle proscrit.
-- **Raccourci clavier vers la recherche** : « / » et Cmd/Ctrl+K focalisent la recherche de
-  l'accueil (inerte dans un champ, sous une fenêtre, ou hors accueil).
-- **`prefers-contrast: more`** : texte secondaire à l'encre pleine, filets au gris de composant.
-
-### Modifié
-- **Tokenisation complète** : `--shadow-primary(-sm)` (les cinq `rgba(23,71,127,…)` éparses),
-  `--hover-dk(-hi)` et `--flow-hl-dk` (ex-hex des overrides sombres), `--lb-cap`/`--lb-ink`
-  (lightbox), `--paper` (canevas SVG, pages PDF, impression), `--flow-cur` (nœud courant du
-  SVG), `--on-primary` sur les remplissages verts/rouges. Zéro changement visuel (valeurs
-  identiques), zéro hex hors token.
-- **En session vive, la rangée méta de lecture s'efface** (statut, catégorie, validation —
-  vus à l'ouverture, ils ne conduisent rien pendant le soin ; même doctrine que l'état de
-  stockage retiré des pieds en crise). Sélecteur `:has(#cbTimers)`, écran seulement, saut
-  absorbé par `renderKeepAnchor`.
-- **« Non protégé » du pied d'accueil : registre NEUTRE** — un état permanent en ambre s'use
-  (banner blindness) et émousse l'ambre des états actionnables (« presque plein », PDF
-  manquants), qui le gardent. Le test unitaire encode la nouvelle règle.
-- **Guide rouge/ambre de l'éditeur de blocs : `<details>` repliable** — ouvert tant qu'on ne
-  l'a pas replié, puis le choix persiste (`ac-cg-folded`).
-- **Bouton du mode lecteur : « ⤢ Lecteur »** — le glyphe des ouvertures plein écran (même
-  grammaire que Se repérer/Consulter) le fait lire comme une surface. Décision d'audit : pas
-  d'entrée dans le chrome de crise (12 px libres à 360 px, et une commande qui apparaît selon
-  la largeur romprait la constance positionnelle) — les entrées restent la carte du bout et
-  le menu ⋯.
-
-503 tests (dont le test du registre de stockage mis à jour), 11 harnais verts.

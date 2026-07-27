@@ -1359,6 +1359,24 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
     eq('… et elle se plie',A_.shareFold([{seq:1,id:'x',actor:'h',kind:'session_start',payload:{t:1700000000000}}]).startedAt,1700000000000);
     ok('elle est réservée à celui qui conduit',
        A_.shareCan('lead','session_start')&&!A_.shareCan('scribe','session_start'));}
+   /* LE PLACARD D'EXERCICE VOYAGE AVEC ELLE. `openSharedFiche` lisait `fold.exercise` depuis
+      l'origine — mais AUCUN émetteur ne l'a jamais posé : moitié de chemin écrite, et la ligne se
+      lisait comme si elle marchait. Mesuré avant correctif : hôte en répétition = bandeau hachuré
+      et « ▲ Exercice » ; invité = « ■ Crise ». Or un renfort qui rejoint une RÉPÉTITION en la
+      croyant réelle est exactement ce que le placard TRAINING existe pour empêcher.
+      Le véhicule est `session_start` et non un genre nouveau : le drapeau est posé par
+      `startExercise`, qui passe par `freshRuntime` — il ne peut donc changer QU'AVEC le
+      démarrage. Aucun schéma à rejouer, et la réserve au lead vaut d'office : un scribe ne peut
+      pas déguiser une session réelle en répétition. */
+   {const exo=A_.shareSnap(R({startedAt:1700000000000,exercise:true}),false);
+    const de=A_.shareDiff(vide,exo);
+    ok('le placard d’exercice entre dans l’instantané',exo.exercise===true);
+    eq('il voyage sur session_start',de[0].payload.exo,true);
+    ok('… et il se plie',A_.shareFold(de.map((e,i)=>({seq:i+1,id:'e'+i,actor:'h',...e}))).exercise===true);
+    const reel=A_.shareDiff(vide,A_.shareSnap(R({startedAt:1700000000000}),false));
+    ok('une session RÉELLE ne s’annonce pas en exercice',reel[0].payload.exo===false);
+    ok('… et le pli d’une session réelle non plus',
+       A_.shareFold(reel.map((e,i)=>({seq:i+1,id:'r'+i,actor:'h',...e}))).exercise===false);}
    /* ALLER-RETOUR : la propriété qui rend l'émission digne de confiance. On part d'un état riche,
       on diffe contre le vide, on PLIE les évènements obtenus — et on doit retrouver l'état. */
    {const riche=A_.shareSnap(R({checked:{'1:b1:0':true,'1:b1:1':true},counters:{c1:2},

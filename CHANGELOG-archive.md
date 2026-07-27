@@ -1,7 +1,45 @@
-# Journal des modifications — archive (versions 3.0.0 à 4.30.0)
+# Journal des modifications — archive (versions 3.0.0 à 4.31.0)
 
 > Entrées anciennes déplacées depuis [`CHANGELOG.md`](CHANGELOG.md) pour garder le journal
 > courant lisible. Même format (keep-a-changelog).
+
+## [4.31.0] — 2026-07-26
+Second lot de l'audit design externe (axes couleurs / hiérarchie / priorisation), décisions
+utilisateur.
+
+### Ajouté
+- **Garde-fou couleurs auto-exécutoire** (`scripts/check-colors.mjs`, dans `npm run check`) :
+  un hex n'est admis dans le CSS que dans une déclaration de token (`--…`), où qu'elle vive
+  (`:root`, bloc sombre, blocs d'accent) ; seuls les nuanciers littéraux `.acc-sw` sont
+  exemptés. La règle d'AGENTS.md n'est plus déclarative. Le garde-fou a d'ailleurs trouvé PLUS
+  que les 4 hex de l'audit : des `#fff` de canevas et deux `stroke:#1f5fa6` — copie hex du
+  token primaire, la dérive exacte que la règle proscrit.
+- **Raccourci clavier vers la recherche** : « / » et Cmd/Ctrl+K focalisent la recherche de
+  l'accueil (inerte dans un champ, sous une fenêtre, ou hors accueil).
+- **`prefers-contrast: more`** : texte secondaire à l'encre pleine, filets au gris de composant.
+
+### Modifié
+- **Tokenisation complète** : `--shadow-primary(-sm)` (les cinq `rgba(23,71,127,…)` éparses),
+  `--hover-dk(-hi)` et `--flow-hl-dk` (ex-hex des overrides sombres), `--lb-cap`/`--lb-ink`
+  (lightbox), `--paper` (canevas SVG, pages PDF, impression), `--flow-cur` (nœud courant du
+  SVG), `--on-primary` sur les remplissages verts/rouges. Zéro changement visuel (valeurs
+  identiques), zéro hex hors token.
+- **En session vive, la rangée méta de lecture s'efface** (statut, catégorie, validation —
+  vus à l'ouverture, ils ne conduisent rien pendant le soin ; même doctrine que l'état de
+  stockage retiré des pieds en crise). Sélecteur `:has(#cbTimers)`, écran seulement, saut
+  absorbé par `renderKeepAnchor`.
+- **« Non protégé » du pied d'accueil : registre NEUTRE** — un état permanent en ambre s'use
+  (banner blindness) et émousse l'ambre des états actionnables (« presque plein », PDF
+  manquants), qui le gardent. Le test unitaire encode la nouvelle règle.
+- **Guide rouge/ambre de l'éditeur de blocs : `<details>` repliable** — ouvert tant qu'on ne
+  l'a pas replié, puis le choix persiste (`ac-cg-folded`).
+- **Bouton du mode lecteur : « ⤢ Lecteur »** — le glyphe des ouvertures plein écran (même
+  grammaire que Se repérer/Consulter) le fait lire comme une surface. Décision d'audit : pas
+  d'entrée dans le chrome de crise (12 px libres à 360 px, et une commande qui apparaît selon
+  la largeur romprait la constance positionnelle) — les entrées restent la carte du bout et
+  le menu ⋯.
+
+503 tests (dont le test du registre de stockage mis à jour), 11 harnais verts.
 
 ## [4.30.0] — 2026-07-26
 Correctifs P0/P1/P2 de l'audit design externe (axe « conformité aux normes »).
