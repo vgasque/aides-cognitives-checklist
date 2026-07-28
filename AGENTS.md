@@ -892,6 +892,29 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   de 11 px ; le logo n'étant pas interactif, aucune règle de cible ne s'y applique). Vérifié à 0 px
   de surcoût de 360 à 431 px. Toute addition à cette rangée doit être re-mesurée à **320 px**
   (v4.43.0 — c'était 360 jusque-là) : c'est désormais la largeur la plus contrainte servie.
+- **NEUVIÈME PIÈGE DE CASCADE, ET LE PREMIER PAR `:not()` (v4.55.3)** : la règle qui transforme
+  toute fenêtre en feuille pleine largeur sur écran étroit vaut
+  `.ai-modal:not(.pdf-modal):not(.dlg-confirm) .ai-card` = **(0,3,0)**, parce que **`:not()` compte
+  la spécificité de son argument**. Elle battait `:is(.plan-modal,.ref-modal) .ai-card` = (0,2,0) et
+  reposait 18 px de rembourrage haut sur des feuilles qui se donnent `padding:0` — leur barre de
+  titre est `sticky top:0` et doit affleurer le bord. Mesuré : 18 px de fond nu au-dessus du titre,
+  **65 px sur un iPhone à encoche** où `env(safe-area-inset-top)` s'ajoute, et la bande restait
+  visible au défilement puisque la barre est collante. On exclut désormais la CLASSE `.sheet-full`
+  plutôt que les deux fenêtres nommément, pour que la prochaine hérite de l'exclusion.
+- **DEUX ROGNAGES QUE PERSONNE NE MESURAIT (v4.55.3, retours d'usage)** : la **croix du panneau
+  minuteurs** sortait de **110 px du cadre à 320 px** sur écran TACTILE (`.rt-head` est une rangée
+  flex sans `wrap` et sans rien de compressible ; « silencieux ? » et le bouton son y montent à
+  44 px de cible) — remède = le patron de la carte-bilan (v4.29.2) : conteneur `relative`, croix
+  ANCRÉE en haut à droite, `padding-right` qui lui réserve sa place. Et une **ligne d'Échelle**
+  sortait du plan dès **quatre options à 320 px**, jusqu'à 280 px dehors à huit, le titre de la
+  décision étant écrasé à 0 px bien avant : les renvois abrégés étaient `flex:none; nowrap`, leur
+  largeur croissant sans borne. On ENROULE plutôt que de tronquer — dans un PLAN, une branche
+  cachée est une branche qu'on ne saura pas prendre ; c'est la différence avec le quai, où l'on
+  abrège et où l'on annonce « +n », parce qu'ici la place existe verticalement.
+  **LES DEUX CONTRÔLES ONT DÛ ÊTRE REFAITS** : la première version restait VERTE avec les défauts
+  réintroduits — elle mesurait la fiche d'exemple (deux options, jamais de débordement) et un
+  contexte non tactile (aucun gonflement des cibles). Un contrôle qui ne rencontre pas le défaut ne
+  le couvre pas : il faut construire le CAS, pas seulement la mesure.
 - **320 px EST SERVI (v4.43.0, décision utilisateur)** — c'est le plancher de WCAG 1.4.10
   « Reflow », et deux surfaces y rognaient en silence : la **rangée de commandes de crise**
   exigeait 348 px pour 320 (28 px inatteignables, « ⤢ Cons. » coupé en plein mot) et le **`⋯` de

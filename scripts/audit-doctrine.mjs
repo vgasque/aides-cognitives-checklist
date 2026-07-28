@@ -630,6 +630,87 @@ console.log('\n══ Journal · incrémenter un compteur pose un repère horoda
   await page.close();
 }
 
+/* ── TROIS ROGNAGES SIGNALÉS À L'USAGE (v4.55.3) ─────────────────────────────────────────────
+   Le contrôle de rognage existait pour la rangée de commandes de crise (v4.43.0) ; ces trois
+   surfaces n'étaient mesurées nulle part, et elles débordaient toutes les trois.
+   DEUX PRÉCAUTIONS SANS LESQUELLES CES CONTRÔLES NE PROUVERAIENT RIEN — la première version les a
+   omises et restait verte avec les défauts réintroduits :
+    · le PLAN ne déborde qu'à partir de QUATRE options : la fiche d'exemple n'en a que deux, on
+      construit donc une décision à huit branches ;
+    · le PANNEAU ne déborde que sur écran TACTILE, où « silencieux ? » et le bouton son montent à
+      44 px de cible — d'où un contexte `hasTouch`. */
+console.log(`\n══ DOCTRINE · aucun rognage dans les feuilles ni le panneau — moteur ${NOM_MOTEUR} ══`);
+for (const w of [320, 360, 390]) {
+  const page = await br.newPage({ viewport: { width: w, height: 820 }, hasTouch: true, isMobile: true });
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(() => !document.querySelector('.boot-load'));
+  await page.evaluate(async () => {
+    const b = [...document.querySelectorAll('button')].find(x => /Commencer/.test(x.textContent)); if (b) b.click();
+    await new Promise(r => setTimeout(r, 120));
+    const s = [...document.querySelectorAll('button')].find(x => x.textContent.includes("fiches d'exemple")); if (s) s.click();
+    await new Promise(r => setTimeout(r, 400));
+    const c = [...document.querySelectorAll('.card-open')].find(x => /Arrêt cardiaque/.test(x.textContent));
+    c.click(); await new Promise(r => setTimeout(r, 200));
+    document.getElementById('sessStart').click(); await new Promise(r => setTimeout(r, 350));
+  });
+  const r = await page.evaluate(async () => {
+    const o = {};
+    /* (a) LA BARRE DE TITRE D'UNE FEUILLE AFFLEURE LE HAUT. Une règle de largeur étroite reposait
+       18 px de rembourrage sur la carte, alors que ces feuilles se donnent `padding:0` — leur
+       barre est `sticky top:0` et doit toucher le bord. `:not()` COMPTE LA SPÉCIFICITÉ DE SON
+       ARGUMENT : (0,3,0) contre (0,2,0), la règle générique gagnait. */
+    openPlanSheet(); await new Promise(x => setTimeout(x, 450));
+    {const c = document.querySelector('#planModal .ai-card'), b = document.querySelector('#planModal .pm-bar');
+     o.planBarTop = (c && b) ? Math.round(b.getBoundingClientRect().top - c.getBoundingClientRect().top) : null;}
+    document.getElementById('planX').click(); await new Promise(x => setTimeout(x, 300));
+
+    /* (c) UNE DÉCISION À HUIT OPTIONS. `flowPlan` met en cache par OBJET (WeakMap) : muter la
+       fiche en place ne suffirait pas, il faut un objet neuf. */
+    {const src = JSON.parse(JSON.stringify(state.fiche));
+     const LB = ['Fibrillation ventriculaire','Asystolie','Rythme sans pouls','Tachycardie ventriculaire',
+                 'Bradycardie extrême','Bloc auriculo-ventriculaire','Rythme sinusal','Indéterminé'];
+     const cibles = LB.map((l, i) => ({ id: 'zz' + i, type: 'steps', title: 'Conduite ' + (i + 1), steps: ['faire ceci'], next: null }));
+     src.blocks = [{ id: 'zzdec', type: 'decision', title: 'Rythme au moniteur ?', question: 'Quel rythme ?',
+       options: cibles.map((c, i) => ({ label: LB[i], target: c.id })) }, ...cibles];
+     src.start = 'zzdec';
+     const f = migrate(src);
+     state.fiche = f; Runtime.fiche = f;
+     state.nav = ['zzdec']; state.navSeq = [0]; state.navPos = 0; state.checked = {};
+     render(); await new Promise(x => setTimeout(x, 300));}
+    openPlanSheet(); await new Promise(x => setTimeout(x, 450));
+    {const body = document.getElementById('planBody');
+     let pire = 0, qui = '';
+     if (body) { const br2 = body.getBoundingClientRect();
+       body.querySelectorAll('*').forEach(el => { const r2 = el.getBoundingClientRect();
+         if (!r2.width) return;
+         const d = Math.round(r2.right - br2.right);
+         if (d > pire) { pire = d; qui = (el.className || el.tagName) + ''; } }); }
+     o.planDebord = pire; o.planQui = qui;
+     o.planNbLignes = document.querySelectorAll('#planModal .pl-line').length;}
+    document.getElementById('planX').click(); await new Promise(x => setTimeout(x, 300));
+
+    /* (b) LA CROIX DU PANNEAU MINUTEURS RESTE DANS LE CADRE. On mesure contre le bord INTÉRIEUR
+       (bordure 1 px + rembourrage 14 px), comme le fait l'œil : un bouton qui touche la bordure
+       est déjà coupé. */
+    const o2 = document.getElementById('rtOpen'); if (o2) { o2.click(); await new Promise(x => setTimeout(x, 350)); }
+    {const pan = document.querySelector('.rt-panel'), head = document.querySelector('.rt-head'),
+      k = document.querySelector('.rt-x');
+     if (pan && k) { const p = pan.getBoundingClientRect(), kr = k.getBoundingClientRect();
+       o.croixDebord = Math.round(kr.right - (p.right - 15));
+       o.croixVisible = kr.width >= 32 && kr.height >= 32; }
+     else { o.croixDebord = null; o.croixVisible = false; }
+     o.headDebord = head ? head.scrollWidth - head.clientWidth : null;}
+    return o;
+  });
+  t(`${w} · la barre de « Se repérer » affleure le haut`, r.planBarTop === 0, `${r.planBarTop} px`);
+  t(`${w} · témoin : le plan à 8 options est bien rendu`, r.planNbLignes >= 8, `${r.planNbLignes} ligne(s)`);
+  t(`${w} · … et aucune ligne ne sort du cadre`, r.planDebord <= 1, `${r.planDebord} px — ${r.planQui}`);
+  t(`${w} · la croix des minuteurs reste dans le cadre`, r.croixDebord !== null && r.croixDebord <= 0, `${r.croixDebord} px`);
+  t(`${w} · … le bandeau ne déborde pas non plus`, r.headDebord !== null && r.headDebord <= 1, `${r.headDebord} px`);
+  t(`${w} · … et la croix reste une cible de 32 px`, r.croixVisible === true);
+  await page.close();
+}
+
 await br.close();srv.close();
 console.log(`\n${ok}/${ok+ko} contrôles doctrine OK${ko?` — ${ko} ÉCHEC(S)`:''}`);
 process.exit(ko?1:0);
