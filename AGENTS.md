@@ -1198,6 +1198,39 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   corrompu PERSISTANT. Remède en place : à la traînée du resize (120 ms), chaque
   `.dir-grid`/`.qa-grid` passe par block→grid dans la même frame (aucun repaint intermédiaire) —
   ne pas retirer ce listener, et re-mesurer sur WebKit si l'on retouche la structure des grilles.
+- **AUDIT DE DESIGN v4.56 — CE QUI A ÉTÉ RETENU, ET CE QUI A ÉTÉ ÉCARTÉ (v4.56.3)** : audit
+  externe sur 25 captures (1 P1, 7 P2, 12 P3, plus des pistes D/E/F/G/H/I/K). **Appliqué** :
+  critères diagnostiques de l'étape ① en **lignes à filet** au lieu d'une boîte par critère
+  (doctrine des listes « normal = ligne, signalé = boîte » — 53 px rendus, mesurés, sur une fiche
+  à critères de deux lignes) ; garde-fou du chapeau étendu au **rappel trop long** (110 c., même
+  seuil télégraphique que les challenges — mesuré, c'est la LONGUEUR autant que le nombre qui
+  pousse le CTA sous le pli) ; **une action par ligne** signalé dans l'éditeur (G1 : « · » ou
+  « + » entourés d'espaces, ≥ 2 dans la partie CHALLENGE — la réponse « :: » a le droit
+  d'énumérer, c'est une valeur) ; nom de minuteur en **casse de phrase** 13,5/700 avec la
+  précision entre parenthèses reléguée en méta 12 px (`tmLabelParts`, pure testée — un nom long
+  en petites capitales se déchiffre lettre à lettre) ; **temps d'un minuteur : encre à l'arrêt,
+  `--link` EN COURS** (P2-7 — le canal couleur disait le contraire de l'état) ; « + » de compteur
+  **tonal et large**, « − » contour compact (on incrémente 10 fois pour 1 correction) ;
+  « Vous êtes ici » et Lecteur/Vérifier sur **une seule ligne d'état** (−52 px par bloc actif) ;
+  rangées d'étape à **60 px** (D1 — le 44 px doctrinal est un minimum, pas un optimum, et un
+  pouce ganté ne vise pas une case de 24 px) ; **acquittement haptique** ~18 ms au cochage et à
+  l'incrément (D10, `tick()` — inerte sur iOS, qui n'expose pas l'API) ; pilule posologique du
+  statique **insécable** (D8) ; `tabular-nums` sur les nombres d'état (D11) ; fenêtre Compte —
+  tuiles d'état **neutres** (P3-1 : `--primary-soft` est la teinte des boutons TONALS, de la
+  lecture seule s'y donnait l'air cliquable) et **une ligne de conséquence par réglage**, le
+  reste conservé sous « En savoir plus » (P2-6, `.acct-more`) ; **hors ligne annoncé en neutre**
+  au pied (D7 — état nominal, jamais ambre ; `o.offline` entre par l'instantané pour que
+  `storageState` reste PURE) ; P3-2/3/4/5/6/8/11/12/13/14 (registres, micro-copies, secondes
+  retirées des listes, `sessStamp`). **Écarté** : **G2** (« ✓ Bloc n complet — Continuer vers X »)
+  — implémenté puis retiré sur décision utilisateur : le bouton passe déjà au registre
+  CONFIRMATION quand tout est coché, et deux formules pour le même geste sont exactement ce
+  qu'AC 120-71B proscrit ; le libellé reste **« Continuer — X → », identique aux deux sites**.
+  **Constat P2-3 = doctrine périmée, pas défaut de code** (cf. « ORDRE FIXE » plus haut).
+  **P2-4 vérifié conforme** (placard invité livré en v4.55.4). Les pistes marquées DÉCISION dans
+  l'audit (D2 « Contraste + »/vraie nuit, D3 mode moniteur, E7 valeur de `--bg`, F4 cockpit 3
+  zones, F5 police embarquée, F6 tête de bilan, H concepts B/C d'en-tête, I restructuration
+  complète, K refonte des éditeurs) **ne sont PAS engagées** : elles créent une capacité, touchent
+  un token ou ouvrent un chantier — à trancher une par une, jamais par effet de bord.
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.
@@ -1214,16 +1247,24 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   illisible, retour d'usage). Le quai `#crisisDock` porte aussi l'accès permanent **⤢ Plan**.
   `#crisisDock` est un frère de `.app`, JAMAIS un enfant du bandeau : un élément collant ne colle
   que dans les bornes de son bloc conteneur.
-  **ORDRE FIXE `⤢ Plan · ● Session · minuteurs` (ECAM — invariant à ne jamais casser)** : Plan et
-  Session sont AVANT la partie variable (les minuteurs). C'est **géométrique** : un contrôle placé
+  **ORDRE FIXE (ECAM — invariant à ne jamais casser). ⚠ CETTE FORMULATION A ÉTÉ CORRIGÉE en
+  v4.56.3** : elle disait `⤢ Plan · ● Session · minuteurs` alors que **« Se repérer » a quitté le
+  quai en v4.25.0** pour la rangée de COMMANDES `#crisisCtrl` (architecture ECP/ECAM : les
+  commandes vivent sur un panneau DISTINCT de l'affichage). L'audit design v4.56 a d'ailleurs
+  relevé le segment « ⤢ Plan » comme ABSENT de toutes les captures (P2-3) — il l'était en effet,
+  et c'est la doctrine qui était périmée, pas le code : deux sections de ce fichier se
+  contredisaient depuis v4.25.0. Ordre réel du quai : **`● Session · minuteurs`**, la rangée de
+  commandes portant au-dessus `mode · ⤢ Se repérer · ⤢ Consulter`. Le raisonnement géométrique
+  ci-dessous vaut tel quel pour la partie CONSTANTE (Session) devant la partie VARIABLE
+  (minuteurs) : Session est AVANT la partie variable. C'est **géométrique** : un contrôle placé
   APRÈS un nombre variable de minuteurs ne peut rester immobile qu'ancré au bord (→ vide central
   qui varie) ou avec des créneaux réservés vides (→ trou) ; placé AVANT, il est immobile ET sans
   vide, les minuteurs coulant à sa droite (le blanc part au bord droit — barre d'outils normale).
-  Plan est 1ᵉʳ (constant), Session 2ᵉ (constant car Plan a une largeur fixe), les minuteurs
-  suivent. La règle cardinale d'une zone de statut ECAM est la CONSTANCE POSITIONNELLE : on
+  Session est 1ᵉʳ (constant), les minuteurs suivent. La règle cardinale d'une zone de statut ECAM est la CONSTANCE POSITIONNELLE : on
   apprend où regarder, l'œil y va sans lire. NE PAS remettre Plan à droite « pour la logique
-  d'action » : il se remettrait à glisser (bug corrigé v4.23.0), et le vide central marronnait les
-  deux extrémités (proximité Gestalt rompue — retour d'usage). L'alarme n'a pas besoin de la 1ʳᵉ
+  d'action » — ni, aujourd'hui, l'y remettre tout court : il se remettrait à glisser (bug corrigé
+  v4.23.0), et le vide central marronnait les deux extrémités (proximité Gestalt rompue — retour
+  d'usage). L'alarme n'a pas besoin de la 1ʳᵉ
   place, elle a déjà teinte ambre + mot « échu » + flash + son. Piège CSS résolu :
   `.seg:first-child{border-left:0}` (le filet des bandes étroites) l'emportait en spécificité sur
   la carte `border:1px` ≥ 780 → la 1ʳᵉ carte paraissait coupée à gauche ; la suppression est

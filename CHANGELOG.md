@@ -1,5 +1,81 @@
 # Journal des modifications
 
+## [4.56.3] — 2026-07-29
+### Audit de design externe — le lot applicable, mesuré et posé
+
+Audit sur 25 captures (1 constat P1, 7 P2, 12 P3, plus des pistes D/E/F/G/H/I/K). Tout ce qui
+tenait aux tokens existants, sans rouvrir de décision figée ni créer de capacité, est appliqué ;
+les pistes marquées DÉCISION restent à trancher une par une.
+
+### Zone de crise
+- **Critères diagnostiques en lignes à filet** (P1-1) — une boîte encadrée par critère
+  contredisait la doctrine des listes (« normal = ligne, signalé = boîte ») et repoussait
+  « ▶ Confirmé — démarrer la session » loin sous le pli. **53 px rendus, mesurés** sur une fiche à
+  critères de deux lignes. Le reste de la distance tient à la RÉDACTION, désormais outillée :
+- **le garde-fou du chapeau dit aussi le rappel TROP LONG** (110 c., le seuil télégraphique des
+  challenges). Mesuré : quatre rappels dont un composé pèsent 221 px à 360 px — c'est la longueur
+  autant que le nombre qui pousse la première action hors de l'écran. Non bloquant, registre
+  ATTENTION. `nfGuardTxt` accepte désormais le tableau (le nombre reste toléré).
+- **G1 — une action cochable = une ligne** : l'éditeur signale une étape qui cumule des actions
+  (« · » ou « + » entourés d'espaces, ≥ 2 dans la partie CHALLENGE ; la réponse « :: » a le droit
+  d'énumérer, c'est une valeur). Doctrine QRH : sinon on coche « à moitié fait ».
+- **Cartes minuteur** (P2-1) : le nom passe en casse de phrase 13,5/700 et la précision entre
+  parenthèses finales est reléguée en méta 12 px (`tmLabelParts`, pure testée) — un nom long en
+  petites capitales se déchiffre lettre à lettre, l'inverse du besoin en crise. Le libellé complet
+  reste dans les `aria-label`.
+- **Le temps dit l'état** (P2-7) : encre à l'arrêt, `--link` EN COURS, ambre échu. `--link` est
+  doctrinalement « le temps d'un minuteur en cours » — le défaut disait le contraire.
+- **Compteurs** (P2-5) : « + » tonal et large, « − » contour compact (≥ 44 px). En session on
+  incrémente dix fois pour une correction ; l'action fréquente prend la masse, jamais un rempli.
+- **Une seule ligne d'état** dans le bloc actif (P2-2) : « Vous êtes ici » à gauche,
+  Lecteur/Vérifier à droite — **−52 px par bloc actif**, là où deux rangées de chrome flottaient
+  entre le titre et la première étape.
+- **Rangées d'étape à 60 px** (D1) : le 44 px doctrinal est un minimum, pas un optimum — un pouce
+  ganté dans une ambulance en mouvement ne vise pas une case de 24 px. La rangée entière cochait
+  déjà ; seule sa hauteur change.
+- **Acquittement haptique** (D10) : ~18 ms au cochage et à l'incrément (`tick()`). Avec des gants,
+  dans le bruit, la confirmation tactile évite le double-tap de doute — qui sur un compteur
+  FAUSSE la donnée. Inerte sur iOS, qui n'expose pas l'API Vibration.
+- **Pilule posologique insécable** en statique (D8) ; `tabular-nums` sur les nombres d'état (D11).
+
+### Hors crise
+- **Fenêtre Compte** : tuiles d'état **neutres** (P3-1 — `--primary-soft` est la teinte des
+  boutons tonals : de la lecture seule s'y donnait l'air cliquable) et **une ligne de conséquence
+  par réglage**, la garantie clé en gras, le texte existant CONSERVÉ sous « En savoir plus ».
+- **Hors ligne annoncé en neutre** (D7) : « Hors ligne — tout fonctionne sur l'appareil » au pied.
+  C'est un état NOMINAL — l'ambre reste à l'échec d'action réseau explicite. `storageState` reste
+  PURE : l'état entre par l'instantané, relu à la peinture et aux évènements réseau.
+- P3-2 (glyphe « Avec l'IA » au registre INFORMATION), P3-3 (« Cycle »/« Chrono » en pilule
+  neutre), P3-4 (« Synchronisé · 11:12 » — le mot ne se dit qu'une fois), P3-5 (« console
+  d'administration » remplace le jargon d'infrastructure), P3-6 (colonnes de temps du compte-rendu
+  en mono tabulaire), P3-8 (secondes retirées des listes de sessions, `sessStamp`), P3-11 (pied
+  d'accueil : le nominal permanent n'affirme plus en vert), P3-12 (pilule de catégorie neutre dans
+  Consulter), P3-13 (« Terminer » du bandeau de reprise en contour, cible 44 px), P3-14
+  (placeholder de date, compte à rebours du code en `--verify` sous 30 s).
+
+### Écarté, et pourquoi
+**G2** — « ✓ Bloc n complet — Continuer vers X » — a été implémenté puis **retiré sur décision
+utilisateur** : le bouton passe déjà au registre CONFIRMATION quand tout est coché, les cases le
+disent, et deux formules pour un même geste sont exactement ce qu'AC 120-71B proscrit. Le libellé
+reste « Continuer — X → », **identique aux deux sites** (journal et vue guidée).
+
+### Un constat d'audit qui visait la doctrine, pas le code
+**P2-3** signalait le segment « ⤢ Plan » absent du quai sur toutes les captures. Il l'était en
+effet : « Se repérer » a quitté le quai en **v4.25.0** pour la rangée de commandes (architecture
+ECP/ECAM). C'est AGENTS.md qui était périmé — deux de ses sections se contredisaient depuis. La
+formulation « ORDRE FIXE ⤢ Plan · ● Session · minuteurs » est corrigée. **P2-4** (invité lisant
+« ■ MODE CRISE ») est vérifié **conforme** : le placard « ▪ Vous suivez » est livré depuis v4.55.4.
+
+### Non engagé
+Les pistes marquées DÉCISION dans l'audit — D2 (« Contraste + », thème vraie nuit), D3 (mode
+moniteur), E7 (valeur de `--bg`), F4 (cockpit 3 zones), F5 (police embarquée), F6 (tête de bilan),
+H (concepts d'en-tête B/C), I (restructuration de la vue de lecture), K (refonte des éditeurs) —
+créent une capacité, touchent un token ou ouvrent un chantier : à trancher séparément.
+
+Vérifié : `npm run check`, **780 tests × 2 moteurs** (+14), a11y **301/301 sur Chromium ET
+WebKit**, doctrine 112/112, vérification 8/8, lecteur 13/13, historique 16/16, partage 294/294,
+et les 14 harnais verts. Rien à rejouer côté serveur.
+
 ## [4.56.2] — 2026-07-28
 ### Le badge « En cours » trouve sa place — et un bug WebKit de grille est neutralisé
 
@@ -1204,198 +1280,3 @@ surprise au détour d'un menu.
 moteurs), **9/9 QR** (dont 4 sur l'image peinte), 301 contrôles d'accessibilité, 94/94 doctrine,
 `npm run check` vert. Les nouveaux contrôles ont chacun été vérifiés capables d'échouer.
 `supabase/schema.sql` est INCHANGÉ dans cette version : rien à rejouer.
-
-## [4.47.0] — 2026-07-27
-### Le transport du partage, la moitié invité — et ce qu'une contre-expertise a trouvé dans le code existant
-
-Suite du chantier ouvert en v4.46.0. Un collègue peut désormais **rejoindre** une session et la
-suivre en miroir ; l'autre moitié — l'écran depuis lequel on ouvre le partage — reste à écrire, si
-bien que **rien n'est encore actionnable de bout en bout**. Ce qui l'est, en revanche, ce sont les
-défauts que la préparation a mis au jour dans du code qui existait déjà, et qui n'attendaient pas
-le partage pour nuire.
-
-### Trois mécanismes existants que le partage rendait dangereux
-Deux relectures adverses ont mesuré les surfaces prévues dans le code réel, avant qu'aucune ne soit
-écrite. Elles ont invalidé l'ordre de travail : trois corrections devaient précéder toute nouvelle
-interface, faute de quoi elle se serait appuyée sur un budget de place faux et sur un indicateur
-qui ment.
-
-**Le quai sacrifiait l'ALARME pour garder un chevron.** Quand la place manquait, la boucle
-d'ajustement retirait les segments un à un et n'essayait « sans chevron » qu'une fois arrivée à
-ZÉRO segment : elle sacrifiait donc le segment ambre du minuteur **échu** — la seule persistance de
-l'alarme une fois le bip passé, dans une zone qui ne quitte jamais l'écran — pour garder un glyphe
-`aria-hidden` que son propre commentaire qualifiait de « purement décoratif ». Et à court de
-solutions, elle **réécrivait un état qu'elle venait de mesurer comme débordant**. Ordre inversé (le
-décoratif tombe d'abord, à chaque palier) et plancher explicite.
-
-**La cause de la pénurie était ailleurs : l'ellipse des intitulés n'avait jamais fonctionné.**
-`.seg-l` déclare `text-overflow:ellipsis` depuis l'origine et un commentaire l'attribuait à un
-« min-width:0 du segment » — qui n'existait pas. Sans plancher explicite, `min-width:auto`
-dimensionne le segment sur son contenu le plus large ; en colonne, la règle flex qui annule le
-minimum automatique porte sur la HAUTEUR, jamais sur cette largeur. Mesuré : un intitulé de
-21 caractères portait le segment à **346 px pour 320 de large**, la boucle voyait un débordement et
-expulsait le segment. Plancher chiffré à **112 px** = la valeur réelle la plus large
-(« 999:59:59 », 95 px) plus les rembourrages : en dessous, l'intitulé s'ellipse — un MOT se
-tronque, c'est admis ; au-dessus, la valeur ne peut jamais être rognée — un NOMBRE ne se tronque
-pas — et si la place manque vraiment, le débordement est RÉEL, donc la boucle retire un segment et
-le « +n » l'annonce. Le quai ne peut plus déborder en silence à aucune largeur servie.
-
-**Le mot « échu » n'existait pas dans le quai**, alors qu'`AGENTS.md` l'affirmait : `segOf`
-n'écrivait que l'intitulé et la valeur, si bien qu'un minuteur échu se distinguait d'un minuteur
-nominal par la SEULE teinte — dans la zone la plus critique de l'application. Il ne pouvait pas
-être ajouté en clair (l'ellipse l'aurait mangé le premier, et le segment aurait grossi jusqu'à se
-faire expulser) : patron déjà retenu pour les étapes signalées — **glyphe `△` en PRÉFIXE**, qui
-survit à l'ellipse, plus l'étiquette au lecteur d'écran. Piège trouvé au passage : cette étiquette,
-en `position:absolute` sans ancêtre positionné, **échappait au `overflow:hidden`** et se posait à
-488 px sur un quai de 320 — elle gonflait `scrollWidth`, c'est-à-dire qu'elle MENTAIT à la boucle
-qu'on venait de corriger.
-
-**Le seuil de péremption était INFÉRIEUR à la cadence nominale.** 4 s en constante, alors que la
-période de sondage passe à 5 s après 30 s sans action et à 10 s après deux minutes : avec un réseau
-PARFAIT, l'écran de l'invité se serait déclaré « figé » environ une seconde sur cinq au repos et
-**six secondes sur dix pendant un cycle de compressions de deux minutes** — c'est-à-dire dans le
-cas d'usage phare. Un indicateur qui crie au loup les deux tiers du temps n'est plus lu quand la
-panne est réelle. Le seuil est désormais solidaire de la cadence courante et signifie « deux cycles
-manqués » (facteur 2,5 : la gigue étant de ±20 %, deux périodes consécutives atteignent 2,4 fois la
-base). Un statut terminal cesse en outre de sonder — le sondage tournait indéfiniment contre un
-partage mort.
-
-**La fin du partage n'est pas la fin du soin.** Le critère « une crise est à l'écran » s'écrivait,
-pour un invité, `status === 'active'` : à l'instant EXACT où l'hôte coupait, deux mécanismes se
-rallumaient sur la checklist que le collègue tient encore en main — le déversement des snackbars
-retenues pendant tout le soin (jusqu'à huit) et la ré-apparition de la méta de lecture, qui décale
-le contenu sous son doigt. Le critère juste est la PRÉSENCE d'une fiche de crise, d'où deux sorties
-distinctes : `freeze` (le lien meurt, l'écran survit) et `stop` (l'écran est quitté).
-
-### Le quai de l'invité existe, et il dit qui tient la main
-Il n'apparaissait que si une session avait démarré **localement** — or un invité qui suit n'a rien
-démarré, c'est le principe même du miroir. Les deux informations que la doctrine veut permanentes
-(AC 120-71B §6.4 : qui tient la checklist ne souffre aucune ambiguïté ; et si ce qu'on voit est
-encore vrai) n'avaient donc **aucun conteneur**. Un prédicat unique — celui-là même qui gouverne
-déjà la mise en attente des banderoles — et un jeu **fermé** de jetons dans le libellé du chrono :
-`main` / `suit`, `⇄n`, `figé`, `coupé`, `fini`, `seul`.
-
-Trois emplacements ont été mesurés et écartés. Un **segment `⇄` propre** déplace le segment
-d'alarme de 45 à 57 px selon la largeur, à son apparition ET à sa disparition — donc sur ÉVÈNEMENT
-DISTANT, ce que la constance positionnelle ECAM interdit ; la **rangée de commandes** n'a que 2,1 px
-de marge à 320 px ; une 2ᵉ pilule sur le **bandeau** fait tomber le titre de fiche de 172 à 58 px.
-Le libellé du chrono, lui, coûte zéro pixel de mise en page : le segment est déjà étiré par le flex.
-**Le lien REMPLACE la main**, il ne s'y ajoute pas — ce n'est pas une économie de place : quand le
-lien n'est plus nominal, le rôle et le compte de participants ne sont PLUS CONNUS, et les afficher
-serait la donnée périmée présentée comme vivante. Le vert cesse alors d'affirmer (encre neutre,
-jamais l'ambre, réservé au minuteur échu).
-
-### L'invité ne paie plus rien avant d'avoir lu
-Mesuré sur profil vierge : charger `index.html#j=CODE` déposait **3,17 Mo** (le cache applicatif et
-les 1 773 Ko de pdf.js), créait une base IndexedDB, écrivait quatre clés `localStorage`,
-enregistrait un service worker — et appelait `navigator.storage.persist()`, c'est-à-dire demandait
-au navigateur de rendre ce dépôt **non évinçable** — le tout AVANT que le premier mot de la notice
-d'information ait pu s'afficher. Une information préalable posée sur une collecte déjà faite
-n'informe rien.
-
-Le mode invité devient donc une **décision de démarrage**, pas une classe CSS. Trois cas : pas de
-code → démarrage normal ; code sur appareil VIERGE → stockage en mémoire, aucun worker, aucune
-persistance demandée, aucun ensemencement, et l'écran d'entrée **à la place** de l'application ;
-code sur un appareil qui utilise déjà l'app → démarrage normal (lui refuser son worker ne
-protégerait rien et casserait son hors-ligne), écran par-dessus — **sauf si une fiche de crise est
-à l'écran**, auquel cas le code est GARÉ et annoncé par le bandeau système, qui est déjà le canal
-« information persistante, accueil seulement » (règle 11). Le fragment est retiré de l'historique
-immédiatement. `ensureStarted` refuse de démarrer chez un invité : c'est le point exact où
-l'étanchéité se joue — sans cette garde, sa première coche créerait un enregistrement de session
-sur un téléphone emprunté. `launchQueue` est enfin consommé (le manifeste le déclarait depuis
-v4.43.0 ; un lien entrant sur PWA installée était silencieusement perdu).
-
-### Un écran d'entrée, et un refus qui ne prescrit pas l'impossible
-L'écran porte l'information de l'article 13 — qui est responsable, ce qui est enregistré, pourquoi,
-où, combien de temps, qui d'autre le voit — et il est audité en accessibilité dans les deux thèmes
-à 320 px, la largeur la plus contrainte servie.
-
-Le message de refus a été réécrit après mesure, et les trois formulations précédentes étaient
-fautives. **« Vérifiez les 8 caractères » était du texte mort** : le contrôle local a déjà exigé
-exactement huit caractères pris dans l'alphabet, deux lignes plus haut. **« Demandez de rouvrir
-l'accès » est faux ou nuisible dans cinq causes de refus sur sept, dont deux boucles infinies** —
-`share_admit` ne vérifie NI l'expiration NI le quota : il rend un code neuf que `share_join`
-refusera encore, sans que personne ne comprenne pourquoi ; et sur une simple faute de frappe, il
-TUE un code peut-être encore vivant. On nomme donc le RÉSULTAT (« un nouveau code »), jamais le
-geste : l'hôte seul voit sa porte, et c'est lui qui décide. **Chiffrer la fenêtre et le nombre de
-participants aurait été FAUX** — et l'argument n'est pas l'oracle, une chaîne statique ne portant
-aucun état : `max_guests` est une COLONNE PAR PARTAGE (1-8, défaut 3) et la fenêtre vaut 120 s à
-l'ouverture mais 15 à 600 s à chaque réadmission ; le client ne reçoit ni l'une ni l'autre. D'où
-une règle de tri, écrite au-dessus des constantes : un chiffre n'entre dans un message que s'il est
-détenu par le client, identique pour tout partage du déploiement, et capable de changer ce que le
-lecteur fait ensuite. « 8 caractères » passe les trois ; « 2 minutes » et « 3 » échouent aux trois.
-
-Trois rédactions, choisies sur la **provenance locale** du code — jamais sur la réponse du serveur,
-identique dans les trois cas : code recopié à la main, code venu d'un QR (qu'on ne peut pas mal
-recopier), et deuxième soumission du même code, qui coupe la boucle du re-tap puisque le champ
-conserve sa valeur après échec. Le harnais vérifie que le serveur bouchonné rend la même chose et
-que trois textes différents en sortent : un message qui varierait avec la réponse du serveur serait
-un oracle.
-
-Enfin, la géométrie : la rédaction précédente faisait **7 lignes et 145 px**, et à 320×568 le
-bouton « Rejoindre » n'était plus visible que sur **23 px de ses 48** — sous le plancher de la
-règle 9, et 0 px sur un écran de 480. Le défaut n'apparaissait qu'à la largeur la plus contrainte,
-et aucun harnais ne regardait cet écran. Il en existe un désormais, et il échoue sur l'ancienne
-rédaction.
-
-### Deux questions tranchées, mesures à l'appui
-**Le titre de l'aide sur l'écran d'entrée** : quatre chemins instruits, deux refusés. Une fonction
-`share_peek(code)` serait un ORACLE par construction — elle sépare « titre » et « refusé » sans
-consommer le code ni prendre de place, là où `share_join` fait les deux, et il n'existe aucune
-limitation de débit sur la jointure. Le titre dans le QR rendrait **une photo de l'écran prise de
-loin porteuse d'un diagnostic permanent**, là où elle ne porte aujourd'hui qu'un secret de 40 bits
-mort en dix minutes au plus. Le titre est de toute façon **déjà peint dans la première image du
-miroir** (`#crisisBand`, mesuré visible sans défiler à 320×568 comme à 390×844) : un écran de
-confirmation intermédiaire coûterait un tap pour zéro information, et il est inécrivable tel quel —
-au retour de `share_join` la liste des participants est vide et l'hôte s'appelle littéralement
-« Hôte ». Il ira donc à côté du code sur l'écran de l'hôte.
-
-**Un utilisateur sans compte peut-il OUVRIR un partage ?** Non, et l'arbitrage a été refait sur ses
-vrais mérites — deux des trois arguments spontanés ne tiennent pas. « La surface d'abus l'interdit »
-est faux comme argument discriminant : `require_approval` valant `false` par défaut, un compte coûte
-une adresse jetable et un OTP, et `share_open` n'a de toute façon **aucun plafond par
-propriétaire** — les 500 Mo en 40 secondes sont atteignables aujourd'hui, avec un compte.
-« Aucun plafond ne peut exister sans `auth.uid()` » est faux aussi : c'est vrai d'un plafond PAR
-APPELANT, hors sujet pour un plafond GLOBAL. Ce qui tient : `owner` est la SEULE colonne reliant un
-contenu diffusé à une personne (la retirer ferait de l'exploitant l'hébergeur d'un contenu sans
-auteur, sans retrait ciblé, et supprimerait la seule prise du droit à l'effacement) ; l'approbation
-des comptes deviendrait décorative, le contournement s'appelant « Déconnexion » ; et **un hôte
-anonyme serait un hôte infirme** — la qualité d'hôte n'a aucun porteur autre que le JWT, donc ni
-réadmission, ni coupure, ni fin de partage : si la mauvaise personne entre, le partage reste vivant
-jusqu'à expiration. Si la décision devait s'inverser un jour, le seul chemin défendable est un
-compte ANONYME Supabase (vrai identifiant, journal, révocation, cascade d'effacement), jamais un
-`owner` nullable, et derrière un interrupteur d'instance par défaut fermé.
-
-### Journal des actions, et fin de session
-Incrémenter un compteur **pose désormais un repère horodaté** dans le journal des actions —
-« choc n° 3 à 14:32 » est exactement ce qu'on oublie de noter sous stress, et l'heure est ce qui
-compte cliniquement. Le repère porte une RÉFÉRENCE, jamais un mot : son libellé se dérive de la
-fiche à l'affichage, il traverse donc le partage sans texte libre et suit le compteur si on le
-renomme. Le rail ne remonte pas (mise à jour chirurgicale).
-
-Le `×` du journal **annule au lieu de supprimer** : ligne barrée, estompée, conservée, et le `×`
-devient `↺` pour se raviser. Deux règles du projet le condamnaient déjà — « action destructrice en
-situation de crise = geste maintenir, pas un simple tap », et le précédent `origT`, où la correction
-d'heure est non destructive, visible et réversible. Le « maintenir » a été envisagé et écarté : il
-protège du geste accidentel mais laisse la perte définitive, et ne dit rien à celui qui relit — or
-le journal alimente le compte-rendu. **L'heure reste en encre pleine** (c'est la donnée clinique).
-C'est aussi ce qui rend le geste admissible pour un scribe en session partagée : attribué, daté,
-réversible — là où un décochage, qui détruit vraiment une information, lui reste fermé.
-
-### Vérification
-663 tests × 2 moteurs, 13 harnais verts, **94/94 contrôles doctrine** (+54), **301 contrôles
-d'accessibilité** (+12, dont l'écran d'entrée dans les deux thèmes), 55/55 contrôles partage. Les
-nouveaux contrôles ont chacun été **vérifiés capables d'échouer**, fichier restauré à l'octet
-ensuite. `supabase/schema.sql` et `rls-tests.sql` ont été rejoués sur l'instance (le genre
-d'évènement `mark_void` s'ajoute aux capacités du scribe).
-
-**Incident de manipulation, consigné parce qu'il doit servir.** Un `git checkout -- index.html`,
-lancé pour annuler une modification temporaire de démonstration, a effacé tout le travail non
-committé du fichier — cette commande ne défait pas la dernière modification, elle restaure depuis
-le dernier commit. Le fichier a été reconstruit depuis le transcript de session (79 éditions
-rejouées dans l'ordre, deux ancrages réparés, deux modifications faites hors outil d'édition
-retrouvées et re-appliquées), puis vérifié : audit systématique des 79 éditions (zéro manquante),
-cohérence de la réparation manuelle sur ses 5 sites, absence de duplication, et surtout la suite
-complète au vert — les tests et les treize harnais, eux, n'avaient pas été touchés, et c'est ce qui
-a servi de juge. **Règle : pour annuler une modification expérimentale, restaurer depuis une
-sauvegarde vérifiée par empreinte, jamais depuis git tant que le travail n'est pas committé.**

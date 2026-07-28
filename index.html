@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-w7tnv+InzHDH2zLrGz4wW96DtRRxQubgYA5o87nKJx8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-Bn3obzROmoSpf62q575w+yw4FuYaweZ2wEI02rvPWKk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1071,7 +1071,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Icônes SVG « de texte » (uiIcon, remplacent les emojis) : alignées sur la ligne de base. */
   svg.tic{vertical-align:-2.5px;flex:none}
   /* Étoiles « Avec l'IA » (dialogue Créer) : dorées et pleines, comme l'emoji ✨ qu'elles remplacent. */
-  #crtIA .crt-ic{color:var(--alert-strong)}
+  /* P3-2 (audit design v4.56) : l'ambre vif `--alert` est réservé aux banderoles d'ALERTE —
+     ici il ne faisait que décorer « Avec l'IA ». Registre INFORMATION, comme les deux autres
+     méthodes du dialogue. */
+  #crtIA .crt-ic{color:var(--primary)}
   .ro-badge{font-size:11px;font-weight:600;color:var(--primary-dk);background:var(--primary-soft);padding:2px 8px;border-radius:10px}
   /* Fenêtre « Gérer la bibliothèque » — aligne le style sur la fenêtre Compte. */
   /* Dialogue bibliothèque (SPEC-dialogue-bibliotheque) : étiquettes 11/800/1 --soft, rangées
@@ -1445,7 +1448,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      arrondie détachée, qui écrasait visuellement les lignes voisines.
      Le NUMÉRO d'étape est SUPPRIMÉ : on coche dans n'importe quel ordre et il n'ancrait aucune
      référence croisée (les renvois →/↺ visent le numéro de BLOC, `.ov-n`, conservé). */
-  ol.steps li{display:flex;gap:13px;align-items:center;min-height:54px;padding:10px 4px;cursor:pointer;transition:opacity .25s,background .25s,color .25s;overflow-wrap:break-word;border-top:1px solid var(--line)}
+  /* D1 (audit design v4.56) : la rangée ENTIÈRE est déjà la cible (le <li> porte data-ck) —
+     sa hauteur passe de 54 à 60 px : le 44 px doctrinal est un MINIMUM, pas un optimum, et un
+     pouce ganté dans une ambulance en mouvement ne vise pas une case de 24 px. */
+  ol.steps li{display:flex;gap:13px;align-items:center;min-height:60px;padding:12px 4px;cursor:pointer;transition:opacity .25s,background .25s,color .25s;overflow-wrap:break-word;border-top:1px solid var(--line)}
   ol.steps li:first-child{border-top:0}
   /* v4.13.1 : min-width:0 + césure — sans eux, un mot long (« compressions ») fixe le
      min-content du texte et pousse la CASE hors du cadre en étroit / grande taille de texte. */
@@ -1507,6 +1513,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      texte HORS du cadre (en étroit / grande taille de texte). Césure française en secours. */
   .ftxt{flex:1;min-width:0;overflow-wrap:break-word;hyphens:auto}
   ul.flat li::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;flex-shrink:0;margin-top:8px;opacity:.5}
+  /* P1-1 (audit design v4.56) : les CRITÈRES DIAGNOSTIQUES de l'étape ① passent de « une boîte
+     par critère » à des LIGNES À FILET — la doctrine des listes (« normal = ligne, signalé =
+     boîte ») appliquée au bloc de confirmation : ~210 px rendus à 360 px, le CTA « Confirmé —
+     démarrer la session » remonte au-dessus du pli. Le point ::before reste (tête de ligne). */
+  ul.flat.confirm li{background:none;border:0;border-radius:0;border-top:1px solid var(--line);margin-bottom:0;padding:9px 4px}
+  ul.flat.confirm li:first-child{border-top:0}
+  ul.flat.confirm li::before{margin-top:7px}
   /* « À vérifier » : panneaux NEUTRES (V5) — l'ambre reste porté par l'en-tête de section
      (la couleur signale le registre, pas chaque item). */
   ul.diff li{color:var(--ink-soft)}
@@ -1703,7 +1716,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Anatomie du canvas (rail droit) : UNE variable d'état --tcol pilote libellé + temps +
      barre (+ bordure via --tbd) ; courant = bleu, ÉCHU = AMBRE (le rouge reste réservé aux
      memory items / vital), en pause = encre douce + texte « — EN PAUSE » (jamais couleur seule). */
-  .tmcard,.cncard{--tcol:var(--link);--tbd:var(--line);background:var(--surface);border:1.5px solid var(--tbd);border-radius:8px;padding:12px 14px;color:var(--ink)}
+  /* P2-7 (audit design v4.56) : --link est doctrinalement « le temps d'un minuteur EN COURS » —
+     le défaut (arrêt) passe en ENCRE, .run porte l'accent ; .due/.paused déclarées APRÈS gagnent. */
+  .tmcard,.cncard{--tcol:var(--ink);--tbd:var(--line);background:var(--surface);border:1.5px solid var(--tbd);border-radius:8px;padding:12px 14px;color:var(--ink)}
+  .tmcard.run{--tcol:var(--link)}
   .tmcard.due{--tcol:var(--verify-hi);--tbd:var(--verify-bd)}
   .tmcard.paused{--tcol:var(--ink-soft)}
   .cncard{text-align:center}
@@ -1715,13 +1731,18 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #screenFlash{position:fixed;inset:0;pointer-events:none;z-index:99;opacity:0;background:var(--alert-hi);display:none}
   #screenFlash.on{display:block;animation:sf 2s ease-out forwards}
   @keyframes sf{0%{opacity:.55}60%{opacity:.3}100%{opacity:0}}
-  .tm-label{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--tcol);margin-bottom:6px;overflow-wrap:anywhere;word-break:break-word}
+  /* P2-1 : casse de phrase (les capitales restent le registre des ÉTIQUETTES courtes). */
+  .tm-label{display:flex;align-items:center;gap:6px;font-size:13.5px;font-weight:700;line-height:1.25;color:var(--tcol);margin-bottom:6px;overflow-wrap:anywhere;word-break:break-word}
+  .tm-meta{font-size:12px;color:var(--ink-soft);margin:-4px 0 6px;line-height:1.35}
   .cncard .tm-label{justify-content:center;color:var(--ink-soft)}
   .rt-add{margin-top:10px;min-height:44px;border:1.5px dashed var(--line);border-radius:8px;color:var(--link);font-size:12.5px;font-weight:700}
   .read-side .rt-add{margin-top:10px}   /* respire comme l'écart des cartes ; 0 le collait (v4.23.5) */
   .tm-val,.cn-val{font-family:var(--mono);font-size:26px;font-weight:700;line-height:1.15;font-variant-numeric:tabular-nums}
   .tm-val{color:var(--tcol)}
   .tm-cyc{font-size:12px;color:var(--ink-soft);margin-top:3px}
+  /* D11 (audit design v4.56) : tabular-nums sur les nombres d'ÉTAT non mono — cohérent avec
+     « rien ne bouge sous le doigt ». */
+  .ov-c,.ov-n,.hs-n,.rail-n,.cbt-n,.tm-cyc,.sh-when{font-variant-numeric:tabular-nums}
   /* Barre de progression : proportion du temps RESTANT — elle SE VIDE (canvas). */
   .tm-bar-wrap{height:4px;background:var(--line);border-radius:2px;margin:6px 0;overflow:hidden}
   /* La barre est TOUJOURS pleine largeur et se vide par `scaleX` — JAMAIS par `width` (v4.41.0).
@@ -1907,7 +1928,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .ls-info .ls-k{font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink-soft)}
   .ls-info .ls-t{font-size:14.5px;font-weight:700;color:var(--ink)}
   .ls-chrono{font-family:var(--mono);font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--ink)}
-  .ls-end{background:none;border:0;color:var(--critical);font-family:inherit;font-size:13px;font-weight:700;min-height:40px;padding:0 12px;border-radius:9px;cursor:pointer}
+  /* P3-13 (audit design v4.56) : un lien texte rouge = cible étroite et affordance faible à
+     côté d'un bouton rempli. Contour `--critical` compact (grammaire contour = gérer), cible
+     44 px par le halo — jamais rempli : le rouge plein reste à la confirmation finale. */
+  .ls-end{position:relative;background:none;border:1px solid var(--critical-line);color:var(--critical);font-family:inherit;font-size:13px;font-weight:700;min-height:36px;padding:0 12px;border-radius:9px;cursor:pointer}
+  .ls-end::after{content:"";position:absolute;inset:-4px}
   .ls-end:hover{background:var(--critical-soft)}
   .ls-end:focus-visible{outline:2px solid var(--critical);outline-offset:2px}
   .tag.live{background:var(--ok-soft);color:var(--ok);font-weight:700}   /* ● En cours : vert session (un seul vocabulaire) */
@@ -2055,6 +2080,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .blk-top{display:flex;align-items:center;gap:8px;margin-bottom:11px}
   .blk-type{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;padding:3px 8px;border-radius:6px}
   .blk-type.steps{background:var(--surface-3);color:var(--ink)}.blk-type.decision{background:var(--verify-soft);color:var(--verify)}
+  /* P3-3 (audit design v4.56) : « Cycle »/« Chrono » sont des ÉTIQUETTES DE TYPE, pas un
+     registre d'attente — l'ambre du `.decision` y était emprunté. Pilule neutre mono. */
+  .blk-type.tm-kind{background:var(--tag-bg);color:var(--tag-ink);font-family:var(--mono);letter-spacing:0}
   .blk-top input,.optedit input{flex:1;min-width:0;padding:9px 11px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--input-bg)}
   .blk .sub{font-size:11px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;color:var(--ink-soft);margin:12px 0 7px}
   .startbtn{border:1px solid var(--line);background:var(--input-bg);color:var(--ink-soft);border-radius:8px;padding:7px 12px;min-height:32px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
@@ -2143,7 +2171,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      l'écraser (titre superposé au chip « Vous êtes ici », compteur expulsé). */
   .ov-head{display:flex;align-items:stretch;flex-wrap:wrap;justify-content:flex-end}
   .ov-head .ov-tgl{flex:1 1 100%}   /* titre + compteur sur leur propre ligne */
-  .ov-acts{flex:1 1 100%;display:flex;gap:8px;justify-content:flex-end;padding:0 12px 10px}   /* Lecteur/Vérifier côte à côte SOUS le titre ; le rembourrage REMPLACE la marge que portaient les boutons — sans lui ils touchaient le bord droit et le bas de la carte (v4.23.8) */
+  /* P2-2 (audit design v4.56) : UNE seule ligne d'état — pilule « Vous êtes ici » à gauche,
+     Lecteur/Vérifier à droite (−52 px par bloc actif ; la rangée vide flottait en plein cœur de
+     la zone balayée par l'œil). */
+  .ov-acts{flex:1 1 100%;display:flex;gap:8px;align-items:center;justify-content:flex-end;padding:0 12px 10px}
+  .ov-acts .ov-here{margin-right:auto}   /* Lecteur/Vérifier côte à côte SOUS le titre ; le rembourrage REMPLACE la marge que portaient les boutons — sans lui ils touchaient le bord droit et le bas de la carte (v4.23.8) */
   .ov-tgl{flex:1 1 230px;min-width:0;display:flex;align-items:center;gap:9px;min-height:52px;padding:9px 12px;background:none;border:0;cursor:pointer;font-family:inherit;text-align:left}
   .ov-tgl:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
   .ov-n{width:26px;height:26px;border-radius:50%;flex:none;display:grid;place-items:center;font-family:var(--mono);font-size:13px;font-weight:700;color:var(--ink-soft);border:2px solid var(--line-strong)}
@@ -2318,7 +2350,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .sv-stp li.vig{color:var(--verify);font-weight:600}
   /* v4.13.1 : la pilule DOIT pouvoir se replier (une réponse longue en nowrap dépassait du
      cadre de sa cellule) — box-decoration-break garde les coins sur chaque fragment. */
-  .sv-r{font-family:var(--mono);font-size:11px;color:var(--ink);background:var(--tag-bg);border:1px solid var(--line);border-radius:7px;padding:0 6px;overflow-wrap:break-word;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+  /* D8 (audit design v4.56) : inline-block = la pilule passe à la ligne EN BLOC ; break-word ne
+     reste que pour le cas où elle excède seule la colonne (là, c'est le garde-fou télégraphique
+     qui doit parler à la rédaction, pas la césure). */
+  .sv-r{display:inline-block;max-width:100%;font-family:var(--mono);font-size:11px;color:var(--ink);background:var(--tag-bg);border:1px solid var(--line);border-radius:7px;padding:0 6px;overflow-wrap:break-word;-webkit-box-decoration-break:clone;box-decoration-break:clone}
   /* Bande de décision : registre ATTENTION — titre en petites capitales + question en clair. */
   .sv-band{display:flex;align-items:baseline;gap:6px;border:1px solid var(--verify-bd);border-radius:3px;background:var(--verify-soft);padding:6px 8px;cursor:pointer;min-width:0}
   .sv-band .sv-n{color:var(--verify)}
@@ -2567,9 +2602,22 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* État de l'instance (app-admin) : petites cartes de compteurs. */
   .inst-stats-wrap{margin:14px 0 4px}
   .auth-stats-h{font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft);margin:0 0 8px}
+  /* P2-6 (audit design v4.56) : UNE ligne de conséquence par réglage, la garantie clé en gras —
+     le reste du texte est CONSERVÉ sous un dépliant (rien n'est supprimé, la dose change de
+     place). La fenêtre se scanne au lieu de se lire. */
+  .acct-more{margin-top:3px}
+  .acct-more>summary{cursor:pointer;color:var(--link);font-weight:600;list-style:none;display:inline-flex;align-items:center;gap:4px;min-height:28px}
+  .acct-more>summary::-webkit-details-marker{display:none}
+  .acct-more>summary::after{content:"▾";font-size:10px}
+  .acct-more[open]>summary::after{content:"▴"}
+  .acct-more>summary:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:6px}
+  .acct-more[open]{margin-bottom:4px}
   .inst-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:8px;margin:0 0 16px}
-  .inst-stat{background:var(--primary-soft);border-radius:10px;padding:9px 10px;text-align:center}
-  .inst-stat .is-v{display:block;font-size:18px;font-weight:700;color:var(--ink)}   /* donnée passive : encre, pas l'accent */
+  /* P3-1 (audit design v4.56) : `--primary-soft` est la teinte des boutons TONALS — des tuiles
+     de lecture seule s'y donnaient l'air cliquables. Surface neutre + filet ; la valeur passe en
+     mono tabulaire (ce sont des nombres qui comptent). */
+  .inst-stat{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:9px 10px;text-align:center}
+  .inst-stat .is-v{display:block;font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:18px;font-weight:700;color:var(--ink)}   /* donnée passive : encre, pas l'accent */
   .inst-stat .is-k{display:block;font-size:11px;color:var(--ink-soft);margin-top:2px}
   .pend-badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;margin-left:6px}
   .pend-badge.pending{color:var(--verify);background:var(--verify-soft)}
@@ -2709,6 +2757,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #shareModal .sh-adr.warn{color:var(--verify);text-align:left}
   #shareModal .sh-when{margin:0 0 12px;font-size:12px;text-align:center;color:var(--ink-soft)}
   #shareModal .sh-when.closed{color:var(--verify)}
+  #shareModal .sh-when.soon{color:var(--verify);font-weight:700}
   .sh-qr{display:flex;justify-content:center;margin:0 0 10px}
   /* Le QR est PLAFONNÉ, et rétréci au palier le plus contraint : à 320×568 la carte dépassait de
      2 px et « Arrêter le partage » perdait 6 px de sa cible — pour un code qui reste scannable
@@ -3477,8 +3526,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .rt-collapsed:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* Bouton à MAINTENIR sur fond clair (Recommencer l'algorithme) : même geste anti-accidentel que les minuteurs. */
   /* Compteurs : « + » (geste principal) plus large et teinté ; « − » (correction) plus discret. */
-  .cn-btn[data-cninc]{flex:1.4;background:var(--surface);border:1.5px solid var(--link);color:var(--link)}
-  .cn-btn[data-cninc]:hover{background:var(--primary-soft)}
+  /* P2-5 (audit design v4.56) : en session on incrémente 10 fois pour 1 correction — l'action
+     fréquente prend la MASSE (tonal --primary-soft, jamais un rempli : réservé au CTA), la
+     corrective reste un contour compact ≥ 44 px. */
+  .cn-btn[data-cninc]{flex:1.4;background:var(--primary-soft);border:0;color:var(--primary-dk);font-weight:800}
+  .cn-btn[data-cninc]:hover{background:var(--primary-100)}
   .cn-btn[data-cndec]{width:44px}
   /* Desktop : chips sur plusieurs lignes (le défilement horizontal est un geste tactile) ;
      bibliothèque sur 2 colonnes quand la place le permet. */
@@ -3918,7 +3970,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.56.2';
+const APP_VERSION='4.56.3';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -5626,8 +5678,11 @@ function storageState(o){
   const fmt=fmtBytes,used=fmt(o.usage);
   let main,short,tip;
   if(o.signed){
-    main='<span class="pers-ok">'+uiIcon('cloud',13)+' <b>Cloud</b></span> · '+used+' sur l\'appareil';
-    short='<span class="pers-ok">'+uiIcon('cloud',12)+' Cloud</span> · '+used+' sur l\'appareil';
+    /* P3-11 (audit design v4.56) : un état NOMINAL permanent n'a pas à affirmer en `--ok` —
+       même logique que « le non protégé est neutre » (v4.31.0). Le vert reste à la pastille de
+       statut de synchro, qui, elle, change. */
+    main=uiIcon('cloud',13)+' <b>Cloud</b> · '+used+' sur l\'appareil';
+    short=uiIcon('cloud',12)+' Cloud · '+used+' sur l\'appareil';
     tip='Vos fiches sont sauvegardées dans le cloud. Le « '+used+' » est seulement la copie hors-ligne sur CET appareil (sa limite, '+fmt(o.quota)+', ne concerne donc pas vos données) : même effacée du navigateur ou depuis un autre appareil, vous retrouvez tout en vous reconnectant. C\'est l\'intérêt de la synchronisation.';
   }else if(o.pers===true){
     main='<b>Cet appareil seulement</b> · '+used+' · copie unique';
@@ -5644,6 +5699,13 @@ function storageState(o){
   }
   // « presque plein » : variante LONGUE seulement (le pied de lecture reste court et non alarmant).
   if(o.quota&&o.usage/o.quota>0.85)main+=' · <span class="pers-warn">'+uiIcon('warn',13)+' presque plein</span>';
+  /* D7 (audit design v4.56) : en extra-hospitalier le réseau tombe — et l'app fonctionne
+     ENTIÈREMENT en local, mais rien ne le disait au moment où ça inquiète. Encre NEUTRE : c'est
+     un état nominal (doctrine « le non protégé est neutre »), l'ambre reste pour un échec
+     d'action réseau explicite. */
+  if(o.offline){
+    main+=' · Hors ligne — tout fonctionne sur l’appareil';
+    short+=' · Hors ligne';}
   if(o.attBytes)tip+=' Dont '+fmt(o.attBytes)+' de documents PDF joints.';
   return {main,short,tip};
 }
@@ -5662,7 +5724,7 @@ async function updateStorageInfo(){
     else{
       // Poids des documents PDF joints (somme des métadonnées en mémoire — aucun blob n'est relu).
       let attB=0;fiches.forEach(x=>(x.attachments||[]).forEach(a=>attB+=a.size||0));
-      _stgSnap={signed:(typeof Auth!=='undefined'&&Auth.signedIn()),pers,usage:est.usage,quota:est.quota,attBytes:attB};
+      _stgSnap={signed:(typeof Auth!=='undefined'&&Auth.signedIn()),pers,usage:est.usage,quota:est.quota,attBytes:attB,offline:!navigator.onLine};
     }
   }catch(e){_stgSnap=null;}
   paintStorage();
@@ -5671,6 +5733,9 @@ async function updateStorageInfo(){
 // Écrit le libellé aux deux endroits possibles (la sidebar est masquée en lecture, le pied de
 // lecture n'existe pas à l'accueil : chacun se remplit s'il est présent).
 function paintStorage(){
+  // D7 : l'état réseau est relu À LA PEINTURE — il change bien plus souvent que le stockage,
+  // et une ligne « Hors ligne » périmée serait pire que pas de ligne du tout.
+  if(_stgSnap)_stgSnap.offline=!navigator.onLine;
   const s=_stgSnap?storageState(_stgSnap):null;
   const el=document.getElementById('storageInfo');
   if(el){el.innerHTML=s?s.main:'';if(s)el.title=s.tip;}
@@ -5692,7 +5757,7 @@ async function refreshAttOffline(){
   if(!info||!info.total){el.hidden=true;return;}
   el.hidden=false;
   if(!info.missing.length){
-    el.innerHTML='<span class="pers-ok">'+uiIcon('check',12)+' Documents PDF : tous sur cet appareil ('+info.total+')</span>';
+    el.innerHTML=uiIcon('check',12)+' Documents PDF : tous sur cet appareil ('+info.total+')';   // P3-11 : nominal = neutre
     el.title='Les '+info.total+' documents PDF référencés par vos fiches et protocoles sont téléchargés : consultables sans aucun réseau (mode avion, zone blanche).';
     return;}
   const n=info.missing.length;
@@ -6058,6 +6123,9 @@ ${timers?`<h2>Minuteurs</h2><table>${timers}</table>`:''}
 h1{font-size:20px;margin:0 0 2px}h2{font-size:14px;text-transform:uppercase;letter-spacing:.5px;color:#5b6570;margin:22px 0 8px;border-bottom:1px solid #d5dbe2;padding-bottom:4px}
 .meta{color:#5b6570;font-size:13px;margin-bottom:6px}table{width:100%;border-collapse:collapse;font-size:13.5px}td{padding:5px 8px;border-bottom:1px solid #f2f5f8;vertical-align:top}
 td:first-child{white-space:nowrap}ul{margin:0;padding-left:20px;font-size:13.5px}.muted{color:#5b6570}
+/* P3-6 (audit design v4.56) : les colonnes TEMPS en mono tabulaire — des heures en police
+   proportionnelle ne s'alignent pas, et une chronologie se lit en colonne. */
+td:first-child,td:nth-child(2){font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-variant-numeric:tabular-nums;font-size:12.5px}
 .foot{margin-top:26px;font-size:11px;color:#5b6570;border-top:1px solid #d5dbe2;padding-top:8px}
 .wm{position:fixed;right:-34px;top:24px;transform:rotate(24deg);font-size:13px;font-weight:800;letter-spacing:3px;color:#17477f;background:#e3ecf7;border:1px dashed #1f5fa6;padding:4px 44px;z-index:2}
 .meta.exo{color:#17477f;font-weight:700}
@@ -6192,6 +6260,11 @@ function requestNotifyPermission(){try{if('Notification'in window&&Notification.
 // ensureAudio (déclenché au 1er geste : démarrage d'un minuteur, bouton son).
 const VIBE_OK='vibrate'in navigator;let vibePrimed=false;
 function buzz(p){if(!VIBE_OK)return;try{navigator.vibrate(p);}catch(e){}}
+/* D10 (audit design v4.56) : ACQUITTEMENT HAPTIQUE d'un geste ACCOMPLI — cochage, incrément.
+   Avec des gants, dans le bruit d'un SMUR, la confirmation tactile évite le double-tap de doute,
+   qui sur un compteur FAUSSE la donnée. ~18 ms : perceptible, jamais une alarme (l'alarme, elle,
+   est un motif long — beep()). Inerte si l'OS refuse ou n'expose rien (iOS). */
+function tick(){buzz(18);}
 function ensureAudio(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state!=='running')AC.resume();}catch(e){}if(VIBE_OK&&!vibePrimed){vibePrimed=true;try{navigator.vibrate(0);}catch(e){}}}
 // Génère le bip. tone() est appelé QUAND le contexte tourne : c'est la clé de fiabilité, car un
 // AudioContext 'suspended'/'interrupted' (iOS, app revenue au 1er plan, onglet en veille) jouerait
@@ -7583,7 +7656,7 @@ function editorMetaFieldsHtml(d,prefix,L){return `${state.draftRestored?`<div cl
     ${Auth.signedIn()?`<div class="field"><label for="${prefix}-scope">Bibliothèque <span class="hint">${L.scopeHint}</span></label>
       <select id="${prefix}-scope"><option value="" ${!d.libraryId?'selected':''}>Perso (privé)</option>${sortedLibraries().filter(l=>l.role==='editor'||l.role==='admin').map(l=>`<option value="${esc(l.id)}" ${d.libraryId===l.id?'selected':''}>${esc(l.name)} (partagée)</option>`).join('')}${d.libraryId&&!myLibraries.some(l=>l.id===d.libraryId)?`<option value="${esc(d.libraryId)}" selected>${esc(libName(d.libraryId)||'Bibliothèque')}</option>`:''}</select></div>`:''}
     <div class="row2"><div class="field"><label for="${prefix}-code">Code <span class="hint">référence courte facultative</span></label><input type="text" id="${prefix}-code" value="${esc(d.code||'')}" placeholder="${L.codePh}" style="font-family:var(--mono)" maxlength="40"></div>
-      <div class="field"><label for="${prefix}-validation">Date de validation <span class="hint">mois/année</span></label><input type="text" id="${prefix}-validation" inputmode="numeric" autocapitalize="off" value="${esc(valToDisplay(d.validation))}" placeholder="MM/AAAA — ex. 012026 ou 01/2026"></div></div>
+      <div class="field"><label for="${prefix}-validation">Date de validation <span class="hint">mois/année</span></label><input type="text" id="${prefix}-validation" inputmode="numeric" autocapitalize="off" value="${esc(valToDisplay(d.validation))}" placeholder="MM/AAAA"></div></div>
     <div class="field"><label>État</label>${statusSegHtml(d.status,L.fem,!!d.libraryId)}</div>`;}
 /* Sélecteur de catégorie « une sélectionnée + Autre… » (SPEC crise §2, v4.3.0).
    catPickerHtml : chip teinté de la catégorie COURANTE (ou « Sans catégorie », neutre) + bouton
@@ -8899,8 +8972,10 @@ function timerCard(t){const d=timerDisplay(t,Date.now());const val=d.val,bw=d.bw
   // (ex. ↺ 05:00) ; le geste anti-accident « maintenir » reste (jauge + indice).
   const resetDur=t.type==='interval'?fmtMs((t.seconds||0)*1000):'00:00';
   const resetLbl=uiIcon('undo',13)+' '+resetDur;
-  const stCls=timerDue(t)?' due':(timerPaused(t)?' paused':'');
-  return `<div class="tmcard${stCls}" id="tmcard-${t.id}" role="group" aria-label="${lbl}"><div class="tm-label" id="tmlab-${t.id}">${esc(timerStateLabel(t))}</div>
+  /* P2-7 : l'état porte la couleur — arrêt = encre, EN COURS = --link, échu = ambre. */
+  const stCls=timerDue(t)?' due':(t.running?' run':(timerPaused(t)?' paused':''));
+  const meta=tmLabelParts(t.label).meta;
+  return `<div class="tmcard${stCls}" id="tmcard-${t.id}" role="group" aria-label="${lbl}"><div class="tm-label" id="tmlab-${t.id}">${esc(timerStateLabel(t))}</div>${meta?`<div class="tm-meta">${esc(meta)}</div>`:''}
     <div class="tm-val" id="tmval-${t.id}" role="timer" aria-label="${lbl} : ${val}">${val}</div>
     ${t.type==='interval'?`<div class="tm-bar-wrap"><div class="tm-bar" id="tmbar-${t.id}" style="transform:${barTf(bw)}"></div></div><div class="tm-cyc" id="tmcyc-${t.id}">${cyc}</div>`:''}
     <div class="tm-ctrl"><button class="tm-btn tm-main${t.running?' run':''}" id="tmbtn-${t.id}" data-tmtoggle="${t.id}" aria-label="${timerBtnLabel(t)} — ${lbl}">${timerBtnHtml(t)}</button><button class="tm-btn tm-reset" id="tmreset-${t.id}" data-tmreset="${t.id}"${t.running?' disabled':''} title="Maintenir pour remettre à zéro (↺ ${resetDur})" aria-label="Remettre à zéro — ${lbl}"><span class="tmr-lab">${resetLbl}</span><span class="tmr-hint">maintenir</span></button></div></div>`;}
@@ -8917,7 +8992,14 @@ function timerBtnLabel(t){return t.running?'Pause':(timerStarted(t)?'Relancer':'
 function timerDue(t){return t.type==='interval'&&!t.autoloop&&!t.running&&(t.seconds*1000||0)>0&&t.elapsedMs>=(t.seconds*1000);}
 function timerPaused(t){return !t.running&&timerStarted(t)&&!timerDue(t);}
 // Libellé d'état de la carte : l'état change le TEXTE, jamais la couleur seule (canvas/ECAM).
-function timerStateLabel(t){const lbl=t.label||(t.type==='interval'?'Minuteur':'Chronomètre');
+/* P2-1 (audit design v4.56) : un NOM LONG en petites capitales 11 px se déchiffre lettre à
+   lettre — l'inverse du besoin en crise. Le nom passe en casse de phrase 13,5/700 et la
+   PRÉCISION entre parenthèses finales est reléguée en méta 12 px --ink-soft (tmLabelParts,
+   PURE, testée). Le libellé COMPLET reste dans les aria-label. */
+function tmLabelParts(label){const t=String(label||'').trim();
+  const m=t.match(/^(.*\S)\s*\(([^()]{2,})\)$/);
+  return m?{name:m[1],meta:m[2]}:{name:t,meta:''};}
+function timerStateLabel(t){const lbl=tmLabelParts(t.label).name||(t.type==='interval'?'Minuteur':'Chronomètre');
   return timerDue(t)?'■ '+lbl+' — à réévaluer':(timerPaused(t)?lbl+' — en pause':lbl);}
 // Icône + texte du bouton principal (jamais icône seule).
 function timerBtnHtml(t){return uiIcon(t.running?'pause':'play',13)+timerBtnLabel(t);}
@@ -8937,7 +9019,7 @@ function syncTimerBtns(t){const lbl=esc(t.label)||(t.type==='interval'?'Minuteur
   // `.tm-mini.paused` n'a pas de règle, la poser serait une classe morte.
   const card=document.getElementById('tmcard-'+t.id);
   if(card){const plein=card.classList.contains('tmcard');
-    if(plein||card.classList.contains('tm-mini')){card.classList.toggle('due',timerDue(t));if(plein)card.classList.toggle('paused',timerPaused(t));}}
+    if(plein||card.classList.contains('tm-mini')){card.classList.toggle('due',timerDue(t));if(plein){card.classList.toggle('paused',timerPaused(t));card.classList.toggle('run',!!t.running);}}}
   const la=document.getElementById('tmlab-'+t.id);if(la){const sl=timerStateLabel(t);if(la.textContent!==sl)la.textContent=sl;}}
 function counterCard(c){const v=Runtime.counters[c.id]||0;const lbl=esc(c.label)||'Compteur';
   const linked=c.timerId&&Runtime.timers[c.timerId];
@@ -9495,7 +9577,7 @@ function renderRead(){
   main.innerHTML=`
     ${gridOpen}
     <div class="read-head"><h2>${esc(f.title)||'Sans titre'}</h2></div>
-    <div class="read-meta">${f.libraryId?`<span class="tag libtag" title="Bibliothèque partagée">${uiIcon('book',12)}${esc(libName(f.libraryId)||'Partagée')}</span>`:''}${statusChip(f.status,true,{validation:f.validation})}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo title="Reste à compléter : ${esc(sp.join(' · '))} — remplacez les mentions « à compléter » par vos informations locales.">△ À compléter</span>`:'';})()}${catTag(f)}${f.code?`<span class="card-date" style="font-family:var(--mono)">${esc(f.code)}</span>`:''}<span class="card-date${staleDate(f.validation)?' stale':''}">${esc(fmtDate(f.validation))}</span>${f.libraryId&&f.updatedBy?`<span class="card-date" title="Auteur de la dernière modification (pas forcément de toute la fiche)">· dernière modification par ${esc(f.updatedBy)}</span>`:''}</div>
+    <div class="read-meta">${f.libraryId?`<span class="tag libtag" title="Bibliothèque partagée">${uiIcon('book',12)}${esc(libName(f.libraryId)||'Partagée')}</span>`:''}${statusChip(f.status,true,{validation:f.validation})}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo title="Reste à compléter : ${esc(sp.join(' · '))} — remplacez les mentions « à compléter » par vos informations locales.">△ À compléter</span>`:'';})()}${catTag(f,true)}${f.code?`<span class="card-date" style="font-family:var(--mono)">${esc(f.code)}</span>`:''}<span class="card-date${staleDate(f.validation)?' stale':''}">${esc(fmtDate(f.validation))}</span>${f.libraryId&&f.updatedBy?`<span class="card-date" title="Auteur de la dernière modification (pas forcément de toute la fiche)">· dernière modification par ${esc(f.updatedBy)}</span>`:''}</div>
     ${f.status==='draft'?`<div class="notice">${uiIcon('warn',15)}<div><b>Brouillon</b> — cette fiche n'a pas encore été validée pour l'usage clinique.</div></div>`:''}
     ${f.status==='review'?`<div class="notice">${uiIcon('warn',15)}<div><b>À relire</b> — cette fiche est signalée à relire avant validation.</div></div>`:''}
     ${modeTopSegH}
@@ -9759,7 +9841,7 @@ function bindReadEvents(f,blk,cur){
       announce('Arrêter un minuteur revient à celui qui conduit la checklist.');return;}}catch(e){}
     toggleTimer(t);const fresh=ensureStarted();persistLive(Runtime);if(fresh)renderKeepAnchor('[data-tmtoggle="'+CSS.escape(b.dataset.tmtoggle)+'"]');else{syncTimerBtns(t);refreshTimersDOM();}});
   main.querySelectorAll('[data-tmreset]').forEach(b=>holdToReset(b,()=>{const t=Runtime.timers[b.dataset.tmreset];resetTimer(t);syncTimerBtns(t);refreshTimersDOM();persistLive(Runtime);}));
-  main.querySelectorAll('[data-cninc]').forEach(b=>b.onclick=()=>{const id=b.dataset.cninc;Runtime.counters[id]=(Runtime.counters[id]||0)+(+b.dataset.step);
+  main.querySelectorAll('[data-cninc]').forEach(b=>b.onclick=()=>{const id=b.dataset.cninc;tick();Runtime.counters[id]=(Runtime.counters[id]||0)+(+b.dataset.step);
     // Compteur LIÉ (canvas : bolus adrénaline) : le « ＋ » RELANCE le minuteur associé (repart du plein).
     const cc=((Runtime.fiche&&Runtime.fiche.counters)||[]).find(x=>x.id===id);
     if(cc&&cc.timerId&&Runtime.timers[cc.timerId]){const t=Runtime.timers[cc.timerId];t.elapsedMs=0;t.lastStart=Date.now();t.running=true;ensureAudio();}
@@ -9846,6 +9928,7 @@ function bindNavEvents(f,blk){
   // première action démarre la session (le bandeau apparaît) -> re-rendu complet, une seule fois.
   main.querySelectorAll('[data-ck]').forEach(li=>{const tgl=kb=>{const k=li.dataset.ck;const on=!state.checked[k];
     if(!canToggleStep(on)){refuseStep(on);return;}   // prédicat UNIQUE, cf. ovToggleStep
+    tick();   // D10 : acquittement haptique du geste accompli
     state.checked[k]=on;
     if(on){delete state.vgaps[k];}else{delete state.verified[k];}   // cf. ovToggleStep : trace caduque
     const justStarted=ensureStarted();persistLive(Runtime);
@@ -10028,6 +10111,11 @@ function ovInstHtml(f,id,idx,topo,pres){
     let ctl='';
     if(tip){const nxt=b.next?f.blocks.find(x=>x.id===b.next):null;
       const allDone=steps.length===0?true:dn>=steps.length;
+      /* G2 de l'audit design v4.56 (« ✓ Bloc n complet — Continuer vers X », rituel QRH
+         « checklist complete ») ESSAYÉ PUIS ÉCARTÉ — décision utilisateur : le bouton passe déjà
+         au registre CONFIRMATION (vert) quand tout est coché, les cases le disent, et une
+         seconde formule pour le même geste est exactement ce qu'AC 120-71B proscrit. Le libellé
+         reste « Continuer — X → », identique aux deux sites (journal et vue guidée). */
       if(nxt){const lbl='Continuer — '+((b.nextLbl||'').trim()||(nxt.title||'').trim()||'suite')+' →';
         ctl=`<div class="flow-ctrl"><button type="button" class="btn cont ${allDone?'okay':'idle'}" data-ovnext="${esc(b.next)}" data-contlbl="${esc(lbl)}"${allDone?'':' aria-disabled="true"'}>${allDone?esc(lbl):'Cochez les étapes restantes ('+(steps.length-dn)+')'}</button></div>`;}
       else if(!state.flowEnded&&!(Runtime.cxBack||{})[seq]){
@@ -10052,7 +10140,7 @@ function ovInstHtml(f,id,idx,topo,pres){
     :((tip&&hasFlow(f)?`<button type="button" class="ov-redo" data-ovreader title="Mode lecteur (binôme) : un challenge à la fois en plein écran — le lecteur lit, l'exécutant répond"><span aria-hidden="true">⤢</span> Lecteur</button>`:'')
       +((!dec&&clean(b.steps).length)?`<button type="button" class="ov-redo" data-ovverify="${idx}" title="Do-Verify : redérouler ce bloc en challenge-réponse — « Constaté » coche, « Écart » laisse non coché">Vérifier</button>`:'')
       +((!tip&&complete&&!dec)?`<button type="button" class="ov-redo" data-ovredo="${esc(id)}" title="Refaire ce bloc : nouvelle carte au bout du journal — celle-ci reste telle quelle">↺ Refaire</button>`:''));
-  return `<section class="ov-block${tip?' cur':''}${complete?' done':''}${dec?' dec':''}${closed&&!verifying?' closed':''}" data-ovb="${esc(id)}" data-ovi="${idx}" data-ovn="${topo[id]||''}"${tip?' aria-current="step"':''}><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="${idx}" aria-expanded="${closed&&!verifying?'false':'true'}"><span class="ov-n" aria-hidden="true">${complete?uiIcon('check',13,{sw:3.2,cls:''}):(topo[id]||((Runtime.cxBack||{})[seq]?'⚡':'·'))}</span><span class="ov-t">${esc(b.title)||(dec?'Décision':'Étapes')}${passTag}${cxTag}${takenH} <span class="ov-here">Vous êtes ici</span>${navByTag(tip,seq)}</span><span class="ov-c">${count}</span><span class="ov-chev" aria-hidden="true">${closed&&!verifying?'▾':'▴'}</span></button>${btns?`<div class="ov-acts">${btns}</div>`:''}</div><div class="ov-body">${bodyH}</div></section>`;}
+  return `<section class="ov-block${tip?' cur':''}${complete?' done':''}${dec?' dec':''}${closed&&!verifying?' closed':''}" data-ovb="${esc(id)}" data-ovi="${idx}" data-ovn="${topo[id]||''}"${tip?' aria-current="step"':''}><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="${idx}" aria-expanded="${closed&&!verifying?'false':'true'}"><span class="ov-n" aria-hidden="true">${complete?uiIcon('check',13,{sw:3.2,cls:''}):(topo[id]||((Runtime.cxBack||{})[seq]?'⚡':'·'))}</span><span class="ov-t">${esc(b.title)||(dec?'Décision':'Étapes')}${passTag}${cxTag}${takenH}${navByTag(tip,seq)}</span><span class="ov-c">${count}</span><span class="ov-chev" aria-hidden="true">${closed&&!verifying?'▾':'▴'}</span></button>${(btns||tip)?`<div class="ov-acts">${tip?'<span class="ov-here">Vous êtes ici</span>':''}${btns}</div>`:''}</div><div class="ov-body">${bodyH}</div></section>`;}
 /* PLAN DE L'AIDE — « Se repérer » (v4.12.0, réduit à UNE vue en v4.25.0) : rendu de flowPlan.
    Le plan reste INERTE côté cochage (la trace vit dans le journal) et sert à NAVIGUER.
    UNE SEULE VUE, l'ÉCHELLE (ovPlanLadderHtml, mode compact ECAM) : une LIGNE par bloc, retraits
@@ -10562,6 +10650,7 @@ function ovToggleStep(f,li,kb){
   const sec=li.closest('.ov-block');
   const on=!state.checked[k];
   if(!canToggleStep(on)){refuseStep(on);return false;}   // MÊME prédicat que la copie du guidé
+  tick();   // D10 : acquittement haptique du geste accompli
   state.checked[k]=on;
   /* Un geste MANUEL rend la trace de vérification caduque : cocher lève l'écart (il est résolu),
      décocher retire la constatation (elle ne décrit plus l'état). La trace doit refléter ce qui a
@@ -11321,13 +11410,30 @@ function listEditor(legend,hint,key,arr,ordered,opts){opts=opts||{};const rows=(
 // Garde-fou « Ne pas oublier » (v4.4.0, non bloquant — registre ATTENTION) : au-delà de 4
 // memory items, plus rien n'est saillant (doctrine QRH : ils sont rares par construction).
 // On suggère le reclassement, on n'empêche rien.
-const nfGuardTxt=n=>n>4?('△ '+n+' rappels — au-delà de 4, plus rien n’est saillant. Un rappel lié à une étape précise est plus sûr en étape ⚠ du bloc concerné, une surveillance dans « À vérifier ».'):'';
+/* P1-1 (audit design v4.56) : le compte NE SUFFIT PAS — mesuré, 4 rappels dont un composé de
+   trois lignes repoussent le CTA « démarrer la session » sous le pli à 360 px. Le garde-fou dit
+   donc aussi le rappel TROP LONG (même seuil télégraphique que les challenges : 110 c.). Non
+   bloquant, registre ATTENTION : on suggère, on n'empêche rien. `arr` peut être un nombre
+   (compat) ou le tableau lui-même. PURE, testée. */
+function nfGuardTxt(arr){
+  const n=Array.isArray(arr)?clean(arr).length:(+arr||0);
+  const parts=[];
+  if(n>4)parts.push(n+' rappels — au-delà de 4, plus rien n’est saillant. Un rappel lié à une étape précise est plus sûr en étape ⚠ du bloc concerné, une surveillance dans « À vérifier »');
+  if(Array.isArray(arr)){const lg=clean(arr).filter(x=>stripBold(String(x)).length>110).length;
+    if(lg)parts.push(lg+' rappel'+(lg>1?'s':'')+' très long'+(lg>1?'s':'')+' — style télégraphique : au-delà de 110 caractères, le chapeau pousse la première action sous le bas de l’écran');}
+  return parts.length?('△ '+parts.join(' · ')):'';}
 // Garde-fou TÉLÉGRAPHIQUE des blocs d'étapes (v4.11.0, non bloquant — AC 120-71B) : une étape =
 // un challenge court (une action), la valeur en réponse « :: » ; un bloc lisible = 7 étapes max.
 function stepGuardTxt(steps){const s=clean(steps);const parts=[];
   if(s.length>7)parts.push(s.length+' étapes — au-delà de 7, scinder le bloc (lisibilité sous stress)');
   const long=s.filter(x=>stepCR(stepText(x)).c.length>110).length;
   if(long)parts.push(long+' challenge'+(long>1?'s':'')+' très long'+(long>1?'s':'')+' — style télégraphique : une action courte, la valeur en réponse « challenge :: réponse »');
+  /* G1 (audit design v4.56, QRH « une action par ligne ») : une étape qui CUMULE des actions se
+     coche « à moitié faite ». On compte les séparateurs de la partie CHALLENGE seulement (la
+     réponse « :: » est une valeur, elle a le droit d'énumérer) ; « · » et « + » entourés
+     d'espaces uniquement — jamais une abréviation ni un « 1 + 1 » de dose collé. */
+  const cumul=s.filter(x=>(stepCR(stepText(x)).c.match(/\s[·+]\s/g)||[]).length>=2).length;
+  if(cumul)parts.push(cumul+' étape'+(cumul>1?'s':'')+' cumulant plusieurs actions — une action cochable = une ligne (sinon on coche « à moitié fait »)');
   return parts.length?('△ '+parts.join(' · ')):'';}
 // Bouton « Gras » : entoure la sélection du champ voisin de ** (rendu <b> en lecture via fmt()).
 function boldBtnHtml(){return '<button type="button" class="mini bld" data-bold aria-label="Mettre la sélection en gras" title="Gras — sélectionnez du texte puis cliquez (ou Ctrl/Cmd-B). Réservez-le aux doses et interdictions critiques.">B</button>';}
@@ -11458,7 +11564,7 @@ function cxEditorRow(c,i,f){
   const ext=blk?null:relTarget(c.target);
   const nom=blk?('Bloc — '+(String(stripBold(blk.title||''))||blk.id)):(ext?(ext.title||'Sans titre'):'');
   return `<div class="cx-edit-row"><span class="cx-edit-ic" aria-hidden="true">⚡</span><input data-cxlab="${i}" value="${esc(c.label)}" maxlength="120" placeholder="Événement (ex. Laryngospasme)"><button type="button" class="btn sm cx-tgt${nom?'':' cx-tgt-vide'}" data-cxpicker="${i}" aria-haspopup="dialog">${nom?esc(nom):'Choisir la cible…'}</button><button type="button" class="tk-del" data-cxdel="${i}" aria-label="Supprimer cette complication">×</button></div>`;}
-function timerEditorRow(t,i){const iv=t.type==='interval';const mm=Math.floor((t.seconds||0)/60),ss=(t.seconds||0)%60;return `<div class="trow" data-ti="${i}"><span class="blk-type ${iv?'decision':'steps'}">${iv?'Cycle':'Chrono'}</span><input type="text" data-tf="label" value="${esc(t.label)}" placeholder="${iv?'ex. Cycle adrénaline':'ex. Temps écoulé'}" aria-label="${iv?'Nom du cycle':'Nom du chronomètre'}">${iv?`<input type="number" min="0" data-tmin value="${mm}" style="width:56px" aria-label="Durée du cycle — minutes"><span aria-hidden="true">min</span><input type="number" min="0" max="59" data-tsec value="${ss}" style="width:56px" aria-label="Durée du cycle — secondes"><span aria-hidden="true">s</span><label style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--ink-soft)"><input type="checkbox" data-tloop ${t.autoloop?'checked':''} aria-label="Relancer le cycle automatiquement">boucle</label>`:''}<button class="mini" data-tmv="up" aria-label="Monter">↑</button><button class="mini" data-tmv="down" aria-label="Descendre">↓</button><button class="mini del" data-tdel="${i}" aria-label="Supprimer ce minuteur">×</button></div>`;}
+function timerEditorRow(t,i){const iv=t.type==='interval';const mm=Math.floor((t.seconds||0)/60),ss=(t.seconds||0)%60;return `<div class="trow" data-ti="${i}"><span class="blk-type tm-kind">${iv?'Cycle':'Chrono'}</span><input type="text" data-tf="label" value="${esc(t.label)}" placeholder="${iv?'ex. Cycle adrénaline':'ex. Temps écoulé'}" aria-label="${iv?'Nom du cycle':'Nom du chronomètre'}">${iv?`<input type="number" min="0" data-tmin value="${mm}" style="width:56px" aria-label="Durée du cycle — minutes"><span aria-hidden="true">min</span><input type="number" min="0" max="59" data-tsec value="${ss}" style="width:56px" aria-label="Durée du cycle — secondes"><span aria-hidden="true">s</span><label style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--ink-soft)"><input type="checkbox" data-tloop ${t.autoloop?'checked':''} aria-label="Relancer le cycle automatiquement">boucle</label>`:''}<button class="mini" data-tmv="up" aria-label="Monter">↑</button><button class="mini" data-tmv="down" aria-label="Descendre">↓</button><button class="mini del" data-tdel="${i}" aria-label="Supprimer ce minuteur">×</button></div>`;}
 function counterEditorRow(c,i,timers){const ivs=(timers||[]).filter(t=>t.type==='interval');
   return `<div class="trow" data-ci="${i}"><input type="text" data-cf="label" value="${esc(c.label)}" placeholder="ex. Adrénaline (mg)" aria-label="Nom du compteur"><span aria-hidden="true">pas</span><input type="number" data-cstep value="${c.step||1}" style="width:56px" aria-label="Pas du compteur"><span aria-hidden="true">départ</span><input type="number" data-cstart value="${c.start||0}" style="width:56px" aria-label="Valeur de départ du compteur">${ivs.length?`<select data-clink aria-label="Minuteur relancé par le ＋ du compteur" title="Le « ＋ » du compteur relance ce minuteur (ex. bolus -> cycle)"><option value="">＋ ne relance rien</option>${ivs.map(t=>`<option value="${esc(t.id)}"${c.timerId===t.id?' selected':''}>＋ relance « ${esc(t.label)||'Minuteur'} »</option>`).join('')}</select>`:''}<button class="mini" data-cmv="up" aria-label="Monter">↑</button><button class="mini" data-cmv="down" aria-label="Descendre">↓</button><button class="mini del" data-cdel="${i}" aria-label="Supprimer ce compteur">×</button></div>`;}
 
@@ -11515,7 +11621,7 @@ function renderEditor(){
     oublier », ① confirmation, ② prise en charge + minuteurs + contexte local + posologie,
     ③ à vérifier + différentiels, puis annexes) — on rédige dans l'ordre où l'équipe lira. */}
     ${listEditor('Ne pas oublier','points critiques — 4 rappels maximum (bandeau permanent)','notForget',f.notForget)}
-    <p class="nf-guard" id="nfGuard" role="status">${nfGuardTxt(clean(f.notForget).length)}</p>
+    <p class="nf-guard" id="nfGuard" role="status">${nfGuardTxt(f.notForget)}</p>
     ${listEditor('Confirmation diagnostique','critères pour déclencher la fiche','confirmation',f.confirmation)}
     <fieldset class="field"><label>Prise en charge <span class="hint">listes d'étapes + décisions conditionnelles</span></label><p class="flow-prev-h">Algorithme — aperçu automatique</p>${flowBlock(f)}${f.blocks.map(b=>blockEditor(b,blocks)).join('')}<div class="add-blocks"><button class="btn sm" id="addSteps">+ Bloc d'étapes</button><button class="btn sm" id="addDecision">+ Décision (si… alors…)</button></div></fieldset>
     <fieldset class="field"><label>Minuteurs & compteurs <span class="hint">disponibles pendant la session</span></label>
@@ -11628,7 +11734,7 @@ function bindListEditors(d,rerender){d=d||state.draft;rerender=rerender||renderE
     const pfx=e.target.hasAttribute('data-critlist')&&stepIsCrit(d[k][i]||'')?'⚠ ':'';
     d[k][i]=pfx+e.target.value;
     // Garde-fou memory items : recompté À LA FRAPPE (l'ajout/suppression de ligne re-rend, lui).
-    if(k==='notForget'){const g=document.getElementById('nfGuard');if(g)g.textContent=nfGuardTxt(clean(d.notForget).length);}}));
+    if(k==='notForget'){const g=document.getElementById('nfGuard');if(g)g.textContent=nfGuardTxt(d.notForget);}}));
   main.querySelectorAll('[data-lcrit]').forEach(b=>b.onclick=()=>{const k=b.dataset.lkey,i=+b.dataset.lcrit;
     // v4.23.0 : la bascule des repères écrit « △ » (VIGILANCE), jamais « ⚠ ». Un « ⚠ » hérité
     // d'une fiche antérieure est traité comme signalé et le geste le REMET à plat, d'où
@@ -12786,7 +12892,7 @@ function authStateHtml(){
   const cls=_syncUi.state==='err'?' err':_syncUi.state==='off'?' off':_syncUi.state==='busy'?' pending':'';
   // La FRAÎCHEUR est une information de confiance (audit v4.5) : on dit QUAND la copie cloud
   // a été vue en phase pour la dernière fois, pas seulement « Connecté ».
-  const when=(_syncUi.state==='ok'&&_lastSyncT)?' · synchronisé à '+fmtHMS(_lastSyncT).slice(0,5):'';
+  const when=(_syncUi.state==='ok'&&_lastSyncT)?' · '+fmtHMS(_lastSyncT).slice(0,5):'';   // P3-4 : le mot « synchronisé » ne se dit qu'une fois (il est déjà l'état)
   return `<div class="auth-state${cls}" id="authState"><span class="auth-dot"></span>${esc(_syncUi.text)}${esc(when)}</div>`;}
 // « Synchroniser maintenant » : grisé hors-ligne — acceptable UNIQUEMENT parce que la ligne
 // d'état juste au-dessus (authStateHtml) affiche « Hors-ligne » et explique pourquoi ; se
@@ -13076,7 +13182,7 @@ function renderAuthAccount(body,u,doOut){
       <div class="auth-actions"><button class="btn primary" id="authSync">Synchroniser maintenant</button></div>
       <div class="dlg-actions acct-two" style="margin-top:10px"><button class="btn" id="authExport">Exporter mes données</button><button class="btn" id="authOut">Se déconnecter</button></div>
       ${accountPrefsHtml()}
-      ${myIsAppAdmin?`<div class="acct-zone"><div class="auth-stats-h">Administration</div><div class="auth-actions"><button class="btn" id="authPending">Comptes en attente${myPendingCount?' ('+myPendingCount+')':''}</button></div><div id="authStats" class="inst-stats-wrap" aria-label="État de l'instance"></div><p class="auth-admin-note">Compte administrateur : la suppression se fait depuis le tableau de bord Supabase (garde-fou).</p></div>`:`<div class="mem-danger"><p class="mem-section-h danger-h">Zone sensible</p>
+      ${myIsAppAdmin?`<div class="acct-zone"><div class="auth-stats-h">Administration</div><div class="auth-actions"><button class="btn" id="authPending">Comptes en attente${myPendingCount?' ('+myPendingCount+')':''}</button></div><div id="authStats" class="inst-stats-wrap" aria-label="État de l'instance"></div><p class="auth-admin-note">Compte administrateur : la suppression se fait depuis la console d’administration (garde-fou).</p></div>`:`<div class="mem-danger"><p class="mem-section-h danger-h">Zone sensible</p>
         <button class="btn outline-danger" id="authDelete">Supprimer mon compte et mes données…</button>
         <p class="danger-caption">Supprime le compte, les fiches synchronisées et les partages. Action irréversible — confirmation demandée.</p></div>`}`;
     bindAccountPrefs(body);
@@ -13110,10 +13216,10 @@ function accountPrefsHtml(slot){
     ${slot?`<div class="auth-actions" style="margin-bottom:14px">${slot}</div>`:''}
     <div class="auth-stats-h">Taille du texte</div>
     <div class="statuseg" role="radiogroup" aria-label="Taille du texte">${ZOOM_STEPS.map(s=>`<button type="button" class="st-seg ts-seg ts-${s}${z===s?' on':''}" data-zoom="${s}" role="radio" aria-checked="${z===s?'true':'false'}" title="${HINT[s]}" aria-label="Taille du texte ${HINT[s]}">A</button>`).join('')}</div>
-    <div class="st-hint" style="margin-bottom:4px">S'applique à toute l'application · enregistrée pour votre compte, comme le thème (bouton de l'en-tête)</div>
+    <div class="st-hint" style="margin-bottom:4px">S'applique à <b>toute l'application</b>.<details class="acct-more"><summary>En savoir plus</summary>Enregistrée pour votre compte, comme le thème (bouton de l'en-tête) : vous la retrouvez sur vos autres appareils connectés.</details></div>
     ${Auth.signedIn()?`<div class="auth-stats-h" style="margin-top:14px">Couleur d'accent</div>
     <div class="accent-row" role="radiogroup" aria-label="Couleur d'accent">${ACCENT_IDS.map(a=>`<button type="button" class="acc-sw a-${a||'clinique'}${currentAccent()===a?' on':''}" data-accent="${a}" role="radio" aria-checked="${currentAccent()===a?'true':'false'}" title="${ACCENT_LBL[a]}" aria-label="Accent ${ACCENT_LBL[a]}"></button>`).join('')}</div>
-    <div class="st-hint" style="margin-bottom:4px">Identifie votre session d'un coup d'œil — colore l'accueil et l'en-tête de toutes les vues ; le contenu des fiches en crise et des protocoles garde le bleu clinique.</div>`:''}
+    <div class="st-hint" style="margin-bottom:4px">Colore l'accueil et les en-têtes — <b>jamais le contenu de crise</b>.<details class="acct-more"><summary>En savoir plus</summary>Elle identifie votre session d'un coup d'œil sur un appareil partagé ; le contenu des fiches en crise et des protocoles garde le bleu clinique, pour que les registres de couleur ne changent jamais de sens.</details></div>`:''}
     ${Auth.signedIn()?sessSyncPrefHtml():''}
     ${tagsPrefHtml()}</div>`;}
 /* ═══ HISTORIQUE SYNCHRONISÉ — LA BASCULE, ET CE QU'ELLE DIT ══════════════════════════════════
@@ -13128,8 +13234,8 @@ function sessSyncPrefHtml(){
     <button type="button" class="btn sm ss-tog${on?' on':''}" id="ssTog" role="switch" aria-checked="${on?'true':'false'}">
       ${on?'✓ Synchronisé entre vos appareils':'Rester sur cet appareil seulement'}</button>
     <div class="st-hint" style="margin-bottom:4px">${on
-      ? `Vos <b>${n}</b> session${n>1?'s':''} archivée${n>1?'s':''} suivent votre compte. Les sessions <b>en cours</b> ne partent jamais. La <b>trace de vérification</b> (do-verify) reste sur l’appareil qui l’a produite — un compte rendu consulté ailleurs le dit explicitement.`
-      : 'Par défaut, un compte rendu de soin ne quitte pas l’appareil. Activez si vous voulez le retrouver sur votre tablette ou votre téléphone — seules les sessions <b>terminées</b> sont concernées.'}</div>`;}
+      ? `Vos <b>${n}</b> session${n>1?'s':''} archivée${n>1?'s':''} suivent votre compte — <b>les sessions en cours ne partent jamais</b>.<details class="acct-more"><summary>En savoir plus</summary>La <b>trace de vérification</b> (do-verify) reste sur l’appareil qui l’a produite : un compte rendu consulté ailleurs le dit explicitement, plutôt que de se lire « aucune vérification n’a été faite ».</details>`
+      : `Par défaut, un compte rendu de soin <b>ne quitte pas l’appareil</b>.<details class="acct-more"><summary>En savoir plus</summary>Activez si vous voulez le retrouver sur votre tablette ou votre téléphone. Seules les sessions <b>terminées</b> sont concernées — les sessions en cours ne partent jamais, et la trace de vérification reste sur l’appareil qui l’a produite.</details>`}</div>`;}
 /* ═══ VOCABULAIRE PERSONNEL DU JOURNAL — ÉDITÉ À FROID, JAMAIS PENDANT UN SOIN ════════════════
    Il vit ici, avec le thème et la taille du texte, parce que c'est la même nature : une
    préférence qui suit l'utilisateur d'un appareil à l'autre. Et il s'édite ICI parce qu'on ne
@@ -13146,7 +13252,7 @@ function tagsPrefHtml(){
   return `<div class="auth-stats-h" style="margin-top:14px">Vocabulaire du journal (${T.length})</div>
     <div class="tg-list">${rows||'<p class="tg-none">Aucune étiquette pour l’instant.</p>'}</div>
     ${T.length<TAG_MAX?'<button type="button" class="btn sm tg-add" id="tgAdd">＋ Nouvelle étiquette</button>':''}
-    <div class="st-hint" style="margin-bottom:4px">Vos mots pour le journal des actions : pendant un soin, tapez et choisissez — l’étiquette voyage alors comme une <b>référence</b>, jamais comme du texte. Les abréviations la font remonter (« mru » trouve « Médecin régulateur »). Elle se résout sur <b>vos</b> appareils ; un collègue qui ne l’a pas voit un repère horodaté sans mot.</div>`;}
+    <div class="st-hint" style="margin-bottom:4px">Vos mots pour le journal — <b>aucun texte libre ne traverse le réseau</b>.<details class="acct-more"><summary>En savoir plus</summary>Pendant un soin, tapez et choisissez : l’étiquette voyage comme une <b>référence</b>, jamais comme du texte. Les abréviations la font remonter (« mru » trouve « Médecin régulateur »). Elle se résout sur <b>vos</b> appareils ; un collègue qui ne l’a pas voit un repère horodaté sans mot.</details></div>`;}
 function bindTagsPref(body){
   const maj=()=>{renderAuth();};
   const lire=()=>myTags().map(t=>({k:t.k,l:t.l,a:t.a}));
@@ -14977,7 +15083,10 @@ function shPaintWhen(){
   const ms=shOpenMs();
   const t=ms?('ouvert encore '+Math.ceil(ms/1000)+' s'):'porte fermée — demandez un nouveau code pour un autre participant';
   if(el.textContent!==t)el.textContent=t;
-  el.classList.toggle('closed',!ms);}
+  el.classList.toggle('closed',!ms);
+  /* P3-14 (audit design v4.56) : sous 30 s, la fin de la fenêtre d'admission approche — c'est
+     une ATTENTE (`--verify`), jamais une alerte : rien n'est en train de mal tourner. */
+  el.classList.toggle('soon',!!ms&&ms<=30000);}
 function renderShareSheet(force){
   const body=document.getElementById('shareBody');if(!body)return;
   const sig=[Share.code,(Share.participants||[]).map(p=>p.id+':'+p.label+':'+p.role+':'+(p.revoked?1:0)+(p.detached?1:0)).join(','),
@@ -15193,8 +15302,8 @@ document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='visible'&&Share.mode!=='off'&&Share.status==='active')Share._kick(0);});
 
 // Déclencheurs de synchro : retour en ligne, retour au premier plan.
-window.addEventListener('online',()=>{setSyncChip('ok','Synchronisé');Sync.full();});
-window.addEventListener('offline',()=>setSyncChip('off','Hors-ligne'));
+window.addEventListener('online',()=>{setSyncChip('ok','Synchronisé');paintStorage();Sync.full();});
+window.addEventListener('offline',()=>{setSyncChip('off','Hors-ligne');paintStorage();});   // D7 : la ligne « Hors ligne » du pied suit l'évènement
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')Sync.schedule();});
 
 /* ===== Versions précédentes (réversibilité) ===== */
@@ -15255,6 +15364,10 @@ bindModalDismiss(versModal,closeVersions);
    ARCHIVÉES (la session vive est annoncée par l'en-tête) ; en global, chaque rangée nomme sa
    fiche (x.ficheTitle — un nom de session personnalisé ne la nomme pas forcément). Rouvrir
    ferme la fenêtre et restaure la session ; la suppression (confirmée) re-rend sur place. */
+/* P3-8 (audit design v4.56) : la SECONDE n'aide pas à choisir une session dans une liste — elle
+   vit dans le compte-rendu, où la chronologie est l'objet même. PURE, testée. */
+function sessStamp(ms){const d=new Date(ms||0);
+  return d.toLocaleDateString('fr-FR')+' · '+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});}
 const sessModal=document.getElementById('sessModal');let _sessFiche=null;
 function openSessHist(ficheId){_sessFiche=ficheId||'*';sessModal.classList.add('on');renderSessHist();}
 function closeSessHist(){sessModal.classList.remove('on');_sessFiche=null;}
@@ -15264,7 +15377,7 @@ function renderSessHist(){const body=document.getElementById('sessBody');if(!bod
   if(!ss.length){body.innerHTML='<p class="auth-msg">'+(glob?'Aucune session archivée.':'Aucune session archivée pour cette fiche.')+'</p>';return;}
   /* EXERCICES À PART (v4.27.0) : les répétitions ne se mêlent JAMAIS aux sessions cliniques —
      deux groupes, badge « ▲ EXERCICE » sur chaque rangée d'exercice. */
-  const row=x=>`<div class="sess-row"><div class="si"><div class="sn">${x.exercise?'<span class="sess-exotag">▲ EXERCICE</span> ':''}${esc(x.name)}${x.live?' <span class="sess-livetag">en cours</span>':''}</div><div class="sd">${glob&&x.ficheTitle&&String(x.name||'').indexOf(x.ficheTitle)<0?esc(x.ficheTitle)+' · ':''}${new Date(x.savedAt).toLocaleString('fr-FR')}</div></div><div class="sess-acts"><button class="btn sm" data-resume="${esc(x.id)}" title="Rouvre la session là où elle en était (étapes cochées, minuteurs, compteurs)">Rouvrir</button><button class="btn sm" data-report="${esc(x.id)}" title="Compte-rendu imprimable">Compte-rendu</button><button class="mini del" data-delsess="${esc(x.id)}" aria-label="Supprimer la session">×</button></div></div>`;
+  const row=x=>`<div class="sess-row"><div class="si"><div class="sn">${x.exercise?'<span class="sess-exotag">▲ EXERCICE</span> ':''}${esc(x.name)}${x.live?' <span class="sess-livetag">en cours</span>':''}</div><div class="sd">${glob&&x.ficheTitle&&String(x.name||'').indexOf(x.ficheTitle)<0?esc(x.ficheTitle)+' · ':''}${esc(sessStamp(x.savedAt))}</div></div><div class="sess-acts"><button class="btn sm" data-resume="${esc(x.id)}" title="Rouvre la session là où elle en était (étapes cochées, minuteurs, compteurs)">Rouvrir</button><button class="btn sm" data-report="${esc(x.id)}" title="Compte-rendu imprimable">Compte-rendu</button><button class="mini del sess-del" data-delsess="${esc(x.id)}" aria-label="Supprimer la session « ${esc(x.name)} »" title="Supprimer la session (confirmation demandée)">×</button></div></div>`;
   const clin=ss.filter(x=>!x.exercise),exo=ss.filter(x=>x.exercise);
   body.innerHTML=`<div class="sess-list">${clin.length?`<p class="sess-gh">Sessions cliniques (${clin.length})</p>`+clin.map(row).join(''):''}${exo.length?`<p class="sess-gh">Exercices (${exo.length})</p>`+exo.map(row).join(''):''}</div>`;
   body.querySelectorAll('[data-resume]').forEach(b=>b.onclick=()=>{closeSessHist();resumeSession(b.dataset.resume);});
@@ -15616,7 +15729,7 @@ if(location.search.indexOf('__actest')>=0){
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
     restErrStatus,isPersoRepairCandidate,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,cxAll,cxDetached,
-    qTerms,hayMatch,markQTerms,searchSnippet,ficheSnipParts,protoSnipParts,frecencyScore,sanitizeUsage,mergeUsage,azLetter,azGroups,qaPick,
+    qTerms,hayMatch,markQTerms,searchSnippet,ficheSnipParts,protoSnipParts,frecencyScore,sanitizeUsage,mergeUsage,azLetter,azGroups,qaPick,tmLabelParts,sessStamp,
     crc32,zipBuild,zipParse,isPdfBytes,mdTask,flowOrder,latestPass,offPathSet,minimapData,passInfo,instComplete,flowPlan,stepCR,stepGuardTxt,optAbbr,svBranchIssue,svLoopTargets,ovPresList,
     posoTokens,posoName,posoScore,posoRank,posoSplit,
     qrRawBits,qrTotalCw,qrGen,qrRs,qrAlign,qrDataCw,qrInterleave,qrEncode,qrSvg,qrMul,

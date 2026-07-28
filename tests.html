@@ -247,6 +247,31 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    eq('sans épingle → AUCUNE tuile (jamais de remplissage arbitraire)',
      A.qaPick(L,[]), []);}
 
+  group('audit design v4.56 — tmLabelParts / nfGuardTxt / stepGuardTxt / sessStamp');
+  // P2-1 : la PRÉCISION entre parenthèses finales quitte le titre pour la méta.
+  eq('parenthèse finale → méta', A.tmLabelParts('Réévaluation adrénaline IM (5 à 10 min selon réponse)'),
+    {name:'Réévaluation adrénaline IM', meta:'5 à 10 min selon réponse'});
+  eq('sans parenthèse → nom seul', A.tmLabelParts('Cycle RCP'), {name:'Cycle RCP', meta:''});
+  eq('parenthèse INTERNE conservée dans le nom', A.tmLabelParts('Adré (IM) puis IV'),
+    {name:'Adré (IM) puis IV', meta:''});
+  eq('parenthèse vide ou d’un caractère : pas une précision', A.tmLabelParts('Minuteur (x)'),
+    {name:'Minuteur (x)', meta:''});
+  eq('vide → vide', A.tmLabelParts(''), {name:'', meta:''});
+  // P1-1 : le garde-fou du chapeau dit AUSSI le rappel trop long (mesuré : c'est lui qui pousse
+  // le CTA sous le pli, pas seulement le nombre).
+  ok('4 rappels courts → silence', A.nfGuardTxt(['a','b','c','d'])==='');
+  ok('5 rappels → alerte de compte', A.nfGuardTxt(['a','b','c','d','e']).indexOf('5 rappels')>=0);
+  ok('1 rappel de 130 c. → alerte de longueur', A.nfGuardTxt(['x'.repeat(130)]).indexOf('très long')>=0);
+  ok('compat : un NOMBRE reste accepté', A.nfGuardTxt(6).indexOf('6 rappels')>=0);
+  // G1 : une action cochable = une ligne.
+  ok('étape à 3 actions signalée', A.stepGuardTxt(['Noter l’heure · chrono dédié · chariot']).indexOf('cumulant')>=0);
+  ok('un seul séparateur : toléré', A.stepGuardTxt(['Adrénaline IM · noter l’heure']).indexOf('cumulant')<0);
+  ok('« 1+1 » collé n’est pas un cumul', A.stepGuardTxt(['Bolus 1+1 mg puis 2+2 mg']).indexOf('cumulant')<0);
+  ok('la RÉPONSE « :: » a le droit d’énumérer',
+    A.stepGuardTxt(['Adrénaline IM :: 0,5 mg · cuisse · renouvelable']).indexOf('cumulant')<0);
+  // P3-8 : pas de secondes dans une liste (elles vivent dans le compte-rendu).
+  ok('horodatage de liste sans secondes', /^\d{2}\/\d{2}\/\d{4} · \d{2}:\d{2}$/.test(A.sessStamp(Date.UTC(2026,6,28,10,28,53))));
+
   group('sanitizePins()');
   eq('rejette ids invalides / borne à 50', A.sanitizePins(['ok_1','bad id','__proto__']), ['ok_1']);
   eq('non-tableau → []', A.sanitizePins('x'), []);
