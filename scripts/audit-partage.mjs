@@ -1273,6 +1273,75 @@ console.log(`\n══ PARTAGE · terminer la session coupe le partage — moteur
   await page.close();
 }
 
+/* ── UN PARTICIPANT NE PEUT PAS INJECTER DE BALISAGE CHEZ LES AUTRES ─────────────────────────
+   Deux injections d'attribut ont été REPRODUITES avant correction, et elles empruntaient les deux
+   routes distinctes par lesquelles un évènement distant atteint l'écran :
+    · la PEINTURE (`sharePaintLive`, en direct) — elle normalisait déjà ;
+    · le PLI (`shareFold` → `buildRuntime` → rendu) — il recopiait BRUT. C'est la route de tout
+      invité qui REJOINT (il reçoit l'historique depuis le début) et de tout invité qui RECHARGE.
+   Une barrière sur une branche et pas sur l'autre ne protège rien. La CSP à hashs empêche
+   l'exécution d'un script injecté sur un navigateur à jour, mais `style-src 'unsafe-inline'` est
+   accordé : du balisage et du CSS arbitraires dans la colonne d'action d'une réanimation — masquer
+   une étape, en superposer une fausse — suffisent à qualifier le défaut. On mesure donc la SORTIE
+   DE BALISE, pas l'exécution : c'est la propriété, l'exécution n'est qu'une de ses conséquences. */
+console.log(`\n══ PARTAGE · aucun participant n'injecte de balisage — moteur ${NOM_MOTEUR} ══`);
+{
+  const page = await br.newPage({ viewport: { width: 390, height: 844 } });
+  await session(page);
+  const r = await page.evaluate(async () => {
+    const out = {};
+    const POISON = 'x"><span id="POISON_A">!</span><b z="';
+    // ── Route 1 : LE PLI (invité qui rejoint ou recharge)
+    const fold = shareFold([{ seq: 1, id: 'm1', actor: 'autre', kind: 'mark',
+      payload: { id: POISON, t: Date.now(), ref: null } }]);
+    out.pliIdBrut = fold.events[0].id === POISON;
+    const f = state.fiche, sauve = Runtime;
+    Runtime = buildRuntime(f, Object.assign({ shared: true }, fold));
+    Runtime.started = true; Runtime.fiche = f;
+    const html = timekeeperPanel();
+    Runtime = sauve;
+    const box = document.createElement('div'); box.innerHTML = html;
+    out.pliBalise = !!box.querySelector('#POISON_A');
+
+    // ── Route 2 : LA NAVIGATION, en direct, sans rechargement (régime « anchored »)
+    const POISON_B = '1"><span id="POISON_B">!</span><i y="';
+    const navAvant = Runtime.nav.slice();
+    Share.mode = 'guest'; Share.role = 'scribe'; Share.me = 'inv'; Share.status = 'active';
+    Share.lastOk = Date.now(); Share.offset = 0; Share._defer = [];
+    Share.onEvents([{ seq: 2, id: 'n1', actor: 'hote', kind: 'nav',
+      payload: { nav: navAvant.slice(), navSeq: navAvant.map(() => POISON_B) } }]);
+    await new Promise(x => setTimeout(x, 450));
+    out.navBalise = !!document.getElementById('POISON_B');
+    out.navSeq = JSON.stringify(Runtime.navSeq);
+    out.cle = (main.querySelector('[data-ck]') || {}).dataset ? main.querySelector('[data-ck]').dataset.ck : '';
+
+    // ── Route 3 : les clés de cochage servent d'INDEX d'objet autant que d'attribut (règle 6).
+    const f2 = shareFold([{ seq: 3, id: 'c1', actor: 'x', kind: 'check', payload: { k: '__proto__' } },
+                          { seq: 4, id: 'c2', actor: 'x', kind: 'check', payload: { k: 'a"><b>:x:0' } },
+                          { seq: 5, id: 'c3', actor: 'x', kind: 'check', payload: { k: '9:b1:0' } }]);
+    out.clesRetenues = Object.keys(f2.checked);
+
+    // ── Route 4 : identifiants de compteur et de minuteur, eux aussi index d'objet.
+    const f3 = shareFold([{ seq: 6, id: 'k1', actor: 'x', kind: 'counter', payload: { id: '__proto__', v: 2 } },
+      { seq: 7, id: 'k2', actor: 'x', kind: 'timer_arm', payload: { id: 'a"><b>', running: true } }]);
+    out.compteurs = Object.keys(f3.counters);
+    out.minuteurs = Object.keys(f3.timers);
+    return out;
+  });
+  t('témoin : la sonde sait voir une balise étrangère', typeof r.pliBalise === 'boolean');
+  t('le PLI n’accepte pas un identifiant brut', r.pliIdBrut === false);
+  t('… et n’injecte aucune balise dans le journal', r.pliBalise === false, 'balise sortie du DOM');
+  t('la NAVIGATION borne ses numéros de visite', r.navSeq === JSON.stringify([1]), r.navSeq);
+  t('… et n’injecte aucune balise dans la checklist', r.navBalise === false, 'balise sortie du DOM');
+  t('… la clé de cochage reste bien formée', /^\d+:[A-Za-z0-9_-]+:\d+$/.test(r.cle), r.cle);
+  t('une clé de cochage difforme est écartée',
+    r.clesRetenues.length === 1 && r.clesRetenues[0] === '9:b1:0', JSON.stringify(r.clesRetenues));
+  t('… __proto__ compris (règle 6)', r.clesRetenues.indexOf('__proto__') < 0);
+  t('un identifiant de compteur passe par safeId', r.compteurs.indexOf('__proto__') < 0, JSON.stringify(r.compteurs));
+  t('… de minuteur aussi', /^[A-Za-z0-9_-]+$/.test(r.minuteurs[0] || ''), JSON.stringify(r.minuteurs));
+  await page.close();
+}
+
 await br.close(); srv.close();
 console.log(`\n${ok}/${ok + ko} contrôles partage OK` + (ko ? ` — ${ko} ÉCHEC(S)` : ''));
 process.exit(ko ? 1 : 0);

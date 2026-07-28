@@ -1,7 +1,72 @@
-# Journal des modifications — archive (versions 3.0.0 à 4.34.0)
+# Journal des modifications — archive (versions 3.0.0 à 4.35.0)
 
 > Entrées anciennes déplacées depuis [`CHANGELOG.md`](CHANGELOG.md) pour garder le journal
 > courant lisible. Même format (keep-a-changelog).
+
+## [4.35.0] — 2026-07-26
+**Phase 4 de l'audit externe : simplification de la structure**, validée sur plan. Aucune ligne de
+code applicatif touchée — documentation, arborescence et maintenance du dépôt. Les mesures ont
+contredit l'énoncé de départ sur trois points, et le plus gros gain n'était pas dans la doc.
+
+### Le plus gros gain : 144 Mo dans `.git`
+- **151 Mo → 6,2 Mo en 2,8 secondes**, par un simple `git gc`. Mesuré avant : `count: 2922` objets
+  **lâches** occupant 152 232 Ko, contre 219 objets packés tenant dans 1,1 Mo. `design/ds/`
+  représentait **190 Mo sur 365 Mo** de blobs de l'historique, ses 20 fiches de ~275 Ko étant
+  réécrites en bloc à chaque `design:build` (46 commits). Elles sont quasi identiques entre elles et
+  d'une version à l'autre : elles se delta-compressent presque parfaitement.
+- **Conclusion importante : `design/ds/` n'a AUCUN problème de structure.** L'hypothèse d'une
+  dé-duplication de son CSS est ÉCARTÉE — l'autonomie de chaque fiche est intentionnelle (l'outil
+  distant les lit isolément), la duplication en est le prix assumé. Ce n'était que de la maintenance
+  jamais faite. Vérifié après coup : HEAD identique, 299 commits, 125 tags, `git fsck` sans erreur.
+
+### Documentation — 9 → 8 fichiers, et un point d'entrée
+- **`AGENTS.md` reçoit un socle « Si vous ne lisez qu'une chose »** : 14 règles qui ne se négocient
+  pas (publication, `npm run check`, hashs CSP, `esc()`, `migrate()`, `safeId()`, tokens de couleur,
+  registres, plancher 11 px, hauteurs sous zoom, mode crise jamais interrompu, compatibilité
+  ascendante, zéro dépendance, vérification d'une suppression au grep) — suivies d'une **carte
+  thématique** qui renvoie aux intitulés existants. Le problème n'était pas la longueur du fichier
+  mais sa PLATITUDE : 1 297 lignes en une seule liste, sans point d'entrée, où l'on ne pouvait pas
+  savoir ce qui est impératif sans tout lire. **Le diff est un AJOUT PUR** (+64/−0 lignes) : aucune
+  règle déplacée ni réécrite, vérifié ligne à ligne contre la version précédente.
+- **`CHANGELOG.md` : 221 Ko → 51 Ko** (112 → 20 entrées). Les 92 plus anciennes rejoignent
+  `CHANGELOG-archive.md` **telles quelles** — 153 entrées avant, 153 après, zéro ligne de contenu
+  absente (vérifié par comparaison exhaustive). La règle d'archivage existait déjà et n'avait servi
+  qu'une fois ; elle est maintenant inscrite dans la règle de publication, avec son seuil.
+- **`design/icons/README.md` fusionné dans `design/README.md`** — deux fichiers pour un seul sujet.
+  Au passage, deux erreurs corrigées : le tableau des icônes listait `icon-512.png` **deux fois**
+  avec des origines contradictoires, et `design/README.md` annonçait 15 fiches pour 20.
+  `scripts/build-favicons.mjs` pointait vers le fichier supprimé : référence mise à jour.
+- **`design/ds/GUIDELINES.md` remis à jour** (daté v4.22) : il décrivait encore au présent les trois
+  affichages du Plan et le fil d'ancêtres sticky, supprimés en v4.25.0. Or ce fichier est **poussé
+  tel quel** vers le projet Design distant : il documentait un composant inexistant auprès d'un
+  outil externe. Son idée survit d'ailleurs ailleurs — l'épinglage des bandes-questions du mode
+  statique (v4.32.0) — et c'est dit.
+
+### Ce que je n'ai PAS fait, et pourquoi
+- **`GUIDELINES.md` n'est PAS déplacé hors de `ds/`**, contrairement à ce que proposait le plan : la
+  configuration de synchro dit « la synchro pousse `design/ds/` tel quel », le sortir d'un niveau
+  l'aurait retiré du périmètre envoyé. Le plan annonçait donc −2 fichiers ; le résultat réel est −1.
+- **Aucun `GEMINI.md`, `.cursorrules` ni `.github/copilot-instructions.md` ajouté.** `AGENTS.md` est
+  le standard convergent (Codex, Cursor, Aider, Copilot le lisent), et `CLAUDE.md` l'importe en six
+  lignes au lieu de le dupliquer. Ajouter des copies multiplierait les fichiers — contre la demande —
+  pour créer la pire configuration : des sources qui divergent.
+- **L'arborescence est inchangée.** Six dossiers thématiques, profondeur 3, aucun fichier égaré :
+  « regrouper par fonctionnalité plutôt que par type » ne s'applique pas à un projet dont la seule
+  fonctionnalité livrée est `index.html`. Et « réduire les niveaux d'abstraction » présupposait des
+  couches qui n'existent pas : les deux seules indirections (`Data` sur trois backends, `Sync`)
+  gagnent leur place.
+- **Aucune règle supprimée d'`AGENTS.md`.** Le constat de phase 1 « AGENTS.md est un changelog
+  déguisé » était EXAGÉRÉ : mesuré, 13 % des lignes citent une version, et ces citations sont de la
+  traçabilité (« décision utilisateur v4.25.0 ») — elles disent pourquoi une règle existe et qui l'a
+  tranchée, ce qui est précisément ce qui empêche de la « corriger » par ignorance.
+
+### Une honnêteté sur les chiffres
+Le plan annonçait « 433 Ko → ~230 Ko » de documentation. **C'est faux, et le total AUGMENTE
+légèrement** (464 Ko) : les 92 entrées archivées sont DÉPLACÉES, pas supprimées, et le socle ajoute
+6 Ko. Le gain réel porte sur le fichier qu'on LIT et que les outils chargent — `CHANGELOG.md`, −76 %
+— et sur la navigabilité, pas sur le volume du dépôt.
+
+510 tests × 2 moteurs, 22/22 doctrine, 73/73 accessibilité, 135 contrôles d'audit, 9 sondes dédiées.
 
 ## [4.34.0] — 2026-07-26
 Troisième lot de l'audit externe : **sécurité serveur, couverture de test et documentation**. Aucun

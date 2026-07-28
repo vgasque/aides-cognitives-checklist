@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-08w7e5JANsd7JIlmIb6ZVR5spZNBzEntJG6u9vbCS/w='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-O8naczxQEG1/lKcyhftJrypVLpGj4t8m3Sw992WxeIc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -3774,7 +3774,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.53.0';
+const APP_VERSION='4.53.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -8296,42 +8296,73 @@ function bindLeadGuard(){
 bindLeadGuard();
 function vfMe(){try{return Share.mode!=='off'?Share.me:null;}catch(e){return null;}}
 function vfNow(){try{return Share.mode!=='off'?Share.now():Date.now();}catch(e){return Date.now();}}
+/* ASSAINISSEMENT DU PLI — LE DEUXIÈME CHEMIN, CELUI QUI AVAIT ÉTÉ OUBLIÉ.
+   Un évènement distant atteint l'écran par DEUX routes : la PEINTURE (`sharePaintLive`, en
+   direct) et le PLI (`shareFold` → `buildRuntime` → rendu), qu'empruntent tout invité qui REJOINT
+   — il reçoit l'historique depuis le début — et tout invité qui RECHARGE. La peinture normalisait
+   (`safeId`, `tkRefNorm`) ; le pli recopiait BRUT. Une barrière sur une branche et pas sur l'autre
+   ne protège rien : reproduit, un `payload.id` choisi par un participant sortait de son attribut
+   et injectait du balisage dans le journal de tous les autres.
+   RÈGLE : tout ce qui vient du fil passe par ces trois fonctions, aux DEUX endroits. Les valeurs
+   fautives ne sont pas rejetées mais RAMENÉES à quelque chose d'inoffensif — un évènement perdu
+   en pleine réanimation serait pire qu'un identifiant régénéré. */
+const _fid=(v,pfx)=>safeId(v,pfx);
+const _fnum=(v,def)=>{const n=+v;return Number.isFinite(n)?n:(def||0);};
+/* Une clé de cochage vaut `visite:bloc:index`. Elle sert d'INDEX d'objet (règle 6) ET de valeur
+   d'attribut : un jeu de caractères fermé la rend sûre des deux côtés d'un coup. */
+const SHARE_KEY_RX=/^[A-Za-z0-9_-]{1,64}:[A-Za-z0-9_-]{1,64}:\d{1,4}$/;
+const _fkey=v=>{const t=String(v==null?'':v);return SHARE_KEY_RX.test(t)?t:null;};
 /* Pli du journal : évènements -> état. Déterministe et pur — deux appareils qui appliquent la
    même suite obtiennent le même état, ce que l'empreinte vérifie ensuite. */
+function shareNavNorm(nav,navSeq){
+  if(!Array.isArray(nav)||!Array.isArray(navSeq))return null;
+  if(nav.length!==navSeq.length||!nav.length||nav.length>512)return null;
+  const ids=nav.map(x=>safeId(x,'b'));
+  // Un numéro de VISITE est un entier positif : il entre dans une clé de cochage, donc dans un
+  // attribut. Une valeur fautive est ramenée à 1 plutôt que de faire tomber tout le lot.
+  const seqs=navSeq.map(x=>{const n=Math.round(+x);return (Number.isFinite(n)&&n>0&&n<1e6)?n:1;});
+  return {nav:ids,navSeq:seqs};}
 function shareFold(events,base){
   const s=Object.assign({checked:{},verified:{},vgaps:{},counters:{},timers:{},nav:[],navSeq:[],
     events:[],flowEnded:false,annex:[],startedAt:0,exercise:false},base||{});
   for(const e of (events||[])){
     const p=e.payload||{};
     switch(e.kind){
-      case 'check':   if(p.k)s.checked[p.k]=true; break;
+      case 'check':   {const k=_fkey(p.k);if(k)s.checked[k]=true;break;}
       // Décochage : réservé au lead côté serveur. Il RETIRE la clé (l'absence = non coché), mais
       // l'évènement reste dans le journal — la trace de qui a décoché, et quand, ne s'efface pas.
-      case 'uncheck': if(p.k)delete s.checked[p.k]; break;
-      case 'verify':  if(p.k){s.verified[p.k]={a:e.actor,t:p.t||e.ts};delete s.vgaps[p.k];} break;
-      case 'gap':     if(p.k){s.vgaps[p.k]={a:e.actor,t:p.t||e.ts};delete s.verified[p.k];} break;
-      case 'counter': if(p.id!=null)s.counters[p.id]=+p.v||0; break;
+      case 'uncheck': {const k=_fkey(p.k);if(k)delete s.checked[k];break;}
+      case 'verify':  {const k=_fkey(p.k);
+        if(k){s.verified[k]={a:e.actor,t:_fnum(p.t,e.ts)};delete s.vgaps[k];}break;}
+      case 'gap':     {const k=_fkey(p.k);
+        if(k){s.vgaps[k]={a:e.actor,t:_fnum(p.t,e.ts)};delete s.verified[k];}break;}
+      case 'counter': if(p.id!=null)s.counters[_fid(p.id,'c')]=_fnum(p.v,0); break;
       case 'timer_arm': case 'timer_stop': case 'timer_reset':
-        if(p.id!=null)s.timers[p.id]={running:!!p.running,elapsedMs:+p.elapsedMs||0,
-          cycles:+p.cycles||0,anchor:+p.anchor||0};
+        if(p.id!=null)s.timers[_fid(p.id,'t')]={running:!!p.running,elapsedMs:_fnum(p.elapsedMs,0),
+          cycles:_fnum(p.cycles,0),anchor:_fnum(p.anchor,0)};
         break;
-      case 'nav':     if(Array.isArray(p.nav)&&Array.isArray(p.navSeq)&&p.nav.length===p.navSeq.length){
-                        s.nav=p.nav.slice();s.navSeq=p.navSeq.slice();} break;
+      /* LES ÉLÉMENTS AUSSI, PAS SEULEMENT LES TABLEAUX. On ne contrôlait que `Array.isArray`
+         et l'égalité des longueurs : `navSeq[i]` sert pourtant à FABRIQUER la clé de cochage
+         écrite dans `data-ck`, et le régime de `nav` est « anchored » — donc appliqué EN DIRECT,
+         sans rechargement, sur l'écran de chacun. */
+      case 'nav':     {const n=shareNavNorm(p.nav,p.navSeq);
+        if(n){s.nav=n.nav;s.navSeq=n.navSeq;}break;}
       case 'flow_end':s.flowEnded=!!p.on; break;
       /* L'HEURE À LAQUELLE LE SOIN A COMMENCÉ, pas celle de la jointure. Sans elle, un renfort
          arrivé à 14 h 12 sur une réanimation débutée à 13 h 55 voyait son chrono partir de zéro et
          son compte rendu dater le début du soin à son arrivée — les deux documents d'un même soin
          devenaient alors impossibles à recouper au débrief. */
       case 'session_start': if(+p.t)s.startedAt=+p.t; s.exercise=!!p.exo; break;
-      case 'mark':    s.events.push({id:p.id,t:p.t||e.ts,ref:p.ref||null,a:e.actor}); break;
+      case 'mark':    s.events.push({id:_fid(p.id,'e'),t:_fnum(p.t,e.ts),
+        ref:tkRefNorm(p.ref),a:e.actor}); break;
       // Annulation RÉVERSIBLE : le repère n'est jamais retiré du pli — il porte l'heure de son
       // annulation, ou repasse à null si l'on se ravise. Le journal reste append-only.
-      case 'mark_void':{const m=s.events.find(x=>x.id===p.id);
-        if(m)m.voidAt=p.on?(p.t||e.ts||1):null;break;}
+      case 'mark_void':{const m=s.events.find(x=>x.id===_fid(p.id,'e'));
+        if(m)m.voidAt=p.on?(_fnum(p.t,e.ts)||1):null;break;}
       // ANNEXE — le relevé d'un participant qui a poursuivi seul. Il rejoint le journal et le
       // compte-rendu, il ne touche JAMAIS l'état : fusionner deux états divergents produirait un
       // état que personne ne peut attribuer.
-      case 'offline_mark': s.annex.push({t:p.t||e.ts,ref:p.ref||null,a:e.actor}); break;
+      case 'offline_mark': s.annex.push({t:_fnum(p.t,e.ts),ref:tkRefNorm(p.ref),a:e.actor}); break;
     }
   }
   return s;}
@@ -8691,7 +8722,7 @@ function tkLabels(events,f,tags){
 function timekeeperPanel(){const ev=Runtime.events||[];const t0=ev.length?ev[0].t:0;
   const labs=tkLabels(ev,Runtime.fiche,myTags());
   const rows=ev.length?ev.map((e,ix)=>{const diff=e.t-t0;const el=diff===0?'—':(diff>0?'+':'−')+fmtMs(Math.abs(diff));
-    const origRow=(typeof e.origT==='number')?`<div class="tk-orig-row">à l'origine ${fmtHMS(e.origT)}<button class="tk-orig" data-tkrevert="${e.id}">↺ revenir</button></div>`:'';
+    const origRow=(typeof e.origT==='number')?`<div class="tk-orig-row">à l'origine ${fmtHMS(e.origT)}<button class="tk-orig" data-tkrevert="${esc(e.id)}">↺ revenir</button></div>`:'';
     const vd=!!e.voidAt;
     /* BRIN ANNEXE (v4.48.0) : le relevé d'un participant qui a POURSUIVI SEUL. Ce n'est pas un
        geste de cette session — c'est un RAPPORT venu d'un appareil qui a bifurqué, et qui remonte
@@ -8703,7 +8734,7 @@ function timekeeperPanel(){const ev=Runtime.events||[];const t0=ev.length?ev[0].
        journal vit en FIN de rail : ce qui apparaît pousse vers le bas, jamais vers le haut, donc
        rien ne bouge sous le doigt. Ce n'est pas une fenêtre, et ce ne pouvait pas en être une —
        la règle 11 les interdit pendant un soin. */
-    return `<div class="tk-item${vd?' tk-void':''}"><div class="tk-row"><span class="tk-time" data-tktime="${e.id}" role="button" tabindex="0" title="Cliquer pour corriger l'heure">${fmtHMS(e.t)}</span><span class="tk-el">${el}</span><input class="tk-lab" data-tklab="${e.id}" value="${esc(labs[ix])}" placeholder="Libellé…"${vd?' disabled':''}><button class="tk-del" data-tkdel="${e.id}" aria-label="${vd?'Rétablir ce repère':'Annuler ce repère'}" title="${vd?'Rétablir':'Annuler'}">${vd?'↺':'×'}</button></div><div class="tk-sug" data-tksug="${e.id}" hidden></div>${origRow}</div>`;}).join(''):'';
+    return `<div class="tk-item${vd?' tk-void':''}"><div class="tk-row"><span class="tk-time" data-tktime="${esc(e.id)}" role="button" tabindex="0" title="Cliquer pour corriger l'heure">${fmtHMS(e.t)}</span><span class="tk-el">${el}</span><input class="tk-lab" data-tklab="${esc(e.id)}" value="${esc(labs[ix])}" placeholder="Libellé…"${vd?' disabled':''}><button class="tk-del" data-tkdel="${esc(e.id)}" aria-label="${vd?'Rétablir ce repère':'Annuler ce repère'}" title="${vd?'Rétablir':'Annuler'}">${vd?'↺':'×'}</button></div><div class="tk-sug" data-tksug="${esc(e.id)}" hidden></div>${origRow}</div>`;}).join(''):'';
   // Outil SECONDAIRE : compact tant qu'on n'a rien noté (juste le bouton). « Journal des actions » =
   // suite horodatée des gestes clés (pour la traçabilité / le compte-rendu après coup).
   return `<div class="tk-panel${ev.length?'':' tk-slim'}"><div class="tk-head"><b>Journal des actions</b><button class="tk-add" id="tkAdd">${uiIcon('stopwatch',13)} Noter l’heure</button></div>${rows}</div>`;}
@@ -8890,7 +8921,7 @@ function navSection(f){
         ?`<div class="flow-end">Algorithme terminé — surveillance en cours</div>`
         :(atTip?`<button class="btn cont ${allDone?'okay':'idle'}" id="navNext" data-contlbl="${esc(goLbl)}"${allDone?'':' aria-disabled="true"'}>${esc(contLbl)}</button>`:histBtn);
       blockDone=done;blockTot=steps.length;
-      navHtml=`<div class="nav-wrap"><div class="node-title">Bloc · ${esc(blk.title)||'Étapes'}${passTag} — <span id="ntCount">${done}/${steps.length}</span> coché</div>${imgH}<ol class="steps">${steps.map((s,i)=>{const k=curSeq+':'+blk.id+':'+i;return `<li data-ck="${k}" class="${stepIsCrit(s)?'crit ':(stepIsVigil(s)?'vigil ':'')}${state.checked[k]?'done':''}" role="checkbox" aria-checked="${state.checked[k]?'true':'false'}" tabindex="0"><span class="box">${state.checked[k]?uiIcon('check',19,{sw:3,cls:''}):''}</span>${stepTxtHtml(s,{mark:true})}</li>`;}).join('')}</ol><div class="flow-ctrl">${fwdc}</div>${cxAll(f).length?cxRowHtml(cxAll(f)):''}</div>`;}}
+      navHtml=`<div class="nav-wrap"><div class="node-title">Bloc · ${esc(blk.title)||'Étapes'}${passTag} — <span id="ntCount">${done}/${steps.length}</span> coché</div>${imgH}<ol class="steps">${steps.map((s,i)=>{const k=curSeq+':'+blk.id+':'+i;return `<li data-ck="${esc(k)}" class="${stepIsCrit(s)?'crit ':(stepIsVigil(s)?'vigil ':'')}${state.checked[k]?'done':''}" role="checkbox" aria-checked="${state.checked[k]?'true':'false'}" tabindex="0"><span class="box">${state.checked[k]?uiIcon('check',19,{sw:3,cls:''}):''}</span>${stepTxtHtml(s,{mark:true})}</li>`;}).join('')}</ol><div class="flow-ctrl">${fwdc}</div>${cxAll(f).length?cxRowHtml(cxAll(f)):''}</div>`;}}
   return {blk,cur,atTip,crumbsH,navHtml,navRowH,blockDone,blockTot};}
 // Sous-titre du panneau « Algorithme » : compteur n/total quand le bloc courant est cochable —
 // partagé entre le rendu complet (renderRead) et la mise à jour ciblée (renderNavOnly).
@@ -9556,7 +9587,7 @@ function ovInstHtml(f,id,idx,topo,pres){
       const vg=!!(state.vgaps||{})[k],vv=!vg&&!!(state.verified||{})[k];
       const tag=vg?'<span class="stp-vf gap" title="Écart constaté pendant la vérification">△ écart</span>'
         :(vv?'<span class="stp-vf ok" title="Constaté pendant la vérification">✓✓ constaté</span>':'');
-      return `<li data-ck="${k}" class="${stepIsCrit(s)?'crit ':(stepIsVigil(s)?'vigil ':'')}${ck?'done':''}${vg?' vgap':''}" role="checkbox" aria-checked="${ck?'true':'false'}" tabindex="0"><span class="box">${ck?uiIcon('check',19,{sw:3,cls:''}):''}</span>${stepTxtHtml(s,{mark:true})}${tag}</li>`;}).join('');
+      return `<li data-ck="${esc(k)}" class="${stepIsCrit(s)?'crit ':(stepIsVigil(s)?'vigil ':'')}${ck?'done':''}${vg?' vgap':''}" role="checkbox" aria-checked="${ck?'true':'false'}" tabindex="0"><span class="box">${ck?uiIcon('check',19,{sw:3,cls:''}):''}</span>${stepTxtHtml(s,{mark:true})}${tag}</li>`;}).join('');
     let ctl='';
     if(tip){const nxt=b.next?f.blocks.find(x=>x.id===b.next):null;
       const allDone=steps.length===0?true:dn>=steps.length;
@@ -9981,17 +10012,18 @@ function shareApplyAnchored(f,evs){
   for(const e of evs){
     const p=e.payload||{};
     if(e.kind==='nav'){
-      if(Array.isArray(p.nav)&&Array.isArray(p.navSeq)&&p.nav.length===p.navSeq.length&&p.nav.length){
+      const nn=shareNavNorm(p.nav,p.navSeq);
+      if(nn){
         /* ÉCRIRE DANS `Runtime`, PUIS RE-LIER — jamais dans `state` seul. `bindStateToRuntime`
            fait de `state.nav` un ALIAS du tableau de `Runtime` : lui affecter un tableau NEUF
            casse l'alias en silence, et l'application se met à lire deux navigations différentes
            selon l'endroit. C'est ce qui s'est produit à la première écriture de cette fonction,
            attrapé par la sonde et non par la relecture. */
-        Runtime.nav=p.nav.slice();Runtime.navSeq=p.navSeq.slice();
+        Runtime.nav=nn.nav;Runtime.navSeq=nn.navSeq;
         // Le compteur de visites doit dépasser tout ce qui a été minté ailleurs, sinon une visite
         // LOCALE ultérieure réutiliserait un numéro déjà pris — et deux passages partageraient
         // leurs clés de cochage.
-        Runtime.seq=Math.max(Runtime.seq||0,...p.navSeq.map(x=>+x||0));
+        Runtime.seq=Math.max(Runtime.seq||0,...nn.navSeq);
         bindStateToRuntime();      // pose aussi navPos au BOUT : le journal n'a pas de curseur
         n++;}
     }
