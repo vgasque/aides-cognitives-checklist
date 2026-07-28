@@ -956,9 +956,17 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   // navigue pas (un seul curseur, un seul détenteur).
   ok('le scribe peut cocher, constater, incrémenter, armer, horodater',
     ['check','verify','gap','counter','timer_arm','mark'].every(k=>A.shareCan('scribe',k)));
-  ok('le scribe ne navigue pas, n’arrête pas un minuteur, ne termine pas',
-    ['nav','timer_stop','timer_reset','end','uncheck','flow_end','cx']
+  /* LA LIGNE PASSE SUR LA DESTRUCTION, PAS SUR LA HIÉRARCHIE (v4.55.0, décision utilisateur).
+     Elle passait sur « conduire ou suivre » — une mauvaise lecture d'AC 120-71B §5.2.2.1, qui
+     décrit une répartition de la PAROLE et où c'est CELUI QUI LIT qui fait avancer la liste. La
+     SFAR (« le lecteur : lire et GUIDER »), l'ECAM (le pilot monitoring actionne l'ECP) et
+     McEvoy 2014 (le lecteur tient l'unique appareil) disent tous la même chose : la conception
+     précédente empêchait la configuration la mieux documentée du dossier. */
+  ok('le scribe ne DÉTRUIT pas : ni décocher, ni remettre à zéro, ni clore',
+    ['uncheck','timer_reset','end','session_start']
       .every(k=>!A.shareCan('scribe',k)));
+  ok('… mais il fait avancer la checklist',
+    ['nav','flow_end','cx','timer_stop'].every(k=>A.shareCan('scribe',k)));
   /* `handoff` EST OUVERT AUX DEUX RÔLES, et ce n'est pas un relâchement. Il ne change AUCUN état :
      il porte une OFFRE (« je vous propose de conduire ») ou une PRISE (« je prends la main »).
      Le changement de rôle lui-même est une écriture sur `session_participants`, que la RLS réserve
@@ -1077,7 +1085,12 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    S._act=Date.now();S.lastOk=Date.now();
    S.lastOk=Date.now();
    ok('contact frais : le scribe peut cocher',S.canWrite('check'));
-   ok('mais jamais naviguer, même à jour',!S.canWrite('nav'));
+   /* NAVIGUER EST OUVERT AU SCRIBE DEPUIS LE REDÉCOUPAGE v4.55.0 : c'est append-only, et le
+      modèle des sources est que CELUI QUI LIT FAIT AVANCER (McEvoy 2014 : le lecteur tient
+      l'unique appareil). Ce qui reste fermé, c'est ce qui DÉTRUIT. */
+   ok('… et naviguer, qui n’efface rien',S.canWrite('nav'));
+   ok('mais jamais remettre un minuteur à zéro',!S.canWrite('timer_reset'));
+   ok('… ni décocher',!S.canWrite('uncheck'));
    S.status='revoked';
    ok('coupé : plus aucune écriture',!S.canWrite('check'));
    S.status='detached';
@@ -1092,7 +1105,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    ok('il entre dans la file',S._q.length===1&&S._q[0].kind==='check');
    ok('il porte une heure ISO (celle du geste)',!isNaN(Date.parse(S._q[0].ts)));
    ok('un genre hors capacité du rôle n’est pas mis en file',
-     S.emit('nav',{})===null&&S._q.length===1);
+     S.emit('timer_reset',{})===null&&S._q.length===1);
    // L'heure émise suit le décalage serveur : c'est ce qui range correctement une action relevée
    // hors réseau et transmise plus tard.
    S.offset=60000;S._q=[];S.emit('mark',{});
@@ -1349,9 +1362,31 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    eq('un repère posé émet « mark »',A_.shareDiff(vide,m1).map(e=>e.kind),['mark']);
    ok('le repère porte une RÉFÉRENCE, jamais un mot',!('label' in A_.shareDiff(vide,m1)[0].payload)
      &&A_.shareDiff(vide,m1)[0].payload.ref.type==='counter');
-   const m2=A_.shareSnap(R({events:[{id:'e1',t:100,ref:null,voidAt:200}]}),false);
+   /* VARIABLE ISOLÉE : ce couple ne doit différer QUE par l'annulation. La version précédente
+      changeait aussi la référence (`ref:null`), si bien qu'elle aurait masqué toute émission liée
+      à un changement de référence — et c'est exactement le défaut qui a été signalé à l'usage. */
+   const m2=A_.shareSnap(R({events:[{id:'e1',t:100,ref:{type:'counter',id:'c1',v:1},voidAt:200}]}),false);
    eq('une annulation émet « mark_void »',A_.shareDiff(m1,m2).map(e=>e.kind),['mark_void']);
    eq('… et se lève symétriquement',A_.shareDiff(m2,m1)[0].payload.on,false);
+   /* ÉTIQUETER APRÈS COUP — le geste normal, puisque « Noter l'heure » ne demande rien. On ne
+      comparait que `voidAt` : le mot choisi ne partait donc jamais, et l'autre écran gardait
+      « Action n » pendant que le premier affichait l'étiquette. Deux comptes rendus d'un même soin,
+      divergents sur le seul point que le journal référentiel existe pour rendre commun. */
+   {const nu=A_.shareSnap(R({events:[{id:'e1',t:100,ref:null}]}),false);
+    const eti=A_.shareSnap(R({events:[{id:'e1',t:100,ref:{type:'core',k:'bilan'}}]}),false);
+    eq('étiqueter un repère existant ÉMET',A_.shareDiff(nu,eti).map(e=>e.kind),['mark']);
+    eq('… avec la référence choisie',A_.shareDiff(nu,eti)[0].payload.ref.k,'bilan');
+    // Corriger l'heure aussi : `origT` garde la trace en local, mais l'autre écran doit suivre.
+    const tard=A_.shareSnap(R({events:[{id:'e1',t:900,ref:null}]}),false);
+    eq('corriger l’heure ÉMET aussi',A_.shareDiff(nu,tard).map(e=>e.kind),['mark']);
+    eq('… et rien ne part si rien ne change',A_.shareDiff(eti,eti).length,0);
+    /* IDEMPOTENCE DU PLI : le fil peut rejouer un lot, et un repère RE-ÉMIS (étiqueté après coup)
+       arrive forcément deux fois. Sans mise à jour en place, le journal doublerait la ligne. */
+    const ev=[{seq:1,id:'x1',actor:'h',kind:'mark',payload:{id:'e1',t:100,ref:null}},
+              {seq:2,id:'x2',actor:'h',kind:'mark',payload:{id:'e1',t:100,ref:{type:'core',k:'bilan'}}}];
+    const pli=A_.shareFold(ev);
+    eq('un repère re-émis ne se DOUBLE pas',pli.events.length,1);
+    eq('… il se met à jour',pli.events[0].ref.k,'bilan');}
    // nav et navSeq voyagent en COUPLE : transmettre l'un sans l'autre orphelinerait les coches.
    const nv=A_.shareSnap(R({nav:['b1','b2'],navSeq:[1,2]}),false);
    const dn=A_.shareDiff(vide,nv);

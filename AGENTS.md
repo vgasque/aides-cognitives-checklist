@@ -1491,6 +1491,29 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   `snapshotSession` n'est classé nulle part). `flowEnded` EST un état de session et voyage ; `nav`
   et `navSeq` voyagent **indissociables** — les clés de cochage valent `visite:bloc:index`, et
   transmettre l'un sans l'autre orphelinerait toutes les coches.
+- **RÔLES ET CAPACITÉS — LA LIGNE PASSE SUR LA DESTRUCTION, PAS SUR LA HIÉRARCHIE (v4.55.0,
+  décision utilisateur).** Elle passait sur « conduire ou suivre », et c'était une MAUVAISE LECTURE
+  de la source : AC 120-71B §5.2.2.1 décrit une répartition de la PAROLE, et dans ce modèle **c'est
+  celui qui LIT qui fait avancer la liste** — le lead est celui dont les mains sont prises. La SFAR
+  (« le lecteur : sa seule tâche est de lire et de GUIDER »), l'ECAM (le pilot monitoring actionne
+  l'ECP, le pilot flying pilote) et surtout **McEvoy 2014** — 99,5 % contre 70 %, la meilleure
+  donnée du dossier, où **le lecteur tenait l'UNIQUE appareil** — disent tous la même chose : la
+  conception précédente empêchait exactement la configuration la mieux documentée.
+  Le critère était d'ailleurs DÉJÀ ÉCRIT dans le schéma pour `mark_void` (« annuler CONSERVE,
+  décocher DÉTRUIT »). Il vaut désormais pour tous : **ouvert** = cocher, constater, écart,
+  incrémenter, armer **et arrêter** un minuteur (l'`elapsedMs` est conservé), poser/annuler un
+  repère, **naviguer, choisir une branche, terminer un bloc, entrer sur une complication** — tout
+  cela est append-only ou réversible. **Réservé** = décocher (efface une information), remettre à
+  zéro (efface un décompte que personne ne restitue), terminer le partage, dater le début du soin.
+  Cas d'usage qui a tranché : le médecin partage POUR SE LIBÉRER les mains ; un scribe qui ne peut
+  pas relayer « pause le minuteur, il reprend un rythme » l'oblige à reprendre son téléphone.
+  **L'OBJECTION D'AMBIGUÏTÉ** (§5.5, « qui fait quoi », qu'Airbus supprime par un ECP unique) reçoit
+  la réponse constante du projet : **on n'interdit pas, on ANNONCE** — une avance venue d'en face
+  pose une mention « avancé par ‹rôle› » sur la carte courante, à côté de « Vous êtes ici ».
+  **LES DEUX LISTES SONT LA MÊME RÈGLE EN DEUX LANGAGES** (`SHARE_KINDS_ANY`/`_LEAD` et
+  `share_kind_allowed`) : leur divergence est SILENCIEUSE et asymétrique — client plus permissif, un
+  geste part et le serveur le jette sans que l'auteur le sache ; serveur plus strict, un geste
+  légitime est refusé sans raison lisible. `check-sql.mjs` les compare désormais à chaque commit.
 - **RÔLES ET CAPACITÉS — le scribe AJOUTE, il ne DÉFAIT pas.** `SHARE_KINDS_ANY` (cocher, constater,
   signaler un écart, **incrémenter** un compteur, **armer** un minuteur, poser et annuler un repère)
   contre `SHARE_KINDS_LEAD` (décocher, avancer, terminer, choisir une branche, **arrêter** ou

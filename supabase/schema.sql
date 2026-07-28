@@ -1082,15 +1082,23 @@ returns boolean language sql immutable set search_path = public, pg_temp as $$
     -- pas sur l'annonce. Réserver l'offre au lead ici aurait interdit à l'invité d'ACCEPTER,
     -- c'est-à-dire d'accomplir le geste que la doctrine exige de LUI (AC 61-115 : la passation se
     -- fait en trois temps, et le receveur en prononce un).
-    when p_kind in ('check','verify','gap','counter','timer_arm','mark','mark_void','presence',
-                    'detach','offline_mark','handoff')
+    /* LA LIGNE PASSE SUR LA DESTRUCTION, PAS SUR LA HIÉRARCHIE (v4.55.0). Naviguer, choisir une
+       branche, terminer un bloc, entrer sur une complication et ARRÊTER un minuteur sont tous
+       append-only ou réversibles : rien ne les réservait au lead, et les réserver empêchait
+       exactement la configuration la mieux documentée du dossier (McEvoy 2014 : le LECTEUR tient
+       l'appareil et guide). Le critère « détruit / ne détruit pas » était déjà celui écrit ici
+       pour `mark_void` ; il vaut pour tous. */
+    when p_kind in ('check','verify','gap','counter','timer_arm','timer_stop','mark','mark_void',
+                    'nav','flow_end','cx','presence','detach','offline_mark','handoff')
       then p_role in ('scribe','lead')
     -- `session_start` porte l'heure à laquelle le SOIN a commencé, pas celle de la jointure. Sans
     -- lui, un renfort arrivé à 14 h 12 sur une réanimation débutée à 13 h 55 date le début du soin
     -- à son arrivée — et son compte rendu, comme celui de l'hôte, devient inexploitable au débrief.
     -- Réservé au lead : c'est un fait sur LA session, pas un geste de participant.
-    when p_kind in ('uncheck','nav','flow_end','timer_stop','timer_reset','cx','end',
-                    'session_start')
+    -- Reste réservé ce qui DÉTRUIT ou CLÔT : décocher efface une information ; remettre à zéro
+    -- efface un décompte que personne ne restitue ; `end` clôt le partage ; `session_start` est un
+    -- fait sur LA session de l'hôte, pas un geste de participant.
+    when p_kind in ('uncheck','timer_reset','end','session_start')
       then p_role = 'lead'
     else false
   end;

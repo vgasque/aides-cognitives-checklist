@@ -26,6 +26,7 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const FICHIERS = ['supabase/schema.sql', 'supabase/rls-tests.sql'];
 const fautes = [];
 let nDoBlocs = 0;
+let nCaps = 0;
 let nFonctions = 0, nDelims = 0;
 
 for (const rel of FICHIERS) {
@@ -160,6 +161,50 @@ for (const rel of FICHIERS) {
   if (nBloc) nDoBlocs += nBloc;
 }
 
+/* ── LES CAPACITÉS DU CLIENT ET DU SERVEUR DOIVENT COÏNCIDER ─────────────────────────────────
+   `SHARE_KINDS_ANY` / `SHARE_KINDS_LEAD` (index.html) et `share_kind_allowed` (schema.sql) sont
+   DEUX ÉCRITURES DE LA MÊME RÈGLE, dans deux langages. Elles ont divergé : le redécoupage de la
+   v4.55.0 a été porté des deux côtés, mais l'assertion qui l'éprouve ne l'a pas été — et le défaut
+   n'est apparu qu'au collage dans l'éditeur SQL, sur une instance réelle.
+   UNE DIVERGENCE EST SILENCIEUSE ET ASYMÉTRIQUE : si le client est plus permissif, un geste part
+   et le serveur le jette sans que l'auteur le sache — c'est « cocher dans le vide en croyant
+   contribuer », le pire mode de défaillance nommé au plan. Si c'est le serveur, un geste
+   parfaitement légitime est refusé sans raison lisible.
+   Le contrôle est statique : on lit les deux listes et on les compare. */
+{
+  const idx = join(ROOT, 'index.html'), sch = join(ROOT, 'supabase/schema.sql');
+  if (existsSync(idx) && existsSync(sch)) {
+    const js = readFileSync(idx, 'utf8'), sq = readFileSync(sch, 'utf8');
+    const mots = t => [...t.matchAll(/'([a-z_]+)'/g)].map(x => x[1]).sort();
+    const liste = (txt, rx) => { const m = txt.match(rx); return m ? mots(m[1]) : null; };
+    const cAny  = liste(js, /const SHARE_KINDS_ANY\s*=\s*\[([\s\S]*?)\]/);
+    const cLead = liste(js, /const SHARE_KINDS_LEAD\s*=\s*\[([\s\S]*?)\]/);
+    /* Cote SQL, on parcourt les branches et on les CLASSE par le role qui suit, au lieu de
+       deviner leur ordre. `[^)]*` s'arrete au premier `)` : les listes de genres n'en
+       contiennent pas, alors qu'une expression gourmande avalait la branche precedente — elle
+       rendait un melange des deux, et le controle accusait une divergence inexistante. */
+    let sAny = null, sLead = null;
+    const RX = /when p_kind in \(([^)]*)\)[\s\S]{0,600}?then p_role\s*(?:in\s*\(([^)]*)\)|=\s*'([a-z]+)')/g;
+    for (const m of sq.matchAll(RX)) {
+      const roles = (m[2] || m[3] || '');
+      if (/scribe/.test(roles)) { if (!sAny) sAny = mots(m[1]); }
+      else if (/lead/.test(roles)) { if (!sLead) sLead = mots(m[1]); }
+    }
+    const cmp = (nom, a, b) => {
+      if (!a || !b) { fautes.push(`capacités « ${nom} » : liste introuvable d'un côté (client ${a ? 'ok' : 'ABSENT'}, serveur ${b ? 'ok' : 'ABSENT'})`); return; }
+      const seulA = a.filter(x => !b.includes(x)), seulB = b.filter(x => !a.includes(x));
+      if (seulA.length || seulB.length)
+        fautes.push(`capacités « ${nom} » : le CLIENT et le SERVEUR divergent\n`
+          + `        client seul : ${seulA.join(', ') || '—'}\n`
+          + `        serveur seul : ${seulB.join(', ') || '—'}\n`
+          + `        (une divergence ne se voit qu'à l'usage : un geste part et disparaît, ou est refusé sans raison lisible)`);
+    };
+    cmp('ouvert aux deux rôles', cAny, sAny);
+    cmp('réservé au lead', cLead, sLead);
+    if (cAny && cLead) nCaps = cAny.length + cLead.length;
+  }
+}
+
 if (fautes.length) {
   console.error('✗ check-sql : ' + fautes.length + ' problème(s).\n');
   for (const f of fautes) console.error('    ' + f);
@@ -168,4 +213,5 @@ if (fautes.length) {
   process.exit(1);
 }
 console.log(`✓ check-sql : ${nFonctions} fonction(s), ${nDelims} délimiteur(s) « $$ » appariés, `
-  + `${nDoBlocs} bloc(s) « do $$ » à variables toutes déclarées, aucun dollar isolé.`);
+  + `${nDoBlocs} bloc(s) « do $$ » à variables toutes déclarées, `
+  + `${nCaps} capacité(s) de partage identiques client/serveur, aucun dollar isolé.`);

@@ -1483,10 +1483,23 @@
      fermé. La variante `.btn:is(…)` monte à (0,3,1) et reprend la main. Même leçon que les six
      pièges de cascade précédents, sous sa forme la plus fine : ici ce n'est pas l'ORDRE qui
      trompe, c'est la SPÉCIFICITÉ. */
-  body.share-scribe :is([data-ovnext],[data-ovend],[data-ovredo],[data-ovopt],[data-plgo],
-    [data-svgo],[data-svref],[data-tmreset],[data-cnreset]),
-  body.share-scribe .btn:is([data-ovnext],[data-ovend],[data-ovredo],[data-ovopt],[data-plgo],
-    [data-svgo],[data-svref],[data-tmreset],[data-cnreset]){
+  body.share-scribe :is([data-tmreset],[data-cnreset]),
+  body.share-scribe .btn:is([data-tmreset],[data-cnreset]){
+    color:var(--ink-soft);border-color:var(--line);background:var(--surface-2);
+    box-shadow:none;cursor:not-allowed;font-weight:600}
+  /* HUITIÈME PIÈGE DE CASCADE DU PROJET, ET LE SECOND PAR SPÉCIFICITÉ. Le bouton « Continuer » du
+     lecteur porte la classe `.rm-ok` et se style par `#readerMode .rm-ok` — soit (1,1,0), un ID :
+     il l'emportait sur `body.share-scribe :is([data-rmnext])`, qui vaut (0,2,1). Le geste était
+     bien bloqué par la garde, mais le bouton restait vert plein, 72 px, graisse 800 — c'est-à-dire
+     qu'il INVITAIT à un geste refusé. Le bridage doit se VOIR, sinon il n'est qu'un piège.
+     La parade est la même que pour la géométrie : ne jamais dépendre de l'ordre ni d'une
+     spécificité de classe quand un `#id` est en jeu — on qualifie par le même `#id`. */
+  /* Le lecteur n'a plus AUCUN contrôle bridé depuis le redécoupage v4.55.0 — mais la leçon de
+     cascade reste écrite ici : `#readerMode .rm-ok` porte un ID (1,1,0) et l'emportait sur
+     `body.share-scribe :is([data-rmnext])` (0,2,1). Le geste était bloqué, le bouton restait vert
+     plein et INVITAIT à un geste refusé. Huitième piège du projet, second par SPÉCIFICITÉ. Si un
+     verbe du lecteur redevient réservé un jour, il faudra le qualifier par le même `#id`. */
+  body.share-scribe #readerMode :is([data-tmreset],[data-cnreset]){
     color:var(--ink-soft);border-color:var(--line);background:var(--surface-2);
     box-shadow:none;cursor:not-allowed;font-weight:600}
   /* ELLE DOIT SAUTER AUX YEUX (retour utilisateur). Cette ligne n'apparaît QUE lorsqu'un code a
@@ -1769,6 +1782,11 @@
   /* Pastille de position DANS .ov-t : elle passe à la ligne en étroit au lieu d'écraser le titre. */
   /* Chip compact : padding vertical 1px + vertical-align baseline — un chip plus haut que la
      ligne recouvrait la ligne de titre PRÉCÉDENTE quand le titre se replie (v4.13.1). */
+  /* « avancé par … » : attribution, registre neutre, jamais une couleur seule (le mot porte). */
+  .ov-by{display:inline-block;font-size:11px;font-weight:700;color:var(--ink-soft);
+    background:var(--tag-bg);padding:1px 8px;border-radius:999px;white-space:nowrap;
+    vertical-align:baseline}
+
   .ov-here{display:none;font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;background:var(--primary);color:var(--on-primary);padding:1px 8px;border-radius:999px;white-space:nowrap;vertical-align:baseline}
   .ov-block.cur .ov-here{display:inline-block}
   .ov-c{flex:none;font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--ink-soft)}

@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-o+nYXeUQQ0Mrl1VFf1+Qff84ZaYNBB1TNuTuu2Ktjac='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-0BEdwT0ewqFl5JfwIskMb6h1E7ga5s0k8t21cMpqiz4='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1768,10 +1768,23 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      fermé. La variante `.btn:is(…)` monte à (0,3,1) et reprend la main. Même leçon que les six
      pièges de cascade précédents, sous sa forme la plus fine : ici ce n'est pas l'ORDRE qui
      trompe, c'est la SPÉCIFICITÉ. */
-  body.share-scribe :is([data-ovnext],[data-ovend],[data-ovredo],[data-ovopt],[data-plgo],
-    [data-svgo],[data-svref],[data-tmreset],[data-cnreset]),
-  body.share-scribe .btn:is([data-ovnext],[data-ovend],[data-ovredo],[data-ovopt],[data-plgo],
-    [data-svgo],[data-svref],[data-tmreset],[data-cnreset]){
+  body.share-scribe :is([data-tmreset],[data-cnreset]),
+  body.share-scribe .btn:is([data-tmreset],[data-cnreset]){
+    color:var(--ink-soft);border-color:var(--line);background:var(--surface-2);
+    box-shadow:none;cursor:not-allowed;font-weight:600}
+  /* HUITIÈME PIÈGE DE CASCADE DU PROJET, ET LE SECOND PAR SPÉCIFICITÉ. Le bouton « Continuer » du
+     lecteur porte la classe `.rm-ok` et se style par `#readerMode .rm-ok` — soit (1,1,0), un ID :
+     il l'emportait sur `body.share-scribe :is([data-rmnext])`, qui vaut (0,2,1). Le geste était
+     bien bloqué par la garde, mais le bouton restait vert plein, 72 px, graisse 800 — c'est-à-dire
+     qu'il INVITAIT à un geste refusé. Le bridage doit se VOIR, sinon il n'est qu'un piège.
+     La parade est la même que pour la géométrie : ne jamais dépendre de l'ordre ni d'une
+     spécificité de classe quand un `#id` est en jeu — on qualifie par le même `#id`. */
+  /* Le lecteur n'a plus AUCUN contrôle bridé depuis le redécoupage v4.55.0 — mais la leçon de
+     cascade reste écrite ici : `#readerMode .rm-ok` porte un ID (1,1,0) et l'emportait sur
+     `body.share-scribe :is([data-rmnext])` (0,2,1). Le geste était bloqué, le bouton restait vert
+     plein et INVITAIT à un geste refusé. Huitième piège du projet, second par SPÉCIFICITÉ. Si un
+     verbe du lecteur redevient réservé un jour, il faudra le qualifier par le même `#id`. */
+  body.share-scribe #readerMode :is([data-tmreset],[data-cnreset]){
     color:var(--ink-soft);border-color:var(--line);background:var(--surface-2);
     box-shadow:none;cursor:not-allowed;font-weight:600}
   /* ELLE DOIT SAUTER AUX YEUX (retour utilisateur). Cette ligne n'apparaît QUE lorsqu'un code a
@@ -2054,6 +2067,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Pastille de position DANS .ov-t : elle passe à la ligne en étroit au lieu d'écraser le titre. */
   /* Chip compact : padding vertical 1px + vertical-align baseline — un chip plus haut que la
      ligne recouvrait la ligne de titre PRÉCÉDENTE quand le titre se replie (v4.13.1). */
+  /* « avancé par … » : attribution, registre neutre, jamais une couleur seule (le mot porte). */
+  .ov-by{display:inline-block;font-size:11px;font-weight:700;color:var(--ink-soft);
+    background:var(--tag-bg);padding:1px 8px;border-radius:999px;white-space:nowrap;
+    vertical-align:baseline}
+
   .ov-here{display:none;font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;background:var(--primary);color:var(--on-primary);padding:1px 8px;border-radius:999px;white-space:nowrap;vertical-align:baseline}
   .ov-block.cur .ov-here{display:inline-block}
   .ov-c{flex:none;font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--ink-soft)}
@@ -3780,7 +3798,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.54.2';
+const APP_VERSION='4.55.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -4635,6 +4653,7 @@ function cxEnter(f,target){
   const local=(f.blocks||[]).some(b=>b&&b.id===target);
   if(!local){if(relTarget(target)){openRel(target);_rmSync();}return;}
   ovDropOpens();
+  _navBy=null;                      // mon propre geste : la mention d'en face a fait son office
   const from=state.nav[state.navPos];
   state.nav.push(target);state.navSeq.push(++Runtime.seq);state.navPos=state.nav.length-1;
   Runtime.cxBack=Runtime.cxBack||{};if(from&&from!==target)Runtime.cxBack[Runtime.seq]={id:from,t:Date.now()};
@@ -8105,8 +8124,28 @@ function sharePayload(f){
    faite, sans trace). Annuler un repère la CONSERVE : la ligne reste, barrée, attribuée, datée, et
    le geste est réversible. Ce n'est donc plus une action destructrice, et la doctrine qui réserve
    celles-ci au lead ne s'y applique pas. */
-const SHARE_KINDS_ANY=['check','verify','gap','counter','timer_arm','mark','mark_void','presence','detach','offline_mark','handoff'];
-const SHARE_KINDS_LEAD=['uncheck','nav','flow_end','timer_stop','timer_reset','cx','end','session_start'];
+/* LA LIGNE PASSE SUR LA DESTRUCTION, PAS SUR LA HIÉRARCHIE (v4.55.0, décision utilisateur).
+   Elle passait sur « conduire ou suivre », et c'était une MAUVAISE LECTURE de la source. AC 120-71B
+   §5.2.2.1 décrit une répartition de la PAROLE — « one crewmember reading the checklist and the
+   second confirming and responding » — et dans ce modèle c'est CELUI QUI LIT QUI FAIT AVANCER LA
+   LISTE ; le lead est celui dont les mains sont prises. Toutes les autres sources disent la même
+   chose : la SFAR (« le lecteur : sa seule tâche est de lire et de GUIDER »), l'ECAM (le pilot
+   monitoring actionne l'ECP, le pilot flying pilote), et surtout McEvoy 2014 — l'essai qui donne
+   99,5 % contre 70 %, la meilleure donnée du dossier — où LE LECTEUR TENAIT L'UNIQUE APPAREIL.
+   La conception précédente empêchait donc exactement la configuration la mieux documentée.
+   LE CRITÈRE ÉTAIT D'AILLEURS DÉJÀ ÉCRIT DANS CE FICHIER, pour `mark_void` : « annuler CONSERVE,
+   décocher DÉTRUIT — ce n'est donc pas une action destructrice, et la règle qui réserve celles-ci
+   au lead ne s'y applique pas. » Naviguer est append-only ; arrêter un minuteur conserve son
+   `elapsedMs`. Ni l'un ni l'autre ne détruit quoi que ce soit : rien ne les justifiait au lead.
+   RESTE RÉSERVÉ CE QUI DÉTRUIT OU CLÔT : décocher (efface une information), remettre à zéro un
+   minuteur ou un compteur (efface un décompte que personne ne restitue), terminer le partage, et
+   `session_start` — un fait sur LA session de l'hôte, pas un geste de participant.
+   L'OBJECTION D'AMBIGUÏTÉ (§5.5, « qui fait quoi », qu'Airbus supprime par un ECP unique) est
+   réelle et reçoit ici la réponse constante du projet : on n'INTERDIT pas, on ANNONCE — chaque
+   geste est attribué, et une avance venue d'un autre écran se dit. */
+const SHARE_KINDS_ANY=['check','verify','gap','counter','timer_arm','timer_stop','mark','mark_void',
+  'nav','flow_end','cx','presence','detach','offline_mark','handoff'];
+const SHARE_KINDS_LEAD=['uncheck','timer_reset','end','session_start'];
 function shareCan(role,kind){
   if(SHARE_KINDS_ANY.indexOf(kind)>=0)return role==='scribe'||role==='lead';
   if(SHARE_KINDS_LEAD.indexOf(kind)>=0)return role==='lead';
@@ -8329,8 +8368,24 @@ function refuseStep(on){
    écart, INCRÉMENTER un compteur, ARMER un minuteur, poser et annuler un repère horodaté.
    INCRÉMENTER MAIS PAS REMETTRE À ZÉRO n'est pas une subtilité : ajouter est additif et
    réversible par le journal, remettre à zéro DÉTRUIT un décompte que personne ne peut restituer. */
-const LEAD_ONLY_SEL='[data-ovnext],[data-ovend],[data-ovredo],[data-ovopt],[data-plgo],'
-  +'[data-svgo],[data-svref],[data-tmreset],[data-cnreset]';
+/* LE MODE LECTEUR PARLE UN VOCABULAIRE PARALLÈLE, ET IL MANQUAIT (v4.55.0). `data-rmnext`
+   (avancer, terminer) et `data-rmopt` (choisir une branche) sont les MÊMES verbes que `data-ovnext`
+   et `data-ovopt` sous d'autres noms : un invité scribe conduisait donc la checklist depuis le
+   lecteur alors que la page la lui refusait. Ce n'était pas un défaut de PORTÉE — la garde en
+   capture atteint bien `#readerMode`, prouvé en contre-épreuve en injectant `data-plgo` sur un
+   bouton du lecteur, qui devient aussitôt bridé — mais un défaut de PRÉDICAT : la liste ne les
+   nommait pas. `data-cxback` (reprendre après une complication) rejoint la liste par prévoyance :
+   il est inerte aujourd'hui côté invité, il ne le restera pas.
+   NE PAS y mettre `data-rmok`, `data-rmgap` ni `data-rmprev` : constater, signaler un écart et
+   revenir en arrière SONT les verbes du scribe — c'est même toute sa raison d'être. */
+/* NE RESTENT QUE LES GESTES DESTRUCTEURS. `[data-ovnext]`, `[data-ovopt]`, `[data-plgo]`,
+   `[data-svgo]`, `[data-svref]`, `[data-rmnext]`, `[data-rmopt]`, `[data-rmback]`, `[data-cxback]`
+   et `[data-ovredo]` en SORTENT (v4.55.0) : naviguer, choisir une branche, refaire un passage et
+   reprendre après une complication sont tous append-only. Le scribe relaie une consigne — « pause
+   le minuteur, il reprend un rythme » — sans que le médecin ait à reprendre son téléphone.
+   `[data-ovend]` sort aussi : terminer l'algorithme pose un drapeau réversible, ce n'est pas
+   terminer la session. */
+const LEAD_ONLY_SEL='[data-tmreset],[data-cnreset]';
 /* GARDE DÉLÉGUÉE, EN PHASE DE CAPTURE, EN UN SEUL POINT. L'alternative — instrumenter les
    soixante verbes de mutation un par un — garantissait l'oubli, et surtout l'oubli SILENCIEUX de
    tout contrôle ajouté demain. Ici, un contrôle nouveau qui porte l'un de ces attributs est bridé
@@ -8410,8 +8465,10 @@ function shareFold(events,base){
          son compte rendu dater le début du soin à son arrivée — les deux documents d'un même soin
          devenaient alors impossibles à recouper au débrief. */
       case 'session_start': if(+p.t)s.startedAt=+p.t; s.exercise=!!p.exo; break;
-      case 'mark':    s.events.push({id:_fid(p.id,'e'),t:_fnum(p.t,e.ts),
-        ref:tkRefNorm(p.ref),a:e.actor}); break;
+      case 'mark':    {const id=_fid(p.id,'e'),ex=s.events.find(x=>x.id===id);
+        if(ex){ex.t=_fnum(p.t,ex.t);ex.ref=tkRefNorm(p.ref);if(e.actor)ex.a=e.actor;}
+        else s.events.push({id:id,t:_fnum(p.t,e.ts),ref:tkRefNorm(p.ref),a:e.actor});
+        break;}
       // Annulation RÉVERSIBLE : le repère n'est jamais retiré du pli — il porte l'heure de son
       // annulation, ou repasse à null si l'on se ravise. Le journal reste append-only.
       case 'mark_void':{const m=s.events.find(x=>x.id===_fid(p.id,'e'));
@@ -8472,9 +8529,17 @@ function shareDiff(a,b){
   // JOURNAL D'ACTIONS : append-only des deux côtés. Un repère ne disparaît pas — il s'annule, et
   // l'annulation est elle-même réversible, donc elle voyage comme un évènement à part entière.
   {const vus={};a.events.forEach(e=>{vus[e.id]=e;});
+   const meme=(x,y)=>JSON.stringify(x||null)===JSON.stringify(y||null);
    for(const e of b.events){
      if(!vus[e.id]){out.push({kind:'mark',payload:{id:e.id,t:e.t,ref:e.ref}});
        if(e.voidAt)out.push({kind:'mark_void',payload:{id:e.id,on:true,t:e.voidAt}});continue;}
+     /* UN REPÈRE EXISTANT QUI CHANGE ÉMET AUSSI. On ne comparait que `voidAt` : étiqueter un
+        repère APRÈS l'avoir posé — le geste normal, puisque « Noter l'heure » ne demande rien —
+        ou corriger son heure ne partait donc jamais. L'autre écran gardait « Action 3 » pendant
+        que le premier affichait le mot : deux comptes rendus d'un même soin, divergents sur le
+        seul point que le journal référentiel existe pour rendre commun. */
+     if(!meme(vus[e.id].ref,e.ref)||(+vus[e.id].t||0)!==(+e.t||0))
+       out.push({kind:'mark',payload:{id:e.id,t:e.t,ref:e.ref}});
      if((vus[e.id].voidAt||null)!==(e.voidAt||null))
        out.push({kind:'mark_void',payload:{id:e.id,on:!!e.voidAt,t:e.voidAt||0}});}}
   // NAVIGATION : le couple nav/navSeq voyage INDISSOCIABLE — les clés de cochage valent
@@ -8744,6 +8809,13 @@ function tagRank(q,items){
     (it.alias||[]).forEach(a=>{const s2=posoScore(a,hay);if(s2>sc)sc=s2;});
     return {ref:it.ref,label:it.label,src:it.src,i:i,score:sc};})
     .sort((a,b)=>(b.score-a.score)||(a.i-b.i));}
+/* MENTION « AVANCÉ PAR … » — sur la carte du BOUT seulement, et seulement si l'avance vient d'un
+   autre écran. Registre NEUTRE : ce n'est ni une alerte ni une confirmation, c'est une attribution.
+   Elle vit à côté de « Vous êtes ici » parce que c'est la même information — où en est-on — vue
+   sous l'autre angle : par qui. Deux canaux distincts, jamais une couleur seule. */
+function navByTag(tip){
+  if(!tip||!_navBy)return '';
+  return ' <span class="ov-by">avancé par '+esc(_navBy.qui)+'</span>';}
 function tkRefNorm(r){
   if(!r||typeof r!=='object')return null;
   // `safeId` SUBSTITUE un identifiant interdit (`__proto__`…) par un neuf, il ne le rejette pas :
@@ -9679,7 +9751,7 @@ function ovInstHtml(f,id,idx,topo,pres){
     :((tip&&hasFlow(f)?`<button type="button" class="ov-redo" data-ovreader title="Mode lecteur (binôme) : un challenge à la fois en plein écran — le lecteur lit, l'exécutant répond"><span aria-hidden="true">⤢</span> Lecteur</button>`:'')
       +((!dec&&clean(b.steps).length)?`<button type="button" class="ov-redo" data-ovverify="${idx}" title="Do-Verify : redérouler ce bloc en challenge-réponse — « Constaté » coche, « Écart » laisse non coché">Vérifier</button>`:'')
       +((!tip&&complete&&!dec)?`<button type="button" class="ov-redo" data-ovredo="${esc(id)}" title="Refaire ce bloc : nouvelle carte au bout du journal — celle-ci reste telle quelle">↺ Refaire</button>`:''));
-  return `<section class="ov-block${tip?' cur':''}${complete?' done':''}${dec?' dec':''}${closed&&!verifying?' closed':''}" data-ovb="${esc(id)}" data-ovi="${idx}" data-ovn="${topo[id]||''}"${tip?' aria-current="step"':''}><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="${idx}" aria-expanded="${closed&&!verifying?'false':'true'}"><span class="ov-n" aria-hidden="true">${complete?uiIcon('check',13,{sw:3.2,cls:''}):(topo[id]||((Runtime.cxBack||{})[seq]?'⚡':'·'))}</span><span class="ov-t">${esc(b.title)||(dec?'Décision':'Étapes')}${passTag}${cxTag}${takenH} <span class="ov-here">Vous êtes ici</span></span><span class="ov-c">${count}</span><span class="ov-chev" aria-hidden="true">${closed&&!verifying?'▾':'▴'}</span></button>${btns?`<div class="ov-acts">${btns}</div>`:''}</div><div class="ov-body">${bodyH}</div></section>`;}
+  return `<section class="ov-block${tip?' cur':''}${complete?' done':''}${dec?' dec':''}${closed&&!verifying?' closed':''}" data-ovb="${esc(id)}" data-ovi="${idx}" data-ovn="${topo[id]||''}"${tip?' aria-current="step"':''}><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="${idx}" aria-expanded="${closed&&!verifying?'false':'true'}"><span class="ov-n" aria-hidden="true">${complete?uiIcon('check',13,{sw:3.2,cls:''}):(topo[id]||((Runtime.cxBack||{})[seq]?'⚡':'·'))}</span><span class="ov-t">${esc(b.title)||(dec?'Décision':'Étapes')}${passTag}${cxTag}${takenH} <span class="ov-here">Vous êtes ici</span>${navByTag(tip)}</span><span class="ov-c">${count}</span><span class="ov-chev" aria-hidden="true">${closed&&!verifying?'▾':'▴'}</span></button>${btns?`<div class="ov-acts">${btns}</div>`:''}</div><div class="ov-body">${bodyH}</div></section>`;}
 /* PLAN DE L'AIDE — « Se repérer » (v4.12.0, réduit à UNE vue en v4.25.0) : rendu de flowPlan.
    Le plan reste INERTE côté cochage (la trace vit dans le journal) et sert à NAVIGUER.
    UNE SEULE VUE, l'ÉCHELLE (ovPlanLadderHtml, mode compact ECAM) : une LIGNE par bloc, retraits
@@ -10154,7 +10226,14 @@ function sharePaintLive(f,e){
     // import (règle 5 : toute donnée entrante passe par un point d'entrée qui la nettoie).
     // L'ACTEUR SUIT LE REPÈRE. `shareFold` le conserve, la peinture le perdait : un compte-rendu
     // ne peut pas dire qui a fait quoi si l'attribution s'arrête au pli.
-    Runtime.events.push({id:safeId(p.id,'e'),t:+p.t||Share.now(),a:e.actor||null,
+    const _id=safeId(p.id,'e'),_ex=(Runtime.events||[]).find(x=>x.id===_id);
+    if(_ex){
+      /* MISE À JOUR EN PLACE. Le repère existe déjà : on ne repose pas une seconde ligne pour le
+         même geste. Le libellé MANUEL local n'est pas touché — il est souverain (`tkLabels`), et
+         l'écraser reviendrait à faire dicter par le réseau un mot que quelqu'un a tapé ici. */
+      _ex.t=+p.t||_ex.t;_ex.ref=tkRefNorm(p.ref);if(e.actor)_ex.a=e.actor;
+      Runtime.events.sort((x,y)=>x.t-y.t);renderTkOnly();return true;}
+    Runtime.events.push({id:_id,t:+p.t||Share.now(),a:e.actor||null,
       /* AUCUN LIBELLÉ N'EST LU DU RÉSEAU. Cette ligne lisait `p.label` — vestige inoffensif entre
          deux clients de cette version (aucun émetteur n'en met), mais c'était une PORTE : un
          client modifié aurait pu pousser un mot arbitraire, qui se serait affiché sur l'écran
@@ -10762,7 +10841,14 @@ function readerOpen(){const f=state.fiche;if(!f||!(f.blocks||[]).length)return;
   document.getElementById('rmTitle').textContent=f.title||'';
   readerI=-1;
   rm.classList.add('on');readerRender();
-  const b=rm.querySelector('.rm-ok,.rm-opt')||document.getElementById('rmClose');if(b)b.focus();}
+  /* LE FOCUS NE VA PAS SUR UN CONTRÔLE MORT. Sur un bloc de DÉCISION, le lecteur n'offre que des
+     `.rm-opt` — tous bridés pour un scribe : le focus initial atterrissait sur un bouton qui ne
+     fait rien, et l'écran n'avait plus aucun contrôle opérable au clavier. */
+  const scribe=document.body.classList.contains('share-scribe');
+  const utile=[...rm.querySelectorAll('.rm-ok,.rm-opt')]
+    .find(x=>!scribe||!x.matches(LEAD_ONLY_SEL));
+  const b=utile||document.getElementById('rmClose');
+  if(b)b.focus();}
 function readerClose(){const rm=document.getElementById('readerMode');if(!rm.classList.contains('on'))return;
   rm.classList.remove('on');document.getElementById('rmBody').innerHTML='';
   if(state.view==='read'&&state.fiche)render();}   // resynchronise la vue derrière (journal/guidé)
@@ -10822,7 +10908,14 @@ function readerRender(){const f=state.fiche;const rm=document.getElementById('re
  if(rm){rm.addEventListener('click',e=>{const f=state.fiche;if(!f)return;
    if(e.target.closest('#rmClose')){readerClose();return;}
    const idx=state.nav.length-1;const id=state.nav[idx];const seq=state.navSeq[idx]||1;
-   if(e.target.closest('[data-rmok]')){state.checked[seq+':'+id+':'+readerI]=true;
+   /* TROISIÈME COPIE DU CŒUR DE COCHAGE, JAMAIS RECENSÉE. La doctrine du projet en annonce DEUX
+      (guidé et journal) et leur impose un prédicat UNIQUE, parce qu'elles avaient divergé en
+      v4.42.0. Le lecteur en est une troisième, et elle écrivait `state.checked` EN DIRECT :
+      mesuré, un invité au lien ARRÊTÉ cochait quand même depuis le lecteur alors que le même geste
+      était refusé sur la page. Une exception à un invariant qu'on croyait tenu par construction. */
+   if(e.target.closest('[data-rmok]')){
+     if(!canToggleStep(true)){refuseStep(true);return;}
+     state.checked[seq+':'+id+':'+readerI]=true;
      const js=ensureStarted();persistLive(Runtime);if(js)render();   // derrière l'overlay (élément hors <main>)
      readerI++;readerRender();return;}
    if(e.target.closest('[data-rmgap]')){readerI++;readerRender();return;}
@@ -13878,6 +13971,9 @@ const SHARE_NOMINAL_MS=2000, SHARE_STALE_MS=4000, SHARE_MAX_BATCH=50;
    rappelle avoir faite. `_hoOffer` = on me propose (invité) ; `_hoTake` = quelqu'un a pris, il
    reste à l'inscrire (hôte) ; `_hoOffered` = à qui j'ai proposé (hôte, pour l'afficher). */
 let _hoOffer=false,_hoTake=null,_hoOffered=null;
+/* Dernière avance venue d'en face — en mémoire, et volontairement éphémère : c'est une nouvelle,
+   pas un état. Elle s'efface au geste de navigation suivant, quel qu'en soit l'auteur. */
+let _navBy=null;
 const Share={
   mode:'off',                 // 'off' | 'host' | 'guest'
   fold:null,                  // état PLIÉ du fil — l'unique état de l'invité (jamais chez l'hôte)
@@ -13973,7 +14069,18 @@ const Share={
        commentaire promettait « un invité périmé ou coupé PERD VISIBLEMENT l'écriture » et rien ne
        le rendait vrai. (Ce qu'il coche localement reste à l'écran, marqué non transmis : c'est
        l'objet du bridage visible, à venir — mais rien ne part.) */
-    if(this.mode==='off'||!this.canWrite(kind))return null;
+    if(this.mode==='off')return null;
+    if(!this.canWrite(kind)){
+      /* UN REFUS N'EST PAS UN SILENCE. `shareEmitDiff` avance la base de comparaison AVANT
+         d'émettre : un genre refusé ici laissait donc l'état LOCAL modifié, la base alignée
+         dessus, et l'autre écran ignorant tout — le geste ne repartait jamais, même après une
+         promotion en lead, et les coches suivantes portaient des clés d'une séquence FANTÔME que
+         personne d'autre n'a créée. Le miroir ne peut plus garantir son état : il se déclare
+         PÉRIMÉ et redemande tout, ce qui est exactement le mécanisme prévu pour ce cas.
+         La garde d'interface empêche normalement d'en arriver là ; ceci est le filet, et il vaut
+         pour tout verbe qu'on oublierait d'y inscrire demain. */
+      if(this.mode==='guest'&&this.status==='active')this._desync('geste refusé');
+      return null;}
     const e={event_id:this._uuid(),kind:kind,payload:payload||{},
       ts:new Date(this.now()).toISOString()};
     this._q.push(e);this._act=Date.now();this._saveQ();this._kick(250);
@@ -14024,6 +14131,12 @@ const Share={
            jointure est la SEULE chose qui consomme un code, donc l'apparition d'un participant
            EST l'observation. On en profite pour l'annoncer — l'hôte obtient enfin l'accusé de
            réception d'appariement que l'échange en trois temps (AC 61-115) suppose. */
+        /* UN DÉTACHÉ QUI TENAIT LA MAIN LA REND AUSSI. Poursuivre seul est un départ : le laisser
+           inscrit comme lead laisserait le partage sans conducteur, et l'hôte n'aurait aucun geste
+           pour le dire (le bouton « Donner la main » ne se propose que sur un participant vivant). */
+        if(this.mode==='host'){const parti=(p.participants||[])
+          .find(x=>x&&!x.owner&&x.role==='lead'&&(x.detached||x.revoked));
+          if(parti)this._reclaimLead(parti.id);}
         {const av=(this.participants||[]).filter(x=>!x.owner).map(x=>x.id);
          const ap=(p.participants||[]).filter(x=>!x.owner);
          const neuf=ap.find(x=>av.indexOf(x.id)<0);
@@ -14112,6 +14225,13 @@ const Share={
        geste effectué SUR CET écran — un `handoff` reçu n'accorde donc rien à personne, il
        AFFICHE. */
     for(const e of ev){
+      /* QUI A AVANCÉ. §5.5 range l'ambiguïté « qui fait quoi » parmi les erreurs classiques de
+         checklist, et Airbus la supprime par un ECP unique. Ici les deux écrans peuvent avancer :
+         la réponse n'est donc pas d'interdire mais d'ANNONCER — chaque geste est attribué, et une
+         avance venue d'en face laisse une mention sur la carte, en plus de `#srLive`. */
+      if(e.kind==='nav'&&e.actor&&e.actor!==this.me){
+        const q=(this.participants||[]).find(x=>x.id===e.actor);
+        _navBy={qui:(q&&q.label)||'un participant',at:Date.now()};anno=true;}
       if(e.kind!=='handoff'||e.actor===this.me)continue;
       const p=e.payload||{};
       if(p.to&&p.to===this.me){_hoOffer=true;anno=true;}
@@ -14167,7 +14287,8 @@ const Share={
          rôle que n'importe qui s'accorderait. */
       this.grantLead(who).then(ok=>{if(ok){announce('Vous avez passé la main.');render();}});}
     if(peint||anno)readerRepaint();
-    if(anno)announce('Le soignant a avancé — reprendre depuis le mode lecteur.');
+    if(_navBy&&anno)announce(_navBy.qui+' a avancé la checklist.');
+    else if(anno)announce('Le soignant a avancé — reprendre depuis le mode lecteur.');
     if(peint)announce(peint===1?'Une action d’un participant':peint+' actions d’un participant');},
   onDesync(){}, onStatus(){},
 
@@ -14216,7 +14337,31 @@ const Share={
     try{await rest('PATCH','/rest/v1/session_participants?share_id=eq.'+encodeURIComponent(this.share)
       +'&participant=eq.'+encodeURIComponent(pid),{revoked_at:new Date().toISOString()},
       {'Prefer':'return=minimal'});
+      /* COUPER CELUI QUI TIENT LA MAIN LA REND À L'HÔTE. Sans cela, on obtient l'état que
+         l'invariant 1 interdit : « un seul lead à tout instant, jamais deux, JAMAIS ZÉRO ». Le
+         partage garderait un lead révoqué, l'hôte resterait scribe, et le prochain invité admis
+         arriverait scribe lui aussi — plus personne pour conduire.
+         Ce n'est aujourd'hui pas bloquant pour l'hôte, dont les gardes sortent sur
+         `mode!=='guest'` : il conduit sa propre session quoi qu'il arrive. Mais faire reposer un
+         invariant affiché sur le fait qu'une garde a une porte de sortie, c'est le laisser
+         dépendre d'un détail d'implémentation — exactement ce qui a produit les moitiés de chemin
+         de ce chantier. On rétablit donc explicitement. */
+      await this._reclaimLead(pid);
       this._kick(0);return true;}catch(e){return false;}},
+  /* Rendre la main à l'hôte si `pid` la détenait. Idempotent, silencieux en cas d'échec : c'est
+     une remise en cohérence, pas une action que l'utilisateur attend. */
+  async _reclaimLead(pid){
+    try{
+      const p=(this.participants||[]).find(x=>x.id===pid);
+      if(!p||p.role!=='lead')return false;
+      const moi=(this.participants||[]).find(x=>x.owner);
+      if(!moi)return false;
+      await rest('PATCH','/rest/v1/session_participants?share_id=eq.'+encodeURIComponent(this.share)
+        +'&participant=eq.'+encodeURIComponent(moi.id),{role:'lead'},{'Prefer':'return=minimal'});
+      this.role='lead';_hoOffered=null;_hoTake=null;
+      try{announce('La main vous revient.');}catch(e){}
+      return true;
+    }catch(e){return false;}},
   /* ARRÊTER LE PARTAGE. `status='ended'` fait dire aux invités POURQUOI leur écran s'arrête ; et
      `expires_at` est ramené à maintenant — sans quoi la ligne vivrait jusqu'à son terme (jusqu'à
      12 h) alors que la notice affichée à l'invité annonce une purge peu après la fin. C'est le

@@ -1,5 +1,97 @@
 # Journal des modifications
 
+## [4.55.0] — 2026-07-28
+### Le scribe conduit — j'avais mal lu ma propre source
+
+Objection d'usage, et elle porte : le médecin partage **pour se libérer les mains** — faire des
+gestes, téléphoner, parler à l'équipe. Si un infirmier demande au scribe « c'est quoi les étapes
+d'après ? mets le minuteur en pause, il reprend un rythme », le scribe ne pouvait rien faire, et le
+médecin devait reprendre son téléphone pour valider avant de repasser la main.
+
+### Ce que la source dit vraiment
+AC 120-71B §5.2.2.1 — « one crewmember reading the checklist and the second confirming and
+responding » — décrit une répartition de **la parole**, pas un système de permissions. Et dans ce
+modèle, **c'est celui qui lit qui fait avancer la liste** ; le lead est celui dont les mains sont
+prises. J'avais transposé l'inverse.
+
+Les autres sources convergent : la **SFAR** (« le lecteur : sa seule tâche est de lire et de
+**guider** »), l'**ECAM** (le pilot monitoring actionne l'ECP, le pilot flying pilote), et surtout
+**McEvoy 2014** — 99,5 % contre 70 % d'adhérence, la meilleure donnée du dossier — où **le lecteur
+tenait l'unique appareil**. La conception précédente empêchait exactement la configuration la mieux
+documentée.
+
+Et le critère juste était **déjà écrit dans ce dépôt**, pour `mark_void` : « annuler CONSERVE,
+décocher DÉTRUIT — ce n'est donc pas une action destructrice, et la règle qui réserve celles-ci au
+lead ne s'y applique pas. » Naviguer est append-only ; arrêter un minuteur conserve son `elapsedMs`.
+Rien ne les réservait.
+
+### La nouvelle ligne
+| Ouvert au scribe | Réservé |
+|---|---|
+| cocher · constater · écart · incrémenter · armer · repère | **décocher** — efface une information |
+| **avancer · choisir une branche · terminer un bloc** | **remettre à zéro** — efface un décompte que personne ne restitue |
+| **arrêter un minuteur** · entrer sur une complication | **terminer le partage** · dater le début du soin |
+
+**L'objection d'ambiguïté** (§5.5, « qui fait quoi », qu'Airbus supprime par un ECP unique) reçoit
+la réponse constante du projet : **on n'interdit pas, on annonce.** Une avance venue d'en face pose
+une mention « avancé par ‹rôle› » sur la carte courante, à côté de « Vous êtes ici » — même
+information, vue par l'autre angle. Elle s'efface au geste de navigation suivant.
+
+### Le lecteur était une troisième copie, jamais recensée
+Signalé aussi : « pourquoi l'invité peut passer de bloc en bloc en mode lecteur mais pas sur la
+page ? ». C'était vrai — `data-rmnext` et `data-rmopt` sont les mêmes verbes que `data-ovnext` et
+`data-ovopt` sous d'autres noms, et la liste ne les nommait pas. Ce n'était **pas** un défaut de
+portée (la garde en capture atteint bien `#readerMode`, prouvé en injectant `data-plgo` sur un de
+ses boutons) mais de **prédicat**.
+
+Trois choses en sont sorties, indépendantes du redécoupage :
+
+- **`data-rmok` écrivait `state.checked` en direct**, sans passer par le prédicat unique. La
+  doctrine annonce **deux** copies du cœur de cochage ; le lecteur en était une **troisième**.
+  Mesuré : un invité au lien **arrêté** cochait quand même depuis le lecteur alors que le même
+  geste était refusé sur la page.
+- **Huitième piège de cascade du projet, second par spécificité** : `#readerMode .rm-ok` porte un
+  **id** (1,1,0) et l'emportait sur `body.share-scribe :is([data-rmnext])` (0,2,1). Le geste était
+  bloqué, mais le bouton restait vert plein, 72 px, graisse 800 — il **invitait** à un geste refusé.
+- **Une émission refusée laissait le miroir divergent en silence** : la base de diff avance *avant*
+  l'émission, si bien qu'un genre refusé n'était jamais renvoyé, même après promotion. Le miroir se
+  déclare désormais périmé et redemande tout.
+
+### Deux correctifs d'usage
+**L'intitulé du journal ne se propageait pas.** `shareDiff` ne comparait que l'annulation d'un
+repère : **étiqueter après coup** — le geste normal, puisque « Noter l'heure » ne demande rien — ou
+corriger l'heure n'émettait rien. En le réparant, un second défaut est apparu : la réception
+**empilait** un repère déjà connu au lieu de le mettre à jour ; le correctif seul aurait doublé la
+ligne. Un test encodait le défaut (son couple de comparaison changeait la référence *et*
+l'annulation) — variable isolée.
+
+**Couper celui qui tient la main la rend à l'hôte.** Après « donner la main » puis « couper », le
+partage gardait un lead révoqué et un hôte resté scribe : plus personne pour conduire, l'état que
+l'invariant 1 interdit (« jamais deux, **jamais zéro** »). Ce n'est pas bloquant — les gardes de
+l'hôte sortent sur `mode !== 'guest'` — mais faire reposer un invariant affiché sur la porte de
+sortie d'une garde, c'est le laisser dépendre d'un détail d'implémentation.
+
+### Le garde-fou qui manquait
+`SHARE_KINDS_ANY`/`_LEAD` et `share_kind_allowed` sont **la même règle en deux langages**. Elles ont
+divergé : le redécoupage a été porté des deux côtés, mais l'assertion qui l'éprouve ne l'a pas été —
+et le défaut n'est apparu qu'au collage dans l'éditeur SQL. Une divergence est **silencieuse et
+asymétrique** : client plus permissif, un geste part et le serveur le jette sans que l'auteur le
+sache ; serveur plus strict, un geste légitime est refusé sans raison lisible.
+
+`check-sql.mjs` compare désormais les deux listes à chaque commit. **Vérifié capable d'échouer** en
+reproduisant la divergence exacte de cette version (serveur redécoupé, client en arrière) : il nomme
+les quatre genres des deux côtés ; fichier restauré à l'octet.
+
+### Vérification
+756 tests × 2 moteurs (+9), **263/263 contrôles partage** (+13, sur les deux moteurs), 14 harnais
+verts, 301 contrôles d'accessibilité, 94/94 doctrine. Quatre contrôles du harnais encodaient
+l'ancienne ligne : retournés plutôt que supprimés, ils affirment la nouvelle et disent pourquoi.
+Quatre sondes ont dû être corrigées avant de rien conclure — l'une relevait les boutons **avant**
+d'ouvrir leur panneau, une autre cochait « tant que Continuer n'existe pas » alors que le bouton est
+rendu d'emblée : elle mesurait la règle d'avancement, pas le bridage.
+
+**`supabase/schema.sql` est à rejouer** (`share_kind_allowed` change), puis `rls-tests.sql`.
+
 ## [4.54.2] — 2026-07-28
 ### CORRECTIF — l'historique synchronisé de la v4.54.0 ne synchronisait rien
 
@@ -1509,38 +1601,3 @@ un état à la main au lieu d'emprunter le chemin de l'utilisateur. Défaut du h
 résultat en soi : les corrections de v4.37→v4.39 (associations `for=`, noms de champs, `[hidden]`
 impératif, cibles) tenaient déjà sur les surfaces non encore auditées. Les 11 harnais restent verts,
 510 tests sur Chromium et WebKit.
-
-## [4.39.0] — 2026-07-26
-### Harnais d'accessibilité : de 6 fenêtres auditées à 16 sur 20
-Chaque fenêtre est ouverte par son **vrai point d'entrée**, après CONSTRUCTION de son contexte —
-session vive pour « Terminer la session » et l'historique, sauvegarde de version pour « Versions
-précédentes », complication déclarée pour l'index ⚡, document joint pour la visionneuse PDF. Jamais
-un `classList.add('on')` : une fenêtre forcée vide n'a pas le contenu qu'on veut mesurer et
-produirait des verdicts faux. Le mécanisme `prep` accepte donc désormais une **fonction**,
-sérialisée par Playwright — la mise au point a d'ailleurs confirmé que la CSP du projet **interdit
-bien `eval()`** : la première version de la sonde, qui passait du code en chaîne, a été bloquée.
-
-Les 4 dernières (`attPickModal`, `relPickModal`, `reportModal`, `newLibModal`) résistent encore :
-leurs points d'entrée attendent des arguments ou un état non reconstitué. Signalé plutôt que
-contourné.
-
-### Ce que ces dix fenêtres ont révélé
-- **Un faux positif du harnais — corrigé dans le harnais, pas dans l'app.** `#pendToggle` était
-  signalé à 13×13 px, sous le seuil de 24. Mais son `<label>` parent fait **358×65 px** et coche la
-  case au clic : la CIBLE au sens de WCAG 2.5.8 (« la zone qui accepte l'action du pointeur ») était
-  donc largement conforme. Le harnais mesure désormais le label quand il en existe un — même esprit
-  que la recherche de l'anneau de focus sur les ancêtres, déjà en place. Agrandir les cases pour
-  faire taire ce contrôle aurait été un changement visible pour un défaut inexistant.
-- **Mais les cases se LISAIENT mal** (décision utilisateur) : aucune règle du projet ne les
-  dimensionnait, elles gardaient les ~13 px du navigateur — dont l'interrupteur de sécurité
-  « Exiger une validation pour les nouveaux comptes ». Passées à **20 px** avec
-  `accent-color:var(--primary)` : la case cochée prend le bleu de l'app au lieu du bleu système.
-  Appliqué aux **quatre** cases de l'app (confirmation, suppression locale, validation des comptes,
-  boucle d'un minuteur) — les styler une par une aurait recréé l'incohérence.
-- **Le bruit réseau est filtré nommément** : les fenêtres liées au compte interrogent Supabase et
-  crient `ERR_INTERNET_DISCONNECTED` hors réseau. C'est le contexte de la sonde, pas un défaut de la
-  page ; seul ce motif est filtré, pour ne pas masquer une vraie erreur.
-
-**241/241** contrôles d'accessibilité — contre 121 avant, sur un périmètre deux fois plus étroit.
-
-510 tests × 2 moteurs, 22/22 doctrine, 241/241 accessibilité, 163 contrôles d'audit, 10 sondes.

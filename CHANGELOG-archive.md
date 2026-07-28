@@ -1,7 +1,42 @@
-# Journal des modifications — archive (versions 3.0.0 à 4.38.0)
+# Journal des modifications — archive (versions 3.0.0 à 4.39.0)
 
 > Entrées anciennes déplacées depuis [`CHANGELOG.md`](CHANGELOG.md) pour garder le journal
 > courant lisible. Même format (keep-a-changelog).
+
+## [4.39.0] — 2026-07-26
+### Harnais d'accessibilité : de 6 fenêtres auditées à 16 sur 20
+Chaque fenêtre est ouverte par son **vrai point d'entrée**, après CONSTRUCTION de son contexte —
+session vive pour « Terminer la session » et l'historique, sauvegarde de version pour « Versions
+précédentes », complication déclarée pour l'index ⚡, document joint pour la visionneuse PDF. Jamais
+un `classList.add('on')` : une fenêtre forcée vide n'a pas le contenu qu'on veut mesurer et
+produirait des verdicts faux. Le mécanisme `prep` accepte donc désormais une **fonction**,
+sérialisée par Playwright — la mise au point a d'ailleurs confirmé que la CSP du projet **interdit
+bien `eval()`** : la première version de la sonde, qui passait du code en chaîne, a été bloquée.
+
+Les 4 dernières (`attPickModal`, `relPickModal`, `reportModal`, `newLibModal`) résistent encore :
+leurs points d'entrée attendent des arguments ou un état non reconstitué. Signalé plutôt que
+contourné.
+
+### Ce que ces dix fenêtres ont révélé
+- **Un faux positif du harnais — corrigé dans le harnais, pas dans l'app.** `#pendToggle` était
+  signalé à 13×13 px, sous le seuil de 24. Mais son `<label>` parent fait **358×65 px** et coche la
+  case au clic : la CIBLE au sens de WCAG 2.5.8 (« la zone qui accepte l'action du pointeur ») était
+  donc largement conforme. Le harnais mesure désormais le label quand il en existe un — même esprit
+  que la recherche de l'anneau de focus sur les ancêtres, déjà en place. Agrandir les cases pour
+  faire taire ce contrôle aurait été un changement visible pour un défaut inexistant.
+- **Mais les cases se LISAIENT mal** (décision utilisateur) : aucune règle du projet ne les
+  dimensionnait, elles gardaient les ~13 px du navigateur — dont l'interrupteur de sécurité
+  « Exiger une validation pour les nouveaux comptes ». Passées à **20 px** avec
+  `accent-color:var(--primary)` : la case cochée prend le bleu de l'app au lieu du bleu système.
+  Appliqué aux **quatre** cases de l'app (confirmation, suppression locale, validation des comptes,
+  boucle d'un minuteur) — les styler une par une aurait recréé l'incohérence.
+- **Le bruit réseau est filtré nommément** : les fenêtres liées au compte interrogent Supabase et
+  crient `ERR_INTERNET_DISCONNECTED` hors réseau. C'est le contexte de la sonde, pas un défaut de la
+  page ; seul ce motif est filtré, pour ne pas masquer une vraie erreur.
+
+**241/241** contrôles d'accessibilité — contre 121 avant, sur un périmètre deux fois plus étroit.
+
+510 tests × 2 moteurs, 22/22 doctrine, 241/241 accessibilité, 163 contrôles d'audit, 10 sondes.
 
 ## [4.38.0] — 2026-07-26
 ### Tous les champs de l'éditeur ont enfin un nom

@@ -944,6 +944,12 @@ console.log(`\n══ PARTAGE · le bridage se VOIT, et les deux listes ne diver
     Share._io.push = async (s, sh, ev) => { pousses.push(...ev); return { ok: true, server_time: new Date().toISOString() }; };
     openJoinScreen('K7M2P4Q9'); await joinGo(); await new Promise(x => setTimeout(x, 500));
 
+    /* LE PANNEAU DES MINUTEURS S'OUVRE AVANT LE RELEVÉ, et l'ordre n'est pas un détail : la
+       version précédente l'ouvrait APRÈS avoir photographié les contrôles bridés — elle relevait
+       donc un écran qui n'en portait aucun et accusait la liste. Sous le seuil du rail, ces
+       boutons vivent dans un panneau replié. */
+    { state.rtOpen = true; render(); await new Promise(x => setTimeout(x, 400)); }
+
     const tA = document.querySelectorAll('.toast').length;   // bruit d'amorçage : on mesure le DELTA
     const scribe = document.body.classList.contains('share-scribe');
     // La liste vient du SCRIPT, pas d'une copie dans ce fichier.
@@ -955,12 +961,42 @@ console.log(`\n══ PARTAGE · le bridage se VOIT, et les deux listes ne diver
       curseur: getComputedStyle(e).cursor,
       ariaOff: e.getAttribute('aria-disabled')==='true',
       encre: getComputedStyle(e).color }));
-    // Un geste réservé : tenté, il ne fait RIEN et n'émet RIEN.
-    const nav0 = state.nav.length, q0 = Share.pending() + pousses.length;
-    const suiv = document.querySelector('[data-ovnext],[data-ovend]');
-    let geo0 = null, geo1 = null;
-    if (suiv) { geo0 = Math.round(suiv.getBoundingClientRect().top); suiv.click();
-      await new Promise(x => setTimeout(x, 300)); geo1 = Math.round(suiv.getBoundingClientRect().top); }
+    /* UN GESTE RÉSERVÉ EST UN GESTE QUI DÉTRUIT (v4.55.0). Remettre un minuteur à zéro efface un
+       décompte que personne ne restitue — c'est le critère, et il remplace « conduire ou suivre ».
+       Le panneau des minuteurs doit être ouvert pour que le contrôle existe. */
+    const q0 = Share.pending() + pousses.length;
+    const rz = document.querySelector('[data-tmreset],[data-cnreset]');
+    let geo0 = null, geo1 = null, resetBloque = true;
+    if (rz) {
+      const id = rz.dataset.tmreset || rz.dataset.cnreset;
+      const av = rz.dataset.cnreset ? Runtime.counters[id] : (Runtime.timers[id] || {}).elapsedMs;
+      geo0 = Math.round(rz.getBoundingClientRect().top); rz.click();
+      await new Promise(x => setTimeout(x, 300));
+      geo1 = Math.round(rz.getBoundingClientRect().top);
+      const ap = rz.dataset.cnreset ? Runtime.counters[id] : (Runtime.timers[id] || {}).elapsedMs;
+      resetBloque = (av === ap);
+    }
+    /* … MAIS AVANCER EST OUVERT. C'est le renversement de la v4.55.0 : celui qui lit fait avancer
+       la liste (McEvoy 2014 — le lecteur tient l'unique appareil ; SFAR — « lire et GUIDER »). */
+    /* « Continuer » n'existe qu'une fois le bloc complet — le lecteur a le même comportement, et
+       mesurer avant, c'est mesurer un écran qui n'a rien à offrir. On coche donc d'abord, ce qui
+       est de toute façon le verbe du scribe. */
+    /* Le panneau des minuteurs, ouvert plus haut, occupe la vue : on le referme pour retrouver le
+       journal, puis on complète le bloc — « Continuer » n'apparaît qu'ensuite, exactement comme
+       dans le lecteur. */
+    { state.rtOpen = false; render(); await new Promise(x => setTimeout(x, 350)); }
+    /* ON COCHE TOUT, TOUJOURS — et pas « tant que Continuer n'existe pas ». Le bouton est RENDU
+       dès l'ouverture du bloc, mais son handler refuse d'avancer tant que le passage n'est pas
+       complet (« jamais d'avance tant que tout n'est pas confirmé »). La boucle précédente,
+       gardée sur l'existence du bouton, ne cochait donc RIEN et concluait que l'avance était
+       refusée — alors qu'elle mesurait la règle d'avancement, pas le bridage. */
+    const nav0 = state.nav.length;
+    for (let i = 0; i < 14; i++) {
+      const c = [...document.querySelectorAll('[data-ck]')].find(x => !x.classList.contains('done'));
+      if (!c) break; c.click(); await new Promise(x => setTimeout(x, 140));
+    }
+    const suiv = document.querySelector('[data-ovnext],[data-ovopt]');
+    if (suiv) { suiv.click(); await new Promise(x => setTimeout(x, 400)); }
     const nav1 = state.nav.length, q1 = Share.pending() + pousses.length;
     // Un geste ADDITIF reste ouvert : incrémenter un compteur.
     const inc = document.querySelector('[data-cninc]');
@@ -970,21 +1006,25 @@ console.log(`\n══ PARTAGE · le bridage se VOIT, et les deux listes ne diver
     // Promotion en lead : tout redevient possible, SANS re-rendu ni déplacement.
     Share.role = 'lead'; render(); await new Promise(x => setTimeout(x, 200));
     const promu = !document.body.classList.contains('share-scribe');
-    return { scribe, nb: els.length, vus, muet,
-      navBloque: nav1 === nav0, rienEmis: q1 === q0,
+    return { scribe, nb: els.length, vus, muet, resetBloque,
+      avanceOuverte: nav1 > nav0, aEmis: q1 > q0,
       derive: (geo0 !== null && geo1 !== null) ? geo1 - geo0 : 0,
       cptAvant, cptApres, promu,
       toasts: document.querySelectorAll('.toast').length - tA,
       modales: document.querySelectorAll('.ai-modal.on').length };
   });
   t('le corps porte la classe de bridage', r.scribe === true);
-  t('des contrôles réservés au lead sont bien à l’écran', r.nb >= 1, `${r.nb} élément(s)`);
+  t('des contrôles DESTRUCTEURS sont bien à l’écran', r.nb >= 1, `${r.nb} élément(s)`);
   t('ils portent TOUS l’apparence désactivée (les deux listes coïncident)',
     r.vus.length > 0 && r.vus.every(v => v.curseur === 'not-allowed' || v.ariaOff),
     r.vus.filter(v => v.curseur !== 'not-allowed' && !v.ariaOff).map(v => v.tag + '[' + v.attrs + ']:' + v.curseur).join(', '));
-  t('un geste réservé ne fait RIEN', r.navBloque === true);
-  t('et n’émet rien', r.rienEmis === true);
+  t('remettre à zéro ne fait RIEN', r.resetBloque === true);
   t('le refus ne déplace rien (≤ 1 px)', Math.abs(r.derive) <= 1, `${r.derive} px`);
+  /* LE RENVERSEMENT DE LA v4.55.0 : la ligne passe sur la destruction, pas sur la hiérarchie. Un
+     scribe qui ne pourrait pas avancer obligerait le médecin à reprendre son téléphone pour valider
+     puis à repasser la main — l'inverse de ce pour quoi il partage. */
+  t('mais AVANCER est ouvert au scribe', r.avanceOuverte === true);
+  t('… et son geste PART', r.aEmis === true);
   t('mais incrémenter un compteur reste ouvert au scribe',
     r.cptApres === null || r.cptApres > r.cptAvant, `${r.cptAvant} → ${r.cptApres}`);
   t('promu lead, le bridage tombe', r.promu === true);
@@ -1074,6 +1114,39 @@ console.log(`\n══ PARTAGE · le miroir suit quand l'hôte avance — moteur 
   t('… mais elle est ANNONCÉE sur place', r.banniere === true && /avanc/i.test(r.banniereTexte), r.banniereTexte);
   t('… et un geste LOCAL la reprend', r.apresReprise === true);
   t('… la bannière disparaît une fois reprise', r.banniereApres === false);
+  await page.close();
+}
+
+/* ── COUPER CELUI QUI TIENT LA MAIN LA REND À L'HÔTE ─────────────────────────────────────────
+   « Un seul lead à tout instant, jamais deux, JAMAIS ZÉRO » (invariant 1). Sans cela, couper le
+   participant à qui l'on vient de passer la main laisse le partage sans conducteur : un lead
+   révoqué d'un côté, un hôte resté scribe de l'autre, et le prochain invité admis arrive scribe
+   lui aussi. Ce n'est pas bloquant pour l'hôte — ses gardes sortent sur `mode!=='guest'` — mais
+   faire reposer un invariant AFFICHÉ sur la porte de sortie d'une garde, c'est le laisser dépendre
+   d'un détail d'implémentation. */
+console.log(`\n══ PARTAGE · couper celui qui conduit rend la main — moteur ${NOM_MOTEUR} ══`);
+{
+  const page = await br.newPage({ viewport: { width: 390, height: 844 } });
+  await session(page);
+  const r = await page.evaluate(async () => {
+    const patchs = [];
+    const vrai = window.rest;
+    window.rest = async (m, u, b) => {
+      if (m === 'PATCH' && /session_participants/.test(u)) { patchs.push({ u, b }); return {}; }
+      return vrai(m, u, b); };
+    Share.mode = 'host'; Share.role = 'scribe'; Share.status = 'active'; Share.share = 's1';
+    // L'état d'après une passation : l'invité conduit, l'hôte a relâché.
+    Share.participants = [{ id: 'p0', label: 'Hôte', role: 'scribe', owner: true },
+                          { id: 'p1', label: 'IADE', role: 'lead', owner: false }];
+    const ok = await Share.revoke('p1');
+    return { ok, patchs: patchs.map(x => ({ pid: /participant=eq\.([^&]+)/.exec(x.u)[1], b: x.b })),
+             roleApres: Share.role };
+  });
+  t('la coupure part', r.ok === true);
+  t('… et la main revient à l’hôte', r.patchs.some(x => x.pid === 'p0' && x.b.role === 'lead'),
+    JSON.stringify(r.patchs));
+  t('… dans cet ordre : couper, PUIS rendre', r.patchs.length === 2 && r.patchs[0].pid === 'p1');
+  t('… et le client le sait immédiatement', r.roleApres === 'lead', r.roleApres);
   await page.close();
 }
 
@@ -1360,7 +1433,7 @@ console.log(`\n══ PARTAGE · la passation de la main — moteur ${NOM_MOTEUR
     const tok = () => (document.querySelector('.seg.glb') || {}).textContent || '';
     const menu = () => { try { return moreItemsForTest ? [] : []; } catch (e) { return []; } };
     out.avantJeton = tok();
-    out.avantPeutNaviguer = Share.canWrite('nav');
+    out.avantPeutDetruire = Share.canWrite('timer_reset');
     // Comptage RELATIF : l'amorçage produit une banderole légitime (« fiches d'exemple ajoutées »),
     // émise hors session. Un total absolu ferait échouer la sonde sur du bruit de démarrage.
     const toastsAvant = document.querySelectorAll('.toast').length;
@@ -1370,7 +1443,7 @@ console.log(`\n══ PARTAGE · la passation de la main — moteur ${NOM_MOTEUR
     await new Promise(x => setTimeout(x, 350));
     out.apresOffreJeton = tok();
     out.apresOffreRole = Share.role;
-    out.apresOffrePeutNaviguer = Share.canWrite('nav');
+    out.apresOffrePeutDetruire = Share.canWrite('timer_reset');
     out.toasts = document.querySelectorAll('.toast').length - toastsAvant;
     out.modales = document.querySelectorAll('.ai-modal.on').length;
 
@@ -1384,17 +1457,101 @@ console.log(`\n══ PARTAGE · la passation de la main — moteur ${NOM_MOTEUR
     // TEMPS 3 — le serveur inscrit, et c'est la lecture suivante qui l'apprend.
     Share.role = 'lead';
     out.apresServeurJeton = tok.call ? (Share.mode !== 'off' ? shareGlobTag() : '') : '';
-    out.peutNaviguerEnfin = Share.canWrite('nav');
+    out.peutDetruireEnfin = Share.canWrite('timer_reset');
     return out;
   });
-  t('témoin : un scribe ne peut pas naviguer', r.avantPeutNaviguer === false);
+  t('témoin : un scribe ne peut pas remettre à zéro', r.avantPeutDetruire === false);
   t('l’offre se dit dans le QUAI, à position constante', r.apresOffreJeton.indexOf('offert') >= 0, r.apresOffreJeton);
-  t('… sans rien accorder (invariant 2)', r.apresOffreRole === 'scribe' && r.apresOffrePeutNaviguer === false);
+  t('… sans rien accorder (invariant 2)', r.apresOffreRole === 'scribe' && r.apresOffrePeutDetruire === false);
   t('… sans banderole ni fenêtre (règle 11)', r.toasts === 0 && r.modales === 0);
   t('prendre la main est un geste LOCAL', r.pris === true);
   t('… qui ANNONCE au lieu de s’accorder', r.emisPrise === true && r.roleApresPrise === 'scribe');
   t('le rôle ne vient que du serveur', r.apresServeurJeton === 'main', r.apresServeurJeton);
-  t('… et alors seulement la conduite s’ouvre', r.peutNaviguerEnfin === true);
+  t('… et alors seulement le geste destructeur s’ouvre', r.peutDetruireEnfin === true);
+  await page.close();
+}
+
+/* ── LE MODE LECTEUR EST BRIDÉ COMME LA PAGE ─────────────────────────────────────────────────
+   Signalé à l'usage : « pourquoi l'invité peut passer de bloc en bloc en mode lecteur mais pas sur
+   la page de l'aide ? » — et c'était vrai. `data-rmnext` et `data-rmopt` sont les MÊMES verbes que
+   `data-ovnext` et `data-ovopt` sous d'autres noms ; la liste ne les nommait pas.
+   CE CONTRÔLE OUVRE LE LECTEUR, et ce n'est pas un détail : celui qui existait interrogeait
+   `LEAD_ONLY_SEL` le lecteur FERMÉ — il ne pouvait donc pas voir les entrées du lecteur, et serait
+   resté vert même en n'en corrigeant qu'une des deux listes. Un contrôle aveugle au défaut qu'il
+   prétend couvrir ne prouve rien (leçon v4.31.1). */
+console.log(`\n══ PARTAGE · le lecteur est bridé comme la page — moteur ${NOM_MOTEUR} ══`);
+{
+  const page = await br.newPage({ viewport: { width: 390, height: 844 } });
+  await session(page);
+  const r = await page.evaluate(async () => {
+    Share.mode = 'guest'; Share.role = 'scribe'; Share.me = 'inv'; Share.status = 'active';
+    Share.lastOk = Date.now(); Share.offset = 0; Share._q = [];
+    document.body.classList.add('share-scribe');
+    readerOpen();
+    await new Promise(x => setTimeout(x, 400));
+    const rm = document.getElementById('readerMode');
+    const out = { ouvert: rm.classList.contains('on') };
+
+    /* LE CONTRÔLE DE CONDUITE N'EXISTE QU'EN FIN DE BLOC. Le lecteur montre un challenge à la
+       fois : « Continuer » (`data-rmnext`) n'apparaît qu'une fois les étapes confirmées. Mesurer
+       avant, c'est mesurer un écran qui n'a rien à brider — la sonde le voyait vide et accusait
+       la liste. On CONFIRME donc d'abord, ce qui est précisément le verbe du scribe. */
+    for (let i = 0; i < 12 && !rm.querySelector('[data-rmnext],[data-rmopt]'); i++) {
+      const b2 = rm.querySelector('[data-rmok]'); if (!b2) break;
+      b2.click(); await new Promise(x => setTimeout(x, 120));
+    }
+    out.conduiteVisible = !!rm.querySelector('[data-rmnext],[data-rmopt]');
+
+    /* 1 — LE LECTEUR N'A PLUS AUCUN CONTRÔLE BRIDÉ (v4.55.0). Avancer et choisir une branche y
+       sont ouverts comme sur la page : c'est le même verbe sous un autre nom, et la cohérence
+       entre les deux surfaces est ce qui manquait — dans un sens comme dans l'autre. */
+    out.recenses = rm.querySelectorAll(LEAD_ONLY_SEL).length;
+
+    // 3 — AVANCER NE FAIT RIEN. Le vrai enjeu n'est pas « le geste est refusé » mais « le miroir
+    // ne diverge pas » : `shareEmitDiff` avance la base de comparaison AVANT d'émettre, donc un
+    // geste passé ici laisserait l'invité seul à avoir avancé, pour toujours.
+    const navAvant = Runtime.nav.length;
+    const qAvant = Share.pending();
+    const nx = rm.querySelector('[data-rmnext]') || rm.querySelector('[data-rmopt]');
+    if (nx) nx.click();
+    await new Promise(x => setTimeout(x, 350));
+    out.navApres = Runtime.nav.length;
+    out.avance = Runtime.nav.length > navAvant;
+    out.aEmis = Share.pending() > qAvant;
+
+    // 4 — LA TROISIÈME COPIE DU CŒUR DE COCHAGE passe par le prédicat unique. Mesuré avec le lien
+    // ARRÊTÉ : le même geste est refusé sur la page, il devait l'être ici aussi.
+    Share.status = 'ended';
+    const nCoches = Object.keys(state.checked).length;
+    const ok2 = rm.querySelector('[data-rmok]');
+    if (ok2) ok2.click();
+    await new Promise(x => setTimeout(x, 250));
+    out.cocheLienMort = Object.keys(state.checked).length > nCoches;
+    Share.status = 'active';
+
+    // 5 — Le focus initial n'atterrit pas sur un contrôle mort.
+    readerClose(); await new Promise(x => setTimeout(x, 200));
+    readerOpen(); await new Promise(x => setTimeout(x, 350));
+    const af = document.activeElement;
+    out.focusMort = !!(af && af.matches && af.matches(LEAD_ONLY_SEL));
+    out.focusSur = af ? (af.id || af.className || af.tagName) : '(aucun)';
+
+    // 6 — Un geste refusé déclare le miroir PÉRIMÉ plutôt que de le laisser diverger en silence.
+    // (le verbe d'épreuve est désormais un DESTRUCTEUR — c'est là que passe la ligne)
+    Share._resync = false;
+    Share.emit('timer_reset', { id: 't1' });
+    out.perimeApresRefus = Share._resync === true;
+    document.body.classList.remove('share-scribe');
+    return out;
+  });
+  t('le lecteur s’ouvre pour un scribe', r.ouvert === true);
+  t('témoin : un scribe CONFIRME bien (c’est son verbe)', r.conduiteVisible === true);
+  t('aucun contrôle du lecteur n’est bridé (v4.55.0)', r.recenses === 0, `${r.recenses} élément(s)`);
+  t('AVANCER fonctionne comme sur la page', r.avance === true, `${r.navApres} bloc(s)`);
+  t('… et le geste PART', r.aEmis === true);
+  t('cocher au lien mort est refusé ici AUSSI', r.cocheLienMort === false);
+  t('le focus n’atterrit pas sur un contrôle mort', r.focusMort === false, String(r.focusSur));
+  t('un geste refusé déclare le miroir périmé', r.perimeApresRefus === true);
   await page.close();
 }
 

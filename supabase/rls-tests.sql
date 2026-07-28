@@ -769,17 +769,35 @@ begin
   v_j2 := public.share_join(v_code, 'Curieux');
   if (v_j2->>'ok')::boolean then raise exception 'ÉCHEC 14.4 : le code a resservi après consommation'; end if;
 
-  -- 14.5 CAPACITÉS. Un scribe peut cocher ; il ne peut NI naviguer, NI arrêter un minuteur
-  -- (arrêt d'un processus vivant = registre critique), NI terminer la session.
+  /* 14.5 CAPACITÉS — LA LIGNE PASSE SUR LA DESTRUCTION, PAS SUR LA HIÉRARCHIE (v4.55.0).
+     Elle passait sur « conduire ou suivre », et c'était une mauvaise lecture d'AC 120-71B
+     §5.2.2.1 : ce paragraphe décrit une répartition de la PAROLE, et dans ce modèle c'est CELUI
+     QUI LIT qui fait avancer la liste. La SFAR (« le lecteur : lire et GUIDER »), l'ECAM (le pilot
+     monitoring actionne l'ECP) et McEvoy 2014 (le lecteur tient l'UNIQUE appareil, 99,5 % contre
+     70 %) disent tous la même chose. Le critère « détruit / ne détruit pas » était d'ailleurs déjà
+     celui écrit dans `share_kind_allowed` pour `mark_void` ; il vaut désormais pour tous.
+     OUVERT AU SCRIBE : cocher, naviguer, arrêter un minuteur (l'`elapsedMs` est conservé).
+     RÉSERVÉ : terminer le partage — et, ci-dessous, décocher et remettre à zéro. */
   v_j := public.share_push(v_sec, null, jsonb_build_array(
-           jsonb_build_object('event_id', gen_random_uuid(), 'kind','check',      'payload','{}'::jsonb),
-           jsonb_build_object('event_id', gen_random_uuid(), 'kind','nav',        'payload','{}'::jsonb),
-           jsonb_build_object('event_id', gen_random_uuid(), 'kind','timer_stop', 'payload','{}'::jsonb),
-           jsonb_build_object('event_id', gen_random_uuid(), 'kind','end',        'payload','{}'::jsonb)));
+           jsonb_build_object('event_id', gen_random_uuid(), 'kind','check',       'payload','{}'::jsonb),
+           jsonb_build_object('event_id', gen_random_uuid(), 'kind','nav',         'payload','{}'::jsonb),
+           jsonb_build_object('event_id', gen_random_uuid(), 'kind','timer_stop',  'payload','{}'::jsonb),
+           jsonb_build_object('event_id', gen_random_uuid(), 'kind','end',         'payload','{}'::jsonb),
+           jsonb_build_object('event_id', gen_random_uuid(), 'kind','uncheck',     'payload','{}'::jsonb),
+           jsonb_build_object('event_id', gen_random_uuid(), 'kind','timer_reset', 'payload','{}'::jsonb)));
   if not (v_j->>'ok')::boolean then raise exception 'ÉCHEC 14.5 : push refusé en bloc (%)', v_j->>'err'; end if;
-  if (v_j->>'accepted')::int <> 1 or (v_j->>'rejected')::int <> 3 then
+  if (v_j->>'accepted')::int <> 3 or (v_j->>'rejected')::int <> 3 then
     raise exception 'ÉCHEC 14.5 : capacités du scribe non appliquées (accepté %, rejeté %)',
       v_j->>'accepted', v_j->>'rejected'; end if;
+  -- Et l'on nomme ce qui doit passer, plutôt que de se fier à un COMPTE : trois acceptés pourraient
+  -- être les trois mauvais.
+  if not exists (select 1 from public.session_events where share_id='sh-1' and kind='nav') then
+    raise exception 'ÉCHEC 14.5 : le scribe ne peut pas faire avancer la checklist'; end if;
+  if not exists (select 1 from public.session_events where share_id='sh-1' and kind='timer_stop') then
+    raise exception 'ÉCHEC 14.5 : le scribe ne peut pas arrêter un minuteur'; end if;
+  if exists (select 1 from public.session_events where share_id='sh-1'
+              and kind in ('uncheck','timer_reset','end')) then
+    raise exception 'ÉCHEC 14.5 : un geste DESTRUCTEUR du scribe a été écrit'; end if;
 
   -- 14.5bis CONTRAT DE LECTURE. Le client dépend de deux champs pour détecter une divergence
   -- silencieuse : l'IDENTIFIANT de chaque évènement (il en calcule l'empreinte du flux reçu) et
