@@ -1,5 +1,53 @@
 # Journal des modifications
 
+## [4.55.4] — 2026-07-28
+### L'invité sait qu'il est invité — et un bouton pressé répond enfin
+
+Les deux derniers signalements du lot. Avec eux, les dix remontés à l'usage sont traités.
+
+### Le placard de l'invité
+Il lisait « ■ Mode crise » — **exactement ce que lit l'hôte** — alors que sa situation est autre :
+il **suit** une session qu'il ne conduit pas et qui peut s'arrêter sans lui. Le quai le disait déjà
+par un jeton de sept caractères ; le bandeau le dit maintenant en toutes lettres, à l'endroit le
+plus lu de l'écran : « **▪ Vous suivez** », hachure **bleue**, l'en-tête relayant « ▪ Suivi » au
+pixel où le titre passe dessous.
+
+**Même mécanique que le placard d'exercice, au trait près** — `::before` en fondu, relais au
+défilement, enfants en `z-index:1`. Rien de neuf à inventer, donc rien de neuf à casser. Et **coût
+nul en hauteur**, mesuré : c'est la seule condition qui vaille dans une zone où la rangée de
+commandes n'a que 2,1 px de marge à 320 px.
+
+Registre **bleu**, jamais l'ambre ni le rouge : suivre la session d'un collègue n'est ni une alerte
+ni une vigilance, c'est un état. Le mot le porte ; la hachure ne fait que le rendre reconnaissable
+d'un coup d'œil.
+
+**L'exercice garde la priorité**, et ce n'est pas négociable : *« ceci est une répétition »* prime
+sur *« vous suivez »* — le premier protège d'une méprise clinique, le second est une information de
+rôle que le quai porte en permanence de toute façon. Un contrôle l'encode.
+
+### Répondre à un geste n'est pas interrompre
+La règle 11 — *« en session de crise, aucune notification flottante »* — vise ce qui **arrive** :
+une erreur de synchro, un conflit, une nouvelle de fond, quelque chose qui s'impose à quelqu'un qui
+n'a rien demandé, au pire moment. Elle ne visait pas la **réponse** à un bouton qu'on vient de
+presser.
+
+Or la file les retenait tous : taper « silencieux ? », ou « Partager la session » sur une fiche en
+brouillon, ne produisait **rien du tout** — et le message surgissait plus tard, au retour à
+l'accueil, détaché de son geste, donc incompréhensible.
+
+Le troisième argument de `toast()` marque une réponse directe. Il est **explicite**, et non déduit
+d'une proximité temporelle avec un clic : une nouvelle de fond qui tomberait dans la seconde suivant
+un tap serait alors affichée par accident — exactement ce que la règle interdit. Quatre sites
+marqués, tous atteignables pendant un soin.
+
+### Vérification
+**280/280 contrôles partage** (+9, sur les deux moteurs), 756 tests × 2 moteurs, 14 harnais verts,
+301 contrôles d'accessibilité sur les deux moteurs, 112/112 doctrine. Les deux défauts réintroduits
+en font tomber quatre ; fichier restauré à l'octet. Le contrôle du placard mesure l'opacité du
+`::before` — pas la classe : c'est la hachure qu'on veut voir, pas l'intention de la poser.
+
+**Rien à rejouer côté serveur.** Les dix signalements d'usage de ce lot sont traités.
+
 ## [4.55.3] — 2026-07-28
 ### Trois rognages que personne ne mesurait
 
@@ -1506,66 +1554,3 @@ pas ; `CACHE` aligné sur `APP_VERSION`, c'est-à-dire la règle 1. Vérifié ca
 deux scénarios, fichier restauré à l'octet.
 
 513 tests × 2 moteurs, 11 harnais verts (34/34 en doctrine), 289 contrôles d'accessibilité.
-
-## [4.43.0] — 2026-07-27
-### Deux arbitrages tranchés : 320 px est servi, et la production est GitHub Pages
-Décisions utilisateur. Elles débloquent quatre constats du reliquat d'audit.
-
-### 320 px — WCAG 1.4.10, et deux rognages silencieux
-C'est le plancher de « Reflow », et deux surfaces y perdaient du contenu sans le dire :
-
-- **rangée de commandes de crise** : 348 px requis pour 320, soit **28 px inatteignables** — le
-  bouton restait opérable (44 px visibles, `aria-label` intact) mais se lisait « ⤢ Con », coupé en
-  plein mot ;
-- **`⋯` de l'éditeur** : **6,2 px hors écran**, bouton pourtant `display:grid` donc bien peint.
-
-Identique sur Chromium et WebKit. Les pixels viennent de la recette v4.23.4 — écarts et
-rembourrages — jamais d'un renommage (règle « troncature du même mot ») ni d'une 2ᵉ ligne (la
-hauteur de crise est un coût permanent) : **34 px rendus pour 28 nécessaires** dans la crise,
-~12 pour 6,2 dans l'éditeur.
-
-Une analyse antérieure concluait que la recette était épuisée et qu'il faudrait sacrifier
-`.ctrl-sp`. C'est faux, et pour une raison précise : elle visait les postes déjà compressés en
-v4.30.0, jamais le rembourrage des deux segments de mode (12 px à lui seul) ni celui des deux
-ouvertures. **`.ctrl-sp` n'est pas touché** — ces 4 px sont l'écart de Gestalt qui sépare le MODE
-des OUVERTURES, raison d'être de la séparation ECP/ECAM de v4.25.0.
-
-Le harnais gagne un contrôle qu'il n'avait pas : le **rognage par le conteneur**. Un bouton peut
-tenir dans la fenêtre tout en étant coupé par sa boîte de contenu — c'est exactement ce qui se
-produisait, et le contrôle « hors écran » seul passait au vert. `audit-doctrine` mesure désormais
-320/360/375/390 pour la crise et 320/360 pour l'éditeur (34/34).
-
-### Hébergement : GitHub Pages en production, déployable ailleurs
-Décision datée dans `docs/deploiement-et-conformite.md` et en tête de `_headers`. Conséquence
-assumée : **`_headers` est maintenu à jour bien que GitHub Pages l'ignore totalement** — il n'est
-pas décoratif, c'est la posture servie sur tout autre hébergeur, et le supprimer ferait disparaître
-le seul endroit où elle est écrite.
-
-Ajoutés : `Cross-Origin-Opener-Policy` et `Cross-Origin-Resource-Policy` en `same-origin`
-(`window.open` est absent du code — vérifié, 0 occurrence — donc aucun échange de fenêtre à
-casser), et une `Permissions-Policy` portée de 3 à **21 capacités**.
-
-**COEP `require-corp` est délibérément absent** : aucun `SharedArrayBuffer`, aucune ressource
-cross-origin embarquée, donc il ne protège rien — et il casserait au premier ajout. Un en-tête qui
-ne protège rien et casse plus tard est une dette.
-
-Trois capacités restent **volontairement ouvertes**, et la liste a été établie par mesure, pas
-recopiée d'un modèle :
-- **`autoplay`** — le bip d'alarme passe par WebAudio, soumis à la politique d'autoplay. Le fermer
-  rendrait l'alarme de minuteur **muette** : la sortie la plus critique de l'application.
-- **`screen-wake-lock`** — inutilisé aujourd'hui, mais garder l'écran allumé pendant une
-  réanimation est un besoin plausible.
-- **`web-share`** — `navigator.share` est le chemin **obligatoire** du téléchargement PDF en PWA
-  installée (v4.19.1 : WebKit ignore `download` en standalone).
-
-`launch_handler: {client_mode: "focus-existing"}` ajouté au manifeste — la seule des quatre clés
-manquantes qui porte un argument clinique (ne pas ouvrir une seconde fenêtre pendant une session
-vive). iOS ne l'implémente pas ; Android et bureau si.
-
-**`"id": "./"` n'est PAS modifié**, et la raison est écrite pour la prochaine fois : `id` se résout
-par rapport à l'**origine**, pas au chemin du manifeste. Le changer ferait apparaître l'app comme
-une **nouvelle application** chez tout utilisateur l'ayant installée — doublon sur l'écran
-d'accueil, ancienne installation figée sur son cache. C'est une porte à sens unique. Contrainte qui
-en découle : ne pas héberger une seconde PWA sur la même origine.
-
-510 tests × 2 moteurs, 11 harnais verts (34/34 en doctrine), 289 contrôles d'accessibilité.

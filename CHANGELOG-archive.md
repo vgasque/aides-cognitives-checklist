@@ -1,7 +1,70 @@
-# Journal des modifications — archive (versions 3.0.0 à 4.42.0)
+# Journal des modifications — archive (versions 3.0.0 à 4.43.0)
 
 > Entrées anciennes déplacées depuis [`CHANGELOG.md`](CHANGELOG.md) pour garder le journal
 > courant lisible. Même format (keep-a-changelog).
+
+## [4.43.0] — 2026-07-27
+### Deux arbitrages tranchés : 320 px est servi, et la production est GitHub Pages
+Décisions utilisateur. Elles débloquent quatre constats du reliquat d'audit.
+
+### 320 px — WCAG 1.4.10, et deux rognages silencieux
+C'est le plancher de « Reflow », et deux surfaces y perdaient du contenu sans le dire :
+
+- **rangée de commandes de crise** : 348 px requis pour 320, soit **28 px inatteignables** — le
+  bouton restait opérable (44 px visibles, `aria-label` intact) mais se lisait « ⤢ Con », coupé en
+  plein mot ;
+- **`⋯` de l'éditeur** : **6,2 px hors écran**, bouton pourtant `display:grid` donc bien peint.
+
+Identique sur Chromium et WebKit. Les pixels viennent de la recette v4.23.4 — écarts et
+rembourrages — jamais d'un renommage (règle « troncature du même mot ») ni d'une 2ᵉ ligne (la
+hauteur de crise est un coût permanent) : **34 px rendus pour 28 nécessaires** dans la crise,
+~12 pour 6,2 dans l'éditeur.
+
+Une analyse antérieure concluait que la recette était épuisée et qu'il faudrait sacrifier
+`.ctrl-sp`. C'est faux, et pour une raison précise : elle visait les postes déjà compressés en
+v4.30.0, jamais le rembourrage des deux segments de mode (12 px à lui seul) ni celui des deux
+ouvertures. **`.ctrl-sp` n'est pas touché** — ces 4 px sont l'écart de Gestalt qui sépare le MODE
+des OUVERTURES, raison d'être de la séparation ECP/ECAM de v4.25.0.
+
+Le harnais gagne un contrôle qu'il n'avait pas : le **rognage par le conteneur**. Un bouton peut
+tenir dans la fenêtre tout en étant coupé par sa boîte de contenu — c'est exactement ce qui se
+produisait, et le contrôle « hors écran » seul passait au vert. `audit-doctrine` mesure désormais
+320/360/375/390 pour la crise et 320/360 pour l'éditeur (34/34).
+
+### Hébergement : GitHub Pages en production, déployable ailleurs
+Décision datée dans `docs/deploiement-et-conformite.md` et en tête de `_headers`. Conséquence
+assumée : **`_headers` est maintenu à jour bien que GitHub Pages l'ignore totalement** — il n'est
+pas décoratif, c'est la posture servie sur tout autre hébergeur, et le supprimer ferait disparaître
+le seul endroit où elle est écrite.
+
+Ajoutés : `Cross-Origin-Opener-Policy` et `Cross-Origin-Resource-Policy` en `same-origin`
+(`window.open` est absent du code — vérifié, 0 occurrence — donc aucun échange de fenêtre à
+casser), et une `Permissions-Policy` portée de 3 à **21 capacités**.
+
+**COEP `require-corp` est délibérément absent** : aucun `SharedArrayBuffer`, aucune ressource
+cross-origin embarquée, donc il ne protège rien — et il casserait au premier ajout. Un en-tête qui
+ne protège rien et casse plus tard est une dette.
+
+Trois capacités restent **volontairement ouvertes**, et la liste a été établie par mesure, pas
+recopiée d'un modèle :
+- **`autoplay`** — le bip d'alarme passe par WebAudio, soumis à la politique d'autoplay. Le fermer
+  rendrait l'alarme de minuteur **muette** : la sortie la plus critique de l'application.
+- **`screen-wake-lock`** — inutilisé aujourd'hui, mais garder l'écran allumé pendant une
+  réanimation est un besoin plausible.
+- **`web-share`** — `navigator.share` est le chemin **obligatoire** du téléchargement PDF en PWA
+  installée (v4.19.1 : WebKit ignore `download` en standalone).
+
+`launch_handler: {client_mode: "focus-existing"}` ajouté au manifeste — la seule des quatre clés
+manquantes qui porte un argument clinique (ne pas ouvrir une seconde fenêtre pendant une session
+vive). iOS ne l'implémente pas ; Android et bureau si.
+
+**`"id": "./"` n'est PAS modifié**, et la raison est écrite pour la prochaine fois : `id` se résout
+par rapport à l'**origine**, pas au chemin du manifeste. Le changer ferait apparaître l'app comme
+une **nouvelle application** chez tout utilisateur l'ayant installée — doublon sur l'écran
+d'accueil, ancienne installation figée sur son cache. C'est une porte à sens unique. Contrainte qui
+en découle : ne pas héberger une seconde PWA sur la même origine.
+
+510 tests × 2 moteurs, 11 harnais verts (34/34 en doctrine), 289 contrôles d'accessibilité.
 
 ## [4.42.0] — 2026-07-27
 ### Le reliquat d'audit trié : 36 % était périmé

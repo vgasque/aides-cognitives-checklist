@@ -892,6 +892,25 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   de 11 px ; le logo n'étant pas interactif, aucune règle de cible ne s'y applique). Vérifié à 0 px
   de surcoût de 360 à 431 px. Toute addition à cette rangée doit être re-mesurée à **320 px**
   (v4.43.0 — c'était 360 jusque-là) : c'est désormais la largeur la plus contrainte servie.
+- **PLACARD DE L'INVITÉ (v4.55.4, demande utilisateur)** : il lisait « ■ Mode crise », exactement
+  ce que lit l'hôte, alors que sa situation est autre — il SUIT une session qu'il ne conduit pas et
+  qui peut s'arrêter sans lui. Le bandeau-titre porte donc « **▪ Vous suivez** » et une hachure
+  BLEUE, l'en-tête relayant « ▪ Suivi » au pixel où le titre passe dessous. **Même mécanique que le
+  placard d'exercice, au trait près** (`::before` en fondu, relais au défilement, enfants en
+  `z-index:1`) : rien de neuf à inventer, donc rien de neuf à casser — et **coût nul en hauteur**,
+  seule condition qui vaille là où `#crisisCtrl` n'a que 2,1 px de marge à 320 px. **L'EXERCICE
+  GARDE LA PRIORITÉ** et ce n'est pas négociable : « ceci est une répétition » prime sur « vous
+  suivez » — le premier protège d'une méprise clinique, le second est une information de rôle que
+  le quai porte en permanence de toute façon.
+- **RÉPONDRE À UN GESTE N'EST PAS INTERROMPRE (v4.55.4)** : la règle 11 (« aucune notification
+  flottante en session ») vise ce qui **ARRIVE** — erreur de synchro, conflit, nouvelle de fond :
+  ce qui s'impose à quelqu'un qui n'a rien demandé, au pire moment. Elle retenait aussi la
+  **RÉPONSE** à un bouton qu'on venait de presser : taper « silencieux ? » ou « Partager la
+  session » sur une fiche en brouillon ne produisait RIEN, et le message surgissait à l'accueil,
+  détaché de son geste, donc incompréhensible. `toast(msg, ms, direct)` — le troisième argument est
+  **explicite**, jamais déduit d'une proximité temporelle avec un clic : une nouvelle de fond
+  tombant dans la seconde suivant un tap serait alors affichée par accident, exactement ce que la
+  règle interdit.
 - **NEUVIÈME PIÈGE DE CASCADE, ET LE PREMIER PAR `:not()` (v4.55.3)** : la règle qui transforme
   toute fenêtre en feuille pleine largeur sur écran étroit vaut
   `.ai-modal:not(.pdf-modal):not(.dlg-confirm) .ai-card` = **(0,3,0)**, parce que **`:not()` compte

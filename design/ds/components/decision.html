@@ -1232,6 +1232,19 @@
   #crisisBand.exo::before{opacity:1}
   header.bar.exo.ttl-on::before{opacity:1}
   #crisisBand>*,header.bar.exo>*{position:relative;z-index:1}
+  /* PLACARD DE L'INVITÉ (v4.55.4, demande utilisateur) — MÊME MÉCANIQUE que le placard d'exercice,
+     au trait près : hachure en fondu sur un `::before`, relais du bandeau vers l'en-tête au pixel
+     où le titre passe dessous, enfants en `z-index:1`. Rien de neuf à inventer, donc rien de neuf
+     à casser — et COÛT NUL EN HAUTEUR, ce qui est la seule condition qui vaille dans une zone où
+     `#crisisCtrl` n'a que 2,1 px de marge à 320 px.
+     Registre BLEU (`--primary-soft`), jamais l'ambre ni le rouge : suivre la session d'un collègue
+     n'est ni une alerte ni une vigilance, c'est un ÉTAT. Le mot le porte (« ▪ Vous suivez ») ;
+     la hachure ne fait que le rendre reconnaissable d'un coup d'œil, la couleur jamais seule. */
+  #crisisBand.inv::before,header.bar.inv.ttl-on::before{opacity:1}
+  header.bar.inv::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(-45deg,var(--surface),var(--surface) 14px,var(--primary-soft) 14px,var(--primary-soft) 22px);opacity:0;transition:opacity .3s ease;pointer-events:none}
+  header.bar.inv>*{position:relative;z-index:1}
+  .cb-tag.inv,#hdrCrisis.inv{color:var(--primary-dk);background:var(--surface);
+    border:1px solid var(--primary);border-radius:6px;padding:2px 8px;letter-spacing:.6px}
   #hdrCrisis.exo{background:var(--surface);border:1px dashed var(--primary);border-radius:6px;padding:2px 8px;letter-spacing:.6px}
   .cb-exoquit{flex:none;position:relative;min-height:36px;border:1px dashed var(--primary);border-radius:9px;background:var(--surface);color:var(--primary-dk);font-size:12.5px;font-weight:800;cursor:pointer;padding:0 12px;font-family:inherit}
   .cb-exoquit::after{content:"";position:absolute;inset:-5px}

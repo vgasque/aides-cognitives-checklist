@@ -1633,6 +1633,66 @@ console.log(`\n══ PARTAGE · le menu suit, le lien mort refuse — moteur ${
   await page.close();
 }
 
+/* ── LE PLACARD DE L'INVITÉ, ET LES RÉPONSES QUI NE SE PERDENT PLUS ──────────────────────────
+   Deux derniers signalements. (1) L'invité lisait « ■ Mode crise » — exactement ce que lit l'hôte —
+   alors que sa situation est autre : il SUIT une session qu'il ne conduit pas et qui peut s'arrêter
+   sans lui. (2) La règle 11 (« aucune notification flottante en session ») vise ce qui ARRIVE ;
+   elle retenait aussi la RÉPONSE à un bouton qu'on venait de presser, si bien que le message
+   surgissait à l'accueil, détaché de son geste. */
+console.log(`\n══ PARTAGE · le placard de l'invité et les réponses directes — moteur ${NOM_MOTEUR} ══`);
+{
+  const page = await br.newPage({ viewport: { width: 390, height: 844 } });
+  await session(page);
+  const r = await page.evaluate(async () => {
+    const o = {};
+    const band = document.getElementById('crisisBand');
+    const tag = () => (band.querySelector('.cb-tag') || {}).textContent || '';
+    const hach = el => getComputedStyle(el, '::before').opacity;
+    o.hoteTag = tag(); o.hoteHachure = hach(band);
+
+    // On passe en INVITÉ par le vrai chemin d'affichage : le placard suit un rendu.
+    Share.mode = 'guest'; Share.role = 'scribe'; Share.me = 'inv'; Share.status = 'active';
+    Share.lastOk = Date.now(); Share.offset = 0;
+    render(); await new Promise(x => setTimeout(x, 450));
+    o.inviteTag = tag();
+    o.inviteHachure = hach(band);
+    o.inviteEnTete = (document.getElementById('hdrCrisis') || {}).textContent || '';
+    o.hauteurBandeau = Math.round(band.getBoundingClientRect().height);
+
+    /* L'EXERCICE GARDE LA PRIORITÉ : « ceci est une répétition » prime sur « vous suivez ». Le
+       premier protège d'une méprise clinique ; le second est une information de rôle, que le quai
+       porte en permanence de toute façon. */
+    Runtime.exercise = true; Runtime.ficheId = state.fiche.id;
+    render(); await new Promise(x => setTimeout(x, 400));
+    o.exoGagne = tag();
+    Runtime.exercise = false; render(); await new Promise(x => setTimeout(x, 350));
+    o.hauteurInvite = Math.round(band.getBoundingClientRect().height);
+
+    // (2) Une réponse DIRECTE s'affiche pendant un soin ; une nouvelle de fond reste retenue.
+    document.querySelectorAll('.toast').forEach(t => t.remove());
+    o.enCrise = document.body.classList.contains('crisis-live');
+    toast('nouvelle de fond', 3000);
+    await new Promise(x => setTimeout(x, 200));
+    o.fondAffiche = document.querySelectorAll('.toast').length;
+    toast('réponse à votre geste', 3000, true);
+    await new Promise(x => setTimeout(x, 200));
+    o.directAffiche = document.querySelectorAll('.toast').length;
+    return o;
+  });
+  t('témoin : l’hôte lit « Mode crise », sans hachure',
+    /Mode crise/.test(r.hoteTag) && r.hoteHachure === '0', `${r.hoteTag} / ${r.hoteHachure}`);
+  t('l’invité lit « Vous suivez »', /Vous suivez/.test(r.inviteTag), r.inviteTag);
+  t('… le bandeau est hachuré', r.inviteHachure === '1', r.inviteHachure);
+  t('… et l’en-tête le relaie', /Suivi/.test(r.inviteEnTete), r.inviteEnTete);
+  t('… à COÛT NUL en hauteur', r.hauteurInvite === r.hauteurBandeau,
+    `${r.hauteurBandeau} → ${r.hauteurInvite} px`);
+  t('l’exercice garde la priorité sur le placard d’invité', /Exercice/.test(r.exoGagne), r.exoGagne);
+  t('témoin : une session de crise est bien à l’écran', r.enCrise === true);
+  t('une nouvelle de fond reste RETENUE (règle 11)', r.fondAffiche === 0, `${r.fondAffiche} banderole(s)`);
+  t('… mais une réponse à un geste S’AFFICHE', r.directAffiche === 1, `${r.directAffiche} banderole(s)`);
+  await page.close();
+}
+
 await br.close(); srv.close();
 console.log(`\n${ok}/${ok + ko} contrôles partage OK` + (ko ? ` — ${ko} ÉCHEC(S)` : ''));
 process.exit(ko ? 1 : 0);
