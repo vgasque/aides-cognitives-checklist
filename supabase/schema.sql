@@ -669,6 +669,58 @@ exception when duplicate_object then null; end $$;
 
 grant select, insert, update, delete on public.protocols to authenticated;
 
+-- ═══════════════════════════════════════════════════════════════════════════════════════════════
+-- HISTORIQUE DE SESSIONS SYNCHRONISÉ (v4.54.0) — ET L'INVARIANT QU'IL LÈVE
+--
+-- Jusqu'ici, « les sessions vivent en IndexedDB local, jamais synchro » était une propriété écrite
+-- de l'application, et le mode EXERCICE en DÉRIVAIT sa garantie de non-contamination clinique.
+-- Cette table lève l'invariant — sur OPT-IN, défaut fermé — et il faut donc redire ce qui le
+-- remplace :
+--   · SEULES LES SESSIONS ARCHIVÉES montent (`live:false`). Une session VIVE resynchronisée serait
+--     un second mécanisme de partage, avec tous les risques du premier et aucun de ses garde-fous.
+--   · LES EXERCICES SONT SÉGRÉGÉS PAR UNE COLONNE, pas par une convention de contenu. La propriété
+--     « zéro contamination clinique » ne doit plus dépendre de la localité : elle devient une
+--     colonne qu'on peut filtrer, et que le serveur voit.
+--   · `verified`/`vgaps` (la trace do-verify) NE MONTENT PAS pour l'instant — décision d'étape, pas
+--     de principe : le compte rendu distant porte alors la mention explicite « trace de
+--     vérification disponible sur l'appareil d'origine », jamais un silence.
+--   · `data` accueille SOIT un objet en clair, SOIT `{v:2, enc:<blob>}`. Passer au chiffrement de
+--     bout en bout plus tard ne demandera donc AUCUNE migration : c'est la seule décision de forme
+--     qu'il fallait prendre maintenant, parce qu'elle est irréversible une fois des données en
+--     place.
+-- Une session n'est PAS un contenu d'équipe : pas de `library_id`, pas de partage, une seule
+-- politique. C'est le dossier de ce que CETTE personne a fait, et il ne se prête pas.
+create table if not exists public.sessions (
+  id         text primary key,
+  owner      uuid not null default auth.uid(),
+  data       jsonb not null,
+  exercise   boolean not null default false,
+  updated_at timestamptz not null default now(),
+  deleted_at timestamptz
+);
+create index if not exists sessions_updated_idx on public.sessions (updated_at);
+create index if not exists sessions_owner_idx   on public.sessions (owner, updated_at);
+alter table public.sessions enable row level security;
+
+drop policy if exists sessions_own on public.sessions;
+create policy sessions_own on public.sessions for all
+  using      (owner = auth.uid() and public.is_approved())
+  with check (owner = auth.uid() and public.is_approved());
+
+drop trigger if exists sessions_clamp_updated on public.sessions;
+create trigger sessions_clamp_updated before insert or update on public.sessions
+  for each row execute function public.clamp_updated_at();
+
+do $$ begin
+  -- 1 Mio : un compte rendu est du texte et des horodatages. Le plafond vaut CONTRE LE CLIENT (un
+  -- appel REST direct ignore toute borne écrite en JavaScript) et contre le remplissage d'un quota
+  -- PARTAGÉ avec les fiches, dont dépend le fonctionnement clinique.
+  alter table public.sessions add constraint sessions_data_size_chk
+    check (octet_length(data::text) <= 1024*1024);
+exception when duplicate_object then null; end $$;
+
+grant select, insert, update, delete on public.sessions to authenticated;
+
 -- La suppression de compte (RGPD) emporte aussi les protocoles perso.
 create or replace function public.delete_my_account()
 returns void language plpgsql security definer set search_path = public, auth, pg_temp as $$
@@ -701,6 +753,11 @@ begin
   -- la ligne `delete from auth.users` affirme déjà une cascade ; c'est exactement ce genre
   -- d'affirmation non vérifiée que le projet a payé cher en v4.44.1.
   delete from public.shared_sessions where owner = uid;   -- cascade -> participants, events
+  -- L'historique synchronisé s'efface avec le compte. Explicitement, et AVANT la suppression de la
+  -- ligne `auth.users` : sans cela, soit les lignes survivent au compte, soit la violation de clé
+  -- étrangère annule TOUTE la fonction plpgsql — et le droit à l'effacement disparaît pour
+  -- quiconque a synchronisé une seule session.
+  delete from public.sessions where owner = uid;
   -- Documents PDF perso du bucket : rendus inaccessibles par la RLS dès la suppression du compte ;
   -- leurs objets orphelins remontent dans list_orphan_attachments() (purge manuelle app-admin).
   delete from auth.users where id = uid;   -- cascade -> memberships, app_admins, sessions…
@@ -718,9 +775,14 @@ returns jsonb language sql stable security definer set search_path = public, aut
     'fiches_perso', (select count(*) from public.fiches where library_id is null and deleted_at is null),
     'fiches_shared',(select count(*) from public.fiches where library_id is not null and deleted_at is null),
     'protocols',    (select count(*) from public.protocols where deleted_at is null),
+    'sessions',     (select count(*) from public.sessions where deleted_at is null),
     'storage_bytes',(select coalesce(sum(octet_length(data::text)),0) from public.fiches where deleted_at is null)
                     + (select coalesce(sum(octet_length(data::text)),0) from public.category_sets)
-                    + (select coalesce(sum(octet_length(data::text)),0) from public.protocols where deleted_at is null),
+                    + (select coalesce(sum(octet_length(data::text)),0) from public.protocols where deleted_at is null)
+                    -- Historique synchronisé : un poste qui croît avec l'usage, et qu'un exploitant
+                    -- aveugle ne pourrait pas anticiper (leçon v4.49.0, où le serveur comptait les
+                    -- octets du partage sans que l'écran ne les montre).
+                    + (select coalesce(sum(octet_length(data::text)),0) from public.sessions where deleted_at is null),
     'attachments_bytes',(select coalesce(sum((o.metadata->>'size')::bigint),0)
                          from storage.objects o where o.bucket_id = 'attachments')
   ) end;
@@ -1012,13 +1074,22 @@ returns boolean language sql immutable set search_path = public, pg_temp as $$
     -- inconséquence : décocher DÉTRUIT une information, annuler un repère la CONSERVE (la ligne
     -- reste, barrée, attribuée, datée) et le geste est réversible. Ce n'est donc pas une action
     -- destructrice, et la règle qui réserve celles-ci au lead ne s'y applique pas.
-    when p_kind in ('check','verify','gap','counter','timer_arm','mark','mark_void','presence','detach','offline_mark')
+    -- `handoff` est ouvert aux DEUX rôles, et c'est un raisonnement, pas un relâchement : il ne
+    -- change AUCUN état côté serveur. Il porte une OFFRE (« je vous propose de conduire ») ou une
+    -- PRISE (« je prends la main ») ; le changement de rôle lui-même est un UPDATE de
+    -- `session_participants`, que la politique `sparts_own` réserve déjà au propriétaire du
+    -- partage. La frontière de sécurité est donc là où elle doit être — sur l'écriture du rôle,
+    -- pas sur l'annonce. Réserver l'offre au lead ici aurait interdit à l'invité d'ACCEPTER,
+    -- c'est-à-dire d'accomplir le geste que la doctrine exige de LUI (AC 61-115 : la passation se
+    -- fait en trois temps, et le receveur en prononce un).
+    when p_kind in ('check','verify','gap','counter','timer_arm','mark','mark_void','presence',
+                    'detach','offline_mark','handoff')
       then p_role in ('scribe','lead')
     -- `session_start` porte l'heure à laquelle le SOIN a commencé, pas celle de la jointure. Sans
     -- lui, un renfort arrivé à 14 h 12 sur une réanimation débutée à 13 h 55 date le début du soin
     -- à son arrivée — et son compte rendu, comme celui de l'hôte, devient inexploitable au débrief.
     -- Réservé au lead : c'est un fait sur LA session, pas un geste de participant.
-    when p_kind in ('uncheck','nav','flow_end','timer_stop','timer_reset','cx','handoff','end',
+    when p_kind in ('uncheck','nav','flow_end','timer_stop','timer_reset','cx','end',
                     'session_start')
       then p_role = 'lead'
     else false
@@ -1217,7 +1288,13 @@ begin
   insert into public.session_participants(share_id, user_id, secret_hash, label, role)
     values (v_s.id, auth.uid(),
             encode(digest(v_secret, 'sha256'), 'hex'),
-            coalesce(nullif(substr(coalesce(p_label, ''), 1, 24), ''), 'Invité'),
+            /* AUCUN MÉTACARACTÈRE DE BALISAGE DANS UN LIBELLÉ DE PARTICIPANT. Il s'affiche chez
+               TOUS les autres, et l'application ne propose qu'une liste fermée de neuf rôles —
+               mais un client modifié n'est pas tenu par un `<select>`. On ne recopie pas la liste
+               ici (elle dériverait) : on retire ce qui n'a rien à faire dans un nom de rôle. Le
+               client échappe déjà à l'affichage ; ceci est la barrière qui ne dépend pas de lui. */
+            coalesce(nullif(substr(regexp_replace(coalesce(p_label, ''),
+                                                  '[^[:alnum:] ''()\-]', '', 'g'), 1, 24), ''), 'Invité'),
             v_s.guest_role)
     returning participant into v_part;
   -- Le code est CONSOMMÉ : la porte se referme derrière celui qui entre. Un lien ou une capture
@@ -1296,6 +1373,17 @@ begin
      reprend le fil avec lui, et il lui faut de quoi repeindre. Aucune donnée nouvelle ne sort :
      c'est le même `fiche_snap` que `share_join` lui a déjà remis, filtré par la même liste
      blanche à l'ouverture. */
+  /* UN PARTICIPANT COUPÉ NE REÇOIT PLUS RIEN — la coupure mord au SERVEUR, pas seulement chez
+     lui. Jusqu'ici la fonction renvoyait `status: revoked` ET le flux complet : c'était son
+     application qui gelait l'écran, donc un client modifié continuait de lire la session jusqu'à
+     l'expiration. Le statut, lui, reste renvoyé : il faut qu'il SACHE, sinon la coupure passerait
+     pour une panne de réseau. Même traitement pour un détaché, qui a bifurqué et dont l'état ne
+     doit plus être alimenté. */
+  if a.revoked_at is not null or a.detached_at is not null then
+    return jsonb_build_object('ok', true, 'status', v_state, 'role', a.role, 'me', a.participant,
+      'owner', a.is_owner, 'events', '[]'::jsonb, 'seq', 0, 'n_events', 0,
+      'participants', '[]'::jsonb, 'expires_at', a.expires_at, 'server_time', now());
+  end if;
   return jsonb_build_object('ok', true, 'status', v_state, 'role', a.role, 'me', a.participant,
     'owner', a.is_owner, 'events', v_ev, 'seq', v_seq, 'n_events', v_n, 'stream', v_stream,
     'participants', v_parts, 'expires_at', a.expires_at, 'server_time', now())
@@ -1372,7 +1460,22 @@ begin
   with src as (
     select (e->>'event_id')::uuid                              as event_id,
            e->>'kind'                                          as kind,
-           case when jsonb_typeof(e->'payload') = 'object' then e->'payload'
+           /* LISTE BLANCHE DES CLÉS DE PAYLOAD (v4.54.0). Le serveur ne validait que le TYPE
+              et la TAILLE : un client modifié pouvait donc y glisser n'importe quoi, et deux
+              injections d'attribut ont été reproduites côté client à partir de là (v4.53.1).
+              Le client se défend désormais aux deux entrées — mais faire reposer la sûreté sur le
+              seul client est précisément la faute que `share_open` a corrigée pour la fiche.
+              On ne retire pas les clés interdites, on ne GARDE que les autorisées : une liste
+              noire oublie ce qu'on ajoutera demain.
+              `label` N'Y EST PAS, ET C'EST LE POINT : c'est ce qui rend vraie, au niveau du
+              SERVEUR, la promesse « aucun texte libre ne traverse le réseau » (règle 15 du
+              projet, § 3.1 du registre RGPD) — elle ne dépend plus d'une discipline de client. */
+           case when jsonb_typeof(e->'payload') = 'object' then
+                  coalesce((select jsonb_object_agg(k, v)
+                              from jsonb_each(e->'payload') as kv(k, v)
+                             where k in ('k','t','id','v','running','elapsedMs','cycles','anchor',
+                                         'nav','navSeq','on','exo','ref','was','to','take')),
+                           '{}'::jsonb)
                 else '{}'::jsonb end                           as payload,
            nullif(e->>'ts','')::timestamptz                     as client_ts,
            ord
@@ -1441,6 +1544,7 @@ returns jsonb language sql stable security definer set search_path = public, aut
     'shares_live',  (select count(*) from public.shared_sessions
                       where status = 'active' and expires_at > now()),
     'shares_rows',  (select count(*) from public.shared_sessions),
+    'sessions',     (select count(*) from public.sessions where deleted_at is null),
     -- LES OCTETS DES PARTAGES ENTRENT DANS LE TOTAL (v4.49.0). Ils en étaient absents : la base
     -- pouvait grossir de plusieurs centaines de mégaoctets sans que le tableau de bord ne bouge
     -- d'un octet — l'exploitant était aveugle au seul poste que le partage fait croître, et c'est
@@ -1449,6 +1553,10 @@ returns jsonb language sql stable security definer set search_path = public, aut
                     + (select coalesce(sum(octet_length(data::text)),0) from public.category_sets)
                     + (select coalesce(sum(octet_length(data::text)),0) from public.protocols where deleted_at is null)
                     + (select coalesce(sum(octet_length(fiche_snap::text)),0) from public.shared_sessions)
+                    -- Historique synchronisé : un poste qui croît avec l'usage, et qu'un exploitant
+                    -- aveugle ne pourrait pas anticiper (leçon v4.49.0, où le serveur comptait déjà
+                    -- les octets du partage sans que l'écran ne les montre).
+                    + (select coalesce(sum(octet_length(data::text)),0) from public.sessions where deleted_at is null)
                     + (select coalesce(sum(octet_length(payload::text)),0) from public.session_events),
     'attachments_bytes',(select coalesce(sum((o.metadata->>'size')::bigint),0)
                          from storage.objects o where o.bucket_id = 'attachments')

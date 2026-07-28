@@ -957,8 +957,17 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   ok('le scribe peut cocher, constater, incrémenter, armer, horodater',
     ['check','verify','gap','counter','timer_arm','mark'].every(k=>A.shareCan('scribe',k)));
   ok('le scribe ne navigue pas, n’arrête pas un minuteur, ne termine pas',
-    ['nav','timer_stop','timer_reset','end','uncheck','flow_end','cx','handoff']
+    ['nav','timer_stop','timer_reset','end','uncheck','flow_end','cx']
       .every(k=>!A.shareCan('scribe',k)));
+  /* `handoff` EST OUVERT AUX DEUX RÔLES, et ce n'est pas un relâchement. Il ne change AUCUN état :
+     il porte une OFFRE (« je vous propose de conduire ») ou une PRISE (« je prends la main »).
+     Le changement de rôle lui-même est une écriture sur `session_participants`, que la RLS réserve
+     au propriétaire du partage — la frontière de sécurité est là, sur l'écriture du rôle, pas sur
+     l'annonce. Le réserver au lead aurait interdit à l'invité d'ACCEPTER, c'est-à-dire d'accomplir
+     le temps que la doctrine exige de LUI (AC 61-115 : la passation se fait en trois temps, et le
+     receveur en prononce un). */
+  ok('la passation s’annonce des DEUX côtés',
+    A.shareCan('scribe','handoff')&&A.shareCan('lead','handoff'));
   ok('le lead peut tout ce qui est au vocabulaire',
     A.SHARE_KINDS_ANY.concat(A.SHARE_KINDS_LEAD).every(k=>A.shareCan('lead',k)));
   ok('un genre inconnu est refusé aux deux rôles',
@@ -1359,6 +1368,31 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
     eq('… et elle se plie',A_.shareFold([{seq:1,id:'x',actor:'h',kind:'session_start',payload:{t:1700000000000}}]).startedAt,1700000000000);
     ok('elle est réservée à celui qui conduit',
        A_.shareCan('lead','session_start')&&!A_.shareCan('scribe','session_start'));}
+   /* ═══ HISTORIQUE SYNCHRONISÉ — CE QUI MONTE, ET CE QUI RESTE ═══════════════════════════════
+      La table lève un invariant écrit du projet (« les sessions ne quittent jamais l'appareil »),
+      dont le mode EXERCICE tirait sa garantie de non-contamination clinique. Ce qui la remplace se
+      teste : la trace do-verify ne part pas, l'exercice est ségrégé PAR UNE COLONNE, et la forme
+      de `data` accepte dès aujourd'hui un blob chiffré — c'est la seule décision irréversible. */
+   {const S={id:'s1',ficheId:'f1',ficheTitle:'ACR',savedAt:1700000000000,live:false,exercise:true,
+      checked:{'1:b1:0':true},verified:{'1:b1:0':{a:'x',t:9}},vgaps:{'1:b1:1':{a:'y',t:10}},
+      events:[{id:'e1',t:5,label:'Mon mot'}]};
+    const row=A_.sessionToRow(S,'uid-1');
+    ok('la trace do-verify NE MONTE PAS',!row.data.verified&&!row.data.vgaps);
+    /* … mais son ABSENCE EST DITE. Une trace absente qui ne s'annonce pas se lit « aucune
+       vérification n'a été faite » — l'exact contraire de ce que la passe établit. */
+    ok('… et son existence est signalée',row.data.vElsewhere===true);
+    ok('l’exercice est une COLONNE, pas une convention',row.exercise===true);
+    ok('le reste du compte rendu monte en clair',row.data.checked['1:b1:0']===true);
+    // Le libellé d'un repère est LOCAL au partage ; dans l'historique de SON PROPRE compte, en
+    // revanche, il n'y a personne d'autre : il monte, et c'est voulu.
+    ok('… le journal aussi',row.data.events[0].label==='Mon mot');
+    const back=A_.sessionFromRow(row);
+    ok('l’aller-retour ne fabrique pas de trace',Object.keys(back.verified).length===0);
+    ok('… et conserve le drapeau',back.vElsewhere===true);
+    // Une session SANS trace ne pose pas le drapeau : on ne signale pas une absence qui n'existe pas.
+    const row2=A_.sessionToRow(Object.assign({},S,{verified:{},vgaps:{}}),'uid-1');
+    ok('aucune trace, aucun drapeau',row2.data.vElsewhere===undefined);}
+
    /* CADENCE — la promesse de fraîcheur du miroir, et le plancher qui la tient pendant un soin.
       L'inactivité du SUPPORT n'est pas l'inactivité du SOIN : pendant un cycle de compressions de
       deux minutes personne ne touche l'écran, des deux côtés. Sans plancher, le premier geste à la

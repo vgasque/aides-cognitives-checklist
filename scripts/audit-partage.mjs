@@ -1342,6 +1342,62 @@ console.log(`\n══ PARTAGE · aucun participant n'injecte de balisage — mot
   await page.close();
 }
 
+/* ── LA PASSATION DE LA MAIN — EN TROIS TEMPS, ET AUCUN ÉCRAN NE CHANGE SEUL ─────────────────
+   Le scribe ne conduit pas : il ne navigue pas, n'arrête pas un minuteur, ne termine pas. C'est la
+   forme canonique du travail à deux (AC 120-71B §5.2.2.1) — mais sans passation, quelqu'un qui a
+   BESOIN de conduire n'a aucun recours, et l'asymétrie devient une impasse.
+   Trois temps (AC 61-115 « Positive Exchange of Flight Controls ») : l'un PROPOSE, l'autre PREND,
+   et le changement de rôle vaut confirmation. Invariant 2 : aucun écran ne change de capacité sans
+   un geste effectué SUR CET écran — un `handoff` reçu n'accorde donc rien, il AFFICHE. */
+console.log(`\n══ PARTAGE · la passation de la main — moteur ${NOM_MOTEUR} ══`);
+{
+  const page = await br.newPage({ viewport: { width: 390, height: 844 } });
+  await session(page);
+  const r = await page.evaluate(async () => {
+    Share.mode = 'guest'; Share.role = 'scribe'; Share.me = 'inv'; Share.status = 'active';
+    Share.lastOk = Date.now(); Share.offset = 0; Share._q = []; Share._defer = [];
+    const out = {};
+    const tok = () => (document.querySelector('.seg.glb') || {}).textContent || '';
+    const menu = () => { try { return moreItemsForTest ? [] : []; } catch (e) { return []; } };
+    out.avantJeton = tok();
+    out.avantPeutNaviguer = Share.canWrite('nav');
+    // Comptage RELATIF : l'amorçage produit une banderole légitime (« fiches d'exemple ajoutées »),
+    // émise hors session. Un total absolu ferait échouer la sonde sur du bruit de démarrage.
+    const toastsAvant = document.querySelectorAll('.toast').length;
+
+    // TEMPS 1 — l'hôte propose. Rien ne doit changer de capacité, seulement d'affichage.
+    Share.onEvents([{ seq: 1, id: 'h1', actor: 'hote', kind: 'handoff', payload: { to: 'inv' } }]);
+    await new Promise(x => setTimeout(x, 350));
+    out.apresOffreJeton = tok();
+    out.apresOffreRole = Share.role;
+    out.apresOffrePeutNaviguer = Share.canWrite('nav');
+    out.toasts = document.querySelectorAll('.toast').length - toastsAvant;
+    out.modales = document.querySelectorAll('.ai-modal.on').length;
+
+    // TEMPS 2 — le geste est SUR SON écran, et il n'accorde rien : il annonce.
+    const avantQ = Share.pending();
+    const pris = Share.takeLead();
+    out.pris = pris;
+    out.emisPrise = Share.pending() > avantQ;
+    out.roleApresPrise = Share.role;   // TOUJOURS scribe : le rôle vient du serveur
+
+    // TEMPS 3 — le serveur inscrit, et c'est la lecture suivante qui l'apprend.
+    Share.role = 'lead';
+    out.apresServeurJeton = tok.call ? (Share.mode !== 'off' ? shareGlobTag() : '') : '';
+    out.peutNaviguerEnfin = Share.canWrite('nav');
+    return out;
+  });
+  t('témoin : un scribe ne peut pas naviguer', r.avantPeutNaviguer === false);
+  t('l’offre se dit dans le QUAI, à position constante', r.apresOffreJeton.indexOf('offert') >= 0, r.apresOffreJeton);
+  t('… sans rien accorder (invariant 2)', r.apresOffreRole === 'scribe' && r.apresOffrePeutNaviguer === false);
+  t('… sans banderole ni fenêtre (règle 11)', r.toasts === 0 && r.modales === 0);
+  t('prendre la main est un geste LOCAL', r.pris === true);
+  t('… qui ANNONCE au lieu de s’accorder', r.emisPrise === true && r.roleApresPrise === 'scribe');
+  t('le rôle ne vient que du serveur', r.apresServeurJeton === 'main', r.apresServeurJeton);
+  t('… et alors seulement la conduite s’ouvre', r.peutNaviguerEnfin === true);
+  await page.close();
+}
+
 await br.close(); srv.close();
 console.log(`\n${ok}/${ok + ko} contrôles partage OK` + (ko ? ` — ${ko} ÉCHEC(S)` : ''));
 process.exit(ko ? 1 : 0);

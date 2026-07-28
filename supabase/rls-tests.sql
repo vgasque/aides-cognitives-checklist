@@ -1016,6 +1016,57 @@ begin
   if not public.share_kind_allowed('lead','session_start') then
     raise exception 'ÉCHEC 14.14 : le lead ne peut pas dater le début du soin'; end if;
 
+  ---------------------------------------------------------------- 14.15
+  -- LISTE BLANCHE DES CLÉS DE PAYLOAD. Le serveur ne validait que le type et la taille : deux
+  -- injections d'attribut ont été reproduites côté client à partir de là (v4.53.1). `label` est
+  -- absent de la liste, ET C'EST LE POINT — c'est ce qui rend vraie AU NIVEAU DU SERVEUR la
+  -- promesse « aucun texte libre ne traverse le réseau ».
+  v_j := public.share_push(v_sec, v_share,
+           jsonb_build_array(jsonb_build_object(
+             'event_id', gen_random_uuid(), 'kind', 'mark',
+             'payload', jsonb_build_object('id','e1','t',1,'label','<img src=x>','zz','autre'))));
+  if not (v_j->>'ok')::boolean then
+    raise exception 'ÉCHEC 14.15 : un mark légitime a été refusé (%)', v_j->>'err'; end if;
+  if exists (select 1 from public.session_events
+              where share_id = v_share and kind = 'mark' and payload ? 'label') then
+    raise exception 'ÉCHEC 14.15 : un LIBELLÉ a traversé le serveur'; end if;
+  if exists (select 1 from public.session_events
+              where share_id = v_share and kind = 'mark' and payload ? 'zz') then
+    raise exception 'ÉCHEC 14.15 : une clé hors liste blanche a traversé'; end if;
+  if not exists (select 1 from public.session_events
+                  where share_id = v_share and kind = 'mark' and payload ? 'id') then
+    raise exception 'ÉCHEC 14.15 : la liste blanche a mangé une clé légitime'; end if;
+
+  ---------------------------------------------------------------- 14.16
+  -- LE LIBELLÉ D'UN PARTICIPANT NE PORTE AUCUN MÉTACARACTÈRE DE BALISAGE. Il s'affiche chez tous
+  -- les autres ; l'application ne propose qu'une liste fermée, mais un client modifié n'est pas
+  -- tenu par un `<select>`.
+  -- Le code en clair n'est jamais relisible en base (seul son sha-256 y est) : on le récupère par
+  -- `share_admit`, qui le renvoie une fois — c'est le chemin de l'hôte, et donc le bon.
+  v_j := public.share_admit(v_share, 120);
+  v_j := public.share_join(v_j->>'code', '<img src=x onerror=alert(1)>');
+  if not (v_j->>'ok')::boolean then
+    raise exception 'ÉCHEC 14.16 : jointure refusée à tort'; end if;
+  if exists (select 1 from public.session_participants
+              where share_id = v_share and (label like '%<%' or label like '%>%' or label like '%"%')) then
+    raise exception 'ÉCHEC 14.16 : un libellé de participant porte du balisage'; end if;
+
+  ---------------------------------------------------------------- 14.17
+  -- LA COUPURE MORD AU SERVEUR, pas seulement chez le coupé. Elle ne lui cachait rien : il
+  -- recevait `status: revoked` ET le flux complet, si bien qu'un client modifié continuait de
+  -- lire la session jusqu'à l'expiration. Le STATUT reste renvoyé — il faut qu'il SACHE, sinon
+  -- la coupure passerait pour une panne de réseau.
+  update public.session_participants set revoked_at = now()
+   where share_id = v_share and secret_hash = encode(digest(v_sec,'sha256'),'hex');
+  v_j := public.share_pull(v_sec, v_share, 0);
+  if (v_j->>'status') <> 'revoked' then
+    raise exception 'ÉCHEC 14.17 : le coupé ignore qu''il est coupé (%)', v_j->>'status'; end if;
+  if jsonb_array_length(v_j->'events') <> 0 then
+    raise exception 'ÉCHEC 14.17 : un participant COUPÉ reçoit encore les évènements'; end if;
+  if jsonb_array_length(v_j->'participants') <> 0 then
+    raise exception 'ÉCHEC 14.17 : un participant COUPÉ voit encore la liste des participants'; end if;
+
+
   ------------------------------------------------------------------ FIN
   reset role;
   raise notice '✅ TOUS LES TESTS RLS PASSENT';

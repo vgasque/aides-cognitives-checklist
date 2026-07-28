@@ -66,6 +66,12 @@
   /* Pastilles de choix (fenêtre Compte) : mêmes teintes, sélection = anneau (pattern .sw). */
   /* Vocabulaire du journal (v4.52.0) — édité à froid, dans la fenêtre Compte. Champs à 16 px :
      sous ce seuil, Safari iOS zoome au focus et les taps se perdent (règle 9). */
+  /* Bascule de l'historique : un interrupteur d'ÉTAT (« synchronisé / sur cet appareil »), pas un
+     sélecteur segmenté — les deux valeurs ne sont pas des modes pairs, l'une est la négation de
+     l'autre (doctrine v4.25.0). */
+  .ss-tog{width:100%;min-height:44px;text-align:left;font-weight:700}
+  .ss-tog.on{background:var(--ok-soft);border-color:var(--ok-line);color:var(--ok)}
+
   .tg-list{display:grid;gap:8px;margin-bottom:8px}
   .tg-row{display:grid;grid-template-columns:1fr 1fr auto;gap:6px;align-items:center}
   .tg-row input{min-height:44px;padding:8px 10px;border:1px solid var(--line-strong);

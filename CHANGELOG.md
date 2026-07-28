@@ -1,5 +1,85 @@
 # Journal des modifications
 
+## [4.54.0] — 2026-07-28
+### La main se passe, l'historique suit le compte, et le serveur cesse de faire confiance au client
+
+Lot 6 du chantier, la passation de la main, et les trois durcissements serveur annoncés en v4.53.1 —
+un seul rejeu de schéma pour l'ensemble.
+
+### La passation de la main
+Le scribe ne conduit pas : il ne navigue pas, n'arrête pas un minuteur, ne termine pas. C'est la
+forme canonique du travail à deux (AC 120-71B §5.2.2.1) — mais **sans passation, quelqu'un qui a
+besoin de conduire n'a aucun recours**, et l'asymétrie devient une impasse. Le genre `handoff`
+existait dans le vocabulaire depuis la v4.46.0 ; rien ne l'émettait, aucune surface ne l'offrait.
+
+Trois temps, comme l'exige AC 61-115 « Positive Exchange of Flight Controls » : l'hôte **propose**,
+l'autre **prend**, et le changement de rôle vaut confirmation. **Un `handoff` reçu n'accorde rien à
+personne : il affiche** (invariant 2 — aucun écran ne change de capacité sans un geste effectué sur
+cet écran). Le rôle lui-même ne vient **jamais** d'un évènement, toujours de la lecture suivante :
+un rôle qu'un évènement suffirait à changer serait un rôle que n'importe qui s'accorderait.
+
+`handoff` passe donc **aux deux rôles**, client et serveur. Ce n'est pas un relâchement : il ne
+change aucun état, et la frontière de sécurité est l'écriture du rôle — un `UPDATE` que la RLS
+réserve déjà au propriétaire du partage. Le réserver au lead aurait interdit à l'invité d'**accepter**,
+c'est-à-dire d'accomplir le temps que la doctrine exige de lui.
+
+**L'offre se dit dans le quai, le geste vit dans le menu** — doctrine de « Recommencer le parcours » :
+une rangée qui apparaîtrait dans la colonne d'action ferait remonter le contenu clinique, sur
+évènement distant. Jeton `offert`, sept caractères, position constante. Et `grantLead` **rétrograde
+d'abord, promeut ensuite** : dans l'autre sens, une coupure réseau entre les deux écritures
+laisserait **deux** leads ; ici le pire cas en laisse **zéro** — dégradé, mais jamais ambigu.
+
+### L'historique de sessions suit le compte
+La table lève un invariant écrit du projet — « les sessions vivent en local, jamais synchro » — dont
+le **mode exercice tirait sa garantie de non-contamination clinique**. Une bascule qui inverse une
+promesse doit dire ce qu'elle change : elle est **opt-in, défaut fermé**, dans la fenêtre Compte,
+avec une confirmation qui énonce la portée. Par **utilisateur**, pas par appareil — l'activer ici et
+la découvrir éteinte ailleurs serait la pire des surprises.
+
+Ce qui remplace l'invariant :
+
+- **Seules les sessions archivées montent.** Une session **vive** resynchronisée serait un second
+  canal de partage — sans code, sans rôle, sans péremption, et sans aucun des garde-fous du premier.
+- **L'exercice est ségrégé par une colonne**, plus par la localité : la propriété devient une donnée
+  que l'on filtre et que le serveur voit.
+- **La trace do-verify ne monte pas**, et **son absence est dite**. Un drapeau fait écrire au compte
+  rendu consulté ailleurs : « son détail reste sur l'appareil qui l'a produite ». Une trace absente
+  qui ne s'annonce pas se lit *« aucune vérification n'a été faite »* — l'exact contraire de ce que
+  la seconde passe existe pour établir.
+- **`data` accepte dès aujourd'hui `{v:2, enc:<blob>}`.** C'est la seule décision de forme qu'il
+  fallait prendre maintenant : elle devient irréversible dès qu'il y a des données en place, et
+  passer au chiffrement de bout en bout ne demandera donc aucune migration.
+
+Suppression = **pierre tombale** dès que la synchro est active (sinon la session effacée revient au
+pull suivant depuis l'appareil qui l'ignore), suppression franche sinon. Le tableau de bord compte
+les sessions et leurs octets — l'exploitant ne doit pas être aveugle au poste que l'option fait
+croître (leçon v4.49.0).
+
+### Le serveur cesse de faire confiance au client
+Trois durcissements, annoncés comme ouverts en v4.53.1 :
+
+1. **Liste blanche des clés de payload.** Le serveur ne validait que le **type** et la **taille** —
+   c'est de là que partaient les deux injections de la v4.53.1. Il ne garde désormais que seize clés
+   nommées. **`label` n'y est pas, et c'est le point** : la promesse « aucun texte libre ne traverse
+   le réseau » cesse de dépendre d'une discipline de client. Liste blanche, jamais noire.
+2. **Le libellé d'un participant** perd tout métacaractère de balisage. On ne recopie pas en SQL la
+   liste des neuf rôles (elle dériverait) : on retire ce qui n'a rien à faire dans un nom.
+3. **La coupure mord au serveur.** `share_pull` renvoyait `status: revoked` **et le flux complet** —
+   c'était l'application du coupé qui gelait son écran, donc un client modifié continuait de lire.
+   Il ne reçoit plus ni évènements ni participants ; le **statut**, lui, reste renvoyé — il faut
+   qu'il sache, sinon la coupure passerait pour une panne de réseau. Le § 3.1 du registre, qui
+   signalait ce point comme « à durcir », est mis à jour.
+
+### Vérification
+747 tests × 2 moteurs (+8), **250/250 contrôles partage** (+18, sur les deux moteurs), 13 harnais
+verts, 301 contrôles d'accessibilité sur les deux moteurs, 94/94 doctrine, `npm run check` vert.
+Trois assertions RLS nouvelles (§ 14.15 à 14.17) couvrent les trois durcissements — dont une qui
+pousse un `label` et vérifie qu'il **ne survit pas à l'insertion**. Un test qui encodait l'ancien
+contrat (`handoff` réservé au lead) a été retourné plutôt que supprimé : il affirme désormais la
+règle inverse et dit pourquoi.
+
+**`supabase/schema.sql` est à rejouer**, puis `rls-tests.sql`.
+
 ## [4.53.1] — 2026-07-28
 ### SÉCURITÉ — un participant pouvait injecter du balisage dans la checklist des autres
 
@@ -1460,40 +1540,3 @@ c'est un chantier à part, avec une fixture par fenêtre.
 **121/121** contrôles d'accessibilité (117 avant l'élargissement, sur un périmètre plus étroit).
 
 510 tests × 2 moteurs, 22/22 doctrine, 121/121 accessibilité, 143 contrôles d'audit, 10 sondes.
-
-## [4.36.0] — 2026-07-26
-### Corrigé — 1,77 Mo chargés pour ne rien dessiner
-Ouvrir une fiche portant un PDF déclenchait le chargement de **pdf.js en entier** — `pdf.min.js`
-389 Ko à +106 ms, `pdf.worker.min.js` 1 384 Ko à +181 ms — alors qu'aucun document n'avait été tapé.
-Cela contredisait la règle du projet (« pdf.js chargé paresseusement, `import()` au premier document
-OUVERT, jamais au démarrage »), sur l'écran de soin lui-même.
-
-**Et c'était pire que ça.** Depuis la v4.23.0, la liste « Documents » d'une FICHE a quitté la colonne
-d'action pour la feuille « Consulter », qui ne s'ouvre qu'à la demande. Mesuré à l'ouverture d'une
-fiche : **0 rangée `[data-att]`, 0 emplacement `[data-thumb]` dans toute la page** — les 1,77 Mo
-n'avaient littéralement rien à peindre. La chaîne `bindReadEvents` → `bindAttList` →
-`hydrateAttThumbs` appelait la génération de vignettes **inconditionnellement**, alors que
-`bindAttList` cherche ses rangées dans `main`, où il n'y en a plus. Travail intégralement perdu, et
-redondant de surcroît : `renderRefSheet` rappelle `hydrateAttThumbs` à l'ouverture de la feuille,
-là où les rangées existent.
-
-Correctif d'une ligne — ne générer les vignettes que si une rangée est réellement dans le flux :
-`if(main.querySelector('[data-thumb]')) hydrateAttThumbs(entity);`. Vérifié sur les trois cas qui
-comptent : fiche seule → **0 Ko au lieu de 1 773** ; feuille « Consulter » ouverte → pdf.js chargé
-et vignette peinte (96×128 px) ; **protocole → comportement inchangé** (ses documents sont dans le
-flux, la condition est vraie pour lui).
-
-> Nuance conservée pour la suite : ce n'est pas du réseau en usage normal (`sw.js` précache pdf.js à
-> l'installation), mais le PARSING de 1,8 Mo de JS minifié et le démarrage d'un worker, en CPU, sur
-> la vue utilisée pendant un soin. Le travail était différé par `_idle()` — donc il ne bloquait pas
-> le premier rendu — mais une tâche d'idle n'est pas préemptible une fois commencée.
-
-### Sécurité serveur — réserve de v4.34.0 LEVÉE
-Les modifications SQL n'avaient pas pu être exécutées ici (ni Postgres ni Docker sur le poste) et
-étaient livrées relues à la main. **Elles ont été rejouées sur l'instance réelle** : `schema.sql`
-appliqué sans erreur, et `rls-tests.sql` répond « ✅ TOUS LES TESTS RLS PASSENT » — donc la
-**section 13** (élévation de privilège, rôle anonyme, invitation à e-mail non vérifié) passe, et le
-durcissement (`revoke all … from anon`, `alter default privileges`, `email_confirmed_at` exigé)
-n'a rien cassé du flux existant.
-
-510 tests × 2 moteurs, 22/22 doctrine, 73/73 accessibilité, 135 contrôles d'audit, 10 sondes.

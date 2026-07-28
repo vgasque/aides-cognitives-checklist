@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-O8naczxQEG1/lKcyhftJrypVLpGj4t8m3Sw992WxeIc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-6SFoOsi6iMrhEF6GheWt5hLvr+SbUJCluKZv4wGyMBs='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -351,6 +351,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Pastilles de choix (fenêtre Compte) : mêmes teintes, sélection = anneau (pattern .sw). */
   /* Vocabulaire du journal (v4.52.0) — édité à froid, dans la fenêtre Compte. Champs à 16 px :
      sous ce seuil, Safari iOS zoome au focus et les taps se perdent (règle 9). */
+  /* Bascule de l'historique : un interrupteur d'ÉTAT (« synchronisé / sur cet appareil »), pas un
+     sélecteur segmenté — les deux valeurs ne sont pas des modes pairs, l'une est la négation de
+     l'autre (doctrine v4.25.0). */
+  .ss-tog{width:100%;min-height:44px;text-align:left;font-weight:700}
+  .ss-tog.on{background:var(--ok-soft);border-color:var(--ok-line);color:var(--ok)}
+
   .tg-list{display:grid;gap:8px;margin-bottom:8px}
   .tg-row{display:grid;grid-template-columns:1fr 1fr auto;gap:6px;align-items:center}
   .tg-row input{min-height:44px;padding:8px 10px;border:1px solid var(--line-strong);
@@ -3774,7 +3780,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.53.1';
+const APP_VERSION='4.54.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -5596,7 +5602,10 @@ async function load(){
   fiches=allFiches.filter(f=>!f.deletedAt);
   const allProtocols=(_ps||[]).map(migrateProtocol);
   protocols=allProtocols.filter(p=>!p.deletedAt);
-  sessions=_ss||[];
+  /* Les pierres tombales ne s'affichent pas : elles vivent en base pour que la suppression se
+     propage, et disparaissent de la liste. Sans ce filtre, une session supprimée réapparaîtrait à
+     l'historique, vide, jusqu'à la synchro suivante. */
+  sessions=(_ss||[]).filter(x=>!x.deletedAt);
   try{notes=sanitizeNotes(_nts);}catch(e){notes={};}
   if(!categories.length){categories=defaultCats();await Data.setCats(categories);}
   // Bibliothèque vide -> un bandeau d'accueil PROPOSE les fiches d'exemple (jamais créées
@@ -5871,7 +5880,14 @@ ${s.exercise?'<div class="wm">EXERCICE</div><div class="meta exo">▲ Exercice �
 <h2>Chronologie des actions</h2><table><thead><tr><td><b>Heure</b></td><td><b>Écoulé</b></td><td><b>Action</b></td></tr></thead><tbody>${evRows}</tbody></table>
 <h2>Étapes réalisées</h2><ul>${stepRows}</ul>
 ${cxRows.length?`<h2>⚡ Complications</h2><ul>${cxRows.map(x=>`<li>${x.h}</li>`).join('')}</ul>`:''}
-${(nVer||gapRows.length)?`<h2>Vérification (do-verify)</h2><ul><li>${nVer} étape${nVer>1?'s':''} constatée${nVer>1?'s':''} ✓✓</li>${gapRows.map(x=>`<li>${x.h}</li>`).join('')}</ul>`:''}
+${(nVer||gapRows.length)?`<h2>Vérification (do-verify)</h2><ul><li>${nVer} étape${nVer>1?'s':''} constatée${nVer>1?'s':''} ✓✓</li>${gapRows.map(x=>`<li>${x.h}</li>`).join('')}</ul>`
+  /* UNE TRACE ABSENTE QUI NE SE DIT PAS EST PIRE QU'UNE TRACE ABSENTE. La passe do-verify ne
+     monte pas au serveur (décision d'étape) : un compte rendu consulté sur un AUTRE appareil doit
+     donc annoncer qu'elle existe ailleurs, sinon il se lit comme « aucune vérification n'a été
+     faite » — l'exact contraire de ce que la seconde passe existe pour établir. */
+  :(s.vElsewhere?`<h2>Vérification (do-verify)</h2><p class="muted">Une passe de vérification a été
+    faite pendant cette session. Son détail — étapes constatées et écarts — <b>n’est pas
+    synchronisé</b> : il reste sur l’appareil qui l’a produite.</p>`:'')}
 ${counters?`<h2>Compteurs</h2><table>${counters}</table>`:''}
 ${timers?`<h2>Minuteurs</h2><table>${timers}</table>`:''}
 <div class="foot">Document généré par Aides cognitives (v${esc(APP_VERSION)}) le ${esc(new Date().toLocaleString('fr-FR'))}. Aucune donnée patient. Relire et contextualiser avant archivage.</div>`;
@@ -6216,7 +6232,7 @@ function updateRtStrip(now){
      nominal, cette assertion tombe et l'encre passe au NEUTRE — pas à l'ambre, qui reste réservé au
      minuteur échu (un second ambre dans la même rangée les affaiblirait tous les deux). Le mot du
      jeton porte l'information, la couleur ne fait que cesser d'affirmer. */
-  const globOff=!!shTag&&shTag!=='main'&&shTag!=='suit'&&shTag.charAt(0)!=='⇄';
+  const globOff=!!shTag&&shTag!=='main'&&shTag!=='suit'&&shTag!=='offert'&&shTag.charAt(0)!=='⇄';
   const glob=started?'<span class="seg glb'+(Runtime.exercise?' exo':'')+'"><span class="seg-l seg-sess'+(globOff?' off':'')+'">'+esc(globLbl)+'</span><span class="seg-t">'+(Runtime.startedAt?fmtMs(now-Runtime.startedAt):'—')+'</span></span>':'';
   // Chevron = bascule du panneau en étroit ; rien en large (rail permanent, tap -> y défile).
   const chev=wideRail?'':'<span class="cbt-n" aria-hidden="true">'+(state.rtOpen?'▴':'▾')+'</span>';
@@ -6350,7 +6366,18 @@ function resumeSession(id){const s=sessions.find(x=>x.id===id);if(!s)return;cons
   if(liveSessions[f.id]&&liveSessions[f.id].sessionId===id){Runtime=liveSessions[f.id];}
   else{Runtime=buildRuntime(f,s);Runtime.started=true;Runtime.startedAt=s.startedAt||Date.now();liveSessions[f.id]=Runtime;persistLive(Runtime,true);}
   Runtime.fiche=f;bindStateToRuntime();state.fiche=f;state.showFlow=false;state.view='read';render();}
-async function deleteSession(id){if(!await confirmDlg('Supprimer cette session ?',{yes:'Supprimer',danger:true}))return;try{await Data.delSession(id);}catch(e){}sessions=sessions.filter(x=>x.id!==id);Object.values(liveSessions).forEach(R=>{if(R.sessionId===id){delete liveSessions[R.ficheId];R.started=false;R.sessionId=null;R.name='';}});render();}
+async function deleteSession(id){if(!await confirmDlg('Supprimer cette session ?',{yes:'Supprimer',danger:true}))return;
+  /* PIERRE TOMBALE PLUTÔT QUE SUPPRESSION DURE, dès que l'historique est synchronisé : sans elle,
+     la session effacée ici REVIENT au prochain pull depuis l'appareil qui ne sait pas encore
+     qu'elle est morte. C'est le même mécanisme que pour les fiches. Hors synchro, on supprime
+     franchement — garder des tombes sur un appareil qui ne parle à personne ne servirait rien. */
+  if(sessSyncOn()){const s0=sessions.find(x=>x.id===id);
+    if(s0){const t=Object.assign({},s0,{deletedAt:Date.now(),updatedAt:Date.now(),dirty:true});
+      try{await Data.putSession(t);}catch(e){}
+      sessions=sessions.filter(x=>x.id!==id);
+      Object.values(liveSessions).forEach(R=>{if(R.sessionId===id){delete liveSessions[R.ficheId];R.started=false;R.sessionId=null;R.name='';}});
+      Sync.schedule&&Sync.schedule();render();return;}}
+  try{await Data.delSession(id);}catch(e){}sessions=sessions.filter(x=>x.id!==id);Object.values(liveSessions).forEach(R=>{if(R.sessionId===id){delete liveSessions[R.ficheId];R.started=false;R.sessionId=null;R.name='';}});render();}
 
 /* ===== Render =====
    render() : aiguilleur unique. Met à jour l'en-tête et délègue à la vue active
@@ -8059,8 +8086,8 @@ function sharePayload(f){
    faite, sans trace). Annuler un repère la CONSERVE : la ligne reste, barrée, attribuée, datée, et
    le geste est réversible. Ce n'est donc plus une action destructrice, et la doctrine qui réserve
    celles-ci au lead ne s'y applique pas. */
-const SHARE_KINDS_ANY=['check','verify','gap','counter','timer_arm','mark','mark_void','presence','detach','offline_mark'];
-const SHARE_KINDS_LEAD=['uncheck','nav','flow_end','timer_stop','timer_reset','cx','handoff','end','session_start'];
+const SHARE_KINDS_ANY=['check','verify','gap','counter','timer_arm','mark','mark_void','presence','detach','offline_mark','handoff'];
+const SHARE_KINDS_LEAD=['uncheck','nav','flow_end','timer_stop','timer_reset','cx','end','session_start'];
 function shareCan(role,kind){
   if(SHARE_KINDS_ANY.indexOf(kind)>=0)return role==='scribe'||role==='lead';
   if(SHARE_KINDS_LEAD.indexOf(kind)>=0)return role==='lead';
@@ -8125,6 +8152,11 @@ const SHARE_APPLY={
      soit — mais si l'hôte recommence sa session, elle doit suivre sans re-rendu. */
   session_start:'live',
   verify:'deferred', gap:'deferred',
+  /* LA PASSATION NE PEINT RIEN TOUTE SEULE. Elle pose un ÉTAT — « on vous propose de conduire »,
+     « X veut la main » — que la surface affiche à sa place constante. Le changement de rôle, lui,
+     n'arrive JAMAIS d'un évènement : il vient du serveur, à la lecture suivante, parce que seul le
+     propriétaire du partage peut l'écrire. Un rôle qu'un évènement suffirait à changer serait un
+     rôle que n'importe quel participant s'accorderait. */
   presence:'none', detach:'none', handoff:'none', end:'none',
   /* L'ANNEXE SE PEINT, elle ne se plie pas dans l'état. Classée 'none', elle était REÇUE et
      jetée : le pli l'accumulait dans un tableau que personne ne lisait. C'est pourtant la seule
@@ -8194,6 +8226,12 @@ function shareGlobTag(){
        participant réellement présent. Un compte faux dans une zone d'état est pire qu'aucun. */
     if(Share.mode==='host')return '⇄'+(Share.participants||[])
       .filter(p=>p&&!p.owner&&!p.revoked&&!p.detached).length;
+    /* UNE OFFRE DE PASSATION SE DIT DANS LE QUAI, ET LE GESTE VIT DANS LE MENU — c'est la doctrine
+       déjà appliquée à « Recommencer le parcours » (v4.23.8). Le quai est une zone d'ÉTAT à
+       position constante : un mot y change sans rien déplacer, alors qu'une rangée qui apparaîtrait
+       dans la colonne d'action ferait remonter le contenu clinique sous les yeux de quelqu'un qui
+       n'a rien demandé — et sur évènement DISTANT, ce qui est le pire cas. Sept caractères. */
+    if(_hoOffer)return 'offert';
     return Share.role==='lead'?'main':'suit';
   }catch(e){return '';}}
 /* ═══ ENTRÉE PAR APPARIEMENT — UNE DÉCISION DE DÉMARRAGE, PAS UNE CLASSE CSS ═════════════════
@@ -9223,6 +9261,13 @@ function bindReadEvents(f,blk,cur){
        la largeur romprait la constance positionnelle. Le partage ne s'ouvre que sur une session
        DÉMARRÉE : proposé sans elle, il ferait démarrer la session de l'hôte par la première action
        de l'invité — donc un re-rendu complet sous son doigt. */
+    /* PRENDRE LA MAIN — le geste vit ici, à position constante, pendant que le quai porte l'état.
+       Il n'apparaît QUE si l'offre existe : une rangée morte au moment où le menu sert le plus est
+       exactement ce que la refonte d'ordre de la v4.28.0 a supprimé. */
+    ...(Share.mode==='guest'&&_hoOffer
+      ? [{label:'Prendre la main',ic:'⇄',sub:'vous conduirez la checklist',
+          act:()=>{if(Share.takeLead()){announce('Vous avez pris la main.');render();}}}]
+      : []),
     ...(Share.mode==='host'
       ? [{label:'Partage en cours ('+(Share.participants||[]).filter(p=>!p.owner&&!p.revoked).length+')',
           ic:'⇄',sub:'code, participants, arrêt',act:openShareSheet}]
@@ -12423,7 +12468,7 @@ async function wipeCurrentSpace(){
 async function loadInstanceStats(){const box=document.getElementById('authStats');if(!box)return;
   let s=null;try{s=await rpc('get_instance_stats');}catch(e){}
   if(!s){box.innerHTML='';return;}
-  const cells=[['Comptes',s.users],['En attente',s.pending],['Refusés',s.rejected],['Bibliothèques',s.libraries],['Fiches perso',s.fiches_perso],['Fiches partagées',s.fiches_shared],['Protocoles',s.protocols||0],['Partages vivants',s.shares_live||0],['Partages (total)',s.shares_rows||0],['Stockage',fmtBytes(s.storage_bytes)],['Documents PDF',fmtBytes(s.attachments_bytes||0)]];
+  const cells=[['Comptes',s.users],['En attente',s.pending],['Refusés',s.rejected],['Bibliothèques',s.libraries],['Fiches perso',s.fiches_perso],['Fiches partagées',s.fiches_shared],['Protocoles',s.protocols||0],['Partages vivants',s.shares_live||0],['Partages (total)',s.shares_rows||0],['Sessions synchro.',s.sessions||0],['Stockage',fmtBytes(s.storage_bytes)],['Documents PDF',fmtBytes(s.attachments_bytes||0)]];
   box.innerHTML='<div class="auth-stats-h">État de l\'instance</div><div class="inst-stats">'+cells.map(([k,v])=>`<div class="inst-stat"><span class="is-v">${esc(String(v))}</span><span class="is-k">${esc(k)}</span></div>`).join('')+'</div>';}
 function renderAuth(){const body=document.getElementById('authBody');if(!body)return;
   if(Auth.signedIn()){const u=Auth.user()||{};
@@ -12645,7 +12690,22 @@ function accountPrefsHtml(slot){
     ${Auth.signedIn()?`<div class="auth-stats-h" style="margin-top:14px">Couleur d'accent</div>
     <div class="accent-row" role="radiogroup" aria-label="Couleur d'accent">${ACCENT_IDS.map(a=>`<button type="button" class="acc-sw a-${a||'clinique'}${currentAccent()===a?' on':''}" data-accent="${a}" role="radio" aria-checked="${currentAccent()===a?'true':'false'}" title="${ACCENT_LBL[a]}" aria-label="Accent ${ACCENT_LBL[a]}"></button>`).join('')}</div>
     <div class="st-hint" style="margin-bottom:4px">Identifie votre session d'un coup d'œil — colore l'accueil et l'en-tête de toutes les vues ; le contenu des fiches en crise et des protocoles garde le bleu clinique.</div>`:''}
+    ${Auth.signedIn()?sessSyncPrefHtml():''}
     ${tagsPrefHtml()}</div>`;}
+/* ═══ HISTORIQUE SYNCHRONISÉ — LA BASCULE, ET CE QU'ELLE DIT ══════════════════════════════════
+   Elle LÈVE un invariant écrit du projet : jusqu'ici les sessions ne quittaient jamais l'appareil.
+   Une bascule qui inverse une promesse doit donc DIRE ce qu'elle change, pas seulement s'allumer —
+   et rester fermée par défaut, parce qu'un compte rendu de soin n'est pas une préférence
+   d'affichage. Elle n'existe QUE connecté : sans compte, il n'y a rien à synchroniser et une
+   bascule inerte serait une promesse creuse. */
+function sessSyncPrefHtml(){
+  const on=sessSyncOn(),n=sessions.filter(x=>!x.live).length;
+  return `<div class="auth-stats-h" style="margin-top:14px">Historique des sessions</div>
+    <button type="button" class="btn sm ss-tog${on?' on':''}" id="ssTog" role="switch" aria-checked="${on?'true':'false'}">
+      ${on?'✓ Synchronisé entre vos appareils':'Rester sur cet appareil seulement'}</button>
+    <div class="st-hint" style="margin-bottom:4px">${on
+      ? `Vos <b>${n}</b> session${n>1?'s':''} archivée${n>1?'s':''} suivent votre compte. Les sessions <b>en cours</b> ne partent jamais. La <b>trace de vérification</b> (do-verify) reste sur l’appareil qui l’a produite — un compte rendu consulté ailleurs le dit explicitement.`
+      : 'Par défaut, un compte rendu de soin ne quitte pas l’appareil. Activez si vous voulez le retrouver sur votre tablette ou votre téléphone — seules les sessions <b>terminées</b> sont concernées.'}</div>`;}
 /* ═══ VOCABULAIRE PERSONNEL DU JOURNAL — ÉDITÉ À FROID, JAMAIS PENDANT UN SOIN ════════════════
    Il vit ici, avec le thème et la taille du texte, parce que c'est la même nature : une
    préférence qui suit l'utilisateur d'un appareil à l'autre. Et il s'édite ICI parce qu'on ne
@@ -12684,6 +12744,13 @@ function bindTagsPref(body){
 function bindAccountPrefs(body){
   body.querySelectorAll('[data-zoom]').forEach(b=>b.onclick=()=>{applyZoom(+b.dataset.zoom);schedulePrefsPush();renderAuth();});
   body.querySelectorAll('[data-accent]').forEach(b=>b.onclick=()=>{applyAccent(b.dataset.accent);schedulePrefsPush();renderAuth();});
+  {const tg=body.querySelector('#ssTog');if(tg)tg.onclick=async()=>{
+    const on=!sessSyncOn();
+    if(on&&!await confirmDlg('Vos comptes rendus de sessions terminées seront enregistrés sur le '
+      +'serveur de synchronisation et disponibles sur vos autres appareils. Les sessions en cours '
+      +'ne partent jamais, et la trace de vérification reste sur l’appareil qui l’a produite.',
+      {title:'Synchroniser l’historique ?',yes:'Synchroniser'}))return;
+    setSessSync(on);renderAuth();if(on)Sync.schedule&&Sync.schedule();};}
   bindTagsPref(body);
   {const ex=body.querySelector('#authExport');if(ex)ex.onclick=exportAll;}}
 // Écran de connexion (déconnecté) : saisie de l'e-mail puis du code OTP reçu.
@@ -13022,6 +13089,49 @@ function rowConverters(migrateFn){return {
       ownerId:row.owner||null,libraryId:row.library_id||null}));}};}
 const {toRow:ficheToRow,fromRow:ficheFromRow}=rowConverters(migrate);
 const {toRow:protocolToRow,fromRow:protocolFromRow}=rowConverters(migrateProtocol);
+/* ═══ HISTORIQUE DE SESSIONS SYNCHRONISÉ (v4.54.0) — ET L'INVARIANT QU'IL LÈVE ════════════════
+   « Les sessions vivent en IndexedDB local, jamais synchro » était une propriété ÉCRITE du projet,
+   et le mode EXERCICE en DÉRIVAIT sa garantie de non-contamination clinique. On la lève — sur
+   OPT-IN, défaut fermé — et il faut donc redire ce qui la remplace :
+    · SEULES LES SESSIONS ARCHIVÉES montent (`live:false`). Une session VIVE resynchronisée serait
+      un second mécanisme de partage, avec tous les risques du premier et aucun de ses garde-fous.
+    · L'EXERCICE EST SÉGRÉGÉ PAR UNE COLONNE, pas par une convention de contenu : la propriété
+      « zéro contamination clinique » cesse de dépendre de la localité et devient une donnée qu'on
+      peut filtrer, et que le serveur voit.
+    · `verified`/`vgaps` NE MONTENT PAS — décision d'étape, pas de principe. Le compte rendu
+      distant porte alors la mention explicite « trace de vérification disponible sur l'appareil
+      d'origine », jamais un silence : une trace absente qui ne se dit pas est pire qu'une trace
+      absente.
+    · `data` accueille SOIT un objet en clair, SOIT `{v:2, enc:<blob>}`. C'est la seule décision de
+      forme qu'il fallait prendre MAINTENANT, parce qu'elle devient irréversible dès qu'il y a des
+      données en place : passer au chiffrement de bout en bout ne demandera aucune migration.
+   Une session n'est PAS un contenu d'équipe : ni `libraryId`, ni partage, une seule politique. */
+const SESS_LOCAL=['verified','vgaps'];
+function sessionToRow(o,uidv){
+  const data=Object.assign({},o);
+  delete data.dirty;delete data.updatedAt;delete data.deletedAt;
+  // La trace do-verify reste sur l'appareil qui l'a produite. On pose un DRAPEAU à sa place :
+  // le compte rendu distant doit pouvoir DIRE qu'elle existe ailleurs, pas la taire.
+  let hadV=false;
+  SESS_LOCAL.forEach(k=>{if(data[k]&&Object.keys(data[k]).length)hadV=true;delete data[k];});
+  if(hadV)data.vElsewhere=true;
+  return {id:o.id,owner:uidv,data:data,exercise:!!o.exercise,
+    updated_at:new Date(o.updatedAt||o.savedAt||Date.now()).toISOString(),
+    deleted_at:o.deletedAt?new Date(o.deletedAt).toISOString():null};}
+function sessionFromRow(row){
+  const d=(row.data&&typeof row.data==='object')?row.data:{};
+  return Object.assign({},d,{id:row.id,
+    exercise:!!row.exercise,
+    verified:{},vgaps:{},          // jamais reçues : elles ne sont jamais parties
+    updatedAt:Date.parse(row.updated_at)||Date.now(),
+    deletedAt:row.deleted_at?Date.parse(row.deleted_at):null});}
+// L'opt-in. Par UTILISATEUR (il suit le compte, comme le thème) et non par appareil : activer la
+// synchro sur un appareil et la découvrir éteinte sur l'autre serait la pire des surprises.
+function sessSyncOn(){try{return localStorage.getItem(spaceKey('ac-sync-sessions'))==='1';}catch(e){return false;}}
+function setSessSync(on){
+  try{localStorage.setItem(spaceKey('ac-sync-sessions'),on?'1':'0');}catch(e){}
+  try{localStorage.setItem(spaceKey('ac-cats-updated:'),String(Date.now()));
+      localStorage.setItem(spaceKey('ac-cats-dirty:'),'1');}catch(e){}}
 /* ----- Documents PDF : bucket Storage 'attachments' -----
    Le CHEMIN encode le périmètre de sécurité (politiques RLS de supabase/schema.sql §7) :
    u/<uid>/<attId>.pdf = perso (propriétaire seul) ; l/<libId>/<attId>.pdf = bibliothèque
@@ -13212,11 +13322,16 @@ const Sync={
       await this.loadProfile();
       await this._initIfNeeded();
       const conflicts=(await this._pull()).concat(await this._pullProtocols());
+      // L'historique ne connaît pas de conflit à arbitrer : une session archivée ne se modifie
+      // plus (seuls son nom et sa suppression bougent), et le dernier écrivain gagne sans qu'un
+      // choix humain ait de sens. Rien à concaténer, donc.
+      try{await this._pullSessions();}catch(e){}
       // Un échec (même partiel) du push ne prive plus le reste de la synchro : réconciliation,
       // catégories et notes tournent quand même ; l'erreur est re-levée à la fin (pastille
       // « Erreur de synchro » + nouvelle tentative automatique), tout le reste étant à jour.
       let pushErr=null;try{await this._push();}catch(e){pushErr=e;}
       try{await this._pushProtocols();}catch(e){if(!pushErr)pushErr=e;}
+      try{await this._pushSessions();}catch(e){if(!pushErr)pushErr=e;}
       await this._reconcileShared();
       await this._syncCats();
       await this._syncNotes();
@@ -13359,6 +13474,27 @@ const Sync={
     // Fiche supprimée (ailleurs, ou par un éditeur de la bibliothèque) : ma note personnelle
     // attachée est effacée aussi (t:'' poussé -> propagation à mes autres appareils).
     onRemoteDelete:async id=>{if(notes[id]&&notes[id].t){notes[id]={t:'',at:Date.now(),dirty:true};try{await Data.setNotes(notes);}catch(e){}}}});},
+  /* HISTORIQUE : rien ne monte ni ne descend tant que l'utilisateur n'a pas choisi. Le garde est
+     ici, en tête des DEUX fonctions, et non dans l'orchestrateur : un chemin d'appel ajouté demain
+     hériterait du garde au lieu de l'oublier. */
+  async _pullSessions(){
+    if(!sessSyncOn())return false;
+    return this._pullTable({table:'sessions',cursorKey:'ac-sync-cursor-sess',
+      getAllLocal:()=>Data.getSessions(),fromRow:sessionFromRow,
+      addMem:x=>sessions.push(x),
+      dropMem:id=>{const i=sessions.findIndex(y=>y.id===id);if(i>=0)sessions.splice(i,1);},
+      replaceMem:x=>{const i=sessions.findIndex(y=>y.id===x.id);if(i>=0)sessions[i]=x;else if(!x.deletedAt)sessions.push(x);}});},
+  async _pushSessions(){
+    if(!sessSyncOn())return false;
+    return this._pushTable({table:'sessions',
+      // SEULES LES ARCHIVÉES. `live` marque une session EN COURS : la pousser reviendrait à
+      // ouvrir un second canal de partage, sans code, sans rôle et sans péremption.
+      getAllLocal:async()=>(await Data.getSessions()).filter(x=>!x.live),
+      dataPut:x=>Data.putSession(x),dataDel:id=>Data.delSession(id),toRow:sessionToRow,
+      clone:x=>JSON.parse(JSON.stringify(x)),idPrefix:'s',fromRow:sessionFromRow,
+      addMem:x=>sessions.push(x),
+      replaceMem:x=>{const i=sessions.findIndex(y=>y.id===x.id);if(i>=0)sessions[i]=x;else if(!x.deletedAt)sessions.push(x);},
+      dropMem:id=>{const i=sessions.findIndex(y=>y.id===id);if(i>=0)sessions.splice(i,1);}});},
   async _pullProtocols(){return this._pullTable({table:'protocols',cursorKey:'ac-sync-cursor-prot',
     getAllLocal:()=>Data.getProtocols(),fromRow:protocolFromRow,
     addMem:p=>protocols.push(p),
@@ -13673,6 +13809,11 @@ const Sync={
    branche un bus en processus et fait dialoguer deux pages SANS réseau ni Supabase — la logique
    d'application se teste donc pour de vrai, et la RLS reste couverte par rls-tests.sql. */
 const SHARE_NOMINAL_MS=2000, SHARE_STALE_MS=4000, SHARE_MAX_BATCH=50;
+/* ÉTAT DE LA PASSATION — en mémoire seulement. Une offre est un MOMENT, pas un contrat : la
+   retrouver après un rechargement ferait apparaître une proposition que plus personne ne se
+   rappelle avoir faite. `_hoOffer` = on me propose (invité) ; `_hoTake` = quelqu'un a pris, il
+   reste à l'inscrire (hôte) ; `_hoOffered` = à qui j'ai proposé (hôte, pour l'afficher). */
+let _hoOffer=false,_hoTake=null,_hoOffered=null;
 const Share={
   mode:'off',                 // 'off' | 'host' | 'guest'
   fold:null,                  // état PLIÉ du fil — l'unique état de l'invité (jamais chez l'hôte)
@@ -13901,6 +14042,18 @@ const Share={
   onEvents(ev){
     if(state.view!=='read'||!Runtime.fiche)return;      // rien à peindre : le pli suffit
     const f=Runtime.fiche;let peint=0;const anc=[];let anno=false;
+    /* PASSATION — un ÉTAT, jamais une interruption (invariant 2). Trois temps, comme l'exige
+       AC 61-115 « Positive Exchange of Flight Controls » : l'un PROPOSE, l'autre PREND, et le
+       changement de rôle qui suit vaut confirmation. Aucun écran ne change de capacité sans un
+       geste effectué SUR CET écran — un `handoff` reçu n'accorde donc rien à personne, il
+       AFFICHE. */
+    for(const e of ev){
+      if(e.kind!=='handoff'||e.actor===this.me)continue;
+      const p=e.payload||{};
+      if(p.to&&p.to===this.me){_hoOffer=true;anno=true;}
+      else if(p.to)_hoOffer=false;      // l'offre est passée à quelqu'un d'autre : elle n'est plus mienne
+      if(p.take&&this.mode==='host'){_hoTake=e.actor;anno=true;}
+    }
     for(const e of ev){
       if(e.actor&&e.actor===this.me)continue;           // (3) jamais ses propres évènements
       const mode=shareApplyMode(e.kind);
@@ -13942,6 +14095,13 @@ const Share={
        challenge courant, seuls son état et son contexte se mettent à jour. */
     // La bannière du lecteur est un rendu à part entière : elle apparaît même quand RIEN n'a été
     // peint dans la checklist, puisque c'est précisément le cas où l'on a refusé d'appliquer.
+    if(_hoTake&&this.mode==='host'){const who=_hoTake;_hoTake=null;
+      /* L'inscription est AUTOMATIQUE : l'hôte a consenti en PROPOSANT, et lui redemander une
+         confirmation ajouterait un quatrième temps à un échange qui en compte trois. Elle est
+         asynchrone et n'est pas attendue (règle 12) ; le rôle réel vient du serveur à la lecture
+         suivante, jamais de l'évènement — un rôle qu'un évènement suffirait à changer serait un
+         rôle que n'importe qui s'accorderait. */
+      this.grantLead(who).then(ok=>{if(ok){announce('Vous avez passé la main.');render();}});}
     if(peint||anno)readerRepaint();
     if(anno)announce('Le soignant a avancé — reprendre depuis le mode lecteur.');
     if(peint)announce(peint===1?'Une action d’un participant':peint+' actions d’un participant');},
@@ -14053,6 +14213,34 @@ const Share={
     this.participants=r.participants||[];
     this._kick(0);
     return true;},
+
+  /* PROPOSER LA MAIN (hôte) — une OFFRE, pas une décision. Le rôle ne change pas ici : il
+     changera quand l'autre l'aura PRISE, et c'est cette asymétrie qui fait la sûreté du geste.
+     Rien ne se re-rend chez personne : l'offre est un mot dans une surface déjà présente. */
+  offerLead(pid){
+    if(this.mode!=='host'||!pid)return false;
+    _hoOffered=pid;this.emit('handoff',{to:pid});return true;},
+  /* PRENDRE LA MAIN (invité) — le geste est SUR SON écran, et il ne s'accorde rien : il annonce.
+     C'est l'hôte, seul habilité par la RLS à écrire un rôle, qui l'inscrit. */
+  takeLead(){
+    if(this.mode!=='guest'||!_hoOffer)return false;
+    _hoOffer=false;this.emit('handoff',{take:true});return true;},
+  /* INSCRIRE LA PASSATION (hôte). Deux écritures, et l'ORDRE compte : on rétrograde d'abord, on
+     promeut ensuite. Dans l'autre sens, une coupure de réseau entre les deux laisserait DEUX
+     leads — « un seul détenteur à tout instant, jamais deux, jamais zéro » (invariant 1) ; ici,
+     le pire cas laisse ZÉRO lead, état dégradé mais non ambigu, que l'hôte corrige d'un geste. */
+  async grantLead(pid){
+    if(this.mode!=='host'||!this.share||!pid)return false;
+    const q=(id,role)=>rest('PATCH','/rest/v1/session_participants?share_id=eq.'
+      +encodeURIComponent(this.share)+'&participant=eq.'+encodeURIComponent(id),
+      {role:role},{'Prefer':'return=minimal'});
+    try{
+      const moi=(this.participants||[]).find(x=>x.owner);
+      if(moi)await q(moi.id,'scribe');
+      await q(pid,'lead');
+      this.role='scribe';_hoTake=null;_hoOffered=null;
+      return true;
+    }catch(e){return false;}},
 
   /* DEUX SORTIES, ET LA DISTINCTION EST DOCTRINALE, pas cosmétique.
      `freeze` = le LIEN meurt (coupé par l'hôte, expiré, détaché, session terminée) : le sondage
@@ -14191,8 +14379,15 @@ function shareSheetHtml(){
     const att=_shPend[p.id]&&!p.revoked;
     const cls=p.revoked?' off':(p.detached?' off':(att?' wait':''));
     const etat=p.revoked?'coupé':(p.detached?'seul':(att?'coupure…':(p.role==='lead'?'conduit':'relève')));
+    /* DONNER LA MAIN — une OFFRE, et le libellé le dit. Le rôle ne change pas au tap : il changera
+       quand l'autre l'aura PRISE. C'est l'échange en trois temps (AC 61-115), et c'est ce qui
+       empêche qu'une checklist se retrouve conduite par quelqu'un qui a posé son téléphone. */
+    const off=_hoOffered===p.id;
     return '<div class="sh-p'+cls+'"><span class="n">'+esc(p.label||'Invité')+'</span>'
       +'<span class="r">'+etat+'</span>'
+      +(p.revoked||p.detached||p.role==='lead'?''
+        :'<button class="btn sm" data-shlead="'+esc(p.id)+'"'+(off?' disabled':'')+'>'
+         +(off?'proposée…':'Donner la main')+'</button>')
       +(p.revoked||p.detached?'':'<button class="btn sm" data-shcut="'+esc(p.id)+'">Couper</button>')+'</div>';}).join('');
   /* PORTE FERMÉE = ON N'AFFICHE PLUS DE CODE. Tant que le code restait peint, l'hôte le dictait
      alors qu'il était déjà consommé (une jointure le brûle, avant l'échéance) : il croyait donner
@@ -14234,9 +14429,11 @@ function shPaintWhen(){
 function renderShareSheet(force){
   const body=document.getElementById('shareBody');if(!body)return;
   const sig=[Share.code,(Share.participants||[]).map(p=>p.id+':'+p.label+':'+p.role+':'+(p.revoked?1:0)+(p.detached?1:0)).join(','),
-    Object.keys(_shPend).join(',')].join('|');
+    Object.keys(_shPend).join(','),_hoOffered||''].join('|');
   if(force||sig!==_shSig){
     _shSig=sig;body.innerHTML=shareSheetHtml();
+    body.querySelectorAll('[data-shlead]').forEach(b=>b.onclick=()=>{
+      if(Share.offerLead(b.dataset.shlead))renderShareSheet(true);});
     body.querySelectorAll('[data-shcut]').forEach(b=>b.onclick=async()=>{
       const id=b.dataset.shcut;_shPend[id]=1;renderShareSheet(true);
       if(!await Share.revoke(id)){delete _shPend[id];renderShareSheet(true);
@@ -14863,7 +15060,7 @@ if(location.search.indexOf('__actest')>=0){
     crc32,zipBuild,zipParse,isPdfBytes,mdTask,flowOrder,latestPass,offPathSet,minimapData,passInfo,instComplete,flowPlan,stepCR,stepGuardTxt,optAbbr,svBranchIssue,svLoopTargets,ovPresList,
     posoTokens,posoName,posoScore,posoRank,posoSplit,
     qrRawBits,qrTotalCw,qrGen,qrRs,qrAlign,qrDataCw,qrInterleave,qrEncode,qrSvg,qrMul,
-    TAG_CORE,sanitizeTags,tagAll,tagLabel,tagRank,tkRefNorm,tkLabels,Share,
+    TAG_CORE,sanitizeTags,tagAll,tagLabel,tagRank,tkRefNorm,tkLabels,Share,sessionToRow,sessionFromRow,shareNavNorm,
     QR_ECW,QR_BLK,QR_MAXVER,QR_EXP,QR_LOG,
     sharePayload,shareCan,shareFold,shareStateHash,shareOffset,blankFiche,Share,
     shareSnap,shareDiff,

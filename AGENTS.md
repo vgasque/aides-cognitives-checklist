@@ -94,7 +94,7 @@ en gras de « Conventions de code » sont ses vraies entrées ; voici la carte, 
 | **Chrome, navigation, géométrie** | ON ANIME LA COMPOSITION · En-têtes V5 · ZONE HAUTE DE CRISE · DEUX RANGÉES COLLANTES · RAIL DE LECTURE · ANCRAGE ET DÉFILEMENT · DÉFILEMENT PRÉSERVÉ · HAUTEURS RELATIVES À LA FENÊTRE · Largeurs & échelles fermées · PILE DE RETOUR · RETOUR SYSTÈME · Sélecteur segmenté · Repli de l'étape ① · LOGO DE MARQUE · Pieds de page · Indicateur de mode des éditeurs · Interactif |
 | **Consultation et références** | FEUILLE « CONSULTER » · FEUILLE CONSULTER = UN DOCUMENT · REPÈRES POSOLOGIQUES · SORTIE PDF UNIFIÉE |
 | **Données, stockage, sécurité** | Documents PDF · Export/import « avec documents » · Nommage SQL · (et les points 4 à 6 ci-dessus) |
-| **Partage de session en direct** | PARTAGE DE SESSION · CE QUI VOYAGE · RÔLES ET CAPACITÉS · L'INVITÉ NE DÉPOSE RIEN · CONTINUER SEUL · TROIS RÉGIMES D'APPLICATION · JOURNAL RÉFÉRENTIEL · BILLET DE REPRISE |
+| **Partage de session en direct** | PARTAGE DE SESSION · CE QUI VOYAGE · RÔLES ET CAPACITÉS · L'INVITÉ NE DÉPOSE RIEN · CONTINUER SEUL · TROIS RÉGIMES D'APPLICATION · JOURNAL RÉFÉRENTIEL · BILLET DE REPRISE · PASSATION DE LA MAIN · HISTORIQUE DE SESSIONS SYNCHRONISÉ |
 | **Leçons de maintenance** | Collision de noms de classe · Hygiène de suppression |
 
 Les deux autres sections : **Périmètre réglementaire** (statut non-dispositif-médical — à consulter
@@ -1594,6 +1594,36 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   le bas, jamais vers le haut. Une étiquette PERSONNELLE se résout sur les appareils du même compte
   seulement : pendant un partage elle est marquée « · vous seul », parce que la taire laisserait
   croire à un mot partagé.
+- **PASSATION DE LA MAIN — TROIS TEMPS, ET AUCUN ÉCRAN NE CHANGE SEUL (v4.54.0).** Le scribe ne
+  conduit pas ; sans passation, quelqu'un qui a BESOIN de conduire n'a aucun recours, et
+  l'asymétrie devient une impasse. Modèle : AC 61-115 « Positive Exchange of Flight Controls » —
+  l'hôte **propose** (`handoff {to}`), l'autre **prend** (`handoff {take}`), et le changement de
+  rôle vaut confirmation. **`handoff` est ouvert aux DEUX rôles**, côté client comme côté serveur,
+  et ce n'est pas un relâchement : il ne change AUCUN état, il ANNONCE. Le rôle lui-même est un
+  UPDATE de `session_participants` que la RLS réserve au propriétaire du partage — la frontière de
+  sécurité est là, sur l'écriture du rôle, pas sur l'annonce ; le réserver au lead aurait interdit
+  à l'invité d'accomplir le temps que la doctrine exige de LUI. **Le rôle ne vient JAMAIS d'un
+  évènement** (il serait alors auto-attribuable), toujours de la lecture suivante. **L'offre se dit
+  dans le QUAI** (jeton `offert`, position constante) **et le geste vit dans le menu ⋯** — doctrine
+  de « Recommencer le parcours » : une rangée qui apparaîtrait dans la colonne d'action ferait
+  remonter le contenu clinique sur évènement DISTANT. L'inscription est **automatique** à la
+  prise : l'hôte a consenti en proposant, et lui redemander confirmation ajouterait un quatrième
+  temps à un échange qui en compte trois. `grantLead` **rétrograde d'abord, promeut ensuite** — dans
+  l'autre sens, une coupure entre les deux laisserait DEUX leads ; ici le pire cas en laisse ZÉRO,
+  dégradé mais non ambigu (invariant 1).
+- **HISTORIQUE DE SESSIONS SYNCHRONISÉ (v4.54.0) — L'INVARIANT LEVÉ, ET CE QUI LE REMPLACE.**
+  « Les sessions vivent en local, jamais synchro » était une propriété ÉCRITE dont le mode
+  EXERCICE tirait sa garantie de non-contamination. Elle est levée **sur opt-in, défaut fermé**
+  (bascule dans la fenêtre Compte, par UTILISATEUR — l'activer ici et la découvrir éteinte ailleurs
+  serait la pire des surprises). Ce qui la remplace : **seules les sessions ARCHIVÉES montent**
+  (`live:false` — une session vive resynchronisée serait un second canal de partage, sans code,
+  sans rôle et sans péremption) ; **l'exercice est ségrégé par une COLONNE**, plus par la localité ;
+  **`verified`/`vgaps` ne montent pas** (décision d'étape) mais leur absence est **DITE** — un
+  drapeau `vElsewhere` fait écrire au compte rendu distant « son détail reste sur l'appareil qui
+  l'a produite », car une trace absente qui ne s'annonce pas se lit « aucune vérification n'a été
+  faite » ; **`data` accepte dès aujourd'hui `{v:2, enc:<blob>}`**, seule décision de forme
+  irréversible une fois des données en place. Suppression = **pierre tombale** dès que la synchro
+  est active (sinon la session effacée revient au pull suivant), suppression franche sinon.
 - **LE BILLET DE REPRISE (`sessionStorage`)** — un onglet mobile meurt tout seul, et l'invité
   perdait sa participation SANS RETOUR (rien n'était persisté, et son code est consommé). Le billet
   ne porte que l'identifiant du partage et le secret : **aucune donnée clinique**. Sa portée est
