@@ -1510,6 +1510,18 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   **L'OBJECTION D'AMBIGUÏTÉ** (§5.5, « qui fait quoi », qu'Airbus supprime par un ECP unique) reçoit
   la réponse constante du projet : **on n'interdit pas, on ANNONCE** — une avance venue d'en face
   pose une mention « avancé par ‹rôle› » sur la carte courante, à côté de « Vous êtes ici ».
+  **LE MENU ⋯ SE REFAIT SANS RE-RENDRE (v4.55.2)** : ses rangées sont construites AU RENDU, que la
+  règle 3 interdit sur évènement distant — « Partage en cours (n) » restait donc figé au compte du
+  moment où la fiche a été ouverte, et « Prendre la main » ne paraissait JAMAIS, puisqu'une offre
+  arrive par le réseau. On mémorise le CONSTRUCTEUR (`_moreBuild`), pas seulement son résultat, et
+  `shareMenuRefresh()` le rejoue : le menu vit dans l'en-tête, hors de `main`, donc pas une ligne
+  de la checklist ne bouge. La rangée « Prendre la main » vit dans le menu de L'INVITÉ — elle avait
+  été posée dans celui de l'hôte, où sa condition ne pouvait jamais être vraie.
+  **UN LIEN MORT REFUSE TOUT, ET LE DIT** (`MUTE_SEL` + `SHARE_DEAD`) : un invité coupé pouvait
+  encore incrémenter un compteur ; le geste ne partait pas et RIEN ne le lui disait — mot pour mot
+  le pire mode de défaillance du plan. `detached` n'en est PAS : celui qui a poursuivi seul
+  travaille sur SA session, et lui refuser ses gestes lui retirerait le repli hors dispositif qu'on
+  vient de lui donner (AC 120-64 §9.a).
   **LES DEUX LISTES SONT LA MÊME RÈGLE EN DEUX LANGAGES** (`SHARE_KINDS_ANY`/`_LEAD` et
   `share_kind_allowed`) : leur divergence est SILENCIEUSE et asymétrique — client plus permissif, un
   geste part et le serveur le jette sans que l'auteur le sache ; serveur plus strict, un geste

@@ -1555,6 +1555,84 @@ console.log(`\n══ PARTAGE · le lecteur est bridé comme la page — moteur 
   await page.close();
 }
 
+/* ── LE MENU SUIT L'ÉTAT DU PARTAGE, ET LE LIEN MORT REFUSE TOUT ─────────────────────────────
+   Trois signalements d'usage, une cause commune pour les deux premiers : les rangées du menu ⋯
+   sont construites AU RENDU, et la règle 3 interdit de rendre sur évènement distant. Le compte de
+   participants restait donc figé, et « Prendre la main » — qui n'existe que si une offre est
+   arrivée — ne paraissait JAMAIS : la passation n'avait pas de porte.
+   Le troisième : un invité COUPÉ pouvait encore incrémenter un compteur, sans que rien ne lui dise
+   que son geste ne partait plus. « Cocher dans le vide en croyant contribuer » est nommé au plan
+   comme le pire mode de défaillance du dispositif. */
+console.log(`\n══ PARTAGE · le menu suit, le lien mort refuse — moteur ${NOM_MOTEUR} ══`);
+{
+  const page = await br.newPage({ viewport: { width: 390, height: 844 } });
+  await session(page);
+  const r = await page.evaluate(async () => {
+    const f = fiches.find(x => /Arrêt/.test(x.title)) || fiches[0];
+    Share._io.join = async () => ({ ok: true, share: 's1', secret: 'x'.repeat(24), me: 'p1',
+      role: 'scribe', fiche: sharePayload(f), server_time: new Date().toISOString() });
+    Share._io.pull = async () => ({ ok: true, status: 'active', events: [], seq: 0, n_events: 0,
+      participants: [], server_time: new Date().toISOString() });
+    Share._io.push = async () => ({ ok: true, server_time: new Date().toISOString() });
+    openJoinScreen('K7M2P4Q9'); await joinGo(); await new Promise(x => setTimeout(x, 500));
+    const lire = () => { openMoreMenu();
+      const t = [...document.querySelectorAll('#moreMenu .mm-row')].map(b => b.textContent.trim());
+      closeMoreMenu(); return t; };
+    const out = { avant: lire(), toastsAvant: document.querySelectorAll('.toast').length };
+
+    /* 1 — UNE OFFRE ARRIVE. Le menu doit gagner sa rangée SANS que la checklist soit re-rendue :
+       on relève un témoin visible avant/après pour le prouver. */
+    const tem = main.querySelector('[data-ck]');
+    const y0 = tem ? Math.round(tem.getBoundingClientRect().top) : null;
+    Share.onEvents([{ seq: 1, id: 'h1', actor: 'hote', kind: 'handoff', payload: { to: 'p1' } }]);
+    await new Promise(x => setTimeout(x, 350));
+    out.apres = lire();
+    const tem2 = main.querySelector('[data-ck]');
+    out.derive = (y0 !== null && tem2) ? Math.round(tem2.getBoundingClientRect().top) - y0 : 0;
+    out.memeNoeud = tem === tem2;      // la checklist n'a PAS été reconstruite
+
+    /* 2 — LE LIEN MORT REFUSE TOUT, ET LE DIT. Le compteur est un geste ADDITIF, donc ouvert au
+       scribe tant que le lien vit : c'est exactement le cas qui passait à travers. */
+    /* LE COMPTEUR VIT DANS UN PANNEAU REPLIÉ sous le seuil du rail : sans cette ouverture, la
+       sonde ne trouve aucun bouton et conclut que le geste est bloqué — alors qu'elle n'a rien
+       mesuré du tout. Même oubli que dans le bloc de bridage, et même remède. */
+    { state.rtOpen = true; render(); await new Promise(x => setTimeout(x, 400)); }
+    Share.status = 'revoked';
+    // On vide la zone d'annonce : elle porte encore le message de l'offre reçue plus haut, et
+    // `announce` écrit avec 30 ms de retard — lire trop tôt, c'est lire le message précédent.
+    { const z = document.getElementById('srLive'); if (z) z.textContent = ''; }
+    const inc = document.querySelector('[data-cninc]');
+    let cA = null, cB = null;
+    if (inc) { const id = inc.dataset.cninc; cA = Runtime.counters[id];
+      inc.click(); await new Promise(x => setTimeout(x, 400)); cB = Runtime.counters[id]; }
+    out.compteurFige = (cA === cB);
+    out.annonce = (document.getElementById('srLive') || {}).textContent || '';
+    out.toasts = document.querySelectorAll('.toast').length - out.toastsAvant;
+    out.modales = document.querySelectorAll('.ai-modal.on').length;
+
+    /* … mais un DÉTACHÉ garde ses gestes : il travaille sur SA session, et lui les refuser serait
+       lui retirer le repli hors dispositif qu'on vient de lui donner (AC 120-64 §9.a). */
+    Share.status = 'detached';
+    let dA = null, dB = null;
+    const inc2 = document.querySelector('[data-cninc]');
+    if (inc2) { const id = inc2.dataset.cninc; dA = Runtime.counters[id];
+      inc2.click(); await new Promise(x => setTimeout(x, 400)); dB = Runtime.counters[id]; }
+    out.detacheTravaille = (dB > dA);
+    return out;
+  });
+  t('témoin : « Prendre la main » n’est pas là au départ',
+    !r.avant.some(x => /Prendre la main/i.test(x)), r.avant.join(' | '));
+  t('une offre distante FAIT APPARAÎTRE la rangée',
+    r.apres.some(x => /Prendre la main/i.test(x)), r.apres.join(' | '));
+  t('… sans reconstruire la checklist', r.memeNoeud === true);
+  t('… et sans rien déplacer (≤ 1 px)', Math.abs(r.derive) <= 1, `${r.derive} px`);
+  t('coupé : un compteur ne bouge plus', r.compteurFige === true);
+  t('… et le refus est ANNONCÉ', /retiré|transmis/i.test(r.annonce), r.annonce);
+  t('… sans banderole ni fenêtre (règle 11)', r.toasts === 0 && r.modales === 0);
+  t('mais un DÉTACHÉ continue de travailler', r.detacheTravaille === true);
+  await page.close();
+}
+
 await br.close(); srv.close();
 console.log(`\n${ok}/${ok + ko} contrôles partage OK` + (ko ? ` — ${ko} ÉCHEC(S)` : ''));
 process.exit(ko ? 1 : 0);

@@ -1,5 +1,53 @@
 # Journal des modifications
 
+## [4.55.2] — 2026-07-28
+### Le menu ne suivait pas l'état du partage — et « Prendre la main » n'était nulle part
+
+Trois signalements d'usage, deux causes. La première explique pourquoi la passation semblait sans
+effet : **le geste n'avait pas de porte.**
+
+### Un menu construit au rendu, dans un dispositif qui interdit de rendre
+Les rangées du menu ⋯ sont bâties **au rendu** et stockées telles quelles. Or la règle 3 interdit de
+re-rendre sur évènement distant — c'est elle qui empêche qu'un écran bouge sous le doigt de
+quelqu'un qui coche. Conséquence : « Partage en cours **(n)** » gardait le compte du moment où la
+fiche avait été ouverte, et **« Prendre la main » ne paraissait jamais**, puisqu'une offre arrive
+par le réseau.
+
+On mémorise donc le **constructeur** des rangées, pas seulement son résultat, et on le rejoue quand
+l'état du partage change. Le menu vit dans l'en-tête, hors de `main` : **pas une ligne de la
+checklist ne bouge** — vérifié, le nœud témoin est le même objet avant et après, à 0 px.
+
+Et la rangée elle-même était **au mauvais endroit** : posée dans le menu de l'hôte, où sa condition
+`Share.mode === 'guest'` ne pouvait jamais être vraie. Elle n'existait donc nulle part. Elle vit
+maintenant dans le menu de l'invité, le seul où elle ait un sens.
+
+### Un lien mort qui laissait agir sans rien dire
+Après « Couper », l'invité ne pouvait plus cocher — mais il pouvait encore **incrémenter un
+compteur**. Le geste ne partait pas, et **rien ne le lui disait**. C'est mot pour mot le pire mode
+de défaillance nommé au plan : *« un invité qui continue de cocher dans le vide en croyant
+contribuer à une réanimation en cours »*.
+
+La garde couvrait les gestes **réservés** ; il en manquait une pour le cas où le **lien est mort**,
+qui n'a rien à voir avec le rôle. Toute mutation est désormais refusée et **annoncée** sur `#srLive`
+— seul canal admis pendant un soin (règle 11 : ni modale, ni banderole).
+
+**`detached` n'en fait pas partie, et c'est délibéré** : celui qui a poursuivi seul travaille sur
+*sa* session. Lui refuser ses gestes reviendrait à lui retirer le repli hors dispositif qu'on vient
+de lui donner (AC 120-64 §9.a). Un contrôle l'encode.
+
+### Vérification
+**271/271 contrôles partage** (+8, sur les deux moteurs), 756 tests × 2 moteurs, 14 harnais verts,
+301 contrôles d'accessibilité, 94/94 doctrine. Les trois défauts réintroduits à l'identique en font
+tomber trois ; fichier restauré à l'octet.
+
+Deux sondes ont encore dû être corrigées avant de conclure : l'une cherchait un bouton de compteur
+dans un panneau **replié** — elle ne mesurait rien et concluait que le geste était bloqué ; l'autre
+lisait la zone d'annonce **sans la vider**, et y trouvait le message précédent. Même travers que
+depuis le début de ce chantier : mesurer le mécanisme au lieu de la propriété.
+
+**Rien à rejouer côté serveur.** Restent trois signalements : le bandeau d'en-tête de l'invité, les
+trois défauts de mise en page, et les notifications retenues jusqu'à l'accueil.
+
 ## [4.55.1] — 2026-07-28
 ### CORRECTIF — les assertions ajoutées en v4.55.0 lisaient une table sous le rôle `anon`
 
@@ -1533,71 +1581,3 @@ soignant** — une aide partagée réécrite à distance en pleine réanimation 
 celle qu'on déroule ; la nouvelle version arrive à la réouverture.
 
 510 tests × 2 moteurs, 11 harnais verts (dont 27/27 en doctrine), 289 contrôles d'accessibilité.
-
-## [4.41.0] — 2026-07-27
-### Phase 3 (optimisation) — premier lot : le seul vrai levier de performance, et deux invariants
-La campagne de mesure a couvert six dimensions (démarrage, re-rendus, calcul répété, service
-worker, CSS, Web Vitals) sous vérification adversariale. **Le résultat principal est que
-l'application est déjà rapide** : 26 « rien à faire » démontrés, 16 constats réfutés, et **un seul**
-levier de performance réel. Les chiffres du budget, re-mesurés machine au repos : démarrage 66 ms
-(CPU nominal) / 262 ms (×4) ; un parcours clinique complet ne déclenche que 5 `render()` complets ;
-`esc()`, appelée 817 fois par rendu, coûte 0,06 ms.
-
-### `transition:width` sur la barre de minuteur → `transform:scaleX()`
-`width` est une propriété de **mise en page** : animée en continu, elle force un layout par image.
-En session vive avec un minuteur d'intervalle armé et le panneau ouvert, six secondes sans le
-moindre geste : **118 layouts/s, 123 recalculs de style/s**, soit 126,8 ms/s de fil principal à CPU
-nominal, 206,9 à ×4 et 377,3 à ×6 — **jusqu'à 38 % d'un cœur brûlés pendant toute une réanimation**,
-sans qu'aucun JS ne s'exécute.
-
-Mesuré après application, sur le fichier réel contre un témoin `width` réinjecté :
-115,0 → **11,4** ms/s (×1), 193,5 → **18,2** (×4), 248,0 → **25,9** (×6) ; 115 → **2** layouts/s.
-WebKit, hors CDP : **+9,7 %** de débit utile du fil principal.
-
-Un arbitrage annoncé n'a finalement pas eu lieu d'être. Deux vérificateurs divergeaient sur ce que
-rend `scaleX` — l'un mesurait ~120 recalculs de style/s résiduels, ce qui aurait obligé à choisir
-entre performance et rendu. L'A/B rejoué à trois variantes (actuel / `scaleX` / sans transition),
-servies en mémoire, tranche : **17 recalculs/s**, l'animation est bien composée, et `scaleX` rend
-autant que supprimer l'animation *sans changer le rendu*. Le gain est de la **marge CPU et de
-l'autonomie**, pas de la fluidité (120 fps et latence de cochage identiques) — ne pas le vendre
-autrement.
-
-Rendu vérifié au pixel, et la première sonde était fausse : elle mesurait un minuteur **en marche**,
-donc une cible mouvante (le « 0 % » relevait `scaleX(0.9912)` — le minuteur avait rebouclé). Refaite
-à minuteur figé : géométrie identique à 0,01 px près, et la comparaison des captures ne diffère que
-sur **une colonne de 4 px** — l'anticrénelage du bord mobile, écart max 73/255 — plus les deux
-extrémités arrondies à 100 % (≤ 9/255). Identique dans les deux thèmes. Une source unique `barTf()`
-sert le gabarit ET le tick : deux formats seulement équivalents (`scaleX(0.76)` vs `scaleX(0.7600)`)
-feraient échouer la comparaison anti-churn et réécriraient le style 3,3 fois par seconde. Vérifié :
-17 écritures en 5 s pour ~16,7 passages du tick, soit une par tick.
-
-### Garde-fou `scripts/check-anim.mjs`, dans `npm run check`
-Aucune propriété de mise en page dans un `transition` ni dans un `@keyframes`. La règle était déjà
-respectée partout ailleurs (19 keyframes sur 19) — c'est le profil exact d'une règle qu'un seul oubli
-trahit sans que rien ne le signale. Une exemption, motivée : `.skiplink` (glissement de 120 ms une
-fois par focus ; le convertir mettrait en jeu une position dépendant d'`env(safe-area-inset-top)`,
-soit un risque d'accessibilité pour un gain nul). Le contrôle a été **vérifié capable d'échouer**
-(défaut réintroduit, message juste, fichier restauré à l'octet) — leçon v4.31.1 : un garde-fou qui
-ne peut pas échouer ne prouve rien.
-
-### `touch-action:manipulation` sur les étapes cochables
-AGENTS.md § Interactif énonce que « tous les contrôles » le portent. Mesuré en session vive à
-390×844 : **5 cibles en `touch-action:auto`** sur « Anaphylaxie », 3 sur « Arrêt cardiaque » — les
-`li[role="checkbox"]` du parcours, que la règle de base ne couvrait pas alors que
-`li.md-task[role="checkbox"]` (protocoles) le posait déjà. Après : **0**, sur Chromium et WebKit.
-Le gain n'est pas un délai de tap — le délai de ~350 ms n'existe plus pour un viewport
-`width=device-width`, et le commentaire qui l'affirmait encore avait servi à justifier de ne pas
-étendre la règle : il est corrigé. Ce que le réglage évite est le **zoom parasite** quand deux taps
-tombent à moins de ~40 px l'un de l'autre — 12 px mesurés entre deux étapes voisines, et en
-réanimation on coche des étapes voisines à la chaîne.
-
-### Un minuteur échu ne peignait pas son état sur les rangées compactes
-Trouvé par la sonde du point précédent. `.tm-mini` (rangée compacte d'un minuteur ad hoc, le
-« ＋ Minuteur PA ») partage l'id `tmcard-<id>` avec la carte pleine, et `syncTimerBtns` bornait son
-basculement d'état à `.tmcard`. Mesuré sur **Chromium ET WebKit** : le modèle disait « échu », la
-rangée restait NEUTRE tant qu'aucun re-rendu complet ne passait — alors que `.tm-mini.due` est bien
-stylée (cadre et encre ambre). L'alarme n'était pas perdue (le quai porte l'ambre, canal
-d'acquittement documenté), mais elle manquait là où l'œil se trouve quand le panneau est ouvert.
-`paused` reste réservé à la carte pleine : `.tm-mini.paused` n'a pas de règle.
-
-510 tests × 2 moteurs, 11 harnais verts, 289 contrôles d'accessibilité.

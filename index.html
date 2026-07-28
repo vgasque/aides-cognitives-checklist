@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-r9kYItfbm4dmduUrqDdrf3Q8sBWMP2DZJMMucqDM3vY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-5jCo65jUf3MtkVtPquHSVANz1Kuz/r7TwY9EHwiwD+0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -3798,7 +3798,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.55.1';
+const APP_VERSION='4.55.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -8392,10 +8392,28 @@ const LEAD_ONLY_SEL='[data-tmreset],[data-cnreset]';
    d'office ; et s'il n'en porte aucun, il est ouvert par défaut — ce qui est le bon sens du
    défaut, puisque les gestes ADDITIFS sont la règle et les gestes destructeurs l'exception.
    AUCUNE BANDEROLE (règle 11) : le refus s'annonce sur `#srLive`, invisible à l'écran. */
+/* TOUT CE QUI MUTE — pour le cas où le LIEN EST MORT, distinct du cas où le rôle ne suffit pas.
+   Un invité coupé pouvait encore incrémenter un compteur : le geste ne partait pas (l'émission le
+   refuse) et RIEN ne le lui disait. C'est mot pour mot le pire mode de défaillance du plan :
+   « cocher dans le vide en croyant contribuer ». */
+const MUTE_SEL='[data-ck],[data-cninc],[data-cndec],[data-cnreset],[data-tmtoggle],[data-tmreset],'
+  +'[data-ovnext],[data-ovend],[data-ovredo],[data-ovopt],[data-plgo],[data-svgo],[data-svref],'
+  +'[data-rmok],[data-rmgap],[data-rmnext],[data-rmopt],[data-rmback],[data-cxback],'
+  +'[data-ovverify],[data-ovvok],[data-ovvgap],[data-tkdel],[data-tktime],#tkAdd';
+/* `detached` N'EN EST PAS : celui qui a poursuivi seul travaille sur SA session, et lui refuser ses
+   gestes serait lui retirer le repli hors dispositif qu'on vient de lui donner (AC 120-64 §9.a). */
+const SHARE_DEAD=['revoked','ended','expired'];
 function bindLeadGuard(){
   const garde=e=>{
     let m=null;try{m=Share.mode;}catch(_){return;}
     if(m!=='guest')return;
+    if(SHARE_DEAD.indexOf(Share.status)>=0){
+      const mu=e.target&&e.target.closest?e.target.closest(MUTE_SEL):null;
+      if(mu){e.preventDefault();e.stopPropagation();
+        announce(Share.status==='revoked'
+          ? 'Votre accès a été retiré : ce geste n’est plus transmis.'
+          : 'Le partage est terminé : ce geste n’est plus transmis.');
+        return;}}
     const el=e.target&&e.target.closest?e.target.closest(LEAD_ONLY_SEL):null;
     if(!el)return;
     if(Share.canWrite('nav'))return;                 // un invité PROMU lead passe
@@ -9325,7 +9343,17 @@ function bindReadEvents(f,blk,cur){
      — le « ‹ » d'en-tête — changeait la vue en laissant le mode et le sondage armés, sans chemin
      de retour vers le miroir. Un dispositif dont on ne peut pas sortir n'est pas un dispositif de
      confiance, et le collègue à qui l'on tend un QR mérite de savoir qu'il peut partir. */
-  if(!state.previewFrom&&Share.mode==='guest')setMoreMenu([
+  _moreBuild=null;
+  if(!state.previewFrom&&Share.mode==='guest')_moreBuild=()=>setMoreMenu([
+    /* PRENDRE LA MAIN — DANS LE MENU DE L'INVITÉ, et c'est le seul endroit où elle a un sens :
+       c'est lui qu'on sert. Elle vivait dans le menu ORDINAIRE — celui de l'hôte —, où la
+       condition `Share.mode==='guest'` ne pouvait jamais être vraie : la rangée n'existait donc
+       nulle part, et la passation semblait sans effet. Le geste vit ici à position constante
+       pendant que le quai porte l'état (doctrine de « Recommencer le parcours »). */
+    ...(_hoOffer
+      ? [{label:'Prendre la main',ic:'⇄',sub:'vous conduirez la checklist',
+          act:()=>{if(Share.takeLead()){announce('Vous avez pris la main.');shareMenuRefresh();}}}]
+      : []),
     ...(hasFlow(f)?[{label:'Mode lecteur (binôme)',ic:uiIcon('play',16),act:readerOpen}]:[]),
     ...(hasFlow(f)&&state.readMode!=='static'?[{label:'Se repérer',ic:uiIcon('ladder',16),sub:'échelle des blocs',act:openPlanSheet}]:[]),
     ...(hasFlow(f)?[{label:'Schéma de l’algorithme',ic:uiIcon('flow',16),sub:'plein écran, zoom',act:()=>openFlowFull(f)}]:[]),
@@ -9340,7 +9368,7 @@ function bindReadEvents(f,blk,cur){
     'sep',
     {label:'Quitter le partage…',ic:uiIcon('stop',16),danger:true,sub:'vous ne suivrez plus la session',act:quitShare}
   ]);
-  else if(!state.previewFrom)setMoreMenu([
+  else if(!state.previewFrom)_moreBuild=()=>setMoreMenu([
     ...(cxAll(f).length?[{label:'Complication'+(cxAll(f).length>1?'s ('+cxAll(f).length+')':''),ic:'⚡',sub:'à tout moment',act:()=>openCxDlg(f)}]:[]),
     ...(hasFlow(f)?[{label:'Mode lecteur (binôme)',ic:uiIcon('play',16),act:readerOpen}]:[]),
     ...(hasFlow(f)&&state.readMode!=='static'?[{label:'Se repérer',ic:uiIcon('ladder',16),sub:'échelle des blocs',act:openPlanSheet}]:[]),
@@ -9352,13 +9380,6 @@ function bindReadEvents(f,blk,cur){
        la largeur romprait la constance positionnelle. Le partage ne s'ouvre que sur une session
        DÉMARRÉE : proposé sans elle, il ferait démarrer la session de l'hôte par la première action
        de l'invité — donc un re-rendu complet sous son doigt. */
-    /* PRENDRE LA MAIN — le geste vit ici, à position constante, pendant que le quai porte l'état.
-       Il n'apparaît QUE si l'offre existe : une rangée morte au moment où le menu sert le plus est
-       exactement ce que la refonte d'ordre de la v4.28.0 a supprimé. */
-    ...(Share.mode==='guest'&&_hoOffer
-      ? [{label:'Prendre la main',ic:'⇄',sub:'vous conduirez la checklist',
-          act:()=>{if(Share.takeLead()){announce('Vous avez pris la main.');render();}}}]
-      : []),
     ...(Share.mode==='host'
       ? [{label:'Partage en cours ('+(Share.participants||[]).filter(p=>!p.owner&&!p.revoked).length+')',
           ic:'⇄',sub:'code, participants, arrêt',act:openShareSheet}]
@@ -9395,6 +9416,7 @@ function bindReadEvents(f,blk,cur){
       sub:started?'la session s’exporte par « Compte-rendu »':'le contenu de la fiche',act:exportPdfCurrent},
     ...(started?['sep',{label:Runtime.exercise?'Terminer l’exercice…':'Terminer la session…',ic:uiIcon('stop',16),danger:true,act:endCurrentSession}]:[]),
   ]);
+  if(_moreBuild)_moreBuild();
   main.querySelectorAll('[data-openrel]').forEach(b=>b.onclick=()=>openRel(b.dataset.openrel));
   /* ÉCHELLE DU RAIL (v4.23.0) : mêmes gestes que dans le Plan — déplier une ligne, aller à un
      bloc, suivre un renvoi. Délégation propre au rail : il n'est pas dans `.ov-wrap`, donc les
@@ -13062,6 +13084,20 @@ document.getElementById('hdrTheme').onclick=()=>{const cur=localStorage.getItem(
 const hdrMoreBtn=document.getElementById('hdrMore'),moreMenuEl=document.getElementById('moreMenu');
 let _moreRows=null;
 function closeMoreMenu(){if(moreMenuEl.hidden)return;moreMenuEl.hidden=true;hdrMoreBtn.setAttribute('aria-expanded','false');}
+/* LE MENU SE REFAIT SANS RE-RENDRE LA CHECKLIST (v4.55.2).
+   Les rangées sont construites au RENDU et stockées telles quelles : « Partage en cours (n) »
+   gardait donc le compte du moment où la fiche avait été ouverte, et « Prendre la main » — qui
+   n'existe que si une offre est arrivée — ne paraissait JAMAIS, puisqu'une offre arrive par le
+   réseau et que la règle 3 interdit de re-rendre sur évènement distant. La passation semblait
+   sans effet pour cette seule raison : le geste n'avait pas de porte.
+   On mémorise donc le CONSTRUCTEUR des rangées, pas seulement leur résultat. Le menu vit dans
+   l'en-tête, hors de `main` : le refaire ne touche pas une ligne de la checklist, et si le menu
+   est ouvert à cet instant il se repeint en place. */
+let _moreBuild=null;
+function shareMenuRefresh(){
+  if(typeof _moreBuild!=='function')return;
+  try{_moreBuild();}catch(e){return;}
+  if(moreMenuEl&&!moreMenuEl.hidden)openMoreMenu();}
 function setMoreMenu(rows){
   // Groupes CONDITIONNELS (v4.28.0) : on normalise les séparateurs au lieu de l'exiger de chaque
   // appelant — jamais de 'sep' en tête, en queue, ni deux de suite (un groupe vide disparaît).
@@ -14234,8 +14270,11 @@ const Share={
         _navBy={qui:(q&&q.label)||'un participant',at:Date.now()};anno=true;}
       if(e.kind!=='handoff'||e.actor===this.me)continue;
       const p=e.payload||{};
-      if(p.to&&p.to===this.me){_hoOffer=true;anno=true;}
-      else if(p.to)_hoOffer=false;      // l'offre est passée à quelqu'un d'autre : elle n'est plus mienne
+      /* SANS CE RAFRAÎCHISSEMENT, « Prendre la main » N'APPARAISSAIT JAMAIS : l'offre arrive par
+         le réseau, et le menu n'est construit qu'au rendu — que la règle 3 interdit ici. Le geste
+         n'avait donc pas de porte, et la passation semblait sans effet. */
+      if(p.to&&p.to===this.me){_hoOffer=true;anno=true;try{shareMenuRefresh();}catch(_){}}
+      else if(p.to&&_hoOffer){_hoOffer=false;try{shareMenuRefresh();}catch(_){}}   // offerte à un autre
       if(p.take&&this.mode==='host'){_hoTake=e.actor;anno=true;}
     }
     for(const e of ev){
