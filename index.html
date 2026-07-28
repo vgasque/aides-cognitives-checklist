@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-5CugDdD+Jvh5Mn/TBZYOM312YGzdTI4vlMScytigbzs='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-w7tnv+InzHDH2zLrGz4wW96DtRRxQubgYA5o87nKJx8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1155,7 +1155,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      colonnes (redistribution en dents de scie bornée, inhérente aux grilles fluides — c'est elle
      qu'on observait vers 1520 px : 3 × ~390 → 4 × ~296), jamais l'échelle. */
   .qa-grid{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(290px,1fr))}
-  .qa-tile{position:relative;display:flex;flex-direction:column;gap:4px;align-items:flex-start;justify-content:center;min-height:72px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-md);padding:11px 12px 11px 18px;box-shadow:var(--shadow);cursor:pointer;text-align:left;font-family:inherit;overflow:hidden;color:var(--ink)}
+  .qa-tile{position:relative;display:flex;align-items:center;gap:10px;min-height:72px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-md);padding:11px 12px 11px 18px;box-shadow:var(--shadow);cursor:pointer;text-align:left;font-family:inherit;overflow:hidden;color:var(--ink)}
+  /* Le badge « ● En cours » vit À DROITE de la tuile, centré (maquette desktop) — glissé dans la
+     sous-ligne de 11 px, il l'étirait et semblait rapporté (retour utilisateur v4.56.1). */
+  .qa-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+  .qa-tile>.tag.live{flex:none}
   .qa-tile:hover{border-color:var(--line-hover)}
   .qa-tile:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .qa-tile::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--stripe,transparent)}
@@ -3914,7 +3918,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.56.1';
+const APP_VERSION='4.56.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -6854,6 +6858,22 @@ function syncHdrScroll(){
   if(t!==_hdrTtl){_hdrTtl=t;_hb.classList.toggle('ttl-on',t);}
 }
 window.addEventListener('scroll',syncHdrScroll,{passive:true});
+/* BUG WEBKIT — PISTES DE GRILLE FIGÉES AU REDIMENSIONNEMENT (v4.56.2, signalé à l'usage,
+   REPRODUIT à la sonde sur WebKit seul : rétrécir puis ré-élargir la fenêtre en continu).
+   Quand un changement du nombre de colonnes d'une grille auto-fill fait ré-enrouler la
+   sous-ligne d'une rangée, WebKit ne regrandit pas la piste : la rangée garde son ancienne
+   hauteur, son contenu centré dépasse (titre rogné en haut de 11 px, date en bas de 5 px,
+   mesurés — l'état CORROMPU PERSISTE, même re-rendu). Chromium n'est jamais touché.
+   Remède : au TERME du redimensionnement (traînée 120 ms — pendant le geste, c'est le bug
+   Safari transitoire, on ne paie pas un reflow par évènement), forcer le recalcul en passant
+   chaque grille par block puis grid DANS LA MÊME FRAME (écriture-lecture-écriture synchrones :
+   rien ne se peint entre les deux, aucun clignotement). */
+let _gridFixT=null;
+window.addEventListener('resize',()=>{if(state.view!=='library')return;
+  clearTimeout(_gridFixT);
+  _gridFixT=setTimeout(()=>{if(state.view!=='library')return;
+    main.querySelectorAll('.dir-grid,.qa-grid').forEach(g=>{
+      const d=g.style.display;g.style.display='block';void g.offsetHeight;g.style.display=d||'';});},120);});
 // keepQuery : bascule déclenchée par la RECHERCHE TRANSVERSALE -> la requête est conservée
 // (le filtre de catégorie, lui, est remis à zéro : il pourrait masquer les résultats attendus).
 // Mémoire de DÉFILEMENT par section (v4.4.1) : basculer Aides <-> Protocoles ne doit pas
@@ -7147,8 +7167,9 @@ function renderFiches(){
     // porte pour toutes (« vos épinglées ★ ») — on désépingle depuis la rangée du répertoire.
     tile:f=>{const cc=catOf(f);const isLive=!!liveSessions[f.id];
       return `<button type="button" class="qa-tile card-open" data-open="${f.id}" title="${esc(f.title)||'Sans titre'}"${cc?` style="--stripe:${safeColor(cc.color)}"`:''}>
-        <span class="qa-t">${esc(f.title)||'Sans titre'}</span>
-        <span class="qa-sub">${f.code?`<span class="code">${esc(f.code)}</span>`:''}${cc?`<span>${f.code?'· ':''}${esc(cc.name)}</span>`:''}${isLive?'<span class="tag live">● En cours</span>':''}</span>
+        <span class="qa-tx"><span class="qa-t">${esc(f.title)||'Sans titre'}</span>
+        <span class="qa-sub">${f.code?`<span class="code">${esc(f.code)}</span>`:''}${cc?`<span>${f.code?'· ':''}${esc(cc.name)}</span>`:''}</span></span>
+        ${isLive?'<span class="tag live">● En cours</span>':''}
       </button>`;},
     remainLbl:n=>'restante'+(n>1?'s':''),
     empty:{title:'Aucune fiche',libEdit:'Cette bibliothèque partagée est vide — créez sa première fiche.',libRead:'Cette bibliothèque partagée est vide.',anon:'Créez votre première aide cognitive.',cta:'Créer une aide cognitive'},
@@ -7197,8 +7218,8 @@ function renderProtocols(){
       </div>`;},
     tile:p=>{const cc=catOf(p);
       return `<button type="button" class="qa-tile card-open" data-open="${p.id}" title="${esc(p.title)||'Sans titre'}"${cc?` style="--stripe:${safeColor(cc.color)}"`:''}>
-        <span class="qa-t">${esc(p.title)||'Sans titre'}</span>
-        <span class="qa-sub">${p.code?`<span class="code">${esc(p.code)}</span>`:''}${cc?`<span>${p.code?'· ':''}${esc(cc.name)}</span>`:''}</span>
+        <span class="qa-tx"><span class="qa-t">${esc(p.title)||'Sans titre'}</span>
+        <span class="qa-sub">${p.code?`<span class="code">${esc(p.code)}</span>`:''}${cc?`<span>${p.code?'· ':''}${esc(cc.name)}</span>`:''}</span></span>
       </button>`;},
     remainLbl:n=>'restant'+(n>1?'s':''),
     empty:{title:'Aucun protocole',libEdit:'Cette bibliothèque partagée est vide — ajoutez son premier protocole.',libRead:'Cette bibliothèque partagée ne contient pas encore de protocole.',anon:'Ajoutez un protocole : un ou plusieurs PDF, et/ou un contenu rédigé dans l’app.',cta:'Créer un protocole'},

@@ -1191,7 +1191,13 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   `.dir-wrap,.azrail` (ex-`.cards` : un sélecteur mort ferait passer l'accueil sans le mesurer,
   v4.31.1) ; la boîte du bouton-titre porte un padding 6px compensé (cible mesurable ≥ 24 px —
   le `::after` étendu ne se mesure pas) ; l'ancien composant `.card`/`.cards` est PURGÉ
-  (émissions vérifiées au grep, démo `design/build.mjs` refaite — règle 14).
+  (émissions vérifiées au grep, démo `design/build.mjs` refaite — règle 14). **BUG WEBKIT À
+  CONNAÎTRE (v4.56.2, reproduit à la sonde sur WebKit SEUL)** : au redimensionnement continu,
+  quand un changement de nombre de colonnes fait ré-enrouler la sous-ligne d'une rangée, WebKit
+  ne regrandit pas la piste de grille — contenu rogné (titre 11 px, date 5 px, mesurés) et état
+  corrompu PERSISTANT. Remède en place : à la traînée du resize (120 ms), chaque
+  `.dir-grid`/`.qa-grid` passe par block→grid dans la même frame (aucun repaint intermédiaire) —
+  ne pas retirer ce listener, et re-mesurer sur WebKit si l'on retouche la structure des grilles.
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.

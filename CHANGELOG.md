@@ -1,5 +1,36 @@
 # Journal des modifications
 
+## [4.56.2] — 2026-07-28
+### Le badge « En cours » trouve sa place — et un bug WebKit de grille est neutralisé
+
+### Badge « ● En cours » à droite de la tuile
+Glissé dans la sous-ligne de 11 px, le badge l'étirait et semblait rapporté (« on a l'impression
+qu'elle n'est pas adaptée », retour utilisateur). Il vit désormais À DROITE de la tuile, centré
+verticalement, hors du bloc de texte — la structure de la maquette desktop : colonne
+titre + sous-ligne à gauche (`.qa-tx`), badge en frère à droite. Les rangées du répertoire, qui
+alignent déjà leurs pastilles sur une ligne dédiée, ne changent pas.
+
+### Pistes de grille figées au redimensionnement — bug WebKit, reproduit puis neutralisé
+Signalé à l'usage : « bug lorsqu'on diminue la largeur puis qu'on ré-augmente » — une rangée du
+répertoire restait trop courte, titre rogné en haut, date en bas. IRREPRODUCTIBLE sur Chromium
+(sondes discrètes puis fines, 100 % et 130 % de taille du texte : rien) ; reproduit sur WebKit
+SEUL, au redimensionnement CONTINU : quand un changement du nombre de colonnes d'une grille
+`auto-fill` fait ré-enrouler la sous-ligne d'une rangée, WebKit ne regrandit pas la piste — le
+contenu centré dépasse (titre +11 px, date +5 px, mesurés, aux valeurs exactes de la capture
+utilisateur) et l'état corrompu PERSISTE, y compris après re-rendu.
+
+Remède : à la TRAÎNÉE du redimensionnement (120 ms, accueil seulement), chaque
+`.dir-grid`/`.qa-grid` passe par `block` puis `grid` dans la même frame — écriture-lecture-
+écriture synchrones, aucun repaint intermédiaire, donc aucun clignotement — et WebKit recalcule
+ses pistes. On ne paie pas un reflow par évènement pendant le geste : l'artefact transitoire de
+Safari peut fugacement apparaître pendant la traînée et se répare seul 120 ms après la pause.
+Vérifié à la sonde sur les deux moteurs et les deux réglages de taille : état final propre
+partout, Chromium jamais affecté. Piège documenté dans AGENTS.md (ne pas retirer ce listener ;
+re-mesurer sur WebKit à toute retouche des grilles).
+
+Vérifié : 766 tests × 2 moteurs, a11y 301/301 sur Chromium ET WebKit, doctrine 112/112,
+`npm run check`. Rien à rejouer côté serveur.
+
 ## [4.56.1] — 2026-07-28
 ### Les tuiles rejoignent la grille fluide du répertoire
 
@@ -1368,136 +1399,3 @@ cohérence de la réparation manuelle sur ses 5 sites, absence de duplication, e
 complète au vert — les tests et les treize harnais, eux, n'avaient pas été touchés, et c'est ce qui
 a servi de juge. **Règle : pour annuler une modification expérimentale, restaurer depuis une
 sauvegarde vérifiée par empreinte, jamais depuis git tant que le travail n'est pas committé.**
-
-## [4.46.0] — 2026-07-27
-### Partage de session en direct — le socle serveur, et six défauts trouvés en chemin
-
-Premier jalon d'un chantier qui fera sortir une **session** de l'appareil : un collègue présent
-dans la pièce pourra suivre et remplir une session de crise depuis SON téléphone, avec ou sans
-compte, **pour cette session uniquement**. Rien n'est encore visible à l'écran. Cette version pose
-le serveur, l'encodeur du code d'appariement et le noyau pur du transport — chacun vérifié
-séparément, aucun ne dépendant du suivant.
-
-### Ce que la doctrine dit vraiment, et une citation du projet qui était fausse
-Les textes primaires ont été lus, pas leurs résumés — et deux résultats vont contre l'intuition.
-**« Do-Verify » et « Challenge-Do-Verify » n'existent NULLE PART dans l'AC 120-71B** (recherche
-exhaustive sur le document intégral : 6 chapitres + Appendix A, zéro occurrence ; la révision B
-indique elle-même avoir retiré les exemples des appendices). Ces intitulés viennent de
-l'**AC 120-71A (2003), que la révision B ANNULE**, où ils ne sont que des titres d'une liste de
-sujets, sans définition. Les définitions rédigées qui circulent en ligne ne proviennent d'aucun
-document FAA retrouvable. La pratique implémentée ne change pas d'un pixel — seule la référence
-était fausse : la source correcte est le **FAA Order 8900.1, Vol. 3, Ch. 32, §3-3403.A**, et pour
-la répartition à deux, l'AC 120-71B **§5.2.2.1** (« one crewmember reading the checklist and the
-second crewmember confirming and responding »). Corrigé dans `AGENTS.md`, avec l'avertissement de
-ne pas ré-inverser. De même, « la réponse porte l'état CONSTATÉ, jamais un *fait* » est de
-**Degani & Wiener** (ligne directrice n°1, 1993), pas de la circulaire.
-
-Deuxième résultat, structurant : **la co-édition symétrique n'est décrite nulle part**. Airbus
-garantit l'exclusion mutuelle par le MATÉRIEL (un seul ECAM Control Panel) ; là où deux pointeurs
-coexistent, l'industrie a écrit un verrou mono-écrivain à propriété visible, jamais une fusion. La
-« vue dégradée » de l'invité n'est donc pas un compromis : c'est la forme canonique.
-
-### Socle de sûreté — six défauts du code ACTUEL, sans rapport avec la nouveauté
-- **`keepAnchor` confondait « 0 px » et « pas mesuré ».** Les trois sorties sans mesure renvoyaient
-  `0`, c'est-à-dire la valeur qui signifie « ancrage parfait ». La plus grave : l'ancre a DISPARU
-  pendant le re-rendu (une condensation du journal transforme la carte visée en chip). Démontré en
-  réintroduisant le défaut — le cas guidé affiche **dérive 0 px ET résidu null** : l'ancien contrôle
-  d'`audit-doctrine` passait au vert **sans avoir rien mesuré**, exactement sur le cas qu'il prétend
-  couvrir. Troisième occurrence de la leçon v4.31.1. `keepAnchor` renvoie désormais `null`, que le
-  harnais refuse (40/40).
-- **La « prohibition ACTIVE » du rôle `anon` ne portait pas sur `PUBLIC`.** `revoke … from anon` ne
-  retire que les privilèges accordés NOMMÉMENT à anon ; or PostgreSQL accorde `EXECUTE` à **PUBLIC**
-  par défaut sur toute fonction (asymétrie avec les tables, qui n'en reçoivent aucun — d'où un
-  revoke efficace côté tables et INOPÉRANT côté fonctions), et tout rôle hérite de PUBLIC. **Les
-  20 fonctions du schéma étaient appelables sans compte.** Aucune escalade — chacune se protège par
-  `auth.uid()` — mais la garantie annoncée n'existait pas.
-- **`is_approved()` renvoyait `true` pour `anon`** : `auth.uid()` étant NULL, le `coalesce` retombait
-  sur `'approved'`. Sans conséquence aujourd'hui (les politiques exigent en plus `owner = auth.uid()`),
-  mais tout garde-fou futur écrit avec elle aurait été inopérant **en ayant l'air solide**. Règle
-  écrite : un gate anon s'écrit `auth.uid() is not null`, jamais `is_approved()`.
-- **Le balayage anon de `rls-tests.sql` (§13.5) était aveugle à ce qu'il prétend couvrir** : sept
-  tables NOMMÉES EN DUR, zéro fonction. Remplacé par des assertions de **CATALOGUE** — aucun grant
-  de table à anon, liste blanche EXACTE des fonctions exécutables par anon, et balayage dynamique de
-  toutes les tables. Piège évité en l'écrivant : sous `anon`, `information_schema` ne montre rien,
-  la boucle aurait tourné à vide et le test serait passé au vert sans rien balayer.
-- **Aucun appel réseau n'avait de délai de garde.** Sur iOS, un `fetch` sans route ne rejette qu'au
-  bout de 60 à 75 s : `Sync.running` reste vrai tout ce temps, le repli exponentiel ne peut pas
-  s'armer (il ne démarre qu'APRÈS la première erreur), et `Auth.refresh()` — attendu avant CHAQUE
-  appel REST — bloque tout ce qui suit. Les cinq `fetch` passent par `acFetch` (25 s, 120 s pour un
-  binaire PDF : un téléversement légitime sur réseau lent ne doit pas être cassé par le correctif).
-
-### Serveur — la première surface non authentifiée du projet
-Trois tables (`shared_sessions`, `session_participants`, `session_events`) et six fonctions. La
-surface `anon` est de **trois portes nommées, et rien d'autre**, ouvertes après la révocation
-générale — placées avant, elles seraient effacées en silence quelques lignes plus bas.
-
-Quatre décisions, chacune réparant une faille identifiée AVANT écriture : **aucune identité n'est
-jamais un paramètre** (l'acteur se DÉDUIT du secret présenté ; le passer rendrait l'attribution
-forgeable par tout porteur du code — or l'attribution EST le contrôle demandé) ; **le secret est
-tiré par le serveur** (`gen_random_bytes`), jamais par le client, dont le seul générateur maison
-rend ~41 bits et retombe sur `Math.random` ; **fenêtre d'admission** armée par l'hôte, code
-**consommé** à la première jointure, ce qui rend la coupure d'un invité EFFECTIVE au lieu de
-décorative ; **append-only strict** — un invité n'écrit que des lignes, l'état est un pli calculé
-côté client, sinon le verrou de ligne d'un état matérialisé ferait attendre l'hôte derrière la file
-d'un invité. La séquence est allouée **sous verrou, par partage** : un `bigserial` alloue à l'INSERT
-et non au COMMIT, un évènement validé en retard resterait définitivement sous le curseur du lecteur.
-Chaque évènement porte **deux horloges** — l'instant du geste et celui de l'arrivée — sans quoi une
-action relevée hors réseau se rangerait au compte-rendu à l'heure du retour du réseau.
-
-**Relais, pas entrepôt** : purge bornée en tête de CHAQUE appel (sur un hébergement statique,
-une purge planifiée n'a personne pour la lancer). `delete_my_account` supprime les partages
-**explicitement** — sans cela, soit ils survivent, soit la violation de clé étrangère annule toute
-la fonction et le droit à l'effacement disparaît pour quiconque a partagé une fois.
-
-**`supabase/schema.sql` est à REJOUER**, puis `rls-tests.sql` — dont le nouveau **§14 porte
-31 assertions** : jointure d'un invité sans compte, code consommé, capacités du scribe, acteur non
-falsifiable, coupure MOTIVÉE (« revoked », jamais un silence qu'on prendrait pour une panne),
-détachement, purge, effacement RGPD.
-
-### Deux garde-fous nés des erreurs de cette version
-`check-sql.mjs` gagne deux contrôles, chacun **vérifié capable d'échouer** puis fichier restauré à
-l'octet. (1) Tout `grant … to anon` doit citer une fonction de la liste blanche, et
-`grant … on all …` est refusé quel que soit le rôle : le scénario visé n'est pas la malveillance
-mais le dépannage — PostgREST accompagne un refus 42501 d'un `hint` qui nomme le grant manquant, et
-la réponse la plus répandue en ligne est la forme globale. (2) Une fonction `language sql` ne peut
-référencer aucun objet déclaré plus bas dans le fichier : elle est intégralement résolue À SA
-CRÉATION (`42P01` au collage), là où une `language plpgsql` n'analyse son corps qu'à la première
-exécution. Cette asymétrie ne se voit pas à la relecture et avait déjà coûté deux re-créations de
-`get_instance_stats` ; elle en a coûté une troisième ici, découverte sur l'instance.
-
-### Encodeur QR — sans dépendance, et relu par le décodeur d'Apple
-Le code d'appariement s'affiche en QR sur l'écran de l'hôte : un QR affiché ne peut être scanné que
-par quelqu'un qui est **là**, et il ne transite par aucun message, aucun journal d'accès, aucun
-historique. L'app n'embarque **aucun décodeur** — iOS et Android décodent nativement depuis
-l'appareil photo — et c'est cette asymétrie qui rend la fonctionnalité abordable (règle 13 intacte,
-aucun fichier servi de plus). Mode octet, correction M, versions 1 à 10.
-
-Choix de conception central : **une seule table de 20 nombres**, tout le reste se dérive — total de
-mots-code par la géométrie, découpage en blocs par la division euclidienne, alignements par formule.
-Une table recopiée est une erreur qui dort ; une dérivation se vérifie, et le test recoupe les deux
-chemins. **La vérification a payé immédiatement** : le calcul des syndromes Reed-Solomon — qui
-ÉVALUE le polynôme là où l'encodeur le DIVISE, donc n'emprunte rien à ce qu'il vérifie — a fait
-tomber un polynôme générateur construit **à l'envers** (terme dominant non unitaire). Motifs au bon
-endroit, format valide, structure impeccable : aucun contrôle de cohérence interne ne l'aurait vu,
-et les codes produits auraient été parfaitement illisibles. Nouveau harnais `scripts/audit-qr.mjs` :
-les codes sont relus par **CoreImage**, le décodeur d'Apple, celui de l'appareil photo de l'iPhone —
-5 cas, v1 à v6, UTF-8 accentué compris, sur les deux moteurs. macOS seulement : ailleurs il AVERTIT
-sans échouer, en disant explicitement que la vérification n'a pas eu lieu. Piège de thème évité :
-`--ink` est CLAIR en sombre, un QR peint avec lui serait blanc sur blanc — d'où `--qr-ink`, fixe
-dans les deux thèmes, sur le patron de `--paper`.
-
-### Noyau pur du transport
-Sept fonctions sans effet de bord. **La projection de fiche** (`sharePayload`) n'est pas la fiche :
-deux listes explicites couvrent les **27 champs du modèle migré**, et un test échoue si l'une prend
-du retard — ajouter demain un champ sans décider s'il se partage devient impossible (garde-fou
-vérifié capable d'échouer). Ne partent pas : le gabarit local (téléphones de renfort et de
-régulation, pré-remplis par `blankFiche`), les images (jusqu'à 24 Mo), les documents que l'invité ne
-pourrait pas ouvrir, `ownerId`/`libraryId`. `shareFold` exclut l'annexe d'un détaché de l'état —
-c'est un rapport, pas une commande. `shareStateHash` détecte la **divergence silencieuse**, celle
-qu'un indicateur de péremption ne verra jamais parce que les mises à jour arrivent à l'heure et sont
-fausses. `shareOffset` (Cristian) rejette toute mesure dont l'aller-retour dépasse le seuil : un
-décalage faux daterait les gestes du compte-rendu et ferait sonner deux minuteurs à des instants
-différents dans la même pièce. L'en-tête HTTP `Date` n'étant PAS lisible en fetch cross-origin,
-l'heure serveur voyage dans le corps.
-
-**560 tests × 2 moteurs, 12 harnais verts, 289 contrôles a11y, 40/40 doctrine.**
