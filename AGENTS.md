@@ -1160,8 +1160,14 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   fréquence d'usage ; titre de tuile en 15 px borné à **3 lignes** + ellipse — 2 lignes
   tronquaient trop pour reconnaître la fiche, demande utilisateur « un peu plus de titre » ;
   `overflow-wrap:break-word`, pas `anywhere`, qui coupait « Anaphylaxie » en plein mot ;
-  sous-ligne à 1 ligne ellipsée ; le nom accessible et l'info-bulle gardent le texte entier),
-  **RÉPERTOIRE A→Z**
+  sous-ligne à 1 ligne ellipsée ; le nom accessible et l'info-bulle gardent le texte entier ;
+  **grille = MÊME règle fluide que le répertoire**, `auto-fill minmax(290px,1fr)` et gouttière
+  8 px — v4.56.1, retour utilisateur : le nombre de colonnes FIGÉ (2 < 780, 3 au-delà) faisait
+  chuter une tuile de ~360 à ~140 px au franchissement du seuil, la sidebar mangeant l'espace,
+  et son rythme ne coïncidait jamais avec celui des rangées ; désormais tuiles et rangées
+  s'alignent colonne pour colonne et une transition ne change que le NOMBRE de colonnes — la
+  redistribution en dents de scie bornée vers 1520 px, 3×~390 → 4×~296, est le comportement
+  normal d'une grille fluide, ne pas la « corriger »), **RÉPERTOIRE A→Z**
   (`azGroups`/`azLetter`, purs testés : lettre désaccentuée, hors A-Z → `#` rangé en fin ; tri
   alphabétique STRICT dans les groupes — l'épinglée a sa tuile, la hisser casserait la lecture
   d'annuaire) en rangées compactes `.dir-row` (< 640 px : liste à filets dans une carte par

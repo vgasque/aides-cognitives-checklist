@@ -1,5 +1,29 @@
 # Journal des modifications
 
+## [4.56.1] — 2026-07-28
+### Les tuiles rejoignent la grille fluide du répertoire
+
+Retour utilisateur immédiat sur la v4.56.0 : « la gestion de la largeur des tuiles en responsive
+est extrêmement mauvaise pour toutes les transitions de taille ». Mesuré, et confirmé : les
+tuiles « Épinglée(s) » avaient un nombre de colonnes FIGÉ (2 sous 780 px, 3 au-delà) — au
+franchissement du seuil, la sidebar et le rail mangent ~330 px d'un coup et une tuile passait de
+~360 px à **~140 px** ; et leur rythme ne coïncidait jamais avec celui des rangées du répertoire,
+posées juste dessous.
+
+**Une seule règle fluide, partagée** : `.qa-grid` adopte l'`auto-fill minmax(290px,1fr)` et la
+gouttière 8 px de `.dir-grid`. Tuiles et rangées ont désormais la MÊME largeur à toutes les
+fenêtres et s'alignent colonne pour colonne ; mesuré sur toute l'échelle — 320 → 290 px (1 col),
+779 → 2 × 356, 780 → 1 × 451, 1000 → 2 × 332, 1460 → 3 × 372, 1620 → 4 × 317 : tout vit dans la
+bande ~290-450 px, une transition ne change plus que le NOMBRE de colonnes, jamais l'échelle.
+
+La question qui a ouvert le dossier (« pourquoi la bulle rétrécit au-delà de ~1480 px ? ») a sa
+réponse documentée dans AGENTS.md : c'est la redistribution d'une grille fluide quand une colonne
+de plus tient (3 × ~390 → 4 × ~296 vers 1520 px) — bornée par le minimum de 290 px, c'est le
+comportement normal, à ne pas « corriger ».
+
+Vérifié : 766 tests × 2 moteurs, a11y 301/301, `npm run check`, design system régénéré (la démo
+n'impose plus un nombre de colonnes que le vrai CSS n'a plus). Rien à rejouer côté serveur.
+
 ## [4.56.0] — 2026-07-28
 ### L'accueil devient un « poste accès direct » : épinglées, répertoire A→Z, rail alphabétique
 
@@ -1477,67 +1501,3 @@ différents dans la même pièce. L'en-tête HTTP `Date` n'étant PAS lisible en
 l'heure serveur voyage dans le corps.
 
 **560 tests × 2 moteurs, 12 harnais verts, 289 contrôles a11y, 40/40 doctrine.**
-
-## [4.45.0] — 2026-07-27
-### Factorisations — et ce qu'elles ont révélé
-Trois duplications du reliquat d'audit, sans effet visible à l'écran. La troisième a fait tomber un
-angle mort qu'aucune relecture n'aurait trouvé.
-
-### L'ancrage ECAM : de 4 copies à 1, et enfin mesurable
-Le motif « mesurer la position écran d'une ancre, re-rendre, compenser le défilement » existait en
-quatre exemplaires — `renderKeepAnchor`, `renderOvOnlyKeepAnchor`, `ovAdvanceRender`, et le
-remplacement chirurgical de `renderNavOnly`. C'est **l'invariant le plus cité du projet** (« rien
-ne bouge sous le doigt ») et **une seule des quatre mesurait son résidu** : les trois autres
-appliquaient le motif sans jamais pouvoir dire si elles y arrivaient. Source unique `keepAnchor`.
-
-Ce qui **n'a pas** été unifié, et pourquoi : le focus clavier (seul le journal le déplace) et la
-règle de visibilité (seul `ovAdvanceRender` défile vers la nouvelle carte, et seulement si elle
-n'est pas déjà entièrement à l'écran). Le résidu reste **renvoyé, jamais corrigé** — la
-compensation est bornée par le haut de page, et c'est cette limite qui fonde la doctrine de
-`state.confOpen` ; la masquer rouvrirait le bug v4.3.2.
-
-Deux contrôles permanents ajoutés à `audit-doctrine` (38/38) : dérive 0 px à la première action de
-session et au remplacement du bloc en mode guidé. Tolérance 1 px, assumée : WebKit rend 1 px là où
-Blink rend 0, arithmétique identique — du sous-pixel de compositeur, pas un défaut d'ancrage.
-
-*Note : un `{preventScroll:true}` s'était glissé dans la restauration de focus. Il serait cohérent
-avec les deux autres restaurations du fichier et protégerait l'ancrage qu'on vient d'appliquer —
-mais c'est un changement de comportement, et un lot de factorisation n'en embarque pas. Retiré, et
-signalé ici pour décision séparée.*
-
-### `updateRtStrip` : un calcul écrit deux fois, un prédicat rédigé de deux façons
-Le temps restant (qui sert au tri : échus d'abord, puis les plus urgents) était calculé à
-l'identique pour le quai et pour la bande du mode lecteur, mais le prédicat « échu » différait —
-`dueDone(t)||(interval && val==='00:00')` d'un côté, `interval && val==='00:00'` de l'autre.
-L'extraction est **iso-sortie**, et la démonstration mérite d'être écrite : `dueDone` impose déjà
-`type==='interval'`, et un minuteur échu et arrêté donne `within >= per`, donc `fmtMs(max(0,
-per-within))` vaut « 00:00 » — le premier disjoint est absorbé par le second. Une **fonction**
-appliquée deux fois, jamais un tableau partagé : chaque zone garde son tri et sa troncature.
-
-### Les onze harnais n'auditaient pas la cible principale
-`scripts/harness.mjs` : serveur statique, table MIME et choix du moteur, partagés. La duplication
-avait déjà dérivé — `audit-lecteur.mjs` était le seul dont la table MIME omettait `.ico`.
-
-Mais le vrai constat est ailleurs : **les onze lançaient `chromium.launch()` en dur**. `npm test`
-tourne sur deux moteurs depuis v4.34.0 parce qu'iOS Safari est la cible principale et qu'un
-comportement WebKit peut couper l'écran sans qu'aucune mesure ne le voie. Les harnais, eux,
-n'auditaient que Blink. Le moteur se choisit désormais par `AC_ENGINE` — `chromium` par défaut,
-donc rien ne change sans décision, et un nom inconnu échoue bruyamment plutôt que de retomber en
-silence sur chromium.
-
-**Le premier passage sur WebKit a immédiatement payé.** La sonde WCAG 2.4.11 signalait **8
-masquages sur 11 cibles** — de quoi croire à un défaut d'accessibilité sur iPhone. La géométrie dit
-autre chose : tous avaient un bas **négatif** (−352, −237, −138, −94 px), c'est-à-dire des éléments
-pas encore revenus à l'écran. Sur WebKit, le défilement induit par un focus **programmatique** est
-asynchrone ; la sonde lisait la position d'avant et mesurait la synchronicité du moteur, pas
-l'application. Variable isolée (même sélecteur, même scénario, seule l'attente change) : lecture
-immédiate → 8, lecture après 60 ms → **0, sur les deux moteurs**.
-
-Ce n'était donc pas un défaut d'accessibilité — mais **on ne pouvait pas le savoir** tant que les
-harnais ne tournaient que sur Blink. Règle ajoutée : toute sonde qui lit une géométrie après
-`focus()` doit attendre.
-
-**Les onze harnais passent désormais sur WebKit comme sur Chromium.**
-
-513 tests × 2 moteurs, 11 harnais verts **sur les deux moteurs** (38/38 en doctrine),
-289 contrôles d'accessibilité.

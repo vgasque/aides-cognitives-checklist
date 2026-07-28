@@ -860,8 +860,16 @@
   .dir-h .dir-hs{font-size:11px;font-weight:400;color:var(--ink-soft);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   /* Tuile : UN SEUL <button> (★ et ● sont des spans — pas de descendant interactif), liseré de
      catégorie 4px par ::before (même canal --stripe que les anciennes cartes). */
-  .qa-grid{display:grid;gap:10px;grid-template-columns:repeat(3,minmax(0,1fr))}
-  @media (max-width:779.98px){.qa-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}}
+  /* UNE SEULE RÈGLE FLUIDE, PARTAGÉE AVEC LE RÉPERTOIRE (v4.56.1, retour utilisateur « la
+     gestion de la largeur des tuiles en responsive est extrêmement mauvaise ») : l'ancien nombre
+     de colonnes FIGÉ (2 < 780, 3 au-delà) faisait passer une tuile de ~360 px à ~140 px au
+     franchissement du seuil — la sidebar mange l'espace — et son rythme ne coïncidait jamais
+     avec celui des rangées. En auto-fill minmax(290px,1fr), MÊME minimum et MÊME gouttière que
+     .dir-grid : tuiles et rangées s'alignent colonne pour colonne à toutes les largeurs, chaque
+     bulle vit dans la même bande (~290-430 px), et une transition ne change que le NOMBRE de
+     colonnes (redistribution en dents de scie bornée, inhérente aux grilles fluides — c'est elle
+     qu'on observait vers 1520 px : 3 × ~390 → 4 × ~296), jamais l'échelle. */
+  .qa-grid{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(290px,1fr))}
   .qa-tile{position:relative;display:flex;flex-direction:column;gap:4px;align-items:flex-start;justify-content:center;min-height:72px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-md);padding:11px 12px 11px 18px;box-shadow:var(--shadow);cursor:pointer;text-align:left;font-family:inherit;overflow:hidden;color:var(--ink)}
   .qa-tile:hover{border-color:var(--line-hover)}
   .qa-tile:focus-visible{outline:2px solid var(--primary);outline-offset:2px}

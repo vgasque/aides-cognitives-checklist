@@ -186,9 +186,9 @@ const chipsDemo = `
 <div class="ds-row"><span class="rel-chip">Fiche liée <button class="rel-x">×</button></span><span class="ro-badge">Lecture seule</span><span class="pend-badge pending">En attente</span><span class="pend-badge rejected">Refusé</span></div>`;
 
 const cardsDemo = `
-<div style="max-width:560px">
+<div style="max-width:620px">
   <div class="dir-h"><b>Épinglées ★</b></div>
-  <div class="qa-grid" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+  <div class="qa-grid">
     <button type="button" class="qa-tile" style="--stripe:${PALETTE[4]}"><span class="qa-t">Choc anaphylactique</span><span class="qa-sub"><span class="code">ANA-01</span><span>Urgence vitale</span><span class="tag live">● En cours</span></span></button>
     <button type="button" class="qa-tile" style="--stripe:${PALETTE[6]}"><span class="qa-t">Intubation difficile</span><span class="qa-sub"><span class="code">VAD-03</span><span>Voies aériennes</span></span></button>
   </div>
