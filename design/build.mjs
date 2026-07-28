@@ -186,12 +186,22 @@ const chipsDemo = `
 <div class="ds-row"><span class="rel-chip">Fiche liée <button class="rel-x">×</button></span><span class="ro-badge">Lecture seule</span><span class="pend-badge pending">En attente</span><span class="pend-badge rejected">Refusé</span></div>`;
 
 const cardsDemo = `
-<div class="cards" style="max-width:560px">
-  <article class="card" style="--c:${PALETTE[4]}"><div class="card-body"><h2><button class="card-open">Choc anaphylactique</button></h2><div class="card-meta"><span class="tag live">● En cours</span><span class="status-tag">✓ Validée</span><span class="tag cat neutral">Urgence vitale</span><span class="card-date" style="font-family:var(--mono)">ANA-01</span><span class="card-date">03/2026</span></div></div><button class="pinbtn on" aria-label="Épinglé">★</button><svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></article>
-  <article class="card" style="--c:${PALETTE[6]}"><div class="card-body"><h2><button class="card-open">Intubation difficile</button></h2><div class="card-meta"><span class="status-tag">○ Brouillon</span><span class="tag todo">△ À compléter</span><span class="tag cat neutral">Voies aériennes</span><span class="card-date stale">01/2024 · à revoir</span></div></div><button class="pinbtn" aria-label="Épingler">☆</button><svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></article>
-  <div class="empty"><b>Aucune fiche</b>Créez votre première aide cognitive.<br><button class="btn primary" style="margin-top:14px">Créer</button></div>
+<div style="max-width:560px">
+  <div class="dir-h"><b>Épinglées ★</b></div>
+  <div class="qa-grid" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+    <button type="button" class="qa-tile" style="--stripe:${PALETTE[4]}"><span class="qa-t">Choc anaphylactique</span><span class="qa-sub"><span class="code">ANA-01</span><span>Urgence vitale</span><span class="tag live">● En cours</span></span></button>
+    <button type="button" class="qa-tile" style="--stripe:${PALETTE[6]}"><span class="qa-t">Intubation difficile</span><span class="qa-sub"><span class="code">VAD-03</span><span>Voies aériennes</span></span></button>
+  </div>
+  <div class="dir-h"><b>Répertoire</b><span class="dir-hs">2 aides cognitives · Bibliothèque perso, A → Z</span></div>
+  <div class="dir-g"><div class="dir-l">C</div><div class="dir-grid">
+    <div class="dir-row"><span class="cat-dot" style="--catcol:${PALETTE[4]}"></span><div class="dir-main"><button class="card-open">Choc anaphylactique</button><span class="dir-sub"><span class="tag live">● En cours</span><span>Urgence vitale</span><span class="card-date">03/2026</span></span></div><span class="dir-code">ANA-01</span><button class="pinbtn on" aria-label="Épinglé">★</button></div>
+  </div></div>
+  <div class="dir-g"><div class="dir-l">I</div><div class="dir-grid">
+    <div class="dir-row"><span class="cat-dot" style="--catcol:${PALETTE[6]}"></span><div class="dir-main"><button class="card-open">Intubation difficile</button><span class="dir-sub"><span class="status-tag">○ Brouillon</span><span class="tag todo">△ À compléter</span><span>Voies aériennes</span><span class="card-date stale">01/2024</span></span></div><span class="dir-code">VAD-03</span><button class="pinbtn" aria-label="Épingler">☆</button></div>
+  </div></div>
+  <div class="empty" style="margin-top:12px"><b>Aucune fiche</b>Créez votre première aide cognitive.<br><button class="btn primary" style="margin-top:14px">Créer</button></div>
 </div>
-<p class="ds-cap">.card — le TITRE est le vrai bouton (::after étiré) ; épingle et badges restent cliquables au-dessus. Carte SOBRE (audit v4.5) : la couleur de catégorie ne vit que dans le LISERÉ, la pilule est neutre ; le code mono est un repère de recherche ; date périmée = --critical « à revoir » ; session vive = « ● En cours » vert.</p>`;
+<p class="ds-cap">Accueil « poste accès direct » (v4.56.0, maquette 2c) — tuiles .qa-tile « Épinglée(s) » (accordé au type, liseré --stripe, UN seul bouton par tuile, titre borné à 2 lignes) puis répertoire A→Z : lettre .dir-l, rangées .dir-row compactes (le TITRE .card-open est le vrai bouton, ::after étiré ; épingle et badge « À compléter » cliquables au-dessus). La couleur de catégorie = pastille + NOM en toutes lettres, jamais seule ; date périmée = registre ATTENTION.</p>`;
 
 const formsDemo = `
 <div style="max-width:520px">

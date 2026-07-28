@@ -848,39 +848,77 @@
   /* Grille des aides/protocoles — règle UNIQUE (consigne Claude Design) : colonnes auto-fill à
      plancher 300px, gap 12px. Le nombre de colonnes découle seulement de la largeur disponible
      (1 colonne < ~612px, 2 en cadre standard, 3 au palier 1320px) ; jamais de cartes étirées. */
-  .cards{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
-  .cards>.empty,.cards>.btn{grid-column:1/-1}
-  /* SPEC §2 : une seule colonne sous 640px (explicite). */
-  @media (max-width:639.98px){.cards{grid-template-columns:1fr}}
-  .card{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px 17px;box-shadow:var(--shadow);cursor:pointer;display:flex;align-items:center;gap:14px;transition:transform .08s,border-color .12s;overflow:hidden}
-  .card:hover{border-color:var(--line-hover);transform:translateY(-1px);box-shadow:var(--shadow-lg)}
-  /* Tactile (v4.4.4) : le « soulèvement » au survol est un effet de POINTEUR — sur iOS le premier
-     tap pose l'état hover, et un hover qui bouge l'élément favorise le double-tap. Seule règle
-     :hover du fichier qui change la géométrie : les autres (fonds/bordures) sont inoffensives. */
-  @media (hover:none){.card:hover{transform:none;box-shadow:none}}
-  /* Liseré de CATÉGORIE (V5) : bande 8px pleine hauteur à gauche — la couleur des catégories
-     vit sur la tranche de la carte, les statuts restent achromatiques. */
-  /* Liseré de catégorie : 4px (SPEC crise §1b, v4.3.0 — ex-8px) ; la couleur n'est jamais seule,
-     la pastille + le nom vivent dans la méta de la carte. */
-  .card.striped{padding-left:21px}
-  .card.striped::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--stripe)}
-  /* Titre-bouton « étiré » : la carte n'est PLUS role=button (un bouton ne doit pas contenir
-     d'autres commandes — épingle, badge « À compléter » : descendants interactifs proscrits,
-     ARIA APG). Le TITRE est le vrai <button> (clavier natif, nom accessible = titre) et son
-     ::after couvre toute la carte (position:relative ci-dessus) ; les commandes internes
-     repassent AU-DESSUS via z-index. Anneau de focus porté par la carte (:has, déjà utilisé). */
-  .card h2 .card-open{background:none;border:0;padding:0;margin:0;font:inherit;color:inherit;text-align:left;cursor:pointer}
-  .card .card-open::after{content:"";position:absolute;inset:0;border-radius:var(--radius)}
-  .card .card-open:focus-visible{outline:none}
-  .card:has(.card-open:focus-visible){outline:2px solid var(--primary);outline-offset:2px}
-  .card :is(.pinbtn,.tag.todo){position:relative;z-index:1}
+  /* ===== ACCUEIL « POSTE ACCÈS DIRECT » (v4.56.0, maquette 2c du canvas « Accueil
+     bibliothèques ») ===== Trois étages : tuiles « Accès direct » (les épinglées),
+     RÉPERTOIRE A→Z en rangées compactes groupées par lettre, rail alphabétique tapable et
+     glissable (index iOS). Décisions utilisateur : la recherche RESTE dans l'en-tête, le filtre
+     catégorie FILTRE (pas d'estompage), les rangées gardent épingle + date + « À compléter ».
+     L'ancien composant .card/.cards est SUPPRIMÉ (émissions vérifiées au grep, règle 14) ;
+     .card-open, lui, GARDE son nom : quatorze harnais ouvrent une fiche par ce sélecteur. */
+  .dir-h{display:flex;align-items:baseline;gap:8px;margin:16px 0 8px}
+  .dir-h>b{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-soft)}
+  .dir-h .dir-hs{font-size:11px;font-weight:400;color:var(--ink-soft);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  /* Tuile : UN SEUL <button> (★ et ● sont des spans — pas de descendant interactif), liseré de
+     catégorie 4px par ::before (même canal --stripe que les anciennes cartes). */
+  .qa-grid{display:grid;gap:10px;grid-template-columns:repeat(3,minmax(0,1fr))}
+  @media (max-width:779.98px){.qa-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}}
+  .qa-tile{position:relative;display:flex;flex-direction:column;gap:4px;align-items:flex-start;justify-content:center;min-height:72px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-md);padding:11px 12px 11px 18px;box-shadow:var(--shadow);cursor:pointer;text-align:left;font-family:inherit;overflow:hidden;color:var(--ink)}
+  .qa-tile:hover{border-color:var(--line-hover)}
+  .qa-tile:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .qa-tile::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--stripe,transparent)}
+  /* Un long titre ne fait ni déborder ni gonfler la tuile sans borne : 3 lignes max puis
+     ellipse — demande utilisateur « un peu plus de titre », 2 lignes tronquaient trop pour
+     reconnaître la fiche (le nom accessible et l'info-bulle restent le texte complet). 15 px :
+     un cran sous les 16 de la maquette, des caractères en plus par ligne au même encombrement. */
+  .qa-t{font-size:15px;font-weight:750;line-height:1.25;max-width:100%;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:break-word}
+  .qa-sub{display:flex;align-items:center;gap:6px;max-width:100%;overflow:hidden;font-size:11px;color:var(--ink-soft)}
+  .qa-sub>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .qa-sub>.code,.qa-sub>.tag{flex:none}
+  .qa-sub .code{font-family:var(--mono);white-space:nowrap}
+  /* Répertoire : en-tête de lettre (mono, accent texte) + grille de rangées compactes. */
+  .dir-l{font-family:var(--mono);font-size:12px;font-weight:800;color:var(--link);padding:12px 2px 6px}
+  .dir-grid{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(290px,1fr))}
+  /* Rangée : le TITRE est le vrai <button> (clavier natif) et son ::after couvre la rangée ;
+     épingle et badge « À compléter » repassent au-dessus via z-index — même patron ARIA APG que
+     les anciennes cartes (pas de bouton dans un bouton). Anneau de focus porté par la rangée. */
+  .dir-row{position:relative;display:flex;align-items:center;gap:9px;min-height:52px;padding:6px 8px 6px 14px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--surface);overflow:hidden}
+  .dir-row:hover{border-color:var(--line-hover);background:var(--surface-2)}
+  .dir-main{flex:1;min-width:0}
+  /* padding 6px compensé par marges négatives : la BOÎTE du bouton atteint 29px (cible WCAG
+     2.5.8 mesurable ≥ 24 — le ::after étendu ne se mesure pas), le rendu ne bouge pas d'un px. */
+  .dir-row .card-open{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:none;border:0;padding:6px 0;margin:-6px 0;font-family:inherit;font-size:14px;font-weight:600;color:var(--ink);text-align:left;cursor:pointer}
+  .dir-row .card-open::after{content:"";position:absolute;inset:0;border-radius:var(--radius-md)}
+  .dir-row .card-open:focus-visible{outline:none}
+  .dir-row:has(.card-open:focus-visible){outline:2px solid var(--primary);outline-offset:2px}
+  .dir-sub{display:flex;align-items:center;gap:6px;margin-top:2px;min-width:0;flex-wrap:wrap;font-size:11px;color:var(--ink-soft)}
+  .dir-code{flex:none;font-family:var(--mono);font-size:11px;color:var(--ink-soft)}
+  .dir-row :is(.pinbtn,.tag.todo){position:relative;z-index:1}
   /* Épingle : cible tactile 40px, étoile SVG pleine ambrée quand actif. */
-  .card .pinbtn{background:none;border:0;line-height:1;color:var(--ink-soft);min-width:40px;min-height:40px;border-radius:var(--radius-sm);cursor:pointer;flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center}
-  .card .pinbtn:hover{background:var(--primary-soft);color:var(--primary)}
-  .card .pinbtn.on{color:var(--verify)}
-  .card .pinbtn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-  .card-body{flex:1;min-width:0}.card h2{margin:0 0 5px;font-size:16.5px;font-weight:640}
-  .card-meta{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+  .pinbtn{background:none;border:0;line-height:1;color:var(--ink-soft);min-width:40px;min-height:40px;border-radius:var(--radius-sm);cursor:pointer;flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center}
+  .pinbtn:hover{background:var(--primary-soft);color:var(--primary)}
+  .pinbtn.on{color:var(--verify)}
+  .pinbtn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* < 640 px : les rangées d'une lettre deviennent une LISTE à filets dans une carte unique
+     (maquette mobile) — mêmes nœuds, seul le conteneur change de peau. */
+  @media (max-width:639.98px){
+    .dir-grid{display:block;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-md);overflow:hidden}
+    .dir-row{border:0;border-top:1px solid var(--surface-2);border-radius:0;min-height:48px}
+    .dir-row:first-child{border-top:0}
+    .dir-row .card-open::after{border-radius:0}
+  }
+  /* Rail alphabétique : tap = saut, glisser = parcourir (touch-action:none — le geste est le
+     parcours, jamais un défilement de page). Débordement : le rail se masque (bindAzRail) —
+     jamais de lettres coupées ni de cibles rétrécies sous 24 px. */
+  .azrail{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:8px 2px;touch-action:none;overflow:hidden}
+  .azrail button{border:0;background:none;color:var(--link);font-size:11px;font-weight:700;cursor:pointer;padding:0 5px;min-height:24px;min-width:24px;border-radius:5px;font-family:inherit}
+  .azrail button:hover{background:var(--primary-soft)}
+  .azrail button:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
+  @media (max-width:779.98px){
+    /* Ancré ENTRE le bas de l'en-tête (--hdr-h, mesurée par syncHdrScroll — un centrage sur la
+       fenêtre passait sous l'en-tête à 320×640) et la tab bar ; lettres centrées dans la boîte. */
+    .azrail{position:fixed;right:0;top:calc(var(--hdr-h,64px) + 6px);bottom:calc(68px + env(safe-area-inset-bottom));z-index:15;background:color-mix(in srgb,var(--bg) 85%,transparent);border-radius:12px 0 0 12px}
+    body.view-home main.azr-on .home-main{padding-right:24px}
+  }
   /* Extrait contextuel d'un résultat de recherche (v4.4.4) : 2 lignes max, termes en GRAISSE
      (jamais en couleur — les registres rouge/ambre gardent leur sens vital). */
   .card-snip{margin-top:7px;font-size:12.5px;line-height:1.45;color:var(--ink-soft);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
@@ -935,8 +973,7 @@
   .rel-x:hover{background:rgba(0,0,0,.08)}
   /* Date à revoir : registre ATTENTION (le rouge reste réservé au danger vital, V5). */
   .card-date{font-size:12px;color:var(--ink-soft)}.card-date.stale{color:var(--verify);font-weight:700}
-
-  .chev{color:var(--line-strong);flex-shrink:0}
+  /* (.chev supprimé v4.56.0 avec les cartes d'accueil, son seul émetteur — règle 14.) */
   .empty{text-align:center;padding:54px 20px;color:var(--ink-soft);border:1.5px dashed var(--line);border-radius:var(--radius);background:rgba(255,255,255,.5)}
   /* Échec de démarrage : overlay plein écran centré, carte au registre ALERTE. */
   .boot-fail{position:fixed;inset:0;display:grid;place-items:center;padding:20px;background:var(--bg);z-index:90}
@@ -1163,7 +1200,7 @@
   ol.steps li.done .box svg{animation:pop .25s ease}
   ol.steps li.done .txt{text-decoration:line-through;color:var(--done-ink);font-weight:400}
   @keyframes pop{0%{transform:scale(.6)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
-  .card .pinbtn.on svg{animation:pop .25s ease}
+  .pinbtn.on svg{animation:pop .25s ease}
   ul.flat{list-style:none;margin:0;padding:0}
   ul.flat.verify{display:flex;flex-wrap:wrap;gap:8px}
   ul.flat.verify li{flex:1;min-width:250px;margin-bottom:0;border-radius:8px;padding:11px 14px;font-size:14.5px}
@@ -1578,7 +1615,6 @@
   .ls-end:focus-visible{outline:2px solid var(--critical);outline-offset:2px}
   .tag.live{background:var(--ok-soft);color:var(--ok);font-weight:700}   /* ● En cours : vert session (un seul vocabulaire) */
   .tag.libtag{display:inline-flex;align-items:center;gap:4px;background:var(--primary-soft);color:var(--primary-dk);max-width:55vw;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.tag.libtag svg{flex:none;opacity:.85}
-  .card.has-live{border-color:var(--primary-300)}
   /* Banderoles d'alerte (minuteur d'une session non visible) */
   #alerts{position:fixed;left:0;right:0;top:0;z-index:80;display:flex;flex-direction:column;align-items:center;gap:8px;padding:calc(8px + env(safe-area-inset-top)) 12px 0;pointer-events:none}
   /* Couleur AMBRE volontairement distincte de l'en-tête vert (sinon les deux bandeaux se confondent
@@ -2642,7 +2678,7 @@
   }
   /* ----- ACCUEIL V5 (canvas turn 6) : une seule interface responsive. < 780px : recherche pleine
      largeur, chips bibliothèques/catégories, TAB BAR basse à pastille glissante (au pouce).
-     >= 780px : colonne gauche (sections, bibliothèques, catégories) + grille de cartes fluide.
+     >= 780px : colonne gauche (sections, bibliothèques, catégories) + répertoire fluide.
      L'état n'est jamais porté par la couleur seule : pastille + encre + graisse + aria-selected
      (rôles tablist/tab, flèches + focus itinérant — WCAG 1.4.1 & APG). ----- */
   /* Compacte (v4.1.2) : 44px de haut (cible tactile minimale préservée) + paddings resserrés —
@@ -2734,6 +2770,11 @@
     .home-main>*{max-width:1320px}
     /* En large, bibliothèques et catégories vivent dans la colonne gauche (chips retirées du flux). */
     body.view-home :is(.scopebar,.catbar){display:none}
+    /* Rail alphabétique en COLONNE de bord (frère de .home-main dans le flex) ; l'accès à
+       l'historique global vit dans la sidebar (.hs-row data-sesshist) — le lien du pied de page
+       est la voie ÉTROITE, il disparaît ici. */
+    body.view-home .azrail{flex:none;width:30px;border-left:1px solid var(--surface-2);background:var(--surface)}
+    #histBtn{display:none}
   }
   /* RAIL DE LECTURE — dès 780px (v4.23.0, décision utilisateur « action + structure de front ») :
      la largeur suffit à tenir la colonne d'ACTION et le rail d'ORIENTATION côte à côte, l'idéal
@@ -2897,11 +2938,11 @@
      sens de la bascule). transform/opacity seulement -> aucune interaction bloquée pendant l'animation. */
   @keyframes secInL{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:none}}
   @keyframes secInR{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
-  /* Seule la LISTE glisse (canvas turn 6 : secAnim porte sur la grille de cartes) — la colonne
+  /* Seule la LISTE glisse (canvas turn 6 : secAnim porte sur la liste) — la colonne
      gauche, statique entre les sections, ne bouge pas. */
   main.sec-anim-l .home-main{animation:secInL .3s cubic-bezier(.25,.1,.25,1)}
   main.sec-anim-r .home-main{animation:secInR .3s cubic-bezier(.25,.1,.25,1)}
-  @media (prefers-reduced-motion:reduce){.seg-pill,.seg-btn{transition:none}main.sec-anim-l .home-main,main.sec-anim-r .home-main{animation:none}ol.steps li.done .box svg,.card .pinbtn.on svg,li.md-task.done .md-tkbox svg{animation:none}}
+  @media (prefers-reduced-motion:reduce){.seg-pill,.seg-btn{transition:none}main.sec-anim-l .home-main,main.sec-anim-r .home-main{animation:none}ol.steps li.done .box svg,.pinbtn.on svg,li.md-task.done .md-tkbox svg{animation:none}}
   /* ----- Contenu rédigé des protocoles (mini-Markdown) : lecture + éditeur ----- */
   .md-body{line-height:1.55;font-size:15px}
   /* Titres de section du contenu rédigé : MÊME registre typographique que les en-têtes de
@@ -3147,7 +3188,7 @@
   /* Large : plus de conteneur à défilement (wrap, overflow visible) -> le halo de tap déborde
      librement, le padding/marges compensés de .chiprow ne servent plus. */
   @media (min-width:780px){.chiprow{flex-wrap:nowrap}.catbar .chiprow,.scopebar .chiprow{flex-wrap:wrap;overflow-x:visible;padding:0;margin:0}}
-  /* (Grille des cartes : règle unique auto-fill/minmax(300px,1fr) — cf. .cards plus haut.) */
+  /* (Répertoire d'accueil : grille unique auto-fill/minmax(290px,1fr) — cf. .dir-grid plus haut.) */
   @media (max-width:560px){.read-head h2{font-size:21px}.row2{flex-direction:column;gap:0}.question{font-size:18px}}
   /* ===== Micro-animations (v4.3.2) =====
      Vocabulaire UNIQUE, aligné HIG/M3 : entrées 150-250 ms en décélération (--ease-out),
@@ -3169,7 +3210,7 @@
   .sys-banner:not([hidden]){animation:cbIn .25s ease}
   /* Survols des rangées/menus : fondu court au lieu du changement sec (aucun délai perçu). */
   .hs-row,.hs-act,.hs-add,.mm-row,.att-row,.rt-collapsed,.hdr-back,.hdr-new,.hdr-theme,.hdr-more,.hdr-act2,.tlink{transition:background-color .15s,color .15s}
-  .card{transition:transform .12s cubic-bezier(.2,0,0,1),border-color .12s,box-shadow .15s}
+  .dir-row,.qa-tile{transition:border-color .12s,background-color .15s}
   @media (prefers-reduced-motion:reduce){*{transition:none!important}.tmcard.flash{animation:none}#crisisBand{animation:none}header.bar.titled.ttl-on #brandTitle{animation:none}.sess-dot::after{animation:none;opacity:0}.ai-modal.on,.ai-modal.on:not(.pdf-modal) .ai-card,.more-menu:not([hidden]),.sys-banner:not([hidden]){animation:none}}
   /* ===== ÉCRANS TACTILES : 16px sur TOUS les champs de saisie (source de vérité UNIQUE) =====
      Sous 16px, Safari iOS ZOOME la page au focus : le contenu saute sous le doigt (barre de

@@ -1,5 +1,61 @@
 # Journal des modifications
 
+## [4.56.0] — 2026-07-28
+### L'accueil devient un « poste accès direct » : épinglées, répertoire A→Z, rail alphabétique
+
+Refonte des listes d'aides ET de protocoles d'après la maquette « 2c — poste accès direct » du
+canvas Claude Design « Accueil bibliothèques » (modèle du téléphone d'urgence : les favoris sous
+le pouce, l'annuaire complet derrière, l'index de tranche pour y sauter).
+
+### Trois étages à la place de la grille de cartes
+- **« Épinglée(s) ★ »** — les fiches épinglées en TUILES (liseré de catégorie, code · catégorie,
+  « ● En cours »). Libellé accordé au type et au nombre ; **les épinglées seules**, décision
+  utilisateur « juste les favoris » — la fréquence d'usage reste un critère de tri de RECHERCHE,
+  jamais de mise en avant ; aucune épingle → la section disparaît. Titre en 15 px borné à
+  **3 lignes** puis ellipse (2 lignes tronquaient trop pour reconnaître la fiche ;
+  `overflow-wrap:break-word`, pas `anywhere` qui coupait « Anaphylaxie » en plein mot) ; le nom
+  accessible et l'info-bulle gardent le texte entier.
+- **RÉPERTOIRE A→Z** — rangées compactes groupées par lettre (hors A-Z → « # », rangé en fin),
+  tri alphabétique STRICT (l'épinglée a sa tuile — la hisser en tête de sa lettre casserait la
+  lecture d'annuaire) ; sous 640 px, chaque lettre devient une liste à filets dans une carte
+  (maquette mobile). Les rangées gardent l'épingle ☆, le statut en attente, « À revérifier »,
+  « À compléter », la catégorie EN TOUTES LETTRES (la couleur d'une pastille n'est jamais seule)
+  et la date de validation en forme COURTE (`fmtDateShort` — « Validation : » pèserait plus que
+  la donnée sur une sous-ligne de 11 px). Le répertoire ne se pagine JAMAIS : le rail promet
+  « A→Z sous le doigt », un « Afficher plus » ferait des lettres injoignables.
+- **RAIL ALPHABÉTIQUE** — tap = saut à la lettre, GLISSER le long des lettres = parcourir
+  (index iOS ; pointer capture). Dès 2 lettres ; s'il ne tient pas en hauteur il DISPARAÎT
+  (jamais de lettres coupées ni de cibles < 24 px). En étroit il est FIXE, ancré entre le bas
+  de l'en-tête (`--hdr-h`) et la tab bar — un centrage sur la fenêtre passait sous l'en-tête
+  à 320×640, mesuré puis corrigé.
+
+### Ce qui ne change PAS (décisions utilisateur explicites)
+La recherche RESTE dans l'en-tête (champ statique : le focus survit aux re-rendus, raccourci
+« / » — la grande recherche du corps de la maquette est écartée) ; le filtre catégorie FILTRE
+(l'« estompage sans déplacer » de la maquette est refusé) ; en recherche, liste plate triée par
+pertinence (épinglées > frecency > titre), extraits contextuels et pagination inchangés.
+
+### Historique GLOBAL des sessions
+Le compte « n sauvegardées » des cartes disparaît ; à sa place, la fenêtre Historique gagne un
+mode « toutes les fiches » (chaque rangée nomme la sienne, cliniques et exercices toujours
+séparés) : rangée « Historique des sessions (n) » en bas de la sidebar en large, lien du pied de
+page en étroit — masqués à zéro session (aucun bouton mort). L'entrée PAR FICHE du menu ⋯ est
+inchangée. `openSessHist()` sans argument = mode global `'*'`.
+
+### Sous le capot
+- Fonctions pures testées : `azLetter`/`azGroups` (lettre désaccentuée, table en
+  `Object.create(null)` — la clé vient d'un titre saisi) et `qaPick` ; +10 tests (766 × 2 moteurs).
+- L'ancien composant `.card`/`.cards` est PURGÉ (émissions vérifiées au grep, règle 14 ; démo
+  `design/build.mjs` refaite ; `newTonal`, champ mort d'avant la refonte, retiré). Le bouton-titre
+  GARDE le nom `.card-open` : quatorze harnais ouvrent une fiche par ce sélecteur.
+- Périmètre accueil d'`audit-a11y` : `.dir-wrap,.azrail` remplace `.cards` — un sélecteur mort
+  ferait passer l'accueil sans le mesurer (leçon v4.31.1). Le bouton-titre des rangées porte un
+  padding 6 px compensé : sa BOÎTE atteint 29 px (l'ancien titre passait la mesure parce qu'il
+  s'enroulait sur deux lignes ; le `::after` étendu, lui, ne se mesure pas).
+- Vérifié : `npm run check`, 766 tests × Chromium + WebKit, a11y **301/301 sur les deux
+  moteurs**, doctrine 112/112, zoom-scroll 6/6, zéro débordement horizontal à 320 px, clair et
+  sombre. Rien à rejouer côté serveur.
+
 ## [4.55.5] — 2026-07-28
 ### Deux défauts signalés à l'usage — un menu qui tombait dans la barre, une attribution qui suivait la mauvaise personne
 
@@ -1485,43 +1541,3 @@ harnais ne tournaient que sur Blink. Règle ajoutée : toute sonde qui lit une g
 
 513 tests × 2 moteurs, 11 harnais verts **sur les deux moteurs** (38/38 en doctrine),
 289 contrôles d'accessibilité.
-
-## [4.44.1] — 2026-07-27
-### Correctif : `schema.sql` de v4.44.0 ne s'exécutait pas
-Signalé par l'utilisateur au rejeu sur Supabase :
-`ERROR: 42601: syntax error at or near "$"`, ligne 270.
-
-Deux fonctions trigger — `clamp_updated_at` et `stamp_updated_by` — avaient perdu un dollar de
-leur délimiteur de corps : `as $$` était devenu `as $`. Réparé, et vérifié qu'il n'en restait
-aucun autre.
-
-**La cause est une erreur de méthode de ma part, et elle mérite d'être écrite parce qu'elle se
-reproduira.** `String.prototype.replace()` interprète `$$` **dans la chaîne de remplacement**
-comme un dollar littéral unique — au même titre que `$&`, `` $` ``, `$'` et `$1`. Le script de
-patch qui ajoutait `set search_path` aux deux fonctions réinjectait donc du SQL mutilé, en
-silence. Remède : passer une **fonction** de remplacement (aucune substitution n'y est faite), ou
-`split().join()`.
-
-**Et le contrôle que j'avais fait ne pouvait pas l'attraper.** J'avais compté les `$$` et vérifié
-la parité : 50, pair, vert. Or un `$$` amputé en `$` ne matche plus le motif — il disparaît du
-compte **des deux côtés**, et la parité reste vraie. C'est un contrôle aveugle au défaut qu'il
-prétend couvrir, exactement ce que la leçon v4.31.1 proscrit ; je l'ai redite au prix fort.
-
-### `scripts/check-sql.mjs`, dans `npm run check`
-`supabase/schema.sql` et `supabase/rls-tests.sql` n'étaient couverts par **rien** : ni servis, ni
-chargés par les tests. Une erreur ne s'y voyait qu'au collage dans l'éditeur SQL de Supabase —
-c'est-à-dire chez l'utilisateur, sur une instance de production. Trois contrôles : les **runs de
-dollars** (un délimiteur de corps s'écrit `$$`, un dollar isolé est la signature exacte du défaut),
-leur parité, et l'absence de `;` dans un en-tête de fonction avant son corps. Vérifié capable
-d'échouer en réintroduisant le défaut vécu — il le signale par les **trois** voies — puis fichier
-restauré à l'octet.
-
-### Relecture complète du diff SQL
-Toutes les modifications de v4.44.0 sur `schema.sql` ont été relues ligne à ligne :
-**zéro ligne supprimée qui ne soit un en-tête de fonction**. Aucune logique, aucune politique,
-aucun grant n'a été touché — uniquement l'ajout de `pg_temp` et, pour les deux fonctions trigger,
-d'un `search_path`.
-
-> **`supabase/schema.sql` est à rejouer**, cette fois avec succès, puis `rls-tests.sql`.
-
-513 tests × 2 moteurs, 11 harnais verts, 289 contrôles d'accessibilité.

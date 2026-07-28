@@ -92,6 +92,7 @@ en gras de « Conventions de code » sont ses vraies entrées ; voici la carte, 
 | **Étapes, statuts, contenu clinique** | Statuts, code, étapes critiques · Liseré gauche 4 px · Taille des images · Listes cochables · Marqueur d'étape hors du champ · Liens « Voir aussi » |
 | **Mode crise — parcours et vues** | Parcours de soin · Journal de parcours · Plan de l'aide · PLAN = UNE SEULE VUE · Mode statique · Challenge-response · COMPLICATIONS · MODE EXERCICE · Alarme de minuteur · Dialogue « Terminer la session ? » · PORTÉE D'UNE ACTION DE REPRISE |
 | **Chrome, navigation, géométrie** | ON ANIME LA COMPOSITION · En-têtes V5 · ZONE HAUTE DE CRISE · DEUX RANGÉES COLLANTES · RAIL DE LECTURE · ANCRAGE ET DÉFILEMENT · DÉFILEMENT PRÉSERVÉ · HAUTEURS RELATIVES À LA FENÊTRE · Largeurs & échelles fermées · PILE DE RETOUR · RETOUR SYSTÈME · Sélecteur segmenté · Repli de l'étape ① · LOGO DE MARQUE · Pieds de page · Indicateur de mode des éditeurs · Interactif |
+| **Accueil (bibliothèques)** | ACCUEIL « POSTE ACCÈS DIRECT » |
 | **Consultation et références** | FEUILLE « CONSULTER » · FEUILLE CONSULTER = UN DOCUMENT · REPÈRES POSOLOGIQUES · SORTIE PDF UNIFIÉE |
 | **Données, stockage, sécurité** | Documents PDF · Export/import « avec documents » · Nommage SQL · (et les points 4 à 6 ci-dessus) |
 | **Partage de session en direct** | PARTAGE DE SESSION · CE QUI VOYAGE · RÔLES ET CAPACITÉS · L'INVITÉ NE DÉPOSE RIEN · CONTINUER SEUL · TROIS RÉGIMES D'APPLICATION · JOURNAL RÉFÉRENTIEL · BILLET DE REPRISE · PASSATION DE LA MAIN · HISTORIQUE DE SESSIONS SYNCHRONISÉ |
@@ -1151,6 +1152,40 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   le motif principal d'ouverture en cours de soin (« ça ne colle pas ») et le seul contenu clinique
   qu'on ne trouve nulle part ailleurs. **« Voir aussi » est CONSERVÉ** (décision utilisateur) bien
   qu'il relève de la navigation vers une AUTRE fiche plutôt que de l'amplification de celle-ci.
+- **ACCUEIL « POSTE ACCÈS DIRECT » (v4.56.0, maquette 2c du canvas « Accueil bibliothèques »)** :
+  les listes d'aides ET de protocoles partagent trois étages — tuiles **« Épinglée(s) ★ »**
+  (libellé ACCORDÉ au type et au nombre, `cfg.pinnedLbl` — l'intitulé « Accès direct » de la
+  maquette a été renommé sur demande utilisateur ; `qaPick` : les ÉPINGLÉES SEULES, décision
+  « juste les favoris » ; aucune épingle → la section disparaît, jamais de remplissage par
+  fréquence d'usage ; titre de tuile en 15 px borné à **3 lignes** + ellipse — 2 lignes
+  tronquaient trop pour reconnaître la fiche, demande utilisateur « un peu plus de titre » ;
+  `overflow-wrap:break-word`, pas `anywhere`, qui coupait « Anaphylaxie » en plein mot ;
+  sous-ligne à 1 ligne ellipsée ; le nom accessible et l'info-bulle gardent le texte entier),
+  **RÉPERTOIRE A→Z**
+  (`azGroups`/`azLetter`, purs testés : lettre désaccentuée, hors A-Z → `#` rangé en fin ; tri
+  alphabétique STRICT dans les groupes — l'épinglée a sa tuile, la hisser casserait la lecture
+  d'annuaire) en rangées compactes `.dir-row` (< 640 px : liste à filets dans une carte par
+  lettre), et **RAIL ALPHABÉTIQUE** `.azrail` (tap = saut, glisser = parcourir façon index iOS ;
+  dès 2 lettres ; s'il ne tient pas en hauteur il DISPARAÎT — jamais de lettres coupées ni de
+  cibles < 24 px ; en étroit il est FIXE, ancré entre `--hdr-h` et la tab bar — un centrage
+  fenêtre passait sous l'en-tête à 320×640). Décisions utilisateur figées : la recherche RESTE
+  dans l'en-tête (statique — le focus survit aux re-rendus, raccourci « / ») ; le filtre
+  catégorie FILTRE (l'estompage de la maquette a été refusé) ; les rangées gardent épingle ☆,
+  date COURTE (`fmtDateShort` — « Validation : » pèserait plus que la donnée à 11 px), statut en
+  attente, « À revérifier », « À compléter » ; le COMPTE DE SESSIONS des cartes disparaît,
+  remplacé par l'**HISTORIQUE GLOBAL** : `openSessHist()` sans argument = mode `'*'` de la
+  fenêtre existante (rangée `data-sesshist` de la sidebar en large, lien `#histBtn` du pied de
+  page en étroit — masqués à zéro session : aucun bouton mort ; l'entrée PAR FICHE du menu ⋯ est
+  inchangée). En RECHERCHE : liste plate triée pertinence (épinglées > frecency > titre),
+  extraits, pagination `LIB_PAGE` — le répertoire, lui, ne se pagine JAMAIS (le rail promet
+  « A→Z sous le doigt », un « Afficher plus » ferait des lettres injoignables). La couleur de
+  catégorie sur rangées/tuiles = pastille/liseré + NOM en toutes lettres dans la sous-ligne
+  (jamais seule, SPEC crise §1). PIÈGES : le bouton-titre garde le NOM `.card-open` — quatorze
+  harnais ouvrent une fiche par ce sélecteur ; le périmètre accueil d'`audit-a11y` est
+  `.dir-wrap,.azrail` (ex-`.cards` : un sélecteur mort ferait passer l'accueil sans le mesurer,
+  v4.31.1) ; la boîte du bouton-titre porte un padding 6px compensé (cible mesurable ≥ 24 px —
+  le `::after` étendu ne se mesure pas) ; l'ancien composant `.card`/`.cards` est PURGÉ
+  (émissions vérifiées au grep, démo `design/build.mjs` refaite — règle 14).
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.

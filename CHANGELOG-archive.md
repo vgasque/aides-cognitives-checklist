@@ -1,7 +1,47 @@
-# Journal des modifications — archive (versions 3.0.0 à 4.44.0)
+# Journal des modifications — archive (versions 3.0.0 à 4.44.1)
 
 > Entrées anciennes déplacées depuis [`CHANGELOG.md`](CHANGELOG.md) pour garder le journal
 > courant lisible. Même format (keep-a-changelog).
+
+## [4.44.1] — 2026-07-27
+### Correctif : `schema.sql` de v4.44.0 ne s'exécutait pas
+Signalé par l'utilisateur au rejeu sur Supabase :
+`ERROR: 42601: syntax error at or near "$"`, ligne 270.
+
+Deux fonctions trigger — `clamp_updated_at` et `stamp_updated_by` — avaient perdu un dollar de
+leur délimiteur de corps : `as $$` était devenu `as $`. Réparé, et vérifié qu'il n'en restait
+aucun autre.
+
+**La cause est une erreur de méthode de ma part, et elle mérite d'être écrite parce qu'elle se
+reproduira.** `String.prototype.replace()` interprète `$$` **dans la chaîne de remplacement**
+comme un dollar littéral unique — au même titre que `$&`, `` $` ``, `$'` et `$1`. Le script de
+patch qui ajoutait `set search_path` aux deux fonctions réinjectait donc du SQL mutilé, en
+silence. Remède : passer une **fonction** de remplacement (aucune substitution n'y est faite), ou
+`split().join()`.
+
+**Et le contrôle que j'avais fait ne pouvait pas l'attraper.** J'avais compté les `$$` et vérifié
+la parité : 50, pair, vert. Or un `$$` amputé en `$` ne matche plus le motif — il disparaît du
+compte **des deux côtés**, et la parité reste vraie. C'est un contrôle aveugle au défaut qu'il
+prétend couvrir, exactement ce que la leçon v4.31.1 proscrit ; je l'ai redite au prix fort.
+
+### `scripts/check-sql.mjs`, dans `npm run check`
+`supabase/schema.sql` et `supabase/rls-tests.sql` n'étaient couverts par **rien** : ni servis, ni
+chargés par les tests. Une erreur ne s'y voyait qu'au collage dans l'éditeur SQL de Supabase —
+c'est-à-dire chez l'utilisateur, sur une instance de production. Trois contrôles : les **runs de
+dollars** (un délimiteur de corps s'écrit `$$`, un dollar isolé est la signature exacte du défaut),
+leur parité, et l'absence de `;` dans un en-tête de fonction avant son corps. Vérifié capable
+d'échouer en réintroduisant le défaut vécu — il le signale par les **trois** voies — puis fichier
+restauré à l'octet.
+
+### Relecture complète du diff SQL
+Toutes les modifications de v4.44.0 sur `schema.sql` ont été relues ligne à ligne :
+**zéro ligne supprimée qui ne soit un en-tête de fonction**. Aucune logique, aucune politique,
+aucun grant n'a été touché — uniquement l'ajout de `pg_temp` et, pour les deux fonctions trigger,
+d'un `search_path`.
+
+> **`supabase/schema.sql` est à rejouer**, cette fois avec succès, puis `rls-tests.sql`.
+
+513 tests × 2 moteurs, 11 harnais verts, 289 contrôles d'accessibilité.
 
 ## [4.44.0] — 2026-07-27
 ### Durcissement, sécurité serveur, purge — et le filet qui manquait sur le service worker

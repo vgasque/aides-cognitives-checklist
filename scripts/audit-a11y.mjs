@@ -39,7 +39,9 @@ const AUDIT = `(() => {
   // rangée de COMMANDES, séparée de lui en v4.25.0. Le trou cachait un défaut réel — les boutons
   // « Se repérer » / « Consulter » mesuraient 38 px là où la crise exige 44. Une surface ajoutée
   // à l'app doit être ajoutée ICI dans le même geste, sinon elle n'est jamais mesurée.
-  const SCOPE=window.__acScope||'#crisisBand,#hdrCrisis,#crisisCtrl,#crisisDock,#planModal,#refModal,.read-side,.annex-row,.cards,.list-edit,.pos-more';
+  // .dir-wrap + .azrail REMPLACENT .cards en v4.56.0 (accueil « poste accès direct ») : un
+  // sélecteur qui ne matche plus rien ferait passer l'accueil sans l'avoir mesuré (v4.31.1).
+  const SCOPE=window.__acScope||'#crisisBand,#hdrCrisis,#crisisCtrl,#crisisDock,#planModal,#refModal,.read-side,.annex-row,.dir-wrap,.azrail,.list-edit,.pos-more';
   const roots=[...document.querySelectorAll(SCOPE)].filter(visible);
   const seen=new Set();
   roots.forEach(root=>{
