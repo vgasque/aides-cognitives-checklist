@@ -161,6 +161,34 @@ for (const rel of FICHIERS) {
   if (nBloc) nDoBlocs += nBloc;
 }
 
+/* -- ACCES DIRECT A UNE TABLE SOUS LE ROLE `anon` ------------------------------------------
+   `anon` n'a AUCUN privilege de table, par construction : c'est tout l'objet du 13, et le schema
+   le revoque explicitement. Toute lecture ou ecriture DIRECTE d'une table pendant qu'il est actif
+   est donc une erreur certaine — « permission denied », a l'execution, sur une instance reelle.
+   La regle est volontairement BORNEE A `anon` : sous `authenticated`, interroger une table est
+   legitime et c'est meme ainsi qu'on prouve que la RLS filtre (14.19 lit l'historique d'Alice
+   sous Bob et attend zero ligne). Un controle plus large produirait des faux positifs sur les
+   tests memes qui font le travail.
+   Les appels de FONCTION ne comptent pas : `share_join`, `share_pull` et `share_push` sont
+   `security definer` et c'est precisement leur raison d'etre. */
+for (const rel of FICHIERS) {
+  const pf = join(ROOT, rel);
+  if (!existsSync(pf)) continue;
+  const lignes = readFileSync(pf, 'utf8').split('\n');
+  let anon = false;
+  lignes.forEach((l, i) => {
+    const c = l.replace(/--.*$/, '');
+    if (/\bset\s+local\s+role\s+anon\b/i.test(c)) { anon = true; return; }
+    if (/\breset\s+role\b/i.test(c) || /\bset\s+local\s+role\s+(?!anon)\w+/i.test(c)) { anon = false; return; }
+    if (!anon) return;
+    const m = c.match(/\b(?:from|join|into|update)\s+public\.([a-z0-9_]+)\s*(?!\()/i);
+    if (m)
+      fautes.push(`${rel}:${i + 1} — table « public.${m[1]} » lue en DIRECT sous le role « anon », qui n'a aucun privilege de table\n`
+        + `        ${c.trim().slice(0, 76)}\n`
+        + `        (PostgreSQL repond « permission denied » a l'execution : reprendre les droits par « reset role », puis restituer)`);
+  });
+}
+
 /* ── LES CAPACITÉS DU CLIENT ET DU SERVEUR DOIVENT COÏNCIDER ─────────────────────────────────
    `SHARE_KINDS_ANY` / `SHARE_KINDS_LEAD` (index.html) et `share_kind_allowed` (schema.sql) sont
    DEUX ÉCRITURES DE LA MÊME RÈGLE, dans deux langages. Elles ont divergé : le redécoupage de la

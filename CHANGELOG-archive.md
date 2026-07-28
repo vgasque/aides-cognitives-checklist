@@ -1,7 +1,38 @@
-# Journal des modifications — archive (versions 3.0.0 à 4.39.0)
+# Journal des modifications — archive (versions 3.0.0 à 4.40.0)
 
 > Entrées anciennes déplacées depuis [`CHANGELOG.md`](CHANGELOG.md) pour garder le journal
 > courant lisible. Même format (keep-a-changelog).
+
+## [4.40.0] — 2026-07-26
+### Les 4 dernières fenêtres : le harnais d'accessibilité couvre les 20 sur 20
+`attPickModal`, `relPickModal`, `reportModal` et `newLibModal` étaient signalées « résistantes » en
+v4.39.0. Elles ne résistaient pas : **mes appels étaient faux**. Les vraies signatures sont
+`openAttPicker(entity, rerender)`, `openRelPicker(entity, rerender)` et surtout
+`exportSessionReport(sessionId)` — un **ID**, pas l'objet session. `openNewLib()` est par ailleurs
+gardée par `myIsAppAdmin` : garde métier légitime, dont la vraie barrière est la RLS serveur ; la
+sonde la lève pour auditer le RENDU, ce qui est l'objet du harnais.
+
+Le compte-rendu n'est atteignable que par le parcours COMPLET (ouvrir, démarrer, terminer) puisqu'il
+lit `sessions`, les sessions **archivées**. C'est en le déroulant qu'un défaut de sonde plus gênant
+est apparu.
+
+### Défaut de sonde corrigé : trois fenêtres mesuraient un contexte FACTICE
+Les surfaces « historique sessions », « terminer la session » et « complications » posaient
+`state.view='read'; state.fiche=f; render()` à la main. Or ce n'est pas le point d'entrée :
+`openRead(id)` appelle `buildRuntime` puis `bindStateToRuntime`, sans quoi **le Runtime n'est pas
+installé** — le clic sur « démarrer la session » ne démarrait donc rien. Mesuré :
+`Runtime.started=false`, `liveSessions=0`, `sessions=0`. Les trois fenêtres s'ouvraient bien, mais
+dans un contexte SANS session vive, pas celui que le harnais annonçait ; une régression propre à la
+session vive n'aurait pas été vue. Les trois passent par `openRead(f.id)`.
+
+C'est le même travers que le `classList.add('on')` refusé en v4.39.0, en plus discret : reconstruire
+un état à la main au lieu d'emprunter le chemin de l'utilisateur. Défaut du harnais, jamais de l'app.
+
+### Résultat
+**289 contrôles, 20 fenêtres × 2 thèmes, aucun défaut.** Les 4 dernières fenêtres n'ont rien révélé —
+résultat en soi : les corrections de v4.37→v4.39 (associations `for=`, noms de champs, `[hidden]`
+impératif, cibles) tenaient déjà sur les surfaces non encore auditées. Les 11 harnais restent verts,
+510 tests sur Chromium et WebKit.
 
 ## [4.39.0] — 2026-07-26
 ### Harnais d'accessibilité : de 6 fenêtres auditées à 16 sur 20

@@ -1,5 +1,36 @@
 # Journal des modifications
 
+## [4.55.1] — 2026-07-28
+### CORRECTIF — les assertions ajoutées en v4.55.0 lisaient une table sous le rôle `anon`
+
+`ERROR: 42501: permission denied for table shared_sessions`. Les trois vérifications que la v4.55.0
+ajoutait au § 14.5 — « nommer ce qui doit passer plutôt que compter » — interrogent la table en
+direct, alors que le bloc est encore sous le rôle **`anon`**, posé au § 14.3 et jamais rendu.
+
+Correction : on reprend les droits le temps de la lecture, puis **on restitue le rôle exactement
+comme on l'a trouvé** — les sections suivantes s'appuient dessus.
+
+### Le troisième rejeu perdu, et le garde-fou qui ferme cette famille
+C'est la troisième fois qu'une erreur SQL vous coûte un aller-retour : un `$$` mutilé (v4.44.1), une
+variable non déclarée (v4.54.1), et maintenant un accès de table sous un rôle sans privilèges.
+Toutes trois ont la même cause de fond : **`supabase/*.sql` n'est ni servi ni chargé par les
+tests**, sa seule épreuve était le collage dans l'éditeur.
+
+`check-sql.mjs` gagne un troisième contrôle statique. Il est **volontairement borné à `anon`** :
+ce rôle n'a aucun privilège de table par construction — c'est tout l'objet du § 13 —, donc toute
+lecture directe pendant qu'il est actif est une erreur **certaine**. Sous `authenticated`,
+interroger une table est légitime, et c'est même ainsi qu'on prouve que la RLS filtre (le § 14.19
+lit l'historique d'Alice sous Bob et attend zéro ligne). Une règle plus large aurait produit des
+faux positifs **sur les tests mêmes qui font le travail** — un garde-fou qui crie sur du code juste
+finit ignoré. Les appels de fonction ne comptent pas : `share_join`, `share_pull` et `share_push`
+sont `security definer`, et c'est précisément leur raison d'être.
+
+**Vérifié capable d'échouer** en réintroduisant le défaut vécu à l'identique : il nomme la table, la
+ligne, et le remède. Fichier restauré à l'octet.
+
+`schema.sql` de la v4.55.0 était correct et **n'a pas à être rejoué** ; **`rls-tests.sql` est à
+rejouer**. 756 tests × 2 moteurs, 14 harnais verts, `npm run check` 6/6.
+
 ## [4.55.0] — 2026-07-28
 ### Le scribe conduit — j'avais mal lu ma propre source
 
@@ -1570,34 +1601,3 @@ d'acquittement documenté), mais elle manquait là où l'œil se trouve quand le
 `paused` reste réservé à la carte pleine : `.tm-mini.paused` n'a pas de règle.
 
 510 tests × 2 moteurs, 11 harnais verts, 289 contrôles d'accessibilité.
-
-## [4.40.0] — 2026-07-26
-### Les 4 dernières fenêtres : le harnais d'accessibilité couvre les 20 sur 20
-`attPickModal`, `relPickModal`, `reportModal` et `newLibModal` étaient signalées « résistantes » en
-v4.39.0. Elles ne résistaient pas : **mes appels étaient faux**. Les vraies signatures sont
-`openAttPicker(entity, rerender)`, `openRelPicker(entity, rerender)` et surtout
-`exportSessionReport(sessionId)` — un **ID**, pas l'objet session. `openNewLib()` est par ailleurs
-gardée par `myIsAppAdmin` : garde métier légitime, dont la vraie barrière est la RLS serveur ; la
-sonde la lève pour auditer le RENDU, ce qui est l'objet du harnais.
-
-Le compte-rendu n'est atteignable que par le parcours COMPLET (ouvrir, démarrer, terminer) puisqu'il
-lit `sessions`, les sessions **archivées**. C'est en le déroulant qu'un défaut de sonde plus gênant
-est apparu.
-
-### Défaut de sonde corrigé : trois fenêtres mesuraient un contexte FACTICE
-Les surfaces « historique sessions », « terminer la session » et « complications » posaient
-`state.view='read'; state.fiche=f; render()` à la main. Or ce n'est pas le point d'entrée :
-`openRead(id)` appelle `buildRuntime` puis `bindStateToRuntime`, sans quoi **le Runtime n'est pas
-installé** — le clic sur « démarrer la session » ne démarrait donc rien. Mesuré :
-`Runtime.started=false`, `liveSessions=0`, `sessions=0`. Les trois fenêtres s'ouvraient bien, mais
-dans un contexte SANS session vive, pas celui que le harnais annonçait ; une régression propre à la
-session vive n'aurait pas été vue. Les trois passent par `openRead(f.id)`.
-
-C'est le même travers que le `classList.add('on')` refusé en v4.39.0, en plus discret : reconstruire
-un état à la main au lieu d'emprunter le chemin de l'utilisateur. Défaut du harnais, jamais de l'app.
-
-### Résultat
-**289 contrôles, 20 fenêtres × 2 thèmes, aucun défaut.** Les 4 dernières fenêtres n'ont rien révélé —
-résultat en soi : les corrections de v4.37→v4.39 (associations `for=`, noms de champs, `[hidden]`
-impératif, cibles) tenaient déjà sur les surfaces non encore auditées. Les 11 harnais restent verts,
-510 tests sur Chromium et WebKit.

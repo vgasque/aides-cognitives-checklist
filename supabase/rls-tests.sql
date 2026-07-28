@@ -789,8 +789,12 @@ begin
   if (v_j->>'accepted')::int <> 3 or (v_j->>'rejected')::int <> 3 then
     raise exception 'ÉCHEC 14.5 : capacités du scribe non appliquées (accepté %, rejeté %)',
       v_j->>'accepted', v_j->>'rejected'; end if;
-  -- Et l'on nomme ce qui doit passer, plutôt que de se fier à un COMPTE : trois acceptés pourraient
-  -- être les trois mauvais.
+  /* ON NOMME CE QUI DOIT PASSER, plutôt que de se fier à un COMPTE : trois acceptés pourraient
+     être les trois mauvais. Ces lectures interrogent la TABLE en direct, et l'on est ici sous le
+     rôle `anon` (posé au § 14.3) — qui n'a AUCUN privilège de table, ce qui est tout l'objet du
+     § 13. On reprend donc les droits le temps de la vérification, puis on RESTITUE le rôle
+     exactement comme on l'a trouvé : les sections suivantes s'appuient dessus. */
+  reset role;
   if not exists (select 1 from public.session_events where share_id='sh-1' and kind='nav') then
     raise exception 'ÉCHEC 14.5 : le scribe ne peut pas faire avancer la checklist'; end if;
   if not exists (select 1 from public.session_events where share_id='sh-1' and kind='timer_stop') then
@@ -798,6 +802,7 @@ begin
   if exists (select 1 from public.session_events where share_id='sh-1'
               and kind in ('uncheck','timer_reset','end')) then
     raise exception 'ÉCHEC 14.5 : un geste DESTRUCTEUR du scribe a été écrit'; end if;
+  set local role anon;
 
   -- 14.5bis CONTRAT DE LECTURE. Le client dépend de deux champs pour détecter une divergence
   -- silencieuse : l'IDENTIFIANT de chaque évènement (il en calcule l'empreinte du flux reçu) et
