@@ -911,6 +911,33 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   **explicite**, jamais déduit d'une proximité temporelle avec un clic : une nouvelle de fond
   tombant dans la seconde suivant un tap serait alors affichée par accident, exactement ce que la
   règle interdit.
+- **DIXIÈME PIÈGE DE CASCADE — UN `>*` QUI IMPOSE `position` (v4.55.4, signalé à l'usage)** : le
+  placard levait tous les enfants DIRECTS de l'en-tête en `position:relative; z-index:1` pour les
+  faire passer au-dessus de sa hachure. Or `.more-menu` est un enfant direct **et se positionne
+  lui-même** : la règle valant (0,2,1) contre (0,1,0), le menu ⋯ retombait dans le flux de la
+  barre et s'y **ouvrait au lieu de flotter dessous**, dès qu'un placard était posé. Nommer le
+  menu dans un `:not()` n'aurait fait que déplacer le piège au prochain calque ajouté là : on
+  **retire l'exigence** au lieu de l'assortir d'exceptions. `header.bar` porte déjà
+  `position:sticky; z-index:20`, donc elle EST un contexte d'empilement — un `::before` en
+  `z-index:-1` s'y peint au-dessus du fond de la barre et sous TOUT son contenu, sans qu'aucun
+  enfant ait à être positionné. **`#crisisBand` garde l'ancienne mécanique**, et ce n'est pas une
+  inconséquence : il est `position:relative` **sans `z-index`**, donc pas un contexte
+  d'empilement — un `z-index:-1` y passerait sous son propre fond et la hachure disparaîtrait.
+- **UNE ATTRIBUTION S'AMARRE À CE QU'ELLE DÉCRIT (v4.55.4)** : « avancé par ‹rôle› » était un
+  drapeau GLOBAL qu'un seul site du fichier effaçait — `cxEnter`, l'entrée sur complication.
+  Aucun avancement ordinaire ne l'effaçait : posée une fois (typiquement par le backlog rattrapé
+  à la jointure, où toutes les navigations de l'hôte défilent d'un coup), la mention **suivait
+  l'invité de carte en carte** et attribuait à « Hôte » les blocs qu'il venait lui-même
+  d'avancer. Encore un **demi-chemin** : un effacement écrit d'un seul côté. Remède : ne pas
+  ajouter les N sites manquants mais **supprimer le besoin de s'en souvenir** — la mention porte
+  le **numéro de VISITE** que l'avance distante a créé et ne s'affiche que sur celui-là ; le
+  premier passage minté localement en porte un autre, donc elle disparaît par construction. Elle
+  est posée **dans `shareApplyAnchored`**, seul point où une navigation distante devient la
+  position courante : `onEvents` le manquait dans un cas (le drain de la file par `rmResume` n'y
+  repasse pas) et le posait dans un autre où il ne fallait pas (une navigation REFUSÉE par le
+  mode lecteur nommait déjà son auteur alors que rien n'avait bougé). L'annonce au lecteur
+  d'écran, elle, garde une variable **locale au lot** : elle n'a ni la même durée de vie ni la
+  même condition que la mention.
 - **NEUVIÈME PIÈGE DE CASCADE, ET LE PREMIER PAR `:not()` (v4.55.3)** : la règle qui transforme
   toute fenêtre en feuille pleine largeur sur écran étroit vaut
   `.ai-modal:not(.pdf-modal):not(.dlg-confirm) .ai-card` = **(0,3,0)**, parce que **`:not()` compte

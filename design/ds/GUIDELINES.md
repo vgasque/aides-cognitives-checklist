@@ -598,20 +598,27 @@ Le mouvement est un signal, pas une décoration. En situation de soin :
 - Taille des images réglée **par image dans le modèle** (jeu fermé), jamais dans la syntaxe,
   et rendue par une CLASSE — jamais un nombre interpolé dans un style.
 
-## La cascade — neuf pièges, et ce qu'ils ont en commun
+## La cascade — dix pièges, et ce qu'ils ont en commun
 
-Neuf fois, une règle de GÉOMÉTRIE a été silencieusement annulée par une autre. Six par
+Dix fois, une règle de GÉOMÉTRIE a été silencieusement annulée par une autre. Six par
 l'ORDRE de déclaration à spécificité égale (`.read-grid`, `.cbt-n`, `.mode-seg`, les
-largeurs d'éditeur, les paliers 320 px…), trois par la SPÉCIFICITÉ :
+largeurs d'éditeur, les paliers 320 px…), quatre par la SPÉCIFICITÉ :
 
 - `.ai-card p` (0,1,1) l'emportant sur `.sh-code` (0,1,0) ;
 - un `#id` (1,1,0) battant un sélecteur de classes plus long (0,2,1) — le geste était bloqué
   mais le bouton restait vert plein et **invitait au geste refusé** ;
 - **`:not()` compte la spécificité de son argument** :
-  `.ai-modal:not(.pdf-modal):not(.dlg-confirm) .ai-card` vaut (0,3,0) et bat (0,2,0).
+  `.ai-modal:not(.pdf-modal):not(.dlg-confirm) .ai-card` vaut (0,3,0) et bat (0,2,0) ;
+- **un `>*` qui impose `position`** : le placard levait les enfants directs de l'en-tête en
+  `position:relative` (0,2,1) et écrasait `.more-menu{position:absolute}` (0,1,0) — le menu ⋯
+  s'ouvrait DANS la barre au lieu de flotter dessous.
 
-**Règle qui en découle : pour une GÉOMÉTRIE, ne jamais dépendre de l'ordre de déclaration.**
-Passer par un `#id`, ou vérifier la position dans la feuille — et compter les `:not()`.
+**Deux règles qui en découlent.** Pour une GÉOMÉTRIE, ne jamais dépendre de l'ordre de
+déclaration : passer par un `#id`, ou vérifier la position dans la feuille — et compter les
+`:not()`. Et **ne jamais imposer `position` par un sélecteur d'enfants** : tout enfant qui se
+positionne lui-même en meurt. Quand un `::before` décoratif doit passer sous le contenu, on
+**l'enfonce** (`z-index:-1`, si l'élément est bien un contexte d'empilement) plutôt que de
+**lever** ses frères — l'un ne demande rien aux enfants, l'autre les contraint tous.
 
 ## Ce qui a été RETIRÉ (ne pas réintroduire sans besoin constaté)
 

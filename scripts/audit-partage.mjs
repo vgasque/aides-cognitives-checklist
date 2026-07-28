@@ -1693,6 +1693,118 @@ console.log(`\n══ PARTAGE · le placard de l'invité et les réponses direct
   await page.close();
 }
 
+/* LE MENU ⋯ SOUS UN PLACARD (v4.55.5, signalé à l'usage). Le placard levait TOUS les enfants
+   directs de l'en-tête en `position:relative` pour les faire passer au-dessus de sa hachure — or
+   `.more-menu` est un enfant direct, et il se positionne LUI-MÊME. La règle valait (0,2,1) contre
+   (0,1,0) : le menu retombait dans le flux de la barre et s'y ouvrait au lieu de flotter dessous.
+   ON MESURE LA POSITION CALCULÉE ET LA GÉOMÉTRIE, PAS LA PRÉSENCE D'UNE CLASSE : c'est le fait de
+   flotter qui est en cause, pas l'intention de le faire flotter. Et on mesure la hachure par son
+   IMAGE DE FOND, jamais par l'opacité seule — sur un en-tête SANS placard le pseudo-élément n'a
+   pas de `content`, et `getComputedStyle` rend alors l'opacité par défaut 1 : un témoin fondé sur
+   l'opacité serait vert des deux côtés et ne prouverait rien. */
+console.log(`\n══ PARTAGE · le menu ⋯ reste flottant sous un placard — moteur ${NOM_MOTEUR} ══`);
+{
+  const page = await br.newPage({ viewport: { width: 390, height: 844 } });
+  await session(page);
+  const mesure = await page.evaluate(async () => {
+    const out = {};
+    const h = document.querySelector('header.bar');
+    const lire = async (placard) => {
+      h.classList.remove('exo', 'inv', 'ttl-on');
+      if (placard) h.classList.add(placard, 'ttl-on');
+      await new Promise(x => setTimeout(x, 400));
+      openMoreMenu(); await new Promise(x => setTimeout(x, 250));
+      const m = document.getElementById('moreMenu');
+      const mr = m.getBoundingClientRect(), hr = h.getBoundingClientRect();
+      const av = getComputedStyle(h, '::before');
+      const r = { pos: getComputedStyle(m).position,
+        sousEnTete: +(mr.top - hr.bottom).toFixed(1),
+        // hachure RÉELLE : un dégradé peint, pas une opacité par défaut
+        hachure: /gradient/.test(av.backgroundImage) && av.opacity === '1',
+        // le menu ne doit pas gonfler la barre : dans le flux, il l'aurait rallongée
+        hauteurEnTete: +hr.height.toFixed(1) };
+      closeMoreMenu(); await new Promise(x => setTimeout(x, 150));
+      return r; };
+    out.nu = await lire(null);
+    out.exo = await lire('exo');
+    out.inv = await lire('inv');
+    return out;
+  });
+  const { nu, exo, inv } = mesure;
+  t('témoin : sans placard, le menu flotte sous l’en-tête',
+    nu.pos === 'absolute' && nu.sousEnTete > 0, `${nu.pos} / +${nu.sousEnTete} px`);
+  t('témoin : sans placard, aucune hachure n’est peinte', nu.hachure === false);
+  for (const [nom, m] of [['exercice', exo], ['invité', inv]]) {
+    t(`placard ${nom} : la hachure est bien peinte`, m.hachure === true);
+    t(`placard ${nom} : le menu ⋯ reste hors du flux`, m.pos === 'absolute', m.pos);
+    t(`placard ${nom} : … et s’ouvre SOUS l’en-tête`, m.sousEnTete > 0, `${m.sousEnTete} px`);
+    t(`placard ${nom} : … sans rallonger la barre`,
+      Math.abs(m.hauteurEnTete - nu.hauteurEnTete) <= 1,
+      `${nu.hauteurEnTete} → ${m.hauteurEnTete} px`);
+  }
+  await page.close();
+}
+
+/* « AVANCÉ PAR … » NE SUIT PLUS CELUI QUI AVANCE (v4.55.5, signalé à l'usage). La mention était un
+   drapeau global qu'un SEUL site effaçait (`cxEnter`) : posée une fois — typiquement par le
+   backlog rattrapé à la jointure, où toutes les navigations de l'hôte défilent d'un coup — elle
+   suivait ensuite l'invité de carte en carte et attribuait à « Hôte » les blocs qu'il venait
+   lui-même d'avancer. Elle est désormais AMARRÉE au numéro de visite créé par l'avance distante.
+   LE CONTRÔLE CONSTRUIT LE CAS : une avance distante, PUIS une avance locale — le défaut ne se
+   voit qu'à la seconde, et un contrôle qui s'arrêterait à la première serait vert avec le défaut
+   en place. */
+console.log(`\n══ PARTAGE · l'attribution ne survit pas à un geste local — moteur ${NOM_MOTEUR} ══`);
+{
+  const page = await br.newPage({ viewport: { width: 390, height: 844 } });
+  await session(page);
+  const r = await page.evaluate(async () => {
+    const o = {};
+    Share._io.push = async () => ({ ok: true, server_time: new Date().toISOString() });
+    Share.mode = 'guest'; Share.role = 'lead'; Share.me = 'pInv'; Share.status = 'active';
+    Share.lastOk = Date.now(); Share.offset = 0;
+    // La liste telle que le serveur la renvoie : l'hôte y porte « Hôte » (schema.sql).
+    Share.participants = [{ id: 'pHote', label: 'Hôte', role: 'lead', owner: true },
+                          { id: 'pInv', label: 'Infirmier', role: 'scribe', owner: false }];
+    const f = Runtime.fiche;
+    const suite = id => { const b = f.blocks.find(x => x.id === id); return (b && b.next) || null; };
+    const mention = () => (document.querySelector('.ov-by') || {}).textContent || '';
+
+    const b1 = suite(state.nav[state.nav.length - 1]) || f.blocks[1].id;
+    Share.onEvents([{ seq: 1, id: 'n1', actor: 'pHote', kind: 'nav',
+      payload: { nav: [...state.nav, b1], navSeq: [...state.navSeq, (Math.max(...state.navSeq) || 0) + 1] } }]);
+    await new Promise(x => setTimeout(x, 600));
+    o.distante = mention();
+
+    /* … puis L'INVITÉ avance LUI-MÊME. C'est ici que le défaut vivait, et il faut donc que
+       l'avance ait VRAIMENT lieu : `next` est nul sur le dernier bloc de la fiche d'exemple, et
+       s'y fier laissait les deux contrôles suivants mesurer du vide en restant verts. On prend
+       n'importe quel bloc DIFFÉRENT du bloc courant — c'est un passage valide dans un journal
+       append-only, et c'est le cas qu'on veut construire. */
+    const b2 = suite(b1) || (f.blocks.find(x => x && x.id !== b1) || {}).id;
+    o.cible = !!b2 && b2 !== b1;
+    if (o.cible) {
+      state.nav.push(b2); state.navSeq.push(++Runtime.seq); state.navPos = state.nav.length - 1;
+      renderOvOnly(); await new Promise(x => setTimeout(x, 350));
+      o.locale = mention(); }
+
+    // Puis l'hôte avance ENCORE : la mention doit revenir — sinon on aurait « corrigé » en la
+    // tuant définitivement, ce qui vaudrait aussi peu que de la laisser traîner.
+    const b3 = (f.blocks.find(x => x && x.id !== b2) || {}).id;
+    Share.onEvents([{ seq: 2, id: 'n2', actor: 'pHote', kind: 'nav',
+      payload: { nav: [...state.nav, b3], navSeq: [...state.navSeq, ++Runtime.seq] } }]);
+    await new Promise(x => setTimeout(x, 600));
+    o.retour = mention();
+    return o;
+  });
+  t('une avance DISTANTE nomme son auteur', /avancé par Hôte/.test(r.distante), r.distante || '(aucune)');
+  t('témoin : la fiche a bien un bloc suivant', r.cible === true);
+  t('… et la mention DISPARAÎT dès que j’avance moi-même',
+    r.locale === '', r.locale || '(aucune)');
+  t('… mais elle REVIENT si l’autre avance de nouveau',
+    /avancé par Hôte/.test(r.retour), r.retour || '(aucune)');
+  await page.close();
+}
+
 await br.close(); srv.close();
 console.log(`\n${ok}/${ok + ko} contrôles partage OK` + (ko ? ` — ${ko} ÉCHEC(S)` : ''));
 process.exit(ko ? 1 : 0);

@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-O44aWfn09TA42FPHvHa8v0GBdkR0Ju+z4ZVlTx/yxE8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-D0Lz7YFUbZGt/N+OdJX2bjyb7xVZK1+tj6q9Zc0cGt8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1513,10 +1513,25 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      prefers-reduced-motion (transition:none). Les enfants passent en z-index:1 : le ::before
      est AU-DESSUS du fond de l'élément, jamais au-dessus de son contenu. */
   #crisisBand{position:relative}
-  #crisisBand::before,header.bar.exo::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(-45deg,var(--surface),var(--surface) 14px,var(--primary-soft) 14px,var(--primary-soft) 22px);opacity:0;transition:opacity .3s ease;pointer-events:none}
+  #crisisBand::before,header.bar.exo::before,header.bar.inv::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(-45deg,var(--surface),var(--surface) 14px,var(--primary-soft) 14px,var(--primary-soft) 22px);opacity:0;transition:opacity .3s ease;pointer-events:none}
   #crisisBand.exo::before{opacity:1}
   header.bar.exo.ttl-on::before{opacity:1}
-  #crisisBand>*,header.bar.exo>*{position:relative;z-index:1}
+  #crisisBand>*{position:relative;z-index:1}
+  /* L'EN-TÊTE NE LÈVE PAS SES ENFANTS, ELLE ENFONCE SA HACHURE — et ce n'est pas une élégance,
+     c'est le correctif d'un défaut signalé à l'usage : `header.bar.exo>*{position:relative}`
+     vaut (0,2,1) et écrasait `.more-menu{position:absolute}` (0,1,0). Le menu ⋯, qui est un
+     enfant DIRECT de l'en-tête, retombait donc dans son flux — il s'ouvrait DANS la barre au
+     lieu de flotter dessous, dès que le placard d'exercice ou d'invité était posé.
+     Un `>*` qui impose `position` casse tout enfant qui se positionne lui-même. Nommer le menu
+     dans un `:not()` ne ferait que déplacer le piège au prochain calque ajouté ici ; on retire
+     donc l'exigence au lieu de l'assortir d'exceptions. `header.bar` porte déjà
+     `position:sticky; z-index:20`, donc elle EST un contexte d'empilement : un `::before` en
+     `z-index:-1` s'y peint au-dessus du fond de la barre et sous TOUT son contenu, sans que le
+     moindre enfant ait à être positionné.
+     POURQUOI `#crisisBand` GARDE L'ANCIENNE MÉCANIQUE : il est `position:relative` mais sans
+     `z-index`, donc PAS un contexte d'empilement — un `z-index:-1` y passerait sous son propre
+     fond et la hachure disparaîtrait. Ses enfants sont tous statiques, la levée ne casse rien. */
+  header.bar.exo::before,header.bar.inv::before{z-index:-1}
   /* PLACARD DE L'INVITÉ (v4.55.4, demande utilisateur) — MÊME MÉCANIQUE que le placard d'exercice,
      au trait près : hachure en fondu sur un `::before`, relais du bandeau vers l'en-tête au pixel
      où le titre passe dessous, enfants en `z-index:1`. Rien de neuf à inventer, donc rien de neuf
@@ -1526,8 +1541,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      n'est ni une alerte ni une vigilance, c'est un ÉTAT. Le mot le porte (« ▪ Vous suivez ») ;
      la hachure ne fait que le rendre reconnaissable d'un coup d'œil, la couleur jamais seule. */
   #crisisBand.inv::before,header.bar.inv.ttl-on::before{opacity:1}
-  header.bar.inv::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(-45deg,var(--surface),var(--surface) 14px,var(--primary-soft) 14px,var(--primary-soft) 22px);opacity:0;transition:opacity .3s ease;pointer-events:none}
-  header.bar.inv>*{position:relative;z-index:1}
   .cb-tag.inv,#hdrCrisis.inv{color:var(--primary-dk);background:var(--surface);
     border:1px solid var(--primary);border-radius:6px;padding:2px 8px;letter-spacing:.6px}
   #hdrCrisis.exo{background:var(--surface);border:1px dashed var(--primary);border-radius:6px;padding:2px 8px;letter-spacing:.6px}
@@ -3848,7 +3861,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.55.4';
+const APP_VERSION='4.55.5';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -4703,7 +4716,10 @@ function cxEnter(f,target){
   const local=(f.blocks||[]).some(b=>b&&b.id===target);
   if(!local){if(relTarget(target)){openRel(target);_rmSync();}return;}
   ovDropOpens();
-  _navBy=null;                      // mon propre geste : la mention d'en face a fait son office
+  /* (L'effacement manuel de `_navBy` vivait ICI, et c'était le SEUL du fichier — d'où le défaut
+     corrigé en v4.55.5. Il est retiré, pas déplacé : la mention est désormais amarrée au numéro
+     de visite, et ce passage-ci en minte un neuf. Le laisser laisserait croire qu'un effacement
+     reste nécessaire quelque part, donc qu'il en manque ailleurs.) */
   const from=state.nav[state.navPos];
   state.nav.push(target);state.navSeq.push(++Runtime.seq);state.navPos=state.nav.length-1;
   Runtime.cxBack=Runtime.cxBack||{};if(from&&from!==target)Runtime.cxBack[Runtime.seq]={id:from,t:Date.now()};
@@ -8893,8 +8909,18 @@ function tagRank(q,items){
    autre écran. Registre NEUTRE : ce n'est ni une alerte ni une confirmation, c'est une attribution.
    Elle vit à côté de « Vous êtes ici » parce que c'est la même information — où en est-on — vue
    sous l'autre angle : par qui. Deux canaux distincts, jamais une couleur seule. */
-function navByTag(tip){
-  if(!tip||!_navBy)return '';
+/* ELLE S'INVALIDE TOUTE SEULE, ET C'EST LE CORRECTIF (v4.55.5, signalé à l'usage). La mention
+   était un drapeau GLOBAL qu'un seul site du fichier remettait à zéro — `cxEnter`, l'entrée sur
+   complication. Aucun avancement ordinaire ne l'effaçait : posée une fois (typiquement par le
+   rattrapage du backlog à la jointure, où toutes les navigations de l'hôte défilent d'un coup),
+   elle SUIVAIT ensuite l'invité de carte en carte et attribuait à « Hôte » les blocs qu'il venait
+   lui-même d'avancer. Encore un demi-chemin : un effacement écrit d'un seul côté.
+   On ne rajoute donc pas les N sites manquants — on supprime le besoin de s'en souvenir. La
+   mention est AMARRÉE au numéro de VISITE que l'avance distante a créé, et ne s'affiche que sur
+   celui-là. Le premier passage minté localement porte un autre numéro : la mention disparaît par
+   construction, sans qu'aucun geste ait à y penser. */
+function navByTag(tip,seq){
+  if(!tip||!_navBy||_navBy.seq==null||_navBy.seq!==seq)return '';
   return ' <span class="ov-by">avancé par '+esc(_navBy.qui)+'</span>';}
 function tkRefNorm(r){
   if(!r||typeof r!=='object')return null;
@@ -9836,7 +9862,7 @@ function ovInstHtml(f,id,idx,topo,pres){
     :((tip&&hasFlow(f)?`<button type="button" class="ov-redo" data-ovreader title="Mode lecteur (binôme) : un challenge à la fois en plein écran — le lecteur lit, l'exécutant répond"><span aria-hidden="true">⤢</span> Lecteur</button>`:'')
       +((!dec&&clean(b.steps).length)?`<button type="button" class="ov-redo" data-ovverify="${idx}" title="Do-Verify : redérouler ce bloc en challenge-réponse — « Constaté » coche, « Écart » laisse non coché">Vérifier</button>`:'')
       +((!tip&&complete&&!dec)?`<button type="button" class="ov-redo" data-ovredo="${esc(id)}" title="Refaire ce bloc : nouvelle carte au bout du journal — celle-ci reste telle quelle">↺ Refaire</button>`:''));
-  return `<section class="ov-block${tip?' cur':''}${complete?' done':''}${dec?' dec':''}${closed&&!verifying?' closed':''}" data-ovb="${esc(id)}" data-ovi="${idx}" data-ovn="${topo[id]||''}"${tip?' aria-current="step"':''}><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="${idx}" aria-expanded="${closed&&!verifying?'false':'true'}"><span class="ov-n" aria-hidden="true">${complete?uiIcon('check',13,{sw:3.2,cls:''}):(topo[id]||((Runtime.cxBack||{})[seq]?'⚡':'·'))}</span><span class="ov-t">${esc(b.title)||(dec?'Décision':'Étapes')}${passTag}${cxTag}${takenH} <span class="ov-here">Vous êtes ici</span>${navByTag(tip)}</span><span class="ov-c">${count}</span><span class="ov-chev" aria-hidden="true">${closed&&!verifying?'▾':'▴'}</span></button>${btns?`<div class="ov-acts">${btns}</div>`:''}</div><div class="ov-body">${bodyH}</div></section>`;}
+  return `<section class="ov-block${tip?' cur':''}${complete?' done':''}${dec?' dec':''}${closed&&!verifying?' closed':''}" data-ovb="${esc(id)}" data-ovi="${idx}" data-ovn="${topo[id]||''}"${tip?' aria-current="step"':''}><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="${idx}" aria-expanded="${closed&&!verifying?'false':'true'}"><span class="ov-n" aria-hidden="true">${complete?uiIcon('check',13,{sw:3.2,cls:''}):(topo[id]||((Runtime.cxBack||{})[seq]?'⚡':'·'))}</span><span class="ov-t">${esc(b.title)||(dec?'Décision':'Étapes')}${passTag}${cxTag}${takenH} <span class="ov-here">Vous êtes ici</span>${navByTag(tip,seq)}</span><span class="ov-c">${count}</span><span class="ov-chev" aria-hidden="true">${closed&&!verifying?'▾':'▴'}</span></button>${btns?`<div class="ov-acts">${btns}</div>`:''}</div><div class="ov-body">${bodyH}</div></section>`;}
 /* PLAN DE L'AIDE — « Se repérer » (v4.12.0, réduit à UNE vue en v4.25.0) : rendu de flowPlan.
    Le plan reste INERTE côté cochage (la trace vit dans le journal) et sert à NAVIGUER.
    UNE SEULE VUE, l'ÉCHELLE (ovPlanLadderHtml, mode compact ECAM) : une LIGNE par bloc, retraits
@@ -10246,6 +10272,17 @@ function shareApplyAnchored(f,evs){
         // leurs clés de cochage.
         Runtime.seq=Math.max(Runtime.seq||0,...nn.navSeq);
         bindStateToRuntime();      // pose aussi navPos au BOUT : le journal n'a pas de curseur
+        /* ATTRIBUTION POSÉE ICI, ET NULLE PART AILLEURS. C'est le seul point où une navigation
+           DISTANTE devient la position courante — `onEvents` le manquait dans un cas (le drain
+           de la file par `rmResume` n'y repasse pas) et le posait dans un autre où il ne fallait
+           pas (une navigation REFUSÉE par le mode lecteur nommait déjà son auteur alors que rien
+           n'avait bougé). Un seul site, amarré au numéro de visite : la mention ne peut plus être
+           ni périmée ni prématurée. Un écho de mon propre geste l'efface. */
+        const _nseq=nn.navSeq[nn.navSeq.length-1];
+        if(e.actor&&e.actor!==Share.me){
+          const _q=(Share.participants||[]).find(x=>x&&x.id===e.actor);
+          _navBy={qui:(_q&&_q.label)||'un participant',at:Date.now(),seq:_nseq};}
+        else _navBy=null;
         n++;}
     }
     else if(e.kind==='flow_end'){state.flowEnded=!!p.on;n++;}
@@ -14327,7 +14364,7 @@ const Share={
   _defer:[],
   onEvents(ev){
     if(state.view!=='read'||!Runtime.fiche)return;      // rien à peindre : le pli suffit
-    const f=Runtime.fiche;let peint=0;const anc=[];let anno=false;
+    const f=Runtime.fiche;let peint=0;const anc=[];let anno=false;let navBy=null;
     /* PASSATION — un ÉTAT, jamais une interruption (invariant 2). Trois temps, comme l'exige
        AC 61-115 « Positive Exchange of Flight Controls » : l'un PROPOSE, l'autre PREND, et le
        changement de rôle qui suit vaut confirmation. Aucun écran ne change de capacité sans un
@@ -14339,8 +14376,12 @@ const Share={
          la réponse n'est donc pas d'interdire mais d'ANNONCER — chaque geste est attribué, et une
          avance venue d'en face laisse une mention sur la carte, en plus de `#srLive`. */
       if(e.kind==='nav'&&e.actor&&e.actor!==this.me){
-        const q=(this.participants||[]).find(x=>x.id===e.actor);
-        _navBy={qui:(q&&q.label)||'un participant',at:Date.now()};anno=true;}
+        /* Nom du LOT, pour la seule annonce au lecteur d'écran — distinct du drapeau durable
+           `_navBy`, que seule `shareApplyAnchored` écrit (et seulement si la navigation a
+           réellement atterri). Les deux étaient confondus : l'annonce et la mention n'ont ni la
+           même durée de vie ni la même condition. */
+        const q=(this.participants||[]).find(x=>x&&x.id===e.actor);
+        navBy=(q&&q.label)||'un participant';anno=true;}
       if(e.kind!=='handoff'||e.actor===this.me)continue;
       const p=e.payload||{};
       /* SANS CE RAFRAÎCHISSEMENT, « Prendre la main » N'APPARAISSAIT JAMAIS : l'offre arrive par
@@ -14399,7 +14440,7 @@ const Share={
          rôle que n'importe qui s'accorderait. */
       this.grantLead(who).then(ok=>{if(ok){announce('Vous avez passé la main.');render();}});}
     if(peint||anno)readerRepaint();
-    if(_navBy&&anno)announce(_navBy.qui+' a avancé la checklist.');
+    if(navBy&&anno)announce(navBy+' a avancé la checklist.');
     else if(anno)announce('Le soignant a avancé — reprendre depuis le mode lecteur.');
     if(peint)announce(peint===1?'Une action d’un participant':peint+' actions d’un participant');},
   onDesync(){}, onStatus(){},

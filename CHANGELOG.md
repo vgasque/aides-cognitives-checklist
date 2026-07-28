@@ -1,5 +1,69 @@
 # Journal des modifications
 
+## [4.55.5] — 2026-07-28
+### Deux défauts signalés à l'usage — un menu qui tombait dans la barre, une attribution qui suivait la mauvaise personne
+
+### Le menu ⋯ s'ouvrait DANS l'en-tête — dixième piège de cascade
+Dès qu'un placard était posé (exercice ou invité), ouvrir le menu ⋯ ne produisait plus une
+fenêtre flottante : il retombait **dans le flux de la barre**, qu'il rallongeait d'autant.
+
+Le placard, pour faire passer le contenu au-dessus de sa hachure, levait **tous les enfants
+directs** de l'en-tête en `position:relative; z-index:1`. Or `.more-menu` est un enfant direct
+**et se positionne lui-même** : `header.bar.exo>*` vaut (0,2,1) contre (0,1,0) pour
+`.more-menu{position:absolute}`. La règle décorative écrasait la règle structurelle.
+
+**On retire l'exigence plutôt que de l'assortir d'exceptions.** Nommer le menu dans un `:not()`
+n'aurait fait que déplacer le piège au prochain calque ajouté là — c'est la leçon de la v4.55.3,
+une version plus tôt. `header.bar` porte déjà `position:sticky; z-index:20`, donc elle **est** un
+contexte d'empilement : un `::before` en `z-index:-1` s'y peint au-dessus du fond de la barre et
+sous tout son contenu, **sans qu'aucun enfant ait à être positionné**. On **enfonce** la hachure
+au lieu de **lever** ses frères ; l'un ne demande rien aux enfants, l'autre les contraint tous.
+
+`#crisisBand` garde l'ancienne mécanique, et ce n'est pas une inconséquence : il est
+`position:relative` **sans `z-index`**, donc pas un contexte d'empilement — un `z-index:-1` y
+passerait sous son propre fond et la hachure disparaîtrait. Ses enfants sont tous statiques.
+
+### « Avancé par … » nommait l'hôte pour les gestes de l'invité
+La mention était un drapeau **global** qu'un seul site du fichier remettait à zéro : `cxEnter`,
+l'entrée sur complication. **Aucun avancement ordinaire ne l'effaçait.** Posée une fois —
+typiquement par le backlog rattrapé à la jointure, où toutes les navigations de l'hôte défilent
+d'un coup — elle **suivait ensuite l'invité de carte en carte** et attribuait à « Hôte » les blocs
+qu'il venait lui-même d'avancer.
+
+Encore un demi-chemin : un effacement écrit d'un seul côté. Le remède n'est donc pas d'ajouter les
+N sites manquants — c'est de **supprimer le besoin de s'en souvenir**. La mention porte désormais
+le **numéro de visite** que l'avance distante a créé et ne s'affiche que sur celui-là ; le premier
+passage minté localement en porte un autre, donc elle disparaît **par construction**.
+
+Elle est posée **dans `shareApplyAnchored`**, seul point où une navigation distante devient la
+position courante. `onEvents` le manquait dans un cas (le drain de la file par `rmResume` n'y
+repasse pas) et le posait dans un autre où il ne fallait pas : une navigation **refusée** par le
+mode lecteur nommait déjà son auteur alors que rien n'avait bougé. L'annonce au lecteur d'écran
+garde, elle, une variable **locale au lot** — elle n'a ni la même durée de vie ni la même
+condition que la mention affichée.
+
+### Ce que le diagnostic a écarté en chemin
+Deux hypothèses ont été **mesurées puis abandonnées** avant d'arriver à la bonne, et c'est ce qui
+a évité de « corriger » du code sain : l'attribution est juste quand la liste des participants
+est à jour (« avancé par Infirmier », vérifié), et il n'y a **aucun écho** — l'hôte ne repousse
+pas sous son nom ce qu'il vient de recevoir. Le défaut n'était ni dans la résolution serveur de
+l'acteur (le secret l'emporte sur l'identité, y compris quand les deux appareils sont connectés au
+même compte) ni dans le rebasage du diff.
+
+### Vérification
+**294/294 contrôles partage** (+14, sur les deux moteurs), 756 tests × 2 moteurs, 14 harnais verts
+sur Chromium **et** WebKit, 301 contrôles d'accessibilité, 112/112 doctrine.
+
+Les deux défauts réintroduits en font tomber **sept** ; fichier restauré à l'octet. **Un témoin a
+dû être refait** : la première version de la sonde d'attribution avançait par `next`, nul sur le
+dernier bloc de la fiche d'exemple — l'avance locale n'avait donc jamais lieu et les deux contrôles
+suivants mesuraient du vide. C'est le témoin lui-même qui l'a signalé. De même, la hachure est
+mesurée par son **image de fond** et non par l'opacité : sur un en-tête sans placard le
+pseudo-élément n'a pas de `content`, et `getComputedStyle` rend alors l'opacité par défaut `1` —
+un témoin fondé sur l'opacité aurait été vert des deux côtés.
+
+**Rien à rejouer côté serveur.**
+
 ## [4.55.4] — 2026-07-28
 ### L'invité sait qu'il est invité — et un bouton pressé répond enfin
 
@@ -1461,96 +1525,3 @@ d'un `search_path`.
 > **`supabase/schema.sql` est à rejouer**, cette fois avec succès, puis `rls-tests.sql`.
 
 513 tests × 2 moteurs, 11 harnais verts, 289 contrôles d'accessibilité.
-
-## [4.44.0] — 2026-07-27
-### Durcissement, sécurité serveur, purge — et le filet qui manquait sur le service worker
-Quatre lots techniques du reliquat d'audit, sans effet visible à l'écran.
-
-### Durcissement
-**`esc()` échappe désormais l'apostrophe.** La doctrine en fait « la SEULE barrière anti-XSS » : la
-laisser suspendue à l'invariant non vérifié « aucun attribut n'est délimité par une apostrophe »
-faisait reposer la sûreté de tout le fichier sur une convention que rien n'impose. Innocuité
-établie avant écriture : 278 sites d'appel, dont **0 `textContent`, 0 `setAttribute`, 0 comparaison
-de chaîne** — la sortie ne va que dans du HTML, où l'entité est re-décodée.
-
-**Le backtick, lui, reste intact — et c'est une décision, pas un oubli.** Il a été échappé, puis
-rétabli : trois tests du mini-Markdown tombent aussitôt, parce que `mdInline` échappe d'abord et
-reconnaît la syntaxe ensuite — un backtick devenu `&#96;` n'est plus un délimiteur de code. Et ce
-n'est pas un métacaractère HTML. L'échapper coûtait une fonctionnalité documentée pour zéro sûreté.
-Les deux tests encodent maintenant la règle **et son exception**.
-
-Le risque réel n'était pas la sûreté mais l'affichage : les textes français sont pleins
-d'apostrophes. Balayage de **7 surfaces × 2 moteurs** (accueil, session vive, feuilles Consulter et
-Se repérer, statique, éditeur, protocole) — **aucune entité littérale**, la sonde prouvant par
-contre-épreuve qu'elle sait en voir une.
-
-**`check-colors` : exemption resserrée à la règle, plus à la ligne.** Elle était `^.*\.acc-sw\..*$`
-— ligne entière. Or ce CSS écrit plusieurs règles par ligne : trois lignes exemptées, dont **deux
-portant six règles chacune**, et une troisième sans le moindre hex. Un hex collé en fin d'une de
-ces lignes passait inaperçu ; il est désormais attrapé (démontré, puis fichier restauré à l'octet).
-
-### Sécurité serveur
-`pg_temp` ajouté en fin des **20** `search_path` épinglés, et les **2 fonctions trigger** —
-`clamp_updated_at`, `stamp_updated_by` — qui n'en avaient aucune en reçoivent une. Nuance honnête :
-`pg_temp` n'est jamais consulté pour résoudre une fonction ou un opérateur, seulement pour les
-tables, et toutes les relations sont déjà qualifiées `public.…` — on ferme une porte déjà fermée
-par ailleurs. On le fait parce que c'est gratuit et que l'absence est ce qu'un auditeur tiers
-relève en premier. Vérifié : **0 `search_path` nu, 0 sans `pg_temp`**.
-
-**`FORCE ROW LEVEL SECURITY` n'est PAS activé, et le piège est désormais écrit dans le schéma.**
-L'ajouter par réflexe supprimerait **tous les app-admins** : `app_admins` et `app_settings` n'ont
-volontairement ni politique ni grant, et ne sont lues que par `is_app_admin()`/`is_approved()`, qui
-sont `security definer` précisément pour traverser cette invisibilité. Sous `force`, le
-propriétaire redevient soumis aux politiques — il n'y en a aucune — donc plus aucune création de
-bibliothèque ni validation de compte sur toute l'instance.
-
-> ⚠ **`supabase/schema.sql` est à rejouer** sur l'instance Supabase, puis `rls-tests.sql`.
-
-### Purge (règle 14) — zéro pixel changé
-- **`state.showSess`** : déclaré, remis à false deux fois, **jamais lu**.
-- **`_rtShowDirty`** : quatre écritures, **zéro lecture** — deux écouteurs globaux (`scroll`,
-  `resize`) entretenaient une valeur que personne ne consultait, et le commentaire décrivait une
-  optimisation qui n'existait plus.
-- **Modificateur `compact`** : émis deux fois, **aucune règle CSS** dans tout le fichier.
-- **Délégation du plan dans `bindOverviewEvents`** : trois branches inatteignables. Ce gestionnaire
-  écoute `.ov-wrap`, le journal ; le plan l'a quitté en v4.23.0. Mesuré avant retrait dans
-  **21 configurations** (3 largeurs × 7 états) : `.ov-wrap [data-pl*]` = **0 partout**, pendant que
-  le rail en portait 9 dès 800 px et la feuille 9 une fois ouverte.
-- **Trois règles CSS strictement dupliquées** (`.dock-plan:hover`, `.catchip{position:relative}`,
-  `#crtIA .crt-ic`). Un **quatrième** doublon strict existe — `body.view-read .read-grid` @1200 —
-  et il est **délibéré**, réaffirmé exprès après le bloc 1000 pour gagner par l'ordre de cascade.
-  Il apparaît dans la même liste que les autres : ne jamais passer d'outil « supprimer les règles
-  dupliquées » sur ce fichier.
-- **`--pulse`** était la copie décimale **exacte** de `--ok` dans les deux thèmes (29,122,56 et
-  55,214,122). Invisible au garde-fou couleurs, puisque c'était une déclaration de token : changer
-  `--ok` aurait laissé le halo derrière. Source unique désormais — `--ok-rgb` porte le triplet,
-  `--ok` en dérive. Vérifié au calculé : `rgb(29, 122, 56)` / `rgba(29, 122, 56, 0.45)` en clair,
-  `rgb(55, 214, 122)` / `rgba(55, 214, 122, 0.45)` en sombre, identique sur les deux moteurs.
-- **`#brandSub .sess-dot`** : CSS mort. `.sess-dot` n'est émis que dans les cartes « sessions en
-  cours » de l'accueil ; `#brandSub` est un `<span>` de texte. 0 nœud sur 3 états × 2 moteurs.
-
-### Commentaires qui mentaient
-- `posoCardsHtml` s'annonçait « source unique **partagée par le flux et la feuille Consulter** — les
-  deux rendus ne peuvent pas diverger ». Faux depuis v4.25.3, qui a retiré la posologie de la
-  feuille : il ne reste qu'**un** site d'appel. Le commentaire promettait une garantie de
-  non-divergence entre deux rendus dont l'un n'existe plus. **AGENTS.md portait la même
-  affirmation**, en contradiction avec sa propre section « FEUILLE CONSULTER » deux paragraphes
-  plus haut — corrigé aux deux endroits.
-- `_vvhSync` annonçait « ~1 s » : il tourne à **3,3 fois par seconde** (`setInterval(…,300)`, appel
-  placé avant le garde d'activité). Coût mesuré : **nul** — `vv.height` est déjà calculé, et
-  l'écriture n'a lieu qu'au-delà de 0,5 px de variation. Le chiffre est corrigé parce qu'un
-  commentaire faux sur une fréquence est ce qui fait ensuite « optimiser » au jugé une boucle qui
-  ne coûte rien.
-
-### Le filet manquant : `scripts/check-sw.mjs`
-**La fonction dont tout dépend en intervention — exister hors ligne — était la seule que rien ne
-mesurait** : aucun des onze harnais ne regardait `sw.js` ni le manifeste, et trois des défauts les
-plus graves de cet audit vivaient là, trouvés à la lecture seule. Quatre contrôles **statiques**,
-donc instantanés, donc dans `npm run check` à chaque commit : toute entrée d'`ASSETS` /
-`CORE_ASSETS` / `PDFJS_ASSETS` existe sur le disque (une entrée fantôme dans `CORE_ASSETS` fait
-échouer `addAll`, qui est tout-ou-rien, et supprime le hors-ligne entier) ; `CORE_ASSETS` ⊆
-`ASSETS` ; tout fichier servable de la racine est dans `ASSETS` — la règle 13 ne s'auto-exécutait
-pas ; `CACHE` aligné sur `APP_VERSION`, c'est-à-dire la règle 1. Vérifié capable d'échouer sur les
-deux scénarios, fichier restauré à l'octet.
-
-513 tests × 2 moteurs, 11 harnais verts (34/34 en doctrine), 289 contrôles d'accessibilité.

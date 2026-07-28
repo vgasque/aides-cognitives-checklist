@@ -1228,10 +1228,25 @@
      prefers-reduced-motion (transition:none). Les enfants passent en z-index:1 : le ::before
      est AU-DESSUS du fond de l'élément, jamais au-dessus de son contenu. */
   #crisisBand{position:relative}
-  #crisisBand::before,header.bar.exo::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(-45deg,var(--surface),var(--surface) 14px,var(--primary-soft) 14px,var(--primary-soft) 22px);opacity:0;transition:opacity .3s ease;pointer-events:none}
+  #crisisBand::before,header.bar.exo::before,header.bar.inv::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(-45deg,var(--surface),var(--surface) 14px,var(--primary-soft) 14px,var(--primary-soft) 22px);opacity:0;transition:opacity .3s ease;pointer-events:none}
   #crisisBand.exo::before{opacity:1}
   header.bar.exo.ttl-on::before{opacity:1}
-  #crisisBand>*,header.bar.exo>*{position:relative;z-index:1}
+  #crisisBand>*{position:relative;z-index:1}
+  /* L'EN-TÊTE NE LÈVE PAS SES ENFANTS, ELLE ENFONCE SA HACHURE — et ce n'est pas une élégance,
+     c'est le correctif d'un défaut signalé à l'usage : `header.bar.exo>*{position:relative}`
+     vaut (0,2,1) et écrasait `.more-menu{position:absolute}` (0,1,0). Le menu ⋯, qui est un
+     enfant DIRECT de l'en-tête, retombait donc dans son flux — il s'ouvrait DANS la barre au
+     lieu de flotter dessous, dès que le placard d'exercice ou d'invité était posé.
+     Un `>*` qui impose `position` casse tout enfant qui se positionne lui-même. Nommer le menu
+     dans un `:not()` ne ferait que déplacer le piège au prochain calque ajouté ici ; on retire
+     donc l'exigence au lieu de l'assortir d'exceptions. `header.bar` porte déjà
+     `position:sticky; z-index:20`, donc elle EST un contexte d'empilement : un `::before` en
+     `z-index:-1` s'y peint au-dessus du fond de la barre et sous TOUT son contenu, sans que le
+     moindre enfant ait à être positionné.
+     POURQUOI `#crisisBand` GARDE L'ANCIENNE MÉCANIQUE : il est `position:relative` mais sans
+     `z-index`, donc PAS un contexte d'empilement — un `z-index:-1` y passerait sous son propre
+     fond et la hachure disparaîtrait. Ses enfants sont tous statiques, la levée ne casse rien. */
+  header.bar.exo::before,header.bar.inv::before{z-index:-1}
   /* PLACARD DE L'INVITÉ (v4.55.4, demande utilisateur) — MÊME MÉCANIQUE que le placard d'exercice,
      au trait près : hachure en fondu sur un `::before`, relais du bandeau vers l'en-tête au pixel
      où le titre passe dessous, enfants en `z-index:1`. Rien de neuf à inventer, donc rien de neuf
@@ -1241,8 +1256,6 @@
      n'est ni une alerte ni une vigilance, c'est un ÉTAT. Le mot le porte (« ▪ Vous suivez ») ;
      la hachure ne fait que le rendre reconnaissable d'un coup d'œil, la couleur jamais seule. */
   #crisisBand.inv::before,header.bar.inv.ttl-on::before{opacity:1}
-  header.bar.inv::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(-45deg,var(--surface),var(--surface) 14px,var(--primary-soft) 14px,var(--primary-soft) 22px);opacity:0;transition:opacity .3s ease;pointer-events:none}
-  header.bar.inv>*{position:relative;z-index:1}
   .cb-tag.inv,#hdrCrisis.inv{color:var(--primary-dk);background:var(--surface);
     border:1px solid var(--primary);border-radius:6px;padding:2px 8px;letter-spacing:.6px}
   #hdrCrisis.exo{background:var(--surface);border:1px dashed var(--primary);border-radius:6px;padding:2px 8px;letter-spacing:.6px}

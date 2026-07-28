@@ -1,7 +1,100 @@
-# Journal des modifications — archive (versions 3.0.0 à 4.43.0)
+# Journal des modifications — archive (versions 3.0.0 à 4.44.0)
 
 > Entrées anciennes déplacées depuis [`CHANGELOG.md`](CHANGELOG.md) pour garder le journal
 > courant lisible. Même format (keep-a-changelog).
+
+## [4.44.0] — 2026-07-27
+### Durcissement, sécurité serveur, purge — et le filet qui manquait sur le service worker
+Quatre lots techniques du reliquat d'audit, sans effet visible à l'écran.
+
+### Durcissement
+**`esc()` échappe désormais l'apostrophe.** La doctrine en fait « la SEULE barrière anti-XSS » : la
+laisser suspendue à l'invariant non vérifié « aucun attribut n'est délimité par une apostrophe »
+faisait reposer la sûreté de tout le fichier sur une convention que rien n'impose. Innocuité
+établie avant écriture : 278 sites d'appel, dont **0 `textContent`, 0 `setAttribute`, 0 comparaison
+de chaîne** — la sortie ne va que dans du HTML, où l'entité est re-décodée.
+
+**Le backtick, lui, reste intact — et c'est une décision, pas un oubli.** Il a été échappé, puis
+rétabli : trois tests du mini-Markdown tombent aussitôt, parce que `mdInline` échappe d'abord et
+reconnaît la syntaxe ensuite — un backtick devenu `&#96;` n'est plus un délimiteur de code. Et ce
+n'est pas un métacaractère HTML. L'échapper coûtait une fonctionnalité documentée pour zéro sûreté.
+Les deux tests encodent maintenant la règle **et son exception**.
+
+Le risque réel n'était pas la sûreté mais l'affichage : les textes français sont pleins
+d'apostrophes. Balayage de **7 surfaces × 2 moteurs** (accueil, session vive, feuilles Consulter et
+Se repérer, statique, éditeur, protocole) — **aucune entité littérale**, la sonde prouvant par
+contre-épreuve qu'elle sait en voir une.
+
+**`check-colors` : exemption resserrée à la règle, plus à la ligne.** Elle était `^.*\.acc-sw\..*$`
+— ligne entière. Or ce CSS écrit plusieurs règles par ligne : trois lignes exemptées, dont **deux
+portant six règles chacune**, et une troisième sans le moindre hex. Un hex collé en fin d'une de
+ces lignes passait inaperçu ; il est désormais attrapé (démontré, puis fichier restauré à l'octet).
+
+### Sécurité serveur
+`pg_temp` ajouté en fin des **20** `search_path` épinglés, et les **2 fonctions trigger** —
+`clamp_updated_at`, `stamp_updated_by` — qui n'en avaient aucune en reçoivent une. Nuance honnête :
+`pg_temp` n'est jamais consulté pour résoudre une fonction ou un opérateur, seulement pour les
+tables, et toutes les relations sont déjà qualifiées `public.…` — on ferme une porte déjà fermée
+par ailleurs. On le fait parce que c'est gratuit et que l'absence est ce qu'un auditeur tiers
+relève en premier. Vérifié : **0 `search_path` nu, 0 sans `pg_temp`**.
+
+**`FORCE ROW LEVEL SECURITY` n'est PAS activé, et le piège est désormais écrit dans le schéma.**
+L'ajouter par réflexe supprimerait **tous les app-admins** : `app_admins` et `app_settings` n'ont
+volontairement ni politique ni grant, et ne sont lues que par `is_app_admin()`/`is_approved()`, qui
+sont `security definer` précisément pour traverser cette invisibilité. Sous `force`, le
+propriétaire redevient soumis aux politiques — il n'y en a aucune — donc plus aucune création de
+bibliothèque ni validation de compte sur toute l'instance.
+
+> ⚠ **`supabase/schema.sql` est à rejouer** sur l'instance Supabase, puis `rls-tests.sql`.
+
+### Purge (règle 14) — zéro pixel changé
+- **`state.showSess`** : déclaré, remis à false deux fois, **jamais lu**.
+- **`_rtShowDirty`** : quatre écritures, **zéro lecture** — deux écouteurs globaux (`scroll`,
+  `resize`) entretenaient une valeur que personne ne consultait, et le commentaire décrivait une
+  optimisation qui n'existait plus.
+- **Modificateur `compact`** : émis deux fois, **aucune règle CSS** dans tout le fichier.
+- **Délégation du plan dans `bindOverviewEvents`** : trois branches inatteignables. Ce gestionnaire
+  écoute `.ov-wrap`, le journal ; le plan l'a quitté en v4.23.0. Mesuré avant retrait dans
+  **21 configurations** (3 largeurs × 7 états) : `.ov-wrap [data-pl*]` = **0 partout**, pendant que
+  le rail en portait 9 dès 800 px et la feuille 9 une fois ouverte.
+- **Trois règles CSS strictement dupliquées** (`.dock-plan:hover`, `.catchip{position:relative}`,
+  `#crtIA .crt-ic`). Un **quatrième** doublon strict existe — `body.view-read .read-grid` @1200 —
+  et il est **délibéré**, réaffirmé exprès après le bloc 1000 pour gagner par l'ordre de cascade.
+  Il apparaît dans la même liste que les autres : ne jamais passer d'outil « supprimer les règles
+  dupliquées » sur ce fichier.
+- **`--pulse`** était la copie décimale **exacte** de `--ok` dans les deux thèmes (29,122,56 et
+  55,214,122). Invisible au garde-fou couleurs, puisque c'était une déclaration de token : changer
+  `--ok` aurait laissé le halo derrière. Source unique désormais — `--ok-rgb` porte le triplet,
+  `--ok` en dérive. Vérifié au calculé : `rgb(29, 122, 56)` / `rgba(29, 122, 56, 0.45)` en clair,
+  `rgb(55, 214, 122)` / `rgba(55, 214, 122, 0.45)` en sombre, identique sur les deux moteurs.
+- **`#brandSub .sess-dot`** : CSS mort. `.sess-dot` n'est émis que dans les cartes « sessions en
+  cours » de l'accueil ; `#brandSub` est un `<span>` de texte. 0 nœud sur 3 états × 2 moteurs.
+
+### Commentaires qui mentaient
+- `posoCardsHtml` s'annonçait « source unique **partagée par le flux et la feuille Consulter** — les
+  deux rendus ne peuvent pas diverger ». Faux depuis v4.25.3, qui a retiré la posologie de la
+  feuille : il ne reste qu'**un** site d'appel. Le commentaire promettait une garantie de
+  non-divergence entre deux rendus dont l'un n'existe plus. **AGENTS.md portait la même
+  affirmation**, en contradiction avec sa propre section « FEUILLE CONSULTER » deux paragraphes
+  plus haut — corrigé aux deux endroits.
+- `_vvhSync` annonçait « ~1 s » : il tourne à **3,3 fois par seconde** (`setInterval(…,300)`, appel
+  placé avant le garde d'activité). Coût mesuré : **nul** — `vv.height` est déjà calculé, et
+  l'écriture n'a lieu qu'au-delà de 0,5 px de variation. Le chiffre est corrigé parce qu'un
+  commentaire faux sur une fréquence est ce qui fait ensuite « optimiser » au jugé une boucle qui
+  ne coûte rien.
+
+### Le filet manquant : `scripts/check-sw.mjs`
+**La fonction dont tout dépend en intervention — exister hors ligne — était la seule que rien ne
+mesurait** : aucun des onze harnais ne regardait `sw.js` ni le manifeste, et trois des défauts les
+plus graves de cet audit vivaient là, trouvés à la lecture seule. Quatre contrôles **statiques**,
+donc instantanés, donc dans `npm run check` à chaque commit : toute entrée d'`ASSETS` /
+`CORE_ASSETS` / `PDFJS_ASSETS` existe sur le disque (une entrée fantôme dans `CORE_ASSETS` fait
+échouer `addAll`, qui est tout-ou-rien, et supprime le hors-ligne entier) ; `CORE_ASSETS` ⊆
+`ASSETS` ; tout fichier servable de la racine est dans `ASSETS` — la règle 13 ne s'auto-exécutait
+pas ; `CACHE` aligné sur `APP_VERSION`, c'est-à-dire la règle 1. Vérifié capable d'échouer sur les
+deux scénarios, fichier restauré à l'octet.
+
+513 tests × 2 moteurs, 11 harnais verts (34/34 en doctrine), 289 contrôles d'accessibilité.
 
 ## [4.43.0] — 2026-07-27
 ### Deux arbitrages tranchés : 320 px est servi, et la production est GitHub Pages
