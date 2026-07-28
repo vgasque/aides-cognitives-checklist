@@ -1,5 +1,51 @@
 # Journal des modifications
 
+## [4.54.2] — 2026-07-28
+### CORRECTIF — l'historique synchronisé de la v4.54.0 ne synchronisait rien
+
+Signalé à l'usage, et exact sur les trois points : la bascule ne suivait pas d'un appareil à
+l'autre, les sessions antérieures à l'activation ne montaient pas, celles terminées après non plus.
+**La table existait, les politiques RLS étaient vertes, la bascule s'allumait — et pas une ligne ne
+partait.** Une fonctionnalité entièrement livrée, entièrement inerte.
+
+### Une cause et demie
+`_pushTable` ne pousse que les objets portant `dirty`, et **aucun site n'en posait jamais sur une
+session**. Explique les deux symptômes de fond. Le troisième — la bascule qui ne suit pas — venait
+d'un oubli distinct : le réglage n'entrait pas dans les préférences synchronisées, alors que le
+vocabulaire personnel ajouté à la même version, lui, y entrait.
+
+Le marquage vit désormais au **point d'étranglement de l'écriture** (`_putSessionSafe`), comme
+l'émission du partage vit dans `persistLive` : toute mutation ajoutée demain sera couverte sans
+qu'on y pense. La pierre tombale de la suppression y passe aussi — elle posait ses champs à la
+main, ce qui rendait fausse, dès la ligne où elle était écrite, la doctrine « ici, et nulle part
+ailleurs ».
+
+### Deux pièges que la contre-expertise a trouvés, et qui auraient annulé le correctif
+**`updatedAt` doit être posé en même temps que `dirty`.** Une session n'en portait pas — seulement
+`savedAt`, qui ne bouge plus après l'archivage. Posé seul, `dirty` aurait fait gagner
+**inconditionnellement** la copie distante à la résolution du dernier écrivain (`savedAt > 0`,
+toujours vrai) — et **effacé la trace do-verify de chaque session à la première synchro**. Le
+correctif du push, seul, aurait donc détruit des données.
+
+**Le rattrapage ne peut pas se garder sur une transition.** Qui a activé l'option en v4.54.0 —
+quand elle ne poussait rien — a déjà la clé à « 1 » : il ne reverra **jamais** le passage
+éteint→allumé. Un rattrapage gardé par cette transition aurait donc raté **exactement les personnes
+qui ont signalé le défaut**. La garde est une clé durable, et un réveil de synchro suit le
+balayage : quand l'option est apprise par le pull des préférences, la poussée de la même passe est
+déjà sortie par son garde d'entrée.
+
+### Vérification
+Nouveau harnais **`scripts/audit-historique.mjs`** — quatorzième —, **16/16 sur les deux moteurs**.
+Il mesure ce qui **partirait** (transport bouchonné) plutôt que ce que le code déclare : rien sans
+l'option, l'existant rattrapé, une session terminée après qui part, la trace do-verify qui reste et
+dont l'absence est dite, une session **vive** qui ne part jamais, le réglage qui voyage et qu'une
+préférence distante éteint — et le cas « déjà activé en v4.54.0 », qui a son propre contrôle.
+
+**Vérifié capable d'échouer** : les trois défauts réintroduits à l'identique en font tomber six,
+fichier restauré à l'octet. Une sonde a dû être corrigée en route — elle avait perdu son bouchon de
+transport et accusait l'application de son propre oubli. 747 tests × 2 moteurs, 14 harnais verts,
+301 contrôles d'accessibilité, 250/250 partage. **Rien à rejouer côté serveur.**
+
 ## [4.54.1] — 2026-07-28
 ### CORRECTIF — `rls-tests.sql` de la v4.54.0 ne s'exécutait pas, et rien ne pouvait le dire
 
@@ -1498,32 +1544,3 @@ contourné.
 **241/241** contrôles d'accessibilité — contre 121 avant, sur un périmètre deux fois plus étroit.
 
 510 tests × 2 moteurs, 22/22 doctrine, 241/241 accessibilité, 163 contrôles d'audit, 10 sondes.
-
-## [4.38.0] — 2026-07-26
-### Tous les champs de l'éditeur ont enfin un nom
-**39 champs sur 53 n'étaient nommés que par leur `placeholder`** — qui disparaît dès qu'on tape.
-Concrètement : on revient sur un champ déjà rempli, et plus rien ne dit ce qu'il contient ; un
-lecteur d'écran annonce « champ, texte » sur ce qui est peut-être la dose d'un protocole de
-réanimation. C'est WCAG 3.3.2 et 4.1.2, et c'est l'antipattern le plus répandu des formulaires.
-
-Le diagnostic a montré que ces 39 champs n'étaient **pas de même nature**, et qu'un `aria-label`
-uniforme aurait été la mauvaise réponse :
-- **4 gabarits avaient déjà un `<label>` visible ET un `id`** : il suffisait de les associer
-  (`for=`). Aucune duplication, et le libellé devient cliquable pour focaliser le champ.
-- **Les autres sont des LIGNES DE LISTE** — « Ne pas oublier », étapes d'un bloc, options d'une
-  décision — coiffées par un `<label>` de section qui ne peut être associé à aucune en particulier.
-  Elles reçoivent un nom qui dit leur liste ET leur rang : « Ne pas oublier — ligne 1 »,
-  « Étape 3 », « Libellé de la réponse 2 ».
-- **Les rangées de minuteur et de compteur** reçoivent le nom de ce qu'elles règlent (« Nom du
-  cycle », « Nom du chronomètre », « Nom du compteur »), et le sélecteur de relance — jusqu'ici
-  nommé par un simple `title`, pis-aller que tous les lecteurs ne lisent pas et qui n'existe pas
-  sur mobile — reçoit un vrai `aria-label`.
-
-Vérifié : **0 champ anonyme et 0 champ nommé par son placeholder** sur les 53 de l'éditeur, et
-**aucun nom n'est une simple copie du placeholder** (contrôlé explicitement — recopier « ex. Oui »
-n'aurait rien nommé du tout).
-
-Aucun changement de rendu : le diff est de 11 lignes modifiées pour 11, uniquement des attributs,
-et aucune règle CSS du fichier ne cible `label[for]` ni `[aria-label]` (vérifié).
-
-510 tests × 2 moteurs, 22/22 doctrine, 121/121 accessibilité, 143 contrôles d'audit, 10 sondes.

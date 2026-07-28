@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-cldZoRDxNYPQuoGJdhzsookij2Bu9O88SGFxGMq18tg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-o+nYXeUQQ0Mrl1VFf1+Qff84ZaYNBB1TNuTuu2Ktjac='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -3780,7 +3780,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.54.1';
+const APP_VERSION='4.54.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -5932,7 +5932,22 @@ document.getElementById('reportDownload').onclick=downloadReportDoc;
 let _sessWarnAt=0;
 function warnSessionSaveFailed(){const now=Date.now();if(now-_sessWarnAt<60000)return;_sessWarnAt=now;
   try{toast('⚠ Enregistrement automatique de la session impossible (stockage saturé ?) — pensez à exporter vos données.',9000);}catch(e){}}
-function _putSessionSafe(s){try{const p=Data.putSession(s);if(p&&p.catch)p.catch(warnSessionSaveFailed);}catch(e){warnSessionSaveFailed();}}
+/* MARQUER À POUSSER — ICI, ET NULLE PART AILLEURS (v4.54.2).
+   `_pushTable` ne pousse QUE les objets portant `dirty`. Aucun site n'en posait sur une session :
+   l'historique synchronisé de la v4.54.0 ne montait donc RIEN, ni les sessions antérieures à
+   l'activation, ni celles terminées après. La fonctionnalité était livrée, la table était créée,
+   les politiques étaient vertes — et pas une ligne ne partait.
+   Le marquage vit au point d'étranglement de l'ÉCRITURE, exactement comme l'émission du partage
+   vit dans `persistLive` : toute modification de session y passe déjà, donc toute mutation ajoutée
+   demain sera couverte sans qu'on ait à y penser. Marquer une session VIVE est sans effet —
+   `_pushSessions` ne retient que les archivées — mais c'est l'écriture finale, celle qui la rend
+   archivée, qui compte, et elle passe par ici.
+   `updatedAt` est posé au même endroit : `_pushTable` s'en sert comme horloge de résolution, et
+   une session n'en portait pas (elle n'avait que `savedAt`, qui ne bouge plus après l'archivage —
+   un renommage n'aurait donc jamais gagné contre la copie distante). */
+function _putSessionSafe(s){
+  if(s&&typeof s==='object'){s.dirty=true;s.updatedAt=Date.now();}
+  try{const p=Data.putSession(s);if(p&&p.catch)p.catch(warnSessionSaveFailed);}catch(e){warnSessionSaveFailed();}}
 // Persistance (auto-save) débouncée par runtime ; immediate=true pour figer sur sortie/alarme.
 function persistLive(R,immediate){if(!R||!R.started||!R.fiche)return;
   /* L'ÉMISSION S'ACCROCHE ICI, ET NULLE PART AILLEURS. Toute modification de session passe déjà
@@ -6372,8 +6387,12 @@ async function deleteSession(id){if(!await confirmDlg('Supprimer cette session ?
      qu'elle est morte. C'est le même mécanisme que pour les fiches. Hors synchro, on supprime
      franchement — garder des tombes sur un appareil qui ne parle à personne ne servirait rien. */
   if(sessSyncOn()){const s0=sessions.find(x=>x.id===id);
-    if(s0){const t=Object.assign({},s0,{deletedAt:Date.now(),updatedAt:Date.now(),dirty:true});
-      try{await Data.putSession(t);}catch(e){}
+    /* PAR LE POINT D'ÉTRANGLEMENT, comme tout le reste. Cette ligne posait `dirty` et `updatedAt`
+       À LA MAIN : elle fonctionnait, mais elle rendait FAUSSE la doctrine écrite deux cents lignes
+       plus haut (« ici, et nulle part ailleurs »). Une doctrine qui décrit un invariant qu'elle
+       n'a pas est pire qu'une doctrine absente — c'est la leçon du « commentaire qui ment ». */
+    if(s0){const t=Object.assign({},s0,{deletedAt:Date.now()});
+      _putSessionSafe(t);
       sessions=sessions.filter(x=>x.id!==id);
       Object.values(liveSessions).forEach(R=>{if(R.sessionId===id){delete liveSessions[R.ficheId];R.started=false;R.sessionId=null;R.name='';}});
       Sync.schedule&&Sync.schedule();render();return;}}
@@ -13128,10 +13147,49 @@ function sessionFromRow(row){
 // L'opt-in. Par UTILISATEUR (il suit le compte, comme le thème) et non par appareil : activer la
 // synchro sur un appareil et la découvrir éteinte sur l'autre serait la pire des surprises.
 function sessSyncOn(){try{return localStorage.getItem(spaceKey('ac-sync-sessions'))==='1';}catch(e){return false;}}
+/* RATTRAPAGE À L'ACTIVATION — sans lui, « synchroniser » ne synchronise que l'avenir.
+   Rien n'avait jamais marqué les sessions déjà archivées : elles seraient restées invisibles sur
+   les autres appareils pour toujours, sans que rien ne le dise. Or ce que l'utilisateur demande en
+   activant, c'est précisément de retrouver CE QU'IL A DÉJÀ.
+   Sans toucher à `savedAt` : c'est l'heure du SOIN, elle ne se réécrit pas parce qu'on a changé un
+   réglage. `updatedAt` est l'horloge de synchro, et c'est elle seule qui bouge. */
+async function backfillSessSync(){
+  let n=0;
+  try{
+    for(const x of await Data.getSessions()){
+      if(x.live||x.dirty)continue;
+      x.dirty=true;x.updatedAt=Date.now();
+      try{await Data.putSession(x);n++;}catch(e){}
+    }
+  }catch(e){}
+  return n;}
 function setSessSync(on){
-  try{localStorage.setItem(spaceKey('ac-sync-sessions'),on?'1':'0');}catch(e){}
+  _sessSyncWrite(on);
+  // Le RÉGLAGE lui-même voyage dans les préférences : même marqueur que le thème ou l'accent.
   try{localStorage.setItem(spaceKey('ac-cats-updated:'),String(Date.now()));
       localStorage.setItem(spaceKey('ac-cats-dirty:'),'1');}catch(e){}}
+/* Écriture SANS marquage — le chemin du PULL, comme pour les étiquettes : confondre les deux
+   ferait repousser au serveur ce qu'on vient d'en recevoir, à chaque synchro. Le rattrapage, lui,
+   vaut des DEUX côtés : un appareil qui APPREND que l'option est active doit envoyer son
+   historique, sinon la synchronisation ne serait vraie que dans un sens.
+   LE RATTRAPAGE NE SE DÉCLENCHE PAS SUR LA TRANSITION, ET C'EST LE POINT. Un utilisateur qui a
+   activé l'option en v4.54.0 — quand elle ne poussait rien — a déjà la clé à « 1 » : il ne
+   reverrait JAMAIS le passage de éteint à allumé, et son historique antérieur ne partirait jamais.
+   Or ce sont exactement les personnes qui ont signalé le défaut. Le garde est donc une clé
+   DURABLE, posée une fois le rattrapage fait : elle couvre la transition ET l'état déjà acquis,
+   sans jamais rejouer le balayage à chaque appel. */
+function _sessSyncWrite(on){
+  try{localStorage.setItem(spaceKey('ac-sync-sessions'),on?'1':'0');}catch(e){}
+  if(!on)return;
+  let fait=false;try{fait=localStorage.getItem(spaceKey('ac-sess-backfilled'))==='1';}catch(e){}
+  if(fait)return;
+  backfillSessSync().then(()=>{
+    try{localStorage.setItem(spaceKey('ac-sess-backfilled'),'1');}catch(e){}
+    /* ET IL FAUT DEMANDER UNE SYNCHRO. Quand l'option est apprise par le PULL des préférences,
+       `_pushSessions` de la même passe est déjà sortie par son garde d'entrée : sans ce réveil,
+       l'historique rattrapé attendrait un déclencheur étranger — un autre geste, un retour au
+       premier plan — sans que rien ne le dise. */
+    try{if(Sync&&Sync.schedule)Sync.schedule();}catch(e){}});}
 /* ----- Documents PDF : bucket Storage 'attachments' -----
    Le CHEMIN encode le périmètre de sécurité (politiques RLS de supabase/schema.sql §7) :
    u/<uid>/<attId>.pdf = perso (propriétaire seul) ; l/<libId>/<attId>.pdf = bibliothèque
@@ -13182,7 +13240,7 @@ async function reassignFicheId(f){
     // Même mécanique que togglePin : épingles rangées dans le document de catégories PERSO -> à pousser.
     try{localStorage.setItem(spaceKey('ac-pins'),JSON.stringify(pins));
         localStorage.setItem(spaceKey('ac-cats-updated:'),String(Date.now()));localStorage.setItem(spaceKey('ac-cats-dirty:'),'1');}catch(e){}}
-  for(const s of sessions.filter(s=>s.ficheId===oldId)){s.ficheId=f.id;try{await Data.putSession(s);}catch(e){}}
+  for(const s of sessions.filter(s=>s.ficheId===oldId)){s.ficheId=f.id;_putSessionSafe(s);}
   try{for(const b of await Data.getBackups(oldId)){await Data.delBackup(b.bid);b.ficheId=f.id;await Data.putBackup(b);}}catch(e){}
   if(liveSessions[oldId]){liveSessions[f.id]=liveSessions[oldId];delete liveSessions[oldId];liveSessions[f.id].ficheId=f.id;liveSessions[f.id].fiche=f;}
   if(state.fiche&&state.fiche.id===oldId)state.fiche=f;
@@ -13701,7 +13759,8 @@ const Sync={
           /* ÉTIQUETTES : REMPLACÉES, pas fusionnées — comme les épingles, et à la différence de la
              frecency. Une fusion ferait RESSUSCITER une étiquette supprimée sur un autre appareil,
              et le vocabulaire est une liste qu'on TIENT, pas un compteur qu'on additionne. */
-          if(Array.isArray(pr.tags))_tagsWrite(pr.tags);}
+          if(Array.isArray(pr.tags))_tagsWrite(pr.tags);
+          if(typeof pr.syncSessions==='boolean')_sessSyncWrite(pr.syncSessions);}
         try{localStorage.setItem(spaceKey('ac-cats-updated:'+s.key),String(Date.parse(remote.updated_at)));localStorage.removeItem(spaceKey('ac-cats-dirty:'+s.key));}catch(e){}
         changed=true;continue;
       }
@@ -13714,7 +13773,12 @@ const Sync={
           // Vocabulaire personnel du journal (v4.52.0) : des MOTS, mais des mots que l'utilisateur
           // écrit À FROID pour lui-même — ce ne sont pas des données de soin, et ils ne partent
           // jamais dans un partage : seule la RÉFÉRENCE voyage, le mot est rendu localement.
-          tags:myTags()};
+          tags:myTags(),
+          /* LE RÉGLAGE LUI-MÊME VOYAGE. Il ne le faisait pas : activé sur un appareil, il restait
+             éteint sur l'autre — bascule verte d'un côté, grise de l'autre, et rien pour
+             l'expliquer. C'est une préférence par UTILISATEUR, au même titre que le thème : elle
+             suit le compte, pas la machine. */
+          syncSessions:sessSyncOn()};
         try{await rest('POST','/rest/v1/category_sets',[{scope_key:s.scopeKey,owner:uidv,library_id:s.libraryId,data:data,updated_at:new Date(now).toISOString()}],{'Prefer':'resolution=merge-duplicates,return=minimal'});
           try{localStorage.removeItem(spaceKey('ac-cats-dirty:'+s.key));}catch(e){}}catch(e){}
       }

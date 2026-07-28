@@ -176,10 +176,10 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   identiques (variable isolée). RÈGLE : toute sonde qui lit une géométrie après `focus()` doit
   attendre. Il ne s'agissait donc pas d'un défaut d'accessibilité — mais on ne pouvait pas le
   savoir tant que les harnais ne tournaient que sur Blink., à rejouer dès qu'on touche au chrome de crise,
-  au rail, aux feuilles Plan/Consulter ou à un token de couleur. **TREIZE** harnais Playwright qui
+  au rail, aux feuilles Plan/Consulter ou à un token de couleur. **QUATORZE** harnais Playwright qui
   MESURENT au lieu d'affirmer (liste exacte dans `package.json`, script `audit` : a11y, doctrine,
   verify, session-card, zoom-scroll, verify-live, modeseg, consulter, complications, exercice,
-  lecteur, **qr**, **partage**). Ils tournent en CI en mode **NON BLOQUANT** (`continue-on-error`) : visibles à chaque
+  lecteur, qr, partage, **historique**). Ils tournent en CI en mode **NON BLOQUANT** (`continue-on-error`) : visibles à chaque
   push, mais un échec y demande un arbitrage humain, pas un blocage de merge. Les trois plus
   anciens, en détail :
   - `scripts/audit-a11y.mjs` — **25 surfaces × 2 thèmes, dont les 21 `.ai-modal` du monofichier
@@ -1624,6 +1624,22 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   faite » ; **`data` accepte dès aujourd'hui `{v:2, enc:<blob>}`**, seule décision de forme
   irréversible une fois des données en place. Suppression = **pierre tombale** dès que la synchro
   est active (sinon la session effacée revient au pull suivant), suppression franche sinon.
+  **CE QUI L'A FAIT ÉCHOUER À LA LIVRAISON (v4.54.2)** : `_pushTable` ne pousse que les objets
+  portant `dirty`, et **aucun site n'en posait sur une session** — la table existait, les politiques
+  étaient vertes, la bascule s'allumait, et pas une ligne ne partait. Le marquage vit désormais au
+  point d'étranglement de l'ÉCRITURE (`_putSessionSafe`), comme l'émission du partage vit dans
+  `persistLive` : toute mutation ajoutée demain sera couverte sans qu'on y pense — et la pierre
+  tombale de `deleteSession` y passe aussi, sans quoi la doctrine « ici, et nulle part ailleurs »
+  serait fausse dès la ligne où elle est écrite. `updatedAt` s'y pose **en même temps** que
+  `dirty` : posé seul, `dirty` ferait gagner inconditionnellement la copie distante à la résolution
+  LWW (`savedAt > 0` toujours vrai) et **effacerait la trace do-verify de chaque session à la
+  première synchro**. Ne jamais les séparer.
+  **LE RATTRAPAGE NE SE GARDE PAS SUR UNE TRANSITION** : qui a activé l'option quand elle ne
+  poussait rien a déjà la clé à « 1 » et ne reverra jamais le passage éteint→allumé — le correctif
+  raterait donc exactement les personnes qui ont signalé le défaut. Garde = une clé DURABLE
+  (`ac-sess-backfilled`), plus un `Sync.schedule()` après le balayage : quand l'option est apprise
+  par le PULL, `_pushSessions` de la même passe est déjà sortie par son garde d'entrée.
+  Harnais : `scripts/audit-historique.mjs`.
 - **LE BILLET DE REPRISE (`sessionStorage`)** — un onglet mobile meurt tout seul, et l'invité
   perdait sa participation SANS RETOUR (rien n'était persisté, et son code est consommé). Le billet
   ne porte que l'identifiant du partage et le secret : **aucune donnée clinique**. Sa portée est
