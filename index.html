@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-Bn3obzROmoSpf62q575w+yw4FuYaweZ2wEI02rvPWKk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-xFGrqYlCry9teH0LzW2RZc7Q9E35MGUkPDmE2oUp2UY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -314,7 +314,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      Échelle responsive FERMÉE : 430 / 560 / 640 / 780 / 900 / 1000 px (1000 = colonne droite de
      la vue fiche, V5). Plancher typographique : 11px (app consultée sous stress — rien en dessous).
      --line-hover : bordure des survols de boutons/chips (un seul gris au lieu de trois). */
-  :root{--ink:#101b28;--ink-soft:#5b6570;--line:#d5dbe2;--line-strong:#75828e;--line-hover:#c3ccd6;--bg:#f2f5f8;--surface:#fff;--surface-2:#eff2f6;--surface-3:#e8ecf1;--primary:#1f5fa6;--primary-dk:#17477f;--primary-hi:#17477f;--primary-soft:#e3ecf7;--primary-100:#dce7f5;--primary-200:#b9cde6;--primary-300:#8fb4de;--on-primary:#fff;--ok-rgb:29,122,56;--ok:rgb(var(--ok-rgb));--ok-soft:#eaf6ee;--critical:#a32e1f;--critical-soft:#fbe9e4;--critical-line:#ecc4bc;--verify:#7a5900;--verify-soft:#fbf3dc;--verify-line:#eddfb6;--verify-bd:#b7791f;--verify-hi:#b45309;--critical-bd:#c43d34;--done-bg:#eff5f0;--done-line:#bfd8c6;--done-ink:#5b6570;--tag-bg:#e8ecf1;--tag-ink:#3c464f;--link:#1f5fa6;--soft:#8a94a0;--alert:#f0a431;--alert-hi:#ffb454;--alert-strong:#c98a18;--alert-ink:#3a2a02;--rt-card:#1c2a3c;--rt-line:#2c3d52;--rt-ink:#e8eef7;--alarm:#d1543c;--input-bg:#fff;--radius:14px;--radius-md:11px;--radius-sm:9px;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--shadow:0 1px 2px rgba(16,27,40,.04),0 4px 16px rgba(16,27,40,.06);--shadow-lg:0 2px 6px rgba(16,27,40,.06),0 12px 32px rgba(16,27,40,.10);--shadow-primary:0 1px 2px rgba(23,71,127,.2),0 4px 12px rgba(23,71,127,.16);--shadow-primary-sm:0 1px 2px rgba(23,71,127,.25);--lb-cap:#cfe0dd;--lb-ink:#fff;--paper:#fff;--qr-ink:#101b28;--flow-cur:#1f5fa6;/* VOILES (scrim) et ÉLÉVATIONS À L'ENCRE — tokenisés en v4.37.0. Ces cinq valeurs étaient des COPIES DÉCIMALES de --ink (#101b28 = 16,27,40) : le garde-fou couleurs ne voyait que les hex, elles passaient donc au travers, et un changement de --ink les aurait laissées derrière. Valeurs reprises à l'identique. Pas d'override sombre : c'est l'état actuel, en ajouter un serait un changement visible. */--scrim-soft:rgba(16,27,40,.45);--scrim:rgba(16,27,40,.55);--scrim-full:rgba(16,27,40,.92);--shadow-dock:0 1px 3px rgba(16,27,40,.05);--shadow-bar:0 1px 6px rgba(16,27,40,.06);}
+  :root{--ink:#101b28;--ink-soft:#5b6570;--line:#d5dbe2;--line-strong:#75828e;--line-hover:#c3ccd6;--bg:#e9edf2;--surface:#fff;--surface-2:#eff2f6;--surface-3:#e8ecf1;--primary:#1f5fa6;--primary-dk:#17477f;--primary-hi:#17477f;--primary-soft:#e3ecf7;--primary-100:#dce7f5;--primary-200:#b9cde6;--primary-300:#8fb4de;--on-primary:#fff;--ok-rgb:29,122,56;--ok:rgb(var(--ok-rgb));--ok-soft:#eaf6ee;--critical:#a32e1f;--critical-soft:#fbe9e4;--critical-line:#ecc4bc;--verify:#7a5900;--verify-soft:#fbf3dc;--verify-line:#eddfb6;--verify-bd:#b7791f;--verify-hi:#b45309;--critical-bd:#c43d34;--done-bg:#eff5f0;--done-line:#bfd8c6;--done-ink:#5b6570;--tag-bg:#e8ecf1;--tag-ink:#3c464f;--link:#1f5fa6;--soft:#8a94a0;--alert:#f0a431;--alert-hi:#ffb454;--alert-strong:#c98a18;--alert-ink:#3a2a02;--rt-card:#1c2a3c;--rt-line:#2c3d52;--rt-ink:#e8eef7;--alarm:#d1543c;--input-bg:#fff;--radius:14px;--radius-md:11px;--radius-sm:9px;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--shadow:0 1px 2px rgba(16,27,40,.04),0 4px 16px rgba(16,27,40,.06);--shadow-lg:0 2px 6px rgba(16,27,40,.06),0 12px 32px rgba(16,27,40,.10);--shadow-primary:0 1px 2px rgba(23,71,127,.2),0 4px 12px rgba(23,71,127,.16);--shadow-primary-sm:0 1px 2px rgba(23,71,127,.25);--lb-cap:#cfe0dd;--lb-ink:#fff;--paper:#fff;--qr-ink:#101b28;--flow-cur:#1f5fa6;/* VOILES (scrim) et ÉLÉVATIONS À L'ENCRE — tokenisés en v4.37.0. Ces cinq valeurs étaient des COPIES DÉCIMALES de --ink (#101b28 = 16,27,40) : le garde-fou couleurs ne voyait que les hex, elles passaient donc au travers, et un changement de --ink les aurait laissées derrière. Valeurs reprises à l'identique. Pas d'override sombre : c'est l'état actuel, en ajouter un serait un changement visible. */--scrim-soft:rgba(16,27,40,.45);--scrim:rgba(16,27,40,.55);--scrim-full:rgba(16,27,40,.92);--shadow-dock:0 1px 3px rgba(16,27,40,.05);--shadow-bar:0 1px 6px rgba(16,27,40,.06);}
   /* --shadow-primary(-sm) : élévation TEINTÉE PRIMAIRE des boutons remplis (v4.31.0 — les
      rgba(23,71,127,…) éparses sont consolidées ici). Tokens FIXES des deux thèmes (jamais
      surchargés en sombre, comme --rt-*) : --lb-cap/--lb-ink = légende et glyphe de la lightbox
@@ -323,8 +323,21 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      est du papier) ; --flow-cur = trait du nœud courant du SVG, primaire CLAIR baké (même
      logique — la version sombre passe par --flow-hl-dk après inversion). */
   /* ===== THÈME SOMBRE (usage dans le noir) : on redéfinit les variables + quelques fonds codés en dur.
-     Contraste maintenu pour la lisibilité en situation critique. ===== */
-  html[data-theme="dark"]{--ink:#e8eef7;--ink-soft:#93a5b5;--line:#24303f;--line-hover:#3b4b5d;--bg:#0c1420;--surface:#121d2b;--surface-2:#101823;--surface-3:#1b2836;--primary:#2e71c2;--primary-dk:#8fb8e8;--primary-hi:#4685d2;--primary-soft:#16324f;--primary-100:#16324f;--primary-200:#2c4b6e;--primary-300:#2c4b6e;--on-primary:#fff;--ok-rgb:55,214,122;--ok:rgb(var(--ok-rgb));--ok-soft:#0e2618;--critical:#ff8a84;--critical-soft:#3a0e0c;--critical-line:#7a2b26;--verify:#ffb454;--verify-soft:#241d0c;--verify-line:#5c4a1e;--verify-bd:#ffb454;--verify-hi:#ffb454;--critical-bd:#ff5a52;--done-bg:#101b14;--done-line:#1f4a2e;--done-ink:#4e6e58;--tag-bg:#24303f;--tag-ink:#b9c6d4;--link:#8fb8e8;--soft:#5e7186;--input-bg:#0a111b;--shadow:0 1px 2px rgba(0,0,0,.45),0 4px 16px rgba(0,0,0,.5);--shadow-lg:0 2px 6px rgba(0,0,0,.5),0 12px 32px rgba(0,0,0,.65);--hover-dk:#1b2634;--hover-dk-hi:#22364d;--flow-hl-dk:#4e8fd9;}
+     Contraste maintenu pour la lisibilité en situation critique.
+     v4.57.0 (audit design, piste D2 — décision utilisateur « c'est le NOUVEAU mode sombre ») :
+     le sombre adopte les codes couleur de l'ex-« Contraste + » plutôt que d'ajouter un 4ᵉ cran au
+     cycle de thème. Motif d'usage : l'extra-hospitalier — soleil direct sur un écran en mode
+     sombre, gants, appareil posé sur un chariot. Deux canaux, et deux seulement :
+       · ENCRE SECONDAIRE relevée (#93a5b5 → #b7c6d6) : ~7:1 sur --surface au lieu de ~4,9:1.
+         PAS l'encre pleine du bloc `prefers-contrast: more` : là c'est l'utilisateur qui demande
+         d'APLATIR la hiérarchie, ici c'est le défaut de tous — un texte secondaire indiscernable
+         du principal ferait perdre le repère « ce qui compte est plus clair ».
+       · FILETS renforcés (#24303f → #3b4b5d, l'ex `--line-hover`) : 3:1 sur --surface, seuil
+         WCAG 1.4.11 des composants — les cadres de carte se voyaient à peine dans le noir.
+     Les GRAISSES ne bougent PAS (l'audit proposait +100) : la graisse porte déjà l'état sur les
+     segmentés et les registres, et l'élargir changerait toutes les largeurs de texte — donc les
+     mesures à 320 px que quatre harnais surveillent. Un canal par signification. ===== */
+  html[data-theme="dark"]{--ink:#e8eef7;--ink-soft:#b7c6d6;--line:#3b4b5d;--line-hover:#55697e;--bg:#0c1420;--surface:#121d2b;--surface-2:#101823;--surface-3:#1b2836;--primary:#2e71c2;--primary-dk:#8fb8e8;--primary-hi:#4685d2;--primary-soft:#16324f;--primary-100:#16324f;--primary-200:#2c4b6e;--primary-300:#2c4b6e;--on-primary:#fff;--ok-rgb:55,214,122;--ok:rgb(var(--ok-rgb));--ok-soft:#0e2618;--critical:#ff8a84;--critical-soft:#3a0e0c;--critical-line:#7a2b26;--verify:#ffb454;--verify-soft:#241d0c;--verify-line:#5c4a1e;--verify-bd:#ffb454;--verify-hi:#ffb454;--critical-bd:#ff5a52;--done-bg:#101b14;--done-line:#1f4a2e;--done-ink:#4e6e58;--tag-bg:#24303f;--tag-ink:#b9c6d4;--link:#8fb8e8;--soft:#5e7186;--input-bg:#0a111b;--shadow:0 1px 2px rgba(0,0,0,.45),0 4px 16px rgba(0,0,0,.5);--shadow-lg:0 2px 6px rgba(0,0,0,.5),0 12px 32px rgba(0,0,0,.65);--hover-dk:#1b2634;--hover-dk-hi:#22364d;--flow-hl-dk:#4e8fd9;}
   /* --hover-dk(-hi) : survols du thème sombre (générique / sur surface élevée, ex-hex en dur des
      règles de survol) ; --flow-hl-dk : trait de contre-inversion du SVG sombre (la couleur est
      choisie pour rendre juste APRÈS le filtre invert+hue-rotate). v4.31.0 : plus AUCUN hex hors
@@ -672,10 +685,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #crisisBand[hidden]{display:none}
   /* Étiquette d'état condensée : n'apparaît que quand le bandeau est passé dessous (.ttl-on) —
      l'annonce « mode crise » n'est donc jamais absente, seulement portée par l'un ou l'autre. */
-  .hdr-crisis{display:none;flex:none;font-size:11px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:var(--critical);white-space:nowrap}
+  .hdr-crisis{display:none;flex:none;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--critical);white-space:nowrap}
   header.bar.ttl-on .hdr-crisis:not([hidden]){display:inline}
   #crisisBand .cb-ttl{flex:1;min-width:0;font-size:18px;font-weight:800;letter-spacing:-.2px;line-height:1.15;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-  #crisisBand .cb-tag{flex:none;font-size:11px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:var(--critical)}
+  #crisisBand .cb-tag{flex:none;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--critical)}
   /* QUAI DE CRISE (v4.23.0, canvas 2a/3a) : rangée PLEINE LARGEUR et COLLANTE sous l'en-tête.
      Elle porte l'état vivant (minuteurs) et l'accès permanent au Plan — les deux choses qui
      doivent rester joignables où que l'on soit dans le journal.
@@ -774,7 +787,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .dock-plan[hidden]{display:none}
   .dock-plan:hover{background:var(--primary-soft)}
   .dock-plan:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
-  .dock-plan .dp-ic{font-size:18px;line-height:1}   /* ⤢/▸ : glyphes peu remplis, agrandis pour équilibrer le libellé (v4.23.6) */
+  .dock-plan .dp-ic{display:inline-flex;align-items:center;font-size:18px;line-height:1}   /* v4.57.0 : le ⤢ est un SVG (E6) — inline-flex pour qu'il s'aligne sur le libellé sans la chasse d'un glyphe */
   /* « Cons. » sous 560px : TRONCATURE du même mot, pas un autre mot — c'est ce qui distingue cette
      abréviation de l'ancien « Réf. », qui donnait deux NOMS au même bouton (retour d'usage : « on
      s'y perd »). Le mot tronqué reste reconnaissable, l'identité du bouton ne change pas. Objectif
@@ -799,6 +812,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .ctrl-sp{width:4px}
     #modeSeg .seg-btn{padding:6px 7px}
     .dock-plan{padding:0 8px;gap:4px}
+    .dock-plan .dp-ic svg{width:11px;height:11px}
   }
   /* 320 px SERVI (v4.43.0, décision utilisateur) — WCAG 1.4.10 « Reflow » fixe le plancher à
      320 px, et la rangée y exigeait 348 px : 28 px de contenu ROGNÉS, sans défilement, dans la
@@ -855,7 +869,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      flux NON coupé — mesuré à 488 px sur un quai de 320. Elle gonflait `scrollWidth`, c'est-à-dire
      qu'elle MENTAIT à la boucle d'ajustement, qui retirait un segment pour un débordement
      imaginaire. Confinée ici, elle est coupée avec le reste et ne pèse plus rien. */
-  #cbTimers .seg-l{position:relative;font-size:11px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--ink-soft);line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #cbTimers .seg-l{position:relative;font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   /* Très étroit : segments resserrés — l'ellipse des intitulés vient du min-width:0 du segment
      (plus de plafond en vw : la rangée occupe toute la largeur, elle n'a plus à se disputer la
      place avec le thème et le compte comme dans l'ancienne pastille d'en-tête). */
@@ -929,7 +943,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      se tronque sur iPhone SE/mini (375px : ~166px de logotype pour ~193px de budget) et la
      hauteur de barre, fixée par le bouton Compte (40px), ne bouge pas. */
   .brand .brand-name{margin:0;font-size:20px;font-weight:800;letter-spacing:-.2px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  #brandSub{font-size:11.5px;text-transform:uppercase;letter-spacing:1.6px;color:var(--ink-soft);margin-top:3px}
+  #brandSub{font-size:11.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-soft);margin-top:3px}
   /* Accueil : le sous-titre est porté par les onglets. En lecture il accompagne le titre dans
      la barre UNE FOIS DÉFILÉ (« Aide cognitive » / « Protocole », cf. .titled/.ttl-on plus bas) ;
      le bandeau de crise, lui, ne dit que l'ÉTAT (mode crise, session en cours). */
@@ -996,7 +1010,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .sys-banner[hidden]{display:none}
   .sys-banner .sb-ic{color:var(--primary-dk);flex:none;display:inline-flex}
   .sys-banner .sb-txt{flex:1;min-width:0}
-  .sys-banner .sb-act{background:none;border:0;color:var(--primary-dk);font-size:12px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;padding:6px 8px;min-height:32px;border-radius:7px;cursor:pointer;flex:none}
+  .sys-banner .sb-act{background:none;border:0;color:var(--primary-dk);font-size:12px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;padding:6px 8px;min-height:32px;border-radius:7px;cursor:pointer;flex:none}
   .sys-banner .sb-act:hover{background:var(--primary-100)}
   .sys-banner .sb-x{background:none;border:0;color:var(--ink-soft);font-size:19px;line-height:1;min-width:32px;min-height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:7px;cursor:pointer;flex:none}
   .sys-banner .sb-x:hover{background:var(--primary-100)}
@@ -1042,7 +1056,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .tag .cat-dot,.cat-chip-selected .cat-dot{width:8px;height:8px;box-shadow:none}
   .scopebar{display:flex;gap:10px;align-items:center;margin-bottom:14px}
   .scopebar .chiprow{flex:1;min-width:0}
-  .scope-lbl{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--ink-soft);margin-right:2px}
+  .scope-lbl{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin-right:2px}
   /* inline-flex : la pastille ✎ de la chip active (34px, marges négatives) est ABSORBÉE par le
      conteneur flex au lieu de gonfler la boîte de ligne (sinon la chip grandit et décale tout). */
   /* line-height:normal : la chip ACTIVE est un <span> (pastille ✎ imbriquée, pas de bouton dans
@@ -1079,10 +1093,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Fenêtre « Gérer la bibliothèque » — aligne le style sur la fenêtre Compte. */
   /* Dialogue bibliothèque (SPEC-dialogue-bibliotheque) : étiquettes 11/800/1 --soft, rangées
      membre 48px, avatar 30px 2 lettres, rangée d'invitation champ+rôle+＋ pointillé (~42px). */
-  .field-label{font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft);margin:0 0 6px}
+  .field-label{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 6px}
   .field-label .fl-n{font-weight:700;color:var(--ink-soft);letter-spacing:0}
   .share-note{font-size:12px;color:var(--ink-soft);line-height:1.5;margin:0 0 14px}
-  .mem-section-h{font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft);margin:0 0 6px}
+  .mem-section-h{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 6px}
   .mem-list{display:flex;flex-direction:column;gap:7px;margin-bottom:7px}
   .mem-row{display:flex;align-items:center;gap:10px;padding:8px 11px;min-height:48px;border:1px solid var(--line);border-radius:9px;background:var(--surface)}
   .mem-avatar{width:30px;height:30px;border-radius:50%;background:var(--primary-soft);color:var(--primary-dk);display:grid;place-items:center;font-size:12px;font-weight:700;flex:none}
@@ -1144,7 +1158,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      L'ancien composant .card/.cards est SUPPRIMÉ (émissions vérifiées au grep, règle 14) ;
      .card-open, lui, GARDE son nom : quatorze harnais ouvrent une fiche par ce sélecteur. */
   .dir-h{display:flex;align-items:baseline;gap:8px;margin:16px 0 8px}
-  .dir-h>b{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-soft)}
+  .dir-h>b{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
   .dir-h .dir-hs{font-size:11px;font-weight:400;color:var(--ink-soft);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   /* Tuile : UN SEUL <button> (★ et ● sont des spans — pas de descendant interactif), liseré de
      catégorie 4px par ::before (même canal --stripe que les anciennes cartes). */
@@ -1158,7 +1172,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      colonnes (redistribution en dents de scie bornée, inhérente aux grilles fluides — c'est elle
      qu'on observait vers 1520 px : 3 × ~390 → 4 × ~296), jamais l'échelle. */
   .qa-grid{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(290px,1fr))}
-  .qa-tile{position:relative;display:flex;align-items:center;gap:10px;min-height:72px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-md);padding:11px 12px 11px 18px;box-shadow:var(--shadow);cursor:pointer;text-align:left;font-family:inherit;overflow:hidden;color:var(--ink)}
+  /* E1 niveau 1 : une tuile d'accueil est du CONTENU (plat + filet) — l'ombre est rendue aux
+     surfaces vives. Le fond `--bg` un cran plus profond (E7) la fait « porter » sans elle. */
+  .qa-tile{position:relative;display:flex;align-items:center;gap:10px;min-height:72px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-md);padding:11px 12px 11px 18px;cursor:pointer;text-align:left;font-family:inherit;overflow:hidden;color:var(--ink)}
   /* Le badge « ● En cours » vit À DROITE de la tuile, centré (maquette desktop) — glissé dans la
      sous-ligne de 11 px, il l'étirait et semblait rapporté (retour utilisateur v4.56.1). */
   .qa-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
@@ -1305,7 +1321,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   section.block{margin-bottom:22px}
   /* En-têtes de section = KICKERS simples du canvas (11px/800, espacés) : la couleur du texte
      porte le registre, plus de badge d'icône ni de pip (chrome retiré, V5). */
-  .block-h{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-soft)}
+  .block-h{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
   .block-h.h-verify{color:var(--verify)}
   .block-h.h-forget{color:var(--critical)}
   .block-h .sec-badge,.block-h .pip{display:none}
@@ -1398,7 +1414,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Panneau ALGORITHME repliable (canvas turn 6) — le contenu SVG lui-même est inchangé. */
   .alg-panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;margin-bottom:10px;overflow:hidden}
   .alg-head{display:flex;align-items:center;gap:8px;width:100%;min-height:48px;padding:11px 12px;background:none;border:0;border-bottom:1px solid var(--line);cursor:pointer;font-family:inherit;text-align:left}
-  .alg-k{flex:none;font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-soft)}
+  .alg-k{flex:none;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
   .alg-sub{flex:1;min-width:0;font-size:12px;font-weight:700;color:var(--link);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .alg-chev{flex:none;color:var(--link);font-size:15px;font-weight:800}
   .alg-head:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
@@ -1536,7 +1552,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   html[data-theme="dark"] .crumbs .cb:not(.cur):hover{background:var(--hover-dk-hi)}
   .crumbs .cb-n{font-family:var(--mono);font-size:11px;opacity:.7;margin-left:2px}
   .node-title .pass-n{font-family:var(--mono);text-transform:none;letter-spacing:0;font-weight:600;color:var(--primary);margin-left:7px}
-  .node-title{font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-soft);margin-bottom:10px}
+  .node-title{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:10px}
   .nav-wrap.dec .node-title{color:var(--verify)}
   .question{font-size:16px;font-weight:700;line-height:1.3;margin:2px 0 10px;overflow-wrap:break-word}
   .options{display:grid;gap:10px}
@@ -1630,7 +1646,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #crisisBand .cb-tag.exo,#hdrCrisis.exo{color:var(--primary-dk)}
   #crisisBand .cb-tag.exo{background:var(--primary-soft);border:1px dashed var(--primary);border-radius:6px;padding:2px 8px}
   #cbTimers .seg.glb.exo .seg-sess{color:var(--primary-dk)}
-  .sess-gh{margin:12px 2px 4px;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft)}
+  .sess-gh{margin:12px 2px 4px;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
   .sess-exotag{font-size:11px;font-weight:800;letter-spacing:.5px;color:var(--primary-dk);background:var(--primary-soft);border:1px dashed var(--primary);border-radius:6px;padding:1px 6px;white-space:nowrap}
   .last-sess.exo{border-left-color:var(--primary)}
   .last-sess.exo .lsr-ic{color:var(--primary-dk);font-weight:800}
@@ -1641,7 +1657,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .cx-edit-row input{flex:1;min-width:0}
   .cx-edit-row .cx-tgt{flex:1;min-width:0;max-width:46%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
   .cx-edit-row .cx-tgt-vide{color:var(--ink-soft);border-style:dashed}
-  .pick-h{margin:10px 2px 6px;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft)}
+  .pick-h{margin:10px 2px 6px;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
   .cx-btn{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:8px 14px;border:1px solid var(--critical-bd);border-radius:9px;background:transparent;color:var(--critical);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer}
   .cx-btn:hover{background:var(--critical-soft)}
   .cx-btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
@@ -1655,8 +1671,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .cx-item-tx{flex:1;min-width:0}
   .cx-item-tx b{display:block;font-size:15.5px;color:var(--critical)}
   .cx-item-sub{display:block;font-size:12px;color:var(--ink-soft);margin-top:1px}
-  .cx-tag{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--critical);background:var(--critical-soft);border:1px solid var(--critical-line);border-radius:999px;padding:1px 8px;vertical-align:1px;white-space:nowrap}
-  .pl-cxh{margin:14px 0 4px;font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--critical)}
+  .cx-tag{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--critical);background:var(--critical-soft);border:1px solid var(--critical-line);border-radius:999px;padding:1px 8px;vertical-align:1px;white-space:nowrap}
+  .pl-cxh{margin:14px 0 4px;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--critical)}
   .pl-line.cxl .n{color:var(--critical)}
   .sv-band.sv-cxband{border-color:var(--critical-bd);color:var(--critical);background:var(--critical-soft)}
   .sv-cell.sv-cx .sv-n{color:var(--critical)}
@@ -1671,7 +1687,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .gthumb img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px;border:1px solid var(--line);cursor:zoom-in;display:block}
   .gcap{font-size:11.5px;color:var(--ink-soft);margin-top:4px;line-height:1.3}
   .refs{font-size:12.5px;color:var(--ink-soft);border-top:1px solid var(--line);padding-top:14px;margin-top:24px}
-  .refs b{color:var(--ink);display:block;margin-bottom:6px;font-size:11px;letter-spacing:1px;text-transform:uppercase}
+  .refs b{color:var(--ink);display:block;margin-bottom:6px;font-size:11px;letter-spacing:.07em;text-transform:uppercase}
   .refs ol{margin:0;padding-left:18px}.refs li{margin-bottom:3px}
   /* (Barre « Autorat — hors urgence » supprimée — SPEC gestion §4 : les actions vivent dans le
      menu ⋯ de l'en-tête.) */
@@ -1696,7 +1712,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     flex-wrap:wrap;padding-right:42px}
   /* `min-width:0` : sans lui, `flex:1` ne descend jamais sous la largeur du contenu (le minimum
      automatique d'un élément flex), et le titre pousse tout le reste dehors. */
-  .rt-head b{color:var(--ink-soft);font-size:11px;letter-spacing:1.2px;text-transform:uppercase;
+  .rt-head b{color:var(--ink-soft);font-size:11px;letter-spacing:.07em;text-transform:uppercase;
     flex:1 1 auto;min-width:0}
   .rt-ic{color:var(--primary)}
   .rt-sound{background:var(--surface);border:1px solid var(--line-strong);color:var(--ink-soft);border-radius:8px;padding:6px 13px;min-height:44px;font-size:12px;font-weight:600}
@@ -1784,7 +1800,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Horodatage : outil SECONDAIRE -> panneau CLAIR (le panneau sombre reste réservé aux minuteurs/compteurs) */
   .tk-panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:13px 14px;margin-bottom:14px}
   .tk-head{display:flex;align-items:center;gap:10px;margin-bottom:9px}
-  .tk-head b{color:var(--ink-soft);font-size:11px;letter-spacing:1px;text-transform:uppercase;flex:1}
+  .tk-head b{color:var(--ink-soft);font-size:11px;letter-spacing:.07em;text-transform:uppercase;flex:1}
   .tk-add{background:var(--primary);color:var(--on-primary);border:0;border-radius:var(--radius-sm);min-height:44px;padding:8px 13px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
   .tk-add:hover{background:var(--primary-hi)}
   .tk-item{border-top:1px solid var(--line)}
@@ -1925,7 +1941,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .last-sess .notice-x{top:6px;right:6px}
   .ls-card{display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:var(--surface);border:1px solid var(--primary);border-left:3px solid var(--primary);border-radius:10px;padding:10px 12px;box-shadow:var(--shadow)}
   .ls-info{flex:1;min-width:150px;display:flex;flex-direction:column;line-height:1.25;cursor:pointer}
-  .ls-info .ls-k{font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink-soft)}
+  .ls-info .ls-k{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
   .ls-info .ls-t{font-size:14.5px;font-weight:700;color:var(--ink)}
   .ls-chrono{font-family:var(--mono);font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--ink)}
   /* P3-13 (audit design v4.56) : un lien texte rouge = cible étroite et affordance faible à
@@ -1951,11 +1967,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   @keyframes toastPulse{0%,100%{box-shadow:0 10px 30px rgba(50,35,0,.34),0 0 0 0 rgba(242,176,28,0)}50%{box-shadow:0 10px 30px rgba(50,35,0,.34),0 0 0 7px rgba(242,176,28,.5)}}
   /* editor */
   .field{margin-bottom:18px}
-  .field>label{display:block;font-size:12px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--ink-soft);margin-bottom:7px}
+  .field>label{display:block;font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:7px}
   /* Ligne label + bouton (ex. « B » du contexte local) : le bouton reste HORS du <label>
      (un bouton DANS un label devient son contrôle implicite -> cliquer le libellé cliquait le bouton). */
   .field .lab-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:7px}
-  .field .lab-row>label{display:block;font-size:12px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--ink-soft)}
+  .field .lab-row>label{display:block;font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
   .field .hint{font-weight:400;text-transform:none;letter-spacing:0;color:var(--ink-soft);font-size:12px}
   .field input[type=text],.field textarea,.field select{width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:10px;background:var(--input-bg);color:var(--ink)}
   .field input:focus,.field textarea:focus,.field select:focus{outline:2px solid var(--primary);border-color:transparent}
@@ -1978,7 +1994,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .add-line{margin-top:4px;border:1px dashed var(--line);background:transparent;color:var(--primary-dk);padding:9px 13px;border-radius:var(--radius-sm);font-size:13.5px;font-weight:600;width:100%}
   .add-line:hover{background:var(--primary-soft);border-color:var(--primary-soft)}
   fieldset{border:0;margin:0 0 4px;padding:0;min-width:0}
-  .sub2{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--ink-soft);margin:0 0 8px}
+  .sub2{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 8px}
   .trow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
   .trow input[data-tf],.trow input[data-cf]{flex:1;min-width:130px;padding:9px 11px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--input-bg)}
   .trow input[type=number]{padding:9px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--input-bg)}
@@ -2058,7 +2074,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .crit-guide[open] summary{margin-bottom:2px}
   .crit-guide .cg-r{color:var(--critical)}
   .crit-guide .cg-a{color:var(--verify)}
-  .flow-prev-h{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--ink-soft);margin:0 0 7px}
+  .flow-prev-h{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 7px}
   .flow-scroll{width:100%;overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--paper);padding:8px;-webkit-overflow-scrolling:touch;margin-bottom:14px;max-height:calc(75vh / var(--zf,1))}
   /* CODE QR — taille en px et non en %, parce qu'un QR se scanne : trop petit, le lecteur cale.
      ~200 px met chaque module au-dessus de 4 px dès la version 10, ce qui passe partout à 30 cm.
@@ -2078,13 +2094,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #flowFull .ff-scroll{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px;background:var(--paper)}
   .blk{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
   .blk-top{display:flex;align-items:center;gap:8px;margin-bottom:11px}
-  .blk-type{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;padding:3px 8px;border-radius:6px}
+  .blk-type{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:3px 8px;border-radius:6px}
   .blk-type.steps{background:var(--surface-3);color:var(--ink)}.blk-type.decision{background:var(--verify-soft);color:var(--verify)}
   /* P3-3 (audit design v4.56) : « Cycle »/« Chrono » sont des ÉTIQUETTES DE TYPE, pas un
      registre d'attente — l'ambre du `.decision` y était emprunté. Pilule neutre mono. */
   .blk-type.tm-kind{background:var(--tag-bg);color:var(--tag-ink);font-family:var(--mono);letter-spacing:0}
   .blk-top input,.optedit input{flex:1;min-width:0;padding:9px 11px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--input-bg)}
-  .blk .sub{font-size:11px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;color:var(--ink-soft);margin:12px 0 7px}
+  .blk .sub{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin:12px 0 7px}
   .startbtn{border:1px solid var(--line);background:var(--input-bg);color:var(--ink-soft);border-radius:8px;padding:7px 12px;min-height:32px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
   .optedit{display:flex;gap:8px;margin-bottom:8px;align-items:center}
   .optedit select{flex:1;min-width:0}
@@ -2102,7 +2118,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .read-side .tm-mini{margin-top:0}
   .tm-mini.due{border-color:var(--verify-bd)}
   .tm-mini.due :is(.tmm-t,.tmm-l){color:var(--verify-hi)}
-  .tmm-l{flex:1;min-width:0;font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tmm-l{flex:1;min-width:0;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .tmm-t{font-family:var(--mono);font-size:18px;font-weight:700;font-variant-numeric:tabular-nums}
   .tmm-b{position:relative;width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:7px;background:none;color:var(--ink-soft);font-size:15px;cursor:pointer;flex:none}
   .tmm-b::after{content:"";position:absolute;inset:-4px}
@@ -2110,7 +2126,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .tmm-b:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .cn-note{font-size:11px;color:var(--ink-soft);margin-top:4px}
   .tm-reset .tmr-lab,.tm-reset .tmr-hint{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
-  .tm-reset .tmr-hint{font-size:11px;font-weight:700;opacity:.65;text-transform:uppercase;letter-spacing:.5px;margin-top:1px}
+  .tm-reset .tmr-hint{font-size:11px;font-weight:700;opacity:.65;text-transform:uppercase;letter-spacing:.07em;margin-top:1px}
   .tm-reset.holding{background-color:var(--surface-2);background-image:linear-gradient(color-mix(in srgb,var(--alarm) 60%,transparent),color-mix(in srgb,var(--alarm) 60%,transparent));background-repeat:no-repeat;background-size:0% 100%;animation:holdfill .8s linear forwards}
   @keyframes holdfill{to{background-size:100% 100%}}
   .btn.sm{padding:8px 13px;font-size:13px;min-height:38px}.btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
@@ -2130,7 +2146,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .flow-nav>button:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .flow-nav>button[disabled]{opacity:.4;cursor:default}
   .flow-nav>button[disabled]:hover{background:transparent}
-  .flow-nav .tmr-hint{font-size:11px;font-weight:700;opacity:.6;text-transform:uppercase;letter-spacing:.5px}
+  .flow-nav .tmr-hint{font-size:11px;font-weight:700;opacity:.6;text-transform:uppercase;letter-spacing:.07em}
   /* §8 fin d'algorithme : état annoncé + la session CONTINUE (Terminer ≠ terminer la session). */
   .flow-end{margin-top:16px;padding:15px;text-align:center;border:2px solid var(--done-line);border-radius:8px;color:var(--ok);font-size:15px;font-weight:800;letter-spacing:1px}
   /* ----- Vue d'ensemble du mode crise (v4.6.0) : tous les blocs à la suite ----- */
@@ -2191,7 +2207,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     background:var(--tag-bg);padding:1px 8px;border-radius:999px;white-space:nowrap;
     vertical-align:baseline}
 
-  .ov-here{display:none;font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;background:var(--primary);color:var(--on-primary);padding:1px 8px;border-radius:999px;white-space:nowrap;vertical-align:baseline}
+  .ov-here{display:none;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--primary);color:var(--on-primary);padding:1px 8px;border-radius:999px;white-space:nowrap;vertical-align:baseline}
   .ov-block.cur .ov-here{display:inline-block}
   .ov-c{flex:none;font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--ink-soft)}
   .ov-block.done .ov-c{color:var(--ok)}
@@ -2213,7 +2229,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* v4.13.1 : la réponse PEUT se replier (en nowrap, une réponse longue débordait de la
      ligne d'état sur petit écran / grande taille de texte). */
   .ov-ans{font-size:12.5px;font-weight:600;color:var(--ink-soft);margin-left:6px}
-  .ov-sec-h{font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft);margin:2px 0 8px}
+  .ov-sec-h{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin:2px 0 8px}
   /* ----- Fil condensé (v4.16.0) : les passages anciens complets deviennent des CHIPS ----- */
   /* Rangée de chips = un TRONÇON chronologique du fil (l'ordre est préservé — une carte ou une
      ligne d'état coupe la rangée) ; chip = bouton natif ≥ 44 px, tap = déplier sur place.
@@ -2238,7 +2254,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .ovc-a{font-weight:700;max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   /* ----- PLAN DE L'AIDE (v4.10.0) : arbre indenté façon algorithme papier ----- */
   .ov-plan-h{display:flex;align-items:center;gap:7px;margin:18px 0 4px;min-width:0}
-  .ov-plan-h .ovs-t{flex:none;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft)}
+  .ov-plan-h .ovs-t{flex:none;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
   .ov-plan-h .ovs-sub{flex:1;min-width:0;font-size:11.5px;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   /* Sélecteur d'AFFICHAGE du plan (v4.23.0, option B). Volontairement PAS le segment glissant
      de la bascule Dynamique ↔ Statique : celle-ci change ce qu'EST la fiche et se persiste comme
@@ -2250,7 +2266,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .ov-plan-h{flex-wrap:wrap}
   /* Nœud du plan : carte compacte NAVIGANTE (taper = y aller) — jamais de case à cocher ici. */
   .pl-x{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--primary);margin-left:6px}
-  .pl-here{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;background:var(--primary);color:var(--on-primary);padding:1px 8px;border-radius:999px;margin-left:6px;vertical-align:1px}
+  .pl-here{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--primary);color:var(--on-primary);padding:1px 8px;border-radius:999px;margin-left:6px;vertical-align:1px}
   .pl-q{font-size:11.5px;font-weight:400;font-style:italic;color:var(--ink-soft);margin:4px 2px 0}
   /* Liens de structure : convergence « → n » / reprise « ↺ n » — défilement DANS le plan. */
   .pl-lnk{display:inline-flex;align-items:center;gap:5px;min-height:44px;font-size:11.5px;font-weight:700;color:var(--ink-soft);background:var(--tag-bg);border:1px solid var(--line);border-radius:999px;padding:4px 11px;margin-top:6px;cursor:pointer;font-family:inherit;text-align:left}
@@ -2330,10 +2346,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .sv-cell.flash,.sv-band.flash{outline:3px solid var(--primary-soft);outline-offset:1px}
   .sv-h{display:flex;align-items:baseline;gap:6px;margin:0;min-width:0}
   .sv-n{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink-soft);flex:none}
-  .sv-t{flex:1;min-width:0;font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--ink);line-height:1.4;overflow-wrap:break-word}
+  .sv-t{flex:1;min-width:0;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink);line-height:1.4;overflow-wrap:break-word}
   .sv-m{flex:none;font-family:var(--mono);font-size:11px;color:var(--ink-soft);display:flex;gap:6px;align-items:baseline}
   .sv-m .sv-ok{color:var(--ok);font-weight:700}
-  .sv-here{font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;background:var(--primary);color:var(--on-primary);padding:0 7px;border-radius:999px}
+  .sv-here{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--primary);color:var(--on-primary);padding:0 7px;border-radius:999px}
   /* Compteur de passages « ×n ». Il était ÉMIS sans aucune règle : rendu à la taille du texte
      courant, sans chiffres tabulaires, il se confondait avec le contenu de la cellule. Encre
      DOUCE et non bleue, contrairement à son jumeau `.pl-x` du Plan : dans le statique, « aucun
@@ -2358,7 +2374,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .sv-band{display:flex;align-items:baseline;gap:6px;border:1px solid var(--verify-bd);border-radius:3px;background:var(--verify-soft);padding:6px 8px;cursor:pointer;min-width:0}
   .sv-band .sv-n{color:var(--verify)}
   .sv-band .sv-t{color:var(--verify);text-transform:none;font-weight:400;font-size:11.5px;letter-spacing:0}
-  .sv-band .sv-t b{font-weight:800;letter-spacing:.5px;text-transform:uppercase;font-size:11px}
+  .sv-band .sv-t b{font-weight:800;letter-spacing:.07em;text-transform:uppercase;font-size:11px}
   .sv-band .sv-m{color:var(--verify)}
   /* Branches : colonnes auto-fit plafonnées cN (même piège auto-fit que le plan v4.12).
      SOUS 640 px : UNE SEULE COLONNE — retour d'usage v4.13.1 : des branches côte à côte
@@ -2440,7 +2456,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .sv-jump.loop{color:var(--link);background:var(--primary-soft);border-color:var(--primary-soft)}
   .sv-jump:hover{border-color:var(--primary)}
   .sv-jump:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-  .sv-end{font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--ok);padding:2px 2px}
+  .sv-end{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ok);padding:2px 2px}
   .sv-gut{position:absolute;left:0;top:0;pointer-events:none}
   .sv-gut .lp{fill:none;stroke:var(--link);stroke-width:1.6}
   .sv-gut .lph{fill:var(--link)}
@@ -2453,7 +2469,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   ol.steps li.done .stp-r::before{content:"✓ "}
   .pl-r{font-family:var(--mono);font-size:11px;color:var(--link)}
   /* ----- Mode VÉRIFICATION (v4.11.0, Do-Verify) : challenges un à un, Constaté / Écart ----- */
-  .v-hint{font-size:11px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--link);margin:8px 0 2px}
+  .v-hint{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--link);margin:8px 0 2px}
   .vstp{display:flex;gap:9px;align-items:flex-start;padding:8px 10px;border:1px solid var(--line);border-radius:8px;margin-top:6px;background:var(--surface);opacity:.45}
   .vstp .vst{flex:none;width:20px;text-align:center;font-weight:700;color:var(--ink-soft)}
   .vstp .txt{flex:1;min-width:0;font-size:14px;font-weight:600;line-height:1.4}
@@ -2464,7 +2480,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .vstp.vgap{opacity:1;background:var(--verify-soft);border-color:var(--verify)}
   .vstp.vgap .vst{color:var(--verify)}
   /* Étiquette de résultat, posée dès le geste (v4.24.0) : le mot double le glyphe et la couleur. */
-  .vstp .v-tag{flex:none;align-self:center;margin-left:8px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;padding:2px 8px;border-radius:999px;white-space:nowrap}
+  .vstp .v-tag{flex:none;align-self:center;margin-left:8px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;padding:2px 8px;border-radius:999px;white-space:nowrap}
   .vstp .v-tag.ok{color:var(--ok);background:var(--ok-soft);border:1px solid var(--done-line)}
   .vstp .v-tag.gap{color:var(--verify);background:var(--verify-soft);border:1px solid var(--verify-bd)}
   /* Bilan VIVANT de la passe : constatés / écarts / restantes, mis à jour à chaque geste. */
@@ -2481,7 +2497,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #readerMode{position:fixed;inset:0;z-index:92;background:var(--bg);display:none;flex-direction:column}
   #readerMode.on{display:flex}
   #readerMode .rm-top{display:flex;align-items:center;gap:10px;padding:calc(9px + env(safe-area-inset-top)) 14px 9px;background:var(--surface);border-bottom:1px solid var(--line)}
-  #readerMode .rm-tag{flex:none;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--link)}
+  #readerMode .rm-tag{flex:none;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--link)}
   #readerMode .rm-ttl{flex:1;min-width:0;font-size:13px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   #readerMode .rm-time{flex:none;font-family:var(--mono);font-size:13px;font-weight:700;color:var(--ok)}
   #readerMode .rm-block{display:flex;align-items:center;gap:8px;padding:10px 16px 0;font-size:12.5px;font-weight:700;color:var(--ink-soft);max-width:640px;width:100%;margin:0 auto}
@@ -2515,7 +2531,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #readerMode .rm-strip{display:flex;flex-wrap:wrap;gap:6px;padding:8px 16px 0;max-width:640px;width:100%;margin:0 auto;box-sizing:border-box}
   #readerMode .rm-strip[hidden]{display:none}
   #readerMode .rm-seg{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line-strong);border-radius:8px;padding:4px 10px;font-size:12px}
-  #readerMode .rm-seg .l{color:var(--ink-soft);font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+  #readerMode .rm-seg .l{color:var(--ink-soft);font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase}
   #readerMode .rm-seg .v{font-family:var(--mono);font-weight:700;font-variant-numeric:tabular-nums}
   #readerMode .rm-seg.due{border-color:var(--verify-bd);background:var(--verify-soft)}
   #readerMode .rm-seg.due .l,#readerMode .rm-seg.due .v{color:var(--verify)}
@@ -2601,7 +2617,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .auth-state.off{color:var(--ink-soft)}.auth-state.off .auth-dot{background:var(--line-strong)}
   /* État de l'instance (app-admin) : petites cartes de compteurs. */
   .inst-stats-wrap{margin:14px 0 4px}
-  .auth-stats-h{font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft);margin:0 0 8px}
+  .auth-stats-h{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 8px}
   /* P2-6 (audit design v4.56) : UNE ligne de conséquence par réglage, la garantie clé en gras —
      le reste du texte est CONSERVÉ sous un dépliant (rien n'est supprimé, la dose change de
      place). La fenêtre se scanne au lieu de se lire. */
@@ -2644,7 +2660,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .auth-hero-ic{width:56px;height:56px;border-radius:15px;background:var(--primary-soft);color:var(--primary);display:inline-flex;align-items:center;justify-content:center;margin-bottom:11px}
   .auth-hero h4{margin:0 0 5px;font-size:17px;color:var(--ink)}
   .auth-hero .auth-sub{margin:0}
-  .auth-label{display:block;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft);margin-bottom:6px}
+  .auth-label{display:block;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:6px}
   .auth-full{width:100%;justify-content:center;margin-top:8px}
   .auth-code{text-align:center;letter-spacing:8px;font-size:22px;font-weight:700;padding-left:8px}
   /* Suppression de compte : MÊME grammaire que « Supprimer la bibliothèque… » / « Supprimer
@@ -2669,7 +2685,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      et ne masquerait pas la case ; règle explicite pour la case optionnelle de confirmDlg. */
   .auth-check[hidden]{display:none}
   .auth-confirm-lbl{text-align:left;font-size:13px;color:var(--ink-soft);margin:14px 0 6px}.auth-confirm-lbl b{color:var(--critical)}
-  .auth-confirm{text-align:center;letter-spacing:2px;font-weight:600;text-transform:uppercase}
+  .auth-confirm{text-align:center;letter-spacing:.07em;font-weight:600;text-transform:uppercase}
   .auth-admin-note{font-size:12.5px;color:var(--ink-soft);text-align:center;margin:16px 0 0;line-height:1.5}
   .btn:disabled{opacity:.4;cursor:not-allowed}.btn.danger:disabled:hover{background:var(--critical-soft)}
   /* Explication « où sont mes fiches ? » */
@@ -2705,7 +2721,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .vers-acts{display:flex;gap:7px;flex-wrap:wrap}
   /* Diff de versions : + rétabli (bleu), − supprimé (vermillon), sur fond doux. */
   .vers-diff{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:9px 12px;margin:8px 0 4px}
-  .diff-h{font-size:12px;font-weight:700;color:var(--ink-soft);margin:6px 0 4px;text-transform:uppercase;letter-spacing:.4px}
+  .diff-h{font-size:12px;font-weight:700;color:var(--ink-soft);margin:6px 0 4px;text-transform:uppercase;letter-spacing:.07em}
   .diff-line{font-size:13px;line-height:1.45;padding:1px 0}
   .diff-line.add{color:var(--primary-dk)}.diff-line.del{color:var(--critical)}
   .diff-note{font-size:11.5px;color:var(--ink-soft);margin:8px 0 2px}
@@ -2740,7 +2756,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      donc EN HAUT ce qui se dicte à voix haute (le titre de l'aide et le code), le QR ensuite et
      plafonné, la liste bornée, l'arrêt en pied — jamais à l'intérieur d'une liste qui grandit. */
   #shareModal .sh-lead{margin:0 0 10px;font-size:13px;line-height:1.4;color:var(--ink-soft)}
-  #shareModal .sh-fiche{margin:0 0 4px;font-size:12px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--ink-soft)}
+  #shareModal .sh-fiche{margin:0 0 4px;font-size:12px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
   /* Le code se lit à voix haute dans une pièce bruyante : mono, très grand, chiffres tabulaires,
      et un espacement qui sépare les caractères sans les détacher en deux mots. */
   /* C'EST LE TEXTE QU'ON DICTE À VOIX HAUTE, souvent en tendant le téléphone à bout de bras : il
@@ -2765,10 +2781,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      encore à 3,4 px par module, au-dessus du seuil pratique d'un appareil photo à 20 cm). */
   .sh-qr .qr{width:min(200px,52vw);height:auto}
   @media (max-width:359.98px){#shareModal .sh-qr .qr{width:40vw}#shareModal .sh-code{font-size:34px;letter-spacing:3px}}
-  #shareModal .sh-h{margin:14px 0 6px;font-size:11px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--ink-soft)}
+  #shareModal .sh-h{margin:14px 0 6px;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
   .sh-p{display:flex;align-items:center;gap:9px;min-height:44px;padding:5px 0;border-top:1px solid var(--line)}
   .sh-p .n{flex:1;min-width:0;font-size:14px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .sh-p .r{flex:none;font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--ink-soft)}
+  .sh-p .r{flex:none;font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
   .sh-p.off .n{color:var(--ink-soft);text-decoration:line-through}
   .sh-p.wait .r{color:var(--verify)}
   #shareModal .sh-none{margin:6px 0 0;font-size:13px;color:var(--ink-soft)}
@@ -2809,12 +2825,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      ferme ailleurs qu'ailleurs — or c'est le geste le plus appris de toutes. Seul le CORPS, dont
      la lecture souffre d'une largeur excessive, est ramené à une colonne. */
   #shareModal #shareBody{width:100%;max-width:460px;margin-left:auto;margin-right:auto}
-  #joinScreen .join-eye{margin:0 0 2px;font-size:11px;font-weight:800;letter-spacing:1.1px;text-transform:uppercase;color:var(--ink-soft)}
+  #joinScreen .join-eye{margin:0 0 2px;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
   .join-lab{display:block;margin:0 0 5px;font-size:12px;font-weight:700;color:var(--ink-soft)}
   /* MONO, TRÈS GRAND : on recopie un code lu sur l'écran d'un collègue, souvent debout, parfois de
      loin. Très au-dessus des 16 px sous lesquels Safari iOS zoome au focus (règle 9). */
   .join-code{width:100%;box-sizing:border-box;margin:0 0 14px;padding:12px 14px;font-family:var(--mono);
-    font-size:26px;font-weight:700;letter-spacing:4px;text-align:center;text-transform:uppercase;color:var(--ink);
+    font-size:26px;font-weight:700;letter-spacing:.07em;text-align:center;text-transform:uppercase;color:var(--ink);
     font-variant-numeric:tabular-nums;background:var(--input-bg);border:1px solid var(--line-strong);border-radius:10px}
   @media (max-width:359.98px){.join-code{font-size:23px;letter-spacing:3px}}
   /* HAUTEUR EXPLICITE, et c'est un correctif iOS. Un `<select>` natif ne suit pas son `padding`
@@ -2932,7 +2948,17 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #confirmModal .btn.danger{background:var(--critical-bd);border-color:var(--critical-bd);color:var(--on-primary)}
   #confirmModal .btn.danger:hover{background:var(--critical-bd);border-color:var(--critical-bd);filter:brightness(1.06)}
   html[data-theme="dark"] #confirmModal .btn.danger{color:var(--bg)}
-  .ai-card{background:var(--surface);border-radius:14px;max-width:720px;width:100%;margin:auto;padding:20px;box-shadow:var(--shadow)}
+  /* E1/D6 (audit design v4.57.0) — TROIS NIVEAUX D'ÉLÉVATION, ET PAS UN DE PLUS. La règle tient
+     en trois lignes, et c'est le « dark cockpit » appliqué à la PROFONDEUR : ce qui ne se
+     détache pas ne doit pas s'élever.
+       1. PLAT + FILET  = contenu clinique (rangées d'étape, cartes de bloc, listes, cellules du
+          statique, plan). Rien ne flotte au-dessus du soin.
+       2. `--shadow`    = surfaces VIVES, qui apparaissent et disparaissent : carte de session en
+          cours, carte-bilan de fin, panneau minuteurs, bande-question épinglée du statique.
+       3. `--shadow-lg` = OVERLAYS (fenêtres modales, écran d'échec de démarrage, skiplink).
+     Une modale est un niveau 3 : elle était en `--shadow` (niveau 2), donc au même plan qu'une
+     carte de session — corrigé ici. Toute surface ajoutée doit se ranger dans l'un des trois. */
+  .ai-card{background:var(--surface);border-radius:14px;max-width:720px;width:100%;margin:auto;padding:20px;box-shadow:var(--shadow-lg)}
   /* La fenêtre « Gérer les catégories » ne dépasse jamais l'écran (encoche/horloge incluses) : la
      carte est plafonnée et la LISTE défile à l'intérieur ; l'en-tête reste visible. */
   #catModal .ai-card{display:flex;flex-direction:column;max-height:calc(100dvh / var(--zf,1) - 36px - env(safe-area-inset-top) - env(safe-area-inset-bottom));overflow:hidden}
@@ -2947,7 +2973,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Aperçu de compte-rendu (dans la fenêtre) : reprend le style du document imprimé, en zone défilable. */
   .report-preview{max-height:min(calc(60vh / var(--zf,1)),520px);overflow:auto;border:1px solid var(--line);border-radius:10px;padding:16px 18px;background:var(--surface)}
   .report-preview h1{display:none}  /* redondant avec le titre de la fenêtre ; conservé dans le document imprimé/téléchargé */
-  .report-preview h2{font-size:13px;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-soft);margin:20px 0 7px;border-bottom:1px solid var(--line);padding-bottom:4px}
+  .report-preview h2{font-size:13px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-soft);margin:20px 0 7px;border-bottom:1px solid var(--line);padding-bottom:4px}
   .report-preview .meta{color:var(--ink-soft);font-size:13px;margin-bottom:5px}
   .report-preview table{width:100%;border-collapse:collapse;font-size:13.5px}
   .report-preview td{padding:5px 8px;border-bottom:1px solid var(--line);vertical-align:top}
@@ -2955,6 +2981,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .report-preview ul{margin:0;padding-left:20px;font-size:13.5px}
   .report-preview .muted{color:var(--ink-soft)}
   .report-preview .foot{margin-top:22px;font-size:11px;color:var(--ink-soft);border-top:1px solid var(--line);padding-top:8px}
+  /* F6 — l'aperçu dans l'app porte la MÊME tête de bilan que le document imprimé, aux tokens du
+     thème (le document autonome, lui, embarque ses valeurs en dur : il vit hors de l'app). */
+  .report-preview .bilan{display:flex;flex-wrap:wrap;align-items:center;gap:16px;margin:12px 0 4px;padding:13px 15px;background:var(--surface-2);border:1px solid var(--line);border-radius:12px}
+  .report-preview .bilan-dur{display:flex;flex-direction:column;gap:2px}
+  .report-preview .bd-v{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:36px;font-weight:700;line-height:1;letter-spacing:-1px;color:var(--ink)}
+  .report-preview .bd-k{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
+  .report-preview .kpis{display:flex;flex-wrap:wrap;gap:8px;margin-left:auto}
+  .report-preview .kpi{min-width:74px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 12px;text-align:center}
+  .report-preview .kpi-v{display:block;font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:20px;font-weight:700;line-height:1.1;color:var(--ink)}
+  .report-preview .kpi-k{display:block;font-size:11px;color:var(--ink-soft);margin-top:2px}
   .ai-actions{display:flex;gap:9px;flex-wrap:wrap;margin:12px 0 4px}
   .ai-note{font-size:12px;color:var(--ink-soft);margin:6px 0 0;line-height:1.45}
   /* Dialogue « Créer » (design exact du canvas, section 6) : fenêtre min(480px,100%) ; cartes de
@@ -2982,7 +3018,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .crt-chev{margin-left:auto;color:var(--ink-soft);font-weight:700;font-size:17px;flex:none}
   .crt-back{display:inline-flex;align-items:center;gap:3px;border:0;background:none;padding:0;min-height:40px;margin-bottom:2px;font-family:inherit;font-size:13.5px;font-weight:700;color:var(--primary-dk);cursor:pointer}
   .crt-back:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:6px}
-  .crt-step{font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft);margin:14px 0 6px}
+  .crt-step{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin:14px 0 6px}
   .crt-prompt{font-family:var(--mono);font-size:11.5px;line-height:1.55;background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:11px 13px;max-height:180px;overflow-y:auto;white-space:pre-wrap;color:var(--ink)}
   html[data-theme="dark"] .crt-prompt{background:var(--input-bg)}
   .crt-copy{min-height:42px;padding:0 16px;border:0;border-radius:9px;background:var(--primary);color:var(--on-primary);font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer}
@@ -3052,7 +3088,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      (v4.3.2 — il porte alors « Nom — partagée · rôle — n éléments », ex-bandeau scope-ctx). */
   .list-title{font-size:15px;font-weight:700;margin:0 0 12px}
   .list-title span{font-weight:500;color:var(--ink-soft)}
-  .hs-h{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-soft);padding:0 12px;margin:16px 0 8px}
+  .hs-h{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);padding:0 12px;margin:16px 0 8px}
   .home-side>.hs-h:first-child{margin-top:0}
   .hs-row{display:flex;align-items:center;gap:9px;width:100%;min-height:38px;padding:8px 12px;border:0;border-radius:8px;background:none;font-family:inherit;font-size:13.5px;font-weight:500;color:var(--ink);cursor:pointer;text-align:left}
   .hs-row:hover{background:var(--surface-2)}
@@ -3175,7 +3211,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        ESCAMOTE. Le rail est donc une colonne ENTIÈREMENT continue ; le seul dispositif retenu
        contre l'enterrement de la posologie est l'ORDRE (l'illimité en dernier). */
     .rail-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-    .rail-title{font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--ink-soft)}
+    .rail-title{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
     .rail-head :is(.rt-sound,.rt-warn){margin-left:auto}
     .rail-head .rt-sound~.rt-sound,.rail-head .rt-warn~.rt-sound{margin-left:0}
     /* HARMONISATION (v4.23.2, retour d'usage « ils ne se ressemblent pas ») : « Son activé » et
@@ -3247,7 +3283,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     body.view-read .read-grid{grid-template-columns:minmax(0,860px) 360px;justify-content:center}
   }
   /* Aperçu en direct de l'éditeur (colonne droite >= 1000px) : mini-rendu du brouillon. */
-  .ep-h{font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-soft);margin:0 0 8px}
+  .ep-h{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 8px}
   .ep-card{border:1px solid var(--line);border-radius:var(--radius);background:var(--bg);overflow:hidden;box-shadow:var(--shadow)}
   /* v4.27.1 : la miniature suit la grammaire RÉELLE de la lecture — bandeau BLANC (v4.23.0 :
      jamais d'aplat rouge permanent), étapes « normal = LIGNE, signalé = BOÎTE » sans numéro,
@@ -3255,10 +3291,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      l'ANCIENNE grammaire apprend le mauvais rendu à l'auteur. */
   .ep-band{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--surface);border-bottom:1px solid var(--line)}
   .ep-ttl{flex:1;min-width:0;font-size:13.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .ep-tag{flex:none;font-size:11px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--critical)}
+  .ep-tag{flex:none;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--critical)}
   .ep-body{padding:10px 12px 12px;display:flex;flex-direction:column}
   .ep-forget{border:1px solid var(--critical);border-left:4px solid var(--critical);background:var(--critical-soft);border-radius:7px;padding:7px 10px;font-size:11.5px;line-height:1.4;margin-bottom:6px}
-  .ep-fk{font-size:11px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--critical);margin-bottom:2px}
+  .ep-fk{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--critical);margin-bottom:2px}
   .ep-more{color:var(--ink-soft)}
   .ep-step{display:flex;align-items:center;gap:8px;padding:8px 2px;font-size:12px;font-weight:600;border-top:1px solid var(--line)}
   .ep-step:first-of-type{border-top:0}
@@ -3300,8 +3336,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      paraissait plus important qu'un #). La saillance passe désormais par le POIDS, l'ENCRE et
      un FILET, jamais par la seule taille : h1 = capitales encre pleine + filet ; h2 = capitales
      encre douce ; h3 = casse normale. Ordre non ambigu, registre unique préservé. */
-  .md-h1{font-size:13px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;margin:24px 0 10px;padding-bottom:5px;border-bottom:1px solid var(--line);color:var(--ink)}
-  .md-h2{font-size:12px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;margin:20px 0 8px;color:var(--ink-soft)}
+  .md-h1{font-size:13px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;margin:24px 0 10px;padding-bottom:5px;border-bottom:1px solid var(--line);color:var(--ink)}
+  .md-h2{font-size:12px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;margin:20px 0 8px;color:var(--ink-soft)}
   .md-h3{font-size:12.5px;font-weight:700;margin:14px 0 5px;color:var(--ink)}
   .md-body :is(h1,h2,h3):first-child,.md-preview :is(h1,h2,h3):first-child{margin-top:2px}
   .md-p{margin:0 0 10px;color:var(--ink)}
@@ -3332,7 +3368,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      registre, icône ET libellé en toutes lettres (la couleur n'est jamais seule, WCAG 1.4.1).
      Aucune couleur nouvelle : ce sont les 4 registres de l'app. */
   .md-call{padding:9px 12px;border-radius:var(--radius-sm);border:1px solid;border-left-width:4px;color:var(--ink)}
-  .md-call .mc-k{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:4px}
+  .md-call .mc-k{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;margin-bottom:4px}
   .md-call .mc-g{font-size:12px;line-height:1}
   .md-call.crit{background:var(--critical-soft);border-color:var(--critical-line);border-left-color:var(--critical-bd)}
   .md-call.crit .mc-k{color:var(--critical)}
@@ -3356,7 +3392,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .md-tw:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .md-tbl{border-collapse:collapse;width:100%;min-width:440px;font-size:14px}
   .md-tbl th,.md-tbl td{padding:8px 11px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
-  .md-tbl thead th{background:var(--surface-2);font-size:11.5px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--ink-soft);white-space:nowrap}
+  .md-tbl thead th{background:var(--surface-2);font-size:11.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);white-space:nowrap}
   .md-tbl tbody tr:last-child td{border-bottom:0}
   .md-tbl .ta-c{text-align:center}.md-tbl .ta-r{text-align:right;font-variant-numeric:tabular-nums}
   .ep-md .md-tbl{font-size:11.5px;min-width:0}   /* aperçu en direct de l'éditeur (corps réduit) */
@@ -3388,7 +3424,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* .mini a une LARGEUR FIXE (boutons carrés × ↑ ↓) : ici les libellés varient -> largeur auto. */
   .md-toolbar .mini{width:auto;min-width:36px;height:34px;padding:0 10px;font-size:13px;font-weight:600;white-space:nowrap}
   #p-body{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--input-bg);color:var(--ink);font-family:var(--mono);font-size:13px;line-height:1.55;resize:vertical}
-  .md-prev-h{font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-soft);margin:12px 0 6px}
+  .md-prev-h{font-size:11.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-soft);margin:12px 0 6px}
   .md-preview{border:1px dashed var(--line-strong);border-radius:var(--radius-sm);padding:12px 14px;background:var(--surface-2);min-height:44px;line-height:1.55}
   /* ----- Recherche transversale : résultats trouvés dans L'AUTRE section (bloc sous la liste) ----- */
   /* AU-DESSUS de la liste de résultats (jamais noyé sous la pagination) : bandeau compact. */
@@ -3502,7 +3538,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Registre ALERTE compact (canvas turn 6) : kicker « ■ NE PAS OUBLIER » + items en coulée
      « · » — le rappel critique tient en quelques lignes sous le titre. */
   .forget-strip{background:var(--critical-soft);border:1px solid var(--critical-bd);border-radius:8px;padding:10px 13px;margin-bottom:10px}
-  .forget-strip .fs-k{font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--critical);margin-bottom:4px}
+  .forget-strip .fs-k{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--critical);margin-bottom:4px}
   .forget-strip .fs-i{display:flex;gap:9px;align-items:flex-start;font-size:14px;line-height:1.45;padding:2px 0;color:var(--ink)}
   .forget-strip .fs-i::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--critical);flex:none;margin-top:7px}
   /* Bandeau LONG (v4.4.0) : > 4 rappels -> 2 colonnes en large pour contenir la hauteur du
@@ -3559,7 +3595,20 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .sys-banner:not([hidden]){animation:cbIn .25s ease}
   /* Survols des rangées/menus : fondu court au lieu du changement sec (aucun délai perçu). */
   .hs-row,.hs-act,.hs-add,.mm-row,.att-row,.rt-collapsed,.hdr-back,.hdr-new,.hdr-theme,.hdr-more,.hdr-act2,.tlink{transition:background-color .15s,color .15s}
-  .dir-row,.qa-tile{transition:border-color .12s,background-color .15s}
+  /* E5 (audit design v4.57.0) : l'app paraît « vivante sous le doigt » sans rien déplacer —
+     survol = 1 px de lévitation, APPUI = léger enfoncement. transform/opacity SEULEMENT (règle
+     v4.41.0 : jamais une propriété de mise en page), 120 ms, et le survol ne s'applique qu'au
+     POINTEUR FIN : sur tactile, le premier tap pose l'état hover et un hover qui bouge favorise
+     le double-tap (leçon v4.4.4). L'appui, lui, vaut partout — c'est le retour du geste. */
+  .dir-row,.qa-tile{transition:border-color .12s,background-color .15s,transform .12s cubic-bezier(.2,0,0,1),box-shadow .15s}
+  @media (hover:hover) and (pointer:fine){
+    .qa-tile:hover,.dir-row:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
+  }
+  .qa-tile:active,.dir-row:active{transform:scale(.99)}
+  @media (prefers-reduced-motion:reduce){
+    .dir-row,.qa-tile{transition:border-color .12s,background-color .15s}
+    .qa-tile:hover,.dir-row:hover,.qa-tile:active,.dir-row:active{transform:none}
+  }
   @media (prefers-reduced-motion:reduce){*{transition:none!important}.tmcard.flash{animation:none}#crisisBand{animation:none}header.bar.titled.ttl-on #brandTitle{animation:none}.sess-dot::after{animation:none;opacity:0}.ai-modal.on,.ai-modal.on:not(.pdf-modal) .ai-card,.more-menu:not([hidden]),.sys-banner:not([hidden]){animation:none}}
   /* ===== ÉCRANS TACTILES : 16px sur TOUS les champs de saisie (source de vérité UNIQUE) =====
      Sous 16px, Safari iOS ZOOME la page au focus : le contenu saute sous le doigt (barre de
@@ -3692,8 +3741,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   <div id="crisisCtrl" hidden><div class="dock-in">
     <div class="seg mode-seg" id="modeSeg" role="tablist" aria-label="Mode de lecture" hidden><span class="seg-pill" aria-hidden="true"></span><button type="button" class="seg-btn on" role="tab" aria-selected="true" data-readmode="dynamic">Guidé</button><button type="button" class="seg-btn" role="tab" aria-selected="false" data-readmode="static">Statique</button></div>
     <span class="ctrl-sp"></span>
-    <button id="planBtn" hidden class="dock-plan" aria-haspopup="dialog" aria-label="Se repérer — échelle des blocs"><span class="dp-ic" aria-hidden="true">⤢</span><span class="dp-lbl">Se repérer</span></button>
-    <button id="refBtn" hidden class="dock-plan" aria-haspopup="dialog" aria-label="Consulter — surveillances, différentiels, documents"><span class="dp-ic" aria-hidden="true">⤢</span><span class="dp-lbl"><span class="dp-full">Consulter</span><span class="dp-ab">Cons.</span></span></button>
+    <button id="planBtn" hidden class="dock-plan" aria-haspopup="dialog" aria-label="Se repérer — échelle des blocs"><span class="dp-ic" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6"/><path d="M10 20H4v-6"/><path d="M20 4l-7 7"/><path d="M4 20l7-7"/></svg></span><span class="dp-lbl">Se repérer</span></button>
+    <button id="refBtn" hidden class="dock-plan" aria-haspopup="dialog" aria-label="Consulter — surveillances, différentiels, documents"><span class="dp-ic" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6"/><path d="M10 20H4v-6"/><path d="M20 4l-7 7"/><path d="M4 20l7-7"/></svg></span><span class="dp-lbl"><span class="dp-full">Consulter</span><span class="dp-ab">Cons.</span></span></button>
   </div></div>
   <div id="crisisDock" hidden><div class="dock-in">
     <button id="cbTimers" hidden aria-label="Minuteurs en cours — afficher le panneau"></button>
@@ -3970,7 +4019,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.56.3';
+const APP_VERSION='4.57.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -6101,10 +6150,20 @@ function exportSessionReport(sessionId){
   const counters=(f&&f.counters||[]).map(c=>`<tr><td>${esc(c.label||'Compteur')}</td><td>${esc(String((s.counters||{})[c.id]||0))}</td></tr>`).join('');
   const timers=(f&&f.timers||[]).map(t=>{const ts=(s.timers||{})[t.id]||{};const v=t.type==='interval'?(esc(fmtMs(ts.elapsedMs||0))+' · '+esc(String(ts.cycles||0))+' cycle(s)'):esc(fmtMs(ts.elapsedMs||0));return `<tr><td>${esc(t.label||(t.type==='interval'?'Minuteur':'Chronomètre'))}</td><td>${v}</td></tr>`;}).join('');
   // Contenu commun (aperçu app + document imprimable/téléchargeable).
+  /* F6 (audit design v4.56) — LA TÊTE DE BILAN. Le compte rendu commençait par la liste : les
+     totaux se reconstituaient de tête, au moment précis (le débriefing d'équipe) où l'on veut
+     les lire d'un regard. Durée en grand mono, puis les compteurs de la fiche en tuiles NEUTRES
+     — mêmes valeurs, même source, mise en scène. Les compteurs à ZÉRO sont montrés eux aussi :
+     « 0 choc » est une information de débriefing, pas un vide (c'est même souvent LA question).
+     Plafond 4 tuiles : au-delà, la tête cesserait d'être un coup d'œil ; le tableau complet des
+     compteurs reste plus bas, inchangé. */
+  const kpi=(f&&f.counters||[]).slice(0,4).map(c=>
+    `<div class="kpi"><span class="kpi-v">${esc(String((s.counters||{})[c.id]||0))}</span><span class="kpi-k">${esc(c.label||'compteur')}</span></div>`).join('');
   const inner=`<h1>Compte-rendu de session</h1>
 <div class="meta"><b>${title}</b>${f&&f.validation?' · '+esc(fmtDate(f.validation)):''}</div>
 ${s.exercise?'<div class="wm">EXERCICE</div><div class="meta exo">▲ Exercice — répétition sans patient, aucune trace clinique</div>':''}
-<div class="meta">${s.exercise?'Exercice':'Session'} « ${esc(s.name||'sans nom')} » · début ${esc(new Date(start).toLocaleString('fr-FR'))} · durée ${esc(dur)}</div>
+<div class="meta">${s.exercise?'Exercice':'Session'} « ${esc(s.name||'sans nom')} » · début ${esc(new Date(start).toLocaleString('fr-FR'))}</div>
+<div class="bilan"><div class="bilan-dur"><span class="bd-v">${esc(dur)}</span><span class="bd-k">durée totale</span></div>${kpi?`<div class="kpis">${kpi}</div>`:''}</div>
 <h2>Chronologie des actions</h2><table><thead><tr><td><b>Heure</b></td><td><b>Écoulé</b></td><td><b>Action</b></td></tr></thead><tbody>${evRows}</tbody></table>
 <h2>Étapes réalisées</h2><ul>${stepRows}</ul>
 ${cxRows.length?`<h2>⚡ Complications</h2><ul>${cxRows.map(x=>`<li>${x.h}</li>`).join('')}</ul>`:''}
@@ -6120,13 +6179,23 @@ ${counters?`<h2>Compteurs</h2><table>${counters}</table>`:''}
 ${timers?`<h2>Minuteurs</h2><table>${timers}</table>`:''}
 <div class="foot">Document généré par Aides cognitives (v${esc(APP_VERSION)}) le ${esc(new Date().toLocaleString('fr-FR'))}. Aucune donnée patient. Relire et contextualiser avant archivage.</div>`;
   const css=`body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#101b28;max-width:720px;margin:24px auto;padding:0 18px;line-height:1.5}
-h1{font-size:20px;margin:0 0 2px}h2{font-size:14px;text-transform:uppercase;letter-spacing:.5px;color:#5b6570;margin:22px 0 8px;border-bottom:1px solid #d5dbe2;padding-bottom:4px}
+h1{font-size:20px;margin:0 0 2px}h2{font-size:14px;text-transform:uppercase;letter-spacing:.07em;color:#5b6570;margin:22px 0 8px;border-bottom:1px solid #d5dbe2;padding-bottom:4px}
 .meta{color:#5b6570;font-size:13px;margin-bottom:6px}table{width:100%;border-collapse:collapse;font-size:13.5px}td{padding:5px 8px;border-bottom:1px solid #f2f5f8;vertical-align:top}
 td:first-child{white-space:nowrap}ul{margin:0;padding-left:20px;font-size:13.5px}.muted{color:#5b6570}
 /* P3-6 (audit design v4.56) : les colonnes TEMPS en mono tabulaire — des heures en police
    proportionnelle ne s'alignent pas, et une chronologie se lit en colonne. */
 td:first-child,td:nth-child(2){font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-variant-numeric:tabular-nums;font-size:12.5px}
 .foot{margin-top:26px;font-size:11px;color:#5b6570;border-top:1px solid #d5dbe2;padding-top:8px}
+/* F6 — tête de bilan : la durée est l'objet le plus gros du document, les compteurs des tuiles
+   neutres (jamais teintées : ce sont des données, pas des états). */
+.bilan{display:flex;flex-wrap:wrap;align-items:center;gap:18px;margin:14px 0 4px;padding:14px 16px;background:#eff2f6;border:1px solid #d5dbe2;border-radius:12px}
+.bilan-dur{display:flex;flex-direction:column;gap:2px}
+.bd-v{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-variant-numeric:tabular-nums;font-size:40px;font-weight:700;line-height:1;letter-spacing:-1px}
+.bd-k{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:#5b6570}
+.kpis{display:flex;flex-wrap:wrap;gap:8px;margin-left:auto}
+.kpi{min-width:74px;background:#fff;border:1px solid #d5dbe2;border-radius:10px;padding:8px 12px;text-align:center}
+.kpi-v{display:block;font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-variant-numeric:tabular-nums;font-size:20px;font-weight:700;line-height:1.1}
+.kpi-k{display:block;font-size:11px;color:#5b6570;margin-top:2px}
 .wm{position:fixed;right:-34px;top:24px;transform:rotate(24deg);font-size:13px;font-weight:800;letter-spacing:3px;color:#17477f;background:#e3ecf7;border:1px dashed #1f5fa6;padding:4px 44px;z-index:2}
 .meta.exo{color:#17477f;font-weight:700}
 @media print{body{margin:0}}`;
@@ -7870,7 +7939,11 @@ function uiIcon(name,size,opts){opts=opts||{};const P={
   download:'<path d="M12 3v12M6 11l6 6 6-6"/><path d="M4 21h16"/>',
   print:'<path d="M6 9V3h12v6"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8" rx="1"/>',
   history:'<path d="M3 12a9 9 0 109-9 9.7 9.7 0 00-6.7 2.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/>',
-  back:'<path d="M15 6l-6 6 6 6"/>'};
+  back:'<path d="M15 6l-6 6 6 6"/>',
+  /* E6 (audit design v4.57.0) : le ⤢ Unicode était le dernier glyphe de graisse étrangère au
+     jeu d'icônes — même dessin (deux coins opposés qui s'écartent), mais au trait de la famille.
+     Il garde sa DOCTRINE : c'est la grammaire des ouvertures plein écran, partout la même. */
+  expand:'<path d="M14 4h6v6"/><path d="M10 20H4v-6"/><path d="M20 4l-7 7"/><path d="M4 20l7-7"/>'};
   const s=size||15,cls=opts.cls===undefined?'tic':opts.cls;
   return `<svg class="${cls}" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${opts.sw||2}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[name]||''}</svg>`;}
 // Petite icône d'en-tête de section (repère visuel rapide du TYPE de bloc). Trait = currentColor (suit
@@ -9492,7 +9565,7 @@ function renderRead(){
     const num={};plan.order.forEach((id,i)=>{num[id]=i+1;});
     const md={};minimapData(f,state.nav,state.navSeq,state.checked,state.navPos).forEach(m=>{md[m.id]=m;});
     const off=offPathSet(f,state.nav,state.navPos);
-    return `<div class="rail-head"><span class="rail-title">Plan — Échelle</span><span class="rail-n">${plan.order.length}</span><button type="button" class="rail-exp" id="railPlanFull" aria-haspopup="dialog"><span class="rx-ic" aria-hidden="true">⤢</span> complet</button></div><div class="ov-plan rail-lad">${ovPlanLadderHtml(f,plan,num,md,off)}</div>`;})();
+    return `<div class="rail-head"><span class="rail-title">Plan — Échelle</span><span class="rail-n">${plan.order.length}</span><button type="button" class="rail-exp" id="railPlanFull" aria-haspopup="dialog"><span class="rx-ic" aria-hidden="true">${uiIcon('expand',12)}</span> complet</button></div><div class="ov-plan rail-lad">${ovPlanLadderHtml(f,plan,num,md,off)}</div>`;})();
   /* RAIL EN TROIS ZONES (v4.23.0) — retour d'usage : empilées dans un seul défileur, une Échelle
      longue ou des minuteurs nombreux repoussaient les repères posologiques tout en bas.
      Ordre par URGENCE DÉCROISSANTE, et surtout : la seule zone de longueur NON BORNÉE (l'Échelle)
@@ -10137,7 +10210,7 @@ function ovInstHtml(f,id,idx,topo,pres){
   const verifying=state.ovVerify&&state.ovVerify.idx===idx;
   const btns=verifying
     ?`<button type="button" class="ov-redo" data-ovvx title="Quitter la vérification — l'état des cases est déjà enregistré">✕</button>`
-    :((tip&&hasFlow(f)?`<button type="button" class="ov-redo" data-ovreader title="Mode lecteur (binôme) : un challenge à la fois en plein écran — le lecteur lit, l'exécutant répond"><span aria-hidden="true">⤢</span> Lecteur</button>`:'')
+    :((tip&&hasFlow(f)?`<button type="button" class="ov-redo" data-ovreader title="Mode lecteur (binôme) : un challenge à la fois en plein écran — le lecteur lit, l'exécutant répond">${uiIcon('expand',13)} Lecteur</button>`:'')
       +((!dec&&clean(b.steps).length)?`<button type="button" class="ov-redo" data-ovverify="${idx}" title="Do-Verify : redérouler ce bloc en challenge-réponse — « Constaté » coche, « Écart » laisse non coché">Vérifier</button>`:'')
       +((!tip&&complete&&!dec)?`<button type="button" class="ov-redo" data-ovredo="${esc(id)}" title="Refaire ce bloc : nouvelle carte au bout du journal — celle-ci reste telle quelle">↺ Refaire</button>`:''));
   return `<section class="ov-block${tip?' cur':''}${complete?' done':''}${dec?' dec':''}${closed&&!verifying?' closed':''}" data-ovb="${esc(id)}" data-ovi="${idx}" data-ovn="${topo[id]||''}"${tip?' aria-current="step"':''}><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="${idx}" aria-expanded="${closed&&!verifying?'false':'true'}"><span class="ov-n" aria-hidden="true">${complete?uiIcon('check',13,{sw:3.2,cls:''}):(topo[id]||((Runtime.cxBack||{})[seq]?'⚡':'·'))}</span><span class="ov-t">${esc(b.title)||(dec?'Décision':'Étapes')}${passTag}${cxTag}${takenH}${navByTag(tip,seq)}</span><span class="ov-c">${count}</span><span class="ov-chev" aria-hidden="true">${closed&&!verifying?'▾':'▴'}</span></button>${(btns||tip)?`<div class="ov-acts">${tip?'<span class="ov-here">Vous êtes ici</span>':''}${btns}</div>`:''}</div><div class="ov-body">${bodyH}</div></section>`;}

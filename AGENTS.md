@@ -1231,6 +1231,30 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   zones, F5 police embarquée, F6 tête de bilan, H concepts B/C d'en-tête, I restructuration
   complète, K refonte des éditeurs) **ne sont PAS engagées** : elles créent une capacité, touchent
   un token ou ouvrent un chantier — à trancher une par une, jamais par effet de bord.
+- **PASSE ESTHÉTIQUE v4.57.0 (audit design, axes D/E/F — phase 1 de « tout »)** :
+  **`--bg` d'un cran plus profond** (#f2f5f8 → #e9edf2, E7) — les surfaces blanches « portent »
+  sans ombre supplémentaire, ce qui rend l'élévation à 3 niveaux possible. **LE THÈME SOMBRE
+  ADOPTE LES CODES COULEUR DE L'EX-« CONTRASTE + »** (D2, décision utilisateur « c'est le nouveau
+  mode sombre » — pas de 4ᵉ cran au cycle) : encre secondaire relevée (#93a5b5 → #b7c6d6, ~7:1 au
+  lieu de ~4,9:1) et filets renforcés (#24303f → #3b4b5d, 3:1 = seuil WCAG 1.4.11). **PAS**
+  l'encre pleine du bloc `prefers-contrast: more` (là c'est l'utilisateur qui demande d'APLATIR la
+  hiérarchie) ni les **graisses +100** que proposait l'audit : la graisse porte déjà l'état sur
+  les segmentés, et l'élargir changerait toutes les largeurs de texte — donc les mesures à 320 px
+  que quatre harnais surveillent. **TROIS NIVEAUX D'ÉLÉVATION, ÉCRITS** (E1/D6) : plat + filet =
+  contenu clinique ; `--shadow` = surfaces VIVES (session, minuteurs, bande-question épinglée) ;
+  `--shadow-lg` = overlays — une modale était au niveau 2, donc au même plan qu'une carte de
+  session. **Interlettrage des capitales unifié à `.07em`** (E2, 64 déclarations) : relatif et non
+  px, il suit la taille du texte. **Micro-réponses au geste** (E5) : lévitation d'1 px au survol
+  (POINTEUR FIN seulement — sur tactile le premier tap pose le hover, leçon v4.4.4) et
+  `scale(.99)` à l'appui, transform/opacity seulement, inertes sous `prefers-reduced-motion`.
+  **Le ⤢ devient un dessin de trait** (E6) — même dessin, même doctrine (grammaire des ouvertures
+  plein écran), au trait de la famille d'icônes ; **PIÈGE MESURÉ** : un SVG occupe sa largeur
+  pleine là où le glyphe Unicode en occupait moins — 4 px de débordement de la rangée de commandes
+  à 320 px, attrapés par `audit-doctrine`, rendus sur la taille de l'ICÔNE (13 px, 11 sous 400 px)
+  et jamais sur `.ctrl-sp` (v4.43.0 : ce n'est pas un poste d'économie). **TÊTE DE BILAN du
+  compte-rendu** (F6) : durée totale en mono 40 px + compteurs de la fiche en tuiles neutres
+  (plafond 4 ; les compteurs à ZÉRO sont montrés — « 0 choc » est une information de débriefing,
+  souvent LA question), identique à l'écran et à l'impression.
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.

@@ -1,5 +1,52 @@
 # Journal des modifications
 
+## [4.57.0] — 2026-07-29
+### Passe esthétique — profondeur, contraste, rythme (phase 1 des pistes de l'audit)
+
+Première phase du chantier « tout » ouvert après l'audit de design : la PEAU. Les phases
+suivantes (en-tête de lecture, cockpit desktop, mode moniteur, police embarquée, restructuration
+de la lecture, éditeurs) viennent ensuite, une version à la fois.
+
+### Le thème sombre devient le « Contraste + »
+Décision utilisateur : plutôt qu'un 4ᵉ cran au cycle de thème, **le sombre adopte les codes
+couleur de l'ex-« Contraste + »** et garde son nom. Motif d'usage : l'extra-hospitalier — soleil
+direct sur un écran sombre, gants, appareil posé sur un chariot. Deux canaux, et deux seulement :
+encre secondaire relevée (**~7:1** sur les surfaces au lieu de ~4,9:1) et filets renforcés
+(**3:1**, le seuil WCAG 1.4.11 des composants — les cadres de carte se voyaient à peine dans le
+noir). **Pas** l'encre pleine du bloc `prefers-contrast: more` : là c'est l'utilisateur qui demande
+d'aplatir la hiérarchie, ici c'est le défaut de tous. **Pas** les graisses +100 que proposait
+l'audit : la graisse porte déjà l'état sur les segmentés, et l'élargir changerait toutes les
+largeurs de texte — donc les mesures à 320 px que quatre harnais surveillent.
+
+### Profondeur, fond, rythme
+- **`--bg` d'un cran plus profond** (E7) : les surfaces blanches « portent » sans ombre en plus.
+- **Trois niveaux d'élévation, écrits** (E1/D6) : plat + filet = contenu clinique ; `--shadow` =
+  surfaces vives (session, minuteurs) ; `--shadow-lg` = overlays. Une modale était au niveau 2,
+  donc au même plan visuel qu'une carte de session — corrigé. La règle tient en trois lignes dans
+  AGENTS.md ; toute surface ajoutée doit s'y ranger.
+- **Interlettrage des capitales unifié à `.07em`** (E2, 64 déclarations) : relatif et non px, il
+  suit la taille du texte au lieu de se dénaturer quand le corps change.
+- **Micro-réponses au geste** (E5) : lévitation d'1 px au survol — **pointeur fin seulement**, car
+  sur tactile le premier tap pose l'état hover et un hover qui bouge favorise le double-tap
+  (leçon v4.4.4) — et `scale(.99)` à l'appui. Transform/opacity uniquement, inertes sous
+  `prefers-reduced-motion`.
+- **Le ⤢ devient un dessin de trait** (E6) : même dessin, même doctrine (grammaire des ouvertures
+  plein écran), au trait de la famille d'icônes. **Piège mesuré** : un SVG occupe sa largeur
+  pleine là où le glyphe Unicode en occupait moins — **4 px de débordement de la rangée de
+  commandes à 320 px**, attrapés par `audit-doctrine`. Rendus sur la taille de l'icône (13 px,
+  11 sous 400 px), jamais sur `.ctrl-sp` ni par un renommage.
+
+### La tête de bilan du compte-rendu (F6)
+Le document commençait par la chronologie : les totaux se reconstituaient de tête, au moment
+précis — le débriefing d'équipe — où l'on veut les lire d'un regard. Il s'ouvre désormais sur la
+**durée totale en mono 40 px** et les **compteurs de la fiche en tuiles neutres** (plafond 4).
+Les compteurs à **zéro sont montrés** : « 0 choc » est une information de débriefing, souvent LA
+question. Identique à l'écran et à l'impression.
+
+Vérifié : `npm run check`, 780 tests × 2 moteurs, a11y **301/301 sur Chromium ET WebKit**
+(contrastes recalculés sur le fond effectif dans les deux thèmes), doctrine 112/112, zoom-scroll
+6/6, consulter 8/8, modeseg 2/2, lecteur 13/13. Rien à rejouer côté serveur.
+
 ## [4.56.3] — 2026-07-29
 ### Audit de design externe — le lot applicable, mesuré et posé
 
@@ -1159,124 +1206,3 @@ mécanisme et non la propriété** : « le mode d'application vaut `none` » là
 l'annexe ne touche pas l'état, « `started` vaut faux » là où il fallait vérifier qu'aucun dossier
 n'est créé, et « pas de lien en local » qui encodait une règle infirmée. C'est la même erreur que la
 taille du code, sous une autre forme : vérifier ce qu'on a écrit plutôt que ce que ça produit.
-
-## [4.48.0] — 2026-07-27
-### Le partage fonctionne enfin de bout en bout — et le miroir de l'invité était en lecture seule
-
-Cette version rend le partage RÉEL : l'hôte peut l'ouvrir, montrer un code, voir qui a rejoint,
-couper quelqu'un, arrêter. Et surtout, les gestes voyagent — ce qui n'était pas le cas.
-
-### Le défaut central, trouvé par contre-expertise dans le code de la version précédente
-**Les coches de l'invité ne quittaient jamais son téléphone.** L'émission s'accroche à
-`persistLive`, qui sort immédiatement si la session locale n'a pas démarré — or l'invité avait
-`started=false` par construction, et **une trentaine de sites de mutation sont eux-mêmes gardés par
-`if(Runtime.started)`**. Le miroir était donc en lecture seule, silencieusement. C'est mot pour mot
-le pire mode de défaillance nommé au plan de ce chantier : *cocher dans le vide en croyant
-contribuer à une réanimation en cours*.
-
-Le correctif inverse la logique. Sa session EST vive — c'est celle de l'hôte, il la suit et il y
-contribue — donc `started` vaut vrai chez lui. Ce qui lui est refusé n'est pas la session, c'est
-l'**enregistrement**, et ce refus vit désormais là où il a un sens, dans `persistLive` : aucune
-écriture dans son stockage, aucune entrée dans son historique. Le contrôle censé couvrir cela
-mesurait le MÉCANISME (`started === false`) au lieu de la PROPRIÉTÉ ; il mesure maintenant
-l'étanchéité réelle — zéro session archivée, zéro session vive, aucun dossier — **et** que ses
-gestes partent bien sur le fil.
-
-Trois défauts de la même famille, tous dans du code écrit la veille : `canWrite()` — le prédicat qui
-doit retirer l'écriture à un invité coupé ou périmé — **n'avait aucun appelant**, alors que le
-commentaire attenant promettait « un invité périmé ou coupé PERD VISIBLEMENT l'écriture » ; le
-compte de participants du quai filtrait sur `revoked_at` quand le serveur envoie `revoked`, si bien
-que l'hôte aurait lu « ⇄ 2 » avec un seul participant présent ; et l'acteur d'un repère se perdait à
-la peinture, rendant tout compte rendu inattribuable.
-
-### Émission par différence — un seul point d'accroche
-Le recensement avait trouvé **soixante verbes de mutation** (41 attributs `data-*` et 19 contrôles à
-`id`). Les instrumenter un par un garantissait l'oubli, et surtout l'oubli SILENCIEUX de toute
-mutation ajoutée plus tard. On DIFFE donc l'état, en un seul endroit : ce qui est couvert par
-l'enregistrement local l'est mécaniquement par le partage. `shareSnap` et `shareDiff` sont PURS,
-donc testables sans navigateur, sans réseau et sans horloge — et le test qui compte est
-l'**aller-retour** : émettre puis plier redonne l'état de départ (coches, compteurs, minuteurs,
-navigation, repères, annulations, trace do-verify). L'ouverture d'un partage **verse l'état courant
-dans le fil** : l'instantané transmis est la FICHE, jamais la session, donc un partage ouvert après
-vingt coches aurait sinon laissé l'invité devant une fiche vierge, à jour et fausse.
-
-### La fenêtre d'appariement de l'hôte
-Ordre imposé par la mesure, pas par l'esthétique : titre de l'aide et **code** en haut (ce qui se
-dicte à voix haute), QR ensuite et plafonné, participants, arrêt en pied. Elle **ne verrouille pas
-le fond** (`sheet-live`) : toute `.ai-modal` fige le défilement derrière elle au pointeur grossier,
-et celle-ci reste ouverte pendant toute la fenêtre d'admission — la checklist de crise de l'hôte
-serait devenue indéfilable au moment où elle sert.
-
-**Couper quelqu'un n'est jamais peint de façon optimiste** : la rangée affiche « coupure… » et
-n'accepte « coupé » que lorsque le sondage le rapporte ; le harnais mesure les deux moments, y
-compris le RETOUR EN ARRIÈRE quand la requête échoue — un bouton qui laisserait « coupé » affiché
-après un échec dirait à l'hôte qu'il a retiré un accès qu'il n'a pas retiré. Et « Arrêter le
-partage » ramène `expires_at` à maintenant : le code s'aligne sur la promesse de purge faite à
-l'invité, au lieu qu'on affaiblisse la promesse.
-
-### Quatre défauts signalés à l'usage, et ce qu'ils étaient vraiment
-**Le QR n'était pas corrompu : il contenait une adresse injoignable.** Il encodait
-`location.origin + …` — servi depuis un poste de développement, cela donne une adresse LOCALE, que
-l'iPhone décode et ne peut pas ouvrir : « aucune donnée utilisable trouvée ». Désormais, si
-l'adresse n'est pas joignable depuis un autre appareil (fichier local, origine nulle, `localhost`),
-c'est le **code seul** qui est encodé — le téléphone l'affiche comme texte — et la fenêtre le dit.
-Le harnais QR, lui, ne décodait que la MATRICE : il était **aveugle à tout ce qui se passe entre
-l'encodeur et l'appareil photo** (génération du SVG, variables CSS, `shape-rendering`, taille en
-`vw`, rendu sous-pixel). Il capture maintenant l'IMAGE RÉELLEMENT PEINTE et la donne au décodeur
-d'Apple, à quatre configurations dont le thème sombre.
-
-**La confirmation d'arrêt s'affichait DERRIÈRE la fenêtre** : `#confirmModal` héritait du z-index 55
-des fenêtres ordinaires alors que l'appariement est à 94 — dialogue invisible, focus piégé dedans.
-Porté à 95, au-dessus des deux fenêtres hautes et sous le flash d'alarme.
-
-**L'écran d'entrée ne suivait pas la grammaire de l'app** : il n'utilisait pas `.ai-card`, donc ni
-son `margin:auto` (le centrage vertical de toutes les fenêtres), ni son échelle typographique — à
-760 px la carte restait collée en haut, au-dessus de 450 px de vide. Et en la recalant, le **6ᵉ
-piège de cascade du projet** : `.join-card` et `.ai-card` ont la même spécificité, la
-`max-width:720px` déclarée plus bas l'emportait et la carte s'étalait sur 700 px. Sélecteurs par
-`#id` pour les deux fenêtres, comme la règle l'impose pour toute géométrie.
-
-**L'écran de saisie du code était introuvable sans QR.** Il est joignable depuis le dialogue
-« Créer », sous un filet et formulé comme une question (« Un collègue partage sa session ? — ⇄
-Entrer un code ») : c'est le seul point d'entrée atteignable à TOUTES les largeurs, l'accueil n'ayant
-ni menu ⋯ ni barre latérale sous 780 px. Et l'**adresse de jointure est écrite en clair sous le QR**
-— c'est elle qu'on dicte quand le scan ne peut pas servir.
-
-Le code passe à **40 px** (34 sous 360 px), le champ de saisie de l'invité à 26 px. Cela a fait
-tomber un contrôle, et c'est lui qui avait tort : il exigeait « Arrêter le partage » visible sans
-défiler à toutes les largeurs, alors qu'à 320×568 la carte fait 734 px — aucune mise en page
-honnête ne tient dans 568. L'objection d'origine disait autre chose : ce bouton ne doit jamais se
-retrouver DANS une liste qui grandit, et doit rester atteignable. C'est ce qui est mesuré.
-
-### Le miroir de l'invité
-Le bouton « Confirmé — démarrer la session » — contrôle plein, le plus visible de l'écran — était
-rendu chez lui alors qu'il ne démarre rien : retiré. L'entrée se fait au BOUT du journal et non en
-tête de fiche (mesuré : la première étape cochable tombait à y=827 pour un écran de 844, et y=910
-pour 568 — hors champ aux deux largeurs) ; le titre reste lisible par le relais d'en-tête, comme
-pour tout utilisateur qui défile. Une annonce sans pixel (`#srLive`, seul canal admis pendant un
-soin) dit ce qu'il suit.
-
-**Et il a enfin une porte de sortie.** `Share.stop()` n'avait AUCUN appelant : le seul geste
-disponible changeait la vue en laissant le mode et le sondage armés, sans chemin de retour. Le menu
-⋯ de l'invité porte « Quitter le partage… », et le départ est SILENCIEUX côté serveur —
-`Share.stop()`, jamais `emit('detach')` : un `detach` DATE un « je poursuis seul » dans le compte
-rendu de l'hôte, or quelqu'un qui ferme son écran n'a rien affirmé de tel. Le même menu perd les
-rangées qui, chez lui, étaient fausses ou muettes (exercice, recommencer, modifier, versions,
-dupliquer, exports).
-
-**Une incohérence d'étanchéité fermée au passage** : `beforeprint` n'était gardé que par la vue. Un
-invité qui faisait Partager → Imprimer obtenait la fiche ENTIÈRE, mise en page pour le papier —
-pendant qu'on lui refusait l'export du compte rendu au nom de cette même étanchéité.
-
-### La rangée « Partager la session » n'est plus jamais grisée
-La contrainte reste réelle (sans session démarrée, la première action de l'invité déclencherait un
-re-rendu complet sous le doigt de l'hôte), mais la faire porter par une rangée MORTE obligeait à
-deviner l'ordre des gestes. Elle propose maintenant de démarrer, par un dialogue qui dit ce que cela
-engage — chrono, minuteurs, journal, entrée à l'historique : une session ne commence pas par
-surprise au détour d'un menu.
-
-### Vérification
-691 tests × 2 moteurs (+2), 13 harnais verts, **124/124 contrôles partage** (+69, sur les deux
-moteurs), **9/9 QR** (dont 4 sur l'image peinte), 301 contrôles d'accessibilité, 94/94 doctrine,
-`npm run check` vert. Les nouveaux contrôles ont chacun été vérifiés capables d'échouer.
-`supabase/schema.sql` est INCHANGÉ dans cette version : rien à rejouer.
