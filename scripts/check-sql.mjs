@@ -25,6 +25,7 @@ import { dirname, join } from 'node:path';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const FICHIERS = ['supabase/schema.sql', 'supabase/rls-tests.sql'];
 const fautes = [];
+let nDoBlocs = 0;
 let nFonctions = 0, nDelims = 0;
 
 for (const rel of FICHIERS) {
@@ -123,6 +124,42 @@ for (const rel of FICHIERS) {
   });
 }
 
+/* ── VARIABLES DE BLOC plpgsql NON DÉCLARÉES ──────────────────────────────────────────────────
+   `rls-tests.sql` n'est ni servi, ni chargé par les tests : sa seule épreuve est le COLLAGE DANS
+   L'ÉDITEUR SQL, donc sur une instance réelle. Une variable oubliée dans le `declare` y coûte un
+   aller-retour complet — c'est arrivé (« column v_share does not exist »), sur des sections
+   ajoutées à un bloc déjà long dont les conventions de nommage n'étaient pas relues.
+   PostgreSQL, lui, ne le dit qu'à l'EXÉCUTION de la ligne fautive : un test placé en fin de bloc
+   peut donc casser après trois minutes de travail réussi. Le contrôle est statique et trivial —
+   collecter ce qui est déclaré, collecter ce qui est employé, comparer. Il ne prétend pas
+   remplacer un vrai analyseur : il attrape la faute qui a été commise deux fois. */
+for (const rel of FICHIERS) {
+  const pf = join(ROOT, rel);
+  if (!existsSync(pf)) continue;
+  const txt = readFileSync(pf, 'utf8');
+  const rx = /\bdo\s+\$\$\s*declare\b([\s\S]*?)\bbegin\b([\s\S]*?)\bend\s*\$\$/gi;
+  let m, nBloc = 0;
+  while ((m = rx.exec(txt))) {
+    nBloc++;
+    const decl = new Set();
+    // Une déclaration est « nom type … ; » en début de ligne — on ne prend que le premier mot.
+    m[1].split('\n').forEach(l => {
+      const c = l.replace(/--.*$/, '').trim();
+      const d = c.match(/^([a-z_][a-z0-9_]*)\s+/i);
+      if (d) decl.add(d[1].toLowerCase());
+    });
+    if (!decl.size) continue;               // pas un bloc à variables : rien à dire
+    const corps = m[2].replace(/--.*$/gm, '').replace(/'(?:[^']|'')*'/g, "''");
+    const vus = new Set();
+    let u; const rxu = /\b(v_[a-z0-9_]+)\b/gi;
+    while ((u = rxu.exec(corps))) vus.add(u[1].toLowerCase());
+    const debut = txt.slice(0, m.index).split('\n').length;
+    for (const v of vus) if (!decl.has(v))
+      fautes.push(`${rel}: bloc « do $$ » ligne ~${debut} — variable « ${v} » EMPLOYÉE mais jamais DÉCLARÉE\n        (PostgreSQL ne le dira qu'à l'exécution de la ligne fautive, donc sur votre instance)`);
+  }
+  if (nBloc) nDoBlocs += nBloc;
+}
+
 if (fautes.length) {
   console.error('✗ check-sql : ' + fautes.length + ' problème(s).\n');
   for (const f of fautes) console.error('    ' + f);
@@ -130,4 +167,5 @@ if (fautes.length) {
   console.error('  REMPLACEMENT en un seul « $ ». Utiliser une fonction de remplacement, ou split/join.');
   process.exit(1);
 }
-console.log(`✓ check-sql : ${nFonctions} fonction(s), ${nDelims} délimiteur(s) « $$ » appariés, aucun dollar isolé.`);
+console.log(`✓ check-sql : ${nFonctions} fonction(s), ${nDelims} délimiteur(s) « $$ » appariés, `
+  + `${nDoBlocs} bloc(s) « do $$ » à variables toutes déclarées, aucun dollar isolé.`);

@@ -1,7 +1,56 @@
-# Journal des modifications — archive (versions 3.0.0 à 4.36.0)
+# Journal des modifications — archive (versions 3.0.0 à 4.37.0)
 
 > Entrées anciennes déplacées depuis [`CHANGELOG.md`](CHANGELOG.md) pour garder le journal
 > courant lisible. Même format (keep-a-changelog).
+
+## [4.37.0] — 2026-07-26
+Deux garde-fous élargis, et **un bouton fantôme trouvé grâce à l'un d'eux**. Aucun changement de
+rendu voulu — et aucun constaté, vérifié par comparaison des couleurs calculées avant/après dans
+les deux thèmes.
+
+### Garde-fou couleurs — il ne voyait que la moitié de la règle
+`check-colors.mjs` n'inspectait que les **hex**. Un token recopié en DÉCIMAL passait donc au
+travers, et c'est exactement la dérive que la règle proscrit : cinq occurrences de `rgba(16,27,40,…)`
+— la valeur de `--ink` — vivaient dans les voiles et les élévations. Si `--ink` changeait, elles
+seraient restées derrière.
+
+Sur les 34 valeurs littérales du CSS, le tri est net et toutes ne sont pas des dérives :
+- **5 étaient de vraies copies de token** → tokenisées, à valeur **strictement identique** :
+  `--scrim-soft` (voile du menu de catégories), `--scrim` (fenêtres), `--scrim-full` (visionneuse
+  d'image), `--shadow-dock` et `--shadow-bar`. Aucun override sombre ajouté : ces valeurs n'en
+  avaient pas, en créer un serait un changement visible.
+- **Le reste n'est PAS de la palette** et est exempté avec sa raison dans le script : noir et blanc
+  PURS (profondeur, voiles neutres — ils ne portent aucune sémantique de registre) et les deux
+  teintes de l'alerte de minuteur, dérivées d'aucun token. Un garde-fou qui crie sur ce qui va bien
+  finit ignoré.
+
+Le contrôle accepte désormais `rgb()`, `rgba()`, `hsl()`, `hsla()`. Contre-épreuve faite : remettre
+`rgba(16,27,40,.55)` à la place de `var(--scrim)` le fait échouer.
+
+### Harnais d'accessibilité — de 2 fenêtres auditées à 6
+Il ne mesurait que `#planModal` et `#refModal` sur les **20** `.ai-modal` de l'application. Quatre
+de plus y entrent (dialogue Créer, gérer les catégories, fenêtre Compte, « où sont mes fiches »),
+ouvertes par leur **vrai point d'entrée** — jamais par un `classList.add('on')`, qui donnerait une
+fenêtre vide et des verdicts faux. Les 16 autres exigent un contexte construit (session vive,
+document joint, sélection, erreur de synchro) : mesuré, aucune ne s'ouvre par un simple appel —
+c'est un chantier à part, avec une fixture par fenêtre.
+
+**Ces quatre fenêtres ont immédiatement révélé deux défauts réels :**
+- **`[hidden]` était une suggestion, pas une instruction.** La feuille du navigateur pose
+  `display:none` pour cet attribut, mais avec une spécificité si faible que toute règle de classe
+  portant un `display` l'écrase. Le projet compensait par une règle ponctuelle par composant —
+  **vingt** au total — qu'il fallait penser à écrire, et `.tlink` avait été oublié : `#authAnon`,
+  pourtant marqué `hidden`, s'affichait en **bouton VIDE de 20×32 px** dans la fenêtre Compte.
+  Une règle globale `[hidden]{display:none!important}` ferme la classe entière de bugs ; vérifié
+  qu'aucune règle du fichier n'affiche volontairement un élément `[hidden]`.
+- **`.crt-chev`** (le chevron des cartes du dialogue Créer) était en `--line-strong` : 4,32:1, sous
+  le seuil AA. C'est la règle déjà écrite dans `AGENTS.md` — `--line-strong` vise 3:1 pour les
+  BORDURES et échoue en couleur de TEXTE — simplement jamais appliquée ici, faute que cette fenêtre
+  soit mesurée. Passée à `--ink-soft`.
+
+**121/121** contrôles d'accessibilité (117 avant l'élargissement, sur un périmètre plus étroit).
+
+510 tests × 2 moteurs, 22/22 doctrine, 121/121 accessibilité, 143 contrôles d'audit, 10 sondes.
 
 ## [4.36.0] — 2026-07-26
 ### Corrigé — 1,77 Mo chargés pour ne rien dessiner

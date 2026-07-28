@@ -1,5 +1,41 @@
 # Journal des modifications
 
+## [4.54.1] — 2026-07-28
+### CORRECTIF — `rls-tests.sql` de la v4.54.0 ne s'exécutait pas, et rien ne pouvait le dire
+
+Signalé au rejeu : `ERROR: 42703: column "v_share" does not exist`. Les trois sections ajoutées en
+v4.54.0 (§ 14.15 à 14.17) employaient une variable qui n'existe pas dans le bloc — les conventions
+de nommage du fichier n'avaient pas été relues avant d'y écrire.
+
+**Deuxième rejeu perdu par la même famille de faute** (après le `$$` mutilé de la v4.44.1), et pour
+la même raison de fond : `supabase/*.sql` n'est ni servi, ni chargé par les tests — sa seule épreuve
+est le **collage dans l'éditeur SQL**, donc sur une instance réelle. Pire, PostgreSQL ne signale une
+variable inconnue qu'à l'**exécution de la ligne fautive** : un test placé en fin de bloc casse
+après trois minutes de travail réussi, et laisse croire que le reste est en cause.
+
+### Les sections sont désormais AUTONOMES
+Elles ouvrent leur propre partage et font rejoindre leur propre participant, au lieu de s'appuyer
+sur l'état laissé par les tests précédents. Une assertion qui dépend de ce qu'un test antérieur a
+bien voulu laisser derrière lui casse au premier réordonnancement — et c'est exactement ce qui
+vient d'arriver. Un préalable explicite y a été ajouté : le § 14.12 remplit le quota de partages
+vivants d'Alice, il faut donc les expirer avant d'en ouvrir un neuf, sinon l'ouverture échouerait
+**pour une raison qui n'a rien à voir avec ce qu'on mesure**.
+
+Deux assertions s'y ajoutent, qui manquaient : § 14.18 (la passation s'annonce des deux côtés) et
+§ 14.19 (l'historique de sessions ne se prête pas — Bob ne lit ni n'écrit celui d'Alice).
+
+### Le garde-fou qui aurait attrapé cela
+`check-sql.mjs` collecte les variables **déclarées** d'un bloc `do $$ … declare … begin`, collecte
+celles qui y sont **employées**, et compare. Statique, donc instantané, donc joué à chaque commit —
+là où l'erreur coûtait jusqu'ici un aller-retour complet sur une instance de production.
+
+**Vérifié capable d'échouer** en réintroduisant le défaut vécu à l'identique (`v_share`) : le
+contrôle le nomme et donne sa ligne ; fichier restauré à l'octet. Il ne prétend pas remplacer un
+analyseur plpgsql — il attrape la faute qui a été commise, ce qui est le seul critère qui vaille.
+
+`schema.sql` de la v4.54.0 était correct et n'a pas à être rejoué ; **`rls-tests.sql` est à
+rejouer**. 747 tests × 2 moteurs, 13 harnais verts.
+
 ## [4.54.0] — 2026-07-28
 ### La main se passe, l'historique suit le compte, et le serveur cesse de faire confiance au client
 
@@ -1489,54 +1525,5 @@ n'aurait rien nommé du tout).
 
 Aucun changement de rendu : le diff est de 11 lignes modifiées pour 11, uniquement des attributs,
 et aucune règle CSS du fichier ne cible `label[for]` ni `[aria-label]` (vérifié).
-
-510 tests × 2 moteurs, 22/22 doctrine, 121/121 accessibilité, 143 contrôles d'audit, 10 sondes.
-
-## [4.37.0] — 2026-07-26
-Deux garde-fous élargis, et **un bouton fantôme trouvé grâce à l'un d'eux**. Aucun changement de
-rendu voulu — et aucun constaté, vérifié par comparaison des couleurs calculées avant/après dans
-les deux thèmes.
-
-### Garde-fou couleurs — il ne voyait que la moitié de la règle
-`check-colors.mjs` n'inspectait que les **hex**. Un token recopié en DÉCIMAL passait donc au
-travers, et c'est exactement la dérive que la règle proscrit : cinq occurrences de `rgba(16,27,40,…)`
-— la valeur de `--ink` — vivaient dans les voiles et les élévations. Si `--ink` changeait, elles
-seraient restées derrière.
-
-Sur les 34 valeurs littérales du CSS, le tri est net et toutes ne sont pas des dérives :
-- **5 étaient de vraies copies de token** → tokenisées, à valeur **strictement identique** :
-  `--scrim-soft` (voile du menu de catégories), `--scrim` (fenêtres), `--scrim-full` (visionneuse
-  d'image), `--shadow-dock` et `--shadow-bar`. Aucun override sombre ajouté : ces valeurs n'en
-  avaient pas, en créer un serait un changement visible.
-- **Le reste n'est PAS de la palette** et est exempté avec sa raison dans le script : noir et blanc
-  PURS (profondeur, voiles neutres — ils ne portent aucune sémantique de registre) et les deux
-  teintes de l'alerte de minuteur, dérivées d'aucun token. Un garde-fou qui crie sur ce qui va bien
-  finit ignoré.
-
-Le contrôle accepte désormais `rgb()`, `rgba()`, `hsl()`, `hsla()`. Contre-épreuve faite : remettre
-`rgba(16,27,40,.55)` à la place de `var(--scrim)` le fait échouer.
-
-### Harnais d'accessibilité — de 2 fenêtres auditées à 6
-Il ne mesurait que `#planModal` et `#refModal` sur les **20** `.ai-modal` de l'application. Quatre
-de plus y entrent (dialogue Créer, gérer les catégories, fenêtre Compte, « où sont mes fiches »),
-ouvertes par leur **vrai point d'entrée** — jamais par un `classList.add('on')`, qui donnerait une
-fenêtre vide et des verdicts faux. Les 16 autres exigent un contexte construit (session vive,
-document joint, sélection, erreur de synchro) : mesuré, aucune ne s'ouvre par un simple appel —
-c'est un chantier à part, avec une fixture par fenêtre.
-
-**Ces quatre fenêtres ont immédiatement révélé deux défauts réels :**
-- **`[hidden]` était une suggestion, pas une instruction.** La feuille du navigateur pose
-  `display:none` pour cet attribut, mais avec une spécificité si faible que toute règle de classe
-  portant un `display` l'écrase. Le projet compensait par une règle ponctuelle par composant —
-  **vingt** au total — qu'il fallait penser à écrire, et `.tlink` avait été oublié : `#authAnon`,
-  pourtant marqué `hidden`, s'affichait en **bouton VIDE de 20×32 px** dans la fenêtre Compte.
-  Une règle globale `[hidden]{display:none!important}` ferme la classe entière de bugs ; vérifié
-  qu'aucune règle du fichier n'affiche volontairement un élément `[hidden]`.
-- **`.crt-chev`** (le chevron des cartes du dialogue Créer) était en `--line-strong` : 4,32:1, sous
-  le seuil AA. C'est la règle déjà écrite dans `AGENTS.md` — `--line-strong` vise 3:1 pour les
-  BORDURES et échoue en couleur de TEXTE — simplement jamais appliquée ici, faute que cette fenêtre
-  soit mesurée. Passée à `--ink-soft`.
-
-**121/121** contrôles d'accessibilité (117 avant l'élargissement, sur un périmètre plus étroit).
 
 510 tests × 2 moteurs, 22/22 doctrine, 121/121 accessibilité, 143 contrôles d'audit, 10 sondes.

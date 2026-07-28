@@ -1016,55 +1016,99 @@ begin
   if not public.share_kind_allowed('lead','session_start') then
     raise exception 'ÉCHEC 14.14 : le lead ne peut pas dater le début du soin'; end if;
 
-  ---------------------------------------------------------------- 14.15
-  -- LISTE BLANCHE DES CLÉS DE PAYLOAD. Le serveur ne validait que le type et la taille : deux
-  -- injections d'attribut ont été reproduites côté client à partir de là (v4.53.1). `label` est
-  -- absent de la liste, ET C'EST LE POINT — c'est ce qui rend vraie AU NIVEAU DU SERVEUR la
-  -- promesse « aucun texte libre ne traverse le réseau ».
-  v_j := public.share_push(v_sec, v_share,
+  ---------------------------------------------------------------- 14.15 à 14.17
+  /* TROIS DURCISSEMENTS, UN SEUL DÉCOR. Ces sections sont AUTONOMES : elles ouvrent leur propre
+     partage et font rejoindre leur propre participant, au lieu de s'appuyer sur l'état laissé par
+     les tests précédents. Une assertion qui dépend de ce qu'un test antérieur a bien voulu laisser
+     derrière lui casse au premier réordonnancement — et c'est ce qui vient d'arriver.
+     PRÉALABLE : 14.12 a rempli le quota de partages vivants d'Alice (le plafond est de cinq).
+     On expire donc les siens avant d'en ouvrir un neuf, sinon l'ouverture échouerait pour une
+     raison qui n'a rien à voir avec ce qu'on mesure ici. */
+  update public.shared_sessions set expires_at = now() - interval '1 minute' where owner = alice;
+  perform set_config('request.jwt.claims', json_build_object('sub',alice,'role','authenticated',
+    'amr',json_build_array(json_build_object('method','otp','timestamp',extract(epoch from now())::bigint)))::text, true);
+  set local role authenticated;
+  v_j := public.share_open('sh-hard','sess-hard','f-hard',
+           jsonb_build_object('id','f-hard','title','Durcissement','status',''), 'scribe', 60);
+  if not (v_j->>'ok')::boolean then
+    raise exception 'ÉCHEC 14.15 : ouverture du décor refusée (%)', v_j->>'err'; end if;
+  v_code := v_j->>'code';
+  reset role;
+
+  -- 14.16 — LE LIBELLÉ D'UN PARTICIPANT NE PORTE AUCUN MÉTACARACTÈRE DE BALISAGE. Il s'affiche
+  -- chez TOUS les autres ; l'application ne propose qu'une liste fermée de neuf rôles, mais un
+  -- client modifié n'est pas tenu par un `<select>`.
+  v_j2 := public.share_join(v_code, '<img src=x onerror=alert(1)>');
+  if not (v_j2->>'ok')::boolean then
+    raise exception 'ÉCHEC 14.16 : jointure refusée à tort (%)', v_j2->>'err'; end if;
+  v_sec := v_j2->>'secret';
+  if exists (select 1 from public.session_participants
+              where share_id = 'sh-hard'
+                and (label like '%<%' or label like '%>%' or label like '%"%')) then
+    raise exception 'ÉCHEC 14.16 : un libellé de participant porte du balisage'; end if;
+
+  -- 14.15 — LISTE BLANCHE DES CLÉS DE PAYLOAD. Le serveur ne validait que le type et la taille :
+  -- c'est de là que partaient les deux injections d'attribut reproduites côté client (v4.53.1).
+  -- `label` est absent de la liste, ET C'EST LE POINT — c'est ce qui rend vraie AU NIVEAU DU
+  -- SERVEUR la promesse « aucun texte libre ne traverse le réseau ».
+  v_j := public.share_push(v_sec, 'sh-hard',
            jsonb_build_array(jsonb_build_object(
              'event_id', gen_random_uuid(), 'kind', 'mark',
              'payload', jsonb_build_object('id','e1','t',1,'label','<img src=x>','zz','autre'))));
   if not (v_j->>'ok')::boolean then
     raise exception 'ÉCHEC 14.15 : un mark légitime a été refusé (%)', v_j->>'err'; end if;
   if exists (select 1 from public.session_events
-              where share_id = v_share and kind = 'mark' and payload ? 'label') then
+              where share_id = 'sh-hard' and kind = 'mark' and payload ? 'label') then
     raise exception 'ÉCHEC 14.15 : un LIBELLÉ a traversé le serveur'; end if;
   if exists (select 1 from public.session_events
-              where share_id = v_share and kind = 'mark' and payload ? 'zz') then
+              where share_id = 'sh-hard' and kind = 'mark' and payload ? 'zz') then
     raise exception 'ÉCHEC 14.15 : une clé hors liste blanche a traversé'; end if;
   if not exists (select 1 from public.session_events
-                  where share_id = v_share and kind = 'mark' and payload ? 'id') then
+                  where share_id = 'sh-hard' and kind = 'mark' and payload ? 'id') then
     raise exception 'ÉCHEC 14.15 : la liste blanche a mangé une clé légitime'; end if;
 
-  ---------------------------------------------------------------- 14.16
-  -- LE LIBELLÉ D'UN PARTICIPANT NE PORTE AUCUN MÉTACARACTÈRE DE BALISAGE. Il s'affiche chez tous
-  -- les autres ; l'application ne propose qu'une liste fermée, mais un client modifié n'est pas
-  -- tenu par un `<select>`.
-  -- Le code en clair n'est jamais relisible en base (seul son sha-256 y est) : on le récupère par
-  -- `share_admit`, qui le renvoie une fois — c'est le chemin de l'hôte, et donc le bon.
-  v_j := public.share_admit(v_share, 120);
-  v_j := public.share_join(v_j->>'code', '<img src=x onerror=alert(1)>');
-  if not (v_j->>'ok')::boolean then
-    raise exception 'ÉCHEC 14.16 : jointure refusée à tort'; end if;
-  if exists (select 1 from public.session_participants
-              where share_id = v_share and (label like '%<%' or label like '%>%' or label like '%"%')) then
-    raise exception 'ÉCHEC 14.16 : un libellé de participant porte du balisage'; end if;
-
-  ---------------------------------------------------------------- 14.17
-  -- LA COUPURE MORD AU SERVEUR, pas seulement chez le coupé. Elle ne lui cachait rien : il
-  -- recevait `status: revoked` ET le flux complet, si bien qu'un client modifié continuait de
-  -- lire la session jusqu'à l'expiration. Le STATUT reste renvoyé — il faut qu'il SACHE, sinon
-  -- la coupure passerait pour une panne de réseau.
+  -- 14.17 — LA COUPURE MORD AU SERVEUR, pas seulement chez le coupé. `share_pull` renvoyait
+  -- `status: revoked` ET le flux complet : c'était son application qui gelait l'écran, donc un
+  -- client modifié continuait de lire la session jusqu'à l'expiration. Le STATUT reste renvoyé —
+  -- il faut qu'il SACHE, sinon la coupure passerait pour une panne de réseau.
   update public.session_participants set revoked_at = now()
-   where share_id = v_share and secret_hash = encode(digest(v_sec,'sha256'),'hex');
-  v_j := public.share_pull(v_sec, v_share, 0);
+   where share_id = 'sh-hard' and participant = (v_j2->>'me')::uuid;
+  v_j := public.share_pull(v_sec, 'sh-hard', 0);
+  if not (v_j->>'ok')::boolean then
+    raise exception 'ÉCHEC 14.17 : la lecture d''un coupé devrait répondre, pas refuser'; end if;
   if (v_j->>'status') <> 'revoked' then
     raise exception 'ÉCHEC 14.17 : le coupé ignore qu''il est coupé (%)', v_j->>'status'; end if;
   if jsonb_array_length(v_j->'events') <> 0 then
     raise exception 'ÉCHEC 14.17 : un participant COUPÉ reçoit encore les évènements'; end if;
   if jsonb_array_length(v_j->'participants') <> 0 then
     raise exception 'ÉCHEC 14.17 : un participant COUPÉ voit encore la liste des participants'; end if;
+
+  -- 14.18 — LA PASSATION S'ANNONCE DES DEUX CÔTÉS. `handoff` ne change AUCUN état serveur : il
+  -- porte une offre ou une prise. Le rôle, lui, s'écrit sur `session_participants`, que la
+  -- politique `sparts_own` réserve au propriétaire. Le réserver au lead aurait interdit à l'invité
+  -- d'ACCEPTER — c'est-à-dire d'accomplir le temps que la doctrine exige de LUI (AC 61-115).
+  if not public.share_kind_allowed('scribe','handoff') then
+    raise exception 'ÉCHEC 14.18 : un invité ne peut pas PRENDRE la main'; end if;
+  if not public.share_kind_allowed('lead','handoff') then
+    raise exception 'ÉCHEC 14.18 : celui qui conduit ne peut pas PROPOSER la main'; end if;
+
+  -- 14.19 — HISTORIQUE DE SESSIONS : une seule politique, et elle ne prête pas.
+  perform set_config('request.jwt.claims', json_build_object('sub',alice,'role','authenticated',
+    'amr',json_build_array(json_build_object('method','otp','timestamp',extract(epoch from now())::bigint)))::text, true);
+  set local role authenticated;
+  insert into public.sessions(id,data,exercise) values ('sess-a','{"ficheTitle":"ACR"}'::jsonb,false);
+  reset role;
+  perform set_config('request.jwt.claims', json_build_object('sub',bob,'role','authenticated',
+    'amr',json_build_array(json_build_object('method','otp','timestamp',extract(epoch from now())::bigint)))::text, true);
+  set local role authenticated;
+  select count(*) into v_cnt from public.sessions where id = 'sess-a';
+  if v_cnt <> 0 then
+    raise exception 'ÉCHEC 14.19 : Bob lit l''historique de sessions d''Alice'; end if;
+  begin
+    update public.sessions set data = '{"x":1}'::jsonb where id = 'sess-a';
+    if found then raise exception 'ÉCHEC 14.19 : Bob écrit dans l''historique d''Alice'; end if;
+  exception when insufficient_privilege then null; end;
+  reset role;
 
 
   ------------------------------------------------------------------ FIN
