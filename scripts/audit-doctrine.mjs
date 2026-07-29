@@ -133,6 +133,53 @@ console.log('\n══ ECAM · pas d\'alerte flottante en session ══');
   await page.close();
 }
 
+/* ══ LE MENU ⋯ TIENT DANS L'ÉCRAN, MARGE DU MATÉRIEL COMPRISE (v4.73.2) ═════════════════════════
+   Signalé deux fois à l'usage : d'abord en fenêtre basse, puis « pareil, menu ⋯ tronqué » en grande
+   police. Il porte jusqu'à seize rangées, et à 130 % chacune passe sur deux ou trois lignes — les
+   dernières, dont « Terminer la session… », tombaient hors de l'écran SANS défilement, donc
+   INATTEIGNABLES en silence. On mesure les deux moitiés de l'invariant : la boîte tient dans la
+   zone visible ET la dernière rangée est réellement atteignable une fois défilé au bout.
+   `--sab` est FORCÉE à 34 px sur un tour : c'est la bande de l'indicateur d'accueil d'un iPhone,
+   que `visualViewport.height` INCLUT — le terme qui manquait, et qu'un moteur de bureau ne
+   présente jamais. Sans ce tour, le contrôle serait aveugle au défaut effectivement observé. */
+console.log('\n══ Chrome · le menu ⋯ tient dans l\'écran (390/430 × 4 tailles de texte) ══');
+{
+  const page=await session(390);
+  for(const w of [390,430]){
+    await page.setViewportSize({width:w,height:844});
+    for(const z of [100,130]) for(const sab of [0,34]){
+      const r=await page.evaluate(async([z,sab])=>{
+        document.documentElement.style.setProperty('--sab',sab+'px');
+        applyZoom(z);render();await new Promise(x=>setTimeout(x,260));
+        document.getElementById('hdrMore').click();
+        await new Promise(x=>setTimeout(x,220));
+        const m=document.getElementById('moreMenu');
+        const zf=(parseFloat(document.documentElement.style.zoom)||100)/100;
+        const vv=window.visualViewport;
+        const visible=((vv&&vv.height)?vv.height:window.innerHeight)-sab*zf;
+        const b=m.getBoundingClientRect();
+        // Dernière rangée atteignable : on défile le menu au bout et on la mesure là.
+        m.scrollTop=m.scrollHeight;
+        await new Promise(x=>setTimeout(x,60));
+        const rows=[...m.querySelectorAll('.mm-row')];
+        const der=rows.length?rows[rows.length-1].getBoundingClientRect():null;
+        const out={bas:+b.bottom.toFixed(1),visible:+visible.toFixed(1),n:rows.length,
+          derBas:der?+der.bottom.toFixed(1):null,derHaut:der?+der.top.toFixed(1):null};
+        closeMoreMenu();
+        document.documentElement.style.removeProperty('--sab');
+        return out;},[z,sab]);
+      const nom=`${w} px à ${z} %${sab?' + marge matérielle':''}`;
+      t(`${nom} : le menu tient dans la zone visible`, r.bas<=r.visible+0.5,
+        `bas ${r.bas} px / visible ${r.visible} px (${r.n} rangées)`);
+      t(`${nom} : la dernière rangée est atteignable`,
+        r.derBas!=null&&r.derBas<=r.visible+0.5&&r.derHaut>=0,
+        `dernière rangée ${r.derHaut}–${r.derBas} px / visible ${r.visible} px`);
+    }
+  }
+  await page.evaluate(()=>applyZoom(100));
+  await page.close();
+}
+
 // ══ ECAM — rangée de COMMANDES sans rognage (v4.30.0, audit externe) ════════
 // Mesuré AVANT correctif : #crisisCtrl exigeait 386 px — « Cons. » rogné de 11 px à 375
 // (iPhone SE/mini) et 26 px à 360 (Android standard), sans défilement horizontal : pixels
@@ -162,6 +209,41 @@ console.log('\n══ ECAM · rangée de commandes sans rognage (320/360/375/390
     t(`aucun rognage par le conteneur à ${w} px`, r.right<=r.bordInterne+0.5&&r.deborde<=0.5,
       `dernier bouton à ${r.right} px, bord interne ${r.bordInterne} px, débordement ${r.deborde} px`);
   }
+  /* ET SOUS LA PLUS GRANDE TAILLE DE TEXTE — le trou de couverture qui a produit le défaut
+     (v4.73.1, signalé à l'usage : « ⤢ Se repérer » coupé, « ⤢ Consulter » hors écran). Ce témoin
+     ne mesurait qu'à zoom 1, alors que le réglage de taille du texte est un `zoom` sur `<html>` :
+     la place réellement disponible vaut `largeur ÷ zoom` (331 px sur un écran de 430 à 130 %) et
+     AUCUN palier `max-width` ne s'y déclenche, puisqu'une media query mesure la fenêtre du
+     périphérique. On mesure donc les mêmes deux propriétés aux quatre paliers de taille du texte,
+     sur les deux largeurs de téléphone les plus courantes. La géométrie est lue en px VISUELS des
+     deux côtés (rects contre rects), donc comparable sans division. */
+  for(const w of [390,430]){
+    await page.setViewportSize({width:w,height:820});
+    for(const z of [90,100,115,130]){
+      const r=await page.evaluate(async(z)=>{applyZoom(z);render();
+        await new Promise(x=>setTimeout(x,260));
+        const btns=[...document.querySelectorAll('#crisisCtrl button')].filter(b=>b.offsetParent);
+        const right=Math.max(...btns.map(b=>b.getBoundingClientRect().right));
+        const din=document.querySelector('#crisisCtrl .dock-in');
+        const db=din.getBoundingClientRect(),ds=getComputedStyle(din);
+        const zf=(parseFloat(document.documentElement.style.zoom)||100)/100;
+        return {right:+right.toFixed(1),vw:innerWidth,
+          bordInterne:+(db.right-parseFloat(ds.paddingRight)*zf).toFixed(1),
+          eff:Math.round(innerWidth/zf),
+          libelles:btns.map(b=>b.textContent.trim()).join('|')};},z);
+      t(`${w} px à ${z} % : aucun bouton de commande rogné`,
+        r.right<=r.vw+0.5&&r.right<=r.bordInterne+0.5,
+        `bord droit ${r.right} px, bord interne ${r.bordInterne} px, viewport ${r.vw} px (${r.eff} px effectifs)`);
+      /* AUCUN LIBELLÉ N'EST SACRIFIÉ POUR TENIR : c'est la seconde moitié de l'invariant, et sans
+         elle un futur « correctif » pourrait faire passer le premier en masquant les mots — ce que
+         la doctrine interdit explicitement (« deux pictogrammes voisins sans mot se confondent sous
+         stress »). On exige que chaque bouton porte encore du texte. */
+      t(`${w} px à ${z} % : les libellés sont intacts`,
+        /Guid/.test(r.libelles)&&/Statique/.test(r.libelles)&&/rep.rer/.test(r.libelles)&&/Cons/.test(r.libelles),
+        r.libelles);
+    }
+  }
+  await page.evaluate(()=>applyZoom(100));
   await page.close();
 }
 

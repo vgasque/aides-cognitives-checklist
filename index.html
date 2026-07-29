@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-AX80eGCK3OmYscnAj6abmLhPPELTodFF2GqEX4GbXrA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-sRxsh6P5fdg+pgyR8atcRM3FIBpIkLKlVjjdHhc3w1M='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -325,7 +325,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      quand la police est prête — jamais d'écran de titre vide, même au tout premier chargement.
      Précachée par sw.js (règle 13) : hors ligne dès l'installation. */
   @font-face{font-family:'Source Serif 4';src:url('vendor/fonts/source-serif-4-latin-600.woff2') format('woff2');font-weight:600;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
-  :root{--serif:'Source Serif 4',Georgia,'Times New Roman',serif;--ink:#101b28;--ink-soft:#5b6570;--line:#d5dbe2;--line-strong:#75828e;--line-hover:#c3ccd6;--bg:#e9edf2;--surface:#fff;--surface-2:#eff2f6;--surface-3:#e8ecf1;--primary:#1f5fa6;--primary-dk:#17477f;--primary-hi:#17477f;--primary-soft:#e3ecf7;--primary-100:#dce7f5;--primary-200:#b9cde6;--primary-300:#8fb4de;--on-primary:#fff;--ok-rgb:29,122,56;--ok:rgb(var(--ok-rgb));--ok-soft:#eaf6ee;--critical:#a32e1f;--critical-soft:#fbe9e4;--critical-line:#ecc4bc;--verify:#7a5900;--verify-soft:#fbf3dc;--verify-line:#eddfb6;--verify-bd:#b7791f;--verify-hi:#b45309;--critical-bd:#c43d34;--done-bg:#eff5f0;--done-line:#bfd8c6;--done-ink:#5b6570;--tag-bg:#e8ecf1;--tag-ink:#3c464f;--link:#1f5fa6;--soft:#8a94a0;--alert:#f0a431;--alert-hi:#ffb454;--alert-strong:#c98a18;--alert-ink:#3a2a02;--rt-card:#1c2a3c;--rt-line:#2c3d52;--rt-ink:#e8eef7;--alarm:#d1543c;--input-bg:#fff;--radius:14px;--radius-md:11px;--radius-sm:9px;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--shadow:0 1px 2px rgba(16,27,40,.04),0 4px 16px rgba(16,27,40,.06);--shadow-lg:0 2px 6px rgba(16,27,40,.06),0 12px 32px rgba(16,27,40,.10);--shadow-primary:0 1px 2px rgba(23,71,127,.2),0 4px 12px rgba(23,71,127,.16);--shadow-primary-sm:0 1px 2px rgba(23,71,127,.25);--lb-cap:#cfe0dd;--lb-ink:#fff;--paper:#fff;--qr-ink:#101b28;--flow-cur:#1f5fa6;/* VOILES (scrim) et ÉLÉVATIONS À L'ENCRE — tokenisés en v4.37.0. Ces cinq valeurs étaient des COPIES DÉCIMALES de --ink (#101b28 = 16,27,40) : le garde-fou couleurs ne voyait que les hex, elles passaient donc au travers, et un changement de --ink les aurait laissées derrière. Valeurs reprises à l'identique. Pas d'override sombre : c'est l'état actuel, en ajouter un serait un changement visible. */--scrim-soft:rgba(16,27,40,.45);--scrim:rgba(16,27,40,.55);--scrim-full:rgba(16,27,40,.92);--shadow-dock:0 1px 3px rgba(16,27,40,.05);--shadow-bar:0 1px 6px rgba(16,27,40,.06);}
+  :root{--serif:'Source Serif 4',Georgia,'Times New Roman',serif;--ink:#101b28;--ink-soft:#5b6570;--line:#d5dbe2;--line-strong:#75828e;--line-hover:#c3ccd6;--bg:#e9edf2;--surface:#fff;--surface-2:#eff2f6;--surface-3:#e8ecf1;--primary:#1f5fa6;--primary-dk:#17477f;--primary-hi:#17477f;--primary-soft:#e3ecf7;--primary-100:#dce7f5;--primary-200:#b9cde6;--primary-300:#8fb4de;--on-primary:#fff;--ok-rgb:29,122,56;--ok:rgb(var(--ok-rgb));--ok-soft:#eaf6ee;--critical:#a32e1f;--critical-soft:#fbe9e4;--critical-line:#ecc4bc;--verify:#7a5900;--verify-soft:#fbf3dc;--verify-line:#eddfb6;--verify-bd:#b7791f;--verify-hi:#b45309;--critical-bd:#c43d34;--done-bg:#eff5f0;--done-line:#bfd8c6;--done-ink:#5b6570;--tag-bg:#e8ecf1;--tag-ink:#3c464f;--link:#1f5fa6;--soft:#8a94a0;--alert:#f0a431;--alert-hi:#ffb454;--alert-strong:#c98a18;--alert-ink:#3a2a02;--rt-card:#1c2a3c;--rt-line:#2c3d52;--rt-ink:#e8eef7;--alarm:#d1543c;--input-bg:#fff;--radius:14px;--radius-md:11px;--radius-sm:9px;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--shadow:0 1px 2px rgba(16,27,40,.04),0 4px 16px rgba(16,27,40,.06);--shadow-lg:0 2px 6px rgba(16,27,40,.06),0 12px 32px rgba(16,27,40,.10);--shadow-primary:0 1px 2px rgba(23,71,127,.2),0 4px 12px rgba(23,71,127,.16);--shadow-primary-sm:0 1px 2px rgba(23,71,127,.25);--lb-cap:#cfe0dd;--lb-ink:#fff;--paper:#fff;--qr-ink:#101b28;--flow-cur:#1f5fa6;/* VOILES (scrim) et ÉLÉVATIONS À L'ENCRE — tokenisés en v4.37.0. Ces cinq valeurs étaient des COPIES DÉCIMALES de --ink (#101b28 = 16,27,40) : le garde-fou couleurs ne voyait que les hex, elles passaient donc au travers, et un changement de --ink les aurait laissées derrière. Valeurs reprises à l'identique. Pas d'override sombre : c'est l'état actuel, en ajouter un serait un changement visible. */--scrim-soft:rgba(16,27,40,.45);--scrim:rgba(16,27,40,.55);--scrim-full:rgba(16,27,40,.92);--shadow-dock:0 1px 3px rgba(16,27,40,.05);--shadow-bar:0 1px 6px rgba(16,27,40,.06);/* --sab : la MARGE BASSE DU MATÉRIEL (indicateur d'accueil iPhone), exposée au JS. `env()` ne se lit pas depuis un script ; posée dans une propriété personnalisée, elle devient lisible par `getComputedStyle`. Elle sert à `fitMoreMenu` — la hauteur visible d'iOS INCLUT cette bande, si bien qu'un menu calé sur elle finit SOUS l'indicateur d'accueil (v4.73.2, vu à l'usage : la dernière rangée du menu ⋯ y passait). Le CSS, lui, continue d'écrire `env(...)` en clair là où il en a besoin. */--sab:env(safe-area-inset-bottom,0px);}
   /* --shadow-primary(-sm) : élévation TEINTÉE PRIMAIRE des boutons remplis (v4.31.0 — les
      rgba(23,71,127,…) éparses sont consolidées ici). Tokens FIXES des deux thèmes (jamais
      surchargés en sombre, comme --rt-*) : --lb-cap/--lb-ink = légende et glyphe de la lightbox
@@ -657,7 +657,23 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .hdr-more:hover{background:color-mix(in srgb,var(--primary) 8%,transparent)}
   .hdr-more[hidden]{display:none}
   .hdr-more:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-  .more-menu{position:absolute;top:calc(100% + 6px);right:14px;width:262px;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.18);padding:6px;z-index:45}
+  /* LE MENU NE DÉPASSE JAMAIS L'ÉCRAN (correctif — « si le menu est grand et la hauteur de la
+     fenêtre réduite, il ne s'adapte pas », puis « et pareil, menu ⋯ tronqué » en GRANDE POLICE).
+     En lecture il porte jusqu'à seize rangées, et en grande taille de texte chaque rangée passe sur
+     deux ou trois lignes : les dernières — dont « Terminer la session… » — tombaient hors de
+     l'écran SANS défilement, donc inatteignables en silence.
+     LA HAUTEUR EST POSÉE PAR LA MESURE, PAS PAR UN `calc()` (v4.73.2). La première version
+     l'exprimait en CSS : `var(--vvh) / var(--zf) - var(--hdr-h) - 16px`. Le calcul est juste sur
+     Blink et l'est resté FAUX en pratique, parce qu'il repose sur trois hypothèses de plateforme à
+     la fois — ce que `visualViewport.height` compte sous `zoom`, comment le zoom d'`<html>` se
+     combine aux unités de fenêtre, et ce que vaut `--hdr-h` quand `env(safe-area-inset-top)` s'y
+     ajoute. Le dossier « bande basse iOS » a déjà montré qu'aucune de ces trois-là ne se déduit :
+     elles se MESURENT. `fitMoreMenu()` lit donc la position réelle du menu et la hauteur réellement
+     visible, et pose la hauteur en pixels — un seul chemin, valable sur les deux moteurs et sous
+     n'importe quel réglage. `overscroll-behavior:contain` : arrivé au bout du menu, on ne fait pas
+     défiler la page derrière. */
+  .more-menu{position:absolute;top:calc(100% + 6px);right:14px;width:262px;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.18);padding:6px;z-index:45;
+    overflow-y:auto;overscroll-behavior:contain}
   .more-menu[hidden]{display:none}
   .mm-row{display:flex;align-items:center;gap:11px;width:100%;min-height:44px;padding:0 11px;border:0;background:none;border-radius:8px;font-family:inherit;font-size:13.5px;font-weight:600;color:var(--ink);cursor:pointer;text-align:left}
   .mm-row:hover{background:color-mix(in srgb,var(--primary) 8%,transparent)}
@@ -772,7 +788,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      blanc part au bord droit). Un écart constant garde en prime des POSITIONS IDENTIQUES quelle
      que soit la largeur — la constance positionnelle ECAM, appliquée aussi entre appareils. */
   .ctrl-sp{flex:none;width:22px}
-  @media (max-width:429.98px){.ctrl-sp{width:12px}}
+  html.zw430 .ctrl-sp{width:12px}
   /* La bascule de mode : sélecteur segmenté (deux MODES pairs, jamais un interrupteur — aucun
      n'est la négation de l'autre). Même composant .seg que la tab bar, donc même pastille
      glissante ; l'élément n'étant plus re-rendu, la transition joue toute seule. */
@@ -855,12 +871,36 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      s'y perd »). Le mot tronqué reste reconnaissable, l'identité du bouton ne change pas. Objectif
      mesuré : rendre au quai la largeur d'un segment de minuteur en étroit. */
   .dock-plan .dp-ab{display:none}
-  @media (max-width:559.98px){.dock-plan .dp-full{display:none}.dock-plan .dp-ab{display:inline}}
+  html.zw560 .dock-plan .dp-full{display:none}
+  html.zw560 .dock-plan .dp-ab{display:inline}
   /* Le libellé « Plan » ne disparaît à AUCUNE largeur : le glyphe ⤢ jouxte le chevron ▾ des
      minuteurs, et deux pictogrammes voisins sans mot se confondent sous stress. Ce sont les
      segments de minuteurs qui cèdent la place (ils s'ellipsent déjà). */
-  @media (max-width:429.98px){.dock-plan{padding:0 10px;gap:5px;font-size:13.5px}}
-  /* SOUS 400 px (v4.30.0, audit externe — MESURÉ) : la rangée de commandes exigeait 386 px — à
+  html.zw430 .dock-plan{padding:0 10px;gap:5px;font-size:13.5px}
+  /* ═══ LES PALIERS DE LA RANGÉE DE COMMANDES NE SONT PLUS DES MEDIA QUERIES (v4.73.1) ══════════
+     Signalé à l'usage, EN GRANDE POLICE : « ⤢ Se repérer » coupé net et « ⤢ Consulter » hors
+     écran. Le réglage de taille du texte est un `zoom` sur `<html>` : la place réellement
+     disponible pour la mise en page vaut donc `largeur ÷ zoom` — 331 px sur un écran de 430 à
+     130 % — alors qu'une media query, elle, continue de mesurer la fenêtre du PÉRIPHÉRIQUE et
+     répond 430. Les trois paliers de compression (560 / 430 / 400 / 360) ne se déclenchaient donc
+     JAMAIS sous zoom, au moment précis où ils sont le plus nécessaires. Mesuré à 430 × 130 % :
+     rangée exigeant 594 px visuels pour 430 disponibles, soit 164 px inaccessibles — le même
+     débordement SILENCIEUX que la v4.30.0 et la v4.43.0 ont corrigé à zoom 1, et dans la même
+     zone de crise.
+     C'est la règle 10 sous une forme qu'on n'avait pas encore rencontrée : on savait que les
+     HAUTEURS relatives à la fenêtre devaient être divisées par `--zf` ; les SEUILS de largeur le
+     doivent aussi, et le CSS n'a aucun moyen de le faire (une media query ne connaît pas `--zf`).
+     Les paliers passent donc par des classes posées sur `<html>` par `syncZoomWidth()`, à partir
+     de `innerWidth ÷ zoomF()`. **À zoom 1, `innerWidth ÷ 1` EST la largeur de la media query** :
+     le comportement est identique au pixel, rien ne change là où rien n'allait mal.
+     `@container` a été envisagé et ÉCARTÉ : `container-type:inline-size` implique
+     `contain:layout`, ce qui fait de l'ancêtre un bloc conteneur pour les descendants `fixed` —
+     donc casserait le menu ⋯, les overlays plein écran et le placard hachuré. Le projet a déjà
+     payé ce piège (« fixed dans un ancêtre transformé », v4.21.0).
+     L'ORDRE DE DÉCLARATION DÉCIDE TOUJOURS, comme avec les media queries : `zw360` est déclarée
+     APRÈS `zw400`, à spécificité égale (0,2,0 contre 0,2,0). Ne pas les intervertir — c'est le
+     même piège que les blocs 359.98/399.98 qu'elles remplacent, avec les mêmes conséquences.
+     SOUS 400 px (v4.30.0, audit externe — MESURÉ) : la rangée de commandes exigeait 386 px — à
      375 px (iPhone SE/mini) 11 px du bouton « Cons. » étaient ROGNÉS, 26 px à 360 px (Android
      standard), sans défilement horizontal : des pixels INACCESSIBLES. Un débordement SILENCIEUX,
      précisément la catégorie d'écart que ce projet s'interdit (ECAM), dans la zone de crise
@@ -869,13 +909,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      hauteur de crise est un coût permanent). Mesuré après correctif : ~346 px à 360. Bloc déclaré
      APRÈS les règles 429.98 px (spécificité égale : l'ordre décide — 4ᵉ piège de cascade du
      projet, cf. .cbt-n v4.23.5). Harnais : audit-doctrine « rangée de commandes sans rognage ». */
-  @media (max-width:399.98px){
-    #crisisCtrl .dock-in{gap:6px;padding:6px 8px}
-    .ctrl-sp{width:4px}
-    #modeSeg .seg-btn{padding:6px 7px}
-    .dock-plan{padding:0 8px;gap:4px}
-    .dock-plan .dp-ic svg{width:11px;height:11px}
-  }
+  html.zw400 #crisisCtrl .dock-in{gap:6px;padding:6px 8px}
+  html.zw400 .ctrl-sp{width:4px}
+  html.zw400 #modeSeg .seg-btn{padding:6px 7px}
+  html.zw400 .dock-plan{padding:0 8px;gap:4px}
+  html.zw400 .dock-plan .dp-ic svg{width:11px;height:11px}
   /* 320 px SERVI (v4.43.0, décision utilisateur) — WCAG 1.4.10 « Reflow » fixe le plancher à
      320 px, et la rangée y exigeait 348 px : 28 px de contenu ROGNÉS, sans défilement, dans la
      zone de crise. Le bouton restait opérable (44 px visibles, aria-label intact) mais se lisait
@@ -893,11 +931,35 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      permanent). Les positions restent constantes entre appareils : seules les MARGES bougent.
      Déclaré APRÈS le bloc 399.98 (spécificité égale, l'ordre décide — 5ᵉ piège de cascade du
      projet). Harnais : audit-doctrine mesure désormais 320 en plus de 360/375/390. */
-  @media (max-width:359.98px){
-    #crisisCtrl .dock-in{gap:4px;padding:6px 4px}
-    #modeSeg .seg-btn{padding:6px 4px}
-    .dock-plan{padding:0 5px}
-  }
+  html.zw360 #crisisCtrl .dock-in{gap:4px;padding:6px 4px}
+  html.zw360 #modeSeg .seg-btn{padding:6px 4px}
+  html.zw360 .dock-plan{padding:0 5px}
+  /* QUAND LA COMPRESSION NE SUFFIT PLUS, LA RANGÉE S'ENROULE — ET C'EST MESURÉ, PAS SEUILLÉ
+     (v4.73.1). La recette de compression (v4.30.0, v4.43.0) est calibrée pour le PLANCHER SERVI,
+     320 px. À 130 % sur un écran de 390, la mise en page n'a que 300 px effectifs — sous ce
+     plancher — et aucun réglage de marge ne peut plus rendre les pixels manquants. Le choix n'est
+     donc plus « compresser ou déborder » mais « un libellé inaccessible ou une seconde ligne ».
+     On prend la seconde ligne : quelqu'un qui a choisi la plus GRANDE taille de texte a déjà
+     accepté d'échanger de la hauteur contre de la lisibilité — c'est la seule lecture cohérente de
+     son réglage. La doctrine « pas de 2ᵉ ligne » vise le coût PERMANENT d'une rangée qui
+     s'épaissirait pour tout le monde ; ici elle n'apparaît que lorsque la rangée déborde VRAIMENT.
+     LA DÉCISION EST UNE MESURE, exactement comme celle du quai (« on écrit, et tant que ça déborde
+     on retire un segment ») : `fitCtrlRow()` remet la rangée à plat, lit son débordement réel, et
+     n'enroule que s'il existe. Aucun seuil de largeur en dur — ceux qui avaient été essayés pour le
+     quai se sont révélés FAUX, et ici ils dépendraient en plus de la fonte du système, de la
+     longueur des libellés et du zoom. Corollaire : le comportement de tous les appareils servis
+     reste inchangé au pixel, puisqu'il n'y a rien à enrouler quand rien ne déborde.
+     CE QUI EST PRÉSERVÉ : l'ORDRE (mode d'abord — il gouverne l'existence de « Se repérer »), les
+     libellés ENTIERS (aucun renommage, aucun pictogramme orphelin : « deux pictogrammes voisins
+     sans mot se confondent sous stress »), les cibles de 44 px, et la constance positionnelle —
+     dans une configuration donnée, tout reste au même endroit. */
+  #crisisCtrl .dock-in.wrapped{flex-wrap:wrap;row-gap:6px}
+  /* LA COUPURE TOMBE OÙ L'ÉCART TOMBAIT. `.ctrl-sp` n'est pas supprimé, il devient le SAUT DE
+     LIGNE : il sépare toujours le MODE des OUVERTURES, et il le fait mieux que 4 px. Sans cela, la
+     coupure se plaçait où elle voulait — mesuré : « Se repérer » restait avec le mode et
+     « Consulter » descendait seul, ce qui séparait les deux ouvertures, c'est-à-dire exactement les
+     deux contrôles de même nature (Gestalt de proximité, raison d'être de cet écart en v4.25.0). */
+  #crisisCtrl .dock-in.wrapped .ctrl-sp{flex:0 0 100%;width:auto;height:0}
   #cbTimers[hidden]{display:none}
   #cbTimers:not([hidden]){display:flex}
   #cbTimers:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
@@ -1016,7 +1078,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Titre de la fiche/du protocole dans la barre (révélé au défilement) : ÉCHELLE DU TITRE
      D'ACCUEIL (17px/700, même emplacement) — la hiérarchie typographique ne bouge pas entre
      les vues. Une ligne, ellipsé. */
-  #brandTitle{font-size:16.5px;font-weight:700;line-height:1.2;color:inherit;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.2px;text-transform:none;display:none}
+  /* LA MÊME VOIX QUE LE BANDEAU (correctif — « le texte en police serif ne se met pas à jour dans
+     les fiches quand l'en-tête se replie : c'est fait exprès ? » — non, c'est un oubli). Le titre
+     de fiche a reçu Source Serif en v4.61.0 sur `#crisisBand .cb-ttl` ; son RELAIS dans la barre
+     est resté en `system-ui`, si bien que le même titre changeait de typographie au défilement.
+     C'est un seul libellé porté tour à tour par deux éléments (§ « le titre n'est jamais absent,
+     seulement porté par l'un ou l'autre ») : il doit se lire pareil des deux côtés.
+     Graisse 600 et non 700 : c'est la SEULE graisse embarquée, en demander une autre produirait
+     une graisse SYNTHÉTIQUE — plus lourde et moins nette (v4.61.0). Corps inchangé (16,5 px, un
+     palier de l'échelle fermée) : c'est la voix qui s'aligne, pas la hiérarchie. */
+  #brandTitle{font-family:var(--serif);font-size:16.5px;font-weight:600;line-height:1.2;color:inherit;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:0;text-transform:none;display:none}
   /* Icône Compte dans l'en-tête (présence utilisateur), avec pastille d'état de synchro discrète. */
   /* 40px (>= 32 exigés — ce n'est pas un contrôle du mode crise) : c'est lui qui fixe la hauteur
      de la rangée d'identité, la barre d'accueil reste sous ~85px hors encoche. */
@@ -1294,7 +1365,23 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   @media (max-width:779.98px){
     /* Ancré ENTRE le bas de l'en-tête (--hdr-h, mesurée par syncHdrScroll — un centrage sur la
        fenêtre passait sous l'en-tête à 320×640) et la tab bar ; lettres centrées dans la boîte. */
-    .azrail{position:fixed;right:0;top:calc(var(--hdr-h,64px) + 6px);bottom:calc(68px + env(safe-area-inset-bottom));z-index:15;background:color-mix(in srgb,var(--bg) 85%,transparent);border-radius:12px 0 0 12px}
+    /* LES LETTRES NE BOUGENT PLUS (correctif — « la liste de lettres monte et descend en même
+       temps, par moment »). Elles étaient CENTRÉES (`justify-content:center`) dans une boîte
+       fixée par son haut ET son bas : toute variation de la hauteur réellement visible déplaçait
+       donc chaque lettre de la moitié de cette variation. Or cette hauteur varie précisément
+       PENDANT un défilement — la barre d'outils du navigateur mobile se replie et se redéploie, et
+       `position:fixed` se dimensionne sur le grand viewport (le dossier « bande basse iOS » l'a
+       déjà établi pour les overlays). Le glisser en devient un asservissement instable : le rail
+       défile, la barre bouge, les lettres se décalent sous le doigt, la lettre visée change, le
+       rail défile ailleurs.
+       Ancrées EN HAUT, leur position ne dépend plus que de `top` — c'est-à-dire de `--hdr-h`, que
+       l'en-tête garde CONSTANTE dans une vue donnée (« sans changer sa hauteur », § header.bar).
+       Et la hauteur passe par `--vvh`, la seule mesure qu'iOS ne fausse pas : la boîte s'arrête au
+       bord réellement visible, ce qui rend fiable le test de débordement de `bindAzRail`. */
+    .azrail{position:fixed;right:0;top:calc(var(--hdr-h,64px) + 6px);bottom:calc(68px + env(safe-area-inset-bottom));z-index:15;background:color-mix(in srgb,var(--bg) 85%,transparent);border-radius:12px 0 0 12px;justify-content:flex-start}
+    @supports (height:100dvh){
+      .azrail{bottom:auto;height:calc(var(--vvh,100dvh) / var(--zf,1) - var(--hdr-h,64px) - 6px - 68px - env(safe-area-inset-bottom))}
+    }
     body.view-home main.azr-on .home-main{padding-right:24px}
   }
   /* Extrait contextuel d'un résultat de recherche (v4.4.4) : 2 lignes max, termes en GRAISSE
@@ -1413,6 +1500,27 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .sess-start{margin:14px 0 4px}
   .sess-start .btn{width:100%;min-height:50px;font-weight:800;font-size:15.5px;letter-spacing:.3px;border-radius:9px;display:flex;align-items:center;justify-content:center;gap:7px}
   .ss-hint{display:block;text-align:center;margin-top:6px;font-size:12px;color:var(--ink-soft)}
+  /* LE DÉMARRAGE RESTE ATTEIGNABLE (proposition utilisateur : « et si “confirmé — démarrer la
+     session” était sticky quand on ne l'atteint pas encore ? »). Sur une fiche à critères longs,
+     le bouton naît SOUS le pli : on lit, on défile, et la condition d'entrée QRH n'est plus à
+     portée de pouce. Le bouton se DÉTACHE alors au bas de l'écran, et seulement dans ce cas —
+     il revient dans le flux dès que sa place réelle est visible.
+     CE QUI REND CETTE ZONE FIXE ADMISSIBLE (SPEC §5 : « en crise, une seule zone fixe, en
+     HAUT »). Trois bornes, et elles sont toutes vérifiables : elle n'existe qu'AVANT la première
+     action (la session non démarrée — donc jamais pendant un soin, là où la règle protège la
+     colonne d'action), elle est TRANSITOIRE (elle s'efface au démarrage comme au retour du
+     bouton à l'écran), et elle ne prend AUCUNE hauteur au flux — la boîte `.sess-start` garde la
+     sienne, seul son bouton se détache, donc rien ne se décale au moment où l'état bascule.
+     SOUS 780 px SEULEMENT : c'est là que le problème existe (au-delà, la colonne d'action est
+     courte et le rail tient l'écran), et une barre fixée pleine largeur se recalerait mal sur une
+     checklist centrée à côté de deux colonnes. */
+  @media (max-width:779.98px){
+    /* `min-height` = la hauteur exacte du bouton : sorti du flux, il ne doit pas emporter sa
+       place avec lui, sinon tout ce qui suit remonte de 50 px au franchissement du pli. */
+    .sess-start.afloat{position:relative;min-height:50px}
+    .sess-start.afloat>.btn{position:fixed;left:14px;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));
+      width:auto;z-index:14;box-shadow:var(--shadow-lg)}
+  }
   /* Dans le TABLEAU statique (v4.14.3) : le bouton devient une RANGÉE du carrelage — coins
      3 px, sans marges (le joint de la grille fait l'espacement), aide sur la même rangée.
      Il reste l'unique bouton REMPLI de l'écran (saillance) et >= 44 px. */
@@ -1864,12 +1972,24 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #screenFlash.on{display:block;animation:sf 2s ease-out forwards}
   @keyframes sf{0%{opacity:.55}60%{opacity:.3}100%{opacity:0}}
   /* P2-1 : casse de phrase (les capitales restent le registre des ÉTIQUETTES courtes). */
-  .tm-label{display:flex;align-items:center;gap:6px;font-size:13.5px;font-weight:700;line-height:1.25;color:var(--tcol);margin-bottom:6px;overflow-wrap:anywhere;word-break:break-word}
+  /* Le NOM du minuteur suit la même correction, d'un cran seulement (700 → 600) : il reste le
+     titre de sa carte, mais il n'a pas à peser autant qu'un titre de bloc clinique. */
+  .tm-label{display:flex;align-items:center;gap:6px;font-size:13.5px;font-weight:600;line-height:1.25;color:var(--tcol);margin-bottom:6px;overflow-wrap:anywhere;word-break:break-word}
   .tm-meta{font-size:12px;color:var(--ink-soft);margin:-4px 0 6px;line-height:1.35}
   .cncard .tm-label{justify-content:center;color:var(--ink-soft)}
   .rt-add{margin-top:10px;min-height:44px;border:1.5px dashed var(--line);border-radius:8px;color:var(--link);font-size:12px;font-weight:700}
   .read-side .rt-add{margin-top:10px}   /* respire comme l'écart des cartes ; 0 le collait (v4.23.5) */
-  .tm-val,.cn-val{font-family:var(--mono);font-size:26px;font-weight:700;line-height:1.15;font-variant-numeric:tabular-nums}
+  /* GRAISSE 500, PAS 700 (correctif — signalé à l'usage : « le texte du minuteur en gras très noir
+     saute aux yeux plus que le contenu du milieu, confirmation diagnostique, étapes… ; pareil pour
+     les décomptes de compteurs »). Le constat est juste et c'est une inversion de saillance : le
+     temps et les décomptes sont de l'ÉTAT, la checklist est l'ACTION — l'état ne doit pas crier
+     plus fort que le geste. Mono tabulaire à 26 px (34 px dans le rail) reste parfaitement lisible
+     à 500 ; à 700 il faisait une masse noire de la largeur de la carte.
+     LA HIÉRARCHIE PASSE PAR LA GRAISSE, JAMAIS PAR L'ENCRE — la règle est déjà écrite pour la
+     posologie (« la DOSE reste en encre pleine ») : adoucir la couleur d'un temps serait
+     l'inversion à ne pas faire, et `--tcol` reste le canal de l'ÉTAT (encre à l'arrêt, `--link` en
+     cours, ambre échu). Rien de sémantique ne bouge ici. */
+  .tm-val,.cn-val{font-family:var(--mono);font-size:26px;font-weight:500;line-height:1.15;font-variant-numeric:tabular-nums}
   .tm-val{color:var(--tcol)}
   .tm-cyc{font-size:12px;color:var(--ink-soft);margin-top:3px}
   /* D11 (audit design v4.56) : tabular-nums sur les nombres d'ÉTAT non mono — cohérent avec
@@ -2028,6 +2148,40 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   body.share-scribe #readerMode :is([data-tmreset],[data-cnreset]){
     color:var(--ink-soft);border-color:var(--line);background:var(--surface-2);
     box-shadow:none;cursor:not-allowed;font-weight:600}
+  /* ═══ LIEN MORT (invité) — LE BANDEAU ET LES CONTRÔLES ÉTEINTS ════════════════════════════════
+     Registre ATTENTION et non ALERTE : le rouge est réservé à ce qui TUE si on l'oublie, et une
+     liaison qui s'arrête n'est pas un geste clinique manqué — c'est un état du dispositif, « là où
+     l'on risque de se tromper » (croire qu'on contribue encore). Bord gauche 4 px + cadre, la
+     grammaire des notices ; glyphe + phrase, la couleur n'est jamais seule. */
+  /* `.share-over` = le BANDEAU ; `body.share-dead` = l'état. Les deux ont d'abord porté le MÊME
+     nom, et le défaut est immédiat : `body.share-over` matche aussi la règle du bandeau, donc le
+     `body` entier prenait le fond ambre, le cadre et le rembourrage de la notice (vu à la sonde).
+     C'est la leçon v4.23.2 sous sa forme la plus directe — un modificateur d'état ne prend jamais le
+     nom d'un composant autonome. */
+  .share-over{display:flex;gap:10px;align-items:flex-start;margin:12px 0 14px;padding:12px 14px;
+    background:var(--verify-soft);border:1px solid var(--verify-bd);border-left:4px solid var(--verify-bd);
+    border-radius:var(--radius-sm)}
+  .share-over svg{flex:none;color:var(--verify);margin-top:1px}
+  .share-over .so-b{min-width:0;font-size:13.5px;line-height:1.45;color:var(--ink)}
+  .share-over .so-b b{color:var(--verify)}
+  .share-over .so-act{margin-top:10px}
+  /* LES VERBES ÉTEINTS. La liste est celle de `MUTE_SEL` côté script — deux listes divergeraient,
+     et c'est la leçon que ce fichier paye déjà deux fois (v4.42.0, v4.55.0) : si l'une bouge,
+     l'autre doit bouger. Apparence désactivée au patron EXACT de `share-scribe` (encre secondaire
+     + surface neutre + curseur), donc SANS `opacity` : un texte à demi-opacité tombe sous AA.
+     Les gestes restent CLIQUABLES : `bindLeadGuard` doit conserver la main pour annoncer le refus
+     au lecteur d'écran — un contrôle éteint qui n'explique rien ne vaut pas mieux qu'un contrôle
+     vif qui ne fait rien. */
+  body.share-dead #main :is([data-ck],[data-cninc],[data-cndec],[data-cnreset],[data-tmtoggle],[data-tmreset],
+    [data-ovnext],[data-ovend],[data-ovredo],[data-ovopt],[data-plgo],[data-svgo],[data-svref],
+    [data-rmok],[data-rmgap],[data-cxback],
+    [data-ovverify],[data-ovvok],[data-ovvgap],[data-tkdel],[data-tktime],#tkAdd),
+  body.share-dead #main .btn:is([data-ovnext],[data-ovend],[data-ovopt],[data-ovverify]){
+    color:var(--ink-soft);border-color:var(--line);background:var(--surface-2);
+    box-shadow:none;cursor:not-allowed;font-weight:600}
+  /* La case à cocher perd son cadre fort : c'est le seul contrôle dont l'AFFORDANCE est un cadre,
+     et le laisser à `--line-strong` la ferait encore lire comme « à cocher ». */
+  body.share-dead #main [data-ck] .box{border-color:var(--line);background:var(--surface-2)}
   /* ELLE DOIT SAUTER AUX YEUX (retour utilisateur). Cette ligne n'apparaît QUE lorsqu'un code a
      été reconnu — elle n'a donc aucun coût d'attention le reste du temps, et à l'instant où elle
      s'affiche elle est la seule chose à faire sur cet écran. Registre INFORMATION de la taxonomie
@@ -2268,6 +2422,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .ed-grab .eg-h{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--primary-dk);opacity:.85}
   .ed-grab .eg-x{flex:none;min-width:44px;min-height:44px;border:0;background:none;color:var(--primary-dk);font-size:16.5px;border-radius:8px;cursor:pointer}
   .ed-grab .eg-x:hover{background:var(--surface)}
+  /* L'OBJET PRIS, MARQUÉ SUR PLACE : anneau primaire + pastille « ⠿ en déplacement » en tête, la
+     COULEUR N'EST DONC JAMAIS SEULE (règle 8). Il reste PLEINEMENT LISIBLE — on ne l'estompe pas :
+     l'auteur a besoin de relire ce qu'il déplace, et un texte à demi-opacité tombe sous AA.
+     Rien ne bouge ni ne clignote (le seul mouvement admis dans cette app est l'alarme) ;
+     `outline` et non `border`, pour ne déplacer aucun pixel du contenu. */
+  .blk.grabbed,.blk .li.grabbed{outline:2px solid var(--primary);outline-offset:2px;background:var(--primary-soft)}
+  .blk.grabbed{box-shadow:var(--shadow)}
+  :is(.blk,.li).grabbed::before{content:"⠿ en déplacement";display:block;width:100%;
+    font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--primary-dk);margin-bottom:4px}
+  .blk .li.grabbed{border-radius:8px}
   .ed-drop{display:block;width:100%;min-height:44px;margin:6px 0;border:1.5px dashed var(--primary);border-radius:var(--radius-sm);
     background:var(--surface);color:var(--primary-dk);font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer}
   .ed-drop:hover{background:var(--primary-soft)}
@@ -2434,8 +2598,20 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* P2-2 (audit design v4.56) : UNE seule ligne d'état — pilule « Vous êtes ici » à gauche,
      Lecteur/Vérifier à droite (−52 px par bloc actif ; la rangée vide flottait en plein cœur de
      la zone balayée par l'œil). */
-  .ov-acts{flex:1 1 100%;display:flex;gap:8px;align-items:center;justify-content:flex-end;padding:0 12px 10px}
-  .ov-acts .ov-here{margin-right:auto}   /* Lecteur/Vérifier côte à côte SOUS le titre ; le rembourrage REMPLACE la marge que portaient les boutons — sans lui ils touchaient le bord droit et le bas de la carte (v4.23.8) */
+  /* LA LIGNE D'ÉTAT S'ENROULE, ET SON DÉBORDEMENT NE PART JAMAIS À GAUCHE (v4.73.1, signalé à
+     l'usage en GRANDE POLICE : « VOUS ÊTES ICI » était coupée par le bord GAUCHE de la carte).
+     Deux causes cumulées, et la seconde est le piège : (1) la rangée ne s'enroulait PAS, alors que
+     ses trois objets — pilule + Lecteur + Vérifier — sont tous en `nowrap` et ne peuvent donc pas
+     se rétrécir ; (2) `justify-content:flex-end` fait déborder par le côté OPPOSÉ, c'est-à-dire
+     par le DÉBUT : le premier objet sortait de la carte au lieu du dernier. Un débordement qui
+     part vers l'extérieur de son conteneur ne peut même pas être rattrapé par un défilement.
+     On enroule (`wrap`), on aligne au DÉBUT, et c'est le premier BOUTON qui porte le
+     `margin-left:auto` — l'aspect est identique tant que tout tient sur une ligne (pilule à
+     gauche, boutons à droite), et quand les boutons passent à la ligne l'auto les garde à droite.
+     La pilule, elle, reste à sa place : c'est un état, il ne se déplace pas. */
+  .ov-acts{flex:1 1 100%;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:flex-start;padding:0 12px 10px}
+  .ov-acts>:not(.ov-here):first-child,.ov-acts .ov-here~:not(.ov-here){margin-left:auto}
+  .ov-acts .ov-here~:not(.ov-here)~:not(.ov-here){margin-left:0}   /* seul le PREMIER bouton pousse ; les suivants se collent à lui */
   .ov-tgl{flex:1 1 230px;min-width:0;display:flex;align-items:center;gap:9px;min-height:52px;padding:9px 12px;background:none;border:0;cursor:pointer;font-family:inherit;text-align:left}
   .ov-tgl:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
   .ov-n{width:26px;height:26px;border-radius:50%;flex:none;display:grid;place-items:center;font-family:var(--mono);font-size:13.5px;font-weight:700;color:var(--ink-soft);border:2px solid var(--line-strong)}
@@ -3433,6 +3609,18 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      dans un bouton — ARIA APG), pleine hauteur (align-self:stretch -> cible ~34×48px). */
   .hs-wrap{display:flex;align-items:center;gap:4px}
   .hs-wrap .hs-row{flex:1;min-width:0}
+  /* LA SÉLECTION VA JUSQU'AU BORD DROIT (demande utilisateur) — sous le bouton « modifier », le
+     cadenas ou l'écart, qui appartiennent à la même rangée. Une bibliothèque est UNE ligne : que
+     l'aplat s'arrête avant son propre bouton d'édition la coupait en deux, et laissait croire que
+     le geste vise autre chose que la rangée sélectionnée. C'est le CONTENEUR qui porte l'état ;
+     le bouton garde le sien (même couleur, donc aucune couture visible). */
+  .hs-wrap:has(>.hs-row.on){background:var(--primary);border-radius:8px}
+  html[data-theme="dark"] .hs-wrap:has(>.hs-row.on){background:var(--primary-dk)}
+  .hs-wrap:has(>.hs-row.on) .hs-act{color:var(--on-primary)}
+  html[data-theme="dark"] .hs-wrap:has(>.hs-row.on) .hs-act{color:var(--bg)}
+  /* Survol du bouton d'édition SUR une rangée sélectionnée : la teinte primaire à 8 % serait
+     invisible sur du primaire plein — on assombrit l'aplat au lieu de le teinter. */
+  .hs-wrap:has(>.hs-row.on) button.hs-act:hover{color:inherit;background:color-mix(in srgb,var(--ink) 16%,transparent)}
   .hs-act{flex:none;width:34px;align-self:stretch;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:var(--ink-soft)}
   button.hs-act{cursor:pointer}
   button.hs-act:hover{color:var(--primary-dk);background:color-mix(in srgb,var(--primary) 8%,transparent)}
@@ -3532,8 +3720,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        LEÇON : dans une colonne déjà défilante, un sous-conteneur borné ne « range » pas, il
        ESCAMOTE. Le rail est donc une colonne ENTIÈREMENT continue ; le seul dispositif retenu
        contre l'enterrement de la posologie est l'ORDRE (l'illimité en dernier). */
-    .rail-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-    .rail-title{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
+    /* `flex-wrap` + titre INSÉCABLE (correctif — « le design du plan de gauche n'est pas
+       harmonieux ») : dans la colonne de 240 px du cockpit, l'en-tête ne tenait pas et c'est le
+       TITRE qui cassait, en « PLAN — » / « ÉCHELLE ». Un intitulé coupé en deux se lit comme un
+       défaut de mise en page. Désormais c'est « ⤢ complet » qui passe à la ligne — un contrôle
+       qui descend d'un rang reste un contrôle, un titre haché n'est plus un titre. */
+    .rail-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+    .rail-title{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);white-space:nowrap}
     .rail-head :is(.rt-sound,.rt-warn){margin-left:auto}
     .rail-head .rt-sound~.rt-sound,.rail-head .rt-warn~.rt-sound{margin-left:0}
     /* HARMONISATION (v4.23.2, retour d'usage « ils ne se ressemblent pas ») : « Son activé » et
@@ -3560,8 +3753,19 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        MARQUEUR (✓ vert = fait, ● bleu = ici, ⑂ ambre = décision). On retire les APLATS et les
        liserés colorés : le rail oriente, il ne doit pas rivaliser de saillance avec l'action.
        L'information reste intégralement — seule la compétition visuelle disparaît. */
-    .rail-lad{margin-top:6px}
+    /* L'ÉCHELLE EST UNE SURFACE, comme tout le reste de la page (correctif d'harmonie). Elle était
+       posée à NU sur le fond `--bg` — donc la seule zone de la vue lecture à ne pas être une
+       surface, entre une colonne d'action faite de cartes blanches et un rail dont les minuteurs
+       sont des cartes blanches. Sur du fond, ses hairlines se lisaient comme des restes de trait
+       plutôt que comme les lignes d'un tableau ; en cockpit, où elle occupe toute la colonne de
+       gauche, cela sautait aux yeux. MÊME TRAITEMENT DANS LES DEUX LOGEMENTS (rail droit ≥ 780,
+       colonne de gauche ≥ 1200) : c'est le même composant, seul son logement change — deux
+       habillages en feraient deux composants.
+       Le fond `--surface` ne rétablit AUCUN aplat d'état : la désaturation ci-dessous reste
+       entière, l'état n'est porté que par le marqueur. */
+    .rail-lad{margin-top:6px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-sm);overflow:hidden}
     .rail-lad .pl-line{border-left-color:transparent;padding-left:6px}
+    .rail-lad .pl-line:last-child{border-bottom:0}
     .rail-lad .pl-line.d1{padding-left:16px}
     .rail-lad .pl-line.d2{padding-left:26px}
     .rail-lad .pl-line.d3{padding-left:36px}
@@ -4398,7 +4602,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.72.0';
+const APP_VERSION='4.73.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -7328,9 +7532,17 @@ function applyViewChrome(){
   // Session en cours : pied de page réduit à l'état (les actions Exporter/Importer/Thème sortent
   // du champ visuel) ; le rappel minuteurs de l'en-tête est resynchronisé tout de suite.
   document.body.classList.toggle('crisis-live',crisisOnScreen());
+  // Paliers de largeur EFFECTIVE (largeur ÷ zoom) : cf. syncZoomWidth. Ici plutôt que sur le seul
+  // `resize`, parce qu'un changement de taille du texte n'en émet aucun.
+  syncZoomWidth();
   // Le bridage suit le RÔLE, pas le mode : un invité PROMU lead retrouve tout, sans re-rendu —
   // seule la classe change, donc aucune géométrie ne bouge quand la main passe.
   try{document.body.classList.toggle('share-scribe',Share.mode==='guest'&&Share.role!=='lead');}catch(e){}
+  /* LIEN MORT : L'ÉCRAN LE DIT, ET SES CONTRÔLES LE MONTRENT (proposition utilisateur). Même
+     mécanique que `share-scribe` — une CLASSE sur `body`, aucune géométrie touchée, donc rien qui
+     bouge sous les yeux de quelqu'un qui n'a rien demandé. Cf. `.share-over` (CSS) et
+     `shareOverHtml` (le bandeau qui l'accompagne). */
+  try{document.body.classList.toggle('share-dead',Share.mode==='guest'&&SHARE_DEAD.indexOf(Share.status)>=0);}catch(e){}
   // Sortie de crise : rejouer les notifications mises en attente (une par une, règle V5).
   if(!document.body.classList.contains('crisis-live'))flushHeldToasts();
 }
@@ -7483,6 +7695,17 @@ function syncHdrScroll(){
   const _cb=document.getElementById('crisisBand');
   const t=(_cb&&!_cb.hidden)?_cb.getBoundingClientRect().bottom<=_hbB:window.scrollY>110;
   if(t!==_hdrTtl){_hdrTtl=t;_hb.classList.toggle('ttl-on',t);}
+  /* « Démarrer la session » DÉTACHÉ tant qu'on ne l'a pas atteint (cf. CSS `.sess-start.afloat`).
+     Le critère est le plus étroit possible : le bouton est ENTIÈREMENT sous le pli. S'il est
+     visible, même partiellement, il est à portée et rien ne se détache ; s'il est passé AU-DESSUS
+     (on a défilé plus bas), on ne le rappelle pas non plus — il n'a pas été manqué, il a été
+     dépassé, et une barre qui reparaîtrait en remontant serait un mouvement qu'aucun geste
+     n'explique. Le CSS borne l'effet à < 780 px ; la mesure, elle, ne coûte rien de plus. */
+  {const ss=main.querySelector('.sess-start');
+   /* PAS EN STATIQUE : là, le bouton est une RANGÉE DU CARRELAGE (v4.14.3) — l'extraire du flux
+      ouvrirait un trou dans la grille, et le tableau porte de toute façon la condition d'entrée
+      en tête, juste sous Confirmation/Éliminer. */
+   if(ss&&!ss.closest('.sv-tb'))ss.classList.toggle('afloat',ss.getBoundingClientRect().top>=window.innerHeight-2);}
 }
 window.addEventListener('scroll',syncHdrScroll,{passive:true});
 /* BUG WEBKIT — PISTES DE GRILLE FIGÉES AU REDIMENSIONNEMENT (v4.56.2, signalé à l'usage,
@@ -9382,6 +9605,66 @@ const MUTE_SEL='[data-ck],[data-cninc],[data-cndec],[data-cnreset],[data-tmtoggl
 /* `detached` N'EN EST PAS : celui qui a poursuivi seul travaille sur SA session, et lui refuser ses
    gestes serait lui retirer le repli hors dispositif qu'on vient de lui donner (AC 120-64 §9.a). */
 const SHARE_DEAD=['revoked','ended','expired'];
+/* ═══ LIEN MORT — CE QUE L'INVITÉ VOIT (proposition utilisateur : « améliorer le mode invité
+   lorsque la session est coupée / se termine → tout griser avec un message ») ═════════════════
+   AVANT, l'écran de l'invité ne changeait RIEN quand le partage mourait : le quai remplaçait un
+   jeton de sept caractères (« suit » → « fini »), et un geste tenté produisait une annonce
+   INVISIBLE sur `#srLive`. Autrement dit, la seule façon d'apprendre qu'on ne recevait plus rien
+   était d'essayer quelque chose — et de ne rien voir se passer. C'est le pire mode de défaillance
+   nommé par le plan de partage (« cocher dans le vide en croyant contribuer »), et la donnée
+   périmée présentée comme vivante (danger n°2 du palmarès ECRI 2015).
+   TROIS DÉCISIONS, ET DEUX REFUS.
+   1. UN BANDEAU DANS LE FLUX, en tête du contenu, PAS une modale ni une banderole : la règle 11
+      interdit d'interrompre un écran de crise, et l'invité tient encore une fiche en main — il
+      doit pouvoir continuer à la LIRE. L'annonce se fait sur place, comme une alarme de minuteur.
+   2. LES CONTRÔLES PRENNENT L'APPARENCE DÉSACTIVÉE (cf. CSS `body.share-dead`), au patron exact
+      de `share-scribe` : c'est CELA que « griser » veut dire ici, et c'est le seul greying que
+      WCAG exempte de son seuil de contraste — celui d'un contrôle indisponible.
+   3. LE TEXTE CLINIQUE N'EST PAS GRISÉ, ET C'EST UN REFUS ASSUMÉ. Estomper les étapes serait
+      passer sous AA (le projet a déjà tranché ce point pour le « hors chemin » du rail, et deux
+      fois pour le bridage du scribe), et surtout : ce qui est écrit là reste VRAI et reste utile —
+      c'est le dernier état connu du soin, pas une information caduque. On ne rend pas illisible ce
+      qu'on demande à quelqu'un de continuer à lire.
+   4. AUCUNE DÉSATURATION D'ENSEMBLE non plus : un filtre sur la colonne éteindrait le rouge des
+      étapes vitales et l'ambre des vigilances — la règle 8 interdit de toucher aux registres pour
+      un motif d'état de liaison.
+   Le bandeau porte la SORTIE (« Quitter le partage… », le geste qui existe déjà) : un écran figé
+   sans porte est ce que la v4.47.0 s'était donné pour tâche de supprimer. */
+function shareOverHtml(){
+  if(state.previewFrom)return '';
+  let m=null;try{m=Share.mode;}catch(e){return '';}
+  if(m!=='guest'||SHARE_DEAD.indexOf(Share.status)<0)return '';
+  /* LA CAUSE EST DITE, parce qu'elle change ce qu'il y a à comprendre : « terminé » = le soin est
+     fini du côté de l'hôte ; « retiré » = une décision qui le concerne, lui ; « expiré » = le
+     dispositif a atteint sa borne de durée, personne n'a rien décidé. Les taire les rendrait
+     interchangeables, alors qu'on n'en tire pas les mêmes conclusions. */
+  const cause=Share.status==='revoked'
+      ?'Votre accès a été retiré par le soignant qui conduit la session.'
+    :(Share.status==='expired'
+      ?'Le partage a atteint sa durée maximale.'
+      :'Le soignant a terminé la session.');
+  return `<div class="share-over" role="status">${uiIcon('warn',16)}<div class="so-b">`
+    +`<b>Le partage de session a été interrompu.</b> ${esc(cause)}`
+    +` Cet écran reste lisible, figé sur le dernier état reçu — plus rien n’y est transmis ni reçu.`
+    +`<div class="so-act"><button type="button" class="btn sm" id="soQuit">Quitter le partage…</button></div>`
+    +`</div></div>`;}
+/* POSE / RETRAIT SUR PLACE, sans re-rendre quoi que ce soit. Le bandeau se glisse juste AVANT le
+   parcours de soin, c'est-à-dire à l'endroit exact où `renderRead` l'écrit — les deux chemins
+   doivent produire le même écran, sinon un re-rendu ultérieur le ferait « sauter » de place.
+   L'insertion pousse le contenu vers le BAS : rien ne remonte, et l'invité ne perd donc pas la
+   ligne qu'il lisait. */
+function shareOverPaint(){
+  try{document.body.classList.toggle('share-dead',Share.mode==='guest'&&SHARE_DEAD.indexOf(Share.status)>=0);}catch(e){}
+  const vieux=main.querySelector('.share-over');
+  const h=shareOverHtml();
+  if(!h){if(vieux)vieux.remove();return;}
+  if(vieux){vieux.outerHTML=h;}
+  /* `querySelector` rend le PREMIER en ordre de DOCUMENT, pas dans l'ordre du sélecteur : le
+     chapeau « Ne pas oublier » l'emporte donc quand il existe, ce qui est exactement la place
+     qu'occupe le bandeau dans `renderRead`. */
+  else{const apres=main.querySelector('.forget-strip,.care-path,.ov-wrap,.sv-wrap,.nav-wrap');
+    if(apres)apres.insertAdjacentHTML('beforebegin',h);else main.insertAdjacentHTML('afterbegin',h);}
+  const q=document.getElementById('soQuit');if(q)q.onclick=quitShare;}
 function bindLeadGuard(){
   const garde=e=>{
     let m=null;try{m=Share.mode;}catch(_){return;}
@@ -10128,8 +10411,6 @@ function renderRead(){
      largeurs de lecture.
      Le plan QUITTE le rail droit à cette largeur — l'afficher aux deux endroits ferait deux
      sources pour la même structure (la règle qui vaut déjà pour les minuteurs nominaux). */
-  const cockpit=wideRead&&mqCock.matches;
-  const gridOpen=wideRead?(cockpit?'<div class="read-grid cockpit">':'<div class="read-grid">')+'<div class="read-main">':'';
   /* ÉCHELLE DU RAIL (v4.23.0) : la structure de l'aide, une ligne par bloc, à côté de l'action.
      Même `flowPlan`, même numérotation commune, même `minimapData` que le Plan — aucune seconde
      source de vérité. DÉSATURÉE (cf. CSS .rail-lad) : le rail ORIENTE, la colonne AGIT ; s'il
@@ -10142,7 +10423,18 @@ function renderRead(){
     const num={};plan.order.forEach((id,i)=>{num[id]=i+1;});
     const md={};minimapData(f,state.nav,state.navSeq,state.checked,state.navPos).forEach(m=>{md[m.id]=m;});
     const off=offPathSet(f,state.nav,state.navPos);
-    return `<div class="rail-head"><span class="rail-title">Plan — Échelle</span><span class="rail-n">${plan.order.length}</span><button type="button" class="rail-exp" id="railPlanFull" aria-haspopup="dialog"><span class="rx-ic" aria-hidden="true">${uiIcon('expand',12)}</span> complet</button></div><div class="ov-plan rail-lad">${ovPlanLadderHtml(f,plan,num,md,off)}</div>`;})();
+    return railLadHtml(f);})();
+  /* LA CLASSE `cockpit` EST CONDITIONNÉE PAR L'EXISTENCE DE LA COLONNE (correctif — le mode
+     STATIQUE s'affichait ENTIER dans une colonne de 240 px, signalé à l'usage). `cockpit` pose une
+     grille de TROIS pistes FIXES (240 | 860 | 360) ; or `ladRail` est vide en statique (le tableau
+     EST la vue d'ensemble), en aperçu de brouillon et sur une fiche sans algorithme — l'`<aside
+     class="read-plan">` n'est alors pas émis, et les deux colonnes restantes glissent d'un rang :
+     la CHECKLIST atterrissait dans la piste de 240 px prévue pour le plan, et le rail dans celle
+     de 860. Mesuré avant correction à 1280 px : main x=18 w=240, side x=284 w=592.
+     Trois pistes n'ont de sens que s'il y a trois colonnes — la condition est donc la présence du
+     plan lui-même, pas la seule largeur. */
+  const cockpit=wideRead&&mqCock.matches&&!!ladRail;
+  const gridOpen=wideRead?(cockpit?'<div class="read-grid cockpit">':'<div class="read-grid">')+'<div class="read-main">':'';
   /* RAIL EN TROIS ZONES (v4.23.0) — retour d'usage : empilées dans un seul défileur, une Échelle
      longue ou des minuteurs nombreux repoussaient les repères posologiques tout en bas.
      Ordre par URGENCE DÉCROISSANTE, et surtout : la seule zone de longueur NON BORNÉE (l'Échelle)
@@ -10236,6 +10528,7 @@ function renderRead(){
     <div class="read-meta">${f.libraryId?`<span class="tag libtag" title="Bibliothèque partagée">${uiIcon('book',12)}${esc(libName(f.libraryId)||'Partagée')}</span>`:''}${statusChip(f.status,true,{validation:f.validation})}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo title="Reste à compléter : ${esc(sp.join(' · '))} — remplacez les mentions « à compléter » par vos informations locales.">△ À compléter</span>`:'';})()}${catTag(f,true)}${f.code?`<span class="card-date" style="font-family:var(--mono)">${esc(f.code)}</span>`:''}<span class="card-date${staleDate(f.validation)?' stale':''}">${esc(fmtDate(f.validation))}</span>${f.libraryId&&f.updatedBy?`<span class="card-date" title="Auteur de la dernière modification (pas forcément de toute la fiche)">· dernière modification par ${esc(f.updatedBy)}</span>`:''}</div>
     ${f.status==='draft'?`<div class="notice">${uiIcon('warn',15)}<div><b>Brouillon</b> — cette fiche n'a pas encore été validée pour l'usage clinique.</div></div>`:''}
     ${f.status==='review'?`<div class="notice">${uiIcon('warn',15)}<div><b>À relire</b> — cette fiche est signalée à relire avant validation.</div></div>`:''}
+    ${shareOverHtml()}
     ${modeTopSegH}
     ${useSv?'':forgetStrip}
     ${pathH}
@@ -10443,20 +10736,10 @@ function bindReadEvents(f,blk,cur){
      bloc, suivre un renvoi. Délégation propre au rail : il n'est pas dans `.ov-wrap`, donc les
      écouteurs du journal ne l'atteignent pas. Re-rendu ANCRÉ sur la ligne touchée (le rail ne
      doit pas sauter sous le doigt). */
-  {const lad=main.querySelector('.rail-lad');
-   if(lad){
-     const act=t=>{
-       const pr=t.closest('[data-plref]');
-       if(pr){const k=CSS.escape(pr.dataset.plref);const el=lad.querySelector('[data-plln="'+k+'"]');
-         if(el){scrollWithin(main.querySelector('.read-side'),el);el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),900);}return;}
-       const pg=t.closest('[data-plgo]');if(pg){jumpToBlock(state.fiche,pg.dataset.plgo);return;}
-       const pl=t.closest('[data-plln]');
-       if(pl){const id=pl.dataset.plln;state.ovFold['l:'+id]=!state.ovFold['l:'+id];
-         renderKeepAnchor('.rail-lad [data-plln="'+CSS.escape(id)+'"]');}};
-     lad.onclick=e=>act(e.target);
-     lad.onkeydown=e=>{if(e.key!=='Enter'&&e.key!==' ')return;
-       const t=e.target.closest('[data-plln],[data-plgo],[data-plref]');if(!t)return;e.preventDefault();act(t);};}}
-  {const rf=document.getElementById('railPlanFull');if(rf)rf.onclick=openPlanSheet;}
+  bindRailLad();
+  // Sortie du bandeau « le partage a été interrompu » (invité, lien mort) : même geste que la
+  // rangée du menu ⋯, donc même fonction — jamais une seconde porte qui dirait autre chose.
+  {const q=document.getElementById('soQuit');if(q)q.onclick=quitShare;}
   if(!state.previewFrom)bindNoteBlock(f.id,render);   // note personnelle (absente en mode aperçu)
   const ft=document.getElementById('flowToggle');if(ft)ft.onclick=()=>{state.showFlow=!state.showFlow;render();};
   // Déplier / replier le panneau minuteurs (canvas : rangée repliée, ✕ du panneau, barre d'en-tête).
@@ -11054,8 +11337,63 @@ function syncDock(){
   {const c=document.getElementById('crisisCtrl');
    if(c){const ms=document.getElementById('modeSeg'),pb=document.getElementById('planBtn'),rb=document.getElementById('refBtn');
      c.hidden=(!ms||ms.hidden)&&(!pb||pb.hidden)&&(!rb||rb.hidden);}}
+  /* L'AJUSTEMENT AVANT LA MESURE. `syncHdrScroll` lit la HAUTEUR de cette rangée pour poser
+     `--ctrl-h`, dont le quai dépend pour se coller dessous : si l'enroulement était décidé après,
+     le quai passerait une passe entière à recouvrir la seconde ligne. Et c'est ici que la
+     composition de la rangée change (le mode STATIQUE masque « Se repérer »), donc ici qu'il faut
+     re-mesurer — pas seulement au redimensionnement. */
+  fitCtrlRow();
   syncHdrScroll();}
 // ----- ORGANIGRAMME HYBRIDE (mode Détails) -----
+/* ÉCHELLE DU RAIL — EN-TÊTE + CORPS, EN UNE SEULE FONCTION (correctif : « le plan sur le côté
+   gauche ne se met pas à jour », signalé à l'usage). Le HTML vivait dans une IIFE de `renderRead`,
+   donc INATTEIGNABLE aux re-rendus CIBLÉS : `renderOvOnly` reconstruit `.ov-wrap` et rien d'autre
+   — le plan (rail droit à ≥ 780 px, colonne de gauche du cockpit à ≥ 1200) gardait l'état de
+   session du moment où la fiche avait été OUVERTE. Le défaut était donc là depuis la v4.23.0 et
+   le cockpit de la v4.59.0 n'a fait que le rendre visible, en le mettant sous les yeux.
+   Extraite ici, la génération a UN site et deux appelants : le rendu complet et `repaintRailLad`,
+   qui la rejoue sur place. Rendue VIDE si la fiche n'a pas d'algorithme — c'est aussi ce qui
+   conditionne la classe `cockpit` (cf. renderRead). */
+function railLadHtml(f){
+  const plan=flowPlan(f);if(!plan.order.length)return '';
+  const num={};plan.order.forEach((id,i)=>{num[id]=i+1;});
+  const md={};minimapData(f,state.nav,state.navSeq,state.checked,state.navPos).forEach(m=>{md[m.id]=m;});
+  const off=offPathSet(f,state.nav,state.navPos);
+  return `<div class="rail-head"><span class="rail-title">Plan — Échelle</span><span class="rail-n">${plan.order.length}</span><button type="button" class="rail-exp" id="railPlanFull" aria-haspopup="dialog"><span class="rx-ic" aria-hidden="true">${uiIcon('expand',12)}</span> complet</button></div><div class="ov-plan rail-lad">${ovPlanLadderHtml(f,plan,num,md,off)}</div>`;}
+/* ÉCHELLE DU RAIL (v4.23.0) : mêmes gestes que dans le Plan — déplier une ligne, aller à un bloc,
+   suivre un renvoi. Délégation propre au rail : il n'est pas dans `.ov-wrap`, donc les écouteurs du
+   journal ne l'atteignent pas. Re-rendu ANCRÉ sur la ligne touchée (le rail ne doit pas sauter sous
+   le doigt). Le défilement d'un renvoi vise le conteneur RÉEL — `.read-plan` en cockpit,
+   `.read-side` sinon : viser le rail droit en dur ne déplaçait rien quand le plan vit à gauche. */
+function bindRailLad(){
+  const lad=main.querySelector('.rail-lad');if(!lad)return;
+  const box=lad.closest('.read-plan,.read-side');
+  const act=t=>{
+    const pr=t.closest('[data-plref]');
+    if(pr){const k=CSS.escape(pr.dataset.plref);const el=lad.querySelector('[data-plln="'+k+'"]');
+      if(el){scrollWithin(box,el);el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),900);}return;}
+    const pg=t.closest('[data-plgo]');if(pg){jumpToBlock(state.fiche,pg.dataset.plgo);return;}
+    const pl=t.closest('[data-plln]');
+    if(pl){const id=pl.dataset.plln;state.ovFold['l:'+id]=!state.ovFold['l:'+id];
+      renderKeepAnchor('.rail-lad [data-plln="'+CSS.escape(id)+'"]');}};
+  lad.onclick=e=>act(e.target);
+  lad.onkeydown=e=>{if(e.key!=='Enter'&&e.key!==' ')return;
+    const t=e.target.closest('[data-plln],[data-plgo],[data-plref]');if(!t)return;e.preventDefault();act(t);};
+  {const rf=document.getElementById('railPlanFull');if(rf)rf.onclick=openPlanSheet;}}
+/* REPEINDRE LE PLAN DU RAIL sur un re-rendu CIBLÉ. Le défilement propre de la colonne est
+   PRÉSERVÉ (doctrine « DÉFILEMENT PRÉSERVÉ, PAS RECONSTRUIT », v4.23.5 : `.read-plan` et
+   `.read-side` ont chacun leur `overflow-y`, et remplacer leur contenu remettrait `scrollTop` à
+   zéro — le plan « remonterait » à chaque geste). Les écouteurs étant délégués sur `.rail-lad`,
+   qui est REMPLACÉ, on les recâble — le bouton « ⤢ complet » avec eux. */
+function repaintRailLad(){
+  const f=state.fiche;if(!f)return;
+  const host=main.querySelector('.read-plan .rail-sec')||(()=>{const l=main.querySelector('.read-side .rail-lad');return l?l.parentElement:null;})();
+  if(!host)return;
+  const box=host.closest('.read-plan,.read-side');const y=box?box.scrollTop:0;
+  const h=railLadHtml(f);if(!h)return;
+  host.innerHTML=h;
+  if(box)box.scrollTop=y;
+  bindRailLad();}
 function ovPlanLadderHtml(f,plan,num,md,off){
   const items=plan.items;let h='',depth=0;const pend=[];
   const arrow=(from,to)=>((num[to]||1e9)<(num[from]||0)?'↺':'→')+(num[to]||'?');
@@ -11096,6 +11434,55 @@ function ovPlanLadderHtml(f,plan,num,md,off){
 // divisée par ce facteur, sinon fil épinglé et flèches dérivent dès que la taille ≠ 100 %
 // (v4.13.1).
 function zoomF(){return (parseFloat(document.documentElement.style.zoom)||100)/100;}
+/* PALIERS DE LARGEUR EFFECTIVE (v4.73.1) — le pendant de `--zf` pour les SEUILS, là où la règle 10
+   ne parlait que des hauteurs. Une media query mesure la fenêtre du périphérique ; sous `zoom`, la
+   mise en page dispose de `largeur ÷ zoom`. Ces classes portent donc la largeur RÉELLEMENT
+   disponible, et elles sont l'équivalent exact des `max-width` qu'elles remplacent : à zoom 1,
+   `innerWidth ÷ 1` est la valeur que la media query aurait lue.
+   Seuils identiques aux anciens blocs, bornes comprises (`max-width:399.98px` ≡ `< 400`).
+   Posée à CHAQUE rendu (via `applyViewChrome`) plutôt que sur le seul évènement de
+   redimensionnement : un rendu peut suivre un changement de zoom, une rotation ou une reprise
+   d'onglet sans qu'aucun `resize` ne soit arrivé, et un palier manquant est un débordement
+   silencieux — exactement ce que ce dispositif existe pour empêcher. Le coût est une division et
+   quatre `classList.toggle` idempotents. */
+const ZOOM_W_STEPS=[560,430,400,360];
+function syncZoomWidth(){
+  const w=window.innerWidth/zoomF();
+  const cl=document.documentElement.classList;
+  ZOOM_W_STEPS.forEach(b=>cl.toggle('zw'+b,w<b));
+  fitCtrlRow();
+  // Le menu ⋯ peut être OUVERT quand la place change (rotation, clavier, taille du texte) : sa
+  // hauteur est une mesure, elle se refait donc ici aussi. No-op s'il est fermé.
+  try{fitMoreMenu();}catch(e){}}
+/* DERNIER RECOURS DE LA RANGÉE DE COMMANDES : L'ENROULEMENT, DÉCIDÉ PAR LA MESURE (v4.73.1, cf. le
+   commentaire CSS de `.dock-in.wrapped`). Même méthode que l'ajustement du quai : on remet à plat,
+   on lit le débordement RÉEL, on n'enroule que s'il existe — aucun seuil de largeur en dur, ceux
+   qu'on avait essayés pour le quai s'étant révélés faux.
+   L'ordre compte : les paliers de compression doivent être posés AVANT (c'est pourquoi cette
+   fonction est appelée en fin de `syncZoomWidth`), sinon on mesurerait une rangée non compressée et
+   l'on enroulerait pour rien. La remise à plat force UNE lecture de géométrie ; la fonction ne
+   tourne qu'au rendu, au redimensionnement et au changement de taille du texte — jamais à la
+   seconde, contrairement au quai. */
+function fitCtrlRow(){
+  const ct=document.getElementById('crisisCtrl');
+  if(!ct||ct.hidden)return;
+  const din=ct.querySelector('.dock-in');if(!din)return;
+  din.classList.remove('wrapped');
+  /* ON COMPARE AU BORD INTERNE, PAS AU `scrollWidth` — et c'est le harnais qui a tranché.
+     `scrollWidth` n'ignore pas seulement les débordements de flex : il ne compte PAS le
+     rembourrage de droite, si bien qu'un contenu qui dépasse de 3 px À L'INTÉRIEUR d'un
+     rembourrage de 8 px lui reste invisible. Or c'est exactement le cas mesuré à 375 px
+     (« dernier bouton à 369,9 px, bord interne 367 px ») — un rognage réel, et la sonde de doctrine
+     le voyait quand la fonction, non. On mesure donc comme elle : bord droit du dernier enfant
+     contre le bord de la BOÎTE DE CONTENU. Le rembourrage vient des styles (px CSS), les rects sont
+     en px VISUELS : il se multiplie par `zoomF()` (règle v4.13.1, dans l'autre sens). */
+  const kids=[...din.children].filter(k=>!k.hidden&&k.getBoundingClientRect().width>0);
+  if(!kids.length)return;
+  const r=din.getBoundingClientRect();
+  const bord=r.right-(parseFloat(getComputedStyle(din).paddingRight)||0)*zoomF();
+  const droite=Math.max(...kids.map(k=>k.getBoundingClientRect().right));
+  if(droite>bord+0.5)din.classList.add('wrapped');}
+window.addEventListener('resize',syncZoomWidth);
 /* SUPPRIMÉS EN v4.25.0 (audit Plan/Statique), nettoyage achevé en v4.31.1 : `ovPlanTreeHtml`
    (l'organigramme « Détails ») et tout le FIL D'ANCÊTRES COLLANT qui n'existait que pour lui
    (`ovPlanStick`, `ovPlanPin`, tops cumulés mesurés, chips d'option injectés, z-ordre pdN, la
@@ -11231,8 +11618,25 @@ function shareApplyAnchored(f,evs){
   }
   if(!n)return 0;
   const cartes=main.querySelectorAll('.ov-block[data-ovi]');
-  const dern=cartes.length?cartes[cartes.length-1].getAttribute('data-ovi'):null;
+  const derEl=cartes.length?cartes[cartes.length-1]:null;
+  const dern=derEl?derEl.getAttribute('data-ovi'):null;
+  /* SUIVRE LE BORD VIF, ET SEULEMENT SI ON Y ÉTAIT (correctif — « quand la session se synchronise
+     et que des blocs sont passés, pas de défilement, on finit par perdre le bloc actuel »).
+     La doctrine d'origine — ne JAMAIS défiler sur un geste qui n'est pas le sien — protégeait le
+     bon cas et en cassait un autre : celui de quelqu'un qui SUIT la progression et que l'hôte
+     laisse derrière, carte après carte, jusqu'à ne plus voir du tout où en est le soin.
+     Le critère n'est donc pas « qui a appuyé » mais OÙ REGARDAIT-IL : si le bout du journal était
+     à l'écran avant l'application, il suivait le bord vif et on l'y garde ; s'il avait défilé
+     ailleurs (il consulte un passage antérieur, une décision plus haut), rien ne bouge — l'annonce
+     `#srLive` et la carte elle-même l'informent, exactement comme avant.
+     C'est la même règle de VISIBILITÉ qu'`ovAdvanceRender`, appliquée à l'intention constatée au
+     lieu de l'être au geste. */
+  const suivait=(()=>{if(!derEl)return false;const r=derEl.getBoundingClientRect();
+    return r.bottom>stickBase()&&r.top<window.innerHeight;})();
   keepAnchor(dern!=null?'.ov-block[data-ovi="'+dern+'"]':null,renderOvOnly);
+  if(suivait){const nb=main.querySelectorAll('.ov-block[data-ovi]');const nv=nb[nb.length-1];
+    if(nv){const r=nv.getBoundingClientRect();
+      if(r.top<stickBase()+4||r.bottom>window.innerHeight-4)ovScrollEl(nv);}}
   readerRepaint();
   return n;}
 function sharePaintLive(f,e){
@@ -11367,6 +11771,13 @@ function ovAfterCheck(f,sec,anchorKey){
     if(_shareRemote)return;
     renderOvOnlyKeepAnchor('[data-ck="'+CSS.escape(anchorKey)+'"]');return;}
   {const ac=document.getElementById('algCount');if(ac)ac.textContent=dn+'/'+boxes.length;}
+  /* L'ÉCHELLE DU RAIL SUIT LE COCHAGE (correctif) : elle affiche « k/n » par bloc et le ✓ du
+     passage complet — donc elle PÉRIME à chaque coche, et le cockpit la met sous les yeux. On la
+     repeint par la MÊME fonction que le re-rendu ciblé, jamais par une seconde peinture qui
+     divergerait (leçon v4.42.0 : les deux copies du cœur de cochage avaient divergé). Le geste
+     reste chirurgical là où il compte : rien n'est reconstruit dans la colonne d'ACTION, donc
+     rien ne bouge sous le doigt — et le défilement du rail est préservé par `repaintRailLad`. */
+  repaintRailLad();
   ovPaintLive(f);}
 // v4.16.1 : le DÉPLIAGE manuel d'une instance (chip tapée, ligne rouverte) est une
 // CONSULTATION transitoire — tout geste de NAVIGATION (Continuer, réponse, Refaire, entrée
@@ -11517,6 +11928,11 @@ function renderOvOnly(){
   // Idem pour Consulter : les repères posologiques y sont classés pour le BLOC COURANT, qui
   // vient de changer.
   if(refSheetOpen())renderRefSheet();
+  // …et pour l'Échelle du RAIL (correctif) : elle porte le même état de session (✓ dernier
+  // passage, ● ici, hors chemin) et vivait hors du re-rendu ciblé — donc périmée dès la
+  // deuxième coche. C'est la même règle que les deux feuilles ci-dessus, appliquée à la
+  // troisième surface qui affiche `minimapData`.
+  repaintRailLad();
   bindOverviewEvents(f);}
 /* ===== MODE STATIQUE (v4.13.0) : TABLEAU compact façon aide SFAR/CAMR =====
    3e mode de lecture — l'algorithme ENTIER carrelé en cellules télégraphiques, GÉNÉRÉ depuis
@@ -12492,6 +12908,19 @@ function edPaletteHtml(){
      On ne l'affiche pas plutôt que de la désactiver — la porte doit dire ce qui est possible ICI. */
   return ED_PALETTE.filter(x=>x.k!=='att'||supportsAttachments())
     .map(x=>`<button type="button" class="ep-row" data-edadd="${x.k}"><span class="ep-ic" aria-hidden="true">${x.ic}</span><b class="ep-n">${esc(x.n)}</b><span class="ep-c">${esc(x.c)}</span></button>`).join('');}
+/* L'OBJET PRIS SE VOIT (proposition utilisateur : « quand on clique pour déplacer un bloc ou une
+   étape, difficile de l'identifier dans la page »). Le bandeau `.ed-grab` NOMME l'objet, mais un
+   titre de bloc ressemble à un autre titre de bloc, et une étape à une étape : pour retrouver
+   l'original au milieu des interstices de dépôt, il fallait relire. Il porte donc une marque
+   PROPRE — registre PRIMAIRE, celui de l'action en cours, jamais un registre d'alerte : prendre un
+   objet n'est ni une erreur ni un danger.
+   La marque est POSÉE PAR LE MODÈLE, jamais par une classe ajoutée à la main après coup : le
+   déplacement re-rend l'éditeur (les interstices apparaissent), donc toute peinture directe serait
+   perdue au rendu suivant. */
+function edGrabCls(kind,bid,si){const g=state.edGrab;
+  if(!g||g.kind!==kind||g.bid!==bid)return '';
+  if(kind==='b')return ' grabbed';
+  return g.si===si?' grabbed':'';}
 function edGrabIsCrit(){const g=state.edGrab;if(!g||g.kind!=='s'||!state.draft)return false;
   const b=(state.draft.blocks||[]).find(x=>x.id===g.bid);
   return !!b&&stepIsCrit((b.steps||[])[g.si]||'');}
@@ -12504,8 +12933,8 @@ function edGrabBanner(f){
    s'ANNONCE avant le dépôt, jamais après. */
 function edDrop(at,lbl,warn){
   return `<button type="button" class="ed-drop${warn?' warn':''}" data-drop="${esc(at)}">${warn?'△ ':''}${esc(lbl)}</button>`;}
-function blockEditor(b,blocks){if(b.type==='decision'){return `<div class="blk blk-dec" data-bid="${b.id}"><div class="blk-top"><span class="blk-n dec" aria-hidden="true">◆</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Réévaluation)" aria-label="Titre de la décision"></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Question</div><input type="text" data-bf="question" value="${esc(b.question)}" placeholder="ex. Réponse à l'adrénaline ?" aria-label="Question posée" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)"><div class="sub">Réponses → bloc cible</div>${(b.options.length?b.options:[{label:'',target:''}]).map((o,i)=>`<div class="optedit" data-oi="${i}"><input type="text" data-of="label" value="${esc(o.label)}" placeholder="ex. Oui" aria-label="Libellé de la réponse ${i+1}">${targetSelect(blocks,b.id,o.target)}<button class="mini del" data-optdel="${i}" aria-label="Supprimer la réponse">×</button></div>`).join('')}<button class="add-line" data-addopt>+ Ajouter une réponse</button>${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="mini grab" data-grab="b:${b.id}" aria-label="Déplacer ce bloc" title="Déplacer le bloc — touchez, puis touchez la destination">⠿</button><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
-  return `<div class="blk" data-bid="${b.id}"><div class="blk-top"><span class="blk-n" aria-hidden="true">${(blocks||[]).indexOf(b)+1}</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Mesures immédiates)" aria-label="Titre du bloc"></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Étapes (cochables en mode crise)</div><details class="crit-guide"${(()=>{try{return localStorage.getItem('ac-cg-folded')?'':' open';}catch(e){return ' open';}})()}><summary>${uiIcon('warn',11)} Rouge, △ ambre, réponse attendue — règles d'usage</summary><b class="cg-r">${uiIcon('warn',11)} Rouge</b> : ce qui tue si on l'oublie (memory item, geste vital). <b class="cg-a">△ Ambre</b> : là où l'on risque de se tromper (dose/dilution à vérifier avant injection, contre-indication à écarter, confusion voie/site/produit, seuil à contrôler avant de poursuivre). Les deux → rouge. <b>Réponse attendue</b> : « challenge :: réponse » (ex. « Adrénaline IM :: 0,01 mg/kg — max 0,5 mg ») — la réponse devient la pilule à confirmer en lecture (challenge-response).</details>${(b.steps.length?b.steps:['']).map((s,i)=>`${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+i,i===0?'Poser en tête':'Poser ici',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<div class="li${stepIsCrit(s)?' li-crit':(stepIsVigil(s)?' li-vigil':'')}" data-si="${i}"><span class="li-box" aria-hidden="true">${stepIsCrit(s)?uiIcon('warn',13):(stepIsVigil(s)?'△':'')}</span><input type="text" data-sf value="${esc(stepText(s))}" placeholder="Nouvelle étape…" aria-label="Étape ${i+1}"><button class="mini grab li-grab" data-grab="s:${i}" aria-label="Déplacer l'étape ${i+1}" title="Déplacer — touchez, puis touchez la destination">⠿</button><span class="li-tools"><button class="mini crit-tgl${stepIsCrit(s)?' on':(stepIsVigil(s)?' vig':'')}" data-crit="${i}" title="${stepIsCrit(s)?'Étape CRITIQUE (rouge : ce qui tue si oublié) — toucher : vigilance (ambre)':(stepIsVigil(s)?'Étape VIGILANCE (ambre : risque d’erreur — dose, voie, seuil) — toucher : étape normale':'Étape normale — toucher : critique (rouge : ce qui tue si oublié)')}">${stepIsVigil(s)?'△':uiIcon('warn',14)}</button><span class="li-sp"></span><button class="mini del" data-rmstep="${i}" aria-label="Supprimer l'étape">×</button></span>${(()=>{const nt=stepNote(s);return nt?`<span class="li-note" role="status">△ <b>Relecture</b> — ${esc(nt)}</span>`:'';})()}</div>`).join('')}${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+(b.steps.length||0),'Poser en fin',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<p class="nf-guard" data-stepguard role="status">${stepGuardTxt(b.steps,'bloc')}</p><button class="add-line" data-addstep>+ Ajouter une étape</button><div class="sub">Étape suivante</div>${targetSelect(blocks,b.id,b.next)}${b.next?`<input type="text" data-bnextlbl value="${esc(b.nextLbl||'')}" maxlength="120" placeholder="Libellé du bouton Continuer (ex. réévaluation à 5 min)" aria-label="Libellé du bouton Continuer" style="margin-top:6px">`:''}${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="mini grab" data-grab="b:${b.id}" aria-label="Déplacer ce bloc" title="Déplacer le bloc — touchez, puis touchez la destination">⠿</button><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
+function blockEditor(b,blocks){if(b.type==='decision'){return `<div class="blk blk-dec${edGrabCls('b',b.id)}" data-bid="${b.id}"><div class="blk-top"><span class="blk-n dec" aria-hidden="true">◆</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Réévaluation)" aria-label="Titre de la décision"></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Question</div><input type="text" data-bf="question" value="${esc(b.question)}" placeholder="ex. Réponse à l'adrénaline ?" aria-label="Question posée" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)"><div class="sub">Réponses → bloc cible</div>${(b.options.length?b.options:[{label:'',target:''}]).map((o,i)=>`<div class="optedit" data-oi="${i}"><input type="text" data-of="label" value="${esc(o.label)}" placeholder="ex. Oui" aria-label="Libellé de la réponse ${i+1}">${targetSelect(blocks,b.id,o.target)}<button class="mini del" data-optdel="${i}" aria-label="Supprimer la réponse">×</button></div>`).join('')}<button class="add-line" data-addopt>+ Ajouter une réponse</button>${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="mini grab" data-grab="b:${b.id}" aria-label="Déplacer ce bloc" title="Déplacer le bloc — touchez, puis touchez la destination">⠿</button><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
+  return `<div class="blk${edGrabCls('b',b.id)}" data-bid="${b.id}"><div class="blk-top"><span class="blk-n" aria-hidden="true">${(blocks||[]).indexOf(b)+1}</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Mesures immédiates)" aria-label="Titre du bloc"></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Étapes (cochables en mode crise)</div><details class="crit-guide"${(()=>{try{return localStorage.getItem('ac-cg-folded')?'':' open';}catch(e){return ' open';}})()}><summary>${uiIcon('warn',11)} Rouge, △ ambre, réponse attendue — règles d'usage</summary><b class="cg-r">${uiIcon('warn',11)} Rouge</b> : ce qui tue si on l'oublie (memory item, geste vital). <b class="cg-a">△ Ambre</b> : là où l'on risque de se tromper (dose/dilution à vérifier avant injection, contre-indication à écarter, confusion voie/site/produit, seuil à contrôler avant de poursuivre). Les deux → rouge. <b>Réponse attendue</b> : « challenge :: réponse » (ex. « Adrénaline IM :: 0,01 mg/kg — max 0,5 mg ») — la réponse devient la pilule à confirmer en lecture (challenge-response).</details>${(b.steps.length?b.steps:['']).map((s,i)=>`${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+i,i===0?'Poser en tête':'Poser ici',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<div class="li${stepIsCrit(s)?' li-crit':(stepIsVigil(s)?' li-vigil':'')}${edGrabCls('s',b.id,i)}" data-si="${i}"><span class="li-box" aria-hidden="true">${stepIsCrit(s)?uiIcon('warn',13):(stepIsVigil(s)?'△':'')}</span><input type="text" data-sf value="${esc(stepText(s))}" placeholder="Nouvelle étape…" aria-label="Étape ${i+1}"><button class="mini grab li-grab" data-grab="s:${i}" aria-label="Déplacer l'étape ${i+1}" title="Déplacer — touchez, puis touchez la destination">⠿</button><span class="li-tools"><button class="mini crit-tgl${stepIsCrit(s)?' on':(stepIsVigil(s)?' vig':'')}" data-crit="${i}" title="${stepIsCrit(s)?'Étape CRITIQUE (rouge : ce qui tue si oublié) — toucher : vigilance (ambre)':(stepIsVigil(s)?'Étape VIGILANCE (ambre : risque d’erreur — dose, voie, seuil) — toucher : étape normale':'Étape normale — toucher : critique (rouge : ce qui tue si oublié)')}">${stepIsVigil(s)?'△':uiIcon('warn',14)}</button><span class="li-sp"></span><button class="mini del" data-rmstep="${i}" aria-label="Supprimer l'étape">×</button></span>${(()=>{const nt=stepNote(s);return nt?`<span class="li-note" role="status">△ <b>Relecture</b> — ${esc(nt)}</span>`:'';})()}</div>`).join('')}${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+(b.steps.length||0),'Poser en fin',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<p class="nf-guard" data-stepguard role="status">${stepGuardTxt(b.steps,'bloc')}</p><button class="add-line" data-addstep>+ Ajouter une étape</button><div class="sub">Étape suivante</div>${targetSelect(blocks,b.id,b.next)}${b.next?`<input type="text" data-bnextlbl value="${esc(b.nextLbl||'')}" maxlength="120" placeholder="Libellé du bouton Continuer (ex. réévaluation à 5 min)" aria-label="Libellé du bouton Continuer" style="margin-top:6px">`:''}${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="mini grab" data-grab="b:${b.id}" aria-label="Déplacer ce bloc" title="Déplacer le bloc — touchez, puis touchez la destination">⠿</button><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
 /* Éditeur des COMPLICATIONS (v4.26.0) : libellé de l'ÉVÉNEMENT + cible. La cible est soit un
    bloc de CETTE fiche (le sélecteur liste les blocs en premier), soit une AUTRE aide ou un
    protocole (demande utilisateur : « une complication peut ouvrir une nouvelle aide cognitive ») —
@@ -14762,8 +15191,36 @@ function openMoreMenu(){
     :`<button class="mm-row${r.danger?' danger':''}" role="menuitem" data-mmi="${i}"${r.disabled?' disabled':''}><span class="mm-ic" aria-hidden="true">${r.ic||''}</span><span>${esc(r.label)}${r.sub?` <span class="mm-sub">— ${esc(r.sub)}</span>`:''}</span></button>`).join('');
   moreMenuEl.querySelectorAll('[data-mmi]').forEach(b=>b.onclick=()=>{const r=_moreRows[+b.dataset.mmi];if(!r||r.disabled)return;closeMoreMenu();r.act();});
   moreMenuEl.hidden=false;hdrMoreBtn.setAttribute('aria-expanded','true');
+  fitMoreMenu();
   const f=moreMenuEl.querySelector('.mm-row:not([disabled])');if(f)f.focus();
 }
+/* HAUTEUR DU MENU ⋯ — MESURÉE, JAMAIS CALCULÉE EN CSS (v4.73.2 ; cf. le commentaire de
+   `.more-menu`). Deux lectures, une écriture :
+     · `bas` = la hauteur RÉELLEMENT visible. `visualViewport.height` quand il existe, parce que
+       c'est la seule mesure qu'iOS ne fausse pas (dossier « bande basse iOS », v4.29.4) et qu'elle
+       exclut d'elle-même les barres d'outils du navigateur ; `innerHeight` en repli.
+     · `r.top` = la position réelle du menu, qui absorbe SANS AUCUN CALCUL la hauteur de l'en-tête,
+       `env(safe-area-inset-top)` et le décalage de 6 px — les trois termes que le `calc()`
+       précédent devait deviner un par un.
+   Les deux sont en px VISUELS ; la hauteur écrite, elle, est en px CSS — d'où la division par
+   `zoomF()` (règle v4.13.1). PLANCHER de 180 px : une mesure pathologique (menu ouvert pendant une
+   transition, clavier virtuel déployé) ne doit jamais réduire le menu à une bande inutilisable —
+   mieux vaut un menu qui dépasse un peu et qu'on peut faire défiler qu'un menu qui a disparu.
+   `10 px` de garde au bas : de quoi voir que la liste continue, plutôt que de la couper au ras.
+   ET LA MARGE BASSE DU MATÉRIEL EST RETIRÉE (`--sab`) — c'est le terme qui manquait, et c'est
+   probablement lui qu'on voyait à l'usage : la hauteur visible d'iOS INCLUT la bande de
+   l'indicateur d'accueil, si bien qu'un menu calé dessus y fait passer sa dernière rangée. Elle est
+   soustraite en px CSS, comme le CSS le fait déjà partout ailleurs (`.azrail`, `.sess-start`) : sous
+   zoom on en réserve donc un peu trop, ce qui raccourcit le menu de quelques pixels — l'erreur va
+   dans le sens sûr. */
+function fitMoreMenu(){
+  if(!moreMenuEl||moreMenuEl.hidden)return;
+  const vv=window.visualViewport;
+  const bas=(vv&&vv.height)?vv.height:window.innerHeight;
+  const r=moreMenuEl.getBoundingClientRect();
+  const sab=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sab'))||0;
+  const dispo=(bas-r.top)/zoomF()-10-sab;
+  moreMenuEl.style.maxHeight=Math.round(Math.max(180,dispo))+'px';}
 hdrMoreBtn.onclick=e=>{e.stopPropagation();if(moreMenuEl.hidden)openMoreMenu();else closeMoreMenu();};
 document.addEventListener('click',e=>{if(!moreMenuEl.hidden&&!moreMenuEl.contains(e.target)&&e.target!==hdrMoreBtn)closeMoreMenu();});
 document.addEventListener('keydown',e=>{
@@ -14827,6 +15284,9 @@ function applyZoom(z){z=ZOOM_STEPS.indexOf(z)>=0?z:100;document.documentElement.
   // v4.13.1 : la taille du texte change toute la géométrie mesurée — recaler le fil collant
   // du plan et redessiner les flèches du mode statique. Appel DIRECT (la mesure force le
   // reflow ; un rAF peut ne jamais venir si l'onglet ne repeint pas).
+  // Les paliers de largeur EFFECTIVE dépendent du zoom : ils se reposent ICI, tout de suite, sans
+  // attendre un rendu — c'est le geste qui vient de changer la place disponible (v4.73.1).
+  syncZoomWidth();
   if(state.view==='read'&&state.fiche&&hasFlow(state.fiche)&&state.readMode==='static')svPaintArrows();}
 function currentZoom(){return +(localStorage.getItem(spaceKey('ac-zoom'))||localStorage.getItem('ac-zoom')||100);}
 applyZoom(currentZoom());
@@ -15839,7 +16299,20 @@ const Share={
          const neuf=ap.find(x=>av.indexOf(x.id)<0);
          if(neuf&&this.code){this.code=null;this.joinUntil=0;this.codeTakenBy=neuf.label||'Invité';
            try{announce((neuf.label||'Un participant')+' a rejoint la session.');}catch(e){}}}
-        this.participants=p.participants||[];
+        /* « PARTAGE EN COURS (n) » SUIT LE COMPTE (correctif). La v4.55.2 avait donné au menu ⋯ le
+           moyen de se refaire sans re-rendre (`_moreBuild` mémorisé) mais ne l'appelait que sur
+           une OFFRE de passation : le compte de participants, lui, ne bougeait toujours pas — il
+           restait celui de l'instant où la fiche avait été ouverte, c'est-à-dire ZÉRO dans le cas
+           normal, où l'on ouvre le partage AVANT que le collègue rejoigne. Un mécanisme n'est pas
+           un correctif : il faut aussi l'appeler là où la donnée change.
+           On compare une SIGNATURE et non la longueur : un participant coupé, détaché ou promu
+           change ce que le menu affiche sans changer le nombre de lignes. Et on ne refait le menu
+           que si elle a bougé — le sondage passe ici toutes les deux secondes. */
+        {const sig=q=>(q||[]).filter(x=>x&&!x.owner)
+           .map(x=>x.id+':'+(x.role||'')+(x.revoked?'R':'')+(x.detached?'D':'')).join('|');
+         const bouge=sig(this.participants)!==sig(p.participants);
+         this.participants=p.participants||[];
+         if(bouge)try{shareMenuRefresh();}catch(_){}}
         this.seq=p.seq||0;this.nEvents=p.n_events||0;
         const ev=p.events||[];
         if(ev.length){this.applied+=ev.length;this.cursor=ev[ev.length-1].seq;this._act=Date.now();
@@ -15994,7 +16467,14 @@ const Share={
     if(navBy&&anno)announce(navBy+' a avancé la checklist.');
     else if(anno)announce('Le soignant a avancé — reprendre depuis le mode lecteur.');
     if(peint)announce(peint===1?'Une action d’un participant':peint+' actions d’un participant');},
-  onDesync(){}, onStatus(){},
+  onDesync(){},
+  /* CHANGEMENT DE STATUT — le hook existait et n'avait AUCUN corps ni aucun assignataire : rien,
+     dans toute l'interface, ne réagissait à la mort du lien. C'est ici que le bandeau de l'invité
+     entre en scène, et il y entre CHIRURGICALEMENT : `render()` est interdit sur évènement distant
+     (règle 3) et le serait doublement ici, où l'écran qu'on rendrait est celui d'un collègue en
+     train de lire. `shareOverPaint` insère ou retire le seul nœud concerné et repose la classe de
+     `body` ; le quai, lui, suit déjà par `updateRtStrip`. */
+  onStatus(st,av){try{shareOverPaint();}catch(e){}},
 
   /* OUVERTURE PAR L'HÔTE. Le partage ne s'ouvre QUE sur une session déjà démarrée — sinon la
      première action de l'invité déclencherait `ensureStarted` chez l'hôte, donc un `render()`

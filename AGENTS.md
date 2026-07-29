@@ -58,6 +58,13 @@ ne s'apprend en lisant le code** — elles viennent d'incidents mesurés, et plu
 10. **Toute hauteur relative à la fenêtre s'écrit `calc(100dvh / var(--zf,1))`.** Le réglage de
     taille du texte est un `zoom` sur `<html>` : un `vh` nu se fait agrandir par lui et le bas de
     l'écran devient inatteignable. Idem pour toute mesure JS réinjectée : diviser par `zoomF()`.
+    **ET LES SEUILS DE LARGEUR NE SONT PAS DES MEDIA QUERIES (v4.73.1)** : sous zoom, la mise en
+    page dispose de `largeur ÷ zoom` (331 px sur un écran de 430 à 130 %) alors qu'une media query
+    mesure la fenêtre du PÉRIPHÉRIQUE et répond 430 — un palier de compression ne se déclenche donc
+    jamais quand on en a le plus besoin. Les paliers de la rangée de commandes passent par les
+    classes `html.zw560/430/400/360` posées par `syncZoomWidth()` ; à zoom 1 elles sont l'équivalent
+    exact des `max-width` qu'elles remplacent. `@container` est ÉCARTÉ : `container-type` implique
+    `contain:layout`, donc casserait tout descendant `fixed`.
 11. **Le mode crise n'est jamais interrompu** : aucune modale, aucune synchro intrusive, aucun
     défilement automatique, aucune notification flottante. Une alarme s'annonce sur place.
 12. **Ne jamais supprimer un champ du modèle** fiche / catégorie / protocole : un export v3 doit
@@ -880,6 +887,21 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   retirée` : sur une page courte ou en haut de fiche, replier ferait sauter le contenu sous le
   doigt (bug v4.3.2, en pire). Le repli n'appartient qu'aux gestes qui l'ACQUITTENT : le bouton
   « Confirmé — démarrer la session » et la première navigation « Continuer → ».
+- **LE DÉMARRAGE RESTE ATTEIGNABLE — UNE ZONE FIXE EN BAS, BORNÉE (v4.73.0, proposition
+  utilisateur : « et si “confirmé — démarrer la session” était sticky quand on ne l'atteint pas
+  encore et qu'on doit scroller car c'est long ? »)** : sur une fiche à critères longs, le bouton
+  naît SOUS le pli — on lit, on défile, et la condition d'entrée QRH n'est plus à portée de pouce.
+  `.sess-start.afloat` détache alors le bouton au bas de l'écran. **CE QUI REND CETTE ZONE FIXE
+  ADMISSIBLE** malgré SPEC §5 (« en crise, une seule zone fixe, et en HAUT ») — trois bornes, toutes
+  vérifiables : elle n'existe qu'AVANT la première action (donc jamais pendant un soin, là où la
+  règle protège la colonne d'action), elle est TRANSITOIRE (elle s'efface au démarrage comme au
+  retour du bouton à l'écran), et elle ne prend **aucune hauteur au flux** — `min-height` garde la
+  place exacte du bouton sorti, donc rien ne se décale au basculement (mesuré : boîte 50 px avant
+  comme après). **Critère le plus étroit possible** : le bouton doit être ENTIÈREMENT sous le pli ;
+  s'il est passé AU-DESSUS, on ne le rappelle pas — il n'a pas été manqué, il a été dépassé, et une
+  barre qui reparaîtrait en remontant serait un mouvement qu'aucun geste n'explique. **Sous 780 px
+  seulement** (c'est là que le problème existe) et **jamais en STATIQUE**, où le bouton est une
+  RANGÉE du carrelage : l'extraire du flux ouvrirait un trou dans la grille.
 - **LOGO DE MARQUE (v4.23.1)** : `.brand-logo` sur l'ACCUEIL seulement (comme le nom qu'il
   accompagne, SPEC §5). Posé en **masque CSS** (`logo-glyph.svg` = le master SANS tuile, seul son
   canal alpha sert) sur un aplat de couleur — un `<img>` ne se teinte pas, or un bleu FIXE jurait
@@ -982,6 +1004,31 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   `audit-doctrine` mesure la rangée de crise à **320/360/375/390** avec, en plus du hors-écran, un
   contrôle de **rognage par le conteneur** (un bouton peut tenir dans la fenêtre tout en étant
   coupé par sa boîte de contenu — c'est ce qui se produisait), et la barre d'éditeur à 320/360.
+- **LA GRANDE POLICE ÉTAIT LE TROU DE COUVERTURE (v4.73.1, signalé à l'usage : « en mode grande
+  police, souci d'affichage de l'en-tête, les boutons sont tronqués »)** — « ⤢ Se repérer » coupé net
+  et « ⤢ Consulter » hors écran. Deux causes, et la seconde n'avait jamais été nommée :
+  (1) **les paliers de compression ne se déclenchaient pas** — cf. règle 10, une media query mesure
+  le périphérique et non la place réellement disponible sous `zoom` ; mesuré à 430 × 130 % : rangée
+  exigeant **594 px** pour 430, soit 164 px inaccessibles, dans la zone de crise. (2) **La recette de
+  compression est calibrée pour 320 px**, le plancher servi : à 130 % sur un écran de 390 il ne reste
+  que 300 px effectifs, sous ce plancher, et aucune marge ne peut plus rendre les pixels manquants.
+  **DERNIER RECOURS : LA RANGÉE S'ENROULE, ET C'EST MESURÉ, PAS SEUILLÉ.** `fitCtrlRow()` remet la
+  rangée à plat, lit son débordement RÉEL (bord droit du dernier enfant contre le bord de la BOÎTE DE
+  CONTENU — `scrollWidth` ne compte pas le rembourrage de droite et ratait un rognage de 3 px que la
+  sonde de doctrine voyait) et n'enroule que s'il existe. Aucun seuil de largeur en dur : ceux
+  essayés pour le quai s'étaient révélés FAUX, et ici ils dépendraient en plus de la fonte du
+  système et de la longueur des libellés. La coupure tombe sur `.ctrl-sp`, qui devient le SAUT DE
+  LIGNE : il sépare toujours le MODE des OUVERTURES, et mieux que 4 px — sans cela la coupure
+  séparait les deux ouvertures, c'est-à-dire les deux contrôles de MÊME nature.
+  **LA DOCTRINE « PAS DE 2ᵉ LIGNE » N'EST PAS ENFREINTE** : elle vise le coût PERMANENT d'une rangée
+  qui s'épaissirait pour tout le monde ; ici la seconde ligne n'existe que quand la rangée déborde
+  vraiment, donc jamais sur une configuration où la compression suffit. Les paliers RESTENT et ne
+  sont pas redondants — mesuré, ils évitent l'enroulement dans 4 configurations sur 20. Rien n'est
+  sacrifié pour tenir : ordre, libellés entiers, cibles de 44 px, positions constantes.
+  Témoin : `audit-doctrine` mesure désormais **390 et 430 px aux quatre paliers de taille du
+  texte**, et vérifie EN PLUS que les libellés sont intacts — sans cette seconde moitié, un futur
+  « correctif » passerait le contrôle en masquant les mots. Vérifié capable d'échouer (enroulement
+  neutralisé → 10 rouges, dont 5 des nouveaux).
 - **DÉFILEMENT PRÉSERVÉ, PAS RECONSTRUIT (v4.23.5, plusieurs retours d'usage)** — trois surfaces
   ont chacune leur propre défilement qu'un `render()` (qui reconstruit le DOM) remettait à zéro :
   (1) le RAIL de lecture `.read-side` (`overflow-y:auto`) « remontait » dès qu'on touchait un bouton
@@ -1180,7 +1227,18 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   lettre), et **RAIL ALPHABÉTIQUE** `.azrail` (tap = saut, glisser = parcourir façon index iOS ;
   dès 2 lettres ; s'il ne tient pas en hauteur il DISPARAÎT — jamais de lettres coupées ni de
   cibles < 24 px ; en étroit il est FIXE, ancré entre `--hdr-h` et la tab bar — un centrage
-  fenêtre passait sous l'en-tête à 320×640). Décisions utilisateur figées : la recherche RESTE
+  fenêtre passait sous l'en-tête à 320×640).
+  **LES LETTRES SONT ANCRÉES EN HAUT, ET CE N'EST PAS UN CHOIX ESTHÉTIQUE (v4.73.0, signalé à
+  l'usage : « la liste de lettres monte et descend en même temps, par moment »)** : elles étaient
+  CENTRÉES dans une boîte fixée par son haut ET son bas, donc toute variation de la hauteur
+  réellement visible les déplaçait de la MOITIÉ de cette variation. Or cette hauteur varie
+  précisément pendant un défilement — la barre d'outils du navigateur mobile se replie, et
+  `position:fixed` se dimensionne sur le grand viewport (même mécanique que le dossier « bande
+  basse iOS »). Le glisser devenait un asservissement instable : le rail défile, la barre bouge,
+  les lettres se décalent sous le doigt, la lettre visée change. **Mesuré** : 30 px de déplacement
+  pour 60 px de hauteur en moins, contre **0 px** en `flex-start` — la hauteur passe désormais par
+  `--vvh` (la seule mesure qu'iOS ne fausse pas), ce qui rend fiable le test de débordement.
+  Décisions utilisateur figées : la recherche RESTE
   dans l'en-tête (statique — le focus survit aux re-rendus, raccourci « / ») ; le filtre
   catégorie FILTRE (l'estompage de la maquette a été refusé) ; les rangées gardent épingle ☆,
   date COURTE (`fmtDateShort` — « Validation : » pèserait plus que la donnée à 11 px), statut en
@@ -1215,9 +1273,17 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   d'énumérer, c'est une valeur) ; nom de minuteur en **casse de phrase** 13,5/700 avec la
   précision entre parenthèses reléguée en méta 12 px (`tmLabelParts`, pure testée — un nom long
   en petites capitales se déchiffre lettre à lettre) ; **temps d'un minuteur : encre à l'arrêt,
-  `--link` EN COURS** (P2-7 — le canal couleur disait le contraire de l'état) ; « + » de compteur
+  `--link` EN COURS** (P2-7 — le canal couleur disait le contraire de l'état ; **graisse ramenée à
+  500 en v4.73.0**, cf. « L'ÉTAT NE CRIE PAS PLUS FORT QUE L'ACTION » ci-dessous) ; « + » de compteur
   **tonal et large**, « − » contour compact (on incrémente 10 fois pour 1 correction) ;
-  « Vous êtes ici » et Lecteur/Vérifier sur **une seule ligne d'état** (−52 px par bloc actif) ;
+  « Vous êtes ici » et Lecteur/Vérifier sur **une seule ligne d'état** (−52 px par bloc actif ;
+  **elle s'ENROULE depuis la v4.73.1** — signalé à l'usage en grande police, où « VOUS ÊTES ICI »
+  était coupée par le bord GAUCHE de la carte. Ses trois objets sont tous en `nowrap` et ne peuvent
+  donc pas se rétrécir, et `justify-content:flex-end` fait déborder par le côté OPPOSÉ, c'est-à-dire
+  par le DÉBUT : c'était le PREMIER objet qui sortait de la carte, là où aucun défilement ne peut le
+  rattraper. On enroule, on aligne au début, et c'est le premier BOUTON qui porte le
+  `margin-left:auto` — aspect identique tant que tout tient sur une ligne, boutons toujours à droite
+  quand ils passent à la ligne, et la pilule ne se déplace jamais : c'est un état) ;
   rangées d'étape à **60 px** (D1 — le 44 px doctrinal est un minimum, pas un optimum, et un
   pouce ganté ne vise pas une case de 24 px) ; **acquittement haptique** ~18 ms au cochage et à
   l'incrément (D10, `tick()` — inerte sur iOS, qui n'expose pas l'API) ; pilule posologique du
@@ -1414,6 +1480,32 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   changement de STRUCTURE, pas de style. **PIÈGE VÉCU** : la règle du palier 1200 est déclarée
   DEUX fois (en tête § LARGEURS, puis réaffirmée plus bas — piège de cascade documenté) ; la
   variante `.cockpit` doit suivre aux DEUX sites, sinon elle perd à l'ordre.
+  **TROIS PISTES EXIGENT TROIS COLONNES — LA CLASSE SUIT LE PLAN, PAS LA LARGEUR (v4.73.0,
+  signalé à l'usage : « le mode statique s'affiche en entier dans une sidebar à gauche »)** :
+  `cockpit` pose une grille de trois pistes FIXES, mais l'`<aside class="read-plan">` n'est émis
+  que s'il y a un plan à montrer — jamais en STATIQUE (le tableau EST la vue d'ensemble), ni en
+  aperçu de brouillon, ni sur une fiche sans algorithme. Les deux colonnes restantes glissaient
+  alors d'un rang : **la checklist atterrissait dans la piste de 240 px** et le rail dans celle de
+  860 (mesuré à 1280 px : `main` x=18 w=240, `side` x=284 w=592). La condition est donc l'existence
+  du plan lui-même — d'où le calcul de `ladRail` AVANT celui de `cockpit` dans `renderRead`.
+  **ET LE PLAN SE REPEINT (même version, même signalement : « le plan de gauche ne se met pas à
+  jour »)** : son HTML vivait dans une IIFE de `renderRead`, donc hors d'atteinte des re-rendus
+  CIBLÉS — il gardait l'état du moment où la fiche avait été OUVERTE. Le défaut datait de la
+  v4.23.0 (rail droit) et le cockpit n'a fait que le mettre sous les yeux. `railLadHtml(f)` est
+  extraite, `repaintRailLad()` la rejoue depuis `renderOvOnly` (navigation) ET `ovAfterCheck`
+  (cochage, y compris DISTANT — il y passe) ; le défilement propre de la colonne est capturé et
+  restauré (règle « DÉFILEMENT PRÉSERVÉ, PAS RECONSTRUIT »), et les écouteurs délégués sont
+  recâblés par `bindRailLad`, dont le renvoi `[data-plref]` défile désormais dans le conteneur
+  RÉEL (`.read-plan` en cockpit, `.read-side` sinon — viser le rail droit en dur ne déplaçait rien).
+  **UNE SEULE PEINTURE, jamais deux** : rien ne bouge dans la colonne d'ACTION, donc rien sous le
+  doigt, et l'on n'introduit pas une seconde peinture qui divergerait (leçon v4.42.0).
+  **HARMONIE — L'ÉCHELLE EST UNE SURFACE** : elle était posée à NU sur `--bg`, seule zone de la vue
+  lecture à ne pas être une surface, entre une colonne d'action et un rail faits de cartes blanches ;
+  ses filets se lisaient comme des restes de trait. `--surface` + filet + rayon, **dans les DEUX
+  logements** (c'est le même composant — deux habillages en feraient deux composants), sans
+  rétablir aucun aplat d'état : la désaturation reste entière. Et l'en-tête de zone passe en
+  `flex-wrap` avec un titre INSÉCABLE : à 240 px, c'est « PLAN — » / « ÉCHELLE » qui cassait — un
+  titre haché n'est plus un titre, tandis qu'un contrôle qui descend d'un rang reste un contrôle.
 - **MODE MONITEUR (v4.60.0, audit design D3)** : le téléphone POSÉ devient un afficheur — chariot,
   tableau de bord d'ambulance, second appareil de l'invité. C'est l'ECAM au sens propre : un écran
   d'état qu'on lit **sans le toucher**, à deux mètres. Chrono de session, PROCHAIN minuteur (nom
@@ -1446,6 +1538,14 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   retombe sur Georgia — voulu : un document autonome ne dépend d'aucun serveur. **PIÈGE `sw.js`**
   rencontré : `check-sw` lit les chaînes d'`ASSETS` littéralement — un commentaire À L'INTÉRIEUR
   du tableau est pris pour une entrée de cache (25 faux problèmes) ; il vit donc au-dessus.
+  **LE RELAIS DE LA BARRE PARLE DE LA MÊME VOIX (v4.73.0, question utilisateur : « le texte en
+  police serif ne se met pas à jour dans les fiches quand l'en-tête se replie — c'est fait
+  exprès ? » — non, c'était un oubli)** : le serif avait été posé sur `#crisisBand .cb-ttl`, et son
+  RELAIS `#brandTitle` était resté en `system-ui`. Or c'est **un seul libellé porté tour à tour par
+  deux éléments** (« le titre n'est jamais absent, seulement porté par l'un ou l'autre ») : il
+  changeait donc de typographie au défilement. `#brandTitle` passe au serif, **graisse 600** (la
+  seule embarquée — 700 produirait une graisse synthétique) et **corps inchangé** (16,5 px, un
+  palier de l'échelle fermée) : c'est la voix qui s'aligne, pas la hiérarchie.
 - **I4 — UNE SEULE GRAMMAIRE DE PROGRESSION (v4.62.0, décision utilisateur)** : guidé, journal et
   mode lecteur ne sont plus trois surfaces mais **une grammaire à trois densités**.
   **POURQUOI, ET C'EST DOCTRINAL** (argumentaire de l'utilisateur, retenu tel quel) : **ECAM** —
@@ -1526,7 +1626,16 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   Pas de maintien ni de glisser — c'est le point de défaillance du drag au doigt (gants, une main,
   véhicule qui bouge). Les boutons ↑ ↓ deviennent redondants et QUITTENT la rangée d'outils.
   `state.edGrab` n'est JAMAIS persisté (c'est un geste, pas un état du brouillon) ; **Échap ou ✕
-  reposent l'objet là où il était**. **GARDE-FOU QRH** : sortir une étape ⚠ de son bloc change son
+  reposent l'objet là où il était**.
+  **L'OBJET PRIS SE VOIT (v4.73.0, proposition utilisateur : « difficile de l'identifier dans la
+  page »)** : le bandeau le NOMME, mais un titre de bloc ressemble à un titre de bloc et une étape à
+  une étape — il fallait relire pour retrouver l'original au milieu des interstices. `.grabbed`
+  (posée PAR LE MODÈLE, jamais peinte après coup : prendre re-rend l'éditeur) porte un anneau
+  primaire, la teinte `--primary-soft` et la mention **« ⠿ EN DÉPLACEMENT »** — la couleur n'est
+  jamais seule (règle 8), et le registre est celui de l'ACTION EN COURS, jamais une alerte : prendre
+  un objet n'est ni une erreur ni un danger. L'objet reste **pleinement lisible** (on ne l'estompe
+  pas : l'auteur doit relire ce qu'il déplace, et un texte à demi-opacité tombe sous AA), rien ne
+  clignote, et c'est un `outline` — pas une bordure — pour ne déplacer aucun pixel du contenu. **GARDE-FOU QRH** : sortir une étape ⚠ de son bloc change son
   contexte — la cible s'annonce alors en △ AVANT le dépôt, sans jamais l'interdire (l'auteur reste
   l'expert de sa fiche). **PIÈGE DE MISE EN PAGE** : les étapes d'un bloc vivent HORS de
   `.list-edit` — leur rangée n'avait donc aucune règle de flex, et les trois objets s'empilaient
@@ -1884,7 +1993,28 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   (Terminer…) ferme toujours la liste. Avant, « Modifier »/« Versions » — DÉSACTIVÉES pendant
   une session — trônaient en tête : deux rangées mortes au moment où le menu sert le plus.
   `setMoreMenu` NORMALISE les séparateurs (jamais en tête/queue, jamais deux de suite : un groupe
-  conditionnel vide disparaît sans que l'appelant s'en soucie). **ICÔNES : jamais deux entrées
+  conditionnel vide disparaît sans que l'appelant s'en soucie).
+  **IL NE DÉPASSE JAMAIS L'ÉCRAN, ET SA HAUTEUR EST UNE MESURE (v4.73.0 puis v4.73.2, signalé DEUX
+  fois à l'usage : « si le menu est grand et la hauteur de la fenêtre réduite, il ne s'adapte pas »,
+  puis « pareil, menu ⋯ tronqué » en GRANDE POLICE)** : en lecture il porte jusqu'à seize rangées, et
+  à 130 % chacune passe sur deux ou trois lignes — les dernières (dont « Terminer la session… »)
+  tombaient hors de l'écran SANS défilement, donc **inatteignables en silence**.
+  La v4.73.0 l'a clampé en CSS (`var(--vvh) / var(--zf) - var(--hdr-h) - 16px`) : le calcul est juste
+  sur Blink et **restait faux à l'usage**, parce qu'il repose sur trois hypothèses de plateforme à la
+  fois — ce que `visualViewport.height` compte sous `zoom`, comment le zoom d'`<html>` se combine aux
+  unités de fenêtre, et ce que vaut `--hdr-h` quand `env(safe-area-inset-top)` s'y ajoute — et
+  surtout parce qu'il **oubliait la marge basse du MATÉRIEL** : la hauteur visible d'iOS INCLUT la
+  bande de l'indicateur d'accueil, si bien que la dernière rangée y passait dessous.
+  `fitMoreMenu()` **mesure** : hauteur réellement visible (`visualViewport.height`, la seule que
+  iOS ne fausse pas — dossier « bande basse iOS ») moins la position RÉELLE du menu — qui absorbe
+  sans aucun calcul la hauteur d'en-tête, le safe-area du haut et le décalage de 6 px — moins
+  `--sab`, la marge basse exposée au JS par une propriété personnalisée (`env()` ne se lit pas
+  depuis un script). Plancher de 180 px : une mesure pathologique ne doit jamais réduire le menu à
+  une bande inutilisable. Rejouée au redimensionnement et au changement de taille du texte, puisque
+  le menu peut être ouvert à cet instant. Témoin : `audit-doctrine` mesure 390 et 430 px × deux
+  tailles de texte × **avec et sans marge matérielle simulée** (34 px), et vérifie que la DERNIÈRE
+  rangée est atteignable après défilement — vérifié capable d'échouer dans les deux sens (terme
+  `--sab` retiré → 4 rouges ; clamp retiré → 8). **ICÔNES : jamais deux entrées
   d'un même menu avec le même dessin, ni deux dessins quasi identiques côte à côte** —
   « Historique des sessions » a reçu `archive` (boîte, distinct de l'horloge-flèche `history`
   gardée par Versions) et « Se repérer » a reçu `ladder` (rail + lignes indentées = l'Échelle
@@ -1924,6 +2054,23 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   (`.annex-row .ax-ch` mesuré à 3,93:1) ; et en SOMBRE `--primary` est un remplissage (3,75:1 en
   texte), l'accent TEXTE est `--link` (= `--primary-dk`), seul admis pour un numéro ou un
   libellé accentué.
+- **L'ÉTAT NE CRIE PAS PLUS FORT QUE L'ACTION (v4.73.0, signalé à l'usage : « le texte du minuteur
+  en gras très noir saute aux yeux plus que le contenu du milieu — confirmation diagnostique,
+  étapes… ; c'est pareil pour les décomptes de compteurs »)** : le constat est juste et c'est une
+  inversion de saillance. Le temps et les décomptes sont de l'ÉTAT, la checklist est l'ACTION —
+  `.tm-val`/`.cn-val` passent de **700 à 500** (mono tabulaire à 26 px, 34 px dans le rail : la
+  lisibilité ne dépend pas de la graisse à ces corps ; à 700 c'était une masse noire de la largeur de
+  la carte) et `.tm-label` de 700 à 600 (il reste le titre de sa carte, sans peser autant qu'un titre
+  de bloc clinique). **LA HIÉRARCHIE PASSE PAR LA GRAISSE, JAMAIS PAR L'ENCRE** — la règle est déjà
+  écrite pour la posologie (« la DOSE reste en encre PLEINE ») : adoucir la couleur d'un temps serait
+  l'inversion à ne pas faire, et `--tcol` reste le canal de l'ÉTAT (encre à l'arrêt, `--link` en
+  cours, ambre échu). Rien de sémantique ne bouge.
+- **LA SÉLECTION D'UNE BIBLIOTHÈQUE VA JUSQU'AU BORD DROIT (v4.73.0, demande utilisateur)** : l'aplat
+  bleu s'arrêtait avant le bouton « modifier » (ou le cadenas) de la même rangée, coupant la ligne en
+  deux et laissant croire que ce bouton visait autre chose que la rangée sélectionnée. C'est le
+  CONTENEUR `.hs-wrap` qui porte l'état (`:has(>.hs-row.on)`), le bouton gardant le sien — même
+  couleur, donc aucune couture ; seul son survol s'assombrit au lieu de se teinter, une teinte
+  primaire à 8 % étant invisible sur du primaire plein.
 - **Saillance & registres (audit v4.0.3)** : **un seul bouton rempli** (`--primary` plein) par
   écran — si deux actions coexistent, la moins critique passe en tonal (`--primary-soft`,
   cf. `.btn-new.tonal` : « Créer » s'efface quand « Reprendre » est affiché). **Un seul registre
@@ -2120,6 +2267,15 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   `shareMenuRefresh()` le rejoue : le menu vit dans l'en-tête, hors de `main`, donc pas une ligne
   de la checklist ne bouge. La rangée « Prendre la main » vit dans le menu de L'INVITÉ — elle avait
   été posée dans celui de l'hôte, où sa condition ne pouvait jamais être vraie.
+  **UN MÉCANISME N'EST PAS UN CORRECTIF : IL FAUT AUSSI L'APPELER (v4.73.0, signalé à l'usage —
+  « dans le menu ⋯, partage en cours (n) : n ne se met toujours pas à jour »)** : la v4.55.2 avait
+  donné au menu le moyen de se refaire, et ne s'en servait QUE sur une offre de passation. Le compte
+  de participants, lui, restait celui de l'ouverture de la fiche — c'est-à-dire **zéro** dans le cas
+  normal, où l'on ouvre le partage AVANT que le collègue rejoigne. `shareMenuRefresh()` est donc
+  appelée là où la donnée change : à l'affectation de `Share.participants`, dans le sondage. On
+  compare une **SIGNATURE** et non la longueur (un participant coupé, détaché ou promu change ce que
+  le menu affiche sans changer le nombre de lignes) et on ne refait rien si elle n'a pas bougé — le
+  sondage passe là toutes les deux secondes.
   **UN LIEN MORT REFUSE TOUT, ET LE DIT** (`MUTE_SEL` + `SHARE_DEAD`) : un invité coupé pouvait
   encore incrémenter un compteur ; le geste ne partait pas et RIEN ne le lui disait — mot pour mot
   le pire mode de défaillance du plan. `detached` n'en est PAS : celui qui a poursuivi seul
@@ -2144,6 +2300,31 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   `data-ck` porte cocher *et* décocher, le minuteur armer *ou* arrêter : gardés dans les handlers,
   et pour le cochage par le prédicat **unique** `canToggleStep(on)` appelé aux **deux** copies du
   cœur, celles qui avaient divergé en v4.42.0.
+- **LIEN MORT — L'ÉCRAN DE L'INVITÉ LE DIT, ET SES CONTRÔLES LE MONTRENT (v4.73.0, proposition
+  utilisateur : « améliorer le mode invité lorsque la session est coupée / se termine → tout griser
+  avec un message »)**. Avant, RIEN ne changeait : le quai remplaçait un jeton de sept caractères
+  (« suit » → « fini »), et un geste tenté produisait une annonce INVISIBLE sur `#srLive` — la seule
+  façon d'apprendre qu'on ne recevait plus rien était donc d'essayer quelque chose, et de ne rien
+  voir se passer. C'est le pire mode de défaillance nommé par le plan (« cocher dans le vide en
+  croyant contribuer ») et la donnée périmée présentée comme vivante (ECRI 2015, danger n°2).
+  Le hook `onStatus` **existait sans corps ni assignataire** : rien, dans toute l'interface, ne
+  réagissait à la mort du lien. Il porte désormais `shareOverPaint()`.
+  **TROIS DÉCISIONS ET DEUX REFUS.** (1) Un **bandeau DANS LE FLUX** en tête du contenu, jamais une
+  modale ni une banderole (règle 11 — et l'invité tient encore une fiche qu'il doit pouvoir LIRE) ;
+  il porte la SORTIE (« Quitter le partage… », le geste qui existe déjà), parce qu'un écran figé sans
+  porte est ce que la v4.47.0 s'était donné pour tâche de supprimer. Registre **ATTENTION**, pas
+  ALERTE : une liaison qui s'arrête n'est pas un geste clinique manqué. (2) Les **contrôles prennent
+  l'apparence désactivée**, au patron EXACT de `share-scribe` — c'est cela que « griser » veut dire
+  ici, et c'est le seul greying que WCAG exempte de son seuil. Ils restent CLIQUABLES : la garde doit
+  garder la main pour annoncer le refus. (3) La liste est celle de `MUTE_SEL`, **doublée en CSS avec
+  la mention qui l'exige** (même dispositif que `LEAD_ONLY_SEL`) : si l'une bouge, l'autre doit
+  bouger. **REFUS 1 — le texte clinique n'est PAS grisé** : ce qui est écrit là reste VRAI et utile
+  (c'est le dernier état connu du soin), et l'estomper passerait sous AA — on ne rend pas illisible
+  ce qu'on demande à quelqu'un de continuer à lire. **REFUS 2 — aucune désaturation d'ensemble** :
+  un filtre éteindrait le rouge des étapes vitales et l'ambre des vigilances (règle 8). La CAUSE est
+  dite (« terminé » / « retiré » / « expiré ») parce qu'on n'en tire pas les mêmes conclusions.
+  Peinture **chirurgicale** (`render()` reste interdit sur évènement distant) et à la MÊME place que
+  dans `renderRead`, sinon un re-rendu ultérieur ferait sauter le bandeau de place.
 - **L'INVITÉ NE DÉPOSE RIEN, ET C'EST UNE DÉCISION DE DÉMARRAGE.** Mesuré avant correction :
   `index.html#j=CODE` déposait **3,17 Mo** (deux caches dont pdf.js), une base IndexedDB, quatre
   clés `localStorage`, un service worker, et appelait `navigator.storage.persist()` — **avant** que
@@ -2200,6 +2381,19 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   lit alors deux navigations différentes selon l'endroit ; et `Runtime.seq` doit être relevé au
   maximum des numéros reçus, sinon une visite locale ultérieure réutiliserait un numéro déjà pris,
   donc **deux passages partageraient leurs clés de cochage**.
+  **ON SUIT LE BORD VIF, ET SEULEMENT SI ON Y ÉTAIT (v4.73.0, signalé à l'usage : « quand la session
+  se synchronise et que des cases sont cochées ou des blocs passés, pas de scroll — donc on finit par
+  perdre le bloc actuel »)** : la doctrine d'origine — ne JAMAIS défiler sur un geste qui n'est pas
+  le sien — protégeait un cas et en cassait un autre, celui de quelqu'un qui SUIT la progression et
+  que l'hôte laisse derrière, carte après carte. Le critère n'est donc plus « qui a appuyé » mais **OÙ
+  REGARDAIT-IL** : si le bout du journal était à l'écran avant l'application, il suivait le bord vif
+  et on l'y garde ; s'il avait défilé ailleurs (il consulte un passage antérieur), **rien ne bouge** —
+  `#srLive` et la carte l'informent, comme avant. C'est la règle de visibilité d'`ovAdvanceRender`,
+  appliquée à l'intention CONSTATÉE au lieu de l'être au geste. Le témoin d'`audit-partage` a donc
+  changé de PROPRIÉTÉ, pas de sujet : il mesure désormais les **deux** régimes, et il a fallu placer
+  le bout EN BAS de l'écran pour qu'il soit **capable d'échouer** — centré, `keepAnchor` laissait la
+  nouvelle carte visible même sans suivi, et le contrôle passait au vert sur le défaut qu'il couvre
+  (leçon v4.31.1, vérifié dans les deux sens).
   **LE LECTEUR INVERSE LE RÉGIME** : sa clé d'étape est calculée AU CLIC depuis `state.nav`, jamais
   depuis le DOM peint — une navigation distante arrivant entre le `pointerdown` et le `click` ferait
   cocher **la mauvaise étape**, et le compte-rendu l'imprimerait comme réalisée. Tant que

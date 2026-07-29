@@ -1038,10 +1038,21 @@ console.log(`\n══ PARTAGE · le bridage se VOIT, et les deux listes ne diver
    (grep : aucun site de drainage). Conséquence : l'invité voyait les coches du bloc courant, et
    plus rien ensuite. Le miroir se figeait au premier « Continuer » de l'hôte.
    Deux régimes à vérifier, et ils sont OPPOSÉS À DESSEIN :
-    · lecteur FERMÉ  -> la navigation s'applique, ancrée (rien ne bouge sous le doigt) ;
+    · lecteur FERMÉ  -> la navigation s'applique, ancrée ;
     · lecteur OUVERT -> elle est REFUSÉE et ANNONCÉE. La clé de l'étape y est calculée AU CLIC
       depuis `state.nav` : une navigation qui arrive entre le pointerdown et le click ferait
-      cocher la mauvaise étape, et le compte-rendu l'imprimerait comme réalisée. */
+      cocher la mauvaise étape, et le compte-rendu l'imprimerait comme réalisée.
+
+   CE TÉMOIN A CHANGÉ DE PROPRIÉTÉ, PAS DE SUJET (correctif « le miroir laisse l'invité derrière »).
+   Il mesurait « dérive ≤ 1 px du haut du journal », c'est-à-dire l'invariant « on ne défile JAMAIS
+   sur un geste qui n'est pas le sien ». Cet invariant protégeait un cas et en cassait un autre,
+   signalé à l'usage : quelqu'un qui SUIT la progression se faisait laisser derrière, carte après
+   carte, jusqu'à perdre de vue le bloc en cours. Le critère n'est donc plus « qui a appuyé » mais
+   OÙ REGARDAIT-IL, et il se mesure des DEUX côtés :
+    · le bout du journal était à l'écran  -> il suivait le bord vif, on l'y GARDE (la nouvelle
+      carte doit être visible après le lot) ;
+    · il avait défilé ailleurs           -> RIEN NE BOUGE (dérive ≤ 1 px), comme avant.
+   Un témoin qui ne mesurerait que le second régime laisserait revenir le défaut sans rien dire. */
 console.log(`\n══ PARTAGE · le miroir suit quand l'hôte avance — moteur ${NOM_MOTEUR} ══`);
 {
   const page = await br.newPage({ viewport: { width: 390, height: 844 } });
@@ -1057,6 +1068,17 @@ console.log(`\n══ PARTAGE · le miroir suit quand l'hôte avance — moteur 
     const navApres = Runtime.nav.concat([cible]);
     const seqApres = Runtime.navSeq.concat([(Runtime.seq || 1) + 1]);
 
+    /* RÉGIME 1 — IL SUIT LE BORD VIF. On amène le bout du journal à l'écran, puis on mesure si la
+       nouvelle carte y est APRÈS le lot : c'est la propriété qui manquait, et c'est celle qui
+       empêche de perdre le bloc en cours. */
+    /* Le bout est amené EN BAS de l'écran, pas au centre : c'est ce qui rend le témoin CAPABLE
+       D'ÉCHOUER. `keepAnchor` fige le bout là où il est, donc si on le centrait, la carte suivante
+       resterait visible même SANS suivi — le contrôle passerait au vert sur le défaut qu'il
+       prétend couvrir (leçon v4.31.1). Placé en bas, la nouvelle carte tombe sous le pli, et seule
+       la règle de visibilité peut la ramener. Vérifié : suivi neutralisé -> ce témoin rougit. */
+    const bout0 = [...main.querySelectorAll('.ov-block[data-ovi]')].pop();
+    if (bout0) window.scrollBy(0, bout0.getBoundingClientRect().top - (window.innerHeight - 90));
+    await new Promise(x => setTimeout(x, 200));
     // Témoin de dérive : une carte visible du journal, AVANT l'arrivée du lot.
     const temoin = main.querySelector('.ov-block');
     const avant = temoin ? temoin.getBoundingClientRect().top : null;
@@ -1082,6 +1104,32 @@ console.log(`\n══ PARTAGE · le miroir suit quand l'hôte avance — moteur 
       toasts: document.querySelectorAll('.toast').length - toastsAvant,
       modales: document.querySelectorAll('.ai-modal.on').length,
     };
+    // Le bout du journal — la carte que l'hôte vient de poster — est-il sous les yeux ?
+    {
+      const nb = [...main.querySelectorAll('.ov-block[data-ovi]')].pop();
+      const r2 = nb ? nb.getBoundingClientRect() : null;
+      out.boutVisible = !!r2 && r2.top >= 0 && r2.top < window.innerHeight - 4;
+    }
+
+    /* RÉGIME 2 — IL REGARDE AILLEURS. Même lot, mais l'écran est cette fois loin du bout : rien ne
+       doit bouger d'un pixel. C'est l'ancienne garantie, conservée telle quelle — la nouveauté ne
+       vaut que si elle ne coûte pas celle-là. */
+    {
+      window.scrollTo(0, 0);
+      await new Promise(x => setTimeout(x, 200));
+      const cibleB = blocs.find(id => Runtime.nav.indexOf(id) < 0) || blocs[0];
+      const tA = main.querySelector('.ov-block');
+      const yA = tA ? tA.getBoundingClientRect().top : null;
+      const scA = window.scrollY;
+      Share.onEvents([{ seq: 13, id: 'n3', actor: 'hote', kind: 'nav',
+        payload: { nav: Runtime.nav.concat([cibleB]),
+                   navSeq: Runtime.navSeq.concat([(Runtime.seq || 1) + 1]) } }]);
+      await new Promise(x => setTimeout(x, 500));
+      const tB = main.querySelector('.ov-block');
+      const yB = tB ? tB.getBoundingClientRect().top : null;
+      out.deriveAilleurs = (yA != null && yB != null) ? Math.round(yB - yA) : null;
+      out.scrollAilleurs = Math.round(window.scrollY - scA);
+    }
 
     // ── Lecteur OUVERT : le régime s'inverse.
     readerOpen();
@@ -1108,7 +1156,11 @@ console.log(`\n══ PARTAGE · le miroir suit quand l'hôte avance — moteur 
   t('… l’alias state/Runtime tient', r.aliasIntact === true);
   t('… le compteur de visites ne redescend pas', r.seqMonte === true);
   t('… une carte de plus au journal', r.cartes >= 2, `${r.cartes} carte(s)`);
-  t('… et rien ne bouge sous le doigt (≤ 1 px)', r.derive === null || Math.abs(r.derive) <= 1, `${r.derive} px`);
+  t('… il suivait le bord vif : la nouvelle carte est sous les yeux',
+    r.boutVisible === true, JSON.stringify({ boutVisible: r.boutVisible, derive: r.derive }));
+  t('… il regardait ailleurs : rien ne bouge (≤ 1 px)',
+    (r.deriveAilleurs === null || Math.abs(r.deriveAilleurs) <= 1) && Math.abs(r.scrollAilleurs || 0) <= 1,
+    `${r.deriveAilleurs} px de dérive, ${r.scrollAilleurs} px de défilement`);
   t('… sans banderole ni fenêtre (règle 11)', r.toasts === 0 && r.modales === 0);
   t('lecteur ouvert : la navigation est REFUSÉE', r.lecteurRefuse === true);
   t('… mais elle est ANNONCÉE sur place', r.banniere === true && /avanc/i.test(r.banniereTexte), r.banniereTexte);
