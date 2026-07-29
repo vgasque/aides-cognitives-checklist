@@ -1,5 +1,48 @@
 # Journal des modifications
 
+## [4.73.1] — 2026-07-29
+### La grande police était un trou de couverture
+
+**Les commandes de crise étaient tronquées en grande taille de texte** — « ⤢ Se repérer » coupé net,
+« ⤢ Consulter » hors écran. Deux causes, et la seconde n'avait jamais été nommée dans le projet.
+
+D'abord, **les paliers de compression ne se déclenchaient pas**. Le réglage de taille du texte est un
+`zoom` sur `<html>` : la place réellement disponible pour la mise en page vaut *largeur ÷ zoom* —
+331 px sur un écran de 430 à 130 % — alors qu'une media query continue de mesurer la fenêtre du
+périphérique et répond 430. Les quatre paliers calibrés en v4.30.0 et v4.43.0 restaient donc inertes
+au moment précis où ils sont le plus nécessaires : mesuré, une rangée exigeant **594 px pour 430
+disponibles**, soit 164 px inaccessibles, dans la zone de crise. C'est la règle 10 sous une forme
+qu'on n'avait pas rencontrée — on savait que les *hauteurs* relatives à la fenêtre devaient être
+divisées par le zoom ; les *seuils de largeur* aussi, et le CSS n'a aucun moyen de le faire. Ils
+passent maintenant par des classes posées depuis `innerWidth ÷ zoomF()`. À zoom 1, c'est exactement
+la valeur que la media query lisait : rien ne change là où rien n'allait mal.
+
+Ensuite, **la recette de compression est calibrée pour 320 px**, le plancher servi. À 130 % sur un
+écran de 390, il ne reste que 300 px effectifs — sous ce plancher — et aucune marge ne peut plus
+rendre les pixels manquants. Le choix n'est alors plus « compresser ou déborder » mais « un libellé
+inaccessible ou une seconde ligne ». On prend la seconde ligne, et **la décision est une mesure, pas
+un seuil** : la rangée est remise à plat, son débordement réel est lu, et elle n'enroule que s'il
+existe — même méthode que l'ajustement du quai, où les seuils en dur s'étaient déjà révélés faux. La
+coupure tombe sur l'écart de Gestalt, qui devient le saut de ligne : le mode d'un côté, les deux
+ouvertures de l'autre. Rien n'est sacrifié pour tenir — ni l'ordre, ni un libellé, ni une cible de
+44 px. La doctrine « pas de 2ᵉ ligne » n'est pas enfreinte : elle vise le coût *permanent* d'une
+rangée qui s'épaissirait pour tout le monde, alors qu'ici la seconde ligne n'apparaît que sur une
+configuration où la rangée débordait vraiment. Les paliers restent utiles : mesuré, ils évitent
+l'enroulement dans 4 configurations sur 20.
+
+**Et « VOUS ÊTES ICI » était coupée par le bord gauche de sa carte.** Les trois objets de la ligne
+d'état sont tous insécables, donc incompressibles, et `justify-content:flex-end` fait déborder par le
+côté opposé : c'était le *premier* objet qui sortait de la carte — là où aucun défilement ne peut le
+rattraper. La ligne s'enroule, s'aligne au début, et c'est le premier bouton qui pousse les autres à
+droite : aspect identique tant que tout tient sur une ligne, et la pilule ne se déplace jamais,
+puisque c'est un état.
+
+Le témoin de doctrine ne mesurait qu'à zoom 1 — c'était le trou. Il mesure désormais 390 et 430 px
+**aux quatre paliers de taille du texte**, et vérifie en plus que les libellés sont intacts : sans
+cette seconde moitié, un futur « correctif » passerait le contrôle en masquant les mots. Vérifié
+capable d'échouer. 809 tests, doctrine **128/128** (les 5 rognages que la v4.73.0 laissait rouges
+dans l'environnement d'intégration sont couverts par la mesure), a11y 301/301, quinze harnais verts.
+
 ## [4.73.0] — 2026-07-29
 ### Douze retours d'usage : sept défauts, cinq améliorations
 
@@ -893,79 +936,3 @@ question. Identique à l'écran et à l'impression.
 Vérifié : `npm run check`, 780 tests × 2 moteurs, a11y **301/301 sur Chromium ET WebKit**
 (contrastes recalculés sur le fond effectif dans les deux thèmes), doctrine 112/112, zoom-scroll
 6/6, consulter 8/8, modeseg 2/2, lecteur 13/13. Rien à rejouer côté serveur.
-
-## [4.56.3] — 2026-07-29
-### Audit de design externe — le lot applicable, mesuré et posé
-
-Audit sur 25 captures (1 constat P1, 7 P2, 12 P3, plus des pistes D/E/F/G/H/I/K). Tout ce qui
-tenait aux tokens existants, sans rouvrir de décision figée ni créer de capacité, est appliqué ;
-les pistes marquées DÉCISION restent à trancher une par une.
-
-### Zone de crise
-- **Critères diagnostiques en lignes à filet** (P1-1) — une boîte encadrée par critère
-  contredisait la doctrine des listes (« normal = ligne, signalé = boîte ») et repoussait
-  « ▶ Confirmé — démarrer la session » loin sous le pli. **53 px rendus, mesurés** sur une fiche à
-  critères de deux lignes. Le reste de la distance tient à la RÉDACTION, désormais outillée :
-- **le garde-fou du chapeau dit aussi le rappel TROP LONG** (110 c., le seuil télégraphique des
-  challenges). Mesuré : quatre rappels dont un composé pèsent 221 px à 360 px — c'est la longueur
-  autant que le nombre qui pousse la première action hors de l'écran. Non bloquant, registre
-  ATTENTION. `nfGuardTxt` accepte désormais le tableau (le nombre reste toléré).
-- **G1 — une action cochable = une ligne** : l'éditeur signale une étape qui cumule des actions
-  (« · » ou « + » entourés d'espaces, ≥ 2 dans la partie CHALLENGE ; la réponse « :: » a le droit
-  d'énumérer, c'est une valeur). Doctrine QRH : sinon on coche « à moitié fait ».
-- **Cartes minuteur** (P2-1) : le nom passe en casse de phrase 13,5/700 et la précision entre
-  parenthèses finales est reléguée en méta 12 px (`tmLabelParts`, pure testée) — un nom long en
-  petites capitales se déchiffre lettre à lettre, l'inverse du besoin en crise. Le libellé complet
-  reste dans les `aria-label`.
-- **Le temps dit l'état** (P2-7) : encre à l'arrêt, `--link` EN COURS, ambre échu. `--link` est
-  doctrinalement « le temps d'un minuteur en cours » — le défaut disait le contraire.
-- **Compteurs** (P2-5) : « + » tonal et large, « − » contour compact (≥ 44 px). En session on
-  incrémente dix fois pour une correction ; l'action fréquente prend la masse, jamais un rempli.
-- **Une seule ligne d'état** dans le bloc actif (P2-2) : « Vous êtes ici » à gauche,
-  Lecteur/Vérifier à droite — **−52 px par bloc actif**, là où deux rangées de chrome flottaient
-  entre le titre et la première étape.
-- **Rangées d'étape à 60 px** (D1) : le 44 px doctrinal est un minimum, pas un optimum — un pouce
-  ganté dans une ambulance en mouvement ne vise pas une case de 24 px. La rangée entière cochait
-  déjà ; seule sa hauteur change.
-- **Acquittement haptique** (D10) : ~18 ms au cochage et à l'incrément (`tick()`). Avec des gants,
-  dans le bruit, la confirmation tactile évite le double-tap de doute — qui sur un compteur
-  FAUSSE la donnée. Inerte sur iOS, qui n'expose pas l'API Vibration.
-- **Pilule posologique insécable** en statique (D8) ; `tabular-nums` sur les nombres d'état (D11).
-
-### Hors crise
-- **Fenêtre Compte** : tuiles d'état **neutres** (P3-1 — `--primary-soft` est la teinte des
-  boutons tonals : de la lecture seule s'y donnait l'air cliquable) et **une ligne de conséquence
-  par réglage**, la garantie clé en gras, le texte existant CONSERVÉ sous « En savoir plus ».
-- **Hors ligne annoncé en neutre** (D7) : « Hors ligne — tout fonctionne sur l'appareil » au pied.
-  C'est un état NOMINAL — l'ambre reste à l'échec d'action réseau explicite. `storageState` reste
-  PURE : l'état entre par l'instantané, relu à la peinture et aux évènements réseau.
-- P3-2 (glyphe « Avec l'IA » au registre INFORMATION), P3-3 (« Cycle »/« Chrono » en pilule
-  neutre), P3-4 (« Synchronisé · 11:12 » — le mot ne se dit qu'une fois), P3-5 (« console
-  d'administration » remplace le jargon d'infrastructure), P3-6 (colonnes de temps du compte-rendu
-  en mono tabulaire), P3-8 (secondes retirées des listes de sessions, `sessStamp`), P3-11 (pied
-  d'accueil : le nominal permanent n'affirme plus en vert), P3-12 (pilule de catégorie neutre dans
-  Consulter), P3-13 (« Terminer » du bandeau de reprise en contour, cible 44 px), P3-14
-  (placeholder de date, compte à rebours du code en `--verify` sous 30 s).
-
-### Écarté, et pourquoi
-**G2** — « ✓ Bloc n complet — Continuer vers X » — a été implémenté puis **retiré sur décision
-utilisateur** : le bouton passe déjà au registre CONFIRMATION quand tout est coché, les cases le
-disent, et deux formules pour un même geste sont exactement ce qu'AC 120-71B proscrit. Le libellé
-reste « Continuer — X → », **identique aux deux sites** (journal et vue guidée).
-
-### Un constat d'audit qui visait la doctrine, pas le code
-**P2-3** signalait le segment « ⤢ Plan » absent du quai sur toutes les captures. Il l'était en
-effet : « Se repérer » a quitté le quai en **v4.25.0** pour la rangée de commandes (architecture
-ECP/ECAM). C'est AGENTS.md qui était périmé — deux de ses sections se contredisaient depuis. La
-formulation « ORDRE FIXE ⤢ Plan · ● Session · minuteurs » est corrigée. **P2-4** (invité lisant
-« ■ MODE CRISE ») est vérifié **conforme** : le placard « ▪ Vous suivez » est livré depuis v4.55.4.
-
-### Non engagé
-Les pistes marquées DÉCISION dans l'audit — D2 (« Contraste + », thème vraie nuit), D3 (mode
-moniteur), E7 (valeur de `--bg`), F4 (cockpit 3 zones), F5 (police embarquée), F6 (tête de bilan),
-H (concepts d'en-tête B/C), I (restructuration de la vue de lecture), K (refonte des éditeurs) —
-créent une capacité, touchent un token ou ouvrent un chantier : à trancher séparément.
-
-Vérifié : `npm run check`, **780 tests × 2 moteurs** (+14), a11y **301/301 sur Chromium ET
-WebKit**, doctrine 112/112, vérification 8/8, lecteur 13/13, historique 16/16, partage 294/294,
-et les 14 harnais verts. Rien à rejouer côté serveur.

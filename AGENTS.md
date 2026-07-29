@@ -58,6 +58,13 @@ ne s'apprend en lisant le code** — elles viennent d'incidents mesurés, et plu
 10. **Toute hauteur relative à la fenêtre s'écrit `calc(100dvh / var(--zf,1))`.** Le réglage de
     taille du texte est un `zoom` sur `<html>` : un `vh` nu se fait agrandir par lui et le bas de
     l'écran devient inatteignable. Idem pour toute mesure JS réinjectée : diviser par `zoomF()`.
+    **ET LES SEUILS DE LARGEUR NE SONT PAS DES MEDIA QUERIES (v4.73.1)** : sous zoom, la mise en
+    page dispose de `largeur ÷ zoom` (331 px sur un écran de 430 à 130 %) alors qu'une media query
+    mesure la fenêtre du PÉRIPHÉRIQUE et répond 430 — un palier de compression ne se déclenche donc
+    jamais quand on en a le plus besoin. Les paliers de la rangée de commandes passent par les
+    classes `html.zw560/430/400/360` posées par `syncZoomWidth()` ; à zoom 1 elles sont l'équivalent
+    exact des `max-width` qu'elles remplacent. `@container` est ÉCARTÉ : `container-type` implique
+    `contain:layout`, donc casserait tout descendant `fixed`.
 11. **Le mode crise n'est jamais interrompu** : aucune modale, aucune synchro intrusive, aucun
     défilement automatique, aucune notification flottante. Une alarme s'annonce sur place.
 12. **Ne jamais supprimer un champ du modèle** fiche / catégorie / protocole : un export v3 doit
@@ -997,6 +1004,31 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   `audit-doctrine` mesure la rangée de crise à **320/360/375/390** avec, en plus du hors-écran, un
   contrôle de **rognage par le conteneur** (un bouton peut tenir dans la fenêtre tout en étant
   coupé par sa boîte de contenu — c'est ce qui se produisait), et la barre d'éditeur à 320/360.
+- **LA GRANDE POLICE ÉTAIT LE TROU DE COUVERTURE (v4.73.1, signalé à l'usage : « en mode grande
+  police, souci d'affichage de l'en-tête, les boutons sont tronqués »)** — « ⤢ Se repérer » coupé net
+  et « ⤢ Consulter » hors écran. Deux causes, et la seconde n'avait jamais été nommée :
+  (1) **les paliers de compression ne se déclenchaient pas** — cf. règle 10, une media query mesure
+  le périphérique et non la place réellement disponible sous `zoom` ; mesuré à 430 × 130 % : rangée
+  exigeant **594 px** pour 430, soit 164 px inaccessibles, dans la zone de crise. (2) **La recette de
+  compression est calibrée pour 320 px**, le plancher servi : à 130 % sur un écran de 390 il ne reste
+  que 300 px effectifs, sous ce plancher, et aucune marge ne peut plus rendre les pixels manquants.
+  **DERNIER RECOURS : LA RANGÉE S'ENROULE, ET C'EST MESURÉ, PAS SEUILLÉ.** `fitCtrlRow()` remet la
+  rangée à plat, lit son débordement RÉEL (bord droit du dernier enfant contre le bord de la BOÎTE DE
+  CONTENU — `scrollWidth` ne compte pas le rembourrage de droite et ratait un rognage de 3 px que la
+  sonde de doctrine voyait) et n'enroule que s'il existe. Aucun seuil de largeur en dur : ceux
+  essayés pour le quai s'étaient révélés FAUX, et ici ils dépendraient en plus de la fonte du
+  système et de la longueur des libellés. La coupure tombe sur `.ctrl-sp`, qui devient le SAUT DE
+  LIGNE : il sépare toujours le MODE des OUVERTURES, et mieux que 4 px — sans cela la coupure
+  séparait les deux ouvertures, c'est-à-dire les deux contrôles de MÊME nature.
+  **LA DOCTRINE « PAS DE 2ᵉ LIGNE » N'EST PAS ENFREINTE** : elle vise le coût PERMANENT d'une rangée
+  qui s'épaissirait pour tout le monde ; ici la seconde ligne n'existe que quand la rangée déborde
+  vraiment, donc jamais sur une configuration où la compression suffit. Les paliers RESTENT et ne
+  sont pas redondants — mesuré, ils évitent l'enroulement dans 4 configurations sur 20. Rien n'est
+  sacrifié pour tenir : ordre, libellés entiers, cibles de 44 px, positions constantes.
+  Témoin : `audit-doctrine` mesure désormais **390 et 430 px aux quatre paliers de taille du
+  texte**, et vérifie EN PLUS que les libellés sont intacts — sans cette seconde moitié, un futur
+  « correctif » passerait le contrôle en masquant les mots. Vérifié capable d'échouer (enroulement
+  neutralisé → 10 rouges, dont 5 des nouveaux).
 - **DÉFILEMENT PRÉSERVÉ, PAS RECONSTRUIT (v4.23.5, plusieurs retours d'usage)** — trois surfaces
   ont chacune leur propre défilement qu'un `render()` (qui reconstruit le DOM) remettait à zéro :
   (1) le RAIL de lecture `.read-side` (`overflow-y:auto`) « remontait » dès qu'on touchait un bouton
@@ -1244,7 +1276,14 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   `--link` EN COURS** (P2-7 — le canal couleur disait le contraire de l'état ; **graisse ramenée à
   500 en v4.73.0**, cf. « L'ÉTAT NE CRIE PAS PLUS FORT QUE L'ACTION » ci-dessous) ; « + » de compteur
   **tonal et large**, « − » contour compact (on incrémente 10 fois pour 1 correction) ;
-  « Vous êtes ici » et Lecteur/Vérifier sur **une seule ligne d'état** (−52 px par bloc actif) ;
+  « Vous êtes ici » et Lecteur/Vérifier sur **une seule ligne d'état** (−52 px par bloc actif ;
+  **elle s'ENROULE depuis la v4.73.1** — signalé à l'usage en grande police, où « VOUS ÊTES ICI »
+  était coupée par le bord GAUCHE de la carte. Ses trois objets sont tous en `nowrap` et ne peuvent
+  donc pas se rétrécir, et `justify-content:flex-end` fait déborder par le côté OPPOSÉ, c'est-à-dire
+  par le DÉBUT : c'était le PREMIER objet qui sortait de la carte, là où aucun défilement ne peut le
+  rattraper. On enroule, on aligne au début, et c'est le premier BOUTON qui porte le
+  `margin-left:auto` — aspect identique tant que tout tient sur une ligne, boutons toujours à droite
+  quand ils passent à la ligne, et la pilule ne se déplace jamais : c'est un état) ;
   rangées d'étape à **60 px** (D1 — le 44 px doctrinal est un minimum, pas un optimum, et un
   pouce ganté ne vise pas une case de 24 px) ; **acquittement haptique** ~18 ms au cochage et à
   l'incrément (D10, `tick()` — inerte sur iOS, qui n'expose pas l'API) ; pilule posologique du

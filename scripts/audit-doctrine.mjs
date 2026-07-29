@@ -162,6 +162,41 @@ console.log('\n══ ECAM · rangée de commandes sans rognage (320/360/375/390
     t(`aucun rognage par le conteneur à ${w} px`, r.right<=r.bordInterne+0.5&&r.deborde<=0.5,
       `dernier bouton à ${r.right} px, bord interne ${r.bordInterne} px, débordement ${r.deborde} px`);
   }
+  /* ET SOUS LA PLUS GRANDE TAILLE DE TEXTE — le trou de couverture qui a produit le défaut
+     (v4.73.1, signalé à l'usage : « ⤢ Se repérer » coupé, « ⤢ Consulter » hors écran). Ce témoin
+     ne mesurait qu'à zoom 1, alors que le réglage de taille du texte est un `zoom` sur `<html>` :
+     la place réellement disponible vaut `largeur ÷ zoom` (331 px sur un écran de 430 à 130 %) et
+     AUCUN palier `max-width` ne s'y déclenche, puisqu'une media query mesure la fenêtre du
+     périphérique. On mesure donc les mêmes deux propriétés aux quatre paliers de taille du texte,
+     sur les deux largeurs de téléphone les plus courantes. La géométrie est lue en px VISUELS des
+     deux côtés (rects contre rects), donc comparable sans division. */
+  for(const w of [390,430]){
+    await page.setViewportSize({width:w,height:820});
+    for(const z of [90,100,115,130]){
+      const r=await page.evaluate(async(z)=>{applyZoom(z);render();
+        await new Promise(x=>setTimeout(x,260));
+        const btns=[...document.querySelectorAll('#crisisCtrl button')].filter(b=>b.offsetParent);
+        const right=Math.max(...btns.map(b=>b.getBoundingClientRect().right));
+        const din=document.querySelector('#crisisCtrl .dock-in');
+        const db=din.getBoundingClientRect(),ds=getComputedStyle(din);
+        const zf=(parseFloat(document.documentElement.style.zoom)||100)/100;
+        return {right:+right.toFixed(1),vw:innerWidth,
+          bordInterne:+(db.right-parseFloat(ds.paddingRight)*zf).toFixed(1),
+          eff:Math.round(innerWidth/zf),
+          libelles:btns.map(b=>b.textContent.trim()).join('|')};},z);
+      t(`${w} px à ${z} % : aucun bouton de commande rogné`,
+        r.right<=r.vw+0.5&&r.right<=r.bordInterne+0.5,
+        `bord droit ${r.right} px, bord interne ${r.bordInterne} px, viewport ${r.vw} px (${r.eff} px effectifs)`);
+      /* AUCUN LIBELLÉ N'EST SACRIFIÉ POUR TENIR : c'est la seconde moitié de l'invariant, et sans
+         elle un futur « correctif » pourrait faire passer le premier en masquant les mots — ce que
+         la doctrine interdit explicitement (« deux pictogrammes voisins sans mot se confondent sous
+         stress »). On exige que chaque bouton porte encore du texte. */
+      t(`${w} px à ${z} % : les libellés sont intacts`,
+        /Guid/.test(r.libelles)&&/Statique/.test(r.libelles)&&/rep.rer/.test(r.libelles)&&/Cons/.test(r.libelles),
+        r.libelles);
+    }
+  }
+  await page.evaluate(()=>applyZoom(100));
   await page.close();
 }
 

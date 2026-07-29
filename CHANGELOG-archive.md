@@ -1,4 +1,80 @@
-# Journal des modifications — archive (versions 3.0.0 à 4.56.2)
+# Journal des modifications — archive (versions 3.0.0 à 4.56.3)
+
+## [4.56.3] — 2026-07-29
+### Audit de design externe — le lot applicable, mesuré et posé
+
+Audit sur 25 captures (1 constat P1, 7 P2, 12 P3, plus des pistes D/E/F/G/H/I/K). Tout ce qui
+tenait aux tokens existants, sans rouvrir de décision figée ni créer de capacité, est appliqué ;
+les pistes marquées DÉCISION restent à trancher une par une.
+
+### Zone de crise
+- **Critères diagnostiques en lignes à filet** (P1-1) — une boîte encadrée par critère
+  contredisait la doctrine des listes (« normal = ligne, signalé = boîte ») et repoussait
+  « ▶ Confirmé — démarrer la session » loin sous le pli. **53 px rendus, mesurés** sur une fiche à
+  critères de deux lignes. Le reste de la distance tient à la RÉDACTION, désormais outillée :
+- **le garde-fou du chapeau dit aussi le rappel TROP LONG** (110 c., le seuil télégraphique des
+  challenges). Mesuré : quatre rappels dont un composé pèsent 221 px à 360 px — c'est la longueur
+  autant que le nombre qui pousse la première action hors de l'écran. Non bloquant, registre
+  ATTENTION. `nfGuardTxt` accepte désormais le tableau (le nombre reste toléré).
+- **G1 — une action cochable = une ligne** : l'éditeur signale une étape qui cumule des actions
+  (« · » ou « + » entourés d'espaces, ≥ 2 dans la partie CHALLENGE ; la réponse « :: » a le droit
+  d'énumérer, c'est une valeur). Doctrine QRH : sinon on coche « à moitié fait ».
+- **Cartes minuteur** (P2-1) : le nom passe en casse de phrase 13,5/700 et la précision entre
+  parenthèses finales est reléguée en méta 12 px (`tmLabelParts`, pure testée) — un nom long en
+  petites capitales se déchiffre lettre à lettre, l'inverse du besoin en crise. Le libellé complet
+  reste dans les `aria-label`.
+- **Le temps dit l'état** (P2-7) : encre à l'arrêt, `--link` EN COURS, ambre échu. `--link` est
+  doctrinalement « le temps d'un minuteur en cours » — le défaut disait le contraire.
+- **Compteurs** (P2-5) : « + » tonal et large, « − » contour compact (≥ 44 px). En session on
+  incrémente dix fois pour une correction ; l'action fréquente prend la masse, jamais un rempli.
+- **Une seule ligne d'état** dans le bloc actif (P2-2) : « Vous êtes ici » à gauche,
+  Lecteur/Vérifier à droite — **−52 px par bloc actif**, là où deux rangées de chrome flottaient
+  entre le titre et la première étape.
+- **Rangées d'étape à 60 px** (D1) : le 44 px doctrinal est un minimum, pas un optimum — un pouce
+  ganté dans une ambulance en mouvement ne vise pas une case de 24 px. La rangée entière cochait
+  déjà ; seule sa hauteur change.
+- **Acquittement haptique** (D10) : ~18 ms au cochage et à l'incrément (`tick()`). Avec des gants,
+  dans le bruit, la confirmation tactile évite le double-tap de doute — qui sur un compteur
+  FAUSSE la donnée. Inerte sur iOS, qui n'expose pas l'API Vibration.
+- **Pilule posologique insécable** en statique (D8) ; `tabular-nums` sur les nombres d'état (D11).
+
+### Hors crise
+- **Fenêtre Compte** : tuiles d'état **neutres** (P3-1 — `--primary-soft` est la teinte des
+  boutons tonals : de la lecture seule s'y donnait l'air cliquable) et **une ligne de conséquence
+  par réglage**, la garantie clé en gras, le texte existant CONSERVÉ sous « En savoir plus ».
+- **Hors ligne annoncé en neutre** (D7) : « Hors ligne — tout fonctionne sur l'appareil » au pied.
+  C'est un état NOMINAL — l'ambre reste à l'échec d'action réseau explicite. `storageState` reste
+  PURE : l'état entre par l'instantané, relu à la peinture et aux évènements réseau.
+- P3-2 (glyphe « Avec l'IA » au registre INFORMATION), P3-3 (« Cycle »/« Chrono » en pilule
+  neutre), P3-4 (« Synchronisé · 11:12 » — le mot ne se dit qu'une fois), P3-5 (« console
+  d'administration » remplace le jargon d'infrastructure), P3-6 (colonnes de temps du compte-rendu
+  en mono tabulaire), P3-8 (secondes retirées des listes de sessions, `sessStamp`), P3-11 (pied
+  d'accueil : le nominal permanent n'affirme plus en vert), P3-12 (pilule de catégorie neutre dans
+  Consulter), P3-13 (« Terminer » du bandeau de reprise en contour, cible 44 px), P3-14
+  (placeholder de date, compte à rebours du code en `--verify` sous 30 s).
+
+### Écarté, et pourquoi
+**G2** — « ✓ Bloc n complet — Continuer vers X » — a été implémenté puis **retiré sur décision
+utilisateur** : le bouton passe déjà au registre CONFIRMATION quand tout est coché, les cases le
+disent, et deux formules pour un même geste sont exactement ce qu'AC 120-71B proscrit. Le libellé
+reste « Continuer — X → », **identique aux deux sites** (journal et vue guidée).
+
+### Un constat d'audit qui visait la doctrine, pas le code
+**P2-3** signalait le segment « ⤢ Plan » absent du quai sur toutes les captures. Il l'était en
+effet : « Se repérer » a quitté le quai en **v4.25.0** pour la rangée de commandes (architecture
+ECP/ECAM). C'est AGENTS.md qui était périmé — deux de ses sections se contredisaient depuis. La
+formulation « ORDRE FIXE ⤢ Plan · ● Session · minuteurs » est corrigée. **P2-4** (invité lisant
+« ■ MODE CRISE ») est vérifié **conforme** : le placard « ▪ Vous suivez » est livré depuis v4.55.4.
+
+### Non engagé
+Les pistes marquées DÉCISION dans l'audit — D2 (« Contraste + », thème vraie nuit), D3 (mode
+moniteur), E7 (valeur de `--bg`), F4 (cockpit 3 zones), F5 (police embarquée), F6 (tête de bilan),
+H (concepts d'en-tête B/C), I (restructuration de la vue de lecture), K (refonte des éditeurs) —
+créent une capacité, touchent un token ou ouvrent un chantier : à trancher séparément.
+
+Vérifié : `npm run check`, **780 tests × 2 moteurs** (+14), a11y **301/301 sur Chromium ET
+WebKit**, doctrine 112/112, vérification 8/8, lecteur 13/13, historique 16/16, partage 294/294,
+et les 14 harnais verts. Rien à rejouer côté serveur.
 
 ## [4.56.2] — 2026-07-28
 ### Le badge « En cours » trouve sa place — et un bug WebKit de grille est neutralisé

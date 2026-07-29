@@ -496,7 +496,7 @@
      blanc part au bord droit). Un écart constant garde en prime des POSITIONS IDENTIQUES quelle
      que soit la largeur — la constance positionnelle ECAM, appliquée aussi entre appareils. */
   .ctrl-sp{flex:none;width:22px}
-  @media (max-width:429.98px){.ctrl-sp{width:12px}}
+  html.zw430 .ctrl-sp{width:12px}
   /* La bascule de mode : sélecteur segmenté (deux MODES pairs, jamais un interrupteur — aucun
      n'est la négation de l'autre). Même composant .seg que la tab bar, donc même pastille
      glissante ; l'élément n'étant plus re-rendu, la transition joue toute seule. */
@@ -579,12 +579,36 @@
      s'y perd »). Le mot tronqué reste reconnaissable, l'identité du bouton ne change pas. Objectif
      mesuré : rendre au quai la largeur d'un segment de minuteur en étroit. */
   .dock-plan .dp-ab{display:none}
-  @media (max-width:559.98px){.dock-plan .dp-full{display:none}.dock-plan .dp-ab{display:inline}}
+  html.zw560 .dock-plan .dp-full{display:none}
+  html.zw560 .dock-plan .dp-ab{display:inline}
   /* Le libellé « Plan » ne disparaît à AUCUNE largeur : le glyphe ⤢ jouxte le chevron ▾ des
      minuteurs, et deux pictogrammes voisins sans mot se confondent sous stress. Ce sont les
      segments de minuteurs qui cèdent la place (ils s'ellipsent déjà). */
-  @media (max-width:429.98px){.dock-plan{padding:0 10px;gap:5px;font-size:13.5px}}
-  /* SOUS 400 px (v4.30.0, audit externe — MESURÉ) : la rangée de commandes exigeait 386 px — à
+  html.zw430 .dock-plan{padding:0 10px;gap:5px;font-size:13.5px}
+  /* ═══ LES PALIERS DE LA RANGÉE DE COMMANDES NE SONT PLUS DES MEDIA QUERIES (v4.73.1) ══════════
+     Signalé à l'usage, EN GRANDE POLICE : « ⤢ Se repérer » coupé net et « ⤢ Consulter » hors
+     écran. Le réglage de taille du texte est un `zoom` sur `<html>` : la place réellement
+     disponible pour la mise en page vaut donc `largeur ÷ zoom` — 331 px sur un écran de 430 à
+     130 % — alors qu'une media query, elle, continue de mesurer la fenêtre du PÉRIPHÉRIQUE et
+     répond 430. Les trois paliers de compression (560 / 430 / 400 / 360) ne se déclenchaient donc
+     JAMAIS sous zoom, au moment précis où ils sont le plus nécessaires. Mesuré à 430 × 130 % :
+     rangée exigeant 594 px visuels pour 430 disponibles, soit 164 px inaccessibles — le même
+     débordement SILENCIEUX que la v4.30.0 et la v4.43.0 ont corrigé à zoom 1, et dans la même
+     zone de crise.
+     C'est la règle 10 sous une forme qu'on n'avait pas encore rencontrée : on savait que les
+     HAUTEURS relatives à la fenêtre devaient être divisées par `--zf` ; les SEUILS de largeur le
+     doivent aussi, et le CSS n'a aucun moyen de le faire (une media query ne connaît pas `--zf`).
+     Les paliers passent donc par des classes posées sur `<html>` par `syncZoomWidth()`, à partir
+     de `innerWidth ÷ zoomF()`. **À zoom 1, `innerWidth ÷ 1` EST la largeur de la media query** :
+     le comportement est identique au pixel, rien ne change là où rien n'allait mal.
+     `@container` a été envisagé et ÉCARTÉ : `container-type:inline-size` implique
+     `contain:layout`, ce qui fait de l'ancêtre un bloc conteneur pour les descendants `fixed` —
+     donc casserait le menu ⋯, les overlays plein écran et le placard hachuré. Le projet a déjà
+     payé ce piège (« fixed dans un ancêtre transformé », v4.21.0).
+     L'ORDRE DE DÉCLARATION DÉCIDE TOUJOURS, comme avec les media queries : `zw360` est déclarée
+     APRÈS `zw400`, à spécificité égale (0,2,0 contre 0,2,0). Ne pas les intervertir — c'est le
+     même piège que les blocs 359.98/399.98 qu'elles remplacent, avec les mêmes conséquences.
+     SOUS 400 px (v4.30.0, audit externe — MESURÉ) : la rangée de commandes exigeait 386 px — à
      375 px (iPhone SE/mini) 11 px du bouton « Cons. » étaient ROGNÉS, 26 px à 360 px (Android
      standard), sans défilement horizontal : des pixels INACCESSIBLES. Un débordement SILENCIEUX,
      précisément la catégorie d'écart que ce projet s'interdit (ECAM), dans la zone de crise
@@ -593,13 +617,11 @@
      hauteur de crise est un coût permanent). Mesuré après correctif : ~346 px à 360. Bloc déclaré
      APRÈS les règles 429.98 px (spécificité égale : l'ordre décide — 4ᵉ piège de cascade du
      projet, cf. .cbt-n v4.23.5). Harnais : audit-doctrine « rangée de commandes sans rognage ». */
-  @media (max-width:399.98px){
-    #crisisCtrl .dock-in{gap:6px;padding:6px 8px}
-    .ctrl-sp{width:4px}
-    #modeSeg .seg-btn{padding:6px 7px}
-    .dock-plan{padding:0 8px;gap:4px}
-    .dock-plan .dp-ic svg{width:11px;height:11px}
-  }
+  html.zw400 #crisisCtrl .dock-in{gap:6px;padding:6px 8px}
+  html.zw400 .ctrl-sp{width:4px}
+  html.zw400 #modeSeg .seg-btn{padding:6px 7px}
+  html.zw400 .dock-plan{padding:0 8px;gap:4px}
+  html.zw400 .dock-plan .dp-ic svg{width:11px;height:11px}
   /* 320 px SERVI (v4.43.0, décision utilisateur) — WCAG 1.4.10 « Reflow » fixe le plancher à
      320 px, et la rangée y exigeait 348 px : 28 px de contenu ROGNÉS, sans défilement, dans la
      zone de crise. Le bouton restait opérable (44 px visibles, aria-label intact) mais se lisait
@@ -617,11 +639,35 @@
      permanent). Les positions restent constantes entre appareils : seules les MARGES bougent.
      Déclaré APRÈS le bloc 399.98 (spécificité égale, l'ordre décide — 5ᵉ piège de cascade du
      projet). Harnais : audit-doctrine mesure désormais 320 en plus de 360/375/390. */
-  @media (max-width:359.98px){
-    #crisisCtrl .dock-in{gap:4px;padding:6px 4px}
-    #modeSeg .seg-btn{padding:6px 4px}
-    .dock-plan{padding:0 5px}
-  }
+  html.zw360 #crisisCtrl .dock-in{gap:4px;padding:6px 4px}
+  html.zw360 #modeSeg .seg-btn{padding:6px 4px}
+  html.zw360 .dock-plan{padding:0 5px}
+  /* QUAND LA COMPRESSION NE SUFFIT PLUS, LA RANGÉE S'ENROULE — ET C'EST MESURÉ, PAS SEUILLÉ
+     (v4.73.1). La recette de compression (v4.30.0, v4.43.0) est calibrée pour le PLANCHER SERVI,
+     320 px. À 130 % sur un écran de 390, la mise en page n'a que 300 px effectifs — sous ce
+     plancher — et aucun réglage de marge ne peut plus rendre les pixels manquants. Le choix n'est
+     donc plus « compresser ou déborder » mais « un libellé inaccessible ou une seconde ligne ».
+     On prend la seconde ligne : quelqu'un qui a choisi la plus GRANDE taille de texte a déjà
+     accepté d'échanger de la hauteur contre de la lisibilité — c'est la seule lecture cohérente de
+     son réglage. La doctrine « pas de 2ᵉ ligne » vise le coût PERMANENT d'une rangée qui
+     s'épaissirait pour tout le monde ; ici elle n'apparaît que lorsque la rangée déborde VRAIMENT.
+     LA DÉCISION EST UNE MESURE, exactement comme celle du quai (« on écrit, et tant que ça déborde
+     on retire un segment ») : `fitCtrlRow()` remet la rangée à plat, lit son débordement réel, et
+     n'enroule que s'il existe. Aucun seuil de largeur en dur — ceux qui avaient été essayés pour le
+     quai se sont révélés FAUX, et ici ils dépendraient en plus de la fonte du système, de la
+     longueur des libellés et du zoom. Corollaire : le comportement de tous les appareils servis
+     reste inchangé au pixel, puisqu'il n'y a rien à enrouler quand rien ne déborde.
+     CE QUI EST PRÉSERVÉ : l'ORDRE (mode d'abord — il gouverne l'existence de « Se repérer »), les
+     libellés ENTIERS (aucun renommage, aucun pictogramme orphelin : « deux pictogrammes voisins
+     sans mot se confondent sous stress »), les cibles de 44 px, et la constance positionnelle —
+     dans une configuration donnée, tout reste au même endroit. */
+  #crisisCtrl .dock-in.wrapped{flex-wrap:wrap;row-gap:6px}
+  /* LA COUPURE TOMBE OÙ L'ÉCART TOMBAIT. `.ctrl-sp` n'est pas supprimé, il devient le SAUT DE
+     LIGNE : il sépare toujours le MODE des OUVERTURES, et il le fait mieux que 4 px. Sans cela, la
+     coupure se plaçait où elle voulait — mesuré : « Se repérer » restait avec le mode et
+     « Consulter » descendait seul, ce qui séparait les deux ouvertures, c'est-à-dire exactement les
+     deux contrôles de même nature (Gestalt de proximité, raison d'être de cet écart en v4.25.0). */
+  #crisisCtrl .dock-in.wrapped .ctrl-sp{flex:0 0 100%;width:auto;height:0}
   #cbTimers[hidden]{display:none}
   #cbTimers:not([hidden]){display:flex}
   #cbTimers:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
@@ -2260,8 +2306,20 @@
   /* P2-2 (audit design v4.56) : UNE seule ligne d'état — pilule « Vous êtes ici » à gauche,
      Lecteur/Vérifier à droite (−52 px par bloc actif ; la rangée vide flottait en plein cœur de
      la zone balayée par l'œil). */
-  .ov-acts{flex:1 1 100%;display:flex;gap:8px;align-items:center;justify-content:flex-end;padding:0 12px 10px}
-  .ov-acts .ov-here{margin-right:auto}   /* Lecteur/Vérifier côte à côte SOUS le titre ; le rembourrage REMPLACE la marge que portaient les boutons — sans lui ils touchaient le bord droit et le bas de la carte (v4.23.8) */
+  /* LA LIGNE D'ÉTAT S'ENROULE, ET SON DÉBORDEMENT NE PART JAMAIS À GAUCHE (v4.73.1, signalé à
+     l'usage en GRANDE POLICE : « VOUS ÊTES ICI » était coupée par le bord GAUCHE de la carte).
+     Deux causes cumulées, et la seconde est le piège : (1) la rangée ne s'enroulait PAS, alors que
+     ses trois objets — pilule + Lecteur + Vérifier — sont tous en `nowrap` et ne peuvent donc pas
+     se rétrécir ; (2) `justify-content:flex-end` fait déborder par le côté OPPOSÉ, c'est-à-dire
+     par le DÉBUT : le premier objet sortait de la carte au lieu du dernier. Un débordement qui
+     part vers l'extérieur de son conteneur ne peut même pas être rattrapé par un défilement.
+     On enroule (`wrap`), on aligne au DÉBUT, et c'est le premier BOUTON qui porte le
+     `margin-left:auto` — l'aspect est identique tant que tout tient sur une ligne (pilule à
+     gauche, boutons à droite), et quand les boutons passent à la ligne l'auto les garde à droite.
+     La pilule, elle, reste à sa place : c'est un état, il ne se déplace pas. */
+  .ov-acts{flex:1 1 100%;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:flex-start;padding:0 12px 10px}
+  .ov-acts>:not(.ov-here):first-child,.ov-acts .ov-here~:not(.ov-here){margin-left:auto}
+  .ov-acts .ov-here~:not(.ov-here)~:not(.ov-here){margin-left:0}   /* seul le PREMIER bouton pousse ; les suivants se collent à lui */
   .ov-tgl{flex:1 1 230px;min-width:0;display:flex;align-items:center;gap:9px;min-height:52px;padding:9px 12px;background:none;border:0;cursor:pointer;font-family:inherit;text-align:left}
   .ov-tgl:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
   .ov-n{width:26px;height:26px;border-radius:50%;flex:none;display:grid;place-items:center;font-family:var(--mono);font-size:13.5px;font-weight:700;color:var(--ink-soft);border:2px solid var(--line-strong)}
