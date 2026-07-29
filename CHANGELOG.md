@@ -1,5 +1,82 @@
 # Journal des modifications
 
+## [4.73.0] — 2026-07-29
+### Douze retours d'usage : sept défauts, cinq améliorations
+
+Aucune fonctionnalité nouvelle — une passe de correction et d'affinage, entièrement pilotée par des
+retours d'usage.
+
+**Le mode statique s'affichait dans une colonne de 240 px.** La classe `cockpit` pose une grille de
+trois pistes fixes (plan | action | état), mais le plan n'est émis que s'il y a un plan à montrer —
+jamais en statique, où le tableau EST la vue d'ensemble. Les deux colonnes restantes glissaient donc
+d'un rang : la checklist atterrissait dans la piste du plan (mesuré à 1280 px : `main` w=240,
+`side` w=592). Trois pistes n'ont de sens que s'il y a trois colonnes — la classe suit désormais
+l'existence du plan, pas la seule largeur.
+
+**Le plan latéral ne se mettait pas à jour**, et le défaut datait de la v4.23.0 : son HTML vivait
+dans une IIFE de `renderRead`, donc hors d'atteinte des re-rendus ciblés — il gardait l'état du
+moment où la fiche avait été *ouverte*. Le cockpit de la v4.59.0 n'a fait que le mettre sous les
+yeux. `railLadHtml` est extraite et `repaintRailLad()` la rejoue à la navigation comme au cochage
+(y compris distant), défilement de la colonne préservé, écouteurs recâblés — et le renvoi d'un
+bloc défile enfin dans le conteneur réel, pas dans un rail droit supposé. Une seule peinture, pas
+deux qui divergeraient. **Harmonie** : l'Échelle était la seule zone de la vue lecture posée à nu
+sur le fond ; elle devient une surface, dans ses deux logements, et son en-tête ne casse plus le
+titre en « PLAN — / ÉCHELLE » à 240 px.
+
+**Le miroir laissait l'invité derrière.** Ne jamais défiler sur un geste qui n'est pas le sien
+protégeait un cas et en cassait un autre : celui de quelqu'un qui suit la progression et que l'hôte
+distance, carte après carte, jusqu'à perdre le bloc en cours. Le critère n'est plus « qui a appuyé »
+mais **où regardait-il** : le bout du journal était à l'écran → on l'y garde ; il avait défilé
+ailleurs → rien ne bouge, comme avant. Le témoin d'audit mesure maintenant les deux régimes — et il
+a fallu placer le bout en bas de l'écran pour qu'il soit **capable d'échouer**.
+
+**« Partage en cours (n) » : un mécanisme n'est pas un correctif.** La v4.55.2 avait donné au menu ⋯
+le moyen de se refaire sans re-rendre, et ne s'en servait que sur une offre de passation. Le compte
+restait celui de l'ouverture de la fiche — c'est-à-dire zéro dans le cas normal, où l'on ouvre le
+partage avant que le collègue rejoigne. Il se rafraîchit désormais là où la donnée change, sur
+comparaison de signature (un participant coupé ou promu change l'affichage sans changer le nombre).
+
+**Le rail alphabétique montait et descendait.** Les lettres étaient centrées dans une boîte fixée
+haut et bas : toute variation de la hauteur visible les déplaçait de la moitié — et cette hauteur
+varie précisément *pendant* un défilement, quand la barre d'outils du navigateur mobile se replie.
+Le glisser devenait un asservissement instable. Ancrées en haut : 30 px de déplacement mesurés
+avant, **0 px** après.
+
+**Le menu ⋯ ne s'adaptait pas à une fenêtre basse** : jusqu'à seize rangées, ~740 px, et les
+dernières — dont « Terminer la session… » — hors écran *sans défilement*, donc inatteignables en
+silence.
+
+**Le titre changeait de police au défilement** : le serif de la v4.61.0 avait été posé sur le
+bandeau, pas sur son relais dans la barre. Un seul libellé porté tour à tour par deux éléments doit
+se lire pareil des deux côtés. (Réponse à la question posée : non, ce n'était pas exprès.)
+
+**L'état criait plus fort que l'action** : temps de minuteur et décomptes de compteurs en gras
+quasi noir passaient devant la checklist. Graisse ramenée (700 → 500 pour les valeurs, 700 → 600
+pour le nom) ; l'encre, elle, ne bouge pas — la hiérarchie passe par la graisse, jamais par la
+couleur, qui reste le canal de l'état.
+
+**Le démarrage reste atteignable** : sur une fiche à critères longs, « Confirmé — démarrer la
+session » naît sous le pli. Il se détache alors au bas de l'écran — une zone fixe en bas, ce que la
+doctrine réserve, mais bornée par trois propriétés vérifiables : avant la première action
+seulement, transitoire, et à coût nul en hauteur de flux.
+
+**Lien mort : l'écran de l'invité le dit, et ses contrôles le montrent.** Avant, rien ne changeait —
+un jeton de sept caractères dans le quai, et une annonce invisible quand un geste était tenté : la
+seule façon d'apprendre qu'on ne recevait plus rien était d'essayer, et de ne rien voir se passer.
+Un bandeau dans le flux (jamais une modale — règle 11), la cause dite, la sortie à portée, et les
+contrôles à l'apparence désactivée. Le texte clinique, lui, n'est **pas** grisé : il reste vrai et
+utile, et l'estomper passerait sous AA. Aucune désaturation d'ensemble non plus, qui éteindrait le
+rouge des étapes vitales.
+
+**L'objet pris se voit** : anneau primaire, teinte et mention « ⠿ en déplacement » sur le bloc ou
+l'étape soulevée — sans l'estomper, puisqu'on doit relire ce qu'on déplace.
+
+**La sélection d'une bibliothèque va jusqu'au bord droit**, sous le bouton « modifier » qui
+appartient à la même rangée.
+
+809 tests, a11y 301/301, partage 297/297 (+1), quatorze harnais verts. `design/ds` régénéré.
+Rien à rejouer côté serveur.
+
 ## [4.72.0] — 2026-07-29
 ### K5 — l'enregistrement se dit, il ne se demande pas
 
@@ -892,34 +969,3 @@ créent une capacité, touchent un token ou ouvrent un chantier : à trancher s�
 Vérifié : `npm run check`, **780 tests × 2 moteurs** (+14), a11y **301/301 sur Chromium ET
 WebKit**, doctrine 112/112, vérification 8/8, lecteur 13/13, historique 16/16, partage 294/294,
 et les 14 harnais verts. Rien à rejouer côté serveur.
-
-## [4.56.2] — 2026-07-28
-### Le badge « En cours » trouve sa place — et un bug WebKit de grille est neutralisé
-
-### Badge « ● En cours » à droite de la tuile
-Glissé dans la sous-ligne de 11 px, le badge l'étirait et semblait rapporté (« on a l'impression
-qu'elle n'est pas adaptée », retour utilisateur). Il vit désormais À DROITE de la tuile, centré
-verticalement, hors du bloc de texte — la structure de la maquette desktop : colonne
-titre + sous-ligne à gauche (`.qa-tx`), badge en frère à droite. Les rangées du répertoire, qui
-alignent déjà leurs pastilles sur une ligne dédiée, ne changent pas.
-
-### Pistes de grille figées au redimensionnement — bug WebKit, reproduit puis neutralisé
-Signalé à l'usage : « bug lorsqu'on diminue la largeur puis qu'on ré-augmente » — une rangée du
-répertoire restait trop courte, titre rogné en haut, date en bas. IRREPRODUCTIBLE sur Chromium
-(sondes discrètes puis fines, 100 % et 130 % de taille du texte : rien) ; reproduit sur WebKit
-SEUL, au redimensionnement CONTINU : quand un changement du nombre de colonnes d'une grille
-`auto-fill` fait ré-enrouler la sous-ligne d'une rangée, WebKit ne regrandit pas la piste — le
-contenu centré dépasse (titre +11 px, date +5 px, mesurés, aux valeurs exactes de la capture
-utilisateur) et l'état corrompu PERSISTE, y compris après re-rendu.
-
-Remède : à la TRAÎNÉE du redimensionnement (120 ms, accueil seulement), chaque
-`.dir-grid`/`.qa-grid` passe par `block` puis `grid` dans la même frame — écriture-lecture-
-écriture synchrones, aucun repaint intermédiaire, donc aucun clignotement — et WebKit recalcule
-ses pistes. On ne paie pas un reflow par évènement pendant le geste : l'artefact transitoire de
-Safari peut fugacement apparaître pendant la traînée et se répare seul 120 ms après la pause.
-Vérifié à la sonde sur les deux moteurs et les deux réglages de taille : état final propre
-partout, Chromium jamais affecté. Piège documenté dans AGENTS.md (ne pas retirer ce listener ;
-re-mesurer sur WebKit à toute retouche des grilles).
-
-Vérifié : 766 tests × 2 moteurs, a11y 301/301 sur Chromium ET WebKit, doctrine 112/112,
-`npm run check`. Rien à rejouer côté serveur.

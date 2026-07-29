@@ -372,7 +372,16 @@
   .hdr-more:hover{background:color-mix(in srgb,var(--primary) 8%,transparent)}
   .hdr-more[hidden]{display:none}
   .hdr-more:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-  .more-menu{position:absolute;top:calc(100% + 6px);right:14px;width:262px;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.18);padding:6px;z-index:45}
+  /* LE MENU NE DÉPASSE JAMAIS L'ÉCRAN (correctif — « si le menu est grand et la hauteur de la
+     fenêtre réduite, il ne s'adapte pas »). En lecture, il porte jusqu'à seize rangées de 44 px
+     plus quatre séparateurs : ~740 px, soit plus que la hauteur utile d'un téléphone en paysage
+     ou d'une fenêtre de bureau rétrécie — et les dernières rangées, dont « Terminer la session… »,
+     tombaient hors de l'écran SANS défilement, donc inatteignables en silence.
+     Hauteur relative à la fenêtre => `--vvh` ÷ `--zf` (règle 10 : un `vh` nu se fait agrandir par
+     le zoom du réglage de taille du texte). `overscroll-behavior:contain` : on ne fait pas défiler
+     la page derrière en arrivant au bout du menu. */
+  .more-menu{position:absolute;top:calc(100% + 6px);right:14px;width:262px;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.18);padding:6px;z-index:45;
+    max-height:calc(var(--vvh,100dvh) / var(--zf,1) - var(--hdr-h,64px) - 16px);overflow-y:auto;overscroll-behavior:contain}
   .more-menu[hidden]{display:none}
   .mm-row{display:flex;align-items:center;gap:11px;width:100%;min-height:44px;padding:0 11px;border:0;background:none;border-radius:8px;font-family:inherit;font-size:13.5px;font-weight:600;color:var(--ink);cursor:pointer;text-align:left}
   .mm-row:hover{background:color-mix(in srgb,var(--primary) 8%,transparent)}
@@ -731,7 +740,16 @@
   /* Titre de la fiche/du protocole dans la barre (révélé au défilement) : ÉCHELLE DU TITRE
      D'ACCUEIL (17px/700, même emplacement) — la hiérarchie typographique ne bouge pas entre
      les vues. Une ligne, ellipsé. */
-  #brandTitle{font-size:16.5px;font-weight:700;line-height:1.2;color:inherit;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.2px;text-transform:none;display:none}
+  /* LA MÊME VOIX QUE LE BANDEAU (correctif — « le texte en police serif ne se met pas à jour dans
+     les fiches quand l'en-tête se replie : c'est fait exprès ? » — non, c'est un oubli). Le titre
+     de fiche a reçu Source Serif en v4.61.0 sur `#crisisBand .cb-ttl` ; son RELAIS dans la barre
+     est resté en `system-ui`, si bien que le même titre changeait de typographie au défilement.
+     C'est un seul libellé porté tour à tour par deux éléments (§ « le titre n'est jamais absent,
+     seulement porté par l'un ou l'autre ») : il doit se lire pareil des deux côtés.
+     Graisse 600 et non 700 : c'est la SEULE graisse embarquée, en demander une autre produirait
+     une graisse SYNTHÉTIQUE — plus lourde et moins nette (v4.61.0). Corps inchangé (16,5 px, un
+     palier de l'échelle fermée) : c'est la voix qui s'aligne, pas la hiérarchie. */
+  #brandTitle{font-family:var(--serif);font-size:16.5px;font-weight:600;line-height:1.2;color:inherit;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:0;text-transform:none;display:none}
   /* Icône Compte dans l'en-tête (présence utilisateur), avec pastille d'état de synchro discrète. */
   /* 40px (>= 32 exigés — ce n'est pas un contrôle du mode crise) : c'est lui qui fixe la hauteur
      de la rangée d'identité, la barre d'accueil reste sous ~85px hors encoche. */
@@ -1009,7 +1027,23 @@
   @media (max-width:779.98px){
     /* Ancré ENTRE le bas de l'en-tête (--hdr-h, mesurée par syncHdrScroll — un centrage sur la
        fenêtre passait sous l'en-tête à 320×640) et la tab bar ; lettres centrées dans la boîte. */
-    .azrail{position:fixed;right:0;top:calc(var(--hdr-h,64px) + 6px);bottom:calc(68px + env(safe-area-inset-bottom));z-index:15;background:color-mix(in srgb,var(--bg) 85%,transparent);border-radius:12px 0 0 12px}
+    /* LES LETTRES NE BOUGENT PLUS (correctif — « la liste de lettres monte et descend en même
+       temps, par moment »). Elles étaient CENTRÉES (`justify-content:center`) dans une boîte
+       fixée par son haut ET son bas : toute variation de la hauteur réellement visible déplaçait
+       donc chaque lettre de la moitié de cette variation. Or cette hauteur varie précisément
+       PENDANT un défilement — la barre d'outils du navigateur mobile se replie et se redéploie, et
+       `position:fixed` se dimensionne sur le grand viewport (le dossier « bande basse iOS » l'a
+       déjà établi pour les overlays). Le glisser en devient un asservissement instable : le rail
+       défile, la barre bouge, les lettres se décalent sous le doigt, la lettre visée change, le
+       rail défile ailleurs.
+       Ancrées EN HAUT, leur position ne dépend plus que de `top` — c'est-à-dire de `--hdr-h`, que
+       l'en-tête garde CONSTANTE dans une vue donnée (« sans changer sa hauteur », § header.bar).
+       Et la hauteur passe par `--vvh`, la seule mesure qu'iOS ne fausse pas : la boîte s'arrête au
+       bord réellement visible, ce qui rend fiable le test de débordement de `bindAzRail`. */
+    .azrail{position:fixed;right:0;top:calc(var(--hdr-h,64px) + 6px);bottom:calc(68px + env(safe-area-inset-bottom));z-index:15;background:color-mix(in srgb,var(--bg) 85%,transparent);border-radius:12px 0 0 12px;justify-content:flex-start}
+    @supports (height:100dvh){
+      .azrail{bottom:auto;height:calc(var(--vvh,100dvh) / var(--zf,1) - var(--hdr-h,64px) - 6px - 68px - env(safe-area-inset-bottom))}
+    }
     body.view-home main.azr-on .home-main{padding-right:24px}
   }
   /* Extrait contextuel d'un résultat de recherche (v4.4.4) : 2 lignes max, termes en GRAISSE
@@ -1128,6 +1162,27 @@
   .sess-start{margin:14px 0 4px}
   .sess-start .btn{width:100%;min-height:50px;font-weight:800;font-size:15.5px;letter-spacing:.3px;border-radius:9px;display:flex;align-items:center;justify-content:center;gap:7px}
   .ss-hint{display:block;text-align:center;margin-top:6px;font-size:12px;color:var(--ink-soft)}
+  /* LE DÉMARRAGE RESTE ATTEIGNABLE (proposition utilisateur : « et si “confirmé — démarrer la
+     session” était sticky quand on ne l'atteint pas encore ? »). Sur une fiche à critères longs,
+     le bouton naît SOUS le pli : on lit, on défile, et la condition d'entrée QRH n'est plus à
+     portée de pouce. Le bouton se DÉTACHE alors au bas de l'écran, et seulement dans ce cas —
+     il revient dans le flux dès que sa place réelle est visible.
+     CE QUI REND CETTE ZONE FIXE ADMISSIBLE (SPEC §5 : « en crise, une seule zone fixe, en
+     HAUT »). Trois bornes, et elles sont toutes vérifiables : elle n'existe qu'AVANT la première
+     action (la session non démarrée — donc jamais pendant un soin, là où la règle protège la
+     colonne d'action), elle est TRANSITOIRE (elle s'efface au démarrage comme au retour du
+     bouton à l'écran), et elle ne prend AUCUNE hauteur au flux — la boîte `.sess-start` garde la
+     sienne, seul son bouton se détache, donc rien ne se décale au moment où l'état bascule.
+     SOUS 780 px SEULEMENT : c'est là que le problème existe (au-delà, la colonne d'action est
+     courte et le rail tient l'écran), et une barre fixée pleine largeur se recalerait mal sur une
+     checklist centrée à côté de deux colonnes. */
+  @media (max-width:779.98px){
+    /* `min-height` = la hauteur exacte du bouton : sorti du flux, il ne doit pas emporter sa
+       place avec lui, sinon tout ce qui suit remonte de 50 px au franchissement du pli. */
+    .sess-start.afloat{position:relative;min-height:50px}
+    .sess-start.afloat>.btn{position:fixed;left:14px;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));
+      width:auto;z-index:14;box-shadow:var(--shadow-lg)}
+  }
   /* Dans le TABLEAU statique (v4.14.3) : le bouton devient une RANGÉE du carrelage — coins
      3 px, sans marges (le joint de la grille fait l'espacement), aide sur la même rangée.
      Il reste l'unique bouton REMPLI de l'écran (saillance) et >= 44 px. */
@@ -1579,12 +1634,24 @@
   #screenFlash.on{display:block;animation:sf 2s ease-out forwards}
   @keyframes sf{0%{opacity:.55}60%{opacity:.3}100%{opacity:0}}
   /* P2-1 : casse de phrase (les capitales restent le registre des ÉTIQUETTES courtes). */
-  .tm-label{display:flex;align-items:center;gap:6px;font-size:13.5px;font-weight:700;line-height:1.25;color:var(--tcol);margin-bottom:6px;overflow-wrap:anywhere;word-break:break-word}
+  /* Le NOM du minuteur suit la même correction, d'un cran seulement (700 → 600) : il reste le
+     titre de sa carte, mais il n'a pas à peser autant qu'un titre de bloc clinique. */
+  .tm-label{display:flex;align-items:center;gap:6px;font-size:13.5px;font-weight:600;line-height:1.25;color:var(--tcol);margin-bottom:6px;overflow-wrap:anywhere;word-break:break-word}
   .tm-meta{font-size:12px;color:var(--ink-soft);margin:-4px 0 6px;line-height:1.35}
   .cncard .tm-label{justify-content:center;color:var(--ink-soft)}
   .rt-add{margin-top:10px;min-height:44px;border:1.5px dashed var(--line);border-radius:8px;color:var(--link);font-size:12px;font-weight:700}
   .read-side .rt-add{margin-top:10px}   /* respire comme l'écart des cartes ; 0 le collait (v4.23.5) */
-  .tm-val,.cn-val{font-family:var(--mono);font-size:26px;font-weight:700;line-height:1.15;font-variant-numeric:tabular-nums}
+  /* GRAISSE 500, PAS 700 (correctif — signalé à l'usage : « le texte du minuteur en gras très noir
+     saute aux yeux plus que le contenu du milieu, confirmation diagnostique, étapes… ; pareil pour
+     les décomptes de compteurs »). Le constat est juste et c'est une inversion de saillance : le
+     temps et les décomptes sont de l'ÉTAT, la checklist est l'ACTION — l'état ne doit pas crier
+     plus fort que le geste. Mono tabulaire à 26 px (34 px dans le rail) reste parfaitement lisible
+     à 500 ; à 700 il faisait une masse noire de la largeur de la carte.
+     LA HIÉRARCHIE PASSE PAR LA GRAISSE, JAMAIS PAR L'ENCRE — la règle est déjà écrite pour la
+     posologie (« la DOSE reste en encre pleine ») : adoucir la couleur d'un temps serait
+     l'inversion à ne pas faire, et `--tcol` reste le canal de l'ÉTAT (encre à l'arrêt, `--link` en
+     cours, ambre échu). Rien de sémantique ne bouge ici. */
+  .tm-val,.cn-val{font-family:var(--mono);font-size:26px;font-weight:500;line-height:1.15;font-variant-numeric:tabular-nums}
   .tm-val{color:var(--tcol)}
   .tm-cyc{font-size:12px;color:var(--ink-soft);margin-top:3px}
   /* D11 (audit design v4.56) : tabular-nums sur les nombres d'ÉTAT non mono — cohérent avec
@@ -1743,6 +1810,40 @@
   body.share-scribe #readerMode :is([data-tmreset],[data-cnreset]){
     color:var(--ink-soft);border-color:var(--line);background:var(--surface-2);
     box-shadow:none;cursor:not-allowed;font-weight:600}
+  /* ═══ LIEN MORT (invité) — LE BANDEAU ET LES CONTRÔLES ÉTEINTS ════════════════════════════════
+     Registre ATTENTION et non ALERTE : le rouge est réservé à ce qui TUE si on l'oublie, et une
+     liaison qui s'arrête n'est pas un geste clinique manqué — c'est un état du dispositif, « là où
+     l'on risque de se tromper » (croire qu'on contribue encore). Bord gauche 4 px + cadre, la
+     grammaire des notices ; glyphe + phrase, la couleur n'est jamais seule. */
+  /* `.share-over` = le BANDEAU ; `body.share-dead` = l'état. Les deux ont d'abord porté le MÊME
+     nom, et le défaut est immédiat : `body.share-over` matche aussi la règle du bandeau, donc le
+     `body` entier prenait le fond ambre, le cadre et le rembourrage de la notice (vu à la sonde).
+     C'est la leçon v4.23.2 sous sa forme la plus directe — un modificateur d'état ne prend jamais le
+     nom d'un composant autonome. */
+  .share-over{display:flex;gap:10px;align-items:flex-start;margin:12px 0 14px;padding:12px 14px;
+    background:var(--verify-soft);border:1px solid var(--verify-bd);border-left:4px solid var(--verify-bd);
+    border-radius:var(--radius-sm)}
+  .share-over svg{flex:none;color:var(--verify);margin-top:1px}
+  .share-over .so-b{min-width:0;font-size:13.5px;line-height:1.45;color:var(--ink)}
+  .share-over .so-b b{color:var(--verify)}
+  .share-over .so-act{margin-top:10px}
+  /* LES VERBES ÉTEINTS. La liste est celle de `MUTE_SEL` côté script — deux listes divergeraient,
+     et c'est la leçon que ce fichier paye déjà deux fois (v4.42.0, v4.55.0) : si l'une bouge,
+     l'autre doit bouger. Apparence désactivée au patron EXACT de `share-scribe` (encre secondaire
+     + surface neutre + curseur), donc SANS `opacity` : un texte à demi-opacité tombe sous AA.
+     Les gestes restent CLIQUABLES : `bindLeadGuard` doit conserver la main pour annoncer le refus
+     au lecteur d'écran — un contrôle éteint qui n'explique rien ne vaut pas mieux qu'un contrôle
+     vif qui ne fait rien. */
+  body.share-dead #main :is([data-ck],[data-cninc],[data-cndec],[data-cnreset],[data-tmtoggle],[data-tmreset],
+    [data-ovnext],[data-ovend],[data-ovredo],[data-ovopt],[data-plgo],[data-svgo],[data-svref],
+    [data-rmok],[data-rmgap],[data-cxback],
+    [data-ovverify],[data-ovvok],[data-ovvgap],[data-tkdel],[data-tktime],#tkAdd),
+  body.share-dead #main .btn:is([data-ovnext],[data-ovend],[data-ovopt],[data-ovverify]){
+    color:var(--ink-soft);border-color:var(--line);background:var(--surface-2);
+    box-shadow:none;cursor:not-allowed;font-weight:600}
+  /* La case à cocher perd son cadre fort : c'est le seul contrôle dont l'AFFORDANCE est un cadre,
+     et le laisser à `--line-strong` la ferait encore lire comme « à cocher ». */
+  body.share-dead #main [data-ck] .box{border-color:var(--line);background:var(--surface-2)}
   /* ELLE DOIT SAUTER AUX YEUX (retour utilisateur). Cette ligne n'apparaît QUE lorsqu'un code a
      été reconnu — elle n'a donc aucun coût d'attention le reste du temps, et à l'instant où elle
      s'affiche elle est la seule chose à faire sur cet écran. Registre INFORMATION de la taxonomie
@@ -1983,6 +2084,16 @@
   .ed-grab .eg-h{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--primary-dk);opacity:.85}
   .ed-grab .eg-x{flex:none;min-width:44px;min-height:44px;border:0;background:none;color:var(--primary-dk);font-size:16.5px;border-radius:8px;cursor:pointer}
   .ed-grab .eg-x:hover{background:var(--surface)}
+  /* L'OBJET PRIS, MARQUÉ SUR PLACE : anneau primaire + pastille « ⠿ en déplacement » en tête, la
+     COULEUR N'EST DONC JAMAIS SEULE (règle 8). Il reste PLEINEMENT LISIBLE — on ne l'estompe pas :
+     l'auteur a besoin de relire ce qu'il déplace, et un texte à demi-opacité tombe sous AA.
+     Rien ne bouge ni ne clignote (le seul mouvement admis dans cette app est l'alarme) ;
+     `outline` et non `border`, pour ne déplacer aucun pixel du contenu. */
+  .blk.grabbed,.blk .li.grabbed{outline:2px solid var(--primary);outline-offset:2px;background:var(--primary-soft)}
+  .blk.grabbed{box-shadow:var(--shadow)}
+  :is(.blk,.li).grabbed::before{content:"⠿ en déplacement";display:block;width:100%;
+    font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--primary-dk);margin-bottom:4px}
+  .blk .li.grabbed{border-radius:8px}
   .ed-drop{display:block;width:100%;min-height:44px;margin:6px 0;border:1.5px dashed var(--primary);border-radius:var(--radius-sm);
     background:var(--surface);color:var(--primary-dk);font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer}
   .ed-drop:hover{background:var(--primary-soft)}
@@ -3148,6 +3259,18 @@
      dans un bouton — ARIA APG), pleine hauteur (align-self:stretch -> cible ~34×48px). */
   .hs-wrap{display:flex;align-items:center;gap:4px}
   .hs-wrap .hs-row{flex:1;min-width:0}
+  /* LA SÉLECTION VA JUSQU'AU BORD DROIT (demande utilisateur) — sous le bouton « modifier », le
+     cadenas ou l'écart, qui appartiennent à la même rangée. Une bibliothèque est UNE ligne : que
+     l'aplat s'arrête avant son propre bouton d'édition la coupait en deux, et laissait croire que
+     le geste vise autre chose que la rangée sélectionnée. C'est le CONTENEUR qui porte l'état ;
+     le bouton garde le sien (même couleur, donc aucune couture visible). */
+  .hs-wrap:has(>.hs-row.on){background:var(--primary);border-radius:8px}
+  [data-theme="dark"] .hs-wrap:has(>.hs-row.on){background:var(--primary-dk)}
+  .hs-wrap:has(>.hs-row.on) .hs-act{color:var(--on-primary)}
+  [data-theme="dark"] .hs-wrap:has(>.hs-row.on) .hs-act{color:var(--bg)}
+  /* Survol du bouton d'édition SUR une rangée sélectionnée : la teinte primaire à 8 % serait
+     invisible sur du primaire plein — on assombrit l'aplat au lieu de le teinter. */
+  .hs-wrap:has(>.hs-row.on) button.hs-act:hover{color:inherit;background:color-mix(in srgb,var(--ink) 16%,transparent)}
   .hs-act{flex:none;width:34px;align-self:stretch;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:var(--ink-soft)}
   button.hs-act{cursor:pointer}
   button.hs-act:hover{color:var(--primary-dk);background:color-mix(in srgb,var(--primary) 8%,transparent)}
@@ -3247,8 +3370,13 @@
        LEÇON : dans une colonne déjà défilante, un sous-conteneur borné ne « range » pas, il
        ESCAMOTE. Le rail est donc une colonne ENTIÈREMENT continue ; le seul dispositif retenu
        contre l'enterrement de la posologie est l'ORDRE (l'illimité en dernier). */
-    .rail-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-    .rail-title{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
+    /* `flex-wrap` + titre INSÉCABLE (correctif — « le design du plan de gauche n'est pas
+       harmonieux ») : dans la colonne de 240 px du cockpit, l'en-tête ne tenait pas et c'est le
+       TITRE qui cassait, en « PLAN — » / « ÉCHELLE ». Un intitulé coupé en deux se lit comme un
+       défaut de mise en page. Désormais c'est « ⤢ complet » qui passe à la ligne — un contrôle
+       qui descend d'un rang reste un contrôle, un titre haché n'est plus un titre. */
+    .rail-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+    .rail-title{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);white-space:nowrap}
     .rail-head :is(.rt-sound,.rt-warn){margin-left:auto}
     .rail-head .rt-sound~.rt-sound,.rail-head .rt-warn~.rt-sound{margin-left:0}
     /* HARMONISATION (v4.23.2, retour d'usage « ils ne se ressemblent pas ») : « Son activé » et
@@ -3275,8 +3403,19 @@
        MARQUEUR (✓ vert = fait, ● bleu = ici, ⑂ ambre = décision). On retire les APLATS et les
        liserés colorés : le rail oriente, il ne doit pas rivaliser de saillance avec l'action.
        L'information reste intégralement — seule la compétition visuelle disparaît. */
-    .rail-lad{margin-top:6px}
+    /* L'ÉCHELLE EST UNE SURFACE, comme tout le reste de la page (correctif d'harmonie). Elle était
+       posée à NU sur le fond `--bg` — donc la seule zone de la vue lecture à ne pas être une
+       surface, entre une colonne d'action faite de cartes blanches et un rail dont les minuteurs
+       sont des cartes blanches. Sur du fond, ses hairlines se lisaient comme des restes de trait
+       plutôt que comme les lignes d'un tableau ; en cockpit, où elle occupe toute la colonne de
+       gauche, cela sautait aux yeux. MÊME TRAITEMENT DANS LES DEUX LOGEMENTS (rail droit ≥ 780,
+       colonne de gauche ≥ 1200) : c'est le même composant, seul son logement change — deux
+       habillages en feraient deux composants.
+       Le fond `--surface` ne rétablit AUCUN aplat d'état : la désaturation ci-dessous reste
+       entière, l'état n'est porté que par le marqueur. */
+    .rail-lad{margin-top:6px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-sm);overflow:hidden}
     .rail-lad .pl-line{border-left-color:transparent;padding-left:6px}
+    .rail-lad .pl-line:last-child{border-bottom:0}
     .rail-lad .pl-line.d1{padding-left:16px}
     .rail-lad .pl-line.d2{padding-left:26px}
     .rail-lad .pl-line.d3{padding-left:36px}

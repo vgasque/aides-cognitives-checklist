@@ -1,4 +1,35 @@
-# Journal des modifications — archive (versions 3.0.0 à 4.56.0)
+# Journal des modifications — archive (versions 3.0.0 à 4.56.2)
+
+## [4.56.2] — 2026-07-28
+### Le badge « En cours » trouve sa place — et un bug WebKit de grille est neutralisé
+
+### Badge « ● En cours » à droite de la tuile
+Glissé dans la sous-ligne de 11 px, le badge l'étirait et semblait rapporté (« on a l'impression
+qu'elle n'est pas adaptée », retour utilisateur). Il vit désormais À DROITE de la tuile, centré
+verticalement, hors du bloc de texte — la structure de la maquette desktop : colonne
+titre + sous-ligne à gauche (`.qa-tx`), badge en frère à droite. Les rangées du répertoire, qui
+alignent déjà leurs pastilles sur une ligne dédiée, ne changent pas.
+
+### Pistes de grille figées au redimensionnement — bug WebKit, reproduit puis neutralisé
+Signalé à l'usage : « bug lorsqu'on diminue la largeur puis qu'on ré-augmente » — une rangée du
+répertoire restait trop courte, titre rogné en haut, date en bas. IRREPRODUCTIBLE sur Chromium
+(sondes discrètes puis fines, 100 % et 130 % de taille du texte : rien) ; reproduit sur WebKit
+SEUL, au redimensionnement CONTINU : quand un changement du nombre de colonnes d'une grille
+`auto-fill` fait ré-enrouler la sous-ligne d'une rangée, WebKit ne regrandit pas la piste — le
+contenu centré dépasse (titre +11 px, date +5 px, mesurés, aux valeurs exactes de la capture
+utilisateur) et l'état corrompu PERSISTE, y compris après re-rendu.
+
+Remède : à la TRAÎNÉE du redimensionnement (120 ms, accueil seulement), chaque
+`.dir-grid`/`.qa-grid` passe par `block` puis `grid` dans la même frame — écriture-lecture-
+écriture synchrones, aucun repaint intermédiaire, donc aucun clignotement — et WebKit recalcule
+ses pistes. On ne paie pas un reflow par évènement pendant le geste : l'artefact transitoire de
+Safari peut fugacement apparaître pendant la traînée et se répare seul 120 ms après la pause.
+Vérifié à la sonde sur les deux moteurs et les deux réglages de taille : état final propre
+partout, Chromium jamais affecté. Piège documenté dans AGENTS.md (ne pas retirer ce listener ;
+re-mesurer sur WebKit à toute retouche des grilles).
+
+Vérifié : 766 tests × 2 moteurs, a11y 301/301 sur Chromium ET WebKit, doctrine 112/112,
+`npm run check`. Rien à rejouer côté serveur.
 
 ## [4.56.1] — 2026-07-28
 ### Les tuiles rejoignent la grille fluide du répertoire
