@@ -1291,6 +1291,24 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   changement de STRUCTURE, pas de style. **PIÈGE VÉCU** : la règle du palier 1200 est déclarée
   DEUX fois (en tête § LARGEURS, puis réaffirmée plus bas — piège de cascade documenté) ; la
   variante `.cockpit` doit suivre aux DEUX sites, sinon elle perd à l'ordre.
+- **MODE MONITEUR (v4.60.0, audit design D3)** : le téléphone POSÉ devient un afficheur — chariot,
+  tableau de bord d'ambulance, second appareil de l'invité. C'est l'ECAM au sens propre : un écran
+  d'état qu'on lit **sans le toucher**, à deux mètres. Chrono de session, PROCHAIN minuteur (nom
+  en casse de phrase + temps en `clamp(64px,20vw,190px)`), dernier repère horodaté.
+  **AUCUN CONTRÔLE, ET C'EST LA PROPRIÉTÉ QUI COMPTE** : un tap n'importe où revient à la fiche —
+  une surface sans commande ne peut pas être actionnée par mégarde, ce qu'on veut précisément d'un
+  appareil posé. Coquille du mode lecteur (z 92, sous le flash d'alarme à 99), `_histArm()` à
+  l'ouverture et entrée dans `_histBackAction()` (doctrine v4.30.0 : toute surface plein écran).
+  `monPick` est PURE (testée) : un minuteur **ÉCHU l'emporte toujours** (annonciateur ECAM —
+  l'écart passe avant le nominal), sinon le plus proche de son échéance parmi ceux qui TOURNENT.
+  Registres inchangés : échu = ambre **+ le mot « échu »**, jamais la couleur seule. Le dernier
+  repère passe par `tkLabels`, la même source que le compte rendu — aucune seconde vérité, et un
+  repère sans étiquette retombe sur « Repère n » plutôt que sur un mot inventé. Rafraîchi par
+  `tickAll`, **aucune horloge en plus**. Entrée : menu ⋯ des DEUX rôles, groupe conduite en cours,
+  visible seulement session démarrée — jamais dans le chrome de crise (2,1 px de marge à 320 px).
+  **PIÈGE DE TEST rencontré** : `lastStart` est un HORODATAGE, pas un délai — posé à 0 sur un
+  minuteur qui tourne, il fait croire à `now` millisecondes écoulées et le test mesure alors
+  l'ordre de la fiche, pas le tri.
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.

@@ -272,6 +272,24 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   // P3-8 : pas de secondes dans une liste (elles vivent dans le compte-rendu).
   ok('horodatage de liste sans secondes', /^\d{2}\/\d{2}\/\d{4} · \d{2}:\d{2}$/.test(A.sessStamp(Date.UTC(2026,6,28,10,28,53))));
 
+  group('mode moniteur (v4.60.0) — monPick : que montre l’afficheur ?');
+  /* `lastStart` est un HORODATAGE, pas un délai : posé à 0 sur un minuteur qui tourne, il fait
+      croire à `now` millisecondes écoulées — les deux minuteurs paraissaient alors échus et le
+      test mesurait l'ordre de la fiche, pas le tri. Ici il vaut `now` (vient de démarrer). */
+  {const T=(id,sec,elapsed,running,cycles)=>({id,type:'interval',seconds:sec,elapsedMs:elapsed,lastStart:1000000,running:!!running,cycles:cycles||0});
+   const now=1000000;
+   // Un ÉCHU l'emporte TOUJOURS : annonciateur ECAM — l'écart passe avant le nominal.
+   eq('un minuteur échu passe devant un actif plus urgent',
+     A.monPick({a:T('a',120,30000,true),b:T('b',120,120000,false)},now).id, 'b');
+   // Sinon : le plus proche de son échéance PARMI CEUX QUI TOURNENT.
+   eq('sinon, le plus proche de l’échéance parmi ceux qui tournent',
+     A.monPick({a:T('a',300,10000,true),b:T('b',120,90000,true)},now).id, 'b');
+   eq('aucun ne tourne : le plus proche quand même (on montre l’état, pas le mouvement)',
+     A.monPick({a:T('a',300,10000,false),b:T('b',120,60000,false)},now).id, 'b');
+   ok('un CHRONOMÈTRE n’est pas un minuteur d’échéance (jamais choisi)',
+     A.monPick({c:{id:'c',type:'stopwatch',elapsedMs:5000,running:true}},now)===null);
+   ok('rien à montrer → null (l’écran le dit, il n’invente pas)', A.monPick({},now)===null);}
+
   group('sanitizePins()');
   eq('rejette ids invalides / borne à 50', A.sanitizePins(['ok_1','bad id','__proto__']), ['ok_1']);
   eq('non-tableau → []', A.sanitizePins('x'), []);

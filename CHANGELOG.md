@@ -1,5 +1,38 @@
 # Journal des modifications
 
+## [4.60.0] — 2026-07-29
+### Mode moniteur — le téléphone posé devient un afficheur
+
+Phase 4 du chantier d'audit (D3). Sur un chariot, sur le tableau de bord d'une ambulance, ou sur
+le second téléphone de l'invité, **personne ne tient l'appareil**. Le mode moniteur en fait un
+écran d'état lisible **à deux mètres** : chrono de session, prochain minuteur (nom + temps en
+très grand), dernier repère horodaté. C'est l'ECAM au sens propre — un écran qu'on lit sans le
+toucher.
+
+**Aucun contrôle, et c'est la propriété qui compte.** Un tap n'importe où revient à la fiche :
+une surface sans commande ne peut pas être actionnée par mégarde, ce qu'on veut précisément d'un
+appareil posé au milieu d'un soin.
+
+- Le minuteur montré est choisi par `monPick` (pure, testée) : un **échu l'emporte toujours**
+  (annonciateur ECAM — l'écart passe avant le nominal), sinon le plus proche de son échéance
+  parmi ceux qui tournent.
+- Registres inchangés : un échu s'y affiche en ambre **et avec le mot « échu »**, jamais la
+  couleur seule.
+- Le dernier repère passe par `tkLabels`, la même source que le compte rendu : aucune seconde
+  vérité, et un repère sans étiquette retombe sur « Repère n » plutôt que sur un mot inventé.
+- Coquille du mode lecteur (z-index 92, sous le flash d'alarme), armement du retour système à
+  l'ouverture — toute surface plein écran doit se fermer au geste retour d'Android.
+- Rafraîchi par le tick existant : **aucune horloge en plus**.
+- Entrée par le menu ⋯ des deux rôles, groupe « conduite en cours », visible seulement quand la
+  session est démarrée — jamais dans le chrome de crise, qui n'a que 2,1 px de marge à 320 px.
+
+Piège de test rencontré : `lastStart` est un **horodatage**, pas un délai — posé à 0 sur un
+minuteur qui tourne, il fait croire à `now` millisecondes écoulées, et le test mesure alors
+l'ordre de la fiche au lieu du tri.
+
+Vérifié : 785 tests × 2 moteurs (+5), a11y 301/301, doctrine 112/112, lecteur 13/13, exercice
+20/20. Rien à rejouer côté serveur.
+
 ## [4.59.0] — 2026-07-29
 ### Grand écran : le cockpit trois zones — orientation | action | état
 
@@ -987,67 +1020,3 @@ Le contrôle « le texte tapé n'est pas émis » est vérifié **capable d'éch
 dans l'instantané le fait tomber, fichier restauré à l'octet). Le commentaire de modèle du fichier,
 qui décrivait un repère par trois clés depuis l'origine, en décrit désormais les huit — et dit
 lesquelles voyagent. **Rien à rejouer côté serveur.**
-
-## [4.51.0] — 2026-07-27
-### Le miroir se figeait au premier « Continuer » de l'hôte
-
-Annoncé en fin de v4.50.0, corrigé ici. Deux défauts, et le second n'était visible que parce que le
-premier le masquait.
-
-### La file était remplie et jamais vidée
-`SHARE_APPLY` distingue trois régimes et les motive : `live` (chirurgie pure dans la checklist),
-`anchored` (« reconstruit le journal, **donc** ancré et annoncé »), `deferred` (attend un geste
-local). **Une seule ligne rangeait `anchored` et `deferred` dans la même file** — laquelle n'était
-drainée nulle part.
-
-Conséquence, mesurée : après une navigation distante, `Runtime.nav` ne contenait pas le bloc cible ;
-au grep, aucun site de drainage. **L'invité voyait les coches du bloc courant, et plus rien
-ensuite** — le contraire d'un miroir, et la fonction même pour laquelle le partage existe. C'est la
-quatrième moitié de chemin de ce chantier, après `canWrite()` sans appelant, l'annexe d'un détaché
-que personne ne lisait, et `fold.exercise` sans émetteur.
-
-Une navigation distante s'applique désormais **ancrée** : on mesure la position d'un repère, on
-re-rend, on compense le résidu — dérive **0 px** mesurée. Et on ne défile **pas** vers la nouvelle
-carte : le geste n'est pas le sien. C'est la différence exacte avec `ovAdvanceRender`, qui défile
-parce que c'est l'utilisateur qui vient d'appuyer sur « Continuer ».
-
-Deux pièges rencontrés, tous deux attrapés par la sonde et non par la relecture : `state.nav` est un
-**alias** du tableau de `Runtime` — lui affecter un tableau neuf casse l'alias en silence, et
-l'application se met à lire deux navigations différentes selon l'endroit ; et `Runtime.seq` doit
-être relevé au maximum des numéros reçus, faute de quoi une visite locale ultérieure réutiliserait
-un numéro déjà pris — **deux passages partageraient alors leurs clés de cochage**.
-
-### Le mode lecteur inverse la règle, et il le dit
-Sa clé d'étape est calculée **au clic** depuis `state.nav`, jamais depuis le DOM peint : une
-navigation distante arrivant entre le `pointerdown` et le `click` ferait cocher **la mauvaise
-étape**, et le compte rendu l'imprimerait comme réalisée. Tant que le lecteur est ouvert, une
-navigation distante est donc **refusée** — et **annoncée sur place** : « Le soignant a avancé —
-reprendre à sa position », registre INFORMATION, levée par un geste local. Ne pas suivre en silence
-était le pire des deux mondes : l'autre a avancé, et celui qui lit à voix haute l'ignore.
-
-### Un rechargement ne perd plus la session
-Un onglet mobile meurt tout seul — iOS recycle les onglets en arrière-plan — et l'invité perdait sa
-participation **sans retour** : rien n'était persisté, et son code d'appariement est consommé, donc
-il ne pouvait pas rejoindre. C'était l'invariant « l'invité ne garde rien » appliqué au-delà de ce
-qu'il protège.
-
-Un **billet** est écrit dans le `sessionStorage` : l'identifiant du partage et le secret,
-**aucune donnée clinique** — vérifié par un contrôle qui cherche le titre de la fiche dans le
-billet. Sa portée est *cet onglet, cette navigation* : effacé à la fermeture, jamais partagé, hors
-IndexedDB et hors `localStorage`. L'étanchéité est tenue là où elle compte — rien de **durable** sur
-le téléphone d'un tiers. Il survit à `freeze` (le lien meurt, l'écran reste) et meurt avec `stop`
-(l'écran est quitté) ; un serveur qui refuse l'efface plutôt que de le laisser traîner.
-
-Côté serveur, `share_pull` renvoie la fiche **uniquement sur une reprise complète** (`p_since = 0`,
-et jamais à l'hôte) : les sondages ordinaires passent toutes les deux à dix secondes et n'ont aucun
-besoin d'un instantané de plusieurs dizaines de kilo-octets. Aucune donnée nouvelle ne sort — c'est
-le même instantané, filtré par la même liste blanche, que la jointure avait déjà remis.
-
-### Vérification
-706 tests × 2 moteurs, **214/214 contrôles partage** (+22, sur les deux moteurs), 13 harnais verts,
-9/9 QR, 301 contrôles d'accessibilité, 94/94 doctrine, `npm run check` vert. Les dix contrôles du
-miroir ont été **vérifiés capables d'échouer** : le défaut réintroduit en fait tomber cinq, fichier
-restauré à l'octet. Le registre RGPD (§ 3.1) et `AGENTS.md` sont mis à jour dans le même commit —
-le billet est une exception à un invariant écrit, elle se documente là où l'invariant est écrit.
-
-**`supabase/schema.sql` est à rejouer** (`share_pull` seul est modifié), puis `rls-tests.sql`.

@@ -1,7 +1,71 @@
-# Journal des modifications — archive (versions 3.0.0 à 4.50.0)
+# Journal des modifications — archive (versions 3.0.0 à 4.51.0)
 
 > Entrées anciennes déplacées depuis [`CHANGELOG.md`](CHANGELOG.md) pour garder le journal
 > courant lisible. Même format (keep-a-changelog).
+
+## [4.51.0] — 2026-07-27
+### Le miroir se figeait au premier « Continuer » de l'hôte
+
+Annoncé en fin de v4.50.0, corrigé ici. Deux défauts, et le second n'était visible que parce que le
+premier le masquait.
+
+### La file était remplie et jamais vidée
+`SHARE_APPLY` distingue trois régimes et les motive : `live` (chirurgie pure dans la checklist),
+`anchored` (« reconstruit le journal, **donc** ancré et annoncé »), `deferred` (attend un geste
+local). **Une seule ligne rangeait `anchored` et `deferred` dans la même file** — laquelle n'était
+drainée nulle part.
+
+Conséquence, mesurée : après une navigation distante, `Runtime.nav` ne contenait pas le bloc cible ;
+au grep, aucun site de drainage. **L'invité voyait les coches du bloc courant, et plus rien
+ensuite** — le contraire d'un miroir, et la fonction même pour laquelle le partage existe. C'est la
+quatrième moitié de chemin de ce chantier, après `canWrite()` sans appelant, l'annexe d'un détaché
+que personne ne lisait, et `fold.exercise` sans émetteur.
+
+Une navigation distante s'applique désormais **ancrée** : on mesure la position d'un repère, on
+re-rend, on compense le résidu — dérive **0 px** mesurée. Et on ne défile **pas** vers la nouvelle
+carte : le geste n'est pas le sien. C'est la différence exacte avec `ovAdvanceRender`, qui défile
+parce que c'est l'utilisateur qui vient d'appuyer sur « Continuer ».
+
+Deux pièges rencontrés, tous deux attrapés par la sonde et non par la relecture : `state.nav` est un
+**alias** du tableau de `Runtime` — lui affecter un tableau neuf casse l'alias en silence, et
+l'application se met à lire deux navigations différentes selon l'endroit ; et `Runtime.seq` doit
+être relevé au maximum des numéros reçus, faute de quoi une visite locale ultérieure réutiliserait
+un numéro déjà pris — **deux passages partageraient alors leurs clés de cochage**.
+
+### Le mode lecteur inverse la règle, et il le dit
+Sa clé d'étape est calculée **au clic** depuis `state.nav`, jamais depuis le DOM peint : une
+navigation distante arrivant entre le `pointerdown` et le `click` ferait cocher **la mauvaise
+étape**, et le compte rendu l'imprimerait comme réalisée. Tant que le lecteur est ouvert, une
+navigation distante est donc **refusée** — et **annoncée sur place** : « Le soignant a avancé —
+reprendre à sa position », registre INFORMATION, levée par un geste local. Ne pas suivre en silence
+était le pire des deux mondes : l'autre a avancé, et celui qui lit à voix haute l'ignore.
+
+### Un rechargement ne perd plus la session
+Un onglet mobile meurt tout seul — iOS recycle les onglets en arrière-plan — et l'invité perdait sa
+participation **sans retour** : rien n'était persisté, et son code d'appariement est consommé, donc
+il ne pouvait pas rejoindre. C'était l'invariant « l'invité ne garde rien » appliqué au-delà de ce
+qu'il protège.
+
+Un **billet** est écrit dans le `sessionStorage` : l'identifiant du partage et le secret,
+**aucune donnée clinique** — vérifié par un contrôle qui cherche le titre de la fiche dans le
+billet. Sa portée est *cet onglet, cette navigation* : effacé à la fermeture, jamais partagé, hors
+IndexedDB et hors `localStorage`. L'étanchéité est tenue là où elle compte — rien de **durable** sur
+le téléphone d'un tiers. Il survit à `freeze` (le lien meurt, l'écran reste) et meurt avec `stop`
+(l'écran est quitté) ; un serveur qui refuse l'efface plutôt que de le laisser traîner.
+
+Côté serveur, `share_pull` renvoie la fiche **uniquement sur une reprise complète** (`p_since = 0`,
+et jamais à l'hôte) : les sondages ordinaires passent toutes les deux à dix secondes et n'ont aucun
+besoin d'un instantané de plusieurs dizaines de kilo-octets. Aucune donnée nouvelle ne sort — c'est
+le même instantané, filtré par la même liste blanche, que la jointure avait déjà remis.
+
+### Vérification
+706 tests × 2 moteurs, **214/214 contrôles partage** (+22, sur les deux moteurs), 13 harnais verts,
+9/9 QR, 301 contrôles d'accessibilité, 94/94 doctrine, `npm run check` vert. Les dix contrôles du
+miroir ont été **vérifiés capables d'échouer** : le défaut réintroduit en fait tomber cinq, fichier
+restauré à l'octet. Le registre RGPD (§ 3.1) et `AGENTS.md` sont mis à jour dans le même commit —
+le billet est une exception à un invariant écrit, elle se documente là où l'invariant est écrit.
+
+**`supabase/schema.sql` est à rejouer** (`share_pull` seul est modifié), puis `rls-tests.sql`.
 
 ## [4.50.0] — 2026-07-27
 ### La conformité écrite noir sur blanc — et le placard d'exercice qui ne traversait pas le partage

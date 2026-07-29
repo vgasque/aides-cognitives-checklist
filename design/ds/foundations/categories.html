@@ -2219,6 +2219,23 @@
   .v-end.ok{border-color:var(--done-line);background:var(--done-bg);color:var(--ok)}
   /* ----- MODE LECTEUR (v4.11.0) : challenge-response en binôme, plein écran -----
      z-index 92 : SOUS #screenFlash (99) — le flash d'alarme minuteur reste visible par-dessus. */
+  /* MODE MONITEUR (D3) : même coquille que le lecteur (z 92, sous le flash d'alarme à 99),
+     corps calibrés pour une lecture À DEUX MÈTRES. Registres INCHANGÉS : un minuteur échu y est
+     ambre + le mot « échu », jamais la couleur seule. */
+  #monMode{position:fixed;inset:0;z-index:92;background:var(--bg);display:none;flex-direction:column;padding:calc(14px + env(safe-area-inset-top)) 18px calc(14px + env(safe-area-inset-bottom));cursor:pointer}
+  #monMode.on{display:flex}
+  @supports (height:100dvh){#monMode{bottom:auto;height:calc(var(--vvh,100dvh) / var(--zf,1))}}
+  .mon-top{display:flex;align-items:baseline;gap:12px;flex:none}
+  .mon-sess{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:clamp(30px,7vw,46px);font-weight:700;line-height:1;color:var(--ok)}
+  .mon-sess.exo{color:var(--link)}
+  .mon-hint{margin-left:auto;font-size:12px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.07em}
+  .mon-main{flex:1;min-height:0;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:6px}
+  .mon-lbl{font-size:clamp(15px,3.4vw,22px);font-weight:700;color:var(--ink-soft);line-height:1.2}
+  .mon-val{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:clamp(64px,20vw,190px);font-weight:700;line-height:.95;letter-spacing:-2px;color:var(--ink)}
+  .mon-val.due{color:var(--verify-hi)}
+  .mon-due{font-size:clamp(16px,4vw,26px);font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--verify-hi)}
+  .mon-none{font-size:clamp(16px,3.6vw,24px);color:var(--ink-soft)}
+  .mon-foot{flex:none;font-size:clamp(13px,2.8vw,17px);color:var(--ink-soft);border-top:1px solid var(--line);padding-top:10px;line-height:1.4}
   #readerMode{position:fixed;inset:0;z-index:92;background:var(--bg);display:none;flex-direction:column}
   #readerMode.on{display:flex}
   #readerMode .rm-top{display:flex;align-items:center;gap:10px;padding:calc(9px + env(safe-area-inset-top)) 14px 9px;background:var(--surface);border-bottom:1px solid var(--line)}
