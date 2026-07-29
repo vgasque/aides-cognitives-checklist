@@ -1,5 +1,40 @@
 # Journal des modifications
 
+## [4.65.0] — 2026-07-29
+### La porte « + » — une seule, et chaque type se présente
+
+Six boutons d'ajout vivaient dispersés dans trois sections de l'éditeur : « + Bloc d'étapes »,
+« + Décision (si… alors…) », « + Chronomètre », « + Minuteur (cycle) », « + Ajouter un compteur »,
+« ＋ Complication ». Pour savoir ce qu'on **pouvait** ajouter, il fallait faire défiler la page
+entière — et rien ne disait à quoi chaque type sert.
+
+Une seule porte pointillée les rassemble : **« ＋ Étape · décision · minuteur… »**. Elle ouvre une
+palette où **chaque type se présente** — le glyphe, le nom, et une ligne dans les mots du
+soignant :
+
+- **Bloc d'étapes** — une suite d'actions à cocher, l'unité de base d'une checklist
+- **Décision (si… alors…)** — une question et ses branches : « Choquable ? » → chaque réponse mène
+  à son bloc
+- **Minuteur à cycles** — un temps qui se relance et compte les tours (ex. RCP 2 min)
+- **Chronomètre** — un temps qui monte, sans échéance
+- **Compteur** — ce qu'on compte pendant le soin : chocs, doses d'adrénaline…
+- **Complication** — un événement qui peut survenir à tout moment, le retour est prévu
+
+**C'est là que les registres s'apprennent, avant la crise.** Les explications sont écrites au
+moment où l'auteur choisit, pas dans un guide qu'on replie une fois pour toutes.
+
+La fenêtre passe par le gestionnaire de modales commun (Échap, clic de voile, piège de focus,
+retour système d'Android) et se ferme à l'insertion, l'éditeur se re-rendant aussitôt — sinon la
+porte demanderait un geste pour ouvrir et un autre pour retrouver ce qu'elle vient de créer. Les
+six gestes sont intacts : on a supprimé les **portes**, pas les capacités.
+
+**K5 est reporté** sur décision de l'utilisateur (« l'enregistrement se dit, ne se demande pas » :
+auto-enregistrement horodaté dans la barre, « ▶ Essayer » promu bouton rempli unique). Il déplace
+l'action primaire de l'écran, et l'éditeur s'auto-enregistre déjà sans le dire — c'est la promesse
+affichée qui changerait, pas la mécanique.
+
+Vérifié : 794 tests × 2 moteurs, a11y 301/301, doctrine 112/112. Rien à rejouer côté serveur.
+
 ## [4.64.0] — 2026-07-29
 ### K1 — on édite dans la grammaire de lecture
 
@@ -728,34 +763,3 @@ depuis le début de ce chantier : mesurer le mécanisme au lieu de la propriét�
 
 **Rien à rejouer côté serveur.** Restent trois signalements : le bandeau d'en-tête de l'invité, les
 trois défauts de mise en page, et les notifications retenues jusqu'à l'accueil.
-
-## [4.55.1] — 2026-07-28
-### CORRECTIF — les assertions ajoutées en v4.55.0 lisaient une table sous le rôle `anon`
-
-`ERROR: 42501: permission denied for table shared_sessions`. Les trois vérifications que la v4.55.0
-ajoutait au § 14.5 — « nommer ce qui doit passer plutôt que compter » — interrogent la table en
-direct, alors que le bloc est encore sous le rôle **`anon`**, posé au § 14.3 et jamais rendu.
-
-Correction : on reprend les droits le temps de la lecture, puis **on restitue le rôle exactement
-comme on l'a trouvé** — les sections suivantes s'appuient dessus.
-
-### Le troisième rejeu perdu, et le garde-fou qui ferme cette famille
-C'est la troisième fois qu'une erreur SQL vous coûte un aller-retour : un `$$` mutilé (v4.44.1), une
-variable non déclarée (v4.54.1), et maintenant un accès de table sous un rôle sans privilèges.
-Toutes trois ont la même cause de fond : **`supabase/*.sql` n'est ni servi ni chargé par les
-tests**, sa seule épreuve était le collage dans l'éditeur.
-
-`check-sql.mjs` gagne un troisième contrôle statique. Il est **volontairement borné à `anon`** :
-ce rôle n'a aucun privilège de table par construction — c'est tout l'objet du § 13 —, donc toute
-lecture directe pendant qu'il est actif est une erreur **certaine**. Sous `authenticated`,
-interroger une table est légitime, et c'est même ainsi qu'on prouve que la RLS filtre (le § 14.19
-lit l'historique d'Alice sous Bob et attend zéro ligne). Une règle plus large aurait produit des
-faux positifs **sur les tests mêmes qui font le travail** — un garde-fou qui crie sur du code juste
-finit ignoré. Les appels de fonction ne comptent pas : `share_join`, `share_pull` et `share_push`
-sont `security definer`, et c'est précisément leur raison d'être.
-
-**Vérifié capable d'échouer** en réintroduisant le défaut vécu à l'identique : il nomme la table, la
-ligne, et le remède. Fichier restauré à l'octet.
-
-`schema.sql` de la v4.55.0 était correct et **n'a pas à être rejoué** ; **`rls-tests.sql` est à
-rejouer**. 756 tests × 2 moteurs, 14 harnais verts, `npm run check` 6/6.

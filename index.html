@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-MN0s3bM6qVOQbtnb9VJszB0J2OdsVc7KMyGJLdRO30c='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-c44Pro9oIWpFTBHPmSVO5Xqi6V3/tCm+W825ufBJ6cU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -2185,6 +2185,19 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   }
   /* MK5-b — « en main » : bandeau d'état + interstices. Les cibles sont PLEINE LARGEUR et
      ≥ 44 px : on pose au doigt, avec des gants, sans viser. */
+  /* K8/K9 — LA PALETTE : chaque type se présente. Rangées ≥ 56 px (glyphe + nom + une ligne),
+     grammaire des cartes du dialogue « Créer », dont c'est le pendant côté contenu. */
+  .ed-palette{display:flex;flex-direction:column;gap:8px}
+  .ep-row{display:flex;align-items:flex-start;gap:12px;width:100%;min-height:56px;text-align:left;
+    background:var(--surface);border:1.5px solid var(--line);border-radius:var(--radius-md);padding:11px 13px;cursor:pointer;font-family:inherit}
+  .ep-row:hover{border-color:var(--primary);background:var(--primary-soft)}
+  .ep-row:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .ep-ic{flex:none;width:30px;height:30px;display:grid;place-items:center;border-radius:8px;background:var(--surface-2);color:var(--ink);font-size:15px}
+  .ep-tx{display:flex;flex-direction:column;gap:2px;min-width:0}
+  .ep-tx b{font-size:14.5px;font-weight:700;color:var(--ink)}
+  .ep-tx span{font-size:12.5px;line-height:1.4;color:var(--ink-soft)}
+  /* La porte elle-même : pointillé (grammaire « créer »), pleine largeur, ≥ 44 px. */
+  .ed-door{min-height:48px;font-size:14px}
   .ed-grab{position:sticky;top:calc(var(--hdr-h,64px) + 6px);z-index:6;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
     background:var(--primary-soft);border:1px solid var(--primary);border-radius:var(--radius-md);padding:10px 12px;margin:0 0 12px}
   .ed-grab .eg-l{flex:1;min-width:0;font-size:13.5px;color:var(--primary-dk)}
@@ -3977,6 +3990,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   </div>
   <div id="createBody" role="tabpanel"></div>
 </div></div>
+<!-- K3/K8/K9 (v4.65.0) : LA PORTE « + » de l'éditeur — un seul point d'insertion, où chaque type
+     se présente (glyphe, nom, et une ligne qui dit à quoi il sert). C'est là que les registres
+     s'apprennent, avant la crise. -->
+<div class="ai-modal" id="edAddModal" role="dialog" aria-modal="true" aria-labelledby="edAddTitle"><div class="ai-card dlg-480">
+  <div class="ai-top"><h3 id="edAddTitle">Ajouter à la fiche</h3><button class="ai-x" id="edAddX" aria-label="Fermer">×</button></div>
+  <div class="ed-palette" id="edAddBody"></div>
+</div></div>
 <div class="ai-modal" id="catModal" role="dialog" aria-modal="true" aria-labelledby="catModalTitle"><div class="ai-card dlg-480">
   <div class="ai-top"><h3 id="catModalTitle">Gérer les catégories</h3><button class="ai-x" id="catX" aria-label="Fermer">×</button></div>
   <div id="catMgrBody"></div>
@@ -4192,7 +4212,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.64.0';
+const APP_VERSION='4.65.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -12036,6 +12056,46 @@ function edGrabLabel(f){const g=state.edGrab;if(!g)return '';
 /* GARDE-FOU QRH : une étape ⚠ tirée hors de son bloc CHANGE de contexte — un memory item n'a de
    sens que dans la séquence qui le porte. On l'ANNONCE avant le dépôt (△ sur la cible), on ne
    l'interdit pas : l'auteur reste l'expert de sa fiche. */
+/* ═══ K3 / K8 / K9 (v4.65.0, maquette MK4) — LA PORTE « + » : UNE SEULE, TOUT PASSE PAR ELLE ══
+   Six boutons d'ajout vivaient dispersés dans trois fieldsets (« + Bloc d'étapes », « + Décision
+   (si… alors…) », « + Chronomètre », « + Minuteur (cycle) », « + Ajouter un compteur »,
+   « ＋ Complication ») : pour savoir ce qu'on POUVAIT ajouter, il fallait faire défiler la page
+   entière, et rien ne disait à quoi chaque type sert. Une seule porte les rassemble, et CHAQUE
+   TYPE SE PRÉSENTE — le glyphe, le nom, et UNE ligne dans les mots du soignant.
+   C'EST LÀ QUE LES REGISTRES S'APPRENNENT, AVANT LA CRISE : « ⚠ ce qui TUE si on l'oublie » et
+   « △ là où l'on se TROMPE » sont écrits noir sur blanc au moment où l'auteur choisit — pas dans
+   un guide qu'on replie. La palette est un dialogue ordinaire (`confirmDlg` n'irait pas : ce
+   n'est pas une confirmation), fermée par Échap et le voile comme toutes les fenêtres. */
+const ED_PALETTE=[
+  {k:'steps',   ic:'❑', n:'Bloc d’étapes',        d:'Une suite d’actions à cocher — l’unité de base d’une checklist'},
+  {k:'decision',ic:'?', n:'Décision (si… alors…)',d:'Une question et ses branches : « Choquable ? » → chaque réponse mène à son bloc'},
+  {k:'interval',ic:'⏱', n:'Minuteur à cycles',    d:'Un temps qui se relance et compte les tours — ex. RCP 2 min'},
+  {k:'stopwatch',ic:'⏱',n:'Chronomètre',          d:'Un temps qui monte, sans échéance — ex. durée depuis l’appel'},
+  {k:'counter', ic:'№', n:'Compteur',             d:'Ce qu’on compte pendant le soin : chocs, doses d’adrénaline…'},
+  {k:'cx',      ic:'⚡',n:'Complication',          d:'Un événement qui peut survenir à tout moment — le retour est prévu'}
+];
+const edAddModal=()=>document.getElementById('edAddModal');
+function edAddOpen(f){
+  const m=edAddModal();const body=document.getElementById('edAddBody');
+  body.innerHTML=edPaletteHtml();
+  body.querySelectorAll('[data-edadd]').forEach(b=>b.onclick=()=>{edAdd(f,b.dataset.edadd);});
+  m.classList.add('on');
+  const first=body.querySelector('.ep-row');if(first)first.focus();}
+function edAddClose(){const m=edAddModal();if(m)m.classList.remove('on');}
+/* CHAQUE TYPE A SON POINT D'INSERTION, ET UN SEUL. Les valeurs par défaut sont celles que
+   portaient les six anciens boutons — on a supprimé les PORTES, pas les gestes. Après l'ajout,
+   la fenêtre se ferme et l'éditeur se re-rend : l'objet neuf est déjà à l'écran, sinon la porte
+   demanderait un geste pour ouvrir et un autre pour trouver ce qu'elle a créé. */
+function edAdd(f,kind){
+  if(kind==='steps')f.blocks.push({id:uid('b'),type:'steps',title:'',steps:[''],image:null,next:null});
+  else if(kind==='decision')f.blocks.push({id:uid('b'),type:'decision',title:'',question:'',image:null,options:[{label:'Oui',target:''},{label:'Non',target:''}]});
+  else if(kind==='stopwatch')f.timers.push({id:uid('t'),label:'',type:'stopwatch'});
+  else if(kind==='interval')f.timers.push({id:uid('t'),label:'',type:'interval',seconds:120,autoloop:true});
+  else if(kind==='counter')f.counters.push({id:uid('n'),label:'',step:1,start:0});
+  else if(kind==='cx')(f.complications=f.complications||[]).push({label:'',target:''});
+  edAddClose();renderEditor();}
+function edPaletteHtml(){
+  return ED_PALETTE.map(x=>`<button type="button" class="ep-row" data-edadd="${x.k}"><span class="ep-ic" aria-hidden="true">${x.ic}</span><span class="ep-tx"><b>${esc(x.n)}</b><span>${esc(x.d)}</span></span></button>`).join('');}
 function edGrabIsCrit(){const g=state.edGrab;if(!g||g.kind!=='s'||!state.draft)return false;
   const b=(state.draft.blocks||[]).find(x=>x.id===g.bid);
   return !!b&&stepIsCrit((b.steps||[])[g.si]||'');}
@@ -12120,13 +12180,13 @@ function renderEditor(){
     ③ à vérifier + différentiels, puis annexes) — on rédige dans l'ordre où l'équipe lira. */}
     ${listEditor('Ne pas oublier','4 rappels maximum — ils s’affichent en permanence, en tête de fiche','notForget',f.notForget,false,{shell:'ed-forget',guard:'nfGuard',guardTxt:nfGuardTxt(f.notForget)})}
     ${listEditor('Confirmation diagnostique','critères pour déclencher la fiche','confirmation',f.confirmation)}
-    <fieldset class="field"><label>Prise en charge <span class="hint">listes d'étapes + décisions conditionnelles</span></label><p class="flow-prev-h">Algorithme — aperçu automatique</p>${flowBlock(f)}${edGrabBanner(f)}${f.blocks.map((b,bi)=>((state.edGrab&&state.edGrab.kind==='b')?edDrop('B:'+bi,bi===0?'Poser avant le bloc 1':'Poser ici'):'')+blockEditor(b,blocks)).join('')}${(state.edGrab&&state.edGrab.kind==='b')?edDrop('B:'+f.blocks.length,'Poser en fin de fiche'):''}<div class="add-blocks"><button class="btn sm" id="addSteps">+ Bloc d'étapes</button><button class="btn sm" id="addDecision">+ Décision (si… alors…)</button></div></fieldset>
+    <fieldset class="field"><label>Prise en charge <span class="hint">listes d'étapes + décisions conditionnelles</span></label><p class="flow-prev-h">Algorithme — aperçu automatique</p>${flowBlock(f)}${edGrabBanner(f)}${f.blocks.map((b,bi)=>((state.edGrab&&state.edGrab.kind==='b')?edDrop('B:'+bi,bi===0?'Poser avant le bloc 1':'Poser ici'):'')+blockEditor(b,blocks)).join('')}${(state.edGrab&&state.edGrab.kind==='b')?edDrop('B:'+f.blocks.length,'Poser en fin de fiche'):''}<button type="button" class="add-line ed-door" id="edAddOpen">＋ Étape · décision · minuteur…</button></fieldset>
     <fieldset class="field"><label>Minuteurs & compteurs <span class="hint">disponibles pendant la session</span></label>
-      <p class="sub2">Minuteurs</p>${(f.timers||[]).map((t,i)=>timerEditorRow(t,i)).join('')}<div class="add-blocks"><button class="btn sm" id="addStopwatch">+ Chronomètre</button><button class="btn sm" id="addInterval">+ Minuteur (cycle)</button></div>
-      <p class="sub2" style="margin-top:14px">Compteurs</p>${(f.counters||[]).map((c,i)=>counterEditorRow(c,i,f.timers)).join('')}<button class="add-line" id="addCounter">+ Ajouter un compteur</button></fieldset>
+      <p class="sub2">Minuteurs</p>${(f.timers||[]).map((t,i)=>timerEditorRow(t,i)).join('')}
+      <p class="sub2" style="margin-top:14px">Compteurs</p>${(f.counters||[]).map((c,i)=>counterEditorRow(c,i,f.timers)).join('')}</fieldset>
     <fieldset class="field"><label>⚡ Complications — à tout moment <span class="hint">1 à 3 : l'essentiel — chaque bouton de plus dilue les autres. Cible = un bloc dédié de cette fiche, ou une autre aide</span></label>
       ${(f.complications||[]).map((c,i)=>cxEditorRow(c,i,f)).join('')}
-      <button type="button" class="add-line" id="addCx">＋ Complication</button></fieldset>
+</fieldset>
     <div class="field"><div class="lab-row"><label for="f-localInfo">Contexte local <span class="hint">numéros utiles, particularités</span></label>${boldBtnHtml()}</div><textarea id="f-localInfo" rows="2" placeholder="Réanimateur de garde, pharmacie…">${esc(f.localInfo)}</textarea></div>
     ${listEditor('Repères posologiques','bouton △ = carte ambre (dose à vérifier) · le rouge reste aux memory items · **gras** possible','posology',f.posology,false,{crit:true})}
     ${listEditor('À vérifier','','verify',f.verify)}
@@ -12169,7 +12229,7 @@ function bindEditorEvents(f){
   main.querySelectorAll('[data-cxlab]').forEach(inp=>inp.addEventListener('input',e=>{const i=+e.target.dataset.cxlab;if(f.complications&&f.complications[i])f.complications[i].label=e.target.value;}));
   main.querySelectorAll('[data-cxpicker]').forEach(b=>b.onclick=()=>openCxTargetPicker(f,+b.dataset.cxpicker,renderEditor));
   main.querySelectorAll('[data-cxdel]').forEach(b=>b.onclick=()=>{f.complications.splice(+b.dataset.cxdel,1);renderEditor();});
-  {const ab=document.getElementById('addCx');if(ab)ab.onclick=()=>{(f.complications=f.complications||[]).push({label:'',target:''});renderEditor();};}
+
   bindEditSide('fiche');
   bindListEditors();
   // images
@@ -12178,9 +12238,7 @@ function bindEditorEvents(f){
   main.querySelectorAll('[data-imgdel]').forEach(b=>b.onclick=()=>{f.images.splice(+b.dataset.imgdel,1);renderEditor();});
   main.querySelectorAll('[data-imgcap]').forEach(inp=>inp.addEventListener('input',e=>f.images[+e.target.dataset.imgcap].caption=e.target.value));
   // minuteurs/compteurs
-  document.getElementById('addStopwatch').onclick=()=>{f.timers.push({id:uid('t'),label:'',type:'stopwatch'});renderEditor();};
-  document.getElementById('addInterval').onclick=()=>{f.timers.push({id:uid('t'),label:'',type:'interval',seconds:120,autoloop:true});renderEditor();};
-  document.getElementById('addCounter').onclick=()=>{f.counters.push({id:uid('n'),label:'',step:1,start:0});renderEditor();};
+
   main.querySelectorAll('[data-ti]').forEach(row=>{const t=f.timers[+row.dataset.ti];const lab=row.querySelector('[data-tf]');if(lab)lab.addEventListener('input',e=>t.label=e.target.value);
     const mn=row.querySelector('[data-tmin]'),sc=row.querySelector('[data-tsec]');const upd=()=>{t.seconds=(parseInt(mn.value||0)||0)*60+(parseInt(sc.value||0)||0);};if(mn)mn.addEventListener('input',upd);if(sc)sc.addEventListener('input',upd);
     const lp=row.querySelector('[data-tloop]');if(lp)lp.addEventListener('change',e=>t.autoloop=e.target.checked);
@@ -12192,8 +12250,9 @@ function bindEditorEvents(f){
     const dl=row.querySelector('[data-cdel]');if(dl)dl.onclick=()=>{f.counters.splice(+dl.dataset.cdel,1);renderEditor();};
     const lk=row.querySelector('[data-clink]');if(lk)lk.onchange=()=>{f.counters[+row.dataset.ci].timerId=lk.value;};});
   // blocs
-  document.getElementById('addSteps').onclick=()=>{f.blocks.push({id:uid('b'),type:'steps',title:'',steps:[''],image:null,next:null});renderEditor();};
-  document.getElementById('addDecision').onclick=()=>{f.blocks.push({id:uid('b'),type:'decision',title:'',question:'',image:null,options:[{label:'Oui',target:''},{label:'Non',target:''}]});renderEditor();};
+  /* K3/K8/K9 : la porte « + ». UN point d'insertion par type, appelé depuis la palette — les six
+     boutons dispersés ont disparu, pas les gestes qu'ils portaient. */
+  {const od=document.getElementById('edAddOpen');if(od)od.onclick=()=>edAddOpen(f);}
   main.querySelectorAll('.blk').forEach(card=>{const bid=card.dataset.bid;const b=f.blocks.find(x=>x.id===bid);
     card.querySelectorAll('[data-bf]').forEach(inp=>{const fld=inp.dataset.bf;inp.addEventListener('input',e=>{b[fld]=e.target.value;scheduleFlowPreview(f);});inp.addEventListener('change',()=>renderEditor());});
     const sb=card.querySelector('[data-start]');if(sb)sb.onclick=()=>{f.start=bid;renderEditor();};
@@ -13026,6 +13085,11 @@ function renderCatMgr(){
   const add=document.getElementById('cmAdd');if(add)add.onclick=async()=>{const inp=document.getElementById('cmNew');const name=(inp.value||'').trim();if(!name)return;categories.push({id:newCatId(name,scp),name,color:PALETTE[catsForScope(scp).length%PALETTE.length],libraryId:scp});await saveCats(scp);renderCatMgr();};
 }
 bindModalDismiss(catModal,closeCatMgr);
+/* La porte « + » passe par le gestionnaire commun : Échap, clic de voile, piège de focus et
+   retour système d'Android — aucune fenêtre de l'app n'a le droit d'y échapper. */
+{const m=document.getElementById('edAddModal');
+ if(m){bindModalDismiss(m,edAddClose);
+   const x=document.getElementById('edAddX');if(x)x.onclick=edAddClose;}}
 
 /* ===== Export / Import =====
    Export : télécharge un JSON { version, categories, fiches } (sessions exclues).

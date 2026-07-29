@@ -1414,6 +1414,22 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   dès l'ajout de la case. **PIÈGE DE SONDE** : la bibliothèque est VIDE au premier démarrage ; une
   sonde d'éditeur doit passer par « Commencer » puis « Ajouter les fiches d'exemple », comme les
   autres harnais — sans quoi elle mesure une page sans fiche et conclut à tort.
+  **K5 EST REPORTÉ (décision utilisateur, v4.64.0)** : « l'enregistrement se dit, ne se demande
+  pas » — auto-enregistrement horodaté dans la barre et « ▶ Essayer » promu bouton rempli unique.
+  Ne pas le livrer par effet de bord : il DÉPLACE l'action primaire de l'écran (« Enregistrer »
+  est aujourd'hui le seul rempli, doctrine « un seul bouton rempli par écran »), et l'éditeur
+  s'auto-enregistre déjà sans le dire — c'est la PROMESSE affichée qui change, pas la mécanique.
+  **K3/K8/K9 — LA PORTE « + », UNE SEULE (v4.65.0, maquette MK4)** : six boutons d'ajout vivaient
+  dispersés dans trois fieldsets (bloc d'étapes, décision, chronomètre, minuteur à cycles,
+  compteur, complication) — pour savoir ce qu'on POUVAIT ajouter il fallait faire défiler la page
+  entière, et rien ne disait à quoi chaque type sert. Une seule porte pointillée les rassemble, et
+  **chaque type se présente** : glyphe, nom, et UNE ligne dans les mots du soignant. **C'est là
+  que les registres s'apprennent, avant la crise** — « ce qui TUE si on l'oublie » et « là où l'on
+  se TROMPE » sont écrits au moment où l'auteur choisit, pas dans un guide qu'on replie. La
+  fenêtre passe par `bindModalDismiss` comme toutes les autres (Échap, voile, focus, retour
+  système) ; elle se ferme à l'insertion et l'éditeur se re-rend, sinon la porte demanderait un
+  geste pour ouvrir et un autre pour trouver ce qu'elle vient de créer. Les six gestes sont
+  intacts : on a supprimé les PORTES, pas les capacités.
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.
@@ -2070,7 +2086,7 @@ modèle de données, règles de sécurité) : le lire en premier. Ensuite, dans 
 > grep -n '^/\* ===== \|^  /\* ===== ' index.html
 > ```
 >
-> Découpage global : CSS ≈ lignes 273-3379, coque HTML statique ≈ 3381-3697 (dont **21 fenêtres
+> Découpage global : CSS ≈ lignes 273-3379, coque HTML statique ≈ 3381-3697 (dont **22 fenêtres
 > modales** déclarées en dur — `grep -c 'class="ai-modal' index.html`, toutes auditées par
 > `audit-a11y.mjs` —, plus deux surfaces plein écran qui n'en sont pas : `#readerMode` et
 > `#joinScreen`), JavaScript ≈ 3699 à la fin.

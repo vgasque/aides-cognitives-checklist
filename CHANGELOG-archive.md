@@ -1,7 +1,38 @@
-# Journal des modifications — archive (versions 3.0.0 à 4.55.0)
+# Journal des modifications — archive (versions 3.0.0 à 4.55.1)
 
 > Entrées anciennes déplacées depuis [`CHANGELOG.md`](CHANGELOG.md) pour garder le journal
 > courant lisible. Même format (keep-a-changelog).
+
+## [4.55.1] — 2026-07-28
+### CORRECTIF — les assertions ajoutées en v4.55.0 lisaient une table sous le rôle `anon`
+
+`ERROR: 42501: permission denied for table shared_sessions`. Les trois vérifications que la v4.55.0
+ajoutait au § 14.5 — « nommer ce qui doit passer plutôt que compter » — interrogent la table en
+direct, alors que le bloc est encore sous le rôle **`anon`**, posé au § 14.3 et jamais rendu.
+
+Correction : on reprend les droits le temps de la lecture, puis **on restitue le rôle exactement
+comme on l'a trouvé** — les sections suivantes s'appuient dessus.
+
+### Le troisième rejeu perdu, et le garde-fou qui ferme cette famille
+C'est la troisième fois qu'une erreur SQL vous coûte un aller-retour : un `$$` mutilé (v4.44.1), une
+variable non déclarée (v4.54.1), et maintenant un accès de table sous un rôle sans privilèges.
+Toutes trois ont la même cause de fond : **`supabase/*.sql` n'est ni servi ni chargé par les
+tests**, sa seule épreuve était le collage dans l'éditeur.
+
+`check-sql.mjs` gagne un troisième contrôle statique. Il est **volontairement borné à `anon`** :
+ce rôle n'a aucun privilège de table par construction — c'est tout l'objet du § 13 —, donc toute
+lecture directe pendant qu'il est actif est une erreur **certaine**. Sous `authenticated`,
+interroger une table est légitime, et c'est même ainsi qu'on prouve que la RLS filtre (le § 14.19
+lit l'historique d'Alice sous Bob et attend zéro ligne). Une règle plus large aurait produit des
+faux positifs **sur les tests mêmes qui font le travail** — un garde-fou qui crie sur du code juste
+finit ignoré. Les appels de fonction ne comptent pas : `share_join`, `share_pull` et `share_push`
+sont `security definer`, et c'est précisément leur raison d'être.
+
+**Vérifié capable d'échouer** en réintroduisant le défaut vécu à l'identique : il nomme la table, la
+ligne, et le remède. Fichier restauré à l'octet.
+
+`schema.sql` de la v4.55.0 était correct et **n'a pas à être rejoué** ; **`rls-tests.sql` est à
+rejouer**. 756 tests × 2 moteurs, 14 harnais verts, `npm run check` 6/6.
 
 ## [4.55.0] — 2026-07-28
 ### Le scribe conduit — j'avais mal lu ma propre source

@@ -1900,6 +1900,19 @@
   }
   /* MK5-b — « en main » : bandeau d'état + interstices. Les cibles sont PLEINE LARGEUR et
      ≥ 44 px : on pose au doigt, avec des gants, sans viser. */
+  /* K8/K9 — LA PALETTE : chaque type se présente. Rangées ≥ 56 px (glyphe + nom + une ligne),
+     grammaire des cartes du dialogue « Créer », dont c'est le pendant côté contenu. */
+  .ed-palette{display:flex;flex-direction:column;gap:8px}
+  .ep-row{display:flex;align-items:flex-start;gap:12px;width:100%;min-height:56px;text-align:left;
+    background:var(--surface);border:1.5px solid var(--line);border-radius:var(--radius-md);padding:11px 13px;cursor:pointer;font-family:inherit}
+  .ep-row:hover{border-color:var(--primary);background:var(--primary-soft)}
+  .ep-row:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .ep-ic{flex:none;width:30px;height:30px;display:grid;place-items:center;border-radius:8px;background:var(--surface-2);color:var(--ink);font-size:15px}
+  .ep-tx{display:flex;flex-direction:column;gap:2px;min-width:0}
+  .ep-tx b{font-size:14.5px;font-weight:700;color:var(--ink)}
+  .ep-tx span{font-size:12.5px;line-height:1.4;color:var(--ink-soft)}
+  /* La porte elle-même : pointillé (grammaire « créer »), pleine largeur, ≥ 44 px. */
+  .ed-door{min-height:48px;font-size:14px}
   .ed-grab{position:sticky;top:calc(var(--hdr-h,64px) + 6px);z-index:6;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
     background:var(--primary-soft);border:1px solid var(--primary);border-radius:var(--radius-md);padding:10px 12px;margin:0 0 12px}
   .ed-grab .eg-l{flex:1;min-width:0;font-size:13.5px;color:var(--primary-dk)}
