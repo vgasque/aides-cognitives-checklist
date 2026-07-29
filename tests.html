@@ -343,7 +343,11 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   group('fmtBytes()');
   eq('octets', A.fmtBytes(512), '512 o');
   eq('kilo-octets', A.fmtBytes(2048), '2 Ko');
-  eq('méga-octets', A.fmtBytes(3145728), '3.0 Mo');
+  /* v4.71.1 : VIRGULE décimale. Tout le texte de l'app est en français, et « 3.0 Mo » au milieu
+     d'une phrase française est une faute de composition. Ce test avait raison de tenir le format :
+     il a attrapé le changement, qui a donc été fait ici de façon DÉLIBÉRÉE et non par surprise. */
+  eq('méga-octets', A.fmtBytes(3145728), '3,0 Mo');
+  eq('giga-octets', A.fmtBytes(2147483648), '2,00 Go');
 
   group('flattenFiche() / diffFicheLines()');
   const fF={title:'T',status:'draft',localInfo:'Ctx',confirmation:['c1'],

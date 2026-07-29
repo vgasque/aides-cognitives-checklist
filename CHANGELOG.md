@@ -1,5 +1,66 @@
 # Journal des modifications
 
+## [4.71.1] — 2026-07-29
+### L'échelle typographique se ferme, la taille du texte devient un segmenté, l'admin se lit en lignes
+
+#### Sept paliers, et un garde-fou qui les tient
+`19 · 18 · 16,5 · 15,5 · 13,5 · 12 · 11`. Avant, la feuille portait **seize** corps différents
+entre 10 et 19 px. Le problème n'est pas la pureté : **deux textes à 13 et 13,5 px ne se lisent pas
+comme deux niveaux, ils se lisent comme une inattention** — et une hiérarchie qu'on ne peut pas lire
+ne hiérarchise rien. 238 déclarations réécrites, dont un 10 px qui passait sous le plancher de 11.
+
+**Périmètre : le texte, c'est-à-dire sous 20 px.** Au-dessus vivent les affichages — chronos,
+challenge du mode lecteur, moniteur, tête de bilan. Chacun occupe sa propre surface, ils ne se
+croisent jamais du regard, et les forcer sur l'échelle du texte n'apprendrait rien à personne.
+Hors périmètre, délibérément.
+
+**Deux valeurs de service, qui ne sont pas des paliers** : `16` = plancher des champs sur écran
+tactile (règle 9 — sous 16, Safari iOS zoome au focus et les taps se perdent) ; `14` = l'un des
+quatre « A » du sélecteur de taille, dont l'écart de corps **est** l'information.
+
+`scripts/check-type.mjs` entre dans `npm run check` et rend la règle auto-exécutoire, comme
+`check-colors` pour les couleurs. Toute valeur hors échelle échoue, sauf exemption **nommée par son
+sélecteur et motivée** dans le script — une exemption anonyme rouvrirait la porte qu'on vient de
+fermer. Vérifié capable d'échouer : 13,2 px introduit, contrôle rouge, fichier restauré à l'octet.
+
+#### La taille du texte devient le sélecteur segmenté de l'app
+Quatre « A » séparés deviennent le composant à pastille glissante — celui de Guidé / Statique.
+Le composant ne savait compter que jusqu'à deux : il accepte maintenant N segments (`--seg-n` /
+`--seg-i`), et **la mécanique à deux est laissée strictement intacte** (`.seg.i1` continue de
+piloter la tab bar, « Créer » et le sélecteur de mode). Le cas N passe par un `#id` et non par une
+classe de plus : à spécificité égale, ce serait l'ordre de déclaration qui trancherait — le projet
+a déjà payé cinq fois ce piège. Le glisser au doigt marche à quatre paliers (mesuré : glissé du
+palier 1 au palier 4, le zoom suit).
+
+**Le tap ne re-rend pas la fenêtre** : un `renderAuth()` reconstruirait le sélecteur et la pastille
+sauterait au lieu de glisser. Rien d'autre de la fenêtre ne dépend du zoom — on peint sur place.
+`.ts-seg` et son halo sont purgés avec le composant qu'ils habillaient.
+
+#### État de l'instance — quatre groupes, une donnée par ligne
+Douze tuiles en grille obligeaient à balayer un damier pour trouver un chiffre. Désormais :
+**Comptes / Contenus / Partage & sessions / Stockage**, libellé en toutes lettres à gauche, valeur
+en mono tabulaire à droite, détail dessous en encre douce.
+
+**La seule action est un bouton** — « Examiner · n » — et il rejoint **la ligne dont il est le
+geste** au lieu de flotter au-dessus du bloc. Il est donc câblé par `loadInstanceStats` : le
+câbler depuis `renderAuthAccount` ne trouverait rien, le bouton n'existant pas encore à ce moment.
+
+Le constat P3-1 de la v4.56 (« la teinte `--primary-soft` donnait à de la lecture seule l'air d'être
+actionnable ») allait dans le bon sens mais s'arrêtait à la couleur : c'est la **forme de tuile**
+qui promettait un objet. `.inst-stats` / `.inst-stat` sont purgés. La barre de stockage montre la
+**part des documents dans le total** — un dénominateur réel : une jauge sans dénominateur est un
+ornement qui a l'air d'une mesure.
+
+#### Deux détails trouvés en chemin
+« Partage &amp; sessions » s'affichait littéralement : le `&` était échappé deux fois. Et `fmtBytes`
+écrivait « 3.0 Mo » avec un point décimal au milieu d'un texte français. **Un test tenait ce
+format et l'a attrapé** — c'est exactement pour ça qu'il existe ; le changement est donc délibéré
+et son attendu a été mis à jour, pas contourné.
+
+809 tests × 2 moteurs, a11y 301/301 sur Chromium **et** WebKit, doctrine 112/112, `modeseg` 2/2 sur
+les deux moteurs, les quatorze harnais verts, `npm run audit` en sortie 0. Rien à rejouer côté
+serveur.
+
 ## [4.71.0] — 2026-07-29
 ### Le sombre descend au noir, le geste répond partout où c'est calme, et la porte « + » ne ment plus
 

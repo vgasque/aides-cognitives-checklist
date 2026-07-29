@@ -124,9 +124,10 @@ Versionnage sémantique : correctif → patch (Z), nouvelle fonctionnalité → 
 Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
 
 ## Avant chaque commit
-- `npm run check` — trois garde-fous sans dépendance : **syntaxe** des scripts inline (attrape les
-  templates mal fermés), **couleurs** (`check-colors.mjs`, cf. Conventions), et **fraîcheur des
-  hashs CSP** (`csp-hashes.mjs --check`). Ce dernier existe parce que le piège s'est produit trois
+- `npm run check` — garde-fous sans dépendance : **syntaxe** des scripts inline (attrape les
+  templates mal fermés), **couleurs** (`check-colors.mjs`, cf. Conventions), **échelle
+  typographique** (`check-type.mjs`, v4.71.1 — sept paliers, exemptions nommées et motivées), et
+  **fraîcheur des hashs CSP** (`csp-hashes.mjs --check`). Ce dernier existe parce que le piège s'est produit trois
   fois : on édite le script inline, on oublie de rejouer `node scripts/csp-hashes.mjs`, et la CSP
   bloque le SEUL script de l'app — elle ne démarre plus, et le symptôme (page blanche, ou
   « `__ac_test__` introuvable » côté tests) ne désigne pas sa cause. Le même contrôle refuse tout
@@ -1313,6 +1314,45 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   `alarm` pour le minuteur qui SONNE, `stopwatch` pour le temps qui MONTE — elles portaient
   toutes deux « ⏱ ». Et le document passe par l'icône de trait, pas par « 📎 » : un emoji en
   COULEUR dans une liste monochrome, quand la couleur ne décore jamais ici.
+- **ÉCHELLE TYPOGRAPHIQUE FERMÉE — SEPT PALIERS, ET UN GARDE-FOU (v4.71.1, audit design E2)** :
+  `19 · 18 · 16,5 · 15,5 · 13,5 · 12 · 11`. Avant, la feuille portait **seize** corps entre 10 et
+  19 px (11 / 11,5 / 12 / 12,5 / 13 / 13,5 / 14 / 14,5 / 15 / 15,5 / 16 / 16,5 / 17 / 18 / 19,
+  plus un 10 sous le plancher). Le problème n'était pas la pureté : **deux textes à 13 et 13,5 px
+  ne se lisent pas comme deux NIVEAUX, ils se lisent comme une inattention** — et une hiérarchie
+  qu'on ne peut pas lire ne hiérarchise rien. 238 déclarations réécrites.
+  **PÉRIMÈTRE : le TEXTE, c'est-à-dire sous 20 px.** Au-dessus vivent les AFFICHAGES (chronos,
+  challenge du lecteur, moniteur, tête de bilan) : chacun occupe sa propre surface, ils ne se
+  croisent jamais du regard, et les forcer sur l'échelle du texte n'apprendrait rien — hors
+  périmètre, délibérément. **DEUX VALEURS DE SERVICE, qui ne sont pas des paliers** : `16` =
+  plancher des champs sur écran tactile (règle 9, contrainte du moteur) ; `14` = l'un des quatre
+  « A » du sélecteur de taille, dont l'écart de corps EST l'information.
+  **`scripts/check-type.mjs` (dans `npm run check`)** rend la règle auto-exécutoire, comme
+  `check-colors` pour les couleurs : toute valeur hors échelle échoue, sauf exemption **nommée
+  par son sélecteur et motivée** dans le script — une exemption anonyme rouvrirait la porte qu'on
+  vient de fermer. Vérifié CAPABLE D'ÉCHOUER (13,2 px introduit, contrôle rouge, fichier restauré
+  à l'octet — leçon v4.31.1).
+- **LE SÉLECTEUR SEGMENTÉ ACCEPTE N SEGMENTS (v4.71.1)** : `--seg-n` / `--seg-i`, pour la TAILLE
+  DU TEXTE qui en a quatre (demande utilisateur : « comme Statique/Dynamique »). **La mécanique à
+  DEUX est laissée strictement intacte** — `.seg.i1` continue de piloter la tab bar, « Créer » et
+  `#modeSeg` ; le cas N passe par un **`#id`** et non par une classe de plus, parce qu'à
+  spécificité égale ce serait l'ORDRE de déclaration qui trancherait (cinquième piège de cascade
+  du projet). `bindSegDrag` compte désormais jusqu'à N (`nmax` sort du DOM, l'index de départ du
+  bouton ACTIF au lieu de `.i1`, commit à `Math.round`) : le glisser au doigt marche à quatre
+  paliers. **LE TAP NE RE-REND PAS** la fenêtre Compte — un `renderAuth()` reconstruirait le
+  sélecteur et la pastille SAUTERAIT au lieu de glisser (le défaut que `.seg-replay` avait dû
+  contourner ailleurs) ; rien d'autre de la fenêtre ne dépend du zoom, on peint sur place.
+  `.ts-seg`/`.st-seg.ts-seg` sont PURGÉS avec le composant qu'ils habillaient (règle 14).
+- **ÉTAT DE L'INSTANCE — QUATRE GROUPES, UNE DONNÉE PAR LIGNE (v4.71.1, M5)** : douze tuiles en
+  grille obligeaient à balayer un damier pour trouver un chiffre. Libellé en toutes lettres à
+  gauche, valeur en mono tabulaire à droite, détail dessous en encre douce ; **la seule action est
+  un bouton** — « Examiner · n », qui rejoint LA LIGNE dont il est le geste au lieu de flotter
+  au-dessus du bloc (il est donc câblé par `loadInstanceStats`, pas par `renderAuthAccount` : le
+  bouton n'existe pas encore quand celui-ci s'exécute). Le constat P3-1 de la v4.56 (« la teinte
+  `--primary-soft` donnait à de la lecture seule l'air d'être actionnable ») allait dans le bon
+  sens mais s'arrêtait à la couleur : c'est la **forme de tuile** qui promettait un objet.
+  `.inst-stats`/`.inst-stat`/`.is-v`/`.is-k` purgés (règle 14). **La barre de stockage montre la
+  PART des documents dans le total** — un dénominateur réel : une jauge sans dénominateur est un
+  ornement qui a l'air d'une mesure.
 - **L'ÉTAT DE MODE S'ANCRE AU COIN HAUT-DROIT (v4.58.0, audit design — concept H/B)** : la pilule
   « ■ Crise » vivait à droite de la bande-titre quand elle était dépliée, puis **sautait au milieu
   de la ligne fusionnée** au défilement — position ET libellé changeaient (« ■ MODE CRISE » ici,
