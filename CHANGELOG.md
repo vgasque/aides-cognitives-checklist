@@ -1,5 +1,50 @@
 # Journal des modifications
 
+## [4.64.0] — 2026-07-29
+### K1 — on édite dans la grammaire de lecture
+
+L'éditeur était un formulaire : champs empilés d'un côté, aperçu de l'autre. L'auteur composait à
+l'aveugle et ne découvrait le rendu qu'en basculant. Désormais **le chapeau EST le cadre rouge**,
+**un bloc EST sa carte**, **une étape EST sa rangée** — les champs prennent la place exacte du
+texte final, aux mêmes corps et aux mêmes registres. Ce que l'auteur voit est ce que le soignant
+verra : le garde-fou le plus puissant est visuel.
+
+- Le bloc d'édition reprend l'anatomie de la carte de lecture : mêmes bordures, liseré gauche de
+  4 px, même rayon — **ambre pour une décision**, neutre pour un bloc d'étapes, comme en lecture.
+- Une étape ⚠ porte sa boîte rouge, une étape △ sa boîte ambre, avec la case à gauche.
+- **Ce qui n'est pas copié, délibérément** : la case reste un **glyphe inerte**. Un éditeur où
+  l'on pourrait cocher ferait croire qu'on prépare un état ; on rédige une aide, on ne la déroule
+  pas.
+
+### K3 — les outils suivent le focus
+Trois boutons par étape multipliés par huit étapes, cela faisait vingt-quatre cibles pour un écran
+où l'on écrit **une ligne à la fois**. La rangée ⚠ ✕ ⠿ n'existe désormais que sur l'étape
+**active** — atteignable au clavier (`:focus-within` s'ouvre dès que la tabulation entre dans le
+champ), et le survol est neutralisé sur pointeur grossier, où l'étape active est celle où l'on
+écrit. Mesuré : **43 px au repos, 123 px active**.
+
+### MK5-b — réordonner par « prendre / poser », deux taps, zéro maintien
+Un tap sur la poignée ⠿ **soulève** l'objet et réécrit la page en cibles pleine largeur ≥ 44 px ;
+un tap sur un interstice le **pose**. Pas de maintien ni de glisser — c'est le point de
+défaillance du drag au doigt (gants, une seule main, véhicule qui bouge). Les boutons ↑ ↓
+deviennent redondants et quittent la rangée d'outils.
+
+- L'objet « en main » n'est **jamais persisté** : c'est un geste, pas un état du brouillon.
+- **Échap ou ✕ le reposent** là où il était : un geste interrompu ne déplace rien.
+- **Garde-fou QRH** : sortir une étape ⚠ de son bloc change son contexte — la cible s'annonce
+  alors en △ **avant** le dépôt, sans jamais l'interdire. L'auteur reste l'expert de sa fiche.
+
+### Deux pièges
+- Les étapes d'un bloc vivent **hors** de `.list-edit` : leur rangée n'avait donc aucune règle de
+  flex, et les trois objets (case, champ, outils) s'empilaient dès l'ajout de la case.
+- La bibliothèque est **vide au premier démarrage** : une sonde d'éditeur doit passer par
+  « Commencer » puis « Ajouter les fiches d'exemple », comme les autres harnais — sans quoi elle
+  mesure une page sans fiche et conclut à tort que tout échoue.
+
+Vérifié : 794 tests × 2 moteurs, a11y 301/301, doctrine 112/112, et une sonde dédiée sur
+**Chromium et WebKit** (outils au focus, 12 cibles ≥ 44 px, garde-fou QRH, déplacement effectif,
+Échap sans effet de bord, cadre rouge du chapeau). Rien à rejouer côté serveur.
+
 ## [4.63.0] — 2026-07-29
 ### Phase K — la doctrine relit par-dessus l'épaule, et la page revient au contenu clinique
 
@@ -714,177 +759,3 @@ ligne, et le remède. Fichier restauré à l'octet.
 
 `schema.sql` de la v4.55.0 était correct et **n'a pas à être rejoué** ; **`rls-tests.sql` est à
 rejouer**. 756 tests × 2 moteurs, 14 harnais verts, `npm run check` 6/6.
-
-## [4.55.0] — 2026-07-28
-### Le scribe conduit — j'avais mal lu ma propre source
-
-Objection d'usage, et elle porte : le médecin partage **pour se libérer les mains** — faire des
-gestes, téléphoner, parler à l'équipe. Si un infirmier demande au scribe « c'est quoi les étapes
-d'après ? mets le minuteur en pause, il reprend un rythme », le scribe ne pouvait rien faire, et le
-médecin devait reprendre son téléphone pour valider avant de repasser la main.
-
-### Ce que la source dit vraiment
-AC 120-71B §5.2.2.1 — « one crewmember reading the checklist and the second confirming and
-responding » — décrit une répartition de **la parole**, pas un système de permissions. Et dans ce
-modèle, **c'est celui qui lit qui fait avancer la liste** ; le lead est celui dont les mains sont
-prises. J'avais transposé l'inverse.
-
-Les autres sources convergent : la **SFAR** (« le lecteur : sa seule tâche est de lire et de
-**guider** »), l'**ECAM** (le pilot monitoring actionne l'ECP, le pilot flying pilote), et surtout
-**McEvoy 2014** — 99,5 % contre 70 % d'adhérence, la meilleure donnée du dossier — où **le lecteur
-tenait l'unique appareil**. La conception précédente empêchait exactement la configuration la mieux
-documentée.
-
-Et le critère juste était **déjà écrit dans ce dépôt**, pour `mark_void` : « annuler CONSERVE,
-décocher DÉTRUIT — ce n'est donc pas une action destructrice, et la règle qui réserve celles-ci au
-lead ne s'y applique pas. » Naviguer est append-only ; arrêter un minuteur conserve son `elapsedMs`.
-Rien ne les réservait.
-
-### La nouvelle ligne
-| Ouvert au scribe | Réservé |
-|---|---|
-| cocher · constater · écart · incrémenter · armer · repère | **décocher** — efface une information |
-| **avancer · choisir une branche · terminer un bloc** | **remettre à zéro** — efface un décompte que personne ne restitue |
-| **arrêter un minuteur** · entrer sur une complication | **terminer le partage** · dater le début du soin |
-
-**L'objection d'ambiguïté** (§5.5, « qui fait quoi », qu'Airbus supprime par un ECP unique) reçoit
-la réponse constante du projet : **on n'interdit pas, on annonce.** Une avance venue d'en face pose
-une mention « avancé par ‹rôle› » sur la carte courante, à côté de « Vous êtes ici » — même
-information, vue par l'autre angle. Elle s'efface au geste de navigation suivant.
-
-### Le lecteur était une troisième copie, jamais recensée
-Signalé aussi : « pourquoi l'invité peut passer de bloc en bloc en mode lecteur mais pas sur la
-page ? ». C'était vrai — `data-rmnext` et `data-rmopt` sont les mêmes verbes que `data-ovnext` et
-`data-ovopt` sous d'autres noms, et la liste ne les nommait pas. Ce n'était **pas** un défaut de
-portée (la garde en capture atteint bien `#readerMode`, prouvé en injectant `data-plgo` sur un de
-ses boutons) mais de **prédicat**.
-
-Trois choses en sont sorties, indépendantes du redécoupage :
-
-- **`data-rmok` écrivait `state.checked` en direct**, sans passer par le prédicat unique. La
-  doctrine annonce **deux** copies du cœur de cochage ; le lecteur en était une **troisième**.
-  Mesuré : un invité au lien **arrêté** cochait quand même depuis le lecteur alors que le même
-  geste était refusé sur la page.
-- **Huitième piège de cascade du projet, second par spécificité** : `#readerMode .rm-ok` porte un
-  **id** (1,1,0) et l'emportait sur `body.share-scribe :is([data-rmnext])` (0,2,1). Le geste était
-  bloqué, mais le bouton restait vert plein, 72 px, graisse 800 — il **invitait** à un geste refusé.
-- **Une émission refusée laissait le miroir divergent en silence** : la base de diff avance *avant*
-  l'émission, si bien qu'un genre refusé n'était jamais renvoyé, même après promotion. Le miroir se
-  déclare désormais périmé et redemande tout.
-
-### Deux correctifs d'usage
-**L'intitulé du journal ne se propageait pas.** `shareDiff` ne comparait que l'annulation d'un
-repère : **étiqueter après coup** — le geste normal, puisque « Noter l'heure » ne demande rien — ou
-corriger l'heure n'émettait rien. En le réparant, un second défaut est apparu : la réception
-**empilait** un repère déjà connu au lieu de le mettre à jour ; le correctif seul aurait doublé la
-ligne. Un test encodait le défaut (son couple de comparaison changeait la référence *et*
-l'annulation) — variable isolée.
-
-**Couper celui qui tient la main la rend à l'hôte.** Après « donner la main » puis « couper », le
-partage gardait un lead révoqué et un hôte resté scribe : plus personne pour conduire, l'état que
-l'invariant 1 interdit (« jamais deux, **jamais zéro** »). Ce n'est pas bloquant — les gardes de
-l'hôte sortent sur `mode !== 'guest'` — mais faire reposer un invariant affiché sur la porte de
-sortie d'une garde, c'est le laisser dépendre d'un détail d'implémentation.
-
-### Le garde-fou qui manquait
-`SHARE_KINDS_ANY`/`_LEAD` et `share_kind_allowed` sont **la même règle en deux langages**. Elles ont
-divergé : le redécoupage a été porté des deux côtés, mais l'assertion qui l'éprouve ne l'a pas été —
-et le défaut n'est apparu qu'au collage dans l'éditeur SQL. Une divergence est **silencieuse et
-asymétrique** : client plus permissif, un geste part et le serveur le jette sans que l'auteur le
-sache ; serveur plus strict, un geste légitime est refusé sans raison lisible.
-
-`check-sql.mjs` compare désormais les deux listes à chaque commit. **Vérifié capable d'échouer** en
-reproduisant la divergence exacte de cette version (serveur redécoupé, client en arrière) : il nomme
-les quatre genres des deux côtés ; fichier restauré à l'octet.
-
-### Vérification
-756 tests × 2 moteurs (+9), **263/263 contrôles partage** (+13, sur les deux moteurs), 14 harnais
-verts, 301 contrôles d'accessibilité, 94/94 doctrine. Quatre contrôles du harnais encodaient
-l'ancienne ligne : retournés plutôt que supprimés, ils affirment la nouvelle et disent pourquoi.
-Quatre sondes ont dû être corrigées avant de rien conclure — l'une relevait les boutons **avant**
-d'ouvrir leur panneau, une autre cochait « tant que Continuer n'existe pas » alors que le bouton est
-rendu d'emblée : elle mesurait la règle d'avancement, pas le bridage.
-
-**`supabase/schema.sql` est à rejouer** (`share_kind_allowed` change), puis `rls-tests.sql`.
-
-## [4.54.2] — 2026-07-28
-### CORRECTIF — l'historique synchronisé de la v4.54.0 ne synchronisait rien
-
-Signalé à l'usage, et exact sur les trois points : la bascule ne suivait pas d'un appareil à
-l'autre, les sessions antérieures à l'activation ne montaient pas, celles terminées après non plus.
-**La table existait, les politiques RLS étaient vertes, la bascule s'allumait — et pas une ligne ne
-partait.** Une fonctionnalité entièrement livrée, entièrement inerte.
-
-### Une cause et demie
-`_pushTable` ne pousse que les objets portant `dirty`, et **aucun site n'en posait jamais sur une
-session**. Explique les deux symptômes de fond. Le troisième — la bascule qui ne suit pas — venait
-d'un oubli distinct : le réglage n'entrait pas dans les préférences synchronisées, alors que le
-vocabulaire personnel ajouté à la même version, lui, y entrait.
-
-Le marquage vit désormais au **point d'étranglement de l'écriture** (`_putSessionSafe`), comme
-l'émission du partage vit dans `persistLive` : toute mutation ajoutée demain sera couverte sans
-qu'on y pense. La pierre tombale de la suppression y passe aussi — elle posait ses champs à la
-main, ce qui rendait fausse, dès la ligne où elle était écrite, la doctrine « ici, et nulle part
-ailleurs ».
-
-### Deux pièges que la contre-expertise a trouvés, et qui auraient annulé le correctif
-**`updatedAt` doit être posé en même temps que `dirty`.** Une session n'en portait pas — seulement
-`savedAt`, qui ne bouge plus après l'archivage. Posé seul, `dirty` aurait fait gagner
-**inconditionnellement** la copie distante à la résolution du dernier écrivain (`savedAt > 0`,
-toujours vrai) — et **effacé la trace do-verify de chaque session à la première synchro**. Le
-correctif du push, seul, aurait donc détruit des données.
-
-**Le rattrapage ne peut pas se garder sur une transition.** Qui a activé l'option en v4.54.0 —
-quand elle ne poussait rien — a déjà la clé à « 1 » : il ne reverra **jamais** le passage
-éteint→allumé. Un rattrapage gardé par cette transition aurait donc raté **exactement les personnes
-qui ont signalé le défaut**. La garde est une clé durable, et un réveil de synchro suit le
-balayage : quand l'option est apprise par le pull des préférences, la poussée de la même passe est
-déjà sortie par son garde d'entrée.
-
-### Vérification
-Nouveau harnais **`scripts/audit-historique.mjs`** — quatorzième —, **16/16 sur les deux moteurs**.
-Il mesure ce qui **partirait** (transport bouchonné) plutôt que ce que le code déclare : rien sans
-l'option, l'existant rattrapé, une session terminée après qui part, la trace do-verify qui reste et
-dont l'absence est dite, une session **vive** qui ne part jamais, le réglage qui voyage et qu'une
-préférence distante éteint — et le cas « déjà activé en v4.54.0 », qui a son propre contrôle.
-
-**Vérifié capable d'échouer** : les trois défauts réintroduits à l'identique en font tomber six,
-fichier restauré à l'octet. Une sonde a dû être corrigée en route — elle avait perdu son bouchon de
-transport et accusait l'application de son propre oubli. 747 tests × 2 moteurs, 14 harnais verts,
-301 contrôles d'accessibilité, 250/250 partage. **Rien à rejouer côté serveur.**
-
-## [4.54.1] — 2026-07-28
-### CORRECTIF — `rls-tests.sql` de la v4.54.0 ne s'exécutait pas, et rien ne pouvait le dire
-
-Signalé au rejeu : `ERROR: 42703: column "v_share" does not exist`. Les trois sections ajoutées en
-v4.54.0 (§ 14.15 à 14.17) employaient une variable qui n'existe pas dans le bloc — les conventions
-de nommage du fichier n'avaient pas été relues avant d'y écrire.
-
-**Deuxième rejeu perdu par la même famille de faute** (après le `$$` mutilé de la v4.44.1), et pour
-la même raison de fond : `supabase/*.sql` n'est ni servi, ni chargé par les tests — sa seule épreuve
-est le **collage dans l'éditeur SQL**, donc sur une instance réelle. Pire, PostgreSQL ne signale une
-variable inconnue qu'à l'**exécution de la ligne fautive** : un test placé en fin de bloc casse
-après trois minutes de travail réussi, et laisse croire que le reste est en cause.
-
-### Les sections sont désormais AUTONOMES
-Elles ouvrent leur propre partage et font rejoindre leur propre participant, au lieu de s'appuyer
-sur l'état laissé par les tests précédents. Une assertion qui dépend de ce qu'un test antérieur a
-bien voulu laisser derrière lui casse au premier réordonnancement — et c'est exactement ce qui
-vient d'arriver. Un préalable explicite y a été ajouté : le § 14.12 remplit le quota de partages
-vivants d'Alice, il faut donc les expirer avant d'en ouvrir un neuf, sinon l'ouverture échouerait
-**pour une raison qui n'a rien à voir avec ce qu'on mesure**.
-
-Deux assertions s'y ajoutent, qui manquaient : § 14.18 (la passation s'annonce des deux côtés) et
-§ 14.19 (l'historique de sessions ne se prête pas — Bob ne lit ni n'écrit celui d'Alice).
-
-### Le garde-fou qui aurait attrapé cela
-`check-sql.mjs` collecte les variables **déclarées** d'un bloc `do $$ … declare … begin`, collecte
-celles qui y sont **employées**, et compare. Statique, donc instantané, donc joué à chaque commit —
-là où l'erreur coûtait jusqu'ici un aller-retour complet sur une instance de production.
-
-**Vérifié capable d'échouer** en réintroduisant le défaut vécu à l'identique (`v_share`) : le
-contrôle le nomme et donne sa ligne ; fichier restauré à l'octet. Il ne prétend pas remplacer un
-analyseur plpgsql — il attrape la faute qui a été commise, ce qui est le seul critère qui vaille.
-
-`schema.sql` de la v4.54.0 était correct et n'a pas à être rejoué ; **`rls-tests.sql` est à
-rejouer**. 747 tests × 2 moteurs, 13 harnais verts.

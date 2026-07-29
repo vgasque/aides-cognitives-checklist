@@ -1857,7 +1857,76 @@
   #flowFull.on{display:flex}
   #flowFull .ff-bar{display:flex;align-items:center;gap:7px;padding:calc(9px + env(safe-area-inset-top)) 12px 9px;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:var(--shadow-bar)}
   #flowFull .ff-scroll{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px;background:var(--paper)}
-  .blk{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
+  /* ═══ K1 (v4.64.0, audit design — maquettes MK) : ON ÉDITE DANS LA GRAMMAIRE DE LECTURE ═══
+     L'éditeur était un FORMULAIRE : champs empilés d'un côté, aperçu de l'autre — l'auteur
+     composait à l'aveugle et ne découvrait le rendu qu'en basculant. Désormais le chapeau EST le
+     cadre rouge, un bloc EST sa carte, une étape EST sa rangée cochable : les champs prennent la
+     PLACE EXACTE du texte final, aux mêmes corps et aux mêmes registres. Ce que l'auteur voit est
+     ce que le soignant verra — le garde-fou le plus puissant est visuel.
+     CE QUI N'EST PAS COPIÉ, ET C'EST DÉLIBÉRÉ : la case à cocher reste un GLYPHE INERTE (❑). Un
+     éditeur où l'on peut cocher ferait croire qu'on prépare un état ; on rédige une aide, on ne
+     la déroule pas. « ▶ Essayer » est le chemin pour la dérouler. */
+  /* Le bloc d'édition reprend l'ANATOMIE de `.ov-block` — mêmes bordures, même liseré gauche de
+     4 px, même rayon : replié ou déplié, l'auteur voit la carte que le soignant verra. Le liseré
+     porte le REGISTRE comme en lecture : neutre pour un bloc d'étapes, ambre pour une décision. */
+  .blk{background:var(--surface);border:1px solid var(--line-hover);border-left:4px solid var(--line-strong);border-radius:10px;padding:14px;margin-bottom:12px}
+  .blk.blk-dec{background:var(--verify-soft);border-color:var(--verify-bd);border-left-color:var(--verify-bd)}
+  /* L'en-tête du bloc : le TITRE est le champ, comme en lecture il est le titre de la carte —
+     mêmes corps (16,5 px / 640), la pilule de type à gauche. */
+  .blk .blk-top input[type=text]{font-size:16.5px;font-weight:640;background:var(--surface);border-color:var(--line)}
+  .blk.blk-dec .blk-top input[type=text]{background:var(--surface)}
+  /* Le CHAPEAU d'édition reprend le cadre rouge de `.forget-strip`, au trait près. */
+  .ed-forget{background:var(--critical-soft);border:1px solid var(--critical-bd);border-radius:8px;padding:11px 13px;margin-bottom:16px}
+  .ed-forget>label{display:flex;align-items:baseline;gap:8px;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--critical);margin-bottom:8px}
+  .ed-forget>label .hint{font-weight:400;text-transform:none;letter-spacing:0;color:var(--critical);opacity:.85;font-size:12px}
+  .ed-forget .li{align-items:center}
+  .ed-forget .li input[type=text]{background:var(--surface);border-color:var(--critical-line);font-size:14px}
+  .ed-forget .add-line{border-color:var(--critical-line);color:var(--critical)}
+  .ed-forget .add-line:hover{background:var(--surface);border-color:var(--critical-bd)}
+  .ed-forget .nf-guard{margin:8px 0 0;color:var(--critical)}
+  /* Une ÉTAPE : la case inerte à gauche, comme en lecture — le champ prend la place du texte. */
+  /* Les étapes d'un BLOC vivent hors de `.list-edit` : leur rangée n'avait donc aucune règle de
+     flex — les trois objets (case, champ, outils) s'empilaient dès qu'on a ajouté la case. */
+  .blk .li{display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:nowrap}
+  .blk .li input[type=text]{flex:1;min-width:0}
+  .blk .li .mini{width:38px;height:38px}
+  /* Sous 400 px, les outils passent SOUS le champ plutôt que de le comprimer : une étape se lit
+     et s'écrit avant de se déplacer, et le champ est ce qu'on manipule le plus. */
+  @media (max-width:399.98px){
+    .blk .li:focus-within,.blk .li:hover{flex-wrap:wrap}
+    .blk .li:focus-within input[type=text],.blk .li:hover input[type=text]{flex:1 1 100%;order:1}
+    .blk .li .li-box{order:0}
+    .blk .li .li-tools{order:2;margin-left:34px}
+  }
+  /* MK5-b — « en main » : bandeau d'état + interstices. Les cibles sont PLEINE LARGEUR et
+     ≥ 44 px : on pose au doigt, avec des gants, sans viser. */
+  .ed-grab{position:sticky;top:calc(var(--hdr-h,64px) + 6px);z-index:6;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    background:var(--primary-soft);border:1px solid var(--primary);border-radius:var(--radius-md);padding:10px 12px;margin:0 0 12px}
+  .ed-grab .eg-l{flex:1;min-width:0;font-size:13.5px;color:var(--primary-dk)}
+  .ed-grab .eg-h{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--primary-dk);opacity:.85}
+  .ed-grab .eg-x{flex:none;min-width:44px;min-height:44px;border:0;background:none;color:var(--primary-dk);font-size:17px;border-radius:8px;cursor:pointer}
+  .ed-grab .eg-x:hover{background:var(--surface)}
+  .ed-drop{display:block;width:100%;min-height:44px;margin:6px 0;border:1.5px dashed var(--primary);border-radius:var(--radius-sm);
+    background:var(--surface);color:var(--primary-dk);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer}
+  .ed-drop:hover{background:var(--primary-soft)}
+  .ed-drop:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .ed-drop.warn{border-color:var(--verify-bd);color:var(--verify)}
+  .ed-drop.warn:hover{background:var(--verify-soft)}
+  .mini.grab{cursor:grab;color:var(--soft)}
+  .mini.grab:hover{color:var(--ink)}
+  /* K3 (v4.64.0) — LES OUTILS SUIVENT LE FOCUS. Trois boutons par étape × huit étapes, c'est
+     vingt-quatre cibles pour un écran où l'on écrit UNE ligne à la fois : la rangée △ ⚠ ⠿ ×
+     n'existe donc que sur l'étape ACTIVE. Elle reste atteignable au clavier — `:focus-within`
+     s'ouvre dès que la tabulation entre dans le champ, et les boutons suivent dans l'ordre. */
+  .li-tools{display:none;gap:7px;flex:none}
+  .blk .li:focus-within .li-tools,.blk .li:hover .li-tools{display:inline-flex}
+  /* Sur POINTEUR GROSSIER (tactile), le survol n'existe pas : l'étape active est celle où l'on
+     écrit. On garde donc le focus comme seul déclencheur — et la rangée passe SOUS le champ,
+     là où le pouce l'atteint sans masquer le texte. */
+  @media (hover:none){.blk .li:hover .li-tools{display:none}}
+  .li-box{flex:none;width:26px;height:26px;border-radius:7px;border:2px solid var(--line-strong);display:grid;place-items:center;color:var(--line-strong);font-size:13px}
+  .li.li-crit .li-box{border-color:var(--critical-bd);color:var(--critical)}
+  .li.li-vigil .li-box{border-color:var(--verify-bd);color:var(--verify)}
   .blk-top{display:flex;align-items:center;gap:8px;margin-bottom:11px}
   .blk-type{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:3px 8px;border-radius:6px}
   .blk-type.steps{background:var(--surface-3);color:var(--ink)}.blk-type.decision{background:var(--verify-soft);color:var(--verify)}

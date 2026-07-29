@@ -1389,6 +1389,31 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   K10 (raccourcis à la frappe, import/export markdown structuré) ouvre un parseur ; K6 (le
   discriminant en champ séparé) ajoute un CHAMP MODÈLE, donc touche `migrate`, l'export v3 et
   l'affichage des titres partout. Chacun se décide séparément.
+- **K1 + K3 + MK5-b — ON ÉDITE DANS LA GRAMMAIRE DE LECTURE (v4.64.0, maquettes MK de l'audit)** :
+  l'éditeur était un FORMULAIRE — champs empilés d'un côté, aperçu de l'autre : l'auteur composait
+  à l'aveugle. Désormais **le chapeau EST le cadre rouge**, **un bloc EST sa carte** (anatomie de
+  `.ov-block` : mêmes bordures, liseré gauche 4 px, rayon ; ambre pour une décision, neutre pour
+  un bloc d'étapes) et **une étape EST sa rangée** (case à gauche, champ à la place du texte, la
+  boîte teintée des registres ⚠/△). Ce que l'auteur voit est ce que le soignant verra — le
+  garde-fou le plus puissant est visuel. **CE QUI N'EST PAS COPIÉ, DÉLIBÉRÉMENT** : la case reste
+  un GLYPHE INERTE. Un éditeur où l'on peut cocher ferait croire qu'on prépare un état ; on rédige
+  une aide, on ne la déroule pas.
+  **K3 — LES OUTILS SUIVENT LE FOCUS** : trois boutons × huit étapes = vingt-quatre cibles pour un
+  écran où l'on écrit UNE ligne à la fois. La rangée ⚠ ✕ ⠿ n'existe que sur l'étape ACTIVE
+  (`:focus-within`, donc atteignable au clavier ; le survol est neutralisé sur pointeur grossier —
+  sur tactile l'étape active est celle où l'on écrit). Mesuré : **43 px au repos, 123 px active**.
+  **MK5-b — RÉORDONNER PAR « PRENDRE / POSER », DEUX TAPS, ZÉRO MAINTIEN** : un tap sur ⠿ soulève
+  l'objet et réécrit la page en CIBLES pleine largeur ≥ 44 px ; un tap sur un interstice le pose.
+  Pas de maintien ni de glisser — c'est le point de défaillance du drag au doigt (gants, une main,
+  véhicule qui bouge). Les boutons ↑ ↓ deviennent redondants et QUITTENT la rangée d'outils.
+  `state.edGrab` n'est JAMAIS persisté (c'est un geste, pas un état du brouillon) ; **Échap ou ✕
+  reposent l'objet là où il était**. **GARDE-FOU QRH** : sortir une étape ⚠ de son bloc change son
+  contexte — la cible s'annonce alors en △ AVANT le dépôt, sans jamais l'interdire (l'auteur reste
+  l'expert de sa fiche). **PIÈGE DE MISE EN PAGE** : les étapes d'un bloc vivent HORS de
+  `.list-edit` — leur rangée n'avait donc aucune règle de flex, et les trois objets s'empilaient
+  dès l'ajout de la case. **PIÈGE DE SONDE** : la bibliothèque est VIDE au premier démarrage ; une
+  sonde d'éditeur doit passer par « Commencer » puis « Ajouter les fiches d'exemple », comme les
+  autres harnais — sans quoi elle mesure une page sans fiche et conclut à tort.
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.
