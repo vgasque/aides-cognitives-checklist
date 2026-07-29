@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-KcmnEEDyaonI2YvnD5u4zZMbMo/O4bHCUmZbv2c/jhc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-14pD6JgPnsjUorHkpY8n49E/adsXm8AF+U33NOXGs6A='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -495,6 +495,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        GÉOMÉTRIE, ne jamais dépendre de l'ordre. L'éditeur rend donc 1fr+320 au-delà de 1200 px —
        mesuré, et c'est ce que dit AGENTS.md depuis v4.34.0. */
     body.view-read .read-grid{grid-template-columns:minmax(0,860px) 360px;justify-content:center}
+    /* F4 au palier 1200 : le plan prend 240 px, la checklist garde son plafond de 860. */
+    body.view-read .read-grid.cockpit{grid-template-columns:240px minmax(0,860px) 360px}
     body.view-read .read-side .tm-val,body.view-read .read-side .cn-val{font-size:34px}
   }
   /* EN-TÊTE CLAIR par défaut (inversion 4.0.0) : la barre prend la couleur du fond de page —
@@ -3273,6 +3275,17 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   }
   @media (min-width:1000px){
     body.view-read .read-grid{grid-template-columns:minmax(0,1fr) 320px;gap:0 26px}
+    /* F4 (v4.59.0) — COCKPIT TROIS ZONES : orientation | action | état. Le plan est posé APRÈS
+       la colonne d'action dans le DOM — l'ordre du DOM est celui de la LECTURE : ni un lecteur
+       d'écran ni une tabulation ne doivent traverser le plan pour atteindre la checklist — et
+       ramené à GAUCHE par `order`. Il ne s'ouvre qu'au palier 1200 (cf. renderRead) : mesuré, à
+       1000 px les trois colonnes laissent ~390 px au contenu clinique. */
+    body.view-read .read-grid.cockpit>.read-plan{order:-1}
+    body.view-read .read-plan{position:sticky;top:calc(var(--stick-top,64px) + 8px);height:calc(100vh / var(--zf,1) - var(--stick-top,64px) - 20px);overflow-y:auto;
+      border-right:1px solid var(--line);padding:14px 16px 16px 0;display:flex;flex-direction:column}
+    /* Le plan de gauche reste INERTE au cochage (décision figée) : c'est le même
+       `ovPlanLadderHtml` désaturé que dans le rail — seul le logement change. */
+    body.view-read .read-plan .rail-sec{min-height:0}
     /* Éditeurs : mêmes plafonds que la lecture — fiche 1fr+320 (860+360 à >= 1200, cf. plus
        haut), protocole 780+360 centré. */
     /* ÉDITEURS : la colonne d'édition prend la place disponible (1fr) et l'aperçu 320px — y
@@ -3289,6 +3302,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      restait en 1fr au lieu de son plafond de 860px. Collision constatée par mesure. */
   @media (min-width:1200px){
     body.view-read .read-grid{grid-template-columns:minmax(0,860px) 360px;justify-content:center}
+    /* F4 au palier 1200 : le plan prend 240 px, la checklist garde son plafond de 860. */
+    body.view-read .read-grid.cockpit{grid-template-columns:240px minmax(0,860px) 360px}
   }
   /* Aperçu en direct de l'éditeur (colonne droite >= 1000px) : mini-rendu du brouillon. */
   .ep-h{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 8px}
@@ -4033,7 +4048,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.58.0';
+const APP_VERSION='4.59.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -6980,8 +6995,11 @@ const mqReadWide=window.matchMedia('(min-width:1000px)');
 // v4.23.0 : le RAIL de lecture s'ouvre dès 780px (décision « action + structure de front ») ;
 // mqReadWide reste le seuil des ÉDITEURS (aperçu en direct à >= 1000, règle v4.5 inchangée).
 const mqRail=window.matchMedia('(min-width:780px)');
+// F4 (v4.59.0) : le cockpit 3 zones déplace le plan d'une colonne à l'autre — c'est un changement
+// de STRUCTURE, pas de style : il faut re-rendre au franchissement, comme les deux autres paliers.
+const mqCock=window.matchMedia('(min-width:1200px)');
 const _onReadBp=()=>{if(state.view==='read')render();};
-[mqReadWide,mqRail].forEach(mq=>{if(mq.addEventListener)mq.addEventListener('change',_onReadBp);else if(mq.addListener)mq.addListener(_onReadBp);});
+[mqReadWide,mqRail,mqCock].forEach(mq=>{if(mq.addEventListener)mq.addEventListener('change',_onReadBp);else if(mq.addListener)mq.addListener(_onReadBp);});
 // La hauteur de l'en-tête est CONSTANTE : rien ne se replie au défilement. Un repli de la rangée
 // d'identité de l'accueil (classe `.condensed`) a été décrit ici et à deux autres endroits, au
 // présent et avec renvoi « cf. CSS », mais la règle correspondante n'a JAMAIS existé dans le
@@ -9578,7 +9596,19 @@ function renderRead(){
   const posH=posCards?`<section class="block pos-block"><div role="heading" aria-level="2" class="block-h h-pos">Repères posologiques</div>${posCards}</section>`:'';
   const posRail=(()=>{if(!posCards)return '';const n=clean(f.posology).length;
     return `<div class="rail-head"><span class="rail-title">Repères posologiques</span>${n>1?`<span class="rail-n">${n}</span>`:''}</div>${posCards}`;})();
-  const gridOpen=wideRead?'<div class="read-grid"><div class="read-main">':'';
+  /* F4 (audit design v4.59.0) — COCKPIT TROIS ZONES. À grande largeur l'espace existe pour
+     tenir de front l'ORIENTATION (le plan), l'ACTION (le parcours) et l'ÉTAT (les minuteurs) :
+     c'est l'idéal ECAM, E/WD et SD sous les yeux en même temps, et pour un binôme hospitalier
+     un poste fixe où l'aide-lecteur voit tout sans un tap.
+     PALIER 1200, PAS 1000 (l'audit proposait 1000 « puisque le palier existe ») : mesuré, à
+     1000 px les trois colonnes laissent ~390 px à la checklist — MOINS que la largeur d'une
+     tablette en portrait, pour du contenu clinique qu'on lit sous stress. À 1200, la colonne
+     d'action garde ~560 px et le plan 220. Aucun palier nouveau : 1200 est déjà celui des
+     largeurs de lecture.
+     Le plan QUITTE le rail droit à cette largeur — l'afficher aux deux endroits ferait deux
+     sources pour la même structure (la règle qui vaut déjà pour les minuteurs nominaux). */
+  const cockpit=wideRead&&mqCock.matches;
+  const gridOpen=wideRead?(cockpit?'<div class="read-grid cockpit">':'<div class="read-grid">')+'<div class="read-main">':'';
   /* ÉCHELLE DU RAIL (v4.23.0) : la structure de l'aide, une ligne par bloc, à côté de l'action.
      Même `flowPlan`, même numérotation commune, même `minimapData` que le Plan — aucune seconde
      source de vérité. DÉSATURÉE (cf. CSS .rail-lad) : le rail ORIENTE, la colonne AGIT ; s'il
@@ -9603,10 +9633,16 @@ function renderRead(){
   /* RAIL — colonne CONTINUE (v4.23.0). Seule règle : la ou les sections de longueur ILLIMITÉE
      (Échelle, horodatage) passent en DERNIER, où elles ne peuvent rien repousser. La posologie,
      placée avant, reste donc lisible sans défiler quelle que soit la taille du plan. */
-  const gridClose=wideRead?`</div><aside class="read-side">`
+  const gridClose=wideRead?`</div>`
+    /* F4 : en cockpit, le plan est la colonne de GAUCHE — posée APRÈS .read-main dans le DOM et
+       ramenée à gauche par `order` (grille). L'ordre du DOM reste celui de la LECTURE : action
+       d'abord, orientation ensuite — un lecteur d'écran et une tabulation ne doivent pas
+       traverser le plan pour atteindre la checklist. */
+    +((cockpit&&ladRail)?`<aside class="read-plan"><div class="rail-sec">${ladRail}</div></aside>`:'')
+    +`<aside class="read-side">`
     +`<div class="rail-sec">${rtH}</div>`
     +(posRail?`<div class="rail-sec">${posRail}</div>`:'')
-    +(ladRail?`<div class="rail-sec">${ladRail}</div>`:'')
+    +((!cockpit&&ladRail)?`<div class="rail-sec">${ladRail}</div>`:'')
     +(tkH?`<div class="rail-sec">${tkH}</div>`:'')
     +`</aside></div>`:'';
   /* ----- PARCOURS DE SOIN (v4.4.0) : la fiche met en scène la séquence clinique

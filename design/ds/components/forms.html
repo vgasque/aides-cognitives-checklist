@@ -210,6 +210,8 @@
        GÉOMÉTRIE, ne jamais dépendre de l'ordre. L'éditeur rend donc 1fr+320 au-delà de 1200 px —
        mesuré, et c'est ce que dit AGENTS.md depuis v4.34.0. */
     body.view-read .read-grid{grid-template-columns:minmax(0,860px) 360px;justify-content:center}
+    /* F4 au palier 1200 : le plan prend 240 px, la checklist garde son plafond de 860. */
+    body.view-read .read-grid.cockpit{grid-template-columns:240px minmax(0,860px) 360px}
     body.view-read .read-side .tm-val,body.view-read .read-side .cn-val{font-size:34px}
   }
   /* EN-TÊTE CLAIR par défaut (inversion 4.0.0) : la barre prend la couleur du fond de page —
@@ -2988,6 +2990,17 @@
   }
   @media (min-width:1000px){
     body.view-read .read-grid{grid-template-columns:minmax(0,1fr) 320px;gap:0 26px}
+    /* F4 (v4.59.0) — COCKPIT TROIS ZONES : orientation | action | état. Le plan est posé APRÈS
+       la colonne d'action dans le DOM — l'ordre du DOM est celui de la LECTURE : ni un lecteur
+       d'écran ni une tabulation ne doivent traverser le plan pour atteindre la checklist — et
+       ramené à GAUCHE par `order`. Il ne s'ouvre qu'au palier 1200 (cf. renderRead) : mesuré, à
+       1000 px les trois colonnes laissent ~390 px au contenu clinique. */
+    body.view-read .read-grid.cockpit>.read-plan{order:-1}
+    body.view-read .read-plan{position:sticky;top:calc(var(--stick-top,64px) + 8px);height:calc(100vh / var(--zf,1) - var(--stick-top,64px) - 20px);overflow-y:auto;
+      border-right:1px solid var(--line);padding:14px 16px 16px 0;display:flex;flex-direction:column}
+    /* Le plan de gauche reste INERTE au cochage (décision figée) : c'est le même
+       `ovPlanLadderHtml` désaturé que dans le rail — seul le logement change. */
+    body.view-read .read-plan .rail-sec{min-height:0}
     /* Éditeurs : mêmes plafonds que la lecture — fiche 1fr+320 (860+360 à >= 1200, cf. plus
        haut), protocole 780+360 centré. */
     /* ÉDITEURS : la colonne d'édition prend la place disponible (1fr) et l'aperçu 320px — y
@@ -3004,6 +3017,8 @@
      restait en 1fr au lieu de son plafond de 860px. Collision constatée par mesure. */
   @media (min-width:1200px){
     body.view-read .read-grid{grid-template-columns:minmax(0,860px) 360px;justify-content:center}
+    /* F4 au palier 1200 : le plan prend 240 px, la checklist garde son plafond de 860. */
+    body.view-read .read-grid.cockpit{grid-template-columns:240px minmax(0,860px) 360px}
   }
   /* Aperçu en direct de l'éditeur (colonne droite >= 1000px) : mini-rendu du brouillon. */
   .ep-h{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 8px}

@@ -1275,6 +1275,22 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   l'interdisent. Annulé. **Le liseré de mode 10 px** proposé par l'audit n'est PAS posé : le
   placard hachuré de v4.55.4 est déjà le canal périphérique d'exercice et d'invité, à coût de
   hauteur NUL — un liseré serait un troisième dispositif pour la même information.
+- **COCKPIT TROIS ZONES EN LECTURE, DÈS 1200 px (v4.59.0, audit design F4)** : orientation |
+  action | état de front — l'idéal ECAM (E/WD et SD sous les yeux en même temps), et pour un
+  binôme hospitalier un poste fixe où l'aide-lecteur voit plan, parcours et minuteurs sans un
+  tap. **PALIER 1200, PAS 1000** : l'audit proposait 1000 « puisque le palier existe » ; mesuré,
+  à 1000 px les trois colonnes laissent **~390 px** au contenu clinique — moins qu'une tablette
+  en portrait, pour ce qu'on lit sous stress. À 1200 : plan 240, action 594 (plafond 860 au-delà),
+  rail 360. **Aucun palier nouveau.** Le plan **QUITTE le rail droit** à cette largeur : l'afficher
+  aux deux endroits ferait deux sources pour la même structure (la règle qui vaut déjà pour les
+  minuteurs nominaux). **L'ORDRE DU DOM RESTE CELUI DE LA LECTURE** — `.read-plan` est posé APRÈS
+  `.read-main` et ramené à gauche par `order:-1` : ni un lecteur d'écran ni une tabulation ne
+  doivent traverser le plan pour atteindre la checklist. Le plan de gauche est le MÊME
+  `ovPlanLadderHtml` désaturé, INERTE au cochage (décision figée) — seul son logement change.
+  Le franchissement du palier **re-rend** (`mqCock`), comme `mqRail` et `mqReadWide` : c'est un
+  changement de STRUCTURE, pas de style. **PIÈGE VÉCU** : la règle du palier 1200 est déclarée
+  DEUX fois (en tête § LARGEURS, puis réaffirmée plus bas — piège de cascade documenté) ; la
+  variante `.cockpit` doit suivre aux DEUX sites, sinon elle perd à l'ordre.
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.
