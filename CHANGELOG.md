@@ -3,6 +3,12 @@
 ## [4.73.3] — 2026-07-30
 ### Le prompt IA rattrape la structure — et il devient un contrat vérifié
 
+> Cette version a d'abord été préparée sous le numéro **4.73.0**, en parallèle des 4.73.0 à
+> 4.73.2 faites ailleurs. Deux versions ne peuvent pas porter le même numéro : `APP_VERSION` et
+> `CACHE` sont un couple, et un décalage casse la mise à jour du service worker (règle 1). Elle a
+> donc été renumérotée au merge, et republiée par `./release.sh` pour que les cinq fichiers
+> d'artefacts restent cohérents. Le contenu est inchangé.
+
 #### Le gabarit qu'il montrait n'était pas du JSON valide
 Trouvé en écrivant le contrôle, pas en relisant : le `\n` de `localInfo` vivait dans un littéral
 gabarit, donc JavaScript le transformait en **vrai saut de ligne**. Le JSON d'exemple affiché à
