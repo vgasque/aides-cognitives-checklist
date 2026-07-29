@@ -1,7 +1,148 @@
-# Journal des modifications — archive (versions 3.0.0 à 4.53.0)
+# Journal des modifications — archive (versions 3.0.0 à 4.54.0)
 
 > Entrées anciennes déplacées depuis [`CHANGELOG.md`](CHANGELOG.md) pour garder le journal
 > courant lisible. Même format (keep-a-changelog).
+
+## [4.54.0] — 2026-07-28
+### La main se passe, l'historique suit le compte, et le serveur cesse de faire confiance au client
+
+Lot 6 du chantier, la passation de la main, et les trois durcissements serveur annoncés en v4.53.1 —
+un seul rejeu de schéma pour l'ensemble.
+
+### La passation de la main
+Le scribe ne conduit pas : il ne navigue pas, n'arrête pas un minuteur, ne termine pas. C'est la
+forme canonique du travail à deux (AC 120-71B §5.2.2.1) — mais **sans passation, quelqu'un qui a
+besoin de conduire n'a aucun recours**, et l'asymétrie devient une impasse. Le genre `handoff`
+existait dans le vocabulaire depuis la v4.46.0 ; rien ne l'émettait, aucune surface ne l'offrait.
+
+Trois temps, comme l'exige AC 61-115 « Positive Exchange of Flight Controls » : l'hôte **propose**,
+l'autre **prend**, et le changement de rôle vaut confirmation. **Un `handoff` reçu n'accorde rien à
+personne : il affiche** (invariant 2 — aucun écran ne change de capacité sans un geste effectué sur
+cet écran). Le rôle lui-même ne vient **jamais** d'un évènement, toujours de la lecture suivante :
+un rôle qu'un évènement suffirait à changer serait un rôle que n'importe qui s'accorderait.
+
+`handoff` passe donc **aux deux rôles**, client et serveur. Ce n'est pas un relâchement : il ne
+change aucun état, et la frontière de sécurité est l'écriture du rôle — un `UPDATE` que la RLS
+réserve déjà au propriétaire du partage. Le réserver au lead aurait interdit à l'invité d'**accepter**,
+c'est-à-dire d'accomplir le temps que la doctrine exige de lui.
+
+**L'offre se dit dans le quai, le geste vit dans le menu** — doctrine de « Recommencer le parcours » :
+une rangée qui apparaîtrait dans la colonne d'action ferait remonter le contenu clinique, sur
+évènement distant. Jeton `offert`, sept caractères, position constante. Et `grantLead` **rétrograde
+d'abord, promeut ensuite** : dans l'autre sens, une coupure réseau entre les deux écritures
+laisserait **deux** leads ; ici le pire cas en laisse **zéro** — dégradé, mais jamais ambigu.
+
+### L'historique de sessions suit le compte
+La table lève un invariant écrit du projet — « les sessions vivent en local, jamais synchro » — dont
+le **mode exercice tirait sa garantie de non-contamination clinique**. Une bascule qui inverse une
+promesse doit dire ce qu'elle change : elle est **opt-in, défaut fermé**, dans la fenêtre Compte,
+avec une confirmation qui énonce la portée. Par **utilisateur**, pas par appareil — l'activer ici et
+la découvrir éteinte ailleurs serait la pire des surprises.
+
+Ce qui remplace l'invariant :
+
+- **Seules les sessions archivées montent.** Une session **vive** resynchronisée serait un second
+  canal de partage — sans code, sans rôle, sans péremption, et sans aucun des garde-fous du premier.
+- **L'exercice est ségrégé par une colonne**, plus par la localité : la propriété devient une donnée
+  que l'on filtre et que le serveur voit.
+- **La trace do-verify ne monte pas**, et **son absence est dite**. Un drapeau fait écrire au compte
+  rendu consulté ailleurs : « son détail reste sur l'appareil qui l'a produite ». Une trace absente
+  qui ne s'annonce pas se lit *« aucune vérification n'a été faite »* — l'exact contraire de ce que
+  la seconde passe existe pour établir.
+- **`data` accepte dès aujourd'hui `{v:2, enc:<blob>}`.** C'est la seule décision de forme qu'il
+  fallait prendre maintenant : elle devient irréversible dès qu'il y a des données en place, et
+  passer au chiffrement de bout en bout ne demandera donc aucune migration.
+
+Suppression = **pierre tombale** dès que la synchro est active (sinon la session effacée revient au
+pull suivant depuis l'appareil qui l'ignore), suppression franche sinon. Le tableau de bord compte
+les sessions et leurs octets — l'exploitant ne doit pas être aveugle au poste que l'option fait
+croître (leçon v4.49.0).
+
+### Le serveur cesse de faire confiance au client
+Trois durcissements, annoncés comme ouverts en v4.53.1 :
+
+1. **Liste blanche des clés de payload.** Le serveur ne validait que le **type** et la **taille** —
+   c'est de là que partaient les deux injections de la v4.53.1. Il ne garde désormais que seize clés
+   nommées. **`label` n'y est pas, et c'est le point** : la promesse « aucun texte libre ne traverse
+   le réseau » cesse de dépendre d'une discipline de client. Liste blanche, jamais noire.
+2. **Le libellé d'un participant** perd tout métacaractère de balisage. On ne recopie pas en SQL la
+   liste des neuf rôles (elle dériverait) : on retire ce qui n'a rien à faire dans un nom.
+3. **La coupure mord au serveur.** `share_pull` renvoyait `status: revoked` **et le flux complet** —
+   c'était l'application du coupé qui gelait son écran, donc un client modifié continuait de lire.
+   Il ne reçoit plus ni évènements ni participants ; le **statut**, lui, reste renvoyé — il faut
+   qu'il sache, sinon la coupure passerait pour une panne de réseau. Le § 3.1 du registre, qui
+   signalait ce point comme « à durcir », est mis à jour.
+
+### Vérification
+747 tests × 2 moteurs (+8), **250/250 contrôles partage** (+18, sur les deux moteurs), 13 harnais
+verts, 301 contrôles d'accessibilité sur les deux moteurs, 94/94 doctrine, `npm run check` vert.
+Trois assertions RLS nouvelles (§ 14.15 à 14.17) couvrent les trois durcissements — dont une qui
+pousse un `label` et vérifie qu'il **ne survit pas à l'insertion**. Un test qui encodait l'ancien
+contrat (`handoff` réservé au lead) a été retourné plutôt que supprimé : il affirme désormais la
+règle inverse et dit pourquoi.
+
+**`supabase/schema.sql` est à rejouer**, puis `rls-tests.sql`.
+
+## [4.53.1] — 2026-07-28
+### SÉCURITÉ — un participant pouvait injecter du balisage dans la checklist des autres
+
+Trouvé en cherchant à répondre à la question « un tiers malveillant peut-il faire voyager du
+texte ? ». La réponse est pire que la question : **pas seulement du texte, du balisage**. Deux
+injections d'attribut, reproduites avant correction, fermées ici. Aucune ne demande de compte : il
+suffit d'avoir rejoint une session avec un client modifié — la console du navigateur suffit.
+
+### Deux routes, et la barrière n'était que sur l'une
+Un évènement distant atteint l'écran par **deux chemins distincts** :
+
+- la **peinture** (`sharePaintLive`), en direct — elle normalisait déjà (`safeId`, `tkRefNorm`) ;
+- le **pli** (`shareFold` → `buildRuntime` → rendu), qu'empruntent **tout invité qui rejoint** — il
+  reçoit l'historique depuis le début — et **tout invité qui recharge**. Il recopiait **brut**.
+
+Une barrière sur une branche et pas sur l'autre ne protège rien. C'est la même leçon que la v4.42.0
+(deux copies du cœur de cochage qui avaient divergé), à un endroit qui touche la sécurité.
+
+**Défaut A — l'identifiant d'un repère.** `payload.id` d'un `mark`, recopié tel quel par le pli,
+puis interpolé **sans échappement** dans cinq attributs du journal. Le genre `mark` est ouvert au
+scribe : n'importe quel participant pouvait donc poser un identifiant qui **sort de son attribut**
+et ouvre une balise dans le journal de tous les autres.
+
+**Défaut B — les numéros de visite.** Seuls `Array.isArray` et l'égalité des longueurs étaient
+vérifiés ; les **éléments** de `navSeq` ne l'étaient pas. Or `navSeq[i]` fabrique la clé de cochage
+écrite dans `data-ck`, et le régime de `nav` est « anchored » — donc appliqué **en direct, sans
+rechargement**, sur l'écran de chacun, **dans la liste d'étapes elle-même**. C'est du code que
+j'avais écrit trois versions plus tôt.
+
+### Ce que la CSP faisait, et ce qu'elle ne faisait pas
+La CSP porte les hashs SHA-256 des scripts inline : sur un navigateur à jour, `'unsafe-inline'` est
+ignoré et un `onerror=` injecté **ne s'exécute pas**. Mais `style-src 'unsafe-inline'` est accordé,
+lui — du balisage et du CSS arbitraires **dans la colonne d'action d'une réanimation** (masquer une
+étape, en superposer une fausse avec une autre dose) suffisent à qualifier le défaut. On ne s'abrite
+donc pas derrière la CSP : elle est le second rempart, pas le premier.
+
+### Trois couches, et chacune vérifiée SEULE
+1. **Assainir à l'entrée.** Le pli passe désormais par les mêmes fonctions que la peinture, cas par
+   cas : identifiants par `safeId`, horodatages par une conversion numérique explicite, références
+   par `tkRefNorm`. Les valeurs fautives ne sont pas **rejetées** mais **ramenées** à quelque chose
+   d'inoffensif — un évènement perdu en pleine réanimation serait pire qu'un identifiant régénéré.
+2. **Borner les formes.** Une clé de cochage vaut `visite:bloc:index` et rien d'autre — un jeu de
+   caractères fermé la rend sûre **comme index d'objet** (règle 6, `__proto__` compris) **et comme
+   valeur d'attribut**, d'un seul geste. `shareNavNorm` est la barrière **unique** du couple
+   `nav`/`navSeq`, partagée par le pli et l'application ancrée.
+3. **Échapper à la sortie.** Sept interpolations d'attribut reçoivent `esc()`. Un attribut
+   s'échappe même quand l'entrée est assainie : les deux barrières couvrent des chemins différents.
+
+**Les deux couches ont été éprouvées indépendamment** : en retirant l'assainissement d'entrée,
+l'échappement de sortie bloque encore l'injection ; en retirant l'échappement, l'assainissement la
+bloque aussi. C'est ce qui distingue une défense en profondeur d'un empilement de précautions.
+
+### Vérification
+Dix contrôles permanents dans `audit-partage.mjs` (242/242 sur les deux moteurs), **vérifiés
+capables d'échouer** : les défauts réintroduits à l'identique en font tomber trois, fichier restauré
+à l'octet. Ils mesurent la **sortie de balise**, jamais l'exécution — c'est la propriété qui compte,
+l'exécution n'en est qu'une conséquence parmi d'autres. 738 tests × 2 moteurs, 13 harnais verts,
+301 contrôles d'accessibilité, 94/94 doctrine. **Rien à rejouer côté serveur** — mais le serveur ne
+valide toujours que le **type** et la **taille** d'un payload, jamais ses clés : c'est le client qui
+doit se défendre, et c'est désormais le cas aux deux entrées.
 
 ## [4.53.0] — 2026-07-28
 ### Le partage survivait à la session qu'il reflétait — et la cadence supposait qu'un soin fait du bruit

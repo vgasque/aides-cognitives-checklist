@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-9pw2W9QottBPVRMUEzM0riFtHfpvb59uaCI0vIMlGsA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-ZRyO5v8q7DY6R4xN2oO3RBD5M+ZwgP1FbfA6QcqJkCk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1416,6 +1416,33 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Garde-fou éditeur « Ne pas oublier » (> 4 rappels) : registre ATTENTION, texte seulement. */
   .nf-guard{font-size:12.5px;line-height:1.5;color:var(--verify);margin:-8px 0 18px}
   .nf-guard:empty{display:none}
+  /* K2 (v4.63.0) — VOLET DE RELECTURE : le bilan de ce que la doctrine a relevé, en pied
+     d'éditeur. Registre ATTENTION en CONTOUR (jamais un aplat : ce n'est pas une alerte, c'est
+     une suggestion), rangées ≥ 44 px puisqu'elles ancrent vers la ligne concernée. */
+  /* K4 — dépliant « Identité » : l'en-tête PORTE déjà le titre et le code, donc replié il
+     n'escamote rien de ce qu'on a besoin de vérifier d'un coup d'œil. */
+  .ed-ident{margin:0 0 16px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--surface)}
+  .ed-ident>summary{display:flex;align-items:center;gap:10px;min-height:52px;padding:8px 14px;cursor:pointer;list-style:none;font-family:inherit}
+  .ed-ident>summary::-webkit-details-marker{display:none}
+  .ed-ident>summary::after{content:"▾";margin-left:auto;color:var(--link);font-size:12px;flex:none}
+  .ed-ident[open]>summary::after{content:"▴"}
+  .ed-ident>summary:focus-visible{outline:2px solid var(--primary);outline-offset:-2px;border-radius:var(--radius-md)}
+  .ed-ident .idl{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);flex:none}
+  .ed-ident .idr{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;font-weight:600;color:var(--ink)}
+  .ed-ident .idc{font-family:var(--mono);font-size:12px;color:var(--ink-soft)}
+  .ed-ident[open]{padding:0 14px 8px}
+  .ed-ident[open]>summary{margin:0 -14px;border-bottom:1px solid var(--line)}
+  .rev-panel{margin:22px 0 6px;border:1.5px solid var(--verify-line);border-left:4px solid var(--verify-bd);border-radius:var(--radius-md);background:var(--surface);padding:12px 14px}
+  .rev-h{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--verify);margin-bottom:8px}
+  .rev-row{display:flex;flex-direction:column;gap:2px;width:100%;min-height:44px;text-align:left;background:none;border:0;border-top:1px solid var(--line);padding:9px 2px;font-family:inherit;cursor:pointer;color:var(--ink)}
+  .rev-row:first-of-type{border-top:0}
+  .rev-row:hover{background:var(--surface-2)}
+  .rev-row:focus-visible{outline:2px solid var(--primary);outline-offset:-2px;border-radius:6px}
+  .rev-row b{font-size:13px;font-weight:700}
+  .rev-row span{font-size:12.5px;line-height:1.45;color:var(--ink-soft)}
+  .rev-note{margin:9px 0 0;font-size:11.5px;color:var(--ink-soft);line-height:1.45}
+  .rev-flash{animation:revFl 1.2s ease}
+  @keyframes revFl{0%,100%{background:transparent}25%{background:var(--verify-soft)}}
   .block-h .pip{width:9px;height:9px;border-radius:3px;flex-shrink:0}.block-h .spc{flex:1}
   /* V5 : plus de badge d'icône — kicker textuel seul (le registre passe par la couleur du texte). */
   .block-h .sec-badge{display:none}
@@ -4096,7 +4123,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.62.0';
+const APP_VERSION='4.63.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -7815,14 +7842,30 @@ function openRel(id){
    corriger ICI corrige les deux ; les ids de champs restent préfixés 'f-'/'p-'). ----- */
 // Rangées partagées du formulaire : notice de brouillon restauré, titre, catégorie,
 // bibliothèque, code + date de validation, état segmenté. L = libellés propres à l'entité.
-function editorMetaFieldsHtml(d,prefix,L){return `${state.draftRestored?`<div class="notice">${uiIcon('history',15)}<span>Brouillon auto-enregistré (${fmtHMS(state.draftRestored)}) restauré — vos modifications non publiées ont été reprises. <button class="linkbtn" id="ghostDrop">Repartir de la version enregistrée</button></span></div>`:''}
+/* K4 (v4.63.0, audit design — phase K) : LA PAGE APPARTIENT AU CONTENU CLINIQUE. Titre, code,
+   catégorie, bibliothèque, date de validation et état occupaient tout le haut de l'éditeur —
+   l'auteur traversait six champs administratifs avant d'atteindre ce qu'il vient écrire. Ils
+   vivent maintenant dans un dépliant « Identité » dont l'EN-TÊTE montre déjà l'essentiel (titre +
+   code), et qui s'ouvre d'un tap.
+   OUVERT D'OFFICE EN CRÉATION, REPLIÉ EN MODIFICATION : sur une fiche neuve le titre est le
+   premier geste — le replier obligerait à un tap pour commencer ; sur une fiche existante il est
+   déjà écrit, et ce qu'on vient corriger est le contenu. La distinction est faite sur le TITRE
+   (vide = on commence), pas sur l'existence de la fiche : dupliquer une fiche donne un titre,
+   repartir de zéro n'en donne pas.
+   Le statut éditorial reste en PLUS dans la barre (badge d'en-tête, doctrine v4.3.0) : c'est un
+   état, il ne se replie pas. */
+function editorMetaFieldsHtml(d,prefix,L){
+  const vide=!String(d.title||'').trim();
+  const resume=vide?'Nouvelle fiche':(esc(d.title)+(d.code?' · <span class="idc">'+esc(d.code)+'</span>':''));
+  return `${state.draftRestored?`<div class="notice">${uiIcon('history',15)}<span>Brouillon auto-enregistré (${fmtHMS(state.draftRestored)}) restauré — vos modifications non publiées ont été reprises. <button class="linkbtn" id="ghostDrop">Repartir de la version enregistrée</button></span></div>`:''}
+    <details class="ed-ident"${vide?' open':''}><summary><span class="idl">Identité</span><span class="idr">${resume}</span></summary>
     <div class="field"><label for="${prefix}-title">${L.titleLabel}</label><input type="text" id="${prefix}-title" value="${esc(d.title)}" placeholder="${L.titlePh}"></div>
     <div class="field"><label>Catégorie</label><div class="cat-picker" id="catPicker">${catPickerHtml(d)}</div></div>
     ${Auth.signedIn()?`<div class="field"><label for="${prefix}-scope">Bibliothèque <span class="hint">${L.scopeHint}</span></label>
       <select id="${prefix}-scope"><option value="" ${!d.libraryId?'selected':''}>Perso (privé)</option>${sortedLibraries().filter(l=>l.role==='editor'||l.role==='admin').map(l=>`<option value="${esc(l.id)}" ${d.libraryId===l.id?'selected':''}>${esc(l.name)} (partagée)</option>`).join('')}${d.libraryId&&!myLibraries.some(l=>l.id===d.libraryId)?`<option value="${esc(d.libraryId)}" selected>${esc(libName(d.libraryId)||'Bibliothèque')}</option>`:''}</select></div>`:''}
     <div class="row2"><div class="field"><label for="${prefix}-code">Code <span class="hint">référence courte facultative</span></label><input type="text" id="${prefix}-code" value="${esc(d.code||'')}" placeholder="${L.codePh}" style="font-family:var(--mono)" maxlength="40"></div>
       <div class="field"><label for="${prefix}-validation">Date de validation <span class="hint">mois/année</span></label><input type="text" id="${prefix}-validation" inputmode="numeric" autocapitalize="off" value="${esc(valToDisplay(d.validation))}" placeholder="MM/AAAA"></div></div>
-    <div class="field"><label>État</label>${statusSegHtml(d.status,L.fem,!!d.libraryId)}</div>`;}
+    <div class="field"><label>État</label>${statusSegHtml(d.status,L.fem,!!d.libraryId)}</div></details>`;}
 /* Sélecteur de catégorie « une sélectionnée + Autre… » (SPEC crise §2, v4.3.0).
    catPickerHtml : chip teinté de la catégorie COURANTE (ou « Sans catégorie », neutre) + bouton
    « Autre… ». openCatMenu : menu ancré sous le picker (bottom sheet < 780) — une rangée 44px par
@@ -11745,6 +11788,50 @@ function stepGuardTxt(steps){const s=clean(steps);const parts=[];
   const cumul=s.filter(x=>(stepCR(stepText(x)).c.match(/\s[·+]\s/g)||[]).length>=2).length;
   if(cumul)parts.push(cumul+' étape'+(cumul>1?'s':'')+' cumulant plusieurs actions — une action cochable = une ligne (sinon on coche « à moitié fait »)');
   return parts.length?('△ '+parts.join(' · ')):'';}
+/* ═══ K2 (v4.63.0, audit design — phase K) : LA RELECTURE DOCTRINALE, EN MARGE ET NON BLOQUANTE
+   L'éditeur est l'envers de la crise : on y travaille AU CALME, et chaque minute investie ici
+   achète des secondes là-bas. Les garde-fous existaient déjà — mais dispersés, chacun sous son
+   champ, sans vue d'ensemble : l'auteur ne savait pas, en fermant, ce qu'il laissait derrière lui.
+   `reviewNotes` les rassemble en UNE grammaire « △ Relecture » : chaque remarque nomme sa CIBLE
+   (le chapeau, un bloc) et dit l'action proposée. PURE, testée.
+   JAMAIS BLOQUANT, JAMAIS ROUGE : l'ambre est le registre du « c'est là qu'on se trompe » ; le
+   rouge reste à ce qui tue. Un auteur qui veut publier une fiche imparfaite le peut — c'est lui
+   l'expert de son service, pas l'application. */
+/* Le volet-bilan : ce que la doctrine a relevé, en pied de page, avec l'ANCRAGE vers la ligne
+   concernée. Il DISPARAÎT quand il n'y a rien à dire — un panneau vide qui affirme « 0 remarque »
+   est du bruit permanent pour une information qu'on lit une fois. */
+function revPanelRefresh(f){
+  const el=document.getElementById('revPanel');if(!el)return;
+  const h=reviewPanelHtml(f);
+  if(el.innerHTML!==h){el.innerHTML=h;bindRevPanel();}}
+/* ANCRAGE : taper une remarque amène à la ligne concernée et la FAIT CLIGNOTER une fois. On ne
+   met PAS le focus dans le champ — l'auteur vient de LIRE le bilan, il choisit ce qu'il corrige ;
+   voler le curseur déciderait à sa place. */
+function bindRevPanel(){
+  main.querySelectorAll('[data-revgo]').forEach(b=>b.onclick=()=>{
+    const at=b.dataset.revgo;
+    const el=at==='nf'?document.getElementById('nfGuard')
+      :main.querySelector('.blk[data-bid="'+CSS.escape(at.slice(2))+'"]');
+    if(!el)return;
+    /* PAS de `behavior:'smooth'` : mesuré, il ne défilait pas du tout ici (6 400 px d'écart, le
+       mouvement n'aboutissait jamais), et le reste du fichier ne défile jamais en animé — un
+       écran qui glisse longuement est exactement ce que la doctrine évite. */
+    el.scrollIntoView({block:'center'});
+    el.classList.add('rev-flash');setTimeout(()=>el.classList.remove('rev-flash'),1300);});}
+function reviewPanelHtml(f){
+  const n=reviewNotes(f);
+  if(!n.length)return '';
+  return `<div class="rev-panel" role="status"><div class="rev-h">${uiIcon('warn',13)} Relecture · ${n.length}</div>`
+    +n.map(x=>`<button type="button" class="rev-row" data-revgo="${esc(x.at)}"><b>${esc(x.cible)}</b><span>${esc(x.txt.replace(/^△\s*/,''))}</span></button>`).join('')
+    +`<p class="rev-note">Aucune de ces remarques n’empêche d’enregistrer — c’est vous qui connaissez votre service.</p></div>`;}
+function reviewNotes(f){
+  const out=[];
+  {const t=nfGuardTxt((f&&f.notForget)||[]);if(t)out.push({at:'nf',cible:'Ne pas oublier',txt:t});}
+  ((f&&f.blocks)||[]).forEach(b=>{
+    if(!b||b.type==='decision')return;
+    const t=stepGuardTxt(b.steps||[]);
+    if(t)out.push({at:'b:'+b.id,cible:(b.title||'').trim()||'Bloc d’étapes',txt:t});});
+  return out;}
 // Bouton « Gras » : entoure la sélection du champ voisin de ** (rendu <b> en lecture via fmt()).
 function boldBtnHtml(){return '<button type="button" class="mini bld" data-bold aria-label="Mettre la sélection en gras" title="Gras — sélectionnez du texte puis cliquez (ou Ctrl/Cmd-B). Réservez-le aux doses et interdictions critiques.">B</button>';}
 // Documents PDF joignables depuis les AUTRES fiches du MÊME périmètre (Perso, ou même bibliothèque
@@ -11949,11 +12036,13 @@ function renderEditor(){
     ${listEditor('Références','sources de la fiche','references',f.references)}
     ${relFieldsetHtml(f)}
     ${noteBlockHtml(f.id)}
+    <div id="revPanel">${reviewPanelHtml(f)}</div>
     ${fiches.some(x=>x.id===f.id)?'<div class="ed-del"><button class="btn danger" id="delBtn">Supprimer cette fiche</button></div>':''}
     ${wideEdit?`</div><aside class="read-side" id="editSide">${editPreviewHtml('fiche')}</aside></div>`:''}
     <input type="file" id="imgInput" accept="image/*" hidden>
     <input type="file" id="pdfInput" accept="application/pdf,.pdf" hidden>`;
   bindEditorEvents(f);
+  bindRevPanel();   // K2 : ancrage des remarques de relecture
   flowCtx={f,curId:null};
   bindFlowZoom();applyFlowZoom();restoreFlow();
 }
@@ -12006,7 +12095,8 @@ function bindEditorEvents(f){
     card.querySelectorAll('[data-sf]').forEach((inp,i)=>inp.addEventListener('input',e=>{
       const cur=String(b.steps[i]||'');const pfx=stepIsCrit(cur)?'⚠ ':(stepIsVigil(cur)?'△ ':'');
       b.steps[i]=pfx+e.target.value;scheduleFlowPreview(f);
-      const g=card.querySelector('[data-stepguard]');if(g)g.textContent=stepGuardTxt(b.steps);}));
+      const g=card.querySelector('[data-stepguard]');if(g)g.textContent=stepGuardTxt(b.steps);
+      revPanelRefresh(f);}));   // K2 : le bilan suit la frappe, sans re-rendre l'éditeur
     const as=card.querySelector('[data-addstep]');if(as)as.onclick=()=>{b.steps.push('');renderEditor();};
     card.querySelectorAll('[data-rmstep]').forEach(btn=>btn.onclick=()=>{b.steps.splice(+btn.dataset.rmstep,1);if(!b.steps.length)b.steps.push('');renderEditor();});
     // Bascule du TYPE d'étape (SPEC §2.2) : cycle normale -> ⚠ critique (rouge) -> △ vigilance
@@ -12049,7 +12139,8 @@ function bindListEditors(d,rerender){d=d||state.draft;rerender=rerender||renderE
     const pfx=e.target.hasAttribute('data-critlist')&&stepIsCrit(d[k][i]||'')?'⚠ ':'';
     d[k][i]=pfx+e.target.value;
     // Garde-fou memory items : recompté À LA FRAPPE (l'ajout/suppression de ligne re-rend, lui).
-    if(k==='notForget'){const g=document.getElementById('nfGuard');if(g)g.textContent=nfGuardTxt(d.notForget);}}));
+    if(k==='notForget'){const g=document.getElementById('nfGuard');if(g)g.textContent=nfGuardTxt(d.notForget);}
+    revPanelRefresh(d);}));   // K2
   main.querySelectorAll('[data-lcrit]').forEach(b=>b.onclick=()=>{const k=b.dataset.lkey,i=+b.dataset.lcrit;
     // v4.23.0 : la bascule des repères écrit « △ » (VIGILANCE), jamais « ⚠ ». Un « ⚠ » hérité
     // d'une fiche antérieure est traité comme signalé et le geste le REMET à plat, d'où
@@ -16045,7 +16136,7 @@ if(location.search.indexOf('__actest')>=0){
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
     restErrStatus,isPersoRepairCandidate,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,cxAll,cxDetached,
-    qTerms,hayMatch,markQTerms,searchSnippet,ficheSnipParts,protoSnipParts,frecencyScore,sanitizeUsage,mergeUsage,azLetter,azGroups,qaPick,tmLabelParts,sessStamp,monPick,
+    qTerms,hayMatch,markQTerms,searchSnippet,ficheSnipParts,protoSnipParts,frecencyScore,sanitizeUsage,mergeUsage,azLetter,azGroups,qaPick,tmLabelParts,sessStamp,monPick,reviewNotes,
     crc32,zipBuild,zipParse,isPdfBytes,mdTask,flowOrder,latestPass,offPathSet,minimapData,passInfo,instComplete,flowPlan,stepCR,stepGuardTxt,optAbbr,svBranchIssue,svLoopTargets,ovPresList,
     posoTokens,posoName,posoScore,posoRank,posoSplit,
     qrRawBits,qrTotalCw,qrGen,qrRs,qrAlign,qrDataCw,qrInterleave,qrEncode,qrSvg,qrMul,

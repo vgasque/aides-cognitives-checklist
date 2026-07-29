@@ -1131,6 +1131,33 @@
   /* Garde-fou éditeur « Ne pas oublier » (> 4 rappels) : registre ATTENTION, texte seulement. */
   .nf-guard{font-size:12.5px;line-height:1.5;color:var(--verify);margin:-8px 0 18px}
   .nf-guard:empty{display:none}
+  /* K2 (v4.63.0) — VOLET DE RELECTURE : le bilan de ce que la doctrine a relevé, en pied
+     d'éditeur. Registre ATTENTION en CONTOUR (jamais un aplat : ce n'est pas une alerte, c'est
+     une suggestion), rangées ≥ 44 px puisqu'elles ancrent vers la ligne concernée. */
+  /* K4 — dépliant « Identité » : l'en-tête PORTE déjà le titre et le code, donc replié il
+     n'escamote rien de ce qu'on a besoin de vérifier d'un coup d'œil. */
+  .ed-ident{margin:0 0 16px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--surface)}
+  .ed-ident>summary{display:flex;align-items:center;gap:10px;min-height:52px;padding:8px 14px;cursor:pointer;list-style:none;font-family:inherit}
+  .ed-ident>summary::-webkit-details-marker{display:none}
+  .ed-ident>summary::after{content:"▾";margin-left:auto;color:var(--link);font-size:12px;flex:none}
+  .ed-ident[open]>summary::after{content:"▴"}
+  .ed-ident>summary:focus-visible{outline:2px solid var(--primary);outline-offset:-2px;border-radius:var(--radius-md)}
+  .ed-ident .idl{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);flex:none}
+  .ed-ident .idr{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;font-weight:600;color:var(--ink)}
+  .ed-ident .idc{font-family:var(--mono);font-size:12px;color:var(--ink-soft)}
+  .ed-ident[open]{padding:0 14px 8px}
+  .ed-ident[open]>summary{margin:0 -14px;border-bottom:1px solid var(--line)}
+  .rev-panel{margin:22px 0 6px;border:1.5px solid var(--verify-line);border-left:4px solid var(--verify-bd);border-radius:var(--radius-md);background:var(--surface);padding:12px 14px}
+  .rev-h{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--verify);margin-bottom:8px}
+  .rev-row{display:flex;flex-direction:column;gap:2px;width:100%;min-height:44px;text-align:left;background:none;border:0;border-top:1px solid var(--line);padding:9px 2px;font-family:inherit;cursor:pointer;color:var(--ink)}
+  .rev-row:first-of-type{border-top:0}
+  .rev-row:hover{background:var(--surface-2)}
+  .rev-row:focus-visible{outline:2px solid var(--primary);outline-offset:-2px;border-radius:6px}
+  .rev-row b{font-size:13px;font-weight:700}
+  .rev-row span{font-size:12.5px;line-height:1.45;color:var(--ink-soft)}
+  .rev-note{margin:9px 0 0;font-size:11.5px;color:var(--ink-soft);line-height:1.45}
+  .rev-flash{animation:revFl 1.2s ease}
+  @keyframes revFl{0%,100%{background:transparent}25%{background:var(--verify-soft)}}
   .block-h .pip{width:9px;height:9px;border-radius:3px;flex-shrink:0}.block-h .spc{flex:1}
   /* V5 : plus de badge d'icône — kicker textuel seul (le registre passe par la couleur du texte). */
   .block-h .sec-badge{display:none}

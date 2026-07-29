@@ -1363,6 +1363,32 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   **HOMONYME** : « reader option » dans le lecteur, « remove option » dans l'éditeur — et
   `[data-rmopt]` figurant dans `MUTE_SEL`, le bouton « supprimer une réponse » de l'ÉDITEUR était
   bridé en mode invité. Renommé `data-optdel` (leçon « collision de noms », v4.23.2).
+- **PHASE K — L'ÉDITEUR (v4.63.0, audit design)** : l'éditeur est l'envers de la crise — on y
+  travaille AU CALME, et chaque minute investie là achète des secondes ici. **DEUX CHANGEMENTS
+  LIVRÉS, sur l'éditeur existant** (les renversements de geste, K1/K5/K10, ne sont PAS engagés —
+  voir plus bas). **K2, LA RELECTURE DOCTRINALE EN UNE SEULE GRAMMAIRE** : les garde-fous
+  existaient (`nfGuardTxt`, `stepGuardTxt`) mais DISPERSÉS, chacun sous son champ — l'auteur ne
+  savait pas, en fermant, ce qu'il laissait derrière lui. `reviewNotes(f)` (PURE, testée) les
+  rassemble : chaque remarque nomme sa CIBLE et l'action proposée ; un volet « △ Relecture · n »
+  en pied les liste et **ancre** vers la ligne concernée (flash, sans voler le curseur : l'auteur
+  vient de LIRE le bilan, il choisit ce qu'il corrige). **JAMAIS BLOQUANT, JAMAIS ROUGE** — et
+  le volet le DIT en toutes lettres (« aucune de ces remarques n'empêche d'enregistrer — c'est
+  vous qui connaissez votre service ») : l'ambre est le registre du « on se trompe ici », le rouge
+  reste à ce qui tue. Le volet **disparaît quand il n'y a rien à dire** : un panneau qui affirme
+  « 0 remarque » est du bruit permanent. **K4, « IDENTITÉ » REPLIABLE** : titre, catégorie,
+  bibliothèque, code, validation et état occupaient tout le haut — l'auteur traversait six champs
+  administratifs avant d'atteindre ce qu'il vient écrire. Ils vivent dans un dépliant dont
+  l'en-tête PORTE déjà titre + code (donc replié, il n'escamote rien qu'on vérifie d'un coup
+  d'œil). **Ouvert d'office en CRÉATION, replié en MODIFICATION**, la distinction étant faite sur
+  le TITRE VIDE et non sur l'existence de la fiche : dupliquer donne un titre, repartir de zéro
+  n'en donne pas. Le statut éditorial reste EN PLUS dans la barre (doctrine v4.3.0 : c'est un
+  état, il ne se replie pas). **PIÈGE MESURÉ** : `scrollIntoView({behavior:'smooth'})` ne défilait
+  PAS du tout sur 6 400 px d'écart — et aucun défilement du fichier n'est animé ; l'ancrage est
+  direct. **NON ENGAGÉ, et pourquoi** : K1 (éditer DANS la grammaire de lecture) et K5
+  (l'enregistrement se dit, « ▶ Essayer » devient le bouton rempli) changent le GESTE d'édition,
+  K10 (raccourcis à la frappe, import/export markdown structuré) ouvre un parseur ; K6 (le
+  discriminant en champ séparé) ajoute un CHAMP MODÈLE, donc touche `migrate`, l'export v3 et
+  l'affichage des titres partout. Chacun se décide séparément.
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.
