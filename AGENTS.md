@@ -1464,6 +1464,23 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   COMBIEN il reste à relire, il ne dit pas OÙ pendant qu'on écrit. Corollaire appliqué —
   `stepGuardTxt(steps,'bloc')` ne rend plus QUE la remarque de bloc (nombre d'étapes) : afficher
   la même remarque d'étape à deux endroits pour un seul défaut, c'est du bruit.
+  **LIGNE IDENTITÉ ET VOLET DE RELECTURE, COMPACTS (v4.69.0)** : dans le dépliant « Identité », le
+  TITRE domine (16,5 px, la taille qu'il aura en lecture), le CODE le suit en pilule mono
+  (identité de crise, lisible d'un coup d'œil sans se confondre avec le titre), et « Identité ▾ »
+  n'est plus une étiquette posée DEVANT mais le déclencheur à DROITE — le mot ne prend la place du
+  titre que là où il agit. Le volet de relecture devient un **dépliant d'une ligne** : replié,
+  compte + cibles abrégées ; déplié, ses rangées d'ancrage. Il dit COMBIEN il reste à relire, pas
+  une seconde fois QUOI — le détail vit sous la ligne visée.
+  **K10 — LES RACCOURCIS À LA FRAPPE (v4.69.0)** : « ! » ou « ? » en tête d'étape, suivis d'une
+  ESPACE, posent le registre (⚠ / △) et **disparaissent du texte** ; le champ est réécrit sur
+  place, la rangée reçoit sa classe, aucun re-rendu. Un éditeur markdown LIBRE reste refusé (il
+  casserait registres, style télégraphique et une-action-par-ligne) — c'est la VITESSE du texte
+  qu'on récupère, pas sa liberté. Deux caractères, et **seulement en tête** : un « ? » au milieu
+  (« Rythme choquable ? ») n'est pas un raccourci. **PIÈGE MAJEUR DÉCOUVERT À LA MESURE** :
+  `STEP_CRIT_RX` reconnaît DÉJÀ « ! » comme marqueur critique (format historique). Déduire le
+  registre du modèle AVANT d'évaluer le raccourci le rendait donc inatteignable — et laissait le
+  « ! » dans le texte, cumulé avec le ⚠ (« ⚠ ! Choc immédiat », mesuré). Le raccourci s'évalue
+  AVANT ; ne pas réinverser.
   **RESTE ACQUIS DE v4.66** : **326 px de saut au clic sur « déplacer »** — le re-rendu insère les interstices AU-DESSUS du point regardé, et un
   `scrollIntoView` visait ensuite le bandeau, qui est STICKY donc déjà visible. Prendre et poser
   passent par **`keepAnchor`** (mécanique ECAM du projet) : l'objet pris ne bouge plus que de

@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-BrsmfXFvO6JMehnEGghZpEZsmtM9Ch2W8UK0BR/E5Jc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-slUnAlTdyUH0R0GpbW+MOszZWX0B4N+DwnkUeiHXhIs='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1422,18 +1422,27 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* K4 — dépliant « Identité » : l'en-tête PORTE déjà le titre et le code, donc replié il
      n'escamote rien de ce qu'on a besoin de vérifier d'un coup d'œil. */
   .ed-ident{margin:0 0 16px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--surface)}
-  .ed-ident>summary{display:flex;align-items:center;gap:10px;min-height:52px;padding:8px 14px;cursor:pointer;list-style:none;font-family:inherit}
+  .ed-ident>summary{display:flex;align-items:center;gap:9px;min-height:48px;padding:7px 13px;cursor:pointer;list-style:none;font-family:inherit}
   .ed-ident>summary::-webkit-details-marker{display:none}
-  .ed-ident>summary::after{content:"▾";margin-left:auto;color:var(--link);font-size:12px;flex:none}
+  .ed-ident>summary::after{content:"▾";color:var(--link);font-size:11px;flex:none;margin-left:-4px}
   .ed-ident[open]>summary::after{content:"▴"}
   .ed-ident>summary:focus-visible{outline:2px solid var(--primary);outline-offset:-2px;border-radius:var(--radius-md)}
-  .ed-ident .idl{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);flex:none}
-  .ed-ident .idr{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;font-weight:600;color:var(--ink)}
-  .ed-ident .idc{font-family:var(--mono);font-size:12px;color:var(--ink-soft)}
+  .ed-ident .id-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:16.5px;font-weight:640;color:var(--ink)}
+  .ed-ident .id-t.muted{color:var(--ink-soft);font-weight:600}
+  .ed-ident .id-c{flex:none;font-family:var(--mono);font-size:11.5px;color:var(--tag-ink);background:var(--tag-bg);border-radius:6px;padding:2px 7px}
+  .ed-ident .id-a{flex:none;font-size:13px;font-weight:700;color:var(--link)}
   .ed-ident[open]{padding:0 14px 8px}
   .ed-ident[open]>summary{margin:0 -14px;border-bottom:1px solid var(--line)}
-  .rev-panel{margin:22px 0 6px;border:1.5px solid var(--verify-line);border-left:4px solid var(--verify-bd);border-radius:var(--radius-md);background:var(--surface);padding:12px 14px}
-  .rev-h{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--verify);margin-bottom:8px}
+  .rev-panel{margin:22px 0 6px;border:1.5px solid var(--verify-line);border-left:4px solid var(--verify-bd);border-radius:var(--radius-md);background:var(--surface)}
+  .rev-panel>summary{display:flex;align-items:center;gap:8px;min-height:44px;padding:8px 13px;cursor:pointer;list-style:none;font-family:inherit}
+  .rev-panel>summary::-webkit-details-marker{display:none}
+  .rev-panel>summary::after{content:"▾";margin-left:auto;color:var(--verify);font-size:11px;flex:none}
+  .rev-panel[open]>summary::after{content:"▴"}
+  .rev-panel>summary:focus-visible{outline:2px solid var(--primary);outline-offset:-2px;border-radius:var(--radius-md)}
+  .rev-panel>summary b{flex:none;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--verify)}
+  .rev-res{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12.5px;color:var(--ink-soft)}
+  .rev-panel[open]{padding:0 13px 10px}
+  .rev-panel[open]>summary{margin:0 -13px 4px}
   .rev-row{display:flex;flex-direction:column;gap:2px;width:100%;min-height:44px;text-align:left;background:none;border:0;border-top:1px solid var(--line);padding:9px 2px;font-family:inherit;cursor:pointer;color:var(--ink)}
   .rev-row:first-of-type{border-top:0}
   .rev-row:hover{background:var(--surface-2)}
@@ -4246,7 +4255,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.68.0';
+const APP_VERSION='4.69.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -7979,9 +7988,15 @@ function openRel(id){
    état, il ne se replie pas. */
 function editorMetaFieldsHtml(d,prefix,L){
   const vide=!String(d.title||'').trim();
-  const resume=vide?'Nouvelle fiche':(esc(d.title)+(d.code?' · <span class="idc">'+esc(d.code)+'</span>':''));
+  /* Le TITRE est ce qu'on relit pour savoir où l'on est : il domine la ligne (16,5 px, la taille
+     qu'il aura en lecture). Le CODE le suit en pilule mono — c'est l'identité de crise, elle se
+     lit d'un coup d'œil sans se confondre avec le titre. « Identité ▾ » n'est plus une étiquette
+     posée devant, mais le DÉCLENCHEUR à droite : le mot ne prend la place du titre que là où il
+     agit. */
+  const resume=vide?'<b class="id-t muted">Nouvelle fiche</b>'
+    :('<b class="id-t">'+esc(d.title)+'</b>'+(d.code?'<span class="id-c">'+esc(d.code)+'</span>':''));
   return `${state.draftRestored?`<div class="notice">${uiIcon('history',15)}<span>Brouillon auto-enregistré (${fmtHMS(state.draftRestored)}) restauré — vos modifications non publiées ont été reprises. <button class="linkbtn" id="ghostDrop">Repartir de la version enregistrée</button></span></div>`:''}
-    <details class="ed-ident"${vide?' open':''}><summary><span class="idl">Identité</span><span class="idr">${resume}</span></summary>
+    <details class="ed-ident"${vide?' open':''}><summary>${resume}<span class="id-a">Identité</span></summary>
     <div class="field"><label for="${prefix}-title">${L.titleLabel}</label><input type="text" id="${prefix}-title" value="${esc(d.title)}" placeholder="${L.titlePh}"></div>
     <div class="field"><label>Catégorie</label><div class="cat-picker" id="catPicker">${catPickerHtml(d)}</div></div>
     ${Auth.signedIn()?`<div class="field"><label for="${prefix}-scope">Bibliothèque <span class="hint">${L.scopeHint}</span></label>
@@ -11961,13 +11976,33 @@ function bindRevPanel(){
 function reviewPanelHtml(f){
   const n=reviewNotes(f);
   if(!n.length)return '';
-  return `<div class="rev-panel" role="status"><div class="rev-h">${uiIcon('warn',13)} Relecture · ${n.length}</div>`
+  /* UNE LIGNE, DÉPLIABLE (maquette MK). Le volet vit en pied de page et n'a qu'un travail :
+     dire COMBIEN il reste à relire, et sur quoi, sans manger l'écran. Replié, il tient en une
+     ligne — compte + cibles abrégées ; déplié, il rend ses rangées d'ancrage. La remarque
+     DÉTAILLÉE, elle, vit sous la ligne qu'elle vise (`stepNote`) : ici c'est un BILAN, pas une
+     seconde explication. */
+  const res=n.map(x=>x.cible).join(' · ');
+  return `<details class="rev-panel"><summary role="status">${uiIcon('warn',13)}<b>Relecture · ${n.length}</b><span class="rev-res">${esc(res)}</span></summary>`
     +n.map(x=>`<button type="button" class="rev-row" data-revgo="${esc(x.at)}"><b>${esc(x.cible)}</b><span>${esc(x.txt.replace(/^△\s*/,''))}</span></button>`).join('')
-    +`<p class="rev-note">Aucune de ces remarques n’empêche d’enregistrer — c’est vous qui connaissez votre service.</p></div>`;}
+    +`<p class="rev-note">Aucune de ces remarques n’empêche d’enregistrer — c’est vous qui connaissez votre service.</p></details>`;}
 /* K2, deuxième moitié (v4.68.0, maquette MK) : LA REMARQUE SOUS LA LIGNE QU'ELLE VISE. Le volet
    en pied dit COMBIEN il reste à relire ; il ne dit pas OÙ pendant qu'on écrit. `stepNote` rend
    la remarque qui concerne UNE étape — affichée sous elle, et seulement quand elle est en
    ÉDITION : au repos, la page reste du texte (état 1 de MK-flux). PURE, testée. */
+/* ═══ K10 (v4.69.0) — LES RACCOURCIS À LA FRAPPE, PAS UN ÉDITEUR MARKDOWN ═══════════════════
+   Un éditeur markdown LIBRE casserait la grammaire (registres, télégraphique, une action par
+   ligne) : refusé. En revanche, la VITESSE du texte n'a aucune raison d'être perdue — on tape
+   « ! » en tête de ligne et l'étape devient critique, « ? » et elle passe en vigilance. Le
+   préfixe est CONSOMMÉ (il ne reste pas dans le texte) et le registre se pose sur le MODÈLE,
+   là où il vit déjà : la chaîne stockée garde « ⚠ »/« △ », l'export v3 est inchangé.
+   `stepShortcut` est PURE (testée) : elle rend le nouvel état d'une étape après frappe, ou null
+   si rien ne s'applique. Deux caractères seulement, et seulement EN TÊTE : un « ? » au milieu
+   d'une question (« Choquable ? ») n'est pas un raccourci, et l'oublier transformerait le texte
+   d'un auteur sans qu'il comprenne pourquoi. */
+function stepShortcut(val){
+  const m=String(val||'').match(/^([!?])\s(.*)$/s);
+  if(!m)return null;
+  return {mark:m[1]==='!'?'⚠ ':'△ ',rest:m[2]};}
 function stepNote(st){
   const c=stepCR(stepText(st||'')).c;
   if(!c.trim())return '';
@@ -12324,7 +12359,24 @@ function bindEditorEvents(f){
     // peut plus l'effacer à la main (= changer le type par accident) ; le type est porté par
     // l'encadré coloré de la rangée + la bascule, et RE-PRÉFIXÉ ici (format chaîne inchangé).
     card.querySelectorAll('[data-sf]').forEach((inp,i)=>inp.addEventListener('input',e=>{
-      const cur=String(b.steps[i]||'');const pfx=stepIsCrit(cur)?'⚠ ':(stepIsVigil(cur)?'△ ':'');
+      const cur=String(b.steps[i]||'');
+      /* K10 : « ! » ou « ? » en tête POSE le registre et disparaît du texte. Le champ est
+         réécrit sur place (le curseur revient là où l'auteur écrivait, moins le préfixe
+         consommé) et la rangée reçoit sa classe : le retour est immédiat, sans re-rendu.
+         ÉVALUÉ AVANT le registre du modèle, et c'est le point : `STEP_CRIT_RX` reconnaît DÉJÀ
+         « ! » comme marqueur critique (format historique), donc déduire `pfx` d'abord rendait le
+         raccourci inatteignable — et laissait le « ! » dans le texte, cumulé avec le ⚠
+         (« ⚠ ! Choc immédiat », mesuré). */
+      const sc=stepShortcut(e.target.value);
+      let pfx=stepIsCrit(cur)?'⚠ ':(stepIsVigil(cur)?'△ ':'');
+      if(sc){pfx=sc.mark;e.target.value=sc.rest;
+        try{e.target.setSelectionRange(sc.rest.length,sc.rest.length);}catch(_){}
+        const li=e.target.closest('.li');
+        if(li){li.classList.toggle('li-crit',sc.mark==='⚠ ');li.classList.toggle('li-vigil',sc.mark==='△ ');
+          const bx=li.querySelector('.li-box');if(bx)bx.innerHTML=sc.mark==='⚠ '?uiIcon('warn',13):'△';
+          const tg=li.querySelector('.crit-tgl');
+          if(tg){tg.classList.toggle('on',sc.mark==='⚠ ');tg.classList.toggle('vig',sc.mark==='△ ');
+            tg.innerHTML=sc.mark==='△ '?'△':uiIcon('warn',14);}}}
       b.steps[i]=pfx+e.target.value;scheduleFlowPreview(f);
       const g=card.querySelector('[data-stepguard]');if(g)g.textContent=stepGuardTxt(b.steps,'bloc');
       revPanelRefresh(f);}));   // K2 : le bilan suit la frappe, sans re-rendre l'éditeur
@@ -16436,7 +16488,7 @@ if(location.search.indexOf('__actest')>=0){
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
     restErrStatus,isPersoRepairCandidate,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,cxAll,cxDetached,
-    qTerms,hayMatch,markQTerms,searchSnippet,ficheSnipParts,protoSnipParts,frecencyScore,sanitizeUsage,mergeUsage,azLetter,azGroups,qaPick,tmLabelParts,sessStamp,monPick,reviewNotes,stepNote,
+    qTerms,hayMatch,markQTerms,searchSnippet,ficheSnipParts,protoSnipParts,frecencyScore,sanitizeUsage,mergeUsage,azLetter,azGroups,qaPick,tmLabelParts,sessStamp,monPick,reviewNotes,stepNote,stepShortcut,
     crc32,zipBuild,zipParse,isPdfBytes,mdTask,flowOrder,latestPass,offPathSet,minimapData,passInfo,instComplete,flowPlan,stepCR,stepGuardTxt,optAbbr,svBranchIssue,svLoopTargets,ovPresList,
     posoTokens,posoName,posoScore,posoRank,posoSplit,
     qrRawBits,qrTotalCw,qrGen,qrRs,qrAlign,qrDataCw,qrInterleave,qrEncode,qrSvg,qrMul,

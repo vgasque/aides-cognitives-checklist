@@ -1,7 +1,71 @@
-# Journal des modifications — archive (versions 3.0.0 à 4.55.4)
+# Journal des modifications — archive (versions 3.0.0 à 4.55.5)
 
 > Entrées anciennes déplacées depuis [`CHANGELOG.md`](CHANGELOG.md) pour garder le journal
 > courant lisible. Même format (keep-a-changelog).
+
+## [4.55.5] — 2026-07-28
+### Deux défauts signalés à l'usage — un menu qui tombait dans la barre, une attribution qui suivait la mauvaise personne
+
+### Le menu ⋯ s'ouvrait DANS l'en-tête — dixième piège de cascade
+Dès qu'un placard était posé (exercice ou invité), ouvrir le menu ⋯ ne produisait plus une
+fenêtre flottante : il retombait **dans le flux de la barre**, qu'il rallongeait d'autant.
+
+Le placard, pour faire passer le contenu au-dessus de sa hachure, levait **tous les enfants
+directs** de l'en-tête en `position:relative; z-index:1`. Or `.more-menu` est un enfant direct
+**et se positionne lui-même** : `header.bar.exo>*` vaut (0,2,1) contre (0,1,0) pour
+`.more-menu{position:absolute}`. La règle décorative écrasait la règle structurelle.
+
+**On retire l'exigence plutôt que de l'assortir d'exceptions.** Nommer le menu dans un `:not()`
+n'aurait fait que déplacer le piège au prochain calque ajouté là — c'est la leçon de la v4.55.3,
+une version plus tôt. `header.bar` porte déjà `position:sticky; z-index:20`, donc elle **est** un
+contexte d'empilement : un `::before` en `z-index:-1` s'y peint au-dessus du fond de la barre et
+sous tout son contenu, **sans qu'aucun enfant ait à être positionné**. On **enfonce** la hachure
+au lieu de **lever** ses frères ; l'un ne demande rien aux enfants, l'autre les contraint tous.
+
+`#crisisBand` garde l'ancienne mécanique, et ce n'est pas une inconséquence : il est
+`position:relative` **sans `z-index`**, donc pas un contexte d'empilement — un `z-index:-1` y
+passerait sous son propre fond et la hachure disparaîtrait. Ses enfants sont tous statiques.
+
+### « Avancé par … » nommait l'hôte pour les gestes de l'invité
+La mention était un drapeau **global** qu'un seul site du fichier remettait à zéro : `cxEnter`,
+l'entrée sur complication. **Aucun avancement ordinaire ne l'effaçait.** Posée une fois —
+typiquement par le backlog rattrapé à la jointure, où toutes les navigations de l'hôte défilent
+d'un coup — elle **suivait ensuite l'invité de carte en carte** et attribuait à « Hôte » les blocs
+qu'il venait lui-même d'avancer.
+
+Encore un demi-chemin : un effacement écrit d'un seul côté. Le remède n'est donc pas d'ajouter les
+N sites manquants — c'est de **supprimer le besoin de s'en souvenir**. La mention porte désormais
+le **numéro de visite** que l'avance distante a créé et ne s'affiche que sur celui-là ; le premier
+passage minté localement en porte un autre, donc elle disparaît **par construction**.
+
+Elle est posée **dans `shareApplyAnchored`**, seul point où une navigation distante devient la
+position courante. `onEvents` le manquait dans un cas (le drain de la file par `rmResume` n'y
+repasse pas) et le posait dans un autre où il ne fallait pas : une navigation **refusée** par le
+mode lecteur nommait déjà son auteur alors que rien n'avait bougé. L'annonce au lecteur d'écran
+garde, elle, une variable **locale au lot** — elle n'a ni la même durée de vie ni la même
+condition que la mention affichée.
+
+### Ce que le diagnostic a écarté en chemin
+Deux hypothèses ont été **mesurées puis abandonnées** avant d'arriver à la bonne, et c'est ce qui
+a évité de « corriger » du code sain : l'attribution est juste quand la liste des participants
+est à jour (« avancé par Infirmier », vérifié), et il n'y a **aucun écho** — l'hôte ne repousse
+pas sous son nom ce qu'il vient de recevoir. Le défaut n'était ni dans la résolution serveur de
+l'acteur (le secret l'emporte sur l'identité, y compris quand les deux appareils sont connectés au
+même compte) ni dans le rebasage du diff.
+
+### Vérification
+**294/294 contrôles partage** (+14, sur les deux moteurs), 756 tests × 2 moteurs, 14 harnais verts
+sur Chromium **et** WebKit, 301 contrôles d'accessibilité, 112/112 doctrine.
+
+Les deux défauts réintroduits en font tomber **sept** ; fichier restauré à l'octet. **Un témoin a
+dû être refait** : la première version de la sonde d'attribution avançait par `next`, nul sur le
+dernier bloc de la fiche d'exemple — l'avance locale n'avait donc jamais lieu et les deux contrôles
+suivants mesuraient du vide. C'est le témoin lui-même qui l'a signalé. De même, la hachure est
+mesurée par son **image de fond** et non par l'opacité : sur un en-tête sans placard le
+pseudo-élément n'a pas de `content`, et `getComputedStyle` rend alors l'opacité par défaut `1` —
+un témoin fondé sur l'opacité aurait été vert des deux côtés.
+
+**Rien à rejouer côté serveur.**
 
 ## [4.55.4] — 2026-07-28
 ### L'invité sait qu'il est invité — et un bouton pressé répond enfin
