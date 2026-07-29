@@ -1260,6 +1260,59 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   compte-rendu** (F6) : durée totale en mono 40 px + compteurs de la fiche en tuiles neutres
   (plafond 4 ; les compteurs à ZÉRO sont montrés — « 0 choc » est une information de débriefing,
   souvent LA question), identique à l'écran et à l'impression.
+- **LE SOMBRE DESCEND À #000, SURFACES EN GRIS NEUTRE (v4.71.0, décision utilisateur sur maquette
+  comparative)** : `--bg` #0c1420 → **#000000**, surfaces #0d0d0f / #070708 / #191a1d, filets
+  #33363b, `--input-bg` #000, plus les hors-teintes de survol (`--hover-dk`) — sans elles le
+  « gris pur » se lirait bleu au premier passage de souris. **CE QUE LE NOIR OBLIGE À DÉPLACER,
+  et c'est le vrai travail** : sur #000 une OMBRE NE DIT PLUS RIEN (assombrir du noir ne produit
+  aucun contraste), donc les trois niveaux d'élévation de la v4.57.0 ne peuvent plus reposer sur
+  elle — c'est la SURFACE qui monte et le FILET qui borde. Les ombres restent déclarées et ne
+  sont pas du gaspillage : une modale se détache encore de la carte qu'elle recouvre, qui n'est
+  pas noire. **Aucune encre, aucun registre ne bouge** : le noir est un changement de FOND, pas
+  de sémantique. **MÉRITE DU GRIS NEUTRE, à nommer** : sur du gris strictement neutre, TOUTE
+  couleur à l'écran porte un sens — registre, catégorie ou accent —, ce qui est exactement la
+  règle 8 ; j'avais proposé de garder la famille bleue sur les surfaces (l'app y garde son
+  caractère clinique), les deux ont été mesurées côte à côte et le neutre a été choisi.
+  **A11Y REJOUÉE avec la palette RÉELLEMENT POSÉE dans le fichier** (et non injectée à chaud) :
+  301/301 sur Chromium ET WebKit, contraste calculé sur le fond EFFECTIF.
+- **E5 S'ÉTEND AUX SURFACES CALMES, ET À ELLES SEULES (v4.71.0)** : la restriction de la v4.57.0
+  aux tuiles d'accueil était un reste de chantier, pas une doctrine — l'audit écrivait E5 pour
+  toute l'app. Ce qui EST une doctrine, et qui borne la liste : **en crise, le mouvement est
+  réservé à l'alarme** (ECAM). La moitié SURVOL ne pourrait de toute façon pas s'y déclencher
+  (`pointer:fine` = une souris, pas le téléphone du terrain) ; c'est la moitié APPUI qui impose
+  la borne. **PAS DE BALAYAGE EN GROS** sur `.btn` ni sur `.ai-card` : ces sélecteurs attrapent
+  aussi « Terminer la session ? » et l'index des complications, qui s'ouvrent PENDANT un soin.
+  La liste est nominative : `.hs-row`, `.ep-row`, `.rev-row`, `.att-row`, `.vers-row`, `.ed-door`
+  (+ `.qa-tile`/`.dir-row` d'origine).
+- **FENÊTRE COMPTE — M5 (v4.71.0)** : l'identité et les trois actions qui en dépendent vivent
+  dans une **carte** `--surface-2` (un groupement, pas une élévation) ; « Synchroniser » **perd
+  son remplissage** — on n'ouvre pas ses réglages pour agir, et il était le seul bouton rempli
+  d'un écran qui n'a pas d'action primaire. **CE QUI N'EST PAS REPRIS DE LA MAQUETTE** : elle
+  range les trois boutons sur UNE rangée, ce qui remettrait « Se déconnecter » au contact du
+  bouton le plus tapé de la fenêtre — la v4.5 avait posé un tampon là exprès (« un tap
+  légèrement trop bas ne doit pas déconnecter », défaut vécu comme un bug) ; la déconnexion garde
+  sa ligne, son tampon et sa confirmation. « Sur cet appareil » devient une **ligne** (~64 px
+  rendus) : la v4.56.3 avait rendu les tuiles neutres (P3-1), mais une tuile reste la forme d'un
+  OBJET et trois nombres qu'on ne peut ni taper ni régler n'en sont pas ; **les tuiles RESTENT
+  pour « État de l'instance » (admin)**, où il y en a dix et où une ligne ne se lirait plus.
+  Groupe « Affichage », libellé et contrôle sur la même ligne tant que la place existe.
+- **LA PORTE « + » ÉTAIT INCOMPLÈTE, DONC ELLE MENTAIT (v4.71.0, signalé par l'utilisateur)** :
+  elle promet « voici tout ce que vous pouvez ajouter » et il en manquait DEUX que la fiche
+  accepte pourtant — **le tableau de doses et le document** (maquette MK4 les liste tous les
+  deux). Une porte unique qui ne montre pas tout est **pire que six portes dispersées** : avant
+  on cherchait, maintenant on renonce. Le document est le seul type qui n'ajoute pas une ligne au
+  brouillon — il ouvre le sélecteur de fichier, et le clic doit partir DANS LA MÊME TÂCHE que
+  celui de la palette (`renderEditor()` est synchrone), sinon l'activation utilisateur est perdue
+  et le navigateur refuse d'ouvrir le sélecteur ; la rangée disparaît en repli KV, qui ne sait
+  pas stocker de binaire (un bouton mort vaut moins qu'une absence). **CE QUI RESTE HORS DE LA
+  PORTE** : « Étape / Étape critique / Étape vigilance », que MK4 y range — un « + » = une
+  PORTÉE (MK-flux), la palette ne vit qu'ENTRE les blocs où une étape n'a pas de bloc d'accueil.
+  L'intention pédagogique de MK4 (« les registres s'apprennent ici, avant la crise ») n'est pas
+  perdue : elle vit dans `.crit-guide`, en tête de chaque bloc, c'est-à-dire là où l'on CHOISIT
+  le registre. Deux entrées d'une même liste n'ont jamais le même dessin (règle du menu ⋯) :
+  `alarm` pour le minuteur qui SONNE, `stopwatch` pour le temps qui MONTE — elles portaient
+  toutes deux « ⏱ ». Et le document passe par l'icône de trait, pas par « 📎 » : un emoji en
+  COULEUR dans une liste monochrome, quand la couleur ne décore jamais ici.
 - **L'ÉTAT DE MODE S'ANCRE AU COIN HAUT-DROIT (v4.58.0, audit design — concept H/B)** : la pilule
   « ■ Crise » vivait à droite de la bande-titre quand elle était dépliée, puis **sautait au milieu
   de la ligne fusionnée** au défilement — position ET libellé changeaient (« ■ MODE CRISE » ici,

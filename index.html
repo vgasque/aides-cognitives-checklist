@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-PWJ44b46JYJPzfKq0fyAysy2XaIrMn5YaxGbZJ40cnU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-Dmeg5clc4hwa/bYWhj/YNllnaXsB9JdU6P7Ww7QpUno='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -347,8 +347,31 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
          WCAG 1.4.11 des composants — les cadres de carte se voyaient à peine dans le noir.
      Les GRAISSES ne bougent PAS (l'audit proposait +100) : la graisse porte déjà l'état sur les
      segmentés et les registres, et l'élargir changerait toutes les largeurs de texte — donc les
-     mesures à 320 px que quatre harnais surveillent. Un canal par signification. ===== */
-  html[data-theme="dark"]{--ink:#e8eef7;--ink-soft:#b7c6d6;--line:#3b4b5d;--line-hover:#55697e;--bg:#0c1420;--surface:#121d2b;--surface-2:#101823;--surface-3:#1b2836;--primary:#2e71c2;--primary-dk:#8fb8e8;--primary-hi:#4685d2;--primary-soft:#16324f;--primary-100:#16324f;--primary-200:#2c4b6e;--primary-300:#2c4b6e;--on-primary:#fff;--ok-rgb:55,214,122;--ok:rgb(var(--ok-rgb));--ok-soft:#0e2618;--critical:#ff8a84;--critical-soft:#3a0e0c;--critical-line:#7a2b26;--verify:#ffb454;--verify-soft:#241d0c;--verify-line:#5c4a1e;--verify-bd:#ffb454;--verify-hi:#ffb454;--critical-bd:#ff5a52;--done-bg:#101b14;--done-line:#1f4a2e;--done-ink:#4e6e58;--tag-bg:#24303f;--tag-ink:#b9c6d4;--link:#8fb8e8;--soft:#5e7186;--input-bg:#0a111b;--shadow:0 1px 2px rgba(0,0,0,.45),0 4px 16px rgba(0,0,0,.5);--shadow-lg:0 2px 6px rgba(0,0,0,.5),0 12px 32px rgba(0,0,0,.65);--hover-dk:#1b2634;--hover-dk-hi:#22364d;--flow-hl-dk:#4e8fd9;}
+     mesures à 320 px que quatre harnais surveillent. Un canal par signification.
+
+     v4.71.0 (décision utilisateur, « noir pour tout le mode sombre partout ») — LE FOND DESCEND
+     À #000. Motif : la « vraie nuit » d'un écran OLED n'allume tout simplement pas ses pixels
+     noirs, ce qui vaut de l'autonomie sur un appareil qu'on tient trois heures en intervention,
+     et le contenu d'alerte y détache d'un cran de plus (le cadre rouge « Ne pas oublier » est ce
+     qu'on doit voir en premier). SURFACES EN GRIS NEUTRE, décision utilisateur : j'avais proposé
+     de garder la famille bleue sur les surfaces (les pastilles de catégorie et l'accent restent
+     alors les seuls objets colorés d'un écran gris, ce qui change le caractère de l'app) ; la
+     variante neutre a été choisie sur maquette comparative, les deux ayant été mesurées côte à
+     côte. Elle a un mérite qu'il faut nommer : sur du gris strictement neutre, TOUTE couleur à
+     l'écran porte un sens — registre, catégorie ou accent —, et c'est exactement la règle 8.
+     Les hors-teintes de survol suivent (`--hover-dk`), sans quoi le « gris pur » se lirait bleu
+     au premier passage de souris.
+     CE QUE LE NOIR OBLIGE À DÉPLACER, et c'est le vrai travail : sur #000, une OMBRE NE DIT
+     PLUS RIEN — assombrir du noir ne produit aucun contraste. Les trois niveaux d'élévation
+     écrits en v4.57.0 (plat+filet / --shadow / --shadow-lg) ne peuvent donc plus reposer sur
+     l'ombre : ici c'est la SURFACE qui monte (#000 → #0d1720 → #17242f) et le FILET qui la
+     borde. Les ombres RESTENT déclarées et ne sont pas du gaspillage : une modale se détache
+     encore de la carte qu'elle recouvre, qui n'est pas noire. Filets relevés en conséquence
+     (#3b4b5d → #334352 : le seuil 3:1 de WCAG 1.4.11 se calcule sur --surface, qui a bougé).
+     ENCRES ET REGISTRES INCHANGÉS : le noir est un changement de FOND, pas de sémantique — les
+     rouges, ambres et verts gardent leurs valeurs, et l'a11y a été rejouée avec la palette
+     réellement posée dans le fichier (301/301, contraste calculé sur le fond EFFECTIF). ===== */
+  html[data-theme="dark"]{--ink:#e8eef7;--ink-soft:#b7c6d6;--line:#33363b;--line-hover:#4d5158;--bg:#000000;--surface:#0d0d0f;--surface-2:#070708;--surface-3:#191a1d;--primary:#2e71c2;--primary-dk:#8fb8e8;--primary-hi:#4685d2;--primary-soft:#0e2038;--primary-100:#0e2038;--primary-200:#2c4b6e;--primary-300:#2c4b6e;--on-primary:#fff;--ok-rgb:55,214,122;--ok:rgb(var(--ok-rgb));--ok-soft:#0e2618;--critical:#ff8a84;--critical-soft:#3a0e0c;--critical-line:#7a2b26;--verify:#ffb454;--verify-soft:#241d0c;--verify-line:#5c4a1e;--verify-bd:#ffb454;--verify-hi:#ffb454;--critical-bd:#ff5a52;--done-bg:#101b14;--done-line:#1f4a2e;--done-ink:#4e6e58;--tag-bg:#1d1f24;--tag-ink:#b9c6d4;--link:#8fb8e8;--soft:#5e7186;--input-bg:#000000;--shadow:0 1px 2px rgba(0,0,0,.45),0 4px 16px rgba(0,0,0,.5);--shadow-lg:0 2px 6px rgba(0,0,0,.5),0 12px 32px rgba(0,0,0,.65);--hover-dk:#1c1d21;--hover-dk-hi:#26282e;--flow-hl-dk:#4e8fd9;}
   /* --hover-dk(-hi) : survols du thème sombre (générique / sur surface élevée, ex-hex en dur des
      règles de survol) ; --flow-hl-dk : trait de contre-inversion du SVG sombre (la couleur est
      choisie pour rendre juste APRÈS le filtre invert+hue-rotate). v4.31.0 : plus AUCUN hex hors
@@ -2849,6 +2872,30 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .auth-msg{font-size:13px;margin:8px 0 0;min-height:18px}
   .auth-msg.err{color:var(--critical)}.auth-msg.ok{color:var(--primary)}
   /* Fenêtre Compte */
+  /* M5 (v4.71.0) : la CARTE d'identité — la grammaire de l'app appliquée aux réglages. Tout le
+     reste du fichier groupe ce qui va ensemble dans une carte ; l'identité et les trois actions
+     qui en dépendent n'avaient aucune raison de flotter en pile sur le fond de la fenêtre.
+     `--surface-2` (recessed) et non `--surface` : la carte est POSÉE DANS la fenêtre, elle ne
+     s'en détache pas — c'est un groupement, pas une élévation. */
+  .acct-card{background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius-md);padding:13px 13px 12px;margin-bottom:10px}
+  .acct-acts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+  /* Le TAMPON de la v4.5, conservé : « Se déconnecter » ne touche jamais le bouton le plus tapé
+     de la fenêtre — un tap trop bas ne doit pas déconnecter. Il prend sa propre ligne. */
+  .acct-acts .acct-out{grid-column:1 / -1;margin-top:10px}
+  .acct-promise{margin:0 2px 4px}
+  /* « Sur cet appareil » : une LIGNE, pas trois tuiles. La v4.56.3 les avait rendues neutres
+     (P3-1 : `--primary-soft` est la teinte des boutons tonals, de la lecture seule s'y donnait
+     l'air cliquable) — mais une tuile reste la forme d'un OBJET, et trois nombres qu'on ne peut
+     ni taper ni régler n'en sont pas. La ligne rend ~64 px et dit exactement la même chose.
+     Les tuiles RESTENT pour « État de l'instance » (admin) : là il y en a dix, et une ligne de
+     dix nombres ne se lit plus. */
+  .dev-line{margin:0 2px 16px;font-size:13.5px;color:var(--ink-soft);line-height:1.6}
+  .dev-line b{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:700;color:var(--ink)}
+  /* Un réglage = son libellé et son contrôle sur la MÊME ligne quand la place existe ; sous
+     430 px le contrôle passe dessous plutôt que de comprimer l'un ou l'autre. */
+  .set-row{display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;margin-bottom:6px}
+  .set-row .set-l{flex:1 1 auto;font-size:13.5px;font-weight:650;color:var(--ink)}
+  .set-row .statuseg,.set-row .accent-row{flex:none}
   .auth-card-in{display:flex;align-items:center;gap:13px;margin-bottom:4px}
   .auth-avatar{width:48px;height:48px;border-radius:50%;background:var(--primary);color:var(--on-primary);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;letter-spacing:.5px;flex:none}
   .auth-id{min-width:0}
@@ -3870,14 +3917,25 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      v4.41.0 : jamais une propriété de mise en page), 120 ms, et le survol ne s'applique qu'au
      POINTEUR FIN : sur tactile, le premier tap pose l'état hover et un hover qui bouge favorise
      le double-tap (leçon v4.4.4). L'appui, lui, vaut partout — c'est le retour du geste. */
-  .dir-row,.qa-tile{transition:border-color .12s,background-color .15s,transform .12s cubic-bezier(.2,0,0,1),box-shadow .15s}
+  /* v4.71.0 : ÉTENDU AUX SURFACES CALMES, et à elles seules. La restriction de la v4.57.0 aux
+     tuiles d'accueil était un reste de chantier, pas une doctrine — l'audit écrivait E5 pour
+     toute l'app. Ce qui EST une doctrine, et qui borne la liste : en crise, le MOUVEMENT EST
+     RÉSERVÉ À L'ALARME (ECAM). Rien du chrome de crise ne lévite ni ne s'enfonce — ni les
+     rangées d'étape, ni les segments du quai, ni les cartes de minuteur, ni le rail, ni le plan.
+     Noter que la moitié SURVOL ne pourrait de toute façon pas s'y déclencher (`pointer:fine` =
+     une souris, pas le téléphone du terrain) ; c'est la moitié APPUI qui impose la borne.
+     ET PAS DE BALAYAGE EN GROS sur `.btn` ni sur `.ai-card` : ces sélecteurs attrapent aussi le
+     dialogue « Terminer la session ? » et l'index des complications, qui s'ouvrent PENDANT un
+     soin. La liste est donc nominative — sidebar d'accueil, palette d'ajout, volet de relecture,
+     rangées de document et de sélecteur, versions, porte « + » de l'éditeur. */
+  .dir-row,.qa-tile,.hs-row,.ep-row,.rev-row,.att-row,.vers-row,.ed-door{transition:border-color .12s,background-color .15s,transform .12s cubic-bezier(.2,0,0,1),box-shadow .15s}
   @media (hover:hover) and (pointer:fine){
-    .qa-tile:hover,.dir-row:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
+    :is(.qa-tile,.dir-row,.hs-row,.ep-row,.rev-row,.att-row,.vers-row,.ed-door):hover{transform:translateY(-1px);box-shadow:var(--shadow)}
   }
-  .qa-tile:active,.dir-row:active{transform:scale(.99)}
+  :is(.qa-tile,.dir-row,.hs-row,.ep-row,.rev-row,.att-row,.vers-row,.ed-door):active{transform:scale(.99)}
   @media (prefers-reduced-motion:reduce){
-    .dir-row,.qa-tile{transition:border-color .12s,background-color .15s}
-    .qa-tile:hover,.dir-row:hover,.qa-tile:active,.dir-row:active{transform:none}
+    .dir-row,.qa-tile,.hs-row,.ep-row,.rev-row,.att-row,.vers-row,.ed-door{transition:border-color .12s,background-color .15s}
+    :is(.qa-tile,.dir-row,.hs-row,.ep-row,.rev-row,.att-row,.vers-row,.ed-door):is(:hover,:active){transform:none}
   }
   @media (prefers-reduced-motion:reduce){*{transition:none!important}.tmcard.flash{animation:none}#crisisBand{animation:none}header.bar.titled.ttl-on #brandTitle{animation:none}.sess-dot::after{animation:none;opacity:0}.ai-modal.on,.ai-modal.on:not(.pdf-modal) .ai-card,.more-menu:not([hidden]),.sys-banner:not([hidden]){animation:none}}
   /* ===== ÉCRANS TACTILES : 16px sur TOUS les champs de saisie (source de vérité UNIQUE) =====
@@ -4308,7 +4366,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.70.1';
+const APP_VERSION='4.71.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -12261,13 +12319,32 @@ function edGrabLabel(f){const g=state.edGrab;if(!g)return '';
    charge. C'est la position du bouton qui choisit la portée, à la place de l'auteur : il n'a
    jamais à se demander « où va atterrir ce que j'ajoute ». Chaque type dit sa CONSÉQUENCE en
    deux mots, à droite — pas ce qu'il est, ce qu'il produit. */
+/* v4.71.0 — LA PORTE ÉTAIT INCOMPLÈTE, DONC ELLE MENTAIT. Elle promet « voici tout ce que vous
+   pouvez ajouter » ; il en manquait DEUX que la fiche accepte pourtant — le TABLEAU DE DOSES et
+   le DOCUMENT (maquette MK4, qui les liste tous les deux). Une porte unique qui ne montre pas
+   tout est pire que six portes dispersées : on cherchait avant, on renonce maintenant.
+   CE QUI RESTE HORS DE LA PORTE, ET POURQUOI : « Étape », « Étape critique » et « Étape
+   vigilance », que MK4 y range. Un « + » = une PORTÉE (MK-flux, état 4, décision retenue) — la
+   palette ne vit qu'ENTRE les blocs, où une étape n'a pas de bloc d'accueil ; dans un bloc,
+   « ＋ Étape » et ⏎ s'en chargent. L'INTENTION PÉDAGOGIQUE de MK4 (« les registres s'apprennent
+   ici, avant la crise ») n'est pas perdue pour autant : elle vit dans le dépliant `.crit-guide`
+   en tête de chaque bloc, c'est-à-dire à l'endroit exact où l'on choisit le registre. */
 const ED_PALETTE=[
   {k:'steps',   ic:'❑', n:'Bloc d’étapes',   c:'titre, puis ⏎'},
   {k:'decision',ic:'◆', n:'Décision oui / non',c:'2 branches'},
-  {k:'interval',ic:'⏱', n:'Minuteur ou cycle',c:'durée + libellé'},
-  {k:'stopwatch',ic:'⏱',n:'Chronomètre',     c:'temps qui monte'},
+  /* DEUX ENTRÉES D'UNE MÊME LISTE N'ONT JAMAIS LE MÊME DESSIN (règle du menu ⋯, v4.28.0) :
+     `alarm` = le minuteur qui SONNE à l'échéance, `stopwatch` = le temps qui MONTE. Elles
+     portaient toutes deux « ⏱ » et ne se distinguaient que par le mot. Et le document passe par
+     l'ICÔNE DE TRAIT de la famille plutôt que par « 📎 », un emoji en COULEUR qui s'imposait
+     dans une liste par ailleurs monochrome — dans cette app la couleur porte un registre, elle
+     n'est jamais décorative (E6). « ⚡ » reste tel quel : c'est le glyphe de la complication
+     PARTOUT ailleurs dans le fichier, et une seconde forme ici serait le vrai défaut. */
+  {k:'interval',ic:uiIcon('alarm',17),   n:'Minuteur ou cycle',c:'durée + libellé'},
+  {k:'stopwatch',ic:uiIcon('stopwatch',17),n:'Chronomètre',    c:'temps qui monte'},
   {k:'counter', ic:'№', n:'Compteur',        c:'chocs, doses…'},
-  {k:'cx',      ic:'⚡',n:'Complication',     c:'à tout moment'}
+  {k:'poso',    ic:'▤', n:'Doses & seuils',  c:'consulté, pas coché'},
+  {k:'cx',      ic:'⚡',n:'Complication',     c:'à tout moment'},
+  {k:'att',     ic:uiIcon('doc',17),n:'Document PDF',c:'rangé dans « Consulter »'}
 ];
 const edAddModal=()=>document.getElementById('edAddModal');
 function edAddOpen(f){
@@ -12288,9 +12365,23 @@ function edAdd(f,kind){
   else if(kind==='interval')f.timers.push({id:uid('t'),label:'',type:'interval',seconds:120,autoloop:true});
   else if(kind==='counter')f.counters.push({id:uid('n'),label:'',step:1,start:0});
   else if(kind==='cx')(f.complications=f.complications||[]).push({label:'',target:''});
-  edAddClose();renderEditor();}
+  else if(kind==='poso')(f.posology=f.posology||[]).push('');
+  edAddClose();renderEditor();
+  /* Le DOCUMENT est le seul type qui n'ajoute pas une ligne au brouillon : il ouvre le sélecteur
+     de fichier de l'appareil. Le clic est déclenché DANS la même tâche que celui de la palette —
+     `renderEditor()` est synchrone —, sinon l'activation utilisateur serait perdue et le
+     navigateur refuserait d'ouvrir le sélecteur. */
+  if(kind==='att'){const b=document.getElementById('addPdf');if(b)b.click();return;}
+  /* On amène l'auteur SUR ce qu'il vient de créer : une porte qui demande un geste pour ouvrir
+     et un autre pour retrouver son résultat n'a rien simplifié. Ancrage direct, jamais animé
+     (`behavior:'smooth'` ne défilait pas du tout sur de grands écarts — mesuré en v4.63.0). */
+  if(kind==='poso'){const r=main.querySelectorAll('[data-key="posology"]');
+    const c=r[r.length-1];if(c){c.scrollIntoView({block:'center'});c.focus();}}}
 function edPaletteHtml(){
-  return ED_PALETTE.map(x=>`<button type="button" class="ep-row" data-edadd="${x.k}"><span class="ep-ic" aria-hidden="true">${x.ic}</span><b class="ep-n">${esc(x.n)}</b><span class="ep-c">${esc(x.c)}</span></button>`).join('');}
+  /* Le repli KV ne sait pas stocker de binaire : la rangée « Document » y serait un bouton MORT.
+     On ne l'affiche pas plutôt que de la désactiver — la porte doit dire ce qui est possible ICI. */
+  return ED_PALETTE.filter(x=>x.k!=='att'||supportsAttachments())
+    .map(x=>`<button type="button" class="ep-row" data-edadd="${x.k}"><span class="ep-ic" aria-hidden="true">${x.ic}</span><b class="ep-n">${esc(x.n)}</b><span class="ep-c">${esc(x.c)}</span></button>`).join('');}
 function edGrabIsCrit(){const g=state.edGrab;if(!g||g.kind!=='s'||!state.draft)return false;
   const b=(state.draft.blocks||[]).find(x=>x.id===g.bid);
   return !!b&&stepIsCrit((b.steps||[])[g.si]||'');}
@@ -14064,10 +14155,19 @@ function renderAuthAccount(body,u,doOut){
     // Structure (audit v4.5) : identité + état -> ACTION PRIMAIRE au contact de l'état qu'elle
     // rafraîchit -> contours jumeaux demi-largeur -> zone « Cet appareil » -> zone
     // « Administration » (admin) -> zone sensible, toujours dernière.
-    body.innerHTML=`<div class="auth-card-in"><div class="auth-avatar">${esc(ini)}</div><div class="auth-id"><div class="auth-email">${esc(u.email||'')}</div>${authStateHtml()}</div></div>
-      <p class="auth-sub">Votre bibliothèque personnelle est sauvegardée et accessible sur tous vos appareils connectés à ce compte.</p>
-      <div class="auth-actions"><button class="btn primary" id="authSync">Synchroniser maintenant</button></div>
-      <div class="dlg-actions acct-two" style="margin-top:10px"><button class="btn" id="authExport">Exporter mes données</button><button class="btn" id="authOut">Se déconnecter</button></div>
+    /* M5 (audit design, v4.71.0) — L'IDENTITÉ EST UNE CARTE, ET IL N'Y A PLUS D'ACTION PRIMAIRE.
+       Trois boutons pleine largeur empilés donnaient à un écran de RÉGLAGES l'allure d'un écran
+       d'action, et « Synchroniser maintenant » y était le seul bouton REMPLI de la fenêtre — or
+       on n'ouvre pas ses réglages pour agir, on les ouvre pour regarder. Les trois passent en
+       contour et rejoignent la carte d'identité, dont ils dépendent tous les trois.
+       CE QUI N'EST PAS REPRIS DE LA MAQUETTE : elle range les trois sur UNE rangée, ce qui
+       remettrait « Se déconnecter » au contact du bouton le plus tapé de la fenêtre. La v4.5
+       avait posé un espacement là exprès — « un tap légèrement trop bas ne doit pas déclencher
+       une déconnexion », défaut vécu comme un bug. La déconnexion garde donc sa ligne et son
+       tampon (et sa confirmation). */
+    body.innerHTML=`<div class="acct-card"><div class="auth-card-in"><div class="auth-avatar">${esc(ini)}</div><div class="auth-id"><div class="auth-email">${esc(u.email||'')}</div>${authStateHtml()}</div></div>
+        <div class="acct-acts"><button class="btn" id="authSync">Synchroniser</button><button class="btn" id="authExport">Exporter</button><button class="btn acct-out" id="authOut">Se déconnecter</button></div></div>
+      <p class="st-hint acct-promise">Votre bibliothèque personnelle suit ce compte sur <b>tous vos appareils connectés</b>.</p>
       ${accountPrefsHtml()}
       ${myIsAppAdmin?`<div class="acct-zone"><div class="auth-stats-h">Administration</div><div class="auth-actions"><button class="btn" id="authPending">Comptes en attente${myPendingCount?' ('+myPendingCount+')':''}</button></div><div id="authStats" class="inst-stats-wrap" aria-label="État de l'instance"></div><p class="auth-admin-note">Compte administrateur : la suppression se fait depuis la console d’administration (garde-fou).</p></div>`:`<div class="mem-danger"><p class="mem-section-h danger-h">Zone sensible</p>
         <button class="btn outline-danger" id="authDelete">Supprimer mon compte et mes données…</button>
@@ -14096,16 +14196,15 @@ function accountPrefsHtml(slot){
   const z=currentZoom();
   const nl=myLibraries.length+1; // + Perso
   const HINT={90:'S · 90 %',100:'M · 100 %',115:'L · 115 %',130:'XL · 130 %'};
-  return `<div class="acct-zone"><div class="auth-stats-h">Sur cet appareil</div><div class="inst-stats">
-      <div class="inst-stat"><span class="is-v">${fiches.length}</span><span class="is-k">aide${fiches.length>1?'s':''}</span></div>
-      <div class="inst-stat"><span class="is-v">${protocols.length}</span><span class="is-k">protocole${protocols.length>1?'s':''}</span></div>
-      <div class="inst-stat"><span class="is-v">${nl}</span><span class="is-k">bibliothèque${nl>1?'s':''}</span></div></div>
+  return `<div class="acct-zone"><div class="auth-stats-h">Sur cet appareil</div>
+    <p class="dev-line"><b>${fiches.length}</b> aide${fiches.length>1?'s':''} · <b>${protocols.length}</b> protocole${protocols.length>1?'s':''} · <b>${nl}</b> bibliothèque${nl>1?'s':''}</p>
     ${slot?`<div class="auth-actions" style="margin-bottom:14px">${slot}</div>`:''}
-    <div class="auth-stats-h">Taille du texte</div>
-    <div class="statuseg" role="radiogroup" aria-label="Taille du texte">${ZOOM_STEPS.map(s=>`<button type="button" class="st-seg ts-seg ts-${s}${z===s?' on':''}" data-zoom="${s}" role="radio" aria-checked="${z===s?'true':'false'}" title="${HINT[s]}" aria-label="Taille du texte ${HINT[s]}">A</button>`).join('')}</div>
+    <div class="auth-stats-h">Affichage</div>
+    <div class="set-row"><span class="set-l" id="tsLbl">Taille du texte</span>
+    <div class="statuseg" role="radiogroup" aria-labelledby="tsLbl">${ZOOM_STEPS.map(s=>`<button type="button" class="st-seg ts-seg ts-${s}${z===s?' on':''}" data-zoom="${s}" role="radio" aria-checked="${z===s?'true':'false'}" title="${HINT[s]}" aria-label="Taille du texte ${HINT[s]}">A</button>`).join('')}</div></div>
     <div class="st-hint" style="margin-bottom:4px">S'applique à <b>toute l'application</b>.<details class="acct-more"><summary>En savoir plus</summary>Enregistrée pour votre compte, comme le thème (bouton de l'en-tête) : vous la retrouvez sur vos autres appareils connectés.</details></div>
-    ${Auth.signedIn()?`<div class="auth-stats-h" style="margin-top:14px">Couleur d'accent</div>
-    <div class="accent-row" role="radiogroup" aria-label="Couleur d'accent">${ACCENT_IDS.map(a=>`<button type="button" class="acc-sw a-${a||'clinique'}${currentAccent()===a?' on':''}" data-accent="${a}" role="radio" aria-checked="${currentAccent()===a?'true':'false'}" title="${ACCENT_LBL[a]}" aria-label="Accent ${ACCENT_LBL[a]}"></button>`).join('')}</div>
+    ${Auth.signedIn()?`<div class="set-row" style="margin-top:12px"><span class="set-l" id="acLbl">Couleur d'accent</span>
+    <div class="accent-row" role="radiogroup" aria-labelledby="acLbl">${ACCENT_IDS.map(a=>`<button type="button" class="acc-sw a-${a||'clinique'}${currentAccent()===a?' on':''}" data-accent="${a}" role="radio" aria-checked="${currentAccent()===a?'true':'false'}" title="${ACCENT_LBL[a]}" aria-label="Accent ${ACCENT_LBL[a]}"></button>`).join('')}</div></div>
     <div class="st-hint" style="margin-bottom:4px">Colore l'accueil et les en-têtes — <b>jamais le contenu de crise</b>.<details class="acct-more"><summary>En savoir plus</summary>Elle identifie votre session d'un coup d'œil sur un appareil partagé ; le contenu des fiches en crise et des protocoles garde le bleu clinique, pour que les registres de couleur ne changent jamais de sens.</details></div>`:''}
     ${Auth.signedIn()?sessSyncPrefHtml():''}
     ${tagsPrefHtml()}</div>`;}

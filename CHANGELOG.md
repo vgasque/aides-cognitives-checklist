@@ -1,5 +1,82 @@
 # Journal des modifications
 
+## [4.71.0] — 2026-07-29
+### Le sombre descend au noir, le geste répond partout où c'est calme, et la porte « + » ne ment plus
+
+#### Le thème sombre passe en vraie nuit, surfaces neutres
+`--bg` #0c1420 → **#000000**, surfaces #0d0d0f / #070708 / #191a1d, filets #33363b, champs #000,
+et les hors-teintes de survol suivent — sans elles, le « gris pur » se lirait bleu au premier
+passage de souris. Motif d'usage : un écran OLED n'allume pas ses pixels noirs, ce qui vaut de
+l'autonomie sur un appareil tenu trois heures en intervention, et le contenu d'alerte y détache
+d'un cran de plus — le cadre rouge « Ne pas oublier » est ce qu'on doit voir en premier.
+
+**Ce que le noir oblige à déplacer, et c'est le vrai travail :** sur #000, **une ombre ne dit plus
+rien** — assombrir du noir ne produit aucun contraste. Les trois niveaux d'élévation écrits en
+v4.57.0 ne peuvent donc plus reposer sur elle : c'est la **surface** qui monte et le **filet** qui
+borde. Les ombres restent déclarées et ne sont pas du gaspillage — une modale se détache encore de
+la carte qu'elle recouvre, qui n'est pas noire.
+
+**Aucune encre, aucun registre ne bouge** : le noir est un changement de fond, pas de sémantique.
+Le gris strictement neutre a un mérite qu'il faut nommer — toute couleur à l'écran y porte un sens
+(registre, catégorie ou accent), ce qui est exactement la règle 8. La variante « famille bleue sur
+les surfaces » a été maquettée à côté et écartée par l'utilisateur.
+
+L'a11y a été rejouée avec la palette **réellement posée dans le fichier**, pas injectée à chaud :
+301/301 sur Chromium et WebKit, contraste calculé sur le fond effectif.
+
+#### E5 s'étend aux surfaces calmes, et à elles seules
+La restriction de la v4.57.0 aux tuiles d'accueil était un reste de chantier, pas une doctrine.
+Ce qui **est** une doctrine, et qui borne la liste : en crise, le mouvement est réservé à l'alarme.
+La moitié survol ne pourrait de toute façon pas s'y déclencher (`pointer:fine` = une souris, pas le
+téléphone du terrain) ; c'est la moitié **appui** qui impose la borne.
+
+Pas de balayage en gros sur `.btn` ni sur `.ai-card` : ces sélecteurs attrapent aussi « Terminer la
+session ? » et l'index des complications, qui s'ouvrent pendant un soin. La liste est nominative —
+sidebar d'accueil, palette d'ajout, volet de relecture, rangées de document et de sélecteur,
+versions, porte « + ».
+
+#### Fenêtre Compte — M5
+L'identité et les trois actions qui en dépendent vivent dans une **carte**, et « Synchroniser »
+**perd son remplissage** : on n'ouvre pas ses réglages pour agir, et il était le seul bouton rempli
+d'un écran qui n'a pas d'action primaire.
+
+**Ce qui n'est pas repris de la maquette** : elle range les trois boutons sur une rangée, ce qui
+remettrait « Se déconnecter » au contact du bouton le plus tapé de la fenêtre. La v4.5 avait posé un
+tampon là exprès — « un tap légèrement trop bas ne doit pas déconnecter », défaut vécu comme un
+bug. La déconnexion garde sa ligne, son tampon et sa confirmation.
+
+« Sur cet appareil » devient une **ligne** (~64 px rendus). La v4.56.3 avait rendu les tuiles
+neutres, mais une tuile reste la forme d'un **objet**, et trois nombres qu'on ne peut ni taper ni
+régler n'en sont pas. Les tuiles **restent** pour « État de l'instance » (admin), où il y en a dix
+et où une ligne ne se lirait plus. Groupe « Affichage », libellé et contrôle sur la même ligne tant
+que la place existe.
+
+#### La porte « + » était incomplète, donc elle mentait
+Elle promet « voici tout ce que vous pouvez ajouter » — il en manquait **deux** que la fiche accepte
+pourtant : le **tableau de doses** et le **document**. Une porte unique qui ne montre pas tout est
+pire que six portes dispersées : avant on cherchait, maintenant on renonce.
+
+Le document est le seul type qui n'ajoute pas une ligne au brouillon : il ouvre le sélecteur de
+fichier. Le clic doit partir **dans la même tâche** que celui de la palette (`renderEditor()` est
+synchrone), sinon l'activation utilisateur est perdue et le navigateur refuse d'ouvrir le sélecteur.
+La rangée disparaît en repli KV, qui ne sait pas stocker de binaire — un bouton mort vaut moins
+qu'une absence.
+
+**Ce qui reste hors de la porte** : « Étape / Étape critique / Étape vigilance », que la maquette y
+range. Un « + » = une **portée** — la palette ne vit qu'entre les blocs, où une étape n'a pas de
+bloc d'accueil ; dans un bloc, « ＋ Étape » et ⏎ s'en chargent. L'intention pédagogique de la
+maquette (« les registres s'apprennent ici, avant la crise ») n'est pas perdue : elle vit dans le
+dépliant en tête de chaque bloc, c'est-à-dire là où l'on **choisit** le registre.
+
+Deux défauts de dessin corrigés au passage : « ⏱ » servait **deux** entrées de la même liste
+(règle du menu ⋯ : jamais le même dessin deux fois) — le minuteur qui **sonne** et le temps qui
+**monte** ont maintenant chacun le leur ; et le document passe par l'icône de trait de la famille,
+pas par « 📎 », un emoji en **couleur** dans une liste monochrome, quand la couleur ne décore jamais
+ici.
+
+808 tests × 2 moteurs, a11y 301/301 sur Chromium **et** WebKit, doctrine 112/112 sur les deux
+moteurs, les quatorze harnais verts, `npm run audit` en sortie 0. Rien à rejouer côté serveur.
+
 ## [4.70.1] — 2026-07-29
 ### Le mode ne se dit plus deux fois — et un harnais qui plantait en emportait cinq
 
