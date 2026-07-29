@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-Fg6OdDD67ZL4IP4JqHylUJCgdyGEHm1MrxqxdTzcgX8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-BrsmfXFvO6JMehnEGghZpEZsmtM9Ch2W8UK0BR/E5Jc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -2223,13 +2223,39 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      L'`<input>` reste DANS le DOM en permanence (il porte la valeur et l'auto-enregistrement) :
      c'est son HABILLAGE qui change. Rien à re-rendre au tap, donc rien qui saute. */
   .blk .li input[type=text]{background:transparent;border-color:transparent;padding:9px 4px;font-size:16px}
-  .blk .li input[type=text]:focus{background:var(--input-bg);border-color:transparent;padding:9px 11px}
+  .blk .li input[type=text]:focus{background:var(--input-bg);border:1.5px solid var(--primary);padding:9px 11px;outline:none}
   .blk .li:focus-within{background:var(--surface-2);border-radius:var(--radius-sm);padding:6px}
   /* Les outils vivent SOUS la ligne, et n'existent qu'en édition (K3). La poignée ⠿, elle, reste
      visible au repos : c'est l'affordance du réordonnancement, elle ne se découvre pas au tap. */
   .li-tools{display:none;gap:7px;flex:1 1 100%;order:3;margin-left:34px}
   .blk .li:focus-within .li-tools{display:inline-flex}
-  .li-grab{flex:none}
+  /* La POIGNÉE vit à droite de la ligne, visible au repos : c'est l'affordance du
+     réordonnancement, elle ne se découvre pas au tap. En encre douce — un repère, pas une action.
+     Le ✕ s'ÉCARTE des réglages (`.li-sp` pousse au bord) : un geste destructeur ne se met jamais
+     au contact d'un interrupteur d'état, sinon le pouce corrige et supprime du même geste. */
+  .li-grab{flex:none;border-color:transparent;background:none;color:var(--soft);width:32px;height:32px;font-size:14px}
+  .li-grab:hover{background:var(--surface-2);color:var(--ink)}
+  .li-sp{flex:1}
+  /* La note de relecture : registre ATTENTION, liseré gauche — même grammaire que le volet du
+     pied, mais AU CONTACT de la ligne qu'elle vise. N'existe qu'en édition, comme les outils :
+     au repos la page reste du texte. */
+  .li-note{display:none;flex:1 1 100%;order:4;margin:2px 0 4px 34px;padding:8px 11px;
+    background:var(--verify-soft);border-left:3px solid var(--verify-bd);border-radius:0 var(--radius-sm) var(--radius-sm) 0;
+    font-size:12.5px;line-height:1.45;color:var(--verify)}
+  .blk .li:focus-within .li-note{display:block}
+  .li-tools .mini.del{color:var(--critical);border-color:var(--critical-line)}
+  .li-tools .mini.del:hover{background:var(--critical-soft)}
+  /* La PASTILLE de bloc — celle de la lecture, au trait près : ronde, numérotée, bleue ; losange
+     ambre pour une décision (le registre, comme la carte). */
+  .blk-n{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;
+    background:var(--primary);color:var(--on-primary);font-size:13.5px;font-weight:800;font-variant-numeric:tabular-nums}
+  .blk-n.dec{background:var(--verify-soft);color:var(--verify);border:1.5px solid var(--verify-bd);font-size:12px}
+  /* Le COMPTE du chapeau : à droite du titre, neutre tant qu'on est sous le plafond — un plafond
+     qu'on voit approcher informe ; il n'a pas à crier avant d'être franchi. */
+  .lst-n{margin-left:auto;font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--ink-soft)}
+  .ed-forget .lst-n{color:var(--critical)}
+  .lst-n.over{color:var(--verify)}
+  .list-edit>label{display:flex;align-items:baseline;gap:8px}
   .li-box{flex:none;width:26px;height:26px;border-radius:7px;border:2px solid var(--line-strong);display:grid;place-items:center;color:var(--line-strong);font-size:13px}
   .li.li-crit .li-box{border-color:var(--critical-bd);color:var(--critical)}
   .li.li-vigil .li-box{border-color:var(--verify-bd);color:var(--verify)}
@@ -4220,7 +4246,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.67.0';
+const APP_VERSION='4.68.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -11859,7 +11885,15 @@ function renderNavOnly(){
    le cadre rouge de `.forget-strip`) ; `opts.guard` y loge le garde-fou, qui vivait jusqu'ici en
    paragraphe SOUS le champ — donc hors du cadre qu'il commente. */
 function listEditor(legend,hint,key,arr,ordered,opts){opts=opts||{};const rows=(arr.length?arr:['']).map((v,i)=>{const crit=opts.crit&&(stepIsCrit(v)||stepIsVigil(v));
-  return `<div class="li${crit?' li-vigil':''}" data-i="${i}">${ordered?`<span class="li-num">${String(i+1).padStart(2,'0')}</span>`:''}<input type="text" value="${esc(opts.crit?stepText(v):v)}" data-key="${key}" data-idx="${i}"${opts.crit?' data-critlist':''} placeholder="…" aria-label="${esc(legend)} — ligne ${i+1}">${boldBtnHtml()}${opts.crit?`<button class="mini crit-tgl${crit?' vig':''}" data-lcrit="${i}" data-lkey="${key}" title="${crit?'Repère à VÉRIFIER (carte ambre : risque d’erreur — dose, dilution, voie) — toucher : normal':'Repère normal — toucher : à vérifier (carte ambre)'}">△</button>`:''}${ordered?`<button class="mini" data-mv="up" data-key="${key}" data-idx="${i}" aria-label="Monter">↑</button><button class="mini" data-mv="down" data-key="${key}" data-idx="${i}" aria-label="Descendre">↓</button>`:''}<button class="mini del" data-rm="${key}" data-idx="${i}" aria-label="Supprimer la ligne">×</button></div>`;}).join('');return `<fieldset class="field list-edit${opts.shell?' '+opts.shell:''}"><label>${legend}${hint?` <span class="hint">${hint}</span>`:''}</label>${rows}<button class="add-line" data-add="${key}">${opts.shell==='ed-forget'?'＋ Rappel':'+ Ajouter une ligne'}</button>${opts.guard?`<p class="nf-guard" id="${esc(opts.guard)}" role="status">${esc(opts.guardTxt||'')}</p>`:''}</fieldset>`;}
+  return `<div class="li${crit?' li-vigil':''}" data-i="${i}">${ordered?`<span class="li-num">${String(i+1).padStart(2,'0')}</span>`:''}<input type="text" value="${esc(opts.crit?stepText(v):v)}" data-key="${key}" data-idx="${i}"${opts.crit?' data-critlist':''} placeholder="…" aria-label="${esc(legend)} — ligne ${i+1}">${boldBtnHtml()}${opts.crit?`<button class="mini crit-tgl${crit?' vig':''}" data-lcrit="${i}" data-lkey="${key}" title="${crit?'Repère à VÉRIFIER (carte ambre : risque d’erreur — dose, dilution, voie) — toucher : normal':'Repère normal — toucher : à vérifier (carte ambre)'}">△</button>`:''}${ordered?`<button class="mini" data-mv="up" data-key="${key}" data-idx="${i}" aria-label="Monter">↑</button><button class="mini" data-mv="down" data-key="${key}" data-idx="${i}" aria-label="Descendre">↓</button>`:''}<button class="mini del" data-rm="${key}" data-idx="${i}" aria-label="Supprimer la ligne">×</button></div>`;}).join('');/* Le CHAPEAU porte son compte « n/4 » à droite du titre, et la porte dit ce qu'il RESTE :
+   « ＋ Rappel (1 restant) ». Le garde-fou ambre ne parle qu'AU-DELÀ de 4 — avant, le compte suffit
+   et il informe sans alerter. C'est la différence entre un plafond qu'on voit approcher et une
+   remontrance qu'on subit. */
+  const n=clean(arr).length,plafond=opts.shell==='ed-forget'?4:0;
+  const reste=plafond?Math.max(0,plafond-n):0;
+  const cptH=plafond?`<span class="lst-n${n>plafond?' over':''}">${n}/${plafond}</span>`:'';
+  const addTxt=plafond?('＋ Rappel'+(reste?' ('+reste+' restant'+(reste>1?'s':'')+')':'')):'+ Ajouter une ligne';
+  return `<fieldset class="field list-edit${opts.shell?' '+opts.shell:''}"><label>${legend}${hint?` <span class="hint">${hint}</span>`:''}${cptH}</label>${rows}<button class="add-line" data-add="${key}">${addTxt}</button>${opts.guard?`<p class="nf-guard" id="${esc(opts.guard)}" role="status">${esc(opts.guardTxt||'')}</p>`:''}</fieldset>`;}
 // Garde-fou « Ne pas oublier » (v4.4.0, non bloquant — registre ATTENTION) : au-delà de 4
 // memory items, plus rien n'est saillant (doctrine QRH : ils sont rares par construction).
 // On suggère le reclassement, on n'empêche rien.
@@ -11877,8 +11911,14 @@ function nfGuardTxt(arr){
   return parts.length?('△ '+parts.join(' · ')):'';}
 // Garde-fou TÉLÉGRAPHIQUE des blocs d'étapes (v4.11.0, non bloquant — AC 120-71B) : une étape =
 // un challenge court (une action), la valeur en réponse « :: » ; un bloc lisible = 7 étapes max.
-function stepGuardTxt(steps){const s=clean(steps);const parts=[];
+/* `scope:'bloc'` (défaut de l'éditeur depuis v4.68.0) ne rend QUE la remarque de bloc : les
+   remarques d'ÉTAPE (challenge trop long, actions cumulées) sont désormais affichées SOUS la
+   ligne qu'elles visent (`stepNote`) — les répéter ici afficherait deux fois la même chose, à
+   deux endroits, pour un même défaut. Le volet du pied, lui, garde le BILAN complet : c'est sa
+   raison d'être, dire combien il reste à relire. */
+function stepGuardTxt(steps,scope){const s=clean(steps);const parts=[];
   if(s.length>7)parts.push(s.length+' étapes — au-delà de 7, scinder le bloc (lisibilité sous stress)');
+  if(scope==='bloc')return parts.length?('△ '+parts.join(' · ')):'';
   const long=s.filter(x=>stepCR(stepText(x)).c.length>110).length;
   if(long)parts.push(long+' challenge'+(long>1?'s':'')+' très long'+(long>1?'s':'')+' — style télégraphique : une action courte, la valeur en réponse « challenge :: réponse »');
   /* G1 (audit design v4.56, QRH « une action par ligne ») : une étape qui CUMULE des actions se
@@ -11924,6 +11964,17 @@ function reviewPanelHtml(f){
   return `<div class="rev-panel" role="status"><div class="rev-h">${uiIcon('warn',13)} Relecture · ${n.length}</div>`
     +n.map(x=>`<button type="button" class="rev-row" data-revgo="${esc(x.at)}"><b>${esc(x.cible)}</b><span>${esc(x.txt.replace(/^△\s*/,''))}</span></button>`).join('')
     +`<p class="rev-note">Aucune de ces remarques n’empêche d’enregistrer — c’est vous qui connaissez votre service.</p></div>`;}
+/* K2, deuxième moitié (v4.68.0, maquette MK) : LA REMARQUE SOUS LA LIGNE QU'ELLE VISE. Le volet
+   en pied dit COMBIEN il reste à relire ; il ne dit pas OÙ pendant qu'on écrit. `stepNote` rend
+   la remarque qui concerne UNE étape — affichée sous elle, et seulement quand elle est en
+   ÉDITION : au repos, la page reste du texte (état 1 de MK-flux). PURE, testée. */
+function stepNote(st){
+  const c=stepCR(stepText(st||'')).c;
+  if(!c.trim())return '';
+  if((c.match(/\s[·+]\s/g)||[]).length>=2)
+    return 'Plusieurs actions dans une étape cochable — une action = une ligne, sinon on coche « à moitié fait »';
+  if(c.length>110)return 'Challenge très long ('+c.length+' c.) — style télégraphique : l’action courte, la valeur en réponse « :: »';
+  return '';}
 function reviewNotes(f){
   const out=[];
   {const t=nfGuardTxt((f&&f.notForget)||[]);if(t)out.push({at:'nf',cible:'Ne pas oublier',txt:t});}
@@ -12121,8 +12172,8 @@ function edGrabBanner(f){
    s'ANNONCE avant le dépôt, jamais après. */
 function edDrop(at,lbl,warn){
   return `<button type="button" class="ed-drop${warn?' warn':''}" data-drop="${esc(at)}">${warn?'△ ':''}${esc(lbl)}</button>`;}
-function blockEditor(b,blocks){if(b.type==='decision'){return `<div class="blk blk-dec" data-bid="${b.id}"><div class="blk-top"><span class="blk-type decision">Décision</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Réévaluation)" aria-label="Titre de la décision"></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Question</div><input type="text" data-bf="question" value="${esc(b.question)}" placeholder="ex. Réponse à l'adrénaline ?" aria-label="Question posée" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)"><div class="sub">Réponses → bloc cible</div>${(b.options.length?b.options:[{label:'',target:''}]).map((o,i)=>`<div class="optedit" data-oi="${i}"><input type="text" data-of="label" value="${esc(o.label)}" placeholder="ex. Oui" aria-label="Libellé de la réponse ${i+1}">${targetSelect(blocks,b.id,o.target)}<button class="mini del" data-optdel="${i}" aria-label="Supprimer la réponse">×</button></div>`).join('')}<button class="add-line" data-addopt>+ Ajouter une réponse</button>${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="mini grab" data-grab="b:${b.id}" aria-label="Déplacer ce bloc" title="Déplacer le bloc — touchez, puis touchez la destination">⠿</button><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
-  return `<div class="blk" data-bid="${b.id}"><div class="blk-top"><span class="blk-type steps">Étapes</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Mesures immédiates)" aria-label="Titre du bloc"></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Étapes (cochables en mode crise)</div><details class="crit-guide"${(()=>{try{return localStorage.getItem('ac-cg-folded')?'':' open';}catch(e){return ' open';}})()}><summary>${uiIcon('warn',11)} Rouge, △ ambre, réponse attendue — règles d'usage</summary><b class="cg-r">${uiIcon('warn',11)} Rouge</b> : ce qui tue si on l'oublie (memory item, geste vital). <b class="cg-a">△ Ambre</b> : là où l'on risque de se tromper (dose/dilution à vérifier avant injection, contre-indication à écarter, confusion voie/site/produit, seuil à contrôler avant de poursuivre). Les deux → rouge. <b>Réponse attendue</b> : « challenge :: réponse » (ex. « Adrénaline IM :: 0,01 mg/kg — max 0,5 mg ») — la réponse devient la pilule à confirmer en lecture (challenge-response).</details>${(b.steps.length?b.steps:['']).map((s,i)=>`${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+i,i===0?'Poser en tête':'Poser ici',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<div class="li${stepIsCrit(s)?' li-crit':(stepIsVigil(s)?' li-vigil':'')}" data-si="${i}"><span class="li-box" aria-hidden="true">${stepIsCrit(s)?uiIcon('warn',13):(stepIsVigil(s)?'△':'')}</span><input type="text" data-sf value="${esc(stepText(s))}" placeholder="…" aria-label="Étape ${i+1}"><span class="li-tools"><button class="mini crit-tgl${stepIsCrit(s)?' on':(stepIsVigil(s)?' vig':'')}" data-crit="${i}" title="${stepIsCrit(s)?'Étape CRITIQUE (rouge : ce qui tue si oublié) — toucher : vigilance (ambre)':(stepIsVigil(s)?'Étape VIGILANCE (ambre : risque d’erreur — dose, voie, seuil) — toucher : étape normale':'Étape normale — toucher : critique (rouge : ce qui tue si oublié)')}">${stepIsVigil(s)?'△':uiIcon('warn',14)}</button><button class="mini del" data-rmstep="${i}" aria-label="Supprimer l'étape">×</button><button class="mini grab" data-grab="s:${i}" aria-label="Déplacer l'étape ${i+1}" title="Déplacer — touchez, puis touchez la destination">⠿</button></span></div>`).join('')}${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+(b.steps.length||0),'Poser en fin',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<p class="nf-guard" data-stepguard role="status">${stepGuardTxt(b.steps)}</p><button class="add-line" data-addstep>+ Ajouter une étape</button><div class="sub">Étape suivante</div>${targetSelect(blocks,b.id,b.next)}${b.next?`<input type="text" data-bnextlbl value="${esc(b.nextLbl||'')}" maxlength="120" placeholder="Libellé du bouton Continuer (ex. réévaluation à 5 min)" aria-label="Libellé du bouton Continuer" style="margin-top:6px">`:''}${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="mini grab" data-grab="b:${b.id}" aria-label="Déplacer ce bloc" title="Déplacer le bloc — touchez, puis touchez la destination">⠿</button><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
+function blockEditor(b,blocks){if(b.type==='decision'){return `<div class="blk blk-dec" data-bid="${b.id}"><div class="blk-top"><span class="blk-n dec" aria-hidden="true">◆</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Réévaluation)" aria-label="Titre de la décision"></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Question</div><input type="text" data-bf="question" value="${esc(b.question)}" placeholder="ex. Réponse à l'adrénaline ?" aria-label="Question posée" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)"><div class="sub">Réponses → bloc cible</div>${(b.options.length?b.options:[{label:'',target:''}]).map((o,i)=>`<div class="optedit" data-oi="${i}"><input type="text" data-of="label" value="${esc(o.label)}" placeholder="ex. Oui" aria-label="Libellé de la réponse ${i+1}">${targetSelect(blocks,b.id,o.target)}<button class="mini del" data-optdel="${i}" aria-label="Supprimer la réponse">×</button></div>`).join('')}<button class="add-line" data-addopt>+ Ajouter une réponse</button>${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="mini grab" data-grab="b:${b.id}" aria-label="Déplacer ce bloc" title="Déplacer le bloc — touchez, puis touchez la destination">⠿</button><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
+  return `<div class="blk" data-bid="${b.id}"><div class="blk-top"><span class="blk-n" aria-hidden="true">${(blocks||[]).indexOf(b)+1}</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Mesures immédiates)" aria-label="Titre du bloc"></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Étapes (cochables en mode crise)</div><details class="crit-guide"${(()=>{try{return localStorage.getItem('ac-cg-folded')?'':' open';}catch(e){return ' open';}})()}><summary>${uiIcon('warn',11)} Rouge, △ ambre, réponse attendue — règles d'usage</summary><b class="cg-r">${uiIcon('warn',11)} Rouge</b> : ce qui tue si on l'oublie (memory item, geste vital). <b class="cg-a">△ Ambre</b> : là où l'on risque de se tromper (dose/dilution à vérifier avant injection, contre-indication à écarter, confusion voie/site/produit, seuil à contrôler avant de poursuivre). Les deux → rouge. <b>Réponse attendue</b> : « challenge :: réponse » (ex. « Adrénaline IM :: 0,01 mg/kg — max 0,5 mg ») — la réponse devient la pilule à confirmer en lecture (challenge-response).</details>${(b.steps.length?b.steps:['']).map((s,i)=>`${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+i,i===0?'Poser en tête':'Poser ici',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<div class="li${stepIsCrit(s)?' li-crit':(stepIsVigil(s)?' li-vigil':'')}" data-si="${i}"><span class="li-box" aria-hidden="true">${stepIsCrit(s)?uiIcon('warn',13):(stepIsVigil(s)?'△':'')}</span><input type="text" data-sf value="${esc(stepText(s))}" placeholder="Nouvelle étape…" aria-label="Étape ${i+1}"><button class="mini grab li-grab" data-grab="s:${i}" aria-label="Déplacer l'étape ${i+1}" title="Déplacer — touchez, puis touchez la destination">⠿</button><span class="li-tools"><button class="mini crit-tgl${stepIsCrit(s)?' on':(stepIsVigil(s)?' vig':'')}" data-crit="${i}" title="${stepIsCrit(s)?'Étape CRITIQUE (rouge : ce qui tue si oublié) — toucher : vigilance (ambre)':(stepIsVigil(s)?'Étape VIGILANCE (ambre : risque d’erreur — dose, voie, seuil) — toucher : étape normale':'Étape normale — toucher : critique (rouge : ce qui tue si oublié)')}">${stepIsVigil(s)?'△':uiIcon('warn',14)}</button><span class="li-sp"></span><button class="mini del" data-rmstep="${i}" aria-label="Supprimer l'étape">×</button></span>${(()=>{const nt=stepNote(s);return nt?`<span class="li-note" role="status">△ <b>Relecture</b> — ${esc(nt)}</span>`:'';})()}</div>`).join('')}${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+(b.steps.length||0),'Poser en fin',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<p class="nf-guard" data-stepguard role="status">${stepGuardTxt(b.steps,'bloc')}</p><button class="add-line" data-addstep>+ Ajouter une étape</button><div class="sub">Étape suivante</div>${targetSelect(blocks,b.id,b.next)}${b.next?`<input type="text" data-bnextlbl value="${esc(b.nextLbl||'')}" maxlength="120" placeholder="Libellé du bouton Continuer (ex. réévaluation à 5 min)" aria-label="Libellé du bouton Continuer" style="margin-top:6px">`:''}${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="mini grab" data-grab="b:${b.id}" aria-label="Déplacer ce bloc" title="Déplacer le bloc — touchez, puis touchez la destination">⠿</button><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
 /* Éditeur des COMPLICATIONS (v4.26.0) : libellé de l'ÉVÉNEMENT + cible. La cible est soit un
    bloc de CETTE fiche (le sélecteur liste les blocs en premier), soit une AUTRE aide ou un
    protocole (demande utilisateur : « une complication peut ouvrir une nouvelle aide cognitive ») —
@@ -12275,7 +12326,7 @@ function bindEditorEvents(f){
     card.querySelectorAll('[data-sf]').forEach((inp,i)=>inp.addEventListener('input',e=>{
       const cur=String(b.steps[i]||'');const pfx=stepIsCrit(cur)?'⚠ ':(stepIsVigil(cur)?'△ ':'');
       b.steps[i]=pfx+e.target.value;scheduleFlowPreview(f);
-      const g=card.querySelector('[data-stepguard]');if(g)g.textContent=stepGuardTxt(b.steps);
+      const g=card.querySelector('[data-stepguard]');if(g)g.textContent=stepGuardTxt(b.steps,'bloc');
       revPanelRefresh(f);}));   // K2 : le bilan suit la frappe, sans re-rendre l'éditeur
     /* ÉTAT 3 — « ⏎ = item suivant ». UNE CHECKLIST SE DICTE : on la tape en rafale, et la
        saisie ne doit jamais passer par un menu. Entrée crée l'étape JUSTE EN DESSOUS (pas en fin
@@ -16385,7 +16436,7 @@ if(location.search.indexOf('__actest')>=0){
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
     restErrStatus,isPersoRepairCandidate,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,cxAll,cxDetached,
-    qTerms,hayMatch,markQTerms,searchSnippet,ficheSnipParts,protoSnipParts,frecencyScore,sanitizeUsage,mergeUsage,azLetter,azGroups,qaPick,tmLabelParts,sessStamp,monPick,reviewNotes,
+    qTerms,hayMatch,markQTerms,searchSnippet,ficheSnipParts,protoSnipParts,frecencyScore,sanitizeUsage,mergeUsage,azLetter,azGroups,qaPick,tmLabelParts,sessStamp,monPick,reviewNotes,stepNote,
     crc32,zipBuild,zipParse,isPdfBytes,mdTask,flowOrder,latestPass,offPathSet,minimapData,passInfo,instComplete,flowPlan,stepCR,stepGuardTxt,optAbbr,svBranchIssue,svLoopTargets,ovPresList,
     posoTokens,posoName,posoScore,posoRank,posoSplit,
     qrRawBits,qrTotalCw,qrGen,qrRs,qrAlign,qrDataCw,qrInterleave,qrEncode,qrSvg,qrMul,

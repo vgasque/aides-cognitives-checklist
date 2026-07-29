@@ -1,5 +1,32 @@
 # Journal des modifications
 
+## [4.68.0] — 2026-07-29
+### Le dessin des box et des boutons de l'éditeur, d'après la maquette
+
+- **L'en-tête de bloc porte la pastille numérotée de la lecture** — ronde et bleue, losange ambre
+  pour une décision — au lieu d'une pilule « ÉTAPES ». C'est le même repère qu'en crise.
+- **Le chapeau porte son compte « n/4 »**, et la porte dit ce qui **reste** :
+  « ＋ Rappel (1 restant) ». Un plafond qu'on voit approcher informe ; il n'a pas à crier avant
+  d'être franchi — le garde-fou ambre ne parle qu'**au-delà** de 4.
+- **Le ✕ s'écarte des réglages.** Un geste destructeur ne se met jamais au contact d'un
+  interrupteur d'état : sinon le pouce corrige et supprime du même geste.
+- **La poignée ⠿ vit à droite de la ligne et reste visible au repos** : c'est une affordance de
+  réordonnancement, elle ne se découvre pas au tap.
+- **Le champ actif porte la bordure d'accent.** En thème sombre, `--input-bg` seul est trop proche
+  du fond de la rangée pour se voir — c'est le trait qui dit « ici on écrit ».
+
+### La remarque vit sous la ligne qu'elle vise
+Le volet du pied dit **combien** il reste à relire ; il ne dit pas **où** pendant qu'on écrit.
+`stepNote` (pure, testée) rend la remarque qui concerne une étape, affichée sous elle et
+seulement en édition — au repos, la page reste du texte.
+
+Corollaire appliqué : `stepGuardTxt(steps,'bloc')` ne rend plus que la remarque de **bloc** (son
+nombre d'étapes). Afficher la même remarque d'étape à deux endroits pour un seul défaut, c'était
+du bruit — et cela se voyait à l'écran.
+
+Vérifié : **801 tests × 2 moteurs** (+7), a11y 301/301, doctrine 112/112. Rien à rejouer côté
+serveur.
+
 ## [4.67.0] — 2026-07-29
 ### L'éditeur d'étapes en quatre états — au repos, aucun chrome
 
@@ -682,51 +709,3 @@ pseudo-élément n'a pas de `content`, et `getComputedStyle` rend alors l'opacit
 un témoin fondé sur l'opacité aurait été vert des deux côtés.
 
 **Rien à rejouer côté serveur.**
-
-## [4.55.4] — 2026-07-28
-### L'invité sait qu'il est invité — et un bouton pressé répond enfin
-
-Les deux derniers signalements du lot. Avec eux, les dix remontés à l'usage sont traités.
-
-### Le placard de l'invité
-Il lisait « ■ Mode crise » — **exactement ce que lit l'hôte** — alors que sa situation est autre :
-il **suit** une session qu'il ne conduit pas et qui peut s'arrêter sans lui. Le quai le disait déjà
-par un jeton de sept caractères ; le bandeau le dit maintenant en toutes lettres, à l'endroit le
-plus lu de l'écran : « **▪ Vous suivez** », hachure **bleue**, l'en-tête relayant « ▪ Suivi » au
-pixel où le titre passe dessous.
-
-**Même mécanique que le placard d'exercice, au trait près** — `::before` en fondu, relais au
-défilement, enfants en `z-index:1`. Rien de neuf à inventer, donc rien de neuf à casser. Et **coût
-nul en hauteur**, mesuré : c'est la seule condition qui vaille dans une zone où la rangée de
-commandes n'a que 2,1 px de marge à 320 px.
-
-Registre **bleu**, jamais l'ambre ni le rouge : suivre la session d'un collègue n'est ni une alerte
-ni une vigilance, c'est un état. Le mot le porte ; la hachure ne fait que le rendre reconnaissable
-d'un coup d'œil.
-
-**L'exercice garde la priorité**, et ce n'est pas négociable : *« ceci est une répétition »* prime
-sur *« vous suivez »* — le premier protège d'une méprise clinique, le second est une information de
-rôle que le quai porte en permanence de toute façon. Un contrôle l'encode.
-
-### Répondre à un geste n'est pas interrompre
-La règle 11 — *« en session de crise, aucune notification flottante »* — vise ce qui **arrive** :
-une erreur de synchro, un conflit, une nouvelle de fond, quelque chose qui s'impose à quelqu'un qui
-n'a rien demandé, au pire moment. Elle ne visait pas la **réponse** à un bouton qu'on vient de
-presser.
-
-Or la file les retenait tous : taper « silencieux ? », ou « Partager la session » sur une fiche en
-brouillon, ne produisait **rien du tout** — et le message surgissait plus tard, au retour à
-l'accueil, détaché de son geste, donc incompréhensible.
-
-Le troisième argument de `toast()` marque une réponse directe. Il est **explicite**, et non déduit
-d'une proximité temporelle avec un clic : une nouvelle de fond qui tomberait dans la seconde suivant
-un tap serait alors affichée par accident — exactement ce que la règle interdit. Quatre sites
-marqués, tous atteignables pendant un soin.
-
-### Vérification
-**280/280 contrôles partage** (+9, sur les deux moteurs), 756 tests × 2 moteurs, 14 harnais verts,
-301 contrôles d'accessibilité sur les deux moteurs, 112/112 doctrine. Les deux défauts réintroduits
-en font tomber quatre ; fichier restauré à l'octet. Le contrôle du placard mesure l'opacité du
-`::before` — pas la classe : c'est la hachure qu'on veut voir, pas l'intention de la poser.
-
-**Rien à rejouer côté serveur.** Les dix signalements d'usage de ce lot sont traités.

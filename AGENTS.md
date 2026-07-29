@@ -1450,6 +1450,20 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   — « Étape » n'y figure PAS, le « + Étape » du bloc et ⏎ s'en chargent ; la position du bouton
   choisit la portée à la place de l'auteur. Chaque type dit sa CONSÉQUENCE en deux mots
   (« 2 branches », « durée + libellé »), pas sa définition.
+  **LE DESSIN DES BOX ET DES BOUTONS (v4.68.0, d'après la maquette MK)** : l'en-tête de bloc porte
+  la **pastille numérotée** de la lecture (ronde et bleue ; losange ambre pour une décision) au
+  lieu d'une pilule « ÉTAPES » ; le **chapeau porte son compte « n/4 »** et la porte dit ce qui
+  RESTE (« ＋ Rappel (1 restant) ») — un plafond qu'on voit approcher informe, il n'a pas à crier
+  avant d'être franchi, et le garde-fou ambre ne parle qu'AU-DELÀ ; le **✕ s'écarte** des réglages
+  (`.li-sp` le pousse au bord) parce qu'un geste destructeur ne se met jamais au contact d'un
+  interrupteur d'état — sinon le pouce corrige et supprime du même geste ; la **poignée ⠿** vit à
+  droite de la ligne et reste visible au repos (c'est une affordance, elle ne se découvre pas au
+  tap) ; le champ actif porte la **bordure d'accent** — en sombre `--input-bg` seul est trop
+  proche du fond de rangée pour se voir, c'est le TRAIT qui dit « ici on écrit ».
+  **LA REMARQUE VIT SOUS LA LIGNE QU'ELLE VISE** (`stepNote`, pure testée) : le volet du pied dit
+  COMBIEN il reste à relire, il ne dit pas OÙ pendant qu'on écrit. Corollaire appliqué —
+  `stepGuardTxt(steps,'bloc')` ne rend plus QUE la remarque de bloc (nombre d'étapes) : afficher
+  la même remarque d'étape à deux endroits pour un seul défaut, c'est du bruit.
   **RESTE ACQUIS DE v4.66** : **326 px de saut au clic sur « déplacer »** — le re-rendu insère les interstices AU-DESSUS du point regardé, et un
   `scrollIntoView` visait ensuite le bandeau, qui est STICKY donc déjà visible. Prendre et poser
   passent par **`keepAnchor`** (mécanique ECAM du projet) : l'objet pris ne bouge plus que de

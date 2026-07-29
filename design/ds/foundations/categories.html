@@ -1938,13 +1938,39 @@
      L'`<input>` reste DANS le DOM en permanence (il porte la valeur et l'auto-enregistrement) :
      c'est son HABILLAGE qui change. Rien à re-rendre au tap, donc rien qui saute. */
   .blk .li input[type=text]{background:transparent;border-color:transparent;padding:9px 4px;font-size:16px}
-  .blk .li input[type=text]:focus{background:var(--input-bg);border-color:transparent;padding:9px 11px}
+  .blk .li input[type=text]:focus{background:var(--input-bg);border:1.5px solid var(--primary);padding:9px 11px;outline:none}
   .blk .li:focus-within{background:var(--surface-2);border-radius:var(--radius-sm);padding:6px}
   /* Les outils vivent SOUS la ligne, et n'existent qu'en édition (K3). La poignée ⠿, elle, reste
      visible au repos : c'est l'affordance du réordonnancement, elle ne se découvre pas au tap. */
   .li-tools{display:none;gap:7px;flex:1 1 100%;order:3;margin-left:34px}
   .blk .li:focus-within .li-tools{display:inline-flex}
-  .li-grab{flex:none}
+  /* La POIGNÉE vit à droite de la ligne, visible au repos : c'est l'affordance du
+     réordonnancement, elle ne se découvre pas au tap. En encre douce — un repère, pas une action.
+     Le ✕ s'ÉCARTE des réglages (`.li-sp` pousse au bord) : un geste destructeur ne se met jamais
+     au contact d'un interrupteur d'état, sinon le pouce corrige et supprime du même geste. */
+  .li-grab{flex:none;border-color:transparent;background:none;color:var(--soft);width:32px;height:32px;font-size:14px}
+  .li-grab:hover{background:var(--surface-2);color:var(--ink)}
+  .li-sp{flex:1}
+  /* La note de relecture : registre ATTENTION, liseré gauche — même grammaire que le volet du
+     pied, mais AU CONTACT de la ligne qu'elle vise. N'existe qu'en édition, comme les outils :
+     au repos la page reste du texte. */
+  .li-note{display:none;flex:1 1 100%;order:4;margin:2px 0 4px 34px;padding:8px 11px;
+    background:var(--verify-soft);border-left:3px solid var(--verify-bd);border-radius:0 var(--radius-sm) var(--radius-sm) 0;
+    font-size:12.5px;line-height:1.45;color:var(--verify)}
+  .blk .li:focus-within .li-note{display:block}
+  .li-tools .mini.del{color:var(--critical);border-color:var(--critical-line)}
+  .li-tools .mini.del:hover{background:var(--critical-soft)}
+  /* La PASTILLE de bloc — celle de la lecture, au trait près : ronde, numérotée, bleue ; losange
+     ambre pour une décision (le registre, comme la carte). */
+  .blk-n{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;
+    background:var(--primary);color:var(--on-primary);font-size:13.5px;font-weight:800;font-variant-numeric:tabular-nums}
+  .blk-n.dec{background:var(--verify-soft);color:var(--verify);border:1.5px solid var(--verify-bd);font-size:12px}
+  /* Le COMPTE du chapeau : à droite du titre, neutre tant qu'on est sous le plafond — un plafond
+     qu'on voit approcher informe ; il n'a pas à crier avant d'être franchi. */
+  .lst-n{margin-left:auto;font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--ink-soft)}
+  .ed-forget .lst-n{color:var(--critical)}
+  .lst-n.over{color:var(--verify)}
+  .list-edit>label{display:flex;align-items:baseline;gap:8px}
   .li-box{flex:none;width:26px;height:26px;border-radius:7px;border:2px solid var(--line-strong);display:grid;place-items:center;color:var(--line-strong);font-size:13px}
   .li.li-crit .li-box{border-color:var(--critical-bd);color:var(--critical)}
   .li.li-vigil .li-box{border-color:var(--verify-bd);color:var(--verify)}
