@@ -1,5 +1,29 @@
 # Journal des modifications — archive (versions 3.0.0 à 4.56.0)
 
+## [4.56.1] — 2026-07-28
+### Les tuiles rejoignent la grille fluide du répertoire
+
+Retour utilisateur immédiat sur la v4.56.0 : « la gestion de la largeur des tuiles en responsive
+est extrêmement mauvaise pour toutes les transitions de taille ». Mesuré, et confirmé : les
+tuiles « Épinglée(s) » avaient un nombre de colonnes FIGÉ (2 sous 780 px, 3 au-delà) — au
+franchissement du seuil, la sidebar et le rail mangent ~330 px d'un coup et une tuile passait de
+~360 px à **~140 px** ; et leur rythme ne coïncidait jamais avec celui des rangées du répertoire,
+posées juste dessous.
+
+**Une seule règle fluide, partagée** : `.qa-grid` adopte l'`auto-fill minmax(290px,1fr)` et la
+gouttière 8 px de `.dir-grid`. Tuiles et rangées ont désormais la MÊME largeur à toutes les
+fenêtres et s'alignent colonne pour colonne ; mesuré sur toute l'échelle — 320 → 290 px (1 col),
+779 → 2 × 356, 780 → 1 × 451, 1000 → 2 × 332, 1460 → 3 × 372, 1620 → 4 × 317 : tout vit dans la
+bande ~290-450 px, une transition ne change plus que le NOMBRE de colonnes, jamais l'échelle.
+
+La question qui a ouvert le dossier (« pourquoi la bulle rétrécit au-delà de ~1480 px ? ») a sa
+réponse documentée dans AGENTS.md : c'est la redistribution d'une grille fluide quand une colonne
+de plus tient (3 × ~390 → 4 × ~296 vers 1520 px) — bornée par le minimum de 290 px, c'est le
+comportement normal, à ne pas « corriger ».
+
+Vérifié : 766 tests × 2 moteurs, a11y 301/301, `npm run check`, design system régénéré (la démo
+n'impose plus un nombre de colonnes que le vrai CSS n'a plus). Rien à rejouer côté serveur.
+
 > Entrées anciennes déplacées depuis [`CHANGELOG.md`](CHANGELOG.md) pour garder le journal
 > courant lisible. Même format (keep-a-changelog).
 

@@ -390,6 +390,13 @@
   /* SPEC §5 (éditeurs) : actions dans l'EN-TÊTE — Aperçu (tonal) + Enregistrer (rempli, à droite). */
   .hdr-act2{display:inline-flex;align-items:center;height:36px;padding:0 14px;border:0;border-radius:18px;background:var(--primary-soft);color:var(--primary-dk);font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;flex:none}
   .hdr-act2:hover{background:var(--primary-100)}
+  /* K5 (v4.72.0) — L'ÉTAT D'ENREGISTREMENT, à la place du bouton qui le demandait. Encre douce :
+     c'est une CONFIRMATION passive, elle ne réclame rien et ne doit pas tirer l'œil ; seul
+     l'échec parle fort, parce que c'est le seul cas où l'auteur peut perdre quelque chose. */
+  .hdr-saved{flex:none;font-size:12px;font-weight:600;color:var(--ink-soft);white-space:nowrap;font-variant-numeric:tabular-nums}
+  .hdr-saved.err{color:var(--critical);font-weight:800}
+  .hdr-saved[hidden]{display:none}
+  @media (max-width:559.98px){.hdr-saved{font-size:11px}}
   .hdr-act2.primary{background:var(--primary);color:var(--on-primary)}
   .hdr-act2.primary:hover{background:var(--primary-hi)}
   .hdr-act2[hidden]{display:none}

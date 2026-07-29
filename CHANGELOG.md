@@ -1,5 +1,91 @@
 # Journal des modifications
 
+## [4.72.0] — 2026-07-29
+### K5 — l'enregistrement se dit, il ne se demande pas
+
+L'éditeur s'auto-enregistrait **déjà** depuis la v4.5 — mais dans un parc, et il fallait quand même
+appuyer sur « Enregistrer ». L'écran portait donc une action primaire dont le seul effet était de
+tenir une promesse que la machine tenait déjà. Ce qui change ici, c'est la **promesse affichée**,
+pas la mécanique.
+
+#### Un seul point d'écriture, deux accroches
+`edCommit` est à l'éditeur ce que `persistLive` est à la session et `_putSessionSafe` à
+l'historique : au point d'étranglement, toute mutation ajoutée demain est couverte sans qu'on y
+pense. Il n'y a que **deux** accroches — la saisie par délégation `input` sur `main` (elle bulle,
+donc tout champ futur est couvert) et les gestes structurels, qui se terminent tous par un
+re-rendu de l'éditeur. Chercher un à un les cinquante gestes de mutation aurait produit la même
+liste à tenir à jour que celle des soixante verbes que `persistLive` a précisément permis de **ne
+pas** écrire.
+
+Il commit une **copie normalisée**, jamais le brouillon : la normalisation retire les lignes vides,
+et appliquée au brouillon vivant elle supprimerait la ligne où l'auteur est en train de taper. Et
+**rien ne s'écrit si rien n'a bougé** — `renderEditor()` court aussi à l'ouverture : sans ce test,
+ouvrir une fiche pour la relire la ré-écrirait, la ferait remonter dans la file de synchro et
+gagner toute résolution LWW. Une fiche « modifiée » pour avoir été regardée.
+
+#### Le cycle de vie, en trois réponses
+**Quand ça entre dans la bibliothèque ?** Dès qu'il y a un **titre**. Une fiche anonyme n'a pas de
+nom sous lequel apparaître, et une rangée « Sans titre » se rangerait sous « # » dans un répertoire
+A→Z : un piège plutôt qu'une aide. Tant que le titre manque, c'est le parc qui sert de filet — il
+n'a plus d'autre rôle.
+
+**Quand ce n'est plus un brouillon ?** Par un **acte éditorial** : le statut passe de
+« ○ Brouillon » à « △ À relire » ou « ✓ Validée ». Le modèle a ces trois états depuis la v4.3.0 ;
+inventer une seconde notion de « pas encore enregistré » à côté de « pas encore validé » ferait
+deux vocabulaires pour une idée.
+
+**Et en attendant ?** Le répertoire le montre avec sa pastille, la recherche le trouve — on ne
+cache rien —, mais **il ne s'épingle pas** : la rangée de tuiles est l'accès de crise. Il se
+**désépingle** toujours, sinon une fiche épinglée puis repassée en brouillon resterait coincée là.
+
+#### Trois choses vivaient dans « Enregistrer » et ont dû trouver un autre foyer
+C'est le vrai travail de cette version.
+
+1. **La confirmation de publication** suit désormais le geste qui la déclenche — le sélecteur de
+   bibliothèque, refus compris (retour à la valeur d'avant). À chaque pause de frappe, ce serait
+   une fenêtre toutes les quatre secondes.
+2. **La session vive** se termine à l'**ouverture** de l'éditeur, au registre danger. Avec
+   l'écriture continue, le premier caractère tapé la tuerait en silence — peut-être pendant que
+   quelqu'un la déroule.
+3. **Le ménage destructif** (images d'un protocole que plus aucune ligne ne référence, blobs d'un
+   brouillon jamais publié) reste à la **sortie**. Le faire pendant la frappe effacerait une image
+   à l'instant précis où l'auteur en retire la référence pour la remettre trois mots plus loin.
+
+Et le filet qui remplace le « Annuler » disparu : **un point de version posé à l'ouverture**, un
+seul par séance d'édition. Un point par écriture noierait l'historique sous le bruit de la frappe,
+ce qui reviendrait au même que pas de filet du tout.
+
+#### « ▶ Essayer » — une session qui ne laisse rien
+L'aperçu refusait toute session : on voyait un rendu inerte, donc jamais le **comportement** de ce
+qu'on venait d'écrire — or c'est exactement ce que l'auteur vient vérifier (« mon cycle de 2 min
+sonne-t-il au bon moment ? »). Il a maintenant son propre Runtime. Sans lui, cocher et naviguer
+marchaient déjà, mais ni minuteurs, ni compteurs, ni chrono : ils vivent sur le Runtime, et
+l'aperçu n'en avait pas.
+
+**L'étanchéité tient en trois points, tous en tête des fonctions qui écrivent** : la session
+n'entre pas dans `liveSessions` ; `persistLive` sort **avant** `shareEmitDiff` — placée après, un
+auteur qui essaie son brouillon pendant qu'il partage une session enverrait ses coches d'essai sur
+l'écran d'en face ; `endSession` arrête les minuteurs et s'en va sans rien archiver.
+
+**Ce n'est pas le mode exercice**, et il ne faut pas les confondre : l'exercice est une répétition
+**réelle**, enregistrée, ségrégée dans l'historique et restituée au débriefing, sur une fiche
+publiée. L'essai porte sur un brouillon en cours d'écriture ; il n'a rien à restituer à personne.
+
+#### L'aperçu cesse de se dire deux fois
+La v4.70.1 avait rangé « Aperçu » parmi les exceptions du bandeau — erreur de classement. Une
+exception, au sens de cette règle, est ce que la pilule de la barre ne dit pas à elle seule :
+« ▪ Vous suivez » porte une phrase et une hachure, « ▲ Exercice » protège d'une méprise clinique.
+« Aperçu » n'a ni l'une ni l'autre — c'était le même mot, écrit deux fois. La barre suffit.
+
+Nouveau harnais `scripts/audit-k5.mjs` (16 contrôles), le quinzième. Il tient le cycle de vie, et
+ses trois contrôles les plus importants sont ceux qui garantissent qu'un essai d'auteur ne
+contamine pas l'historique clinique de quelqu'un. Il a d'ailleurs attrapé, en cours de route,
+l'abréviation de l'état sous 560 px : le témoin mesure désormais **les deux largeurs**, accepter
+« l'une ou l'autre » ne prouvant rien sur celle qu'on ne regarde pas.
+
+809 tests × 2 moteurs, a11y 301/301, doctrine 112/112, les quinze harnais verts, `npm run audit` en
+sortie 0. Rien à rejouer côté serveur.
+
 ## [4.71.1] — 2026-07-29
 ### L'échelle typographique se ferme, la taille du texte devient un segmenté, l'admin se lit en lignes
 
@@ -837,27 +923,3 @@ re-mesurer sur WebKit à toute retouche des grilles).
 
 Vérifié : 766 tests × 2 moteurs, a11y 301/301 sur Chromium ET WebKit, doctrine 112/112,
 `npm run check`. Rien à rejouer côté serveur.
-
-## [4.56.1] — 2026-07-28
-### Les tuiles rejoignent la grille fluide du répertoire
-
-Retour utilisateur immédiat sur la v4.56.0 : « la gestion de la largeur des tuiles en responsive
-est extrêmement mauvaise pour toutes les transitions de taille ». Mesuré, et confirmé : les
-tuiles « Épinglée(s) » avaient un nombre de colonnes FIGÉ (2 sous 780 px, 3 au-delà) — au
-franchissement du seuil, la sidebar et le rail mangent ~330 px d'un coup et une tuile passait de
-~360 px à **~140 px** ; et leur rythme ne coïncidait jamais avec celui des rangées du répertoire,
-posées juste dessous.
-
-**Une seule règle fluide, partagée** : `.qa-grid` adopte l'`auto-fill minmax(290px,1fr)` et la
-gouttière 8 px de `.dir-grid`. Tuiles et rangées ont désormais la MÊME largeur à toutes les
-fenêtres et s'alignent colonne pour colonne ; mesuré sur toute l'échelle — 320 → 290 px (1 col),
-779 → 2 × 356, 780 → 1 × 451, 1000 → 2 × 332, 1460 → 3 × 372, 1620 → 4 × 317 : tout vit dans la
-bande ~290-450 px, une transition ne change plus que le NOMBRE de colonnes, jamais l'échelle.
-
-La question qui a ouvert le dossier (« pourquoi la bulle rétrécit au-delà de ~1480 px ? ») a sa
-réponse documentée dans AGENTS.md : c'est la redistribution d'une grille fluide quand une colonne
-de plus tient (3 × ~390 → 4 × ~296 vers 1520 px) — bornée par le minimum de 290 px, c'est le
-comportement normal, à ne pas « corriger ».
-
-Vérifié : 766 tests × 2 moteurs, a11y 301/301, `npm run check`, design system régénéré (la démo
-n'impose plus un nombre de colonnes que le vrai CSS n'a plus). Rien à rejouer côté serveur.

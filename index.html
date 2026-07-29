@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-U6flB4floGFW6GLNAZkF9s0q97MzIM+Rufj+jlnT8wQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-AX80eGCK3OmYscnAj6abmLhPPELTodFF2GqEX4GbXrA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -675,6 +675,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* SPEC §5 (éditeurs) : actions dans l'EN-TÊTE — Aperçu (tonal) + Enregistrer (rempli, à droite). */
   .hdr-act2{display:inline-flex;align-items:center;height:36px;padding:0 14px;border:0;border-radius:18px;background:var(--primary-soft);color:var(--primary-dk);font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;flex:none}
   .hdr-act2:hover{background:var(--primary-100)}
+  /* K5 (v4.72.0) — L'ÉTAT D'ENREGISTREMENT, à la place du bouton qui le demandait. Encre douce :
+     c'est une CONFIRMATION passive, elle ne réclame rien et ne doit pas tirer l'œil ; seul
+     l'échec parle fort, parce que c'est le seul cas où l'auteur peut perdre quelque chose. */
+  .hdr-saved{flex:none;font-size:12px;font-weight:600;color:var(--ink-soft);white-space:nowrap;font-variant-numeric:tabular-nums}
+  .hdr-saved.err{color:var(--critical);font-weight:800}
+  .hdr-saved[hidden]{display:none}
+  @media (max-width:559.98px){.hdr-saved{font-size:11px}}
   .hdr-act2.primary{background:var(--primary);color:var(--on-primary)}
   .hdr-act2.primary:hover{background:var(--primary-hi)}
   .hdr-act2[hidden]{display:none}
@@ -4059,8 +4066,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     <span class="hdr-crisis" id="hdrCrisis" hidden>■ Crise</span>
     <span class="hdr-badge" id="hdrBadge" hidden></span>
     <button class="hdr-new" id="hdrNew" hidden><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span class="hdr-new-lbl">Créer</span></button>
-    <button class="hdr-act2" id="hdrPreview" hidden title="Voir le brouillon tel qu'il s'affichera (aucune session)" aria-label="Aperçu"><span class="pv-ic" aria-hidden="true">⛶</span><span class="pv-lbl">Aperçu</span></button>
-    <button class="hdr-act2 primary" id="hdrSave" hidden>Enregistrer</button>
+    <span class="hdr-saved" id="hdrSaved" role="status" hidden></span>
+    <button class="hdr-act2 primary" id="hdrPreview" hidden title="Dérouler le brouillon comme en session — rien n'est enregistré" aria-label="Essayer"><span class="pv-ic" aria-hidden="true">▶</span><span class="pv-lbl">▶ Essayer</span></button>
     <button class="hdr-theme" id="hdrTheme" aria-label="Thème"></button>
     <button class="hdr-more" id="hdrMore" hidden aria-haspopup="menu" aria-expanded="false" aria-label="Actions"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><circle cx="4" cy="10" r="2"/><circle cx="10" cy="10" r="2"/><circle cx="16" cy="10" r="2"/></svg></button>
     <button class="bar-acct" id="acctTop" aria-label="Compte et synchronisation" title="Compte"><svg class="ic-outline" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M5.5 20.5v-1a5 5 0 015-5h3a5 5 0 015 5v1"/></svg><svg class="ic-filled" width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="7.7" r="3.7"/><path d="M4.6 20a7.4 7.4 0 0114.8 0 1 1 0 01-1 1.1H5.6a1 1 0 01-1-1.1z"/></svg><span class="acct-ini" id="acctIni" hidden></span><span class="acct-dot" id="acctDot" hidden></span></button></div></div>
@@ -4391,7 +4398,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.71.1';
+const APP_VERSION='4.72.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -5410,7 +5417,16 @@ function protoSnipParts(p){return [p.code,...mdStrip(p.body||'').split(/\n+/),..
 let pins=[];try{pins=JSON.parse(localStorage.getItem(spaceKey('ac-pins')))||[];}catch(e){}
 const isPinned=id=>pins.indexOf(id)>=0;
 const sanitizePins=a=>(Array.isArray(a)?a:[]).slice(0,50).filter(id=>typeof id==='string'&&SAFE_ID.test(id)&&BAD_KEYS.indexOf(id)<0);
-function togglePin(id){const i=pins.indexOf(id);if(i>=0)pins.splice(i,1);else pins.unshift(id);pins=pins.slice(0,50);
+/* K5 (v4.72.0) — ON N'ÉPINGLE PAS UN BROUILLON. Depuis que toute fiche titrée entre dans la
+   bibliothèque dès la première frappe, un brouillon en cours d'écriture est joignable — et la
+   rangée de tuiles épinglées est l'ACCÈS DE CRISE. Le répertoire les montre (avec « ○ Brouillon »),
+   la recherche les trouve : on ne cache rien, on refuse seulement de leur donner la place réservée
+   à ce qu'on saisit sans lire. DÉSÉPINGLER reste toujours possible — sinon une fiche épinglée puis
+   repassée en brouillon resterait coincée là. */
+function pinBlocked(id){const x=fiches.concat(protocols).find(e=>e.id===id);return !!x&&x.status==='draft';}
+function togglePin(id){const i=pins.indexOf(id);
+  if(i<0&&pinBlocked(id)){toast('Un brouillon ne s’épingle pas en accès direct — passez-le à « À relire » ou « Validée ».',5000,true);return;}
+  if(i>=0)pins.splice(i,1);else pins.unshift(id);pins=pins.slice(0,50);
   try{localStorage.setItem(spaceKey('ac-pins'),JSON.stringify(pins));}catch(e){}
   // Marque le document perso « à pousser » (même mécanique que saveCats) et programme une synchro.
   try{localStorage.setItem(spaceKey('ac-cats-updated:'),String(Date.now()));localStorage.setItem(spaceKey('ac-cats-dirty:'),'1');}catch(e){}
@@ -5557,6 +5573,9 @@ const fmtMs=ms=>{ms=Math.max(0,Math.floor(ms/1000));const h=Math.floor(ms/3600),
    section admin (v4.71.1). UN TEST TENAIT CE FORMAT et l'a attrapé — c'est pour ça qu'il existe ;
    le changement est donc délibéré, et son attendu a été mis à jour dans tests.html. */
 const fmtBytes=n=>{n=+n||0;if(n<1024)return n+' o';if(n<1048576)return Math.round(n/1024)+' Ko';if(n<1073741824)return (n/1048576).toFixed(1).replace('.',',')+' Mo';return (n/1073741824).toFixed(2).replace('.',',')+' Go';};
+/* Heure sans les secondes — pour DIRE une heure d'enregistrement (K5). Les secondes n'aident
+   pas à choisir, elles n'aident qu'à dater un geste : elles restent à la chronologie. */
+const fmtHM=t=>{const d=new Date(t);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');};
 const fmtHMS=t=>{const d=new Date(t);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+':'+String(d.getSeconds()).padStart(2,'0');};
 
 /* ===== Modèle =====
@@ -6641,6 +6660,10 @@ function _putSessionSafe(s){
   try{const p=Data.putSession(s);if(p&&p.catch)p.catch(warnSessionSaveFailed);}catch(e){warnSessionSaveFailed();}}
 // Persistance (auto-save) débouncée par runtime ; immediate=true pour figer sur sortie/alarme.
 function persistLive(R,immediate){if(!R||!R.started||!R.fiche)return;
+  /* K5 — L'ESSAI N'ÉCRIT RIEN ET N'ÉMET RIEN. La garde est EN TÊTE, avant `shareEmitDiff` :
+     placée après, un auteur qui essaie son brouillon pendant qu'il partage une session enverrait
+     ses coches d'essai sur l'écran d'en face. */
+  if(R.essai)return;
   /* L'ÉMISSION S'ACCROCHE ICI, ET NULLE PART AILLEURS. Toute modification de session passe déjà
      par l'enregistrement local ; le partage hérite donc mécaniquement de sa couverture, y compris
      pour les mutations qu'on ajoutera demain. Placée AVANT la temporisation de 700 ms : ce qui
@@ -6666,8 +6689,24 @@ function ensureStarted(){if(Runtime.started||!Runtime.fiche)return false;
      quelqu'un qui n'a fait que regarder. Ses gestes partent sur le fil ; l'enregistrement
      appartient à l'hôte, qui le partage ensuite par les voies ordinaires. */
   try{if(Share.mode==='guest')return false;}catch(e){}
-  // MODE APERÇU (édition, V5) : jamais de session — on regarde le contenu, on ne soigne pas.
-  if(state.previewFrom)return false;
+  /* ═══ K5 — « ▶ ESSAYER » : UNE SESSION QUI NE LAISSE RIEN (v4.72.0) ═══════════════════════
+     L'aperçu refusait TOUTE session : on regardait un rendu inerte, donc on ne pouvait pas voir
+     ce qu'on venait d'écrire se COMPORTER — or c'est précisément ce que l'auteur doit vérifier
+     (une décision mène-t-elle où je crois ? le minuteur sonne-t-il au bon moment ?).
+     La session démarre donc, marquée `essai`, et l'étanchéité tient en TROIS points et trois
+     seulement, tous en tête des fonctions qui écrivent :
+       · ici — elle n'entre PAS dans `liveSessions` (aucune reprise, aucun bandeau d'accueil) ;
+       · `persistLive` — sort AVANT `shareEmitDiff` : rien sur le disque, rien sur le fil ;
+       · `endSession` — arrête les minuteurs et s'en va, sans rien archiver.
+     CE N'EST PAS LE MODE EXERCICE, et il ne faut pas les confondre : l'exercice est une
+     répétition RÉELLE, enregistrée, ségrégée dans l'historique et restituée au débriefing — il
+     porte sur une fiche publiée. L'essai porte sur un BROUILLON qu'on est en train d'écrire ;
+     il n'a rien à restituer à personne. */
+  if(state.previewFrom){
+    Runtime.started=true;Runtime.startedAt=Date.now();Runtime.essai=true;
+    if(!Runtime.sessionId)Runtime.sessionId=uid('s');
+    if(state.confOpen===undefined)state.confOpen=true;
+    return true;}
   /* DOCTRINE DU REPLI DE L'ÉTAPE ① (QRH/ECAM — audit v4.4.2, ne pas « simplifier ») :
      un démarrage IMPLICITE (cocher une étape, lancer un minuteur, incrémenter un compteur,
      horodater) ne replie JAMAIS « Confirmation diagnostique » — on FIGE l'état ouvert.
@@ -6697,6 +6736,12 @@ function ensureStarted(){if(Runtime.started||!Runtime.fiche)return false;
 let lastEndedSession=null;
 function endSession(R){if(!R||!R.fiche)return;
   Object.values(R.timers).forEach(t=>{if(t.running)toggleTimer(t);});
+  /* K5 — UN ESSAI NE S'ARCHIVE PAS. On arrête les minuteurs (ils tournent vraiment) et on s'en
+     va : ni instantané, ni entrée d'historique, ni carte-bilan sur l'accueil. Il n'y a rien à
+     restituer d'un brouillon qu'on vient d'écrire, et une ligne « session » dans l'historique
+     d'un soignant pour un essai d'auteur serait exactement la contamination que le mode exercice
+     s'interdit déjà par d'autres moyens. */
+  if(R.essai){R.started=false;R.essai=false;R.sessionId=null;R.name='';return;}
   R.startedAt=R.startedAt||Date.now();
   const s=snapshotSession(R,false);_putSessionSafe(s);
   const i=sessions.findIndex(x=>x.id===s.id);if(i>=0)sessions[i]=s;else sessions.push(s);
@@ -7187,7 +7232,13 @@ function applyViewChrome(){
      const inv=!exo&&Share.mode==='guest'&&!state.previewFrom;
      cb.classList.toggle('exo',exo);cb.classList.toggle('inv',inv);
      {const tg=cb.querySelector('.cb-tag');
-      const exc=state.previewFrom?'■ Aperçu':(exo?'▲ Exercice':(inv?'▪ Vous suivez':''));
+      /* v4.72.0 — L'APERÇU CESSE DE SE DIRE DEUX FOIS. La v4.70.1 avait rangé « Aperçu »
+         parmi les EXCEPTIONS du bandeau ; c'était une erreur de classement. Une exception,
+         au sens de cette règle, est ce que la pilule de la barre ne dit pas à elle seule —
+         « ▪ Vous suivez » porte une PHRASE et une hachure, « ▲ Exercice » protège d'une
+         méprise clinique. « Aperçu » n'a ni l'une ni l'autre : c'est le même mot, écrit
+         deux fois. La barre suffit, exactement comme pour la crise ordinaire. */
+      const exc=exo?'▲ Exercice':(inv?'▪ Vous suivez':'');
       tg.textContent=exc;tg.hidden=!exc;   /* crise ordinaire : la barre suffit */
       tg.classList.toggle('exo',exo);tg.classList.toggle('inv',inv);}
      const hc=document.getElementById('hdrCrisis');
@@ -7243,9 +7294,14 @@ function applyViewChrome(){
   // pastille de statut du haut de page, et envahissant sur mobile.
   document.getElementById('hdrBadge').hidden=true;
   {const hc=document.getElementById('homeChrome');if(state.view!=='library'){hc.hidden=true;hc.innerHTML='';}}
-  // Actions d'ÉDITEUR dans la barre (SPEC §5/§6 : pas de pied de page — Enregistrer à droite).
+  /* Actions d'ÉDITEUR dans la barre (SPEC §5/§6 : pas de pied de page). K5 (v4.72.0) : plus de
+     bouton « Enregistrer » — un ÉTAT à sa place, et l'unique bouton rempli devient « ▶ Essayer ».
+     L'état n'apparaît qu'une fois quelque chose d'écrit : « Enregistré » sur un écran où l'on n'a
+     rien fait serait une promesse sans objet. */
   {const ed=state.view==='edit'||state.view==='protocolEdit';
-   document.getElementById('hdrSave').hidden=!ed;
+   const sv=document.getElementById('hdrSaved');
+   if(!ed){clearTimeout(_edSaveT);_edSaveState='';_edSaveAt=0;sv.hidden=true;sv.textContent='';}
+   else if(_edSaveState)edSaySave(_edSaveState);
    document.getElementById('hdrPreview').hidden=!ed;}
   // Menu ⋯ : réinitialisé à chaque rendu — chaque vue fiche/protocole (re)déclare ses rangées.
   if(typeof setMoreMenu==='function')setMoreMenu(null);
@@ -8007,6 +8063,7 @@ function mdImagesHtml(p){const ims=(p.images||[]).filter(im=>im&&im.data);
       </select></div>`).join('')}</div>`;}
 let _mdPrevTimer=null;
 function renderProtocolEdit(){
+  edTouch(true);   // K5 : idem côté protocole (un seul point d'accroche par éditeur)
   const p=state.pdraft;if(!p){state.view='library';return render();}
   const isNew=!protocols.some(x=>x.id===p.id);
   const wideEdit=mqReadWide.matches;
@@ -8044,7 +8101,15 @@ function renderProtocolEdit(){
     ${wideEdit?`</div><aside class="read-side" id="editSide">${editPreviewHtml('proto')}</aside></div>`:''}
     <input type="file" id="imgInput" accept="image/*" hidden>
     <input type="file" id="pdfInput" accept="application/pdf,.pdf" hidden>`;
-  bindEditorExit({kind:'p',list:()=>protocols,getDraft:()=>state.pdraft,setDraft:v=>{state.pdraft=migrateProtocol(v);},clearDraft:()=>{state.pdraft=null;},openExisting:openProtocolRead});
+  bindEditorExit({kind:'p',list:()=>protocols,getDraft:()=>state.pdraft,setDraft:v=>{state.pdraft=migrateProtocol(v);},clearDraft:()=>{state.pdraft=null;},
+    /* Ménage de SORTIE : une image que plus aucune ligne du corps ne référence est du poids
+       mort. Destructif, donc jamais pendant la frappe — retirer une référence pour la
+       remettre trois mots plus loin ne doit pas coûter l'image. */
+    leaveGC:d=>{const used=new Set();mdBlocks(d.body||'').forEach(b=>{if(b.t==='img')used.add(b.id);});
+      const gardees=(d.images||[]).filter(im=>used.has(im.id));
+      if(gardees.length!==(d.images||[]).length){d.images=gardees;const i=protocols.findIndex(x=>x.id===d.id);
+        if(i>=0){const c=edSnapshot('p');if(c){c.images=gardees;persistProtocol(c);protocols[i]=c;}}}},
+    openExisting:openProtocolRead});
   bindEditorMetaFields(p,'p',{fem:false,rerender:renderProtocolEdit,preview:openPDraftPreview});
   bindEditSide('proto');
   bindAttEditor(p,renderProtocolEdit);
@@ -8090,7 +8155,7 @@ function renderProtocolEdit(){
   // Vignette : insère une NOUVELLE référence à la même image (une image peut illustrer 2 passages).
   main.querySelectorAll('[data-miref]').forEach(th=>th.onclick=()=>{
     mdInsertAt(ta,(ta.value&&!/\n$/.test(ta.value.slice(0,ta.selectionStart||0))?'\n':'')+'![](img:'+th.dataset.miref+')\n');});
-  document.getElementById('hdrSave').onclick=saveProtocolDraft;
+
   {const del=document.getElementById('delBtn');if(del)del.onclick=deleteProtocolDraft;}
   // Menu ⋯ d'éditeur (SPEC §4, sans « Modifier ») : agit sur le BROUILLON tel qu'affiché.
   setMoreMenu([
@@ -8251,7 +8316,25 @@ function bindEditorMetaFields(d,prefix,o){
    if(pick)pick.querySelectorAll('[data-catmenu]').forEach(b=>b.onclick=()=>openCatMenu(pick,d,o.rerender,b));}
   // Bibliothèque : les catégories sont propres à une bibliothèque — si l'actuelle n'appartient
   // pas à la nouvelle, elle est retirée du brouillon.
-  {const scopeSel=document.getElementById(prefix+'-scope');if(scopeSel)scopeSel.onchange=()=>{const ns=scopeSel.value||null;d.libraryId=ns;
+  /* K5 (v4.72.0) — LA CONFIRMATION DE PUBLICATION SUIT LE GESTE QUI LA DÉCLENCHE. Elle vivait
+     dans « Enregistrer » ; sans bouton, elle ne peut pas se poser à chaque pause de frappe — ce
+     serait une fenêtre toutes les quatre secondes, exactement ce que la règle 11 proscrit
+     ailleurs. Or changer de bibliothèque EST un acte délibéré, ponctuel et daté : c'est là que
+     la question se pose, et c'est d'ailleurs plus juste qu'à l'enregistrement, où l'auteur avait
+     déjà oublié qu'il l'avait changée. Refus -> le sélecteur revient à sa valeur d'avant. */
+  {const scopeSel=document.getElementById(prefix+'-scope');if(scopeSel)scopeSel.onchange=async()=>{
+    const av=d.libraryId||null,ns=scopeSel.value||null;
+    if(av!==ns){
+      const est=prefix==='f'?'fiche':'protocole';
+      const cand=JSON.parse(JSON.stringify(d));cand.libraryId=ns;
+      const orig=(prefix==='f'?fiches:protocols).find(x=>x.id===d.id)||{libraryId:av};
+      const ok=await confirmDraftLibChange(cand,orig,{
+        out:n=>'Cette '+est+' va quitter la bibliothèque partagée « '+n+' » : les autres membres n\'y auront plus accès'+(prefix==='f'?', et les notes personnelles qu\'ils y avaient attachées ne leur seront plus visibles':'')+'. Prévenez-les avant si besoin.',
+        outYes:'Déplacer la '+est,
+        into:(n,dr)=>'Cette '+est+' va être publiée dans « '+n+' » : elle sera visible par tous les membres'+(dr?' pouvant éditer (brouillon masqué aux lecteurs)':'')+'.',
+        intoYes:'Publier la '+est});
+      if(!ok){scopeSel.value=av||'';return;}}
+    d.libraryId=ns;
     const cc=d.category;if(cc){const cat=categories.find(x=>x.id===cc);if(!cat||(cat.libraryId||null)!==(ns||null))d.category='';}
     o.rerender();};}}
 // Sortie d'éditeur : « ‹ Retour » (SPEC gestion §2.2, ex-« Annuler » — quitter ne perd rien :
@@ -8263,10 +8346,16 @@ function bindEditorExit(cfg){
   document.getElementById('hdrBack').onclick=async()=>{
     if(Date.now()-_backGuardT<700)return;   // double-tap depuis l'aperçu : absorbé (garde ECAM)
     const d=cfg.getDraft();
+    /* K5 — LE RETOUR N'A PLUS RIEN À DEMANDER NI À ANNONCER. Il écrit ce qui reste (la frappe
+       peut être plus récente que la dernière pause) puis nettoie ce qu'on ne garbage qu'à la
+       SORTIE : les images d'un protocole que plus aucune ligne ne référence, et les blobs PDF
+       joints à un brouillon qui n'est jamais entré dans la bibliothèque. Ces deux ménages sont
+       DESTRUCTIFS — les faire à chaque pause de frappe effacerait une image à l'instant précis
+       où l'auteur en retire la référence pour la remettre trois mots plus loin. */
+    await edFlush();
+    if(cfg.leaveGC)cfg.leaveGC(d);
     const exists=cfg.list().some(x=>x.id===d.id);
-    const dirty=JSON.stringify(d)!==draftBase;
-    if(dirty){await parkDraftNow(cfg.kind);toast('Brouillon conservé (non publié)'+(exists?'.':' — reprenez-le via « Créer ».'));}
-    else{await clearDraftParkIf(cfg.kind,d.id);purgeDraftAtts();if(!exists&&cfg.onCleanNew)cfg.onCleanNew(d);}
+    if(!exists){await clearDraftParkIf(cfg.kind,d.id);purgeDraftAtts();if(cfg.onCleanNew)cfg.onCleanNew(d);}
     cfg.clearDraft();state.draftRestored=null;
     if(exists)cfg.openExisting(d.id);else{state.view='library';render();}};
   {const gd=document.getElementById('ghostDrop');if(gd)gd.onclick=async()=>{
@@ -8274,7 +8363,7 @@ function bindEditorExit(cfg){
     await clearDraftParkIf(cfg.kind,d.id);cfg.setDraft(JSON.parse(JSON.stringify(orig)));draftNewAtts=[];
     draftBase=JSON.stringify(cfg.getDraft());_lastParked=null;state.draftRestored=null;render();};}}
 /* ----- Enregistrement de brouillon : morceaux COMMUNS fiche/protocole (utilisés par
-   saveDraft ET saveProtocolDraft — corriger ici corrige les deux). ----- */
+   les DEUX éditeurs — corriger ici corrige les deux). ----- */
 // Filet de sécurité : (re)normalise statut + date de validation depuis les champs, même sans blur.
 // prefix = 'f' (fiche) ou 'p' (protocole), selon les ids des champs de l'éditeur.
 function draftReadStatusFields(d,prefix){
@@ -8296,24 +8385,6 @@ async function confirmDraftLibChange(d,orig,msgs){
 async function redirtyAttsOnLibChange(d,orig){
   if(orig&&(orig.libraryId||null)!==(d.libraryId||null)&&supportsAttachments()){
     for(const a of (d.attachments||[])){try{const rec=await IDB.getAtt(a.id);if(rec){rec.dirty=1;await IDB.putAtt(rec);}}catch(e){}}}}
-async function saveProtocolDraft(){const d=state.pdraft;d.title=(d.title||'').trim();
-  draftReadStatusFields(d,'p');
-  d.body=sstr(d.body,MD_MAX_CHARS);
-  d.attachments=(d.attachments||[]).map(safeAttachment).filter(Boolean);
-  // Images jamais référencées dans le corps : retirées à l'enregistrement (pas de poids mort).
-  {const used=new Set();mdBlocks(d.body).forEach(b=>{if(b.t==='img')used.add(b.id);});
-   d.images=(d.images||[]).filter(im=>used.has(im.id));}
-  if(!d.title){toast('⚠ Donnez un titre au protocole.');return;}
-  if(typeof d.order!=='number')d.order=Date.now();
-  if(!await confirmDraftLibChange(d,protocols.find(x=>x.id===d.id),{
-    out:n=>'Ce protocole va quitter la bibliothèque partagée « '+n+' » : les autres membres n\'y auront plus accès.',outYes:'Déplacer le protocole',
-    into:(n,dr)=>'Ce protocole va être publié dans « '+n+' » : il sera visible par tous les membres'+(dr?' pouvant éditer (brouillon masqué aux lecteurs)':'')+'.',intoYes:'Publier le protocole'}))return;
-  const orig=protocols.find(x=>x.id===d.id);
-  if(!(await persistProtocol(d)))return;draftNewAtts=[];
-  await clearDraftParkIf('p',d.id);_lastParked=null;state.draftRestored=null;   // brouillon publié -> emplacement vidé
-  await redirtyAttsOnLibChange(d,orig);
-  const i=protocols.findIndex(x=>x.id===d.id);if(i>=0)protocols[i]=d;else protocols.push(d);
-  state.pdraft=null;openProtocolRead(d.id);}
 async function deleteProtocolDraft(){
   const msg=state.pdraft&&state.pdraft.libraryId
     ?'Supprimer ce protocole définitivement ?\nIl disparaîtra pour tous les membres de la bibliothèque.'
@@ -10236,7 +10307,10 @@ function bindReadEvents(f,blk,cur){
       const hb=document.getElementById('hdrBack');if(hb){hb.classList.add('guarded');setTimeout(()=>hb.classList.remove('guarded'),700);}};
     document.getElementById('hdrBackLbl').textContent='Retour à l’édition';
     document.getElementById('hdrBack').onclick=backToEdit;
-    {const b=document.getElementById('hdrBadge');b.hidden=false;b.textContent='Mode aperçu — aucune session en cours';}
+    /* K5 (v4.72.0) : le badge disait « aucune session en cours » — c'était vrai tant que
+       l'aperçu était inerte ; « ▶ Essayer » en déroule maintenant une, VRAIE mais sans trace.
+       Le mot qui compte est donc ce qu'elle ne fait PAS. */
+    {const b=document.getElementById('hdrBadge');b.hidden=false;b.textContent='Essai — rien n’est enregistré';}
   }else{
     /* « ‹ » : l'ORIGINE d'abord (pile v4.28.0), la bibliothèque sinon. Garde anti double-tap
        700 ms (même mécanique que le retour d'aperçu) : deux taps nerveux ne traversent JAMAIS
@@ -12075,7 +12149,8 @@ function renderNavOnly(){
      lieu que pour les changements structurels (ajout/suppression/réordre/typage).
    bindListEditors() : écouteurs communs aux listes simples.
    downscale()       : réduit une image (canvas) avant stockage base64.
-   saveDraft()       : nettoie/normalise le brouillon, persiste, puis ouvre la fiche.
+   edCommit()        : normalise une COPIE du brouillon et la publie (K5, v4.72.0 — il n'y a
+                       plus de bouton « Enregistrer » : cf. le bloc K5 plus bas).
    deleteDraft()     : supprime la fiche ET ses sessions associées. */
 // opts.crit (v4.3.0, repères posologiques) : bascule par BOUTON (le signe est intapable au
 // clavier) — le champ affiche le texte NU, la rangée encadrée porte le registre, le préfixe reste
@@ -12464,10 +12539,16 @@ function counterEditorRow(c,i,timers){const ivs=(timers||[]).filter(t=>t.type===
    le bouton « Aperçu » du pied d'éditeur ouvre la vue lecture du brouillon en MODE APERÇU. ----- */
 function openDraftPreview(){state.previewFrom='edit';
   state.fiche=migrate(JSON.parse(JSON.stringify(state.draft)));
-  // BAC À SABLE de navigation pour l'aperçu (v4.6.0) : coches/chemin DÉTACHÉS du Runtime — une
-  // session vive d'une AUTRE fiche ne doit jamais recevoir les coches ou le chemin d'un brouillon
-  // (openRead/resumeSession relient state au Runtime à la prochaine vraie ouverture).
-  state.checked={};state.verified={};state.vgaps={};state.nav=[state.fiche.start||(((state.fiche.blocks||[])[0]||{}).id)];state.navSeq=[++Runtime.seq];state.navPos=0;
+  /* BAC À SABLE (v4.6.0) : coches et chemin DÉTACHÉS de toute session réelle — une session vive
+     d'une AUTRE fiche ne doit jamais recevoir les coches d'un brouillon.
+     K5 (v4.72.0) — L'ESSAI A MAINTENANT SON PROPRE RUNTIME. Sans lui, l'aperçu savait cocher et
+     naviguer (state suffit) mais NI les minuteurs NI les compteurs NI le chrono ne pouvaient
+     tourner : ils vivent sur le Runtime, et l'aperçu n'en avait pas. Or c'est exactement ce que
+     l'auteur vient vérifier — « mon cycle de 2 min sonne-t-il au bon moment ? ». On en construit
+     donc un NEUF sur la copie du brouillon, marqué `essai`.
+     CE QU'ON NE PERD PAS EN ÉCRASANT LE RUNTIME GLOBAL : une session réelle vive n'y est pas
+     rangée, elle vit dans `liveSessions` — `openRead` l'y retrouve intacte au retour. */
+  freshRuntime(state.fiche,null);Runtime.essai=true;
   state.readMode=currentReadMode();state.ovFold={};state.ovVerify=null;state.flowEnded=false;state.confOpen=undefined;
   state.view='read';render();}
 function openPDraftPreview(){state.previewFrom='protocolEdit';
@@ -12518,6 +12599,7 @@ function bindEditSide(kind){if(!document.getElementById('editSide'))return;
   main.addEventListener('input',_editSideOn);}
 function renderEditor(){
   captureFlow();
+  edTouch(true);   // K5 : un geste STRUCTUREL vient d'avoir lieu — on écrit tout de suite
   const f=state.draft;const blocks=f.blocks;blocks._start=f.start;
   const isNew=!fiches.some(x=>x.id===f.id);
   const wideEdit=mqReadWide.matches;
@@ -12722,7 +12804,7 @@ function bindEditorEvents(f){
     const bd=card.querySelector('[data-bdel]');if(bd)bd.onclick=()=>{f.blocks=f.blocks.filter(x=>x.id!==bid);f.blocks.forEach(x=>{if(x.next===bid)x.next=null;if(x.options)x.options.forEach(o=>{if(o.target===bid)o.target='';});});if(f.start===bid)f.start=f.blocks[0]?f.blocks[0].id:null;if(!f.blocks.length){const nb={id:uid('b'),type:'steps',title:'Prise en charge',steps:[''],image:null,next:null};f.blocks.push(nb);f.start=nb.id;}renderEditor();};});
   imgInput.onchange=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;const r=await downscale(file);if(!r){toast('⚠ Image illisible.');return;}if(imgMode.kind==='gallery')f.images.push({id:uid('i'),data:r.data,w:r.w,h:r.h,caption:''});else{const b=f.blocks.find(x=>x.id===imgMode.bid);if(b){b.image=r.data;b.imageW=r.w;b.imageH=r.h;}}renderEditor();};
   bindAttEditor(f,renderEditor);   // documents PDF (composant partagé avec l'éditeur de protocole)
-  document.getElementById('hdrSave').onclick=saveDraft;const del=document.getElementById('delBtn');if(del)del.onclick=deleteDraft;
+  {const del=document.getElementById('delBtn');if(del)del.onclick=deleteDraft;}
   // Menu ⋯ d'éditeur (SPEC §4, sans « Modifier ») : agit sur le BROUILLON tel qu'affiché.
   // « Versions » (fiche déjà enregistrée) : historique horodaté, restauration non destructive.
   setMoreMenu([
@@ -12792,27 +12874,6 @@ function downscale(file,maxDim=1180,quality=0.78){return new Promise(res=>{const
     // de réserver l'espace au bon ratio en lecture (anti-CLS) sans jamais déformer un schéma.
     const done=d=>res(d?{data:d,w:cw,h:ch}:null);
     try{let out=c.toDataURL('image/webp',quality);if(out.indexOf('data:image/webp')!==0)out=c.toDataURL('image/jpeg',quality);done(out);}catch(e){try{done(c.toDataURL('image/jpeg',quality));}catch(_){done(null);}}};img.onerror=()=>{URL.revokeObjectURL(url);res(null);};img.src=url;});}
-async function saveDraft(){const d=state.draft;d.title=(d.title||'').trim();
-  draftReadStatusFields(d,'f');
-  ['confirmation','verify','notForget','differentials','references','posology'].forEach(k=>d[k]=clean(d[k]));
-  d.blocks.forEach(b=>{b.title=(b.title||'').trim();if(b.type==='steps'){b.steps=clean(b.steps);b.nextLbl=(b.nextLbl||'').trim();}else{b.question=(b.question||'').trim();b.options=(b.options||[]).filter(o=>(o.label||'').trim());}});
-  d.timers=(d.timers||[]).map(t=>({id:t.id,label:(t.label||'').trim(),type:t.type==='interval'?'interval':'stopwatch',seconds:Math.max(0,parseInt(t.seconds||0)||0),autoloop:!!t.autoloop,onDue:(t.onDue||'').trim()}));
-  d.counters=(d.counters||[]).map(c=>({id:c.id,label:(c.label||'').trim(),step:Math.max(1,parseInt(c.step||1)||1),start:parseInt(c.start||0)||0,timerId:(d.timers||[]).some(t=>t.id===c.timerId)?c.timerId:''}));
-  d.attachments=(d.attachments||[]).map(safeAttachment).filter(Boolean);
-  delete d.blocks._start;if(!d.start||!d.blocks.some(b=>b.id===d.start))d.start=d.blocks[0]?d.blocks[0].id:null;
-  if(!d.title){toast('⚠ Donnez un titre à la fiche.');return;}if(typeof d.order!=='number')d.order=Date.now();
-  // Sortie d'une bibliothèque : les membres perdent la fiche ET leurs notes personnelles
-  // attachées (toujours en base, mais illisibles sans la fiche) -> texte spécifique aux fiches.
-  if(!await confirmDraftLibChange(d,fiches.find(x=>x.id===d.id),{
-    out:n=>'Cette fiche va quitter la bibliothèque partagée « '+n+' » : les autres membres n\'y auront plus accès, et les notes personnelles qu\'ils y avaient attachées ne leur seront plus visibles. Prévenez-les avant si besoin.',outYes:'Déplacer la fiche',
-    into:(n,dr)=>'Cette fiche va être publiée dans « '+n+' » : elle sera visible par tous les membres'+(dr?' pouvant éditer (brouillon masqué aux lecteurs)':'')+'.',intoYes:'Publier la fiche'}))return;
-  // La structure de la fiche change : on TERMINE une éventuelle session vive (archivée) pour éviter
-  // une incohérence minuteurs/blocs, puis on rouvre la fiche à neuf.
-  const orig=fiches.find(x=>x.id===d.id);
-  if(!(await persist(d)))return;draftNewAtts=[];
-  await clearDraftParkIf('f',d.id);_lastParked=null;state.draftRestored=null;   // brouillon publié -> emplacement vidé
-  await redirtyAttsOnLibChange(d,orig);
-  const i=fiches.findIndex(x=>x.id===d.id);if(i>=0)fiches[i]=d;else fiches.push(d);if(liveSessions[d.id])endSession(liveSessions[d.id]);state.draft=null;resetRuntime();openRead(d.id);}
 async function deleteDraft(){
   // Fiche de bibliothèque PARTAGÉE : la suppression effacera aussi, chez chaque membre, la note
   // personnelle qu'il a pu attacher à cette fiche -> on le dit à l'éditeur/admin avant.
@@ -12835,6 +12896,111 @@ async function deleteDraft(){
 let _backGuardT=0;       // garde anti double-tap : posé au retour d'aperçu, lu par « ‹ Retour » des éditeurs
 let draftBase=null;      // instantané du brouillon à l'ouverture de l'éditeur (détection de modification)
 let _lastParked=null;    // dernier instantané parqué (évite les écritures redondantes)
+
+/* ═══ K5 (v4.72.0) — L'ENREGISTREMENT SE DIT, IL NE SE DEMANDE PAS ════════════════════════════
+   L'éditeur s'auto-enregistrait DÉJÀ depuis la v4.5 — mais dans un PARC, et il fallait quand
+   même appuyer sur « Enregistrer » pour publier. L'écran portait donc une action primaire dont
+   le seul effet était de tenir une promesse que la machine tenait déjà : ce qui change ici,
+   c'est la PROMESSE AFFICHÉE, pas la mécanique.
+
+   UN SEUL POINT D'ÉCRITURE. `edCommit` est à l'éditeur ce que `persistLive` est à la session et
+   `_putSessionSafe` à l'historique : au point d'étranglement, toute mutation ajoutée demain est
+   couverte sans qu'on y pense (leçon v4.54.2, où la table existait, les politiques étaient
+   vertes, la bascule s'allumait — et pas une ligne ne partait, faute d'un `dirty` posé au bon
+   endroit).
+
+   IL COMMIT UNE COPIE NORMALISÉE, JAMAIS LE BROUILLON LUI-MÊME. La normalisation retire les
+   lignes vides ; appliquée au brouillon vivant, elle supprimerait la ligne dans laquelle
+   l'auteur est en train de taper. Le brouillon reste brut à l'écran, la bibliothèque reçoit le
+   propre — et ce qui est ÉCRIT est exactement ce qu'un autre appareil recevra.
+
+   SANS TITRE, RIEN N'ENTRE. Une fiche anonyme n'a pas de nom sous lequel apparaître, et une
+   rangée « Sans titre » dans un répertoire A→Z se rangerait sous « # » : un piège plutôt qu'une
+   aide. Quitter un éditeur encore vierge ne laisse donc rien derrière — exactement comme une
+   étape quittée vide disparaît (MK-flux). Tant que le titre manque, c'est le PARC qui sert de
+   filet (il n'a pas d'autre rôle depuis cette version).
+
+   CE QUI NE FAIT PLUS UN BROUILLON : un ACTE éditorial, le sélecteur d'état passant de
+   « ○ Brouillon » à « △ À relire » ou « ✓ Validée ». Le modèle a déjà ces trois états depuis la
+   v4.3.0 : inventer une seconde notion de « pas encore enregistré » à côté de « pas encore
+   validé » ferait deux vocabulaires pour une idée — ce qu'AC 120-71B proscrit. */
+const ED_SAVE_MS=420;    // frappe : on écrit à la pause, pas à chaque caractère
+let _edSaveT=null,_edSaveAt=0,_edSaveState='';
+function edKind(){return _editKind();}
+/* Copie NORMALISÉE prête à publier. `draftReadStatusFields` lit d'abord le DOM dans le brouillon
+   vivant (l'état éditorial n'est pas dans le modèle tant qu'on ne l'a pas relu). */
+function edSnapshot(kind){
+  const src=kind==='f'?state.draft:state.pdraft;if(!src)return null;
+  draftReadStatusFields(src,kind);
+  const d=JSON.parse(JSON.stringify(src));
+  d.title=(d.title||'').trim();
+  if(typeof d.order!=='number')d.order=Date.now();
+  d.attachments=(d.attachments||[]).map(safeAttachment).filter(Boolean);
+  if(kind==='p'){d.body=sstr(d.body,MD_MAX_CHARS);return d;}
+  ['confirmation','verify','notForget','differentials','references','posology'].forEach(k=>d[k]=clean(d[k]));
+  d.blocks.forEach(b=>{b.title=(b.title||'').trim();
+    if(b.type==='steps'){b.steps=clean(b.steps);b.nextLbl=(b.nextLbl||'').trim();}
+    else{b.question=(b.question||'').trim();b.options=(b.options||[]).filter(o=>(o.label||'').trim());}});
+  d.timers=(d.timers||[]).map(t=>({id:t.id,label:(t.label||'').trim(),type:t.type==='interval'?'interval':'stopwatch',seconds:Math.max(0,parseInt(t.seconds||0)||0),autoloop:!!t.autoloop,onDue:(t.onDue||'').trim()}));
+  d.counters=(d.counters||[]).map(c=>({id:c.id,label:(c.label||'').trim(),step:Math.max(1,parseInt(c.step||1)||1),start:parseInt(c.start||0)||0,timerId:(d.timers||[]).some(t=>t.id===c.timerId)?c.timerId:''}));
+  d.complications=(d.complications||[]).filter(c=>c&&(c.label||'').trim()&&c.target);
+  delete d.blocks._start;
+  if(!d.start||!d.blocks.some(b=>b.id===d.start))d.start=d.blocks[0]?d.blocks[0].id:null;
+  return d;}
+function edSaySave(st){
+  _edSaveState=st;const el=document.getElementById('hdrSaved');if(!el)return;
+  const t=_edSaveAt?fmtHM(_edSaveAt):'';
+  el.className='hdr-saved'+(st==='err'?' err':'');
+  /* Sous 560 px la barre d'éditeur est à l'étroit (mesurée à 320 par audit-doctrine) : l'état
+     s'abrège en « ✓ 17:28 », la forme même de la maquette MK. C'est une TRONCATURE du même
+     énoncé, jamais un autre mot — et l'heure, la seule chose qui change, ne tombe jamais. */
+  const court=window.innerWidth<560;
+  el.textContent=st==='saving'?(court?'⟳':'⟳ Enregistrement…')
+    :st==='err'?(court?'⚠ non enregistré':'⚠ Non enregistré — réessai')
+    :st==='saved'?(court?('✓'+(t?' '+t:'')):('✓ Enregistré'+(t?' · '+t:'')))
+    :'';
+  el.hidden=!st;}
+async function edCommit(kind){
+  kind=kind||edKind();if(!kind)return false;
+  const d=edSnapshot(kind);if(!d)return false;
+  if(!d.title)return false;                       // sans titre, rien n'entre dans la bibliothèque
+  const arr=kind==='f'?fiches:protocols;
+  const orig=arr.find(x=>x.id===d.id);
+  edSaySave('saving');
+  const ok=await (kind==='f'?persist(d):persistProtocol(d));
+  if(!ok){edSaySave('err');return false;}
+  await redirtyAttsOnLibChange(d,orig);
+  const i=arr.findIndex(x=>x.id===d.id);if(i>=0)arr[i]=d;else arr.push(d);
+  draftNewAtts=[];                                // les blobs sont désormais référencés par du PUBLIÉ
+  await clearDraftParkIf(kind,d.id);_lastParked=null;   // le parc n'a plus rien à protéger
+  _edSaveAt=Date.now();edSaySave('saved');
+  return true;}
+/* Appelé par TOUT ce qui touche au brouillon. `now` pour les gestes STRUCTURELS (ajout,
+   suppression, déplacement, changement d'état) : eux n'ont pas de pause de frappe à attendre. */
+function edTouch(now){
+  const k=edKind();if(!k)return;
+  /* RIEN N'A BOUGÉ, RIEN NE S'ÉCRIT. `renderEditor()` est appelé aussi à l'OUVERTURE : sans ce
+     test, ouvrir une fiche pour la relire la ré-écrirait (updatedAt + dirty), donc la ferait
+     remonter dans la file de synchro et gagner toute résolution LWW — une fiche « modifiée »
+     par le seul fait d'avoir été regardée. */
+  const d=k==='f'?state.draft:state.pdraft;
+  if(!d||JSON.stringify(d)===draftBase)return;
+  clearTimeout(_edSaveT);
+  if(now){edCommit(k);return;}
+  edSaySave('saving');
+  _edSaveT=setTimeout(()=>edCommit(k),ED_SAVE_MS);}
+async function edFlush(){const k=edKind();if(!k)return;clearTimeout(_edSaveT);await edCommit(k);}
+/* Un onglet mobile meurt sans prévenir : on écrit AVANT de disparaître. Même motif que le billet
+   de reprise du partage — ce qui n'est pas écrit à cet instant-là n'existe plus. */
+window.addEventListener('pagehide',()=>{if(edKind())edCommit();});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'&&edKind())edCommit();});
+/* DEUX ACCROCHES, ET DEUX SEULEMENT. La SAISIE est captée par délégation sur `main` — `input`
+   bulle, donc tout champ ajouté demain est couvert sans qu'on y pense. Les gestes STRUCTURELS
+   (ajouter, supprimer, déplacer, changer d'état, joindre) se terminent TOUS par un re-rendu de
+   l'éditeur : c'est là qu'on écrit tout de suite, il n'y a aucune pause de frappe à attendre.
+   Chercher un à un les cinquante gestes de mutation aurait produit la même liste à tenir à jour
+   que celle des soixante verbes que `persistLive` a précisément permis de ne PAS écrire. */
+main.addEventListener('input',()=>{if(edKind())edTouch(false);});
 async function getDraftPark(){try{return (await Data.getDraftPark())||{};}catch(e){return {};}}
 async function setDraftParkSlot(kind,val){try{const p=await getDraftPark();p[kind]=val||null;await Data.setDraftPark(p);}catch(e){}}
 async function clearDraftParkIf(kind,id){const p=(await getDraftPark())[kind];if(p&&p.forId===id)await setDraftParkSlot(kind,null);}
@@ -12873,6 +13039,21 @@ async function openEdit(id){const f=fiches.find(x=>x.id===id);if(!f)return;
   // Hors-ligne on laisse passer (local-first) ; _reclaimBlocked rattrapera au push.
   if(f.libraryId&&Auth.signedIn()&&Sync.online()){try{await Sync.loadProfile();}catch(e){}}
   if(!canEditFiche(f)){toast(RO_EDIT_TOAST);return openRead(id);}
+  /* K5 — UNE SESSION VIVE SE TERMINE AVANT, PAS PENDANT. Tant qu'il fallait appuyer sur
+     « Enregistrer », la session était close à ce moment-là, une fois, sciemment. Avec l'écriture
+     continue, le premier caractère tapé la tuerait — en silence, et peut-être pendant que
+     quelqu'un la déroule. La question se pose donc À L'OUVERTURE, au registre danger, comme
+     « démarrer un exercice sur une session réelle » depuis la v4.29.0. */
+  if(liveSessions[id]){
+    if(!await confirmDlg('Une session est en cours sur cette aide. La modifier va d’abord la TERMINER '
+      +'(elle sera archivée avec son compte rendu) : la structure de la fiche ne peut pas changer '
+      +'sous quelqu’un qui la déroule.',{title:'Terminer la session et modifier ?',yes:'Terminer et modifier',danger:true}))return;
+    endSession(liveSessions[id]);resetRuntime();}
+  /* FILET DE SÛRETÉ — un point de version À L'OUVERTURE, et un seul par séance d'édition.
+     L'auto-enregistrement retire le « Annuler » : sans cet instantané, il n'y aurait plus AUCUN
+     état antérieur vers lequel revenir. Un point par ÉCRITURE, en revanche, noierait l'historique
+     des versions sous le bruit de la frappe — ce qui reviendrait au même. */
+  try{await Data.putBackup({bid:uid('bk'),ficheId:f.id,at:Date.now(),data:JSON.parse(JSON.stringify(f))});}catch(e){}
   state.draft=JSON.parse(JSON.stringify(f));draftNewAtts=[];state.noteEdit=false;state.draftRestored=null;
   draftBase=JSON.stringify(state.draft);_lastParked=null;
   // Un brouillon auto-enregistré de CETTE fiche attend ? On le restaure (rien ne se perd) —

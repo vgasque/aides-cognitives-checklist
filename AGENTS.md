@@ -182,10 +182,10 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   identiques (variable isolée). RÈGLE : toute sonde qui lit une géométrie après `focus()` doit
   attendre. Il ne s'agissait donc pas d'un défaut d'accessibilité — mais on ne pouvait pas le
   savoir tant que les harnais ne tournaient que sur Blink., à rejouer dès qu'on touche au chrome de crise,
-  au rail, aux feuilles Plan/Consulter ou à un token de couleur. **QUATORZE** harnais Playwright qui
+  au rail, aux feuilles Plan/Consulter ou à un token de couleur. **QUINZE** harnais Playwright qui
   MESURENT au lieu d'affirmer (liste exacte dans `package.json`, script `audit` : a11y, doctrine,
   verify, session-card, zoom-scroll, verify-live, modeseg, consulter, complications, exercice,
-  lecteur, qr, partage, **historique**). Ils tournent en CI en mode **NON BLOQUANT** (`continue-on-error`) : visibles à chaque
+  **k5**, lecteur, qr, partage, historique). Ils tournent en CI en mode **NON BLOQUANT** (`continue-on-error`) : visibles à chaque
   push, mais un échec y demande un arbitrage humain, pas un blocage de merge. Les trois plus
   anciens, en détail :
   - `scripts/audit-a11y.mjs` — **25 surfaces × 2 thèmes, dont les 21 `.ai-modal` du monofichier
@@ -1533,11 +1533,61 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   dès l'ajout de la case. **PIÈGE DE SONDE** : la bibliothèque est VIDE au premier démarrage ; une
   sonde d'éditeur doit passer par « Commencer » puis « Ajouter les fiches d'exemple », comme les
   autres harnais — sans quoi elle mesure une page sans fiche et conclut à tort.
-  **K5 EST REPORTÉ (décision utilisateur, v4.64.0)** : « l'enregistrement se dit, ne se demande
-  pas » — auto-enregistrement horodaté dans la barre et « ▶ Essayer » promu bouton rempli unique.
-  Ne pas le livrer par effet de bord : il DÉPLACE l'action primaire de l'écran (« Enregistrer »
-  est aujourd'hui le seul rempli, doctrine « un seul bouton rempli par écran »), et l'éditeur
-  s'auto-enregistre déjà sans le dire — c'est la PROMESSE affichée qui change, pas la mécanique.
+  **K5 — L'ENREGISTREMENT SE DIT, IL NE SE DEMANDE PAS (v4.72.0 ; reporté en v4.64.0, livré sur
+  accord explicite)**. L'éditeur s'auto-enregistrait DÉJÀ depuis la v4.5 — mais dans un PARC, et
+  il fallait quand même appuyer sur « Enregistrer » : l'écran portait une action primaire dont le
+  seul effet était de tenir une promesse que la machine tenait déjà. Ce qui change est la
+  PROMESSE AFFICHÉE, pas la mécanique.
+  **UN SEUL POINT D'ÉCRITURE, `edCommit`** — à l'éditeur ce que `persistLive` est à la session et
+  `_putSessionSafe` à l'historique : toute mutation ajoutée demain est couverte sans qu'on y
+  pense. **DEUX ACCROCHES, et deux seulement** : la SAISIE par délégation `input` sur `main` (elle
+  bulle, donc tout champ futur est couvert) et les gestes STRUCTURELS par `renderEditor()` /
+  `renderProtocolEdit()`, qui les terminent tous. Chercher un à un les cinquante gestes de
+  mutation aurait produit la même liste à tenir à jour que celle des soixante verbes que
+  `persistLive` a précisément permis de NE PAS écrire.
+  **IL COMMIT UNE COPIE NORMALISÉE, JAMAIS LE BROUILLON** : la normalisation retire les lignes
+  vides — appliquée au brouillon vivant, elle supprimerait la ligne où l'auteur est en train de
+  taper. **ET RIEN NE S'ÉCRIT SI RIEN N'A BOUGÉ** : `renderEditor()` court aussi à l'ouverture,
+  sans ce test ouvrir une fiche pour la relire la ré-écrirait (updatedAt + dirty), la ferait
+  remonter dans la file de synchro et gagner toute résolution LWW — « modifiée » pour avoir été
+  regardée.
+  **SANS TITRE, RIEN N'ENTRE** : une fiche anonyme n'a pas de nom sous lequel apparaître, et une
+  rangée « Sans titre » se rangerait sous « # » dans un répertoire A→Z. Tant que le titre manque,
+  c'est le PARC qui sert de filet — il n'a plus d'autre rôle.
+  **CE QUI NE FAIT PLUS UN BROUILLON** : un ACTE éditorial, le statut passant de « ○ Brouillon »
+  à « △ À relire » ou « ✓ Validée ». Le modèle a ces trois états depuis la v4.3.0 ; inventer une
+  seconde notion de « pas encore enregistré » à côté de « pas encore validé » ferait deux
+  vocabulaires pour une idée. **UN BROUILLON NE S'ÉPINGLE PAS** (la rangée de tuiles est l'accès
+  de CRISE) — mais il se DÉSÉPINGLE toujours, sinon une fiche épinglée puis repassée en brouillon
+  resterait coincée là. Le répertoire le montre et la recherche le trouve : on ne cache rien.
+  **TROIS CHOSES QUI VIVAIENT DANS « ENREGISTRER » ONT DÛ TROUVER UN AUTRE FOYER** — et c'est le
+  vrai travail de cette version : (1) la CONFIRMATION DE PUBLICATION suit désormais le geste qui
+  la déclenche, le sélecteur de bibliothèque (refus → retour à la valeur d'avant) ; à chaque pause
+  de frappe ce serait une fenêtre toutes les quatre secondes. (2) La SESSION VIVE se termine à
+  l'OUVERTURE de l'éditeur, au registre danger — avec l'écriture continue, le premier caractère
+  la tuerait en silence, peut-être pendant que quelqu'un la déroule. (3) Le MÉNAGE DESTRUCTIF
+  (images d'un protocole que plus rien ne référence, blobs d'un brouillon jamais publié) reste à
+  la SORTIE : le faire pendant la frappe effacerait une image à l'instant où l'auteur en retire la
+  référence pour la remettre trois mots plus loin.
+  **LE FILET QUI REMPLACE LE « ANNULER »** : un point de version posé à l'OUVERTURE, un seul par
+  séance. Un point par écriture noierait l'historique sous le bruit de la frappe, ce qui
+  reviendrait au même que pas de filet du tout.
+  **« ▶ ESSAYER » — UNE SESSION QUI NE LAISSE RIEN.** L'aperçu refusait toute session : on voyait
+  un rendu inerte, donc jamais le COMPORTEMENT de ce qu'on venait d'écrire. Il a maintenant son
+  propre Runtime (`freshRuntime` sur la copie, `essai:true`) — sans lui, cocher et naviguer
+  marchaient (`state` suffit) mais ni minuteurs, ni compteurs, ni chrono, qui vivent sur le
+  Runtime. **L'ÉTANCHÉITÉ TIENT EN TROIS POINTS, tous en tête des fonctions qui écrivent** :
+  `ensureStarted` n'entre pas dans `liveSessions` ; `persistLive` sort AVANT `shareEmitDiff`
+  (placée après, un auteur qui essaie pendant un partage enverrait ses coches sur l'écran d'en
+  face) ; `endSession` arrête les minuteurs et s'en va sans rien archiver. Écraser le Runtime
+  global ne perd rien : une session réelle vive n'y est pas rangée, elle vit dans `liveSessions`.
+  **CE N'EST PAS LE MODE EXERCICE** : l'exercice est une répétition RÉELLE, enregistrée, ségrégée
+  et restituée au débriefing, sur une fiche publiée ; l'essai porte sur un brouillon en cours
+  d'écriture et n'a rien à restituer. Harnais : `scripts/audit-k5.mjs` (16 contrôles).
+  **L'APERÇU CESSE DE SE DIRE DEUX FOIS** : la v4.70.1 l'avait rangé parmi les EXCEPTIONS du
+  bandeau — erreur de classement. Une exception est ce que la pilule de la barre ne dit pas à elle
+  seule (« ▪ Vous suivez » porte une phrase et une hachure, « ▲ Exercice » protège d'une méprise
+  clinique) ; « Aperçu » n'a ni l'une ni l'autre. La barre suffit, comme pour la crise ordinaire.
   **K3/K8/K9 — LA PORTE « + », UNE SEULE (v4.65.0, maquette MK4)** : six boutons d'ajout vivaient
   dispersés dans trois fieldsets (bloc d'étapes, décision, chronomètre, minuteur à cycles,
   compteur, complication) — pour savoir ce qu'on POUVAIT ajouter il fallait faire défiler la page
