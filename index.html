@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-AX80eGCK3OmYscnAj6abmLhPPELTodFF2GqEX4GbXrA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-4Ua3nKGKiv2jnOYxQCCxnUfszIAzb5eFGd4FbLMVWSI='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -4398,7 +4398,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.72.0';
+const APP_VERSION='4.73.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -13271,8 +13271,16 @@ PRIORISATION (source dense)
 Arbitrage : ce qui tue en minutes avant ce qui tue en heures.
 
 STRUCTURE
-- Titre de fiche : situation + population + contexte si la source les précise
-  (ex. « Bradycardie — adulte »). Population ambiguë ? Demande.
+- Titre de fiche : la SITUATION SEULE, aussi court que possible (« Bradycardie », pas
+  « Prise en charge de la bradycardie de l'adulte »). Il est tronqué partout où la place
+  manque — rangée du répertoire, tuile, bandeau de crise.
+- "discriminant" : la population ou le contexte, EN DEHORS du titre (« adulte »,
+  « pédiatrique », « femme enceinte », « intra-hospitalier »). 60 caractères max, 1 à 3
+  mots. C'est LUI que la troncature mangerait en premier s'il était dans le titre, et
+  deux titres identiques sur un écran de crise sont un piège : l'application l'affiche
+  donc dans sa propre pilule, à côté du titre, jamais dans la chaîne qui se coupe.
+  Ne le DEVINE jamais : si la source ne dit pas à quelle population elle s'applique,
+  laisse "" et signale-le-moi. Population ambiguë ? Demande.
 - Blocs :
   - « steps » = étapes cochables, menant éventuellement à un bloc suivant ;
   - « decision » = UNE question, des options pointant chacune vers un bloc. Réservée
@@ -13327,13 +13335,29 @@ STRUCTURE
     la fiche appelle d'après la source et son contenu (tél. renfort/régulation,
     dilutions locales, circuits… — cf. RENFORT et PRÉPARATIONS), format « <invite> :
     à compléter », une par ligne.
-- DENSITÉ : l'application affiche bloc par bloc — nombre de blocs illimité, c'est la
-  densité PAR BLOC qui compte. PLUS DE 7 ÉTAPES dans un bloc = SIGNAL (l'éditeur
-  l'affiche) : condense (regroupement) ou sépare des PHASES cliniques (mesures
-  immédiates / 2e intention / surveillance), sans JAMAIS couper une séquence
-  arbitrairement. Vise ≤ 7 items par liste (confirmation, verify) — notForget : 4 max ;
-  au-delà, regroupe par catégorie. Plusieurs SITUATIONS distinctes → propose-moi
-  plusieurs fiches, pas une fiche-fleuve.
+- PEU DE TEXTE. C'EST LA CONTRAINTE PREMIÈRE, avant l'exhaustivité. Un écran de
+  téléphone tenu à bout de bras pendant une réanimation ne rend PAS un paragraphe : une
+  étape qui déborde sur trois lignes repousse d'autant les étapes suivantes sous le bas
+  de l'écran, et personne ne défile en massant un thorax. Chaque mot que tu n'écris pas
+  est une ligne gagnée pour l'action d'après.
+  BUDGETS — ce sont les seuils que l'application SIGNALE elle-même à l'auteur :
+  - une étape : viser 40 à 60 caractères, JAMAIS plus de 110 pour la partie avant « :: »
+    (au-delà, l'éditeur affiche « challenge très long ») ; les valeurs vont après « :: »
+    et ne comptent pas ;
+  - un bloc : 3 à 5 étapes, 7 AU MAXIMUM absolu (au-delà, l'éditeur signale ; scinde en
+    PHASES cliniques — mesures immédiates / 2e intention / surveillance — sans jamais
+    couper une séquence arbitrairement) ;
+  - une étape = UNE action : au-delà de deux séparateurs « · » ou « + » dans le
+    challenge, l'éditeur signale « plusieurs actions dans une étape cochable » — on la
+    cocherait « à moitié faite » ;
+  - un rappel de notForget : 110 caractères maximum, 4 rappels maximum ;
+  - confirmation, verify, differentials : viser 7 items maximum, regroupés par catégorie
+    au-delà (« Signes neuro : convulsions / troubles de conscience ») ;
+  - un titre de bloc : 2 à 4 mots.
+  EN CAS DE DOUTE, COUPE. Une aide de crise trop courte se complète en la relisant à
+  froid ; une aide trop longue ne se lit pas du tout au moment où elle sert. Le nombre de
+  BLOCS, lui, n'est pas limité : c'est la densité PAR BLOC qui coûte. Plusieurs SITUATIONS
+  distinctes → propose-moi plusieurs fiches, pas une fiche-fleuve.
 
 STYLE DES ÉTAPES
 - Une étape = UNE action, TÉLÉGRAPHIQUE (supprime verbes d'administration et liaisons
@@ -13348,8 +13372,17 @@ STYLE DES ÉTAPES
 - COCHABLE en situation (fais-le / vérifie-le) et PRONONÇABLE (lue à voix haute telle
   quelle par un lecteur, un coéquipier confirme « fait »).
 - « challenge :: réponse » (séparateur « :: » DANS l'étape) dès qu'un CONSTAT ou une
-  VALEUR vérifiable est attendu : « <ce qu'on contrôle> :: <attendu> ». L'application
-  affiche la réponse en pilule, la fait confirmer en lecture à deux voix (le lecteur
+  VALEUR vérifiable est attendu : « <ce qu'on contrôle> :: <attendu> ».
+  CE QUE « :: » FAIT EXACTEMENT À L'ÉCRAN, et c'est un outil de MISE EN PAGE autant que
+  de méthode : tout ce qui suit « :: » JUSQU'À LA FIN DE LA LIGNE est retiré du texte
+  principal et affiché à part — en GRIS, dans une BULLE, en caractères à chasse fixe.
+  Avant « :: » = le texte noir et gras qu'on lit et qu'on prononce ; après « :: » = la
+  valeur, en retrait visuel. Conséquence de rédaction : dès qu'une étape porte des
+  CHIFFRES, des RÉGLAGES ou un ÉTAT CONSTATÉ, mets-les après « :: » — la ligne devient
+  deux fois plus courte à l'œil et le geste reste lisible d'un coup. Une étape de
+  quatre-vingts caractères dont soixante sont des valeurs se lit très bien ; la même
+  sans « :: » est un pavé.
+  L'application fait en plus confirmer cette réponse en lecture à deux voix (le lecteur
   énonce, l'exécutant répond) et la redemande en passe de vérification — format des
   checklists critiques.
     "Vérifier la position des électrodes"    -> "Pads :: antéro-latéraux, collés"
@@ -13400,6 +13433,12 @@ MINUTEURS, COMPTEURS, BOUCLES
   unique y serait re-proposé à chaque cycle (bruit pur sous stress).
 - PLUSIEURS minuteurs bienvenus si la prise en charge le justifie (ex. bolus à durée
   fixe + cycle de surveillance qui reboucle).
+- "onDue" (facultatif, 120 caractères max) : CE QU'IL FAUT FAIRE quand le minuteur sonne,
+  en télégraphique (« Analyse du rythme + relais adrénaline », « Recontrôler la glycémie
+  capillaire »). L'alarme l'annonce alors À LA PLACE du seul nom du minuteur — une alarme
+  qui se contente de nommer dit QUOI a sonné, jamais QUOI FAIRE, et poser l'action au pied
+  de l'alerte est la règle. Ne le remplis que si la source dit ce que le délai commande ;
+  sinon "" (le comportement reste celui du nom seul).
 
 COMPLICATIONS « À TOUT MOMENT » (champ complications, facultatif)
 - Si la source décrit un événement pouvant survenir À TOUT MOMENT du parcours (laryngospasme
@@ -13435,6 +13474,8 @@ SELON LE TYPE DE SOURCE
 CHAMPS IMPOSÉS
 - "category": "" et "categories": [] (je classerai après import).
 - "code": "" (référence courte facultative, ex. URG-ANA-01 — posée par moi dans l'app).
+- "discriminant" : rempli SEULEMENT si la source dit à quelle population ou à quel contexte
+  elle s'applique ; sinon "" (ne le déduis pas, ne découpe pas le titre pour en fabriquer un).
 - "status": "draft" TOUJOURS et "validation": "" TOUJOURS : une fiche générée par IA
   arrive en BROUILLON non daté — c'est moi qui relis, valide et date dans l'app.
 
@@ -13492,12 +13533,13 @@ SCHÉMA EXACT
   "categories": [],
   "fiches": [
     {
-      "title": "Situation — population — contexte",
+      "title": "Situation",
+      "discriminant": "adulte",
       "code": "",
       "category": "",
       "status": "draft",
       "validation": "",
-      "localInfo": "Tél renfort : à compléter\nTél régulation : à compléter\n(autres invites selon la source)",
+      "localInfo": "Tél renfort : à compléter\\nTél régulation : à compléter\\n(autres invites selon la source)",
       "confirmation": ["..."],
       "verify": ["..."],
       "posology": ["△ **ADRÉNALINE — IM** : adulte 0,5 mg · enfant 0,01 mg/kg (max 0,5 mg)", "**REMPLISSAGE** : cristalloïdes 20 mL/kg en débit libre"],
@@ -13507,7 +13549,7 @@ SCHÉMA EXACT
       "references": ["Titre — Organisme, année — URL", "Fiche générée par IA le JJ/MM/AAAA à partir de la source ci-dessus — à relire et valider avant usage."],
       "images": [],
       "timers": [
-        { "id": "t1", "label": "Cycle de réévaluation", "type": "interval", "seconds": 180, "autoloop": true }
+        { "id": "t1", "label": "Cycle de réévaluation", "type": "interval", "seconds": 180, "autoloop": true, "onDue": "Analyse du rythme + relais" }
       ],
       "counters": [ { "id": "n1", "label": "Bolus", "step": 1, "start": 0 } ],
       "start": "b1",
@@ -13541,14 +13583,20 @@ AVANT DE RÉPONDRE, VÉRIFIE
    option lus SEULS (sans la question) donnent la bonne conclusion.
 6. Aucun « envisager / considérer / discuter » ; jamais deux moments par étape ; les
    contrôles à constat attendu utilisent « challenge :: réponse » — jamais « :: » sur
-   une simple action.
-7. Aucun geste unique dans une boucle de réévaluation ; critères d'arrêt / limitation
+   une simple action ; tout ce qui est CHIFFRE, RÉGLAGE ou ÉTAT CONSTATÉ est passé après
+   « :: » (c'est ce qui raccourcit les lignes à l'écran).
+7. BUDGETS DE LONGUEUR tenus : aucun challenge > 110 caractères, aucun bloc > 7 étapes,
+   aucune étape cumulant plus de deux « · »/« + », aucun rappel notForget > 110
+   caractères ni plus de 4 rappels, titres de bloc de 2 à 4 mots.
+8. La population / le contexte est dans "discriminant", PAS dans le titre — et vide si la
+   source ne le dit pas.
+9. Aucun geste unique dans une boucle de réévaluation ; critères d'arrêt / limitation
    dans la fiche ou en invite localInfo.
-8. Cibles chiffrées dans verify ; interdictions dans notForget (une par ligne).
-9. references : source datée + ligne « Fiche générée par IA le … ».
-10. Tout manque résiduel marqué « ⚠ À COMPLÉTER » (aucun manque silencieux).
-11. Gras (**…**) rare, jamais une ligne entière.
-12. "status" vaut "draft", "validation" est vide, et tu n'as renvoyé QUE le JSON.`;
+10. Cibles chiffrées dans verify ; interdictions dans notForget (une par ligne).
+11. references : source datée + ligne « Fiche générée par IA le … ».
+12. Tout manque résiduel marqué « ⚠ À COMPLÉTER » (aucun manque silencieux).
+13. Gras (**…**) rare, jamais une ligne entière.
+14. "status" vaut "draft", "validation" est vide, et tu n'as renvoyé QUE le JSON.`;
 /* ===== Dialogue « Créer » (SPEC gestion §2.1) =====
    Point d'entrée UNIQUE de la création (bouton « Créer » de l'accueil) : 3 méthodes en cartes —
    Manuellement / Avec l'IA (aides seulement) / Importer un .json ; la méthode IA est un

@@ -1,5 +1,54 @@
 # Journal des modifications
 
+## [4.73.0] — 2026-07-30
+### Le prompt IA rattrape la structure — et il devient un contrat vérifié
+
+#### Le gabarit qu'il montrait n'était pas du JSON valide
+Trouvé en écrivant le contrôle, pas en relisant : le `\n` de `localInfo` vivait dans un littéral
+gabarit, donc JavaScript le transformait en **vrai saut de ligne**. Le JSON d'exemple affiché à
+l'IA contenait une chaîne coupée par une fin de ligne — invalide. Une IA qui recopie fidèlement ce
+qu'on lui montre produisait un fichier que l'import refuse, et la faute paraissait venir d'elle.
+Il faut `\\n` dans la source pour afficher `\n`.
+
+#### Deux champs manquaient depuis trois versions
+`discriminant` (v4.70.0) et `onDue` (v4.70.0) n'étaient pas dans le prompt : une IA ne pouvait donc
+pas les produire, et le champ créé pour éviter deux titres identiques sur un écran de crise restait
+vide sur toute fiche générée.
+
+- **`discriminant`** — la population ou le contexte (« adulte », « pédiatrique », « femme
+  enceinte ») sort du titre pour rejoindre son champ. Le titre devient la **situation seule**, aussi
+  court que possible : c'est lui qui est tronqué partout où la place manque. Et la consigne est
+  explicite — **ne le devine jamais** : aucune migration ne découpe le titre d'un auteur pour en
+  extraire un discriminant supposé, le prompt ne doit pas le faire non plus.
+- **`onDue`** — ce qu'il faut faire quand le minuteur sonne, annoncé à la place du seul nom. Une
+  alarme qui se contente de nommer dit **quoi** a sonné, jamais **quoi faire**.
+
+#### Peu de texte — avec les seuils réels de l'éditeur
+La contrainte est désormais énoncée d'abord, avant l'exhaustivité : un écran de téléphone tenu à
+bout de bras pendant une réanimation ne rend pas un paragraphe, et une étape qui déborde sur trois
+lignes repousse d'autant les suivantes sous le bas de l'écran. Les budgets ne sont pas des vœux :
+ce sont **les seuils que l'éditeur signale lui-même** — challenge ≤ 110 caractères, bloc ≤ 7 étapes,
+au plus deux séparateurs « · »/« + » par étape, rappel ≤ 110 caractères et 4 maximum, titres de
+bloc de 2 à 4 mots. Les seuils du prompt et ceux de l'application ne doivent jamais diverger, sinon
+l'IA produit exactement ce que l'éditeur va signaler.
+
+#### Ce que « :: » fait à l'écran
+Le prompt disait à quoi le séparateur **sert** (challenge-réponse, confirmation à deux voix) mais
+pas ce qu'il **fait** : tout ce qui suit « :: », jusqu'à la fin de la ligne, sort du texte principal
+et s'affiche en **gris, dans une bulle, à chasse fixe**. C'est donc un outil de mise en page autant
+que de méthode — les chiffres passés après « :: » raccourcissent la ligne de moitié à l'œil. Une
+étape de quatre-vingts caractères dont soixante sont des valeurs se lit très bien ; la même sans
+« :: » est un pavé.
+
+#### Un seizième harnais
+`scripts/audit-prompt.mjs` extrait le schéma **du prompt lui-même**, le parse, le passe par
+`migrate()` et vérifie qu'aucun champ ne tombe — puis que le prompt dit bien les trois choses que
+cette version y ajoute. Il est **pur** : aucun rendu, aucun clic. Il mesure un contrat, pas un
+écran. Règle qui en découle : tout champ modèle ajouté entre dans le prompt **et** dans ce harnais.
+
+809 tests × 2 moteurs, a11y 301/301, doctrine 112/112, les seize harnais verts, `npm run audit` en
+sortie 0. Rien à rejouer côté serveur.
+
 ## [4.72.0] — 2026-07-29
 ### K5 — l'enregistrement se dit, il ne se demande pas
 
@@ -892,34 +941,3 @@ créent une capacité, touchent un token ou ouvrent un chantier : à trancher s�
 Vérifié : `npm run check`, **780 tests × 2 moteurs** (+14), a11y **301/301 sur Chromium ET
 WebKit**, doctrine 112/112, vérification 8/8, lecteur 13/13, historique 16/16, partage 294/294,
 et les 14 harnais verts. Rien à rejouer côté serveur.
-
-## [4.56.2] — 2026-07-28
-### Le badge « En cours » trouve sa place — et un bug WebKit de grille est neutralisé
-
-### Badge « ● En cours » à droite de la tuile
-Glissé dans la sous-ligne de 11 px, le badge l'étirait et semblait rapporté (« on a l'impression
-qu'elle n'est pas adaptée », retour utilisateur). Il vit désormais À DROITE de la tuile, centré
-verticalement, hors du bloc de texte — la structure de la maquette desktop : colonne
-titre + sous-ligne à gauche (`.qa-tx`), badge en frère à droite. Les rangées du répertoire, qui
-alignent déjà leurs pastilles sur une ligne dédiée, ne changent pas.
-
-### Pistes de grille figées au redimensionnement — bug WebKit, reproduit puis neutralisé
-Signalé à l'usage : « bug lorsqu'on diminue la largeur puis qu'on ré-augmente » — une rangée du
-répertoire restait trop courte, titre rogné en haut, date en bas. IRREPRODUCTIBLE sur Chromium
-(sondes discrètes puis fines, 100 % et 130 % de taille du texte : rien) ; reproduit sur WebKit
-SEUL, au redimensionnement CONTINU : quand un changement du nombre de colonnes d'une grille
-`auto-fill` fait ré-enrouler la sous-ligne d'une rangée, WebKit ne regrandit pas la piste — le
-contenu centré dépasse (titre +11 px, date +5 px, mesurés, aux valeurs exactes de la capture
-utilisateur) et l'état corrompu PERSISTE, y compris après re-rendu.
-
-Remède : à la TRAÎNÉE du redimensionnement (120 ms, accueil seulement), chaque
-`.dir-grid`/`.qa-grid` passe par `block` puis `grid` dans la même frame — écriture-lecture-
-écriture synchrones, aucun repaint intermédiaire, donc aucun clignotement — et WebKit recalcule
-ses pistes. On ne paie pas un reflow par évènement pendant le geste : l'artefact transitoire de
-Safari peut fugacement apparaître pendant la traînée et se répare seul 120 ms après la pause.
-Vérifié à la sonde sur les deux moteurs et les deux réglages de taille : état final propre
-partout, Chromium jamais affecté. Piège documenté dans AGENTS.md (ne pas retirer ce listener ;
-re-mesurer sur WebKit à toute retouche des grilles).
-
-Vérifié : 766 tests × 2 moteurs, a11y 301/301 sur Chromium ET WebKit, doctrine 112/112,
-`npm run check`. Rien à rejouer côté serveur.

@@ -182,10 +182,10 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   identiques (variable isolée). RÈGLE : toute sonde qui lit une géométrie après `focus()` doit
   attendre. Il ne s'agissait donc pas d'un défaut d'accessibilité — mais on ne pouvait pas le
   savoir tant que les harnais ne tournaient que sur Blink., à rejouer dès qu'on touche au chrome de crise,
-  au rail, aux feuilles Plan/Consulter ou à un token de couleur. **QUINZE** harnais Playwright qui
+  au rail, aux feuilles Plan/Consulter ou à un token de couleur. **SEIZE** harnais Playwright qui
   MESURENT au lieu d'affirmer (liste exacte dans `package.json`, script `audit` : a11y, doctrine,
   verify, session-card, zoom-scroll, verify-live, modeseg, consulter, complications, exercice,
-  **k5**, lecteur, qr, partage, historique). Ils tournent en CI en mode **NON BLOQUANT** (`continue-on-error`) : visibles à chaque
+  **k5**, **prompt**, lecteur, qr, partage, historique). Ils tournent en CI en mode **NON BLOQUANT** (`continue-on-error`) : visibles à chaque
   push, mais un échec y demande un arbitrage humain, pas un blocage de merge. Les trois plus
   anciens, en détail :
   - `scripts/audit-a11y.mjs` — **25 surfaces × 2 thèmes, dont les 21 `.ai-modal` du monofichier
@@ -2058,6 +2058,28 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   jour la doc qui le cite (AGENTS.md, `design/`). Une classe morte documentée (`.endcap` après
   V5) fait diverger doc et code. Toute suppression de fichier référencé (ex. une SPEC) implique de
   purger la référence.
+- **LE PROMPT IA EST UN CONTRAT, ET IL SE VÉRIFIE (v4.73.0)** : `AI_PROMPT` promet un format
+  d'import ; rien ne vérifiait que l'application l'accepte, ni que le gabarit MONTRÉ soit
+  lui-même correct. **IL NE L'ÉTAIT PAS** : le `\n` de `localInfo` vivait dans un littéral
+  gabarit, donc JavaScript le transformait en VRAI saut de ligne — le JSON d'exemple affiché à
+  l'IA contenait une chaîne coupée par une fin de ligne, donc invalide. Une IA qui recopie
+  fidèlement ce qu'on lui montre produisait un fichier que l'import refuse, et la faute
+  paraissait venir d'elle. Il faut `\\n` dans la source pour afficher `\n`.
+  `scripts/audit-prompt.mjs` EXTRAIT le schéma du prompt lui-même, le parse, le passe par
+  `migrate()` et vérifie qu'aucun champ ne tombe ; il est PUR (aucun rendu, aucun clic) — il
+  mesure un contrat, pas un écran. **Tout champ modèle ajouté doit entrer dans le prompt ET dans
+  ce harnais** : `discriminant` (v4.70.0) et `onDue` (v4.70.0) y étaient absents pendant trois
+  versions, donc jamais produits par une IA.
+  **CE QUE LA v4.73.0 A AJOUTÉ AU PROMPT, sur demande utilisateur** : (1) la population et le
+  contexte vont dans `discriminant`, PAS dans le titre — et « ne le devine jamais » (aucune
+  migration ne découpe un titre, le prompt ne doit pas le faire non plus) ; (2) `onDue`, l'action
+  que l'alarme annoncera ; (3) **des BUDGETS DE LONGUEUR chiffrés sur les seuils RÉELS des
+  garde-fous** (challenge ≤ 110 c., bloc ≤ 7 étapes, ≤ 2 séparateurs « · »/« + » par étape,
+  rappel ≤ 110 c. et 4 max, titres de bloc 2-4 mots) — les seuils du prompt et ceux de l'éditeur
+  ne doivent JAMAIS diverger, sinon l'IA produit ce que l'app signale ; (4) **ce que « :: » fait
+  À L'ÉCRAN** : tout ce qui suit, jusqu'à la fin de la ligne, sort du texte principal et
+  s'affiche en gris, en bulle, à chasse fixe. C'est un outil de MISE EN PAGE autant que de
+  méthode : les chiffres passés après « :: » raccourcissent la ligne de moitié à l'œil.
 - **Nommage SQL** : ne JAMAIS renommer un identifiant existant (`fiches`, `category_sets`,
   `fiche_notes`… sont historiquement en français : un renommage casserait les instances déployées
   et le client, sans gain fonctionnel) ; tout **nouvel** objet (table, fonction, politique,
