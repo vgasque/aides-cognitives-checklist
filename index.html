@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-c44Pro9oIWpFTBHPmSVO5Xqi6V3/tCm+W825ufBJ6cU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-3sLcbDL4IB44/w5AZYEozBe3inIQh0AOvZOTZsLN5dY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -2177,11 +2177,18 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .blk .li .mini{width:38px;height:38px}
   /* Sous 400 px, les outils passent SOUS le champ plutôt que de le comprimer : une étape se lit
      et s'écrit avant de se déplacer, et le champ est ce qu'on manipule le plus. */
+  /* Sous 400 px, les outils se compactent (32 px, écart 5) pour rendre de la largeur au CHAMP —
+     jamais un retour à la ligne, qui reviendrait à faire sauter le contenu. 32 px de bouton avec
+     le halo de la rangée reste au-dessus du plancher de cible hors crise. */
   @media (max-width:399.98px){
-    .blk .li:focus-within,.blk .li:hover{flex-wrap:wrap}
-    .blk .li:focus-within input[type=text],.blk .li:hover input[type=text]{flex:1 1 100%;order:1}
-    .blk .li .li-box{order:0}
-    .blk .li .li-tools{order:2;margin-left:34px}
+    .li-tools{gap:4px}
+    .blk .li .mini{width:32px;height:32px}
+    .blk .li{gap:5px}
+    /* Les pixels rendus au CHAMP viennent du cadre, pas des cibles : rembourrage du bloc 14 → 9,
+       case 26 → 22. Le champ passe de 161 à ~185 px à 390 — le texte respire, les boutons
+       gardent 32 px + le halo de la rangée. */
+    .blk{padding:9px}
+    .li-box{width:22px;height:22px}
   }
   /* MK5-b — « en main » : bandeau d'état + interstices. Les cibles sont PLEINE LARGEUR et
      ≥ 44 px : on pose au doigt, avec des gants, sans viser. */
@@ -2212,16 +2219,21 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .ed-drop.warn:hover{background:var(--verify-soft)}
   .mini.grab{cursor:grab;color:var(--soft)}
   .mini.grab:hover{color:var(--ink)}
-  /* K3 (v4.64.0) — LES OUTILS SUIVENT LE FOCUS. Trois boutons par étape × huit étapes, c'est
-     vingt-quatre cibles pour un écran où l'on écrit UNE ligne à la fois : la rangée △ ⚠ ⠿ ×
-     n'existe donc que sur l'étape ACTIVE. Elle reste atteignable au clavier — `:focus-within`
-     s'ouvre dès que la tabulation entre dans le champ, et les boutons suivent dans l'ordre. */
-  .li-tools{display:none;gap:7px;flex:none}
-  .blk .li:focus-within .li-tools,.blk .li:hover .li-tools{display:inline-flex}
-  /* Sur POINTEUR GROSSIER (tactile), le survol n'existe pas : l'étape active est celle où l'on
-     écrit. On garde donc le focus comme seul déclencheur — et la rangée passe SOUS le champ,
-     là où le pouce l'atteint sans masquer le texte. */
-  @media (hover:none){.blk .li:hover .li-tools{display:none}}
+  /* K3 (v4.66.0) — LES OUTILS SE RÉVÈLENT, ILS N'APPARAISSENT PAS. Signalé à l'usage sur
+     smartphone : « la bande attention/déplacer/supprimer prend beaucoup de place ». Mesuré, elle
+     faisait passer la rangée de 43 à 123 px — et surtout elle POUSSAIT le contenu à l'instant
+     précis où le doigt entrait dans le champ, ce que la doctrine du projet interdit (« rien ne
+     bouge sous le doigt »).
+     Remède : `visibility` et non `display`. L'espace des outils est RÉSERVÉ en permanence, donc
+     la rangée garde EXACTEMENT la même hauteur et le champ la même largeur, focus ou non ; seule
+     l'encre apparaît. Précédent interne : les pilules d'option du mode statique, masquées en
+     `visibility:hidden` précisément pour que l'espace ne se mette pas à osciller.
+     `pointer-events` suit la visibilité — un bouton invisible ne doit pas capter le tap voisin —
+     et le clavier n'est pas lésé : la tabulation entre dans le champ, ce qui révèle la rangée. */
+  .li-tools{display:inline-flex;gap:6px;flex:none;visibility:hidden;pointer-events:none}
+  .blk .li:focus-within .li-tools,.blk .li:hover .li-tools{visibility:visible;pointer-events:auto}
+  @media (hover:none){.blk .li:hover .li-tools{visibility:hidden;pointer-events:none}
+    .blk .li:focus-within .li-tools{visibility:visible;pointer-events:auto}}
   .li-box{flex:none;width:26px;height:26px;border-radius:7px;border:2px solid var(--line-strong);display:grid;place-items:center;color:var(--line-strong);font-size:13px}
   .li.li-crit .li-box{border-color:var(--critical-bd);color:var(--critical)}
   .li.li-vigil .li-box{border-color:var(--verify-bd);color:var(--verify)}
@@ -4212,7 +4224,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.65.0';
+const APP_VERSION='4.66.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -12271,11 +12283,20 @@ function bindEditorEvents(f){
     card.querySelectorAll('[data-crit]').forEach(btn=>btn.onclick=()=>{const i=+btn.dataset.crit;const s=String(b.steps[i]||'');
       b.steps[i]=stepIsCrit(s)?('△ '+stepText(s)):(stepIsVigil(s)?stepText(s):('⚠ '+stepText(s)));renderEditor();});
     /* PRENDRE : le tap sur ⠿ soulève l'objet et réécrit la page en cibles (un seul re-rendu). */
+    /* PRENDRE — ET NE RIEN DÉPLACER SOUS LES YEUX. Signalé à l'usage : « il y a un problème de
+       scroll lorsqu'on clique sur le bouton déplacer ». Mesuré : 326 px de saut. Deux causes
+       cumulées — le re-rendu insère les interstices (la page s'allonge AU-DESSUS du point
+       regardé) et un `scrollIntoView` visait ensuite le bandeau, qui est STICKY donc déjà
+       visible. On ANCRE sur l'objet PRIS (mécanique `keepAnchor`, doctrine ECAM du projet) : il
+       reste exactement où il était, les cibles apparaissent autour de lui. Le bandeau, collant,
+       n'a besoin d'aucun défilement pour se montrer. */
     card.querySelectorAll('[data-grab]').forEach(btn=>btn.onclick=()=>{
       const v=btn.dataset.grab;
-      state.edGrab=v.charAt(0)==='b'?{kind:'b',bid:v.slice(2)}:{kind:'s',bid:b.id,si:+v.slice(2)};
-      renderEditor();
-      const bn=main.querySelector('.ed-grab');if(bn)bn.scrollIntoView({block:'center'});});
+      const bloc=v.charAt(0)==='b';
+      state.edGrab=bloc?{kind:'b',bid:v.slice(2)}:{kind:'s',bid:b.id,si:+v.slice(2)};
+      const anc=bloc?'.blk[data-bid="'+CSS.escape(b.id)+'"]'
+        :'.blk[data-bid="'+CSS.escape(b.id)+'"] .li[data-si="'+(+v.slice(2))+'"]';
+      keepAnchor(anc,renderEditor);});
     if(b.type==='steps'){const ns=card.querySelector('select[data-target]');if(ns)ns.addEventListener('change',e=>{b.next=e.target.value||null;renderEditor();});
       const nl=card.querySelector('[data-bnextlbl]');if(nl)nl.addEventListener('input',e=>{b.nextLbl=e.target.value;});}
     const ao=card.querySelector('[data-addopt]');if(ao)ao.onclick=()=>{b.options.push({label:'',target:''});renderEditor();};
@@ -12308,7 +12329,12 @@ function bindEditorEvents(f){
         const [obj]=src.steps.splice(g.si,1);
         if(src===cible&&g.si<to)to--;
         cible.steps.splice(to,0,obj);}
-      state.edGrab=null;renderEditor();});
+      /* POSER : on ancre sur le bloc RECEVEUR — l'objet vient d'y atterrir, c'est là que le
+         regard est. Sans ancrage, le retrait des interstices raccourcit la page et l'écran
+         remonte d'autant. */
+      const recu=(g.kind==='b')?null:('.blk[data-bid="'+CSS.escape(at.split(':')[1])+'"]');
+      state.edGrab=null;
+      if(recu)keepAnchor(recu,renderEditor);else renderEditor();});
     const bd=card.querySelector('[data-bdel]');if(bd)bd.onclick=()=>{f.blocks=f.blocks.filter(x=>x.id!==bid);f.blocks.forEach(x=>{if(x.next===bid)x.next=null;if(x.options)x.options.forEach(o=>{if(o.target===bid)o.target='';});});if(f.start===bid)f.start=f.blocks[0]?f.blocks[0].id:null;if(!f.blocks.length){const nb={id:uid('b'),type:'steps',title:'Prise en charge',steps:[''],image:null,next:null};f.blocks.push(nb);f.start=nb.id;}renderEditor();};});
   imgInput.onchange=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;const r=await downscale(file);if(!r){toast('⚠ Image illisible.');return;}if(imgMode.kind==='gallery')f.images.push({id:uid('i'),data:r.data,w:r.w,h:r.h,caption:''});else{const b=f.blocks.find(x=>x.id===imgMode.bid);if(b){b.image=r.data;b.imageW=r.w;b.imageH=r.h;}}renderEditor();};
   bindAttEditor(f,renderEditor);   // documents PDF (composant partagé avec l'éditeur de protocole)

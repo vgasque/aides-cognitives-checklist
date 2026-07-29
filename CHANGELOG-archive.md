@@ -1,7 +1,55 @@
-# Journal des modifications — archive (versions 3.0.0 à 4.55.1)
+# Journal des modifications — archive (versions 3.0.0 à 4.55.2)
 
 > Entrées anciennes déplacées depuis [`CHANGELOG.md`](CHANGELOG.md) pour garder le journal
 > courant lisible. Même format (keep-a-changelog).
+
+## [4.55.2] — 2026-07-28
+### Le menu ne suivait pas l'état du partage — et « Prendre la main » n'était nulle part
+
+Trois signalements d'usage, deux causes. La première explique pourquoi la passation semblait sans
+effet : **le geste n'avait pas de porte.**
+
+### Un menu construit au rendu, dans un dispositif qui interdit de rendre
+Les rangées du menu ⋯ sont bâties **au rendu** et stockées telles quelles. Or la règle 3 interdit de
+re-rendre sur évènement distant — c'est elle qui empêche qu'un écran bouge sous le doigt de
+quelqu'un qui coche. Conséquence : « Partage en cours **(n)** » gardait le compte du moment où la
+fiche avait été ouverte, et **« Prendre la main » ne paraissait jamais**, puisqu'une offre arrive
+par le réseau.
+
+On mémorise donc le **constructeur** des rangées, pas seulement son résultat, et on le rejoue quand
+l'état du partage change. Le menu vit dans l'en-tête, hors de `main` : **pas une ligne de la
+checklist ne bouge** — vérifié, le nœud témoin est le même objet avant et après, à 0 px.
+
+Et la rangée elle-même était **au mauvais endroit** : posée dans le menu de l'hôte, où sa condition
+`Share.mode === 'guest'` ne pouvait jamais être vraie. Elle n'existait donc nulle part. Elle vit
+maintenant dans le menu de l'invité, le seul où elle ait un sens.
+
+### Un lien mort qui laissait agir sans rien dire
+Après « Couper », l'invité ne pouvait plus cocher — mais il pouvait encore **incrémenter un
+compteur**. Le geste ne partait pas, et **rien ne le lui disait**. C'est mot pour mot le pire mode
+de défaillance nommé au plan : *« un invité qui continue de cocher dans le vide en croyant
+contribuer à une réanimation en cours »*.
+
+La garde couvrait les gestes **réservés** ; il en manquait une pour le cas où le **lien est mort**,
+qui n'a rien à voir avec le rôle. Toute mutation est désormais refusée et **annoncée** sur `#srLive`
+— seul canal admis pendant un soin (règle 11 : ni modale, ni banderole).
+
+**`detached` n'en fait pas partie, et c'est délibéré** : celui qui a poursuivi seul travaille sur
+*sa* session. Lui refuser ses gestes reviendrait à lui retirer le repli hors dispositif qu'on vient
+de lui donner (AC 120-64 §9.a). Un contrôle l'encode.
+
+### Vérification
+**271/271 contrôles partage** (+8, sur les deux moteurs), 756 tests × 2 moteurs, 14 harnais verts,
+301 contrôles d'accessibilité, 94/94 doctrine. Les trois défauts réintroduits à l'identique en font
+tomber trois ; fichier restauré à l'octet.
+
+Deux sondes ont encore dû être corrigées avant de conclure : l'une cherchait un bouton de compteur
+dans un panneau **replié** — elle ne mesurait rien et concluait que le geste était bloqué ; l'autre
+lisait la zone d'annonce **sans la vider**, et y trouvait le message précédent. Même travers que
+depuis le début de ce chantier : mesurer le mécanisme au lieu de la propriété.
+
+**Rien à rejouer côté serveur.** Restent trois signalements : le bandeau d'en-tête de l'invité, les
+trois défauts de mise en page, et les notifications retenues jusqu'à l'accueil.
 
 ## [4.55.1] — 2026-07-28
 ### CORRECTIF — les assertions ajoutées en v4.55.0 lisaient une table sous le rôle `anon`

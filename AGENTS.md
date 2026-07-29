@@ -1430,6 +1430,18 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   système) ; elle se ferme à l'insertion et l'éditeur se re-rend, sinon la porte demanderait un
   geste pour ouvrir et un autre pour trouver ce qu'elle vient de créer. Les six gestes sont
   intacts : on a supprimé les PORTES, pas les capacités.
+  **DEUX DÉFAUTS D'USAGE SUR SMARTPHONE, SIGNALÉS PUIS MESURÉS (v4.66.0)** : (1) la rangée
+  d'outils **APPARAISSAIT** au focus — 43 → 123 px, et elle poussait le contenu à l'instant précis
+  où le doigt entrait dans le champ, ce que « rien ne bouge sous le doigt » interdit. Elle se
+  RÉVÈLE désormais (`visibility`, pas `display`) : l'espace est réservé en permanence, la hauteur
+  et la largeur ne changent jamais, seule l'encre paraît — précédent interne, les pilules d'option
+  du statique. `pointer-events` suit la visibilité (un bouton invisible ne capte pas le tap
+  voisin). Les pixels rendus au CHAMP sous 400 px viennent du CADRE (rembourrage du bloc 14 → 9,
+  case 26 → 22), jamais d'une cible tactile : 161 → 173 px. (2) **326 px de saut au clic sur
+  « déplacer »** — le re-rendu insère les interstices AU-DESSUS du point regardé, et un
+  `scrollIntoView` visait ensuite le bandeau, qui est STICKY donc déjà visible. Prendre et poser
+  passent par **`keepAnchor`** (mécanique ECAM du projet) : l'objet pris ne bouge plus que de
+  **0,7 px**, le bloc receveur de **0,6 px**. Ne pas réintroduire de `scrollIntoView` ici.
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.

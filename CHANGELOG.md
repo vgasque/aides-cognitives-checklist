@@ -1,5 +1,36 @@
 # Journal des modifications
 
+## [4.66.0] — 2026-07-29
+### Deux défauts d'usage de l'éditeur sur smartphone — signalés, puis mesurés
+
+### La rangée d'outils poussait le contenu
+Signalé : « c'est compliqué sur smartphone, la bande attention/déplacer/supprimer qui apparaît
+prend beaucoup de place ». Mesuré : la rangée faisait passer l'étape de **43 à 123 px** — et
+surtout elle **poussait le contenu à l'instant précis où le doigt entrait dans le champ**, ce que
+la doctrine du projet interdit (« rien ne bouge sous le doigt »).
+
+Les outils se **révèlent** désormais au lieu d'apparaître : `visibility` et non `display`. Leur
+espace est réservé en permanence, donc la hauteur de la rangée et la largeur du champ ne changent
+**jamais** — seule l'encre paraît. C'est le précédent des pilules d'option du mode statique,
+masquées en `visibility:hidden` précisément pour que l'espace cesse d'osciller. `pointer-events`
+suit la visibilité : un bouton invisible ne capte pas le tap voisin.
+
+Les pixels rendus au champ sous 400 px viennent du **cadre** (rembourrage du bloc 14 → 9 px, case
+26 → 22 px), jamais d'une cible tactile — les boutons gardent 32 px. Le champ passe de 161 à
+**173 px**, et la rangée reste à **43 px, focus ou non**.
+
+### Le bouton « déplacer » faisait sauter l'écran de 326 px
+Signalé aussi. Deux causes cumulées : le re-rendu insère les interstices de dépôt **au-dessus** du
+point regardé, et un `scrollIntoView` visait ensuite le bandeau « en main » — qui est *sticky*,
+donc déjà visible sans qu'on défile.
+
+Prendre et poser passent maintenant par **`keepAnchor`**, la mécanique d'ancrage du projet :
+l'objet pris ne bouge plus que de **0,7 px**, le bloc receveur de **0,6 px**. Les cibles
+apparaissent autour de ce que l'auteur regarde, au lieu de l'emporter ailleurs.
+
+Vérifié : 794 tests × 2 moteurs, a11y 301/301, doctrine 112/112, aucun débordement horizontal à
+390 px. Rien à rejouer côté serveur.
+
 ## [4.65.0] — 2026-07-29
 ### La porte « + » — une seule, et chaque type se présente
 
@@ -715,51 +746,3 @@ restauré à l'octet.
 756 tests × 2 moteurs, 14 harnais verts, 301 contrôles d'accessibilité, 271/271 partage.
 **Rien à rejouer côté serveur.** Restent deux signalements : le bandeau d'en-tête de l'invité et les
 notifications retenues jusqu'à l'accueil.
-
-## [4.55.2] — 2026-07-28
-### Le menu ne suivait pas l'état du partage — et « Prendre la main » n'était nulle part
-
-Trois signalements d'usage, deux causes. La première explique pourquoi la passation semblait sans
-effet : **le geste n'avait pas de porte.**
-
-### Un menu construit au rendu, dans un dispositif qui interdit de rendre
-Les rangées du menu ⋯ sont bâties **au rendu** et stockées telles quelles. Or la règle 3 interdit de
-re-rendre sur évènement distant — c'est elle qui empêche qu'un écran bouge sous le doigt de
-quelqu'un qui coche. Conséquence : « Partage en cours **(n)** » gardait le compte du moment où la
-fiche avait été ouverte, et **« Prendre la main » ne paraissait jamais**, puisqu'une offre arrive
-par le réseau.
-
-On mémorise donc le **constructeur** des rangées, pas seulement son résultat, et on le rejoue quand
-l'état du partage change. Le menu vit dans l'en-tête, hors de `main` : **pas une ligne de la
-checklist ne bouge** — vérifié, le nœud témoin est le même objet avant et après, à 0 px.
-
-Et la rangée elle-même était **au mauvais endroit** : posée dans le menu de l'hôte, où sa condition
-`Share.mode === 'guest'` ne pouvait jamais être vraie. Elle n'existait donc nulle part. Elle vit
-maintenant dans le menu de l'invité, le seul où elle ait un sens.
-
-### Un lien mort qui laissait agir sans rien dire
-Après « Couper », l'invité ne pouvait plus cocher — mais il pouvait encore **incrémenter un
-compteur**. Le geste ne partait pas, et **rien ne le lui disait**. C'est mot pour mot le pire mode
-de défaillance nommé au plan : *« un invité qui continue de cocher dans le vide en croyant
-contribuer à une réanimation en cours »*.
-
-La garde couvrait les gestes **réservés** ; il en manquait une pour le cas où le **lien est mort**,
-qui n'a rien à voir avec le rôle. Toute mutation est désormais refusée et **annoncée** sur `#srLive`
-— seul canal admis pendant un soin (règle 11 : ni modale, ni banderole).
-
-**`detached` n'en fait pas partie, et c'est délibéré** : celui qui a poursuivi seul travaille sur
-*sa* session. Lui refuser ses gestes reviendrait à lui retirer le repli hors dispositif qu'on vient
-de lui donner (AC 120-64 §9.a). Un contrôle l'encode.
-
-### Vérification
-**271/271 contrôles partage** (+8, sur les deux moteurs), 756 tests × 2 moteurs, 14 harnais verts,
-301 contrôles d'accessibilité, 94/94 doctrine. Les trois défauts réintroduits à l'identique en font
-tomber trois ; fichier restauré à l'octet.
-
-Deux sondes ont encore dû être corrigées avant de conclure : l'une cherchait un bouton de compteur
-dans un panneau **replié** — elle ne mesurait rien et concluait que le geste était bloqué ; l'autre
-lisait la zone d'annonce **sans la vider**, et y trouvait le message précédent. Même travers que
-depuis le début de ce chantier : mesurer le mécanisme au lieu de la propriété.
-
-**Rien à rejouer côté serveur.** Restent trois signalements : le bandeau d'en-tête de l'invité, les
-trois défauts de mise en page, et les notifications retenues jusqu'à l'accueil.

@@ -1892,11 +1892,18 @@
   .blk .li .mini{width:38px;height:38px}
   /* Sous 400 px, les outils passent SOUS le champ plutôt que de le comprimer : une étape se lit
      et s'écrit avant de se déplacer, et le champ est ce qu'on manipule le plus. */
+  /* Sous 400 px, les outils se compactent (32 px, écart 5) pour rendre de la largeur au CHAMP —
+     jamais un retour à la ligne, qui reviendrait à faire sauter le contenu. 32 px de bouton avec
+     le halo de la rangée reste au-dessus du plancher de cible hors crise. */
   @media (max-width:399.98px){
-    .blk .li:focus-within,.blk .li:hover{flex-wrap:wrap}
-    .blk .li:focus-within input[type=text],.blk .li:hover input[type=text]{flex:1 1 100%;order:1}
-    .blk .li .li-box{order:0}
-    .blk .li .li-tools{order:2;margin-left:34px}
+    .li-tools{gap:4px}
+    .blk .li .mini{width:32px;height:32px}
+    .blk .li{gap:5px}
+    /* Les pixels rendus au CHAMP viennent du cadre, pas des cibles : rembourrage du bloc 14 → 9,
+       case 26 → 22. Le champ passe de 161 à ~185 px à 390 — le texte respire, les boutons
+       gardent 32 px + le halo de la rangée. */
+    .blk{padding:9px}
+    .li-box{width:22px;height:22px}
   }
   /* MK5-b — « en main » : bandeau d'état + interstices. Les cibles sont PLEINE LARGEUR et
      ≥ 44 px : on pose au doigt, avec des gants, sans viser. */
@@ -1927,16 +1934,21 @@
   .ed-drop.warn:hover{background:var(--verify-soft)}
   .mini.grab{cursor:grab;color:var(--soft)}
   .mini.grab:hover{color:var(--ink)}
-  /* K3 (v4.64.0) — LES OUTILS SUIVENT LE FOCUS. Trois boutons par étape × huit étapes, c'est
-     vingt-quatre cibles pour un écran où l'on écrit UNE ligne à la fois : la rangée △ ⚠ ⠿ ×
-     n'existe donc que sur l'étape ACTIVE. Elle reste atteignable au clavier — `:focus-within`
-     s'ouvre dès que la tabulation entre dans le champ, et les boutons suivent dans l'ordre. */
-  .li-tools{display:none;gap:7px;flex:none}
-  .blk .li:focus-within .li-tools,.blk .li:hover .li-tools{display:inline-flex}
-  /* Sur POINTEUR GROSSIER (tactile), le survol n'existe pas : l'étape active est celle où l'on
-     écrit. On garde donc le focus comme seul déclencheur — et la rangée passe SOUS le champ,
-     là où le pouce l'atteint sans masquer le texte. */
-  @media (hover:none){.blk .li:hover .li-tools{display:none}}
+  /* K3 (v4.66.0) — LES OUTILS SE RÉVÈLENT, ILS N'APPARAISSENT PAS. Signalé à l'usage sur
+     smartphone : « la bande attention/déplacer/supprimer prend beaucoup de place ». Mesuré, elle
+     faisait passer la rangée de 43 à 123 px — et surtout elle POUSSAIT le contenu à l'instant
+     précis où le doigt entrait dans le champ, ce que la doctrine du projet interdit (« rien ne
+     bouge sous le doigt »).
+     Remède : `visibility` et non `display`. L'espace des outils est RÉSERVÉ en permanence, donc
+     la rangée garde EXACTEMENT la même hauteur et le champ la même largeur, focus ou non ; seule
+     l'encre apparaît. Précédent interne : les pilules d'option du mode statique, masquées en
+     `visibility:hidden` précisément pour que l'espace ne se mette pas à osciller.
+     `pointer-events` suit la visibilité — un bouton invisible ne doit pas capter le tap voisin —
+     et le clavier n'est pas lésé : la tabulation entre dans le champ, ce qui révèle la rangée. */
+  .li-tools{display:inline-flex;gap:6px;flex:none;visibility:hidden;pointer-events:none}
+  .blk .li:focus-within .li-tools,.blk .li:hover .li-tools{visibility:visible;pointer-events:auto}
+  @media (hover:none){.blk .li:hover .li-tools{visibility:hidden;pointer-events:none}
+    .blk .li:focus-within .li-tools{visibility:visible;pointer-events:auto}}
   .li-box{flex:none;width:26px;height:26px;border-radius:7px;border:2px solid var(--line-strong);display:grid;place-items:center;color:var(--line-strong);font-size:13px}
   .li.li-crit .li-box{border-color:var(--critical-bd);color:var(--critical)}
   .li.li-vigil .li-box{border-color:var(--verify-bd);color:var(--verify)}
