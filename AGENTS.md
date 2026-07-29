@@ -1327,6 +1327,42 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   retombe sur Georgia — voulu : un document autonome ne dépend d'aucun serveur. **PIÈGE `sw.js`**
   rencontré : `check-sw` lit les chaînes d'`ASSETS` littéralement — un commentaire À L'INTÉRIEUR
   du tableau est pris pour une entrée de cache (25 faux problèmes) ; il vit donc au-dessus.
+- **I4 — UNE SEULE GRAMMAIRE DE PROGRESSION (v4.62.0, décision utilisateur)** : guidé, journal et
+  mode lecteur ne sont plus trois surfaces mais **une grammaire à trois densités**.
+  **POURQUOI, ET C'EST DOCTRINAL** (argumentaire de l'utilisateur, retenu tel quel) : **ECAM** —
+  l'affichage Airbus repose sur UN format unique pour tous les états ; le pilote n'apprend pas
+  trois écrans, il apprend UNE grammaire qui se décline. Trois surfaces de progression, c'est
+  l'anti-ECAM : trois cartographies mentales pour la même information ; harmonisées, celui qui a
+  appris l'écran hôte SAIT déjà lire l'écran invité. **QRH** — un manuel n'a qu'UNE mise en page
+  de checklist : celui qui LIT et celui qui EXÉCUTE regardent le MÊME document, et c'est ce qui
+  rend possible le cross-check à voix haute (« bloc 2, ligne 2 ») ; si le lecteur voit une autre
+  structure que l'hôte, la vérification croisée se désynchronise. **FAA (facteurs humains)** — la
+  MODE CONFUSION naît d'un même écran qui se comporte différemment selon le mode SANS signal
+  univoque ; la réponse canonique est structure CONSTANTE + annonciateur saillant, pas des écrans
+  différents. Ici l'interactivité et le placard changent, la structure jamais.
+  **ET L'ARGUMENT D'INGÉNIERIE** : trois surfaces = trois endroits où un correctif peut diverger.
+  Ce fichier a payé DEUX FOIS — les copies du cœur de cochage avaient divergé (v4.42.0), et un
+  invité scribe CONDUISAIT la checklist depuis le lecteur parce que ses verbes portaient d'autres
+  noms (v4.55.0). **CE QUI EST DÉSORMAIS UNIQUE** : (1) `applyCheck` — LE point d'écriture de
+  `state.checked` (garde de rôle, trace do-verify, haptique, drapeau de fin) ; les trois appelants
+  ne font plus que PEINDRE. (2) Le **vocabulaire** : le lecteur ÉMET `data-ovnext`, `data-ovopt`,
+  `data-cxback` — plus de synonymes, donc plus de liste de gardes à tenir en double ; `data-rmok`
+  et `data-rmgap` restent propres à la passe challenge-réponse (pas de jumeau ailleurs).
+  (3) La **structure** : `stepsListHtml` génère l'unique `ol.steps > li[data-ck]`, la trace de
+  vérification comprise — elle était écrite trois fois et avait déjà divergé (le journal peignait
+  la trace, la vue guidée non). Le lecteur en est la **densité** `.rm-steps` : bloc entier, ligne
+  courante en 22 px sur `.cur-step` — modèle **ECL Boeing** (liste entière + curseur), que
+  l'audit v4.28.0 opposait déjà au un-item-à-la-fois (perdre sa place est un mode de défaillance
+  premier, Degani & Wiener). **SUPPRIMÉS avec la structure qui les exigeait** (règle 14) :
+  `.rm-r` (la réponse vit dans la pilule de la ligne) et `.rm-ctx` (le contexte « précédent /
+  suivant » était une reconstruction manuelle de ce que la liste donne).
+  **DEUX PIÈGES VÉCUS** : (a) `applyCheck` remet `state.flowEnded` à false, donc le test
+  « la fin était actée, il faut re-rendre » de la vue guidée ne se déclenchait plus jamais — il
+  faut capturer l'état AVANT l'appel (le journal, lui, teste la PRÉSENCE de `.flow-end` dans le
+  DOM, il y était insensible) ; `audit-doctrine` l'a attrapé. (b) `data-rmopt` était un
+  **HOMONYME** : « reader option » dans le lecteur, « remove option » dans l'éditeur — et
+  `[data-rmopt]` figurant dans `MUTE_SEL`, le bouton « supprimer une réponse » de l'ÉDITEUR était
+  bridé en mode invité. Renommé `data-optdel` (leçon « collision de noms », v4.23.2).
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.

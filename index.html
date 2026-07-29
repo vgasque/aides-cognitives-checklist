@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-3xAe838IlseuqLDtLtb1d+retESgBYlXTKnm8Uds0KY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-9pw2W9QottBPVRMUEzM0riFtHfpvb59uaCI0vIMlGsA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1922,14 +1922,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     box-shadow:none;cursor:not-allowed;font-weight:600}
   /* HUITIÈME PIÈGE DE CASCADE DU PROJET, ET LE SECOND PAR SPÉCIFICITÉ. Le bouton « Continuer » du
      lecteur porte la classe `.rm-ok` et se style par `#readerMode .rm-ok` — soit (1,1,0), un ID :
-     il l'emportait sur `body.share-scribe :is([data-rmnext])`, qui vaut (0,2,1). Le geste était
+     il l'emportait sur `body.share-scribe :is([data-ovnext])`, qui vaut (0,2,1). Le geste était
      bien bloqué par la garde, mais le bouton restait vert plein, 72 px, graisse 800 — c'est-à-dire
      qu'il INVITAIT à un geste refusé. Le bridage doit se VOIR, sinon il n'est qu'un piège.
      La parade est la même que pour la géométrie : ne jamais dépendre de l'ordre ni d'une
      spécificité de classe quand un `#id` est en jeu — on qualifie par le même `#id`. */
   /* Le lecteur n'a plus AUCUN contrôle bridé depuis le redécoupage v4.55.0 — mais la leçon de
      cascade reste écrite ici : `#readerMode .rm-ok` porte un ID (1,1,0) et l'emportait sur
-     `body.share-scribe :is([data-rmnext])` (0,2,1). Le geste était bloqué, le bouton restait vert
+     `body.share-scribe :is([data-ovnext])` (0,2,1). Le geste était bloqué, le bouton restait vert
      plein et INVITAIT à un geste refusé. Huitième piège du projet, second par SPÉCIFICITÉ. Si un
      verbe du lecteur redevient réservé un jour, il faudra le qualifier par le même `#id`. */
   body.share-scribe #readerMode :is([data-tmreset],[data-cnreset]){
@@ -2548,7 +2548,19 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #readerMode .rm-ch{font-size:26px;font-weight:800;line-height:1.25;text-align:center;color:var(--ink);margin:0}
   #readerMode .rm-ch.crit{color:var(--critical)}
   #readerMode .rm-ch.vig{color:var(--verify)}
-  #readerMode .rm-r{font-family:var(--mono);font-size:20px;font-weight:600;color:var(--link);background:var(--primary-soft);border-radius:12px;padding:14px;margin:16px 0 0;text-align:center;line-height:1.35}
+  /* I4 (v4.62.0) — DENSITÉ « LECTEUR » : la liste est celle de la page (`ol.steps > li[data-ck]`),
+     seuls les CORPS changent. La ligne courante domine (22 px, encre pleine, fond d'accent) ; les
+     autres restent lisibles au-dessus et au-dessous — c'est le contexte que le lecteur
+     reconstruisait à la main, et le modèle ECL : liste entière + curseur. */
+  #readerMode .rm-steps{margin:0 0 4px;max-height:none}
+  #readerMode .rm-steps li{min-height:64px;font-size:17px;opacity:.62}
+  #readerMode .rm-steps li .txt{font-size:17px}
+  #readerMode .rm-steps li.cur-step{opacity:1;background:var(--primary-soft);border-radius:12px;padding-left:12px;padding-right:12px}
+  #readerMode .rm-steps li.cur-step .txt{font-size:22px;font-weight:800;line-height:1.25}
+  #readerMode .rm-steps li.cur-step .stp-r{font-size:18px;padding:4px 12px}
+  #readerMode .rm-steps li.done{opacity:.42}
+  /* (`.rm-r` supprimée en v4.62.0 avec le paragraphe isolé du lecteur — la réponse attendue vit
+     dans la pilule `.stp-r` de la ligne, agrandie par la densité. Règle 14.) */
   #readerMode .rm-sp{flex:1;min-height:14px}
   #readerMode .rm-ok{width:100%;min-height:72px;border:0;border-radius:12px;background:var(--ok);color:var(--surface);font-size:18px;font-weight:800;letter-spacing:.3px;cursor:pointer;font-family:inherit;padding:10px}
   #readerMode .rm-ok.idle{background:transparent;border:2px solid var(--verify-bd);color:var(--verify)}
@@ -2580,8 +2592,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #readerMode .rm-nd{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--line-strong);display:inline-flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:800;color:var(--ink-soft);font-variant-numeric:tabular-nums}
   #readerMode .rm-nd.ok{border-color:var(--ok);background:var(--ok);color:var(--surface)}
   #readerMode .rm-nd.cur{border-color:var(--primary);background:var(--primary);color:var(--on-primary)}
-  #readerMode .rm-ctx{font-size:13px;color:var(--ink-soft);text-align:center;margin:0 0 12px;line-height:1.35}
-  #readerMode .rm-ctx.next{margin:14px 0 0}
+  /* (`.rm-ctx` supprimée en v4.62.0 : le contexte « précédent / suivant » était une
+     reconstruction manuelle — la liste le donne par construction. Règle 14.) */
   #readerMode .rm-cx{flex:none;position:relative;min-height:36px;border:1.5px solid var(--critical-bd);border-radius:9px;background:var(--surface);color:var(--critical);font-size:12px;font-weight:800;cursor:pointer;padding:0 10px;font-family:inherit}
   #readerMode .rm-cx::after{content:"";position:absolute;inset:-5px}
   #readerMode .rm-time.exo{color:var(--primary-dk)}
@@ -4084,7 +4096,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.61.0';
+const APP_VERSION='4.62.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -8844,6 +8856,39 @@ function shareBootDecide(){
    `toast()` est de toute façon mis en attente. Le refus s'annonce donc sur `#srLive` (invisible à
    l'écran, audible au lecteur d'écran) et se VOIT sur la ligne elle-même, qui ne change pas
    d'état. Rien ne bouge, rien ne saute : la géométrie est identique refus ou non. */
+/* ═══ I4 (v4.62.0) — UNE SEULE GRAMMAIRE DE PROGRESSION : LE CŒUR ═══════════════════════════
+   POURQUOI, ET C'EST DOCTRINAL (décision utilisateur, argumentaire retenu tel quel) :
+     · ECAM — l'affichage d'Airbus repose sur UN format unique pour tous les états : le pilote
+       n'apprend pas trois écrans, il apprend UNE grammaire (position fixe, registres, priorités)
+       qui se décline. Trois surfaces de progression, c'est l'anti-ECAM — trois cartographies
+       mentales pour la même information. Harmonisées, celui qui a appris l'écran hôte SAIT déjà
+       lire l'écran invité.
+     · QRH — un manuel n'a qu'UNE mise en page de checklist, quel que soit le lecteur : celui qui
+       LIT et celui qui EXÉCUTE regardent le MÊME document, et c'est ce qui rend possible le
+       cross-check à voix haute (« bloc 2, ligne 2 »). Si le lecteur voit une autre structure que
+       l'hôte, la vérification croisée se désynchronise.
+     · FAA (facteurs humains) — la MODE CONFUSION naît d'un même écran qui se comporte
+       différemment selon le mode SANS signal univoque. La réponse canonique est : structure
+       CONSTANTE + annonciateur de mode saillant — pas des écrans différents. Ici l'interactivité
+       et le placard changent ; la structure, jamais.
+   ET L'ARGUMENT D'INGÉNIERIE QUI EN DÉCOULE : trois surfaces = trois endroits où un correctif
+   peut diverger. Ce n'est pas théorique — ce fichier a payé DEUX FOIS : les copies du cœur de
+   cochage avaient divergé en v4.42.0, et en v4.55.0 un invité scribe CONDUISAIT la checklist
+   depuis le lecteur parce que ses verbes portaient d'autres noms (`data-rmnext` au lieu de
+   `data-ovnext`) et échappaient donc à la liste des gestes réservés.
+   `applyCheck` est LE point d'écriture de `state.checked`. Il porte la garde de rôle, la trace
+   do-verify, l'acquittement haptique, le démarrage de session et l'enregistrement. Les trois
+   appelants (guidé, journal, lecteur) ne font plus que PEINDRE ce qu'il a décidé. */
+function applyCheck(k,on){
+  if(!canToggleStep(on)){refuseStep(on);return false;}
+  tick();   // D10 : acquittement haptique du geste accompli
+  state.checked[k]=on;
+  /* Un geste MANUEL rend la trace de vérification caduque : cocher lève l'écart (il est résolu),
+     décocher retire la constatation (elle ne décrit plus l'état). La trace doit refléter ce qui a
+     été CONSTATÉ, jamais un souvenir périmé. */
+  if(on){delete state.vgaps[k];}else{delete state.verified[k];}
+  if(!on)state.flowEnded=false;
+  return true;}
 function canToggleStep(on){
   try{
     if(Share.mode!=='guest')return true;
@@ -8866,18 +8911,19 @@ function refuseStep(on){
    écart, INCRÉMENTER un compteur, ARMER un minuteur, poser et annuler un repère horodaté.
    INCRÉMENTER MAIS PAS REMETTRE À ZÉRO n'est pas une subtilité : ajouter est additif et
    réversible par le journal, remettre à zéro DÉTRUIT un décompte que personne ne peut restituer. */
-/* LE MODE LECTEUR PARLE UN VOCABULAIRE PARALLÈLE, ET IL MANQUAIT (v4.55.0). `data-rmnext`
-   (avancer, terminer) et `data-rmopt` (choisir une branche) sont les MÊMES verbes que `data-ovnext`
-   et `data-ovopt` sous d'autres noms : un invité scribe conduisait donc la checklist depuis le
-   lecteur alors que la page la lui refusait. Ce n'était pas un défaut de PORTÉE — la garde en
-   capture atteint bien `#readerMode`, prouvé en contre-épreuve en injectant `data-plgo` sur un
-   bouton du lecteur, qui devient aussitôt bridé — mais un défaut de PRÉDICAT : la liste ne les
-   nommait pas. `data-cxback` (reprendre après une complication) rejoint la liste par prévoyance :
-   il est inerte aujourd'hui côté invité, il ne le restera pas.
-   NE PAS y mettre `data-rmok`, `data-rmgap` ni `data-rmprev` : constater, signaler un écart et
-   revenir en arrière SONT les verbes du scribe — c'est même toute sa raison d'être. */
+/* LE VOCABULAIRE PARALLÈLE DU LECTEUR N'EXISTE PLUS (I4, v4.62.0). Il avait coûté un incident :
+   `data-rmnext` (avancer, terminer) et `data-rmopt` (choisir une branche) étaient les MÊMES
+   verbes que `data-ovnext` et `data-ovopt` sous d'autres noms, et un invité scribe conduisait
+   donc la checklist depuis le lecteur alors que la page la lui refusait (v4.55.0). Ce n'était pas
+   un défaut de PORTÉE — la garde en capture atteint bien `#readerMode` — mais de PRÉDICAT : la
+   liste ne les nommait pas. On a d'abord ajouté les noms manquants ; on SUPPRIME maintenant le
+   besoin de s'en souvenir — le lecteur ÉMET les verbes du journal. Un verbe ajouté demain sera
+   couvert des deux côtés d'office, parce qu'il n'y a plus de « deux côtés ».
+   `data-rmok` et `data-rmgap` RESTENT propres au lecteur, et c'est délibéré : ce sont les gestes
+   de la passe challenge-réponse (« Répondu », « Écart »), OUVERTS au scribe — c'est même toute
+   sa raison d'être. Ils ne sont pas des synonymes d'un verbe du journal, donc rien à fusionner. */
 /* NE RESTENT QUE LES GESTES DESTRUCTEURS. `[data-ovnext]`, `[data-ovopt]`, `[data-plgo]`,
-   `[data-svgo]`, `[data-svref]`, `[data-rmnext]`, `[data-rmopt]`, `[data-rmback]`, `[data-cxback]`
+   `[data-svgo]`, `[data-svref]`, `[data-cxback]`
    et `[data-ovredo]` en SORTENT (v4.55.0) : naviguer, choisir une branche, refaire un passage et
    reprendre après une complication sont tous append-only. Le scribe relaie une consigne — « pause
    le minuteur, il reprend un rythme » — sans que le médecin ait à reprendre son téléphone.
@@ -8896,7 +8942,7 @@ const LEAD_ONLY_SEL='[data-tmreset],[data-cnreset]';
    « cocher dans le vide en croyant contribuer ». */
 const MUTE_SEL='[data-ck],[data-cninc],[data-cndec],[data-cnreset],[data-tmtoggle],[data-tmreset],'
   +'[data-ovnext],[data-ovend],[data-ovredo],[data-ovopt],[data-plgo],[data-svgo],[data-svref],'
-  +'[data-rmok],[data-rmgap],[data-rmnext],[data-rmopt],[data-rmback],[data-cxback],'
+  +'[data-rmok],[data-rmgap],[data-cxback],'
   +'[data-ovverify],[data-ovvok],[data-ovvgap],[data-tkdel],[data-tktime],#tkAdd';
 /* `detached` N'EN EST PAS : celui qui a poursuivi seul travaille sur SA session, et lui refuser ses
    gestes serait lui retirer le repli hors dispositif qu'on vient de lui donner (AC 120-64 §9.a). */
@@ -9585,7 +9631,7 @@ function navSection(f){
         ?`<div class="flow-end">Algorithme terminé — surveillance en cours</div>`
         :(atTip?`<button class="btn cont ${allDone?'okay':'idle'}" id="navNext" data-contlbl="${esc(goLbl)}"${allDone?'':' aria-disabled="true"'}>${esc(contLbl)}</button>`:histBtn);
       blockDone=done;blockTot=steps.length;
-      navHtml=`<div class="nav-wrap"><div class="node-title">Bloc · ${esc(blk.title)||'Étapes'}${passTag} — <span id="ntCount">${done}/${steps.length}</span> coché</div>${imgH}<ol class="steps">${steps.map((s,i)=>{const k=curSeq+':'+blk.id+':'+i;return `<li data-ck="${esc(k)}" class="${stepIsCrit(s)?'crit ':(stepIsVigil(s)?'vigil ':'')}${state.checked[k]?'done':''}" role="checkbox" aria-checked="${state.checked[k]?'true':'false'}" tabindex="0"><span class="box">${state.checked[k]?uiIcon('check',19,{sw:3,cls:''}):''}</span>${stepTxtHtml(s,{mark:true})}</li>`;}).join('')}</ol><div class="flow-ctrl">${fwdc}</div>${cxAll(f).length?cxRowHtml(cxAll(f)):''}</div>`;}}
+      navHtml=`<div class="nav-wrap"><div class="node-title">Bloc · ${esc(blk.title)||'Étapes'}${passTag} — <span id="ntCount">${done}/${steps.length}</span> coché</div>${imgH}${stepsListHtml(steps,curSeq,blk.id)}<div class="flow-ctrl">${fwdc}</div>${cxAll(f).length?cxRowHtml(cxAll(f)):''}</div>`;}}
   return {blk,cur,atTip,crumbsH,navHtml,navRowH,blockDone,blockTot};}
 // Sous-titre du panneau « Algorithme » : compteur n/total quand le bloc courant est cochable —
 // partagé entre le rendu complet (renderRead) et la mise à jour ciblée (renderNavOnly).
@@ -10104,10 +10150,12 @@ function bindNavEvents(f,blk){
   // la ligne d'étape elle-même (vérifié) -> rien d'autre à rafraîchir. Exception : la toute
   // première action démarre la session (le bandeau apparaît) -> re-rendu complet, une seule fois.
   main.querySelectorAll('[data-ck]').forEach(li=>{const tgl=kb=>{const k=li.dataset.ck;const on=!state.checked[k];
-    if(!canToggleStep(on)){refuseStep(on);return;}   // prédicat UNIQUE, cf. ovToggleStep
-    tick();   // D10 : acquittement haptique du geste accompli
-    state.checked[k]=on;
-    if(on){delete state.vgaps[k];}else{delete state.verified[k];}   // cf. ovToggleStep : trace caduque
+    /* `applyCheck` remet lui-même `state.flowEnded` à false : on capture l'état AVANT, sinon la
+       condition « la fin était actée, il faut re-rendre » ne se déclenche plus jamais — c'est
+       exactement la régression qu'`audit-doctrine` a attrapée en centralisant le cœur (le
+       journal, lui, teste la PRÉSENCE de la bannière dans le DOM, donc il y était insensible). */
+    const finAvant=state.flowEnded;
+    if(!applyCheck(k,on))return;   // I4 : cœur UNIQUE — garde de rôle, trace, haptique, drapeau de fin
     const justStarted=ensureStarted();persistLive(Runtime);
     if(justStarted){renderKeepAnchor('[data-ck="'+CSS.escape(k)+'"]');if(kb){const nl=main.querySelector('[data-ck="'+CSS.escape(k)+'"]');if(nl)nl.focus();}return;}
     li.classList.toggle('done',on);li.setAttribute('aria-checked',on?'true':'false');
@@ -10123,7 +10171,7 @@ function bindNavEvents(f,blk){
     // l'écran après décochage, et « Terminer l'algorithme » ne revenait pas. Le journal, lui,
     // faisait les deux — c'est la divergence que la duplication de ce cœur de cochage a laissé
     // s'installer. Re-rendu ANCRÉ : l'étape tapée ne bouge pas d'un pixel (doctrine ECAM).
-    if(!on&&state.flowEnded){state.flowEnded=false;
+    if(!on&&finAvant){
       renderKeepAnchor('[data-ck="'+CSS.escape(k)+'"]');
       if(kb){const nl=main.querySelector('[data-ck="'+CSS.escape(k)+'"]');if(nl)nl.focus();}
       return;}
@@ -10276,15 +10324,10 @@ function ovInstHtml(f,id,idx,topo,pres){
       bodyH=`<div class="v-hint">Vérification — lisez le challenge, constatez l'état réel</div>${tally}${rows}${act}`;
       count=vi+'/'+steps.length;}
     else{
-    const lis=steps.map((s,i)=>{const k=seq+':'+id+':'+i;const ck=!!state.checked[k];
-      // TRACE DE VÉRIFICATION (v4.23.0) : une passe Do-Verify laisse une marque DURABLE et lisible —
-      // « ✓✓ constaté » (observé) ou « △ écart » (constaté absent) — MÊME libellé que pendant la
-      // passe (v4.25.2) : deux mots pour un état, c'est ce qu'AC 120-71B proscrit. Sans elle, la
-      // vérification ne produisait aucun résultat consultable une fois terminée.
-      const vg=!!(state.vgaps||{})[k],vv=!vg&&!!(state.verified||{})[k];
-      const tag=vg?'<span class="stp-vf gap" title="Écart constaté pendant la vérification">△ écart</span>'
-        :(vv?'<span class="stp-vf ok" title="Constaté pendant la vérification">✓✓ constaté</span>':'');
-      return `<li data-ck="${esc(k)}" class="${stepIsCrit(s)?'crit ':(stepIsVigil(s)?'vigil ':'')}${ck?'done':''}${vg?' vgap':''}" role="checkbox" aria-checked="${ck?'true':'false'}" tabindex="0"><span class="box">${ck?uiIcon('check',19,{sw:3,cls:''}):''}</span>${stepTxtHtml(s,{mark:true})}${tag}</li>`;}).join('');
+    /* I4 : la liste vient du générateur UNIQUE (`stepsListHtml`) — elle était écrite ici, dans
+       la vue guidée et, sous une troisième forme, dans le lecteur. La TRACE de vérification
+       (« ✓✓ constaté » / « △ écart », v4.23.0) y est portée pour les trois. */
+    const listeH=stepsListHtml(steps,seq,id);
     let ctl='';
     if(tip){const nxt=b.next?f.blocks.find(x=>x.id===b.next):null;
       const allDone=steps.length===0?true:dn>=steps.length;
@@ -10306,7 +10349,7 @@ function ovInstHtml(f,id,idx,topo,pres){
          ctl+=`<div class="flow-ctrl"><button type="button" class="btn cont okay" data-cxback="${esc(cxb.id)}">↩ Reprendre — ${esc((bb&&bb.title)||'le parcours')} →</button></div>`;}
        const cxs=cxAll(f);
        if(cxs.length)ctl+=cxRowHtml(cxs);}}
-    bodyH=`${imgH}<ol class="steps">${lis}</ol>${ctl}`;
+    bodyH=`${imgH}${listeH}${ctl}`;
     count=steps.length?dn+'/'+steps.length:'—';}}
   const takenH=taken?`<span class="ov-ans">→ ${esc(stripBold(taken.label)||'option')}</span>`:'';
   // Boutons d'en-tête : en vérification -> ✕ seulement ; sinon « Lecteur » (bout du journal,
@@ -10822,23 +10865,34 @@ function sharePaintLive(f,e){
     const m=(Runtime.events||[]).find(x=>x.id===p.id);if(!m)return false;
     m.voidAt=p.on?(+p.t||Share.now()):null;renderTkOnly();return true;}
   return false;}
+/* I4 (v4.62.0) — LA LISTE D'ÉTAPES N'EST ÉCRITE QU'UNE FOIS. Elle l'était TROIS : dans la vue
+   guidée, dans le journal, et le lecteur en produisait une variante encore différente (un
+   paragraphe, pas une liste). Trois écritures, donc trois occasions de diverger — et elles
+   avaient déjà divergé : le journal peignait la trace do-verify (« ✓✓ constaté », « △ écart »),
+   la vue guidée non, pour la même donnée. Ce générateur est le SURENSEMBLE : la trace apparaît
+   partout où l'étape apparaît.
+   `opts.cur` (index de la ligne courante) sert la densité LECTEUR : même DOM, même verbe
+   `data-ck`, même registre — seule la mise en avant change, par une classe. */
+function stepsListHtml(steps,seq,blockId,opts){opts=opts||{};
+  const lis=steps.map((st,i)=>{const k=seq+':'+blockId+':'+i;
+    const ck=!!state.checked[k];
+    const vg=!!(state.vgaps||{})[k],vv=!vg&&!!(state.verified||{})[k];
+    const tag=vg?'<span class="stp-vf gap" title="Écart constaté pendant la vérification">△ écart</span>'
+      :(vv?'<span class="stp-vf ok" title="Constaté pendant la vérification">✓✓ constaté</span>':'');
+    const cls=(stepIsCrit(st)?'crit ':(stepIsVigil(st)?'vigil ':''))+(ck?'done':'')+(vg?' vgap':'')
+      +((opts.cur===i)?' cur-step':'');
+    return `<li data-ck="${esc(k)}" class="${cls}" role="checkbox" aria-checked="${ck?'true':'false'}" tabindex="0"><span class="box">${ck?uiIcon('check',19,{sw:3,cls:''}):''}</span>${stepTxtHtml(st,{mark:true})}${tag}</li>`;}).join('');
+  return `<ol class="steps${opts.cls?' '+opts.cls:''}">${lis}</ol>`;}
 function ovToggleStep(f,li,kb){
   const k=li.dataset.ck;
   const sec=li.closest('.ov-block');
   const on=!state.checked[k];
-  if(!canToggleStep(on)){refuseStep(on);return false;}   // MÊME prédicat que la copie du guidé
-  tick();   // D10 : acquittement haptique du geste accompli
-  state.checked[k]=on;
-  /* Un geste MANUEL rend la trace de vérification caduque : cocher lève l'écart (il est résolu),
-     décocher retire la constatation (elle ne décrit plus l'état). La trace doit refléter ce qui a
-     été CONSTATÉ, jamais un souvenir périmé. */
-  if(on){delete state.vgaps[k];}else{delete state.verified[k];}
+  if(!applyCheck(k,on))return false;   // I4 : cœur UNIQUE (cf. applyCheck)
   const justStarted=ensureStarted();persistLive(Runtime);
   if(justStarted){renderKeepAnchor('[data-ck="'+CSS.escape(k)+'"]');if(kb){const nl=main.querySelector('[data-ck="'+CSS.escape(k)+'"]');if(nl)nl.focus();}return;}
   li.classList.toggle('done',on);li.setAttribute('aria-checked',on?'true':'false');
   const box=li.querySelector('.box');if(box)box.innerHTML=on?uiIcon('check',19,{sw:3,cls:''}):'';
   paintStepTrace(li,k);
-  if(!on)state.flowEnded=false;
   ovAfterCheck(f,sec,k);
   if(kb)li.focus();}
 // Après un cochage dans une instance : compteur/✓ de la carte, bouton d'avancement du bout —
@@ -11506,7 +11560,7 @@ function readerRender(){const f=state.fiche;const rm=document.getElementById('re
   const tEl=document.getElementById('rmTime');if(tEl)tEl.hidden=!Runtime.started;
   if(b.type==='decision'){
     document.getElementById('rmProg').textContent='décision';
-    body.innerHTML=`${rmBanHtml()}<p class="rm-hint">Lisez la question à voix haute — décidez ensemble</p><p class="rm-ch vig">${fmt(b.question)||esc(b.title)||'…'}</p><div class="rm-sp"></div>${(b.options||[]).map((o,i)=>`<button type="button" class="rm-opt" data-rmopt="${esc(o.target||'')}">${fmt(o.label)||'Option '+(i+1)} →</button>`).join('')}`;
+    body.innerHTML=`${rmBanHtml()}<p class="rm-hint">Lisez la question à voix haute — décidez ensemble</p><p class="rm-ch vig">${fmt(b.question)||esc(b.title)||'…'}</p><div class="rm-sp"></div>${(b.options||[]).map((o,i)=>`<button type="button" class="rm-opt" data-ovopt="${esc(o.target||'')}">${fmt(o.label)||'Option '+(i+1)} →</button>`).join('')}`;
     return;}
   const steps=clean(b.steps);
   if(readerI<0){readerI=0;while(readerI<steps.length&&state.checked[seq+':'+id+':'+readerI])readerI++;}
@@ -11520,9 +11574,9 @@ function readerRender(){const f=state.fiche;const rm=document.getElementById('re
        RETOUR, toujours actif (non bloquant — on reprend quand l'événement est maîtrisé). */
     const cxb=(Runtime.cxBack||{})[seq];
     const bb2=cxb?f.blocks.find(x=>x.id===cxb.id):null;
-    const reprH=cxb?`<button type="button" class="rm-ok" data-rmback="${esc(cxb.id)}">↩ Reprendre — ${esc((bb2&&bb2.title)||'le parcours')} →</button>`:'';
+    const reprH=cxb?`<button type="button" class="rm-ok" data-cxback="${esc(cxb.id)}">↩ Reprendre — ${esc((bb2&&bb2.title)||'le parcours')} →</button>`:'';
     const lbl=nxt?('Continuer — '+((b.nextLbl||'').trim()||nxt.title||'suite')+' →'):'Terminer l’algorithme ✓';
-    const fwdH=nxt?`<button type="button" class="rm-ok" data-rmnext="${esc(b.next)}">${esc(lbl)}</button>`:(cxb?reprH:`<button type="button" class="rm-ok" data-rmnext="">${esc(lbl)}</button>`);
+    const fwdH=nxt?`<button type="button" class="rm-ok" data-ovnext="${esc(b.next)}">${esc(lbl)}</button>`:(cxb?reprH:`<button type="button" class="rm-ok" data-ovend>${esc(lbl)}</button>`);
     body.innerHTML=all
       ?`<div class="rm-sp"></div><div class="rm-done">Bloc confirmé — ${dn}/${steps.length||dn} ✓</div><div class="rm-sp"></div>${fwdH}${nxt&&cxb?reprH:''}<button type="button" class="rm-prev" data-rmprev>‹ challenge précédent</button>`
       :`<div class="rm-sp"></div><p class="rm-ch vig" style="font-size:19px">${steps.length-dn} challenge${steps.length-dn>1?'s':''} non confirmé${steps.length-dn>1?'s':''}</p><div class="rm-sp"></div>${reprH}<button type="button" class="rm-ok idle" data-rmreview>Revoir les écarts (${steps.length-dn})</button><button type="button" class="rm-prev" data-rmprev>‹ challenge précédent</button>`;
@@ -11532,11 +11586,30 @@ function readerRender(){const f=state.fiche;const rm=document.getElementById('re
   /* CONTEXTE LOCAL (v4.28.0, ECL/Degani & Wiener : un item isolé fait perdre sa place — et le
      binôme soignant ANTICIPE : voir venir « Adrénaline », c'est préparer la seringue). Précédent
      avec son état, suivant en petit ; le challenge courant reste seul en 26 px. */
-  const pv=readerI>0?steps[readerI-1]:null;
-  const nx2=readerI<steps.length-1?steps[readerI+1]:null;
-  const pvH=pv?`<p class="rm-ctx">${state.checked[seq+':'+id+':'+(readerI-1)]?'✓ ':''}${fmt(stepCR(stepText(pv)).c)}</p>`:'';
-  const nxH=nx2?`<p class="rm-ctx next">suivant : ${fmt(stepCR(stepText(nx2)).c)}</p>`:'';
-  body.innerHTML=`${rmBanHtml()}<p class="rm-hint">Lisez à voix haute — l'exécutant répond, vous validez</p>${pvH}<p class="rm-ch${stepIsCrit(s)?' crit':(stepIsVigil(s)?' vig':'')}">${fmt(cr.c)}</p>${cr.r?`<div class="rm-r">${fmt(cr.r)}</div>`:''}${nxH}<div class="rm-sp"></div><button type="button" class="rm-ok" data-rmok>Répondu — conforme ✓</button><button type="button" class="rm-gap" data-rmgap>△ Écart — passer sans cocher</button>${readerI>0?'<button type="button" class="rm-prev" data-rmprev>‹ challenge précédent</button>':''}`;}
+  /* Le CONTEXTE LOCAL (`.rm-ctx`, v4.28.0 : « précédent avec ✓ », « suivant : … ») était une
+     reconstruction MANUELLE de ce que la liste donne gratuitement — deux lignes recopiées à
+     côté d'un paragraphe isolé. Il disparaît avec la structure qui l'exigeait : la liste montre
+     le précédent, le courant et le suivant, dans leur ordre et leur registre réels. */
+  /* I4 (v4.62.0) — LE LECTEUR REND LA MÊME LISTE QUE LA PAGE, en densité « corps +2 ».
+     Avant : un paragraphe `.rm-ch` isolé, une structure à lui — donc une deuxième cartographie
+     mentale pour la même information, et un cross-check à voix haute qui se désynchronise
+     (« bloc 2, ligne 2 » ne désignait pas la même chose des deux côtés). Désormais le bloc entier
+     est là, dans le DOM du journal (`ol.steps > li[data-ck]`), la ligne COURANTE mise en avant
+     par `.cur-step` — c'est le modèle ECL Boeing que l'audit v4.28.0 citait déjà contre le
+     un-item-à-la-fois : liste entière + curseur, parce que perdre sa place est un mode de
+     défaillance premier (Degani & Wiener). Le challenge dominant, la réponse attendue et la
+     grande zone verte restent : ce sont des DENSITÉS, pas des structures. */
+  const listeH=stepsListHtml(steps,seq,id,{cls:'rm-steps',cur:readerI});
+  /* La RÉPONSE ATTENDUE n'est plus répétée sous la liste : la ligne la porte déjà (pilule
+     `.stp-r` de `stepTxtHtml`, agrandie par la densité). Le bloc `.rm-r` séparé était le pendant
+     du paragraphe isolé — avec la liste, il affichait la même valeur deux fois. */
+  body.innerHTML=`${rmBanHtml()}<p class="rm-hint">Lisez à voix haute — l'exécutant répond, vous validez</p>${listeH}<div class="rm-sp"></div><button type="button" class="rm-ok" data-rmok>Répondu — conforme ✓</button><button type="button" class="rm-gap" data-rmgap>△ Écart — passer sans cocher</button>${readerI>0?'<button type="button" class="rm-prev" data-rmprev>‹ challenge précédent</button>':''}`;
+  /* La ligne courante est AMENÉE SOUS LES YEUX, jamais l'écran entier : `scrollIntoView` sur un
+     conteneur propre (le corps du lecteur), pas sur la page — même discipline que
+     `scrollWithin`. `block:'center'` : la ligne suivante et la précédente restent lisibles, ce
+     qui EST le contexte que v4.28.0 avait ajouté à la main. */
+  {const li=body.querySelector('.cur-step');
+   if(li&&li.scrollIntoView)li.scrollIntoView({block:'center',behavior:'auto'});}}
 // Écouteurs du mode lecteur : délégation UNIQUE (élément statique) + Échap/piège de focus minimal.
 {const rm=document.getElementById('readerMode');
  if(rm){rm.addEventListener('click',e=>{const f=state.fiche;if(!f)return;
@@ -11548,25 +11621,29 @@ function readerRender(){const f=state.fiche;const rm=document.getElementById('re
       mesuré, un invité au lien ARRÊTÉ cochait quand même depuis le lecteur alors que le même geste
       était refusé sur la page. Une exception à un invariant qu'on croyait tenu par construction. */
    if(e.target.closest('[data-rmok]')){
-     if(!canToggleStep(true)){refuseStep(true);return;}
-     state.checked[seq+':'+id+':'+readerI]=true;
+     /* I4 : le lecteur passe par le MÊME cœur — c'était la troisième copie, et elle écrivait
+        `state.checked` en direct : un invité au lien ARRÊTÉ y cochait alors que le même geste
+        était refusé sur la page (v4.55.x). Elle ne peut plus diverger : il n'y a plus qu'un
+        point d'écriture. */
+     if(!applyCheck(seq+':'+id+':'+readerI,true))return;
      const js=ensureStarted();persistLive(Runtime);if(js)render();   // derrière l'overlay (élément hors <main>)
      readerI++;readerRender();return;}
    if(e.target.closest('[data-rmgap]')){readerI++;readerRender();return;}
-   const rb=e.target.closest('[data-rmback]');
-   if(rb){cxResume(f,rb.dataset.rmback);return;}
+   const rb=e.target.closest('[data-cxback]');
+   if(rb){cxResume(f,rb.dataset.cxback);return;}
    if(e.target.closest('[data-rmresume]')){rmResume();return;}
    if(e.target.closest('[data-rmprev]')){readerI=Math.max(0,readerI-1);readerRender();return;}
    if(e.target.closest('[data-rmreview]')){const b=(f.blocks||[]).find(x=>x.id===id);const st=clean((b&&b.steps)||[]);
      readerI=0;while(readerI<st.length&&state.checked[seq+':'+id+':'+readerI])readerI++;readerRender();return;}
-   const nx=e.target.closest('[data-rmnext]');
-   if(nx){const t2=nx.dataset.rmnext;
-     if(!t2){state.flowEnded=true;readerClose();return;}   // Terminer -> retour vue (render via readerClose)
+   if(e.target.closest('[data-ovend]')){state.flowEnded=true;readerClose();return;}   // Terminer -> retour vue
+   const nx=e.target.closest('[data-ovnext]');
+   if(nx){const t2=nx.dataset.ovnext;
+     if(!t2){state.flowEnded=true;readerClose();return;}
      if(Runtime.started)state.confOpen=false;   // repli différé de l'étape ① — même doctrine que « Continuer »
      state.nav.push(t2);state.navSeq.push(++Runtime.seq);state.navPos=state.nav.length-1;
      if(Runtime.started)persistLive(Runtime);readerI=-1;readerRender();return;}
-   const op=e.target.closest('[data-rmopt]');
-   if(op){const t3=op.dataset.rmopt;if(!t3||!f.blocks.some(x=>x.id===t3))return;
+   const op=e.target.closest('[data-ovopt]');
+   if(op){const t3=op.dataset.ovopt;if(!t3||!f.blocks.some(x=>x.id===t3))return;
      state.nav.push(t3);state.navSeq.push(++Runtime.seq);state.navPos=state.nav.length-1;
      if(Runtime.started)persistLive(Runtime);readerI=-1;readerRender();return;}});
   document.addEventListener('keydown',e=>{if(!rm.classList.contains('on'))return;
@@ -11783,7 +11860,7 @@ async function purgeDraftAtts(){const ids=draftNewAtts;draftNewAtts=[];
   for(const id of ids){if(!ref.has(id)){try{await IDB.delAtt(id);}catch(e){}}}}
 function targetSelect(blocks,selfId,value){const opts=blocks.filter(b=>b.id!==selfId).map(b=>`<option value="${b.id}" ${b.id===value?'selected':''}>${esc(b.title)||'(bloc sans titre)'}</option>`).join('');return `<select data-target aria-label="Bloc suivant"><option value="" ${!value?'selected':''}>— Fin / aucun —</option>${opts}</select>`;}
 function imageEditor(b){return `<div class="sub">Image du bloc (option)</div><div class="imgrow">${b.image?`<img src="${b.image}" alt=""><button class="btn sm danger" data-bimgdel>Retirer</button>`:`<button class="btn sm" data-bimg>+ Image / capture</button>`}</div>`;}
-function blockEditor(b,blocks){if(b.type==='decision'){return `<div class="blk" data-bid="${b.id}"><div class="blk-top"><span class="blk-type decision">Décision</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Réévaluation)" aria-label="Titre de la décision"></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Question</div><input type="text" data-bf="question" value="${esc(b.question)}" placeholder="ex. Réponse à l'adrénaline ?" aria-label="Question posée" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)"><div class="sub">Réponses → bloc cible</div>${(b.options.length?b.options:[{label:'',target:''}]).map((o,i)=>`<div class="optedit" data-oi="${i}"><input type="text" data-of="label" value="${esc(o.label)}" placeholder="ex. Oui" aria-label="Libellé de la réponse ${i+1}">${targetSelect(blocks,b.id,o.target)}<button class="mini del" data-rmopt="${i}" aria-label="Supprimer la réponse">×</button></div>`).join('')}<button class="add-line" data-addopt>+ Ajouter une réponse</button>${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="mini" data-bmv="up" aria-label="Monter le bloc">↑</button><button class="mini" data-bmv="down" aria-label="Descendre le bloc">↓</button><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
+function blockEditor(b,blocks){if(b.type==='decision'){return `<div class="blk" data-bid="${b.id}"><div class="blk-top"><span class="blk-type decision">Décision</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Réévaluation)" aria-label="Titre de la décision"></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Question</div><input type="text" data-bf="question" value="${esc(b.question)}" placeholder="ex. Réponse à l'adrénaline ?" aria-label="Question posée" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)"><div class="sub">Réponses → bloc cible</div>${(b.options.length?b.options:[{label:'',target:''}]).map((o,i)=>`<div class="optedit" data-oi="${i}"><input type="text" data-of="label" value="${esc(o.label)}" placeholder="ex. Oui" aria-label="Libellé de la réponse ${i+1}">${targetSelect(blocks,b.id,o.target)}<button class="mini del" data-optdel="${i}" aria-label="Supprimer la réponse">×</button></div>`).join('')}<button class="add-line" data-addopt>+ Ajouter une réponse</button>${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="mini" data-bmv="up" aria-label="Monter le bloc">↑</button><button class="mini" data-bmv="down" aria-label="Descendre le bloc">↓</button><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
   return `<div class="blk" data-bid="${b.id}"><div class="blk-top"><span class="blk-type steps">Étapes</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Mesures immédiates)" aria-label="Titre du bloc"></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Étapes (cochables en mode crise)</div><details class="crit-guide"${(()=>{try{return localStorage.getItem('ac-cg-folded')?'':' open';}catch(e){return ' open';}})()}><summary>${uiIcon('warn',11)} Rouge, △ ambre, réponse attendue — règles d'usage</summary><b class="cg-r">${uiIcon('warn',11)} Rouge</b> : ce qui tue si on l'oublie (memory item, geste vital). <b class="cg-a">△ Ambre</b> : là où l'on risque de se tromper (dose/dilution à vérifier avant injection, contre-indication à écarter, confusion voie/site/produit, seuil à contrôler avant de poursuivre). Les deux → rouge. <b>Réponse attendue</b> : « challenge :: réponse » (ex. « Adrénaline IM :: 0,01 mg/kg — max 0,5 mg ») — la réponse devient la pilule à confirmer en lecture (challenge-response).</details>${(b.steps.length?b.steps:['']).map((s,i)=>`<div class="li${stepIsCrit(s)?' li-crit':(stepIsVigil(s)?' li-vigil':'')}" data-si="${i}"><span class="li-num">${String(i+1).padStart(2,'0')}</span><input type="text" data-sf value="${esc(stepText(s))}" placeholder="…" aria-label="Étape ${i+1}"><button class="mini crit-tgl${stepIsCrit(s)?' on':(stepIsVigil(s)?' vig':'')}" data-crit="${i}" title="${stepIsCrit(s)?'Étape CRITIQUE (rouge : ce qui tue si oublié) — toucher : vigilance (ambre)':(stepIsVigil(s)?'Étape VIGILANCE (ambre : risque d’erreur — dose, voie, seuil) — toucher : étape normale':'Étape normale — toucher : critique (rouge : ce qui tue si oublié)')}">${stepIsVigil(s)?'△':uiIcon('warn',14)}</button><button class="mini" data-smv="up" data-si="${i}" aria-label="Monter">↑</button><button class="mini" data-smv="down" data-si="${i}" aria-label="Descendre">↓</button><button class="mini del" data-rmstep="${i}" aria-label="Supprimer l'étape">×</button></div>`).join('')}<p class="nf-guard" data-stepguard role="status">${stepGuardTxt(b.steps)}</p><button class="add-line" data-addstep>+ Ajouter une étape</button><div class="sub">Étape suivante</div>${targetSelect(blocks,b.id,b.next)}${b.next?`<input type="text" data-bnextlbl value="${esc(b.nextLbl||'')}" maxlength="120" placeholder="Libellé du bouton Continuer (ex. réévaluation à 5 min)" aria-label="Libellé du bouton Continuer" style="margin-top:6px">`:''}${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="mini" data-bmv="up" aria-label="Monter le bloc">↑</button><button class="mini" data-bmv="down" aria-label="Descendre le bloc">↓</button><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
 /* Éditeur des COMPLICATIONS (v4.26.0) : libellé de l'ÉVÉNEMENT + cible. La cible est soit un
    bloc de CETTE fiche (le sélecteur liste les blocs en premier), soit une AUTRE aide ou un
@@ -11940,7 +12017,12 @@ function bindEditorEvents(f){
     if(b.type==='steps'){const ns=card.querySelector('select[data-target]');if(ns)ns.addEventListener('change',e=>{b.next=e.target.value||null;renderEditor();});
       const nl=card.querySelector('[data-bnextlbl]');if(nl)nl.addEventListener('input',e=>{b.nextLbl=e.target.value;});}
     const ao=card.querySelector('[data-addopt]');if(ao)ao.onclick=()=>{b.options.push({label:'',target:''});renderEditor();};
-    card.querySelectorAll('[data-rmopt]').forEach(btn=>btn.onclick=()=>{b.options.splice(+btn.dataset.rmopt,1);if(!b.options.length)b.options.push({label:'',target:''});renderEditor();});
+    /* `data-optdel` et non `data-rmopt` (v4.62.0) : l'ancien nom était un HOMONYME du verbe du
+       mode lecteur (« reader option » là-bas, « remove option » ici) — et `[data-rmopt]` figurait
+       dans `MUTE_SEL`, si bien que le bouton « supprimer une réponse » de l'ÉDITEUR était bridé
+       en mode invité. Sans conséquence (un invité n'édite pas), mais c'est exactement la
+       collision de noms que la leçon v4.23.2 proscrit. */
+    card.querySelectorAll('[data-optdel]').forEach(btn=>btn.onclick=()=>{b.options.splice(+btn.dataset.optdel,1);if(!b.options.length)b.options.push({label:'',target:''});renderEditor();});
     card.querySelectorAll('.optedit').forEach(row=>{const oi=+row.dataset.oi;const lab=row.querySelector('[data-of]');if(lab)lab.addEventListener('input',e=>{b.options[oi].label=e.target.value;scheduleFlowPreview(f);});const tgt=row.querySelector('select[data-target]');if(tgt)tgt.addEventListener('change',e=>{b.options[oi].target=e.target.value||'';renderEditor();});});
     const bi=card.querySelector('[data-bimg]');if(bi)bi.onclick=()=>{imgMode={kind:'block',bid};imgInput.click();};
     const bd2=card.querySelector('[data-bimgdel]');if(bd2)bd2.onclick=()=>{b.image=null;renderEditor();};

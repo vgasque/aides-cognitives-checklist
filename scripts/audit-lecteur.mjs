@@ -1,4 +1,7 @@
 /* AUDIT — MODE LECTEUR ENRICHI + PILE DE RETOUR + MENU ⋯ (v4.28.0).
+   v4.62.0 (I4) : le lecteur n'a plus de vocabulaire parallèle — il ÉMET les verbes du journal
+   (`data-ovnext`, `data-ovopt`, `data-cxback`). Les sondes suivent ce vocabulaire unique ;
+   `data-rmok`/`data-rmgap` restent propres à la passe challenge-réponse, sans jumeau ailleurs.
    Lecteur : l'état ne disparaît jamais (bande minuteurs propre, échu ambre + mot), carte des
    blocs (modèle ECL), contexte précédent/suivant, ⚡ au-dessus de l'overlay, excursion =
    « Reprendre » jamais « Terminer ». Pile : le « ‹ » ramène à l'ORIGINE (fiche → fiche), garde
@@ -48,11 +51,25 @@ const r1=await p.evaluate(async()=>{
 t('bande minuteurs du lecteur : visible, échu EN TÊTE ambre + mot « échu »', r1.strip&&r1.n>=2&&r1.dueFirst===true, JSON.stringify(r1));
 t('carte des blocs (ECL) : pastilles = blocs du plan, une seule position ●', r1.map&&r1.nd>0&&r1.cur===1, JSON.stringify({nd:r1.nd,cur:r1.cur}));
 const r2=await p.evaluate(async()=>{
- const avant=[...document.querySelectorAll('#rmBody .rm-ctx')].map(x=>x.textContent.trim());
+ /* I4 (v4.62.0) : LE CONTEXTE N'EST PLUS RECONSTRUIT, IL EST STRUCTUREL. Ce contrôle cherchait
+    `.rm-ctx` — deux lignes que le lecteur recopiait à côté d'un paragraphe isolé. Le lecteur rend
+    désormais la MÊME liste que la page (`ol.steps > li[data-ck]`), curseur sur `.cur-step` : le
+    précédent et le suivant sont là par construction, avec leur état et leur registre réels.
+    On mesure donc la PROPRIÉTÉ (le contexte est visible, l'étape faite est marquée) et non plus
+    le mécanisme — et ce contrôle échouerait si la liste redevenait un item isolé. */
+ const lire=()=>{const li=[...document.querySelectorAll('#rmBody .rm-steps li')];
+   const iCur=li.findIndex(x=>x.classList.contains('cur-step'));
+   return {n:li.length,iCur,aSuivant:iCur>=0&&iCur<li.length-1,
+     aPrecedent:iCur>0,precedentFait:iCur>0&&li[iCur-1].classList.contains('done'),
+     memeVerbe:li.every(x=>x.hasAttribute('data-ck'))};};
+ const avant=lire();
  document.querySelector('[data-rmok]').click();await new Promise(r=>setTimeout(r,250));
- const apres=[...document.querySelectorAll('#rmBody .rm-ctx')].map(x=>x.textContent.trim());
- return {avant,apres,nxAvant:avant.some(x=>/^suivant/.test(x)),pvApres:apres.length&&apres[0].startsWith('✓')};});
-t('contexte local : « suivant : … » au 1ᵉʳ challenge, « ✓ précédent » au 2ᵉ', r2.nxAvant&&r2.pvApres, JSON.stringify(r2));
+ const apres=lire();
+ return {avant,apres};});
+t('contexte STRUCTUREL : le suivant est visible au 1ᵉʳ challenge, le précédent COCHÉ au 2ᵉ',
+  r2.avant.aSuivant&&r2.apres.aPrecedent&&r2.apres.precedentFait, JSON.stringify(r2));
+t('I4 : la liste du lecteur est celle de la page — mêmes lignes, même verbe data-ck',
+  r2.avant.n>1&&r2.avant.memeVerbe&&r2.apres.memeVerbe, JSON.stringify(r2));
 console.log('=== lecteur : ⚡ et excursion ===');
 const r3=await p.evaluate(async()=>{
  const cb=document.getElementById('rmCx');
@@ -64,12 +81,12 @@ const r3=await p.evaluate(async()=>{
  document.querySelector('[data-rmok]').click();await new Promise(r=>setTimeout(r,200));
  document.querySelector('[data-rmok]').click();await new Promise(r=>setTimeout(r,300));
  const h=document.getElementById('rmBody').innerHTML;
- return {vis,zCx,zRm,blk,repr:/data-rmback/.test(h)&&/Reprendre/.test(h),pasTerminer:!/Terminer l’algorithme/.test(h)};});
+ return {vis,zCx,zRm,blk,repr:/data-cxback/.test(h)&&/Reprendre/.test(h),pasTerminer:!/Terminer l’algorithme/.test(h)};});
 t('⚡ visible dans le lecteur, index AU-DESSUS de l’overlay', r3.vis&&r3.zCx>r3.zRm, `z ${r3.zCx} vs ${r3.zRm}`);
 t('excursion pilotée dans le lecteur (bloc Laryngospasme)', /Laryngospasme/.test(r3.blk), r3.blk);
 t('fin d’excursion : « ↩ Reprendre », JAMAIS « Terminer » (parcours interrompu)', r3.repr&&r3.pasTerminer);
 const r4=await p.evaluate(async()=>{
- document.querySelector('[data-rmback]').click();await new Promise(r=>setTimeout(r,350));
+ document.querySelector('[data-cxback]').click();await new Promise(r=>setTimeout(r,350));
  const blk=document.getElementById('rmBlock').textContent;
  document.getElementById('rmClose').click();await new Promise(r=>setTimeout(r,300));
  return {blk};});

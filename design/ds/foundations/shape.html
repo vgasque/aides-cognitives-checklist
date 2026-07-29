@@ -1637,14 +1637,14 @@
     box-shadow:none;cursor:not-allowed;font-weight:600}
   /* HUITIÈME PIÈGE DE CASCADE DU PROJET, ET LE SECOND PAR SPÉCIFICITÉ. Le bouton « Continuer » du
      lecteur porte la classe `.rm-ok` et se style par `#readerMode .rm-ok` — soit (1,1,0), un ID :
-     il l'emportait sur `body.share-scribe :is([data-rmnext])`, qui vaut (0,2,1). Le geste était
+     il l'emportait sur `body.share-scribe :is([data-ovnext])`, qui vaut (0,2,1). Le geste était
      bien bloqué par la garde, mais le bouton restait vert plein, 72 px, graisse 800 — c'est-à-dire
      qu'il INVITAIT à un geste refusé. Le bridage doit se VOIR, sinon il n'est qu'un piège.
      La parade est la même que pour la géométrie : ne jamais dépendre de l'ordre ni d'une
      spécificité de classe quand un `#id` est en jeu — on qualifie par le même `#id`. */
   /* Le lecteur n'a plus AUCUN contrôle bridé depuis le redécoupage v4.55.0 — mais la leçon de
      cascade reste écrite ici : `#readerMode .rm-ok` porte un ID (1,1,0) et l'emportait sur
-     `body.share-scribe :is([data-rmnext])` (0,2,1). Le geste était bloqué, le bouton restait vert
+     `body.share-scribe :is([data-ovnext])` (0,2,1). Le geste était bloqué, le bouton restait vert
      plein et INVITAIT à un geste refusé. Huitième piège du projet, second par SPÉCIFICITÉ. Si un
      verbe du lecteur redevient réservé un jour, il faudra le qualifier par le même `#id`. */
   body.share-scribe #readerMode :is([data-tmreset],[data-cnreset]){
@@ -2263,7 +2263,19 @@
   #readerMode .rm-ch{font-size:26px;font-weight:800;line-height:1.25;text-align:center;color:var(--ink);margin:0}
   #readerMode .rm-ch.crit{color:var(--critical)}
   #readerMode .rm-ch.vig{color:var(--verify)}
-  #readerMode .rm-r{font-family:var(--mono);font-size:20px;font-weight:600;color:var(--link);background:var(--primary-soft);border-radius:12px;padding:14px;margin:16px 0 0;text-align:center;line-height:1.35}
+  /* I4 (v4.62.0) — DENSITÉ « LECTEUR » : la liste est celle de la page (`ol.steps > li[data-ck]`),
+     seuls les CORPS changent. La ligne courante domine (22 px, encre pleine, fond d'accent) ; les
+     autres restent lisibles au-dessus et au-dessous — c'est le contexte que le lecteur
+     reconstruisait à la main, et le modèle ECL : liste entière + curseur. */
+  #readerMode .rm-steps{margin:0 0 4px;max-height:none}
+  #readerMode .rm-steps li{min-height:64px;font-size:17px;opacity:.62}
+  #readerMode .rm-steps li .txt{font-size:17px}
+  #readerMode .rm-steps li.cur-step{opacity:1;background:var(--primary-soft);border-radius:12px;padding-left:12px;padding-right:12px}
+  #readerMode .rm-steps li.cur-step .txt{font-size:22px;font-weight:800;line-height:1.25}
+  #readerMode .rm-steps li.cur-step .stp-r{font-size:18px;padding:4px 12px}
+  #readerMode .rm-steps li.done{opacity:.42}
+  /* (`.rm-r` supprimée en v4.62.0 avec le paragraphe isolé du lecteur — la réponse attendue vit
+     dans la pilule `.stp-r` de la ligne, agrandie par la densité. Règle 14.) */
   #readerMode .rm-sp{flex:1;min-height:14px}
   #readerMode .rm-ok{width:100%;min-height:72px;border:0;border-radius:12px;background:var(--ok);color:var(--surface);font-size:18px;font-weight:800;letter-spacing:.3px;cursor:pointer;font-family:inherit;padding:10px}
   #readerMode .rm-ok.idle{background:transparent;border:2px solid var(--verify-bd);color:var(--verify)}
@@ -2295,8 +2307,8 @@
   #readerMode .rm-nd{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--line-strong);display:inline-flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:800;color:var(--ink-soft);font-variant-numeric:tabular-nums}
   #readerMode .rm-nd.ok{border-color:var(--ok);background:var(--ok);color:var(--surface)}
   #readerMode .rm-nd.cur{border-color:var(--primary);background:var(--primary);color:var(--on-primary)}
-  #readerMode .rm-ctx{font-size:13px;color:var(--ink-soft);text-align:center;margin:0 0 12px;line-height:1.35}
-  #readerMode .rm-ctx.next{margin:14px 0 0}
+  /* (`.rm-ctx` supprimée en v4.62.0 : le contexte « précédent / suivant » était une
+     reconstruction manuelle — la liste le donne par construction. Règle 14.) */
   #readerMode .rm-cx{flex:none;position:relative;min-height:36px;border:1.5px solid var(--critical-bd);border-radius:9px;background:var(--surface);color:var(--critical);font-size:12px;font-weight:800;cursor:pointer;padding:0 10px;font-family:inherit}
   #readerMode .rm-cx::after{content:"";position:absolute;inset:-5px}
   #readerMode .rm-time.exo{color:var(--primary-dk)}

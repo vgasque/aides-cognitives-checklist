@@ -1473,8 +1473,12 @@ console.log(`\n══ PARTAGE · la passation de la main — moteur ${NOM_MOTEUR
 
 /* ── LE MODE LECTEUR EST BRIDÉ COMME LA PAGE ─────────────────────────────────────────────────
    Signalé à l'usage : « pourquoi l'invité peut passer de bloc en bloc en mode lecteur mais pas sur
-   la page de l'aide ? » — et c'était vrai. `data-rmnext` et `data-rmopt` sont les MÊMES verbes que
-   `data-ovnext` et `data-ovopt` sous d'autres noms ; la liste ne les nommait pas.
+   la page de l'aide ? » — et c'était vrai. `data-rmnext` et `data-rmopt` étaient les MÊMES verbes
+   que `data-ovnext` et `data-ovopt` sous d'autres noms ; la liste ne les nommait pas.
+   DEPUIS I4 (v4.62.0) LE VOCABULAIRE PARALLÈLE N'EXISTE PLUS : le lecteur ÉMET `data-ovnext` et
+   `data-ovopt`. Ce contrôle garde tout son sens — il vérifie désormais que la surface du lecteur
+   et celle de la page se comportent identiquement PARCE QU'elles parlent la même langue, et il
+   échouerait si quelqu'un réintroduisait un synonyme.
    CE CONTRÔLE OUVRE LE LECTEUR, et ce n'est pas un détail : celui qui existait interrogeait
    `LEAD_ONLY_SEL` le lecteur FERMÉ — il ne pouvait donc pas voir les entrées du lecteur, et serait
    resté vert même en n'en corrigeant qu'une des deux listes. Un contrôle aveugle au défaut qu'il
@@ -1493,14 +1497,14 @@ console.log(`\n══ PARTAGE · le lecteur est bridé comme la page — moteur 
     const out = { ouvert: rm.classList.contains('on') };
 
     /* LE CONTRÔLE DE CONDUITE N'EXISTE QU'EN FIN DE BLOC. Le lecteur montre un challenge à la
-       fois : « Continuer » (`data-rmnext`) n'apparaît qu'une fois les étapes confirmées. Mesurer
+       fois : « Continuer » (`data-ovnext`) n'apparaît qu'une fois les étapes confirmées. Mesurer
        avant, c'est mesurer un écran qui n'a rien à brider — la sonde le voyait vide et accusait
        la liste. On CONFIRME donc d'abord, ce qui est précisément le verbe du scribe. */
-    for (let i = 0; i < 12 && !rm.querySelector('[data-rmnext],[data-rmopt]'); i++) {
+    for (let i = 0; i < 12 && !rm.querySelector('[data-ovnext],[data-ovopt],[data-ovend]'); i++) {
       const b2 = rm.querySelector('[data-rmok]'); if (!b2) break;
       b2.click(); await new Promise(x => setTimeout(x, 120));
     }
-    out.conduiteVisible = !!rm.querySelector('[data-rmnext],[data-rmopt]');
+    out.conduiteVisible = !!rm.querySelector('[data-ovnext],[data-ovopt],[data-ovend]');
 
     /* 1 — LE LECTEUR N'A PLUS AUCUN CONTRÔLE BRIDÉ (v4.55.0). Avancer et choisir une branche y
        sont ouverts comme sur la page : c'est le même verbe sous un autre nom, et la cohérence
@@ -1512,7 +1516,7 @@ console.log(`\n══ PARTAGE · le lecteur est bridé comme la page — moteur 
     // geste passé ici laisserait l'invité seul à avoir avancé, pour toujours.
     const navAvant = Runtime.nav.length;
     const qAvant = Share.pending();
-    const nx = rm.querySelector('[data-rmnext]') || rm.querySelector('[data-rmopt]');
+    const nx = rm.querySelector('[data-ovnext]') || rm.querySelector('[data-ovopt]');
     if (nx) nx.click();
     await new Promise(x => setTimeout(x, 350));
     out.navApres = Runtime.nav.length;

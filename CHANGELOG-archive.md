@@ -1,7 +1,62 @@
-# Journal des modifications — archive (versions 3.0.0 à 4.52.0)
+# Journal des modifications — archive (versions 3.0.0 à 4.53.0)
 
 > Entrées anciennes déplacées depuis [`CHANGELOG.md`](CHANGELOG.md) pour garder le journal
 > courant lisible. Même format (keep-a-changelog).
+
+## [4.53.0] — 2026-07-28
+### Le partage survivait à la session qu'il reflétait — et la cadence supposait qu'un soin fait du bruit
+
+Trois signalements d'usage, dont un qui n'a été trouvé qu'en cherchant à répondre à une question
+sur la fréquence de rafraîchissement.
+
+### Terminer la session ne coupait pas le partage
+Signalé : *« la fenêtre hôte affiche toujours partage en cours »*. Vérifié — `endSession` ne touchait
+pas au partage. Celui-ci **survivait à la session qu'il reflétait** : la fenêtre continuait
+d'annoncer un partage vivant, l'invité sondait un miroir que plus rien n'alimentait, et le code
+d'appariement restait valide jusqu'à son terme. Un partage sans session n'a pas d'objet.
+
+L'arrêt est **annoncé** au serveur mais jamais **attendu** (règle 12) : fermer sa session ne doit
+pas dépendre du réseau. Si l'annonce échoue, la ligne expire et sera purgée — c'est exactement à
+cela que sert un relais transitoire. Cinq contrôles, **vérifiés capables d'échouer** (le correctif
+retiré en fait tomber quatre, fichier restauré à l'octet).
+
+### L'inactivité du support n'est pas l'inactivité du soin
+En répondant à la question *« à quelle fréquence, sans websocket ? »*, la mesure a montré un trou.
+La cadence se dégrade avec l'inactivité : 2 s dans les trente secondes d'un geste, 5 s ensuite,
+**10 s au-delà de deux minutes**. Or pendant un cycle de compressions de deux minutes, **personne ne
+touche l'écran, des deux côtés** — et le premier geste à la fin du cycle, c'est-à-dire au moment
+précis où le rythme se réévalue, pouvait mettre jusqu'à 10 s à apparaître chez l'autre.
+
+Plancher de 5 s tant qu'une crise est à l'écran. Le surcoût est de six requêtes vides par minute ;
+le coût inverse était un miroir qui retarde au pire instant. `crisisOnScreen` sert de prédicat —
+le même que le quai et la mise en attente des banderoles, pas un second critère qui divergerait.
+
+Latences réelles, calculées sur les constantes du fichier (poussée débouncée à 250 ms, gigue ±20 %) :
+
+| Situation | Période | Latence moyenne | Pire cas |
+|---|---|---|---|
+| Dans les 30 s d'un geste | 2 s | 1,25 s | 2,65 s |
+| De 30 s à 2 min | 5 s | 2,75 s | 6,25 s |
+| Au-delà de 2 min, **crise à l'écran** | 5 s | 2,75 s | 6,25 s |
+| Au-delà de 2 min, hors crise | 10 s | 5,25 s | 12,25 s |
+
+**Ce que la cadence ne retarde pas, et c'est l'essentiel** : les minuteurs voyagent avec une **ancre
+absolue**, donc les deux appareils calculent la même valeur en continu **sans rien échanger** — un
+cycle de deux minutes est exact des deux côtés même hors réseau, et le passage à « échu » ne dépend
+d'aucun sondage.
+
+### « Exporter » ne disait pas quoi
+Signalé : dans le menu ⋯, *« exporter PDF et json, pas clair si on parle d'exporter la fiche ou une
+session »*. Le doute portait précisément sur ce qui compte, dans une vue où une session tourne et où
+« Compte-rendu » est à portée. Les libellés nomment désormais leur objet — « Exporter **l'aide**
+(.json) », « Exporter **le protocole** en PDF » — et le sous-titre nomme l'autre chemin plutôt que
+de laisser le chercher : pendant une session, « la session s'exporte par *Compte-rendu* ».
+
+### Vérification
+738 tests × 2 moteurs (+4), **232/232 contrôles partage** (+5, sur les deux moteurs), 13 harnais
+verts, 301 contrôles d'accessibilité, 94/94 doctrine, `npm run check` vert. Un contrôle du harnais
+qui visait un libellé exact (`Exporter (.json)`) a été élargi au groupe : il aurait échoué au moindre
+renommage sans que rien ne soit cassé. **Rien à rejouer côté serveur.**
 
 ## [4.52.0] — 2026-07-28
 ### Le journal parle enfin des deux côtés — sans qu'un seul mot traverse le réseau
