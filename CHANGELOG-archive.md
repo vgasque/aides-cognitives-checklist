@@ -1,4 +1,51 @@
-# Journal des modifications — archive (versions 3.0.0 à 4.56.3)
+# Journal des modifications — archive (versions 3.0.0 à 4.57.0)
+
+## [4.57.0] — 2026-07-29
+### Passe esthétique — profondeur, contraste, rythme (phase 1 des pistes de l'audit)
+
+Première phase du chantier « tout » ouvert après l'audit de design : la PEAU. Les phases
+suivantes (en-tête de lecture, cockpit desktop, mode moniteur, police embarquée, restructuration
+de la lecture, éditeurs) viennent ensuite, une version à la fois.
+
+### Le thème sombre devient le « Contraste + »
+Décision utilisateur : plutôt qu'un 4ᵉ cran au cycle de thème, **le sombre adopte les codes
+couleur de l'ex-« Contraste + »** et garde son nom. Motif d'usage : l'extra-hospitalier — soleil
+direct sur un écran sombre, gants, appareil posé sur un chariot. Deux canaux, et deux seulement :
+encre secondaire relevée (**~7:1** sur les surfaces au lieu de ~4,9:1) et filets renforcés
+(**3:1**, le seuil WCAG 1.4.11 des composants — les cadres de carte se voyaient à peine dans le
+noir). **Pas** l'encre pleine du bloc `prefers-contrast: more` : là c'est l'utilisateur qui demande
+d'aplatir la hiérarchie, ici c'est le défaut de tous. **Pas** les graisses +100 que proposait
+l'audit : la graisse porte déjà l'état sur les segmentés, et l'élargir changerait toutes les
+largeurs de texte — donc les mesures à 320 px que quatre harnais surveillent.
+
+### Profondeur, fond, rythme
+- **`--bg` d'un cran plus profond** (E7) : les surfaces blanches « portent » sans ombre en plus.
+- **Trois niveaux d'élévation, écrits** (E1/D6) : plat + filet = contenu clinique ; `--shadow` =
+  surfaces vives (session, minuteurs) ; `--shadow-lg` = overlays. Une modale était au niveau 2,
+  donc au même plan visuel qu'une carte de session — corrigé. La règle tient en trois lignes dans
+  AGENTS.md ; toute surface ajoutée doit s'y ranger.
+- **Interlettrage des capitales unifié à `.07em`** (E2, 64 déclarations) : relatif et non px, il
+  suit la taille du texte au lieu de se dénaturer quand le corps change.
+- **Micro-réponses au geste** (E5) : lévitation d'1 px au survol — **pointeur fin seulement**, car
+  sur tactile le premier tap pose l'état hover et un hover qui bouge favorise le double-tap
+  (leçon v4.4.4) — et `scale(.99)` à l'appui. Transform/opacity uniquement, inertes sous
+  `prefers-reduced-motion`.
+- **Le ⤢ devient un dessin de trait** (E6) : même dessin, même doctrine (grammaire des ouvertures
+  plein écran), au trait de la famille d'icônes. **Piège mesuré** : un SVG occupe sa largeur
+  pleine là où le glyphe Unicode en occupait moins — **4 px de débordement de la rangée de
+  commandes à 320 px**, attrapés par `audit-doctrine`. Rendus sur la taille de l'icône (13 px,
+  11 sous 400 px), jamais sur `.ctrl-sp` ni par un renommage.
+
+### La tête de bilan du compte-rendu (F6)
+Le document commençait par la chronologie : les totaux se reconstituaient de tête, au moment
+précis — le débriefing d'équipe — où l'on veut les lire d'un regard. Il s'ouvre désormais sur la
+**durée totale en mono 40 px** et les **compteurs de la fiche en tuiles neutres** (plafond 4).
+Les compteurs à **zéro sont montrés** : « 0 choc » est une information de débriefing, souvent LA
+question. Identique à l'écran et à l'impression.
+
+Vérifié : `npm run check`, 780 tests × 2 moteurs, a11y **301/301 sur Chromium ET WebKit**
+(contrastes recalculés sur le fond effectif dans les deux thèmes), doctrine 112/112, zoom-scroll
+6/6, consulter 8/8, modeseg 2/2, lecteur 13/13. Rien à rejouer côté serveur.
 
 ## [4.56.3] — 2026-07-29
 ### Audit de design externe — le lot applicable, mesuré et posé

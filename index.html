@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-mnr6/mhhdjIzWGNesqVIZXYBz3u+jWAzlDnKGmioC8M='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-sRxsh6P5fdg+pgyR8atcRM3FIBpIkLKlVjjdHhc3w1M='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -325,7 +325,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      quand la police est prête — jamais d'écran de titre vide, même au tout premier chargement.
      Précachée par sw.js (règle 13) : hors ligne dès l'installation. */
   @font-face{font-family:'Source Serif 4';src:url('vendor/fonts/source-serif-4-latin-600.woff2') format('woff2');font-weight:600;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
-  :root{--serif:'Source Serif 4',Georgia,'Times New Roman',serif;--ink:#101b28;--ink-soft:#5b6570;--line:#d5dbe2;--line-strong:#75828e;--line-hover:#c3ccd6;--bg:#e9edf2;--surface:#fff;--surface-2:#eff2f6;--surface-3:#e8ecf1;--primary:#1f5fa6;--primary-dk:#17477f;--primary-hi:#17477f;--primary-soft:#e3ecf7;--primary-100:#dce7f5;--primary-200:#b9cde6;--primary-300:#8fb4de;--on-primary:#fff;--ok-rgb:29,122,56;--ok:rgb(var(--ok-rgb));--ok-soft:#eaf6ee;--critical:#a32e1f;--critical-soft:#fbe9e4;--critical-line:#ecc4bc;--verify:#7a5900;--verify-soft:#fbf3dc;--verify-line:#eddfb6;--verify-bd:#b7791f;--verify-hi:#b45309;--critical-bd:#c43d34;--done-bg:#eff5f0;--done-line:#bfd8c6;--done-ink:#5b6570;--tag-bg:#e8ecf1;--tag-ink:#3c464f;--link:#1f5fa6;--soft:#8a94a0;--alert:#f0a431;--alert-hi:#ffb454;--alert-strong:#c98a18;--alert-ink:#3a2a02;--rt-card:#1c2a3c;--rt-line:#2c3d52;--rt-ink:#e8eef7;--alarm:#d1543c;--input-bg:#fff;--radius:14px;--radius-md:11px;--radius-sm:9px;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--shadow:0 1px 2px rgba(16,27,40,.04),0 4px 16px rgba(16,27,40,.06);--shadow-lg:0 2px 6px rgba(16,27,40,.06),0 12px 32px rgba(16,27,40,.10);--shadow-primary:0 1px 2px rgba(23,71,127,.2),0 4px 12px rgba(23,71,127,.16);--shadow-primary-sm:0 1px 2px rgba(23,71,127,.25);--lb-cap:#cfe0dd;--lb-ink:#fff;--paper:#fff;--qr-ink:#101b28;--flow-cur:#1f5fa6;/* VOILES (scrim) et ÉLÉVATIONS À L'ENCRE — tokenisés en v4.37.0. Ces cinq valeurs étaient des COPIES DÉCIMALES de --ink (#101b28 = 16,27,40) : le garde-fou couleurs ne voyait que les hex, elles passaient donc au travers, et un changement de --ink les aurait laissées derrière. Valeurs reprises à l'identique. Pas d'override sombre : c'est l'état actuel, en ajouter un serait un changement visible. */--scrim-soft:rgba(16,27,40,.45);--scrim:rgba(16,27,40,.55);--scrim-full:rgba(16,27,40,.92);--shadow-dock:0 1px 3px rgba(16,27,40,.05);--shadow-bar:0 1px 6px rgba(16,27,40,.06);}
+  :root{--serif:'Source Serif 4',Georgia,'Times New Roman',serif;--ink:#101b28;--ink-soft:#5b6570;--line:#d5dbe2;--line-strong:#75828e;--line-hover:#c3ccd6;--bg:#e9edf2;--surface:#fff;--surface-2:#eff2f6;--surface-3:#e8ecf1;--primary:#1f5fa6;--primary-dk:#17477f;--primary-hi:#17477f;--primary-soft:#e3ecf7;--primary-100:#dce7f5;--primary-200:#b9cde6;--primary-300:#8fb4de;--on-primary:#fff;--ok-rgb:29,122,56;--ok:rgb(var(--ok-rgb));--ok-soft:#eaf6ee;--critical:#a32e1f;--critical-soft:#fbe9e4;--critical-line:#ecc4bc;--verify:#7a5900;--verify-soft:#fbf3dc;--verify-line:#eddfb6;--verify-bd:#b7791f;--verify-hi:#b45309;--critical-bd:#c43d34;--done-bg:#eff5f0;--done-line:#bfd8c6;--done-ink:#5b6570;--tag-bg:#e8ecf1;--tag-ink:#3c464f;--link:#1f5fa6;--soft:#8a94a0;--alert:#f0a431;--alert-hi:#ffb454;--alert-strong:#c98a18;--alert-ink:#3a2a02;--rt-card:#1c2a3c;--rt-line:#2c3d52;--rt-ink:#e8eef7;--alarm:#d1543c;--input-bg:#fff;--radius:14px;--radius-md:11px;--radius-sm:9px;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--shadow:0 1px 2px rgba(16,27,40,.04),0 4px 16px rgba(16,27,40,.06);--shadow-lg:0 2px 6px rgba(16,27,40,.06),0 12px 32px rgba(16,27,40,.10);--shadow-primary:0 1px 2px rgba(23,71,127,.2),0 4px 12px rgba(23,71,127,.16);--shadow-primary-sm:0 1px 2px rgba(23,71,127,.25);--lb-cap:#cfe0dd;--lb-ink:#fff;--paper:#fff;--qr-ink:#101b28;--flow-cur:#1f5fa6;/* VOILES (scrim) et ÉLÉVATIONS À L'ENCRE — tokenisés en v4.37.0. Ces cinq valeurs étaient des COPIES DÉCIMALES de --ink (#101b28 = 16,27,40) : le garde-fou couleurs ne voyait que les hex, elles passaient donc au travers, et un changement de --ink les aurait laissées derrière. Valeurs reprises à l'identique. Pas d'override sombre : c'est l'état actuel, en ajouter un serait un changement visible. */--scrim-soft:rgba(16,27,40,.45);--scrim:rgba(16,27,40,.55);--scrim-full:rgba(16,27,40,.92);--shadow-dock:0 1px 3px rgba(16,27,40,.05);--shadow-bar:0 1px 6px rgba(16,27,40,.06);/* --sab : la MARGE BASSE DU MATÉRIEL (indicateur d'accueil iPhone), exposée au JS. `env()` ne se lit pas depuis un script ; posée dans une propriété personnalisée, elle devient lisible par `getComputedStyle`. Elle sert à `fitMoreMenu` — la hauteur visible d'iOS INCLUT cette bande, si bien qu'un menu calé sur elle finit SOUS l'indicateur d'accueil (v4.73.2, vu à l'usage : la dernière rangée du menu ⋯ y passait). Le CSS, lui, continue d'écrire `env(...)` en clair là où il en a besoin. */--sab:env(safe-area-inset-bottom,0px);}
   /* --shadow-primary(-sm) : élévation TEINTÉE PRIMAIRE des boutons remplis (v4.31.0 — les
      rgba(23,71,127,…) éparses sont consolidées ici). Tokens FIXES des deux thèmes (jamais
      surchargés en sombre, comme --rt-*) : --lb-cap/--lb-ink = légende et glyphe de la lightbox
@@ -658,15 +658,22 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .hdr-more[hidden]{display:none}
   .hdr-more:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* LE MENU NE DÉPASSE JAMAIS L'ÉCRAN (correctif — « si le menu est grand et la hauteur de la
-     fenêtre réduite, il ne s'adapte pas »). En lecture, il porte jusqu'à seize rangées de 44 px
-     plus quatre séparateurs : ~740 px, soit plus que la hauteur utile d'un téléphone en paysage
-     ou d'une fenêtre de bureau rétrécie — et les dernières rangées, dont « Terminer la session… »,
-     tombaient hors de l'écran SANS défilement, donc inatteignables en silence.
-     Hauteur relative à la fenêtre => `--vvh` ÷ `--zf` (règle 10 : un `vh` nu se fait agrandir par
-     le zoom du réglage de taille du texte). `overscroll-behavior:contain` : on ne fait pas défiler
-     la page derrière en arrivant au bout du menu. */
+     fenêtre réduite, il ne s'adapte pas », puis « et pareil, menu ⋯ tronqué » en GRANDE POLICE).
+     En lecture il porte jusqu'à seize rangées, et en grande taille de texte chaque rangée passe sur
+     deux ou trois lignes : les dernières — dont « Terminer la session… » — tombaient hors de
+     l'écran SANS défilement, donc inatteignables en silence.
+     LA HAUTEUR EST POSÉE PAR LA MESURE, PAS PAR UN `calc()` (v4.73.2). La première version
+     l'exprimait en CSS : `var(--vvh) / var(--zf) - var(--hdr-h) - 16px`. Le calcul est juste sur
+     Blink et l'est resté FAUX en pratique, parce qu'il repose sur trois hypothèses de plateforme à
+     la fois — ce que `visualViewport.height` compte sous `zoom`, comment le zoom d'`<html>` se
+     combine aux unités de fenêtre, et ce que vaut `--hdr-h` quand `env(safe-area-inset-top)` s'y
+     ajoute. Le dossier « bande basse iOS » a déjà montré qu'aucune de ces trois-là ne se déduit :
+     elles se MESURENT. `fitMoreMenu()` lit donc la position réelle du menu et la hauteur réellement
+     visible, et pose la hauteur en pixels — un seul chemin, valable sur les deux moteurs et sous
+     n'importe quel réglage. `overscroll-behavior:contain` : arrivé au bout du menu, on ne fait pas
+     défiler la page derrière. */
   .more-menu{position:absolute;top:calc(100% + 6px);right:14px;width:262px;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.18);padding:6px;z-index:45;
-    max-height:calc(var(--vvh,100dvh) / var(--zf,1) - var(--hdr-h,64px) - 16px);overflow-y:auto;overscroll-behavior:contain}
+    overflow-y:auto;overscroll-behavior:contain}
   .more-menu[hidden]{display:none}
   .mm-row{display:flex;align-items:center;gap:11px;width:100%;min-height:44px;padding:0 11px;border:0;background:none;border-radius:8px;font-family:inherit;font-size:13.5px;font-weight:600;color:var(--ink);cursor:pointer;text-align:left}
   .mm-row:hover{background:color-mix(in srgb,var(--primary) 8%,transparent)}
@@ -4595,7 +4602,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.73.1';
+const APP_VERSION='4.73.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -11443,7 +11450,10 @@ function syncZoomWidth(){
   const w=window.innerWidth/zoomF();
   const cl=document.documentElement.classList;
   ZOOM_W_STEPS.forEach(b=>cl.toggle('zw'+b,w<b));
-  fitCtrlRow();}
+  fitCtrlRow();
+  // Le menu ⋯ peut être OUVERT quand la place change (rotation, clavier, taille du texte) : sa
+  // hauteur est une mesure, elle se refait donc ici aussi. No-op s'il est fermé.
+  try{fitMoreMenu();}catch(e){}}
 /* DERNIER RECOURS DE LA RANGÉE DE COMMANDES : L'ENROULEMENT, DÉCIDÉ PAR LA MESURE (v4.73.1, cf. le
    commentaire CSS de `.dock-in.wrapped`). Même méthode que l'ajustement du quai : on remet à plat,
    on lit le débordement RÉEL, on n'enroule que s'il existe — aucun seuil de largeur en dur, ceux
@@ -15181,8 +15191,36 @@ function openMoreMenu(){
     :`<button class="mm-row${r.danger?' danger':''}" role="menuitem" data-mmi="${i}"${r.disabled?' disabled':''}><span class="mm-ic" aria-hidden="true">${r.ic||''}</span><span>${esc(r.label)}${r.sub?` <span class="mm-sub">— ${esc(r.sub)}</span>`:''}</span></button>`).join('');
   moreMenuEl.querySelectorAll('[data-mmi]').forEach(b=>b.onclick=()=>{const r=_moreRows[+b.dataset.mmi];if(!r||r.disabled)return;closeMoreMenu();r.act();});
   moreMenuEl.hidden=false;hdrMoreBtn.setAttribute('aria-expanded','true');
+  fitMoreMenu();
   const f=moreMenuEl.querySelector('.mm-row:not([disabled])');if(f)f.focus();
 }
+/* HAUTEUR DU MENU ⋯ — MESURÉE, JAMAIS CALCULÉE EN CSS (v4.73.2 ; cf. le commentaire de
+   `.more-menu`). Deux lectures, une écriture :
+     · `bas` = la hauteur RÉELLEMENT visible. `visualViewport.height` quand il existe, parce que
+       c'est la seule mesure qu'iOS ne fausse pas (dossier « bande basse iOS », v4.29.4) et qu'elle
+       exclut d'elle-même les barres d'outils du navigateur ; `innerHeight` en repli.
+     · `r.top` = la position réelle du menu, qui absorbe SANS AUCUN CALCUL la hauteur de l'en-tête,
+       `env(safe-area-inset-top)` et le décalage de 6 px — les trois termes que le `calc()`
+       précédent devait deviner un par un.
+   Les deux sont en px VISUELS ; la hauteur écrite, elle, est en px CSS — d'où la division par
+   `zoomF()` (règle v4.13.1). PLANCHER de 180 px : une mesure pathologique (menu ouvert pendant une
+   transition, clavier virtuel déployé) ne doit jamais réduire le menu à une bande inutilisable —
+   mieux vaut un menu qui dépasse un peu et qu'on peut faire défiler qu'un menu qui a disparu.
+   `10 px` de garde au bas : de quoi voir que la liste continue, plutôt que de la couper au ras.
+   ET LA MARGE BASSE DU MATÉRIEL EST RETIRÉE (`--sab`) — c'est le terme qui manquait, et c'est
+   probablement lui qu'on voyait à l'usage : la hauteur visible d'iOS INCLUT la bande de
+   l'indicateur d'accueil, si bien qu'un menu calé dessus y fait passer sa dernière rangée. Elle est
+   soustraite en px CSS, comme le CSS le fait déjà partout ailleurs (`.azrail`, `.sess-start`) : sous
+   zoom on en réserve donc un peu trop, ce qui raccourcit le menu de quelques pixels — l'erreur va
+   dans le sens sûr. */
+function fitMoreMenu(){
+  if(!moreMenuEl||moreMenuEl.hidden)return;
+  const vv=window.visualViewport;
+  const bas=(vv&&vv.height)?vv.height:window.innerHeight;
+  const r=moreMenuEl.getBoundingClientRect();
+  const sab=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sab'))||0;
+  const dispo=(bas-r.top)/zoomF()-10-sab;
+  moreMenuEl.style.maxHeight=Math.round(Math.max(180,dispo))+'px';}
 hdrMoreBtn.onclick=e=>{e.stopPropagation();if(moreMenuEl.hidden)openMoreMenu();else closeMoreMenu();};
 document.addEventListener('click',e=>{if(!moreMenuEl.hidden&&!moreMenuEl.contains(e.target)&&e.target!==hdrMoreBtn)closeMoreMenu();});
 document.addEventListener('keydown',e=>{

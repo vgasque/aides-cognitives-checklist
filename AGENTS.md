@@ -1994,14 +1994,27 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   une session — trônaient en tête : deux rangées mortes au moment où le menu sert le plus.
   `setMoreMenu` NORMALISE les séparateurs (jamais en tête/queue, jamais deux de suite : un groupe
   conditionnel vide disparaît sans que l'appelant s'en soucie).
-  **IL NE DÉPASSE JAMAIS L'ÉCRAN (v4.73.0, signalé à l'usage : « si le menu est grand et la hauteur
-  de la fenêtre réduite, il ne s'adapte pas »)** : en lecture il porte jusqu'à seize rangées de
-  44 px plus ses séparateurs — ~740 px, soit plus que la hauteur utile d'un téléphone en paysage ou
-  d'une fenêtre de bureau rétrécie, et les dernières rangées (dont « Terminer la session… »)
-  tombaient hors de l'écran SANS défilement, donc **inatteignables en silence**. `max-height` +
-  `overflow-y:auto` + `overscroll-behavior:contain` ; la hauteur passe par `--vvh ÷ --zf` (règle 10 :
-  un `vh` nu se fait agrandir par le zoom du réglage de taille du texte). Mesuré à 900×420 : 14
-  rangées, menu 339 px, dernière rangée atteignable. **ICÔNES : jamais deux entrées
+  **IL NE DÉPASSE JAMAIS L'ÉCRAN, ET SA HAUTEUR EST UNE MESURE (v4.73.0 puis v4.73.2, signalé DEUX
+  fois à l'usage : « si le menu est grand et la hauteur de la fenêtre réduite, il ne s'adapte pas »,
+  puis « pareil, menu ⋯ tronqué » en GRANDE POLICE)** : en lecture il porte jusqu'à seize rangées, et
+  à 130 % chacune passe sur deux ou trois lignes — les dernières (dont « Terminer la session… »)
+  tombaient hors de l'écran SANS défilement, donc **inatteignables en silence**.
+  La v4.73.0 l'a clampé en CSS (`var(--vvh) / var(--zf) - var(--hdr-h) - 16px`) : le calcul est juste
+  sur Blink et **restait faux à l'usage**, parce qu'il repose sur trois hypothèses de plateforme à la
+  fois — ce que `visualViewport.height` compte sous `zoom`, comment le zoom d'`<html>` se combine aux
+  unités de fenêtre, et ce que vaut `--hdr-h` quand `env(safe-area-inset-top)` s'y ajoute — et
+  surtout parce qu'il **oubliait la marge basse du MATÉRIEL** : la hauteur visible d'iOS INCLUT la
+  bande de l'indicateur d'accueil, si bien que la dernière rangée y passait dessous.
+  `fitMoreMenu()` **mesure** : hauteur réellement visible (`visualViewport.height`, la seule que
+  iOS ne fausse pas — dossier « bande basse iOS ») moins la position RÉELLE du menu — qui absorbe
+  sans aucun calcul la hauteur d'en-tête, le safe-area du haut et le décalage de 6 px — moins
+  `--sab`, la marge basse exposée au JS par une propriété personnalisée (`env()` ne se lit pas
+  depuis un script). Plancher de 180 px : une mesure pathologique ne doit jamais réduire le menu à
+  une bande inutilisable. Rejouée au redimensionnement et au changement de taille du texte, puisque
+  le menu peut être ouvert à cet instant. Témoin : `audit-doctrine` mesure 390 et 430 px × deux
+  tailles de texte × **avec et sans marge matérielle simulée** (34 px), et vérifie que la DERNIÈRE
+  rangée est atteignable après défilement — vérifié capable d'échouer dans les deux sens (terme
+  `--sab` retiré → 4 rouges ; clamp retiré → 8). **ICÔNES : jamais deux entrées
   d'un même menu avec le même dessin, ni deux dessins quasi identiques côte à côte** —
   « Historique des sessions » a reçu `archive` (boîte, distinct de l'horloge-flèche `history`
   gardée par Versions) et « Se repérer » a reçu `ladder` (rail + lignes indentées = l'Échelle
