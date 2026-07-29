@@ -1,5 +1,43 @@
 # Journal des modifications
 
+## [4.58.0] — 2026-07-29
+### L'état de mode cesse de bouger — il s'ancre au coin haut-droit
+
+Phase 2 du chantier ouvert après l'audit de design (concept H/B).
+
+La pilule « ■ Mode crise » vivait à droite de la bande-titre quand celle-ci était dépliée, puis
+**sautait au milieu de la ligne fusionnée** dès qu'on faisait défiler — et changeait de mot au
+passage (« ■ MODE CRISE » ici, « ■ CRISE » là). Or c'est l'objet qui doit se lire en moins d'une
+seconde : il devrait être le plus stable de l'écran, pas le moins.
+
+Il est désormais **accolé à ◐ ⋯**, les deux seuls objets qui ne bougent dans aucun des deux
+états, et **ne dépend plus du défilement**. Mesuré : même pixel (231 px à 360), même mot, déplié
+comme condensé.
+
+### Ce que ce concept n'apporte pas
+Les ~90 px rendus au titre étaient le mérite du **concept A** (la pilule descendait dans le
+quai), écarté par l'audit lui-même : le quai est la rangée de la télémétrie vive, et pour
+l'invité un jeton de mode y doublonnerait les jetons de partage existants. Le gain de B est la
+**stabilité**, pas la largeur.
+
+### Deux amendements à l'audit, mesurés
+- Il proposait de **vider la bande-titre de son état**. Cela aurait retiré le placard
+  « ▪ Vous suivez » posé sur décision utilisateur en v4.55.4 — précisément parce que le bandeau
+  est « l'endroit le plus lu » — et fait tomber deux contrôles de harnais qui encodent cette
+  doctrine. Le bandeau garde donc son annonce en toutes lettres : la redondance est **voulue**,
+  comme l'alarme au quai et au rail.
+- Un **repli au glyphe seul** sous 430 px rendait ~41 px au titre. Annulé : en état condensé le
+  bandeau est parti, il ne resterait qu'un carré rouge — la couleur et la forme seules pour dire
+  le mode, ce que WCAG 1.4.1 et la règle « la couleur n'est jamais seule » interdisent l'une
+  comme l'autre.
+
+Le **liseré de mode 10 px** proposé par l'audit n'est pas posé : le placard hachuré de v4.55.4
+est déjà le canal périphérique pour l'exercice et l'invité, à coût de hauteur nul — un liseré
+serait un troisième dispositif pour la même information.
+
+Vérifié : 780 tests × 2 moteurs, a11y 301/301, doctrine 112/112, exercice 20/20, partage 294/294.
+Rien à rejouer côté serveur.
+
 ## [4.57.0] — 2026-07-29
 ### Passe esthétique — profondeur, contraste, rythme (phase 1 des pistes de l'audit)
 
@@ -1079,130 +1117,3 @@ version.
 706 tests × 2 moteurs (+5), 13 harnais verts, **192/192 contrôles partage** (+8, sur les deux
 moteurs), 9/9 QR, 301 contrôles d'accessibilité, 94/94 doctrine, `npm run check` vert. **Rien à
 rejouer côté serveur.**
-
-## [4.49.0] — 2026-07-27
-### Le repli hors dispositif, le bridage du scribe, et le filtre de contenu qui n'existait qu'en JavaScript
-
-Dernière version du chantier de partage. Elle apporte les deux fonctions qui manquaient — poursuivre
-seul quand le lien tombe, et brider le scribe sans rien lui masquer — et referme côté SERVEUR ce que
-seul le client protégeait.
-
-### « Continuer seul » : la trace remonte, l'état non
-Le serveur savait tout faire depuis la v4.46.0 — colonne `detached_at`, genre `detach` autorisé,
-règle « un lot qui porte un detach ne porte que lui », assertions RLS — mais **aucun code client ne
-l'appelait**, et l'annexe qu'un détaché peut remonter n'était lue par personne. Quatre murs, tous
-tombés :
-
-**Au détachement, la file était JETÉE.** Au moment précis où la bifurcation devient officielle, on
-détruisait la seule chose qui devait encore remonter. Elle est désormais **convertie** : chaque
-geste en attente devient un `offline_mark`, qui rejoint le journal de l'hôte en annexe. Un détaché
-ne peut plus écrire d'ÉTAT — ses coches porteraient sur des passages que l'hôte a quittés — mais il
-peut écrire des repères horodatés : une heure reste une heure.
-
-**Un détaché cessait de sonder.** Ses annexes n'auraient donc jamais atteint l'hôte. Un cycle lent
-reste armé tant que sa file n'est pas vide.
-
-**Chez l'hôte, l'annexe entre au journal et NULLE PART ailleurs**, à sa place chronologique, inerte
-(ni champ ni bouton — on ne corrige pas le relevé d'un autre), avec la mention « rapporté — poursuit
-seul ». L'état ne fusionne jamais : après la bifurcation, les numéros de visite sont mintés
-indépendamment des deux côtés, si bien que « la visite 6 » de l'un et celle de l'autre désignent
-deux passages différents. Ce n'est pas un conflit arbitrable, c'est une collision d'espace de noms —
-fusionner produirait un résultat non pas discutable mais **faux, et plausible**.
-
-### Le scribe ajoute, il ne défait pas
-Forme canonique du travail à deux (AC 120-71B §5.2.2.1), pas un compromis. Ouvert au scribe : cocher,
-constater, signaler un écart, **incrémenter** un compteur, **armer** un minuteur, poser et annuler un
-repère. Fermé : décocher, avancer, terminer, choisir une branche, sauter à un bloc, **arrêter** ou
-remettre à zéro. La distinction n'est pas arbitraire — ajouter est additif et réversible par le
-journal, remettre à zéro détruit un décompte que personne ne peut restituer.
-
-**Jamais par masquage** : masquer ferait sauter le contenu clinique de 46 px (mesuré), et sur
-évènement DISTANT si le rôle change — sous le doigt de quelqu'un qui n'a rien demandé. La boîte
-reste, la géométrie est identique refus ou non (mesuré ≤ 1 px), et le refus s'annonce sur `#srLive`,
-seul canal admis pendant un soin.
-
-**Une seule liste de verbes**, consommée par le CSS et par une garde déléguée en phase de capture ;
-un contrôle du harnais lit la liste **depuis le script** et vérifie que chaque élément rendu porte
-l'apparence désactivée — c'est la faille de la v4.42.0 prise à la racine. Deux gestes dépendent de
-leur DIRECTION et ne peuvent pas être bridés en CSS : le cochage (`data-ck` porte cocher *et*
-décocher) et le minuteur (armer *ou* arrêter) ; ils sont gardés dans leurs handlers, et pour le
-cochage par un prédicat **unique** appelé aux deux copies du cœur.
-
-### Le serveur ne se fiait qu'au client
-**La liste blanche des champs de fiche n'existait qu'en JavaScript.** Un appel REST direct la
-traversait : `images` (jusqu'à 24 Mo de base64), `localInfo` (les téléphones de renfort et de
-régulation), la liste des documents, `ownerId`, `libraryId` — tout pouvait partir. Le schéma avait
-pourtant déjà tiré cette leçon pour la TAILLE (« le plafond vaut contre le client ») sans jamais
-l'appliquer au CONTENU. C'est une liste **blanche**, pas noire : on ne garde que les quatorze champs
-autorisés, une liste noire oubliant ce qu'on ajoutera demain. Les images de BLOC sont retirées
-séparément, elles vivent à l'intérieur de `blocks`.
-
-**`is_approved()` traitait un JWT anonyme comme un compte approuvé.** Un tel jeton porte un
-`auth.uid()` non nul et n'a aucune ligne dans `user_status` : le `coalesce` retombait sur
-`'approved'` — y compris pour ouvrir un partage, c'est-à-dire faire sortir du contenu clinique de
-l'instance. La porte n'était fermée que parce que personne n'avait activé l'option au tableau de
-bord ; elle l'est maintenant par le schéma.
-
-**`share_admit` ouvrait deux boucles infinies.** Il ne vérifiait ni l'expiration ni le quota : sur un
-partage expiré ou plein, il rendait un code NEUF que l'hôte dictait et que `share_join` refusait
-aussitôt, sans que personne, des deux côtés, ne puisse comprendre — et il écrasait au passage un code
-peut-être encore vivant. Le motif est désormais détaillé, parce que l'appelant est le propriétaire
-authentifié : l'argument d'oracle ne vaut que face à un anonyme, et le schéma le promettait sans
-l'appliquer nulle part.
-
-S'ajoutent un **plafond de cinq partages vivants par propriétaire** (il n'en existait aucun, alors
-qu'un compte coûte une adresse jetable), le bornage de `session_id` — seul champ texte libre non
-contraint —, les **octets des partages dans le total de stockage** et leur affichage au tableau de
-bord (le serveur les calculait, l'écran ne les montrait pas : l'exploitant était aveugle au seul
-poste que le partage fait croître), et le genre **`session_start`** : l'heure du soin voyage,
-réservée à celui qui conduit. Un renfort arrivé à 14 h 12 sur une réanimation débutée à 13 h 55 ne
-date plus le début du soin à son arrivée.
-
-### Quatre signalements d'usage, et ce qu'ils étaient vraiment
-**Le code du partage ne grandissait pas.** Il a été agrandi trois fois sans le moindre effet à
-l'écran : `.ai-card p` pèse (0,1,1) — une classe ET un type — et l'emportait sur `.sh-code` (0,1,0)
-en le ramenant à 13 px, **quel que soit l'ordre de déclaration**. C'est le 7ᵉ incident de cascade du
-projet et le premier par SPÉCIFICITÉ ; les six précédents tenaient à l'ordre. Toute la typographie
-des deux fenêtres passe par des sélecteurs à `#id`, et un contrôle mesure désormais la taille
-**rendue**, jamais la valeur écrite. Le code fait 40 px (34 sous 360).
-
-**Le QR portait le code seul.** Une « correction » de la veille faisait retomber `localhost` sur le
-code, ce qui privait de la fonctionnalité au moment même où on l'essaie : toute origine http(s)
-donne à nouveau l'URL complète, et le **lien entier est écrit en clair** sous le QR, sélectionnable
-d'un appui — c'est lui qu'on dicte ou qu'on envoie quand la caméra ne sert pas. Le harnais QR, lui,
-ne décodait que la MATRICE : il capture maintenant l'**image réellement peinte** et la donne au
-décodeur d'Apple, à quatre configurations dont le thème sombre.
-
-**La confirmation d'arrêt s'affichait derrière la fenêtre** (z-index 55 contre 94) : invisible, avec
-le focus piégé dedans. Portée à 95.
-
-**Les deux fenêtres du partage étaient les plus étroites de l'application** (420 et 460 px) : elles
-prennent `dlg-480`, la largeur standard partagée par cinq autres. Et sous 780 px, où l'app transforme
-toute fenêtre en feuille pleine largeur, leur contenu — majoritairement centré — courait d'un bord à
-l'autre : mesuré, carte 744 × 1133 px pour 643 px de contenu. Le CORPS est borné à 460 px ; le titre
-et le ✕, eux, restent au bord de la feuille, **identiques au pixel à une fenêtre existante** (mesuré
-contre `#catModal` à 390, 744 et 1280 px) — fermer une fenêtre est le geste le plus appris de
-l'application, le déplacer pour une seule d'entre elles était une faute.
-
-### Rejoindre se tape dans la recherche
-La rangée était dans le dialogue « Créer » : rejoindre n'ajoute rien à la bibliothèque, et quelqu'un
-à qui l'on dicte un code n'irait pas le chercher sous « + ». Une ligne permanente en tête d'accueil a
-été essayée puis écartée — 44 px d'attention à chaque ouverture pour un geste rare, alors que la
-doctrine ECAM réserve le permanent à ce qui sert la conduite en cours. **Le code se tape dans le
-champ de recherche** : huit caractères d'un alphabet fermé sont reconnaissables sans ambiguïté, la
-ligne s'AJOUTE aux résultats sans les remplacer, et l'accueil au repos est **identique au pixel**
-(mesuré). Registre INFORMATION, bouton rempli : à l'instant où elle paraît, elle est la seule action
-de l'écran.
-
-### Vérification
-701 tests × 2 moteurs (+4), 13 harnais verts, **184/184 contrôles partage** (+41, sur les deux
-moteurs), 9/9 QR, 301 contrôles d'accessibilité, 94/94 doctrine, `npm run check` vert. Quatre
-assertions RLS nouvelles (§14.11 à 14.14) couvrent la liste blanche serveur, le plafond de partages,
-les deux refus de `share_admit` et la réserve de `session_start`. `supabase/schema.sql` et
-`rls-tests.sql` ont été rejoués sur l'instance avec succès.
-
-Trois contrôles écrits pendant ce chantier ont dû être **corrigés parce qu'ils mesuraient le
-mécanisme et non la propriété** : « le mode d'application vaut `none` » là où il fallait vérifier que
-l'annexe ne touche pas l'état, « `started` vaut faux » là où il fallait vérifier qu'aucun dossier
-n'est créé, et « pas de lien en local » qui encodait une règle infirmée. C'est la même erreur que la
-taille du code, sous une autre forme : vérifier ce qu'on a écrit plutôt que ce que ça produit.

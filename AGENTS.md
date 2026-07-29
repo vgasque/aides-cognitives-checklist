@@ -1255,6 +1255,26 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   compte-rendu** (F6) : durée totale en mono 40 px + compteurs de la fiche en tuiles neutres
   (plafond 4 ; les compteurs à ZÉRO sont montrés — « 0 choc » est une information de débriefing,
   souvent LA question), identique à l'écran et à l'impression.
+- **L'ÉTAT DE MODE S'ANCRE AU COIN HAUT-DROIT (v4.58.0, audit design — concept H/B)** : la pilule
+  « ■ Crise » vivait à droite de la bande-titre quand elle était dépliée, puis **sautait au milieu
+  de la ligne fusionnée** au défilement — position ET libellé changeaient (« ■ MODE CRISE » ici,
+  « ■ CRISE » là). Or c'est l'objet qui doit se lire en moins d'une seconde : il devrait être LE
+  plus stable de l'écran. Il est désormais **dans `.hdr-acts`, contre ◐ ⋯** — les deux seuls
+  objets qui ne bougent dans aucun des deux états — et **ne dépend plus de `.ttl-on`** : même
+  pixel, même mot, déplié comme condensé (vérifié : `hcLeft` identique, 231 px à 360). **CE QUE
+  LE CONCEPT B N'APPORTE PAS** : les ~90 px rendus au titre étaient le mérite du concept A (la
+  pilule descendait au QUAI), écarté parce que le quai est la rangée de la télémétrie VIVE et que
+  pour l'invité il doublonnerait les jetons de partage. Le gain de B est la STABILITÉ, pas la
+  largeur — ne pas le vendre pour autre chose. **DEUX AMENDEMENTS À L'AUDIT, tous deux mesurés** :
+  (1) il voulait vider la bande-titre de son état ; cela aurait retiré le placard « ▪ Vous
+  suivez » posé sur DÉCISION UTILISATEUR en v4.55.4 (« l'endroit le plus lu ») et fait tomber deux
+  contrôles de harnais — le bandeau garde donc son annonce en toutes lettres, la redondance est
+  VOULUE (comme l'alarme au quai et au rail) ; (2) un repli au GLYPHE SEUL sous 430 px rendait
+  ~41 px au titre, mais en condensé le bandeau est parti : il ne resterait qu'un carré rouge, la
+  couleur et la forme seules pour dire le mode — WCAG 1.4.1 et « la couleur n'est jamais seule »
+  l'interdisent. Annulé. **Le liseré de mode 10 px** proposé par l'audit n'est PAS posé : le
+  placard hachuré de v4.55.4 est déjà le canal périphérique d'exercice et d'invité, à coût de
+  hauteur NUL — un liseré serait un troisième dispositif pour la même information.
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.

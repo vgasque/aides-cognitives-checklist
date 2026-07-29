@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-xFGrqYlCry9teH0LzW2RZc7Q9E35MGUkPDmE2oUp2UY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-KcmnEEDyaonI2YvnD5u4zZMbMo/O4bHCUmZbv2c/jhc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -685,8 +685,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #crisisBand[hidden]{display:none}
   /* Étiquette d'état condensée : n'apparaît que quand le bandeau est passé dessous (.ttl-on) —
      l'annonce « mode crise » n'est donc jamais absente, seulement portée par l'un ou l'autre. */
+  /* H concept B : plus de condition `.ttl-on` — la pilule est présente dès que la crise l'est,
+     au même pixel, déplié comme condensé. C'est ce qui rend ~90 px au titre dans l'état
+     condensé (5 objets s'y partageaient une ligne : ‹, titre, pilule, ◐, ⋯). */
   .hdr-crisis{display:none;flex:none;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--critical);white-space:nowrap}
-  header.bar.ttl-on .hdr-crisis:not([hidden]){display:inline}
+  .hdr-crisis:not([hidden]){display:inline}
+  /* LE MOT NE TOMBE JAMAIS. Un repli au glyphe seul sous 430 px a été essayé (il rendait ~41 px
+     au titre) puis ANNULÉ : en état CONDENSÉ le bandeau-titre est parti, il ne resterait qu'un
+     carré rouge — la couleur et la forme SEULES pour dire le mode, ce que WCAG 1.4.1 et la
+     règle « la couleur n'est jamais seule » interdisent l'une comme l'autre. « Crise » est déjà
+     la troncature minimale de « Mode crise ». */
   #crisisBand .cb-ttl{flex:1;min-width:0;font-size:18px;font-weight:800;letter-spacing:-.2px;line-height:1.15;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   #crisisBand .cb-tag{flex:none;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--critical)}
   /* QUAI DE CRISE (v4.23.0, canvas 2a/3a) : rangée PLEINE LARGEUR et COLLANTE sous l'en-tête.
@@ -3695,9 +3703,15 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
          #crisisBand passé sous la barre (.ttl-on) — elle en prend le relais. L'annonce d'état ne
          disparaît donc JAMAIS. (Les minuteurs, eux, n'ont pas de relais : leur rangée est
          COLLANTE et ne quitte jamais l'écran.) -->
-    <span class="hdr-crisis" id="hdrCrisis" hidden>■ Crise</span>
     <div class="hdr-search" id="hdrSearch"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg><input id="q" placeholder="Rechercher une aide, un protocole…" aria-label="Rechercher"></div>
     <div class="hdr-acts">
+    <!-- H (audit design v4.58.0, concept B) : L'ÉTAT DE MODE S'ANCRE AU COIN HAUT-DROIT.
+         Avant, il vivait à droite de la bande-titre quand elle était dépliée, puis sautait au
+         milieu de la ligne fusionnée au défilement : position ET libellé changeaient. Or c'est
+         l'objet qui doit se lire en moins d'une seconde — il devrait être LE plus stable de
+         l'écran, pas le moins. Il est donc accolé à ◐ ⋯, les deux seuls objets qui ne bougent
+         dans AUCUN des deux états, et il ne dépend plus du défilement. -->
+    <span class="hdr-crisis" id="hdrCrisis" hidden>■ Crise</span>
     <span class="hdr-badge" id="hdrBadge" hidden></span>
     <button class="hdr-new" id="hdrNew" hidden><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span class="hdr-new-lbl">Créer</span></button>
     <button class="hdr-act2" id="hdrPreview" hidden title="Voir le brouillon tel qu'il s'affichera (aucune session)" aria-label="Aperçu"><span class="pv-ic" aria-hidden="true">⛶</span><span class="pv-lbl">Aperçu</span></button>
@@ -4019,7 +4033,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.57.0';
+const APP_VERSION='4.58.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -6754,6 +6768,14 @@ function applyViewChrome(){
    cb.hidden=!crisis;
    document.getElementById('hdrCrisis').hidden=!crisis;
    if(crisis){cb.querySelector('.cb-ttl').textContent=state.fiche.title||'Sans titre';
+     /* H concept B, AMENDÉ : l'audit voulait vider la bande-titre de son état pour ne lui
+        laisser que le titre. ESSAYÉ, PUIS ANNULÉ — cela aurait retiré le placard « ▪ Vous
+        suivez » que la v4.55.4 a posé sur DÉCISION UTILISATEUR, précisément parce que le
+        bandeau est « l'endroit le plus lu », et fait tomber deux contrôles de harnais qui
+        encodent cette doctrine. Le concept B tient sans cela : ce qu'il corrige, c'est que
+        l'état SAUTAIT de place et de mot entre les deux états — désormais la pilule du coin
+        haut-droit est PERMANENTE et immobile, et le bandeau garde son annonce en toutes
+        lettres tant qu'il est visible. Redondance VOULUE, comme l'alarme au quai et au rail. */
      const exo=!!Runtime.exercise&&Runtime.ficheId===state.fiche.id;
      /* L'INVITÉ SAIT QU'IL EST INVITÉ, SANS AVOIR À LE DÉDUIRE. Il lisait « ■ Mode crise » —
         exactement ce que lit l'hôte — alors que sa situation est autre : il SUIT une session qu'il
@@ -6769,7 +6791,11 @@ function applyViewChrome(){
      cb.querySelector('.cb-tag').classList.toggle('exo',exo);
      cb.querySelector('.cb-tag').classList.toggle('inv',inv);
      const hc=document.getElementById('hdrCrisis');
-     hc.textContent=state.previewFrom?'■ Aperçu':(exo?'▲ Exercice':(inv?'▪ Suivi':'■ Crise'));
+     /* H4 : UN SEUL libellé. La pilule ne changeait pas seulement de place mais de MOT
+        (« ■ MODE CRISE » déplié, « ■ CRISE » condensé) : deux mots pour un état. */
+     hc.innerHTML=state.previewFrom?'■ <span class="hc-lbl">Aperçu</span>'
+       :(exo?'▲ <span class="hc-lbl">Exercice</span>'
+       :(inv?'▪ <span class="hc-lbl">Suivi</span>':'■ <span class="hc-lbl">Crise</span>'));
      hc.classList.toggle('exo',exo);hc.classList.toggle('inv',inv);
      document.querySelector('header.bar').classList.toggle('exo',exo);
      document.querySelector('header.bar').classList.toggle('inv',inv);

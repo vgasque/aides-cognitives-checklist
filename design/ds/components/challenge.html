@@ -400,8 +400,16 @@
   #crisisBand[hidden]{display:none}
   /* Étiquette d'état condensée : n'apparaît que quand le bandeau est passé dessous (.ttl-on) —
      l'annonce « mode crise » n'est donc jamais absente, seulement portée par l'un ou l'autre. */
+  /* H concept B : plus de condition `.ttl-on` — la pilule est présente dès que la crise l'est,
+     au même pixel, déplié comme condensé. C'est ce qui rend ~90 px au titre dans l'état
+     condensé (5 objets s'y partageaient une ligne : ‹, titre, pilule, ◐, ⋯). */
   .hdr-crisis{display:none;flex:none;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--critical);white-space:nowrap}
-  header.bar.ttl-on .hdr-crisis:not([hidden]){display:inline}
+  .hdr-crisis:not([hidden]){display:inline}
+  /* LE MOT NE TOMBE JAMAIS. Un repli au glyphe seul sous 430 px a été essayé (il rendait ~41 px
+     au titre) puis ANNULÉ : en état CONDENSÉ le bandeau-titre est parti, il ne resterait qu'un
+     carré rouge — la couleur et la forme SEULES pour dire le mode, ce que WCAG 1.4.1 et la
+     règle « la couleur n'est jamais seule » interdisent l'une comme l'autre. « Crise » est déjà
+     la troncature minimale de « Mode crise ». */
   #crisisBand .cb-ttl{flex:1;min-width:0;font-size:18px;font-weight:800;letter-spacing:-.2px;line-height:1.15;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   #crisisBand .cb-tag{flex:none;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--critical)}
   /* QUAI DE CRISE (v4.23.0, canvas 2a/3a) : rangée PLEINE LARGEUR et COLLANTE sous l'en-tête.
