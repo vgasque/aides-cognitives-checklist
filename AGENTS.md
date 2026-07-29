@@ -63,7 +63,11 @@ ne s'apprend en lisant le code** — elles viennent d'incidents mesurés, et plu
 12. **Ne jamais supprimer un champ du modèle** fiche / catégorie / protocole : un export v3 doit
     rester lisible par un client antérieur.
 13. **Aucune dépendance runtime**, à l'unique exception de pdf.js vendorisé (chargé paresseusement,
-    précaché). Tout fichier servi doit entrer dans `ASSETS` (`sw.js`).
+    précaché). Tout fichier servi doit entrer dans `ASSETS` (`sw.js`). **Une POLICE embarquée
+    depuis v4.61.0** (`vendor/fonts/source-serif-4-latin-600.woff2`, 21 Ko, SIL OFL) : ce n'est
+    pas une dépendance runtime — aucun code, aucun appel réseau — mais un ACTIF SERVI, donc soumis
+    à la même règle (entrée dans `ASSETS`, `font-src 'self'`, mise à jour = décision explicite
+    comme pdf.js).
 14. **Une suppression de composant se VÉRIFIE au grep** (zéro émission hors CSS) et emporte son CSS,
     ses commentaires et la doc qui le cite. Une purge à moitié faite est pire qu'aucune purge : la
     doctrine affirme alors un nettoyage qui n'a pas eu lieu — c'est arrivé en v4.25.0, et le CSS
@@ -1309,6 +1313,20 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   **PIÈGE DE TEST rencontré** : `lastStart` est un HORODATAGE, pas un délai — posé à 0 sur un
   minuteur qui tourne, il fait croire à `now` millisecondes écoulées et le test mesure alors
   l'ordre de la fiche, pas le tri.
+- **UNE VOIX TYPOGRAPHIQUE POUR LES TITRES (v4.61.0, audit design F5)** : le système roulait tout
+  en `system-ui` — sûr, mais anonyme. **Source Serif 4** (SIL OFL, sous-ensemble **latin seul**,
+  graisse **600 seule**, 21 Ko) prend le titre de fiche, la marque et le titre du compte rendu, et
+  **rien d'autre** : les titres sont les seuls survivants du scan sous stress, ils méritent un
+  dessin ; le texte courant reste `system-ui`, la police que l'appareil rend le mieux — changer le
+  corps d'une aide lue en réanimation n'a jamais été l'objet. **EMBARQUÉE, jamais appelée** :
+  l'app fonctionne hors ligne par construction, une police de CDN ne s'afficherait pas là où elle
+  sert, et `font-src 'self'` l'interdirait de toute façon. `font-display:swap` — le texte
+  s'affiche immédiatement dans le repli, jamais d'écran de titre vide. **Graisse 600 et non 800**
+  aux endroits qui étaient en 800 : c'est la seule graisse embarquée, en demander une autre
+  produirait une graisse SYNTHÉTIQUE (plus lourde, moins nette). Le compte rendu TÉLÉCHARGÉ
+  retombe sur Georgia — voulu : un document autonome ne dépend d'aucun serveur. **PIÈGE `sw.js`**
+  rencontré : `check-sw` lit les chaînes d'`ASSETS` littéralement — un commentaire À L'INTÉRIEUR
+  du tableau est pris pour une entrée de cache (25 faux problèmes) ; il vit donc au-dessus.
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.

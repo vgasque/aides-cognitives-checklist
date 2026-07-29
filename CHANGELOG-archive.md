@@ -1,7 +1,79 @@
-# Journal des modifications — archive (versions 3.0.0 à 4.51.0)
+# Journal des modifications — archive (versions 3.0.0 à 4.52.0)
 
 > Entrées anciennes déplacées depuis [`CHANGELOG.md`](CHANGELOG.md) pour garder le journal
 > courant lisible. Même format (keep-a-changelog).
+
+## [4.52.0] — 2026-07-28
+### Le journal parle enfin des deux côtés — sans qu'un seul mot traverse le réseau
+
+Lot 5 du chantier de partage. Un repère du journal voyageait comme `{identifiant, heure}` et rien
+d'autre : chez l'invité, il s'affichait « Action 3 ». L'heure était juste — c'est ce qui compte
+cliniquement — mais le mot manquait, et le compte rendu d'un même soin devenait difficile à
+recouper.
+
+### Une référence, jamais un mot
+Un repère porte désormais une **référence**, et chaque appareil rend le libellé depuis **sa** copie
+de la fiche. C'est ce qui tient la règle 15 sans condamner le journal au mutisme. Quatre sources,
+cumulatives :
+
+1. **La fiche elle-même** — minuteurs, compteurs, étapes, repères posologiques. Toute aide apporte
+   son vocabulaire sans qu'on ait rien à déclarer, et il suit ses mises à jour.
+2. **Un noyau universel livré** — ce qui se note dans toute intervention : renfort, régulation,
+   départ de la base, arrivée sur place, bilan, transmission, relève, départ, arrivée à l'hôpital.
+   **« Autre » n'y est pas, et ce n'est pas un oubli** : l'absence de référence *est* « autre », et
+   une étiquette qui ne distingue rien n'apprend rien à qui relit.
+3. **Le vocabulaire personnel, avec alias** — édité **à froid** dans la fenêtre Compte, synchronisé
+   comme le thème. C'est là que vivent les abréviations qu'on se découvre à l'usage : « mru »
+   trouve « Médecin régulateur ».
+4. **Rien du tout**, et c'est le cas nominal. « Noter l'heure » reste **un tap** : l'heure est
+   capturée, toujours, sans dépendre d'aucun vocabulaire. L'étiquetage est facultatif. Pire cas
+   d'un vocabulaire incomplet : un repère non étiqueté côté partagé, et le mot exact **en local**
+   chez celui qui l'a tapé.
+
+**La résolution échoue proprement**, et c'est cette garantie qui autorise à faire voyager des
+références : fiche d'une autre version, étape supprimée, étiquette effacée — le repère retombe sur
+« Action n », **jamais sur un mot inventé**. Six contrôles l'encodent.
+
+**On réordonne, on ne filtre jamais** — la règle des repères posologiques, appliquée telle quelle,
+avec la même machinerie (troncature à partir de quatre caractères, table de synonymes). Un faux
+positif coûte un rang ; un faux négatif coûte un mot au moment où on le cherche.
+
+### Ce qui ne pouvait pas être une fenêtre
+La règle 11 interdit les modales pendant un soin. Les propositions sont donc une rangée de chips
+**sous** la ligne du journal — lequel vit en fin de rail, si bien que ce qui apparaît pousse vers le
+bas et jamais vers le haut. Cibles 44 px, rien sous deux caractères saisis (tout ressemble à tout),
+quatre propositions au plus.
+
+Tant qu'aucune proposition n'est choisie, **le texte tapé reste strictement local** : mesuré, il
+n'entre pas dans ce qui est émis. Choisir pose la référence et efface le libellé manuel — le mot
+devient dérivé, donc identique sur les deux écrans.
+
+**Une asymétrie est dite plutôt que tue** : une étiquette *personnelle* se résout sur les appareils
+du même compte, pas chez un collègue qui ne l'a pas. Pendant un partage, elle est donc marquée
+« · vous seul ». La taire aurait laissé croire à un mot partagé.
+
+### La règle 15 vaut aussi à la réception
+La réception d'un repère distant lisait un `label` venu du réseau. Inoffensif entre deux clients de
+cette version — aucun émetteur n'en met — mais c'était une **porte** : un client modifié aurait
+affiché un mot arbitraire sur l'écran d'en face. La lecture est supprimée ; le libellé se dérive de
+la référence, et de rien d'autre. Le contrôle du harnais qui vérifiait l'inverse — il **encodait le
+trou** — a été retourné : il pousse maintenant un `label` hostile et vérifie qu'il n'apparaît nulle
+part.
+
+### Un défaut d'accessibilité sur iOS, trouvé en jouant le harnais sur le bon moteur
+Le `<select>` de rôle de l'écran d'entrée mesurait **23 px de haut sur WebKit** contre 44 sur Blink
+— sous le plancher de cible, sur le seul écran qu'un invité sans compte verra jamais, et sur la
+cible principale déclarée du projet. Invisible tant que le harnais d'accessibilité ne tournait que
+sur Chromium : c'est la leçon de la v4.45.0, redite. Hauteur explicite et chevron dessiné
+(`appearance:none` — sans lui, imposer une hauteur à un select natif iOS ne déplace pas son texte).
+
+### Vérification
+734 tests × 2 moteurs (+28), **227/227 contrôles partage** (+13, sur les deux moteurs), 13 harnais
+verts, 301 contrôles d'accessibilité **sur les deux moteurs**, 94/94 doctrine, `npm run check` vert.
+Le contrôle « le texte tapé n'est pas émis » est vérifié **capable d'échouer** (le libellé remis
+dans l'instantané le fait tomber, fichier restauré à l'octet). Le commentaire de modèle du fichier,
+qui décrivait un repère par trois clés depuis l'origine, en décrit désormais les huit — et dit
+lesquelles voyagent. **Rien à rejouer côté serveur.**
 
 ## [4.51.0] — 2026-07-27
 ### Le miroir se figeait au premier « Continuer » de l'hôte

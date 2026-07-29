@@ -29,7 +29,18 @@
      Échelle responsive FERMÉE : 430 / 560 / 640 / 780 / 900 / 1000 px (1000 = colonne droite de
      la vue fiche, V5). Plancher typographique : 11px (app consultée sous stress — rien en dessous).
      --line-hover : bordure des survols de boutons/chips (un seul gris au lieu de trois). */
-  :root{--ink:#101b28;--ink-soft:#5b6570;--line:#d5dbe2;--line-strong:#75828e;--line-hover:#c3ccd6;--bg:#e9edf2;--surface:#fff;--surface-2:#eff2f6;--surface-3:#e8ecf1;--primary:#1f5fa6;--primary-dk:#17477f;--primary-hi:#17477f;--primary-soft:#e3ecf7;--primary-100:#dce7f5;--primary-200:#b9cde6;--primary-300:#8fb4de;--on-primary:#fff;--ok-rgb:29,122,56;--ok:rgb(var(--ok-rgb));--ok-soft:#eaf6ee;--critical:#a32e1f;--critical-soft:#fbe9e4;--critical-line:#ecc4bc;--verify:#7a5900;--verify-soft:#fbf3dc;--verify-line:#eddfb6;--verify-bd:#b7791f;--verify-hi:#b45309;--critical-bd:#c43d34;--done-bg:#eff5f0;--done-line:#bfd8c6;--done-ink:#5b6570;--tag-bg:#e8ecf1;--tag-ink:#3c464f;--link:#1f5fa6;--soft:#8a94a0;--alert:#f0a431;--alert-hi:#ffb454;--alert-strong:#c98a18;--alert-ink:#3a2a02;--rt-card:#1c2a3c;--rt-line:#2c3d52;--rt-ink:#e8eef7;--alarm:#d1543c;--input-bg:#fff;--radius:14px;--radius-md:11px;--radius-sm:9px;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--shadow:0 1px 2px rgba(16,27,40,.04),0 4px 16px rgba(16,27,40,.06);--shadow-lg:0 2px 6px rgba(16,27,40,.06),0 12px 32px rgba(16,27,40,.10);--shadow-primary:0 1px 2px rgba(23,71,127,.2),0 4px 12px rgba(23,71,127,.16);--shadow-primary-sm:0 1px 2px rgba(23,71,127,.25);--lb-cap:#cfe0dd;--lb-ink:#fff;--paper:#fff;--qr-ink:#101b28;--flow-cur:#1f5fa6;/* VOILES (scrim) et ÉLÉVATIONS À L'ENCRE — tokenisés en v4.37.0. Ces cinq valeurs étaient des COPIES DÉCIMALES de --ink (#101b28 = 16,27,40) : le garde-fou couleurs ne voyait que les hex, elles passaient donc au travers, et un changement de --ink les aurait laissées derrière. Valeurs reprises à l'identique. Pas d'override sombre : c'est l'état actuel, en ajouter un serait un changement visible. */--scrim-soft:rgba(16,27,40,.45);--scrim:rgba(16,27,40,.55);--scrim-full:rgba(16,27,40,.92);--shadow-dock:0 1px 3px rgba(16,27,40,.05);--shadow-bar:0 1px 6px rgba(16,27,40,.06);}
+  /* F5 (v4.61.0, audit design) — UNE VOIX TYPOGRAPHIQUE POUR LES TITRES.
+     Le système roulait tout en system-ui : sûr, mais anonyme. Source Serif 4 (SIL OFL, sous-
+     ensemble latin, graisse 600, 21 Ko, vendorisée dans `vendor/fonts/`) prend les TITRES —
+     titre de fiche, marque, compte rendu — et rien d'autre. Ce n'est pas une décoration : les
+     titres sont les seuls survivants du scan sous stress, ils méritent un dessin ; le texte
+     courant reste system-ui, la police que l'appareil rend le mieux, et changer le corps d'une
+     aide lue en réanimation n'a jamais été l'objet.
+     `font-display: swap` : le texte s'affiche IMMÉDIATEMENT dans la police de repli et bascule
+     quand la police est prête — jamais d'écran de titre vide, même au tout premier chargement.
+     Précachée par sw.js (règle 13) : hors ligne dès l'installation. */
+  @font-face{font-family:'Source Serif 4';src:url('vendor/fonts/source-serif-4-latin-600.woff2') format('woff2');font-weight:600;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+  :root{--serif:'Source Serif 4',Georgia,'Times New Roman',serif;--ink:#101b28;--ink-soft:#5b6570;--line:#d5dbe2;--line-strong:#75828e;--line-hover:#c3ccd6;--bg:#e9edf2;--surface:#fff;--surface-2:#eff2f6;--surface-3:#e8ecf1;--primary:#1f5fa6;--primary-dk:#17477f;--primary-hi:#17477f;--primary-soft:#e3ecf7;--primary-100:#dce7f5;--primary-200:#b9cde6;--primary-300:#8fb4de;--on-primary:#fff;--ok-rgb:29,122,56;--ok:rgb(var(--ok-rgb));--ok-soft:#eaf6ee;--critical:#a32e1f;--critical-soft:#fbe9e4;--critical-line:#ecc4bc;--verify:#7a5900;--verify-soft:#fbf3dc;--verify-line:#eddfb6;--verify-bd:#b7791f;--verify-hi:#b45309;--critical-bd:#c43d34;--done-bg:#eff5f0;--done-line:#bfd8c6;--done-ink:#5b6570;--tag-bg:#e8ecf1;--tag-ink:#3c464f;--link:#1f5fa6;--soft:#8a94a0;--alert:#f0a431;--alert-hi:#ffb454;--alert-strong:#c98a18;--alert-ink:#3a2a02;--rt-card:#1c2a3c;--rt-line:#2c3d52;--rt-ink:#e8eef7;--alarm:#d1543c;--input-bg:#fff;--radius:14px;--radius-md:11px;--radius-sm:9px;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--shadow:0 1px 2px rgba(16,27,40,.04),0 4px 16px rgba(16,27,40,.06);--shadow-lg:0 2px 6px rgba(16,27,40,.06),0 12px 32px rgba(16,27,40,.10);--shadow-primary:0 1px 2px rgba(23,71,127,.2),0 4px 12px rgba(23,71,127,.16);--shadow-primary-sm:0 1px 2px rgba(23,71,127,.25);--lb-cap:#cfe0dd;--lb-ink:#fff;--paper:#fff;--qr-ink:#101b28;--flow-cur:#1f5fa6;/* VOILES (scrim) et ÉLÉVATIONS À L'ENCRE — tokenisés en v4.37.0. Ces cinq valeurs étaient des COPIES DÉCIMALES de --ink (#101b28 = 16,27,40) : le garde-fou couleurs ne voyait que les hex, elles passaient donc au travers, et un changement de --ink les aurait laissées derrière. Valeurs reprises à l'identique. Pas d'override sombre : c'est l'état actuel, en ajouter un serait un changement visible. */--scrim-soft:rgba(16,27,40,.45);--scrim:rgba(16,27,40,.55);--scrim-full:rgba(16,27,40,.92);--shadow-dock:0 1px 3px rgba(16,27,40,.05);--shadow-bar:0 1px 6px rgba(16,27,40,.06);}
   /* --shadow-primary(-sm) : élévation TEINTÉE PRIMAIRE des boutons remplis (v4.31.0 — les
      rgba(23,71,127,…) éparses sont consolidées ici). Tokens FIXES des deux thèmes (jamais
      surchargés en sombre, comme --rt-*) : --lb-cap/--lb-ink = légende et glyphe de la lightbox
@@ -412,7 +423,9 @@
      carré rouge — la couleur et la forme SEULES pour dire le mode, ce que WCAG 1.4.1 et la
      règle « la couleur n'est jamais seule » interdisent l'une comme l'autre. « Crise » est déjà
      la troncature minimale de « Mode crise ». */
-  #crisisBand .cb-ttl{flex:1;min-width:0;font-size:18px;font-weight:800;letter-spacing:-.2px;line-height:1.15;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  /* F5 : le titre de la fiche en crise porte la SÉRIF (graisse 600 — la seule embarquée ; 800
+     forcerait une graisse synthétique, plus lourde et moins nette). */
+  #crisisBand .cb-ttl{flex:1;min-width:0;font-family:var(--serif);font-size:19px;font-weight:600;letter-spacing:-.2px;line-height:1.15;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   #crisisBand .cb-tag{flex:none;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--critical)}
   /* QUAI DE CRISE (v4.23.0, canvas 2a/3a) : rangée PLEINE LARGEUR et COLLANTE sous l'en-tête.
      Elle porte l'état vivant (minuteurs) et l'accès permanent au Plan — les deux choses qui
@@ -667,7 +680,7 @@
   /* 20px (v4.4.2) : la marque était trop discrète. Plafond dur — au-delà, « Aides cognitives »
      se tronque sur iPhone SE/mini (375px : ~166px de logotype pour ~193px de budget) et la
      hauteur de barre, fixée par le bouton Compte (40px), ne bouge pas. */
-  .brand .brand-name{margin:0;font-size:20px;font-weight:800;letter-spacing:-.2px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .brand .brand-name{margin:0;font-family:var(--serif);font-size:20px;font-weight:600;letter-spacing:-.2px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   #brandSub{font-size:11.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-soft);margin-top:3px}
   /* Accueil : le sous-titre est porté par les onglets. En lecture il accompagne le titre dans
      la barre UNE FOIS DÉFILÉ (« Aide cognitive » / « Protocole », cf. .titled/.ttl-on plus bas) ;

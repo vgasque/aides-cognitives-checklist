@@ -28,7 +28,7 @@
 //  code et restent intactes à chaque mise à jour, tant que l'URL reste la même.
 // =============================================================================
 // IMPORTANT : garder cette version synchronisée avec APP_VERSION dans index.html.
-const CACHE = 'aides-cognitives-v4.60.0';
+const CACHE = 'aides-cognitives-v4.61.0';
 // Versionné par pdf.js (vendor/pdfjs/README.txt) : à changer UNIQUEMENT quand pdf.js est mis à jour.
 const PDFJS_CACHE = 'aides-cognitives-pdfjs-4.10.38';
 const PDFJS_ASSETS = [
@@ -40,8 +40,14 @@ const PDFJS_ASSETS = [
 // 290 Ko téléchargés et stockés en double à chaque publication, pour une entrée JAMAIS servie
 // (le repli de navigation cherche './index.html' d'abord — seule clé que le fetch de navigation
 // rafraîchit ; cf. le commentaire de ce repli, plus bas).
+/* F5 (v4.61.0) : la police des TITRES est EMBARQUÉE — l'app doit s'afficher hors ligne, une
+   police de CDN ne serait pas là où elle sert, et la CSP n'autorise aucune origine externe pour
+   les polices. Sous-ensemble latin, graisse 600, 21 Ko. Licence SIL OFL — vendor/fonts/README.txt.
+   NB : ne jamais mettre de commentaire À L'INTÉRIEUR de ce tableau — le contrôle check-sw le lit
+   littéralement et prendrait chaque ligne pour une entrée de cache. */
 const ASSETS = [
   './index.html',
+  './vendor/fonts/source-serif-4-latin-600.woff2',
   './manifest.webmanifest',
   './icon-192.png',
   './icon-192-maskable.png',
