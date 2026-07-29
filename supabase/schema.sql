@@ -1198,7 +1198,7 @@ begin
      Les images de BLOC sont retirées séparément : elles vivent dans chaque élément de `blocks`. */
   select coalesce(jsonb_object_agg(k, v), '{}'::jsonb) into v_snap
     from jsonb_each(p_fiche_snap) as e(k, v)
-   where k in ('id','title','code','status','validation','blocks','start','timers','counters',
+   where k in ('id','title','discriminant','code','status','validation','blocks','start','timers','counters',
                'confirmation','verify','notForget','differentials','posology');
   if v_snap ? 'blocks' and jsonb_typeof(v_snap->'blocks') = 'array' then
     select jsonb_set(v_snap, '{blocks}', coalesce(jsonb_agg(b - 'image' - 'images'), '[]'::jsonb))

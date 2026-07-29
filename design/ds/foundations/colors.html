@@ -223,6 +223,11 @@
     body.view-read .read-grid{grid-template-columns:minmax(0,860px) 360px;justify-content:center}
     /* F4 au palier 1200 : le plan prend 240 px, la checklist garde son plafond de 860. */
     body.view-read .read-grid.cockpit{grid-template-columns:240px minmax(0,860px) 360px}
+    /* K11 au même palier : structure 220, écriture 1fr, aperçu 320. */
+    :is(body.view-edit,body.view-pedit) .read-grid.ed-cockpit{grid-template-columns:220px minmax(0,1fr) 320px}
+    :is(body.view-edit,body.view-pedit) .ed-struct{display:flex;flex-direction:column;order:-1;
+      position:sticky;top:calc(var(--stick-top,64px) + 8px);height:calc(100vh / var(--zf,1) - var(--stick-top,64px) - 20px);
+      overflow-y:auto;border-right:1px solid var(--line);padding:14px 16px 16px 0}
     body.view-read .read-side .tm-val,body.view-read .read-side .cn-val{font-size:34px}
   }
   /* EN-TÊTE CLAIR par défaut (inversion 4.0.0) : la barre prend la couleur du fond de page —
@@ -993,6 +998,12 @@
   /* Tags informatifs des cartes : NEUTRES (audit v4.5) — la couleur reste au danger, au vert
      session et au liseré de catégorie. */
   .tag.sess{background:var(--tag-bg);color:var(--tag-ink)}
+  /* K6 — le DISCRIMINANT : pilule à CONTOUR, distincte des statuts (pleins) et des catégories
+     (qui portent une pastille). Ce n'est ni un état ni un classement : c'est une partie du NOM,
+     celle qui doit survivre à la troncature. */
+  .tag.disc{background:transparent;border:1px solid var(--line-strong);color:var(--ink);font-weight:700}
+  #crisisBand .cb-disc{flex:none;align-self:center;font-size:12px;font-weight:800;color:var(--ink);background:var(--surface-3);border-radius:6px;padding:2px 8px}
+  #crisisBand .cb-disc[hidden]{display:none}
   .tag.cat.neutral{background:var(--tag-bg);color:var(--tag-ink)}
   /* Statuts ACHROMATIQUES (V5) : glyphe + texte sur fond neutre — la couleur reste réservée
      au danger (rouge/ambre des registres) et aux catégories (liserés). */
@@ -1148,6 +1159,18 @@
   .ed-ident .id-a{flex:none;font-size:13px;font-weight:700;color:var(--link)}
   .ed-ident[open]{padding:0 14px 8px}
   .ed-ident[open]>summary{margin:0 -14px;border-bottom:1px solid var(--line)}
+  /* Les rangées de la colonne STRUCTURE : désaturées comme le rail de lecture — elle oriente,
+     la colonne du centre agit. Cible 44 px (c'est une navigation). */
+  .eds-row{display:flex;align-items:center;gap:9px;width:100%;min-height:44px;text-align:left;
+    background:none;border:0;border-top:1px solid var(--line);padding:7px 2px;font-family:inherit;cursor:pointer;color:var(--ink)}
+  .eds-row:first-of-type{border-top:0}
+  .eds-row:hover{background:var(--surface-2)}
+  .eds-row:focus-visible{outline:2px solid var(--primary);outline-offset:-2px;border-radius:6px}
+  .eds-n{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;
+    background:var(--surface-3);color:var(--ink-soft);font-size:11.5px;font-weight:800;font-variant-numeric:tabular-nums}
+  .eds-row.dec .eds-n{background:var(--verify-soft);color:var(--verify)}
+  .eds-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:600}
+  .eds-c{flex:none;font-size:11px;color:var(--ink-soft);font-variant-numeric:tabular-nums}
   .rev-panel{margin:22px 0 6px;border:1.5px solid var(--verify-line);border-left:4px solid var(--verify-bd);border-radius:var(--radius-md);background:var(--surface)}
   .rev-panel>summary{display:flex;align-items:center;gap:8px;min-height:44px;padding:8px 13px;cursor:pointer;list-style:none;font-family:inherit}
   .rev-panel>summary::-webkit-details-marker{display:none}
@@ -1971,6 +1994,18 @@
   .li-tools .mini.del:hover{background:var(--critical-soft)}
   /* La PASTILLE de bloc — celle de la lecture, au trait près : ronde, numérotée, bleue ; losange
      ambre pour une décision (le registre, comme la carte). */
+  /* K7 — la CARTE d'édition d'un minuteur : l'anatomie de celle du rail (fond de surface, filet,
+     rayon), avec ses réglages en rangées libellé-gauche / contrôle-droite. */
+  .tmedit{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-md);padding:11px 12px;margin-bottom:10px}
+  .tme-top{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .tme-top input[type=text]{flex:1;min-width:0;font-size:14px;font-weight:700}
+  .tme-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:7px}
+  .tme-row input[type=number]{width:64px;flex:none}
+  .tme-row.due input[type=text]{flex:1;min-width:0}
+  .tme-l{flex:none;min-width:82px;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
+  .tme-u{flex:none;font-size:12.5px;color:var(--ink-soft)}
+  .tme-loop{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;color:var(--ink-soft)}
+  .tme-h{margin:0;font-size:11.5px;line-height:1.4;color:var(--ink-soft)}
   .blk-n{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;
     background:var(--primary);color:var(--on-primary);font-size:13.5px;font-weight:800;font-variant-numeric:tabular-nums}
   .blk-n.dec{background:var(--verify-soft);color:var(--verify);border:1.5px solid var(--verify-bd);font-size:12px}
@@ -3190,6 +3225,12 @@
        ramené à GAUCHE par `order`. Il ne s'ouvre qu'au palier 1200 (cf. renderRead) : mesuré, à
        1000 px les trois colonnes laissent ~390 px au contenu clinique. */
     body.view-read .read-grid.cockpit>.read-plan{order:-1}
+    /* K11 — LE POSTE D'ÉCRITURE : structure | la fiche | aperçu. Même architecture que le cockpit
+       de lecture, et même discipline — la colonne d'orientation est posée APRÈS la colonne de
+       travail dans le DOM et ramenée à gauche par `order` : ni lecteur d'écran ni tabulation ne
+       traversent la structure pour atteindre les champs. Elle n'apparaît qu'à 1200 px, comme le
+       cockpit de lecture : à 1000, les trois colonnes laisseraient trop peu à l'écriture. */
+    :is(body.view-edit,body.view-pedit) .ed-struct{display:none}
     body.view-read .read-plan{position:sticky;top:calc(var(--stick-top,64px) + 8px);height:calc(100vh / var(--zf,1) - var(--stick-top,64px) - 20px);overflow-y:auto;
       border-right:1px solid var(--line);padding:14px 16px 16px 0;display:flex;flex-direction:column}
     /* Le plan de gauche reste INERTE au cochage (décision figée) : c'est le même
@@ -3213,6 +3254,11 @@
     body.view-read .read-grid{grid-template-columns:minmax(0,860px) 360px;justify-content:center}
     /* F4 au palier 1200 : le plan prend 240 px, la checklist garde son plafond de 860. */
     body.view-read .read-grid.cockpit{grid-template-columns:240px minmax(0,860px) 360px}
+    /* K11 au même palier : structure 220, écriture 1fr, aperçu 320. */
+    :is(body.view-edit,body.view-pedit) .read-grid.ed-cockpit{grid-template-columns:220px minmax(0,1fr) 320px}
+    :is(body.view-edit,body.view-pedit) .ed-struct{display:flex;flex-direction:column;order:-1;
+      position:sticky;top:calc(var(--stick-top,64px) + 8px);height:calc(100vh / var(--zf,1) - var(--stick-top,64px) - 20px);
+      overflow-y:auto;border-right:1px solid var(--line);padding:14px 16px 16px 0}
   }
   /* Aperçu en direct de l'éditeur (colonne droite >= 1000px) : mini-rendu du brouillon. */
   .ep-h{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 8px}

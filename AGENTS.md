@@ -1481,6 +1481,29 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   registre du modèle AVANT d'évaluer le raccourci le rendait donc inatteignable — et laissait le
   « ! » dans le texte, cumulé avec le ⚠ (« ⚠ ! Choc immédiat », mesuré). Le raccourci s'évalue
   AVANT ; ne pas réinverser.
+  **K7 — LE MINUTEUR SE RÈGLE DANS SA CARTE, ET L'ALARME DIT L'ACTION (v4.70.0)** : la rangée de
+  champs devient la CARTE du rail (nom, précision en méta, durée, type) plus un champ **« à
+  l'échéance »** — nouveau champ modèle `onDue`, FACULTATIF, défaut vide (règle 12), borné à 120
+  caractères. `onTimerFired` l'annonce alors à la place du seul nom : **une alarme qui nomme le
+  minuteur dit QUOI a sonné, jamais QUOI FAIRE** — poser l'action au pied de l'alerte est la règle
+  ECAM, et c'est l'auteur qui la connaît. Sans `onDue`, comportement inchangé.
+  **K11 — LE POSTE D'ÉCRITURE À 1200 px** : structure | la fiche | aperçu. La colonne STRUCTURE
+  EST le futur « Se repérer » (K9 : l'auteur ne dessine jamais le plan, il DÉCOULE de la
+  structure) — une ligne par bloc, son compte d'étapes, tap = ancrage au centre. Elle n'agit
+  jamais : ni champ, ni geste destructeur — même règle que le plan inerte en lecture. Posée APRÈS
+  la colonne de travail dans le DOM et ramenée à gauche par `order` (le clavier ne la traverse
+  pas), au palier **1200** comme le cockpit de lecture, et masquée sous ce seuil.
+  **K6 — LE DISCRIMINANT A SON CHAMP (v4.70.0)** : « adulte », « pédiatrique », « femme
+  enceinte » — c'est LUI que la troncature mange en premier, et deux titres identiques sur un
+  écran de crise sont un piège. Champ modèle `discriminant`, FACULTATIF, 60 caractères ; **aucune
+  migration ne DEVINE** — on ne découpe pas le titre d'un auteur pour en extraire un discriminant
+  supposé, ce serait réécrire son texte. Affiché **là où le titre se tronque** : rangée du
+  répertoire, tuile, et bandeau de crise (pilule à part, jamais dans la chaîne qui se coupe).
+  **IL VOYAGE** (`SHARE_KEEP` + liste blanche SQL) : il fait partie du NOM, et un invité lisant
+  « Arrêt cardiaque » là où l'hôte lit « adulte » serait exposé au piège même que ce champ
+  supprime. La règle 15 vise ce qu'on SAISIT PENDANT un soin, pas l'identité de l'aide — dont le
+  titre et le code voyagent déjà. **⚠ CE CHAMP EXIGE DE REJOUER `supabase/schema.sql`** : la
+  liste blanche du serveur est l'autorité, sans elle le discriminant serait filtré à l'arrivée.
   **RESTE ACQUIS DE v4.66** : **326 px de saut au clic sur « déplacer »** — le re-rendu insère les interstices AU-DESSUS du point regardé, et un
   `scrollIntoView` visait ensuite le bandeau, qui est STICKY donc déjà visible. Prendre et poser
   passent par **`keepAnchor`** (mécanique ECAM du projet) : l'objet pris ne bouge plus que de

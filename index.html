@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-slUnAlTdyUH0R0GpbW+MOszZWX0B4N+DwnkUeiHXhIs='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-OEeTexmY9UzNlmnZxwMLWM2FhSxDU7e6z/pIc4ImEBc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -508,6 +508,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     body.view-read .read-grid{grid-template-columns:minmax(0,860px) 360px;justify-content:center}
     /* F4 au palier 1200 : le plan prend 240 px, la checklist garde son plafond de 860. */
     body.view-read .read-grid.cockpit{grid-template-columns:240px minmax(0,860px) 360px}
+    /* K11 au même palier : structure 220, écriture 1fr, aperçu 320. */
+    :is(body.view-edit,body.view-pedit) .read-grid.ed-cockpit{grid-template-columns:220px minmax(0,1fr) 320px}
+    :is(body.view-edit,body.view-pedit) .ed-struct{display:flex;flex-direction:column;order:-1;
+      position:sticky;top:calc(var(--stick-top,64px) + 8px);height:calc(100vh / var(--zf,1) - var(--stick-top,64px) - 20px);
+      overflow-y:auto;border-right:1px solid var(--line);padding:14px 16px 16px 0}
     body.view-read .read-side .tm-val,body.view-read .read-side .cn-val{font-size:34px}
   }
   /* EN-TÊTE CLAIR par défaut (inversion 4.0.0) : la barre prend la couleur du fond de page —
@@ -1278,6 +1283,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Tags informatifs des cartes : NEUTRES (audit v4.5) — la couleur reste au danger, au vert
      session et au liseré de catégorie. */
   .tag.sess{background:var(--tag-bg);color:var(--tag-ink)}
+  /* K6 — le DISCRIMINANT : pilule à CONTOUR, distincte des statuts (pleins) et des catégories
+     (qui portent une pastille). Ce n'est ni un état ni un classement : c'est une partie du NOM,
+     celle qui doit survivre à la troncature. */
+  .tag.disc{background:transparent;border:1px solid var(--line-strong);color:var(--ink);font-weight:700}
+  #crisisBand .cb-disc{flex:none;align-self:center;font-size:12px;font-weight:800;color:var(--ink);background:var(--surface-3);border-radius:6px;padding:2px 8px}
+  #crisisBand .cb-disc[hidden]{display:none}
   .tag.cat.neutral{background:var(--tag-bg);color:var(--tag-ink)}
   /* Statuts ACHROMATIQUES (V5) : glyphe + texte sur fond neutre — la couleur reste réservée
      au danger (rouge/ambre des registres) et aux catégories (liserés). */
@@ -1433,6 +1444,18 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .ed-ident .id-a{flex:none;font-size:13px;font-weight:700;color:var(--link)}
   .ed-ident[open]{padding:0 14px 8px}
   .ed-ident[open]>summary{margin:0 -14px;border-bottom:1px solid var(--line)}
+  /* Les rangées de la colonne STRUCTURE : désaturées comme le rail de lecture — elle oriente,
+     la colonne du centre agit. Cible 44 px (c'est une navigation). */
+  .eds-row{display:flex;align-items:center;gap:9px;width:100%;min-height:44px;text-align:left;
+    background:none;border:0;border-top:1px solid var(--line);padding:7px 2px;font-family:inherit;cursor:pointer;color:var(--ink)}
+  .eds-row:first-of-type{border-top:0}
+  .eds-row:hover{background:var(--surface-2)}
+  .eds-row:focus-visible{outline:2px solid var(--primary);outline-offset:-2px;border-radius:6px}
+  .eds-n{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;
+    background:var(--surface-3);color:var(--ink-soft);font-size:11.5px;font-weight:800;font-variant-numeric:tabular-nums}
+  .eds-row.dec .eds-n{background:var(--verify-soft);color:var(--verify)}
+  .eds-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:600}
+  .eds-c{flex:none;font-size:11px;color:var(--ink-soft);font-variant-numeric:tabular-nums}
   .rev-panel{margin:22px 0 6px;border:1.5px solid var(--verify-line);border-left:4px solid var(--verify-bd);border-radius:var(--radius-md);background:var(--surface)}
   .rev-panel>summary{display:flex;align-items:center;gap:8px;min-height:44px;padding:8px 13px;cursor:pointer;list-style:none;font-family:inherit}
   .rev-panel>summary::-webkit-details-marker{display:none}
@@ -2256,6 +2279,18 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .li-tools .mini.del:hover{background:var(--critical-soft)}
   /* La PASTILLE de bloc — celle de la lecture, au trait près : ronde, numérotée, bleue ; losange
      ambre pour une décision (le registre, comme la carte). */
+  /* K7 — la CARTE d'édition d'un minuteur : l'anatomie de celle du rail (fond de surface, filet,
+     rayon), avec ses réglages en rangées libellé-gauche / contrôle-droite. */
+  .tmedit{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-md);padding:11px 12px;margin-bottom:10px}
+  .tme-top{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .tme-top input[type=text]{flex:1;min-width:0;font-size:14px;font-weight:700}
+  .tme-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:7px}
+  .tme-row input[type=number]{width:64px;flex:none}
+  .tme-row.due input[type=text]{flex:1;min-width:0}
+  .tme-l{flex:none;min-width:82px;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
+  .tme-u{flex:none;font-size:12.5px;color:var(--ink-soft)}
+  .tme-loop{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;color:var(--ink-soft)}
+  .tme-h{margin:0;font-size:11.5px;line-height:1.4;color:var(--ink-soft)}
   .blk-n{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;
     background:var(--primary);color:var(--on-primary);font-size:13.5px;font-weight:800;font-variant-numeric:tabular-nums}
   .blk-n.dec{background:var(--verify-soft);color:var(--verify);border:1.5px solid var(--verify-bd);font-size:12px}
@@ -3475,6 +3510,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        ramené à GAUCHE par `order`. Il ne s'ouvre qu'au palier 1200 (cf. renderRead) : mesuré, à
        1000 px les trois colonnes laissent ~390 px au contenu clinique. */
     body.view-read .read-grid.cockpit>.read-plan{order:-1}
+    /* K11 — LE POSTE D'ÉCRITURE : structure | la fiche | aperçu. Même architecture que le cockpit
+       de lecture, et même discipline — la colonne d'orientation est posée APRÈS la colonne de
+       travail dans le DOM et ramenée à gauche par `order` : ni lecteur d'écran ni tabulation ne
+       traversent la structure pour atteindre les champs. Elle n'apparaît qu'à 1200 px, comme le
+       cockpit de lecture : à 1000, les trois colonnes laisseraient trop peu à l'écriture. */
+    :is(body.view-edit,body.view-pedit) .ed-struct{display:none}
     body.view-read .read-plan{position:sticky;top:calc(var(--stick-top,64px) + 8px);height:calc(100vh / var(--zf,1) - var(--stick-top,64px) - 20px);overflow-y:auto;
       border-right:1px solid var(--line);padding:14px 16px 16px 0;display:flex;flex-direction:column}
     /* Le plan de gauche reste INERTE au cochage (décision figée) : c'est le même
@@ -3498,6 +3539,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     body.view-read .read-grid{grid-template-columns:minmax(0,860px) 360px;justify-content:center}
     /* F4 au palier 1200 : le plan prend 240 px, la checklist garde son plafond de 860. */
     body.view-read .read-grid.cockpit{grid-template-columns:240px minmax(0,860px) 360px}
+    /* K11 au même palier : structure 220, écriture 1fr, aperçu 320. */
+    :is(body.view-edit,body.view-pedit) .read-grid.ed-cockpit{grid-template-columns:220px minmax(0,1fr) 320px}
+    :is(body.view-edit,body.view-pedit) .ed-struct{display:flex;flex-direction:column;order:-1;
+      position:sticky;top:calc(var(--stick-top,64px) + 8px);height:calc(100vh / var(--zf,1) - var(--stick-top,64px) - 20px);
+      overflow-y:auto;border-right:1px solid var(--line);padding:14px 16px 16px 0}
   }
   /* Aperçu en direct de l'éditeur (colonne droite >= 1000px) : mini-rendu du brouillon. */
   .ep-h{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 8px}
@@ -3943,7 +3989,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
          #cbTimers   — l'ÉTAT VIVANT, information qui CHANGE : rangée COLLANTE, jamais perdue.
        Aucun des deux n'est dans header.bar : un en-tête qui se replie raccourcit son propre
        encombrement de flux et ferait remonter tout le contenu d'un coup. -->
-  <div id="crisisBand" hidden><span class="cb-ttl"></span><span class="cb-tag">■ Mode crise</span><button type="button" id="cbExoQuit" class="cb-exoquit" hidden>Quitter l’exercice…</button></div>
+  <div id="crisisBand" hidden><span class="cb-ttl"></span><span class="cb-disc" hidden></span><span class="cb-tag">■ Mode crise</span><button type="button" id="cbExoQuit" class="cb-exoquit" hidden>Quitter l’exercice…</button></div>
   <!-- QUAI DE CRISE : rangée COLLANTE sous l'en-tête (v4.23.0) = état vivant (minuteurs) + accès
        permanent au Plan. FRÈRE direct de .app, jamais enfant de #crisisBand : un élément collant
        ne colle QUE dans les bornes de son bloc conteneur — logé dans le bandeau, il se serait
@@ -4255,7 +4301,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.69.0';
+const APP_VERSION='4.70.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -5618,6 +5664,14 @@ function sanitizeEntityCommon(x,idPrefix,imgMax){
   x.attachments=(Array.isArray(x.attachments)?x.attachments:[]).slice(0,MAX_ATT_PER_ENTITY).map(safeAttachment).filter(Boolean);
   x.status=(x.status==='draft')?'draft':(x.status==='review'?'review':'');
   x.code=sstr(x.code,40);
+  /* K6 (v4.70.0) : le DISCRIMINANT — « adulte », « pédiatrique », « femme enceinte ». C'est LUI
+     que la troncature mange en premier (« Arrêt cardiaque (ACR) — algo… » : le mot qui distingue
+     DEUX fiches disparaît, et sur un écran de crise deux titres identiques sont un piège). Champ
+     séparé = jamais perdu : il s'affiche à part, en pilule, et la troncature n'y touche pas.
+     FACULTATIF, défaut vide (règle 12) — aucune migration ne DEVINE : on ne découpe pas le titre
+     d'un auteur pour en extraire un discriminant supposé, ce serait réécrire son texte. Un ancien
+     client ignore le champ, l'export v3 reste lisible. */
+  x.discriminant=sstr(x.discriminant,60);
   x.related=(Array.isArray(x.related)?x.related:[]).slice(0,20).filter(id=>typeof id==='string'&&SAFE_ID.test(id)&&BAD_KEYS.indexOf(id)<0);
   x.updatedBy=sstr(x.updatedBy,160);
   if(typeof x.updatedAt!=='number'||!isFinite(x.updatedAt))x.updatedAt=(typeof x.order==='number'&&isFinite(x.order))?x.order:Date.now();
@@ -5661,7 +5715,11 @@ function migrate(f){if(!f||typeof f!=='object')f={};
   // percuter entre elles.
   const _uniq=(arr,pfx)=>{const u=Object.create(null);return arr.map(x=>{let n=safeId(x&&x.id,pfx);while(u[n])n=uid(pfx);u[n]=1;return n;});};
   {const tl=(Array.isArray(f.timers)?f.timers:[]).slice(0,40);const ids=_uniq(tl,'t');
-   f.timers=tl.map((t,i)=>({id:ids[i],label:sstr(t&&t.label,120),type:(t&&t.type==='interval')?'interval':'stopwatch',seconds:Math.max(0,Math.min(86400,Math.round(Number(t&&t.seconds))||0)),autoloop:!!(t&&t.autoloop)}));}
+   /* K7 (v4.70.0) : `onDue` — LA LIGNE D'ACTION QUE PORTERA L'ALARME. Une alarme qui nomme le
+      minuteur dit QUOI a sonné, jamais QUOI FAIRE : c'est l'ECAM qui pose l'action au pied de
+      l'alerte. Champ FACULTATIF (règle 12 : on ajoute, on ne retire jamais), défaut vide, borné
+      comme un libellé — un ancien client l'ignore, l'export v3 reste lisible. */
+   f.timers=tl.map((t,i)=>({id:ids[i],label:sstr(t&&t.label,120),type:(t&&t.type==='interval')?'interval':'stopwatch',seconds:Math.max(0,Math.min(86400,Math.round(Number(t&&t.seconds))||0)),autoloop:!!(t&&t.autoloop),onDue:sstr(t&&t.onDue,120)}));}
   // timerId (facultatif, v4.5) : le « ＋ » du compteur RELANCE ce minuteur (canvas : bolus
   //   adrénaline -> repart le cycle). Référence, jamais régénérée : invalide -> '' (cf. safeCatRef).
   {const cl=(Array.isArray(f.counters)?f.counters:[]).slice(0,40);const ids=_uniq(cl,'n');
@@ -6615,7 +6673,12 @@ function showBanner(ficheId,fTitle,tLabel){const host=document.getElementById('a
 // cliquable + flash écran + notification système — l'alerte doit être ROUTÉE vers l'utilisateur.
 function onTimerFired(R,t){beep();
   const activeVisible=(R===Runtime)&&state.view==='read'&&document.visibilityState!=='hidden';
-  const ft=R.fiche?(R.fiche.title||'Aide cognitive'):'Aide cognitive';const tl=t.label||(t.type==='interval'?'Minuteur':'Chronomètre');
+  const ft=R.fiche?(R.fiche.title||'Aide cognitive'):'Aide cognitive';
+  /* K7 : l'alarme annonce L'ACTION quand l'auteur l'a écrite (`onDue`), le NOM sinon. Une alarme
+     qui dit seulement quoi a sonné laisse la décision entière à qui l'entend ; l'ECAM pose
+     l'action au pied de l'alerte. Le nom reste dans le libellé complet, jamais perdu. */
+  const nom=tmLabelParts(t.label).name||(t.type==='interval'?'Minuteur':'Chronomètre');
+  const tl=(t.onDue||'').trim()?(nom+' — '+String(t.onDue).trim()):nom;
   if(activeVisible){flash(t.id);}   // carte clignotée si visible + flash écran bref (cf. flash())
   else{showBanner(R.ficheId,ft,tl);flashScreen();
     // L'alerte ROUTÉE était muette pour un lecteur d'écran (v4.42.0, WCAG 4.1.3) : la banderole
@@ -6994,6 +7057,10 @@ function applyViewChrome(){
    cb.hidden=!crisis;
    document.getElementById('hdrCrisis').hidden=!crisis;
    if(crisis){cb.querySelector('.cb-ttl').textContent=state.fiche.title||'Sans titre';
+     /* K6 : le DISCRIMINANT survit à la troncature du titre — c'est tout son objet. Il vit dans
+        sa propre pilule, à côté, jamais dans la chaîne qui se coupe à deux lignes. */
+     {const dd=cb.querySelector('.cb-disc');
+      if(dd){const v=(state.fiche.discriminant||'').trim();dd.textContent=v;dd.hidden=!v;}}
      /* H concept B, AMENDÉ : l'audit voulait vider la bande-titre de son état pour ne lui
         laisser que le titre. ESSAYÉ, PUIS ANNULÉ — cela aurait retiré le placard « ▪ Vous
         suivez » que la v4.55.4 a posé sur DÉCISION UTILISATEUR, précisément parce que le
@@ -7554,7 +7621,7 @@ function renderFiches(){
         <span class="cat-dot"${cc?` style="--catcol:${safeColor(cc.color)}"`:''}></span>
         <div class="dir-main">
           <button class="card-open" data-open="${f.id}">${esc(f.title)||'Sans titre'}</button>
-          <span class="dir-sub">${searchLibTag(f)}${isLive?'<span class="tag live">● En cours</span>':''}${statusChip(f.status,true,{validation:f.validation})}${staleDate(f.validation)?`<span class="tag stale" title="${esc(fmtDate(f.validation))} — plus de 2 ans : à revérifier">△ À revérifier</span>`:''}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo title="Reste à compléter : ${esc(sp.join(' · '))}">△ À compléter</span>`:'';})()}${cc?`<span>${esc(cc.name)}</span>`:''}${f.validation?`<span class="card-date${staleDate(f.validation)?' stale':''}" title="${esc(fmtDate(f.validation))}">${esc(fmtDateShort(f.validation))}</span>`:''}</span>
+          <span class="dir-sub">${f.discriminant?`<span class="tag disc">${esc(f.discriminant)}</span>`:''}${searchLibTag(f)}${isLive?'<span class="tag live">● En cours</span>':''}${statusChip(f.status,true,{validation:f.validation})}${staleDate(f.validation)?`<span class="tag stale" title="${esc(fmtDate(f.validation))} — plus de 2 ans : à revérifier">△ À revérifier</span>`:''}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo title="Reste à compléter : ${esc(sp.join(' · '))}">△ À compléter</span>`:'';})()}${cc?`<span>${esc(cc.name)}</span>`:''}${f.validation?`<span class="card-date${staleDate(f.validation)?' stale':''}" title="${esc(fmtDate(f.validation))}">${esc(fmtDateShort(f.validation))}</span>`:''}</span>
           ${inQ?searchSnippet(ficheSnipParts(f),state.q):''}
         </div>
         ${f.code?`<span class="dir-code">${esc(f.code)}</span>`:''}
@@ -7565,7 +7632,7 @@ function renderFiches(){
     tile:f=>{const cc=catOf(f);const isLive=!!liveSessions[f.id];
       return `<button type="button" class="qa-tile card-open" data-open="${f.id}" title="${esc(f.title)||'Sans titre'}"${cc?` style="--stripe:${safeColor(cc.color)}"`:''}>
         <span class="qa-tx"><span class="qa-t">${esc(f.title)||'Sans titre'}</span>
-        <span class="qa-sub">${f.code?`<span class="code">${esc(f.code)}</span>`:''}${cc?`<span>${f.code?'· ':''}${esc(cc.name)}</span>`:''}</span></span>
+        <span class="qa-sub">${f.discriminant?`<span class="tag disc">${esc(f.discriminant)}</span>`:''}${f.code?`<span class="code">${esc(f.code)}</span>`:''}${cc?`<span>${f.code?'· ':''}${esc(cc.name)}</span>`:''}</span></span>
         ${isLive?'<span class="tag live">● En cours</span>':''}
       </button>`;},
     remainLbl:n=>'restante'+(n>1?'s':''),
@@ -7998,6 +8065,7 @@ function editorMetaFieldsHtml(d,prefix,L){
   return `${state.draftRestored?`<div class="notice">${uiIcon('history',15)}<span>Brouillon auto-enregistré (${fmtHMS(state.draftRestored)}) restauré — vos modifications non publiées ont été reprises. <button class="linkbtn" id="ghostDrop">Repartir de la version enregistrée</button></span></div>`:''}
     <details class="ed-ident"${vide?' open':''}><summary>${resume}<span class="id-a">Identité</span></summary>
     <div class="field"><label for="${prefix}-title">${L.titleLabel}</label><input type="text" id="${prefix}-title" value="${esc(d.title)}" placeholder="${L.titlePh}"></div>
+    <div class="field"><label for="${prefix}-disc">Discriminant <span class="hint">ce qui distingue cette fiche d’une voisine — jamais tronqué</span></label><input type="text" id="${prefix}-disc" value="${esc(d.discriminant||'')}" maxlength="60" placeholder="ex. adulte · pédiatrique · femme enceinte"></div>
     <div class="field"><label>Catégorie</label><div class="cat-picker" id="catPicker">${catPickerHtml(d)}</div></div>
     ${Auth.signedIn()?`<div class="field"><label for="${prefix}-scope">Bibliothèque <span class="hint">${L.scopeHint}</span></label>
       <select id="${prefix}-scope"><option value="" ${!d.libraryId?'selected':''}>Perso (privé)</option>${sortedLibraries().filter(l=>l.role==='editor'||l.role==='admin').map(l=>`<option value="${esc(l.id)}" ${d.libraryId===l.id?'selected':''}>${esc(l.name)} (partagée)</option>`).join('')}${d.libraryId&&!myLibraries.some(l=>l.id===d.libraryId)?`<option value="${esc(d.libraryId)}" selected>${esc(libName(d.libraryId)||'Bibliothèque')}</option>`:''}</select></div>`:''}
@@ -8056,6 +8124,7 @@ function bindEditorMetaFields(d,prefix,o){
   // Le titre saisi est reflété EN DIRECT dans la barre d'en-tête (même règle qu'en lecture).
   document.getElementById(prefix+'-title').addEventListener('input',e=>{d.title=e.target.value;setBarTitle(e.target.value);});
   {const pc=document.getElementById(prefix+'-code');if(pc)pc.addEventListener('input',e=>{d.code=e.target.value;});}
+  {const pd=document.getElementById(prefix+'-disc');if(pd)pd.addEventListener('input',e=>{d.discriminant=e.target.value;});}   // K6
   // Date de validation : champ tolérant — interprétée au blur (« janv 2026 », « 01/2026 »…) puis
   // réécrite au propre « MM/AAAA » ; entrée non comprise -> bordure rouge, valeur non retenue.
   {const fv=document.getElementById(prefix+'-validation');
@@ -8793,7 +8862,14 @@ function qrSvg(text,label){
       en fetch cross-origin (hors liste CORS-safelisted) : l'heure serveur voyage donc dans le
       CORPS. Une mesure dont l'aller-retour dépasse le seuil est REJETÉE — en 4G dégradée on
       garde le dernier bon décalage plutôt qu'un mauvais frais. */
-const SHARE_KEEP = ['id','title','code','status','validation','blocks','start','timers','counters',
+/* K6 (v4.70.0) : `discriminant` VOYAGE, et c'est un choix explicite. Il fait partie du NOM de la
+   fiche — l'invité qui lirait « Arrêt cardiaque » là où l'hôte lit « adulte » serait exposé au
+   piège même que ce champ supprime (deux fiches homonymes en crise). La règle 15 (« aucun texte
+   libre ne traverse le réseau ») vise ce que l'on SAISIT PENDANT un soin — repères, notes,
+   contexte local — pas l'identité de l'aide, dont le titre et le code voyagent déjà.
+   CE CHAMP EXIGE DE REJOUER `supabase/schema.sql` : la liste blanche du serveur est l'autorité,
+   et sans lui le discriminant serait filtré à l'arrivée (le client afficherait un vide). */
+const SHARE_KEEP = ['id','title','discriminant','code','status','validation','blocks','start','timers','counters',
   'confirmation','verify','notForget','differentials','posology'];
 const SHARE_DROP = ['category','localInfo','complications','references','images','attachments',
   'related','order','updatedBy','updatedAt','deletedAt','ownerId','libraryId'];
@@ -12221,7 +12297,19 @@ function cxEditorRow(c,i,f){
   const ext=blk?null:relTarget(c.target);
   const nom=blk?('Bloc — '+(String(stripBold(blk.title||''))||blk.id)):(ext?(ext.title||'Sans titre'):'');
   return `<div class="cx-edit-row"><span class="cx-edit-ic" aria-hidden="true">⚡</span><input data-cxlab="${i}" value="${esc(c.label)}" maxlength="120" placeholder="Événement (ex. Laryngospasme)"><button type="button" class="btn sm cx-tgt${nom?'':' cx-tgt-vide'}" data-cxpicker="${i}" aria-haspopup="dialog">${nom?esc(nom):'Choisir la cible…'}</button><button type="button" class="tk-del" data-cxdel="${i}" aria-label="Supprimer cette complication">×</button></div>`;}
-function timerEditorRow(t,i){const iv=t.type==='interval';const mm=Math.floor((t.seconds||0)/60),ss=(t.seconds||0)%60;return `<div class="trow" data-ti="${i}"><span class="blk-type tm-kind">${iv?'Cycle':'Chrono'}</span><input type="text" data-tf="label" value="${esc(t.label)}" placeholder="${iv?'ex. Cycle adrénaline':'ex. Temps écoulé'}" aria-label="${iv?'Nom du cycle':'Nom du chronomètre'}">${iv?`<input type="number" min="0" data-tmin value="${mm}" style="width:56px" aria-label="Durée du cycle — minutes"><span aria-hidden="true">min</span><input type="number" min="0" max="59" data-tsec value="${ss}" style="width:56px" aria-label="Durée du cycle — secondes"><span aria-hidden="true">s</span><label style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--ink-soft)"><input type="checkbox" data-tloop ${t.autoloop?'checked':''} aria-label="Relancer le cycle automatiquement">boucle</label>`:''}<button class="mini" data-tmv="up" aria-label="Monter">↑</button><button class="mini" data-tmv="down" aria-label="Descendre">↓</button><button class="mini del" data-tdel="${i}" aria-label="Supprimer ce minuteur">×</button></div>`;}
+/* K7 (v4.70.0, maquette MK3) — LE MINUTEUR SE RÈGLE DANS SA CARTE DE LECTURE. C'était une rangée
+   de champs alignés ; c'est maintenant la carte telle qu'elle apparaîtra dans le rail : nom en
+   casse de phrase, précision en méta (`tmLabelParts` la sépare déjà à l'affichage), durée, type,
+   et « À L'ÉCHÉANCE » — la ligne d'action que portera l'alarme. Une alarme qui nomme le minuteur
+   dit QUOI a sonné, jamais QUOI FAIRE : poser l'action au pied de l'alerte est la règle ECAM, et
+   c'est l'auteur qui la connaît, pas l'application. */
+function timerEditorRow(t,i){const iv=t.type==='interval';const mm=Math.floor((t.seconds||0)/60),ss=(t.seconds||0)%60;
+  return `<div class="tmedit" data-ti="${i}">
+    <div class="tme-top"><span class="blk-type tm-kind">${iv?'Cycle':'Chrono'}</span><input type="text" data-tf="label" value="${esc(t.label)}" placeholder="${iv?'ex. Cycle adrénaline (5 à 10 min)':'ex. Temps écoulé'}" aria-label="${iv?'Nom du cycle':'Nom du chronomètre'}"><button class="mini del" data-tdel="${i}" aria-label="Supprimer ce minuteur">×</button></div>
+    ${iv?`<div class="tme-row"><span class="tme-l">Durée</span><input type="number" min="0" data-tmin value="${mm}" aria-label="Durée du cycle — minutes"><span class="tme-u">min</span><input type="number" min="0" max="59" data-tsec value="${ss}" aria-label="Durée du cycle — secondes"><span class="tme-u">s</span><label class="tme-loop"><input type="checkbox" data-tloop ${t.autoloop?'checked':''} aria-label="Relancer le cycle automatiquement">se relance</label></div>`:''}
+    <div class="tme-row due"><span class="tme-l">À l’échéance</span><input type="text" data-tdue value="${esc(t.onDue||'')}" maxlength="120" placeholder="ex. Renouveler l’adrénaline si pas de réponse" aria-label="Ligne d’action annoncée par l’alarme"></div>
+    <p class="tme-h">Ce que l’alarme dira quand elle sonnera — l’action, pas le nom du minuteur.</p>
+  </div>`;}
 function counterEditorRow(c,i,timers){const ivs=(timers||[]).filter(t=>t.type==='interval');
   return `<div class="trow" data-ci="${i}"><input type="text" data-cf="label" value="${esc(c.label)}" placeholder="ex. Adrénaline (mg)" aria-label="Nom du compteur"><span aria-hidden="true">pas</span><input type="number" data-cstep value="${c.step||1}" style="width:56px" aria-label="Pas du compteur"><span aria-hidden="true">départ</span><input type="number" data-cstart value="${c.start||0}" style="width:56px" aria-label="Valeur de départ du compteur">${ivs.length?`<select data-clink aria-label="Minuteur relancé par le ＋ du compteur" title="Le « ＋ » du compteur relance ce minuteur (ex. bolus -> cycle)"><option value="">＋ ne relance rien</option>${ivs.map(t=>`<option value="${esc(t.id)}"${c.timerId===t.id?' selected':''}>＋ relance « ${esc(t.label)||'Minuteur'} »</option>`).join('')}</select>`:''}<button class="mini" data-cmv="up" aria-label="Monter">↑</button><button class="mini" data-cmv="down" aria-label="Descendre">↓</button><button class="mini del" data-cdel="${i}" aria-label="Supprimer ce compteur">×</button></div>`;}
 
@@ -12238,6 +12326,21 @@ function openDraftPreview(){state.previewFrom='edit';
   state.view='read';render();}
 function openPDraftPreview(){state.previewFrom='protocolEdit';
   state.protocol=migrateProtocol(JSON.parse(JSON.stringify(state.pdraft)));state.view='protocolRead';render();}
+/* K11 (v4.70.0, maquette du poste d'écriture) — LA COLONNE STRUCTURE. À grande largeur, l'auteur
+   perd le fil : une fiche à huit blocs se parcourt au défilement, et l'on ne sait plus où l'on
+   est. Cette colonne EST le futur « Se repérer » de la fiche (K9 : l'auteur ne dessine jamais le
+   plan, il DÉCOULE de la structure) — une ligne par bloc, dans l'ordre, avec son compte
+   d'étapes ; taper une ligne ANCRE le bloc au centre, sans rien modifier.
+   Elle ne montre QUE la structure : ni champ, ni action destructrice. Une colonne d'orientation
+   n'agit pas — c'est la même règle que le plan inerte en lecture. */
+function edStructHtml(f){
+  const bs=(f.blocks||[]);
+  if(bs.length<2)return '';   // à un seul bloc, il n'y a rien à repérer
+  return `<div class="rail-head"><span class="rail-title">Structure</span><span class="rail-n">${bs.length}</span></div>`
+    +bs.map((b,i)=>{const dec=b.type==='decision';
+      const n=dec?((b.options||[]).length+' branche'+((b.options||[]).length>1?'s':''))
+        :(clean(b.steps||[]).length+' étape'+(clean(b.steps||[]).length>1?'s':''));
+      return `<button type="button" class="eds-row${dec?' dec':''}" data-edgo="${esc(b.id)}"><span class="eds-n">${dec?'◆':(i+1)}</span><span class="eds-t">${esc((b.title||'').trim())||(dec?'Décision':'Sans titre')}</span><span class="eds-c">${n}</span></button>`;}).join('');}
 function editPreviewHtml(kind){
   if(kind==='fiche'){const f=state.draft;if(!f)return '';
     const sb=(f.blocks||[]).find(b=>b.id===f.start)||(f.blocks||[])[0]||{};
@@ -12272,7 +12375,7 @@ function renderEditor(){
   const f=state.draft;const blocks=f.blocks;blocks._start=f.start;
   const isNew=!fiches.some(x=>x.id===f.id);
   const wideEdit=mqReadWide.matches;
-  main.innerHTML=`${wideEdit?`<div class="read-grid"><div class="read-main">`:''}`+`
+  main.innerHTML=`${wideEdit?`<div class="read-grid ed-cockpit"><div class="read-main">`:''}`+`
     ${editorMetaFieldsHtml(f,'f',{titleLabel:'Titre de la situation',titlePh:'ex. Intoxication aux anesthésiques locaux',scopeHint:'où ranger cette fiche',codePh:'ex. URG-ANA-01',fem:true})}
     ${''/* v4.4.1 : les champs suivent l'ORDRE DE LECTURE du parcours de soin (chapeau « Ne pas
     oublier », ① confirmation, ② prise en charge + minuteurs + contexte local + posologie,
@@ -12297,11 +12400,17 @@ function renderEditor(){
     ${noteBlockHtml(f.id)}
     <div id="revPanel">${reviewPanelHtml(f)}</div>
     ${fiches.some(x=>x.id===f.id)?'<div class="ed-del"><button class="btn danger" id="delBtn">Supprimer cette fiche</button></div>':''}
-    ${wideEdit?`</div><aside class="read-side" id="editSide">${editPreviewHtml('fiche')}</aside></div>`:''}
+    ${wideEdit?`</div><aside class="ed-struct">${edStructHtml(f)}</aside><aside class="read-side" id="editSide">${editPreviewHtml('fiche')}</aside></div>`:''}
     <input type="file" id="imgInput" accept="image/*" hidden>
     <input type="file" id="pdfInput" accept="application/pdf,.pdf" hidden>`;
   bindEditorEvents(f);
   bindRevPanel();   // K2 : ancrage des remarques de relecture
+  /* K11 : taper une ligne de STRUCTURE amène son bloc au centre et le fait clignoter — jamais de
+     focus volé (l'auteur cherche, il n'écrit pas encore) ni de modification. */
+  main.querySelectorAll('[data-edgo]').forEach(b=>b.onclick=()=>{
+    const el=main.querySelector('.blk[data-bid="'+CSS.escape(b.dataset.edgo)+'"]');if(!el)return;
+    el.scrollIntoView({block:'center'});
+    el.classList.add('rev-flash');setTimeout(()=>el.classList.remove('rev-flash'),1300);});
   {const gx=document.getElementById('edGrabX');if(gx)gx.onclick=()=>{state.edGrab=null;renderEditor();};}
   /* Échap repose l'objet — geste d'annulation universel de l'app (modales, lecteur, plan). Posé
      UNE fois, à la première ouverture d'éditeur : `_edEscBound` évite d'empiler un écouteur par
@@ -12341,7 +12450,7 @@ function bindEditorEvents(f){
   main.querySelectorAll('[data-ti]').forEach(row=>{const t=f.timers[+row.dataset.ti];const lab=row.querySelector('[data-tf]');if(lab)lab.addEventListener('input',e=>t.label=e.target.value);
     const mn=row.querySelector('[data-tmin]'),sc=row.querySelector('[data-tsec]');const upd=()=>{t.seconds=(parseInt(mn.value||0)||0)*60+(parseInt(sc.value||0)||0);};if(mn)mn.addEventListener('input',upd);if(sc)sc.addEventListener('input',upd);
     const lp=row.querySelector('[data-tloop]');if(lp)lp.addEventListener('change',e=>t.autoloop=e.target.checked);
-    row.querySelectorAll('[data-tmv]').forEach(b=>b.onclick=()=>{moveItem(f.timers,+row.dataset.ti,b.dataset.tmv==='up'?-1:1);renderEditor();});
+    const du=row.querySelector('[data-tdue]');if(du)du.addEventListener('input',e=>t.onDue=e.target.value);   // K7
     const dl=row.querySelector('[data-tdel]');if(dl)dl.onclick=()=>{f.timers.splice(+dl.dataset.tdel,1);renderEditor();};});
   main.querySelectorAll('[data-ci]').forEach(row=>{const c=f.counters[+row.dataset.ci];const lab=row.querySelector('[data-cf]');if(lab)lab.addEventListener('input',e=>c.label=e.target.value);
     const st=row.querySelector('[data-cstep]');if(st)st.addEventListener('input',e=>c.step=parseInt(e.target.value||1)||1);const sr=row.querySelector('[data-cstart]');if(sr)sr.addEventListener('input',e=>c.start=parseInt(e.target.value||0)||0);
@@ -12541,7 +12650,7 @@ async function saveDraft(){const d=state.draft;d.title=(d.title||'').trim();
   draftReadStatusFields(d,'f');
   ['confirmation','verify','notForget','differentials','references','posology'].forEach(k=>d[k]=clean(d[k]));
   d.blocks.forEach(b=>{b.title=(b.title||'').trim();if(b.type==='steps'){b.steps=clean(b.steps);b.nextLbl=(b.nextLbl||'').trim();}else{b.question=(b.question||'').trim();b.options=(b.options||[]).filter(o=>(o.label||'').trim());}});
-  d.timers=(d.timers||[]).map(t=>({id:t.id,label:(t.label||'').trim(),type:t.type==='interval'?'interval':'stopwatch',seconds:Math.max(0,parseInt(t.seconds||0)||0),autoloop:!!t.autoloop}));
+  d.timers=(d.timers||[]).map(t=>({id:t.id,label:(t.label||'').trim(),type:t.type==='interval'?'interval':'stopwatch',seconds:Math.max(0,parseInt(t.seconds||0)||0),autoloop:!!t.autoloop,onDue:(t.onDue||'').trim()}));
   d.counters=(d.counters||[]).map(c=>({id:c.id,label:(c.label||'').trim(),step:Math.max(1,parseInt(c.step||1)||1),start:parseInt(c.start||0)||0,timerId:(d.timers||[]).some(t=>t.id===c.timerId)?c.timerId:''}));
   d.attachments=(d.attachments||[]).map(safeAttachment).filter(Boolean);
   delete d.blocks._start;if(!d.start||!d.blocks.some(b=>b.id===d.start))d.start=d.blocks[0]?d.blocks[0].id:null;

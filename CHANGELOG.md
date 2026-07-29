@@ -1,5 +1,49 @@
 # Journal des modifications
 
+## [4.70.0] — 2026-07-29
+### Fin de la phase K — le minuteur dans sa carte, le poste d'écriture, le discriminant
+
+> **⚠ Cette version exige de rejouer `supabase/schema.sql`** — la première du chantier dans ce
+> cas. La liste blanche des champs de fiche du serveur doit connaître `discriminant`, sinon il est
+> filtré à l'arrivée et l'invité voit une fiche sans son discriminant.
+
+### K7 — le minuteur se règle dans sa carte, et l'alarme dit l'action
+La rangée de champs devient la **carte du rail** : nom en casse de phrase, précision en méta,
+durée, type. S'y ajoute **« à l'échéance »** — nouveau champ `onDue`, facultatif, défaut vide.
+
+C'est le point important : `onTimerFired` annonce désormais **l'action** quand l'auteur l'a
+écrite, au lieu du seul nom. Une alarme qui nomme le minuteur dit **quoi a sonné**, jamais **quoi
+faire** — poser l'action au pied de l'alerte est la règle ECAM, et c'est l'auteur qui la connaît,
+pas l'application. Sans `onDue`, le comportement est inchangé.
+
+### K11 — le poste d'écriture à 1200 px
+**Structure | la fiche | aperçu.** La colonne structure **est** le futur « Se repérer » de la
+fiche : l'auteur ne dessine jamais le plan, il découle de la structure. Une ligne par bloc, son
+compte d'étapes, un tap pour ancrer le bloc au centre.
+
+Elle **n'agit jamais** : ni champ, ni geste destructeur — la même règle que le plan inerte en
+lecture. Elle est posée *après* la colonne de travail dans le DOM et ramenée à gauche par `order`,
+pour que ni lecteur d'écran ni tabulation ne la traversent avant d'atteindre les champs. Palier
+1200, comme le cockpit de lecture.
+
+### K6 — le discriminant a son champ
+« adulte », « pédiatrique », « femme enceinte » : c'est **lui** que la troncature mange en
+premier, et deux titres identiques sur un écran de crise sont un piège. Champ `discriminant`,
+facultatif, 60 caractères.
+
+- **Aucune migration ne devine.** On ne découpe pas le titre d'un auteur pour en extraire un
+  discriminant supposé — ce serait réécrire son texte.
+- **Affiché là où le titre se tronque** : rangée du répertoire, tuile d'accès direct, et bandeau
+  de crise — dans sa propre pilule, jamais dans la chaîne qui se coupe.
+- **Il voyage** (client et serveur). Il fait partie du **nom** : un invité lisant « Arrêt
+  cardiaque » là où l'hôte lit « adulte » serait exposé au piège même que ce champ supprime. La
+  règle 15 (« aucun texte libre ne traverse le réseau ») vise ce qu'on **saisit pendant un soin**
+  — repères, notes, contexte local — pas l'identité de l'aide, dont le titre et le code voyagent
+  déjà.
+
+Vérifié : 808 tests × 2 moteurs, a11y 301/301, doctrine 112/112, partage 294/294, `check-sql`
+(19 capacités identiques client/serveur).
+
 ## [4.69.0] — 2026-07-29
 ### Identité compacte, volet de relecture d'une ligne, et les raccourcis à la frappe
 
@@ -622,59 +666,3 @@ comportement normal, à ne pas « corriger ».
 
 Vérifié : 766 tests × 2 moteurs, a11y 301/301, `npm run check`, design system régénéré (la démo
 n'impose plus un nombre de colonnes que le vrai CSS n'a plus). Rien à rejouer côté serveur.
-
-## [4.56.0] — 2026-07-28
-### L'accueil devient un « poste accès direct » : épinglées, répertoire A→Z, rail alphabétique
-
-Refonte des listes d'aides ET de protocoles d'après la maquette « 2c — poste accès direct » du
-canvas Claude Design « Accueil bibliothèques » (modèle du téléphone d'urgence : les favoris sous
-le pouce, l'annuaire complet derrière, l'index de tranche pour y sauter).
-
-### Trois étages à la place de la grille de cartes
-- **« Épinglée(s) ★ »** — les fiches épinglées en TUILES (liseré de catégorie, code · catégorie,
-  « ● En cours »). Libellé accordé au type et au nombre ; **les épinglées seules**, décision
-  utilisateur « juste les favoris » — la fréquence d'usage reste un critère de tri de RECHERCHE,
-  jamais de mise en avant ; aucune épingle → la section disparaît. Titre en 15 px borné à
-  **3 lignes** puis ellipse (2 lignes tronquaient trop pour reconnaître la fiche ;
-  `overflow-wrap:break-word`, pas `anywhere` qui coupait « Anaphylaxie » en plein mot) ; le nom
-  accessible et l'info-bulle gardent le texte entier.
-- **RÉPERTOIRE A→Z** — rangées compactes groupées par lettre (hors A-Z → « # », rangé en fin),
-  tri alphabétique STRICT (l'épinglée a sa tuile — la hisser en tête de sa lettre casserait la
-  lecture d'annuaire) ; sous 640 px, chaque lettre devient une liste à filets dans une carte
-  (maquette mobile). Les rangées gardent l'épingle ☆, le statut en attente, « À revérifier »,
-  « À compléter », la catégorie EN TOUTES LETTRES (la couleur d'une pastille n'est jamais seule)
-  et la date de validation en forme COURTE (`fmtDateShort` — « Validation : » pèserait plus que
-  la donnée sur une sous-ligne de 11 px). Le répertoire ne se pagine JAMAIS : le rail promet
-  « A→Z sous le doigt », un « Afficher plus » ferait des lettres injoignables.
-- **RAIL ALPHABÉTIQUE** — tap = saut à la lettre, GLISSER le long des lettres = parcourir
-  (index iOS ; pointer capture). Dès 2 lettres ; s'il ne tient pas en hauteur il DISPARAÎT
-  (jamais de lettres coupées ni de cibles < 24 px). En étroit il est FIXE, ancré entre le bas
-  de l'en-tête (`--hdr-h`) et la tab bar — un centrage sur la fenêtre passait sous l'en-tête
-  à 320×640, mesuré puis corrigé.
-
-### Ce qui ne change PAS (décisions utilisateur explicites)
-La recherche RESTE dans l'en-tête (champ statique : le focus survit aux re-rendus, raccourci
-« / » — la grande recherche du corps de la maquette est écartée) ; le filtre catégorie FILTRE
-(l'« estompage sans déplacer » de la maquette est refusé) ; en recherche, liste plate triée par
-pertinence (épinglées > frecency > titre), extraits contextuels et pagination inchangés.
-
-### Historique GLOBAL des sessions
-Le compte « n sauvegardées » des cartes disparaît ; à sa place, la fenêtre Historique gagne un
-mode « toutes les fiches » (chaque rangée nomme la sienne, cliniques et exercices toujours
-séparés) : rangée « Historique des sessions (n) » en bas de la sidebar en large, lien du pied de
-page en étroit — masqués à zéro session (aucun bouton mort). L'entrée PAR FICHE du menu ⋯ est
-inchangée. `openSessHist()` sans argument = mode global `'*'`.
-
-### Sous le capot
-- Fonctions pures testées : `azLetter`/`azGroups` (lettre désaccentuée, table en
-  `Object.create(null)` — la clé vient d'un titre saisi) et `qaPick` ; +10 tests (766 × 2 moteurs).
-- L'ancien composant `.card`/`.cards` est PURGÉ (émissions vérifiées au grep, règle 14 ; démo
-  `design/build.mjs` refaite ; `newTonal`, champ mort d'avant la refonte, retiré). Le bouton-titre
-  GARDE le nom `.card-open` : quatorze harnais ouvrent une fiche par ce sélecteur.
-- Périmètre accueil d'`audit-a11y` : `.dir-wrap,.azrail` remplace `.cards` — un sélecteur mort
-  ferait passer l'accueil sans le mesurer (leçon v4.31.1). Le bouton-titre des rangées porte un
-  padding 6 px compensé : sa BOÎTE atteint 29 px (l'ancien titre passait la mesure parce qu'il
-  s'enroulait sur deux lignes ; le `::after` étendu, lui, ne se mesure pas).
-- Vérifié : `npm run check`, 766 tests × Chromium + WebKit, a11y **301/301 sur les deux
-  moteurs**, doctrine 112/112, zoom-scroll 6/6, zéro débordement horizontal à 320 px, clair et
-  sombre. Rien à rejouer côté serveur.
