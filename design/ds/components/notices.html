@@ -395,7 +395,9 @@
   #homeChrome .scopebar{margin-bottom:6px}
   #homeChrome .catbar{margin-bottom:0}
   /* V5 : bandeau TITRE du mode crise — le titre de la fiche vit ici en permanence (toujours
-     lisible en crise, canvas turn 6), « ■ MODE CRISE » à droite, registre ALERTE, bord à bord. */
+     lisible en crise, canvas turn 6), registre ALERTE, bord à bord.
+     v4.70.1 : il ne porte PLUS « ■ MODE CRISE ». Cf. « DEUX ANNONCIATEURS, DEUX OFFICES »
+     plus bas — la barre dit le MODE, le bandeau ne dit que l'EXCEPTION. */
   /* ZONE HAUTE DE CRISE (v4.23.0) — deux éléments, deux comportements, hors de l'en-tête :
        #crisisBand  = le TITRE. Information CONSTANTE -> il vit dans le flux et s'en va au
                       défilement ; #hdrCrisis en prend le relais dans la rangée d'identité.
@@ -413,7 +415,8 @@
      BANDEAU BLANC (décision utilisateur) : un bandeau d'état PERMANENT teinté en rouge
      désensibilise au rouge. L'ECAM réserve la couleur aux alertes RÉELLES — ici le minuteur
      échu (ambre) et les étapes critiques (rouge) ; le statut, lui, s'annonce en TEXTE. Le rouge
-     du mode crise ne subsiste donc que dans le libellé « ■ Mode crise » et son glyphe. */
+     du mode crise ne subsiste donc que dans le libellé « ■ Crise » et son glyphe — porté par
+     la barre depuis la v4.70.1, plus par le bandeau. */
   #crisisBand{min-height:44px;padding:9px 18px 10px;background:var(--surface);color:var(--ink);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;animation:cbIn .3s ease}
   #crisisBand[hidden]{display:none}
   /* Étiquette d'état condensée : n'apparaît que quand le bandeau est passé dessous (.ttl-on) —
@@ -426,12 +429,13 @@
   /* LE MOT NE TOMBE JAMAIS. Un repli au glyphe seul sous 430 px a été essayé (il rendait ~41 px
      au titre) puis ANNULÉ : en état CONDENSÉ le bandeau-titre est parti, il ne resterait qu'un
      carré rouge — la couleur et la forme SEULES pour dire le mode, ce que WCAG 1.4.1 et la
-     règle « la couleur n'est jamais seule » interdisent l'une comme l'autre. « Crise » est déjà
-     la troncature minimale de « Mode crise ». */
+     règle « la couleur n'est jamais seule » interdisent l'une comme l'autre. Depuis la v4.70.1
+     cette pilule est le SEUL énoncé du mode : plus de second libellé à harmoniser avec elle. */
   /* F5 : le titre de la fiche en crise porte la SÉRIF (graisse 600 — la seule embarquée ; 800
      forcerait une graisse synthétique, plus lourde et moins nette). */
   #crisisBand .cb-ttl{flex:1;min-width:0;font-family:var(--serif);font-size:19px;font-weight:600;letter-spacing:-.2px;line-height:1.15;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   #crisisBand .cb-tag{flex:none;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--critical)}
+  #crisisBand .cb-tag[hidden]{display:none}
   /* QUAI DE CRISE (v4.23.0, canvas 2a/3a) : rangée PLEINE LARGEUR et COLLANTE sous l'en-tête.
      Elle porte l'état vivant (minuteurs) et l'accès permanent au Plan — les deux choses qui
      doivent rester joignables où que l'on soit dans le journal.
@@ -3269,6 +3273,9 @@
      l'ANCIENNE grammaire apprend le mauvais rendu à l'auteur. */
   .ep-band{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--surface);border-bottom:1px solid var(--line)}
   .ep-ttl{flex:1;min-width:0;font-size:13.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* La miniature n'a PAS de barre d'application : sa pilule tient donc lieu de `#hdrCrisis`,
+     et porte le même mot que lui (« Crise », v4.70.1) — pas celui que le bandeau réel a cessé
+     d'afficher. Un seul libellé dans tout le fichier. */
   .ep-tag{flex:none;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--critical)}
   .ep-body{padding:10px 12px 12px;display:flex;flex-direction:column}
   .ep-forget{border:1px solid var(--critical);border-left:4px solid var(--critical);background:var(--critical-soft);border-radius:7px;padding:7px 10px;font-size:11.5px;line-height:1.4;margin-bottom:6px}

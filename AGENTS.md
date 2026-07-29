@@ -897,8 +897,9 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   de 11 px ; le logo n'étant pas interactif, aucune règle de cible ne s'y applique). Vérifié à 0 px
   de surcoût de 360 à 431 px. Toute addition à cette rangée doit être re-mesurée à **320 px**
   (v4.43.0 — c'était 360 jusque-là) : c'est désormais la largeur la plus contrainte servie.
-- **PLACARD DE L'INVITÉ (v4.55.4, demande utilisateur)** : il lisait « ■ Mode crise », exactement
-  ce que lit l'hôte, alors que sa situation est autre — il SUIT une session qu'il ne conduit pas et
+- **PLACARD DE L'INVITÉ (v4.55.4, demande utilisateur ; l'hôte n'a PLUS d'étiquette depuis la
+  v4.70.1 — cf. « DEUX ANNONCIATEURS, DEUX OFFICES »)** : il lisait « ■ Mode crise », exactement
+  ce que lisait alors l'hôte, alors que sa situation est autre — il SUIT une session qu'il ne conduit pas et
   qui peut s'arrêter sans lui. Le bandeau-titre porte donc « **▪ Vous suivez** » et une hachure
   BLEUE, l'en-tête relayant « ▪ Suivi » au pixel où le titre passe dessous. **Même mécanique que le
   placard d'exercice, au trait près** (`::before` en fondu, relais au défilement, enfants en
@@ -1270,15 +1271,40 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   pilule descendait au QUAI), écarté parce que le quai est la rangée de la télémétrie VIVE et que
   pour l'invité il doublonnerait les jetons de partage. Le gain de B est la STABILITÉ, pas la
   largeur — ne pas le vendre pour autre chose. **DEUX AMENDEMENTS À L'AUDIT, tous deux mesurés** :
-  (1) il voulait vider la bande-titre de son état ; cela aurait retiré le placard « ▪ Vous
-  suivez » posé sur DÉCISION UTILISATEUR en v4.55.4 (« l'endroit le plus lu ») et fait tomber deux
-  contrôles de harnais — le bandeau garde donc son annonce en toutes lettres, la redondance est
-  VOULUE (comme l'alarme au quai et au rail) ; (2) un repli au GLYPHE SEUL sous 430 px rendait
+  (1) il voulait vider la bande-titre de son état ; **cet amendement a été LEVÉ en v4.70.1, cf.
+  le point suivant** ; (2) un repli au GLYPHE SEUL sous 430 px rendait
   ~41 px au titre, mais en condensé le bandeau est parti : il ne resterait qu'un carré rouge, la
   couleur et la forme seules pour dire le mode — WCAG 1.4.1 et « la couleur n'est jamais seule »
   l'interdisent. Annulé. **Le liseré de mode 10 px** proposé par l'audit n'est PAS posé : le
   placard hachuré de v4.55.4 est déjà le canal périphérique d'exercice et d'invité, à coût de
   hauteur NUL — un liseré serait un troisième dispositif pour la même information.
+- **DEUX ANNONCIATEURS, DEUX OFFICES — LA BARRE DIT LE MODE, LE BANDEAU DIT L'EXCEPTION
+  (v4.70.1, demande utilisateur)** : la v4.58.0 avait ancré la pilule au coin haut-droit SANS
+  retirer celle du bandeau, si bien qu'on lisait **« ■ CRISE » en barre et « ■ MODE CRISE » en
+  bandeau, en même temps, sur le même écran**. La doctrine l'admettait comme une troncature du
+  même mot (« Cons. » pour « Consulter ») — mais la troncature sert à faire tenir UN libellé dans
+  une place étroite, jamais à écrire deux fois la même chose côte à côte. Règle désormais
+  explicite : `#hdrCrisis` est **le seul énoncé du mode**, permanent et immobile ; `.cb-tag` ne
+  paraît QUE s'il y a une exception que la pilule ne dit pas à elle seule — « ▪ Vous suivez »
+  (la PHRASE + la hachure, là où la pilule ne dit que « Suivi »), « ▲ Exercice », « ■ Aperçu ».
+  **Ce n'est pas la redondance de l'alarme** (quai + rail), qui répète une valeur VIVE pour
+  qu'elle ne puisse pas être manquée : ici les deux canaux disaient la même CONSTANTE.
+  **MESURÉ** : le titre récupère la largeur de l'étiquette et retombe sur une ligne à 360/390/430
+  (bandeau 63,7 → 44 px) ; à **320 px** il occupait déjà deux lignes, donc le placard de l'invité
+  y reste à **coût nul** — c'est la largeur qui compte (2,1 px de marge à `#crisisCtrl`), et un
+  témoin d'`audit-partage` la mesure au lieu de l'affirmer. Au-dessus, poser un placard peut
+  repousser le titre d'une ligne : sans effet de bord, car **aucune transition sur place** ne mène
+  à ces états (on arrive en invité par l'écran d'entrée ; un lien coupé passe par `freeze`, qui
+  garde `mode === 'guest'` ; l'exercice est un acte local). La miniature de l'aperçu d'éditeur
+  (`.ep-tag`) n'a pas de barre : sa pilule TIENT LIEU de `#hdrCrisis` et porte le même mot.
+- **UN HARNAIS QUI PLANTE EN EMPORTE CINQ (v4.70.1)** : `audit-complications` cliquait `#addCx`,
+  l'un des SIX boutons d'ajout que la v4.65.0 a remplacés par une porte unique — il levait donc
+  une exception depuis cinq versions, et comme `npm run audit` chaîne les quatorze harnais par
+  `&&`, **il emportait les cinq suivants** (exercice, lecteur, QR, partage, historique). Ils
+  étaient verts parce qu'on les lançait un par un ; la commande d'ensemble, elle, s'arrêtait au
+  neuvième. **On lit le CODE DE SORTIE, jamais la dernière ligne d'un `grep`** — un `| grep` rend
+  le statut du grep, pas celui de la chaîne. Corollaire de la règle 14 : une suppression de
+  composant emporte aussi les SONDES qui le désignaient.
 - **COCKPIT TROIS ZONES EN LECTURE, DÈS 1200 px (v4.59.0, audit design F4)** : orientation |
   action | état de front — l'idéal ECAM (E/WD et SD sous les yeux en même temps), et pour un
   binôme hospitalier un poste fixe où l'aide-lecteur voit plan, parcours et minuteurs sans un

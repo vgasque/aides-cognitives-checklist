@@ -1,5 +1,62 @@
 # Journal des modifications
 
+## [4.70.1] — 2026-07-29
+### Le mode ne se dit plus deux fois — et un harnais qui plantait en emportait cinq
+
+#### Deux annonciateurs, deux offices
+La v4.58.0 avait ancré la pilule de mode au coin haut-droit, à côté de `◐ ⋯`, pour qu'elle cesse
+de sauter de place au défilement. Elle avait laissé en place celle du bandeau : on lisait donc
+**« ■ CRISE » en barre et « ■ MODE CRISE » en bandeau, en même temps, sur le même écran**. La
+doctrine du projet l'admettait comme une troncature du même mot (« Cons. » pour « Consulter »),
+mais la troncature sert à faire tenir **un** libellé dans une place étroite — elle n'a jamais servi
+à écrire deux fois la même chose côte à côte.
+
+La règle devient explicite, et vérifiable : **la barre dit le MODE, le bandeau dit l'EXCEPTION.**
+`#hdrCrisis` est permanente, immobile, et le seul énoncé du mode. `.cb-tag` ne paraît que
+lorsqu'il y a quelque chose que la pilule ne dit pas déjà à elle seule :
+- **« ▪ Vous suivez »** — l'invité SUIT une session qu'il ne conduit pas et qui peut s'arrêter sans
+  lui (v4.55.4, décision utilisateur : en toutes lettres, à l'endroit le plus lu). La pilule dit
+  « Suivi » ; le bandeau dit la PHRASE, et porte la hachure.
+- **« ▲ Exercice »** — « ceci est une répétition », la seule annonce qui protège d'une méprise
+  CLINIQUE ; elle garde sa hachure et sa priorité sur le placard d'invité.
+- **« ■ Aperçu »** — on regarde un brouillon, rien n'est enregistré.
+
+Ce n'est donc pas la redondance de l'alarme (quai + rail), qui répète une valeur **vive** en deux
+endroits pour qu'elle ne puisse pas être manquée : ici les deux canaux disaient la même constante.
+En crise ordinaire le bandeau ne porte plus que le titre et son discriminant.
+
+#### Ce que ça rend, et ce que ça coûte — mesuré
+Le titre récupère la largeur de l'étiquette : à 360 / 390 / 430 px il **retombe sur une ligne**,
+le bandeau passe de **63,7 px à 44 px**. À 320 px il occupait déjà deux lignes et n'en gagne
+aucune — mais c'est précisément là que `#crisisCtrl` n'a que 2,1 px de marge, donc **le placard de
+l'invité y reste à coût nul**, ce qu'un nouveau témoin mesure désormais au lieu de l'affirmer.
+Au-dessus de 320 px, poser un placard peut repousser le titre à la ligne : c'est sans effet de
+bord, parce qu'il n'existe **aucune transition sur place** vers ces états — on arrive en invité par
+l'écran d'entrée, un lien coupé passe par `freeze` (qui garde `mode === 'guest'`), et l'exercice
+est un acte local qui ré-annonce tout l'écran.
+
+La miniature de l'aperçu d'éditeur n'a pas de barre d'application : sa pilule tient lieu de
+`#hdrCrisis` et porte donc le **même mot** (« ■ Crise »). Un seul libellé dans tout le fichier.
+
+#### Deux témoins ont changé de propriété, pas de sujet
+`audit-partage` lisait « l'hôte affiche *Mode crise* » et `audit-exercice` « ■ Mode crise +
+● Session inchangés » — deux assertions qui encodaient le défaut. Elles vérifient maintenant
+l'invariant réel : en crise ordinaire le bandeau n'annonce **aucune** exception (étiquette vide,
+pas de hachure) et le mode est dit **une** fois, par la barre.
+
+#### Le harnais des complications plantait depuis la v4.65.0 — et il n'était pas seul
+`audit-complications` cliquait `#addCx`, l'un des **six** boutons d'ajout que la v4.65.0 a
+remplacés par une porte unique. Il levait donc une exception depuis cinq versions — et comme
+`npm run audit` chaîne les quatorze harnais par `&&`, **il emportait les cinq suivants avec lui**
+(exercice, lecteur, QR, partage, historique). Ils étaient verts, mais parce que je les lançais un
+par un : la commande d'ensemble, elle, s'arrêtait au neuvième. Leçon, et elle est bête : on lit le
+**code de sortie**, pas la dernière ligne d'un `grep`. La sonde passe désormais par la porte
+réelle, c'est-à-dire par le chemin de l'auteur.
+
+808 tests × 2 moteurs, a11y 301/301, doctrine 112/112, complications 20/20, exercice 20/20,
+lecteur 14/14, QR 9/9, partage 296/296 (+2), historique 16/16 — **les quatorze harnais de bout en
+bout, `npm run audit` en sortie 0**. Rien à rejouer côté serveur.
+
 ## [4.70.0] — 2026-07-29
 ### Fin de la phase K — le minuteur dans sa carte, le poste d'écriture, le discriminant
 

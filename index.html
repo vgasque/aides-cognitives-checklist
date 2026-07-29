@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-OEeTexmY9UzNlmnZxwMLWM2FhSxDU7e6z/pIc4ImEBc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-PWJ44b46JYJPzfKq0fyAysy2XaIrMn5YaxGbZJ40cnU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -680,7 +680,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #homeChrome .scopebar{margin-bottom:6px}
   #homeChrome .catbar{margin-bottom:0}
   /* V5 : bandeau TITRE du mode crise — le titre de la fiche vit ici en permanence (toujours
-     lisible en crise, canvas turn 6), « ■ MODE CRISE » à droite, registre ALERTE, bord à bord. */
+     lisible en crise, canvas turn 6), registre ALERTE, bord à bord.
+     v4.70.1 : il ne porte PLUS « ■ MODE CRISE ». Cf. « DEUX ANNONCIATEURS, DEUX OFFICES »
+     plus bas — la barre dit le MODE, le bandeau ne dit que l'EXCEPTION. */
   /* ZONE HAUTE DE CRISE (v4.23.0) — deux éléments, deux comportements, hors de l'en-tête :
        #crisisBand  = le TITRE. Information CONSTANTE -> il vit dans le flux et s'en va au
                       défilement ; #hdrCrisis en prend le relais dans la rangée d'identité.
@@ -698,7 +700,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      BANDEAU BLANC (décision utilisateur) : un bandeau d'état PERMANENT teinté en rouge
      désensibilise au rouge. L'ECAM réserve la couleur aux alertes RÉELLES — ici le minuteur
      échu (ambre) et les étapes critiques (rouge) ; le statut, lui, s'annonce en TEXTE. Le rouge
-     du mode crise ne subsiste donc que dans le libellé « ■ Mode crise » et son glyphe. */
+     du mode crise ne subsiste donc que dans le libellé « ■ Crise » et son glyphe — porté par
+     la barre depuis la v4.70.1, plus par le bandeau. */
   #crisisBand{min-height:44px;padding:9px 18px 10px;background:var(--surface);color:var(--ink);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;animation:cbIn .3s ease}
   #crisisBand[hidden]{display:none}
   /* Étiquette d'état condensée : n'apparaît que quand le bandeau est passé dessous (.ttl-on) —
@@ -711,12 +714,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* LE MOT NE TOMBE JAMAIS. Un repli au glyphe seul sous 430 px a été essayé (il rendait ~41 px
      au titre) puis ANNULÉ : en état CONDENSÉ le bandeau-titre est parti, il ne resterait qu'un
      carré rouge — la couleur et la forme SEULES pour dire le mode, ce que WCAG 1.4.1 et la
-     règle « la couleur n'est jamais seule » interdisent l'une comme l'autre. « Crise » est déjà
-     la troncature minimale de « Mode crise ». */
+     règle « la couleur n'est jamais seule » interdisent l'une comme l'autre. Depuis la v4.70.1
+     cette pilule est le SEUL énoncé du mode : plus de second libellé à harmoniser avec elle. */
   /* F5 : le titre de la fiche en crise porte la SÉRIF (graisse 600 — la seule embarquée ; 800
      forcerait une graisse synthétique, plus lourde et moins nette). */
   #crisisBand .cb-ttl{flex:1;min-width:0;font-family:var(--serif);font-size:19px;font-weight:600;letter-spacing:-.2px;line-height:1.15;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   #crisisBand .cb-tag{flex:none;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--critical)}
+  #crisisBand .cb-tag[hidden]{display:none}
   /* QUAI DE CRISE (v4.23.0, canvas 2a/3a) : rangée PLEINE LARGEUR et COLLANTE sous l'en-tête.
      Elle porte l'état vivant (minuteurs) et l'accès permanent au Plan — les deux choses qui
      doivent rester joignables où que l'on soit dans le journal.
@@ -3554,6 +3558,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      l'ANCIENNE grammaire apprend le mauvais rendu à l'auteur. */
   .ep-band{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--surface);border-bottom:1px solid var(--line)}
   .ep-ttl{flex:1;min-width:0;font-size:13.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* La miniature n'a PAS de barre d'application : sa pilule tient donc lieu de `#hdrCrisis`,
+     et porte le même mot que lui (« Crise », v4.70.1) — pas celui que le bandeau réel a cessé
+     d'afficher. Un seul libellé dans tout le fichier. */
   .ep-tag{flex:none;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--critical)}
   .ep-body{padding:10px 12px 12px;display:flex;flex-direction:column}
   .ep-forget{border:1px solid var(--critical);border-left:4px solid var(--critical);background:var(--critical-soft);border-radius:7px;padding:7px 10px;font-size:11.5px;line-height:1.4;margin-bottom:6px}
@@ -3989,7 +3996,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
          #cbTimers   — l'ÉTAT VIVANT, information qui CHANGE : rangée COLLANTE, jamais perdue.
        Aucun des deux n'est dans header.bar : un en-tête qui se replie raccourcit son propre
        encombrement de flux et ferait remonter tout le contenu d'un coup. -->
-  <div id="crisisBand" hidden><span class="cb-ttl"></span><span class="cb-disc" hidden></span><span class="cb-tag">■ Mode crise</span><button type="button" id="cbExoQuit" class="cb-exoquit" hidden>Quitter l’exercice…</button></div>
+  <div id="crisisBand" hidden><span class="cb-ttl"></span><span class="cb-disc" hidden></span><span class="cb-tag" hidden></span><button type="button" id="cbExoQuit" class="cb-exoquit" hidden>Quitter l’exercice…</button></div>
   <!-- QUAI DE CRISE : rangée COLLANTE sous l'en-tête (v4.23.0) = état vivant (minuteurs) + accès
        permanent au Plan. FRÈRE direct de .app, jamais enfant de #crisisBand : un élément collant
        ne colle QUE dans les bornes de son bloc conteneur — logé dans le bandeau, il se serait
@@ -4301,7 +4308,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.70.0';
+const APP_VERSION='4.70.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -7049,7 +7056,8 @@ function applyViewChrome(){
    }else bs.textContent=state.view==='protocolRead'?'Protocole'
      :state.view==='library'?(state.section==='protocols'?'Protocoles':'Bibliothèque'):'Aide cognitive';}
   // Bandeau TITRE du MODE CRISE (V5) : le titre de la fiche vit dans la rangée teintée de
-  // l'en-tête sticky — toujours lisible en crise ; « ■ MODE CRISE » statique à droite.
+  // l'en-tête sticky — toujours lisible en crise. Le MOT du mode, lui, vit dans la barre
+  // (v4.70.1, cf. « DEUX ANNONCIATEURS, DEUX OFFICES » plus bas).
   // v4.23.0 : le bandeau vit HORS en-tête (cf. CSS) et défile ; #hdrCrisis est son relais dans la
   // rangée d'identité. La rangée de minuteurs, elle, est collante et n'a pas de relais.
   {const cb=document.getElementById('crisisBand');
@@ -7061,14 +7069,26 @@ function applyViewChrome(){
         sa propre pilule, à côté, jamais dans la chaîne qui se coupe à deux lignes. */
      {const dd=cb.querySelector('.cb-disc');
       if(dd){const v=(state.fiche.discriminant||'').trim();dd.textContent=v;dd.hidden=!v;}}
-     /* H concept B, AMENDÉ : l'audit voulait vider la bande-titre de son état pour ne lui
-        laisser que le titre. ESSAYÉ, PUIS ANNULÉ — cela aurait retiré le placard « ▪ Vous
-        suivez » que la v4.55.4 a posé sur DÉCISION UTILISATEUR, précisément parce que le
-        bandeau est « l'endroit le plus lu », et fait tomber deux contrôles de harnais qui
-        encodent cette doctrine. Le concept B tient sans cela : ce qu'il corrige, c'est que
-        l'état SAUTAIT de place et de mot entre les deux états — désormais la pilule du coin
-        haut-droit est PERMANENTE et immobile, et le bandeau garde son annonce en toutes
-        lettres tant qu'il est visible. Redondance VOULUE, comme l'alarme au quai et au rail. */
+     /* ═══ DEUX ANNONCIATEURS, DEUX OFFICES (v4.70.1, demande utilisateur) ═══════════════════
+        La v4.58.0 avait ancré la pilule de mode au coin haut-droit SANS retirer celle du
+        bandeau : on lisait donc « ■ CRISE » en barre et « ■ MODE CRISE » en bandeau, en même
+        temps, sur le même écran. La doctrine du projet l'admettait comme une troncature du même
+        mot (« Cons. » pour « Consulter »), mais la troncature sert à faire tenir UN libellé dans
+        une place étroite — elle n'a jamais servi à écrire deux fois la même chose côte à côte.
+        RÈGLE, désormais explicite et vérifiable : LA BARRE DIT LE MODE, LE BANDEAU DIT
+        L'EXCEPTION. La pilule `#hdrCrisis` est permanente, immobile, et le seul énoncé du mode.
+        `.cb-tag` ne paraît QUE lorsqu'il y a une exception à annoncer, c'est-à-dire quelque
+        chose que la pilule ne dit pas déjà à elle seule :
+          · « ▪ Vous suivez » — l'invité SUIT une session qu'il ne conduit pas et qui peut
+            s'arrêter sans lui (v4.55.4, décision utilisateur : en toutes lettres, à l'endroit le
+            plus lu). La pilule dit « Suivi » ; le bandeau dit la PHRASE, et porte la hachure.
+          · « ▲ Exercice » — « ceci est une répétition », la seule annonce qui protège d'une
+            méprise CLINIQUE ; elle garde sa hachure et sa priorité sur le placard d'invité.
+          · « ■ Aperçu » — on regarde un brouillon, rien n'est enregistré.
+        En crise ORDINAIRE il n'y a aucune exception : le bandeau ne porte plus que le titre et
+        son discriminant, qui y gagnent ~85 px à 390 px. Ce n'est donc pas la redondance de
+        l'alarme (quai + rail), qui répète une valeur VIVE en deux endroits pour qu'elle ne
+        puisse pas être manquée : ici les deux canaux disaient la même constante. */
      const exo=!!Runtime.exercise&&Runtime.ficheId===state.fiche.id;
      /* L'INVITÉ SAIT QU'IL EST INVITÉ, SANS AVOIR À LE DÉDUIRE. Il lisait « ■ Mode crise » —
         exactement ce que lit l'hôte — alors que sa situation est autre : il SUIT une session qu'il
@@ -7079,10 +7099,10 @@ function applyViewChrome(){
         second est une information de rôle, que le quai porte de toute façon en permanence. */
      const inv=!exo&&Share.mode==='guest'&&!state.previewFrom;
      cb.classList.toggle('exo',exo);cb.classList.toggle('inv',inv);
-     cb.querySelector('.cb-tag').textContent=state.previewFrom?'■ Aperçu'
-       :(exo?'▲ Exercice':(inv?'▪ Vous suivez':'■ Mode crise'));
-     cb.querySelector('.cb-tag').classList.toggle('exo',exo);
-     cb.querySelector('.cb-tag').classList.toggle('inv',inv);
+     {const tg=cb.querySelector('.cb-tag');
+      const exc=state.previewFrom?'■ Aperçu':(exo?'▲ Exercice':(inv?'▪ Vous suivez':''));
+      tg.textContent=exc;tg.hidden=!exc;   /* crise ordinaire : la barre suffit */
+      tg.classList.toggle('exo',exo);tg.classList.toggle('inv',inv);}
      const hc=document.getElementById('hdrCrisis');
      /* H4 : UN SEUL libellé. La pilule ne changeait pas seulement de place mais de MOT
         (« ■ MODE CRISE » déplié, « ■ CRISE » condensé) : deux mots pour un état. */
@@ -12347,7 +12367,7 @@ function editPreviewHtml(kind){
     const steps=(sb.steps||[]).filter(s=>String(s||'').trim()).slice(0,3);
     const nf=(f.notForget||[]).filter(x=>String(x||'').trim());
     return `<div class="ep-h">Aperçu en direct</div>
-      <div class="ep-card"><div class="ep-band"><span class="ep-ttl">${esc(f.title)||'Sans titre'}</span><span class="ep-tag">■ Mode crise</span></div><div class="ep-body">
+      <div class="ep-card"><div class="ep-band"><span class="ep-ttl">${esc(f.title)||'Sans titre'}</span><span class="ep-tag">■ Crise</span></div><div class="ep-body">
       ${nf.length?`<div class="ep-forget"><div class="ep-fk">■ Ne pas oublier</div>${esc(String(nf[0]))}${nf.length>1?' <span class="ep-more">+'+(nf.length-1)+'</span>':''}</div>`:''}
       ${steps.map(s=>{const cr=stepIsCrit(s),vg=stepIsVigil(s);const c=stepCR(stepText(s));
         return `<div class="ep-step${cr?' crit':(vg?' vig':'')}"><span class="ep-box"></span>${cr?'<span class="ep-g">⚠</span>':(vg?'<span class="ep-g">△</span>':'')}<span class="ep-t">${esc(c.c)}</span>${c.r?`<span class="ep-r">${esc(c.r)}</span>`:''}</div>`;}).join('')}

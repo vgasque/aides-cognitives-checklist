@@ -127,6 +127,7 @@ const e7=await p.evaluate(async()=>{
  document.getElementById('sessStart').click();await new Promise(r=>setTimeout(r,400));
  const cb=document.getElementById('crisisBand');
  const real={tag:cb.querySelector('.cb-tag').textContent,exo:cb.classList.contains('exo'),
+   pilule:(document.getElementById('hdrCrisis')||{}).textContent||'',
    strip:document.getElementById('cbTimers').textContent};
  document.querySelector('[data-cxopen]').click();await new Promise(r=>setTimeout(r,300));
  document.querySelector('#cxList .cx-item').click();await new Promise(r=>setTimeout(r,400));
@@ -136,7 +137,11 @@ const e7=await p.evaluate(async()=>{
  const h=document.getElementById('reportBody').innerHTML;
  return {real,carte:card?card.textContent.slice(0,40):null,
   wm:/class="wm">EXERCICE/.test(h),cx:/⚡/.test(h)&&/Laryngospasme/.test(h)};});
-t('session réelle : « ■ Mode crise » + « ● Session » inchangés', /Mode crise/.test(e7.real.tag)&&!e7.real.exo&&/● Session/.test(e7.real.strip), JSON.stringify(e7.real));
+/* v4.70.1 : la session RÉELLE n'a plus d'étiquette de bandeau — le mode se lit dans la barre,
+   une seule fois. Le témoin mesure donc les DEUX moitiés : bandeau nu ET pilule « Crise ». */
+t('session réelle : bandeau nu, « ■ Crise » en barre, « ● Session » au quai',
+  e7.real.tag===''&&/Crise/.test(e7.real.pilule)&&!e7.real.exo&&/● Session/.test(e7.real.strip),
+  JSON.stringify(e7.real));
 t('carte-bilan réelle : « Session terminée »', /Session terminée/.test(e7.carte||''), ''+e7.carte);
 t('compte-rendu RÉEL : ⚡ complication restituée, SANS filigrane', e7.cx&&!e7.wm, JSON.stringify({cx:e7.cx,wm:e7.wm}));
 await p.close();await br.close();srv.close();

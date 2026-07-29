@@ -96,7 +96,12 @@ t('fiche SANS complications : zéro chrome ⚡', d9.btn===0&&d9.sec===0, JSON.st
 console.log('=== éditeur : sélecteur filtrable à deux groupes ===');
 const d10=await p.evaluate(async()=>{
  openEdit(window.__autre);await new Promise(r=>setTimeout(r,450));
- document.getElementById('addCx').click();await new Promise(r=>setTimeout(r,350));
+ /* v4.70.1 : la sonde cliquait `#addCx`, l'un des SIX boutons d'ajout que la v4.65.0 a
+    remplacés par UNE porte « ＋ Bloc · décision · minuteur… ». Elle plantait donc depuis, et
+    comme `npm run audit` chaîne les harnais par `&&`, elle emportait les CINQ suivants avec
+    elle. On passe désormais par la porte réelle — c'est le chemin de l'auteur. */
+ document.getElementById('edAddOpen').click();await new Promise(r=>setTimeout(r,350));
+ document.querySelector('#edAddBody [data-edadd="cx"]').click();await new Promise(r=>setTimeout(r,400));
  const row=document.querySelector('.cx-edit-row');if(!row)return {row:false};
  row.querySelector('[data-cxpicker]').click();await new Promise(r=>setTimeout(r,350));
  const heads=[...document.querySelectorAll('#relPickList .pick-h')].map(x=>x.textContent);

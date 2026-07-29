@@ -1653,6 +1653,7 @@ console.log(`\n══ PARTAGE · le placard de l'invité et les réponses direct
     const tag = () => (band.querySelector('.cb-tag') || {}).textContent || '';
     const hach = el => getComputedStyle(el, '::before').opacity;
     o.hoteTag = tag(); o.hoteHachure = hach(band);
+    o.hoteEnTete = (document.getElementById('hdrCrisis') || {}).textContent || '';
 
     // On passe en INVITÉ par le vrai chemin d'affichage : le placard suit un rendu.
     Share.mode = 'guest'; Share.role = 'scribe'; Share.me = 'inv'; Share.status = 'active';
@@ -1683,8 +1684,14 @@ console.log(`\n══ PARTAGE · le placard de l'invité et les réponses direct
     o.directAffiche = document.querySelectorAll('.toast').length;
     return o;
   });
-  t('témoin : l’hôte lit « Mode crise », sans hachure',
-    /Mode crise/.test(r.hoteTag) && r.hoteHachure === '0', `${r.hoteTag} / ${r.hoteHachure}`);
+  /* v4.70.1 — LE TÉMOIN A CHANGÉ DE PROPRIÉTÉ, PAS DE SUJET. Il lisait « l'hôte affiche
+     "Mode crise" » ; la barre et le bandeau disaient alors la même chose deux fois. Ce qu'il
+     vérifie maintenant est l'invariant réel : en crise ORDINAIRE le bandeau n'annonce AUCUNE
+     exception (étiquette vide, pas de hachure) et le mode est dit UNE fois, par la barre. */
+  t('témoin : l’hôte n’annonce aucune exception (bandeau nu, sans hachure)',
+    r.hoteTag === '' && r.hoteHachure === '0', `«${r.hoteTag}» / ${r.hoteHachure}`);
+  t('… et le mode est dit UNE fois, par la barre', /Crise/.test(r.hoteEnTete)
+    && !/Mode crise/i.test(r.hoteTag), `${r.hoteEnTete} / «${r.hoteTag}»`);
   t('l’invité lit « Vous suivez »', /Vous suivez/.test(r.inviteTag), r.inviteTag);
   t('… le bandeau est hachuré', r.inviteHachure === '1', r.inviteHachure);
   t('… et l’en-tête le relaie', /Suivi/.test(r.inviteEnTete), r.inviteEnTete);
@@ -1694,6 +1701,27 @@ console.log(`\n══ PARTAGE · le placard de l'invité et les réponses direct
   t('témoin : une session de crise est bien à l’écran', r.enCrise === true);
   t('une nouvelle de fond reste RETENUE (règle 11)', r.fondAffiche === 0, `${r.fondAffiche} banderole(s)`);
   t('… mais une réponse à un geste S’AFFICHE', r.directAffiche === 1, `${r.directAffiche} banderole(s)`);
+
+  /* LE COÛT DU PLACARD SE MESURE À 320 px, PAS AILLEURS (v4.70.1). Depuis que la crise ORDINAIRE
+     n'affiche plus d'étiquette, le placard de l'invité est le seul objet de sa rangée — il peut
+     donc, sur un titre long, pousser le titre à la ligne. La largeur où cela compterait est celle
+     où `#crisisCtrl` n'a que 2,1 px de marge : à 320 px le titre occupe DÉJÀ deux lignes dans les
+     deux cas, le coût y est donc nul. Au-dessus, la place existe verticalement — et l'entrée en
+     mode invité n'est jamais une transition SUR PLACE (on arrive par l'écran d'entrée ; un lien
+     coupé passe par `freeze`, qui garde `mode === 'guest'`). */
+  await page.setViewportSize({ width: 320, height: 844 });
+  const cout = await page.evaluate(async () => {
+    const band = document.getElementById('crisisBand');
+    const H = () => Math.round(band.getBoundingClientRect().height * 10) / 10;
+    Share.mode = null; render(); await new Promise(x => setTimeout(x, 300));
+    const hote = H();
+    Share.mode = 'guest'; Share.role = 'scribe'; Share.me = 'i'; Share.status = 'active';
+    Share.lastOk = Date.now(); Share.offset = 0;
+    render(); await new Promise(x => setTimeout(x, 350));
+    return { hote, invite: H() };
+  });
+  t('le placard ne coûte RIEN à 320 px, la largeur qui compte',
+    cout.hote === cout.invite, `${cout.hote} → ${cout.invite} px`);
   await page.close();
 }
 
