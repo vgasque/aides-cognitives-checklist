@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-3sLcbDL4IB44/w5AZYEozBe3inIQh0AOvZOTZsLN5dY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-Fg6OdDD67ZL4IP4JqHylUJCgdyGEHm1MrxqxdTzcgX8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -2172,7 +2172,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Une ÉTAPE : la case inerte à gauche, comme en lecture — le champ prend la place du texte. */
   /* Les étapes d'un BLOC vivent hors de `.list-edit` : leur rangée n'avait donc aucune règle de
      flex — les trois objets (case, champ, outils) s'empilaient dès qu'on a ajouté la case. */
-  .blk .li{display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:nowrap}
+  .blk .li{display:flex;gap:8px;align-items:center;margin-bottom:2px;flex-wrap:wrap}
   .blk .li input[type=text]{flex:1;min-width:0}
   .blk .li .mini{width:38px;height:38px}
   /* Sous 400 px, les outils passent SOUS le champ plutôt que de le comprimer : une étape se lit
@@ -2180,29 +2180,20 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Sous 400 px, les outils se compactent (32 px, écart 5) pour rendre de la largeur au CHAMP —
      jamais un retour à la ligne, qui reviendrait à faire sauter le contenu. 32 px de bouton avec
      le halo de la rangée reste au-dessus du plancher de cible hors crise. */
-  @media (max-width:399.98px){
-    .li-tools{gap:4px}
-    .blk .li .mini{width:32px;height:32px}
-    .blk .li{gap:5px}
-    /* Les pixels rendus au CHAMP viennent du cadre, pas des cibles : rembourrage du bloc 14 → 9,
-       case 26 → 22. Le champ passe de 161 à ~185 px à 390 — le texte respire, les boutons
-       gardent 32 px + le halo de la rangée. */
-    .blk{padding:9px}
-    .li-box{width:22px;height:22px}
-  }
+  @media (max-width:399.98px){.blk{padding:10px}}
   /* MK5-b — « en main » : bandeau d'état + interstices. Les cibles sont PLEINE LARGEUR et
      ≥ 44 px : on pose au doigt, avec des gants, sans viser. */
   /* K8/K9 — LA PALETTE : chaque type se présente. Rangées ≥ 56 px (glyphe + nom + une ligne),
      grammaire des cartes du dialogue « Créer », dont c'est le pendant côté contenu. */
   .ed-palette{display:flex;flex-direction:column;gap:8px}
-  .ep-row{display:flex;align-items:flex-start;gap:12px;width:100%;min-height:56px;text-align:left;
-    background:var(--surface);border:1.5px solid var(--line);border-radius:var(--radius-md);padding:11px 13px;cursor:pointer;font-family:inherit}
+  .ep-row{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;text-align:left;
+    background:var(--surface);border:1.5px solid var(--line);border-radius:var(--radius-md);padding:9px 13px;cursor:pointer;font-family:inherit}
+  .ep-n{flex:1;min-width:0;font-size:14.5px;font-weight:700;color:var(--ink)}
+  .ep-c{flex:none;font-size:12px;color:var(--ink-soft)}
   .ep-row:hover{border-color:var(--primary);background:var(--primary-soft)}
   .ep-row:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .ep-ic{flex:none;width:30px;height:30px;display:grid;place-items:center;border-radius:8px;background:var(--surface-2);color:var(--ink);font-size:15px}
-  .ep-tx{display:flex;flex-direction:column;gap:2px;min-width:0}
-  .ep-tx b{font-size:14.5px;font-weight:700;color:var(--ink)}
-  .ep-tx span{font-size:12.5px;line-height:1.4;color:var(--ink-soft)}
+
   /* La porte elle-même : pointillé (grammaire « créer »), pleine largeur, ≥ 44 px. */
   .ed-door{min-height:48px;font-size:14px}
   .ed-grab{position:sticky;top:calc(var(--hdr-h,64px) + 6px);z-index:6;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
@@ -2219,21 +2210,26 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .ed-drop.warn:hover{background:var(--verify-soft)}
   .mini.grab{cursor:grab;color:var(--soft)}
   .mini.grab:hover{color:var(--ink)}
-  /* K3 (v4.66.0) — LES OUTILS SE RÉVÈLENT, ILS N'APPARAISSENT PAS. Signalé à l'usage sur
-     smartphone : « la bande attention/déplacer/supprimer prend beaucoup de place ». Mesuré, elle
-     faisait passer la rangée de 43 à 123 px — et surtout elle POUSSAIT le contenu à l'instant
-     précis où le doigt entrait dans le champ, ce que la doctrine du projet interdit (« rien ne
-     bouge sous le doigt »).
-     Remède : `visibility` et non `display`. L'espace des outils est RÉSERVÉ en permanence, donc
-     la rangée garde EXACTEMENT la même hauteur et le champ la même largeur, focus ou non ; seule
-     l'encre apparaît. Précédent interne : les pilules d'option du mode statique, masquées en
-     `visibility:hidden` précisément pour que l'espace ne se mette pas à osciller.
-     `pointer-events` suit la visibilité — un bouton invisible ne doit pas capter le tap voisin —
-     et le clavier n'est pas lésé : la tabulation entre dans le champ, ce qui révèle la rangée. */
-  .li-tools{display:inline-flex;gap:6px;flex:none;visibility:hidden;pointer-events:none}
-  .blk .li:focus-within .li-tools,.blk .li:hover .li-tools{visibility:visible;pointer-events:auto}
-  @media (hover:none){.blk .li:hover .li-tools{visibility:hidden;pointer-events:none}
-    .blk .li:focus-within .li-tools{visibility:visible;pointer-events:auto}}
+  /* ═══ MK-flux (v4.67.0) — LE CYCLE EN QUATRE ÉTATS : repos → édition → entrée → porte ═══════
+     Deux tentatives ont échoué avant celle-ci, et il faut savoir pourquoi. (a) v4.64 mettait les
+     outils SOUS le champ au focus : la rangée passait de 43 à 123 px et poussait le contenu au
+     moment où le doigt y entrait. (b) v4.66 réservait leur espace en permanence : plus rien ne
+     bougeait, mais le champ tombait à 173 px et chaque étape gardait son cadre — l'écran restait
+     un formulaire dense.
+     LA MAQUETTE RÈGLE LE PROBLÈME EN AMONT : au REPOS, il n'y a AUCUN CHROME. La ligne est du
+     TEXTE — pas de bordure, pas de fond, pas d'outils : exactement ce que le soignant lira. Le
+     champ ne se dessine QU'À L'ÉDITION, et les outils avec lui, SOUS la ligne. Une seule étape
+     est en édition à la fois, donc la page au repos est aussi calme que la fiche en lecture.
+     L'`<input>` reste DANS le DOM en permanence (il porte la valeur et l'auto-enregistrement) :
+     c'est son HABILLAGE qui change. Rien à re-rendre au tap, donc rien qui saute. */
+  .blk .li input[type=text]{background:transparent;border-color:transparent;padding:9px 4px;font-size:16px}
+  .blk .li input[type=text]:focus{background:var(--input-bg);border-color:transparent;padding:9px 11px}
+  .blk .li:focus-within{background:var(--surface-2);border-radius:var(--radius-sm);padding:6px}
+  /* Les outils vivent SOUS la ligne, et n'existent qu'en édition (K3). La poignée ⠿, elle, reste
+     visible au repos : c'est l'affordance du réordonnancement, elle ne se découvre pas au tap. */
+  .li-tools{display:none;gap:7px;flex:1 1 100%;order:3;margin-left:34px}
+  .blk .li:focus-within .li-tools{display:inline-flex}
+  .li-grab{flex:none}
   .li-box{flex:none;width:26px;height:26px;border-radius:7px;border:2px solid var(--line-strong);display:grid;place-items:center;color:var(--line-strong);font-size:13px}
   .li.li-crit .li-box{border-color:var(--critical-bd);color:var(--critical)}
   .li.li-vigil .li-box{border-color:var(--verify-bd);color:var(--verify)}
@@ -4224,7 +4220,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.66.0';
+const APP_VERSION='4.67.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -12078,13 +12074,18 @@ function edGrabLabel(f){const g=state.edGrab;if(!g)return '';
    « △ là où l'on se TROMPE » sont écrits noir sur blanc au moment où l'auteur choisit — pas dans
    un guide qu'on replie. La palette est un dialogue ordinaire (`confirmDlg` n'irait pas : ce
    n'est pas une confirmation), fermée par Échap et le voile comme toutes les fenêtres. */
+/* UN « + » = UNE PORTÉE (MK-flux, état 4). La palette ne vit qu'ENTRE les blocs et ne liste que
+   les objets de NIVEAU BLOC : « Étape » n'y figure PAS — dans un bloc, « + Étape » (et ⏎) s'en
+   charge. C'est la position du bouton qui choisit la portée, à la place de l'auteur : il n'a
+   jamais à se demander « où va atterrir ce que j'ajoute ». Chaque type dit sa CONSÉQUENCE en
+   deux mots, à droite — pas ce qu'il est, ce qu'il produit. */
 const ED_PALETTE=[
-  {k:'steps',   ic:'❑', n:'Bloc d’étapes',        d:'Une suite d’actions à cocher — l’unité de base d’une checklist'},
-  {k:'decision',ic:'?', n:'Décision (si… alors…)',d:'Une question et ses branches : « Choquable ? » → chaque réponse mène à son bloc'},
-  {k:'interval',ic:'⏱', n:'Minuteur à cycles',    d:'Un temps qui se relance et compte les tours — ex. RCP 2 min'},
-  {k:'stopwatch',ic:'⏱',n:'Chronomètre',          d:'Un temps qui monte, sans échéance — ex. durée depuis l’appel'},
-  {k:'counter', ic:'№', n:'Compteur',             d:'Ce qu’on compte pendant le soin : chocs, doses d’adrénaline…'},
-  {k:'cx',      ic:'⚡',n:'Complication',          d:'Un événement qui peut survenir à tout moment — le retour est prévu'}
+  {k:'steps',   ic:'❑', n:'Bloc d’étapes',   c:'titre, puis ⏎'},
+  {k:'decision',ic:'◆', n:'Décision oui / non',c:'2 branches'},
+  {k:'interval',ic:'⏱', n:'Minuteur ou cycle',c:'durée + libellé'},
+  {k:'stopwatch',ic:'⏱',n:'Chronomètre',     c:'temps qui monte'},
+  {k:'counter', ic:'№', n:'Compteur',        c:'chocs, doses…'},
+  {k:'cx',      ic:'⚡',n:'Complication',     c:'à tout moment'}
 ];
 const edAddModal=()=>document.getElementById('edAddModal');
 function edAddOpen(f){
@@ -12107,7 +12108,7 @@ function edAdd(f,kind){
   else if(kind==='cx')(f.complications=f.complications||[]).push({label:'',target:''});
   edAddClose();renderEditor();}
 function edPaletteHtml(){
-  return ED_PALETTE.map(x=>`<button type="button" class="ep-row" data-edadd="${x.k}"><span class="ep-ic" aria-hidden="true">${x.ic}</span><span class="ep-tx"><b>${esc(x.n)}</b><span>${esc(x.d)}</span></span></button>`).join('');}
+  return ED_PALETTE.map(x=>`<button type="button" class="ep-row" data-edadd="${x.k}"><span class="ep-ic" aria-hidden="true">${x.ic}</span><b class="ep-n">${esc(x.n)}</b><span class="ep-c">${esc(x.c)}</span></button>`).join('');}
 function edGrabIsCrit(){const g=state.edGrab;if(!g||g.kind!=='s'||!state.draft)return false;
   const b=(state.draft.blocks||[]).find(x=>x.id===g.bid);
   return !!b&&stepIsCrit((b.steps||[])[g.si]||'');}
@@ -12192,7 +12193,7 @@ function renderEditor(){
     ③ à vérifier + différentiels, puis annexes) — on rédige dans l'ordre où l'équipe lira. */}
     ${listEditor('Ne pas oublier','4 rappels maximum — ils s’affichent en permanence, en tête de fiche','notForget',f.notForget,false,{shell:'ed-forget',guard:'nfGuard',guardTxt:nfGuardTxt(f.notForget)})}
     ${listEditor('Confirmation diagnostique','critères pour déclencher la fiche','confirmation',f.confirmation)}
-    <fieldset class="field"><label>Prise en charge <span class="hint">listes d'étapes + décisions conditionnelles</span></label><p class="flow-prev-h">Algorithme — aperçu automatique</p>${flowBlock(f)}${edGrabBanner(f)}${f.blocks.map((b,bi)=>((state.edGrab&&state.edGrab.kind==='b')?edDrop('B:'+bi,bi===0?'Poser avant le bloc 1':'Poser ici'):'')+blockEditor(b,blocks)).join('')}${(state.edGrab&&state.edGrab.kind==='b')?edDrop('B:'+f.blocks.length,'Poser en fin de fiche'):''}<button type="button" class="add-line ed-door" id="edAddOpen">＋ Étape · décision · minuteur…</button></fieldset>
+    <fieldset class="field"><label>Prise en charge <span class="hint">listes d'étapes + décisions conditionnelles</span></label><p class="flow-prev-h">Algorithme — aperçu automatique</p>${flowBlock(f)}${edGrabBanner(f)}${f.blocks.map((b,bi)=>((state.edGrab&&state.edGrab.kind==='b')?edDrop('B:'+bi,bi===0?'Poser avant le bloc 1':'Poser ici'):'')+blockEditor(b,blocks)).join('')}${(state.edGrab&&state.edGrab.kind==='b')?edDrop('B:'+f.blocks.length,'Poser en fin de fiche'):''}<button type="button" class="add-line ed-door" id="edAddOpen">＋ Bloc · décision · minuteur…</button></fieldset>
     <fieldset class="field"><label>Minuteurs & compteurs <span class="hint">disponibles pendant la session</span></label>
       <p class="sub2">Minuteurs</p>${(f.timers||[]).map((t,i)=>timerEditorRow(t,i)).join('')}
       <p class="sub2" style="margin-top:14px">Compteurs</p>${(f.counters||[]).map((c,i)=>counterEditorRow(c,i,f.timers)).join('')}</fieldset>
@@ -12276,7 +12277,32 @@ function bindEditorEvents(f){
       b.steps[i]=pfx+e.target.value;scheduleFlowPreview(f);
       const g=card.querySelector('[data-stepguard]');if(g)g.textContent=stepGuardTxt(b.steps);
       revPanelRefresh(f);}));   // K2 : le bilan suit la frappe, sans re-rendre l'éditeur
-    const as=card.querySelector('[data-addstep]');if(as)as.onclick=()=>{b.steps.push('');renderEditor();};
+    /* ÉTAT 3 — « ⏎ = item suivant ». UNE CHECKLIST SE DICTE : on la tape en rafale, et la
+       saisie ne doit jamais passer par un menu. Entrée crée l'étape JUSTE EN DESSOUS (pas en fin
+       de bloc) et y met le focus ; le nouvel item est une étape NORMALE — les registres ⚠/△ se
+       posent APRÈS, par l'interrupteur, parce qu'on écrit d'abord et qu'on qualifie ensuite.
+       Le re-rendu est ANCRÉ sur l'étape d'origine : la ligne qu'on vient de quitter ne bouge pas
+       d'un pixel, la neuve apparaît dessous. */
+    card.querySelectorAll('[data-sf]').forEach((inp,i)=>inp.addEventListener('keydown',e=>{
+      if(e.key!=='Enter')return;
+      e.preventDefault();
+      b.steps.splice(i+1,0,'');
+      keepAnchor('.blk[data-bid="'+CSS.escape(b.id)+'"] .li[data-si="'+i+'"]',renderEditor);
+      const nl=main.querySelector('.blk[data-bid="'+CSS.escape(b.id)+'"] .li[data-si="'+(i+1)+'"] input[data-sf]');
+      if(nl)nl.focus();}));
+    /* « CHAMP QUITTÉ VIDE = L'ITEM DISPARAÎT, SANS DIALOGUE ». Une étape sans texte n'existe pas :
+       demander confirmation pour retirer du vide serait une friction pure. On NE retire jamais la
+       dernière (un bloc doit garder une ligne où écrire), et jamais pendant la frappe — seulement
+       au départ du focus, sinon effacer pour reformuler supprimerait la ligne sous le doigt. */
+    card.querySelectorAll('[data-sf]').forEach((inp,i)=>inp.addEventListener('blur',()=>{
+      if(String(b.steps[i]||'').trim()||b.steps.length<2)return;
+      if(state.edGrab)return;   // un déplacement en cours n'est pas un abandon de saisie
+      b.steps.splice(i,1);
+      keepAnchor('.blk[data-bid="'+CSS.escape(b.id)+'"]',renderEditor);}));
+    const as=card.querySelector('[data-addstep]');if(as)as.onclick=()=>{b.steps.push('');
+      keepAnchor('.blk[data-bid="'+CSS.escape(b.id)+'"]',renderEditor);
+      const ls=[...main.querySelectorAll('.blk[data-bid="'+CSS.escape(b.id)+'"] input[data-sf]')];
+      if(ls.length)ls[ls.length-1].focus();};
     card.querySelectorAll('[data-rmstep]').forEach(btn=>btn.onclick=()=>{b.steps.splice(+btn.dataset.rmstep,1);if(!b.steps.length)b.steps.push('');renderEditor();});
     // Bascule du TYPE d'étape (SPEC §2.2) : cycle normale -> ⚠ critique (rouge) -> △ vigilance
     // (ambre) -> normale, par préfixe dans la chaîne (exports v3 inchangés).

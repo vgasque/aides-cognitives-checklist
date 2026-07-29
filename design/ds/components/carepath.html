@@ -1887,7 +1887,7 @@
   /* Une ÉTAPE : la case inerte à gauche, comme en lecture — le champ prend la place du texte. */
   /* Les étapes d'un BLOC vivent hors de `.list-edit` : leur rangée n'avait donc aucune règle de
      flex — les trois objets (case, champ, outils) s'empilaient dès qu'on a ajouté la case. */
-  .blk .li{display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:nowrap}
+  .blk .li{display:flex;gap:8px;align-items:center;margin-bottom:2px;flex-wrap:wrap}
   .blk .li input[type=text]{flex:1;min-width:0}
   .blk .li .mini{width:38px;height:38px}
   /* Sous 400 px, les outils passent SOUS le champ plutôt que de le comprimer : une étape se lit
@@ -1895,29 +1895,20 @@
   /* Sous 400 px, les outils se compactent (32 px, écart 5) pour rendre de la largeur au CHAMP —
      jamais un retour à la ligne, qui reviendrait à faire sauter le contenu. 32 px de bouton avec
      le halo de la rangée reste au-dessus du plancher de cible hors crise. */
-  @media (max-width:399.98px){
-    .li-tools{gap:4px}
-    .blk .li .mini{width:32px;height:32px}
-    .blk .li{gap:5px}
-    /* Les pixels rendus au CHAMP viennent du cadre, pas des cibles : rembourrage du bloc 14 → 9,
-       case 26 → 22. Le champ passe de 161 à ~185 px à 390 — le texte respire, les boutons
-       gardent 32 px + le halo de la rangée. */
-    .blk{padding:9px}
-    .li-box{width:22px;height:22px}
-  }
+  @media (max-width:399.98px){.blk{padding:10px}}
   /* MK5-b — « en main » : bandeau d'état + interstices. Les cibles sont PLEINE LARGEUR et
      ≥ 44 px : on pose au doigt, avec des gants, sans viser. */
   /* K8/K9 — LA PALETTE : chaque type se présente. Rangées ≥ 56 px (glyphe + nom + une ligne),
      grammaire des cartes du dialogue « Créer », dont c'est le pendant côté contenu. */
   .ed-palette{display:flex;flex-direction:column;gap:8px}
-  .ep-row{display:flex;align-items:flex-start;gap:12px;width:100%;min-height:56px;text-align:left;
-    background:var(--surface);border:1.5px solid var(--line);border-radius:var(--radius-md);padding:11px 13px;cursor:pointer;font-family:inherit}
+  .ep-row{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;text-align:left;
+    background:var(--surface);border:1.5px solid var(--line);border-radius:var(--radius-md);padding:9px 13px;cursor:pointer;font-family:inherit}
+  .ep-n{flex:1;min-width:0;font-size:14.5px;font-weight:700;color:var(--ink)}
+  .ep-c{flex:none;font-size:12px;color:var(--ink-soft)}
   .ep-row:hover{border-color:var(--primary);background:var(--primary-soft)}
   .ep-row:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .ep-ic{flex:none;width:30px;height:30px;display:grid;place-items:center;border-radius:8px;background:var(--surface-2);color:var(--ink);font-size:15px}
-  .ep-tx{display:flex;flex-direction:column;gap:2px;min-width:0}
-  .ep-tx b{font-size:14.5px;font-weight:700;color:var(--ink)}
-  .ep-tx span{font-size:12.5px;line-height:1.4;color:var(--ink-soft)}
+
   /* La porte elle-même : pointillé (grammaire « créer »), pleine largeur, ≥ 44 px. */
   .ed-door{min-height:48px;font-size:14px}
   .ed-grab{position:sticky;top:calc(var(--hdr-h,64px) + 6px);z-index:6;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
@@ -1934,21 +1925,26 @@
   .ed-drop.warn:hover{background:var(--verify-soft)}
   .mini.grab{cursor:grab;color:var(--soft)}
   .mini.grab:hover{color:var(--ink)}
-  /* K3 (v4.66.0) — LES OUTILS SE RÉVÈLENT, ILS N'APPARAISSENT PAS. Signalé à l'usage sur
-     smartphone : « la bande attention/déplacer/supprimer prend beaucoup de place ». Mesuré, elle
-     faisait passer la rangée de 43 à 123 px — et surtout elle POUSSAIT le contenu à l'instant
-     précis où le doigt entrait dans le champ, ce que la doctrine du projet interdit (« rien ne
-     bouge sous le doigt »).
-     Remède : `visibility` et non `display`. L'espace des outils est RÉSERVÉ en permanence, donc
-     la rangée garde EXACTEMENT la même hauteur et le champ la même largeur, focus ou non ; seule
-     l'encre apparaît. Précédent interne : les pilules d'option du mode statique, masquées en
-     `visibility:hidden` précisément pour que l'espace ne se mette pas à osciller.
-     `pointer-events` suit la visibilité — un bouton invisible ne doit pas capter le tap voisin —
-     et le clavier n'est pas lésé : la tabulation entre dans le champ, ce qui révèle la rangée. */
-  .li-tools{display:inline-flex;gap:6px;flex:none;visibility:hidden;pointer-events:none}
-  .blk .li:focus-within .li-tools,.blk .li:hover .li-tools{visibility:visible;pointer-events:auto}
-  @media (hover:none){.blk .li:hover .li-tools{visibility:hidden;pointer-events:none}
-    .blk .li:focus-within .li-tools{visibility:visible;pointer-events:auto}}
+  /* ═══ MK-flux (v4.67.0) — LE CYCLE EN QUATRE ÉTATS : repos → édition → entrée → porte ═══════
+     Deux tentatives ont échoué avant celle-ci, et il faut savoir pourquoi. (a) v4.64 mettait les
+     outils SOUS le champ au focus : la rangée passait de 43 à 123 px et poussait le contenu au
+     moment où le doigt y entrait. (b) v4.66 réservait leur espace en permanence : plus rien ne
+     bougeait, mais le champ tombait à 173 px et chaque étape gardait son cadre — l'écran restait
+     un formulaire dense.
+     LA MAQUETTE RÈGLE LE PROBLÈME EN AMONT : au REPOS, il n'y a AUCUN CHROME. La ligne est du
+     TEXTE — pas de bordure, pas de fond, pas d'outils : exactement ce que le soignant lira. Le
+     champ ne se dessine QU'À L'ÉDITION, et les outils avec lui, SOUS la ligne. Une seule étape
+     est en édition à la fois, donc la page au repos est aussi calme que la fiche en lecture.
+     L'`<input>` reste DANS le DOM en permanence (il porte la valeur et l'auto-enregistrement) :
+     c'est son HABILLAGE qui change. Rien à re-rendre au tap, donc rien qui saute. */
+  .blk .li input[type=text]{background:transparent;border-color:transparent;padding:9px 4px;font-size:16px}
+  .blk .li input[type=text]:focus{background:var(--input-bg);border-color:transparent;padding:9px 11px}
+  .blk .li:focus-within{background:var(--surface-2);border-radius:var(--radius-sm);padding:6px}
+  /* Les outils vivent SOUS la ligne, et n'existent qu'en édition (K3). La poignée ⠿, elle, reste
+     visible au repos : c'est l'affordance du réordonnancement, elle ne se découvre pas au tap. */
+  .li-tools{display:none;gap:7px;flex:1 1 100%;order:3;margin-left:34px}
+  .blk .li:focus-within .li-tools{display:inline-flex}
+  .li-grab{flex:none}
   .li-box{flex:none;width:26px;height:26px;border-radius:7px;border:2px solid var(--line-strong);display:grid;place-items:center;color:var(--line-strong);font-size:13px}
   .li.li-crit .li-box{border-color:var(--critical-bd);color:var(--critical)}
   .li.li-vigil .li-box{border-color:var(--verify-bd);color:var(--verify)}

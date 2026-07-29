@@ -1,7 +1,61 @@
-# Journal des modifications — archive (versions 3.0.0 à 4.55.2)
+# Journal des modifications — archive (versions 3.0.0 à 4.55.3)
 
 > Entrées anciennes déplacées depuis [`CHANGELOG.md`](CHANGELOG.md) pour garder le journal
 > courant lisible. Même format (keep-a-changelog).
+
+## [4.55.3] — 2026-07-28
+### Trois rognages que personne ne mesurait
+
+Les trois défauts d'affichage signalés à l'usage, tous reproduits au pixel avant correction.
+
+### Le titre décalé : neuvième piège de cascade, premier par `:not()`
+Sur écran étroit, une règle transforme toute fenêtre en feuille pleine largeur et lui pose **18 px
+de rembourrage haut**. Or « Se repérer » et « Consulter » se donnent `padding:0` — leur barre de
+titre est `sticky top:0` et doit affleurer le bord.
+
+Elles perdaient, et pas par l'ordre : `.ai-modal:not(.pdf-modal):not(.dlg-confirm) .ai-card` vaut
+**(0,3,0)**, parce que **`:not()` compte la spécificité de son argument** — contre (0,2,0) pour
+`:is(.plan-modal,.ref-modal) .ai-card`. Résultat mesuré : 18 px de fond nu au-dessus du titre, et
+**65 px sur un iPhone à encoche** où `env(safe-area-inset-top)` s'ajoute — bande qui restait
+visible au défilement, la barre étant collante.
+
+On exclut désormais la **classe** `.sheet-full` plutôt que les deux fenêtres nommément : la
+prochaine feuille plein écran héritera de l'exclusion au lieu de rejouer le défaut.
+
+### La croix qui sortait du cadre
+**110 px hors du cadre à 320 px**, 70 à 360, 40 à 390, 7 à 430 — et seulement sur écran **tactile**,
+où « silencieux ? » et le bouton son montent à 44 px de cible. `.rt-head` est une rangée flex sans
+retour à la ligne et dont rien n'est compressible : son contenu exige 331 px pour 221 disponibles.
+
+Remède = le patron déjà éprouvé de la carte-bilan (v4.29.2) : conteneur `relative`, croix **ancrée**
+en haut à droite, et un `padding-right` qui lui réserve sa place à toutes les largeurs. Le reste
+s'enroule dessous plutôt que de la pousser hors de l'écran — on ne tronque pas un libellé de
+commande, on lui donne une seconde ligne.
+
+### La ligne d'Échelle qui sortait du plan
+Débordement dès **quatre options à 320 px**, cinq à 390, six à 430, et jusqu'à **280 px dehors à
+huit** — le titre de la décision étant écrasé à 0 px de large bien avant. Les renvois abrégés
+(`FIBRIL→2 ASYSTO→3 …`) sont en `flex:none` et `nowrap` : leur largeur croît avec le nombre de
+branches, sans borne.
+
+On **enroule** plutôt que de tronquer. Dans un plan, une branche cachée est une branche qu'on ne
+saura pas prendre — c'est la différence avec le quai, où l'on abrège et où l'on annonce « +n » :
+ici la place existe, verticalement.
+
+### Les contrôles ont dû être refaits, et c'est le point
+Six contrôles permanents dans `audit-doctrine.mjs` (112/112, sur les deux moteurs). **La première
+version restait verte avec les trois défauts réintroduits** : elle mesurait la fiche d'exemple —
+deux options, donc jamais de débordement — et un contexte non tactile, où les cibles ne gonflent
+pas. Elle ne rencontrait pas le défaut, donc elle ne le couvrait pas.
+
+La version retenue **construit le cas** : une décision à huit branches, un contexte `hasTouch`, et
+la mesure prise contre le bord **intérieur** du cadre — un bouton qui touche la bordure est déjà
+coupé. Réépreuve : les cinq défauts réintroduits à l'identique en font tomber **huit** ; fichier
+restauré à l'octet.
+
+756 tests × 2 moteurs, 14 harnais verts, 301 contrôles d'accessibilité, 271/271 partage.
+**Rien à rejouer côté serveur.** Restent deux signalements : le bandeau d'en-tête de l'invité et les
+notifications retenues jusqu'à l'accueil.
 
 ## [4.55.2] — 2026-07-28
 ### Le menu ne suivait pas l'état du partage — et « Prendre la main » n'était nulle part
