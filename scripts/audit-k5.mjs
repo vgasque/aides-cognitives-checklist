@@ -95,5 +95,71 @@ const e=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   return {av,ap};});
 t('ouvrir l’éditeur pose UN point de version', e.ap===e.av+1, `${e.av} → ${e.ap}`);
 
+
+/* ═══ AJOUTS v4.74.0 — CE QUE L'ÉCRAN DIT, ET CE QU'IL NE REFERME PAS TOUT SEUL ═══════════════
+   Trois défauts signalés à l'usage, tous dans l'éditeur, tous mesurables ici. Le premier est le
+   plus grave des trois parce qu'il portait sur un INDICATEUR D'ÉTAT : la barre annonçait un
+   enregistrement automatique là où `edCommit` sortait les bras vides, faute de titre. */
+console.log('=== l’état ne promet pas ce qui n’a pas lieu ===');
+const f1=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+  newFiche(); render(); await w(300);
+  const ti=document.getElementById('f-title');
+  ti.value='Provisoire'; ti.dispatchEvent(new Event('input',{bubbles:true})); await w(900);
+  const avecTitre=(document.getElementById('hdrSaved')||{}).textContent||'';
+  ti.value=''; ti.dispatchEvent(new Event('input',{bubbles:true})); await w(900);
+  const sansTitre=(document.getElementById('hdrSaved')||{}).textContent||'';
+  await w(2700);   // le parc écrit toutes les 2,5 s : c'est lui qui posait « auto-enregistré »
+  const pastille=(document.getElementById('hdrStatus')||{}).textContent||'';
+  return {avecTitre,sansTitre,pastille};});
+t('avec titre, la barre dit « enregistré »', /✓/.test(f1.avecTitre), f1.avecTitre);
+t('sans titre, elle dit « sans titre » — jamais « enregistrement… »',
+  /sans titre/i.test(f1.sansTitre)&&!/⟳/.test(f1.sansTitre), f1.sansTitre);
+t('… et la pastille ne dit pas « auto-enregistré »',
+  !/auto-enregistr/.test(f1.pastille), f1.pastille);
+
+console.log('=== le dépliant « Identité » ne se referme pas tout seul ===');
+const f2=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+  const d=()=>document.querySelector('details.ed-ident');
+  const neuf=d().open;                                   // fiche vierge -> ouvert d'office
+  const ti=document.getElementById('f-title');
+  ti.value='Fiche à identité'; ti.dispatchEvent(new Event('input',{bubbles:true}));
+  renderEditor(); await w(400);                           // geste STRUCTUREL : le piège d'avant
+  const apresRendu=d().open;
+  d().open=false; d().dispatchEvent(new Event('toggle')); renderEditor(); await w(400);
+  const repliTenu=!d().open;
+  return {neuf,apresRendu,repliTenu};});
+t('fiche vierge : ouvert d’office', f2.neuf);
+t('titre saisi puis re-rendu : il RESTE ouvert', f2.apresRendu);
+t('replié par l’auteur : il RESTE replié', f2.repliTenu);
+
+console.log('=== une section vide ne s’affiche pas ===');
+const f3=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+  const lbl=()=>[...document.querySelectorAll('fieldset.field>label')].map(x=>x.textContent);
+  const vide=lbl();
+  edAdd(state.draft,'stopwatch'); await w(500);
+  const avec=lbl();
+  return {videMinuteurs:vide.some(x=>/Minuteurs/.test(x)),
+    videCx:vide.some(x=>/Complications/.test(x)),
+    avecMinuteurs:avec.some(x=>/Minuteurs/.test(x))};});
+t('aucun minuteur : la section n’est pas là', !f3.videMinuteurs);
+t('aucune complication : la section n’est pas là', !f3.videCx);
+t('un minuteur ajouté : elle revient', f3.avecMinuteurs);
+
+console.log('=== le bandeau « déplacement » tient sur un écran étroit ===');
+await p.setViewportSize({width:320,height:760});
+const f4=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+  const g=document.querySelector('.blk .li .li-grab'); if(!g)return {absent:true};
+  g.click(); await w(400);
+  const b=document.querySelector('.ed-grab'); if(!b)return {absent:true};
+  const l=b.querySelector('.eg-l'), x=b.querySelector('.eg-x');
+  const rb=b.getBoundingClientRect(), rl=l.getBoundingClientRect(), rx=x.getBoundingClientRect();
+  return {larg:Math.round(rl.width), boite:Math.round(rb.width),
+    hors:Math.round(rb.right)>320||Math.round(rx.right)>320,
+    croix:Math.round(Math.min(rx.width,rx.height))};});
+t('le libellé garde au moins la moitié de la largeur du bandeau',
+  !f4.absent&&f4.larg>=f4.boite*0.5, JSON.stringify(f4));
+t('rien ne sort de l’écran à 320 px', !f4.absent&&!f4.hors, JSON.stringify(f4));
+t('la croix reste une cible de 44 px', !f4.absent&&f4.croix>=44, String(f4.croix));
+
 console.log(`\n${ok}/${ok+ko} OK${ko?` — ${ko} ÉCHEC(S)`:''}`);
 await br.close();srv.close();process.exit(ko?1:0);

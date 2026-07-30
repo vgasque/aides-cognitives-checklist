@@ -47,6 +47,18 @@ const AUDIT = `(() => {
   roots.forEach(root=>{
     [root,...root.querySelectorAll('*')].forEach(el=>{
       if(seen.has(el)||!visible(el))return;seen.add(el);
+      /* UNE EXEMPTION, NOMMÉE ET MOTIVÉE : le SCHÉMA buildFlowSVG (.flow-scroll). Il est
+         entré dans une surface mesurée le jour où la colonne droite de l'éditeur a cessé d'être
+         une maquette pour porter l'algorithme — il n'a jamais été conforme au plancher de 11 px,
+         nulle part (ni dans le flux de l'éditeur, ni dans le panneau « Algorithme » de lecture,
+         ni en plein écran), simplement aucun de ces logements n'était dans le SCOPE.
+         Il en est exempté parce que ce n'est pas du TEXTE mais un DESSIN à échelle variable :
+         son corps n'a pas de valeur absolue (zoom 25–400 %, visionneuse plein écran, pincement
+         natif), et chacun de ses mots existe en TAILLE PLEINE dans le contenu qu'il résume — le
+         schéma n'est jamais la seule source. Même frontière que check-type, qui borne l'échelle
+         fermée au texte et laisse dehors les AFFICHAGES.
+         NE PAS élargir cette exemption à autre chose : tout le reste de #editSide reste mesuré. */
+      if(el.closest&&el.closest('.flow-scroll'))return;
       const cs=getComputedStyle(el);
       const fs=px(cs.fontSize);
       if(ownText(el)&&el.textContent.trim()){

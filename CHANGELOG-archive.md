@@ -1,4 +1,33 @@
-# Journal des modifications — archive (versions 3.0.0 à 4.57.0)
+# Journal des modifications — archive (versions 3.0.0 à 4.59.0)
+
+## [4.59.0] — 2026-07-29
+### Grand écran : le cockpit trois zones — orientation | action | état
+
+Phase 3 du chantier d'audit (F4). À partir de **1200 px**, la vue de lecture tient de front la
+colonne « Se repérer » (le plan, à gauche), le parcours (au centre) et le rail minuteurs (à
+droite) : l'idéal ECAM — E/WD et SD sous les yeux en même temps. Pour un binôme hospitalier,
+c'est un poste fixe où l'aide-lecteur voit plan, parcours et minuteurs **sans un tap**.
+
+**Palier 1200, pas 1000.** L'audit proposait 1000 px « puisque le palier existe ». Mesuré : à
+1000 px les trois colonnes laissent **~390 px** au contenu clinique — moins qu'une tablette en
+portrait, pour ce qu'on lit sous stress. À 1200 px : plan 240, action 594 (son plafond de 860
+au-delà), rail 360. Aucun palier nouveau n'est créé.
+
+**Le plan quitte le rail droit** à cette largeur : l'afficher aux deux endroits ferait deux
+sources pour la même structure — la règle qui vaut déjà pour les minuteurs nominaux.
+
+**L'ordre du DOM reste celui de la lecture.** La colonne de plan est posée *après* la colonne
+d'action et ramenée à gauche par `order` : ni un lecteur d'écran ni une tabulation ne doivent
+traverser le plan pour atteindre la checklist. Le plan de gauche est le même
+`ovPlanLadderHtml` désaturé, **inerte au cochage** (décision figée) — seul son logement change.
+
+Le franchissement du palier **re-rend** (comme le rail à 780 et l'aperçu d'éditeur à 1000) :
+c'est un changement de structure, pas de style. Piège vécu au passage : la règle du palier 1200
+est déclarée deux fois (en tête puis réaffirmée plus bas, piège de cascade documenté) — la
+variante cockpit doit suivre aux deux sites, sinon elle perd à l'ordre.
+
+Vérifié : 780 tests × 2 moteurs, a11y 301/301, doctrine 112/112, zoom-scroll 6/6, vérification
+8/8. Rien à rejouer côté serveur.
 
 ## [4.58.0] — 2026-07-29
 ### L'état de mode cesse de bouger — il s'ancre au coin haut-droit

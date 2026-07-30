@@ -1,5 +1,122 @@
 # Journal des modifications
 
+## [4.74.0] — 2026-07-30
+### L'éditeur dit la vérité, et il rend l'écran à ce qu'on écrit
+
+Onze points signalés à l'usage, tous dans l'éditeur ou à sa lisière. Deux sont des indicateurs
+qui **mentaient**, les autres de la place et de la lisibilité rendues.
+
+#### L'état d'enregistrement annonçait l'inverse de ce qui se passait
+`edCommit` refuse depuis la v4.72.0 d'écrire une fiche **sans titre** — une fiche anonyme n'a pas
+de nom sous lequel apparaître, et une rangée « Sans titre » se rangerait sous « # » dans un
+répertoire A→Z. Mais il sortait **en silence** : la barre restait sur « ⟳ Enregistrement… » et la
+pastille sur « auto-enregistré », c'est-à-dire exactement l'inverse de la réalité. C'est le pire
+mode de défaillance d'un indicateur d'état, et celui que ce dossier combat partout ailleurs (la
+donnée périmée présentée comme vivante, danger n° 2 du palmarès ECRI 2015).
+
+Deux moitiés, et la seconde était la moins évidente : **il fallait le dire AVANT le test « rien
+n'a bougé »**. Quand on ajoute puis supprime, le brouillon revient *exactement* à son instantané
+d'ouverture — la garde anti-écriture sortait la première et le badge restait figé sur le
+« ✓ Enregistré » de la frappe précédente. L'ordre des deux tests suffisait à produire le défaut.
+
+L'état est donc « ○ Sans titre — rien n'est enregistré » (abrégé « ○ sans titre » sous 560 px,
+même troncature du même énoncé que le reste de la barre) et la pastille dit « brouillon gardé —
+titre manquant » : registre **neutre**, comme le brouillon — il ne manque rien, il reste un geste
+à faire, et le parc protège bel et bien la saisie en attendant.
+
+#### Le dépliant « Identité » se refermait tout seul
+Il s'ouvre d'office sur une fiche neuve et reste replié sur une fiche existante — la distinction
+se fait sur le **titre vide**. Mais elle était **recalculée à chaque rendu** : `vide` devenant
+faux dès la première lettre, le premier geste structurel (ajouter un bloc, changer d'état)
+refermait le panneau sous les yeux de l'auteur qui y remplissait encore la catégorie et la date.
+L'ouverture se DÉCIDE désormais à l'entrée dans l'éditeur (clé = l'id du brouillon : changer de
+fiche redécide, un re-rendu jamais) et le repli n'appartient plus qu'au geste de l'auteur.
+Au passage, le premier champ ne se colle plus au filet du sommaire : un en-tête de carte n'est pas
+la première ligne du formulaire.
+
+#### La colonne de droite porte l'algorithme, plus une maquette
+Demande utilisateur, et le constat découle de K1 : depuis la v4.64.0 la colonne du **milieu** EST
+le rendu — le chapeau est le cadre rouge, un bloc est sa carte, une étape est sa rangée. Une
+carte-maquette de trois étapes à côté n'ajoutait plus qu'une seconde version, forcément moins
+fidèle, de ce qu'on avait déjà sous les yeux. Ce qui, lui, ne se voit nulle part en écrivant,
+c'est la **structure** que les blocs dessinent : le schéma monte donc dans la colonne collante,
+où il reste sous les yeux pendant qu'on descend les blocs, et libère la hauteur qu'il prenait en
+tête de « Prise en charge ». Sous 1000 px, il reprend sa place dans le flux, inchangé.
+Il ne se redessine pas à la frappe — c'est le comportement d'avant, pas une régression :
+`buildFlowSVG` reconstruit toute la géométrie, et le faire à chaque pause de frappe ferait sauter
+le schéma. Toute la **maquette miniature** est purgée avec ses treize classes (règle 14).
+
+#### La porte « + » reste à portée — et elle ne devient pas une zone fixe
+La question posée était la bonne. SPEC §5 dit « une seule zone fixe, et en HAUT », et pour les
+éditeurs elle dit en propre « **aucun pied d'éditeur** » : un bouton `fixed` en bas de l'écran est
+exactement ce que cette ligne interdit, clavier mobile compris. La réponse est donc `sticky` : la
+porte reste le dernier enfant de son fieldset, se colle au bas de l'écran **tant qu'on est dans
+« Prise en charge »** et se décroche d'elle-même à la fin de la section — bornage natif, comme les
+bandes-questions du mode statique. Elle ne prend aucune hauteur de plus, rien ne se décale, et
+aucune couche fixe ne s'ajoute au chrome. Fond plein + élévation, sans quoi un bouton transparent
+se lirait par-dessus le texte d'un bloc. **Pendant un déplacement, elle redescend dans le flux** :
+collée, elle masquait le dernier « Poser ici », et « créer » n'a rien à faire sous le doigt de
+quelqu'un qui cherche où poser.
+
+#### K1, le membre qui manquait : quatre listes sans coquille
+« Confirmation diagnostique », « Repères posologiques », « À vérifier », « Diagnostics
+différentiels » (et « Références », de même nature) étaient à nu sur le fond de page, entre un
+chapeau à cadre rouge et des blocs en cartes. En lecture, chacune est une `<section class="block">`
+— surface, filet, rayon. La grammaire de la v4.64.0 n'était donc appliquée qu'à moitié, et une
+moitié de grammaire n'en est pas une. Coquille **neutre** : la couleur reste aux registres.
+
+#### Une section vide n'enseigne plus rien
+Depuis la porte unique « ＋ » de la v4.65.0, c'est elle qui présente les types disponibles avec
+leur glyphe et leur phrase : « Minuteurs & compteurs » et « ⚡ Complications » ne portaient plus
+qu'un titre au-dessus du néant. Même règle que le volet de relecture (« un panneau vide qui
+affirme 0 remarque est du bruit permanent ») et que le pied de l'accueil. La capacité vit dans la
+porte ; la section réapparaît au premier objet créé.
+
+#### La poignée ⠿ d'un bloc vit en tête, à droite du titre
+Elle était en pied, **au contact de « Supprimer le bloc »** — précisément ce que la v4.68.0 avait
+corrigé pour les étapes (« un geste destructeur ne se met jamais au contact d'un autre bouton,
+sinon le pouce corrige et supprime du même geste »). La règle n'avait pas été appliquée à
+l'échelon du bloc ; elle rejoint l'anatomie déjà retenue pour l'étape.
+
+#### Le bandeau « déplacement » tenait sur un mot par ligne
+Signalé avec capture, sur iPhone. Troisième occurrence du même défaut de rangée flex :
+« TOUCHEZ UNE DESTINATION » (majuscules + interlettrage) et le ✕ de 44 px sont **incompressibles**,
+et le seul objet qui pouvait céder — le libellé, seul `min-width:0` de la rangée — cédait jusqu'à
+la largeur d'un mot (**12 px sur 284**, mesuré). Remède déjà écrit deux fois dans ce fichier (croix
+du panneau minuteurs v4.55.3, ligne d'état v4.56.3) : on **empile**, et le ✕ est **ancré** en haut
+à droite avec sa place réservée par un rembourrage.
+
+#### Une rangée de bibliothèque, un seul survol
+Depuis que l'aplat de sélection vit sur le **conteneur** (v4.73.0), la micro-réponse E5 du
+bouton-titre (lévitation d'1 px + ombre au survol) le décollait de son propre fond : le titre
+montait, le crayon restait, et l'ombre se peignait par-dessus le bleu — deux objets là où il n'y a
+qu'une bibliothèque. C'est le conteneur qui répond au geste, comme c'est lui qui porte l'état.
+
+#### Points examinés sans changement de code
+- **Le discriminant est déjà borné** à 60 caractères, dans le champ (`maxlength`) comme dans
+  `migrate` (`sstr(x.discriminant,60)`) — le libellé le dit maintenant, il ne le disait pas.
+- **« Essayer » qui entassait tout dans la colonne de gauche** : non reproductible, vérifié à
+  1250, 1400 et 1600 px, en dynamique comme en statique, sur fiche et sur protocole — la grille se
+  pose bien en `860 | 360`. C'était le défaut de piste corrigé en v4.73.0 (`cockpit` conditionné à
+  l'existence de la colonne).
+- **Le plafond des rappels** reste non bloquant : déjà en place, et c'est la doctrine (on suggère,
+  on n'empêche rien).
+
+#### Une exemption au harnais a11y, nommée et motivée
+Le schéma `buildFlowSVG` (`.flow-scroll`) est entré dans une surface mesurée le jour où la colonne
+droite a cessé d'être une maquette. Il n'a jamais été conforme au plancher de 11 px, **nulle part**
+— ni dans le flux de l'éditeur, ni dans le panneau « Algorithme » de lecture, ni en plein écran :
+simplement, aucun de ces logements n'était dans le SCOPE. Il en est exempté parce que ce n'est pas
+du **texte** mais un **dessin à échelle variable** (zoom 25–400 %, plein écran, pincement natif) et
+que chacun de ses mots existe en taille pleine dans le contenu qu'il résume — même frontière que
+`check-type`, qui borne l'échelle fermée au texte. Tout le reste de `#editSide` reste mesuré.
+
+#### Vérifications
+809 tests × 2 moteurs, `npm run check` vert, **seize harnais verts** (`npm run audit` en sortie 0),
+a11y 301/301, doctrine 144/144. **Douze nouveaux témoins** dans `scripts/audit-k5.mjs` (28 contrôles),
+vérifiés **capables d'échouer** : défauts réintroduits un par un → 5 rouges, dont le libellé du
+bandeau retombé à 12 px ; fichier restauré à l'octet. Rien à rejouer côté serveur.
+
 ## [4.73.3] — 2026-07-30
 ### Le prompt IA rattrape la structure — et il devient un contrat vérifié
 
@@ -906,32 +1023,3 @@ l'ordre de la fiche au lieu du tri.
 
 Vérifié : 785 tests × 2 moteurs (+5), a11y 301/301, doctrine 112/112, lecteur 13/13, exercice
 20/20. Rien à rejouer côté serveur.
-
-## [4.59.0] — 2026-07-29
-### Grand écran : le cockpit trois zones — orientation | action | état
-
-Phase 3 du chantier d'audit (F4). À partir de **1200 px**, la vue de lecture tient de front la
-colonne « Se repérer » (le plan, à gauche), le parcours (au centre) et le rail minuteurs (à
-droite) : l'idéal ECAM — E/WD et SD sous les yeux en même temps. Pour un binôme hospitalier,
-c'est un poste fixe où l'aide-lecteur voit plan, parcours et minuteurs **sans un tap**.
-
-**Palier 1200, pas 1000.** L'audit proposait 1000 px « puisque le palier existe ». Mesuré : à
-1000 px les trois colonnes laissent **~390 px** au contenu clinique — moins qu'une tablette en
-portrait, pour ce qu'on lit sous stress. À 1200 px : plan 240, action 594 (son plafond de 860
-au-delà), rail 360. Aucun palier nouveau n'est créé.
-
-**Le plan quitte le rail droit** à cette largeur : l'afficher aux deux endroits ferait deux
-sources pour la même structure — la règle qui vaut déjà pour les minuteurs nominaux.
-
-**L'ordre du DOM reste celui de la lecture.** La colonne de plan est posée *après* la colonne
-d'action et ramenée à gauche par `order` : ni un lecteur d'écran ni une tabulation ne doivent
-traverser le plan pour atteindre la checklist. Le plan de gauche est le même
-`ovPlanLadderHtml` désaturé, **inerte au cochage** (décision figée) — seul son logement change.
-
-Le franchissement du palier **re-rend** (comme le rail à 780 et l'aperçu d'éditeur à 1000) :
-c'est un changement de structure, pas de style. Piège vécu au passage : la règle du palier 1200
-est déclarée deux fois (en tête puis réaffirmée plus bas, piège de cascade documenté) — la
-variante cockpit doit suivre aux deux sites, sinon elle perd à l'ordre.
-
-Vérifié : 780 tests × 2 moteurs, a11y 301/301, doctrine 112/112, zoom-scroll 6/6, vérification
-8/8. Rien à rejouer côté serveur.

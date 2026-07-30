@@ -343,8 +343,9 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   justifiait de le rendre moins lisible (graisse 700, pas 800 : c'est un choix, pas une action).
   Le cochage passe au **vert `--ok`** et
   « Continuer » au registre CONFIRMATION quand tout le bloc est coché. Les éditeurs offrent un
-  **aperçu du brouillon** (bouton « Aperçu » + colonne « Aperçu en direct » à ≥ 1000 px) via
-  `state.previewFrom` : AUCUNE session ne démarre en aperçu (garde dans `ensureStarted`).
+  **aperçu du brouillon** (bouton « ▶ Essayer » de la barre ; à ≥ 1000 px la colonne droite porte
+  l'ALGORITHME, cf. « LA COLONNE DE DROITE PORTE L'ALGORITHME » plus bas) via `state.previewFrom`.
+  Une session d'ESSAI y démarre depuis la v4.72.0 (K5), marquée `essai`, et ne laisse rien.
   **Auto-enregistrement des brouillons (v4.5)** : les éditeurs se sauvent en continu dans le
   store meta `draftpark` (`getDraftPark`/`setDraftPark`) — « ‹ Retour » remplace « Annuler »,
   un brouillon interrompu est proposé en « fantôme » (carte « Reprendre le brouillon » du
@@ -1454,8 +1455,8 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   témoin d'`audit-partage` la mesure au lieu de l'affirmer. Au-dessus, poser un placard peut
   repousser le titre d'une ligne : sans effet de bord, car **aucune transition sur place** ne mène
   à ces états (on arrive en invité par l'écran d'entrée ; un lien coupé passe par `freeze`, qui
-  garde `mode === 'guest'` ; l'exercice est un acte local). La miniature de l'aperçu d'éditeur
-  (`.ep-tag`) n'a pas de barre : sa pilule TIENT LIEU de `#hdrCrisis` et porte le même mot.
+  garde `mode === 'guest'` ; l'exercice est un acte local). (La miniature de l'aperçu d'éditeur,
+  qui portait ici sa propre pilule `.ep-tag`, est SUPPRIMÉE en v4.74.0 avec toute la maquette.)
 - **UN HARNAIS QUI PLANTE EN EMPORTE CINQ (v4.70.1)** : `audit-complications` cliquait `#addCx`,
   l'un des SIX boutons d'ajout que la v4.65.0 a remplacés par une porte unique — il levait donc
   une exception depuis cinq versions, et comme `npm run audit` chaîne les quatorze harnais par
@@ -1786,6 +1787,68 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   `scrollIntoView` visait ensuite le bandeau, qui est STICKY donc déjà visible. Prendre et poser
   passent par **`keepAnchor`** (mécanique ECAM du projet) : l'objet pris ne bouge plus que de
   **0,7 px**, le bloc receveur de **0,6 px**. Ne pas réintroduire de `scrollIntoView` ici.
+- **L'ÉDITEUR NE PROMET QUE CE QU'IL FAIT (v4.74.0, signalé à l'usage)** — deux INDICATEURS
+  d'état mentaient. `edCommit` refuse depuis la v4.72.0 d'écrire une fiche **sans titre**, mais il
+  sortait EN SILENCE : la barre restait sur « ⟳ Enregistrement… » et la pastille sur
+  « auto-enregistré ». C'est la donnée périmée présentée comme vivante, que ce dossier combat
+  partout ailleurs. **ET IL FAUT LE DIRE AVANT LE TEST « rien n'a bougé »** : quand on ajoute puis
+  supprime, le brouillon revient EXACTEMENT à son instantané d'ouverture, la garde anti-écriture
+  d'`edTouch` sortait la première, et le badge restait figé sur le « ✓ Enregistré » d'avant —
+  l'ORDRE des deux tests suffisait à produire le défaut. Registre NEUTRE (« ○ »), jamais ambre :
+  il ne manque rien, il reste un geste à faire, et le parc protège la saisie en attendant.
+- **UN PANNEAU NE SE FERME QUE SUR LE GESTE DE QUI L'A OUVERT (v4.74.0)** : l'ouverture d'office du
+  dépliant « Identité » (K4) se DÉCIDE à l'entrée dans l'éditeur, elle ne se RECALCULE pas à chaque
+  rendu. `vide` devenant faux dès la première lettre du titre, le premier geste STRUCTUREL refermait
+  le panneau sous les yeux de l'auteur qui y remplissait encore la catégorie et la date. La clé est
+  l'ID du brouillon (`state.edIdentFor`/`edIdentOpen`) : changer de fiche redécide, un re-rendu
+  jamais. Vaut pour tout dépliant dont l'état d'ouverture dépend d'une donnée que l'auteur ÉDITE.
+- **LA COLONNE DE DROITE PORTE L'ALGORITHME (v4.74.0, demande utilisateur)** : depuis K1 (v4.64.0)
+  la colonne du MILIEU est le rendu — la carte-maquette « Aperçu en direct » n'ajoutait plus qu'une
+  seconde version, forcément moins fidèle, de ce qu'on avait déjà sous les yeux. Ce qui ne se voit
+  nulle part en écrivant, c'est la STRUCTURE : le schéma quitte la tête de « Prise en charge » pour
+  la colonne COLLANTE (≥ 1000 px ; sous ce seuil il reprend sa place dans le flux, inchangé).
+  **IL NE SE REDESSINE PAS À LA FRAPPE** et c'est le comportement d'avant : `buildFlowSVG`
+  reconstruit toute la géométrie, le faire à chaque pause de frappe ferait sauter le schéma — d'où
+  `bindEditSide` qui ne rafraîchit à l'`input` que le PROTOCOLE (textarea markdown, seul cas où
+  l'auteur écrirait vraiment à l'aveugle). Toute la maquette est PURGÉE (13 classes, règle 14).
+  **UNE EXEMPTION AJOUTÉE À `audit-a11y` À CETTE OCCASION, nommée et motivée** : `.flow-scroll` est
+  hors du plancher de 11 px — ce n'est pas du texte mais un DESSIN à échelle variable (zoom
+  25-400 %, plein écran), et chacun de ses mots existe en taille pleine dans le contenu qu'il
+  résume. Il n'a jamais été conforme nulle part ; il n'était simplement dans aucun SCOPE avant.
+- **LA PORTE « ＋ » EST COLLANTE, ELLE N'EST PAS FIXE (v4.74.0, proposition utilisateur)** : la
+  question « pas interdit par ECAM puisqu'on n'est pas en crise ? » a la bonne réponse — SPEC §5
+  dit « une seule zone fixe, et en HAUT », et pour les ÉDITEURS elle dit en propre « AUCUN pied
+  d'éditeur » : un bouton `fixed` en bas est exactement ce que cette ligne interdit, clavier mobile
+  compris. `sticky` n'y touche pas : la porte reste le DERNIER ENFANT de son fieldset, se colle tant
+  qu'on est dans « Prise en charge » et se décroche à la fin de la section (bornage natif, comme les
+  bandes-questions du statique) — aucune hauteur de plus, aucune couche ajoutée au chrome. Fond
+  PLEIN + élévation, sans quoi elle se lirait par-dessus le texte d'un bloc. **Pendant un
+  déplacement elle redescend dans le flux** (`.ed-door.flat`) : collée, elle masque le dernier
+  « Poser ici », et « créer » n'a rien à faire sous le doigt de qui cherche où POSER.
+- **K1, LE MEMBRE QUI MANQUAIT (v4.74.0)** : « Confirmation diagnostique », « Repères
+  posologiques », « À vérifier », « Diagnostics différentiels » et « Références » étaient à nu sur
+  le fond de page, entre un chapeau à cadre rouge et des blocs en cartes — alors qu'en lecture
+  chacune est une `<section class="block">`. La grammaire de la v4.64.0 n'était appliquée qu'à
+  moitié. Coquille `.ed-card`, NEUTRE : la couleur reste aux registres.
+  **ET UNE SECTION VIDE NE S'AFFICHE PLUS** (« Minuteurs & compteurs », « ⚡ Complications ») :
+  depuis la porte unique de la v4.65.0, c'est ELLE qui présente les types disponibles — un titre
+  au-dessus du néant n'enseigne plus rien. Même règle que le volet de relecture et que le pied de
+  l'accueil (« masqués à zéro session : aucun bouton mort »).
+- **LA POIGNÉE ⠿ D'UN BLOC VIT EN TÊTE, À DROITE DU TITRE (v4.74.0)** : elle était en pied, AU
+  CONTACT de « Supprimer le bloc » — précisément ce que la v4.68.0 avait corrigé pour les étapes
+  (« un geste destructeur ne se met jamais au contact d'un autre bouton »). La règle n'avait pas
+  été appliquée à l'échelon du BLOC.
+- **ONZIÈME DÉFAUT DE RANGÉE FLEX — LE BANDEAU « DÉPLACEMENT » (v4.74.0, capture à l'appui)** : sur
+  iPhone, le nom de l'objet pris tombait à UN MOT PAR LIGNE sur six lignes. « TOUCHEZ UNE
+  DESTINATION » (majuscules + interlettrage) et le ✕ de 44 px sont INCOMPRESSIBLES ; le seul objet
+  qui pouvait céder — le libellé, seul `min-width:0` de la rangée — cédait jusqu'à 12 px sur 284.
+  Remède déjà écrit deux fois (croix du panneau minuteurs v4.55.3, ligne d'état v4.56.3) : on
+  EMPILE, et le ✕ est ANCRÉ en haut à droite avec sa place réservée par un rembourrage.
+- **UNE RANGÉE DE BIBLIOTHÈQUE, UN SEUL SURVOL (v4.74.0, signalé à l'usage)** : depuis que l'aplat
+  de sélection vit sur le CONTENEUR (v4.73.0), la micro-réponse E5 du bouton-titre le décollait de
+  son propre fond — le titre montait, le crayon restait, l'ombre se peignait par-dessus le bleu.
+  C'est `.hs-wrap` qui répond au geste, comme c'est lui qui porte l'état ; `.hs-row` reste inscrit
+  dans les listes E5 pour les rangées SANS conteneur (sections, catégories, historique).
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.
