@@ -306,9 +306,17 @@
   /* Très étroit : « Aperçu » passe en icône ⛶ (aria-label/tooltip conservés), tout se resserre —
      la ligne ‹ ÉDITION badge ⛶ Enregistrer ⋯ tient sur 360px sans rien éjecter. */
   #hdrPreview .pv-ic{display:none}
+  /* EN ICÔNE SEULE, IL EST ROND (signalé à l'usage : « sur petits écrans le bouton Essayer n'est
+     pas rond »). `.hdr-act2` garde `border-radius:18px` pour une hauteur de 36 px — un cercle
+     parfait à 36 px de large, une pilule à toute autre largeur. Or le rembourrage de 10 px laissait
+     ~32 px : plus haut que large, donc un ovale couché. On fixe la LARGEUR à la hauteur et on
+     centre : le glyphe ▶ est alors exactement dans son disque, comme ◐ et ⋯ à côté de lui.
+     Passé par un `#id` : les paliers plus étroits redéclarent `.hdr-act2{padding:0 8px}` plus bas
+     dans la feuille, et à spécificité de classe l'ORDRE trancherait (piège de cascade du projet). */
   @media (max-width:429.98px){
     :is(body.view-edit,body.view-pedit) #hdrPreview .pv-lbl{display:none}
     :is(body.view-edit,body.view-pedit) #hdrPreview .pv-ic{display:inline;font-size:16.5px}
+    :is(body.view-edit,body.view-pedit) #hdrPreview{width:36px;padding:0;justify-content:center}
     :is(body.view-edit,body.view-pedit) .hdr-act2{padding:0 10px}
     :is(body.view-edit,body.view-pedit) .hdr-acts{gap:6px}
     :is(body.view-edit,body.view-pedit) .hdr-more{width:38px}
@@ -409,6 +417,13 @@
   /* K5 (v4.72.0) — L'ÉTAT D'ENREGISTREMENT, à la place du bouton qui le demandait. Encre douce :
      c'est une CONFIRMATION passive, elle ne réclame rien et ne doit pas tirer l'œil ; seul
      l'échec parle fort, parce que c'est le seul cas où l'auteur peut perdre quelque chose. */
+  /* Le « ↶ » de l'anneau d'annulation : gabarit des contrôles de barre (36 px + halo pour la cible
+     de 44), encre douce — c'est un recours, pas une action primaire. */
+  .hdr-undo{flex:none;position:relative;width:36px;height:36px;display:grid;place-items:center;border:0;border-radius:18px;background:var(--surface-2);color:var(--ink);cursor:pointer}
+  .hdr-undo::after{content:"";position:absolute;inset:-4px}
+  .hdr-undo:hover{background:var(--surface-3)}
+  .hdr-undo:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .hdr-undo[hidden]{display:none}
   .hdr-saved{flex:none;font-size:12px;font-weight:600;color:var(--ink-soft);white-space:nowrap;font-variant-numeric:tabular-nums}
   .hdr-saved.err{color:var(--critical);font-weight:800}
   .hdr-saved[hidden]{display:none}
@@ -1413,7 +1428,16 @@
   ol.steps li:first-child{border-top:0}
   /* v4.13.1 : min-width:0 + césure — sans eux, un mot long (« compressions ») fixe le
      min-content du texte et pousse la CASE hors du cadre en étroit / grande taille de texte. */
-  ol.steps li .txt{flex:1;min-width:0;font-size:16.5px;font-weight:800;line-height:1.45;overflow-wrap:break-word;hyphens:auto}
+  /* LE RELIEF REVIENT AU REGISTRE (v4.74.2, signalé à l'usage : « le gras des étapes n'est pas
+     très esthétique et serait questionnable »). Chaque étape était à 800 — le poids d'un titre
+     appliqué à un paragraphe : plus rien ne ressortait, ce qui est mot pour mot le reproche fait
+     à l'inflation du rouge. 600 pour une étape ORDINAIRE, 800 conservé pour les seules étapes
+     `⚠`/`△` : la hiérarchie passe alors par le TYPE d'étape, ce que la doctrine dit déjà vouloir
+     (« le gras est exclu des étapes, le relief passe par le type »). Même geste que la v4.73.0 sur
+     les chronos (700 → 500) et pour la même raison : l'état ne crie pas plus fort que l'action.
+     Le CORPS ne bouge pas (16,5 px, palier de l'échelle fermée) : c'est la graisse qui s'aligne. */
+  ol.steps li .txt{flex:1;min-width:0;font-size:16.5px;font-weight:600;line-height:1.45;overflow-wrap:break-word;hyphens:auto}
+  ol.steps li:is(.crit,.vigil) .txt{font-weight:800}
   /* Glyphe de registre en tête d'une étape signalée (lot 8) : hérite la couleur du .txt
      (rouge/ambre), distingue ⚠ de △ sans dépendre de la teinte de la bande. */
   ol.steps li .txt .stp-mk{font-weight:800;margin-right:7px}
@@ -2063,6 +2087,17 @@
   .crit-guide .cg-r{color:var(--critical)}
   .crit-guide .cg-a{color:var(--verify)}
   .flow-prev-h{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 7px}
+  /* Dépliant de l'aperçu d'algorithme, éditeur étroit (< 1000 px). Gabarit de `.crit-guide` :
+     sommaire cliquable ≥ 44 px, chevron, compte à droite — le compte est ce qui permet de décider
+     s'il vaut la peine d'ouvrir sans l'ouvrir. */
+  details.flow-prev{margin:0 0 12px}
+  details.flow-prev>summary{display:flex;align-items:center;gap:8px;min-height:44px;cursor:pointer;list-style:none}
+  details.flow-prev>summary::-webkit-details-marker{display:none}
+  details.flow-prev>summary::after{content:"▾";color:var(--link);font-size:11px;flex:none}
+  details.flow-prev[open]>summary::after{content:"▴"}
+  details.flow-prev>summary .flow-prev-h{margin:0}
+  details.flow-prev>summary:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:var(--radius-sm)}
+  .fp-n{margin-left:auto;font-size:12px;color:var(--ink-soft);font-variant-numeric:tabular-nums}
   .flow-scroll{width:100%;overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--paper);padding:8px;-webkit-overflow-scrolling:touch;margin-bottom:14px;max-height:calc(75vh / var(--zf,1))}
   /* CODE QR — taille en px et non en %, parce qu'un QR se scanne : trop petit, le lecteur cale.
      ~200 px met chaque module au-dessus de 4 px dès la version 10, ce qui passe partout à 30 cm.
@@ -2341,7 +2376,18 @@
   /* Section de bloc : en-tête = LIGNE D'ÉTAT toujours visible (n°, titre, compteur, chevron),
      corps repliable. Pastille : bleu = position courante, vert ✓ = bloc complet, neutre sinon —
      jamais d'ambre/rouge (registres d'alerte) ; la décision garde sa carte ambrée (comme .nav-wrap.dec). */
-  .ov-block{border:1px solid var(--line-hover);border-left:4px solid var(--line-strong);border-radius:10px;margin-bottom:10px;scroll-margin-top:74px}
+  /* LA CARTE DU PARCOURS EST UNE SURFACE (v4.74.2, signalé à l'usage : « pourquoi les étapes de
+     blocs sont de la même couleur que le fond de page et pas en fond blanc comme les autres
+     blocs ? »). Ce n'était pas une décision : `.ov-block` n'avait AUCUN `background`, donc le fond
+     de page, quand `.conf-block`, `.local`, `.forget-strip` et les cartes de l'éditeur sont tous
+     en `--surface`. Rien dans AGENTS.md ne justifiait l'exception, et le précédent existe en sens
+     inverse — la v4.59.0 a mis l'Échelle sur une surface parce qu'elle était « la seule zone de la
+     vue lecture à ne pas être une surface, ses filets se lisant comme des restes de trait ». Le
+     même argument vaut ici, et plus fort depuis que le sombre est à #000 (v4.71.0 : sur du noir une
+     ombre ne dit plus rien, c'est la SURFACE qui monte et le FILET qui borde). C'est la colonne
+     d'ACTION : elle mérite le niveau 2, pas le fond nu.
+     Les registres ne bougent pas : `.dec` garde sa teinte ambre, une étape `⚠`/`△` sa boîte. */
+  .ov-block{background:var(--surface);border:1px solid var(--line-hover);border-left:4px solid var(--line-strong);border-radius:10px;margin-bottom:10px;scroll-margin-top:74px}
   .ov-block.dec{background:var(--verify-soft);border-color:var(--verify-bd);border-left-color:var(--verify-bd)}
   .ov-block.cur{border-color:var(--primary);border-left-color:var(--primary)}
   /* Un bloc de DÉCISION garde son ambre même quand il est le bloc courant (v4.24.0, décision
@@ -3379,7 +3425,7 @@
      bouton-titre (lévitation d'1 px + ombre au survol) le décollait de son propre fond : le
      titre montait, le crayon restait, et l'ombre se peignait par-dessus le bleu — deux objets là
      où il n'y a qu'une bibliothèque. C'est le conteneur qui répond au geste, comme c'est lui qui
-     porte l'état ; le bouton-titre et son crayon n'ont plus d'état de survol propre. */
+     porte l'état ; le bouton-titre et son crayon n'ont plus d'état de survol propre.
      La micro-réponse E5 est donc portée par `.hs-wrap` (inscrit dans la liste nominative du bloc
      « E5 » plus bas, d'où `.hs-row` reste inscrit pour les rangées SANS conteneur : sections,
      catégories, historique) et neutralisée sur le bouton-titre — spécificité (0,3,0) contre

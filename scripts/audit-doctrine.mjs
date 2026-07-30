@@ -243,7 +243,67 @@ console.log('\n══ ECAM · rangée de commandes sans rognage (320/360/375/390
         r.libelles);
     }
   }
+  /* LE TROU ENTRE DEUX PALIERS (v4.74.2, signalé à l'usage : « à 435-440 px, Se repérer et Cons.
+     passent sous Guidé/Statique, puis ça revient à une ligne si on élargit ou rétrécit un peu »).
+     Le témoin ne mesurait QUE des largeurs où un palier de compression est actif (320/360/375/390,
+     donc toutes < 430) : la bande 430→441 — trop étroite pour la recette large, pas assez pour
+     avoir droit à la compressée — n'était vue par personne, et l'enroulement, qui est le dernier
+     recours, y devenait le premier. On mesure donc la HAUTEUR de la rangée : une seule ligne, ou
+     l'enroulement s'est produit. Les deux bornes ET l'intérieur, parce que c'est un intervalle. */
   await page.evaluate(()=>applyZoom(100));
+  {
+    let h1=null;
+    for(const w of [429,431,435,440,444,460]){
+      await page.setViewportSize({width:w,height:820});
+      await page.waitForTimeout(240);
+      const r=await page.evaluate(()=>{
+        const din=document.querySelector('#crisisCtrl .dock-in');
+        const kids=[...din.children].filter(k=>k.getBoundingClientRect().height>0);
+        const tops=new Set(kids.map(k=>Math.round(k.getBoundingClientRect().top)));
+        return {h:Math.round(din.getBoundingClientRect().height),
+          wrapped:din.classList.contains('wrapped'),
+          rangs:Math.max(...kids.map(k=>k.getBoundingClientRect().bottom))-Math.min(...kids.map(k=>k.getBoundingClientRect().top)),
+          libelles:[...din.querySelectorAll('button')].filter(b=>b.offsetParent).map(b=>b.textContent.trim()).join('|')};});
+      if(h1===null)h1=r.h;
+      t(`${w} px : la rangée de commandes tient sur UNE ligne`,
+        !r.wrapped&&r.h<=h1+2, `hauteur ${r.h} px (référence ${h1}), wrapped=${r.wrapped}`);
+      t(`${w} px : les libellés sont intacts`,
+        /Guid/.test(r.libelles)&&/Statique/.test(r.libelles)&&/rep.rer/.test(r.libelles)&&/Cons/.test(r.libelles),
+        r.libelles);
+    }
+  }
+  await page.close();
+}
+
+/* LA BASCULE GUIDÉ ↔ STATIQUE GARDE LE BLOC COURANT (v4.74.2, signalé à l'usage : « comment
+   améliorer le passage guidé/statique lorsqu'on a déjà scrollé ? »). Avant : `scrollTo(0,0)`
+   systématique — et conserver `scrollY` n'aurait rien voulu dire non plus, les deux vues n'ayant
+   pas la même hauteur. La seule ancre qui EXISTE des deux côtés est le bloc courant, marqué `.cur`
+   dans les deux vues. On mesure la DÉRIVE en pixels, comme pour toutes les mécaniques d'ancrage du
+   projet, et l'on vérifie le repli : sans bloc courant à l'écran, on repart du haut. */
+console.log('\n══ ECAM · bascule guidé ↔ statique ancrée sur le bloc courant ══');
+{
+  const page=await session(390);
+  await page.waitForTimeout(250);
+  const r=await page.evaluate(async()=>{
+    const w=m=>new Promise(x=>setTimeout(x,m));
+    const CUR='.ov-block.cur,.sv-cell.cur,.sv-band.cur';
+    const top=()=>{const e=main.querySelector(CUR);return e?e.getBoundingClientRect().top:null;};
+    // on défile pour que le bloc courant ne soit PAS en haut de l'écran
+    const el=main.querySelector(CUR);
+    window.scrollTo(0,window.scrollY+el.getBoundingClientRect().top-260);
+    await w(200);
+    const av=top();
+    document.querySelector('#modeSeg [data-readmode="static"]').click(); await w(400);
+    const apStat=top(), yStat=window.scrollY;
+    document.querySelector('#modeSeg [data-readmode="dynamic"]').click(); await w(400);
+    const apDyn=top();
+    return {av:Math.round(av),apStat:Math.round(apStat),apDyn:Math.round(apDyn),yStat:Math.round(yStat)};});
+  t('guidé → statique : le bloc courant ne dérive pas', Math.abs(r.apStat-r.av)<=2,
+    `${r.av} px → ${r.apStat} px`);
+  t('… et l’on n’est PAS remonté en haut', r.yStat>40, `scrollY ${r.yStat} px`);
+  t('statique → guidé : idem dans l’autre sens', Math.abs(r.apDyn-r.av)<=2,
+    `${r.av} px → ${r.apDyn} px`);
   await page.close();
 }
 

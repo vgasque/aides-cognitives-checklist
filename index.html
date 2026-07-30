@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-6XBb5qYHH97RM92SsmnWclzeo+a/08Sq75x1+10W1P4='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-wYpcYOZi52rH143kbRlf1i9rI0v9Tjlf3dZ04eAJrbQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -591,9 +591,17 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Très étroit : « Aperçu » passe en icône ⛶ (aria-label/tooltip conservés), tout se resserre —
      la ligne ‹ ÉDITION badge ⛶ Enregistrer ⋯ tient sur 360px sans rien éjecter. */
   #hdrPreview .pv-ic{display:none}
+  /* EN ICÔNE SEULE, IL EST ROND (signalé à l'usage : « sur petits écrans le bouton Essayer n'est
+     pas rond »). `.hdr-act2` garde `border-radius:18px` pour une hauteur de 36 px — un cercle
+     parfait à 36 px de large, une pilule à toute autre largeur. Or le rembourrage de 10 px laissait
+     ~32 px : plus haut que large, donc un ovale couché. On fixe la LARGEUR à la hauteur et on
+     centre : le glyphe ▶ est alors exactement dans son disque, comme ◐ et ⋯ à côté de lui.
+     Passé par un `#id` : les paliers plus étroits redéclarent `.hdr-act2{padding:0 8px}` plus bas
+     dans la feuille, et à spécificité de classe l'ORDRE trancherait (piège de cascade du projet). */
   @media (max-width:429.98px){
     :is(body.view-edit,body.view-pedit) #hdrPreview .pv-lbl{display:none}
     :is(body.view-edit,body.view-pedit) #hdrPreview .pv-ic{display:inline;font-size:16.5px}
+    :is(body.view-edit,body.view-pedit) #hdrPreview{width:36px;padding:0;justify-content:center}
     :is(body.view-edit,body.view-pedit) .hdr-act2{padding:0 10px}
     :is(body.view-edit,body.view-pedit) .hdr-acts{gap:6px}
     :is(body.view-edit,body.view-pedit) .hdr-more{width:38px}
@@ -694,6 +702,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* K5 (v4.72.0) — L'ÉTAT D'ENREGISTREMENT, à la place du bouton qui le demandait. Encre douce :
      c'est une CONFIRMATION passive, elle ne réclame rien et ne doit pas tirer l'œil ; seul
      l'échec parle fort, parce que c'est le seul cas où l'auteur peut perdre quelque chose. */
+  /* Le « ↶ » de l'anneau d'annulation : gabarit des contrôles de barre (36 px + halo pour la cible
+     de 44), encre douce — c'est un recours, pas une action primaire. */
+  .hdr-undo{flex:none;position:relative;width:36px;height:36px;display:grid;place-items:center;border:0;border-radius:18px;background:var(--surface-2);color:var(--ink);cursor:pointer}
+  .hdr-undo::after{content:"";position:absolute;inset:-4px}
+  .hdr-undo:hover{background:var(--surface-3)}
+  .hdr-undo:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .hdr-undo[hidden]{display:none}
   .hdr-saved{flex:none;font-size:12px;font-weight:600;color:var(--ink-soft);white-space:nowrap;font-variant-numeric:tabular-nums}
   .hdr-saved.err{color:var(--critical);font-weight:800}
   .hdr-saved[hidden]{display:none}
@@ -1698,7 +1713,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   ol.steps li:first-child{border-top:0}
   /* v4.13.1 : min-width:0 + césure — sans eux, un mot long (« compressions ») fixe le
      min-content du texte et pousse la CASE hors du cadre en étroit / grande taille de texte. */
-  ol.steps li .txt{flex:1;min-width:0;font-size:16.5px;font-weight:800;line-height:1.45;overflow-wrap:break-word;hyphens:auto}
+  /* LE RELIEF REVIENT AU REGISTRE (v4.74.2, signalé à l'usage : « le gras des étapes n'est pas
+     très esthétique et serait questionnable »). Chaque étape était à 800 — le poids d'un titre
+     appliqué à un paragraphe : plus rien ne ressortait, ce qui est mot pour mot le reproche fait
+     à l'inflation du rouge. 600 pour une étape ORDINAIRE, 800 conservé pour les seules étapes
+     `⚠`/`△` : la hiérarchie passe alors par le TYPE d'étape, ce que la doctrine dit déjà vouloir
+     (« le gras est exclu des étapes, le relief passe par le type »). Même geste que la v4.73.0 sur
+     les chronos (700 → 500) et pour la même raison : l'état ne crie pas plus fort que l'action.
+     Le CORPS ne bouge pas (16,5 px, palier de l'échelle fermée) : c'est la graisse qui s'aligne. */
+  ol.steps li .txt{flex:1;min-width:0;font-size:16.5px;font-weight:600;line-height:1.45;overflow-wrap:break-word;hyphens:auto}
+  ol.steps li:is(.crit,.vigil) .txt{font-weight:800}
   /* Glyphe de registre en tête d'une étape signalée (lot 8) : hérite la couleur du .txt
      (rouge/ambre), distingue ⚠ de △ sans dépendre de la teinte de la bande. */
   ol.steps li .txt .stp-mk{font-weight:800;margin-right:7px}
@@ -2348,6 +2372,17 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .crit-guide .cg-r{color:var(--critical)}
   .crit-guide .cg-a{color:var(--verify)}
   .flow-prev-h{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 7px}
+  /* Dépliant de l'aperçu d'algorithme, éditeur étroit (< 1000 px). Gabarit de `.crit-guide` :
+     sommaire cliquable ≥ 44 px, chevron, compte à droite — le compte est ce qui permet de décider
+     s'il vaut la peine d'ouvrir sans l'ouvrir. */
+  details.flow-prev{margin:0 0 12px}
+  details.flow-prev>summary{display:flex;align-items:center;gap:8px;min-height:44px;cursor:pointer;list-style:none}
+  details.flow-prev>summary::-webkit-details-marker{display:none}
+  details.flow-prev>summary::after{content:"▾";color:var(--link);font-size:11px;flex:none}
+  details.flow-prev[open]>summary::after{content:"▴"}
+  details.flow-prev>summary .flow-prev-h{margin:0}
+  details.flow-prev>summary:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:var(--radius-sm)}
+  .fp-n{margin-left:auto;font-size:12px;color:var(--ink-soft);font-variant-numeric:tabular-nums}
   .flow-scroll{width:100%;overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--paper);padding:8px;-webkit-overflow-scrolling:touch;margin-bottom:14px;max-height:calc(75vh / var(--zf,1))}
   /* CODE QR — taille en px et non en %, parce qu'un QR se scanne : trop petit, le lecteur cale.
      ~200 px met chaque module au-dessus de 4 px dès la version 10, ce qui passe partout à 30 cm.
@@ -2626,7 +2661,18 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Section de bloc : en-tête = LIGNE D'ÉTAT toujours visible (n°, titre, compteur, chevron),
      corps repliable. Pastille : bleu = position courante, vert ✓ = bloc complet, neutre sinon —
      jamais d'ambre/rouge (registres d'alerte) ; la décision garde sa carte ambrée (comme .nav-wrap.dec). */
-  .ov-block{border:1px solid var(--line-hover);border-left:4px solid var(--line-strong);border-radius:10px;margin-bottom:10px;scroll-margin-top:74px}
+  /* LA CARTE DU PARCOURS EST UNE SURFACE (v4.74.2, signalé à l'usage : « pourquoi les étapes de
+     blocs sont de la même couleur que le fond de page et pas en fond blanc comme les autres
+     blocs ? »). Ce n'était pas une décision : `.ov-block` n'avait AUCUN `background`, donc le fond
+     de page, quand `.conf-block`, `.local`, `.forget-strip` et les cartes de l'éditeur sont tous
+     en `--surface`. Rien dans AGENTS.md ne justifiait l'exception, et le précédent existe en sens
+     inverse — la v4.59.0 a mis l'Échelle sur une surface parce qu'elle était « la seule zone de la
+     vue lecture à ne pas être une surface, ses filets se lisant comme des restes de trait ». Le
+     même argument vaut ici, et plus fort depuis que le sombre est à #000 (v4.71.0 : sur du noir une
+     ombre ne dit plus rien, c'est la SURFACE qui monte et le FILET qui borde). C'est la colonne
+     d'ACTION : elle mérite le niveau 2, pas le fond nu.
+     Les registres ne bougent pas : `.dec` garde sa teinte ambre, une étape `⚠`/`△` sa boîte. */
+  .ov-block{background:var(--surface);border:1px solid var(--line-hover);border-left:4px solid var(--line-strong);border-radius:10px;margin-bottom:10px;scroll-margin-top:74px}
   .ov-block.dec{background:var(--verify-soft);border-color:var(--verify-bd);border-left-color:var(--verify-bd)}
   .ov-block.cur{border-color:var(--primary);border-left-color:var(--primary)}
   /* Un bloc de DÉCISION garde son ambre même quand il est le bloc courant (v4.24.0, décision
@@ -3664,7 +3710,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      bouton-titre (lévitation d'1 px + ombre au survol) le décollait de son propre fond : le
      titre montait, le crayon restait, et l'ombre se peignait par-dessus le bleu — deux objets là
      où il n'y a qu'une bibliothèque. C'est le conteneur qui répond au geste, comme c'est lui qui
-     porte l'état ; le bouton-titre et son crayon n'ont plus d'état de survol propre. */
+     porte l'état ; le bouton-titre et son crayon n'ont plus d'état de survol propre.
      La micro-réponse E5 est donc portée par `.hs-wrap` (inscrit dans la liste nominative du bloc
      « E5 » plus bas, d'où `.hs-row` reste inscrit pour les rangées SANS conteneur : sections,
      catégories, historique) et neutralisée sur le bouton-titre — spécificité (0,3,0) contre
@@ -4313,6 +4359,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     <span class="hdr-crisis" id="hdrCrisis" hidden>■ Crise</span>
     <span class="hdr-badge" id="hdrBadge" hidden></span>
     <button class="hdr-new" id="hdrNew" hidden><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span class="hdr-new-lbl">Créer</span></button>
+    <!-- ANNEAU D'ANNULATION (v4.74.2) : le geste qui remplace le « Annuler » disparu avec le
+         bouton « Enregistrer ». Il vit CONTRE l'état d'enregistrement, parce que c'est son
+         pendant : l'un dit ce qui est écrit, l'autre le défait. Masqué tant que la pile est vide
+         (aucun bouton mort) et hors des éditeurs. -->
+    <button class="hdr-undo" id="hdrUndo" hidden title="Annuler le dernier geste (Cmd/Ctrl-Z)" aria-label="Annuler le dernier geste"></button>
     <span class="hdr-saved" id="hdrSaved" role="status" hidden></span>
     <button class="hdr-act2 primary" id="hdrPreview" hidden title="Dérouler le brouillon comme en session — rien n'est enregistré" aria-label="Essayer"><span class="pv-ic" aria-hidden="true">▶</span><span class="pv-lbl">▶ Essayer</span></button>
     <button class="hdr-theme" id="hdrTheme" aria-label="Thème"></button>
@@ -4645,7 +4696,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.74.0';
+const APP_VERSION='4.74.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -7547,7 +7598,11 @@ function applyViewChrome(){
      rien fait serait une promesse sans objet. */
   {const ed=state.view==='edit'||state.view==='protocolEdit';
    const sv=document.getElementById('hdrSaved');
-   if(!ed){clearTimeout(_edSaveT);_edSaveState='';_edSaveAt=0;sv.hidden=true;sv.textContent='';}
+   if(!ed){clearTimeout(_edSaveT);_edSaveState='';_edSaveAt=0;sv.hidden=true;sv.textContent='';
+     /* On QUITTE l'éditeur : l'anneau d'annulation meurt avec la séance (c'est un geste, pas un
+        état du brouillon). Le filet de plus longue portée reste le point de version de v4.72.0. */
+     _edUndo=[];_edPrev=null;_edUndoFor=null;
+     const ub=document.getElementById('hdrUndo');if(ub)ub.hidden=true;}
    else if(_edSaveState)edSaySave(_edSaveState);
    document.getElementById('hdrPreview').hidden=!ed;}
   // Menu ⋯ : réinitialisé à chaque rendu — chaque vue fiche/protocole (re)déclare ses rangées.
@@ -8329,6 +8384,7 @@ function mdImagesHtml(p){const ims=(p.images||[]).filter(im=>im&&im.data);
       </select></div>`).join('')}</div>`;}
 let _mdPrevTimer=null;
 function renderProtocolEdit(){
+  edUndoNote();    // avant edTouch : `_edPrev` porte encore l'état d'AVANT le geste
   edTouch(true);   // K5 : idem côté protocole (un seul point d'accroche par éditeur)
   const p=state.pdraft;if(!p){state.view='library';return render();}
   const isNew=!protocols.some(x=>x.id===p.id);
@@ -8583,6 +8639,11 @@ function bindEditorMetaFields(d,prefix,o){
   // État SEGMENTÉ 3 états (V5) : au clic, re-rendu (phrase d'aide + badge d'en-tête suivent).
   main.querySelectorAll('.st-seg').forEach(b=>b.onclick=()=>{d.status=b.dataset.status==='valid'?'':b.dataset.status;o.rerender();});
   updateHdrStatusBadge(d.status,o.fem);
+  /* Anneau d'annulation : le bouton vit dans l'EN-TÊTE, hors de `main` — il survit aux re-rendus,
+     mais son `onclick` est reposé ici parce que c'est le point de câblage COMMUN aux deux éditeurs
+     (le peindre ailleurs demanderait de le faire deux fois, donc de le laisser diverger un jour). */
+  {const ub=document.getElementById('hdrUndo');if(ub)ub.onclick=edUndoDo;}
+  edUndoPaint();
   // Aperçu du brouillon (V5) : bouton d'en-tête + colonne en direct (>= 1000px, cf. bindEditSide).
   {const pv=document.getElementById('hdrPreview');if(pv)pv.onclick=o.preview;}
   // « Voir aussi » : ajout via le sélecteur filtrable (même design que « Joindre un document
@@ -11211,7 +11272,22 @@ bindModalDismiss(planModal,closePlanSheet);
    if(state.readMode===m)return;
    const toStatic=m==='static';
    state.readMode=m;setReadModePref(m);
-   render();window.scrollTo(0,0);   // vue entièrement différente : on repart du haut
+   /* ON GARDE LE BLOC COURANT LÀ OÙ IL ÉTAIT (v4.74.2, signalé à l'usage : « comment améliorer le
+      passage guidé/statique lorsqu'on a déjà scrollé ? »). Avant : `scrollTo(0,0)`, systématique.
+      Or les deux vues n'ont pas la même hauteur, donc conserver `scrollY` n'aurait rien voulu dire
+      non plus — la seule ancre qui EXISTE des deux côtés est le bloc courant, et les deux vues le
+      marquent avec la MÊME classe `.cur` (`.ov-block.cur` en dynamique, `.sv-cell`/`.sv-band` en
+      statique). C'est donc `keepAnchor`, la mécanique ECAM du projet, appliquée au bon élément.
+      DEUX REPLIS VERS LE HAUT, tous deux voulus : pas de session démarrée (aucun `.cur` — il n'y a
+      rien à retrouver), et bloc courant HORS de l'écran avant la bascule (le ramener au même
+      décalage négatif déposerait la vue à un endroit qu'on ne regardait pas ; même test de
+      visibilité qu'`ovAdvanceRender`). */
+   const CUR='.ov-block.cur,.sv-cell.cur,.sv-band.cur';
+   const av=main.querySelector(CUR);
+   const vu=(()=>{if(!av)return false;const r=av.getBoundingClientRect();
+     return r.bottom>stickBase()&&r.top<(window.innerHeight/zoomF());})();
+   const d=keepAnchor(vu?CUR:null,render);
+   if(d==null)window.scrollTo(0,0);
    const w=main.querySelector(toStatic?'.sv-wrap':'.care-path,.ov-wrap');
    if(w){w.classList.add(toStatic?'rm-anim-r':'rm-anim-l');
      const off=()=>w.classList.remove('rm-anim-l','rm-anim-r');
@@ -11534,10 +11610,31 @@ function fitCtrlRow(){
      en px VISUELS : il se multiplie par `zoomF()` (règle v4.13.1, dans l'autre sens). */
   const kids=[...din.children].filter(k=>!k.hidden&&k.getBoundingClientRect().width>0);
   if(!kids.length)return;
-  const r=din.getBoundingClientRect();
-  const bord=r.right-(parseFloat(getComputedStyle(din).paddingRight)||0)*zoomF();
-  const droite=Math.max(...kids.map(k=>k.getBoundingClientRect().right));
-  if(droite>bord+0.5)din.classList.add('wrapped');}
+  const deborde=()=>{
+    const r=din.getBoundingClientRect();
+    const bord=r.right-(parseFloat(getComputedStyle(din).paddingRight)||0)*zoomF();
+    return Math.max(...kids.map(k=>k.getBoundingClientRect().right))>bord+0.5;};
+  /* LES PALIERS AVANT L'ENROULEMENT — LE TROU DE 430 À 441 px (v4.74.2, signalé à l'usage : « à
+     435-440 px, Se repérer et Cons. passent sous Guidé/Statique, et ça revient à une ligne si on
+     élargit ou rétrécit un peu »). Le diagnostic est arithmétique : le palier de compression
+     suivant est à 430 (`ZOOM_W_STEPS`), donc entre 430 et ~441 la rangée n'a plus la place de la
+     recette large et n'a pas encore DROIT à la recette compressée — et l'enroulement, qui est le
+     dernier recours, devenait le premier.
+     ON NE DÉPLACE PAS LE SEUIL : les seuils en dur pour cette rangée se sont déjà révélés faux
+     deux fois (quai v4.23.0, rangée de commandes v4.43.0), et un seuil juste ici dépendrait de la
+     fonte du système et de la longueur des libellés. Cette fonction MESURE déjà : elle descend
+     donc d'un palier, re-mesure, descend encore, et n'enroule qu'après avoir épuisé la
+     compression. Les classes posées ici sont les MÊMES que celles de `syncZoomWidth` — aucune
+     recette dupliquée, donc rien qui puisse diverger — et elles ne stylent que cette rangée
+     (vérifié au grep : `.ctrl-sp`, `.dock-plan`, `#crisisCtrl .dock-in`, `#modeSeg .seg-btn`).
+     Elles sont reposées à zéro par le `syncZoomWidth` suivant, qui rappelle cette fonction. */
+  if(!deborde())return;
+  const cl=document.documentElement.classList;
+  for(const b of ZOOM_W_STEPS){                       // 560 → 430 → 400 → 360, du plus large au plus serré
+    if(cl.contains('zw'+b))continue;                  // déjà posé par la largeur : rien à gagner
+    cl.add('zw'+b);
+    if(!deborde())return;}
+  din.classList.add('wrapped');}
 window.addEventListener('resize',syncZoomWidth);
 /* SUPPRIMÉS EN v4.25.0 (audit Plan/Statique), nettoyage achevé en v4.31.1 : `ovPlanTreeHtml`
    (l'organigramme « Détails ») et tout le FIL D'ANCÊTRES COLLANT qui n'existait que pour lui
@@ -13091,6 +13188,7 @@ function bindEditSide(kind){if(!document.getElementById('editSide'))return;
   main.addEventListener('input',_editSideOn);}
 function renderEditor(){
   captureFlow();
+  edUndoNote();    // avant edTouch : `_edPrev` porte encore l'état d'AVANT le geste
   edTouch(true);   // K5 : un geste STRUCTUREL vient d'avoir lieu — on écrit tout de suite
   const f=state.draft;const blocks=f.blocks;blocks._start=f.start;
   const isNew=!fiches.some(x=>x.id===f.id);
@@ -13102,7 +13200,9 @@ function renderEditor(){
     ③ à vérifier + différentiels, puis annexes) — on rédige dans l'ordre où l'équipe lira. */}
     ${listEditor('Ne pas oublier','4 rappels maximum — ils s’affichent en permanence, en tête de fiche','notForget',f.notForget,false,{shell:'ed-forget',guard:'nfGuard',guardTxt:nfGuardTxt(f.notForget)})}
     ${listEditor('Confirmation diagnostique','critères pour déclencher la fiche','confirmation',f.confirmation,false,{shell:'ed-card'})}
-    <fieldset class="field"><label>Prise en charge <span class="hint">listes d'étapes + décisions conditionnelles</span></label>${wideEdit?'':`<p class="flow-prev-h">Algorithme — aperçu automatique</p>${flowBlock(f)}`}${edGrabBanner(f)}${f.blocks.map((b,bi)=>((state.edGrab&&state.edGrab.kind==='b')?edDrop('B:'+bi,bi===0?'Poser avant le bloc 1':'Poser ici'):'')+blockEditor(b,blocks)).join('')}${(state.edGrab&&state.edGrab.kind==='b')?edDrop('B:'+f.blocks.length,'Poser en fin de fiche'):''}<button type="button" class="add-line ed-door${state.edGrab?' flat':''}" id="edAddOpen">＋ Bloc · décision · minuteur…</button></fieldset>
+    <fieldset class="field"><label>Prise en charge <span class="hint">listes d'étapes + décisions conditionnelles</span></label>${wideEdit?'':(()=>{const n=(f.blocks||[]).length;if(!n)return '';
+      const ouv=(()=>{try{return !!localStorage.getItem('ac-flowprev-open');}catch(e){return false;}})();
+      return `<details class="flow-prev"${ouv?' open':''}><summary><span class="flow-prev-h">Algorithme — aperçu automatique</span><span class="fp-n">${n} bloc${n>1?'s':''}</span></summary>${flowBlock(f)}</details>`;})()}${edGrabBanner(f)}${f.blocks.map((b,bi)=>((state.edGrab&&state.edGrab.kind==='b')?edDrop('B:'+bi,bi===0?'Poser avant le bloc 1':'Poser ici'):'')+blockEditor(b,blocks)).join('')}${(state.edGrab&&state.edGrab.kind==='b')?edDrop('B:'+f.blocks.length,'Poser en fin de fiche'):''}<button type="button" class="add-line ed-door${state.edGrab?' flat':''}" id="edAddOpen">＋ Bloc · décision · minuteur…</button></fieldset>
     ${''/* UNE SECTION VIDE N'ENSEIGNE PLUS RIEN (signalé à l'usage : « lorsque la liste minuteurs
     & compteurs, et complications est vide, ça fait bizarre »). Depuis la porte unique « ＋ » de
     la v4.65.0, c'est ELLE qui présente les types disponibles, avec leur glyphe et leur phrase :
@@ -13117,7 +13217,11 @@ function renderEditor(){
       ${(f.complications||[]).map((c,i)=>cxEditorRow(c,i,f)).join('')}
 </fieldset>`:''}
     <div class="field"><div class="lab-row"><label for="f-localInfo">Contexte local <span class="hint">numéros utiles, particularités</span></label>${boldBtnHtml()}</div><textarea id="f-localInfo" rows="2" placeholder="Réanimateur de garde, pharmacie…">${esc(f.localInfo)}</textarea></div>
-    ${listEditor('Repères posologiques','bouton △ = carte ambre (dose à vérifier) · le rouge reste aux memory items · **gras** possible','posology',f.posology,false,{crit:true,shell:'ed-card'})}
+    ${''/* LE CLASSEMENT AUTOMATIQUE SE DIT (demande utilisateur, et c'est exact) : `posoRank` /
+    `posoSplit` RÉORDONNENT les repères selon le bloc courant du parcours, et ne FILTRENT jamais —
+    c'est cette garantie qui autorise un rapprochement volontairement permissif. Un auteur qui
+    l'ignore ordonne ses repères à la main et s'étonne de les voir bouger en lecture. */}
+    ${listEditor('Repères posologiques','classés automatiquement en lecture selon le bloc en cours (aucun n’est jamais masqué) · bouton △ = carte ambre (dose à vérifier) · le rouge reste aux memory items · **gras** possible','posology',f.posology,false,{crit:true,shell:'ed-card'})}
     ${listEditor('À vérifier','','verify',f.verify,false,{shell:'ed-card'})}
     ${listEditor('Diagnostics différentiels','','differentials',f.differentials,false,{shell:'ed-card'})}
     <fieldset class="field"><label>Schémas & captures <span class="hint">stockées hors ligne dans l'app</span></label><div class="gallery">${(f.images||[]).map((im,i)=>`<div class="gthumb"><img src="${im.data}" alt="" loading="lazy" decoding="async"><input type="text" class="gcap" data-imgcap="${i}" value="${esc(im.caption||'')}" placeholder="Légende…" style="width:100%;margin-top:5px;padding:6px 8px;border:1px solid var(--line);border-radius:7px"><button class="btn sm danger" data-imgdel="${i}" style="width:100%;margin-top:5px">Retirer</button></div>`).join('')}</div><button class="add-line" id="addImg" style="margin-top:10px">+ Ajouter une image / capture</button></fieldset>
@@ -13469,6 +13573,74 @@ function edSaySave(st){
    faire — et le parc, lui, protège bel et bien la saisie en attendant. */
 function edUntitled(kind){const d=(kind||edKind())==='f'?state.draft:state.pdraft;
   return !!d&&!String(d.title||'').trim();}
+
+/* ═══ ANNEAU D'ANNULATION (v4.74.2) — BORNÉ AUX GESTES STRUCTURELS ════════════════════════════
+   Le « Annuler » de l'éditeur est parti avec le bouton « Enregistrer » (K5, v4.72.0) : rien ne
+   défaisait plus une fausse manœuvre, et l'écriture étant continue, une suppression était publiée
+   avant qu'on ait le temps de la regretter.
+
+   IL EMPILE DES POINTS DE REPRISE, PAS DES COMMANDES. Deux sortes de points, et il a fallu MESURER
+   pour comprendre qu'il fallait les deux : les gestes STRUCTURELS (supprimer une étape ou un bloc,
+   déplacer, basculer un registre, ajouter par la porte « ＋ ») et les PAUSES DE FRAPPE. La première
+   version ne couvrait que les gestes structurels, au motif que les champs texte ont déjà le Cmd-Z
+   natif du navigateur — c'est vrai, mais la conséquence, elle, ne l'était pas : annuler une
+   suppression après avoir tapé trois mots RENDAIT AUSSI ces trois mots, puisqu'un instantané pris
+   avant le geste ne peut pas contenir ce qui a été écrit après. Une perte silencieuse, exactement
+   ce que ce dossier refuse. La frappe pose donc son propre point, à la PAUSE (donc une rafale = un
+   point, pas un point par caractère). Le Cmd-Z natif reste l'outil FIN à l'intérieur d'un champ ;
+   l'anneau est l'outil GROSSIER, et il ne se déclenche que hors champ de saisie.
+
+   AUCUN GESTE À RECENSER, et c'est ce qui rend l'anneau tenable : les gestes structurels se
+   terminent TOUS par un re-rendu de l'éditeur, et la frappe passe TOUTE par `edTouch` — les deux
+   points d'étranglement qui existaient déjà (leçon `persistLive`). On empile l'instantané du point
+   PRÉCÉDENT, qui est par construction l'état d'avant ce qui vient d'arriver. Chercher les cinquante
+   sites de mutation aurait produit exactement la liste à tenir à jour que ce fichier a appris à ne
+   pas écrire.
+
+   JAMAIS PERSISTÉ, JAMAIS SYNCHRO : c'est un GESTE, pas un état du brouillon — même statut que
+   `state.edGrab`. Fermer l'éditeur ou changer de fiche vide l'anneau ; le filet de plus longue
+   portée reste le point de version posé à l'ouverture (v4.72.0). Plafond 20 : au-delà, ce n'est
+   plus une annulation, c'est une restauration — et elle a déjà son outil, « Versions ». */
+const ED_UNDO_MAX=20;
+let _edUndo=[],_edPrev=null,_edUndoFor=null;
+/* Pose un point de reprise. Appelée EN TÊTE des deux `render*Edit()` (geste structurel, avant
+   `edTouch`) et à la pause de frappe : dans les deux cas `_edPrev` porte encore l'état du point
+   précédent, donc l'état d'AVANT ce qui vient d'arriver. */
+function edUndoNote(){
+  const k=edKind();
+  if(!k){_edUndo=[];_edPrev=null;_edUndoFor=null;return;}
+  const d=k==='f'?state.draft:state.pdraft;if(!d)return;
+  const snap=JSON.stringify(d);
+  if(_edUndoFor!==d.id){_edUndoFor=d.id;_edUndo=[];_edPrev=snap;edUndoPaint();return;}   // autre brouillon : on repart de zéro
+  if(_edPrev===null||_edPrev===snap){_edPrev=snap;return;}                               // rien n'a bougé
+  _edUndo.push(_edPrev);if(_edUndo.length>ED_UNDO_MAX)_edUndo.shift();
+  _edPrev=snap;edUndoPaint();}
+function edUndoPaint(){
+  const b=document.getElementById('hdrUndo');if(!b)return;
+  const on=!!edKind()&&_edUndo.length>0;
+  b.hidden=!on;
+  if(on){b.innerHTML=uiIcon('undo',17);
+    b.title='Annuler le dernier geste ('+_edUndo.length+' en mémoire) — Cmd/Ctrl-Z';}}
+function edUndoDo(){
+  const k=edKind();if(!k||!_edUndo.length)return;
+  const snap=_edUndo.pop();
+  /* Une donnée qui rentre repasse par son point d'entrée, même si elle vient de nous : règle 5.
+     Le brouillon a déjà été migré à l'ouverture, donc c'est gratuit — mais un jour où `migrate`
+     posera un défaut de plus, on ne veut pas d'un chemin qui l'ait contourné. */
+  if(k==='f')state.draft=migrate(JSON.parse(snap));
+  else state.pdraft=migrateProtocol(JSON.parse(snap));
+  state.edGrab=null;                 // un objet « en main » n'a plus de sens après un retour arrière
+  _edPrev=null;                      // le rendu qui suit ré-amorce sans empiler l'annulation elle-même
+  (k==='f'?renderEditor:renderProtocolEdit)();
+  /* ON PUBLIE PAR `edCommit`, PAS PAR `edTouch` — mesuré. `edTouch` sort quand le brouillon égale
+     son instantané d'ouverture (garde anti-réécriture, pour qu'ouvrir une fiche ne la marque pas
+     modifiée) ; or annuler jusqu'à l'état d'ouverture produit EXACTEMENT cette égalité, si bien
+     que la bibliothèque gardait la version modifiée alors que l'écran affichait l'originale.
+     L'annulation est un geste explicite : elle écrit, toujours. */
+  edCommit(k);
+  /* Snackbar en RÉPONSE À UN GESTE (troisième argument explicite, v4.55.4) : ce n'est pas une
+     nouvelle de fond, c'est l'accusé de réception du bouton qu'on vient de presser. */
+  toast('↶ Geste annulé.',2000,true);}
 async function edCommit(kind){
   kind=kind||edKind();if(!kind)return false;
   const d=edSnapshot(kind);if(!d)return false;
@@ -13500,12 +13672,14 @@ function edTouch(now){
      précédente — un état vrai une seconde plus tôt, faux maintenant. C'est la donnée périmée
      présentée comme vivante, et l'ordre des deux tests suffit à la produire. */
   if(!d)return;
+  const snap=JSON.stringify(d);
   if(edUntitled(k)){clearTimeout(_edSaveT);edSaySave('untitled');return;}
-  if(JSON.stringify(d)===draftBase)return;
+  if(snap===draftBase)return;
   clearTimeout(_edSaveT);
   if(now){edCommit(k);return;}
   edSaySave('saving');
-  _edSaveT=setTimeout(()=>edCommit(k),ED_SAVE_MS);}
+  // À LA PAUSE de frappe : un point de reprise (une rafale = un point) PUIS la publication.
+  _edSaveT=setTimeout(()=>{edUndoNote();edCommit(k);},ED_SAVE_MS);}
 async function edFlush(){const k=edKind();if(!k)return;clearTimeout(_edSaveT);await edCommit(k);}
 /* Un onglet mobile meurt sans prévenir : on écrit AVANT de disparaître. Même motif que le billet
    de reprise du partage — ce qui n'est pas écrit à cet instant-là n'existe plus. */
@@ -17530,7 +17704,30 @@ document.addEventListener('focusout',e=>{if(!_kbText(e.relatedTarget))document.b
 document.addEventListener('toggle',e=>{
   const d=e.target;
   if(d&&d.matches&&d.matches('details.crit-guide')){try{localStorage.setItem('ac-cg-folded',d.open?'':'1');}catch(_){}}
+  /* Même mécanique pour l'APERÇU D'ALGORITHME de l'éditeur étroit (v4.74.2) : `.flow-scroll` monte
+     à 75vh, si bien qu'on traversait ~1400 px de préambule avant la première étape à écrire
+     (mesuré à 820 px : le schéma commence à 812 px de haut, le premier bloc bien plus bas).
+     Replié par DÉFAUT — l'auteur vient écrire, pas relire un schéma qu'il n'a pas encore produit —
+     et son choix PERSISTE, exactement comme le guide rouge/ambre : un auteur régulier ne le replie
+     pas à chaque ouverture. Rien n'est retiré : à ≥ 1000 px, le schéma vit dans la colonne
+     collante et n'a pas de dépliant du tout. */
+  if(d&&d.matches&&d.matches('details.flow-prev')){try{localStorage.setItem('ac-flowprev-open',d.open?'1':'');}catch(_){}}
 },true);
+
+/* ===== Cmd/Ctrl-Z : l'anneau d'annulation de l'éditeur (v4.74.2) =====
+   IL NE VOLE JAMAIS LE UNDO NATIF D'UN CHAMP. Tant que le focus est dans un `input`, un
+   `textarea` ou un contenteditable, le raccourci appartient au navigateur — c'est lui qui annule
+   la frappe, et c'est très bien ainsi (l'anneau, lui, ne couvre que les gestes STRUCTURELS).
+   On n'intervient donc que hors champ de saisie, dans un éditeur, fenêtre fermée. */
+document.addEventListener('keydown',e=>{
+  if(e.key!=='z'&&e.key!=='Z')return;
+  if(!(e.metaKey||e.ctrlKey)||e.altKey||e.shiftKey)return;
+  if(!edKind())return;
+  const t=e.target;
+  if(t&&(t.matches&&t.matches('input,textarea,select,[contenteditable=""],[contenteditable="true"]')))return;
+  if(document.querySelector('.ai-modal.on'))return;
+  if(!_edUndo.length)return;
+  e.preventDefault();edUndoDo();});
 
 /* ===== Raccourci clavier vers la recherche (v4.31.0, audit externe) =====
    « / » ou Cmd/Ctrl+K focalisent la recherche de l'accueil — convention 2026 (palette ⌘K).

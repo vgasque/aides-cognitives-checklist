@@ -132,7 +132,15 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
 
 ## Avant chaque commit
 - `npm run check` — garde-fous sans dépendance : **syntaxe** des scripts inline (attrape les
-  templates mal fermés), **couleurs** (`check-colors.mjs`, cf. Conventions), **échelle
+  templates mal fermés) **ET DE LA FEUILLE DE STYLE** (v4.74.2 — commentaires jamais imbriqués et
+  tous fermés, accolades équilibrées, chaînes retirées d'abord). Ce dernier volet existe parce que
+  le contrôle ne regardait que du JavaScript, alors qu'une erreur de parse CSS est aussi grave et
+  BEAUCOUP plus silencieuse : un fermeur de commentaire en trop laisse du texte à nu, et le parseur,
+  pour se resynchroniser, **AVALE LA RÈGLE SUIVANTE**. C'est arrivé deux fois de suite sur des
+  commentaires coupés en deux, et la seconde fois **la v4.74.0 a livré un correctif mort** — la
+  règle `.hs-wrap>.hs-row:hover` était mangée depuis sa publication, `npm run check` vert de bout en
+  bout. Corollaire de méthode : après toute édition du CSS, ne pas se fier au vert de `check-colors`
+  et `check-type`, qui travaillent au motif et ne voient pas une règle disparue. Puis **couleurs** (`check-colors.mjs`, cf. Conventions), **échelle
   typographique** (`check-type.mjs`, v4.71.1 — sept paliers, exemptions nommées et motivées), et
   **fraîcheur des hashs CSP** (`csp-hashes.mjs --check`). Ce dernier existe parce que le piège s'est produit trois
   fois : on édite le script inline, on oublie de rejouer `node scripts/csp-hashes.mjs`, et la CSP
@@ -1856,6 +1864,57 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   son propre fond — le titre montait, le crayon restait, l'ombre se peignait par-dessus le bleu.
   C'est `.hs-wrap` qui répond au geste, comme c'est lui qui porte l'état ; `.hs-row` reste inscrit
   dans les listes E5 pour les rangées SANS conteneur (sections, catégories, historique).
+- **L'ANNEAU D'ANNULATION DE L'ÉDITEUR (v4.74.2, décision utilisateur)** — le « Annuler » est parti
+  avec le bouton « Enregistrer » (K5, v4.72.0) : rien ne défaisait plus une fausse manœuvre, et
+  l'écriture étant continue, une suppression était PUBLIÉE avant qu'on ait le temps de la regretter.
+  Bouton « ↶ » contre l'état d'enregistrement, plus **Cmd/Ctrl-Z HORS champ de saisie** — dans un
+  champ le raccourci reste au NAVIGATEUR, qui fait l'annulation fine mieux que nous ; l'anneau est
+  l'outil grossier.
+  **IL EMPILE DES POINTS DE REPRISE, ET IL EN FAUT DEUX SORTES — trouvé à la MESURE, pas en
+  relisant.** La première version ne couvrait que les gestes STRUCTURELS, au motif que les champs
+  ont déjà le Cmd-Z natif : vrai, mais la conséquence ne l'était pas — annuler une suppression après
+  avoir tapé trois mots RENDAIT AUSSI ces trois mots, puisqu'un instantané pris avant le geste ne
+  peut pas contenir ce qui a été écrit après. La frappe pose donc son propre point, **à la PAUSE**
+  (une rafale = un point). **ET L'ANNULATION PASSE PAR `edCommit`, JAMAIS `edTouch`** : la garde
+  anti-réécriture d'`edTouch` (celle qui évite qu'ouvrir une fiche la marque modifiée) sort la
+  première quand on annule jusqu'à l'état d'ouverture — la bibliothèque gardait alors la version
+  modifiée pendant que l'écran affichait l'originale.
+  **AUCUN GESTE À RECENSER** : les gestes structurels se terminent TOUS par un re-rendu de
+  l'éditeur, la frappe passe TOUTE par `edTouch` — les deux points d'étranglement existaient déjà
+  (leçon `persistLive`). **JAMAIS PERSISTÉ, JAMAIS SYNCHRO** : c'est un geste, pas un état du
+  brouillon — même statut que `state.edGrab`. Plafond 20 : au-delà ce n'est plus une annulation mais
+  une restauration, et elle a son outil (« Versions » + le point de version de chaque ouverture).
+- **LES PALIERS AVANT L'ENROULEMENT — LE TROU DE 430 À 441 px (v4.74.2, signalé à l'usage)** : le
+  palier de compression suivant est à 430 (`ZOOM_W_STEPS`), donc entre 430 et ~441 la rangée de
+  commandes n'a plus la place de la recette large et n'a pas encore DROIT à la recette compressée —
+  l'enroulement, qui est le dernier recours de la v4.73.1, y devenait le premier. **ON NE DÉPLACE
+  PAS LE SEUIL** (ceux essayés pour cette rangée se sont révélés faux deux fois, et un seuil juste
+  ici dépendrait de la fonte du système et de la longueur des libellés) : `fitCtrlRow` MESURE déjà,
+  il descend donc d'un palier, re-mesure, et n'enroule qu'après avoir épuisé la compression. Les
+  classes posées sont CELLES de `syncZoomWidth` — aucune recette dupliquée, donc rien qui puisse
+  diverger — et elles ne stylent que cette rangée. Témoin : six largeurs de 429 à 460 px.
+- **LA CARTE DU PARCOURS EST UNE SURFACE (v4.74.2, signalé à l'usage)** : `.ov-block` n'avait AUCUN
+  `background`, donc le fond de page, quand `.conf-block`, `.local`, `.forget-strip` et les cartes de
+  l'éditeur sont tous en `--surface`. Ce n'était pas une décision — rien ici ne la justifiait — et le
+  précédent existe en sens inverse (v4.59.0, l'Échelle « seule zone de la vue lecture à ne pas être
+  une surface, ses filets se lisant comme des restes de trait »), plus fort encore depuis que le
+  sombre est à #000. C'est la colonne d'ACTION : niveau 2.
+- **LE RELIEF DES ÉTAPES REVIENT AU REGISTRE (v4.74.2, signalé à l'usage)** : chaque étape était en
+  graisse 800 — le poids d'un titre appliqué à un paragraphe, donc plus rien ne ressortait, ce qui
+  est le reproche fait à l'inflation du rouge. **600 pour une étape ordinaire, 800 pour les seules
+  `⚠`/`△`** : la hiérarchie passe par le TYPE, ce que la doctrine dit déjà vouloir. Même geste que
+  la v4.73.0 sur les chronos. Le CORPS ne bouge pas (16,5 px, palier de l'échelle fermée).
+- **LA BASCULE GUIDÉ ↔ STATIQUE GARDE LE BLOC COURANT (v4.74.2, signalé à l'usage)** : c'était
+  `scrollTo(0,0)` systématique — et conserver `scrollY` n'aurait rien voulu dire non plus, les deux
+  vues n'ayant pas la même hauteur. La seule ancre qui EXISTE des deux côtés est le bloc courant, que
+  les deux vues marquent avec la MÊME classe `.cur` (`.ov-block.cur` / `.sv-cell`-`.sv-band`) : c'est
+  donc `keepAnchor`. Deux replis vers le haut, tous deux voulus — pas de session démarrée (rien à
+  retrouver) et bloc courant hors de l'écran (même test de visibilité qu'`ovAdvanceRender`).
+- **L'APERÇU D'ALGORITHME SE REPLIE SUR ÉCRAN ÉTROIT (v4.74.2)** : `.flow-scroll` monte à `75vh`,
+  si bien qu'on traversait ~1400 px de préambule avant la première étape à écrire (mesuré à 820 px).
+  Dépliant `details.flow-prev` REPLIÉ par défaut, compte en sous-titre, choix de l'auteur PERSISTÉ —
+  gabarit exact de `.crit-guide` (v4.31.0). À ≥ 1000 px le schéma vit dans la colonne collante et
+  n'a pas de dépliant du tout.
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.

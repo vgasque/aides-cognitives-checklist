@@ -161,5 +161,84 @@ t('le libellé garde au moins la moitié de la largeur du bandeau',
 t('rien ne sort de l’écran à 320 px', !f4.absent&&!f4.hors, JSON.stringify(f4));
 t('la croix reste une cible de 44 px', !f4.absent&&f4.croix>=44, String(f4.croix));
 
+
+/* ═══ ANNEAU D'ANNULATION (v4.74.2) — les deux sortes de points de reprise ════════════════════
+   Le geste qui remplace le « Annuler » disparu avec le bouton « Enregistrer ». Deux propriétés
+   ont été trouvées À LA MESURE et ne s'inventent pas en relisant : la frappe postérieure à un
+   geste destructeur était perdue en silence (d'où un point de reprise à la PAUSE de frappe), et
+   annuler jusqu'à l'état d'ouverture ne republiait RIEN (la garde anti-réécriture d'`edTouch`
+   sortait la première, si bien que la bibliothèque gardait la version modifiée pendant que
+   l'écran affichait l'originale). */
+console.log('=== l’anneau d’annulation ===');
+await p.setViewportSize({width:900,height:900});
+/* ON REPART D'UN ÉDITEUR NEUF : les contrôles précédents ont déjà fait des gestes structurels sur
+   ce brouillon, donc l'anneau n'y est pas vide et le bloc n'a plus qu'une étape. Un témoin qui
+   mesure des valeurs ABSOLUES dans un fixture partagé mesure le fixture, pas la propriété. */
+const g=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+  const id=state.draft.id;
+  document.getElementById('hdrBack').click(); await w(800);
+  await openEdit(id); await w(600);
+  const nb=()=>document.querySelectorAll('.blk .li').length;
+  const pub=()=>((fiches.find(f=>f.id===id)||{blocks:[]}).blocks||[]).reduce((a,b)=>a+((b.steps||[]).length),0);
+  const bouton=()=>document.getElementById('hdrUndo');
+  const etat=[];
+  etat.push({e:'ouverture',n:nb(),pile:_edUndo.length,visible:!bouton().hidden,pub:pub()});
+  // deux étapes NOMMÉES, pour pouvoir en supprimer une sans vider le bloc
+  for(const v of ['Sonde une','Sonde deux']){
+    document.querySelector('.blk [data-addstep]').click(); await w(250);
+    const ins=[...document.querySelectorAll('.blk .li input[data-sf]')];
+    const cible=ins[ins.length-1]; cible.value=v; cible.dispatchEvent(new Event('input',{bubbles:true}));
+    await w(700);}
+  const base=_edUndo.length, nBase=nb(), pubBase=pub();
+  [...document.querySelectorAll('.blk [data-rmstep]')].pop().click(); await w(300);
+  etat.push({e:'suppression',n:nb(),pile:_edUndo.length,visible:!bouton().hidden,pub:pub()});
+  const inp=document.querySelectorAll('.blk .li input[data-sf]')[0];
+  const txt0=inp.value;
+  inp.value='SONDE FRAPPE'; inp.dispatchEvent(new Event('input',{bubbles:true})); await w(900);
+  etat.push({e:'frappe',n:nb(),pile:_edUndo.length,txt:inp.value,pub:pub()});
+  bouton().click(); await w(800);
+  etat.push({e:'undo frappe',n:nb(),pile:_edUndo.length,txt:document.querySelectorAll('.blk .li input[data-sf]')[0].value,txt0,pub:pub()});
+  bouton().click(); await w(800);
+  etat.push({e:'undo suppression',n:nb(),pile:_edUndo.length,visible:!bouton().hidden,pub:pub()});
+  return {etat,base,nBase,pubBase};});
+const E=g.etat;
+t('éditeur fraîchement ouvert : aucun bouton d’annulation',
+  !E[0].visible&&E[0].pile===0, JSON.stringify(E[0]));
+t('un geste STRUCTUREL pose UN point et montre le bouton',
+  E[1].pile===g.base+1&&E[1].visible&&E[1].n===g.nBase-1, JSON.stringify(E[1])+' base='+g.base);
+t('une rafale de frappe pose UN point, pas un par caractère',
+  E[2].pile===g.base+2, JSON.stringify(E[2])+' base='+g.base);
+t('annuler rend le TEXTE d’avant la frappe', E[3].txt===E[3].txt0, `« ${E[3].txt} » ≠ « ${E[3].txt0} »`);
+t('… sans toucher à la structure', E[3].n===E[2].n, `${E[2].n} → ${E[3].n}`);
+t('annuler encore rend l’étape supprimée', E[4].n===g.nBase, `${E[4].n} vs ${g.nBase}`);
+t('… ET LA BIBLIOTHÈQUE SUIT (garde anti-réécriture contournée)', E[4].pub===g.pubBase,
+  `publié ${E[4].pub}, attendu ${g.pubBase}`);
+t('on redescend jusqu’au point de départ', E[4].pile===g.base, `${E[4].pile} vs ${g.base}`);
+
+/* Cmd/Ctrl-Z NE VOLE JAMAIS LE UNDO NATIF D'UN CHAMP : dans un `input`, le raccourci appartient
+   au navigateur. Le témoin mesure la PROPRIÉTÉ (l'anneau n'a pas bougé), pas l'intention. */
+const g2=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+  document.querySelector('.blk [data-rmstep]').click(); await w(250);
+  const av=_edUndo.length;
+  const inp=document.querySelector('.blk .li input[data-sf]'); inp.focus();
+  inp.dispatchEvent(new KeyboardEvent('keydown',{key:'z',metaKey:true,bubbles:true,cancelable:true}));
+  await w(300);
+  const dansChamp=_edUndo.length;
+  document.body.focus();
+  document.body.dispatchEvent(new KeyboardEvent('keydown',{key:'z',ctrlKey:true,bubbles:true,cancelable:true}));
+  await w(700);
+  return {av,dansChamp,horsChamp:_edUndo.length};});
+t('Cmd-Z DANS un champ ne touche pas à l’anneau', g2.dansChamp===g2.av, JSON.stringify(g2));
+t('Ctrl-Z hors champ annule bien', g2.horsChamp===g2.av-1, JSON.stringify(g2));
+
+/* Sortir de l'éditeur vide l'anneau : c'est un GESTE, pas un état du brouillon (même statut que
+   `state.edGrab`). Le filet de plus longue portée reste le point de version de v4.72.0. */
+const g3=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+  document.querySelector('.blk [data-rmstep]').click(); await w(250);
+  const av=_edUndo.length;
+  document.getElementById('hdrBack').click(); await w(800);
+  return {av,apres:_edUndo.length,cache:document.getElementById('hdrUndo').hidden};});
+t('quitter l’éditeur vide l’anneau', g3.av>0&&g3.apres===0&&g3.cache, JSON.stringify(g3));
+
 console.log(`\n${ok}/${ok+ko} OK${ko?` — ${ko} ÉCHEC(S)`:''}`);
 await br.close();srv.close();process.exit(ko?1:0);

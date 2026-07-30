@@ -1,4 +1,37 @@
-# Journal des modifications — archive (versions 3.0.0 à 4.59.0)
+# Journal des modifications — archive (versions 3.0.0 à 4.60.0)
+
+## [4.60.0] — 2026-07-29
+### Mode moniteur — le téléphone posé devient un afficheur
+
+Phase 4 du chantier d'audit (D3). Sur un chariot, sur le tableau de bord d'une ambulance, ou sur
+le second téléphone de l'invité, **personne ne tient l'appareil**. Le mode moniteur en fait un
+écran d'état lisible **à deux mètres** : chrono de session, prochain minuteur (nom + temps en
+très grand), dernier repère horodaté. C'est l'ECAM au sens propre — un écran qu'on lit sans le
+toucher.
+
+**Aucun contrôle, et c'est la propriété qui compte.** Un tap n'importe où revient à la fiche :
+une surface sans commande ne peut pas être actionnée par mégarde, ce qu'on veut précisément d'un
+appareil posé au milieu d'un soin.
+
+- Le minuteur montré est choisi par `monPick` (pure, testée) : un **échu l'emporte toujours**
+  (annonciateur ECAM — l'écart passe avant le nominal), sinon le plus proche de son échéance
+  parmi ceux qui tournent.
+- Registres inchangés : un échu s'y affiche en ambre **et avec le mot « échu »**, jamais la
+  couleur seule.
+- Le dernier repère passe par `tkLabels`, la même source que le compte rendu : aucune seconde
+  vérité, et un repère sans étiquette retombe sur « Repère n » plutôt que sur un mot inventé.
+- Coquille du mode lecteur (z-index 92, sous le flash d'alarme), armement du retour système à
+  l'ouverture — toute surface plein écran doit se fermer au geste retour d'Android.
+- Rafraîchi par le tick existant : **aucune horloge en plus**.
+- Entrée par le menu ⋯ des deux rôles, groupe « conduite en cours », visible seulement quand la
+  session est démarrée — jamais dans le chrome de crise, qui n'a que 2,1 px de marge à 320 px.
+
+Piège de test rencontré : `lastStart` est un **horodatage**, pas un délai — posé à 0 sur un
+minuteur qui tourne, il fait croire à `now` millisecondes écoulées, et le test mesure alors
+l'ordre de la fiche au lieu du tri.
+
+Vérifié : 785 tests × 2 moteurs (+5), a11y 301/301, doctrine 112/112, lecteur 13/13, exercice
+20/20. Rien à rejouer côté serveur.
 
 ## [4.59.0] — 2026-07-29
 ### Grand écran : le cockpit trois zones — orientation | action | état
