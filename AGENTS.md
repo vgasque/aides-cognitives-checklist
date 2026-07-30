@@ -172,6 +172,13 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   de vérité = le monofichier) — puis committer la régénération. `npm run design:check` échoue si
   `design/ds/` a dérivé du code (le CI le rejoue ; `release.sh` régénère automatiquement). Pousser
   le résultat vers le projet Claude Design distant reste un geste explicite (skill `/design-sync`).
+  **⚠ PIÈGE VÉCU (v4.74.1) — `npm run design:check` PORTE `--strict`, ET `--strict` FAIT
+  `git checkout -- design/ds`.** Il restaure donc les fichiers GÉNÉRÉS pour ne pas polluer l'espace
+  de travail du CI ; joué APRÈS un `design:build` local et AVANT le `git add`, il efface la
+  régénération qu'il vient lui-même de réclamer — et le commit part sans elle, le CI échoue sur
+  exactement le message qu'on croyait avoir traité. L'ordre est donc : `design:build` → `git add
+  design/ds` → (facultatif) `design:check`. **Ne jamais intercaler `design:check` entre les deux**,
+  et vérifier au `git status` que les fiches sont bien STAGÉES avant de committer.
 - `npm run audit` — **audit transverse (v4.23.0 ; SOCLE COMMUN + MOTEUR CHOISISSABLE v4.45.0)**.
   Les harnais partagent `scripts/harness.mjs` (serveur statique, table MIME, choix du
   moteur) : ils recopiaient le même bloc, et la DIVERGENCE avait déjà commencé —

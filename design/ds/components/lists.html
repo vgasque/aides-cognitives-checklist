@@ -1300,7 +1300,10 @@
   .ed-ident .id-c{flex:none;font-family:var(--mono);font-size:11px;color:var(--tag-ink);background:var(--tag-bg);border-radius:6px;padding:2px 7px}
   .ed-ident .id-a{flex:none;font-size:13.5px;font-weight:700;color:var(--link)}
   .ed-ident[open]{padding:0 14px 8px}
-  .ed-ident[open]>summary{margin:0 -14px;border-bottom:1px solid var(--line)}
+  /* Le premier champ ne se colle pas au filet du sommaire (signalé à l'usage : « titre de la
+     situation très collé à Nouvelle fiche ») — le sommaire est un EN-TÊTE de carte, pas la
+     première ligne du formulaire. */
+  .ed-ident[open]>summary{margin:0 -14px 13px;border-bottom:1px solid var(--line)}
   /* Les rangées de la colonne STRUCTURE : désaturées comme le rail de lecture — elle oriente,
      la colonne du centre agit. Cible 44 px (c'est une navigation). */
   .eds-row{display:flex;align-items:center;gap:9px;width:100%;min-height:44px;text-align:left;
@@ -2104,6 +2107,16 @@
   .ed-forget .add-line{border-color:var(--critical-line);color:var(--critical)}
   .ed-forget .add-line:hover{background:var(--surface);border-color:var(--critical-bd)}
   .ed-forget .nf-guard{margin:8px 0 0;color:var(--critical)}
+  /* K1, LE MEMBRE QUI MANQUAIT (signalé à l'usage : « confirmation diagnostique ne devrait-elle
+     pas avoir sa boîte, comme les blocs et ne pas oublier ? — pareil pour repères posologiques,
+     à vérifier, diagnostics différentiels »). La doctrine de la v4.64.0 est « on édite dans la
+     grammaire de LECTURE » : en lecture, chacune de ces listes est une `<section class="block">`
+     — surface, filet, rayon. Trois d'entre elles avaient reçu leur coquille (le chapeau son cadre
+     rouge, les blocs leur carte) et les autres étaient restées à nu sur le fond de page : la
+     règle n'était donc appliquée qu'à moitié, et une moitié de grammaire n'est pas une grammaire.
+     Coquille NEUTRE, comme le `.block` de lecture — la couleur reste aux registres (rouge du
+     chapeau, ambre d'une décision) ; une carte de plus qui se teinterait les affaiblirait tous. */
+  .ed-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-md);padding:12px 13px;margin-bottom:16px}
   /* Une ÉTAPE : la case inerte à gauche, comme en lecture — le champ prend la place du texte. */
   /* Les étapes d'un BLOC vivent hors de `.list-edit` : leur rangée n'avait donc aucune règle de
      flex — les trois objets (case, champ, outils) s'empilaient dès qu'on a ajouté la case. */
@@ -2130,12 +2143,39 @@
   .ep-ic{flex:none;width:30px;height:30px;display:grid;place-items:center;border-radius:8px;background:var(--surface-2);color:var(--ink);font-size:15.5px}
 
   /* La porte elle-même : pointillé (grammaire « créer »), pleine largeur, ≥ 44 px. */
-  .ed-door{min-height:48px;font-size:13.5px}
-  .ed-grab{position:sticky;top:calc(var(--hdr-h,64px) + 6px);z-index:6;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
-    background:var(--primary-soft);border:1px solid var(--primary);border-radius:var(--radius-md);padding:10px 12px;margin:0 0 12px}
-  .ed-grab .eg-l{flex:1;min-width:0;font-size:13.5px;color:var(--primary-dk)}
-  .ed-grab .eg-h{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--primary-dk);opacity:.85}
-  .ed-grab .eg-x{flex:none;min-width:44px;min-height:44px;border:0;background:none;color:var(--primary-dk);font-size:16.5px;border-radius:8px;cursor:pointer}
+  /* LA PORTE RESTE À PORTÉE, ET ELLE NE DEVIENT PAS UNE ZONE FIXE (signalé à l'usage : « le
+     bouton + est peu visible et il faut beaucoup descendre — et s'il était flottant ? »).
+     La question posée était la bonne : SPEC §5 dit « une seule zone fixe, et en HAUT », et pour
+     les ÉDITEURS elle dit en propre « AUCUN pied d'éditeur » — un bouton `fixed` en bas de
+     l'écran est exactement ce que cette ligne interdit, clavier mobile compris. La réponse est
+     donc `sticky`, pas `fixed` : la porte reste le DERNIER ENFANT de son fieldset, elle se colle
+     au bas de l'écran TANT QU'ON EST DANS « Prise en charge » et se décroche d'elle-même à la
+     fin de la section — le bornage est natif, comme celui des bandes-questions du mode statique
+     et du fil d'ancêtres. Elle ne prend AUCUNE hauteur de plus (elle était déjà dans le flux),
+     rien ne se décale, et aucune couche fixe ne s'ajoute au chrome.
+     VISIBILITÉ : le pointillé reste (grammaire « créer », inchangée), mais il lui fallait un fond
+     PLEIN et une élévation — collée, elle passe au-dessus du contenu, et un bouton transparent
+     s'y serait lu par-dessus le texte d'un bloc. */
+  .ed-door{min-height:48px;font-size:13.5px;position:sticky;bottom:calc(10px + env(safe-area-inset-bottom));z-index:6;
+    background:var(--surface);box-shadow:var(--shadow);margin-top:10px}
+  /* PENDANT UN DÉPLACEMENT, ELLE REDESCEND DANS LE FLUX : collée, elle masquerait les interstices
+     de dépôt du bas de l'écran — et « créer » n'a rien à faire sous le doigt de quelqu'un qui
+     cherche où POSER. Mesuré : sans cette exception, le dernier « Poser ici » passe dessous. */
+  .ed-door.flat{position:static;box-shadow:none}
+  /* LE BANDEAU EST UNE PILE, PAS UNE RANGÉE (signalé à l'usage, capture à l'appui : sur iPhone
+     le nom de l'objet pris tombait à UN MOT PAR LIGNE, sur six lignes, à côté d'une consigne
+     intacte). C'était le troisième cas du même défaut de rangée flex : « TOUCHEZ UNE
+     DESTINATION » (majuscules + interlettrage) et le ✕ de 44 px sont INCOMPRESSIBLES, et le seul
+     objet qui pouvait céder — le libellé, seul `min-width:0` de la rangée — cédait donc jusqu'à
+     la largeur d'un mot. Remède déjà écrit deux fois dans ce fichier (croix du panneau minuteurs
+     v4.55.3, ligne d'état v4.56.3) : on EMPILE, et le ✕ est ANCRÉ en haut à droite avec sa place
+     réservée par un rembourrage — jamais un objet de rangée qui dispute la largeur au texte.
+     Ordre : la CONSIGNE d'abord (c'est l'impératif du moment), le nom de l'objet ensuite. */
+  .ed-grab{position:sticky;top:calc(var(--hdr-h,64px) + 6px);z-index:6;display:flex;flex-direction:column;align-items:stretch;gap:3px;
+    background:var(--primary-soft);border:1px solid var(--primary);border-radius:var(--radius-md);padding:9px 52px 10px 12px;margin:0 0 12px}
+  .ed-grab .eg-l{order:1;min-width:0;font-size:13.5px;color:var(--primary-dk);overflow-wrap:break-word}
+  .ed-grab .eg-h{order:0;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--primary-dk);opacity:.85}
+  .ed-grab .eg-x{position:absolute;top:2px;right:2px;min-width:44px;min-height:44px;border:0;background:none;color:var(--primary-dk);font-size:16.5px;border-radius:8px;cursor:pointer}
   .ed-grab .eg-x:hover{background:var(--surface)}
   /* L'OBJET PRIS, MARQUÉ SUR PLACE : anneau primaire + pastille « ⠿ en déplacement » en tête, la
      COULEUR N'EST DONC JAMAIS SEULE (règle 8). Il reste PLEINEMENT LISIBLE — on ne l'estompe pas :
@@ -2216,7 +2256,16 @@
   .li-box{flex:none;width:26px;height:26px;border-radius:7px;border:2px solid var(--line-strong);display:grid;place-items:center;color:var(--line-strong);font-size:13.5px}
   .li.li-crit .li-box{border-color:var(--critical-bd);color:var(--critical)}
   .li.li-vigil .li-box{border-color:var(--verify-bd);color:var(--verify)}
+  /* LA POIGNÉE DU BLOC VIT EN TÊTE, À DROITE DU TITRE (signalé à l'usage : « le bouton ⠿ des
+     blocs est probablement mal placé — ne devrait-il pas être en haut à droite ? »). Elle était
+     en pied, au CONTACT de « Supprimer le bloc » : c'est précisément ce que la v4.68.0 avait
+     corrigé pour les étapes (« un geste destructeur ne se met jamais au contact d'un autre
+     bouton, sinon le pouce corrige et supprime du même geste ») — la règle n'avait pas été
+     appliquée à l'échelon du bloc. Elle rejoint donc l'anatomie déjà retenue pour l'étape :
+     poignée à DROITE de la ligne qu'elle déplace, visible au repos, en encre douce. */
   .blk-top{display:flex;align-items:center;gap:8px;margin-bottom:11px}
+  .blk-top .grab{flex:none;border-color:transparent;background:none;color:var(--soft);width:34px;height:34px;font-size:15.5px}
+  .blk-top .grab:hover{background:var(--surface-2);color:var(--ink)}
   .blk-type{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:3px 8px;border-radius:6px}
   .blk-type.steps{background:var(--surface-3);color:var(--ink)}.blk-type.decision{background:var(--verify-soft);color:var(--verify)}
   /* P3-3 (audit design v4.56) : « Cycle »/« Chrono » sont des ÉTIQUETTES DE TYPE, pas un
@@ -3322,8 +3371,22 @@
      TOUTES les rangées (compteurs alignés) : crayon ✎ (admin), cadenas non interactif (lecture
      seule), vide sinon. Le crayon est un bouton FRÈRE de la rangée (jamais de bouton imbriqué
      dans un bouton — ARIA APG), pleine hauteur (align-self:stretch -> cible ~34×48px). */
-  .hs-wrap{display:flex;align-items:center;gap:4px}
+  .hs-wrap{display:flex;align-items:center;gap:4px;border-radius:8px}
   .hs-wrap .hs-row{flex:1;min-width:0}
+  /* UNE RANGÉE, UN SEUL SURVOL (signalé à l'usage : « l'ombre des boutons de bibliothèque bugue
+     en desktop — maintenant on a 2 boutons au même fond, et en sélectionner un casse
+     l'affichage »). Depuis que l'aplat de sélection vit sur le CONTENEUR, la micro-réponse E5 du
+     bouton-titre (lévitation d'1 px + ombre au survol) le décollait de son propre fond : le
+     titre montait, le crayon restait, et l'ombre se peignait par-dessus le bleu — deux objets là
+     où il n'y a qu'une bibliothèque. C'est le conteneur qui répond au geste, comme c'est lui qui
+     porte l'état ; le bouton-titre et son crayon n'ont plus d'état de survol propre. */
+     La micro-réponse E5 est donc portée par `.hs-wrap` (inscrit dans la liste nominative du bloc
+     « E5 » plus bas, d'où `.hs-row` reste inscrit pour les rangées SANS conteneur : sections,
+     catégories, historique) et neutralisée sur le bouton-titre — spécificité (0,3,0) contre
+     (0,2,0), donc l'ordre de déclaration ne décide de rien (5ᵉ piège de cascade du projet). */
+  .hs-wrap>.hs-row:hover{background:transparent;transform:none;box-shadow:none}
+  .hs-wrap>.hs-row:active{transform:none}
+  .hs-wrap:hover{background:var(--surface-2)}
   /* LA SÉLECTION VA JUSQU'AU BORD DROIT (demande utilisateur) — sous le bouton « modifier », le
      cadenas ou l'écart, qui appartiennent à la même rangée. Une bibliothèque est UNE ligne : que
      l'aplat s'arrête avant son propre bouton d'édition la coupait en deux, et laissait croire que
@@ -3547,35 +3610,15 @@
       position:sticky;top:calc(var(--stick-top,64px) + 8px);height:calc(100vh / var(--zf,1) - var(--stick-top,64px) - 20px);
       overflow-y:auto;border-right:1px solid var(--line);padding:14px 16px 16px 0}
   }
-  /* Aperçu en direct de l'éditeur (colonne droite >= 1000px) : mini-rendu du brouillon. */
+  /* Colonne droite de l'éditeur (>= 1000px). Côté FICHE elle porte l'algorithme (cf.
+     editPreviewHtml) ; côté PROTOCOLE, le mini-rendu markdown du brouillon.
+     PURGÉ ici (règle 14) : toute la MAQUETTE MINIATURE de la fiche — .ep-band, .ep-ttl, .ep-tag,
+     .ep-body, .ep-forget, .ep-fk, .ep-more, .ep-step, .ep-box, .ep-g, .ep-t, .ep-r, .ep-cx.
+     Elle rejouait en petit ce que la colonne du milieu montre en grand depuis K1 (v4.64.0) ; la
+     garder aurait laissé une seconde grammaire à tenir à jour pour zéro information nouvelle,
+     exactement la dette que la v4.31.1 a payée au prix fort. */
   .ep-h{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 8px}
   .ep-card{border:1px solid var(--line);border-radius:var(--radius);background:var(--bg);overflow:hidden;box-shadow:var(--shadow)}
-  /* v4.27.1 : la miniature suit la grammaire RÉELLE de la lecture — bandeau BLANC (v4.23.0 :
-     jamais d'aplat rouge permanent), étapes « normal = LIGNE, signalé = BOÎTE » sans numéro,
-     case à GAUCHE, glyphe ⚠/△ en tête, pilule de réponse « :: ». Une miniature qui montre
-     l'ANCIENNE grammaire apprend le mauvais rendu à l'auteur. */
-  .ep-band{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--surface);border-bottom:1px solid var(--line)}
-  .ep-ttl{flex:1;min-width:0;font-size:13.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  /* La miniature n'a PAS de barre d'application : sa pilule tient donc lieu de `#hdrCrisis`,
-     et porte le même mot que lui (« Crise », v4.70.1) — pas celui que le bandeau réel a cessé
-     d'afficher. Un seul libellé dans tout le fichier. */
-  .ep-tag{flex:none;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--critical)}
-  .ep-body{padding:10px 12px 12px;display:flex;flex-direction:column}
-  .ep-forget{border:1px solid var(--critical);border-left:4px solid var(--critical);background:var(--critical-soft);border-radius:7px;padding:7px 10px;font-size:11px;line-height:1.4;margin-bottom:6px}
-  .ep-fk{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--critical);margin-bottom:2px}
-  .ep-more{color:var(--ink-soft)}
-  .ep-step{display:flex;align-items:center;gap:8px;padding:8px 2px;font-size:12px;font-weight:600;border-top:1px solid var(--line)}
-  .ep-step:first-of-type{border-top:0}
-  .ep-step.crit,.ep-step.vig{border:0;border-radius:7px;padding:8px 10px;margin:3px 0;font-weight:800}
-  .ep-step.crit{background:var(--critical-soft);color:var(--critical);box-shadow:inset 3px 0 0 var(--critical-bd)}
-  .ep-step.vig{background:var(--verify-soft);color:var(--verify);box-shadow:inset 3px 0 0 var(--verify-bd)}
-  .ep-step.vig .ep-box{border-color:var(--verify)}
-  .ep-g{flex:none;font-size:11px}
-  .ep-t{flex:1;min-width:0}
-  .ep-r{flex:none;font-family:var(--mono);font-size:11px;font-weight:700;color:var(--link);background:var(--primary-soft);border-radius:6px;padding:1px 6px;max-width:40%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .ep-box{width:15px;height:15px;border:1.5px solid var(--line-strong);border-radius:4px;flex:none}
-  .ep-step.crit .ep-box{border-color:var(--critical)}
-  .ep-cx{margin-top:8px;align-self:flex-start;font-size:11px;font-weight:800;color:var(--critical);border:1.5px solid var(--critical-bd);border-radius:8px;padding:4px 10px;background:var(--surface)}
   .ep-empty{font-size:12px;color:var(--ink-soft);text-align:center;padding:10px 0}
   .ep-card.ep-md{background:var(--surface);padding:12px 14px;font-size:12px}
   .ep-pttl{font-size:13.5px;font-weight:800;margin-bottom:8px}
@@ -3879,14 +3922,14 @@
      dialogue « Terminer la session ? » et l'index des complications, qui s'ouvrent PENDANT un
      soin. La liste est donc nominative — sidebar d'accueil, palette d'ajout, volet de relecture,
      rangées de document et de sélecteur, versions, porte « + » de l'éditeur. */
-  .dir-row,.qa-tile,.hs-row,.ep-row,.rev-row,.att-row,.vers-row,.ed-door{transition:border-color .12s,background-color .15s,transform .12s cubic-bezier(.2,0,0,1),box-shadow .15s}
+  .dir-row,.qa-tile,.hs-row,.hs-wrap,.ep-row,.rev-row,.att-row,.vers-row,.ed-door{transition:border-color .12s,background-color .15s,transform .12s cubic-bezier(.2,0,0,1),box-shadow .15s}
   @media (hover:hover) and (pointer:fine){
-    :is(.qa-tile,.dir-row,.hs-row,.ep-row,.rev-row,.att-row,.vers-row,.ed-door):hover{transform:translateY(-1px);box-shadow:var(--shadow)}
+    :is(.qa-tile,.dir-row,.hs-row,.hs-wrap,.ep-row,.rev-row,.att-row,.vers-row,.ed-door):hover{transform:translateY(-1px);box-shadow:var(--shadow)}
   }
-  :is(.qa-tile,.dir-row,.hs-row,.ep-row,.rev-row,.att-row,.vers-row,.ed-door):active{transform:scale(.99)}
+  :is(.qa-tile,.dir-row,.hs-row,.hs-wrap,.ep-row,.rev-row,.att-row,.vers-row,.ed-door):active{transform:scale(.99)}
   @media (prefers-reduced-motion:reduce){
-    .dir-row,.qa-tile,.hs-row,.ep-row,.rev-row,.att-row,.vers-row,.ed-door{transition:border-color .12s,background-color .15s}
-    :is(.qa-tile,.dir-row,.hs-row,.ep-row,.rev-row,.att-row,.vers-row,.ed-door):is(:hover,:active){transform:none}
+    .dir-row,.qa-tile,.hs-row,.hs-wrap,.ep-row,.rev-row,.att-row,.vers-row,.ed-door{transition:border-color .12s,background-color .15s}
+    :is(.qa-tile,.dir-row,.hs-row,.hs-wrap,.ep-row,.rev-row,.att-row,.vers-row,.ed-door):is(:hover,:active){transform:none}
   }
   @media (prefers-reduced-motion:reduce){*{transition:none!important}.tmcard.flash{animation:none}#crisisBand{animation:none}header.bar.titled.ttl-on #brandTitle{animation:none}.sess-dot::after{animation:none;opacity:0}.ai-modal.on,.ai-modal.on:not(.pdf-modal) .ai-card,.more-menu:not([hidden]),.sys-banner:not([hidden]){animation:none}}
   /* ===== ÉCRANS TACTILES : 16px sur TOUS les champs de saisie (source de vérité UNIQUE) =====
