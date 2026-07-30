@@ -2365,6 +2365,33 @@
      ligne, mais `.list-edit .li` n'avait pas cette règle — la marque restait donc DANS
      la rangée et volait la largeur au champ. On enroule ; la marque reprend sa pleine ligne. */
   .list-edit .li.grabbed{flex-wrap:wrap}
+  /* ═══ CE QUI EST INERTE PENDANT UN DÉPLACEMENT DOIT EN AVOIR L'AIR (v4.79.0, demande utilisateur :
+     « grise les boutons supprimer et B en mode déplacement pour qu'on comprenne qu'ils ne sont pas
+     utilisables ; n'oublie pas de les dégriser en sortant ») ══════════════════════════════════════
+     Depuis la v4.77.0 ils sont bel et bien inertes — l'attribut natif `disabled` — mais nos boutons
+     portent leurs propres `background` et `color`, si bien que le grisé par DÉFAUT du navigateur
+     n'apparaissait nulle part : un ✕ rouge vif et un B contrasté qui ne répondent plus, c'est-à-dire
+     la pire configuration (on croit à une panne, pas à un mode).
+     MÊME APPARENCE QUE LE SCRIBE, au trait près (`body.share-scribe`) : encre douce, filet neutre,
+     fond `--surface-2`, ombre retirée, `cursor:not-allowed`. Une seule grammaire de « fermé » dans
+     tout le fichier — en inventer une seconde ici obligerait à les tenir accordées.
+     LE DÉGRISAGE EST STRUCTUREL, PAS UN GESTE À NE PAS OUBLIER : la règle porte sur `:disabled`, et
+     l'attribut n'est posé que par le rendu où `state.edGrab` existe. Reposer l'objet re-rend sans
+     lui, donc l'état visuel s'en va avec l'attribut — il n'y a rien à défaire à la main, et donc
+     rien à oublier (c'est ce que la liste de placards de la v4.78.0 a appris au prix d'un bug).
+     PAS D'`opacity` : la doctrine du projet l'écarte pour du texte (un texte à demi-opacité tombe
+     sous AA), et WCAG 1.4.3 exempte explicitement les composants INACTIFS du seuil de contraste —
+     donc on baisse le contraste par l'ENCRE, franchement, plutôt que par un voile qui affadirait
+     aussi les registres rouge et ambre des rangées signalées.
+     SPÉCIFICITÉ VÉRIFIÉE, PAS SUPPOSÉE (leçon des douze pièges de cascade) : les variantes `.btn` et
+     `.mini` montent à (0,3,2) pour passer devant `.blk .li .mini` (0,3,0) et `.crit-tgl.on`
+     (0,2,0) ; mesuré dans les deux moteurs. */
+  :is(body.view-edit,body.view-pedit) main :is(button,input,select,textarea):disabled,
+  :is(body.view-edit,body.view-pedit) main .btn:disabled,
+  :is(body.view-edit,body.view-pedit) main .mini:disabled,
+  :is(body.view-edit,body.view-pedit) main .add-line:disabled{
+    color:var(--ink-soft);border-color:var(--line);background:var(--surface-2);
+    box-shadow:none;cursor:not-allowed;font-weight:600}
   /* MICRO-ANIMATIONS DU PASSAGE EN MODE DÉPLACEMENT (lot 2, v4.75.0 — proposition utilisateur :
      « je trouve le passage entre les deux modes brutal ; fondre l'apparition des blocs poser ici,
      et peut-être faire se balancer un tout petit peu le bloc sélectionné »). Les deux idées sont

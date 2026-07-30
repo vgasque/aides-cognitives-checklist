@@ -752,5 +752,46 @@ t('un MINUTEUR créé alors qu’un compteur existe amène au MINUTEUR',
 t('les champs numériques ont le gabarit des champs du projet',
   W.champ.rembourrage&&W.champ.rayon&&W.champ.largeurFilet===1&&W.champ.fond, JSON.stringify(W.champ));
 
+
+console.log('=== v4.79.0 : ce qui est inerte pendant un déplacement en a l’air ===');
+const G=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+  if(state.previewFrom){document.getElementById('hdrBack').click();await w(800);}
+  if(state.view!=='edit'){const f=fiches.find(x=>!x.deletedAt);await openEdit(f.id);await w(700);}
+  const d=state.draft;
+  d.confirmation=['Un critère','Deux'];renderEditor();await w(450);
+  /* On mesure la RÈGLE, pas l'intention : encre, fond et curseur des deux boutons que l'utilisateur
+     nomme (le ✕ d'une étape — le seul qui soit ROUGE au repos, donc celui où la spécificité pouvait
+     échouer — et le B d'une ligne de liste). Et l'on vérifie le RETOUR à l'identique : le dégrisage
+     est structurel (`:disabled` disparaît avec l'attribut), il ne doit rien laisser derrière. */
+  const cs=e=>e?{c:getComputedStyle(e).color,bg:getComputedStyle(e).backgroundColor,
+    cur:getComputedStyle(e).cursor,dis:!!e.disabled}:null;
+  const lire=()=>{const b=document.querySelector('.blk:not(.blk-dec)');
+    return {stepDel:cs(b.querySelector('.li-tools .del')),
+      bold:cs(document.querySelector('.list-edit .bld')),
+      poignee:cs(document.querySelector('.blk-top [data-grab]'))};};
+  const inp=document.querySelector('.blk:not(.blk-dec) .li input[data-sf]');inp.focus();await w(200);
+  const avant=lire();
+  document.querySelector('.blk-top [data-grab]').click();await w(500);
+  const pendant=lire();
+  const surface2=getComputedStyle(document.documentElement).getPropertyValue('--surface-2').trim();
+  const bidon=document.createElement('span');bidon.style.background=surface2;document.body.appendChild(bidon);
+  const attenduBg=getComputedStyle(bidon).backgroundColor;bidon.remove();
+  document.getElementById('edGrabX').click();await w(600);
+  const apres=lire();
+  return {avant,pendant,apres,attenduBg};});
+
+t('le ✕ d’une étape est ROUGE au repos (le contrôle rencontre son cas)',
+  G.avant.stepDel.c!==G.pendant.stepDel.c, `${G.avant.stepDel.c} → ${G.pendant.stepDel.c}`);
+t('pendant un déplacement, le ✕ et le B sont grisés',
+  G.pendant.stepDel.bg===G.attenduBg&&G.pendant.bold.bg===G.attenduBg, JSON.stringify(G.pendant));
+t('… avec le curseur « interdit »',
+  G.pendant.stepDel.cur==='not-allowed'&&G.pendant.bold.cur==='not-allowed', JSON.stringify(G.pendant));
+t('… et ils sont réellement inertes, pas seulement grisés',
+  G.pendant.stepDel.dis&&G.pendant.bold.dis, JSON.stringify(G.pendant));
+t('la POIGNÉE, elle, reste active', !G.pendant.poignee.dis&&G.pendant.poignee.cur!=='not-allowed',
+  JSON.stringify(G.pendant.poignee));
+t('en sortant du mode, tout est DÉGRISÉ à l’identique',
+  JSON.stringify(G.apres)===JSON.stringify(G.avant), JSON.stringify(G.apres));
+
 console.log(`\n${ok}/${ok+ko} OK${ko?` — ${ko} ÉCHEC(S)`:''}`);
 await br.close();srv.close();process.exit(ko?1:0);

@@ -1,5 +1,52 @@
 # Journal des modifications
 
+## [4.79.0] — 2026-07-30
+### Ce qui est inerte pendant un déplacement en a enfin l'air
+
+Demande utilisateur : *« grise les boutons supprimer et B en mode déplacement pour qu'on comprenne
+qu'ils ne sont pas utilisables ; n'oublie pas de les dégriser lorsqu'on sort du mode »*.
+
+#### Le diagnostic : inertes, mais d'aspect actif
+Ils étaient bel et bien inertes depuis la **v4.77.0**, qui a rendu le
+déplacement **modal** au moyen de l'attribut natif `disabled`. Mais nos boutons portent leurs propres
+`background` et `color` : le grisé par défaut du navigateur n'apparaissait donc **nulle part**.
+Mesuré avant correction : `disabled:true`, et pourtant `color:rgb(163,46,31)` — le ✕ d'une étape
+restait rouge vif — avec `cursor:pointer`.
+
+C'est la pire configuration possible : un contrôle qui ne répond plus **sans dire qu'il est fermé** se
+lit comme une panne, pas comme un mode. La v4.77.0 avait choisi `disabled` justement parce qu'il donne
+« le grisé, la sortie du parcours de tabulation et le blocage du geste » — deux des trois seulement
+étaient vrais, et personne ne l'avait mesuré.
+
+#### L'apparence vient du scribe, au trait près
+Encre douce, filet neutre, fond `--surface-2`, ombre retirée, `cursor:not-allowed` : exactement
+`body.share-scribe`. **Une seule grammaire de « fermé » dans tout le fichier** — en inventer une
+seconde ici obligerait à les tenir accordées, et c'est le genre de dette que ce dossier a déjà payée
+plusieurs fois.
+
+**Pas d'`opacity`**, pour deux raisons qui se cumulent : la doctrine du projet l'écarte pour du texte
+(un texte à demi-opacité tombe sous AA), et surtout un voile affadirait aussi les registres **rouge et
+ambre** des rangées signalées — or ce sont eux qui portent le sens clinique. WCAG 1.4.3 exempte
+explicitement les composants **inactifs** du seuil de contraste : on baisse donc le contraste par
+l'**encre**, franchement, plutôt que par un filtre.
+
+#### Le dégrisage est structurel, pas un geste symétrique
+La règle porte sur `:disabled`, et l'attribut n'est posé que par le rendu où `state.edGrab` existe :
+reposer l'objet re-rend sans lui, et l'état visuel s'en va **avec** l'attribut. Il n'y a donc rien à
+défaire à la main — donc rien à oublier. C'est précisément la leçon que la liste de placards de la
+v4.78.0 a coûtée : un état qu'on pose à la main est un état qu'on oublie de retirer quelque part.
+
+#### Deux choses restent actives, à dessein
+La **poignée ⠿** (il faut pouvoir prendre un autre objet, ou reposer celui-ci) et le **✕ du bandeau**.
+Le témoin les mesure aussi : « tout griser » sans exception aurait enfermé l'utilisateur dans le mode.
+
+#### Vérifications
+809 tests × 2 moteurs, `npm run check` vert, **seize harnais verts** (`npm run audit` en sortie 0),
+a11y 301/301, doctrine 159/159, `audit-k5` **123/123**. **Six nouveaux témoins**, dont un qui vérifie
+d'abord que le contrôle **rencontre son cas** — que le ✕ d'étape est bien rouge au repos, seul endroit
+où la spécificité pouvait échouer (contre `.blk .li .mini`, à (0,3,0)). Défaut réintroduit : trois
+rouges, dont la trace `dis:true / rgb(163,46,31) / pointer` qui est exactement le symptôme signalé.
+
 ## [4.78.0] — 2026-07-30
 ### Douze défauts signalés à l'usage — dont huit créés par les trois versions précédentes
 
@@ -1270,38 +1317,3 @@ apparaissent autour de ce que l'auteur regarde, au lieu de l'emporter ailleurs.
 
 Vérifié : 794 tests × 2 moteurs, a11y 301/301, doctrine 112/112, aucun débordement horizontal à
 390 px. Rien à rejouer côté serveur.
-
-## [4.65.0] — 2026-07-29
-### La porte « + » — une seule, et chaque type se présente
-
-Six boutons d'ajout vivaient dispersés dans trois sections de l'éditeur : « + Bloc d'étapes »,
-« + Décision (si… alors…) », « + Chronomètre », « + Minuteur (cycle) », « + Ajouter un compteur »,
-« ＋ Complication ». Pour savoir ce qu'on **pouvait** ajouter, il fallait faire défiler la page
-entière — et rien ne disait à quoi chaque type sert.
-
-Une seule porte pointillée les rassemble : **« ＋ Étape · décision · minuteur… »**. Elle ouvre une
-palette où **chaque type se présente** — le glyphe, le nom, et une ligne dans les mots du
-soignant :
-
-- **Bloc d'étapes** — une suite d'actions à cocher, l'unité de base d'une checklist
-- **Décision (si… alors…)** — une question et ses branches : « Choquable ? » → chaque réponse mène
-  à son bloc
-- **Minuteur à cycles** — un temps qui se relance et compte les tours (ex. RCP 2 min)
-- **Chronomètre** — un temps qui monte, sans échéance
-- **Compteur** — ce qu'on compte pendant le soin : chocs, doses d'adrénaline…
-- **Complication** — un événement qui peut survenir à tout moment, le retour est prévu
-
-**C'est là que les registres s'apprennent, avant la crise.** Les explications sont écrites au
-moment où l'auteur choisit, pas dans un guide qu'on replie une fois pour toutes.
-
-La fenêtre passe par le gestionnaire de modales commun (Échap, clic de voile, piège de focus,
-retour système d'Android) et se ferme à l'insertion, l'éditeur se re-rendant aussitôt — sinon la
-porte demanderait un geste pour ouvrir et un autre pour retrouver ce qu'elle vient de créer. Les
-six gestes sont intacts : on a supprimé les **portes**, pas les capacités.
-
-**K5 est reporté** sur décision de l'utilisateur (« l'enregistrement se dit, ne se demande pas » :
-auto-enregistrement horodaté dans la barre, « ▶ Essayer » promu bouton rempli unique). Il déplace
-l'action primaire de l'écran, et l'éditeur s'auto-enregistre déjà sans le dire — c'est la promesse
-affichée qui changerait, pas la mécanique.
-
-Vérifié : 794 tests × 2 moteurs, a11y 301/301, doctrine 112/112. Rien à rejouer côté serveur.

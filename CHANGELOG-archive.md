@@ -1,4 +1,39 @@
-# Journal des modifications — archive (versions 3.0.0 à 4.64.0)
+# Journal des modifications — archive (versions 3.0.0 à 4.65.0)
+
+## [4.65.0] — 2026-07-29
+### La porte « + » — une seule, et chaque type se présente
+
+Six boutons d'ajout vivaient dispersés dans trois sections de l'éditeur : « + Bloc d'étapes »,
+« + Décision (si… alors…) », « + Chronomètre », « + Minuteur (cycle) », « + Ajouter un compteur »,
+« ＋ Complication ». Pour savoir ce qu'on **pouvait** ajouter, il fallait faire défiler la page
+entière — et rien ne disait à quoi chaque type sert.
+
+Une seule porte pointillée les rassemble : **« ＋ Étape · décision · minuteur… »**. Elle ouvre une
+palette où **chaque type se présente** — le glyphe, le nom, et une ligne dans les mots du
+soignant :
+
+- **Bloc d'étapes** — une suite d'actions à cocher, l'unité de base d'une checklist
+- **Décision (si… alors…)** — une question et ses branches : « Choquable ? » → chaque réponse mène
+  à son bloc
+- **Minuteur à cycles** — un temps qui se relance et compte les tours (ex. RCP 2 min)
+- **Chronomètre** — un temps qui monte, sans échéance
+- **Compteur** — ce qu'on compte pendant le soin : chocs, doses d'adrénaline…
+- **Complication** — un événement qui peut survenir à tout moment, le retour est prévu
+
+**C'est là que les registres s'apprennent, avant la crise.** Les explications sont écrites au
+moment où l'auteur choisit, pas dans un guide qu'on replie une fois pour toutes.
+
+La fenêtre passe par le gestionnaire de modales commun (Échap, clic de voile, piège de focus,
+retour système d'Android) et se ferme à l'insertion, l'éditeur se re-rendant aussitôt — sinon la
+porte demanderait un geste pour ouvrir et un autre pour retrouver ce qu'elle vient de créer. Les
+six gestes sont intacts : on a supprimé les **portes**, pas les capacités.
+
+**K5 est reporté** sur décision de l'utilisateur (« l'enregistrement se dit, ne se demande pas » :
+auto-enregistrement horodaté dans la barre, « ▶ Essayer » promu bouton rempli unique). Il déplace
+l'action primaire de l'écran, et l'éditeur s'auto-enregistre déjà sans le dire — c'est la promesse
+affichée qui changerait, pas la mécanique.
+
+Vérifié : 794 tests × 2 moteurs, a11y 301/301, doctrine 112/112. Rien à rejouer côté serveur.
 
 ## [4.64.0] — 2026-07-29
 ### K1 — on édite dans la grammaire de lecture

@@ -2051,6 +2051,19 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   **COROLLAIRE POUR LES TÉMOINS** : un contrôle qui laisse un objet « en main » éteint TOUT ce qui
   est mesuré ensuite. Un témoin doit reposer l'objet avant de sortir (un état laissé derrière soi
   fait échouer les autres pour la mauvaise raison).
+  **ET CE QUI EST INERTE DOIT EN AVOIR L'AIR (v4.79.0, demande utilisateur)** : `disabled` suffisait à
+  EMPÊCHER le geste, pas à le DIRE — nos boutons portent leurs propres `background` et `color`, si
+  bien que le grisé par défaut du navigateur n'apparaissait nulle part. Un ✕ rouge vif et un B
+  contrasté qui ne répondent plus, c'est la pire configuration : on croit à une panne, pas à un mode.
+  Apparence reprise TRAIT POUR TRAIT du scribe (`body.share-scribe`) — encre douce, filet neutre,
+  fond `--surface-2`, ombre retirée, `cursor:not-allowed` : une seule grammaire de « fermé » dans tout
+  le fichier. **PAS D'`opacity`** (elle affadirait aussi les registres rouge et ambre des rangées
+  signalées, et la doctrine l'écarte pour du texte) ; WCAG 1.4.3 exempte explicitement les composants
+  INACTIFS du seuil de contraste, donc on baisse le contraste par l'ENCRE, franchement.
+  **LE DÉGRISAGE EST STRUCTUREL, PAS UN GESTE À NE PAS OUBLIER** : la règle porte sur `:disabled`, et
+  l'attribut n'est posé que par le rendu où `state.edGrab` existe — reposer l'objet re-rend sans lui,
+  l'état visuel s'en va avec l'attribut. Rien à défaire à la main, donc rien à oublier : c'est
+  exactement ce que la liste de placards de la v4.78.0 a appris au prix d'un bug.
 - **UN CONTENEUR AFFICHÉ EN `:focus-within` VOLE SON PROPRE CLIC (v4.77.0, signalé à l'usage : « le
   bouton ⚠ et le bouton supprimer ne fonctionnent pas, ça replie juste le menu »)** — et le
   diagnostic est une SÉQUENCE, pas un style. `.li-tools` n'existe qu'en `:focus-within` (MK-flux) ;
