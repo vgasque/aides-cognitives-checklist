@@ -1,4 +1,65 @@
-# Journal des modifications — archive (versions 3.0.0 à 4.61.0)
+# Journal des modifications — archive (versions 3.0.0 à 4.62.0)
+
+## [4.62.0] — 2026-07-29
+### I4 — une seule grammaire de progression : guidé, journal et lecteur ne font plus qu'une
+
+Le chantier structurant de l'audit. Guidé, journal et mode lecteur n'étaient pas trois vues d'une
+même chose : c'étaient **trois écritures** de la même chose.
+
+### Pourquoi — c'est doctrinal
+- **ECAM.** L'affichage d'Airbus repose sur UN format unique pour tous les états de l'avion : le
+  pilote n'apprend pas trois écrans, il apprend UNE grammaire (position fixe, registres,
+  priorités) qui se décline. Trois surfaces de progression, c'est l'anti-ECAM — trois
+  cartographies mentales pour la même information. Harmonisées, celui qui a appris l'écran hôte
+  **sait déjà** lire l'écran invité.
+- **QRH.** Un manuel n'a qu'une mise en page de checklist, quel que soit le lecteur : celui qui
+  lit et celui qui exécute regardent le **même document**, et c'est ce qui permet le cross-check à
+  voix haute. Si le lecteur voit une autre structure que l'hôte, « bloc 2, ligne 2 » ne désigne
+  plus la même chose et la vérification croisée se désynchronise.
+- **FAA, facteurs humains.** La *mode confusion* naît d'un même écran qui se comporte
+  différemment selon le mode sans signal univoque. La réponse canonique est : structure
+  **constante** + annonciateur de mode saillant — pas des écrans différents. Ici l'interactivité
+  et le placard changent ; la structure, jamais.
+- **Et l'ingénierie qui en découle** : trois surfaces = trois endroits où un correctif peut
+  diverger. Ce fichier a payé **deux fois** — les copies du cœur de cochage avaient divergé
+  (v4.42.0), et un invité scribe **conduisait** la checklist depuis le lecteur parce que ses
+  verbes portaient d'autres noms (v4.55.0).
+
+### Ce qui est désormais unique
+- **Le cœur** — `applyCheck` est LE point d'écriture de `state.checked` : garde de rôle, trace
+  do-verify, acquittement haptique, drapeau de fin. Les trois appelants ne font plus que peindre.
+  Le lecteur écrivait `state.checked` **en direct** ; c'était la troisième copie, jamais recensée.
+- **Le vocabulaire** — le lecteur émet `data-ovnext`, `data-ovopt`, `data-cxback`. Plus de
+  synonymes, donc plus de liste de gardes à tenir en double : un verbe ajouté demain est couvert
+  des deux côtés d'office, parce qu'il n'y a plus de « deux côtés ».
+- **La structure** — `stepsListHtml` génère l'unique `ol.steps > li[data-ck]`, trace de
+  vérification comprise. Elle était écrite trois fois, et avait déjà divergé : le journal peignait
+  la trace, la vue guidée non, pour la même donnée.
+
+### Ce que ça change à l'écran
+Le mode lecteur montre désormais **le bloc entier**, ligne courante en 22 px sur fond d'accent,
+au lieu d'un paragraphe isolé. C'est le modèle **ECL Boeing** — liste entière + curseur — que
+l'audit v4.28.0 opposait déjà au un-item-à-la-fois : perdre sa place est un mode de défaillance
+premier (Degani & Wiener). Supprimés avec la structure qui les exigeait : `.rm-r` (la réponse
+attendue vit dans la pilule de la ligne) et `.rm-ctx` (le contexte « précédent / suivant » était
+une reconstruction manuelle de ce que la liste donne par construction).
+
+### Deux pièges vécus
+- `applyCheck` remet `state.flowEnded` à false — donc le test « la fin était actée, il faut
+  re-rendre » de la vue guidée ne se déclenchait **plus jamais**. Il faut capturer l'état avant
+  l'appel. Le journal, lui, teste la présence de `.flow-end` dans le DOM : il y était insensible.
+  C'est `audit-doctrine` qui l'a attrapé.
+- `data-rmopt` était un **homonyme** : « reader option » dans le lecteur, « remove option » dans
+  l'éditeur — et comme `[data-rmopt]` figurait dans la liste des gestes muets, le bouton
+  « supprimer une réponse » de l'**éditeur** était bridé en mode invité. Renommé `data-optdel`.
+
+Un contrôle de harnais a été **réécrit, pas supprimé** : il cherchait `.rm-ctx` (le mécanisme) ; il
+mesure désormais la propriété — le contexte est visible, l'étape précédente est marquée faite, et
+toutes les lignes portent le même verbe. Il échouerait si la liste redevenait un item isolé.
+
+Vérifié : 785 tests × 2 moteurs, a11y **301/301 sur les deux moteurs**, doctrine 112/112, lecteur
+**14/14** (+1), partage 294/294, vérification 8/8, complications 20/20, exercice 20/20.
+Rien à rejouer côté serveur.
 
 ## [4.61.0] — 2026-07-29
 ### Une voix typographique — Source Serif 4 pour les titres

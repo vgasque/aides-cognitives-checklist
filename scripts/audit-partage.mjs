@@ -1713,6 +1713,17 @@ console.log(`\n══ PARTAGE · le placard de l'invité et les réponses direct
     render(); await new Promise(x => setTimeout(x, 450));
     o.inviteTag = tag();
     o.inviteHachure = hach(band);
+    /* LA COULEUR DE L'ÉTIQUETTE, mesurée et non supposée (v4.76.0) : `#crisisBand .cb-tag` vaut
+       (1,1,0) et écrasait le bleu du placard invité, écrit en (0,2,0) — « ▪ Vous suivez » sortait
+       donc en ROUGE, dans le seul registre qu'elle ne devait pas emprunter, depuis la v4.55.4.
+       On compare à `--primary-dk` résolu, jamais à une chaîne en dur. */
+    {const el = band.querySelector('.cb-tag');
+     const attendu = getComputedStyle(document.documentElement).getPropertyValue('--primary-dk').trim();
+     const bidon = document.createElement('span'); bidon.style.color = attendu;
+     document.body.appendChild(bidon);
+     o.inviteCouleur = getComputedStyle(el).color;
+     o.inviteCouleurAttendue = getComputedStyle(bidon).color;
+     bidon.remove();}
     o.inviteEnTete = (document.getElementById('hdrCrisis') || {}).textContent || '';
     o.hauteurBandeau = Math.round(band.getBoundingClientRect().height);
 
@@ -1745,6 +1756,8 @@ console.log(`\n══ PARTAGE · le placard de l'invité et les réponses direct
   t('… et le mode est dit UNE fois, par la barre', /Crise/.test(r.hoteEnTete)
     && !/Mode crise/i.test(r.hoteTag), `${r.hoteEnTete} / «${r.hoteTag}»`);
   t('l’invité lit « Vous suivez »', /Vous suivez/.test(r.inviteTag), r.inviteTag);
+  t('… et son étiquette est BLEUE, pas rouge', r.inviteCouleur===r.inviteCouleurAttendue,
+    `${r.inviteCouleur} au lieu de ${r.inviteCouleurAttendue}`);
   t('… le bandeau est hachuré', r.inviteHachure === '1', r.inviteHachure);
   t('… et l’en-tête le relaie', /Suivi/.test(r.inviteEnTete), r.inviteEnTete);
   t('… à COÛT NUL en hauteur', r.hauteurInvite === r.hauteurBandeau,

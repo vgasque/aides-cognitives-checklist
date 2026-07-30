@@ -1,5 +1,103 @@
 # Journal des modifications
 
+## [4.76.0] — 2026-07-30
+### Lot 3 : la porte devient celle de l'aide entière
+
+#### La porte « ＋ » quitte « Prise en charge »
+Signalé à l'usage : *« le bouton s'arrête avant les blocs minuteurs & compteurs, repères
+posologiques, schémas et captures, documents PDF… ce qui n'est pas logique »*. Le constat était plus
+juste encore que sa formulation : la porte créait **déjà** des minuteurs, des compteurs, des
+complications et des repères posologiques, tout en vivant **à l'intérieur** du fieldset « Prise en
+charge ». Ce n'était donc pas une porte de bloc, c'était la porte de l'aide, mal rangée.
+
+Elle sort du fieldset, se pose à la fin du formulaire, colle sur toute sa hauteur, et se répartit en
+quatre groupes dans l'ordre de **lecture** de la fiche : Structure · Pendant la session · Contenu
+clinique · Annexes. Nouvelles entrées : « À vérifier », « Diagnostic différentiel », « Référence »,
+« Schéma ou capture ».
+
+**Elle redescend dans le flux pendant un déplacement** (`.ed-door.flat`) : collée, elle masque le
+dernier « Poser ici », et « créer » n'a rien à faire sous le doigt de quelqu'un qui cherche où
+**poser**.
+
+**Le dessin répond à « peu identifiable »** : le pointillé reste (grammaire de « créer », inchangée
+depuis la v4.3.0) mais sur un fond **tonal** au lieu du blanc — le blanc était la couleur de toutes
+les cartes autour d'elle, donc son seul trait la distinguait ; le « ＋ » entre dans une pastille
+ronde ; un filet haut la détache du flux, ce qui rend son comportement collant lisible sans qu'on
+ait à le deviner. **Elle reste tonale, jamais remplie** : l'unique bouton rempli de l'écran demeure
+« ▶ Essayer ».
+
+#### Une règle nouvelle, et ses deux exceptions nommées
+**« Présent dans la porte ⇔ masqué quand vide ».** « À vérifier », « Diagnostics différentiels »,
+« Références », « Repères posologiques », « Schémas & captures » et « Documents » disparaissent quand
+ils sont vides et se recréent par la porte, avec le focus dans le champ neuf.
+
+**Deux exceptions** : le chapeau « Ne pas oublier » et la « Confirmation diagnostique » restent
+affichés même vides, et n'ont donc **pas** d'entrée dans la porte. Ce ne sont pas des extras : en
+QRH, la condition d'entrée et les memory items sont ce qui rend une checklist **sûre**. Un champ vide
+y est une **invitation** — la règle « un panneau vide est du bruit » vise ce qui *affirme* quelque
+chose (« 0 remarque »), pas un champ qui attend du texte. Un auteur qui ne **voit** pas « Ne pas
+oublier » ne l'inventera pas.
+
+« Étape » n'entre pas dans la porte : un « ＋ » = une **portée**, et l'étape a la sienne, entre les
+blocs, plus le ⏎ (MK-flux). Piège résolu au passage : `_edImgMode` a dû monter au module, la porte
+devant ouvrir le sélecteur de fichier alors que la section « Schémas » est masquée — donc son bouton
+absent.
+
+#### Une image s'associe à un bloc depuis la galerie
+On ne pouvait joindre une image que **depuis** un bloc : partir de l'image était impossible, alors
+que c'est l'ordre naturel quand on vient d'en importer trois. Un sélecteur par vignette liste les
+blocs, montre celui qui la porte, et « Aucun bloc » la détache. **Une image ne peut être que sur un
+seul bloc** : on détache partout avant de rattacher, sinon deux sélecteurs afficheraient deux
+porteurs pour un même état.
+
+**Ce que cela copie, et il faut le savoir** : `b.image` porte la **donnée**, pas une référence —
+c'est le format existant, et le changer serait un champ modèle de plus (règle 12) que les clients
+antérieurs ne sauraient pas lire. Associer duplique donc l'image, et retoucher la vignette de la
+galerie **après** coup ne suivra pas dans le bloc.
+
+#### Le placard de l'essai est une hachure, et rien d'autre
+Signalé à l'usage : *« le mode essayer ne se distingue pas beaucoup d'un mode fiche normal »*. Et le
+« rien d'autre » est le vrai contenu de la décision. La v4.72.0 avait retiré l'étiquette de bandeau
+parce qu'elle répétait mot pour mot la pilule de la barre ; **vérifié à l'écran, la barre porte déjà
+les deux énoncés** — la pilule « ■ Aperçu » *et* le badge « Essai — rien n'est enregistré ». Les mots
+sont donc couverts deux fois ; ce qui manquait était le canal **périphérique**, celui qui se
+reconnaît sans lire. On n'ajoute donc que la **texture**. La règle 8 (« la couleur n'est jamais
+seule ») est tenue par la barre, permanente et immobile — pas par une troisième copie de la phrase.
+Bénéfice mesuré : **coût nul en hauteur et en largeur**, alors qu'une étiquette de trente caractères
+repoussait le titre sur deux lignes à 400 px.
+
+Hachure **neutre** (`--surface-3`), registre MEMO : le bleu est pris par l'invité et par l'exercice,
+et un essai d'auteur n'est ni un rôle ni une répétition clinique. La justification a changé de poids
+depuis K5 : « ▶ Essayer » déroule une **vraie** session (les minuteurs tournent, on coche, le chrono
+avance), donc l'écran ressemble trait pour trait à un soin — le risque n'est plus esthétique, c'est
+croire qu'une session est en cours ou qu'elle est enregistrée. L'exercice garde la priorité.
+
+#### Douzième piège de cascade : une couleur aussi se vérifie
+Trouvé en posant le placard d'essai à côté de celui de l'invité. `#crisisBand .cb-tag` vaut
+**(1,1,0)** et écrasait le bleu du placard invité, écrit `.cb-tag.inv` = (0,2,0) : **« ▪ Vous
+suivez » s'affichait en rouge depuis la v4.55.4**, sur un cadre bleu, dans le seul registre qu'elle
+ne devait pas emprunter. La règle d'exercice, elle, était déjà préfixée par `#crisisBand` et gagnait
+— d'où deux placards jumeaux dont un seul avait la bonne couleur.
+
+Corollaire : la doctrine « pour une **géométrie**, ne jamais dépendre de l'ordre de déclaration »
+vaut aussi pour les **couleurs**. Un témoin d'`audit-partage` compare désormais l'encre **résolue**
+à `--primary-dk` au lieu de l'affirmer.
+
+#### Le compte de relecture monte dans la barre
+Le volet-bilan vit en pied de formulaire — c'est sa place, on le lit en fermant — mais rien ne
+disait, pendant qu'on écrit, qu'il y avait quelque chose à relire. Le **compte** (« △ n ») rejoint
+donc la barre, le seul endroit qui ne défile jamais, et ancre vers le volet **en le dépliant** ; le
+détail reste en bas et sous la ligne qu'il vise. Registre ATTENTION, jamais rouge — rien n'est
+bloqué, et le volet le dit en toutes lettres. Masqué à zéro remarque.
+
+#### Vérifications
+809 tests × 2 moteurs, `npm run check` vert, **seize harnais verts** (`npm run audit` en sortie 0),
+a11y **301/301** dans les deux thèmes, doctrine 159/159, `audit-k5` **76/76**, partage **298/298**.
+**Vingt-deux nouveaux témoins**, tous vérifiés **capables d'échouer** : masquage-si-vide neutralisé,
+porte laissée collante pendant un déplacement, placard désarmé, compte bridé, préfixe `#crisisBand`
+retiré → six rouges dans `audit-k5` et un dans `audit-partage` ; fichiers restaurés à l'octet.
+La porte vérifiée sans débordement à **320 px** (contenu à 205 px sur 284 disponibles).
+
 ## [4.75.0] — 2026-07-30
 ### Lot 2 : « prendre / poser » s'étend aux listes — et l'aperçu d'algorithme s'entrebâille
 
@@ -1089,64 +1187,3 @@ l'export v3 et l'affichage des titres partout. Chacun se décide séparément.
 
 Vérifié : **794 tests × 2 moteurs** (+9), a11y 301/301, doctrine 112/112, lecteur 14/14,
 consulter 8/8. Rien à rejouer côté serveur.
-
-## [4.62.0] — 2026-07-29
-### I4 — une seule grammaire de progression : guidé, journal et lecteur ne font plus qu'une
-
-Le chantier structurant de l'audit. Guidé, journal et mode lecteur n'étaient pas trois vues d'une
-même chose : c'étaient **trois écritures** de la même chose.
-
-### Pourquoi — c'est doctrinal
-- **ECAM.** L'affichage d'Airbus repose sur UN format unique pour tous les états de l'avion : le
-  pilote n'apprend pas trois écrans, il apprend UNE grammaire (position fixe, registres,
-  priorités) qui se décline. Trois surfaces de progression, c'est l'anti-ECAM — trois
-  cartographies mentales pour la même information. Harmonisées, celui qui a appris l'écran hôte
-  **sait déjà** lire l'écran invité.
-- **QRH.** Un manuel n'a qu'une mise en page de checklist, quel que soit le lecteur : celui qui
-  lit et celui qui exécute regardent le **même document**, et c'est ce qui permet le cross-check à
-  voix haute. Si le lecteur voit une autre structure que l'hôte, « bloc 2, ligne 2 » ne désigne
-  plus la même chose et la vérification croisée se désynchronise.
-- **FAA, facteurs humains.** La *mode confusion* naît d'un même écran qui se comporte
-  différemment selon le mode sans signal univoque. La réponse canonique est : structure
-  **constante** + annonciateur de mode saillant — pas des écrans différents. Ici l'interactivité
-  et le placard changent ; la structure, jamais.
-- **Et l'ingénierie qui en découle** : trois surfaces = trois endroits où un correctif peut
-  diverger. Ce fichier a payé **deux fois** — les copies du cœur de cochage avaient divergé
-  (v4.42.0), et un invité scribe **conduisait** la checklist depuis le lecteur parce que ses
-  verbes portaient d'autres noms (v4.55.0).
-
-### Ce qui est désormais unique
-- **Le cœur** — `applyCheck` est LE point d'écriture de `state.checked` : garde de rôle, trace
-  do-verify, acquittement haptique, drapeau de fin. Les trois appelants ne font plus que peindre.
-  Le lecteur écrivait `state.checked` **en direct** ; c'était la troisième copie, jamais recensée.
-- **Le vocabulaire** — le lecteur émet `data-ovnext`, `data-ovopt`, `data-cxback`. Plus de
-  synonymes, donc plus de liste de gardes à tenir en double : un verbe ajouté demain est couvert
-  des deux côtés d'office, parce qu'il n'y a plus de « deux côtés ».
-- **La structure** — `stepsListHtml` génère l'unique `ol.steps > li[data-ck]`, trace de
-  vérification comprise. Elle était écrite trois fois, et avait déjà divergé : le journal peignait
-  la trace, la vue guidée non, pour la même donnée.
-
-### Ce que ça change à l'écran
-Le mode lecteur montre désormais **le bloc entier**, ligne courante en 22 px sur fond d'accent,
-au lieu d'un paragraphe isolé. C'est le modèle **ECL Boeing** — liste entière + curseur — que
-l'audit v4.28.0 opposait déjà au un-item-à-la-fois : perdre sa place est un mode de défaillance
-premier (Degani & Wiener). Supprimés avec la structure qui les exigeait : `.rm-r` (la réponse
-attendue vit dans la pilule de la ligne) et `.rm-ctx` (le contexte « précédent / suivant » était
-une reconstruction manuelle de ce que la liste donne par construction).
-
-### Deux pièges vécus
-- `applyCheck` remet `state.flowEnded` à false — donc le test « la fin était actée, il faut
-  re-rendre » de la vue guidée ne se déclenchait **plus jamais**. Il faut capturer l'état avant
-  l'appel. Le journal, lui, teste la présence de `.flow-end` dans le DOM : il y était insensible.
-  C'est `audit-doctrine` qui l'a attrapé.
-- `data-rmopt` était un **homonyme** : « reader option » dans le lecteur, « remove option » dans
-  l'éditeur — et comme `[data-rmopt]` figurait dans la liste des gestes muets, le bouton
-  « supprimer une réponse » de l'**éditeur** était bridé en mode invité. Renommé `data-optdel`.
-
-Un contrôle de harnais a été **réécrit, pas supprimé** : il cherchait `.rm-ctx` (le mécanisme) ; il
-mesure désormais la propriété — le contexte est visible, l'étape précédente est marquée faite, et
-toutes les lignes portent le même verbe. Il échouerait si la liste redevenait un item isolé.
-
-Vérifié : 785 tests × 2 moteurs, a11y **301/301 sur les deux moteurs**, doctrine 112/112, lecteur
-**14/14** (+1), partage 294/294, vérification 8/8, complications 20/20, exercice 20/20.
-Rien à rejouer côté serveur.

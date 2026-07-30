@@ -1964,6 +1964,66 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   (lot 2), elles y sont entrées et la sonde a parlé aussitôt. Leçon de méthode : **un défaut hors
   scope n'est pas un défaut absent** — quand un composant déménage, la sonde peut se mettre à voir
   ce qu'elle ne voyait pas, et c'est un bon jour, pas une régression.
+- **LA PORTE « ＋ » EST CELLE DE L'AIDE, PAS DU BLOC (v4.76.0, lot 3, signalé à l'usage)** : elle
+  créait DÉJÀ des minuteurs, des compteurs, des complications et des repères posologiques tout en
+  vivant DANS le fieldset « Prise en charge » — ce n'était donc pas une porte de bloc, c'était la
+  porte de l'aide, mal rangée. Elle sort du fieldset, se pose à la FIN du formulaire et colle sur
+  toute sa hauteur. Quatre groupes (Structure · Pendant la session · Contenu clinique · Annexes),
+  dans l'ordre de LECTURE de la fiche.
+  **RÈGLE NOUVELLE, ET SON PENDANT : « PRÉSENT DANS LA PORTE ⇔ MASQUÉ QUAND VIDE ».** Les sections
+  « À vérifier », « Diagnostics différentiels », « Références », « Repères posologiques »,
+  « Schémas & captures » et « Documents » disparaissent quand elles sont vides et se recréent par la
+  porte (avec le focus dans le champ neuf). **DEUX EXCEPTIONS NOMMÉES** : le chapeau « Ne pas
+  oublier » et la « Confirmation diagnostique » restent AFFICHÉS même vides et n'ont PAS d'entrée
+  dans la porte — ce ne sont pas des extras, c'est la condition d'entrée et les memory items, et en
+  QRH ce sont eux qui rendent une checklist SÛRE. Un champ vide y est une INVITATION : la règle « un
+  panneau vide est du bruit » vise ce qui AFFIRME quelque chose (« 0 remarque »), pas un champ qui
+  attend du texte. Un auteur qui ne VOIT pas « Ne pas oublier » ne l'inventera pas.
+  **« Étape » n'entre pas dans la porte** (MK-flux : un « ＋ » = une PORTÉE, l'étape a la sienne
+  ENTRE les blocs, plus le ⏎). **Dessin** : pointillé conservé (grammaire de « créer ») mais fond
+  TONAL et pastille ronde — le blanc était la couleur de toutes les cartes autour d'elle, donc son
+  seul trait la distinguait ; elle reste TONALE, jamais remplie (l'unique bouton rempli de l'écran
+  est « ▶ Essayer »). **Elle redescend dans le flux pendant un déplacement** (`.ed-door.flat`) :
+  collée, elle masque le dernier « Poser ici », et « créer » n'a rien à faire sous le doigt de qui
+  cherche où POSER. Piège résolu au passage : `_edImgMode` a dû monter au MODULE, la porte devant
+  ouvrir le sélecteur de fichier alors que la section « Schémas » est masquée (son bouton absent).
+- **UNE IMAGE S'ASSOCIE À UN BLOC DEPUIS LA GALERIE (v4.76.0, demande utilisateur)** : on ne pouvait
+  joindre une image QUE depuis un bloc — partir de l'image était impossible, alors que c'est l'ordre
+  naturel quand on vient d'en importer trois. Un `<select>` par vignette liste les blocs, montre
+  celui qui la porte, et « Aucun bloc » la détache ; **une image ne peut être que sur UN bloc** (on
+  détache partout avant de rattacher, sinon deux sélecteurs afficheraient deux porteurs pour un même
+  état). **CE QUE CELA COPIE, ET IL FAUT LE SAVOIR** : `b.image` porte la DONNÉE, pas une référence
+  — c'est le format existant, et le changer serait un champ modèle de plus (règle 12) illisible par
+  les clients antérieurs. Associer duplique donc l'image, et retoucher la vignette APRÈS coup ne
+  suivra pas dans le bloc.
+- **LE PLACARD DE L'ESSAI EST UNE HACHURE, ET RIEN D'AUTRE (v4.76.0, signalé à l'usage : « le mode
+  essayer ne se distingue pas beaucoup d'un mode fiche normal »)** — et le « rien d'autre » est le
+  vrai contenu de la décision. La v4.72.0 avait retiré l'étiquette de bandeau parce qu'elle répétait
+  mot pour mot la pilule de la barre ; **vérifié à l'écran, la barre porte DÉJÀ les deux énoncés** :
+  la pilule « ■ Aperçu » ET le badge « Essai — rien n'est enregistré ». Les mots sont donc couverts
+  deux fois ; ce qui manquait était le canal PÉRIPHÉRIQUE, celui qui se reconnaît sans lire. On
+  n'ajoute donc que la TEXTURE. La règle 8 (« la couleur n'est jamais seule ») est tenue par la
+  barre, permanente et immobile — pas par une troisième copie de la phrase. Bénéfice mesuré : coût
+  NUL en hauteur ET en largeur, alors qu'une étiquette de trente caractères repoussait le titre sur
+  deux lignes à 400 px. **Hachure NEUTRE (`--surface-3`), registre MEMO** : le bleu est pris par
+  l'invité et par l'exercice, et un essai d'auteur n'est ni un rôle ni une répétition clinique.
+  La justification a changé de poids depuis K5 : « ▶ Essayer » déroule une VRAIE session (minuteurs,
+  cochage, chrono), donc l'écran ressemble trait pour trait à un soin — le risque n'est plus
+  esthétique, c'est croire qu'une session est en cours ou qu'elle est enregistrée.
+  **L'exercice garde la priorité** ; un essai ne peut pas être un invité (`previewFrom` l'exclut).
+- **DOUZIÈME PIÈGE DE CASCADE — UNE COULEUR AUSSI SE VÉRIFIE (v4.76.0)** : `#crisisBand .cb-tag`
+  vaut **(1,1,0)** et écrasait le bleu du placard INVITÉ, écrit en `.cb-tag.inv` = (0,2,0) —
+  « ▪ Vous suivez » sortait donc en **ROUGE**, dans le seul registre qu'elle ne devait pas emprunter,
+  depuis la v4.55.4. La règle d'exercice, elle, était déjà préfixée par `#crisisBand` et gagnait :
+  deux placards jumeaux dont un seul avait la bonne couleur. Trouvé en posant le placard d'essai à
+  côté. Corollaire : la doctrine « pour une GÉOMÉTRIE, ne jamais dépendre de l'ordre de déclaration »
+  **vaut aussi pour les COULEURS** — et un témoin d'`audit-partage` compare désormais l'encre
+  résolue à `--primary-dk`, au lieu de l'affirmer.
+- **LE COMPTE DE RELECTURE MONTE DANS LA BARRE (v4.76.0)** : le volet-bilan vit en PIED de formulaire
+  — c'est sa place, on le lit en fermant — mais rien ne disait, pendant qu'on écrit, qu'il y avait
+  quelque chose à relire. Le COMPTE (« △ n ») rejoint donc la barre, le seul endroit qui ne défile
+  jamais, et ancre vers le volet en le DÉPLIANT ; le DÉTAIL reste en bas et sous la ligne qu'il vise.
+  Registre ATTENTION, jamais rouge (rien n'est bloqué) ; masqué à zéro remarque.
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.

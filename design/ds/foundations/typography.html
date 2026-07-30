@@ -417,6 +417,16 @@
   /* K5 (v4.72.0) — L'ÉTAT D'ENREGISTREMENT, à la place du bouton qui le demandait. Encre douce :
      c'est une CONFIRMATION passive, elle ne réclame rien et ne doit pas tirer l'œil ; seul
      l'échec parle fort, parce que c'est le seul cas où l'auteur peut perdre quelque chose. */
+  /* Le compte de relecture : registre ATTENTION (l'ambre du « c'est là qu'on se trompe »), JAMAIS
+     rouge — aucune de ces remarques n'empêche d'enregistrer, et le volet le dit en toutes lettres.
+     Masqué à zéro remarque : un « △ 0 » permanent serait le bruit que le volet évite déjà. */
+  .hdr-rev{flex:none;position:relative;min-width:36px;height:36px;padding:0 9px;display:inline-flex;align-items:center;gap:4px;
+    border:1px solid var(--verify-bd);border-radius:18px;background:var(--verify-soft);color:var(--verify);
+    font-family:inherit;font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;cursor:pointer}
+  .hdr-rev::after{content:"";position:absolute;inset:-4px}
+  .hdr-rev:hover{background:var(--surface)}
+  .hdr-rev:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .hdr-rev[hidden]{display:none}
   /* Le « ↶ » de l'anneau d'annulation : gabarit des contrôles de barre (36 px + halo pour la cible
      de 44), encre douce — c'est un recours, pas une action primaire. */
   .hdr-undo{flex:none;position:relative;width:36px;height:36px;display:grid;place-items:center;border:0;border-radius:18px;background:var(--surface-2);color:var(--ink);cursor:pointer}
@@ -1557,7 +1567,7 @@
      prefers-reduced-motion (transition:none). Les enfants passent en z-index:1 : le ::before
      est AU-DESSUS du fond de l'élément, jamais au-dessus de son contenu. */
   #crisisBand{position:relative}
-  #crisisBand::before,header.bar.exo::before,header.bar.inv::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(-45deg,var(--surface),var(--surface) 14px,var(--primary-soft) 14px,var(--primary-soft) 22px);opacity:0;transition:opacity .3s ease;pointer-events:none}
+  #crisisBand::before,header.bar.exo::before,header.bar.inv::before,header.bar.ess::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(-45deg,var(--surface),var(--surface) 14px,var(--primary-soft) 14px,var(--primary-soft) 22px);opacity:0;transition:opacity .3s ease;pointer-events:none}
   #crisisBand.exo::before{opacity:1}
   header.bar.exo.ttl-on::before{opacity:1}
   #crisisBand>*{position:relative;z-index:1}
@@ -1575,7 +1585,29 @@
      POURQUOI `#crisisBand` GARDE L'ANCIENNE MÉCANIQUE : il est `position:relative` mais sans
      `z-index`, donc PAS un contexte d'empilement — un `z-index:-1` y passerait sous son propre
      fond et la hachure disparaîtrait. Ses enfants sont tous statiques, la levée ne casse rien. */
-  header.bar.exo::before,header.bar.inv::before{z-index:-1}
+  header.bar.exo::before,header.bar.inv::before,header.bar.ess::before{z-index:-1}
+  /* ═══ PLACARD DE L'ESSAI (v4.76.0, signalé à l'usage : « le mode essayer ne se distingue pas
+     beaucoup d'un mode fiche normal ») ═══════════════════════════════════════════════════════
+     LA v4.72.0 AVAIT RETIRÉ L'ÉTIQUETTE DU BANDEAU, ET ELLE AVAIT RAISON — sur ce qu'elle
+     jugeait : « ■ Aperçu » en bandeau répétait mot pour mot « ■ Aperçu » de la barre, et la
+     troncature ne sert pas à écrire deux fois la même chose côte à côte. Ce qu'on ajoute ici n'est
+     PAS ce mot une seconde fois : c'est un CANAL que la pilule ne peut pas porter (une hachure) et
+     la CONSÉQUENCE en toutes lettres (« rien n'est enregistré »). Exactement la structure de
+     l'invité — la pilule dit « Suivi », le bandeau dit la phrase et porte la texture.
+     ET LA JUSTIFICATION A CHANGÉ DE POIDS : depuis que « ▶ Essayer » déroule une VRAIE session
+     (K5 — les minuteurs tournent, on coche, le chrono avance), l'écran d'essai ressemble trait pour
+     trait à un soin réel. Le risque n'est plus esthétique : c'est croire qu'une session est en
+     cours, ou qu'elle est enregistrée. C'est la même famille de méprise que l'exercice, et elle
+     mérite le même dispositif.
+     HACHURE NEUTRE (`--surface-3`), pas bleue : le bleu est pris par l'invité et par l'exercice, et
+     un essai d'auteur n'est ni un rôle ni une répétition clinique — registre MEMO. Coût de hauteur
+     NUL, comme les deux autres placards : c'est la seule condition qui vaille là où `#crisisCtrl`
+     n'a que 2,1 px de marge à 320 px.
+     PRIORITÉ : l'exercice l'emporte toujours (il protège d'une méprise clinique) ; un essai ne
+     peut de toute façon pas être un invité (`previewFrom` l'exclut). */
+  #crisisBand.ess::before,header.bar.ess::before{background:repeating-linear-gradient(-45deg,var(--surface),var(--surface) 14px,var(--surface-3) 14px,var(--surface-3) 22px)}
+  #crisisBand.ess::before,header.bar.ess.ttl-on::before{opacity:1}
+
   /* PLACARD DE L'INVITÉ (v4.55.4, demande utilisateur) — MÊME MÉCANIQUE que le placard d'exercice,
      au trait près : hachure en fondu sur un `::before`, relais du bandeau vers l'en-tête au pixel
      où le titre passe dessous, enfants en `z-index:1`. Rien de neuf à inventer, donc rien de neuf
@@ -1585,7 +1617,14 @@
      n'est ni une alerte ni une vigilance, c'est un ÉTAT. Le mot le porte (« ▪ Vous suivez ») ;
      la hachure ne fait que le rendre reconnaissable d'un coup d'œil, la couleur jamais seule. */
   #crisisBand.inv::before,header.bar.inv.ttl-on::before{opacity:1}
-  .cb-tag.inv,#hdrCrisis.inv{color:var(--primary-dk);background:var(--surface);
+  /* `#crisisBand .cb-tag{color:var(--critical)}` vaut (1,1,0) : il ÉCRASAIT le bleu du placard
+     invité, écrit en (0,2,0) — l'étiquette « ▪ Vous suivez » s'affichait donc en ROUGE depuis la
+     v4.55.4, sur un cadre bleu, dans le seul registre qu'elle ne devait pas emprunter. Trouvé en
+     posant le placard d'essai à côté. La règle d'exercice, elle, était déjà préfixée par
+     `#crisisBand` et gagnait — d'où deux placards jumeaux dont un seul avait la bonne couleur.
+     Corollaire de méthode, le même que partout ailleurs ici : pour une COULEUR comme pour une
+     géométrie, ne jamais dépendre de la spécificité qu'on croit avoir — la vérifier. */
+  #crisisBand .cb-tag.inv,#hdrCrisis.inv{color:var(--primary-dk);background:var(--surface);
     border:1px solid var(--primary);border-radius:6px;padding:2px 8px;letter-spacing:.6px}
   #hdrCrisis.exo{background:var(--surface);border:1px dashed var(--primary);border-radius:6px;padding:2px 8px;letter-spacing:.6px}
   .cb-exoquit{flex:none;position:relative;min-height:36px;border:1px dashed var(--primary);border-radius:9px;background:var(--surface);color:var(--primary-dk);font-size:12px;font-weight:800;cursor:pointer;padding:0 12px;font-family:inherit}
@@ -2206,8 +2245,38 @@
      VISIBILITÉ : le pointillé reste (grammaire « créer », inchangée), mais il lui fallait un fond
      PLEIN et une élévation — collée, elle passe au-dessus du contenu, et un bouton transparent
      s'y serait lu par-dessus le texte d'un bloc. */
-  .ed-door{min-height:48px;font-size:13.5px;position:sticky;bottom:calc(10px + env(safe-area-inset-bottom));z-index:6;
-    background:var(--surface);box-shadow:var(--shadow);margin-top:10px}
+  /* LA PORTE SE VOIT (signalé à l'usage : « peu identifiable, le blanc ne ressort pas bien du
+     reste et on identifie peu qu'il est sticky »). Trois changements, tous dans la grammaire :
+     le POINTILLÉ reste (c'est la grammaire de « créer », inchangée depuis la v4.3.0) mais sur un
+     fond TONAL `--primary-soft` au lieu du blanc — le blanc était la couleur de toutes les cartes
+     autour d'elle, donc la seule chose qui la distinguait était son trait ; le « ＋ » entre dans
+     une PASTILLE ronde, qui est ce qu'on reconnaît avant d'avoir lu ; et un filet haut la détache
+     du flux, de sorte qu'elle se lise comme une COUCHE POSÉE — c'est ce qui rend son
+     comportement collant lisible sans qu'on ait à le deviner.
+     ELLE NE DEVIENT PAS L'ACTION PRIMAIRE pour autant : l'unique bouton REMPLI de l'écran reste
+     « ▶ Essayer » (règle « un seul bouton rempli par écran », v4.0.3). Tonal, pas plein. */
+  .ed-door{display:flex;align-items:center;gap:10px;min-height:52px;font-size:13.5px;text-align:left;
+    position:sticky;bottom:calc(10px + env(safe-area-inset-bottom));z-index:6;
+    background:var(--primary-soft);border:1.5px dashed var(--primary);box-shadow:var(--shadow);
+    margin-top:18px;padding:8px 12px}
+  .ed-door:hover{background:var(--primary-100)}
+  .edd-p{flex:none;width:30px;height:30px;display:grid;place-items:center;border-radius:50%;
+    background:var(--surface);border:1px solid var(--primary);color:var(--primary-dk);font-size:15.5px;font-weight:800}
+  .edd-l{flex:none;font-weight:800;color:var(--primary-dk)}
+  .edd-c{flex:1;min-width:0;font-size:12px;font-weight:500;color:var(--primary-dk);opacity:.85;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right}
+  /* Sous 430 px, la glose s'EFFACE plutôt que de se tronquer : c'est un exemple, pas
+     l'information, et « bloc · minuteur · dose · s… » n'apprend plus rien. Palier mesuré à 400 px,
+     où l'ellipse mangeait déjà le troisième mot. Même arbitrage que la répartition de la pénurie
+     dans la barre d'éditeur : ce qui est illustratif cède avant ce qui nomme. */
+  @media (max-width:429.98px){.edd-c{display:none}}
+  /* Les groupes de la palette : titres de section, gabarit unique des kickers du projet. */
+  .ep-g{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin:6px 0 0}
+  .ed-palette>.ep-g:first-child{margin-top:0}
+  /* Vignette de galerie : légende, puis le bloc auquel l'image est associée. */
+  .gthumb .gcap{width:100%;margin-top:5px;padding:6px 8px;border:1px solid var(--line);border-radius:7px}
+  .gthumb .gblk{width:100%;margin-top:5px}
+  .gthumb .btn.sm.danger{width:100%;margin-top:5px}
   /* PENDANT UN DÉPLACEMENT, ELLE REDESCEND DANS LE FLUX : collée, elle masquerait les interstices
      de dépôt du bas de l'écran — et « créer » n'a rien à faire sous le doigt de quelqu'un qui
      cherche où POSER. Mesuré : sans cette exception, le dernier « Poser ici » passe dessous. */

@@ -325,5 +325,121 @@ t('les interstices cascadent (un délai par rang)', new Set(L.dl).size>1, L.dl.j
 t('l’objet pris s’anime UNE fois (pas une boucle)', L.animObjet==='grabWake', L.animObjet);
 t('le bandeau entre dans le sens du geste', L.animBan==='grabBanIn', L.animBan);
 
+
+/* ═══ LOT 3 (v4.76.0) — LA PORTE DE L'AIDE, L'IMAGE, LE COMPTE, LE PLACARD ═══════════════════
+   La règle centrale à tenir : « PRÉSENT DANS LA PORTE ⇔ MASQUÉ QUAND VIDE ». Deux exceptions
+   NOMMÉES, et elles doivent rester vraies : le chapeau « Ne pas oublier » et la confirmation
+   diagnostique restent affichés même vides (ce ne sont pas des extras — condition d'entrée et
+   memory items), donc ils n'ont pas d'entrée dans la porte. Un témoin des deux sens. */
+console.log('=== lot 3 : la porte de l’aide entière ===');
+await p.setViewportSize({width:900,height:900});
+const P=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+  if(!state.draft){const f=fiches.find(x=>!x.deletedAt);await openEdit(f.id);await w(600);}
+  const d=state.draft,id=d.id;
+  const labels=()=>[...document.querySelectorAll('fieldset>label')].map(e=>e.textContent);
+  const a=(rx)=>labels().some(x=>rx.test(x));
+  const porte=()=>document.getElementById('edAddOpen');
+  // (1) la porte a quitté « Prise en charge » et colle
+  const dedansFieldset=!!porte().closest('fieldset');
+  const collante=getComputedStyle(porte()).position;
+  // (2) la palette : groupes + entrées
+  porte().click();await w(300);
+  const body=document.getElementById('edAddBody');
+  const groupes=[...body.querySelectorAll('.ep-g')].map(e=>e.textContent);
+  const cles=[...body.querySelectorAll('.ep-row')].map(e=>e.dataset.edadd);
+  document.querySelector('#edAddModal .ai-x, #edAddModal [data-x]')?.click();
+  if(document.querySelector('#edAddModal.on'))edAddClose();
+  await w(250);
+  // (3) « présent dans la porte ⇔ masqué quand vide »
+  d.verify=[];d.differentials=[];d.references=[];d.posology=[];d.images=[];d.attachments=[];
+  d.notForget=[];d.confirmation=[];
+  renderEditor();await w(500);
+  const vides={verify:a(/À vérifier/),diff:a(/Diagnostics différentiels/),ref:a(/Références/),
+    poso:a(/Repères posologiques/),img:a(/Schémas/),att:a(/Documents \(PDF\)/),
+    nf:a(/Ne pas oublier/),conf:a(/Confirmation diagnostique/)};
+  // (4) chaque entrée de liste recrée sa section
+  const recree={};
+  for(const [k,rx] of [['verify',/À vérifier/],['diff',/Diagnostics différentiels/],['ref',/Références/],['poso',/Repères posologiques/]]){
+    porte().click();await w(250);
+    document.querySelector('[data-edadd="'+k+'"]').click();await w(450);
+    recree[k]=a(rx);}
+  // (5) la porte redescend dans le flux pendant un déplacement
+  d.differentials=['Un','Deux'];renderEditor();await w(400);
+  document.querySelector('[data-lgrab="differentials:1"]').click();await w(350);
+  const platPendantDeplacement=getComputedStyle(porte()).position;
+  state.edGrab=null;renderEditor();await w(350);
+  // (6) l'image s'associe à un bloc, et à UN SEUL
+  const px='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+  d.images=[{id:'i1',data:px,w:1,h:1,caption:'Sonde'}];renderEditor();await w(450);
+  const sel=document.querySelector('[data-imgblk="0"]');
+  const nOptions=sel?sel.options.length:0;
+  const cible=(d.blocks||[])[0].id;
+  sel.value=cible;sel.dispatchEvent(new Event('change'));await w(450);
+  const porteurs=(d.blocks||[]).filter(b=>b.image===px).length;
+  const sel2=document.querySelector('[data-imgblk="0"]');
+  const memorise=sel2.value===cible;
+  sel2.value='';sel2.dispatchEvent(new Event('change'));await w(450);
+  const detache=(d.blocks||[]).filter(b=>b.image===px).length;
+  // (7) le compte de relecture
+  const rb=document.getElementById('hdrRev');
+  d.notForget=['a'];renderEditor();await w(400);
+  const revZero=rb.hidden;
+  d.notForget=['a','b','c','d','e'];renderEditor();await w(400);
+  const revUn={cache:rb.hidden,txt:rb.textContent};
+  rb.click();await w(400);
+  const voletOuvert=!!document.querySelector('#revPanel details.rev-panel[open]');
+  return {dedansFieldset,collante,groupes,cles,vides,recree,platPendantDeplacement,
+    nOptions,porteurs,memorise,detache,revZero,revUn,voletOuvert,nBlocs:(d.blocks||[]).length};});
+
+t('la porte a QUITTÉ le fieldset « Prise en charge »', !P.dedansFieldset);
+t('… et elle colle sur toute la hauteur du formulaire', P.collante==='sticky', P.collante);
+t('… et redescend dans le flux pendant un déplacement', P.platPendantDeplacement==='static', P.platPendantDeplacement);
+t('la palette est GROUPÉE', P.groupes.length===4, P.groupes.join(' | '));
+t('elle porte les nouvelles entrées', ['verify','diff','ref','img'].every(k=>P.cles.includes(k)), P.cles.join(','));
+t('elle NE porte PAS le chapeau ni la confirmation (hors règle, assumé)',
+  !P.cles.includes('nf')&&!P.cles.includes('conf'), P.cles.join(','));
+t('vide = masqué : à vérifier, différentiels, références, doses, schémas, documents',
+  !P.vides.verify&&!P.vides.diff&&!P.vides.ref&&!P.vides.poso&&!P.vides.img&&!P.vides.att, JSON.stringify(P.vides));
+t('… MAIS le chapeau et la confirmation restent VISIBLES même vides',
+  P.vides.nf&&P.vides.conf, JSON.stringify(P.vides));
+t('chaque entrée de liste recrée sa section',
+  Object.values(P.recree).every(Boolean), JSON.stringify(P.recree));
+t('le sélecteur de la vignette liste tous les blocs + « aucun »',
+  P.nOptions===P.nBlocs+1, `${P.nOptions} options pour ${P.nBlocs} blocs`);
+t('associer une image la met sur UN SEUL bloc', P.porteurs===1, String(P.porteurs));
+t('… et le sélecteur montre le porteur', P.memorise);
+t('« aucun bloc » détache', P.detache===0, String(P.detache));
+t('compte de relecture : masqué à zéro remarque', P.revZero);
+t('… affiché avec son compte au-delà', !P.revUn.cache&&/△ 1/.test(P.revUn.txt), JSON.stringify(P.revUn));
+t('… et il ancre en DÉPLIANT le volet', P.voletOuvert);
+
+console.log('=== lot 3 : le placard de l’essai ===');
+const E2=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+  const cb=document.getElementById('crisisBand');
+  const hach=()=>getComputedStyle(cb,'::before').opacity;
+  const tag=()=>cb.querySelector('.cb-tag');
+  state.draft.notForget=['Adrénaline IM'];renderEditor();await w(350);
+  document.getElementById('hdrPreview').click();await w(700);window.scrollTo(0,0);await w(250);
+  /* COÛT NUL : on isole UNE variable, le placard lui-même. Dans l'éditeur `#crisisBand` est masqué
+     (hauteur 0), donc le comparer à l'essai ne mesurerait rien ; on retire la seule classe du
+     placard, on mesure, on la remet. C'est une mesure de CSS, pas une reconstruction d'état. */
+  const hAvecPlacard=Math.round(cb.getBoundingClientRect().height);
+  const opac=hach();                       // LU AVANT le retrait : la hachure est en fondu 300 ms
+  cb.classList.remove('ess');await w(120);
+  const hAvant=Math.round(cb.getBoundingClientRect().height);
+  cb.classList.add('ess');await w(120);
+  return {classe:cb.classList.contains('ess'),hachure:opac,hAvecPlacard,
+    etiquetteCachee:tag().hidden,
+    hauteur:hAvecPlacard,hAvant,
+    pilule:(document.getElementById('hdrCrisis')||{}).textContent||'',
+    badge:(document.querySelector('.hdr-badge')||{}).textContent||'',
+    barre:document.querySelector('header.bar').classList.contains('ess')};});
+t('essai : la hachure est posée sur le bandeau', E2.classe&&E2.hachure==='1', JSON.stringify(E2.hachure));
+t('… et sur la barre, pour le relais au défilement', E2.barre);
+t('AUCUNE étiquette de bandeau (la barre porte déjà les mots)', E2.etiquetteCachee);
+t('… les mots sont bien dans la barre', /Aperçu/.test(E2.pilule)&&/rien n’est enregistré/.test(E2.badge),
+  E2.pilule+' | '+E2.badge);
+t('COÛT NUL en hauteur de bandeau', E2.hauteur===E2.hAvant, `${E2.hAvant} → ${E2.hauteur}`);
+
 console.log(`\n${ok}/${ok+ko} OK${ko?` — ${ko} ÉCHEC(S)`:''}`);
 await br.close();srv.close();process.exit(ko?1:0);
