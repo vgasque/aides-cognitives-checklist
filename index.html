@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-y69ZJvGqIkoX8VPsTz+ne/SEnGRSGMhi0MWN4ukEuuw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-c/LR0RbfJEIm5w2s3fp+k4DzcSCr/2lheH2o2YIJ9RE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -401,8 +401,17 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Bascule de l'historique : un interrupteur d'ÉTAT (« synchronisé / sur cet appareil »), pas un
      sélecteur segmenté — les deux valeurs ne sont pas des modes pairs, l'une est la négation de
      l'autre (doctrine v4.25.0). */
-  .ss-tog{width:100%;min-height:44px;text-align:left;font-weight:700}
-  .ss-tog.on{background:var(--ok-soft);border-color:var(--ok-line);color:var(--ok)}
+  /* v4.77.0 : une LIGNE de réglage (libellé à gauche, contrôle à droite), plus un bouton pleine
+     largeur qui empruntait la forme d'une ACTION pour porter un état. Pastille + MOT, jamais la
+     couleur seule ; le vert `--ok` est le registre CONFIRMATION quand c'est « Oui ». */
+  .ss-tog{flex:none;min-height:36px;display:inline-flex;align-items:center;gap:7px;padding:0 12px;
+    border:1px solid var(--line-strong);border-radius:18px;background:var(--surface);color:var(--ink);
+    font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer}
+  .ss-tog .ss-dot{width:9px;height:9px;border-radius:50%;background:var(--line-strong);flex:none}
+  .ss-tog:hover{background:var(--surface-2)}
+  .ss-tog:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .ss-tog.on{background:var(--ok-soft);border-color:var(--done-line);color:var(--ok)}
+  .ss-tog.on .ss-dot{background:var(--ok)}
 
   .tg-list{display:grid;gap:8px;margin-bottom:8px}
   .tg-row{display:grid;grid-template-columns:1fr 1fr auto;gap:6px;align-items:center}
@@ -2103,7 +2112,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .tk-panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:13px 14px;margin-bottom:14px}
   .tk-head{display:flex;align-items:center;gap:10px;margin-bottom:9px}
   .tk-head b{color:var(--ink-soft);font-size:11px;letter-spacing:.07em;text-transform:uppercase;flex:1}
-  .tk-add{background:var(--primary);color:var(--on-primary);border:0;border-radius:var(--radius-sm);min-height:44px;padding:8px 13px;font-size:13.5px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
+  /* « NOTER L'HEURE » N'EST PAS L'ACTION PRIMAIRE DE L'ÉCRAN (v4.77.0, question utilisateur : « le
+     bouton fond bleu Noter l'heure n'est-il pas en contradiction avec la règle d'un seul bouton
+     bleu ? »). Il l'était : en session, l'écran porte déjà « Continuer — … → » (ou « Confirmé —
+     démarrer la session » avant), et c'est LUI qui fait avancer le soin. Un second aplat bleu dans
+     le rail mettait un horodatage au même niveau de saillance qu'un geste de checklist.
+     Il passe donc TONAL — registre de l'action, sans la prééminence : `--primary-soft` + bordure,
+     exactement la grammaire de `.btn-new.tonal` quand « Reprendre » lui prend le remplissage. Rien
+     ne change de sa cible (44 px) ni de sa place. */
+  .tk-add{background:var(--primary-soft);color:var(--primary-dk);border:1px solid var(--primary);border-radius:var(--radius-sm);min-height:44px;padding:8px 13px;font-size:13.5px;font-weight:700;display:inline-flex;align-items:center;gap:6px}
+  .tk-add:hover{background:var(--primary-100)}
   .tk-add:hover{background:var(--primary-hi)}
   .tk-item{border-top:1px solid var(--line)}
   .tk-row{display:flex;gap:9px;align-items:center;padding:8px 0}
@@ -2542,13 +2560,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      « ▶ Essayer » (règle « un seul bouton rempli par écran », v4.0.3). Tonal, pas plein. */
   .ed-door{display:flex;align-items:center;gap:10px;min-height:52px;font-size:13.5px;text-align:left;
     position:sticky;bottom:calc(10px + env(safe-area-inset-bottom));z-index:6;
-    background:var(--primary-soft);border:1.5px dashed var(--primary);box-shadow:var(--shadow);
+    background:var(--primary);border:0;box-shadow:var(--shadow-primary);
     margin-top:18px;padding:8px 12px}
-  .ed-door:hover{background:var(--primary-100)}
+  .ed-door:hover{background:var(--primary-hi)}
   .edd-p{flex:none;width:30px;height:30px;display:grid;place-items:center;border-radius:50%;
-    background:var(--surface);border:1px solid var(--primary);color:var(--primary-dk);font-size:15.5px;font-weight:800}
-  .edd-l{flex:none;font-weight:800;color:var(--primary-dk)}
-  .edd-c{flex:1;min-width:0;font-size:12px;font-weight:500;color:var(--primary-dk);opacity:.85;
+    background:var(--on-primary);color:var(--primary-dk);font-size:15.5px;font-weight:800}
+  .edd-l{flex:none;font-weight:800;color:var(--on-primary)}
+  .edd-c{flex:1;min-width:0;font-size:12px;font-weight:500;color:var(--on-primary);opacity:.88;
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right}
   /* Sous 430 px, la glose s'EFFACE plutôt que de se tronquer : c'est un exemple, pas
      l'information, et « bloc · minuteur · dose · s… » n'apprend plus rien. Palier mesuré à 400 px,
@@ -4484,7 +4502,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
          (aucun bouton mort) et hors des éditeurs. -->
     <button class="hdr-undo" id="hdrUndo" hidden title="Annuler le dernier geste (Cmd/Ctrl-Z)" aria-label="Annuler le dernier geste"></button>
     <span class="hdr-saved" id="hdrSaved" role="status" hidden></span>
-    <button class="hdr-act2 primary" id="hdrPreview" hidden title="Dérouler le brouillon comme en session — rien n'est enregistré" aria-label="Essayer"><span class="pv-ic" aria-hidden="true">▶</span><span class="pv-lbl">▶ Essayer</span></button>
+    <!-- « ▶ Essayer » passe en TONAL (v4.77.0) : l'unique bouton REMPLI de l'éditeur est désormais la
+         porte « ＋ ». C'est un arbitrage, pas un détail — l'action primaire d'un ÉDITEUR est
+         d'écrire, et la porte est l'entrée de l'écriture ; dérouler son brouillon vient après. La
+         règle « un seul bouton rempli par écran » (v4.0.3) est donc tenue, dans l'autre sens. -->
+    <button class="hdr-act2" id="hdrPreview" hidden title="Dérouler le brouillon comme en session — rien n'est enregistré" aria-label="Essayer"><span class="pv-ic" aria-hidden="true">▶</span><span class="pv-lbl">▶ Essayer</span></button>
     <button class="hdr-theme" id="hdrTheme" aria-label="Thème"></button>
     <button class="hdr-more" id="hdrMore" hidden aria-haspopup="menu" aria-expanded="false" aria-label="Actions"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><circle cx="4" cy="10" r="2"/><circle cx="10" cy="10" r="2"/><circle cx="16" cy="10" r="2"/></svg></button>
     <button class="bar-acct" id="acctTop" aria-label="Compte et synchronisation" title="Compte"><svg class="ic-outline" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M5.5 20.5v-1a5 5 0 015-5h3a5 5 0 015 5v1"/></svg><svg class="ic-filled" width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="7.7" r="3.7"/><path d="M4.6 20a7.4 7.4 0 0114.8 0 1 1 0 01-1 1.1H5.6a1 1 0 01-1-1.1z"/></svg><span class="acct-ini" id="acctIni" hidden></span><span class="acct-dot" id="acctDot" hidden></span></button></div></div>
@@ -4815,7 +4837,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.76.0';
+const APP_VERSION='4.77.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -7881,7 +7903,16 @@ const mqRail=window.matchMedia('(min-width:780px)');
 // F4 (v4.59.0) : le cockpit 3 zones déplace le plan d'une colonne à l'autre — c'est un changement
 // de STRUCTURE, pas de style : il faut re-rendre au franchissement, comme les deux autres paliers.
 const mqCock=window.matchMedia('(min-width:1200px)');
-const _onReadBp=()=>{if(state.view==='read')render();};
+/* LES ÉDITEURS AUSSI FRANCHISSENT LES PALIERS (v4.77.0, signalé à l'usage : « les modifications à
+   l'algorithme ne fonctionnent plus en responsive — ne s'adapte pas à la largeur, repart en bas, ne
+   s'affiche plus en sidebar »). Ce garde ne couvrait que `read`, alors que l'éditeur change de
+   STRUCTURE au même seuil que la lecture : à ≥ 1000 px le schéma vit dans la colonne collante, en
+   dessous il est entrebâillé dans le flux. Redimensionner laissait donc la page telle qu'elle avait
+   été RENDUE — schéma en bas d'un formulaire large, ou colonne absente sur un écran large. Le
+   défaut préexistait (les trois colonnes de K11 avaient le même trou) ; le lot 1 l'a rendu visible
+   en donnant au schéma deux logements très différents. Règle : toute vue dont la STRUCTURE dépend
+   d'un palier doit être listée ici — c'est le pendant exact de `_onHomeBp` pour l'accueil. */
+const _onReadBp=()=>{if(state.view==='read'||state.view==='edit'||state.view==='protocolEdit')render();};
 [mqReadWide,mqRail,mqCock].forEach(mq=>{if(mq.addEventListener)mq.addEventListener('change',_onReadBp);else if(mq.addListener)mq.addListener(_onReadBp);});
 // La hauteur de l'en-tête est CONSTANTE : rien ne se replie au défilement. Un repli de la rangée
 // d'identité de l'accueil (classe `.condensed`) a été décrit ici et à deux autres endroits, au
@@ -10828,13 +10859,18 @@ function renderRead(){
    un contrôle aveugle au défaut qu'il couvre ne vaut rien. D'où `null`, que le harnais refuse.
    Aucun appelant ne se branche sur la valeur de retour (vérifié : 8 sites l'ignorent,
    `renderOvOnlyKeepAnchor` se contente de la relayer) — le changement est donc sans effet visible. */
-function keepAnchor(sel,rerender){
+/* `selAfter` (v4.77.0) : l'ancre d'ARRIVÉE peut porter un autre sélecteur que celle de DÉPART —
+   c'est le cas de la bascule guidé ↔ statique, où le même bloc s'appelle `.ov-block` d'un côté et
+   `.sv-cell`/`.sv-band` de l'autre. Sans ce paramètre, il fallait un sélecteur commun aux deux
+   vues, donc ne conserver que ce que les deux savent nommer. */
+function keepAnchor(sel,rerender,selAfter){
+  const apres=selAfter||sel;
   const el=sel?main.querySelector(sel):null;const top=el?el.getBoundingClientRect().top:null;
   rerender();
   if(top==null)return null;                                   // pas de sélecteur, ou ancre absente AVANT
-  const nl=sel?main.querySelector(sel):null;if(!nl)return null;   // ancre DISPARUE pendant le re-rendu
+  const nl=apres?main.querySelector(apres):null;if(!nl)return null;   // ancre DISPARUE pendant le re-rendu
   const d=nl.getBoundingClientRect().top-top;if(d)window.scrollBy(0,d);
-  const r=main.querySelector(sel);
+  const r=main.querySelector(apres);
   return r?Math.round(r.getBoundingClientRect().top-top):null;}
 function renderKeepAnchor(sel){return keepAnchor(sel,render);}
 // Câblage des écouteurs de la vue lecture (seconde moitié de l'ancien renderRead) : navigation entre
@@ -11415,11 +11451,26 @@ bindModalDismiss(planModal,closePlanSheet);
       rien à retrouver), et bloc courant HORS de l'écran avant la bascule (le ramener au même
       décalage négatif déposerait la vue à un endroit qu'on ne regardait pas ; même test de
       visibilité qu'`ovAdvanceRender`). */
-   const CUR='.ov-block.cur,.sv-cell.cur,.sv-band.cur';
-   const av=main.querySelector(CUR);
-   const vu=(()=>{if(!av)return false;const r=av.getBoundingClientRect();
-     return r.bottom>stickBase()&&r.top<(window.innerHeight/zoomF());})();
-   const d=keepAnchor(vu?CUR:null,render);
+   /* ON GARDE LE PREMIER BLOC VISIBLE — SESSION OU PAS (v4.77.0, signalé à l'usage : « je n'ai
+      pas démarré de session, je suis en train de scroller, l'en-tête est rétrécie, je passe en
+      statique, je retourne en haut de la page avec l'en-tête dépliée et ça fait moche /
+      perturbant »). La v4.74.2 ancrait sur le bloc COURANT, ce qui ne vaut que si une session est
+      démarrée : sans elle, aucun `.cur` n'existe et l'on retombait sur `scrollTo(0,0)` — donc
+      exactement le saut décrit, aggravé par l'en-tête qui se redéplie au passage.
+      L'ancre juste n'est pas « le bloc courant » mais « CE QU'ON REGARDE » : le premier bloc
+      dont le bas passe sous les couches collantes. Les deux vues portent l'ID de bloc dans un
+      attribut (`data-ovb` en dynamique, `data-svgo` en statique), donc l'ancre se TRADUIT d'une
+      vue à l'autre — c'est ce que le second sélecteur de `keepAnchor` permet.
+      On ne repart du haut que si l'on y était déjà, ou si aucun bloc n'est identifiable. */
+   const SEL=toStatic?'[data-ovb]':'[data-svgo]';
+   const dest=toStatic?'[data-svgo="%"]':'[data-ovb="%"]';
+   const vus=[...main.querySelectorAll(SEL)];
+   const base=stickBase();
+   const premier=vus.find(e=>e.getBoundingClientRect().bottom>base+2);
+   const id=premier?(premier.dataset.ovb||premier.dataset.svgo):null;
+   const selAv=id?SEL.slice(0,-1)+'="'+CSS.escape(id)+'"]':null;
+   const selAp=id?dest.replace('%',CSS.escape(id)):null;
+   const d=keepAnchor(selAv,render,selAp);
    if(d==null)window.scrollTo(0,0);
    const w=main.querySelector(toStatic?'.sv-wrap':'.care-path,.ov-wrap');
    if(w){w.classList.add(toStatic?'rm-anim-r':'rm-anim-l');
@@ -13244,8 +13295,20 @@ function edAdd(f,kind){
   /* On amène l'auteur SUR ce qu'il vient de créer : une porte qui demande un geste pour ouvrir
      et un autre pour retrouver son résultat n'a rien simplifié. Ancrage direct, jamais animé
      (`behavior:'smooth'` ne défilait pas du tout sur de grands écarts — mesuré en v4.63.0). */
+  /* ON AMÈNE TOUJOURS SUR CE QU'ON VIENT DE CRÉER (v4.77.0, signalé à l'usage : « quand je clique
+     sur ajouter une complication, rien ne se passe si le bloc est masqué »). Rien n'était masqué :
+     la section réapparaît bien, mais elle est en bas d'un formulaire de plusieurs milliers de
+     pixels, et seules les LISTES avaient droit à l'ancrage — un minuteur, un compteur, une
+     complication ou un bloc naissaient hors de l'écran, donc « rien ne se passe ». Une porte qui
+     demande un geste pour ouvrir et un autre pour retrouver son résultat n'a rien simplifié
+     (v4.65.0) : la règle valait déjà, elle n'était appliquée qu'au quart. */
+  const CIBLE={steps:'.blk',decision:'.blk.blk-dec',interval:'.tmedit',stopwatch:'.tmedit',
+    counter:'.trow',cx:'.cx-edit-row'};
   if(ED_ADD_LIST[kind]){const r=main.querySelectorAll('[data-key="'+ED_ADD_LIST[kind]+'"]');
-    const c=r[r.length-1];if(c){c.scrollIntoView({block:'center'});c.focus();}}}
+    const c=r[r.length-1];if(c){c.scrollIntoView({block:'center'});c.focus();}return;}
+  if(CIBLE[kind]){const r=main.querySelectorAll(CIBLE[kind]);const c=r[r.length-1];
+    if(c){c.scrollIntoView({block:'center'});
+      const f2=c.querySelector('input,textarea,select');if(f2)f2.focus({preventScroll:true});}}}
 function edPaletteHtml(){
   /* Le repli KV ne sait pas stocker de binaire : la rangée « Document » y serait un bouton MORT.
      On ne l'affiche pas plutôt que de la désactiver — la porte doit dire ce qui est possible ICI. */
@@ -13313,6 +13376,19 @@ function edGrabLabelL(f){
 function edGrabIsCrit(){const g=state.edGrab;if(!g||g.kind!=='s'||!state.draft)return false;
   const b=(state.draft.blocks||[]).find(x=>x.id===g.bid);
   return !!b&&stepIsCrit((b.steps||[])[g.si]||'');}
+/* L'ANCRE DE L'OBJET TENU (v4.77.0, signalé à l'usage : « quand on annule le mode déplacer, on ne
+   revient pas à la même hauteur, on est décalé en bas »). PRENDRE et POSER étaient ancrés depuis
+   MK5-b ; ABANDONNER ne l'était pas — le ✕ et Échap faisaient un `renderEditor()` nu, le retrait
+   des interstices raccourcissait la page de leur hauteur cumulée, et l'écran remontait d'autant.
+   Un geste ANNULÉ ne doit rien déplacer, pas même le regard : c'est la moitié qui manquait. */
+function edGrabAnchorSel(){
+  const g=state.edGrab;if(!g)return null;
+  if(g.kind==='l')return '[data-lgrab="'+CSS.escape(g.key+':'+g.i)+'"]';
+  if(g.kind==='b')return '.blk[data-bid="'+CSS.escape(g.bid)+'"]';
+  return '.blk[data-bid="'+CSS.escape(g.bid)+'"] .li[data-si="'+g.si+'"]';}
+function edGrabDrop(){
+  const sel=edGrabAnchorSel();state.edGrab=null;
+  if(sel)keepAnchor(sel,renderEditor);else renderEditor();}
 function edGrabBanner(f){
   if(!state.edGrab)return '';
   return `<div class="ed-grab" role="status"><span class="eg-l"><b>Déplacement</b> : ${esc(edGrabLabel(f))}</span><span class="eg-h">touchez une destination</span><button type="button" class="eg-x" id="edGrabX" aria-label="Annuler le déplacement">✕</button></div>`;}
@@ -13327,7 +13403,7 @@ function edDrop(at,lbl,warn){
   const idx=Math.min(parseInt(String(at).split(':').pop(),10)||0,6);
   return `<button type="button" class="ed-drop${warn?' warn':''}" style="--i:${idx}" data-drop="${esc(at)}">${warn?'△ ':''}${esc(lbl)}</button>`;}
 function blockEditor(b,blocks){if(b.type==='decision'){return `<div class="blk blk-dec${edGrabCls('b',b.id)}" data-bid="${b.id}"><div class="blk-top"><span class="blk-n dec" aria-hidden="true">◆</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Réévaluation)" aria-label="Titre de la décision"><button class="mini grab" draggable="true" data-grab="b:${b.id}" aria-label="Déplacer ce bloc" title="Déplacer le bloc — touchez, puis touchez la destination">⠿</button></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Question</div><input type="text" data-bf="question" value="${esc(b.question)}" placeholder="ex. Réponse à l'adrénaline ?" aria-label="Question posée" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)"><div class="sub">Réponses → bloc cible</div>${(b.options.length?b.options:[{label:'',target:''}]).map((o,i)=>`<div class="optedit" data-oi="${i}"><input type="text" data-of="label" value="${esc(o.label)}" placeholder="ex. Oui" aria-label="Libellé de la réponse ${i+1}">${targetSelect(blocks,b.id,o.target)}<button class="mini del" data-optdel="${i}" aria-label="Supprimer la réponse">×</button></div>`).join('')}<button class="add-line" data-addopt>+ Ajouter une réponse</button>${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
-  return `<div class="blk${edGrabCls('b',b.id)}" data-bid="${b.id}"><div class="blk-top"><span class="blk-n" aria-hidden="true">${(blocks||[]).indexOf(b)+1}</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Mesures immédiates)" aria-label="Titre du bloc"><button class="mini grab" draggable="true" data-grab="b:${b.id}" aria-label="Déplacer ce bloc" title="Déplacer le bloc — touchez, puis touchez la destination">⠿</button></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Étapes (cochables en mode crise)</div><details class="crit-guide"${(()=>{try{return localStorage.getItem('ac-cg-folded')?'':' open';}catch(e){return ' open';}})()}><summary>${uiIcon('warn',11)} Rouge, △ ambre, réponse attendue — règles d'usage</summary><b class="cg-r">${uiIcon('warn',11)} Rouge</b> : ce qui tue si on l'oublie (memory item, geste vital). <b class="cg-a">△ Ambre</b> : là où l'on risque de se tromper (dose/dilution à vérifier avant injection, contre-indication à écarter, confusion voie/site/produit, seuil à contrôler avant de poursuivre). Les deux → rouge. <b>Réponse attendue</b> : « challenge :: réponse » (ex. « Adrénaline IM :: 0,01 mg/kg — max 0,5 mg ») — la réponse devient la pilule à confirmer en lecture (challenge-response).</details>${(b.steps.length?b.steps:['']).map((s,i)=>`${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+i,i===0?'Poser en tête':'Poser ici',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<div class="li${stepIsCrit(s)?' li-crit':(stepIsVigil(s)?' li-vigil':'')}${edGrabCls('s',b.id,i)}" data-si="${i}"><span class="li-box" aria-hidden="true">${stepIsCrit(s)?uiIcon('warn',13):(stepIsVigil(s)?'△':'')}</span><input type="text" data-sf value="${esc(stepText(s))}" placeholder="Nouvelle étape…" aria-label="Étape ${i+1}"><button class="mini grab li-grab" draggable="true" data-grab="s:${i}" aria-label="Déplacer l'étape ${i+1}" title="Déplacer — touchez, puis touchez la destination">⠿</button><span class="li-tools"><button class="mini crit-tgl${stepIsCrit(s)?' on':(stepIsVigil(s)?' vig':'')}" data-crit="${i}" title="${stepIsCrit(s)?'Étape CRITIQUE (rouge : ce qui tue si oublié) — toucher : vigilance (ambre)':(stepIsVigil(s)?'Étape VIGILANCE (ambre : risque d’erreur — dose, voie, seuil) — toucher : étape normale':'Étape normale — toucher : critique (rouge : ce qui tue si oublié)')}">${stepIsVigil(s)?'△':uiIcon('warn',14)}</button><span class="li-sp"></span><button class="mini del" data-rmstep="${i}" aria-label="Supprimer l'étape">×</button></span>${(()=>{const nt=stepNote(s);return nt?`<span class="li-note" role="status">△ <b>Relecture</b> — ${esc(nt)}</span>`:'';})()}</div>`).join('')}${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+(b.steps.length||0),'Poser en fin',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<p class="nf-guard" data-stepguard role="status">${stepGuardTxt(b.steps,'bloc')}</p><button class="add-line" data-addstep>+ Ajouter une étape</button><div class="sub">Étape suivante</div>${targetSelect(blocks,b.id,b.next)}${b.next?`<input type="text" data-bnextlbl value="${esc(b.nextLbl||'')}" maxlength="120" placeholder="Libellé du bouton Continuer (ex. réévaluation à 5 min)" aria-label="Libellé du bouton Continuer" style="margin-top:6px">`:''}${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
+  return `<div class="blk${edGrabCls('b',b.id)}" data-bid="${b.id}"><div class="blk-top"><span class="blk-n" aria-hidden="true">${(blocks||[]).indexOf(b)+1}</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Mesures immédiates)" aria-label="Titre du bloc"><button class="mini grab" draggable="true" data-grab="b:${b.id}" aria-label="Déplacer ce bloc" title="Déplacer le bloc — touchez, puis touchez la destination">⠿</button></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Étapes (cochables en mode crise)</div><details class="crit-guide"${(()=>{try{return localStorage.getItem('ac-cg-open')?' open':'';}catch(e){return '';}})()}><summary>${uiIcon('warn',11)} Rouge, △ ambre, réponse attendue — règles d'usage</summary><b class="cg-r">${uiIcon('warn',11)} Rouge</b> : ce qui tue si on l'oublie (memory item, geste vital). <b class="cg-a">△ Ambre</b> : là où l'on risque de se tromper (dose/dilution à vérifier avant injection, contre-indication à écarter, confusion voie/site/produit, seuil à contrôler avant de poursuivre). Les deux → rouge. <b>Réponse attendue</b> : « challenge :: réponse » (ex. « Adrénaline IM :: 0,01 mg/kg — max 0,5 mg ») — la réponse devient la pilule à confirmer en lecture (challenge-response).</details>${(b.steps.length?b.steps:['']).map((s,i)=>`${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+i,i===0?'Poser en tête':'Poser ici',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<div class="li${stepIsCrit(s)?' li-crit':(stepIsVigil(s)?' li-vigil':'')}${edGrabCls('s',b.id,i)}" data-si="${i}"><span class="li-box" aria-hidden="true">${stepIsCrit(s)?uiIcon('warn',13):(stepIsVigil(s)?'△':'')}</span><input type="text" data-sf value="${esc(stepText(s))}" placeholder="Nouvelle étape…" aria-label="Étape ${i+1}"><button class="mini grab li-grab" draggable="true" data-grab="s:${i}" aria-label="Déplacer l'étape ${i+1}" title="Déplacer — touchez, puis touchez la destination">⠿</button><span class="li-tools"><button class="mini crit-tgl${stepIsCrit(s)?' on':(stepIsVigil(s)?' vig':'')}" data-crit="${i}" title="${stepIsCrit(s)?'Étape CRITIQUE (rouge : ce qui tue si oublié) — toucher : vigilance (ambre)':(stepIsVigil(s)?'Étape VIGILANCE (ambre : risque d’erreur — dose, voie, seuil) — toucher : étape normale':'Étape normale — toucher : critique (rouge : ce qui tue si oublié)')}">${stepIsVigil(s)?'△':uiIcon('warn',14)}</button><span class="li-sp"></span><button class="mini del" data-rmstep="${i}" aria-label="Supprimer l'étape">×</button></span>${(()=>{const nt=stepNote(s);return nt?`<span class="li-note" role="status">△ <b>Relecture</b> — ${esc(nt)}</span>`:'';})()}</div>`).join('')}${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+(b.steps.length||0),'Poser en fin',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<p class="nf-guard" data-stepguard role="status">${stepGuardTxt(b.steps,'bloc')}</p><button class="add-line" data-addstep>+ Ajouter une étape</button><div class="sub">Étape suivante</div>${targetSelect(blocks,b.id,b.next)}${b.next?`<input type="text" data-bnextlbl value="${esc(b.nextLbl||'')}" maxlength="120" placeholder="Libellé du bouton Continuer (ex. réévaluation à 5 min)" aria-label="Libellé du bouton Continuer" style="margin-top:6px">`:''}${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
 /* Éditeur des COMPLICATIONS (v4.26.0) : libellé de l'ÉVÉNEMENT + cible. La cible est soit un
    bloc de CETTE fiche (le sélecteur liste les blocs en premier), soit une AUTRE aide ou un
    protocole (demande utilisateur : « une complication peut ouvrir une nouvelle aide cognitive ») —
@@ -13434,6 +13510,7 @@ function renderEditor(){
   const isNew=!fiches.some(x=>x.id===f.id);
   const wideEdit=mqReadWide.matches;
   main.innerHTML=`${wideEdit?`<div class="read-grid ed-cockpit"><div class="read-main">`:''}`+`
+    ${edGrabBanner(f)}
     ${editorMetaFieldsHtml(f,'f',{titleLabel:'Titre de la situation',titlePh:'ex. Intoxication aux anesthésiques locaux',scopeHint:'où ranger cette fiche',codePh:'ex. URG-ANA-01',fem:true})}
     ${''/* v4.4.1 : les champs suivent l'ORDRE DE LECTURE du parcours de soin (chapeau « Ne pas
     oublier », ① confirmation, ② prise en charge + minuteurs + contexte local + posologie,
@@ -13442,7 +13519,7 @@ function renderEditor(){
     ${listEditor('Confirmation diagnostique','critères pour déclencher la fiche','confirmation',f.confirmation,false,{shell:'ed-card'})}
     <fieldset class="field"><label>Prise en charge <span class="hint">listes d'étapes + décisions conditionnelles</span></label>${wideEdit?'':(()=>{const n=(f.blocks||[]).length;if(!n)return '';
       const ouv=(()=>{try{return !!localStorage.getItem('ac-flowprev-open');}catch(e){return false;}})();
-      return `<div class="flow-prev${ouv?' on':''}"><button type="button" class="fp-tgl" id="fpTgl" aria-expanded="${ouv?'true':'false'}"><span class="flow-prev-h">Algorithme — aperçu automatique</span><span class="fp-n">${n} bloc${n>1?'s':''}</span><span class="fp-chev" aria-hidden="true">${ouv?'▴':'▾'}</span></button><div class="fp-box">${flowBlock(f)}</div></div>`;})()}${edGrabBanner(f)}${f.blocks.map((b,bi)=>((state.edGrab&&state.edGrab.kind==='b')?edDrop('B:'+bi,bi===0?'Poser avant le bloc 1':'Poser ici'):'')+blockEditor(b,blocks)).join('')}${(state.edGrab&&state.edGrab.kind==='b')?edDrop('B:'+f.blocks.length,'Poser en fin de fiche'):''}</fieldset>
+      return `<div class="flow-prev${ouv?' on':''}"><button type="button" class="fp-tgl" id="fpTgl" aria-expanded="${ouv?'true':'false'}"><span class="flow-prev-h">Algorithme — aperçu automatique</span><span class="fp-n">${n} bloc${n>1?'s':''}</span><span class="fp-chev" aria-hidden="true">${ouv?'▴':'▾'}</span></button><div class="fp-box">${flowBlock(f)}</div></div>`;})()}${f.blocks.map((b,bi)=>((state.edGrab&&state.edGrab.kind==='b')?edDrop('B:'+bi,bi===0?'Poser avant le bloc 1':'Poser ici'):'')+blockEditor(b,blocks)).join('')}${(state.edGrab&&state.edGrab.kind==='b')?edDrop('B:'+f.blocks.length,'Poser en fin de fiche'):''}</fieldset>
     ${''/* UNE SECTION VIDE N'ENSEIGNE PLUS RIEN (signalé à l'usage : « lorsque la liste minuteurs
     & compteurs, et complications est vide, ça fait bizarre »). Depuis la porte unique « ＋ » de
     la v4.65.0, c'est ELLE qui présente les types disponibles, avec leur glyphe et leur phrase :
@@ -13500,14 +13577,14 @@ function renderEditor(){
     const el=main.querySelector('.blk[data-bid="'+CSS.escape(b.dataset.edgo)+'"]');if(!el)return;
     el.scrollIntoView({block:'center'});
     el.classList.add('rev-flash');setTimeout(()=>el.classList.remove('rev-flash'),1300);});
-  {const gx=document.getElementById('edGrabX');if(gx)gx.onclick=()=>{state.edGrab=null;renderEditor();};}
+  {const gx=document.getElementById('edGrabX');if(gx)gx.onclick=edGrabDrop;}
   /* Échap repose l'objet — geste d'annulation universel de l'app (modales, lecteur, plan). Posé
      UNE fois, à la première ouverture d'éditeur : `_edEscBound` évite d'empiler un écouteur par
      re-rendu (l'éditeur se re-rend à chaque frappe de structure). */
   if(!window._edEscBound){window._edEscBound=true;
     document.addEventListener('keydown',e=>{
       if(e.key==='Escape'&&state.edGrab&&(state.view==='edit'||state.view==='protocolEdit')){
-        e.preventDefault();state.edGrab=null;renderEditor();}});}
+        e.preventDefault();edGrabDrop();}});}
   flowCtx={f,curId:null};
   bindFlowZoom();applyFlowZoom();restoreFlow();
   /* L'ENTREBÂILLEMENT NE RE-REND RIEN. Le schéma est déjà dans le DOM (entrebâillé, il est
@@ -13639,6 +13716,11 @@ function bindEditorEvents(f){
     card.querySelectorAll('[data-grab]').forEach(btn=>btn.onclick=()=>{
       const v=btn.dataset.grab;
       const bloc=v.charAt(0)==='b';
+      /* LA MÊME POIGNÉE REPOSE L'OBJET (signalé à l'usage). Un interrupteur qui ne s'éteint que par
+         un ✕ ailleurs à l'écran n'est pas un interrupteur : le geste qui prend doit rendre. */
+      {const g=state.edGrab;
+       if(g&&((bloc&&g.kind==='b'&&g.bid===v.slice(2))||(!bloc&&g.kind==='s'&&g.bid===b.id&&g.si===+v.slice(2)))){
+         edGrabDrop();return;}}
       state.edGrab=bloc?{kind:'b',bid:v.slice(2)}:{kind:'s',bid:b.id,si:+v.slice(2)};
       const anc=bloc?'.blk[data-bid="'+CSS.escape(b.id)+'"]'
         :'.blk[data-bid="'+CSS.escape(b.id)+'"] .li[data-si="'+(+v.slice(2))+'"]';
@@ -13692,6 +13774,22 @@ function bindEditorEvents(f){
     {label:'Dupliquer dans « Perso »',ic:uiIcon('copy',16),act:()=>dupToPerso('f',state.draft)},
     {label:'Exporter l’aide (.json)',ic:uiIcon('download',16),act:()=>exportData([migrate(JSON.parse(JSON.stringify(state.draft)))],'fiche-'+fileSlug(state.draft.title))},
   ]);
+  /* PENDANT UN DÉPLACEMENT, LE RESTE DU FORMULAIRE EST INERTE (v4.77.0, signalé à l'usage : « il
+     est possible de modifier le texte d'autres blocs/étapes et de supprimer d'autres blocs/étapes
+     pendant le déplacement, semble être une erreur »). C'en était une, et la plus coûteuse : on
+     pouvait SUPPRIMER l'objet tenu lui-même, ou celui qui précède la destination, et l'index gardé
+     dans `state.edGrab` désignait alors autre chose. Un déplacement est un geste MODAL : deux taps,
+     et rien d'autre entre les deux.
+     PAR L'ATTRIBUT NATIF `disabled`, pas par du CSS : il donne le grisé, il retire du parcours de
+     tabulation et il empêche le geste — trois propriétés qu'aucune règle de style ne donne
+     ensemble, et zéro apparence à inventer. Seuls restent actifs les organes DU déplacement (les
+     interstices, les poignées, le ✕ du bandeau). Ce n'est pas le patron `share-scribe`, qui garde
+     les contrôles cliquables pour ANNONCER un refus : ici il n'y a rien à annoncer — un contrôle
+     éteint pendant qu'un objet est « en main » se comprend seul. */
+  if(state.edGrab){
+    const vif='[data-drop],[data-ldrop],[data-grab],[data-lgrab],#edGrabX';
+    main.querySelectorAll('input,textarea,select,button').forEach(el=>{
+      if(!el.matches(vif))el.disabled=true;});}
 }
 // d / rerender : brouillon et re-rendu de l'éditeur hôte — fiche par défaut (compat historique),
 // protocole depuis v4.2.2 (listes « Références » partagées entre les deux éditeurs).
@@ -13723,6 +13821,8 @@ function bindListEditors(d,rerender){d=d||state.draft;rerender=rerender||renderE
      retrait des interstices ferait sauter la page de leur hauteur cumulée. */
   main.querySelectorAll('[data-lgrab]').forEach(b=>b.onclick=()=>{
     const p=b.dataset.lgrab.split(':');
+    {const g=state.edGrab;                                   // re-presser repose (cf. blocs/étapes)
+     if(g&&g.kind==='l'&&g.key===p[0]&&g.i===+p[1]){edGrabDrop();return;}}
     state.edGrab={kind:'l',key:p[0],i:+p[1]};
     keepAnchor('[data-lgrab="'+CSS.escape(b.dataset.lgrab)+'"]',rerender);});
   main.querySelectorAll('[data-ldrop]').forEach(b=>b.onclick=()=>{
@@ -14003,6 +14103,20 @@ main.addEventListener('input',()=>{if(edKind())edTouch(false);});
    `dragstart` n'existe qu'au POINTEUR : sur écran tactile rien ne change, le tap reste le geste,
    et aucun `touch-action` n'est posé sur la poignée — en poser un empêcherait de faire défiler la
    page depuis elle, ce qui coûterait plus que ça ne rapporte. */
+/* LES OUTILS D'UNE ÉTAPE NE SE DÉROBENT PLUS SOUS LE DOIGT (v4.77.0, signalé à l'usage : « quand
+   on clique sur une étape pour modifier le texte, le bouton ⚠ et le bouton supprimer ne
+   fonctionnent pas — ça replie juste le menu »). Le diagnostic est une séquence, pas un style :
+   `.li-tools` n'existe qu'en `:focus-within` (MK-flux, état 2) ; presser un outil DÉPLACE le focus
+   hors du champ, `:focus-within` devient faux, les outils passent en `display:none` — et le
+   `mouseup` retombe alors sur le vide, donc AUCUN `click` n'est émis. On voyait le menu se replier
+   parce que c'est littéralement ce qui se passait.
+   Remède : empêcher le déplacement de focus à la source. `preventDefault()` sur `pointerdown`
+   annule la mise au point sans annuler le clic — le champ garde le focus, la rangée reste en
+   édition, l'outil agit. Vaut pour tout ce qui vit dans un conteneur affiché en `:focus-within` :
+   si l'on en ajoute un demain, il doit entrer dans ce sélecteur. */
+main.addEventListener('pointerdown',e=>{
+  const t=e.target&&e.target.closest&&e.target.closest('.li-tools button');
+  if(t)e.preventDefault();});
 main.addEventListener('dragstart',e=>{
   const h=e.target&&e.target.closest&&e.target.closest('[data-grab],[data-lgrab]');
   if(!h||!edKind())return;
@@ -14579,6 +14693,13 @@ VALEURS AUTORISÉES
 - type d'un bloc : "steps" ou "decision" (exactement).
 - type d'un timer : "stopwatch" (chronomètre) ou "interval" (minuteur à cycle ;
   "seconds" = durée du cycle, "autoloop" = true pour reboucler).
+- LES "label" DE "timers" ET "counters" SE RELISENT APRÈS LE SOIN, pas seulement
+  pendant : ils nomment les repères du JOURNAL DES ACTIONS et les compteurs du
+  COMPTE-RENDU, où ils sont lus hors contexte, par quelqu'un qui n'était peut-être
+  pas là. Donc COURTS (2 à 4 mots) et sans ambiguïté hors contexte : « Adrénaline
+  (mg) », « Chocs », « Cycle RCP » — jamais « Compteur 1 », jamais une phrase.
+  La précision entre parenthèses est reléguée en méta à l'affichage : mettez l'unité
+  là (« Adrénaline (mg) »), pas dans le nom.
 - "status" : "draft" (exactement). "validation" : "" (vide — posée par moi après
   relecture).
 
@@ -15527,9 +15648,16 @@ function accountPrefsHtml(slot){
    bascule inerte serait une promesse creuse. */
 function sessSyncPrefHtml(){
   const on=sessSyncOn(),n=sessions.filter(x=>!x.live).length;
+  /* UNE LIGNE, PAS UN BOUTON PLEINE LARGEUR (v4.77.0, demande utilisateur : « plutôt un texte avec
+     une pastille »). C'est un RÉGLAGE, et les réglages de cette fenêtre sont des lignes
+     « libellé à gauche, contrôle à droite » depuis M5 (v4.71.0) — un bouton pleine largeur y
+     empruntait la forme d'une ACTION, alors qu'il ne fait que porter un état. La pastille garde le
+     vert `--ok` quand c'est « Oui » : registre CONFIRMATION, et le MOT l'accompagne toujours (la
+     couleur n'est jamais seule, règle 8). */
   return `<div class="auth-stats-h" style="margin-top:14px">Historique des sessions</div>
-    <button type="button" class="btn sm ss-tog${on?' on':''}" id="ssTog" role="switch" aria-checked="${on?'true':'false'}">
-      ${on?'✓ Synchronisé entre vos appareils':'Rester sur cet appareil seulement'}</button>
+    <div class="set-row"><span class="set-l" id="ssLbl">Synchroniser entre vos appareils</span>
+      <button type="button" class="ss-tog${on?' on':''}" id="ssTog" role="switch" aria-checked="${on?'true':'false'}" aria-labelledby="ssLbl">
+        <span class="ss-dot" aria-hidden="true"></span>${on?'Oui':'Non'}</button></div>
     <div class="st-hint" style="margin-bottom:4px">${on
       ? `Vos <b>${n}</b> session${n>1?'s':''} archivée${n>1?'s':''} suivent votre compte — <b>les sessions en cours ne partent jamais</b>.<details class="acct-more"><summary>En savoir plus</summary>La <b>trace de vérification</b> (do-verify) reste sur l’appareil qui l’a produite : un compte rendu consulté ailleurs le dit explicitement, plutôt que de se lire « aucune vérification n’a été faite ».</details>`
       : `Par défaut, un compte rendu de soin <b>ne quitte pas l’appareil</b>.<details class="acct-more"><summary>En savoir plus</summary>Activez si vous voulez le retrouver sur votre tablette ou votre téléphone. Seules les sessions <b>terminées</b> sont concernées — les sessions en cours ne partent jamais, et la trace de vérification reste sur l’appareil qui l’a produite.</details>`}</div>`;}
@@ -18019,7 +18147,14 @@ document.addEventListener('focusout',e=>{if(!_kbText(e.relatedTarget))document.b
    l'éditeur (le markup relit la clé) et aux sessions. */
 document.addEventListener('toggle',e=>{
   const d=e.target;
-  if(d&&d.matches&&d.matches('details.crit-guide')){try{localStorage.setItem('ac-cg-folded',d.open?'':'1');}catch(_){}}
+  /* v4.77.0 — REPLIÉ PAR DÉFAUT (demande utilisateur : « replie par défaut sur tous les blocs »).
+     La v4.31.0 l'ouvrait d'office pour qu'un nouveau venu voie la leçon ; l'expérience dit
+     l'inverse à l'usage : le guide se répète sur CHAQUE bloc d'étapes, si bien qu'une fiche à
+     quatre blocs affichait quatre fois le même paragraphe. La pédagogie est ailleurs depuis la
+     v4.65.0 — c'est la porte « ＋ » qui présente les registres au moment où on CHOISIT. Clé
+     RENOMMÉE (`ac-cg-open`) : réutiliser `ac-cg-folded` aurait fait rouvrir le guide chez tous
+     ceux qui l'avaient replié, c'est-à-dire punir ceux qui avaient déjà fait le geste. */
+  if(d&&d.matches&&d.matches('details.crit-guide')){try{localStorage.setItem('ac-cg-open',d.open?'1':'');}catch(_){}}
 },true);
 
 /* ===== Cmd/Ctrl-Z : l'anneau d'annulation de l'éditeur (v4.74.2) =====

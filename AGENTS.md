@@ -2024,6 +2024,79 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   quelque chose à relire. Le COMPTE (« △ n ») rejoint donc la barre, le seul endroit qui ne défile
   jamais, et ancre vers le volet en le DÉPLIANT ; le DÉTAIL reste en bas et sous la ligne qu'il vise.
   Registre ATTENTION, jamais rouge (rien n'est bloqué) ; masqué à zéro remarque.
+- **TOUTE VUE DONT LA STRUCTURE DÉPEND D'UN PALIER DOIT ÊTRE DANS `_onReadBp` (v4.77.0, signalé à
+  l'usage)** : il ne re-rendait qu'en vue `read`, alors que les ÉDITEURS changent de structure au
+  même seuil (≥ 1000 px le schéma vit dans la colonne collante, en dessous il est entrebâillé dans le
+  flux). Redimensionner laissait la page telle qu'elle avait été RENDUE. Le trou préexistait — les
+  trois colonnes de K11 l'avaient aussi — et le lot 1 l'a rendu visible en donnant au schéma deux
+  logements très différents.
+  **⚠ PIÈGE DE VÉRIFICATION À CONNAÎTRE** : le pane du navigateur intégré ne déclenche **NI `resize`
+  NI `matchMedia change`** sur un redimensionnement CDP (vérifié à la sonde). Un franchissement de
+  palier n'y est donc PAS éprouvable, et c'est exactement le genre de trou où un défaut survit à une
+  vérification manuelle. Playwright, lui, les émet : tout témoin de palier passe par un harnais.
+- **UN DÉPLACEMENT EST UN GESTE MODAL (v4.77.0, signalé à l'usage)** — trois moitiés manquaient à
+  MK5-b. (1) **ABANDONNER S'ANCRE COMME PRENDRE ET POSER** : le ✕ et Échap faisaient un
+  `renderEditor()` nu, et le retrait des interstices remontait l'écran de leur hauteur cumulée
+  (mesuré : −223 px au ✕, −446 px à Échap). Un geste ANNULÉ ne doit rien déplacer, pas même le
+  regard — d'où `edGrabDrop()`, seul point de sortie, et `edGrabAnchorSel()`. (2) **LA MÊME POIGNÉE
+  REPOSE L'OBJET** : un interrupteur qui ne s'éteint que par un ✕ ailleurs à l'écran n'est pas un
+  interrupteur. (3) **LE RESTE DU FORMULAIRE EST INERTE**, et c'était le plus coûteux : on pouvait
+  modifier ou SUPPRIMER l'objet tenu lui-même, ou celui qui précède la destination, et l'index gardé
+  dans `state.edGrab` désignait alors autre chose. Par l'attribut natif `disabled` (grisé + hors
+  tabulation + geste bloqué, sans apparence à inventer), pas par du CSS ; seuls restent actifs les
+  organes DU déplacement. Ce n'est PAS le patron `share-scribe`, qui garde les contrôles cliquables
+  pour ANNONCER un refus — ici il n'y a rien à annoncer.
+  **ET LE BANDEAU VIT HORS DU FIELDSET** : émis dans « Prise en charge », il ne s'affichait qu'à
+  partir de là — donc pas pour les listes du haut. Il est désormais en tête de formulaire.
+  **COROLLAIRE POUR LES TÉMOINS** : un contrôle qui laisse un objet « en main » éteint TOUT ce qui
+  est mesuré ensuite. Un témoin doit reposer l'objet avant de sortir (un état laissé derrière soi
+  fait échouer les autres pour la mauvaise raison).
+- **UN CONTENEUR AFFICHÉ EN `:focus-within` VOLE SON PROPRE CLIC (v4.77.0, signalé à l'usage : « le
+  bouton ⚠ et le bouton supprimer ne fonctionnent pas, ça replie juste le menu »)** — et le
+  diagnostic est une SÉQUENCE, pas un style. `.li-tools` n'existe qu'en `:focus-within` (MK-flux) ;
+  presser un outil déplace le focus hors du champ, `:focus-within` devient faux, les outils passent
+  en `display:none`, et le `mouseup` retombe dans le vide : **aucun `click` n'est émis**. On voyait
+  le menu se replier parce que c'est littéralement ce qui se passait. Remède : `preventDefault()` sur
+  `pointerdown`, qui annule la mise au point sans annuler le clic. **Tout ce qu'on logera demain dans
+  un conteneur `:focus-within` doit entrer dans ce sélecteur.**
+  **ET POUR LE MESURER, DE VRAIS CLICS** : un `.focus()` programmatique ne déclenche pas
+  `:focus-within` de façon fiable en headless (même leçon que l'anneau de focus d'`audit-a11y`, qui a
+  dû passer par de vraies touches Tab).
+- **LE GUIDE ROUGE/AMBRE EST REPLIÉ PAR DÉFAUT (v4.77.0, demande utilisateur)** : la v4.31.0
+  l'ouvrait d'office pour qu'un nouveau venu voie la leçon, mais il se répète sur CHAQUE bloc
+  d'étapes — une fiche à quatre blocs affichait quatre fois le même paragraphe. La pédagogie est
+  ailleurs depuis la v4.65.0 : c'est la porte « ＋ » qui présente les registres au moment où l'on
+  CHOISIT. Clé RENOMMÉE (`ac-cg-open`) : réutiliser `ac-cg-folded` aurait rouvert le guide chez tous
+  ceux qui l'avaient replié — punir ceux qui ont déjà fait le geste.
+- **L'ANCRE D'UNE BASCULE DE VUE EST CE QU'ON REGARDE, PAS L'ÉTAT (v4.77.0, signalé à l'usage)** :
+  la v4.74.2 ancrait sur le bloc COURANT, ce qui n'existe que session démarrée — sans elle on
+  retombait sur `scrollTo(0,0)`, donc un saut en haut avec l'en-tête qui se redéploie. L'ancre juste
+  est le PREMIER BLOC dont le bas passe sous les couches collantes, et elle se TRADUIT d'une vue à
+  l'autre par l'id de bloc (`data-ovb` en dynamique, `data-svgo` en statique) — d'où le troisième
+  paramètre de `keepAnchor` (ancre d'ARRIVÉE distincte de celle de départ).
+- **ON AMÈNE L'AUTEUR SUR CE QU'IL VIENT DE CRÉER — POUR TOUS LES TYPES (v4.77.0, signalé à l'usage :
+  « quand je clique sur ajouter une complication, rien ne se passe »)** : rien n'était masqué, mais
+  seules les LISTES avaient droit à l'ancrage ; un minuteur, un compteur, une complication ou un bloc
+  naissaient hors de l'écran, en bas d'un formulaire de plusieurs milliers de pixels. La règle valait
+  depuis la v4.65.0, elle n'était appliquée qu'au quart.
+- **DEUX RÈGLES DE SAILLANCE REMISES D'APLOMB (v4.77.0)** : « Noter l'heure » (`.tk-add`) était un
+  APLAT BLEU alors que l'écran porte déjà « Continuer — … → », qui fait avancer le soin — un
+  horodatage n'a pas le même rang qu'un geste de checklist ; il passe TONAL, cible et place
+  inchangées. Et **la porte « ＋ » devient l'unique bouton REMPLI de l'éditeur, « ▶ Essayer » passant
+  en tonal** : l'action primaire d'un ÉDITEUR est d'écrire, la porte est l'entrée de l'écriture,
+  dérouler son brouillon vient après. La règle « un seul bouton rempli par écran » (v4.0.3) est tenue
+  dans l'autre sens. **REFUSÉ** : un second `＋` dans l'en-tête — ce serait la dispersion que la
+  v4.65.0 a supprimée. **REFUSÉ AUSSI** : une liste des cinq derniers gestes dans l'anneau
+  d'annulation — nommer chaque point de reprise exigerait un libellé PAR SITE DE MUTATION, la liste
+  à tenir que `edCommit` et `persistLive` ont permis de ne pas écrire ; trois pressions de « ↶ »
+  donnent le même résultat sans ce coût.
+- **LES LIBELLÉS DE MINUTEURS ET DE COMPTEURS SE RELISENT APRÈS LE SOIN (v4.77.0, remarque
+  utilisateur — exacte)** : ils nomment les repères du JOURNAL DES ACTIONS (la fiche est l'une des
+  quatre sources de vocabulaire) et les compteurs du COMPTE-RENDU, où ils sont lus HORS CONTEXTE,
+  parfois par quelqu'un qui n'était pas là. Le prompt IA le dit désormais — 2 à 4 mots, l'unité entre
+  parenthèses (« Adrénaline (mg) »), jamais « Compteur 1 », jamais une phrase — et `audit-prompt`
+  le vérifie. Un réglage d'ÉTAT se présente en LIGNE, pas en bouton pleine largeur : la bascule de
+  synchro d'historique rejoint le gabarit des autres réglages (M5), pastille + MOT (règle 8).
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.

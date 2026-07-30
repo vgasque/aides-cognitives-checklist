@@ -36,7 +36,12 @@ const r=await p.evaluate(()=>{
     nexts:f.blocks.filter(b=>b.type==='steps').every(b=>b.next===null||f.blocks.some(x=>x.id===b.next)),
     poso:(f.posology||[]).length, promptLen:P.length,
     ditBulle:/en GRIS, dans une BULLE/.test(P), ditBudget:/BUDGETS/.test(P),
-    ditPeuTexte:/PEU DE TEXTE/.test(P), ditDisc:/"discriminant"/.test(P), ditOnDue:/"onDue"/.test(P)};});
+    ditPeuTexte:/PEU DE TEXTE/.test(P), ditDisc:/"discriminant"/.test(P), ditOnDue:/"onDue"/.test(P),
+    /* v4.77.0 — les libellés de minuteurs et de compteurs ne servent pas qu'À L'INSTANT : ils
+       nomment les repères du JOURNAL DES ACTIONS et les compteurs du COMPTE-RENDU, relus hors
+       contexte et parfois par quelqu'un qui n'était pas là. Une IA qui l'ignore produit
+       « Compteur 1 » ou une phrase, et le débriefing hérite du bruit. */
+    ditJournal:/JOURNAL DES ACTIONS/.test(P)&&/COMPTE-RENDU/.test(P)};});
 t('le schéma du prompt est un JSON valide', r.parse===true, r.err||r.extrait);
 if(r.parse){
   t('migrate() conserve "discriminant"', r.disc==='adulte', JSON.stringify(r.disc));
@@ -50,6 +55,8 @@ if(r.parse){
   t('le prompt EXPLIQUE l’effet visuel de « :: »', r.ditBulle===true);
   t('… énonce des budgets de longueur chiffrés', r.ditBudget&&r.ditPeuTexte);
   t('… documente "discriminant" et "onDue"', r.ditDisc&&r.ditOnDue);
+
+  t('… dit que les libellés de minuteurs/compteurs se relisent APRÈS le soin', r.ditJournal===true);
   console.log('  · longueur du prompt : '+r.promptLen+' caractères');
 }
 console.log(`\n${ok}/${ok+ko} OK${ko?` — ${ko} ÉCHEC(S)`:''}`);

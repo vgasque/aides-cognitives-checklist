@@ -1,4 +1,51 @@
-# Journal des modifications — archive (versions 3.0.0 à 4.62.0)
+# Journal des modifications — archive (versions 3.0.0 à 4.63.0)
+
+## [4.63.0] — 2026-07-29
+### Phase K — la doctrine relit par-dessus l'épaule, et la page revient au contenu clinique
+
+L'éditeur est l'envers de la crise : on y travaille au calme, et chaque minute investie là achète
+des secondes ici. Deux changements, sur l'éditeur existant.
+
+### K2 — la relecture doctrinale, en une seule grammaire
+Les garde-fous existaient déjà (chapeau à 4 rappels, bloc à 7 étapes, challenge trop long, étape
+qui cumule des actions) — mais **dispersés**, chacun sous son champ. L'auteur ne savait pas, en
+fermant l'éditeur, ce qu'il laissait derrière lui.
+
+`reviewNotes(f)` (pure, testée) les rassemble : chaque remarque **nomme sa cible** et l'action
+proposée. Un volet « △ Relecture · n » en pied de page les liste et **ancre** vers la ligne
+concernée, qui clignote une fois — sans voler le curseur : l'auteur vient de lire le bilan, c'est
+à lui de choisir ce qu'il corrige.
+
+**Jamais bloquant, jamais rouge**, et le volet le dit en toutes lettres : « aucune de ces
+remarques n'empêche d'enregistrer — c'est vous qui connaissez votre service ». L'ambre est le
+registre du « c'est là qu'on se trompe » ; le rouge reste à ce qui tue. Le volet **disparaît**
+quand il n'y a rien à dire : un panneau affichant « 0 remarque » serait du bruit permanent pour
+une information qu'on lit une fois.
+
+### K4 — « Identité » se replie
+Titre, catégorie, bibliothèque, code, date de validation et état occupaient tout le haut de
+l'éditeur : on traversait six champs administratifs avant d'atteindre ce qu'on vient écrire. Ils
+vivent maintenant dans un dépliant dont l'en-tête **porte déjà le titre et le code** — replié, il
+n'escamote donc rien qu'on vérifie d'un coup d'œil.
+
+**Ouvert d'office en création, replié en modification** : sur une fiche neuve, le titre est le
+premier geste ; sur une fiche existante, il est déjà écrit et ce qu'on vient corriger est le
+contenu. La distinction se fait sur le **titre vide**, pas sur l'existence de la fiche — dupliquer
+donne un titre, repartir de zéro n'en donne pas. Le statut éditorial reste **en plus** dans la
+barre : c'est un état, il ne se replie pas.
+
+### Piège mesuré
+`scrollIntoView({behavior:'smooth'})` **ne défilait pas du tout** sur 6 400 px d'écart — et aucun
+défilement de l'application n'est animé. L'ancrage est direct.
+
+### Non engagé, et pourquoi
+K1 (éditer dans la grammaire de lecture) et K5 (« ▶ Essayer » comme bouton rempli unique) changent
+le **geste** d'édition ; K10 (raccourcis à la frappe, import/export markdown structuré) ouvre un
+parseur ; K6 (le discriminant en champ séparé) ajoute un **champ modèle**, donc touche `migrate`,
+l'export v3 et l'affichage des titres partout. Chacun se décide séparément.
+
+Vérifié : **794 tests × 2 moteurs** (+9), a11y 301/301, doctrine 112/112, lecteur 14/14,
+consulter 8/8. Rien à rejouer côté serveur.
 
 ## [4.62.0] — 2026-07-29
 ### I4 — une seule grammaire de progression : guidé, journal et lecteur ne font plus qu'une

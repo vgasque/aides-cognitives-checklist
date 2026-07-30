@@ -51,7 +51,11 @@ const bLarge=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m
   return {etat:(document.getElementById('hdrSaved')||{}).textContent||''};});
 t('… et en toutes lettres au large', /^✓ Enregistré · \d{2}:\d{2}$/.test(bLarge.etat.trim()), bLarge.etat);
 t('« Enregistrer » n’existe plus', b.plusDeSave);
-t('l’unique bouton rempli est « ▶ Essayer »', b.boutonRempli.length===1&&/Essayer/.test(b.boutonRempli[0]), JSON.stringify(b.boutonRempli));
+/* v4.77.0 — L'UNIQUE BOUTON REMPLI A CHANGÉ DE MAINS, et c'est un arbitrage assumé : l'action
+   primaire d'un ÉDITEUR est d'écrire, donc c'est la porte « ＋ » qui porte le remplissage ; dérouler
+   son brouillon vient après. La règle « un seul bouton rempli par écran » (v4.0.3) est tenue dans
+   l'autre sens — le témoin la mesure donc dans l'autre sens aussi. */
+t('« ▶ Essayer » n’est plus le bouton rempli de la barre', b.boutonRempli.length===0, JSON.stringify(b.boutonRempli));
 
 await p.setViewportSize({width:390,height:900});
 console.log('=== le statut, et lui seul, sort du brouillon ===');
@@ -153,9 +157,15 @@ const f4=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   const b=document.querySelector('.ed-grab'); if(!b)return {absent:true};
   const l=b.querySelector('.eg-l'), x=b.querySelector('.eg-x');
   const rb=b.getBoundingClientRect(), rl=l.getBoundingClientRect(), rx=x.getBoundingClientRect();
-  return {larg:Math.round(rl.width), boite:Math.round(rb.width),
+  const out={larg:Math.round(rl.width), boite:Math.round(rb.width),
     hors:Math.round(rb.right)>320||Math.round(rx.right)>320,
-    croix:Math.round(Math.min(rx.width,rx.height))};});
+    croix:Math.round(Math.min(rx.width,rx.height))};
+  /* ON REPOSE L'OBJET AVANT DE SORTIR (v4.77.0) : un déplacement en cours désactive désormais tout
+     le reste du formulaire (geste MODAL). Le laisser ouvert éteignait silencieusement chaque
+     contrôle des blocs suivants — et un témoin qui laisse un état derrière lui fait échouer les
+     autres pour la mauvaise raison. */
+  state.edGrab=null;renderEditor();await w(400);
+  return out;});
 t('le libellé garde au moins la moitié de la largeur du bandeau',
   !f4.absent&&f4.larg>=f4.boite*0.5, JSON.stringify(f4));
 t('rien ne sort de l’écran à 320 px', !f4.absent&&!f4.hors, JSON.stringify(f4));
@@ -308,7 +318,8 @@ const L=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
 t('les huit listes ont leur poignée', ['notForget','confirmation','posology','verify','differentials','timers','counters'].every(k=>L.cles.includes(k)), L.cles.join(','));
 t('les ↑ ↓ ont disparu', L.flechesRestantes===0, String(L.flechesRestantes));
 t('une liste à UNE rangée n’a pas de poignée (aucun bouton mort)', L.refSeule);
-t('à la prise, l’objet ne bouge pas d’un pixel', L.derivePrise===0, `${L.derivePrise} px`);
+// Tolérance 1 px : sous-pixel de compositeur, même convention que les autres mesures d'ancrage.
+t('à la prise, l’objet ne bouge pas', Math.abs(L.derivePrise)<=1, `${L.derivePrise} px`);
 t('le bandeau NOMME l’objet pris', /Quatre/.test(L.bandeau), L.bandeau);
 t('l’objet pris est marqué', L.marque);
 t('CONFINÉ : la liste ne reçoit que ses propres interstices',
@@ -440,6 +451,131 @@ t('AUCUNE étiquette de bandeau (la barre porte déjà les mots)', E2.etiquetteC
 t('… les mots sont bien dans la barre', /Aperçu/.test(E2.pilule)&&/rien n’est enregistré/.test(E2.badge),
   E2.pilule+' | '+E2.badge);
 t('COÛT NUL en hauteur de bandeau', E2.hauteur===E2.hAvant, `${E2.hAvant} → ${E2.hauteur}`);
+
+
+/* ═══ v4.77.0 — LES DÉFAUTS SIGNALÉS À L'USAGE APRÈS LES TROIS LOTS ══════════════════════════════
+   NOTE DE MÉTHODE, elle vaut pour le premier contrôle : le pane du navigateur intégré ne déclenche
+   NI `resize` NI `matchMedia change` quand on redimensionne par CDP — il ne peut donc pas éprouver
+   un franchissement de palier. Playwright, lui, les émet. C'est exactement le genre de trou où un
+   défaut survit à une vérification manuelle, d'où le témoin. */
+console.log('=== v4.77.0 : l’éditeur suit les paliers ===');
+/* On REVIENT dans l'éditeur : le bloc précédent finit dans l'aperçu d'essai (`state.previewFrom`),
+   et rendre l'éditeur par-dessus une vue de lecture ne mesurerait rien de réel. */
+await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+  if(state.previewFrom){document.getElementById('hdrBack').click();await w(800);}
+  if(state.view!=='edit'){const f=fiches.find(x=>!x.deletedAt);await openEdit(f.id);await w(700);}});
+await p.waitForTimeout(400);
+{
+  await p.setViewportSize({width:1250,height:820}); await p.waitForTimeout(500);
+  const large=await p.evaluate(()=>({side:!!document.querySelector('#editSide .flow-scroll'),
+    flux:!!document.querySelector('.flow-prev')}));
+  await p.setViewportSize({width:820,height:820}); await p.waitForTimeout(500);
+  const etroit=await p.evaluate(()=>({side:!!document.querySelector('#editSide .flow-scroll'),
+    flux:!!document.querySelector('.flow-prev'),
+    dansLeFlux:!!document.querySelector('fieldset .flow-prev')}));
+  await p.setViewportSize({width:1250,height:820}); await p.waitForTimeout(500);
+  const retour=await p.evaluate(()=>({side:!!document.querySelector('#editSide .flow-scroll'),
+    flux:!!document.querySelector('.flow-prev')}));
+  t('≥ 1000 px : le schéma vit dans la colonne collante', large.side&&!large.flux, JSON.stringify(large));
+  t('< 1000 px : il redescend, entrebâillé, DANS le flux',
+    !etroit.side&&etroit.flux&&etroit.dansLeFlux, JSON.stringify(etroit));
+  t('et il remonte au retour (le palier est suivi dans les DEUX sens)',
+    retour.side&&!retour.flux, JSON.stringify(retour));
+}
+
+console.log('=== v4.77.0 : le mode déplacement est modal, et réversible ===');
+await p.setViewportSize({width:900,height:900});
+const R2=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+  const d=state.draft;
+  d.differentials=['Un','Deux','Trois'];renderEditor();await w(450);
+  const H=k=>document.querySelector('[data-lgrab="'+k+'"]');
+  H('differentials:2').scrollIntoView({block:'center'});await w(200);
+  const y0=Math.round(H('differentials:2').getBoundingClientRect().top);
+  H('differentials:2').click();await w(400);
+  // (a) le reste du formulaire est INERTE
+  const champ=document.querySelector('#f-title');
+  const suppr=document.querySelector('[data-bdel]');
+  const inerte={titre:!!champ.disabled,suppr:!!(suppr&&suppr.disabled),
+    interstice:!document.querySelector('[data-ldrop]').disabled,
+    poignee:!H('differentials:2').disabled,
+    croix:!document.getElementById('edGrabX').disabled};
+  // (b) le bandeau vit HORS du fieldset « Prise en charge »
+  const ban=document.querySelector('.ed-grab');
+  const banHorsFieldset=!ban.closest('fieldset');
+  // (c) re-presser la MÊME poignée repose l'objet, sans dérive
+  H('differentials:2').click();await w(450);
+  const y1=Math.round(H('differentials:2').getBoundingClientRect().top);
+  const repose=state.edGrab===null;
+  const rendu={titre:!document.querySelector('#f-title').disabled};
+  // (d) Échap repose aussi, sans dérive
+  H('differentials:2').click();await w(400);
+  document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));await w(450);
+  const y2=Math.round(H('differentials:2').getBoundingClientRect().top);
+  return {inerte,banHorsFieldset,repose,rendu,deriveRepose:y1-y0,deriveEchap:y2-y0,
+    edGrab:state.edGrab};});
+t('pendant un déplacement, les champs et les suppressions sont INERTES',
+  R2.inerte.titre&&R2.inerte.suppr, JSON.stringify(R2.inerte));
+t('… mais les interstices, la poignée et le ✕ restent actifs',
+  R2.inerte.interstice&&R2.inerte.poignee&&R2.inerte.croix, JSON.stringify(R2.inerte));
+t('le bandeau vit HORS du fieldset (il couvre tout le formulaire)', R2.banHorsFieldset);
+t('re-presser la même poignée REPOSE l’objet', R2.repose&&R2.edGrab===null);
+t('… et rend la main au formulaire', R2.rendu.titre);
+t('abandonner ne DÉCALE rien (poignée)', Math.abs(R2.deriveRepose)<=2, `${R2.deriveRepose} px`);
+t('abandonner ne DÉCALE rien (Échap)', Math.abs(R2.deriveEchap)<=2, `${R2.deriveEchap} px`);
+
+console.log('=== v4.77.0 : les outils d’une étape agissent vraiment ===');
+/* DE VRAIS CLICS, PAS UN `.focus()` : `.li-tools` n'existe qu'en `:focus-within`, et un focus
+   PROGRAMMATIQUE ne le déclenche pas de façon fiable en headless (même leçon que l'anneau de focus
+   dans `audit-a11y`, qui a dû passer par de vraies touches Tab). Surtout, le défaut EST une
+   séquence de pointeur — pointerdown qui vole le focus, `display:none`, plus de `click`. Il faut
+   donc la rejouer telle quelle : Playwright émet pointerdown/mousedown/mouseup/click. */
+{
+  const CH='.blk:not(.blk-dec) .li input[data-sf]';
+  const cle=await p.evaluate(()=>{const b=document.querySelector('.blk:not(.blk-dec)');return b?b.dataset.bid:null;});
+  const etapes=async()=>p.evaluate(id=>((state.draft.blocks.find(b=>b.id===id)||{}).steps||[]).slice(),cle);
+  await p.click(CH); await p.waitForTimeout(250);
+  const vus=await p.evaluate(()=>{const e=document.querySelector('.blk:not(.blk-dec) .li-tools');
+    return e?getComputedStyle(e).display:'absent';});
+  t('les outils apparaissent quand l’étape est en édition', vus!=='none'&&vus!=='absent', vus);
+  const av=await etapes();
+  await p.click('.blk:not(.blk-dec) .li[data-si="0"] .li-tools .crit-tgl');
+  await p.waitForTimeout(400);
+  const ap=await etapes();
+  t('le bouton ⚠ change bien le registre', av[0]!==ap[0], `« ${av[0]} » → « ${ap[0]} »`);
+  await p.click(CH); await p.waitForTimeout(250);
+  const n0=(await etapes()).length;
+  await p.click('.blk:not(.blk-dec) .li[data-si="0"] .li-tools .del');
+  await p.waitForTimeout(450);
+  const n1=(await etapes()).length;
+  t('le bouton ✕ supprime bien l’étape', n1===n0-1, `${n0} → ${n1}`);
+}
+
+console.log('=== v4.77.0 : guide replié, porte remplie, ajouts amenés à l’écran ===');
+const R4=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+  try{localStorage.removeItem('ac-cg-open');}catch(e){}
+  renderEditor();await w(450);
+  const guides=[...document.querySelectorAll('details.crit-guide')].map(x=>x.open);
+  const porte=document.getElementById('edAddOpen');
+  const prim=getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
+  const bidon=document.createElement('span');bidon.style.background=prim;document.body.appendChild(bidon);
+  const attendu=getComputedStyle(bidon).backgroundColor;bidon.remove();
+  const res={guides,porteFond:getComputedStyle(porte).backgroundColor,attendu,
+    essayerPrimaire:document.getElementById('hdrPreview').classList.contains('primary'),vus:{}};
+  // chaque type créé par la porte doit arriver DANS l'écran
+  for(const k of ['interval','counter','cx']){
+    porte.click();await w(250);
+    document.querySelector('[data-edadd="'+k+'"]').click();await w(600);
+    const sel={interval:'.tmedit',counter:'.trow',cx:'.cx-edit-row'}[k];
+    const l=[...document.querySelectorAll(sel)];const c=l[l.length-1];
+    const r=c.getBoundingClientRect();
+    res.vus[k]=r.top<window.innerHeight&&r.bottom>0;}
+  return res;});
+t('le guide rouge/ambre est REPLIÉ par défaut sur tous les blocs',
+  R4.guides.length>0&&R4.guides.every(x=>!x), JSON.stringify(R4.guides));
+t('la porte est le bouton REMPLI de l’écran', R4.porteFond===R4.attendu, `${R4.porteFond} vs ${R4.attendu}`);
+t('… et « ▶ Essayer » n’est plus primaire', !R4.essayerPrimaire);
+t('minuteur, compteur, complication : chacun arrive DANS l’écran',
+  Object.values(R4.vus).every(Boolean), JSON.stringify(R4.vus));
 
 console.log(`\n${ok}/${ok+ko} OK${ko?` — ${ko} ÉCHEC(S)`:''}`);
 await br.close();srv.close();process.exit(ko?1:0);

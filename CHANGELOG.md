@@ -1,5 +1,112 @@
 # Journal des modifications
 
+## [4.77.0] — 2026-07-30
+### Ce que les trois lots avaient cassé — et deux règles de saillance remises d'aplomb
+
+Huit défauts signalés à l'usage, sept venant des lots 1 à 3. Le plus instructif n'est pas un défaut
+mais un **trou de vérification** : le pane du navigateur intégré ne déclenche **ni `resize` ni
+`matchMedia change`** sur un redimensionnement CDP — vérifié à la sonde. Un franchissement de palier
+n'y est donc pas éprouvable, et c'est exactement là qu'un défaut survit à une vérification manuelle.
+Playwright, lui, les émet : le témoin est passé par lui.
+
+#### L'éditeur ne suivait plus les paliers
+`_onReadBp` ne re-rendait qu'en vue `read`, alors que l'éditeur change de **structure** au même seuil
+que la lecture : à ≥ 1000 px le schéma vit dans la colonne collante, en dessous il est entrebâillé
+dans le flux. Redimensionner laissait donc la page telle qu'elle avait été **rendue** — schéma en bas
+d'un formulaire large, ou colonne absente sur un grand écran. Le trou préexistait (les trois colonnes
+de K11 l'avaient aussi) ; le lot 1 l'a rendu visible en donnant au schéma deux logements très
+différents. Règle : toute vue dont la structure dépend d'un palier doit être listée là.
+
+#### Abandonner un déplacement décalait l'écran
+Prendre et poser étaient ancrés depuis MK5-b ; **abandonner ne l'était pas** — le ✕ et Échap
+faisaient un `renderEditor()` nu, le retrait des interstices raccourcissait la page de leur hauteur
+cumulée, et l'écran remontait d'autant. Défaut réintroduit pour éprouver le témoin : **−223 px au ✕,
+−446 px à Échap**. Un geste **annulé** ne doit rien déplacer, pas même le regard.
+
+#### Le déplacement devient un geste modal
+Deux défauts en un. La même poignée **repose** maintenant l'objet : un interrupteur qui ne s'éteint
+que par un ✕ ailleurs à l'écran n'est pas un interrupteur. Et le reste du formulaire est **inerte** —
+c'était le plus coûteux des trois lots : on pouvait modifier ou **supprimer** l'objet tenu lui-même,
+ou celui qui précède la destination, et l'index gardé dans `state.edGrab` désignait alors autre chose.
+
+Par l'attribut natif `disabled`, pas par du CSS : il donne le grisé, retire du parcours de tabulation
+et empêche le geste — trois propriétés qu'aucune règle de style ne donne ensemble. Ce n'est pas le
+patron `share-scribe`, qui garde les contrôles cliquables pour **annoncer** un refus : ici il n'y a
+rien à annoncer, un contrôle éteint pendant qu'un objet est « en main » se comprend seul.
+
+Le bandeau de déplacement **quitte** le fieldset « Prise en charge » et couvre tout le formulaire :
+déplacer une ligne de « Ne pas oublier » n'affichait son bandeau qu'à partir de « Prise en charge ».
+
+#### Les outils ⚠ et ✕ d'une étape ne fonctionnaient pas
+Le diagnostic est une **séquence**, pas un style. `.li-tools` n'existe qu'en `:focus-within`
+(MK-flux) ; presser un outil déplaçait le focus hors du champ, `:focus-within` devenait faux, les
+outils passaient en `display:none` — et le `mouseup` retombait dans le vide, donc **aucun `click`
+n'était émis**. On voyait « le menu se replier » parce que c'est littéralement ce qui se passait.
+`preventDefault()` sur `pointerdown` annule la mise au point sans annuler le clic.
+
+Corollaire de méthode pour le témoin : il fallait de **vrais clics** Playwright. Un `.focus()`
+programmatique ne déclenche pas `:focus-within` de façon fiable en headless — même leçon que l'anneau
+de focus d'`audit-a11y`, qui a dû passer par de vraies touches Tab.
+
+#### Le guide rouge/ambre est replié par défaut
+La v4.31.0 l'ouvrait d'office pour qu'un nouveau venu voie la leçon ; l'usage dit l'inverse : il se
+répète sur **chaque** bloc d'étapes, si bien qu'une fiche à quatre blocs affichait quatre fois le
+même paragraphe. La pédagogie est ailleurs depuis la v4.65.0 — c'est la porte « ＋ » qui présente les
+registres au moment où on **choisit**. Clé renommée (`ac-cg-open`) : réutiliser l'ancienne aurait
+rouvert le guide chez tous ceux qui l'avaient replié, c'est-à-dire puni ceux qui avaient fait le geste.
+
+#### La bascule guidé ↔ statique ne remonte plus en haut
+La v4.74.2 ancrait sur le bloc **courant**, ce qui ne vaut que si une session est démarrée : sans
+elle, aucun `.cur` n'existe et l'on retombait sur `scrollTo(0,0)` — donc le saut décrit, aggravé par
+l'en-tête qui se redéploie au passage. L'ancre juste n'est pas « le bloc courant » mais **ce qu'on
+regarde** : le premier bloc dont le bas passe sous les couches collantes. Les deux vues portent l'id
+de bloc dans un attribut (`data-ovb` / `data-svgo`), donc l'ancre se **traduit** d'une vue à l'autre —
+d'où un second sélecteur d'arrivée dans `keepAnchor`.
+
+#### « Rien ne se passe » quand la porte crée un minuteur
+Rien n'était masqué : la section réapparaît bien, mais elle est en bas d'un formulaire de plusieurs
+milliers de pixels, et seules les **listes** avaient droit à l'ancrage. Un minuteur, un compteur, une
+complication ou un bloc naissaient hors de l'écran. La règle « on amène l'auteur sur ce qu'il vient
+de créer » valait depuis la v4.65.0 ; elle n'était appliquée qu'au quart.
+
+#### Deux règles de saillance remises d'aplomb
+**« Noter l'heure » n'est pas l'action primaire de l'écran.** Il l'était : en session, l'écran porte
+déjà « Continuer — … → », et c'est lui qui fait avancer le soin ; un second aplat bleu mettait un
+horodatage au même niveau de saillance qu'un geste de checklist. Il passe tonal, cible et place
+inchangées.
+
+**La porte « ＋ » devient l'unique bouton rempli de l'éditeur, et « ▶ Essayer » passe en tonal.**
+C'est un arbitrage, pas un détail : l'action primaire d'un **éditeur** est d'écrire, la porte est
+l'entrée de l'écriture, dérouler son brouillon vient après. La règle « un seul bouton rempli par
+écran » (v4.0.3) est donc tenue, dans l'autre sens. **Refusé** : un second `＋` dans l'en-tête — ce
+serait la dispersion que la v4.65.0 a supprimée.
+
+#### La synchro d'historique devient une ligne
+Un bouton pleine largeur empruntait la forme d'une **action** pour porter un **état**. C'est
+désormais une ligne « libellé à gauche, contrôle à droite » au gabarit des autres réglages depuis M5,
+avec sa pastille — verte `--ok` quand c'est « Oui », et le **mot** l'accompagne toujours (règle 8).
+
+#### Le prompt IA : les libellés se relisent après le soin
+Remarque exacte, et plus forte que sa formulation : les `label` de `timers` et de `counters` nomment
+les repères du **journal des actions** et les compteurs du **compte-rendu**, où ils sont lus hors
+contexte, parfois par quelqu'un qui n'était pas là. Consigne ajoutée — 2 à 4 mots, l'unité entre
+parenthèses (« Adrénaline (mg) »), jamais « Compteur 1 », jamais une phrase — avec son témoin.
+
+#### Ce qui n'a pas changé, et pourquoi
+**L'anneau d'annulation reste pas-à-pas**, sans liste des cinq derniers gestes : nommer chaque point
+de reprise exigerait un libellé par site de mutation, exactement la liste à maintenir que `edCommit`
+et `persistLive` ont permis de ne pas écrire, et qui divergerait au premier geste ajouté. Presser
+trois fois « ↶ » donne le même résultat qu'un menu à trois entrées, sans ce coût. Le plafond reste
+20 — au-delà ce n'est plus une annulation mais une restauration, et elle a son outil (« Versions »).
+
+#### Vérifications
+809 tests × 2 moteurs, `npm run check` vert, **seize harnais verts** (`npm run audit` en sortie 0),
+a11y 301/301, doctrine 159/159, `audit-k5` **93/93**, prompt 13/13, partage 298/298. **Dix-sept
+nouveaux témoins**, tous vérifiés capables d'échouer. Un témoin antérieur corrigé au passage : il
+laissait un objet « en main », ce qui — depuis que le déplacement est modal — éteignait silencieusement
+tous les contrôles mesurés ensuite. Un témoin qui laisse un état derrière lui fait échouer les autres
+pour la mauvaise raison.
+
 ## [4.76.0] — 2026-07-30
 ### Lot 3 : la porte devient celle de l'aide entière
 
@@ -1140,50 +1247,3 @@ deviennent redondants et quittent la rangée d'outils.
 Vérifié : 794 tests × 2 moteurs, a11y 301/301, doctrine 112/112, et une sonde dédiée sur
 **Chromium et WebKit** (outils au focus, 12 cibles ≥ 44 px, garde-fou QRH, déplacement effectif,
 Échap sans effet de bord, cadre rouge du chapeau). Rien à rejouer côté serveur.
-
-## [4.63.0] — 2026-07-29
-### Phase K — la doctrine relit par-dessus l'épaule, et la page revient au contenu clinique
-
-L'éditeur est l'envers de la crise : on y travaille au calme, et chaque minute investie là achète
-des secondes ici. Deux changements, sur l'éditeur existant.
-
-### K2 — la relecture doctrinale, en une seule grammaire
-Les garde-fous existaient déjà (chapeau à 4 rappels, bloc à 7 étapes, challenge trop long, étape
-qui cumule des actions) — mais **dispersés**, chacun sous son champ. L'auteur ne savait pas, en
-fermant l'éditeur, ce qu'il laissait derrière lui.
-
-`reviewNotes(f)` (pure, testée) les rassemble : chaque remarque **nomme sa cible** et l'action
-proposée. Un volet « △ Relecture · n » en pied de page les liste et **ancre** vers la ligne
-concernée, qui clignote une fois — sans voler le curseur : l'auteur vient de lire le bilan, c'est
-à lui de choisir ce qu'il corrige.
-
-**Jamais bloquant, jamais rouge**, et le volet le dit en toutes lettres : « aucune de ces
-remarques n'empêche d'enregistrer — c'est vous qui connaissez votre service ». L'ambre est le
-registre du « c'est là qu'on se trompe » ; le rouge reste à ce qui tue. Le volet **disparaît**
-quand il n'y a rien à dire : un panneau affichant « 0 remarque » serait du bruit permanent pour
-une information qu'on lit une fois.
-
-### K4 — « Identité » se replie
-Titre, catégorie, bibliothèque, code, date de validation et état occupaient tout le haut de
-l'éditeur : on traversait six champs administratifs avant d'atteindre ce qu'on vient écrire. Ils
-vivent maintenant dans un dépliant dont l'en-tête **porte déjà le titre et le code** — replié, il
-n'escamote donc rien qu'on vérifie d'un coup d'œil.
-
-**Ouvert d'office en création, replié en modification** : sur une fiche neuve, le titre est le
-premier geste ; sur une fiche existante, il est déjà écrit et ce qu'on vient corriger est le
-contenu. La distinction se fait sur le **titre vide**, pas sur l'existence de la fiche — dupliquer
-donne un titre, repartir de zéro n'en donne pas. Le statut éditorial reste **en plus** dans la
-barre : c'est un état, il ne se replie pas.
-
-### Piège mesuré
-`scrollIntoView({behavior:'smooth'})` **ne défilait pas du tout** sur 6 400 px d'écart — et aucun
-défilement de l'application n'est animé. L'ancrage est direct.
-
-### Non engagé, et pourquoi
-K1 (éditer dans la grammaire de lecture) et K5 (« ▶ Essayer » comme bouton rempli unique) changent
-le **geste** d'édition ; K10 (raccourcis à la frappe, import/export markdown structuré) ouvre un
-parseur ; K6 (le discriminant en champ séparé) ajoute un **champ modèle**, donc touche `migrate`,
-l'export v3 et l'affichage des titres partout. Chacun se décide séparément.
-
-Vérifié : **794 tests × 2 moteurs** (+9), a11y 301/301, doctrine 112/112, lecteur 14/14,
-consulter 8/8. Rien à rejouer côté serveur.
