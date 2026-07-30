@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-wYpcYOZi52rH143kbRlf1i9rI0v9Tjlf3dZ04eAJrbQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-Du/bD1E/jUvVGwQIXfUK3BoWCVwuqmTBrZyJ894JURE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -2372,17 +2372,32 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .crit-guide .cg-r{color:var(--critical)}
   .crit-guide .cg-a{color:var(--verify)}
   .flow-prev-h{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 7px}
-  /* Dépliant de l'aperçu d'algorithme, éditeur étroit (< 1000 px). Gabarit de `.crit-guide` :
-     sommaire cliquable ≥ 44 px, chevron, compte à droite — le compte est ce qui permet de décider
-     s'il vaut la peine d'ouvrir sans l'ouvrir. */
-  details.flow-prev{margin:0 0 12px}
-  details.flow-prev>summary{display:flex;align-items:center;gap:8px;min-height:44px;cursor:pointer;list-style:none}
-  details.flow-prev>summary::-webkit-details-marker{display:none}
-  details.flow-prev>summary::after{content:"▾";color:var(--link);font-size:11px;flex:none}
-  details.flow-prev[open]>summary::after{content:"▴"}
-  details.flow-prev>summary .flow-prev-h{margin:0}
-  details.flow-prev>summary:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:var(--radius-sm)}
+  /* Aperçu d'algorithme de l'éditeur étroit (< 1000 px) — ENTREBÂILLÉ, JAMAIS FERMÉ (demande
+     utilisateur : « ce serait bien qu'il ne soit pas totalement replié, pour qu'on puisse voir
+     qu'il existe — un néophyte ne verra pas qu'il existe »). L'argument est juste et il est
+     doctrinal : un titre replié dit qu'une chose EXISTE, il ne dit pas CE QU'ELLE EST, et un
+     schéma est précisément ce qui ne se raconte pas. On en montre donc la tête — assez pour
+     reconnaître un organigramme, pas assez pour repousser la première étape à écrire.
+     PAS UN `<details>` : un `details` fermé ne rend RIEN de son contenu, et rendre visible un
+     enfant d'un `details` fermé n'est pas fiable d'un moteur à l'autre (le contenu vit dans un
+     slot du shadow tree). C'est donc un conteneur ordinaire + un vrai bouton, et l'entrebâillement
+     est un simple `max-height`. Aucune TRANSITION dessus : `max-height` est une propriété de MISE
+     EN PAGE, l'animer est interdit ici (check-anim) — et rien dans ce fichier n'animerait un
+     changement de hauteur de toute façon.
+     Le fondu du bas n'est pas un ornement : c'est LUI qui dit « ça continue ». Il fond vers
+     `--paper`, le fond du canevas, parce que c'est le DESSIN qu'on estompe, pas la page. */
+  .flow-prev{margin:0 0 12px}
+  .fp-tgl{display:flex;align-items:center;gap:8px;width:100%;min-height:44px;padding:0;border:0;background:none;font-family:inherit;cursor:pointer;text-align:left}
+  .fp-tgl:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:var(--radius-sm)}
+  .fp-tgl .flow-prev-h{margin:0}
   .fp-n{margin-left:auto;font-size:12px;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+  .fp-chev{flex:none;color:var(--link);font-size:11px;font-weight:800}
+  .flow-prev:not(.on) .fp-box{position:relative;max-height:168px;overflow:hidden}
+  .flow-prev:not(.on) .fp-box::after{content:"";position:absolute;left:0;right:0;bottom:0;height:56px;
+    background:linear-gradient(to bottom,transparent,var(--paper));pointer-events:none}
+  /* Entrebâillé, les commandes de zoom n'ont rien à régler : on ne manipule pas une vignette. */
+  .flow-prev:not(.on) .flow-zoom{display:none}
+  .flow-prev:not(.on) .flow-scroll{overflow:hidden;margin-bottom:0}
   .flow-scroll{width:100%;overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--paper);padding:8px;-webkit-overflow-scrolling:touch;margin-bottom:14px;max-height:calc(75vh / var(--zf,1))}
   /* CODE QR — taille en px et non en %, parce qu'un QR se scanne : trop petit, le lecteur cale.
      ~200 px met chaque module au-dessus de 4 px dès la version 10, ce qui passe partout à 30 cm.
@@ -2502,18 +2517,48 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      l'auteur a besoin de relire ce qu'il déplace, et un texte à demi-opacité tombe sous AA.
      Rien ne bouge ni ne clignote (le seul mouvement admis dans cette app est l'alarme) ;
      `outline` et non `border`, pour ne déplacer aucun pixel du contenu. */
-  .blk.grabbed,.blk .li.grabbed{outline:2px solid var(--primary);outline-offset:2px;background:var(--primary-soft)}
-  .blk.grabbed{box-shadow:var(--shadow)}
-  :is(.blk,.li).grabbed::before{content:"⠿ en déplacement";display:block;width:100%;
+  /* La marque vaut pour TOUT ce qui se prend (lot 2, v4.75.0) : un bloc, une étape, une ligne de
+     liste, une carte de minuteur, une rangée de compteur. Un seul jeu de règles — sinon la
+     cinquième rangée ajoutée demain n'aurait pas la marque et personne ne le verrait. */
+  :is(.blk,.li,.tmedit,.trow).grabbed{outline:2px solid var(--primary);outline-offset:2px;background:var(--primary-soft)}
+  :is(.blk,.tmedit).grabbed{box-shadow:var(--shadow)}
+  :is(.blk,.li,.tmedit,.trow).grabbed::before{content:"⠿ en déplacement";display:block;width:100%;
     font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--primary-dk);margin-bottom:4px}
-  .blk .li.grabbed{border-radius:8px}
+  :is(.li,.trow).grabbed{border-radius:8px}
+  /* MICRO-ANIMATIONS DU PASSAGE EN MODE DÉPLACEMENT (lot 2, v4.75.0 — proposition utilisateur :
+     « je trouve le passage entre les deux modes brutal ; fondre l'apparition des blocs poser ici,
+     et peut-être faire se balancer un tout petit peu le bloc sélectionné »). Les deux idées sont
+     retenues, la seconde avec une borne : UNE oscillation AMORTIE, jamais une boucle. Le mouvement
+     continu est réservé à l'alarme dans cette app (ECAM) ; un objet qui se balance indéfiniment
+     finirait par se lire comme une alerte, et ce n'en est pas une — prendre un objet n'est ni une
+     erreur ni un danger. Troisième mouvement ajouté au passage, à coût nul : le bandeau collant
+     entre par le haut, dans le sens où il arrive.
+     La CASCADE des interstices est ce qui explique « ce qui vient d'apparaître » : 22 ms par rang,
+     bornée à six (au-delà, un décalage n'informe plus, il fait attendre).
+     `transform` et `opacity` SEULEMENT (check-anim), et tout est inerte sous reduced-motion. */
+  @media (prefers-reduced-motion:no-preference){
+    .ed-drop{animation:dropIn .18s cubic-bezier(.2,0,0,1) both;animation-delay:calc(var(--i,0) * 22ms)}
+    :is(.blk,.li,.tmedit,.trow).grabbed{animation:grabWake .5s cubic-bezier(.3,.05,.3,1)}
+    .ed-grab{animation:grabBanIn .22s cubic-bezier(.2,0,0,1)}
+  }
+  @keyframes dropIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
+  @keyframes grabWake{0%{transform:none}22%{transform:rotate(-.7deg) scale(1.015)}55%{transform:rotate(.4deg) scale(1.006)}80%{transform:rotate(-.15deg)}100%{transform:none}}
+  @keyframes grabBanIn{from{opacity:0;transform:translateY(-7px)}to{opacity:1;transform:none}}
   .ed-drop{display:block;width:100%;min-height:44px;margin:6px 0;border:1.5px dashed var(--primary);border-radius:var(--radius-sm);
     background:var(--surface);color:var(--primary-dk);font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer}
   .ed-drop:hover{background:var(--primary-soft)}
   .ed-drop:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .ed-drop.warn{border-color:var(--verify-bd);color:var(--verify)}
   .ed-drop.warn:hover{background:var(--verify-soft)}
-  .mini.grab{cursor:grab;color:var(--soft)}
+  /* LE GLYPHE ⠿ EST DU TEXTE, PAS UN ORNEMENT (v4.75.0, trouvé par `audit-a11y`). Les trois
+     poignées étaient en `--soft` — mesuré 2,62:1, sous le seuil AA de 4,5:1 — alors que la règle
+     est écrite depuis la v4.5 : « --soft est DÉCORATIF seulement, jamais une couleur de TEXTE ;
+     texte secondaire = --ink-soft ». Le défaut existait depuis MK5-b et personne ne pouvait le
+     voir : les poignées ne vivaient que dans `.blk`, qui n'est pas dans le SCOPE de la sonde. En
+     les posant dans `.list-edit` (lot 2), elles y sont entrées — et la sonde a parlé aussitôt.
+     `--ink-soft` reste une encre DOUCE : la poignée demeure un repère discret, elle est
+     simplement lisible. */
+  .mini.grab{cursor:grab;color:var(--ink-soft)}
   .mini.grab:hover{color:var(--ink)}
   /* ═══ MK-flux (v4.67.0) — LE CYCLE EN QUATRE ÉTATS : repos → édition → entrée → porte ═══════
      Deux tentatives ont échoué avant celle-ci, et il faut savoir pourquoi. (a) v4.64 mettait les
@@ -2538,7 +2583,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      réordonnancement, elle ne se découvre pas au tap. En encre douce — un repère, pas une action.
      Le ✕ s'ÉCARTE des réglages (`.li-sp` pousse au bord) : un geste destructeur ne se met jamais
      au contact d'un interrupteur d'état, sinon le pouce corrige et supprime du même geste. */
-  .li-grab{flex:none;border-color:transparent;background:none;color:var(--soft);width:32px;height:32px;font-size:13.5px}
+  .li-grab{flex:none;border-color:transparent;background:none;color:var(--ink-soft);width:32px;height:32px;font-size:13.5px}
   .li-grab:hover{background:var(--surface-2);color:var(--ink)}
   .li-sp{flex:1}
   /* La note de relecture : registre ATTENTION, liseré gauche — même grammaire que le volet du
@@ -2584,7 +2629,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      appliquée à l'échelon du bloc. Elle rejoint donc l'anatomie déjà retenue pour l'étape :
      poignée à DROITE de la ligne qu'elle déplace, visible au repos, en encre douce. */
   .blk-top{display:flex;align-items:center;gap:8px;margin-bottom:11px}
-  .blk-top .grab{flex:none;border-color:transparent;background:none;color:var(--soft);width:34px;height:34px;font-size:15.5px}
+  .blk-top .grab{flex:none;border-color:transparent;background:none;color:var(--ink-soft);width:34px;height:34px;font-size:15.5px}
   .blk-top .grab:hover{background:var(--surface-2);color:var(--ink)}
   .blk-type{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:3px 8px;border-radius:6px}
   .blk-type.steps{background:var(--surface-3);color:var(--ink)}.blk-type.decision{background:var(--verify-soft);color:var(--verify)}
@@ -4696,7 +4741,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='4.74.2';
+const APP_VERSION='4.75.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -12732,8 +12777,9 @@ function renderNavOnly(){
 /* K1 : `opts.shell` habille la liste de la coquille de LECTURE correspondante (le chapeau prend
    le cadre rouge de `.forget-strip`) ; `opts.guard` y loge le garde-fou, qui vivait jusqu'ici en
    paragraphe SOUS le champ — donc hors du cadre qu'il commente. */
-function listEditor(legend,hint,key,arr,ordered,opts){opts=opts||{};const rows=(arr.length?arr:['']).map((v,i)=>{const crit=opts.crit&&(stepIsCrit(v)||stepIsVigil(v));
-  return `<div class="li${crit?' li-vigil':''}" data-i="${i}">${ordered?`<span class="li-num">${String(i+1).padStart(2,'0')}</span>`:''}<input type="text" value="${esc(opts.crit?stepText(v):v)}" data-key="${key}" data-idx="${i}"${opts.crit?' data-critlist':''} placeholder="…" aria-label="${esc(legend)} — ligne ${i+1}">${boldBtnHtml()}${opts.crit?`<button class="mini crit-tgl${crit?' vig':''}" data-lcrit="${i}" data-lkey="${key}" title="${crit?'Repère à VÉRIFIER (carte ambre : risque d’erreur — dose, dilution, voie) — toucher : normal':'Repère normal — toucher : à vérifier (carte ambre)'}">△</button>`:''}${ordered?`<button class="mini" data-mv="up" data-key="${key}" data-idx="${i}" aria-label="Monter">↑</button><button class="mini" data-mv="down" data-key="${key}" data-idx="${i}" aria-label="Descendre">↓</button>`:''}<button class="mini del" data-rm="${key}" data-idx="${i}" aria-label="Supprimer la ligne">×</button></div>`;}).join('');/* Le CHAPEAU porte son compte « n/4 » à droite du titre, et la porte dit ce qu'il RESTE :
+function listEditor(legend,hint,key,arr,ordered,opts){opts=opts||{};const _src=(arr.length?arr:['']);
+  const rows=edGrabRows(key,_src,(v,i)=>{const crit=opts.crit&&(stepIsCrit(v)||stepIsVigil(v));
+  return `<div class="li${crit?' li-vigil':''}${edGrabClsL(key,i)}" data-i="${i}">${ordered?`<span class="li-num">${String(i+1).padStart(2,'0')}</span>`:''}<input type="text" value="${esc(opts.crit?stepText(v):v)}" data-key="${key}" data-idx="${i}"${opts.crit?' data-critlist':''} placeholder="…" aria-label="${esc(legend)} — ligne ${i+1}">${boldBtnHtml()}${opts.crit?`<button class="mini crit-tgl${crit?' vig':''}" data-lcrit="${i}" data-lkey="${key}" title="${crit?'Repère à VÉRIFIER (carte ambre : risque d’erreur — dose, dilution, voie) — toucher : normal':'Repère normal — toucher : à vérifier (carte ambre)'}">△</button>`:''}${edGrabHandleL(key,i,_src.length,'la ligne')}<button class="mini del" data-rm="${key}" data-idx="${i}" aria-label="Supprimer la ligne">×</button></div>`;});/* Le CHAPEAU porte son compte « n/4 » à droite du titre, et la porte dit ce qu'il RESTE :
    « ＋ Rappel (1 restant) ». Le garde-fou ambre ne parle qu'AU-DELÀ de 4 — avant, le compte suffit
    et il informe sans alerter. C'est la différence entre un plafond qu'on voit approcher et une
    remontrance qu'on subit. */
@@ -12977,6 +13023,7 @@ function edGrabLabel(f){const g=state.edGrab;if(!g)return '';
   if(g.kind==='b'){const b=(f.blocks||[]).find(x=>x.id===g.bid);
     const n=b?clean(b.steps||[]).length:0;
     return 'bloc « '+((b&&b.title||'').trim()||'sans titre')+' »'+(n?' · '+n+' étape'+(n>1?'s':''):'');}
+  if(g.kind==='l')return edGrabLabelL(f);
   const b=(f.blocks||[]).find(x=>x.id===g.bid);
   const st=b?(b.steps||[])[g.si]:'';
   return '« '+(stripBold(stepText(st||''))||'étape vide')+' »';}
@@ -13074,6 +13121,48 @@ function edGrabCls(kind,bid,si){const g=state.edGrab;
   if(!g||g.kind!==kind||g.bid!==bid)return '';
   if(kind==='b')return ' grabbed';
   return g.si===si?' grabbed':'';}
+
+/* ═══ LOT 2 (v4.75.0) — « PRENDRE / POSER » S'ÉTEND AUX LISTES ════════════════════════════════
+   Les ↑ ↓ étaient un reste d'avant MK5-b, et ils étaient plus lents ET moins sûrs : dix taps pour
+   remonter une rangée de dix rangs, chacun suivi d'un re-rendu. Pire, CINQ listes n'avaient AUCUN
+   moyen de réordonner — « À vérifier », « Diagnostics différentiels », « Références », « Ne pas
+   oublier » et les repères posologiques s'écrivaient dans l'ordre où l'on y pensait, définitivement.
+
+   UNE SEULE SORTE `'l'` POUR HUIT LISTES, adressée par la CLÉ du modèle (`{kind:'l',key,i}`) :
+   les listes de chaînes (notForget, confirmation, posology, verify, differentials, references) et
+   les listes d'objets (timers, counters) se réordonnent par le même `splice`, donc elles n'ont pas
+   besoin de deux mécaniques. Un troisième `kind` par type aurait produit huit chemins à tenir.
+
+   CONFINÉ À SA PROPRE BOÎTE, et cela SIMPLIFIE au lieu de compliquer : les interstices ne sont
+   émis que pour la clé prise, donc un objet ne peut pas changer de contexte — le garde-fou QRH
+   d'`edGrabIsCrit` (« une étape ⚠ tirée hors de son bloc change de sens ») n'a ici rien à
+   annoncer, par construction. Il reste réservé aux ÉTAPES, qui, elles, franchissent des blocs. */
+function edGrabInList(key){const g=state.edGrab;return !!g&&g.kind==='l'&&g.key===key;}
+function edGrabClsL(key,i){return (edGrabInList(key)&&state.edGrab.i===i)?' grabbed':'';}
+/* La poignée n'existe qu'à partir de DEUX rangées : à une seule, il n'y a rien à réordonner et ce
+   serait un bouton mort (même règle que le pied de l'accueil et les sections vides). */
+function edGrabHandleL(key,i,n,quoi){
+  if(n<2)return '';
+  return `<button type="button" class="mini grab li-grab" draggable="true" data-lgrab="${esc(key)}:${i}" aria-label="Déplacer ${esc(quoi)} ${i+1}" title="Déplacer — touchez, puis touchez la destination (ou commencez à glisser)">⠿</button>`;}
+function edDropL(key,i,lbl){
+  // `--i` borne le décalage d'animation : au-delà de six rangées, la cascade cesse d'informer.
+  return `<button type="button" class="ed-drop" style="--i:${Math.min(i,6)}" data-ldrop="${esc(key)}:${i}">${esc(lbl)}</button>`;}
+/* Enrobe les rangées d'une liste de ses interstices de dépôt. UN SEUL point de vérité pour les
+   huit listes : la liste passe son gabarit de rangée, elle n'a pas à connaître le déplacement. */
+function edGrabRows(key,arr,rowHtml){
+  const on=edGrabInList(key);let h='';
+  (arr||[]).forEach((v,i)=>{
+    if(on)h+=edDropL(key,i,i===0?'Poser en tête':'Poser ici');
+    h+=rowHtml(v,i);});
+  if(on)h+=edDropL(key,(arr||[]).length,'Poser en fin');
+  return h;}
+/* Le libellé du bandeau. Les listes de chaînes portent leur texte, les listes d'objets leur nom —
+   et l'on retombe sur « rangée n » plutôt que sur un mot inventé quand tout est vide (même règle
+   que `tagLabel` pour les repères de journal : une résolution échoue PROPREMENT). */
+function edGrabLabelL(f){
+  const g=state.edGrab;const arr=(f||{})[g.key]||[];const v=arr[g.i];
+  const txt=(v&&typeof v==='object')?String(v.label||'').trim():stripBold(stepText(String(v||''))).trim();
+  return txt?('« '+txt+' »'):('rangée '+(g.i+1));}
 function edGrabIsCrit(){const g=state.edGrab;if(!g||g.kind!=='s'||!state.draft)return false;
   const b=(state.draft.blocks||[]).find(x=>x.id===g.bid);
   return !!b&&stepIsCrit((b.steps||[])[g.si]||'');}
@@ -13085,9 +13174,13 @@ function edGrabBanner(f){
    un trait décoratif. `warn` porte le garde-fou QRH : sortir une étape ⚠ de son contexte
    s'ANNONCE avant le dépôt, jamais après. */
 function edDrop(at,lbl,warn){
-  return `<button type="button" class="ed-drop${warn?' warn':''}" data-drop="${esc(at)}">${warn?'△ ':''}${esc(lbl)}</button>`;}
-function blockEditor(b,blocks){if(b.type==='decision'){return `<div class="blk blk-dec${edGrabCls('b',b.id)}" data-bid="${b.id}"><div class="blk-top"><span class="blk-n dec" aria-hidden="true">◆</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Réévaluation)" aria-label="Titre de la décision"><button class="mini grab" data-grab="b:${b.id}" aria-label="Déplacer ce bloc" title="Déplacer le bloc — touchez, puis touchez la destination">⠿</button></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Question</div><input type="text" data-bf="question" value="${esc(b.question)}" placeholder="ex. Réponse à l'adrénaline ?" aria-label="Question posée" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)"><div class="sub">Réponses → bloc cible</div>${(b.options.length?b.options:[{label:'',target:''}]).map((o,i)=>`<div class="optedit" data-oi="${i}"><input type="text" data-of="label" value="${esc(o.label)}" placeholder="ex. Oui" aria-label="Libellé de la réponse ${i+1}">${targetSelect(blocks,b.id,o.target)}<button class="mini del" data-optdel="${i}" aria-label="Supprimer la réponse">×</button></div>`).join('')}<button class="add-line" data-addopt>+ Ajouter une réponse</button>${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
-  return `<div class="blk${edGrabCls('b',b.id)}" data-bid="${b.id}"><div class="blk-top"><span class="blk-n" aria-hidden="true">${(blocks||[]).indexOf(b)+1}</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Mesures immédiates)" aria-label="Titre du bloc"><button class="mini grab" data-grab="b:${b.id}" aria-label="Déplacer ce bloc" title="Déplacer le bloc — touchez, puis touchez la destination">⠿</button></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Étapes (cochables en mode crise)</div><details class="crit-guide"${(()=>{try{return localStorage.getItem('ac-cg-folded')?'':' open';}catch(e){return ' open';}})()}><summary>${uiIcon('warn',11)} Rouge, △ ambre, réponse attendue — règles d'usage</summary><b class="cg-r">${uiIcon('warn',11)} Rouge</b> : ce qui tue si on l'oublie (memory item, geste vital). <b class="cg-a">△ Ambre</b> : là où l'on risque de se tromper (dose/dilution à vérifier avant injection, contre-indication à écarter, confusion voie/site/produit, seuil à contrôler avant de poursuivre). Les deux → rouge. <b>Réponse attendue</b> : « challenge :: réponse » (ex. « Adrénaline IM :: 0,01 mg/kg — max 0,5 mg ») — la réponse devient la pilule à confirmer en lecture (challenge-response).</details>${(b.steps.length?b.steps:['']).map((s,i)=>`${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+i,i===0?'Poser en tête':'Poser ici',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<div class="li${stepIsCrit(s)?' li-crit':(stepIsVigil(s)?' li-vigil':'')}${edGrabCls('s',b.id,i)}" data-si="${i}"><span class="li-box" aria-hidden="true">${stepIsCrit(s)?uiIcon('warn',13):(stepIsVigil(s)?'△':'')}</span><input type="text" data-sf value="${esc(stepText(s))}" placeholder="Nouvelle étape…" aria-label="Étape ${i+1}"><button class="mini grab li-grab" data-grab="s:${i}" aria-label="Déplacer l'étape ${i+1}" title="Déplacer — touchez, puis touchez la destination">⠿</button><span class="li-tools"><button class="mini crit-tgl${stepIsCrit(s)?' on':(stepIsVigil(s)?' vig':'')}" data-crit="${i}" title="${stepIsCrit(s)?'Étape CRITIQUE (rouge : ce qui tue si oublié) — toucher : vigilance (ambre)':(stepIsVigil(s)?'Étape VIGILANCE (ambre : risque d’erreur — dose, voie, seuil) — toucher : étape normale':'Étape normale — toucher : critique (rouge : ce qui tue si oublié)')}">${stepIsVigil(s)?'△':uiIcon('warn',14)}</button><span class="li-sp"></span><button class="mini del" data-rmstep="${i}" aria-label="Supprimer l'étape">×</button></span>${(()=>{const nt=stepNote(s);return nt?`<span class="li-note" role="status">△ <b>Relecture</b> — ${esc(nt)}</span>`:'';})()}</div>`).join('')}${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+(b.steps.length||0),'Poser en fin',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<p class="nf-guard" data-stepguard role="status">${stepGuardTxt(b.steps,'bloc')}</p><button class="add-line" data-addstep>+ Ajouter une étape</button><div class="sub">Étape suivante</div>${targetSelect(blocks,b.id,b.next)}${b.next?`<input type="text" data-bnextlbl value="${esc(b.nextLbl||'')}" maxlength="120" placeholder="Libellé du bouton Continuer (ex. réévaluation à 5 min)" aria-label="Libellé du bouton Continuer" style="margin-top:6px">`:''}${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
+  /* Le rang de la cascade se LIT dans la destination (dernier segment de `at`) plutôt que de
+     s'ajouter en paramètre : les quatre sites d'appel le portent déjà, et un paramètre de plus
+     serait un quatrième endroit où l'oublier. Borné à six, comme pour les listes. */
+  const idx=Math.min(parseInt(String(at).split(':').pop(),10)||0,6);
+  return `<button type="button" class="ed-drop${warn?' warn':''}" style="--i:${idx}" data-drop="${esc(at)}">${warn?'△ ':''}${esc(lbl)}</button>`;}
+function blockEditor(b,blocks){if(b.type==='decision'){return `<div class="blk blk-dec${edGrabCls('b',b.id)}" data-bid="${b.id}"><div class="blk-top"><span class="blk-n dec" aria-hidden="true">◆</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Réévaluation)" aria-label="Titre de la décision"><button class="mini grab" draggable="true" data-grab="b:${b.id}" aria-label="Déplacer ce bloc" title="Déplacer le bloc — touchez, puis touchez la destination">⠿</button></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Question</div><input type="text" data-bf="question" value="${esc(b.question)}" placeholder="ex. Réponse à l'adrénaline ?" aria-label="Question posée" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)"><div class="sub">Réponses → bloc cible</div>${(b.options.length?b.options:[{label:'',target:''}]).map((o,i)=>`<div class="optedit" data-oi="${i}"><input type="text" data-of="label" value="${esc(o.label)}" placeholder="ex. Oui" aria-label="Libellé de la réponse ${i+1}">${targetSelect(blocks,b.id,o.target)}<button class="mini del" data-optdel="${i}" aria-label="Supprimer la réponse">×</button></div>`).join('')}<button class="add-line" data-addopt>+ Ajouter une réponse</button>${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
+  return `<div class="blk${edGrabCls('b',b.id)}" data-bid="${b.id}"><div class="blk-top"><span class="blk-n" aria-hidden="true">${(blocks||[]).indexOf(b)+1}</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Mesures immédiates)" aria-label="Titre du bloc"><button class="mini grab" draggable="true" data-grab="b:${b.id}" aria-label="Déplacer ce bloc" title="Déplacer le bloc — touchez, puis touchez la destination">⠿</button></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Étapes (cochables en mode crise)</div><details class="crit-guide"${(()=>{try{return localStorage.getItem('ac-cg-folded')?'':' open';}catch(e){return ' open';}})()}><summary>${uiIcon('warn',11)} Rouge, △ ambre, réponse attendue — règles d'usage</summary><b class="cg-r">${uiIcon('warn',11)} Rouge</b> : ce qui tue si on l'oublie (memory item, geste vital). <b class="cg-a">△ Ambre</b> : là où l'on risque de se tromper (dose/dilution à vérifier avant injection, contre-indication à écarter, confusion voie/site/produit, seuil à contrôler avant de poursuivre). Les deux → rouge. <b>Réponse attendue</b> : « challenge :: réponse » (ex. « Adrénaline IM :: 0,01 mg/kg — max 0,5 mg ») — la réponse devient la pilule à confirmer en lecture (challenge-response).</details>${(b.steps.length?b.steps:['']).map((s,i)=>`${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+i,i===0?'Poser en tête':'Poser ici',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<div class="li${stepIsCrit(s)?' li-crit':(stepIsVigil(s)?' li-vigil':'')}${edGrabCls('s',b.id,i)}" data-si="${i}"><span class="li-box" aria-hidden="true">${stepIsCrit(s)?uiIcon('warn',13):(stepIsVigil(s)?'△':'')}</span><input type="text" data-sf value="${esc(stepText(s))}" placeholder="Nouvelle étape…" aria-label="Étape ${i+1}"><button class="mini grab li-grab" draggable="true" data-grab="s:${i}" aria-label="Déplacer l'étape ${i+1}" title="Déplacer — touchez, puis touchez la destination">⠿</button><span class="li-tools"><button class="mini crit-tgl${stepIsCrit(s)?' on':(stepIsVigil(s)?' vig':'')}" data-crit="${i}" title="${stepIsCrit(s)?'Étape CRITIQUE (rouge : ce qui tue si oublié) — toucher : vigilance (ambre)':(stepIsVigil(s)?'Étape VIGILANCE (ambre : risque d’erreur — dose, voie, seuil) — toucher : étape normale':'Étape normale — toucher : critique (rouge : ce qui tue si oublié)')}">${stepIsVigil(s)?'△':uiIcon('warn',14)}</button><span class="li-sp"></span><button class="mini del" data-rmstep="${i}" aria-label="Supprimer l'étape">×</button></span>${(()=>{const nt=stepNote(s);return nt?`<span class="li-note" role="status">△ <b>Relecture</b> — ${esc(nt)}</span>`:'';})()}</div>`).join('')}${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+(b.steps.length||0),'Poser en fin',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<p class="nf-guard" data-stepguard role="status">${stepGuardTxt(b.steps,'bloc')}</p><button class="add-line" data-addstep>+ Ajouter une étape</button><div class="sub">Étape suivante</div>${targetSelect(blocks,b.id,b.next)}${b.next?`<input type="text" data-bnextlbl value="${esc(b.nextLbl||'')}" maxlength="120" placeholder="Libellé du bouton Continuer (ex. réévaluation à 5 min)" aria-label="Libellé du bouton Continuer" style="margin-top:6px">`:''}${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
 /* Éditeur des COMPLICATIONS (v4.26.0) : libellé de l'ÉVÉNEMENT + cible. La cible est soit un
    bloc de CETTE fiche (le sélecteur liste les blocs en premier), soit une AUTRE aide ou un
    protocole (demande utilisateur : « une complication peut ouvrir une nouvelle aide cognitive ») —
@@ -13106,15 +13199,15 @@ function cxEditorRow(c,i,f){
    et « À L'ÉCHÉANCE » — la ligne d'action que portera l'alarme. Une alarme qui nomme le minuteur
    dit QUOI a sonné, jamais QUOI FAIRE : poser l'action au pied de l'alerte est la règle ECAM, et
    c'est l'auteur qui la connaît, pas l'application. */
-function timerEditorRow(t,i){const iv=t.type==='interval';const mm=Math.floor((t.seconds||0)/60),ss=(t.seconds||0)%60;
-  return `<div class="tmedit" data-ti="${i}">
-    <div class="tme-top"><span class="blk-type tm-kind">${iv?'Cycle':'Chrono'}</span><input type="text" data-tf="label" value="${esc(t.label)}" placeholder="${iv?'ex. Cycle adrénaline (5 à 10 min)':'ex. Temps écoulé'}" aria-label="${iv?'Nom du cycle':'Nom du chronomètre'}"><button class="mini del" data-tdel="${i}" aria-label="Supprimer ce minuteur">×</button></div>
+function timerEditorRow(t,i,n){const iv=t.type==='interval';const mm=Math.floor((t.seconds||0)/60),ss=(t.seconds||0)%60;
+  return `<div class="tmedit${edGrabClsL('timers',i)}" data-ti="${i}">
+    <div class="tme-top"><span class="blk-type tm-kind">${iv?'Cycle':'Chrono'}</span><input type="text" data-tf="label" value="${esc(t.label)}" placeholder="${iv?'ex. Cycle adrénaline (5 à 10 min)':'ex. Temps écoulé'}" aria-label="${iv?'Nom du cycle':'Nom du chronomètre'}">${edGrabHandleL('timers',i,n||0,'le minuteur')}<button class="mini del" data-tdel="${i}" aria-label="Supprimer ce minuteur">×</button></div>
     ${iv?`<div class="tme-row"><span class="tme-l">Durée</span><input type="number" min="0" data-tmin value="${mm}" aria-label="Durée du cycle — minutes"><span class="tme-u">min</span><input type="number" min="0" max="59" data-tsec value="${ss}" aria-label="Durée du cycle — secondes"><span class="tme-u">s</span><label class="tme-loop"><input type="checkbox" data-tloop ${t.autoloop?'checked':''} aria-label="Relancer le cycle automatiquement">se relance</label></div>`:''}
     <div class="tme-row due"><span class="tme-l">À l’échéance</span><input type="text" data-tdue value="${esc(t.onDue||'')}" maxlength="120" placeholder="ex. Renouveler l’adrénaline si pas de réponse" aria-label="Ligne d’action annoncée par l’alarme"></div>
     <p class="tme-h">Ce que l’alarme dira quand elle sonnera — l’action, pas le nom du minuteur.</p>
   </div>`;}
-function counterEditorRow(c,i,timers){const ivs=(timers||[]).filter(t=>t.type==='interval');
-  return `<div class="trow" data-ci="${i}"><input type="text" data-cf="label" value="${esc(c.label)}" placeholder="ex. Adrénaline (mg)" aria-label="Nom du compteur"><span aria-hidden="true">pas</span><input type="number" data-cstep value="${c.step||1}" style="width:56px" aria-label="Pas du compteur"><span aria-hidden="true">départ</span><input type="number" data-cstart value="${c.start||0}" style="width:56px" aria-label="Valeur de départ du compteur">${ivs.length?`<select data-clink aria-label="Minuteur relancé par le ＋ du compteur" title="Le « ＋ » du compteur relance ce minuteur (ex. bolus -> cycle)"><option value="">＋ ne relance rien</option>${ivs.map(t=>`<option value="${esc(t.id)}"${c.timerId===t.id?' selected':''}>＋ relance « ${esc(t.label)||'Minuteur'} »</option>`).join('')}</select>`:''}<button class="mini" data-cmv="up" aria-label="Monter">↑</button><button class="mini" data-cmv="down" aria-label="Descendre">↓</button><button class="mini del" data-cdel="${i}" aria-label="Supprimer ce compteur">×</button></div>`;}
+function counterEditorRow(c,i,timers,n){const ivs=(timers||[]).filter(t=>t.type==='interval');
+  return `<div class="trow${edGrabClsL('counters',i)}" data-ci="${i}"><input type="text" data-cf="label" value="${esc(c.label)}" placeholder="ex. Adrénaline (mg)" aria-label="Nom du compteur"><span aria-hidden="true">pas</span><input type="number" data-cstep value="${c.step||1}" style="width:56px" aria-label="Pas du compteur"><span aria-hidden="true">départ</span><input type="number" data-cstart value="${c.start||0}" style="width:56px" aria-label="Valeur de départ du compteur">${ivs.length?`<select data-clink aria-label="Minuteur relancé par le ＋ du compteur" title="Le « ＋ » du compteur relance ce minuteur (ex. bolus -> cycle)"><option value="">＋ ne relance rien</option>${ivs.map(t=>`<option value="${esc(t.id)}"${c.timerId===t.id?' selected':''}>＋ relance « ${esc(t.label)||'Minuteur'} »</option>`).join('')}</select>`:''}${edGrabHandleL('counters',i,n||0,'le compteur')}<button class="mini del" data-cdel="${i}" aria-label="Supprimer ce compteur">×</button></div>`;}
 
 /* ----- APERÇU EN DIRECT des éditeurs (V5, canvas turn 6) : colonne droite collante à >= 1000px
    (mini-rendu du brouillon, mis à jour à la saisie) + « Ouvrir l'aperçu complet » ; en dessous,
@@ -13202,7 +13295,7 @@ function renderEditor(){
     ${listEditor('Confirmation diagnostique','critères pour déclencher la fiche','confirmation',f.confirmation,false,{shell:'ed-card'})}
     <fieldset class="field"><label>Prise en charge <span class="hint">listes d'étapes + décisions conditionnelles</span></label>${wideEdit?'':(()=>{const n=(f.blocks||[]).length;if(!n)return '';
       const ouv=(()=>{try{return !!localStorage.getItem('ac-flowprev-open');}catch(e){return false;}})();
-      return `<details class="flow-prev"${ouv?' open':''}><summary><span class="flow-prev-h">Algorithme — aperçu automatique</span><span class="fp-n">${n} bloc${n>1?'s':''}</span></summary>${flowBlock(f)}</details>`;})()}${edGrabBanner(f)}${f.blocks.map((b,bi)=>((state.edGrab&&state.edGrab.kind==='b')?edDrop('B:'+bi,bi===0?'Poser avant le bloc 1':'Poser ici'):'')+blockEditor(b,blocks)).join('')}${(state.edGrab&&state.edGrab.kind==='b')?edDrop('B:'+f.blocks.length,'Poser en fin de fiche'):''}<button type="button" class="add-line ed-door${state.edGrab?' flat':''}" id="edAddOpen">＋ Bloc · décision · minuteur…</button></fieldset>
+      return `<div class="flow-prev${ouv?' on':''}"><button type="button" class="fp-tgl" id="fpTgl" aria-expanded="${ouv?'true':'false'}"><span class="flow-prev-h">Algorithme — aperçu automatique</span><span class="fp-n">${n} bloc${n>1?'s':''}</span><span class="fp-chev" aria-hidden="true">${ouv?'▴':'▾'}</span></button><div class="fp-box">${flowBlock(f)}</div></div>`;})()}${edGrabBanner(f)}${f.blocks.map((b,bi)=>((state.edGrab&&state.edGrab.kind==='b')?edDrop('B:'+bi,bi===0?'Poser avant le bloc 1':'Poser ici'):'')+blockEditor(b,blocks)).join('')}${(state.edGrab&&state.edGrab.kind==='b')?edDrop('B:'+f.blocks.length,'Poser en fin de fiche'):''}<button type="button" class="add-line ed-door${state.edGrab?' flat':''}" id="edAddOpen">＋ Bloc · décision · minuteur…</button></fieldset>
     ${''/* UNE SECTION VIDE N'ENSEIGNE PLUS RIEN (signalé à l'usage : « lorsque la liste minuteurs
     & compteurs, et complications est vide, ça fait bizarre »). Depuis la porte unique « ＋ » de
     la v4.65.0, c'est ELLE qui présente les types disponibles, avec leur glyphe et leur phrase :
@@ -13211,8 +13304,8 @@ function renderEditor(){
     et que le pied de l'accueil (« masqués à zéro session : aucun bouton mort »). Rien n'est
     perdu : la capacité vit dans la porte, la section réapparaît au premier objet créé. */}
     ${(f.timers||[]).length||(f.counters||[]).length?`<fieldset class="field ed-card"><label>Minuteurs & compteurs <span class="hint">disponibles pendant la session</span></label>
-      ${(f.timers||[]).length?`<p class="sub2">Minuteurs</p>${(f.timers||[]).map((t,i)=>timerEditorRow(t,i)).join('')}`:''}
-      ${(f.counters||[]).length?`<p class="sub2"${(f.timers||[]).length?' style="margin-top:14px"':''}>Compteurs</p>${(f.counters||[]).map((c,i)=>counterEditorRow(c,i,f.timers)).join('')}`:''}</fieldset>`:''}
+      ${(f.timers||[]).length?`<p class="sub2">Minuteurs</p>${edGrabRows('timers',f.timers,(t,i)=>timerEditorRow(t,i,(f.timers||[]).length))}`:''}
+      ${(f.counters||[]).length?`<p class="sub2"${(f.timers||[]).length?' style="margin-top:14px"':''}>Compteurs</p>${edGrabRows('counters',f.counters,(c,i)=>counterEditorRow(c,i,f.timers,(f.counters||[]).length))}`:''}</fieldset>`:''}
     ${(f.complications||[]).length?`<fieldset class="field ed-card"><label>⚡ Complications — à tout moment <span class="hint">1 à 3 : l'essentiel — chaque bouton de plus dilue les autres. Cible = un bloc dédié de cette fiche, ou une autre aide</span></label>
       ${(f.complications||[]).map((c,i)=>cxEditorRow(c,i,f)).join('')}
 </fieldset>`:''}
@@ -13252,6 +13345,16 @@ function renderEditor(){
         e.preventDefault();state.edGrab=null;renderEditor();}});}
   flowCtx={f,curId:null};
   bindFlowZoom();applyFlowZoom();restoreFlow();
+  /* L'ENTREBÂILLEMENT NE RE-REND RIEN. Le schéma est déjà dans le DOM (entrebâillé, il est
+     seulement rogné) : déplier n'est qu'un changement de classe, donc pas une ligne de la page ne
+     bouge et le zoom garde ses écouteurs. Un `renderEditor()` ici reconstruirait tout le SVG pour
+     un geste qui ne change aucune donnée. */
+  {const ft=document.getElementById('fpTgl');
+   if(ft)ft.onclick=()=>{
+     const box=ft.closest('.flow-prev');const on=!box.classList.contains('on');
+     box.classList.toggle('on',on);ft.setAttribute('aria-expanded',on?'true':'false');
+     const ch=ft.querySelector('.fp-chev');if(ch)ch.textContent=on?'▴':'▾';
+     try{localStorage.setItem('ac-flowprev-open',on?'1':'');}catch(e){}};}
 }
 // Câblage des écouteurs du formulaire (seconde moitié de l'ancien renderEditor) : champs simples,
 // listes, blocs d'étapes/décisions, minuteurs/compteurs, images, fiches liées, enregistrer/supprimer.
@@ -13285,7 +13388,6 @@ function bindEditorEvents(f){
     const dl=row.querySelector('[data-tdel]');if(dl)dl.onclick=()=>{f.timers.splice(+dl.dataset.tdel,1);renderEditor();};});
   main.querySelectorAll('[data-ci]').forEach(row=>{const c=f.counters[+row.dataset.ci];const lab=row.querySelector('[data-cf]');if(lab)lab.addEventListener('input',e=>c.label=e.target.value);
     const st=row.querySelector('[data-cstep]');if(st)st.addEventListener('input',e=>c.step=parseInt(e.target.value||1)||1);const sr=row.querySelector('[data-cstart]');if(sr)sr.addEventListener('input',e=>c.start=parseInt(e.target.value||0)||0);
-    row.querySelectorAll('[data-cmv]').forEach(b=>b.onclick=()=>{moveItem(f.counters,+row.dataset.ci,b.dataset.cmv==='up'?-1:1);renderEditor();});
     const dl=row.querySelector('[data-cdel]');if(dl)dl.onclick=()=>{f.counters.splice(+dl.dataset.cdel,1);renderEditor();};
     const lk=row.querySelector('[data-clink]');if(lk)lk.onchange=()=>{f.counters[+row.dataset.ci].timerId=lk.value;};});
   // blocs
@@ -13437,6 +13539,27 @@ function bindListEditors(d,rerender){d=d||state.draft;rerender=rerender||renderE
   main.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{d[b.dataset.add].push('');rerender();});
   main.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{const a=d[b.dataset.rm];a.splice(+b.dataset.idx,1);if(!a.length)a.push('');rerender();});
   main.querySelectorAll('[data-mv]').forEach(b=>b.onclick=()=>{moveItem(d[b.dataset.key],+b.dataset.idx,b.dataset.mv==='up'?-1:1);rerender();});
+  /* PRENDRE / POSER dans une liste (lot 2, v4.75.0). Un seul binder pour les huit listes, posé ici
+     avec les autres écouteurs de liste — les interstices des minuteurs et des compteurs vivent hors
+     de `.list-edit`, d'où la portée `main` (déjà celle de tout ce bloc).
+     ANCRÉ AUX DEUX BOUTS, mécanique ECAM du projet : à la PRISE on ancre sur la poignée touchée (les
+     interstices apparaissent autour d'elle sans qu'elle bouge d'un pixel), au DÉPÔT sur la poignée
+     de l'objet à sa NOUVELLE place — c'est là que le regard est. Sans cela, l'insertion puis le
+     retrait des interstices ferait sauter la page de leur hauteur cumulée. */
+  main.querySelectorAll('[data-lgrab]').forEach(b=>b.onclick=()=>{
+    const p=b.dataset.lgrab.split(':');
+    state.edGrab={kind:'l',key:p[0],i:+p[1]};
+    keepAnchor('[data-lgrab="'+CSS.escape(b.dataset.lgrab)+'"]',rerender);});
+  main.querySelectorAll('[data-ldrop]').forEach(b=>b.onclick=()=>{
+    const g=state.edGrab;const p=b.dataset.ldrop.split(':');const key=p[0];let to=+p[1];
+    const arr=d[key];
+    // Clé qui ne correspond pas, ou tableau disparu : on repose l'objet, on ne devine rien.
+    if(!g||g.kind!=='l'||g.key!==key||!Array.isArray(arr)){state.edGrab=null;rerender();return;}
+    const [obj]=arr.splice(g.i,1);
+    if(g.i<to)to--;                      // le classique du splice : retirer décale la cible
+    arr.splice(to,0,obj);
+    state.edGrab=null;
+    keepAnchor('[data-lgrab="'+CSS.escape(key+':'+to)+'"]',rerender);});
 }
 /* Gras dans l'éditeur : wrapBold() entoure la sélection du champ de ** (ou les retire si déjà
    présents — le même geste dé-graisse). Sans sélection : insère une paire ** vide, curseur au
@@ -13692,6 +13815,24 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
    Chercher un à un les cinquante gestes de mutation aurait produit la même liste à tenir à jour
    que celle des soixante verbes que `persistLive` a précisément permis de ne PAS écrire. */
 main.addEventListener('input',()=>{if(edKind())edTouch(false);});
+/* ═══ LE GLISSER AMORCE LE MODE, IL N'EST PAS LE MÉCANISME (lot 2, v4.75.0) ═══════════════════
+   MK5-b a écarté le glisser comme MÉCANISME pour de bonnes raisons — gants, une seule main,
+   appareil qui bouge : c'est le point de défaillance du drag au doigt. Mais l'écarter comme
+   AMORCE était une décision par défaut, jamais raisonnée. Or quelqu'un qui essaie de glisser une
+   poignée fait le geste que TOUT le reste du monde logiciel lui a appris : le lui refuser en
+   silence, c'est lui laisser croire que rien n'est déplaçable.
+   On intercepte donc `dragstart` sur la poignée, on ANNULE le glisser natif (`preventDefault` :
+   il n'aboutira pas, et c'est voulu — on ne veut pas de deux mécaniques de dépôt) et on entre
+   dans le mode « prendre / poser » en réutilisant le CLIC de la poignée. L'utilisateur apprend
+   ainsi le bon geste EN FAISANT le mauvais, ce qui est la meilleure pédagogie disponible.
+   `dragstart` n'existe qu'au POINTEUR : sur écran tactile rien ne change, le tap reste le geste,
+   et aucun `touch-action` n'est posé sur la poignée — en poser un empêcherait de faire défiler la
+   page depuis elle, ce qui coûterait plus que ça ne rapporte. */
+main.addEventListener('dragstart',e=>{
+  const h=e.target&&e.target.closest&&e.target.closest('[data-grab],[data-lgrab]');
+  if(!h||!edKind())return;
+  e.preventDefault();
+  h.click();});
 async function getDraftPark(){try{return (await Data.getDraftPark())||{};}catch(e){return {};}}
 async function setDraftParkSlot(kind,val){try{const p=await getDraftPark();p[kind]=val||null;await Data.setDraftPark(p);}catch(e){}}
 async function clearDraftParkIf(kind,id){const p=(await getDraftPark())[kind];if(p&&p.forId===id)await setDraftParkSlot(kind,null);}
@@ -17704,14 +17845,6 @@ document.addEventListener('focusout',e=>{if(!_kbText(e.relatedTarget))document.b
 document.addEventListener('toggle',e=>{
   const d=e.target;
   if(d&&d.matches&&d.matches('details.crit-guide')){try{localStorage.setItem('ac-cg-folded',d.open?'':'1');}catch(_){}}
-  /* Même mécanique pour l'APERÇU D'ALGORITHME de l'éditeur étroit (v4.74.2) : `.flow-scroll` monte
-     à 75vh, si bien qu'on traversait ~1400 px de préambule avant la première étape à écrire
-     (mesuré à 820 px : le schéma commence à 812 px de haut, le premier bloc bien plus bas).
-     Replié par DÉFAUT — l'auteur vient écrire, pas relire un schéma qu'il n'a pas encore produit —
-     et son choix PERSISTE, exactement comme le guide rouge/ambre : un auteur régulier ne le replie
-     pas à chaque ouverture. Rien n'est retiré : à ≥ 1000 px, le schéma vit dans la colonne
-     collante et n'a pas de dépliant du tout. */
-  if(d&&d.matches&&d.matches('details.flow-prev')){try{localStorage.setItem('ac-flowprev-open',d.open?'1':'');}catch(_){}}
 },true);
 
 /* ===== Cmd/Ctrl-Z : l'anneau d'annulation de l'éditeur (v4.74.2) =====

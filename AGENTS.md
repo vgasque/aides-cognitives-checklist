@@ -1915,6 +1915,55 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   Dépliant `details.flow-prev` REPLIÉ par défaut, compte en sous-titre, choix de l'auteur PERSISTÉ —
   gabarit exact de `.crit-guide` (v4.31.0). À ≥ 1000 px le schéma vit dans la colonne collante et
   n'a pas de dépliant du tout.
+- **« PRENDRE / POSER » S'ÉTEND AUX HUIT LISTES (v4.75.0, lot 2)** : les ↑ ↓ étaient un reste
+  d'avant MK5-b — plus lents ET moins sûrs (dix taps pour remonter une rangée de dix rangs, un
+  re-rendu à chaque tap) — et surtout **CINQ listes n'avaient AUCUN moyen de réordonner** (« À
+  vérifier », « Diagnostics différentiels », « Références », « Ne pas oublier », repères
+  posologiques) : elles s'écrivaient dans l'ordre où l'on y pensait, définitivement.
+  **UNE SEULE SORTE `'l'`, ADRESSÉE PAR LA CLÉ DU MODÈLE** (`{kind:'l',key,i}`) : les listes de
+  CHAÎNES et les listes d'OBJETS (`timers`, `counters`) se réordonnent par le même `splice`, donc
+  elles n'ont pas besoin de deux mécaniques — un `kind` par type aurait produit huit chemins à
+  tenir. Points d'entrée uniques : `edGrabRows` (enrobe les rangées de leurs interstices),
+  `edGrabHandleL`, `edDropL`, et un seul binder dans `bindListEditors`.
+  **CONFINÉ À SA PROPRE BOÎTE, ET CELA SIMPLIFIE** : les interstices ne sont émis que pour la clé
+  prise, donc un objet ne peut PAS changer de contexte — le garde-fou QRH d'`edGrabIsCrit` n'a ici
+  rien à annoncer, par construction ; il reste réservé aux ÉTAPES, qui franchissent des blocs.
+  **PAS DE POIGNÉE À UNE SEULE RANGÉE** (aucun bouton mort). Ancrage `keepAnchor` aux deux bouts :
+  **0 px de dérive à la prise** (mesuré), et au dépôt sur la poignée de la nouvelle place.
+- **LE GLISSER AMORCE LE MODE, IL N'EST PAS LE MÉCANISME (v4.75.0)** : MK5-b a écarté le glisser
+  comme MÉCANISME pour de bonnes raisons (gants, une main, appareil qui bouge — c'est le point de
+  défaillance du drag au doigt), mais l'écarter comme AMORCE était une décision par défaut, jamais
+  raisonnée. Or quelqu'un qui essaie de glisser une poignée fait le geste que tout le reste du
+  monde logiciel lui a appris : le refuser EN SILENCE laisse croire que rien n'est déplaçable. On
+  intercepte donc `dragstart` sur la poignée, on ANNULE le glisser natif (`preventDefault` — pas
+  question d'avoir deux mécaniques de dépôt) et l'on entre dans « prendre / poser » en réutilisant
+  le CLIC de la poignée : l'utilisateur apprend le bon geste EN FAISANT le mauvais. `dragstart`
+  n'existe qu'au POINTEUR — sur tactile rien ne change, et **aucun `touch-action` n'est posé sur la
+  poignée** : en poser un empêcherait de faire défiler la page depuis elle.
+- **MICRO-ANIMATIONS DU PASSAGE EN MODE DÉPLACEMENT (v4.75.0, proposition utilisateur)** : les
+  interstices « Poser ici » entrent en FONDU CASCADÉ (22 ms par rang, borné à six — au-delà, un
+  décalage n'informe plus, il fait attendre), l'objet pris fait **UNE oscillation AMORTIE**, et le
+  bandeau collant entre par le haut. **L'oscillation ne BOUCLE PAS** : le mouvement continu est
+  réservé à l'alarme (ECAM), et un objet qui se balance indéfiniment finirait par se lire comme une
+  alerte — or prendre un objet n'est ni une erreur ni un danger. `transform`/`opacity` seulement,
+  tout sous `prefers-reduced-motion: no-preference`.
+- **L'APERÇU D'ALGORITHME EST ENTREBÂILLÉ, JAMAIS FERMÉ (v4.75.0, demande utilisateur : « un
+  néophyte ne verra pas qu'il existe »)** : un titre replié dit qu'une chose EXISTE, il ne dit pas
+  CE QU'ELLE EST — et un schéma est précisément ce qui ne se raconte pas. On en montre la tête
+  (168 px + fondu vers `--paper`, le fond du CANEVAS : c'est le dessin qu'on estompe, pas la page).
+  **PAS UN `<details>`** : un `details` fermé ne rend RIEN de son contenu, et révéler un enfant d'un
+  `details` fermé n'est pas fiable d'un moteur à l'autre (le contenu vit dans un slot du shadow
+  tree). Conteneur ordinaire + vrai bouton, `max-height`, **aucune transition** (c'est une propriété
+  de MISE EN PAGE — check-anim l'interdit) et **aucun re-rendu** au dépliage : le SVG est déjà dans
+  le DOM, donc pas une ligne ne bouge et le zoom garde ses écouteurs.
+- **`--soft` N'EST PAS UNE ENCRE, ET LA SONDE L'A ENFIN VU (v4.75.0)** : les trois poignées ⠿
+  étaient en `--soft` — **2,62:1 mesuré**, sous le seuil AA — alors que la règle est écrite depuis
+  la v4.5 (« --soft est DÉCORATIF seulement, jamais une couleur de TEXTE ; texte secondaire =
+  --ink-soft »). Le défaut datait de MK5-b et personne ne POUVAIT le voir : les poignées ne vivaient
+  que dans `.blk`, qui n'est pas dans le SCOPE d'`audit-a11y`. En les posant dans `.list-edit`
+  (lot 2), elles y sont entrées et la sonde a parlé aussitôt. Leçon de méthode : **un défaut hors
+  scope n'est pas un défaut absent** — quand un composant déménage, la sonde peut se mettre à voir
+  ce qu'elle ne voyait pas, et c'est un bon jour, pas une régression.
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.

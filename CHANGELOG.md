@@ -1,5 +1,86 @@
 # Journal des modifications
 
+## [4.75.0] — 2026-07-30
+### Lot 2 : « prendre / poser » s'étend aux listes — et l'aperçu d'algorithme s'entrebâille
+
+#### L'aperçu d'algorithme est entrebâillé, jamais fermé
+Demande utilisateur, et l'argument est doctrinal : *« un néophyte de l'application ne verra pas
+qu'il existe »*. Un titre replié dit qu'une chose **existe**, il ne dit pas **ce qu'elle est** — et
+un schéma est précisément ce qui ne se raconte pas. On en montre donc la tête : 168 px, avec un
+fondu vers `--paper`, le fond du **canevas** (c'est le dessin qu'on estompe, pas la page). Assez
+pour reconnaître un organigramme, pas assez pour repousser la première étape à écrire.
+
+**Ce n'est plus un `<details>`**, et c'est une contrainte technique, pas un choix : un `details`
+fermé ne rend **rien** de son contenu, et révéler un enfant d'un `details` fermé n'est pas fiable
+d'un moteur à l'autre (le contenu vit dans un slot du shadow tree). Conteneur ordinaire + vrai
+bouton ≥ 44 px, entrebâillement par `max-height`, **aucune transition** (c'est une propriété de
+mise en page — `check-anim` l'interdit, et rien ici n'animerait une hauteur), **aucun re-rendu** au
+dépliage : le SVG est déjà dans le DOM, donc pas une ligne ne bouge et le zoom garde ses écouteurs.
+Mesuré 168 → 618 px, chevron et `aria-expanded` suivis, choix mémorisé, `scrollY` inchangé.
+
+#### « Prendre / poser » s'étend aux huit listes
+Les ↑ ↓ étaient un reste d'avant MK5-b — plus lents **et** moins sûrs : dix taps pour remonter une
+rangée de dix rangs, un re-rendu à chaque tap. Et surtout, **cinq listes n'avaient aucun moyen de
+réordonner** (« À vérifier », « Diagnostics différentiels », « Références », « Ne pas oublier »,
+repères posologiques) : elles s'écrivaient dans l'ordre où l'on y pensait, définitivement.
+
+**Une seule sorte `'l'`, adressée par la clé du modèle.** Les listes de chaînes et les listes
+d'objets (`timers`, `counters`) se réordonnent par le même `splice` : elles n'ont pas besoin de deux
+mécaniques, et un `kind` par type aurait produit huit chemins à tenir. Points d'entrée uniques —
+`edGrabRows` enrobe les rangées de leurs interstices, la liste passe son gabarit de rangée et n'a
+rien à savoir du déplacement.
+
+**Confiné à sa propre boîte, et cela simplifie au lieu de compliquer** : les interstices ne sont
+émis que pour la clé prise, donc un objet ne peut pas changer de contexte — le garde-fou QRH
+d'`edGrabIsCrit` (« une étape ⚠ tirée hors de son bloc change de sens ») n'a ici rien à annoncer,
+par construction. Il reste réservé aux étapes, qui franchissent des blocs.
+
+Pas de poignée à une seule rangée (aucun bouton mort). Ancrage `keepAnchor` aux deux bouts :
+**0 px de dérive à la prise**, mesuré, comme pour les blocs et les étapes.
+
+#### Le glisser amorce le mode — il n'est pas le mécanisme
+MK5-b a écarté le glisser comme **mécanisme** pour de bonnes raisons (gants, une seule main,
+appareil qui bouge : c'est le point de défaillance du drag au doigt). Mais l'écarter comme
+**amorce** était une décision par défaut, jamais raisonnée — or quelqu'un qui essaie de glisser une
+poignée fait le geste que tout le reste du monde logiciel lui a appris, et le refuser **en silence**
+lui laisse croire que rien n'est déplaçable.
+
+On intercepte donc `dragstart` sur la poignée, on **annule** le glisser natif (pas question d'avoir
+deux mécaniques de dépôt) et l'on entre dans « prendre / poser » en réutilisant le **clic** de la
+poignée : l'utilisateur apprend le bon geste en faisant le mauvais. `dragstart` n'existe qu'au
+pointeur — sur tactile rien ne change, et **aucun `touch-action` n'est posé** sur la poignée : en
+poser un empêcherait de faire défiler la page depuis elle, ce qui coûterait plus que ça ne rapporte.
+
+#### Micro-animations du passage en mode déplacement
+Les deux idées proposées sont retenues, la seconde avec une borne. Les interstices « Poser ici »
+entrent en **fondu cascadé** (22 ms par rang, borné à six — au-delà, un décalage n'informe plus, il
+fait attendre) ; l'objet pris fait **une oscillation amortie** ; et le bandeau collant entre par le
+haut, dans le sens où il arrive.
+
+**L'oscillation ne boucle pas.** Le mouvement continu est réservé à l'alarme dans cette app (ECAM),
+et un objet qui se balance indéfiniment finirait par se lire comme une alerte — or prendre un objet
+n'est ni une erreur ni un danger. `transform` et `opacity` seulement, tout sous
+`prefers-reduced-motion: no-preference`.
+
+#### `--soft` n'est pas une encre, et la sonde l'a enfin vu
+Les trois poignées ⠿ étaient en `--soft` — **2,62:1 mesuré**, sous le seuil AA de 4,5:1 — alors que
+la règle est écrite depuis la v4.5 : « `--soft` est décoratif seulement, jamais une couleur de
+texte ; texte secondaire = `--ink-soft` ». Le glyphe ⠿ **est** le contenu du bouton.
+
+Le défaut datait de MK5-b et personne ne **pouvait** le voir : les poignées ne vivaient que dans
+`.blk`, qui n'est pas dans le SCOPE d'`audit-a11y`. En les posant dans `.list-edit` (lot 2), elles y
+sont entrées et la sonde a parlé aussitôt. Leçon de méthode : **un défaut hors scope n'est pas un
+défaut absent** — quand un composant déménage, la sonde peut se mettre à voir ce qu'elle ne voyait
+pas, et c'est un bon jour, pas une régression.
+
+#### Vérifications
+809 tests × 2 moteurs, `npm run check` vert, **seize harnais verts** (`npm run audit` en sortie 0),
+a11y **301/301**, doctrine 159/159, `audit-k5` **55/55**. **Seize nouveaux témoins** pour le lot 2
+(confinement, ancrage à 0 px, dépôt réellement publié, Échap qui repose sans déplacer, liste
+d'objets par le même chemin, glisser-amorce, cascade, oscillation unique), vérifiés **capables
+d'échouer** : confinement neutralisé, amorce neutralisée et cascade aplatie → 7 rouges ; fichier
+restauré à l'octet.
+
 ## [4.74.2] — 2026-07-30
 ### Lot 1 des améliorations d'éditeur — et un garde-fou qui a trouvé un mort-né
 
@@ -1069,31 +1150,3 @@ toutes les lignes portent le même verbe. Il échouerait si la liste redevenait 
 Vérifié : 785 tests × 2 moteurs, a11y **301/301 sur les deux moteurs**, doctrine 112/112, lecteur
 **14/14** (+1), partage 294/294, vérification 8/8, complications 20/20, exercice 20/20.
 Rien à rejouer côté serveur.
-
-## [4.61.0] — 2026-07-29
-### Une voix typographique — Source Serif 4 pour les titres
-
-Phase 5 du chantier d'audit (F5). Le système roulait tout en `system-ui` : sûr, mais anonyme.
-**Source Serif 4** (licence SIL OFL, sous-ensemble latin seul, graisse 600 seule, **21 Ko**)
-prend le **titre de fiche**, la **marque** et le **titre du compte rendu** — et rien d'autre.
-
-Ce n'est pas une décoration : les titres sont les seuls survivants du scan sous stress, ils
-méritent un dessin. Le texte courant reste `system-ui`, la police que l'appareil rend le mieux —
-changer le corps d'une aide lue en réanimation n'a jamais été l'objet.
-
-- **Embarquée, jamais appelée.** L'app fonctionne hors ligne par construction : une police de CDN
-  ne s'afficherait pas là où elle sert, et `font-src 'self'` l'interdirait de toute façon. Elle
-  entre dans `ASSETS` (précachée dès l'installation, règle 13) avec son README de provenance et
-  de licence, sur le modèle de pdf.js.
-- `font-display: swap` : le texte s'affiche immédiatement dans la police de repli et bascule
-  quand la police est prête — jamais d'écran de titre vide, même au premier chargement.
-- **Graisse 600, pas 800**, aux endroits qui étaient en 800 : c'est la seule graisse embarquée,
-  en demander une autre produirait une graisse synthétique (plus lourde, moins nette).
-- Le compte rendu **téléchargé** retombe sur Georgia — voulu : un document autonome ne dépend
-  d'aucun serveur.
-
-Piège rencontré : `check-sw` lit les chaînes d'`ASSETS` littéralement — un commentaire placé *à
-l'intérieur* du tableau est pris pour une entrée de cache (25 faux problèmes). Il vit au-dessus.
-
-Vérifié : 785 tests × 2 moteurs, a11y 301/301, doctrine 112/112, zoom-scroll 6/6, `check-sw`
-13 assets. Rien à rejouer côté serveur.

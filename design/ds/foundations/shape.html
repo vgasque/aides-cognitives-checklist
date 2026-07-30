@@ -2087,17 +2087,32 @@
   .crit-guide .cg-r{color:var(--critical)}
   .crit-guide .cg-a{color:var(--verify)}
   .flow-prev-h{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 7px}
-  /* Dépliant de l'aperçu d'algorithme, éditeur étroit (< 1000 px). Gabarit de `.crit-guide` :
-     sommaire cliquable ≥ 44 px, chevron, compte à droite — le compte est ce qui permet de décider
-     s'il vaut la peine d'ouvrir sans l'ouvrir. */
-  details.flow-prev{margin:0 0 12px}
-  details.flow-prev>summary{display:flex;align-items:center;gap:8px;min-height:44px;cursor:pointer;list-style:none}
-  details.flow-prev>summary::-webkit-details-marker{display:none}
-  details.flow-prev>summary::after{content:"▾";color:var(--link);font-size:11px;flex:none}
-  details.flow-prev[open]>summary::after{content:"▴"}
-  details.flow-prev>summary .flow-prev-h{margin:0}
-  details.flow-prev>summary:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:var(--radius-sm)}
+  /* Aperçu d'algorithme de l'éditeur étroit (< 1000 px) — ENTREBÂILLÉ, JAMAIS FERMÉ (demande
+     utilisateur : « ce serait bien qu'il ne soit pas totalement replié, pour qu'on puisse voir
+     qu'il existe — un néophyte ne verra pas qu'il existe »). L'argument est juste et il est
+     doctrinal : un titre replié dit qu'une chose EXISTE, il ne dit pas CE QU'ELLE EST, et un
+     schéma est précisément ce qui ne se raconte pas. On en montre donc la tête — assez pour
+     reconnaître un organigramme, pas assez pour repousser la première étape à écrire.
+     PAS UN `<details>` : un `details` fermé ne rend RIEN de son contenu, et rendre visible un
+     enfant d'un `details` fermé n'est pas fiable d'un moteur à l'autre (le contenu vit dans un
+     slot du shadow tree). C'est donc un conteneur ordinaire + un vrai bouton, et l'entrebâillement
+     est un simple `max-height`. Aucune TRANSITION dessus : `max-height` est une propriété de MISE
+     EN PAGE, l'animer est interdit ici (check-anim) — et rien dans ce fichier n'animerait un
+     changement de hauteur de toute façon.
+     Le fondu du bas n'est pas un ornement : c'est LUI qui dit « ça continue ». Il fond vers
+     `--paper`, le fond du canevas, parce que c'est le DESSIN qu'on estompe, pas la page. */
+  .flow-prev{margin:0 0 12px}
+  .fp-tgl{display:flex;align-items:center;gap:8px;width:100%;min-height:44px;padding:0;border:0;background:none;font-family:inherit;cursor:pointer;text-align:left}
+  .fp-tgl:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:var(--radius-sm)}
+  .fp-tgl .flow-prev-h{margin:0}
   .fp-n{margin-left:auto;font-size:12px;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+  .fp-chev{flex:none;color:var(--link);font-size:11px;font-weight:800}
+  .flow-prev:not(.on) .fp-box{position:relative;max-height:168px;overflow:hidden}
+  .flow-prev:not(.on) .fp-box::after{content:"";position:absolute;left:0;right:0;bottom:0;height:56px;
+    background:linear-gradient(to bottom,transparent,var(--paper));pointer-events:none}
+  /* Entrebâillé, les commandes de zoom n'ont rien à régler : on ne manipule pas une vignette. */
+  .flow-prev:not(.on) .flow-zoom{display:none}
+  .flow-prev:not(.on) .flow-scroll{overflow:hidden;margin-bottom:0}
   .flow-scroll{width:100%;overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--paper);padding:8px;-webkit-overflow-scrolling:touch;margin-bottom:14px;max-height:calc(75vh / var(--zf,1))}
   /* CODE QR — taille en px et non en %, parce qu'un QR se scanne : trop petit, le lecteur cale.
      ~200 px met chaque module au-dessus de 4 px dès la version 10, ce qui passe partout à 30 cm.
@@ -2217,18 +2232,48 @@
      l'auteur a besoin de relire ce qu'il déplace, et un texte à demi-opacité tombe sous AA.
      Rien ne bouge ni ne clignote (le seul mouvement admis dans cette app est l'alarme) ;
      `outline` et non `border`, pour ne déplacer aucun pixel du contenu. */
-  .blk.grabbed,.blk .li.grabbed{outline:2px solid var(--primary);outline-offset:2px;background:var(--primary-soft)}
-  .blk.grabbed{box-shadow:var(--shadow)}
-  :is(.blk,.li).grabbed::before{content:"⠿ en déplacement";display:block;width:100%;
+  /* La marque vaut pour TOUT ce qui se prend (lot 2, v4.75.0) : un bloc, une étape, une ligne de
+     liste, une carte de minuteur, une rangée de compteur. Un seul jeu de règles — sinon la
+     cinquième rangée ajoutée demain n'aurait pas la marque et personne ne le verrait. */
+  :is(.blk,.li,.tmedit,.trow).grabbed{outline:2px solid var(--primary);outline-offset:2px;background:var(--primary-soft)}
+  :is(.blk,.tmedit).grabbed{box-shadow:var(--shadow)}
+  :is(.blk,.li,.tmedit,.trow).grabbed::before{content:"⠿ en déplacement";display:block;width:100%;
     font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--primary-dk);margin-bottom:4px}
-  .blk .li.grabbed{border-radius:8px}
+  :is(.li,.trow).grabbed{border-radius:8px}
+  /* MICRO-ANIMATIONS DU PASSAGE EN MODE DÉPLACEMENT (lot 2, v4.75.0 — proposition utilisateur :
+     « je trouve le passage entre les deux modes brutal ; fondre l'apparition des blocs poser ici,
+     et peut-être faire se balancer un tout petit peu le bloc sélectionné »). Les deux idées sont
+     retenues, la seconde avec une borne : UNE oscillation AMORTIE, jamais une boucle. Le mouvement
+     continu est réservé à l'alarme dans cette app (ECAM) ; un objet qui se balance indéfiniment
+     finirait par se lire comme une alerte, et ce n'en est pas une — prendre un objet n'est ni une
+     erreur ni un danger. Troisième mouvement ajouté au passage, à coût nul : le bandeau collant
+     entre par le haut, dans le sens où il arrive.
+     La CASCADE des interstices est ce qui explique « ce qui vient d'apparaître » : 22 ms par rang,
+     bornée à six (au-delà, un décalage n'informe plus, il fait attendre).
+     `transform` et `opacity` SEULEMENT (check-anim), et tout est inerte sous reduced-motion. */
+  @media (prefers-reduced-motion:no-preference){
+    .ed-drop{animation:dropIn .18s cubic-bezier(.2,0,0,1) both;animation-delay:calc(var(--i,0) * 22ms)}
+    :is(.blk,.li,.tmedit,.trow).grabbed{animation:grabWake .5s cubic-bezier(.3,.05,.3,1)}
+    .ed-grab{animation:grabBanIn .22s cubic-bezier(.2,0,0,1)}
+  }
+  @keyframes dropIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
+  @keyframes grabWake{0%{transform:none}22%{transform:rotate(-.7deg) scale(1.015)}55%{transform:rotate(.4deg) scale(1.006)}80%{transform:rotate(-.15deg)}100%{transform:none}}
+  @keyframes grabBanIn{from{opacity:0;transform:translateY(-7px)}to{opacity:1;transform:none}}
   .ed-drop{display:block;width:100%;min-height:44px;margin:6px 0;border:1.5px dashed var(--primary);border-radius:var(--radius-sm);
     background:var(--surface);color:var(--primary-dk);font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer}
   .ed-drop:hover{background:var(--primary-soft)}
   .ed-drop:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .ed-drop.warn{border-color:var(--verify-bd);color:var(--verify)}
   .ed-drop.warn:hover{background:var(--verify-soft)}
-  .mini.grab{cursor:grab;color:var(--soft)}
+  /* LE GLYPHE ⠿ EST DU TEXTE, PAS UN ORNEMENT (v4.75.0, trouvé par `audit-a11y`). Les trois
+     poignées étaient en `--soft` — mesuré 2,62:1, sous le seuil AA de 4,5:1 — alors que la règle
+     est écrite depuis la v4.5 : « --soft est DÉCORATIF seulement, jamais une couleur de TEXTE ;
+     texte secondaire = --ink-soft ». Le défaut existait depuis MK5-b et personne ne pouvait le
+     voir : les poignées ne vivaient que dans `.blk`, qui n'est pas dans le SCOPE de la sonde. En
+     les posant dans `.list-edit` (lot 2), elles y sont entrées — et la sonde a parlé aussitôt.
+     `--ink-soft` reste une encre DOUCE : la poignée demeure un repère discret, elle est
+     simplement lisible. */
+  .mini.grab{cursor:grab;color:var(--ink-soft)}
   .mini.grab:hover{color:var(--ink)}
   /* ═══ MK-flux (v4.67.0) — LE CYCLE EN QUATRE ÉTATS : repos → édition → entrée → porte ═══════
      Deux tentatives ont échoué avant celle-ci, et il faut savoir pourquoi. (a) v4.64 mettait les
@@ -2253,7 +2298,7 @@
      réordonnancement, elle ne se découvre pas au tap. En encre douce — un repère, pas une action.
      Le ✕ s'ÉCARTE des réglages (`.li-sp` pousse au bord) : un geste destructeur ne se met jamais
      au contact d'un interrupteur d'état, sinon le pouce corrige et supprime du même geste. */
-  .li-grab{flex:none;border-color:transparent;background:none;color:var(--soft);width:32px;height:32px;font-size:13.5px}
+  .li-grab{flex:none;border-color:transparent;background:none;color:var(--ink-soft);width:32px;height:32px;font-size:13.5px}
   .li-grab:hover{background:var(--surface-2);color:var(--ink)}
   .li-sp{flex:1}
   /* La note de relecture : registre ATTENTION, liseré gauche — même grammaire que le volet du
@@ -2299,7 +2344,7 @@
      appliquée à l'échelon du bloc. Elle rejoint donc l'anatomie déjà retenue pour l'étape :
      poignée à DROITE de la ligne qu'elle déplace, visible au repos, en encre douce. */
   .blk-top{display:flex;align-items:center;gap:8px;margin-bottom:11px}
-  .blk-top .grab{flex:none;border-color:transparent;background:none;color:var(--soft);width:34px;height:34px;font-size:15.5px}
+  .blk-top .grab{flex:none;border-color:transparent;background:none;color:var(--ink-soft);width:34px;height:34px;font-size:15.5px}
   .blk-top .grab:hover{background:var(--surface-2);color:var(--ink)}
   .blk-type{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:3px 8px;border-radius:6px}
   .blk-type.steps{background:var(--surface-3);color:var(--ink)}.blk-type.decision{background:var(--verify-soft);color:var(--verify)}

@@ -240,5 +240,90 @@ const g3=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   return {av,apres:_edUndo.length,cache:document.getElementById('hdrUndo').hidden};});
 t('quitter l’éditeur vide l’anneau', g3.av>0&&g3.apres===0&&g3.cache, JSON.stringify(g3));
 
+
+/* ═══ LOT 2 (v4.75.0) — « PRENDRE / POSER » DANS LES LISTES ════════════════════════════════════
+   Cinq listes n'avaient AUCUN moyen de réordonner (À vérifier, Différentiels, Références, Ne pas
+   oublier, repères posologiques) et deux avaient des ↑ ↓ (minuteurs, compteurs) — plus lents et
+   moins sûrs. Une seule sorte `'l'`, adressée par la CLÉ du modèle, couvre les huit. Ce qui se
+   mesure ici : le CONFINEMENT (une liste ne reçoit que ses propres interstices), l'ANCRAGE à la
+   prise (0 px, invariant ECAM du projet), le déplacement réellement écrit dans la bibliothèque, et
+   le fait que le GLISSER amorce le mode au lieu d'être refusé en silence. */
+console.log('=== lot 2 : prendre / poser dans les listes ===');
+await p.setViewportSize({width:900,height:900});
+const L=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+  // Le contrôle précédent a QUITTÉ l'éditeur pour vérifier que l'anneau se vide : on y rentre.
+  if(!state.draft){const f=fiches.find(x=>!x.deletedAt);await openEdit(f.id);await w(600);}
+  const id=state.draft.id,d=state.draft;
+  if(state.edGrab){state.edGrab=null;renderEditor();await w(300);}
+  // un jeu de listes garni : deux objets par liste d'objets, quatre lignes en texte
+  d.differentials=['Un','Deux','Trois','Quatre'];
+  d.posology=['Adrénaline : 0,5 mg','△ Noradré : dilution'];
+  while((d.timers||[]).length<2)edAdd(d,'stopwatch');
+  while((d.counters||[]).length<2)edAdd(d,'counter');
+  d.timers[0].label='Minuteur A';d.timers[1].label='Minuteur B';
+  d.counters[0].label='Compteur A';d.counters[1].label='Compteur B';
+  renderEditor();await w(500);
+  const cles=[...new Set([...document.querySelectorAll('[data-lgrab]')].map(b=>b.dataset.lgrab.split(':')[0]))];
+  const H=k=>document.querySelector('[data-lgrab="'+k+'"]');
+  // une liste à UNE seule rangée n'a pas de poignée (aucun bouton mort)
+  d.references=['Seule'];renderEditor();await w(400);
+  const refSeule=!H('references:0');
+  // PRISE : ancrage à 0 px + confinement
+  H('differentials:3').scrollIntoView({block:'center'});await w(150);
+  const y0=Math.round(H('differentials:3').getBoundingClientRect().top);
+  H('differentials:3').click();await w(350);
+  const y1=Math.round(H('differentials:3').getBoundingClientRect().top);
+  const drops=[...document.querySelectorAll('[data-ldrop]')].map(b=>b.dataset.ldrop);
+  const marque=!!document.querySelector('.li.grabbed');
+  const bandeau=(document.querySelector('.ed-grab .eg-l')||{}).textContent||'';
+  // DÉPÔT
+  document.querySelector('[data-ldrop="differentials:0"]').click();await w(500);
+  const apres=(d.differentials||[]).slice();
+  const publie=((fiches.find(f=>f.id===id)||{}).differentials||[]).slice();
+  // ÉCHAP repose l'objet sans rien déplacer
+  H('differentials:2').click();await w(350);
+  const avantEchap=(d.differentials||[]).slice();
+  document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));await w(400);
+  const apresEchap=(d.differentials||[]).slice();
+  // une liste d'OBJETS se réordonne par le même chemin
+  H('timers:1').click();await w(350);
+  const dropsT=[...document.querySelectorAll('[data-ldrop]')].map(b=>b.dataset.ldrop);
+  document.querySelector('[data-ldrop="timers:0"]').click();await w(500);
+  const tApres=(d.timers||[]).map(t=>t.label);
+  // LE GLISSER AMORCE LE MODE (et le glisser natif est annulé)
+  const h=H('differentials:1');
+  const ev=new DragEvent('dragstart',{bubbles:true,cancelable:true});
+  h.dispatchEvent(ev);await w(350);
+  const amorce=!!state.edGrab&&state.edGrab.kind==='l'&&state.edGrab.i===1;
+  const annule=ev.defaultPrevented;
+  // les micro-animations existent et cascadent
+  const dl=[...document.querySelectorAll('.ed-drop')].map(x=>getComputedStyle(x).animationDelay);
+  const animObjet=(()=>{const e=document.querySelector('.li.grabbed');return e?getComputedStyle(e).animationName:'';})();
+  const animBan=(()=>{const e=document.querySelector('.ed-grab');return e?getComputedStyle(e).animationName:'';})();
+  state.edGrab=null;renderEditor();await w(300);
+  return {cles,refSeule,derivePrise:y1-y0,drops,marque,bandeau,apres,publie,
+    avantEchap,apresEchap,dropsT,tApres,amorce,annule,dl,animObjet,animBan,
+    flechesRestantes:document.querySelectorAll('[data-cmv],[data-tmv]').length};});
+
+t('les huit listes ont leur poignée', ['notForget','confirmation','posology','verify','differentials','timers','counters'].every(k=>L.cles.includes(k)), L.cles.join(','));
+t('les ↑ ↓ ont disparu', L.flechesRestantes===0, String(L.flechesRestantes));
+t('une liste à UNE rangée n’a pas de poignée (aucun bouton mort)', L.refSeule);
+t('à la prise, l’objet ne bouge pas d’un pixel', L.derivePrise===0, `${L.derivePrise} px`);
+t('le bandeau NOMME l’objet pris', /Quatre/.test(L.bandeau), L.bandeau);
+t('l’objet pris est marqué', L.marque);
+t('CONFINÉ : la liste ne reçoit que ses propres interstices',
+  L.drops.length===5&&L.drops.every(x=>x.startsWith('differentials:')), L.drops.join(','));
+t('le dépôt réordonne', L.apres[0]==='Quatre'&&L.apres.length===4, JSON.stringify(L.apres));
+t('… et la bibliothèque suit', L.publie[0]==='Quatre', JSON.stringify(L.publie));
+t('Échap repose l’objet sans rien déplacer',
+  JSON.stringify(L.avantEchap)===JSON.stringify(L.apresEchap), JSON.stringify(L.apresEchap));
+t('une liste d’OBJETS passe par le même chemin',
+  L.dropsT.every(x=>x.startsWith('timers:'))&&L.tApres[0]==='Minuteur B', JSON.stringify(L.tApres));
+t('le GLISSER amorce le mode déplacement', L.amorce);
+t('… et le glisser natif est annulé', L.annule);
+t('les interstices cascadent (un délai par rang)', new Set(L.dl).size>1, L.dl.join(' '));
+t('l’objet pris s’anime UNE fois (pas une boucle)', L.animObjet==='grabWake', L.animObjet);
+t('le bandeau entre dans le sens du geste', L.animBan==='grabBanIn', L.animBan);
+
 console.log(`\n${ok}/${ok+ko} OK${ko?` — ${ko} ÉCHEC(S)`:''}`);
 await br.close();srv.close();process.exit(ko?1:0);

@@ -1,4 +1,32 @@
-# Journal des modifications — archive (versions 3.0.0 à 4.60.0)
+# Journal des modifications — archive (versions 3.0.0 à 4.61.0)
+
+## [4.61.0] — 2026-07-29
+### Une voix typographique — Source Serif 4 pour les titres
+
+Phase 5 du chantier d'audit (F5). Le système roulait tout en `system-ui` : sûr, mais anonyme.
+**Source Serif 4** (licence SIL OFL, sous-ensemble latin seul, graisse 600 seule, **21 Ko**)
+prend le **titre de fiche**, la **marque** et le **titre du compte rendu** — et rien d'autre.
+
+Ce n'est pas une décoration : les titres sont les seuls survivants du scan sous stress, ils
+méritent un dessin. Le texte courant reste `system-ui`, la police que l'appareil rend le mieux —
+changer le corps d'une aide lue en réanimation n'a jamais été l'objet.
+
+- **Embarquée, jamais appelée.** L'app fonctionne hors ligne par construction : une police de CDN
+  ne s'afficherait pas là où elle sert, et `font-src 'self'` l'interdirait de toute façon. Elle
+  entre dans `ASSETS` (précachée dès l'installation, règle 13) avec son README de provenance et
+  de licence, sur le modèle de pdf.js.
+- `font-display: swap` : le texte s'affiche immédiatement dans la police de repli et bascule
+  quand la police est prête — jamais d'écran de titre vide, même au premier chargement.
+- **Graisse 600, pas 800**, aux endroits qui étaient en 800 : c'est la seule graisse embarquée,
+  en demander une autre produirait une graisse synthétique (plus lourde, moins nette).
+- Le compte rendu **téléchargé** retombe sur Georgia — voulu : un document autonome ne dépend
+  d'aucun serveur.
+
+Piège rencontré : `check-sw` lit les chaînes d'`ASSETS` littéralement — un commentaire placé *à
+l'intérieur* du tableau est pris pour une entrée de cache (25 faux problèmes). Il vit au-dessus.
+
+Vérifié : 785 tests × 2 moteurs, a11y 301/301, doctrine 112/112, zoom-scroll 6/6, `check-sw`
+13 assets. Rien à rejouer côté serveur.
 
 ## [4.60.0] — 2026-07-29
 ### Mode moniteur — le téléphone posé devient un afficheur
