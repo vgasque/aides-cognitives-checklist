@@ -565,7 +565,7 @@ const R4=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   for(const k of ['interval','counter','cx']){
     porte.click();await w(250);
     document.querySelector('[data-edadd="'+k+'"]').click();await w(600);
-    const sel={interval:'.tmedit',counter:'.trow',cx:'.cx-edit-row'}[k];
+    const sel={interval:'.tmedit',counter:'.tmedit',cx:'.cx-edit-row'}[k];
     const l=[...document.querySelectorAll(sel)];const c=l[l.length-1];
     const r=c.getBoundingClientRect();
     res.vus[k]=r.top<window.innerHeight&&r.bottom>0;}
@@ -576,6 +576,181 @@ t('la porte est le bouton REMPLI de l’écran', R4.porteFond===R4.attendu, `${R
 t('… et « ▶ Essayer » n’est plus primaire', !R4.essayerPrimaire);
 t('minuteur, compteur, complication : chacun arrive DANS l’écran',
   Object.values(R4.vus).every(Boolean), JSON.stringify(R4.vus));
+
+
+console.log('=== v4.78.0 : la galerie agrège, les cartes se ressemblent ===');
+await p.setViewportSize({width:900,height:900});
+const V=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+  if(state.previewFrom){document.getElementById('hdrBack').click();await w(800);}
+  if(state.view!=='edit'){const f=fiches.find(x=>!x.deletedAt);await openEdit(f.id);await w(700);}
+  const d=state.draft;
+  const px='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+  /* (1) UNE IMAGE POSÉE SUR UN BLOC DOIT APPARAÎTRE DANS LA GALERIE. On simule le cas EXISTANT —
+     `b.image` renseigné sans entrée de galerie — parce que c'est celui des fiches déjà écrites, et
+     que le corriger seulement au point d'ajout n'aurait rien rattrapé. */
+  d.images=[];d.blocks[0].image=px;d.blocks[0].imageW=1;d.blocks[0].imageH=1;
+  renderEditor();await w(500);
+  const agrege={n:(d.images||[]).length,
+    memeDonnee:((d.images||[])[0]||{}).data===px,
+    vignette:!!document.querySelector('[data-imgblk]'),
+    porteurMontre:(()=>{const sel=document.querySelector('[data-imgblk="0"]');
+      return sel?sel.value===d.blocks[0].id:false;})()};
+  // idempotence : un second rendu ne doit rien empiler
+  renderEditor();await w(400);
+  const idem=(d.images||[]).length;
+  /* DÉTACHER (« Aucun bloc ») : la vignette RESTE dans la galerie, prête pour un autre bloc. */
+  {const sel=document.querySelector('[data-imgblk="0"]');sel.value='';
+   sel.dispatchEvent(new Event('change'));await w(450);}
+  const detache={images:(d.images||[]).length,blocs:(d.blocks||[]).filter(b=>b.image===px).length};
+  /* RETIRER : l'image quitte l'aide entière — sinon la réconciliation la ramène. */
+  {const sel=document.querySelector('[data-imgblk="0"]');sel.value=d.blocks[0].id;
+   sel.dispatchEvent(new Event('change'));await w(450);}
+  document.querySelector('[data-imgdel]').click();await w(500);
+  const retrait={images:(d.images||[]).length,blocs:(d.blocks||[]).filter(b=>b.image===px).length};
+  /* (2) LE COMPTEUR A L'ANATOMIE DE LA CARTE DE MINUTEUR : poignée ET croix en tête, même rangée. */
+  while((d.counters||[]).length<2)edAdd(d,'counter');
+  renderEditor();await w(500);
+  const carte=document.querySelector('.tmedit[data-ci]');
+  const top=carte?carte.querySelector('.tme-top'):null;
+  const g=top?top.querySelector('[data-lgrab]'):null,x=top?top.querySelector('.mini.del'):null;
+  const ctr=e=>{const q=e.getBoundingClientRect();return Math.round(q.y+q.height/2);};
+  const compteur={carte:!!carte,poignee:!!g,croix:!!x,
+    memeRangee:(g&&x)?Math.abs(ctr(g)-ctr(x))<=1:false,
+    memeHauteur:(g&&x)?Math.abs(Math.round(g.getBoundingClientRect().height-x.getBoundingClientRect().height))<=1:false,
+    trowDisparu:document.querySelectorAll('.trow').length===0};
+  /* (3) UN BLOC SANS TITRE SE NOMME. */
+  d.blocks[1].title='';renderEditor();await w(450);   // sans re-rendu, le <select> garde l'ancien titre
+  const nomme=(()=>{const o=[...document.querySelectorAll('select[data-target] option')]
+    .map(x=>x.textContent);return o.some(t=>/Bloc sans titre \(\d\)/.test(t))&&!o.some(t=>/^b[_0-9a-z]{4,}$/.test(t));})();
+  /* (4) LA MARQUE « EN DÉPLACEMENT » NE MANGE PLUS LE CHAMP D'UNE LIGNE DE LISTE. */
+  d.differentials=['Un','Deux','Trois'];renderEditor();await w(450);
+  const champ=()=>document.querySelector('.list-edit .li input[data-key="differentials"]');
+  const lRepos=Math.round(champ().getBoundingClientRect().width);
+  document.querySelector('[data-lgrab="differentials:0"]').click();await w(450);
+  const lPris=Math.round(document.querySelector('.li.grabbed input[data-key="differentials"]').getBoundingClientRect().width);
+  state.edGrab=null;renderEditor();await w(400);
+  /* (5) LA PORTE A DE LA PROFONDEUR : élévation de niveau 3 + voile au-dessus. */
+  const porte=document.getElementById('edAddOpen');
+  const voile=getComputedStyle(porte,'::before');
+  const up=getComputedStyle(document.documentElement).getPropertyValue('--shadow-up').trim();
+  const bidon=document.createElement('span');bidon.style.boxShadow=up;document.body.appendChild(bidon);
+  const attendu=getComputedStyle(bidon).boxShadow;bidon.remove();
+  return {agrege,idem,detache,retrait,compteur,nomme,lRepos,lPris,
+    porteOmbre:getComputedStyle(porte).boxShadow,porteAttendue:attendu,
+    voile:voile.backgroundImage,voileHaut:voile.height};});
+
+t('une image de BLOC apparaît dans la galerie', V.agrege.n===1&&V.agrege.memeDonnee, JSON.stringify(V.agrege));
+t('… avec sa vignette et son porteur montré', V.agrege.vignette&&V.agrege.porteurMontre, JSON.stringify(V.agrege));
+t('… et la réconciliation est IDEMPOTENTE', V.idem===1, String(V.idem));
+/* LE RETRAIT DOIT TENIR (v4.78.0) : c'est le défaut que l'agrégateur a créé — on sortait l'image de
+   `f.images`, un bloc la portait encore, et la réconciliation la remettait au rendu suivant. Le
+   témoin mesure les DEUX moitiés : elle disparaît de la galerie ET du bloc, sinon elle revient. */
+t('« Retirer » sort l’image de la galerie ET du bloc', V.retrait.images===0&&V.retrait.blocs===0,
+  JSON.stringify(V.retrait));
+t('… et le sélecteur « Aucun bloc » ne fait que DÉTACHER', V.detache.images===1&&V.detache.blocs===0,
+  JSON.stringify(V.detache));
+t('le compteur est une CARTE, poignée et croix en tête',
+  V.compteur.carte&&V.compteur.poignee&&V.compteur.croix&&V.compteur.memeRangee, JSON.stringify(V.compteur));
+t('… la poignée a la hauteur de la croix', V.compteur.memeHauteur, JSON.stringify(V.compteur));
+t('… et `.trow` a bien disparu (règle 14)', V.compteur.trowDisparu);
+t('un bloc sans titre se NOMME, il ne s’identifie pas', V.nomme);
+t('la marque « en déplacement » ne rétrécit plus le champ',
+  V.lPris>=V.lRepos-2, `${V.lRepos} px au repos → ${V.lPris} px pris`);
+/* L'OMBRE SUIT LA FORME, ET ELLE MONTE (v4.78.0) : un dégradé en `::before` est un RECTANGLE dont
+   les angles ne suivent pas le rayon, et il éclaircissait vers `--bg` au lieu d'assombrir — « à
+   l'envers », littéralement. On mesure donc les DEUX propriétés : l'ombre vaut `--shadow-up`
+   (décalage NÉGATIF, du côté d'où vient le contenu) et il n'y a plus AUCUN voile. */
+t('la porte porte l’ombre montante', V.porteOmbre===V.porteAttendue,
+  `${V.porteOmbre} vs ${V.porteAttendue}`);
+t('… avec un décalage vertical NÉGATIF', /-\d+px/.test(V.porteOmbre), V.porteOmbre);
+t('… et plus aucun voile rectangulaire', V.voile==='none', V.voile);
+
+console.log('=== v4.78.0 : le placard d’essai ne survit pas au retour en édition ===');
+const V2=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+  document.getElementById('hdrPreview').click();await w(800);
+  const enEssai=document.querySelector('header.bar').classList.contains('ess');
+  document.getElementById('hdrBack').click();await w(900);
+  const bar=document.querySelector('header.bar');
+  return {enEssai,apres:bar.classList.contains('ess'),
+    bandeau:document.getElementById('crisisBand').classList.contains('ess'),vue:state.view};});
+t('l’essai pose bien la hachure sur la barre', V2.enEssai);
+t('… et le retour en édition la RETIRE', !V2.apres&&!V2.bandeau, JSON.stringify(V2));
+
+console.log('=== v4.78.0 : la bascule ⚠ garde la rangée en édition ===');
+{
+  const CH='.blk:not(.blk-dec) .li input[data-sf]';
+  await p.click(CH); await p.waitForTimeout(250);
+  await p.click('.blk:not(.blk-dec) .li[data-si="0"] .li-tools .crit-tgl');
+  await p.waitForTimeout(450);
+  const r=await p.evaluate(()=>{const li=document.querySelector('.blk:not(.blk-dec) .li[data-si="0"]');
+    const inp=li?li.querySelector('input[data-sf]'):null;
+    return {focus:document.activeElement===inp,
+      outils:li?getComputedStyle(li.querySelector('.li-tools')).display:'absent'};});
+  t('après la bascule ⚠, le champ garde le focus', r.focus, JSON.stringify(r));
+  t('… donc les outils restent affichés', r.outils!=='none'&&r.outils!=='absent', r.outils);
+}
+
+
+console.log('=== v4.78.0 : chronomètre, champs numériques, cible de défilement ===');
+const W=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+  if(state.previewFrom){document.getElementById('hdrBack').click();await w(800);}
+  if(state.view!=='edit'){const f=fiches.find(x=>!x.deletedAt);await openEdit(f.id);await w(700);}
+  const d=state.draft;
+  d.timers=[];d.counters=[];renderEditor();await w(400);
+  const porte=()=>document.getElementById('edAddOpen');
+  const cree=async k=>{porte().click();await w(250);
+    document.querySelector('[data-edadd="'+k+'"]').click();await w(650);};
+  /* (1) UN CHRONOMÈTRE NE SONNE PAS : pas de champ « à l'échéance », et il le DIT. */
+  await cree('stopwatch');
+  const chr=[...document.querySelectorAll('.tmedit[data-ti]')].pop();
+  const rc=chr.getBoundingClientRect();
+  const chrono={due:!!chr.querySelector('[data-tdue]'),
+    dit:/ne sonne pas/.test((chr.querySelector('.tme-h')||{}).textContent||''),
+    vu:rc.top<window.innerHeight&&rc.bottom>0,
+    estUnChrono:chr.querySelector('.tm-kind').textContent==='Chrono'};
+  /* (2) UN CYCLE, LUI, GARDE LE CHAMP. */
+  await cree('interval');
+  const cyc=[...document.querySelectorAll('.tmedit[data-ti]')].pop();
+  const cycle={due:!!cyc.querySelector('[data-tdue]'),
+    vu:(()=>{const r=cyc.getBoundingClientRect();return r.top<window.innerHeight&&r.bottom>0;})()};
+  /* (3) LA CIBLE DE DÉFILEMENT DISTINGUE minuteur et compteur — ils partagent `.tmedit`.
+     L'ORDRE DU CONTRÔLE EST LE CONTRÔLE : les compteurs sont rendus APRÈS les minuteurs, donc le
+     dernier `.tmedit` du formulaire est un COMPTEUR. Créer un compteur en dernier ne prouverait
+     rien (la cible ambiguë tomberait juste par hasard) ; il faut créer un MINUTEUR alors qu'un
+     compteur existe déjà — c'est là, et là seulement, que « viser la classe » se trompe de cible. */
+  await cree('counter');
+  const cpt=[...document.querySelectorAll('.tmedit[data-ci]')].pop();
+  const rn=cpt.getBoundingClientRect();
+  const compteur={vu:rn.top<window.innerHeight&&rn.bottom>0,
+    dernierEstUnCompteur:[...document.querySelectorAll('.tmedit')].pop().dataset.ci!==undefined};
+  window.scrollTo(0,0);await w(200);
+  await cree('stopwatch');
+  const dernierMin=[...document.querySelectorAll('.tmedit[data-ti]')].pop();
+  const rm=dernierMin.getBoundingClientRect();
+  const minApresCompteur={vu:rm.top<window.innerHeight&&rm.bottom>0,
+    piegeArme:[...document.querySelectorAll('.tmedit')].pop().dataset.ci!==undefined};
+  /* (4) LES CHAMPS NUMÉRIQUES ONT LE GABARIT DES AUTRES CHAMPS. */
+  /* On RE-INTERROGE le DOM : `cpt` a été capturé avant le dernier re-rendu, son nœud est détaché,
+     et `getComputedStyle` d'un détaché rend des valeurs vides — un témoin qui mesurerait ça
+     échouerait sans rien dire du sujet. */
+  const num=document.querySelector('.tmedit[data-ci] input[type=number]');
+  const cs=getComputedStyle(num);
+  const ref=getComputedStyle(document.getElementById('f-title'));
+  const champ={rembourrage:parseFloat(cs.paddingTop)>=8,
+    rayon:parseFloat(cs.borderTopLeftRadius)>=8,
+    largeurFilet:Math.round(parseFloat(cs.borderTopWidth)),
+    fond:cs.backgroundColor===ref.backgroundColor};
+  return {chrono,cycle,compteur,minApresCompteur,champ};});
+
+t('un chronomètre n’a PAS de champ « à l’échéance »', !W.chrono.due&&W.chrono.estUnChrono, JSON.stringify(W.chrono));
+t('… et il dit pourquoi il ne sonne pas', W.chrono.dit);
+t('un cycle, lui, garde le champ', W.cycle.due);
+t('chaque minuteur créé arrive DANS l’écran', W.chrono.vu&&W.cycle.vu, JSON.stringify([W.chrono.vu,W.cycle.vu]));
+t('un compteur créé arrive DANS l’écran', W.compteur.vu&&W.compteur.dernierEstUnCompteur, JSON.stringify(W.compteur));
+t('un MINUTEUR créé alors qu’un compteur existe amène au MINUTEUR',
+  W.minApresCompteur.piegeArme&&W.minApresCompteur.vu, JSON.stringify(W.minApresCompteur));
+t('les champs numériques ont le gabarit des champs du projet',
+  W.champ.rembourrage&&W.champ.rayon&&W.champ.largeurFilet===1&&W.champ.fond, JSON.stringify(W.champ));
 
 console.log(`\n${ok}/${ok+ko} OK${ko?` — ${ko} ÉCHEC(S)`:''}`);
 await br.close();srv.close();process.exit(ko?1:0);

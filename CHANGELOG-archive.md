@@ -1,4 +1,49 @@
-# Journal des modifications — archive (versions 3.0.0 à 4.63.0)
+# Journal des modifications — archive (versions 3.0.0 à 4.64.0)
+
+## [4.64.0] — 2026-07-29
+### K1 — on édite dans la grammaire de lecture
+
+L'éditeur était un formulaire : champs empilés d'un côté, aperçu de l'autre. L'auteur composait à
+l'aveugle et ne découvrait le rendu qu'en basculant. Désormais **le chapeau EST le cadre rouge**,
+**un bloc EST sa carte**, **une étape EST sa rangée** — les champs prennent la place exacte du
+texte final, aux mêmes corps et aux mêmes registres. Ce que l'auteur voit est ce que le soignant
+verra : le garde-fou le plus puissant est visuel.
+
+- Le bloc d'édition reprend l'anatomie de la carte de lecture : mêmes bordures, liseré gauche de
+  4 px, même rayon — **ambre pour une décision**, neutre pour un bloc d'étapes, comme en lecture.
+- Une étape ⚠ porte sa boîte rouge, une étape △ sa boîte ambre, avec la case à gauche.
+- **Ce qui n'est pas copié, délibérément** : la case reste un **glyphe inerte**. Un éditeur où
+  l'on pourrait cocher ferait croire qu'on prépare un état ; on rédige une aide, on ne la déroule
+  pas.
+
+### K3 — les outils suivent le focus
+Trois boutons par étape multipliés par huit étapes, cela faisait vingt-quatre cibles pour un écran
+où l'on écrit **une ligne à la fois**. La rangée ⚠ ✕ ⠿ n'existe désormais que sur l'étape
+**active** — atteignable au clavier (`:focus-within` s'ouvre dès que la tabulation entre dans le
+champ), et le survol est neutralisé sur pointeur grossier, où l'étape active est celle où l'on
+écrit. Mesuré : **43 px au repos, 123 px active**.
+
+### MK5-b — réordonner par « prendre / poser », deux taps, zéro maintien
+Un tap sur la poignée ⠿ **soulève** l'objet et réécrit la page en cibles pleine largeur ≥ 44 px ;
+un tap sur un interstice le **pose**. Pas de maintien ni de glisser — c'est le point de
+défaillance du drag au doigt (gants, une seule main, véhicule qui bouge). Les boutons ↑ ↓
+deviennent redondants et quittent la rangée d'outils.
+
+- L'objet « en main » n'est **jamais persisté** : c'est un geste, pas un état du brouillon.
+- **Échap ou ✕ le reposent** là où il était : un geste interrompu ne déplace rien.
+- **Garde-fou QRH** : sortir une étape ⚠ de son bloc change son contexte — la cible s'annonce
+  alors en △ **avant** le dépôt, sans jamais l'interdire. L'auteur reste l'expert de sa fiche.
+
+### Deux pièges
+- Les étapes d'un bloc vivent **hors** de `.list-edit` : leur rangée n'avait donc aucune règle de
+  flex, et les trois objets (case, champ, outils) s'empilaient dès l'ajout de la case.
+- La bibliothèque est **vide au premier démarrage** : une sonde d'éditeur doit passer par
+  « Commencer » puis « Ajouter les fiches d'exemple », comme les autres harnais — sans quoi elle
+  mesure une page sans fiche et conclut à tort que tout échoue.
+
+Vérifié : 794 tests × 2 moteurs, a11y 301/301, doctrine 112/112, et une sonde dédiée sur
+**Chromium et WebKit** (outils au focus, 12 cibles ≥ 44 px, garde-fou QRH, déplacement effectif,
+Échap sans effet de bord, cadre rouge du chapeau). Rien à rejouer côté serveur.
 
 ## [4.63.0] — 2026-07-29
 ### Phase K — la doctrine relit par-dessus l'épaule, et la page revient au contenu clinique

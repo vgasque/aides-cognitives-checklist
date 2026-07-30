@@ -2097,6 +2097,95 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   parenthèses (« Adrénaline (mg) »), jamais « Compteur 1 », jamais une phrase — et `audit-prompt`
   le vérifie. Un réglage d'ÉTAT se présente en LIGNE, pas en bouton pleine largeur : la bascule de
   synchro d'historique rejoint le gabarit des autres réglages (M5), pastille + MOT (règle 8).
+- **« SCHÉMAS & CAPTURES » EST UN AGRÉGATEUR (v4.78.0, signalé à l'usage)** : « une image ajoutée
+  depuis un bloc via ＋ Image/Capture ne s'affiche pas dans la galerie, alors que l'inverse est
+  vrai ». C'était une asymétrie de MODÈLE — la galerie est `f.images[]`, l'image d'un bloc est
+  `b.image` (la donnée elle-même), et « ＋ Image » n'écrivait que la seconde : la galerie ne pouvait
+  pas montrer ce qu'elle prétend rassembler, et le sélecteur de bloc de la v4.76.0 n'avait rien à
+  sélectionner. `edSyncGallery(f)` réconcilie **AU RENDU**, pas au point d'ajout — c'est ce qui
+  rattrape les fiches DÉJÀ ÉCRITES, dont les images de bloc n'ont jamais eu d'entrée de galerie.
+  Idempotente, purement ADDITIVE, aucun champ nouveau (export v3 inchangé).
+  **ELLE N'EST PAS DANS `migrate()`, À DESSEIN** : `migrate` court sur toute donnée ENTRANTE, pull de
+  synchro compris, et grossirait `images` sur des fiches qu'on ne fait que LIRE. Ici le geste est une
+  ÉDITION — l'auteur a ouvert l'éditeur, l'écriture est déjà sa décision.
+  **LE COROLLAIRE, ET C'EST L'AGRÉGATEUR QUI L'IMPOSE (signalé à l'usage : « cliquer sur retirer une
+  image ne la retire pas, elle apparaît toujours dans la liste »)** : « Retirer » DANS LA GALERIE
+  retire l'image de l'aide ENTIÈRE — galerie ET tout bloc qui la porte. Sinon `edSyncGallery` la
+  remet au rendu suivant, et le geste se défait tout seul. Les deux gestes ne font donc PAS la même
+  chose, et c'est la seule lecture cohérente de l'agrégateur : « Aucun bloc » (ou le « Retirer » d'un
+  BLOC) ne fait que DÉTACHER, la vignette restant disponible pour un autre bloc ; sortir de la
+  galerie, c'est ne plus faire partie de l'aide. **Toute réconciliation au rendu crée ce risque** —
+  un geste qui retire doit retirer la SOURCE, pas seulement la vue.
+- **LE COMPTEUR PREND L'ANATOMIE DE LA CARTE DE MINUTEUR (v4.78.0, signalé à l'usage)** : c'était une
+  rangée flex PLATE de sept objets avec `flex-wrap` — sur écran étroit, ⠿ et ✕ atterrissaient
+  n'importe où dans l'enroulement, jamais au même endroit d'une rangée à l'autre. K7 (v4.70.0) avait
+  déjà résolu le problème pour le minuteur : un EN-TÊTE (nom · ⠿ · ✕) puis les réglages dessous. On
+  reprend la même carte, aux MÊMES classes — pas une ligne de CSS nouvelle. `.trow` est PURGÉ
+  (règle 14, zéro émission vérifiée), et la poignée s'aligne sur la croix par `align-self:stretch`
+  (deux boutons voisins de hauteurs différentes se lisent comme deux objets sans rapport).
+- **UN `::before` EST UN ÉLÉMENT DE FLEX (v4.78.0, signalé à l'usage : « tout le champ texte est
+  rétréci au profit d'un “En déplacement” qui prend beaucoup de place pour rien »)** : la marque de
+  l'objet pris est un `::before` en `width:100%`, donc un ITEM de la rangée comme les autres. Dans
+  `.blk .li`, `flex-wrap:wrap` l'envoyait sur sa propre ligne ; `.list-edit .li` n'avait pas cette
+  règle, et la marque volait la largeur au champ — **mesuré 712 px → 28 px**. Corollaire : tout
+  conteneur flex qui reçoit une marque en `::before` doit enrouler.
+- **UNE LISTE DE PLACARDS SE PARCOURT, ELLE NE S'ÉNUMÈRE PAS (v4.78.0, signalé à l'usage :
+  « appuyer sur Essayer puis revenir en édition — quand on scrolle, l'en-tête reste hachurée »)** :
+  la branche de nettoyage retirait `exo` et `inv` mais pas `ess`, ajoutée en v4.76.0 — le troisième
+  placard avait été posé à quatre endroits et oublié au cinquième. La liste est désormais UNIQUE et
+  parcourue (`['exo','inv','ess'].forEach`) : ajouter un placard demain n'exige plus de retrouver ce
+  site. C'est la même leçon que `MUTE_SEL`/`LEAD_ONLY_SEL` — une liste tenue en double finit par
+  diverger, et le défaut est SILENCIEUX.
+- **UN BLOC SANS TITRE SE NOMME, IL NE S'IDENTIFIE PAS (v4.78.0, signalé à l'usage)** : le sélecteur
+  de cible de complication affichait `b_lz8q3`, qui ne dit rien à personne — et surtout pas lequel des
+  deux blocs sans titre on choisit. On donne le RANG (« Bloc sans titre (2) »), seule information qui
+  les distingue effectivement, et c'est la position que l'auteur voit à l'écran. `targetSelect`
+  (« Étape suivante ») écrivait « (bloc sans titre) » sans rang : il reçoit la même règle.
+- **UN RE-RENDU REND LE FOCUS AU CHAMP QU'IL VIENT DE REMPLACER (v4.78.0, signalé à l'usage :
+  « appuyer sur le bouton critique/vigilance referme le bandeau — il faut de nouveau sélectionner »)**
+  : la bascule ⚠/△ re-rend l'éditeur, donc l'`<input>` est un NOUVEAU nœud, le focus est perdu,
+  `:focus-within` tombe et les outils disparaissent. Or qualifier une étape est un geste qu'on
+  ENCHAÎNE (⚠ puis △ pour comparer, ou ⚠ puis corriger le mot). `focus({preventScroll:true})` sur
+  l'ancre reconstruite — `preventScroll` parce que la position est déjà la bonne : c'est le geste de
+  l'auteur, pas une navigation. Vaut pour tout geste qui re-rend PENDANT une édition de ligne.
+- **LA PROFONDEUR D'UN OBJET ARRONDI EST SON OMBRE, PAS UN VOILE (v4.78.0, question puis correction
+  de l'utilisateur : « l'effet d'ombre blanc est très mal fait et probablement à l'envers ou pas
+  adapté à un bouton à bords arrondis »)** — les deux reproches étaient justes, et ils invalident la
+  première tentative. J'avais posé un dégradé en `::before` au-dessus de la porte : (1) un dégradé
+  ainsi posé est un **RECTANGLE**, ses angles ne suivent pas le rayon du bouton et sur une carte
+  blanche il se lit comme une bande grise à bords vifs ; (2) il montait vers `--bg`, la couleur du
+  FOND DE PAGE, donc il ÉCLAIRCISSAIT au lieu d'assombrir — à l'envers, littéralement.
+  Le bon outil pour un objet arrondi qui flotte est **sa propre ombre**, qui épouse le rayon par
+  construction ; et pour une barre collée EN BAS elle doit se répandre **vers le HAUT**, du côté d'où
+  vient le contenu. D'où le token `--shadow-up` (les valeurs d'ombre sont tokenisées depuis la
+  v4.37.0, jamais écrites en clair dans une règle) : mêmes encres et mêmes alphas que `--shadow-lg`,
+  décalage inversé. **ET RIEN D'AUTRE** : pas de voile, pas de translation, pas de second contour —
+  une porte qui bougerait attirerait l'œil pendant qu'on écrit.
+- **DEUX RÈGLES `:hover` DE MÊME SPÉCIFICITÉ, L'ANCIENNE GAGNE (v4.78.0, signalé à l'usage)** : en
+  passant « Noter l'heure » en tonal j'avais ajouté `.tk-add:hover{--primary-100}` SANS retirer
+  l'ancien `.tk-add:hover{--primary-hi}`, le remplissage de survol d'un bouton PLEIN — d'où un survol
+  SOMBRE sur un fond clair, l'inverse du sens de lecture. Corollaire du piège de cascade déjà
+  documenté : quand on change le REGISTRE d'un composant, chercher toutes ses règles d'état, pas
+  seulement sa règle de base.
+- **UN CHRONOMÈTRE NE SONNE PAS, ET L'ÉDITEUR DOIT LE DIRE (v4.78.0, signalé à l'usage : « un
+  chronomètre n'arrive pas à échéance, donc ne sonne pas »)** : le champ « À l'échéance » (`onDue`,
+  K7) lui était pourtant proposé — on demandait à l'auteur d'écrire l'annonce d'une alarme qui ne se
+  déclencherait jamais. Un chronomètre COMPTE, un cycle SONNE : le champ n'appartient qu'au second, et
+  la carte du chronomètre DIT désormais pourquoi (mieux que de le laisser découvrir en session).
+- **`input[type=number]` N'HÉRITE DE RIEN (v4.78.0, signalé à l'usage : « il s'est passé quoi avec
+  les sélecteurs de chiffres ? »)** : `.field input[type=text]` porte le rembourrage, le filet et le
+  rayon de TOUS les champs du projet — mais il est borné à `[type=text]`. Les compteurs vivaient donc
+  sur une règle `.trow input[type=number]`, partie avec `.trow`, et les minuteurs sur le style par
+  DÉFAUT du navigateur (bordure 2 px « inset ») depuis toujours. Aggravé par une addition à la liste
+  qui pose `--line-strong` : **sur une bordure UA, changer la seule COULEUR donne un cadre épais et
+  sombre**. Règle : un champ numérique reçoit le gabarit explicitement, il ne le trouve pas.
+- **QUAND DEUX OBJETS SE METTENT À PARTAGER UNE CLASSE, TOUT SÉLECTEUR « PAR LA CLASSE » DEVIENT
+  AMBIGU (v4.78.0, signalé à l'usage : « le scroll nous ramène en bas du bloc mais pas au bloc
+  ajouté »)** : le compteur ayant pris la carte `.tmedit` du minuteur, viser `.tmedit` amenait au
+  DERNIER du formulaire — donc au dernier COMPTEUR, les compteurs étant rendus après les minuteurs.
+  On distingue par l'attribut qui porte l'index (`data-ti` / `data-ci`). L'ambiguïté ne se voit pas,
+  elle se SUBIT — et le témoin ne la rencontre que si l'ORDRE du contrôle l'y expose (créer un
+  minuteur alors qu'un compteur existe déjà ; l'inverse tomberait juste par hasard).
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.

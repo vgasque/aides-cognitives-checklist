@@ -1,5 +1,108 @@
 # Journal des modifications
 
+## [4.78.0] — 2026-07-30
+### Douze défauts signalés à l'usage — dont huit créés par les trois versions précédentes
+
+Cette version ne fait presque que réparer, et la plupart des réparations portent sur du travail
+récent. Deux enseignements en ressortent, plus utiles que les correctifs eux-mêmes : **un `::before`
+est un élément de flex comme les autres**, et **toute réconciliation au rendu peut défaire le geste
+qu'on vient de faire**.
+
+#### « Schémas & captures » n'agrégeait pas — puis retirait mal
+« Une image ajoutée depuis un bloc via ＋ Image/Capture ne s'affiche pas dans la galerie, alors que
+l'inverse est vrai. » Asymétrie de **modèle** : la galerie est `f.images[]`, l'image d'un bloc est
+`b.image` (la donnée elle-même), et « ＋ Image » n'écrivait que la seconde — la galerie ne pouvait pas
+montrer ce qu'elle prétend rassembler, et le sélecteur de bloc de la v4.76.0 n'avait rien à
+sélectionner.
+
+`edSyncGallery(f)` réconcilie **au rendu**, pas au point d'ajout : c'est ce qui rattrape les fiches
+**déjà écrites**, dont les images de bloc n'ont jamais eu d'entrée de galerie. Idempotente, purement
+additive, aucun champ nouveau. Elle n'est **pas** dans `migrate()` à dessein — `migrate` court sur
+toute donnée entrante, pull de synchro compris, et grossirait `images` sur des fiches qu'on ne fait
+que lire.
+
+**Et elle a immédiatement créé son propre défaut** : « cliquer sur retirer une image ne la retire pas,
+elle apparaît toujours dans la liste ». On la sortait de `f.images`, un bloc la portait encore, la
+réconciliation la remettait au rendu suivant. Il fallait donc trancher une question que l'agrégateur
+pose : **« Retirer » dans la galerie retire l'image de l'aide entière** (galerie *et* tout bloc qui la
+porte), tandis que « Aucun bloc » — ou le « Retirer » d'un *bloc* — ne fait que **détacher**, la
+vignette restant disponible. Sortir de la galerie, c'est ne plus faire partie de l'aide.
+
+#### Le compteur prend l'anatomie de la carte de minuteur
+C'était une rangée flex **plate** de sept objets avec `flex-wrap` : sur écran étroit, ⠿ et ✕
+atterrissaient n'importe où dans l'enroulement, jamais au même endroit d'une rangée à l'autre. K7
+(v4.70.0) avait déjà résolu le problème pour le minuteur — un en-tête (nom · ⠿ · ✕) puis les réglages
+dessous. On reprend la même carte, aux **mêmes classes** : pas une ligne de CSS nouvelle. `.trow` est
+purgé (règle 14, zéro émission vérifiée), et la poignée s'aligne sur la croix par `align-self:stretch`.
+
+Deux conséquences, signalées aussitôt. **Les sélecteurs de chiffres** : `.field input[type=text]` porte
+le gabarit de tous les champs du projet mais il est borné à `[type=text]` — `input[type=number]` n'en a
+**jamais** rien reçu. Les compteurs vivaient sur `.trow input[type=number]`, partie avec `.trow` ; les
+minuteurs, sur le style **par défaut du navigateur** (bordure 2 px « inset ») depuis toujours. Aggravé
+par une addition à la liste qui pose `--line-strong` : sur une bordure UA, changer la seule *couleur*
+donne un cadre épais et sombre. Les minuteurs y gagnent enfin le gabarit qu'ils n'avaient pas.
+
+**Et le défilement vers l'objet créé** : minuteurs et compteurs partageant désormais `.tmedit`, viser
+la classe amenait au **dernier** du formulaire — donc au dernier *compteur*. On distingue par
+l'attribut d'index (`data-ti` / `data-ci`). Le témoin a dû être renforcé : créer un compteur en dernier
+ne prouvait rien, la cible ambiguë tombait juste par hasard.
+
+#### Un `::before` est un élément de flex
+« Tout le champ texte est rétréci au profit d'un “En déplacement” qui prend beaucoup de place pour
+rien. » La marque de l'objet pris est un `::before` en `width:100%`, donc un **item** de la rangée.
+Dans `.blk .li`, `flex-wrap:wrap` l'envoyait sur sa propre ligne ; `.list-edit .li` n'avait pas cette
+règle, et la marque volait la largeur au champ — **mesuré 712 px → 28 px**.
+
+#### Une liste de placards se parcourt, elle ne s'énumère pas
+« Appuyer sur Essayer puis revenir en édition — quand on scrolle, l'en-tête reste hachurée. » La
+branche de nettoyage retirait `exo` et `inv` mais pas `ess`, ajoutée en v4.76.0 : le troisième placard
+avait été posé à quatre endroits et oublié au cinquième. La liste est désormais unique et parcourue.
+Même leçon que `MUTE_SEL`/`LEAD_ONLY_SEL` — une liste tenue en double finit par diverger, et le défaut
+est **silencieux**.
+
+#### Un re-rendu rend le focus au champ qu'il vient de remplacer
+« Appuyer sur le bouton critique/vigilance referme le bandeau — il faut de nouveau sélectionner. » La
+bascule ⚠/△ re-rend l'éditeur, donc l'`<input>` est un **nouveau** nœud : focus perdu, `:focus-within`
+tombé, outils disparus. Or qualifier une étape est un geste qu'on **enchaîne**. `preventScroll` parce
+que la position est déjà la bonne : c'est le geste de l'auteur, pas une navigation.
+
+#### Un chronomètre ne sonne pas, et l'éditeur doit le dire
+Le champ « À l'échéance » (`onDue`, K7) lui était proposé — on demandait à l'auteur d'écrire l'annonce
+d'une alarme qui ne se déclencherait jamais. Un chronomètre **compte**, un cycle **sonne** : le champ
+n'appartient qu'au second, et la carte du chronomètre dit maintenant pourquoi elle ne sonne pas.
+
+#### Un bloc sans titre se nomme, il ne s'identifie pas
+Le sélecteur de cible de complication affichait `b_lz8q3`, qui ne dit rien à personne — et surtout pas
+lequel des deux blocs sans titre on choisit. On donne le **rang** (« Bloc sans titre (2) »), seule
+information qui les distingue, et c'est la position que l'auteur voit à l'écran. `targetSelect`
+(« Étape suivante ») écrivait « (bloc sans titre) » sans rang : même règle.
+
+#### La profondeur d'un objet arrondi est son ombre, pas un voile
+Deux reproches, tous deux justes, qui invalident ma première tentative. Un dégradé posé en `::before`
+est un **rectangle** : ses angles ne suivent pas le rayon, et sur une carte blanche il se lit comme une
+bande grise à bords vifs. Et il montait vers `--bg`, la couleur du **fond de page** : il *éclaircissait*
+au lieu d'assombrir — à l'envers, littéralement.
+
+Le bon outil pour un objet arrondi qui flotte est **sa propre ombre**, qui épouse le rayon par
+construction ; et pour une barre collée en bas elle doit se répandre **vers le haut**, du côté d'où
+vient le contenu. D'où le token `--shadow-up` (les ombres sont tokenisées depuis la v4.37.0, jamais
+écrites en clair) : mêmes encres et mêmes alphas que `--shadow-lg`, décalage inversé. Rien d'autre.
+
+#### Deux règles `:hover` de même spécificité, l'ancienne gagne
+En passant « Noter l'heure » en tonal j'avais ajouté `.tk-add:hover{--primary-100}` sans retirer
+l'ancien `.tk-add:hover{--primary-hi}`, le remplissage de survol d'un bouton **plein** — d'où un survol
+sombre sur un fond clair, l'inverse du sens de lecture. Corollaire du piège de cascade déjà documenté :
+quand on change le **registre** d'un composant, chercher toutes ses règles d'état, pas seulement sa
+règle de base.
+
+#### Vérifications
+809 tests × 2 moteurs, `npm run check` vert, **seize harnais verts** (`npm run audit` en sortie 0),
+a11y 301/301, doctrine 159/159, `audit-k5` **117/117**, prompt 13/13, partage 298/298. **Vingt-deux
+nouveaux témoins**, tous vérifiés capables d'échouer — dont deux qui ont dû être **refaits** parce
+qu'ils ne rencontraient pas leur défaut : l'un mesurait un nœud détaché, l'autre créait ses objets dans
+l'ordre où la cible ambiguë tombait juste par hasard. Un contrôle qui ne rencontre pas le défaut ne le
+couvre pas.
+
 ## [4.77.0] — 2026-07-30
 ### Ce que les trois lots avaient cassé — et deux règles de saillance remises d'aplomb
 
@@ -1202,48 +1305,3 @@ l'action primaire de l'écran, et l'éditeur s'auto-enregistre déjà sans le di
 affichée qui changerait, pas la mécanique.
 
 Vérifié : 794 tests × 2 moteurs, a11y 301/301, doctrine 112/112. Rien à rejouer côté serveur.
-
-## [4.64.0] — 2026-07-29
-### K1 — on édite dans la grammaire de lecture
-
-L'éditeur était un formulaire : champs empilés d'un côté, aperçu de l'autre. L'auteur composait à
-l'aveugle et ne découvrait le rendu qu'en basculant. Désormais **le chapeau EST le cadre rouge**,
-**un bloc EST sa carte**, **une étape EST sa rangée** — les champs prennent la place exacte du
-texte final, aux mêmes corps et aux mêmes registres. Ce que l'auteur voit est ce que le soignant
-verra : le garde-fou le plus puissant est visuel.
-
-- Le bloc d'édition reprend l'anatomie de la carte de lecture : mêmes bordures, liseré gauche de
-  4 px, même rayon — **ambre pour une décision**, neutre pour un bloc d'étapes, comme en lecture.
-- Une étape ⚠ porte sa boîte rouge, une étape △ sa boîte ambre, avec la case à gauche.
-- **Ce qui n'est pas copié, délibérément** : la case reste un **glyphe inerte**. Un éditeur où
-  l'on pourrait cocher ferait croire qu'on prépare un état ; on rédige une aide, on ne la déroule
-  pas.
-
-### K3 — les outils suivent le focus
-Trois boutons par étape multipliés par huit étapes, cela faisait vingt-quatre cibles pour un écran
-où l'on écrit **une ligne à la fois**. La rangée ⚠ ✕ ⠿ n'existe désormais que sur l'étape
-**active** — atteignable au clavier (`:focus-within` s'ouvre dès que la tabulation entre dans le
-champ), et le survol est neutralisé sur pointeur grossier, où l'étape active est celle où l'on
-écrit. Mesuré : **43 px au repos, 123 px active**.
-
-### MK5-b — réordonner par « prendre / poser », deux taps, zéro maintien
-Un tap sur la poignée ⠿ **soulève** l'objet et réécrit la page en cibles pleine largeur ≥ 44 px ;
-un tap sur un interstice le **pose**. Pas de maintien ni de glisser — c'est le point de
-défaillance du drag au doigt (gants, une seule main, véhicule qui bouge). Les boutons ↑ ↓
-deviennent redondants et quittent la rangée d'outils.
-
-- L'objet « en main » n'est **jamais persisté** : c'est un geste, pas un état du brouillon.
-- **Échap ou ✕ le reposent** là où il était : un geste interrompu ne déplace rien.
-- **Garde-fou QRH** : sortir une étape ⚠ de son bloc change son contexte — la cible s'annonce
-  alors en △ **avant** le dépôt, sans jamais l'interdire. L'auteur reste l'expert de sa fiche.
-
-### Deux pièges
-- Les étapes d'un bloc vivent **hors** de `.list-edit` : leur rangée n'avait donc aucune règle de
-  flex, et les trois objets (case, champ, outils) s'empilaient dès l'ajout de la case.
-- La bibliothèque est **vide au premier démarrage** : une sonde d'éditeur doit passer par
-  « Commencer » puis « Ajouter les fiches d'exemple », comme les autres harnais — sans quoi elle
-  mesure une page sans fiche et conclut à tort que tout échoue.
-
-Vérifié : 794 tests × 2 moteurs, a11y 301/301, doctrine 112/112, et une sonde dédiée sur
-**Chromium et WebKit** (outils au focus, 12 cibles ≥ 44 px, garde-fou QRH, déplacement effectif,
-Échap sans effet de bord, cadre rouge du chapeau). Rien à rejouer côté serveur.
