@@ -2708,6 +2708,44 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   **UN ITEM ENTRANT EST BORNÉ, JAMAIS RECOPIÉ** (`v4SanItem`, appelé depuis `migrate`) : `safeId`
   sur l'identité (règle 6), niveau ramené dans 1-3, rôle dans la liste fermée, booléens coercés,
   textes bornés. Un `level:99` ou un `dual:"oui"` venus d'un import ne franchissent pas la porte.
+- **LES DEUX FICHES D'EXEMPLE EXERCENT LA DOCTRINE QU'ELLES ENSEIGNENT (v5.0.0, lot T13 —
+  constat 3 de l'audit J0).** Elles sont le **seul** matériel pédagogique du produit (la contrainte
+  de l'audit interdit d'en livrer une troisième), et elles n'exerçaient qu'un TIERS de ses
+  mécanismes : zéro repère posologique, zéro complication, aucun `discriminant`, aucun `onDue`,
+  aucun `code` — et le registre **AMBRE n'apparaissait qu'UNE FOIS dans tout le produit**, au
+  sixième geste d'un bloc terminal. Pire : elles ne respectaient pas les règles que `AI_PROMPT`
+  **impose à une IA**. On enseignait une doctrine qu'on n'appliquait pas.
+  **CE N'EST PAS UNE TROISIÈME FICHE** : on enrichit le CONTENU des deux existantes, ce que la
+  contrainte autorise explicitement. `discriminant:'adulte'` et un `code` sur les deux, deux
+  repères posologiques chacune (toujours **△**, jamais rouge — une dose est une RÉFÉRENCE),
+  `onDue` sur les deux minuteurs, une **complication « à tout moment »** sur l'anaphylaxie avec son
+  bloc HORS chaîne, et un **△ dès le premier écran** de chaque fiche.
+  **★ ET ×2 SE POSENT APRÈS `migrate`**, sur l'ITEM : ces deux propriétés n'ont aucune écriture
+  possible dans une chaîne `steps`, c'est tout l'objet du modèle v4. **UNE SEULE de chacune par
+  fiche**, et le choix n'est pas décoratif — l'adrénaline IM est LE memory item de l'anaphylaxie et
+  LE geste où une erreur de dose ou de voie coûte, donc le cas canonique du double contrôle ; la
+  RCP immédiate est le memory item de l'ACR, mais **sans ×2** (un geste continu n'est pas un produit
+  à double-contrôler). S'ils étaient partout, ils ne diraient plus rien.
+  **LE CHAPEAU RESTE SOUS SON PLAFOND** : `forgetAll` agrège `notForget` ET les étoiles — les deux
+  fiches sont à 4 rappels, exactement au plafond doctrinal, et un témoin le tient.
+- **J0-D6 — LE MESSAGE DES EXEMPLES N'EST PAS UNE SNACKBAR (v5.0.0, lot T13).** Mesurée à l'audit
+  J0, elle recouvrait **60,7 % du bouton d'action primaire** à l'instant où un nouveau venu venait
+  de le presser. Une snackbar ACCUSE un geste et s'efface ; ceci **AVERTIT** (« relisez-les avant
+  tout usage clinique ») et doit tenir jusqu'à lecture. Le bandeau système est exactement ce canal —
+  « information persistante, visible sur l'accueil seulement » (v4.20.0) — et il vit AU-DESSUS du
+  contenu au lieu de le couvrir : **recouvrement mesuré à 0 %**.
+- **J0-D5 — L'ÉCRAN DE BIENVENUE NE FAIT PLUS LE TOUR DU PRODUIT, ET LE GAIN N'EST PAS CELUI QU'ON
+  ATTENDAIT (v5.0.0, lot T13).** Deux paragraphes sont partis : décrire les étapes cochables, les
+  minuteurs et les compteurs, c'est raconter ce que la première fiche ouverte MONTRE d'elle-même —
+  la contrainte « aucun tutoriel » appliquée à cet écran.
+  **MAIS LA MESURE CORRIGE L'ATTENDU** : sur téléphone la carte est une **feuille pleine hauteur**
+  (règle « sous 780 px, toute fenêtre est une feuille plein écran »), donc le bouton était **déjà
+  visible** et le retrait ne rend que **6 px à 390, 1 px à 320**. Le gain réel est à **1100 px**
+  (350 → 261 px, −25 %) et surtout : **moins à lire avant d'agir**. Ne pas revendiquer un gain de
+  pixels sur téléphone — il n'existe pas.
+  **UNE PHRASE N'A PAS ÉTÉ RETIRÉE alors que la décision le prévoyait** (« le seul paragraphe
+  réglementaire ») : la promesse de confidentialité, conservée en une ligne. Retirer une PROMESSE
+  faite à l'utilisateur n'est pas la même chose que retirer une explication de fonctionnalité.
 - **LE PROMPT IA APPREND LA FORME ENRICHIE (v5.0.0, lot T12) — SANS REMPLACER LA SIMPLE.** Le
   schéma v3 à chaînes (`"steps"`, préfixe `⚠`/`△`, séparateur `::`) reste la forme de référence et
   **continue de fonctionner** : `migrate` dérive les items du miroir quand ils manquent. Ce qui

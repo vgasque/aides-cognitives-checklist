@@ -1037,6 +1037,78 @@ console.log('\n══ T7 · ★ mémoire — de l\'éditeur au chapeau ══');
   await page.close();
 }
 
+/* LOT T13 — LES DEUX FICHES D'EXEMPLE SONT LE SEUL MATÉRIEL PÉDAGOGIQUE, donc ce qu'elles
+   n'exercent pas n'existe pas pour un nouveau venu. Le constat 3 de l'audit J0 les mesurait à un
+   TIERS des mécanismes du produit : zéro posologie, zéro complication, aucun `discriminant`,
+   aucun `onDue`, et le registre AMBRE présent UNE seule fois dans tout le produit.
+   ON MESURE LES MÉCANISMES, PAS LE TEXTE : un contrôle sur les libellés casserait à la première
+   relecture clinique, alors que ce qui compte est qu'un J0 RENCONTRE chaque dispositif. */
+console.log('\n══ T13 · les fiches d\'exemple exercent la doctrine qu\'elles enseignent ══');
+{
+  const page = await br.newPage({viewport:{width:390,height:844},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html?__actest`);
+  await page.waitForFunction(()=>!!window.__ac_test__);
+  const r = await page.evaluate(()=>{
+    const A=window.__ac_test__;
+    const bilan=f=>{const its=(f.blocks||[]).flatMap(b=>A.bItems(b));
+      return {disc:f.discriminant,code:f.code,
+        vigil:its.filter(i=>i.level===2).length, crit:its.filter(i=>i.level===3).length,
+        mem:its.filter(i=>i.memory).length, dual:its.filter(i=>i.dual).length,
+        poso:(f.posology||[]).length, cx:(f.complications||[]).length,
+        onDue:(f.timers||[]).filter(t=>t.onDue).length,
+        vigilTot:its.filter(i=>i.level===2).length,
+        cxCible:(f.complications||[]).every(c=>(f.blocks||[]).some(b=>b.id===c.target)),
+        cxHorsChaine:(f.complications||[]).every(c=>!(f.blocks||[]).some(b=>b.next===c.target
+          ||(b.options||[]).some(o=>o.target===c.target))),
+        chapeau:A.forgetAll(f).length};};
+    return {a:bilan(seed('')),b:bilan(seed2(''))};});
+  for (const [nom,x] of [['Anaphylaxie',r.a],['ACR',r.b]]) {
+    t(`${nom} · porte un discriminant et un code`, !!x.disc && !!x.code, `${x.disc} / ${x.code}`);
+    t(`${nom} · exerce le registre AMBRE`, x.vigil>=1, `${x.vigil} étape(s) △`);
+    t(`${nom} · … et le registre ROUGE, sans le noyer`, x.crit>=1 && x.crit<=3, `${x.crit} étape(s) ⚠`);
+    t(`${nom} · porte des repères posologiques`, x.poso>=1, `${x.poso}`);
+    t(`${nom} · son minuteur DIT quoi faire à l'échéance (onDue)`, x.onDue>=1, `${x.onDue}`);
+    t(`${nom} · exerce ★ mémoire`, x.mem===1, `${x.mem} (une seule : s'il y en avait partout, elle ne dirait rien)`);
+    /* Le chapeau agrège notForget ET les étoiles : il doit rester sous le plafond doctrinal de 4. */
+    t(`${nom} · … sans faire déborder le chapeau (≤ 4 rappels)`, x.chapeau<=4, `${x.chapeau}`);
+  }
+  t(`Anaphylaxie · exerce ×2 (double confirmation)`, r.a.dual===1, `${r.a.dual}`);
+  t(`Anaphylaxie · exerce une complication « à tout moment »`, r.a.cx===1, `${r.a.cx}`);
+  t(`… dont la cible existe`, r.a.cxCible===true);
+  /* L'invariant de la doctrine : un bloc d'excursion est HORS chaîne — aucun `next`, aucune
+     option n'y mène — sinon il prendrait un numéro de tronc et se lirait « l'étape d'après ». */
+  t(`… et vit HORS de la chaîne (aucun next n'y mène)`, r.a.cxHorsChaine===true);
+  await page.close();
+}
+
+/* LOT T13 — J0-D6 : LE MESSAGE DES EXEMPLES N'EST PAS UNE SNACKBAR. Mesuré à l'audit J0, elle
+   recouvrait 60,7 % du bouton d'action primaire à l'instant où un nouveau venu venait de le
+   presser. Une snackbar accuse un geste ; ceci AVERTIT, et doit tenir. */
+{
+  const page = await br.newPage({viewport:{width:390,height:844},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  const r = await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    const m=document.getElementById('welcomeModal');
+    const paras=m.querySelectorAll('p').length;
+    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));
+    if(b)b.click(); await w(300);
+    const cta=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));
+    const av=cta?cta.getBoundingClientRect():null;
+    if(cta)cta.click(); await w(900);
+    const ban=document.getElementById('sysBanner');
+    const rec=(()=>{if(!ban||ban.hidden||!av)return 0;const r2=ban.getBoundingClientRect();
+      return Math.round(Math.max(0,Math.min(r2.bottom,av.bottom)-Math.max(r2.top,av.top))/av.height*100);})();
+    return {paras,bandeau:!!ban&&!ban.hidden,toasts:document.querySelectorAll('.toast').length,rec};});
+  t(`l'écran de bienvenue ne fait plus le tour du produit (≤ 2 paragraphes)`, r.paras<=2, `${r.paras}`);
+  t(`les exemples s'annoncent par le BANDEAU, pas par une snackbar`, r.bandeau===true && r.toasts===0,
+    `bandeau=${r.bandeau}, snackbars=${r.toasts}`);
+  t(`… et il ne recouvre plus le bouton d'action (0 %)`, r.rec===0, `${r.rec} %`);
+  await page.close();
+}
+
 await br.close();srv.close();
 console.log(`\n${ok}/${ok+ko} contrôles doctrine OK${ko?` — ${ko} ÉCHEC(S)`:''}`);
 process.exit(ko?1:0);
