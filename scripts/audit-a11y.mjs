@@ -139,9 +139,9 @@ const SURFACES = [
       openRead(f.id);await new Promise(r=>setTimeout(r,400));
       document.getElementById('sessStart').click();await new Promise(r=>setTimeout(r,450));
       confirmEndSession(f); } },
-  { nom:'complications',       w:390,  scope:'#cxModal', fn: async()=>{
+  { nom:'excursions',       w:390,  scope:'#cxModal', fn: async()=>{
       const f=fiches.find(x=>/Arrêt cardiaque/.test(x.title));
-      f.complications=[{label:'Laryngospasme',target:f.blocks[1].id}];
+      f.excursions=[{label:'Laryngospasme',target:f.blocks[1].id}];
       await Data.put(f);openRead(f.id);await new Promise(r=>setTimeout(r,400));
       openCxDlg(f); } },
   { nom:'versions précédentes',w:390,  scope:'#versModal', fn: async()=>{
@@ -165,7 +165,7 @@ const SURFACES = [
       await IDB.putAtt({id:'att-y',buf:by.buffer,size:by.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:0});
       // Un document joint AILLEURS : sans lui, la liste filtrable serait vide et ne mesurerait rien.
       const g=fiches.find(x=>x.id!==f.id);
-      if(g){g.attachments=[{id:'att-y',name:'Annexe partagée.pdf',size:by.byteLength}];await Data.put(g);}
+      if(g){g.docs=[{id:'att-y',name:'Annexe partagée.pdf',size:by.byteLength}];await Data.put(g);}
       openEdit(f.id);await new Promise(r=>setTimeout(r,500));
       openAttPicker(state.draft,()=>{}); } },
   { nom:'lier une aide',       w:390,  scope:'#relPickModal', fn: async()=>{
@@ -222,7 +222,7 @@ for (const theme of ['light','dark']) {
       const id=c.dataset.open;
       const f=fiches.find(x=>x.id===id);
       f.posology=['△ **ADRÉNALINE — IV** : 1 mg / 3–5 min','**Remplissage** : cristalloïdes','**O₂** : haut débit','**Amiodarone** : 300 mg'];
-      f.references=['Réanimation — recommandations 2023.'];
+      f.sources=['Réanimation — recommandations 2023.'];
       if(kind==='edit'){openEdit(id);await new Promise(r=>setTimeout(r,350));return;}
       c.click();
       document.getElementById('sessStart').click();

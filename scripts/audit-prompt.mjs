@@ -26,14 +26,14 @@ const r=await p.evaluate(()=>{
   let obj=null,err=null; try{obj=JSON.parse(bloc);}catch(e){err=String(e);}
   if(!obj)return {parse:false,err,extrait:bloc.slice(0,200)};
   const f=A.migrate(JSON.parse(JSON.stringify(obj.fiches[0])));
-  const cx=(f.complications||[]);
+  const cx=(f.excursions||[]);
   return {parse:true, disc:f.discriminant, onDue:(f.timers[0]||{}).onDue,
-    titre:f.title, statut:f.status, valid:f.validation,
+    titre:f.title, statut:f.status, valid:f.validatedAt,
     blocs:f.blocks.length, start:f.start,
     cxOk:cx.length===1&&cx[0].target==='cx1',
-    cibles:f.blocks.filter(b=>b.type==='decision').flatMap(b=>b.options.map(o=>o.target))
+    cibles:f.blocks.filter(b=>b.kind==='decision').flatMap(b=>b.options.map(o=>o.target))
       .every(id=>f.blocks.some(b=>b.id===id)),
-    nexts:f.blocks.filter(b=>b.type==='steps').every(b=>b.next===null||f.blocks.some(x=>x.id===b.next)),
+    nexts:f.blocks.filter(b=>b.kind==='do').every(b=>b.next===null||f.blocks.some(x=>x.id===b.next)),
     poso:A.listOf(f,'posology').length, promptLen:P.length,
     ditBulle:/en GRIS, dans une BULLE/.test(P), ditBudget:/BUDGETS/.test(P),
     ditPeuTexte:/PEU DE TEXTE/.test(P), ditDisc:/"discriminant"/.test(P), ditOnDue:/"onDue"/.test(P),

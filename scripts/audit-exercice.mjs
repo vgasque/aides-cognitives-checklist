@@ -14,8 +14,8 @@ await p.evaluate(async()=>{const b=[...document.querySelectorAll('button')].find
  const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await new Promise(r=>setTimeout(r,400));
  const c=[...document.querySelectorAll('.card-open')].find(x=>/Arr.t cardiaque/.test(x.textContent));
  const f=fiches.find(x=>x.id===c.dataset.open);window.__fid=f.id;
- f.blocks.push({id:'cxL',type:'steps',title:'Laryngospasme — gestes',steps:['Arrêter la stimulation'],next:null});
- f.complications=[{label:'Laryngospasme',target:'cxL'}];
+ f.blocks.push({id:'cxL',kind:'do',title:'Laryngospasme — gestes',steps:['Arrêter la stimulation'],next:null});
+ f.excursions=[{label:'Laryngospasme',target:'cxL'}];
  c.click();await new Promise(r=>setTimeout(r,400));});
 console.log('=== entrée en exercice ===');
 const e1=await p.evaluate(async()=>{

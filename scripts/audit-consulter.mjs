@@ -37,7 +37,7 @@ t('la posologie reste dans le flux (téléphone)', await p.evaluate(()=>document
 t('les surveillances restent dans le flux', await p.evaluate(()=>document.querySelector('#main').textContent.indexOf('Chariot')>=0));
 // INVARIANT : pas de bouton sans contenu
 const vide=await p.evaluate(async()=>{const f=state.fiche;
- setList(f,'differentials',[]);f.images=[];f.attachments=[];f.references=[];f.related=[];
+ setList(f,'differentials',[]);f.images=[];f.docs=[];f.sources=[];f.links=[];
  render();await new Promise(r=>setTimeout(r,400));
  return {btn:!document.getElementById('refBtn').hidden,rangee:!!document.getElementById('annexRow'),
    verify:clean(listOf(f,'verify')).length,poso:clean(listOf(f,'posology')).length};});

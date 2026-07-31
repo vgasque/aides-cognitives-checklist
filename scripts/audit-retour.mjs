@@ -21,8 +21,8 @@ await p.evaluate(async()=>{const b=[...document.querySelectorAll('button')].find
  const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await new Promise(r=>setTimeout(r,400));
  const f=fiches.find(x=>/Arr.t cardiaque/.test(x.title));window.__fid=f.id;
  window.__oid=fiches.find(x=>x.id!==f.id).id;
- f.blocks.push({id:'cxL',type:'steps',title:'Laryngospasme — gestes',steps:['Arrêter la stimulation','O2 pur'],next:null});
- f.complications=[{label:'Laryngospasme',target:'cxL'}];
+ f.blocks.push({id:'cxL',kind:'do',title:'Laryngospasme — gestes',steps:['Arrêter la stimulation','O2 pur'],next:null});
+ f.excursions=[{label:'Laryngospasme',target:'cxL'}];
  openRead(f.id);await new Promise(r=>setTimeout(r,400));});
 console.log('=== menu ⋯ : ordre + icônes ===');
 const m=await p.evaluate(async()=>{

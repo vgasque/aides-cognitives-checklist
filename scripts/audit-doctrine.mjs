@@ -376,17 +376,17 @@ console.log('\n══ QRH · intitulé de décision toujours visible (statique e
 {
   const st=n=>Array.from({length:n},(_,i)=>`Étape ${i+1} du protocole, libellé réaliste`);
   const FICHE={id:'aud-sb',title:'Audit — décision imbriquée',start:'a',blocks:[
-    {id:'a',type:'steps',title:'Début',steps:st(3),next:'d1'},
-    {id:'d1',type:'decision',title:'Analyse du rythme',question:'Le rythme est-il choquable (FV / TV sans pouls) ?',
+    {id:'a',kind:'do',title:'Début',steps:st(3),next:'d1'},
+    {id:'d1',kind:'decision',title:'Analyse du rythme',question:'Le rythme est-il choquable (FV / TV sans pouls) ?',
       options:[{label:'Choquable',target:'b1'},{label:'Non choquable',target:'b9'}]},
-    {id:'b1',type:'steps',title:'Choc',steps:st(4),next:'d2'},
-    {id:'d2',type:'decision',title:'Réévaluation',question:'Reprise d\'activité circulatoire spontanée ?',
+    {id:'b1',kind:'do',title:'Choc',steps:st(4),next:'d2'},
+    {id:'d2',kind:'decision',title:'Réévaluation',question:'Reprise d\'activité circulatoire spontanée ?',
       options:[{label:'Non',target:'b6'},{label:'Oui',target:'b8'}]},
-    {id:'b6',type:'steps',title:'Poursuite',steps:st(6),next:'fin'},
-    {id:'b8',type:'steps',title:'Post-arrêt',steps:st(3),next:'fin'},
-    {id:'b9',type:'steps',title:'Sans choc',steps:st(4),next:'fin'},
-    {id:'fin',type:'steps',title:'Surveillance',steps:st(2),next:null}],
-    timers:[],counters:[],confirmation:[],verify:[],notForget:[],differentials:[],references:[],images:[]};
+    {id:'b6',kind:'do',title:'Poursuite',steps:st(6),next:'fin'},
+    {id:'b8',kind:'do',title:'Post-arrêt',steps:st(3),next:'fin'},
+    {id:'b9',kind:'do',title:'Sans choc',steps:st(4),next:'fin'},
+    {id:'fin',kind:'do',title:'Surveillance',steps:st(2),next:null}],
+    timers:[],counters:[],confirmation:[],verify:[],notForget:[],differentials:[],sources:[],images:[]};
   const openStatic=async(w,h)=>{
     const page=await br.newPage({viewport:{width:w,height:h}});
     await page.goto(`http://localhost:${port}/index.html`);
@@ -479,7 +479,7 @@ console.log('\n══ Rendu guidé · décocher annule la fin de l\'algorithme �
   const r=await page.evaluate(async()=>{
     // Fiche MONO-BLOC : pas d'algorithme -> rendu guidé (`navSection`), pas le journal.
     const f=migrate({id:'dgui',title:'Sonde guidée',blocks:[
-      {id:'b1',type:'steps',title:'Bloc unique',steps:['Étape A','Étape B']}],start:'b1'});
+      {id:'b1',kind:'do',title:'Bloc unique',steps:['Étape A','Étape B']}],start:'b1'});
     await Data.put(f);fiches.push(f);
     openRead(f.id);await new Promise(r=>setTimeout(r,350));
     const guide=!document.querySelector('#readTopSeg')&&!!document.querySelector('.nav-wrap');
@@ -545,7 +545,7 @@ console.log('\n══ ECAM · ancrage — résidu nul au geste de première acti
   // Rendu GUIDÉ (fiche à un bloc) : le remplacement chirurgical est ancré lui aussi.
   const g=await page.evaluate(async()=>{
     const f=migrate({id:'ancd',title:'Ancre guidée',blocks:[
-      {id:'b1',type:'steps',title:'Bloc unique',steps:['a','b','c','d','e','f']}],start:'b1'});
+      {id:'b1',kind:'do',title:'Bloc unique',steps:['a','b','c','d','e','f']}],start:'b1'});
     await Data.put(f);fiches.push(f);
     openRead(f.id);await new Promise(r=>setTimeout(r,350));
     document.getElementById('sessStart').click();await new Promise(r=>setTimeout(r,350));
@@ -1057,11 +1057,11 @@ console.log('\n══ T13 · les fiches d\'exemple exercent la doctrine qu\'elle
       return {disc:f.discriminant,code:f.code,
         vigil:its.filter(i=>i.level===2).length, crit:its.filter(i=>i.level===3).length,
         mem:its.filter(i=>i.memory).length, dual:its.filter(i=>i.dual).length,
-        poso:A.listOf(f,'posology').length, cx:(f.complications||[]).length,
+        poso:A.listOf(f,'posology').length, cx:(f.excursions||[]).length,
         onDue:(f.timers||[]).filter(t=>t.onDue).length,
         vigilTot:its.filter(i=>i.level===2).length,
-        cxCible:(f.complications||[]).every(c=>(f.blocks||[]).some(b=>b.id===c.target)),
-        cxHorsChaine:(f.complications||[]).every(c=>!(f.blocks||[]).some(b=>b.next===c.target
+        cxCible:(f.excursions||[]).every(c=>(f.blocks||[]).some(b=>b.id===c.target)),
+        cxHorsChaine:(f.excursions||[]).every(c=>!(f.blocks||[]).some(b=>b.next===c.target
           ||(b.options||[]).some(o=>o.target===c.target))),
         chapeau:A.forgetAll(f).length};};
     return {a:bilan(seed('')),b:bilan(seed2(''))};});

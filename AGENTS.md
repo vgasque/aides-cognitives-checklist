@@ -2682,6 +2682,26 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   fois** dans `index.html`, mais l'immense majorité désigne le **store IndexedDB**, pas la table
   Supabase. Renommer au motif ne casserait pas la synchro, il casserait le stockage LOCAL et
   exigerait une montée de version de base. Ne remplacer que ce qui porte `/rest/v1/` ou `table:`.
+- **LES RENOMMAGES — ÉTAPE C DU PASSAGE À v4 COMPLET (v5.0.0).** `libraryId`→`library`,
+  `validation`→`validatedAt`, `references`→`sources`, `attachments`→`docs`, `related`→`links`,
+  `localInfo`→`local`, `complications`→`excursions` ; le BLOC passe de `type` `'steps'`/`'decision'`
+  à `kind` `'do'`/`'decision'` ; l'aide se DÉCLARE (`v:4`, `kind:'procedure'`) ; et le statut prend
+  son vocabulaire (`''` → `'validated'`).
+  **UN STATUT INCONNU RETOMBE SUR `validated`, JAMAIS SUR `draft`** — c'est le défaut historique, et
+  l'inverser ferait passer en brouillon des fiches validées à la première donnée douteuse, donc les
+  **retirerait de l'accès de crise** (un brouillon ne s'épingle pas). J'ai écrit l'inverse d'abord ;
+  trois témeoins l'ont attrapé.
+  **LA CONVERSION EN PLACE (`V5_RENOMMAGES`) N'EST PAS DU « CODE v3 »**, et la distinction décide de
+  ce que l'étape D supprime : ces huit lignes convertissent un format v5 **intermédiaire** (celui de
+  l'étape B, qui portait encore les anciens noms) vers le format v5 final. C'est une migration en
+  place ordinaire — celle que fait toute application qui renomme un champ. Sans elles, une mise à
+  jour que l'utilisateur n'a pas choisie rendrait ses données locales illisibles : ce serait lui
+  faire payer une décision d'architecture.
+  **TROIS NOMS N'ONT PAS BOUGÉ, ET IL FAUT SAVOIR POURQUOI** : la colonne SQL `library_id` (le
+  mapping `rowConverters` fait le pont), le **store IndexedDB `'attachments'`** (renommer un store
+  exige une montée de version de base et casse le stockage LOCAL — c'est le piège déjà rencontré
+  avec `'fiches'`), et le bucket Storage. **Ne jamais renommer au motif : distinguer le CHAMP du
+  STORE.**
 - **LE POOL `items[]` — ÉTAPE B DU PASSAGE À v4 COMPLET (v5.0.0).** `f.items[]` est désormais LA
   liste des items de l'aide, toutes portées confondues, et **un bloc ne porte plus que des
   IDENTIFIANTS**. Les cinq listes v3 `confirmation`, `notForget`, `verify`, `posology`,

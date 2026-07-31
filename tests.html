@@ -122,8 +122,8 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
 
   group('migrate() — fiche hostile neutralisée');
   const before=Object.prototype.polluted;
-  const m=A.migrate({id:'__proto__',title:'<img onerror=alert(1)>',category:'c',validation:'2026-01',
-    confirmation:['x'],blocks:[{id:'constructor',type:'steps',title:'b',steps:['s']}],
+  const m=A.migrate({id:'__proto__',title:'<img onerror=alert(1)>',category:'c',validatedAt:'2026-01',
+    confirmation:['x'],blocks:[{id:'constructor',kind:'do',title:'b',steps:['s']}],
     images:[{id:'i',data:'javascript:alert(1)',caption:'c'}]});
   ok('id __proto__ remplacé', m.id!=='__proto__');
   ok('aucune prototype pollution', Object.prototype.polluted===before);
@@ -132,17 +132,17 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   ok('structure blocs préservée', Array.isArray(m.blocks)&&m.blocks.length>=1);
 
   group('statut 3 états / code / étapes critiques (V5)');
-  eq('bloc étapes : nextLbl conservé et borné', A.migrate({blocks:[{id:'b1',type:'steps',steps:['s'],nextLbl:'réévaluation à 5 min'}]}).blocks[0].nextLbl, 'réévaluation à 5 min');
+  eq('bloc étapes : nextLbl conservé et borné', A.migrate({blocks:[{id:'b1',kind:'do',steps:['s'],nextLbl:'réévaluation à 5 min'}]}).blocks[0].nextLbl, 'réévaluation à 5 min');
   eq('compteur lié : timerId sûr conservé', A.migrate({counters:[{id:'n1',label:'Adré',timerId:'t1'}]}).counters[0].timerId, 't1');
   eq('compteur lié : timerId hostile vidé', A.migrate({counters:[{id:'n1',label:'Adré',timerId:'__proto__'}]}).counters[0].timerId, '');
   eq('statut review conservé', A.migrate({status:'review'}).status, 'review');
-  eq('statut inconnu → validée (défaut historique)', A.migrate({status:'weird'}).status, '');
+  eq('statut inconnu → validée (défaut historique)', A.migrate({status:'weird'}).status, 'validated');
   eq('statut draft conservé', A.migrate({status:'draft'}).status, 'draft');
   eq('code borné et conservé', A.migrate({code:'URG-ANA-01'}).code, 'URG-ANA-01');
   eq('code absent → vide', A.migrate({}).code, '');
   eq('protocole : statut review conservé', A.migrateProtocol({status:'review'}).status, 'review');
   eq('protocole : code conservé', A.migrateProtocol({code:'PRO-ISR-01'}).code, 'PRO-ISR-01');
-  ok('protocole : fiches liées filtrées (ids sûrs)', A.migrateProtocol({related:['ok-1','__proto__',42]}).related.join(',')==='ok-1');
+  ok('protocole : fiches liées filtrées (ids sûrs)', A.migrateProtocol({links:['ok-1','__proto__',42]}).links.join(',')==='ok-1');
   ok('étape « ⚠ » critique', A.stepIsCrit('⚠ Adrénaline IM 0,5 mg'));
   ok('étape « ! » critique', A.stepIsCrit('!Adrénaline IM'));
   ok('étape ordinaire non critique', !A.stepIsCrit('Oxygène 15 L/min'));
@@ -161,7 +161,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   ok('prompt IA : section posology documentée', A.AI_PROMPT.indexOf('"posology"')>=0);
 
   group('sanitizeCats() — catégories hostiles');
-  const sc=A.sanitizeCats([{id:'prototype',name:'<img>',color:'javascript:alert(1)',libraryId:null}]);
+  const sc=A.sanitizeCats([{id:'prototype',name:'<img>',color:'javascript:alert(1)',library:null}]);
   ok('id prototype remplacé', sc[0].id!=='prototype');
   eq('couleur javascript: → défaut', sc[0].color, '#45556b');
   ok('nom conservé comme chaîne', typeof sc[0].name==='string');
@@ -176,7 +176,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
 
   group('txNorm() / recherche plein texte');
   eq('accents et casse normalisés', A.txNorm('Réanimation ÉCG'), 'reanimation ecg');
-  const hay=A.ficheHaystack({title:'ACR',confirmation:['Pas de pouls'],blocks:[{type:'steps',title:'RCP',steps:['Amiodarone 300 mg']},{type:'decision',title:'Rythme',question:'Choquable ?',options:[{label:'Oui choquable'}]}]});
+  const hay=A.ficheHaystack({title:'ACR',confirmation:['Pas de pouls'],blocks:[{kind:'do',title:'RCP',steps:['Amiodarone 300 mg']},{kind:'decision',title:'Rythme',question:'Choquable ?',options:[{label:'Oui choquable'}]}]});
   ok('haystack inclut une étape', hay.indexOf('amiodarone')>=0);
   ok('haystack inclut une question de décision', hay.indexOf('choquable')>=0);
   ok('haystack inclut un libellé d’option', hay.indexOf('oui choquable')>=0);
@@ -193,7 +193,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   eq('occurrences chevauchantes fusionnées', A.markQTerms('anaphylaxie', ['anaph','phylaxie']), '<b>anaphylaxie</b>');
   ok('sans occurrence : texte échappé tel quel', A.markQTerms('<x> & y', ['zzz'])==='&lt;x&gt; &amp; y');
   ok('XSS : le texte reste échappé autour du <b>', A.markQTerms('<img src=x> adrénaline', ['adrenaline']).indexOf('<img')<0);
-  {const f=A.migrate({title:'Anaphylaxie',notForget:[],blocks:[{type:'steps',title:'Traitement',steps:['⚠ Adrénaline 0,5 mg IM face antéro-latérale de cuisse']}]});
+  {const f=A.migrate({title:'Anaphylaxie',notForget:[],blocks:[{kind:'do',title:'Traitement',steps:['⚠ Adrénaline 0,5 mg IM face antéro-latérale de cuisse']}]});
    const sn=A.searchSnippet(A.ficheSnipParts(f),'adrénaline');
    ok('extrait trouvé dans une étape', sn.indexOf('<b>Adrénaline</b>')>=0, sn);
    ok('extrait sans le préfixe ⚠ (stepText)', sn.indexOf('⚠')<0);
@@ -203,7 +203,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    const sn=A.searchSnippet([long],'titree');
    ok('fenêtre bornée avec ellipses', sn.indexOf('… ')>=0&&sn.lastIndexOf(' …')>=0&&sn.length<400, sn.length+' car.');
    ok('le terme reste dans la fenêtre', sn.indexOf('<b>titrée</b>')>=0);}
-  {const p=A.migrateProtocol({title:'Intubation',body:'# Prépa\nInduction en séquence rapide.',attachments:[{id:'a1',name:'ISR-service.pdf',size:10}]});
+  {const p=A.migrateProtocol({title:'Intubation',body:'# Prépa\nInduction en séquence rapide.',docs:[{id:'a1',name:'ISR-service.pdf',size:10}]});
    ok('protocole : extrait depuis le corps rédigé', A.searchSnippet(A.protoSnipParts(p),'sequence').indexOf('<b>séquence</b>')>=0);
    ok('protocole : nom de PDF comme source', A.searchSnippet(A.protoSnipParts(p),'isr-service').indexOf('<b>')>=0);}
 
@@ -309,7 +309,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
     eq('bloc à 8 étapes : une remarque ancrée sur le bloc', n.length&&n[0].at, 'b:b7');
     ok('… qui nomme le bloc', n[0].cible==='Mesures');}
    ok('une DÉCISION n’est jamais relue comme un bloc d’étapes (pas d’étapes à compter)',
-     A.reviewNotes(F([],[{id:'d1',type:'decision',title:'Choquable ?',options:[]}])).length===0);
+     A.reviewNotes(F([],[{id:'d1',kind:'decision',title:'Choquable ?',options:[]}])).length===0);
    {const n=A.reviewNotes(F(['a','b','c','d','e'],[{id:'b1',title:'B',steps:Array(9).fill('x')}]));
     eq('les remarques s’additionnent, chacune avec sa cible', n.map(x=>x.at), ['nf','b:b1']);}
    eq('fiche vide → rien à dire', A.reviewNotes({}), []);}
@@ -357,8 +357,8 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   eq('giga-octets', A.fmtBytes(2147483648), '2,00 Go');
 
   group('flattenFiche() / diffFicheLines()');
-  const fF={title:'T',status:'draft',localInfo:'Ctx',confirmation:['c1'],
-    blocks:[{id:'b1',type:'steps',title:'B',steps:['s1']},{id:'b2',type:'decision',title:'D',question:'Q ?',options:[{label:'Oui',target:'b1'}]}],
+  const fF={title:'T',status:'draft',local:'Ctx',confirmation:['c1'],
+    blocks:[{id:'b1',kind:'do',title:'B',steps:['s1']},{id:'b2',kind:'decision',title:'D',question:'Q ?',options:[{label:'Oui',target:'b1'}]}],
     timers:[{label:'Cycle',type:'interval',seconds:120}],counters:[{label:'Adré'}]};
   const fl=A.flattenFiche(fF);
   ok('aplatit le titre', fl.indexOf('Titre · T')>=0);
@@ -369,15 +369,15 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   ok('minuteur avec durée', fl.indexOf('Minuteur · Cycle (120 s)')>=0);
   ok('compteur', fl.indexOf('Compteur · Adré')>=0);
   eq('fiche nulle → []', A.flattenFiche(null), []);
-  const fA={title:'T',confirmation:['a','b'],blocks:[{type:'steps',title:'B',steps:['s1']}]};
-  const fB={title:'T',confirmation:['a'],blocks:[{type:'steps',title:'B',steps:['s1','s2']}]};
+  const fA={title:'T',confirmation:['a','b'],blocks:[{kind:'do',title:'B',steps:['s1']}]};
+  const fB={title:'T',confirmation:['a'],blocks:[{kind:'do',title:'B',steps:['s1','s2']}]};
   const d=A.diffFicheLines(fA,fB); // cur=fA, old=fB : restaurer fB retirerait 'b', ajouterait 's2'
   ok('diff détecte une suppression', d.removed.some(x=>/·\s*b$/.test(x)));
   ok('diff détecte un ajout', d.added.some(x=>/s2$/.test(x)));
   eq('aucune diff si identiques', A.diffFicheLines(fA,fA), {removed:[],added:[]});
 
   group('stepTextFromKey()');
-  const fK={blocks:[{id:'b1',type:'steps',title:'Mesures',steps:['Étape A','Étape B']}]};
+  const fK={blocks:[{id:'b1',kind:'do',title:'Mesures',steps:['Étape A','Étape B']}]};
   eq('résout une étape cochée', A.stepTextFromKey(fK,'0:b1:1'), {block:'Mesures',step:'Étape B'});
   eq('clé orpheline → null', A.stepTextFromKey(fK,'0:zz:0'), null);
 
@@ -477,12 +477,12 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   eq('stripBold retire les paires', A.stripBold('**a** et **b**'), 'a et b');
   eq('stripBold laisse le non-apparié', A.stripBold('a **b'), 'a **b');
   ok('recherche : le gras n\'empêche pas de trouver une expression',
-    A.ficheHaystack({title:'x',blocks:[{type:'steps',title:'B',steps:['**Adrénaline** 0,5 mg IM']}]}).indexOf('adrenaline 0,5 mg')>=0);
+    A.ficheHaystack({title:'x',blocks:[{kind:'do',title:'B',steps:['**Adrénaline** 0,5 mg IM']}]}).indexOf('adrenaline 0,5 mg')>=0);
 
   group('buildFlowSVG() / wrapText() — organigramme (structure & échappement)');
   const svg=A.buildFlowSVG({blocks:[
-    {id:'a',type:'steps',title:'<img src=x onerror=alert(1)>',steps:['x'],next:'d'},
-    {id:'d',type:'decision',title:'D',question:'Q ?',options:[{label:'retour',target:'a'},{label:'fin',target:''}]}],start:'a'},'d');
+    {id:'a',kind:'do',title:'<img src=x onerror=alert(1)>',steps:['x'],next:'d'},
+    {id:'d',kind:'decision',title:'D',question:'Q ?',options:[{label:'retour',target:'a'},{label:'fin',target:''}]}],start:'a'},'d');
   ok('rend un <svg> dimensionné', /^<svg width="[\d.]+" height="[\d.]+"/.test(svg));
   ok('titre échappé (pas de balise brute)', svg.indexOf('<img src')<0&&svg.indexOf('&lt;img')>=0);
   ok('pastille DÉPART présente', svg.indexOf('DÉPART')>=0);
@@ -494,15 +494,15 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   eq('wrapText coupe les mots trop longs', A.wrapText('abcdefghij',4), ['abcd','efgh','ij']);
 
   group('completionSpots() — badge « À compléter »');
-  ok('invite dans localInfo', A.completionSpots({localInfo:'Tél renfort : à compléter'}).length>0);
-  ok('marqueur « ⚠ À COMPLÉTER » dans une étape', A.completionSpots({blocks:[{type:'steps',steps:['⚠ À COMPLÉTER : dose']}]}).length>0);
+  ok('invite dans localInfo', A.completionSpots({local:'Tél renfort : à compléter'}).length>0);
+  ok('marqueur « ⚠ À COMPLÉTER » dans une étape', A.completionSpots({blocks:[{kind:'do',steps:['⚠ À COMPLÉTER : dose']}]}).length>0);
   ok('invite dans une section liste', A.completionSpots({verify:['PAS cible : à compléter']}).length>0);
   ok('accent manquant toléré (« a completer »)', A.completionSpots({verify:['cible a completer']}).length>0);
   ok('⚠ seul (avertissement clinique) ne déclenche PAS', A.completionSpots({notForget:['⚠ NE PAS associer adrénaline et isoprénaline']}).length===0);
-  ok('fiche complète → aucun emplacement', A.completionSpots({localInfo:'Tél 1234',verify:['PAS ≥ 80'],blocks:[{type:'steps',steps:['ok']}]}).length===0);
+  ok('fiche complète → aucun emplacement', A.completionSpots({local:'Tél 1234',verify:['PAS ≥ 80'],blocks:[{kind:'do',steps:['ok']}]}).length===0);
   ok('non-objet → aucun emplacement', A.completionSpots(null).length===0);
   eq('completionSpots liste les emplacements (infobulle du badge)',
-    A.completionSpots({localInfo:'Tél : à compléter',references:['Exemple à compléter'],blocks:[{type:'steps',title:'Traitement',steps:['⚠ À COMPLÉTER : dose']}]}),
+    A.completionSpots({local:'Tél : à compléter',sources:['Exemple à compléter'],blocks:[{kind:'do',title:'Traitement',steps:['⚠ À COMPLÉTER : dose']}]}),
     ['Contexte local','Références','Bloc « Traitement »']);
   eq('aucun emplacement → tableau vide', A.completionSpots({title:'x'}), []);
 
@@ -523,26 +523,26 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   ok('gras exclu des étapes (texte déjà en gras)', A.AI_PROMPT.indexOf('ne s\'applique PAS aux étapes')>=0);
 
   group('références des protocoles (v4.2.2)');
-  eq('migrateProtocol : références nettoyées/coercées', A.migrateProtocol({references:['SFAR 2023',42]}).references, ['SFAR 2023','42']);
-  ok('migrateProtocol : défaut = tableau', Array.isArray(A.migrateProtocol({}).references));
-  ok('blankProtocol : champ references présent', Array.isArray(A.blankProtocol().references));
+  eq('migrateProtocol : références nettoyées/coercées', A.migrateProtocol({sources:['SFAR 2023',42]}).sources, ['SFAR 2023','42']);
+  ok('migrateProtocol : défaut = tableau', Array.isArray(A.migrateProtocol({}).sources));
+  ok('blankProtocol : champ references présent', Array.isArray(A.blankProtocol().sources));
 
   group('migrate() — champs status/related/updatedBy');
-  const m31=A.migrate({title:'x',status:'draft',related:['ok-1','__proto__','bad id'],updatedBy:'a@b.fr'});
+  const m31=A.migrate({title:'x',status:'draft',links:['ok-1','__proto__','bad id'],updatedBy:'a@b.fr'});
   eq('status brouillon conservé', m31.status, 'draft');
-  eq('related nettoyé', m31.related, ['ok-1']);
+  eq('related nettoyé', m31.links, ['ok-1']);
   eq('updatedBy conservé', m31.updatedBy, 'a@b.fr');
-  eq('status inconnu → validée', A.migrate({title:'x',status:'???'}).status, '');
+  eq('status inconnu → validée', A.migrate({title:'x',status:'???'}).status, 'validated');
 
   group('relCandidatesFor() — candidats « Voir aussi » (liens croisés v4.2.0)');
-  {const fs=[{id:'f1',title:'Choc',order:2},{id:'f2',title:'ACR',order:1},{id:'f3',title:'Poubelle',deletedAt:1},{id:'f4',title:'Partagée',libraryId:'L1'}];
-   const ps=[{id:'p1',title:'Proto ISR',code:'ISR-01',order:1},{id:'p2',title:'Proto partagé',libraryId:'L1'}];
-   const c=A.relCandidatesFor({id:'f1',related:['p1']},fs,ps);
+  {const fs=[{id:'f1',title:'Choc',order:2},{id:'f2',title:'ACR',order:1},{id:'f3',title:'Poubelle',deletedAt:1},{id:'f4',title:'Partagée',library:'L1'}];
+   const ps=[{id:'p1',title:'Proto ISR',code:'ISR-01',order:1},{id:'p2',title:'Proto partagé',library:'L1'}];
+   const c=A.relCandidatesFor({id:'f1',links:['p1']},fs,ps);
    eq('même périmètre, hors soi-même/liés/corbeille', c.map(x=>x.id), ['f2']);
-   eq('aides d\'abord puis protocoles', A.relCandidatesFor({id:'x',related:[]},fs,ps).map(x=>x.kind), ['f','f','p']);
-   eq('périmètre bibliothèque respecté', A.relCandidatesFor({id:'x',libraryId:'L1',related:[]},fs,ps).map(x=>x.id), ['f4','p2']);
-   eq('code repris pour le filtre', A.relCandidatesFor({id:'x',related:[]},fs,ps).find(x=>x.id==='p1').code, 'ISR-01');
-   eq('titre vide → « Sans titre »', A.relCandidatesFor({id:'x',related:[]},[{id:'f9'}],[]).map(x=>x.title), ['Sans titre']);}
+   eq('aides d\'abord puis protocoles', A.relCandidatesFor({id:'x',links:[]},fs,ps).map(x=>x.kind), ['f','f','p']);
+   eq('périmètre bibliothèque respecté', A.relCandidatesFor({id:'x',library:'L1',links:[]},fs,ps).map(x=>x.id), ['f4','p2']);
+   eq('code repris pour le filtre', A.relCandidatesFor({id:'x',links:[]},fs,ps).find(x=>x.id==='p1').code, 'ISR-01');
+   eq('titre vide → « Sans titre »', A.relCandidatesFor({id:'x',links:[]},[{id:'f9'}],[]).map(x=>x.title), ['Sans titre']);}
 
   group('safeFileName() — nom de document affichable');
   eq('nom simple conservé', A.safeFileName('protocole-ACR.pdf'), 'protocole-ACR.pdf');
@@ -573,9 +573,9 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
 
   group('attMissingInfo() — vérification hors-ligne des documents (v4.20.0)');
   {const ents=[
-    {id:'f1',attachments:[{id:'a1',name:'x.pdf',size:1},{id:'a2',name:'y.pdf',size:1}]},
-    {id:'f2',libraryId:'lib9',attachments:[{id:'a2',name:'y.pdf',size:1},{id:'a3',name:'z.pdf',size:1}]},
-    {id:'f3',deletedAt:123,attachments:[{id:'a4',name:'w.pdf',size:1}]}];
+    {id:'f1',docs:[{id:'a1',name:'x.pdf',size:1},{id:'a2',name:'y.pdf',size:1}]},
+    {id:'f2',library:'lib9',docs:[{id:'a2',name:'y.pdf',size:1},{id:'a3',name:'z.pdf',size:1}]},
+    {id:'f3',deletedAt:123,docs:[{id:'a4',name:'w.pdf',size:1}]}];
    const r=A.attMissingInfo(ents,['a1'],'u1');
    eq('total dédoublonné, supprimés ignorés', r.total, 3);
    eq('manquants = référencés sans binaire local', r.missing, ['a2','a3']);
@@ -714,16 +714,16 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
 
   group('migrateProtocol() — protocole hostile neutralisé');
   const mp=A.migrateProtocol({id:'__proto__',title:'<b>x</b>',body:42,category:'c a t',
-    images:[{id:'i',data:'javascript:alert(1)'}],attachments:[{id:'ok-1',name:'d.pdf',size:9},{id:'bad id'}]});
+    images:[{id:'i',data:'javascript:alert(1)'}],docs:[{id:'ok-1',name:'d.pdf',size:9},{id:'bad id'}]});
   ok('id __proto__ remplacé', mp.id!=='__proto__');
   eq('body coercé en chaîne', mp.body, '42');
   eq('catégorie invalide vidée', mp.category, '');
   eq('image javascript: supprimée', mp.images, []);
-  eq('attachments filtrés', mp.attachments, [{id:'ok-1',name:'d.pdf',size:9}]);
-  eq('statut par défaut', mp.status, '');
+  eq('attachments filtrés', mp.docs, [{id:'ok-1',name:'d.pdf',size:9}]);
+  eq('statut par défaut', mp.status, 'validated');
   ok('updatedAt posé', typeof mp.updatedAt==='number');
   eq('blankProtocol : modèle complet', Object.keys(A.blankProtocol()).sort(),
-     ['attachments','body','category','code','deletedAt','id','images','libraryId','order','ownerId','references','related','status','title','updatedAt','updatedBy','validation'].sort());
+     ['body','category','code','deletedAt','docs','id','images','library','order','ownerId','sources','links','status','title','updatedAt','updatedBy','validatedAt'].sort());
 
   group('attBuf() — formats de stockage des documents (ArrayBuffer courant, Blob historique)');
   ok('format courant {buf:ArrayBuffer} accepté', A.attBuf({buf:new ArrayBuffer(4)})!==null);
@@ -732,10 +732,10 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   eq('absent -> null', A.attBuf(null), null);
 
   group('migrate() — champ attachments');
-  eq('absent → tableau vide', A.migrate({title:'x'}).attachments, []);
-  eq('non-tableau → tableau vide', A.migrate({title:'x',attachments:'zzz'}).attachments, []);
-  eq('entrées invalides filtrées', A.migrate({title:'x',attachments:[{id:'__proto__'},null,'s',{id:'ok-1',name:'d.pdf',size:9}]}).attachments, [{id:'ok-1',name:'d.pdf',size:9}]);
-  ok('plafonné à MAX_ATT_PER_ENTITY', A.migrate({title:'x',attachments:Array.from({length:99},(_,i)=>({id:'a'+i,name:'d',size:1}))}).attachments.length<=A.MAX_ATT_PER_ENTITY);
+  eq('absent → tableau vide', A.migrate({title:'x'}).docs, []);
+  eq('non-tableau → tableau vide', A.migrate({title:'x',docs:'zzz'}).docs, []);
+  eq('entrées invalides filtrées', A.migrate({title:'x',docs:[{id:'__proto__'},null,'s',{id:'ok-1',name:'d.pdf',size:9}]}).docs, [{id:'ok-1',name:'d.pdf',size:9}]);
+  ok('plafonné à MAX_ATT_PER_ENTITY', A.migrate({title:'x',docs:Array.from({length:99},(_,i)=>({id:'a'+i,name:'d',size:1}))}).docs.length<=A.MAX_ATT_PER_ENTITY);
 
   group('ZIP — export/import « avec documents » (v4.5.0)');
   const zEnc=new TextEncoder();
@@ -762,11 +762,11 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   group('Vue d’ensemble du mode crise (v4.6.0) — flowOrder / latestPass / offPathSet / minimapData');
   // Gabarit : A (étapes) → D (décision : Oui→S, Non→R), R (étapes) → D (boucle), S terminal, X orphelin.
   const ovF={start:'A',blocks:[
-    {id:'A',type:'steps',title:'Actions',steps:['⚠ un','deux'],next:'D'},
-    {id:'D',type:'decision',title:'Amélioration ?',question:'?',options:[{label:'Oui',target:'S'},{label:'Non',target:'R'}]},
-    {id:'S',type:'steps',title:'Surveillance',steps:['s1','s2'],next:null},
-    {id:'R',type:'steps',title:'Pas de réponse',steps:['r1'],next:'D'},
-    {id:'X',type:'steps',title:'Orphelin',steps:['x1'],next:null}]};
+    {id:'A',kind:'do',title:'Actions',steps:['⚠ un','deux'],next:'D'},
+    {id:'D',kind:'decision',title:'Amélioration ?',question:'?',options:[{label:'Oui',target:'S'},{label:'Non',target:'R'}]},
+    {id:'S',kind:'do',title:'Surveillance',steps:['s1','s2'],next:null},
+    {id:'R',kind:'do',title:'Pas de réponse',steps:['r1'],next:'D'},
+    {id:'X',kind:'do',title:'Orphelin',steps:['x1'],next:null}]};
   eq('flowOrder : BFS depuis start, orphelin en fin', A.flowOrder(ovF), ['A','D','S','R','X']);
   eq('flowOrder : start invalide → repli sur le premier bloc', A.flowOrder({start:'zz',blocks:ovF.blocks}), ['A','D','S','R','X']);
   eq('flowOrder : boucle sans doublon ni blocage', A.flowOrder({start:'R',blocks:ovF.blocks}), ['R','D','S','A','X']);
@@ -812,11 +812,11 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   eq('ovPresList : repli manuel d’un incomplet → ligne d’état, jamais chip', P([[false,true],[true,null]])[0], 'line');
   // flowPlan (v4.10.0) : arbre indenté avec point de convergence (post-dominateur).
   const pl1=A.flowPlan({start:'A',blocks:[
-    {id:'A',type:'steps',steps:['a'],next:'D1',title:'A'},
-    {id:'D1',type:'decision',title:'D1',options:[{label:'Oui',target:'B'},{label:'Non',target:'C'}]},
-    {id:'B',type:'steps',steps:['b'],next:'E',title:'B'},
-    {id:'C',type:'steps',steps:['c'],next:'E',title:'C'},
-    {id:'E',type:'steps',steps:['e'],next:null,title:'E'}]});
+    {id:'A',kind:'do',steps:['a'],next:'D1',title:'A'},
+    {id:'D1',kind:'decision',title:'D1',options:[{label:'Oui',target:'B'},{label:'Non',target:'C'}]},
+    {id:'B',kind:'do',steps:['b'],next:'E',title:'B'},
+    {id:'C',kind:'do',steps:['c'],next:'E',title:'C'},
+    {id:'E',kind:'do',steps:['e'],next:null,title:'E'}]});
   eq('flowPlan : ordre de lecture (branches puis tronc)', pl1.order, ['A','D1','B','C','E']);
   ok('flowPlan : le TRONC reprend au point de convergence (E à la racine, pas dans une branche)',
     pl1.items.some(it=>it.k==='block'&&it.id==='E'&&it.depth===0));
@@ -865,14 +865,14 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
 
   group('Complications « à tout moment » (v4.26.0)');
   {const f=A.migrate({title:'Sédation',blocks:[
-     {id:'b1',type:'steps',title:'Sédation titrée',steps:['Titration'],next:null},
-     {id:'cx1',type:'steps',title:'Laryngospasme',steps:['⚠ PPC + subluxation'],next:null}],
+     {id:'b1',kind:'do',title:'Sédation titrée',steps:['Titration'],next:null},
+     {id:'cx1',kind:'do',title:'Laryngospasme',steps:['⚠ PPC + subluxation'],next:null}],
      start:'b1',
-     complications:[{label:'Laryngospasme',target:'cx1'},{label:'ACR',target:'fiche_acr_01'},
+     excursions:[{label:'Laryngospasme',target:'cx1'},{label:'ACR',target:'fiche_acr_01'},
        {label:'',target:'cx1'},{label:'Sans cible',target:''},{label:'Injection',target:'x"><script>'},'pasunobjet']});
-   eq('migrate : rangées valides conservées, invalides rejetées', f.complications.length, 2);
+   eq('migrate : rangées valides conservées, invalides rejetées', f.excursions.length, 2);
    eq('migrate : une cible invalide (id non sûr) est REJETÉE, jamais régénérée',
-     f.complications.map(c=>c.label).join(','), 'Laryngospasme,ACR');
+     f.excursions.map(c=>c.label).join(','), 'Laryngospasme,ACR');
    const all=A.cxAll(f);
    eq('cxAll : nature résolue — bloc de la fiche vs référence externe',
      all.map(c=>c.kind).join(','), 'block,ext');
@@ -882,13 +882,13 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
      A.flowPlan(f).order.indexOf('cx1')<0);
    ok('flowPlan : le tronc, lui, est numéroté normalement', A.flowPlan(f).order.indexOf('b1')===0);}
   {const f2=A.migrate({title:'X',blocks:[
-     {id:'b1',type:'steps',title:'A',steps:['a'],next:'cx1'},
-     {id:'cx1',type:'steps',title:'B',steps:['b'],next:null}],start:'b1',
-     complications:[{label:'B direct',target:'cx1'}]});
+     {id:'b1',kind:'do',title:'A',steps:['a'],next:'cx1'},
+     {id:'cx1',kind:'do',title:'B',steps:['b'],next:null}],start:'b1',
+     excursions:[{label:'B direct',target:'cx1'}]});
    ok('un bloc cible AUSSI atteint par la séquence garde son numéro (pas de trou dans le tronc)',
      A.flowPlan(f2).order.indexOf('cx1')>=0);
    eq('cxDetached : rien à détacher quand la cible est dans le tronc', A.cxDetached(f2).length, 0);}
-  {const f3=A.migrate({title:'Sans',blocks:[{id:'b1',type:'steps',title:'A',steps:['a'],next:null}],start:'b1'});
+  {const f3=A.migrate({title:'Sans',blocks:[{id:'b1',kind:'do',title:'A',steps:['a'],next:null}],start:'b1'});
    eq('fiche sans champ : défaut [], aucun bouton', A.cxAll(f3).length, 0);}
 
   group('Repères posologiques — rapprochement RÉSILIENT (v4.23.0)');
@@ -1049,12 +1049,12 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   {const f=A.migrate(A.blankFiche());
    f.title='ACR';f.blocks[0].steps=['Adrénaline 1 mg'];f.blocks[0].image='i1';
    f.images=[{id:'i1',data:'data:image/png;base64,AAAA',w:10,h:10,caption:'',scale:100}];
-   f.ownerId='u1';f.libraryId='lib1';
+   f.ownerId='u1';f.library='lib1';
    const p=A.sharePayload(f);
-   ok('le gabarit local (téléphones) ne part pas',p.localInfo===undefined);
+   ok('le gabarit local (téléphones) ne part pas',p.local===undefined);
    ok('les images ne partent pas',p.images===undefined);
-   ok('les documents joints ne partent pas',p.attachments===undefined);
-   ok('propriétaire et bibliothèque ne partent pas',p.ownerId===undefined&&p.libraryId===undefined);
+   ok('les documents joints ne partent pas',p.docs===undefined);
+   ok('propriétaire et bibliothèque ne partent pas',p.ownerId===undefined&&p.library===undefined);
    ok('le contenu clinique part bien',p.title==='ACR'&&p.blocks[0].steps[0]==='Adrénaline 1 mg');
    ok('la référence d’image d’un bloc est retirée (sinon elle pendrait dans le vide)',
      p.blocks[0].image===undefined);
@@ -1360,7 +1360,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   // 48 sur une fiche de 8 blocs à 6 étapes, sans un message. On garde ce qu'on a reçu et on lève
   // un drapeau : échouer bruyamment, jamais deviner.
   {const f=A.migrate(A.blankFiche());
-   const b2={id:'b2',type:'steps',title:'Second',steps:['x'],next:null};
+   const b2={id:'b2',kind:'do',title:'Second',steps:['x'],next:null};
    f.blocks.push(b2);
    const sess={nav:[f.blocks[0].id,'b2'],navSeq:[7],checked:{}};
    const loc=A.buildRuntime(f,sess);
@@ -1769,7 +1769,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
      la dérive existe bel et bien, le texte archivé la neutralise, et le repli reste. */
   {
     const mk=()=>A.migrate({id:'f1',title:'ACR',start:'b1',blocks:[
-      {id:'b1',type:'steps',title:'Mesures immédiates',steps:[
+      {id:'b1',kind:'do',title:'Mesures immédiates',steps:[
         'Retirer / arrêter l’allergène','Appeler à l’aide','⚠ Adrénaline IM, cuisse :: 0,5 mg'],next:null}]});
     const cle='1:b1:2';
 
@@ -1816,18 +1816,18 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
      l'auteur, ce que la doctrine refuse explicitement pour le `discriminant`. */
   {
   const v3={id:'a1',title:'Anaphylaxie',discriminant:'adulte',code:'ANA',category:'c1',
-    libraryId:'lib7',status:'review',validation:'2025-03',localInfo:'Tél : 15',
+    library:'lib7',status:'review',validatedAt:'2025-03',local:'Tél : 15',
     confirmation:['Œdème + hypotension'],
     notForget:['⚠ Retirer l’allergène','Position allongée'],
     verify:['△ Récidive à 6 h'],posology:['△ Adrénaline 0,5 mg IM'],
-    differentials:['Choc septique'],references:['SFAR 2016'],
-    complications:[{label:'Bronchospasme',target:'bx'}],
-    related:['p2'],attachments:[{id:'at1',name:'d.pdf',size:9}],
+    differentials:['Choc septique'],sources:['SFAR 2016'],
+    excursions:[{label:'Bronchospasme',target:'bx'}],
+    links:['p2'],docs:[{id:'at1',name:'d.pdf',size:9}],
     images:[{id:'g1'}],timers:[{label:'Réévaluation',seconds:300}],counters:[{label:'Doses'}],
-    blocks:[{id:'b1',type:'steps',title:'Immédiat',steps:['⚠ Adrénaline IM :: 0,5 mg','Oxygène'],image:null,next:'b2'},
-            {id:'b2',type:'decision',title:'Réponse ?',question:'Amélioration ?',
+    blocks:[{id:'b1',kind:'do',title:'Immédiat',steps:['⚠ Adrénaline IM :: 0,5 mg','Oxygène'],image:null,next:'b2'},
+            {id:'b2',kind:'decision',title:'Réponse ?',question:'Amélioration ?',
              options:[{label:'Oui',target:'b1'},{label:'Non',target:'b1'}],steps:[],image:null,next:null},
-            {id:'bx',type:'steps',title:'Bronchospasme',steps:['Salbutamol'],image:null,next:null}],
+            {id:'bx',kind:'do',title:'Bronchospasme',steps:['Salbutamol'],image:null,next:null}],
     start:'b1',order:42,
     champInconnuDuFutur:{quoi:'ajouté après ce lot'}};
   const v4=A.v3ToV4(v3);
@@ -1887,9 +1887,9 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
      r1.blocks[1].question+'/'+r1.blocks[1].options.length,'Amélioration ?/2');
   eq('aller-retour · le statut « validé » redevient la chaîne vide de v3',
      A.v4ToV3(A.v3ToV4(Object.assign({},v3,{status:''}))).status,'');
-  ['title','discriminant','code','category','libraryId','validation','localInfo','start','order']
+  ['title','discriminant','code','category','library','validatedAt','local','start','order']
     .forEach(k=>eq('aller-retour · '+k+' intact',JSON.stringify(r1[k]),JSON.stringify(v3[k])));
-  ['references','attachments','related','images','timers','counters','complications','confirmation',
+  ['sources','docs','links','images','timers','counters','excursions','confirmation',
    'verify','posology','differentials'].forEach(k=>
     eq('aller-retour · '+k+' intact',JSON.stringify(r1[k]),JSON.stringify(v3[k])));
 
@@ -1962,7 +1962,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    eq('T6 · … le miroir reste exact après l’aller-retour',
       JSON.stringify(rb.steps),JSON.stringify((rb.items||[]).map(A.v4ItemToStr)));
    /* Robustesse : un item entrant corrompu est BORNÉ, jamais recopié tel quel. */
-   const sale=A.migrate({blocks:[{id:'b9',type:'steps',
+   const sale=A.migrate({blocks:[{id:'b9',kind:'do',
      items:[{id:'__proto__',do:'x',level:99,dual:'oui',role:'nimporte'}]}],start:'b9'});
    const si=A.bItems(sale.blocks[0])[0];
    ok('T6 · un id dangereux est refusé',si.id!=='__proto__');
@@ -1978,7 +1978,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
       A.listOf(m,'confirmation').length===1&&A.listOf(m,'verify').length===1
       &&A.listOf(m,'posology').length===1&&A.listOf(m,'differentials').length===1
       &&A.listOf(m,'notForget').length===2);
-   ok('pool · `references` reste un CHAMP (métadonnée, pas un rôle)',Array.isArray(m.references));
+   ok('pool · `references` reste un CHAMP (métadonnée, pas un rôle)',Array.isArray(m.sources));
    /* L'INVARIANT QUI TIENT TOUT : aucun item du pool n'est orphelin, aucun id de bloc ne pend. */
    const ids=new Set((m.items||[]).map(i=>i.id));
    ok('pool · chaque id cité par un bloc existe dans le pool',
@@ -2020,7 +2020,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
       A.memItemsOf(m).every(x=>!!x.src));
    /* Une décision n'a pas d'items : le calcul ne doit pas s'y perdre. */
    ok('★ · un bloc de décision n’apporte rien au chapeau',
-      A.memItemsOf({blocks:[{id:'d1',type:'decision',options:[],steps:[]}]}).length===0);
+      A.memItemsOf({blocks:[{id:'d1',kind:'decision',options:[],steps:[]}]}).length===0);
    eq('★ · une fiche sans bloc ne fait pas tomber le calcul',A.forgetAll({}).length,0);
    /* Il survit à l'aller-retour, comme « ×2 » — sinon l'export annulerait le lot. */
    const rt=A.v4ToV3(A.v3ToV4(m));

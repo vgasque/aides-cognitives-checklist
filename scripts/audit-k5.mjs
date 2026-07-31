@@ -279,8 +279,8 @@ const L=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   const cles=[...new Set([...document.querySelectorAll('[data-lgrab]')].map(b=>b.dataset.lgrab.split(':')[0]))];
   const H=k=>document.querySelector('[data-lgrab="'+k+'"]');
   // une liste à UNE seule rangée n'a pas de poignée (aucun bouton mort)
-  d.references=['Seule'];renderEditor();await w(400);
-  const refSeule=!H('references:0');
+  d.sources=['Seule'];renderEditor();await w(400);
+  const refSeule=!H('sources:0');
   // PRISE : ancrage à 0 px + confinement
   H('differentials:3').scrollIntoView({block:'center'});await w(150);
   const y0=Math.round(H('differentials:3').getBoundingClientRect().top);
@@ -365,7 +365,7 @@ const P=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   if(document.querySelector('#edAddModal.on'))edAddClose();
   await w(250);
   // (3) « présent dans la porte ⇔ masqué quand vide »
-  setList(d,'verify',[]);setList(d,'differentials',[]);d.references=[];setList(d,'posology',[]);d.images=[];d.attachments=[];
+  setList(d,'verify',[]);setList(d,'differentials',[]);d.sources=[];setList(d,'posology',[]);d.images=[];d.docs=[];
   setList(d,'notForget',[]);setList(d,'confirmation',[]);
   renderEditor();await w(500);
   const vides={verify:a(/À vérifier/),diff:a(/Diagnostics différentiels/),ref:a(/Références/),

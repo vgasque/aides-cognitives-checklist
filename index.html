@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-8cV+HaoRXTm70ywK4HVJlepFtcXyxZjiGF8Yoq8fwqo='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-paoTSpC1QUFKXhQI5nFE+3XAaZpPAMrVENzr5XzZvLc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -5314,7 +5314,7 @@ function setReadModePref(m){if(READ_MODES.indexOf(m)<0)return;try{localStorage.s
 function roleOf(libId){const l=myLibraries.find(x=>x.id===libId);return l?l.role:null;}
 function libName(libId){const l=myLibraries.find(x=>x.id===libId);return l?l.name:'';}
 function canEditScope(scope){if(!scope)return true;const r=roleOf(scope);return r==='editor'||r==='admin';}
-function canEditFiche(f){return (f&&f.libraryId)?canEditScope(f.libraryId):true;}
+function canEditFiche(f){return (f&&f.library)?canEditScope(f.library):true;}
 // Tri des bibliothèques : les PLUS UTILISÉES d'abord (compteur local), puis ordre alphabétique.
 // ORDRE STABLE (v4.23.6) : tri par NOM, exactement comme les catégories (byCatName). L'ancien tri
 // par USAGE remontait la biblio à chaque sélection (bumpLibUsage l'incrémentait) -> la liste
@@ -5859,7 +5859,7 @@ const txNorm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').to
 // est donc exclu du cache et recalcul\u00e9 \u00e0 chaque appel.
 const _hayCache=new WeakMap();
 function ficheHaystack(f){let h=_hayCache.get(f);
-  if(h===undefined){const parts=[f.title,f.code,f.localInfo,...listOf(f,'confirmation'),...listOf(f,'verify'),...listOf(f,'posology'),...listOf(f,'notForget'),...(f.differentials||[]),...(f.references||[])];
+  if(h===undefined){const parts=[f.title,f.code,f.local,...listOf(f,'confirmation'),...listOf(f,'verify'),...listOf(f,'posology'),...listOf(f,'notForget'),...(f.differentials||[]),...(f.sources||[])];
     (f.blocks||[]).forEach(b=>{parts.push(b&&b.title,b&&b.question);((b&&b.steps)||[]).forEach(s=>parts.push(s));((b&&b.options)||[]).forEach(o=>parts.push(o&&o.label));});
     h=txNorm(stripBold(parts.filter(Boolean).join(' ')));_hayCache.set(f,h);}
   return h+' '+txNorm(catName(f));}
@@ -5901,9 +5901,9 @@ function searchSnippet(parts,q){
 // Sources de l'extrait, dans l'ordre de LECTURE de chaque entité (titre exclu).
 function ficheSnipParts(f){const p=[f.code,...listOf(f,'notForget'),...listOf(f,'confirmation')];
   (f.blocks||[]).forEach(b=>{p.push(b&&b.title,b&&b.question);((b&&b.steps)||[]).forEach(s=>p.push(stepText(s)));((b&&b.options)||[]).forEach(o=>p.push(o&&o.label));});
-  p.push(...listOf(f,'verify'),...listOf(f,'posology'),...listOf(f,'differentials'),f.localInfo,...(f.references||[]));
+  p.push(...listOf(f,'verify'),...listOf(f,'posology'),...listOf(f,'differentials'),f.local,...(f.sources||[]));
   return p;}
-function protoSnipParts(p){return [p.code,...mdStrip(p.body||'').split(/\n+/),...(p.attachments||[]).map(a=>a.name),...(p.references||[])];}
+function protoSnipParts(p){return [p.code,...mdStrip(p.body||'').split(/\n+/),...(p.docs||[]).map(a=>a.name),...(p.sources||[])];}
 // ÉPINGLAGE : préférence PAR UTILISATEUR. Stockée localement (localStorage) et, si connecté,
 // SYNCHRONISÉE entre ses appareils en voyageant dans le document de catégories PERSO
 // (category_sets, scope 'personal:<uid>' -> data.pins). Par-utilisateur : n'impose jamais
@@ -6001,11 +6001,11 @@ function schedulePrefsPush(){
 const byCatName=(a,b)=>(a.name||'').localeCompare(b.name||'','fr',{sensitivity:'base'});
 // Catégories PAR BIBLIOTHÈQUE : chaque catégorie porte un libraryId (null = Perso, sinon bibliothèque).
 // Le tableau `categories` les contient toutes ; on filtre par bibliothèque pour l'affichage/édition.
-const catScope=c=>(c&&c.libraryId)||null;
+const catScope=c=>(c&&c.library)||null;
 const catsForScope=scope=>categories.filter(c=>catScope(c)===(scope||null));
 const catsSorted=(scope)=>catsForScope(scope).slice().sort(byCatName);
 // Bibliothèque dont on gère les catégories : en édition = celle de la fiche ; sinon = bibliothèque affichée.
-function activeCatScope(){return state.view==='edit'?(state.draft?(state.draft.libraryId||null):null):(state.scope||null);}
+function activeCatScope(){return state.view==='edit'?(state.draft?(state.draft.library||null):null):(state.scope||null);}
 function noticeHidden(){try{return localStorage.getItem('ac-notice-hidden')==='1';}catch(e){return false;}}
 function seedsHidden(){try{return localStorage.getItem(spaceKey('ac-seeds-hidden'))==='1';}catch(e){return false;}}
 // id de catégorie : déterministe (par nom) pour le Perso (cohérence multi-appareils des défauts) ;
@@ -6018,7 +6018,7 @@ const catName=f=>{const c=catOf(f);return c?c.name:'';};
 // indique la bibliothèque de chaque carte pour ne pas confondre deux fiches homonymes. Rien hors
 // recherche (le périmètre courant suffit) ni pour un compte sans bibliothèque partagée.
 function searchLibTag(x){if(!txNorm(state.q)||!myLibraries.length)return '';
-  const shared=!!x.libraryId;const name=shared?(libName(x.libraryId)||'Partagée'):'Perso';
+  const shared=!!x.library;const name=shared?(libName(x.library)||'Partagée'):'Perso';
   return `<span class="tag libtag" title="Bibliothèque : ${esc(name)}">${uiIcon(shared?'book':'user',11)}${esc(name)}</span>`;}
 function catTag(f,neutral){const c=catOf(f);if(!c)return '';const col=safeColor(c.color);
   // SPEC crise §1 (v4.3.0) : pastille .cat-dot + nom en toutes lettres, partout. neutral
@@ -6043,7 +6043,7 @@ function statusLbl(st,fem){return {draft:'○ Brouillon',review:'△ À relire',
    distinguerait une fiche validée d'une fiche sans statut.
    `opts.always` : éditeurs et badge d'en-tête, où le statut est l'objet même du réglage. */
 function statusChip(st,fem,opts){opts=opts||{};
-  if(!opts.always&&statusKey(st)==='valid'&&opts.validation)return '';
+  if(!opts.always&&statusKey(st)==='valid'&&opts.validatedAt)return '';
   return `<span class="status-tag">${statusLbl(st,fem)}</span>`;}
 // Sélecteur segmenté des éditeurs, avec phrase d'aide contextuelle.
 function statusSegHtml(st,fem,shared){const k=statusKey(st);
@@ -6085,11 +6085,11 @@ const fmtHMS=t=>{const d=new Date(t);return String(d.getHours()).padStart(2,'0')
                    Renvoie les fiches modifiées (à repersister).
    Aides : hasFlow (la fiche a-t-elle un branchement ?), staleDate (validation
    de plus de 2 ans), fmtDate (libellé de date de validation). */
-function blankFiche(){const b={id:uid('b'),type:'steps',title:'Prise en charge',steps:[''],image:null,next:null};
+function blankFiche(){const b={id:uid('b'),kind:'do',title:'Prise en charge',steps:[''],image:null,next:null};
   // localInfo pré-rempli avec les invites de renfort des DEUX contextes d'exercice (structure /
   // SMUR) : une fiche déployée avec un « ☎ : … » vide entraîne à ignorer la ligne — on incite à
   // les renseigner (badge « À compléter » tant qu'une invite reste).
-  return migrate({id:uid(),title:'',code:'',category:'',validation:'',localInfo:'Tél renfort : à compléter\nTél régulation : à compléter',complications:[],confirmation:[''],verify:[''],posology:[''],notForget:[''],differentials:[''],references:[''],images:[],attachments:[],timers:[],counters:[],blocks:[b],start:b.id,order:Date.now()});}
+  return migrate({id:uid(),title:'',code:'',category:'',validatedAt:'',local:'Tél renfort : à compléter\nTél régulation : à compléter',excursions:[],confirmation:[''],verify:[''],posology:[''],notForget:[''],differentials:[''],sources:[''],images:[],docs:[],timers:[],counters:[],blocks:[b],start:b.id,order:Date.now()});}
 // Invites laissées en suspens : où la fiche contient-elle encore le texte « à compléter »
 // (gabarit local non renseigné, manque « ⚠ À COMPLÉTER : … » signalé par la génération IA) ?
 // completionSpots(f) renvoie la liste des EMPLACEMENTS (libellés des sections / blocs), affichée
@@ -6300,8 +6300,8 @@ const v4ItemToStr=it=>v4Pref(it.level)+String(it.do||'')+(it.expect?' :: '+it.ex
 function v3ToV4(f){
   if(!f||typeof f!=='object')return null;
   const rest=Object.assign({},f);
-  ['confirmation','notForget','verify','posology','differentials','references','blocks','start',
-   'complications','localInfo','libraryId','validation','status','related','attachments']
+  ['confirmation','notForget','verify','posology','differentials','sources','blocks','start',
+   'excursions','local','library','validatedAt','status','links','attachments']
     .forEach(k=>{delete rest[k];});
   const items=[];let n=0;
   const push=(role,raw,mem)=>{const it=v4MakeItem('i'+(++n),role,raw,mem);items.push(it);return it.id;};
@@ -6309,11 +6309,11 @@ function v3ToV4(f){
   (Array.isArray(f.notForget)?f.notForget:listOf(f,'notForget')).forEach(x=>push('do',x,true));
   const blocks=(f.blocks||[]).map(b=>({
     id:b.id,title:String(b.title||''),phase:'',
-    kind:b.type==='decision'?'decision':'do',
+    kind:b.kind==='decision'?'decision':'do',
     /* ON PART DES ITEMS, PAS DU MIROIR (lot T7). Lire `b.steps` ici perdrait `dual`, `note` et
        les IDENTITÉS au premier export — la conversion aurait annulé le lot qui les a introduits.
        Le miroir reste la source uniquement pour une fiche ANCIENNE qui n'a pas encore d'items. */
-    items:(b.type==='decision'?[]:(()=>{
+    items:(b.kind==='decision'?[]:(()=>{
       /* Les items d'un bloc sont RÉSOLUS (le bloc ne porte que des ids depuis l'étape B) ; une
          fiche v3 pure n'en a pas, on retombe alors sur ses chaînes. */
       const its=bItems(b);
@@ -6334,11 +6334,11 @@ function v3ToV4(f){
      if(b.next)file.push(b.next);b.options.forEach(o=>{if(o.target)file.push(o.target);});}
    blocks.forEach(b=>{b.hors=!vus.has(b.id);});}
   return Object.assign(rest,{v:4,kind:'procedure',
-    library:f.libraryId||'',status:f.status==='draft'?'draft':(f.status==='review'?'review':'validated'),
-    validatedAt:String(f.validation||''),items,blocks,start:f.start||null,
-    excursions:(f.complications||[]).map(c=>({label:String(c.label||''),target:c.target||null})),
-    sources:(f.references||[]).slice(),docs:(f.attachments||[]).slice(),
-    links:(f.related||[]).slice(),local:String(f.localInfo||'')});}
+    library:f.library||'',status:f.status==='draft'?'draft':(f.status==='review'?'review':'validated'),
+    validatedAt:String(f.validatedAt||''),items,blocks,start:f.start||null,
+    excursions:(f.excursions||[]).map(c=>({label:String(c.label||''),target:c.target||null})),
+    sources:(f.sources||[]).slice(),docs:(f.docs||[]).slice(),
+    links:(f.links||[]).slice(),local:String(f.local||'')});}
 /* RETOUR v4 → v3 — « à perte ANNONCÉE », et la liste des pertes est ici, pas dans une note de bas
    de page : `dual`, `phase`, `concl`, `note` et les IDENTITÉS d'items n'ont aucun logement en v3.
    Tout le reste revient au caractère près, ce que le témoin de STABILITÉ vérifie. */
@@ -6355,7 +6355,7 @@ function v4ToV3(a){
     /* Symétrique de l'aller : le bloc v3 emporte ses ITEMS (le format au repos les porte depuis
        le lot T6) ET son miroir `steps`, que seul un client antérieur lit. */
     const its=(b.items||[]).map(id=>byId[id]).filter(Boolean);
-    const o={id:b.id,type:b.kind==='decision'?'decision':'steps',title:b.title||'',
+    const o={id:b.id,kind:b.kind==='decision'?'decision':'do',title:b.title||'',
       items:its.map(x=>Object.assign({},x)),steps:its.map(v4ItemToStr),
       image:b.image||null,next:b.next||null};
     if(b.kind==='decision'){o.question=b.question||'';
@@ -6365,11 +6365,11 @@ function v4ToV3(a){
     confirmation:bac('entry'),
     notForget:items.filter(it=>it.role==='do'&&it.memory&&!dansBloc.has(it.id)).map(v4ItemToStr),
     verify:bac('watch'),posology:bac('dose'),differentials:bac('ddx'),
-    references:(a.sources||[]).slice(),attachments:(a.docs||[]).slice(),
-    related:(a.links||[]).slice(),localInfo:String(a.local||''),
-    libraryId:a.library||'',status:a.status==='validated'?'':(a.status||''),
-    validation:String(a.validatedAt||''),
-    complications:(a.excursions||[]).map(c=>({label:c.label||'',target:c.target||null})),
+    sources:(a.sources||[]).slice(),docs:(a.docs||[]).slice(),
+    links:(a.links||[]).slice(),local:String(a.local||''),
+    library:a.library||'',status:a.status==='validated'?'':(a.status||''),
+    validatedAt:String(a.validatedAt||''),
+    excursions:(a.excursions||[]).map(c=>({label:c.label||'',target:c.target||null})),
     blocks,start:a.start||null});}
 // Intérieur d'une rangée d'étape cochable (vue guidée + journal) : challenge, puis RÉPONSE
 // ATTENDUE en pilule mono — le readback « ✓ » du cochage est porté par le CSS (li.done).
@@ -6493,8 +6493,8 @@ function posoCardsHtml(list,hay){
   return head+`<details class="pos-more"><summary>${n} autre${n>1?'s':''} repère${n>1?'s':''}</summary>${sp.rest.map(o=>card(o.s)).join('')}</details>`;}
 const TODO_RX=/[àa] compl[eé]ter/i;
 function completionSpots(f){if(!f||typeof f!=='object')return [];const spots=[];
-  if(TODO_RX.test(String(f.localInfo||'')))spots.push('Contexte local');
-  const SECT={confirmation:'Confirmation diagnostique',verify:'À vérifier',notForget:'Ne pas oublier',posology:'Repères posologiques',differentials:'Diagnostics différentiels',references:'Références'};
+  if(TODO_RX.test(String(f.local||'')))spots.push('Contexte local');
+  const SECT={confirmation:'Confirmation diagnostique',verify:'À vérifier',notForget:'Ne pas oublier',posology:'Repères posologiques',differentials:'Diagnostics différentiels',sources:'Références'};
   Object.keys(SECT).forEach(k=>{if((Array.isArray(f[k])?f[k]:[]).some(x=>TODO_RX.test(String(x||''))))spots.push(SECT[k]);});
   (Array.isArray(f.blocks)?f.blocks:[]).forEach(b=>{if(!b)return;
     const hit=TODO_RX.test(String(b.title||''))||TODO_RX.test(String(b.question||''))||(Array.isArray(b.steps)?b.steps:[]).some(s=>TODO_RX.test(String(s||'')))||(Array.isArray(b.options)?b.options:[]).some(o=>TODO_RX.test(String((o&&o.label)||'')));
@@ -6519,13 +6519,13 @@ const _scale=v=>{const n=Math.round(Number(v));return MD_SCALES.indexOf(n)>=0?n:
 function sanitizeEntityCommon(x,idPrefix,imgMax){
   x.id=safeId(x.id,idPrefix);
   x.title=sstr(x.title,300);
-  x.validation=parseValidation(x.validation)||sstr(x.validation,16);
+  x.validatedAt=parseValidation(x.validatedAt)||sstr(x.validatedAt,16);
   x.category=safeCatRef(x.category);
   if(typeof x.order!=='number'||!isFinite(x.order))x.order=Date.now();
   let _imgBudget=24000000;
   x.images=(Array.isArray(x.images)?x.images:[]).slice(0,imgMax).map(im=>({id:safeId(im&&im.id,'i'),data:safeImg(im&&im.data),w:_dim(im&&im.w),h:_dim(im&&im.h),caption:sstr(im&&im.caption,300),scale:_scale(im&&im.scale)})).filter(im=>im.data&&(_imgBudget-=im.data.length)>=0);
-  x.attachments=(Array.isArray(x.attachments)?x.attachments:[]).slice(0,MAX_ATT_PER_ENTITY).map(safeAttachment).filter(Boolean);
-  x.status=(x.status==='draft')?'draft':(x.status==='review'?'review':'');
+  x.docs=(Array.isArray(x.docs)?x.docs:[]).slice(0,MAX_ATT_PER_ENTITY).map(safeAttachment).filter(Boolean);
+  x.status=(x.status==='draft')?'draft':(x.status==='review'?'review':'validated');   // v5.0.0 : la chaîne vide ne disait rien
   x.code=sstr(x.code,40);
   /* K6 (v4.70.0) : le DISCRIMINANT — « adulte », « pédiatrique », « femme enceinte ». C'est LUI
      que la troncature mange en premier (« Arrêt cardiaque (ACR) — algo… » : le mot qui distingue
@@ -6535,14 +6535,36 @@ function sanitizeEntityCommon(x,idPrefix,imgMax){
      d'un auteur pour en extraire un discriminant supposé, ce serait réécrire son texte. Un ancien
      client ignore le champ, l'export v3 reste lisible. */
   x.discriminant=sstr(x.discriminant,60);
-  x.related=(Array.isArray(x.related)?x.related:[]).slice(0,20).filter(id=>typeof id==='string'&&SAFE_ID.test(id)&&BAD_KEYS.indexOf(id)<0);
+  x.links=(Array.isArray(x.links)?x.links:[]).slice(0,20).filter(id=>typeof id==='string'&&SAFE_ID.test(id)&&BAD_KEYS.indexOf(id)<0);
   x.updatedBy=sstr(x.updatedBy,160);
   if(typeof x.updatedAt!=='number'||!isFinite(x.updatedAt))x.updatedAt=(typeof x.order==='number'&&isFinite(x.order))?x.order:Date.now();
   x.deletedAt=(typeof x.deletedAt==='number'&&isFinite(x.deletedAt))?x.deletedAt:null;
-  x.ownerId=safeMetaId(x.ownerId);x.libraryId=safeMetaId(x.libraryId);
+  x.ownerId=safeMetaId(x.ownerId);x.library=safeMetaId(x.library);
   delete x.dirty;
   return x;}
+/* RENOMMAGES DE L'ÉTAPE C (v5.0.0) — CONVERSION EN PLACE, ET CE N'EST PAS DU « CODE v3 ».
+   La distinction mérite d'être écrite, parce qu'elle décide de ce que l'étape D supprimera : ces
+   huit lignes convertissent un format v5 INTERMÉDIAIRE (celui de l'étape B, qui portait encore les
+   anciens noms) vers le format v5 final. C'est une migration en place ordinaire, celle que fait
+   toute application quand elle renomme un champ — pas la lecture d'un format ÉTRANGER.
+   Sans elles, une mise à jour que l'utilisateur n'a pas choisie rendrait ses données locales
+   illisibles : ce serait lui faire payer une décision d'architecture. Le format v3, LUI, ne se lit
+   plus nulle part — sa reprise passe par `docs/conversion-v3-vers-v4.md`. */
+const V5_RENOMMAGES=[['localInfo','local'],['related','links'],['attachments','docs'],['complications','excursions'],
+  ['references','sources'],['validation','validatedAt'],['libraryId','library']];
 function migrate(f){if(!f||typeof f!=='object')f={};
+  V5_RENOMMAGES.forEach(([a,b])=>{if(f[a]!==undefined&&f[b]===undefined)f[b]=f[a];delete f[a];});
+  /* Le BLOC : `type` 'steps'/'decision' devient `kind` 'do'/'decision'. Et l'aide se DÉCLARE —
+     `v:4` et `kind:'procedure'` : un fichier doit dire ce qu'il est, sans quoi il faut le deviner
+     à sa forme, ce qui est exactement la porte que la détection de format ferme. */
+  (Array.isArray(f.blocks)?f.blocks:[]).forEach(b=>{if(!b||typeof b!=='object')return;
+    if(b.kind===undefined)b.kind=(b.type==='decision')?'decision':'do';delete b.type;});
+  f.v=4;f.kind='procedure';
+  /* Le STATUT prend le vocabulaire v4 : la chaîne vide ne disait rien, « validated » le dit.
+     UN STATUT INCONNU RETOMBE SUR « validated », JAMAIS SUR « draft » — c'est le défaut
+     historique, et l'inverser ferait passer en brouillon des fiches validées à la première
+     donnée douteuse, donc les retirerait de l'accès de crise (une fiche brouillon ne s'épingle
+     pas). `sanitizeEntityCommon` applique déjà cette règle : on ne la réécrit pas ici. */
   /* UNE AIDE AU FORMAT v4 ENTRE PAR ICI, ET PAR NULLE PART AILLEURS (lot T6, v5.0.0). C'est la
      règle 5 appliquée telle quelle : `migrate` est le point d'entrée unique de toute donnée
      entrante — chargement, import, ZIP, duplication, pull cloud — donc c'est le seul endroit où
@@ -6557,7 +6579,7 @@ function migrate(f){if(!f||typeof f!=='object')f={};
      jour-là, c'est le RENDU qui devra passer en v4, pas cette ligne qui devra ruser. */
   if(f.v===4&&Array.isArray(f.items))f=v4ToV3(f)||{};
   sanitizeEntityCommon(f,'f',200);
-  f.localInfo=sstr(f.localInfo,4000);
+  f.local=sstr(f.local,4000);
   /* ═══ LE POOL D'ITEMS (étape B, v5.0.0) — LES SIX LISTES v3 DEVIENNENT DES ITEMS À RÔLE.
      `confirmation` → entry · `notForget` → do + memory · `verify` → watch · `posology` → dose ·
      `differentials` → ddx. (`references` N'EST PAS un rôle : c'est une métadonnée, pas du contenu
@@ -6565,7 +6587,7 @@ function migrate(f){if(!f||typeof f!=='object')f={};
      LES CHAMPS SONT SUPPRIMÉS DE LA FICHE, et c'est la levée explicite de la RÈGLE 12 décidée par
      l'auteur : un client 4.x ne pourra plus lire ces aides. Le chemin de reprise existe et vit
      hors de l'application — `docs/conversion-v3-vers-v4.md`. */
-  ['references'].forEach(k=>f[k]=sarr(f[k],500));
+  ['sources'].forEach(k=>f[k]=sarr(f[k],500));
   const _pool=[];
   if(Array.isArray(f.items)&&f.items.length){
     // Déjà v4 : le pool fait foi, on le borne et on n'en dérive rien.
@@ -6582,19 +6604,19 @@ function migrate(f){if(!f||typeof f!=='object')f={};
      fiche/protocole (ACR pendant une sédation). Champ FACULTATIF : un export v3 antérieur n'en a
      pas (défaut []), un ancien client l'ignore. La cible est une RÉFÉRENCE — jamais régénérée
      (même règle que les documents) : id invalide => rangée rejetée, pas de cible inventée. */
-  f.complications=(Array.isArray(f.complications)?f.complications:[]).slice(0,8)
+  f.excursions=(Array.isArray(f.excursions)?f.excursions:[]).slice(0,8)
     .map(c=>(c&&typeof c==='object')?{label:sstr(c.label,120),target:(typeof c.target==='string'&&SAFE_ID.test(c.target)&&BAD_KEYS.indexOf(c.target)<0)?c.target:''}:null)
     .filter(c=>c&&c.label&&c.target);
   // Ancienne fiche "steps" plate -> un bloc d'étapes.
-  if(!Array.isArray(f.blocks)){const b={id:uid('b'),type:'steps',title:sstr(f.title||'Prise en charge',300),steps:sarr(f.steps,500),image:null,next:null};f.blocks=[b];f.start=b.id;}
+  if(!Array.isArray(f.blocks)){const b={id:uid('b'),kind:'do',title:sstr(f.title||'Prise en charge',300),steps:sarr(f.steps,500),image:null,next:null};f.blocks=[b];f.start=b.id;}
   delete f.steps;f.blocks=f.blocks.slice(0,400).filter(b=>b&&typeof b==='object');
   // Remappage des identifiants de blocs (sûrs conservés, dangereux régénérés) + table orig->nouveau.
   const idMap=Object.create(null),used=Object.create(null);
   f.blocks.forEach(b=>{let nid=safeId(b.id,'b');while(used[nid]){nid=uid('b');}used[nid]=1;idMap[String(b.id==null?'':b.id)]=nid;b.id=nid;});
   const mapId=x=>{const v=idMap[String(x==null?'':x)];return v===undefined?null:v;};
   f.blocks=f.blocks.map(b=>{b.title=sstr(b.title,300);b.image=safeImg(b.image);b.imageW=_dim(b.imageW);b.imageH=_dim(b.imageH);
-    if(b.type==='decision'){b.question=sstr(b.question,1000);b.options=(Array.isArray(b.options)?b.options:[]).slice(0,40).map(o=>({label:sstr(o&&o.label,300),target:mapId(o&&o.target)}));delete b.steps;delete b.next;}
-    else{b.type='steps';b.steps=sarr(b.steps,500);
+    if(b.kind==='decision'){b.question=sstr(b.question,1000);b.options=(Array.isArray(b.options)?b.options:[]).slice(0,40).map(o=>({label:sstr(o&&o.label,300),target:mapId(o&&o.target)}));delete b.steps;delete b.next;}
+    else{b.kind='steps';b.steps=sarr(b.steps,500);
       /* L'ITEM EST LA SOURCE (lot T6). Si la fiche en porte déjà, ils gagnent — et le miroir
          `steps` est RÉGÉNÉRÉ depuis eux ; sinon on les dérive des chaînes, une fois. */
       /* Le bloc ne porte plus que des IDENTIFIANTS ; les objets sont rassemblés dans `_pool`,
@@ -6609,7 +6631,7 @@ function migrate(f){if(!f||typeof f!=='object')f={};
   /* LE POOL EST MONTÉ ICI, une fois les blocs normalisés — seul point où l'aide entière est
      cohérente. `poolOwn` inscrit chaque bloc dans la WeakMap : sans elle, `bItems` devrait
      balayer les fiches pour résoudre un id (le repli existe, mais il n'est pas un chemin). */
-  f.items=_pool;poolOwn(f);f.blocks.forEach(b=>{if(b.type!=='decision')syncSteps(b);});
+  f.items=_pool;poolOwn(f);f.blocks.forEach(b=>{if(b.kind!=='decision')syncSteps(b);});
   // IDS UNIQUES, comme pour les blocs ci-dessus (v4.42.0). `Runtime.timers` et `Runtime.counters`
   // sont des objets INDEXÉS PAR ID : deux entrées de même id et la seconde ÉCRASE la première —
   // une fiche déclarant trois minuteurs n'en arme qu'UN, le dernier, sans le moindre signal ; et
@@ -6640,7 +6662,7 @@ function migrate(f){if(!f||typeof f!=='object')f={};
   return f;}
 // Catégories importées/chargées : nom coercé, couleur validée, id restreint (les ids sûrs sont
 // conservés -> les fiches qui les référencent restent associées).
-function sanitizeCats(cats){return (Array.isArray(cats)?cats:[]).slice(0,400).map(c=>({id:safeId(c&&c.id,'c'),name:sstr(c&&c.name,120),color:safeColor(c&&c.color),libraryId:safeMetaId(c&&c.libraryId)}));}
+function sanitizeCats(cats){return (Array.isArray(cats)?cats:[]).slice(0,400).map(c=>({id:safeId(c&&c.id,'c'),name:sstr(c&&c.name,120),color:safeColor(c&&c.color),library:safeMetaId(c&&c.library)}));}
 // Notes personnelles chargées : clés = ids de fiche au format sûr uniquement, texte borné,
 // horodatage numérique. `dirty` (marqueur local « à pousser ») survit au rechargement.
 function sanitizeNotes(obj){const out={};if(!obj||typeof obj!=='object')return out;
@@ -6655,12 +6677,12 @@ function sanitizeNotes(obj){const out={};if(!obj||typeof obj!=='object')return o
    (mêmes documents PDF que les fiches — store IndexedDB 'attachments' partagé), order, status,
    updatedBy, updatedAt, deletedAt, ownerId, libraryId }. migrateProtocol = point d'entrée UNIQUE
    sécurité/compat (mêmes règles que migrate) : appelé à chaque lecture, import et pull cloud. */
-function blankProtocol(){return {id:uid('p'),title:'',code:'',category:'',validation:'',body:'',images:[],attachments:[],related:[],references:[],order:Date.now(),status:'',updatedBy:'',updatedAt:Date.now(),deletedAt:null,ownerId:null,libraryId:null};}
+function blankProtocol(){return {id:uid('p'),title:'',code:'',category:'',validatedAt:'',body:'',images:[],docs:[],links:[],sources:[],order:Date.now(),status:'',updatedBy:'',updatedAt:Date.now(),deletedAt:null,ownerId:null,library:null};}
 function migrateProtocol(p){if(!p||typeof p!=='object')p={};
   sanitizeEntityCommon(p,'p',60);
   p.body=sstr(p.body,MD_MAX_CHARS);   // contenu rédigé (mini-Markdown) — spécifique au protocole
   // related : ids liés « Voir aussi » — fiches OU protocoles (v4.2.0), nettoyés par le tronc commun.
-  p.references=sarr(p.references,500);   // traçabilité (v4.2.2) — même section que les fiches
+  p.sources=sarr(p.sources,500);   // traçabilité (v4.2.2) — même section que les fiches
   return p;}
 /* LES DEUX FICHES D'EXEMPLE SONT LE SEUL MATÉRIEL PÉDAGOGIQUE DU PRODUIT (lot T13, constat 3 de
    l'audit J0), et elles n'exerçaient qu'un tiers de ses mécanismes : zéro repère posologique, zéro
@@ -6673,13 +6695,13 @@ function migrateProtocol(p){if(!p||typeof p!=='object')p={};
    cognitive livrée en plus. On enrichit le CONTENU des deux existantes, ce qui est autorisé.
    LES VALEURS RESTENT DES PLACEHOLDERS À ADAPTER : ces fiches arrivent en brouillon et le disent. */
 function seed(catId){const b1=uid('b'),b2=uid('b'),b3=uid('b'),bd=uid('b'),bx=uid('b');
-  const f=migrate({id:uid(),title:'Anaphylaxie (choc anaphylactique)',discriminant:'adulte',code:'ANA',category:catId||'',validation:'2025-01',
-    localInfo:'Renfort / réanimateur : …\nSAMU – régulation : …\n(adaptez à votre pratique)',
+  const f=migrate({id:uid(),title:'Anaphylaxie (choc anaphylactique)',discriminant:'adulte',code:'ANA',category:catId||'',validatedAt:'2025-01',
+    local:'Renfort / réanimateur : …\nSAMU – régulation : …\n(adaptez à votre pratique)',
     confirmation:['Exposition possible (aliment, médicament, piqûre…)','Signes cutanéo-muqueux : urticaire, œdème','Hypotension / collapsus, tachycardie','Bronchospasme, dyspnée, désaturation'],
     verify:['Voie veineuse de bon calibre','Monitorage complet, O₂','Prélèvement tryptase à organiser (à l’hôpital)'],
     notForget:['Adrénaline IM = 1ʳᵉ intention, ne pas retarder','Allonger, jambes surélevées — ne pas verticaliser','Surveillance prolongée : réaction biphasique possible'],
     differentials:['Asthme aigu grave','Malaise vagal','Œdème laryngé d’autre origine','Choc d’autre cause (septique, hémorragique)'],
-    references:['Exemple à compléter — recommandations en vigueur'],images:[],
+    sources:['Exemple à compléter — recommandations en vigueur'],images:[],
     /* REPÈRES POSOLOGIQUES : toujours AMBRE, jamais rouge — une dose est une RÉFÉRENCE, pas un
        geste (doctrine v4.23.0). Le nom du produit EN PREMIER, pour que le rapprochement
        automatique avec le bloc affiché fonctionne. */
@@ -6687,7 +6709,7 @@ function seed(catId){const b1=uid('b'),b2=uid('b'),b3=uid('b'),bd=uid('b'),bx=ui
       '△ **REMPLISSAGE — IV** : cristalloïdes 20 mL/kg en débit libre'],
     /* UNE COMPLICATION « à tout moment » : elle s'entre par l'ÉVÉNEMENT, pas par la position, et
        son bloc vit HORS de la chaîne (aucun `next` n'y mène — il est donc hors numérotation). */
-    complications:[{label:'Bronchospasme réfractaire',target:bx}],
+    excursions:[{label:'Bronchospasme réfractaire',target:bx}],
     // (v4.4.1 : plus de chrono « Temps écoulé » — le chrono GLOBAL de session le rend redondant.)
     // `onDue` : une alarme qui NOMME le minuteur dit QUOI a sonné, jamais QUOI FAIRE (K7).
     timers:[{id:uid('t'),label:'Réévaluation après adrénaline',type:'interval',seconds:300,autoloop:true,onDue:'Réévaluer : 2ᵉ dose IM si pas d’amélioration'}],
@@ -6696,11 +6718,11 @@ function seed(catId){const b1=uid('b'),b2=uid('b'),b3=uid('b'),bd=uid('b'),bx=ui
     // v4.11.1 : les exemples ILLUSTRENT les registres ⚠/△ et le format « challenge :: réponse »
     // (la pilule = valeur à confirmer en lecture) — les valeurs restent des placeholders à adapter.
     blocks:[
-      {id:b1,type:'steps',title:'Mesures immédiates',image:null,steps:['Retirer / arrêter l’allergène si possible','Appeler à l’aide — désigner un lecteur','⚠ Adrénaline IM, face antéro-latérale de cuisse :: dose du protocole local — noter l’heure','△ Allonger, jambes surélevées :: ne jamais verticaliser (désamorçage)','O₂ fort débit, voie veineuse, remplissage'],next:bd},
-      {id:bd,type:'decision',title:'Réévaluation',image:null,question:'Amélioration après adrénaline et remplissage ?',options:[{label:'Oui — stabilisé',target:b2},{label:'Non — réfractaire',target:b3}]},
-      {id:b2,type:'steps',title:'Stabilisé',image:null,steps:['Surveillance prolongée (réaction biphasique)','Tracer doses et horaires','Orientation hospitalière, bilan allergologique à distance'],next:null},
-      {id:bx,type:'steps',title:'Bronchospasme réfractaire',image:null,steps:['△ Salbutamol nébulisé :: dose du protocole local','Réévaluer la ventilation, envisager l’intubation','Ne pas retarder l’adrénaline'],next:null},
-      {id:b3,type:'steps',title:'Réfractaire',image:null,steps:['⚠ 2ᵉ adrénaline IM :: à 5 min','Renforcer le remplissage','△ Adrénaline IV titrée :: équipe entraînée, protocole local','Renfort réanimation / SMUR'],next:bd}
+      {id:b1,kind:'do',title:'Mesures immédiates',image:null,steps:['Retirer / arrêter l’allergène si possible','Appeler à l’aide — désigner un lecteur','⚠ Adrénaline IM, face antéro-latérale de cuisse :: dose du protocole local — noter l’heure','△ Allonger, jambes surélevées :: ne jamais verticaliser (désamorçage)','O₂ fort débit, voie veineuse, remplissage'],next:bd},
+      {id:bd,kind:'decision',title:'Réévaluation',image:null,question:'Amélioration après adrénaline et remplissage ?',options:[{label:'Oui — stabilisé',target:b2},{label:'Non — réfractaire',target:b3}]},
+      {id:b2,kind:'do',title:'Stabilisé',image:null,steps:['Surveillance prolongée (réaction biphasique)','Tracer doses et horaires','Orientation hospitalière, bilan allergologique à distance'],next:null},
+      {id:bx,kind:'do',title:'Bronchospasme réfractaire',image:null,steps:['△ Salbutamol nébulisé :: dose du protocole local','Réévaluer la ventilation, envisager l’intubation','Ne pas retarder l’adrénaline'],next:null},
+      {id:b3,kind:'do',title:'Réfractaire',image:null,steps:['⚠ 2ᵉ adrénaline IM :: à 5 min','Renforcer le remplissage','△ Adrénaline IV titrée :: équipe entraînée, protocole local','Renfort réanimation / SMUR'],next:bd}
     ]});
   /* ★ ET ×2 SE POSENT SUR L'ITEM, PAS DANS LA CHAÎNE — c'est tout l'objet du modèle v4, et ces
      deux propriétés n'ont aucune écriture possible dans `steps`. On les pose donc APRÈS `migrate`,
@@ -6716,13 +6738,13 @@ function seed(catId){const b1=uid('b'),b2=uid('b'),b3=uid('b'),bd=uid('b'),bx=ui
 // Deuxième fiche d'exemple : arrêt cardiaque. Illustre une DÉCISION rebouclée (le rythme est
 // réévalué à chaque cycle) et un minuteur À CYCLE de 2 min (RCP). À relire/valider avant tout usage.
 function seed2(catId){const b1=uid('b'),bd=uid('b'),b2=uid('b'),b3=uid('b');
-  const f=migrate({id:uid(),title:'Arrêt cardiaque (ACR) — algorithme',discriminant:'adulte',code:'ACR',category:catId||'',validation:'2025-01',
-    localInfo:'Réanimateur / renfort : …\nEmplacement défibrillateur : …\n(adaptez à votre établissement)',
+  const f=migrate({id:uid(),title:'Arrêt cardiaque (ACR) — algorithme',discriminant:'adulte',code:'ACR',category:catId||'',validatedAt:'2025-01',
+    local:'Réanimateur / renfort : …\nEmplacement défibrillateur : …\n(adaptez à votre établissement)',
     confirmation:['Inconscient, ne réagit pas','Pas de respiration normale (ou gasps)','Pas de pouls central en 10 s'],
     verify:['Chariot d’urgence + défibrillateur','Plan dur sous le thorax','Désigner un meneur et un lecteur'],
     notForget:['MCE de qualité : 100–120/min, 5–6 cm, relâchement complet','Minimiser les interruptions (< 10 s)','Rechercher les causes réversibles (4H / 4T)'],
     differentials:['4H : Hypoxie, Hypovolémie, Hypo/Hyperkaliémie, Hypothermie','4T : Thrombose (coronaire/pulmonaire), pneumoThorax, Tamponnade, Toxiques'],
-    references:['Exemple à compléter — recommandations ERC/ILCOR en vigueur'],images:[],
+    sources:['Exemple à compléter — recommandations ERC/ILCOR en vigueur'],images:[],
     posology:['△ **ADRÉNALINE — IV/IO** : 1 mg toutes les 3–5 min (après le 3ᵉ choc si choquable)',
       '△ **AMIODARONE — IV/IO** : 300 mg après le 3ᵉ choc, puis 150 mg après le 5ᵉ'],
     timers:[{id:uid('t'),label:'Cycle RCP (2 min)',type:'interval',seconds:120,autoloop:true,onDue:'Analyse du rythme — relais du masseur'}],
@@ -6730,10 +6752,10 @@ function seed2(catId){const b1=uid('b'),bd=uid('b'),b2=uid('b'),b3=uid('b');
     start:b1,
     // v4.11.1 : mêmes illustrations ⚠ + « challenge :: réponse » que la 1ʳᵉ fiche d'exemple.
     blocks:[
-      {id:b1,type:'steps',title:'Reconnaissance & alerte',image:null,steps:['Vérifier conscience et respiration','Alerter, appeler du renfort + défibrillateur','△ Relais du masseur :: toutes les 2 min — annoncer le changement','⚠ RCP immédiate :: 30:2 — sans délai'],next:bd},
-      {id:bd,type:'decision',title:'Analyse du rythme',image:null,question:'Rythme choquable (FV / TV sans pouls) ?',options:[{label:'Oui — choquable',target:b2},{label:'Non — non choquable',target:b3}]},
-      {id:b2,type:'steps',title:'Choquable (FV / TVsp)',image:null,steps:['⚠ Choc immédiat :: puis reprise RCP 2 min','Adrénaline :: 1 mg après le 3ᵉ choc, puis / 3–5 min','Amiodarone :: 300 mg après le 3ᵉ choc'],next:bd},
-      {id:b3,type:'steps',title:'Non choquable (AESP / asystolie)',image:null,steps:['RCP 2 min sans interruption','⚠ Adrénaline :: 1 mg immédiatement, puis / 3–5 min','Traiter les causes réversibles :: 4H / 4T'],next:bd}
+      {id:b1,kind:'do',title:'Reconnaissance & alerte',image:null,steps:['Vérifier conscience et respiration','Alerter, appeler du renfort + défibrillateur','△ Relais du masseur :: toutes les 2 min — annoncer le changement','⚠ RCP immédiate :: 30:2 — sans délai'],next:bd},
+      {id:bd,kind:'decision',title:'Analyse du rythme',image:null,question:'Rythme choquable (FV / TV sans pouls) ?',options:[{label:'Oui — choquable',target:b2},{label:'Non — non choquable',target:b3}]},
+      {id:b2,kind:'do',title:'Choquable (FV / TVsp)',image:null,steps:['⚠ Choc immédiat :: puis reprise RCP 2 min','Adrénaline :: 1 mg après le 3ᵉ choc, puis / 3–5 min','Amiodarone :: 300 mg après le 3ᵉ choc'],next:bd},
+      {id:b3,kind:'do',title:'Non choquable (AESP / asystolie)',image:null,steps:['RCP 2 min sans interruption','⚠ Adrénaline :: 1 mg immédiatement, puis / 3–5 min','Traiter les causes réversibles :: 4H / 4T'],next:bd}
     ]});
   /* Même règle que la 1ʳᵉ fiche : le memory item de l'ACR est la RCP immédiate — c'est ce qui se
      fait de mémoire, avant d'ouvrir quoi que ce soit. Pas de ×2 ici : le geste est continu, pas un
@@ -6770,7 +6792,7 @@ function detCatId(name){const s=catSlug(name);return s?('c-'+s):uid('c');}
 // repointe les fiches. Idempotente : une fois les ids déterministes, ne fait plus rien.
 async function remapCatsDeterministic(){const map={};const byNew={};const kept=[];
   for(const c of categories){
-    if(c.libraryId){kept.push(c);continue;}            // catégories de BIBLIOTHÈQUE : ids inchangés (doc synchronisé)
+    if(c.library){kept.push(c);continue;}            // catégories de BIBLIOTHÈQUE : ids inchangés (doc synchronisé)
     const nid=detCatId(c.name);
     if(byNew[nid]){map[c.id]=nid;continue;}            // doublon de nom -> fusion vers le premier
     byNew[nid]=true;if(c.id!==nid)map[c.id]=nid;c.id=nid;kept.push(c);}
@@ -6778,11 +6800,11 @@ async function remapCatsDeterministic(){const map={};const byNew={};const kept=[
   if(!Object.keys(map).length)return;
   const changed=[];fiches.forEach(f=>{if(f.category&&map[f.category]){f.category=map[f.category];changed.push(f);}});
   await saveCats(null);for(const f of changed)await persist(f);}
-function defaultCats(){return[['Anesthésie','#0e6b78'],['Cardiologie','#95516c'],['Pédiatrie','#1d7449'],['Réanimation','#006d98'],['Régulation','#4b3fa6'],['SMUR','#8d5c39'],['SSE','#806311'],['Urgences','#1f5fa6']].map(([name,color])=>({id:detCatId(name),name,color,libraryId:null}));}
+function defaultCats(){return[['Anesthésie','#0e6b78'],['Cardiologie','#95516c'],['Pédiatrie','#1d7449'],['Réanimation','#006d98'],['Régulation','#4b3fa6'],['SMUR','#8d5c39'],['SSE','#806311'],['Urgences','#1f5fa6']].map(([name,color])=>({id:detCatId(name),name,color,library:null}));}
 function migrateCategories(){const changed=[];const byName={};categories.forEach(c=>byName[c.name.toLowerCase()]=c.id);let pi=categories.length;
   fiches.forEach(f=>{const cv=f.category;if(!cv)return;if(categories.some(c=>c.id===cv))return;const name=String(cv).trim();if(!name){f.category='';changed.push(f);return;}
-    let id=byName[name.toLowerCase()];if(!id){id=newCatId(name,null);categories.push({id,name,color:PALETTE[pi++%PALETTE.length],libraryId:null});byName[name.toLowerCase()]=id;}f.category=id;changed.push(f);});return changed;}
-const hasFlow=f=>(f.blocks||[]).length>1||(f.blocks||[]).some(b=>b.type==='decision');
+    let id=byName[name.toLowerCase()];if(!id){id=newCatId(name,null);categories.push({id,name,color:PALETTE[pi++%PALETTE.length],library:null});byName[name.toLowerCase()]=id;}f.category=id;changed.push(f);});return changed;}
+const hasFlow=f=>(f.blocks||[]).length>1||(f.blocks||[]).some(b=>b.kind==='decision');
 /* ----- Vue d'ensemble du mode crise (v4.6.0) : fonctions PURES (testées via ?__actest) ----- */
 // Ordre TOPOLOGIQUE d'affichage : BFS depuis f.start (mêmes règles de parcours que bfsLevels du
 // SVG — next puis options[].target dans l'ordre du document, une seule visite par bloc, les
@@ -6792,7 +6814,7 @@ function flowOrder(f){const blocks=(f&&f.blocks)||[];if(!blocks.length)return []
   const out=[],seen={},q=[byId[f.start]?f.start:(blocks[0]&&blocks[0].id)];
   while(q.length){const id=q.shift();if(!id||seen[id]||!byId[id])continue;seen[id]=true;out.push(id);
     const b=byId[id];
-    if(b.type==='decision')(b.options||[]).forEach(o=>{if(o&&o.target)q.push(o.target);});
+    if(b.kind==='decision')(b.options||[]).forEach(o=>{if(o&&o.target)q.push(o.target);});
     else if(b.next)q.push(b.next);}
   blocks.forEach(b=>{if(b&&b.id&&!seen[b.id]){seen[b.id]=true;out.push(b.id);}});
   return out;}
@@ -6817,7 +6839,7 @@ function offPathSet(f,nav,navPos){const blocks=(f&&f.blocks)||[];const out=new S
   const seen={},q=[byId[head]?head:(byId[f.start]?f.start:(blocks[0]&&blocks[0].id))];
   while(q.length){const id=q.shift();if(!id||seen[id]||!byId[id])continue;seen[id]=true;keep[id]=true;
     const b=byId[id];
-    if(b.type==='decision')(b.options||[]).forEach(o=>{if(o&&o.target)q.push(o.target);});
+    if(b.kind==='decision')(b.options||[]).forEach(o=>{if(o&&o.target)q.push(o.target);});
     else if(b.next)q.push(b.next);}
   blocks.forEach(b=>{if(b&&b.id&&!keep[b.id])out.add(b.id);});
   return out;}
@@ -6848,7 +6870,7 @@ function ovPresList(arr){
 // d'emblée ; décision : RÉPONDUE (l'entrée suivante du chemin est l'une de ses cibles).
 function instComplete(f,nav,navSeq,checked,idx){
   const b=((f&&f.blocks)||[]).find(x=>x&&x.id===(nav||[])[idx]);if(!b)return false;
-  if(b.type==='decision')return (b.options||[]).some(o=>o&&o.target&&o.target===nav[idx+1]);
+  if(b.kind==='decision')return (b.options||[]).some(o=>o&&o.target&&o.target===nav[idx+1]);
   const steps=clean(b.steps);const seq=(navSeq&&navSeq[idx])||1;
   return steps.every((s,i)=>!!(checked&&checked[seq+':'+b.id+':'+i]));}
 /* ----- PLAN DE L'AIDE (v4.10.0) : l'algorithme ENTIER en arbre indenté -----
@@ -6870,7 +6892,7 @@ function flowPlan(f){
   const X='#exit';   // sentinelle : les ids de blocs (SAFE_ID) ne contiennent jamais '#'
   const ids=blocks.map(b=>b&&b.id).filter(id=>id&&byId[id]);
   const succ=id=>{const b=byId[id];
-    if(b.type==='decision'){const t=(b.options||[]).map(o=>(o&&o.target&&byId[o.target])?o.target:X);return t.length?t:[X];}
+    if(b.kind==='decision'){const t=(b.options||[]).map(o=>(o&&o.target&&byId[o.target])?o.target:X);return t.length?t:[X];}
     return [(b.next&&byId[b.next])?b.next:X];};
   // Post-dominateurs (itératif, graphes minuscules) : pdom[n] = {n} ∪ ∩ pdom(successeurs).
   const pdom={};pdom[X]=new Set([X]);
@@ -6893,7 +6915,7 @@ function flowPlan(f){
       const b=byId[cur];if(!b)return;
       rendered.add(cur);order.push(cur);
       items.push({k:'block',id:cur,depth});
-      if(b.type==='decision'){
+      if(b.kind==='decision'){
         let join=ipdom(cur);if(join===X)join=null;
         if(join&&rendered.has(join))join=null;   // convergence déjà décrite -> les branches lieront en ↺
         (b.options||[]).forEach((o,oi)=>{
@@ -6918,16 +6940,16 @@ function flowPlan(f){
   // numéroter à la suite le ferait lire comme « l'étape d'après » (mesuré : « 5 Laryngospasme »),
   // alors qu'il s'entre PAR L'ÉVÉNEMENT (AC 120-71B : les non-normales ne sont pas des normales).
   // Les orphelins non déclarés gardent le comportement historique (visibles, numérotés).
-  const cxT=new Set((f&&Array.isArray(f.complications)?f.complications:[]).map(c=>c&&c.target).filter(Boolean));
+  const cxT=new Set((f&&Array.isArray(f.excursions)?f.excursions:[]).map(c=>c&&c.target).filter(Boolean));
   blocks.forEach(b=>{if(b&&b.id&&byId[b.id]&&!rendered.has(b.id)&&!cxT.has(b.id))chain(b.id,null,0);});
   _planCache.set(f,out);return out;}
 /* COMPLICATIONS — helpers purs (v4.26.0). cxAll = déclarations valides, résolues par nature :
    kind 'block' (bloc de la fiche) ou 'ext' (autre fiche/protocole — résolution du titre à
    l'AFFICHAGE, la bibliothèque change). cxDetached = cibles-blocs HORS du tronc de flowPlan
    (elles ont leur section « À tout moment » dans l'Échelle et le Statique). */
-function cxAll(f){if(!f||!Array.isArray(f.complications))return [];
+function cxAll(f){if(!f||!Array.isArray(f.excursions))return [];
   const ids=new Set(((f.blocks)||[]).map(b=>b&&b.id).filter(Boolean));
-  return f.complications.filter(c=>c&&c.label&&c.target)
+  return f.excursions.filter(c=>c&&c.label&&c.target)
     .map(c=>({label:c.label,target:c.target,kind:ids.has(c.target)?'block':'ext'}));}
 function cxDetached(f){const order=new Set(flowPlan(f).order);
   return cxAll(f).filter(c=>c.kind==='block'&&!order.has(c.target));}
@@ -6941,7 +6963,7 @@ function minimapData(f,nav,navSeq,checked,navPos){const blocks=(f&&f.blocks)||[]
   const np=Math.max(0,Math.min(navPos==null?len-1:navPos,len-1));
   const curId=nav&&nav[np];
   return flowPlan(f).order.map((id,i)=>{const b=byId[id];const lp=latestPass(nav,navSeq,id);
-    const dec=b.type==='decision';
+    const dec=b.kind==='decision';
     const steps=dec?[]:clean(b.steps);
     const seq=lp?lp.seq:0;
     let done=0;steps.forEach((s,j)=>{if(checked&&checked[seq+':'+id+':'+j])done++;});
@@ -7024,7 +7046,7 @@ async function updateStorageInfo(){
     if(!est){_stgSnap=null;}
     else{
       // Poids des documents PDF joints (somme des métadonnées en mémoire — aucun blob n'est relu).
-      let attB=0;fiches.forEach(x=>(x.attachments||[]).forEach(a=>attB+=a.size||0));
+      let attB=0;fiches.forEach(x=>(x.docs||[]).forEach(a=>attB+=a.size||0));
       _stgSnap={signed:(typeof Auth!=='undefined'&&Auth.signedIn()),pers,usage:est.usage,quota:est.quota,attBytes:attB,offline:!navigator.onLine};
     }
   }catch(e){_stgSnap=null;}
@@ -7279,7 +7301,7 @@ async function softDeleteProtocol(p){if(!p)return;
 async function gcAttachments(entities){
   if(!supportsAttachments())return;
   try{const ref=new Set();
-    (entities||[]).forEach(f=>{if(f&&Array.isArray(f.attachments))f.attachments.forEach(a=>{if(a&&a.id)ref.add(a.id);});});
+    (entities||[]).forEach(f=>{if(f&&Array.isArray(f.docs))f.docs.forEach(a=>{if(a&&a.id)ref.add(a.id);});});
     // Par IDS d'abord : getAtts() chargeait TOUS les ArrayBuffer en mémoire à chaque démarrage
     // (5 PDF × 10 Mo = pic ~50 Mo — WebKit/iOS tue les onglets gourmands). Seuls les ORPHELINS
     // (rares) sont matérialisés, un par un, pour lire leur remotePath avant suppression.
@@ -7438,7 +7460,7 @@ function exportSessionReport(sessionId){
   const kpi=(f&&f.counters||[]).slice(0,4).map(c=>
     `<div class="kpi"><span class="kpi-v">${esc(String((s.counters||{})[c.id]||0))}</span><span class="kpi-k">${esc(c.label||'compteur')}</span></div>`).join('');
   const inner=`<h1>Compte-rendu de session</h1>
-<div class="meta"><b>${title}</b>${f&&f.validation?' · '+esc(fmtDate(f.validation)):''}</div>
+<div class="meta"><b>${title}</b>${f&&f.validatedAt?' · '+esc(fmtDate(f.validatedAt)):''}</div>
 ${s.exercise?'<div class="wm">EXERCICE</div><div class="meta exo">▲ Exercice — répétition sans patient, aucune trace clinique</div>':''}
 <div class="meta">${s.exercise?'Exercice':'Session'} « ${esc(s.name||'sans nom')} » · début ${esc(new Date(start).toLocaleString('fr-FR'))}</div>
 ${(()=>{
@@ -8532,8 +8554,8 @@ function catbarHtml(){
 function homeSideHtml(){
   const kindArr=state.section==='protocols'?protocols:fiches;
   const canEditCur=canEditScope(state.scope);
-  const nIn=scope=>kindArr.filter(x=>(scope?x.libraryId===scope:!x.libraryId)&&(canEditScope(scope)||x.status!=='draft')).length;
-  const nCat=cid=>kindArr.filter(x=>(state.scope?x.libraryId===state.scope:!x.libraryId)&&x.category===cid&&(canEditCur||x.status!=='draft')).length;
+  const nIn=scope=>kindArr.filter(x=>(scope?x.library===scope:!x.library)&&(canEditScope(scope)||x.status!=='draft')).length;
+  const nCat=cid=>kindArr.filter(x=>(state.scope?x.library===state.scope:!x.library)&&x.category===cid&&(canEditCur||x.status!=='draft')).length;
   const secA=state.section!=='protocols';
   return `<aside class="home-side">
     <div class="hs-h">Sections</div>
@@ -8722,7 +8744,7 @@ function _homeCfgF(){return {rerender:renderFiches,crossKind:'protocols',create:
     // Tri des RÉSULTATS de recherche (v4.4.6) : épinglées, puis frecency (les fiches qu'on ouvre
     // le plus, récemment, en premier), puis alphabétique. Sans recherche : alphabétique inchangé.
     list:(q,canEdit)=>{const T=qTerms(q);const now=Date.now();const sc=x=>q?frecencyScore(_frecency[x.id],now):0;
-      return fiches.slice().sort((a,b)=>((isPinned(b.id)?1:0)-(isPinned(a.id)?1:0))||(sc(b)-sc(a))||byTitle(a,b)).filter(f=>q?(hayMatch(ficheHaystack(f),T)&&(canEditFiche(f)||f.status!=='draft')):((state.scope?f.libraryId===state.scope:!f.libraryId)&&(!state.cat||f.category===state.cat)&&(canEdit||f.status!=='draft')));},
+      return fiches.slice().sort((a,b)=>((isPinned(b.id)?1:0)-(isPinned(a.id)?1:0))||(sc(b)-sc(a))||byTitle(a,b)).filter(f=>q?(hayMatch(ficheHaystack(f),T)&&(canEditFiche(f)||f.status!=='draft')):((state.scope?f.library===state.scope:!f.library)&&(!state.cat||f.category===state.cat)&&(canEdit||f.status!=='draft')));},
     // SESSIONS EN COURS (SPEC §5) : une CARTE par session (surface, liseré primaire 3px), point
     // vert + kicker + titre, CHRONO mono vivant (mis à jour par tickAll), « Reprendre » plein,
     // « Terminer » en texte rouge (destructif : jamais plein, jamais premier).
@@ -8758,7 +8780,7 @@ function _homeCfgF(){return {rerender:renderFiches,crossKind:'protocols',create:
       return recapH+(liveArr.length?`<div class="live-sessions">${liveArr.map(R=>`<div class="ls-card"><span class="sess-dot"></span><div class="ls-info" data-openlive="${R.ficheId}" role="button" tabindex="0"><b class="ls-k">Session en cours</b><span class="ls-t">${esc(R.fiche.title||'Sans titre')}</span></div><span class="ls-chrono" data-lschrono="${R.startedAt}">${fmtMs(Date.now()-R.startedAt)}</span><button class="btn sm primary" data-openlive="${R.ficheId}">Reprendre</button><button class="ls-end" data-endlive="${R.ficheId}">Terminer</button></div>`).join('')}</div>`:'');},
     notices:()=>`
       ${(!state.scope&&!noticeHidden())?`<div class="notice">${uiIcon('info',15)}<div>Vous êtes l'auteur et le responsable du contenu. Validez chaque fiche et tenez la date à jour.</div><button class="notice-x" id="noticeX" aria-label="Masquer">×</button></div>`:''}
-      ${(!state.scope&&!fiches.some(f=>!f.libraryId)&&!seedsHidden())?`<div class="notice">${uiIcon('bulb',15)}<div><b>Besoin d'exemples pour commencer ?</b> Ajoutez les deux fiches d'exemple (Anaphylaxie, Arrêt cardiaque) pour découvrir l'application — à relire et adapter avant tout usage clinique.<div style="margin-top:9px"><button class="btn sm primary" id="seedAdd">Ajouter les fiches d'exemple</button></div></div><button class="notice-x" id="seedX" aria-label="Masquer">×</button></div>`:''}`,
+      ${(!state.scope&&!fiches.some(f=>!f.library)&&!seedsHidden())?`<div class="notice">${uiIcon('bulb',15)}<div><b>Besoin d'exemples pour commencer ?</b> Ajoutez les deux fiches d'exemple (Anaphylaxie, Arrêt cardiaque) pour découvrir l'application — à relire et adapter avant tout usage clinique.<div style="margin-top:9px"><button class="btn sm primary" id="seedAdd">Ajouter les fiches d'exemple</button></div></div><button class="notice-x" id="seedX" aria-label="Masquer">×</button></div>`:''}`,
     /* RANGÉE du répertoire (v4.56.0 — remplace la carte ; décisions utilisateur : épingle,
        date de validation et « À compléter » CONSERVÉES, compte de sessions retiré — l'historique
        global de la sidebar prend le relais). Pastille + NOM de catégorie en toutes lettres dans
@@ -8769,7 +8791,7 @@ function _homeCfgF(){return {rerender:renderFiches,crossKind:'protocols',create:
         <span class="cat-dot"${cc?` style="--catcol:${safeColor(cc.color)}"`:''}></span>
         <div class="dir-main">
           <button class="card-open" data-open="${f.id}">${esc(f.title)||'Sans titre'}</button>
-          <span class="dir-sub">${f.discriminant?`<span class="tag disc">${esc(f.discriminant)}</span>`:''}${searchLibTag(f)}${isLive?'<span class="tag live">● En cours</span>':''}${statusChip(f.status,true,{validation:f.validation})}${staleDate(f.validation)?`<span class="tag stale" title="${esc(fmtDate(f.validation))} — plus de 2 ans : à revérifier">△ À revérifier</span>`:''}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo title="Reste à compléter : ${esc(sp.join(' · '))}">△ À compléter</span>`:'';})()}${cc?`<span>${esc(cc.name)}</span>`:''}${f.validation?`<span class="card-date${staleDate(f.validation)?' stale':''}" title="${esc(fmtDate(f.validation))}">${esc(fmtDateShort(f.validation))}</span>`:''}</span>
+          <span class="dir-sub">${f.discriminant?`<span class="tag disc">${esc(f.discriminant)}</span>`:''}${searchLibTag(f)}${isLive?'<span class="tag live">● En cours</span>':''}${statusChip(f.status,true,{validatedAt:f.validatedAt})}${staleDate(f.validatedAt)?`<span class="tag stale" title="${esc(fmtDate(f.validatedAt))} — plus de 2 ans : à revérifier">△ À revérifier</span>`:''}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo title="Reste à compléter : ${esc(sp.join(' · '))}">△ À compléter</span>`:'';})()}${cc?`<span>${esc(cc.name)}</span>`:''}${f.validatedAt?`<span class="card-date${staleDate(f.validatedAt)?' stale':''}" title="${esc(fmtDate(f.validatedAt))}">${esc(fmtDateShort(f.validatedAt))}</span>`:''}</span>
           ${inQ?searchSnippet(ficheSnipParts(f),state.q):''}
         </div>
         ${f.code?`<span class="dir-code">${esc(f.code)}</span>`:''}
@@ -8802,7 +8824,7 @@ function renderFiches(){renderHomeList(_homeCfgF());}
    les mêmes composants que sur les fiches. ----- */
 const _protoHay=new WeakMap();
 function protocolHaystack(p){let h=_protoHay.get(p);
-  if(h===undefined){h=txNorm([p.title,p.code,mdStrip(p.body),...(p.references||[]),...(p.attachments||[]).map(a=>a.name)].filter(Boolean).join(' '));_protoHay.set(p,h);}
+  if(h===undefined){h=txNorm([p.title,p.code,mdStrip(p.body),...(p.sources||[]),...(p.docs||[]).map(a=>a.name)].filter(Boolean).join(' '));_protoHay.set(p,h);}
   return h+' '+txNorm(catName(p));}
 /* ===== R4 — LA BIBLIOTHÈQUE DEVIENT UNIQUE, LE TYPE DEVIENT UN FILTRE (lot T9, v5.0.0) =======
    Avant, choisir « Aides » ou « Protocoles » était une DÉCISION PRÉALABLE : il fallait savoir de
@@ -8849,16 +8871,16 @@ function _homeCfgP(){return {rerender:renderProtocols,crossKind:'fiches',create:
     // épingle, chevron — un seul langage de carte sur tout l'accueil.
     // Même tri de recherche que les fiches (v4.4.6) : épinglés > frecency > alphabétique.
     list:(q,canEdit)=>{const T=qTerms(q);const now=Date.now();const sc=x=>q?frecencyScore(_frecency[x.id],now):0;
-      return protocols.slice().sort((a,b)=>((isPinned(b.id)?1:0)-(isPinned(a.id)?1:0))||(sc(b)-sc(a))||byTitle(a,b)).filter(p=>q?(hayMatch(protocolHaystack(p),T)&&(canEditFiche(p)||p.status!=='draft')):((state.scope?p.libraryId===state.scope:!p.libraryId)&&(!state.cat||p.category===state.cat)&&(canEdit||p.status!=='draft')));},
+      return protocols.slice().sort((a,b)=>((isPinned(b.id)?1:0)-(isPinned(a.id)?1:0))||(sc(b)-sc(a))||byTitle(a,b)).filter(p=>q?(hayMatch(protocolHaystack(p),T)&&(canEditFiche(p)||p.status!=='draft')):((state.scope?p.library===state.scope:!p.library)&&(!state.cat||p.category===state.cat)&&(canEdit||p.status!=='draft')));},
     /* Même rangée que les fiches (un seul langage sur tout l'accueil) ; « n PDF » reste — c'est
        la nature même d'un protocole documentaire — « Rédigé » part avec le compte de sessions. */
-    row:p=>{const nDoc=(p.attachments||[]).length;const cc=catOf(p);const inQ=txNorm(state.q);
+    row:p=>{const nDoc=(p.docs||[]).length;const cc=catOf(p);const inQ=txNorm(state.q);
       return `
       <div class="dir-row">
         <span class="cat-dot"${cc?` style="--catcol:${safeColor(cc.color)}"`:''}></span>
         <div class="dir-main">
           <button class="card-open" data-open="${p.id}">${esc(p.title)||'Sans titre'}</button>
-          <span class="dir-sub">${searchLibTag(p)}${statusChip(p.status,false,{validation:p.validation})}${staleDate(p.validation)?`<span class="tag stale" title="${esc(fmtDate(p.validation))} — plus de 2 ans : à revérifier">△ À revérifier</span>`:''}${nDoc?`<span class="tag sess" title="Documents PDF joints">${nDoc} PDF</span>`:''}${cc?`<span>${esc(cc.name)}</span>`:''}${p.validation?`<span class="card-date${staleDate(p.validation)?' stale':''}" title="${esc(fmtDate(p.validation))}">${esc(fmtDateShort(p.validation))}</span>`:''}</span>
+          <span class="dir-sub">${searchLibTag(p)}${statusChip(p.status,false,{validatedAt:p.validatedAt})}${staleDate(p.validatedAt)?`<span class="tag stale" title="${esc(fmtDate(p.validatedAt))} — plus de 2 ans : à revérifier">△ À revérifier</span>`:''}${nDoc?`<span class="tag sess" title="Documents PDF joints">${nDoc} PDF</span>`:''}${cc?`<span>${esc(cc.name)}</span>`:''}${p.validatedAt?`<span class="card-date${staleDate(p.validatedAt)?' stale':''}" title="${esc(fmtDate(p.validatedAt))}">${esc(fmtDateShort(p.validatedAt))}</span>`:''}</span>
           ${inQ?searchSnippet(protoSnipParts(p),state.q):''}
         </div>
         ${p.code?`<span class="dir-code">${esc(p.code)}</span>`:''}
@@ -8892,7 +8914,7 @@ async function _applyThumb(id){
     const im=new Image();im.className='att-timg';im.alt='';im.src=url;el.replaceChildren(im);});}
 function hydrateAttThumbs(entity){
   if(!supportsAttachments())return;
-  (entity.attachments||[]).forEach(a=>{
+  (entity.docs||[]).forEach(a=>{
     if(_attThumbs.has(a.id))return;   // déjà inliné par attThumbHtml (donc binaire présent, badge caché au rendu)
     _thumbChain=_thumbChain
       .then(()=>new Promise(r=>_idle(r)))
@@ -8935,8 +8957,8 @@ async function genAttThumb(id){
 // n'est pas encore arrivé ici — on le DÉCOUVRE à froid, jamais en crise. Caché par défaut
 // (l'état n'est connu qu'après la lecture IndexedDB de hydrateAttThumbs) ; registre ATTENTION
 // (glyphe + texte, jamais la couleur seule).
-function attListHtml(entity){const _n=(entity.attachments||[]).length;return _n?`<section class="block"><div role="heading" aria-level="2" class="block-h h-doc">${headerIcon('h-doc')}Documents (${_n})</div><div class="att-list">${entity.attachments.map(a=>`<button class="att-row" data-att="${esc(a.id)}" title="Ouvrir le document">${attThumbHtml(a)}<span class="att-name">${esc(a.name)}</span><span class="att-cloud" data-attcloud="${esc(a.id)}" hidden title="Ajouté sur un autre appareil — sera téléchargé à la prochaine synchronisation avec du réseau ; pas encore consultable hors ligne ici.">△ à télécharger</span><span class="att-size">${fmtBytes(a.size)}</span></button>`).join('')}</div></section>`:'';}
-function bindAttList(entity){main.querySelectorAll('[data-att]').forEach(b=>b.onclick=()=>{const a=(entity.attachments||[]).find(x=>x.id===b.dataset.att);if(a)openPdfViewer(a,entity);});
+function attListHtml(entity){const _n=(entity.docs||[]).length;return _n?`<section class="block"><div role="heading" aria-level="2" class="block-h h-doc">${headerIcon('h-doc')}Documents (${_n})</div><div class="att-list">${entity.docs.map(a=>`<button class="att-row" data-att="${esc(a.id)}" title="Ouvrir le document">${attThumbHtml(a)}<span class="att-name">${esc(a.name)}</span><span class="att-cloud" data-attcloud="${esc(a.id)}" hidden title="Ajouté sur un autre appareil — sera téléchargé à la prochaine synchronisation avec du réseau ; pas encore consultable hors ligne ici.">△ à télécharger</span><span class="att-size">${fmtBytes(a.size)}</span></button>`).join('')}</div></section>`:'';}
+function bindAttList(entity){main.querySelectorAll('[data-att]').forEach(b=>b.onclick=()=>{const a=(entity.docs||[]).find(x=>x.id===b.dataset.att);if(a)openPdfViewer(a,entity);});
   // Vignettes SEULEMENT si une rangée est réellement dans le flux (v4.36.0). Générer une vignette
   // exige pdf.js : 1 773 Ko (389 + 1 384) à parser et un worker à démarrer. Or depuis v4.23.0 la
   // liste « Documents » d'une FICHE a quitté la colonne d'action pour la feuille « Consulter »,
@@ -8953,22 +8975,22 @@ function renderProtocolRead(){
   const body=(p.body&&p.body.trim())?`<section class="block md-body">${mdRender(p.body,{images:p.images})}</section>`:'';
   const docs=attListHtml(p);
   // « Voir aussi » (liens croisés v4.2.0) : aides cognitives ET protocoles associés.
-  const rel=(p.related||[]).map(id=>relTarget(id)).filter(Boolean);
+  const rel=(p.links||[]).map(id=>relTarget(id)).filter(Boolean);
   main.innerHTML=`
     <div class="read-head"><h2>${esc(p.title)||'Sans titre'}</h2></div>
-    <div class="read-meta">${p.libraryId?`<span class="tag libtag" title="Bibliothèque partagée">${uiIcon('book',12)}${esc(libName(p.libraryId)||'Partagée')}</span>`:''}${statusChip(p.status,false,{validation:p.validation})}${catTag(p)}${p.code?`<span class="card-date" style="font-family:var(--mono)">${esc(p.code)}</span>`:''}<span class="card-date${staleDate(p.validation)?' stale':''}">${esc(fmtDate(p.validation))}</span>${p.libraryId&&p.updatedBy?`<span class="card-date" title="Auteur de la dernière modification">· dernière modification par ${esc(p.updatedBy)}</span>`:''}</div>
+    <div class="read-meta">${p.library?`<span class="tag libtag" title="Bibliothèque partagée">${uiIcon('book',12)}${esc(libName(p.library)||'Partagée')}</span>`:''}${statusChip(p.status,false,{validatedAt:p.validatedAt})}${catTag(p)}${p.code?`<span class="card-date" style="font-family:var(--mono)">${esc(p.code)}</span>`:''}<span class="card-date${staleDate(p.validatedAt)?' stale':''}">${esc(fmtDate(p.validatedAt))}</span>${p.library&&p.updatedBy?`<span class="card-date" title="Auteur de la dernière modification">· dernière modification par ${esc(p.updatedBy)}</span>`:''}</div>
     ${p.status==='draft'?`<div class="notice">${uiIcon('warn',15)}<div><b>Brouillon</b> — ce protocole n'a pas encore été validé pour l'usage clinique.</div></div>`:''}
     ${p.status==='review'?`<div class="notice">${uiIcon('warn',15)}<div><b>À relire</b> — ce protocole est signalé à relire avant validation.</div></div>`:''}
     ${docs}
     ${body}
-    ${rel.length?`<div class="related"><b>Voir aussi (${rel.length})</b><div class="related-row">${rel.map(r=>`<button class="btn sm" data-openrel="${esc(r.id)}">${uiIcon(relKindOf(r.id)==='p'?'book':'doc',13)}${esc(r.title)||'Sans titre'} →</button>`).join('')}</div></div>`:''}
-    ${(()=>{const refs=clean(p.references||[]);return refs.length?`<div class="refs"><b>Références</b><ol>${refs.map(r=>`<li>${fmt(r)}</li>`).join('')}</ol></div>`:'';})()}
+    ${rel.length?`<div class="links"><b>Voir aussi (${rel.length})</b><div class="related-row">${rel.map(r=>`<button class="btn sm" data-openrel="${esc(r.id)}">${uiIcon(relKindOf(r.id)==='p'?'book':'doc',13)}${esc(r.title)||'Sans titre'} →</button>`).join('')}</div></div>`:''}
+    ${(()=>{const refs=clean(p.sources||[]);return refs.length?`<div class="refs"><b>Références</b><ol>${refs.map(r=>`<li>${fmt(r)}</li>`).join('')}</ol></div>`:'';})()}
     ${(!docs&&!body)?'<div class="empty"><b>Protocole vide</b>Ajoutez un PDF ou un contenu rédigé via « Modifier ».</div>':''}
     ${readFooterHtml()}
     `;
   updateStorageInfo();   // remplit le pied (mesure asynchrone) — même libellé que la sidebar
   // Badge d'en-tête : statut (+ date de validation si posée), ex. « ✓ Validé · 03/2026 ».
-  updateHdrStatusBadge(p.status,false,p.validation?valToDisplay(p.validation):'');
+  updateHdrStatusBadge(p.status,false,p.validatedAt?valToDisplay(p.validatedAt):'');
   if(preview){
     const backToEdit=()=>{_backGuardT=Date.now();const from=state.previewFrom;state.previewFrom=null;state.protocol=null;state.view=from;render();
       const hb=document.getElementById('hdrBack');if(hb){hb.classList.add('guarded');setTimeout(()=>hb.classList.remove('guarded'),700);}};
@@ -9002,7 +9024,7 @@ function renderProtocolRead(){
   main.querySelectorAll('[data-openrel]').forEach(b=>b.onclick=()=>{state.previewFrom=null;openRel(b.dataset.openrel);});
   bindAttList(p);
   // Liens [texte](att:ID) du contenu rédigé -> même visionneuse que la section Documents.
-  main.querySelectorAll('[data-mdatt]').forEach(a=>a.onclick=e=>{e.preventDefault();const at=(p.attachments||[]).find(x=>x.id===a.dataset.mdatt);if(at)openPdfViewer(at,p);else toast('⚠ Document lié introuvable dans ce protocole.');});
+  main.querySelectorAll('[data-mdatt]').forEach(a=>a.onclick=e=>{e.preventDefault();const at=(p.docs||[]).find(x=>x.id===a.dataset.mdatt);if(at)openPdfViewer(at,p);else toast('⚠ Document lié introuvable dans ce protocole.');});
   main.querySelectorAll('img[data-full]').forEach(im=>im.onclick=()=>openLightbox(im.dataset.full,im.dataset.cap||''));
   bindProtoTasks(p);
 }
@@ -9118,7 +9140,7 @@ function renderProtocolEdit(){
       <p class="hint">Syntaxe : <code># titre</code> (##, ###), <code>- liste</code> / <code>1. liste</code> (sous-liste : 2 espaces devant), <code>- [ ] tâche</code> liste cochable (<code>- [x]</code> déjà cochée) — en lecture, les coches repartent à zéro à chaque ouverture, <code>&gt; citation</code>, <code>\`code\`</code> (bloc : <code>\`\`\`</code>), <code>---</code> séparateur, <code>**gras**</code>, <code>*italique*</code>, <code>==surligné==</code>, <code>[texte](https://…)</code>, <code>[texte](att:ID)</code> ouvre un document joint, <code>![légende](img:ID)</code> image (taille réglable ci-dessous).<br>Tableau : <code>| a | b |</code> puis, en 2ᵉ ligne, <code>|---|---|</code> — l'alignement se règle là (<code>|:-:|</code> centré, <code>|---:|</code> à droite). Un <code>|</code> dans une cellule s'écrit <code>\\|</code>.<br>Encadré coloré — syntaxe GitHub, tapable au clavier, le marqueur seul sur sa ligne puis le texte en dessous : <code>&gt; [!CAUTION]</code> alerte · <code>&gt; [!WARNING]</code> attention · <code>&gt; [!NOTE]</code> information · <code>&gt; [!TIP]</code> confirmation (les boutons ci-dessus les posent). Alias acceptés ici : <code>[!alerte]</code>, <code>[!attention]</code>, <code>[!info]</code>, <code>[!ok]</code>, et les glyphes ⚠ △ ℹ ✓.<br><span class="hint">Portabilité : les mots-clés en MAJUSCULES sont rendus en encadré par GitHub, GitLab, pandoc et Typora, et <code>- [ ]</code> en case native ; ailleurs, encadrés et tâches restent une citation ou un « [ ] tâche » lisibles — rien n'est jamais perdu.</span></p>
       ${mdImagesHtml(p)}
       <p class="md-prev-h">Aperçu</p><div class="md-preview" id="mdPreview">${mdRender(p.body,{images:p.images})}</div></fieldset>
-    ${listEditor('Références','sources du protocole (traçabilité)','references',p.references||[])}
+    ${listEditor('Références','sources du protocole (traçabilité)','sources',p.sources||[])}
     ${isNew?'':'<div class="ed-del"><button class="btn danger" id="delBtn">Supprimer ce protocole</button></div>'}
     ${wideEdit?`</div><aside class="read-side" id="editSide">${editPreviewHtml('proto')}</aside></div>`:''}
     <input type="file" id="imgInput" accept="image/*" hidden>
@@ -9194,16 +9216,16 @@ function relKindOf(id){return protocols.some(x=>x.id===id)?'p':'f';}
 // Cœur PUR (testé par tests.html) : candidats liables d'une entité — aides d'abord puis
 // protocoles, chacun dans l'ordre de la bibliothèque ; hors soi-même, déjà liés et corbeille.
 function relCandidatesFor(entity,fs,ps){
-  const have=new Set([entity.id].concat(entity.related||[]));
-  const scope=entity.libraryId||null;
-  const ok=x=>!x.deletedAt&&!have.has(x.id)&&(x.libraryId||null)===scope;
+  const have=new Set([entity.id].concat(entity.links||[]));
+  const scope=entity.library||null;
+  const ok=x=>!x.deletedAt&&!have.has(x.id)&&(x.library||null)===scope;
   const mk=kind=>x=>({id:x.id,title:x.title||'Sans titre',kind:kind,code:x.code||''});
   return fs.filter(ok).sort(byTitle).map(mk('f')).concat(ps.filter(ok).sort(byTitle).map(mk('p')));}
 function relCandidates(entity){return relCandidatesFor(entity,fiches,protocols);}
 // Fieldset PARTAGÉ des deux éditeurs — même grammaire que « Documents (PDF) » : chips avec croix
 // de retrait + bouton « + Lier… » ouvrant le sélecteur filtrable (design « document existant »).
 function relFieldsetHtml(entity){
-  const chips=(entity.related||[]).map(id=>{const t=relTarget(id);return t?`<span class="rel-chip">${uiIcon(relKindOf(id)==='p'?'book':'doc',12)}${esc(t.title)||'Sans titre'}<button class="rel-x" data-relrm="${esc(id)}" aria-label="Retirer">×</button></span>`:'';}).join('');
+  const chips=(entity.links||[]).map(id=>{const t=relTarget(id);return t?`<span class="rel-chip">${uiIcon(relKindOf(id)==='p'?'book':'doc',12)}${esc(t.title)||'Sans titre'}<button class="rel-x" data-relrm="${esc(id)}" aria-label="Retirer">×</button></span>`:'';}).join('');
   const n=relCandidates(entity).length;
   return `<fieldset class="field"><label>Voir aussi <span class="hint">aides cognitives et protocoles liés — raccourcis en lecture</span></label>
     <div class="rel-edit">${chips||'<span class="hint">Aucun lien pour le moment.</span>'}</div>
@@ -9271,10 +9293,10 @@ function editorMetaFieldsHtml(d,prefix,L){
     <div class="field"><label for="${prefix}-disc">Discriminant <span class="hint">ce qui distingue cette fiche d’une voisine — deux ou trois mots (60 caractères au plus), jamais tronqué à l’affichage</span></label><input type="text" id="${prefix}-disc" value="${esc(d.discriminant||'')}" maxlength="60" placeholder="ex. adulte · pédiatrique · femme enceinte"></div>
     <div class="field"><label>Catégorie</label><div class="cat-picker" id="catPicker">${catPickerHtml(d)}</div></div>
     ${Auth.signedIn()?`<div class="field"><label for="${prefix}-scope">Bibliothèque <span class="hint">${L.scopeHint}</span></label>
-      <select id="${prefix}-scope"><option value="" ${!d.libraryId?'selected':''}>Perso (privé)</option>${sortedLibraries().filter(l=>l.role==='editor'||l.role==='admin').map(l=>`<option value="${esc(l.id)}" ${d.libraryId===l.id?'selected':''}>${esc(l.name)} (partagée)</option>`).join('')}${d.libraryId&&!myLibraries.some(l=>l.id===d.libraryId)?`<option value="${esc(d.libraryId)}" selected>${esc(libName(d.libraryId)||'Bibliothèque')}</option>`:''}</select></div>`:''}
+      <select id="${prefix}-scope"><option value="" ${!d.library?'selected':''}>Perso (privé)</option>${sortedLibraries().filter(l=>l.role==='editor'||l.role==='admin').map(l=>`<option value="${esc(l.id)}" ${d.library===l.id?'selected':''}>${esc(l.name)} (partagée)</option>`).join('')}${d.library&&!myLibraries.some(l=>l.id===d.library)?`<option value="${esc(d.library)}" selected>${esc(libName(d.library)||'Bibliothèque')}</option>`:''}</select></div>`:''}
     <div class="row2"><div class="field"><label for="${prefix}-code">Code <span class="hint">référence courte facultative</span></label><input type="text" id="${prefix}-code" value="${esc(d.code||'')}" placeholder="${L.codePh}" style="font-family:var(--mono)" maxlength="40"></div>
-      <div class="field"><label for="${prefix}-validation">Date de validation <span class="hint">mois/année</span></label><input type="text" id="${prefix}-validation" inputmode="numeric" autocapitalize="off" value="${esc(valToDisplay(d.validation))}" placeholder="MM/AAAA"></div></div>
-    <div class="field"><label>État</label>${statusSegHtml(d.status,L.fem,!!d.libraryId)}</div></details>`;}
+      <div class="field"><label for="${prefix}-validation">Date de validation <span class="hint">mois/année</span></label><input type="text" id="${prefix}-validation" inputmode="numeric" autocapitalize="off" value="${esc(valToDisplay(d.validatedAt))}" placeholder="MM/AAAA"></div></div>
+    <div class="field"><label>État</label>${statusSegHtml(d.status,L.fem,!!d.library)}</div></details>`;}
 /* Sélecteur de catégorie « une sélectionnée + Autre… » (SPEC crise §2, v4.3.0).
    catPickerHtml : chip teinté de la catégorie COURANTE (ou « Sans catégorie », neutre) + bouton
    « Autre… ». openCatMenu : menu ancré sous le picker (bottom sheet < 780) — une rangée 44px par
@@ -9288,7 +9310,7 @@ function catPickerHtml(d){
   return cur+`<button type="button" class="cat-chip-other" data-catmenu aria-haspopup="listbox" aria-expanded="false">Autre…</button>`;}
 function openCatMenu(host,d,rerender,trigger){
   if(host.querySelector('.catmenu'))return;
-  const cats=catsSorted(d.libraryId);
+  const cats=catsSorted(d.library);
   const row=(id,name,col)=>`<button type="button" class="catmenu-row" role="option" aria-selected="${(d.category||'')===id?'true':'false'}" data-catopt="${esc(id)}"><span class="cat-dot" style="--catcol:${col||'var(--line-strong)'}"></span><span class="cm-nm">${esc(name)}</span>${(d.category||'')===id?`<span class="cm-ck">${uiIcon('check',15,{sw:2.6})}</span>`:''}</button>`;
   const menu=document.createElement('div');menu.className='catmenu';menu.setAttribute('role','listbox');menu.setAttribute('aria-label','Catégorie');
   menu.innerHTML=`<div class="catmenu-head">${cats.length>8?'<input class="catmenu-filter" type="text" placeholder="Filtrer…" aria-label="Filtrer les catégories">':''}</div>
@@ -9335,7 +9357,7 @@ function bindEditorMetaFields(d,prefix,o){
   // Date de validation : champ tolérant — interprétée au blur (« janv 2026 », « 01/2026 »…) puis
   // réécrite au propre « MM/AAAA » ; entrée non comprise -> bordure rouge, valeur non retenue.
   {const fv=document.getElementById(prefix+'-validation');
-   if(fv)fv.addEventListener('change',()=>{const raw=fv.value.trim();if(!raw){d.validation='';fv.classList.remove('val-bad');return;}const norm=parseValidation(raw);if(norm){d.validation=norm;fv.value=valToDisplay(norm);fv.classList.remove('val-bad');}else{fv.classList.add('val-bad');}});}
+   if(fv)fv.addEventListener('change',()=>{const raw=fv.value.trim();if(!raw){d.validatedAt='';fv.classList.remove('val-bad');return;}const norm=parseValidation(raw);if(norm){d.validatedAt=norm;fv.value=valToDisplay(norm);fv.classList.remove('val-bad');}else{fv.classList.add('val-bad');}});}
   // État SEGMENTÉ 3 états (V5) : au clic, re-rendu (phrase d'aide + badge d'en-tête suivent).
   main.querySelectorAll('.st-seg').forEach(b=>b.onclick=()=>{d.status=b.dataset.status==='valid'?'':b.dataset.status;o.rerender();});
   updateHdrStatusBadge(d.status,o.fem);
@@ -9350,7 +9372,7 @@ function bindEditorMetaFields(d,prefix,o){
   // « Voir aussi » : ajout via le sélecteur filtrable (même design que « Joindre un document
   // existant »), retrait via la croix des chips (mise à jour immédiate de l'aperçu).
   {const rb=document.getElementById('relAddBtn');if(rb)rb.onclick=()=>openRelPicker(d,o.rerender);}
-  main.querySelectorAll('[data-relrm]').forEach(b=>b.onclick=()=>{d.related=(d.related||[]).filter(x=>x!==b.dataset.relrm);o.rerender();});
+  main.querySelectorAll('[data-relrm]').forEach(b=>b.onclick=()=>{d.links=(d.links||[]).filter(x=>x!==b.dataset.relrm);o.rerender();});
   // Catégorie : chip courant ET « Autre… » ouvrent le même menu ancré (SPEC crise §2) ;
   // « ＋ Nouvelle catégorie » y ouvre le gestionnaire (même fenêtre que l'accueil).
   {const pick=document.getElementById('catPicker');
@@ -9364,19 +9386,19 @@ function bindEditorMetaFields(d,prefix,o){
      la question se pose, et c'est d'ailleurs plus juste qu'à l'enregistrement, où l'auteur avait
      déjà oublié qu'il l'avait changée. Refus -> le sélecteur revient à sa valeur d'avant. */
   {const scopeSel=document.getElementById(prefix+'-scope');if(scopeSel)scopeSel.onchange=async()=>{
-    const av=d.libraryId||null,ns=scopeSel.value||null;
+    const av=d.library||null,ns=scopeSel.value||null;
     if(av!==ns){
       const est=prefix==='f'?'fiche':'protocole';
-      const cand=JSON.parse(JSON.stringify(d));cand.libraryId=ns;
-      const orig=(prefix==='f'?fiches:protocols).find(x=>x.id===d.id)||{libraryId:av};
+      const cand=JSON.parse(JSON.stringify(d));cand.library=ns;
+      const orig=(prefix==='f'?fiches:protocols).find(x=>x.id===d.id)||{library:av};
       const ok=await confirmDraftLibChange(cand,orig,{
         out:n=>'Cette '+est+' va quitter la bibliothèque partagée « '+n+' » : les autres membres n\'y auront plus accès'+(prefix==='f'?', et les notes personnelles qu\'ils y avaient attachées ne leur seront plus visibles':'')+'. Prévenez-les avant si besoin.',
         outYes:'Déplacer la '+est,
         into:(n,dr)=>'Cette '+est+' va être publiée dans « '+n+' » : elle sera visible par tous les membres'+(dr?' pouvant éditer (brouillon masqué aux lecteurs)':'')+'.',
         intoYes:'Publier la '+est});
       if(!ok){scopeSel.value=av||'';return;}}
-    d.libraryId=ns;
-    const cc=d.category;if(cc){const cat=categories.find(x=>x.id===cc);if(!cat||(cat.libraryId||null)!==(ns||null))d.category='';}
+    d.library=ns;
+    const cc=d.category;if(cc){const cat=categories.find(x=>x.id===cc);if(!cat||(cat.library||null)!==(ns||null))d.category='';}
     o.rerender();};}}
 // Sortie d'éditeur : « ‹ Retour » (SPEC gestion §2.2, ex-« Annuler » — quitter ne perd rien :
 // brouillon modifié -> parqué, repris à la prochaine édition ou via « Créer » s'il est nouveau ;
@@ -9409,13 +9431,13 @@ function bindEditorExit(cfg){
 // prefix = 'f' (fiche) ou 'p' (protocole), selon les ids des champs de l'éditeur.
 function draftReadStatusFields(d,prefix){
   const stEl=document.getElementById(prefix+'-status');if(stEl)d.status=stEl.value==='draft'?'draft':'';
-  const fvEl=document.getElementById(prefix+'-validation');if(fvEl)d.validation=parseValidation(fvEl.value)||d.validation||'';
-  d.validation=parseValidation(d.validation)||'';}
+  const fvEl=document.getElementById(prefix+'-validation');if(fvEl)d.validatedAt=parseValidation(fvEl.value)||d.validatedAt||'';
+  d.validatedAt=parseValidation(d.validatedAt)||'';}
 // CHANGEMENT DE BIBLIOTHÈQUE : conséquences irréversibles pour les AUTRES -> confirmation
 // explicite (sortie d'une bibliothèque partagée : les membres perdent l'accès ; entrée :
 // publication à toute l'équipe). msgs = textes propres à l'entité. Renvoie false = abandon.
 async function confirmDraftLibChange(d,orig,msgs){
-  const from=(orig&&orig.libraryId)||null,to=d.libraryId||null;
+  const from=(orig&&orig.library)||null,to=d.library||null;
   if(!orig||from===to)return true;
   if(from&&!await confirmDlg(msgs.out(libName(from)||'partagée'),{title:'Retirer de la bibliothèque partagée',yes:msgs.outYes,danger:true}))return false;
   if(to&&!await confirmDlg(msgs.into(libName(to)||'la bibliothèque partagée',d.status==='draft'),{title:'Publier dans la bibliothèque partagée',yes:msgs.intoYes}))return false;
@@ -9424,10 +9446,10 @@ async function confirmDraftLibChange(d,orig,msgs){
 // blobs repartent « à pousser » (re-upload au nouveau chemin + suppression de l'ancien, gérés
 // par Sync._syncAttachments).
 async function redirtyAttsOnLibChange(d,orig){
-  if(orig&&(orig.libraryId||null)!==(d.libraryId||null)&&supportsAttachments()){
-    for(const a of (d.attachments||[])){try{const rec=await IDB.getAtt(a.id);if(rec){rec.dirty=1;await IDB.putAtt(rec);}}catch(e){}}}}
+  if(orig&&(orig.library||null)!==(d.library||null)&&supportsAttachments()){
+    for(const a of (d.docs||[])){try{const rec=await IDB.getAtt(a.id);if(rec){rec.dirty=1;await IDB.putAtt(rec);}}catch(e){}}}}
 async function deleteProtocolDraft(){
-  const msg=state.pdraft&&state.pdraft.libraryId
+  const msg=state.pdraft&&state.pdraft.library
     ?'Supprimer ce protocole définitivement ?\nIl disparaîtra pour tous les membres de la bibliothèque.'
     :'Supprimer ce protocole définitivement ?';
   if(!await confirmDlg(msg,{yes:'Supprimer',danger:true}))return;
@@ -9439,7 +9461,7 @@ function openProtocolRead(id){const p=protocols.find(x=>x.id===id);if(!p)return;
   state.view='protocolRead';render();}
 async function openProtocolEdit(id){const p=protocols.find(x=>x.id===id);if(!p)return;
   // Même revérification de rôle que openEdit (protocole partagé, en ligne).
-  if(p.libraryId&&Auth.signedIn()&&Sync.online()){try{await Sync.loadProfile();}catch(e){}}
+  if(p.library&&Auth.signedIn()&&Sync.online()){try{await Sync.loadProfile();}catch(e){}}
   if(!canEditFiche(p)){toast(RO_EDIT_TOAST);return openProtocolRead(id);}
   state.pdraft=migrateProtocol(JSON.parse(JSON.stringify(p)));draftNewAtts=[];state.draftRestored=null;
   draftBase=JSON.stringify(state.pdraft);_lastParked=null;
@@ -9449,7 +9471,7 @@ async function openProtocolEdit(id){const p=protocols.find(x=>x.id===id);if(!p)r
     state.pdraft=migrateProtocol(JSON.parse(JSON.stringify(park.draft)));draftNewAtts=(park.newAtts||[]).slice();state.draftRestored=park.ts;}
   state.view='protocolEdit';render();}
 function newProtocol(){if(!canEditScope(state.scope)){toast('Lecture seule : vous ne pouvez pas créer de protocole dans cette bibliothèque.');return;}
-  const d=blankProtocol();d.libraryId=state.scope||null;state.pdraft=d;draftNewAtts=[];state.draftRestored=null;draftBase=JSON.stringify(d);_lastParked=null;state.view='protocolEdit';render();}
+  const d=blankProtocol();d.library=state.scope||null;state.pdraft=d;draftNewAtts=[];state.draftRestored=null;draftBase=JSON.stringify(d);_lastParked=null;state.view='protocolEdit';render();}
 /* Icônes SVG inline « de texte » (remplacent les emojis : rendu identique sur tous les appareils,
    couleur = currentColor donc thème respecté, pas de style emoji qui jure avec l'interface).
    Même langage graphique que le reste : trait 2, viewBox 24, bouts arrondis. */
@@ -9639,7 +9661,7 @@ function flowMeasure(C){const{blocks,start}=C;const{TH,LH,TLH,HPAD,TXT_MAX,TITLE
   // limite). LARGEUR ajustée au contenu (chaque bloc se resserre sur sa plus longue ligne) pour
   // éviter l'espace vide à droite du texte.
   const LAY={};
-  blocks.forEach(b=>{const dec=b.type==='decision';const isStart=b.id===start;
+  blocks.forEach(b=>{const dec=b.kind==='decision';const isStart=b.id===start;
     const headerLines=wrapText(b.title||(dec?'Décision':'Étapes'),TITLE_MAX);
     // Bloc de départ : on RÉSERVE un bandeau en haut de l'en-tête pour la pastille « DÉPART »,
     // afin que le titre s'affiche EN DESSOUS et ne soit jamais masqué.
@@ -9659,7 +9681,7 @@ function flowMeasure(C){const{blocks,start}=C;const{TH,LH,TLH,HPAD,TXT_MAX,TITLE
 function flowPlace(C){const{blocks,byId,start,LAY}=C;const{HG,VG,PX,PY}=FLOWK;
   const nh=id=>LAY[id].h,nw=id=>LAY[id].w;
   const level={};
-  const tgOf=id=>{const b=byId[id];return b.type==='steps'?(b.next&&byId[b.next]?[b.next]:[]):(b.options||[]).map(o=>o.target).filter(t=>t&&byId[t]);};
+  const tgOf=id=>{const b=byId[id];return b.kind==='steps'?(b.next&&byId[b.next]?[b.next]:[]):(b.options||[]).map(o=>o.target).filter(t=>t&&byId[t]);};
   // BFS en COUCHES depuis une racine ; renvoie le niveau max atteint par ce composant.
   const bfsLevels=(root,base)=>{level[root]=base;const q=[root];let mx=base;while(q.length){const id=q.shift();tgOf(id).forEach(t=>{if(level[t]===undefined){level[t]=level[id]+1;if(level[t]>mx)mx=level[t];q.push(t);}});}return mx;};
   let maxL=bfsLevels(start,0);
@@ -9696,7 +9718,7 @@ function flowRoute(C){const{blocks,byId,pos,botOfY}=C;const{HG,VG,SLOOP}=FLOWK;
   // pastille de texte TRONQUÉE si trop longue (voir labelTag) -> on retrouve directement la réponse
   // sur la flèche sans avoir à la rechercher dans le bloc.
   blocks.forEach(b=>{const p=pos[b.id];if(!p)return;
-    const conns=b.type==='steps'?(b.next&&byId[b.next]?[{t:b.next,lab:''}]:[]):(b.options||[]).filter(o=>o.label||o.target).map((o,i)=>({t:o.target,lab:o.label||''})).filter(c=>c.t&&byId[c.t]);
+    const conns=b.kind==='steps'?(b.next&&byId[b.next]?[{t:b.next,lab:''}]:[]):(b.options||[]).filter(o=>o.label||o.target).map((o,i)=>({t:o.target,lab:o.label||''})).filter(c=>c.t&&byId[c.t]);
     conns.forEach(c=>{const Q=pos[c.t];if(!Q)return;const e={sid:b.id,tid:c.t,p,Q,lab:c.lab};
       // AVANT (plus bas) / RETOUR (plus haut ou soi-même) / LATÉRAL (même niveau, autre bloc).
       if(Q.y>p.y){e.kind='fwd';fwd.push(e);}else if(Q.y<p.y||c.t===b.id){e.kind='back';back.push(e);}else{e.kind='lat';lat.push(e);}});});
@@ -9809,10 +9831,10 @@ function flowRoute(C){const{blocks,byId,pos,botOfY}=C;const{HG,VG,SLOOP}=FLOWK;
     if(e.clearTgt)pts.push([bx,ty],[tx,ty]);else pts.push([bx,e.ybt],[e.txg,e.ybt],[e.txg,ty],[tx,ty]);
     // Boucle issue d'une DÉCISION = chemin conditionnel -> ambré POINTILLÉ. Boucle issue d'un bloc
     // d'étapes (next inconditionnel = flux déterministe) -> GRIS PLEIN, comme une flèche descendante.
-    const decS=byId[e.sid]&&byId[e.sid].type==='decision';
+    const decS=byId[e.sid]&&byId[e.sid].kind==='decision';
     addEdge('b'+ei,pts,decS?'#b7791f':'#93a0ad',decS?1:0,e.lab);});
   // AUTO-RÉFÉRENCE : petite boucle pointillée juste à droite du bloc.
-  selfL.forEach((e,ei)=>{const sx=e.p.x+e.p.w,sy=e.sy,ty=e.ty,bx=sx+SLOOP;const decS=byId[e.sid]&&byId[e.sid].type==='decision';
+  selfL.forEach((e,ei)=>{const sx=e.p.x+e.p.w,sy=e.sy,ty=e.ty,bx=sx+SLOOP;const decS=byId[e.sid]&&byId[e.sid].kind==='decision';
     addEdge('s'+ei,[[sx,sy],[bx,sy],[bx,ty],[sx,ty]],decS?'#b7791f':'#93a0ad',decS?1:0,e.lab);});
   // LATÉRALE (même niveau) : trait direct si adjacents et sans label, sinon routé sous la rangée.
   lat.forEach((e,ei)=>{const p=e.p,Q=e.Q,toR=Q.x>p.x,sx=toR?p.x+p.w:p.x,tx=toR?Q.x:Q.x+Q.w,sy=e.lsy,ty=e.lty;
@@ -10093,9 +10115,9 @@ function qrSvg(text,label){
    checklist vide, en pleine réanimation, sans le moindre signal.
    ⚠ LA LISTE BLANCHE DU SERVEUR DOIT SUIVRE (`share_fiche`, supabase/schema.sql) : c'est ELLE
    l'autorité, et un champ absent y est filtré à l'arrivée quoi qu'en dise le client. */
-const SHARE_KEEP = ['id','title','discriminant','code','status','validation','blocks','start','timers','counters','items'];
-const SHARE_DROP = ['category','localInfo','complications','references','images','attachments',
-  'related','order','updatedBy','updatedAt','deletedAt','ownerId','libraryId'];
+const SHARE_KEEP = ['id','title','discriminant','code','status','validatedAt','blocks','start','timers','counters','items'];
+const SHARE_DROP = ['category','local','excursions','sources','images','docs',
+  'links','order','updatedBy','updatedAt','deletedAt','ownerId','library'];
 /* `complications` est DÉLIBÉRÉMENT écarté, et ce n'est pas un oubli : entrer en complication est
    une capacité du seul `lead` (le scribe ne navigue pas), et les cibles peuvent désigner d'AUTRES
    aides que l'invité ne possède pas. Le transmettre n'offrirait rien d'utilisable et ferait fuiter
@@ -11150,7 +11172,7 @@ function navSection(f){
     navRowH=(flow||npos>0)?`<div class="flow-nav">${backBtn}${resetBtn}</div>`:'';
     const histBtn=!atTip?'<button class="btn primary sm" id="navFwd">Continuer →</button><button class="btn sm" id="navResume">↺ Repartir d’ici (efface la suite)</button>':'';
     const imgH=blk.image?`<img class="node-img" loading="lazy" decoding="async" src="${blk.image}" data-full="${blk.image}"${blk.imageW&&blk.imageH?` width="${blk.imageW}" height="${blk.imageH}"`:''} alt="">`:'';
-    if(blk.type==='decision'){const taken=state.nav[npos+1];
+    if(blk.kind==='decision'){const taken=state.nav[npos+1];
       const opts=(blk.options||[]).map((o,i)=>{const sel=!atTip&&o.target&&o.target===taken;const arr=sel?'<span class="arr">✓</span>':'<span class="arr">'+uiIcon('chev',18,{sw:2.4,cls:''})+'</span>';return `<button class="opt${sel?' taken':''}" ${atTip?`data-goto="${o.target||''}"`:'disabled'}><span class="ftxt">${fmt(o.label)||'Option '+(i+1)}</span>${arr}</button>`;}).join('');
       navHtml=`<div class="nav-wrap dec">${crumbsH?'':''}<div class="node-title">Décision · ${esc(blk.title)||'Réévaluation'}${passTag}</div>${imgH}<div class="question">${fmt(blk.question)||'…'}</div><div class="options">${opts}</div>${histBtn?`<div class="flow-ctrl">${histBtn}</div>`:''}</div>`;}
     else{const steps=clean(blk.steps);
@@ -11350,7 +11372,7 @@ function renderRead(){
   // le dynamique EST le journal (fil condensé — l'ex-mode guidé y est fusionné).
   // Les deux vues partagent le même Runtime — basculer ne perd rien.
   const modeTopSegH='';   // v4.25.0 : la bascule vit dans la rangée de COMMANDES (#modeSeg)
-  const localH=f.localInfo&&f.localInfo.trim()?`<div class="local">${fmt(f.localInfo)}</div>`:'';
+  const localH=f.local&&f.local.trim()?`<div class="local">${fmt(f.local)}</div>`:'';
   /* DÉCLARÉ ICI, ET PAS PLUS BAS : le lot T3 a payé une zone morte temporelle (`started` lu
      24 lignes avant sa déclaration → ReferenceError → tout le rendu échouait, sans qu'aucun
      test ni aucun garde-fou ne le voie, puisque ni l'un ni l'autre n'exerce un rendu). */
@@ -11412,7 +11434,7 @@ function renderRead(){
   main.innerHTML=`
     ${gridOpen}
     <div class="read-head"><h2>${esc(f.title)||'Sans titre'}</h2></div>
-    <div class="read-meta">${f.libraryId?`<span class="tag libtag" title="Bibliothèque partagée">${uiIcon('book',12)}${esc(libName(f.libraryId)||'Partagée')}</span>`:''}${statusChip(f.status,true,{validation:f.validation})}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo title="Reste à compléter : ${esc(sp.join(' · '))} — remplacez les mentions « à compléter » par vos informations locales.">△ À compléter</span>`:'';})()}${catTag(f,true)}${f.code?`<span class="card-date" style="font-family:var(--mono)">${esc(f.code)}</span>`:''}<span class="card-date${staleDate(f.validation)?' stale':''}">${esc(fmtDate(f.validation))}</span>${f.libraryId&&f.updatedBy?`<span class="card-date" title="Auteur de la dernière modification (pas forcément de toute la fiche)">· dernière modification par ${esc(f.updatedBy)}</span>`:''}</div>
+    <div class="read-meta">${f.library?`<span class="tag libtag" title="Bibliothèque partagée">${uiIcon('book',12)}${esc(libName(f.library)||'Partagée')}</span>`:''}${statusChip(f.status,true,{validatedAt:f.validatedAt})}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo title="Reste à compléter : ${esc(sp.join(' · '))} — remplacez les mentions « à compléter » par vos informations locales.">△ À compléter</span>`:'';})()}${catTag(f,true)}${f.code?`<span class="card-date" style="font-family:var(--mono)">${esc(f.code)}</span>`:''}<span class="card-date${staleDate(f.validatedAt)?' stale':''}">${esc(fmtDate(f.validatedAt))}</span>${f.library&&f.updatedBy?`<span class="card-date" title="Auteur de la dernière modification (pas forcément de toute la fiche)">· dernière modification par ${esc(f.updatedBy)}</span>`:''}</div>
     ${f.status==='draft'?`<div class="notice">${uiIcon('warn',15)}<div><b>Brouillon</b> — cette fiche n'a pas encore été validée pour l'usage clinique.</div></div>`:''}
     ${f.status==='review'?`<div class="notice">${uiIcon('warn',15)}<div><b>À relire</b> — cette fiche est signalée à relire avant validation.</div></div>`:''}
     ${shareOverHtml()}
@@ -11605,7 +11627,7 @@ function bindReadEvents(f,blk,cur){
       return n?[{label:'Historique des sessions ('+n+')',ic:uiIcon('archive',16),act:()=>openSessHist(f.id)}]:[];})(),
     'sep',
     {label:'Modifier',ic:uiIcon('pen',16),sub:started?'session en cours':(canEditFiche(f)?'hors urgence':'lecture seule'),disabled:started||!canEditFiche(f),act:()=>openEdit(f.id)},
-    ...(canEditFiche(f)?[{label:f.libraryId?'Ma version écrasée':'Versions',ic:uiIcon('history',16),disabled:started,act:()=>openVersions(f.id)}]:[]),
+    ...(canEditFiche(f)?[{label:f.library?'Ma version écrasée':'Versions',ic:uiIcon('history',16),disabled:started,act:()=>openVersions(f.id)}]:[]),
     {label:'Dupliquer dans « Perso »',ic:uiIcon('copy',16),act:()=>dupToPerso('f',f)},
     'sep',
     /* NOMMER L'OBJET. « Exporter (.json) » et « Exporter en PDF » ne disaient pas CE QUI est
@@ -11863,7 +11885,7 @@ function overviewSection(f){
   // mesure que le journal grandissait : il fallait dérouler tout le parcours pour l'atteindre.
   const inner=controls+secH+`<div class="ov-journal">${insts}${endH}</div>`;
   // Compteur du panneau Algorithme : l'instance du BOUT (là où l'on agit).
-  const tipDone=(()=>{const b=f.blocks.find(x=>x.id===cur);if(!b||b.type==='decision')return {d:null,t:null};
+  const tipDone=(()=>{const b=f.blocks.find(x=>x.id===cur);if(!b||b.kind==='decision')return {d:null,t:null};
     const steps=clean(b.steps);const seq=state.navSeq[state.navPos]||1;
     let d=0;steps.forEach((s,i)=>{if(state.checked[seq+':'+cur+':'+i])d++;});return {d,t:steps.length};})();
   return {blk,cur,navHtml:`<div class="ov-wrap">${inner}</div>`,inner,
@@ -11879,7 +11901,7 @@ function overviewSection(f){
 // tap = DÉPLIER la carte sur place (consultation transitoire, cf. ovDropOpens).
 function ovChipHtml(f,id,idx,topo){
   const b=f.blocks.find(x=>x.id===id);if(!b)return '';
-  const dec=b.type==='decision';
+  const dec=b.kind==='decision';
   const taken=dec?((b.options||[]).find(o=>o&&o.target&&o.target===state.nav[idx+1])||null):null;
   const lbl=taken?String(stripBold(taken.label||'')).trim():'';
   const tt=String(stripBold(b.title||'')).trim();
@@ -11887,7 +11909,7 @@ function ovChipHtml(f,id,idx,topo){
   return `<button type="button" class="ovc${dec?' dec':''}" data-ovix="${idx}" title="${esc(tt)}${pi.total>1?` — passage ${pi.pass}/${pi.total}`:''} · taper pour déplier"><span class="ovc-n">${topo[id]||'·'}</span>${dec?`<span class="ovc-a">› ${esc(lbl.slice(0,14))}${lbl.length>14?'…':''}</span>`:`<span class="ovc-t">${esc(tt.slice(0,13))}${tt.length>13?'…':''}</span><span class="ovc-ok">✓</span>`}${pi.total>1?`<span class="ovc-x">×${pi.pass}</span>`:''}</button>`;}
 function ovInstHtml(f,id,idx,topo,pres){
   const b=f.blocks.find(x=>x.id===id);if(!b)return '';
-  const dec=b.type==='decision';
+  const dec=b.kind==='decision';
   const seq=state.navSeq[idx]||1;
   const tip=idx===state.nav.length-1;
   const pi=passInfo(state.nav,idx);
@@ -12155,9 +12177,9 @@ function annexRowHtml(f){
   const has=[];
   if(clean(listOf(f,'differentials')).length)has.push('Différentiels');
   if((f.images||[]).length)has.push('Schémas');
-  if((f.attachments||[]).length)has.push('Documents');
-  if(clean(f.references).length)has.push('Références');
-  if(((f.related||[]).map(id=>relTarget(id)).filter(Boolean)).length)has.push('Voir aussi');
+  if((f.docs||[]).length)has.push('Documents');
+  if(clean(f.sources).length)has.push('Références');
+  if(((f.links||[]).map(id=>relTarget(id)).filter(Boolean)).length)has.push('Voir aussi');
   if(!has.length)return '';
   return `<button type="button" class="annex-row" id="annexRow" aria-haspopup="dialog"><span class="ax-lead">${uiIcon('book',15)}Consulter</span><span class="ax-sub">${esc(has.join(' · '))}</span><span class="ax-ch" aria-hidden="true">›</span></button>`;}
 function refSheetHtml(f){
@@ -12172,9 +12194,9 @@ function refSheetHtml(f){
   const diff=staticBlock('Diagnostics différentiels — si tableau atypique','h-diff',listOf(f,'differentials'),'diff');
   const gal=(f.images||[]).length?`<div class="gallery">${f.images.map(im=>`<div class="gthumb"><img src="${im.data}" data-full="${im.data}" data-cap="${esc(im.caption||'')}" alt="${esc(im.caption||'')}"${im.w&&im.h?` width="${im.w}" height="${im.h}"`:''} loading="lazy" decoding="async">${im.caption?`<div class="gcap">${esc(im.caption)}</div>`:''}</div>`).join('')}</div>`:'';
   const docs=attListHtml(f);
-  const refs=clean(f.references);
+  const refs=clean(f.sources);
   const refsH=refs.length?`<ol>${refs.map(r=>`<li>${fmt(r)}</li>`).join('')}</ol>`:'';
-  const rel=(f.related||[]).map(id=>relTarget(id)).filter(Boolean);
+  const rel=(f.links||[]).map(id=>relTarget(id)).filter(Boolean);
   const relH=rel.length?`<div class="related-row">${rel.map(r=>`<button class="btn sm" data-openrel="${esc(r.id)}">${uiIcon(relKindOf(r.id)==='p'?'book':'doc',13)}${esc(r.title)||'Sans titre'} →</button>`).join('')}</div>`:'';
   // v4.23.0 : PAS de copie du chapeau « Ne pas oublier » ici (décision utilisateur). Il est déjà
   // en tête de fiche, entier et jamais replié ; un pavé rouge rouvert à chaque consultation
@@ -12200,7 +12222,7 @@ function refSheetHtml(f){
      tableau ne colle pas n'ouvrirait un bouton nommé « Documents ». */
   const body=sec('diff','Diagnostics différentiels',diff)
     +sec('gal','Schémas & captures',gal)
-    +sec('docs','Documents ('+((f.attachments||[]).length)+')',docs)
+    +sec('docs','Documents ('+((f.docs||[]).length)+')',docs)
     +sec('refs','Références',refsH)
     +sec('rel','Voir aussi ('+rel.length+')',relH);
   return body||'<p class="ai-note" style="text-align:center">Cette fiche n’a pas encore de contenu à consulter.</p>';}
@@ -12210,7 +12232,7 @@ function renderRefSheet(sect){
   body.innerHTML=refSheetHtml(f);
   // Mêmes gestes qu'en flux, re-câblés dans la feuille (les câblages d'origine sont portés par
   // `main`, qui ne la contient pas — elle survit ainsi aux re-rendus, comme la feuille Plan).
-  body.querySelectorAll('[data-att]').forEach(b=>b.onclick=()=>{const a=(f.attachments||[]).find(x=>x.id===b.dataset.att);if(a)openPdfViewer(a,f);});
+  body.querySelectorAll('[data-att]').forEach(b=>b.onclick=()=>{const a=(f.docs||[]).find(x=>x.id===b.dataset.att);if(a)openPdfViewer(a,f);});
   hydrateAttThumbs(f);
   body.querySelectorAll('[data-openrel]').forEach(b=>b.onclick=()=>{closeRefSheet();openRel(b.dataset.openrel);});
   body.querySelectorAll('img[data-full]').forEach(im=>im.onclick=()=>openLightbox(im.dataset.full,im.dataset.cap||''));
@@ -12329,7 +12351,7 @@ function ovPlanLadderHtml(f,plan,num,md,off){
     if(it.k==='brclose'){pend[depth]=null;depth--;return;}
     if(it.k!=='block')return;   // liens/fins : déjà encodés dans la colonne renvois des blocs
     const b=f.blocks.find(x=>x.id===it.id);if(!b)return;
-    const dec=b.type==='decision';const m=md[it.id]||{};
+    const dec=b.kind==='decision';const m=md[it.id]||{};
     const steps=dec?[]:clean(b.steps);
     let g='';
     if(dec){const opts=b.options||[];const ab=optAbbr(opts.map(o=>(o&&o.label)||''));
@@ -12963,7 +12985,7 @@ function staticSection(f){
   state.navPos=state.nav.length-1;   // même règle que le journal : la position EST le bout
   const cur=state.nav[state.navPos];
   const blk=f.blocks.find(b=>b.id===cur)||f.blocks.find(b=>b.id===f.start)||f.blocks[0];
-  const tipDone=(()=>{const b=f.blocks.find(x=>x.id===cur);if(!b||b.type==='decision')return {d:null,t:null};
+  const tipDone=(()=>{const b=f.blocks.find(x=>x.id===cur);if(!b||b.kind==='decision')return {d:null,t:null};
     const steps=clean(b.steps);const seq=state.navSeq[state.navPos]||1;
     let d=0;steps.forEach((s,i)=>{if(state.checked[seq+':'+cur+':'+i])d++;});return {d,t:steps.length};})();
   /* LOT T8 — « TOUTE LA FICHE » EST UN CRAN DE DENSITÉ, ET IL SE REGARDE DE TROIS FAÇONS.
@@ -13046,7 +13068,7 @@ function svTableHtml(f){
       if(it.k==='bropen'){i++;continue;}   // garde-fou : jamais hors décision
       const b=f.blocks.find(x=>x.id===it.id);
       if(!b){i++;continue;}
-      if(b.type!=='decision'){h+=cellH(it.id);i++;continue;}
+      if(b.kind!=='decision'){h+=cellH(it.id);i++;continue;}
       const decId=it.id;i++;
       const m=md[decId]||{};
       const brs=[];
@@ -13618,7 +13640,7 @@ function reviewNotes(f){
   const out=[];
   {const t=nfGuardTxt(forgetAll(f));if(t)out.push({at:'nf',cible:'Ne pas oublier',txt:t});}
   ((f&&f.blocks)||[]).forEach(b=>{
-    if(!b||b.type==='decision')return;
+    if(!b||b.kind==='decision')return;
     const t=stepGuardTxt(b.steps||[]);
     if(t)out.push({at:'b:'+b.id,cible:(b.title||'').trim()||'Bloc d’étapes',txt:t});});
   return out;}
@@ -13628,15 +13650,15 @@ function boldBtnHtml(){return '<button type="button" class="mini bld" data-bold 
 // partagée — jamais inter-périmètres : le chemin de stockage cloud encode le périmètre de sécurité).
 // Rattacher un document existant = PARTAGE : le même id est référencé par plusieurs fiches, le
 // remplacer le met à jour partout, il ne disparaît que quand plus personne ne le référence (GC).
-function attachablePdfs(f){const have=new Set((f.attachments||[]).map(a=>a.id));const seen=new Set(),out=[];
-  fiches.concat(protocols).forEach(x=>{if(x.id===f.id||x.deletedAt||(x.libraryId||null)!==(f.libraryId||null))return;
-    (x.attachments||[]).forEach(a=>{if(!a||have.has(a.id)||seen.has(a.id))return;seen.add(a.id);out.push({id:a.id,name:a.name,size:a.size,from:x.title||'Sans titre'});});});
+function attachablePdfs(f){const have=new Set((f.docs||[]).map(a=>a.id));const seen=new Set(),out=[];
+  fiches.concat(protocols).forEach(x=>{if(x.id===f.id||x.deletedAt||(x.library||null)!==(f.library||null))return;
+    (x.docs||[]).forEach(a=>{if(!a||have.has(a.id)||seen.has(a.id))return;seen.add(a.id);out.push({id:a.id,name:a.name,size:a.size,from:x.title||'Sans titre'});});});
   return out;}
 // Fieldset « Documents (PDF) » PARTAGÉ entre l'éditeur de fiche et l'éditeur de protocole
 // (même composant, mêmes garde-fous). `entity` = state.draft ou state.pdraft.
 function attFieldsetHtml(entity){
   return `<fieldset class="field"><label>Documents (PDF) <span class="hint">protocoles, recommandations — lisibles hors ligne</span></label>
-      ${supportsAttachments()?`${(entity.attachments||[]).map((a,i)=>`<div class="att-erow" data-ai="${i}"><span class="att-ico">${uiIcon('doc',15)}</span><input type="text" data-attname="${i}" value="${esc(a.name)}" aria-label="Nom du document" placeholder="Nom du document"><span class="att-size">${fmtBytes(a.size)}</span><button class="mini del" data-attrm="${i}" aria-label="Retirer le document">×</button></div>`).join('')}
+      ${supportsAttachments()?`${(entity.docs||[]).map((a,i)=>`<div class="att-erow" data-ai="${i}"><span class="att-ico">${uiIcon('doc',15)}</span><input type="text" data-attname="${i}" value="${esc(a.name)}" aria-label="Nom du document" placeholder="Nom du document"><span class="att-size">${fmtBytes(a.size)}</span><button class="mini del" data-attrm="${i}" aria-label="Retirer le document">×</button></div>`).join('')}
       <button class="add-line" id="addPdf">+ Ajouter un PDF (${fmtBytes(MAX_PDF_BYTES)} max)</button>
       ${(()=>{const n=attachablePdfs(entity).length;return n?`<button class="add-line" id="attAddBtn">+ Joindre un document existant (${n} disponible${n>1?'s':''})…</button>`:'';})()}`
       :`<p class="hint">Ce navigateur ne permet pas de stocker des documents hors ligne — ouvrez l'app dans un navigateur récent (ou installez-la sur l'écran d'accueil) pour joindre des PDF.</p>`}</fieldset>`;}
@@ -13646,7 +13668,7 @@ function attFieldsetHtml(entity){
 function bindAttEditor(entity,rerender){
   const pdfInput=document.getElementById('pdfInput');
   {const ap=document.getElementById('addPdf');
-   if(ap)ap.onclick=()=>{if((entity.attachments||[]).length>=MAX_ATT_PER_ENTITY){toast('⚠ '+MAX_ATT_PER_ENTITY+' documents maximum.');return;}pdfInput.click();};}
+   if(ap)ap.onclick=()=>{if((entity.docs||[]).length>=MAX_ATT_PER_ENTITY){toast('⚠ '+MAX_ATT_PER_ENTITY+' documents maximum.');return;}pdfInput.click();};}
   if(pdfInput)pdfInput.onchange=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;
     if(file.size>MAX_PDF_BYTES){toast('⚠ Document trop volumineux ('+fmtBytes(file.size)+') : '+fmtBytes(MAX_PDF_BYTES)+' maximum.');return;}
     // Lecture COMPLÈTE en ArrayBuffer dès l'ajout (stockage fiable partout, cf. IDB.putAtt) +
@@ -13657,10 +13679,10 @@ function bindAttEditor(entity,rerender){
     try{await IDB.putAtt({id,buf,size:buf.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:1,remotePath:null});}
     catch(err){toast('⚠ Stockage saturé : document non enregistré.',9000);return;}
     draftNewAtts.push(id);
-    entity.attachments=entity.attachments||[];entity.attachments.push({id,name:safeFileName(file.name)||'document.pdf',size:buf.byteLength});
+    entity.docs=entity.docs||[];entity.docs.push({id,name:safeFileName(file.name)||'document.pdf',size:buf.byteLength});
     rerender();};
-  main.querySelectorAll('[data-attname]').forEach(inp=>inp.addEventListener('input',e=>{const a=(entity.attachments||[])[+e.target.dataset.attname];if(a)a.name=e.target.value;}));
-  main.querySelectorAll('[data-attrm]').forEach(b=>b.onclick=()=>{entity.attachments.splice(+b.dataset.attrm,1);rerender();});
+  main.querySelectorAll('[data-attname]').forEach(inp=>inp.addEventListener('input',e=>{const a=(entity.docs||[])[+e.target.dataset.attname];if(a)a.name=e.target.value;}));
+  main.querySelectorAll('[data-attrm]').forEach(b=>b.onclick=()=>{entity.docs.splice(+b.dataset.attrm,1);rerender();});
   {const ab=document.getElementById('attAddBtn');if(ab)ab.onclick=()=>openAttPicker(entity,rerender);}}
 /* Sélecteur de document existant : fenêtre FILTRABLE (nom + fiche/protocole d'origine). Rempli à
    l'ouverture, re-filtré à la frappe ; choisir un document ajoute la même référence {id,name,size}
@@ -13678,10 +13700,10 @@ function renderAttPickList(){
   box.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{
     const ctx=_attPickCtx;const o=attachablePdfs(ctx.entity).find(x=>x.id===b.dataset.pick);
     closeAttPicker();
-    if(ctx&&o){ctx.entity.attachments=ctx.entity.attachments||[];ctx.entity.attachments.push({id:o.id,name:o.name,size:o.size});ctx.rerender();}});}
+    if(ctx&&o){ctx.entity.docs=ctx.entity.docs||[];ctx.entity.docs.push({id:o.id,name:o.name,size:o.size});ctx.rerender();}});}
 document.getElementById('attPickQ').addEventListener('input',renderAttPickList);
 function openAttPicker(entity,rerender){
-  if((entity.attachments||[]).length>=MAX_ATT_PER_ENTITY){toast('⚠ '+MAX_ATT_PER_ENTITY+' documents maximum.');return;}
+  if((entity.docs||[]).length>=MAX_ATT_PER_ENTITY){toast('⚠ '+MAX_ATT_PER_ENTITY+' documents maximum.');return;}
   _attPickCtx={entity:entity,rerender:rerender};
   document.getElementById('attPickQ').value='';
   attPickModal.classList.add('on');renderAttPickList();}
@@ -13717,17 +13739,17 @@ function renderRelPickList(){
       ||('<p class="ai-note">Rien ne correspond au filtre.</p>');
     box.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{
       const ctx=_cxPickCtx;closeRelPicker();
-      if(ctx&&ctx.f.complications&&ctx.f.complications[ctx.i]){ctx.f.complications[ctx.i].target=b.dataset.pick;ctx.rerender();}});
+      if(ctx&&ctx.f.excursions&&ctx.f.excursions[ctx.i]){ctx.f.excursions[ctx.i].target=b.dataset.pick;ctx.rerender();}});
     return;}
   const opts=relCandidates(_relPickCtx.entity).filter(o=>!q||txNorm(o.title+' '+o.code).includes(q));
   box.innerHTML=opts.length?opts.map(o=>`<button class="att-row" data-pick="${esc(o.id)}"><span class="att-ico">${uiIcon(o.kind==='p'?'book':'doc',16)}</span><span class="att-name">${esc(o.title)}<span class="att-from">${o.kind==='p'?'Protocole':'Aide cognitive'}</span></span>${o.code?`<span class="att-size" style="font-family:var(--mono)">${esc(o.code)}</span>`:''}</button>`).join('')
     :'<p class="ai-note">Aucune fiche '+(q?'ne correspond au filtre.':'disponible.')+'</p>';
   box.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{
     const ctx=_relPickCtx;closeRelPicker();
-    if(ctx){ctx.entity.related=ctx.entity.related||[];if(ctx.entity.related.indexOf(b.dataset.pick)<0)ctx.entity.related.push(b.dataset.pick);ctx.rerender();}});}
+    if(ctx){ctx.entity.links=ctx.entity.links||[];if(ctx.entity.links.indexOf(b.dataset.pick)<0)ctx.entity.links.push(b.dataset.pick);ctx.rerender();}});}
 document.getElementById('relPickQ').addEventListener('input',renderRelPickList);
 function openRelPicker(entity,rerender){
-  if((entity.related||[]).length>=20){toast('⚠ 20 liens maximum.');return;}   // même plafond que migrate()
+  if((entity.links||[]).length>=20){toast('⚠ 20 liens maximum.');return;}   // même plafond que migrate()
   _relPickCtx={entity:entity,rerender:rerender};_cxPickCtx=null;
   document.getElementById('relPickQ').value='';
   relPickModal.classList.add('on');renderRelPickList();}
@@ -13741,7 +13763,7 @@ function openCxTargetPicker(f,i,rerender){
 let draftNewAtts=[];
 async function purgeDraftAtts(){const ids=draftNewAtts;draftNewAtts=[];
   if(!ids.length||!supportsAttachments())return;
-  const ref=new Set();fiches.concat(protocols).forEach(x=>(x.attachments||[]).forEach(a=>ref.add(a.id)));
+  const ref=new Set();fiches.concat(protocols).forEach(x=>(x.docs||[]).forEach(a=>ref.add(a.id)));
   for(const id of ids){if(!ref.has(id)){try{await IDB.delAtt(id);}catch(e){}}}}
 function targetSelect(blocks,selfId,value){const opts=blocks.filter(b=>b.id!==selfId).map(b=>`<option value="${b.id}" ${b.id===value?'selected':''}>${esc(String(b.title||'').trim()||('Bloc sans titre ('+(blocks.indexOf(b)+1)+')'))}</option>`).join('');return `<select data-target aria-label="Bloc suivant"><option value="" ${!value?'selected':''}>— Fin / aucun —</option>${opts}</select>`;}
 function imageEditor(b){return `<div class="sub">Image du bloc (option)</div><div class="imgrow">${b.image?`<img src="${b.image}" alt=""><button class="btn sm danger" data-bimgdel>Retirer</button>`:`<button class="btn sm" data-bimg>+ Image / capture</button>`}</div>`;}
@@ -13836,7 +13858,7 @@ const ED_PALETTE=[
 /* Les clés de la porte qui ne font qu'AJOUTER UNE LIGNE à une liste du modèle. Une table plutôt
    qu'une cascade de `else if` : la ligne suivante ajoutée demain n'aura rien à câbler ailleurs, et
    le FOCUS de fin de geste s'en déduit (on amène l'auteur sur ce qu'il vient de créer). */
-const ED_ADD_LIST={poso:'posology',verify:'verify',diff:'differentials',ref:'references'};
+const ED_ADD_LIST={poso:'posology',verify:'verify',diff:'differentials',ref:'sources'};
 const edAddModal=()=>document.getElementById('edAddModal');
 function edAddOpen(f){
   const m=edAddModal();const body=document.getElementById('edAddBody');
@@ -13850,12 +13872,12 @@ function edAddClose(){const m=edAddModal();if(m)m.classList.remove('on');}
    la fenêtre se ferme et l'éditeur se re-rend : l'objet neuf est déjà à l'écran, sinon la porte
    demanderait un geste pour ouvrir et un autre pour trouver ce qu'elle a créé. */
 function edAdd(f,kind){
-  if(kind==='steps')f.blocks.push({id:uid('b'),type:'steps',title:'',steps:[''],image:null,next:null});
-  else if(kind==='decision')f.blocks.push({id:uid('b'),type:'decision',title:'',question:'',image:null,options:[{label:'Oui',target:''},{label:'Non',target:''}]});
+  if(kind==='steps')f.blocks.push({id:uid('b'),kind:'do',title:'',steps:[''],image:null,next:null});
+  else if(kind==='decision')f.blocks.push({id:uid('b'),kind:'decision',title:'',question:'',image:null,options:[{label:'Oui',target:''},{label:'Non',target:''}]});
   else if(kind==='stopwatch')f.timers.push({id:uid('t'),label:'',type:'stopwatch'});
   else if(kind==='interval')f.timers.push({id:uid('t'),label:'',type:'interval',seconds:120,autoloop:true});
   else if(kind==='counter')f.counters.push({id:uid('n'),label:'',step:1,start:0});
-  else if(kind==='cx')(f.complications=f.complications||[]).push({label:'',target:''});
+  else if(kind==='cx')(f.excursions=f.excursions||[]).push({label:'',target:''});
   else if(ED_ADD_LIST[kind]){const key=ED_ADD_LIST[kind];edPut(f,key,edList(f,key).concat(''));}
   edAddClose();renderEditor();
   /* Le DOCUMENT est le seul type qui n'ajoute pas une ligne au brouillon : il ouvre le sélecteur
@@ -13984,7 +14006,7 @@ function edDrop(at,lbl,warn){
      serait un quatrième endroit où l'oublier. Borné à six, comme pour les listes. */
   const idx=Math.min(parseInt(String(at).split(':').pop(),10)||0,6);
   return `<button type="button" class="ed-drop${warn?' warn':''}" style="--i:${idx}" data-drop="${esc(at)}">${warn?'△ ':''}${esc(lbl)}</button>`;}
-function blockEditor(b,blocks){if(b.type==='decision'){return `<div class="blk blk-dec${edGrabCls('b',b.id)}" data-bid="${b.id}"><div class="blk-top"><span class="blk-n dec" aria-hidden="true">◆</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Réévaluation)" aria-label="Titre de la décision"><button class="mini grab" draggable="true" data-grab="b:${b.id}" aria-label="Déplacer ce bloc" title="Déplacer le bloc — touchez, puis touchez la destination">⠿</button></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Question</div><input type="text" data-bf="question" value="${esc(b.question)}" placeholder="ex. Réponse à l'adrénaline ?" aria-label="Question posée" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)"><div class="sub">Réponses → bloc cible</div>${(b.options.length?b.options:[{label:'',target:''}]).map((o,i)=>`<div class="optedit" data-oi="${i}"><input type="text" data-of="label" value="${esc(o.label)}" placeholder="ex. Oui" aria-label="Libellé de la réponse ${i+1}">${targetSelect(blocks,b.id,o.target)}<button class="mini del" data-optdel="${i}" aria-label="Supprimer la réponse">×</button></div>`).join('')}<button class="add-line" data-addopt>+ Ajouter une réponse</button>${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
+function blockEditor(b,blocks){if(b.kind==='decision'){return `<div class="blk blk-dec${edGrabCls('b',b.id)}" data-bid="${b.id}"><div class="blk-top"><span class="blk-n dec" aria-hidden="true">◆</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Réévaluation)" aria-label="Titre de la décision"><button class="mini grab" draggable="true" data-grab="b:${b.id}" aria-label="Déplacer ce bloc" title="Déplacer le bloc — touchez, puis touchez la destination">⠿</button></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Question</div><input type="text" data-bf="question" value="${esc(b.question)}" placeholder="ex. Réponse à l'adrénaline ?" aria-label="Question posée" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)"><div class="sub">Réponses → bloc cible</div>${(b.options.length?b.options:[{label:'',target:''}]).map((o,i)=>`<div class="optedit" data-oi="${i}"><input type="text" data-of="label" value="${esc(o.label)}" placeholder="ex. Oui" aria-label="Libellé de la réponse ${i+1}">${targetSelect(blocks,b.id,o.target)}<button class="mini del" data-optdel="${i}" aria-label="Supprimer la réponse">×</button></div>`).join('')}<button class="add-line" data-addopt>+ Ajouter une réponse</button>${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
   return `<div class="blk${edGrabCls('b',b.id)}" data-bid="${b.id}"><div class="blk-top"><span class="blk-n" aria-hidden="true">${(blocks||[]).indexOf(b)+1}</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Mesures immédiates)" aria-label="Titre du bloc"><button class="mini grab" draggable="true" data-grab="b:${b.id}" aria-label="Déplacer ce bloc" title="Déplacer le bloc — touchez, puis touchez la destination">⠿</button></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Étapes (cochables en mode crise)</div><details class="crit-guide"${(()=>{try{return localStorage.getItem('ac-cg-open')?' open':'';}catch(e){return '';}})()}><summary>${uiIcon('warn',11)} Rouge, △ ambre, réponse attendue — règles d'usage</summary><b class="cg-r">${uiIcon('warn',11)} Rouge</b> : ce qui tue si on l'oublie (memory item, geste vital). <b class="cg-a">△ Ambre</b> : là où l'on risque de se tromper (dose/dilution à vérifier avant injection, contre-indication à écarter, confusion voie/site/produit, seuil à contrôler avant de poursuivre). Les deux → rouge. <b>Réponse attendue</b> : « challenge :: réponse » (ex. « Adrénaline IM :: 0,01 mg/kg — max 0,5 mg ») — la réponse devient la pilule à confirmer en lecture (challenge-response).</details>${(b.steps.length?b.steps:['']).map((s,i)=>`${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+i,i===0?'Poser en tête':'Poser ici',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<div class="li${stepIsCrit(s)?' li-crit':(stepIsVigil(s)?' li-vigil':'')}${edGrabCls('s',b.id,i)}" data-si="${i}"><span class="li-box" aria-hidden="true">${stepIsCrit(s)?uiIcon('warn',13):(stepIsVigil(s)?'△':'')}</span><input type="text" data-sf value="${esc(stepText(s))}" placeholder="Nouvelle étape…" aria-label="Étape ${i+1}"><button class="mini grab li-grab" draggable="true" data-grab="s:${i}" aria-label="Déplacer l'étape ${i+1}" title="Déplacer — touchez, puis touchez la destination">⠿</button><span class="li-tools"><button class="mini crit-tgl${stepIsCrit(s)?' on':(stepIsVigil(s)?' vig':'')}" data-crit="${i}" title="${stepIsCrit(s)?'Étape CRITIQUE (rouge : ce qui tue si oublié) — toucher : vigilance (ambre)':(stepIsVigil(s)?'Étape VIGILANCE (ambre : risque d’erreur — dose, voie, seuil) — toucher : étape normale':'Étape normale — toucher : critique (rouge : ce qui tue si oublié)')}">${stepIsVigil(s)?'△':uiIcon('warn',14)}</button><button class="mini mem-tgl${(bItems(b)[i]||{}).memory?' on':''}" data-mem="${i}" aria-pressed="${(bItems(b)[i]||{}).memory?'true':'false'}" title="${(bItems(b)[i]||{}).memory?'Memory item — apparaît AUSSI dans « Ne pas oublier » ; toucher : étape ordinaire':'Étape ordinaire — toucher : memory item (elle rejoint « Ne pas oublier »)'}">★</button><button class="mini x2-tgl${(bItems(b)[i]||{}).dual?' on':''}" data-dual="${i}" aria-pressed="${(bItems(b)[i]||{}).dual?'true':'false'}" title="${(bItems(b)[i]||{}).dual?'Confirmé par les DEUX — toucher : confirmation simple':'Confirmation simple — toucher : à confirmer par les deux (AC 120-71B §5.2.2.5)'}">×2</button><span class="li-sp"></span><button class="mini del" data-rmstep="${i}" aria-label="Supprimer l'étape">×</button></span>${(()=>{const nt=stepNote(s);return nt?`<span class="li-note" role="status">△ <b>Relecture</b> — ${esc(nt)}</span>`:'';})()}</div>`).join('')}${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+(b.steps.length||0),'Poser en fin',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<p class="nf-guard" data-stepguard role="status">${stepGuardTxt(b.steps,'bloc')}</p><button class="add-line" data-addstep>+ Ajouter une étape</button><div class="sub">Étape suivante</div>${targetSelect(blocks,b.id,b.next)}${b.next?`<input type="text" data-bnextlbl value="${esc(b.nextLbl||'')}" maxlength="120" placeholder="Libellé du bouton Continuer (ex. réévaluation à 5 min)" aria-label="Libellé du bouton Continuer" style="margin-top:6px">`:''}${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
 /* Éditeur des COMPLICATIONS (v4.26.0) : libellé de l'ÉVÉNEMENT + cible. La cible est soit un
    bloc de CETTE fiche (le sélecteur liste les blocs en premier), soit une AUTRE aide ou un
@@ -14062,7 +14084,7 @@ function edStructHtml(f){
   const bs=(f.blocks||[]);
   if(bs.length<2)return '';   // à un seul bloc, il n'y a rien à repérer
   return `<div class="rail-head"><span class="rail-title">Structure</span><span class="rail-n">${bs.length}</span></div>`
-    +bs.map((b,i)=>{const dec=b.type==='decision';
+    +bs.map((b,i)=>{const dec=b.kind==='decision';
       const n=dec?((b.options||[]).length+' branche'+((b.options||[]).length>1?'s':''))
         :(clean(b.steps||[]).length+' étape'+(clean(b.steps||[]).length>1?'s':''));
       return `<button type="button" class="eds-row${dec?' dec':''}" data-edgo="${esc(b.id)}"><span class="eds-n">${dec?'◆':(i+1)}</span><span class="eds-t">${esc((b.title||'').trim())||(dec?'Décision':'Sans titre')}</span><span class="eds-c">${n}</span></button>`;}).join('');}
@@ -14152,10 +14174,10 @@ function renderEditor(){
     ${(f.timers||[]).length||(f.counters||[]).length?`<fieldset class="field ed-card"><label>Minuteurs & compteurs <span class="hint">disponibles pendant la session</span></label>
       ${(f.timers||[]).length?`<p class="sub2">Minuteurs</p>${edGrabRows('timers',f.timers,(t,i)=>timerEditorRow(t,i,(f.timers||[]).length))}`:''}
       ${(f.counters||[]).length?`<p class="sub2"${(f.timers||[]).length?' style="margin-top:14px"':''}>Compteurs</p>${edGrabRows('counters',f.counters,(c,i)=>counterEditorRow(c,i,f.timers,(f.counters||[]).length))}`:''}</fieldset>`:''}
-    ${(f.complications||[]).length?`<fieldset class="field ed-card"><label>⚡ Complications — à tout moment <span class="hint">1 à 3 : l'essentiel — chaque bouton de plus dilue les autres. Cible = un bloc dédié de cette fiche, ou une autre aide</span></label>
-      ${(f.complications||[]).map((c,i)=>cxEditorRow(c,i,f)).join('')}
+    ${(f.excursions||[]).length?`<fieldset class="field ed-card"><label>⚡ Complications — à tout moment <span class="hint">1 à 3 : l'essentiel — chaque bouton de plus dilue les autres. Cible = un bloc dédié de cette fiche, ou une autre aide</span></label>
+      ${(f.excursions||[]).map((c,i)=>cxEditorRow(c,i,f)).join('')}
 </fieldset>`:''}
-    <div class="field"><div class="lab-row"><label for="f-localInfo">Contexte local <span class="hint">numéros utiles, particularités</span></label>${boldBtnHtml()}</div><textarea id="f-localInfo" rows="2" placeholder="Réanimateur de garde, pharmacie…">${esc(f.localInfo)}</textarea></div>
+    <div class="field"><div class="lab-row"><label for="f-localInfo">Contexte local <span class="hint">numéros utiles, particularités</span></label>${boldBtnHtml()}</div><textarea id="f-localInfo" rows="2" placeholder="Réanimateur de garde, pharmacie…">${esc(f.local)}</textarea></div>
     ${''/* LE CLASSEMENT AUTOMATIQUE SE DIT (demande utilisateur, et c'est exact) : `posoRank` /
     `posoSplit` RÉORDONNENT les repères selon le bloc courant du parcours, et ne FILTRENT jamais —
     c'est cette garantie qui autorise un rapprochement volontairement permissif. Un auteur qui
@@ -14176,9 +14198,9 @@ function renderEditor(){
     antérieurs ne sauraient pas lire. Associer duplique donc l'image ; retoucher la vignette de la
     galerie APRÈS coup ne suivra pas dans le bloc. */}
     ${(f.images||[]).length?`<fieldset class="field ed-card"><label>Schémas & captures <span class="hint">stockées hors ligne dans l'app</span></label><div class="gallery">${(f.images||[]).map((im,i)=>{const porteur=(f.blocks||[]).find(b=>b.image===im.data);
-      return `<div class="gthumb"><img src="${im.data}" alt="" loading="lazy" decoding="async"><input type="text" class="gcap" data-imgcap="${i}" value="${esc(im.caption||'')}" placeholder="Légende…"><select class="gblk" data-imgblk="${i}" aria-label="Bloc qui affiche cette image"><option value="">— Aucun bloc —</option>${(f.blocks||[]).map(b=>`<option value="${esc(b.id)}"${porteur&&porteur.id===b.id?' selected':''}>${esc((stripBold(b.title||'')).trim()||(b.type==='decision'?'Décision':'Sans titre'))}</option>`).join('')}</select><button class="btn sm danger" data-imgdel="${i}">Retirer</button></div>`;}).join('')}</div><button class="add-line" id="addImg" style="margin-top:10px">+ Ajouter une image / capture</button></fieldset>`:''}
-    ${(f.attachments||[]).length?attFieldsetHtml(f):''}
-    ${(f.references||[]).length?listEditor('Références','sources de la fiche','references',f.references,false,{shell:'ed-card'}):''}
+      return `<div class="gthumb"><img src="${im.data}" alt="" loading="lazy" decoding="async"><input type="text" class="gcap" data-imgcap="${i}" value="${esc(im.caption||'')}" placeholder="Légende…"><select class="gblk" data-imgblk="${i}" aria-label="Bloc qui affiche cette image"><option value="">— Aucun bloc —</option>${(f.blocks||[]).map(b=>`<option value="${esc(b.id)}"${porteur&&porteur.id===b.id?' selected':''}>${esc((stripBold(b.title||'')).trim()||(b.kind==='decision'?'Décision':'Sans titre'))}</option>`).join('')}</select><button class="btn sm danger" data-imgdel="${i}">Retirer</button></div>`;}).join('')}</div><button class="add-line" id="addImg" style="margin-top:10px">+ Ajouter une image / capture</button></fieldset>`:''}
+    ${(f.docs||[]).length?attFieldsetHtml(f):''}
+    ${(f.sources||[]).length?listEditor('Références','sources de la fiche','sources',f.sources,false,{shell:'ed-card'}):''}
     ${relFieldsetHtml(f)}
     ${noteBlockHtml(f.id)}
     ${''/* LA PORTE VIT ICI, à la fin du formulaire et COLLANTE sur toute sa hauteur : elle
@@ -14229,12 +14251,12 @@ function bindEditorEvents(f){
     // (saveNote(id,'') : tombstone propagé si déjà synchronisée, no-op si jamais de note).
     onCleanNew:d=>saveNote(d.id,''),openExisting:id=>{resetRuntime();openRead(id);}});
   bindEditorMetaFields(f,'f',{fem:true,rerender:renderEditor,preview:openDraftPreview});
-  document.getElementById('f-localInfo').addEventListener('input',e=>{state.draft.localInfo=e.target.value;});
+  document.getElementById('f-localInfo').addEventListener('input',e=>{state.draft.local=e.target.value;});
   // Complications : édition en place (le libellé sans re-rendu — garde le focus — ; cible et
   // suppression re-rendent, la liste est courte). migrate() rejettera les rangées incomplètes.
-  main.querySelectorAll('[data-cxlab]').forEach(inp=>inp.addEventListener('input',e=>{const i=+e.target.dataset.cxlab;if(f.complications&&f.complications[i])f.complications[i].label=e.target.value;}));
+  main.querySelectorAll('[data-cxlab]').forEach(inp=>inp.addEventListener('input',e=>{const i=+e.target.dataset.cxlab;if(f.excursions&&f.excursions[i])f.excursions[i].label=e.target.value;}));
   main.querySelectorAll('[data-cxpicker]').forEach(b=>b.onclick=()=>openCxTargetPicker(f,+b.dataset.cxpicker,renderEditor));
-  main.querySelectorAll('[data-cxdel]').forEach(b=>b.onclick=()=>{f.complications.splice(+b.dataset.cxdel,1);renderEditor();});
+  main.querySelectorAll('[data-cxdel]').forEach(b=>b.onclick=()=>{f.excursions.splice(+b.dataset.cxdel,1);renderEditor();});
 
   bindEditSide('fiche');
   bindListEditors();
@@ -14381,7 +14403,7 @@ function bindEditorEvents(f){
       const anc=bloc?'.blk[data-bid="'+CSS.escape(b.id)+'"]'
         :'.blk[data-bid="'+CSS.escape(b.id)+'"] .li[data-si="'+(+v.slice(2))+'"]';
       keepAnchor(anc,renderEditor);});
-    if(b.type==='steps'){const ns=card.querySelector('select[data-target]');if(ns)ns.addEventListener('change',e=>{b.next=e.target.value||null;renderEditor();});
+    if(b.kind==='steps'){const ns=card.querySelector('select[data-target]');if(ns)ns.addEventListener('change',e=>{b.next=e.target.value||null;renderEditor();});
       const nl=card.querySelector('[data-bnextlbl]');if(nl)nl.addEventListener('input',e=>{b.nextLbl=e.target.value;});}
     const ao=card.querySelector('[data-addopt]');if(ao)ao.onclick=()=>{b.options.push({label:'',target:''});renderEditor();};
     /* `data-optdel` et non `data-rmopt` (v4.62.0) : l'ancien nom était un HOMONYME du verbe du
@@ -14419,7 +14441,7 @@ function bindEditorEvents(f){
       const recu=(g.kind==='b')?null:('.blk[data-bid="'+CSS.escape(at.split(':')[1])+'"]');
       state.edGrab=null;
       if(recu)keepAnchor(recu,renderEditor);else renderEditor();});
-    const bd=card.querySelector('[data-bdel]');if(bd)bd.onclick=()=>{f.blocks=f.blocks.filter(x=>x.id!==bid);f.blocks.forEach(x=>{if(x.next===bid)x.next=null;if(x.options)x.options.forEach(o=>{if(o.target===bid)o.target='';});});if(f.start===bid)f.start=f.blocks[0]?f.blocks[0].id:null;if(!f.blocks.length){const nb={id:uid('b'),type:'steps',title:'Prise en charge',steps:[''],image:null,next:null};f.blocks.push(nb);f.start=nb.id;}renderEditor();};});
+    const bd=card.querySelector('[data-bdel]');if(bd)bd.onclick=()=>{f.blocks=f.blocks.filter(x=>x.id!==bid);f.blocks.forEach(x=>{if(x.next===bid)x.next=null;if(x.options)x.options.forEach(o=>{if(o.target===bid)o.target='';});});if(f.start===bid)f.start=f.blocks[0]?f.blocks[0].id:null;if(!f.blocks.length){const nb={id:uid('b'),kind:'do',title:'Prise en charge',steps:[''],image:null,next:null};f.blocks.push(nb);f.start=nb.id;}renderEditor();};});
   imgInput.onchange=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;const r=await downscale(file);if(!r){toast('⚠ Image illisible.');return;}if(_edImgMode.kind==='gallery')f.images.push({id:uid('i'),data:r.data,w:r.w,h:r.h,caption:''});else{const b=f.blocks.find(x=>x.id===_edImgMode.bid);if(b){b.image=r.data;b.imageW=r.w;b.imageH=r.h;}}
     edSyncGallery(f);renderEditor();};
   bindAttEditor(f,renderEditor);   // documents PDF (composant partagé avec l'éditeur de protocole)
@@ -14427,7 +14449,7 @@ function bindEditorEvents(f){
   // Menu ⋯ d'éditeur (SPEC §4, sans « Modifier ») : agit sur le BROUILLON tel qu'affiché.
   // « Versions » (fiche déjà enregistrée) : historique horodaté, restauration non destructive.
   setMoreMenu([
-    ...(fiches.some(x=>x.id===f.id)?[{label:f.libraryId?'Ma version écrasée':'Versions',ic:uiIcon('history',16),act:()=>openVersions(f.id)},'sep']:[]),
+    ...(fiches.some(x=>x.id===f.id)?[{label:f.library?'Ma version écrasée':'Versions',ic:uiIcon('history',16),act:()=>openVersions(f.id)},'sep']:[]),
     {label:'Dupliquer dans « Perso »',ic:uiIcon('copy',16),act:()=>dupToPerso('f',state.draft)},
     {label:'Exporter l’aide (.json)',ic:uiIcon('download',16),act:()=>exportData([migrate(JSON.parse(JSON.stringify(state.draft)))],'fiche-'+fileSlug(state.draft.title))},
   ]);
@@ -14541,7 +14563,7 @@ function downscale(file,maxDim=1180,quality=0.78){return new Promise(res=>{const
 async function deleteDraft(){
   // Fiche de bibliothèque PARTAGÉE : la suppression effacera aussi, chez chaque membre, la note
   // personnelle qu'il a pu attacher à cette fiche -> on le dit à l'éditeur/admin avant.
-  const msg=state.draft&&state.draft.libraryId
+  const msg=state.draft&&state.draft.library
     ?'Supprimer cette fiche définitivement ?\nElle disparaîtra pour tous les membres de la bibliothèque, et les notes personnelles que certains y ont peut-être attachées seront effacées — prévenez-les avant si besoin.'
     :'Supprimer cette fiche définitivement ?';
   if(!await confirmDlg(msg,{yes:'Supprimer',danger:true}))return;const id=state.draft.id;const f=fiches.find(x=>x.id===id)||state.draft;await softDelete(f);await clearDraftParkIf('f',id);const rel=sessions.filter(s=>s.ficheId===id);for(const s of rel)await Data.delSession(s.id);sessions=sessions.filter(s=>s.ficheId!==id);if(liveSessions[id])delete liveSessions[id];fiches=fiches.filter(x=>x.id!==id);state.draft=null;resetRuntime();state.view='library';render();}
@@ -14599,13 +14621,13 @@ function edSnapshot(kind){
   const d=JSON.parse(JSON.stringify(src));
   d.title=(d.title||'').trim();
   if(typeof d.order!=='number')d.order=Date.now();
-  d.attachments=(d.attachments||[]).map(safeAttachment).filter(Boolean);
+  d.docs=(d.docs||[]).map(safeAttachment).filter(Boolean);
   if(kind==='p'){d.body=sstr(d.body,MD_MAX_CHARS);return d;}
   ['confirmation','verify','notForget','differentials','posology'].forEach(k=>edPut(d,k,clean(edList(d,k))));
-    d.references=clean(d.references);
+    d.sources=clean(d.sources);
   poolOwn(d);   // le brouillon est une COPIE : ses blocs doivent connaître leur aide
   d.blocks.forEach(b=>{b.title=(b.title||'').trim();
-    if(b.type==='steps'){/* on nettoie les ITEMS — le miroir `steps` en découle, jamais l'inverse */
+    if(b.kind==='steps'){/* on nettoie les ITEMS — le miroir `steps` en découle, jamais l'inverse */
       {const garde=bItems(b).filter(it=>String(v4ItemToStr(it)||'').trim()).map(it=>it.id);
        const jetes=(b.items||[]).filter(id=>garde.indexOf(id)<0);
        b.items=garde;
@@ -14614,7 +14636,7 @@ function edSnapshot(kind){
     else{b.question=(b.question||'').trim();b.options=(b.options||[]).filter(o=>(o.label||'').trim());}});
   d.timers=(d.timers||[]).map(t=>({id:t.id,label:(t.label||'').trim(),type:t.type==='interval'?'interval':'stopwatch',seconds:Math.max(0,parseInt(t.seconds||0)||0),autoloop:!!t.autoloop,onDue:(t.onDue||'').trim()}));
   d.counters=(d.counters||[]).map(c=>({id:c.id,label:(c.label||'').trim(),step:Math.max(1,parseInt(c.step||1)||1),start:parseInt(c.start||0)||0,timerId:(d.timers||[]).some(t=>t.id===c.timerId)?c.timerId:''}));
-  d.complications=(d.complications||[]).filter(c=>c&&(c.label||'').trim()&&c.target);
+  d.excursions=(d.excursions||[]).filter(c=>c&&(c.label||'').trim()&&c.target);
   delete d.blocks._start;
   if(!d.start||!d.blocks.some(b=>b.id===d.start))d.start=d.blocks[0]?d.blocks[0].id:null;
   return d;}
@@ -14841,7 +14863,7 @@ async function openEdit(id){const f=fiches.find(x=>x.id===id);if(!f)return;
   // Le rôle peut avoir changé côté serveur pendant que l'app était ouverte (pas de synchro
   // périodique) : fiche PARTAGÉE + en ligne -> profil revérifié AVANT le contrôle local.
   // Hors-ligne on laisse passer (local-first) ; _reclaimBlocked rattrapera au push.
-  if(f.libraryId&&Auth.signedIn()&&Sync.online()){try{await Sync.loadProfile();}catch(e){}}
+  if(f.library&&Auth.signedIn()&&Sync.online()){try{await Sync.loadProfile();}catch(e){}}
   if(!canEditFiche(f)){toast(RO_EDIT_TOAST);return openRead(id);}
   /* K5 — UNE SESSION VIVE SE TERMINE AVANT, PAS PENDANT. Tant qu'il fallait appuyer sur
      « Enregistrer », la session était close à ce moment-là, une fois, sciemment. Avec l'écriture
@@ -14866,7 +14888,7 @@ async function openEdit(id){const f=fiches.find(x=>x.id===id);if(!f)return;
   if(park&&!park.isNew&&park.forId===id&&JSON.stringify(park.draft)!==draftBase){
     state.draft=migrate(JSON.parse(JSON.stringify(park.draft)));draftNewAtts=(park.newAtts||[]).slice();state.draftRestored=park.ts;}
   state.view='edit';render();}
-function newFiche(){if(!canEditScope(state.scope)){toast('Lecture seule : vous ne pouvez pas créer de fiche dans cette bibliothèque.');return;}const d=blankFiche();d.libraryId=state.scope||null;state.draft=d;draftNewAtts=[];state.noteEdit=false;state.draftRestored=null;draftBase=JSON.stringify(d);_lastParked=null;state.view='edit';render();}
+function newFiche(){if(!canEditScope(state.scope)){toast('Lecture seule : vous ne pouvez pas créer de fiche dans cette bibliothèque.');return;}const d=blankFiche();d.library=state.scope||null;state.draft=d;draftNewAtts=[];state.noteEdit=false;state.draftRestored=null;draftBase=JSON.stringify(d);_lastParked=null;state.view='edit';render();}
 
 /* ===== Lightbox ===== (agrandissement d'une image au clic, avec légende) */
 const lb=document.getElementById('lightbox');
@@ -14972,7 +14994,7 @@ async function openPdfViewer(att,entity){
     // `entity` (fiche ou protocole hôte) fournit le périmètre -> chemin cloud.
     if(typeof Auth!=='undefined'&&Auth.signedIn()&&navigator.onLine!==false){
       toast('Téléchargement du document…');
-      try{const path=attStoragePath(entity?(entity.libraryId||null):null,(Auth.user()||{}).id,att.id);
+      try{const path=attStoragePath(entity?(entity.library||null):null,(Auth.user()||{}).id,att.id);
         const r=await storageReq('GET',path);const buf=await r.arrayBuffer();
         rec={id:att.id,buf:buf,size:buf.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:0,remotePath:path};
         await IDB.putAtt(rec);}
@@ -15248,7 +15270,7 @@ COMPLICATIONS « À TOUT MOMENT » (champ complications, facultatif)
 - Si la source décrit un événement pouvant survenir À TOUT MOMENT du parcours (laryngospasme
   pendant une sédation, hypoglycémie sous insuline…) : crée un BLOC DÉDIÉ HORS SÉQUENCE (aucun
   « next » n'y mène ; son propre next: null) avec les gestes immédiats, et déclare-le dans
-  "complications": [{ "label": "<événement>", "target": "<id de ce bloc>" }].
+  "excursions": [{ "label": "<événement>", "target": "<id de ce bloc>" }].
 - Le label = le NOM DE L'ÉVÉNEMENT, discriminant au premier mot (« Laryngospasme », jamais
   « En cas de survenue d'un laryngospasme ») : il devient un bouton ⚡ tapé sous stress.
 - 1 à 3 MAXIMUM (chaque bouton de plus dilue les autres) ; seulement des événements que la source
@@ -15280,7 +15302,7 @@ CHAMPS IMPOSÉS
 - "code": "" (référence courte facultative, ex. URG-ANA-01 — posée par moi dans l'app).
 - "discriminant" : rempli SEULEMENT si la source dit à quelle population ou à quel contexte
   elle s'applique ; sinon "" (ne le déduis pas, ne découpe pas le titre pour en fabriquer un).
-- "status": "draft" TOUJOURS et "validation": "" TOUJOURS : une fiche générée par IA
+- "status": "draft" TOUJOURS et "validatedAt": "" TOUJOURS : une fiche générée par IA
   arrive en BROUILLON non daté — c'est moi qui relis, valide et date dans l'app.
 
 TYPES D'ÉTAPES (préfixe au DÉBUT du libellé)
@@ -15367,15 +15389,15 @@ SCHÉMA EXACT
       "code": "",
       "category": "",
       "status": "draft",
-      "validation": "",
-      "localInfo": "Tél renfort : à compléter\\nTél régulation : à compléter\\n(autres invites selon la source)",
+      "validatedAt": "",
+      "local": "Tél renfort : à compléter\\nTél régulation : à compléter\\n(autres invites selon la source)",
       "confirmation": ["..."],
       "verify": ["..."],
       "posology": ["△ **ADRÉNALINE — IM** : adulte 0,5 mg · enfant 0,01 mg/kg (max 0,5 mg)", "**REMPLISSAGE** : cristalloïdes 20 mL/kg en débit libre"],
-      "complications": [ { "label": "Laryngospasme", "target": "cx1" } ],
+      "excursions": [ { "label": "Laryngospasme", "target": "cx1" } ],
       "notForget": ["..."],
       "differentials": ["..."],
-      "references": ["Titre — Organisme, année — URL", "Fiche générée par IA le JJ/MM/AAAA à partir de la source ci-dessus — à relire et valider avant usage."],
+      "sources": ["Titre — Organisme, année — URL", "Fiche générée par IA le JJ/MM/AAAA à partir de la source ci-dessus — à relire et valider avant usage."],
       "images": [],
       "timers": [
         { "id": "t1", "label": "Cycle de réévaluation", "type": "interval", "seconds": 180, "autoloop": true, "onDue": "Analyse du rythme + relais" }
@@ -15405,7 +15427,7 @@ VALEURS AUTORISÉES
   (mg) », « Chocs », « Cycle RCP » — jamais « Compteur 1 », jamais une phrase.
   La précision entre parenthèses est reléguée en méta à l'affichage : mettez l'unité
   là (« Adrénaline (mg) »), pas dans le nom.
-- "status" : "draft" (exactement). "validation" : "" (vide — posée par moi après
+- "status" : "draft" (exactement). "validatedAt" : "" (vide — posée par moi après
   relecture).
 
 AVANT DE RÉPONDRE, VÉRIFIE
@@ -15433,7 +15455,7 @@ AVANT DE RÉPONDRE, VÉRIFIE
 11. references : source datée + ligne « Fiche générée par IA le … ».
 12. Tout manque résiduel marqué « ⚠ À COMPLÉTER » (aucun manque silencieux).
 13. Gras (**…**) rare, jamais une ligne entière.
-14. "status" vaut "draft", "validation" est vide, et tu n'as renvoyé QUE le JSON.`;
+14. "status" vaut "draft", "validatedAt" est vide, et tu n'as renvoyé QUE le JSON.`;
 /* ===== Dialogue « Créer » (SPEC gestion §2.1) =====
    Point d'entrée UNIQUE de la création (bouton « Créer » de l'accueil) : 3 méthodes en cartes —
    Manuellement / Avec l'IA (aides seulement) / Importer un .json ; la méthode IA est un
@@ -15558,7 +15580,7 @@ function renderCatMgr(){
       // Brouillon en cours d'édition : il pointe peut-être sur la catégorie supprimée (copie de la fiche).
       if(state.draft&&state.draft.category===cid)state.draft.category=target||'';
       await saveCats(scp);catDelId=null;renderCatMgr();};});
-  const add=document.getElementById('cmAdd');if(add)add.onclick=async()=>{const inp=document.getElementById('cmNew');const name=(inp.value||'').trim();if(!name)return;categories.push({id:newCatId(name,scp),name,color:PALETTE[catsForScope(scp).length%PALETTE.length],libraryId:scp});await saveCats(scp);renderCatMgr();};
+  const add=document.getElementById('cmAdd');if(add)add.onclick=async()=>{const inp=document.getElementById('cmNew');const name=(inp.value||'').trim();if(!name)return;categories.push({id:newCatId(name,scp),name,color:PALETTE[catsForScope(scp).length%PALETTE.length],library:scp});await saveCats(scp);renderCatMgr();};
 }
 bindModalDismiss(catModal,closeCatMgr);
 /* La porte « + » passe par le gestionnaire commun : Échap, clic de voile, piège de focus et
@@ -15725,12 +15747,12 @@ async function exportData(list,baseName,cats,protos){
   const strip=f=>{const c={...f};if(c.blocks)delete c.blocks._start;
     // On retire les champs de sync PUREMENT LOCAUX -> un contenu importé ailleurs devient celui de
     // l'importateur (pas d'owner/biblio d'autrui) ; `updatedAt` est conservé (last-write-wins).
-    delete c.dirty;delete c.ownerId;delete c.libraryId;return c;};
+    delete c.dirty;delete c.ownerId;delete c.library;return c;};
   const out={version:3,origin:spaceTag(currentSpace()),categories:(cats||categories.filter(c=>list.some(f=>f.category===c.id))).map(c=>({id:c.id,name:c.name,color:c.color})),fiches:list.map(strip)};
   if(Array.isArray(protos)&&protos.length)out.protocols=protos.map(strip);
   // Documents référencés (dédoublonnés : un document partagé entre fiches n'est embarqué qu'une fois).
   const attIds=[];{const seen=new Set();
-    list.concat(protos||[]).forEach(f=>(f.attachments||[]).forEach(a=>{if(a&&a.id&&!seen.has(a.id)){seen.add(a.id);attIds.push(a.id);}}));}
+    list.concat(protos||[]).forEach(f=>(f.docs||[]).forEach(a=>{if(a&&a.id&&!seen.has(a.id)){seen.add(a.id);attIds.push(a.id);}}));}
   let withDocs=false;
   if(attIds.length&&supportsAttachments()){
     const c=await confirmDlg((attIds.length>1?'Ce contenu référence '+attIds.length+' documents PDF joints.':'Ce contenu référence un document PDF joint.')+' Les inclure dans le fichier exporté ?',
@@ -15766,10 +15788,10 @@ function stripJsonFences(s){s=String(s==null?'':s).replace(/^\uFEFF/,'').trim();
 // même espace (le document peut suivre par la synchronisation) ; sinon retirée, comme avant :
 // jamais de bouton « Document indisponible ».
 async function importAtts(d,zipAtts,sameSpace){
-  if(!(d.attachments||[]).length)return;
-  if(!supportsAttachments()){d.attachments=[];return;}
+  if(!(d.docs||[]).length)return;
+  if(!supportsAttachments()){d.docs=[];return;}
   const kept=[];
-  for(const a of d.attachments){
+  for(const a of d.docs){
     let have=null;try{have=await attBuf(await IDB.getAtt(a.id));}catch(err){}
     if(have)a.size=have.byteLength;   // taille affichée = document RÉEL, pas celle déclarée par le fichier
     const z=!have&&zipAtts?zipAtts.get(a.id):null;
@@ -15778,7 +15800,7 @@ async function importAtts(d,zipAtts,sameSpace){
       try{await IDB.putAtt({id:a.id,buf:buf,size:buf.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:1,remotePath:null});
         a.size=buf.byteLength;have=buf;}catch(err){}}
     if(have||sameSpace)kept.push(a);}
-  d.attachments=kept;}
+  d.docs=kept;}
 function readImportFile(file){const r=new FileReader();
   r.onload=async()=>{
     // État Brouillon forcé ? (import venu du dialogue « Créer » — SPEC §2.1). Drapeau consommé
@@ -15820,14 +15842,14 @@ function readImportFile(file){const r=new FileReader();
     if(merge===null){pendingOpenImport=false;return;}
     const hasProtos=Array.isArray(imp.protocols)&&imp.protocols.length>0;
     if(!merge){if(!await confirmDlg('Toutes les fiches'+(hasProtos?' et tous les protocoles':'')+' de '+scopeLbl+' seront supprimé(e)s puis remplacé(e)s par le contenu du fichier. Continuer ?',{title:'Remplacer la bibliothèque',yes:'Tout remplacer',danger:true}))return void(pendingOpenImport=false);
-      for(const f of fiches.filter(x=>(x.libraryId||null)===targetLib))await softDelete(f);
-      fiches=fiches.filter(x=>(x.libraryId||null)!==targetLib);
-      if(hasProtos){for(const pr of protocols.filter(x=>(x.libraryId||null)===targetLib))await softDeleteProtocol(pr);
-        protocols=protocols.filter(x=>(x.libraryId||null)!==targetLib);}}
+      for(const f of fiches.filter(x=>(x.library||null)===targetLib))await softDelete(f);
+      fiches=fiches.filter(x=>(x.library||null)!==targetLib);
+      if(hasProtos){for(const pr of protocols.filter(x=>(x.library||null)===targetLib))await softDeleteProtocol(pr);
+        protocols=protocols.filter(x=>(x.library||null)!==targetLib);}}
     // Catégories importées : rattachées à la bibliothèque de DESTINATION (chaque bibliothèque a
     // son propre jeu de catégories) ; ajoutées seulement si absentes de ce jeu-là.
-    sanitizeCats(imp.categories).forEach(c=>{if(!c.id)return;c.libraryId=targetLib;
-      if(!categories.some(x=>x.id===c.id&&(x.libraryId||null)===targetLib))categories.push(c);});
+    sanitizeCats(imp.categories).forEach(c=>{if(!c.id)return;c.library=targetLib;
+      if(!categories.some(x=>x.id===c.id&&(x.library||null)===targetLib))categories.push(c);});
     await saveCats(targetLib);
     // Fichier venu du MÊME espace local ? (empreinte d'origine, cf. commentaire de section).
     // Même espace -> les ids sont conservés (restauration/fusion). Autre espace, ou ancien
@@ -15847,14 +15869,14 @@ function readImportFile(file){const r=new FileReader();
     const added=[];
     for(let d of imp.fiches){d=migrate(d);
       if(forceDraft)d.status='draft';   // dialogue « Créer » : jamais « Validée » d'office
-      d.libraryId=targetLib;   // migrate() vide libraryId (sécurité) -> on pose la destination choisie
+      d.library=targetLib;   // migrate() vide libraryId (sécurité) -> on pose la destination choisie
       // Documents PDF : binaires du .zip restaurés s'ils manquent, références sans binaire
       // conservées seulement en même espace (cf. importAtts — jamais d'écrasement d'un existant).
       await importAtts(d,zipAtts,sameSpace);
       // Référence de catégorie orpheline (id absent du fichier importé ET du jeu de catégories de
       // la bibliothèque de destination) : on la vide plutôt que de laisser migrateCategories() la
       // transformer en catégorie fantôme (elle traiterait l'id brut comme un nom lisible).
-      if(d.category&&!categories.some(c=>c.id===d.category&&(c.libraryId||null)===targetLib))d.category='';
+      if(d.category&&!categories.some(c=>c.id===d.category&&(c.library||null)===targetLib))d.category='';
       if(d.id&&existing.has(d.id)&&replace){if(await persist(d)){const i=fiches.findIndex(x=>x.id===d.id);if(i>=0)fiches[i]=d;else fiches.push(d);added.push(d.id);}}
       else{if(!d.id||existing.has(d.id)||!sameSpace)d.id=uid();existing.add(d.id);if(await persist(d)){fiches.push(d);added.push(d.id);}}}
     // PROTOCOLES du fichier (champ facultatif `protocols`, absent des anciens exports) : mêmes
@@ -15864,9 +15886,9 @@ function readImportFile(file){const r=new FileReader();
     if(hasProtos){const existingP=new Set(protocols.map(x=>x.id));
       for(let d of imp.protocols){d=migrateProtocol(d);
         if(forceDraft)d.status='draft';
-        d.libraryId=targetLib;
+        d.library=targetLib;
         await importAtts(d,zipAtts,sameSpace);
-        if(d.category&&!categories.some(c=>c.id===d.category&&(c.libraryId||null)===targetLib))d.category='';
+        if(d.category&&!categories.some(c=>c.id===d.category&&(c.library||null)===targetLib))d.category='';
         if(d.id&&existingP.has(d.id)&&replace){if(await persistProtocol(d)){const i=protocols.findIndex(x=>x.id===d.id);if(i>=0)protocols[i]=d;else protocols.push(d);addedP++;}}
         else{if(!d.id||existingP.has(d.id)||!sameSpace)d.id=uid('p');existingP.add(d.id);if(await persistProtocol(d)){protocols.push(d);addedP++;}}}}
     // Depuis la fenêtre IA : on ouvre directement la fiche importée plutôt que la bibliothèque.
@@ -16699,7 +16721,7 @@ document.addEventListener('keydown',e=>{
 async function dupToPerso(kind,src){
   const c=kind==='p'?migrateProtocol(JSON.parse(JSON.stringify(src))):migrate(JSON.parse(JSON.stringify(src)));
   c.id=kind==='p'?uid('p'):uid();c.title=(src.title||(kind==='p'?'Protocole':'Fiche'))+' (copie)';
-  c.libraryId=null;c.status='draft';c.order=Date.now();
+  c.library=null;c.status='draft';c.order=Date.now();
   const ok=kind==='p'?await persistProtocol(c):await persist(c);
   if(ok){(kind==='p'?protocols:fiches).push(c);toast('✓ Copie créée dans « Perso » — état Brouillon',3500);}
 }
@@ -16802,13 +16824,13 @@ const rpc=(name,body)=>rest('POST','/rest/v1/rpc/'+name,body||{});
 // diffère au retour : migrate (fiches) vs migrateProtocol (protocols).
 function rowConverters(migrateFn){return {
   toRow(o,uidv){const data=Object.assign({},o);delete data.dirty;
-    return {id:o.id,owner:uidv,library_id:o.libraryId||null,data:data,
+    return {id:o.id,owner:uidv,library_id:o.library||null,data:data,
       updated_at:new Date(o.updatedAt||Date.now()).toISOString(),
       deleted_at:o.deletedAt?new Date(o.deletedAt).toISOString():null};},
   fromRow(row){return migrateFn(Object.assign({},row.data,{id:row.id,
       updatedAt:Date.parse(row.updated_at)||Date.now(),
       deletedAt:row.deleted_at?Date.parse(row.deleted_at):null,
-      ownerId:row.owner||null,libraryId:row.library_id||null}));}};}
+      ownerId:row.owner||null,library:row.library_id||null}));}};}
 const {toRow:ficheToRow,fromRow:ficheFromRow}=rowConverters(migrate);
 const {toRow:protocolToRow,fromRow:protocolFromRow}=rowConverters(migrateProtocol);
 /* ═══ HISTORIQUE DE SESSIONS SYNCHRONISÉ (v4.54.0) — ET L'INVARIANT QU'IL LÈVE ════════════════
@@ -16911,9 +16933,9 @@ function attStoragePath(libraryId,ownerUid,attId){return libraryId?('l/'+library
 // entité VIVANTE qui référence le document (même règle que _syncAttachments).
 function attMissingInfo(entities,haveIds,uid){
   const have=new Set(haveIds||[]),seen=new Set(),paths=Object.create(null),missing=[];
-  (entities||[]).forEach(f=>{if(!f||f.deletedAt)return;(f.attachments||[]).forEach(a=>{
+  (entities||[]).forEach(f=>{if(!f||f.deletedAt)return;(f.docs||[]).forEach(a=>{
     if(!a||!a.id||seen.has(a.id))return;seen.add(a.id);
-    if(uid)paths[a.id]=attStoragePath(f.libraryId||null,uid,a.id);
+    if(uid)paths[a.id]=attStoragePath(f.library||null,uid,a.id);
     if(!have.has(a.id))missing.push(a.id);});});
   return {total:seen.size,missing:missing,paths:paths};}
 // Appel direct de l'API Storage (corps BINAIRE : Auth.headers() imposerait un Content-Type JSON).
@@ -17132,9 +17154,9 @@ const Sync={
   // le cloud ; le PULL apportera tout). Évite de polluer le cloud avec la fiche d'exemple.
   async _initIfNeeded(){const uidv=Auth.user().id;const k='ac-sync-init-'+uidv;if(localStorage.getItem(k))return;
     const peek=await rest('GET','/rest/v1/cognitive_aids?select=id&library_id=is.null&limit=1')||[];
-    if(!peek.length){const all=await Data.getAll();for(const f of all){if(!f.libraryId&&!f.deletedAt){f.dirty=true;await Data.put(f);}}
+    if(!peek.length){const all=await Data.getAll();for(const f of all){if(!f.library&&!f.deletedAt){f.dirty=true;await Data.put(f);}}
       // Les protocoles locaux suivent le même téléversement initial que les fiches.
-      const allP=await Data.getProtocols().catch(()=>[]);for(const p of allP){if(!p.libraryId&&!p.deletedAt){p.dirty=true;await Data.putProtocol(p);}}
+      const allP=await Data.getProtocols().catch(()=>[]);for(const p of allP){if(!p.library&&!p.deletedAt){p.dirty=true;await Data.putProtocol(p);}}
       try{localStorage.setItem(spaceKey('ac-cats-dirty:'),'1');if(!localStorage.getItem(spaceKey('ac-cats-updated:')))localStorage.setItem(spaceKey('ac-cats-updated:'),String(Date.now()));}catch(e){}}
     localStorage.setItem(k,'1');},
   // PULL GÉNÉRIQUE d'une table {id, data jsonb, updated_at, deleted_at} — comportement
@@ -17302,11 +17324,11 @@ const Sync={
   // à préserver : la version de l'équipe est simplement restaurée.
   async _reclaimBlocked(cfg,all){
     const done=new Set(),copies=[],names=[];let restoredDel=false;
-    const blocked=all.filter(o=>o.dirty&&o.libraryId&&!canEditFiche(o)&&!(cfg.skip&&cfg.skip(o)));
+    const blocked=all.filter(o=>o.dirty&&o.library&&!canEditFiche(o)&&!(cfg.skip&&cfg.skip(o)));
     for(const o of blocked){
       try{
         if(!o.deletedAt){
-          const c=cfg.clone(o);c.id=uid(cfg.idPrefix);c.libraryId=null;c.ownerId=null;
+          const c=cfg.clone(o);c.id=uid(cfg.idPrefix);c.library=null;c.ownerId=null;
           c.updatedBy='';c.updatedAt=Date.now();c.dirty=true;
           await cfg.dataPut(c);cfg.addMem(c);copies.push(c);
         }else restoredDel=true;
@@ -17337,9 +17359,9 @@ const Sync={
     try{await send(dirty);return;}catch(e){}
     let firstErr=null,persoOk=0;const perso403=[];
     for(const o of dirty){
-      try{await send([o]);if(!o.libraryId)persoOk++;}
+      try{await send([o]);if(!o.library)persoOk++;}
       catch(e){
-        if(isPersoRepairCandidate(e&&e.message,!o.libraryId))perso403.push(o);        // candidat réparation (voir ci-dessus)
+        if(isPersoRepairCandidate(e&&e.message,!o.library))perso403.push(o);        // candidat réparation (voir ci-dessus)
         else if(!firstErr)firstErr=e;}
     }
     if(perso403.length){
@@ -17403,14 +17425,14 @@ const Sync={
     // sur celui d'un tombstone) + droit de pousser (jamais d'upload par un simple lecteur).
     const all=(await Data.getAll()).concat(await Data.getProtocols().catch(()=>[]));
     const paths=Object.create(null),editable=Object.create(null);
-    all.forEach(f=>{(f.attachments||[]).forEach(a=>{if(!a||!a.id)return;
-      if(!paths[a.id]||!f.deletedAt)paths[a.id]=attStoragePath(f.libraryId||null,uidv,a.id);
+    all.forEach(f=>{(f.docs||[]).forEach(a=>{if(!a||!a.id)return;
+      if(!paths[a.id]||!f.deletedAt)paths[a.id]=attStoragePath(f.library||null,uidv,a.id);
       if(canEditFiche(f))editable[a.id]=true;});});
     // Blobs du brouillon EN COURS d'édition (fiche OU protocole) : pas encore référencés par une
     // entité enregistrée -> à protéger de la purge (une synchro peut arriver pendant la saisie).
     const draftIds=new Set(draftNewAtts
-      .concat(((state.draft&&state.draft.attachments)||[]).map(a=>a.id))
-      .concat(((state.pdraft&&state.pdraft.attachments)||[]).map(a=>a.id)));
+      .concat(((state.draft&&state.draft.docs)||[]).map(a=>a.id))
+      .concat(((state.pdraft&&state.pdraft.docs)||[]).map(a=>a.id)));
     for(const rec of await IDB.getAtts()){
       const want=paths[rec.id];
       if(!want){if(draftIds.has(rec.id))continue;             // brouillon : on ne touche à rien
@@ -17442,8 +17464,8 @@ const Sync={
     const uidv=Auth.user().id;
     // Un document de catégories PAR BIBLIOTHÈQUE : Perso (clé '') + chaque bibliothèque (clé = id).
     // On ne pousse une bibliothèque que si l'on peut l'éditer ; sinon on se contente de la lire.
-    const scopes=[{key:'',scopeKey:'personal:'+uidv,libraryId:null,canPush:true}]
-      .concat(myLibraries.map(l=>({key:l.id,scopeKey:'lib:'+l.id,libraryId:l.id,canPush:(l.role==='editor'||l.role==='admin')})));
+    const scopes=[{key:'',scopeKey:'personal:'+uidv,library:null,canPush:true}]
+      .concat(myLibraries.map(l=>({key:l.id,scopeKey:'lib:'+l.id,library:l.id,canPush:(l.role==='editor'||l.role==='admin')})));
     let changed=false;
     for(const s of scopes){
       const localTs=+(localStorage.getItem(spaceKey('ac-cats-updated:'+s.key))||0);
@@ -17451,16 +17473,16 @@ const Sync={
       let remote=null;try{const rows=await rest('GET','/rest/v1/category_sets?select=*&scope_key=eq.'+encodeURIComponent(s.scopeKey))||[];remote=rows[0];}catch(e){continue;}
       if(remote&&(Date.parse(remote.updated_at)||0)>localTs){
         // Distant plus récent -> on remplace les catégories DE CETTE BIBLIOTHÈQUE par le set distant.
-        const incoming=sanitizeCats(remote.data&&remote.data.categories).map(c=>{c.libraryId=s.libraryId;return c;});
-        categories=categories.filter(c=>(c.libraryId||null)!==(s.libraryId||null)).concat(incoming);
+        const incoming=sanitizeCats(remote.data&&remote.data.categories).map(c=>{c.library=s.library;return c;});
+        categories=categories.filter(c=>(c.library||null)!==(s.library||null)).concat(incoming);
         // Document PERSO : il transporte aussi les épingles (data.pins) et les PRÉFÉRENCES
         // par utilisateur (data.prefs : thème + taille du texte + couleur d'accent, v4.5) — appliquées à l'arrivée.
-        if(!s.libraryId&&remote.data&&Array.isArray(remote.data.pins)){pins=sanitizePins(remote.data.pins);try{localStorage.setItem(spaceKey('ac-pins'),JSON.stringify(pins));}catch(e){}}
+        if(!s.library&&remote.data&&Array.isArray(remote.data.pins)){pins=sanitizePins(remote.data.pins);try{localStorage.setItem(spaceKey('ac-pins'),JSON.stringify(pins));}catch(e){}}
         // Frecency (v4.4.7) : FUSIONNÉE, jamais remplacée — chaque appareil compte ses propres
         // ouvertures ; un remplacement en bloc (comme les épingles) perdrait les comptes locaux.
-        if(!s.libraryId&&remote.data&&remote.data.usage){_frecency=mergeUsage(_frecency,sanitizeUsage(remote.data.usage));
+        if(!s.library&&remote.data&&remote.data.usage){_frecency=mergeUsage(_frecency,sanitizeUsage(remote.data.usage));
           try{localStorage.setItem(spaceKey('ac-usage'),JSON.stringify(_frecency));}catch(e){}}
-        if(!s.libraryId&&remote.data&&remote.data.prefs&&typeof remote.data.prefs==='object'){const pr=remote.data.prefs;
+        if(!s.library&&remote.data&&remote.data.prefs&&typeof remote.data.prefs==='object'){const pr=remote.data.prefs;
           const th=(pr.theme==='light'||pr.theme==='dark'||pr.theme==='auto')?pr.theme:null;
           const z=ZOOM_STEPS.indexOf(+pr.zoom)>=0?+pr.zoom:null;
           if(th&&th!==(localStorage.getItem(spaceKey('ac-theme'))||'auto'))applyTheme(th);
@@ -17481,11 +17503,11 @@ const Sync={
         changed=true;continue;
       }
       if(s.canPush&&(dirty||!remote)){const now=localTs||Date.now();
-        const data={categories:catsForScope(s.libraryId).map(c=>({id:c.id,name:c.name,color:c.color,libraryId:s.libraryId}))};
-        if(!s.libraryId)data.pins=sanitizePins(pins);   // épingles : uniquement dans le document perso
-        if(!s.libraryId)data.usage=sanitizeUsage(_frecency);   // frecency (v4.4.7) : idem, fusionnée côté lecteur
+        const data={categories:catsForScope(s.library).map(c=>({id:c.id,name:c.name,color:c.color,library:s.library}))};
+        if(!s.library)data.pins=sanitizePins(pins);   // épingles : uniquement dans le document perso
+        if(!s.library)data.usage=sanitizeUsage(_frecency);   // frecency (v4.4.7) : idem, fusionnée côté lecteur
         // Préférences par utilisateur (V5) : voyagent avec le document perso.
-        if(!s.libraryId)data.prefs={theme:localStorage.getItem(spaceKey('ac-theme'))||'auto',zoom:currentZoom(),accent:currentAccent(),readMode:currentReadMode(),
+        if(!s.library)data.prefs={theme:localStorage.getItem(spaceKey('ac-theme'))||'auto',zoom:currentZoom(),accent:currentAccent(),readMode:currentReadMode(),
           // Vocabulaire personnel du journal (v4.52.0) : des MOTS, mais des mots que l'utilisateur
           // écrit À FROID pour lui-même — ce ne sont pas des données de soin, et ils ne partent
           // jamais dans un partage : seule la RÉFÉRENCE voyage, le mot est rendu localement.
@@ -17495,7 +17517,7 @@ const Sync={
              l'expliquer. C'est une préférence par UTILISATEUR, au même titre que le thème : elle
              suit le compte, pas la machine. */
           syncSessions:sessSyncOn()};
-        try{await rest('POST','/rest/v1/category_sets',[{scope_key:s.scopeKey,owner:uidv,library_id:s.libraryId,data:data,updated_at:new Date(now).toISOString()}],{'Prefer':'resolution=merge-duplicates,return=minimal'});
+        try{await rest('POST','/rest/v1/category_sets',[{scope_key:s.scopeKey,owner:uidv,library_id:s.library,data:data,updated_at:new Date(now).toISOString()}],{'Prefer':'resolution=merge-duplicates,return=minimal'});
           try{localStorage.removeItem(spaceKey('ac-cats-dirty:'+s.key));}catch(e){}}catch(e){}
       }
     }
@@ -17539,7 +17561,7 @@ const Sync={
   async _reconcileTable(table,getAllLocal,dataDel,mem){
     let ids;try{const rows=await rest('GET','/rest/v1/'+table+'?select=id')||[];ids=new Set(rows.map(r=>r.id));}catch(e){return;}
     const all=await getAllLocal();let changed=false;
-    for(const f of all){if(f.libraryId&&!f.dirty&&!ids.has(f.id)){await dataDel(f.id);const i=mem.findIndex(x=>x.id===f.id);if(i>=0)mem.splice(i,1);changed=true;}}
+    for(const f of all){if(f.library&&!f.dirty&&!ids.has(f.id)){await dataDel(f.id);const i=mem.findIndex(x=>x.id===f.id);if(i>=0)mem.splice(i,1);changed=true;}}
     if(changed)render();},
   // Profil : bibliothèques partagées dont je suis membre (avec rôle) + statut app-admin.
   // En cas d'ÉCHEC réseau, on GARDE la dernière valeur connue (jamais de « disparition » des
@@ -18497,10 +18519,10 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 // Aplatit une fiche en lignes lisibles « Section · contenu » -> le diff de versions devient une
 // simple comparaison d'ensembles (ajouté / retiré), suffisante pour juger avant de restaurer.
 function flattenFiche(f){if(!f)return[];const L=[];const add=(sec,v)=>{v=String(v==null?'':v).trim();if(v)L.push(sec+' · '+v);};
-  add('Titre',f.title);add('Validation',f.validation);add('Contexte',f.localInfo);add('État',f.status==='draft'?'brouillon':'validée');
-  ['confirmation','verify','notForget','differentials','references','posology'].forEach(k=>(f[k]||[]).forEach(v=>add({confirmation:'Confirmation',verify:'À vérifier',notForget:'Ne pas oublier',differentials:'Différentiels',references:'Références'}[k],v)));
-  (f.blocks||[]).forEach(b=>{const t=b.title||(b.type==='decision'?'Décision':'Étapes');
-    if(b.type==='decision'){add('Bloc « '+t+' »',b.question);(b.options||[]).forEach(o=>add('Bloc « '+t+' » — option',o&&o.label));}
+  add('Titre',f.title);add('Validation',f.validatedAt);add('Contexte',f.local);add('État',f.status==='draft'?'brouillon':'validée');
+  ['confirmation','verify','notForget','differentials','sources','posology'].forEach(k=>(f[k]||[]).forEach(v=>add({confirmation:'Confirmation',verify:'À vérifier',notForget:'Ne pas oublier',differentials:'Différentiels',sources:'Références'}[k],v)));
+  (f.blocks||[]).forEach(b=>{const t=b.title||(b.kind==='decision'?'Décision':'Étapes');
+    if(b.kind==='decision'){add('Bloc « '+t+' »',b.question);(b.options||[]).forEach(o=>add('Bloc « '+t+' » — option',o&&o.label));}
     else (b.steps||[]).forEach(s=>add('Bloc « '+t+' »',s));});
   (f.timers||[]).forEach(t=>add('Minuteur',(t.label||'')+(t.type==='interval'?' ('+(t.seconds||0)+' s)':' (chrono)')));
   (f.counters||[]).forEach(c=>add('Compteur',c.label));
@@ -18517,7 +18539,7 @@ const versModal=document.getElementById('versModal');let _versFiche=null;
 async function openVersions(ficheId){_versFiche=ficheId;
   // Titre/note adaptés : en bibliothèque partagée, ces sauvegardes ne sont QUE vos propres versions
   // écrasées par une modification d'un coéquipier (locales à cet appareil), pas un historique d'équipe.
-  const f=fiches.find(x=>x.id===ficheId);const shared=!!(f&&f.libraryId);
+  const f=fiches.find(x=>x.id===ficheId);const shared=!!(f&&f.library);
   const t=document.getElementById('versModalTitle');if(t)t.textContent=shared?'Récupérer ma version écrasée':'Versions précédentes';
   const n=document.getElementById('versNote');if(n)n.textContent=shared
     ? 'Vos versions écrasées par une modification d’un coéquipier (dernière écriture appliquée). Sauvegardes locales à cet appareil — ce n’est pas l’historique partagé de l’équipe. Restaurer remplace la fiche actuelle par la version choisie.'
@@ -18596,7 +18618,7 @@ async function renderMembers(){const body=document.getElementById('membersBody')
   // ils laissaient croire qu'un ajout/retrait de membre devait être « enregistré ») ->
   // PARTAGE (note serveur) -> MEMBRES (liste + rangée d'ajout, appliqués immédiatement) ->
   // ZONE SENSIBLE (suppression, sous séparateur, jamais côte à côte avec le CTA principal).
-  const nFi=fiches.filter(f=>f.libraryId===_memLib&&!f.deletedAt).length,nPr=protocols.filter(x=>x.libraryId===_memLib&&!x.deletedAt).length;
+  const nFi=fiches.filter(f=>f.library===_memLib&&!f.deletedAt).length,nPr=protocols.filter(x=>x.library===_memLib&&!x.deletedAt).length;
   const emailIni=e=>String(e||'?').trim().slice(0,2).toUpperCase()||'?';
   _libNameOrig=(libName(_memLib)||'').trim();
   // Arbre exact SPEC-dialogue-bibliotheque §2 — SANS segment Privée/Partagée (décision

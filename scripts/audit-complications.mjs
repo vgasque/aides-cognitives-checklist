@@ -14,9 +14,9 @@ await p.evaluate(async()=>{const b=[...document.querySelectorAll('button')].find
  const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await new Promise(r=>setTimeout(r,400));
  const c=[...document.querySelectorAll('.card-open')].find(x=>/Arr.t cardiaque/.test(x.textContent));
  const f=fiches.find(x=>x.id===c.dataset.open);
- f.blocks.push({id:'cxL',type:'steps',title:'Laryngospasme — gestes',steps:['Arrêter la stimulation','⚠ PPC + subluxation mandibulaire','Approfondir la sédation'],next:null});
+ f.blocks.push({id:'cxL',kind:'do',title:'Laryngospasme — gestes',steps:['Arrêter la stimulation','⚠ PPC + subluxation mandibulaire','Approfondir la sédation'],next:null});
  const autre=fiches.find(x=>x.id!==f.id);
- f.complications=[{label:'Laryngospasme',target:'cxL'},{label:'Anaphylaxie',target:autre.id}];
+ f.excursions=[{label:'Laryngospasme',target:'cxL'},{label:'Anaphylaxie',target:autre.id}];
  window.__autre=autre.id;window.__acr=f.id;
  c.click();await new Promise(r=>setTimeout(r,400));
  document.getElementById('sessStart').click();await new Promise(r=>setTimeout(r,450));});
@@ -89,7 +89,7 @@ const d8=await p.evaluate(async()=>{
  await new Promise(r=>setTimeout(r,500));
  return {ouvert:state.fiche&&state.fiche.id===window.__autre};});
 t('cible EXTERNE : ouvre l’autre aide', d8.ouvert, JSON.stringify(d8));
-const d9=await p.evaluate(async()=>{const f2=fiches.find(x=>x.id===window.__autre);f2.complications=[];
+const d9=await p.evaluate(async()=>{const f2=fiches.find(x=>x.id===window.__autre);f2.excursions=[];
  render();await new Promise(r=>setTimeout(r,400));
  return {btn:document.querySelectorAll('.cx-btn').length,sec:document.querySelectorAll('.pl-cxh').length};});
 t('fiche SANS complications : zéro chrome ⚡', d9.btn===0&&d9.sec===0, JSON.stringify(d9));
@@ -112,7 +112,7 @@ const d10=await p.evaluate(async()=>{
  const first=document.querySelector('#relPickList [data-pick]');const pickId=first.dataset.pick;first.click();
  await new Promise(r=>setTimeout(r,350));
  const btn=document.querySelector('.cx-edit-row .cx-tgt');
- return {row:true,heads,titre,cible:state.draft.complications[0].target===pickId,
+ return {row:true,heads,titre,cible:state.draft.excursions[0].target===pickId,
   nom:btn?btn.textContent.trim():null,modalFermee:!document.getElementById('relPickModal').classList.contains('on')};});
 t('le sélecteur filtrable s’ouvre, titré pour la complication', d10.row&&/Cible de la complication/.test(d10.titre), JSON.stringify({titre:d10.titre}));
 t('deux groupes : blocs de la fiche PUIS aides & protocoles', d10.heads&&d10.heads.length===2&&/Blocs/.test(d10.heads[0]), JSON.stringify(d10.heads));
