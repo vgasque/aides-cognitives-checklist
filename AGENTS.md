@@ -580,7 +580,11 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   ce qui est tout le sens du Do-Verify.
   Portée : stocké dans la SESSION seulement — l'export v3 des fiches et le format des clés
   (`seq:blocId:index`) sont inchangés ; un client antérieur ignore les deux champs.
-  **Mode lecteur** (binôme, plein écran `#readerMode`, statique + délégation unique) : un
+  **~~Mode lecteur~~ — SURFACE RETIRÉE AU LOT T14 (v5.0.0).** Le paragraphe qui suit décrit ce qui
+  a existé de la v4.11.0 à la v4.79.0 et n'a plus d'équivalent dans le code ; il est conservé parce
+  qu'il porte le raisonnement challenge-réponse, qui lui reste vrai. Ce que la surface portait vit
+  désormais dans la carte de bloc : pilule de réponse attendue, passe Do-Verify et cochage sont les
+  mêmes verbes, dans la même liste (I4, v4.62.0). ~~(binôme, plein écran `#readerMode`) : un
   challenge à la fois (26 px, réponse mono 20 px, zone verte ≥ 72 px), piloté sur le BOUT du
   journal — « Répondu » coche la même clé, fin de bloc = mêmes règles que « Continuer »
   (jamais d'avance tant que tout n'est pas confirmé, « Revoir » ramène au premier écart),
@@ -1092,7 +1096,7 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   Safari repliée) — barre visible, son bas passe DERRIÈRE elle, et comme l'overlay est aussi le
   DÉFILEUR, la fin du contenu est INATTEIGNABLE (« le contenu ne scrolle pas sur cette bande, la
   fenêtre est coupée »). Tous les overlays défilables (`.ai-modal` — donc feuilles Plan/Consulter
-  et PDF —, `.lightbox`, `#readerMode`, `#flowFull`) reçoivent sous `@supports (height:100dvh)`
+  et PDF —, `.lightbox`, `#flowFull`, `#monMode`) reçoivent sous `@supports (height:100dvh)`
   un `bottom:auto; height:calc(100dvh / var(--zf,1))` : la fenêtre s'arrête au bord réellement
   VISIBLE et suit la barre dynamique ; sans dvh, `inset:0` inchangé. Vérifié au pixel sur
   Chromium ET WebKit à 90/100/130 % ; tout NOUVEL overlay plein écran doit entrer dans cette
@@ -1533,7 +1537,9 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   en casse de phrase + temps en `clamp(64px,20vw,190px)`), dernier repère horodaté.
   **AUCUN CONTRÔLE, ET C'EST LA PROPRIÉTÉ QUI COMPTE** : un tap n'importe où revient à la fiche —
   une surface sans commande ne peut pas être actionnée par mégarde, ce qu'on veut précisément d'un
-  appareil posé. Coquille du mode lecteur (z 92, sous le flash d'alarme à 99), `_histArm()` à
+  appareil posé. Coquille plein écran à z 92 (sous le flash d'alarme à 99 ; elle était partagée
+  avec le mode lecteur jusqu'à son retrait au lot T14 — le moniteur en est désormais le SEUL
+  porteur, et ses règles ne doivent pas partir avec une purge du lecteur), `_histArm()` à
   l'ouverture et entrée dans `_histBackAction()` (doctrine v4.30.0 : toute surface plein écran).
   `monPick` est PURE (testée) : un minuteur **ÉCHU l'emporte toujours** (annonciateur ECAM —
   l'écart passe avant le nominal), sinon le plus proche de son échéance parmi ceux qui TOURNENT.
@@ -1567,8 +1573,11 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   changeait donc de typographie au défilement. `#brandTitle` passe au serif, **graisse 600** (la
   seule embarquée — 700 produirait une graisse synthétique) et **corps inchangé** (16,5 px, un
   palier de l'échelle fermée) : c'est la voix qui s'aligne, pas la hiérarchie.
-- **I4 — UNE SEULE GRAMMAIRE DE PROGRESSION (v4.62.0, décision utilisateur)** : guidé, journal et
-  mode lecteur ne sont plus trois surfaces mais **une grammaire à trois densités**.
+- **I4 — UNE SEULE GRAMMAIRE DE PROGRESSION (v4.62.0 ; ABOUTIE AU LOT T14, v5.0.0)** : guidé,
+  journal et mode lecteur ne sont plus trois surfaces mais **une grammaire à trois densités** — et
+  depuis le retrait du lecteur, **il ne reste qu'une surface**. Ce que la v4.62.0 avait unifié
+  (structure, verbes, point d'écriture unique) rendait la coquille superflue ; le lot T14 l'a
+  constaté à la mesure et l'a retirée.
   **POURQUOI, ET C'EST DOCTRINAL** (argumentaire de l'utilisateur, retenu tel quel) : **ECAM** —
   l'affichage Airbus repose sur UN format unique pour tous les états ; le pilote n'apprend pas
   trois écrans, il apprend UNE grammaire qui se décline. Trois surfaces de progression, c'est
@@ -2405,7 +2414,8 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   posologie de la feuille. Corrigé en v4.44.0, avec le commentaire du code qui portait la même
   affirmation. **Menu ⋯ (v4.5 ; ORDRE REFAIT v4.28.0, retour utilisateur)** : en lecture, toutes les
   actions secondaires vivent dans le menu ⋯ de la barre. **Ordre = logique ECAM E/WD → SD** :
-  la CONDUITE EN COURS d'abord (⚡ Complications, Mode lecteur, Se repérer, Schéma, Consulter),
+  la CONDUITE EN COURS d'abord (⚡ Complications, Se repérer, Schéma, Consulter — « Mode lecteur »
+  en est sorti avec la surface, lot T14),
   puis le CYCLE DE VIE de la session (Répéter en exercice, Recommencer le parcours, Historique),
   puis la GESTION (Modifier, Versions, Dupliquer), puis les EXPORTS ; la rangée `danger`
   (Terminer…) ferme toujours la liste. Avant, « Modifier »/« Versions » — DÉSACTIVÉES pendant
@@ -2698,6 +2708,24 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   **UN ITEM ENTRANT EST BORNÉ, JAMAIS RECOPIÉ** (`v4SanItem`, appelé depuis `migrate`) : `safeId`
   sur l'identité (règle 6), niveau ramené dans 1-3, rôle dans la liste fermée, booléens coercés,
   textes bornés. Un `level:99` ou un `dual:"oui"` venus d'un import ne franchissent pas la porte.
+- **LE PROMPT IA APPREND LA FORME ENRICHIE (v5.0.0, lot T12) — SANS REMPLACER LA SIMPLE.** Le
+  schéma v3 à chaînes (`"steps"`, préfixe `⚠`/`△`, séparateur `::`) reste la forme de référence et
+  **continue de fonctionner** : `migrate` dérive les items du miroir quand ils manquent. Ce qui
+  s'ajoute est une forme **facultative**, bloc par bloc — `"items"` — pour les deux propriétés
+  qu'une chaîne ne peut pas porter : **`memory`** (★, l'étape reste dans son bloc ET rejoint « Ne
+  pas oublier ») et **`dual`** (×2, AC 120-71B §5.2.2.5). Plus `level` 3/2/1, qui rend le registre
+  **ordonné donc comparable**, ce qu'un préfixe ne permet pas.
+  **LES DEUX FORMES NE SE MÉLANGENT PAS DANS UN MÊME BLOC** : si `items` est présent il fait foi, et
+  `steps` est régénéré par l'application — c'est la règle du miroir, énoncée au prompt pour qu'une
+  IA ne tente pas de tenir les deux à jour.
+  **LE PROMPT DIT AUSSI DE NE PAS INVENTER** : `memory` et `dual` ne se posent que si la SOURCE les
+  désigne (memory items d'un QRH, double-contrôle explicite d'un protocole) ; sinon on les omet et
+  l'auteur les pose d'un tap. Même refus que pour le `discriminant` — une IA qui devine écrit du
+  contenu clinique à la place de quelqu'un.
+  **ET C'EST UN CONTRAT VÉRIFIÉ** : `audit-prompt` EXTRAIT le bloc enrichi du schéma **affiché** et
+  le fait entrer par `migrate()`. Si l'import le refusait, une IA fidèle produirait un fichier
+  irrecevable et la faute paraîtrait venir d'elle — c'est exactement ce qui s'est produit en
+  v4.73.0 avec le `\n` mal échappé. 19/19 contrôles (13 → 19).
 - **LE MODE LECTEUR EST RETIRÉ (v5.0.0, lot T14 — décision de l'auteur, sur mesures).** Il ne
   gagnait qu'à **320 px** (63 % de l'écran aux étapes contre 36 % pour la carte de bloc, 5 étapes
   contre 3) et **perdait à 390** (47 % contre 59 %) : son propre chrome — titre, rôle, chrono,
@@ -3211,13 +3239,13 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   le bout EN BAS de l'écran pour qu'il soit **capable d'échouer** — centré, `keepAnchor` laissait la
   nouvelle carte visible même sans suivi, et le contrôle passait au vert sur le défaut qu'il couvre
   (leçon v4.31.1, vérifié dans les deux sens).
-  **LE LECTEUR INVERSE LE RÉGIME** : sa clé d'étape est calculée AU CLIC depuis `state.nav`, jamais
-  depuis le DOM peint — une navigation distante arrivant entre le `pointerdown` et le `click` ferait
-  cocher **la mauvaise étape**, et le compte-rendu l'imprimerait comme réalisée. Tant que
-  `#readerMode` est ouvert, une navigation distante est donc REFUSÉE, mise en attente, et
-  **annoncée sur place** (`rmBanHtml`, registre INFORMATION) ; `rmResume` l'applique au geste local.
-  Le repaint du lecteur sur évènement distant passe par `readerRepaint` (position CONSERVÉE), jamais
-  par `_rmSync`, qui repositionne le curseur et ferait sauter le lecteur sous ses yeux.
+  **~~LE LECTEUR INVERSAIT LE RÉGIME~~ — CADUC DEPUIS LE LOT T14 (v5.0.0).** Ce régime existait
+  parce que la clé d'étape du lecteur était calculée AU CLIC depuis `state.nav` : une navigation
+  distante arrivée entre le `pointerdown` et le `click` aurait fait cocher la mauvaise étape. La
+  carte de bloc n'a pas cette exposition — son `data-ck` est inscrit dans le DOM AU RENDU, donc une
+  navigation distante le remplace au lieu de le décaler. **Une navigation distante s'applique
+  désormais normalement** (régime `anchored`), et la file `deferred` ne sert plus qu'à `verify` et
+  `gap`, drainés au prochain geste local de navigation (cf. `shareDrainDefer`).
 - **JOURNAL RÉFÉRENTIEL (v4.52.0) — UN REPÈRE VOYAGE COMME UNE RÉFÉRENCE, JAMAIS COMME UN MOT.**
   `ref` n'existait que pour les compteurs : un repère posé par l'hôte s'affichait « Action 3 » chez
   l'invité — l'heure juste, le mot manquant. **QUATRE SOURCES** cumulatives : la FICHE elle-même
@@ -3332,12 +3360,12 @@ par défaut borné à 12 h, purge 30 min après expiration) et ce qui ne sort ja
 cohérent avec la notice affichée à l'invité** (`#joinScreen`) : les deux évoluent ensemble, ou
 aucun.
 
-## Se repérer dans `index.html` (monofichier, ~18 500 lignes)
+## Se repérer dans `index.html` (monofichier, ~18 800 lignes)
 Le fichier s'ouvre sur un **grand commentaire d'architecture** (objectif, règles de conception,
 modèle de données, règles de sécurité) : le lire en premier. Ensuite, dans l'ordre.
 
 > **Le tableau ci-dessous est un RÉSUMÉ, pas un index** : il décrit une vingtaine de sections sur
-> les **61** bannières `/* ===== … ===== */` du fichier, et volontairement sans numéros de ligne —
+> les **63** bannières `/* ===== … ===== */` du fichier, et volontairement sans numéros de ligne —
 > ils seraient périmés au commit suivant. Pour l'index EXACT et à jour, une commande :
 >
 > ```bash
@@ -3346,7 +3374,7 @@ modèle de données, règles de sécurité) : le lire en premier. Ensuite, dans 
 >
 > Découpage global : CSS ≈ lignes 273-3379, coque HTML statique ≈ 3381-3697 (dont **22 fenêtres
 > modales** déclarées en dur — `grep -c 'class="ai-modal' index.html`, toutes auditées par
-> `audit-a11y.mjs` —, plus deux surfaces plein écran qui n'en sont pas : `#readerMode` et
+> `audit-a11y.mjs` —, plus deux surfaces plein écran qui n'en sont pas : `#monMode` et
 > `#joinScreen`), JavaScript ≈ 3699 à la fin.
 
 | Section (bannières `/* ===== … ===== */`) | Contenu |

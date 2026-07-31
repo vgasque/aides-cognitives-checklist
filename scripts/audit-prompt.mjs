@@ -41,8 +41,29 @@ const r=await p.evaluate(()=>{
        nomment les repères du JOURNAL DES ACTIONS et les compteurs du COMPTE-RENDU, relus hors
        contexte et parfois par quelqu'un qui n'était pas là. Une IA qui l'ignore produit
        « Compteur 1 » ou une phrase, et le débriefing hérite du bruit. */
-    ditJournal:/JOURNAL DES ACTIONS/.test(P)&&/COMPTE-RENDU/.test(P)};});
+    ditJournal:/JOURNAL DES ACTIONS/.test(P)&&/COMPTE-RENDU/.test(P),
+    /* LOT T12 — LA FORME ENRICHIE EST UN CONTRAT, DONC ELLE PASSE PAR `migrate()`. Le prompt la
+       MONTRE dans son schéma ; si l'import la refusait, une IA fidèle produirait un fichier
+       irrecevable et la faute paraîtrait venir d'elle — c'est exactement ce qui s'est produit en
+       v4.73.0 avec le `\n` mal échappé. On mesure donc le bloc RÉELLEMENT extrait du prompt. */
+    ...(()=>{const be=(obj.fiches[0].blocks||[]).find(b=>Array.isArray(b.items));
+      if(!be)return {enr:false};
+      const b2=(f.blocks||[]).find(x=>x.id===be.id)||{};const its=b2.items||[];
+      return {enr:true,enrN:be.items.length,enrApres:its.length,
+        enrLvl:its[0]&&its[0].level,enrMem:!!(its[0]&&its[0].memory),enrDual:!!(its[0]&&its[0].dual),
+        enrMiroir:(b2.steps||[])[0]||''};})(),
+    ditItems:/"items"/.test(P)&&/"dual"/.test(P)&&/"memory"/.test(P)};});
 t('le schéma du prompt est un JSON valide', r.parse===true, r.err||r.extrait);
+if(r.parse){
+  t('le prompt DOCUMENTE la forme enrichie (items · level · memory · dual)', r.ditItems===true);
+  t('… et son schéma en montre un exemple', r.enr===true);
+  t('… que `migrate` accepte sans rien perdre', r.enrApres===r.enrN, `${r.enrN} → ${r.enrApres}`);
+  t('… le registre y devient un niveau ordonné', r.enrLvl===3, JSON.stringify(r.enrLvl));
+  t('… ★ mémoire et ×2 traversent l’import', r.enrMem&&r.enrDual, `memory=${r.enrMem} dual=${r.enrDual}`);
+  /* Le miroir doit être régénéré : un client antérieur lit `steps`, jamais `items`. */
+  t('… et le miroir `steps` est reconstruit pour les clients antérieurs',
+    /^⚠ /.test(r.enrMiroir||''), JSON.stringify(r.enrMiroir));
+}
 if(r.parse){
   t('migrate() conserve "discriminant"', r.disc==='adulte', JSON.stringify(r.disc));
   t('migrate() conserve "onDue"', /Analyse du rythme/.test(r.onDue||''), JSON.stringify(r.onDue));

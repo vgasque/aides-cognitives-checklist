@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-Ul9Eq8eu/xbdjcOy/+JEsjkP+W5qdkvlPlA7ez7aLlY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-2LYeMq7xPrr2LV3NHINBmC7guvvlkCd+dBkhvij2NDo='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -15091,6 +15091,31 @@ REPÈRES POSOLOGIQUES (section posology)
   jamais retiré : au-delà de trois repères, ceux qui ne correspondent pas se replient
   derrière un compte annoncé — et un repère « △ » n'est jamais replié.
 
+ÉTAPES ENRICHIES — FACULTATIF, ET DEUX PROPRIÉTÉS QU'UNE CHAÎNE NE PEUT PAS PORTER
+Une étape peut s'écrire de deux façons, au choix, bloc par bloc :
+- la forme SIMPLE, "steps": ["Adrénaline IM :: 0,5 mg"] — le préfixe "⚠ " ou "△ " porte le
+  registre, " :: " sépare le challenge de la réponse attendue. Elle suffit dans la plupart
+  des cas et reste la forme de référence.
+- la forme ENRICHIE, "items": [ … ], quand une étape doit porter ce qu'une chaîne ne sait
+  pas dire. Les deux ne se mélangent PAS dans un même bloc : si "items" est présent, il fait
+  foi et "steps" est régénéré par l'application.
+  { "do": "Adrénaline IM", "expect": "0,5 mg", "level": 3, "memory": true, "dual": false }
+  · "do"      le challenge, ce qui se prononce (sans préfixe : le registre est "level").
+  · "expect"  la réponse attendue, "" si l'étape n'en appelle pas.
+  · "level"   3 = ce qui TUE si on l'oublie (ex-« ⚠ ») · 2 = là où l'on se TROMPE, dose,
+              dilution, voie, seuil (ex-« △ ») · 1 = étape ordinaire. Mettre 3 partout
+              détruit la valeur du 3 : sur un bloc de cinq étapes, une ou deux au plus.
+  · "memory"  true = memory item : l'étape RESTE à sa place dans le bloc ET apparaît en
+              tête de fiche dans « Ne pas oublier ». À réserver à ce qui doit être fait de
+              mémoire avant même d'ouvrir la fiche — au plus deux ou trois par aide, et
+              elles comptent dans le plafond de 4 rappels.
+  · "dual"    true = à confirmer par les DEUX soignants (AC 120-71B §5.2.2.5). Réservé aux
+              gestes irréversibles ou à haut risque d'erreur d'identité : produit, dose,
+              côté, voie. Si tout est "dual", plus rien ne l'est.
+  N'INVENTE NI "memory" NI "dual" : ne les mets que si la source les désigne comme tels
+  (memory items d'un QRH, double-contrôle explicite d'un protocole). En cas de doute,
+  omets-les — l'auteur les posera d'un tap dans l'éditeur.
+
 COHÉRENCE DES IDENTIFIANTS (très important)
 - "id" de bloc unique dans la fiche (ex. "b1", "b2", "bd") ; "start" = id d'un bloc
   existant.
@@ -15128,6 +15153,7 @@ SCHÉMA EXACT
       "start": "b1",
       "blocks": [
         { "id": "b1", "type": "steps",    "title": "Mesures immédiates", "image": null, "steps": ["Renfort : appel à l'aide / régulation (SMUR)", "Monitorage :: scope · SpO2 · PNI", "..."], "next": "bd" },
+        { "id": "b2", "type": "steps",    "title": "Traitement", "image": null, "items": [ { "do": "Adrénaline IM, face antéro-latérale de cuisse", "expect": "0,5 mg", "level": 3, "memory": true, "dual": true }, { "do": "Remplissage", "expect": "20 mL/kg", "level": 2 } ], "next": "bd" },
         { "id": "bd", "type": "decision", "title": "Réévaluation", "image": null, "question": "...?", "options": [ { "label": "Oui", "target": "b2" }, { "label": "Non", "target": "b3" } ] },
         { "id": "b2", "type": "steps",    "title": "Évolution favorable", "image": null, "steps": ["..."], "next": null },
         { "id": "b3", "type": "steps",    "title": "Réfractaire", "image": null, "steps": ["..."], "next": "bd" },
