@@ -2228,6 +2228,44 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   On distingue par l'attribut qui porte l'index (`data-ti` / `data-ci`). L'ambiguïté ne se voit pas,
   elle se SUBIT — et le témoin ne la rencontre que si l'ORDRE du contrôle l'y expose (créer un
   minuteur alors qu'un compteur existe déjà ; l'inverse tomberait juste par hasard).
+- **LA RANGÉE D'ITEM DE L'ÉDITEUR (v5.0.0, lot M1, maquettes `proto-large`)** — quatre écarts de
+  maquette corrigés d'un coup, parce qu'ils vivent sur la même rangée. **DEUX CHAMPS, `do` ET
+  `expect`** : l'auteur tapait « :: » à la main pour dire une chose que le modèle porte depuis que
+  l'étape est un OBJET — une convention à apprendre, et un « :: » écrit dans un texte clinique pris
+  pour une séparation. ⚠ PIÈGE MESURÉ : `setStepStr` écrivait `expect = cr.r || ''`, donc retaper le
+  geste EFFAÇAIT la réponse attendue — une chaîne SANS « :: » ne dit rien de la réponse, elle ne doit
+  pas la détruire ; un « :: » collé depuis un ancien contenu reste reconnu, seul cas où cette
+  écriture a encore un sens. **PLUS AUCUNE CASE DANS L'ÉDITEUR** : la v4.64.0 posait « la case reste
+  un GLYPHE INERTE » ; la maquette est plus juste — une case inerte dans un éditeur invite au geste
+  qu'elle refuse. La MARQUE de registre (`.li-mk`) la remplace : elle DIT le registre au lieu de
+  mimer l'action ; `.li-box` purgé, CSS compris (règle 14). En LECTURE les cases restent.
+  **LA POIGNÉE ⠿ PASSE À GAUCHE** (décision utilisateur, revirement assumé de la v4.68.0, qui l'avait
+  mise à droite pour éloigner le geste destructeur du ✕) : l'écart `.li-sp` fait ce travail, et à
+  gauche la poignée est le PREMIER objet de la ligne — là où l'œil la cherche avant même d'avoir lu.
+  **LES OUTILS PORTENT LEUR MOT** (`registre`/`vital`/`vérifier`, `mémoire`, `double`) : c'est la
+  règle 8 étendue aux glyphes — ★ et ×2 ne s'apprennent nulle part ; le mot s'efface sous 400 px, où
+  la rangée n'a plus la place et où le `title` reste. Mesuré : **0 px de débordement à 320 px**.
+- **LE RAIL ①②③ N'EXISTE PLUS NULLE PART (v5.0.0, lot M2a, décision utilisateur « le retirer
+  partout »)** : le lot T5 l'avait retiré EN SESSION, les maquettes ne le montrent nulle part — hors
+  session comprise — et les numéros y vivent sur les BLOCS. **Deux numérotations concurrentes dans la
+  même colonne sont deux vocabulaires pour situer un même geste**, ce qu'AC 120-71B proscrit ; celle
+  des blocs reste, étant commune au journal, au plan, au statique et au SVG (`flowPlan().order`),
+  quand le rail ne parlait qu'à lui-même. Les étages demeurent des SECTIONS titrées (`.care-flat` /
+  `.cf-stage`), et la PERMUTATION reste conditionnée au démarrage (avant d'agir on s'oriente).
+  `.care-path`, `.cp-stage`, `.cp-n` purgés avec leurs règles et leurs media queries (règle 14) ;
+  `.cp-h` survit, c'est le titre d'étage. ⚠ PIÈGE RENCONTRÉ : les intitulés d'étage sont des
+  LITTÉRAUX du code, déjà écrits en entités (`Surveillances &amp; pièges`) — les passer par `esc()`
+  les affiche tels quels à l'écran. `esc()` est pour la DONNÉE, pas pour le gabarit.
+- **LE TYPE EST UN FILTRE, PLUS UNE NAVIGATION (v5.0.0, lot M4, décision utilisateur)** : il vivait
+  dans une TAB BAR BASSE fixe, c'est-à-dire dans la grammaire d'une navigation entre SECTIONS — un
+  reste du temps où « Aides » et « Protocoles » étaient deux bibliothèques. Depuis qu'elles n'en font
+  qu'une (lot T9), le type est un filtre comme la bibliothèque et la catégorie : il prend leur forme
+  (`.typebar`, mêmes chips), se pose AU-DESSUS d'elles, et l'on lit du plus large au plus étroit —
+  **Type · Biblio · Catég.** Ce que cela rend : **62 px de hauteur permanents** en bas de l'accueil
+  (la place que la barre fixe réservait) et une grammaire de moins. `#tabBar`/`#tabSeg` purgés avec
+  leur CSS, leur câblage et leur `bindSegDrag` (règle 14) ; la colonne gauche de l'accueil LARGE
+  portait déjà les sections, rien n'y change. Le filtre est **délégué** (la rangée est re-rendue avec
+  le chrome), là où la tab bar était statique et câblée une fois.
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.

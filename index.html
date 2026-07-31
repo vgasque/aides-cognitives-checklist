@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-xMH5Tqk+lFkYxredMJTeGX7btdy32leH6TSo0ZQSpGk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-IqMKY0o2iM8sNTlbrfFx+EwxPOae3qJSW65aJOVSqSg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1608,35 +1608,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .cf-stage{padding:0 0 20px}
   .cf-stage:last-child{padding-bottom:6px}
   .cf-stage.on>.cp-h{color:var(--primary-dk)}
-  .care-path{list-style:none;margin:0 0 6px;padding:0}
-  .cp-stage{position:relative;padding:0 0 20px 40px}
-  .cp-stage:last-child{padding-bottom:6px}
-  .cp-stage:not(:last-child)::before{content:"";position:absolute;left:13px;top:34px;bottom:4px;width:2px;border-radius:1px;background:var(--line)}
-  .cp-n{position:absolute;left:0;top:1px;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;font-variant-numeric:tabular-nums}
-  .cp-stage.on .cp-n{background:var(--primary);color:var(--on-primary)}
-  .cp-stage.done .cp-n{background:var(--ok);color:var(--on-primary)}
-  .cp-stage.off .cp-n{background:var(--surface);color:var(--ink-soft);border:2px solid var(--line-strong)}
-  html[data-theme="dark"] .cp-stage.on .cp-n{background:var(--primary-dk);color:var(--bg)}
-  html[data-theme="dark"] .cp-stage.done .cp-n{background:var(--ok);color:var(--bg)}
   .cp-body{min-width:0}
   /* En-tête d'étape : MÊME registre typographique que .block-h (un seul style de titres) —
      seule la couleur suit l'état, comme h-verify/h-forget suivent le leur. */
   .cp-h{margin:6px 0 10px}
-  .cp-stage.on>.cp-body>.cp-h{color:var(--primary-dk)}
-  @media (max-width:429.98px){.cp-stage{padding-left:33px}.cp-n{width:24px;height:24px;font-size:11px}.cp-stage:not(:last-child)::before{left:11px;top:30px}}
-  /* >= 1000px (vue fiche large, cf. mqReadWide) : pastilles et chiffres agrandis — le rail
-     doit rester lisible à distance sur un grand écran (poste de déchocage). GÉOMÉTRIE LIÉE,
-     ne pas régler « à l'œil » : pour une pastille de W px posée à top:1px,
-     ligne de liaison left = W/2 - 1 et top = 1 + W + 5 ; gouttière = W + 12 ;
-     margin-top du titre = 1 + W/2 - 8,25 (recentrage optique sur le chiffre).
-     Le ✓ des étapes faites suit la pastille via .cp-n svg (le JS pose 13px, valable < 1000px). */
-  @media (min-width:1000px){
-    .cp-stage{padding-left:46px}
-    .cp-n{width:34px;height:34px;font-size:15.5px}
-    .cp-n svg{width:16px;height:16px}
-    .cp-stage:not(:last-child)::before{left:16px;top:40px}
-    .cp-h{margin-top:10px}
-  }
+  @media (min-width:1000px){.cp-h{margin-top:10px}}
   /* Lien « Tableau atypique ? » (étape ① -> différentiels de l'étape ③) : cible 44px (crise). */
   .atyp-link{display:flex;align-items:center;width:100%;min-height:44px;background:none;border:0;border-top:1px solid var(--line);padding:6px 12px;font-family:inherit;font-size:12px;font-weight:700;color:var(--link);cursor:pointer;text-align:left}
   .atyp-link:hover{background:var(--surface-2)}
@@ -2889,7 +2865,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* §8 fin d'algorithme : état annoncé + la session CONTINUE (Terminer ≠ terminer la session). */
   .flow-end{margin-top:16px;padding:15px;text-align:center;border:2px solid var(--done-line);border-radius:8px;color:var(--ok);font-size:15.5px;font-weight:800;letter-spacing:1px}
   /* ----- Vue d'ensemble du mode crise (v4.6.0) : tous les blocs à la suite ----- */
-  /* Bascule Dynamique ↔ Statique : même composant .seg que la tab bar. Contrairement à #tabBar,
+  /* Bascule Dynamique ↔ Statique : composant .seg à pastille glissante. Contrairement au segmenté
+     du dialogue « Créer »,
      ce segment est RE-RENDU (render complet à la bascule) — le glissement de la pastille est
      donc REJOUÉ par le handler (v4.21.0 : .seg-replay la pose sans transition sur l'ancien
      segment, reflow, retrait -> la transition .seg-pill joue comme sur la tab bar). */
@@ -3837,10 +3814,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      (rôles tablist/tab, flèches + focus itinérant — WCAG 1.4.1 & APG). ----- */
   /* Compacte (v4.1.2) : 44px de haut (cible tactile minimale préservée) + paddings resserrés —
      l'ancienne barre (52px + 8/12 de padding) mangeait trop d'écran sur mobile. */
-  #tabBar{display:none;position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--surface);border-top:1px solid var(--line);padding:5px 10px calc(6px + env(safe-area-inset-bottom))}
-  body.view-home #tabBar{display:block}
+  .typebar{display:flex;gap:10px;align-items:center;margin-bottom:8px}
+  .typebar .chiprow{flex:1;min-width:0}
   /* Sélecteur SEGMENTÉ à pastille glissante — composant GÉNÉRIQUE (v4.4.2), partagé par la tab
-     bar basse (#tabBar : Aides <-> Protocoles) et le dialogue « Créer » (Aide <-> Protocole).
+     dialogue « Créer » (Aide <-> Protocole) et le sélecteur de taille du texte.
      L'état vit sur la RACINE (.seg.i1 = 2e segment actif) et la racine n'est JAMAIS re-rendue
      -> la pastille GLISSE au lieu de sauter. Deux segments.
      v4.71.1 : le composant accepte N segments (`--seg-n` / `--seg-i`), pour la TAILLE DU TEXTE
@@ -3860,19 +3837,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      typographique fermée (cf. scripts/check-type.mjs). Largeur FIXE : 4 × 44 + 3 × 8 = 200 px,
      la cible de 44 px étant tenue même au palier le plus étroit servi. */
   #zoomSeg{flex:none;width:200px}
-  /* Le filtre de type a TROIS crans depuis le lot T9 — même mécanique que le sélecteur de taille,
-     par un #id pour ne pas dépendre de l'ordre de déclaration. */
-  #tabSeg .seg-pill{width:calc((100% - (var(--seg-n,3) - 1) * 8px) / var(--seg-n,3));
-    transform:translateX(calc(var(--seg-i,0) * (100% + 8px)))}
   #zoomSeg .seg-pill{width:calc((100% - (var(--seg-n,4) - 1) * 8px) / var(--seg-n,4));
     transform:translateX(calc(var(--seg-i,0) * (100% + 8px)))}
   #zoomSeg .seg-btn{gap:0;font-weight:800}
   #zoomSeg .ts-90{font-size:12px}#zoomSeg .ts-100{font-size:14px}
   #zoomSeg .ts-115{font-size:16.5px}#zoomSeg .ts-130{font-size:18px}
-  #tabBar .seg{max-width:560px;margin:0 auto}   /* skin tab bar : plafond + centrage */
   #createSeg{margin:2px 0 16px}                  /* skin dialogue Créer : respiration */
   /* La tab bar recouvre le bas de page : l'accueil réserve la place (pied de page accessible). */
-  body.view-home .app{padding-bottom:62px}
+  /* Plus de barre fixe en bas de l'accueil (M4) : la hauteur qu'elle réservait est rendue. */
   /* Colonne gauche de l'accueil (>= 780px), rendue par renderHomeList. */
   .home-side{display:none}
   .home-main{min-width:0}
@@ -3949,7 +3921,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .hs-add:hover{background:var(--primary-soft)}
   .hs-add:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   @media (min-width:780px){
-    body.view-home #tabBar{display:none}
     /* COQUE FIXE (canvas) : le shell verrouille la hauteur — en-tête et pied ne bougent jamais,
        SEULS la sidebar et le contenu scrollent (chacun le sien). C'est pour ça que la sidebar
        « colle » : plus aucun scroll de page, donc plus aucun déplacement possible à la bascule
@@ -3969,7 +3940,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .home-main{flex:1;min-width:0;overflow-y:auto;padding:18px 22px calc(24px + env(safe-area-inset-bottom));scrollbar-gutter:stable}
     .home-main>*{max-width:1320px}
     /* En large, bibliothèques et catégories vivent dans la colonne gauche (chips retirées du flux). */
-    body.view-home :is(.scopebar,.catbar){display:none}
+    body.view-home :is(.typebar,.scopebar,.catbar){display:none}
     /* Rail alphabétique en COLONNE de bord (frère de .home-main dans le flex) ; l'accès à
        l'historique global vit dans la sidebar (.hs-row data-sesshist) — le lien du pied de page
        est la voie ÉTROITE, il disparaît ici. */
@@ -4657,12 +4628,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
 </div>
 <!-- Tab bar de section (accueil < 780px, V5) : élément STATIQUE, pastille glissante ; en large
      la colonne gauche de l'accueil porte les sections. Fixée en bas, au pouce (canvas turn 6). -->
-<nav id="tabBar" aria-label="Filtre de type"><div class="seg" id="tabSeg" role="tablist" style="--seg-n:3">
-  <span class="seg-pill" aria-hidden="true"></span>
-  <button class="seg-btn on" role="tab" data-section="all" aria-selected="true" tabindex="0"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>Tout</span></button>
-  <button class="seg-btn" role="tab" data-section="fiches" aria-selected="false" tabindex="-1"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg><span>Aides</span></button>
-  <button class="seg-btn" role="tab" data-section="protocols" aria-selected="false" tabindex="-1"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 016.5 17H20V4H6.5A2.5 2.5 0 004 6.5v13z"/><path d="M4 19.5A2.5 2.5 0 006.5 22H20v-5"/></svg><span>Protocoles</span></button>
-</div></nav>
+
 <div id="screenFlash"></div>
 <!-- Zone d'annonce pour lecteurs d'écran (fin de minuteur, alarmes) : invisible, aria-live. -->
 <div id="srLive" class="sr-only" role="alert" aria-live="assertive"></div>
@@ -8304,14 +8270,10 @@ let _qDebounce=null;   // debounce du champ de recherche (voir l'écouteur 'inpu
    jamais dupliqué) : sélecteur de section, barre de bibliothèques, rangée de catégories. ----- */
 // Sélecteur de section V5 (canvas turn 6) : TAB BAR basse sur l'accueil étroit (< 780px, pastille
 // glissante) ; en large (>= 780px) la colonne gauche porte les sections (rendue par renderHomeList).
-// #tabBar est STATIQUE (jamais re-rendu) -> la pastille GLISSE réellement d'un onglet à l'autre.
-// Clavier : Tab+Entrée sur chaque bouton + flèches gauche/droite sur le groupe (pattern APG
-// « tabs » : flèches = bascule + le focus SUIT l'onglet actif, tabindex itinérant).
-const tabBar=document.getElementById('tabBar');
-tabBar.querySelectorAll('[data-section]').forEach(b=>b.onclick=()=>setSection(b.dataset.section));
-tabBar.onkeydown=e=>{if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;e.preventDefault();
-  setSection(e.key==='ArrowLeft'?'fiches':'protocols');
-  const act=tabBar.querySelector('.seg-btn.on');if(act)act.focus();};
+/* Le filtre de TYPE est délégué, comme les autres chips de l'accueil : la rangée est re-rendue
+   avec le chrome, on ne peut donc pas câbler bouton par bouton. */
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.typebar [data-section]');
+  if(b)setSection(b.dataset.section);});
 // Bascule visuelle d'un sélecteur segmenté (.seg) : classe d'état sur la RACINE + tabindex
 // itinérant. `root` = la racine .seg, `attr` = l'attribut data-* qui porte la valeur du segment.
 // Partagé par la tab bar (data-section) et le dialogue Créer (data-createkind) — un seul patron.
@@ -8329,8 +8291,8 @@ function paintSeg(root,attr,idx){
   const btns=[...root.querySelectorAll('['+attr+']')];
   btns.forEach((b,k)=>{const on=k===i;
     b.classList.toggle('on',on);b.setAttribute('aria-selected',on?'true':'false');b.tabIndex=on?0:-1;});}
-function updateHdrSec(){const r=state.section==='all'?0:(state.section==='fiches'?1:2);
-  paintSeg(document.getElementById('tabSeg'),'data-section',r);}
+function updateHdrSec(){document.querySelectorAll('.typebar [data-section]').forEach(b=>{
+  const on=b.dataset.section===state.section;b.classList.toggle('on',on);b.setAttribute('aria-selected',on?'true':'false');});}
 // Recherche FIXE de l'en-tête (V5) : champ STATIQUE (jamais re-rendu -> le focus survit aux
 // re-rendus), débouncé 150 ms — re-filtrer à chaque frappe ferait ramer la saisie sur mobile.
 {const qi=document.getElementById('q');
@@ -8472,6 +8434,19 @@ function scopeBarHtml(){
         return on?`<span class="scopebtn on${admin?' edit':''}" title="Bibliothèque partagée — rôle : ${esc(_ROLE_LBL[l.role]||l.role)}">${ro?uiIcon('lock',12)+' ':(!admin?uiIcon('lockopen',12)+' ':'')}${esc(l.name)}${admin?`<button class="chip-edit" data-libedit="${esc(l.id)}" title="Modifier la bibliothèque" aria-label="Modifier la bibliothèque « ${esc(l.name)} »">${uiIcon('pen',12)}</button>`:''}</span>`
         :`<button class="scopebtn" data-scope="${esc(l.id)}" title="Bibliothèque partagée — rôle : ${esc(_ROLE_LBL[l.role]||l.role)}">${ro?uiIcon('lock',12)+' ':(!admin?uiIcon('lockopen',12)+' ':'')}${esc(l.name)}</button>`;}).join('')}
       ${myIsAppAdmin?`<button class="scopebtn add" data-newlib title="Créer une bibliothèque partagée">+ Bibliothèque</button>`:''}</div></div>`:'';}
+/* M4 (v5.0.0, décision utilisateur « type en chips, sous la recherche ») — LE TYPE REJOINT LES
+   AUTRES FILTRES. Il vivait dans une TAB BAR BASSE, c'est-à-dire dans la grammaire d'une
+   NAVIGATION entre sections — un reste du temps où « Aides » et « Protocoles » étaient deux
+   bibliothèques. Depuis qu'elles n'en font qu'une (lot T9), le type est un FILTRE comme la
+   bibliothèque et la catégorie : il prend leur forme, se pose au-dessus d'elles, et l'on lit du
+   plus large au plus étroit — Type, Biblio, Catég. Ce que cela rend : 62 px de hauteur permanents
+   en bas de l'accueil (la place que la barre fixe réservait), et une grammaire de moins.
+   La colonne gauche de l'accueil LARGE portait déjà les sections : rien n'y change. */
+function typebarHtml(){
+  const T=[['all','Tout'],['fiches','Aides'],['protocols','Protocoles']];
+  return `<div class="typebar"><span class="scope-lbl">Type</span><div class="chiprow" role="tablist" aria-label="Filtre de type">${
+    T.map(([k,l])=>`<button class="scopebtn${state.section===k?' on':''}" role="tab" aria-selected="${state.section===k?'true':'false'}" data-section="${k}">${l}</button>`).join('')
+  }</div></div>`;}
 // (v4.3.2 : le bandeau « Bibliothèque partagée » a disparu — l'information vit dans le TITRE
 // de liste : « Nom — partagée · lecture seule — n fiches/protocoles », cf. renderHomeList.)
 // Rangée de catégories en chips (accueil ÉTROIT) : mêmes pastilles pour fiches et protocoles.
@@ -8595,7 +8570,7 @@ function renderHomeList(cfg){
   const wide=mqHomeWide.matches;
   {const hc=document.getElementById('homeChrome');
    const _oldScopeRow=hc.querySelector('.scopebar .chiprow');const _scopeRowX=_oldScopeRow?_oldScopeRow.scrollLeft:0;
-   hc.innerHTML=wide?'':(scopeBarHtml()+catbarHtml());hc.hidden=wide||!hc.innerHTML;
+   hc.innerHTML=wide?'':(typebarHtml()+scopeBarHtml()+catbarHtml());hc.hidden=wide||!hc.innerHTML;
    const nsr=hc.querySelector('.scopebar .chiprow');if(nsr&&_scopeRowX)nsr.scrollLeft=_scopeRowX;}
   rescueFooter();
   /* ACCUEIL « POSTE ACCÈS DIRECT » (v4.56.0, maquette 2c). Deux régimes :
@@ -10437,7 +10412,7 @@ function shareOverPaint(){
   /* `querySelector` rend le PREMIER en ordre de DOCUMENT, pas dans l'ordre du sélecteur : le
      chapeau « Ne pas oublier » l'emporte donc quand il existe, ce qui est exactement la place
      qu'occupe le bandeau dans `renderRead`. */
-  else{const apres=main.querySelector('.forget-strip,.care-path,.ov-wrap,.sv-wrap,.nav-wrap');
+  else{const apres=main.querySelector('.forget-strip,.care-flat,.ov-wrap,.sv-wrap,.nav-wrap');
     if(apres)apres.insertAdjacentHTML('beforebegin',h);else main.insertAdjacentHTML('afterbegin',h);}
   const q=document.getElementById('soQuit');if(q)q.onclick=quitShare;}
 function bindLeadGuard(){
@@ -11267,17 +11242,15 @@ function renderRead(){
     +((!cockpit&&ladRail)?`<div class="rail-sec">${ladRail}</div>`:'')
     +(tkH?`<div class="rail-sec">${tkH}</div>`:'')
     +`</aside></div>`:'';
-  /* ----- PARCOURS DE SOIN (v4.4.0) : la fiche met en scène la séquence clinique
-     ① Confirmer le diagnostic → ② Prise en charge → ③ Surveillances & pièges.
-     <ol class="care-path"> sémantique : aria-current="step" sur l'étape active, état aussi
-     porté par le TEXTE (« Diagnostic confirmé ») et le glyphe ✓ — jamais la couleur seule
-     (WCAG 1.4.1). Rail = bleu (active) / vert (faite) / neutre (à venir) SEULEMENT — ambre
-     et rouge restent des registres d'alerte, jamais des états de parcours (ECAM). La séquence
-     est SUGGÉRÉE, pas imposée (QRH : jamais bloquant — cocher une étape démarre toujours).
-     « Ne pas oublier » reste le CHAPEAU hors numérotation (memory items transversaux).
-     Étapes vides omises, numérotation recalculée ; une seule étape non vide -> pas de rail
-     (pas de « 1 » orphelin). Le contenu des étapes faites/à venir reste pleinement lisible :
-     seul le numéro encode l'état. */
+  /* ----- LES ÉTAGES DE LA FICHE (v4.4.0 → v5.0.0) : condition d'entrée → prise en charge →
+     surveillances. Le RAIL NUMÉROTÉ ①②③ qui les ossaturait est SUPPRIMÉ (M2a) : deux
+     numérotations concurrentes dans la même colonne — la sienne et celle des BLOCS — sont deux
+     vocabulaires pour situer un même geste, ce qu'AC 120-71B proscrit ; celle des blocs reste,
+     étant commune au journal, au plan, au statique et au SVG. Les étages demeurent des SECTIONS
+     titrées (`.care-flat` / `.cf-stage`), l'état porté par le titre et le texte, jamais par une
+     couleur seule (WCAG 1.4.1). La séquence est SUGGÉRÉE, jamais bloquante (QRH) ; « Ne pas
+     oublier » reste le CHAPEAU, hors séquence. Une fois la session démarrée, « Prise en charge »
+     passe en TÊTE (lot T5) : avant d'agir on s'oriente, pendant on agit. */
   const confItems=clean(listOf(f,'confirmation'));
   const verifyH=staticBlock('△ À vérifier — surveillances','h-verify',listOf(f,'verify'),'verify');
   const diffH=staticBlock('Diagnostics différentiels — si tableau atypique','h-diff',listOf(f,'differentials'),'diff');
@@ -11307,6 +11280,14 @@ function renderRead(){
   /* DÉCLARÉ ICI, ET PAS PLUS BAS : le lot T3 a payé une zone morte temporelle (`started` lu
      24 lignes avant sa déclaration → ReferenceError → tout le rendu échouait, sans qu'aucun
      test ni aucun garde-fou ne le voie, puisque ni l'un ni l'autre n'exerce un rendu). */
+  /* M2a (v5.0.0, décision utilisateur « le retirer partout ») — LE RAIL ①②③ N'EXISTE PLUS.
+     Le lot T5 l'avait retiré EN SESSION ; les maquettes ne le montrent nulle part, hors session
+     comprise, et les numéros y vivent sur les BLOCS. Deux numérotations concurrentes dans la
+     même colonne (le rail ①②③ et les pastilles de bloc) sont exactement ce qu'AC 120-71B
+     proscrit : deux vocabulaires pour situer un même geste. C'est celle des BLOCS qui reste —
+     elle est commune au journal, au plan, au statique et au SVG (`flowPlan().order`), quand le
+     rail ne parlait qu'à lui-même. La PERMUTATION, elle, reste conditionnée au démarrage :
+     avant d'agir on s'oriente, et la condition d'entrée QRH se lit d'abord. */
   const agirDabord=Runtime.started&&!useSv;
   const stages=[];
   if(useSv){
@@ -11351,9 +11332,7 @@ function renderRead(){
   if(agirDabord&&stages.length>1){const i=stages.findIndex(x=>x.head==='Prise en charge');
     if(i>0)stages.unshift(stages.splice(i,1)[0]);}
   const pathH=stages.length>1
-    ?(agirDabord
-      ?`<div class="care-flat">${stages.map(s=>`<section class="cf-stage ${s.cls}">${s.head?`<div role="heading" aria-level="2" class="block-h cp-h">${s.head}</div>`:''}${s.body}</section>`).join('')}</div>`
-      :`<ol class="care-path">${stages.map((s,i)=>`<li class="cp-stage ${s.cls}"${s.cls==='on'?' aria-current="step"':''}><span class="cp-n" aria-hidden="true">${s.cls==='done'?uiIcon('check',13,{sw:3.2,cls:''}):(i+1)}</span><div class="cp-body">${s.head?`<div role="heading" aria-level="2" class="block-h cp-h">${s.head}</div>`:''}${s.body}</div></li>`).join('')}</ol>`)
+    ?`<div class="care-flat">${stages.map(s=>`<section class="cf-stage ${s.cls}">${s.head?`<div role="heading" aria-level="2" class="block-h cp-h">${s.head}</div>`:''}${s.body}</section>`).join('')}</div>`
     :stages.map(s=>s.body).join('');
   // DÉFILEMENT DU RAIL PRÉSERVÉ (v4.23.5) : `.read-side` a son propre `overflow-y:auto` ; comme
   // `main.innerHTML` reconstruit tout, son `scrollTop` retombait à 0 à CHAQUE re-rendu — la barre
@@ -12036,7 +12015,7 @@ bindModalDismiss(planModal,closePlanSheet);
    const selAp=id?dest.replace('%',CSS.escape(id)):null;
    const d=keepAnchor(selAv,render,selAp);
    if(d==null)window.scrollTo(0,0);
-   const w=main.querySelector(toStatic?'.sv-wrap':'.care-path,.ov-wrap');
+   const w=main.querySelector(toStatic?'.sv-wrap':'.care-flat,.ov-wrap');
    if(w){w.classList.add(toStatic?'rm-anim-r':'rm-anim-l');
      const off=()=>w.classList.remove('rm-anim-l','rm-anim-r');
      w.addEventListener('animationend',off,{once:true});setTimeout(off,500);}
@@ -12079,7 +12058,6 @@ bindModalDismiss(planModal,closePlanSheet);
     root.addEventListener('pointerup',end);root.addEventListener('pointercancel',end);
     root.addEventListener('click',e=>{if(just&&e.isTrusted){e.stopPropagation();e.preventDefault();}},true);};
   bindSegDrag(seg);
-  bindSegDrag(document.getElementById('tabSeg'));
   bindSegDrag(document.getElementById('createSeg'));
   seg.onkeydown=e=>{if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;e.preventDefault();go(e.key==='ArrowLeft'?'dynamic':'static');};}}
 /* ===== FEUILLE « CONSULTER » (v4.23.0) =====
