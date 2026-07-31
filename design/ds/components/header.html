@@ -1291,6 +1291,16 @@
      `pathH`. Aucune couleur, aucun registre ne change : seule l'ossature s'en va. L'écart entre
      sections est celui du rail (20 px), pour que le passage d'un état à l'autre ne fasse pas
      respirer la page différemment. */
+  /* Onglets du cran « Toute la fiche » (lot T8) : le gabarit des chips du dépôt, pas un composant
+     de plus. Cible 44 px, filet bas continu pour que la rangée se lise comme une rangée. */
+  .all-tabs{display:flex;gap:4px;margin:0 0 10px;border-bottom:1px solid var(--line)}
+  .at-b{appearance:none;background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;
+    padding:0 12px;min-height:44px;font:inherit;font-size:13.5px;font-weight:600;color:var(--ink-soft);
+    cursor:pointer;touch-action:manipulation;border-radius:8px 8px 0 0}
+  .at-b.on{color:var(--primary-dk);border-bottom-color:var(--primary);font-weight:600}
+  .at-b:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  @media (pointer:fine){.at-b:not(.on):hover{background:var(--hover)}}
+  .all-svg{margin:0 0 10px}
   .care-flat{margin:0 0 6px}
   .cf-stage{padding:0 0 20px}
   .cf-stage:last-child{padding-bottom:6px}

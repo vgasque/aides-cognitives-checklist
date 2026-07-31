@@ -2657,6 +2657,41 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   « a::b » revient en « a :: b » — une normalisation d'espaces n'est pas une perte de sens, et
   exiger l'identité stricte ferait échouer un témoin sur un non-défaut. On mesure donc que deux
   passages donnent exactement ce que donne un seul : une perte RÉELLE se verrait au second.
+- **L'AXE DE DENSITÉ — « UN BLOC » / « TOUTE LA FICHE », ET TROIS FAÇONS DE REGARDER LA SECONDE
+  (v5.0.0, lot T8, LIVRÉ PARTIELLEMENT).** Le sélecteur demandait d'arbitrer entre deux
+  PRÉSENTATIONS (« Guidé » / « Statique ») — un choix qu'aucun néophyte et aucun expert sous stress
+  ne devrait avoir à faire. Il nomme désormais une **DENSITÉ** : combien de la fiche on veut voir.
+  **CE QUI EST LIVRÉ** : les deux crans du haut, et le cran « Toute la fiche » devenu un conteneur à
+  **trois onglets** — **Parcours** (l'Échelle, qui vivait derrière le bouton « Se repérer » de la
+  rangée de commandes), **Page** (le tableau statique) et **Schéma** (`buildFlowSVG`, qui vivait
+  dans le menu ⋯). **CE QUI NE L'EST PAS** : le cran « Une étape » (le mode lecteur reste une
+  SURFACE, il n'est pas encore une densité de la colonne) et la page SFAR en tant que document
+  distinct — le tableau statique en tient lieu.
+  **AUCUN DES TROIS RENDUS N'EST RÉÉCRIT, ET C'EST UNE CONTRAINTE, PAS UNE PRÉFÉRENCE** : réécrire
+  le générateur SVG reperdrait les flèches mesurées, la contre-inversion sombre, le cache de
+  géométrie et la navigation par nœud — la classe de régression exacte que la règle 14 existe pour
+  empêcher.
+  **MAIS LES REPRENDRE NE SUFFIT PAS : IL FAUT REBRANCHER LEURS ÉCOUTEURS.** Posé dans un onglet
+  sans `bindFlowZoom` / `flowPaintState` / `bindSvgNav`, le schéma n'est plus qu'une IMAGE —
+  **mesuré à la première passe : zoom figé à 100 % au clic, état de session non peint**. Trois
+  témoins mesurent donc le zoom, la peinture et l'invariant « taper un nœud NAVIGUE et ne coche
+  rien » (v4.7.0) ; vérifiés capables d'échouer.
+  **LA PAGE RESTE LE DÉFAUT DU CRAN 3, DÉLIBÉRÉMENT** : c'est ce que ce cran affichait déjà, et un
+  lot qui AJOUTE deux façons de regarder n'a pas à changer par surprise ce que voit celui qui n'a
+  rien demandé. L'onglet n'est pas persisté (`state.allTab`, classé `SHARE_LOCAL`) : c'est une
+  consultation, pas un réglage — même règle que l'ancien sélecteur de vue du plan.
+  **RETIRER UN ÉLÉMENT, C'EST BALAYER SES RÉFÉRENCES (règle 14, payée ici)** : `#planBtn` supprimé
+  de la rangée, `syncDock` faisait toujours `pb.hidden=…` sur `null` → **le démarrage entier
+  échouait**, sans une ligne de console, `.boot-load` figée. **Ni `npm test` ni `npm run check` ne
+  pouvaient le voir** — la suite charge la page avec `?__actest`, qui n'amorce pas. C'est la
+  deuxième fois de ce chantier qu'un défaut de RENDU passe sous les deux garde-fous (cf. la zone
+  morte du lot T3) : après une modification du chrome de lecture, seule une sonde qui AMORCE
+  l'application prouve que l'écran s'affiche.
+  **⚠ T5b N'EST PAS DÉBLOQUÉ POUR AUTANT, ET LE PLAN SE TROMPAIT** : la rangée passe de 313 à
+  **271 px** à 320 (de 351 à 301 à 390), mais le quai en réclame 324 — **595 px pour 320
+  disponibles**. Libérer un bouton ne suffit pas : la fusion demanderait de retirer aussi le cran
+  « Une étape » à venir, ou d'abréger, ce que la doctrine interdit. À rouvrir avec des chiffres,
+  pas avec l'hypothèse du plan.
 - **EN SESSION, L'ACTION PASSE DEVANT L'ORIENTATION — ET LE RAIL ①②③ CESSE D'ÊTRE L'OSSATURE
   (v5.0.0, lot T5 ; règle v4.4.0 ROUVERTE).** Le rail numérote un PARCOURS : il oriente quelqu'un
   qui découvre la fiche, et c'est exactement ce dont on n'a plus besoin une fois qu'on exécute.

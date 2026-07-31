@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-cpolQsTbSpQuA3FbrYiM0vuDhsnWIzVa7uSYZXN8BTA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-xUvJ7QTvpd2JXLR0rUA8mfBTbYszw8xEzgLAMomDQuY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1576,6 +1576,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      `pathH`. Aucune couleur, aucun registre ne change : seule l'ossature s'en va. L'écart entre
      sections est celui du rail (20 px), pour que le passage d'un état à l'autre ne fasse pas
      respirer la page différemment. */
+  /* Onglets du cran « Toute la fiche » (lot T8) : le gabarit des chips du dépôt, pas un composant
+     de plus. Cible 44 px, filet bas continu pour que la rangée se lise comme une rangée. */
+  .all-tabs{display:flex;gap:4px;margin:0 0 10px;border-bottom:1px solid var(--line)}
+  .at-b{appearance:none;background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;
+    padding:0 12px;min-height:44px;font:inherit;font-size:13.5px;font-weight:600;color:var(--ink-soft);
+    cursor:pointer;touch-action:manipulation;border-radius:8px 8px 0 0}
+  .at-b.on{color:var(--primary-dk);border-bottom-color:var(--primary);font-weight:600}
+  .at-b:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  @media (pointer:fine){.at-b:not(.on):hover{background:var(--hover)}}
+  .all-svg{margin:0 0 10px}
   .care-flat{margin:0 0 6px}
   .cf-stage{padding:0 0 20px}
   .cf-stage:last-child{padding-bottom:6px}
@@ -4646,9 +4656,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        puis les deux ouvertures poussées à DROITE (l'espace sépare les deux natures, sans ajouter
        de trait). Même glyphe ⤢ pour les deux : elles font exactement la même chose. -->
   <div id="crisisCtrl" hidden><div class="dock-in">
-    <div class="seg mode-seg" id="modeSeg" role="tablist" aria-label="Mode de lecture" hidden><span class="seg-pill" aria-hidden="true"></span><button type="button" class="seg-btn on" role="tab" aria-selected="true" data-readmode="dynamic">Guidé</button><button type="button" class="seg-btn" role="tab" aria-selected="false" data-readmode="static">Statique</button></div>
+    <div class="seg mode-seg" id="modeSeg" role="tablist" aria-label="Densité d'affichage" hidden><span class="seg-pill" aria-hidden="true"></span><button type="button" class="seg-btn on" role="tab" aria-selected="true" data-readmode="dynamic">Un bloc</button><button type="button" class="seg-btn" role="tab" aria-selected="false" data-readmode="static">Toute la fiche</button></div>
     <span class="ctrl-sp"></span>
-    <button id="planBtn" hidden class="dock-plan" aria-haspopup="dialog" aria-label="Se repérer — échelle des blocs"><span class="dp-ic" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6"/><path d="M10 20H4v-6"/><path d="M20 4l-7 7"/><path d="M4 20l7-7"/></svg></span><span class="dp-lbl">Se repérer</span></button>
+    <!-- « Se repérer » a QUITTÉ cette rangée au lot T8 (v5.0.0) : son Échelle est devenue
+         l'onglet « Parcours » du cran « Toute la fiche ». Le geste reste au menu ⋯ — ce qui part
+         d'ici, c'est la LARGEUR, et c'est elle que le lot T5b attend. -->
     <button id="refBtn" hidden class="dock-plan" aria-haspopup="dialog" aria-label="Consulter — surveillances, différentiels, documents"><span class="dp-ic" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6"/><path d="M10 20H4v-6"/><path d="M20 4l-7 7"/><path d="M4 20l7-7"/></svg></span><span class="dp-lbl"><span class="dp-full">Consulter</span><span class="dp-ab">Cons.</span></span></button>
   </div></div>
   <div id="crisisDock" hidden><div class="dock-in">
@@ -5776,7 +5788,7 @@ async function startExercise(f){
     endSession(Runtime);}
   freshRuntime(f,null);Runtime.fiche=f;liveSessions[f.id]=Runtime;
   Runtime.exercise=true;
-  state.flowEnded=false;state.ovVerify=null;state.confOpen=undefined;state.fsOpen=false;
+  state.flowEnded=false;state.ovVerify=null;state.confOpen=undefined;state.fsOpen=false;state.allTab='page';
   render();window.scrollTo(0,0);_exoPulse();}
 /* QUITTER L'EXERCICE (v4.28.0, demande utilisateur) : sortie DIRECTE sur le placard. Avant la
    1ʳᵉ action il n'y a rien à archiver — on repose une fiche neuve ; après, MÊME dialogue
@@ -7995,9 +8007,16 @@ function applyViewChrome(){
    // de brouillon, et hors mode STATIQUE — où le tableau EST déjà la vue d'ensemble (doctrine
    // v4.13.0 : pas de panneau « Algorithme » en statique). Fermer la feuille si elle survivait
    // à un changement de vue ou de mode.
+   /* LOT T8 — « Se repérer » A QUITTÉ LA RANGÉE DE COMMANDES : son Échelle est l'onglet
+      « Parcours » du cran « Toute la fiche ». Le bouton n'existe donc plus, mais la FEUILLE, elle,
+      reste (menu ⋯, et « complet » depuis le rail) : la condition de fermeture doit survivre au
+      bouton. `pb` est gardé — retirer un élément sans balayer ses références est le défaut que la
+      règle 14 nomme, et il a coûté ici un démarrage entier (`pb.hidden` sur null, aucune console,
+      `.boot-load` figée : la suite de tests ne l'a pas vu, elle charge la page avec `?__actest`
+      qui n'amorce pas). */
    {const pb=document.getElementById('planBtn');
     const okPlan=crisis&&!state.previewFrom&&hasFlow(state.fiche)&&state.readMode!=='static';
-    pb.hidden=!okPlan;
+    if(pb)pb.hidden=!okPlan;
     if(!okPlan)closePlanSheet();}
    // « Réf. » : accès permanent à la couche de consultation. Pas de condition d'algorithme (une
    // fiche mono-bloc a aussi des annexes) ; masqué en aperçu de brouillon et hors lecture.
@@ -12638,6 +12657,8 @@ function svBranchIssue(items,a,z){let out=null,d=0;
 function svLoopTargets(items){const seen=[],has={};
   (items||[]).forEach(it=>{if(it&&it.k==='link'&&it.back&&!has[it.to]){has[it.to]=true;seen.push(it.to);}});
   return seen.slice(0,2);}
+const ALL_TABS=['parcours','page','schema'];
+const ALL_TAB_LBL={parcours:'Parcours',page:'Page',schema:'Schéma'};
 function staticSection(f){
   state.navPos=state.nav.length-1;   // même règle que le journal : la position EST le bout
   const cur=state.nav[state.navPos];
@@ -12645,7 +12666,25 @@ function staticSection(f){
   const tipDone=(()=>{const b=f.blocks.find(x=>x.id===cur);if(!b||b.type==='decision')return {d:null,t:null};
     const steps=clean(b.steps);const seq=state.navSeq[state.navPos]||1;
     let d=0;steps.forEach((s,i)=>{if(state.checked[seq+':'+cur+':'+i])d++;});return {d,t:steps.length};})();
-  const inner=`<div class="sv-tb">${svExtras(f,'top')}${svTableHtml(f)}${svExtras(f,'bottom')}</div>`;
+  /* LOT T8 — « TOUTE LA FICHE » EST UN CRAN DE DENSITÉ, ET IL SE REGARDE DE TROIS FAÇONS.
+     Ce ne sont PAS trois vues nouvelles : ce sont les trois rendus que le dépôt possède déjà,
+     rassemblés sous le cran qui les concerne tous les trois — la PAGE (le tableau statique), le
+     PARCOURS (l'Échelle, qui vivait derrière le bouton « Se repérer » de la rangée de commandes)
+     et le SCHÉMA (`buildFlowSVG`, qui vivait dans le menu ⋯). Aucun n'est réécrit : c'est une
+     contrainte du plan, pas une préférence — réécrire le générateur SVG reperdrait les flèches
+     mesurées, la contre-inversion sombre, le cache de géométrie et la navigation par nœud.
+     LA PAGE RESTE LE DÉFAUT, DÉLIBÉRÉMENT : c'est ce que ce cran affiche aujourd'hui, et un lot
+     qui AJOUTE deux façons de regarder n'a pas à changer par surprise ce que voit celui qui n'a
+     rien demandé. L'onglet n'est pas persisté (même règle que l'ancien sélecteur de vue du plan) :
+     c'est une consultation, pas un réglage. */
+  const tab=ALL_TABS.indexOf(state.allTab)>=0?state.allTab:'page';
+  const onglets=`<div class="all-tabs" role="tablist" aria-label="Façon de regarder l'aide entière">`
+    +ALL_TABS.map(k=>`<button type="button" role="tab" class="at-b${k===tab?' on':''}" aria-selected="${k===tab?'true':'false'}" data-alltab="${k}">${ALL_TAB_LBL[k]}</button>`).join('')
+    +`</div>`;
+  const corps=tab==='parcours'?ovPlanHtml(f)
+             :tab==='schema'?`<div class="all-svg">${flowBlock(f,true)}</div>`
+             :`<div class="sv-tb">${svExtras(f,'top')}${svTableHtml(f)}${svExtras(f,'bottom')}</div>`;
+  const inner=onglets+corps;
   return {blk,cur,navHtml:`<div class="sv-wrap">${inner}</div>`,inner,
     blockDone:tipDone.d,blockTot:tipDone.t};}
 // Sections de la fiche EN CELLULES du tableau statique (v4.14.0, maquette validée) :
@@ -12970,7 +13009,27 @@ function svJump(f,id){if(!f||!(f.blocks||[]).some(b=>b.id===id))return;
 // DANS le tableau (lecture pure) ; cellule/bande = svJump. Clavier : Entrée/Espace.
 function bindStaticEvents(f){
   const wrap=main.querySelector('.sv-wrap');if(!wrap)return;
+  /* LE SCHÉMA EST REPRIS TEL QUEL — DONC SES ÉCOUTEURS AUSSI (lot T8). Poser le SVG dans un
+     onglet ne suffit pas : sans ce rebranchement il n'est qu'une IMAGE — mesuré, le zoom restait
+     à 100 % au clic et l'état de session n'était pas peint. Ce sont exactement les trois
+     comportements que le plan interdit de reperdre : `bindFlowZoom` (zoom 25-400 % + plein écran),
+     `flowPaintState` (l'état peint PAR CLASSES après insertion, jamais rebâti) et `bindSvgNav`
+     (taper un nœud = y aller, JAMAIS cocher, JAMAIS démarrer une session).
+     Même séquence qu'au journal (`renderOvOnly`) : une seconde manière de réveiller le SVG
+     finirait par diverger de la première. */
+  {const fs=wrap.querySelector('.all-svg .flow-scroll');
+   if(fs){bindFlowZoom();applyFlowZoom();restoreFlow();flowPaintState(fs,f);bindSvgNav(fs,f);}}
   const handle=t=>{
+    /* CHANGER D'ONGLET NE RE-REND QUE CE CRAN (`renderSvOnly`), jamais la page : la rangée
+       d'onglets est le seul objet qui ne doit pas bouger sous le doigt qui vient de la taper.
+       L'ancre de défilement est remise en haut du cran — les trois onglets n'ont ni la même
+       hauteur ni les mêmes repères, conserver `scrollY` d'une vue à l'autre ne voudrait rien dire
+       (même raisonnement que la bascule de densité, v4.74.2). */
+    {const at=t.closest('[data-alltab]');
+     if(at){const k=at.dataset.alltab;
+       if(ALL_TABS.indexOf(k)>=0&&k!==state.allTab){state.allTab=k;renderSvOnly();
+         const w=main.querySelector('.sv-wrap');if(w)ovScrollEl(w);}
+       return;}}
     // v4.14.2 : le bouton « démarrer » vit dans le tableau (sous Confirmation/Éliminer) —
     // même geste que son homologue du parcours (délégation : survit à renderSvOnly).
     if(t.closest('#sessStart')){state.confOpen=false;if(ensureStarted())render();return;}

@@ -227,7 +227,15 @@ for (const theme of ['light','dark']) {
       c.click();
       document.getElementById('sessStart').click();
       await new Promise(r=>setTimeout(r,300));
-      if(kind==='plan'){document.getElementById('planBtn').click();await new Promise(r=>setTimeout(r,300));}
+      /* LOT T8 (v5.0.0) — le bouton « Se repérer » a QUITTÉ la rangée de commandes : son Échelle
+         est devenue l'onglet « Parcours » du cran « Toute la fiche ». La FEUILLE, elle, existe
+         toujours (menu ⋯, « complet » depuis le rail) et reste donc à mesurer : on l'ouvre par sa
+         fonction plutôt que par un bouton disparu. Sans ce correctif la sonde ne rougissait pas —
+         elle levait une exception et EMPORTAIT les seize harnais suivants (`&&` en chaîne), le
+         défaut de la v4.70.1 exactement. */
+      if(kind==='plan'){const b=document.getElementById('planBtn');
+        if(b)b.click();else if(typeof openPlanSheet==='function')openPlanSheet();
+        await new Promise(r=>setTimeout(r,300));}
       if(kind==='ref'){const rb=document.getElementById('refBtn');if(rb)rb.click();await new Promise(r=>setTimeout(r,300));}
     }, S.prep && S.prep.indexOf('dlg:')===0 ? null : S.prep);
     // Fenêtres ouvertes par leur VRAI point d'entrée (jamais un classList.add('on') : une modale

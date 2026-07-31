@@ -33,15 +33,19 @@ console.log('\n══ ECAM · constance positionnelle du quai ══');
     .map(e=>e.id||e.className));
   const geo=id=>page.evaluate(i=>{const e=document.getElementById(i);
     return e&&!e.hidden?Math.round(e.getBoundingClientRect().left):null;},id);
-  const a=await snap(), pa=await geo('planBtn'), ra=await geo('refBtn');
+  /* LOT T8 (v5.0.0) — « Se repérer » a quitté la rangée : l'immobilité se mesure désormais sur
+     ce qui l'occupe, c'est-à-dire l'AXE DE DENSITÉ et « Consulter ». L'invariant ECAM est
+     inchangé (un contrôle est toujours au même endroit quel que soit l'état du quai) ; c'est la
+     liste des contrôles qui a changé, pas la règle. */
+  const a=await snap(), pa=await geo('modeSeg'), ra=await geo('refBtn');
   // faire varier l'état : ajouter des minuteurs (la partie VARIABLE du quai)
   await page.evaluate(async()=>{
     const add=[...document.querySelectorAll('.rt-add,.add-line')];
     for(const b of add.slice(0,3)){b.click();await new Promise(r=>setTimeout(r,120));}});
   await page.waitForTimeout(300);
-  const b=await snap(), pb=await geo('planBtn'), rb=await geo('refBtn');
+  const b=await snap(), pb=await geo('modeSeg'), rb=await geo('refBtn');
   t('ordre du quai identique quel que soit l\'état', JSON.stringify(a)===JSON.stringify(b), a+'\n      → '+b);
-  t('bouton Plan immobile (px)', pa!==null&&pa===pb, `${pa} → ${pb}`);
+  t('axe de densité immobile (px)', pa!==null&&pa===pb, `${pa} → ${pb}`);
   t('bouton Réf. immobile (px)', ra===rb, `${ra} → ${rb}`);
   // Débordement JAMAIS silencieux : on fait ÉCHOIR 3 minuteurs d'intervalle, le quai n'en
   // montre que 2 en large — le 3ᵉ doit être annoncé par un « +n », jamais escamoté.
@@ -239,7 +243,7 @@ console.log('\n══ ECAM · rangée de commandes sans rognage (320/360/375/390
          la doctrine interdit explicitement (« deux pictogrammes voisins sans mot se confondent sous
          stress »). On exige que chaque bouton porte encore du texte. */
       t(`${w} px à ${z} % : les libellés sont intacts`,
-        /Guid/.test(r.libelles)&&/Statique/.test(r.libelles)&&/rep.rer/.test(r.libelles)&&/Cons/.test(r.libelles),
+        /Un bloc/.test(r.libelles)&&/Toute la fiche/.test(r.libelles)&&/Cons/.test(r.libelles),
         r.libelles);
     }
   }
@@ -268,7 +272,7 @@ console.log('\n══ ECAM · rangée de commandes sans rognage (320/360/375/390
       t(`${w} px : la rangée de commandes tient sur UNE ligne`,
         !r.wrapped&&r.h<=h1+2, `hauteur ${r.h} px (référence ${h1}), wrapped=${r.wrapped}`);
       t(`${w} px : les libellés sont intacts`,
-        /Guid/.test(r.libelles)&&/Statique/.test(r.libelles)&&/rep.rer/.test(r.libelles)&&/Cons/.test(r.libelles),
+        /Un bloc/.test(r.libelles)&&/Toute la fiche/.test(r.libelles)&&/Cons/.test(r.libelles),
         r.libelles);
     }
   }
@@ -883,6 +887,66 @@ for (const w of [320, 360, 390, 430]) {
   t(`${w} · minuteur ARMÉ : le rappel s'efface, le segment reprend la place`,
     !/\d+ minuteur/.test(r.arme.txt) && /\d\d:\d\d/.test(r.arme.txt), r.arme.txt);
   t(`${w} · … et là non plus rien ne déborde`, r.arme.deb<=1, `${r.arme.deb} px`);
+  await page.close();
+}
+
+/* LOT T8 — L'AXE DE DENSITÉ, ET LES TROIS FAÇONS DE REGARDER L'AIDE ENTIÈRE (v5.0.0).
+   Le contrôle qui compte n'est pas « les onglets s'affichent » : c'est que le SCHÉMA GARDE SES
+   COMPORTEMENTS. Le plan interdit de réécrire `buildFlowSVG` — mais poser le SVG dans un onglet
+   sans rebrancher ses écouteurs le réduit à une IMAGE, et c'est ce qui s'est produit à la première
+   passe (mesuré : zoom figé à 100 %, état de session non peint). On mesure donc le zoom, la
+   peinture d'état et la navigabilité, pas la présence. */
+console.log('\n══ T8 · axe de densité — « toute la fiche » se regarde de trois façons ══');
+for (const w of [320, 390]) {
+  const page = await br.newPage({viewport:{width:w,height:844},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await page.evaluate(async()=>{const wt=m=>new Promise(r=>setTimeout(r,m));
+    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();await wt(200);
+    const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await wt(700);});
+  const r = await page.evaluate(async()=>{const wt=m=>new Promise(r=>setTimeout(r,m));
+    const f=fiches.find(x=>/Anaphylaxie/i.test(x.title))||fiches[0]; openRead(f.id); await wt(400);
+    const b=document.getElementById('sessStart'); if(b)b.click(); await wt(600);
+    const seg=[...document.querySelectorAll('#modeSeg .seg-btn')].map(e=>e.textContent.trim());
+    const planBtn=!!document.getElementById('planBtn');
+    document.querySelector('#modeSeg [data-readmode="static"]').click(); await wt(600);
+    const ong=[...document.querySelectorAll('.at-b')].map(e=>e.textContent.trim());
+    const defaut=(document.querySelector('.at-b.on')||{}).textContent||'';
+    const pageOk=!!document.querySelector('.sv-tb');
+    const tabs=document.querySelector('.all-tabs');
+    const debord=tabs?Math.round(tabs.scrollWidth-tabs.clientWidth):null;
+    const cible=Math.min(...[...document.querySelectorAll('.at-b')].map(e=>e.getBoundingClientRect().height));
+    document.querySelector('[data-alltab="parcours"]').click(); await wt(400);
+    const parc=!!document.querySelector('.ov-plan')&&!document.querySelector('.sv-tb');
+    document.querySelector('[data-alltab="schema"]').click(); await wt(600);
+    const zAv=(document.querySelector('.all-svg .fzv')||{}).textContent||'';
+    const zb=document.querySelector('.all-svg [data-zoom="in"]'); if(zb)zb.click(); await wt(300);
+    const zAp=(document.querySelector('.all-svg .fzv')||{}).textContent||'';
+    const peint=!!document.querySelector('.all-svg svg .fn-cur, .all-svg svg .fn-ok');
+    const navAv=(state.nav||[]).length;
+    const coche=Object.keys(state.checked||{}).filter(k=>state.checked[k]).length;
+    const nd=document.querySelector('.all-svg svg [data-fgo]'); if(nd)nd.dispatchEvent(new MouseEvent('click',{bubbles:true})); await wt(300);
+    return {seg,planBtn,ong,defaut,pageOk,debord,cible,parc,zAv,zAp,peint,
+            navBouge:(state.nav||[]).length!==navAv,
+            cocheApres:Object.keys(state.checked||{}).filter(k=>state.checked[k]).length,cocheAvant:coche};});
+  t(`${w} · l'axe nomme des DENSITÉS, plus des présentations`,
+    r.seg.join('|')==='Un bloc|Toute la fiche', r.seg.join('|'));
+  t(`${w} · « Se repérer » a quitté la rangée de commandes`, r.planBtn===false);
+  t(`${w} · trois façons de regarder l'aide entière`,
+    r.ong.join('|')==='Parcours|Page|Schéma', r.ong.join('|'));
+  /* LA PAGE RESTE LE DÉFAUT : un lot qui AJOUTE deux vues n'a pas à changer par surprise ce que
+     voit celui qui n'a rien demandé. */
+  t(`${w} · … et la Page reste ce qu'on voit d'abord`, r.defaut==='Page'&&r.pageOk, r.defaut);
+  t(`${w} · les onglets ne débordent pas`, r.debord!==null&&r.debord<=1, `${r.debord} px`);
+  t(`${w} · … et restent des cibles de 44 px`, r.cible>=44, `${r.cible} px`);
+  t(`${w} · « Parcours » montre l'Échelle, pas la page`, r.parc===true);
+  t(`${w} · le SCHÉMA garde son zoom (il n'est pas une image)`, r.zAv!==r.zAp, `${r.zAv} → ${r.zAp}`);
+  t(`${w} · … et son état de session PEINT`, r.peint===true);
+  /* NAVIGUER ≠ AGIR : taper un nœud y va, il ne coche RIEN. Invariant v4.7.0, qu'un changement de
+     logement ne doit pas altérer. */
+  t(`${w} · taper un nœud NAVIGUE et ne coche rien`,
+    r.cocheApres===r.cocheAvant, `${r.cocheAvant} → ${r.cocheApres}`);
   await page.close();
 }
 
