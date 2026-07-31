@@ -2815,11 +2815,25 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   deuxième fois de ce chantier qu'un défaut de RENDU passe sous les deux garde-fous (cf. la zone
   morte du lot T3) : après une modification du chrome de lecture, seule une sonde qui AMORCE
   l'application prouve que l'écran s'affiche.
-  **⚠ T5b N'EST PAS DÉBLOQUÉ POUR AUTANT, ET LE PLAN SE TROMPAIT** : la rangée passe de 313 à
-  **271 px** à 320 (de 351 à 301 à 390), mais le quai en réclame 324 — **595 px pour 320
-  disponibles**. Libérer un bouton ne suffit pas : la fusion demanderait de retirer aussi le cran
-  « Une étape » à venir, ou d'abréger, ce que la doctrine interdit. À rouvrir avec des chiffres,
-  pas avec l'hypothèse du plan.
+  **⚠ LE CRAN « UNE ÉTAPE » NE TIENT PAS DANS LA RANGÉE, ET C'EST ARITHMÉTIQUE (mesuré)** : un
+  troisième segment porte l'axe de **151 à 220 px**, donc la rangée de commandes de 267 à
+  **336 px pour 320 disponibles** — elle s'enroulerait EN PERMANENCE sur le plus petit écran
+  servi, en pleine zone de crise, là où la doctrine tient la hauteur pour un coût permanent. À
+  360 px : 372 pour 360. Elle ne tient qu'à partir de ~380 px, et **un contrôle qui n'existe
+  qu'au-delà d'une largeur est exactement ce que la v4.31.0 refuse** (constance positionnelle :
+  « une commande qui apparaît/disparaît selon la largeur romprait la constance »).
+  **LA VOIE QUI RESTE OUVERTE NE TOUCHE PAS LA RANGÉE** : garder l'entrée actuelle du lecteur (le
+  bouton de la carte de bloc) et le rendre **EN LIGNE** au lieu d'un overlay — « le lecteur cesse
+  d'être une surface » sans élargir quoi que ce soit. Son coût est ailleurs : reprise
+  d'`audit-lecteur` et de la règle de partage « lecteur ouvert refuse la navigation distante »,
+  qui tient à la façon dont le curseur calcule sa clé d'étape, pas à l'overlay lui-même.
+  **⚠ T5b EST DÉFINITIVEMENT BLOQUÉ EN L'ÉTAT, re-mesuré après T8 et T9** : rangée **267 px** +
+  quai **243 px** = **510 pour 320** sans aucun minuteur armé, **591** avec un minuteur (le quai
+  monte alors à 324). Le lot T8 a bien libéré « Se repérer » (313 → 267), mais l'hypothèse du plan
+  — « l'axe libère la rangée » — était fausse **dans son ampleur** : il manque encore 190 à 271 px.
+  Et compléter T8 l'AGGRAVE (axe à trois crans : 336 + 243 = 579). La fusion ne redeviendra
+  arbitrable que si un contrôle QUITTE la zone de crise — c'est une décision de conception, pas
+  d'ingénierie, et elle n'est pas prise ici.
 - **EN SESSION, L'ACTION PASSE DEVANT L'ORIENTATION — ET LE RAIL ①②③ CESSE D'ÊTRE L'OSSATURE
   (v5.0.0, lot T5 ; règle v4.4.0 ROUVERTE).** Le rail numérote un PARCOURS : il oriente quelqu'un
   qui découvre la fiche, et c'est exactement ce dont on n'a plus besoin une fois qu'on exécute.
