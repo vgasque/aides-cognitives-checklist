@@ -796,5 +796,44 @@ t('la POIGNÉE, elle, reste active', !G.pendant.poignee.dis&&G.pendant.poignee.c
 t('en sortant du mode, tout est DÉGRISÉ à l’identique',
   JSON.stringify(G.apres)===JSON.stringify(G.avant), JSON.stringify(G.apres));
 
+/* ── M1 — LA RANGÉE D'ITEM DE L'ÉDITEUR (v5.0.0, maquettes proto-large) ──────────────────────
+   Trois écarts de maquette corrigés d'un coup, et le troisième est le plus fort : une case à
+   cocher INERTE dans un éditeur invite au geste qu'elle refuse. La marque de registre la
+   remplace — elle DIT le registre au lieu de mimer l'action.
+   Le contrôle mesure aussi le 320 px, parce que la rangée porte désormais DEUX champs et TROIS
+   mots : c'est exactement là qu'un ajout se paie. */
+await p.setViewportSize({width:320,height:640});
+const M1=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+  const f=fiches[0];state.view='edit';state.draft=JSON.parse(JSON.stringify(f));render();await w(400);
+  const li=document.querySelector('.blk .li');
+  const inp=li?[...li.querySelectorAll('input[type=text]')]:[];
+  if(inp[0]){inp[0].value='Geste témoin';inp[0].dispatchEvent(new Event('input',{bubbles:true}));}
+  if(inp[1]){inp[1].value='30 mg';inp[1].dispatchEvent(new Event('input',{bubbles:true}));}
+  await w(80);
+  const it0=bItems(state.draft.blocks[0])[0],do1=it0.do,exp1=it0.expect;
+  /* Retaper le `do` SANS « :: » ne doit pas effacer la réponse attendue : ce sont deux champs. */
+  if(inp[0]){inp[0].value='Geste témoin bis';inp[0].dispatchEvent(new Event('input',{bubbles:true}));}
+  await w(80);
+  const it2=bItems(state.draft.blocks[0])[0];
+  const r=li.getBoundingClientRect();let mx=0;
+  [...li.children].forEach(c=>{const q=c.getBoundingClientRect();if(q.right>mx)mx=q.right;});
+  return {nInp:inp.length,do1,exp1,exp2:it2.expect,
+    premier:li.firstElementChild?li.firstElementChild.className:'',
+    cases:document.querySelectorAll('.li-box').length,
+    marques:document.querySelectorAll('.li-mk').length,
+    mots:[...document.querySelectorAll('.mini-w')].slice(0,3).map(x=>x.textContent.trim()),
+    deb:Math.round(mx-r.right)};});
+
+t('B1 — la rangée d’item porte DEUX champs (`do` et `expect`)', M1.nInp===2, `${M1.nInp} champ(s)`);
+t('… et ils écrivent chacun le leur, sans « :: » à composer',
+  M1.do1==='Geste témoin'&&M1.exp1==='30 mg', `do=${M1.do1} / expect=${M1.exp1}`);
+t('… retaper le geste n’EFFACE PAS la réponse attendue', M1.exp2==='30 mg', `expect=${M1.exp2}`);
+t('A4 — plus AUCUNE case à cocher dans l’éditeur', M1.cases===0&&M1.marques>0,
+  `${M1.cases} case(s), ${M1.marques} marque(s)`);
+t('B7 — la poignée ⠿ est le PREMIER objet de la rangée', /li-grab/.test(M1.premier), M1.premier);
+t('B2 — les outils portent leur MOT', /^(registre|vital|vérifier)$/.test(M1.mots[0])&&M1.mots[1]==='mémoire'&&M1.mots[2]==='double', M1.mots.join('·'));
+t('… et la rangée ne déborde pas à 320 px', M1.deb<=0, `${M1.deb} px hors de la boîte`);
+await p.setViewportSize({width:390,height:900});
+
 console.log(`\n${ok}/${ok+ko} OK${ko?` — ${ko} ÉCHEC(S)`:''}`);
 await br.close();srv.close();process.exit(ko?1:0);
