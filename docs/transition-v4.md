@@ -130,6 +130,62 @@ autre étape** après une simple insertion, et le compte rendu archivé nomme le
 
 ---
 
+### 2.5 · Ce qui a RÉELLEMENT été implémenté — relevé du 31/07/2026
+
+Relevé sur le modèle **effectivement stocké** (clés d'une fiche d'exemple et d'une session
+archivée), pas sur l'intention. **En une phrase : l'ITEM est conforme à la spécification ; tout ce
+qui est AU-DESSUS de lui ne l'est pas.** v4 existe comme **format d'ÉCHANGE** (`v3ToV4` / `v4ToV3`,
+et `migrate` l'accepte) — **pas** comme format de **STOCKAGE**.
+
+**§ 2.1 · L'item — CONFORME, au champ près.**
+`id` · `role` · `do` · `expect` · `level` · `memory` · `dual` · `note` : les huit sont là, au repos.
+Deux nuances : `role` vaut toujours `'do'` pour un item de bloc (les autres rôles n'existent que
+dans la conversion), et `note` n'est écrit par aucune surface — le champ existe, l'éditeur ne le
+propose pas.
+
+**§ 2.2 · Le bloc — PARTIEL.**
+
+| champ spec | au repos | écart |
+|---|---|---|
+| `items` | ✅ mais **objets, pas ids** | écart ASSUMÉ et documenté (le pool coûterait une indirection aux 48 sites de lecture) |
+| `kind` `do`/`decision` | ❌ c'est `type` `'steps'`/`'decision'` | renommage non fait — règle 12 |
+| `phase` | ❌ absent au repos | **refusé**, faute de surface qui declutter (moitié non livrée de T8) |
+| `hors` | ❌ calculé à la conversion seulement | rien ne le lit au repos |
+| `options[].concl` | ❌ absent | jamais implémenté, jamais discuté — **oubli** |
+
+**§ 2.3 · L'aide — NON IMPLÉMENTÉE.** Ni `v:4`, ni `kind` (`procedure`/`reference` — les deux
+stores restent séparés), ni le pool `items[]`, ni les renommages (`sources`/`docs`/`links`/`local`/
+`library`/`validatedAt`/`excursions`). **Et surtout : les six champs v3 qui devaient DISPARAÎTRE
+sont toujours là** (`confirmation`, `verify`, `posology`, `notForget`, `differentials`, plus
+`references`). Ce n'est pas un oubli : c'est la **règle 12** et le **miroir** — un client 4.x qui
+reçoit la fiche par la synchro doit continuer de l'afficher, et renommer `references` en `sources`
+au repos le casserait le jour du déploiement.
+
+**§ 2.4 · La session — PARTIELLE, et un manque de fond.**
+
+| champ spec | au repos | écart |
+|---|---|---|
+| `aidId` | ✅ (`ficheId`) | renommage non fait |
+| `texts{}` | ✅ (`stepTexts`, lot T1) | conforme |
+| **`aidRev`** | ❌ **absent** | ⚠ **manque de fond, voir ci-dessous** |
+| `mode` `clinical`/`exercise`/`trial` | ❌ (`exercise:true` ; l'essai n'archive rien) | trois états portés par deux drapeaux |
+| `log[]` unifié | ❌ | éclaté en `checked` + `events` + `verified` + `vgaps` + `nav` + `navSeq` |
+
+> #### ⚠ `aidRev` — la seule pièce de la spec silencieusement tombée
+> La spécification écrit : « `aidRev` + `texts` réparent le défaut mesuré ». **Le lot T1 n'a livré
+> que `texts`.** Conséquence exacte : un compte rendu ne nomme plus le mauvais geste — c'est
+> réparé — mais il **ne dit toujours pas QUELLE RÉVISION de l'aide a été lue pendant le soin**.
+> L'application a pourtant les points de version (`backups`) : il ne manque qu'un pointeur.
+> À traiter comme un lot à part entière, avec son témoin — pas comme une finition.
+
+**Ce que cela veut dire pour la suite.** Le modèle v4 « complet » (§ 2.3 et § 2.4) n'est pas un
+reliquat : il exige de renommer au repos, donc de **casser les clients 4.x**, donc d'attendre que
+plus personne ne tourne en 4.x — ou de garder le miroir pour chaque champ renommé, ce qui
+multiplierait par deux la surface du modèle. **C'est une décision de déploiement, pas d'ingénierie**,
+et elle n'a pas été prise ici.
+
+---
+
 ## 3 · Les surfaces
 
 ### 3.1 L'axe de densité — trois crans, un seul contrôle
