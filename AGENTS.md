@@ -2698,6 +2698,30 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   **UN ITEM ENTRANT EST BORNÉ, JAMAIS RECOPIÉ** (`v4SanItem`, appelé depuis `migrate`) : `safeId`
   sur l'identité (règle 6), niveau ramené dans 1-3, rôle dans la liste fermée, booléens coercés,
   textes bornés. Un `level:99` ou un `dual:"oui"` venus d'un import ne franchissent pas la porte.
+- **★ MÉMOIRE — UN MEMORY ITEM EST UN ITEM DE LA LISTE, PAS UN CHAMP À PART (v5.0.0, lot T7).**
+  C'est la doctrine QRH, et le modèle v4 l'écrit ainsi : `memory:true` sur l'item, qui **RESTE dans
+  son bloc**. Le chapeau « Ne pas oublier » AGRÈGE désormais `notForget` (la liste historique,
+  conservée — règle 12) et les étoiles posées sur les étapes.
+  **IL APPARAÎT DEUX FOIS, ET CE N'EST PAS LA DUPLICATION QUE LA v4.70.1 PROSCRIT** : celle-là vise
+  deux canaux qui énoncent la même CONSTANTE en même temps et à demeure. Ici les deux moments sont
+  distincts, et c'est exactement le geste QRH — on lit le chapeau **AVANT** d'agir (condition
+  d'entrée ; il se replie dès le démarrage, lot T3), puis on **RE-VÉRIFIE** l'item à sa place dans
+  la checklist. Un memory item se récite de mémoire, puis se confirme sur la liste.
+  **UN SEUL CALCUL** (`forgetAll`, `memItemsOf`) : le chapeau, son garde-fou de 4 rappels et le
+  volet de relecture comptent la MÊME chose — trois calculs séparés divergeraient, et ce dépôt a
+  déjà payé cette leçon quatre fois.
+  **REGISTRE ALERTE POUR L'ÉTOILE, et ici c'est justifié** : un memory item est par définition « ce
+  qui tue si on l'oublie », le registre même du chapeau qu'il rejoint.
+- **⚠ UN RUNTIME CONSERVÉ GARDAIT UNE FICHE PÉRIMÉE (v5.0.0, trouvé à la sonde du lot T7 ;
+  DÉFAUT ANTÉRIEUR).** Quand on rouvre une fiche déjà chargée et non démarrée, `openRead` ne
+  reconstruit pas le Runtime — c'est voulu, il n'y a rien à jeter. Mais `edCommit` **REMPLACE**
+  l'objet dans `fiches` par sa copie normalisée : la référence gardée par le Runtime désignait
+  alors la version d'AVANT l'édition, et la lecture affichait un contenu périmé **sans que rien ne
+  le dise** — la donnée périmée présentée comme vivante, danger n°2 du palmarès ECRI 2015, que ce
+  dossier combat partout ailleurs. Une ligne : re-pointer `Runtime.fiche`, sans rien reconstruire.
+  **CE QUI L'A RÉVÉLÉ EST UNE LEÇON DE MÉTHODE** : le témoin unitaire du calcul était vert et le
+  serait resté. C'est le contrôle qui suit le CHEMIN RÉEL — poser l'étoile dans l'éditeur, revenir
+  en lecture, regarder le chapeau — qui a parlé. Mesurer une fonction ne mesure pas un parcours.
 - **« ×2 » — L'ITEM CONFIRMÉ PAR LES DEUX (v5.0.0, lot T7 ; AC 120-71B §5.2.2.5).** La source
   exige que les items critiques soient vérifiés par les DEUX membres d'équipage. C'était **la seule
   exigence explicite de la doctrine que le modèle ne savait pas EXPRIMER** — une chaîne n'a pas de

@@ -995,6 +995,48 @@ console.log('\n══ T9 · une seule bibliothèque, le type en filtre ══');
   await page.close();
 }
 
+/* LOT T7 — ★ MÉMOIRE, DE BOUT EN BOUT. Le contrôle unitaire mesure le CALCUL ; celui-ci mesure
+   le CHEMIN RÉEL — poser l'étoile dans l'éditeur, revenir en lecture, la voir dans le chapeau.
+   C'est ce chemin qui a révélé un défaut ANTÉRIEUR : `openRead` conservait un Runtime déjà
+   construit SANS re-pointer sa fiche, si bien qu'après une édition la lecture affichait l'objet
+   d'avant (`edCommit` REMPLACE l'entrée de `fiches` par sa copie normalisée). Un contrôle qui se
+   serait arrêté au calcul ne l'aurait jamais vu. */
+console.log('\n══ T7 · ★ mémoire — de l\'éditeur au chapeau ══');
+{
+  const page = await br.newPage({viewport:{width:390,height:900},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();await w(200);
+    const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await w(800);});
+  const r = await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    const f=fiches.find(x=>/Anaphylaxie/i.test(x.title))||fiches[0];
+    openRead(f.id); await w(500);
+    const avant=document.querySelectorAll('.forget-strip .fs-i').length;
+    openEdit(f.id); await w(700);
+    const btn=document.querySelector('.blk .li[data-si="1"] [data-mem]');
+    const txt=state.draft.blocks[0].items[1].do;
+    if(btn)btn.click(); await w(700);
+    const pose=state.draft.blocks[0].items[1].memory===true;
+    render(); await w(400);
+    openRead(f.id); await w(700);
+    const chap=[...document.querySelectorAll('.forget-strip .fs-i')].map(e=>e.textContent);
+    const bloc=[...document.querySelectorAll('ol.steps li')].map(e=>e.textContent);
+    return {avant,pose,apres:chap.length,dansChapeau:chap.some(x=>x.includes(txt)),
+            resteDansBloc:bloc.some(x=>x.includes(txt)),
+            frais:state.fiche===fiches.find(x=>x.id===f.id)};});
+  t('l\'étoile se pose dans l\'éditeur', r.pose===true);
+  t('témoin : le chapeau avait bien un contenu avant', r.avant>=1, `${r.avant}`);
+  t('… et le chapeau en compte UNE de plus au retour', r.apres===r.avant+1, `${r.avant} → ${r.apres}`);
+  t('… c\'est bien le texte de l\'étape étoilée', r.dansChapeau===true);
+  /* LA DOCTRINE QRH : il se récite AVANT, puis se re-vérifie À SA PLACE. */
+  t('… et l\'étape RESTE dans son bloc', r.resteDansBloc===true);
+  /* Le défaut antérieur, verrouillé : rouvrir une fiche éditée doit rendre l'objet À JOUR. */
+  t('rouvrir une fiche éditée donne l\'objet À JOUR (pas celui d\'avant)', r.frais===true);
+  await page.close();
+}
+
 await br.close();srv.close();
 console.log(`\n${ok}/${ok+ko} contrôles doctrine OK${ko?` — ${ko} ÉCHEC(S)`:''}`);
 process.exit(ko?1:0);

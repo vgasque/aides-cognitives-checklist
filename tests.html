@@ -1953,6 +1953,30 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    eq('T6 · un niveau hors échelle est borné',si.level,3);
    eq('T6 · un rôle inconnu retombe sur « do »',si.role,'do');
    eq('T6 · « dual » est un BOOLÉEN, pas la chaîne qu’on a reçue',si.dual,true);}
+
+  /* ===== LOT T7 — ★ MÉMOIRE : UN MEMORY ITEM EST UN ITEM DE LA LISTE ======================== */
+  {const m=A.migrate(JSON.parse(JSON.stringify(v3)));
+   const n0=A.forgetAll(m).length;
+   eq('★ · sans étoile, le chapeau vaut exactement notForget',n0,m.notForget.length);
+   m.blocks[0].items[1].memory=true;
+   eq('★ · une étoile ajoute UNE ligne au chapeau',A.forgetAll(m).length,n0+1);
+   ok('★ · … et cette ligne est le texte de l’étape',
+      A.forgetAll(m).some(x=>x.indexOf(m.blocks[0].items[1].do)>=0));
+   /* LA PROPRIÉTÉ QUI FAIT LA DOCTRINE : l'item RESTE dans son bloc. Un memory item se récite de
+      mémoire AVANT d'agir, puis se re-vérifie à sa place dans la checklist (QRH). */
+   ok('★ · l’item RESTE dans son bloc (il n’est pas déplacé)',
+      m.blocks[0].items.filter(i=>i.memory).length===1&&m.blocks[0].items.length>=2);
+   ok('★ · le contexte d’origine est donné',
+      A.memItemsOf(m).every(x=>!!x.src));
+   /* Une décision n'a pas d'items : le calcul ne doit pas s'y perdre. */
+   ok('★ · un bloc de décision n’apporte rien au chapeau',
+      A.memItemsOf({blocks:[{id:'d1',type:'decision',options:[],steps:[]}]}).length===0);
+   eq('★ · une fiche sans bloc ne fait pas tomber le calcul',A.forgetAll({}).length,0);
+   /* Il survit à l'aller-retour, comme « ×2 » — sinon l'export annulerait le lot. */
+   const rt=A.v4ToV3(A.v3ToV4(m));
+   ok('★ · l’étoile survit à l’aller-retour v3 → v4 → v3',
+      (rt.blocks[0].items||[])[1]&&rt.blocks[0].items[1].memory===true);
+   ok('★ · … et le miroir n’en porte aucune trace',!/★/.test(JSON.stringify(rt.blocks[0].steps)));}
   }
 }
 
