@@ -1918,6 +1918,41 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
       ((A.migrate(JSON.parse(JSON.stringify(v3)))||{}).blocks||[]).length===3);
    ok('migrate · un objet qui se dit v4 sans items n’est pas converti à l’aveugle',
       !!A.migrate({v:4,title:'x'}));}
+
+  /* ===== LOT T6 CÔTÉ RENDU + T7 — L'ITEM EST LA SOURCE, LE MIROIR EN DÉCOULE =============== */
+  {const m=A.migrate(JSON.parse(JSON.stringify(v3)));
+   const b0=m.blocks[0];
+   ok('T6 · migrate donne un ITEM à chaque étape',(b0.items||[]).length===b0.steps.length);
+   ok('T6 · … chacun avec une identité',(b0.items||[]).every(i=>!!i.id));
+   eq('T6 · le miroir `steps` est régénéré depuis les items',
+      JSON.stringify(b0.steps),JSON.stringify(b0.items.map(A.v4ItemToStr)));
+   eq('T6 · … registre et « :: » compris',b0.steps[0],'⚠ Adrénaline IM :: 0,5 mg');
+   /* LA PROPRIÉTÉ QUI FAIT TOUT LE LOT : une insertion en tête ne déplace plus l'identité. */
+   const idsAv=b0.items.map(i=>i.id);
+   A.bItems(b0).splice(0,0,A.newStepItem('Insérée en tête'));A.syncSteps(b0);
+   ok('T6 · une insertion en tête ne bouge AUCUNE identité',
+      idsAv.every((id,k)=>b0.items[k+1].id===id));
+   eq('T6 · … et le miroir suit',b0.steps[0],'Insérée en tête');
+   /* T7 — « ×2 » (AC 120-71B §5.2.2.5), inexprimable avant que l'item ait une identité. */
+   b0.items[1].dual=true;
+   ok('T7 · « ×2 » vit sur l’ITEM',b0.items[1].dual===true);
+   ok('T7 · … et ne laisse AUCUNE trace dans le miroir (un client antérieur lit le texte seul)',
+      !/×2/.test(JSON.stringify(A.syncSteps(b0))));
+   /* Et il doit SURVIVRE à l'export : sans cela la conversion annulerait le lot qui l'introduit. */
+   const rt=A.v4ToV3(A.v3ToV4(m));
+   const rb=rt.blocks[0];
+   ok('T7 · « ×2 » survit à l’aller-retour v3 → v4 → v3',(rb.items||[])[1]&&rb.items[1].dual===true);
+   ok('T6 · … et les identités aussi',(rb.items||[]).map(i=>i.id).join('|')===b0.items.map(i=>i.id).join('|'));
+   eq('T6 · … le miroir reste exact après l’aller-retour',
+      JSON.stringify(rb.steps),JSON.stringify(rb.items.map(A.v4ItemToStr)));
+   /* Robustesse : un item entrant corrompu est BORNÉ, jamais recopié tel quel. */
+   const sale=A.migrate({blocks:[{id:'b9',type:'steps',
+     items:[{id:'__proto__',do:'x',level:99,dual:'oui',role:'nimporte'}]}],start:'b9'});
+   const si=sale.blocks[0].items[0];
+   ok('T6 · un id dangereux est refusé',si.id!=='__proto__');
+   eq('T6 · un niveau hors échelle est borné',si.level,3);
+   eq('T6 · un rôle inconnu retombe sur « do »',si.role,'do');
+   eq('T6 · « dual » est un BOOLÉEN, pas la chaîne qu’on a reçue',si.dual,true);}
   }
 }
 

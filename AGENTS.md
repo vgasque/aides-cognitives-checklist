@@ -2616,6 +2616,54 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   n'écrase **JAMAIS** un binaire existant (même id → le document présent fait foi) ; binaire du
   zip posé seulement s'il manque, signé `%PDF-` (`isPdfBytes`) et sous plafond ; référence sans
   binaire gardée seulement si le fichier vient du même espace (elle peut suivre par la synchro).
+- **L'ITEM EST LA SOURCE, `steps` N'EST PLUS QU'UN MIROIR (v5.0.0, lot T6 côté RENDU).** Une étape
+  était une CHAÎNE À UNE POSITION (`b.steps[3]`), et l'on a payé cela deux fois : un compte rendu
+  qui nomme le mauvais geste après une insertion (lot T1, rustiné en archivant le texte), et
+  l'impossibilité d'accrocher quoi que ce soit À UNE ÉTAPE autrement que par son rang —
+  c'est-à-dire par la chose même qui bouge.
+  **`b.items[]` EST DÉSORMAIS LA SOURCE ; `b.steps[]` EST RÉGÉNÉRÉ À CHAQUE ÉCRITURE.** Ce n'est
+  **pas** une seconde source de vérité, et la distinction est tout le dispositif : **le miroir est
+  ÉCRIT, jamais LU par ce client** (`stepsOf(b)` lit les items). Il existe pour UNE raison — un
+  client antérieur qui reçoit la fiche par la synchro doit continuer d'afficher la checklist. Le
+  jour où plus personne ne tourne en 4.x, il s'enlève en une ligne. **Ne jamais le réconcilier**
+  (« laquelle des deux formes est la plus fraîche ? ») : les items gagnent toujours, sans quoi on
+  reproduirait le défaut d'`edSyncGallery` (v4.78.0), où un geste qui retirait se défaisait au
+  rendu suivant.
+  **ÉCART ASSUMÉ AVEC LA SPÉCIFICATION v4, ET RÉVERSIBLE** : la spec range les items dans un POOL
+  `f.items[]` que les blocs référencent par id. Cette indirection sert un cas qu'aucune
+  fonctionnalité n'a (un item porté par deux blocs, ou par aucun) et se paierait à CHACUN des
+  **quarante-huit** sites de lecture. Les items d'un bloc vivent donc DANS leur bloc ;
+  `v3ToV4` / `v4ToV3` continuent d'écrire et de lire la forme à pool pour l'ÉCHANGE.
+  **TOUT PASSE PAR TROIS VERBES**, et il n'y en aura pas un quatrième : `bItems(b)` (les items,
+  dérivés une fois du miroir si la fiche est ancienne), `stepsOf(b)` (les chaînes, pour les
+  quarante-huit lectures), `syncSteps(b)` (régénérer le miroir). Toute écriture d'étape passe par
+  `setStepStr` ou par une mutation de `bItems`, **suivie de `syncSteps`** — c'est le point
+  d'étranglement, au même titre que `edCommit` pour le brouillon et `persistLive` pour la session.
+  **UN ITEM ENTRANT EST BORNÉ, JAMAIS RECOPIÉ** (`v4SanItem`, appelé depuis `migrate`) : `safeId`
+  sur l'identité (règle 6), niveau ramené dans 1-3, rôle dans la liste fermée, booléens coercés,
+  textes bornés. Un `level:99` ou un `dual:"oui"` venus d'un import ne franchissent pas la porte.
+- **« ×2 » — L'ITEM CONFIRMÉ PAR LES DEUX (v5.0.0, lot T7 ; AC 120-71B §5.2.2.5).** La source
+  exige que les items critiques soient vérifiés par les DEUX membres d'équipage. C'était **la seule
+  exigence explicite de la doctrine que le modèle ne savait pas EXPRIMER** — une chaîne n'a pas de
+  place où accrocher une propriété. Elle en a une depuis que l'item porte une identité.
+  **REGISTRE NEUTRE, jamais rouge ni ambre** : ce n'est ni un danger (⚠) ni un piège (△), c'est une
+  consigne de PROCÉDURE sur la façon de confirmer. Lui donner une couleur de registre la mettrait
+  en concurrence avec le contenu clinique (règle 8) ; et le glyphe seul ne suffirait pas
+  (WCAG 1.4.1), d'où le mot pour le lecteur d'écran.
+  **LE MIROIR N'EN PORTE AUCUNE TRACE, ET C'EST VOULU** : un client antérieur lit le texte de
+  l'étape, sans marque parasite. La propriété voyage dans `items`, qu'il ignore.
+  **ELLE SURVIT À L'EXPORT** : `v3ToV4` part des ITEMS quand ils existent (lire le miroir aurait
+  perdu `dual`, `note` et les identités au premier export — la conversion aurait annulé le lot qui
+  les introduit), et `v4ToV3` réémet les items du bloc en plus du miroir.
+  **LE PARTAGE LES EMPORTE DÉJÀ, ET IL FALLAIT LE VÉRIFIER** : `items` vit DANS `blocks`, qui
+  figure sur la liste blanche de `share_fiche` — la liste borne les champs de PREMIER NIVEAU de la
+  fiche, pas la forme interne des blocs. **`supabase/schema.sql` n'est donc pas à rejouer** pour ce
+  lot. C'est la question qu'on oublie (précédent `discriminant`, v4.70.0) : ici elle a été posée et
+  la réponse mesurée, au lieu d'être supposée dans un sens ou dans l'autre.
+  **CE QUI RESTE DE T7, ET POURQUOI** : `★ mémoire` et `phase` ne sont PAS livrés. Ce ne sont pas
+  des champs à écrire mais des changements de ce qu'une SURFACE AFFICHE — `memory` recompose le
+  chapeau « Ne pas oublier », `phase` pilote le decluttering. Un éditeur qui les écrirait sans que
+  rien ne les montre promettrait ce qu'il ne fait pas, défaut corrigé en v4.74.0.
 - **LE MODÈLE v4 EXISTE ET IL EST RÉVERSIBLE — MAIS L'APPLICATION TOURNE ENCORE EN v3
   (v5.0.0, lot T6, LIVRÉ PARTIELLEMENT ET IL FAUT LE SAVOIR).** Ce qui est livré : deux fonctions
   PURES `v3ToV4` / `v4ToV3`, et la reconnaissance du format v4 **dans `migrate()`**. Ce qui n'est
