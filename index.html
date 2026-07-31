@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-o6jatuF4eXe2eYrGL6cFZPPh3iKN4iRlDNdhk8Yckxw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-3kaiOdquXSsTqgla98bWZR8NLQTaN3ZNi7H+5P2Aknc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -5345,7 +5345,7 @@ const RO_EDIT_TOAST='Lecture seule : vous n\'avez pas les droits d\'édition sur
    Portée : STOCKÉ DANS LA SESSION uniquement (stores `sessions`) — l'export v3 des FICHES et le
    format des clés (`seq:blocId:index`) restent strictement inchangés ; un client antérieur ignore
    simplement ces deux champs. */
-function makeRuntime(){return {fiche:null,ficheId:null,sessionId:null,name:'',started:false,startedAt:0,exercise:false,checked:{},verified:{},vgaps:{},cxBack:{},nav:[],navSeq:[],seq:0,counters:{},timers:{},events:[]};}
+function makeRuntime(){return {fiche:null,ficheId:null,sessionId:null,name:'',started:false,startedAt:0,aidRev:0,exercise:false,checked:{},verified:{},vgaps:{},cxBack:{},nav:[],navSeq:[],seq:0,counters:{},timers:{},events:[]};}
 let Runtime=makeRuntime();
 const liveSessions={};
 let soundOn=true;
@@ -7253,7 +7253,7 @@ function stepTextsFor(R){
   return out;}
 function snapshotSession(R,live){const now=Date.now();const tsnap={};
   Object.values(R.timers).forEach(t=>{const within=t.elapsedMs+(t.running?(now-t.lastStart):0);tsnap[t.id]={elapsedMs:t.type==='interval'?Math.min(t.seconds*1000,within):within,cycles:t.cycles};});
-  return {id:R.sessionId,ficheId:R.fiche.id,ficheTitle:R.fiche.title,name:R.name,savedAt:now,startedAt:R.startedAt||now,live:!!live,checked:{...R.checked},verified:{...(R.verified||{})},vgaps:{...(R.vgaps||{})},stepTexts:stepTextsFor(R),cxBack:{...(R.cxBack||{})},exercise:!!R.exercise,nav:R.nav.slice(),navSeq:R.navSeq.slice(),counters:{...R.counters},timers:tsnap,
+  return {id:R.sessionId,ficheId:R.fiche.id,ficheTitle:R.fiche.title,aidRev:R.aidRev||0,name:R.name,savedAt:now,startedAt:R.startedAt||now,live:!!live,checked:{...R.checked},verified:{...(R.verified||{})},vgaps:{...(R.vgaps||{})},stepTexts:stepTextsFor(R),cxBack:{...(R.cxBack||{})},exercise:!!R.exercise,nav:R.nav.slice(),navSeq:R.navSeq.slice(),counters:{...R.counters},timers:tsnap,
     extraTimers:Object.values(R.timers).filter(t=>t.adhoc).map(t=>({id:t.id,label:t.label,seconds:t.seconds,autoloop:!!t.autoloop})),
     events:(R.events||[]).map(e=>({...e}))};}
 // COMPTE-RENDU d'une session : chronologie horodatée (repères), étapes réalisées, compteurs et
@@ -7316,6 +7316,17 @@ function exportSessionReport(sessionId){
 <div class="meta"><b>${title}</b>${f&&f.validation?' · '+esc(fmtDate(f.validation)):''}</div>
 ${s.exercise?'<div class="wm">EXERCICE</div><div class="meta exo">▲ Exercice — répétition sans patient, aucune trace clinique</div>':''}
 <div class="meta">${s.exercise?'Exercice':'Session'} « ${esc(s.name||'sans nom')} » · début ${esc(new Date(start).toLocaleString('fr-FR'))}</div>
+${(()=>{
+  /* LA RÉVISION LUE PENDANT LE SOIN (v5.0.0). Un compte rendu qui nomme les bons gestes (lot T1)
+     mais tait SUR QUELLE VERSION ils ont été lus laisse une question sans réponse à la relecture,
+     six mois plus tard, sur une fiche révisée entre-temps. `aidRev` EST `updatedAt` : les points
+     de version portent le même horodatage, donc la version exacte se retrouve.
+     UNE SESSION D'AVANT CE CHAMP LE DIT au lieu de se taire — « non enregistrée » est une
+     information ; un blanc n'en est pas une, et laisserait croire à une fiche jamais modifiée. */
+  const rv=s.aidRev||0;
+  return '<div class="meta">Révision de l’aide lue pendant le soin : '
+    +(rv?('<b>'+esc(new Date(rv).toLocaleString('fr-FR'))+'</b>')
+        :'<i>non enregistrée (session antérieure à la v5)</i>')+'</div>';})()}
 <div class="bilan"><div class="bilan-dur"><span class="bd-v">${esc(dur)}</span><span class="bd-k">durée totale</span></div>${kpi?`<div class="kpis">${kpi}</div>`:''}</div>
 <h2>Chronologie des actions</h2><table><thead><tr><td><b>Heure</b></td><td><b>Écoulé</b></td><td><b>Action</b></td></tr></thead><tbody>${evRows}</tbody></table>
 <h2>Étapes réalisées</h2><ul>${stepRows}</ul>
@@ -7428,6 +7439,19 @@ function persistLive(R,immediate){if(!R||!R.started||!R.fiche)return;
 function persistAllLive(){Object.values(liveSessions).forEach(R=>persistLive(R,true));}
 // Démarre la session de la fiche active DÈS la 1ʳᵉ action (cocher / minuteur / compteur / horodatage).
 // Renvoie true si elle vient de démarrer (le caller fait alors un render pour afficher le bandeau).
+/* `aidRev` — LA RÉVISION DE L'AIDE RÉELLEMENT LUE PENDANT LE SOIN (v5.0.0).
+   La spécification v4 écrit « aidRev + texts réparent le défaut mesuré » ; le lot T1 n'avait
+   livré que `texts` — un compte rendu ne nommait plus le mauvais geste, mais il ne disait
+   toujours pas SUR QUELLE VERSION de la fiche le soin avait été conduit. Deux relectures d'un
+   même dossier, à six mois d'écart et sur une fiche révisée entre-temps, n'avaient aucun moyen
+   de le savoir.
+   ON N'INVENTE PAS UN NUMÉRO : `updatedAt` EST la révision — il change à chaque écriture, il est
+   déjà stocké, il est déjà synchronisé, et les points de version (`backups`) portent le même
+   horodatage, donc on retrouve la version exacte. Un compteur maison serait un second mécanisme
+   pour la même chose.
+   CAPTURÉE AU DÉMARRAGE, ET NON AU SNAPSHOT : c'est la révision qu'on a EUE SOUS LES YEUX. La
+   question ne se pose d'ailleurs qu'une fois — ouvrir l'éditeur TERMINE la session (K5), donc la
+   fiche ne peut pas changer sous une session vive. */
 function ensureStarted(){if(Runtime.started||!Runtime.fiche)return false;
   /* L'INVITÉ NE DÉMARRE JAMAIS DE SESSION LOCALE. C'est le point exact où l'étanchéité se joue :
      sans cette garde, sa première coche créerait chez lui un enregistrement de session — donc une
@@ -7449,7 +7473,7 @@ function ensureStarted(){if(Runtime.started||!Runtime.fiche)return false;
      porte sur une fiche publiée. L'essai porte sur un BROUILLON qu'on est en train d'écrire ;
      il n'a rien à restituer à personne. */
   if(state.previewFrom){
-    Runtime.started=true;Runtime.startedAt=Date.now();Runtime.essai=true;
+    Runtime.started=true;Runtime.startedAt=Date.now();Runtime.essai=true;Runtime.aidRev=(Runtime.fiche||{}).updatedAt||0;
     if(!Runtime.sessionId)Runtime.sessionId=uid('s');
     if(state.confOpen===undefined)state.confOpen=true;
     return true;}
@@ -7471,7 +7495,7 @@ function ensureStarted(){if(Runtime.started||!Runtime.fiche)return false;
      d'emblée (openRead remet state.confOpen à undefined). */
   if(state.view==='read'&&state.confOpen===undefined)state.confOpen=true;
   lastEndedSession=null;   // v4.16.3 : nouvelle session -> la carte-bilan de la précédente s'efface
-  Runtime.started=true;Runtime.startedAt=Date.now();
+  Runtime.started=true;Runtime.startedAt=Date.now();Runtime.aidRev=(Runtime.fiche||{}).updatedAt||0;
   if(!Runtime.sessionId)Runtime.sessionId=uid('s');
   if(!Runtime.name)Runtime.name=autoSessName(Runtime.fiche);
   liveSessions[Runtime.ficheId]=Runtime;
@@ -7887,7 +7911,9 @@ async function endCurrentSession(){if(!Runtime.started)return;if(!await confirmE
 // ouvre la fiche. Si une session vive existe déjà pour cette fiche, on la rouvre telle quelle.
 function resumeSession(id){const s=sessions.find(x=>x.id===id);if(!s)return;const f=fiches.find(x=>x.id===s.ficheId);if(!f){toast('⚠ Fiche introuvable.');return;}flowScroll={left:null,top:0};state.readMode=currentReadMode();state.ovFold={};state.ovVerify=null;
   if(liveSessions[f.id]&&liveSessions[f.id].sessionId===id){Runtime=liveSessions[f.id];}
-  else{Runtime=buildRuntime(f,s);Runtime.started=true;Runtime.startedAt=s.startedAt||Date.now();liveSessions[f.id]=Runtime;persistLive(Runtime,true);}
+  else{Runtime=buildRuntime(f,s);Runtime.started=true;Runtime.startedAt=s.startedAt||Date.now();
+    /* REPRENDRE ne re-lit PAS la révision : le soin a été conduit sur celle qui est archivée. */
+    Runtime.aidRev=s.aidRev||0;liveSessions[f.id]=Runtime;persistLive(Runtime,true);}
   Runtime.fiche=f;bindStateToRuntime();state.fiche=f;state.showFlow=false;state.view='read';render();}
 async function deleteSession(id){if(!await confirmDlg('Supprimer cette session ?',{yes:'Supprimer',danger:true}))return;
   /* PIERRE TOMBALE PLUTÔT QUE SUPPRESSION DURE, dès que l'historique est synchronisé : sans elle,

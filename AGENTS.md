@@ -2708,6 +2708,22 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   **UN ITEM ENTRANT EST BORNÉ, JAMAIS RECOPIÉ** (`v4SanItem`, appelé depuis `migrate`) : `safeId`
   sur l'identité (règle 6), niveau ramené dans 1-3, rôle dans la liste fermée, booléens coercés,
   textes bornés. Un `level:99` ou un `dual:"oui"` venus d'un import ne franchissent pas la porte.
+- **`aidRev` — LA RÉVISION DE L'AIDE RÉELLEMENT LUE PENDANT LE SOIN (v5.0.0).** La spécification
+  v4 écrit « `aidRev` + `texts` réparent le défaut mesuré » ; **le lot T1 n'avait livré que
+  `texts`** — le compte rendu ne nommait plus le mauvais geste, mais il taisait toujours SUR
+  QUELLE VERSION de la fiche le soin avait été conduit. À la relecture d'un dossier six mois plus
+  tard, sur une aide révisée entre-temps, la question restait sans réponse.
+  **ON N'INVENTE PAS UN NUMÉRO DE RÉVISION** : `updatedAt` **EST** la révision — il change à chaque
+  écriture, il est déjà stocké, déjà synchronisé, et les points de version (`backups`) portent le
+  **même horodatage**, donc la version exacte se retrouve. Un compteur maison serait un second
+  mécanisme pour la même chose.
+  **CAPTURÉE AU DÉMARRAGE, JAMAIS AU SNAPSHOT** : c'est la révision qu'on a EUE SOUS LES YEUX. La
+  question ne se pose qu'une fois — ouvrir l'éditeur TERMINE la session (K5), donc la fiche ne peut
+  pas changer sous une session vive. **Et REPRENDRE une session archivée ne la re-lit pas** : le
+  soin a été conduit sur la révision archivée, pas sur celle d'aujourd'hui.
+  **UNE SESSION ANTÉRIEURE LE DIT** (« non enregistrée ») au lieu de se taire : un blanc laisserait
+  croire à une fiche jamais modifiée, et une absence annoncée est une information — même doctrine
+  que le drapeau `vElsewhere` de l'historique synchronisé.
 - **LES DEUX FICHES D'EXEMPLE EXERCENT LA DOCTRINE QU'ELLES ENSEIGNENT (v5.0.0, lot T13 —
   constat 3 de l'audit J0).** Elles sont le **seul** matériel pédagogique du produit (la contrainte
   de l'audit interdit d'en livrer une troisième), et elles n'exerçaient qu'un TIERS de ses

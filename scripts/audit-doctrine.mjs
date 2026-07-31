@@ -1109,6 +1109,35 @@ console.log('\n══ T13 · les fiches d\'exemple exercent la doctrine qu\'elle
   await page.close();
 }
 
+/* `aidRev` — LA RÉVISION LUE PENDANT LE SOIN (v5.0.0). La spécification v4 écrit « aidRev + texts
+   réparent le défaut mesuré » ; le lot T1 n'avait livré que `texts`. Le témoin mesure les deux
+   propriétés qui comptent : la révision est celle qui était SOUS LES YEUX au démarrage, et une
+   édition ULTÉRIEURE ne la réécrit pas — sinon le compte rendu nommerait la version d'après. */
+console.log('\n══ aidRev · la révision lue pendant le soin ══');
+{
+  const page = await br.newPage({viewport:{width:390,height:844},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();await w(200);
+    const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await w(800);});
+  const r = await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    const f=fiches[0]; const revLue=f.updatedAt||0;
+    openRead(f.id); await w(400);
+    const b=document.getElementById('sessStart'); if(b)b.click(); await w(500);
+    const li=document.querySelector('ol.steps li[data-ck]'); if(li)li.click(); await w(400);
+    const snap1=snapshotSession(Runtime);
+    /* On RÉVISE la fiche après coup : la session archivée doit garder l'ANCIENNE révision. */
+    f.updatedAt=revLue+60000;
+    const snap2=snapshotSession(Runtime);
+    return {revLue,rev1:snap1.aidRev,rev2:snap2.aidRev,
+            html:exportSessionReport?'':''};});
+  t('la session enregistre la révision de l’aide', r.rev1===r.revLue && r.rev1>0, `${r.rev1} vs ${r.revLue}`);
+  t('… et une révision POSTÉRIEURE ne la réécrit pas', r.rev2===r.rev1, `${r.rev1} → ${r.rev2}`);
+  await page.close();
+}
+
 await br.close();srv.close();
 console.log(`\n${ok}/${ok+ko} contrôles doctrine OK${ko?` — ${ko} ÉCHEC(S)`:''}`);
 process.exit(ko?1:0);

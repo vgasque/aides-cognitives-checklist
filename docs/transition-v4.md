@@ -171,18 +171,51 @@ au repos le casserait le jour du déploiement.
 | `mode` `clinical`/`exercise`/`trial` | ❌ (`exercise:true` ; l'essai n'archive rien) | trois états portés par deux drapeaux |
 | `log[]` unifié | ❌ | éclaté en `checked` + `events` + `verified` + `vgaps` + `nav` + `navSeq` |
 
-> #### ⚠ `aidRev` — la seule pièce de la spec silencieusement tombée
+> #### ✅ `aidRev` — LIVRÉ (31/07/2026), la pièce manquante est fermée
 > La spécification écrit : « `aidRev` + `texts` réparent le défaut mesuré ». **Le lot T1 n'a livré
 > que `texts`.** Conséquence exacte : un compte rendu ne nomme plus le mauvais geste — c'est
 > réparé — mais il **ne dit toujours pas QUELLE RÉVISION de l'aide a été lue pendant le soin**.
 > L'application a pourtant les points de version (`backups`) : il ne manque qu'un pointeur.
-> À traiter comme un lot à part entière, avec son témoin — pas comme une finition.
+> **Livré** : `updatedAt` **EST** la révision (déjà stockée, déjà synchronisée, et les points de
+> version portent le même horodatage) ; capturée **au démarrage**, jamais au snapshot ; une
+> reprise de session archivée ne la re-lit pas ; le compte rendu l'affiche, et une session
+> antérieure **dit** « non enregistrée » plutôt que de laisser un blanc. Deux témoins, vérifiés
+> capables d'échouer.
 
 **Ce que cela veut dire pour la suite.** Le modèle v4 « complet » (§ 2.3 et § 2.4) n'est pas un
 reliquat : il exige de renommer au repos, donc de **casser les clients 4.x**, donc d'attendre que
 plus personne ne tourne en 4.x — ou de garder le miroir pour chaque champ renommé, ce qui
 multiplierait par deux la surface du modèle. **C'est une décision de déploiement, pas d'ingénierie**,
 et elle n'a pas été prise ici.
+
+---
+
+### 2.6 · Passage à v4 COMPLET — décidé le 31/07/2026, NON EXÉCUTÉ
+
+**Décision de l'auteur** : aller au v4 complet, **quitte à casser les clients 4.x**, retirer toute
+trace de v3 de l'application, et fournir la conversion **hors** de l'application — c'est
+[`conversion-v3-vers-v4.md`](conversion-v3-vers-v4.md), **livré**.
+
+**Ampleur mesurée** (occurrences dans le JavaScript) : `libraryId` 117 · `validation` 88 ·
+`verify` 78 · `confirmation` 68 · `attachments` 68 · `.type===` 68 · `b.steps` 43 · `references` 35 ·
+`complications` 35 · `notForget` 32 · `localInfo` 31 · `related` 30 · `differentials` 29 ·
+`posology` 26 — **~750 au total**, et les deux plus lourds traversent la synchro, le mapping SQL
+(`ficheToRow`) et les permissions (`canEditFiche`).
+
+**Cinq étapes, chacune verte de bout en bout** — l'ordre n'est pas négociable :
+
+| | Contenu | Pourquoi à ce rang |
+|---|---|---|
+| **A** | ✅ `aidRev` + le document de conversion | Indépendants, livrés |
+| **B** | **Le pool `items[]` + les rôles** : les six listes v3 (`confirmation`, `notForget`, `verify`, `posology`, `differentials`) deviennent des items à `role`, les blocs ne portent plus que des ids | C'est le cœur du modèle, et tout le reste en dépend |
+| **C** | **Les renommages** : `libraryId`→`library`, `validation`→`validatedAt`, `references`→`sources`, `attachments`→`docs`, `related`→`links`, `localInfo`→`local`, `complications`→`excursions`, `type`→`kind` ; plus `v:4` et `kind:'procedure'` | Mécanique, mais touche la synchro et les permissions |
+| **D** | **Retrait du miroir `steps` et de tout le code v3** (`v3ToV4`/`v4ToV3` partent dans le document de conversion) | N'est SÛR qu'une fois B et C faits |
+| **E** | **SQL** (liste blanche de `share_fiche` : elle nomme les champs v3) **+ doctrine** — les **règles 5 et 12 sont à réécrire**, la seconde étant explicitement levée | Le serveur doit suivre, sinon un invité reçoit une fiche amputée |
+
+**⚠ Ce que l'étape E implique pour le déploiement** : `supabase/schema.sql` devra être rejoué **une
+seconde fois**, et cette fois la compatibilité descendante n'existe pas — un client 4.x ne pourra
+plus lire les fiches. C'est la conséquence assumée de la décision, et c'est précisément pourquoi le
+document de conversion existe **avant** le chantier.
 
 ---
 
