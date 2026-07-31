@@ -65,3 +65,17 @@ export function moteur() {
 /* Nom du moteur, pour que les harnais puissent l'afficher dans leur en-tête — un résultat qui ne
    dit pas sur quel moteur il a été obtenu n'est pas interprétable. */
 export const NOM_MOTEUR = (process.env.AC_ENGINE || 'chromium').toLowerCase();
+
+/* CONSTRUIRE DES ITEMS v4 DANS UNE FIXTURE DE HARNAIS (v5.0.0, étape D).
+   Les fixtures sont bâties côté Node, où les fonctions de l'application n'existent pas ; et depuis
+   que le modèle est v4, un bloc ne peut plus être décrit par un tableau de chaînes. Ce helper fait
+   la même lecture que `v4MakeItem` : le préfixe de registre devient `level`, « :: » sépare le
+   challenge de la réponse attendue. `migrate` posera les identités. */
+export const items = arr => (arr || []).map(s => {
+  const t = String(s || '');
+  const level = /^\s*(⚠|!)/.test(t) ? 3 : (/^\s*△/.test(t) ? 2 : 1);
+  const nu = t.replace(/^\s*(⚠️?|!|△)\s*/, '');
+  const i = nu.indexOf('::');
+  return i < 0 ? { do: nu.trim(), expect: '', level }
+               : { do: nu.slice(0, i).trim(), expect: nu.slice(i + 2).trim(), level };
+});

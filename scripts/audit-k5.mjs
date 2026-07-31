@@ -189,7 +189,7 @@ const g=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   document.getElementById('hdrBack').click(); await w(800);
   await openEdit(id); await w(600);
   const nb=()=>document.querySelectorAll('.blk .li').length;
-  const pub=()=>((fiches.find(f=>f.id===id)||{blocks:[]}).blocks||[]).reduce((a,b)=>a+((b.steps||[]).length),0);
+  const pub=()=>((fiches.find(f=>f.id===id)||{blocks:[]}).blocks||[]).reduce((a,b)=>a+bItems(b).length,0);
   const bouton=()=>document.getElementById('hdrUndo');
   const etat=[];
   etat.push({e:'ouverture',n:nb(),pile:_edUndo.length,visible:!bouton().hidden,pub:pub()});
@@ -535,7 +535,7 @@ console.log('=== v4.77.0 : les outils d’une étape agissent vraiment ===');
 {
   const CH='.blk:not(.blk-dec) .li input[data-sf]';
   const cle=await p.evaluate(()=>{const b=document.querySelector('.blk:not(.blk-dec)');return b?b.dataset.bid:null;});
-  const etapes=async()=>p.evaluate(id=>((state.draft.blocks.find(b=>b.id===id)||{}).steps||[]).slice(),cle);
+  const etapes=async()=>p.evaluate(id=>bItems(state.draft.blocks.find(b=>b.id===id)||{}).map(v4ItemToStr),cle);
   await p.click(CH); await p.waitForTimeout(250);
   const vus=await p.evaluate(()=>{const e=document.querySelector('.blk:not(.blk-dec) .li-tools');
     return e?getComputedStyle(e).display:'absent';});

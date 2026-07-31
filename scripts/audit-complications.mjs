@@ -3,7 +3,7 @@
    urgence. Excursion tracée, « Terminer » supprimé pendant, RETOUR nommé toujours actif (cases
    neuves — doctrine d'interruption AC 120-71B), sections « À tout moment » hors numérotation,
    cible externe = autre aide, zéro chrome sans déclaration, sélecteur filtrable de l'éditeur. */
-import { serveApp, moteur, NOM_MOTEUR, ROOT } from './harness.mjs';
+import { serveApp, moteur, NOM_MOTEUR, ROOT , items} from './harness.mjs';
 
 const { port, srv } = await serveApp();
 const br=await moteur().launch();const p=await br.newPage({viewport:{width:1000,height:950},deviceScaleFactor:2});
@@ -14,7 +14,7 @@ await p.evaluate(async()=>{const b=[...document.querySelectorAll('button')].find
  const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await new Promise(r=>setTimeout(r,400));
  const c=[...document.querySelectorAll('.card-open')].find(x=>/Arr.t cardiaque/.test(x.textContent));
  const f=fiches.find(x=>x.id===c.dataset.open);
- f.blocks.push({id:'cxL',kind:'do',title:'Laryngospasme — gestes',steps:['Arrêter la stimulation','⚠ PPC + subluxation mandibulaire','Approfondir la sédation'],next:null});
+ f.blocks.push({id:'cxL',kind:'do',title:'Laryngospasme — gestes',items:['Arrêter la stimulation','⚠ PPC + subluxation mandibulaire','Approfondir la sédation'].map(x=>v4MakeItem(uid('i'),'do',x)),next:null});
  const autre=fiches.find(x=>x.id!==f.id);
  f.excursions=[{label:'Laryngospasme',target:'cxL'},{label:'Anaphylaxie',target:autre.id}];
  window.__autre=autre.id;window.__acr=f.id;

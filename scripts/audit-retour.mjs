@@ -10,7 +10,7 @@
        fenêtre de garde on ressort vers la bibliothèque.
    Supprimer ce fichier avec le lecteur aurait donc emporté six invariants sans rapport — c'est
    exactement la « purge à moitié faite » que la doctrine nomme, à l'envers. */
-import { serveApp, moteur, NOM_MOTEUR, ROOT } from './harness.mjs';
+import { serveApp, moteur, NOM_MOTEUR, ROOT , items} from './harness.mjs';
 
 const { port, srv } = await serveApp();
 const br=await moteur().launch();const p=await br.newPage({viewport:{width:1000,height:950},deviceScaleFactor:2});
@@ -21,7 +21,7 @@ await p.evaluate(async()=>{const b=[...document.querySelectorAll('button')].find
  const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await new Promise(r=>setTimeout(r,400));
  const f=fiches.find(x=>/Arr.t cardiaque/.test(x.title));window.__fid=f.id;
  window.__oid=fiches.find(x=>x.id!==f.id).id;
- f.blocks.push({id:'cxL',kind:'do',title:'Laryngospasme — gestes',steps:['Arrêter la stimulation','O2 pur'],next:null});
+ f.blocks.push({id:'cxL',kind:'do',title:'Laryngospasme — gestes',items:['Arrêter la stimulation','O2 pur'].map(x=>v4MakeItem(uid('i'),'do',x)),next:null});
  f.excursions=[{label:'Laryngospasme',target:'cxL'}];
  openRead(f.id);await new Promise(r=>setTimeout(r,400));});
 console.log('=== menu ⋯ : ordre + icônes ===');

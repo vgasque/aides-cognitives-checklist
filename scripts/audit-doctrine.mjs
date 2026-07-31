@@ -1,6 +1,6 @@
 /* LOT 7 — volet DOCTRINE : ECAM / QRH / FAA AC 120-71B, mesuré sur l'app réelle.
    Chaque contrôle traduit une règle de sûreté en invariant observable. */
-import { serveApp, moteur, NOM_MOTEUR, ROOT } from './harness.mjs';
+import { serveApp, moteur, NOM_MOTEUR, ROOT , items} from './harness.mjs';
 
 const { port, srv } = await serveApp();
 const br=await moteur().launch();
@@ -376,16 +376,16 @@ console.log('\n══ QRH · intitulé de décision toujours visible (statique e
 {
   const st=n=>Array.from({length:n},(_,i)=>`Étape ${i+1} du protocole, libellé réaliste`);
   const FICHE={id:'aud-sb',title:'Audit — décision imbriquée',start:'a',blocks:[
-    {id:'a',kind:'do',title:'Début',steps:st(3),next:'d1'},
+    {id:'a',kind:'do',title:'Début',items:items(st(3)),next:'d1'},
     {id:'d1',kind:'decision',title:'Analyse du rythme',question:'Le rythme est-il choquable (FV / TV sans pouls) ?',
       options:[{label:'Choquable',target:'b1'},{label:'Non choquable',target:'b9'}]},
-    {id:'b1',kind:'do',title:'Choc',steps:st(4),next:'d2'},
+    {id:'b1',kind:'do',title:'Choc',items:items(st(4)),next:'d2'},
     {id:'d2',kind:'decision',title:'Réévaluation',question:'Reprise d\'activité circulatoire spontanée ?',
       options:[{label:'Non',target:'b6'},{label:'Oui',target:'b8'}]},
-    {id:'b6',kind:'do',title:'Poursuite',steps:st(6),next:'fin'},
-    {id:'b8',kind:'do',title:'Post-arrêt',steps:st(3),next:'fin'},
-    {id:'b9',kind:'do',title:'Sans choc',steps:st(4),next:'fin'},
-    {id:'fin',kind:'do',title:'Surveillance',steps:st(2),next:null}],
+    {id:'b6',kind:'do',title:'Poursuite',items:items(st(6)),next:'fin'},
+    {id:'b8',kind:'do',title:'Post-arrêt',items:items(st(3)),next:'fin'},
+    {id:'b9',kind:'do',title:'Sans choc',items:items(st(4)),next:'fin'},
+    {id:'fin',kind:'do',title:'Surveillance',items:items(st(2)),next:null}],
     timers:[],counters:[],confirmation:[],verify:[],notForget:[],differentials:[],sources:[],images:[]};
   const openStatic=async(w,h)=>{
     const page=await br.newPage({viewport:{width:w,height:h}});
@@ -479,7 +479,7 @@ console.log('\n══ Rendu guidé · décocher annule la fin de l\'algorithme �
   const r=await page.evaluate(async()=>{
     // Fiche MONO-BLOC : pas d'algorithme -> rendu guidé (`navSection`), pas le journal.
     const f=migrate({id:'dgui',title:'Sonde guidée',blocks:[
-      {id:'b1',kind:'do',title:'Bloc unique',steps:['Étape A','Étape B']}],start:'b1'});
+      {id:'b1',kind:'do',title:'Bloc unique',items:['Étape A','Étape B'].map(x=>v4MakeItem(uid('i'),'do',x))}],start:'b1'});
     await Data.put(f);fiches.push(f);
     openRead(f.id);await new Promise(r=>setTimeout(r,350));
     const guide=!document.querySelector('#readTopSeg')&&!!document.querySelector('.nav-wrap');
@@ -545,7 +545,7 @@ console.log('\n══ ECAM · ancrage — résidu nul au geste de première acti
   // Rendu GUIDÉ (fiche à un bloc) : le remplacement chirurgical est ancré lui aussi.
   const g=await page.evaluate(async()=>{
     const f=migrate({id:'ancd',title:'Ancre guidée',blocks:[
-      {id:'b1',kind:'do',title:'Bloc unique',steps:['a','b','c','d','e','f']}],start:'b1'});
+      {id:'b1',kind:'do',title:'Bloc unique',items:['a','b','c','d','e','f'].map(x=>v4MakeItem(uid('i'),'do',x))}],start:'b1'});
     await Data.put(f);fiches.push(f);
     openRead(f.id);await new Promise(r=>setTimeout(r,350));
     document.getElementById('sessStart').click();await new Promise(r=>setTimeout(r,350));

@@ -209,8 +209,8 @@ trace de v3 de l'application, et fournir la conversion **hors** de l'application
 | **A** | ✅ `aidRev` + le document de conversion | Indépendants, livrés |
 | **B** | ✅ **LIVRÉ** — le pool `items[]` + les rôles. Les CINQ listes v3 sont devenues des items à `role` (`references` reste un champ : métadonnée, pas contenu de crise), les blocs ne portent plus que des ids. `SHARE_KEEP` et la liste blanche de `share_fiche` suivent. **⚠ `schema.sql` à rejouer.** | C'est le cœur du modèle, et tout le reste en dépend |
 | **C** | ✅ **LIVRÉ** — `libraryId`→`library`, `validation`→`validatedAt`, `references`→`sources`, `attachments`→`docs`, `related`→`links`, `localInfo`→`local`, `complications`→`excursions`, bloc `type`→`kind`, plus `v:4`, `kind:'procedure'` et le statut `validated`. **Conversion EN PLACE** des données déjà stockées. **La colonne SQL `library_id` et le store IndexedDB `attachments` ne bougent PAS** — distinguer le CHAMP du STORE. | — |
-| **D** | **Retrait du miroir `steps` et de tout le code v3** (`v3ToV4`/`v4ToV3` partent dans le document de conversion) | N'est SÛR qu'une fois B et C faits |
-| **E** | **SQL** (liste blanche de `share_fiche` : elle nomme les champs v3) **+ doctrine** — les **règles 5 et 12 sont à réécrire**, la seconde étant explicitement levée | Le serveur doit suivre, sinon un invité reçoit une fiche amputée |
+| **D** | ✅ **LIVRÉ** — miroir `b.steps`, `v3ToV4`/`v4ToV3`, `V4_PERTES`, détection de format et 80 témoins de conversion retirés. Une fiche sans `items` est désormais une fiche VIDE. | N'est SÛR qu'une fois B et C faits |
+| **E** | ✅ **LIVRÉ** — SQL fait à l'étape B (`share_fiche` n'emporte plus que `items`) ; **règle 5 réécrite** (`migrate` ne lit plus qu'un format) et **règle 12 LEVÉE**, remplacée par : *un changement de modèle qui casse les clients antérieurs exige un chemin de reprise écrit AVANT, et hors de l'application.* | Le serveur doit suivre, sinon un invité reçoit une fiche amputée |
 
 **⚠ Ce que l'étape E implique pour le déploiement** : `supabase/schema.sql` devra être rejoué **une
 seconde fois**, et cette fois la compatibilité descendante n'existe pas — un client 4.x ne pourra

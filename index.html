@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-paoTSpC1QUFKXhQI5nFE+3XAaZpPAMrVENzr5XzZvLc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-AwYbpUjE6JIUmfQJvz4UwqSy4eyZCPkER9rh2xL2HCg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -5860,7 +5860,7 @@ const txNorm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').to
 const _hayCache=new WeakMap();
 function ficheHaystack(f){let h=_hayCache.get(f);
   if(h===undefined){const parts=[f.title,f.code,f.local,...listOf(f,'confirmation'),...listOf(f,'verify'),...listOf(f,'posology'),...listOf(f,'notForget'),...(f.differentials||[]),...(f.sources||[])];
-    (f.blocks||[]).forEach(b=>{parts.push(b&&b.title,b&&b.question);((b&&b.steps)||[]).forEach(s=>parts.push(s));((b&&b.options)||[]).forEach(o=>parts.push(o&&o.label));});
+    (f.blocks||[]).forEach(b=>{parts.push(b&&b.title,b&&b.question);(b?stepsOf(b):[]).forEach(s=>parts.push(s));((b&&b.options)||[]).forEach(o=>parts.push(o&&o.label));});
     h=txNorm(stripBold(parts.filter(Boolean).join(' ')));_hayCache.set(f,h);}
   return h+' '+txNorm(catName(f));}
 // Recherche MULTI-MOTS (v4.4.4) : chaque mot de la requête doit être présent, où qu'il soit
@@ -5900,7 +5900,7 @@ function searchSnippet(parts,q){
   return '';}
 // Sources de l'extrait, dans l'ordre de LECTURE de chaque entité (titre exclu).
 function ficheSnipParts(f){const p=[f.code,...listOf(f,'notForget'),...listOf(f,'confirmation')];
-  (f.blocks||[]).forEach(b=>{p.push(b&&b.title,b&&b.question);((b&&b.steps)||[]).forEach(s=>p.push(stepText(s)));((b&&b.options)||[]).forEach(o=>p.push(o&&o.label));});
+  (f.blocks||[]).forEach(b=>{p.push(b&&b.title,b&&b.question);(b?stepsOf(b):[]).forEach(s=>p.push(stepText(s)));((b&&b.options)||[]).forEach(o=>p.push(o&&o.label));});
   p.push(...listOf(f,'verify'),...listOf(f,'posology'),...listOf(f,'differentials'),f.local,...(f.sources||[]));
   return p;}
 function protoSnipParts(p){return [p.code,...mdStrip(p.body||'').split(/\n+/),...(p.docs||[]).map(a=>a.name),...(p.sources||[])];}
@@ -6085,7 +6085,7 @@ const fmtHMS=t=>{const d=new Date(t);return String(d.getHours()).padStart(2,'0')
                    Renvoie les fiches modifiées (à repersister).
    Aides : hasFlow (la fiche a-t-elle un branchement ?), staleDate (validation
    de plus de 2 ans), fmtDate (libellé de date de validation). */
-function blankFiche(){const b={id:uid('b'),kind:'do',title:'Prise en charge',steps:[''],image:null,next:null};
+function blankFiche(){const b={id:uid('b'),kind:'do',title:'Prise en charge',items:[v4MakeItem(uid('i'),'do','')],image:null,next:null};
   // localInfo pré-rempli avec les invites de renfort des DEUX contextes d'exercice (structure /
   // SMUR) : une fiche déployée avec un « ☎ : … » vide entraîne à ignorer la ligne — on incite à
   // les renseigner (badge « À compléter » tant qu'une invite reste).
@@ -6151,7 +6151,7 @@ function stepCR(s){const t=String(s==null?'':s);const i=t.indexOf('::');
    l'impossibilité d'accrocher quoi que ce soit À UNE ÉTAPE (`dual` d'AC 120-71B §5.2.2.5, une
    note d'auteur, un niveau d'alerte ordonné) autrement que par son rang, c'est-à-dire par la
    chose même qui bouge.
-   DÉSORMAIS `b.items[]` EST LA SOURCE et `b.steps[]` n'est plus qu'un MIROIR régénéré à chaque
+   DÉSORMAIS `b.items[]` EST LA SOURCE. (Le miroir `b.steps[]`, qui a existé de T6 à l'étape C, a
    écriture. Ce n'est PAS une seconde source de vérité, et la distinction est le cœur du dispositif :
    le miroir est écrit, jamais lu par ce client (`stepsOf` lit les items). Il existe pour UNE seule
    raison — un client antérieur qui reçoit la fiche par la synchro doit continuer d'afficher la
@@ -6160,7 +6160,8 @@ function stepCR(s){const t=String(s==null?'':s);const i=t.indexOf('::');
    POOL `f.items[]` que les blocs référencent par id. Ce niveau d'indirection sert un cas qu'aucune
    fonctionnalité n'a aujourd'hui (un item partagé par deux blocs, ou porté par aucun) et le
    coûterait à CHACUN des quarante-huit sites de lecture. Les items d'un bloc vivent donc DANS leur
-   bloc ; `v3ToV4`/`v4ToV3` continuent d'écrire et de lire la forme à pool pour l'échange. */
+   bloc. (La conversion `v3ToV4`/`v4ToV3` a été RETIRÉE à l'étape D : v4 est le seul format
+   que l'application connaisse — la reprise d'un fichier v3 passe par `docs/conversion-v3-vers-v4.md`.) */
 function v4SanItem(x,i){
   const o=(x&&typeof x==='object')?x:{};
   const lv=Math.max(1,Math.min(3,Math.round(+o.level||1)));
@@ -6248,13 +6249,15 @@ function setList(f,key,arr){
     const it=v4MakeItem(uid('i'),role,str,mem);return it;});
   f.items=restants.concat(neufs);}
 const stepsOf=b=>bItems(b).map(v4ItemToStr);
-const syncSteps=b=>{b.steps=stepsOf(b);return b.steps;};
+/* `syncSteps` A DISPARU À L'ÉTAPE D : il n'y a plus de miroir à régénérer. En laisser un appel
+   recréerait un `b.steps` que plus rien ne lit — une donnée morte qui grossirait chaque fiche et
+   chaque paquet de synchro. */
 /* Écrire UNE étape par sa chaîne : le préfixe de registre et le « :: » sont décomposés dans
    l'item, l'IDENTITÉ est conservée — c'est tout l'objet du lot. */
 function setStepStr(b,i,str){
   const it=bItems(b)[i];if(!it)return;
   const cr=stepCR(stepText(str));
-  it.do=cr.c;it.expect=cr.r||'';it.level=v4Level(str);syncSteps(b);}
+  it.do=cr.c;it.expect=cr.r||'';it.level=v4Level(str);}
 const newStepItem=(str)=>v4MakeItem(uid('i'),'do',str||'');
 /* ⚠ `bItems` REND UNE COPIE RÉSOLUE, PAS LE TABLEAU VIVANT — c'est la conséquence directe du pool,
    et elle est piégeuse : `bItems(b).splice(...)` compilerait, s'exécuterait, et ne ferait RIEN.
@@ -6297,80 +6300,6 @@ function v4MakeItem(id,role,raw,memory){
 /* La chaîne v3 se RECONSTRUIT dans l'ordre exact où v3 la lit : préfixe de registre, challenge,
    « :: », réponse attendue. */
 const v4ItemToStr=it=>v4Pref(it.level)+String(it.do||'')+(it.expect?' :: '+it.expect:'');
-function v3ToV4(f){
-  if(!f||typeof f!=='object')return null;
-  const rest=Object.assign({},f);
-  ['confirmation','notForget','verify','posology','differentials','sources','blocks','start',
-   'excursions','local','library','validatedAt','status','links','attachments']
-    .forEach(k=>{delete rest[k];});
-  const items=[];let n=0;
-  const push=(role,raw,mem)=>{const it=v4MakeItem('i'+(++n),role,raw,mem);items.push(it);return it.id;};
-  (Array.isArray(f.confirmation)?f.confirmation:listOf(f,'confirmation')).forEach(x=>push('entry',x));
-  (Array.isArray(f.notForget)?f.notForget:listOf(f,'notForget')).forEach(x=>push('do',x,true));
-  const blocks=(f.blocks||[]).map(b=>({
-    id:b.id,title:String(b.title||''),phase:'',
-    kind:b.kind==='decision'?'decision':'do',
-    /* ON PART DES ITEMS, PAS DU MIROIR (lot T7). Lire `b.steps` ici perdrait `dual`, `note` et
-       les IDENTITÉS au premier export — la conversion aurait annulé le lot qui les a introduits.
-       Le miroir reste la source uniquement pour une fiche ANCIENNE qui n'a pas encore d'items. */
-    items:(b.kind==='decision'?[]:(()=>{
-      /* Les items d'un bloc sont RÉSOLUS (le bloc ne porte que des ids depuis l'étape B) ; une
-         fiche v3 pure n'en a pas, on retombe alors sur ses chaînes. */
-      const its=bItems(b);
-      if(its.length)return its.map(it=>{const c=v4SanItem(it);items.push(c);n++;return c.id;});
-      return (b.steps||[]).map(x=>push('do',x));})()),
-    next:b.next||null,question:String(b.question||''),
-    options:(b.options||[]).map(o=>({label:String(o.label||''),concl:'',target:o.target||null})),
-    image:b.image||null,hors:false}));
-  (Array.isArray(f.verify)?f.verify:listOf(f,'verify')).forEach(x=>push('watch',x));
-  (Array.isArray(f.posology)?f.posology:listOf(f,'posology')).forEach(x=>push('dose',x));
-  (Array.isArray(f.differentials)?f.differentials:listOf(f,'differentials')).forEach(x=>push('ddx',x));
-  /* `hors` est CALCULÉ, jamais stocké en v3 : un bloc qu'aucun `next` ni aucune option n'atteint
-     depuis le départ est une excursion — il vit hors numérotation (doctrine des complications
-     « à tout moment », v4.26.0). On le dérive au lieu de le demander à l'auteur. */
-  {const vus=new Set(),file=[f.start].filter(Boolean);
-   while(file.length){const id=file.shift();if(!id||vus.has(id))continue;vus.add(id);
-     const b=blocks.find(x=>x.id===id);if(!b)continue;
-     if(b.next)file.push(b.next);b.options.forEach(o=>{if(o.target)file.push(o.target);});}
-   blocks.forEach(b=>{b.hors=!vus.has(b.id);});}
-  return Object.assign(rest,{v:4,kind:'procedure',
-    library:f.library||'',status:f.status==='draft'?'draft':(f.status==='review'?'review':'validated'),
-    validatedAt:String(f.validatedAt||''),items,blocks,start:f.start||null,
-    excursions:(f.excursions||[]).map(c=>({label:String(c.label||''),target:c.target||null})),
-    sources:(f.sources||[]).slice(),docs:(f.docs||[]).slice(),
-    links:(f.links||[]).slice(),local:String(f.local||'')});}
-/* RETOUR v4 → v3 — « à perte ANNONCÉE », et la liste des pertes est ici, pas dans une note de bas
-   de page : `dual`, `phase`, `concl`, `note` et les IDENTITÉS d'items n'ont aucun logement en v3.
-   Tout le reste revient au caractère près, ce que le témoin de STABILITÉ vérifie. */
-const V4_PERTES=['dual','phase','concl','note','id (item)'];
-function v4ToV3(a){
-  if(!a||typeof a!=='object')return null;
-  const rest=Object.assign({},a);
-  ['v','kind','items','blocks','start','excursions','sources','docs','links','local','library',
-   'status','validatedAt'].forEach(k=>{delete rest[k];});
-  const items=a.items||[],byId=Object.create(null);items.forEach(it=>{byId[it.id]=it;});
-  const dansBloc=new Set();(a.blocks||[]).forEach(b=>(b.items||[]).forEach(id=>dansBloc.add(id)));
-  const bac=r=>items.filter(it=>it.role===r).map(v4ItemToStr);
-  const blocks=(a.blocks||[]).map(b=>{
-    /* Symétrique de l'aller : le bloc v3 emporte ses ITEMS (le format au repos les porte depuis
-       le lot T6) ET son miroir `steps`, que seul un client antérieur lit. */
-    const its=(b.items||[]).map(id=>byId[id]).filter(Boolean);
-    const o={id:b.id,kind:b.kind==='decision'?'decision':'do',title:b.title||'',
-      items:its.map(x=>Object.assign({},x)),steps:its.map(v4ItemToStr),
-      image:b.image||null,next:b.next||null};
-    if(b.kind==='decision'){o.question=b.question||'';
-      o.options=(b.options||[]).map(x=>({label:x.label||'',target:x.target||null}));}
-    return o;});
-  return Object.assign(rest,{
-    confirmation:bac('entry'),
-    notForget:items.filter(it=>it.role==='do'&&it.memory&&!dansBloc.has(it.id)).map(v4ItemToStr),
-    verify:bac('watch'),posology:bac('dose'),differentials:bac('ddx'),
-    sources:(a.sources||[]).slice(),docs:(a.docs||[]).slice(),
-    links:(a.links||[]).slice(),local:String(a.local||''),
-    library:a.library||'',status:a.status==='validated'?'':(a.status||''),
-    validatedAt:String(a.validatedAt||''),
-    excursions:(a.excursions||[]).map(c=>({label:c.label||'',target:c.target||null})),
-    blocks,start:a.start||null});}
 // Intérieur d'une rangée d'étape cochable (vue guidée + journal) : challenge, puis RÉPONSE
 // ATTENDUE en pilule mono — le readback « ✓ » du cochage est porté par le CSS (li.done).
 function stepTxtHtml(s,opts){const cr=stepCR(stepText(s));
@@ -6460,7 +6389,7 @@ function posoSplit(items,hay,cap){
 function curBlockHay(f){
   const b=(f&&f.blocks||[]).find(x=>x.id===state.nav[state.navPos]);
   if(!b)return '';
-  return [stripBold(b.title||'')].concat(clean(b.steps).map(s=>stepText(s))).join(' ');}
+  return [stripBold(b.title||'')].concat(clean(stepsOf(b)).map(s=>stepText(s))).join(' ');}
 /* Cartes de repères posologiques, classées pour le bloc courant : les rapprochés et TOUS LES
    SIGNALÉS — `⚠` comme `△`, via `posoRank().crit` — en tête, le reste replié derrière un
    dépliant qui ANNONCE SON NOMBRE (un pli muet serait un filtre déguisé).
@@ -6497,7 +6426,7 @@ function completionSpots(f){if(!f||typeof f!=='object')return [];const spots=[];
   const SECT={confirmation:'Confirmation diagnostique',verify:'À vérifier',notForget:'Ne pas oublier',posology:'Repères posologiques',differentials:'Diagnostics différentiels',sources:'Références'};
   Object.keys(SECT).forEach(k=>{if((Array.isArray(f[k])?f[k]:[]).some(x=>TODO_RX.test(String(x||''))))spots.push(SECT[k]);});
   (Array.isArray(f.blocks)?f.blocks:[]).forEach(b=>{if(!b)return;
-    const hit=TODO_RX.test(String(b.title||''))||TODO_RX.test(String(b.question||''))||(Array.isArray(b.steps)?b.steps:[]).some(s=>TODO_RX.test(String(s||'')))||(Array.isArray(b.options)?b.options:[]).some(o=>TODO_RX.test(String((o&&o.label)||'')));
+    const hit=TODO_RX.test(String(b.title||''))||TODO_RX.test(String(b.question||''))||stepsOf(b).some(s=>TODO_RX.test(String(s||'')))||(Array.isArray(b.options)?b.options:[]).some(o=>TODO_RX.test(String((o&&o.label)||'')));
     if(hit)spots.push('Bloc « '+(String(b.title||'').trim()||'sans titre')+' »');});
   return spots;}
 // migrate = compatibilité ascendante ET point d'ASSAINISSEMENT (toute fiche chargée/importée/dupliquée
@@ -6565,19 +6494,6 @@ function migrate(f){if(!f||typeof f!=='object')f={};
      historique, et l'inverser ferait passer en brouillon des fiches validées à la première
      donnée douteuse, donc les retirerait de l'accès de crise (une fiche brouillon ne s'épingle
      pas). `sanitizeEntityCommon` applique déjà cette règle : on ne la réécrit pas ici. */
-  /* UNE AIDE AU FORMAT v4 ENTRE PAR ICI, ET PAR NULLE PART AILLEURS (lot T6, v5.0.0). C'est la
-     règle 5 appliquée telle quelle : `migrate` est le point d'entrée unique de toute donnée
-     entrante — chargement, import, ZIP, duplication, pull cloud — donc c'est le seul endroit où
-     reconnaître un format. Ajouter une détection au point d'IMPORT aurait laissé les quatre autres
-     chemins dehors, et le défaut aurait été silencieux (une aide v4 tombée du cloud aurait été
-     lue comme une v3 vide : aucun bloc, aucune étape, et rien pour le dire).
-     L'APPLICATION CONTINUE DE TOURNER EN v3, à dessein : ce lot livre le format et sa
-     réversibilité, pas son adoption interne. Un fichier v4 est donc CONVERTI À L'ENTRÉE, et les
-     champs sans logement v3 (`dual`, `phase`, `concl`, `note`, les identités d'items) sont perdus
-     à ce moment — c'est la perte ANNONCÉE de `V4_PERTES`, et elle est acceptable tant que rien ne
-     produit encore ces champs. Elle cessera de l'être dès que l'éditeur les écrira (lot T7) : ce
-     jour-là, c'est le RENDU qui devra passer en v4, pas cette ligne qui devra ruser. */
-  if(f.v===4&&Array.isArray(f.items))f=v4ToV3(f)||{};
   sanitizeEntityCommon(f,'f',200);
   f.local=sstr(f.local,4000);
   /* ═══ LE POOL D'ITEMS (étape B, v5.0.0) — LES SIX LISTES v3 DEVIENNENT DES ITEMS À RÔLE.
@@ -6608,7 +6524,7 @@ function migrate(f){if(!f||typeof f!=='object')f={};
     .map(c=>(c&&typeof c==='object')?{label:sstr(c.label,120),target:(typeof c.target==='string'&&SAFE_ID.test(c.target)&&BAD_KEYS.indexOf(c.target)<0)?c.target:''}:null)
     .filter(c=>c&&c.label&&c.target);
   // Ancienne fiche "steps" plate -> un bloc d'étapes.
-  if(!Array.isArray(f.blocks)){const b={id:uid('b'),kind:'do',title:sstr(f.title||'Prise en charge',300),steps:sarr(f.steps,500),image:null,next:null};f.blocks=[b];f.start=b.id;}
+  if(!Array.isArray(f.blocks)){const b={id:uid('b'),kind:'do',title:sstr(f.title||'Prise en charge',300),items:[],image:null,next:null};f.blocks=[b];f.start=b.id;}
   delete f.steps;f.blocks=f.blocks.slice(0,400).filter(b=>b&&typeof b==='object');
   // Remappage des identifiants de blocs (sûrs conservés, dangereux régénérés) + table orig->nouveau.
   const idMap=Object.create(null),used=Object.create(null);
@@ -6616,14 +6532,18 @@ function migrate(f){if(!f||typeof f!=='object')f={};
   const mapId=x=>{const v=idMap[String(x==null?'':x)];return v===undefined?null:v;};
   f.blocks=f.blocks.map(b=>{b.title=sstr(b.title,300);b.image=safeImg(b.image);b.imageW=_dim(b.imageW);b.imageH=_dim(b.imageH);
     if(b.kind==='decision'){b.question=sstr(b.question,1000);b.options=(Array.isArray(b.options)?b.options:[]).slice(0,40).map(o=>({label:sstr(o&&o.label,300),target:mapId(o&&o.target)}));delete b.steps;delete b.next;}
-    else{b.kind='steps';b.steps=sarr(b.steps,500);
+    else{b.kind='do';
       /* L'ITEM EST LA SOURCE (lot T6). Si la fiche en porte déjà, ils gagnent — et le miroir
          `steps` est RÉGÉNÉRÉ depuis eux ; sinon on les dérive des chaînes, une fois. */
       /* Le bloc ne porte plus que des IDENTIFIANTS ; les objets sont rassemblés dans `_pool`,
          monté sur la fiche juste après (le pool doit exister AVANT que `bItems` soit appelée). */
-      b.items=(Array.isArray(b.items)&&b.items.length?b.items:b.steps.map(x=>v4MakeItem(uid('i'),'do',x)))
+      /* ÉTAPE D : plus de miroir, donc plus de repli sur des chaînes. Une fiche entrante SANS
+         items est une fiche VIDE — conséquence assumée de la rupture, et annoncée : un fichier v3
+         se convertit par `docs/conversion-v3-vers-v4.md`, jamais ici. */
+      b.items=(Array.isArray(b.items)?b.items:[])
         .map(x=>{if(x&&typeof x==='object'){const it=v4SanItem(x);_pool.push(it);return it.id;}
                  return String(x||'');});
+      delete b.steps;   // reste d'un format intermédiaire : on nettoie
       // (le miroir `steps` est régénéré après le montage du pool — il disparaîtra à l'étape D)
       b.next=mapId(b.next);b.nextLbl=sstr(b.nextLbl,120);delete b.options;delete b.question;}
     return b;});
@@ -6631,7 +6551,7 @@ function migrate(f){if(!f||typeof f!=='object')f={};
   /* LE POOL EST MONTÉ ICI, une fois les blocs normalisés — seul point où l'aide entière est
      cohérente. `poolOwn` inscrit chaque bloc dans la WeakMap : sans elle, `bItems` devrait
      balayer les fiches pour résoudre un id (le repli existe, mais il n'est pas un chemin). */
-  f.items=_pool;poolOwn(f);f.blocks.forEach(b=>{if(b.kind!=='decision')syncSteps(b);});
+  f.items=_pool;poolOwn(f);
   // IDS UNIQUES, comme pour les blocs ci-dessus (v4.42.0). `Runtime.timers` et `Runtime.counters`
   // sont des objets INDEXÉS PAR ID : deux entrées de même id et la seconde ÉCRASE la première —
   // une fiche déclarant trois minuteurs n'en arme qu'UN, le dernier, sans le moindre signal ; et
@@ -6718,11 +6638,11 @@ function seed(catId){const b1=uid('b'),b2=uid('b'),b3=uid('b'),bd=uid('b'),bx=ui
     // v4.11.1 : les exemples ILLUSTRENT les registres ⚠/△ et le format « challenge :: réponse »
     // (la pilule = valeur à confirmer en lecture) — les valeurs restent des placeholders à adapter.
     blocks:[
-      {id:b1,kind:'do',title:'Mesures immédiates',image:null,steps:['Retirer / arrêter l’allergène si possible','Appeler à l’aide — désigner un lecteur','⚠ Adrénaline IM, face antéro-latérale de cuisse :: dose du protocole local — noter l’heure','△ Allonger, jambes surélevées :: ne jamais verticaliser (désamorçage)','O₂ fort débit, voie veineuse, remplissage'],next:bd},
+      {id:b1,kind:'do',title:'Mesures immédiates',image:null,items:['Retirer / arrêter l’allergène si possible','Appeler à l’aide — désigner un lecteur','⚠ Adrénaline IM, face antéro-latérale de cuisse :: dose du protocole local — noter l’heure','△ Allonger, jambes surélevées :: ne jamais verticaliser (désamorçage)','O₂ fort débit, voie veineuse, remplissage'].map(x=>v4MakeItem(uid('i'),'do',x)),next:bd},
       {id:bd,kind:'decision',title:'Réévaluation',image:null,question:'Amélioration après adrénaline et remplissage ?',options:[{label:'Oui — stabilisé',target:b2},{label:'Non — réfractaire',target:b3}]},
-      {id:b2,kind:'do',title:'Stabilisé',image:null,steps:['Surveillance prolongée (réaction biphasique)','Tracer doses et horaires','Orientation hospitalière, bilan allergologique à distance'],next:null},
-      {id:bx,kind:'do',title:'Bronchospasme réfractaire',image:null,steps:['△ Salbutamol nébulisé :: dose du protocole local','Réévaluer la ventilation, envisager l’intubation','Ne pas retarder l’adrénaline'],next:null},
-      {id:b3,kind:'do',title:'Réfractaire',image:null,steps:['⚠ 2ᵉ adrénaline IM :: à 5 min','Renforcer le remplissage','△ Adrénaline IV titrée :: équipe entraînée, protocole local','Renfort réanimation / SMUR'],next:bd}
+      {id:b2,kind:'do',title:'Stabilisé',image:null,items:['Surveillance prolongée (réaction biphasique)','Tracer doses et horaires','Orientation hospitalière, bilan allergologique à distance'].map(x=>v4MakeItem(uid('i'),'do',x)),next:null},
+      {id:bx,kind:'do',title:'Bronchospasme réfractaire',image:null,items:['△ Salbutamol nébulisé :: dose du protocole local','Réévaluer la ventilation, envisager l’intubation','Ne pas retarder l’adrénaline'].map(x=>v4MakeItem(uid('i'),'do',x)),next:null},
+      {id:b3,kind:'do',title:'Réfractaire',image:null,items:['⚠ 2ᵉ adrénaline IM :: à 5 min','Renforcer le remplissage','△ Adrénaline IV titrée :: équipe entraînée, protocole local','Renfort réanimation / SMUR'].map(x=>v4MakeItem(uid('i'),'do',x)),next:bd}
     ]});
   /* ★ ET ×2 SE POSENT SUR L'ITEM, PAS DANS LA CHAÎNE — c'est tout l'objet du modèle v4, et ces
      deux propriétés n'ont aucune écriture possible dans `steps`. On les pose donc APRÈS `migrate`,
@@ -6733,7 +6653,7 @@ function seed(catId){const b1=uid('b'),b2=uid('b'),b3=uid('b'),bd=uid('b'),bx=ui
      étaient partout, ils ne diraient plus rien. */
   {const b=f.blocks.find(x=>x.id===b1);
    const it=b?bItems(b).find(x=>/Adrénaline IM/.test(x.do)):null;
-   if(it){it.memory=true;it.dual=true;syncSteps(b);}}
+   if(it){it.memory=true;it.dual=true;}}
   return f;}
 // Deuxième fiche d'exemple : arrêt cardiaque. Illustre une DÉCISION rebouclée (le rythme est
 // réévalué à chaque cycle) et un minuteur À CYCLE de 2 min (RCP). À relire/valider avant tout usage.
@@ -6752,17 +6672,17 @@ function seed2(catId){const b1=uid('b'),bd=uid('b'),b2=uid('b'),b3=uid('b');
     start:b1,
     // v4.11.1 : mêmes illustrations ⚠ + « challenge :: réponse » que la 1ʳᵉ fiche d'exemple.
     blocks:[
-      {id:b1,kind:'do',title:'Reconnaissance & alerte',image:null,steps:['Vérifier conscience et respiration','Alerter, appeler du renfort + défibrillateur','△ Relais du masseur :: toutes les 2 min — annoncer le changement','⚠ RCP immédiate :: 30:2 — sans délai'],next:bd},
+      {id:b1,kind:'do',title:'Reconnaissance & alerte',image:null,items:['Vérifier conscience et respiration','Alerter, appeler du renfort + défibrillateur','△ Relais du masseur :: toutes les 2 min — annoncer le changement','⚠ RCP immédiate :: 30:2 — sans délai'].map(x=>v4MakeItem(uid('i'),'do',x)),next:bd},
       {id:bd,kind:'decision',title:'Analyse du rythme',image:null,question:'Rythme choquable (FV / TV sans pouls) ?',options:[{label:'Oui — choquable',target:b2},{label:'Non — non choquable',target:b3}]},
-      {id:b2,kind:'do',title:'Choquable (FV / TVsp)',image:null,steps:['⚠ Choc immédiat :: puis reprise RCP 2 min','Adrénaline :: 1 mg après le 3ᵉ choc, puis / 3–5 min','Amiodarone :: 300 mg après le 3ᵉ choc'],next:bd},
-      {id:b3,kind:'do',title:'Non choquable (AESP / asystolie)',image:null,steps:['RCP 2 min sans interruption','⚠ Adrénaline :: 1 mg immédiatement, puis / 3–5 min','Traiter les causes réversibles :: 4H / 4T'],next:bd}
+      {id:b2,kind:'do',title:'Choquable (FV / TVsp)',image:null,items:['⚠ Choc immédiat :: puis reprise RCP 2 min','Adrénaline :: 1 mg après le 3ᵉ choc, puis / 3–5 min','Amiodarone :: 300 mg après le 3ᵉ choc'].map(x=>v4MakeItem(uid('i'),'do',x)),next:bd},
+      {id:b3,kind:'do',title:'Non choquable (AESP / asystolie)',image:null,items:['RCP 2 min sans interruption','⚠ Adrénaline :: 1 mg immédiatement, puis / 3–5 min','Traiter les causes réversibles :: 4H / 4T'].map(x=>v4MakeItem(uid('i'),'do',x)),next:bd}
     ]});
   /* Même règle que la 1ʳᵉ fiche : le memory item de l'ACR est la RCP immédiate — c'est ce qui se
      fait de mémoire, avant d'ouvrir quoi que ce soit. Pas de ×2 ici : le geste est continu, pas un
      produit à double-contrôler ; en mettre un partout viderait le signal de son sens. */
   {const b=f.blocks.find(x=>x.id===b1);
    const it=b?bItems(b).find(x=>/RCP imm/.test(x.do)):null;
-   if(it){it.memory=true;syncSteps(b);}}
+   if(it){it.memory=true;}}
   return f;}
 // Ajout À LA DEMANDE des fiches d'exemple (bandeau « Besoin d'exemples ? » de l'accueil).
 // persist() les marque `dirty` -> elles se synchronisent normalement si un compte est connecté.
@@ -6871,7 +6791,7 @@ function ovPresList(arr){
 function instComplete(f,nav,navSeq,checked,idx){
   const b=((f&&f.blocks)||[]).find(x=>x&&x.id===(nav||[])[idx]);if(!b)return false;
   if(b.kind==='decision')return (b.options||[]).some(o=>o&&o.target&&o.target===nav[idx+1]);
-  const steps=clean(b.steps);const seq=(navSeq&&navSeq[idx])||1;
+  const steps=clean(stepsOf(b));const seq=(navSeq&&navSeq[idx])||1;
   return steps.every((s,i)=>!!(checked&&checked[seq+':'+b.id+':'+i]));}
 /* ----- PLAN DE L'AIDE (v4.10.0) : l'algorithme ENTIER en arbre indenté -----
    Mise en page des algorithmes papier / checklists conditionnelles QRH : DFS depuis le départ,
@@ -6964,7 +6884,7 @@ function minimapData(f,nav,navSeq,checked,navPos){const blocks=(f&&f.blocks)||[]
   const curId=nav&&nav[np];
   return flowPlan(f).order.map((id,i)=>{const b=byId[id];const lp=latestPass(nav,navSeq,id);
     const dec=b.kind==='decision';
-    const steps=dec?[]:clean(b.steps);
+    const steps=dec?[]:clean(stepsOf(b));
     const seq=lp?lp.seq:0;
     let done=0;steps.forEach((s,j)=>{if(checked&&checked[seq+':'+id+':'+j])done++;});
     const taken=(dec&&lp&&(b.options||[]).some(o=>o&&o.target&&o.target===(nav[lp.idx+1]||null)))?nav[lp.idx+1]:null;
@@ -7414,7 +7334,7 @@ function snapshotSession(R,live){const now=Date.now();const tsnap={};
 function stepTextFromKey(f,key,snap){
   const arch=snap&&snap.stepTexts&&snap.stepTexts[key];
   if(arch&&arch.s)return {block:arch.b||'Étapes',step:arch.s,archived:true};
-  const p=String(key).split(':');const blk=(f&&f.blocks||[]).find(b=>b.id===p[1]);if(!blk||!Array.isArray(blk.steps))return null;const s=blk.steps[+p[2]];return s?{block:blk.title||'Étapes',step:s}:null;}
+  const p=String(key).split(':');const blk=(f&&f.blocks||[]).find(b=>b.id===p[1]);if(!blk)return null;const s=stepsOf(blk)[+p[2]];return s?{block:blk.title||'Étapes',step:s}:null;}
 const reportModal=document.getElementById('reportModal');
 let _reportDoc='',_reportName='compte-rendu';   // document autonome + nom de fichier pour Imprimer/Télécharger
 function exportSessionReport(sessionId){
@@ -9668,7 +9588,7 @@ function flowMeasure(C){const{blocks,start}=C;const{TH,LH,TLH,HPAD,TXT_MAX,TITLE
     const startStrip=isStart?17:0;
     const headerH=Math.max(TH,headerLines.length*TLH+12)+startStrip;const items=[];
     if(dec){if(b.question)items.push({kind:'q',lines:wrapText(stripBold(b.question),TXT_MAX)});(b.options||[]).filter(o=>o.label||o.target).forEach((o,i)=>items.push({kind:'opt',num:i+1,lines:wrapText(stripBold(o.label)||('Option '+(i+1)),TXT_MAX-3)}));}
-    else{clean(b.steps).forEach((s,i)=>{const cr=stepCR(stepText(s));items.push({kind:'step',num:i+1,crit:stepIsCrit(s),vig:stepIsVigil(s),lines:wrapText(stripBold(cr.r?cr.c+' — '+cr.r:cr.c),TXT_MAX-3)});});}
+    else{clean(stepsOf(b)).forEach((s,i)=>{const cr=stepCR(stepText(s));items.push({kind:'step',num:i+1,crit:stepIsCrit(s),vig:stepIsVigil(s),lines:wrapText(stripBold(cr.r?cr.c+' — '+cr.r:cr.c),TXT_MAX-3)});});}
     const cl=items.reduce((n,it)=>n+it.lines.length,0);
     let mxc=0;headerLines.forEach(l=>{mxc=Math.max(mxc,l.length*1.12);});
     items.forEach(it=>it.lines.forEach((l,li)=>{const pre=(it.kind==='step'||it.kind==='opt')?(li===0?String(it.num).length+2:1.5):0;mxc=Math.max(mxc,l.length+pre);}));
@@ -10116,7 +10036,9 @@ function qrSvg(text,label){
    ⚠ LA LISTE BLANCHE DU SERVEUR DOIT SUIVRE (`share_fiche`, supabase/schema.sql) : c'est ELLE
    l'autorité, et un champ absent y est filtré à l'arrivée quoi qu'en dise le client. */
 const SHARE_KEEP = ['id','title','discriminant','code','status','validatedAt','blocks','start','timers','counters','items'];
-const SHARE_DROP = ['category','local','excursions','sources','images','docs',
+/* `v` et `kind` sont des MÉTADONNÉES DE FORMAT : elles ne servent qu'au stockage et à l'import,
+   et l'invité reçoit un instantané déjà normalisé. Elles n'ont donc rien à faire sur le fil. */
+const SHARE_DROP = ['v','kind','category','local','excursions','sources','images','docs',
   'links','order','updatedBy','updatedAt','deletedAt','ownerId','library'];
 /* `complications` est DÉLIBÉRÉMENT écarté, et ce n'est pas un oubli : entrer en complication est
    une capacité du seul `lead` (le scribe ne navigue pas), et les cibles peuvent désigner d'AUTRES
@@ -10885,7 +10807,7 @@ function tagAll(f,tags){
     out.push({ref:ref,label:l,src:src,alias:alias||[]});};
   ((f&&f.timers)||[]).forEach(t=>add({type:'timer',id:t.id},t.label,'fiche'));
   ((f&&f.counters)||[]).forEach(c=>add({type:'counter',id:c.id},c.label,'fiche'));
-  ((f&&f.blocks)||[]).forEach(b=>clean(b&&b.steps).forEach((st,i)=>
+  ((f&&f.blocks)||[]).forEach(b=>clean(b?stepsOf(b):[]).forEach((st,i)=>
     add({type:'step',b:b.id,i:i},posoName(stepText(st)),'fiche')));
   clean(f&&listOf(f,'posology')).forEach((pp,i)=>add({type:'poso',i:i},posoName(pp),'fiche'));
   TAG_CORE.forEach(c=>add({type:'core',k:c.k},c.l,'noyau'));
@@ -10900,7 +10822,7 @@ function tagLabel(ref,f,tags){
     return r.v==null?base:base+' n° '+(+r.v||0);}
   if(r.type==='timer'){const t=(((f&&f.timers)||[]).find(x=>x.id===r.id));return (t&&t.label)||null;}
   if(r.type==='step'){const b=(((f&&f.blocks)||[]).find(x=>x.id===r.b));
-    const st=(b&&Array.isArray(b.steps))?b.steps[+r.i]:null;
+    const st=b?stepsOf(b)[+r.i]:null;
     return st?posoName(stepText(st)):null;}
   if(r.type==='poso'){const pp=listOf(f,'posology')[+r.i];return pp?posoName(pp):null;}
   if(r.type==='core'){const c=TAG_CORE.find(x=>x.k===r.k);return c?c.l:null;}
@@ -11175,7 +11097,7 @@ function navSection(f){
     if(blk.kind==='decision'){const taken=state.nav[npos+1];
       const opts=(blk.options||[]).map((o,i)=>{const sel=!atTip&&o.target&&o.target===taken;const arr=sel?'<span class="arr">✓</span>':'<span class="arr">'+uiIcon('chev',18,{sw:2.4,cls:''})+'</span>';return `<button class="opt${sel?' taken':''}" ${atTip?`data-goto="${o.target||''}"`:'disabled'}><span class="ftxt">${fmt(o.label)||'Option '+(i+1)}</span>${arr}</button>`;}).join('');
       navHtml=`<div class="nav-wrap dec">${crumbsH?'':''}<div class="node-title">Décision · ${esc(blk.title)||'Réévaluation'}${passTag}</div>${imgH}<div class="question">${fmt(blk.question)||'…'}</div><div class="options">${opts}</div>${histBtn?`<div class="flow-ctrl">${histBtn}</div>`:''}</div>`;}
-    else{const steps=clean(blk.steps);
+    else{const steps=clean(stepsOf(blk));
       // V5 : « Continuer » passe au registre CONFIRMATION (vert) quand TOUTES les étapes du bloc
       // sont cochées — le bouton dit « le bloc est fait » sans avoir à recompter.
       const done=steps.filter((s,i)=>state.checked[curSeq+':'+blk.id+':'+i]).length;
@@ -11886,7 +11808,7 @@ function overviewSection(f){
   const inner=controls+secH+`<div class="ov-journal">${insts}${endH}</div>`;
   // Compteur du panneau Algorithme : l'instance du BOUT (là où l'on agit).
   const tipDone=(()=>{const b=f.blocks.find(x=>x.id===cur);if(!b||b.kind==='decision')return {d:null,t:null};
-    const steps=clean(b.steps);const seq=state.navSeq[state.navPos]||1;
+    const steps=clean(stepsOf(b));const seq=state.navSeq[state.navPos]||1;
     let d=0;steps.forEach((s,i)=>{if(state.checked[seq+':'+cur+':'+i])d++;});return {d,t:steps.length};})();
   return {blk,cur,navHtml:`<div class="ov-wrap">${inner}</div>`,inner,
     blockDone:tipDone.d,blockTot:tipDone.t};}
@@ -11928,7 +11850,7 @@ function ovInstHtml(f,id,idx,topo,pres){
     bodyH=`${imgH}<div class="question">${fmt(b.question)||'…'}</div><div class="options">${opts}</div>${tip&&cxAll(f).length?cxRowHtml(cxAll(f)):''}`;
     count=taken?'✓':'?';}
   else{
-    const steps=clean(b.steps);
+    const steps=clean(stepsOf(b));
     // MODE VÉRIFICATION (v4.11.0, Do-Verify — AC 120-71B) : cette instance redéroule ses
     // challenges UN À UN. « Constaté ✓ » coche la MÊME clé que le cochage normal ; « △ Écart »
     // avance SANS cocher (jamais de coche inventée) ; le résumé final liste les non-cochées.
@@ -11998,7 +11920,7 @@ function ovInstHtml(f,id,idx,topo,pres){
   const verifying=state.ovVerify&&state.ovVerify.idx===idx;
   const btns=verifying
     ?`<button type="button" class="ov-redo" data-ovvx title="Quitter la vérification — l'état des cases est déjà enregistré">✕</button>`
-    :(((!dec&&clean(b.steps).length)?`<button type="button" class="ov-redo" data-ovverify="${idx}" title="Do-Verify : redérouler ce bloc en challenge-réponse — « Constaté » coche, « Écart » laisse non coché">Vérifier</button>`:'')
+    :(((!dec&&clean(stepsOf(b)).length)?`<button type="button" class="ov-redo" data-ovverify="${idx}" title="Do-Verify : redérouler ce bloc en challenge-réponse — « Constaté » coche, « Écart » laisse non coché">Vérifier</button>`:'')
       +((!tip&&complete&&!dec)?`<button type="button" class="ov-redo" data-ovredo="${esc(id)}" title="Refaire ce bloc : nouvelle carte au bout du journal — celle-ci reste telle quelle">↺ Refaire</button>`:''));
   return `<section class="ov-block${tip?' cur':''}${complete?' done':''}${dec?' dec':''}${closed&&!verifying?' closed':''}" data-ovb="${esc(id)}" data-ovi="${idx}" data-ovn="${topo[id]||''}"${tip?' aria-current="step"':''}><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="${idx}" aria-expanded="${closed&&!verifying?'false':'true'}"><span class="ov-n" aria-hidden="true">${complete?uiIcon('check',13,{sw:3.2,cls:''}):(topo[id]||((Runtime.cxBack||{})[seq]?'⚡':'·'))}</span><span class="ov-t">${esc(b.title)||(dec?'Décision':'Étapes')}${passTag}${cxTag}${takenH}${navByTag(tip,seq)}</span><span class="ov-c">${count}</span><span class="ov-chev" aria-hidden="true">${closed&&!verifying?'▾':'▴'}</span></button>${(btns||tip)?`<div class="ov-acts">${tip?'<span class="ov-here">Vous êtes ici</span>':''}${btns}</div>`:''}</div><div class="ov-body">${bodyH}</div></section>`;}
 /* PLAN DE L'AIDE — « Se repérer » (v4.12.0, réduit à UNE vue en v4.25.0) : rendu de flowPlan.
@@ -12352,7 +12274,7 @@ function ovPlanLadderHtml(f,plan,num,md,off){
     if(it.k!=='block')return;   // liens/fins : déjà encodés dans la colonne renvois des blocs
     const b=f.blocks.find(x=>x.id===it.id);if(!b)return;
     const dec=b.kind==='decision';const m=md[it.id]||{};
-    const steps=dec?[]:clean(b.steps);
+    const steps=dec?[]:clean(stepsOf(b));
     let g='';
     if(dec){const opts=b.options||[];const ab=optAbbr(opts.map(o=>(o&&o.label)||''));
       g=opts.map((o,oi)=>{const tgt=(o&&o.target&&num[o.target])?o.target:null;
@@ -12986,7 +12908,7 @@ function staticSection(f){
   const cur=state.nav[state.navPos];
   const blk=f.blocks.find(b=>b.id===cur)||f.blocks.find(b=>b.id===f.start)||f.blocks[0];
   const tipDone=(()=>{const b=f.blocks.find(x=>x.id===cur);if(!b||b.kind==='decision')return {d:null,t:null};
-    const steps=clean(b.steps);const seq=state.navSeq[state.navPos]||1;
+    const steps=clean(stepsOf(b));const seq=state.navSeq[state.navPos]||1;
     let d=0;steps.forEach((s,i)=>{if(state.checked[seq+':'+cur+':'+i])d++;});return {d,t:steps.length};})();
   /* LOT T8 — « TOUTE LA FICHE » EST UN CRAN DE DENSITÉ, ET IL SE REGARDE DE TROIS FAÇONS.
      Ce ne sont PAS trois vues nouvelles : ce sont les trois rendus que le dépôt possède déjà,
@@ -13054,7 +12976,7 @@ function svTableHtml(f){
     return bits.join('');};
   const cellH=id=>{const b=f.blocks.find(x=>x.id===id);if(!b)return '';
     const m=md[id]||{};const isOff=off.has(id);
-    const steps=clean(b.steps);const seq=m.seq||0;
+    const steps=clean(stepsOf(b));const seq=m.seq||0;
     const lis=steps.length?`<ul class="sv-stp">${steps.map((s,ix)=>{const ck=!!(seq&&state.checked[seq+':'+id+':'+ix]);const cr=stepCR(stepText(s));
       return `<li class="${stepIsCrit(s)?'crit ':(stepIsVigil(s)?'vig ':'')}${ck?'done':''}">${fmt(cr.c)}${cr.r?` <span class="sv-r">${fmt(cr.r)}</span>`:''}</li>`;}).join('')}</ul>`:'';
     return `<div class="sv-cell${m.complete?' done':''}${m.cur?' cur':''}${isOff?' off':''}" data-svgo="${esc(id)}" role="button" tabindex="0"${m.cur?' aria-current="true"':''} aria-label="${esc(stripBold(b.title||'Étapes'))} — aller à ce bloc"><p class="sv-h"><span class="sv-n" aria-hidden="true">${num[id]||'·'}</span><span class="sv-t">${esc(b.title)||'Étapes'}</span><span class="sv-m">${metaH(id,false)}</span></p>${isOff?'<p class="sv-off2">hors chemin</p>':''}${lis}</div>`;};
@@ -13100,7 +13022,7 @@ function svTableHtml(f){
   const cxCells=()=>{const det=cxDetached(f);if(!det.length)return '';
     return `<div class="sv-band sv-cxband">⚡ À tout moment</div>`+det.map(c=>{
       const b=f.blocks.find(x=>x.id===c.target);if(!b)return '';
-      const steps=clean(b.steps);
+      const steps=clean(stepsOf(b));
       return `<div class="sv-cell sv-cx" data-svgo="${esc(c.target)}" role="button" tabindex="0" aria-label="${esc(c.label)} — aller à ce bloc"><p class="sv-h"><span class="sv-n" aria-hidden="true">⚡</span><span class="sv-t">${esc(c.label)}</span></p><ul class="sv-stp">${steps.map(st=>{const cr=stepCR(stepText(st));return `<li class="${stepIsCrit(st)?'crit':(stepIsVigil(st)?'vig':'')}">${fmt(cr.c)}${cr.r?` <span class="sv-r">${fmt(cr.r)}</span>`:''}</li>`;}).join('')}</ul></div>`;}).join('');};
   return walk()+cxCells();}
 // Peintre des flèches : fourches / convergences / gouttière des retours — positions RÉELLES
@@ -13506,6 +13428,11 @@ function listEditor(legend,hint,key,arr,ordered,opts){opts=opts||{};
      rendu de l'éditeur ENTIER tomberait — c'est arrivé, et ni `npm run check` ni la suite ne
      l'ont vu (aucun des deux n'exerce un rendu). On dégrade au lieu de casser. */
   arr=Array.isArray(arr)?arr:[];
+  /* DÉFENSIF DEPUIS L'ÉTAPE B : les cinq listes de portée fiche ne sont plus des CHAMPS mais
+     une vue sur le pool. Un appelant qui passerait encore `f.verify` transmettrait `undefined`,
+     et le rendu de l'éditeur ENTIER tomberait — c'est arrivé, et ni `npm run check` ni la suite
+     ne l'ont vu (aucun des deux n'exerce un rendu). On dégrade au lieu de casser. */
+  arr=Array.isArray(arr)?arr:[];
   const _src=(arr.length?arr:['']);
   const rows=edGrabRows(key,_src,(v,i)=>{const crit=opts.crit&&(stepIsCrit(v)||stepIsVigil(v));
   return `<div class="li${crit?' li-vigil':''}${edGrabClsL(key,i)}" data-i="${i}">${ordered?`<span class="li-num">${String(i+1).padStart(2,'0')}</span>`:''}<input type="text" value="${esc(opts.crit?stepText(v):v)}" data-key="${key}" data-idx="${i}"${opts.crit?' data-critlist':''} placeholder="…" aria-label="${esc(legend)} — ligne ${i+1}">${boldBtnHtml()}${opts.crit?`<button class="mini crit-tgl${crit?' vig':''}" data-lcrit="${i}" data-lkey="${key}" title="${crit?'Repère à VÉRIFIER (carte ambre : risque d’erreur — dose, dilution, voie) — toucher : normal':'Repère normal — toucher : à vérifier (carte ambre)'}">△</button>`:''}${edGrabHandleL(key,i,_src.length,'la ligne')}<button class="mini del" data-rm="${key}" data-idx="${i}" aria-label="Supprimer la ligne">×</button></div>`;});/* Le CHAPEAU porte son compte « n/4 » à droite du titre, et la porte dit ce qu'il RESTE :
@@ -13641,7 +13568,7 @@ function reviewNotes(f){
   {const t=nfGuardTxt(forgetAll(f));if(t)out.push({at:'nf',cible:'Ne pas oublier',txt:t});}
   ((f&&f.blocks)||[]).forEach(b=>{
     if(!b||b.kind==='decision')return;
-    const t=stepGuardTxt(b.steps||[]);
+    const t=stepGuardTxt(stepsOf(b));
     if(t)out.push({at:'b:'+b.id,cible:(b.title||'').trim()||'Bloc d’étapes',txt:t});});
   return out;}
 // Bouton « Gras » : entoure la sélection du champ voisin de ** (rendu <b> en lecture via fmt()).
@@ -13776,11 +13703,11 @@ function imageEditor(b){return `<div class="sub">Image du bloc (option)</div><di
    c'est un geste. Échap ou ✕ le repose là où il était — un geste interrompu ne déplace rien. */
 function edGrabLabel(f){const g=state.edGrab;if(!g)return '';
   if(g.kind==='b'){const b=(f.blocks||[]).find(x=>x.id===g.bid);
-    const n=b?clean(b.steps||[]).length:0;
+    const n=b?clean(stepsOf(b)).length:0;
     return 'bloc « '+((b&&b.title||'').trim()||'sans titre')+' »'+(n?' · '+n+' étape'+(n>1?'s':''):'');}
   if(g.kind==='l')return edGrabLabelL(f);
   const b=(f.blocks||[]).find(x=>x.id===g.bid);
-  const st=b?(b.steps||[])[g.si]:'';
+  const st=b?stepsOf(b)[g.si]:'';
   return '« '+(stripBold(stepText(st||''))||'étape vide')+' »';}
 /* GARDE-FOU QRH : une étape ⚠ tirée hors de son bloc CHANGE de contexte — un memory item n'a de
    sens que dans la séquence qui le porte. On l'ANNONCE avant le dépôt (△ sur la cible), on ne
@@ -13979,7 +13906,7 @@ function edGrabLabelL(f){
   return txt?('« '+txt+' »'):('rangée '+(g.i+1));}
 function edGrabIsCrit(){const g=state.edGrab;if(!g||g.kind!=='s'||!state.draft)return false;
   const b=(state.draft.blocks||[]).find(x=>x.id===g.bid);
-  return !!b&&stepIsCrit((b.steps||[])[g.si]||'');}
+  return !!b&&stepIsCrit(stepsOf(b)[g.si]||'');}
 /* L'ANCRE DE L'OBJET TENU (v4.77.0, signalé à l'usage : « quand on annule le mode déplacer, on ne
    revient pas à la même hauteur, on est décalé en bas »). PRENDRE et POSER étaient ancrés depuis
    MK5-b ; ABANDONNER ne l'était pas — le ✕ et Échap faisaient un `renderEditor()` nu, le retrait
@@ -14007,7 +13934,7 @@ function edDrop(at,lbl,warn){
   const idx=Math.min(parseInt(String(at).split(':').pop(),10)||0,6);
   return `<button type="button" class="ed-drop${warn?' warn':''}" style="--i:${idx}" data-drop="${esc(at)}">${warn?'△ ':''}${esc(lbl)}</button>`;}
 function blockEditor(b,blocks){if(b.kind==='decision'){return `<div class="blk blk-dec${edGrabCls('b',b.id)}" data-bid="${b.id}"><div class="blk-top"><span class="blk-n dec" aria-hidden="true">◆</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Réévaluation)" aria-label="Titre de la décision"><button class="mini grab" draggable="true" data-grab="b:${b.id}" aria-label="Déplacer ce bloc" title="Déplacer le bloc — touchez, puis touchez la destination">⠿</button></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Question</div><input type="text" data-bf="question" value="${esc(b.question)}" placeholder="ex. Réponse à l'adrénaline ?" aria-label="Question posée" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)"><div class="sub">Réponses → bloc cible</div>${(b.options.length?b.options:[{label:'',target:''}]).map((o,i)=>`<div class="optedit" data-oi="${i}"><input type="text" data-of="label" value="${esc(o.label)}" placeholder="ex. Oui" aria-label="Libellé de la réponse ${i+1}">${targetSelect(blocks,b.id,o.target)}<button class="mini del" data-optdel="${i}" aria-label="Supprimer la réponse">×</button></div>`).join('')}<button class="add-line" data-addopt>+ Ajouter une réponse</button>${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
-  return `<div class="blk${edGrabCls('b',b.id)}" data-bid="${b.id}"><div class="blk-top"><span class="blk-n" aria-hidden="true">${(blocks||[]).indexOf(b)+1}</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Mesures immédiates)" aria-label="Titre du bloc"><button class="mini grab" draggable="true" data-grab="b:${b.id}" aria-label="Déplacer ce bloc" title="Déplacer le bloc — touchez, puis touchez la destination">⠿</button></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Étapes (cochables en mode crise)</div><details class="crit-guide"${(()=>{try{return localStorage.getItem('ac-cg-open')?' open':'';}catch(e){return '';}})()}><summary>${uiIcon('warn',11)} Rouge, △ ambre, réponse attendue — règles d'usage</summary><b class="cg-r">${uiIcon('warn',11)} Rouge</b> : ce qui tue si on l'oublie (memory item, geste vital). <b class="cg-a">△ Ambre</b> : là où l'on risque de se tromper (dose/dilution à vérifier avant injection, contre-indication à écarter, confusion voie/site/produit, seuil à contrôler avant de poursuivre). Les deux → rouge. <b>Réponse attendue</b> : « challenge :: réponse » (ex. « Adrénaline IM :: 0,01 mg/kg — max 0,5 mg ») — la réponse devient la pilule à confirmer en lecture (challenge-response).</details>${(b.steps.length?b.steps:['']).map((s,i)=>`${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+i,i===0?'Poser en tête':'Poser ici',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<div class="li${stepIsCrit(s)?' li-crit':(stepIsVigil(s)?' li-vigil':'')}${edGrabCls('s',b.id,i)}" data-si="${i}"><span class="li-box" aria-hidden="true">${stepIsCrit(s)?uiIcon('warn',13):(stepIsVigil(s)?'△':'')}</span><input type="text" data-sf value="${esc(stepText(s))}" placeholder="Nouvelle étape…" aria-label="Étape ${i+1}"><button class="mini grab li-grab" draggable="true" data-grab="s:${i}" aria-label="Déplacer l'étape ${i+1}" title="Déplacer — touchez, puis touchez la destination">⠿</button><span class="li-tools"><button class="mini crit-tgl${stepIsCrit(s)?' on':(stepIsVigil(s)?' vig':'')}" data-crit="${i}" title="${stepIsCrit(s)?'Étape CRITIQUE (rouge : ce qui tue si oublié) — toucher : vigilance (ambre)':(stepIsVigil(s)?'Étape VIGILANCE (ambre : risque d’erreur — dose, voie, seuil) — toucher : étape normale':'Étape normale — toucher : critique (rouge : ce qui tue si oublié)')}">${stepIsVigil(s)?'△':uiIcon('warn',14)}</button><button class="mini mem-tgl${(bItems(b)[i]||{}).memory?' on':''}" data-mem="${i}" aria-pressed="${(bItems(b)[i]||{}).memory?'true':'false'}" title="${(bItems(b)[i]||{}).memory?'Memory item — apparaît AUSSI dans « Ne pas oublier » ; toucher : étape ordinaire':'Étape ordinaire — toucher : memory item (elle rejoint « Ne pas oublier »)'}">★</button><button class="mini x2-tgl${(bItems(b)[i]||{}).dual?' on':''}" data-dual="${i}" aria-pressed="${(bItems(b)[i]||{}).dual?'true':'false'}" title="${(bItems(b)[i]||{}).dual?'Confirmé par les DEUX — toucher : confirmation simple':'Confirmation simple — toucher : à confirmer par les deux (AC 120-71B §5.2.2.5)'}">×2</button><span class="li-sp"></span><button class="mini del" data-rmstep="${i}" aria-label="Supprimer l'étape">×</button></span>${(()=>{const nt=stepNote(s);return nt?`<span class="li-note" role="status">△ <b>Relecture</b> — ${esc(nt)}</span>`:'';})()}</div>`).join('')}${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+(b.steps.length||0),'Poser en fin',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<p class="nf-guard" data-stepguard role="status">${stepGuardTxt(b.steps,'bloc')}</p><button class="add-line" data-addstep>+ Ajouter une étape</button><div class="sub">Étape suivante</div>${targetSelect(blocks,b.id,b.next)}${b.next?`<input type="text" data-bnextlbl value="${esc(b.nextLbl||'')}" maxlength="120" placeholder="Libellé du bouton Continuer (ex. réévaluation à 5 min)" aria-label="Libellé du bouton Continuer" style="margin-top:6px">`:''}${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
+  return `<div class="blk${edGrabCls('b',b.id)}" data-bid="${b.id}"><div class="blk-top"><span class="blk-n" aria-hidden="true">${(blocks||[]).indexOf(b)+1}</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Mesures immédiates)" aria-label="Titre du bloc"><button class="mini grab" draggable="true" data-grab="b:${b.id}" aria-label="Déplacer ce bloc" title="Déplacer le bloc — touchez, puis touchez la destination">⠿</button></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Étapes (cochables en mode crise)</div><details class="crit-guide"${(()=>{try{return localStorage.getItem('ac-cg-open')?' open':'';}catch(e){return '';}})()}><summary>${uiIcon('warn',11)} Rouge, △ ambre, réponse attendue — règles d'usage</summary><b class="cg-r">${uiIcon('warn',11)} Rouge</b> : ce qui tue si on l'oublie (memory item, geste vital). <b class="cg-a">△ Ambre</b> : là où l'on risque de se tromper (dose/dilution à vérifier avant injection, contre-indication à écarter, confusion voie/site/produit, seuil à contrôler avant de poursuivre). Les deux → rouge. <b>Réponse attendue</b> : « challenge :: réponse » (ex. « Adrénaline IM :: 0,01 mg/kg — max 0,5 mg ») — la réponse devient la pilule à confirmer en lecture (challenge-response).</details>${(stepsOf(b).length?stepsOf(b):['']).map((s,i)=>`${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+i,i===0?'Poser en tête':'Poser ici',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<div class="li${stepIsCrit(s)?' li-crit':(stepIsVigil(s)?' li-vigil':'')}${edGrabCls('s',b.id,i)}" data-si="${i}"><span class="li-box" aria-hidden="true">${stepIsCrit(s)?uiIcon('warn',13):(stepIsVigil(s)?'△':'')}</span><input type="text" data-sf value="${esc(stepText(s))}" placeholder="Nouvelle étape…" aria-label="Étape ${i+1}"><button class="mini grab li-grab" draggable="true" data-grab="s:${i}" aria-label="Déplacer l'étape ${i+1}" title="Déplacer — touchez, puis touchez la destination">⠿</button><span class="li-tools"><button class="mini crit-tgl${stepIsCrit(s)?' on':(stepIsVigil(s)?' vig':'')}" data-crit="${i}" title="${stepIsCrit(s)?'Étape CRITIQUE (rouge : ce qui tue si oublié) — toucher : vigilance (ambre)':(stepIsVigil(s)?'Étape VIGILANCE (ambre : risque d’erreur — dose, voie, seuil) — toucher : étape normale':'Étape normale — toucher : critique (rouge : ce qui tue si oublié)')}">${stepIsVigil(s)?'△':uiIcon('warn',14)}</button><button class="mini mem-tgl${(bItems(b)[i]||{}).memory?' on':''}" data-mem="${i}" aria-pressed="${(bItems(b)[i]||{}).memory?'true':'false'}" title="${(bItems(b)[i]||{}).memory?'Memory item — apparaît AUSSI dans « Ne pas oublier » ; toucher : étape ordinaire':'Étape ordinaire — toucher : memory item (elle rejoint « Ne pas oublier »)'}">★</button><button class="mini x2-tgl${(bItems(b)[i]||{}).dual?' on':''}" data-dual="${i}" aria-pressed="${(bItems(b)[i]||{}).dual?'true':'false'}" title="${(bItems(b)[i]||{}).dual?'Confirmé par les DEUX — toucher : confirmation simple':'Confirmation simple — toucher : à confirmer par les deux (AC 120-71B §5.2.2.5)'}">×2</button><span class="li-sp"></span><button class="mini del" data-rmstep="${i}" aria-label="Supprimer l'étape">×</button></span>${(()=>{const nt=stepNote(s);return nt?`<span class="li-note" role="status">△ <b>Relecture</b> — ${esc(nt)}</span>`:'';})()}</div>`).join('')}${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+(stepsOf(b).length||0),'Poser en fin',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<p class="nf-guard" data-stepguard role="status">${stepGuardTxt(stepsOf(b),'bloc')}</p><button class="add-line" data-addstep>+ Ajouter une étape</button><div class="sub">Étape suivante</div>${targetSelect(blocks,b.id,b.next)}${b.next?`<input type="text" data-bnextlbl value="${esc(b.nextLbl||'')}" maxlength="120" placeholder="Libellé du bouton Continuer (ex. réévaluation à 5 min)" aria-label="Libellé du bouton Continuer" style="margin-top:6px">`:''}${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
 /* Éditeur des COMPLICATIONS (v4.26.0) : libellé de l'ÉVÉNEMENT + cible. La cible est soit un
    bloc de CETTE fiche (le sélecteur liste les blocs en premier), soit une AUTRE aide ou un
    protocole (demande utilisateur : « une complication peut ouvrir une nouvelle aide cognitive ») —
@@ -14086,7 +14013,7 @@ function edStructHtml(f){
   return `<div class="rail-head"><span class="rail-title">Structure</span><span class="rail-n">${bs.length}</span></div>`
     +bs.map((b,i)=>{const dec=b.kind==='decision';
       const n=dec?((b.options||[]).length+' branche'+((b.options||[]).length>1?'s':''))
-        :(clean(b.steps||[]).length+' étape'+(clean(b.steps||[]).length>1?'s':''));
+        :(clean(stepsOf(b)).length+' étape'+(clean(stepsOf(b)).length>1?'s':''));
       return `<button type="button" class="eds-row${dec?' dec':''}" data-edgo="${esc(b.id)}"><span class="eds-n">${dec?'◆':(i+1)}</span><span class="eds-t">${esc((b.title||'').trim())||(dec?'Décision':'Sans titre')}</span><span class="eds-c">${n}</span></button>`;}).join('');}
 /* LA COLONNE DE DROITE PORTE L'ALGORITHME, PLUS UNE MAQUETTE (demande utilisateur : « enlève
    aperçu en direct — c'est déjà un aperçu en direct ; remplace par l'algorithme, aperçu
@@ -14328,7 +14255,7 @@ function bindEditorEvents(f){
           if(tg){tg.classList.toggle('on',sc.mark==='⚠ ');tg.classList.toggle('vig',sc.mark==='△ ');
             tg.innerHTML=sc.mark==='△ '?'△':uiIcon('warn',14);}}}
       setStepStr(b,i,pfx+e.target.value);scheduleFlowPreview(f);
-      const g=card.querySelector('[data-stepguard]');if(g)g.textContent=stepGuardTxt(b.steps,'bloc');
+      const g=card.querySelector('[data-stepguard]');if(g)g.textContent=stepGuardTxt(stepsOf(b),'bloc');
       revPanelRefresh(f);}));   // K2 : le bilan suit la frappe, sans re-rendre l'éditeur
     /* ÉTAT 3 — « ⏎ = item suivant ». UNE CHECKLIST SE DICTE : on la tape en rafale, et la
        saisie ne doit jamais passer par un menu. Entrée crée l'étape JUSTE EN DESSOUS (pas en fin
@@ -14339,7 +14266,7 @@ function bindEditorEvents(f){
     card.querySelectorAll('[data-sf]').forEach((inp,i)=>inp.addEventListener('keydown',e=>{
       if(e.key!=='Enter')return;
       e.preventDefault();
-      bItemAdd(b,i+1,newStepItem(''));syncSteps(b);
+      bItemAdd(b,i+1,newStepItem(''));
       keepAnchor('.blk[data-bid="'+CSS.escape(b.id)+'"] .li[data-si="'+i+'"]',renderEditor);
       const nl=main.querySelector('.blk[data-bid="'+CSS.escape(b.id)+'"] .li[data-si="'+(i+1)+'"] input[data-sf]');
       if(nl)nl.focus();}));
@@ -14350,13 +14277,13 @@ function bindEditorEvents(f){
     card.querySelectorAll('[data-sf]').forEach((inp,i)=>inp.addEventListener('blur',()=>{
       if(String(stepsOf(b)[i]||'').trim()||bItems(b).length<2)return;
       if(state.edGrab)return;   // un déplacement en cours n'est pas un abandon de saisie
-      bItemDel(b,i);syncSteps(b);
+      bItemDel(b,i);
       keepAnchor('.blk[data-bid="'+CSS.escape(b.id)+'"]',renderEditor);}));
-    const as=card.querySelector('[data-addstep]');if(as)as.onclick=()=>{bItemAdd(b,(b.items||[]).length,newStepItem(''));syncSteps(b);
+    const as=card.querySelector('[data-addstep]');if(as)as.onclick=()=>{bItemAdd(b,(b.items||[]).length,newStepItem(''));
       keepAnchor('.blk[data-bid="'+CSS.escape(b.id)+'"]',renderEditor);
       const ls=[...main.querySelectorAll('.blk[data-bid="'+CSS.escape(b.id)+'"] input[data-sf]')];
       if(ls.length)ls[ls.length-1].focus();};
-    card.querySelectorAll('[data-rmstep]').forEach(btn=>btn.onclick=()=>{bItemDel(b,+btn.dataset.rmstep);if(!bItems(b).length)bItemAdd(b,0,newStepItem(''));syncSteps(b);renderEditor();});
+    card.querySelectorAll('[data-rmstep]').forEach(btn=>btn.onclick=()=>{bItemDel(b,+btn.dataset.rmstep);if(!bItems(b).length)bItemAdd(b,0,newStepItem(''));renderEditor();});
     // Bascule du TYPE d'étape (SPEC §2.2) : cycle normale -> ⚠ critique (rouge) -> △ vigilance
     // (ambre) -> normale, par préfixe dans la chaîne (exports v3 inchangés).
     card.querySelectorAll('[data-mem]').forEach(btn=>btn.onclick=()=>{
@@ -14434,7 +14361,7 @@ function bindEditorEvents(f){
         let to=+p2[2];
         const _si=g.si;
         if(src===cible&&g.si<to)to--;
-        bItemMove(src,_si,cible,to);syncSteps(src);syncSteps(cible);}
+        bItemMove(src,_si,cible,to);}
       /* POSER : on ancre sur le bloc RECEVEUR — l'objet vient d'y atterrir, c'est là que le
          regard est. Sans ancrage, le retrait des interstices raccourcit la page et l'écran
          remonte d'autant. */
@@ -14632,7 +14559,7 @@ function edSnapshot(kind){
        const jetes=(b.items||[]).filter(id=>garde.indexOf(id)<0);
        b.items=garde;
        if(jetes.length)d.items=poolOf(d).filter(it=>jetes.indexOf(it.id)<0);
-       if(!b.items.length)bItemAdd(b,0,newStepItem(''));syncSteps(b);}b.nextLbl=(b.nextLbl||'').trim();}
+       if(!b.items.length)bItemAdd(b,0,newStepItem(''));}b.nextLbl=(b.nextLbl||'').trim();}
     else{b.question=(b.question||'').trim();b.options=(b.options||[]).filter(o=>(o.label||'').trim());}});
   d.timers=(d.timers||[]).map(t=>({id:t.id,label:(t.label||'').trim(),type:t.type==='interval'?'interval':'stopwatch',seconds:Math.max(0,parseInt(t.seconds||0)||0),autoloop:!!t.autoloop,onDue:(t.onDue||'').trim()}));
   d.counters=(d.counters||[]).map(c=>({id:c.id,label:(c.label||'').trim(),step:Math.max(1,parseInt(c.step||1)||1),start:parseInt(c.start||0)||0,timerId:(d.timers||[]).some(t=>t.id===c.timerId)?c.timerId:''}));
@@ -18523,7 +18450,7 @@ function flattenFiche(f){if(!f)return[];const L=[];const add=(sec,v)=>{v=String(
   ['confirmation','verify','notForget','differentials','sources','posology'].forEach(k=>(f[k]||[]).forEach(v=>add({confirmation:'Confirmation',verify:'À vérifier',notForget:'Ne pas oublier',differentials:'Différentiels',sources:'Références'}[k],v)));
   (f.blocks||[]).forEach(b=>{const t=b.title||(b.kind==='decision'?'Décision':'Étapes');
     if(b.kind==='decision'){add('Bloc « '+t+' »',b.question);(b.options||[]).forEach(o=>add('Bloc « '+t+' » — option',o&&o.label));}
-    else (b.steps||[]).forEach(s=>add('Bloc « '+t+' »',s));});
+    else stepsOf(b).forEach(s=>add('Bloc « '+t+' »',s));});
   (f.timers||[]).forEach(t=>add('Minuteur',(t.label||'')+(t.type==='interval'?' ('+(t.seconds||0)+' s)':' (chrono)')));
   (f.counters||[]).forEach(c=>add('Compteur',c.label));
   return L;}
@@ -18960,7 +18887,7 @@ if(location.search.indexOf('__actest')>=0){
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
     restErrStatus,isPersoRepairCandidate,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,cxAll,cxDetached,
     qTerms,hayMatch,markQTerms,searchSnippet,ficheSnipParts,protoSnipParts,frecencyScore,sanitizeUsage,mergeUsage,azLetter,azGroups,qaPick,tmLabelParts,sessStamp,monPick,reviewNotes,stepNote,stepShortcut,
-    crc32,zipBuild,zipParse,isPdfBytes,mdTask,bItems,bItemAdd,bItemDel,bItemMove,listOf,setList,roleItems,poolOf,stepsOf,syncSteps,setStepStr,newStepItem,memItemsOf,forgetAll,v4SanItem,v3ToV4,v4ToV3,v4MakeItem,v4ItemToStr,v4Level,V4_ROLES,V4_PERTES,flowOrder,latestPass,offPathSet,minimapData,passInfo,instComplete,flowPlan,stepCR,stepGuardTxt,optAbbr,svBranchIssue,svLoopTargets,ovPresList,
+    crc32,zipBuild,zipParse,isPdfBytes,mdTask,bItems,bItemAdd,bItemDel,bItemMove,listOf,setList,roleItems,poolOf,stepsOf,setStepStr,newStepItem,memItemsOf,forgetAll,v4SanItem,v4MakeItem,v4ItemToStr,v4Level,V4_ROLES,flowOrder,latestPass,offPathSet,minimapData,passInfo,instComplete,flowPlan,stepCR,stepGuardTxt,optAbbr,svBranchIssue,svLoopTargets,ovPresList,
     posoTokens,posoName,posoScore,posoRank,posoSplit,
     qrRawBits,qrTotalCw,qrGen,qrRs,qrAlign,qrDataCw,qrInterleave,qrEncode,qrSvg,qrMul,
     TAG_CORE,sanitizeTags,tagAll,tagLabel,tagRank,tkRefNorm,tkLabels,Share,sessionToRow,sessionFromRow,shareNavNorm,

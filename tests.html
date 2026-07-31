@@ -123,7 +123,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   group('migrate() — fiche hostile neutralisée');
   const before=Object.prototype.polluted;
   const m=A.migrate({id:'__proto__',title:'<img onerror=alert(1)>',category:'c',validatedAt:'2026-01',
-    confirmation:['x'],blocks:[{id:'constructor',kind:'do',title:'b',steps:['s']}],
+    confirmation:['x'],blocks:[{id:'constructor',kind:'do',title:'b',items:['s'].map(x=>A.v4MakeItem(A.uid('i'),'do',x))}],
     images:[{id:'i',data:'javascript:alert(1)',caption:'c'}]});
   ok('id __proto__ remplacé', m.id!=='__proto__');
   ok('aucune prototype pollution', Object.prototype.polluted===before);
@@ -132,7 +132,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   ok('structure blocs préservée', Array.isArray(m.blocks)&&m.blocks.length>=1);
 
   group('statut 3 états / code / étapes critiques (V5)');
-  eq('bloc étapes : nextLbl conservé et borné', A.migrate({blocks:[{id:'b1',kind:'do',steps:['s'],nextLbl:'réévaluation à 5 min'}]}).blocks[0].nextLbl, 'réévaluation à 5 min');
+  eq('bloc étapes : nextLbl conservé et borné', A.migrate({blocks:[{id:'b1',kind:'do',items:['s'].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),nextLbl:'réévaluation à 5 min'}]}).blocks[0].nextLbl, 'réévaluation à 5 min');
   eq('compteur lié : timerId sûr conservé', A.migrate({counters:[{id:'n1',label:'Adré',timerId:'t1'}]}).counters[0].timerId, 't1');
   eq('compteur lié : timerId hostile vidé', A.migrate({counters:[{id:'n1',label:'Adré',timerId:'__proto__'}]}).counters[0].timerId, '');
   eq('statut review conservé', A.migrate({status:'review'}).status, 'review');
@@ -176,7 +176,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
 
   group('txNorm() / recherche plein texte');
   eq('accents et casse normalisés', A.txNorm('Réanimation ÉCG'), 'reanimation ecg');
-  const hay=A.ficheHaystack({title:'ACR',confirmation:['Pas de pouls'],blocks:[{kind:'do',title:'RCP',steps:['Amiodarone 300 mg']},{kind:'decision',title:'Rythme',question:'Choquable ?',options:[{label:'Oui choquable'}]}]});
+  const hay=A.ficheHaystack({title:'ACR',confirmation:['Pas de pouls'],blocks:[{kind:'do',title:'RCP',items:['Amiodarone 300 mg'].map(x=>A.v4MakeItem(A.uid('i'),'do',x))},{kind:'decision',title:'Rythme',question:'Choquable ?',options:[{label:'Oui choquable'}]}]});
   ok('haystack inclut une étape', hay.indexOf('amiodarone')>=0);
   ok('haystack inclut une question de décision', hay.indexOf('choquable')>=0);
   ok('haystack inclut un libellé d’option', hay.indexOf('oui choquable')>=0);
@@ -193,7 +193,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   eq('occurrences chevauchantes fusionnées', A.markQTerms('anaphylaxie', ['anaph','phylaxie']), '<b>anaphylaxie</b>');
   ok('sans occurrence : texte échappé tel quel', A.markQTerms('<x> & y', ['zzz'])==='&lt;x&gt; &amp; y');
   ok('XSS : le texte reste échappé autour du <b>', A.markQTerms('<img src=x> adrénaline', ['adrenaline']).indexOf('<img')<0);
-  {const f=A.migrate({title:'Anaphylaxie',notForget:[],blocks:[{kind:'do',title:'Traitement',steps:['⚠ Adrénaline 0,5 mg IM face antéro-latérale de cuisse']}]});
+  {const f=A.migrate({title:'Anaphylaxie',notForget:[],blocks:[{kind:'do',title:'Traitement',items:['⚠ Adrénaline 0,5 mg IM face antéro-latérale de cuisse'].map(x=>A.v4MakeItem(A.uid('i'),'do',x))}]});
    const sn=A.searchSnippet(A.ficheSnipParts(f),'adrénaline');
    ok('extrait trouvé dans une étape', sn.indexOf('<b>Adrénaline</b>')>=0, sn);
    ok('extrait sans le préfixe ⚠ (stepText)', sn.indexOf('⚠')<0);
@@ -299,18 +299,18 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
       de contenu pour l'application. Les faire entrer par la vraie porte est d'ailleurs plus juste —
       le test mesure alors ce que le produit fabrique, pas ce que le test imagine. */
    {const F=(nf,blocks)=>A.migrate({notForget:nf||[],blocks:blocks||[],start:((blocks||[])[0]||{}).id||null});
-   eq('fiche saine → aucune remarque', A.reviewNotes(F(['a','b'],[{id:'b1',title:'Bloc',steps:['x']}])), []);
+   eq('fiche saine → aucune remarque', A.reviewNotes(F(['a','b'],[{id:'b1',title:'Bloc',items:['x'].map(x=>A.v4MakeItem(A.uid('i'),'do',x))}])), []);
    {const n=A.reviewNotes(F(['a','b','c','d','e'],[]));
     eq('chapeau à 5 rappels : une remarque, ciblée', n.length, 1);
     eq('… et elle nomme sa cible', n[0].cible, 'Ne pas oublier');
     eq('… avec l’ancre du chapeau', n[0].at, 'nf');}
-   {const b={id:'b7',title:'Mesures',steps:['a','b','c','d','e','f','g','h']};
+   {const b={id:'b7',title:'Mesures',items:['a','b','c','d','e','f','g','h'].map(x=>A.v4MakeItem(A.uid('i'),'do',x))};
     const n=A.reviewNotes(F([],[b]));
     eq('bloc à 8 étapes : une remarque ancrée sur le bloc', n.length&&n[0].at, 'b:b7');
     ok('… qui nomme le bloc', n[0].cible==='Mesures');}
    ok('une DÉCISION n’est jamais relue comme un bloc d’étapes (pas d’étapes à compter)',
      A.reviewNotes(F([],[{id:'d1',kind:'decision',title:'Choquable ?',options:[]}])).length===0);
-   {const n=A.reviewNotes(F(['a','b','c','d','e'],[{id:'b1',title:'B',steps:Array(9).fill('x')}]));
+   {const n=A.reviewNotes(F(['a','b','c','d','e'],[{id:'b1',title:'B',items:Array(9).fill('x').map(x=>A.v4MakeItem(A.uid('i'),'do',x))}]));
     eq('les remarques s’additionnent, chacune avec sa cible', n.map(x=>x.at), ['nf','b:b1']);}
    eq('fiche vide → rien à dire', A.reviewNotes({}), []);}
 
@@ -358,7 +358,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
 
   group('flattenFiche() / diffFicheLines()');
   const fF={title:'T',status:'draft',local:'Ctx',confirmation:['c1'],
-    blocks:[{id:'b1',kind:'do',title:'B',steps:['s1']},{id:'b2',kind:'decision',title:'D',question:'Q ?',options:[{label:'Oui',target:'b1'}]}],
+    blocks:[{id:'b1',kind:'do',title:'B',items:['s1'].map(x=>A.v4MakeItem(A.uid('i'),'do',x))},{id:'b2',kind:'decision',title:'D',question:'Q ?',options:[{label:'Oui',target:'b1'}]}],
     timers:[{label:'Cycle',type:'interval',seconds:120}],counters:[{label:'Adré'}]};
   const fl=A.flattenFiche(fF);
   ok('aplatit le titre', fl.indexOf('Titre · T')>=0);
@@ -369,15 +369,15 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   ok('minuteur avec durée', fl.indexOf('Minuteur · Cycle (120 s)')>=0);
   ok('compteur', fl.indexOf('Compteur · Adré')>=0);
   eq('fiche nulle → []', A.flattenFiche(null), []);
-  const fA={title:'T',confirmation:['a','b'],blocks:[{kind:'do',title:'B',steps:['s1']}]};
-  const fB={title:'T',confirmation:['a'],blocks:[{kind:'do',title:'B',steps:['s1','s2']}]};
+  const fA={title:'T',confirmation:['a','b'],blocks:[{kind:'do',title:'B',items:['s1'].map(x=>A.v4MakeItem(A.uid('i'),'do',x))}]};
+  const fB={title:'T',confirmation:['a'],blocks:[{kind:'do',title:'B',items:['s1','s2'].map(x=>A.v4MakeItem(A.uid('i'),'do',x))}]};
   const d=A.diffFicheLines(fA,fB); // cur=fA, old=fB : restaurer fB retirerait 'b', ajouterait 's2'
   ok('diff détecte une suppression', d.removed.some(x=>/·\s*b$/.test(x)));
   ok('diff détecte un ajout', d.added.some(x=>/s2$/.test(x)));
   eq('aucune diff si identiques', A.diffFicheLines(fA,fA), {removed:[],added:[]});
 
   group('stepTextFromKey()');
-  const fK={blocks:[{id:'b1',kind:'do',title:'Mesures',steps:['Étape A','Étape B']}]};
+  const fK={blocks:[{id:'b1',kind:'do',title:'Mesures',items:['Étape A','Étape B'].map(x=>A.v4MakeItem(A.uid('i'),'do',x))}]};
   eq('résout une étape cochée', A.stepTextFromKey(fK,'0:b1:1'), {block:'Mesures',step:'Étape B'});
   eq('clé orpheline → null', A.stepTextFromKey(fK,'0:zz:0'), null);
 
@@ -477,11 +477,11 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   eq('stripBold retire les paires', A.stripBold('**a** et **b**'), 'a et b');
   eq('stripBold laisse le non-apparié', A.stripBold('a **b'), 'a **b');
   ok('recherche : le gras n\'empêche pas de trouver une expression',
-    A.ficheHaystack({title:'x',blocks:[{kind:'do',title:'B',steps:['**Adrénaline** 0,5 mg IM']}]}).indexOf('adrenaline 0,5 mg')>=0);
+    A.ficheHaystack({title:'x',blocks:[{kind:'do',title:'B',items:['**Adrénaline** 0,5 mg IM'].map(x=>A.v4MakeItem(A.uid('i'),'do',x))}]}).indexOf('adrenaline 0,5 mg')>=0);
 
   group('buildFlowSVG() / wrapText() — organigramme (structure & échappement)');
   const svg=A.buildFlowSVG({blocks:[
-    {id:'a',kind:'do',title:'<img src=x onerror=alert(1)>',steps:['x'],next:'d'},
+    {id:'a',kind:'do',title:'<img src=x onerror=alert(1)>',items:['x'].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),next:'d'},
     {id:'d',kind:'decision',title:'D',question:'Q ?',options:[{label:'retour',target:'a'},{label:'fin',target:''}]}],start:'a'},'d');
   ok('rend un <svg> dimensionné', /^<svg width="[\d.]+" height="[\d.]+"/.test(svg));
   ok('titre échappé (pas de balise brute)', svg.indexOf('<img src')<0&&svg.indexOf('&lt;img')>=0);
@@ -495,14 +495,14 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
 
   group('completionSpots() — badge « À compléter »');
   ok('invite dans localInfo', A.completionSpots({local:'Tél renfort : à compléter'}).length>0);
-  ok('marqueur « ⚠ À COMPLÉTER » dans une étape', A.completionSpots({blocks:[{kind:'do',steps:['⚠ À COMPLÉTER : dose']}]}).length>0);
+  ok('marqueur « ⚠ À COMPLÉTER » dans une étape', A.completionSpots({blocks:[{kind:'do',items:['⚠ À COMPLÉTER : dose'].map(x=>A.v4MakeItem(A.uid('i'),'do',x))}]}).length>0);
   ok('invite dans une section liste', A.completionSpots({verify:['PAS cible : à compléter']}).length>0);
   ok('accent manquant toléré (« a completer »)', A.completionSpots({verify:['cible a completer']}).length>0);
   ok('⚠ seul (avertissement clinique) ne déclenche PAS', A.completionSpots({notForget:['⚠ NE PAS associer adrénaline et isoprénaline']}).length===0);
-  ok('fiche complète → aucun emplacement', A.completionSpots({local:'Tél 1234',verify:['PAS ≥ 80'],blocks:[{kind:'do',steps:['ok']}]}).length===0);
+  ok('fiche complète → aucun emplacement', A.completionSpots({local:'Tél 1234',verify:['PAS ≥ 80'],blocks:[{kind:'do',items:['ok'].map(x=>A.v4MakeItem(A.uid('i'),'do',x))}]}).length===0);
   ok('non-objet → aucun emplacement', A.completionSpots(null).length===0);
   eq('completionSpots liste les emplacements (infobulle du badge)',
-    A.completionSpots({local:'Tél : à compléter',sources:['Exemple à compléter'],blocks:[{kind:'do',title:'Traitement',steps:['⚠ À COMPLÉTER : dose']}]}),
+    A.completionSpots({local:'Tél : à compléter',sources:['Exemple à compléter'],blocks:[{kind:'do',title:'Traitement',items:['⚠ À COMPLÉTER : dose'].map(x=>A.v4MakeItem(A.uid('i'),'do',x))}]}),
     ['Contexte local','Références','Bloc « Traitement »']);
   eq('aucun emplacement → tableau vide', A.completionSpots({title:'x'}), []);
 
@@ -762,11 +762,11 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   group('Vue d’ensemble du mode crise (v4.6.0) — flowOrder / latestPass / offPathSet / minimapData');
   // Gabarit : A (étapes) → D (décision : Oui→S, Non→R), R (étapes) → D (boucle), S terminal, X orphelin.
   const ovF={start:'A',blocks:[
-    {id:'A',kind:'do',title:'Actions',steps:['⚠ un','deux'],next:'D'},
+    {id:'A',kind:'do',title:'Actions',items:['⚠ un','deux'].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),next:'D'},
     {id:'D',kind:'decision',title:'Amélioration ?',question:'?',options:[{label:'Oui',target:'S'},{label:'Non',target:'R'}]},
-    {id:'S',kind:'do',title:'Surveillance',steps:['s1','s2'],next:null},
-    {id:'R',kind:'do',title:'Pas de réponse',steps:['r1'],next:'D'},
-    {id:'X',kind:'do',title:'Orphelin',steps:['x1'],next:null}]};
+    {id:'S',kind:'do',title:'Surveillance',items:['s1','s2'].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),next:null},
+    {id:'R',kind:'do',title:'Pas de réponse',items:['r1'].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),next:'D'},
+    {id:'X',kind:'do',title:'Orphelin',items:['x1'].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),next:null}]};
   eq('flowOrder : BFS depuis start, orphelin en fin', A.flowOrder(ovF), ['A','D','S','R','X']);
   eq('flowOrder : start invalide → repli sur le premier bloc', A.flowOrder({start:'zz',blocks:ovF.blocks}), ['A','D','S','R','X']);
   eq('flowOrder : boucle sans doublon ni blocage', A.flowOrder({start:'R',blocks:ovF.blocks}), ['R','D','S','A','X']);
@@ -812,11 +812,11 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   eq('ovPresList : repli manuel d’un incomplet → ligne d’état, jamais chip', P([[false,true],[true,null]])[0], 'line');
   // flowPlan (v4.10.0) : arbre indenté avec point de convergence (post-dominateur).
   const pl1=A.flowPlan({start:'A',blocks:[
-    {id:'A',kind:'do',steps:['a'],next:'D1',title:'A'},
+    {id:'A',kind:'do',items:['a'].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),next:'D1',title:'A'},
     {id:'D1',kind:'decision',title:'D1',options:[{label:'Oui',target:'B'},{label:'Non',target:'C'}]},
-    {id:'B',kind:'do',steps:['b'],next:'E',title:'B'},
-    {id:'C',kind:'do',steps:['c'],next:'E',title:'C'},
-    {id:'E',kind:'do',steps:['e'],next:null,title:'E'}]});
+    {id:'B',kind:'do',items:['b'].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),next:'E',title:'B'},
+    {id:'C',kind:'do',items:['c'].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),next:'E',title:'C'},
+    {id:'E',kind:'do',items:['e'].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),next:null,title:'E'}]});
   eq('flowPlan : ordre de lecture (branches puis tronc)', pl1.order, ['A','D1','B','C','E']);
   ok('flowPlan : le TRONC reprend au point de convergence (E à la racine, pas dans une branche)',
     pl1.items.some(it=>it.k==='block'&&it.id==='E'&&it.depth===0));
@@ -865,8 +865,8 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
 
   group('Complications « à tout moment » (v4.26.0)');
   {const f=A.migrate({title:'Sédation',blocks:[
-     {id:'b1',kind:'do',title:'Sédation titrée',steps:['Titration'],next:null},
-     {id:'cx1',kind:'do',title:'Laryngospasme',steps:['⚠ PPC + subluxation'],next:null}],
+     {id:'b1',kind:'do',title:'Sédation titrée',items:['Titration'].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),next:null},
+     {id:'cx1',kind:'do',title:'Laryngospasme',items:['⚠ PPC + subluxation'].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),next:null}],
      start:'b1',
      excursions:[{label:'Laryngospasme',target:'cx1'},{label:'ACR',target:'fiche_acr_01'},
        {label:'',target:'cx1'},{label:'Sans cible',target:''},{label:'Injection',target:'x"><script>'},'pasunobjet']});
@@ -882,13 +882,13 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
      A.flowPlan(f).order.indexOf('cx1')<0);
    ok('flowPlan : le tronc, lui, est numéroté normalement', A.flowPlan(f).order.indexOf('b1')===0);}
   {const f2=A.migrate({title:'X',blocks:[
-     {id:'b1',kind:'do',title:'A',steps:['a'],next:'cx1'},
-     {id:'cx1',kind:'do',title:'B',steps:['b'],next:null}],start:'b1',
+     {id:'b1',kind:'do',title:'A',items:['a'].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),next:'cx1'},
+     {id:'cx1',kind:'do',title:'B',items:['b'].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),next:null}],start:'b1',
      excursions:[{label:'B direct',target:'cx1'}]});
    ok('un bloc cible AUSSI atteint par la séquence garde son numéro (pas de trou dans le tronc)',
      A.flowPlan(f2).order.indexOf('cx1')>=0);
    eq('cxDetached : rien à détacher quand la cible est dans le tronc', A.cxDetached(f2).length, 0);}
-  {const f3=A.migrate({title:'Sans',blocks:[{id:'b1',kind:'do',title:'A',steps:['a'],next:null}],start:'b1'});
+  {const f3=A.migrate({title:'Sans',blocks:[{id:'b1',kind:'do',title:'A',items:['a'].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),next:null}],start:'b1'});
    eq('fiche sans champ : défaut [], aucun bouton', A.cxAll(f3).length, 0);}
 
   group('Repères posologiques — rapprochement RÉSILIENT (v4.23.0)');
@@ -1360,7 +1360,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   // 48 sur une fiche de 8 blocs à 6 étapes, sans un message. On garde ce qu'on a reçu et on lève
   // un drapeau : échouer bruyamment, jamais deviner.
   {const f=A.migrate(A.blankFiche());
-   const b2={id:'b2',kind:'do',title:'Second',steps:['x'],next:null};
+   const b2={id:'b2',kind:'do',title:'Second',items:['x'].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),next:null};
    f.blocks.push(b2);
    const sess={nav:[f.blocks[0].id,'b2'],navSeq:[7],checked:{}};
    const loc=A.buildRuntime(f,sess);
@@ -1566,7 +1566,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
       timers:[{id:'t1',label:'Cycle RCP'}],
       counters:[{id:'c1',label:'Choc'}],
       posology:['Adrénaline IV : 1 mg'],
-      blocks:[{id:'b1',steps:['⚠ Adrénaline 1 mg IV : toutes les 4 min','Masser']}]};
+      blocks:[{id:'b1',items:['⚠ Adrénaline 1 mg IV : toutes les 4 min','Masser'].map(x=>A.v4MakeItem(A.uid('i'),'do',x))}]};
     const TAGS=[{k:'mru',l:'Médecin régulateur',a:['mru','regul']}];
 
     eq('un compteur se résout depuis la fiche',A_.tagLabel({type:'counter',id:'c1',v:3},F,[]),'Choc n° 3');
@@ -1769,15 +1769,15 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
      la dérive existe bel et bien, le texte archivé la neutralise, et le repli reste. */
   {
     const mk=()=>A.migrate({id:'f1',title:'ACR',start:'b1',blocks:[
-      {id:'b1',kind:'do',title:'Mesures immédiates',steps:[
-        'Retirer / arrêter l’allergène','Appeler à l’aide','⚠ Adrénaline IM, cuisse :: 0,5 mg'],next:null}]});
+      {id:'b1',kind:'do',title:'Mesures immédiates',items:[
+        'Retirer / arrêter l’allergène','Appeler à l’aide','⚠ Adrénaline IM, cuisse :: 0,5 mg'].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),next:null}]});
     const cle='1:b1:2';
 
     // 1. LE DÉFAUT EXISTE — sans texte archivé, la clé suit l'INDEX et désigne autre chose.
     const f=mk();
     eq('sans archive, la clé désigne l’étape attendue',
        A.stepTextFromKey(f,cle).step,'⚠ Adrénaline IM, cuisse :: 0,5 mg');
-    f.blocks[0].steps.unshift('Mettre des gants');      // un seul geste d’éditeur
+    A.bItemAdd(f.blocks[0],0,A.v4MakeItem(A.uid('i'),'do','Mettre des gants'));   // un seul geste d’éditeur
     eq('après insertion, la MÊME clé désigne une AUTRE étape (le défaut)',
        A.stepTextFromKey(f,cle).step,'Appeler à l’aide');
 
@@ -1804,17 +1804,10 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
     ok('et son absence est DITE, pas taue',row.data.vElsewhere===true);
     eq('les coches, elles, montent normalement',Object.keys(row.data.checked).length,1);
   }
-  /* T3 (v5.0.0) — le repli du chapeau est un état d'AFFICHAGE, pas de session : il ne traverse
-     jamais le partage, sinon replier chez soi replierait chez l'autre. */
-  ok('fsOpen est classé LOCAL (le repli du chapeau ne voyage pas)',A.SHARE_LOCAL.indexOf('fsOpen')>=0);
-  ok('et il n’est pas dans ce qui voyage',A.SHARE_TRAVELS.indexOf('fsOpen')<0);
-
-  /* ===== LOT T6 — LE MODÈLE v4, ET SA RÉVERSIBILITÉ ==========================================
-     Ce que ces témoins couvrent n'est PAS « la conversion marche » : c'est qu'elle ne PERD rien et
-     qu'elle n'INVENTE rien. Les deux moitiés comptent autant. Une conversion qui perd est une
-     migration destructrice ; une conversion qui devine écrit du contenu clinique à la place de
-     l'auteur, ce que la doctrine refuse explicitement pour le `discriminant`. */
-  {
+  /* ===== ÉTAPE B — LE POOL ================================================================ */
+  /* Fixture v3 conservée : elle décrit une aide telle qu'un utilisateur l'écrivait avant
+     la v5, et c'est exactement ce que `migrate` doit encore savoir NORMALISER — la conversion
+     de FORMAT, elle, a quitté l'application (étape D). */
   const v3={id:'a1',title:'Anaphylaxie',discriminant:'adulte',code:'ANA',category:'c1',
     library:'lib7',status:'review',validatedAt:'2025-03',local:'Tél : 15',
     confirmation:['Œdème + hypotension'],
@@ -1824,152 +1817,12 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
     excursions:[{label:'Bronchospasme',target:'bx'}],
     links:['p2'],docs:[{id:'at1',name:'d.pdf',size:9}],
     images:[{id:'g1'}],timers:[{label:'Réévaluation',seconds:300}],counters:[{label:'Doses'}],
-    blocks:[{id:'b1',kind:'do',title:'Immédiat',steps:['⚠ Adrénaline IM :: 0,5 mg','Oxygène'],image:null,next:'b2'},
+    blocks:[{id:'b1',kind:'do',title:'Immédiat',items:['⚠ Adrénaline IM :: 0,5 mg','Oxygène'].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),image:null,next:'b2'},
             {id:'b2',kind:'decision',title:'Réponse ?',question:'Amélioration ?',
-             options:[{label:'Oui',target:'b1'},{label:'Non',target:'b1'}],steps:[],image:null,next:null},
-            {id:'bx',kind:'do',title:'Bronchospasme',steps:['Salbutamol'],image:null,next:null}],
+             options:[{label:'Oui',target:'b1'},{label:'Non',target:'b1'}],items:[].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),image:null,next:null},
+            {id:'bx',kind:'do',title:'Bronchospasme',items:['Salbutamol'].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),image:null,next:null}],
     start:'b1',order:42,
     champInconnuDuFutur:{quoi:'ajouté après ce lot'}};
-  const v4=A.v3ToV4(v3);
-
-  eq('v4 · le format se déclare',v4.v,4);
-  /* LES SIX CHAMPS DEVIENNENT DES RÔLES — on compte, on n'inspecte pas au hasard. */
-  const parRole=r=>v4.items.filter(i=>i.role===r).length;
-  eq('v4 · confirmation → role entry',parRole('entry'),1);
-  eq('v4 · verify → role watch',parRole('watch'),1);
-  eq('v4 · posology → role dose',parRole('dose'),1);
-  eq('v4 · differentials → role ddx',parRole('ddx'),1);
-  eq('v4 · notForget + étapes de blocs → role do',parRole('do'),2+3);
-  ok('v4 · un memory item est un ITEM de la liste, pas un champ à part',
-     v4.items.filter(i=>i.memory).length===2);
-  ok('v4 · … et il n’est référencé par AUCUN bloc (c’est le chapeau)',
-     v4.items.filter(i=>i.memory).every(i=>!v4.blocks.some(b=>b.items.indexOf(i.id)>=0)));
-  /* LE REGISTRE DEVIENT UN NIVEAU ORDONNÉ — c'est tout l'intérêt : « ⚠ » et « △ » dans une chaîne
-     ne se comparent pas, 3 et 2 si. */
-  const it=id=>v4.items.find(x=>x.id===id);
-  const adre=v4.items.find(x=>/Adrénaline IM/.test(x.do));
-  eq('v4 · le préfixe ⚠ devient level 3',adre.level,3);
-  eq('v4 · … et « :: » devient la réponse attendue',adre.expect,'0,5 mg');
-  eq('v4 · … dont le challenge est nettoyé du préfixe',adre.do,'Adrénaline IM');
-  eq('v4 · le préfixe △ devient level 2',v4.items.find(x=>/Récidive/.test(x.do)).level,2);
-  eq('v4 · une étape ordinaire est level 1',v4.items.find(x=>x.do==='Oxygène').level,1);
-  /* RIEN N'EST DEVINÉ. */
-  ok('v4 · dual naît FAUX partout (inexprimable en v3, on ne le suppose pas)',
-     v4.items.every(i=>i.dual===false));
-  ok('v4 · phase et concl naissent VIDES',v4.blocks.every(b=>b.phase===''&&
-     (b.options||[]).every(o=>o.concl==='')));
-  /* LES IDENTITÉS — la réparation structurelle du défaut du lot T1. */
-  ok('v4 · chaque item porte une identité unique',
-     new Set(v4.items.map(i=>i.id)).size===v4.items.length);
-  ok('v4 · un bloc référence des IDENTITÉS, plus des positions',
-     v4.blocks[0].items.every(x=>typeof x==='string'&&!!it(x)));
-  /* `hors` est CALCULÉ depuis le graphe, il n'est pas demandé à l'auteur. */
-  ok('v4 · un bloc qu’aucun chemin n’atteint est marqué « hors »',
-     v4.blocks.find(b=>b.id==='bx').hors===true);
-  ok('v4 · … et un bloc du tronc ne l’est pas',
-     v4.blocks.find(b=>b.id==='b1').hors===false&&v4.blocks.find(b=>b.id==='b2').hors===false);
-  eq('v4 · les complications deviennent des excursions',v4.excursions.length,1);
-  eq('v4 · les références deviennent des sources (métadonnée, pas un rôle)',v4.sources.length,1);
-
-  /* ALLER-RETOUR. La propriété vérifiable n'est pas « c'est identique au caractère près » — « a::b »
-     revient en « a :: b », et une normalisation d'espaces n'est pas une perte de sens. C'est la
-     STABILITÉ : appliquer la conversion deux fois donne exactement ce que donne une seule fois.
-     Une perte réelle, elle, se verrait au second passage. */
-  const r1=A.v4ToV3(v4), r2=A.v4ToV3(A.v3ToV4(r1));
-  eq('aller-retour · la conversion est STABLE (2 passages = 1)',
-     JSON.stringify(r2),JSON.stringify(r1));
-  eq('aller-retour · les étapes de bloc reviennent, préfixe et « :: » compris',
-     r1.blocks[0].steps.join('|'),'⚠ Adrénaline IM :: 0,5 mg|Oxygène');
-  eq('aller-retour · le chapeau revient dans notForget',(r1.notForget||[]).length,2);
-  ok('aller-retour · … et pas dans les blocs',
-     r1.blocks.every(b=>b.steps.indexOf('⚠ Retirer l’allergène')<0));
-  eq('aller-retour · la décision retrouve sa question et ses options',
-     r1.blocks[1].question+'/'+r1.blocks[1].options.length,'Amélioration ?/2');
-  eq('aller-retour · le statut « validé » redevient la chaîne vide de v3',
-     A.v4ToV3(A.v3ToV4(Object.assign({},v3,{status:''}))).status,'');
-  ['title','discriminant','code','category','library','validatedAt','local','start','order']
-    .forEach(k=>eq('aller-retour · '+k+' intact',JSON.stringify(r1[k]),JSON.stringify(v3[k])));
-  ['sources','docs','links','images','timers','counters','excursions','confirmation',
-   'verify','posology','differentials'].forEach(k=>
-    eq('aller-retour · '+k+' intact',JSON.stringify(r1[k]),JSON.stringify(v3[k])));
-
-  /* LE MÉCANISME, PAS LA LISTE. Un champ que ce lot ne connaît pas doit traverser les DEUX sens :
-     c'est ce qui distingue une conversion qui recopie une liste (elle se périme) d'une conversion
-     qui part de l'objet entier et retire ce qu'elle convertit. */
-  eq('losslessness · un champ INCONNU traverse l’aller',
-     JSON.stringify(v4.champInconnuDuFutur),JSON.stringify(v3.champInconnuDuFutur));
-  eq('losslessness · … et le retour',
-     JSON.stringify(r1.champInconnuDuFutur),JSON.stringify(v3.champInconnuDuFutur));
-  ok('losslessness · aucun champ v3 ne disparaît en chemin',
-     Object.keys(v3).every(k=>k in r1));
-  /* LES PERTES SONT ÉNONCÉES, pas découvertes à l'usage. */
-  ok('les pertes du retour v4→v3 sont NOMMÉES',
-     A.V4_PERTES.indexOf('dual')>=0&&A.V4_PERTES.indexOf('phase')>=0&&A.V4_PERTES.indexOf('concl')>=0);
-  /* Robustesse : la conversion ne jette jamais sur une entrée dégradée. */
-  ok('v4 · une fiche vide convertit sans exception',!!A.v3ToV4(A.blankFiche()));
-  eq('v4 · une entrée non-objet rend null',A.v3ToV4(null),null);
-  eq('v4 · … dans les deux sens',A.v4ToV3(null),null);
-
-  /* LE POINT D'ENTRÉE UNIQUE (règle 5). Une aide v4 doit entrer par `migrate`, donc être lisible
-     par TOUS les chemins d'un coup — chargement, import, ZIP, duplication, pull cloud. Le témoin
-     mesure `migrate`, jamais l'import : c'est la différence entre couvrir un chemin et les couvrir
-     tous. */
-  /* DÉFENSIF À DESSEIN : neutralisé, ce chemin rend une fiche VIDE — un accès direct
-      (`m.blocks[0].steps[0]`) lèverait alors une exception qui EMPORTE TOUTE LA SUITE au lieu de
-      produire un rouge. Un témoin doit échouer, pas faire tomber le banc d'essai. */
-  {const m=A.migrate(JSON.parse(JSON.stringify(A.v3ToV4(v3))))||{};
-   const mb=m.blocks||[],b0=mb[0]||{},b1=mb[1]||{};
-   eq('migrate · une aide v4 entre et devient exploitable',mb.length,3);
-   eq('migrate · … ses étapes sont intactes',(b0.steps||[])[0],'⚠ Adrénaline IM :: 0,5 mg');
-   eq('migrate · … son chapeau aussi',A.listOf(m,'notForget').length,2);
-   eq('migrate · … et sa décision',(b1.options||[]).length,2);
-   ok('migrate · une v3 n’est PAS traitée comme une v4',
-      ((A.migrate(JSON.parse(JSON.stringify(v3)))||{}).blocks||[]).length===3);
-   ok('migrate · un objet qui se dit v4 sans items n’est pas converti à l’aveugle',
-      !!A.migrate({v:4,title:'x'}));}
-
-  /* ===== LOT T6 CÔTÉ RENDU + T7 — L'ITEM EST LA SOURCE, LE MIROIR EN DÉCOULE =============== */
-  {const m=A.migrate(JSON.parse(JSON.stringify(v3)));
-   const b0=m.blocks[0];
-   /* v5.0.0, étape B — LE BLOC NE PORTE PLUS QUE DES IDENTIFIANTS ; les objets vivent dans le
-      POOL `m.items`. Les témoins passent donc par `A.bItems(b)`, qui résout — c'est aussi ce que
-      font les vingt-deux sites de rendu, donc on mesure le vrai chemin. */
-   const its0=A.bItems(b0);
-   ok('T6 · migrate donne un ITEM à chaque étape',its0.length===b0.steps.length);
-   ok('T6 · … chacun avec une identité',its0.every(i=>!!i.id));
-   ok('T6 · … et le bloc ne porte que des IDENTIFIANTS',
-      (b0.items||[]).every(x=>typeof x==='string'));
-   ok('T6 · … qui résolvent tous dans le pool de l’aide',
-      (b0.items||[]).every(id=>(m.items||[]).some(it=>it.id===id)));
-   eq('T6 · le miroir `steps` est régénéré depuis les items',
-      JSON.stringify(b0.steps),JSON.stringify(its0.map(A.v4ItemToStr)));
-   eq('T6 · … registre et « :: » compris',b0.steps[0],'⚠ Adrénaline IM :: 0,5 mg');
-   /* LA PROPRIÉTÉ QUI FAIT TOUT LE LOT : une insertion en tête ne déplace plus l'identité. */
-   const idsAv=(b0.items||[]).slice();
-   A.bItemAdd(b0,0,A.newStepItem('Insérée en tête'));A.syncSteps(b0);
-   ok('T6 · une insertion en tête ne bouge AUCUNE identité',
-      idsAv.every((id,k)=>b0.items[k+1]===id));
-   eq('T6 · … et le miroir suit',b0.steps[0],'Insérée en tête');
-   /* T7 — « ×2 » (AC 120-71B §5.2.2.5), inexprimable avant que l'item ait une identité. */
-   A.bItems(b0)[1].dual=true;
-   ok('T7 · « ×2 » vit sur l’ITEM',A.bItems(b0)[1].dual===true);
-   ok('T7 · … et ne laisse AUCUNE trace dans le miroir (un client antérieur lit le texte seul)',
-      !/×2/.test(JSON.stringify(A.syncSteps(b0))));
-   /* Et il doit SURVIVRE à l'export : sans cela la conversion annulerait le lot qui l'introduit. */
-   const rt=A.v4ToV3(A.v3ToV4(m));
-   const rb=rt.blocks[0];
-   ok('T7 · « ×2 » survit à l’aller-retour v3 → v4 → v3',(rb.items||[])[1]&&rb.items[1].dual===true);
-   eq('T6 · … le miroir reste exact après l’aller-retour',
-      JSON.stringify(rb.steps),JSON.stringify((rb.items||[]).map(A.v4ItemToStr)));
-   /* Robustesse : un item entrant corrompu est BORNÉ, jamais recopié tel quel. */
-   const sale=A.migrate({blocks:[{id:'b9',kind:'do',
-     items:[{id:'__proto__',do:'x',level:99,dual:'oui',role:'nimporte'}]}],start:'b9'});
-   const si=A.bItems(sale.blocks[0])[0];
-   ok('T6 · un id dangereux est refusé',si.id!=='__proto__');
-   eq('T6 · un niveau hors échelle est borné',si.level,3);
-   eq('T6 · un rôle inconnu retombe sur « do »',si.role,'do');
-
-  /* ===== ÉTAPE B — LE POOL ================================================================ */
   {const m=A.migrate(JSON.parse(JSON.stringify(v3)));
    ok('pool · les cinq listes v3 ne sont PLUS des champs',
       m.confirmation===undefined&&m.verify===undefined&&m.posology===undefined
@@ -2002,7 +1855,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
      A.bItemMove(b0,0,b1,0);
      eq('pool · déplacer entre blocs ne touche pas au pool',(m.items||[]).length,n0);
      eq('pool · … et l’identité suit',b1.items[0],idAv);}}
-   eq('T6 · « dual » est un BOOLÉEN, pas la chaîne qu’on a reçue',si.dual,true);}
+
 
   /* ===== LOT T7 — ★ MÉMOIRE : UN MEMORY ITEM EST UN ITEM DE LA LISTE ======================== */
   {const m=A.migrate(JSON.parse(JSON.stringify(v3)));
@@ -2020,14 +1873,10 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
       A.memItemsOf(m).every(x=>!!x.src));
    /* Une décision n'a pas d'items : le calcul ne doit pas s'y perdre. */
    ok('★ · un bloc de décision n’apporte rien au chapeau',
-      A.memItemsOf({blocks:[{id:'d1',kind:'decision',options:[],steps:[]}]}).length===0);
-   eq('★ · une fiche sans bloc ne fait pas tomber le calcul',A.forgetAll({}).length,0);
-   /* Il survit à l'aller-retour, comme « ×2 » — sinon l'export annulerait le lot. */
-   const rt=A.v4ToV3(A.v3ToV4(m));
-   ok('★ · l’étoile survit à l’aller-retour v3 → v4 → v3',
-      (rt.blocks[0].items||[])[1]&&rt.blocks[0].items[1].memory===true);
-   ok('★ · … et le miroir n’en porte aucune trace',!/★/.test(JSON.stringify(rt.blocks[0].steps)));}
-  }
+      A.memItemsOf({blocks:[{id:'d1',kind:'decision',options:[],items:[].map(x=>A.v4MakeItem(A.uid('i'),'do',x))}]}).length===0);
+   eq('★ · une fiche sans bloc ne fait pas tomber le calcul',A.forgetAll({}).length,0);}
+  /* (Les trois témoins d'aller-retour v3 ⇄ v4 sont partis avec la conversion — étape D, règle 14 :
+     une suppression emporte ce qui la mesurait. Ce que ★ garantit est mesuré ci-dessus.) */
 }
 
 // Ouvert en double-cliquant le fichier (file://) : le navigateur isole les iframes (origine

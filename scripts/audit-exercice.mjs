@@ -3,7 +3,7 @@
    chrono bleu au lieu du « ● Session » vert). Zéro trace clinique : groupes séparés dans
    l'historique, carte-bilan et compte-rendu filigranés. Le compte-rendu restitue ⚡ complications
    (horodatées) et la trace do-verify (constats + écarts) — pour les sessions RÉELLES aussi. */
-import { serveApp, moteur, NOM_MOTEUR, ROOT } from './harness.mjs';
+import { serveApp, moteur, NOM_MOTEUR, ROOT , items} from './harness.mjs';
 
 const { port, srv } = await serveApp();
 const br=await moteur().launch();const p=await br.newPage({viewport:{width:1000,height:950},deviceScaleFactor:2});
@@ -14,7 +14,7 @@ await p.evaluate(async()=>{const b=[...document.querySelectorAll('button')].find
  const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await new Promise(r=>setTimeout(r,400));
  const c=[...document.querySelectorAll('.card-open')].find(x=>/Arr.t cardiaque/.test(x.textContent));
  const f=fiches.find(x=>x.id===c.dataset.open);window.__fid=f.id;
- f.blocks.push({id:'cxL',kind:'do',title:'Laryngospasme — gestes',steps:['Arrêter la stimulation'],next:null});
+ f.blocks.push({id:'cxL',kind:'do',title:'Laryngospasme — gestes',items:['Arrêter la stimulation'].map(x=>v4MakeItem(uid('i'),'do',x)),next:null});
  f.excursions=[{label:'Laryngospasme',target:'cxL'}];
  c.click();await new Promise(r=>setTimeout(r,400));});
 console.log('=== entrée en exercice ===');

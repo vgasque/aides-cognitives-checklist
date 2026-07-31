@@ -45,6 +45,11 @@ ne s'apprend en lisant le code** — elles viennent d'incidents mesurés, et plu
    pour zéro sûreté, le backtick n'étant pas un métacaractère HTML.
 5. **Toute donnée entrante passe par `migrate()` / `sanitizeCats()`** — chargement, import, ZIP,
    duplication ET pull cloud. N'ajoutez jamais un chemin qui contourne ces points d'entrée.
+   **`migrate()` NE LIT PLUS QU'UN SEUL FORMAT (v5.0.0, étape D)** : le v4 à pool. Il normalise, il
+   borne, il convertit EN PLACE les renommages internes du chantier v5 — mais il ne sait plus lire
+   un fichier v3, et c'est délibéré : un convertisseur embarqué serait du code mort dès la
+   migration finie, et du code mort dans un logiciel d'urgence vitale est une dette qu'on finit par
+   payer. La reprise d'un export v3 vit **hors** de l'application (`docs/conversion-v3-vers-v4.md`).
 6. **Tout identifiant servant de CLÉ d'objet passe par `safeId()`** (`__proto__` banni) et les
    tables temporaires par `Object.create(null)` : sinon, pollution de prototype.
 7. **Aucune couleur littérale hors déclaration de token** (`--…`). Vérifié par
@@ -67,8 +72,18 @@ ne s'apprend en lisant le code** — elles viennent d'incidents mesurés, et plu
     `contain:layout`, donc casserait tout descendant `fixed`.
 11. **Le mode crise n'est jamais interrompu** : aucune modale, aucune synchro intrusive, aucun
     défilement automatique, aucune notification flottante. Une alarme s'annonce sur place.
-12. **Ne jamais supprimer un champ du modèle** fiche / catégorie / protocole : un export v3 doit
-    rester lisible par un client antérieur.
+12. **~~Ne jamais supprimer un champ du modèle~~ — RÈGLE LEVÉE EN v5.0.0, par décision explicite
+    de l'auteur, et remplacée par celle-ci** : *un changement de modèle qui casse les clients
+    antérieurs exige un CHEMIN DE REPRISE écrit AVANT le changement, et hors de l'application.*
+    La règle d'origine — « un export v3 doit rester lisible par un client antérieur » — a tenu
+    tant que le modèle s'AJOUTAIT. Elle est devenue le principal obstacle au modèle v4, où six
+    champs devaient DISPARAÎTRE : la respecter aurait exigé un miroir par champ renommé, donc de
+    doubler la surface du modèle pour toujours.
+    **CE QUI LA REMPLACE N'EST PAS « on casse quand on veut »** : (a) le chemin de reprise existe
+    et il est écrit d'abord (`docs/conversion-v3-vers-v4.md`) ; (b) les données LOCALES ne sont
+    jamais cassées par une mise à jour que l'utilisateur n'a pas choisie — les renommages internes
+    se convertissent EN PLACE dans `migrate` ; (c) la rupture est annoncée dans les notes de
+    version. Ajouter un champ reste libre ; en retirer un engage ces trois obligations.
 13. **Aucune dépendance runtime**, à l'unique exception de pdf.js vendorisé (chargé paresseusement,
     précaché). Tout fichier servi doit entrer dans `ASSETS` (`sw.js`). **Une POLICE embarquée
     depuis v4.61.0** (`vendor/fonts/source-serif-4-latin-600.woff2`, 21 Ko, SIL OFL) : ce n'est
@@ -2682,6 +2697,22 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   fois** dans `index.html`, mais l'immense majorité désigne le **store IndexedDB**, pas la table
   Supabase. Renommer au motif ne casserait pas la synchro, il casserait le stockage LOCAL et
   exigerait une montée de version de base. Ne remplacer que ce qui porte `/rest/v1/` ou `table:`.
+- **v3 A QUITTÉ L'APPLICATION — ÉTAPE D (v5.0.0).** Sont partis : le **miroir `b.steps`** (regénéré
+  à chaque écriture depuis l'étape T6), les fonctions **`v3ToV4` / `v4ToV3`** et `V4_PERTES`, la
+  **détection de format** dans `migrate`, et les quatre-vingts témoins qui mesuraient la conversion
+  (règle 14 : une suppression emporte ce qui la mesurait). **`stepsOf(b)` reste** — c'est la lecture
+  des items, pas du miroir.
+  **UNE FICHE ENTRANTE SANS `items` EST UNE FICHE VIDE**, et c'est la conséquence assumée de la
+  rupture : `migrate` ne retombe plus sur des chaînes. Un fichier v3 se convertit par
+  `docs/conversion-v3-vers-v4.md`, jamais dans l'application.
+  **CE QUI RESTE N'EST PAS DU « CODE v3 »** : `V5_RENOMMAGES` convertit EN PLACE un format v5
+  intermédiaire (celui des étapes B et C) vers le format final — c'est une migration ordinaire, et
+  elle protège les données LOCALES d'une mise à jour que l'utilisateur n'a pas choisie.
+  **LES FIXTURES DES HARNAIS ONT DÛ SUIVRE, ET LA LEÇON EST GÉNÉRALE** : une fixture bâtie côté
+  NODE ne peut pas appeler les fonctions de l'application — d'où `items()` dans `harness.mjs`, qui
+  fait la même lecture (`⚠`/`△` → `level`, `::` → `expect`) ; une fixture bâtie DANS `page.evaluate`
+  utilise `v4MakeItem`, la vraie. Confondre les deux contextes donne un `ReferenceError` qui
+  ressemble à un défaut de l'application.
 - **LES RENOMMAGES — ÉTAPE C DU PASSAGE À v4 COMPLET (v5.0.0).** `libraryId`→`library`,
   `validation`→`validatedAt`, `references`→`sources`, `attachments`→`docs`, `related`→`links`,
   `localInfo`→`local`, `complications`→`excursions` ; le BLOC passe de `type` `'steps'`/`'decision'`
