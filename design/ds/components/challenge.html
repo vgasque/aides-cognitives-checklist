@@ -3621,6 +3621,10 @@
      typographique fermée (cf. scripts/check-type.mjs). Largeur FIXE : 4 × 44 + 3 × 8 = 200 px,
      la cible de 44 px étant tenue même au palier le plus étroit servi. */
   #zoomSeg{flex:none;width:200px}
+  /* Le filtre de type a TROIS crans depuis le lot T9 — même mécanique que le sélecteur de taille,
+     par un #id pour ne pas dépendre de l'ordre de déclaration. */
+  #tabSeg .seg-pill{width:calc((100% - (var(--seg-n,3) - 1) * 8px) / var(--seg-n,3));
+    transform:translateX(calc(var(--seg-i,0) * (100% + 8px)))}
   #zoomSeg .seg-pill{width:calc((100% - (var(--seg-n,4) - 1) * 8px) / var(--seg-n,4));
     transform:translateX(calc(var(--seg-i,0) * (100% + 8px)))}
   #zoomSeg .seg-btn{gap:0;font-weight:800}

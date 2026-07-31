@@ -950,6 +950,51 @@ for (const w of [320, 390]) {
   await page.close();
 }
 
+/* LOT T9 / R4 — LA BIBLIOTHÈQUE EST UNIQUE, LE TYPE EST UN FILTRE.
+   LE CAS DOIT EXISTER AVANT D'ÊTRE MESURÉ : le jeu d'exemple ne contient AUCUN protocole, si bien
+   que « Tout » et « Aides » y donnent le même compte — un contrôle écrit sans cette précaution
+   passerait au vert sans avoir rien vérifié (leçon v4.55.3, redite au lot T4). On en crée un. */
+console.log('\n══ T9 · une seule bibliothèque, le type en filtre ══');
+{
+  const page = await br.newPage({viewport:{width:390,height:844},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();await w(200);
+    const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await w(800);});
+  const r = await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    const pr=blankProtocol();pr.title='Procédure de décontamination';
+    protocols.push(migrateProtocol(pr));await persist();render();await w(600);
+    const n=()=>document.querySelectorAll('.dir-row').length;
+    const px=()=>{const e=document.querySelector('#tabSeg .seg-pill');return e?Math.round(e.getBoundingClientRect().left):null;};
+    const crans=[...document.querySelectorAll('#tabSeg .seg-btn')].map(e=>e.textContent.trim());
+    const actif=(document.querySelector('#tabSeg .seg-btn.on')||{}).textContent||'';
+    const tout=n(),pTout=px();
+    document.querySelector('#tabSeg [data-section="fiches"]').click(); await w(500);
+    const aides=n(),pAides=px();
+    document.querySelector('#tabSeg [data-section="protocols"]').click(); await w(500);
+    const prot=n(),pProt=px();
+    document.querySelector('#tabSeg [data-section="all"]').click(); await w(500);
+    state.q='décontamination';render();await w(500);
+    const q=n();state.q='';render();await w(400);
+    return {crans,actif,tout,aides,prot,q,pTout,pAides,pProt,nF:fiches.length,nP:protocols.length};});
+  t('le type est un FILTRE à trois crans', r.crans.join('|')==='Tout|Aides|Protocoles', r.crans.join('|'));
+  /* « Tout » est le DÉFAUT : chercher un SUJET ne doit pas exiger de savoir d'abord de quel TYPE
+     il est — c'est toute la thèse de R4. */
+  t('… et « Tout » est ce qu\'on voit en arrivant', /Tout/.test(r.actif), r.actif);
+  t('témoin : le cas est bien constitué (aides ET protocoles)', r.nF>=1&&r.nP>=1, `${r.nF} + ${r.nP}`);
+  t('« Tout » réunit les deux types', r.tout===r.nF+r.nP, `${r.tout} pour ${r.nF}+${r.nP}`);
+  t('« Aides » ne montre que les aides', r.aides===r.nF, `${r.aides}`);
+  t('« Protocoles » ne montre que les protocoles', r.prot===r.nP, `${r.prot}`);
+  t('la recherche traverse les deux types depuis « Tout »', r.q===1, `${r.q} résultat(s)`);
+  /* La pastille doit parcourir TROIS positions : à deux, le troisième cran serait injoignable
+     visuellement (et le composant retomberait sur sa mécanique binaire). */
+  t('la pastille du filtre a bien trois positions distinctes',
+    r.pTout!==null&&r.pTout!==r.pAides&&r.pAides!==r.pProt, `${r.pTout} · ${r.pAides} · ${r.pProt}`);
+  await page.close();
+}
+
 await br.close();srv.close();
 console.log(`\n${ok}/${ok+ko} contrôles doctrine OK${ko?` — ${ko} ÉCHEC(S)`:''}`);
 process.exit(ko?1:0);

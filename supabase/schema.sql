@@ -13,6 +13,42 @@
 --  dashboard). La sécurité réelle = ces politiques RLS, jamais le client.
 -- ============================================================================
 
+-- ---------- 0. RENOMMAGE v5 (lot T9) — À LIRE AVANT DE REJOUER CE FICHIER --------
+--
+--  `fiches` devient `cognitive_aids`, `fiche_notes` devient `aid_notes`.
+--
+--  POURQUOI MAINTENANT, ET PAS AVANT. La règle du dépôt interdit de renommer un identifiant
+--  existant « sans gain fonctionnel » — et jusqu'ici il n'y en avait aucun : le nom décrivait
+--  exactement ce que la table contenait. Le lot T9 réunit aides et protocoles dans UNE
+--  bibliothèque où le type n'est plus qu'un filtre ; « fiches » cesse alors de nommer son
+--  contenu, et un nom qui ment coûte plus cher qu'un renommage.
+--
+--  CE BLOC EST IDEMPOTENT ET SANS PERTE : il ne fait quelque chose que si l'ancienne table
+--  existe ET que la nouvelle n'existe pas. Sur une instance NEUVE il ne fait rien (les `create
+--  table` plus bas créent directement les bons noms) ; sur une instance EN PLACE il RENOMME —
+--  donc les données, les index, les contraintes et les politiques suivent, ce qu'un
+--  `create table if not exists` sous un nouveau nom N'AURAIT PAS FAIT (il aurait créé une table
+--  VIDE à côté, et les données auraient paru disparaître).
+--
+--  ⚠ ORDRE DE DÉPLOIEMENT — NON NÉGOCIABLE : rejouer CE FICHIER **avant** de publier le client
+--  v5. Le client v5 appelle `cognitive_aids` ; contre une instance non migrée, la synchro
+--  échoue. Les clients 4.x, eux, continuent de fonctionner grâce à la vue de compatibilité
+--  créée en fin de fichier — ils n'ont donc rien à faire, et rien ne casse chez eux.
+--
+--  LES COLONNES NE SONT PAS RENOMMÉES (`fiche_id` reste `fiche_id`). C'est un arbitrage de
+--  rayon d'explosion, pas un oubli : renommer une colonne oblige à reprendre chaque politique,
+--  chaque index et chaque appel REST qui la nomme, pour un gain de lisibilité interne nul —
+--  personne ne lit ces colonnes hors du SQL et des cinq appels du client.
+do $$
+begin
+  if exists (select 1 from pg_tables where schemaname='public' and tablename='fiches')
+     and not exists (select 1 from pg_tables where schemaname='public' and tablename='cognitive_aids')
+  then execute 'alter table public.cognitive_aids rename to cognitive_aids'; end if;
+  if exists (select 1 from pg_tables where schemaname='public' and tablename='fiche_notes')
+     and not exists (select 1 from pg_tables where schemaname='public' and tablename='aid_notes')
+  then execute 'alter table public.aid_notes rename to aid_notes'; end if;
+end $$;
+
 -- ---------- 1. Tables -------------------------------------------------------
 
 create table if not exists public.app_admins (
@@ -33,7 +69,7 @@ create table if not exists public.memberships (
   primary key (user_id, library_id)
 );
 
-create table if not exists public.fiches (
+create table if not exists public.cognitive_aids (
   id         text primary key,
   owner      uuid not null default auth.uid(),
   library_id text references public.libraries on delete cascade,   -- NULL = perso
@@ -41,8 +77,8 @@ create table if not exists public.fiches (
   updated_at timestamptz not null default now(),
   deleted_at timestamptz
 );
-create index if not exists fiches_updated_idx on public.fiches (updated_at);
-create index if not exists fiches_library_idx on public.fiches (library_id);
+create index if not exists fiches_updated_idx on public.cognitive_aids (updated_at);
+create index if not exists fiches_library_idx on public.cognitive_aids (library_id);
 
 create table if not exists public.category_sets (
   scope_key  text primary key,                 -- 'personal:<uuid>' | 'lib:<id>'
@@ -86,7 +122,7 @@ $$;
 alter table public.app_admins    enable row level security;
 alter table public.libraries     enable row level security;
 alter table public.memberships   enable row level security;
-alter table public.fiches        enable row level security;
+alter table public.cognitive_aids        enable row level security;
 alter table public.category_sets enable row level security;
 
 -- app_admins : AUCUNE politique + AUCUN grant -> totalement invisible de l'API.
@@ -113,15 +149,15 @@ alter table public.category_sets enable row level security;
 -- d'un drop if exists pour que schema.sql soit REJOUABLE en entier sur une instance existante.
 
 -- fiches : perso (owner) OU partagé (lecture = membre, écriture = editor/admin)
-drop policy if exists fiches_perso on public.fiches;
-create policy fiches_perso on public.fiches for all
+drop policy if exists fiches_perso on public.cognitive_aids;
+create policy fiches_perso on public.cognitive_aids for all
   using      (library_id is null and owner = auth.uid())
   with check (library_id is null and owner = auth.uid());
-drop policy if exists fiches_shared_read on public.fiches;
-create policy fiches_shared_read on public.fiches for select
+drop policy if exists fiches_shared_read on public.cognitive_aids;
+create policy fiches_shared_read on public.cognitive_aids for select
   using (library_id is not null and public.is_member(library_id));
-drop policy if exists fiches_shared_write on public.fiches;
-create policy fiches_shared_write on public.fiches for all
+drop policy if exists fiches_shared_write on public.cognitive_aids;
+create policy fiches_shared_write on public.cognitive_aids for all
   using      (library_id is not null and public.member_role(library_id) in ('editor','admin'))
   with check (library_id is not null and public.member_role(library_id) in ('editor','admin'));
 
@@ -181,7 +217,7 @@ create trigger lib_creator_admin after insert on public.libraries
 -- ---------- 5. GRANTS (auto-expose OFF -> on expose explicitement) ----------
 -- Rien pour le rôle anonyme : tout requiert une session.
 grant usage on schema public to authenticated;
-grant select, insert, update, delete on public.fiches        to authenticated;
+grant select, insert, update, delete on public.cognitive_aids        to authenticated;
 grant select, insert, update, delete on public.category_sets to authenticated;
 grant select, insert, update, delete on public.libraries     to authenticated;
 grant select, insert, update, delete on public.memberships   to authenticated;
@@ -273,9 +309,9 @@ create or replace function public.clamp_updated_at()
 returns trigger language plpgsql set search_path = public, pg_temp as $$
 begin if new.updated_at is null or new.updated_at > now() then new.updated_at = now(); end if; return new; end;
 $$;
-drop trigger if exists fiches_clamp_updated   on public.fiches;
+drop trigger if exists fiches_clamp_updated   on public.cognitive_aids;
 drop trigger if exists catsets_clamp_updated  on public.category_sets;
-create trigger fiches_clamp_updated  before insert or update on public.fiches        for each row execute function public.clamp_updated_at();
+create trigger fiches_clamp_updated  before insert or update on public.cognitive_aids        for each row execute function public.clamp_updated_at();
 create trigger catsets_clamp_updated before insert or update on public.category_sets for each row execute function public.clamp_updated_at();
 
 -- ---------- 5quinquies. Suppression de son propre compte (RGPD) --------------
@@ -307,7 +343,7 @@ begin
   if exists (select 1 from public.app_admins where user_id = uid) then
     raise exception 'super-admin account cannot be self-deleted';
   end if;
-  delete from public.fiches        where owner = uid and library_id is null;
+  delete from public.cognitive_aids        where owner = uid and library_id is null;
   delete from public.category_sets where owner = uid and library_id is null;
   delete from auth.users where id = uid;   -- cascade -> memberships, app_admins, sessions…
 end; $$;
@@ -439,8 +475,8 @@ grant execute on function public.is_approved() to authenticated;
 -- Gate : l'espace PERSO (fiches + catégories) requiert l'approbation. Les bibliothèques
 -- partagées sont inchangées (déjà protégées par memberships, qu'un compte pending n'obtient
 -- pas — cf. invite_member — et qu'un compte rejeté PERD — cf. user_status_revoke_memberships).
-drop policy if exists fiches_perso on public.fiches;
-create policy fiches_perso on public.fiches for all
+drop policy if exists fiches_perso on public.cognitive_aids;
+create policy fiches_perso on public.cognitive_aids for all
   using      (library_id is null and owner = auth.uid() and public.is_approved())
   with check (library_id is null and owner = auth.uid() and public.is_approved());
 drop policy if exists cats_perso on public.category_sets;
@@ -454,22 +490,22 @@ create policy cats_perso on public.category_sets for all
 -- synchronisée entre les appareils du même compte, JAMAIS visible des autres membres. Modifier la
 -- fiche ne touche pas aux notes (stockage séparé). Pas de FK vers fiches : la fiche peut être un
 -- tombstone ou une fiche locale jamais synchronisée ; les orphelines sont minuscules et ignorées.
-create table if not exists public.fiche_notes (
+create table if not exists public.aid_notes (
   user_id    uuid not null references auth.users on delete cascade,
   fiche_id   text not null,
   note       text not null default '',
   updated_at timestamptz not null default now(),
   primary key (user_id, fiche_id)
 );
-alter table public.fiche_notes enable row level security;
-drop policy if exists notes_own on public.fiche_notes;
-create policy notes_own on public.fiche_notes for all
+alter table public.aid_notes enable row level security;
+drop policy if exists notes_own on public.aid_notes;
+create policy notes_own on public.aid_notes for all
   using      (user_id = auth.uid() and public.is_approved())
   with check (user_id = auth.uid() and public.is_approved());
-grant select, insert, update, delete on public.fiche_notes to authenticated;
+grant select, insert, update, delete on public.aid_notes to authenticated;
 -- Même anti-postdatage que fiches/category_sets (last-write-wins non trichable).
-drop trigger if exists notes_clamp_updated on public.fiche_notes;
-create trigger notes_clamp_updated before insert or update on public.fiche_notes
+drop trigger if exists notes_clamp_updated on public.aid_notes;
+create trigger notes_clamp_updated before insert or update on public.aid_notes
   for each row execute function public.clamp_updated_at();
 
 -- Statut du compte courant (le client l'appelle juste après la vérification OTP, puis à chaque
@@ -598,7 +634,7 @@ grant execute on function public.delete_rejected_user(uuid) to authenticated;
 --   category_sets.data (1 Mo) : aucune image, seulement des tuples {id,name,color,libraryId}
 --     plafonnés à 400 entrées -> quelques Ko en usage réel, marge x10 largement suffisante.
 do $$ begin
-  alter table public.fiches add constraint fiches_data_size_chk
+  alter table public.cognitive_aids add constraint fiches_data_size_chk
     check (octet_length(data::text) <= 20*1024*1024);
 exception when duplicate_object then null; end $$;
 do $$ begin
@@ -618,9 +654,9 @@ returns jsonb language sql stable security definer set search_path = public, aut
     'pending',      (select count(*) from public.user_status where status = 'pending'),
     'rejected',     (select count(*) from public.user_status where status = 'rejected'),
     'libraries',    (select count(*) from public.libraries),
-    'fiches_perso', (select count(*) from public.fiches where library_id is null and deleted_at is null),
-    'fiches_shared',(select count(*) from public.fiches where library_id is not null and deleted_at is null),
-    'storage_bytes',(select coalesce(sum(octet_length(data::text)),0) from public.fiches where deleted_at is null)
+    'fiches_perso', (select count(*) from public.cognitive_aids where library_id is null and deleted_at is null),
+    'fiches_shared',(select count(*) from public.cognitive_aids where library_id is not null and deleted_at is null),
+    'storage_bytes',(select coalesce(sum(octet_length(data::text)),0) from public.cognitive_aids where deleted_at is null)
                     + (select coalesce(sum(octet_length(data::text)),0) from public.category_sets),
     -- Octets du bucket de documents PDF (métadonnées storage ; 0 si le bucket n'existe pas encore).
     'attachments_bytes',(select coalesce(sum((o.metadata->>'size')::bigint),0)
@@ -740,7 +776,7 @@ begin
   if exists (select 1 from public.app_admins where user_id = uid) then
     raise exception 'super-admin account cannot be self-deleted';
   end if;
-  delete from public.fiches        where owner = uid and library_id is null;
+  delete from public.cognitive_aids        where owner = uid and library_id is null;
   delete from public.protocols     where owner = uid and library_id is null;
   delete from public.category_sets where owner = uid and library_id is null;
   -- PARTAGES DE SESSION — suppression EXPLICITE, et non « par cascade ». Deux raisons, chacune
@@ -772,11 +808,11 @@ returns jsonb language sql stable security definer set search_path = public, aut
     'pending',      (select count(*) from public.user_status where status = 'pending'),
     'rejected',     (select count(*) from public.user_status where status = 'rejected'),
     'libraries',    (select count(*) from public.libraries),
-    'fiches_perso', (select count(*) from public.fiches where library_id is null and deleted_at is null),
-    'fiches_shared',(select count(*) from public.fiches where library_id is not null and deleted_at is null),
+    'fiches_perso', (select count(*) from public.cognitive_aids where library_id is null and deleted_at is null),
+    'fiches_shared',(select count(*) from public.cognitive_aids where library_id is not null and deleted_at is null),
     'protocols',    (select count(*) from public.protocols where deleted_at is null),
     'sessions',     (select count(*) from public.sessions where deleted_at is null),
-    'storage_bytes',(select coalesce(sum(octet_length(data::text)),0) from public.fiches where deleted_at is null)
+    'storage_bytes',(select coalesce(sum(octet_length(data::text)),0) from public.cognitive_aids where deleted_at is null)
                     + (select coalesce(sum(octet_length(data::text)),0) from public.category_sets)
                     + (select coalesce(sum(octet_length(data::text)),0) from public.protocols where deleted_at is null)
                     -- Historique synchronisé : un poste qui croît avec l'usage, et qu'un exploitant
@@ -814,9 +850,9 @@ begin
   end if;
   return new;
 end;$$;
-drop trigger if exists fiches_stamp_updated_by    on public.fiches;
+drop trigger if exists fiches_stamp_updated_by    on public.cognitive_aids;
 drop trigger if exists protocols_stamp_updated_by on public.protocols;
-create trigger fiches_stamp_updated_by    before insert or update on public.fiches    for each row execute function public.stamp_updated_by();
+create trigger fiches_stamp_updated_by    before insert or update on public.cognitive_aids    for each row execute function public.stamp_updated_by();
 create trigger protocols_stamp_updated_by before insert or update on public.protocols for each row execute function public.stamp_updated_by();
 
 -- ---------- 7. Documents PDF joints : bucket Storage 'attachments' (4.0.0) ------------------
@@ -885,7 +921,7 @@ language sql stable security definer set search_path = public, storage, pg_temp 
     and public.is_app_admin()
     and substring(o.name from '([A-Za-z0-9_-]{1,64})\.pdf$') not in (
       select a->>'id'
-      from public.fiches f, jsonb_array_elements(coalesce(f.data->'attachments','[]'::jsonb)) a
+      from public.cognitive_aids f, jsonb_array_elements(coalesce(f.data->'attachments','[]'::jsonb)) a
       where f.deleted_at is null
       union
       select a->>'id'
@@ -1542,8 +1578,8 @@ returns jsonb language sql stable security definer set search_path = public, aut
     'pending',      (select count(*) from public.user_status where status = 'pending'),
     'rejected',     (select count(*) from public.user_status where status = 'rejected'),
     'libraries',    (select count(*) from public.libraries),
-    'fiches_perso', (select count(*) from public.fiches where library_id is null and deleted_at is null),
-    'fiches_shared',(select count(*) from public.fiches where library_id is not null and deleted_at is null),
+    'fiches_perso', (select count(*) from public.cognitive_aids where library_id is null and deleted_at is null),
+    'fiches_shared',(select count(*) from public.cognitive_aids where library_id is not null and deleted_at is null),
     'protocols',    (select count(*) from public.protocols where deleted_at is null),
     -- Partages VIVANTS d'abord, mais AUSSI le total de lignes : un total qui gonflerait pendant
     -- que le compte des vivants reste bas est la signature d'une purge qui ne tourne pas — le
@@ -1557,7 +1593,7 @@ returns jsonb language sql stable security definer set search_path = public, aut
     -- pouvait grossir de plusieurs centaines de mégaoctets sans que le tableau de bord ne bouge
     -- d'un octet — l'exploitant était aveugle au seul poste que le partage fait croître, et c'est
     -- précisément celui dont la durée de conservation est écrite au registre RGPD.
-    'storage_bytes',(select coalesce(sum(octet_length(data::text)),0) from public.fiches where deleted_at is null)
+    'storage_bytes',(select coalesce(sum(octet_length(data::text)),0) from public.cognitive_aids where deleted_at is null)
                     + (select coalesce(sum(octet_length(data::text)),0) from public.category_sets)
                     + (select coalesce(sum(octet_length(data::text)),0) from public.protocols where deleted_at is null)
                     + (select coalesce(sum(octet_length(fiche_snap::text)),0) from public.shared_sessions)
@@ -1654,3 +1690,23 @@ notify pgrst, 'reload schema';
 --  la validation (fenêtre Compte -> « Comptes en attente », visible seulement
 --  pour un app-admin -> case « Exiger une validation pour les nouveaux comptes »).
 -- ============================================================================
+
+
+-- ---------- COMPATIBILITÉ 4.x (lot T9) --------------------------------------
+--  Un client antérieur appelle encore `/rest/v1/fiches` et `/rest/v1/fiche_notes`. Ces vues le
+--  laissent travailler NORMALEMENT pendant la transition — et elles ne créent aucune faille :
+--
+--   • `security_invoker = true` (PostgreSQL 15+) fait évaluer les politiques RLS avec les droits
+--     de l'APPELANT et non ceux du propriétaire de la vue. Sans cette option, une vue est un
+--     contournement de RLS en règle — c'est l'erreur classique, et elle serait ici une fuite
+--     de données entre comptes.
+--   • Une vue SIMPLE sur une seule table est nativement MODIFIABLE (insert/update/delete) : le
+--     client 4.x continue donc d'écrire, sans règle ni trigger à maintenir.
+--
+--  À SUPPRIMER quand plus aucun client 4.x ne tourne — deux `drop view`, rien d'autre.
+create or replace view public.fiches with (security_invoker = true) as
+  select * from public.cognitive_aids;
+create or replace view public.fiche_notes with (security_invoker = true) as
+  select * from public.aid_notes;
+grant select, insert, update, delete on public.fiches     to authenticated;
+grant select, insert, update, delete on public.fiche_notes to authenticated;

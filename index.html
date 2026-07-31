@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-o4oP9OHrgNanPldu9/MyeFm0Twn2qVykakoovKZc/wc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-Ntw7MKV+jtckw5sgddvJL7Xb8jJcV6w8CuWa4VY4cFI='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -3906,6 +3906,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      typographique fermée (cf. scripts/check-type.mjs). Largeur FIXE : 4 × 44 + 3 × 8 = 200 px,
      la cible de 44 px étant tenue même au palier le plus étroit servi. */
   #zoomSeg{flex:none;width:200px}
+  /* Le filtre de type a TROIS crans depuis le lot T9 — même mécanique que le sélecteur de taille,
+     par un #id pour ne pas dépendre de l'ordre de déclaration. */
+  #tabSeg .seg-pill{width:calc((100% - (var(--seg-n,3) - 1) * 8px) / var(--seg-n,3));
+    transform:translateX(calc(var(--seg-i,0) * (100% + 8px)))}
   #zoomSeg .seg-pill{width:calc((100% - (var(--seg-n,4) - 1) * 8px) / var(--seg-n,4));
     transform:translateX(calc(var(--seg-i,0) * (100% + 8px)))}
   #zoomSeg .seg-btn{gap:0;font-weight:800}
@@ -4699,9 +4703,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
 </div>
 <!-- Tab bar de section (accueil < 780px, V5) : élément STATIQUE, pastille glissante ; en large
      la colonne gauche de l'accueil porte les sections. Fixée en bas, au pouce (canvas turn 6). -->
-<nav id="tabBar" aria-label="Sections"><div class="seg" id="tabSeg" role="tablist">
+<nav id="tabBar" aria-label="Filtre de type"><div class="seg" id="tabSeg" role="tablist" style="--seg-n:3">
   <span class="seg-pill" aria-hidden="true"></span>
-  <button class="seg-btn on" role="tab" data-section="fiches" aria-selected="true" tabindex="0"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg><span>Aides</span></button>
+  <button class="seg-btn on" role="tab" data-section="all" aria-selected="true" tabindex="0"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>Tout</span></button>
+  <button class="seg-btn" role="tab" data-section="fiches" aria-selected="false" tabindex="-1"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg><span>Aides</span></button>
   <button class="seg-btn" role="tab" data-section="protocols" aria-selected="false" tabindex="-1"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 016.5 17H20V4H6.5A2.5 2.5 0 004 6.5v13z"/><path d="M4 19.5A2.5 2.5 0 006.5 22H20v-5"/></svg><span>Protocoles</span></button>
 </div></nav>
 <div id="screenFlash"></div>
@@ -5318,7 +5323,7 @@ function saveProfileCache(){const k=profileCacheKey();if(!k)return;try{localStor
 function loadProfileCache(){const k=profileCacheKey();if(!k)return;try{const p=JSON.parse(localStorage.getItem(k)||'null');if(!p)return;myLibraries=sanitizeLibs(p.libraries);myIsAppAdmin=p.isAppAdmin===true;}catch(e){}}
 let state={view:'library',readStack:[],q:'',cat:'',scope:null,draft:null,fiche:null,edGrab:null,nav:[],navSeq:[],navPos:0,checked:{},verified:{},vgaps:{},showFlow:false,rtOpen:false,libLimit:LIB_PAGE,
   noteEdit:false,  // édition de la note personnelle (lecture seule par défaut en mode crise)
-  section:'fiches',        // page d'accueil : 'fiches' (aides cognitives) | 'protocols' (mémorisé par espace)
+  section:'all',           // FILTRE DE TYPE (lot T9) : 'all' (défaut) | 'fiches' | 'protocols' — mémorisé par espace
   protocol:null,pdraft:null,   // protocole affiché (protocolRead) / brouillon (protocolEdit)
   // Coches ÉPHÉMÈRES des listes cochables de la vue protocole (v4.5.4) : {index -> bool}, remises
   // à zéro par openProtocolRead, JAMAIS persistées ni exportées (le body reste la seule vérité).
@@ -5331,7 +5336,11 @@ let state={view:'library',readStack:[],q:'',cat:'',scope:null,draft:null,fiche:n
   // cours ({idx,i,gaps} ou null). Jamais persistés (par fiche ouverte). Il n'y a PLUS de champ
   // d'affichage du Plan : il n'a qu'une vue depuis v4.25.0 (cf. plus bas).
   readMode:'overview',ovFold:{},ovVerify:null};
-try{if(localStorage.getItem(spaceKey('ac-section'))==='protocols')state.section='protocols';}catch(e){}
+/* R4 (lot T9) : le type est un FILTRE à trois crans, et « Tout » est le défaut — chercher un
+   SUJET ne devrait pas exiger de savoir d'abord de quel TYPE il est. Une préférence héritée
+   ('fiches'/'protocols') reste honorée : personne ne se fait déplacer son réglage. */
+try{const _sec=localStorage.getItem(spaceKey('ac-section'))||'';
+  if(_sec==='protocols'||_sec==='fiches'||_sec==='all')state.section=_sec;}catch(e){}
 /* Préférence du mode de lecture (v4.6.0) — par utilisateur (spaceKey local), synchronisée via
    data.prefs.readMode. La synchro ne fait qu'ÉCRIRE la préférence locale : elle ne bascule JAMAIS
    la vue ouverte (changer l'écran pendant un soin serait une action non commandée — ECAM). */
@@ -8209,7 +8218,7 @@ function render(){
 // Re-rendu de l'ACCUEIL respectueux de l'onglet courant (Aides ↔ Protocoles). Tout code qui
 // rafraîchit la liste après une fenêtre (catégories, compte, bibliothèques…) passe par ici :
 // un renderFiches() direct affichait la liste des aides sous l'onglet Protocoles (bug v4.4.4).
-function renderLibrary(){state.section==='protocols'?renderProtocols():renderFiches();}
+function renderLibrary(){state.section==='protocols'?renderProtocols():(state.section==='fiches'?renderFiches():renderAll());}
 // Titre courant dans la barre (fiche/protocole, lecture ou édition) : classe .titled tant qu'il
 // est non vide, sinon la marque revient. L'AFFICHAGE effectif attend le défilement (.ttl-on,
 // écouteur de scroll ci-dessous) : en haut de page, le corps porte déjà le titre — jamais deux
@@ -8235,11 +8244,22 @@ tabBar.onkeydown=e=>{if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;e.preve
 // Bascule visuelle d'un sélecteur segmenté (.seg) : classe d'état sur la RACINE + tabindex
 // itinérant. `root` = la racine .seg, `attr` = l'attribut data-* qui porte la valeur du segment.
 // Partagé par la tab bar (data-section) et le dialogue Créer (data-createkind) — un seul patron.
-function paintSeg(root,attr,isSecond){
-  root.classList.toggle('i1',isSecond);
-  root.querySelectorAll('['+attr+']').forEach(b=>{const on=(b.getAttribute(attr)==='protocols')===isSecond;
+/* LOT T9 — LE PEINTRE ACCEPTE UN INDEX, ET LA MÉCANIQUE À DEUX RESTE INTACTE. Le booléen d'avant
+   est toujours accepté (`#createSeg`, `#modeSeg` le passent) : `false`/`true` valent 0/1, et
+   `.i1` continue d'être posée pour eux. Au-delà de deux crans on passe par `--seg-i`, comme le
+   sélecteur de taille du texte depuis la v4.71.1 — et par un `#id` en CSS, jamais une classe de
+   plus : à spécificité égale ce serait l'ORDRE de déclaration qui trancherait (cinquième piège de
+   cascade du projet). */
+function paintSeg(root,attr,idx){
+  if(!root)return;
+  const i=(idx===true)?1:(idx===false?0:(+idx||0));
+  root.classList.toggle('i1',i===1);
+  root.style.setProperty('--seg-i',i);
+  const btns=[...root.querySelectorAll('['+attr+']')];
+  btns.forEach((b,k)=>{const on=k===i;
     b.classList.toggle('on',on);b.setAttribute('aria-selected',on?'true':'false');b.tabIndex=on?0:-1;});}
-function updateHdrSec(){paintSeg(document.getElementById('tabSeg'),'data-section',state.section==='protocols');}
+function updateHdrSec(){const r=state.section==='all'?0:(state.section==='fiches'?1:2);
+  paintSeg(document.getElementById('tabSeg'),'data-section',r);}
 // Recherche FIXE de l'en-tête (V5) : champ STATIQUE (jamais re-rendu -> le focus survit aux
 // re-rendus), débouncé 150 ms — re-filtrer à chaque frappe ferait ramer la saisie sur mobile.
 {const qi=document.getElementById('q');
@@ -8351,8 +8371,11 @@ window.addEventListener('resize',()=>{if(state.view!=='library')return;
 const _homeScroll={fiches:0,protocols:0};
 // opts (v4.4.2, appel depuis le dialogue « Créer ») : keepCat = ne pas remettre le filtre de
 // catégorie à zéro ; silent = pas d'animation de bascule (l'accueil est sous le voile du dialogue).
-function setSection(s,keepQuery,opts){opts=opts||{};s=(s==='protocols')?'protocols':'fiches';if(state.section===s)return;
-  const dir=(s==='protocols')?'r':'l';
+function setSection(s,keepQuery,opts){opts=opts||{};
+  s=(s==='protocols'||s==='fiches')?s:'all';if(state.section===s)return;
+  /* Le sens de l'animation suit le RANG du cran, pas son nom : trois crans, deux directions. */
+  const _r=x=>x==='all'?0:(x==='fiches'?1:2);
+  const dir=(_r(s)>_r(state.section))?'r':'l';
   {const sc=main.querySelector('.home-main');_homeScroll[state.section]=(mqHomeWide.matches&&sc)?sc.scrollTop:window.scrollY;}
   state.section=s;try{localStorage.setItem(spaceKey('ac-section'),s);}catch(e){}
   if(!opts.keepCat)state.cat='';
@@ -8563,8 +8586,9 @@ function renderHomeList(cfg){
   {const row=document.getElementById('homeChrome').querySelector('.catbar .chiprow');if(row&&_catRowX)row.scrollLeft=_catRowX;}
   placeFooter();   // accueil large : le pied de page (version/synchro/stockage) vit en bas de la sidebar
 }
-function renderFiches(){
-  renderHomeList({rerender:renderFiches,crossKind:'protocols',create:openCreateDlg,open:openRead,
+/* Configuration EXTRAITE (lot T9) : les deux vues filtrées et la vue unifiée lisent la
+   MÊME description — trois rendus qui divergeraient seraient trois endroits à corriger. */
+function _homeCfgF(){return {rerender:renderFiches,crossKind:'protocols',create:openCreateDlg,open:openRead,
     pinnedLbl:n=>n>1?'Épinglées':'Épinglée',
     // (l'état tonal du bouton « Créer » est posé par applyViewChrome — un champ newTonal a vécu
     // ici sans consommateur, retiré v4.56.0)
@@ -8650,8 +8674,8 @@ function renderFiches(){
       main.querySelectorAll('[data-pin]').forEach(b=>b.onclick=e=>{e.stopPropagation();togglePin(b.dataset.pin);renderFiches();});
       {const br=document.getElementById('lsrReport');if(br)br.onclick=()=>{if(lastEndedSession)exportSessionReport(lastEndedSession.id);};
        const bx=document.getElementById('lsrX');if(bx)bx.onclick=()=>{lastEndedSession=null;renderFiches();};}
-     {const hj=document.getElementById('homeJoin');if(hj)hj.onclick=()=>openJoinScreen(hj.dataset.code||'');}}});
-}
+     {const hj=document.getElementById('homeJoin');if(hj)hj.onclick=()=>openJoinScreen(hj.dataset.code||'');}}};}
+function renderFiches(){renderHomeList(_homeCfgF());}
 /* ----- Vues PROTOCOLES : liste (renderProtocols), lecture (renderProtocolRead), édition
    (renderProtocolEdit). Même chrome d'accueil que la bibliothèque de fiches (sélecteur de
    section, bibliothèques, catégories, recherche) ; les documents PDF et leur visionneuse sont
@@ -8660,8 +8684,44 @@ const _protoHay=new WeakMap();
 function protocolHaystack(p){let h=_protoHay.get(p);
   if(h===undefined){h=txNorm([p.title,p.code,mdStrip(p.body),...(p.references||[]),...(p.attachments||[]).map(a=>a.name)].filter(Boolean).join(' '));_protoHay.set(p,h);}
   return h+' '+txNorm(catName(p));}
-function renderProtocols(){
-  renderHomeList({rerender:renderProtocols,crossKind:'fiches',create:openCreateDlg,open:openProtocolRead,
+/* ===== R4 — LA BIBLIOTHÈQUE DEVIENT UNIQUE, LE TYPE DEVIENT UN FILTRE (lot T9, v5.0.0) =======
+   Avant, choisir « Aides » ou « Protocoles » était une DÉCISION PRÉALABLE : il fallait savoir de
+   quel TYPE était ce qu'on cherchait avant de pouvoir le chercher. Or le type est une propriété de
+   l'AUTEUR (« ai-je écrit une checklist ou un document ? »), pas du lecteur, qui cherche un SUJET.
+   Le répertoire A→Z réunit donc les deux, et le type devient un filtre — c'est-à-dire quelque chose
+   qu'on applique APRÈS avoir vu, jamais avant.
+   CE N'EST PAS UNE FUSION DES DEUX RENDUS, ET C'EST DÉLIBÉRÉ : `renderFiches` et `renderProtocols`
+   restent intacts et servent les deux crans filtrés. On ajoute une TROISIÈME configuration qui
+   délègue rangée, tuile et ouverture au type de chaque objet. Fusionner les deux aurait produit un
+   rendu unique truffé de conditions — et surtout un seul endroit à casser pour les trois vues.
+   LA PROVENANCE RESTE ÉCRITE SUR LA RANGÉE (décision D4) : elle ne dépend d'aucun filtre, parce
+   qu'une bibliothèque partagée et une fiche perso ne s'engagent pas de la même façon. */
+const _protoIds=()=>{const S=new Set();protocols.forEach(x=>S.add(x.id));return S;};
+function renderAll(){
+  const P=_protoIds();
+  const cfgF=_homeCfgF(),cfgP=_homeCfgP();
+  const est=x=>P.has(x.id)?'p':'f';
+  renderHomeList({rerender:renderAll,crossKind:null,create:openCreateDlg,
+    open:id=>{P.has(id)?openProtocolRead(id):openRead(id);},
+    pinnedLbl:n=>n>1?'Épinglés':'Épinglé',
+    listTitle:()=>txNorm(state.q)?'Résultats — toutes les bibliothèques'
+      :(state.scope?esc(libName(state.scope)||'Bibliothèque partagée'):'Bibliothèque perso'),
+    countLbl:n=>'élément'+(n>1?'s':''),
+    remainLbl:n=>'élément'+(n>1?'s':''),
+    /* UN SEUL TRI POUR LES DEUX TYPES — surtout pas « les aides d'abord » : ce serait rétablir la
+       séparation qu'on vient de supprimer, en plus discret. Épinglés, puis frecency en recherche,
+       puis alphabétique, exactement comme chaque liste séparée. */
+    list:(q,canEdit)=>{const A=cfgF.list(q,canEdit).concat(cfgP.list(q,canEdit));const now=Date.now();
+      const sc=x=>q?frecencyScore(_frecency[x.id],now):0;
+      return A.sort((a,b)=>((isPinned(b.id)?1:0)-(isPinned(a.id)?1:0))||(sc(b)-sc(a))||byTitle(a,b));},
+    row:x=>est(x)==='p'?cfgP.row(x):cfgF.row(x),
+    tile:x=>est(x)==='p'?cfgP.tile(x):cfgF.tile(x),
+    topHtml:cfgF.topHtml,notices:cfgF.notices,bind:cfgF.bind,
+    empty:{title:'Bibliothèque vide',anon:cfgF.empty.anon,libEdit:cfgF.empty.libEdit,
+      libRead:cfgF.empty.libRead,cta:cfgF.empty.cta}});}
+/* Configuration EXTRAITE (lot T9) : les deux vues filtrées et la vue unifiée lisent la
+   MÊME description — trois rendus qui divergeraient seraient trois endroits à corriger. */
+function _homeCfgP(){return {rerender:renderProtocols,crossKind:'fiches',create:openCreateDlg,open:openProtocolRead,
     pinnedLbl:n=>n>1?'Épinglés':'Épinglé',
     listTitle:()=>txNorm(state.q)?'Résultats — toutes les bibliothèques':(state.scope?esc(libName(state.scope)||'Bibliothèque partagée'):'Protocoles'),
     countLbl:n=>'document'+(n>1?'s':''),
@@ -8691,8 +8751,8 @@ function renderProtocols(){
       </button>`;},
     remainLbl:n=>'restant'+(n>1?'s':''),
     empty:{title:'Aucun protocole',libEdit:'Cette bibliothèque partagée est vide — ajoutez son premier protocole.',libRead:'Cette bibliothèque partagée ne contient pas encore de protocole.',anon:'Ajoutez un protocole : un ou plusieurs PDF, et/ou un contenu rédigé dans l’app.',cta:'Créer un protocole'},
-    bind:()=>{main.querySelectorAll('[data-pin]').forEach(b=>b.onclick=e=>{e.stopPropagation();togglePin(b.dataset.pin);renderProtocols();});}});
-}
+    bind:()=>{main.querySelectorAll('[data-pin]').forEach(b=>b.onclick=e=>{e.stopPropagation();togglePin(b.dataset.pin);renderProtocols();});}};}
+function renderProtocols(){renderHomeList(_homeCfgP());}
 // ----- Miniatures des documents PDF (v4.4.4) : la 1re page en vignette dans la liste
 // « Documents » des vues lecture (fiche ET protocole) — reconnaître un document d'un coup d'œil
 // avant de l'ouvrir, d'autant plus utile quand il y en a plusieurs. Génération PARESSEUSE :
@@ -16985,7 +17045,7 @@ const Sync={
   // existante (on la marque `dirty`). S'il contient déjà des données, on n'écrase rien (on adopte
   // le cloud ; le PULL apportera tout). Évite de polluer le cloud avec la fiche d'exemple.
   async _initIfNeeded(){const uidv=Auth.user().id;const k='ac-sync-init-'+uidv;if(localStorage.getItem(k))return;
-    const peek=await rest('GET','/rest/v1/fiches?select=id&library_id=is.null&limit=1')||[];
+    const peek=await rest('GET','/rest/v1/cognitive_aids?select=id&library_id=is.null&limit=1')||[];
     if(!peek.length){const all=await Data.getAll();for(const f of all){if(!f.libraryId&&!f.deletedAt){f.dirty=true;await Data.put(f);}}
       // Les protocoles locaux suivent le même téléversement initial que les fiches.
       const allP=await Data.getProtocols().catch(()=>[]);for(const p of allP){if(!p.libraryId&&!p.deletedAt){p.dirty=true;await Data.putProtocol(p);}}
@@ -17093,7 +17153,7 @@ const Sync={
     // inchangé : la nouvelle version arrive à la RÉOUVERTURE, jamais en cours de geste.
     if(applied&&!document.body.classList.contains('crisis-live'))render();
     return conflicts;},
-  async _pull(){return this._pullTable({table:'fiches',cursorKey:this._cursorKey,
+  async _pull(){return this._pullTable({table:'cognitive_aids',cursorKey:this._cursorKey,
     getAllLocal:()=>Data.getAll(),fromRow:ficheFromRow,
     addMem:f=>fiches.push(f),
     dropMem:id=>{const i=fiches.findIndex(x=>x.id===id);if(i>=0)fiches.splice(i,1);},
@@ -17212,7 +17272,7 @@ const Sync={
     // Les modifications faites pendant une déconnexion (heldEdits) restent RETENUES tant que le
     // titulaire du compte n'a pas tranché (confirmHeldEdits) — appareil partagé.
     const held=new Set(heldEdits());
-    return this._pushTable({table:'fiches',getAllLocal:()=>Data.getAll(),dataPut:f=>Data.put(f),dataDel:id=>Data.del(id),toRow:ficheToRow,
+    return this._pushTable({table:'cognitive_aids',getAllLocal:()=>Data.getAll(),dataPut:f=>Data.put(f),dataDel:id=>Data.del(id),toRow:ficheToRow,
       skip:f=>held.has(f.id),
       repair:f=>reassignFicheId(f),
       // Réconciliation « droits perdus » (cf. _reclaimBlocked) : clonage via migrate + accès
@@ -17359,7 +17419,7 @@ const Sync={
   // via `at`/updated_at, puis PUSH des entrées `dirty` (upsert ; t vide = note effacée).
   async _syncNotes(){
     const uidv=Auth.user().id;
-    let rows;try{rows=await rest('GET','/rest/v1/fiche_notes?select=fiche_id,note,updated_at')||[];}catch(e){rows=null;}
+    let rows;try{rows=await rest('GET','/rest/v1/aid_notes?select=fiche_id,note,updated_at')||[];}catch(e){rows=null;}
     let changed=false,openChanged=false;   // openChanged = la note de la fiche AFFICHÉE a changé
     if(rows){for(const r of rows){const id=String(r.fiche_id||'');
       if(!SAFE_ID.test(id)||BAD_KEYS.indexOf(id)>=0)continue;
@@ -17375,7 +17435,7 @@ const Sync={
     const snap=Object.keys(notes).filter(id=>notes[id].dirty).map(id=>({id,at:notes[id].at}));
     if(snap.length){
       const up=snap.map(s=>({user_id:uidv,fiche_id:s.id,note:notes[s.id].t,updated_at:new Date(s.at||Date.now()).toISOString()}));
-      await rest('POST','/rest/v1/fiche_notes',up,{'Prefer':'resolution=merge-duplicates,return=minimal'});
+      await rest('POST','/rest/v1/aid_notes',up,{'Prefer':'resolution=merge-duplicates,return=minimal'});
       snap.forEach(s=>{const n=notes[s.id];if(n&&n.dirty&&n.at===s.at)delete n.dirty;});changed=true;
     }
     if(changed){try{await Data.setNotes(notes);}catch(e){}}

@@ -2616,6 +2616,49 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   n'écrase **JAMAIS** un binaire existant (même id → le document présent fait foi) ; binaire du
   zip posé seulement s'il manque, signé `%PDF-` (`isPdfBytes`) et sous plafond ; référence sans
   binaire gardée seulement si le fichier vient du même espace (elle peut suivre par la synchro).
+- **LA BIBLIOTHÈQUE EST UNIQUE, LE TYPE EST UN FILTRE (v5.0.0, lot T9 — R4).** Choisir « Aides »
+  ou « Protocoles » était une DÉCISION PRÉALABLE : il fallait savoir de quel TYPE était ce qu'on
+  cherchait avant de pouvoir le chercher. Or le type est une propriété de l'AUTEUR (« ai-je écrit
+  une checklist ou un document ? »), pas du lecteur, qui cherche un SUJET. Le répertoire A→Z réunit
+  donc les deux, et le type devient un filtre à trois crans — **« Tout » par défaut** — c'est-à-dire
+  quelque chose qu'on applique APRÈS avoir vu, jamais avant.
+  **CE N'EST PAS UNE FUSION DES DEUX RENDUS** : `renderFiches` et `renderProtocols` restent et
+  servent les deux crans filtrés ; une TROISIÈME configuration (`renderAll`) délègue rangée, tuile
+  et ouverture au type de chaque objet. Les fusionner aurait produit un rendu unique truffé de
+  conditions — et un seul endroit à casser pour les trois vues. Les deux configurations sont
+  EXTRAITES (`_homeCfgF` / `_homeCfgP`) et lues par les trois : trois descriptions qui
+  divergeraient seraient trois endroits à corriger.
+  **UN SEUL TRI POUR LES DEUX TYPES**, surtout pas « les aides d'abord » — ce serait rétablir la
+  séparation qu'on vient de supprimer, en plus discret. Épinglés, puis frecency en recherche, puis
+  alphabétique, exactement comme chaque liste séparée. **La PROVENANCE reste écrite sur la rangée**
+  (décision D4) : elle ne dépend d'aucun filtre, parce qu'une bibliothèque partagée et une fiche
+  perso ne s'engagent pas de la même façon.
+  **`paintSeg` ACCEPTE UN INDEX ET LA MÉCANIQUE À DEUX RESTE INTACTE** : le booléen d'avant vaut
+  0/1 (`#createSeg`, `#modeSeg` le passent toujours), `.i1` continue d'être posée pour eux, et
+  au-delà de deux crans on passe par `--seg-i` comme le sélecteur de taille depuis la v4.71.1 —
+  avec une règle CSS scopée par **`#id`**, jamais par une classe de plus : à spécificité égale ce
+  serait l'ORDRE de déclaration qui trancherait (cinquième piège de cascade du projet).
+- **⚠ LA TABLE `fiches` DEVIENT `cognitive_aids` (v5.0.0, lot T9) — ET IL FAUT REJOUER
+  `supabase/schema.sql` AVANT DE PUBLIER LE CLIENT.** La règle « ne JAMAIS renommer un identifiant
+  existant » tenait par son motif : « sans gain fonctionnel ». Le lot T9 fait disparaître ce motif —
+  la bibliothèque est unique, le type n'est plus qu'un filtre, et « fiches » cesse de nommer son
+  contenu. Un nom qui ment coûte plus cher qu'un renommage. `fiche_notes` devient `aid_notes`.
+  **LE RENOMMAGE EST UN BLOC IDEMPOTENT EN TÊTE DE `schema.sql`**, et c'est ce qui le rend sûr : il
+  n'agit que si l'ancienne table existe ET que la nouvelle n'existe pas. Sur une instance NEUVE il
+  ne fait rien ; sur une instance EN PLACE il **RENOMME**, donc données, index, contraintes et
+  politiques suivent — là où un `create table if not exists` sous le nouveau nom aurait créé une
+  table VIDE à côté et fait paraître les données disparues.
+  **LES CLIENTS 4.x NE CASSENT PAS** : deux vues de compatibilité (`fiches`, `fiche_notes`) en
+  **`security_invoker = true`** — sans cette option une vue contourne la RLS, ce qui serait ici une
+  fuite entre comptes ; et une vue simple sur une seule table est nativement MODIFIABLE, donc ils
+  continuent d'écrire sans règle ni trigger à maintenir. À supprimer quand plus aucun 4.x ne tourne.
+  **LES COLONNES NE SONT PAS RENOMMÉES** (`fiche_id` reste `fiche_id`) : arbitrage de rayon
+  d'explosion, pas oubli — renommer une colonne oblige à reprendre chaque politique, chaque index
+  et chaque appel REST, pour un gain de lisibilité que personne ne lit hors du SQL.
+  **CÔTÉ CLIENT, CINQ APPELS SEULEMENT** — et le piège à connaître : `'fiches'` apparaît **339
+  fois** dans `index.html`, mais l'immense majorité désigne le **store IndexedDB**, pas la table
+  Supabase. Renommer au motif ne casserait pas la synchro, il casserait le stockage LOCAL et
+  exigerait une montée de version de base. Ne remplacer que ce qui porte `/rest/v1/` ou `table:`.
 - **L'ITEM EST LA SOURCE, `steps` N'EST PLUS QU'UN MIROIR (v5.0.0, lot T6 côté RENDU).** Une étape
   était une CHAÎNE À UNE POSITION (`b.steps[3]`), et l'on a payé cela deux fois : un compte rendu
   qui nomme le mauvais geste après une insertion (lot T1, rustiné en archivant le texte), et
@@ -2871,9 +2914,11 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   À L'ÉCRAN** : tout ce qui suit, jusqu'à la fin de la ligne, sort du texte principal et
   s'affiche en gris, en bulle, à chasse fixe. C'est un outil de MISE EN PAGE autant que de
   méthode : les chiffres passés après « :: » raccourcissent la ligne de moitié à l'œil.
-- **Nommage SQL** : ne JAMAIS renommer un identifiant existant (`fiches`, `category_sets`,
-  `fiche_notes`… sont historiquement en français : un renommage casserait les instances déployées
-  et le client, sans gain fonctionnel) ; tout **nouvel** objet (table, fonction, politique,
+- **Nommage SQL** : ne JAMAIS renommer un identifiant existant **sans gain fonctionnel** — et
+  quand le gain existe, le faire par un bloc de renommage IDEMPOTENT plus une vue de compatibilité
+  `security_invoker` (précédent : `fiches` → `cognitive_aids`, lot T9 v5.0.0, décrit plus haut).
+  `category_sets`, `sessions`… restent historiquement en français ; un renommage gratuit casserait
+  les instances déployées et le client pour rien ; tout **nouvel** objet (table, fonction, politique,
   colonne) est nommé **en anglais** (`protocols`, `list_orphan_attachments`…). Le français reste
   la langue des commentaires et des textes visibles.
 - La sécurité réelle est **côté serveur** (politiques RLS de `supabase/schema.sql`, y compris
