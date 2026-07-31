@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-cGi4NUQGwzk8nnXpx4Fctk78TbXWSh2usPmaH+QaLTg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-cpolQsTbSpQuA3FbrYiM0vuDhsnWIzVa7uSYZXN8BTA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -6162,6 +6162,110 @@ function stepCR(s){const t=String(s==null?'':s);const i=t.indexOf('::');
   if(i<0)return {c:t.trim(),r:null};
   const c=t.slice(0,i).trim(),r=t.slice(i+2).trim();
   return (c&&r)?{c,r}:{c:c||r,r:null};}
+/* ===== MODÈLE v4 — CONVERSION v3 ⇄ v4 (lot T6, v5.0.0) =========================================
+   DEUX FONCTIONS PURES, ET RIEN D'AUTRE POUR L'INSTANT. Ce lot livre le FORMAT et sa réversibilité,
+   pas son adoption : aucun chemin de l'application n'appelle encore ces fonctions, aucune donnée
+   stockée ne change, aucune surface ne bouge. C'est délibéré — le modèle v4 touche l'export, la
+   synchro, la liste blanche du serveur et les vingt sites de rendu qui lisent `b.steps[]` ; le
+   convertir « en même temps » que tout cela produirait un changement qu'aucune mesure ne pourrait
+   isoler. On pose d'abord la pièce dont TOUT le reste dépend, et on la prouve.
+
+   CE QUE v4 CHANGE, EN UNE PHRASE : un item cesse d'être une CHAÎNE À UNE POSITION pour devenir un
+   OBJET À UNE IDENTITÉ. C'est la réparation structurelle du défaut mesuré au lot T1 — une clé
+   `visite:bloc:INDEX` désigne un autre geste dès qu'on insère une ligne, et le lot T1 n'a pu que
+   poser une rustine (archiver le texte). Avec `id`, la question ne se pose plus.
+
+   SIX CHAMPS v3 DISPARAISSENT en tant que champs et deviennent des RÔLES : `confirmation` → entry,
+   `notForget` → do + memory, `verify` → watch, `posology` → dose, `differentials` → ddx ; les
+   étapes de bloc restent do. `references` NE devient PAS un rôle (`sources[]`, métadonnée : ce
+   n'est pas du contenu de crise). Le préfixe « ⚠ » / « △ », qui était une convention DANS la
+   chaîne, devient `level` 3 / 2 / 1 — ordonné, donc calculable ; « :: » devient `do` / `expect`.
+
+   LA LOSSLESSNESS N'EST PAS UNE INTENTION, C'EST UN MÉCANISME : on ne recopie pas une liste de
+   champs (une liste se périme — le dépôt l'a payé quatre fois : MUTE_SEL, LEAD_ONLY_SEL, la liste
+   des placards, les deux listes de verbes de partage). On PART de l'objet entier, on RETIRE ce que
+   l'on convertit, et tout le reste voyage tel quel. Un champ ajouté demain à v3 traversera donc la
+   conversion sans qu'une ligne soit écrite ici.
+
+   CE QUI N'A AUCUNE SOURCE EN v3 REÇOIT UN DÉFAUT NEUTRE, ET SURTOUT PAS UNE DEVINETTE : `dual`
+   (AC 120-71B §5.2.2.5 — inexprimable en v3), `phase`, `concl`, `note` naissent vides. Deviner
+   qu'un premier bloc est « immediate » ou qu'un item est `dual` reviendrait à écrire du contenu
+   clinique à la place de l'auteur — exactement ce que la doctrine refuse pour le `discriminant`
+   (« aucune migration ne DEVINE »). */
+const V4_ROLES=['entry','do','watch','dose','ddx'];
+/* Les seuils d'alerte, dans l'ordre ECAM : 3 warning (ce qui TUE si on l'oublie), 2 caution (là où
+   l'on se TROMPE), 1 advisory. Ordonné, donc comparable — ce qu'un préfixe de chaîne ne permet pas. */
+const v4Level=s=>stepIsCrit(s)?3:(stepIsVigil(s)?2:1);
+const v4Pref=l=>l===3?'⚠ ':(l===2?'△ ':'');
+function v4MakeItem(id,role,raw,memory){
+  const cr=stepCR(stepText(raw));
+  return {id,role,do:cr.c,expect:cr.r||'',level:v4Level(raw),memory:!!memory,dual:false,note:''};}
+/* La chaîne v3 se RECONSTRUIT dans l'ordre exact où v3 la lit : préfixe de registre, challenge,
+   « :: », réponse attendue. */
+const v4ItemToStr=it=>v4Pref(it.level)+String(it.do||'')+(it.expect?' :: '+it.expect:'');
+function v3ToV4(f){
+  if(!f||typeof f!=='object')return null;
+  const rest=Object.assign({},f);
+  ['confirmation','notForget','verify','posology','differentials','references','blocks','start',
+   'complications','localInfo','libraryId','validation','status','related','attachments']
+    .forEach(k=>{delete rest[k];});
+  const items=[];let n=0;
+  const push=(role,raw,mem)=>{const it=v4MakeItem('i'+(++n),role,raw,mem);items.push(it);return it.id;};
+  (f.confirmation||[]).forEach(x=>push('entry',x));
+  (f.notForget||[]).forEach(x=>push('do',x,true));
+  const blocks=(f.blocks||[]).map(b=>({
+    id:b.id,title:String(b.title||''),phase:'',
+    kind:b.type==='decision'?'decision':'do',
+    items:(b.type==='decision'?[]:(b.steps||[]).map(x=>push('do',x))),
+    next:b.next||null,question:String(b.question||''),
+    options:(b.options||[]).map(o=>({label:String(o.label||''),concl:'',target:o.target||null})),
+    image:b.image||null,hors:false}));
+  (f.verify||[]).forEach(x=>push('watch',x));
+  (f.posology||[]).forEach(x=>push('dose',x));
+  (f.differentials||[]).forEach(x=>push('ddx',x));
+  /* `hors` est CALCULÉ, jamais stocké en v3 : un bloc qu'aucun `next` ni aucune option n'atteint
+     depuis le départ est une excursion — il vit hors numérotation (doctrine des complications
+     « à tout moment », v4.26.0). On le dérive au lieu de le demander à l'auteur. */
+  {const vus=new Set(),file=[f.start].filter(Boolean);
+   while(file.length){const id=file.shift();if(!id||vus.has(id))continue;vus.add(id);
+     const b=blocks.find(x=>x.id===id);if(!b)continue;
+     if(b.next)file.push(b.next);b.options.forEach(o=>{if(o.target)file.push(o.target);});}
+   blocks.forEach(b=>{b.hors=!vus.has(b.id);});}
+  return Object.assign(rest,{v:4,kind:'procedure',
+    library:f.libraryId||'',status:f.status==='draft'?'draft':(f.status==='review'?'review':'validated'),
+    validatedAt:String(f.validation||''),items,blocks,start:f.start||null,
+    excursions:(f.complications||[]).map(c=>({label:String(c.label||''),target:c.target||null})),
+    sources:(f.references||[]).slice(),docs:(f.attachments||[]).slice(),
+    links:(f.related||[]).slice(),local:String(f.localInfo||'')});}
+/* RETOUR v4 → v3 — « à perte ANNONCÉE », et la liste des pertes est ici, pas dans une note de bas
+   de page : `dual`, `phase`, `concl`, `note` et les IDENTITÉS d'items n'ont aucun logement en v3.
+   Tout le reste revient au caractère près, ce que le témoin de STABILITÉ vérifie. */
+const V4_PERTES=['dual','phase','concl','note','id (item)'];
+function v4ToV3(a){
+  if(!a||typeof a!=='object')return null;
+  const rest=Object.assign({},a);
+  ['v','kind','items','blocks','start','excursions','sources','docs','links','local','library',
+   'status','validatedAt'].forEach(k=>{delete rest[k];});
+  const items=a.items||[],byId=Object.create(null);items.forEach(it=>{byId[it.id]=it;});
+  const dansBloc=new Set();(a.blocks||[]).forEach(b=>(b.items||[]).forEach(id=>dansBloc.add(id)));
+  const bac=r=>items.filter(it=>it.role===r).map(v4ItemToStr);
+  const blocks=(a.blocks||[]).map(b=>{
+    const o={id:b.id,type:b.kind==='decision'?'decision':'steps',title:b.title||'',
+      steps:(b.items||[]).map(id=>byId[id]?v4ItemToStr(byId[id]):''),
+      image:b.image||null,next:b.next||null};
+    if(b.kind==='decision'){o.question=b.question||'';
+      o.options=(b.options||[]).map(x=>({label:x.label||'',target:x.target||null}));}
+    return o;});
+  return Object.assign(rest,{
+    confirmation:bac('entry'),
+    notForget:items.filter(it=>it.role==='do'&&it.memory&&!dansBloc.has(it.id)).map(v4ItemToStr),
+    verify:bac('watch'),posology:bac('dose'),differentials:bac('ddx'),
+    references:(a.sources||[]).slice(),attachments:(a.docs||[]).slice(),
+    related:(a.links||[]).slice(),localInfo:String(a.local||''),
+    libraryId:a.library||'',status:a.status==='validated'?'':(a.status||''),
+    validation:String(a.validatedAt||''),
+    complications:(a.excursions||[]).map(c=>({label:c.label||'',target:c.target||null})),
+    blocks,start:a.start||null});}
 // Intérieur d'une rangée d'étape cochable (vue guidée + journal) : challenge, puis RÉPONSE
 // ATTENDUE en pilule mono — le readback « ✓ » du cochage est porté par le CSS (li.done).
 function stepTxtHtml(s,opts){const cr=stepCR(stepText(s));
@@ -6334,6 +6438,19 @@ function sanitizeEntityCommon(x,idPrefix,imgMax){
   delete x.dirty;
   return x;}
 function migrate(f){if(!f||typeof f!=='object')f={};
+  /* UNE AIDE AU FORMAT v4 ENTRE PAR ICI, ET PAR NULLE PART AILLEURS (lot T6, v5.0.0). C'est la
+     règle 5 appliquée telle quelle : `migrate` est le point d'entrée unique de toute donnée
+     entrante — chargement, import, ZIP, duplication, pull cloud — donc c'est le seul endroit où
+     reconnaître un format. Ajouter une détection au point d'IMPORT aurait laissé les quatre autres
+     chemins dehors, et le défaut aurait été silencieux (une aide v4 tombée du cloud aurait été
+     lue comme une v3 vide : aucun bloc, aucune étape, et rien pour le dire).
+     L'APPLICATION CONTINUE DE TOURNER EN v3, à dessein : ce lot livre le format et sa
+     réversibilité, pas son adoption interne. Un fichier v4 est donc CONVERTI À L'ENTRÉE, et les
+     champs sans logement v3 (`dual`, `phase`, `concl`, `note`, les identités d'items) sont perdus
+     à ce moment — c'est la perte ANNONCÉE de `V4_PERTES`, et elle est acceptable tant que rien ne
+     produit encore ces champs. Elle cessera de l'être dès que l'éditeur les écrira (lot T7) : ce
+     jour-là, c'est le RENDU qui devra passer en v4, pas cette ligne qui devra ruser. */
+  if(f.v===4&&Array.isArray(f.items))f=v4ToV3(f)||{};
   sanitizeEntityCommon(f,'f',200);
   f.localInfo=sstr(f.localInfo,4000);
   ['confirmation','verify','notForget','differentials','references','posology'].forEach(k=>f[k]=sarr(f[k],500));
@@ -18551,7 +18668,7 @@ if(location.search.indexOf('__actest')>=0){
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
     restErrStatus,isPersoRepairCandidate,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,cxAll,cxDetached,
     qTerms,hayMatch,markQTerms,searchSnippet,ficheSnipParts,protoSnipParts,frecencyScore,sanitizeUsage,mergeUsage,azLetter,azGroups,qaPick,tmLabelParts,sessStamp,monPick,reviewNotes,stepNote,stepShortcut,
-    crc32,zipBuild,zipParse,isPdfBytes,mdTask,flowOrder,latestPass,offPathSet,minimapData,passInfo,instComplete,flowPlan,stepCR,stepGuardTxt,optAbbr,svBranchIssue,svLoopTargets,ovPresList,
+    crc32,zipBuild,zipParse,isPdfBytes,mdTask,v3ToV4,v4ToV3,v4MakeItem,v4ItemToStr,v4Level,V4_ROLES,V4_PERTES,flowOrder,latestPass,offPathSet,minimapData,passInfo,instComplete,flowPlan,stepCR,stepGuardTxt,optAbbr,svBranchIssue,svLoopTargets,ovPresList,
     posoTokens,posoName,posoScore,posoRank,posoSplit,
     qrRawBits,qrTotalCw,qrGen,qrRs,qrAlign,qrDataCw,qrInterleave,qrEncode,qrSvg,qrMul,
     TAG_CORE,sanitizeTags,tagAll,tagLabel,tagRank,tkRefNorm,tkLabels,Share,sessionToRow,sessionFromRow,shareNavNorm,

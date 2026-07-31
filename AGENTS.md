@@ -2616,6 +2616,47 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   n'écrase **JAMAIS** un binaire existant (même id → le document présent fait foi) ; binaire du
   zip posé seulement s'il manque, signé `%PDF-` (`isPdfBytes`) et sous plafond ; référence sans
   binaire gardée seulement si le fichier vient du même espace (elle peut suivre par la synchro).
+- **LE MODÈLE v4 EXISTE ET IL EST RÉVERSIBLE — MAIS L'APPLICATION TOURNE ENCORE EN v3
+  (v5.0.0, lot T6, LIVRÉ PARTIELLEMENT ET IL FAUT LE SAVOIR).** Ce qui est livré : deux fonctions
+  PURES `v3ToV4` / `v4ToV3`, et la reconnaissance du format v4 **dans `migrate()`**. Ce qui n'est
+  PAS livré : le rendu, l'éditeur, l'export et le partage lisent toujours v3 — aucune donnée
+  stockée n'a changé, aucune surface n'a bougé, et **rien ne PRODUIT encore de v4**.
+  **CE QUE v4 CHANGE, EN UNE PHRASE** : un item cesse d'être une CHAÎNE À UNE POSITION pour devenir
+  un OBJET À UNE IDENTITÉ. C'est la réparation structurelle du défaut du lot T1 — une clé
+  `visite:bloc:INDEX` désigne un autre geste dès qu'on insère une ligne, et T1 n'a pu que poser une
+  rustine (archiver le texte). Avec `id`, la question ne se pose plus.
+  **SIX CHAMPS v3 DEVIENNENT DES RÔLES** : `confirmation` → `entry`, `notForget` → `do` +
+  `memory:true`, `verify` → `watch`, `posology` → `dose`, `differentials` → `ddx` ; les étapes de
+  bloc restent `do`. **`references` N'EST PAS un rôle** (`sources[]`, métadonnée — ce n'est pas du
+  contenu de crise). Le préfixe `⚠`/`△`, convention DANS la chaîne, devient `level` 3/2/1 —
+  **ordonné, donc comparable**, ce qu'un préfixe ne permet pas ; `::` devient `do`/`expect`.
+  **LA LOSSLESSNESS EST UN MÉCANISME, PAS UNE INTENTION** : on ne recopie pas une liste de champs
+  (une liste se périme — le dépôt l'a payé quatre fois : `MUTE_SEL`, `LEAD_ONLY_SEL`, la liste des
+  placards, les deux listes de verbes de partage). On PART de l'objet entier, on RETIRE ce que l'on
+  convertit, **tout le reste voyage tel quel** — un champ ajouté demain traversera sans qu'une
+  ligne soit écrite. Deux témoins mesurent exactement cela sur un champ inconnu, à l'aller et au
+  retour.
+  **RIEN N'EST DEVINÉ** : `dual` (AC 120-71B §5.2.2.5, inexprimable en v3), `phase`, `concl` et
+  `note` naissent VIDES. Deviner qu'un premier bloc est « immediate » écrirait du contenu clinique
+  à la place de l'auteur — même refus que pour le `discriminant` (« aucune migration ne DEVINE »).
+  Seul `hors` est CALCULÉ, parce qu'il se DÉDUIT du graphe (un bloc qu'aucun chemin n'atteint depuis
+  le départ est une excursion) et ne demande donc rien à personne.
+  **LE RETOUR v4 → v3 EST À PERTE, ET LA LISTE EST DANS LE CODE** (`V4_PERTES`) : `dual`, `phase`,
+  `concl`, `note`, les identités d'items. **Elle est acceptable AUJOURD'HUI parce que rien ne
+  produit ces champs** ; elle cessera de l'être au lot T7, quand l'éditeur les écrira — ce jour-là
+  c'est le RENDU qui devra passer en v4, **et surtout pas cette conversion qui devra ruser**.
+  **LA DÉTECTION VIT DANS `migrate()`, ET NULLE PART AILLEURS** — règle 5 appliquée telle quelle :
+  la poser au point d'IMPORT aurait laissé dehors le chargement, le ZIP, la duplication et le pull
+  cloud, et le défaut aurait été SILENCIEUX (une aide v4 tombée du cloud lue comme une v3 vide :
+  aucun bloc, aucune étape, et rien pour le dire).
+  **`supabase/schema.sql` N'EST PAS À REJOUER POUR CE LOT** : la liste blanche du serveur borne ce
+  qui VOYAGE en partage de session, or rien n'émet de v4 sur le réseau. Elle le deviendra au lot
+  où le partage portera des items — et ce sera alors l'étape qu'on oublie (précédent
+  `discriminant`, v4.70.0).
+  **ALLER-RETOUR : LA PROPRIÉTÉ VÉRIFIÉE EST LA STABILITÉ, PAS L'IDENTITÉ AU CARACTÈRE PRÈS.**
+  « a::b » revient en « a :: b » — une normalisation d'espaces n'est pas une perte de sens, et
+  exiger l'identité stricte ferait échouer un témoin sur un non-défaut. On mesure donc que deux
+  passages donnent exactement ce que donne un seul : une perte RÉELLE se verrait au second.
 - **EN SESSION, L'ACTION PASSE DEVANT L'ORIENTATION — ET LE RAIL ①②③ CESSE D'ÊTRE L'OSSATURE
   (v5.0.0, lot T5 ; règle v4.4.0 ROUVERTE).** Le rail numérote un PARCOURS : il oriente quelqu'un
   qui découvre la fiche, et c'est exactement ce dont on n'a plus besoin une fois qu'on exécute.

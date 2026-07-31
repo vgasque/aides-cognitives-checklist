@@ -1799,6 +1799,126 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
      jamais le partage, sinon replier chez soi replierait chez l'autre. */
   ok('fsOpen est classé LOCAL (le repli du chapeau ne voyage pas)',A.SHARE_LOCAL.indexOf('fsOpen')>=0);
   ok('et il n’est pas dans ce qui voyage',A.SHARE_TRAVELS.indexOf('fsOpen')<0);
+
+  /* ===== LOT T6 — LE MODÈLE v4, ET SA RÉVERSIBILITÉ ==========================================
+     Ce que ces témoins couvrent n'est PAS « la conversion marche » : c'est qu'elle ne PERD rien et
+     qu'elle n'INVENTE rien. Les deux moitiés comptent autant. Une conversion qui perd est une
+     migration destructrice ; une conversion qui devine écrit du contenu clinique à la place de
+     l'auteur, ce que la doctrine refuse explicitement pour le `discriminant`. */
+  {
+  const v3={id:'a1',title:'Anaphylaxie',discriminant:'adulte',code:'ANA',category:'c1',
+    libraryId:'lib7',status:'review',validation:'2025-03',localInfo:'Tél : 15',
+    confirmation:['Œdème + hypotension'],
+    notForget:['⚠ Retirer l’allergène','Position allongée'],
+    verify:['△ Récidive à 6 h'],posology:['△ Adrénaline 0,5 mg IM'],
+    differentials:['Choc septique'],references:['SFAR 2016'],
+    complications:[{label:'Bronchospasme',target:'bx'}],
+    related:['p2'],attachments:[{id:'at1',name:'d.pdf',size:9}],
+    images:[{id:'g1'}],timers:[{label:'Réévaluation',seconds:300}],counters:[{label:'Doses'}],
+    blocks:[{id:'b1',type:'steps',title:'Immédiat',steps:['⚠ Adrénaline IM :: 0,5 mg','Oxygène'],image:null,next:'b2'},
+            {id:'b2',type:'decision',title:'Réponse ?',question:'Amélioration ?',
+             options:[{label:'Oui',target:'b1'},{label:'Non',target:'b1'}],steps:[],image:null,next:null},
+            {id:'bx',type:'steps',title:'Bronchospasme',steps:['Salbutamol'],image:null,next:null}],
+    start:'b1',order:42,
+    champInconnuDuFutur:{quoi:'ajouté après ce lot'}};
+  const v4=A.v3ToV4(v3);
+
+  eq('v4 · le format se déclare',v4.v,4);
+  /* LES SIX CHAMPS DEVIENNENT DES RÔLES — on compte, on n'inspecte pas au hasard. */
+  const parRole=r=>v4.items.filter(i=>i.role===r).length;
+  eq('v4 · confirmation → role entry',parRole('entry'),1);
+  eq('v4 · verify → role watch',parRole('watch'),1);
+  eq('v4 · posology → role dose',parRole('dose'),1);
+  eq('v4 · differentials → role ddx',parRole('ddx'),1);
+  eq('v4 · notForget + étapes de blocs → role do',parRole('do'),2+3);
+  ok('v4 · un memory item est un ITEM de la liste, pas un champ à part',
+     v4.items.filter(i=>i.memory).length===2);
+  ok('v4 · … et il n’est référencé par AUCUN bloc (c’est le chapeau)',
+     v4.items.filter(i=>i.memory).every(i=>!v4.blocks.some(b=>b.items.indexOf(i.id)>=0)));
+  /* LE REGISTRE DEVIENT UN NIVEAU ORDONNÉ — c'est tout l'intérêt : « ⚠ » et « △ » dans une chaîne
+     ne se comparent pas, 3 et 2 si. */
+  const it=id=>v4.items.find(x=>x.id===id);
+  const adre=v4.items.find(x=>/Adrénaline IM/.test(x.do));
+  eq('v4 · le préfixe ⚠ devient level 3',adre.level,3);
+  eq('v4 · … et « :: » devient la réponse attendue',adre.expect,'0,5 mg');
+  eq('v4 · … dont le challenge est nettoyé du préfixe',adre.do,'Adrénaline IM');
+  eq('v4 · le préfixe △ devient level 2',v4.items.find(x=>/Récidive/.test(x.do)).level,2);
+  eq('v4 · une étape ordinaire est level 1',v4.items.find(x=>x.do==='Oxygène').level,1);
+  /* RIEN N'EST DEVINÉ. */
+  ok('v4 · dual naît FAUX partout (inexprimable en v3, on ne le suppose pas)',
+     v4.items.every(i=>i.dual===false));
+  ok('v4 · phase et concl naissent VIDES',v4.blocks.every(b=>b.phase===''&&
+     (b.options||[]).every(o=>o.concl==='')));
+  /* LES IDENTITÉS — la réparation structurelle du défaut du lot T1. */
+  ok('v4 · chaque item porte une identité unique',
+     new Set(v4.items.map(i=>i.id)).size===v4.items.length);
+  ok('v4 · un bloc référence des IDENTITÉS, plus des positions',
+     v4.blocks[0].items.every(x=>typeof x==='string'&&!!it(x)));
+  /* `hors` est CALCULÉ depuis le graphe, il n'est pas demandé à l'auteur. */
+  ok('v4 · un bloc qu’aucun chemin n’atteint est marqué « hors »',
+     v4.blocks.find(b=>b.id==='bx').hors===true);
+  ok('v4 · … et un bloc du tronc ne l’est pas',
+     v4.blocks.find(b=>b.id==='b1').hors===false&&v4.blocks.find(b=>b.id==='b2').hors===false);
+  eq('v4 · les complications deviennent des excursions',v4.excursions.length,1);
+  eq('v4 · les références deviennent des sources (métadonnée, pas un rôle)',v4.sources.length,1);
+
+  /* ALLER-RETOUR. La propriété vérifiable n'est pas « c'est identique au caractère près » — « a::b »
+     revient en « a :: b », et une normalisation d'espaces n'est pas une perte de sens. C'est la
+     STABILITÉ : appliquer la conversion deux fois donne exactement ce que donne une seule fois.
+     Une perte réelle, elle, se verrait au second passage. */
+  const r1=A.v4ToV3(v4), r2=A.v4ToV3(A.v3ToV4(r1));
+  eq('aller-retour · la conversion est STABLE (2 passages = 1)',
+     JSON.stringify(r2),JSON.stringify(r1));
+  eq('aller-retour · les étapes de bloc reviennent, préfixe et « :: » compris',
+     r1.blocks[0].steps.join('|'),'⚠ Adrénaline IM :: 0,5 mg|Oxygène');
+  eq('aller-retour · le chapeau revient dans notForget',r1.notForget.length,2);
+  ok('aller-retour · … et pas dans les blocs',
+     r1.blocks.every(b=>b.steps.indexOf('⚠ Retirer l’allergène')<0));
+  eq('aller-retour · la décision retrouve sa question et ses options',
+     r1.blocks[1].question+'/'+r1.blocks[1].options.length,'Amélioration ?/2');
+  eq('aller-retour · le statut « validé » redevient la chaîne vide de v3',
+     A.v4ToV3(A.v3ToV4(Object.assign({},v3,{status:''}))).status,'');
+  ['title','discriminant','code','category','libraryId','validation','localInfo','start','order']
+    .forEach(k=>eq('aller-retour · '+k+' intact',JSON.stringify(r1[k]),JSON.stringify(v3[k])));
+  ['references','attachments','related','images','timers','counters','complications','confirmation',
+   'verify','posology','differentials'].forEach(k=>
+    eq('aller-retour · '+k+' intact',JSON.stringify(r1[k]),JSON.stringify(v3[k])));
+
+  /* LE MÉCANISME, PAS LA LISTE. Un champ que ce lot ne connaît pas doit traverser les DEUX sens :
+     c'est ce qui distingue une conversion qui recopie une liste (elle se périme) d'une conversion
+     qui part de l'objet entier et retire ce qu'elle convertit. */
+  eq('losslessness · un champ INCONNU traverse l’aller',
+     JSON.stringify(v4.champInconnuDuFutur),JSON.stringify(v3.champInconnuDuFutur));
+  eq('losslessness · … et le retour',
+     JSON.stringify(r1.champInconnuDuFutur),JSON.stringify(v3.champInconnuDuFutur));
+  ok('losslessness · aucun champ v3 ne disparaît en chemin',
+     Object.keys(v3).every(k=>k in r1));
+  /* LES PERTES SONT ÉNONCÉES, pas découvertes à l'usage. */
+  ok('les pertes du retour v4→v3 sont NOMMÉES',
+     A.V4_PERTES.indexOf('dual')>=0&&A.V4_PERTES.indexOf('phase')>=0&&A.V4_PERTES.indexOf('concl')>=0);
+  /* Robustesse : la conversion ne jette jamais sur une entrée dégradée. */
+  ok('v4 · une fiche vide convertit sans exception',!!A.v3ToV4(A.blankFiche()));
+  eq('v4 · une entrée non-objet rend null',A.v3ToV4(null),null);
+  eq('v4 · … dans les deux sens',A.v4ToV3(null),null);
+
+  /* LE POINT D'ENTRÉE UNIQUE (règle 5). Une aide v4 doit entrer par `migrate`, donc être lisible
+     par TOUS les chemins d'un coup — chargement, import, ZIP, duplication, pull cloud. Le témoin
+     mesure `migrate`, jamais l'import : c'est la différence entre couvrir un chemin et les couvrir
+     tous. */
+  /* DÉFENSIF À DESSEIN : neutralisé, ce chemin rend une fiche VIDE — un accès direct
+      (`m.blocks[0].steps[0]`) lèverait alors une exception qui EMPORTE TOUTE LA SUITE au lieu de
+      produire un rouge. Un témoin doit échouer, pas faire tomber le banc d'essai. */
+  {const m=A.migrate(JSON.parse(JSON.stringify(A.v3ToV4(v3))))||{};
+   const mb=m.blocks||[],b0=mb[0]||{},b1=mb[1]||{};
+   eq('migrate · une aide v4 entre et devient exploitable',mb.length,3);
+   eq('migrate · … ses étapes sont intactes',(b0.steps||[])[0],'⚠ Adrénaline IM :: 0,5 mg');
+   eq('migrate · … son chapeau aussi',(m.notForget||[]).length,2);
+   eq('migrate · … et sa décision',(b1.options||[]).length,2);
+   ok('migrate · une v3 n’est PAS traitée comme une v4',
+      ((A.migrate(JSON.parse(JSON.stringify(v3)))||{}).blocks||[]).length===3);
+   ok('migrate · un objet qui se dit v4 sans items n’est pas converti à l’aveugle',
+      !!A.migrate({v:4,title:'x'}));}
+  }
 }
 
 // Ouvert en double-cliquant le fichier (file://) : le navigateur isole les iframes (origine
