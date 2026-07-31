@@ -1016,9 +1016,11 @@ console.log('\n══ T7 · ★ mémoire — de l\'éditeur au chapeau ══');
     const avant=document.querySelectorAll('.forget-strip .fs-i').length;
     openEdit(f.id); await w(700);
     const btn=document.querySelector('.blk .li[data-si="1"] [data-mem]');
-    const txt=state.draft.blocks[0].items[1].do;
+    /* v5.0.0, étape B : le bloc ne porte que des IDENTIFIANTS — on passe par le résolveur, qui
+       est aussi ce que fait l'éditeur. */
+    const txt=bItems(state.draft.blocks[0])[1].do;
     if(btn)btn.click(); await w(700);
-    const pose=state.draft.blocks[0].items[1].memory===true;
+    const pose=bItems(state.draft.blocks[0])[1].memory===true;
     render(); await w(400);
     openRead(f.id); await w(700);
     const chap=[...document.querySelectorAll('.forget-strip .fs-i')].map(e=>e.textContent);
@@ -1055,7 +1057,7 @@ console.log('\n══ T13 · les fiches d\'exemple exercent la doctrine qu\'elle
       return {disc:f.discriminant,code:f.code,
         vigil:its.filter(i=>i.level===2).length, crit:its.filter(i=>i.level===3).length,
         mem:its.filter(i=>i.memory).length, dual:its.filter(i=>i.dual).length,
-        poso:(f.posology||[]).length, cx:(f.complications||[]).length,
+        poso:A.listOf(f,'posology').length, cx:(f.complications||[]).length,
         onDue:(f.timers||[]).filter(t=>t.onDue).length,
         vigilTot:its.filter(i=>i.level===2).length,
         cxCible:(f.complications||[]).every(c=>(f.blocks||[]).some(b=>b.id===c.target)),

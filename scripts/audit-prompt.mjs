@@ -34,7 +34,7 @@ const r=await p.evaluate(()=>{
     cibles:f.blocks.filter(b=>b.type==='decision').flatMap(b=>b.options.map(o=>o.target))
       .every(id=>f.blocks.some(b=>b.id===id)),
     nexts:f.blocks.filter(b=>b.type==='steps').every(b=>b.next===null||f.blocks.some(x=>x.id===b.next)),
-    poso:(f.posology||[]).length, promptLen:P.length,
+    poso:A.listOf(f,'posology').length, promptLen:P.length,
     ditBulle:/en GRIS, dans une BULLE/.test(P), ditBudget:/BUDGETS/.test(P),
     ditPeuTexte:/PEU DE TEXTE/.test(P), ditDisc:/"discriminant"/.test(P), ditOnDue:/"onDue"/.test(P),
     /* v4.77.0 — les libellés de minuteurs et de compteurs ne servent pas qu'À L'INSTANT : ils
@@ -48,7 +48,8 @@ const r=await p.evaluate(()=>{
        v4.73.0 avec le `\n` mal échappé. On mesure donc le bloc RÉELLEMENT extrait du prompt. */
     ...(()=>{const be=(obj.fiches[0].blocks||[]).find(b=>Array.isArray(b.items));
       if(!be)return {enr:false};
-      const b2=(f.blocks||[]).find(x=>x.id===be.id)||{};const its=b2.items||[];
+      /* v5.0.0, étape B : le bloc ne porte que des identifiants — on résout, comme le rendu. */
+      const b2=(f.blocks||[]).find(x=>x.id===be.id)||{};const its=A.bItems(b2);
       return {enr:true,enrN:be.items.length,enrApres:its.length,
         enrLvl:its[0]&&its[0].level,enrMem:!!(its[0]&&its[0].memory),enrDual:!!(its[0]&&its[0].dual),
         enrMiroir:(b2.steps||[])[0]||''};})(),

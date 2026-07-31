@@ -266,8 +266,11 @@ const L=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   const id=state.draft.id,d=state.draft;
   if(state.edGrab){state.edGrab=null;renderEditor();await w(300);}
   // un jeu de listes garni : deux objets par liste d'objets, quatre lignes en texte
-  d.differentials=['Un','Deux','Trois','Quatre'];
-  d.posology=['Adrénaline : 0,5 mg','△ Noradré : dilution'];
+  /* v5.0.0, étape B — ces listes ne sont plus des CHAMPS mais des RÔLES du pool `items` :
+     `setList` est l'écriture réelle. Les écraser directement ne faisait plus rien, et la sonde
+     mesurait alors une fiche qu'elle croyait avoir remplie. */
+  setList(d,'differentials',['Un','Deux','Trois','Quatre']);
+  setList(d,'posology',['Adrénaline : 0,5 mg','△ Noradré : dilution']);
   while((d.timers||[]).length<2)edAdd(d,'stopwatch');
   while((d.counters||[]).length<2)edAdd(d,'counter');
   d.timers[0].label='Minuteur A';d.timers[1].label='Minuteur B';
@@ -288,8 +291,8 @@ const L=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   const bandeau=(document.querySelector('.ed-grab .eg-l')||{}).textContent||'';
   // DÉPÔT
   document.querySelector('[data-ldrop="differentials:0"]').click();await w(500);
-  const apres=(d.differentials||[]).slice();
-  const publie=((fiches.find(f=>f.id===id)||{}).differentials||[]).slice();
+  const apres=listOf(d,'differentials').slice();
+  const publie=listOf(fiches.find(f=>f.id===id)||{},'differentials').slice();
   // ÉCHAP repose l'objet sans rien déplacer
   H('differentials:2').click();await w(350);
   const avantEchap=(d.differentials||[]).slice();
@@ -362,8 +365,8 @@ const P=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   if(document.querySelector('#edAddModal.on'))edAddClose();
   await w(250);
   // (3) « présent dans la porte ⇔ masqué quand vide »
-  d.verify=[];d.differentials=[];d.references=[];d.posology=[];d.images=[];d.attachments=[];
-  d.notForget=[];d.confirmation=[];
+  setList(d,'verify',[]);setList(d,'differentials',[]);d.references=[];setList(d,'posology',[]);d.images=[];d.attachments=[];
+  setList(d,'notForget',[]);setList(d,'confirmation',[]);
   renderEditor();await w(500);
   const vides={verify:a(/À vérifier/),diff:a(/Diagnostics différentiels/),ref:a(/Références/),
     poso:a(/Repères posologiques/),img:a(/Schémas/),att:a(/Documents \(PDF\)/),
@@ -375,7 +378,7 @@ const P=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
     document.querySelector('[data-edadd="'+k+'"]').click();await w(450);
     recree[k]=a(rx);}
   // (5) la porte redescend dans le flux pendant un déplacement
-  d.differentials=['Un','Deux'];renderEditor();await w(400);
+  setList(d,'differentials',['Un','Deux']);renderEditor();await w(400);
   document.querySelector('[data-lgrab="differentials:1"]').click();await w(350);
   const platPendantDeplacement=getComputedStyle(porte()).position;
   state.edGrab=null;renderEditor();await w(350);
@@ -393,9 +396,9 @@ const P=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   const detache=(d.blocks||[]).filter(b=>b.image===px).length;
   // (7) le compte de relecture
   const rb=document.getElementById('hdrRev');
-  d.notForget=['a'];renderEditor();await w(400);
+  setList(d,'notForget',['a']);renderEditor();await w(400);
   const revZero=rb.hidden;
-  d.notForget=['a','b','c','d','e'];renderEditor();await w(400);
+  setList(d,'notForget',['a','b','c','d','e']);renderEditor();await w(400);
   const revUn={cache:rb.hidden,txt:rb.textContent};
   rb.click();await w(400);
   const voletOuvert=!!document.querySelector('#revPanel details.rev-panel[open]');
@@ -487,7 +490,7 @@ console.log('=== v4.77.0 : le mode déplacement est modal, et réversible ===');
 await p.setViewportSize({width:900,height:900});
 const R2=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   const d=state.draft;
-  d.differentials=['Un','Deux','Trois'];renderEditor();await w(450);
+  setList(d,'differentials',['Un','Deux','Trois']);renderEditor();await w(450);
   const H=k=>document.querySelector('[data-lgrab="'+k+'"]');
   H('differentials:2').scrollIntoView({block:'center'});await w(200);
   const y0=Math.round(H('differentials:2').getBoundingClientRect().top);
@@ -623,7 +626,7 @@ const V=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   const nomme=(()=>{const o=[...document.querySelectorAll('select[data-target] option')]
     .map(x=>x.textContent);return o.some(t=>/Bloc sans titre \(\d\)/.test(t))&&!o.some(t=>/^b[_0-9a-z]{4,}$/.test(t));})();
   /* (4) LA MARQUE « EN DÉPLACEMENT » NE MANGE PLUS LE CHAMP D'UNE LIGNE DE LISTE. */
-  d.differentials=['Un','Deux','Trois'];renderEditor();await w(450);
+  setList(d,'differentials',['Un','Deux','Trois']);renderEditor();await w(450);
   const champ=()=>document.querySelector('.list-edit .li input[data-key="differentials"]');
   const lRepos=Math.round(champ().getBoundingClientRect().width);
   document.querySelector('[data-lgrab="differentials:0"]').click();await w(450);
@@ -758,7 +761,7 @@ const G=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   if(state.previewFrom){document.getElementById('hdrBack').click();await w(800);}
   if(state.view!=='edit'){const f=fiches.find(x=>!x.deletedAt);await openEdit(f.id);await w(700);}
   const d=state.draft;
-  d.confirmation=['Un critère','Deux'];renderEditor();await w(450);
+  setList(d,'confirmation',['Un critère','Deux']);renderEditor();await w(450);
   /* On mesure la RÈGLE, pas l'intention : encre, fond et curseur des deux boutons que l'utilisateur
      nomme (le ✕ d'une étape — le seul qui soit ROUGE au repos, donc celui où la spécificité pouvait
      échouer — et le B d'une ligne de liste). Et l'on vérifie le RETOUR à l'identique : le dégrisage

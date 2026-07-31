@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-3kaiOdquXSsTqgla98bWZR8NLQTaN3ZNi7H+5P2Aknc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-8cV+HaoRXTm70ywK4HVJlepFtcXyxZjiGF8Yoq8fwqo='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -5859,7 +5859,7 @@ const txNorm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').to
 // est donc exclu du cache et recalcul\u00e9 \u00e0 chaque appel.
 const _hayCache=new WeakMap();
 function ficheHaystack(f){let h=_hayCache.get(f);
-  if(h===undefined){const parts=[f.title,f.code,f.localInfo,...(f.confirmation||[]),...(f.verify||[]),...(f.posology||[]),...(f.notForget||[]),...(f.differentials||[]),...(f.references||[])];
+  if(h===undefined){const parts=[f.title,f.code,f.localInfo,...listOf(f,'confirmation'),...listOf(f,'verify'),...listOf(f,'posology'),...listOf(f,'notForget'),...(f.differentials||[]),...(f.references||[])];
     (f.blocks||[]).forEach(b=>{parts.push(b&&b.title,b&&b.question);((b&&b.steps)||[]).forEach(s=>parts.push(s));((b&&b.options)||[]).forEach(o=>parts.push(o&&o.label));});
     h=txNorm(stripBold(parts.filter(Boolean).join(' ')));_hayCache.set(f,h);}
   return h+' '+txNorm(catName(f));}
@@ -5899,9 +5899,9 @@ function searchSnippet(parts,q){
     return `<div class="card-snip">${a>0?'… ':''}${markQTerms(s.slice(a,b),T)}${b<s.length?' …':''}</div>`;}
   return '';}
 // Sources de l'extrait, dans l'ordre de LECTURE de chaque entité (titre exclu).
-function ficheSnipParts(f){const p=[f.code,...(f.notForget||[]),...(f.confirmation||[])];
+function ficheSnipParts(f){const p=[f.code,...listOf(f,'notForget'),...listOf(f,'confirmation')];
   (f.blocks||[]).forEach(b=>{p.push(b&&b.title,b&&b.question);((b&&b.steps)||[]).forEach(s=>p.push(stepText(s)));((b&&b.options)||[]).forEach(o=>p.push(o&&o.label));});
-  p.push(...(f.verify||[]),...(f.posology||[]),...(f.differentials||[]),f.localInfo,...(f.references||[]));
+  p.push(...listOf(f,'verify'),...listOf(f,'posology'),...listOf(f,'differentials'),f.localInfo,...(f.references||[]));
   return p;}
 function protoSnipParts(p){return [p.code,...mdStrip(p.body||'').split(/\n+/),...(p.attachments||[]).map(a=>a.name),...(p.references||[])];}
 // ÉPINGLAGE : préférence PAR UTILISATEUR. Stockée localement (localStorage) et, si connecté,
@@ -6089,7 +6089,7 @@ function blankFiche(){const b={id:uid('b'),type:'steps',title:'Prise en charge',
   // localInfo pré-rempli avec les invites de renfort des DEUX contextes d'exercice (structure /
   // SMUR) : une fiche déployée avec un « ☎ : … » vide entraîne à ignorer la ligne — on incite à
   // les renseigner (badge « À compléter » tant qu'une invite reste).
-  return{id:uid(),title:'',code:'',category:'',validation:'',localInfo:'Tél renfort : à compléter\nTél régulation : à compléter',complications:[],confirmation:[''],verify:[''],posology:[''],notForget:[''],differentials:[''],references:[''],images:[],attachments:[],timers:[],counters:[],blocks:[b],start:b.id,order:Date.now()};}
+  return migrate({id:uid(),title:'',code:'',category:'',validation:'',localInfo:'Tél renfort : à compléter\nTél régulation : à compléter',complications:[],confirmation:[''],verify:[''],posology:[''],notForget:[''],differentials:[''],references:[''],images:[],attachments:[],timers:[],counters:[],blocks:[b],start:b.id,order:Date.now()});}
 // Invites laissées en suspens : où la fiche contient-elle encore le texte « à compléter »
 // (gabarit local non renseigné, manque « ⚠ À COMPLÉTER : … » signalé par la génération IA) ?
 // completionSpots(f) renvoie la liste des EMPLACEMENTS (libellés des sections / blocs), affichée
@@ -6170,10 +6170,83 @@ function v4SanItem(x,i){
 /* LE MIROIR EST RÉGÉNÉRÉ, JAMAIS RÉCONCILIÉ : on n'essaie pas de deviner laquelle des deux formes
    est « la plus fraîche » — les items gagnent toujours. Une réconciliation aurait exactement le
    défaut de `edSyncGallery` (v4.78.0), où un geste qui retirait se défaisait tout seul au rendu. */
+/* ═══ LE POOL (étape B du passage à v4 complet, v5.0.0) ════════════════════════════════════
+   `f.items[]` est désormais LA liste des items de l'aide — toutes portées confondues — et un bloc
+   ne porte plus que des IDENTIFIANTS. Les six listes v3 (`confirmation`, `notForget`, `verify`,
+   `posology`, `differentials`) n'existent plus comme champs : leurs lignes sont des items à `role`.
+   POURQUOI UN POOL PLUTÔT QUE DES OBJETS DANS LES BLOCS — la question mérite d'être tranchée ici,
+   parce que j'avais fait l'inverse au lot T6 et que c'était défendable : sans pool, les items d'un
+   bloc vivent dans leur bloc, et il n'y a aucune indirection à payer. Mais alors les items de
+   `role` entry/watch/dose/ddx n'ont NULLE PART où vivre — ils restaient dans leurs six champs v3,
+   c'est-à-dire que le modèle n'était pas v4. Le pool est ce qui donne un logement à TOUS les items,
+   et c'est pour cela qu'il est la forme de la spécification.
+   RÉSOUDRE UN ID DEMANDE DE CONNAÎTRE LA FICHE, et vingt-deux sites appellent `bItems(b)` sans
+   l'avoir sous la main. Plutôt que de threader `f` à travers vingt-deux signatures — donc d'ouvrir
+   vingt-deux occasions de se tromper —, chaque bloc connaît son aide par une WeakMap posée là où
+   les blocs sont normalisés (`migrate`). La WeakMap ne touche pas la donnée : rien de nouveau ne
+   se sérialise, rien ne part en synchro, et un bloc oublié se retrouve par un balayage de repli. */
+const _poolOwner=new WeakMap();
+function poolOwn(f){if(!f||!Array.isArray(f.blocks))return f;
+  f.blocks.forEach(b=>{if(b&&typeof b==='object')_poolOwner.set(b,f);});return f;}
+/* REPLI : un bloc dont on ignore l'aide (objet reconstruit hors `migrate`) est cherché parmi les
+   fiches vivantes. C'est un filet, pas un chemin — s'il servait souvent, c'est qu'un site
+   construirait des blocs sans les normaliser, et c'est CE défaut-là qu'il faudrait corriger. */
+function ownerOf(b){
+  const o=_poolOwner.get(b);if(o)return o;
+  const cands=[];
+  try{if(state&&state.draft)cands.push(state.draft);}catch(e){}
+  try{if(state&&state.fiche)cands.push(state.fiche);}catch(e){}
+  try{if(Runtime&&Runtime.fiche)cands.push(Runtime.fiche);}catch(e){}
+  try{cands.push(...fiches);}catch(e){}
+  for(const f of cands){if(f&&Array.isArray(f.blocks)&&f.blocks.indexOf(b)>=0){poolOwn(f);return f;}}
+  return null;}
+const poolOf=f=>{if(!f)return [];if(!Array.isArray(f.items))f.items=[];return f.items;};
+/* Les items d'un bloc, RÉSOLUS. Signature inchangée : les vingt-deux appelants n'ont rien à savoir
+   du pool. Un id qui ne résout pas est IGNORÉ plutôt que rendu comme un trou — une aide dont un
+   renvoi est cassé doit rester lisible (même doctrine que `relTarget`). */
 function bItems(b){
-  if(!Array.isArray(b.items)||!b.items.length)
-    b.items=(Array.isArray(b.steps)?b.steps:[]).map(x=>v4MakeItem(uid('i'),'do',x));
-  return b.items;}
+  if(!b)return [];
+  const f=ownerOf(b);
+  if(!f){ // bloc hors de toute aide connue : on tolère la forme inline le temps du rendu
+    if(!Array.isArray(b.items))b.items=[];
+    return b.items.filter(x=>x&&typeof x==='object');}
+  const P=poolOf(f),by=Object.create(null);P.forEach(it=>{by[it.id]=it;});
+  const ids=Array.isArray(b.items)?b.items:[];
+  return ids.map(x=>(x&&typeof x==='object')?x:by[x]).filter(Boolean);}
+/* Les items d'un RÔLE de portée fiche (entry/watch/dose/ddx) : ceux du pool qui ne sont référencés
+   par aucun bloc. Un item `do` non référencé est un memory item du chapeau (cf. `memItemsOf`). */
+function roleItems(f,role){
+  const P=poolOf(f),pris=new Set();
+  ((f&&f.blocks)||[]).forEach(b=>(Array.isArray(b.items)?b.items:[]).forEach(id=>pris.add(typeof id==='object'?id.id:id)));
+  return P.filter(it=>it.role===role&&!pris.has(it.id));}
+/* LES SIX LISTES v3 SE LISENT ENCORE COMME DES LISTES DE CHAÎNES — c'est ce qui permet aux
+   soixante-quinze sites de rendu de ne pas changer d'un caractère. Ce ne sont plus des champs :
+   c'est une VUE sur le pool. */
+const V4_ROLE_OF={confirmation:'entry',verify:'watch',posology:'dose',differentials:'ddx'};
+/* CE QUI VIT DANS LE POOL vs ce qui reste un champ. `references` n'est PAS un rôle : c'est une
+   métadonnée bibliographique, pas du contenu de crise — la spécification le dit, et c'est pour
+   cela qu'elle en fait `sources` et non un item. */
+const ED_POOL_KEYS={confirmation:1,notForget:1,verify:1,posology:1,differentials:1};
+const edList=(d,k)=>ED_POOL_KEYS[k]?listOf(d,k):(Array.isArray(d[k])?d[k]:(d[k]=[]));
+const edPut=(d,k,arr)=>{if(ED_POOL_KEYS[k])setList(d,k,arr);else d[k]=arr;};
+function listOf(f,key){
+  if(!f)return [];
+  if(key==='notForget')return roleItems(f,'do').filter(it=>it.memory).map(v4ItemToStr);
+  const r=V4_ROLE_OF[key];return r?roleItems(f,r).map(v4ItemToStr):[];}
+/* ÉCRIRE une de ces listes : on remplace la tranche du pool qui porte ce rôle, en CONSERVANT les
+   identités des lignes inchangées — sinon une simple frappe casserait tout ce qui s'y accroche. */
+function setList(f,key,arr){
+  if(!f)return;
+  const role=key==='notForget'?'do':V4_ROLE_OF[key];if(!role)return;
+  const mem=key==='notForget';
+  const anciens=key==='notForget'?roleItems(f,'do').filter(it=>it.memory):roleItems(f,role);
+  const P=poolOf(f);
+  const restants=P.filter(it=>anciens.indexOf(it)<0);
+  const neufs=(arr||[]).map((str,i)=>{
+    const a=anciens[i];
+    if(a){const cr=stepCR(stepText(str));a.do=cr.c;a.expect=cr.r||'';a.level=v4Level(str);a.memory=mem;return a;}
+    const it=v4MakeItem(uid('i'),role,str,mem);return it;});
+  f.items=restants.concat(neufs);}
 const stepsOf=b=>bItems(b).map(v4ItemToStr);
 const syncSteps=b=>{b.steps=stepsOf(b);return b.steps;};
 /* Écrire UNE étape par sa chaîne : le préfixe de registre et le « :: » sont décomposés dans
@@ -6183,12 +6256,36 @@ function setStepStr(b,i,str){
   const cr=stepCR(stepText(str));
   it.do=cr.c;it.expect=cr.r||'';it.level=v4Level(str);syncSteps(b);}
 const newStepItem=(str)=>v4MakeItem(uid('i'),'do',str||'');
+/* ⚠ `bItems` REND UNE COPIE RÉSOLUE, PAS LE TABLEAU VIVANT — c'est la conséquence directe du pool,
+   et elle est piégeuse : `bItems(b).splice(...)` compilerait, s'exécuterait, et ne ferait RIEN.
+   Toute mutation passe donc par ces trois verbes, et par eux seuls. Ils tiennent les DEUX côtés
+   (le pool et la liste d'identifiants du bloc) : les séparer serait rouvrir la porte à un pool qui
+   garde des items que plus aucun bloc ne référence. */
+function bItemAdd(b,i,item){
+  const f=ownerOf(b);if(!f||!item)return null;
+  poolOf(f).push(item);
+  if(!Array.isArray(b.items))b.items=[];
+  b.items.splice(Math.max(0,Math.min(i,b.items.length)),0,item.id);
+  return item;}
+function bItemDel(b,i){
+  const f=ownerOf(b);if(!f||!Array.isArray(b.items))return;
+  const id=b.items.splice(i,1)[0];
+  if(id!=null)f.items=poolOf(f).filter(it=>it.id!==(typeof id==='object'?id.id:id));}
+/* Déplacer une étape ENTRE deux blocs : l'item ne bouge PAS du pool — seule sa référence change de
+   bloc. C'est tout l'intérêt d'une identité : le geste ne recrée rien, donc rien ne se perd. */
+function bItemMove(src,i,dst,j){
+  if(!Array.isArray(src.items))return;
+  const id=src.items.splice(i,1)[0];if(id==null)return;
+  if(!Array.isArray(dst.items))dst.items=[];
+  dst.items.splice(Math.max(0,Math.min(j,dst.items.length)),0,id);}
 /* ★ MÉMOIRE (lot T7) : les items étoilés d'une fiche, avec le bloc d'où ils viennent. UNE seule
    fonction — le chapeau, son garde-fou et le volet de relecture doivent compter la MÊME chose ;
    trois calculs séparés divergeraient, et le dépôt a déjà payé cette leçon quatre fois. */
 function memItemsOf(f){return ((f&&f.blocks)||[]).flatMap((b,bi)=>bItems(b).filter(it=>it.memory)
   .map(it=>({t:v4ItemToStr(it),src:(b.title||('Bloc '+(bi+1)))})));}
-const forgetAll=f=>clean((f&&f.notForget)||[]).concat(memItemsOf(f).map(x=>x.t));
+/* Le chapeau agrège les memory items DU POOL — ceux de portée fiche (ex-`notForget`) et ceux
+   posés sur une étape de bloc (★). Une seule lecture, donc un seul compte. */
+const forgetAll=f=>listOf(f,'notForget').concat(memItemsOf(f).map(x=>x.t));
 const V4_ROLES=['entry','do','watch','dose','ddx'];
 /* Les seuils d'alerte, dans l'ordre ECAM : 3 warning (ce qui TUE si on l'oublie), 2 caution (là où
    l'on se TROMPE), 1 advisory. Ordonné, donc comparable — ce qu'un préfixe de chaîne ne permet pas. */
@@ -6208,23 +6305,26 @@ function v3ToV4(f){
     .forEach(k=>{delete rest[k];});
   const items=[];let n=0;
   const push=(role,raw,mem)=>{const it=v4MakeItem('i'+(++n),role,raw,mem);items.push(it);return it.id;};
-  (f.confirmation||[]).forEach(x=>push('entry',x));
-  (f.notForget||[]).forEach(x=>push('do',x,true));
+  (Array.isArray(f.confirmation)?f.confirmation:listOf(f,'confirmation')).forEach(x=>push('entry',x));
+  (Array.isArray(f.notForget)?f.notForget:listOf(f,'notForget')).forEach(x=>push('do',x,true));
   const blocks=(f.blocks||[]).map(b=>({
     id:b.id,title:String(b.title||''),phase:'',
     kind:b.type==='decision'?'decision':'do',
     /* ON PART DES ITEMS, PAS DU MIROIR (lot T7). Lire `b.steps` ici perdrait `dual`, `note` et
        les IDENTITÉS au premier export — la conversion aurait annulé le lot qui les a introduits.
        Le miroir reste la source uniquement pour une fiche ANCIENNE qui n'a pas encore d'items. */
-    items:(b.type==='decision'?[]:(Array.isArray(b.items)&&b.items.length
-      ?b.items.map(it=>{const c=v4SanItem(it);items.push(c);n++;return c.id;})
-      :(b.steps||[]).map(x=>push('do',x)))),
+    items:(b.type==='decision'?[]:(()=>{
+      /* Les items d'un bloc sont RÉSOLUS (le bloc ne porte que des ids depuis l'étape B) ; une
+         fiche v3 pure n'en a pas, on retombe alors sur ses chaînes. */
+      const its=bItems(b);
+      if(its.length)return its.map(it=>{const c=v4SanItem(it);items.push(c);n++;return c.id;});
+      return (b.steps||[]).map(x=>push('do',x));})()),
     next:b.next||null,question:String(b.question||''),
     options:(b.options||[]).map(o=>({label:String(o.label||''),concl:'',target:o.target||null})),
     image:b.image||null,hors:false}));
-  (f.verify||[]).forEach(x=>push('watch',x));
-  (f.posology||[]).forEach(x=>push('dose',x));
-  (f.differentials||[]).forEach(x=>push('ddx',x));
+  (Array.isArray(f.verify)?f.verify:listOf(f,'verify')).forEach(x=>push('watch',x));
+  (Array.isArray(f.posology)?f.posology:listOf(f,'posology')).forEach(x=>push('dose',x));
+  (Array.isArray(f.differentials)?f.differentials:listOf(f,'differentials')).forEach(x=>push('ddx',x));
   /* `hors` est CALCULÉ, jamais stocké en v3 : un bloc qu'aucun `next` ni aucune option n'atteint
      depuis le départ est une excursion — il vit hors numérotation (doctrine des complications
      « à tout moment », v4.26.0). On le dérive au lieu de le demander à l'auteur. */
@@ -6458,7 +6558,25 @@ function migrate(f){if(!f||typeof f!=='object')f={};
   if(f.v===4&&Array.isArray(f.items))f=v4ToV3(f)||{};
   sanitizeEntityCommon(f,'f',200);
   f.localInfo=sstr(f.localInfo,4000);
-  ['confirmation','verify','notForget','differentials','references','posology'].forEach(k=>f[k]=sarr(f[k],500));
+  /* ═══ LE POOL D'ITEMS (étape B, v5.0.0) — LES SIX LISTES v3 DEVIENNENT DES ITEMS À RÔLE.
+     `confirmation` → entry · `notForget` → do + memory · `verify` → watch · `posology` → dose ·
+     `differentials` → ddx. (`references` N'EST PAS un rôle : c'est une métadonnée, pas du contenu
+     de crise — elle reste un champ.)
+     LES CHAMPS SONT SUPPRIMÉS DE LA FICHE, et c'est la levée explicite de la RÈGLE 12 décidée par
+     l'auteur : un client 4.x ne pourra plus lire ces aides. Le chemin de reprise existe et vit
+     hors de l'application — `docs/conversion-v3-vers-v4.md`. */
+  ['references'].forEach(k=>f[k]=sarr(f[k],500));
+  const _pool=[];
+  if(Array.isArray(f.items)&&f.items.length){
+    // Déjà v4 : le pool fait foi, on le borne et on n'en dérive rien.
+    f.items.forEach(x=>_pool.push(v4SanItem(x)));
+    ['confirmation','verify','notForget','differentials','posology'].forEach(k=>{delete f[k];});
+  }else{
+    [['confirmation','entry',false],['notForget','do',true],['verify','watch',false],
+     ['posology','dose',false],['differentials','ddx',false]].forEach(([k,role,mem])=>{
+      sarr(f[k],500).forEach(x=>{const t=String(x||'').trim();if(t)_pool.push(v4MakeItem(uid('i'),role,x,mem));});
+      delete f[k];});
+  }
   /* COMPLICATIONS « à tout moment » (v4.26.0 — modèle QRH non-normal / mode failure-related ECAM) :
      [{label, target}] où target = id d'un BLOC de cette fiche (laryngospasme) OU id d'une AUTRE
      fiche/protocole (ACR pendant une sédation). Champ FACULTATIF : un export v3 antérieur n'en a
@@ -6479,12 +6597,19 @@ function migrate(f){if(!f||typeof f!=='object')f={};
     else{b.type='steps';b.steps=sarr(b.steps,500);
       /* L'ITEM EST LA SOURCE (lot T6). Si la fiche en porte déjà, ils gagnent — et le miroir
          `steps` est RÉGÉNÉRÉ depuis eux ; sinon on les dérive des chaînes, une fois. */
-      b.items=Array.isArray(b.items)&&b.items.length?b.items.map(v4SanItem)
-        :b.steps.map(x=>v4MakeItem(uid('i'),'do',x));
-      syncSteps(b);
+      /* Le bloc ne porte plus que des IDENTIFIANTS ; les objets sont rassemblés dans `_pool`,
+         monté sur la fiche juste après (le pool doit exister AVANT que `bItems` soit appelée). */
+      b.items=(Array.isArray(b.items)&&b.items.length?b.items:b.steps.map(x=>v4MakeItem(uid('i'),'do',x)))
+        .map(x=>{if(x&&typeof x==='object'){const it=v4SanItem(x);_pool.push(it);return it.id;}
+                 return String(x||'');});
+      // (le miroir `steps` est régénéré après le montage du pool — il disparaîtra à l'étape D)
       b.next=mapId(b.next);b.nextLbl=sstr(b.nextLbl,120);delete b.options;delete b.question;}
     return b;});
   f.start=mapId(f.start)||(f.blocks[0]?f.blocks[0].id:null);
+  /* LE POOL EST MONTÉ ICI, une fois les blocs normalisés — seul point où l'aide entière est
+     cohérente. `poolOwn` inscrit chaque bloc dans la WeakMap : sans elle, `bItems` devrait
+     balayer les fiches pour résoudre un id (le repli existe, mais il n'est pas un chemin). */
+  f.items=_pool;poolOwn(f);f.blocks.forEach(b=>{if(b.type!=='decision')syncSteps(b);});
   // IDS UNIQUES, comme pour les blocs ci-dessus (v4.42.0). `Runtime.timers` et `Runtime.counters`
   // sont des objets INDEXÉS PAR ID : deux entrées de même id et la seconde ÉCRASE la première —
   // une fiche déclarant trois minuteurs n'en arme qu'UN, le dernier, sans le moindre signal ; et
@@ -9963,8 +10088,12 @@ function qrSvg(text,label){
    contexte local — pas l'identité de l'aide, dont le titre et le code voyagent déjà.
    CE CHAMP EXIGE DE REJOUER `supabase/schema.sql` : la liste blanche du serveur est l'autorité,
    et sans lui le discriminant serait filtré à l'arrivée (le client afficherait un vide). */
-const SHARE_KEEP = ['id','title','discriminant','code','status','validation','blocks','start','timers','counters',
-  'confirmation','verify','notForget','differentials','posology'];
+/* ÉTAPE B (v5.0.0) — LES SIX CHAMPS ONT DISPARU, DONC C'EST `items` QUI VOYAGE. Sans cette
+   ligne, un invité recevrait des blocs pleins d'identifiants ne résolvant vers RIEN : une
+   checklist vide, en pleine réanimation, sans le moindre signal.
+   ⚠ LA LISTE BLANCHE DU SERVEUR DOIT SUIVRE (`share_fiche`, supabase/schema.sql) : c'est ELLE
+   l'autorité, et un champ absent y est filtré à l'arrivée quoi qu'en dise le client. */
+const SHARE_KEEP = ['id','title','discriminant','code','status','validation','blocks','start','timers','counters','items'];
 const SHARE_DROP = ['category','localInfo','complications','references','images','attachments',
   'related','order','updatedBy','updatedAt','deletedAt','ownerId','libraryId'];
 /* `complications` est DÉLIBÉRÉMENT écarté, et ce n'est pas un oubli : entrer en complication est
@@ -10736,7 +10865,7 @@ function tagAll(f,tags){
   ((f&&f.counters)||[]).forEach(c=>add({type:'counter',id:c.id},c.label,'fiche'));
   ((f&&f.blocks)||[]).forEach(b=>clean(b&&b.steps).forEach((st,i)=>
     add({type:'step',b:b.id,i:i},posoName(stepText(st)),'fiche')));
-  clean(f&&f.posology).forEach((pp,i)=>add({type:'poso',i:i},posoName(pp),'fiche'));
+  clean(f&&listOf(f,'posology')).forEach((pp,i)=>add({type:'poso',i:i},posoName(pp),'fiche'));
   TAG_CORE.forEach(c=>add({type:'core',k:c.k},c.l,'noyau'));
   sanitizeTags(tags).forEach(t=>add({type:'tag',k:t.k},t.l,'perso',t.a));
   return out;}
@@ -10751,7 +10880,7 @@ function tagLabel(ref,f,tags){
   if(r.type==='step'){const b=(((f&&f.blocks)||[]).find(x=>x.id===r.b));
     const st=(b&&Array.isArray(b.steps))?b.steps[+r.i]:null;
     return st?posoName(stepText(st)):null;}
-  if(r.type==='poso'){const pp=((f&&f.posology)||[])[+r.i];return pp?posoName(pp):null;}
+  if(r.type==='poso'){const pp=listOf(f,'posology')[+r.i];return pp?posoName(pp):null;}
   if(r.type==='core'){const c=TAG_CORE.find(x=>x.k===r.k);return c?c.l:null;}
   if(r.type==='tag'){const t=sanitizeTags(tags).find(x=>x.k===r.k);return t?t.l:null;}
   return null;}
@@ -11123,9 +11252,9 @@ function renderRead(){
   // « ⚠ » en tête = vitale (rouge) ; sans « : », toute la ligne sert de corps.
   // v4.23.0 : repères classés pour le BLOC COURANT (rapprochement permissif qui RÉORDONNE et
   // ne filtre jamais) — même fonction que la feuille Consulter, donc aucun risque de divergence.
-  const posCards=posoCardsHtml(f.posology,curBlockHay(f));
+  const posCards=posoCardsHtml(listOf(f,'posology'),curBlockHay(f));
   const posH=posCards?`<section class="block pos-block"><div role="heading" aria-level="2" class="block-h h-pos">Repères posologiques</div>${posCards}</section>`:'';
-  const posRail=(()=>{if(!posCards)return '';const n=clean(f.posology).length;
+  const posRail=(()=>{if(!posCards)return '';const n=clean(listOf(f,'posology')).length;
     return `<div class="rail-head"><span class="rail-title">Repères posologiques</span>${n>1?`<span class="rail-n">${n}</span>`:''}</div>${posCards}`;})();
   /* F4 (audit design v4.59.0) — COCKPIT TROIS ZONES. À grande largeur l'espace existe pour
      tenir de front l'ORIENTATION (le plan), l'ACTION (le parcours) et l'ÉTAT (les minuteurs) :
@@ -11196,9 +11325,9 @@ function renderRead(){
      Étapes vides omises, numérotation recalculée ; une seule étape non vide -> pas de rail
      (pas de « 1 » orphelin). Le contenu des étapes faites/à venir reste pleinement lisible :
      seul le numéro encode l'état. */
-  const confItems=clean(f.confirmation);
-  const verifyH=staticBlock('△ À vérifier — surveillances','h-verify',f.verify,'verify');
-  const diffH=staticBlock('Diagnostics différentiels — si tableau atypique','h-diff',f.differentials,'diff');
+  const confItems=clean(listOf(f,'confirmation'));
+  const verifyH=staticBlock('△ À vérifier — surveillances','h-verify',listOf(f,'verify'),'verify');
+  const diffH=staticBlock('Diagnostics différentiels — si tableau atypique','h-diff',listOf(f,'differentials'),'diff');
   // Étape ① : l'ex-bloc « Confirmation diagnostique » (repliable V5) devient l'étape elle-même —
   // son en-tête EST le titre d'étape. ENTRY CONDITION (doctrine QRH) : critères VISIBLES tant
   // que la session n'a pas démarré (on confirme le tableau AVANT d'agir), repliés ensuite,
@@ -12024,7 +12153,7 @@ function refSheetOpen(){return refModal.classList.contains('on');}
    trouver — surveillances et posologie n'y figurent plus (v4.25.3). */
 function annexRowHtml(f){
   const has=[];
-  if(clean(f.differentials).length)has.push('Différentiels');
+  if(clean(listOf(f,'differentials')).length)has.push('Différentiels');
   if((f.images||[]).length)has.push('Schémas');
   if((f.attachments||[]).length)has.push('Documents');
   if(clean(f.references).length)has.push('Références');
@@ -12040,7 +12169,7 @@ function refSheetHtml(f){
      (jamais persistés), mais l'état initial est OUVERT. */
   const sec=(key,title,inner)=>inner?`<details class="rs-sec" open data-rs="${key}"><summary>${esc(title)}</summary><div class="rs-in">${inner}</div></details>`:'';
   // (surveillances et posologie ne sont plus recopiées ici — cf. le commentaire de `body`)
-  const diff=staticBlock('Diagnostics différentiels — si tableau atypique','h-diff',f.differentials,'diff');
+  const diff=staticBlock('Diagnostics différentiels — si tableau atypique','h-diff',listOf(f,'differentials'),'diff');
   const gal=(f.images||[]).length?`<div class="gallery">${f.images.map(im=>`<div class="gthumb"><img src="${im.data}" data-full="${im.data}" data-cap="${esc(im.caption||'')}" alt="${esc(im.caption||'')}"${im.w&&im.h?` width="${im.w}" height="${im.h}"`:''} loading="lazy" decoding="async">${im.caption?`<div class="gcap">${esc(im.caption)}</div>`:''}</div>`).join('')}</div>`:'';
   const docs=attListHtml(f);
   const refs=clean(f.references);
@@ -12872,13 +13001,13 @@ function sessStartHtml(f){
      registre d'action primaire — à un geste sans effet, au-dessus du contenu clinique et au
      moment où l'on a le moins de temps pour découvrir qu'il ne fait rien. */
   try{if(Share.mode==='guest')return '';}catch(e){}
-  const n=clean(f.confirmation).length;
+  const n=clean(listOf(f,'confirmation')).length;
   return `<div class="sess-start"><button class="btn primary" id="sessStart">${uiIcon('play',14)} ${n?'Confirmé — démarrer la session':'Démarrer la session'}</button><span class="ss-hint">chrono, minuteurs et journal — démarre aussi à la première action</span></div>`;}
 function svExtras(f,where){
   const list=a=>`<ul class="sv-stp">${a.map(x=>`<li>${fmt(x)}</li>`).join('')}</ul>`;
   const cell=(cls,title,items)=>`<div class="sv-cell sv-inert${cls}"><p class="sv-h"><span class="sv-t">${title}</span></p>${list(items)}</div>`;
   if(where==='top'){
-    const conf=clean(f.confirmation),diff=clean(f.differentials),nf=clean(f.notForget);
+    const conf=clean(listOf(f,'confirmation')),diff=clean(listOf(f,'differentials')),nf=clean(listOf(f,'notForget'));
     const cells=[];
     if(conf.length)cells.push(cell('','Confirmer le diagnostic',conf));
     if(diff.length)cells.push(cell('','Éliminer — tableau atypique ?',diff));
@@ -12887,7 +13016,7 @@ function svExtras(f,where){
     h+=sessStartHtml(f);   // sous Confirmation/Éliminer, avant le chapeau (v4.14.2)
     if(nf.length)h+=cell(' sv-nf','⚠ Ne pas oublier',nf);
     return h;}
-  const vf=clean(f.verify);
+  const vf=clean(listOf(f,'verify'));
   return vf.length?cell(' sv-vf','△ À vérifier — surveillances',vf):'';}
 function svTableHtml(f){
   const plan=flowPlan(f);if(!plan.order.length)return '';
@@ -13349,7 +13478,13 @@ function renderNavOnly(){
 /* K1 : `opts.shell` habille la liste de la coquille de LECTURE correspondante (le chapeau prend
    le cadre rouge de `.forget-strip`) ; `opts.guard` y loge le garde-fou, qui vivait jusqu'ici en
    paragraphe SOUS le champ — donc hors du cadre qu'il commente. */
-function listEditor(legend,hint,key,arr,ordered,opts){opts=opts||{};const _src=(arr.length?arr:['']);
+function listEditor(legend,hint,key,arr,ordered,opts){opts=opts||{};
+  /* DÉFENSIF DEPUIS L'ÉTAPE B : les cinq listes de portée fiche ne sont plus des CHAMPS mais une
+     vue sur le pool. Un appelant qui passerait encore `f.verify` transmettrait `undefined`, et le
+     rendu de l'éditeur ENTIER tomberait — c'est arrivé, et ni `npm run check` ni la suite ne
+     l'ont vu (aucun des deux n'exerce un rendu). On dégrade au lieu de casser. */
+  arr=Array.isArray(arr)?arr:[];
+  const _src=(arr.length?arr:['']);
   const rows=edGrabRows(key,_src,(v,i)=>{const crit=opts.crit&&(stepIsCrit(v)||stepIsVigil(v));
   return `<div class="li${crit?' li-vigil':''}${edGrabClsL(key,i)}" data-i="${i}">${ordered?`<span class="li-num">${String(i+1).padStart(2,'0')}</span>`:''}<input type="text" value="${esc(opts.crit?stepText(v):v)}" data-key="${key}" data-idx="${i}"${opts.crit?' data-critlist':''} placeholder="…" aria-label="${esc(legend)} — ligne ${i+1}">${boldBtnHtml()}${opts.crit?`<button class="mini crit-tgl${crit?' vig':''}" data-lcrit="${i}" data-lkey="${key}" title="${crit?'Repère à VÉRIFIER (carte ambre : risque d’erreur — dose, dilution, voie) — toucher : normal':'Repère normal — toucher : à vérifier (carte ambre)'}">△</button>`:''}${edGrabHandleL(key,i,_src.length,'la ligne')}<button class="mini del" data-rm="${key}" data-idx="${i}" aria-label="Supprimer la ligne">×</button></div>`;});/* Le CHAPEAU porte son compte « n/4 » à droite du titre, et la porte dit ce qu'il RESTE :
    « ＋ Rappel (1 restant) ». Le garde-fou ambre ne parle qu'AU-DELÀ de 4 — avant, le compte suffit
@@ -13721,7 +13856,7 @@ function edAdd(f,kind){
   else if(kind==='interval')f.timers.push({id:uid('t'),label:'',type:'interval',seconds:120,autoloop:true});
   else if(kind==='counter')f.counters.push({id:uid('n'),label:'',step:1,start:0});
   else if(kind==='cx')(f.complications=f.complications||[]).push({label:'',target:''});
-  else if(ED_ADD_LIST[kind]){const key=ED_ADD_LIST[kind];f[key]=f[key]||[];f[key].push('');}
+  else if(ED_ADD_LIST[kind]){const key=ED_ADD_LIST[kind];edPut(f,key,edList(f,key).concat(''));}
   edAddClose();renderEditor();
   /* Le DOCUMENT est le seul type qui n'ajoute pas une ligne au brouillon : il ouvre le sélecteur
      de fichier de l'appareil. Le clic est déclenché DANS la même tâche que celui de la palette —
@@ -13817,7 +13952,7 @@ function edGrabRows(key,arr,rowHtml){
    et l'on retombe sur « rangée n » plutôt que sur un mot inventé quand tout est vide (même règle
    que `tagLabel` pour les repères de journal : une résolution échoue PROPREMENT). */
 function edGrabLabelL(f){
-  const g=state.edGrab;const arr=(f||{})[g.key]||[];const v=arr[g.i];
+  const g=state.edGrab;const arr=edList(f||{},g.key)||[];const v=arr[g.i];
   const txt=(v&&typeof v==='object')?String(v.label||'').trim():stripBold(stepText(String(v||''))).trim();
   return txt?('« '+txt+' »'):('rangée '+(g.i+1));}
 function edGrabIsCrit(){const g=state.edGrab;if(!g||g.kind!=='s'||!state.draft)return false;
@@ -14002,8 +14137,8 @@ function renderEditor(){
     ${''/* v4.4.1 : les champs suivent l'ORDRE DE LECTURE du parcours de soin (chapeau « Ne pas
     oublier », ① confirmation, ② prise en charge + minuteurs + contexte local + posologie,
     ③ à vérifier + différentiels, puis annexes) — on rédige dans l'ordre où l'équipe lira. */}
-    ${listEditor('Ne pas oublier','4 rappels maximum — ils s’affichent en permanence, en tête de fiche','notForget',f.notForget,false,{shell:'ed-forget',guard:'nfGuard',guardTxt:nfGuardTxt(forgetAll(f))})}
-    ${listEditor('Confirmation diagnostique','critères pour déclencher la fiche','confirmation',f.confirmation,false,{shell:'ed-card'})}
+    ${listEditor('Ne pas oublier','4 rappels maximum — ils s’affichent en permanence, en tête de fiche','notForget',listOf(f,'notForget'),false,{shell:'ed-forget',guard:'nfGuard',guardTxt:nfGuardTxt(forgetAll(f))})}
+    ${listEditor('Confirmation diagnostique','critères pour déclencher la fiche','confirmation',listOf(f,'confirmation'),false,{shell:'ed-card'})}
     <fieldset class="field"><label>Prise en charge <span class="hint">listes d'étapes + décisions conditionnelles</span></label>${wideEdit?'':(()=>{const n=(f.blocks||[]).length;if(!n)return '';
       const ouv=(()=>{try{return !!localStorage.getItem('ac-flowprev-open');}catch(e){return false;}})();
       return `<div class="flow-prev${ouv?' on':''}"><button type="button" class="fp-tgl" id="fpTgl" aria-expanded="${ouv?'true':'false'}"><span class="flow-prev-h">Algorithme — aperçu automatique</span><span class="fp-n">${n} bloc${n>1?'s':''}</span><span class="fp-chev" aria-hidden="true">${ouv?'▴':'▾'}</span></button><div class="fp-box">${flowBlock(f)}</div></div>`;})()}${f.blocks.map((b,bi)=>((state.edGrab&&state.edGrab.kind==='b')?edDrop('B:'+bi,bi===0?'Poser avant le bloc 1':'Poser ici'):'')+blockEditor(b,blocks)).join('')}${(state.edGrab&&state.edGrab.kind==='b')?edDrop('B:'+f.blocks.length,'Poser en fin de fiche'):''}</fieldset>
@@ -14028,9 +14163,9 @@ function renderEditor(){
     ${''/* MASQUÉES QUAND VIDES — pendant exact de leur entrée dans la porte « ＋ » (la règle est
     « présent dans la porte ⇔ masqué quand vide »). Le chapeau et la confirmation diagnostique, eux,
     RESTENT : ce ne sont pas des extras, ce sont la condition d'entrée et les memory items. */}
-    ${(f.posology||[]).length?listEditor('Repères posologiques','classés automatiquement en lecture selon le bloc en cours (aucun n’est jamais masqué) · bouton △ = carte ambre (dose à vérifier) · le rouge reste aux memory items · **gras** possible','posology',f.posology,false,{crit:true,shell:'ed-card'}):''}
-    ${(f.verify||[]).length?listEditor('À vérifier','surveillances et pièges — affichés en ③','verify',f.verify,false,{shell:'ed-card'}):''}
-    ${(f.differentials||[]).length?listEditor('Diagnostics différentiels','« le tableau ne colle pas » — premier motif d’ouverture de « Consulter »','differentials',f.differentials,false,{shell:'ed-card'}):''}
+    ${listOf(f,'posology').length?listEditor('Repères posologiques','classés automatiquement en lecture selon le bloc en cours (aucun n’est jamais masqué) · bouton △ = carte ambre (dose à vérifier) · le rouge reste aux memory items · **gras** possible','posology',listOf(f,'posology'),false,{crit:true,shell:'ed-card'}):''}
+    ${listOf(f,'verify').length?listEditor('À vérifier','surveillances et pièges — affichés en ③','verify',listOf(f,'verify'),false,{shell:'ed-card'}):''}
+    ${listOf(f,'differentials').length?listEditor('Diagnostics différentiels','« le tableau ne colle pas » — premier motif d’ouverture de « Consulter »','differentials',listOf(f,'differentials'),false,{shell:'ed-card'}):''}
     ${''/* L'IMAGE S'ASSOCIE À UN BLOC DEPUIS LA GALERIE (demande utilisateur). On ne pouvait
     joindre une image QUE depuis un bloc : partir de l'image était impossible, alors que c'est
     l'ordre naturel quand on vient d'en importer trois d'un coup. Le sélecteur liste les blocs de la
@@ -14182,7 +14317,7 @@ function bindEditorEvents(f){
     card.querySelectorAll('[data-sf]').forEach((inp,i)=>inp.addEventListener('keydown',e=>{
       if(e.key!=='Enter')return;
       e.preventDefault();
-      bItems(b).splice(i+1,0,newStepItem(''));syncSteps(b);
+      bItemAdd(b,i+1,newStepItem(''));syncSteps(b);
       keepAnchor('.blk[data-bid="'+CSS.escape(b.id)+'"] .li[data-si="'+i+'"]',renderEditor);
       const nl=main.querySelector('.blk[data-bid="'+CSS.escape(b.id)+'"] .li[data-si="'+(i+1)+'"] input[data-sf]');
       if(nl)nl.focus();}));
@@ -14193,13 +14328,13 @@ function bindEditorEvents(f){
     card.querySelectorAll('[data-sf]').forEach((inp,i)=>inp.addEventListener('blur',()=>{
       if(String(stepsOf(b)[i]||'').trim()||bItems(b).length<2)return;
       if(state.edGrab)return;   // un déplacement en cours n'est pas un abandon de saisie
-      bItems(b).splice(i,1);syncSteps(b);
+      bItemDel(b,i);syncSteps(b);
       keepAnchor('.blk[data-bid="'+CSS.escape(b.id)+'"]',renderEditor);}));
-    const as=card.querySelector('[data-addstep]');if(as)as.onclick=()=>{bItems(b).push(newStepItem(''));syncSteps(b);
+    const as=card.querySelector('[data-addstep]');if(as)as.onclick=()=>{bItemAdd(b,(b.items||[]).length,newStepItem(''));syncSteps(b);
       keepAnchor('.blk[data-bid="'+CSS.escape(b.id)+'"]',renderEditor);
       const ls=[...main.querySelectorAll('.blk[data-bid="'+CSS.escape(b.id)+'"] input[data-sf]')];
       if(ls.length)ls[ls.length-1].focus();};
-    card.querySelectorAll('[data-rmstep]').forEach(btn=>btn.onclick=()=>{bItems(b).splice(+btn.dataset.rmstep,1);if(!bItems(b).length)bItems(b).push(newStepItem(''));syncSteps(b);renderEditor();});
+    card.querySelectorAll('[data-rmstep]').forEach(btn=>btn.onclick=()=>{bItemDel(b,+btn.dataset.rmstep);if(!bItems(b).length)bItemAdd(b,0,newStepItem(''));syncSteps(b);renderEditor();});
     // Bascule du TYPE d'étape (SPEC §2.2) : cycle normale -> ⚠ critique (rouge) -> △ vigilance
     // (ambre) -> normale, par préfixe dans la chaîne (exports v3 inchangés).
     card.querySelectorAll('[data-mem]').forEach(btn=>btn.onclick=()=>{
@@ -14275,9 +14410,9 @@ function bindEditorEvents(f){
         const src=f.blocks.find(x=>x.id===g.bid);
         if(!cible||!src){state.edGrab=null;renderEditor();return;}
         let to=+p2[2];
-        const [obj]=bItems(src).splice(g.si,1);syncSteps(src);
+        const _si=g.si;
         if(src===cible&&g.si<to)to--;
-        bItems(cible).splice(to,0,obj);syncSteps(cible);}
+        bItemMove(src,_si,cible,to);syncSteps(src);syncSteps(cible);}
       /* POSER : on ancre sur le bloc RECEVEUR — l'objet vient d'y atterrir, c'est là que le
          regard est. Sans ancrage, le retrait des interstices raccourcit la page et l'écran
          remonte d'autant. */
@@ -14320,8 +14455,9 @@ function bindListEditors(d,rerender){d=d||state.draft;rerender=rerender||renderE
   // stockée est RE-POSÉ à chaque frappe (il ne peut plus être effacé à la main, v4.3.0).
   main.querySelectorAll('input[data-key]').forEach(inp=>inp.addEventListener('input',e=>{
     const k=e.target.dataset.key,i=+e.target.dataset.idx;
-    const pfx=e.target.hasAttribute('data-critlist')&&stepIsCrit(d[k][i]||'')?'⚠ ':'';
-    d[k][i]=pfx+e.target.value;
+    const _a=edList(d,k).slice();
+    const pfx=e.target.hasAttribute('data-critlist')&&stepIsCrit(_a[i]||'')?'⚠ ':'';
+    _a[i]=pfx+e.target.value;edPut(d,k,_a);
     // Garde-fou memory items : recompté À LA FRAPPE (l'ajout/suppression de ligne re-rend, lui).
     if(k==='notForget'){const g=document.getElementById('nfGuard');if(g)g.textContent=nfGuardTxt(forgetAll(d));}
     revPanelRefresh(d);}));   // K2
@@ -14329,11 +14465,14 @@ function bindListEditors(d,rerender){d=d||state.draft;rerender=rerender||renderE
     // v4.23.0 : la bascule des repères écrit « △ » (VIGILANCE), jamais « ⚠ ». Un « ⚠ » hérité
     // d'une fiche antérieure est traité comme signalé et le geste le REMET à plat, d'où
     // stepIsCrit||stepIsVigil en test.
-    const v=String(d[k][i]||'');const on=stepIsCrit(v)||stepIsVigil(v);
-    d[k][i]=on?stepText(v):('△ '+stepText(v));rerender();});
-  main.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{d[b.dataset.add].push('');rerender();});
-  main.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{const a=d[b.dataset.rm];a.splice(+b.dataset.idx,1);if(!a.length)a.push('');rerender();});
-  main.querySelectorAll('[data-mv]').forEach(b=>b.onclick=()=>{moveItem(d[b.dataset.key],+b.dataset.idx,b.dataset.mv==='up'?-1:1);rerender();});
+    const _a=edList(d,k).slice();const v=String(_a[i]||'');const on=stepIsCrit(v)||stepIsVigil(v);
+    _a[i]=on?stepText(v):('△ '+stepText(v));edPut(d,k,_a);rerender();});
+  main.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{const k=b.dataset.add;
+    edPut(d,k,edList(d,k).concat(''));rerender();});
+  main.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{const k=b.dataset.rm;
+    const a=edList(d,k).slice();a.splice(+b.dataset.idx,1);if(!a.length)a.push('');edPut(d,k,a);rerender();});
+  main.querySelectorAll('[data-mv]').forEach(b=>b.onclick=()=>{const k=b.dataset.key;
+    const a=edList(d,k).slice();moveItem(a,+b.dataset.idx,b.dataset.mv==='up'?-1:1);edPut(d,k,a);rerender();});
   /* PRENDRE / POSER dans une liste (lot 2, v4.75.0). Un seul binder pour les huit listes, posé ici
      avec les autres écouteurs de liste — les interstices des minuteurs et des compteurs vivent hors
      de `.list-edit`, d'où la portée `main` (déjà celle de tout ce bloc).
@@ -14349,12 +14488,14 @@ function bindListEditors(d,rerender){d=d||state.draft;rerender=rerender||renderE
     keepAnchor('[data-lgrab="'+CSS.escape(b.dataset.lgrab)+'"]',rerender);});
   main.querySelectorAll('[data-ldrop]').forEach(b=>b.onclick=()=>{
     const g=state.edGrab;const p=b.dataset.ldrop.split(':');const key=p[0];let to=+p[1];
-    const arr=d[key];
+    /* Étape B : les cinq listes de portée fiche sont une VUE sur le pool — on lit, on réordonne,
+       on réécrit. `setList` conserve les identités des lignes inchangées. */
+    const arr=edList(d,key);
     // Clé qui ne correspond pas, ou tableau disparu : on repose l'objet, on ne devine rien.
     if(!g||g.kind!=='l'||g.key!==key||!Array.isArray(arr)){state.edGrab=null;rerender();return;}
-    const [obj]=arr.splice(g.i,1);
+    const _a=arr.slice();const [obj]=_a.splice(g.i,1);
     if(g.i<to)to--;                      // le classique du splice : retirer décale la cible
-    arr.splice(to,0,obj);
+    _a.splice(to,0,obj);edPut(d,key,_a);
     state.edGrab=null;
     keepAnchor('[data-lgrab="'+CSS.escape(key+':'+to)+'"]',rerender);});
 }
@@ -14460,11 +14601,16 @@ function edSnapshot(kind){
   if(typeof d.order!=='number')d.order=Date.now();
   d.attachments=(d.attachments||[]).map(safeAttachment).filter(Boolean);
   if(kind==='p'){d.body=sstr(d.body,MD_MAX_CHARS);return d;}
-  ['confirmation','verify','notForget','differentials','references','posology'].forEach(k=>d[k]=clean(d[k]));
+  ['confirmation','verify','notForget','differentials','posology'].forEach(k=>edPut(d,k,clean(edList(d,k))));
+    d.references=clean(d.references);
+  poolOwn(d);   // le brouillon est une COPIE : ses blocs doivent connaître leur aide
   d.blocks.forEach(b=>{b.title=(b.title||'').trim();
     if(b.type==='steps'){/* on nettoie les ITEMS — le miroir `steps` en découle, jamais l'inverse */
-      b.items=bItems(b).filter(it=>String(v4ItemToStr(it)||'').trim());
-      if(!b.items.length)b.items=[newStepItem('')];syncSteps(b);b.nextLbl=(b.nextLbl||'').trim();}
+      {const garde=bItems(b).filter(it=>String(v4ItemToStr(it)||'').trim()).map(it=>it.id);
+       const jetes=(b.items||[]).filter(id=>garde.indexOf(id)<0);
+       b.items=garde;
+       if(jetes.length)d.items=poolOf(d).filter(it=>jetes.indexOf(it.id)<0);
+       if(!b.items.length)bItemAdd(b,0,newStepItem(''));syncSteps(b);}b.nextLbl=(b.nextLbl||'').trim();}
     else{b.question=(b.question||'').trim();b.options=(b.options||[]).filter(o=>(o.label||'').trim());}});
   d.timers=(d.timers||[]).map(t=>({id:t.id,label:(t.label||'').trim(),type:t.type==='interval'?'interval':'stopwatch',seconds:Math.max(0,parseInt(t.seconds||0)||0),autoloop:!!t.autoloop,onDue:(t.onDue||'').trim()}));
   d.counters=(d.counters||[]).map(c=>({id:c.id,label:(c.label||'').trim(),step:Math.max(1,parseInt(c.step||1)||1),start:parseInt(c.start||0)||0,timerId:(d.timers||[]).some(t=>t.id===c.timerId)?c.timerId:''}));
@@ -18792,7 +18938,7 @@ if(location.search.indexOf('__actest')>=0){
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
     restErrStatus,isPersoRepairCandidate,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,cxAll,cxDetached,
     qTerms,hayMatch,markQTerms,searchSnippet,ficheSnipParts,protoSnipParts,frecencyScore,sanitizeUsage,mergeUsage,azLetter,azGroups,qaPick,tmLabelParts,sessStamp,monPick,reviewNotes,stepNote,stepShortcut,
-    crc32,zipBuild,zipParse,isPdfBytes,mdTask,bItems,stepsOf,syncSteps,setStepStr,newStepItem,memItemsOf,forgetAll,v4SanItem,v3ToV4,v4ToV3,v4MakeItem,v4ItemToStr,v4Level,V4_ROLES,V4_PERTES,flowOrder,latestPass,offPathSet,minimapData,passInfo,instComplete,flowPlan,stepCR,stepGuardTxt,optAbbr,svBranchIssue,svLoopTargets,ovPresList,
+    crc32,zipBuild,zipParse,isPdfBytes,mdTask,bItems,bItemAdd,bItemDel,bItemMove,listOf,setList,roleItems,poolOf,stepsOf,syncSteps,setStepStr,newStepItem,memItemsOf,forgetAll,v4SanItem,v3ToV4,v4ToV3,v4MakeItem,v4ItemToStr,v4Level,V4_ROLES,V4_PERTES,flowOrder,latestPass,offPathSet,minimapData,passInfo,instComplete,flowPlan,stepCR,stepGuardTxt,optAbbr,svBranchIssue,svLoopTargets,ovPresList,
     posoTokens,posoName,posoScore,posoRank,posoSplit,
     qrRawBits,qrTotalCw,qrGen,qrRs,qrAlign,qrDataCw,qrInterleave,qrEncode,qrSvg,qrMul,
     TAG_CORE,sanitizeTags,tagAll,tagLabel,tagRank,tkRefNorm,tkLabels,Share,sessionToRow,sessionFromRow,shareNavNorm,

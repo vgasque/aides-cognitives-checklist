@@ -2682,6 +2682,46 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   fois** dans `index.html`, mais l'immense majorité désigne le **store IndexedDB**, pas la table
   Supabase. Renommer au motif ne casserait pas la synchro, il casserait le stockage LOCAL et
   exigerait une montée de version de base. Ne remplacer que ce qui porte `/rest/v1/` ou `table:`.
+- **LE POOL `items[]` — ÉTAPE B DU PASSAGE À v4 COMPLET (v5.0.0).** `f.items[]` est désormais LA
+  liste des items de l'aide, toutes portées confondues, et **un bloc ne porte plus que des
+  IDENTIFIANTS**. Les cinq listes v3 `confirmation`, `notForget`, `verify`, `posology`,
+  `differentials` **n'existent plus comme champs** : leurs lignes sont des items à `role`
+  (`entry`, `do`+`memory`, `watch`, `dose`, `ddx`). **`references` n'en fait PAS partie** — c'est
+  une métadonnée bibliographique, pas du contenu de crise, et la spécification en fait `sources`.
+  **⚠ LA RÈGLE 12 EST LEVÉE ICI, PAR DÉCISION EXPLICITE DE L'AUTEUR** : un client 4.x ne peut plus
+  lire ces aides. Le chemin de reprise existe et vit **hors** de l'application —
+  `docs/conversion-v3-vers-v4.md`.
+  **POURQUOI UN POOL, alors que le lot T6 avait mis les items DANS les blocs** : sans pool, les
+  items de rôle `entry`/`watch`/`dose`/`ddx` n'ont nulle part où vivre — ils restaient dans leurs
+  champs v3, c'est-à-dire que le modèle n'était pas v4. Le pool est ce qui donne un logement à
+  TOUS les items.
+  **RÉSOUDRE UN ID DEMANDE DE CONNAÎTRE L'AIDE**, et vingt-deux sites appellent `bItems(b)` sans
+  l'avoir sous la main. Plutôt que de threader `f` à travers vingt-deux signatures — donc d'ouvrir
+  vingt-deux occasions de se tromper — chaque bloc connaît son aide par une **WeakMap** posée dans
+  `migrate` (`poolOwn`). Elle ne touche pas la donnée : rien de neuf ne se sérialise, rien ne part
+  en synchro. Un bloc oublié se retrouve par un balayage de repli (`ownerOf`) — c'est un **filet,
+  pas un chemin** : s'il servait souvent, c'est qu'un site construirait des blocs sans les
+  normaliser, et c'est CE défaut-là qu'il faudrait corriger.
+  **⚠ `bItems` REND UNE COPIE RÉSOLUE, PAS LE TABLEAU VIVANT — et c'est le piège de cette étape** :
+  `bItems(b).splice(...)` compile, s'exécute, et **ne fait RIEN**. Toute mutation passe donc par
+  trois verbes et par eux seuls — `bItemAdd`, `bItemDel`, `bItemMove` — qui tiennent les DEUX côtés
+  (le pool ET la liste d'identifiants). Les séparer rouvrirait la porte à un pool qui garde des
+  items que plus aucun bloc ne référence. **Déplacer une étape entre deux blocs ne bouge PAS l'item
+  du pool** : seule sa référence change de bloc — c'est tout l'intérêt d'une identité.
+  **LES CINQ LISTES SE LISENT ENCORE COMME DES LISTES DE CHAÎNES** (`listOf(f,clé)`), et c'est ce
+  qui permet aux soixante-quinze sites de rendu de ne pas changer d'un caractère. Ce ne sont plus
+  des champs : c'est une **VUE** sur le pool. L'éditeur écrit par `edList`/`edPut` → `setList`, qui
+  **conserve les identités** des lignes inchangées — sinon une simple frappe casserait tout ce qui
+  s'y accroche.
+  **`listEditor` EST DÉFENSIF DEPUIS CETTE ÉTAPE** : un appelant qui passerait encore `f.verify`
+  transmettrait `undefined` et **tout le rendu de l'éditeur tomberait**. C'est arrivé, et ni
+  `npm run check` ni la suite ne l'ont vu — **aucun des deux n'exerce un rendu**. Troisième fois de
+  ce chantier.
+  **LE PARTAGE SUIT** : `SHARE_KEEP` emporte `items` à la place des cinq champs, et **la liste
+  blanche de `share_fiche` a été mise à jour dans `supabase/schema.sql`** — c'est ELLE l'autorité,
+  et sans elle un invité recevrait des blocs pleins d'identifiants ne résolvant vers rien,
+  c'est-à-dire **une checklist vide en pleine réanimation, sans le moindre signal**.
+  **⚠ `supabase/schema.sql` EST DONC À REJOUER.**
 - **L'ITEM EST LA SOURCE, `steps` N'EST PLUS QU'UN MIROIR (v5.0.0, lot T6 côté RENDU).** Une étape
   était une CHAÎNE À UNE POSITION (`b.steps[3]`), et l'on a payé cela deux fois : un compte rendu
   qui nomme le mauvais geste après une insertion (lot T1, rustiné en archivant le texte), et

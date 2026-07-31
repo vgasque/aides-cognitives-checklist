@@ -153,7 +153,10 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   ok('vigilance ≠ critique', !A.stepIsCrit('△ Réévaluer')&&!A.stepIsVigil('⚠ Adrénaline'));
   eq('stepText retire aussi « △ »', A.stepText('△ Réévaluer PA'), 'Réévaluer PA');
   ok('recherche : le code des fiches est indexé', A.ficheHaystack(A.migrate({title:'X',code:'URG-ANA-01'})).indexOf('urg-ana-01')>=0);
-  ok('posology assaini en tableau borné', Array.isArray(A.migrate({posology:['⚠ **ADRÉNALINE** : 0,5 mg',42]}).posology));
+  /* v5.0.0, étape B : `posology` n'est plus un CHAMP mais un RÔLE du pool — le nettoyage se
+     mesure donc sur ce que la fiche rend, pas sur un champ disparu. */
+  ok('posologie assainie et lisible comme une liste',
+     Array.isArray(A.listOf(A.migrate({posology:['⚠ **ADRÉNALINE** : 0,5 mg',42]}),'posology')));
   ok('recherche : les repères posologiques sont indexés', A.ficheHaystack(A.migrate({title:'X',posology:['Amiodarone 300 mg']})).indexOf('amiodarone')>=0);
   ok('prompt IA : section posology documentée', A.AI_PROMPT.indexOf('"posology"')>=0);
 
@@ -291,7 +294,11 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    ok('rien à montrer → null (l’écran le dit, il n’invente pas)', A.monPick({},now)===null);}
 
   group('phase K (v4.63.0) — reviewNotes : la relecture doctrinale en une grammaire');
-  {const F=(nf,blocks)=>({notForget:nf||[],blocks:blocks||[]});
+   /* v5.0.0, étape B — LES FIXTURES PASSENT PAR `migrate`. Elles étaient des objets v3 bruts :
+      depuis que les six listes sont devenues des items à rôle dans un POOL, un tel objet n'a plus
+      de contenu pour l'application. Les faire entrer par la vraie porte est d'ailleurs plus juste —
+      le test mesure alors ce que le produit fabrique, pas ce que le test imagine. */
+   {const F=(nf,blocks)=>A.migrate({notForget:nf||[],blocks:blocks||[],start:((blocks||[])[0]||{}).id||null});
    eq('fiche saine → aucune remarque', A.reviewNotes(F(['a','b'],[{id:'b1',title:'Bloc',steps:['x']}])), []);
    {const n=A.reviewNotes(F(['a','b','c','d','e'],[]));
     eq('chapeau à 5 rappels : une remarque, ciblée', n.length, 1);
@@ -1873,7 +1880,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
      JSON.stringify(r2),JSON.stringify(r1));
   eq('aller-retour · les étapes de bloc reviennent, préfixe et « :: » compris',
      r1.blocks[0].steps.join('|'),'⚠ Adrénaline IM :: 0,5 mg|Oxygène');
-  eq('aller-retour · le chapeau revient dans notForget',r1.notForget.length,2);
+  eq('aller-retour · le chapeau revient dans notForget',(r1.notForget||[]).length,2);
   ok('aller-retour · … et pas dans les blocs',
      r1.blocks.every(b=>b.steps.indexOf('⚠ Retirer l’allergène')<0));
   eq('aller-retour · la décision retrouve sa question et ses options',
@@ -1914,7 +1921,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    const mb=m.blocks||[],b0=mb[0]||{},b1=mb[1]||{};
    eq('migrate · une aide v4 entre et devient exploitable',mb.length,3);
    eq('migrate · … ses étapes sont intactes',(b0.steps||[])[0],'⚠ Adrénaline IM :: 0,5 mg');
-   eq('migrate · … son chapeau aussi',(m.notForget||[]).length,2);
+   eq('migrate · … son chapeau aussi',A.listOf(m,'notForget').length,2);
    eq('migrate · … et sa décision',(b1.options||[]).length,2);
    ok('migrate · une v3 n’est PAS traitée comme une v4',
       ((A.migrate(JSON.parse(JSON.stringify(v3)))||{}).blocks||[]).length===3);
@@ -1924,50 +1931,91 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   /* ===== LOT T6 CÔTÉ RENDU + T7 — L'ITEM EST LA SOURCE, LE MIROIR EN DÉCOULE =============== */
   {const m=A.migrate(JSON.parse(JSON.stringify(v3)));
    const b0=m.blocks[0];
-   ok('T6 · migrate donne un ITEM à chaque étape',(b0.items||[]).length===b0.steps.length);
-   ok('T6 · … chacun avec une identité',(b0.items||[]).every(i=>!!i.id));
+   /* v5.0.0, étape B — LE BLOC NE PORTE PLUS QUE DES IDENTIFIANTS ; les objets vivent dans le
+      POOL `m.items`. Les témoins passent donc par `A.bItems(b)`, qui résout — c'est aussi ce que
+      font les vingt-deux sites de rendu, donc on mesure le vrai chemin. */
+   const its0=A.bItems(b0);
+   ok('T6 · migrate donne un ITEM à chaque étape',its0.length===b0.steps.length);
+   ok('T6 · … chacun avec une identité',its0.every(i=>!!i.id));
+   ok('T6 · … et le bloc ne porte que des IDENTIFIANTS',
+      (b0.items||[]).every(x=>typeof x==='string'));
+   ok('T6 · … qui résolvent tous dans le pool de l’aide',
+      (b0.items||[]).every(id=>(m.items||[]).some(it=>it.id===id)));
    eq('T6 · le miroir `steps` est régénéré depuis les items',
-      JSON.stringify(b0.steps),JSON.stringify(b0.items.map(A.v4ItemToStr)));
+      JSON.stringify(b0.steps),JSON.stringify(its0.map(A.v4ItemToStr)));
    eq('T6 · … registre et « :: » compris',b0.steps[0],'⚠ Adrénaline IM :: 0,5 mg');
    /* LA PROPRIÉTÉ QUI FAIT TOUT LE LOT : une insertion en tête ne déplace plus l'identité. */
-   const idsAv=b0.items.map(i=>i.id);
-   A.bItems(b0).splice(0,0,A.newStepItem('Insérée en tête'));A.syncSteps(b0);
+   const idsAv=(b0.items||[]).slice();
+   A.bItemAdd(b0,0,A.newStepItem('Insérée en tête'));A.syncSteps(b0);
    ok('T6 · une insertion en tête ne bouge AUCUNE identité',
-      idsAv.every((id,k)=>b0.items[k+1].id===id));
+      idsAv.every((id,k)=>b0.items[k+1]===id));
    eq('T6 · … et le miroir suit',b0.steps[0],'Insérée en tête');
    /* T7 — « ×2 » (AC 120-71B §5.2.2.5), inexprimable avant que l'item ait une identité. */
-   b0.items[1].dual=true;
-   ok('T7 · « ×2 » vit sur l’ITEM',b0.items[1].dual===true);
+   A.bItems(b0)[1].dual=true;
+   ok('T7 · « ×2 » vit sur l’ITEM',A.bItems(b0)[1].dual===true);
    ok('T7 · … et ne laisse AUCUNE trace dans le miroir (un client antérieur lit le texte seul)',
       !/×2/.test(JSON.stringify(A.syncSteps(b0))));
    /* Et il doit SURVIVRE à l'export : sans cela la conversion annulerait le lot qui l'introduit. */
    const rt=A.v4ToV3(A.v3ToV4(m));
    const rb=rt.blocks[0];
    ok('T7 · « ×2 » survit à l’aller-retour v3 → v4 → v3',(rb.items||[])[1]&&rb.items[1].dual===true);
-   ok('T6 · … et les identités aussi',(rb.items||[]).map(i=>i.id).join('|')===b0.items.map(i=>i.id).join('|'));
    eq('T6 · … le miroir reste exact après l’aller-retour',
-      JSON.stringify(rb.steps),JSON.stringify(rb.items.map(A.v4ItemToStr)));
+      JSON.stringify(rb.steps),JSON.stringify((rb.items||[]).map(A.v4ItemToStr)));
    /* Robustesse : un item entrant corrompu est BORNÉ, jamais recopié tel quel. */
    const sale=A.migrate({blocks:[{id:'b9',type:'steps',
      items:[{id:'__proto__',do:'x',level:99,dual:'oui',role:'nimporte'}]}],start:'b9'});
-   const si=sale.blocks[0].items[0];
+   const si=A.bItems(sale.blocks[0])[0];
    ok('T6 · un id dangereux est refusé',si.id!=='__proto__');
    eq('T6 · un niveau hors échelle est borné',si.level,3);
    eq('T6 · un rôle inconnu retombe sur « do »',si.role,'do');
+
+  /* ===== ÉTAPE B — LE POOL ================================================================ */
+  {const m=A.migrate(JSON.parse(JSON.stringify(v3)));
+   ok('pool · les cinq listes v3 ne sont PLUS des champs',
+      m.confirmation===undefined&&m.verify===undefined&&m.posology===undefined
+      &&m.notForget===undefined&&m.differentials===undefined);
+   ok('pool · … mais elles se LISENT toujours comme des listes',
+      A.listOf(m,'confirmation').length===1&&A.listOf(m,'verify').length===1
+      &&A.listOf(m,'posology').length===1&&A.listOf(m,'differentials').length===1
+      &&A.listOf(m,'notForget').length===2);
+   ok('pool · `references` reste un CHAMP (métadonnée, pas un rôle)',Array.isArray(m.references));
+   /* L'INVARIANT QUI TIENT TOUT : aucun item du pool n'est orphelin, aucun id de bloc ne pend. */
+   const ids=new Set((m.items||[]).map(i=>i.id));
+   ok('pool · chaque id cité par un bloc existe dans le pool',
+      (m.blocks||[]).every(b=>(b.items||[]).every(id=>ids.has(id))));
+   const cites=new Set();(m.blocks||[]).forEach(b=>(b.items||[]).forEach(id=>cites.add(id)));
+   ok('pool · et tout item non cité a un rôle de portée FICHE (ou une étoile)',
+      (m.items||[]).every(it=>cites.has(it.id)||it.role!=='do'||it.memory));
+   /* `bItems` REND UNE COPIE : c'est le piège de l'étape, donc il se mesure. */
+   const b0=m.blocks[0],avant=A.bItems(b0).length;
+   A.bItems(b0).splice(0,1);
+   eq('pool · muter la copie rendue par bItems ne change RIEN',A.bItems(b0).length,avant);
+   A.bItemAdd(b0,0,A.newStepItem('Neuve'));
+   eq('pool · … seul bItemAdd ajoute',A.bItems(b0).length,avant+1);
+   eq('pool · … et l’item entre AUSSI dans le pool',(m.items||[]).filter(i=>i.do==='Neuve').length,1);
+   A.bItemDel(b0,0);
+   eq('pool · bItemDel retire des deux côtés',
+      A.bItems(b0).length+':'+(m.items||[]).filter(i=>i.do==='Neuve').length,avant+':0');
+   /* Déplacer entre blocs ne recrée rien : l'identité est le point du modèle. */
+   const b1=m.blocks.find(x=>x.id!==b0.id&&Array.isArray(x.items)&&x.kind!=='decision')||m.blocks[2];
+   if(b1){const idAv=b0.items[0],n0=(m.items||[]).length;
+     A.bItemMove(b0,0,b1,0);
+     eq('pool · déplacer entre blocs ne touche pas au pool',(m.items||[]).length,n0);
+     eq('pool · … et l’identité suit',b1.items[0],idAv);}}
    eq('T6 · « dual » est un BOOLÉEN, pas la chaîne qu’on a reçue',si.dual,true);}
 
   /* ===== LOT T7 — ★ MÉMOIRE : UN MEMORY ITEM EST UN ITEM DE LA LISTE ======================== */
   {const m=A.migrate(JSON.parse(JSON.stringify(v3)));
    const n0=A.forgetAll(m).length;
-   eq('★ · sans étoile, le chapeau vaut exactement notForget',n0,m.notForget.length);
-   m.blocks[0].items[1].memory=true;
+   eq('★ · sans étoile, le chapeau vaut exactement notForget',n0,A.listOf(m,'notForget').length);
+   A.bItems(m.blocks[0])[1].memory=true;
    eq('★ · une étoile ajoute UNE ligne au chapeau',A.forgetAll(m).length,n0+1);
    ok('★ · … et cette ligne est le texte de l’étape',
-      A.forgetAll(m).some(x=>x.indexOf(m.blocks[0].items[1].do)>=0));
+      A.forgetAll(m).some(x=>x.indexOf(A.bItems(m.blocks[0])[1].do)>=0));
    /* LA PROPRIÉTÉ QUI FAIT LA DOCTRINE : l'item RESTE dans son bloc. Un memory item se récite de
       mémoire AVANT d'agir, puis se re-vérifie à sa place dans la checklist (QRH). */
    ok('★ · l’item RESTE dans son bloc (il n’est pas déplacé)',
-      m.blocks[0].items.filter(i=>i.memory).length===1&&m.blocks[0].items.length>=2);
+      A.bItems(m.blocks[0]).filter(i=>i.memory).length===1&&A.bItems(m.blocks[0]).length>=2);
    ok('★ · le contexte d’origine est donné',
       A.memItemsOf(m).every(x=>!!x.src));
    /* Une décision n'a pas d'items : le calcul ne doit pas s'y perdre. */
@@ -2001,7 +2049,7 @@ document.getElementById('app').addEventListener('load',async()=>{
     await run(A);
     s.className=fail?'ko':'ok';
     s.textContent=(fail?'✗ ':'✓ ')+pass+' réussis, '+fail+' échoués.';
-  }catch(e){s.className='ko';s.textContent=(String(e.message).indexOf('cross-origin')>=0?FILE_HELP:'Erreur d’exécution des tests : '+e.message);}
+  }catch(e){s.className='ko';s.textContent=(String(e.message).indexOf('cross-origin')>=0?FILE_HELP:'Erreur d’exécution des tests : '+e.message+' | '+String(e.stack||'').split(String.fromCharCode(10)).slice(0,4).join(' « ').slice(0,600));}
 });
 </script>
 </body>

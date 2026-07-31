@@ -1235,7 +1235,7 @@ begin
   select coalesce(jsonb_object_agg(k, v), '{}'::jsonb) into v_snap
     from jsonb_each(p_fiche_snap) as e(k, v)
    where k in ('id','title','discriminant','code','status','validation','blocks','start','timers','counters',
-               'confirmation','verify','notForget','differentials','posology');
+               'items');   -- v5.0.0 : les six listes v3 sont devenues des items à rôle (pool `items`)
   if v_snap ? 'blocks' and jsonb_typeof(v_snap->'blocks') = 'array' then
     select jsonb_set(v_snap, '{blocks}', coalesce(jsonb_agg(b - 'image' - 'images'), '[]'::jsonb))
       into v_snap from jsonb_array_elements(v_snap->'blocks') as b;

@@ -207,7 +207,7 @@ trace de v3 de l'application, et fournir la conversion **hors** de l'application
 | | Contenu | Pourquoi à ce rang |
 |---|---|---|
 | **A** | ✅ `aidRev` + le document de conversion | Indépendants, livrés |
-| **B** | **Le pool `items[]` + les rôles** : les six listes v3 (`confirmation`, `notForget`, `verify`, `posology`, `differentials`) deviennent des items à `role`, les blocs ne portent plus que des ids | C'est le cœur du modèle, et tout le reste en dépend |
+| **B** | ✅ **LIVRÉ** — le pool `items[]` + les rôles. Les CINQ listes v3 sont devenues des items à `role` (`references` reste un champ : métadonnée, pas contenu de crise), les blocs ne portent plus que des ids. `SHARE_KEEP` et la liste blanche de `share_fiche` suivent. **⚠ `schema.sql` à rejouer.** | C'est le cœur du modèle, et tout le reste en dépend |
 | **C** | **Les renommages** : `libraryId`→`library`, `validation`→`validatedAt`, `references`→`sources`, `attachments`→`docs`, `related`→`links`, `localInfo`→`local`, `complications`→`excursions`, `type`→`kind` ; plus `v:4` et `kind:'procedure'` | Mécanique, mais touche la synchro et les permissions |
 | **D** | **Retrait du miroir `steps` et de tout le code v3** (`v3ToV4`/`v4ToV3` partent dans le document de conversion) | N'est SÛR qu'une fois B et C faits |
 | **E** | **SQL** (liste blanche de `share_fiche` : elle nomme les champs v3) **+ doctrine** — les **règles 5 et 12 sont à réécrire**, la seconde étant explicitement levée | Le serveur doit suivre, sinon un invité reçoit une fiche amputée |
