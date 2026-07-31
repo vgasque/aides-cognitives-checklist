@@ -233,6 +233,32 @@ for (const rel of FICHIERS) {
   }
 }
 
+/* UN RENOMMAGE QUI SE VISE LUI-MÊME (v5.0.0, lot T9 — défaut VÉCU, signalé par l'utilisateur).
+   `alter table public.cognitive_aids rename to cognitive_aids` : Postgres répond « relation
+   does not exist » et la migration entière échoue — sur l'instance de PRODUCTION, puisque c'est
+   le seul endroit où ce fichier s'exécute.
+   LA CAUSE N'EST PAS UNE FAUTE DE FRAPPE, C'EST UNE MÉTHODE : le renommage a été fait par
+   remplacement en masse de l'ancien nom par le nouveau, et le remplacement a aussi réécrit
+   L'INTÉRIEUR de la chaîne `execute` du bloc de migration — la seule ligne du fichier qui devait
+   garder l'ANCIEN nom. C'est la famille du piège `String.replace()` / « $$ » déjà consignée dans
+   ce script : un patch scripté mutile en silence ce qu'il ne distingue pas.
+   Le contrôle est donc étroit et sûr : un `rename to` dont la source et la cible portent le même
+   identifiant est TOUJOURS une faute, jamais une intention. */
+{
+  const RX = /alter\s+table\s+(?:if\s+exists\s+)?([a-z_][\w.]*)\s+rename\s+to\s+([a-z_]\w*)/gi;
+  for (const f of FICHIERS) {
+    const chemin = join(ROOT, f); if (!existsSync(chemin)) continue;
+    const src = readFileSync(chemin, 'utf8');
+    for (const m of src.matchAll(RX)) {
+      const de = m[1].split('.').pop().toLowerCase(), vers = m[2].toLowerCase();
+      if (de === vers) fautes.push(`${f} : « alter table ${m[1]} rename to ${m[2]} » — la source et la cible `
+        + `sont le MÊME identifiant. Postgres échouera (« relation does not exist ») et la migration `
+        + `s'arrêtera là. Cause typique : un remplacement en masse a réécrit l'intérieur d'une chaîne `
+        + `« execute », c'est-à-dire la seule ligne qui devait garder l'ANCIEN nom.`);
+    }
+  }
+}
+
 if (fautes.length) {
   console.error('✗ check-sql : ' + fautes.length + ' problème(s).\n');
   for (const f of fautes) console.error('    ' + f);

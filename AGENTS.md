@@ -2652,7 +2652,20 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   **`security_invoker = true`** — sans cette option une vue contourne la RLS, ce qui serait ici une
   fuite entre comptes ; et une vue simple sur une seule table est nativement MODIFIABLE, donc ils
   continuent d'écrire sans règle ni trigger à maintenir. À supprimer quand plus aucun 4.x ne tourne.
-  **LES COLONNES NE SONT PAS RENOMMÉES** (`fiche_id` reste `fiche_id`) : arbitrage de rayon
+  **⚠ DÉFAUT VÉCU À LA PREMIÈRE EXÉCUTION, ET SA LEÇON** : le fichier livré contenait
+  `alter table public.cognitive_aids rename to cognitive_aids` — Postgres répond « relation does
+  not exist » et **toute la migration s'arrête**, sur l'instance de PRODUCTION, seul endroit où ce
+  fichier s'exécute. La cause n'est pas une faute de frappe mais une MÉTHODE : le renommage avait
+  été fait par remplacement en masse de l'ancien nom par le nouveau, et ce remplacement a réécrit
+  **l'intérieur de la chaîne `execute`** du bloc de migration — c'est-à-dire la seule ligne du
+  fichier qui devait garder l'ANCIEN nom. Même famille que le piège `String.replace()` / « $$ »
+  déjà consigné : **un patch scripté mutile en silence ce qu'il ne distingue pas.**
+  `check-sql.mjs` refuse désormais tout `rename to` dont la source et la cible portent le même
+  identifiant — c'est toujours une faute, jamais une intention. Vérifié capable d'échouer.
+  **COROLLAIRE DE MÉTHODE** : après un renommage scripté, relire les lignes qui doivent CITER
+  l'ancien nom (migrations, vues de compatibilité, commentaires normatifs) — ce sont exactement
+  celles que le remplacement casse, et les seules.
+    **LES COLONNES NE SONT PAS RENOMMÉES** (`fiche_id` reste `fiche_id`) : arbitrage de rayon
   d'explosion, pas oubli — renommer une colonne oblige à reprendre chaque politique, chaque index
   et chaque appel REST, pour un gain de lisibilité que personne ne lit hors du SQL.
   **CÔTÉ CLIENT, CINQ APPELS SEULEMENT** — et le piège à connaître : `'fiches'` apparaît **339

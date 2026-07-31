@@ -43,10 +43,10 @@ do $$
 begin
   if exists (select 1 from pg_tables where schemaname='public' and tablename='fiches')
      and not exists (select 1 from pg_tables where schemaname='public' and tablename='cognitive_aids')
-  then execute 'alter table public.cognitive_aids rename to cognitive_aids'; end if;
+  then execute 'alter table public.fiches rename to cognitive_aids'; end if;
   if exists (select 1 from pg_tables where schemaname='public' and tablename='fiche_notes')
      and not exists (select 1 from pg_tables where schemaname='public' and tablename='aid_notes')
-  then execute 'alter table public.aid_notes rename to aid_notes'; end if;
+  then execute 'alter table public.fiche_notes rename to aid_notes'; end if;
 end $$;
 
 -- ---------- 1. Tables -------------------------------------------------------
