@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-lyKC924T1aQkgx4w8ZpEwW1kC14b6Ih8G0Or25LQLZs='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-QJ9I8NWI2bupnGQDZoWoc2J3347aVjtfwigmhZxjdPQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1038,6 +1038,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #cbTimers .seg-t{white-space:nowrap;font-family:var(--mono);font-size:16.5px;font-weight:700;letter-spacing:.5px;line-height:1.1;font-variant-numeric:tabular-nums;color:var(--ink)}
   #cbTimers .seg.due{background:var(--verify-soft)}
   #cbTimers .seg.due :is(.seg-l,.seg-t){color:var(--verify)}
+  /* Le rappel « n minuteurs · n compteurs » (v5.0.0) : encre douce (il informe, il n'alerte pas),
+     ellipse plutôt que poussée — mais il est de toute façon retiré ENTIER par la boucle
+     d'ajustement avant d'en arriver là ; l'ellipse n'est qu'un filet de sûreté. */
+  #cbTimers .cbt-decl{gap:6px;min-width:0;font-weight:600;letter-spacing:0}
+  #cbTimers .cbt-dl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   #cbTimers .cbt-n{display:flex;align-items:center;flex:none;padding:0 14px;font-size:11px;font-weight:800;color:var(--ink-soft);border-left:1px solid var(--line)}
   /* « +n » et chevron sont des <span> DANS le bouton #cbTimers (jamais tapables seuls) : leur
      rembourrage de 14px n'obéit à aucune règle de cible et coûtait 78px à eux deux. En étroit on
@@ -7441,7 +7446,7 @@ function tickAll(){
 // FUSIONNÉ dans le bandeau de crise : le chrono compact #cbTimers (à droite du bandeau) reprend
 // le rôle de l'ancien rappel #rtStrip — visible quand un minuteur tourne ET que le panneau
 // minuteurs est sorti de l'écran ; tap -> remonte au panneau. Un seul bloc d'état dans la barre.
-let _rtsHtml='',_rtsFitKey='',_rtsFit=0,_rtsNoChev=false,_rmSegHtml='';
+let _rtsHtml='',_rtsFitKey='',_rtsFit=0,_rtsNoChev=false,_rtsNu=true,_rmSegHtml='';
 function updateRtStrip(now){
   now=now||Date.now();
   const crisis=state.view==='read'&&!!Runtime.fiche;
@@ -7550,8 +7555,32 @@ function updateRtStrip(now){
      jeton porte l'information, la couleur ne fait que cesser d'affirmer. */
   const globOff=!!shTag&&shTag!=='main'&&shTag!=='suit'&&shTag!=='offert'&&shTag.charAt(0)!=='⇄';
   const glob=started?'<span class="seg glb'+(Runtime.exercise?' exo':'')+'"><span class="seg-l seg-sess'+(globOff?' off':'')+'">'+esc(globLbl)+'</span><span class="seg-t">'+(Runtime.startedAt?fmtMs(now-Runtime.startedAt):'—')+'</span></span>':'';
+  /* LE QUAI NOMME CE QU'IL CACHE — MAIS SEULEMENT QUAND IL NE MONTRE RIEN D'AUTRE (v5.0.0).
+     La rangée `.rt-collapsed` dit déjà, dans le FLUX, « Minuteurs & compteurs · 1 minuteur ·
+     1 compteur ▾ Afficher » — visible sans défiler à l'ouverture (mesuré y=408 pour un pli à 844).
+     Ce n'est donc PAS l'information qui manquait, et le constat J0 qui l'affirmait était faux.
+     Ce qui manque est ailleurs, et c'est une mesure DIFFÉRENTE : cette rangée VIT DANS LE FLUX, donc
+     elle s'en va (mesurée à y=−292 après 700 px de défilement) — alors que le quai, lui, ne quitte
+     jamais l'écran et ne disait rien. Le seul canal PERMANENT était muet.
+     CE N'EST PAS LA DUPLICATION QUE LA v4.70.1 PROSCRIT : elle vise deux canaux qui énoncent la
+     même CONSTANTE en même temps, à demeure (« ■ CRISE » en barre et « ■ MODE CRISE » en bandeau).
+     Ici c'est un RELAIS, exactement comme le titre passe du bandeau à la barre au défilement — et
+     le recouvrement ne dure que le temps où la rangée est encore à l'écran.
+     TROIS BORNES, et ce sont elles qui rendent la chose admissible :
+       · JAMAIS UN SEGMENT — le libellé habille le chevron EXISTANT, donc zéro pixel de hauteur et
+         aucun déplacement de l'alarme (la constance positionnelle ECAM est intacte) ;
+       · SEULEMENT QUAND LE QUAI NE PORTE AUCUN MINUTEUR (`!want.length`) — dès qu'un minuteur est
+         armé, son segment reprend la place et le comportement d'avant est rendu au pixel. Les deux
+         sont mutuellement exclusifs par construction : le libellé ne peut pas concurrencer l'alarme ;
+       · IL TOMBE LE PREMIER — c'est un rappel, pas une annonce ECAM ; la boucle d'ajustement le
+         sacrifie avant tout le reste, « +n » et segment échu compris. */
+  const decl=crisis?{t:Object.keys(Runtime.timers).length,c:Object.keys(Runtime.counters||{}).length}:{t:0,c:0};
+  const chevLbl=(!wideRail&&started&&!want.length&&(decl.t||decl.c))
+    ?[decl.t?decl.t+' minuteur'+(decl.t>1?'s':''):'',decl.c?decl.c+' compteur'+(decl.c>1?'s':''):''].filter(Boolean).join(' · ')
+    :'';
   // Chevron = bascule du panneau en étroit ; rien en large (rail permanent, tap -> y défile).
-  const chev=wideRail?'':'<span class="cbt-n" aria-hidden="true">'+(state.rtOpen?'▴':'▾')+'</span>';
+  const chevOf=lbl=>wideRail?'':'<span class="cbt-n'+(lbl?' cbt-decl':'')+'">'+(lbl?'<span class="cbt-dl">'+esc(lbl)+'</span>':'')+'<span aria-hidden="true">'+(state.rtOpen?'▴':'▾')+'</span></span>';
+  const chev=chevOf(chevLbl);
   // ORDRE (v4.23.0, décision utilisateur) : « ● Session » ANCRÉ EN TÊTE, puis l'alarme / le
   // minuteur, puis « +n », puis le chevron. Le chrono de session était placé APRÈS les minuteurs :
   // sa position glissait donc à droite dès qu'un minuteur apparaissait, à gauche quand il
@@ -7580,8 +7609,9 @@ function updateRtStrip(now){
   const fitKey=window.innerWidth+'|'+wideRail+'|'+pool.length+'|'+want.length+'|'
     +(started?fmtMs(now-Runtime.startedAt).length:0)+'|'+want.map(x=>x.d.val.length).join(',')
     +'|'+want.map(x=>String(x.t.label||'').length).join(',')+'|'+globLbl.length
-    +'|'+want.map(x=>x.due?1:0).join('');   // l'échéance AJOUTE le glyphe △ : c'est une largeur
-  const write=(n,noChev)=>{const h=glob+segOf(want.slice(0,n))+moreOf(n)+(noChev?'':chev);
+    +'|'+want.map(x=>x.due?1:0).join('')   // l'échéance AJOUTE le glyphe △ : c'est une largeur
+    +'|'+chevLbl.length;                 // … et le rappel « n minuteurs » aussi
+  const write=(n,noChev,nu)=>{const h=glob+segOf(want.slice(0,n))+moreOf(n)+(noChev?'':(nu?chevOf(''):chev));
     if(h!==_rtsHtml){_rtsHtml=h;el.innerHTML=h;}return h;};
   if(!glob&&!want.length){el.hidden=true;_rtsHtml='';syncDock();return;}   // ≥780 sans session ni échu : le rail suffit
   el.hidden=false;
@@ -7600,13 +7630,17 @@ function updateRtStrip(now){
         maintenant explicite : on garde la version la plus étroite connue, on n'en réécrit jamais
         une plus large. Le « +n » n'est JAMAIS sacrifié — c'est l'ANNONCE ECAM. */
   if(fitKey!==_rtsFitKey){
-    _rtsFitKey=fitKey;_rtsFit=0;_rtsNoChev=true;
+    _rtsFitKey=fitKey;_rtsFit=0;_rtsNoChev=true;_rtsNu=true;
+    /* LE RAPPEL TOMBE AVANT TOUT LE RESTE. Il ne s'affiche que lorsqu'aucun minuteur n'est
+       montré, donc il n'entre jamais en concurrence avec un segment échu ; mais il pourrait
+       manger la place du « +n », et une annonce ECAM ne se sacrifie pas pour un rappel. */
     for(let n=want.length;n>=0;n--){
-      write(n,false);if(fits()){_rtsFit=n;_rtsNoChev=false;break;}
-      if(chev){write(n,true);if(fits()){_rtsFit=n;_rtsNoChev=true;break;}}
+      if(chevLbl){write(n,false,false);if(fits()){_rtsFit=n;_rtsNoChev=false;_rtsNu=false;break;}}
+      write(n,false,true);if(fits()){_rtsFit=n;_rtsNoChev=false;_rtsNu=true;break;}
+      if(chev){write(n,true,true);if(fits()){_rtsFit=n;_rtsNoChev=true;_rtsNu=true;break;}}
     }
   }
-  write(_rtsFit,_rtsNoChev);
+  write(_rtsFit,_rtsNoChev,_rtsNu);
   syncDock();}
 {const cbt=document.getElementById('cbTimers');
  // V5 : la barre BASCULE le panneau minuteurs en étroit (< 1000px, chevron ▾/▴) ; en large la

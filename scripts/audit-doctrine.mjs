@@ -853,6 +853,39 @@ for (const w of [320, 360, 390]) {
   await page.close();
 }
 
+/* LE QUAI NOMME CE QU'IL CACHE — ET SEULEMENT ALORS (v5.0.0).
+   Trois propriétés, et la deuxième est la seule qui rende la première admissible : le rappel
+   n'existe QUE lorsque le quai ne montre aucun minuteur. Un témoin qui ne mesurerait que la
+   présence du libellé laisserait passer la régression qui compte — celle où il concurrencerait
+   l'alarme. On mesure donc aussi l'ÉTAT ARMÉ, où il doit avoir DISPARU. */
+console.log('\n══ ECAM · le quai nomme ce qu\'il cache, sans jamais coûter un pixel ══');
+for (const w of [320, 360, 390, 430]) {
+  const page = await br.newPage({viewport:{width:w,height:844},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await page.evaluate(async()=>{const wt=m=>new Promise(r=>setTimeout(r,m));
+    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();await wt(200);
+    const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await wt(700);});
+  const r = await page.evaluate(async()=>{const wt=m=>new Promise(r=>setTimeout(r,m));
+    const f=fiches.find(x=>/Anaphylaxie/i.test(x.title))||fiches[0]; openRead(f.id); await wt(400);
+    const b=document.getElementById('sessStart'); if(b)b.click(); await wt(600);
+    const e=document.getElementById('cbTimers');
+    const lis=()=>({txt:(e.innerText||'').replace(/\s+/g,' ').trim(),
+                    deb:e.scrollWidth-e.clientWidth,h:Math.round(e.getBoundingClientRect().height)});
+    const repos=lis();
+    const t=Object.values(Runtime.timers)[0]; if(t){toggleTimer(t);updateRtStrip();} await wt(400);
+    const arme=lis();
+    return {repos,arme,declare:Object.keys(Runtime.timers).length};});
+  t(`${w} · au repos, le quai NOMME les minuteurs déclarés`, /minuteur/.test(r.repos.txt), r.repos.txt);
+  t(`${w} · … sans déborder d'un pixel`, r.repos.deb<=1, `${r.repos.deb} px`);
+  t(`${w} · … et sans coûter de hauteur (52 px)`, r.repos.h===52, `${r.repos.h} px`);
+  t(`${w} · minuteur ARMÉ : le rappel s'efface, le segment reprend la place`,
+    !/\d+ minuteur/.test(r.arme.txt) && /\d\d:\d\d/.test(r.arme.txt), r.arme.txt);
+  t(`${w} · … et là non plus rien ne déborde`, r.arme.deb<=1, `${r.arme.deb} px`);
+  await page.close();
+}
+
 await br.close();srv.close();
 console.log(`\n${ok}/${ok+ko} contrôles doctrine OK${ko?` — ${ko} ÉCHEC(S)`:''}`);
 process.exit(ko?1:0);
