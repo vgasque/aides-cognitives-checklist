@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-1Tpu6Tl7BPz9uk504gKgUqsj8U+Roo1JF715zuTt0Jk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-Ul9Eq8eu/xbdjcOy/+JEsjkP+W5qdkvlPlA7ez7aLlY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -2251,8 +2251,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      trompe, c'est la SPÉCIFICITÉ. */
   body.share-scribe :is([data-tmreset],[data-cnreset]),
   body.share-scribe .btn:is([data-tmreset],[data-cnreset]){
-    color:var(--ink-soft);border-color:var(--line);background:var(--surface-2);
-    box-shadow:none;cursor:not-allowed;font-weight:600}
   /* HUITIÈME PIÈGE DE CASCADE DU PROJET, ET LE SECOND PAR SPÉCIFICITÉ. Le bouton « Continuer » du
      lecteur porte la classe `.rm-ok` et se style par `#readerMode .rm-ok` — soit (1,1,0), un ID :
      il l'emportait sur `body.share-scribe :is([data-ovnext])`, qui vaut (0,2,1). Le geste était
@@ -2265,7 +2263,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      `body.share-scribe :is([data-ovnext])` (0,2,1). Le geste était bloqué, le bouton restait vert
      plein et INVITAIT à un geste refusé. Huitième piège du projet, second par SPÉCIFICITÉ. Si un
      verbe du lecteur redevient réservé un jour, il faudra le qualifier par le même `#id`. */
-  body.share-scribe #readerMode :is([data-tmreset],[data-cnreset]){
     color:var(--ink-soft);border-color:var(--line);background:var(--surface-2);
     box-shadow:none;cursor:not-allowed;font-weight:600}
   /* ═══ LIEN MORT (invité) — LE BANDEAU ET LES CONTRÔLES ÉTEINTS ════════════════════════════════
@@ -3251,8 +3248,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .v-act button:focus-visible,.ov-block [data-ovvx]:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .v-end{margin-top:10px;border:1px solid var(--verify-bd);background:var(--verify-soft);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink)}
   .v-end.ok{border-color:var(--done-line);background:var(--done-bg);color:var(--ok)}
-  /* ----- MODE LECTEUR (v4.11.0) : challenge-response en binôme, plein écran -----
-     z-index 92 : SOUS #screenFlash (99) — le flash d'alarme minuteur reste visible par-dessus. */
   /* MODE MONITEUR (D3) : même coquille que le lecteur (z 92, sous le flash d'alarme à 99),
      corps calibrés pour une lecture À DEUX MÈTRES. Registres INCHANGÉS : un minuteur échu y est
      ambre + le mot « échu », jamais la couleur seule. */
@@ -3270,69 +3265,19 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .mon-due{font-size:clamp(16px,4vw,26px);font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--verify-hi)}
   .mon-none{font-size:clamp(16px,3.6vw,24px);color:var(--ink-soft)}
   .mon-foot{flex:none;font-size:clamp(13px,2.8vw,17px);color:var(--ink-soft);border-top:1px solid var(--line);padding-top:10px;line-height:1.4}
-  #readerMode{position:fixed;inset:0;z-index:92;background:var(--bg);display:none;flex-direction:column}
-  #readerMode.on{display:flex}
-  #readerMode .rm-top{display:flex;align-items:center;gap:10px;padding:calc(9px + env(safe-area-inset-top)) 14px 9px;background:var(--surface);border-bottom:1px solid var(--line)}
-  #readerMode .rm-tag{flex:none;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--link)}
-  #readerMode .rm-ttl{flex:1;min-width:0;font-size:13.5px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  #readerMode .rm-time{flex:none;font-family:var(--mono);font-size:13.5px;font-weight:700;color:var(--ok)}
-  #readerMode .rm-block{display:flex;align-items:center;gap:8px;padding:10px 16px 0;font-size:12px;font-weight:700;color:var(--ink-soft);max-width:640px;width:100%;margin:0 auto}
-  #readerMode .rm-block #rmBlock{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  #readerMode .rm-block #rmProg{font-family:var(--mono)}
-  #readerMode .rm-body{flex:1;display:flex;flex-direction:column;padding:18px 16px calc(16px + env(safe-area-inset-bottom));max-width:640px;width:100%;margin:0 auto;overflow-y:auto}
-  #readerMode .rm-hint{font-size:12px;color:var(--ink-soft);text-align:center;margin:0 0 12px}
-  #readerMode .rm-ch{font-size:26px;font-weight:800;line-height:1.25;text-align:center;color:var(--ink);margin:0}
-  #readerMode .rm-ch.crit{color:var(--critical)}
-  #readerMode .rm-ch.vig{color:var(--verify)}
   /* I4 (v4.62.0) — DENSITÉ « LECTEUR » : la liste est celle de la page (`ol.steps > li[data-ck]`),
      seuls les CORPS changent. La ligne courante domine (22 px, encre pleine, fond d'accent) ; les
      autres restent lisibles au-dessus et au-dessous — c'est le contexte que le lecteur
      reconstruisait à la main, et le modèle ECL : liste entière + curseur. */
-  #readerMode .rm-steps{margin:0 0 4px;max-height:none}
-  #readerMode .rm-steps li{min-height:64px;font-size:16.5px;opacity:.62}
-  #readerMode .rm-steps li .txt{font-size:16.5px}
-  #readerMode .rm-steps li.cur-step{opacity:1;background:var(--primary-soft);border-radius:12px;padding-left:12px;padding-right:12px}
-  #readerMode .rm-steps li.cur-step .txt{font-size:22px;font-weight:800;line-height:1.25}
-  #readerMode .rm-steps li.cur-step .stp-r{font-size:18px;padding:4px 12px}
-  #readerMode .rm-steps li.done{opacity:.42}
   /* (`.rm-r` supprimée en v4.62.0 avec le paragraphe isolé du lecteur — la réponse attendue vit
      dans la pilule `.stp-r` de la ligne, agrandie par la densité. Règle 14.) */
-  #readerMode .rm-sp{flex:1;min-height:14px}
-  #readerMode .rm-ok{width:100%;min-height:72px;border:0;border-radius:12px;background:var(--ok);color:var(--surface);font-size:18px;font-weight:800;letter-spacing:.3px;cursor:pointer;font-family:inherit;padding:10px}
-  #readerMode .rm-ok.idle{background:transparent;border:2px solid var(--verify-bd);color:var(--verify)}
-  /* « Le soignant a avancé » : registre INFORMATION (une nouvelle, pas une alerte), pleine
-     largeur en tête du corps du lecteur, cible 44 px comme tous les contrôles de crise. */
-  #readerMode .rm-ban{width:100%;min-height:44px;border:2px solid var(--primary);border-radius:10px;
-    background:var(--primary-soft);color:var(--primary-dk);font-size:13.5px;font-weight:800;
-    cursor:pointer;margin:0 0 10px;font-family:inherit;text-align:left;padding:8px 12px}
-  #readerMode .rm-gap{width:100%;min-height:44px;border:2px solid var(--verify-bd);border-radius:10px;background:var(--verify-soft);color:var(--verify);font-size:13.5px;font-weight:700;cursor:pointer;margin-top:9px;font-family:inherit}
-  #readerMode .rm-prev{width:100%;min-height:44px;border:none;background:none;color:var(--ink-soft);font-size:13.5px;font-weight:600;cursor:pointer;margin-top:6px;font-family:inherit}
-  #readerMode .rm-opt{width:100%;min-height:72px;border:2px solid var(--verify-bd);border-radius:12px;background:var(--surface);color:var(--ink);font-size:16.5px;font-weight:700;cursor:pointer;margin-top:10px;text-align:left;padding:12px 18px;font-family:inherit;line-height:1.3}
-  #readerMode .rm-opt:hover{border-color:var(--primary)}
-  #readerMode .rm-done{border:2px solid var(--done-line);border-radius:12px;color:var(--ok);font-size:16.5px;font-weight:800;text-align:center;padding:16px}
-  #readerMode button:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* v4.28.0 — l'ÉTAT ne disparaît jamais (ECAM) : l'overlay couvrait le quai #cbTimers, donc le
      lecteur porte sa PROPRE bande de minuteurs (tous, échus d'abord en ambre + mot « échu » ;
      pas de « +n » : la bande passe à la ligne, rien n'est caché). Carte des blocs = modèle ECL
      (la liste reste visible autour du curseur — un item isolé fait perdre sa place) : mêmes
      pastilles que le rail de soin (vert ✓ fait, bleu ici, neutre à venir — jamais d'alerte). */
-  #readerMode .rm-strip{display:flex;flex-wrap:wrap;gap:6px;padding:8px 16px 0;max-width:640px;width:100%;margin:0 auto;box-sizing:border-box}
-  #readerMode .rm-strip[hidden]{display:none}
-  #readerMode .rm-seg{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line-strong);border-radius:8px;padding:4px 10px;font-size:12px}
-  #readerMode .rm-seg .l{color:var(--ink-soft);font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase}
-  #readerMode .rm-seg .v{font-family:var(--mono);font-weight:700;font-variant-numeric:tabular-nums}
-  #readerMode .rm-seg.due{border-color:var(--verify-bd);background:var(--verify-soft)}
-  #readerMode .rm-seg.due .l,#readerMode .rm-seg.due .v{color:var(--verify)}
-  #readerMode .rm-map{display:flex;flex-wrap:wrap;gap:5px;padding:8px 16px 0;max-width:640px;width:100%;margin:0 auto;box-sizing:border-box}
-  #readerMode .rm-map[hidden]{display:none}
-  #readerMode .rm-nd{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--line-strong);display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--ink-soft);font-variant-numeric:tabular-nums}
-  #readerMode .rm-nd.ok{border-color:var(--ok);background:var(--ok);color:var(--surface)}
-  #readerMode .rm-nd.cur{border-color:var(--primary);background:var(--primary);color:var(--on-primary)}
   /* (`.rm-ctx` supprimée en v4.62.0 : le contexte « précédent / suivant » était une
      reconstruction manuelle — la liste le donne par construction. Règle 14.) */
-  #readerMode .rm-cx{flex:none;position:relative;min-height:36px;border:1.5px solid var(--critical-bd);border-radius:9px;background:var(--surface);color:var(--critical);font-size:12px;font-weight:800;cursor:pointer;padding:0 10px;font-family:inherit}
-  #readerMode .rm-cx::after{content:"";position:absolute;inset:-5px}
-  #readerMode .rm-time.exo{color:var(--primary-dk)}
   #cxModal{z-index:94}   /* l'index ⚡ passe AU-DESSUS du mode lecteur (92), sous #screenFlash (99) */
   #shareModal{z-index:94}   /* même raison : ouvrable pendant que le lecteur (92) est affiché */
   /* LA CONFIRMATION PASSE AU-DESSUS DE TOUT CE QU'ELLE CONFIRME. `#confirmModal` héritait du
@@ -3569,7 +3514,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      du visualViewport), dvh ne sert plus que de REPLI avant la première mesure. Même division
      par --zf que toute hauteur de fenêtre (règle v4.24.0). */
   @supports (height:100dvh){
-    .ai-modal,.lightbox,#readerMode,#flowFull,#joinScreen{bottom:auto;height:calc(var(--vvh,100dvh) / var(--zf,1))}
+    .ai-modal,.lightbox,#flowFull,#joinScreen{bottom:auto;height:calc(var(--vvh,100dvh) / var(--zf,1))}
   }
   /* FENÊTRE D'APPARIEMENT (v4.47.0). ORDRE IMPOSÉ PAR LA MESURE, pas par l'esthétique : à 320×568
      une maquette « QR d'abord » faisait 572 px de carte pour 568 de fenêtre — « Arrêter le
@@ -4718,8 +4663,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
 <div id="alerts"></div>
 <!-- MODE LECTEUR (v4.11.0) : challenge-response en binôme (AC 120-71B) — un challenge à la
      fois, plein écran, piloté sur le BOUT du journal (mêmes clés de cochage, mêmes chemins
-     d'avancement). z-index 92 : le flash d'alarme (#screenFlash, 99) reste visible par-dessus. -->
-<div id="readerMode"><div class="rm-top"><span class="rm-tag">■ Mode lecteur</span><span class="rm-ttl" id="rmTitle"></span><span class="rm-time" id="rmTime" hidden></span><button class="fz fz-r" id="rmClose">Quitter ✕</button></div><div class="rm-strip" id="rmTimers" hidden></div><div class="rm-block"><span id="rmBlock"></span><span id="rmProg"></span><button type="button" class="rm-cx" id="rmCx" hidden>⚡ Complication(s)</button></div><div class="rm-map" id="rmMap" hidden></div><div class="rm-body" id="rmBody"></div></div>
 <!-- MODE MONITEUR (v4.60.0, audit design D3) : le téléphone POSÉ devient un afficheur. Sur un
      chariot ou un tableau de bord d'ambulance, personne ne tient l'appareil — c'est l'ECAM au
      sens propre : un écran d'état qu'on lit sans le toucher, à 2 m. AUCUN contrôle : un tap
@@ -5822,7 +5765,7 @@ async function quitExercise(){
 function cxEnter(f,target){
   if(!f)return;
   const local=(f.blocks||[]).some(b=>b&&b.id===target);
-  if(!local){if(relTarget(target)){openRel(target);_rmSync();}return;}
+  if(!local){if(relTarget(target)){openRel(target);}return;}
   ovDropOpens();
   /* (L'effacement manuel de `_navBy` vivait ICI, et c'était le SEUL du fichier — d'où le défaut
      corrigé en v4.55.5. Il est retiré, pas déplacé : la mention est désormais amarrée au numéro
@@ -5836,33 +5779,7 @@ function cxEnter(f,target){
   if(just)render();
   else if(state.readMode==='overview'&&hasFlow(f)){renderOvOnly();ovScrollTo(target);}
   else render();
-  _rmSync();}
-/* Le LECTEUR reste ouvert pendant une complication (doctrine QRH : le binôme lâche la checklist
-   normale pour la non-normale SANS changer de support) — il est repiloté sur le nouveau bout. */
-function _rmSync(){const rm=document.getElementById('readerMode');
-  if(rm&&rm.classList.contains('on')){readerI=-1;readerRender();}}
-/* REPEINDRE LE LECTEUR SANS LE DÉPLACER. Distinct de `_rmSync`, qui REPOSITIONNE (readerI=-1) :
-   celui-là appartient aux gestes qui CHANGENT DE CHECKLIST (complication, reprise). Une action
-   arrivée de l'autre appareil ne doit rien déplacer — elle met à jour ce qui est affiché, et
-   c'est tout. */
-function readerRepaint(){const rm=document.getElementById('readerMode');
-  if(rm&&rm.classList.contains('on'))readerRender();}
-/* BANNIÈRE « le pilote a avancé » — un ÉTAT sur place, jamais une fenêtre ni un défilement (règle
-   11). Registre INFORMATION : ce n'est pas une alerte, c'est une nouvelle. Elle porte le geste qui
-   la lève, et ce geste est LOCAL — c'est toute la doctrine de l'acquittement par l'action. */
-function rmBanHtml(){return _rmPending
-  ? '<button type="button" class="rm-ban" data-rmresume>Le soignant a avancé — reprendre à sa position</button>'
-  : '';}
-function _rmOn(){const rm=document.getElementById('readerMode');
-  return !!(rm&&rm.classList.contains('on'));}
-/* « LE PILOTE A AVANCÉ » — un état, pas une interruption. Il vit dans le lecteur, sur place, et
-   se lève par un GESTE LOCAL : reprendre. C'est le briefing de reprise d'AC 120-71B §6.4 pt 7,
-   qui veut qu'un équipier qui revient reçoive une synthèse et non l'état brut. */
-let _rmPending=false;
-function rmResume(){
-  _rmPending=false;
-  shareDrainDefer();   // point UNIQUE depuis v5.0.0 (cf. `shareDrainDefer`)
-  readerI=-1;readerRender();}
+  }
 function cxResume(f,backId){
   if(!f||!(f.blocks||[]).some(b=>b&&b.id===backId))return;
   ovDropOpens();
@@ -5873,7 +5790,7 @@ function cxResume(f,backId){
   else render();
   {const cards=document.querySelectorAll('.ov-wrap .ov-block');const last=cards[cards.length-1];
    if(last){last.classList.add('cx-return');last.addEventListener('animationend',()=>last.classList.remove('cx-return'),{once:true});}}
-  _rmSync();}
+  }
 const cxModal=document.getElementById('cxModal');
 bindModalDismiss(cxModal,closeCxDlg);
 {const x=document.getElementById('cxX');if(x)x.onclick=closeCxDlg;}
@@ -7657,7 +7574,7 @@ function tickAll(){
 // FUSIONNÉ dans le bandeau de crise : le chrono compact #cbTimers (à droite du bandeau) reprend
 // le rôle de l'ancien rappel #rtStrip — visible quand un minuteur tourne ET que le panneau
 // minuteurs est sorti de l'écran ; tap -> remonte au panneau. Un seul bloc d'état dans la barre.
-let _rtsHtml='',_rtsFitKey='',_rtsFit=0,_rtsNoChev=false,_rtsNu=true,_rmSegHtml='';
+let _rtsHtml='',_rtsFitKey='',_rtsFit=0,_rtsNoChev=false,_rtsNu=true;
 function updateRtStrip(now){
   now=now||Date.now();
   const crisis=state.view==='read'&&!!Runtime.fiche;
@@ -7680,20 +7597,6 @@ function updateRtStrip(now){
     return {t,d,due:t.type==='interval'&&d.val==='00:00',
       rem:dueDone(t)?-1:(t.type==='interval'?Math.max(0,(t.seconds*1000||0)-(t.elapsedMs+(t.running?(now-t.lastStart):0))):Infinity)};};
   const run=crisis?Object.values(Runtime.timers).filter(t=>t.running||dueDone(t)):[];
-  /* MODE LECTEUR (v4.28.0) : l'overlay (z 92) COUVRE le quai #cbTimers — or une zone d'état ne
-     disparaît JAMAIS (le segment ambre d'un échu est le canal d'acquittement de l'alarme). Le
-     lecteur porte donc sa PROPRE bande : chrono (déjà là, v4.11.0) + TOUS les minuteurs, échus
-     d'abord. Pas de « +n » ici : la bande peut passer à la ligne, rien n'est jamais caché. */
-  {const rmOn=document.getElementById('readerMode').classList.contains('on');
-   const rt=document.getElementById('rmTime');
-   if(rt&&rmOn&&Runtime.started){rt.hidden=false;rt.classList.toggle('exo',!!Runtime.exercise);
-     rt.textContent=(Runtime.exercise?'▲ ':'● ')+fmtMs(now-Runtime.startedAt);}
-   const rs=document.getElementById('rmTimers');
-   if(rs){if(!rmOn||!run.length){rs.hidden=true;_rmSegHtml='';}
-     else{const ws=run.map(rtWith).sort((a,b)=>a.rem-b.rem);
-       const h=ws.map(x=>'<span class="rm-seg'+(x.due?' due':'')+'"><span class="l">'+(esc(x.t.label)||(x.t.type==='interval'?'Minuteur':'Chrono'))+(x.due?' — échu':'')+'</span><span class="v">'+x.d.val+'</span></span>').join('');
-       if(h!==_rmSegHtml){_rmSegHtml=h;rs.innerHTML=h;}
-       rs.hidden=false;}}}
   const el=document.getElementById('cbTimers');if(!el)return;
   /* LE QUAI N'EXISTAIT PAS CHEZ L'INVITÉ (v4.47.0). La condition était `Runtime.started`,
      c'est-à-dire « MA session a démarré » — or un invité qui SUIT n'a rien démarré localement,
@@ -10026,11 +9929,11 @@ function shareCan(role,kind){
 /* ÉTAT DE SESSION vs ÉTAT DE VUE. `snapshotSession` ne sérialise pas `flowEnded` — or c'est un
    état de SESSION : il pilote la bannière « Algorithme terminé » et les étapes ②/③ du rail. Sans
    lui, le pilote bascule et l'invité voit encore « Continuer ». Les autres (`confOpen`, `ovFold`,
-   `ovVerify`, `readerI`) sont PROPRES À CHAQUE ÉCRAN et ne doivent surtout pas voyager : imposer
+   `ovVerify`) sont PROPRES À CHAQUE ÉCRAN et ne doivent surtout pas voyager : imposer
    son repli ou sa position de lecture à l'autre serait un mouvement non commandé. La frontière
    est écrite ICI et vérifiée par un test — sinon elle se re-perdra au prochain champ ajouté. */
 const SHARE_TRAVELS=['checked','verified','vgaps','nav','navSeq','counters','timers','events','flowEnded','cxBack'];
-const SHARE_LOCAL  =['confOpen','ovFold','ovVerify','readerI','navPos','rtOpen','fsOpen','showFlow','readMode','previewFrom'];
+const SHARE_LOCAL  =['confOpen','ovFold','ovVerify','navPos','rtOpen','fsOpen','showFlow','readMode','previewFrom'];
 /* CODE D'APPARIEMENT — lecture, normalisation, affichage.
    L'alphabet est RECOPIÉ du serveur, qui reste la seule autorité : ce qui est ici ne sert qu'à
    refuser tôt une saisie manifestement fautive et à afficher un message utile. Une divergence
@@ -11440,7 +11343,6 @@ function bindReadEvents(f,blk,cur){
       ? [{label:'Prendre la main',ic:'⇄',sub:'vous conduirez la checklist',
           act:()=>{if(Share.takeLead()){announce('Vous avez pris la main.');shareMenuRefresh();}}}]
       : []),
-    ...(hasFlow(f)?[{label:'Mode lecteur (binôme)',ic:uiIcon('play',16),act:readerOpen}]:[]),
     ...(Runtime.started&&Runtime.ficheId===f.id?[{label:'Mode moniteur',ic:uiIcon('expand',16),sub:'appareil posé, lisible à 2 m',act:monOpen}]:[]),
     ...(hasFlow(f)&&state.readMode!=='static'?[{label:'Se repérer',ic:uiIcon('ladder',16),sub:'échelle des blocs',act:openPlanSheet}]:[]),
     ...(hasFlow(f)?[{label:'Schéma de l’algorithme',ic:uiIcon('flow',16),sub:'plein écran, zoom',act:()=>openFlowFull(f)}]:[]),
@@ -11457,7 +11359,6 @@ function bindReadEvents(f,blk,cur){
   ]);
   else if(!state.previewFrom)_moreBuild=()=>setMoreMenu([
     ...(cxAll(f).length?[{label:'Complication'+(cxAll(f).length>1?'s ('+cxAll(f).length+')':''),ic:'⚡',sub:'à tout moment',act:()=>openCxDlg(f)}]:[]),
-    ...(hasFlow(f)?[{label:'Mode lecteur (binôme)',ic:uiIcon('play',16),act:readerOpen}]:[]),
     ...(Runtime.started&&Runtime.ficheId===f.id?[{label:'Mode moniteur',ic:uiIcon('expand',16),sub:'appareil posé, lisible à 2 m',act:monOpen}]:[]),
     ...(hasFlow(f)&&state.readMode!=='static'?[{label:'Se repérer',ic:uiIcon('ladder',16),sub:'échelle des blocs',act:openPlanSheet}]:[]),
     ...(hasFlow(f)?[{label:'Schéma de l’algorithme',ic:uiIcon('flow',16),sub:'plein écran, zoom',act:()=>openFlowFull(f)}]:[]),
@@ -11861,8 +11762,7 @@ function ovInstHtml(f,id,idx,topo,pres){
   const verifying=state.ovVerify&&state.ovVerify.idx===idx;
   const btns=verifying
     ?`<button type="button" class="ov-redo" data-ovvx title="Quitter la vérification — l'état des cases est déjà enregistré">✕</button>`
-    :((tip&&hasFlow(f)?`<button type="button" class="ov-redo" data-ovreader title="Mode lecteur (binôme) : un challenge à la fois en plein écran — le lecteur lit, l'exécutant répond">${uiIcon('expand',13)} Lecteur</button>`:'')
-      +((!dec&&clean(b.steps).length)?`<button type="button" class="ov-redo" data-ovverify="${idx}" title="Do-Verify : redérouler ce bloc en challenge-réponse — « Constaté » coche, « Écart » laisse non coché">Vérifier</button>`:'')
+    :(((!dec&&clean(b.steps).length)?`<button type="button" class="ov-redo" data-ovverify="${idx}" title="Do-Verify : redérouler ce bloc en challenge-réponse — « Constaté » coche, « Écart » laisse non coché">Vérifier</button>`:'')
       +((!tip&&complete&&!dec)?`<button type="button" class="ov-redo" data-ovredo="${esc(id)}" title="Refaire ce bloc : nouvelle carte au bout du journal — celle-ci reste telle quelle">↺ Refaire</button>`:''));
   return `<section class="ov-block${tip?' cur':''}${complete?' done':''}${dec?' dec':''}${closed&&!verifying?' closed':''}" data-ovb="${esc(id)}" data-ovi="${idx}" data-ovn="${topo[id]||''}"${tip?' aria-current="step"':''}><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="${idx}" aria-expanded="${closed&&!verifying?'false':'true'}"><span class="ov-n" aria-hidden="true">${complete?uiIcon('check',13,{sw:3.2,cls:''}):(topo[id]||((Runtime.cxBack||{})[seq]?'⚡':'·'))}</span><span class="ov-t">${esc(b.title)||(dec?'Décision':'Étapes')}${passTag}${cxTag}${takenH}${navByTag(tip,seq)}</span><span class="ov-c">${count}</span><span class="ov-chev" aria-hidden="true">${closed&&!verifying?'▾':'▴'}</span></button>${(btns||tip)?`<div class="ov-acts">${tip?'<span class="ov-here">Vous êtes ici</span>':''}${btns}</div>`:''}</div><div class="ov-body">${bodyH}</div></section>`;}
 /* PLAN DE L'AIDE — « Se repérer » (v4.12.0, réduit à UNE vue en v4.25.0) : rendu de flowPlan.
@@ -12509,7 +12409,6 @@ function shareApplyAnchored(f,evs){
   if(suivait){const nb=main.querySelectorAll('.ov-block[data-ovi]');const nv=nb[nb.length-1];
     if(nv){const r=nv.getBoundingClientRect();
       if(r.top<stickBase()+4||r.bottom>window.innerHeight-4)ovScrollEl(nv);}}
-  readerRepaint();
   return n;}
 function sharePaintLive(f,e){
   const p=e.payload||{};
@@ -12736,7 +12635,6 @@ function bindOverviewEvents(f){
     const vx=t.closest('[data-ovvx]');
     if(vx){const vf=state.ovVerify;state.ovVerify=null;renderOvOnlyKeepAnchor(vf?'.ov-block[data-ovi="'+vf.idx+'"]':null);return;}
     // MODE LECTEUR (v4.11.0) : plein écran, piloté sur le bout du journal.
-    const rdr=t.closest('[data-ovreader]');if(rdr){readerOpen();return;}
     // (Les trois branches du PLAN — data-plref / data-plln / data-plgo — ont été SUPPRIMÉES ici
     //  en v4.44.0 : elles étaient INATTEIGNABLES. Ce gestionnaire délègue sur `.ov-wrap`, le
     //  JOURNAL ; or le plan a quitté le journal en v4.23.0 pour vivre dans le RAIL (`.rail-lad`,
@@ -13243,16 +13141,6 @@ function renderSvOnly(){
  window.addEventListener('resize',()=>{
    if(!(state.view==='read'&&state.readMode==='static'&&state.fiche&&hasFlow(state.fiche)))return;
    clearTimeout(_svTm);_svTm=setTimeout(svPaintArrows,40);});}
-/* ===== MODE LECTEUR (v4.11.0) =====
-   Challenge-response en BINÔME (AC 120-71B) : le lecteur désigné tient l'écran, lit le
-   challenge à voix haute, l'exécutant répond, le lecteur valide — UN challenge à la fois,
-   plein écran (typographie lisible à bout de bras, zone de validation ≥ 72 px, mains gantées).
-   Piloté sur le BOUT du journal : « RÉPONDU » coche la même clé que la checklist, la fin d'un
-   bloc suit les mêmes règles que « Continuer » (jamais d'avance tant que tout n'est pas
-   confirmé — le libellé dit pourquoi, « Revoir » ramène au premier écart), une décision suit
-   le même chemin qu'une option. Quitter (✕/Échap) ne perd RIEN : l'état est déjà la session.
-   readerI est transitoire (jamais persisté) ; -1 = reprendre au premier challenge non coché. */
-let readerI=-1;
 /* ===== MODE MONITEUR (v4.60.0, audit design D3) =====
    Le téléphone POSÉ devient un afficheur : chariot, tableau de bord d'ambulance, second appareil
    de l'invité. On y lit à deux mètres — chrono de session, PROCHAIN minuteur (nom + temps), et le
@@ -13309,135 +13197,6 @@ function monRender(){
   const fh=last?`Dernier repère : <b>${esc(labs[evs.length-1]||'Repère')}</b> · ${esc(fmtHMS(last.t))}`
     :'Aucun repère horodaté';
   {const el=document.getElementById('monFoot');if(el.innerHTML!==fh)el.innerHTML=fh;}}
-function readerOpen(){const f=state.fiche;if(!f||!(f.blocks||[]).length)return;
-  _histArm();   // retour système (v4.30.0) : le lecteur est une surface plein écran
-  const rm=document.getElementById('readerMode');
-  document.getElementById('rmTitle').textContent=f.title||'';
-  readerI=-1;
-  rm.classList.add('on');readerRender();
-  /* LE FOCUS NE VA PAS SUR UN CONTRÔLE MORT. Sur un bloc de DÉCISION, le lecteur n'offre que des
-     `.rm-opt` — tous bridés pour un scribe : le focus initial atterrissait sur un bouton qui ne
-     fait rien, et l'écran n'avait plus aucun contrôle opérable au clavier. */
-  const scribe=document.body.classList.contains('share-scribe');
-  const utile=[...rm.querySelectorAll('.rm-ok,.rm-opt')]
-    .find(x=>!scribe||!x.matches(LEAD_ONLY_SEL));
-  const b=utile||document.getElementById('rmClose');
-  if(b)b.focus();}
-function readerClose(){const rm=document.getElementById('readerMode');if(!rm.classList.contains('on'))return;
-  rm.classList.remove('on');document.getElementById('rmBody').innerHTML='';
-  if(state.view==='read'&&state.fiche)render();}   // resynchronise la vue derrière (journal/guidé)
-function readerRender(){const f=state.fiche;const rm=document.getElementById('readerMode');
-  if(!f||!rm.classList.contains('on'))return;
-  state.navPos=state.nav.length-1;
-  const idx=state.navPos;const id=state.nav[idx];const seq=state.navSeq[idx]||1;
-  const b=(f.blocks||[]).find(x=>x.id===id);const body=document.getElementById('rmBody');
-  if(!b){readerClose();return;}
-  document.getElementById('rmTitle').textContent=f.title||'';   // v4.28.0 : peut changer (complication externe)
-  const num={};flowPlan(f).order.forEach((x,i)=>{num[x]=i+1;});
-  /* CARTE DES BLOCS (v4.28.0, modèle ECL) + accès ⚡ constant : l'événement n'attend pas qu'on
-     quitte le lecteur — même index #cxModal que l'écran principal, par-dessus l'overlay. */
-  {const mp=document.getElementById('rmMap');
-   if(mp){const md=minimapData(f,state.nav,state.navSeq,state.checked,state.navPos);
-     mp.hidden=md.length<2;
-     mp.innerHTML=md.map(m=>`<span class="rm-nd${m.cur?' cur':(m.complete?' ok':'')}" title="${esc(m.title)}">${(m.complete&&!m.cur)?'✓':m.n}</span>`).join('');
-     mp.setAttribute('role','img');mp.setAttribute('aria-label','Blocs : '+md.filter(x=>x.complete).length+' fait(s) sur '+md.length);}}
-  {const cb2=document.getElementById('rmCx');if(cb2){const n=cxAll(f).length;cb2.hidden=!n;cb2.onclick=()=>openCxDlg(f);}}
-  document.getElementById('rmBlock').textContent=(num[id]?num[id]+' · ':'')+((b.title||'').trim()||(b.type==='decision'?'Décision':'Étapes'));
-  const tEl=document.getElementById('rmTime');if(tEl)tEl.hidden=!Runtime.started;
-  if(b.type==='decision'){
-    document.getElementById('rmProg').textContent='décision';
-    body.innerHTML=`${rmBanHtml()}<p class="rm-hint">Lisez la question à voix haute — décidez ensemble</p><p class="rm-ch vig">${fmt(b.question)||esc(b.title)||'…'}</p><div class="rm-sp"></div>${(b.options||[]).map((o,i)=>`<button type="button" class="rm-opt" data-ovopt="${esc(o.target||'')}">${fmt(o.label)||'Option '+(i+1)} →</button>`).join('')}`;
-    return;}
-  const steps=clean(b.steps);
-  if(readerI<0){readerI=0;while(readerI<steps.length&&state.checked[seq+':'+id+':'+readerI])readerI++;}
-  if(readerI>=steps.length){
-    let dn=0;steps.forEach((s,i)=>{if(state.checked[seq+':'+id+':'+i])dn++;});
-    const all=steps.length===0||dn>=steps.length;
-    const nxt=b.next?f.blocks.find(x=>x.id===b.next):null;
-    document.getElementById('rmProg').textContent=dn+'/'+steps.length;
-    /* EXCURSION DE COMPLICATION (v4.28.0) : même doctrine que le journal (v4.26.0) — le parcours
-       n'est pas FINI, il est INTERROMPU : jamais « Terminer » ici ; le contrôle rempli est le
-       RETOUR, toujours actif (non bloquant — on reprend quand l'événement est maîtrisé). */
-    const cxb=(Runtime.cxBack||{})[seq];
-    const bb2=cxb?f.blocks.find(x=>x.id===cxb.id):null;
-    const reprH=cxb?`<button type="button" class="rm-ok" data-cxback="${esc(cxb.id)}">↩ Reprendre — ${esc((bb2&&bb2.title)||'le parcours')} →</button>`:'';
-    const lbl=nxt?('Continuer — '+((b.nextLbl||'').trim()||nxt.title||'suite')+' →'):'Terminer l’algorithme ✓';
-    const fwdH=nxt?`<button type="button" class="rm-ok" data-ovnext="${esc(b.next)}">${esc(lbl)}</button>`:(cxb?reprH:`<button type="button" class="rm-ok" data-ovend>${esc(lbl)}</button>`);
-    body.innerHTML=all
-      ?`<div class="rm-sp"></div><div class="rm-done">Bloc confirmé — ${dn}/${steps.length||dn} ✓</div><div class="rm-sp"></div>${fwdH}${nxt&&cxb?reprH:''}<button type="button" class="rm-prev" data-rmprev>‹ challenge précédent</button>`
-      :`<div class="rm-sp"></div><p class="rm-ch vig" style="font-size:19px">${steps.length-dn} challenge${steps.length-dn>1?'s':''} non confirmé${steps.length-dn>1?'s':''}</p><div class="rm-sp"></div>${reprH}<button type="button" class="rm-ok idle" data-rmreview>Revoir les écarts (${steps.length-dn})</button><button type="button" class="rm-prev" data-rmprev>‹ challenge précédent</button>`;
-    return;}
-  const s=steps[readerI];const cr=stepCR(stepText(s));
-  document.getElementById('rmProg').textContent=(readerI+1)+'/'+steps.length;
-  /* CONTEXTE LOCAL (v4.28.0, ECL/Degani & Wiener : un item isolé fait perdre sa place — et le
-     binôme soignant ANTICIPE : voir venir « Adrénaline », c'est préparer la seringue). Précédent
-     avec son état, suivant en petit ; le challenge courant reste seul en 26 px. */
-  /* Le CONTEXTE LOCAL (`.rm-ctx`, v4.28.0 : « précédent avec ✓ », « suivant : … ») était une
-     reconstruction MANUELLE de ce que la liste donne gratuitement — deux lignes recopiées à
-     côté d'un paragraphe isolé. Il disparaît avec la structure qui l'exigeait : la liste montre
-     le précédent, le courant et le suivant, dans leur ordre et leur registre réels. */
-  /* I4 (v4.62.0) — LE LECTEUR REND LA MÊME LISTE QUE LA PAGE, en densité « corps +2 ».
-     Avant : un paragraphe `.rm-ch` isolé, une structure à lui — donc une deuxième cartographie
-     mentale pour la même information, et un cross-check à voix haute qui se désynchronise
-     (« bloc 2, ligne 2 » ne désignait pas la même chose des deux côtés). Désormais le bloc entier
-     est là, dans le DOM du journal (`ol.steps > li[data-ck]`), la ligne COURANTE mise en avant
-     par `.cur-step` — c'est le modèle ECL Boeing que l'audit v4.28.0 citait déjà contre le
-     un-item-à-la-fois : liste entière + curseur, parce que perdre sa place est un mode de
-     défaillance premier (Degani & Wiener). Le challenge dominant, la réponse attendue et la
-     grande zone verte restent : ce sont des DENSITÉS, pas des structures. */
-  const listeH=stepsListHtml(steps,seq,id,{cls:'rm-steps',cur:readerI,items:bItems(f.blocks.find(x=>x.id===id)||{})});
-  /* La RÉPONSE ATTENDUE n'est plus répétée sous la liste : la ligne la porte déjà (pilule
-     `.stp-r` de `stepTxtHtml`, agrandie par la densité). Le bloc `.rm-r` séparé était le pendant
-     du paragraphe isolé — avec la liste, il affichait la même valeur deux fois. */
-  body.innerHTML=`${rmBanHtml()}<p class="rm-hint">Lisez à voix haute — l'exécutant répond, vous validez</p>${listeH}<div class="rm-sp"></div><button type="button" class="rm-ok" data-rmok>Répondu — conforme ✓</button><button type="button" class="rm-gap" data-rmgap>△ Écart — passer sans cocher</button>${readerI>0?'<button type="button" class="rm-prev" data-rmprev>‹ challenge précédent</button>':''}`;
-  /* La ligne courante est AMENÉE SOUS LES YEUX, jamais l'écran entier : `scrollIntoView` sur un
-     conteneur propre (le corps du lecteur), pas sur la page — même discipline que
-     `scrollWithin`. `block:'center'` : la ligne suivante et la précédente restent lisibles, ce
-     qui EST le contexte que v4.28.0 avait ajouté à la main. */
-  {const li=body.querySelector('.cur-step');
-   if(li&&li.scrollIntoView)li.scrollIntoView({block:'center',behavior:'auto'});}}
-// Écouteurs du mode lecteur : délégation UNIQUE (élément statique) + Échap/piège de focus minimal.
-{const rm=document.getElementById('readerMode');
- if(rm){rm.addEventListener('click',e=>{const f=state.fiche;if(!f)return;
-   if(e.target.closest('#rmClose')){readerClose();return;}
-   const idx=state.nav.length-1;const id=state.nav[idx];const seq=state.navSeq[idx]||1;
-   /* TROISIÈME COPIE DU CŒUR DE COCHAGE, JAMAIS RECENSÉE. La doctrine du projet en annonce DEUX
-      (guidé et journal) et leur impose un prédicat UNIQUE, parce qu'elles avaient divergé en
-      v4.42.0. Le lecteur en est une troisième, et elle écrivait `state.checked` EN DIRECT :
-      mesuré, un invité au lien ARRÊTÉ cochait quand même depuis le lecteur alors que le même geste
-      était refusé sur la page. Une exception à un invariant qu'on croyait tenu par construction. */
-   if(e.target.closest('[data-rmok]')){
-     /* I4 : le lecteur passe par le MÊME cœur — c'était la troisième copie, et elle écrivait
-        `state.checked` en direct : un invité au lien ARRÊTÉ y cochait alors que le même geste
-        était refusé sur la page (v4.55.x). Elle ne peut plus diverger : il n'y a plus qu'un
-        point d'écriture. */
-     if(!applyCheck(seq+':'+id+':'+readerI,true))return;
-     const js=ensureStarted();persistLive(Runtime);if(js)render();   // derrière l'overlay (élément hors <main>)
-     readerI++;readerRender();return;}
-   if(e.target.closest('[data-rmgap]')){readerI++;readerRender();return;}
-   const rb=e.target.closest('[data-cxback]');
-   if(rb){cxResume(f,rb.dataset.cxback);return;}
-   if(e.target.closest('[data-rmresume]')){rmResume();return;}
-   if(e.target.closest('[data-rmprev]')){readerI=Math.max(0,readerI-1);readerRender();return;}
-   if(e.target.closest('[data-rmreview]')){const b=(f.blocks||[]).find(x=>x.id===id);const st=clean((b&&b.steps)||[]);
-     readerI=0;while(readerI<st.length&&state.checked[seq+':'+id+':'+readerI])readerI++;readerRender();return;}
-   if(e.target.closest('[data-ovend]')){state.flowEnded=true;readerClose();return;}   // Terminer -> retour vue
-   const nx=e.target.closest('[data-ovnext]');
-   if(nx){const t2=nx.dataset.ovnext;
-     if(!t2){state.flowEnded=true;readerClose();return;}
-     if(Runtime.started)state.confOpen=false;   // repli différé de l'étape ① — même doctrine que « Continuer »
-     state.nav.push(t2);state.navSeq.push(++Runtime.seq);state.navPos=state.nav.length-1;
-     if(Runtime.started)persistLive(Runtime);readerI=-1;readerRender();return;}
-   const op=e.target.closest('[data-ovopt]');
-   if(op){const t3=op.dataset.ovopt;if(!t3||!f.blocks.some(x=>x.id===t3))return;
-     state.nav.push(t3);state.navSeq.push(++Runtime.seq);state.navPos=state.nav.length-1;
-     if(Runtime.started)persistLive(Runtime);readerI=-1;readerRender();return;}});
-  document.addEventListener('keydown',e=>{if(!rm.classList.contains('on'))return;
-    if(e.key==='Escape'){e.preventDefault();readerClose();}
-    else if(e.key==='Tab'){const els=[...rm.querySelectorAll('button')].filter(x=>!x.disabled&&x.offsetParent);if(!els.length)return;
-      const i=els.indexOf(document.activeElement);
-      if(e.shiftKey&&i<=0){e.preventDefault();els[els.length-1].focus();}
-      else if(!e.shiftKey&&(i===els.length-1||i<0)){e.preventDefault();els[0].focus();}}});}}
 /* Mise à jour CIBLÉE de la navigation entre blocs (v4.4.5) : remplace SEULEMENT le fil d'Ariane,
    le bloc courant, la rangée « Bloc précédent / Recommencer », le compteur du panneau algorithme
    et le halo du SVG — sans reconstruire le reste de la vue (galerie d'images base64, parcours de
@@ -17884,7 +17643,6 @@ const Share={
          prochain geste local (doctrine « acquittement par l'action »), et la bannière le dit —
          car ne pas suivre en silence serait le pire des deux mondes : l'autre a avancé, et celui
          qui lit à voix haute l'ignore. */
-      if(mode==='anchored'&&_rmOn()){this._defer.push(e);if(!_rmPending){_rmPending=true;anno=true;}continue;}
       if(mode==='anchored'){anc.push(e);continue;}
       if(mode!=='live'){this._defer.push(e);continue;}
       if(sharePaintLive(f,e))peint++;
@@ -17895,17 +17653,6 @@ const Share={
     // La base de diff suit ce qu'on vient d'APPLIQUER : sans ce recalage, le prochain
     // enregistrement re-diffuserait à l'expéditeur ce qu'il vient d'envoyer.
     shareRebase();
-    /* LE MODE LECTEUR VIT HORS DE `main` — il ne se repeignait donc JAMAIS. Mesuré : coche
-       distante appliquée à l'état et peinte dans le journal (témoin `done` posé), lecteur
-       inchangé — le binôme qui lit à voix haute récitait un état périmé, et son contexte annonçait
-       encore « suivant : … » sur une étape déjà faite. C'est l'inverse exact de sa raison d'être
-       (Degani & Wiener : perdre sa place est un mode de défaillance premier).
-       REPEINDRE, SANS DÉPLACER. `_rmSync` remet `readerI` à -1, ce qui ferait SAUTER le lecteur au
-       premier item non coché — un mouvement autonome sous les yeux du lecteur, précisément ce que
-       la règle 11 interdit. On rend donc à position CONSERVÉE : le challenge courant reste le
-       challenge courant, seuls son état et son contexte se mettent à jour. */
-    // La bannière du lecteur est un rendu à part entière : elle apparaît même quand RIEN n'a été
-    // peint dans la checklist, puisque c'est précisément le cas où l'on a refusé d'appliquer.
     if(_hoTake&&this.mode==='host'){const who=_hoTake;_hoTake=null;
       /* L'inscription est AUTOMATIQUE : l'hôte a consenti en PROPOSANT, et lui redemander une
          confirmation ajouterait un quatrième temps à un échange qui en compte trois. Elle est
@@ -17913,9 +17660,7 @@ const Share={
          suivante, jamais de l'évènement — un rôle qu'un évènement suffirait à changer serait un
          rôle que n'importe qui s'accorderait. */
       this.grantLead(who).then(ok=>{if(ok){announce('Vous avez passé la main.');render();}});}
-    if(peint||anno)readerRepaint();
-    if(navBy&&anno)announce(navBy+' a avancé la checklist.');
-    else if(anno)announce('Le soignant a avancé — reprendre depuis le mode lecteur.');
+    if(navBy)announce(navBy+' a avancé la checklist.');
     if(peint)announce(peint===1?'Une action d’un participant':peint+' actions d’un participant');},
   onDesync(){},
   /* CHANGEMENT DE STATUT — le hook existait et n'avait AUCUN corps ni aucun assignataire : rien,
@@ -18898,8 +18643,6 @@ function _histBackAction(){
     // le chemin de bindModalDismiss — pour ce dialogue, « Poursuivre », JAMAIS « Terminer ».
     return()=>{if(x)x.click();else m.dispatchEvent(new MouseEvent('click',{bubbles:true}));};}
   if(typeof monOn==='function'&&monOn())return monClose;
-  const rm=document.getElementById('readerMode');
-  if(rm&&rm.classList.contains('on'))return readerClose;
   const ff=document.getElementById('flowFull');
   if(ff&&ff.classList.contains('on'))return closeFlowFull;
   if(typeof lb!=='undefined'&&lb&&lb.classList.contains('on'))return closeLightbox;

@@ -277,7 +277,7 @@ premiers : ils préparent le terrain et réparent un défaut d'intégrité.
 | **T12** | **Réécrire `AI_PROMPT`.** Il décrit le format v3 : `notForget`, `confirmation`, `verify`, `posology`, `differentials` n'existent plus ; `role`, `level`, `memory`, `dual`, `phase`, `concl` sont inconnus de lui. Une IA produirait aujourd'hui un JSON que l'import v4 refuserait. | T6 | moyen |
 | **T13** | **Correctifs J0 restants** : enrichir les deux fiches d'exemple au format v4 (J0-D1), réduire l'écran de bienvenue (J0-D5), snackbar → bandeau système (J0-D6). Petits, indépendants, gain de compréhension immédiat. | T6 pour les fiches | faible |
 
-### T14 — Retrait du mode lecteur (décidé le 31/07/2026, préparé, NON exécuté)
+### T14 — Retrait du mode lecteur — ✅ **LIVRÉ** (31/07/2026)
 
 **Décision de l'auteur, sur mesures** : le lecteur ne gagne qu'à 320 px (63 % de l'écran aux étapes
 contre 36 % pour la carte de bloc, 5 étapes contre 3) et **perd à 390** (47 % contre 59 %) ; sa
@@ -290,7 +290,7 @@ dédié.
 le balisage `#readerMode`, 2 entrées du menu ⋯, le bouton `[data-ovreader]` de la carte de bloc,
 l'entrée de `_histBackAction`, `state.readerI`.
 
-> #### ⛔ PRÉALABLE OBLIGATOIRE — trouvé en tentant l'excision, puis annulée
+> #### ✅ PRÉALABLE LEVÉ — le drain « deferred » a été réparé d'abord (et il l'était doublement)
 >
 > **`rmResume` est le SEUL site qui draine la file `Share._defer`.** Or cette file ne reçoit pas
 > que des évènements du lecteur : `SHARE_APPLY` classe **`verify` et `gap` en `'deferred'`**, et

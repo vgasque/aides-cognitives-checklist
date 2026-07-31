@@ -1190,25 +1190,6 @@ console.log(`\n══ PARTAGE · le miroir suit quand l'hôte avance — moteur 
       out.cleDrain = cle;
     }
 
-    // ── Lecteur OUVERT : le régime s'inverse.
-    readerOpen();
-    await new Promise(x => setTimeout(x, 350));
-    const navAvantLecteur = Runtime.nav.slice();
-    const cible2 = blocs.find(id => navAvantLecteur.indexOf(id) < 0) || blocs[0];
-    Share.onEvents([{ seq: 12, id: 'n2', actor: 'hote', kind: 'nav',
-      payload: { nav: navAvantLecteur.concat([cible2]),
-                 navSeq: Runtime.navSeq.concat([(Runtime.seq || 1) + 1]) } }]);
-    await new Promise(x => setTimeout(x, 450));
-    out.lecteurRefuse = Runtime.nav.join('|') === navAvantLecteur.join('|');
-    out.banniere = !!document.querySelector('#readerMode [data-rmresume]');
-    out.banniereTexte = (document.querySelector('#readerMode [data-rmresume]') || {}).textContent || '';
-
-    // Le geste LOCAL qui lève l'attente — et lui seul.
-    const b = document.querySelector('#readerMode [data-rmresume]');
-    if (b) b.click();
-    await new Promise(x => setTimeout(x, 400));
-    out.apresReprise = Runtime.nav.indexOf(cible2) >= 0;
-    out.banniereApres = !!document.querySelector('#readerMode [data-rmresume]');
     return out;
   });
   t('l’hôte avance : la navigation ATTEINT l’écran', r.applique === true, JSON.stringify(r).slice(0, 220));
@@ -1230,10 +1211,6 @@ console.log(`\n══ PARTAGE · le miroir suit quand l'hôte avance — moteur 
   t('un « Continuer » ORDINAIRE draine la file (sans le mode lecteur)',
     r.fileApres === 0 && r.apresDrain === true,
     `file ${r.filePleine} → ${r.fileApres}, trace ${r.avantDrain} → ${r.apresDrain} · geste « ${r.btn} », rôle ${r.role}`);
-  t('lecteur ouvert : la navigation est REFUSÉE', r.lecteurRefuse === true);
-  t('… mais elle est ANNONCÉE sur place', r.banniere === true && /avanc/i.test(r.banniereTexte), r.banniereTexte);
-  t('… et un geste LOCAL la reprend', r.apresReprise === true);
-  t('… la bannière disparaît une fois reprise', r.banniereApres === false);
   await page.close();
 }
 
@@ -1591,102 +1568,6 @@ console.log(`\n══ PARTAGE · la passation de la main — moteur ${NOM_MOTEUR
   await page.close();
 }
 
-/* ── LE MODE LECTEUR EST BRIDÉ COMME LA PAGE ─────────────────────────────────────────────────
-   Signalé à l'usage : « pourquoi l'invité peut passer de bloc en bloc en mode lecteur mais pas sur
-   la page de l'aide ? » — et c'était vrai. `data-rmnext` et `data-rmopt` étaient les MÊMES verbes
-   que `data-ovnext` et `data-ovopt` sous d'autres noms ; la liste ne les nommait pas.
-   DEPUIS I4 (v4.62.0) LE VOCABULAIRE PARALLÈLE N'EXISTE PLUS : le lecteur ÉMET `data-ovnext` et
-   `data-ovopt`. Ce contrôle garde tout son sens — il vérifie désormais que la surface du lecteur
-   et celle de la page se comportent identiquement PARCE QU'elles parlent la même langue, et il
-   échouerait si quelqu'un réintroduisait un synonyme.
-   CE CONTRÔLE OUVRE LE LECTEUR, et ce n'est pas un détail : celui qui existait interrogeait
-   `LEAD_ONLY_SEL` le lecteur FERMÉ — il ne pouvait donc pas voir les entrées du lecteur, et serait
-   resté vert même en n'en corrigeant qu'une des deux listes. Un contrôle aveugle au défaut qu'il
-   prétend couvrir ne prouve rien (leçon v4.31.1). */
-console.log(`\n══ PARTAGE · le lecteur est bridé comme la page — moteur ${NOM_MOTEUR} ══`);
-{
-  const page = await br.newPage({ viewport: { width: 390, height: 844 } });
-  await session(page);
-  const r = await page.evaluate(async () => {
-    Share.mode = 'guest'; Share.role = 'scribe'; Share.me = 'inv'; Share.status = 'active';
-    Share.lastOk = Date.now(); Share.offset = 0; Share._q = [];
-    document.body.classList.add('share-scribe');
-    readerOpen();
-    await new Promise(x => setTimeout(x, 400));
-    const rm = document.getElementById('readerMode');
-    const out = { ouvert: rm.classList.contains('on') };
-
-    /* LE CONTRÔLE DE CONDUITE N'EXISTE QU'EN FIN DE BLOC. Le lecteur montre un challenge à la
-       fois : « Continuer » (`data-ovnext`) n'apparaît qu'une fois les étapes confirmées. Mesurer
-       avant, c'est mesurer un écran qui n'a rien à brider — la sonde le voyait vide et accusait
-       la liste. On CONFIRME donc d'abord, ce qui est précisément le verbe du scribe. */
-    for (let i = 0; i < 12 && !rm.querySelector('[data-ovnext],[data-ovopt],[data-ovend]'); i++) {
-      const b2 = rm.querySelector('[data-rmok]'); if (!b2) break;
-      b2.click(); await new Promise(x => setTimeout(x, 120));
-    }
-    out.conduiteVisible = !!rm.querySelector('[data-ovnext],[data-ovopt],[data-ovend]');
-
-    /* 1 — LE LECTEUR N'A PLUS AUCUN CONTRÔLE BRIDÉ (v4.55.0). Avancer et choisir une branche y
-       sont ouverts comme sur la page : c'est le même verbe sous un autre nom, et la cohérence
-       entre les deux surfaces est ce qui manquait — dans un sens comme dans l'autre. */
-    out.recenses = rm.querySelectorAll(LEAD_ONLY_SEL).length;
-
-    // 3 — AVANCER NE FAIT RIEN. Le vrai enjeu n'est pas « le geste est refusé » mais « le miroir
-    // ne diverge pas » : `shareEmitDiff` avance la base de comparaison AVANT d'émettre, donc un
-    // geste passé ici laisserait l'invité seul à avoir avancé, pour toujours.
-    const navAvant = Runtime.nav.length;
-    const qAvant = Share.pending();
-    const nx = rm.querySelector('[data-ovnext]') || rm.querySelector('[data-ovopt]');
-    if (nx) nx.click();
-    await new Promise(x => setTimeout(x, 350));
-    out.navApres = Runtime.nav.length;
-    out.avance = Runtime.nav.length > navAvant;
-    out.aEmis = Share.pending() > qAvant;
-
-    // 4 — LA TROISIÈME COPIE DU CŒUR DE COCHAGE passe par le prédicat unique. Mesuré avec le lien
-    // ARRÊTÉ : le même geste est refusé sur la page, il devait l'être ici aussi.
-    Share.status = 'ended';
-    const nCoches = Object.keys(state.checked).length;
-    const ok2 = rm.querySelector('[data-rmok]');
-    if (ok2) ok2.click();
-    await new Promise(x => setTimeout(x, 250));
-    out.cocheLienMort = Object.keys(state.checked).length > nCoches;
-    Share.status = 'active';
-
-    // 5 — Le focus initial n'atterrit pas sur un contrôle mort.
-    readerClose(); await new Promise(x => setTimeout(x, 200));
-    readerOpen(); await new Promise(x => setTimeout(x, 350));
-    const af = document.activeElement;
-    out.focusMort = !!(af && af.matches && af.matches(LEAD_ONLY_SEL));
-    out.focusSur = af ? (af.id || af.className || af.tagName) : '(aucun)';
-
-    // 6 — Un geste refusé déclare le miroir PÉRIMÉ plutôt que de le laisser diverger en silence.
-    // (le verbe d'épreuve est désormais un DESTRUCTEUR — c'est là que passe la ligne)
-    Share._resync = false;
-    Share.emit('timer_reset', { id: 't1' });
-    out.perimeApresRefus = Share._resync === true;
-    document.body.classList.remove('share-scribe');
-    return out;
-  });
-  t('le lecteur s’ouvre pour un scribe', r.ouvert === true);
-  t('témoin : un scribe CONFIRME bien (c’est son verbe)', r.conduiteVisible === true);
-  t('aucun contrôle du lecteur n’est bridé (v4.55.0)', r.recenses === 0, `${r.recenses} élément(s)`);
-  t('AVANCER fonctionne comme sur la page', r.avance === true, `${r.navApres} bloc(s)`);
-  t('… et le geste PART', r.aEmis === true);
-  t('cocher au lien mort est refusé ici AUSSI', r.cocheLienMort === false);
-  t('le focus n’atterrit pas sur un contrôle mort', r.focusMort === false, String(r.focusSur));
-  t('un geste refusé déclare le miroir périmé', r.perimeApresRefus === true);
-  await page.close();
-}
-
-/* ── LE MENU SUIT L'ÉTAT DU PARTAGE, ET LE LIEN MORT REFUSE TOUT ─────────────────────────────
-   Trois signalements d'usage, une cause commune pour les deux premiers : les rangées du menu ⋯
-   sont construites AU RENDU, et la règle 3 interdit de rendre sur évènement distant. Le compte de
-   participants restait donc figé, et « Prendre la main » — qui n'existe que si une offre est
-   arrivée — ne paraissait JAMAIS : la passation n'avait pas de porte.
-   Le troisième : un invité COUPÉ pouvait encore incrémenter un compteur, sans que rien ne lui dise
-   que son geste ne partait plus. « Cocher dans le vide en croyant contribuer » est nommé au plan
-   comme le pire mode de défaillance du dispositif. */
 console.log(`\n══ PARTAGE · le menu suit, le lien mort refuse — moteur ${NOM_MOTEUR} ══`);
 {
   const page = await br.newPage({ viewport: { width: 390, height: 844 } });

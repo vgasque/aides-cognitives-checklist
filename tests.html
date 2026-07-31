@@ -1089,8 +1089,10 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   // serait un mouvement non commandé. flowEnded, lui, est un état de SESSION et doit voyager.
   ok('flowEnded voyage (sinon les deux écrans divergent sur « algorithme terminé »)',
     A.SHARE_TRAVELS.indexOf('flowEnded')>=0);
-  ok('le repli, la passe de vérification et la position du lecteur restent locaux',
-    ['confOpen','ovFold','ovVerify','readerI'].every(k=>A.SHARE_LOCAL.indexOf(k)>=0));
+  /* `readerI` est parti avec le mode lecteur (lot T14, v5.0.0) : l'invariant porte sur ce qui
+     RESTE — un état d'AFFICHAGE ne voyage pas. */
+  ok('le repli et la passe de vérification restent locaux',
+    ['confOpen','ovFold','ovVerify'].every(k=>A.SHARE_LOCAL.indexOf(k)>=0));
   ok('les deux listes sont disjointes',A.SHARE_TRAVELS.every(k=>A.SHARE_LOCAL.indexOf(k)<0));
 
   // Pli du journal : déterministe, et l'annexe d'un détaché n'entre JAMAIS dans l'état.

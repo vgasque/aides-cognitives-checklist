@@ -192,7 +192,7 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
 - `npm run audit` — **audit transverse (v4.23.0 ; SOCLE COMMUN + MOTEUR CHOISISSABLE v4.45.0)**.
   Les harnais partagent `scripts/harness.mjs` (serveur statique, table MIME, choix du
   moteur) : ils recopiaient le même bloc, et la DIVERGENCE avait déjà commencé —
-  `audit-lecteur.mjs` était le seul dont la table MIME omettait `.ico`. Surtout, les onze d'alors
+  `audit-retour.mjs` était le seul dont la table MIME omettait `.ico`. Surtout, les onze d'alors
   lançaient `chromium.launch()` EN DUR : **iOS Safari, la cible principale déclarée, n'était
   auditée par AUCUN harnais**, alors que `npm test` tourne sur deux moteurs depuis v4.34.0. Le
   moteur se choisit désormais par `AC_ENGINE` (`chromium` par défaut, donc rien ne change sans
@@ -209,7 +209,7 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   au rail, aux feuilles Plan/Consulter ou à un token de couleur. **DIX-SEPT** harnais Playwright qui
   MESURENT au lieu d'affirmer (liste exacte dans `package.json`, script `audit` : a11y, doctrine,
   budget, verify, session-card, zoom-scroll, verify-live, modeseg, consulter, complications, exercice,
-  **k5**, **prompt**, lecteur, qr, partage, historique). Ils tournent en CI en mode **NON BLOQUANT** (`continue-on-error`) : visibles à chaque
+  **k5**, **prompt**, retour, qr, partage, historique). Ils tournent en CI en mode **NON BLOQUANT** (`continue-on-error`) : visibles à chaque
   push, mais un échec y demande un arbitrage humain, pas un blocage de merge. Les trois plus
   anciens, en détail :
   - `scripts/audit-a11y.mjs` — **25 surfaces × 2 thèmes, dont les 21 `.ai-modal` du monofichier
@@ -607,7 +607,7 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   support — `_rmSync` le repilote depuis `cxEnter`/`cxResume`, y compris vers une fiche EXTERNE :
   `rmTitle` est re-posé à chaque `readerRender`) ; en fin de bloc d'excursion, JAMAIS
   « Terminer » — « ↩ Reprendre — bloc → » (rempli, non bloquant : présent même avec des étapes
-  non confirmées). Harnais `scripts/audit-lecteur.mjs`.
+  non confirmées). Harnais `scripts/audit-retour.mjs`.
   **Garde-fou télégraphique** (`stepGuardTxt`, non bloquant, patron `nfGuardTxt`) : bloc
   > 7 étapes ou challenge > 110 caractères (la réponse « :: » ne compte pas).
   **Minimaps SUPPRIMÉES (v4.17.0, décision utilisateur)** : la bande de chips-blocs
@@ -722,7 +722,7 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   entre-temps = repli bibliothèque silencieux. Micro-animations v4.29.0 (non bloquantes,
   inertes sous reduced-motion) : le retour par la pile fait entrer la vue d'origine dans le sens
   du geste (`main.back-anim`, keyframes `secInL` réutilisées) et la carte de reprise d'une
-  complication glisse en place (`.ov-block.cx-return`). Harnais : `scripts/audit-lecteur.mjs`.
+  complication glisse en place (`.ov-block.cx-return`). Harnais : `scripts/audit-retour.mjs`.
 - **RETOUR SYSTÈME (History API, v4.30.0 — P1 de l'audit externe)** : avant, 0 pushState/popstate —
   sur Android (PWA ou navigateur), le geste retour SORTAIT de l'app depuis une fiche en pleine
   session, le lecteur, un PDF ou une feuille plein écran (les données survivaient via
@@ -2437,7 +2437,7 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   « Historique des sessions » a reçu `archive` (boîte, distinct de l'horloge-flèche `history`
   gardée par Versions) et « Se repérer » a reçu `ladder` (rail + lignes indentées = l'Échelle
   elle-même ; l'ex-icône `plan` — nœud + deux branches, quasi identique à `flow` juste
-  en-dessous — est SUPPRIMÉE). Couvert par `scripts/audit-lecteur.mjs`. **Pied de page nomade** : `#appFooter` (Installer l'app, version, pastille synchro,
+  en-dessous — est SUPPRIMÉE). Couvert par `scripts/audit-retour.mjs`. **Pied de page nomade** : `#appFooter` (Installer l'app, version, pastille synchro,
   jauge de stockage) ne vit plus qu'en bas de la sidebar de l'accueil — il est DÉPLACÉ
   (`placeFooter`/`rescueFooter`), jamais recréé (écouteurs vivants) ; « Exporter mes données »
   est dans la fenêtre Compte, l'import dans le dialogue Créer.
@@ -2698,6 +2698,34 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   **UN ITEM ENTRANT EST BORNÉ, JAMAIS RECOPIÉ** (`v4SanItem`, appelé depuis `migrate`) : `safeId`
   sur l'identité (règle 6), niveau ramené dans 1-3, rôle dans la liste fermée, booléens coercés,
   textes bornés. Un `level:99` ou un `dual:"oui"` venus d'un import ne franchissent pas la porte.
+- **LE MODE LECTEUR EST RETIRÉ (v5.0.0, lot T14 — décision de l'auteur, sur mesures).** Il ne
+  gagnait qu'à **320 px** (63 % de l'écran aux étapes contre 36 % pour la carte de bloc, 5 étapes
+  contre 3) et **perdait à 390** (47 % contre 59 %) : son propre chrome — titre, rôle, chrono,
+  Quitter, en-tête de bloc, pastilles, bouton de 72 px — coûtait alors plus qu'il ne rendait.
+  **SA JUSTIFICATION S'ÉTAIT ÉRODÉE DANS SA PROPRE DOCTRINE** : la v4.28.0 a explicitement
+  abandonné le « un item à la fois » (Degani & Wiener : perdre sa place est un mode de défaillance
+  premier ; modèle ECL Boeing = liste entière + curseur), et la v4.62.0 a unifié la structure
+  (`stepsListHtml`, `applyCheck`, le vocabulaire des verbes). Il ne restait qu'une coquille.
+  **ET LE CAS QUI LE MOTIVAIT LE MIEUX N'A PAS BESOIN DE LUI** (argument de l'auteur, retenu) :
+  McEvoy 2014 (99,5 % contre 70 %) décrit un **rôle de lecteur tenant l'unique appareil** — cela se
+  résout en **tendant le téléphone**, que la carte de bloc sert déjà. Le binôme à DEUX appareils,
+  lui, est servi par le partage de session, avec attribution tracée.
+  **PERTE ASSUMÉE, CHIFFRÉE** : à 320 px la part d'écran consacrée aux étapes retombe de 63 % à
+  36 %, et la cible de réponse de 72 px redevient une case de 44. Bornée au plus petit écran servi.
+  **CE QUE LE RETRAIT A EMPORTÉ** : 221 lignes de JS, 49 règles CSS, le balisage `#readerMode`, la
+  bande de minuteurs et le chrono PROPRES au lecteur (`#rmTimers`/`#rmTime` — ils n'existaient que
+  parce que l'overlay couvrait le quai), deux entrées du menu ⋯, le bouton de la carte de bloc,
+  l'entrée de `_histBackAction`, `state.readerI`, et **le régime de refus de navigation distante**
+  (`_rmOn`) avec sa bannière : sans overlay, une navigation distante s'applique normalement.
+  **TROIS PIÈGES DE RÈGLE 14, DONT UN DANS LEQUEL JE SUIS TOMBÉ** : (1) le **mode moniteur** vivait
+  DANS la plage de code retirée — supprimé par erreur, la page démarrait encore et `npm run check`
+  était vert, seul le hook `?__actest` a crié (« monPick is not defined ») ; restauré à
+  l'identique. (2) `audit-lecteur.mjs` portait **quatorze** contrôles dont **six** ne mesuraient
+  pas le lecteur — il est **taillé et renommé `audit-retour.mjs`** (menu ⋯ : ordre, séparateurs,
+  icônes distinctes ; pile de retour : titre de l'origine, garde anti double-tap 700 ms, sortie
+  vers la bibliothèque). Le supprimer aurait emporté six invariants sans rapport. (3) `audit-partage`
+  portait deux sections entières sur le lecteur (le régime de refus, et le bridage du scribe dans
+  l'overlay) : retirées avec le régime qu'elles mesuraient.
 - **⚠ LE RÉGIME « deferred » NE TENAIT AUCUNE DE SES DEUX MOITIÉS (v5.0.0 — défaut PRÉEXISTANT,
   trouvé en préparant le retrait du mode lecteur).** `SHARE_APPLY` classe `verify` et `gap` en
   `'deferred'`, et la doctrine promet « mis en file, appliqué **au prochain geste LOCAL DE
@@ -2852,7 +2880,7 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   **LA VOIE QUI RESTE OUVERTE NE TOUCHE PAS LA RANGÉE** : garder l'entrée actuelle du lecteur (le
   bouton de la carte de bloc) et le rendre **EN LIGNE** au lieu d'un overlay — « le lecteur cesse
   d'être une surface » sans élargir quoi que ce soit. Son coût est ailleurs : reprise
-  d'`audit-lecteur` et de la règle de partage « lecteur ouvert refuse la navigation distante »,
+  d'`audit-retour` et de la règle de partage « lecteur ouvert refuse la navigation distante »,
   qui tient à la façon dont le curseur calcule sa clé d'étape, pas à l'overlay lui-même.
   **⚠ T5b EST DÉFINITIVEMENT BLOQUÉ EN L'ÉTAT, re-mesuré après T8 et T9** : rangée **267 px** +
   quai **243 px** = **510 pour 320** sans aucun minuteur armé, **591** avec un minuteur (le quai
