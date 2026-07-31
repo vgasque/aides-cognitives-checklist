@@ -381,6 +381,36 @@ rédiger une référence, c'est écrire un document. Un éditeur unique imposera
 
 ## 9 · Angles morts — ce que rien ici ne prouve
 
+### ⚠ La géométrie des maquettes n'est pas une preuve — mesuré le 31/07/2026
+
+Question posée à la livraison du lot T8 : « comment ça se fait que ça tenait dans les maquettes ? »
+**Ça n'y tenait pas.** La maquette n'avait simplement jamais été mise dans les conditions réelles,
+et l'écart se chiffre sur trois axes.
+
+| | maquette `proto-r4.html` | application |
+|---|---|---|
+| largeur du téléphone dessiné | **390 px, quelle que soit la fenêtre** (`.phone{max-width:390px}`) | plancher servi **320 px** |
+| corps de l'axe et de « Consulter » | **12 px** | **13,5 px** (palier de l'échelle fermée, v4.71.1) |
+| hauteur de « Consulter » | **38 px** | **44 px** (règle 9, cibles de crise) |
+| objets portés | axe + 1 bouton | axe + **`.ctrl-sp` (22 px)** + bouton **avec son icône ⤢** |
+
+**Le défaut d'instrument est le premier, et il est entièrement de mon fait** : redimensionner le
+navigateur à 320 px ne rétrécit pas le téléphone dessiné — le mock reste à 390. J'ai donc regardé
+une maquette « à 320 » qui n'y était jamais.
+
+**Et même ainsi, elle ne tenait pas** : sa rangée exige **326 px** de largeur intrinsèque. À 390
+elle passe ; à 320 elle déborde de 6 px — avec des corps de 12 px et des cibles de 38 px que la
+doctrine interdit. Une fois remise aux normes du dépôt (13,5 px, 44 px, l'icône ⤢ ajoutée en
+v4.57.0 qui avait déjà coûté 4 px, et l'écart `.ctrl-sp` que la v4.43.0 déclare ne pas être un
+poste d'économie), on retombe sur les **336 px** mesurés dans l'application.
+
+**RÈGLE À RETENIR POUR TOUTE MAQUETTE FUTURE** : une maquette prouve une INTENTION de conception,
+jamais une géométrie. Pour qu'elle prouve une géométrie il lui faut, au minimum, la largeur du
+plancher servi, l'échelle typographique fermée et les planchers de cible — c'est-à-dire les trois
+choses qu'une maquette est justement tentée de relâcher pour « montrer l'idée ». Les prototypes de
+cet audit sont fiables sur les FLUX et les DÉCISIONS ; ils ne le sont pas sur les largeurs.
+
+
 1. **Le partage n'a jamais été joué.** Aucun serveur joint dans tout l'audit : jointure, latence,
    rattrapage de backlog, passation de la main, « continuer seul » — **non mesurés**. C'est le plus
    gros trou du dossier, et `dual` en dépend entièrement.
