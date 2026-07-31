@@ -2613,6 +2613,40 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   n'écrase **JAMAIS** un binaire existant (même id → le document présent fait foi) ; binaire du
   zip posé seulement s'il manque, signé `%PDF-` (`isPdfBytes`) et sous plafond ; référence sans
   binaire gardée seulement si le fichier vient du même espace (elle peut suivre par la synchro).
+- **LE CHAPEAU « NE PAS OUBLIER » SE REPLIE EN SESSION (v5.0.0, lot T3) — RÈGLE ROUVERTE.** La
+  v4.4.0 posait qu'il reste le CHAPEAU, entier, jamais replié. L'argument d'origine est juste — un
+  memory item qu'on replie est un memory item qu'on oublie — mais il vise **le moment de la décision
+  d'entrée**, pas les quarante minutes qui suivent, pendant lesquelles le chapeau ne conduit plus
+  rien et **repousse ce qui conduit**. Mesuré : **172 px à 320, 133 à 390, 223 à 130 %**, en
+  permanence, au-dessus de la première étape à exécuter. **Entier tant que la session n'a pas
+  démarré** (condition d'entrée QRH : on le lit AVANT d'agir) ; **replié en une ligne ensuite**,
+  dépliable d'un tap. Gain mesuré : **126 px à 320, 87 à 390, 164 à 130 %**. **RÈGLE 8 TENUE** : le
+  registre (rouge), le glyphe ■ et le mot restent — seule la surface part ; le compte est ANNONCÉ
+  (« 3 rappels ▾ »), même vocabulaire que le « +n » du quai. **LE DÉPLIAGE NE RE-REND RIEN** (bascule
+  de classe en place) : un `render()` reconstruirait tout le DOM au-dessus du doigt, et le chapeau
+  est le premier objet de la colonne — mesuré, la dérive du défilement est de **0 px**. `state.fsOpen`
+  est TRANSITOIRE, remis à zéro à l'ouverture d'une fiche et classé dans `SHARE_LOCAL` : replier chez
+  soi ne doit pas replier chez l'autre.
+  **PIÈGE VÉCU, ET IL EST INSTRUCTIF** : la première version lisait la constante `started`, déclarée
+  **24 lignes plus bas** dans `renderRead` — zone morte temporelle, donc `ReferenceError`, donc
+  **tout le rendu échouait**. Ni `npm test` ni `npm run check` ne l'ont vu : **aucun des deux
+  n'exerce un rendu**. C'est la sonde de mesure qui a parlé. Corollaire de méthode : après une
+  modification de `renderRead`, le vert de la suite ne prouve pas que l'écran s'affiche.
+- **LE JOURNAL DES ACTIONS REMONTE SOUS LA CARTE DU BLOC (v5.0.0, lot T2).** Il vivait en FIN de
+  colonne : mesuré, « Noter l'heure » était à **y = 1829 px** sur un écran de 640 et **1588** sur
+  844 — le geste de traçabilité le plus fréquent d'une réanimation était le plus loin de la main. Il
+  se pose désormais **juste sous la carte du bloc courant** : c'est là que le geste se produit, donc
+  là qu'on l'horodate. **PAS AU-DESSUS** — le mettre avant repousserait l'action, ce que le lot T5
+  existe pour corriger. Mesuré après : **1305 px à 320** (−524) et **1101 à 390** (−487). Il reste
+  sous le pli parce que la carte du bloc est haute : **T5 le fera remonter davantage**, et il ne faut
+  pas vendre ce lot pour plus qu'il ne donne. En rail (≥ 780 px), rien ne change.
+  **UN CONSTAT D'AUDIT CORRIGÉ AU PASSAGE** : le constat 6 de l'audit J0 affirmait que « le quai ne
+  nomme pas ce qu'il cache » et que le minuteur d'une fiche est invisible. **C'est faux, et la faute
+  vient de l'instrument** : j'avais mesuré `.tm-label` — le libellé d'une CARTE de minuteur, qui
+  n'existe que panneau ouvert. La rangée `.rt-collapsed` dit en réalité, dans le flux,
+  « Minuteurs & compteurs · 1 minuteur · 1 compteur ▾ Afficher », **visible sans défiler à 390 px**
+  (y = 494 pour un pli à 844). Rien n'était donc à ajouter au quai — et l'y ajouter aurait
+  **dupliqué une constante sur deux canaux**, ce que la v4.70.1 proscrit.
 - **UN COMPTE RENDU NE SE DÉCALE PLUS — LE TEXTE DES ÉTAPES EST ARCHIVÉ AVEC LA SESSION (v5.0.0,
   lot T1)** : une clé de cochage vaut `visite:bloc:INDEX`, et `exportSessionReport` la résolvait
   contre la fiche **ACTUELLE** (`stepTextFromKey`), `snapshotSession` n'archivant que `ficheId` et

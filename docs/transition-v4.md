@@ -227,7 +227,7 @@ Chacune est née d'un défaut **mesuré pendant cet audit**. Elles ont vocation 
 | **N4** | **Un contrôle garde le même RANG DE LECTURE dans toutes les densités** | ⏱ en tête au cran 1 : écart de 360 px |
 | **N5** | **Une légende s'affiche inconditionnellement** là où le vocabulaire visuel s'apprend | A4 — la bulle existe aussi sur des items de niveau 1 |
 | **N6** | **Boucle ou convergence : le critère est l'ANCÊTRE dans le graphe**, jamais le numéro | Numérotation DFS trompeuse |
-| **N7** | **Le quai nomme ce que la FICHE DÉCLARE, il n'énumère pas la SESSION** | Constat 6 de l'audit J0 contre É4 |
+| ~~**N7**~~ | ~~Le quai nomme ce que la FICHE DÉCLARE~~ — **RETIRÉE au lot T2** : le constat 6 de l'audit J0 qui la fondait était faux (`.rt-collapsed` nomme DÉJÀ « 1 minuteur · 1 compteur », visible sans défiler à 390 px). L'appliquer aurait dupliqué une constante sur deux canaux, ce que la v4.70.1 proscrit | Constat retiré, mesure corrigée |
 | **N8** | **Sous 780 px, toute fenêtre est une feuille plein écran** avec retour système | Six versions de « bande basse iOS » |
 | **N9** | **Rangée de CHROME** (en-tête, quai, barre, colonne latérale) : l'élément qui cède porte `min-width:0` et s'ellipse, les autres sont `flex:none`. **Rangée de LISTE** : l'enroulement est permis, **borné** (3 lignes + ellipse). Sur l'en-tête, **le titre cède, jamais le discriminant** | En-tête 53 → 91 px à 320 ; libellé de minuteur +17 ; colonne latérale +21 ; colonne structure +14 |
 
@@ -333,7 +333,7 @@ n'étaient reprises nulle part.** Voici leur sort, explicitement :
 |---|---|
 | **J0-D1** — enrichir les deux fiches d'exemple (posologie, complication, `onDue`, `discriminant`, une étape △ au premier écran) | **À FAIRE** — et le lot est désormais **T13**. Elles doivent de toute façon être réécrites au format v4 |
 | **J0-D2** — la pilule de mode change de mot (« ▫ Lecture » avant démarrage) | ✅ **Résolu par la structure v4** : la pilule « ■ CRISE » disparaît ; c'est le **quai** qui énonce l'état (« ● Session », « ▲ Exercice », « ▪ Vous suivez »), et il ne l'énonce qu'une fois la session démarrée |
-| **J0-D3** — le chevron du quai nomme ce qu'il cache | ✅ **Devenu la règle N7** (§ 4) |
+| **J0-D3** — le chevron du quai nomme ce qu'il cache | ❌ **Sans objet** : le constat qui la motivait était faux — l'information existe déjà dans le flux (`.rt-collapsed`) |
 | **J0-D4** — « Consulter » entier sous 560 px | ✅ **Résolu autrement** par l'axe de densité : entier dès 320 px |
 | **J0-D5** — réduire l'écran de bienvenue au seul paragraphe réglementaire | **À FAIRE** — lot **T13** |
 | **J0-D6** — snackbar des exemples → bandeau système (elle masque 60,7 % du CTA) | **À FAIRE** — lot **T13** |
@@ -416,7 +416,7 @@ proposition de tout le dossier y figure, avec son lot ou la raison de son abando
 | 3 · les fiches d'exemple n'exercent pas la doctrine | **T13** (J0-D1) |
 | 4 · les abréviations du plan n'ont aucune clé (`→ ↺ ▪fin`) | **T8** — clé en pied de l'onglet « Parcours » |
 | 5 · l'état vide des aides n'enseigne rien | **T9**, alimenté par `AC_LEX` (**T7**) |
-| 6 · le minuteur est invisible sur téléphone | **T2** — règle N7 |
+| 6 · le minuteur est invisible sur téléphone | ❌ **Constat retiré** (mesure fausse) — rien à faire |
 | 7 · la snackbar masque 60,7 % du CTA | **T13** (J0-D6) |
 | 8 · « Lecteur » / « Vérifier » | ✅ **sans objet en v4** — deviennent des crans |
 | 9 · le badge « △ À compléter » accuse sans dire où | **T7** — volet de relecture de l'éditeur |
@@ -446,7 +446,7 @@ proposition de tout le dossier y figure, avec son lot ou la raison de son abando
 | R7 (sessions v3 conservées) | **T6** — contrainte, pas travail |
 | R8 (`AGENTS.md` scindé) | **T0** |
 | É2 · É3 · É5 (épuration de la carte) | **T8** |
-| É4 (le quai n'énumère plus la session) | **T2** — avec l'arbitrage N7 |
+| É4 (le quai n'énumère plus la session) | **T5b** — N7 retirée, l'arbitrage disparaît avec elle |
 | Cause III bis (clés d'index) | **T1** |
 
 ### Les décisions
@@ -540,7 +540,7 @@ document qui le dénonce.
 | 16 | **§ III.2** écrivait que le schéma « garde une entrée à part », contredisant **§ II.2** (« Échelle et Schéma → deux **affichages** de SE REPÉRER ») | Tranché par l'auteur (**A10**) dans le sens du § II.2 : 3ᵉ onglet du cran « Toute la fiche » |
 | 17 | « **deux vues** » pour le cran 3 subsistait après A10, qui en porte **trois** | Corrigé aux trois occurrences |
 | **18** | **L'en-tête de lecture enroulait sur petit écran** — signalé à l'usage sur l'écran hôte, vérifié sur les quatre coques | Corrigé, cf. encadré |
-| 19 | **Le quai de l'écran hôte enroulait à 320 px** (« ⇄ 2 · 1 minuteur · **2 repères** ▾ ») : maquette statique non touchée par l'épuration É4 | Aligné sur la règle **N7** : « ⇄ 2 · 1 minuteur ▾ » |
+| 19 | **Le quai de l'écran hôte enroulait à 320 px** (« ⇄ 2 · 1 minuteur · **2 repères** ▾ ») : maquette statique non touchée par l'épuration É4 | Aligné sur É4 seule (N7 retirée) : « ⇄ 2 · 1 minuteur ▾ » |
 
 #### Défaut 18 — l'en-tête de lecture, mesuré
 

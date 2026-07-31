@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-QUL2ls3rQvVOIwqjb1+wwDYHa2lBOGr02qUHcTWFqSw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-lyKC924T1aQkgx4w8ZpEwW1kC14b6Ih8G0Or25LQLZs='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -4395,6 +4395,15 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .forget-strip .fs-k{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--critical);margin-bottom:4px}
   .forget-strip .fs-i{display:flex;gap:9px;align-items:flex-start;font-size:13.5px;line-height:1.45;padding:2px 0;color:var(--ink)}
   .forget-strip .fs-i::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--critical);flex:none;margin-top:7px}
+  /* T3 — repli du chapeau EN SESSION. Le kicker devient une rangée : mot à gauche, compte + chevron
+     à droite. La cible fait 44 px (mode crise) sans épaissir le bandeau : le bouton est en négatif
+     de marge, le chapeau garde ses 10 px de rembourrage. */
+  .forget-strip.fs-foldable .fs-k{display:flex;align-items:center;gap:9px;margin-bottom:4px}
+  .fs-tgl{margin-left:auto;font:inherit;font-size:11px;font-weight:800;letter-spacing:.07em;
+    color:var(--critical);background:none;border:0;cursor:pointer;min-height:44px;margin:-10px -4px -10px 0;padding:0 4px}
+  .fs-tgl:focus-visible{outline:2px solid var(--critical-bd);outline-offset:2px;border-radius:6px}
+  .forget-strip.fs-closed .fs-list{display:none}
+  .forget-strip.fs-closed .fs-k{margin-bottom:0}
   /* Bandeau LONG (v4.4.0) : > 4 rappels -> 2 colonnes en large pour contenir la hauteur du
      chapeau (jamais de repli ni de troncature : un rappel caché n'existe plus). Une colonne
      en étroit et au zoom 400 % (reflow WCAG 1.4.10). Le vrai remède reste éditorial
@@ -5754,7 +5763,7 @@ async function startExercise(f){
     endSession(Runtime);}
   freshRuntime(f,null);Runtime.fiche=f;liveSessions[f.id]=Runtime;
   Runtime.exercise=true;
-  state.flowEnded=false;state.ovVerify=null;state.confOpen=undefined;
+  state.flowEnded=false;state.ovVerify=null;state.confOpen=undefined;state.fsOpen=false;
   render();window.scrollTo(0,0);_exoPulse();}
 /* QUITTER L'EXERCICE (v4.28.0, demande utilisateur) : sortie DIRECTE sur le placard. Avant la
    1ʳᵉ action il n'y a rien à archiver — on repose une fiche neuve ; après, MÊME dialogue
@@ -9718,7 +9727,7 @@ function shareCan(role,kind){
    son repli ou sa position de lecture à l'autre serait un mouvement non commandé. La frontière
    est écrite ICI et vérifiée par un test — sinon elle se re-perdra au prochain champ ajouté. */
 const SHARE_TRAVELS=['checked','verified','vgaps','nav','navSeq','counters','timers','events','flowEnded','cxBack'];
-const SHARE_LOCAL  =['confOpen','ovFold','ovVerify','readerI','navPos','rtOpen','showFlow','readMode','previewFrom'];
+const SHARE_LOCAL  =['confOpen','ovFold','ovVerify','readerI','navPos','rtOpen','fsOpen','showFlow','readMode','previewFrom'];
 /* CODE D'APPARIEMENT — lecture, normalisation, affichage.
    L'alphabet est RECOPIÉ du serveur, qui reste la seule autorité : ce qui est ici ne sert qu'à
    refuser tôt une saisie manifestement fautive et à afficher un message utile. Une divergence
@@ -10769,7 +10778,30 @@ function renderRead(){
   const forgetStrip=(()=>{const items=clean(f.notForget);if(!items.length)return '';
     // ftxt englobant : .fs-i est un flex (puce ::before + texte) — sans lui, chaque segment
     // autour d'un **gras** deviendrait un item flex séparé (texte éclaté, gaps parasites).
-    return `<div class="forget-strip${items.length>4?' many':''}"><div class="fs-k">■ Ne pas oublier</div><div class="fs-list">${items.map(x=>`<div class="fs-i"><span class="ftxt">${fmt(x)}</span></div>`).join('')}</div></div>`;})();
+    /* REPLI EN SESSION (v5.0.0, lot T3) — RÈGLE ROUVERTE, et il faut dire laquelle : la v4.4.0
+       posait que « Ne pas oublier » reste le CHAPEAU, entier, jamais replié. L'argument d'origine est
+       juste — un memory item qu'on replie est un memory item qu'on oublie — mais il vise LE MOMENT
+       DE LA DÉCISION D'ENTRÉE, pas les quarante minutes qui suivent, pendant lesquelles le chapeau
+       ne conduit plus rien et repousse ce qui conduit. Mesuré : 172 px à 320 px, 223 px à 130 %,
+       en permanence, AU-DESSUS de la première étape à exécuter.
+       DONC : entier tant que la session n'a pas démarré (on le lit AVANT d'agir, c'est la condition
+       d'entrée QRH) ; replié en UNE LIGNE ensuite, et dépliable d'un tap.
+       CE QUI RESTE, ET C'EST LA RÈGLE 8 : le registre (rouge), le glyphe ■ et le mot en toutes
+       lettres. Seule la SURFACE part. Le compte est ANNONCÉ — même vocabulaire que le « +n » du quai
+       et les totaux du rail : une zone qui replie dit ce qu'elle replie.
+       ÉTAT TRANSITOIRE, jamais persisté : c'est un état d'affichage de session, pas une préférence.
+       Le dépliage ne re-rend RIEN (bascule de classe en place) — un re-rendu ferait sauter la page
+       sous le doigt, et le chapeau est au-dessus de tout le reste. */
+    /* `Runtime.started` et non la constante `started` : elle est déclarée PLUS BAS dans
+       `renderRead`, donc en zone morte temporelle ici — la lire faisait échouer TOUT le rendu
+       (« sessStart » introuvable, écran blanc). Ni `npm test` ni `npm run check` ne l'ont vu : ils
+       n'exercent aucun rendu. C'est la sonde de mesure qui a parlé. */
+    const démarrée=Runtime.started;
+    const fsFold=démarrée&&!state.fsOpen;
+    const fsN=items.length;
+    return `<div class="forget-strip${items.length>4?' many':''}${démarrée?' fs-foldable':''}${fsFold?' fs-closed':''}">`
+      +`<div class="fs-k">■ Ne pas oublier${démarrée?`<button type="button" class="fs-tgl" id="fsTgl" aria-expanded="${fsFold?'false':'true'}">${fsN} rappel${fsN>1?'s':''} <span aria-hidden="true">${fsFold?'▾':'▴'}</span></button>`:''}</div>`
+      +`<div class="fs-list">${items.map(x=>`<div class="fs-i"><span class="ftxt">${fmt(x)}</span></div>`).join('')}</div></div>`;})();
   // Historique = sessions de cette fiche, EN EXCLUANT la session vive courante (affichée par le bandeau).
   const ss=sessions.filter(s=>s.ficheId===f.id&&s.id!==Runtime.sessionId).sort((a,b)=>b.savedAt-a.savedAt);
   const started=Runtime.started;
@@ -10894,10 +10926,17 @@ function renderRead(){
     // surveillances absorbés par svExtras) — une seule « étape », donc pas de rail ①②③.
     // v4.14.2 : le bouton « démarrer » vit DANS le tableau, sous Confirmation/Éliminer
     // (condition d'entrée QRH : on confirme le tableau avant d'agir) — pas ici.
-    stages.push({cls:'on',head:'',body:(wideRead?'':rtH)+navHtml+localH+(wideRead?'':posH)});
+    stages.push({cls:'on',head:'',body:(wideRead?'':rtH)+navHtml+(wideRead?'':tkH)+localH+(wideRead?'':posH)});
   }else{
   if(confBlockH)stages.push({cls:started?'done':'on',head:'',body:confBlockH+sessStartH});
-  {const body=(confBlockH?'':sessStartH)+(wideRead?'':rtH)+algH+crumbsH+navHtml+navRowH+localH+(wideRead?'':posH);
+  /* T2 (v5.0.0) — LE JOURNAL DES ACTIONS REMONTE. Il vivait en FIN de colonne : mesuré, le bouton
+     « Noter l'heure » était à y = 1588 px sur un écran de 844 (744 px sous le pli) et à 1829 px sur
+     640. C'est le geste de traçabilité le plus fréquent d'une réanimation, et c'était le plus loin
+     de la main. Il se pose désormais JUSTE SOUS la carte du bloc courant : c'est là que le geste se
+     produit, donc là qu'on l'horodate. PAS AU-DESSUS : le mettre avant repousserait l'action, ce
+     que le lot T5 existe précisément pour corriger. Le panneau est déjà compact au repos
+     (`.tk-slim` : l'en-tête et le bouton, rien d'autre). */
+  {const body=(confBlockH?'':sessStartH)+(wideRead?'':rtH)+algH+crumbsH+navHtml+navRowH+(wideRead?'':tkH)+localH+(wideRead?'':posH);
    if(body)stages.push({cls:state.flowEnded?'done':(started?'on':(confBlockH?'off':'on')),head:'Prise en charge',body});}
   // v4.23.0 : ③ ne garde que « △ À vérifier » — ce qui tue si on l'oublie reste dans le FLUX
   // (AC 120-71B). Les DIFFÉRENTIELS, eux, sont de la consultation (on les ouvre quand le
@@ -10925,7 +10964,6 @@ function renderRead(){
     ${modeTopSegH}
     ${useSv?'':forgetStrip}
     ${pathH}
-    ${wideRead?'':tkH}
     ${annexRowHtml(f)}
     ${preview?'':noteBlockHtml(f.id,started)}
     ${readFooterHtml()}
@@ -11142,6 +11180,15 @@ function bindReadEvents(f,blk,cur){
   const ft=document.getElementById('flowToggle');if(ft)ft.onclick=()=>{state.showFlow=!state.showFlow;render();};
   // Déplier / replier le panneau minuteurs (canvas : rangée repliée, ✕ du panneau, barre d'en-tête).
   const ro=document.getElementById('rtOpen');if(ro)ro.onclick=()=>{state.rtOpen=true;render();};
+  /* T3 — le chapeau se déplie SANS RE-RENDRE. Un `render()` reconstruirait tout le DOM au-dessus du
+     doigt, et le chapeau est le premier objet de la colonne : la page sauterait. On bascule la
+     classe en place ; l'état ne sert qu'au PROCHAIN rendu, pour que le repli survive à une
+     navigation. */
+  const fst=document.getElementById('fsTgl');
+  if(fst)fst.onclick=()=>{const st=fst.closest('.forget-strip');if(!st)return;
+    const clos=st.classList.toggle('fs-closed');state.fsOpen=!clos;
+    fst.setAttribute('aria-expanded',clos?'false':'true');
+    const ch=fst.querySelector('span[aria-hidden]');if(ch)ch.textContent=clos?'▾':'▴';};
   const rc=document.getElementById('rtClose');if(rc)rc.onclick=()=>{state.rtOpen=false;render();};
   // Minuteur AD HOC « ＋ Minuteur PA 5:00 » (SPEC §7) : ajouté à la SESSION (pas à la fiche),
   // démarre aussitôt, supprimable (✕), persiste dans la session (extraTimers).

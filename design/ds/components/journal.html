@@ -4110,6 +4110,15 @@
   .forget-strip .fs-k{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--critical);margin-bottom:4px}
   .forget-strip .fs-i{display:flex;gap:9px;align-items:flex-start;font-size:13.5px;line-height:1.45;padding:2px 0;color:var(--ink)}
   .forget-strip .fs-i::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--critical);flex:none;margin-top:7px}
+  /* T3 — repli du chapeau EN SESSION. Le kicker devient une rangée : mot à gauche, compte + chevron
+     à droite. La cible fait 44 px (mode crise) sans épaissir le bandeau : le bouton est en négatif
+     de marge, le chapeau garde ses 10 px de rembourrage. */
+  .forget-strip.fs-foldable .fs-k{display:flex;align-items:center;gap:9px;margin-bottom:4px}
+  .fs-tgl{margin-left:auto;font:inherit;font-size:11px;font-weight:800;letter-spacing:.07em;
+    color:var(--critical);background:none;border:0;cursor:pointer;min-height:44px;margin:-10px -4px -10px 0;padding:0 4px}
+  .fs-tgl:focus-visible{outline:2px solid var(--critical-bd);outline-offset:2px;border-radius:6px}
+  .forget-strip.fs-closed .fs-list{display:none}
+  .forget-strip.fs-closed .fs-k{margin-bottom:0}
   /* Bandeau LONG (v4.4.0) : > 4 rappels -> 2 colonnes en large pour contenir la hauteur du
      chapeau (jamais de repli ni de troncature : un rappel caché n'existe plus). Une colonne
      en étroit et au zoom 400 % (reflow WCAG 1.4.10). Le vrai remède reste éditorial

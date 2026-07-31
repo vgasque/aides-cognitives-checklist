@@ -1790,9 +1790,15 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
     const row=A.sessionToRow({id:'s1',savedAt:1,checked:{'1:b1:2':true},
       stepTexts:{'1:b1:2':{b:'Bloc',s:'⚠ Adrénaline IM'}},verified:{},vgaps:{}},'u1');
     ok('stepTexts ne quitte pas l’appareil',!row.data.stepTexts);
+    ok('et il n’entre pas non plus dans la charge de PARTAGE',
+       !('stepTexts' in A.shareSnap({checked:{},timers:{},counters:{},nav:[],navSeq:[],events:[]},false)));
     ok('et son absence est DITE, pas taue',row.data.vElsewhere===true);
     eq('les coches, elles, montent normalement',Object.keys(row.data.checked).length,1);
   }
+  /* T3 (v5.0.0) — le repli du chapeau est un état d'AFFICHAGE, pas de session : il ne traverse
+     jamais le partage, sinon replier chez soi replierait chez l'autre. */
+  ok('fsOpen est classé LOCAL (le repli du chapeau ne voyage pas)',A.SHARE_LOCAL.indexOf('fsOpen')>=0);
+  ok('et il n’est pas dans ce qui voyage',A.SHARE_TRAVELS.indexOf('fsOpen')<0);
 }
 
 // Ouvert en double-cliquant le fichier (file://) : le navigateur isole les iframes (origine

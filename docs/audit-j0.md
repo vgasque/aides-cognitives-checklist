@@ -258,33 +258,27 @@ Priorité **P1** = empêche de comprendre ou de trouver · **P2** = ralentit · 
 
 ---
 
-### 6 — Sur téléphone, le minuteur et le compteur d'une fiche sont invisibles · **P2**
+### 6 — ~~Sur téléphone, le minuteur et le compteur d'une fiche sont invisibles~~ · **CONSTAT RETIRÉ**
 
-- **Surface** — Quai `#cbTimers`, session démarrée, **< 780 px** (la cible principale déclarée).
-- **Symptôme mesuré** — Fiche « Anaphylaxie », session démarrée, 390 px :
-  `.tm-label` **visibles = 0** ; texte du quai = `● SESSION | 00:00 | ▾` ; un seul bouton dans le
-  quai, 390 × 52 px, `aria-label` = « Minuteurs en cours — afficher le panneau » (donc invisible
-  pour un œil). Après **un** tap : « Réévaluation après adrénaline » et « Injections d'adrénaline »
-  apparaissent. À **1280 px**, le rail les affiche d'emblée : `MINUTEURS & COMPTEURS | 2 | …`.
-  Le trou est donc exactement sur l'appareil de terrain.
-- **Pourquoi c'est un problème à J0** — Les minuteurs et compteurs sont l'une des deux raisons
-  d'être de l'application (l'autre étant la checklist). Un néophyte peut dérouler une fiche entière
-  sans jamais soupçonner que la fiche en déclare. Le geste existe et il est simple ; c'est son
-  **objet** qui est invisible.
-- **Correctif proposé** — Le quai **nomme ce qu'il cache**, exactement comme il le fait déjà pour
-  les minuteurs en trop (« +n ») : tant qu'aucun minuteur n'est armé, le chevron porte
-  « 1 minuteur · 1 compteur ▾ ». **Aucun segment ajouté**, aucune hauteur, position du chrono
-  inchangée ; dès qu'un minuteur tourne, son segment reprend la place, comportement actuel intact.
-  Maquette **C4**.
-- **Coût estimé** — ~3 lignes dans `updateRtStrip`.
-- **Risque de régression** — À mesurer : le quai **ajuste par la mesure** et retire des segments
-  quand ça déborde ; le texte du chevron entre dans ce calcul. Re-jouer `audit-doctrine` à
-  320/360/375/390.
-- **Règle AGENTS.md** — **Tension à arbitrer** : « le jeu de jetons du quai est FERMÉ » et « ne
-  jamais ajouter un segment au quai ». La proposition **n'ajoute pas de segment** — elle habille un
-  chevron déjà présent et déjà décrit par un `aria-label` ; mais le quai est un objet doctrinal et
-  la décision revient à l'utilisateur (§ 4).
+> **Ce constat était FAUX, et la faute vient de mon instrument.** Retiré le 30/07/2026, à
+> l'implémentation du lot T2, en même temps que la règle N7 qu'il avait engendrée.
 
+- **Ce que j'avais mesuré** — `.tm-label` visibles = 0, session démarrée, 390 px. Exact, et sans
+  portée : `.tm-label` est le libellé d'une **carte** de minuteur, qui n'existe que **panneau
+  ouvert**. Compter à zéro un objet qui ne peut pas exister dans l'état mesuré ne prouve rien.
+- **Ce que l'application fait RÉELLEMENT** — la rangée `.rt-collapsed` porte, dans le flux,
+  « **Minuteurs & compteurs · 1 minuteur · 1 compteur ▾ Afficher** ». Mesuré sur « Anaphylaxie »,
+  session démarrée : **y = 494 px pour un pli à 844** (390 px de large) — donc **visible sans
+  défiler** ; à 320 × 640, y = 553, soit juste sous le pli. Le correctif que je proposais existait
+  déjà, dans le flux plutôt que dans le quai.
+- **Conséquence sur la suite** — la règle **N7** (« le quai nomme ce que la fiche déclare ») est
+  **retirée**. L'appliquer aurait **dupliqué une constante sur deux canaux** — ce que la v4.70.1
+  proscrit explicitement (« la barre dit le mode, le bandeau dit l'exception ») — pour rendre
+  permanente une information déjà donnée à sa place.
+- **Leçon de méthode, et c'est le vrai contenu de ce constat** — un compte à zéro n'est une preuve
+  d'absence que si l'objet compté **pouvait exister** dans l'état mesuré. Même famille que le
+  garde-fou qui ne rencontre pas son défaut (v4.31.1) et que le contrôle mesurant un nœud détaché
+  (v4.78.0) : ici, c'est la SONDE qui ne rencontrait pas son sujet.
 ---
 
 ### 7 — Le message d'ajout des exemples masque 60,7 % de l'action primaire · **P2**
