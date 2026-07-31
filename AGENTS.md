@@ -141,7 +141,9 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   règle `.hs-wrap>.hs-row:hover` était mangée depuis sa publication, `npm run check` vert de bout en
   bout. Corollaire de méthode : après toute édition du CSS, ne pas se fier au vert de `check-colors`
   et `check-type`, qui travaillent au motif et ne voient pas une règle disparue. Puis **couleurs** (`check-colors.mjs`, cf. Conventions), **échelle
-  typographique** (`check-type.mjs`, v4.71.1 — sept paliers, exemptions nommées et motivées), et
+  typographique** (`check-type.mjs`, v4.71.1 — sept paliers, exemptions nommées et motivées),
+  **paliers de largeur** (`check-paliers.mjs`, v5.0.0 — l'échelle responsive cesse d'être
+  déclarative ; cf. « Largeurs & échelles fermées »), et
   **fraîcheur des hashs CSP** (`csp-hashes.mjs --check`). Ce dernier existe parce que le piège s'est produit trois
   fois : on édite le script inline, on oublie de rejouer `node scripts/csp-hashes.mjs`, et la CSP
   bloque le SEUL script de l'app — elle ne démarre plus, et le symptôme (page blanche, ou
@@ -2452,8 +2454,15 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   séparément. Règle générale : pour une GÉOMÉTRIE, ne jamais dépendre de l'ordre de déclaration —
   passer par un `#id` ou vérifier la position dans la feuille. L'accueil ≥ 780 est une COQUE FIXE (`body.view-home` : 100dvh, overflow hidden ;
   seuls `.home-side` et `.home-main` défilent — la sidebar ne bouge jamais à la bascule de
-  section). Breakpoints : **360** / 400 / 430 / 560 / 640 / 780 / 900 / 1000 / 1200 px — pas de
-  nouveau palier sans décision explicite (360 et 400 étaient DÉJÀ dans le code, décidés en v4.30.0
+  section). Breakpoints : **360 / 400 / 430 / 480 / 560 / 640 / 780 / 924 / 1000 / 1200 px** — pas de
+  nouveau palier sans décision explicite. **CETTE LISTE EST AUTO-EXÉCUTOIRE DEPUIS LA v5.0.0**
+  (`scripts/check-paliers.mjs`, dans `npm run check` — lot T0) : elle était DÉCLARATIVE, et elle
+  avait FUI. Mesuré : **douze** paliers réels pour **neuf** déclarés — `479.98` (`.tg-row`) et `924`
+  (`.rs-bar`) n'y figuraient pas, et **900 était déclaré sans exister nulle part**. Une échelle
+  fermée qui a fui est une échelle ouverte qu'on croit fermée, et rien ne pouvait le voir. Le
+  contrôle ne lit que les conditions de `@media` (un `min-width:44px` de cible tactile n'est pas un
+  palier) et arrondit les bornes en `.98` au supérieur : `779.98` et `780` sont UN palier. Ajouter
+  un palier exige de l'écrire ICI **et** dans `PALIERS` du script — c'est précisément le but (360 et 400 étaient DÉJÀ dans le code, décidés en v4.30.0
   et v4.43.0 ; c'est cette liste qui n'avait pas suivi). En-têtes (SPEC §5) : marque uniquement sur l'accueil ;
   éditeurs = actions dans la barre (Enregistrer à droite), AUCUN pied d'éditeur ; crise = une
   seule zone fixe en haut, jamais en bas. Plancher typographique **11 px** (app consultée sous
@@ -2604,6 +2613,23 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   n'écrase **JAMAIS** un binaire existant (même id → le document présent fait foi) ; binaire du
   zip posé seulement s'il manque, signé `%PDF-` (`isPdfBytes`) et sous plafond ; référence sans
   binaire gardée seulement si le fichier vient du même espace (elle peut suivre par la synchro).
+- **UN COMPTE RENDU NE SE DÉCALE PLUS — LE TEXTE DES ÉTAPES EST ARCHIVÉ AVEC LA SESSION (v5.0.0,
+  lot T1)** : une clé de cochage vaut `visite:bloc:INDEX`, et `exportSessionReport` la résolvait
+  contre la fiche **ACTUELLE** (`stepTextFromKey`), `snapshotSession` n'archivant que `ficheId` et
+  `ficheTitle`. **Mesuré, preuve pure** : après une insertion d'étape en tête de bloc, la clé
+  `1:b1:2` ne désigne plus « ⚠ Adrénaline IM » mais « Appeler à l'aide » — un enregistrement de soin
+  archivé nommait donc **le mauvais geste, en silence**. Le défaut était ancien ; **MK5-b (v4.64.0)
+  l'a rendu atteignable en deux taps**, réordonner une étape étant devenu un geste ordinaire.
+  `snapshotSession` archive désormais `stepTexts` — le texte des seules étapes **touchées** (cochées,
+  constatées, en écart) et le titre de leur bloc. **Pas la fiche entière** : une session doit rester
+  légère, et ce qu'on n'a pas touché n'a pas à être figé. `stepTextFromKey(f,key,snap)` lit
+  l'archive **d'abord**, la fiche en repli — les sessions archivées AVANT le correctif n'ont pas de
+  `stepTexts` et gardent l'ancien comportement, qui est tout ce qu'on peut faire pour elles.
+  **ET CE TEXTE NE MONTE JAMAIS** : `stepTexts` rejoint `SESS_LOCAL`, comme la trace do-verify depuis
+  la v4.54.0 — c'est du contenu **clinique**, il reste sur l'appareil qui l'a produit, et le drapeau
+  `vElsewhere` **dit** son absence au compte rendu distant au lieu de la taire. Sept témoins, dont
+  trois qui vérifient d'abord que **le défaut existe** : un contrôle qui ne rencontre pas le défaut
+  ne le couvre pas.
 - Fonctions pures testables : les exposer via le hook `?__actest` (fin de `index.html`) et ajouter
   un test dans `tests.html`.
 - Ne jamais supprimer un champ du modèle fiche/catégorie (compatibilité ascendante).
@@ -2950,12 +2976,12 @@ par défaut borné à 12 h, purge 30 min après expiration) et ce qui ne sort ja
 cohérent avec la notice affichée à l'invité** (`#joinScreen`) : les deux évoluent ensemble, ou
 aucun.
 
-## Se repérer dans `index.html` (monofichier, ~14 400 lignes)
+## Se repérer dans `index.html` (monofichier, ~18 500 lignes)
 Le fichier s'ouvre sur un **grand commentaire d'architecture** (objectif, règles de conception,
 modèle de données, règles de sécurité) : le lire en premier. Ensuite, dans l'ordre.
 
 > **Le tableau ci-dessous est un RÉSUMÉ, pas un index** : il décrit une vingtaine de sections sur
-> les **57** bannières `/* ===== … ===== */` du fichier, et volontairement sans numéros de ligne —
+> les **61** bannières `/* ===== … ===== */` du fichier, et volontairement sans numéros de ligne —
 > ils seraient périmés au commit suivant. Pour l'index EXACT et à jour, une commande :
 >
 > ```bash

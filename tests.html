@@ -1752,6 +1752,47 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
     A.shareCan('scribe','mark_void'));
   ok('mais décocher reste réservé au lead (geste destructeur)',!A.shareCan('scribe','uncheck'));
   eq('l’annulation s’applique en direct, par chirurgie',A.shareApplyMode('mark_void'),'live');
+
+  /* ===== T1 (v5.0.0) — L'INTÉGRITÉ DU COMPTE RENDU =====
+     Le défaut mesuré : une clé de cochage vaut « visite:bloc:INDEX », et le compte rendu la
+     résolvait contre la fiche ACTUELLE. Éditer la fiche après coup faisait donc nommer LE MAUVAIS
+     GESTE dans un enregistrement de soin. Ces témoins vérifient les trois moitiés du correctif :
+     la dérive existe bel et bien, le texte archivé la neutralise, et le repli reste. */
+  {
+    const mk=()=>A.migrate({id:'f1',title:'ACR',start:'b1',blocks:[
+      {id:'b1',type:'steps',title:'Mesures immédiates',steps:[
+        'Retirer / arrêter l’allergène','Appeler à l’aide','⚠ Adrénaline IM, cuisse :: 0,5 mg'],next:null}]});
+    const cle='1:b1:2';
+
+    // 1. LE DÉFAUT EXISTE — sans texte archivé, la clé suit l'INDEX et désigne autre chose.
+    const f=mk();
+    eq('sans archive, la clé désigne l’étape attendue',
+       A.stepTextFromKey(f,cle).step,'⚠ Adrénaline IM, cuisse :: 0,5 mg');
+    f.blocks[0].steps.unshift('Mettre des gants');      // un seul geste d’éditeur
+    eq('après insertion, la MÊME clé désigne une AUTRE étape (le défaut)',
+       A.stepTextFromKey(f,cle).step,'Appeler à l’aide');
+
+    // 2. LE CORRECTIF — la session porte le texte, et il fait foi.
+    const snap={stepTexts:{'1:b1:2':{b:'Mesures immédiates',s:'⚠ Adrénaline IM, cuisse :: 0,5 mg'}}};
+    eq('avec le texte archivé, la clé désigne le geste RÉELLEMENT fait',
+       A.stepTextFromKey(f,cle,snap).step,'⚠ Adrénaline IM, cuisse :: 0,5 mg');
+    eq('et le bloc archivé aussi',A.stepTextFromKey(f,cle,snap).block,'Mesures immédiates');
+    ok('le texte archivé est marqué comme tel',A.stepTextFromKey(f,cle,snap).archived===true);
+
+    // 3. LE REPLI — une session archivée AVANT le correctif n'a pas de stepTexts : la fiche sert.
+    ok('sans stepTexts, on retombe sur la fiche (sessions antérieures)',
+       A.stepTextFromKey(f,cle,{}).step==='Appeler à l’aide');
+    ok('une clé inconnue de l’archive retombe aussi sur la fiche',
+       A.stepTextFromKey(f,'1:b1:0',snap).step==='Mettre des gants');
+  }
+  /* Le texte clinique ne monte JAMAIS vers le serveur : même règle que la trace do-verify. */
+  {
+    const row=A.sessionToRow({id:'s1',savedAt:1,checked:{'1:b1:2':true},
+      stepTexts:{'1:b1:2':{b:'Bloc',s:'⚠ Adrénaline IM'}},verified:{},vgaps:{}},'u1');
+    ok('stepTexts ne quitte pas l’appareil',!row.data.stepTexts);
+    ok('et son absence est DITE, pas taue',row.data.vElsewhere===true);
+    eq('les coches, elles, montent normalement',Object.keys(row.data.checked).length,1);
+  }
 }
 
 // Ouvert en double-cliquant le fichier (file://) : le navigateur isole les iframes (origine

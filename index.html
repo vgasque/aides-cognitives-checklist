@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-Q7+g1PSvqNjAkEi1x87/o/Oy5yO7Abo54kJ8SYElYU4='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-QUL2ls3rQvVOIwqjb1+wwDYHa2lBOGr02qUHcTWFqSw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -7032,15 +7032,41 @@ function resetRuntime(){Runtime=makeRuntime();}
 // ----- Cycle de vie des sessions vives -----
 function autoSessName(f){return (f&&f.title||'Session')+' — '+new Date().toLocaleString('fr-FR',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'});}
 // Photographie de l'état vivant -> objet session persistable. live=true tant que la session est « en cours ».
+/* TEXTE DES ÉTAPES TOUCHÉES — archivé AVEC la session (v5.0.0, lot T1).
+   POURQUOI. Une clé de cochage vaut `visite:bloc:INDEX`, et le compte rendu la résolvait contre la
+   fiche ACTUELLE. Mesuré : après une simple insertion d'étape en tête de bloc, la clé `1:b1:2` ne
+   désigne plus « ⚠ Adrénaline IM » mais « Appeler à l'aide » — et un enregistrement de soin archivé
+   nomme donc LE MAUVAIS GESTE, en silence. Le défaut est ancien ; MK5-b (v4.64.0) l'a rendu
+   atteignable en deux taps, puisque réordonner une étape est désormais un geste ordinaire.
+   CE QU'ON ARCHIVE, ET RIEN DE PLUS : le texte des étapes RÉELLEMENT touchées — cochées, constatées
+   ou en écart — plus le titre de leur bloc. Pas la fiche entière : une session doit rester légère,
+   et ce qu'on n'a pas touché n'a pas à être figé.
+   OÙ ÇA NE VA PAS : `SESS_LOCAL`. Ce texte est du contenu CLINIQUE ; il ne monte donc jamais vers le
+   serveur, exactement comme la trace do-verify depuis la v4.54.0, et le drapeau posé à sa place dit
+   au compte rendu distant que les libellés sont restés sur l'appareil qui les a produits. */
+function stepTextsFor(R){
+  const out={};const f=R.fiche;if(!f)return out;
+  const keys=new Set([...Object.keys(R.checked||{}).filter(k=>R.checked[k]),
+                      ...Object.keys(R.verified||{}),...Object.keys(R.vgaps||{})]);
+  keys.forEach(k=>{const st=stepTextFromKey(f,k);if(st)out[k]={b:st.block,s:st.step};});
+  return out;}
 function snapshotSession(R,live){const now=Date.now();const tsnap={};
   Object.values(R.timers).forEach(t=>{const within=t.elapsedMs+(t.running?(now-t.lastStart):0);tsnap[t.id]={elapsedMs:t.type==='interval'?Math.min(t.seconds*1000,within):within,cycles:t.cycles};});
-  return {id:R.sessionId,ficheId:R.fiche.id,ficheTitle:R.fiche.title,name:R.name,savedAt:now,startedAt:R.startedAt||now,live:!!live,checked:{...R.checked},verified:{...(R.verified||{})},vgaps:{...(R.vgaps||{})},cxBack:{...(R.cxBack||{})},exercise:!!R.exercise,nav:R.nav.slice(),navSeq:R.navSeq.slice(),counters:{...R.counters},timers:tsnap,
+  return {id:R.sessionId,ficheId:R.fiche.id,ficheTitle:R.fiche.title,name:R.name,savedAt:now,startedAt:R.startedAt||now,live:!!live,checked:{...R.checked},verified:{...(R.verified||{})},vgaps:{...(R.vgaps||{})},stepTexts:stepTextsFor(R),cxBack:{...(R.cxBack||{})},exercise:!!R.exercise,nav:R.nav.slice(),navSeq:R.navSeq.slice(),counters:{...R.counters},timers:tsnap,
     extraTimers:Object.values(R.timers).filter(t=>t.adhoc).map(t=>({id:t.id,label:t.label,seconds:t.seconds,autoloop:!!t.autoloop})),
     events:(R.events||[]).map(e=>({...e}))};}
 // COMPTE-RENDU d'une session : chronologie horodatée (repères), étapes réalisées, compteurs et
 // minuteurs finaux. AFFICHÉ dans l'app (aperçu), puis Imprimer / Télécharger à la demande — jamais
 // d'impression automatique ni d'onglet. Tout est échappé (esc) : contenu de fiches potentiellement partagées.
-function stepTextFromKey(f,key){const p=String(key).split(':');const blk=(f&&f.blocks||[]).find(b=>b.id===p[1]);if(!blk||!Array.isArray(blk.steps))return null;const s=blk.steps[+p[2]];return s?{block:blk.title||'Étapes',step:s}:null;}
+/* Résolution d'une clé de cochage. La SESSION fait foi quand elle porte le texte (v5.0.0) : c'est
+   le seul moyen qu'un compte rendu dise ce qui a réellement été fait, même si la fiche a été éditée
+   depuis. La fiche reste le repli — pour les sessions archivées AVANT ce correctif, qui n'ont pas
+   de `stepTexts`, et pour lesquelles on ne peut rien faire de mieux. Signature compatible : les
+   appelants qui ne passent pas de session gardent le comportement d'avant. */
+function stepTextFromKey(f,key,snap){
+  const arch=snap&&snap.stepTexts&&snap.stepTexts[key];
+  if(arch&&arch.s)return {block:arch.b||'Étapes',step:arch.s,archived:true};
+  const p=String(key).split(':');const blk=(f&&f.blocks||[]).find(b=>b.id===p[1]);if(!blk||!Array.isArray(blk.steps))return null;const s=blk.steps[+p[2]];return s?{block:blk.title||'Étapes',step:s}:null;}
 const reportModal=document.getElementById('reportModal');
 let _reportDoc='',_reportName='compte-rendu';   // document autonome + nom de fichier pour Imprimer/Télécharger
 function exportSessionReport(sessionId){
@@ -7057,7 +7083,7 @@ function exportSessionReport(sessionId){
   const evRows=evs.length?evs.map((e,ix)=>{const vd=!!e.voidAt;
     const lab=vd?`<s>${esc(evLabs[ix])}</s> <span class="muted">— annulé${e.voidAt?' à '+esc(fmtHMS(e.voidAt)):''}</span>`:esc(evLabs[ix]);
     return `<tr><td>${esc(fmtHMS(e.t))}</td><td>+${esc(fmtMs(e.t-start))}</td><td>${lab}</td></tr>`;}).join(''):'<tr><td colspan="3" class="muted">Aucun repère horodaté.</td></tr>';
-  const steps=Object.keys(s.checked||{}).filter(k=>s.checked[k]).map(k=>stepTextFromKey(f,k)).filter(Boolean);
+  const steps=Object.keys(s.checked||{}).filter(k=>s.checked[k]).map(k=>stepTextFromKey(f,k,s)).filter(Boolean);
   /* COMPLICATIONS & VÉRIFICATION (v4.27.0) : le compte-rendu — support du DÉBRIEF (pilier EMIC) —
      restitue les excursions ⚡ (heure d'entrée mémorisée par cxEnter) et la trace do-verify
      (constatations et ÉCARTS horodatés). Vaut pour TOUTES les sessions, réelles comme exercices. */
@@ -7069,7 +7095,7 @@ function exportSessionReport(sessionId){
     .sort((a,b)=>a.t-b.t);
   const nVer=Object.keys(s.verified||{}).length;
   // vfTime : la trace porte {a,t} depuis v4.46.0 et un horodatage nu avant — les deux se lisent ici.
-  const gapRows=Object.entries(s.vgaps||{}).map(([k,v])=>{const st=stepTextFromKey(f,k);const ts=vfTime(v);
+  const gapRows=Object.entries(s.vgaps||{}).map(([k,v])=>{const st=stepTextFromKey(f,k,s);const ts=vfTime(v);
     return st?{t:ts||0,h:`${ts?esc(fmtHMS(ts)):'—'} — △ écart : ${fmt(st.step)} <span class="muted">(${esc(st.block)})</span>`}:null;})
     .filter(Boolean).sort((a,b)=>a.t-b.t);
   const stepRows=steps.length?steps.map(x=>`<li><span class="muted">${esc(x.block)} —</span> ${fmt(x.step)}</li>`).join(''):'<li class="muted">Aucune étape cochée.</li>';
@@ -16286,7 +16312,10 @@ const {toRow:protocolToRow,fromRow:protocolFromRow}=rowConverters(migrateProtoco
       forme qu'il fallait prendre MAINTENANT, parce qu'elle devient irréversible dès qu'il y a des
       données en place : passer au chiffrement de bout en bout ne demandera aucune migration.
    Une session n'est PAS un contenu d'équipe : ni `libraryId`, ni partage, une seule politique. */
-const SESS_LOCAL=['verified','vgaps'];
+/* `stepTexts` rejoint la liste : c'est du contenu CLINIQUE, il reste sur l'appareil qui l'a
+   produit. Le drapeau `vElsewhere` couvre déjà le cas — un compte rendu distant DIT que le détail
+   est resté ailleurs plutôt que de le taire. */
+const SESS_LOCAL=['verified','vgaps','stepTexts'];
 function sessionToRow(o,uidv){
   const data=Object.assign({},o);
   delete data.dirty;delete data.updatedAt;delete data.deletedAt;
