@@ -1115,8 +1115,26 @@ console.log(`\n══ PARTAGE · le miroir suit quand l'hôte avance — moteur 
        doit bouger d'un pixel. C'est l'ancienne garantie, conservée telle quelle — la nouveauté ne
        vaut que si elle ne coûte pas celle-là. */
     {
-      window.scrollTo(0, 0);
-      await new Promise(x => setTimeout(x, 200));
+      /* ⚠ LE MONTAGE A DÛ ÊTRE REFAIT AU LOT T5 (v5.0.0), et la leçon vaut au-delà de ce
+         contrôle. Il faisait `scrollTo(0,0)` pour signifier « il regarde ailleurs » — ce qui
+         était vrai tant que le journal naissait à ~700 px du haut. Depuis que L'ACTION PASSE
+         DEVANT L'ORIENTATION, le haut de page est précisément le bout du journal : le montage
+         produisait donc l'AUTRE régime, l'application suivait le bord vif comme elle le doit, et
+         le témoin est passé au rouge en accusant un comportement juste (mesuré : 508 px).
+         On ne vise donc plus une POSITION, on vise la PROPRIÉTÉ — le bout doit être hors de vue —
+         et l'on vérifie d'abord que le cas est bien rencontré : un contrôle qui ne rencontre pas
+         son cas ne le couvre pas (leçon v4.31.1, redite ici au prix d'un faux rouge). */
+      window.scrollTo(0, document.documentElement.scrollHeight);   // le plus loin possible du bout
+      await new Promise(x => setTimeout(x, 250));
+      {const nb = [...main.querySelectorAll('.ov-block[data-ovi]')].pop();
+       const q = nb ? nb.getBoundingClientRect() : null;
+       /* LE PRÉDICAT EST CELUI DE L'APPLICATION, pas un « entièrement hors écran » de notre
+          invention : le régime se décide sur « le BOUT était-il sous les yeux », c'est-à-dire son
+          HAUT dans la fenêtre (même test que `boutVisible` ci-dessus et qu'`ovAdvanceRender`).
+          Mesurer autre chose reviendrait à écrire une seconde définition du régime — celle-là
+          même que le dépôt a payé deux fois quand deux critères concurrents ont divergé. */
+       out.ailleursMonte = !!q && !(q.top >= 0 && q.top < window.innerHeight - 4);
+       out.dbg = q ? {top:Math.round(q.top),vh:window.innerHeight,sy:Math.round(window.scrollY)} : null;}
       const cibleB = blocs.find(id => Runtime.nav.indexOf(id) < 0) || blocs[0];
       const tA = main.querySelector('.ov-block');
       const yA = tA ? tA.getBoundingClientRect().top : null;
@@ -1158,6 +1176,8 @@ console.log(`\n══ PARTAGE · le miroir suit quand l'hôte avance — moteur 
   t('… une carte de plus au journal', r.cartes >= 2, `${r.cartes} carte(s)`);
   t('… il suivait le bord vif : la nouvelle carte est sous les yeux',
     r.boutVisible === true, JSON.stringify({ boutVisible: r.boutVisible, derive: r.derive }));
+  t('… témoin : le bout n’était PAS sous les yeux avant le lot',
+    r.ailleursMonte === true, JSON.stringify(r.dbg));
   t('… il regardait ailleurs : rien ne bouge (≤ 1 px)',
     (r.deriveAilleurs === null || Math.abs(r.deriveAilleurs) <= 1) && Math.abs(r.scrollAilleurs || 0) <= 1,
     `${r.deriveAilleurs} px de dérive, ${r.scrollAilleurs} px de défilement`);

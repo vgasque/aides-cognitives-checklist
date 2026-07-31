@@ -1287,6 +1287,14 @@
      En sombre, l'encre des pastilles passe à --bg (mêmes raisons AA que .hs-row.on).
      La ligne de liaison est décorative (aria-hidden porté par les pastilles ; l'état vit
      dans le texte des en-têtes). Responsive : gouttière réduite < 430px. */
+  /* EN SESSION (lot T5) : les mêmes étages, sans rail ni numérotation — cf. le commentaire de
+     `pathH`. Aucune couleur, aucun registre ne change : seule l'ossature s'en va. L'écart entre
+     sections est celui du rail (20 px), pour que le passage d'un état à l'autre ne fasse pas
+     respirer la page différemment. */
+  .care-flat{margin:0 0 6px}
+  .cf-stage{padding:0 0 20px}
+  .cf-stage:last-child{padding-bottom:6px}
+  .cf-stage.on>.cp-h{color:var(--primary-dk)}
   .care-path{list-style:none;margin:0 0 6px;padding:0}
   .cp-stage{position:relative;padding:0 0 20px 40px}
   .cp-stage:last-child{padding-bottom:6px}

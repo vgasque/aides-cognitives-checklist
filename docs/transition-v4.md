@@ -261,12 +261,12 @@ premiers : ils préparent le terrain et réparent un défaut d'intégrité.
 
 | Lot | Contenu | Préalable | Risque |
 |---|---|---|---|
-| **T0** | **Scinder `AGENTS.md`** : doctrine (courte, opposable) / journal des incidents. Rendre les paliers auto-vérifiables. | — | nul |
-| **T1** | **Correctif d'intégrité** : `snapshotSession` archive le **texte des étapes cochées**. Répare **aujourd'hui** le compte rendu qui se décale. | — | faible |
-| **T2** | **Le journal des actions remonte** : geste dans la carte du bloc, lecture derrière le quai. | — | faible |
-| **T3** | **Chapeau repliable en session** — mesurable et réversible seul. | — | moyen |
-| **T4** | **Harnais de budget d'écran** (chrome ≤ 30 %, ≥ 1 étape visible, pile d'actions ≤ 25 %). | T3 | nul |
-| **T5** | **C1 — l'action passe devant l'orientation** en session, plus les ancrages. | T3, T4 | **élevé** |
+| **T0** | Scinder `AGENTS.md` : doctrine / journal des incidents — **NON FAIT**. La moitié « paliers auto-vérifiables » est ✅ **LIVRÉE** (`check-paliers.mjs`). | — | nul |
+| ~~**T1**~~ | ✅ **LIVRÉ** — `stepTexts` archivé, classé `SESS_LOCAL`, absent de `shareSnap`. | — | faible |
+| ~~**T2**~~ | ✅ **LIVRÉ** — « Noter l'heure » de **1829 → 1305 px** à 320, **1588 → 1101** à 390. | — | faible |
+| ~~**T3**~~ | ✅ **LIVRÉ** — 172 → 46 px à 320, dérive de défilement **0 px** au dépliage. | — | moyen |
+| ~~**T4**~~ | ✅ **LIVRÉ** — `scripts/audit-budget.mjs`, 3 budgets × 2 formats. Écrit AVANT T5, donc **rouge** sur le défaut qu'il couvre (0 étape visible à 320 × 640) : c'est la seule façon de savoir qu'il mesure quelque chose. | T3 | nul |
+| ~~**T5**~~ | ✅ **LIVRÉ** — 1ʳᵉ étape de **721 → 525 px** à 320 × 640 et **611 → 453** à 390 × 844 ; le rail perd sa numérotation en session (une séquence qui se lirait à l'envers serait pire que pas de séquence). Un témoin d'`audit-partage` a dû être REFAIT : son montage (`scrollTo(0,0)` = « il regarde ailleurs ») était périmé par le réordonnancement même. | T3, T4 | **élevé** |
 | **T5b** | **Fusionner la rangée de commandes et le quai** (décision D1) : −53 px permanents, 27,7 % → 19,4 % de l'écran à 320 px. **Prototypé et mesuré seul** — il rouvre la séparation ECP/ECAM. | T5, T8 (l'axe libère la rangée) | **élevé** |
 | **T6** | **Modèle v4** : `Item`, `role`, `level`, `memory`, `dual`, `phase`, `concl` ; importeur v3→v4 sans perte ; export v4 + sortie « .json v3 » à perte annoncée. **Aucun changement de surface.** | T0 | **élevé** |
 | **T7** | **Éditeur v4** : ★ mémoire, ×2 double, niveau à 3 crans, phase, excursions. | T6 | moyen |

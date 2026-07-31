@@ -206,9 +206,9 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   identiques (variable isolée). RÈGLE : toute sonde qui lit une géométrie après `focus()` doit
   attendre. Il ne s'agissait donc pas d'un défaut d'accessibilité — mais on ne pouvait pas le
   savoir tant que les harnais ne tournaient que sur Blink., à rejouer dès qu'on touche au chrome de crise,
-  au rail, aux feuilles Plan/Consulter ou à un token de couleur. **SEIZE** harnais Playwright qui
+  au rail, aux feuilles Plan/Consulter ou à un token de couleur. **DIX-SEPT** harnais Playwright qui
   MESURENT au lieu d'affirmer (liste exacte dans `package.json`, script `audit` : a11y, doctrine,
-  verify, session-card, zoom-scroll, verify-live, modeseg, consulter, complications, exercice,
+  budget, verify, session-card, zoom-scroll, verify-live, modeseg, consulter, complications, exercice,
   **k5**, **prompt**, lecteur, qr, partage, historique). Ils tournent en CI en mode **NON BLOQUANT** (`continue-on-error`) : visibles à chaque
   push, mais un échec y demande un arbitrage humain, pas un blocage de merge. Les trois plus
   anciens, en détail :
@@ -383,7 +383,10 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   de l'ÉTAPE — les confondre ferait porter deux sens au même trait et hacherait le bleu. C'est donc
   le liseré de la BANDE qui est supprimé : teinte + case colorée + texte coloré + glyphe ⚠/△
   marquent déjà l'étape sans ambiguïté. Ne pas le réintroduire.
-- **Parcours de soin (v4.4.0)** : la vue lecture d'une fiche est structurée par un rail vertical
+- **Parcours de soin (v4.4.0 ; ⚠ ROUVERT EN SESSION PAR LE LOT T5, v5.0.0 — lire « EN SESSION,
+  L'ACTION PASSE DEVANT L'ORIENTATION » plus bas : le rail décrit ci-dessous vaut HORS session ;
+  une fois le soin démarré il cesse d'être l'ossature et perd sa numérotation)** : la vue lecture
+  d'une fiche est structurée par un rail vertical
   numéroté (`<ol class="care-path">`, `aria-current="step"`) — ① **Confirmer le diagnostic**
   (ex-bloc repliable « Confirmation diagnostique », son en-tête EST le titre d'étape :
   « Confirmer le diagnostic » avant session, « Diagnostic confirmé » après ; bouton
@@ -2613,6 +2616,50 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   n'écrase **JAMAIS** un binaire existant (même id → le document présent fait foi) ; binaire du
   zip posé seulement s'il manque, signé `%PDF-` (`isPdfBytes`) et sous plafond ; référence sans
   binaire gardée seulement si le fichier vient du même espace (elle peut suivre par la synchro).
+- **EN SESSION, L'ACTION PASSE DEVANT L'ORIENTATION — ET LE RAIL ①②③ CESSE D'ÊTRE L'OSSATURE
+  (v5.0.0, lot T5 ; règle v4.4.0 ROUVERTE).** Le rail numérote un PARCOURS : il oriente quelqu'un
+  qui découvre la fiche, et c'est exactement ce dont on n'a plus besoin une fois qu'on exécute.
+  Mesuré à 320 × 640 : **la première étape cochable naissait à y = 721 px pour un pli à 640** —
+  **zéro** étape à l'écran à l'instant où l'on démarre le soin. Une checklist qui n'affiche aucune
+  ligne à cocher au démarrage n'est pas une checklist, c'est un sommaire.
+  **RIEN N'EST SUPPRIMÉ, RIEN NE CHANGE DE VUE** : c'est la SUITE VERTICALE qui est réécrite, et
+  **seulement une fois la session démarrée** (`agirDabord = Runtime.started && !useSv`). Hors
+  session, pas un pixel ne bouge — avant d'agir on s'oriente, et le chapeau entier, les critères
+  diagnostiques et le rail restent en tête (condition d'entrée QRH). La bascule se fait au moment
+  précis où l'on presse « Confirmé — démarrer la session ».
+  **LA NUMÉROTATION DISPARAÎT AVEC LE RAIL, ET CE N'EST PAS UN DÉTAIL** : permuter les étages en
+  gardant les pastilles afficherait « ② Prise en charge » au-dessus de « ① Diagnostic confirmé » —
+  **une séquence qui se lit à l'envers est pire que pas de séquence du tout**. Les étages restent
+  des sections TITRÉES (`.care-flat` / `.cf-stage`), dans l'ordre ACTION → ce qui est fait → ce qui
+  suivra ; aucune couleur, aucun registre, aucun écart ne change.
+  **DEUX OBJETS DESCENDENT AVEC LUI** : la carte « Minuteurs & compteurs » (elle ne conduit pas le
+  geste, et depuis la v5.0.0 **le quai la NOMME en permanence** — c'est cette permanence qui autorise
+  à la faire descendre) et l'aperçu d'algorithme. **LE FIL D'ARIANE, LUI, RESTE COLLÉ À SA CARTE** :
+  il ne situe pas dans la fiche, il dit où l'on est DANS le bloc qu'on exécute.
+  **MESURÉ** : première étape à **525 px à 320 × 640** (−196) et **453 px à 390 × 844** (−158) ;
+  au moins une étape entièrement cochable sous le chrome collant dans les deux formats.
+  C'est l'application au téléphone de ce que la v4.59.0 admet déjà au-dessus de 1 200 px avec le
+  cockpit : **la structure était juste, son seuil était faux**.
+- **`audit-budget.mjs` — LE PREMIER HARNAIS QUI MESURE UNE RÉPARTITION (v5.0.0, lot T4).** Les
+  seize autres mesurent des PROPRIÉTÉS : un contraste, une cible, un ordre, un débordement. Or le
+  défaut central relevé par l'audit structurel n'est visible dans **aucune propriété prise
+  isolément** — chaque objet de la colonne est légitime, c'est leur SOMME qui ne l'était pas. Trois
+  budgets, mesurés à **320 × 640** (plancher servi) et **390 × 844**, session démarrée, **sans
+  jamais défiler** : chrome permanent ≤ **30 %** de la hauteur (en-tête + rangée de commandes +
+  quai) ; **au moins UNE étape cochable entièrement visible** ; pile d'actions ≤ **25 %** de la
+  carte du bloc.
+  **LE DEUXIÈME EST LE SEUL DONT L'ÉCHEC EST CLINIQUE** et pas esthétique — les deux autres sont
+  des indicateurs de dérive. Il est **borné au cas DOCTRINAL** (bloc ≥ 4 items) pour le troisième :
+  un bloc de deux lignes rend n'importe quelle pile d'actions proportionnellement énorme, et l'on
+  mesurerait alors la fiche d'exemple, pas l'application.
+  **CE QU'IL NE MESURE PAS, DÉLIBÉRÉMENT** : ni l'ordre, ni l'utilité d'aucun objet — deux
+  dispositions opposées peuvent tenir le même budget. Un harnais qui encoderait un ORDRE figerait
+  une décision de conception dans un contrôle automatique, et le prochain arbitrage se ferait
+  contre l'outil au lieu de se faire contre la doctrine.
+  **ÉCRIT AVANT LE CORRECTIF QU'IL COUVRE**, et c'est la seule façon de savoir qu'il mesure quelque
+  chose : livré seul (T4), il était **rouge** sur le défaut de T5 (0 étape visible à 320) ; vérifié
+  capable d'échouer ensuite dans l'autre sens (`agirDabord` neutralisé → rouge, fichier restauré à
+  l'octet).
 - **LE CHAPEAU « NE PAS OUBLIER » SE REPLIE EN SESSION (v5.0.0, lot T3) — RÈGLE ROUVERTE.** La
   v4.4.0 posait qu'il reste le CHAPEAU, entier, jamais replié. L'argument d'origine est juste — un
   memory item qu'on replie est un memory item qu'on oublie — mais il vise **le moment de la décision
