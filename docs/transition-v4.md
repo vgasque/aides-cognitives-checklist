@@ -277,6 +277,50 @@ premiers : ils préparent le terrain et réparent un défaut d'intégrité.
 | **T12** | **Réécrire `AI_PROMPT`.** Il décrit le format v3 : `notForget`, `confirmation`, `verify`, `posology`, `differentials` n'existent plus ; `role`, `level`, `memory`, `dual`, `phase`, `concl` sont inconnus de lui. Une IA produirait aujourd'hui un JSON que l'import v4 refuserait. | T6 | moyen |
 | **T13** | **Correctifs J0 restants** : enrichir les deux fiches d'exemple au format v4 (J0-D1), réduire l'écran de bienvenue (J0-D5), snackbar → bandeau système (J0-D6). Petits, indépendants, gain de compréhension immédiat. | T6 pour les fiches | faible |
 
+### T14 — Retrait du mode lecteur (décidé le 31/07/2026, préparé, NON exécuté)
+
+**Décision de l'auteur, sur mesures** : le lecteur ne gagne qu'à 320 px (63 % de l'écran aux étapes
+contre 36 % pour la carte de bloc, 5 étapes contre 3) et **perd à 390** (47 % contre 59 %) ; sa
+justification d'origine — « un item à la fois » — a été abandonnée par sa propre doctrine en
+v4.28.0 (Degani & Wiener : perdre sa place est un mode de défaillance premier) ; et le cas qui la
+motivait le mieux (McEvoy 2014, un seul appareil) se résout en **tendant le téléphone**, sans mode
+dédié.
+
+**Ampleur mesurée** : ~180 références — 213 lignes de JS (section + 4 auxiliaires), 51 règles CSS,
+le balisage `#readerMode`, 2 entrées du menu ⋯, le bouton `[data-ovreader]` de la carte de bloc,
+l'entrée de `_histBackAction`, `state.readerI`.
+
+> #### ⛔ PRÉALABLE OBLIGATOIRE — trouvé en tentant l'excision, puis annulée
+>
+> **`rmResume` est le SEUL site qui draine la file `Share._defer`.** Or cette file ne reçoit pas
+> que des évènements du lecteur : `SHARE_APPLY` classe **`verify` et `gap` en `'deferred'`**, et
+> la ligne `if(mode!=='live')this._defer.push(e)` les y range indépendamment de lui. Retirer le
+> lecteur sans re-loger le drain laisserait donc la trace do-verify d'un hôte **en file pour
+> toujours** chez l'invité.
+>
+> **ET C'EST DÉJÀ UN DÉFAUT AUJOURD'HUI, indépendamment du retrait** : le drain n'existe que dans
+> `rmResume`, c'est-à-dire **uniquement si quelqu'un ouvre le lecteur puis touche « reprendre »**.
+> Un invité qui n'ouvre jamais le lecteur ne reçoit jamais les `verify`/`gap` de l'hôte — le
+> régime `deferred` promet « attend un geste LOCAL » et n'attend en réalité qu'un geste du
+> lecteur. C'est la même famille que le défaut consigné en v4.55 (« aucun site du fichier ne
+> drainait `_defer` »), à moitié réparée.
+>
+> **À FAIRE AVANT LE RETRAIT** : donner à `deferred` un drain qui soit vraiment un geste local
+> (cochage, avancement, ou entrée dans la vue), avec son témoin — et vérifier qu'il est capable
+> d'échouer sur le cas « l'invité n'ouvre jamais le lecteur ».
+
+**À NE PAS EMPORTER AVEC LE LOT (règle 14)** : `scripts/audit-lecteur.mjs` porte **14** contrôles
+dont **6 n'ont rien à voir avec le lecteur** — l'ordre du menu ⋯, la normalisation de ses
+séparateurs, ses icônes distinctes, et les **trois de la PILE DE RETOUR** (titre de l'origine sur
+le « ‹ », garde anti double-tap de 700 ms, repli vers la bibliothèque). Le harnais se TAILLE, il ne
+se supprime pas. Le **mode moniteur** partage la coquille CSS du lecteur (z 92) : ses règles ne
+partent pas non plus.
+
+**Perte assumée, chiffrée** : à 320 px, la part d'écran consacrée aux étapes retombe de 63 % à
+36 %, et la cible de réponse de 72 px devient une case de 44. Bornée au plus petit écran servi.
+
+---
+
 **T11 et T12 ne sont pas de la documentation en fin de chantier.** `AI_PROMPT` est **un contrat
 exécutable** — `audit-prompt.mjs` en extrait le schéma et le passe par `migrate()`. Il doit donc
 suivre T6 **immédiatement**, sinon toute fiche générée par IA devient irrecevable en silence. Et
