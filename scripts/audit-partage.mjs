@@ -1149,6 +1149,47 @@ console.log(`\n══ PARTAGE · le miroir suit quand l'hôte avance — moteur 
       out.scrollAilleurs = Math.round(window.scrollY - scA);
     }
 
+    /* ── LE RÉGIME « deferred » SE DRAINE SUR UN GESTE LOCAL DE NAVIGATION, ET SANS LE LECTEUR.
+       C'est le cas que le défaut laissait passer : `SHARE_APPLY` classe `verify` et `gap` en
+       'deferred', et le SEUL drain était le bouton « reprendre » du mode lecteur. Un invité qui
+       n'ouvre jamais le lecteur ne recevait donc jamais la trace do-verify de l'hôte.
+       LE CONTRÔLE VÉRIFIE D'ABORD QUE LE CAS EST RENCONTRÉ — la file doit être NON VIDE avant le
+       geste local, sinon on mesurerait un drain qui n'a rien à drainer. */
+    {
+      const cle = Object.keys(state.checked || {})[0]
+        || (state.navSeq[state.navPos] + ':' + state.nav[state.navPos] + ':0');
+      Share.onEvents([{ seq: 20, id: 'v1', actor: 'hote', kind: 'verify', payload: { k: cle } }]);
+      await new Promise(x => setTimeout(x, 300));
+      out.filePleine = (Share._defer || []).length;
+      out.avantDrain = !!(Runtime.verified || {})[cle];
+      /* Le geste LOCAL : un « Continuer » ordinaire du journal — pas un bouton du lecteur. */
+      /* On prend un geste de navigation RÉELLEMENT disponible à ce rôle et à cet instant :
+         « Continuer » est `aria-disabled` tant que le bloc n'est pas coché (le libellé le dit),
+         et le cocher entièrement changerait l'état qu'on mesure. « ↺ Refaire » est une
+         navigation locale ouverte à tous les rôles depuis la v4.55.0, et il poste une carte au
+         bout du journal sans rien effacer. */
+      /* IL FAUT CONSTITUER L'ÉTAT OÙ LE GESTE EXISTE. « Continuer » est `aria-disabled` tant que
+         le bloc n'est pas coché — et c'est une information en soi : un scribe au milieu d'un bloc
+         n'a AUCUN geste de navigation disponible, donc la file attend, ce qui est exactement ce
+         que « acquittement par l'action » veut dire. On coche donc les étapes restantes (le
+         cochage est ouvert à tous les rôles) avant de mesurer le drain. */
+      const cartes=[...main.querySelectorAll('.ov-block')];
+      const derniere=cartes[cartes.length-1];
+      if(derniere)[...derniere.querySelectorAll('li[data-ck]')]
+        .filter(li=>li.getAttribute('aria-checked')!=='true')
+        .forEach(li=>li.click());
+      await new Promise(x => setTimeout(x, 400));
+      const nx = [...main.querySelectorAll('.ov-block [data-ovnext]')]
+        .find(b=>b.getAttribute('aria-disabled')!=='true');
+      out.btn = nx ? (nx.textContent||'').trim().slice(0,40) : 'ABSENT';
+      out.role = Share.role;
+      if (nx) nx.click();
+      await new Promise(x => setTimeout(x, 500));
+      out.fileApres = (Share._defer || []).length;
+      out.apresDrain = !!(Runtime.verified || {})[cle];
+      out.cleDrain = cle;
+    }
+
     // ── Lecteur OUVERT : le régime s'inverse.
     readerOpen();
     await new Promise(x => setTimeout(x, 350));
@@ -1182,6 +1223,13 @@ console.log(`\n══ PARTAGE · le miroir suit quand l'hôte avance — moteur 
     (r.deriveAilleurs === null || Math.abs(r.deriveAilleurs) <= 1) && Math.abs(r.scrollAilleurs || 0) <= 1,
     `${r.deriveAilleurs} px de dérive, ${r.scrollAilleurs} px de défilement`);
   t('… sans banderole ni fenêtre (règle 11)', r.toasts === 0 && r.modales === 0);
+  /* Le drain du régime « deferred » — SANS jamais ouvrir le lecteur. */
+  t('témoin : la file « deferred » est bien pleine avant le geste',
+    r.filePleine >= 1, `${r.filePleine} en file`);
+  t('… et rien n’est appliqué tant qu’aucun geste local n’a eu lieu', r.avantDrain === false);
+  t('un « Continuer » ORDINAIRE draine la file (sans le mode lecteur)',
+    r.fileApres === 0 && r.apresDrain === true,
+    `file ${r.filePleine} → ${r.fileApres}, trace ${r.avantDrain} → ${r.apresDrain} · geste « ${r.btn} », rôle ${r.role}`);
   t('lecteur ouvert : la navigation est REFUSÉE', r.lecteurRefuse === true);
   t('… mais elle est ANNONCÉE sur place', r.banniere === true && /avanc/i.test(r.banniereTexte), r.banniereTexte);
   t('… et un geste LOCAL la reprend', r.apresReprise === true);

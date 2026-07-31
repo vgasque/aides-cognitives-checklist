@@ -2698,6 +2698,33 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   **UN ITEM ENTRANT EST BORNÉ, JAMAIS RECOPIÉ** (`v4SanItem`, appelé depuis `migrate`) : `safeId`
   sur l'identité (règle 6), niveau ramené dans 1-3, rôle dans la liste fermée, booléens coercés,
   textes bornés. Un `level:99` ou un `dual:"oui"` venus d'un import ne franchissent pas la porte.
+- **⚠ LE RÉGIME « deferred » NE TENAIT AUCUNE DE SES DEUX MOITIÉS (v5.0.0 — défaut PRÉEXISTANT,
+  trouvé en préparant le retrait du mode lecteur).** `SHARE_APPLY` classe `verify` et `gap` en
+  `'deferred'`, et la doctrine promet « mis en file, appliqué **au prochain geste LOCAL DE
+  NAVIGATION** ». Les deux moitiés étaient fausses :
+  1. **LE DRAIN** — le seul site qui vidait `Share._defer` était `rmResume`, c'est-à-dire le bouton
+     « reprendre » **du mode lecteur**. Un invité qui n'ouvrait jamais le lecteur ne recevait donc
+     **JAMAIS** la trace do-verify de l'hôte : elle s'empilait indéfiniment, en silence.
+  2. **L'APPLICATION** — et même quand le drain tournait, `shareApplyAnchored` ne connaissait que
+     `nav`, `flow_end`, `check` et `uncheck`. Les `verify`/`gap` **sortaient de la file puis étaient
+     JETÉS**. Le drain « marchait » sans rien appliquer, ce qui est le pire des deux mondes : la
+     file se vidait, donc rien ne signalait le problème.
+  **LE DRAIN VIT DÉSORMAIS DANS `ovAdvanceRender`, ET NULLE PART AILLEURS** — c'est littéralement
+  ce que la doctrine décrivait : ses trois appelants sont `ovAnswer` (choisir une branche),
+  `ovNewPass` (↺ Refaire) et le handler de « Continuer ». **L'application distante n'y repasse
+  pas** (elle appelle `keepAnchor` directement), donc le drain ne peut pas se déclencher sur un
+  évènement distant — ce qui serait exactement l'interruption que le régime existe pour éviter.
+  **ON DRAINE AVANT DE RENDRE** : la trace entre dans l'état, puis le rendu du geste local peint
+  les deux d'un coup. C'est « l'acquittement par l'action » au sens propre.
+  **L'ÉCRITURE EST CELLE DU PLI** (`shareFold`) : `{a,t}` posé et le registre opposé effacé — une
+  étape ne peut pas être à la fois constatée et en écart. Deux écritures différentes feraient
+  diverger l'état appliqué en direct et l'état recalculé depuis le journal, ce qui est précisément
+  ce que l'empreinte de partage vérifie.
+  **UN CONSTAT DE MÉTHODE, TROUVÉ EN ÉCRIVANT LE TÉMOIN** : un scribe au milieu d'un bloc n'a
+  **aucun** geste de navigation disponible (« Continuer » est `aria-disabled` tant que le bloc
+  n'est pas coché). La file attend donc légitimement — mais il a fallu **constituer l'état** où le
+  geste existe pour mesurer quoi que ce soit. Un témoin qui se contente de cliquer un bouton
+  désactivé mesure le vide.
 - **★ MÉMOIRE — UN MEMORY ITEM EST UN ITEM DE LA LISTE, PAS UN CHAMP À PART (v5.0.0, lot T7).**
   C'est la doctrine QRH, et le modèle v4 l'écrit ainsi : `memory:true` sur l'item, qui **RESTE dans
   son bloc**. Le chapeau « Ne pas oublier » AGRÈGE désormais `notForget` (la liste historique,
