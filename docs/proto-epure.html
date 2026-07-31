@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="fr" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Épuration — proposition séparée</title>
+<style>
+:root{--serif:Georgia,'Times New Roman',serif;--ink:#101b28;--ink-soft:#5b6570;--line:#d5dbe2;--line-strong:#75828e;
+ --bg:#e9edf2;--surface:#fff;--surface-2:#eff2f6;--surface-3:#e8ecf1;--primary:#1f5fa6;--primary-dk:#17477f;
+ --primary-soft:#e3ecf7;--primary-100:#dce7f5;--primary-200:#b9cde6;--on-primary:#fff;--ok:#1d7a38;--ok-soft:#eaf6ee;
+ --critical:#a32e1f;--critical-soft:#fbe9e4;--critical-line:#ecc4bc;--verify:#7a5900;--verify-soft:#fbf3dc;
+ --verify-line:#eddfb6;--verify-bd:#b7791f;--critical-bd:#c43d34;--tag-bg:#e8ecf1;--tag-ink:#3c464f;--link:#1f5fa6;
+ --radius:14px;--radius-md:11px;--radius-sm:9px;
+ --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+ --shadow:0 1px 2px rgba(16,27,40,.04),0 4px 16px rgba(16,27,40,.06);}
+html[data-theme="dark"]{--ink:#e7edf4;--ink-soft:#b7c6d6;--line:#33363b;--line-strong:#5c646e;--bg:#000;
+ --surface:#0d0d0f;--surface-2:#070708;--surface-3:#191a1d;--primary:#4d8fd6;--primary-dk:#8fb4de;
+ --primary-soft:#12233a;--primary-100:#16283f;--primary-200:#26415f;--critical:#ef8a78;--critical-soft:#2a1512;
+ --critical-line:#5a2b23;--verify:#e2b657;--verify-soft:#2a2109;--verify-line:#5a4718;--tag-bg:#191a1d;--tag-ink:#b7c6d6;
+ --link:#8fb4de;--ok:#5cc47c;--ok-soft:#0f2416;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15.5px/1.5 var(--sans);padding:22px 14px 90px}
+.page{max-width:1300px;margin:0 auto}
+h1{font-family:var(--serif);font-weight:600;font-size:26px;margin:0 0 4px}
+.lede{color:var(--ink-soft);font-size:13.5px;margin:0 0 20px;max-width:92ch}
+h2{font-size:18px;margin:36px 0 4px;padding-top:16px;border-top:1px solid var(--line)}
+h2 .n{display:inline-block;min-width:36px;color:var(--primary);font-family:var(--mono);font-size:13.5px}
+.why{color:var(--ink-soft);font-size:13.5px;margin:2px 0 14px;max-width:92ch}
+.note{font-size:12px;color:var(--ink-soft);margin-top:10px;border-left:3px solid var(--verify-bd);padding-left:10px;max-width:100ch}
+.note.ok{border-color:var(--ok)}.note.ko{border-color:var(--critical-bd)}
+table{border-collapse:collapse;width:100%;font-size:12.5px;margin-top:10px}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:var(--surface-2);font-size:11px;text-transform:uppercase;letter-spacing:.07em}
+code{font-family:var(--mono);font-size:.92em;background:var(--tag-bg);color:var(--tag-ink);padding:1px 4px;border-radius:4px}
+.duo{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));align-items:start}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)}
+.panel>.lbl{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:3px}
+.panel>.lbl code{font-size:1em}
+.panel.bad>.lbl{color:var(--critical)}.panel.good>.lbl{color:var(--ok)}
+.panel>.num{font-family:var(--mono);font-size:12px;color:var(--ink-soft);margin-bottom:10px}
+/* --- téléphone --- */
+.phone{width:320px;height:640px;background:var(--bg);border:1px solid var(--line-strong);border-radius:14px;
+ overflow:hidden;display:flex;flex-direction:column;font-size:15.5px;margin:0 auto}
+.hd{background:var(--surface);border-bottom:1px solid var(--line);padding:8px 12px;flex:none;display:flex;align-items:center;gap:8px}
+.hd .t{font-family:var(--serif);font-weight:600;font-size:16.5px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ib{width:32px;height:32px;border-radius:50%;background:var(--surface-2);border:1px solid var(--line);display:grid;place-items:center;font-size:13px;flex:none}
+.ctrlrow{background:var(--surface);border-bottom:1px solid var(--line);padding:7px 10px;display:flex;gap:7px;align-items:center;flex:none}
+.dens{display:flex;background:var(--surface-2);border-radius:99px;padding:3px;flex:1}
+.dens b{flex:1;font-size:12px;font-weight:700;padding:7px 3px;border-radius:99px;color:var(--ink-soft);text-align:center;white-space:nowrap}
+.dens b.on{background:var(--primary-soft);border:1px solid var(--primary);color:var(--primary-dk)}
+.pull{font-size:12px;font-weight:700;color:var(--primary-dk);border:1px solid var(--line-strong);background:var(--surface);
+ border-radius:var(--radius-sm);padding:8px 9px;min-height:38px;white-space:nowrap}
+.dock{background:var(--surface);border-bottom:1px solid var(--line);padding:6px 12px;display:flex;gap:9px;align-items:center;flex:none;font-size:12px}
+.dock .s{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ok)}
+.dock .c{font-family:var(--mono);font-size:16.5px;font-weight:500}
+.dock .r{margin-left:auto;color:var(--ink-soft);font-size:11px;font-weight:700}
+.scroll{flex:1;overflow:hidden;padding:9px 11px}
+.mem{background:var(--critical-soft);border:1px solid var(--critical-line);border-left:4px solid var(--critical);
+ border-radius:var(--radius-sm);padding:9px 10px;margin-bottom:8px;display:flex;align-items:center;gap:8px;min-height:44px}
+.mem .h{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--critical)}
+.mem .n{margin-left:auto;font-size:11px;font-weight:700;color:var(--critical)}
+.blk{background:var(--surface);border:1px solid var(--primary);border-left:4px solid var(--primary);border-radius:var(--radius-md);padding:11px}
+.bh{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
+.bn{width:22px;height:22px;border-radius:50%;background:var(--primary);color:var(--on-primary);display:grid;place-items:center;font-size:11px;font-weight:800;flex:none}
+.lex{font-size:11px;font-weight:700;color:var(--ink-soft);padding:3px 0}
+.lex .r{color:var(--critical)}.lex .a{color:var(--verify)}
+ul.it{list-style:none;margin:6px 0 0;padding:0}
+ul.it li{display:flex;gap:9px;align-items:flex-start;padding:9px 4px;border-top:1px solid var(--line);min-height:44px}
+ul.it li .bx{width:22px;height:22px;border:2px solid var(--line-strong);border-radius:6px;flex:none;margin-top:2px}
+ul.it li .tx{font-size:16.5px;font-weight:600}
+ul.it li.l3{background:var(--critical-soft);border:1px solid var(--critical-line);border-radius:var(--radius-sm)}
+ul.it li.l3 .tx{color:var(--critical);font-weight:800}ul.it li.l3 .bx{border-color:var(--critical-bd)}
+.exp{display:inline-block;font-family:var(--mono);font-size:13.5px;background:var(--primary-100);color:var(--primary-dk);border-radius:7px;padding:3px 7px;margin-top:4px}
+.cta{width:100%;font:inherit;font-size:15.5px;font-weight:700;background:var(--primary);color:var(--on-primary);
+ border:1px solid var(--primary);border-radius:var(--radius-sm);padding:12px;min-height:50px;margin-top:10px}
+.cta.alerte{background:var(--surface);color:var(--critical);border-color:var(--critical-bd);font-weight:800}
+.subacts{display:flex;gap:7px;margin-top:8px}
+.mini{font:inherit;font-size:12.5px;font-weight:700;background:var(--surface);color:var(--primary-dk);
+ border:1px solid var(--line-strong);border-radius:var(--radius-sm);padding:9px 12px;min-height:44px}
+.mini.alerte{color:var(--critical);border-color:var(--critical-bd)}
+.tag{display:inline-block;font-size:11px;font-weight:800;background:var(--critical);color:var(--on-primary);border-radius:99px;padding:1px 6px;margin-left:5px}
+.gain{font-family:var(--mono);font-weight:700}
+.gain.plus{color:var(--ok)}
+.themebtn{position:fixed;right:14px;bottom:14px;z-index:99;font:inherit;font-size:13.5px;font-weight:700;
+ border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);border-radius:var(--radius-sm);padding:9px 12px;min-height:44px;cursor:pointer}
+</style>
+</head>
+<body><div class="page">
+
+<h1>Épuration — proposition séparée</h1>
+<p class="lede"><b>Rien de ce qui a été fait n'est modifié.</b> Ce document est une proposition à
+part : <a href="proto-r4.html">proto-r4</a> et <a href="proto-large.html">proto-large</a> restent
+tels quels. Le constat est chiffré ci-dessous, et l'essentiel de la densité vient de moi — j'ai
+ajouté un contrôle à chaque question posée, sans jamais en retirer un seul.</p>
+
+<!-- ============ DIAGNOSTIC ============ -->
+<h2><span class="n">D</span> Ce qui s'est accumulé, mesuré</h2>
+<p class="why">Carte du bloc courant, cran « Un bloc », session démarrée.</p>
+<table>
+  <tr><th>Mesure</th><th>320 × 640</th><th>390 × 844</th><th>Lecture</th></tr>
+  <tr><td>Bandes permanentes</td><td colspan="2"><b>3</b> — barre 53 · commandes 59 · quai 38 = <b>150 px</b></td><td>23 % de l'écran à 320</td></tr>
+  <tr><td>Rangées d'action dans la carte</td><td colspan="2"><b>3</b> — Continuer · ⚡ · (⏱ + Journal)</td><td>167 px à 320</td></tr>
+  <tr><td><b>Part de la carte consacrée aux actions</b></td><td><b>34 %</b></td><td><b>33 %</b></td><td>les items n'en occupent que 45 %</td></tr>
+  <tr><td>Contrôles visibles simultanément</td><td>6</td><td><b>8</b></td><td>Une étape · Un bloc · Toute la fiche · Consulter · Continuer · ⚡ · ⏱ · Journal</td></tr>
+</table>
+<p class="note ko"><b>Le diagnostic n'est pas « c'est trop chargé »</b>, c'est : <b>un tiers de la
+carte d'action ne sert pas à agir</b>, et huit contrôles se disputent l'attention là où l'ECAM en
+veut un. Chaque ajout était justifié séparément ; aucun ne l'était contre les autres.</p>
+
+<!-- ============ PROPOSITION ============ -->
+<h2><span class="n">É</span> La proposition, côte à côte</h2>
+<div class="duo">
+  <div class="panel bad"><div class="lbl">Aujourd'hui</div>
+    <div class="num">carte 488 px · 3 rangées d'action · 8 contrôles</div>
+    <div class="phone">
+      <div class="hd"><span class="ib">‹</span><span class="t">Arrêt cardiaque</span><span class="ib">⋯</span></div>
+      <div class="ctrlrow"><span class="dens"><b>Une étape</b><b class="on">Un bloc</b><b>Toute la fiche</b></span>
+        <span class="pull">Consulter</span></div>
+      <div class="dock"><span class="s">● Session</span><span class="c">04:12</span>
+        <span class="r">1 min · 1 cpt · 2 rep ▾</span></div>
+      <div class="scroll">
+        <div class="mem"><span class="h">■ Ne pas oublier</span><span class="n">1 rappel ▾</span></div>
+        <div class="blk">
+          <div class="bh"><span class="bn">1</span>Reconnaissance <span style="margin-left:auto;font-family:var(--mono)">0/3</span></div>
+          <div class="lex"><span class="r">⚠ vital</span> · <span class="a">△ à vérifier</span> · bulle = réponse attendue</div>
+          <ul class="it">
+            <li><span class="bx"></span><span class="tx">Conscience · respiration</span></li>
+            <li class="l3"><span class="bx"></span><span class="tx">⚠ RCP immédiate<br><span class="exp">30:2 — sans délai</span></span></li>
+          </ul>
+          <button class="cta">Continuer — Analyse →</button>
+          <button class="cta alerte">⚡ Complication (3)</button>
+          <div class="subacts"><button class="mini">⏱ Noter l'heure</button><button class="mini">Journal</button></div>
+        </div>
+      </div>
+    </div></div>
+
+  <div class="panel good"><div class="lbl">Épuré</div>
+    <div class="num" id="numE">carte ~380 px · 2 rangées · 6 contrôles</div>
+    <div class="phone" id="phE">
+      <div class="hd"><span class="ib">‹</span><span class="t">Arrêt cardiaque</span><span class="ib">⋯</span></div>
+      <div class="ctrlrow"><span class="dens"><b>Une étape</b><b class="on">Un bloc</b><b>Toute la fiche</b></span>
+        <span class="pull">Consulter</span></div>
+      <div class="dock"><span class="s">● Session</span><span class="c">04:12</span>
+        <span class="r">1 minuteur · 1 compteur ▾</span></div>
+      <div class="scroll">
+        <div class="mem"><span class="h">■ Ne pas oublier</span><span class="n">1 rappel ▾</span></div>
+        <div class="blk">
+          <div class="bh"><span class="bn">1</span>Reconnaissance
+            <span style="margin-left:auto;font-family:var(--mono)">0/3</span></div>
+          <ul class="it">
+            <li><span class="bx"></span><span class="tx">Conscience · respiration</span></li>
+            <li class="l3"><span class="bx"></span><span class="tx">⚠ RCP immédiate<br><span class="exp">30:2 — sans délai</span></span></li>
+          </ul>
+          <button class="cta">Continuer — Analyse →</button>
+          <div class="subacts"><button class="mini alerte">⚡ Complication<span class="tag">3</span></button>
+            <button class="mini">⏱ Noter</button></div>
+        </div>
+      </div>
+    </div></div>
+</div>
+
+<!-- ============ LE DÉTAIL ============ -->
+<h2><span class="n">1–5</span> Cinq retraits, chacun avec son gain et sa perte</h2>
+<table>
+  <tr><th>#</th><th>Ce qu'on retire</th><th>Gain mesuré</th><th>Ce qu'on perd — et pourquoi c'est acceptable</th></tr>
+  <tr style="opacity:.65"><td><b>1</b></td>
+      <td><s><b>La légende des registres quitte la carte</b></s> — <b style="color:var(--critical)">ABANDONNÉ</b>, décision de l'auteur (A4)</td>
+      <td class="gain">0</td>
+      <td><b>Ma proposition était fausse sur ses propres termes</b> : la <b>bulle</b> (réponse attendue) apparaît aussi sur des items de <b>niveau 1</b> — « Conscience · respiration :: absentes » —, donc la conditionner à un ⚠/△ la retirait d'écrans qui en ont besoin. Et c'est le seul endroit du produit où les registres s'apprennent. <b>Elle reste, inconditionnelle</b>, et ses 23 px sont payés volontiers.</td></tr>
+  <tr><td><b>2</b></td>
+      <td><b>Le bouton « Journal »</b></td>
+      <td class="gain plus">−1 contrôle</td>
+      <td>Le journal reste atteignable <b>deux fois</b> : le quai le nomme (« · 2 repères ▾ ») et l'accusé de réception y renvoie après chaque horodatage. Un troisième chemin ne servait qu'à occuper une place.</td></tr>
+  <tr><td><b>3</b></td>
+      <td><b>⚡ et ⏱ fusionnent sur une rangée</b> ; le compte de ⚡ passe en pastille</td>
+      <td class="gain plus">−53 px<br>−1 rangée</td>
+      <td>Le ⚡ perd sa pleine largeur. <b>Il reste au même rang, premier de la rangée</b>, en contour alerte — donc toujours atteignable sans défiler, ce qui était la raison de sa rangée propre. À re-mesurer à 320 : c'est la contrainte qui décide.</td></tr>
+  <tr><td><b>4</b></td>
+      <td><b>Le quai cesse d'énumérer la SESSION</b> : « 1 minuteur · 1 compteur ▾ » au lieu de « 1 min · 1 cpt · <b>2 rep</b> »</td>
+      <td class="gain plus">−1 terme</td>
+      <td><b>Arbitrage tranché en cours d'application</b> : appliqué à la lettre, ce retrait aurait aussi supprimé « 1 minuteur · 1 compteur » — c'est-à-dire exactement le <b>constat 6 du premier audit</b> (le quai doit nommer ce qu'il cache, sinon un néophyte ignore que la fiche en porte). Le quai <b>nomme donc ce que la FICHE DÉCLARE</b> et cesse d'énumérer ce que la <b>session accumule</b>.</td></tr>
+  <tr><td><b>5</b></td>
+      <td><b>« Noter l'heure » → « Noter »</b></td>
+      <td class="gain plus">−26 px de largeur</td>
+      <td>C'est ce qui permet à ⚡ et ⏱ de tenir sur une ligne à 320 px. Le mot complet reste en <code>title</code> et en <code>aria-label</code>.</td></tr>
+</table>
+
+<h2><span class="n">R</span> Trois retraits que j'ai envisagés et écartés</h2>
+<div class="duo">
+  <div class="panel"><div class="lbl">Écarté — fusionner commandes et quai</div>
+    <p style="font-size:13.5px;margin:0 0 8px">Ce serait le plus gros gain (<b>−38 px permanents</b>,
+    une bande de moins). Mais à 320 px, la rangée porterait alors trois crans + Consulter + ● + chrono
+    + chevron. <b>Mesuré ailleurs dans cet audit</b> : la rangée de commandes seule réclame déjà
+    267 px de contenu pour 320 de large.</p>
+    <p class="note ko" style="margin:0">C'est un chantier <b>séparé</b>, à prototyper pour lui-même
+    (partie III, « à rouvrir »). Le mélanger à une épuration de carte ferait porter le risque
+    géométrique par une décision qui n'en a pas besoin.</p></div>
+
+  <div class="panel"><div class="lbl">Écarté — retirer la ligne « Ne pas oublier »</div>
+    <p style="font-size:13.5px;margin:0 0 8px">44 px permanents pour une ligne déjà repliée. Mais ce
+    sont les <b>memory items</b> : la condition d'entrée QRH et ce qui rend une checklist sûre.</p>
+    <p class="note ko" style="margin:0">Les replier était déjà la concession maximale. Les faire
+    disparaître de l'écran d'action reviendrait à supprimer l'objet, pas à l'épurer.</p></div>
+
+  <div class="panel"><div class="lbl">Écarté — réduire les trois crans à deux</div>
+    <p style="font-size:13.5px;margin:0 0 8px">« Une étape » n'est utile qu'à deux voix — on pourrait
+    le sortir de l'axe et le mettre au menu ⋯.</p>
+    <p class="note ko" style="margin:0">Mais c'est <b>l'usage le plus documenté</b> (McEvoy 2014 :
+    99,5 % contre 70 %, le lecteur tenant l'unique appareil). Enfouir dans un menu la configuration
+    la mieux étayée serait exactement l'erreur que cet audit reproche par ailleurs au produit.</p></div>
+</div>
+
+<h2><span class="n">P</span> Le principe qui manquait, et qui aurait évité tout ça</h2>
+<p class="why">Chacun des huit contrôles avait une bonne raison, prise <b>séparément</b>. Aucun n'a
+jamais été pesé <b>contre les autres</b>. Une règle de budget l'aurait empêché — et elle est
+vérifiable, donc elle peut entrer dans les garde-fous :</p>
+<div class="panel" style="max-width:80ch">
+  <p style="font-size:15.5px;font-weight:700;margin:0 0 8px">Sur la carte d'action, en session :
+  <b>une action primaire, une entrée d'exception, une rangée de traçabilité — et rien d'autre.</b></p>
+  <p style="font-size:13.5px;color:var(--ink-soft);margin:0">Corollaire mesurable, du même genre que
+  le harnais de budget d'écran (CH7) : <b>la pile d'actions ne dépasse pas 25 % de la hauteur de la
+  carte</b>. Aujourd'hui 34 %. Un contrôle de plus devra en retirer un autre — c'est tout l'objet
+  d'un budget.</p>
+</div>
+<h2><span class="n">M</span> Le budget est-il tenu ? Mesuré, et ça dépend du bloc</h2>
+<p class="why">Le ratio « part de la carte consacrée aux actions » dépend mécaniquement du
+<b>nombre d'items</b> : la pile d'actions est de hauteur fixe, les items non. Mon écran de
+démonstration n'en a que deux, ce qui est le pire cas — et il aurait été malhonnête de n'annoncer
+que celui-là.</p>
+<table>
+  <tr><th>Items dans le bloc</th><th>Aujourd'hui</th><th>Épuré</th><th>Budget ≤ 25 % ?</th></tr>
+  <tr><td>2</td><td>39 %</td><td>33 %</td><td>non</td></tr>
+  <tr><td>3 <span style="color:var(--ink-soft)">— plancher doctrinal</span></td><td>35 %</td><td>29 %</td><td>non</td></tr>
+  <tr><td><b>4</b></td><td>32 %</td><td><b>25 %</b></td><td><b>oui, tout juste</b></td></tr>
+  <tr><td><b>5</b> <span style="color:var(--ink-soft)">— cible de <code>AI_PROMPT</code></span></td><td>29 %</td><td><b>23 %</b></td><td><b>oui</b></td></tr>
+  <tr><td>7 <span style="color:var(--ink-soft)">— plafond</span></td><td>25 %</td><td>19 %</td><td>oui</td></tr>
+</table>
+<p class="note"><b>Verdict honnête</b> : l'épuration fait passer le budget <b>à partir de 4 items</b>,
+c'est-à-dire sur la taille de bloc que <code>AI_PROMPT</code> demande déjà (« 3 à 5 étapes, 7 au
+maximum »). En dessous, elle améliore de 6 points sans suffire — et c'est <b>normal</b> : un bloc de
+deux items a peu à montrer, donc ses commandes pèseront toujours lourd. Le budget doit donc porter
+sur un bloc de <b>taille doctrinale</b>, pas sur le cas dégénéré, sinon il interdirait les blocs
+courts au lieu de limiter les contrôles.</p>
+
+<p class="note"><b>Ce que je ne sais pas.</b> Ces cinq retraits sont mesurés en <b>pixels</b> et en
+<b>nombre de contrôles</b>. Qu'ils rendent l'écran plus <b>lisible sous stress</b> reste une
+hypothèse : la seule façon de le savoir est de dérouler les deux versions en <b>mode exercice</b>, ce
+que ce document ne peut pas faire.</p>
+
+</div>
+<button class="themebtn" onclick="document.documentElement.dataset.theme=document.documentElement.dataset.theme==='dark'?'light':'dark'">◐ Thème</button>
+<script>
+/* Mesure EN PAGE de la variante épurée — un chiffre qu'on peut vérifier soi-même. */
+addEventListener('load',()=>{
+  const blk=document.querySelector('#phE .blk');
+  const items=[...blk.querySelectorAll('ul.it li')].reduce((a,e)=>a+e.getBoundingClientRect().height,0);
+  const act=[...blk.querySelectorAll('.cta,.subacts')].reduce((a,e)=>a+e.getBoundingClientRect().height,0);
+  const h=blk.getBoundingClientRect().height;
+  const ctrl=[...document.querySelectorAll('#phE button,#phE .dens b,#phE .pull')].length;
+  document.getElementById('numE').textContent=
+    `carte ${Math.round(h)} px · 2 rangées d'action · ${ctrl} contrôles · actions ${Math.round(act/h*100)} % (items ${Math.round(items/h*100)} %)`;
+});
+</script>
+</body></html>

@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="fr" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Audit structurel — maquettes</title>
+<style>
+/* Tokens repris à l'identique d'index.html (:root et bloc sombre). Aucune couleur littérale
+   hors de ce bloc — même règle 7 que le monofichier. */
+:root{--serif:Georgia,'Times New Roman',serif;--ink:#101b28;--ink-soft:#5b6570;--line:#d5dbe2;--line-strong:#75828e;
+ --bg:#e9edf2;--surface:#fff;--surface-2:#eff2f6;--surface-3:#e8ecf1;--primary:#1f5fa6;--primary-dk:#17477f;
+ --primary-soft:#e3ecf7;--primary-100:#dce7f5;--primary-200:#b9cde6;--on-primary:#fff;--ok:#1d7a38;--ok-soft:#eaf6ee;
+ --critical:#a32e1f;--critical-soft:#fbe9e4;--critical-line:#ecc4bc;--verify:#7a5900;--verify-soft:#fbf3dc;
+ --verify-line:#eddfb6;--verify-bd:#b7791f;--critical-bd:#c43d34;--tag-bg:#e8ecf1;--tag-ink:#3c464f;--link:#1f5fa6;
+ --soft:#8a94a0;--radius:14px;--radius-md:11px;--radius-sm:9px;
+ --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+ --shadow:0 1px 2px rgba(16,27,40,.04),0 4px 16px rgba(16,27,40,.06);}
+html[data-theme="dark"]{--ink:#e7edf4;--ink-soft:#b7c6d6;--line:#33363b;--line-strong:#5c646e;--bg:#000;
+ --surface:#0d0d0f;--surface-2:#070708;--surface-3:#191a1d;--primary:#4d8fd6;--primary-dk:#8fb4de;
+ --primary-soft:#12233a;--primary-100:#16283f;--primary-200:#26415f;--critical:#ef8a78;--critical-soft:#2a1512;
+ --critical-line:#5a2b23;--verify:#e2b657;--verify-soft:#2a2109;--verify-line:#5a4718;--tag-bg:#191a1d;--tag-ink:#b7c6d6;
+ --link:#8fb4de;--ok:#5cc47c;--ok-soft:#0f2416;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15.5px/1.55 var(--sans);padding:24px 16px 90px}
+.wrap{max-width:1240px;margin:0 auto}
+h1{font-family:var(--serif);font-weight:600;font-size:28px;margin:0 0 4px}
+.sub{color:var(--ink-soft);font-size:13.5px;margin:0 0 22px;max-width:88ch}
+h2{font-size:18px;margin:40px 0 4px;padding-top:18px;border-top:1px solid var(--line)}
+h2 .n{display:inline-block;min-width:30px;color:var(--primary);font-family:var(--mono);font-size:13.5px}
+.why{color:var(--ink-soft);font-size:13.5px;margin:2px 0 16px;max-width:88ch}
+.trio{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));align-items:start}
+.spec{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)}
+.spec>.lbl{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:4px}
+.spec>.num{font-family:var(--mono);font-size:12px;color:var(--ink-soft);margin-bottom:10px}
+.spec.bad>.lbl{color:var(--critical)}.spec.mid>.lbl{color:var(--verify)}.spec.good>.lbl{color:var(--ok)}
+/* écran de téléphone à l'échelle : 320x640 rendu à 0.72 */
+.screen{width:320px;height:640px;transform-origin:top left;background:var(--bg);border:1px solid var(--line-strong);
+ border-radius:12px;overflow:hidden;position:relative;font-size:15.5px;margin-bottom:6px}
+.scale{height:calc(640px * .72);}
+.scale .screen{transform:scale(.72)}
+.fold{position:absolute;left:0;right:0;bottom:0;height:0;border-top:2px dashed var(--critical-bd)}
+.bar{display:flex;align-items:center;gap:6px;background:var(--surface);border-bottom:1px solid var(--line);padding:8px 10px;height:65px}
+.bar .t{font-family:var(--serif);font-weight:600;font-size:16.5px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pill{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--critical);white-space:nowrap}
+.ctrl{display:flex;gap:6px;align-items:center;background:var(--surface);border-bottom:1px solid var(--line);padding:8px 10px;height:59px}
+.seg{display:inline-flex;background:var(--surface-2);border-radius:99px;padding:3px}
+.seg b{font-size:12px;font-weight:700;padding:6px 10px;border-radius:99px}
+.seg b.on{background:var(--primary-soft);border:1px solid var(--primary);color:var(--primary-dk)}
+.opn{font-size:12px;font-weight:700;color:var(--primary-dk);border:1px solid var(--line-strong);border-radius:var(--radius-sm);padding:6px 8px}
+.dock{display:flex;align-items:center;gap:10px;background:var(--surface);border-bottom:1px solid var(--line);padding:6px 12px;height:53px}
+.dock .s{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ok)}
+.dock .c{font-family:var(--mono);font-size:16.5px;font-weight:500}
+.body{padding:8px 10px;overflow:hidden}
+.band{background:var(--surface);border-bottom:1px solid var(--line);padding:8px 10px;font-family:var(--serif);font-weight:600;font-size:16.5px}
+.forget{background:var(--critical-soft);border:1px solid var(--critical-line);border-left:4px solid var(--critical);border-radius:var(--radius-sm);padding:8px 10px;margin-bottom:8px}
+.forget .h{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--critical);margin-bottom:5px}
+.forget li{font-size:13.5px;margin:3px 0 3px 14px}
+.forget.one{display:flex;align-items:center;gap:6px;padding:9px 10px;min-height:44px}
+.forget.one .h{margin:0}
+.forget.one .more{margin-left:auto;font-size:11px;font-weight:700;color:var(--critical)}
+.sect{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);padding:6px 2px}
+.rail{display:flex;gap:8px;align-items:center;padding:6px 0}
+.rdot{width:22px;height:22px;border-radius:50%;background:var(--primary);color:var(--on-primary);display:grid;place-items:center;font-size:11px;font-weight:800;flex:none}
+.rdot.done{background:var(--ok)}
+.card{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--line-strong);border-radius:var(--radius-md);padding:10px;margin:6px 0}
+.card.cur{border-color:var(--primary);border-left-color:var(--primary)}
+.blkh{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
+ol.steps{list-style:none;margin:6px 0 0;padding:0}
+ol.steps li{display:flex;gap:8px;align-items:flex-start;padding:8px 4px;border-top:1px solid var(--line);min-height:44px}
+ol.steps li .box{width:22px;height:22px;border:2px solid var(--line-strong);border-radius:6px;flex:none;margin-top:2px}
+ol.steps li .txt{font-size:16.5px;font-weight:600}
+ol.steps li.crit{background:var(--critical-soft);border:1px solid var(--critical-line);border-radius:var(--radius-sm)}
+ol.steps li.crit .txt{color:var(--critical);font-weight:800}
+ol.steps li.crit .box{border-color:var(--critical-bd)}
+.tmcard{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-md);padding:8px 10px;font-size:12px;display:flex;gap:8px;align-items:center;margin-bottom:6px}
+.mkw{display:inline-block;width:1em;height:1em;vertical-align:-.12em;margin-right:3px}
+/* Le ⚠ de l'app est un SVG (WARN_GLYPH), pas un caractère : en police texte, U+26A0 se
+   rend comme un triangle nu et devient indiscernable du △ de vigilance — inacceptable
+   dans un audit dont le sujet est justement la distinction des deux registres. */
+table{border-collapse:collapse;width:100%;font-size:12.5px;margin-top:12px}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:var(--surface-2);font-size:11px;text-transform:uppercase;letter-spacing:.07em}
+code{font-family:var(--mono);font-size:.92em;background:var(--tag-bg);color:var(--tag-ink);padding:1px 4px;border-radius:4px}
+.note{font-size:12px;color:var(--ink-soft);margin-top:10px;border-left:3px solid var(--verify-bd);padding-left:10px}
+.note.ko{border-color:var(--critical-bd)}
+.note.ok{border-color:var(--ok)}
+.big{font-family:var(--mono);font-size:19px;font-weight:700}
+.big.ko{color:var(--critical)}.big.ok{color:var(--ok)}
+.themebtn{position:fixed;right:14px;bottom:14px;z-index:9;font:inherit;font-size:13.5px;font-weight:700;
+ border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);border-radius:var(--radius-sm);padding:9px 12px;min-height:44px;cursor:pointer}
+</style>
+</head>
+<body><div class="wrap">
+
+<h1>Second audit — maquettes des chantiers</h1>
+<p class="sub">Écrans rendus à l'échelle <b>320 × 640</b> (le plancher servi), le trait rouge marquant
+le <b>pli</b>. Toutes les valeurs en pixels sont <b>mesurées dans l'application vivante</b>, session
+démarrée, <code>scrollY = 0</code>. Tokens et corps repris d'<code>index.html</code> ; échelle
+typographique fermée et cibles de 44 px respectées. Rien ici n'est un tutoriel ni une fiche
+supplémentaire — les deux contraintes du premier audit tiennent.</p>
+
+<!-- ============================== S1 ============================== -->
+<h2><span class="n">S1</span> Au démarrage de la session, à 320 × 640 — et pourquoi la diète ne suffit pas</h2>
+<p class="why">C'est la mesure centrale de l'audit. À l'instant où l'on presse « Confirmé — démarrer la
+session », la première étape à exécuter est à <b>847 px</b> du haut sur un écran de <b>640</b> :
+<b>zéro étape visible</b>. J'ai simulé la diète (chapeau replié à une ligne, titres de section
+retirés) : elle rend 186 px et <b>ne fait toujours pas passer la première étape au-dessus du pli</b>.
+Seul le changement d'ordre y parvient.</p>
+<div class="spec" style="margin-bottom:14px">
+  <div class="lbl">« Ordre changé » — ce que cela veut dire exactement</div>
+  <p style="font-size:13.5px;margin:6px 0 10px"><b>Rien n'est supprimé, rien ne change de vue.</b>
+  C'est la <b>suite verticale</b> de la colonne centrale qui est réécrite, et <b>seulement une fois la
+  session démarrée</b> : ce qui sert à <b>agir</b> monte en tête, ce qui sert à <b>s'orienter</b>
+  descend d'un cran et reste à un geste de défilement.</p>
+  <table style="margin:0">
+    <tr><th style="width:44px">Rang</th><th>Aujourd'hui, en session</th><th>Proposé, en session</th></tr>
+    <tr><td>1</td><td>bandeau-titre de la fiche</td><td><b style="color:var(--ok)">bloc courant — les étapes cochables</b></td></tr>
+    <tr><td>2</td><td>chapeau « Ne pas oublier » <i>(entier, 172 px)</i></td><td>chapeau « Ne pas oublier » <i>(replié en 1 ligne — S2)</i></td></tr>
+    <tr><td>3</td><td>rail ① « Diagnostic confirmé »</td><td>rail ①②③</td></tr>
+    <tr><td>4</td><td>titre « Prise en charge »</td><td>carte minuteurs &amp; compteurs</td></tr>
+    <tr><td>5</td><td>carte minuteurs &amp; compteurs</td><td>bandeau-titre de la fiche</td></tr>
+    <tr><td>6</td><td>titre « Parcours »</td><td>reste du journal, annexes</td></tr>
+    <tr><td>7</td><td><b style="color:var(--critical)">bloc courant — les étapes cochables</b></td><td>—</td></tr>
+  </table>
+  <p class="note ok" style="margin-top:10px"><b>Hors session, rien ne bouge du tout.</b> La fiche
+  s'ouvre exactement comme aujourd'hui — chapeau entier, rail ①②③, critères diagnostiques en tête —
+  parce qu'avant d'agir on s'oriente. La bascule se fait au moment où l'on presse
+  « Confirmé — démarrer la session », et se défait à la fin de la session.</p>
+</div>
+<div class="trio">
+
+  <div class="spec bad"><div class="lbl">Aujourd'hui</div>
+    <div class="num">1ʳᵉ étape à <b class="big ko">847 px</b> · <b>0/5</b> étape visible</div>
+    <div class="scale"><div class="screen">
+      <div class="bar"><span>‹</span><span class="t">Anaphylaxie</span><span class="pill">■ Crise</span><span>⋯</span></div>
+      <div class="ctrl"><span class="seg"><b class="on">Guidé</b><b>Statique</b></span><span class="opn">⤢ Se repérer</span><span class="opn">⤢ Cons.</span></div>
+      <div class="dock"><span class="s">● Session</span><span class="c">00:00</span><span style="margin-left:auto;color:var(--ink-soft)">▾</span></div>
+      <div class="band">Anaphylaxie (choc…)</div>
+      <div class="body">
+        <div class="forget"><div class="h">■ Ne pas oublier</div>
+          <li>Adrénaline IM = 1ʳᵉ intention, ne pas retarder</li>
+          <li>Allonger, jambes surélevées</li>
+          <li>Surveillance prolongée : réaction biphasique</li></div>
+        <div class="rail"><span class="rdot done">✓</span><span style="font-size:11px;font-weight:800;letter-spacing:.07em;color:var(--ink-soft)">Diagnostic confirmé</span></div>
+        <div class="sect">Prise en charge</div>
+        <div class="tmcard"><span>⏱</span> Minuteurs &amp; compteurs <span style="margin-left:auto">▾</span></div>
+        <div class="sect">Parcours</div>
+      </div>
+      <div class="fold"></div>
+    </div></div>
+    <p class="note ko">Le pli tombe <b>avant</b> l'en-tête du bloc courant. Chrome permanent :
+    <b>177 px</b> (barre 65 + commandes 59 + quai 53), soit <b>27,7 %</b> de l'écran ;
+    <b>43,9 %</b> à 130 % de taille de texte.</p>
+  </div>
+
+  <div class="spec mid"><div class="lbl">Diète — chapeau replié, titres retirés</div>
+    <div class="num">1ʳᵉ étape à <b class="big" style="color:var(--verify)">661 px</b> · <b>0/5</b> — gain 186 px</div>
+    <div class="scale"><div class="screen">
+      <div class="bar"><span>‹</span><span class="t">Anaphylaxie</span><span class="pill">■ Crise</span><span>⋯</span></div>
+      <div class="ctrl"><span class="seg"><b class="on">Guidé</b><b>Statique</b></span><span class="opn">⤢ Se repérer</span><span class="opn">⤢ Cons.</span></div>
+      <div class="dock"><span class="s">● Session</span><span class="c">00:00</span><span style="margin-left:auto;color:var(--ink-soft)">▾</span></div>
+      <div class="band">Anaphylaxie (choc…)</div>
+      <div class="body">
+        <div class="forget one"><div class="h">■ Ne pas oublier</div><span class="more">3 rappels ▾</span></div>
+        <div class="rail"><span class="rdot done">✓</span><span style="font-size:11px;font-weight:800;letter-spacing:.07em;color:var(--ink-soft)">Diagnostic confirmé</span></div>
+        <div class="tmcard"><span>⏱</span> Minuteurs &amp; compteurs <span style="margin-left:auto">▾</span></div>
+        <div class="card cur"><div class="blkh"><span class="rdot">1</span> Mesures immédiates <span style="margin-left:auto;font-family:var(--mono)">0/5</span></div></div>
+      </div>
+      <div class="fold"></div>
+    </div></div>
+    <p class="note ko"><b>Insuffisant.</b> On voit l'en-tête du bloc, pas une seule étape. Même
+    résultat à 130 % (882 px pour 844 de pli). Une diète ne corrige pas un ordre.</p>
+  </div>
+
+  <div class="spec good"><div class="lbl">Ordre changé — CH1</div>
+    <div class="num">1ʳᵉ étape à <b class="big ok">418 px</b> · <b>2/5</b> — gain 429 px</div>
+    <div class="scale"><div class="screen">
+      <div class="bar"><span>‹</span><span class="t">Anaphylaxie</span><span class="pill">■ Crise</span><span>⋯</span></div>
+      <div class="ctrl"><span class="seg"><b class="on">Agir</b><b>Se repérer</b></span><span class="opn">⤢ Cons.</span></div>
+      <div class="dock"><span class="s">● Session</span><span class="c">00:00</span><span style="margin-left:auto;color:var(--ink-soft)">1 minuteur ▾</span></div>
+      <div class="body">
+        <div class="forget one"><div class="h">■ Ne pas oublier</div><span class="more">3 rappels ▾</span></div>
+        <div class="card cur">
+          <div class="blkh"><span class="rdot">1</span> Mesures immédiates <span style="margin-left:auto;font-family:var(--mono)">0/5</span></div>
+          <div style="font-size:11px;font-weight:700;color:var(--ink-soft);padding:3px 0"><span style="color:var(--critical)"><svg class="mkw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>vital</span> · <span style="color:var(--verify)">△ à vérifier</span></div>
+          <ol class="steps">
+            <li><span class="box"></span><span class="txt">Retirer / arrêter l'allergène</span></li>
+            <li class="crit"><span class="box"></span><span class="txt"><svg class="mkw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>Adrénaline IM, cuisse</span></li>
+          </ol>
+        </div>
+      </div>
+      <div class="fold"></div>
+    </div></div>
+    <p class="note ok">L'orientation n'a pas disparu : le rail ①②③, la carte minuteurs et le
+    bandeau-titre sont <b>sous</b> le bloc courant, à un geste de défilement. Hors session, l'ordre
+    d'aujourd'hui est <b>conservé</b> — avant d'agir, on s'oriente.</p>
+  </div>
+</div>
+<table>
+  <tr><th>Régime</th><th>320 × 640</th><th>390 × 844</th><th>390 @ 130 %</th><th>La 1ʳᵉ étape passe-t-elle le pli ?</th></tr>
+  <tr><td>Aujourd'hui</td><td><b>847 px — 0/5</b></td><td>698 px — 2/5</td><td><b>1 124 px — 0/5</b></td><td>1 fois sur 3</td></tr>
+  <tr><td>Diète</td><td>661 px — 0/5</td><td>551 px — 3/5</td><td>882 px — 0/5</td><td>1 fois sur 3</td></tr>
+  <tr><td><b>Ordre changé</b></td><td><b>418 px — 2/5</b></td><td><b>346 px — 5/5</b></td><td><b>601 px — 2/5</b></td><td><b>3 fois sur 3</b></td></tr>
+</table>
+
+<!-- ============================== S2 ============================== -->
+<h2><span class="n">S2</span> Le chapeau se replie — en session seulement</h2>
+<p class="why">« Ne pas oublier » porte les <i>memory items</i> : la doctrine QRH veut qu'ils soient vus
+<b>avant</b> d'agir. Ils le sont — à l'ouverture de la fiche, entiers, en tête. Mesuré, une fois la
+session lancée ils occupent <b>172 px</b> à 320 px et <b>223 px</b> à 130 %, en permanence, au-dessus
+de l'action. La proposition ne les retire pas : elle les replie en une <b>ligne rouge dépliable</b>,
+exactement comme la v4.16.0 a replié une carte de journal en ligne d'état relisible.</p>
+<div class="trio">
+  <div class="spec bad"><div class="lbl">Hors session — inchangé</div><div class="num">entier, en tête, 172 px</div>
+    <div style="max-width:320px">
+      <div class="forget"><div class="h">■ Ne pas oublier</div>
+        <li>Adrénaline IM = 1ʳᵉ intention, ne pas retarder</li>
+        <li>Allonger, jambes surélevées — ne pas verticaliser</li>
+        <li>Surveillance prolongée : réaction biphasique possible</li></div>
+    </div>
+    <p class="note ok">C'est la condition d'entrée QRH : on la lit avant de commencer. <b>Rien ne change ici.</b></p>
+  </div>
+  <div class="spec good"><div class="lbl">En session — replié</div><div class="num">44 px, dépliable d'un tap</div>
+    <div style="max-width:320px">
+      <div class="forget one"><div class="h">■ Ne pas oublier</div><span class="more">3 rappels ▾</span></div>
+    </div>
+    <p class="note">Le registre (rouge), le glyphe (■) et le mot restent — <b>règle 8 tenue</b>. Le
+    compte annonce ce qui est replié, comme le quai annonce « +n » et le rail son total.
+    <b>128 px rendus</b> à l'action, à 320 px.</p>
+  </div>
+  <div class="spec"><div class="lbl">Règle rouverte</div>
+    <p style="font-size:13.5px;margin:0 0 8px"><b>« Le chapeau reste le CHAPEAU, hors numérotation,
+    jamais replié »</b> (v4.4.0).</p>
+    <p style="font-size:13.5px;margin:0 0 8px">L'argument d'origine est juste : un memory item qu'on
+    replie est un memory item qu'on oublie. Mais il vise <b>le moment de la décision d'entrée</b>,
+    pas les quarante minutes qui suivent — pendant lesquelles le chapeau ne conduit plus rien et
+    repousse ce qui conduit.</p>
+    <p class="note" style="margin:0">Variante prudente si la réouverture est refusée : garder le
+    chapeau entier <b>et</b> appliquer CH1 quand même. Mesuré, l'ordre seul rend 429 px — le repli du
+    chapeau n'en apporte que 128.</p>
+  </div>
+</div>
+
+<!-- ============================== S3 ============================== -->
+<h2><span class="n">S3</span> « Agir / Se repérer » remplace « Guidé / Statique »</h2>
+<p class="note ko" style="max-width:100ch"><b>⚠ SUPERSÉDÉ.</b> Ce sélecteur est <b>abandonné</b> : il demandait encore un choix de <i>présentation</i> sous stress. Il est remplacé par l'<b>axe de densité à trois crans</b> — voir <a href="proto-r4.html">proto-r4</a>, § P2. Le raisonnement sur les <b>surfaces</b> reste valable ; c'est le <b>contrôle</b> qui a changé.</p>
+<p class="why">Mesuré : une étape ordinaire et une étape ⚠ sont rendues dans <b>trois</b> surfaces
+(guidé, statique, lecteur) ; « Ne pas oublier », « À vérifier » et les différentiels dans deux
+chacun. Sept présentations d'une même fiche, dix fonctions de rendu. La bascule actuelle demande
+« comment veux-tu <i>lire</i> ? » — un arbitrage de présentation, sous stress. Après CH2, elle
+demande <b>« veux-tu agir ou te repérer ? »</b>, à quoi l'on sait répondre en réanimation.</p>
+<div class="trio">
+  <div class="spec bad"><div class="lbl">Aujourd'hui</div>
+    <div style="max-width:300px">
+      <div class="ctrl" style="height:auto;border-radius:var(--radius-sm);border:1px solid var(--line)">
+        <span class="seg"><b class="on">Guidé</b><b>Statique</b></span><span class="opn">⤢ Se repérer</span><span class="opn">⤢ Cons.</span></div>
+    </div>
+    <p class="note ko"><b>Quatre</b> commandes pour trois destinations, et « Se repérer » désigne une
+    feuille pendant que « Statique » en désigne une autre qui contient <b>déjà</b> le même plan.
+    Le schéma, lui, n'est que dans le menu ⋯.</p>
+  </div>
+  <div class="spec good"><div class="lbl">Proposition</div>
+    <div style="max-width:300px">
+      <div class="ctrl" style="height:auto;border-radius:var(--radius-sm);border:1px solid var(--line)">
+        <span class="seg"><b class="on">Agir</b><b>Se repérer</b></span><span class="opn">⤢ Consulter</span></div>
+    </div>
+    <p class="note ok"><b>Trois</b> commandes, trois destinations, et la place ainsi rendue paie le
+    libellé entier « Consulter » à 320 px (décision D4 du premier audit). « Se repérer » absorbe
+    l'ex-statique, l'Échelle et le Schéma comme <b>affichages</b> — ils l'étaient déjà avant la
+    v4.25.0.</p>
+  </div>
+  <div class="spec"><div class="lbl">Ce que « Se repérer » contient alors</div>
+    <table style="margin:0">
+      <tr><th>Contenu</th><th>Agir</th><th>Se repérer</th><th>Consulter</th></tr>
+      <tr><td>bloc courant, étapes cochables</td><td><b>✓</b></td><td>lecture seule</td><td>—</td></tr>
+      <tr><td>chapeau « Ne pas oublier »</td><td>✓ (replié)</td><td>✓</td><td>—</td></tr>
+      <tr><td>structure de l'algorithme</td><td>—</td><td><b>✓</b></td><td>—</td></tr>
+      <tr><td>confirmation, à vérifier</td><td>—</td><td>✓</td><td>—</td></tr>
+      <tr><td>différentiels, documents, références</td><td>—</td><td>—</td><td><b>✓</b></td></tr>
+    </table>
+    <p class="note" style="margin-top:8px">Le <b>mode lecteur</b> cesse d'être une septième surface :
+    il devient une <b>densité</b> de « Agir » — ce que la v4.62.0 avait déjà écrit sans aller au bout.
+    Le <b>mode moniteur</b> reste à part : ce n'est pas une vue de la fiche.</p>
+  </div>
+</div>
+
+<!-- ============================== S4 ============================== -->
+<h2><span class="n">S4</span> L'étape, de la chaîne à la structure — et ce que l'auteur récupère</h2>
+<p class="why">Mesuré : <b>9 fonctions et 2 expressions régulières</b> existent uniquement pour
+désencoder une chaîne d'étape (<code>stepText</code> 27 références, <code>stepIsCrit</code> 22,
+<code>stepIsVigil</code> 21, <code>stepCR</code> 12). Un seul <code>String</code> porte le texte, le
+registre, la réponse attendue <b>et</b> le raccourci de saisie K10 — quatre préoccupations
+orthogonales. Le dépôt a déjà payé le prix de cette saturation : <code>STEP_CRIT_RX</code>
+reconnaissait déjà « ! », rendant le raccourci inatteignable et produisant « ⚠ ! Choc immédiat » à
+l'écran.</p>
+<div class="trio">
+  <div class="spec bad"><div class="lbl">Aujourd'hui — un champ, quatre rôles</div>
+<pre style="font-family:var(--mono);font-size:12px;background:var(--surface-2);padding:10px;border-radius:var(--radius-sm);overflow-x:auto;margin:0">steps: [
+  "⚠ Adrénaline IM, cuisse :: 0,5 mg"
+]</pre>
+    <p class="note ko">Conséquence directe pour l'auteur, jamais annoncée : une étape ne peut pas
+    <b>commencer par « ! »</b> ni <b>contenir « :: »</b> ailleurs qu'en séparateur.</p>
+  </div>
+  <div class="spec good"><div class="lbl">Proposition — structure dérivée, chaîne conservée</div>
+<pre style="font-family:var(--mono);font-size:12px;background:var(--surface-2);padding:10px;border-radius:var(--radius-sm);overflow-x:auto;margin:0">steps: [
+  "⚠ Adrénaline IM, cuisse :: 0,5 mg"
+],
+stepsX: [                    // dérivé au migrate()
+  { t:"Adrénaline IM, cuisse",
+    reg:"crit", r:"0,5 mg" }
+]</pre>
+    <p class="note ok"><b>La chaîne reste la source d'échange</b> — export v3, partage et clients
+    antérieurs inchangés : <b>règle 12 tenue à la lettre</b>. La structure n'est qu'une vue calculée
+    au point d'entrée que la règle 5 impose déjà.</p>
+  </div>
+  <div class="spec"><div class="lbl">Ce que cela débloque</div>
+    <ul style="font-size:13.5px;margin:0;padding-left:18px">
+      <li>L'auteur récupère <b>« ! »</b> et <b>« :: »</b> comme caractères ordinaires.</li>
+      <li>Le registre se <b>valide</b> sans réécrire la chaîne (plus de préfixe reposé à la main).</li>
+      <li>Le plafond « 2 étapes colorées par bloc » d'<code>AI_PROMPT</code> devient <b>vérifiable</b>
+        par l'éditeur, donc signalable comme les autres garde-fous.</li>
+      <li>Les 9 fonctions de désencodage se réduisent à <b>une</b>, appelée au <code>migrate()</code>.</li>
+    </ul>
+    <p class="note" style="margin-top:8px"><b>Risque le plus élevé du lot</b> : touche le point
+    d'entrée de toute donnée (règle 5) et le format d'export (règle 12). Tests d'aller-retour
+    exhaustifs exigés sur les chaînes pathologiques.</p>
+  </div>
+</div>
+
+<!-- ============================== S5 ============================== -->
+<h2><span class="n">S5</span> Si l'export v3 pouvait être cassé : le format v4</h2>
+<p class="why"><b>Hypothèse instruite à la demande de l'auteur.</b> La règle 12 (« un export v3 doit
+rester lisible par un client antérieur ») est suspendue le temps de cette maquette seulement. La
+boussole n'est pas l'élégance : chacun des sept champs répare <b>une prescription d'ECAM ou de
+l'AC 120-71B que la chaîne rend aujourd'hui inexprimable</b>, ou un défaut mesuré.</p>
+<div class="trio">
+  <div class="spec bad"><div class="lbl">v3 — un champ, quatre rôles, aucune identité</div>
+<pre style="font-family:var(--mono);font-size:12px;background:var(--surface-2);padding:10px;border-radius:var(--radius-sm);overflow-x:auto;margin:0">{ "blocks":[{
+  "id":"b1",
+  "title":"Mesures immédiates",
+  "steps":[
+    "Retirer / arrêter l'allergène",
+    "⚠ Adrénaline IM, cuisse :: 0,5 mg"
+  ]}],
+  "notForget":[
+    "Adrénaline IM = 1ʳᵉ intention,
+     ne pas retarder"          // ← la MÊME
+  ]                            //   instruction, 2ᵉ fois
+}</pre>
+    <p class="note ko"><b>Mesuré dans la fiche livrée</b> : « Adrénaline IM = 1ʳᵉ intention » et
+    « ⚠ Adrénaline IM, face antéro-latérale de cuisse » sont la même instruction, écrite deux fois,
+    dans deux formulations — dont une seule est cochable et traçable.</p>
+  </div>
+
+  <div class="spec good"><div class="lbl">v4 — l'item est un objet</div>
+<pre style="font-family:var(--mono);font-size:12px;background:var(--surface-2);padding:10px;border-radius:var(--radius-sm);overflow-x:auto;margin:0">{ "v":4, "blocks":[{
+  "id":"b1", "phase":"immediate",
+  "title":"Mesures immédiates",
+  "items":[
+   { "id":"s1",
+     "do":"Retirer / arrêter l'allergène",
+     "level":1 },
+   { "id":"s2",
+     "do":"Adrénaline IM, cuisse",
+     "expect":"0,5 mg",
+     "level":3,
+     "memory":true,
+     "dual":true }
+  ]}]
+}</pre>
+    <p class="note ok">Plus de <code>notForget</code> : le chapeau devient une <b>vue</b>
+    (filtre <code>memory:true</code>). Affichage identique à l'écran, <b>un seul texte</b> à tenir.</p>
+  </div>
+
+  <div class="spec"><div class="lbl">Les sept champs et leur mandat</div>
+    <table style="margin:0">
+      <tr><th>Champ</th><th>Prescription qui l'exige</th></tr>
+      <tr><td><code>id</code></td><td><b>Défaut mesuré</b> : la clé d'une coche est un <b>index</b> — après une insertion, <code>1:b1:2</code> ne désigne plus « ⚠ Adrénaline » mais « Appeler à l'aide ». Un compte-rendu archivé nomme le mauvais geste.</td></tr>
+      <tr><td><code>do</code> / <code>expect</code></td><td><b>AC 120-71B §5.2.2.1</b> — un lit, l'autre confirme et répond : deux énoncés, deux personnes. Et <b>Degani &amp; Wiener</b> : <code>expect</code> porte l'état <b>constaté</b>.</td></tr>
+      <tr><td><code>level</code> 3/2/1</td><td>La hiérarchie d'alerte <b>ECAM</b> (warning / caution / advisory), que le produit peint déjà. Ordonné ⇒ « les deux → rouge » devient <code>max()</code>, et le plafond de 2 étapes colorées par bloc devient <b>calculable</b>.</td></tr>
+      <tr><td><code>dual</code></td><td><b>AC 120-71B §5.2.2.5</b> — les items critiques sont vérifiés par <b>les deux</b>. <b>Inexprimable aujourd'hui</b> ; c'est la seule capacité clinique nouvelle de tout l'audit, et le partage de session la rend implémentable.</td></tr>
+      <tr><td><code>memory</code></td><td><b>QRH</b> — un memory item <b>est</b> un item de checklist : fait de mémoire, <b>puis vérifié sur la liste</b>. Le séparer produit la duplication mesurée ci-contre.</td></tr>
+      <tr><td><code>phase</code></td><td>L'<b>inhibition ECAM</b> par phase — le « decluttering ». <code>AI_PROMPT</code> demande déjà les phases, mais dans le <b>titre</b>, donc inexploitables.</td></tr>
+      <tr><td><code>concl</code></td><td><code>AI_PROMPT</code> réclame déjà des « libellés-conclusions », parce que les vues abrégées n'affichent que <b>titre + réponse</b> et qu'un « Oui » relu seul peut dire l'inverse du sens réel.</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="trio" style="margin-top:14px">
+  <div class="spec"><div class="lbl">Ce qu'on ne fait PAS, même règle 12 suspendue</div>
+    <ul style="font-size:13.5px;margin:0;padding-left:18px">
+      <li><b>Aucun champ calculé</b> — ni dose, ni score, ni seuil déduit. C'est le <b>périmètre
+        réglementaire</b> : le jour où l'app <i>déduit</i>, sa qualification de
+        non-dispositif-médical est à rouvrir. v4 décrit mieux ce que l'auteur écrit ; il n'en tire
+        jamais rien.</li>
+      <li><b>Aucun texte libre de plus sur le réseau de partage</b> — la règle 15 n'est pas
+        suspendue : le journal continue de ne transporter que des <b>références</b>.</li>
+      <li><b>On ne convertit pas les sessions déjà archivées</b> — réécrire un enregistrement de
+        soin passé serait pire que le défaut corrigé.</li>
+    </ul>
+  </div>
+  <div class="spec"><div class="lbl">La rupture ne se fait que dans un sens</div>
+    <table style="margin:0">
+      <tr><td><b>Lecture</b></td><td><code>migrate()</code> lit v3 <b>et</b> v4 ; v3 → v4 <b>sans perte</b> (v3 est strictement plus pauvre). Les <code>id</code> sont mintés une fois, puis persistés.</td></tr>
+      <tr><td><b>Écriture</b></td><td>v4 par défaut, plus une sortie <b>« .json v3 »</b> à <b>perte annoncée</b> (<code>dual</code>, <code>phase</code>, <code>memory</code>, les <code>id</code>). La règle 12 devient <b>optionnelle et explicite</b> au lieu d'implicite et permanente.</td></tr>
+      <tr><td><b>Partage</b></td><td><code>SHARE_KEEP</code> + <b>liste blanche SQL</b> à rejouer — le serveur est l'autorité. Même geste que pour <code>discriminant</code>, où il avait été oublié.</td></tr>
+    </table>
+  </div>
+  <div class="spec good"><div class="lbl">Le correctif immédiat que ce chantier révèle</div>
+    <p style="font-size:13.5px;margin:0 0 8px">La dérive des clés se répare <b>aujourd'hui, sans
+    aucune rupture</b> : que <code>snapshotSession</code> archive le <b>texte des étapes cochées</b>
+    en même temps que leurs clés. La session devient autonome ; le compte-rendu cesse de dépendre de
+    l'état actuel de la fiche.</p>
+    <p style="font-size:13.5px;margin:0 0 8px"><b>Coût faible, risque faible, bénéfice :
+    l'intégrité de l'enregistrement de soin.</b></p>
+    <p class="note"><b>À trancher</b> : les sessions se synchronisent depuis la v4.54.0 — y archiver
+    le texte fait monter du texte clinique vers le serveur. La règle 15 vise le <b>partage</b>, pas
+    l'historique, et le champ <code>data</code> accepte déjà <code>{v:2, enc:&lt;blob&gt;}</code> :
+    c'est exactement la porte prévue pour ce cas.</p>
+  </div>
+</div>
+
+<h2 style="border-top:3px solid var(--primary);padding-top:24px;margin-top:52px">
+  <span class="n">II</span> Table rase — la structure proposée</h2>
+<p class="why"><b>v3 est abandonné.</b> Les trois maquettes qui suivent ne cherchent plus le compromis
+compatible : elles montrent la structure reprise à zéro, dictée par <b>SFAR</b>, <b>ECAM</b> et
+<b>AC 120-71B</b>. Les deux contraintes tiennent toujours — aucun tutoriel, aucune aide livrée en plus.</p>
+
+<!-- ============================== S6 ============================== -->
+<h2><span class="n">S6</span> L'item, cinq rôles — six listes plates deviennent un tableau</h2>
+<p class="why">ECAM n'a <b>qu'un</b> format de ligne ; une QRH <b>qu'un</b> format d'item. Le rôle dit
+<b>où</b> l'item s'affiche, pas <b>ce qu'il est</b>. Les six listes plates de la fiche v3
+(<code>confirmation</code>, <code>verify</code>, <code>posology</code>, <code>notForget</code>,
+<code>differentials</code>, <code>references</code>) deviennent un <code>role</code> — et chacune
+gagne au passage une identité, un niveau et une réponse attendue.</p>
+<div class="trio">
+  <div class="spec bad"><div class="lbl">v3 — six champs, six rendus, six éditeurs</div>
+<pre style="font-family:var(--mono);font-size:12px;background:var(--surface-2);padding:10px;border-radius:var(--radius-sm);overflow-x:auto;margin:0">confirmation : ["Pas de pouls en 10 s"]
+verify       : ["PAS ≥ 80 mmHg"]
+posology     : ["△ **ADRÉ — IM** : 0,5 mg"]
+notForget    : ["Adrénaline IM = 1ʳᵉ
+                intention, ne pas retarder"]
+differentials: ["Asthme aigu grave"]
+blocks[0].steps:
+  ["⚠ Adrénaline IM, cuisse :: 0,5 mg"]</pre>
+    <p class="note ko">Le 4ᵉ et le dernier sont <b>la même instruction</b>, dans deux formulations —
+    mesuré dans la fiche livrée. Un seul des deux est cochable et traçable.</p>
+  </div>
+  <div class="spec good"><div class="lbl">v4 — un Item, un rôle</div>
+<pre style="font-family:var(--mono);font-size:12px;background:var(--surface-2);padding:10px;border-radius:var(--radius-sm);overflow-x:auto;margin:0">items:[
+ { id:"i1", role:"entry", level:1,
+   do:"Pouls central", expect:"absent en 10 s" },
+ { id:"i7", role:"do",   level:3,
+   do:"Adrénaline IM, cuisse", expect:"0,5 mg",
+   memory:true, dual:true },
+ { id:"i9", role:"watch", level:1,
+   do:"PAS", expect:"≥ 80 mmHg" },
+ { id:"i3", role:"dose",  level:2,
+   do:"ADRÉNALINE — IM", expect:"0,5 mg" },
+ { id:"i5", role:"ddx",   level:1,
+   do:"Asthme aigu grave", expect:"pas d'urticaire" }
+]</pre>
+    <p class="note ok"><b>Un seul texte</b> pour l'adrénaline : le chapeau « Ne pas oublier » devient
+    une <b>vue</b> (filtre <code>memory:true</code>), affichée à l'identique.</p>
+  </div>
+  <div class="spec"><div class="lbl">Ce que chaque rôle gagne</div>
+    <table style="margin:0">
+      <tr><th>v3</th><th>v4</th><th>gain</th></tr>
+      <tr><td><code>confirmation</code></td><td><code>role:"entry"</code></td><td>une réponse attendue, un niveau</td></tr>
+      <tr><td><code>notForget</code></td><td><code>role:"do"</code>+<code>memory</code></td><td><b>cochable et traçable</b> — plus de second texte</td></tr>
+      <tr><td><code>verify</code></td><td><code>role:"watch"</code></td><td>cible chiffrée en <code>expect</code></td></tr>
+      <tr><td><code>posology</code></td><td><code>role:"dose"</code></td><td>le △ imposé par la doctrine devient <b>vérifiable</b></td></tr>
+      <tr><td><code>differentials</code></td><td><code>role:"ddx"</code></td><td>le critère d'élimination en <code>expect</code></td></tr>
+      <tr><td><code>references</code></td><td><b>reste à part</b></td><td>c'est de la métadonnée, jamais du contenu de crise</td></tr>
+    </table>
+    <p class="note" style="margin-top:8px"><b>Supprimés avec les champs</b> : 9 fonctions de
+    désencodage de chaîne et 2 expressions régulières, remplacées par <code>itemsOf(block, role)</code>.</p>
+  </div>
+</div>
+
+<!-- ============================== S7 ============================== -->
+<h2><span class="n">S7</span> Trois surfaces au lieu de sept — et ce que chacune ne montre pas</h2>
+<p class="note ko" style="max-width:100ch"><b>⚠ Le tableau des surfaces reste juste ; le sélecteur montré en bas est SUPERSÉDÉ</b> par l'axe de densité (proto-r4 § P2).</p>
+<p class="why">La règle ECAM que la structure actuelle enfreint : <b>le SD ne rejoue pas l'E/WD
+autrement disposé, il montre autre chose.</b> Mesuré aujourd'hui : une étape ⚠ est rendue dans
+<b>trois</b> surfaces. La colonne « ne contient pas » est la partie qui compte — c'est elle qui rend
+le choix évident sous stress.</p>
+<div class="trio">
+  <div class="spec good"><div class="lbl">AGIR — modèle E/WD</div>
+    <p style="font-size:13.5px;margin:0 0 8px">Le bloc courant, ses items cochables, le chapeau
+    <code>memory</code> replié, le contrôle d'avancement. <b>C'est tout.</b></p>
+    <p class="note ko" style="border-color:var(--critical-bd)"><b>Ne contient pas</b> : la structure
+    de l'algorithme, les doses, les différentiels.</p>
+    <p class="note">Le <b>mode lecteur</b> devient une <b>densité</b> de cette surface (bascule « à
+    deux voix ») — même structure, typographie agrandie, boutons de réponse.</p>
+  </div>
+  <div class="spec good"><div class="lbl">SE REPÉRER — modèle SD + page SFAR</div>
+    <p style="font-size:13.5px;margin:0 0 8px">Toute l'aide sur <b>une page</b> : blocs, branches,
+    état, condition d'entrée, phases. <b>Titres et états</b>, pas le texte intégral des items.</p>
+    <p class="note ko" style="border-color:var(--critical-bd)"><b>Ne contient pas</b> : la moindre
+    case à cocher. Surface <b>inerte</b> — décision doctrinale déjà confirmée deux fois.</p>
+    <p class="note">Absorbe l'ex-<b>mode statique</b> (mesuré : déjà la seule surface qui contient
+    tout), et l'<b>Échelle</b> et le <b>Schéma</b> en deviennent deux <b>affichages</b>.</p>
+  </div>
+  <div class="spec good"><div class="lbl">CONSULTER — modèle STATUS</div>
+    <p style="font-size:13.5px;margin:0 0 8px">Les rôles <code>dose</code>, <code>watch</code>,
+    <code>ddx</code>, les documents, les sources, les liens. <b>Tiré, jamais poussé.</b></p>
+    <p class="note ko" style="border-color:var(--critical-bd)"><b>Ne contient pas</b> : ce qui est
+    déjà sous les yeux dans AGIR — la règle de la v4.25.3, enfin structurelle.</p>
+  </div>
+</div>
+<table>
+  <tr><th>Aujourd'hui — 7 présentations</th><th>Devient</th></tr>
+  <tr><td>Guidé · Journal</td><td><b>AGIR</b></td></tr>
+  <tr><td>Mode lecteur <i>(surface plein écran)</i></td><td>une <b>densité</b> d'AGIR</td></tr>
+  <tr><td>Mode statique</td><td><b>SE REPÉRER</b></td></tr>
+  <tr><td>Se repérer (Échelle)</td><td>un <b>affichage</b> de SE REPÉRER</td></tr>
+  <tr><td>Schéma plein écran</td><td>un <b>affichage</b> de SE REPÉRER</td></tr>
+  <tr><td>Feuille Consulter</td><td><b>CONSULTER</b></td></tr>
+  <tr><td>Mode moniteur</td><td><b>reste à part</b> — ce n'est pas une vue de l'aide, c'est un afficheur</td></tr>
+</table>
+<div class="trio" style="margin-top:14px">
+  <div class="spec bad"><div class="lbl">Le sélecteur aujourd'hui</div>
+    <div class="ctrl" style="height:auto;border-radius:var(--radius-sm);border:1px solid var(--line);max-width:300px">
+      <span class="seg"><b class="on">Guidé</b><b>Statique</b></span><span class="opn">⤢ Se repérer</span><span class="opn">⤢ Cons.</span></div>
+    <p class="note ko">Demande « <b>comment</b> veux-tu lire ? » — un arbitrage de présentation, sous stress.</p>
+  </div>
+  <div class="spec good"><div class="lbl">Le sélecteur proposé</div>
+    <div class="ctrl" style="height:auto;border-radius:var(--radius-sm);border:1px solid var(--line);max-width:300px">
+      <span class="seg"><b class="on">Agir</b><b>Se repérer</b></span><span class="opn">⤢ Consulter</span></div>
+    <p class="note ok">Demande « <b>agir ou se repérer ?</b> » — à quoi l'on sait répondre en
+    réanimation. Et la place rendue paie « Consulter » en entier à 320 px.</p>
+  </div>
+  <div class="spec"><div class="lbl">Ce qui ne bouge pas</div>
+    <p style="font-size:13.5px;margin:0">Les <b>deux bandes persistantes</b> : commandes au-dessus
+    (ECP), état au-dessous (chrono, minuteurs). C'est la seule chose que la v4.25.0 a
+    définitivement bien posée — la séparation matérielle commande / affichage est <b>littéralement</b>
+    l'architecture Airbus.</p>
+  </div>
+</div>
+
+<!-- ============================== S8 ============================== -->
+<h2><span class="n">S8</span> Quatre coques de fenêtres au lieu de vingt-deux</h2>
+<p class="why">Mesuré : <code>index.html</code> déclare <b>22 fenêtres <code>.ai-modal</code></b> plus
+cinq surfaces plein écran. Elles partagent déjà leur <b>comportement</b>
+(<code>bindModalDismiss</code> : Échap, voile, focus, retour système) sans partager leur <b>coque</b> —
+donc vingt-deux endroits où l'accessibilité, le verrou de fond et le focus peuvent diverger un par un.</p>
+<div class="trio">
+  <div class="spec good"><div class="lbl">Les quatre coques</div>
+    <table style="margin:0">
+      <tr><th>Coque</th><th>Absorbe</th></tr>
+      <tr><td><code>dialog</code></td><td><code>confirm</code>, <code>endSess</code>, <code>syncErr</code>, <code>pending</code>, <code>welcome</code></td></tr>
+      <tr><td><code>picker</code></td><td><code>attPick</code>, <code>relPick</code>, <code>cat</code>, cible de complication, <b>et la porte « ＋ »</b></td></tr>
+      <tr><td><code>sheet</code></td><td><code>ref</code>, <code>plan</code>, <code>pdf</code>, visionneuse d'image, schéma</td></tr>
+      <tr><td><code>settings</code></td><td><code>auth</code>, <code>storage</code>, <code>members</code>, <code>newLib</code>, <code>vers</code>, <code>sess</code></td></tr>
+    </table>
+  </div>
+  <div class="spec"><div class="lbl">Ce qui reste hors coque, à dessein</div>
+    <ul style="font-size:13.5px;margin:0;padding-left:18px">
+      <li><code>readerMode</code> — devient une <b>densité</b> d'AGIR (S7)</li>
+      <li><code>monMode</code> — un afficheur, pas une fenêtre</li>
+      <li><code>joinScreen</code> — l'écran d'entrée de l'invité, avant tout amorçage</li>
+      <li><code>shareModal</code>, <code>createModal</code>, <code>reportModal</code> — trois surfaces à mécanique propre</li>
+    </ul>
+    <p class="note" style="margin-top:8px">Sept surfaces gardent une raison d'être singulière. Les
+    quinze autres n'en avaient pas.</p>
+  </div>
+  <div class="spec good"><div class="lbl">Le bénéfice, et il est vérifiable</div>
+    <p style="font-size:13.5px;margin:0 0 8px">Une seule mécanique d'accessibilité, de verrou de fond,
+    de focus et de retour système à tenir. <code>audit-a11y</code> balaie déjà les 22 fenêtres : après
+    la refonte, il mesure <b>quatre coques</b> et la page rendue doit être <b>identique au pixel</b>.</p>
+    <p class="note ok">Effet de bord recherché : la <b>porte « ＋ »</b> devient un <code>picker</code>
+    alimenté par <code>AC_LEX</code> — donc réutilisable pour la légende des registres et les états
+    vides (constats 2, 1 et 5 du premier audit). <b>Une source, quatre consommateurs.</b></p>
+  </div>
+</div>
+
+</div>
+<button class="themebtn" onclick="document.documentElement.dataset.theme=document.documentElement.dataset.theme==='dark'?'light':'dark'">◐ Thème</button>
+</body></html>

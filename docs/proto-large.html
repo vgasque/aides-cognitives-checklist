@@ -1,0 +1,639 @@
+<!doctype html>
+<html lang="fr" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Prototype — éditeurs &amp; grands écrans</title>
+<style>
+:root{--serif:Georgia,'Times New Roman',serif;--ink:#101b28;--ink-soft:#5b6570;--line:#d5dbe2;--line-strong:#75828e;
+ --bg:#e9edf2;--surface:#fff;--surface-2:#eff2f6;--surface-3:#e8ecf1;--primary:#1f5fa6;--primary-dk:#17477f;
+ --primary-soft:#e3ecf7;--primary-100:#dce7f5;--primary-200:#b9cde6;--on-primary:#fff;--ok:#1d7a38;--ok-soft:#eaf6ee;
+ --critical:#a32e1f;--critical-soft:#fbe9e4;--critical-line:#ecc4bc;--verify:#7a5900;--verify-soft:#fbf3dc;
+ --verify-line:#eddfb6;--verify-bd:#b7791f;--critical-bd:#c43d34;--tag-bg:#e8ecf1;--tag-ink:#3c464f;--link:#1f5fa6;
+ --radius:14px;--radius-md:11px;--radius-sm:9px;
+ --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+ --shadow:0 1px 2px rgba(16,27,40,.04),0 4px 16px rgba(16,27,40,.06);}
+html[data-theme="dark"]{--ink:#e7edf4;--ink-soft:#b7c6d6;--line:#33363b;--line-strong:#5c646e;--bg:#000;
+ --surface:#0d0d0f;--surface-2:#070708;--surface-3:#191a1d;--primary:#4d8fd6;--primary-dk:#8fb4de;
+ --primary-soft:#12233a;--primary-100:#16283f;--primary-200:#26415f;--critical:#ef8a78;--critical-soft:#2a1512;
+ --critical-line:#5a2b23;--verify:#e2b657;--verify-soft:#2a2109;--verify-line:#5a4718;--tag-bg:#191a1d;--tag-ink:#b7c6d6;
+ --link:#8fb4de;--ok:#5cc47c;--ok-soft:#0f2416;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15.5px/1.5 var(--sans);padding:22px 14px 90px}
+.page{max-width:1400px;margin:0 auto}
+h1{font-family:var(--serif);font-weight:600;font-size:26px;margin:0 0 4px}
+.lede{color:var(--ink-soft);font-size:13.5px;margin:0 0 20px;max-width:92ch}
+h2{font-size:18px;margin:38px 0 4px;padding-top:16px;border-top:1px solid var(--line)}
+h2 .n{display:inline-block;min-width:34px;color:var(--primary);font-family:var(--mono);font-size:13.5px}
+.why{color:var(--ink-soft);font-size:13.5px;margin:2px 0 14px;max-width:92ch}
+.note{font-size:12px;color:var(--ink-soft);margin-top:10px;border-left:3px solid var(--verify-bd);padding-left:10px;max-width:100ch}
+.note.ok{border-color:var(--ok)}.note.ko{border-color:var(--critical-bd)}
+table{border-collapse:collapse;width:100%;font-size:12.5px;margin-top:10px}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:var(--surface-2);font-size:11px;text-transform:uppercase;letter-spacing:.07em}
+code{font-family:var(--mono);font-size:.92em;background:var(--tag-bg);color:var(--tag-ink);padding:1px 4px;border-radius:4px}
+/* ---------- coque d'écran à l'échelle ---------- */
+.frame{border:1px solid var(--line-strong);border-radius:10px;overflow:hidden;background:var(--bg);position:relative}
+.cap{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 6px}
+.cap b{color:var(--primary);font-family:var(--mono);letter-spacing:0}
+.holder{overflow:hidden}
+.screen{transform-origin:top left}
+/* ---------- chrome commun ---------- */
+.bar{display:flex;align-items:center;gap:10px;background:var(--surface);border-bottom:1px solid var(--line);padding:9px 14px;height:58px}
+.brand{font-family:var(--serif);font-weight:600;font-size:19px}
+.srch{flex:1;max-width:520px;display:flex;align-items:center;gap:8px;background:var(--surface-2);
+ border:1px solid var(--line-strong);border-radius:var(--radius-sm);padding:8px 11px;color:var(--ink-soft);font-size:15px}
+.ib{width:34px;height:34px;border-radius:50%;background:var(--surface-2);border:1px solid var(--line);display:grid;place-items:center;font-size:14px}
+.btnp{font-size:13.5px;font-weight:700;background:var(--primary);color:var(--on-primary);border:1px solid var(--primary);border-radius:var(--radius-sm);padding:8px 13px}
+.btn{font-size:13.5px;font-weight:700;background:var(--surface);color:var(--ink);border:1px solid var(--line-strong);border-radius:var(--radius-sm);padding:8px 13px}
+.btn.tonal{background:var(--primary-soft);color:var(--primary-dk);border-color:var(--primary-200)}
+.btn.sm{font-size:12px;padding:5px 9px}
+/* ---------- sidebar ---------- */
+.side{background:var(--surface);border-right:1px solid var(--line);padding:14px 12px;overflow:auto}
+.sgrp{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin:16px 4px 6px}
+.sgrp:first-child{margin-top:0}
+/* Colonne latérale à 244 px : un nom de bibliothèque partagée est du contenu d'ORGANISATION, donc
+   de longueur inconnue. Il enroulait (+21 px mesuré) et déplaçait le compteur. Il s'ellipse. */
+.srow{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--radius-sm);font-size:13.5px;min-height:36px;
+ min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.srow>.c,.srow>.d,.srow>.ro{flex:none}
+.srow.on{background:var(--primary);color:var(--on-primary);font-weight:700}
+.srow .c{margin-left:auto;font-family:var(--mono);font-size:11.5px;opacity:.75}
+.srow .d{width:9px;height:9px;border-radius:50%;flex:none}
+.srow .ro{font-size:11px;opacity:.7}
+/* ---------- listes ---------- */
+.main{overflow:auto;padding:16px 18px}
+.sect{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin:16px 2px 8px;display:flex;gap:8px;align-items:baseline}
+.sect:first-child{margin-top:0}
+.sect .c{font-weight:400;text-transform:none;letter-spacing:0;font-size:12px}
+.tiles{display:grid;gap:9px;grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
+.tile{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--primary);border-radius:var(--radius-sm);padding:11px;min-height:78px}
+.tile .t{font-size:15.5px;font-weight:700;line-height:1.22}
+.tile .s{font-size:11px;color:var(--ink-soft);margin-top:4px}
+.dir{display:grid;gap:7px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+.az{grid-column:1/-1;font-size:12px;font-weight:800;color:var(--primary);margin:8px 2px 0}
+.row{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-sm);padding:9px 11px;display:flex;gap:9px;align-items:flex-start;min-height:58px}
+.row .cd{width:9px;height:9px;border-radius:50%;flex:none;margin-top:6px}
+.row .m{flex:1;min-width:0}
+.row .t{font-size:15.5px;font-weight:700;line-height:1.24}
+.row .s{font-size:11px;color:var(--ink-soft);margin-top:3px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.kind{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;border-radius:4px;padding:2px 5px}
+.kind.proc{background:var(--primary-100);color:var(--primary-dk)}
+.kind.ref{background:var(--tag-bg);color:var(--tag-ink)}
+.lib{font-size:11px;font-weight:700;background:var(--primary-100);color:var(--primary-dk);border-radius:4px;padding:2px 5px}
+.lib.ro{background:var(--tag-bg);color:var(--tag-ink)}
+.cxn{display:inline-block;font-size:11px;font-weight:800;background:var(--critical);color:var(--on-primary);
+ border-radius:99px;padding:1px 6px;margin-left:5px}
+.disc{font-size:11px;font-weight:700;background:var(--surface-3);color:var(--tag-ink);border-radius:4px;padding:2px 5px}
+.star{color:var(--line-strong);font-size:15px}
+.star.on{color:var(--verify-bd)}
+/* ---------- lecture ---------- */
+.ctrl{display:flex;gap:9px;align-items:center;background:var(--surface);border-bottom:1px solid var(--line);padding:8px 14px}
+.dens{display:inline-flex;background:var(--surface-2);border-radius:99px;padding:3px}
+.dens b{font-size:12px;font-weight:700;padding:7px 13px;border-radius:99px;color:var(--ink-soft)}
+.dens b.on{background:var(--primary-soft);border:1px solid var(--primary);color:var(--primary-dk)}
+.dock{display:flex;gap:12px;align-items:center;background:var(--surface);border-bottom:1px solid var(--line);padding:7px 14px;font-size:12px}
+.dock .s{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ok)}
+.dock .c{font-family:var(--mono);font-size:17px;font-weight:500}
+.col{overflow:auto;padding:14px}
+.colhd{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:8px;display:flex;gap:8px;align-items:baseline}
+.mem{background:var(--critical-soft);border:1px solid var(--critical-line);border-left:4px solid var(--critical);border-radius:var(--radius-sm);
+ padding:9px 11px;margin-bottom:9px;display:flex;align-items:center;gap:8px;min-height:44px}
+.mem .h{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--critical)}
+.mem .n{margin-left:auto;font-size:11px;font-weight:700;color:var(--critical)}
+.blk{background:var(--surface);border:1px solid var(--primary);border-left:4px solid var(--primary);border-radius:var(--radius-md);padding:12px;margin-bottom:9px}
+.blk.o{border-color:var(--line);border-left-color:var(--line-strong)}
+.bh{display:flex;align-items:center;gap:9px;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
+.bn{width:22px;height:22px;border-radius:50%;background:var(--primary);color:var(--on-primary);display:grid;place-items:center;font-size:11px;font-weight:800;flex:none}
+.bn.ok{background:var(--ok)}.bn.td{background:var(--surface-3);color:var(--ink-soft);border:1px solid var(--line-strong)}
+.lex{font-size:11px;font-weight:700;color:var(--ink-soft);padding:3px 0}
+.lex .r{color:var(--critical)}.lex .a{color:var(--verify)}
+ul.it{list-style:none;margin:7px 0 0;padding:0}
+ul.it li{display:flex;gap:9px;align-items:flex-start;padding:9px 4px;border-top:1px solid var(--line);min-height:44px}
+ul.it li .bx{width:22px;height:22px;border:2px solid var(--line-strong);border-radius:6px;flex:none;margin-top:2px}
+ul.it li .tx{font-size:16.5px;font-weight:600}
+ul.it li.l3{background:var(--critical-soft);border:1px solid var(--critical-line);border-radius:var(--radius-sm)}
+ul.it li.l3 .tx{color:var(--critical);font-weight:800}ul.it li.l3 .bx{border-color:var(--critical-bd)}
+ul.it li.l2{background:var(--verify-soft);border:1px solid var(--verify-line);border-radius:var(--radius-sm)}
+ul.it li.l2 .tx{color:var(--verify);font-weight:800}ul.it li.l2 .bx{border-color:var(--verify-bd)}
+.exp{display:inline-block;font-family:var(--mono);font-size:13.5px;background:var(--primary-100);color:var(--primary-dk);border-radius:7px;padding:3px 7px;margin-top:4px}
+.dual{font-size:11px;font-weight:800;background:var(--primary);color:var(--on-primary);border-radius:4px;padding:1px 5px;margin-left:6px;vertical-align:2px}
+/* Colonnes « parcours » et « structure » (260-300 px) : les titres de bloc sont du contenu
+   d'auteur. C'est précisément la colonne dont `AI_PROMPT` dit qu'elle « mord le plus fort » et pour
+   laquelle il exige des titres de 2 à 4 mots. Elle TRONQUE, elle n'enroule pas (+14 px mesuré). */
+.plrow{display:flex;gap:8px;align-items:center;padding:8px 6px;border-top:1px solid var(--line);font-size:12.5px;min-height:40px;
+ min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.plrow>.abbr,.plrow>.bn,.plrow>.opt{flex:none}
+.plrow .abbr{margin-left:auto;font-family:var(--mono);font-size:11.5px;color:var(--ink-soft)}
+.plrow.cur{background:var(--primary-soft);border-radius:var(--radius-sm);font-weight:700}
+.opt{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;background:var(--verify-soft);
+ color:var(--verify);border:1px solid var(--verify-line);border-radius:4px;padding:1px 5px}
+.tmc{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-md);padding:10px;margin-bottom:8px}
+.tml{font-size:13.5px;font-weight:600}
+.tmv{font-family:var(--mono);font-size:30px;font-weight:500;color:var(--link)}
+.tkline{display:flex;gap:8px;font-size:12px;padding:6px 2px;border-top:1px solid var(--line)}
+.tkline .h{font-family:var(--mono);color:var(--ink-soft)}
+/* ---------- éditeur ---------- */
+.edcard{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-md);padding:13px;margin-bottom:10px}
+.edh{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:8px;display:flex;gap:8px;align-items:center}
+.field{margin-bottom:9px}
+.field label{display:block;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:3px}
+.inp{width:100%;border:1px solid var(--line-strong);background:var(--surface);border-radius:var(--radius-sm);padding:9px 10px;font-size:16px;color:var(--ink);min-height:44px;display:flex;align-items:center}
+.inp.ph{color:var(--ink-soft)}
+.inp.foc{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}
+/* la ligne d'item : au REPOS aucun chrome ; à l'ÉDITION le champ et ses outils apparaissent */
+.ir{padding:7px 4px;border-top:1px solid var(--line);display:flex;gap:9px;align-items:flex-start;min-height:44px}
+.ir .g{color:var(--ink-soft);font-size:15px;cursor:grab;flex:none;padding-top:3px}
+.ir .txt{flex:1;font-size:16.5px;font-weight:600}
+.ir.l3 .txt{color:var(--critical);font-weight:800}.ir.l2 .txt{color:var(--verify);font-weight:800}
+.ir.l3{background:var(--critical-soft);border:1px solid var(--critical-line);border-radius:var(--radius-sm)}
+.ir.l2{background:var(--verify-soft);border:1px solid var(--verify-line);border-radius:var(--radius-sm)}
+.tools{display:flex;gap:5px;align-items:center;margin-top:7px;flex-wrap:wrap}
+.tg{font-size:12px;font-weight:800;border:1px solid var(--line-strong);background:var(--surface);color:var(--ink-soft);
+ border-radius:var(--radius-sm);min-width:38px;min-height:38px;display:grid;place-items:center;padding:0 8px}
+.tg.r{color:var(--critical);border-color:var(--critical-line);background:var(--critical-soft)}
+.tg.a{color:var(--verify);border-color:var(--verify-line);background:var(--verify-soft)}
+.tg.b{color:var(--primary-dk);border-color:var(--primary-200);background:var(--primary-soft)}
+.tg.del{margin-left:auto;color:var(--critical)}
+.door{border:2px dashed var(--primary-200);background:var(--primary-soft);border-radius:var(--radius-md);padding:12px;
+ display:flex;gap:10px;align-items:center;color:var(--primary-dk);font-weight:700;font-size:14px;min-height:52px}
+.door .p{width:30px;height:30px;border-radius:50%;background:var(--primary);color:var(--on-primary);display:grid;place-items:center;font-size:17px}
+.rev{background:var(--verify-soft);border:1px solid var(--verify-line);border-left:4px solid var(--verify-bd);
+ border-radius:var(--radius-sm);padding:9px 11px;font-size:12.5px;color:var(--verify)}
+.md{font-family:var(--mono);font-size:13px;line-height:1.6;background:var(--surface);border:1px solid var(--line-strong);
+ border-radius:var(--radius-sm);padding:11px;white-space:pre-wrap;color:var(--ink);min-height:200px}
+.prev h3{font-size:15.5px;margin:10px 0 5px}
+.prev p{font-size:14px;margin:5px 0}
+.prev .cal{background:var(--verify-soft);border-left:4px solid var(--verify-bd);border-radius:var(--radius-sm);padding:8px 10px;font-size:13px;margin:8px 0}
+.themebtn{position:fixed;right:14px;bottom:14px;z-index:99;font:inherit;font-size:13.5px;font-weight:700;
+ border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);border-radius:var(--radius-sm);padding:9px 12px;min-height:44px;cursor:pointer}
+</style>
+</head>
+<body><div class="page">
+
+<h1>Éditeurs et grands écrans — la structure v4 en tablette et en ordinateur</h1>
+<p class="lede">Suite de <a href="proto-r4.html">proto-r4</a>. Écrans rendus à leurs <b>dimensions
+réelles</b> puis mis à l'échelle ; les largeurs de colonnes annoncées sont celles du CSS. Tokens,
+corps et cibles repris d'<code>index.html</code>. Le modèle est celui de la partie II de l'audit :
+un <code>Item</code> à cinq rôles, trois niveaux, <code>memory</code> et <code>dual</code>.</p>
+
+<!-- ================= A. ACCUEIL TABLETTE ================= -->
+<h2><span class="n">A</span> Accueil — tablette 834 × 1112</h2>
+<p class="why"><b>Ce que le grand écran règle</b>, et c'est le problème que le prototype téléphone
+avait laissé ouvert : à trois axes (<b>provenance × type × catégorie</b>), une piste de chips ne
+suffit plus — 13 chips défilant horizontalement, catégories hors écran. Sur ≥ 780 px, <b>les trois
+axes descendent dans la colonne latérale</b>, où ils sont tous visibles à la fois, et la piste
+disparaît. Le téléphone garde la piste ; la tablette n'en a pas besoin.</p>
+<p class="cap">Tablette <b>834 × 1112</b> · colonne latérale 244 px · répertoire en 2 colonnes</p>
+<div class="holder" id="hA"><div class="frame screen" id="sA" style="width:834px;height:1112px;display:flex;flex-direction:column">
+  <div class="bar"><span class="brand">Aides cognitives</span>
+    <span class="srch">⌕ Rechercher une situation…</span>
+    <span class="btnp">＋ Créer</span><span class="ib">◐</span><span class="ib">☺</span></div>
+  <div style="flex:1;display:grid;grid-template-columns:244px 1fr;min-height:0">
+    <div class="side">
+      <div class="sgrp">Bibliothèques</div>
+      <div class="srow on">Toutes <span class="c">12</span></div>
+      <div class="srow">Perso <span class="c">4</span></div>
+      <div class="srow">SAMU 44 <span class="c">4</span></div>
+      <div class="srow">CHU — Anesth. <span class="ro">⌧</span> <span class="c">4</span></div>
+      <div class="srow" style="color:var(--primary-dk);font-weight:700">＋ Rejoindre une bibliothèque</div>
+      <div class="sgrp">Type</div>
+      <div class="srow on">Tout <span class="c">12</span></div>
+      <div class="srow">Procédures <span class="c">8</span></div>
+      <div class="srow">Références <span class="c">4</span></div>
+      <div class="sgrp">Catégories</div>
+      <div class="srow on">Toutes <span class="c">12</span></div>
+      <div class="srow"><span class="d" style="background:#b6382f"></span>Urgences <span class="c">4</span></div>
+      <div class="srow"><span class="d" style="background:#1f5fa6"></span>SMUR <span class="c">1</span></div>
+      <div class="srow"><span class="d" style="background:#0f766e"></span>Anesthésie <span class="c">3</span></div>
+      <div class="srow"><span class="d" style="background:#7c3aed"></span>Réanimation <span class="c">3</span></div>
+      <div class="srow"><span class="d" style="background:#be185d"></span>Pédiatrie <span class="c">1</span></div>
+    </div>
+    <div class="main">
+      <div class="sect">Épinglées <span class="c">3</span></div>
+      <div class="tiles">
+        <div class="tile"><div class="t">Arrêt cardiaque</div><div class="s">Procédure · adulte · SAMU 44</div></div>
+        <div class="tile"><div class="t">Anaphylaxie</div><div class="s">Procédure · adulte · Perso</div></div>
+        <div class="tile" style="border-left-color:var(--line-strong)"><div class="t">Doses des drogues d'urgence</div><div class="s">Référence · CHU — Anesth. ⌧</div></div>
+      </div>
+      <div class="sect">Répertoire <span class="c">12 · A → Z</span></div>
+      <div class="dir">
+        <div class="az">A</div>
+        <div class="row"><span class="cd" style="background:#b6382f"></span><span class="m"><span class="t">Anaphylaxie</span>
+          <span class="s"><span class="kind proc">Procédure</span><span class="disc">adulte</span><span>Urgences</span><span>01/2025</span></span></span><span class="star on">★</span></div>
+        <div class="row"><span class="cd" style="background:#1f5fa6"></span><span class="m"><span class="t">Arrêt cardiaque</span>
+          <span class="s"><span class="kind proc">Procédure</span><span class="disc">adulte</span><span>SMUR</span><span class="lib">SAMU 44</span><span>01/2025</span></span></span><span class="star on">★</span></div>
+        <div class="az">B</div>
+        <div class="row"><span class="cd" style="background:#b6382f"></span><span class="m"><span class="t">Bradycardie</span>
+          <span class="s"><span class="kind proc">Procédure</span><span class="disc">adulte</span><span>Urgences</span><span>11/2024</span></span></span><span class="star">☆</span></div>
+        <div class="az">D</div>
+        <div class="row"><span class="cd" style="background:#b6382f"></span><span class="m"><span class="t">Doses des drogues d'urgence</span>
+          <span class="s"><span class="kind ref">Référence</span><span>Urgences</span><span class="lib ro">CHU — Anesth. ⌧</span><span>01/2025</span></span></span><span class="star on">★</span></div>
+        <div class="az">I</div>
+        <div class="row"><span class="cd" style="background:#0f766e"></span><span class="m"><span class="t">Intubation difficile</span>
+          <span class="s"><span class="kind proc">Procédure</span><span class="disc">adulte</span><span>Anesthésie</span><span class="lib">SAMU 44</span><span>12/2024</span></span></span><span class="star">☆</span></div>
+        <div class="row"><span class="cd" style="background:#0f766e"></span><span class="m"><span class="t">Intubation — matériel du chariot</span>
+          <span class="s"><span class="kind ref">Référence</span><span>Anesthésie</span><span class="lib ro">CHU — Anesth. ⌧</span><span>12/2024</span></span></span><span class="star">☆</span></div>
+      </div>
+    </div>
+  </div>
+</div></div>
+<p class="note ok"><b>Le rail alphabétique disparaît</b> sur cette largeur : le répertoire en deux
+colonnes montre trois fois plus de rangées, et un rail vertical à côté d'une grille à deux colonnes
+ne désigne plus une position unique. Il reste sur téléphone, où il est indispensable (mesuré :
+31 écrans de liste à 200 aides).</p>
+
+<!-- ================= B. LECTURE AIDE — ORDINATEUR ================= -->
+<h2><span class="n">B</span> Lecture d'une procédure — ordinateur 1440 × 900</h2>
+<p class="why"><b>Conséquence de l'axe de densité sur grand écran, et elle est nette</b> : au-dessus
+de 1200 px, deux densités tiennent <b>côte à côte</b> — « Toute la fiche » à gauche, « Un bloc » au
+centre. <b>Le sélecteur de densité se réduit alors à un seul choix utile</b> : passer ou non en
+« Une étape » (lecture à deux voix, qui prend tout l'écran). C'est l'E/WD et le SD d'ECAM, enfin
+simultanés — ce que la v4.59.0 avait vu, mais avec trois colonnes de contenu au lieu de deux
+densités.</p>
+<p class="cap">Ordinateur <b>1440 × 900</b> · parcours 300 px · action 1fr (max 760) · état 330 px</p>
+<div class="holder" id="hB"><div class="frame screen" id="sB" style="width:1440px;height:900px;display:flex;flex-direction:column">
+  <div class="bar"><span class="ib">‹</span><span class="brand" style="font-size:18px">Arrêt cardiaque</span>
+    <span class="disc">adulte</span><span class="lib">SAMU 44</span><span style="flex:1"></span>
+    <span style="font-size:11px;font-weight:800;letter-spacing:.07em;color:var(--critical)">■ Crise</span><span class="ib">⋯</span></div>
+  <div class="ctrl"><span class="dens"><b>Une étape</b><b class="on">Un bloc + parcours</b></span>
+    <span class="btn">Consulter</span><span style="flex:1"></span>
+    <span style="font-size:12px;color:var(--ink-soft)">Les deux densités tiennent à l'écran — le troisième cran n'a plus d'objet ici</span></div>
+  <div class="dock"><span class="s">● Session</span><span class="c">04:12</span>
+    <span style="margin-left:auto;color:var(--ink-soft)">Cycle RCP 01:47</span></div>
+  <div style="flex:1;display:grid;grid-template-columns:300px minmax(0,1fr) 330px;min-height:0">
+    <div class="col" style="border-right:1px solid var(--line);background:var(--surface-2)">
+      <div class="colhd">Parcours <span class="c">inerte</span></div>
+      <div class="plrow"><span class="bn ok">✓</span>Reconnaissance <span class="abbr">3/3 →2</span></div>
+      <div class="plrow cur"><span class="bn">2</span>Analyse du rythme <span class="abbr">ICI</span></div>
+      <div class="plrow" style="padding-left:16px"><span class="opt">Choquable</span></div>
+      <div class="plrow" style="padding-left:16px"><span class="bn td">3</span>Choquable <span class="abbr">0/2 →4</span></div>
+      <div class="plrow" style="padding-left:16px"><span class="bn td">4</span>Après 3 chocs <span class="abbr">OUI→5 NON→9</span></div>
+      <div class="plrow" style="padding-left:30px"><span class="opt">FV réfractaire</span></div>
+      <div class="plrow" style="padding-left:30px"><span class="bn td">5</span>FV réfractaire <span class="abbr">0/2 →6</span></div>
+      <div class="plrow" style="padding-left:30px"><span class="bn td">6</span>Causes réversibles <span class="abbr">OUI→7 NON→9</span></div>
+      <div class="plrow" style="padding-left:16px"><span class="opt">Non choquable</span></div>
+      <div class="plrow" style="padding-left:16px"><span class="bn td">10</span>Non choquable <span class="abbr">0/2 →6</span></div>
+      <div class="plrow" style="color:var(--primary-dk)"><b>↺ reprendre au bloc 2</b></div>
+      <div class="colhd" style="margin-top:16px">⚡ À tout moment <span class="c">hors numérotation</span></div>
+      <div class="plrow" style="border-left:3px solid var(--critical-bd);padding-left:8px">Hyperkaliémie</div>
+      <div class="plrow" style="border-left:3px solid var(--critical-bd);padding-left:8px">Pneumothorax compressif</div>
+      <div class="plrow" style="border-left:3px solid var(--critical-bd);padding-left:8px">Anaphylaxie <span class="abbr">↗ autre aide</span></div>
+      <div class="colhd" style="margin-top:16px">Surveiller <span class="c">après les gestes</span></div>
+      <div class="plrow">Capnographie <span class="abbr">&gt; 10 mmHg</span></div>
+      <div class="plrow">Interruptions <span class="abbr">&lt; 10 s</span></div>
+    </div>
+    <div class="col">
+      <div class="mem"><span class="h">■ Ne pas oublier</span><span class="n">1 rappel ▾</span></div>
+      <div style="max-width:760px">
+      <div class="blk"><div class="bh"><span class="bn">2</span>Analyse du rythme
+        <span style="margin-left:auto;font-size:11px;font-weight:800;color:var(--verify)">×2 passages</span></div>
+        <p style="font-size:19px;font-weight:700;margin:10px 0">Rythme choquable (FV / TVsp) ?</p>
+        <div style="display:flex;gap:9px"><span class="btn tonal" style="flex:1;text-align:center;padding:13px">Oui — choquable</span>
+          <span class="btn tonal" style="flex:1;text-align:center;padding:13px">Non — non choquable</span></div>
+        <div style="display:flex;gap:7px;margin-top:9px">
+          <span class="btn sm" style="color:var(--critical);border-color:var(--critical-bd);font-weight:800">⚡ Complication<span class="cxn">3</span></span>
+          <span class="btn sm">⏱ Noter</span></div></div>
+      <div class="blk o"><div class="bh"><span class="bn ok">✓</span>Reconnaissance &amp; alerte <span style="margin-left:auto;font-family:var(--mono)">3/3</span></div>
+        <div class="lex"><span class="r">⚠ vital</span> · <span class="a">△ à vérifier</span> · bulle = réponse attendue</div>
+        <ul class="it">
+          <li><span class="bx"></span><span class="tx" style="opacity:.55;text-decoration:line-through">Conscience · respiration</span></li>
+          <li class="l3"><span class="bx"></span><span class="tx">⚠ RCP immédiate<span class="dual">×2</span><br><span class="exp">30:2 — sans délai</span></span></li>
+        </ul></div>
+      </div>
+    </div>
+    <div class="col" style="border-left:1px solid var(--line);background:var(--surface-2)">
+      <div class="colhd">État <span class="c">⇄ 2 participants</span></div>
+      <div class="tmc"><div class="tml">Cycle RCP</div><div class="tmv">01:47</div>
+        <div style="font-size:11px;color:var(--ink-soft)">à l'échéance : analyse du rythme + relais adrénaline</div></div>
+      <div class="tmc"><div class="tml">Chocs délivrés</div><div class="tmv" style="color:var(--ink)">2</div></div>
+      <div class="colhd" style="margin-top:14px">Journal <span class="c">4</span></div>
+      <div class="tkline"><span class="h">04:02</span><span>Adrénaline 1 mg</span></div>
+      <div class="tkline"><span class="h">03:41</span><span>Choc n° 2</span></div>
+      <div class="tkline"><span class="h">02:10</span><span>Choc n° 1</span></div>
+      <span class="btn tonal" style="width:100%;text-align:center;margin-top:9px">Noter l'heure</span>
+    </div>
+  </div>
+</div></div>
+
+<!-- ================= C. LECTURE RÉFÉRENCE ================= -->
+<h2><span class="n">C</span> Lecture d'une <b>référence</b> — le chrome de crise disparaît</h2>
+<p class="why">Point relevé en partie III : une référence hérite aujourd'hui du chrome de crise
+(bascule de mode, quai d'état) alors qu'<b>on ne s'y déroule rien</b>. Avec <code>kind</code>, elle
+s'ouvre comme un <b>document</b> : sommaire, corps, documents joints, sources. Pas de densité, pas
+de session, pas de chrono. <b>Mesuré sur cette maquette : 58 px de chrome au lieu de 184</b>.</p>
+<p class="cap">Ordinateur <b>1440 × 760</b> · sommaire 260 px · corps max 780 px</p>
+<div class="holder" id="hC"><div class="frame screen" id="sC" style="width:1440px;height:760px;display:flex;flex-direction:column">
+  <div class="bar"><span class="ib">‹</span><span class="brand" style="font-size:18px">Doses des drogues d'urgence</span>
+    <span class="kind ref">Référence</span><span class="lib ro">CHU — Anesth. ⌧</span><span style="flex:1"></span>
+    <span class="btn">⤓ PDF</span><span class="btn">Imprimer</span><span class="ib">⋯</span></div>
+  <div style="flex:1;display:grid;grid-template-columns:260px minmax(0,1fr);min-height:0">
+    <div class="col" style="border-right:1px solid var(--line);background:var(--surface-2)">
+      <div class="colhd">Sommaire</div>
+      <div class="plrow cur">1 · Vasopresseurs</div>
+      <div class="plrow">2 · Antiarythmiques</div>
+      <div class="plrow">3 · Sédation — induction</div>
+      <div class="plrow">4 · Antidotes</div>
+      <div class="colhd" style="margin-top:16px">Documents <span class="c">2</span></div>
+      <div class="plrow">⎘ Protocole SSPI.pdf</div>
+      <div class="plrow">⎘ Dilutions pédiatriques.pdf</div>
+      <div class="colhd" style="margin-top:16px">Voir aussi</div>
+      <div class="plrow" style="color:var(--primary-dk)">→ Arrêt cardiaque</div>
+    </div>
+    <div class="col"><div class="prev" style="max-width:780px">
+      <div style="font-size:12px;color:var(--ink-soft);margin-bottom:10px">Validée 01/2025 · CHU — Anesthésie · lecture seule</div>
+      <h3>1 · Vasopresseurs</h3>
+      <p><b>ADRÉNALINE</b> — IV : 1 mg /3–5 min. IM : adulte 0,5 mg · enfant 0,01 mg/kg (max 0,5 mg).</p>
+      <p><b>NORADRÉNALINE</b> — IVSE : 0,1–0,5 µg/kg/min, sur voie centrale de préférence.</p>
+      <div class="cal">△ <b>Attention</b> — dilution locale : 8 mg dans 48 mL de G5 % = 160 µg/mL. Vérifier
+        l'étiquette avant branchement.</div>
+      <h3>2 · Antiarythmiques</h3>
+      <p><b>AMIODARONE</b> — 300 mg IVD après le 3ᵉ choc, puis 150 mg. Relais 900 mg/24 h.</p>
+      <p style="color:var(--ink-soft);font-size:12.5px;margin-top:16px">Source : protocoles du service, révision janvier 2025.</p>
+    </div></div>
+  </div>
+</div></div>
+
+<!-- ================= D. ÉDITEUR DE PROCÉDURE ================= -->
+<h2><span class="n">D</span> Éditeur d'une <b>procédure</b> — 1440 × 940</h2>
+<p class="why"><b>Une coque, deux corps.</b> L'identité, l'état, la relecture et les versions sont
+communs aux deux types ; seul le <b>corps</b> diffère. Ici le corps est la liste d'items structurés :
+chaque ligne porte <code>do</code>, <code>expect</code>, le <b>niveau</b> (⚠ / △ / normal),
+<code>memory</code> et <code>dual</code> — les quatre champs que la chaîne v3 ne pouvait pas
+exprimer. <b>Au repos la ligne n'a aucun chrome</b> (c'est le texte que le soignant lira) ; les
+outils n'apparaissent que sur la ligne en édition.</p>
+<p class="cap">Ordinateur <b>1440 × 940</b> · structure 260 px · formulaire 1fr (max 720) · relecture 320 px</p>
+<div class="holder" id="hD"><div class="frame screen" id="sD" style="width:1440px;height:940px;display:flex;flex-direction:column">
+  <div class="bar"><span class="ib">‹</span>
+    <span style="font-size:11px;font-weight:800;letter-spacing:.07em;color:var(--ink-soft)">Modification — procédure</span>
+    <span class="brand" style="font-size:17px">Arrêt cardiaque</span><span class="disc">adulte</span>
+    <span style="flex:1"></span>
+    <span style="font-size:12px;color:var(--ok);font-weight:700">✓ Enregistré</span>
+    <span class="btn sm">↶</span><span class="btn sm" style="color:var(--verify)">△ 2</span>
+    <span class="btn">▶ Essayer</span><span class="ib">⋯</span></div>
+  <div style="flex:1;display:grid;grid-template-columns:260px minmax(0,1fr) 320px;min-height:0">
+    <div class="col" style="border-right:1px solid var(--line);background:var(--surface-2)">
+      <div class="colhd">Structure <span class="c">10 + 2 blocs</span></div>
+      <div class="plrow"><span class="bn td">1</span>Reconnaissance <span class="abbr">3</span></div>
+      <div class="plrow cur"><span class="bn">2</span>Analyse du rythme <span class="abbr">décision</span></div>
+      <div class="plrow" style="padding-left:16px"><span class="bn td">3</span>Choquable <span class="abbr">2</span></div>
+      <div class="plrow" style="padding-left:16px"><span class="bn td">4</span>Après 3 chocs <span class="abbr">décision</span></div>
+      <div class="plrow" style="padding-left:30px"><span class="bn td">5</span>FV réfractaire <span class="abbr">2</span></div>
+      <div class="plrow" style="padding-left:30px"><span class="bn td">6</span>Causes réversibles <span class="abbr">décision</span></div>
+      <div class="plrow" style="padding-left:16px"><span class="bn td">10</span>Non choquable <span class="abbr">2</span></div>
+      <div class="colhd" style="margin-top:14px;color:var(--critical)">⚡ Hors séquence <span class="c">2</span></div>
+      <div class="plrow" style="border-left:3px solid var(--critical-bd);padding-left:8px">Hyperkaliémie <span class="abbr">2</span></div>
+      <div class="plrow" style="border-left:3px solid var(--critical-bd);padding-left:8px">Pneumothorax <span class="abbr">2</span></div>
+      <div style="font-size:11px;color:var(--ink-soft);padding:10px 4px">La structure ne s'écrit pas : elle
+        <b>découle</b> des blocs et de leurs cibles. Taper une ligne y amène ; rien ne s'y modifie.</div>
+    </div>
+    <div class="col"><div style="max-width:720px">
+      <div class="edcard"><div class="edh">Identité <span style="margin-left:auto;font-weight:400;text-transform:none;letter-spacing:0">▾ replié</span></div>
+        <div style="display:flex;gap:9px;align-items:center"><b style="font-size:16.5px">Arrêt cardiaque</b>
+          <span class="disc">adulte</span><span class="lib">SAMU 44</span>
+          <span style="margin-left:auto;font-size:12px;color:var(--ink-soft)">✓ Validée · 01/2025</span></div></div>
+
+      <div class="edcard"><div class="edh">Condition d'entrée <span style="font-weight:400;text-transform:none;letter-spacing:0">— quand déclencher cette procédure</span></div>
+        <div class="ir"><span class="g">⠿</span><span class="txt">Inconscient, ne réagit pas</span></div>
+        <div class="ir"><span class="g">⠿</span><span class="txt">Pas de pouls central <span class="exp">en 10 s</span></span></div>
+        <div style="font-size:12px;color:var(--primary-dk);font-weight:700;padding:8px 4px 0">＋ Critère &nbsp;·&nbsp; ＋ Diagnostic à éliminer</div></div>
+
+      <div class="edcard" style="border-color:var(--primary);border-left:4px solid var(--primary)">
+        <div class="edh"><span class="bn">1</span> Bloc — reconnaissance &amp; alerte
+          <span style="margin-left:auto"><span class="tg" style="min-width:auto;font-weight:700;font-size:11px">phase : immédiate ▾</span></span>
+          <span class="g" style="cursor:grab">⠿</span></div>
+        <div class="ir"><span class="g">⠿</span><span class="txt">Conscience · respiration <span class="exp">absentes</span></span></div>
+        <!-- LIGNE EN ÉDITION : le champ et les outils n'existent QUE là -->
+        <div class="ir l3" style="flex-direction:column;align-items:stretch">
+          <div style="display:flex;gap:9px;align-items:center">
+            <span class="g">⠿</span>
+            <span class="inp foc" style="flex:1;font-weight:800;color:var(--critical)">RCP immédiate</span>
+            <span style="font-size:12px;color:var(--ink-soft)">::</span>
+            <span class="inp foc" style="width:190px;font-family:var(--mono);font-size:14px">30:2 — sans délai</span></div>
+          <div class="tools">
+            <span class="tg r" title="Niveau 3 — vital">⚠</span>
+            <span class="tg" title="Niveau 2 — à vérifier">△</span>
+            <span class="tg" title="Niveau 1 — normal">—</span>
+            <span style="width:10px"></span>
+            <span class="tg b" title="Memory item : s'affiche aussi dans le chapeau">★ mémoire</span>
+            <span class="tg b" title="AC 120-71B §5.2.2.5 — confirmé par les deux">×2 double</span>
+            <span class="tg del" title="Supprimer">✕</span></div>
+          <div style="font-size:11px;color:var(--ink-soft);padding:6px 0 0 30px">⏎ crée l'item suivant · ! puis espace = ⚠ · ? puis espace = △</div>
+        </div>
+        <div class="ir"><span class="g">⠿</span><span class="txt" style="color:var(--ink-soft)">Nouvel item…</span></div>
+        <div style="display:flex;gap:9px;margin-top:10px;align-items:center">
+          <span style="font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft)">Puis →</span>
+          <span class="inp" style="flex:1;font-size:14px">2 · Analyse du rythme</span></div></div>
+
+      <div class="edcard" style="border-left:4px solid var(--critical-bd)">
+        <div class="edh" style="color:var(--critical)">⚡ Complications <span style="margin-left:auto;font-weight:400;text-transform:none;letter-spacing:0">1 à 3 — chaque entrée de plus dilue les autres</span></div>
+        <div class="ir"><span class="g">⠿</span><span class="txt" style="font-size:15px">Hyperkaliémie</span>
+          <span class="inp" style="width:210px;font-size:13.5px">→ bloc hors séquence «&nbsp;Hyperkaliémie&nbsp;»</span><span style="color:var(--critical)">✕</span></div>
+        <div class="ir"><span class="g">⠿</span><span class="txt" style="font-size:15px">Pneumothorax compressif</span>
+          <span class="inp" style="width:210px;font-size:13.5px">→ bloc hors séquence «&nbsp;Pneumothorax&nbsp;»</span><span style="color:var(--critical)">✕</span></div>
+        <div class="ir"><span class="g">⠿</span><span class="txt" style="font-size:15px">Anaphylaxie</span>
+          <span class="inp" style="width:210px;font-size:13.5px">↗ autre aide : Anaphylaxie — adulte</span><span style="color:var(--critical)">✕</span></div>
+        <div style="font-size:11.5px;color:var(--ink-soft);padding:8px 4px 0">Le libellé est le <b>nom de
+          l'évènement</b>, discriminant au premier mot — il devient un bouton tapé sous stress. La cible est
+          un <b>bloc hors séquence</b> (aucun « puis → » n'y mène) ou une <b>autre aide</b>. Le retour au bloc
+          interrompu est <b>automatique</b> : il ne se déclare pas.</div></div>
+      <div class="door"><span class="p">＋</span>Ajouter à cette aide
+        <span style="margin-left:auto;font-weight:400;font-size:12px">bloc · décision · minuteur · compteur · dose · surveillance · différentiel · document</span></div>
+    </div></div>
+    <div class="col" style="border-left:1px solid var(--line);background:var(--surface-2)">
+      <div class="colhd">Relecture <span class="c">2 remarques</span></div>
+      <div class="rev" style="margin-bottom:8px">△ <b>Bloc 4</b> — 8 items : au-delà de 7, scinder en phases cliniques.</div>
+      <div class="rev">△ <b>Bloc 5, item 2</b> — challenge de 128 caractères (110 max).</div>
+      <div style="font-size:11px;color:var(--ink-soft);padding:9px 2px">Aucune de ces remarques n'empêche
+        d'enregistrer — c'est vous qui connaissez votre service.</div>
+      <div class="colhd" style="margin-top:16px">Schéma</div>
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-sm);height:180px;
+        display:grid;place-items:center;color:var(--ink-soft);font-size:12px">organigramme — 10 blocs, 2 boucles</div>
+      <div class="colhd" style="margin-top:16px">Versions</div>
+      <div class="tkline"><span class="h">aujourd'hui</span><span>ouverture</span></div>
+      <div class="tkline"><span class="h">12/01</span><span>validée</span></div>
+    </div>
+  </div>
+</div></div>
+<p class="note"><b>Ce qui est nouveau par rapport à l'éditeur actuel</b>, et ce n'est pas cosmétique :
+les boutons <b>★ mémoire</b> et <b>×2 double</b>. Le premier supprime la liste « Ne pas oublier »
+comme champ séparé — donc la duplication mesurée dans la fiche d'exemple. Le second rend exprimable
+l'exigence <b>AC 120-71B §5.2.2.5</b>, qui ne l'était pas.</p>
+
+<!-- ================= E. ÉDITEUR DE RÉFÉRENCE ================= -->
+<h2><span class="n">E</span> Éditeur d'une <b>référence</b> — même coque, autre corps</h2>
+<p class="why">La barre, l'identité, l'état d'enregistrement, l'anneau d'annulation, la relecture et
+les versions sont <b>identiques</b>. Seul le corps change : un texte rédigé et ses documents, au lieu
+d'items structurés. <b>Fusionner les deux corps serait une erreur</b> — écrire une procédure et
+rédiger une référence ne sont pas le même geste.</p>
+<p class="cap">Ordinateur <b>1440 × 820</b> · rédaction 1fr · aperçu 460 px</p>
+<div class="holder" id="hE"><div class="frame screen" id="sE" style="width:1440px;height:820px;display:flex;flex-direction:column">
+  <div class="bar"><span class="ib">‹</span>
+    <span style="font-size:11px;font-weight:800;letter-spacing:.07em;color:var(--ink-soft)">Modification — référence</span>
+    <span class="brand" style="font-size:17px">Doses des drogues d'urgence</span>
+    <span style="flex:1"></span><span style="font-size:12px;color:var(--ok);font-weight:700">✓ Enregistré</span>
+    <span class="btn sm">↶</span><span class="btn sm" style="color:var(--verify)">△ 1</span><span class="ib">⋯</span></div>
+  <div style="flex:1;display:grid;grid-template-columns:minmax(0,1fr) 460px;min-height:0">
+    <div class="col"><div style="max-width:820px">
+      <div class="edcard"><div class="edh">Identité <span style="margin-left:auto;font-weight:400;text-transform:none;letter-spacing:0">▾ replié</span></div>
+        <div style="display:flex;gap:9px;align-items:center"><b style="font-size:16.5px">Doses des drogues d'urgence</b>
+          <span class="kind ref">Référence</span><span class="lib">SAMU 44</span>
+          <span style="margin-left:auto;font-size:12px;color:var(--ink-soft)">✓ Validée · 01/2025</span></div></div>
+      <div class="edcard"><div class="edh">Corps rédigé
+        <span style="margin-left:auto;display:flex;gap:5px">
+          <span class="tg" style="min-width:34px">B</span><span class="tg" style="min-width:34px">≡</span>
+          <span class="tg" style="min-width:34px">⌗</span><span class="tg a" style="min-width:34px">△</span>
+          <span class="tg r" style="min-width:34px">⚠</span><span class="tg" style="min-width:34px">⎘</span></span></div>
+<div class="md"># 1 · Vasopresseurs
+
+**ADRÉNALINE** — IV : 1 mg /3–5 min.
+IM : adulte 0,5 mg · enfant 0,01 mg/kg (max 0,5 mg).
+
+**NORADRÉNALINE** — IVSE : 0,1–0,5 µg/kg/min.
+
+&gt; [!WARNING]
+&gt; Dilution locale : 8 mg dans 48 mL de G5 % = 160 µg/mL.
+&gt; Vérifier l'étiquette avant branchement.
+
+# 2 · Antiarythmiques
+
+**AMIODARONE** — 300 mg IVD après le 3ᵉ choc, puis 150 mg.</div></div>
+      <div class="edcard"><div class="edh">Documents <span class="c" style="margin-left:auto;font-weight:400;text-transform:none;letter-spacing:0">2</span></div>
+        <div class="ir"><span class="g">⠿</span><span class="txt" style="font-size:14px">⎘ Protocole SSPI.pdf <span style="font-size:11px;color:var(--ink-soft)">— 1,2 Mo</span></span><span style="color:var(--critical)">✕</span></div>
+        <div class="ir"><span class="g">⠿</span><span class="txt" style="font-size:14px">⎘ Dilutions pédiatriques.pdf <span style="font-size:11px;color:var(--ink-soft)">— 0,4 Mo</span></span><span style="color:var(--critical)">✕</span></div></div>
+      <div class="door"><span class="p">＋</span>Ajouter à cette référence
+        <span style="margin-left:auto;font-weight:400;font-size:12px">document · image · source · lien vers une aide</span></div>
+    </div></div>
+    <div class="col" style="border-left:1px solid var(--line);background:var(--surface-2)">
+      <div class="colhd">Aperçu <span class="c">tel que lu</span></div>
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-sm);padding:13px">
+        <div class="prev">
+          <h3>1 · Vasopresseurs</h3>
+          <p><b>ADRÉNALINE</b> — IV : 1 mg /3–5 min. IM : adulte 0,5 mg · enfant 0,01 mg/kg.</p>
+          <p><b>NORADRÉNALINE</b> — IVSE : 0,1–0,5 µg/kg/min.</p>
+          <div class="cal">△ <b>Attention</b> — Dilution locale : 8 mg dans 48 mL de G5 % = 160 µg/mL.</div>
+          <h3>2 · Antiarythmiques</h3>
+          <p><b>AMIODARONE</b> — 300 mg IVD après le 3ᵉ choc, puis 150 mg.</p></div></div>
+      <div class="colhd" style="margin-top:14px">Relecture <span class="c">1</span></div>
+      <div class="rev">△ <b>Source</b> — aucune référence datée. Une référence sans source ne peut pas
+        être revalidée.</div>
+    </div>
+  </div>
+</div></div>
+
+<!-- ================= G. DUAL ================= -->
+<h2><span class="n">G</span> Ce que « ×2 double » veut dire, exactement</h2>
+<p class="why"><b>Source : AC 120-71B §5.2.2.5</b> — un item <b>critique</b> est vérifié par <b>les
+deux</b> opérateurs, pas par un seul. Le motif est un mode de défaillance documenté : sous stress, une
+personne seule <b>confirme ce qu'elle s'attend à voir</b>. Au CVR du vol Delta 1141, la réponse au
+challenge « volets » revient en <b>moins d'une seconde</b> — matériellement trop vite pour avoir été
+constatée. Deux paires d'yeux cassent cette boucle ; une seule ne le peut pas.</p>
+<p class="why"><b>Ce que ça n'est pas</b> : ce n'est pas « cocher deux fois », ni « relire ». C'est
+<b>deux personnes distinctes</b>, chacune sur son appareil, dans la session partagée que
+l'application sait déjà tenir (rôles, journal référentiel, <code>by</code> sur chaque évènement).</p>
+<div style="display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))">
+  <div style="background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:13px">
+    <div class="cap">1 · au repos</div>
+    <ul class="it"><li class="l3"><span class="bx"></span><span class="tx">⚠ Choc 200 J<span class="dual">×2</span><br>
+      <span class="exp">biphasique · pads collés</span></span></li></ul>
+    <p class="note" style="margin-top:8px">Le badge <b>×2</b> annonce l'exigence <b>avant</b> le geste —
+    l'opérateur sait qu'il devra faire confirmer.</p></div>
+  <div style="background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:13px">
+    <div class="cap">2 · annoncé par le premier</div>
+    <ul class="it"><li class="l3" style="border-style:dashed"><span class="bx" style="border-style:dashed"></span>
+      <span class="tx">⚠ Choc 200 J<span class="dual" style="background:var(--verify-bd)">1/2</span><br>
+      <span class="exp">biphasique · pads collés</span>
+      <span style="display:block;font-size:11px;font-weight:700;color:var(--verify);margin-top:5px">
+      ⏳ annoncé par <b>Médecin</b> — en attente de confirmation</span></span></li></ul>
+    <p class="note" style="margin-top:8px">État <b>intermédiaire</b>, visible des deux côtés. Ce n'est
+    pas coché : le compte du bloc reste inchangé, et le compte rendu ne l'inscrit pas encore.</p></div>
+  <div style="background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:13px">
+    <div class="cap">3 · confirmé par le second</div>
+    <ul class="it"><li class="l3"><span class="bx" style="border-color:var(--ok);color:var(--ok);display:grid;place-items:center;font-size:13px">✓</span>
+      <span class="tx" style="opacity:.6;text-decoration:line-through">⚠ Choc 200 J<span class="dual" style="background:var(--ok)">2/2</span></span>
+      <span style="display:block;font-size:11px;font-weight:700;color:var(--ok);margin-top:5px">
+      ✓✓ Médecin · confirmé <b>IADE</b> — 04:12</span></span></li></ul>
+    <p class="note ok" style="margin-top:8px">Le journal enregistre <b>les deux acteurs et l'heure</b> —
+    c'est déjà ce que le protocole de partage transporte (<code>by</code>), sans un mot de texte libre.</p></div>
+</div>
+<p class="note ko"><b>L'objection sérieuse, et je la porte moi-même</b> : la majorité des sessions sont
+<b>solo</b>. Sans binôme, <code>dual</code> n'a aucun mécanisme — il ne serait qu'un badge. La
+dégradation en solo doit donc être <b>décidée</b>, et c'est un arbitrage clinique, pas technique :
+<b>(a)</b> l'item se coche normalement, le compte rendu notant « confirmé seul » ; <b>(b)</b> il exige
+un geste distinct (maintien) qui vaut « je confirme seul » ; <b>(c)</b> le badge est purement
+informatif hors partage. <b>Recommandation : (a)</b> — bloquer un soignant seul serait l'inverse du
+but, et la trace suffit à dire ce qui s'est passé.</p>
+
+<!-- ================= H. PHASE ================= -->
+<h2><span class="n">H</span> Ce que « phase : immédiate » veut dire — et une correction</h2>
+<p class="why"><b>Correction d'une sur-interprétation de ma part.</b> J'ai écrit « inhibition ECAM par
+phase ». C'est <b>inexact</b> : l'ECAM <b>connaît</b> la phase de vol par ses capteurs et inhibe
+automatiquement des alertes au décollage et à l'atterrissage. Notre application ne capte rien : elle
+ne sait pas où en est le soin, seulement où en est <b>le parcours</b>. Ce que <code>phase</code>
+permet n'est donc <b>pas de l'inhibition</b>, c'est du <b>decluttering</b> — replier ce qui n'est pas
+la phase courante. L'analogie est partielle, et il vaut mieux le dire.</p>
+<p class="why"><b>D'où vient le champ.</b> <code>AI_PROMPT</code> demande déjà à l'auteur de « scinder
+en PHASES cliniques — mesures immédiates / 2ᵉ intention / surveillance ». Mais il ne peut le faire que
+dans le <b>titre du bloc</b>, donc l'application ne peut rien en tirer. Le champ transforme une
+consigne de rédaction en donnée exploitable.</p>
+<div style="display:grid;gap:12px;grid-template-columns:1fr 1fr">
+  <div style="background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:13px">
+    <div class="cap">Sans phase — tout est déplié</div>
+    <div class="plrow"><span class="bn ok">✓</span>1 Reconnaissance</div>
+    <div class="plrow cur"><span class="bn">2</span>Analyse du rythme</div>
+    <div class="plrow"><span class="bn td">3</span>Choquable</div>
+    <div class="plrow"><span class="bn td">4</span>Après 3 chocs — <i>décision</i></div>
+    <div class="plrow"><span class="bn td">5</span>FV réfractaire &nbsp;<span class="abbr">2 items</span></div>
+    <div class="plrow"><span class="bn td">6</span>Causes réversibles — <i>décision</i></div>
+    <div class="plrow"><span class="bn td">7</span>Traiter la cause &nbsp;<span class="abbr">2 items</span></div>
+    <div class="plrow"><span class="bn td">8</span>Réponse au traitement — <i>décision</i></div>
+    <div class="plrow"><span class="bn td">9</span>Poursuite des cycles &nbsp;<span class="abbr">2 items</span></div>
+    <p class="note ko" style="margin-top:8px"><b>4,4 écrans</b> à 320 px.</p></div>
+  <div style="background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:13px">
+    <div class="cap">Avec phase — les autres phases se replient</div>
+    <div style="font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--primary);margin:4px 2px">Phase immédiate</div>
+    <div class="plrow"><span class="bn ok">✓</span>1 Reconnaissance</div>
+    <div class="plrow cur"><span class="bn">2</span>Analyse du rythme</div>
+    <div class="plrow"><span class="bn td">3</span>Choquable</div>
+    <div style="font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin:12px 2px 2px">2ᵉ intention <span style="font-weight:400;text-transform:none;letter-spacing:0">— 5 blocs, repliés ▾</span></div>
+    <div class="plrow" style="opacity:.62">4 · 5 · 6 · 7 · 8 &nbsp;<span class="abbr">2 décisions · 4 items</span></div>
+    <div style="font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin:12px 2px 2px">Surveillance <span style="font-weight:400;text-transform:none;letter-spacing:0">— 1 bloc, replié ▾</span></div>
+    <div class="plrow" style="opacity:.62">9 · Poursuite des cycles</div>
+    <p class="note ok" style="margin-top:8px"><b>3,3 écrans</b> — <b>26 % de hauteur en moins</b>
+    (mesuré : 2 686 → 1 995 px à 320 px ; 24 % à 390).</p></div>
+</div>
+<p class="note"><b>Trois réserves, et elles comptent.</b> <b>(1)</b> Sur un algorithme <b>linéaire</b>,
+la phase est redondante avec l'ordre des blocs — elle ne paie que sur un algorithme qui branche, où
+une branche peut mêler immédiat et 2ᵉ intention. <b>(2)</b> Les trois valeurs sont reprises
+d'<code>AI_PROMPT</code> ; que les cliniciens pensent en exactement ces trois-là n'est <b>pas
+établi</b>. <b>(3)</b> Le champ doit rester <b>facultatif et hérité</b> : rendu obligatoire, il
+ajouterait une décision par bloc à l'auteur, pour un bénéfice qui n'existe pas sur les fiches courtes.</p>
+
+<h2><span class="n">I</span> Ce que les grands écrans changent — récapitulatif</h2>
+<table>
+  <tr><th>Surface</th><th>Téléphone</th><th>Tablette ≥ 780</th><th>Ordinateur ≥ 1200</th></tr>
+  <tr><td><b>Accueil</b></td><td>piste de chips (3 axes qui défilent) + rail A→Z</td><td>les 3 axes dans la colonne latérale · répertoire 2 colonnes · <b>plus de rail</b></td><td>idem, répertoire 3 colonnes</td></tr>
+  <tr><td><b>Procédure</b></td><td>axe de densité à 3 crans</td><td>2 colonnes : action + état</td><td>3 colonnes : parcours · action · état — <b>l'axe se réduit à « Une étape » ou non</b></td></tr>
+  <tr><td><b>Référence</b></td><td>document, pas de chrome de crise</td><td>+ sommaire</td><td>sommaire · corps ≤ 780 px · documents</td></tr>
+  <tr><td><b>Éditeur</b></td><td>formulaire seul</td><td>+ structure ou relecture</td><td>3 colonnes : structure · formulaire · relecture + schéma + versions</td></tr>
+</table>
+<p class="note ok"><b>Le point le plus utile de cette passe</b> : le grand écran <b>résout</b> le
+problème que le téléphone laissait ouvert. À trois axes de filtre, la piste de chips sature (13 chips,
+catégories hors écran) ; en colonne latérale, les trois axes sont visibles simultanément et ne
+coûtent aucune hauteur. La contrainte reste entière <b>sur le téléphone seulement</b>, et c'est là
+qu'il faut trancher.</p>
+
+</div>
+<button class="themebtn" onclick="document.documentElement.dataset.theme=document.documentElement.dataset.theme==='dark'?'light':'dark'">◐ Thème</button>
+<script>
+/* Mise à l'échelle : les écrans sont construits à leurs dimensions RÉELLES puis réduits pour
+   tenir dans la page. Les largeurs de colonnes annoncées sont donc les vraies. */
+function fit(){
+  document.querySelectorAll('.holder').forEach(h=>{
+    const s=h.firstElementChild, w=parseFloat(s.style.width), ht=parseFloat(s.style.height);
+    const k=Math.min(1,(h.clientWidth||h.parentElement.clientWidth)/w);
+    s.style.transform='scale('+k+')'; h.style.height=(ht*k)+'px';});
+}
+addEventListener('resize',fit); fit(); setTimeout(fit,60);
+</script>
+</body></html>
