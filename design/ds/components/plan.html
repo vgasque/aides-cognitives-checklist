@@ -565,8 +565,6 @@
      reste sur grand écran, et contredirait la règle du projet (le cluster se groupe À GAUCHE, le
      blanc part au bord droit). Un écart constant garde en prime des POSITIONS IDENTIQUES quelle
      que soit la largeur — la constance positionnelle ECAM, appliquée aussi entre appareils. */
-  .ctrl-sp{flex:none;width:22px}
-  html.zw430 .ctrl-sp{width:12px}
   /* La bascule de mode : sélecteur segmenté (deux MODES pairs, jamais un interrupteur — aucun
      n'est la négation de l'autre). Même composant .seg que la tab bar, donc même pastille
      glissante ; l'élément n'étant plus re-rendu, la transition joue toute seule. */
@@ -588,21 +586,13 @@
      PAS à les égaliser, et une pastille fixée à 50 % ne peut coïncider avec aucun des deux. Des
      pistes `1fr` adoptent toutes la largeur du plus exigeant : les deux moitiés deviennent
      strictement égales, et la pastille tombe juste par construction. */
-  #modeSeg{flex:none;display:grid;grid-template-columns:1fr 1fr;background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:3px;gap:0}
-  #modeSeg[hidden]{display:none}
   /* Le segment actif prend le registre de SÉLECTION de l'app (teinte + bordure d'accent), et non
      un simple fond clair : `--surface` s'INVERSE d'un thème à l'autre (plus clair que la piste en
      clair, plus SOMBRE qu'elle en sombre — la pastille s'y lisait alors comme inactive). Teinte +
      bordure restent lisibles dans les deux thèmes, sans dépendre du sens du contraste. */
-  #modeSeg .seg-pill{width:calc(50% - 3px);left:3px;top:3px;bottom:3px;border-radius:999px;background:var(--primary-soft);border:1px solid var(--primary)}
-  #modeSeg.i1 .seg-pill{transform:translateX(100%)}
-  #modeSeg .seg-btn{position:relative;z-index:1;padding:6px 13px;border:0;background:none;border-radius:999px;font-family:inherit;font-size:13.5px;font-weight:700;color:var(--ink-soft);cursor:pointer;min-height:38px;white-space:nowrap}
   /* v4.29.0 (retour utilisateur « le texte se décale ») : la graisse ne change PLUS avec
      l'état — 700→800 élargissait le mot, les deux libellés bougeaient à chaque bascule.
      L'état est porté par la pastille (teinte + bordure) et la couleur : ça suffit. */
-  #modeSeg .seg-btn.on{color:var(--primary-dk)}
-  #modeSeg .seg-btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-  @media (max-width:429.98px){#modeSeg .seg-btn{padding:6px 10px;font-size:12px}}
   /* RANGÉE D'ÉTAT — l'affichage : ce qui se passe. Collée SOUS la rangée de commandes : son `top`
      cumule la hauteur d'en-tête et celle des commandes (--ctrl-h, mesurée par syncHdrScroll). */
   #crisisDock{position:sticky;top:calc(var(--hdr-h,64px) + var(--ctrl-h,0px));z-index:15;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:var(--shadow-dock)}
@@ -648,7 +638,17 @@
      aucun chevauchement avec le quai d'état en dessous. */
   .dock-plan::after{content:"";position:absolute;inset:-3px 0}
   .dock-plan[hidden]{display:none}
-  .dock-plan:hover{background:var(--primary-soft)}
+  /* RETOUR D'EXCURSION : registre CONFIRMATION et bouton REMPLI — c'est le contrôle qui ramène,
+     donc le seul de l'écran qui doit se voir sans être cherché (même grammaire que
+     `↩ Reprendre — <bloc>` pendant une complication, v4.26.0).
+     ⚠ IL S'APPELLE `dp-back`, PAS `back` — et c'est la leçon de collision de la v4.23.2, rejouée
+     ici au prix d'une mesure : `.back` est une classe AUTONOME du projet (le retour d'en-tête) et
+     porte `margin-bottom:14px`. En la réutilisant comme modificateur d'état, la rangée de
+     commandes gagnait 14 px de haut À L'INSTANT DE LA BASCULE (59 → 73 px, mesuré) et les deux
+     boutons se désalignaient de 7 px — un saut de chrome sous le doigt, exactement ce que la
+     doctrine interdit. Un modificateur d'état porte TOUJOURS le préfixe de son composant. */
+  .dock-plan.dp-back{background:var(--ok);border-color:var(--ok);color:var(--on-primary)}
+  .dock-plan:not(.dp-back):hover{background:var(--primary-soft)}
   .dock-plan:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
   .dock-plan .dp-ic{display:inline-flex;align-items:center;font-size:18px;line-height:1}   /* v4.57.0 : le ⤢ est un SVG (E6) — inline-flex pour qu'il s'aligne sur le libellé sans la chasse d'un glyphe */
   /* « Cons. » sous 560px : TRONCATURE du même mot, pas un autre mot — c'est ce qui distingue cette
@@ -697,8 +697,6 @@
      APRÈS les règles 429.98 px (spécificité égale : l'ordre décide — 4ᵉ piège de cascade du
      projet, cf. .cbt-n v4.23.5). Harnais : audit-doctrine « rangée de commandes sans rognage ». */
   html.zw400 #crisisCtrl .dock-in{gap:6px;padding:6px 8px}
-  html.zw400 .ctrl-sp{width:4px}
-  html.zw400 #modeSeg .seg-btn{padding:6px 7px}
   html.zw400 .dock-plan{padding:0 8px;gap:4px}
   html.zw400 .dock-plan .dp-ic svg{width:11px;height:11px}
   /* 320 px SERVI (v4.43.0, décision utilisateur) — WCAG 1.4.10 « Reflow » fixe le plancher à
@@ -719,7 +717,6 @@
      Déclaré APRÈS le bloc 399.98 (spécificité égale, l'ordre décide — 5ᵉ piège de cascade du
      projet). Harnais : audit-doctrine mesure désormais 320 en plus de 360/375/390. */
   html.zw360 #crisisCtrl .dock-in{gap:4px;padding:6px 4px}
-  html.zw360 #modeSeg .seg-btn{padding:6px 4px}
   html.zw360 .dock-plan{padding:0 5px}
   /* QUAND LA COMPRESSION NE SUFFIT PLUS, LA RANGÉE S'ENROULE — ET C'EST MESURÉ, PAS SEUILLÉ
      (v4.73.1). La recette de compression (v4.30.0, v4.43.0) est calibrée pour le PLANCHER SERVI,
@@ -741,12 +738,13 @@
      sans mot se confondent sous stress »), les cibles de 44 px, et la constance positionnelle —
      dans une configuration donnée, tout reste au même endroit. */
   #crisisCtrl .dock-in.wrapped{flex-wrap:wrap;row-gap:6px}
-  /* LA COUPURE TOMBE OÙ L'ÉCART TOMBAIT. `.ctrl-sp` n'est pas supprimé, il devient le SAUT DE
-     LIGNE : il sépare toujours le MODE des OUVERTURES, et il le fait mieux que 4 px. Sans cela, la
+  /* LA COUPURE TOMBE ENTRE LES DEUX OUVERTURES — il n'y a plus qu'elles (`.ctrl-sp` est PURGÉ
+     avec le sélecteur de mode qu'il séparait, règle 14). L'enroulement est donc NATUREL : la
+     rangée passe en `flex-wrap` et coupe au seul endroit possible.
+     Doctrine d'origine, conservée : la coupure était le SAUT DE LIGNE : il sépare toujours le MODE des OUVERTURES, et il le fait mieux que 4 px. Sans cela, la
      coupure se plaçait où elle voulait — mesuré : « Se repérer » restait avec le mode et
      « Consulter » descendait seul, ce qui séparait les deux ouvertures, c'est-à-dire exactement les
      deux contrôles de même nature (Gestalt de proximité, raison d'être de cet écart en v4.25.0). */
-  #crisisCtrl .dock-in.wrapped .ctrl-sp{flex:0 0 100%;width:auto;height:0}
   #cbTimers[hidden]{display:none}
   #cbTimers:not([hidden]){display:flex}
   #cbTimers:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}

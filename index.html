@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-fAH74IW1jS5le6SW5V2WmIr4QHtfdI0S2CGiQ29jmOw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-Jhqxicqupfoa3tQWwqdJ3B5Qq8vUn3Hpujiwg7twV58='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -850,8 +850,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      reste sur grand écran, et contredirait la règle du projet (le cluster se groupe À GAUCHE, le
      blanc part au bord droit). Un écart constant garde en prime des POSITIONS IDENTIQUES quelle
      que soit la largeur — la constance positionnelle ECAM, appliquée aussi entre appareils. */
-  .ctrl-sp{flex:none;width:22px}
-  html.zw430 .ctrl-sp{width:12px}
   /* La bascule de mode : sélecteur segmenté (deux MODES pairs, jamais un interrupteur — aucun
      n'est la négation de l'autre). Même composant .seg que la tab bar, donc même pastille
      glissante ; l'élément n'étant plus re-rendu, la transition joue toute seule. */
@@ -873,21 +871,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      PAS à les égaliser, et une pastille fixée à 50 % ne peut coïncider avec aucun des deux. Des
      pistes `1fr` adoptent toutes la largeur du plus exigeant : les deux moitiés deviennent
      strictement égales, et la pastille tombe juste par construction. */
-  #modeSeg{flex:none;display:grid;grid-template-columns:1fr 1fr;background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:3px;gap:0}
-  #modeSeg[hidden]{display:none}
   /* Le segment actif prend le registre de SÉLECTION de l'app (teinte + bordure d'accent), et non
      un simple fond clair : `--surface` s'INVERSE d'un thème à l'autre (plus clair que la piste en
      clair, plus SOMBRE qu'elle en sombre — la pastille s'y lisait alors comme inactive). Teinte +
      bordure restent lisibles dans les deux thèmes, sans dépendre du sens du contraste. */
-  #modeSeg .seg-pill{width:calc(50% - 3px);left:3px;top:3px;bottom:3px;border-radius:999px;background:var(--primary-soft);border:1px solid var(--primary)}
-  #modeSeg.i1 .seg-pill{transform:translateX(100%)}
-  #modeSeg .seg-btn{position:relative;z-index:1;padding:6px 13px;border:0;background:none;border-radius:999px;font-family:inherit;font-size:13.5px;font-weight:700;color:var(--ink-soft);cursor:pointer;min-height:38px;white-space:nowrap}
   /* v4.29.0 (retour utilisateur « le texte se décale ») : la graisse ne change PLUS avec
      l'état — 700→800 élargissait le mot, les deux libellés bougeaient à chaque bascule.
      L'état est porté par la pastille (teinte + bordure) et la couleur : ça suffit. */
-  #modeSeg .seg-btn.on{color:var(--primary-dk)}
-  #modeSeg .seg-btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-  @media (max-width:429.98px){#modeSeg .seg-btn{padding:6px 10px;font-size:12px}}
   /* RANGÉE D'ÉTAT — l'affichage : ce qui se passe. Collée SOUS la rangée de commandes : son `top`
      cumule la hauteur d'en-tête et celle des commandes (--ctrl-h, mesurée par syncHdrScroll). */
   #crisisDock{position:sticky;top:calc(var(--hdr-h,64px) + var(--ctrl-h,0px));z-index:15;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:var(--shadow-dock)}
@@ -933,7 +923,17 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      aucun chevauchement avec le quai d'état en dessous. */
   .dock-plan::after{content:"";position:absolute;inset:-3px 0}
   .dock-plan[hidden]{display:none}
-  .dock-plan:hover{background:var(--primary-soft)}
+  /* RETOUR D'EXCURSION : registre CONFIRMATION et bouton REMPLI — c'est le contrôle qui ramène,
+     donc le seul de l'écran qui doit se voir sans être cherché (même grammaire que
+     `↩ Reprendre — <bloc>` pendant une complication, v4.26.0).
+     ⚠ IL S'APPELLE `dp-back`, PAS `back` — et c'est la leçon de collision de la v4.23.2, rejouée
+     ici au prix d'une mesure : `.back` est une classe AUTONOME du projet (le retour d'en-tête) et
+     porte `margin-bottom:14px`. En la réutilisant comme modificateur d'état, la rangée de
+     commandes gagnait 14 px de haut À L'INSTANT DE LA BASCULE (59 → 73 px, mesuré) et les deux
+     boutons se désalignaient de 7 px — un saut de chrome sous le doigt, exactement ce que la
+     doctrine interdit. Un modificateur d'état porte TOUJOURS le préfixe de son composant. */
+  .dock-plan.dp-back{background:var(--ok);border-color:var(--ok);color:var(--on-primary)}
+  .dock-plan:not(.dp-back):hover{background:var(--primary-soft)}
   .dock-plan:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
   .dock-plan .dp-ic{display:inline-flex;align-items:center;font-size:18px;line-height:1}   /* v4.57.0 : le ⤢ est un SVG (E6) — inline-flex pour qu'il s'aligne sur le libellé sans la chasse d'un glyphe */
   /* « Cons. » sous 560px : TRONCATURE du même mot, pas un autre mot — c'est ce qui distingue cette
@@ -982,8 +982,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      APRÈS les règles 429.98 px (spécificité égale : l'ordre décide — 4ᵉ piège de cascade du
      projet, cf. .cbt-n v4.23.5). Harnais : audit-doctrine « rangée de commandes sans rognage ». */
   html.zw400 #crisisCtrl .dock-in{gap:6px;padding:6px 8px}
-  html.zw400 .ctrl-sp{width:4px}
-  html.zw400 #modeSeg .seg-btn{padding:6px 7px}
   html.zw400 .dock-plan{padding:0 8px;gap:4px}
   html.zw400 .dock-plan .dp-ic svg{width:11px;height:11px}
   /* 320 px SERVI (v4.43.0, décision utilisateur) — WCAG 1.4.10 « Reflow » fixe le plancher à
@@ -1004,7 +1002,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      Déclaré APRÈS le bloc 399.98 (spécificité égale, l'ordre décide — 5ᵉ piège de cascade du
      projet). Harnais : audit-doctrine mesure désormais 320 en plus de 360/375/390. */
   html.zw360 #crisisCtrl .dock-in{gap:4px;padding:6px 4px}
-  html.zw360 #modeSeg .seg-btn{padding:6px 4px}
   html.zw360 .dock-plan{padding:0 5px}
   /* QUAND LA COMPRESSION NE SUFFIT PLUS, LA RANGÉE S'ENROULE — ET C'EST MESURÉ, PAS SEUILLÉ
      (v4.73.1). La recette de compression (v4.30.0, v4.43.0) est calibrée pour le PLANCHER SERVI,
@@ -1026,12 +1023,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      sans mot se confondent sous stress »), les cibles de 44 px, et la constance positionnelle —
      dans une configuration donnée, tout reste au même endroit. */
   #crisisCtrl .dock-in.wrapped{flex-wrap:wrap;row-gap:6px}
-  /* LA COUPURE TOMBE OÙ L'ÉCART TOMBAIT. `.ctrl-sp` n'est pas supprimé, il devient le SAUT DE
-     LIGNE : il sépare toujours le MODE des OUVERTURES, et il le fait mieux que 4 px. Sans cela, la
+  /* LA COUPURE TOMBE ENTRE LES DEUX OUVERTURES — il n'y a plus qu'elles (`.ctrl-sp` est PURGÉ
+     avec le sélecteur de mode qu'il séparait, règle 14). L'enroulement est donc NATUREL : la
+     rangée passe en `flex-wrap` et coupe au seul endroit possible.
+     Doctrine d'origine, conservée : la coupure était le SAUT DE LIGNE : il sépare toujours le MODE des OUVERTURES, et il le fait mieux que 4 px. Sans cela, la
      coupure se plaçait où elle voulait — mesuré : « Se repérer » restait avec le mode et
      « Consulter » descendait seul, ce qui séparait les deux ouvertures, c'est-à-dire exactement les
      deux contrôles de même nature (Gestalt de proximité, raison d'être de cet écart en v4.25.0). */
-  #crisisCtrl .dock-in.wrapped .ctrl-sp{flex:0 0 100%;width:auto;height:0}
   #cbTimers[hidden]{display:none}
   #cbTimers:not([hidden]){display:flex}
   #cbTimers:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
@@ -5262,8 +5260,23 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        puis les deux ouvertures poussées à DROITE (l'espace sépare les deux natures, sans ajouter
        de trait). Même glyphe ⤢ pour les deux : elles font exactement la même chose. -->
   <div id="crisisCtrl" hidden><div class="dock-in">
-    <div class="seg mode-seg" id="modeSeg" role="tablist" aria-label="Densité d'affichage" hidden><span class="seg-pill" aria-hidden="true"></span><button type="button" class="seg-btn on" role="tab" aria-selected="true" data-readmode="dynamic">Un bloc</button><button type="button" class="seg-btn" role="tab" aria-selected="false" data-readmode="static">Toute la fiche</button></div>
-    <span class="ctrl-sp"></span>
+    <!-- ⚠ PRENDRE DU RECUL EST UNE EXCURSION, PAS UN CHANGEMENT DE FORMAT (v5.0.0, lot A —
+         retour d'usage : « ça arrive de basculer en cours de session, notamment pour prendre du
+         recul et avoir une vision d'ensemble », « difficile de trouver la bonne information en
+         mode guidé parfois »). Le besoin est réel et fréquent : il a donc gagné sa place dans le
+         chrome. Ce qui était faux, c'est le MÉCANISME — un sélecteur segmenté REMPLACE la vue de
+         travail et ne ramène personne : on prend du recul, on trouve son information, et si l'on
+         n'y repense pas on TERMINE LE SOIN dans un format qu'on n'avait pas choisi. C'est de la
+         mode confusion au sens FAA (un même écran qui se comporte autrement sans signal
+         univoque), et c'est plus grave que les 151 px que le segmenté coûtait.
+         Le contrôle nomme donc sa DESTINATION, jamais son état — « ⤢ Tout voir » à l'aller,
+         « ↩ Un bloc » au retour, à la MÊME position. C'est le patron déjà éprouvé de l'excursion
+         sur complication (`↩ Reprendre — <bloc> →`, v4.26.0) : le retour fait partie du
+         dispositif, il n'est jamais laissé à la mémoire (AC 120-71B).
+         ET L'EXCURSION N'ÉCRIT PAS LA PRÉFÉRENCE : regarder n'est pas régler. Le format par
+         défaut se choisit à froid, dans Compte › Affichage, à côté du thème et de la taille du
+         texte — c'est-à-dire au seul endroit où l'on règle, jamais pendant un soin. -->
+    <button id="allBtn" hidden class="dock-plan" aria-label="Tout voir — la fiche entière, puis retour au bloc"><span class="dp-ic" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6"/><path d="M10 20H4v-6"/><path d="M20 4l-7 7"/><path d="M4 20l7-7"/></svg></span><span class="dp-lbl">Tout voir</span></button>
     <!-- « Se repérer » a QUITTÉ cette rangée au lot T8 (v5.0.0) : son Échelle est devenue
          l'onglet « Parcours » du cran « Toute la fiche ». Le geste reste au menu ⋯ — ce qui part
          d'ici, c'est la LARGEUR, et c'est elle que le lot T5b attend. -->
@@ -8946,13 +8959,21 @@ function applyViewChrome(){
    // MODE : la bascule vit dans la rangée de COMMANDES depuis v4.25.0 (elle gouverne l'existence
    // de « Se repérer », donc elle vient AVANT lui). Masquée sans algorithme — les deux vues y
    // seraient identiques (règle inchangée depuis v4.16.0).
-   {const ms=document.getElementById('modeSeg');
-    const okMode=crisis&&!state.previewFrom&&hasFlow(state.fiche);
-    ms.hidden=!okMode;
-    if(okMode){const st=state.readMode==='static';
-      ms.classList.toggle('i1',st);
-      ms.querySelectorAll('[data-readmode]').forEach(b=>{const on=(b.dataset.readmode==='static')===st;
-        b.classList.toggle('on',on);b.setAttribute('aria-selected',on?'true':'false');b.tabIndex=on?0:-1;});}}
+   /* Le bouton d'excursion : même condition qu'avant (sans algorithme, les deux vues seraient
+      identiques — règle inchangée depuis v4.16.0), mais un seul contrôle, qui dit où il MÈNE.
+      Au retour il prend le registre CONFIRMATION et le glyphe ↩ : c'est le contrôle rempli de
+      l'écran pendant l'excursion, exactement comme `↩ Reprendre` pendant une complication. */
+   {const ab=document.getElementById('allBtn');
+    const okAll=crisis&&!state.previewFrom&&hasFlow(state.fiche);
+    ab.hidden=!okAll;
+    if(okAll){const st=state.readMode==='static';
+      ab.classList.toggle('dp-back',st);
+      ab.querySelector('.dp-lbl').textContent=st?'Un bloc':'Tout voir';
+      ab.setAttribute('aria-label',st?'Revenir au bloc en cours':'Tout voir — la fiche entière, puis retour au bloc');
+      const ic=ab.querySelector('.dp-ic');
+      ic.innerHTML=st
+        ?'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 5 5v6"/></svg>'
+        :'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6"/><path d="M10 20H4v-6"/><path d="M20 4l-7 7"/><path d="M4 20l7-7"/></svg>';}}
    {const rb=document.getElementById('refBtn');
     const okRef=crisis&&!state.previewFrom&&!!annexRowHtml(state.fiche);
     rb.hidden=!okRef;
@@ -13222,12 +13243,17 @@ bindModalDismiss(planModal,closePlanSheet);
    rejouer le glissement de la pastille (.seg-replay) : l'élément n'étant plus reconstruit, la
    transition CSS de .seg-pill se joue naturellement — et reste inerte sous prefers-reduced-motion.
    Le contenu entre dans le sens du geste, comme avant. */
-{const seg=document.getElementById('modeSeg');
+{const seg=document.getElementById('allBtn');
  if(seg){const go=m=>{
    if(m==='dynamic')m='overview';
    if(state.readMode===m)return;
    const toStatic=m==='static';
-   state.readMode=m;setReadModePref(m);
+   /* ⚠ L'EXCURSION N'ÉCRIT PAS LA PRÉFÉRENCE (v5.0.0, lot A). Regarder n'est pas régler : prendre
+      du recul dix fois dans un soin ne doit pas finir par changer le format d'ouverture de toutes
+      les fiches. C'est la même distinction que `state.allTab`, qui n'est pas persisté non plus —
+      une consultation est transitoire par nature. Le format PAR DÉFAUT se choisit à froid, dans
+      Compte › Affichage. */
+   state.readMode=m;
    /* ON GARDE LE BLOC COURANT LÀ OÙ IL ÉTAIT (v4.74.2, signalé à l'usage : « comment améliorer le
       passage guidé/statique lorsqu'on a déjà scrollé ? »). Avant : `scrollTo(0,0)`, systématique.
       Or les deux vues n'ont pas la même hauteur, donc conserver `scrollY` n'aurait rien voulu dire
@@ -13263,8 +13289,10 @@ bindModalDismiss(planModal,closePlanSheet);
    if(w){w.classList.add(toStatic?'rm-anim-r':'rm-anim-l');
      const off=()=>w.classList.remove('rm-anim-l','rm-anim-r');
      w.addEventListener('animationend',off,{once:true});setTimeout(off,500);}
-   const on=seg.querySelector('.seg-btn.on');if(on)on.focus({preventScroll:true});};
-  seg.querySelectorAll('[data-readmode]').forEach(b=>b.onclick=()=>go(b.dataset.readmode));
+   /* Le focus reste sur le bouton, qui n'a pas bougé d'un pixel : c'est le même contrôle, à la
+      même place, qui porte maintenant le retour. */
+   seg.focus({preventScroll:true});};
+  seg.onclick=()=>go(state.readMode==='static'?'overview':'static');
   /* GLISSER LA PASTILLE (v4.29.0, HIG iOS — demande utilisateur) : sur un sélecteur segmenté la
      pastille se laisse TRAÎNER au doigt, engagement au RELÂCHEMENT (≥ moitié du trajet). Direct
      manipulation : la pastille suit le doigt même sous prefers-reduced-motion (c'est le geste
@@ -13642,7 +13670,7 @@ function fitCtrlRow(){
      donc d'un palier, re-mesure, descend encore, et n'enroule qu'après avoir épuisé la
      compression. Les classes posées ici sont les MÊMES que celles de `syncZoomWidth` — aucune
      recette dupliquée, donc rien qui puisse diverger — et elles ne stylent que cette rangée
-     (vérifié au grep : `.ctrl-sp`, `.dock-plan`, `#crisisCtrl .dock-in`, `#modeSeg .seg-btn`).
+     (vérifié au grep : `.dock-plan`, `#crisisCtrl .dock-in`).
      Elles sont reposées à zéro par le `syncZoomWidth` suivant, qui rappelle cette fonction. */
   if(!deborde())return;
   const cl=document.documentElement.classList;
@@ -17920,6 +17948,19 @@ function accountPrefsHtml(slot){
     <div class="set-row"><span class="set-l" id="tsLbl">Taille du texte</span>
     <div class="seg" id="zoomSeg" role="radiogroup" aria-labelledby="tsLbl" style="--seg-n:${ZOOM_STEPS.length};--seg-i:${Math.max(0,ZOOM_STEPS.indexOf(z))}"><span class="seg-pill" aria-hidden="true"></span>${ZOOM_STEPS.map(s=>`<button type="button" class="seg-btn ts-${s}${z===s?' on':''}" data-zoom="${s}" role="radio" aria-checked="${z===s?'true':'false'}" title="${HINT[s]}" aria-label="Taille du texte ${HINT[s]}">A</button>`).join('')}</div></div>
     <div class="st-hint" style="margin-bottom:4px">S'applique à <b>toute l'application</b>.<details class="acct-more"><summary>En savoir plus</summary>Enregistrée pour votre compte, comme le thème (bouton de l'en-tête) : vous la retrouvez sur vos autres appareils connectés.</details></div>
+    ${''/* ⚠ LE FORMAT D'OUVERTURE SE RÈGLE À FROID, ET NULLE PART AILLEURS (v5.0.0, lot A). C'est
+      une PRÉFÉRENCE de personne — « moi je lis mieux la fiche entière » —, pas un geste de soin :
+      elle a donc sa place ici, à côté du thème et de la taille du texte, c'est-à-dire au seul
+      endroit du produit où l'on RÈGLE. Le chrome de crise, lui, ne porte plus qu'une EXCURSION
+      (« ⤢ Tout voir » / « ↩ Un bloc »), qui ne touche pas ce réglage.
+      Deux crans seulement, donc la mécanique historique du segmenté à deux (`.i1`) suffit — pas
+      de `--seg-n`. */}
+    <div class="set-row" style="margin-top:12px"><span class="set-l" id="rmLbl">Ouvrir les aides en</span>
+    <div class="seg${currentReadMode()==='static'?' i1':''}" id="dispSeg" role="radiogroup" aria-labelledby="rmLbl"><span class="seg-pill" aria-hidden="true"></span>${
+      [['overview','Un bloc'],['static','Toute la fiche']].map(([k,l])=>
+        `<button type="button" class="seg-btn${currentReadMode()===k?' on':''}" data-disp="${k}" role="radio" aria-checked="${currentReadMode()===k?'true':'false'}">${esc(l)}</button>`).join('')
+    }</div></div>
+    <div class="st-hint" style="margin-bottom:4px">Le format dans lequel une aide s'ouvre. Pendant un soin, « ⤢ Tout voir » montre la fiche entière et <b>ramène au bloc</b> sans changer ce réglage.</div>
     ${Auth.signedIn()?`<div class="set-row" style="margin-top:12px"><span class="set-l" id="acLbl">Couleur d'accent</span>
     <div class="accent-row" role="radiogroup" aria-labelledby="acLbl">${ACCENT_IDS.map(a=>`<button type="button" class="acc-sw a-${a||'clinique'}${currentAccent()===a?' on':''}" data-accent="${a}" role="radio" aria-checked="${currentAccent()===a?'true':'false'}" title="${ACCENT_LBL[a]}" aria-label="Accent ${ACCENT_LBL[a]}"></button>`).join('')}</div></div>
     <div class="st-hint" style="margin-bottom:4px">Colore l'accueil et les en-têtes — <b>jamais le contenu de crise</b>.<details class="acct-more"><summary>En savoir plus</summary>Elle identifie votre session d'un coup d'œil sur un appareil partagé ; le contenu des fiches en crise et des protocoles garde le bleu clinique, pour que les registres de couleur ne changent jamais de sens.</details></div>`:''}
@@ -18000,6 +18041,18 @@ function bindAccountPrefs(body){
       applyZoom(ZOOM_STEPS[n]);schedulePrefsPush();peindre();
       const on=zs.querySelector('.seg-btn.on');if(on)on.focus();};
     peindre();bindSegDrag(zs);}}
+  /* MÊME MÉCANIQUE, MÊME RAISON : on peint sur place plutôt que de re-rendre, sinon la pastille
+     SAUTE au lieu de glisser. Rien d'autre de la fenêtre ne dépend de ce réglage — il ne prend
+     effet qu'à la PROCHAINE ouverture d'une aide (changer l'écran d'une fiche ouverte serait une
+     action non commandée : c'est la règle du pull de synchro depuis la v4.6.0). */
+  {const ds=body.querySelector('#dispSeg');
+   if(ds){const btns=[...ds.querySelectorAll('[data-disp]')];
+    const peindre=()=>{const m=currentReadMode();
+      ds.classList.toggle('i1',m==='static');
+      btns.forEach(b=>{const on=b.dataset.disp===m;
+        b.classList.toggle('on',on);b.setAttribute('aria-checked',on?'true':'false');b.tabIndex=on?0:-1;});};
+    btns.forEach(b=>b.onclick=()=>{setReadModePref(b.dataset.disp);peindre();});
+    peindre();bindSegDrag(ds);}}
   body.querySelectorAll('[data-accent]').forEach(b=>b.onclick=()=>{applyAccent(b.dataset.accent);schedulePrefsPush();renderAuth();});
   {const tg=body.querySelector('#ssTog');if(tg)tg.onclick=async()=>{
     const on=!sessSyncOn();

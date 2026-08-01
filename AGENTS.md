@@ -2929,6 +2929,36 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   mode (46 px) qui la dimensionne. Le rétrécissement ne rendait aucun pixel — il désalignait les
   deux contrôles de la même rangée et faisait dépendre la cible d'un halo qui ne se mesure pas.
   Le libellé abrégé « Cons. » est PURGÉ avec lui (balisage mort depuis que le mot tient partout).
+- **PRENDRE DU RECUL EST UNE EXCURSION, PAS UN CHANGEMENT DE FORMAT (v5.0.0, lot A — audit design
+  + retour d'usage : « ça arrive de basculer en cours de session, notamment pour prendre du recul
+  et avoir une vision d'ensemble », « difficile de trouver la bonne information en mode guidé
+  parfois »)** : le besoin est réel et fréquent — il a donc gagné sa place dans le chrome de crise.
+  Ce qui était faux, c'est le MÉCANISME. Un sélecteur segmenté **remplace la vue de travail et ne
+  ramène personne** : on prend du recul, on trouve son information, et si l'on n'y repense pas on
+  **termine le soin dans un format qu'on n'avait pas choisi**. C'est de la mode confusion au sens
+  FAA (un même écran qui se comporte autrement sans signal univoque), et c'est plus grave que les
+  151 px que le segmenté coûtait.
+  **LE CONTRÔLE NOMME SA DESTINATION, JAMAIS SON ÉTAT** — « ⤢ Tout voir » à l'aller, « ↩ Un bloc »
+  au retour, à la MÊME position, avec le registre CONFIRMATION au retour. C'est le patron déjà
+  éprouvé de l'excursion sur complication (`↩ Reprendre — <bloc> →`, v4.26.0) : le retour fait
+  partie du dispositif, il n'est jamais laissé à la mémoire (AC 120-71B). Mesuré : **0 px** de
+  déplacement du bouton ET de la rangée dans les trois états.
+  **ET L'EXCURSION N'ÉCRIT PAS LA PRÉFÉRENCE** : regarder n'est pas régler — prendre du recul dix
+  fois dans un soin ne doit pas finir par changer le format d'ouverture de toutes les fiches (même
+  règle que `state.allTab`, transitoire par nature). Le format PAR DÉFAUT se choisit **à froid**,
+  dans Compte › Affichage, à côté du thème et de la taille du texte, c'est-à-dire au seul endroit
+  du produit où l'on règle. `#modeSeg` et `.ctrl-sp` sont PURGÉS (règle 14) — l'écart de Gestalt
+  ne séparait le MODE des OUVERTURES que parce qu'il y avait un mode ; il n'en reste que deux
+  ouvertures de même nature, et l'enroulement de `fitCtrlRow` coupe naturellement entre elles.
+  ⚠ **`audit-modeseg` N'EST PAS SUPPRIMÉ, IL EST RETARGÉ** sur `#dispSeg` : ses trois contrôles
+  (pastille alignée, libellés immobiles, glisser au doigt) valent pour TOUS les segmentés du
+  fichier et n'ont rien à voir avec la crise — même leçon que `audit-lecteur` → `audit-retour`.
+  ⚠ **COLLISION DE NOMS DE CLASSE, REJOUÉE AU PRIX D'UNE MESURE** : j'avais nommé le modificateur
+  d'état `.back`, qui est une classe AUTONOME du projet (le retour d'en-tête) portant
+  `margin-bottom:14px`. La rangée de commandes gagnait donc **14 px de haut à l'instant de la
+  bascule** (59 → 73 px) et les deux boutons se désalignaient de 7 px — un saut de chrome sous le
+  doigt. Un modificateur d'état porte TOUJOURS le préfixe de son composant (`.dp-back`) : c'est la
+  leçon v4.23.2, et elle se re-perd dès qu'on ne la relit pas.
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.

@@ -78,12 +78,12 @@ const d6=await p.evaluate(()=>{const lad=document.querySelector('.read-side .rai
   pollue:[...(lad?lad.querySelectorAll('.pl-line:not(.cxl) .t'):[])].some(x=>/Laryngo/.test(x.textContent))};});
 t('Échelle : section « À tout moment », tronc non pollué', d6.sec&&d6.lignes===1&&!d6.pollue, JSON.stringify(d6));
 const d7=await p.evaluate(async()=>{
- [...document.querySelectorAll('#modeSeg [data-readmode]')].find(x=>x.dataset.readmode==='static').click();await new Promise(r=>setTimeout(r,600));
+ document.getElementById('allBtn').click();await new Promise(r=>setTimeout(r,600));
  const cell=document.querySelector('.sv-cell.sv-cx');
  return {band:!!document.querySelector('.sv-cxband'),num:cell?cell.querySelector('.sv-n').textContent.trim():null};});
 t('Statique : bande + cellule sans numéro (⚡)', d7.band&&d7.num==='⚡', JSON.stringify(d7));
 const d8=await p.evaluate(async()=>{
- [...document.querySelectorAll('#modeSeg [data-readmode]')].find(x=>x.dataset.readmode==='dynamic').click();await new Promise(r=>setTimeout(r,500));
+ document.getElementById('allBtn').click();await new Promise(r=>setTimeout(r,500));
  document.querySelector('[data-cxopen]').click();await new Promise(r=>setTimeout(r,300));
  [...document.querySelectorAll('#cxList .cx-item')].find(x=>/Anaphyl/.test(x.textContent)).click();
  await new Promise(r=>setTimeout(r,500));

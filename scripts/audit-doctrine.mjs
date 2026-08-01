@@ -37,13 +37,13 @@ console.log('\n══ ECAM · constance positionnelle du quai ══');
      ce qui l'occupe, c'est-à-dire l'AXE DE DENSITÉ et « Consulter ». L'invariant ECAM est
      inchangé (un contrôle est toujours au même endroit quel que soit l'état du quai) ; c'est la
      liste des contrôles qui a changé, pas la règle. */
-  const a=await snap(), pa=await geo('modeSeg'), ra=await geo('refBtn');
+  const a=await snap(), pa=await geo('allBtn'), ra=await geo('refBtn');
   // faire varier l'état : ajouter des minuteurs (la partie VARIABLE du quai)
   await page.evaluate(async()=>{
     const add=[...document.querySelectorAll('.rt-add,.add-line')];
     for(const b of add.slice(0,3)){b.click();await new Promise(r=>setTimeout(r,120));}});
   await page.waitForTimeout(300);
-  const b=await snap(), pb=await geo('modeSeg'), rb=await geo('refBtn');
+  const b=await snap(), pb=await geo('allBtn'), rb=await geo('refBtn');
   t('ordre du quai identique quel que soit l\'état', JSON.stringify(a)===JSON.stringify(b), a+'\n      → '+b);
   t('axe de densité immobile (px)', pa!==null&&pa===pb, `${pa} → ${pb}`);
   t('bouton Réf. immobile (px)', ra===rb, `${ra} → ${rb}`);
@@ -241,9 +241,11 @@ console.log('\n══ ECAM · rangée de commandes sans rognage (320/360/375/390
       /* AUCUN LIBELLÉ N'EST SACRIFIÉ POUR TENIR : c'est la seconde moitié de l'invariant, et sans
          elle un futur « correctif » pourrait faire passer le premier en masquant les mots — ce que
          la doctrine interdit explicitement (« deux pictogrammes voisins sans mot se confondent sous
-         stress »). On exige que chaque bouton porte encore du texte. */
+         stress »). On exige que chaque bouton porte encore du texte.
+         Le premier libellé est celui de la DESTINATION du bouton d'excursion : « Tout voir » à
+         l'aller, « Un bloc » au retour (lot A, v5.0.0) — l'un OU l'autre, jamais les deux. */
       t(`${w} px à ${z} % : les libellés sont intacts`,
-        /Un bloc/.test(r.libelles)&&/Toute la fiche/.test(r.libelles)&&/Cons/.test(r.libelles),
+        /Tout voir|Un bloc/.test(r.libelles)&&/Consulter/.test(r.libelles),
         r.libelles);
     }
   }
@@ -272,7 +274,7 @@ console.log('\n══ ECAM · rangée de commandes sans rognage (320/360/375/390
       t(`${w} px : la rangée de commandes tient sur UNE ligne`,
         !r.wrapped&&r.h<=h1+2, `hauteur ${r.h} px (référence ${h1}), wrapped=${r.wrapped}`);
       t(`${w} px : les libellés sont intacts`,
-        /Un bloc/.test(r.libelles)&&/Toute la fiche/.test(r.libelles)&&/Cons/.test(r.libelles),
+        /Tout voir|Un bloc/.test(r.libelles)&&/Consulter/.test(r.libelles),
         r.libelles);
     }
   }
@@ -298,9 +300,9 @@ console.log('\n══ ECAM · bascule guidé ↔ statique ancrée sur le bloc co
     window.scrollTo(0,window.scrollY+el.getBoundingClientRect().top-260);
     await w(200);
     const av=top();
-    document.querySelector('#modeSeg [data-readmode="static"]').click(); await w(400);
+    document.getElementById('allBtn').click(); await w(400);
     const apStat=top(), yStat=window.scrollY;
-    document.querySelector('#modeSeg [data-readmode="dynamic"]').click(); await w(400);
+    document.getElementById('allBtn').click(); await w(400);
     const apDyn=top();
     return {av:Math.round(av),apStat:Math.round(apStat),apDyn:Math.round(apDyn),yStat:Math.round(yStat)};});
   t('guidé → statique : le bloc courant ne dérive pas', Math.abs(r.apStat-r.av)<=2,
@@ -908,9 +910,19 @@ for (const w of [320, 390]) {
   const r = await page.evaluate(async()=>{const wt=m=>new Promise(r=>setTimeout(r,m));
     const f=fiches.find(x=>/Anaphylaxie/i.test(x.title))||fiches[0]; openRead(f.id); await wt(400);
     const b=document.getElementById('sessStart'); if(b)b.click(); await wt(600);
-    const seg=[...document.querySelectorAll('#modeSeg .seg-btn')].map(e=>e.textContent.trim());
+    const seg=[document.querySelector('#allBtn .dp-lbl').textContent.trim()];
+    /* Le RETOUR est-il garanti ? On relève le libellé APRÈS l'excursion : le même bouton, à la
+       même place, doit nommer le chemin inverse. C'est ce qui distingue une excursion d'un
+       changement de format — sans lui, on termine le soin dans une vue qu'on n'a pas choisie. */
     const planBtn=!!document.getElementById('planBtn');
-    document.querySelector('#modeSeg [data-readmode="static"]').click(); await wt(600);
+    const xAv=Math.round(document.getElementById('allBtn').getBoundingClientRect().left);
+    const hAv=Math.round(document.getElementById('crisisCtrl').getBoundingClientRect().height);
+    const prefAv=currentReadMode();
+    document.getElementById('allBtn').click(); await wt(600);
+    const segRetour=document.querySelector('#allBtn .dp-lbl').textContent.trim();
+    const xAp=Math.round(document.getElementById('allBtn').getBoundingClientRect().left);
+    const hAp=Math.round(document.getElementById('crisisCtrl').getBoundingClientRect().height);
+    const prefAp=currentReadMode();
     const ong=[...document.querySelectorAll('.at-b')].map(e=>e.textContent.trim());
     const defaut=(document.querySelector('.at-b.on')||{}).textContent||'';
     const pageOk=!!document.querySelector('.sv-tb');
@@ -939,11 +951,20 @@ for (const w of [320, 390]) {
     const navAv=(state.nav||[]).length;
     const coche=Object.keys(state.checked||{}).filter(k=>state.checked[k]).length;
     const nd=document.querySelector('.all-svg svg [data-fgo]'); if(nd)nd.dispatchEvent(new MouseEvent('click',{bubbles:true})); await wt(300);
-    return {seg,planBtn,ong,defaut,pageOk,debord,cible,parc,zAv,zAp,peint,
+    return {seg,segRetour,xAv,xAp,hAv,hAp,prefAv,prefAp,planBtn,ong,defaut,pageOk,debord,cible,parc,zAv,zAp,peint,
             navBouge:(state.nav||[]).length!==navAv,
             cocheApres:Object.keys(state.checked||{}).filter(k=>state.checked[k]).length,cocheAvant:coche};});
-  t(`${w} · l'axe nomme des DENSITÉS, plus des présentations`,
-    r.seg.join('|')==='Un bloc|Toute la fiche', r.seg.join('|'));
+  /* ⚠ PRENDRE DU RECUL EST UNE EXCURSION, PAS UN CHANGEMENT DE FORMAT (lot A, v5.0.0 — retour
+     d'usage : on bascule EN COURS de session pour trouver une information, et l'ancien sélecteur
+     segmenté ne ramenait personne). Trois propriétés, et il faut les trois : le contrôle nomme sa
+     DESTINATION, il ne BOUGE PAS d'un pixel (ni lui ni la rangée), et l'excursion n'écrit PAS la
+     préférence — regarder n'est pas régler. */
+  t(`${w} · le contrôle nomme sa DESTINATION, à l'aller comme au retour`,
+    r.seg[0]==='Tout voir'&&r.segRetour==='Un bloc', `${r.seg[0]} → ${r.segRetour}`);
+  t(`${w} · … et il ne bouge pas d'un pixel (ni lui, ni la rangée)`,
+    r.xAv===r.xAp&&r.hAv===r.hAp, `x ${r.xAv}→${r.xAp}, rangée ${r.hAv}→${r.hAp}`);
+  t(`${w} · … et l'excursion n'écrit pas la préférence`,
+    r.prefAv===r.prefAp, `${r.prefAv} → ${r.prefAp}`);
   t(`${w} · « Se repérer » a quitté la rangée de commandes`, r.planBtn===false);
   t(`${w} · trois façons de regarder l'aide entière`,
     r.ong.join('|')==='Parcours|Page SFAR|Schéma', r.ong.join('|'));
