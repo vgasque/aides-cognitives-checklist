@@ -2749,6 +2749,22 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   ⚠ **UNE LISTE SE TROUVE PAR SON BOUTON D'AJOUT**, pas par un `data-key` — `listEditor` n'en émet
   pas : viser un attribut inexistant ne lève rien, le focus reste où il était, et l'auteur ne voit
   pas ce qu'il vient de créer. Trouvé à la sonde.
+- **UNE SÉPARATION SE LIT À SA SYMÉTRIE, PAS À SON TRAIT (v5.0.0, signalé à l'usage)** : le
+  rembourrage bas de la zone de recherche s'ajoutait à la marge du titre — 24 px au-dessus du filet
+  contre 12 en dessous, et « Sommaire » paraissait collé à la barre. Même valeur des deux côtés.
+  ⚠ **QUINZIÈME PIÈGE DE CASCADE** au passage : `.rt-h2` posait un `padding-top` LONGHAND, et
+  `.rt-h` — même spécificité, déclarée plus bas — repose un `padding` RACCOURCI qui l'écrase
+  intégralement. Mesuré : 14 px demandés, **0 obtenu**. Passer par `.ref-toc .rt-h2` (0,2,0).
+- **L'AIDE-MÉMOIRE DE SYNTAXE SE REPLIE (v5.0.0, signalé à l'usage : « c'est moche »)** : c'était un
+  paragraphe de vingt lignes sous le champ, **permanent** — on le lit une fois, on le subit ensuite.
+  Replié il tient en une ligne ; déplié, l'interligne l'aère et les exemples en mono se détachent.
+  Même gabarit que les autres dépliants (`.crit-guide`, `.rev-panel`).
+- **LE VOLET DE RELECTURE EST OUVERT PAR DÉFAUT (v5.0.0, demande utilisateur)** — dans les DEUX
+  éditeurs, aide et référence : un seul dessin, une seule habitude. C'est cohérent parce qu'il
+  **n'existe pas** quand il n'a rien à dire (`if(!n.length)return ''`) : il ne peut donc jamais être
+  du bruit permanent, et la règle « un panneau vide est du bruit » est déjà tenue par son absence.
+  Replié, il demandait un clic pour lire un BILAN — c'est-à-dire exactement la chose qu'on ne clique
+  pas. Il reste repliable, et l'état n'est pas persisté : c'est une consultation, pas un réglage.
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.

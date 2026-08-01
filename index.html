@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-t0hjzzKJxs4xGY2XoP1m3pbFF5pJhKxKz3BuGsUtbjE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-quy111oo1Zew+alofEtEx+Om4+wLmc+fi2jFucd2iBY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1723,7 +1723,32 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .rt-n{font-size:11px;font-weight:700;color:var(--ink-soft)}
   /* CHERCHER DANS LA RÉFÉRENCE : le champ vit dans le sommaire — on cherche là où l'on s'oriente. */
   /* « Sommaire » ne colle plus à la ligne du dessus (signalé à l'usage). */
-  .rt-h2{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
+  /* ⚠ AUTANT D'AIR DE PART ET D'AUTRE DU FILET (signalé à l'usage : « Sommaire est collé à la
+     barre du dessus, alors qu'il y a plus d'espace entre la barre et l'input »). Le rembourrage
+     bas de la zone de recherche s'ajoutait à la marge du titre : 8 + 16 = 24 px au-dessus du
+     filet contre 12 en dessous. On annule le rembourrage bas de la recherche et l'on pose la même
+     valeur des deux côtés — une séparation se lit à sa symétrie, pas à son trait. */
+  /* L'AIDE-MÉMOIRE DE SYNTAXE SE REPLIE (signalé à l'usage : « c'est moche »). C'était un
+     paragraphe de vingt lignes sous le champ, permanent : on le lit une fois, on le subit
+     ensuite. Replié, il tient en une ligne ; déplié, il devient LISIBLE — chaque règle sur sa
+     propre ligne au lieu d'une phrase continue, et les exemples en mono se détachent. Même
+     gabarit que les autres dépliants du produit (`.crit-guide`, `.rev-panel`). */
+  .md-syn{margin:8px 0 0;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--surface-2)}
+  .md-syn>summary{display:flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;cursor:pointer;
+    list-style:none;font-size:12px;font-weight:700;color:var(--ink-soft)}
+  .md-syn>summary::-webkit-details-marker{display:none}
+  .md-syn>summary::before{content:"▾";font-size:11px;color:var(--ink-soft)}
+  .md-syn[open]>summary::before{content:"▴"}
+  .md-syn>summary:focus-visible{outline:2px solid var(--primary);outline-offset:-2px;border-radius:var(--radius-sm)}
+  .md-syn>.hint{margin:0;padding:0 12px 12px;line-height:1.9}
+  .md-syn code{background:var(--tag-bg);color:var(--tag-ink);border-radius:4px;padding:1px 5px;
+    font-family:var(--mono);font-size:11px;white-space:nowrap}
+  .rt-find{padding-bottom:0}
+  /* ⚠ QUINZIÈME PIÈGE DE CASCADE : `.rt-h2` posait un `padding-top` LONGHAND, et `.rt-h` — même
+     spécificité, déclarée plus bas — repose un `padding` RACCOURCI qui l'écrase intégralement.
+     Mesuré : 14 px demandés, 0 obtenu. On passe par `.ref-toc .rt-h2` (0,2,0), qui gagne quel que
+     soit l'ordre — règle du dossier depuis la v4.25.1. */
+  .ref-toc .rt-h2{margin-top:14px;border-top:1px solid var(--line);padding:14px 8px 6px}
   /* Les annexes dans la colonne : mêmes composants, dessin allégé — elles y sont subordonnées. */
   /* Le CORPS d'une référence est la surface de travail : c'est lui qui porte la carte. */
   .ref-main .md-body{background:var(--surface);border:1px solid var(--line);
@@ -9793,7 +9818,7 @@ function renderProtocolEdit(){
     une case qu'on peut cocher en lecture, mais qui NE S'ENREGISTRE PAS — sortir de la page
     l'efface, et c'est ce qui rend le geste sans conséquence. Une référence n'est pas une session ;
     ce qui garde une trace, ce sont les fiches. */}
-    <fieldset class="field ed-card"><label>Contenu rédigé <span class="hint">facultatif — mise en forme simple ; « - [ ] » crée une case à cocher en lecture, éphémère (elle s'efface en quittant la page)</span></label>
+    <fieldset class="field ed-card"><label>Contenu rédigé <span class="hint">facultatif — mise en forme simple, aperçu en dessous</span></label>
       <div class="md-toolbar" role="toolbar" aria-label="Mise en forme">
         <button type="button" class="mini bld" data-mdtool="b" aria-label="Gras" title="Gras — **texte**">B</button>
         <button type="button" class="mini md-it" data-mdtool="i" aria-label="Italique" title="Italique — *texte*"><i>I</i></button>
@@ -9815,7 +9840,7 @@ function renderProtocolEdit(){
         <button type="button" class="mini" data-mdtool="img" aria-label="Insérer une image" title="Insérer une image (réduite et stockée hors ligne)">${uiIcon('img',16)}</button>
       </div>
       <textarea id="p-body" rows="12" placeholder="## Indication&#10;- Critère 1&#10;- Critère 2&#10;&#10;Texte libre, **gras**, *italique*…">${esc(p.body)}</textarea>
-      <p class="hint">Syntaxe : <code># titre</code> (##, ###), <code>- liste</code> / <code>1. liste</code> (sous-liste : 2 espaces devant), <code>- [ ] tâche</code> liste cochable (<code>- [x]</code> déjà cochée) — en lecture, les coches repartent à zéro à chaque ouverture, <code>&gt; citation</code>, <code>\`code\`</code> (bloc : <code>\`\`\`</code>), <code>---</code> séparateur, <code>**gras**</code>, <code>*italique*</code>, <code>==surligné==</code>, <code>[texte](https://…)</code>, <code>[texte](att:ID)</code> ouvre un document joint, <code>![légende](img:ID)</code> image (taille réglable ci-dessous).<br>Tableau : <code>| a | b |</code> puis, en 2ᵉ ligne, <code>|---|---|</code> — l'alignement se règle là (<code>|:-:|</code> centré, <code>|---:|</code> à droite). Un <code>|</code> dans une cellule s'écrit <code>\\|</code>.<br>Encadré coloré — syntaxe GitHub, tapable au clavier, le marqueur seul sur sa ligne puis le texte en dessous : <code>&gt; [!CAUTION]</code> alerte · <code>&gt; [!WARNING]</code> attention · <code>&gt; [!NOTE]</code> information · <code>&gt; [!TIP]</code> confirmation (les boutons ci-dessus les posent). Alias acceptés ici : <code>[!alerte]</code>, <code>[!attention]</code>, <code>[!info]</code>, <code>[!ok]</code>, et les glyphes ⚠ △ ℹ ✓.<br><span class="hint">Portabilité : les mots-clés en MAJUSCULES sont rendus en encadré par GitHub, GitLab, pandoc et Typora, et <code>- [ ]</code> en case native ; ailleurs, encadrés et tâches restent une citation ou un « [ ] tâche » lisibles — rien n'est jamais perdu.</span></p>
+      <details class="md-syn"><summary><span>Aide-mémoire de syntaxe</span></summary><p class="hint">Syntaxe : <code># titre</code> (##, ###), <code>- liste</code> / <code>1. liste</code> (sous-liste : 2 espaces devant), <code>- [ ] tâche</code> liste cochable (<code>- [x]</code> déjà cochée) — en lecture, les coches repartent à zéro à chaque ouverture, <code>&gt; citation</code>, <code>\`code\`</code> (bloc : <code>\`\`\`</code>), <code>---</code> séparateur, <code>**gras**</code>, <code>*italique*</code>, <code>==surligné==</code>, <code>[texte](https://…)</code>, <code>[texte](att:ID)</code> ouvre un document joint, <code>![légende](img:ID)</code> image (taille réglable ci-dessous).<br>Tableau : <code>| a | b |</code> puis, en 2ᵉ ligne, <code>|---|---|</code> — l'alignement se règle là (<code>|:-:|</code> centré, <code>|---:|</code> à droite). Un <code>|</code> dans une cellule s'écrit <code>\\|</code>.<br>Encadré coloré — syntaxe GitHub, tapable au clavier, le marqueur seul sur sa ligne puis le texte en dessous : <code>&gt; [!CAUTION]</code> alerte · <code>&gt; [!WARNING]</code> attention · <code>&gt; [!NOTE]</code> information · <code>&gt; [!TIP]</code> confirmation (les boutons ci-dessus les posent). Alias acceptés ici : <code>[!alerte]</code>, <code>[!attention]</code>, <code>[!info]</code>, <code>[!ok]</code>, et les glyphes ⚠ △ ℹ ✓.<br><span class="hint">Portabilité : les mots-clés en MAJUSCULES sont rendus en encadré par GitHub, GitLab, pandoc et Typora, et <code>- [ ]</code> en case native ; ailleurs, encadrés et tâches restent une citation ou un « [ ] tâche » lisibles — rien n'est jamais perdu.</span></p></details>
       ${mdImagesHtml(p)}
       <p class="md-prev-h">Aperçu</p><div class="md-preview" id="mdPreview">${mdRender(p.body,{images:p.images})}</div></fieldset>
     ${(p.sources||[]).length?listEditor('Références','sources du protocole (traçabilité)','sources',p.sources||[],false,{shell:'ed-card'}):''}
@@ -14590,7 +14615,13 @@ function reviewPanelHtml(f,notes){
      DÉTAILLÉE, elle, vit sous la ligne qu'elle vise (`stepNote`) : ici c'est un BILAN, pas une
      seconde explication. */
   const res=n.map(x=>x.cible).join(' · ');
-  return `<details class="rev-panel"><summary role="status">${uiIcon('warn',13)}<b>Relecture · ${n.length}</b><span class="rev-res">${esc(res)}</span></summary>`
+  /* ⚠ OUVERT PAR DÉFAUT (demande utilisateur, et c'est cohérent) : le volet N'EXISTE PAS quand il
+     n'a rien à dire (`if(!n.length)return ''`) — il ne peut donc jamais être du bruit permanent,
+     et la règle « un panneau vide est du bruit » est déjà tenue par son absence. Replié, il
+     demandait un clic pour lire un BILAN, c'est-à-dire exactement la chose qu'on ne clique pas.
+     Il reste repliable : c'est une consultation, pas un réglage — l'état n'est pas persisté.
+     Vaut pour les DEUX éditeurs, aide et référence : un seul dessin, une seule habitude. */
+  return `<details class="rev-panel" open><summary role="status">${uiIcon('warn',13)}<b>Relecture · ${n.length}</b><span class="rev-res">${esc(res)}</span></summary>`
     +n.map(x=>`<button type="button" class="rev-row" data-revgo="${esc(x.at)}"><b>${esc(x.cible)}</b><span>${esc(x.txt.replace(/^△\s*/,''))}</span></button>`).join('')
     +`<p class="rev-note">Aucune de ces remarques n’empêche d’enregistrer — c’est vous qui connaissez votre service.</p></details>`;}
 /* K2, deuxième moitié (v4.68.0, maquette MK) : LA REMARQUE SOUS LA LIGNE QU'ELLE VISE. Le volet
