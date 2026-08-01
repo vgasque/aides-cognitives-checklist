@@ -1152,6 +1152,53 @@ console.log('\n══ T13 · les fiches d\'exemple exercent la doctrine qu\'elle
    On ne mesure PAS un seuil WCAG ici (le glyphe n'est pas du texte au sens de la norme) — on
    mesure qu'il est DISTINCT de son propre fond, ce qui est la seule chose qui ait un sens pour
    un marqueur, et la seule que le défaut violait. */
+/* LES DÉPLIANTS APPARTIENNENT À LEUR GESTE (v5.0.0, lot M11 — mesuré, puis corrigé).
+   La règle 11 interdit le DÉFILEMENT AUTOMATIQUE en session : l'écran ne bouge que sous le doigt
+   de celui qui le fait bouger. Deux gestes l'enfreignaient, et les deux étaient invisibles à la
+   relecture parce que le code disait simplement « scrollIntoView » :
+     · taper le QUAI ouvrait le panneau minuteurs, qui vit en bas de colonne depuis le lot T5, et
+       s'y rendait — mesuré 1120 px de saut à 320 px, soit plus d'un écran et demi, en pleine
+       réanimation, en perdant de vue le bloc qu'on exécutait ;
+     · « Journal des actions (n) ▾ » de l'accusé de réception y allait aussi — 484 px.
+   Le « ▾ » de la maquette dit un DÉPLIANT, pas une navigation. Le panneau ouvert PAR LE QUAI se
+   rend donc juste SOUS le quai, et le journal se déplie DANS la carte. On mesure le SAUT, pas la
+   présence du panneau : un panneau présent 1120 px plus bas est un panneau qu'on a perdu. */
+console.log('\n══ DÉPLIANTS · un tap ne déplace pas l’écran ══');
+for (const W of [320, 390]) {
+  const page = await br.newPage({viewport:{width:W,height:844},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();await w(200);
+    const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await w(800);});
+  const r = await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    const f=fiches.find(x=>/Anaphylaxie/i.test(x.title))||fiches[0];
+    openRead(f.id);await w(400);
+    const sb=document.getElementById('sessStart');if(sb)sb.click();await w(700);
+    const dockY=()=>{const e=document.getElementById('cbTimers');return e?Math.round(e.getBoundingClientRect().top):null;};
+    const y0=Math.round(scrollY),d0=dockY();
+    document.getElementById('cbTimers').click();await w(600);
+    const sautQuai=Math.round(scrollY)-y0, dockBouge=Math.abs(dockY()-d0);
+    const pn=document.querySelector('.rt-panel');
+    const sousLeQuai=(()=>{const d=document.getElementById('cbTimers');
+      return (d&&pn)?Math.round(pn.getBoundingClientRect().top-d.getBoundingClientRect().bottom):null;})();
+    document.getElementById('cbTimers').click();await w(400);        // refermer
+    document.querySelector('[data-tknote]').click();await w(600);
+    const y1=Math.round(scrollY);
+    const j=document.querySelector('.tk-ack-j'); if(j)j.click(); await w(600);
+    return {sautQuai,dockBouge,sousLeQuai,panneau:!!pn,
+      sautJournal:Math.round(scrollY)-y1,
+      lignes:document.querySelectorAll('.tk-ack-r').length};});
+  t(`${W} · le panneau s’ouvre bien au tap sur le quai`, r.panneau===true);
+  t(`${W} · … SANS déplacer l’écran`, r.sautQuai===0, `${r.sautQuai} px`);
+  t(`${W} · … ni le quai lui-même`, r.dockBouge<=1, `${r.dockBouge} px`);
+  t(`${W} · … et il se pose SOUS le quai`, r.sousLeQuai!==null&&r.sousLeQuai>=0&&r.sousLeQuai<=60, `${r.sousLeQuai} px`);
+  t(`${W} · le journal se DÉPLIE dans la carte, sans défiler`, r.sautJournal===0&&r.lignes>=1,
+    `saut ${r.sautJournal} px, ${r.lignes} ligne(s)`);
+  await page.close();
+}
+
 console.log('\n══ PARCOURS INERTE · les marqueurs sont lisibles ══');
 {
   const page = await br.newPage({viewport:{width:1280,height:1000}});

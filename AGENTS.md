@@ -2459,6 +2459,28 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   le seul contenu unique (les différentiels), c'est-à-dire le motif même de l'ouverture. Le DESSIN
   est repris, la duplication non ; à rouvrir ensemble si l'arbitrage a changé. La maquette affiche
   aussi « role: dose » à côté des intitulés — nom INTERNE du modèle, jamais montré à un clinicien.
+- **UN DÉPLIANT APPARTIENT À SON GESTE (v5.0.0, lot M11, maquette — mesuré puis corrigé)** : la
+  règle 11 interdit le DÉFILEMENT AUTOMATIQUE en session — l'écran ne bouge que sous le doigt de
+  celui qui le fait bouger. **Deux gestes l'enfreignaient**, et tous deux étaient invisibles à la
+  relecture parce que le code disait simplement « `scrollIntoView` » :
+  · taper le **QUAI** ouvrait le panneau minuteurs, qui vit en bas de colonne depuis le lot T5, et
+  s'y rendait — **1120 px de saut mesurés à 320 px** (988 à 390), soit plus d'un écran et demi, en
+  pleine réanimation, en perdant de vue le bloc qu'on exécutait ;
+  · « Journal des actions (n) ▾ » de l'accusé de réception y allait aussi — **484 px**.
+  **LE « ▾ » DIT UN DÉPLIANT, PAS UNE NAVIGATION.** Le panneau ouvert PAR LE QUAI se rend juste
+  SOUS lui, en tête de la colonne d'action ; le journal se déplie DANS la carte. `state.rtOpen`
+  porte donc **l'ENDROIT du geste** (`'dock'` | `'flow'`), pas seulement l'état ouvert/fermé :
+  ouvert par la rangée du bas, le panneau s'ouvre en bas — la réponse vit là où le geste a eu lieu
+  (même règle que l'accusé « ✓ noté », lot M7). Mesuré après : **0 px de saut pour les deux**, le
+  panneau à 19 px sous le quai, le quai immobile.
+  **CE QUI A RENDU CECI POSSIBLE** est le correctif du quai (structure séparée des valeurs) : tant
+  que le sous-arbre était détruit deux fois par seconde, aucun dépliant ne pouvait lui appartenir.
+  ⚠ **ON MESURE LE SAUT, PAS LA PRÉSENCE DU PANNEAU** : un panneau présent 1120 px plus bas est un
+  panneau qu'on a perdu, et un témoin qui vérifie seulement qu'il existe reste vert sur le défaut.
+  **CE QUI N'ENTRE PAS DANS LE QUAI** : le journal des actions. La maquette ne l'y met pas, et il a
+  déjà son entrée là où il sert — dans la carte du bloc (« Journal des actions (n) ▾ », lot M7).
+  Le quai NOMME les minuteurs et compteurs depuis le lot T2 ; il n'a pas à nommer un troisième
+  objet dont le geste vit ailleurs.
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.
