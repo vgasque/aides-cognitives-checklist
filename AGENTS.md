@@ -2602,8 +2602,30 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   le `padding:6px` compensé par marges négatives du bouton-titre a fait tomber sa cible mesurable
   de 29 à **18 px** — sous le seuil WCAG 2.5.8, attrapé par `audit-a11y`. Le rembourrage compensé
   n'est pas décoratif : il EST la cible.
+  **LA MÉTA EST DU TEXTE SÉPARÉ PAR DES POINTS, PAS UNE SUITE DE CHIPS** (signalé à l'usage : la
+  première livraison avait gardé les chips existantes). **Une chip a une largeur INCOMPRESSIBLE** :
+  dans une grille qui compte de deux à quatre colonnes, elle se coupait net dès que la piste
+  rétrécissait, et c'est elle qui poussait la catégorie hors du cadre. Du texte, lui, s'ellipse
+  proprement et **par la queue**, donc dans l'ordre d'importance choisi. Les composants partagés
+  (`.tag`, `.status-tag`) sont **déshabillés dans la rangée, et là seulement** — ailleurs la chip a
+  un sens. Le CODE a lui aussi rejoint la méta : en colonne séparée, il prenait une piste au titre
+  et se retrouvait au milieu de la rangée, loin de ce qu'il nomme.
+  **⚠ QUATORZIÈME PIÈGE DE CASCADE** : `.tag.todo` vaut (0,2,0) et est déclarée PLUS BAS que
+  `.dir-sub .tag` — à spécificité égale c'est l'ORDRE qui tranche, et le fond gris de la chip
+  revenait. On passe par `.dir-row` (0,3,0), qui gagne quel que soit l'ordre.
+  **LE MOT CÈDE, LE GLYPHE RESTE** : « △ À compléter » coûtait ~95 px sur une piste de 292 —
+  c'est-à-dire la catégorie entière. Il devient « △ » + étiquette `.sr-only`, exactement le patron
+  du quai (v4.23.0 : « le mot ne peut pas être écrit en clair ici, il serait le premier rogné »).
+  La règle 8 est tenue : le △ est une FORME, pas une couleur, et il porte son nom accessible.
+  Mesuré après : **0 méta tronquée** en 1, 2, 3 et 4 colonnes.
+  **⚠ ET LES LARGEURS QUI COMPTENT SONT CELLES DES PISTES, PAS DES ÉCRANS** : la grille est fluide
+  (`auto-fill minmax(290px,1fr)`), donc un écran de 1600 px donne QUATRE pistes de **319 px** —
+  plus étroites qu'un téléphone de 390. Mesurer 330 et 390 ne prouvait rien sur ordinateur ; les
+  témoins balayent les six largeurs qui produisent 1, 2, 3 et 4 colonnes.
   **TÉMOINS** : on ne mesure pas « la rangée fait 71 px » (vrai sur une liste d'UNE fiche) mais que
-  TOUTES ont la MÊME hauteur, après avoir vérifié qu'il y en a plusieurs.
+  TOUTES ont la MÊME hauteur, après avoir vérifié qu'il y en a plusieurs. Et le débordement de la
+  RANGÉE ne suffit pas à prouver que la méta tient : `.dir-sub` est en `overflow:hidden`, donc la
+  rangée reste propre pendant que l'information disparaît — **on mesure l'ellipse elle-même**.
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.

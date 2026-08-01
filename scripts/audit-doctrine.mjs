@@ -1184,8 +1184,13 @@ console.log('\n══ T13 · les fiches d\'exemple exercent la doctrine qu\'elle
    ⚠ ET LE CORPS RESTE SUR L'ÉCHELLE FERMÉE : c'est la contrainte qui a fait échouer deux
    maquettes (15 px et 14,5 px, aucun n'étant un palier). Ce qui se resserre pour tenir en 71 px
    est l'interligne, jamais la police. */
+/* ⚠ LES LARGEURS MESURÉES SONT CELLES DES PISTES, PAS DES ÉCRANS (signalé à l'usage : « la rangée
+   à 4 colonnes et à 3 colonnes peut très mal s'afficher »). La grille de l'accueil est fluide
+   (`auto-fill minmax(290px,1fr)`) : un écran de 1600 px donne QUATRE pistes de 319 px, plus
+   étroites qu'un téléphone de 390. Mesurer 330 et 390 ne prouvait donc rien sur ordinateur — on
+   balaye les six largeurs qui produisent 1, 2, 3 et 4 colonnes. */
 console.log('\n══ ACCUEIL · la rangée a un rythme régulier ══');
-for (const W of [330, 390]) {
+for (const W of [330, 390, 700, 1000, 1400, 1600]) {
   const page = await br.newPage({viewport:{width:W,height:844},hasTouch:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
   await page.goto(`http://localhost:${port}/index.html`);
@@ -1208,7 +1213,20 @@ for (const W of [330, 390]) {
     return {n:rows.length,hauteurs:H,
       corps:[...new Set(titres.map(b=>getComputedStyle(b).fontSize))],
       tronques:titres.filter(b=>b.scrollHeight>b.clientHeight+1).length,
-      deborde:rows.filter(x=>x.scrollHeight>x.clientHeight+1).length,
+      deborde:rows.filter(x=>x.scrollWidth>x.clientWidth+1).length,
+      debordeH:rows.filter(x=>x.scrollHeight>x.clientHeight+1).length,
+      ellipsees:rows.filter(x=>{const e=x.querySelector('.dir-sub');return e&&e.scrollWidth>e.clientWidth+1;}).length,
+      reste:rows.map(x=>{const e=x.querySelector('.dir-sub');return e?Math.round(e.scrollWidth-e.clientWidth):0;}),
+      fondTodo:(()=>{const e=document.querySelector('.dir-sub .tag.todo');return e?getComputedStyle(e).backgroundColor:null;})(),
+      pistes:getComputedStyle(rows[0].parentElement).gridTemplateColumns.split(' ').filter(Boolean).length,
+      piste:Math.round(rows[0].getBoundingClientRect().width),
+      ...(()=>{const b=rows[0].querySelector('.pinbtn');if(!b)return {pinOk:false,pinBox:'aucune épingle'};
+        const cs=getComputedStyle(b,'::before'),rr=rows[0].getBoundingClientRect();
+        const q=b.getBoundingClientRect();
+        const ins=Math.abs(parseFloat(cs.top)||0);
+        const L=q.left-ins,R=q.right+ins,T=q.top-ins,B=q.bottom+ins;
+        return {pinOk:(R-L)>=43.5&&(B-T)>=43.5&&R<=rr.right+0.5&&L>=rr.left-0.5,
+          pinBox:`${Math.round(R-L)}×${Math.round(B-T)} px, hors rangée : ${R>rr.right+0.5}`};})(),
       liseCat:!!document.querySelector('.dir-row[style*="--catcol"]'),
       pastille:document.querySelectorAll('.dir-row .cat-dot').length,
       live:!!document.querySelector('.dir-row.live'),
@@ -1223,6 +1241,22 @@ for (const W of [330, 390]) {
     r.liseCat===true&&r.pastille===0, `liseré=${r.liseCat} pastilles=${r.pastille}`);
   t(`${W} · une session en cours se voit, et son chrono AVANCE`, r.live===true&&r.chronoAvance===true,
     `live=${r.live} avance=${r.chronoAvance}`);
+  /* LA RANGÉE NE DÉBORDE PAS D'UN PIXEL, quelle que soit la largeur de PISTE. C'est ce qui
+     manquait : une chip a une largeur incompressible et se coupait net dès que la piste
+     rétrécissait ; et le halo de l'épingle sortait de 5 px, donc était rogné — la cible se
+     retrouvait amputée du côté du pouce, sans que rien ne le dise. */
+  t(`${W} · la rangée ne déborde pas (${r.pistes} colonne(s), piste ${r.piste} px)`,
+    r.deborde===0&&r.debordeH===0, `${r.deborde} en largeur, ${r.debordeH} en hauteur`);
+  t(`${W} · … et l'épingle garde sa cible de 44 px DANS la rangée`, r.pinOk===true, r.pinBox);
+  /* LA MÉTA TIENT ENTIÈRE, à toutes les largeurs de PISTE. Le débordement de la RANGÉE ne suffit
+     pas à le prouver : `.dir-sub` est en `overflow:hidden`, donc la rangée reste propre pendant
+     que l'information disparaît. On mesure l'ellipse elle-même. */
+  t(`${W} · la méta n'est tronquée sur aucune rangée`, r.ellipsees===0,
+    `${r.ellipsees} sur ${r.n} — reste ${JSON.stringify(r.reste)} px`);
+  /* Et le registre est porté par l'ENCRE, pas par une chip : une chip a une largeur
+     incompressible, c'est elle qui poussait la catégorie hors du cadre. */
+  t(`${W} · « à compléter » n'a plus de fond de chip`,
+    /rgba\(0, 0, 0, 0\)|transparent/.test(r.fondTodo||'transparent'), r.fondTodo);
   await page.close();
 }
 

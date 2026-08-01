@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-c7el2HsMFu70SxFEydBMDyYnmsnvg2OAxUGXCsrb/kw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-0WB+asBH0x+Qm6HFt0tXbTEjJAWwSt4J7ZySnXI0v5U='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1382,10 +1382,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      REDONDANTE avec le liseré (même couleur, même information — la catégorie reste nommée en
      toutes lettres dans la méta), et l'étoile passe de 34 à 26 px en gardant sa cible de 44 par un
      halo `::after` — patron déjà employé par les contrôles de l'en-tête. */
-  /* TROIS colonnes : le contenu, le code court, l'épingle. Avec deux, le troisième enfant passait
-     à la ligne dans une rangée à hauteur FIXE — donc hors de la boîte, en silence. */
-  .dir-row{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;
-    gap:10px;height:71px;padding:0 4px 0 14px;border:1px solid var(--line);border-radius:var(--radius-md);
+  /* DEUX colonnes : le contenu, l'épingle. Le CODE a rejoint la méta (maquette) — en colonne
+     séparée il prenait une piste au titre et se retrouvait au milieu de la rangée, entre le titre
+     et l'épingle, là où rien ne le rattache à ce qu'il nomme.
+     ⚠ TOUT ENFANT AJOUTÉ ICI DOIT AVOIR SA PISTE : dans une rangée à hauteur FIXE, un enfant de
+     trop passe à la ligne implicite, donc HORS de la boîte, en silence (mesuré une fois : épingle
+     à 244 px de large). */
+  .dir-row{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;
+    gap:10px;height:71px;padding:0 9px 0 14px;border:1px solid var(--line);border-radius:var(--radius-md);
     background:var(--surface);overflow:hidden}
   .dir-row:hover{border-color:var(--line-hover);background:var(--surface-2)}
   .dir-main{flex:1;min-width:0}
@@ -1401,6 +1405,27 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .dir-sub{display:flex;align-items:center;gap:6px;margin-top:3px;min-width:0;font-size:11px;
     color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .dir-sub>*{flex:none}
+  /* LA MÉTA EST DU TEXTE SÉPARÉ PAR DES POINTS, PAS UNE SUITE DE CHIPS (maquette). Une chip a une
+     largeur INCOMPRESSIBLE : dans une grille d'accueil qui compte deux à quatre colonnes selon la
+     largeur, elles se coupaient net dès que la piste rétrécissait — c'est ce qui a été signalé.
+     Du texte, lui, s'ellipse proprement et par la QUEUE, donc dans l'ordre d'importance choisi.
+     Les composants partagés (`.tag`, `.status-tag`) sont donc DÉSHABILLÉS ICI, et ici seulement :
+     on ne touche pas à leur dessin ailleurs, où la chip a un sens. */
+  /* ⚠ QUATORZIÈME PIÈGE DE CASCADE : `.tag.todo` vaut (0,2,0) et est déclarée PLUS BAS que
+     `.dir-sub .tag` — à spécificité égale, c'est l'ORDRE qui tranche, et le fond gris de la chip
+     revenait. On passe par `.dir-row` (0,3,0), qui gagne quel que soit l'ordre : c'est la règle du
+     dossier depuis la v4.25.1 — « pour une géométrie, ne jamais dépendre de l'ordre ». */
+  .dir-row .dir-sub :is(.tag,.status-tag){background:none;border:0;padding:0;border-radius:0;
+    font-size:11px;font-weight:700;color:var(--ink-soft);text-decoration:none}
+  .dir-sub b{font-weight:700;color:var(--ink)}
+  .dir-row .dir-sub :is(.tag.todo,.tag.stale){color:var(--verify)}
+  /* Le point de séparation est posé par la CASCADE : rien à intercaler dans le gabarit, donc
+     aucun séparateur orphelin quand un élément manque. */
+  .dir-sub>*+*::before{content:"·";margin-right:5px;color:var(--line-strong);font-weight:400}
+  /* La cible du « △ À compléter » : rembourrage compensé, comme le bouton-titre — sans lui elle
+     tomberait à la hauteur du texte (11 px), sous le seuil WCAG 2.5.8. */
+  .dir-row .dir-sub .tag.todo{padding:6px 4px;margin:-6px -4px;cursor:pointer}
+  .dir-sub .tag.todo:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* Le liseré porte la CATÉGORIE — la pastille faisait double emploi (règle 14 : elle est purgée). */
   .dir-row::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
     background:var(--catcol,var(--line-strong));border-radius:var(--radius-md) 0 0 var(--radius-md)}
@@ -1424,6 +1449,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .dir-code{flex:none;font-family:var(--mono);font-size:11px;color:var(--ink-soft)}
   .dir-row :is(.pinbtn,.tag.todo){position:relative;z-index:1}
   /* Épingle : cible tactile 40px, étoile SVG pleine ambrée quand actif. */
+  /* L'ÉPINGLE À 26 px GARDE UNE CIBLE DE 44 par un halo — mais le halo doit TENIR DANS LA RANGÉE :
+     avec 4 px de rembourrage à droite il en dépassait de 5, donc était rogné (`overflow:hidden`),
+     et la cible se retrouvait amputée du côté du pouce. Le rembourrage droit passe à 9 px : 26 + 9
+     + 9 = 44, exactement la cible, et plus rien ne sort. */
   .dir-row .pinbtn{min-width:26px;min-height:26px;position:relative}
   .dir-row .pinbtn::before{content:"";position:absolute;inset:-9px}
   .pinbtn{background:none;border:0;line-height:1;color:var(--ink-soft);min-width:40px;min-height:40px;border-radius:var(--radius-sm);cursor:pointer;flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center}
@@ -9118,10 +9147,9 @@ function _homeCfgF(){return {rerender:renderFiches,crossKind:'protocols',create:
       <div class="dir-row${isLive?' live':''}"${cc?` style="--catcol:${safeColor(cc.color)}"`:''}>
         <div class="dir-main">
           <button class="card-open" data-open="${f.id}">${esc(f.title)||'Sans titre'}</button>
-          <span class="dir-sub">${isLive?dirLiveHtml(f.id):''}${statusChip(f.status,true,{validatedAt:f.validatedAt})}${staleDate(f.validatedAt)?`<span class="tag stale" title="${esc(fmtDate(f.validatedAt))} — plus de 2 ans : à revérifier">△ À revérifier</span>`:''}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo title="Reste à compléter : ${esc(sp.join(' · '))}">△ À compléter</span>`:'';})()}${f.discriminant?`<span class="tag disc">${esc(f.discriminant)}</span>`:''}${searchLibTag(f)}${cc?`<span>${esc(cc.name)}</span>`:''}${(!isLive&&f.validatedAt)?`<span class="card-date${staleDate(f.validatedAt)?' stale':''}" title="${esc(fmtDate(f.validatedAt))}">${esc(fmtDateShort(f.validatedAt))}</span>`:''}</span>
+          <span class="dir-sub">${isLive?dirLiveHtml(f.id):''}${statusChip(f.status,true,{validatedAt:f.validatedAt})}${staleDate(f.validatedAt)?`<span class="tag stale" title="${esc(fmtDate(f.validatedAt))} — plus de 2 ans : à revérifier">△<span class="sr-only"> à revérifier</span></span>`:''}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo aria-label="À compléter — ${esc(sp.join(' · '))}" title="Reste à compléter : ${esc(sp.join(' · '))}">△<span class="sr-only"> à compléter</span></span>`:'';})()}${f.discriminant?`<b>${esc(f.discriminant)}</b>`:''}${searchLibTag(f)}${cc?`<span>${esc(cc.name)}</span>`:''}${f.code?`<span class="dir-code">${esc(f.code)}</span>`:''}${(!isLive&&f.validatedAt)?`<span class="card-date${staleDate(f.validatedAt)?' stale':''}" title="${esc(fmtDate(f.validatedAt))}">${esc(fmtDateShort(f.validatedAt))}</span>`:''}</span>
           ${inQ?searchSnippet(ficheSnipParts(f),state.q):''}
         </div>
-        ${f.code?`<span class="dir-code">${esc(f.code)}</span>`:''}
         <button class="pinbtn${isPinned(f.id)?' on':''}" data-pin="${f.id}" aria-label="${isPinned(f.id)?'Désépingler':'Épingler en accès direct'}" title="${isPinned(f.id)?'Désépingler':'Épingler en accès direct'}">${pinIcon(isPinned(f.id))}</button>
       </div>`;},
     // Tuile = épinglée par définition (qaPick) : pas d'étoile par tuile, le titre de section la
@@ -9206,10 +9234,9 @@ function _homeCfgP(){return {rerender:renderProtocols,crossKind:'fiches',create:
       <div class="dir-row"${cc?` style="--catcol:${safeColor(cc.color)}"`:''}>
         <div class="dir-main">
           <button class="card-open" data-open="${p.id}">${esc(p.title)||'Sans titre'}</button>
-          <span class="dir-sub">${searchLibTag(p)}${statusChip(p.status,false,{validatedAt:p.validatedAt})}${staleDate(p.validatedAt)?`<span class="tag stale" title="${esc(fmtDate(p.validatedAt))} — plus de 2 ans : à revérifier">△ À revérifier</span>`:''}${nDoc?`<span class="tag sess" title="Documents PDF joints">${nDoc} PDF</span>`:''}${cc?`<span>${esc(cc.name)}</span>`:''}${p.validatedAt?`<span class="card-date${staleDate(p.validatedAt)?' stale':''}" title="${esc(fmtDate(p.validatedAt))}">${esc(fmtDateShort(p.validatedAt))}</span>`:''}</span>
+          <span class="dir-sub">${searchLibTag(p)}${statusChip(p.status,false,{validatedAt:p.validatedAt})}${staleDate(p.validatedAt)?`<span class="tag stale" title="${esc(fmtDate(p.validatedAt))} — plus de 2 ans : à revérifier">△<span class="sr-only"> à revérifier</span></span>`:''}${nDoc?`<span>${nDoc} PDF</span>`:''}${cc?`<span>${esc(cc.name)}</span>`:''}${p.code?`<span class="dir-code">${esc(p.code)}</span>`:''}${p.validatedAt?`<span class="card-date${staleDate(p.validatedAt)?' stale':''}" title="${esc(fmtDate(p.validatedAt))}">${esc(fmtDateShort(p.validatedAt))}</span>`:''}</span>
           ${inQ?searchSnippet(protoSnipParts(p),state.q):''}
         </div>
-        ${p.code?`<span class="dir-code">${esc(p.code)}</span>`:''}
         <button class="pinbtn${isPinned(p.id)?' on':''}" data-pin="${p.id}" aria-label="${isPinned(p.id)?'Désépingler':'Épingler en accès direct'}" title="${isPinned(p.id)?'Désépingler':'Épingler en accès direct'}">${pinIcon(isPinned(p.id))}</button>
       </div>`;},
     tile:p=>{const cc=catOf(p);
