@@ -918,7 +918,19 @@ for (const w of [320, 390]) {
     const debord=tabs?Math.round(tabs.scrollWidth-tabs.clientWidth):null;
     const cible=Math.min(...[...document.querySelectorAll('.at-b')].map(e=>e.getBoundingClientRect().height));
     document.querySelector('[data-alltab="parcours"]').click(); await wt(400);
-    const parc=!!document.querySelector('.ov-plan')&&!document.querySelector('.sv-tb');
+    /* v5.0.0 (M9) : « Parcours » N'EST PLUS l'Échelle — c'est la fiche entière en CARTES de
+       blocs, avec leurs items, et INERTE. Le contrôle mesure les trois : la présence des cartes,
+       la présence des items, et l'impossibilité de cocher (aucun `data-ck` émis, `state.checked`
+       inchangé après un clic sur une case). Sans la troisième, on validerait une vue qui
+       RESSEMBLE à la fiche et qui la MODIFIERAIT. */
+    const avCk=JSON.stringify(state.checked);
+    {const b0=document.querySelector('.pc-box');if(b0)b0.click();}
+    await wt(250);
+    const parc=!!document.querySelector('.pc-wrap')&&!document.querySelector('.sv-tb')
+      &&document.querySelectorAll('.pc-card').length>=2
+      &&document.querySelectorAll('.pc-it').length>=2
+      &&document.querySelectorAll('.pc-wrap [data-ck]').length===0
+      &&JSON.stringify(state.checked)===avCk;
     document.querySelector('[data-alltab="schema"]').click(); await wt(600);
     const zAv=(document.querySelector('.all-svg .fzv')||{}).textContent||'';
     const zb=document.querySelector('.all-svg [data-zoom="in"]'); if(zb)zb.click(); await wt(300);
@@ -934,13 +946,13 @@ for (const w of [320, 390]) {
     r.seg.join('|')==='Un bloc|Toute la fiche', r.seg.join('|'));
   t(`${w} · « Se repérer » a quitté la rangée de commandes`, r.planBtn===false);
   t(`${w} · trois façons de regarder l'aide entière`,
-    r.ong.join('|')==='Parcours|Page|Schéma', r.ong.join('|'));
+    r.ong.join('|')==='Parcours|Page SFAR|Schéma', r.ong.join('|'));
   /* LA PAGE RESTE LE DÉFAUT : un lot qui AJOUTE deux vues n'a pas à changer par surprise ce que
      voit celui qui n'a rien demandé. */
-  t(`${w} · … et la Page reste ce qu'on voit d'abord`, r.defaut==='Page'&&r.pageOk, r.defaut);
+  t(`${w} · … et la Page reste ce qu'on voit d'abord`, r.defaut==='Page SFAR'&&r.pageOk, r.defaut);
   t(`${w} · les onglets ne débordent pas`, r.debord!==null&&r.debord<=1, `${r.debord} px`);
   t(`${w} · … et restent des cibles de 44 px`, r.cible>=44, `${r.cible} px`);
-  t(`${w} · « Parcours » montre l'Échelle, pas la page`, r.parc===true);
+  t(`${w} · « Parcours » montre la fiche en CARTES de blocs, et reste inerte`, r.parc===true);
   t(`${w} · le SCHÉMA garde son zoom (il n'est pas une image)`, r.zAv!==r.zAp, `${r.zAv} → ${r.zAp}`);
   t(`${w} · … et son état de session PEINT`, r.peint===true);
   /* NAVIGUER ≠ AGIR : taper un nœud y va, il ne coche RIEN. Invariant v4.7.0, qu'un changement de

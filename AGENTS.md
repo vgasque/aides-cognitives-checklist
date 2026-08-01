@@ -2409,6 +2409,37 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   en bas »** (SPEC §5), qui vise le CHROME d'une vue de CRISE : ici on est dans une feuille de
   débriefing, hors session, et la barre appartient à la feuille, pas à l'application. Au-dessus,
   rangée alignée à droite : la place existe, le geste est rare.
+- **TROIS SURFACES REDESSINÉES SUR MAQUETTE (v5.0.0, lots M9/M10, captures fournies)** — et la
+  première leçon est un écart que j'avais introduit : **la colonne d'orientation et la vue « toute
+  la fiche » ne montrent PAS la même chose**, alors que je les faisais partager le même rendu.
+  **(1) LE PARCOURS INERTE (colonne)** : une ligne par bloc — pastille RONDE numérotée (verte ✓
+  faite, bleue pleine ICI, contour gris à venir), titre, renvois en MONO dans une colonne de
+  droite. La chip de branche est **SEULE sur sa ligne**, au-dessus et en retrait : partagée avec le
+  titre elle le comprimait et se lisait comme une étiquette DU bloc, alors qu'elle nomme la BRANCHE
+  qui y mène. Pas de liseré coloré sur une rangée ordinaire (l'état vit dans la pastille, la
+  position dans le fond) ; le liseré ROUGE est réservé aux complications, seul registre de la
+  colonne. Sections de queue : « ⚡ À tout moment · hors numérotation » et « Surveiller après les
+  gestes » (mêmes RANGÉES que les blocs — nom, valeur mono : une liste à puces aurait été une
+  seconde grammaire pour des objets qui se lisent pareil). **NI « Quand l'utiliser » NI les étapes
+  en ligne** : la maquette ne les y met pas, et la colonne tient dans 240 px parce qu'elle ne
+  montre rien du contenu.
+  **(2) L'ONGLET « PARCOURS » DE « TOUTE LA FICHE » N'EST PAS L'ÉCHELLE** (`ovParcoursHtml`) : on y
+  dispose de toute la largeur et l'on vient voir LA FICHE ENTIÈRE — donc des CARTES de blocs
+  empilées avec leurs items, imbrication comprise, précédées de la carte « Quand l'utiliser » (la
+  condition d'entrée n'a de sens QUE là). ⚠ **LES CASES Y SONT DESSINÉES, ET C'EST UN ÉCART ASSUMÉ**
+  à « jamais de cases dans le plan » : cette vue n'est pas un plan mais la fiche montrée d'un bloc,
+  et une étape sans sa case ne ressemblerait pas à ce qu'on lira en soin. L'inertie est portée par
+  l'ABSENCE de `data-ck` (aucun geste possible, cases `aria-hidden`) et le sous-titre le dit —
+  « rien ne s'y coche ». Vérifié : 0 `data-ck`, `state.checked` inchangé après clic.
+  **(3) LA FEUILLE « CONSULTER »** : une RANGÉE par entrée — case inerte, intitulé, et la valeur en
+  PILULE MONO. C'est la forme d'une référence qu'on CONSULTE : le nom sert à trouver, la pilule à
+  lire ; une entrée signalée devient une carte teintée (« normal = ligne, signalé = boîte »).
+  ⚠ **CE QUI N'A PAS ÉTÉ REPRIS DE LA MAQUETTE** : elle y remet « DOSES » et « SURVEILLANCES ». La
+  v4.25.3 les avait retirées SUR MESURE — 57 % de la hauteur (451 px sur 790) pour du contenu qui
+  existe déjà dans le flux, le rail et le Statique, soit QUATRE exemplaires, repoussant de ~450 px
+  le seul contenu unique (les différentiels), c'est-à-dire le motif même de l'ouverture. Le DESSIN
+  est repris, la duplication non ; à rouvrir ensemble si l'arbitrage a changé. La maquette affiche
+  aussi « role: dose » à côté des intitulés — nom INTERNE du modèle, jamais montré à un clinicien.
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.
