@@ -2990,6 +2990,20 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   croire que le mot n'y est pas. La requête vit le temps de la feuille (`_pfQ`), n'est ni persistée
   ni synchronisée — c'est une consultation. Cibles **44 px** et champ à **16 px** (règle 9) :
   mesuré à 320 px, 0 px de débordement.
+- **⚠ LE HARNAIS D'ACCESSIBILITÉ MESURE DES SURFACES, PAS DES ÉTATS (v5.0.0, audit de design — et
+  ce sont MES deux régressions qu'il a laissé passer)** : `audit-a11y` ouvre chacune des 25
+  surfaces AU REPOS. Or le surlignage de recherche n'existe qu'une fois une requête tapée, et le
+  vert du bouton d'excursion qu'une fois parti — ni l'un ni l'autre n'était donc dans son champ, et
+  ses 301 contrôles restaient verts pendant que deux violations AA vivaient à l'écran.
+  **Mesuré avant correction** : surlignage **3,64:1 en clair et 1,76:1 en sombre** (texte de
+  11 px), bouton vert **1,9:1 en sombre**.
+  **DEUX CAUSES, DEUX RÈGLES** : (a) `color:inherit` sur un fond FIXE fait dépendre le contraste de
+  l'endroit où le mot se trouve — un surlignage définit ses DEUX couleurs, jamais une seule ;
+  (b) en sombre, `--ok` est un REMPLISSAGE CLAIR, donc son encre est `--bg`, jamais `--on-primary`
+  (règle déjà écrite pour les pastilles du rail, qui vaut pour tout aplat vert).
+  Et l'occurrence COURANTE se distingue désormais par la **forme** (contour + graisse) et non par
+  une seconde paire de couleurs, qui rouvrait le même problème à l'envers. Témoins ajoutés dans
+  `audit-doctrine` : ils CONSTRUISENT l'état avant de mesurer, dans les deux thèmes.
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.

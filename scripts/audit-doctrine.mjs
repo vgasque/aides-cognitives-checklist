@@ -1452,6 +1452,50 @@ for (const W of [390, 999, 1000, 1199, 1200, 1400]) {
    Il ne porte plus QUE la phrase d'une exception ; le titre et son discriminant vivent dans la
    barre, en permanence. Trois modes à vérifier — et le témoin doit RENCONTRER SON CAS : sans
    session démarrée il n'y a pas de crise du tout, et tout serait vert pour la mauvaise raison. */
+/* ⚠ LE HARNAIS D'ACCESSIBILITÉ MESURE DES SURFACES, PAS DES ÉTATS — et c'est ce qui a laissé
+   passer DEUX violations AA que j'ai moi-même introduites (audit de design, v5.0.0) : le
+   surlignage de recherche n'existe qu'une fois une requête tapée, et le vert du bouton
+   d'excursion qu'une fois parti. `audit-a11y` ouvre chaque surface AU REPOS : ni l'un ni l'autre
+   n'était dans son champ, et les 301 contrôles restaient verts.
+   Mesuré avant correction : surlignage 3,64:1 en clair et 1,76:1 en sombre (texte de 11 px),
+   bouton vert 1,9:1 en sombre. On mesure donc ici les ÉTATS, dans les deux thèmes. */
+console.log('\n══ CONTRASTE DES ÉTATS · ce qui n’existe qu’après un geste ══');
+for (const th of ['light','dark']) {
+  const page = await br.newPage({viewport:{width:390,height:844},hasTouch:true,colorScheme:th});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await page.evaluate(async(th)=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    document.documentElement.dataset.theme=th;
+    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();await w(200);
+    const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await w(900);
+    openRead(fiches[0].id);await w(400);
+    const sb=document.getElementById('sessStart');if(sb)sb.click();await w(600);
+    document.getElementById('allBtn').click();await w(700);
+    const q=document.getElementById('pfQ');q.value='adrénaline';q.dispatchEvent(new Event('input',{bubbles:true}));await w(400);},th);
+  const R=await page.evaluate(()=>{
+    const lum=c=>{const m=c.match(/[\d.]+/g).map(Number);const f=v=>{v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4);};
+      return .2126*f(m[0])+.7152*f(m[1])+.0722*f(m[2]);};
+    const fond=e=>{let n=e;while(n&&n!==document.documentElement){const b=getComputedStyle(n).backgroundColor;
+      if(b&&!/rgba?\(0, 0, 0, 0\)|transparent/.test(b))return b;n=n.parentElement;}
+      return getComputedStyle(document.body).backgroundColor;};
+    const rap=e=>{const A=lum(getComputedStyle(e).color),B=lum(fond(e));
+      return Math.round(((Math.max(A,B)+.05)/(Math.min(A,B)+.05))*100)/100;};
+    const marks=[...document.querySelectorAll('mark.pf-h')];
+    const cur=document.querySelector('mark.pf-h.cur');
+    const vert=document.querySelector('#allBtn .dp-lbl');
+    return {nMarks:marks.length,
+      pireMark:marks.length?marks.reduce((a,e)=>Math.min(a,rap(e)),99):null,
+      vert:vert?rap(vert):null,vertPose:document.getElementById('allBtn').classList.contains('dp-back'),
+      curForme:cur?(parseFloat(getComputedStyle(cur).outlineWidth)>0||+getComputedStyle(cur).fontWeight>=700):null};});
+  t(`${th} · témoin : les états mesurés EXISTENT`, R.nMarks>0&&R.vertPose===true,
+    `${R.nMarks} surlignage(s), vert posé=${R.vertPose}`);
+  t(`${th} · le surlignage de recherche tient AA (4,5:1)`, R.pireMark>=4.5, `${R.pireMark}:1`);
+  t(`${th} · … et l'occurrence courante se distingue par la FORME`, R.curForme===true, String(R.curForme));
+  t(`${th} · le vert du retour d'excursion tient AA`, R.vert>=4.5, `${R.vert}:1`);
+  await page.close();
+}
+
 console.log('\n══ BANDEAU · il ne porte plus que l’exception ══');
 {
   const page = await br.newPage({viewport:{width:390,height:844},hasTouch:true});

@@ -647,7 +647,11 @@
      commandes gagnait 14 px de haut À L'INSTANT DE LA BASCULE (59 → 73 px, mesuré) et les deux
      boutons se désalignaient de 7 px — un saut de chrome sous le doigt, exactement ce que la
      doctrine interdit. Un modificateur d'état porte TOUJOURS le préfixe de son composant. */
+  /* ⚠ EN SOMBRE, `--ok` EST UN REMPLISSAGE CLAIR : l'encre doit être le FOND, pas le blanc —
+     mesuré 1,9:1 avec `--on-primary`, c'est-à-dire illisible. C'est la règle déjà écrite pour les
+     pastilles du rail (« en sombre l'encre des pastilles = --bg »), qui vaut pour tout aplat vert. */
   .dock-plan.dp-back{background:var(--ok);border-color:var(--ok);color:var(--on-primary)}
+  [data-theme="dark"] .dock-plan.dp-back{color:var(--bg)}
   .dock-plan:not(.dp-back):hover{background:var(--primary-soft)}
   .dock-plan:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
   .dock-plan .dp-ic{display:inline-flex;align-items:center;font-size:18px;line-height:1}   /* v4.57.0 : le ⤢ est un SVG (E6) — inline-flex pour qu'il s'aligne sur le libellé sans la chasse d'un glyphe */
@@ -1590,8 +1594,18 @@
   .rt-find-all .rt-fnav .mini{width:44px;height:44px}
   .rt-fnav{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:var(--ink-soft)}
   .rt-fnav .mini{width:30px;height:30px}
-  mark.pf-h{background:var(--verify-soft);color:inherit;border-radius:3px;padding:0 1px}
-  mark.pf-h.cur{background:var(--verify-bd);color:var(--on-primary)}
+  /* ⚠ UN SURLIGNAGE DÉFINIT SES DEUX COULEURS, JAMAIS UNE SEULE (défaut MESURÉ à l'audit, et il
+     était le mien) : `color:inherit` prend l'encre du CONTEXTE et la pose sur un fond qui, lui,
+     est fixe — donc le contraste dépend de l'endroit où le mot se trouve. Mesuré : 3,64:1 en
+     clair et 1,76:1 en sombre sur une cellule au registre ambre, c'est-à-dire SOUS le seuil AA
+     (WCAG 1.4.3) pour du texte de 11 px. Le couple est désormais explicite et tient dans les deux
+     thèmes.
+     ET L'OCCURRENCE COURANTE SE DISTINGUE PAR LA FORME, PAS PAR UNE SECONDE PAIRE DE COULEURS :
+     un fond plein + encre inversée rouvrait le même problème à l'envers (encre claire sur ambre
+     moyen). Un contour et une graisse suffisent, et la règle 8 est tenue — la couleur n'est
+     jamais le seul canal. */
+  mark.pf-h{background:var(--verify-soft);color:var(--ink);border-radius:3px;padding:0 1px}
+  mark.pf-h.cur{outline:2px solid var(--verify-bd);outline-offset:1px;font-weight:800}
   @media (min-width:1000px){
     /* ⚠ LE CORPS EST CENTRÉ DANS LA FENÊTRE, PAS DANS LA GRILLE (signalé à l'usage : « ça donne
        encore l'impression que le contenu est décalé »). Une grille « sommaire | corps » centre la
