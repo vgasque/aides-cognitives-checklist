@@ -1163,6 +1163,59 @@ console.log('\n══ T13 · les fiches d\'exemple exercent la doctrine qu\'elle
    Le « ▾ » de la maquette dit un DÉPLIANT, pas une navigation. Le panneau ouvert PAR LE QUAI se
    rend donc juste SOUS le quai, et le journal se déplie DANS la carte. On mesure le SAUT, pas la
    présence du panneau : un panneau présent 1120 px plus bas est un panneau qu'on a perdu. */
+/* TROIS RÉGRESSIONS SILENCIEUSES, ET ELLES SE RESSEMBLENT (v5.0.0, signalées à l'usage).
+   Deux d'entre elles sont la MÊME faute : après une migration de modèle ou un déplacement de
+   balisage, un test qui ne correspond plus ne lève AUCUNE erreur — il rend faux, et se tait.
+     · `buildFlowSVG` comparait `kind` à `'steps'`, valeur disparue à l'étape C (`kind:'do'`) :
+       tout bloc non-décision retombait dans la branche « décision », `options` valait [], et
+       AUCUNE flèche n'était tracée pour les liens `next`. Les branches d'une décision, elles,
+       continuaient de s'afficher — d'où un symptôme partiel, donc déroutant.
+     · le binder des interstices tournait PAR CARTE (`.blk`), alors que les interstices de niveau
+       BLOC sont émis ENTRE les cartes : le dépôt d'un bloc tombait dans le vide, tandis que le
+       dépôt d'une ÉTAPE (interstice interne à la carte) fonctionnait.
+   La troisième est géométrique : un élément TOURNÉ déborde sa boîte (26 px de côté font 36,8 px
+   de diagonale), et la colonne le rognait. */
+console.log('\n══ RÉGRESSIONS · déplacement, flèches, losange ══');
+{
+  const page = await br.newPage({viewport:{width:1280,height:1000}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();await w(200);
+    const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await w(800);});
+  const r = await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    const f=fiches.find(x=>/cardiaque/i.test(x.title))||fiches[0];
+    /* 1 — DÉPLACER UN BLOC, par le vrai geste : poignée puis interstice. */
+    state.view='edit';state.draft=JSON.parse(JSON.stringify(f));render();await w(500);
+    const av=state.draft.blocks.map(b=>b.id).join('|');
+    const g=document.querySelector('[data-grab^="b:"]');if(g)g.click();await w(400);
+    const nInt=document.querySelectorAll('[data-drop]').length;
+    const d=[...document.querySelectorAll('[data-drop]')].pop();if(d)d.click();await w(400);
+    const ap=state.draft.blocks.map(b=>b.id).join('|');
+    state.edGrab=null;
+    /* 2 — LES FLÈCHES DU SCHÉMA : une par lien `next` ET une par option. On compte les chemins
+       PORTANT UNE POINTE (`marker-end`) : les autres `path` sont les glyphes et la pointe elle-même. */
+    openRead(f.id);await w(400);
+    state.readMode='static';state.allTab='schema';render();await w(700);
+    const svg=document.querySelector('.flow-scroll svg');
+    const fleches=svg?[...svg.querySelectorAll('path')].filter(x=>x.getAttribute('marker-end')).length:0;
+    const attendu=f.blocks.filter(b=>b.next).length+f.blocks.reduce((n,b)=>n+((b.options||[]).length),0);
+    /* 3 — LE LOSANGE NE DÉBORDE PAS SA RANGÉE. */
+    state.readMode='overview';render();await w(400);
+    const sb=document.getElementById('sessStart');if(sb)sb.click();await w(700);
+    const dec=document.querySelector('.pl-line.dec .n');
+    const los=dec?(()=>{const q=dec.getBoundingClientRect(),pr=dec.parentElement.getBoundingClientRect();
+      return {gauche:Math.round(q.left-pr.left),haut:Math.round(q.top-pr.top)};})():null;
+    return {bouge:av!==ap,nInt,fleches,attendu,los};});
+  t('témoin : les interstices de bloc sont bien émis', r.nInt>=2, `${r.nInt}`);
+  t('déplacer un BLOC change réellement l’ordre', r.bouge===true);
+  t('une flèche par lien `next` ET par option', r.fleches===r.attendu, `${r.fleches} pour ${r.attendu} attendue(s)`);
+  t('le losange d’une décision ne déborde pas sa rangée',
+    r.los&&r.los.gauche>=0&&r.los.haut>=0, JSON.stringify(r.los));
+  await page.close();
+}
+
 console.log('\n══ DÉPLIANTS · un tap ne déplace pas l’écran ══');
 for (const W of [320, 390]) {
   const page = await br.newPage({viewport:{width:W,height:844},hasTouch:true});

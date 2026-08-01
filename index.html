@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-5exDov5z7iPFb2oTKFQbgywYhJFXOSkiifJGkWi20lM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-7ZNKOUJVj5exjYMwt0me18Cf/CGQEPpd7jcpkeNbaqs='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1613,10 +1613,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .li-mk:empty{display:none}
   /* Un memory item posé sur une ÉTAPE apparaît ici en LECTURE SEULE : il se modifie dans son
      bloc, pas dans le chapeau — le chapeau ne le possède pas, il l'agrège. */
-  .mem-ro{align-items:center;gap:8px;padding:5px 0}
-  .mem-t{flex:1;min-width:0;font-size:13.5px;font-weight:600;color:var(--ink)}
-  .mem-go{width:auto;padding:0 9px;max-width:44%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-    font-size:11px;font-weight:700;color:var(--ink-soft)}
+  /* Un memory item posé sur une ÉTAPE : le texte, puis le renvoi vers le bloc où il vit — sur sa
+     PROPRE ligne. En rangée, le renvoi mangeait la moitié de la largeur et se tronquait en plein
+     titre de bloc, sur téléphone comme sur ordinateur. */
+  .mem-ro{padding:7px 0;border-top:1px solid var(--line)}
+  .mem-t{display:block;font-size:13.5px;font-weight:600;color:var(--ink)}
+  .mem-go{display:block;width:100%;text-align:left;margin-top:4px;min-height:44px;padding:6px 0;
+    background:none;border:0;cursor:pointer;font-size:11.5px;font-weight:700;color:var(--link)}
+  .mem-go:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:6px}
   /* La phase vit sur l'en-tête du bloc, discrète : c'est une étiquette d'ORGANISATION, pas un
      registre — elle ne prend donc aucune couleur sémantique. */
   .blk-phase{display:flex;align-items:center;gap:8px;margin:0 0 8px}
@@ -3205,7 +3209,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pl-line.cur .n{background:var(--primary);border-color:var(--primary);color:var(--on-primary)}
   /* Le LOSANGE est le marqueur d'une décision : il n'a pas de numéro à porter (le tronc en a un,
      la décision est un embranchement). Rien à masquer, donc — on n'émet rien. */
-  .pl-line.dec .n{border-radius:6px;transform:rotate(45deg);border-color:var(--verify-bd)}
+  .pl-line.dec .n{border:0;background:none;position:relative}
+  .pl-line.dec .n::before{content:"";position:absolute;left:50%;top:50%;width:18px;height:18px;
+    margin:-9px 0 0 -9px;border:1.5px solid var(--verify-bd);border-radius:4px;transform:rotate(45deg)}
   .pl-line .t{flex:1;min-width:0;font-size:12px;font-weight:600;color:var(--ink);
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .pl-line.cur .t{font-weight:800}
@@ -9891,7 +9897,18 @@ function flowMeasure(C){const{blocks,start}=C;const{TH,LH,TLH,HPAD,TXT_MAX,TITLE
 function flowPlace(C){const{blocks,byId,start,LAY}=C;const{HG,VG,PX,PY}=FLOWK;
   const nh=id=>LAY[id].h,nw=id=>LAY[id].w;
   const level={};
-  const tgOf=id=>{const b=byId[id];return b.kind==='steps'?(b.next&&byId[b.next]?[b.next]:[]):(b.options||[]).map(o=>o.target).filter(t=>t&&byId[t]);};
+  /* ⚠ SIGNALÉ À L'USAGE : « on a perdu les flèches du schéma SVG, en dehors des blocs
+     conditionnels ». Diagnostic : ce test comparait `kind` à `'steps'` — une valeur qui
+     N'EXISTE PLUS depuis les renommages de l'étape C (`type:'steps'` → `kind:'do'`). Tout bloc
+     non-décision retombait donc dans la branche « décision » et rendait `options` = [] : AUCUNE
+     arête n'était tracée pour les liens `next`, en silence, alors que les branches d'une décision
+     — qui, elles, passent par `options` — continuaient de s'afficher. D'où le symptôme exact.
+     ON TESTE DÉSORMAIS `!== 'decision'` : le jeu de valeurs de `kind` peut s'étendre (une fiche
+     v4 déclare `do`), la décision reste le seul cas particulier — et un renommage futur du cas
+     GÉNÉRAL ne pourra plus faire disparaître les flèches sans que rien ne crie.
+     Même famille que `completionSpots` : après une migration de modèle, une comparaison à une
+     ANCIENNE valeur ne lève aucune erreur — elle rend simplement toujours faux, et se tait. */
+  const tgOf=id=>{const b=byId[id];return b.kind!=='decision'?(b.next&&byId[b.next]?[b.next]:[]):(b.options||[]).map(o=>o.target).filter(t=>t&&byId[t]);};
   // BFS en COUCHES depuis une racine ; renvoie le niveau max atteint par ce composant.
   const bfsLevels=(root,base)=>{level[root]=base;const q=[root];let mx=base;while(q.length){const id=q.shift();tgOf(id).forEach(t=>{if(level[t]===undefined){level[t]=level[id]+1;if(level[t]>mx)mx=level[t];q.push(t);}});}return mx;};
   let maxL=bfsLevels(start,0);
@@ -9928,7 +9945,7 @@ function flowRoute(C){const{blocks,byId,pos,botOfY}=C;const{HG,VG,SLOOP}=FLOWK;
   // pastille de texte TRONQUÉE si trop longue (voir labelTag) -> on retrouve directement la réponse
   // sur la flèche sans avoir à la rechercher dans le bloc.
   blocks.forEach(b=>{const p=pos[b.id];if(!p)return;
-    const conns=b.kind==='steps'?(b.next&&byId[b.next]?[{t:b.next,lab:''}]:[]):(b.options||[]).filter(o=>o.label||o.target).map((o,i)=>({t:o.target,lab:o.label||''})).filter(c=>c.t&&byId[c.t]);
+    const conns=b.kind!=='decision'?(b.next&&byId[b.next]?[{t:b.next,lab:''}]:[]):(b.options||[]).filter(o=>o.label||o.target).map((o,i)=>({t:o.target,lab:o.label||''})).filter(c=>c.t&&byId[c.t]);
     conns.forEach(c=>{const Q=pos[c.t];if(!Q)return;const e={sid:b.id,tid:c.t,p,Q,lab:c.lab};
       // AVANT (plus bas) / RETOUR (plus haut ou soi-même) / LATÉRAL (même niveau, autre bloc).
       if(Q.y>p.y){e.kind='fwd';fwd.push(e);}else if(Q.y<p.y||c.t===b.id){e.kind='back';back.push(e);}else{e.kind='lat';lat.push(e);}});});
@@ -11401,7 +11418,19 @@ function tkNoteNow(fromBlock){
      du journal, plus bas — l'accusé n'y serait jamais apparu. `renderOvOnly` refait le journal de
      parcours, donc la carte du bout, donc l'accusé ; rien au-dessus ne bouge (doctrine du journal :
      on n'écrit qu'au bout). Depuis le PANNEAU, on garde la mise à jour chirurgicale d'origine. */
-  if(started)render();
+  /* ⚠ SIGNALÉ À L'USAGE : « bug de scroll quand on clique sur Noter l'heure ». Mesuré : 53 px à
+     390, 60 à 1280 — mais SEULEMENT au PREMIER repère, celui qui DÉMARRE la session. Le rendu y
+     est forcément complet (le bandeau de crise et le quai apparaissent, le chapeau se replie), et
+     il n'était pas ANCRÉ : toute la colonne remontait de la hauteur nette du chrome ajouté.
+     C'est la mécanique ECAM du dossier — un geste ne déplace pas ce qu'on regarde — appliquée là
+     où elle manquait. On ancre sur la carte du bloc courant, qui est ce que l'utilisateur a sous
+     les yeux au moment où il note l'heure ; à défaut (aucune carte : fiche mono-bloc), sur le
+     bouton lui-même. */
+  /* ON ANCRE SUR LE BOUTON, PAS SUR LA CARTE : c'est lui qui est sous le doigt. Ancré sur la
+     carte, le bouton dérivait encore de 65 px à 390 px — le contenu de la carte change de hauteur
+     au démarrage (le fil d'Ariane paraît), et garder le HAUT de la carte immobile ne garde pas
+     immobile ce qui est à son PIED. */
+  if(started)keepAnchor(document.querySelector('[data-tknote]')?'[data-tknote]':'.ov-block.cur',render);
   else if(fromBlock){renderOvOnly();renderTkOnly();}
   else if(!renderTkOnly())render();}
 function renderTkOnly(){
@@ -14610,7 +14639,13 @@ function renderEditor(){
     d'un memory item se modifie là où il vit, dans son étape, sinon on aurait deux endroits pour
     écrire la même ligne (et le chapeau n'est PAS le propriétaire de cette ligne — l'étape l'est). */}
     ${listEditor('Ne pas oublier','4 rappels maximum — ils s’affichent en permanence, en tête de fiche','notForget',listOf(f,'notForget'),false,{shell:'ed-forget',guard:'nfGuard',guardTxt:nfGuardTxt(forgetAll(f)),after:memItemsOf(f).map(m=>
-      `<div class="li mem-ro"><span class="li-mk" aria-hidden="true">★</span><span class="mem-t">${esc(stepText(m.t))}</span><button type="button" class="mini mem-go" data-edgo="${esc(m.bid)}" title="Cette étape vit dans « ${esc(m.src)} » — s'y rendre pour la modifier">${esc(m.src)} →</button></div>`).join('')})}
+      /* ⚠ L'ÉTOILE EST RETIRÉE ICI (signalé à l'usage : « perturbant »). Elle est le bouton qui
+         POSE le memory item, sur l'étape ; dans le chapeau, tout est memory item par définition —
+         la répéter n'ajoutait rien et se lisait comme un contrôle qu'on ne pouvait pas presser.
+         Ce qui manquait, en revanche, c'est POURQUOI la ligne n'est pas éditable : elle vit
+         ailleurs. C'est donc le RENVOI qui devient l'information, sur sa propre ligne — bouton
+         pleine largeur ≥ 44 px, texte entier, jamais tronqué au milieu d'un titre de bloc. */
+      `<div class="mem-ro"><span class="mem-t">${esc(stepText(m.t))}</span><button type="button" class="mem-go" data-edgo="${esc(m.bid)}">Se modifie dans « ${esc(m.src)} » →</button></div>`).join('')})}
     ${''/* B4 (v5.0.0, lot M3, maquettes proto-large) — « CONDITION D'ENTRÉE » RÉUNIT LES DEUX
     MOITIÉS D'UNE MÊME DÉCISION. Les critères de confirmation et les diagnostics à éliminer
     vivaient dans deux sections éloignées de ~1 200 px, alors qu'ils répondent à UNE question et
@@ -14891,7 +14926,7 @@ function bindEditorEvents(f){
       const anc=bloc?'.blk[data-bid="'+CSS.escape(b.id)+'"]'
         :'.blk[data-bid="'+CSS.escape(b.id)+'"] .li[data-si="'+(+v.slice(2))+'"]';
       keepAnchor(anc,renderEditor);});
-    if(b.kind==='steps'){const ns=card.querySelector('select[data-target]');if(ns)ns.addEventListener('change',e=>{b.next=e.target.value||null;renderEditor();});
+    if(b.kind!=='decision'){const ns=card.querySelector('select[data-target]');if(ns)ns.addEventListener('change',e=>{b.next=e.target.value||null;renderEditor();});
       const nl=card.querySelector('[data-bnextlbl]');if(nl)nl.addEventListener('input',e=>{b.nextLbl=e.target.value;});}
     const ao=card.querySelector('[data-addopt]');if(ao)ao.onclick=()=>{b.options.push({label:'',target:''});renderEditor();};
     /* `data-optdel` et non `data-rmopt` (v4.62.0) : l'ancien nom était un HOMONYME du verbe du
@@ -14906,7 +14941,19 @@ function bindEditorEvents(f){
     /* POSER. Un objet retiré puis réinséré : l'index de destination est corrigé quand la source
        précède la cible DANS LA MÊME liste — sans quoi tout dépôt « vers le bas » atterrirait une
        place trop loin (le classique du splice). */
-    card.querySelectorAll('[data-drop]').forEach(btn=>btn.onclick=()=>{
+    const bd=card.querySelector('[data-bdel]');if(bd)bd.onclick=()=>{f.blocks=f.blocks.filter(x=>x.id!==bid);f.blocks.forEach(x=>{if(x.next===bid)x.next=null;if(x.options)x.options.forEach(o=>{if(o.target===bid)o.target='';});});if(f.start===bid)f.start=f.blocks[0]?f.blocks[0].id:null;if(!f.blocks.length){const nb={id:uid('b'),kind:'do',title:'Prise en charge',steps:[''],image:null,next:null};f.blocks.push(nb);f.start=nb.id;}renderEditor();};});
+  imgInput.onchange=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;const r=await downscale(file);if(!r){toast('⚠ Image illisible.');return;}if(_edImgMode.kind==='gallery')f.images.push({id:uid('i'),data:r.data,w:r.w,h:r.h,caption:''});else{const b=f.blocks.find(x=>x.id===_edImgMode.bid);if(b){b.image=r.data;b.imageW=r.w;b.imageH=r.h;}}
+    edSyncGallery(f);renderEditor();};
+    /* ⚠ SIGNALÉ À L'USAGE : « il n'est plus possible de déplacer un bloc ». Diagnostic : ce
+       binder tourne PAR CARTE (`main.querySelectorAll('.blk').forEach(card=>…)`), or les
+       interstices de niveau BLOC (`data-drop="B:n"`) sont émis ENTRE les cartes — donc frères,
+       jamais descendants. `card.querySelectorAll` ne pouvait pas les atteindre : la poignée
+       prenait le bloc, les « Poser ici » s'affichaient, et le dépôt tombait dans le vide.
+       Les interstices d'ÉTAPE (`b:id:i`), eux, vivent DANS la carte et fonctionnaient — ce qui
+       rendait le défaut d'autant plus déroutant : la moitié du geste marchait.
+       Le binder est donc HISSÉ au niveau de `main`, portée qui couvre les deux. Le corps est
+       inchangé : il dispatche déjà sur `g.kind` et sur la première lettre de la cible. */
+    main.querySelectorAll('[data-drop]').forEach(btn=>btn.onclick=()=>{
       const g=state.edGrab;if(!g)return;
       const at=btn.dataset.drop;
       if(g.kind==='b'&&at.charAt(0)==='B'){
@@ -14929,9 +14976,6 @@ function bindEditorEvents(f){
       const recu=(g.kind==='b')?null:('.blk[data-bid="'+CSS.escape(at.split(':')[1])+'"]');
       state.edGrab=null;
       if(recu)keepAnchor(recu,renderEditor);else renderEditor();});
-    const bd=card.querySelector('[data-bdel]');if(bd)bd.onclick=()=>{f.blocks=f.blocks.filter(x=>x.id!==bid);f.blocks.forEach(x=>{if(x.next===bid)x.next=null;if(x.options)x.options.forEach(o=>{if(o.target===bid)o.target='';});});if(f.start===bid)f.start=f.blocks[0]?f.blocks[0].id:null;if(!f.blocks.length){const nb={id:uid('b'),kind:'do',title:'Prise en charge',steps:[''],image:null,next:null};f.blocks.push(nb);f.start=nb.id;}renderEditor();};});
-  imgInput.onchange=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;const r=await downscale(file);if(!r){toast('⚠ Image illisible.');return;}if(_edImgMode.kind==='gallery')f.images.push({id:uid('i'),data:r.data,w:r.w,h:r.h,caption:''});else{const b=f.blocks.find(x=>x.id===_edImgMode.bid);if(b){b.image=r.data;b.imageW=r.w;b.imageH=r.h;}}
-    edSyncGallery(f);renderEditor();};
   bindAttEditor(f,renderEditor);   // documents PDF (composant partagé avec l'éditeur de protocole)
   {const del=document.getElementById('delBtn');if(del)del.onclick=deleteDraft;}
   // Menu ⋯ d'éditeur (SPEC §4, sans « Modifier ») : agit sur le BROUILLON tel qu'affiché.
@@ -15115,7 +15159,7 @@ function edSnapshot(kind){
     d.sources=clean(d.sources);
   poolOwn(d);   // le brouillon est une COPIE : ses blocs doivent connaître leur aide
   d.blocks.forEach(b=>{b.title=(b.title||'').trim();
-    if(b.kind==='steps'){/* on nettoie les ITEMS — le miroir `steps` en découle, jamais l'inverse */
+    if(b.kind!=='decision'){/* on nettoie les ITEMS — le miroir `steps` en découle, jamais l'inverse */
       {const garde=bItems(b).filter(it=>String(v4ItemToStr(it)||'').trim()).map(it=>it.id);
        const jetes=(b.items||[]).filter(id=>garde.indexOf(id)<0);
        b.items=garde;
