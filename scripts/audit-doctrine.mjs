@@ -815,7 +815,7 @@ for (const w of [320, 360, 390]) {
     {const src = JSON.parse(JSON.stringify(state.fiche));
      const LB = ['Fibrillation ventriculaire','Asystolie','Rythme sans pouls','Tachycardie ventriculaire',
                  'Bradycardie extrême','Bloc auriculo-ventriculaire','Rythme sinusal','Indéterminé'];
-     const cibles = LB.map((l, i) => ({ id: 'zz' + i, type: 'steps', title: 'Conduite ' + (i + 1), steps: ['faire ceci'], next: null }));
+     const cibles = LB.map((l, i) => ({ id: 'zz' + i, kind: 'do', title: 'Conduite ' + (i + 1), items: ['faire ceci'], next: null }));
      src.blocks = [{ id: 'zzdec', type: 'decision', title: 'Rythme au moniteur ?', question: 'Quel rythme ?',
        options: cibles.map((c, i) => ({ label: LB[i], target: c.id })) }, ...cibles];
      src.start = 'zzdec';
@@ -967,18 +967,24 @@ console.log('\n══ T9 · une seule bibliothèque, le type en filtre ══');
     const pr=blankProtocol();pr.title='Procédure de décontamination';
     protocols.push(migrateProtocol(pr));await persist();render();await w(600);
     const n=()=>document.querySelectorAll('.dir-row').length;
-    const px=()=>{const e=document.querySelector('#tabSeg .seg-pill');return e?Math.round(e.getBoundingClientRect().left):null;};
-    const crans=[...document.querySelectorAll('#tabSeg .seg-btn')].map(e=>e.textContent.trim());
-    const actif=(document.querySelector('#tabSeg .seg-btn.on')||{}).textContent||'';
+    /* v5.0.0, lot M4 : le type n'est plus une TAB BAR à pastille glissante mais une rangée de
+       CHIPS, comme la bibliothèque et la catégorie — il est devenu un filtre parmi les filtres.
+       Ce qui se mesure change donc de FORME mais pas de FOND : trois crans, « Tout » par défaut,
+       chaque cran filtre ce qu'il annonce. La position de pastille est remplacée par l'état `on`,
+       qui est le canal réel de la sélection sur une chip. */
+    const px=()=>{const e=document.querySelector('.typebar [data-section].on');return e?(e.dataset.section||null):null;};
+    const crans=[...document.querySelectorAll('.typebar [data-section]')].map(e=>e.textContent.trim());
+    const actif=(document.querySelector('.typebar [data-section].on')||{}).textContent||'';
     const tout=n(),pTout=px();
-    document.querySelector('#tabSeg [data-section="fiches"]').click(); await w(500);
+    document.querySelector('.typebar [data-section="fiches"]').click(); await w(500);
     const aides=n(),pAides=px();
-    document.querySelector('#tabSeg [data-section="protocols"]').click(); await w(500);
+    document.querySelector('.typebar [data-section="protocols"]').click(); await w(500);
     const prot=n(),pProt=px();
-    document.querySelector('#tabSeg [data-section="all"]').click(); await w(500);
+    document.querySelector('.typebar [data-section="all"]').click(); await w(500);
     state.q='décontamination';render();await w(500);
     const q=n();state.q='';render();await w(400);
-    return {crans,actif,tout,aides,prot,q,pTout,pAides,pProt,nF:fiches.length,nP:protocols.length};});
+    return {crans,actif,tout,aides,prot,q,pTout,pAides,pProt,nF:fiches.length,nP:protocols.length,
+      tabbar:document.querySelectorAll('#tabBar,#tabSeg').length};});
   t('le type est un FILTRE à trois crans', r.crans.join('|')==='Tout|Aides|Protocoles', r.crans.join('|'));
   /* « Tout » est le DÉFAUT : chercher un SUJET ne doit pas exiger de savoir d'abord de quel TYPE
      il est — c'est toute la thèse de R4. */
@@ -988,10 +994,13 @@ console.log('\n══ T9 · une seule bibliothèque, le type en filtre ══');
   t('« Aides » ne montre que les aides', r.aides===r.nF, `${r.aides}`);
   t('« Protocoles » ne montre que les protocoles', r.prot===r.nP, `${r.prot}`);
   t('la recherche traverse les deux types depuis « Tout »', r.q===1, `${r.q} résultat(s)`);
-  /* La pastille doit parcourir TROIS positions : à deux, le troisième cran serait injoignable
-     visuellement (et le composant retomberait sur sa mécanique binaire). */
-  t('la pastille du filtre a bien trois positions distinctes',
-    r.pTout!==null&&r.pTout!==r.pAides&&r.pAides!==r.pProt, `${r.pTout} · ${r.pAides} · ${r.pProt}`);
+  /* L'état sélectionné doit SUIVRE le cran choisi : une chip qui filtre sans se marquer laisse
+     croire que le filtre n'a pas pris — et sur trois crans on ne peut plus le déduire du reste. */
+  t('la chip active suit bien les trois crans',
+    r.pTout==='all'&&r.pAides==='fiches'&&r.pProt==='protocols', `${r.pTout} · ${r.pAides} · ${r.pProt}`);
+  /* M4 : la barre fixe du bas a disparu — 62 px rendus à l'accueil. Un reste d'émission ferait
+     coexister deux commandes pour un même filtre (règle 14). */
+  t('la tab bar basse est PURGÉE (aucune émission)', r.tabbar===0, `${r.tabbar} nœud(s)`);
   await page.close();
 }
 

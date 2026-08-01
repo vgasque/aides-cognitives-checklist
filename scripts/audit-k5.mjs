@@ -368,12 +368,16 @@ const P=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   setList(d,'verify',[]);setList(d,'differentials',[]);d.sources=[];setList(d,'posology',[]);d.images=[];d.docs=[];
   setList(d,'notForget',[]);setList(d,'confirmation',[]);
   renderEditor();await w(500);
-  const vides={verify:a(/À vérifier/),diff:a(/Diagnostics différentiels/),ref:a(/Références/),
+  /* v5.0.0, lot M3 : « Confirmation diagnostique » et « Diagnostics différentiels » sont réunis
+     sous « Condition d'entrée » (critères + diagnostics à éliminer). Les LIBELLÉS changent, la
+     RÈGLE ne change pas : les critères restent une invitation visible même vide, les diagnostics
+     à éliminer restent masqués quand la liste est vide et recréés par la porte. */
+  const vides={verify:a(/À vérifier/),diff:a(/Diagnostics à éliminer/),ref:a(/Références/),
     poso:a(/Repères posologiques/),img:a(/Schémas/),att:a(/Documents \(PDF\)/),
-    nf:a(/Ne pas oublier/),conf:a(/Confirmation diagnostique/)};
+    nf:a(/Ne pas oublier/),conf:a(/Condition d’entrée/)};
   // (4) chaque entrée de liste recrée sa section
   const recree={};
-  for(const [k,rx] of [['verify',/À vérifier/],['diff',/Diagnostics différentiels/],['ref',/Références/],['poso',/Repères posologiques/]]){
+  for(const [k,rx] of [['verify',/À vérifier/],['diff',/Diagnostics à éliminer/],['ref',/Références/],['poso',/Repères posologiques/]]){
     porte().click();await w(250);
     document.querySelector('[data-edadd="'+k+'"]').click();await w(450);
     recree[k]=a(rx);}
@@ -414,7 +418,7 @@ t('elle NE porte PAS le chapeau ni la confirmation (hors règle, assumé)',
   !P.cles.includes('nf')&&!P.cles.includes('conf'), P.cles.join(','));
 t('vide = masqué : à vérifier, différentiels, références, doses, schémas, documents',
   !P.vides.verify&&!P.vides.diff&&!P.vides.ref&&!P.vides.poso&&!P.vides.img&&!P.vides.att, JSON.stringify(P.vides));
-t('… MAIS le chapeau et la confirmation restent VISIBLES même vides',
+t('… MAIS le chapeau et la CONDITION D’ENTRÉE restent VISIBLES même vides',
   P.vides.nf&&P.vides.conf, JSON.stringify(P.vides));
 t('chaque entrée de liste recrée sa section',
   Object.values(P.recree).every(Boolean), JSON.stringify(P.recree));

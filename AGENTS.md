@@ -2266,6 +2266,89 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   leur CSS, leur câblage et leur `bindSegDrag` (règle 14) ; la colonne gauche de l'accueil LARGE
   portait déjà les sections, rien n'y change. Le filtre est **délégué** (la rangée est re-rendue avec
   le chrome), là où la tab bar était statique et câblée une fois.
+- **UN SEUL RAIL, ET SES COMPTES DISENT LA VÉRITÉ (v5.0.0, lot M4b, demande utilisateur)** : la
+  colonne gauche de l'accueil large n'avait que DEUX rangées de type (« Aides cognitives »,
+  « Protocoles ») alors que le filtre a TROIS crans depuis le lot T9 — elle ne pouvait donc pas
+  exprimer « Tout », c'est-à-dire la vue par DÉFAUT. Pire, `kindArr` retombait sur `fiches` en mode
+  « Tout » : **tous les comptes du rail — bibliothèques comme catégories — ignoraient les
+  protocoles**. Un compte faux dans un rail d'orientation est pire qu'un compte absent, il fait
+  renoncer à chercher là où le contenu est. Le rail porte désormais, de haut en bas : **Type ·
+  Bibliothèques (avec le ✎ pour celles qu'on administre, et « ＋ Nouvelle bibliothèque ») ·
+  Catégories (avec « Gérer les catégories ») · Historique** — tout ce qui oriente, au même endroit.
+  **LE TITRE DE GROUPE DE TÊTE EST SUPPRIMÉ** (une ligne rendue) : « Tout / Aides cognitives /
+  Protocoles » se lisent sans qu'on les annonce, quand « Bibliothèques » et « Catégories » nomment
+  des collections dont les rangées ne disent pas la nature. L'icône de « Tout » est **celle que
+  portait la tab bar** : le geste change de forme, pas de signe.
+- **LA LÉGENDE DES REGISTRES VIT SUR LA CARTE, ET ELLE NE DIT QUE CE QUE LE BLOC PORTE (v5.0.0,
+  lot M2, maquettes `proto-r4`)** : `⚠`, `△` et la bulle mono ne s'apprenaient QUE dans l'éditeur
+  (`.crit-guide`) — donc nulle part pour qui LIT une fiche sans jamais l'écrire, c'est-à-dire pour
+  la majorité de ceux qui l'utilisent en soin. C'est le seul endroit du produit où ces trois signes
+  se rencontrent. **ELLE EST CONDITIONNELLE, et c'est ce qui la rend admissible** : annoncer « △ à
+  vérifier » sur un bloc sans aucune vigilance n'enseigne rien et coûte une ligne à chaque carte —
+  c'est la règle « un panneau vide est du bruit », appliquée signe par signe. Un bloc qui n'a aucun
+  des trois n'a pas de légende du tout.
+- **« ⏱ NOTER » VIT DANS LA CARTE DU BLOC (v5.0.0, lot M2)** : le lot T2 avait rapproché le
+  JOURNAL (il se pose juste sous la carte) sans rapprocher le GESTE, qui restait un bouton du
+  panneau — donc à lire et à viser ailleurs que là où l'on agit. Horodater EST un geste de bloc :
+  on note l'heure de ce qu'on vient de faire ICI. **UN SEUL POINT D'ÉCRITURE** (`tkNoteNow`) : le
+  bouton du panneau et celui de la carte appellent la même fonction — deux copies auraient divergé,
+  c'est arrivé au cœur de cochage (v4.42.0) et aux verbes du lecteur (v4.55.0). Il ne paraît
+  **qu'au BOUT du journal** : noter l'heure depuis une carte passée daterait le présent au nom du
+  passé. Il entre dans `MUTE_SEL` (un lien mort le refuse et l'annonce) mais **pas** dans
+  `LEAD_ONLY_SEL` — poser un repère est additif, donc ouvert à tous les rôles (v4.55.0).
+- **« CONDITION D'ENTRÉE » RÉUNIT LES DEUX MOITIÉS D'UNE MÊME DÉCISION (v5.0.0, lot M3)** : les
+  critères de confirmation et les diagnostics à éliminer vivaient dans deux sections de l'éditeur
+  éloignées de ~1 200 px, alors qu'ils répondent à UNE question, à un seul instant — « est-ce bien
+  cela, et si non, quoi d'autre ? ». C'est le geste QRH de la condition d'entrée : on entre dans la
+  procédure, ou l'on n'y entre pas. **RIEN NE CHANGE EN LECTURE** (les critères restent en tête, les
+  différentiels dans « Consulter ») : c'est l'ÉCRITURE qu'on rapproche de la décision qu'elle sert,
+  et les deux gardent leur clé, donc leur rôle (`entry` et `ddx`). Les sous-listes sont **nues**
+  dans le fieldset commun — deux cartes imbriquées feraient croire à deux sections, ce que la
+  fusion vient de supprimer. La règle « présent dans la porte ⇔ masqué quand vide » vaut toujours
+  pour les différentiels ; les critères restent une INVITATION visible même vide (exception nommée,
+  v4.76.0).
+- **LES COMPLICATIONS SE RÉORDONNENT COMME TOUT LE RESTE (v5.0.0, lot M3)** : le lot 2 de la
+  v4.75.0 avait étendu « prendre / poser » à huit listes en les adressant par la clé du modèle ;
+  `excursions` avait été oubliée alors qu'elle a exactement la même forme qu'une liste d'objets.
+  Or l'ORDRE compte : c'est celui des rangées de l'index qui s'ouvre en pleine réanimation, et
+  l'auteur n'avait aucun moyen de le changer — il était celui où les événements lui étaient venus
+  à l'esprit. Aucun mécanisme nouveau, `edGrabRows('excursions', …)` comme les sept autres.
+- **LE SOMMAIRE D'UNE RÉFÉRENCE (v5.0.0, lot M5, maquettes `proto-r4`)** : une aide cognitive se
+  DÉROULE, une référence se CONSULTE — on y vient chercher UNE section, et sans sommaire il faut
+  faire défiler plusieurs milliers de pixels pour savoir ce que le document contient. C'est la
+  contrepartie exacte de la colonne « structure » de l'éditeur et du plan de la lecture : un
+  document long a besoin d'une carte. **CONSTRUIT APRÈS LE RENDU, jamais dans `mdRender`** — le
+  parseur reste PUR et NON interactif (les aperçus sont inertes, et un id posé au parsing
+  voyagerait dans tout rendu markdown, aperçus d'éditeur compris) ; les ancres sont posées sur les
+  nœuds réels. **Trois titres au minimum** (un sommaire de deux lignes n'épargne pas un défilement,
+  il ajoute une colonne) et **jamais sous 1000 px**, où il prendrait la place du texte qu'il indexe.
+- **DÉFAUT TROUVÉ À LA RELECTURE — `completionSpots` LISAIT DES CHAMPS SUPPRIMÉS (v5.0.0)** : les
+  cinq clés de liste ne sont plus des champs de la fiche depuis que les listes sont un POOL D'ITEMS
+  À RÔLE (étape B) ; `f.confirmation` valait donc `undefined` et le volet de relecture ne signalait
+  **plus aucun « à compléter » de liste**. Le panneau restait vert sur une fiche qui ne l'était pas
+  — la donnée périmée présentée comme vivante. Règle : **après une migration de modèle, tout accès
+  par CHAMP est suspect ; on lit par l'accesseur** (`listOf`), et un accès survivant ne lève aucune
+  erreur, il rend simplement `undefined` et se tait.
+- **UNE RÉFÉRENCE QUI NE RÉSOUT PAS NE SORT PAS VIVANTE DE `migrate` (v5.0.0, défaut de contrat
+  mesuré)** : depuis l'étape B, un bloc ne porte que des IDENTIFIANTS d'items. Une **chaîne** dans
+  `b.items` était recopiée telle quelle comme identifiant — ne désignant aucun item du pool, elle
+  produisait une **RÉFÉRENCE PENDANTE** : le bloc s'affichait **VIDE**, sans un mot, et le contenu
+  était perdu à l'import. Or c'est exactement la forme qu'une IA écrit spontanément, et c'est celle
+  que le prompt enseignait (« la forme SIMPLE, `"steps": [...]` »). RÈGLE : **une chaîne qui
+  correspond à un id du pool est une RÉFÉRENCE ; toute autre chaîne est le TEXTE d'une étape et
+  devient un item.** Ce n'est pas une tolérance v3 — le format v4 est inchangé — c'est la forme
+  ABRÉGÉE que le prompt documente désormais, et le refus d'avaler une donnée en silence (règle 5 :
+  `migrate` est le point d'ASSAINISSEMENT, pas seulement de compatibilité).
+  **LE PROMPT EST UN CONTRAT ET IL AVAIT DÉRIVÉ** : `"version": 3`, `"type": "steps"`, `"steps"`,
+  `localInfo`, `references`, `complications[]` — tout le vocabulaire d'avant les renommages. Une IA
+  fidèle produisait donc un fichier que l'import mutile, et la faute paraissait venir d'elle
+  (précédent exact : le `\n` mal échappé de la v4.73.0). Le schéma est désormais en v4 —
+  `"kind": "do"|"decision"`, `items` unique clé d'étapes, `local`/`sources`/`excursions`. Trois
+  témoins neufs dans `audit-prompt` (23/23), vérifiés capables d'échouer.
+  ⚠ **Un témoin qui ne rencontre pas son cas ne prouve rien** : les deux formes vivant maintenant
+  sous la même clé `items`, le contrôle de la forme ENRICHIE attrapait le premier bloc — abrégé —
+  et mesurait la forme qu'il ne couvre pas. Il sélectionne désormais le bloc dont les entrées sont
+  des OBJETS.
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.

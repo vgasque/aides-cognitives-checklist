@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-IqMKY0o2iM8sNTlbrfFx+EwxPOae3qJSW65aJOVSqSg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-ddeEuqnClICMcqelW0pSSYQ8vU1sbg0xkNQ28gewwho='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1587,6 +1587,28 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .mem-tgl.on{background:var(--critical-soft);color:var(--critical);border-color:var(--critical-bd)}
   /* RANGÉE D'ITEM (maquette proto-large) : poignée à GAUCHE, plus de case inerte, DEUX champs.
      La marque de registre remplace la case : elle DIT le registre au lieu d'inviter à cocher. */
+  /* B4 — les deux moitiés de la condition d'entrée sont NUES dans leur fieldset commun : deux
+     cartes imbriquées feraient croire à deux sections, ce que la fusion vient précisément de
+     supprimer. Seul l'intitulé les distingue. */
+  .ed-entry .list-edit.bare{border:0;background:none;box-shadow:none;padding:0;margin:0 0 14px}
+  .ed-entry .list-edit.bare:last-child{margin-bottom:0}
+  .ed-entry .list-edit.bare>label{font-size:12px}
+  /* M5 — le sommaire d'une référence : colonne collante à droite, jamais sous 1000 px. */
+  .ref-grid{display:block}
+  .ref-toc{display:none}
+  @media (min-width:1000px){
+    .ref-grid{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:24px;align-items:start}
+    .ref-toc{display:block;position:sticky;top:calc(var(--stick-top,64px) + 8px);
+      background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:10px 8px;
+      max-height:calc(100dvh / var(--zf,1) - var(--stick-top,64px) - 24px);overflow-y:auto}
+    .rt-h{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);
+      padding:0 8px 6px}
+    .rt-lnk{display:block;width:100%;text-align:left;background:none;border:0;border-radius:8px;
+      padding:7px 8px;min-height:32px;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer}
+    .rt-lnk:hover{background:var(--hover)}
+    .rt-lnk:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
+    .rt-2{padding-left:20px;font-weight:500;color:var(--ink-soft)}
+  }
   .li-mk{flex:none;width:18px;display:flex;align-items:center;justify-content:center;color:var(--critical)}
   .li .li-exp{flex:0 1 34%;min-width:0;font-family:var(--mono);font-size:12px;color:var(--ink-soft)}
   .li .li-exp:focus{color:var(--ink)}
@@ -2144,6 +2166,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      règles de même spécificité : l'ordre décide, et c'était l'ancienne. Un survol sombre sur un
      fond clair, c'est-à-dire l'inverse du sens de lecture. */
   .tk-add:hover{background:var(--primary-100)}
+  /* La légende ne liste que les registres RÉELLEMENT présents dans le bloc (lot M2). */
+  .stp-legend{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin:0 0 8px;font-size:11px;font-weight:700;
+    letter-spacing:.02em;color:var(--ink-soft)}
+  .stp-legend svg{vertical-align:-2px;color:var(--critical)}
+  .lg-sp{color:var(--line-strong)}
+  .lg-r{font-family:var(--mono);background:var(--tag-bg);color:var(--tag-ink);border-radius:5px;padding:0 5px}
+  /* « ⏱ Noter » dans la rangée du bloc : même bouton tonal que celui du panneau, jamais rempli —
+     l'unique bouton rempli de l'écran reste « Continuer — … → ». */
+  .tk-inblk{min-height:44px}
+
   .tk-item{border-top:1px solid var(--line)}
   .tk-row{display:flex;gap:9px;align-items:center;padding:8px 0}
   .tk-item .tk-row{padding-bottom:8px}   /* symétrique : 0 collait le ✕ (44px) au filet du bas (v4.23.5) */
@@ -2277,7 +2309,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   body.share-dead #main :is([data-ck],[data-cninc],[data-cndec],[data-cnreset],[data-tmtoggle],[data-tmreset],
     [data-ovnext],[data-ovend],[data-ovredo],[data-ovopt],[data-plgo],[data-svgo],[data-svref],
     [data-rmok],[data-rmgap],[data-cxback],
-    [data-ovverify],[data-ovvok],[data-ovvgap],[data-tkdel],[data-tktime],#tkAdd),
+    [data-ovverify],[data-ovvok],[data-ovvgap],[data-tkdel],[data-tktime],#tkAdd,[data-tknote]),
   body.share-dead #main .btn:is([data-ovnext],[data-ovend],[data-ovopt],[data-ovverify]){
     color:var(--ink-soft);border-color:var(--line);background:var(--surface-2);
     box-shadow:none;cursor:not-allowed;font-weight:600}
@@ -5702,7 +5734,7 @@ function flowPaintState(container,f){if(!container||!f)return;
    honnête est donc l'index. Bonus : position ET libellé constants quelle que soit la fiche (N
    boutons rouges qui se ressemblent obligeraient à LIRE chacun sous stress), et l'écran d'action
    se désencombre. Coût assumé : un tap de plus, payé en rangées LARGES dans l'index. */
-const cxRowHtml=list=>`<div class="cx-row"><button type="button" class="cx-btn" data-cxopen title="Complications — à tout moment : interrompt le parcours, retour prévu">⚡ Complication${list.length>1?'s <span class="cx-n">'+list.length+'</span>':''}</button></div>`;
+const cxRowHtml=(list,tip)=>`<div class="cx-row">${(list&&list.length)?`<button type="button" class="cx-btn" data-cxopen title="Complications — à tout moment : interrompt le parcours, retour prévu">⚡ Complication${list.length>1?'s <span class="cx-n">'+list.length+'</span>':''}</button>`:''}${tip?`<button type="button" class="tk-add tk-inblk" data-tknote>${uiIcon('stopwatch',13)} Noter l’heure</button>`:''}</div>`;
 function openCxDlg(f){
   const list=cxAll(f);if(!list.length)return;
   const box=document.getElementById('cxList');
@@ -6399,7 +6431,12 @@ const TODO_RX=/[àa] compl[eé]ter/i;
 function completionSpots(f){if(!f||typeof f!=='object')return [];const spots=[];
   if(TODO_RX.test(String(f.local||'')))spots.push('Contexte local');
   const SECT={confirmation:'Confirmation diagnostique',verify:'À vérifier',notForget:'Ne pas oublier',posology:'Repères posologiques',differentials:'Diagnostics différentiels',sources:'Références'};
-  Object.keys(SECT).forEach(k=>{if((Array.isArray(f[k])?f[k]:[]).some(x=>TODO_RX.test(String(x||''))))spots.push(SECT[k]);});
+  /* ⚠ DÉFAUT TROUVÉ À LA RELECTURE (v5.0.0) : ces cinq clés ne sont PLUS des champs de la fiche
+     depuis que les listes sont un POOL D'ITEMS À RÔLE (étape B) — `f.confirmation` vaut donc
+     `undefined`, et le volet de relecture ne signalait plus AUCUN « à compléter » de liste. Le
+     panneau restait vert sur une fiche qui ne l'était pas : c'est la donnée périmée présentée
+     comme vivante. Il faut lire par l'accesseur, jamais par le champ. */
+  Object.keys(SECT).forEach(k=>{if((k==='sources'?(Array.isArray(f.sources)?f.sources:[]):listOf(f,k)).some(x=>TODO_RX.test(String(x||''))))spots.push(SECT[k]);});
   (Array.isArray(f.blocks)?f.blocks:[]).forEach(b=>{if(!b)return;
     const hit=TODO_RX.test(String(b.title||''))||TODO_RX.test(String(b.question||''))||stepsOf(b).some(s=>TODO_RX.test(String(s||'')))||(Array.isArray(b.options)?b.options:[]).some(o=>TODO_RX.test(String((o&&o.label)||'')));
     if(hit)spots.push('Bloc « '+(String(b.title||'').trim()||'sans titre')+' »');});
@@ -6515,9 +6552,25 @@ function migrate(f){if(!f||typeof f!=='object')f={};
       /* ÉTAPE D : plus de miroir, donc plus de repli sur des chaînes. Une fiche entrante SANS
          items est une fiche VIDE — conséquence assumée de la rupture, et annoncée : un fichier v3
          se convertit par `docs/conversion-v3-vers-v4.md`, jamais ici. */
-      b.items=(Array.isArray(b.items)?b.items:[])
+      /* ⚠ DÉFAUT DE CONTRAT TROUVÉ À LA MESURE (v5.0.0) : une CHAÎNE dans `b.items` était
+         recopiée telle quelle comme IDENTIFIANT. Si elle ne désigne aucun item du pool — cas
+         d'un fichier produit par une IA, qui écrit naturellement le texte de l'étape —, le bloc
+         se retrouvait plein de RÉFÉRENCES PENDANTES : il s'affichait VIDE, sans un mot, et le
+         contenu était perdu à l'import. `migrate` est le point d'ASSAINISSEMENT (règle 5) : une
+         référence qui ne résout pas ne doit jamais en sortir vivante.
+         RÈGLE : une chaîne qui correspond à un id du pool est une RÉFÉRENCE ; toute autre chaîne
+         est le TEXTE d'une étape, et devient un item. Ce n'est pas une tolérance v3 — le format
+         v4 est inchangé — c'est la forme abrégée que le prompt IA documente désormais, et le
+         refus d'avaler une donnée en silence. */
+      {const _ids=Object.create(null);_pool.forEach(it=>{_ids[it.id]=1;});
+       (Array.isArray(f.items)?f.items:[]).forEach(it=>{if(it&&it.id)_ids[it.id]=1;});
+       b.items=(Array.isArray(b.items)?b.items:[])
         .map(x=>{if(x&&typeof x==='object'){const it=v4SanItem(x);_pool.push(it);return it.id;}
-                 return String(x||'');});
+                 const t=String(x||'');
+                 if(_ids[t])return t;                       // référence légitime au pool
+                 if(!t.trim())return '';                    // ligne vide : rien à créer
+                 const it=v4MakeItem(uid('i'),'do',t);_pool.push(it);_ids[it.id]=1;return it.id;})
+        .filter(Boolean);}
       delete b.steps;   // reste d'un format intermédiaire : on nettoie
       // (le miroir `steps` est régénéré après le montage du pool — il disparaîtra à l'étape D)
       b.next=mapId(b.next);b.nextLbl=sstr(b.nextLbl,120);delete b.options;delete b.question;}
@@ -8456,15 +8509,22 @@ function catbarHtml(){
 // Colonne gauche de l'accueil LARGE (>= 780px, canvas turn 6) : sections, bibliothèques (avec
 // compte d'éléments de la section active), catégories (pastille + compte), actions Gérer/Créer.
 function homeSideHtml(){
-  const kindArr=state.section==='protocols'?protocols:fiches;
+  /* M4b (v5.0.0) — UN SEUL RAIL, ET SES COMPTES DISENT LA VÉRITÉ. Le groupe de tête n'avait que
+     DEUX rangées (« Aides cognitives », « Protocoles ») alors que le filtre a TROIS crans depuis
+     le lot T9 : la colonne large ne pouvait pas exprimer « Tout », c'est-à-dire la vue par défaut.
+     Et `kindArr` retombait sur `fiches` en mode « Tout », donc TOUS les comptes du rail — biblio
+     comme catégories — ignoraient les protocoles. Un compte faux dans un rail d'orientation est
+     pire qu'un compte absent : il fait renoncer à chercher là où le contenu est.
+     LE TITRE DE GROUPE DE TÊTE EST SUPPRIMÉ (une ligne rendue) : « Tout / Aides cognitives /
+     Protocoles » se lisent sans qu'on les annonce, quand « Bibliothèques » et « Catégories »
+     nomment des collections dont les rangées, elles, ne disent pas la nature. */
+  const kindArr=state.section==='protocols'?protocols:(state.section==='fiches'?fiches:fiches.concat(protocols));
   const canEditCur=canEditScope(state.scope);
   const nIn=scope=>kindArr.filter(x=>(scope?x.library===scope:!x.library)&&(canEditScope(scope)||x.status!=='draft')).length;
   const nCat=cid=>kindArr.filter(x=>(state.scope?x.library===state.scope:!x.library)&&x.category===cid&&(canEditCur||x.status!=='draft')).length;
-  const secA=state.section!=='protocols';
+  const T=[['all','Tout','list'],['fiches','Aides cognitives','doc'],['protocols','Protocoles','book']];
   return `<aside class="home-side">
-    <div class="hs-h">Sections</div>
-    <button class="hs-row${secA?' on':''}" data-section="fiches">${uiIcon('doc',17)}<span class="hs-name">Aides cognitives</span></button>
-    <button class="hs-row${secA?'':' on'}" data-section="protocols">${uiIcon('book',17)}<span class="hs-name">Protocoles</span></button>
+    ${T.map(([k,l,ic])=>`<button class="hs-row${state.section===k?' on':''}" data-section="${k}">${uiIcon(ic,17)}<span class="hs-name">${l}</span></button>`).join('')}
     ${Auth.signedIn()?`<div class="hs-sep"></div><div class="hs-h">Bibliothèques</div>
       <div class="hs-wrap"><button class="hs-row${!state.scope?' on':''}" data-scope=""><span class="hs-2l"><span class="hs-name">Perso</span><span class="hs-sub">La vôtre · lecture-écriture</span></span><span class="hs-n">${nIn(null)}</span></button><span class="hs-act" aria-hidden="true"></span></div>
       ${sortedLibraries().map(l=>{const admin=(l.role==='admin'||myIsAppAdmin);const ro=!canEditScope(l.id);
@@ -8880,7 +8940,8 @@ function renderProtocolRead(){
   const docs=attListHtml(p);
   // « Voir aussi » (liens croisés v4.2.0) : aides cognitives ET protocoles associés.
   const rel=(p.links||[]).map(id=>relTarget(id)).filter(Boolean);
-  main.innerHTML=`
+  main.innerHTML=`<div class="ref-grid">
+    <div class="ref-main">
     <div class="read-head"><h2>${esc(p.title)||'Sans titre'}</h2></div>
     <div class="read-meta">${p.library?`<span class="tag libtag" title="Bibliothèque partagée">${uiIcon('book',12)}${esc(libName(p.library)||'Partagée')}</span>`:''}${statusChip(p.status,false,{validatedAt:p.validatedAt})}${catTag(p)}${p.code?`<span class="card-date" style="font-family:var(--mono)">${esc(p.code)}</span>`:''}<span class="card-date${staleDate(p.validatedAt)?' stale':''}">${esc(fmtDate(p.validatedAt))}</span>${p.library&&p.updatedBy?`<span class="card-date" title="Auteur de la dernière modification">· dernière modification par ${esc(p.updatedBy)}</span>`:''}</div>
     ${p.status==='draft'?`<div class="notice">${uiIcon('warn',15)}<div><b>Brouillon</b> — ce protocole n'a pas encore été validé pour l'usage clinique.</div></div>`:''}
@@ -8891,7 +8952,30 @@ function renderProtocolRead(){
     ${(()=>{const refs=clean(p.sources||[]);return refs.length?`<div class="refs"><b>Références</b><ol>${refs.map(r=>`<li>${fmt(r)}</li>`).join('')}</ol></div>`:'';})()}
     ${(!docs&&!body)?'<div class="empty"><b>Protocole vide</b>Ajoutez un PDF ou un contenu rédigé via « Modifier ».</div>':''}
     ${readFooterHtml()}
-    `;
+    </div></div>`;
+  /* M5 (v5.0.0, maquettes proto-r4) — LE SOMMAIRE D'UNE RÉFÉRENCE. Une aide cognitive se DÉROULE,
+     une référence se CONSULTE : on y vient chercher UNE section, et sans sommaire il faut faire
+     défiler un document qui peut faire plusieurs milliers de pixels pour savoir ce qu'il contient.
+     C'est l'exacte contrepartie de la colonne « structure » de l'éditeur et du plan de la lecture :
+     un document long a besoin d'une carte.
+     CONSTRUIT APRÈS LE RENDU, jamais dans `mdRender` — le parseur reste PUR et NON interactif
+     (règle du dépôt : les aperçus sont inertes, et un id posé au parsing voyagerait dans tout
+     rendu markdown, aperçus d'éditeur compris). Les ancres sont posées ici, sur les nœuds réels.
+     TROIS TITRES AU MINIMUM : un sommaire de deux lignes ne fait pas gagner un défilement, il
+     ajoute une colonne. Et JAMAIS sous 1000 px, où il prendrait la place du texte qu'il indexe. */
+  {const bd=main.querySelector('.md-body');
+   const hs=bd?[...bd.querySelectorAll('.md-h1,.md-h2')]:[];
+   if(hs.length>=3&&mqReadWide.matches){
+     hs.forEach((h,i)=>{if(!h.id)h.id='rt'+i;});
+     const nav=document.createElement('aside');nav.className='ref-toc';
+     nav.innerHTML='<div class="rt-h">Sommaire</div>'+hs.map(h=>
+       `<button type="button" class="rt-lnk${h.classList.contains('md-h2')?' rt-2':''}" data-rtgo="${esc(h.id)}">${esc(h.textContent)}</button>`).join('');
+     main.querySelector('.ref-grid').appendChild(nav);
+     nav.querySelectorAll('[data-rtgo]').forEach(b=>b.onclick=()=>{
+       const t=document.getElementById(b.dataset.rtgo);if(!t)return;
+       /* Le défilement de la PAGE, pas d'un conteneur : le corps d'une référence vit dans le flux.
+          `scroll-padding-top` (v4.30.0) place déjà la cible sous les couches collantes. */
+       t.scrollIntoView({block:'start'});t.classList.add('flash');setTimeout(()=>t.classList.remove('flash'),900);});}}
   updateStorageInfo();   // remplit le pied (mesure asynchrone) — même libellé que la sidebar
   // Badge d'en-tête : statut (+ date de validation si posée), ex. « ✓ Validé · 03/2026 ».
   updateHdrStatusBadge(p.status,false,p.validatedAt?valToDisplay(p.validatedAt):'');
@@ -9416,6 +9500,7 @@ function uiIcon(name,size,opts){opts=opts||{};const P={
   sparkles:'<path fill="currentColor" d="M11 4l1.7 4.3L17 10l-4.3 1.7L11 16l-1.7-4.3L5 10l4.3-1.7z"/><path fill="currentColor" d="M18.5 14.5l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9z"/>',
   pen:'<path d="M17 3a2.83 2.83 0 014 4L7.5 20.5 2 22l1.5-5.5z"/>',
   doc:DOC_GLYPH,book:BOOK_GLYPH,info:INFO_GLYPH,img:IMG_GLYPH,
+  list:'<path d="M4 6h16M4 12h16M4 18h16"/>',
   phone:'<rect x="7" y="2" width="10" height="20" rx="2.5"/><path d="M11 18.2h2"/>',
   bulb:'<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 00-4 10.4c.8.8 1 1.6 1 2.6h6c0-1 .2-1.8 1-2.6A6 6 0 0012 3z"/>',
   check:'<path d="M4 12l5 5L20 6"/>',
@@ -10351,7 +10436,7 @@ const LEAD_ONLY_SEL='[data-tmreset],[data-cnreset]';
 const MUTE_SEL='[data-ck],[data-cninc],[data-cndec],[data-cnreset],[data-tmtoggle],[data-tmreset],'
   +'[data-ovnext],[data-ovend],[data-ovredo],[data-ovopt],[data-plgo],[data-svgo],[data-svref],'
   +'[data-rmok],[data-rmgap],[data-cxback],'
-  +'[data-ovverify],[data-ovvok],[data-ovvgap],[data-tkdel],[data-tktime],#tkAdd';
+  +'[data-ovverify],[data-ovvok],[data-ovvgap],[data-tkdel],[data-tktime],#tkAdd,[data-tknote]';
 /* `detached` N'EN EST PAS : celui qui a poursuivi seul travaille sur SA session, et lui refuser ses
    gestes serait lui retirer le repli hors dispositif qu'on vient de lui donner (AC 120-64 §9.a). */
 const SHARE_DEAD=['revoked','ended','expired'];
@@ -10923,12 +11008,7 @@ function timekeeperPanel(){const ev=Runtime.events||[];const t0=ev.length?ev[0].
    minuteurs, le plan ou la posologie —, donc on le remplace en place. */
 function bindTk(){
   const tkA=document.getElementById('tkAdd');
-  // Libellé LAISSÉ VIDE : « Action N » se calcule au rendu, par rang chronologique (cf. tkLabels).
-  if(tkA)tkA.onclick=()=>{Runtime.events=Runtime.events||[];Runtime.events.push({id:uid('e'),t:vfNow(),label:''});
-    const started=ensureStarted();persistLive(Runtime);
-    // 1ʳᵉ action de la session : le bandeau apparaît -> re-rendu complet obligatoire, une seule fois
-    // (le rail est de toute façon en haut au démarrage). Ensuite : le seul panneau.
-    if(started)render();else renderTkOnly();};
+  if(tkA)tkA.onclick=tkNoteNow;
   /* ÉTIQUETER, C'EST FACULTATIF — et c'est le filet de sécurité de tout le dispositif. Le geste
      primaire reste « Noter l'heure » : UN TAP, l'heure capturée, ce qui compte cliniquement, sans
      dépendre d'aucun vocabulaire. Ce qui suit ne fait qu'OFFRIR un mot partageable à qui en veut
@@ -11029,6 +11109,16 @@ function tkPaintSug(id,q){
       +esc(JSON.stringify(h.ref))+'"'+(perso?' title="Votre vocabulaire : ce mot n’apparaîtra pas chez les autres participants"':'')
       +'>'+esc(h.label)+(perso?'<span class="tk-own"> · vous seul</span>':'')+'</button>';}).join('');
   z.hidden=false;}
+/* UN SEUL POINT D'ÉCRITURE D'UN REPÈRE (v5.0.0, lot M2) : le bouton du PANNEAU et celui de la
+   CARTE DU BLOC appellent la même fonction. Deux copies auraient divergé — c'est déjà arrivé au
+   cœur de cochage (v4.42.0) et aux verbes du lecteur (v4.55.0).
+   Libellé LAISSÉ VIDE : « Action N » se calcule au rendu, par rang chronologique (cf. tkLabels). */
+function tkNoteNow(){
+  Runtime.events=Runtime.events||[];Runtime.events.push({id:uid('e'),t:vfNow(),label:''});
+  const started=ensureStarted();persistLive(Runtime);
+  // 1ʳᵉ action de la session : le bandeau apparaît -> re-rendu complet obligatoire, une seule fois.
+  // Ensuite : le seul panneau — rien ne doit bouger sous le doigt dans la colonne d'action.
+  if(started)render();else if(!renderTkOnly())render();}
 function renderTkOnly(){
   const old=document.querySelector('.tk-panel');if(!old)return false;
   const tmp=document.createElement('div');tmp.innerHTML=timekeeperPanel();
@@ -11878,7 +11968,21 @@ function ovInstHtml(f,id,idx,topo,pres){
     /* I4 : la liste vient du générateur UNIQUE (`stepsListHtml`) — elle était écrite ici, dans
        la vue guidée et, sous une troisième forme, dans le lecteur. La TRACE de vérification
        (« ✓✓ constaté » / « △ écart », v4.23.0) y est portée pour les trois. */
-    const listeH=stepsListHtml(steps,seq,id,{items:bItems(f.blocks.find(x=>x.id===id)||{})});
+    const _its=bItems(f.blocks.find(x=>x.id===id)||{});
+    const listeH=stepsListHtml(steps,seq,id,{items:_its});
+    /* A1 (v5.0.0, lot M2, maquettes proto-r4) — LA LÉGENDE DES REGISTRES VIT SUR LA CARTE. Elle
+       n'existait QUE dans l'éditeur (`.crit-guide`) : ⚠, △ et la bulle mono ne s'apprenaient donc
+       nulle part pour qui LIT la fiche sans jamais l'écrire — c'est-à-dire pour la majorité de ceux
+       qui l'utilisent en soin. C'est le seul endroit du produit où ces trois signes se rencontrent.
+       ELLE NE LISTE QUE CE QUE LE BLOC PORTE, et c'est ce qui la rend admissible : annoncer « △ à
+       vérifier » sur un bloc sans aucune vigilance n'enseigne rien et coûte une ligne à chaque
+       carte — c'est la règle « un panneau vide est du bruit », appliquée signe par signe. Un bloc
+       sans aucun des trois n'a pas de légende du tout. */
+    const _lg=[];
+    if(_its.some(it=>+it.level===3))_lg.push(uiIcon('warn',12)+' vital');
+    if(_its.some(it=>+it.level===2))_lg.push('△ à vérifier');
+    if(_its.some(it=>(it.expect||'').trim()))_lg.push('<span class="lg-r">réponse</span> attendue');
+    const legH=_lg.length?`<div class="stp-legend">${_lg.join('<span class="lg-sp">·</span>')}</div>`:'';
     let ctl='';
     if(tip){const nxt=b.next?f.blocks.find(x=>x.id===b.next):null;
       const allDone=steps.length===0?true:dn>=steps.length;
@@ -11898,9 +12002,17 @@ function ovInstHtml(f,id,idx,topo,pres){
       {const cxb=(Runtime.cxBack||{})[seq];
        if(cxb){const bb=f.blocks.find(x=>x.id===cxb.id);
          ctl+=`<div class="flow-ctrl"><button type="button" class="btn cont okay" data-cxback="${esc(cxb.id)}">↩ Reprendre — ${esc((bb&&bb.title)||'le parcours')} →</button></div>`;}
+       /* A2 (v5.0.0, lot M2) — « ⏱ NOTER » REJOINT LA CARTE DU BLOC. Le lot T2 avait rapproché
+          le JOURNAL (il se pose juste sous la carte) ; il n'avait pas rapproché le GESTE, qui
+          restait un bouton du panneau, donc à lire et à viser ailleurs que là où l'on agit.
+          Horodater EST un geste de bloc : on note l'heure de ce qu'on vient de faire ICI.
+          Le bouton est le MÊME chemin que `#tkAdd` (aucune seconde écriture de l'évènement), et
+          les propositions d'intitulés apparaissent où elles apparaissaient déjà — dans le panneau
+          immédiatement dessous, donc sous le doigt. Il ne paraît QU'AU BOUT du journal : noter
+          l'heure depuis une carte passée daterait le présent au nom du passé. */
        const cxs=cxAll(f);
-       if(cxs.length)ctl+=cxRowHtml(cxs);}}
-    bodyH=`${imgH}${listeH}${ctl}`;
+       if(cxs.length||tip)ctl+=cxRowHtml(cxs,tip);}}
+    bodyH=`${imgH}${legH}${listeH}${ctl}`;
     count=steps.length?dn+'/'+steps.length:'—';}}
   const takenH=taken?`<span class="ov-ans">→ ${esc(stripBold(taken.label)||'option')}</span>`:'';
   // Boutons d'en-tête : en vérification -> ✕ seulement ; sinon « Lecteur » (bout du journal,
@@ -12791,6 +12903,7 @@ function bindOverviewEvents(f){
     //  divergent — ne pas les factoriser sans décision : la version du rail ancre sur
     //  `.rail-lad`, celle de la feuille sur son propre corps.)
     const co=t.closest('[data-cxopen]');if(co){openCxDlg(f);return;}
+    if(t.closest('[data-tknote]')){tkNoteNow();return;}
     const cb2=t.closest('[data-cxback]');if(cb2){cxResume(f,cb2.dataset.cxback);return;}
     const nx=t.closest('[data-ovnext]');
     if(nx){if(nx.getAttribute('aria-disabled')==='true')return;   // le libellé dit pourquoi (ECAM)
@@ -13921,14 +14034,14 @@ function blockEditor(b,blocks){if(b.kind==='decision'){return `<div class="blk b
    bloc de CETTE fiche (le sélecteur liste les blocs en premier), soit une AUTRE aide ou un
    protocole (demande utilisateur : « une complication peut ouvrir une nouvelle aide cognitive ») —
    même résolution que « Voir aussi » (relTarget), l'id est une référence jamais régénérée. */
-function cxEditorRow(c,i,f){
+function cxEditorRow(c,i,f,n){
   /* La CIBLE s'ouvre dans le SÉLECTEUR FILTRABLE partagé (v4.26.1, demande utilisateur : la liste
      des aides peut être très longue — même patron que « Joindre un document » / « Voir aussi »),
      avec les blocs de CETTE fiche en premier groupe, puis les aides & protocoles. */
   const blk=(f.blocks||[]).find(b=>b.id===c.target);
   const ext=blk?null:relTarget(c.target);
   const nom=blk?('Bloc — '+(String(stripBold(blk.title||''))||blk.id)):(ext?(ext.title||'Sans titre'):'');
-  return `<div class="cx-edit-row"><span class="cx-edit-ic" aria-hidden="true">⚡</span><input data-cxlab="${i}" value="${esc(c.label)}" maxlength="120" placeholder="Événement (ex. Laryngospasme)"><button type="button" class="btn sm cx-tgt${nom?'':' cx-tgt-vide'}" data-cxpicker="${i}" aria-haspopup="dialog">${nom?esc(nom):'Choisir la cible…'}</button><button type="button" class="tk-del" data-cxdel="${i}" aria-label="Supprimer cette complication">×</button></div>`;}
+  return `<div class="cx-edit-row${edGrabClsL('excursions',i)}">${edGrabHandleL('excursions',i,n||0,'la complication')}<span class="cx-edit-ic" aria-hidden="true">⚡</span><input data-cxlab="${i}" value="${esc(c.label)}" maxlength="120" placeholder="Événement (ex. Laryngospasme)"><button type="button" class="btn sm cx-tgt${nom?'':' cx-tgt-vide'}" data-cxpicker="${i}" aria-haspopup="dialog">${nom?esc(nom):'Choisir la cible…'}</button><button type="button" class="tk-del" data-cxdel="${i}" aria-label="Supprimer cette complication">×</button></div>`;}
 /* K7 (v4.70.0, maquette MK3) — LE MINUTEUR SE RÈGLE DANS SA CARTE DE LECTURE. C'était une rangée
    de champs alignés ; c'est maintenant la carte telle qu'elle apparaîtra dans le rail : nom en
    casse de phrase, précision en méta (`tmLabelParts` la sépare déjà à l'affichage), durée, type,
@@ -14069,7 +14182,20 @@ function renderEditor(){
     oublier », ① confirmation, ② prise en charge + minuteurs + contexte local + posologie,
     ③ à vérifier + différentiels, puis annexes) — on rédige dans l'ordre où l'équipe lira. */}
     ${listEditor('Ne pas oublier','4 rappels maximum — ils s’affichent en permanence, en tête de fiche','notForget',listOf(f,'notForget'),false,{shell:'ed-forget',guard:'nfGuard',guardTxt:nfGuardTxt(forgetAll(f))})}
-    ${listEditor('Confirmation diagnostique','critères pour déclencher la fiche','confirmation',listOf(f,'confirmation'),false,{shell:'ed-card'})}
+    ${''/* B4 (v5.0.0, lot M3, maquettes proto-large) — « CONDITION D'ENTRÉE » RÉUNIT LES DEUX
+    MOITIÉS D'UNE MÊME DÉCISION. Les critères de confirmation et les diagnostics à éliminer
+    vivaient dans deux sections éloignées de ~1 200 px, alors qu'ils répondent à UNE question et
+    à un seul instant : « est-ce bien cela, et si non, quoi d'autre ? ». C'est le geste QRH de la
+    condition d'entrée — on entre dans la procédure, ou l'on n'y entre pas. Les rendre voisins ne
+    change RIEN à l'affichage en lecture (les critères restent en tête, les différentiels dans
+    « Consulter ») : c'est l'ÉCRITURE qu'on rapproche de la décision qu'elle sert.
+    Les deux gardent leur clé, donc leur rôle (`entry` et `ddx`) : rien ne bouge dans le modèle.
+    La règle « présent dans la porte ⇔ masqué quand vide » vaut toujours pour les différentiels ;
+    les critères, eux, restent une INVITATION visible même vide (exception nommée, v4.76.0). */}
+    <fieldset class="field ed-card ed-entry"><label>Condition d’entrée <span class="hint">quand déclencher cette procédure</span></label>
+    ${listEditor('Critères','ce qui confirme le tableau','confirmation',listOf(f,'confirmation'),false,{shell:'bare'})}
+    ${listOf(f,'differentials').length?listEditor('Diagnostics à éliminer','« le tableau ne colle pas » — premier motif d’ouverture de « Consulter »','differentials',listOf(f,'differentials'),false,{shell:'bare'}):''}
+    </fieldset>
     <fieldset class="field"><label>Prise en charge <span class="hint">listes d'étapes + décisions conditionnelles</span></label>${wideEdit?'':(()=>{const n=(f.blocks||[]).length;if(!n)return '';
       const ouv=(()=>{try{return !!localStorage.getItem('ac-flowprev-open');}catch(e){return false;}})();
       return `<div class="flow-prev${ouv?' on':''}"><button type="button" class="fp-tgl" id="fpTgl" aria-expanded="${ouv?'true':'false'}"><span class="flow-prev-h">Algorithme — aperçu automatique</span><span class="fp-n">${n} bloc${n>1?'s':''}</span><span class="fp-chev" aria-hidden="true">${ouv?'▴':'▾'}</span></button><div class="fp-box">${flowBlock(f)}</div></div>`;})()}${f.blocks.map((b,bi)=>((state.edGrab&&state.edGrab.kind==='b')?edDrop('B:'+bi,bi===0?'Poser avant le bloc 1':'Poser ici'):'')+blockEditor(b,blocks)).join('')}${(state.edGrab&&state.edGrab.kind==='b')?edDrop('B:'+f.blocks.length,'Poser en fin de fiche'):''}</fieldset>
@@ -14084,7 +14210,14 @@ function renderEditor(){
       ${(f.timers||[]).length?`<p class="sub2">Minuteurs</p>${edGrabRows('timers',f.timers,(t,i)=>timerEditorRow(t,i,(f.timers||[]).length))}`:''}
       ${(f.counters||[]).length?`<p class="sub2"${(f.timers||[]).length?' style="margin-top:14px"':''}>Compteurs</p>${edGrabRows('counters',f.counters,(c,i)=>counterEditorRow(c,i,f.timers,(f.counters||[]).length))}`:''}</fieldset>`:''}
     ${(f.excursions||[]).length?`<fieldset class="field ed-card"><label>⚡ Complications — à tout moment <span class="hint">1 à 3 : l'essentiel — chaque bouton de plus dilue les autres. Cible = un bloc dédié de cette fiche, ou une autre aide</span></label>
-      ${(f.excursions||[]).map((c,i)=>cxEditorRow(c,i,f)).join('')}
+      ${''/* B5 (v5.0.0, lot M3) — LES COMPLICATIONS SE RÉORDONNENT COMME TOUT LE RESTE. Le lot 2
+      de la v4.75.0 avait étendu « prendre / poser » à HUIT listes en les adressant par la clé du
+      modèle ; les excursions avaient été oubliées, et elles ont exactement la même forme (une
+      liste d'objets, comme `timers` et `counters`). Or l'ORDRE compte ici : c'est celui des
+      rangées de l'index qui s'ouvre en pleine réanimation, et l'auteur n'avait aucun moyen de le
+      changer — il était celui où les événements lui étaient venus à l'esprit. Aucun mécanisme
+      nouveau : `edGrabRows` avec la clé `excursions`, comme les sept autres. */}
+      ${edGrabRows('excursions',f.excursions,(c,i)=>cxEditorRow(c,i,f,(f.excursions||[]).length))}
 </fieldset>`:''}
     <div class="field"><div class="lab-row"><label for="f-localInfo">Contexte local <span class="hint">numéros utiles, particularités</span></label>${boldBtnHtml()}</div><textarea id="f-localInfo" rows="2" placeholder="Réanimateur de garde, pharmacie…">${esc(f.local)}</textarea></div>
     ${''/* LE CLASSEMENT AUTOMATIQUE SE DIT (demande utilisateur, et c'est exact) : `posoRank` /
@@ -14096,7 +14229,6 @@ function renderEditor(){
     RESTENT : ce ne sont pas des extras, ce sont la condition d'entrée et les memory items. */}
     ${listOf(f,'posology').length?listEditor('Repères posologiques','classés automatiquement en lecture selon le bloc en cours (aucun n’est jamais masqué) · bouton △ = carte ambre (dose à vérifier) · le rouge reste aux memory items · **gras** possible','posology',listOf(f,'posology'),false,{crit:true,shell:'ed-card'}):''}
     ${listOf(f,'verify').length?listEditor('À vérifier','surveillances et pièges — affichés en ③','verify',listOf(f,'verify'),false,{shell:'ed-card'}):''}
-    ${listOf(f,'differentials').length?listEditor('Diagnostics différentiels','« le tableau ne colle pas » — premier motif d’ouverture de « Consulter »','differentials',listOf(f,'differentials'),false,{shell:'ed-card'}):''}
     ${''/* L'IMAGE S'ASSOCIE À UN BLOC DEPUIS LA GALERIE (demande utilisateur). On ne pouvait
     joindre une image QUE depuis un bloc : partir de l'image était impossible, alors que c'est
     l'ordre naturel quand on vient d'en importer trois d'un coup. Le sélecteur liste les blocs de la
@@ -14993,7 +15125,7 @@ FIDÉLITÉ (règles absolues)
 - PRÉPARATIONS/DILUTIONS de la source (ex. « 5 ampoules de 0,2 mg dans 50 mL de G5% =
   20 µg/mL, débit 15 mL/h ») : reprises intégralement — elles évitent un calcul mental
   en crise ; n'en calcule JAMAIS toi-même. Chaque service ayant ses pratiques, dès
-  qu'une fiche contient des médicaments à préparer → invite localInfo « Dilutions /
+  qu'une fiche contient des médicaments à préparer → invite local « Dilutions /
   protocoles locaux si différents : à compléter ».
 - MANQUE RÉSIDUEL après mes réponses (ex. dose non précisée par la source) : écris dans
   la section concernée « ⚠ À COMPLÉTER : <ce qui manque> » — jamais de silence.
@@ -15010,7 +15142,7 @@ PRIORISATION (source dense)
    détrompage est utile, sinon rien. Une aide cognitive guide, elle n'explique pas.
 5. Critères d'ARRÊT / limitation (durée, futilité, décision collégiale) : dans la fiche
    (bloc ou décision dédiés) — « quand s'arrêter » est le point de bascule le plus
-   difficile, ne l'omets pas ; renvoyés au protocole local → invite localInfo.
+   difficile, ne l'omets pas ; renvoyés au protocole local → invite local.
 Arbitrage : ce qui tue en minutes avant ce qui tue en heures.
 
 STRUCTURE
@@ -15048,12 +15180,12 @@ STRUCTURE
   appel à l'aide / renfort sur place → rôles ; SMUR : régulation (avis, renfort relayé,
   orientation). Cadre précisé par la source → suis-la ; sinon couvre les deux
   (« Renfort : appel à l'aide (intra-hosp.) / régulation (SMUR) ») + les DEUX invites
-  localInfo (tél. renfort, tél. régulation). Critères d'escalade (qui appeler, sur quel
+  local (tél. renfort, tél. régulation). Critères d'escalade (qui appeler, sur quel
   seuil, vers où transférer) → explicites. Jamais le renfort en fin de parcours.
 - SECTIONS — CE QUI EST SOUS LES YEUX vs CE QUI EST APPELÉ. L'application sépare
   matériellement les deux, comme une check-list abrégée et son manuel : dans le fil de la
   prise en charge vivent en permanence les BLOCS et notForget ; verify, differentials,
-  references et les documents sont regroupés dans une feuille « Consulter » ouverte À LA
+  sources et les documents sont regroupés dans une feuille « Consulter » ouverte À LA
   DEMANDE. CONSÉQUENCE DE RÉDACTION : ne mets JAMAIS dans verify ou differentials ce qui
   doit sauter aux yeux sans être demandé — cela appartient à une étape « ⚠ »/« △ » du bloc
   concerné, ou à notForget (4 max). Inversement, tout ce qui n'est utile QUE si l'on se pose
@@ -15073,8 +15205,8 @@ STRUCTURE
     Une cause réversible AVEC traitement spécifique (hyperkaliémie, surdosage…) n'est
     PAS un simple différentiel → bloc « steps » dédié (ex. « Causes à traiter ») avec
     son traitement, ou notForget si bref ;
-  - references    = traçabilité (cf. TRAÇABILITÉ) ;
-  - localInfo     = particularités locales À COMPLÉTER par moi : liste des invites que
+  - sources       = traçabilité (cf. TRAÇABILITÉ) ;
+  - local     = particularités locales À COMPLÉTER par moi : liste des invites que
     la fiche appelle d'après la source et son contenu (tél. renfort/régulation,
     dilutions locales, circuits… — cf. RENFORT et PRÉPARATIONS), format « <invite> :
     à compléter », une par ligne.
@@ -15198,7 +15330,7 @@ COMPLICATIONS « À TOUT MOMENT » (champ complications, facultatif)
   crée PAS le bloc — SIGNALE-le-moi ; je lierai l'aide existante dans l'application (le JSON ne
   connaît pas les identifiants de mes autres fiches).
 
-TRAÇABILITÉ (section references — obligatoire)
+TRAÇABILITÉ (section sources — obligatoire)
 - Une ligne par source : « Titre — Organisme, année (version si connue) — URL ou DOI » ;
   reporte le niveau de preuve / grade s'il figure.
 - Dernière ligne : « Fiche générée par IA le <date du jour> à partir de la source
@@ -15210,7 +15342,7 @@ SELON LE TYPE DE SOURCE
 - Page web : date de mise à jour de la PAGE (pas du site) ; ignore menus, encarts,
   commentaires ; page multi-sujets → n'extrais que la situation demandée.
 - PDF de guideline longue : algorithme + tableaux de doses, pas le texte de
-  justification ; annexes locales (numéros, circuits) → localInfo.
+  justification ; annexes locales (numéros, circuits) → local.
 - Image / capture / scan : uniquement ce qui est lisible avec certitude ; zone douteuse
   = question, jamais une supposition.
 
@@ -15263,12 +15395,13 @@ REPÈRES POSOLOGIQUES (section posology)
 
 ÉTAPES ENRICHIES — FACULTATIF, ET DEUX PROPRIÉTÉS QU'UNE CHAÎNE NE PEUT PAS PORTER
 Une étape peut s'écrire de deux façons, au choix, bloc par bloc :
-- la forme SIMPLE, "steps": ["Adrénaline IM :: 0,5 mg"] — le préfixe "⚠ " ou "△ " porte le
-  registre, " :: " sépare le challenge de la réponse attendue. Elle suffit dans la plupart
-  des cas et reste la forme de référence.
-- la forme ENRICHIE, "items": [ … ], quand une étape doit porter ce qu'une chaîne ne sait
-  pas dire. Les deux ne se mélangent PAS dans un même bloc : si "items" est présent, il fait
-  foi et "steps" est régénéré par l'application.
+Dans les DEUX cas la clé est "items" — jamais "steps", qui n'existe plus.
+- la forme ABRÉGÉE, "items": ["⚠ Adrénaline IM :: 0,5 mg", "Oxygène"] — le préfixe "⚠ " ou
+  "△ " porte le registre, " :: " sépare le challenge de la réponse attendue. Elle suffit dans
+  la plupart des cas.
+- la forme ENRICHIE, "items": [ { … } ], quand une étape doit porter ce qu'une chaîne ne sait
+  pas dire (memory item, double confirmation). Les deux formes peuvent se mélanger dans un
+  même bloc : chaque entrée est lue pour ce qu'elle est.
   { "do": "Adrénaline IM", "expect": "0,5 mg", "level": 3, "memory": true, "dual": false }
   · "do"      le challenge, ce qui se prononce (sans préfixe : le registre est "level").
   · "expect"  la réponse attendue, "" si l'étape n'en appelle pas.
@@ -15289,15 +15422,15 @@ Une étape peut s'écrire de deux façons, au choix, bloc par bloc :
 COHÉRENCE DES IDENTIFIANTS (très important)
 - "id" de bloc unique dans la fiche (ex. "b1", "b2", "bd") ; "start" = id d'un bloc
   existant.
-- Bloc "steps" : "next" = id existant ou null (null = fin de prise en charge — le
+- Bloc "do" : "next" = id existant ou null (null = fin de prise en charge — le
   dernier bloc d'un parcours finit par next: null, jamais par un renvoi accidentel).
 - Bloc "decision" : chaque "target" d'option = id existant.
-- "complications[].target" = id d'un bloc existant HORS chaîne (aucun next n'y mène).
+- "excursions[].target" = id d'un bloc existant HORS chaîne (aucun next n'y mène).
 - PAS de champ "id" au niveau de la fiche (généré à l'import).
 
 SCHÉMA EXACT
 {
-  "version": 3,
+  "version": 4,
   "categories": [],
   "fiches": [
     {
@@ -15322,19 +15455,19 @@ SCHÉMA EXACT
       "counters": [ { "id": "n1", "label": "Bolus", "step": 1, "start": 0 } ],
       "start": "b1",
       "blocks": [
-        { "id": "b1", "type": "steps",    "title": "Mesures immédiates", "image": null, "steps": ["Renfort : appel à l'aide / régulation (SMUR)", "Monitorage :: scope · SpO2 · PNI", "..."], "next": "bd" },
-        { "id": "b2", "type": "steps",    "title": "Traitement", "image": null, "items": [ { "do": "Adrénaline IM, face antéro-latérale de cuisse", "expect": "0,5 mg", "level": 3, "memory": true, "dual": true }, { "do": "Remplissage", "expect": "20 mL/kg", "level": 2 } ], "next": "bd" },
-        { "id": "bd", "type": "decision", "title": "Réévaluation", "image": null, "question": "...?", "options": [ { "label": "Oui", "target": "b2" }, { "label": "Non", "target": "b3" } ] },
-        { "id": "b2", "type": "steps",    "title": "Évolution favorable", "image": null, "steps": ["..."], "next": null },
-        { "id": "b3", "type": "steps",    "title": "Réfractaire", "image": null, "steps": ["..."], "next": "bd" },
-        { "id": "cx1", "type": "steps",   "title": "Laryngospasme", "image": null, "steps": ["Arrêter la stimulation", "⚠ ...gestes immédiats de la source..."], "next": null }
+        { "id": "b1", "kind": "do",        "title": "Mesures immédiates", "image": null, "items": ["Renfort : appel à l'aide / régulation (SMUR)", "Monitorage :: scope · SpO2 · PNI", "..."], "next": "bd" },
+        { "id": "b2", "kind": "do",        "title": "Traitement", "image": null, "items": [ { "do": "Adrénaline IM, face antéro-latérale de cuisse", "expect": "0,5 mg", "level": 3, "memory": true, "dual": true }, { "do": "Remplissage", "expect": "20 mL/kg", "level": 2 } ], "next": "bd" },
+        { "id": "bd", "kind": "decision", "title": "Réévaluation", "image": null, "question": "...?", "options": [ { "label": "Oui", "target": "b2" }, { "label": "Non", "target": "b3" } ] },
+        { "id": "b2", "kind": "do",        "title": "Évolution favorable", "image": null, "items": ["..."], "next": null },
+        { "id": "b3", "kind": "do",        "title": "Réfractaire", "image": null, "items": ["..."], "next": "bd" },
+        { "id": "cx1", "kind": "do",       "title": "Laryngospasme", "image": null, "items": ["Arrêter la stimulation", "⚠ ...gestes immédiats de la source..."], "next": null }
       ]
     }
   ]
 }
 
 VALEURS AUTORISÉES
-- type d'un bloc : "steps" ou "decision" (exactement).
+- "kind" d'un bloc : "do" (étapes) ou "decision" (exactement). "type" n'existe plus.
 - type d'un timer : "stopwatch" (chronomètre) ou "interval" (minuteur à cycle ;
   "seconds" = durée du cycle, "autoloop" = true pour reboucler).
 - LES "label" DE "timers" ET "counters" SE RELISENT APRÈS LE SOIN, pas seulement
@@ -15367,7 +15500,7 @@ AVANT DE RÉPONDRE, VÉRIFIE
 8. La population / le contexte est dans "discriminant", PAS dans le titre — et vide si la
    source ne le dit pas.
 9. Aucun geste unique dans une boucle de réévaluation ; critères d'arrêt / limitation
-   dans la fiche ou en invite localInfo.
+   dans la fiche ou en invite local.
 10. Cibles chiffrées dans verify ; interdictions dans notForget (une par ligne).
 11. references : source datée + ligne « Fiche générée par IA le … ».
 12. Tout manque résiduel marqué « ⚠ À COMPLÉTER » (aucun manque silencieux).

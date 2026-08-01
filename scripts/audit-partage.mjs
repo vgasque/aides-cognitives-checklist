@@ -172,8 +172,12 @@ console.log(`\n══ PARTAGE · un décochage distant ne recompose pas le journ
        On la pose par `migrate` + `Data.put` puis on l'ouvre par `openRead` — le vrai point
        d'entrée, seul à construire le Runtime (leçon v4.40.0). */
     const f = migrate({ id: 'shend', title: 'Fin distante', start: 'b1', blocks: [
-      { id: 'b1', type: 'steps', title: 'Premier', steps: ['a', 'b'], next: 'b2' },
-      { id: 'b2', type: 'steps', title: 'Second', steps: ['c', 'd'], next: null }] });
+      /* ⚠ FIXTURE REMISE À LA FORME RÉELLE (v5.0.0) : elle portait `steps`, la clé v3, qui ne
+         produit plus RIEN depuis l'étape D — les deux blocs étaient VIDES, la sonde ne trouvait
+         aucune étape à cocher et levait une exception, emportant la fin de la chaîne d'audit.
+         Le format v4 écrit les étapes sous `items` (forme abrégée : chaîne, ou objet). */
+      { id: 'b1', kind: 'do', title: 'Premier', items: ['a', 'b'], next: 'b2' },
+      { id: 'b2', kind: 'do', title: 'Second', items: ['c', 'd'], next: null }] });
     await Data.put(f); fiches.push(f);
     openRead(f.id); await new Promise(x => setTimeout(x, 350));
     /* On RE-INTERROGE le DOM entre chaque clic. La PREMIÈRE action d'une session déclenche

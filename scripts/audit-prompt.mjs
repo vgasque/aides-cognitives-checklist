@@ -46,14 +46,25 @@ const r=await p.evaluate(()=>{
        MONTRE dans son schéma ; si l'import la refusait, une IA fidèle produirait un fichier
        irrecevable et la faute paraîtrait venir d'elle — c'est exactement ce qui s'est produit en
        v4.73.0 avec le `\n` mal échappé. On mesure donc le bloc RÉELLEMENT extrait du prompt. */
-    ...(()=>{const be=(obj.fiches[0].blocks||[]).find(b=>Array.isArray(b.items));
+    /* v5.0.0 : les DEUX formes vivent désormais sous la clé `items` (la clé `steps` a disparu du
+       prompt). Le bloc ENRICHI est donc celui dont les entrées sont des OBJETS — sans ce
+       raffinement, le contrôle attrapait le premier bloc, qui est abrégé, et mesurait la forme
+       qu'il ne couvre pas. Un témoin qui ne rencontre pas son cas ne prouve rien. */
+    ...(()=>{const be=(obj.fiches[0].blocks||[]).find(b=>Array.isArray(b.items)&&b.items.some(x=>x&&typeof x==='object'));
       if(!be)return {enr:false};
       /* v5.0.0, étape B : le bloc ne porte que des identifiants — on résout, comme le rendu. */
       const b2=(f.blocks||[]).find(x=>x.id===be.id)||{};const its=A.bItems(b2);
       return {enr:true,enrN:be.items.length,enrApres:its.length,
         enrLvl:its[0]&&its[0].level,enrMem:!!(its[0]&&its[0].memory),enrDual:!!(its[0]&&its[0].dual),
         enrMiroir:(b2.steps||[])[0]||''};})(),
-    ditItems:/"items"/.test(P)&&/"dual"/.test(P)&&/"memory"/.test(P)};});
+    ditItems:/"items"/.test(P)&&/"dual"/.test(P)&&/"memory"/.test(P),
+    pasSteps:!/"steps"\s*:/.test(P),
+    ...(()=>{const g=A.migrate({title:'T',start:'b1',blocks:[{id:'b1',kind:'do',items:['⚠ Adrénaline IM :: 0,5 mg','Oxygène']}]});
+      const it=(g.items||[])[0]||{};
+      const h=A.migrate({title:'T',start:'b1',items:[{id:'i9',role:'do',do:'Déjà là'}],
+        blocks:[{id:'b1',kind:'do',items:['i9']}]});
+      return {abrN:(g.items||[]).length,abrDo:it.do,abrLvl:it.level,abrExp:it.expect,
+        refOk:(h.items||[]).length===1&&h.blocks[0].items[0]==='i9'};})()};});
 t('le schéma du prompt est un JSON valide', r.parse===true, r.err||r.extrait);
 if(r.parse){
   t('le prompt DOCUMENTE la forme enrichie (items · level · memory · dual)', r.ditItems===true);
@@ -61,9 +72,22 @@ if(r.parse){
   t('… que `migrate` accepte sans rien perdre', r.enrApres===r.enrN, `${r.enrN} → ${r.enrApres}`);
   t('… le registre y devient un niveau ordonné', r.enrLvl===3, JSON.stringify(r.enrLvl));
   t('… ★ mémoire et ×2 traversent l’import', r.enrMem&&r.enrDual, `memory=${r.enrMem} dual=${r.enrDual}`);
-  /* Le miroir doit être régénéré : un client antérieur lit `steps`, jamais `items`. */
-  t('… et le miroir `steps` est reconstruit pour les clients antérieurs',
-    /^⚠ /.test(r.enrMiroir||''), JSON.stringify(r.enrMiroir));
+  /* TÉMOIN REMPLACÉ (v5.0.0) : il vérifiait la reconstruction du miroir `steps`, supprimé à
+     l'étape D — il mesurait donc un composant qui n'existe plus, et restait rouge pour la bonne
+     raison. Ce qu'il faut vérifier désormais est l'inverse : qu'aucun `steps` ne SURVIT dans un
+     bloc, et que la clé enseignée par le prompt est bien `items`. */
+  t('… et plus aucun miroir `steps` ne survit dans un bloc', r.enrMiroir==='', JSON.stringify(r.enrMiroir));
+  t('le prompt n’enseigne plus la clé "steps"', r.pasSteps===true, 'la clé "steps" figure encore dans le prompt');
+  /* LE DÉFAUT DE CONTRAT DE LA v5.0.0, ET IL ÉTAIT SILENCIEUX : une CHAÎNE dans `b.items` était
+     recopiée telle quelle comme IDENTIFIANT. Ne désignant aucun item du pool, elle produisait une
+     RÉFÉRENCE PENDANTE — le bloc s'affichait VIDE et le contenu était perdu à l'import, sans un
+     mot. C'est exactement la forme qu'une IA écrit spontanément. On mesure donc les DEUX formes. */
+  t('la forme ABRÉGÉE (chaîne) devient un item, jamais une référence pendante',
+    r.abrN===2&&r.abrDo==='Adrénaline IM', `${r.abrN} item(s), do=${JSON.stringify(r.abrDo)}`);
+  t('… avec son registre et sa réponse attendue', r.abrLvl===3&&r.abrExp==='0,5 mg',
+    `level=${r.abrLvl} expect=${JSON.stringify(r.abrExp)}`);
+  t('… et une VRAIE référence au pool reste une référence',
+    r.refOk===true, JSON.stringify(r.refOk));
 }
 if(r.parse){
   t('migrate() conserve "discriminant"', r.disc==='adulte', JSON.stringify(r.disc));

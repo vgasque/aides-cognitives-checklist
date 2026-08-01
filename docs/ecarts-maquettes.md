@@ -166,3 +166,44 @@ produit, et le gain est d'ergonomie, pas de mesure.
    mise à droite pour éloigner le geste destructeur), la colonne de droite de l'éditeur qui passe du
    schéma à la relecture (v4.74.0), et le partage qui quitte la fenêtre pour le flux. Chacun est
    défendable ; aucun n'est neutre. Lesquels engage-t-on ?
+
+---
+
+## 5 · Ce qui a été livré (mise à jour du 01/08/2026)
+
+| Écart | Décision | État |
+|---|---|---|
+| **B1** deux champs `do`/`expect` | fait | lot **M1** |
+| **B2** mots à côté des glyphes | fait (effacés sous 400 px) | lot **M1** |
+| **A4** cases retirées de l'éditeur | fait, `.li-box` purgé | lot **M1** |
+| **B7** poignée ⠿ à gauche | fait (décision utilisateur, revirement v4.68.0) | lot **M1** |
+| **A5** rail ①②③ | **retiré partout** (décision utilisateur) | lot **M2a** |
+| **C1** type en chips sous la recherche | fait, tab bar purgée (−62 px) | lot **M4** |
+| rail unique · comptes justes · titre en tête | fait | lot **M4b** |
+| **A1** légende des registres sur la carte | fait, **conditionnelle** au contenu du bloc | lot **M2** |
+| **A2** « ⏱ Noter » dans la carte du bloc | fait, point d'écriture unique `tkNoteNow` | lot **M2** |
+| **A3** chips d'intitulés | **déjà satisfait** par T2 : le panneau est sous la carte | — |
+| **B4** « Condition d'entrée » | fait (critères + diagnostics à éliminer réunis) | lot **M3** |
+| **B5** bloc complications | fait, et **réordonnable** (oubli du lot 2 v4.75.0) | lot **M3** |
+| **C4** sommaire d'une référence | fait, ≥ 1000 px, ≥ 3 titres | lot **M5** |
+| **B3** phase | **non engagé** — proposition écrite ci-dessous | — |
+| **B6** colonne droite de l'éditeur | **conservée au schéma** (décision utilisateur) | — |
+| **C2** partage dans le flux | **conservé en fenêtre** (décision utilisateur) | — |
+| **C3** popups fiches d'exemple | déjà livré en T13 (bandeau système, recouvrement 60,7 % → 0 %) | — |
+
+### La phase — ce que je propose si elle est un jour engagée
+
+L'objection tenait au **vocabulaire imposé**, pas au mécanisme. Un **champ libre**, avec les trois
+valeurs en simples **suggestions**, et **hérité du bloc précédent** — l'auteur ne déclare une phase
+que là où elle *change*. Le dépôt a déjà ce patron exact : `TAG_CORE` (noyau universel) +
+`data.prefs.tags` (vocabulaire personnel) pour les libellés du journal. On garde le −26 % de hauteur
+mesuré sur la structure, on retire l'imposition, et on ne demande pas une décision par bloc.
+
+### Deux défauts trouvés en chemin, sans rapport avec les maquettes
+
+1. **`completionSpots` lisait des champs supprimés** par la migration v4 (`f.confirmation`…) : le
+   volet de relecture ne signalait plus **aucun** « à compléter » de liste. Deux tests le
+   couvraient et restaient verts — **leurs fixtures étaient de forme v3**.
+2. **Une chaîne dans `b.items` devenait une référence pendante** : le bloc s'affichait vide et le
+   contenu était perdu à l'import, en silence. C'est la forme qu'une IA écrit spontanément, et
+   celle que le prompt enseignait.

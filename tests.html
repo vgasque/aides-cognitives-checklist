@@ -496,8 +496,14 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   group('completionSpots() — badge « À compléter »');
   ok('invite dans localInfo', A.completionSpots({local:'Tél renfort : à compléter'}).length>0);
   ok('marqueur « ⚠ À COMPLÉTER » dans une étape', A.completionSpots({blocks:[{kind:'do',items:['⚠ À COMPLÉTER : dose'].map(x=>A.v4MakeItem(A.uid('i'),'do',x))}]}).length>0);
-  ok('invite dans une section liste', A.completionSpots({verify:['PAS cible : à compléter']}).length>0);
-  ok('accent manquant toléré (« a completer »)', A.completionSpots({verify:['cible a completer']}).length>0);
+  /* ⚠ FIXTURES REMISES À LA FORME RÉELLE (v5.0.0) : elles portaient `verify` en CHAMP, forme v3
+     disparue depuis que les listes sont un pool d'items à rôle — le test restait vert sur un accès
+     que l'application ne rencontrait plus jamais, et le défaut (aucun « à compléter » de liste
+     signalé) a vécu invisible. Une fixture qui n'a pas la forme du réel valide un chemin mort. */
+  ok('invite dans une section liste', A.completionSpots(A.migrate({verify:['PAS cible : à compléter']})).length>0);
+  ok('accent manquant toléré (« a completer »)', A.completionSpots(A.migrate({verify:['cible a completer']})).length>0);
+  ok('… et la fixture a bien la forme v4 (le contrôle rencontre son cas)',
+     (A.migrate({verify:['x à compléter']}).verify===undefined)&&A.listOf(A.migrate({verify:['x à compléter']}),'verify').length===1);
   ok('⚠ seul (avertissement clinique) ne déclenche PAS', A.completionSpots({notForget:['⚠ NE PAS associer adrénaline et isoprénaline']}).length===0);
   ok('fiche complète → aucun emplacement', A.completionSpots({local:'Tél 1234',verify:['PAS ≥ 80'],blocks:[{kind:'do',items:['ok'].map(x=>A.v4MakeItem(A.uid('i'),'do',x))}]}).length===0);
   ok('non-objet → aucun emplacement', A.completionSpots(null).length===0);
@@ -508,7 +514,11 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
 
   group('AI_PROMPT — invariants du prompt embarqué');
   ok('brouillon imposé', A.AI_PROMPT.indexOf('"status": "draft"')>=0);
-  ok('schéma version 3', A.AI_PROMPT.indexOf('"version": 3')>=0);
+  /* v5.0.0 : l'application ne lit plus que le format v4 (rupture assumée, chemin de reprise dans
+     docs/conversion-v3-vers-v4.md). Un prompt qui annoncerait encore « version 3 » produirait un
+     fichier que l'import mutile, et la faute paraîtrait venir de l'IA. */
+  ok('schéma version 4', A.AI_PROMPT.indexOf('"version": 4')>=0);
+  ok('… et plus aucune mention de "version": 3', A.AI_PROMPT.indexOf('"version": 3')<0);
   ok('double contexte structure/SMUR (régulation)', A.AI_PROMPT.indexOf('régulation')>=0);
   ok('convention de manque explicite', A.AI_PROMPT.indexOf('⚠ À COMPLÉTER')>=0);
   ok('gras autorisé avec parcimonie', A.AI_PROMPT.indexOf('PARCIMONIE')>=0);
