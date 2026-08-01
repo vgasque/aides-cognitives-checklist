@@ -2560,6 +2560,16 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   hauteur du bandeau HÔTE vs INVITÉ, donc mesurait désormais l'EXISTENCE du bandeau et non le coût
   du PLACARD. Il compare maintenant le bandeau de l'invité **avec et sans son étiquette**, et
   vérifie d'abord qu'il RENCONTRE SON CAS (bandeau présent, étiquette visible).
+- **LE LIBELLÉ DU RETOUR SUIT L'INFORMATION, PAS LA PLACE (v5.0.0, proposition utilisateur —
+  mesurée, et déplacée là où elle mord)** : « enlever Bibliothèque pour récupérer de la largeur »
+  était juste, mais **pas où on le croyait**. Mesuré : sous 560 px le libellé n'est PAS affiché
+  (bouton de 31 px, flèche seule) — il n'y avait donc rien à récupérer là où la place manque.
+  AU-DESSUS, il en prend 95 et **fait RÉTRÉCIR le titre** : 204 px de titre à 430, **179 seulement
+  à 560**, sur un écran pourtant plus large. Or « Bibliothèque » est la destination PAR DÉFAUT
+  d'une flèche de retour — elle se devine, et la nommer ne dit rien qu'on ne sache. Le TITRE D'UNE
+  FICHE D'ORIGINE, lui, dit d'où l'on vient (pile de retour, v4.28.0) et vaut sa largeur. Le
+  libellé est donc **présent quand la pile n'est pas vide, absent sinon**. Mesuré après : titre
+  **179 → 276 px** à 560, et le libellé revient bien nommer la fiche d'origine (224 px).
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.
