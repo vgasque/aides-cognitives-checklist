@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-+8gKXMot8O8CnfCT8K3IxUysgITmQ35UXFydOfWnEZ0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-1mYg5DvSewx7SAFJQMjVrzPBZdMCkm4hq187RkOtqaQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -934,9 +934,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      abréviation de l'ancien « Réf. », qui donnait deux NOMS au même bouton (retour d'usage : « on
      s'y perd »). Le mot tronqué reste reconnaissable, l'identité du bouton ne change pas. Objectif
      mesuré : rendre au quai la largeur d'un segment de minuteur en étroit. */
+  /* ⚠ UN SEUL LIBELLÉ, À TOUTES LES LARGEURS (demande utilisateur). L'abréviation « Cons. »
+     datait d'avant la mesure : depuis que `fitCtrlRow` mesure le débordement RÉEL et descend d'un
+     palier de compression avant d'enrouler (v4.74.2), la place existe — vérifié de 320 à 430 px
+     aux quatre tailles de texte. Un bouton qui change de mot selon la largeur est un bouton qu'on
+     relit ; la constance du libellé est la même exigence que la constance de sa position. */
   .dock-plan .dp-ab{display:none}
-  html.zw560 .dock-plan .dp-full{display:none}
-  html.zw560 .dock-plan .dp-ab{display:inline}
   /* Le libellé « Plan » ne disparaît à AUCUNE largeur : le glyphe ⤢ jouxte le chevron ▾ des
      minuteurs, et deux pictogrammes voisins sans mot se confondent sous stress. Ce sont les
      segments de minuteurs qui cèdent la place (ils s'ellipsent déjà). */
@@ -1272,6 +1275,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      un bouton) — sans lui, elle hériterait du 1.5 du body et serait plus haute que les chips
      <button> (line-height UA), gonflant toute la rangée à la sélection. */
   .scopebtn{position:relative;display:inline-flex;align-items:center;line-height:normal;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 14px;border-radius:var(--radius-sm);font-size:13.5px;font-weight:600;cursor:pointer;transition:background .12s,border-color .12s}
+  /* Même micro-réponse que `.catchip` (signalé à l'usage : les chips de TYPE n'en avaient
+     aucune) — deux rangées de filtres voisines qui ne répondent pas pareil se lisent comme deux
+     composants, alors que c'est le même geste sur la même grammaire. */
+  .scopebtn:not(.on):hover{border-color:var(--line-hover);background:var(--surface-2)}
   .scopebtn.on,.startbtn.on{background:var(--primary);color:var(--on-primary);border-color:var(--primary)}
   .scopebtn.add{border-style:dashed;color:var(--primary);background:transparent}
   /* Halo tactile (audit v4.5) : chips ~33px -> cible >= 44px, étendue en VERTICAL seulement
@@ -1547,7 +1554,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      chercher en changeait la quantité et déplaçait toute la colonne (mesuré : première lettre à
      307 px, ailleurs dès qu'une lettre disparaît). Un index d'annuaire doit être là où l'on a
      appris à le viser, quel que soit ce qu'il contient. */
-  .azrail{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:1px;padding:8px 2px;touch-action:none;overflow:hidden}
+  /* Rembourrage ASYMÉTRIQUE d'un pixel, à dessein : le filet gauche de la variante large est à
+     l'intérieur de la boîte (box-sizing global), donc un rembourrage égal décalait les lettres
+     d'un pixel vers la droite. Mesuré, puis compensé — « centré » veut dire centré. */
+  .azrail{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:1px;padding:8px 2px 8px 1px;touch-action:none;overflow:hidden}
   .azrail button{border:0;background:none;color:var(--link);font-size:11px;font-weight:700;cursor:pointer;padding:0 5px;min-height:24px;min-width:24px;border-radius:5px;font-family:inherit}
   .azrail button:hover{background:var(--primary-soft)}
   .azrail button:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
@@ -1886,8 +1896,18 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .li-mk{position:absolute;left:0;top:50%;transform:translateY(-50%);width:20px;
     display:flex;align-items:center;justify-content:center;color:var(--critical);pointer-events:none}
   .blk .li{position:relative}
+  /* ⚠ SEIZIÈME PIÈGE DE CASCADE, ET IL SE VOYAIT À L'ŒIL (signalé à l'usage, capture à l'appui :
+     « les icônes dans la zone de texte se superposent avec le texte »). La marque est réservée par
+     un `padding-left` LONGHAND ; 1 350 lignes plus bas, `.blk .li input[type=text]:focus` repose un
+     `padding` RACCOURCI — même spécificité (0,4,1) que la règle de la marque, déclaré APRÈS, donc
+     gagnant. Mesuré au FOCUS à 390 px : rembourrage 11 px, texte commençant à 96 px pour une icône
+     finissant à 101 — le ⚠ passait SOUS la première lettre. C'est le même mécanisme que le
+     quinzième piège (`.rt-h2`), et la même leçon : un longhand ne survit pas à un raccourci
+     ultérieur. On passe par `:is()` à (0,5,1), qui gagne quel que soit l'ordre, et l'on couvre le
+     repos ET le focus. */
   .blk .li input[data-sf]{padding-left:11px}
-  .blk .li.li-crit input[data-sf],.blk .li.li-vigil input[data-sf]{padding-left:26px}
+  .blk .li:is(.li-crit,.li-vigil) input[data-sf],
+  .blk .li:is(.li-crit,.li-vigil) input[data-sf]:focus{padding-left:26px}
   .li-vigil .li-mk{color:var(--verify)}
   /* Le champ et sa marque forment un seul objet de la rangée : c'est LUI qui s'étire. */
   .li-fw{position:relative;flex:1;min-width:0;display:flex}
@@ -1905,21 +1925,28 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Un memory item posé sur une ÉTAPE : le texte, puis le renvoi vers le bloc où il vit — sur sa
      PROPRE ligne. En rangée, le renvoi mangeait la moitié de la largeur et se tronquait en plein
      titre de bloc, sur téléphone comme sur ordinateur. */
-  .mem-ro{padding:7px 0;border-top:1px solid var(--line)}
-  .mem-l{display:flex;align-items:baseline;gap:8px}
-  .mem-st{flex:none;color:var(--critical);font-size:13.5px}
-  .mem-t{flex:1;min-width:0;font-size:13.5px;font-weight:600;color:var(--ink)}
-  .mem-go{display:block;width:100%;text-align:left;margin-top:4px;min-height:44px;padding:6px 0;
-    background:none;border:0;cursor:pointer;font-size:11px;font-weight:700;color:var(--link)}
-  .mem-go:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:6px}
+  .fg-st{flex:none;color:var(--critical);font-size:13.5px}
+  /* Un champ porté par une ÉTAPE est FERMÉ, pas absent : mêmes traits que le patron `share-scribe`
+     et que le déplacement modal — encre douce, filet neutre, fond de second plan, curseur refusé.
+     Une seule grammaire de « fermé » dans tout le fichier. */
+  .ed-forget .li input:disabled{background:var(--surface-2);border-color:var(--line);
+    color:var(--ink-soft);cursor:not-allowed;-webkit-text-fill-color:var(--ink-soft);opacity:1}
+  .fg-go{flex:none;color:var(--ink-soft)}
+  .fg-go:hover{color:var(--ink);background:var(--surface-2)}
   /* La phase vit sur l'en-tête du bloc, discrète : c'est une étiquette d'ORGANISATION, pas un
      registre — elle ne prend donc aucune couleur sémantique. */
   /* La phase : un champ DISCRET dans l'en-tête, à droite — une étiquette d'ORGANISATION, jamais
      un registre, donc aucune couleur sémantique. En filigrane, la phase HÉRITÉE : l'auteur voit
      ce qui s'appliquera sans avoir à la retaper. */
   .blk-phase{flex:none;display:flex;align-items:center}
+  /* ⚠ MÊME BOÎTE QUE LE CHAMP D'À CÔTÉ (signalé à l'usage : « pas la même taille que l'input texte
+     d'à côté »). Deux contrôles d'une même rangée qui ne font pas la même hauteur se lisent comme
+     deux niveaux, alors qu'ils sont pairs — l'un nomme le bloc, l'autre le range. Mesuré avant :
+     39 px contre 43. La hauteur est alignée par `align-self:stretch`, donc elle SUIT le champ
+     titre quelle que soit la taille du texte, au lieu d'être recopiée en dur. */
+  .blk-phase{align-self:stretch}
   .blk-phase :is(input,select){width:132px;font-size:11px;padding:5px 8px;border:1px dashed var(--line-strong);
-    border-radius:var(--radius-sm);background:none;color:var(--ink);font-family:inherit}
+    border-radius:var(--radius-sm);background:none;color:var(--ink);font-family:inherit;height:100%}
   .blk-phase input{text-align:right}
   .blk-phase input::placeholder{color:var(--ink-soft);font-style:italic}
   .blk-phase.inh :is(input,select){border-style:dotted;color:var(--ink-soft)}
@@ -2071,7 +2098,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
 
   /* La flèche dit ce que « :: » disait : à gauche ce qui se PRONONCE, à droite ce qui se RÉPOND. */
   .li-arrow{flex:none;color:var(--ink-soft);font-size:13.5px;font-weight:700}
-  .li .li-exp{flex:0 1 34%;min-width:0;font-family:var(--mono);font-size:12px;color:var(--ink-soft)}
+  /* ⚠ UNE SEULE VOIX DANS LA RANGÉE (signalé à l'usage : « réponse attendue a l'air plus gros —
+     c'est peut-être parce que la police est différente »). Le constat est juste et la cause est
+     bien celle-là : les deux champs sont au MÊME corps (16 px, plancher tactile), mais une chasse
+     fixe a une hauteur d'x plus grande et une chasse plus large — à taille égale elle paraît plus
+     grosse. Le champ prend donc la police du geste ; LA CHASSE FIXE RESTE OÙ ELLE PORTE DU SENS,
+     c'est-à-dire sur la PILULE de lecture (`.stp-r`), où elle distingue la réponse attendue du
+     texte de l'étape. Dans un champ, la flèche disait déjà ce que la police répétait. */
+  .li .li-exp{flex:0 1 34%;min-width:0;font-size:12px;color:var(--ink-soft)}
   .li .li-exp:focus{color:var(--ink)}
   /* Les outils portent leur MOT (règle 8 étendue aux glyphes) — il s'efface sous 400 px, où la
      rangée n'a plus la place et où le `title` reste. */
@@ -2451,7 +2485,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .last-sess.exo .lsr-ic{color:var(--primary-dk);font-weight:800}
   .last-sess.exo .lsr-tx b{color:var(--primary-dk)}
   .cx-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
-  .cx-edit-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  /* ⚠ LA RANGÉE S'ENROULE PLUTÔT QUE DE TRONQUER (signalé à l'usage : « bloc sélectionné tronqué
+     en responsive sur écran peu large »). Elle tenait trois objets incompressibles sur une ligne :
+     le libellé de l'événement, la cible et la croix — sur écran étroit la cible tombait à 46 % de
+     rien et se coupait en plein nom de bloc, c'est-à-dire précisément sur l'information qui dit
+     OÙ l'on va. Même remède que le bandeau de déplacement (v4.74.0) et que la ligne d'état : on
+     empile, la croix reste ancrée en haut à droite avec sa place réservée. */
+  .cx-edit-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:8px;
+    position:relative;padding-right:36px}
+  .cx-edit-row .tk-del{position:absolute;right:0;top:0}
+  @media (max-width:559.98px){.cx-edit-row .cx-tgt{max-width:none;flex:1 0 100%}}
   .cx-edit-row .cx-edit-ic{flex:none;color:var(--critical);font-weight:800}
   .cx-edit-row input{flex:1;min-width:0}
   .cx-edit-row .cx-tgt{flex:1;min-width:0;max-width:46%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
@@ -4469,7 +4512,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     /* Rail alphabétique en COLONNE de bord (frère de .home-main dans le flex) ; l'accès à
        l'historique global vit dans la sidebar (.hs-row data-sesshist) — le lien du pied de page
        est la voie ÉTROITE, il disparaît ici. */
-    body.view-home .azrail{flex:none;width:30px;border-left:1px solid var(--surface-2);background:var(--surface)}
+    /* ⚠ LA GOUTTIÈRE DU RAIL EST RÉSERVÉE, MÊME QUAND IL N'Y A PAS DE RAIL (signalé à l'usage :
+       « les cartes sont de taille différente selon Tout / Aides / recherche »). Le rail n'existe
+       qu'en RÉPERTOIRE : en recherche il disparaît, la colonne de contenu gagnait ses 30 px, et
+       la grille fluide pouvait changer de nombre de colonnes — 312 px de rangée d'un côté, 322 de
+       l'autre, mesurés. Un annuaire dont le pas change quand on tape est un annuaire qu'on
+       réapprend à chaque geste. La gouttière est donc CONSTANTE et le rail s'y pose ou non. */
+    body.view-home .home-main{padding-right:30px}
+    body.view-home .azrail{position:absolute;right:0;top:0;bottom:0;
+      width:30px;border-left:1px solid var(--surface-2);background:var(--surface)}
+    body.view-home main{position:relative}
     #histBtn{display:none}
   }
   /* RAIL DE LECTURE — dès 780px (v4.23.0, décision utilisateur « action + structure de front ») :
@@ -6803,12 +6855,22 @@ function setList(f,key,arr){
   const mem=key==='notForget';
   const anciens=key==='notForget'?roleItems(f,'do').filter(it=>it.memory):roleItems(f,role);
   const P=poolOf(f);
-  const restants=P.filter(it=>anciens.indexOf(it)<0);
   const neufs=(arr||[]).map((str,i)=>{
     const a=anciens[i];
     if(a){const cr=stepCR(stepText(str));a.do=cr.c;a.expect=cr.r||'';a.level=v4Level(str);a.memory=mem;return a;}
     const it=v4MakeItem(uid('i'),role,str,mem);return it;});
-  f.items=restants.concat(neufs);}
+  /* ⚠ ON ÉCRIT EN PLACE, ON NE RECONCATÈNE PAS. L'ancienne version reposait toute la tranche à la
+     FIN du pool : l'ordre du chapeau devenait donc instable — une simple frappe renvoyait ses
+     lignes derrière les memory items des blocs, et l'entrelacement voulu par l'auteur se défaisait
+     tout seul. On substitue chaque ancien à SA place, on retire les surnuméraires, et l'on insère
+     les nouveaux juste après le dernier ancien (à la fin s'il n'y en avait aucun). */
+  const pris=new Set(anciens);let k=0,dernier=-1;
+  const out=[];
+  P.forEach(it=>{if(!pris.has(it)){out.push(it);return;}
+    if(k<neufs.length){out.push(neufs[k++]);dernier=out.length;}});
+  const reste=neufs.slice(k);
+  if(reste.length){if(dernier<0)dernier=out.length;out.splice(dernier,0,...reste);}
+  f.items=out;}
 const stepsOf=b=>bItems(b).map(v4ItemToStr);
 /* `syncSteps` A DISPARU À L'ÉTAPE D : il n'y a plus de miroir à régénérer. En laisser un appel
    recréerait un `b.steps` que plus rien ne lit — une donnée morte qui grossirait chaque fiche et
@@ -6852,7 +6914,19 @@ function memItemsOf(f){return ((f&&f.blocks)||[]).flatMap((b,bi)=>bItems(b).filt
   .map(it=>({t:v4ItemToStr(it),src:(b.title||('Bloc '+(bi+1))),bid:b.id})));}
 /* Le chapeau agrège les memory items DU POOL — ceux de portée fiche (ex-`notForget`) et ceux
    posés sur une étape de bloc (★). Une seule lecture, donc un seul compte. */
-const forgetAll=f=>listOf(f,'notForget').concat(memItemsOf(f).map(x=>x.t));
+/* ⚠ LE CHAPEAU EST UNE SEULE LISTE, ORDONNÉE PAR LE POOL (v5.0.0, signalé à l'usage : « il faut
+   pouvoir les mettre ENTRE les autres, et pas tout en bas »). Il agrégeait deux familles en les
+   CONCATÉNANT — les rappels de portée fiche d'abord, les ★ des étapes ensuite —, si bien qu'un
+   memory item posé sur un geste vital arrivait toujours DERNIER, quelle que soit son urgence.
+   Or les deux familles vivent dans le MÊME pool : son ordre est donc l'ordre naturel, et il est
+   déjà celui que l'auteur manipule. Une seule lecture, un seul compte, un seul ordre. */
+function forgetPool(f){
+  const P=poolOf(f||{}),src=Object.create(null);
+  ((f&&f.blocks)||[]).forEach((b,bi)=>(Array.isArray(b.items)?b.items:[]).forEach(id=>{
+    src[typeof id==='object'?id.id:id]={src:(b.title||('Bloc '+(bi+1))),bid:b.id};}));
+  return P.filter(it=>it&&it.role==='do'&&it.memory)
+    .map(it=>Object.assign({it,t:v4ItemToStr(it)},src[it.id]||{}));}
+const forgetAll=f=>forgetPool(f).map(x=>x.t);
 /* LA PHASE — CHAMP LIBRE, VALEURS SUGGÉRÉES, ET HÉRITÉE (v5.0.0, décision utilisateur).
    La maquette posait trois valeurs fixes, et posait elle-même l'objection : rien n'établit que
    les cliniciens pensent en exactement ces trois-là. On garde donc le MÉCANISME (regrouper, et
@@ -14644,6 +14718,35 @@ function renderNavOnly(){
 /* K1 : `opts.shell` habille la liste de la coquille de LECTURE correspondante (le chapeau prend
    le cadre rouge de `.forget-strip`) ; `opts.guard` y loge le garde-fou, qui vivait jusqu'ici en
    paragraphe SOUS le champ — donc hors du cadre qu'il commente. */
+/* ⚠ UNE SEULE LISTE, DEUX NATURES DE RANGÉE (v5.0.0, signalé à l'usage : « uniformise avec les
+   blocs ne pas oublier du dessus — ex. input grisé du même style »). Le chapeau montrait deux
+   objets qui n'avaient rien en commun : des champs, puis des lignes de texte d'un autre dessin,
+   reléguées en bas. Ce sont pourtant les mêmes rappels, et ils s'affichent côte à côte en lecture.
+   La rangée est donc la MÊME — poignée, champ, ×2 rien —, et ce qui change est ce que le champ
+   AUTORISE : une ligne portée par une étape est un champ DÉSACTIVÉ, dans la grammaire de « fermé »
+   du dossier (`:disabled`, cf. v4.79.0), suivi du renvoi vers le bloc où elle se modifie. On ne
+   duplique pas le lieu d'écriture : le chapeau AGRÈGE, il ne possède pas.
+   L'ORDRE EST CELUI DU POOL, donc les deux familles s'entrelacent — et la poignée déplace l'un
+   comme l'autre, puisque déplacer, ici, c'est déplacer une entrée du pool. */
+function forgetEditorHtml(f){
+  const U=forgetPool(f);
+  const src=U.length?U:[null];
+  const rows=edGrabRows('notForget',src,(u,i)=>{
+    if(!u)return `<div class="li" data-i="0"><input type="text" value="" data-fgt="0" placeholder="…" aria-label="Ne pas oublier — ligne 1"></div>`;
+    const bloc=!!u.bid;
+    return `<div class="li${edGrabClsL('notForget',i)}" data-i="${i}">`
+      +edGrabHandleL('notForget',i,src.length,'le rappel')
+      +(bloc?`<span class="fg-st" aria-hidden="true">★</span>`:'')
+      +`<input type="text" value="${esc(stepText(u.t))}" data-fgt="${i}"${bloc?' disabled':''} placeholder="…" `
+      +`aria-label="Ne pas oublier — ligne ${i+1}${bloc?' (posée sur une étape)':''}">`
+      +(bloc?`<button type="button" class="mini fg-go" data-edgo="${esc(u.bid)}" title="Se modifie dans « ${esc(u.src)} »" aria-label="Aller au bloc « ${esc(u.src)} » où cette ligne se modifie">→</button>`
+        :`<button class="mini del" data-fgdel="${i}" aria-label="Supprimer la ligne">×</button>`)
+      +`</div>`;});
+  const n=U.length,reste=Math.max(0,4-n);
+  return `<fieldset class="field list-edit ed-forget"><label>Ne pas oublier <span class="hint">4 rappels maximum — ils s’affichent en permanence, en tête de fiche</span>`
+    +`<span class="lst-n${n>4?' over':''}">${n}/4</span></label>${rows}`
+    +`<button class="add-line" data-fgadd>＋ Rappel${reste?' ('+reste+' restant'+(reste>1?'s':'')+')':''}</button>`
+    +`<p class="nf-guard" id="nfGuard" role="status">${esc(nfGuardTxt(forgetAll(f))||'')}</p></fieldset>`;}
 function listEditor(legend,hint,key,arr,ordered,opts){opts=opts||{};
   /* DÉFENSIF DEPUIS L'ÉTAPE B : les cinq listes de portée fiche ne sont plus des CHAMPS mais une
      vue sur le pool. Un appelant qui passerait encore `f.verify` transmettrait `undefined`, et le
@@ -15092,19 +15195,23 @@ function edAdd(f,kind){
    ET LA MÊME RÈGLE : « présent dans la porte ⇔ masqué quand vide ». Une section vide n'enseigne
    plus rien depuis que la porte présente les types disponibles ; elle se recrée par la porte, le
    focus dans le champ neuf. */
+/* ⚠ MÊME REGISTRE D'ÉCRITURE QUE LA PORTE DES AIDES, ET C'EST CE QUI UNIFORMISE LA RANGÉE
+   (signalé à l'usage). Le gabarit était déjà partagé, mais les gloses étaient des PHRASES là où
+   celles des aides disent la CONSÉQUENCE en deux mots — elles enroulaient, et la rangée passait de
+   52 à 56 px. Deux portes qui n'écrivent pas dans le même registre ne se ressemblent pas, quel que
+   soit leur CSS. */
 const ED_PALETTE_P=[
-  {g:'Contenu',    k:'body', ic:'doc',  n:'Contenu rédigé',  d:'le texte de la référence — titres, listes, tableaux'},
-  {g:'Annexes',    k:'att',  ic:'doc',  n:'Document (PDF)',  d:'joindre un fichier — il reste disponible hors ligne'},
-  {g:'Annexes',    k:'rel',  ic:'book', n:'Voir aussi',      d:'renvoyer vers une aide ou une autre référence'},
-  {g:'Annexes',    k:'ref',  ic:'book', n:'Référence',       d:'source citée — c\'est elle qui permet de revalider'}];
+  {g:'Contenu',    k:'body', ic:'doc',  n:'Contenu rédigé',  d:'titres, listes, tableaux'},
+  {g:'Annexes',    k:'att',  ic:'doc',  n:'Document (PDF)',  d:'lisible hors ligne'},
+  {g:'Annexes',    k:'rel',  ic:'book', n:'Voir aussi',      d:'renvoi vers une autre fiche'},
+  {g:'Annexes',    k:'ref',  ic:'book', n:'Référence',       d:'source citée'}];
 function edPaletteProtoHtml(p){
   const items=ED_PALETTE_P.filter(x=>(x.k!=='att'||supportsAttachments())
     &&(x.k!=='body'||!String((p||{}).body||'').trim()));
   let h='',grp=null;
   items.forEach(x=>{
-    if(x.g!==grp){grp=x.g;h+=`<div class="ep-grp">${esc(grp)}</div>`;}
-    h+=`<button type="button" class="ep-row" data-edaddp="${x.k}"><span class="ep-ic">${uiIcon(x.ic,17)}</span>`
-      +`<span class="ep-tx"><b>${esc(x.n)}</b><span>${esc(x.d)}</span></span></button>`;});
+    if(x.g!==grp){grp=x.g;h+=`<p class="ep-g">${esc(grp)}</p>`;}
+    h+=edPaletteRow(x.k,uiIcon(x.ic,17),x.n,x.d,'data-edaddp');});
   return h;}
 function edAddOpenProto(p){
   const m=edAddModal();const body=document.getElementById('edAddBody');
@@ -15133,6 +15240,14 @@ function edAddProto(p,kind){
     e=inputs.length?inputs[inputs.length-1]:null;}
   else if(kind==='body')e=document.getElementById('p-body');
   if(e){e.scrollIntoView({block:'center'});e.focus({preventScroll:true});}}
+/* ⚠ UNE SEULE FABRIQUE DE RANGÉE POUR LES DEUX PORTES (signalé à l'usage : « uniformise la taille
+   des items de la porte d'un protocole avec ceux des aides »). Elles avaient chacune leur gabarit
+   — `.ep-g`/`.ep-n`/`.ep-c` d'un côté, `.ep-grp`/`.ep-tx` de l'autre —, donc deux dessins, deux
+   tailles, et deux endroits à corriger. C'est la leçon que ce dossier a déjà payée quatre fois :
+   deux copies d'un même composant finissent par diverger. */
+function edPaletteRow(k,ic,nom,glose,attr){
+  return `<button type="button" class="ep-row" ${attr}="${esc(k)}"><span class="ep-ic" aria-hidden="true">${ic}</span>`
+    +`<b class="ep-n">${esc(nom)}</b><span class="ep-c">${esc(glose)}</span></button>`;}
 function edPaletteHtml(){
   /* Le repli KV ne sait pas stocker de binaire : la rangée « Document » y serait un bouton MORT.
      On ne l'affiche pas plutôt que de la désactiver — la porte doit dire ce qui est possible ICI. */
@@ -15140,7 +15255,7 @@ function edPaletteHtml(){
   let h='',grp=null;
   items.forEach(x=>{
     if(x.g!==grp){grp=x.g;h+=`<p class="ep-g">${esc(grp)}</p>`;}
-    h+=`<button type="button" class="ep-row" data-edadd="${x.k}"><span class="ep-ic" aria-hidden="true">${x.ic}</span><b class="ep-n">${esc(x.n)}</b><span class="ep-c">${esc(x.c)}</span></button>`;});
+    h+=edPaletteRow(x.k,x.ic,x.n,x.c,'data-edadd');});
   return h;}
 /* L'OBJET PRIS SE VOIT (proposition utilisateur : « quand on clique pour déplacer un bloc ou une
    étape, difficile de l'identifier dans la page »). Le bandeau `.ed-grab` NOMME l'objet, mais un
@@ -15455,19 +15570,7 @@ function renderEditor(){
     plafond de 4 était atteint. Les rangées sont LECTURE SEULE et renvoient au bloc : le texte
     d'un memory item se modifie là où il vit, dans son étape, sinon on aurait deux endroits pour
     écrire la même ligne (et le chapeau n'est PAS le propriétaire de cette ligne — l'étape l'est). */}
-    ${listEditor('Ne pas oublier','4 rappels maximum — ils s’affichent en permanence, en tête de fiche','notForget',listOf(f,'notForget'),false,{shell:'ed-forget',guard:'nfGuard',guardTxt:nfGuardTxt(forgetAll(f)),after:memItemsOf(f).map(m=>
-      /* ⚠ L'ÉTOILE EST RETIRÉE ICI (signalé à l'usage : « perturbant »). Elle est le bouton qui
-         POSE le memory item, sur l'étape ; dans le chapeau, tout est memory item par définition —
-         la répéter n'ajoutait rien et se lisait comme un contrôle qu'on ne pouvait pas presser.
-         Ce qui manquait, en revanche, c'est POURQUOI la ligne n'est pas éditable : elle vit
-         ailleurs. C'est donc le RENVOI qui devient l'information, sur sa propre ligne — bouton
-         pleine largeur ≥ 44 px, texte entier, jamais tronqué au milieu d'un titre de bloc. */
-      /* L'ÉTOILE EST REMISE (retour utilisateur : « avant c'était beaucoup plus clair »). Elle
-         n'est pas redondante — elle dit POURQUOI cette ligne est là sans être éditable : elle a
-         été posée sur une ÉTAPE. Ce qui était mal fait n'était pas le glyphe mais le RENVOI, en
-         rangée : il mangeait la moitié de la largeur et se tronquait en plein titre de bloc. Il
-         reste donc sur sa propre ligne, pleine largeur, ≥ 44 px. */
-      `<div class="mem-ro"><div class="mem-l"><span class="mem-st" aria-hidden="true">★</span><span class="mem-t">${esc(stepText(m.t))}</span></div><button type="button" class="mem-go" data-edgo="${esc(m.bid)}">Se modifie dans « ${esc(m.src)} » →</button></div>`).join('')})}
+    ${forgetEditorHtml(f)}
     ${''/* B4 (v5.0.0, lot M3, maquettes proto-large) — « CONDITION D'ENTRÉE » RÉUNIT LES DEUX
     MOITIÉS D'UNE MÊME DÉCISION. Les critères de confirmation et les diagnostics à éliminer
     vivaient dans deux sections éloignées de ~1 200 px, alors qu'ils répondent à UNE question et
@@ -15715,9 +15818,17 @@ function bindEditorEvents(f){
        séparateur pour dire une chose que le modèle sait porter depuis l'étape B. Deux champs
        disent la même chose sans convention à apprendre, et sans qu'un « :: » tapé dans un texte
        clinique puisse être pris pour une séparation. */
+    /* ⚠ LA CLASSE `has-exp` EST POSÉE AU RENDU, ET ÉCRIRE NE RE-REND PAS (signalé à l'usage :
+       « si on ajoute une réponse attendue, ne s'affiche pas ; et quand on efface, ça reste
+       affiché »). Le champ n'est visible qu'au focus ou quand la réponse EXISTE : sans mise à jour
+       de la classe, une réponse ajoutée disparaissait à la sortie du champ, et une réponse effacée
+       laissait le champ vide affiché pour toujours. On la peint SUR PLACE — un re-rendu à chaque
+       frappe détruirait le champ sous le curseur (leçon du quai). */
     card.querySelectorAll('input[data-sx]').forEach(inp=>inp.addEventListener('input',e=>{
       const it=bItems(b)[+e.target.dataset.sx];if(!it)return;
-      it.expect=e.target.value;scheduleFlowPreview(f);}));
+      it.expect=e.target.value;
+      const li=e.target.closest('.li');if(li)li.classList.toggle('has-exp',!!String(e.target.value||'').trim());
+      scheduleFlowPreview(f);}));
     card.querySelectorAll('[data-mem]').forEach(btn=>btn.onclick=()=>{
       const it=bItems(b)[+btn.dataset.mem];if(!it)return;it.memory=!it.memory;
       keepAnchor('.blk[data-bid="'+CSS.escape(b.id)+'"] .li[data-si="'+(+btn.dataset.mem)+'"]',renderEditor);
@@ -15876,8 +15987,36 @@ function bindListEditors(d,rerender){d=d||state.draft;rerender=rerender||renderE
      if(g&&g.kind==='l'&&g.key===p[0]&&g.i===+p[1]){edGrabDrop();return;}}
     state.edGrab={kind:'l',key:p[0],i:+p[1]};
     keepAnchor('[data-lgrab="'+CSS.escape(b.dataset.lgrab)+'"]',rerender);});
+  /* LE CHAPEAU EST UNE VUE SUR LE POOL, ET SES TROIS GESTES Y ÉCRIVENT DIRECTEMENT. Il ne passe
+     plus par `edList`/`edPut` : ses rangées ne sont pas toutes de portée fiche — certaines sont
+     portées par une étape, et les faire transiter par `setList` les détacherait de leur bloc. */
+  main.querySelectorAll('input[data-fgt]').forEach(inp=>inp.addEventListener('input',e=>{
+    const u=forgetPool(d)[+e.target.dataset.fgt];if(!u){edTouch();return;}
+    const cr=stepCR(stepText(e.target.value));u.it.do=cr.c;if(cr.r)u.it.expect=cr.r;
+    const g=document.getElementById('nfGuard');if(g)g.textContent=nfGuardTxt(forgetAll(d))||'';
+    revPanelRefresh(d);edTouch();}));
+  main.querySelectorAll('[data-fgdel]').forEach(b=>b.onclick=()=>{
+    const u=forgetPool(d)[+b.dataset.fgdel];if(!u)return;
+    d.items=poolOf(d).filter(it=>it!==u.it);rerender();});
+  {const a=main.querySelector('[data-fgadd]');
+   if(a)a.onclick=()=>{poolOf(d).push(v4MakeItem(uid('i'),'do','',true));rerender();
+     const l=[...main.querySelectorAll('input[data-fgt]')].pop();if(l)l.focus();};}
   main.querySelectorAll('[data-ldrop]').forEach(b=>b.onclick=()=>{
     const g=state.edGrab;const p=b.dataset.ldrop.split(':');const key=p[0];let to=+p[1];
+    /* ⚠ LE CHAPEAU SE RÉORDONNE DANS LE POOL, pas dans une liste de chaînes : ses deux familles
+       n'ont pas le même propriétaire (l'une est de portée fiche, l'autre appartient à une étape),
+       mais elles vivent dans le MÊME tableau — déplacer, ici, c'est déplacer une entrée du pool,
+       et le bloc qui référence l'item par son identité n'en sait rien. */
+    if(key==='notForget'){
+      const U=forgetPool(d);const src=U[g&&g.i];
+      if(!g||g.kind!=='l'||g.key!==key||!src){state.edGrab=null;rerender();return;}
+      const P=poolOf(d),from=P.indexOf(src.it);
+      const cible=to>=U.length?P.length:P.indexOf(U[to].it);
+      P.splice(from,1);
+      P.splice(cible-(from<cible?1:0),0,src.it);
+      state.edGrab=null;
+      if(g.i<to)to--;
+      keepAnchor('[data-lgrab="'+CSS.escape(key+':'+to)+'"]',rerender);return;}
     /* Étape B : les cinq listes de portée fiche sont une VUE sur le pool — on lit, on réordonne,
        on réécrit. `setList` conserve les identités des lignes inchangées. */
     const arr=edList(d,key);

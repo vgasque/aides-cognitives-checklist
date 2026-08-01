@@ -2839,6 +2839,59 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   ⚠ **Ce qui est HÉRITÉ est la phase du bloc PRÉCÉDENT, pas l'effective** : `phaseOf` rend la phase
   qui s'APPLIQUE, celle du bloc comprise — s'en servir faisait dire « hérite : Immédiate » au bloc
   qui déclare lui-même « Immédiate ».
+- **SEIZIÈME PIÈGE DE CASCADE — UN LONGHAND NE SURVIT PAS À UN RACCOURCI ULTÉRIEUR (v5.0.0,
+  signalé à l'usage, capture à l'appui : « les icônes dans la zone de texte se superposent avec le
+  texte »)** : la marque ⚠/△ d'une étape est réservée par un `padding-left` LONGHAND ; 1 350 lignes
+  plus bas, `.blk .li input[type=text]:focus` repose un `padding` RACCOURCI — même spécificité
+  (0,4,1), déclaré APRÈS, donc gagnant. **Le défaut n'existait donc qu'AU FOCUS**, ce qui explique
+  qu'il ait survécu : mesuré à 390 px, rembourrage 11 px, texte commençant à 96 px pour une icône
+  finissant à 101. Même mécanisme que le quinzième piège (`.rt-h2`). On passe par `:is()` à (0,5,1)
+  et l'on couvre le repos ET le focus. **Le témoin doit FOCALISER** — sans cela il mesure l'état où
+  le défaut n'est pas.
+- **UNE CLASSE POSÉE AU RENDU NE SUIT PAS LA FRAPPE (v5.0.0, signalé à l'usage)** : `has-exp`
+  décide de l'affichage de la « réponse attendue » hors focus. Écrire ne re-rend pas (et ne DOIT
+  pas : un re-rendu détruirait le champ sous le curseur) — une réponse ajoutée disparaissait donc à
+  la sortie du champ, et une réponse effacée laissait le champ vide affiché pour toujours. On peint
+  la classe SUR PLACE dans le handler de saisie.
+- **UNE SEULE VOIX PAR RANGÉE (v5.0.0, signalé à l'usage)** : les deux champs d'une étape sont au
+  MÊME corps (16 px, plancher tactile) mais l'un était en chasse fixe — à taille égale, une chasse
+  fixe a une hauteur d'x plus grande et paraît plus grosse. Le champ prend la police du geste ; **la
+  chasse fixe reste où elle porte du sens**, c'est-à-dire sur la PILULE de lecture (`.stp-r`).
+- **LE CHAPEAU « NE PAS OUBLIER » EST UNE SEULE LISTE, ORDONNÉE PAR LE POOL (v5.0.0, signalé à
+  l'usage : « il faut pouvoir les mettre ENTRE les autres, pas tout en bas »)** : il agrégeait deux
+  familles en les CONCATÉNANT — rappels de portée fiche d'abord, ★ des étapes ensuite —, si bien
+  qu'un memory item posé sur un geste vital arrivait toujours DERNIER. Or les deux vivent dans le
+  MÊME pool : son ordre est l'ordre naturel, et c'est celui que l'auteur manipule déjà. La rangée
+  est la même pour les deux ; ce qui change est ce que le champ AUTORISE — une ligne portée par une
+  étape est un champ `:disabled`, dans la grammaire de « fermé » du dossier (v4.79.0), suivi du
+  renvoi vers son bloc. **Le chapeau AGRÈGE, il ne possède pas** : on ne duplique pas le lieu
+  d'écriture. ⚠ **`setList` écrit désormais EN PLACE** : il reposait la tranche en FIN de pool, donc
+  une simple frappe renvoyait les rappels derrière les ★ et défaisait l'entrelacement tout seul.
+- **LA GOUTTIÈRE DU RAIL A→Z EST RÉSERVÉE, MÊME SANS RAIL (v5.0.0, signalé à l'usage : « les cartes
+  sont de taille différente selon Tout / Aides / recherche »)** : le rail n'existe qu'en RÉPERTOIRE ;
+  en recherche il disparaissait, la colonne gagnait ses 30 px et la grille fluide pouvait changer de
+  nombre de colonnes — 312 px de rangée d'un côté, 322 de l'autre, mesurés. Un annuaire dont le pas
+  change quand on tape est un annuaire qu'on réapprend à chaque geste. Mesuré après : **319 px dans
+  les six configurations** (trois filtres × répertoire/recherche).
+- **UN SEUL LIBELLÉ POUR « CONSULTER », À TOUTES LES LARGEURS (v5.0.0, demande utilisateur)** :
+  l'abréviation « Cons. » datait d'avant la mesure. Depuis que `fitCtrlRow` mesure le débordement
+  RÉEL et descend d'un palier de compression avant d'enrouler (v4.74.2), la place existe — vérifié
+  de 320 à 430 px aux quatre tailles de texte. Un bouton qui change de mot selon la largeur est un
+  bouton qu'on relit : la constance du libellé est la même exigence que la constance de sa position.
+- **LES DEUX PORTES « ＋ » PARTAGENT LEUR FABRIQUE DE RANGÉE *ET* LEUR REGISTRE D'ÉCRITURE (v5.0.0,
+  signalé à l'usage)** : celle des références avait son propre gabarit (`.ep-grp`/`.ep-tx`, sans
+  aucune règle CSS — d'où son dessin fautif). Une seule fabrique désormais. **Et le gabarit ne
+  suffisait pas** : ses gloses étaient des PHRASES là où celles des aides disent la CONSÉQUENCE en
+  deux mots — elles enroulaient, et la rangée passait de 52 à 56 px. Deux portes qui n'écrivent pas
+  dans le même registre ne se ressemblent pas, quel que soit leur CSS.
+- **DEUX RANGÉES DE FILTRES VOISINES RÉPONDENT AU GESTE DE LA MÊME FAÇON (v5.0.0)** : les chips de
+  TYPE n'avaient aucune micro-réponse au survol, celles de CATÉGORIE oui — même grammaire, même
+  geste, deux comportements.
+- **UNE RANGÉE D'ÉDITEUR S'ENROULE PLUTÔT QUE DE TRONQUER (v5.0.0, signalé à l'usage)** : la rangée
+  de complication tenait trois objets incompressibles sur une ligne, et sur écran étroit la CIBLE
+  tombait à 46 % de rien et se coupait en plein nom de bloc — c'est-à-dire précisément sur
+  l'information qui dit OÙ l'on va. Même remède que le bandeau de déplacement et que la ligne
+  d'état : on empile, la croix reste ancrée avec sa place réservée.
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.

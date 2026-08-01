@@ -844,5 +844,105 @@ t('B2 — les outils portent leur MOT', /^(registre|vital|vérifier)$/.test(M1.m
 t('… et la rangée ne déborde pas à 320 px', M1.deb<=0, `${M1.deb} px hors de la boîte`);
 await p.setViewportSize({width:390,height:900});
 
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   L'ÉDITEUR, PASSE D'UNIFORMISATION (v5.0.0) — sept défauts signalés à l'usage.
+   Tous se mesurent sur la MÊME page : on la construit une fois.
+   ───────────────────────────────────────────────────────────────────────────── */
+await p.setViewportSize({width:390,height:900});
+const U=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+  await openEdit(fiches[0].id);await w(700);
+  /* (1) LA MARQUE DE REGISTRE NE PASSE PAS SOUS LE TEXTE. Le défaut n'existait qu'au FOCUS —
+     un `padding` raccourci de la règle `:focus`, déclarée 1 350 lignes plus bas, écrasait le
+     `padding-left` longhand qui réserve la place de l'icône. Le témoin doit donc FOCALISER. */
+  const li=document.querySelector('.blk .li.li-crit')||document.querySelector('.blk .li');
+  const inp=li.querySelector('input[data-sf]'),mk=li.querySelector('.li-mk');
+  inp.focus();await w(200);
+  const ci=getComputedStyle(inp),ri=inp.getBoundingClientRect();
+  const svg=mk&&mk.querySelector('svg'),rs=(svg||mk||inp).getBoundingClientRect();
+  const marque=li.classList.contains('li-crit')||li.classList.contains('li-vigil');
+  const chevauche=marque&&(ri.left+parseFloat(ci.paddingLeft)+parseFloat(ci.borderLeftWidth))<rs.right;
+  /* (7) UNE SEULE VOIX : les deux champs de la rangée, même corps ET même police. */
+  const ex=li.querySelector('.li-exp');const ce=getComputedStyle(ex);
+  /* (2) LA RÉPONSE ATTENDUE SUIT LA FRAPPE, SANS RE-RENDU : la classe `has-exp` décide de son
+     affichage hors focus — posée au rendu seulement, elle restait périmée dans les deux sens. */
+  const li2=[...document.querySelectorAll('.blk .li')].find(x=>!x.classList.contains('has-exp'))||li;
+  const ex2=li2.querySelector('.li-exp');
+  ex2.value='témoin';ex2.dispatchEvent(new Event('input',{bubbles:true}));await w(120);
+  const apresAjout=li2.classList.contains('has-exp');
+  ex2.value='';ex2.dispatchEvent(new Event('input',{bubbles:true}));await w(120);
+  const apresEffacement=li2.classList.contains('has-exp');
+  /* (3) LE SÉLECTEUR DE PHASE A LA BOÎTE DE SON VOISIN. */
+  const ph=document.querySelector('.blk-phase select'),ti=document.querySelector('.blk-top input[data-bf="title"]');
+  /* (5) LE CHAPEAU EST UNE SEULE LISTE, ORDONNÉE PAR LE POOL : une ligne portée par une étape y
+     est une rangée COMME LES AUTRES, au champ fermé, et elle se déplace. */
+  const fg=[...document.querySelectorAll('.ed-forget .li')];
+  const heritee=fg.find(r=>r.querySelector('.fg-st'));
+  const propre=fg.find(r=>!r.querySelector('.fg-st'));
+  const memeBoite=heritee&&propre
+    ?Math.abs(heritee.querySelector('input').getBoundingClientRect().height
+      -propre.querySelector('input').getBoundingClientRect().height)<=1:false;
+  /* On identifie la ligne par SON texte, pas par sa position : la mesure précédente a pu
+     réécrire une étape, donc l'ordre d'avant n'est pas une hypothèse sûre. */
+  const herTxt=heritee?heritee.querySelector('input').value:null;
+  let deplace=null,apresTxt=null;
+  if(heritee&&heritee.querySelector('[data-lgrab]')){
+    heritee.querySelector('[data-lgrab]').click();await w(320);
+    const d0=document.querySelector('.ed-forget [data-ldrop]');if(d0){d0.click();await w(420);}
+    apresTxt=forgetAll(state.draft)[0]||'';
+    deplace=!!herTxt&&apresTxt.indexOf(herTxt.slice(0,18))>=0;}
+  return {marque,chevauche,fsDo:ci.fontSize,fsEx:ce.fontSize,
+    famDo:ci.fontFamily.split(',')[0].trim(),famEx:ce.fontFamily.split(',')[0].trim(),
+    apresAjout,apresEffacement,
+    phH:ph?Math.round(ph.getBoundingClientRect().height):0,
+    tiH:ti?Math.round(ti.getBoundingClientRect().height):0,
+    phTag:ph?ph.tagName:'—',
+    fgN:fg.length,heritee:!!heritee,ferme:heritee?heritee.querySelector('input').disabled:null,
+    memeBoite,deplace,herTxt,apresTxt};});
+
+t('témoin : la rangée mesurée porte bien une marque de registre', U.marque===true, String(U.marque));
+t('la marque ⚠ ne passe pas SOUS le texte, même au focus', U.chevauche===false, `chevauche=${U.chevauche}`);
+t('les deux champs de la rangée ont la même voix (corps ET police)',
+  U.fsDo===U.fsEx&&U.famDo===U.famEx, `${U.fsDo}/${U.famDo} vs ${U.fsEx}/${U.famEx}`);
+t('une réponse attendue AJOUTÉE s’affiche hors focus', U.apresAjout===true, String(U.apresAjout));
+t('… et EFFACÉE, elle disparaît', U.apresEffacement===false, String(U.apresEffacement));
+/* ⚠ MESURÉ À 1280 px, ET C'EST LÀ QUE LE DÉFAUT VIT : à 390 le sélecteur retombait par hasard
+   sur la hauteur du champ voisin, si bien qu'un témoin étroit restait vert sur l'écart (39 px
+   contre 43, mesurés en large). Un contrôle qui ne rencontre pas son cas ne le couvre pas. */
+await p.setViewportSize({width:1280,height:900});
+const PH=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+  await openEdit(fiches[0].id);await w(700);
+  const ph=document.querySelector('.blk-phase select'),ti=document.querySelector('.blk-top input[data-bf="title"]');
+  return {tag:ph?ph.tagName:'—',ph:ph?Math.round(ph.getBoundingClientRect().height):0,
+    ti:ti?Math.round(ti.getBoundingClientRect().height):0};});
+await p.setViewportSize({width:390,height:900});
+t('la phase est un SÉLECTEUR, à la boîte de son voisin',
+  PH.tag==='SELECT'&&Math.abs(PH.ph-PH.ti)<=1, `${PH.tag} ${PH.ph} px vs ${PH.ti} px`);
+t('le chapeau est UNE liste : la ligne héritée y est une rangée fermée',
+  U.heritee===true&&U.ferme===true&&U.memeBoite===true,
+  `héritée=${U.heritee} fermée=${U.ferme} même boîte=${U.memeBoite}`);
+t('… et elle se déplace parmi les autres (ordre du pool)', U.deplace===true,
+  `« ${String(U.herTxt).slice(0,28)} » → tête « ${String(U.apresTxt).slice(0,28)} »`);
+
+/* (9) LES DEUX PORTES ONT LE MÊME GABARIT DE RANGÉE. */
+const PORTE=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+  const mes=()=>{const r=document.querySelector('.ed-palette .ep-row')||document.querySelector('.ep-row');
+    if(!r)return null;const c=getComputedStyle(r);
+    return {h:Math.round(r.getBoundingClientRect().height),fs:getComputedStyle(r.querySelector('.ep-n')||r).fontSize,
+      ic:!!r.querySelector('.ep-ic'),n:!!r.querySelector('.ep-n')};};
+  document.getElementById('edAddOpen').click();await w(350);const A=mes();
+  document.querySelector('#edAddModal .ai-x').click();await w(250);
+  /* ⚠ UNE SONDE OUVRE PAR LE VRAI POINT D'ENTRÉE (doctrine v4.40.0) : reconstruire l'état à la
+     main donnait un éditeur sans sa porte, et le témoin mesurait alors le vide. */
+  protocols.push(migrateProtocol({id:'pT',title:'T',kind:'reference',body:''}));
+  await openProtocolEdit('pT');await w(700);
+  const b=document.getElementById('edAddOpenP');if(!b)return {A,B:null};
+  b.click();await w(350);const B=mes();
+  return {A,B};});
+t('témoin : les deux portes ont été ouvertes', !!PORTE.A&&!!PORTE.B, JSON.stringify(PORTE));
+t('… et leurs rangées ont le même gabarit',
+  !!PORTE.A&&!!PORTE.B&&PORTE.A.h===PORTE.B.h&&PORTE.A.fs===PORTE.B.fs&&PORTE.B.ic&&PORTE.B.n,
+  JSON.stringify(PORTE));
+
 console.log(`\n${ok}/${ok+ko} OK${ko?` — ${ko} ÉCHEC(S)`:''}`);
 await br.close();srv.close();process.exit(ko?1:0);

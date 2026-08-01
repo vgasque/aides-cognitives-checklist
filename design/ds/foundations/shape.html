@@ -649,9 +649,12 @@
      abréviation de l'ancien « Réf. », qui donnait deux NOMS au même bouton (retour d'usage : « on
      s'y perd »). Le mot tronqué reste reconnaissable, l'identité du bouton ne change pas. Objectif
      mesuré : rendre au quai la largeur d'un segment de minuteur en étroit. */
+  /* ⚠ UN SEUL LIBELLÉ, À TOUTES LES LARGEURS (demande utilisateur). L'abréviation « Cons. »
+     datait d'avant la mesure : depuis que `fitCtrlRow` mesure le débordement RÉEL et descend d'un
+     palier de compression avant d'enrouler (v4.74.2), la place existe — vérifié de 320 à 430 px
+     aux quatre tailles de texte. Un bouton qui change de mot selon la largeur est un bouton qu'on
+     relit ; la constance du libellé est la même exigence que la constance de sa position. */
   .dock-plan .dp-ab{display:none}
-  html.zw560 .dock-plan .dp-full{display:none}
-  html.zw560 .dock-plan .dp-ab{display:inline}
   /* Le libellé « Plan » ne disparaît à AUCUNE largeur : le glyphe ⤢ jouxte le chevron ▾ des
      minuteurs, et deux pictogrammes voisins sans mot se confondent sous stress. Ce sont les
      segments de minuteurs qui cèdent la place (ils s'ellipsent déjà). */
@@ -987,6 +990,10 @@
      un bouton) — sans lui, elle hériterait du 1.5 du body et serait plus haute que les chips
      <button> (line-height UA), gonflant toute la rangée à la sélection. */
   .scopebtn{position:relative;display:inline-flex;align-items:center;line-height:normal;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 14px;border-radius:var(--radius-sm);font-size:13.5px;font-weight:600;cursor:pointer;transition:background .12s,border-color .12s}
+  /* Même micro-réponse que `.catchip` (signalé à l'usage : les chips de TYPE n'en avaient
+     aucune) — deux rangées de filtres voisines qui ne répondent pas pareil se lisent comme deux
+     composants, alors que c'est le même geste sur la même grammaire. */
+  .scopebtn:not(.on):hover{border-color:var(--line-hover);background:var(--surface-2)}
   .scopebtn.on,.startbtn.on{background:var(--primary);color:var(--on-primary);border-color:var(--primary)}
   .scopebtn.add{border-style:dashed;color:var(--primary);background:transparent}
   /* Halo tactile (audit v4.5) : chips ~33px -> cible >= 44px, étendue en VERTICAL seulement
@@ -1262,7 +1269,10 @@
      chercher en changeait la quantité et déplaçait toute la colonne (mesuré : première lettre à
      307 px, ailleurs dès qu'une lettre disparaît). Un index d'annuaire doit être là où l'on a
      appris à le viser, quel que soit ce qu'il contient. */
-  .azrail{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:1px;padding:8px 2px;touch-action:none;overflow:hidden}
+  /* Rembourrage ASYMÉTRIQUE d'un pixel, à dessein : le filet gauche de la variante large est à
+     l'intérieur de la boîte (box-sizing global), donc un rembourrage égal décalait les lettres
+     d'un pixel vers la droite. Mesuré, puis compensé — « centré » veut dire centré. */
+  .azrail{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:1px;padding:8px 2px 8px 1px;touch-action:none;overflow:hidden}
   .azrail button{border:0;background:none;color:var(--link);font-size:11px;font-weight:700;cursor:pointer;padding:0 5px;min-height:24px;min-width:24px;border-radius:5px;font-family:inherit}
   .azrail button:hover{background:var(--primary-soft)}
   .azrail button:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
@@ -1601,8 +1611,18 @@
   .li-mk{position:absolute;left:0;top:50%;transform:translateY(-50%);width:20px;
     display:flex;align-items:center;justify-content:center;color:var(--critical);pointer-events:none}
   .blk .li{position:relative}
+  /* ⚠ SEIZIÈME PIÈGE DE CASCADE, ET IL SE VOYAIT À L'ŒIL (signalé à l'usage, capture à l'appui :
+     « les icônes dans la zone de texte se superposent avec le texte »). La marque est réservée par
+     un `padding-left` LONGHAND ; 1 350 lignes plus bas, `.blk .li input[type=text]:focus` repose un
+     `padding` RACCOURCI — même spécificité (0,4,1) que la règle de la marque, déclaré APRÈS, donc
+     gagnant. Mesuré au FOCUS à 390 px : rembourrage 11 px, texte commençant à 96 px pour une icône
+     finissant à 101 — le ⚠ passait SOUS la première lettre. C'est le même mécanisme que le
+     quinzième piège (`.rt-h2`), et la même leçon : un longhand ne survit pas à un raccourci
+     ultérieur. On passe par `:is()` à (0,5,1), qui gagne quel que soit l'ordre, et l'on couvre le
+     repos ET le focus. */
   .blk .li input[data-sf]{padding-left:11px}
-  .blk .li.li-crit input[data-sf],.blk .li.li-vigil input[data-sf]{padding-left:26px}
+  .blk .li:is(.li-crit,.li-vigil) input[data-sf],
+  .blk .li:is(.li-crit,.li-vigil) input[data-sf]:focus{padding-left:26px}
   .li-vigil .li-mk{color:var(--verify)}
   /* Le champ et sa marque forment un seul objet de la rangée : c'est LUI qui s'étire. */
   .li-fw{position:relative;flex:1;min-width:0;display:flex}
@@ -1620,21 +1640,28 @@
   /* Un memory item posé sur une ÉTAPE : le texte, puis le renvoi vers le bloc où il vit — sur sa
      PROPRE ligne. En rangée, le renvoi mangeait la moitié de la largeur et se tronquait en plein
      titre de bloc, sur téléphone comme sur ordinateur. */
-  .mem-ro{padding:7px 0;border-top:1px solid var(--line)}
-  .mem-l{display:flex;align-items:baseline;gap:8px}
-  .mem-st{flex:none;color:var(--critical);font-size:13.5px}
-  .mem-t{flex:1;min-width:0;font-size:13.5px;font-weight:600;color:var(--ink)}
-  .mem-go{display:block;width:100%;text-align:left;margin-top:4px;min-height:44px;padding:6px 0;
-    background:none;border:0;cursor:pointer;font-size:11px;font-weight:700;color:var(--link)}
-  .mem-go:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:6px}
+  .fg-st{flex:none;color:var(--critical);font-size:13.5px}
+  /* Un champ porté par une ÉTAPE est FERMÉ, pas absent : mêmes traits que le patron `share-scribe`
+     et que le déplacement modal — encre douce, filet neutre, fond de second plan, curseur refusé.
+     Une seule grammaire de « fermé » dans tout le fichier. */
+  .ed-forget .li input:disabled{background:var(--surface-2);border-color:var(--line);
+    color:var(--ink-soft);cursor:not-allowed;-webkit-text-fill-color:var(--ink-soft);opacity:1}
+  .fg-go{flex:none;color:var(--ink-soft)}
+  .fg-go:hover{color:var(--ink);background:var(--surface-2)}
   /* La phase vit sur l'en-tête du bloc, discrète : c'est une étiquette d'ORGANISATION, pas un
      registre — elle ne prend donc aucune couleur sémantique. */
   /* La phase : un champ DISCRET dans l'en-tête, à droite — une étiquette d'ORGANISATION, jamais
      un registre, donc aucune couleur sémantique. En filigrane, la phase HÉRITÉE : l'auteur voit
      ce qui s'appliquera sans avoir à la retaper. */
   .blk-phase{flex:none;display:flex;align-items:center}
+  /* ⚠ MÊME BOÎTE QUE LE CHAMP D'À CÔTÉ (signalé à l'usage : « pas la même taille que l'input texte
+     d'à côté »). Deux contrôles d'une même rangée qui ne font pas la même hauteur se lisent comme
+     deux niveaux, alors qu'ils sont pairs — l'un nomme le bloc, l'autre le range. Mesuré avant :
+     39 px contre 43. La hauteur est alignée par `align-self:stretch`, donc elle SUIT le champ
+     titre quelle que soit la taille du texte, au lieu d'être recopiée en dur. */
+  .blk-phase{align-self:stretch}
   .blk-phase :is(input,select){width:132px;font-size:11px;padding:5px 8px;border:1px dashed var(--line-strong);
-    border-radius:var(--radius-sm);background:none;color:var(--ink);font-family:inherit}
+    border-radius:var(--radius-sm);background:none;color:var(--ink);font-family:inherit;height:100%}
   .blk-phase input{text-align:right}
   .blk-phase input::placeholder{color:var(--ink-soft);font-style:italic}
   .blk-phase.inh :is(input,select){border-style:dotted;color:var(--ink-soft)}
@@ -1786,7 +1813,14 @@
 
   /* La flèche dit ce que « :: » disait : à gauche ce qui se PRONONCE, à droite ce qui se RÉPOND. */
   .li-arrow{flex:none;color:var(--ink-soft);font-size:13.5px;font-weight:700}
-  .li .li-exp{flex:0 1 34%;min-width:0;font-family:var(--mono);font-size:12px;color:var(--ink-soft)}
+  /* ⚠ UNE SEULE VOIX DANS LA RANGÉE (signalé à l'usage : « réponse attendue a l'air plus gros —
+     c'est peut-être parce que la police est différente »). Le constat est juste et la cause est
+     bien celle-là : les deux champs sont au MÊME corps (16 px, plancher tactile), mais une chasse
+     fixe a une hauteur d'x plus grande et une chasse plus large — à taille égale elle paraît plus
+     grosse. Le champ prend donc la police du geste ; LA CHASSE FIXE RESTE OÙ ELLE PORTE DU SENS,
+     c'est-à-dire sur la PILULE de lecture (`.stp-r`), où elle distingue la réponse attendue du
+     texte de l'étape. Dans un champ, la flèche disait déjà ce que la police répétait. */
+  .li .li-exp{flex:0 1 34%;min-width:0;font-size:12px;color:var(--ink-soft)}
   .li .li-exp:focus{color:var(--ink)}
   /* Les outils portent leur MOT (règle 8 étendue aux glyphes) — il s'efface sous 400 px, où la
      rangée n'a plus la place et où le `title` reste. */
@@ -2166,7 +2200,16 @@
   .last-sess.exo .lsr-ic{color:var(--primary-dk);font-weight:800}
   .last-sess.exo .lsr-tx b{color:var(--primary-dk)}
   .cx-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
-  .cx-edit-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  /* ⚠ LA RANGÉE S'ENROULE PLUTÔT QUE DE TRONQUER (signalé à l'usage : « bloc sélectionné tronqué
+     en responsive sur écran peu large »). Elle tenait trois objets incompressibles sur une ligne :
+     le libellé de l'événement, la cible et la croix — sur écran étroit la cible tombait à 46 % de
+     rien et se coupait en plein nom de bloc, c'est-à-dire précisément sur l'information qui dit
+     OÙ l'on va. Même remède que le bandeau de déplacement (v4.74.0) et que la ligne d'état : on
+     empile, la croix reste ancrée en haut à droite avec sa place réservée. */
+  .cx-edit-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:8px;
+    position:relative;padding-right:36px}
+  .cx-edit-row .tk-del{position:absolute;right:0;top:0}
+  @media (max-width:559.98px){.cx-edit-row .cx-tgt{max-width:none;flex:1 0 100%}}
   .cx-edit-row .cx-edit-ic{flex:none;color:var(--critical);font-weight:800}
   .cx-edit-row input{flex:1;min-width:0}
   .cx-edit-row .cx-tgt{flex:1;min-width:0;max-width:46%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
@@ -4184,7 +4227,16 @@
     /* Rail alphabétique en COLONNE de bord (frère de .home-main dans le flex) ; l'accès à
        l'historique global vit dans la sidebar (.hs-row data-sesshist) — le lien du pied de page
        est la voie ÉTROITE, il disparaît ici. */
-    body.view-home .azrail{flex:none;width:30px;border-left:1px solid var(--surface-2);background:var(--surface)}
+    /* ⚠ LA GOUTTIÈRE DU RAIL EST RÉSERVÉE, MÊME QUAND IL N'Y A PAS DE RAIL (signalé à l'usage :
+       « les cartes sont de taille différente selon Tout / Aides / recherche »). Le rail n'existe
+       qu'en RÉPERTOIRE : en recherche il disparaît, la colonne de contenu gagnait ses 30 px, et
+       la grille fluide pouvait changer de nombre de colonnes — 312 px de rangée d'un côté, 322 de
+       l'autre, mesurés. Un annuaire dont le pas change quand on tape est un annuaire qu'on
+       réapprend à chaque geste. La gouttière est donc CONSTANTE et le rail s'y pose ou non. */
+    body.view-home .home-main{padding-right:30px}
+    body.view-home .azrail{position:absolute;right:0;top:0;bottom:0;
+      width:30px;border-left:1px solid var(--surface-2);background:var(--surface)}
+    body.view-home main{position:relative}
     #histBtn{display:none}
   }
   /* RAIL DE LECTURE — dès 780px (v4.23.0, décision utilisateur « action + structure de front ») :
