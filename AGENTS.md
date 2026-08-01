@@ -3030,6 +3030,35 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   retour repousse, ce sont les étapes de la complication où l'on vient d'entrer.
   ⚠ **La surface « excursions » d'`audit-a11y` change de PORTEUR, pas de nature** : elle vise
   `.cx-list` et construit désormais son cas (deux événements — à un seul, il n'y a pas d'index).
+- **LE HARNAIS D'ACCESSIBILITÉ MESURE DÉSORMAIS DES ÉTATS ET CINQ SURFACES DE PLUS (v5.0.0,
+  audit design, action 1 et 2)** : il ouvrait ses 25 surfaces AU REPOS, et à 1100/1280/390 px.
+  Manquaient donc **la bibliothèque en voie étroite** (chips de filtre, rail A→Z, rangées du
+  répertoire), **la lecture d'une référence**, **le mode statique**, **le moniteur**, **l'éditeur
+  de protocole** — et **320 px**, le plancher que le dossier déclare servir, n'était mesuré que sur
+  l'écran d'entrée invité. Cinq **ÉTATS** entrent aussi : recherche active, excursion (retour),
+  minuteur échu, index ⚡ déplié, lien de partage mort.
+  **CHAQUE ÉTAT DÉCLARE CE QUI DOIT EXISTER (`must`), ET SON ABSENCE EST UN ÉCHEC** — sans quoi la
+  sonde mesure le repos en croyant mesurer autre chose, la leçon la plus redite du dossier. Elle a
+  immédiatement payé : deux états ne se construisaient pas, et l'un des deux a révélé un **défaut
+  préexistant** (voir ci-dessous).
+  **TROIS DÉFAUTS TROUVÉS PAR L'EXTENSION**, tous corrigés : le champ de recherche n'avait **aucun
+  anneau de focus** (`outline:none` + un simple changement de teinte de filet d'1 px — WCAG 2.4.11
+  et la règle « tout nouvel élément interactif reçoit un `:focus-visible` ») ; `#hdrBack` était à
+  **39 px de cible** (voir plus bas) ; et le retour d'excursion **n'existait pas sur un bloc de
+  décision**.
+- **LE RETOUR D'EXCURSION EXISTE AUSSI SUR UN BLOC DE DÉCISION (v5.0.0, défaut PRÉEXISTANT)** :
+  `↩ Reprendre` n'était émis que dans la branche « bloc d'étapes ». Entrer sur une complication
+  dont la cible est une DÉCISION laissait donc sans retour — le dispositif promet que le retour
+  n'est jamais laissé à la mémoire (AC 120-71B), il ne le tenait qu'à moitié. Une seule fabrique
+  (`cxBackHtml`) sert les deux natures de bloc : un gabarit écrit deux fois finit par diverger, et
+  c'est exactement ce qui s'était produit.
+- **DIX-SEPTIÈME PIÈGE DE CASCADE — UN MEMBRE DE LISTE `:is()` DÉCLARÉ PLUS BAS (v5.0.0)** :
+  `.hdr-back` faisait 31 × 40 px avec un halo de 4 → **39 px de cible**, sous les 44 de la doctrine
+  et de HIG. Son halo propre à -7 px ne s'appliquait pas : la liste générique
+  `:is(.hdr-new,.hdr-theme,.hdr-act2,.bar-acct,.hdr-back)::after{inset:-4px}` est déclarée plus bas
+  et gagnait par l'ORDRE. On règle en **RETIRANT le membre de la liste**, pas en ajoutant une
+  exception encore plus bas. Après : **45 px de cible, hauteur d'en-tête inchangée** — c'est tout
+  l'objet du halo, admis en zone haute précisément pour ne pas l'épaissir.
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.

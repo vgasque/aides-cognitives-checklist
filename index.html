@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-M/frLLy78E07JKzHhX3hlT9E5juIoGpkS5ljGeTnF2o='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-CPXGDxsOWx+1TrfBfxJjFaLx5gQlFOg+CKKN7NbpxOg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -675,6 +675,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .hdr-acts{display:flex;align-items:center;gap:8px;margin-left:auto;flex:0 1 auto;min-width:0}
   /* Boutons de la rangée principale (V5). Retour : vues internes (fiche, protocole, éditeurs). */
   .hdr-back{display:inline-flex;align-items:center;gap:2px;min-height:40px;padding:0 10px 0 4px;margin-left:-6px;background:none;border:0;border-radius:10px;color:var(--primary-dk);font-family:inherit;font-size:15.5px;font-weight:700;cursor:pointer;flex:none;max-width:40vw}
+  /* ⚠ CIBLE DE 44 px, PAR HALO (audit design v5.0.0). Mesuré : 31 × 40 px avec un halo de 4 →
+     39 px de cible effective, sous les 44 que la doctrine impose en crise et que HIG demande
+     partout. Le halo passe à 7 px : 45 × 54, donc 45 de côté utile — et la BOÎTE ne change pas
+     d'un pixel, donc l'en-tête garde sa hauteur (c'est tout l'objet du halo, admis en zone haute
+     précisément pour ne pas l'épaissir). */
+  .hdr-back::after{content:"";position:absolute;inset:-7px}
+  .hdr-back{position:relative}
   .hdr-back span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .hdr-back:hover{background:var(--primary-soft)}
   .hdr-back[hidden]{display:none}
@@ -770,7 +777,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* .hdr-back ajouté v4.23.0 : mesuré à 40px de haut, sous les 44px exigés d'un contrôle du mode
      crise (défaut antérieur au lot — le halo existait pour ses voisins, pas pour lui). */
   :is(.hdr-new,.hdr-theme,.hdr-act2,.bar-acct,.hdr-back){position:relative}
-  :is(.hdr-new,.hdr-theme,.hdr-act2,.bar-acct,.hdr-back)::after{content:"";position:absolute;inset:-4px}
+  /* ⚠ `.hdr-back` A QUITTÉ CETTE LISTE (v5.0.0, audit design) : son halo lui est propre (-7 px,
+     déclaré plus haut) parce que sa BOÎTE est la plus étroite de la rangée — 31 px contre 40 pour
+     les autres —, et 4 px de halo ne l'amenaient qu'à 39 de cible. Le laisser ici l'aurait ramené
+     à -4 par l'ORDRE de déclaration : c'est le dix-septième piège de cascade du dossier, et on le
+     règle en RETIRANT le membre, pas en ajoutant une exception plus bas. */
+  :is(.hdr-new,.hdr-theme,.hdr-act2,.bar-acct)::after{content:"";position:absolute;inset:-4px}
   .hdr-badge{flex:none;font-size:11px;font-weight:700;background:var(--surface-3);color:var(--ink-soft);border-radius:10px;padding:3px 10px;white-space:nowrap;max-width:34vw;overflow:hidden;text-overflow:ellipsis}
   .hdr-badge[hidden]{display:none}
   /* Recherche FIXE dans l'en-tête (accueil, V5, canvas turn 6) : en ligne dans la rangée en
@@ -1870,7 +1882,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .rt-find{display:flex;flex-direction:column;gap:6px;padding:8px 8px 0}
   .rt-find input{width:100%;min-height:38px;font-size:12px;padding:6px 9px;border:1px solid var(--line-strong);
     border-radius:var(--radius-sm);background:var(--input-bg);color:var(--ink);font-family:inherit}
-  .rt-find input:focus{border-color:var(--primary);outline:none}
+  /* ⚠ UN CHANGEMENT DE COULEUR DE FILET N'EST PAS UN ANNEAU DE FOCUS (trouvé par l'extension du
+     périmètre d'`audit-a11y` aux surfaces manquantes, v5.0.0 — troisième défaut à moi). Le champ
+     posait `outline:none` et ne changeait que la teinte de sa bordure d'1 px : au clavier, rien ne
+     dit où l'on est. La règle du projet est explicite (« tout nouvel élément interactif reçoit un
+     état :focus-visible »), et WCAG 2.4.11 demande un indicateur qui ne soit pas seulement une
+     nuance. On garde la teinte — elle marque la saisie active au pointeur — et l'on rend l'anneau. */
+  .rt-find input:focus{border-color:var(--primary)}
+  .rt-find input:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* DANS L'AIDE, C'EST UNE SURFACE DE CRISE : cibles de 44 px (le champ ET les deux flèches), et
      le champ à 16 px de corps — sous 16, Safari iOS zoome la page au focus et les taps se perdent
      (règle 9). Aucune autre différence : c'est le même composant, au même endroit de la feuille. */
@@ -6444,6 +6463,13 @@ const cxRowHtml=(list,tip)=>{
    focus, le verrou de fond et l'entrée d'historique.
    `state.cxOpen` est TRANSITOIRE (jamais persisté, jamais synchronisé, classé `SHARE_LOCAL`) :
    c'est une consultation, pas un réglage — même statut que `state.allTab`. */
+/* Le retour d'excursion : UNE fabrique pour les deux natures de bloc — un gabarit écrit deux fois
+   finit par diverger, et c'est exactement ce qui s'était produit (la décision n'en avait aucun). */
+function cxBackHtml(f,seq,tip){
+  const cxb=(Runtime.cxBack||{})[seq];
+  if(!cxb||!tip)return '';
+  const bb=(f.blocks||[]).find(x=>x.id===cxb.id);
+  return `<div class="flow-ctrl cx-back-top"><button type="button" class="btn cont okay" data-cxback="${esc(cxb.id)}">↩ Reprendre — ${esc((bb&&bb.title)||'le parcours')} →</button></div>`;}
 function cxListHtml(list){
   return `<div class="cx-list" role="group" aria-label="Complications déclarées">`
     +list.map(c=>{const t=c.kind==='ext'?relTarget(c.target):null;
@@ -13147,7 +13173,12 @@ function ovInstHtml(f,id,idx,topo,pres){
   let bodyH='',count='';
   if(dec){
     const opts=(b.options||[]).map((o,i)=>{const sel=taken&&o===taken;return `<button type="button" class="opt${sel?' taken':''}" data-ovopt="${esc(o.target||'')}"><span class="ftxt">${fmt(o.label)||'Option '+(i+1)}</span><span class="arr">${sel?'✓':uiIcon('chev',18,{sw:2.4,cls:''})}</span></button>`;}).join('');
-    bodyH=`${imgH}<div class="question">${fmt(b.question)||'…'}</div><div class="options">${opts}</div>${tip&&cxAll(f).length?cxRowHtml(cxAll(f)):''}`;
+    /* ⚠ LE RETOUR D'EXCURSION EXISTE AUSSI SUR UN BLOC DE DÉCISION (défaut PRÉEXISTANT, trouvé
+       par le témoin d'état d'`audit-a11y` : il exigeait que l'état se CONSTRUISE, et il ne se
+       construisait pas — le bloc courant était une décision). Sans lui, entrer sur une
+       complication dont la cible est une décision laissait sans retour : le dispositif promet que
+       le retour n'est jamais laissé à la mémoire (AC 120-71B), il ne le tenait qu'à moitié. */
+    bodyH=`${cxBackHtml(f,seq,tip)}${imgH}<div class="question">${fmt(b.question)||'…'}</div><div class="options">${opts}</div>${tip&&cxAll(f).length?cxRowHtml(cxAll(f)):''}`;
     count=taken?'✓':'?';}
   else{
     const steps=clean(stepsOf(b));
@@ -13194,10 +13225,7 @@ function ovInstHtml(f,id,idx,topo,pres){
     const listeH=stepsListHtml(steps,seq,id,{items:_its});
     /* Le retour d'excursion, en TÊTE du corps de la carte (cf. la note au pied) : il est calculé
        ici parce que le gabarit du corps se compose plus bas, et il ne dépend que de la visite. */
-    let cxBackH='';
-    {const cxb=(Runtime.cxBack||{})[seq];
-     if(cxb&&tip){const bb=f.blocks.find(x=>x.id===cxb.id);
-       cxBackH=`<div class="flow-ctrl cx-back-top"><button type="button" class="btn cont okay" data-cxback="${esc(cxb.id)}">↩ Reprendre — ${esc((bb&&bb.title)||'le parcours')} →</button></div>`;}}
+    const cxBackH=cxBackHtml(f,seq,tip);
     /* A1 (v5.0.0, lot M2, maquettes proto-r4) — LA LÉGENDE DES REGISTRES VIT SUR LA CARTE. Elle
        n'existait QUE dans l'éditeur (`.crit-guide`) : ⚠, △ et la bulle mono ne s'apprenaient donc
        nulle part pour qui LIT la fiche sans jamais l'écrire — c'est-à-dire pour la majorité de ceux

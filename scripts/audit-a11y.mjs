@@ -113,8 +113,16 @@ const report=(label,arr,fmt)=>{ checks++; if(!arr.length){return;} fails++;
   if(arr.length>6)console.log('      … +'+(arr.length-6)+' autres'); };
 
 // ---- surfaces à auditer -------------------------------------------------
+/* ⚠ CINQ SURFACES MANQUAIENT, ET LE PLANCHER SERVI N'ÉTAIT PAS AUDITÉ (audit design v5.0.0).
+   La bibliothèque n'était mesurée qu'à 1100 px — c'est-à-dire JAMAIS en voie étroite, là où vivent
+   les chips de filtre, le rail A→Z et les rangées du répertoire. La lecture d'une RÉFÉRENCE, le
+   mode STATIQUE, le MONITEUR et l'éditeur de PROTOCOLE n'y étaient pas du tout. Et 320 px — le
+   plancher que le dossier déclare servir, celui de WCAG 1.4.10 — n'était mesuré que sur l'écran
+   d'entrée invité. Un défaut hors scope n'est pas un défaut absent (leçon v4.75.0). */
 const SURFACES = [
   { nom:'bibliothèque',        w:1100, prep:null },
+  { nom:'bibliothèque étroite',w:320,  prep:null },
+  { nom:'lecture 320',         w:320,  prep:'read' },
   { nom:'lecture étroite',     w:390,  prep:'read' },
   { nom:'lecture + rail',      w:1280, prep:'read' },
   { nom:'feuille Plan',        w:1280, prep:'plan' },
@@ -197,6 +205,62 @@ const SURFACES = [
      ET le bandeau système), jamais un `hidden=false` posé à la main. Le dépliage de la notice est
      le geste de l'utilisateur, pas une reconstruction d'état : sans lui, le texte qui porte
      l'information légale ne serait pas mesuré du tout. */
+  { nom:'mode statique',       w:390,  prep:'read', fn: async()=>{
+      const b=document.getElementById('allBtn'); if(b)b.click();
+      await new Promise(r=>setTimeout(r,500)); } },
+  { nom:'mode moniteur',       w:390,  scope:'#monMode', prep:'read', fn: async()=>{
+      if(typeof openMonitor==='function')openMonitor();
+      await new Promise(r=>setTimeout(r,400)); } },
+  { nom:'lecture de référence',w:390,  fn: async()=>{
+      protocols.push(migrateProtocol({id:'pA11y',title:'Référence témoin',kind:'reference',
+        body:'# Titre A\n\ntexte de la référence\n\n## Sous-titre\n\n- [ ] tâche\n\n## Autre\n\ntexte'}));
+      openProtocolRead('pA11y'); await new Promise(r=>setTimeout(r,500)); } },
+  { nom:'éditeur de protocole',w:1100, fn: async()=>{
+      protocols.push(migrateProtocol({id:'pEd',title:'Référence à écrire',kind:'reference',body:'# A\n\nx'}));
+      await openProtocolEdit('pEd'); await new Promise(r=>setTimeout(r,500)); } },
+  /* ═══ ÉTATS ═══ (audit design v5.0.0 — ACTION 1, et c'est la plus importante du rapport).
+     Ce harnais ouvrait chaque surface AU REPOS. Or DEUX violations AA ont vécu à l'écran sans
+     qu'il les voie, parce qu'elles n'existent qu'après un geste : le surlignage de recherche
+     (3,64:1 en clair, 1,76:1 en sombre) et le vert du retour d'excursion (1,9:1 en sombre). Un
+     harnais qui ne mesure que le repos ne couvre pas la moitié de ce qu'il prétend couvrir.
+     Chaque entrée ci-dessous CONSTRUIT son état par les gestes réels de l'application. */
+  { nom:'état · recherche active', w:390, prep:'read', must:'mark.pf-h', fn: async()=>{
+      const b=document.getElementById('allBtn'); if(b)b.click();
+      await new Promise(r=>setTimeout(r,600));
+      const q=document.getElementById('pfQ');
+      if(q){q.value='adrénaline';q.dispatchEvent(new Event('input',{bubbles:true}));}
+      await new Promise(r=>setTimeout(r,450)); } },
+  { nom:'état · excursion (retour)', w:390, prep:'read', must:'[data-cxback]', fn: async()=>{
+      /* ⚠ ON NE RÉ-OUVRE PAS LA FICHE : `openRead` reconstruit le Runtime, donc la session
+         démarrée par la préparation disparaîtrait — et `cxEnter` refuse d'enregistrer un retour
+         hors session. On ajoute la déclaration et l'on re-rend le journal, rien de plus. */
+      const f=state.fiche;
+      f.excursions=[{label:'Laryngospasme',target:f.blocks[1].id}];
+      renderOvOnly(); await new Promise(r=>setTimeout(r,350));
+      const g=document.querySelector('[data-cxgo]'); if(g)g.click();
+      await new Promise(r=>setTimeout(r,700)); } },
+  { nom:'état · minuteur échu', w:390, prep:'read', must:'.seg.due,.tmcard.due', fn: async()=>{
+      /* Les minuteurs du Runtime sont un DICTIONNAIRE par id, pas un tableau — et l'échéance se
+         calcule sur `elapsedMs` + `lastStart`, pas sur une durée nue. On arme, puis on antidate. */
+      const R=Runtime, ks=Object.keys(R.timers||{});
+      const src=(state.fiche.timers||[])[0];
+      /* ⚠ ET IL FAUT COUPER `autoloop` : un minuteur à cycles se REMET À ZÉRO à l'échéance, donc
+         il n'est jamais « échu » — l'état qu'on veut mesurer ne pouvait pas exister. */
+      if(ks.length&&src){const t=R.timers[ks[0]];
+        t.autoloop=false;src.autoloop=false;
+        t.running=true;t.elapsedMs=0;t.lastStart=Date.now()-((src.seconds||60)*1000+9000);}
+      if(typeof tickAll==='function')tickAll();
+      await new Promise(r=>setTimeout(r,500)); } },
+  { nom:'état · index ⚡ déplié', w:390, prep:'read', must:'.cx-list .cx-item', fn: async()=>{
+      const f=state.fiche;
+      f.excursions=[{label:'Laryngospasme',target:f.blocks[1].id},
+                    {label:'Choc réfractaire',target:f.blocks[0].id}];
+      renderOvOnly(); await new Promise(r=>setTimeout(r,350));
+      const b=document.querySelector('[data-cxopen]'); if(b)b.click();
+      await new Promise(r=>setTimeout(r,450)); } },
+  { nom:'état · lien de partage mort', w:390, prep:'read', must:'.share-dead,[data-sharedead],#srLive', fn: async()=>{
+      if(typeof Share!=='undefined'&&Share.freeze){Share.mode='guest';Share.freeze('over');}
+      await new Promise(r=>setTimeout(r,500)); } },
   { nom:'entrée invité',       w:320,  scope:'#joinScreen', fn: async()=>{
       openJoinScreen('K7M2P4Q9');
       const d=document.querySelector('#joinScreen .join-info'); if(d)d.open=true; } },
@@ -257,6 +321,15 @@ for (const theme of ['light','dark']) {
     if (S.scope) await page.evaluate(s => { window.__acScope = s; }, S.scope);
     await page.waitForTimeout(250);
 
+    /* ⚠ UN ÉTAT QUI NE S'EST PAS CONSTRUIT EST UN REPOS QU'ON MESURE EN CROYANT MESURER AUTRE
+       CHOSE — c'est la leçon la plus redite du dossier. Chaque entrée d'état déclare donc CE QUI
+       DOIT EXISTER, et son absence est un ÉCHEC, pas un silence. */
+    if (S.must) {
+      const vu = await page.evaluate(sel=>!!document.querySelector(sel), S.must);
+      checks++; if(!vu){fails++;console.log(`\n── ${S.nom} (${S.w}px)`);
+        console.log(`  ✗ l'état ne s'est pas construit — rien ne correspond à « ${S.must} »`);
+        await page.close(); continue;}
+    }
     const res = await page.evaluate(AUDIT);
     console.log(`\n── ${S.nom} (${S.w}px)`);
     const before=fails;
