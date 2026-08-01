@@ -2349,6 +2349,66 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   sous la même clé `items`, le contrôle de la forme ENRICHIE attrapait le premier bloc — abrégé —
   et mesurait la forme qu'il ne couvre pas. Il sélectionne désormais le bloc dont les entrées sont
   des OBJETS.
+- **LA PHASE — CHAMP LIBRE, VALEURS SUGGÉRÉES, HÉRITÉE (v5.0.0, lot M6, décision utilisateur)** :
+  la maquette posait trois valeurs FIXES et posait elle-même l'objection — rien n'établit que les
+  cliniciens pensent en exactement ces trois-là. On garde le MÉCANISME (regrouper la structure) et
+  l'on retire l'IMPOSITION : `b.phase` est un champ LIBRE borné à 40 caractères, `PHASE_CORE` n'est
+  qu'une liste de **suggestions** de saisie (Immédiate · 2ᵉ intention · Surveillance · Vérification ·
+  Orientation), exactement le patron `TAG_CORE` + `data.prefs.tags` des libellés de journal.
+  **ELLE EST HÉRITÉE** (`phaseOf`) : un bloc sans phase reprend celle du bloc précédent, donc
+  l'auteur ne la déclare QUE là où elle CHANGE — sans cet héritage il faudrait une décision par
+  bloc, c'est-à-dire le coût exact que l'objection reprochait au champ. **Aucune migration ne
+  devine** : défaut vide, et une fiche qui n'en déclare aucune se lit comme avant.
+- **LE PARCOURS INERTE PORTE LA FICHE ENTIÈRE (v5.0.0, lot M6, maquette `proto-r4`)** : il ne
+  montrait que la chaîne des blocs. Trois sections l'encadrent désormais — « ✓ Quand l'utiliser »
+  (condition d'entrée + « ça ne colle pas ? → n diagnostics à éliminer »), « ⚡ À tout moment »
+  (déjà là) et « △ Surveiller — après les gestes » — et les intertitres de PHASE le regroupent.
+  La colonne d'orientation taisait exactement les trois choses qu'on ne trouve pas dans la colonne
+  d'action au moment où l'on s'oriente. **LES ÉTAPES SE LISENT SANS DÉPLIER** : un plan qui ne
+  montre que des titres et des comptes dit ce qu'il y a, jamais CE QUE C'EST. Le dépliage reste le
+  DÉTAIL plus le geste (« → aller à ce bloc ») — deux niveaux, pas un doublon. **Tout y reste
+  INERTE** (doctrine du plan, re-confirmée quatre fois). ⚠ PIÈGE : `listOf` s'adresse par la CLÉ du
+  modèle (`confirmation`, `verify`, `differentials`), **pas par le rôle** (`entry`, `watch`, `ddx`) —
+  la première version lisait du vide et les trois sections ne s'affichaient jamais.
+- **L'ACCUSÉ DE RÉCEPTION VIT DANS LE BLOC (v5.0.0, lot M7, maquette + capture utilisateur)** :
+  « ✓ 02:16 noté · sans étiquette », les étiquettes proposées, puis « Journal des actions (n) ▾ ».
+  **Ce n'est PAS une notification flottante** (règle 11) : rien ne surgit, rien ne recouvre — c'est
+  la RÉPONSE à un bouton qu'on vient de presser, dans le flux, sous ce bouton (même distinction que
+  `toast(msg,ms,direct)`, v4.55.4). **L'heure est le TEMPS ÉCOULÉ**, comme le chrono du quai : à
+  côté d'un « noté », le nombre qui parle est « combien de temps après le début ». État
+  TRANSITOIRE (`state.tkAck`), jamais persisté, effacé par `ovDropOpens` au prochain geste de
+  navigation — on ne traîne pas un accusé de réception. ⚠ Depuis la CARTE, il faut `renderOvOnly` :
+  `renderTkOnly` ne remplace que le panneau du journal, plus bas, et l'accusé n'y apparaîtrait
+  jamais.
+- **PROPOSER UNE ÉTIQUETTE SANS QU'ON AIT TAPÉ (v5.0.0, lot M7, signalé à l'usage)** : `tkPaintSug`
+  n'ouvrait la bouche qu'à partir de DEUX caractères — donc jamais dans le geste le plus fréquent,
+  qui est UN TAP et rien d'autre. `tagSuggest` classe par CONTEXTE : étapes du bloc COURANT, puis
+  minuteurs et compteurs, puis le reste de la fiche, puis les repères posologiques, puis le noyau
+  universel. **AUCUN FILTRE — on RÉORDONNE** (même garantie que `posoRank` et `tagRank`) : un faux
+  positif coûte un rang, un faux négatif coûte le mot au moment où on le cherche. `tagShort` abrège
+  **à l'AFFICHAGE seulement** : la RÉFÉRENCE voyage entière et se résout en toutes lettres dans le
+  journal et le compte rendu — abréger la donnée serait perdre de l'information, abréger la chip ne
+  perd rien.
+- **L'ORDRE DU RAIL DE FILTRES : BIBLIOTHÈQUE, TYPE, CATÉGORIE (v5.0.0, décision utilisateur)** —
+  du plus large au plus étroit. Une bibliothèque est un CORPUS (le vôtre, celui du service) ; le
+  type n'est qu'une propriété des objets qui s'y trouvent. La mettre en tête affirme la doctrine du
+  lot T9 : **on choisit d'abord OÙ l'on cherche, jamais DE QUEL TYPE est ce qu'on cherche.** Vaut
+  pour les chips (étroit) comme pour la colonne gauche (large), qui portent déjà l'une et l'autre le
+  ✎ des bibliothèques qu'on administre et le « Gérer » des catégories.
+- **LE VOLET DE RELECTURE MONTE DANS LA COLONNE DE DROITE À ≥ 1000 px (v5.0.0, demande
+  utilisateur)** : il vivait en PIED, ce qui est sa place quand il n'y a qu'une colonne — on lit un
+  bilan en fermant. Mais dès qu'une colonne COLLANTE existe, le reléguer au pied revient à ne le
+  montrer qu'au bout d'un défilement de plusieurs milliers de pixels, alors que ce qu'il dit sert
+  PENDANT qu'on écrit. **Il ne concurrence pas le schéma** qui occupe la même colonne : l'un est un
+  DESSIN qu'on regarde, l'autre une LISTE COURTE qu'on lit — et il est replié par défaut, donc il
+  coûte une ligne. Sous 1000 px il reprend sa place au pied : il n'y a alors pas de colonne où le
+  mettre.
+- **LA BARRE D'ACTIONS DU COMPTE-RENDU (v5.0.0, lot M8)** : sous 560 px elle est COLLANTE au bas de
+  la feuille et les boutons occupent toute la largeur — un compte-rendu fait plusieurs écrans, et
+  l'action ne doit pas se chercher au bout d'un défilement. **Elle n'enfreint pas « aucune zone fixe
+  en bas »** (SPEC §5), qui vise le CHROME d'une vue de CRISE : ici on est dans une feuille de
+  débriefing, hors session, et la barre appartient à la feuille, pas à l'application. Au-dessus,
+  rangée alignée à droite : la place existe, le geste est rare.
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.

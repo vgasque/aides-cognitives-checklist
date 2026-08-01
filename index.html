@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-ncoZtTegKmZba3IyxvEOrfPvN4fpfUudBROEPzcRzCg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-7Ekyc+HVoSHb2XEO1UT8bJDBJFlPUyfZTOAGuDIQZOA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1635,6 +1635,27 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pl-sec{margin:0 0 8px;padding-left:16px;list-style:disc}
   .pl-sec li{font-size:12px;line-height:1.5;color:var(--ink);margin-bottom:3px}
   .pl-ddx{font-size:11px;color:var(--ink-soft);margin:0 0 10px}
+  /* Les étapes en ligne du plan : désaturées comme le reste de la colonne (elle ORIENTE), le
+     registre porté par le glyphe ET l'encre — jamais la couleur seule. */
+  /* Dans la colonne de droite, le volet perd sa marge de pied : il suit le schéma. */
+  .read-side #revPanel .rev-panel{margin:12px 0 0}
+  .pl-inl{margin:2px 0 6px 26px;padding:0;list-style:none}
+  .pl-inl li{font-size:11px;line-height:1.45;color:var(--ink-soft);margin-bottom:2px}
+  .pl-inl li.crit{color:var(--critical);font-weight:700}
+  .pl-inl li.vig{color:var(--verify);font-weight:700}
+  /* LA BARRE D'ACTIONS DU COMPTE-RENDU (M8). Sous 560 px, elle est COLLANTE au bas de la feuille
+     et les boutons occupent toute la largeur : le compte-rendu peut faire plusieurs écrans, et
+     l'action ne doit pas se chercher au bout d'un défilement. Elle n'enfreint pas « aucune zone
+     fixe en bas » (SPEC §5), qui vise le CHROME d'une vue de crise : ici on est dans une feuille
+     de débriefing, hors session, et la barre appartient à la feuille — pas à l'application.
+     Au-dessus, elle redevient une rangée alignée à droite : la place existe, le geste est rare. */
+  .rp-acts{display:flex;gap:9px;flex-direction:column;margin-top:14px;
+    position:sticky;bottom:0;padding:10px 0 2px;background:var(--surface);box-shadow:var(--shadow-up)}
+  .rp-acts .btn{width:100%;min-height:48px;justify-content:center}
+  @media (min-width:560px){
+    .rp-acts{flex-direction:row;justify-content:flex-end;position:static;box-shadow:none;padding:0}
+    .rp-acts .btn{width:auto;min-height:44px}
+  }
   .pl-phase{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
     color:var(--ink-soft);margin:12px 0 4px;padding-top:8px;border-top:1px solid var(--line)}
   /* L'ACCUSÉ DE RÉCEPTION DU BLOC (M7). Registre CONFIRMATION — c'est un fait acquis, pas une
@@ -4865,7 +4886,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
 <div class="ai-modal" id="reportModal" role="dialog" aria-modal="true" aria-labelledby="reportModalTitle"><div class="ai-card" style="max-width:760px">
   <div class="ai-top"><h3 id="reportModalTitle">Compte-rendu de session</h3><button class="ai-x" id="reportX" aria-label="Fermer">×</button></div>
   <div id="reportBody" class="report-preview"></div>
-  <div style="display:flex;gap:9px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px"><button class="btn" id="reportDownload">Télécharger</button><button class="btn primary" id="reportPrint">Imprimer</button></div>
+  <div class="rp-acts"><button class="btn" id="reportDownload">Télécharger</button><button class="btn primary" id="reportPrint">Imprimer</button></div>
 </div></div>
 <!-- Sélecteur de document existant (éditeurs de fiche ET de protocole) : liste FILTRABLE — un
      menu déroulant ne passe pas à l'échelle à 50+ documents. Accessibilité .ai-modal standard. -->
@@ -12508,7 +12529,7 @@ function ovPlanLadderHtml(f,plan,num,md,off){
      d'action au moment où l'on s'oriente.
      TOUT Y EST INERTE (doctrine du plan, re-confirmée trois fois) : aucune case, aucun démarrage. */
   const items=plan.items;let h='',depth=0;const pend=[];
-  {const ent=clean(listOf(f,'entry')),ddx=clean(listOf(f,'ddx'));
+  {const ent=clean(listOf(f,'confirmation')),ddx=clean(listOf(f,'differentials'));
    if(ent.length||ddx.length){
      h+='<div class="pl-sech">✓ Quand l’utiliser</div>';
      if(ent.length)h+='<ul class="pl-sec">'+ent.map(x=>`<li>${fmt(stepText(x))}</li>`).join('')+'</ul>';
@@ -12538,6 +12559,15 @@ function ovPlanLadderHtml(f,plan,num,md,off){
      if(ph&&ph!==phCur){phCur=ph;h+=`<div class="pl-phase">${esc(ph)}</div>`;}}
     const open=!!state.ovFold['l:'+it.id];
     h+=`<div class="pl-line d${Math.min(it.depth,3)}${m.complete?' done':''}${m.cur?' cur':''}${off.has(it.id)?' off':''}${dec?' dec':''}" data-plln="${esc(it.id)}" role="button" tabindex="0" aria-expanded="${open?'true':'false'}">${lbl}<span class="n">${m.complete?'✓':(num[it.id]||'·')}</span><span class="t">${esc(b.title)||(dec?'Décision':'Étapes')}${(m.total||0)>1?`<span class="pl-x">×${m.total}</span>`:''}${m.cur?'<span class="pl-here">ici</span>':''}</span><span class="g">${g}</span></div>`;
+    /* LES ÉTAPES SE LISENT SANS DÉPLIER (v5.0.0, lot M6, maquette `proto-r4`) : un plan qui ne
+       montre que des titres et des comptes dit ce qu'il y a, jamais CE QUE C'EST — or c'est
+       précisément ce qu'on vient y chercher quand on s'oriente. Elles s'affichent donc en ligne,
+       compactes, avec leur registre ; le DÉPLIAGE reste ce qu'il était : le DÉTAIL plus le geste
+       (« → aller à ce bloc »). Ce n'est pas un doublon, ce sont deux niveaux — l'un montre, l'autre
+       agit. Tout reste INERTE : aucune case, jamais. */
+    if(!open&&!dec&&steps.length){
+      h+=`<ul class="pl-inl">${steps.map(st=>{const cr=stepCR(stepText(st));
+        return `<li class="${stepIsCrit(st)?'crit':(stepIsVigil(st)?'vig':'')}">${stepIsCrit(st)?'⚠ ':(stepIsVigil(st)?'△ ':'')}${fmt(cr.c)}${cr.r?` <span class="pl-r">${esc(cr.r)}</span>`:''}</li>`;}).join('')}</ul>`;}
     if(open){
       const det=dec?(b.question?`<div class="pl-q">${fmt(b.question)}</div>`:'')
         :(steps.length?`<ul class="pl-stp">${steps.map(s=>{const cr=stepCR(stepText(s));return `<li class="${stepIsCrit(s)?'crit':(stepIsVigil(s)?'vig':'')}">${fmt(cr.c)}${cr.r?` <span class="pl-r">${fmt(cr.r)}</span>`:''}</li>`;}).join('')}</ul>`:'');
@@ -12554,7 +12584,7 @@ function ovPlanLadderHtml(f,plan,num,md,off){
      (étage « Surveillances & pièges ») ; ici c'est une COPIE d'orientation, inerte, à sa place
      chronologique — ce qui vient après. Registre ATTENTION, jamais rouge : on ne surveille pas ce
      qui tue, on surveille ce qui dérive. */
-  {const w=clean(listOf(f,'watch'));
+  {const w=clean(listOf(f,'verify'));
    if(w.length){h+='<div class="pl-sech vig">△ Surveiller — après les gestes</div>'
      +'<ul class="pl-sec">'+w.map(x=>{const cr=stepCR(stepText(x));
        return `<li>${fmt(cr.c)}${cr.r?` <span class="pl-r">${esc(cr.r)}</span>`:''}</li>`;}).join('')+'</ul>';}}
@@ -14448,9 +14478,18 @@ function renderEditor(){
     relecture et le bouton de suppression restent APRÈS elle — un bilan se lit en fermant, et un
     geste destructeur ne se met jamais avant une porte de création. */}
     <button type="button" class="add-line ed-door${state.edGrab?' flat':''}" id="edAddOpen"><span class="edd-p" aria-hidden="true">＋</span><span class="edd-l">Ajouter à cette aide</span><span class="edd-c">bloc · minuteur · dose · schéma…</span></button>
-    <div id="revPanel">${reviewPanelHtml(f)}</div>
+    ${''/* LE VOLET DE RELECTURE MONTE DANS LA COLONNE DE DROITE À ≥ 1000 px (question puis
+    demande utilisateur). Il vivait en PIED, ce qui est sa place quand il n'y a qu'une colonne :
+    on lit un bilan en fermant. Mais dès qu'une colonne COLLANTE existe, la reléguer au pied
+    revient à ne le montrer qu'à la fin d'un défilement de plusieurs milliers de pixels — alors
+    que ce qu'il dit (« il reste n choses à relire ») sert PENDANT qu'on écrit.
+    IL NE CONCURRENCE PAS LE SCHÉMA, qui occupe la même colonne : l'un est un DESSIN qu'on
+    regarde, l'autre une LISTE COURTE qu'on lit — et le volet est replié par défaut, donc il coûte
+    une ligne tant qu'on ne l'ouvre pas. En dessous de 1000 px il reprend sa place au pied,
+    inchangé : il n'y a alors pas de seconde colonne où le mettre. */}
+    ${wideEdit?'':`<div id="revPanel">${reviewPanelHtml(f)}</div>`}
     ${fiches.some(x=>x.id===f.id)?'<div class="ed-del"><button class="btn danger" id="delBtn">Supprimer cette fiche</button></div>':''}
-    ${wideEdit?`</div><aside class="ed-struct">${edStructHtml(f)}</aside><aside class="read-side" id="editSide">${editPreviewHtml('fiche')}</aside></div>`:''}
+    ${wideEdit?`</div><aside class="ed-struct">${edStructHtml(f)}</aside><aside class="read-side" id="editSide">${editPreviewHtml('fiche')}<div id="revPanel">${reviewPanelHtml(f)}</div></aside></div>`:''}
     <input type="file" id="imgInput" accept="image/*" hidden>
     <input type="file" id="pdfInput" accept="application/pdf,.pdf" hidden>`;
   bindEditorEvents(f);
