@@ -73,7 +73,7 @@ const d5=await p.evaluate(async()=>{
 t('le déclencheur vit AUSSI sur un bloc de décision courant', d5.dec&&d5.btn, JSON.stringify(d5));
 console.log('=== échelle / statique / externe / sans ===');
 const d6=await p.evaluate(()=>{const lad=document.querySelector('.read-side .rail-lad');
- return {sec:!!document.querySelector('.pl-cxh'),
+ return {sec:!!document.querySelector('.pl-sech.cx'),
   lignes:[...(lad?lad.querySelectorAll('.pl-line.cxl'):[])].length,
   pollue:[...(lad?lad.querySelectorAll('.pl-line:not(.cxl) .t'):[])].some(x=>/Laryngo/.test(x.textContent))};});
 t('Échelle : section « À tout moment », tronc non pollué', d6.sec&&d6.lignes===1&&!d6.pollue, JSON.stringify(d6));
@@ -91,7 +91,7 @@ const d8=await p.evaluate(async()=>{
 t('cible EXTERNE : ouvre l’autre aide', d8.ouvert, JSON.stringify(d8));
 const d9=await p.evaluate(async()=>{const f2=fiches.find(x=>x.id===window.__autre);f2.excursions=[];
  render();await new Promise(r=>setTimeout(r,400));
- return {btn:document.querySelectorAll('.cx-btn').length,sec:document.querySelectorAll('.pl-cxh').length};});
+ return {btn:document.querySelectorAll('.cx-btn').length,sec:document.querySelectorAll('.pl-sech.cx').length};});
 t('fiche SANS complications : zéro chrome ⚡', d9.btn===0&&d9.sec===0, JSON.stringify(d9));
 console.log('=== éditeur : sélecteur filtrable à deux groupes ===');
 const d10=await p.evaluate(async()=>{

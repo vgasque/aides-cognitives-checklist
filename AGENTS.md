@@ -2640,6 +2640,44 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   elle s'est encore vérifiée ici. Et le débordement de la
   RANGÉE ne suffit pas à prouver que la méta tient : `.dir-sub` est en `overflow:hidden`, donc la
   rangée reste propre pendant que l'information disparaît — **on mesure l'ellipse elle-même**.
+- **LA PHASE VIT DANS L'EN-TÊTE DU BLOC, À DROITE (v5.0.0, maquette)** — et ⚠ ma première pose ne
+  l'avait mise que dans la branche DÉCISION : un `replace(…, 1)` avait pris la première occurrence
+  des deux branches de `blockEditor`. Signalé à l'usage (« ça ne s'affiche que sur les blocs
+  conditionnels »). Le champ est FACULTATIF et HÉRITÉ : vide, il affiche **en filigrane** la phase
+  du bloc précédent, de sorte que l'auteur voit ce qui s'appliquera sans avoir à la retaper ; un
+  `datalist` propose le noyau sans l'imposer. Dessin discret (filet pointillé, aligné à droite) :
+  c'est une étiquette d'ORGANISATION, jamais un registre — aucune couleur sémantique.
+- **UN SEUL DESSIN D'INTERTITRE DANS LA COLONNE (v5.0.0, signalé à l'usage)** : il y en avait DEUX —
+  `.pl-cxh` (9 px de retrait, `space-between` qui renvoyait « hors numérotation » sur sa propre
+  ligne) et `.pl-sech` (2 px). D'où « à tout moment plus à droite que le reste » et « hors
+  numérotation qui sort de nulle part ». Un seul demeure : même retrait que les rangées, et la
+  précision suit le titre **dans la même phrase**. Le titre d'une complication ne colle plus à son
+  liseré (13 px). ⚠ Une purge d'intertitre emporte le SÉLECTEUR des harnais : `audit-complications`
+  visait `.pl-cxh` et serait resté vert sans rien mesurer (règle 14).
+- **LE DÉPLIANT D'UNE LIGNE DU PARCOURS N'EST PLUS UNE CARTE BLANCHE (v5.0.0, signalé à l'usage :
+  « est-ce voulu ? » — non)** : il datait du temps où la colonne ÉTAIT une carte blanche, où il se
+  fondait. Depuis que les rangées vivent sur le fond de la colonne, c'était la seule surface
+  blanche de l'écran, donc la plus saillante — alors qu'elle porte du DÉTAIL. Surface de second
+  plan et retrait, comme un contenu subordonné.
+- **L'ÉTOILE ★ REVIENT DANS LE CHAPEAU (v5.0.0, retour utilisateur : « avant c'était beaucoup plus
+  clair »)** — je l'avais retirée en la croyant redondante. Elle ne l'est pas : elle dit POURQUOI
+  cette ligne est là sans être éditable (elle a été posée sur une ÉTAPE). Ce qui était mal fait
+  n'était pas le glyphe mais le RENVOI en rangée, qui mangeait la moitié de la largeur et se
+  tronquait en plein titre de bloc. Il reste sur sa propre ligne, pleine largeur, ≥ 44 px.
+- **UN SEUL REGISTRE PAR SURFACE (v5.0.0, signalé à l'usage : « gris puis bleu sur du vert »)** :
+  les chips de suggestion de l'accusé héritaient du dessin du PANNEAU (fond neutre, survol bleu),
+  pensé pour un fond blanc — posées sur la teinte de CONFIRMATION, deux registres se superposaient.
+  Dans l'accusé elles prennent la SURFACE (blanc franc, qui se détache de la teinte) et le filet du
+  registre courant ; le survol reste dans ce registre.
+- **« CONSIGNÉ » EST UN MEMO, PAS UNE CONFIRMATION (v5.0.0, question de l'auteur, relecture ECAM)** :
+  le vert du dossier dit « ce que l'on VIENT DE FAIRE est acquis » — étape cochée, algorithme
+  terminé —, c'est-à-dire la réponse à un GESTE. La trace d'un compteur est un **fait passif**,
+  affiché en permanence sur chaque carte : en vert, elle diluerait le vert des étapes cochées
+  exactement comme un rouge permanent dilue le rouge des étapes vitales. Registre **MEMO** (neutre),
+  et le ✓ tombe avec lui. **ET ELLE RESTE, C'EST VOULU** : un fait n'expire pas — c'est l'analogue du
+  « last actuation » d'un synoptique ECAM, un état de l'objet et non une alerte à acquitter. La
+  faire disparaître au bout de n secondes rendrait la question « ai-je consigné ? » à nouveau sans
+  réponse, ce qu'elle vient précisément réparer.
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.

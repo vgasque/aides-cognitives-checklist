@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-rc3cvQ5Qbq9DivGm1nmFShCr9wXsTH8yC6rWxCLS+1A='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-kCJdPK/4j6o5YkH/QH2jZ3JDRgrwTo2qrHh7bLppuPc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1723,17 +1723,24 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      PROPRE ligne. En rangée, le renvoi mangeait la moitié de la largeur et se tronquait en plein
      titre de bloc, sur téléphone comme sur ordinateur. */
   .mem-ro{padding:7px 0;border-top:1px solid var(--line)}
-  .mem-t{display:block;font-size:13.5px;font-weight:600;color:var(--ink)}
+  .mem-l{display:flex;align-items:baseline;gap:8px}
+  .mem-st{flex:none;color:var(--critical);font-size:13.5px}
+  .mem-t{flex:1;min-width:0;font-size:13.5px;font-weight:600;color:var(--ink)}
   .mem-go{display:block;width:100%;text-align:left;margin-top:4px;min-height:44px;padding:6px 0;
     background:none;border:0;cursor:pointer;font-size:11px;font-weight:700;color:var(--link)}
   .mem-go:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:6px}
   /* La phase vit sur l'en-tête du bloc, discrète : c'est une étiquette d'ORGANISATION, pas un
      registre — elle ne prend donc aucune couleur sémantique. */
-  .blk-phase{display:flex;align-items:center;gap:8px;margin:0 0 8px}
-  .blk-phase label{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
-  .blk-phase input{flex:1;min-width:0;font-size:12px;padding:5px 8px;border:1px solid var(--line);
-    border-radius:var(--radius-sm);background:var(--input-bg);color:var(--ink)}
-  .blk-phase input:focus{border-color:var(--primary);outline:none}
+  /* La phase : un champ DISCRET dans l'en-tête, à droite — une étiquette d'ORGANISATION, jamais
+     un registre, donc aucune couleur sémantique. En filigrane, la phase HÉRITÉE : l'auteur voit
+     ce qui s'appliquera sans avoir à la retaper. */
+  .blk-phase{flex:none;display:flex;align-items:center}
+  .blk-phase input{width:110px;font-size:11px;padding:5px 8px;border:1px dashed var(--line-strong);
+    border-radius:var(--radius-sm);background:none;color:var(--ink);text-align:right}
+  .blk-phase input::placeholder{color:var(--ink-soft);font-style:italic}
+  .blk-phase.inh input{border-style:dotted}
+  .blk-phase input:focus{border-style:solid;border-color:var(--primary);outline:none;text-align:left}
+  @media (max-width:429.98px){.blk-phase input{width:76px}}
   .ph-chip{display:inline-flex;align-items:center;font-size:11px;font-weight:700;letter-spacing:.07em;
     text-transform:uppercase;background:var(--tag-bg);color:var(--tag-ink);border-radius:6px;padding:2px 7px}
   /* Les trois sections qui encadrent le parcours inerte (M6). Désaturées comme le reste de la
@@ -1804,13 +1811,27 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .tk-ack-r span{flex:none;font-family:var(--mono);font-size:11px;color:var(--ink-soft)}
   .tk-ack-r b{flex:1;min-width:0;font-size:12px;font-weight:600;color:var(--ink)}
   .tk-ack-r.vd b{text-decoration:line-through;color:var(--ink-soft)}
+  /* ⚠ LE DÉPLIANT D'UNE LIGNE N'EST PLUS UNE CARTE BLANCHE (signalé à l'usage : « est-ce
+     voulu ? » — non). Il datait du temps où la colonne ÉTAIT une carte blanche : il s'y fondait.
+     Depuis que les rangées vivent sur le fond de la colonne, c'était la seule surface blanche de
+     l'écran, donc la plus saillante — alors qu'elle porte du DÉTAIL. Elle prend la surface de
+     second plan et un retrait, comme un contenu subordonné. */
+  .rail-lad .pl-lx,.read-plan .pl-lx{background:var(--surface-2);border-radius:var(--radius-sm);
+    margin:0 2px 6px 28px;padding:8px 10px}
   .rt-dock{margin:0 0 12px}
   .rt-dock .rt-panel{margin-top:0}
+  /* ⚠ UN SEUL DESSIN D'INTERTITRE dans la colonne (signalé à l'usage : « à tout moment plus à
+     droite que le reste, hors numérotation qui sort de nulle part »). Il y en avait DEUX —
+     `.pl-cxh` avec 9 px de retrait et un `space-between` qui renvoyait « hors numérotation » sur
+     sa propre ligne, et `.pl-sech` avec 2 px. On garde le second et l'on n'en fait qu'un : même
+     retrait que les rangées, et la précision suit le titre dans la même phrase. */
   .pl-sech{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
-    color:var(--ink-soft);margin:16px 0 2px;padding:0 2px;line-height:1.3}
+    color:var(--ink-soft);margin:16px 0 2px;padding:0 2px;line-height:1.35}
+  .pl-sech.cx{color:var(--critical)}
+  .pl-sech span{font-weight:700;color:var(--ink-soft);letter-spacing:.04em}
   /* Sans pastille, le texte d'une rangée de queue commence au bord — comme dans la maquette. */
   .pl-line.wl .t,.pl-line.cxl .t{font-weight:600}
-  .pl-line.cxl{padding-left:9px}
+  .pl-line.cxl{padding-left:13px}
   .pl-line.wl{cursor:default}
   /* Une complication porte le liseré ROUGE : c'est le seul endroit de la colonne où un registre
      paraît, et il dit « ceci n'est pas dans la séquence, ceci arrive ». */
@@ -1818,7 +1839,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Les étapes en ligne du plan : désaturées comme le reste de la colonne (elle ORIENTE), le
      registre porté par le glyphe ET l'encre — jamais la couleur seule. */
   /* Dans la colonne de droite, le volet perd sa marge de pied : il suit le schéma. */
-  .read-side #revPanel .rev-panel{margin:12px 0 0}
+  .read-side #revPanel{margin:0 0 14px}
+  .read-side #revPanel .rev-panel{margin:0}
   /* LA BARRE D'ACTIONS DU COMPTE-RENDU (M8). Sous 560 px, elle est COLLANTE au bas de la feuille
      et les boutons occupent toute la largeur : le compte-rendu peut faire plusieurs écrans, et
      l'action ne doit pas se chercher au bout d'un défilement. Elle n'enfreint pas « aucune zone
@@ -1841,7 +1863,17 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .tk-ack-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
   .tk-ack-t{font-family:var(--mono);font-size:15.5px;font-weight:700;color:var(--ok)}
   .tk-ack-l{font-size:12px;font-weight:700;color:var(--ink-soft)}
+  /* LES CHIPS DE SUGGESTION SUR FOND VERT (signalé à l'usage : « ça fait gris puis bleu sur du
+     vert »). Elles héritaient du dessin du PANNEAU (fond neutre, survol bleu), posé sur un fond
+     blanc — sur la teinte de confirmation, deux registres se superposaient. Dans l'accusé, elles
+     prennent donc la SURFACE (blanc franc, qui se détache de la teinte) et le filet du registre
+     courant ; le survol reste dans ce même registre. Un seul registre par surface. */
   .tk-ack-c{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .tk-ack .tk-pick{background:var(--surface);border-color:var(--ok-line);color:var(--ink);
+    min-height:38px;padding:5px 11px}
+  .tk-ack .tk-pick:hover{background:var(--done-bg);border-color:var(--ok)}
+  .tk-ack .tk-pick:focus-visible{outline:2px solid var(--ok);outline-offset:2px}
+  .tk-ack .tk-pick.more{color:var(--ink-soft);font-weight:700}
   .tk-ack-j{margin-top:9px;background:none;border:0;padding:4px 0;min-height:32px;
     font-size:13.5px;font-weight:700;color:var(--link);cursor:pointer;text-align:left}
   .tk-ack-j:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
@@ -4674,7 +4706,18 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .forget-strip:not(.fs-closed) .fs-btn{margin-bottom:4px}
   /* La trace d'un compteur : muette, permanente, à l'endroit du geste. Aucune hauteur tant
      qu'il n'y a rien à dire (`:empty`). */
-  .cn-log{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ok);margin-top:2px}
+  /* ⚠ REGISTRE CORRIGÉ APRÈS RELECTURE ECAM (question de l'auteur : « bonne couleur ? bon
+     comportement ? »). CE N'EST PAS UNE CONFIRMATION : le vert du dossier dit « ce que l'on VIENT
+     DE FAIRE est acquis » — étape cochée, algorithme terminé —, c'est-à-dire la réponse à un
+     geste. Ici c'est un FAIT PASSIF, affiché en permanence sur chaque compteur : en vert, il
+     diluerait le vert des étapes cochées exactement comme un rouge permanent dilue le rouge des
+     étapes vitales. Registre MEMO (neutre), donc — celui de l'information qui n'appelle aucune
+     action.
+     ET IL RESTE, C'EST VOULU : un fait n'expire pas. C'est l'analogue du « last actuation » d'un
+     synoptique ECAM — un état de l'objet, pas une alerte à acquitter. Le faire disparaître au bout
+     de n secondes rendrait la question « ai-je consigné ? » à nouveau sans réponse, ce qui est
+     précisément ce qu'il vient réparer. */
+  .cn-log{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink-soft);margin-top:2px}
   .cn-log:empty{display:none}
   .fs-kt{flex:1;min-width:0}
   .fs-tgl{margin-left:auto;flex:none;font:inherit;font-size:11px;font-weight:800;letter-spacing:.07em;
@@ -11214,7 +11257,7 @@ function cnLogTxt(id){
   const evs=(Runtime.events||[]).filter(e=>e&&e.ref&&e.ref.type==='counter'&&e.ref.id===id&&!e.voidAt);
   if(!evs.length)return '';
   const t0=(Runtime&&Runtime.startedAt)||0,last=evs[evs.length-1].t;
-  return '✓ consigné '+esc(t0?fmtMs(Math.max(0,last-t0)):fmtHMS(last));}
+  return 'consigné '+esc(t0?fmtMs(Math.max(0,last-t0)):fmtHMS(last));}
 // Met à jour la valeur affichée d'un compteur ET son étiquette accessible (role="status").
 function setCounterVal(id){const el=document.getElementById('cnval-'+id);if(!el)return;const c=((Runtime.fiche&&Runtime.fiche.counters)||[]).find(x=>x.id===id);const lbl=(c&&esc(c.label))||'Compteur';const v=Runtime.counters[id]||0;el.textContent=v;el.setAttribute('aria-label',lbl+' : '+v);
   const lg=document.getElementById('cnlog-'+id);if(lg)lg.innerHTML=cnLogTxt(id);}
@@ -12963,7 +13006,7 @@ function ovPlanLadderHtml(f,plan,num,md,off){
      séquence (ils s'entrent par l'événement, pas par la position — les numéroter les ferait lire
      comme « l'étape d'après »). Tap = y aller (navigation, sémantique jumpToBlock du plan). */
   {const det=cxDetached(f);
-   if(det.length){h+='<div class="pl-cxh">⚡ À tout moment<span>hors numérotation</span></div>';
+   if(det.length){h+='<div class="pl-sech cx">⚡ À tout moment <span>· hors numérotation</span></div>';
      det.forEach(c=>{const lp=latestPass(state.nav,state.navSeq,c.target);
        h+=`<div class="pl-line cxl" data-plgo="${esc(c.target)}" role="button" tabindex="0"><span class="t">${esc(c.label)}${lp&&lp.total>1?`<span class="pl-x">×${lp.total}</span>`:''}</span><span class="g">${lp?'passé':''}</span></div>`;});}}
   /* « △ SURVEILLER — APRÈS LES GESTES » : les items de rôle `watch`. Ils vivent déjà dans le flux
@@ -13638,7 +13681,7 @@ function ovParcoursHtml(f){
     h+='</section>';});
   /* Les deux sections hors séquence ferment la vue, dans le même ordre que la colonne. */
   {const det=cxDetached(f);
-   if(det.length)h+='<div class="pl-cxh">⚡ À tout moment<span>hors numérotation</span></div>'
+   if(det.length)h+='<div class="pl-sech cx">⚡ À tout moment <span>· hors numérotation</span></div>'
      +det.map(c=>`<section class="pc-card exc"><div class="pc-h"><span class="pc-n" aria-hidden="true">⚡</span><span class="pc-ht">${esc(c.label)}</span></div>`
        +((f.blocks.find(x=>x.id===c.target)?clean(stepsOf(f.blocks.find(x=>x.id===c.target))).map(item).join(''):'<div class="pc-foot">↗ ouvre une autre aide</div>'))
        +'</section>').join('');}
@@ -14671,8 +14714,20 @@ function edDrop(at,lbl,warn){
      serait un quatrième endroit où l'oublier. Borné à six, comme pour les listes. */
   const idx=Math.min(parseInt(String(at).split(':').pop(),10)||0,6);
   return `<button type="button" class="ed-drop${warn?' warn':''}" style="--i:${idx}" data-drop="${esc(at)}">${warn?'△ ':''}${esc(lbl)}</button>`;}
-function blockEditor(b,blocks){if(b.kind==='decision'){return `<div class="blk blk-dec${edGrabCls('b',b.id)}" data-bid="${b.id}"><div class="blk-top"><span class="blk-n dec" aria-hidden="true">◆</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Réévaluation)" aria-label="Titre de la décision"><button class="mini grab" draggable="true" data-grab="b:${b.id}" aria-label="Déplacer ce bloc" title="Déplacer le bloc — touchez, puis touchez la destination">⠿</button></div><div class="blk-phase"><label for="ph-${b.id}">Phase</label><input id="ph-${b.id}" type="text" list="phaseList" data-bf="phase" value="${esc(b.phase||'')}" maxlength="40" placeholder="${esc(phaseOf(state.draft||{},b.id)||'facultative — héritée du bloc précédent')}"></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Question</div><input type="text" data-bf="question" value="${esc(b.question)}" placeholder="ex. Réponse à l'adrénaline ?" aria-label="Question posée" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)"><div class="sub">Réponses → bloc cible</div>${(b.options.length?b.options:[{label:'',target:''}]).map((o,i)=>`<div class="optedit" data-oi="${i}"><input type="text" data-of="label" value="${esc(o.label)}" placeholder="ex. Oui" aria-label="Libellé de la réponse ${i+1}">${targetSelect(blocks,b.id,o.target)}<button class="mini del" data-optdel="${i}" aria-label="Supprimer la réponse">×</button></div>`).join('')}<button class="add-line" data-addopt>+ Ajouter une réponse</button>${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
-  return `<div class="blk${edGrabCls('b',b.id)}" data-bid="${b.id}"><div class="blk-top"><span class="blk-n" aria-hidden="true">${(blocks||[]).indexOf(b)+1}</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Mesures immédiates)" aria-label="Titre du bloc"><button class="mini grab" draggable="true" data-grab="b:${b.id}" aria-label="Déplacer ce bloc" title="Déplacer le bloc — touchez, puis touchez la destination">⠿</button></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Étapes (cochables en mode crise)</div><details class="crit-guide"${(()=>{try{return localStorage.getItem('ac-cg-open')?' open':'';}catch(e){return '';}})()}><summary>${uiIcon('warn',11)} Rouge, △ ambre, réponse attendue — règles d'usage</summary><b class="cg-r">${uiIcon('warn',11)} Rouge</b> : ce qui tue si on l'oublie (memory item, geste vital). <b class="cg-a">△ Ambre</b> : là où l'on risque de se tromper (dose/dilution à vérifier avant injection, contre-indication à écarter, confusion voie/site/produit, seuil à contrôler avant de poursuivre). Les deux → rouge. <b>Réponse attendue</b> : « challenge :: réponse » (ex. « Adrénaline IM :: 0,01 mg/kg — max 0,5 mg ») — la réponse devient la pilule à confirmer en lecture (challenge-response).</details>${(stepsOf(b).length?stepsOf(b):['']).map((s,i)=>`${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+i,i===0?'Poser en tête':'Poser ici',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<div class="li${stepIsCrit(s)?' li-crit':(stepIsVigil(s)?' li-vigil':'')}${((bItems(b)[i]||{}).expect||'').trim()?' has-exp':''}${edGrabCls('s',b.id,i)}" data-si="${i}"><button class="mini grab li-grab" draggable="true" data-grab="s:${i}" aria-label="Déplacer l'étape ${i+1}" title="Déplacer — touchez, puis touchez la destination">⠿</button><span class="li-fw"><span class="li-mk" aria-hidden="true">${stepIsCrit(s)?uiIcon('warn',13):(stepIsVigil(s)?'△':'')}</span><input type="text" data-sf value="${esc((bItems(b)[i]||{}).do||'')}" placeholder="Nouvelle étape…" aria-label="Étape ${i+1} — ce qui se prononce"></span><span class="li-arrow" aria-hidden="true">→</span><input type="text" class="li-exp" data-sx="${i}" value="${esc((bItems(b)[i]||{}).expect||'')}" placeholder="réponse attendue (facultatif)" aria-label="Étape ${i+1} — réponse attendue (facultatif)"><span class="li-tools"><button class="mini crit-tgl${stepIsCrit(s)?' on':(stepIsVigil(s)?' vig':'')}" data-crit="${i}" title="${stepIsCrit(s)?'Étape CRITIQUE (rouge : ce qui tue si oublié) — toucher : vigilance (ambre)':(stepIsVigil(s)?'Étape VIGILANCE (ambre : risque d’erreur — dose, voie, seuil) — toucher : étape normale':'Étape normale — toucher : critique (rouge : ce qui tue si oublié)')}">${stepIsVigil(s)?'△':uiIcon('warn',14)}<span class="mini-w">${stepIsCrit(s)?'vital':(stepIsVigil(s)?'vérifier':'registre')}</span></button><button class="mini mem-tgl${(bItems(b)[i]||{}).memory?' on':''}" data-mem="${i}" aria-pressed="${(bItems(b)[i]||{}).memory?'true':'false'}" title="${(bItems(b)[i]||{}).memory?'Memory item — apparaît AUSSI dans « Ne pas oublier » ; toucher : étape ordinaire':'Étape ordinaire — toucher : memory item (elle rejoint « Ne pas oublier »)'}">★<span class="mini-w">mémoire</span></button><button class="mini x2-tgl${(bItems(b)[i]||{}).dual?' on':''}" data-dual="${i}" aria-pressed="${(bItems(b)[i]||{}).dual?'true':'false'}" title="${(bItems(b)[i]||{}).dual?'Confirmé par les DEUX — toucher : confirmation simple':'Confirmation simple — toucher : à confirmer par les deux (AC 120-71B §5.2.2.5)'}">×2<span class="mini-w">double</span></button><span class="li-sp"></span><button class="mini del" data-rmstep="${i}" aria-label="Supprimer l'étape">×</button></span>${(()=>{const nt=stepNote(s);return nt?`<span class="li-note" role="status">△ <b>Relecture</b> — ${esc(nt)}</span>`:'';})()}</div>`).join('')}${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+(stepsOf(b).length||0),'Poser en fin',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<p class="nf-guard" data-stepguard role="status">${stepGuardTxt(stepsOf(b),'bloc')}</p><button class="add-line" data-addstep>+ Ajouter une étape</button><div class="sub">Étape suivante</div>${targetSelect(blocks,b.id,b.next)}${b.next?`<input type="text" data-bnextlbl value="${esc(b.nextLbl||'')}" maxlength="120" placeholder="Libellé du bouton Continuer (ex. réévaluation à 5 min)" aria-label="Libellé du bouton Continuer" style="margin-top:6px">`:''}${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
+/* LA PHASE VIT DANS L'EN-TÊTE DU BLOC, À DROITE (v5.0.0, maquette — et correction : ma première
+   pose n'était que dans la branche DÉCISION, `replace(…,1)` ayant pris la première occurrence).
+   Elle est FACULTATIVE et HÉRITÉE : le champ vide affiche en filigrane la phase héritée du bloc
+   précédent, de sorte que l'auteur voit ce qui s'appliquera sans avoir à la retaper. Un `datalist`
+   propose le noyau, sans jamais l'imposer. */
+function phaseFieldHtml(b){
+  const her=phaseOf(state.draft||{},b.id);
+  const prop=her&&!String(b.phase||'').trim();
+  return `<span class="blk-phase${prop?' inh':''}"><input type="text" list="phaseList" data-bf="phase" `
+    +`value="${esc(b.phase||'')}" maxlength="40" `
+    +`placeholder="${esc(her||'phase…')}" aria-label="Phase du bloc (facultative, héritée du bloc précédent)" `
+    +`title="Phase — facultative. Vide, le bloc reprend celle du bloc précédent${her?` (« ${esc(her)} »)`:''}."></span>`;}
+function blockEditor(b,blocks){if(b.kind==='decision'){return `<div class="blk blk-dec${edGrabCls('b',b.id)}" data-bid="${b.id}"><div class="blk-top"><span class="blk-n dec" aria-hidden="true">◆</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Réévaluation)" aria-label="Titre de la décision">${phaseFieldHtml(b)}<button class="mini grab" draggable="true" data-grab="b:${b.id}" aria-label="Déplacer ce bloc" title="Déplacer le bloc — touchez, puis touchez la destination">⠿</button></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Question</div><input type="text" data-bf="question" value="${esc(b.question)}" placeholder="ex. Réponse à l'adrénaline ?" aria-label="Question posée" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)"><div class="sub">Réponses → bloc cible</div>${(b.options.length?b.options:[{label:'',target:''}]).map((o,i)=>`<div class="optedit" data-oi="${i}"><input type="text" data-of="label" value="${esc(o.label)}" placeholder="ex. Oui" aria-label="Libellé de la réponse ${i+1}">${targetSelect(blocks,b.id,o.target)}<button class="mini del" data-optdel="${i}" aria-label="Supprimer la réponse">×</button></div>`).join('')}<button class="add-line" data-addopt>+ Ajouter une réponse</button>${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
+  return `<div class="blk${edGrabCls('b',b.id)}" data-bid="${b.id}"><div class="blk-top"><span class="blk-n" aria-hidden="true">${(blocks||[]).indexOf(b)+1}</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Mesures immédiates)" aria-label="Titre du bloc">${phaseFieldHtml(b)}<button class="mini grab" draggable="true" data-grab="b:${b.id}" aria-label="Déplacer ce bloc" title="Déplacer le bloc — touchez, puis touchez la destination">⠿</button></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Étapes (cochables en mode crise)</div><details class="crit-guide"${(()=>{try{return localStorage.getItem('ac-cg-open')?' open':'';}catch(e){return '';}})()}><summary>${uiIcon('warn',11)} Rouge, △ ambre, réponse attendue — règles d'usage</summary><b class="cg-r">${uiIcon('warn',11)} Rouge</b> : ce qui tue si on l'oublie (memory item, geste vital). <b class="cg-a">△ Ambre</b> : là où l'on risque de se tromper (dose/dilution à vérifier avant injection, contre-indication à écarter, confusion voie/site/produit, seuil à contrôler avant de poursuivre). Les deux → rouge. <b>Réponse attendue</b> : « challenge :: réponse » (ex. « Adrénaline IM :: 0,01 mg/kg — max 0,5 mg ») — la réponse devient la pilule à confirmer en lecture (challenge-response).</details>${(stepsOf(b).length?stepsOf(b):['']).map((s,i)=>`${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+i,i===0?'Poser en tête':'Poser ici',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<div class="li${stepIsCrit(s)?' li-crit':(stepIsVigil(s)?' li-vigil':'')}${((bItems(b)[i]||{}).expect||'').trim()?' has-exp':''}${edGrabCls('s',b.id,i)}" data-si="${i}"><button class="mini grab li-grab" draggable="true" data-grab="s:${i}" aria-label="Déplacer l'étape ${i+1}" title="Déplacer — touchez, puis touchez la destination">⠿</button><span class="li-fw"><span class="li-mk" aria-hidden="true">${stepIsCrit(s)?uiIcon('warn',13):(stepIsVigil(s)?'△':'')}</span><input type="text" data-sf value="${esc((bItems(b)[i]||{}).do||'')}" placeholder="Nouvelle étape…" aria-label="Étape ${i+1} — ce qui se prononce"></span><span class="li-arrow" aria-hidden="true">→</span><input type="text" class="li-exp" data-sx="${i}" value="${esc((bItems(b)[i]||{}).expect||'')}" placeholder="réponse attendue (facultatif)" aria-label="Étape ${i+1} — réponse attendue (facultatif)"><span class="li-tools"><button class="mini crit-tgl${stepIsCrit(s)?' on':(stepIsVigil(s)?' vig':'')}" data-crit="${i}" title="${stepIsCrit(s)?'Étape CRITIQUE (rouge : ce qui tue si oublié) — toucher : vigilance (ambre)':(stepIsVigil(s)?'Étape VIGILANCE (ambre : risque d’erreur — dose, voie, seuil) — toucher : étape normale':'Étape normale — toucher : critique (rouge : ce qui tue si oublié)')}">${stepIsVigil(s)?'△':uiIcon('warn',14)}<span class="mini-w">${stepIsCrit(s)?'vital':(stepIsVigil(s)?'vérifier':'registre')}</span></button><button class="mini mem-tgl${(bItems(b)[i]||{}).memory?' on':''}" data-mem="${i}" aria-pressed="${(bItems(b)[i]||{}).memory?'true':'false'}" title="${(bItems(b)[i]||{}).memory?'Memory item — apparaît AUSSI dans « Ne pas oublier » ; toucher : étape ordinaire':'Étape ordinaire — toucher : memory item (elle rejoint « Ne pas oublier »)'}">★<span class="mini-w">mémoire</span></button><button class="mini x2-tgl${(bItems(b)[i]||{}).dual?' on':''}" data-dual="${i}" aria-pressed="${(bItems(b)[i]||{}).dual?'true':'false'}" title="${(bItems(b)[i]||{}).dual?'Confirmé par les DEUX — toucher : confirmation simple':'Confirmation simple — toucher : à confirmer par les deux (AC 120-71B §5.2.2.5)'}">×2<span class="mini-w">double</span></button><span class="li-sp"></span><button class="mini del" data-rmstep="${i}" aria-label="Supprimer l'étape">×</button></span>${(()=>{const nt=stepNote(s);return nt?`<span class="li-note" role="status">△ <b>Relecture</b> — ${esc(nt)}</span>`:'';})()}</div>`).join('')}${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+(stepsOf(b).length||0),'Poser en fin',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<p class="nf-guard" data-stepguard role="status">${stepGuardTxt(stepsOf(b),'bloc')}</p><button class="add-line" data-addstep>+ Ajouter une étape</button><div class="sub">Étape suivante</div>${targetSelect(blocks,b.id,b.next)}${b.next?`<input type="text" data-bnextlbl value="${esc(b.nextLbl||'')}" maxlength="120" placeholder="Libellé du bouton Continuer (ex. réévaluation à 5 min)" aria-label="Libellé du bouton Continuer" style="margin-top:6px">`:''}${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
 /* Éditeur des COMPLICATIONS (v4.26.0) : libellé de l'ÉVÉNEMENT + cible. La cible est soit un
    bloc de CETTE fiche (le sélecteur liste les blocs en premier), soit une AUTRE aide ou un
    protocole (demande utilisateur : « une complication peut ouvrir une nouvelle aide cognitive ») —
@@ -14861,7 +14916,12 @@ function renderEditor(){
          Ce qui manquait, en revanche, c'est POURQUOI la ligne n'est pas éditable : elle vit
          ailleurs. C'est donc le RENVOI qui devient l'information, sur sa propre ligne — bouton
          pleine largeur ≥ 44 px, texte entier, jamais tronqué au milieu d'un titre de bloc. */
-      `<div class="mem-ro"><span class="mem-t">${esc(stepText(m.t))}</span><button type="button" class="mem-go" data-edgo="${esc(m.bid)}">Se modifie dans « ${esc(m.src)} » →</button></div>`).join('')})}
+      /* L'ÉTOILE EST REMISE (retour utilisateur : « avant c'était beaucoup plus clair »). Elle
+         n'est pas redondante — elle dit POURQUOI cette ligne est là sans être éditable : elle a
+         été posée sur une ÉTAPE. Ce qui était mal fait n'était pas le glyphe mais le RENVOI, en
+         rangée : il mangeait la moitié de la largeur et se tronquait en plein titre de bloc. Il
+         reste donc sur sa propre ligne, pleine largeur, ≥ 44 px. */
+      `<div class="mem-ro"><div class="mem-l"><span class="mem-st" aria-hidden="true">★</span><span class="mem-t">${esc(stepText(m.t))}</span></div><button type="button" class="mem-go" data-edgo="${esc(m.bid)}">Se modifie dans « ${esc(m.src)} » →</button></div>`).join('')})}
     ${''/* B4 (v5.0.0, lot M3, maquettes proto-large) — « CONDITION D'ENTRÉE » RÉUNIT LES DEUX
     MOITIÉS D'UNE MÊME DÉCISION. Les critères de confirmation et les diagnostics à éliminer
     vivaient dans deux sections éloignées de ~1 200 px, alors qu'ils répondent à UNE question et

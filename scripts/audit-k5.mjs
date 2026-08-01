@@ -46,7 +46,12 @@ t('titre saisi : la fiche entre dans la bibliothèque', b.dedans, JSON.stringify
    accepter « l'une ou l'autre » ne prouverait rien sur celle qu'on n'a pas regardée. */
 t('la barre DIT l’enregistrement, avec l’heure (étroit)', /^✓ \d{2}:\d{2}$/.test(b.etat.trim()), b.etat);
 await p.setViewportSize({width:900,height:900});
+/* ⚠ LE REDIMENSIONNEMENT RE-REND L'ÉDITEUR (`_onReadBp`, v4.77.0), et un re-rendu passe par
+   `edTouch` qui repose « ⟳ Enregistrement… ». Poser l'état AVANT que le re-rendu soit retombé
+   mesurait donc une course, pas un libellé : on laisse le rendu s'achever, PUIS on pose l'état. */
+await p.waitForTimeout(500);
 await p.evaluate(()=>{if(typeof edSaySave==='function')edSaySave('saved');});
+await p.waitForTimeout(120);
 const bLarge=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   return {etat:(document.getElementById('hdrSaved')||{}).textContent||''};});
 t('… et en toutes lettres au large', /^✓ Enregistré · \d{2}:\d{2}$/.test(bLarge.etat.trim()), bLarge.etat);
