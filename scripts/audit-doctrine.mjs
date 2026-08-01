@@ -1124,6 +1124,48 @@ console.log('\n══ T13 · les fiches d\'exemple exercent la doctrine qu\'elle
    réparent le défaut mesuré » ; le lot T1 n'avait livré que `texts`. Le témoin mesure les deux
    propriétés qui comptent : la révision est celle qui était SOUS LES YEUX au démarrage, et une
    édition ULTÉRIEURE ne la réécrit pas — sinon le compte rendu nommerait la version d'après. */
+/* LE QUAI NE DÉTRUIT PLUS SON DOM À CHAQUE TICK (v5.0.0, question puis mesure).
+   POURQUOI C'EST UN INVARIANT ET PAS UNE OPTIMISATION : la doctrine interdit de loger un contrôle
+   dans le quai parce qu'un tap y était avalé — et la cause était ici, pas ailleurs. La chaîne
+   comparée à `_rtsHtml` contenait les TEMPS, donc changeait à chaque seconde, donc `innerHTML`
+   était réécrit et TOUT le sous-arbre remplacé : entre le `pointerdown` et le `click`, le nœud
+   sous le doigt n'existait plus. Mesuré avant : 36 éléments détruits en 6 s, 0 survivant sur 8.
+   Si un futur correctif remet une valeur dans la chaîne de structure, ce témoin doit crier. */
+console.log('\n══ QUAI · la structure survit aux ticks ══');
+{
+  const page = await br.newPage({viewport:{width:390,height:844},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();await w(200);
+    const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await w(800);});
+  const q = await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    openRead(fiches[0].id);await w(400);
+    const sb=document.getElementById('sessStart');if(sb)sb.click();await w(600);
+    const t=Object.values(Runtime.timers)[0];if(t){t.running=true;t.lastStart=Date.now();t.elapsedMs=0;}
+    await w(300);
+    const el=document.getElementById('cbTimers');
+    let elems=0;
+    const mo=new MutationObserver(ms=>{ms.forEach(m=>{if(m.type==='childList')
+      m.removedNodes.forEach(nd=>{if(nd.nodeType===1)elems++;});});});
+    mo.observe(el,{childList:true,subtree:true});
+    /* Le geste : on garde la référence du nœud sous le doigt et l'on regarde s'il survit à des
+       ticks. Un `click` n'est émis que si le nœud du `pointerdown` est toujours là. */
+    let vivants=0;const n=5;
+    for(let i=0;i<n;i++){const cible=el.querySelector('.seg.glb')||el.firstElementChild;
+      await w(1100);if(cible&&document.contains(cible))vivants++;}
+    mo.disconnect();
+    const vals=[...el.querySelectorAll('.seg-t')].map(x=>x.textContent.trim());
+    return {elems,vivants,n,vals,txt:el.textContent.replace(/\s+/g,' ').trim()};});
+  t('aucun ÉLÉMENT du quai n’est détruit pendant les ticks', q.elems===0, `${q.elems} élément(s) retiré(s)`);
+  t('… donc un nœud sous le doigt survit à chaque seconde', q.vivants===q.n, `${q.vivants}/${q.n}`);
+  /* Et le quai continue de DIRE l'heure : une structure stable qui n'afficherait plus rien serait
+     un progrès parfaitement inutile. Le contrôle rencontre donc son cas. */
+  t('… et les valeurs sont bien peintes', q.vals.length>=1&&q.vals.every(v=>/\d/.test(v)), JSON.stringify(q.vals));
+  await page.close();
+}
+
 console.log('\n══ aidRev · la révision lue pendant le soin ══');
 {
   const page = await br.newPage({viewport:{width:390,height:844},hasTouch:true});
