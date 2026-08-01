@@ -2678,6 +2678,36 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   « last actuation » d'un synoptique ECAM, un état de l'objet et non une alerte à acquitter. La
   faire disparaître au bout de n secondes rendrait la question « ai-je consigné ? » à nouveau sans
   réponse, ce qu'elle vient précisément réparer.
+- **UNE RÈGLE ÉCRITE POUR UNE LIGNE NE DOIT PAS S'APPLIQUER À UNE BOÎTE (v5.0.0, signalé à
+  l'usage)** : `.pos-card.vig + .pos-card{border-top:0}` datait du temps où le repère ORDINAIRE
+  était une LIGNE à filet — après une boîte ambre, ce filet aurait fait double trait. Mais deux
+  BOÎTES qui se suivent — le cas dès que deux repères sont signalés △, donc sur les deux fiches
+  d'exemple depuis le lot T13 — n'ont pas ce problème : la seconde perdait son bord haut
+  (`border-top-width: 0px` mesuré) et se lisait comme rognée. La règle est bornée par `:not(.vig)`.
+  C'est le corollaire de « normal = ligne, signalé = boîte » : quand la doctrine distingue deux
+  formes, **toute règle qui vise l'une doit le dire dans son sélecteur**.
+- **LA RÉFÉRENCE — PLAN À GAUCHE, RECHERCHE DEDANS (v5.0.0, refonte des protocoles)** : le sommaire
+  vit **à gauche** ≥ 1000 px, comme le plan d'une aide en cockpit et pour la même raison — on
+  s'oriente à gauche, on lit au milieu. **Sous 1000 px il n'y a pas de colonne** : il devient un
+  DÉPLIANT replié en tête du corps, qui dit son nombre de sections — un sommaire qu'on ouvre,
+  jamais une liste qui pousse le texte. **L'ORDRE DU DOM RESTE CELUI DE LA LECTURE** : le sommaire
+  est ajouté APRÈS le corps et ramené à gauche par `order` — ni un lecteur d'écran ni une
+  tabulation ne traversent un sommaire pour atteindre le texte (règle de `.read-plan`, v4.59.0).
+  **CHERCHER DANS LA RÉFÉRENCE** : un protocole peut faire plusieurs milliers de mots, et la
+  recherche de l'accueil trouve la FICHE, jamais l'endroit. ⚠ **LE SURLIGNAGE NE PASSE JAMAIS PAR
+  `innerHTML`** — il parcourt les NŒUDS DE TEXTE et n'insère que des nœuds créés
+  (`createElement`/`createTextNode`) : réinjecter du balisage produit par `mdRender` ouvrirait une
+  seconde occasion de se tromper là où `esc()` est la SEULE barrière (règle 4). Le témoin vérifie
+  donc aussi qu'après effacement **le document revient à l'identique**. **La recherche ne FILTRE
+  pas, elle surligne et saute** : masquer des sections laisserait croire qu'elles n'existent pas —
+  même garantie que `posoRank` et `tagRank`.
+- **LA RELECTURE D'UNE RÉFÉRENCE (v5.0.0)** : le volet des AIDES lit des garde-fous de checklist
+  (memory items, longueur des challenges) qui n'ont aucun sens ici — une référence n'a ni bloc ni
+  étape. `reviewNotesProto` dit ce qui MANQUE pour qu'elle serve : contenu vide, « à compléter »
+  résiduel, aucune source citée, titre absent. **MÊME DESSIN, MÊME GRAMMAIRE** que le volet des
+  aides (`reviewPanelHtml` est partagé, il prend les notes en paramètre) : qui a appris à lire l'un
+  lit l'autre — doctrine I4 appliquée à l'édition. Il vit **au-dessus de l'aperçu** dans la colonne
+  de droite, en pied sous 1000 px.
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.

@@ -1189,6 +1189,89 @@ console.log('\n══ T13 · les fiches d\'exemple exercent la doctrine qu\'elle
    (`auto-fill minmax(290px,1fr)`) : un écran de 1600 px donne QUATRE pistes de 319 px, plus
    étroites qu'un téléphone de 390. Mesurer 330 et 390 ne prouvait donc rien sur ordinateur — on
    balaye les six largeurs qui produisent 1, 2, 3 et 4 colonnes. */
+/* UNE BOÎTE GARDE SES QUATRE CÔTÉS (v5.0.0, signalé à l'usage). La règle
+   `.pos-card.vig + .pos-card{border-top:0}` avait été écrite quand le repère ORDINAIRE était une
+   LIGNE à filet : après une boîte ambre, ce filet aurait fait double trait. Mais deux BOÎTES qui
+   se suivent — le cas dès que deux repères sont signalés △, donc sur les deux fiches d'exemple
+   depuis T13 — n'ont pas ce problème : la seconde perdait son bord haut et se lisait comme rognée.
+   C'est « normal = ligne, signalé = boîte » : une règle écrite pour une LIGNE ne doit pas
+   s'appliquer à une BOÎTE. */
+/* LA RÉFÉRENCE — PLAN À GAUCHE, RECHERCHE DEDANS (v5.0.0, refonte des protocoles).
+   Un protocole peut faire plusieurs milliers de mots : la recherche de l'accueil trouve la FICHE,
+   jamais l'endroit. ⚠ LE SURLIGNAGE NE PASSE JAMAIS PAR `innerHTML` — il parcourt les NŒUDS DE
+   TEXTE et n'insère que des nœuds créés : réinjecter du balisage produit par `mdRender` ouvrirait
+   une seconde occasion de se tromper là où `esc()` est la seule barrière (règle 4). Le témoin
+   vérifie donc AUSSI que le HTML rendu est intact. */
+console.log('\n══ RÉFÉRENCE · plan à gauche, recherche dedans ══');
+for (const W of [390, 1280]) {
+  const page = await br.newPage({viewport:{width:W,height:900},hasTouch:W<780});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();await w(200);
+    const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await w(900);});
+  const r = await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    const pr=migrateProtocol({id:'pz',title:'Référence témoin',kind:'reference',
+      body:['# Préparation',Array(30).fill('Vérifier le matériel de perfusion.').join('\n\n'),
+        '## Matériel',Array(20).fill('cristalloïdes et tubulure').join('\n\n'),
+        '# Déroulé',Array(20).fill('Poser la voie veineuse.').join('\n\n'),
+        '## Surveillance','fin'].join('\n\n')});
+    protocols.push(pr);openProtocolRead('pz');await w(600);
+    const toc=document.querySelector('.ref-toc'),grid=document.querySelector('.ref-grid');
+    const bodyL=Math.round(document.querySelector('.md-body').getBoundingClientRect().left);
+    const avant=document.querySelector('.md-body').innerHTML;
+    const q=document.getElementById('pfQ');
+    if(q){q.value='perfusion';q.dispatchEvent(new Event('input',{bubbles:true}));}
+    await w(500);
+    const marks=document.querySelectorAll('mark.pf-h').length;
+    const cnt=(document.getElementById('pfCount')||{}).textContent||'';
+    /* On efface la recherche : le document doit revenir À L'IDENTIQUE, sinon le surlignage
+       laisserait des nœuds derrière lui à chaque frappe. */
+    if(q){q.value='';q.dispatchEvent(new Event('input',{bubbles:true}));}
+    await w(300);
+    return {tag:toc?toc.tagName:null,
+      gauche:toc?bodyL>Math.round(toc.getBoundingClientRect().left):null,
+      ordre:[...(grid?grid.children:[])].map(x=>String(x.className).split(' ')[0]),
+      marks,cnt,restaure:document.querySelector('.md-body').innerHTML===avant,
+      resteMarks:document.querySelectorAll('mark.pf-h').length};});
+  if(W>=1000){
+    t(`${W} · le plan d'une référence vit à GAUCHE`, r.tag==='ASIDE'&&r.gauche===true, `${r.tag} gauche=${r.gauche}`);
+    /* L'ordre du DOM reste celui de la LECTURE : le corps AVANT le sommaire. */
+    t(`${W} · … mais le corps vient AVANT lui dans le DOM`, r.ordre[0]==='ref-main', JSON.stringify(r.ordre));
+  } else {
+    t(`${W} · sans colonne, le plan est un DÉPLIANT replié`, r.tag==='DETAILS', String(r.tag));
+  }
+  t(`${W} · la recherche trouve dans le corps`, r.marks>=10&&/\/\s*\d+/.test(r.cnt), `${r.marks} — « ${r.cnt} »`);
+  t(`${W} · … sans réécrire le HTML rendu (effacée, le document est identique)`,
+    r.restaure===true&&r.resteMarks===0, `restauré=${r.restaure} restes=${r.resteMarks}`);
+  await page.close();
+}
+
+console.log('\n══ REPÈRES POSOLOGIQUES · une boîte garde ses quatre côtés ══');
+{
+  const page = await br.newPage({viewport:{width:1280,height:1000}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();await w(200);
+    const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await w(900);});
+  const r = await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    const f=fiches.find(x=>/Anaphylaxie/i.test(x.title))||fiches[0];
+    openRead(f.id);await w(500);
+    const sb=document.getElementById('sessStart');if(sb)sb.click();await w(800);
+    const cs=[...document.querySelectorAll('.read-side .pos-card,.read-plan .pos-card')];
+    return {n:cs.length,
+      boites:cs.filter(c=>c.classList.contains('vig')).length,
+      sansBordHaut:cs.filter(c=>c.classList.contains('vig')&&parseFloat(getComputedStyle(c).borderTopWidth)<0.5).length};});
+  /* Le contrôle doit RENCONTRER SON CAS : il faut DEUX boîtes consécutives, sinon la règle
+     fautive ne se déclenche pas et le témoin reste vert sur le défaut. */
+  t('témoin : au moins deux repères en BOÎTE se suivent', r.boites>=2, `${r.boites} sur ${r.n}`);
+  t('aucune boîte ne perd son bord haut', r.sansBordHaut===0, `${r.sansBordHaut} sans bord`);
+  await page.close();
+}
+
 console.log('\n══ ACCUEIL · la rangée a un rythme régulier ══');
 for (const W of [330, 390, 700, 1000, 1400, 1600]) {
   const page = await br.newPage({viewport:{width:W,height:844},hasTouch:true});

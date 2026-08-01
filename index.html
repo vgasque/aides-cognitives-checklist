@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-kCJdPK/4j6o5YkH/QH2jZ3JDRgrwTo2qrHh7bLppuPc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-/DJ882YrmvH8C8BL/mCSIChl/1N8NpPgW/hLz70KfBw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1680,10 +1680,30 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .ed-entry .list-edit.bare>label{font-size:12px}
   /* M5 — le sommaire d'une référence : colonne collante à droite, jamais sous 1000 px. */
   .ref-grid{display:block}
-  .ref-toc{display:none}
+  /* SOUS 1000 px : un DÉPLIANT en tête du corps, replié — un sommaire qu'on ouvre, jamais une
+     liste qui pousse le texte. Même gabarit que les autres dépliants du produit. */
+  details.ref-toc{margin:0 0 14px;background:var(--surface-2);border:1px solid var(--line);
+    border-radius:var(--radius-md);padding:0 10px}
+  details.ref-toc[open]{padding-bottom:8px}
+  .rt-sum{display:flex;align-items:center;gap:9px;min-height:44px;cursor:pointer;list-style:none}
+  .rt-sum::-webkit-details-marker{display:none}
+  .rt-sum::after{content:"▾";margin-left:auto;color:var(--ink-soft);font-size:11px}
+  details.ref-toc[open] .rt-sum::after{content:"▴"}
+  .rt-sum .rt-h{padding:0}
+  .rt-n{font-size:11px;font-weight:700;color:var(--ink-soft)}
+  /* CHERCHER DANS LA RÉFÉRENCE : le champ vit dans le sommaire — on cherche là où l'on s'oriente. */
+  .rt-find{display:flex;flex-direction:column;gap:6px;padding:0 8px 8px}
+  .rt-find input{width:100%;min-height:38px;font-size:12px;padding:6px 9px;border:1px solid var(--line-strong);
+    border-radius:var(--radius-sm);background:var(--input-bg);color:var(--ink);font-family:inherit}
+  .rt-find input:focus{border-color:var(--primary);outline:none}
+  .rt-fnav{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:var(--ink-soft)}
+  .rt-fnav .mini{width:30px;height:30px}
+  mark.pf-h{background:var(--verify-soft);color:inherit;border-radius:3px;padding:0 1px}
+  mark.pf-h.cur{background:var(--verify-bd);color:var(--on-primary)}
   @media (min-width:1000px){
-    .ref-grid{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:24px;align-items:start}
-    .ref-toc{display:block;position:sticky;top:calc(var(--stick-top,64px) + 8px);
+    .ref-grid{display:grid;grid-template-columns:260px minmax(0,1fr);gap:24px;align-items:start}
+    .ref-toc{order:-1}
+    aside.ref-toc{display:block;position:sticky;top:calc(var(--stick-top,64px) + 8px);
       background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:10px 8px;
       max-height:calc(100dvh / var(--zf,1) - var(--stick-top,64px) - 24px);overflow-y:auto}
     .rt-h{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);
@@ -4321,7 +4341,15 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .read-side .pos-card.vig{background:var(--verify-soft);border:1px solid var(--verify-bd);
       border-radius:8px;padding:9px 11px;margin:8px 0}   /* 8 (pas 2) : deux boîtes ambre
       consécutives se collaient — les marges verticales fusionnent au MAX, 2+2 -> 2px */
-    .read-side .pos-card.vig+.pos-card{border-top:0}
+    /* ⚠ CETTE RÈGLE NE VAUT QUE POUR UNE LIGNE QUI SUIT UNE BOÎTE (signalé à l'usage : « la
+       bordure du haut des repères en dessous du premier est tronquée »). Elle a été écrite quand
+       le repère ORDINAIRE était une ligne à filet : après une boîte ambre, ce filet ferait double
+       trait. Mais deux BOÎTES qui se suivent — ce qui est le cas dès que deux repères sont
+       signalés △, donc sur les deux fiches d'exemple depuis le lot T13 — n'ont pas ce problème :
+       la seconde se retrouvait alors sans bord haut, et se lisait comme rognée.
+       C'est la même leçon que « normal = ligne, signalé = boîte » : une règle écrite pour une
+       LIGNE ne doit pas s'appliquer à une BOÎTE. */
+    .read-side .pos-card.vig+.pos-card:not(.vig){border-top:0}
     .read-side .pos-card.vig .pos-name{color:var(--verify)}
     /* AUCUNE section bornée (v4.23.0, retour d'usage « où sont passés mes minuteurs ? »).
        Une tentative de borner la seule section minuteurs a suffi à FAIRE DISPARAÎTRE le compteur
@@ -9376,6 +9404,68 @@ function bindAttList(entity){main.querySelectorAll('[data-att]').forEach(b=>b.on
   // feuille, là où les rangées existent. Les PROTOCOLES gardent leur comportement — leurs
   // documents sont dans le flux, donc la condition est vraie pour eux.
   if(main.querySelector('[data-thumb]'))hydrateAttThumbs(entity);}
+/* CHERCHER DANS UNE RÉFÉRENCE (v5.0.0) — un protocole peut faire plusieurs milliers de mots, et
+   la recherche de l'accueil ne trouve que la FICHE, pas l'endroit. Ici on cherche À L'INTÉRIEUR.
+   ⚠ ON NE TOUCHE JAMAIS AU HTML RENDU : le surlignage parcourt les NŒUDS DE TEXTE et n'insère que
+   des nœuds créés (`createElement`/`createTextNode`). Passer par `innerHTML` réinjecterait du
+   balisage produit par `mdRender` — donc une seconde occasion de se tromper là où `esc()` est la
+   seule barrière (règle 4). Aucun `mark` n'est créé sous 2 caractères : tout ressemble à tout.
+   LA RECHERCHE NE FILTRE PAS, ELLE SURLIGNE ET SAUTE : masquer des sections d'une référence
+   laisserait croire qu'elles n'existent pas — même garantie que `posoRank` et `tagRank`. */
+let _pfHits=[],_pfI=0;
+function protoFindHtml(){
+  return `<div class="rt-find"><input type="search" id="pfQ" placeholder="Chercher dans la référence…" `
+    +`aria-label="Chercher dans cette référence" autocomplete="off">`
+    +`<div class="rt-fnav" id="pfNav" hidden><button type="button" class="mini" id="pfPrev" aria-label="Occurrence précédente">‹</button>`
+    +`<span id="pfCount" role="status"></span>`
+    +`<button type="button" class="mini" id="pfNext" aria-label="Occurrence suivante">›</button></div></div>`;}
+function pfClear(){
+  document.querySelectorAll('mark.pf-h').forEach(m=>{
+    const t=document.createTextNode(m.textContent);m.replaceWith(t);
+    if(t.parentNode)t.parentNode.normalize();});
+  _pfHits=[];_pfI=0;}
+function pfRun(q){
+  pfClear();
+  const bd=main.querySelector('.md-body');
+  const s=txNorm(String(q||'').trim());
+  const nav=document.getElementById('pfNav');
+  if(!bd||s.length<2){if(nav)nav.hidden=true;return;}
+  const w=document.createTreeWalker(bd,NodeFilter.SHOW_TEXT,{acceptNode:n=>
+    (n.nodeValue&&n.nodeValue.trim()&&n.parentElement&&n.parentElement.tagName!=='SCRIPT')
+      ?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT});
+  const cibles=[];let n0;while((n0=w.nextNode()))cibles.push(n0);
+  cibles.forEach(nd=>{
+    const brut=nd.nodeValue,norm=txNorm(brut);
+    let i=norm.indexOf(s);if(i<0)return;
+    let cur=nd;let dec=0;
+    while(i>=0){
+      const dans=i-dec;
+      const apres=cur.splitText(dans);
+      const reste=apres.splitText(s.length);
+      const m=document.createElement('mark');m.className='pf-h';
+      m.appendChild(document.createTextNode(apres.nodeValue));
+      apres.replaceWith(m);_pfHits.push(m);
+      cur=reste;dec=i+s.length;
+      i=txNorm(cur.nodeValue).indexOf(s);
+      if(i>=0)dec=0;}});
+  if(nav){nav.hidden=!_pfHits.length;}
+  pfGo(0);}
+function pfGo(i){
+  if(!_pfHits.length){const c=document.getElementById('pfCount');if(c)c.textContent='aucun résultat';return;}
+  _pfI=((i%_pfHits.length)+_pfHits.length)%_pfHits.length;
+  _pfHits.forEach((m,k)=>m.classList.toggle('cur',k===_pfI));
+  const c=document.getElementById('pfCount');
+  if(c)c.textContent=(_pfI+1)+' / '+_pfHits.length;
+  _pfHits[_pfI].scrollIntoView({block:'center'});}
+function bindProtoFind(){
+  const q=document.getElementById('pfQ');if(!q)return;
+  let t=null;
+  q.addEventListener('input',()=>{clearTimeout(t);t=setTimeout(()=>pfRun(q.value),160);});
+  q.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();pfGo(_pfI+(e.shiftKey?-1:1));}
+    if(e.key==='Escape'){q.value='';pfRun('');}});
+  const pv=document.getElementById('pfPrev'),nx=document.getElementById('pfNext');
+  if(pv)pv.onclick=()=>pfGo(_pfI-1);
+  if(nx)nx.onclick=()=>pfGo(_pfI+1);}
 function renderProtocolRead(){
   const p=state.protocol;if(!p){state.view='library';return render();}
   const preview=!!state.previewFrom;
@@ -9406,19 +9496,33 @@ function renderProtocolRead(){
      rendu markdown, aperçus d'éditeur compris). Les ancres sont posées ici, sur les nœuds réels.
      TROIS TITRES AU MINIMUM : un sommaire de deux lignes ne fait pas gagner un défilement, il
      ajoute une colonne. Et JAMAIS sous 1000 px, où il prendrait la place du texte qu'il indexe. */
+  /* LE PLAN D'UNE RÉFÉRENCE VIT À GAUCHE (v5.0.0, refonte des protocoles, maquettes) — comme le
+     plan d'une aide en cockpit, et pour la même raison : on s'oriente à gauche, on lit au milieu.
+     SOUS 1000 px il n'y a pas de colonne : il devient un DÉPLIANT en tête du corps, replié, qui
+     dit son nombre de sections — un sommaire qu'on ouvre, jamais une liste qui pousse le texte.
+     ⚠ L'ORDRE DU DOM RESTE CELUI DE LA LECTURE : le sommaire est ajouté APRÈS le corps et ramené
+     à gauche par `order` — ni un lecteur d'écran ni une tabulation ne doivent traverser un
+     sommaire pour atteindre le texte (même règle que `.read-plan`, v4.59.0). */
   {const bd=main.querySelector('.md-body');
    const hs=bd?[...bd.querySelectorAll('.md-h1,.md-h2')]:[];
-   if(hs.length>=3&&mqReadWide.matches){
+   if(hs.length>=3){
      hs.forEach((h,i)=>{if(!h.id)h.id='rt'+i;});
-     const nav=document.createElement('aside');nav.className='ref-toc';
-     nav.innerHTML='<div class="rt-h">Sommaire</div>'+hs.map(h=>
+     const large=mqReadWide.matches;
+     const liens=hs.map(h=>
        `<button type="button" class="rt-lnk${h.classList.contains('md-h2')?' rt-2':''}" data-rtgo="${esc(h.id)}">${esc(h.textContent)}</button>`).join('');
-     main.querySelector('.ref-grid').appendChild(nav);
+     const nav=document.createElement(large?'aside':'details');
+     nav.className='ref-toc';
+     nav.innerHTML=large
+       ?`<div class="rt-h">Sommaire</div>${protoFindHtml()}${liens}`
+       :`<summary class="rt-sum"><span class="rt-h">Sommaire</span><span class="rt-n">${hs.length} sections</span></summary>${protoFindHtml()}${liens}`;
+     if(large)main.querySelector('.ref-grid').appendChild(nav);
+     else bd.parentElement.insertBefore(nav,bd);
      nav.querySelectorAll('[data-rtgo]').forEach(b=>b.onclick=()=>{
        const t=document.getElementById(b.dataset.rtgo);if(!t)return;
        /* Le défilement de la PAGE, pas d'un conteneur : le corps d'une référence vit dans le flux.
           `scroll-padding-top` (v4.30.0) place déjà la cible sous les couches collantes. */
-       t.scrollIntoView({block:'start'});t.classList.add('flash');setTimeout(()=>t.classList.remove('flash'),900);});}}
+       t.scrollIntoView({block:'start'});t.classList.add('flash');setTimeout(()=>t.classList.remove('flash'),900);});
+     bindProtoFind();}}
   updateStorageInfo();   // remplit le pied (mesure asynchrone) — même libellé que la sidebar
   // Badge d'en-tête : statut (+ date de validation si posée), ex. « ✓ Validé · 03/2026 ».
   updateHdrStatusBadge(p.status,false,p.validatedAt?valToDisplay(p.validatedAt):'');
@@ -9581,8 +9685,12 @@ function renderProtocolEdit(){
       ${mdImagesHtml(p)}
       <p class="md-prev-h">Aperçu</p><div class="md-preview" id="mdPreview">${mdRender(p.body,{images:p.images})}</div></fieldset>
     ${listEditor('Références','sources du protocole (traçabilité)','sources',p.sources||[])}
+    ${''/* Le volet vit en PIED sous 1000 px (une seule colonne), et dans la colonne de droite
+    au-dessus de l'aperçu au-delà — même arbitrage que l'éditeur d'aide : ce qu'on CONSULTE (liste
+    courte, repliée) au-dessus de ce qu'on REGARDE (l'aperçu, haut). */}
+    ${wideEdit?'':`<div id="revPanel">${reviewPanelHtml(p,reviewNotesProto(p))}</div>`}
     ${isNew?'':'<div class="ed-del"><button class="btn danger" id="delBtn">Supprimer ce protocole</button></div>'}
-    ${wideEdit?`</div><aside class="read-side" id="editSide">${editPreviewHtml('proto')}</aside></div>`:''}
+    ${wideEdit?`</div><aside class="read-side" id="editSide"><div id="revPanel">${reviewPanelHtml(p,reviewNotesProto(p))}</div>${editPreviewHtml('proto')}</aside></div>`:''}
     <input type="file" id="imgInput" accept="image/*" hidden>
     <input type="file" id="pdfInput" accept="application/pdf,.pdf" hidden>`;
   bindEditorExit({kind:'p',list:()=>protocols,getDraft:()=>state.pdraft,setDraft:v=>{state.pdraft=migrateProtocol(v);},clearDraft:()=>{state.pdraft=null;},
@@ -14307,8 +14415,30 @@ function bindRevPanel(){
        écran qui glisse longuement est exactement ce que la doctrine évite. */
     el.scrollIntoView({block:'center'});
     el.classList.add('rev-flash');setTimeout(()=>el.classList.remove('rev-flash'),1300);});}
-function reviewPanelHtml(f){
-  const n=reviewNotes(f);
+/* LA RELECTURE D'UNE RÉFÉRENCE (v5.0.0, refonte des protocoles). Le volet des AIDES lit des
+   garde-fous de checklist (memory items, longueur des challenges) qui n'ont aucun sens ici : une
+   référence n'a ni bloc ni étape. Ce qu'on peut lui dire est d'un autre ordre — ce qui MANQUE
+   pour qu'elle serve, et ce que l'auteur a lui-même marqué à compléter.
+   MÊME DESSIN, MÊME GRAMMAIRE que le volet des aides (`reviewPanelHtml` est partagé) : un
+   soignant qui a appris à lire l'un lit l'autre — c'est la doctrine I4 appliquée à l'édition.
+   JAMAIS BLOQUANT, JAMAIS ROUGE : le registre est l'ATTENTION, et le volet le dit. */
+function reviewNotesProto(p){
+  const out=[];
+  if(!p)return out;
+  const corps=String(p.body||'').trim();
+  const docs=(p.docs||[]).length;
+  if(!corps&&!docs)out.push({at:'p-body',cible:'Contenu',
+    txt:'△ Cette référence est vide — ni texte rédigé, ni document joint : elle ne servira à rien telle quelle'});
+  if(TODO_RX.test(corps))out.push({at:'p-body',cible:'Contenu rédigé',txt:'△ Un « à compléter » reste dans le texte'});
+  clean(p.sources||[]).forEach(()=>{});
+  if(TODO_RX.test(String((p.sources||[]).join(' '))))out.push({at:'p-sources',cible:'Références',txt:'△ Un « à compléter » reste dans les sources'});
+  if(corps&&!clean(p.sources||[]).length)out.push({at:'p-sources',cible:'Références',
+    txt:'△ Aucune source citée — la traçabilité d’une référence est ce qui permet de la revalider'});
+  if(!String(p.title||'').trim())out.push({at:'p-title',cible:'Titre',
+    txt:'△ Sans titre, rien n’entre dans la bibliothèque'});
+  return out;}
+function reviewPanelHtml(f,notes){
+  const n=notes||reviewNotes(f);
   if(!n.length)return '';
   /* UNE LIGNE, DÉPLIABLE (maquette MK). Le volet vit en pied de page et n'a qu'un travail :
      dire COMBIEN il reste à relire, et sur quoi, sans manger l'écran. Replié, il tient en une
