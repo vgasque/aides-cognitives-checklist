@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-/DJ882YrmvH8C8BL/mCSIChl/1N8NpPgW/hLz70KfBw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-k4FlNldPeKMn69RAiRv5sqLl3e1SLPIOPjUPDoXGcFk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -528,7 +528,37 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   body.view-edit main{width:100%;max-width:1282px;margin:0 auto}
   body.view-pedit main{width:100%;max-width:816px;margin:0 auto}
   @media (min-width:1000px){body.view-pedit main{max-width:1202px}}   /* 780 + 26 + 360 + marges */
+  /* ⚠ UNE COLONNE D'ORIENTATION S'AJOUTE AU PLAFOND, ELLE NE SE PRÉLÈVE PAS DESSUS (v5.0.0,
+     signalé à l'usage : « pourquoi le sommaire est dans l'espace central ? »). Le protocole est
+     plafonné à 780 px « à toutes les largeurs » — poser la grille du sommaire DEDANS le mettait
+     dans la colonne de lecture, et l'on n'avait plus 780 px de texte mais 496. C'est exactement
+     la règle déjà écrite pour la fiche : « le rail prend l'espace EXCÉDENTAIRE », le plafond de
+     la checklist ne bougeant pas. Le corps garde donc ses 780 px, et le sommaire s'ajoute :
+     260 + 24 + 780 + marges. */
   body.view-pread main{width:100%;max-width:816px;margin:0 auto}
+  @media (min-width:1000px){body.view-pread main:has(.ref-grid.with-toc){max-width:1064px}}
+  @media (min-width:1200px){body.view-pread main:has(.ref-grid.with-toc){max-width:1622px}}
+  @media (min-width:1000px){
+    /* 1000 → 1199 : DEUX pistes. La paire est centrée, donc le corps est légèrement à droite du
+       milieu — c'est le prix à payer pour garder le sommaire, et il est plus faible que celui de
+       le faire disparaître. Piste du corps SOUPLE : fixée, elle déborderait sous 1064 px et la
+       colonne collante recouvrirait le texte (défaut mesuré). */
+    .ref-grid.with-toc{display:grid;grid-template-columns:260px minmax(0,780px);gap:0 24px;align-items:start}
+    .ref-grid.with-toc>.ref-main{grid-column:2}
+    aside.ref-toc{grid-column:1;justify-self:start;width:min(260px,100%)}
+  }
+  @media (min-width:1200px){
+    /* ≥ 1200 : TROIS pistes symétriques — le corps revient exactement au milieu de la fenêtre par
+       construction, et le sommaire occupe la marge gauche. La piste de droite reste vide : c'est
+       le prix d'un texte centré, et c'est l'arbitrage déjà retenu pour la vue fiche. */
+    /* ⚠ LE RAIL DE GAUCHE A UN PLANCHER. Sans lui, la piste `1fr` valait 168 px à 1200 : le
+       sommaire passait de 260 à 168 puis revenait à 260 — un rétrécissement au moment PRÉCIS où
+       l'on gagne de la place, c'est-à-dire l'inverse de ce qu'on attend. Avec `minmax(260px,1fr)`
+       il ne rétrécit jamais ; c'est la piste de DROITE qui absorbe, et le corps se recentre
+       PROGRESSIVEMENT (décalage 92 px à 1200, nul à partir de ~1370). Un mouvement continu, jamais
+       un saut. */
+    .ref-grid.with-toc{grid-template-columns:minmax(260px,1fr) minmax(0,780px) minmax(0,1fr)}
+  }
   @media (min-width:1200px){
     /* Fiche : lecture plafonnée 860px + rail élargi 360px (chiffres lisibles à distance).
        `body.view-edit` N'EST PAS LISTÉ ICI — et ne doit pas l'être : le bloc 1000 (§ éditeurs,
@@ -1692,6 +1722,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .rt-sum .rt-h{padding:0}
   .rt-n{font-size:11px;font-weight:700;color:var(--ink-soft)}
   /* CHERCHER DANS LA RÉFÉRENCE : le champ vit dans le sommaire — on cherche là où l'on s'oriente. */
+  .rt-h2{margin-top:6px;border-top:1px solid var(--line);padding-top:8px}
+  /* Les annexes dans la colonne : mêmes composants, dessin allégé — elles y sont subordonnées. */
+  aside.ref-toc>.ref-copy{margin:10px 0 0;padding:8px 0 0;border-top:1px solid var(--line)}
+  /* Une COPIE d'accès rapide : elle ne se prétend pas la source — pas de fond, pas de cadre. */
+  aside.ref-toc>.ref-copy.block{background:none;border:0;border-top:1px solid var(--line);border-radius:0}
+  aside.ref-toc .block-h{font-size:11px;margin-bottom:6px}
+  aside.ref-toc .links b{display:block;font-size:11px;font-weight:800;letter-spacing:.07em;
+    text-transform:uppercase;color:var(--ink-soft);margin-bottom:6px}
+  aside.ref-toc .related-row{flex-direction:column;align-items:stretch;gap:5px}
+  aside.ref-toc .at-row,aside.ref-toc .btn.sm{width:100%}
   .rt-find{display:flex;flex-direction:column;gap:6px;padding:0 8px 8px}
   .rt-find input{width:100%;min-height:38px;font-size:12px;padding:6px 9px;border:1px solid var(--line-strong);
     border-radius:var(--radius-sm);background:var(--input-bg);color:var(--ink);font-family:inherit}
@@ -1701,7 +1741,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   mark.pf-h{background:var(--verify-soft);color:inherit;border-radius:3px;padding:0 1px}
   mark.pf-h.cur{background:var(--verify-bd);color:var(--on-primary)}
   @media (min-width:1000px){
-    .ref-grid{display:grid;grid-template-columns:260px minmax(0,1fr);gap:24px;align-items:start}
+    /* ⚠ LE CORPS EST CENTRÉ DANS LA FENÊTRE, PAS DANS LA GRILLE (signalé à l'usage : « ça donne
+       encore l'impression que le contenu est décalé »). Une grille « sommaire | corps » centre la
+       PAIRE, donc décale le texte vers la droite de la moitié du sommaire. Trois pistes
+       symétriques — `1fr 780px 1fr` — placent le corps exactement au milieu par construction, et
+       le sommaire occupe la marge GAUCHE, calé à son bord. La piste de droite reste vide : c'est
+       le prix d'un texte centré, et c'est le même arbitrage que la vue fiche, où le blanc part au
+       bord. */
+
     .ref-toc{order:-1}
     aside.ref-toc{display:block;position:sticky;top:calc(var(--stick-top,64px) + 8px);
       background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:10px 8px;
@@ -4165,6 +4212,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      (rôles tablist/tab, flèches + focus itinérant — WCAG 1.4.1 & APG). ----- */
   /* Compacte (v4.1.2) : 44px de haut (cible tactile minimale préservée) + paddings resserrés —
      l'ancienne barre (52px + 8/12 de padding) mangeait trop d'écran sur mobile. */
+  /* DEUX GROUPES SUR UNE LIGNE, chacun avec son intitulé — et l'enroulement comme filet : à
+     320 px avec plusieurs bibliothèques, deux groupes comprimés seraient illisibles. */
+  .filterbar{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;margin-bottom:8px}
+  .filterbar>*{flex:1 1 auto;min-width:0;margin-bottom:0}
+  .filterbar>.typebar{flex:0 1 auto}
   .typebar{display:flex;gap:10px;align-items:center;margin-bottom:8px}
   .typebar .chiprow{flex:1;min-width:0}
   /* Sélecteur SEGMENTÉ à pastille glissante — composant GÉNÉRIQUE (v4.4.2), partagé par la tab
@@ -4867,10 +4919,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .read-grid{display:block!important;grid-template-columns:none!important;gap:0!important;max-width:none!important}
     .read-head h2{font-size:22px!important}   /* corps unique, ni 21 ni 24 selon l'écran */
   }
-  @media print{body{background:var(--paper)}header.bar,#crisisBand,#cbTimers,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.sess-list,.notes-block,#readTopSeg,.ov-redo,.flow-zoom{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}
+  @media print{body{background:var(--paper)}header.bar,#crisisBand,#cbTimers,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.sess-list,.notes-block,#readTopSeg,.ov-redo,.flow-zoom,.ref-toc{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}
     /* Un conteneur à défilement s'imprime TRONQUÉ : à l'impression le tableau se déploie. */
     .md-tw{overflow:visible;break-inside:avoid}.md-tbl{min-width:0;font-size:11px}.md-tbl tr{break-inside:avoid}
     .forget-strip{break-inside:avoid}
+    /* LE SOMMAIRE NE S'IMPRIME PAS (demande utilisateur) : sur papier on TOURNE les pages, on ne
+       saute pas à une ancre — une table des matières qui ne mène nulle part est du bruit, et sa
+       colonne rétrécirait le texte. La grille redevient une seule colonne. */
+    .ref-grid.with-toc{display:block!important}
     /* v4.6.0 : l'algorithme s'imprime ENTIER (le conteneur à défilement tronquait le SVG à
        300 px) et la vue d'ensemble s'imprime DÉPLIÉE — blocs repliés rouverts par CSS (aucun
        état à toucher), hors-chemin en pleine encre (la mention « hors chemin » reste le marqueur). */
@@ -8951,6 +9007,11 @@ function scopeBarHtml(){
    plus large au plus étroit — Type, Biblio, Catég. Ce que cela rend : 62 px de hauteur permanents
    en bas de l'accueil (la place que la barre fixe réservait), et une grammaire de moins.
    La colonne gauche de l'accueil LARGE portait déjà les sections : rien n'y change. */
+/* La rangée de filtres COURTS : bibliothèque puis type, du plus large au plus étroit. */
+function filterbarHtml(){
+  const sc=scopeBarHtml(),ty=typebarHtml();
+  if(!sc)return ty;
+  return `<div class="filterbar">${sc}${ty}</div>`;}
 function typebarHtml(){
   const T=[['all','Tout'],['fiches','Aides'],['protocols','Protocoles']];
   return `<div class="typebar"><span class="scope-lbl">Type</span><div class="chiprow" role="tablist" aria-label="Filtre de type">${
@@ -9105,7 +9166,15 @@ function renderHomeList(cfg){
       (le vôtre, celui du service), quand le type n'est qu'une propriété des objets qui s'y
       trouvent. Le mettre en tête, c'est affirmer la doctrine du lot T9 : on choisit d'abord OÙ
       l'on cherche, jamais DE QUEL TYPE est ce qu'on cherche. */
-   hc.innerHTML=wide?'':(scopeBarHtml()+typebarHtml()+catbarHtml());hc.hidden=wide||!hc.innerHTML;
+   /* DEUX RANGÉES, PAS TROIS (décision utilisateur) : BIBLIOTHÈQUE et TYPE partagent une ligne —
+      ce sont les deux filtres COURTS (quelques bibliothèques, trois crans), et ils répondent à la
+      même question, « où et quoi ». La CATÉGORIE garde la sienne : c'est la liste la plus longue,
+      la seule qui puisse compter vingt entrées. Mesuré à 390 px : 84 → 47 px pour un compte
+      déconnecté, ~123 → ~86 px connecté.
+      ELLE S'ENROULE SI ELLE NE TIENT PAS : sur le plancher de 320 px avec plusieurs
+      bibliothèques, deux groupes sur une ligne se comprimeraient l'un l'autre — mieux vaut deux
+      lignes lisibles qu'une ligne illisible, et l'enroulement ne coûte que ce qu'il rend. */
+   hc.innerHTML=wide?'':(filterbarHtml()+catbarHtml());hc.hidden=wide||!hc.innerHTML;
    const nsr=hc.querySelector('.scopebar .chiprow');if(nsr&&_scopeRowX)nsr.scrollLeft=_scopeRowX;}
   rescueFooter();
   /* ACCUEIL « POSTE ACCÈS DIRECT » (v4.56.0, maquette 2c). Deux régimes :
@@ -9507,15 +9576,45 @@ function renderProtocolRead(){
    const hs=bd?[...bd.querySelectorAll('.md-h1,.md-h2')]:[];
    if(hs.length>=3){
      hs.forEach((h,i)=>{if(!h.id)h.id='rt'+i;});
+     /* DEUX RÉGIMES, PAS UN SEUIL (signalé à l'usage, deux fois — d'abord la colonne qui passait
+        SUR le texte, puis le sommaire qui s'effaçait « même s'il y a encore de la place »).
+        · dès 1000 px : DEUX pistes, `260 + souple` — la paire est centrée, donc le corps est un
+          peu à droite du milieu, et le sommaire EXISTE. La piste du corps est SOUPLE : fixée à
+          780, elle débordait entre 1000 et 1064 et la colonne collante recouvrait le texte.
+        · dès 1200 px : TROIS pistes symétriques — le corps revient exactement au milieu de la
+          fenêtre, le sommaire occupe la marge gauche. La place existe alors pour les deux.
+        · en dessous de 1000 : le dépliant. Le sommaire ne disparaît jamais, il change de forme. */
      const large=mqReadWide.matches;
      const liens=hs.map(h=>
        `<button type="button" class="rt-lnk${h.classList.contains('md-h2')?' rt-2':''}" data-rtgo="${esc(h.id)}">${esc(h.textContent)}</button>`).join('');
      const nav=document.createElement(large?'aside':'details');
      nav.className='ref-toc';
+     /* CHERCHER D'ABORD, SE REPÉRER ENSUITE (demande utilisateur) : quand on sait ce qu'on
+        cherche, on tape ; quand on ne sait pas, on parcourt. L'ordre suit la fréquence. */
      nav.innerHTML=large
-       ?`<div class="rt-h">Sommaire</div>${protoFindHtml()}${liens}`
-       :`<summary class="rt-sum"><span class="rt-h">Sommaire</span><span class="rt-n">${hs.length} sections</span></summary>${protoFindHtml()}${liens}`;
-     if(large)main.querySelector('.ref-grid').appendChild(nav);
+       ?`<div class="rt-h">Rechercher</div>${protoFindHtml()}<div class="rt-h rt-h2">Sommaire</div>${liens}`
+       :`<summary class="rt-sum"><span class="rt-h">Sommaire</span><span class="rt-n">${hs.length} sections</span></summary>`
+         +`<div class="rt-h">Rechercher</div>${protoFindHtml()}<div class="rt-h rt-h2">Sommaire</div>${liens}`;
+     /* ⚠ LA CLASSE SUIT LE SOMMAIRE, PAS LA LARGEUR (signalé à l'usage : « pour le texte formaté,
+        pas de plan et le contenu se met à gauche »). C'est EXACTEMENT le défaut du cockpit réparé
+        en v4.73.0 : une grille à deux pistes FIXES, mais un aside CONDITIONNEL — ici il n'existe
+        qu'à partir de trois titres. Sans lui, le corps glissait d'un rang et occupait la piste de
+        260 px, un vide à droite. La grille n'est donc posée que lorsque le sommaire existe. */
+     if(large){const g=main.querySelector('.ref-grid');g.appendChild(nav);g.classList.add('with-toc');
+       /* LES ANNEXES REJOIGNENT LA COLONNE (audit) : documents et « Voir aussi » ne sont pas du
+          CORPS — ce sont des points de sortie, comme le sommaire est un point d'entrée. Groupés
+          avec lui, ils cessent de couper la lecture du texte. On DÉPLACE les nœuds (jamais de
+          copie) : ils gardent leurs écouteurs, et il n'existe toujours qu'un seul exemplaire. */
+       /* ⚠ ON RECOPIE, ON NE DÉPLACE PAS (correction : ma première version les sortait du corps).
+          Documents et « Voir aussi » restent À LEUR PLACE dans le document — ce sont des parties
+          de la référence, pas des annexes de navigation. Ce que la colonne offre est un ACCÈS
+          RAPIDE : la même chose, à portée, sans avoir à descendre. Les copies sont insérées AVANT
+          le câblage (`main.querySelectorAll` court plus bas), donc elles sont bindées comme les
+          originales — aucune seconde vérité, aucun second écouteur à tenir. */
+       {const dg=main.querySelector('.ref-main .block:has(.h-doc)');
+        if(dg)nav.appendChild(Object.assign(dg.cloneNode(true),{className:dg.className+' ref-copy'}));
+        const lk=main.querySelector('.ref-main .links');
+        if(lk)nav.appendChild(Object.assign(lk.cloneNode(true),{className:lk.className+' ref-copy'}));}}
      else bd.parentElement.insertBefore(nav,bd);
      nav.querySelectorAll('[data-rtgo]').forEach(b=>b.onclick=()=>{
        const t=document.getElementById(b.dataset.rtgo);if(!t)return;
@@ -9657,8 +9756,10 @@ function renderProtocolEdit(){
   const wideEdit=mqReadWide.matches;
   main.innerHTML=`${wideEdit?`<div class="read-grid"><div class="read-main">`:''}`+`
     ${editorMetaFieldsHtml(p,'p',{titleLabel:'Titre du protocole',titlePh:'ex. Douleur thoracique — protocole de service',scopeHint:'où ranger ce protocole',codePh:'ex. PRO-ISR-01',fem:false})}
-    ${attFieldsetHtml(p)}
-    ${relFieldsetHtml(p)}
+    ${''/* « PRÉSENT DANS LA PORTE ⇔ MASQUÉ QUAND VIDE » (règle de la v4.76.0, étendue aux
+    références) : documents et « Voir aussi » disparaissent vides et se recréent par la porte. */}
+    ${(p.docs||[]).length?attFieldsetHtml(p):''}
+    ${(p.links||[]).length?relFieldsetHtml(p):''}
     <fieldset class="field"><label>Contenu rédigé <span class="hint">facultatif — mise en forme simple, aperçu en dessous</span></label>
       <div class="md-toolbar" role="toolbar" aria-label="Mise en forme">
         <button type="button" class="mini bld" data-mdtool="b" aria-label="Gras" title="Gras — **texte**">B</button>
@@ -9688,6 +9789,11 @@ function renderProtocolEdit(){
     ${''/* Le volet vit en PIED sous 1000 px (une seule colonne), et dans la colonne de droite
     au-dessus de l'aperçu au-delà — même arbitrage que l'éditeur d'aide : ce qu'on CONSULTE (liste
     courte, repliée) au-dessus de ce qu'on REGARDE (l'aperçu, haut). */}
+    ${''/* LA PORTE DE LA RÉFÉRENCE — même composant et même place que celle des aides : à la fin
+    du formulaire, collante, et l'unique bouton REMPLI de l'écran (l'action primaire d'un éditeur
+    est d'écrire). Le volet de relecture et la suppression restent APRÈS elle : un bilan se lit en
+    fermant, et un geste destructeur ne se met jamais avant une porte de création. */}
+    <button type="button" class="add-line ed-door" id="edAddOpenP"><span class="edd-p" aria-hidden="true">＋</span><span class="edd-l">Ajouter à cette référence</span><span class="edd-h">document · voir aussi · référence</span></button>
     ${wideEdit?'':`<div id="revPanel">${reviewPanelHtml(p,reviewNotesProto(p))}</div>`}
     ${isNew?'':'<div class="ed-del"><button class="btn danger" id="delBtn">Supprimer ce protocole</button></div>'}
     ${wideEdit?`</div><aside class="read-side" id="editSide"><div id="revPanel">${reviewPanelHtml(p,reviewNotesProto(p))}</div>${editPreviewHtml('proto')}</aside></div>`:''}
@@ -9703,6 +9809,7 @@ function renderProtocolEdit(){
         if(i>=0){const c=edSnapshot('p');if(c){c.images=gardees;persistProtocol(c);protocols[i]=c;}}}},
     openExisting:openProtocolRead});
   bindEditorMetaFields(p,'p',{fem:false,rerender:renderProtocolEdit,preview:openPDraftPreview});
+  {const od=document.getElementById('edAddOpenP');if(od)od.onclick=()=>edAddOpenProto(p);}
   bindEditSide('proto');
   bindAttEditor(p,renderProtocolEdit);
   bindListEditors(p,renderProtocolEdit);   // Références (v4.2.2) — même composant que les fiches
@@ -11365,7 +11472,11 @@ function cnLogTxt(id){
   const evs=(Runtime.events||[]).filter(e=>e&&e.ref&&e.ref.type==='counter'&&e.ref.id===id&&!e.voidAt);
   if(!evs.length)return '';
   const t0=(Runtime&&Runtime.startedAt)||0,last=evs[evs.length-1].t;
-  return 'consigné '+esc(t0?fmtMs(Math.max(0,last-t0)):fmtHMS(last));}
+  /* ⚠ UN TEMPS ÉCOULÉ SE DIT « T+ », UNE HEURE SE DIT ENTIÈRE (demande utilisateur) : « 04:12 »
+     nu est ambigu — quatre minutes après le début, ou quatre heures douze ? Le compte rendu porte
+     déjà les DEUX colonnes (heure murale et « +mm:ss ») : on reprend sa convention, pour qu'un
+     seul vocabulaire serve aux deux endroits. */
+  return 'consigné '+esc(t0?('T+'+fmtMs(Math.max(0,last-t0))):fmtHMS(last));}
 // Met à jour la valeur affichée d'un compteur ET son étiquette accessible (role="status").
 function setCounterVal(id){const el=document.getElementById('cnval-'+id);if(!el)return;const c=((Runtime.fiche&&Runtime.fiche.counters)||[]).find(x=>x.id===id);const lbl=(c&&esc(c.label))||'Compteur';const v=Runtime.counters[id]||0;el.textContent=v;el.setAttribute('aria-label',lbl+' : '+v);
   const lg=document.getElementById('cnlog-'+id);if(lg)lg.innerHTML=cnLogTxt(id);}
@@ -11746,7 +11857,7 @@ function tkAckHtml(f){
   const sug=tagSuggest(f,myTags(),(state.nav||[])[state.navPos]||null,4);
   const nEv=(Runtime.events||[]).length;
   const t0=(Runtime&&Runtime.startedAt)||0;
-  const dep=t0?fmtMs(Math.max(0,ev.t-t0)):fmtHMS(ev.t);
+  const dep=t0?('T+'+fmtMs(Math.max(0,ev.t-t0))):fmtHMS(ev.t);
   return `<div class="tk-ack"><div class="tk-ack-h"><span class="tk-ack-t">${uiIcon('check',13,{sw:3})} ${esc(dep)} noté</span>`
     +`<span class="tk-ack-l">${lbl?esc(lbl):'sans étiquette'}</span></div>`
     +`<div class="tk-ack-c">${sug.map(t=>`<button type="button" class="tk-pick" data-tkack="${esc(JSON.stringify(t.ref))}" title="${esc(t.label)}">${esc(tagShort(t.label))}</button>`).join('')}`
@@ -14751,6 +14862,54 @@ function edAdd(f,kind){
   if(CIBLE[kind]){const r=main.querySelectorAll(CIBLE[kind]);const c=r[r.length-1];
     if(c){c.scrollIntoView({block:'center'});
       const f2=c.querySelector('input,textarea,select');if(f2)f2.focus({preventScroll:true});}}}
+/* LA PORTE D'UNE RÉFÉRENCE (v5.0.0, refonte des protocoles). Même composant, même fenêtre, même
+   grammaire que celle des aides — mais une AUTRE liste, parce qu'une référence n'a ni bloc, ni
+   étape, ni minuteur : elle a un CORPS, des DOCUMENTS, des RENVOIS et des SOURCES. Proposer les
+   types d'une checklist ici serait promettre ce qui n'existe pas.
+   ET LA MÊME RÈGLE : « présent dans la porte ⇔ masqué quand vide ». Une section vide n'enseigne
+   plus rien depuis que la porte présente les types disponibles ; elle se recrée par la porte, le
+   focus dans le champ neuf. */
+const ED_PALETTE_P=[
+  {g:'Contenu',    k:'body', ic:'doc',  n:'Contenu rédigé',  d:'le texte de la référence — titres, listes, tableaux'},
+  {g:'Annexes',    k:'att',  ic:'doc',  n:'Document (PDF)',  d:'joindre un fichier — il reste disponible hors ligne'},
+  {g:'Annexes',    k:'rel',  ic:'book', n:'Voir aussi',      d:'renvoyer vers une aide ou une autre référence'},
+  {g:'Annexes',    k:'ref',  ic:'book', n:'Référence',       d:'source citée — c\'est elle qui permet de revalider'}];
+function edPaletteProtoHtml(p){
+  const items=ED_PALETTE_P.filter(x=>(x.k!=='att'||supportsAttachments())
+    &&(x.k!=='body'||!String((p||{}).body||'').trim()));
+  let h='',grp=null;
+  items.forEach(x=>{
+    if(x.g!==grp){grp=x.g;h+=`<div class="ep-grp">${esc(grp)}</div>`;}
+    h+=`<button type="button" class="ep-row" data-edaddp="${x.k}"><span class="ep-ic">${uiIcon(x.ic,17)}</span>`
+      +`<span class="ep-tx"><b>${esc(x.n)}</b><span>${esc(x.d)}</span></span></button>`;});
+  return h;}
+function edAddOpenProto(p){
+  const m=edAddModal();const body=document.getElementById('edAddBody');
+  body.innerHTML=edPaletteProtoHtml(p);
+  body.querySelectorAll('[data-edaddp]').forEach(b=>b.onclick=()=>{edAddProto(p,b.dataset.edaddp);});
+  m.classList.add('on');
+  const first=body.querySelector('.ep-row');if(first)first.focus();}
+function edAddProto(p,kind){
+  edAddClose();
+  /* Le document ouvre le SÉLECTEUR DE FICHIER : le clic doit partir DANS LA MÊME TÂCHE que celui
+     de la palette (`renderProtocolEdit` est synchrone), sinon l'activation utilisateur est perdue
+     et le navigateur refuse d'ouvrir le sélecteur (leçon v4.71.0). */
+  if(kind==='att'){_edImgMode={kind:'proto'};pdfInput.click();return;}
+  if(kind==='rel'){openRelPicker(p,renderProtocolEdit);return;}
+  if(kind==='ref'){p.sources=(Array.isArray(p.sources)?p.sources:[]).concat('');}
+  if(kind==='body'&&!String(p.body||'').trim())p.body=' ';
+  renderProtocolEdit();
+  /* On amène l'auteur SUR ce qu'il vient de créer : la règle vaut pour tous les types depuis la
+     v4.77.0 — un objet né hors du champ de vision se lit comme « rien ne s'est passé ». */
+  /* ⚠ LA LISTE SE TROUVE PAR SON BOUTON D'AJOUT, pas par un `data-key` : `listEditor` n'en émet
+     pas — viser un attribut inexistant ne lève rien, le focus reste simplement où il était, et
+     l'auteur ne voit pas ce qu'il vient de créer. Mesuré à la sonde, pas relu. */
+  let e=null;
+  if(kind==='ref'){const fs=main.querySelector('[data-add="sources"]');
+    const inputs=fs?fs.closest('.list-edit').querySelectorAll('input[type=text]'):[];
+    e=inputs.length?inputs[inputs.length-1]:null;}
+  else if(kind==='body')e=document.getElementById('p-body');
+  if(e){e.scrollIntoView({block:'center'});e.focus({preventScroll:true});}}
 function edPaletteHtml(){
   /* Le repli KV ne sait pas stocker de binaire : la rangée « Document » y serait un bouton MORT.
      On ne l'affiche pas plutôt que de la désactiver — la porte doit dire ce qui est possible ICI. */

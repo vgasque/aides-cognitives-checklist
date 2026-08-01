@@ -2708,6 +2708,38 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   aides (`reviewPanelHtml` est partagé, il prend les notes en paramètre) : qui a appris à lire l'un
   lit l'autre — doctrine I4 appliquée à l'édition. Il vit **au-dessus de l'aperçu** dans la colonne
   de droite, en pied sous 1000 px.
+- **UNE COLONNE D'ORIENTATION S'AJOUTE AU PLAFOND, ELLE NE S'Y PRÉLÈVE PAS (v5.0.0, refonte des
+  protocoles, signalé à l'usage)** : la référence est plafonnée à 780 px « à toutes les largeurs » —
+  poser la grille du sommaire DEDANS le mettait dans la colonne de lecture, et l'on n'avait plus
+  780 px de texte mais 496. C'est la règle déjà écrite pour la fiche (« le rail prend l'espace
+  EXCÉDENTAIRE ») : le corps garde ses 780, le sommaire s'ajoute.
+  **DEUX RÉGIMES, PAS UN SEUIL** — et il a fallu deux signalements pour y arriver : (a) la colonne
+  passait PAR-DESSUS le texte entre 1000 et 1064 px (la grille demande 260 + 24 + 780 = 1064, et la
+  piste du corps était FIXÉE) ; (b) remonter le seuil à 1200 faisait disparaître le sommaire « alors
+  qu'il y a encore de la place ». D'où : **≥ 1000** deux pistes `260 + souple`, la paire centrée
+  donc le corps un peu à droite du milieu — mieux vaut un léger décalage qu'un sommaire qui
+  s'efface ; **≥ 1200** trois pistes, le corps reprend ses 780 px et se recentre PROGRESSIVEMENT ;
+  **< 1000** le dépliant. Le sommaire ne disparaît jamais, **il change de forme**.
+  **LE RAIL A UN PLANCHER** (`minmax(260px,1fr)`) : sans lui la piste valait 168 px à 1200 — le
+  sommaire rétrécissait au moment PRÉCIS où l'on gagne de la place, l'inverse de ce qu'on attend.
+  C'est la piste de DROITE qui absorbe, et le décalage décroît en continu (142 → 92 → 0 vers
+  1370) : **un mouvement continu, jamais un saut**.
+  **LES ANNEXES SONT RECOPIÉES, PAS DÉPLACÉES** (correction : ma première version les sortait du
+  corps) — documents et « Voir aussi » restent à leur place dans le document, ce sont des parties
+  de la référence ; la colonne n'en offre qu'un ACCÈS RAPIDE. Les copies sont insérées AVANT le
+  câblage (`main.querySelectorAll` court plus bas), donc bindées comme les originales : aucune
+  seconde vérité, aucun second écouteur à tenir.
+  **LE SOMMAIRE NE S'IMPRIME PAS** : sur papier on TOURNE les pages, on ne saute pas à une ancre —
+  une table des matières qui ne mène nulle part est du bruit, et sa colonne rétrécirait le texte.
+- **LA PORTE D'UNE RÉFÉRENCE (v5.0.0)** : même composant, même fenêtre, même grammaire que celle des
+  aides — mais une AUTRE liste, parce qu'une référence n'a ni bloc, ni étape, ni minuteur : elle a
+  un CORPS, des DOCUMENTS, des RENVOIS et des SOURCES. Proposer les types d'une checklist ici
+  serait promettre ce qui n'existe pas. Même règle **« présent dans la porte ⇔ masqué quand
+  vide »**, et même contrainte de tâche : le document ouvre le sélecteur de fichier DANS LA MÊME
+  TÂCHE que le clic de la palette, sinon l'activation utilisateur est perdue (leçon v4.71.0).
+  ⚠ **UNE LISTE SE TROUVE PAR SON BOUTON D'AJOUT**, pas par un `data-key` — `listEditor` n'en émet
+  pas : viser un attribut inexistant ne lève rien, le focus reste où il était, et l'auteur ne voit
+  pas ce qu'il vient de créer. Trouvé à la sonde.
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.

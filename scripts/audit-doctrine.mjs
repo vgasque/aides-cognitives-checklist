@@ -1203,7 +1203,11 @@ console.log('\n══ T13 · les fiches d\'exemple exercent la doctrine qu\'elle
    une seconde occasion de se tromper là où `esc()` est la seule barrière (règle 4). Le témoin
    vérifie donc AUSSI que le HTML rendu est intact. */
 console.log('\n══ RÉFÉRENCE · plan à gauche, recherche dedans ══');
-for (const W of [390, 1280]) {
+/* ⚠ ON BALAYE LE SEUIL, PAS DEUX POINTS CONFORTABLES. La grille demande 260 + 24 + 780 = 1064 px
+   de contenu : entre 1000 et 1064, la piste du corps débordait et la colonne COLLANTE se
+   superposait au texte (signalé à l'usage). Le seuil est donc 1200 — palier déjà déclaré, aucune
+   addition à l'échelle — et le témoin mesure DE PART ET D'AUTRE, plus le point exact. */
+for (const W of [390, 999, 1000, 1199, 1200, 1400]) {
   const page = await br.newPage({viewport:{width:W,height:900},hasTouch:W<780});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
   await page.goto(`http://localhost:${port}/index.html`);
@@ -1230,19 +1234,64 @@ for (const W of [390, 1280]) {
        laisserait des nœuds derrière lui à chaque frappe. */
     if(q){q.value='';q.dispatchEvent(new Event('input',{bubbles:true}));}
     await w(300);
-    return {tag:toc?toc.tagName:null,
-      gauche:toc?bodyL>Math.round(toc.getBoundingClientRect().left):null,
+    /* ⚠ LE CAS SANS SOMMAIRE — deux titres seulement, donc pas de colonne. La grille ne doit
+       alors PAS être posée : sinon le corps glisse dans la piste de 260 px, avec un vide à
+       droite (défaut signalé, jumeau de celui du cockpit v4.73.0). Un témoin qui ne mesurerait
+       que le cas AVEC sommaire resterait vert dessus. */
+    const court=migrateProtocol({id:'pzc',title:'Court',kind:'reference',
+      body:'# Un titre\n\ntexte\n\n## Un sous-titre\n\ntexte'});
+    protocols.push(court);openProtocolRead('pzc');await w(600);
+    const gC=document.querySelector('.ref-grid');
+    const sansToc={toc:!!document.querySelector('.ref-toc'),
+      cls:gC?gC.className:'',largeur:Math.round(document.querySelector('.md-body').getBoundingClientRect().width)};
+    openProtocolRead('pz');await w(500);
+    /* ⚠ ON RE-INTERROGE LE DOM. `toc` a été capturé AVANT que la sonde ouvre le protocole court
+       puis rouvre le long : la référence pointe un nœud DÉTACHÉ, dont toutes les mesures valent
+       zéro — et un témoin qui mesure un nœud détaché mesure le vide (leçon v4.78.0). */
+    const toc2=document.querySelector('.ref-toc');
+    const rb=document.querySelector('.md-body').getBoundingClientRect();
+    const rt=toc2?toc2.getBoundingClientRect():null;
+    return {sansToc, tag:toc2?toc2.tagName:null,
+      chevauche:!!(toc2&&toc2.tagName==='ASIDE'&&rt.right>rb.left+1),
+      centre:Math.abs((rb.left+rb.width/2)-innerWidth/2)<=2,
+      ecart:Math.round(Math.abs((rb.left+rb.width/2)-innerWidth/2)),
+      largeurCorps:Math.round(rb.width),
+      largeurToc:rt?Math.round(rt.width):0,
+      dansCorps:!!document.querySelector('.ref-main .links')||!document.querySelector('.links'),
+      gauche:toc2?Math.round(rb.left)>Math.round(rt.left):null,
       ordre:[...(grid?grid.children:[])].map(x=>String(x.className).split(' ')[0]),
       marks,cnt,restaure:document.querySelector('.md-body').innerHTML===avant,
       resteMarks:document.querySelectorAll('mark.pf-h').length};});
+  /* DEUX RÉGIMES, ET LE TÉMOIN LES DISTINGUE (v5.0.0, après deux signalements) :
+       · < 1000 : dépliant — il n'y a pas de place pour une colonne ;
+       · ≥ 1000 : colonne de 260 px, la paire centrée, donc le corps un peu à droite du milieu —
+         mieux vaut un léger décalage qu'un sommaire qui s'efface « alors qu'il y a la place » ;
+       · ≥ 1200 : le corps reprend ses 780 px et se RECENTRE PROGRESSIVEMENT (le rail a un
+         plancher de 260, c'est la piste de droite qui absorbe) — nul à partir de ~1370.
+     On mesure donc la DÉCROISSANCE du décalage, pas une égalité à zéro qui serait fausse à 1200. */
   if(W>=1000){
     t(`${W} · le plan d'une référence vit à GAUCHE`, r.tag==='ASIDE'&&r.gauche===true, `${r.tag} gauche=${r.gauche}`);
     /* L'ordre du DOM reste celui de la LECTURE : le corps AVANT le sommaire. */
     t(`${W} · … mais le corps vient AVANT lui dans le DOM`, r.ordre[0]==='ref-main', JSON.stringify(r.ordre));
+    /* LE SOMMAIRE NE RÉTRÉCIT JAMAIS : il passait de 260 à 168 puis revenait à 260, c'est-à-dire
+       qu'il rétrécissait au moment PRÉCIS où l'on gagne de la place. */
+    t(`${W} · … et le sommaire garde ses 260 px`, r.largeurToc>=258, `${r.largeurToc} px`);
+    if(W>=1200)t(`${W} · … le corps reprend ses 780 px pleins`, r.largeurCorps>=770, `${r.largeurCorps} px`);
+    if(W>=1400)t(`${W} · … et il est alors centré dans la FENÊTRE`, r.ecart<=2, `écart ${r.ecart} px`);
   } else {
     t(`${W} · sans colonne, le plan est un DÉPLIANT replié`, r.tag==='DETAILS', String(r.tag));
   }
+  /* LE DÉFAUT SIGNALÉ : une colonne collante qui passe PAR-DESSUS le texte. Il ne se voit pas
+     dans un débordement de conteneur — il faut comparer les deux boîtes. */
+  t(`${W} · le sommaire ne chevauche jamais le corps`, r.chevauche===false, `chevauche=${r.chevauche}`);
+  /* Les annexes sont RECOPIÉES, pas déplacées : la copie est un accès rapide, l'original reste
+     à sa place dans le document. Mesurer la seule copie laisserait passer un déplacement. */
+  t(`${W} · les annexes restent DANS le corps`, r.dansCorps===true, `${r.dansCorps}`);
   t(`${W} · la recherche trouve dans le corps`, r.marks>=10&&/\/\s*\d+/.test(r.cnt), `${r.marks} — « ${r.cnt} »`);
+  t(`${W} · témoin : une référence COURTE n'a pas de sommaire`, r.sansToc.toc===false, JSON.stringify(r.sansToc));
+  t(`${W} · … et son corps occupe alors TOUTE la largeur`,
+    !/with-toc/.test(r.sansToc.cls)&&r.sansToc.largeur>(W>=1000?400:200),
+    `${r.sansToc.largeur} px, classes « ${r.sansToc.cls} »`);
   t(`${W} · … sans réécrire le HTML rendu (effacée, le document est identique)`,
     r.restaure===true&&r.resteMarks===0, `restauré=${r.restaure} restes=${r.resteMarks}`);
   await page.close();
