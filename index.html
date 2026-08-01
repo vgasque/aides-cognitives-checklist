@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-Eaf/HVuJl+pFK2zO+Q0rIxhTsXVFQq9usnkHFnatGd4='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-c7el2HsMFu70SxFEydBMDyYnmsnvg2OAxUGXCsrb/kw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1369,19 +1369,63 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Rangée : le TITRE est le vrai <button> (clavier natif) et son ::after couvre la rangée ;
      épingle et badge « À compléter » repassent au-dessus via z-index — même patron ARIA APG que
      les anciennes cartes (pas de bouton dans un bouton). Anneau de focus porté par la rangée. */
-  .dir-row{position:relative;display:flex;align-items:center;gap:9px;min-height:52px;padding:6px 8px 6px 14px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--surface);overflow:hidden}
+  /* LA RANGÉE DE RÉPERTOIRE — V2 (v5.0.0, maquette validée). Le défaut réel n'était pas le style
+     mais la HAUTEUR VARIABLE : la sous-ligne était une rangée `flex-wrap` de six à sept pilules de
+     largeurs quelconques, donc chaque rangée se repliait différemment (52 à 86 px mesurés) et
+     l'annuaire n'avait aucun rythme. Elle est désormais À HAUTEUR FIXE, avec un TITRE SUR DEUX
+     LIGNES et une MÉTA SUR UNE SEULE, ellipsée.
+     ⚠ LE CORPS RESTE SUR L'ÉCHELLE FERMÉE (remarque de l'auteur, et elle a corrigé deux maquettes
+     hors échelle) : le titre est à 15,5 px, un palier. Ce qui se resserre pour tenir en 71 px est
+     l'INTERLIGNE et le REMBOURRAGE, jamais la police — descendre à 13,5 mettrait le titre d'une
+     fiche au corps du TEXTE COURANT, et il perdrait le relief que l'échelle existe pour tenir.
+     DEUX ÉCONOMIES GRATUITES, qui rendent la place des deux lignes : la pastille de catégorie est
+     REDONDANTE avec le liseré (même couleur, même information — la catégorie reste nommée en
+     toutes lettres dans la méta), et l'étoile passe de 34 à 26 px en gardant sa cible de 44 par un
+     halo `::after` — patron déjà employé par les contrôles de l'en-tête. */
+  /* TROIS colonnes : le contenu, le code court, l'épingle. Avec deux, le troisième enfant passait
+     à la ligne dans une rangée à hauteur FIXE — donc hors de la boîte, en silence. */
+  .dir-row{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;
+    gap:10px;height:71px;padding:0 4px 0 14px;border:1px solid var(--line);border-radius:var(--radius-md);
+    background:var(--surface);overflow:hidden}
   .dir-row:hover{border-color:var(--line-hover);background:var(--surface-2)}
   .dir-main{flex:1;min-width:0}
   /* padding 6px compensé par marges négatives : la BOÎTE du bouton atteint 29px (cible WCAG
      2.5.8 mesurable ≥ 24 — le ::after étendu ne se mesure pas), le rendu ne bouge pas d'un px. */
-  .dir-row .card-open{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:none;border:0;padding:6px 0;margin:-6px 0;font-family:inherit;font-size:13.5px;font-weight:600;color:var(--ink);text-align:left;cursor:pointer}
+  .dir-row .card-open{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;max-width:100%;overflow:hidden;text-align:left;white-space:normal;line-height:1.15;background:none;border:0;padding:5px 0;margin:-5px 0;font-family:inherit;font-size:15.5px;font-weight:600;color:var(--ink);text-align:left;cursor:pointer}
   .dir-row .card-open::after{content:"";position:absolute;inset:0;border-radius:var(--radius-md)}
   .dir-row .card-open:focus-visible{outline:none}
   .dir-row:has(.card-open:focus-visible){outline:2px solid var(--primary);outline-offset:2px}
-  .dir-sub{display:flex;align-items:center;gap:6px;margin-top:2px;min-width:0;flex-wrap:wrap;font-size:11px;color:var(--ink-soft)}
+  /* UNE SEULE LIGNE, ELLIPSÉE — et l'ordre est celui de l'importance, puisque c'est la QUEUE qui
+     tombe : l'état d'abord (chrono vivant, statut, à compléter), puis le discriminant, puis la
+     catégorie, et enfin le code et la date, qui sont ce qu'on peut perdre. */
+  .dir-sub{display:flex;align-items:center;gap:6px;margin-top:3px;min-width:0;font-size:11px;
+    color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .dir-sub>*{flex:none}
+  /* Le liseré porte la CATÉGORIE — la pastille faisait double emploi (règle 14 : elle est purgée). */
+  .dir-row::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
+    background:var(--catcol,var(--line-strong));border-radius:var(--radius-md) 0 0 var(--radius-md)}
+  /* SESSION EN COURS — trois canaux cumulés, aucun ne coûtant de hauteur : le liseré passe au
+     registre CONFIRMATION, la rangée en prend la teinte, et la DATE cède la place au CHRONO
+     VIVANT. Ce dernier est le plus juste des trois : il occupe une place DÉJÀ prise (une date de
+     validation n'apprend rien pendant qu'une session tourne), un temps qui s'incrémente est un
+     signal non ambigu — la couleur n'est donc jamais seule (règle 8) —, et l'on apprend en plus
+     DEPUIS COMBIEN DE TEMPS. */
+  .dir-row.live{background:var(--ok-soft)}
+  .dir-row.live::before{background:var(--ok);width:4px}
+  .dir-live{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:11px;
+    font-weight:700;color:var(--ok)}
+  .dir-live i{width:7px;height:7px;border-radius:50%;background:var(--ok);flex:none}
+  /* Un seul mouvement, et il vit sur l'ACCUEIL — jamais dans la vue de crise, où il est réservé à
+     l'alarme (ECAM). Opacité seule, 2,4 s : très loin du seuil de 3 Hz de WCAG 2.3.1. */
+  @media (prefers-reduced-motion:no-preference){
+    .dir-live i{animation:dirBat 2.4s ease-in-out infinite}
+    @keyframes dirBat{0%,70%,100%{opacity:1}85%{opacity:.35}}
+  }
   .dir-code{flex:none;font-family:var(--mono);font-size:11px;color:var(--ink-soft)}
   .dir-row :is(.pinbtn,.tag.todo){position:relative;z-index:1}
   /* Épingle : cible tactile 40px, étoile SVG pleine ambrée quand actif. */
+  .dir-row .pinbtn{min-width:26px;min-height:26px;position:relative}
+  .dir-row .pinbtn::before{content:"";position:absolute;inset:-9px}
   .pinbtn{background:none;border:0;line-height:1;color:var(--ink-soft);min-width:40px;min-height:40px;border-radius:var(--radius-sm);cursor:pointer;flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center}
   .pinbtn:hover{background:var(--primary-soft);color:var(--primary)}
   .pinbtn.on{color:var(--verify)}
@@ -1390,7 +1434,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      (maquette mobile) — mêmes nœuds, seul le conteneur change de peau. */
   @media (max-width:639.98px){
     .dir-grid{display:block;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-md);overflow:hidden}
-    .dir-row{border:0;border-top:1px solid var(--surface-2);border-radius:0;min-height:48px}
+    .dir-row{border:0;border-top:1px solid var(--surface-2);border-radius:0}
+    .dir-row::before{border-radius:0}
     .dir-row:first-child{border-top:0}
     .dir-row .card-open::after{border-radius:0}
   }
@@ -7950,6 +7995,9 @@ let _tickWasActive=false;
 function tickAll(){
   if(window._vvhSync)_vvhSync();   // resynchro --vvh (v4.29.7) — avant le garde d'activité
   const active=Object.keys(liveSessions).length>0||(state.view==='read'&&!!Runtime.fiche);
+  /* Le chrono des rangées de l'accueil se repeint ICI, sur place — jamais par un re-rendu :
+     reconstruire l'annuaire chaque seconde détruirait le nœud sous le doigt (leçon du quai). */
+  if(state.view==='library')paintDirLive();
   if(!active){if(_tickWasActive){_tickWasActive=false;updateRtStrip();}return;}
   _tickWasActive=true;
   const now=Date.now();let fired=null;
@@ -8911,6 +8959,19 @@ function bindAzRail(){const rail=document.getElementById('azRail');if(!rail)retu
              remainLbl(n) (accord du « Afficher plus »),
              empty:{title,filter?,libEdit,libRead,anon,cta},
              topHtml()? / notices()? (sections propres à la vue), bind()? (écouteurs en plus) } */
+/* LE CHRONO D'UNE SESSION EN COURS, DANS LA RANGÉE (v5.0.0, V2). Il remplace la DATE de
+   validation, qui n'apprend rien pendant qu'une session tourne — donc coût de largeur NUL. Un
+   temps qui s'incrémente est un signal non ambigu : la couleur n'est jamais seule (règle 8), et
+   l'on apprend en plus depuis combien de temps. PEINT SUR PLACE par `tickAll` (l'accueil n'est
+   pas re-rendu chaque seconde : ce serait détruire le DOM sous le doigt, leçon du quai). */
+function dirLiveMs(id){const L=liveSessions[id];if(!L)return 0;
+  const t0=L.startedAt||(L.rt&&L.rt.startedAt)||0;return t0?Math.max(0,Date.now()-t0):0;}
+function dirLiveHtml(id){
+  return `<span class="dir-live" data-dirlive="${esc(id)}"><i aria-hidden="true"></i><span class="sr-only">Session en cours depuis </span>${esc(fmtMs(dirLiveMs(id)))}</span>`;}
+function paintDirLive(){
+  document.querySelectorAll('[data-dirlive]').forEach(e=>{
+    const v=fmtMs(dirLiveMs(e.dataset.dirlive));
+    const n=e.lastChild;if(n&&n.nodeValue!==v)n.nodeValue=v;});}
 function renderHomeList(cfg){
   const q=txNorm(state.q);
   // Le re-rendu remplace la rangée de catégories (dans l'en-tête, V5) : on mémorise son
@@ -9054,11 +9115,10 @@ function _homeCfgF(){return {rerender:renderFiches,crossKind:'protocols',create:
        la sous-ligne : la couleur d'une catégorie n'est jamais seule (SPEC crise §1). */
     row:f=>{const isLive=!!liveSessions[f.id];const cc=catOf(f);const inQ=txNorm(state.q);
       return `
-      <div class="dir-row">
-        <span class="cat-dot"${cc?` style="--catcol:${safeColor(cc.color)}"`:''}></span>
+      <div class="dir-row${isLive?' live':''}"${cc?` style="--catcol:${safeColor(cc.color)}"`:''}>
         <div class="dir-main">
           <button class="card-open" data-open="${f.id}">${esc(f.title)||'Sans titre'}</button>
-          <span class="dir-sub">${f.discriminant?`<span class="tag disc">${esc(f.discriminant)}</span>`:''}${searchLibTag(f)}${isLive?'<span class="tag live">● En cours</span>':''}${statusChip(f.status,true,{validatedAt:f.validatedAt})}${staleDate(f.validatedAt)?`<span class="tag stale" title="${esc(fmtDate(f.validatedAt))} — plus de 2 ans : à revérifier">△ À revérifier</span>`:''}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo title="Reste à compléter : ${esc(sp.join(' · '))}">△ À compléter</span>`:'';})()}${cc?`<span>${esc(cc.name)}</span>`:''}${f.validatedAt?`<span class="card-date${staleDate(f.validatedAt)?' stale':''}" title="${esc(fmtDate(f.validatedAt))}">${esc(fmtDateShort(f.validatedAt))}</span>`:''}</span>
+          <span class="dir-sub">${isLive?dirLiveHtml(f.id):''}${statusChip(f.status,true,{validatedAt:f.validatedAt})}${staleDate(f.validatedAt)?`<span class="tag stale" title="${esc(fmtDate(f.validatedAt))} — plus de 2 ans : à revérifier">△ À revérifier</span>`:''}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo title="Reste à compléter : ${esc(sp.join(' · '))}">△ À compléter</span>`:'';})()}${f.discriminant?`<span class="tag disc">${esc(f.discriminant)}</span>`:''}${searchLibTag(f)}${cc?`<span>${esc(cc.name)}</span>`:''}${(!isLive&&f.validatedAt)?`<span class="card-date${staleDate(f.validatedAt)?' stale':''}" title="${esc(fmtDate(f.validatedAt))}">${esc(fmtDateShort(f.validatedAt))}</span>`:''}</span>
           ${inQ?searchSnippet(ficheSnipParts(f),state.q):''}
         </div>
         ${f.code?`<span class="dir-code">${esc(f.code)}</span>`:''}
@@ -9143,8 +9203,7 @@ function _homeCfgP(){return {rerender:renderProtocols,crossKind:'fiches',create:
        la nature même d'un protocole documentaire — « Rédigé » part avec le compte de sessions. */
     row:p=>{const nDoc=(p.docs||[]).length;const cc=catOf(p);const inQ=txNorm(state.q);
       return `
-      <div class="dir-row">
-        <span class="cat-dot"${cc?` style="--catcol:${safeColor(cc.color)}"`:''}></span>
+      <div class="dir-row"${cc?` style="--catcol:${safeColor(cc.color)}"`:''}>
         <div class="dir-main">
           <button class="card-open" data-open="${p.id}">${esc(p.title)||'Sans titre'}</button>
           <span class="dir-sub">${searchLibTag(p)}${statusChip(p.status,false,{validatedAt:p.validatedAt})}${staleDate(p.validatedAt)?`<span class="tag stale" title="${esc(fmtDate(p.validatedAt))} — plus de 2 ans : à revérifier">△ À revérifier</span>`:''}${nDoc?`<span class="tag sess" title="Documents PDF joints">${nDoc} PDF</span>`:''}${cc?`<span>${esc(cc.name)}</span>`:''}${p.validatedAt?`<span class="card-date${staleDate(p.validatedAt)?' stale':''}" title="${esc(fmtDate(p.validatedAt))}">${esc(fmtDateShort(p.validatedAt))}</span>`:''}</span>

@@ -1175,6 +1175,57 @@ console.log('\n══ T13 · les fiches d\'exemple exercent la doctrine qu\'elle
        dépôt d'une ÉTAPE (interstice interne à la carte) fonctionnait.
    La troisième est géométrique : un élément TOURNÉ déborde sa boîte (26 px de côté font 36,8 px
    de diagonale), et la colonne le rognait. */
+/* LA RANGÉE DE RÉPERTOIRE A UNE HAUTEUR IDENTIQUE D'UNE FICHE À L'AUTRE (v5.0.0, V2).
+   C'ÉTAIT LE DÉFAUT RÉEL, et il n'était pas de style : la sous-ligne était une rangée
+   `flex-wrap` de six à sept pilules de largeurs quelconques, donc chaque fiche se repliait
+   différemment (52 à 86 px mesurés) et l'annuaire n'avait aucun rythme. Un contrôle qui
+   mesurerait « la rangée fait 71 px » resterait vert sur une liste d'une seule fiche : on mesure
+   donc que TOUTES les rangées ont la MÊME hauteur, et l'on vérifie d'abord qu'il y en a plusieurs.
+   ⚠ ET LE CORPS RESTE SUR L'ÉCHELLE FERMÉE : c'est la contrainte qui a fait échouer deux
+   maquettes (15 px et 14,5 px, aucun n'étant un palier). Ce qui se resserre pour tenir en 71 px
+   est l'interligne, jamais la police. */
+console.log('\n══ ACCUEIL · la rangée a un rythme régulier ══');
+for (const W of [330, 390]) {
+  const page = await br.newPage({viewport:{width:W,height:844},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();await w(200);
+    const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await w(900);});
+  const r = await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    /* Une session EN COURS sur la première fiche : sans elle, le contrôle du chrono vivant ne
+       rencontrerait pas son cas et resterait vert sur son absence. */
+    const f=fiches[0];openRead(f.id);await w(400);
+    const sb=document.getElementById('sessStart');if(sb)sb.click();await w(600);
+    state.view='library';render();await w(600);
+    const rows=[...document.querySelectorAll('.dir-row')];
+    const H=[...new Set(rows.map(x=>Math.round(x.getBoundingClientRect().height)))];
+    const titres=rows.map(x=>x.querySelector('.card-open'));
+    const live=document.querySelector('.dir-live');
+    const av=live?live.textContent.trim():null;
+    await w(1300);
+    return {n:rows.length,hauteurs:H,
+      corps:[...new Set(titres.map(b=>getComputedStyle(b).fontSize))],
+      tronques:titres.filter(b=>b.scrollHeight>b.clientHeight+1).length,
+      deborde:rows.filter(x=>x.scrollHeight>x.clientHeight+1).length,
+      liseCat:!!document.querySelector('.dir-row[style*="--catcol"]'),
+      pastille:document.querySelectorAll('.dir-row .cat-dot').length,
+      live:!!document.querySelector('.dir-row.live'),
+      chronoAvance:live?live.textContent.trim()!==av:false};});
+  t(`${W} · témoin : plusieurs rangées sont mesurées`, r.n>=2, `${r.n}`);
+  t(`${W} · toutes les rangées ont la MÊME hauteur`, r.hauteurs.length===1, JSON.stringify(r.hauteurs));
+  t(`${W} · … et rien n'en déborde`, r.deborde===0, `${r.deborde} rangée(s)`);
+  t(`${W} · le titre reste sur l'échelle typographique`,
+    r.corps.length===1&&['15.5px','15.5'].indexOf(r.corps[0])>=0, JSON.stringify(r.corps));
+  t(`${W} · le titre n'est pas tronqué sur les exemples`, r.tronques===0, `${r.tronques}`);
+  t(`${W} · la catégorie vit dans le liseré, la pastille est purgée`,
+    r.liseCat===true&&r.pastille===0, `liseré=${r.liseCat} pastilles=${r.pastille}`);
+  t(`${W} · une session en cours se voit, et son chrono AVANCE`, r.live===true&&r.chronoAvance===true,
+    `live=${r.live} avance=${r.chronoAvance}`);
+  await page.close();
+}
+
 console.log('\n══ RÉGRESSIONS · déplacement, flèches, losange ══');
 {
   const page = await br.newPage({viewport:{width:1280,height:1000}});

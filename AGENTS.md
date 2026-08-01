@@ -2570,6 +2570,40 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   FICHE D'ORIGINE, lui, dit d'où l'on vient (pile de retour, v4.28.0) et vaut sa largeur. Le
   libellé est donc **présent quand la pile n'est pas vide, absent sinon**. Mesuré après : titre
   **179 → 276 px** à 560, et le libellé revient bien nommer la fiche d'origine (224 px).
+- **LA RANGÉE DE RÉPERTOIRE — V2 (v5.0.0, maquette validée)** : le défaut réel n'était pas le style
+  mais la **HAUTEUR VARIABLE**. La sous-ligne était une rangée `flex-wrap` de six à sept pilules de
+  largeurs quelconques : chaque fiche se repliait différemment (**52 à 86 px** mesurés) et
+  l'annuaire n'avait aucun rythme. Elle est désormais **à hauteur fixe (71 px)**, avec un **titre
+  sur deux lignes** et une **méta sur une seule**, ellipsée — dont l'ORDRE est celui de
+  l'importance, puisque c'est la QUEUE qui tombe : état (chrono, statut, à compléter), puis
+  discriminant, puis catégorie, et enfin code et date, qui sont ce qu'on peut perdre.
+  **⚠ LE CORPS RESTE SUR L'ÉCHELLE FERMÉE**, et c'est la contrainte qui a fait échouer DEUX
+  maquettes de ma main (15 px et 14,5 px — aucun n'étant un palier ; l'auteur l'a vu, pas moi).
+  Le titre est à **15,5 px**, un palier : ce qui se resserre pour tenir en 71 px est l'**INTERLIGNE**
+  et le **REMBOURRAGE**, jamais la police. Descendre à 13,5 mettrait le titre d'une fiche au corps
+  du TEXTE COURANT et lui ferait perdre le relief que l'échelle existe pour tenir.
+  **DEUX ÉCONOMIES GRATUITES** rendent la place des deux lignes : la pastille de catégorie est
+  REDONDANTE avec le liseré (même couleur, même information — la catégorie reste nommée en toutes
+  lettres dans la méta ; `.cat-dot` purgée de la rangée, règle 14), et l'épingle passe de 34 à 26 px
+  en gardant sa cible de 44 par un halo `::before`.
+  **« SESSION EN COURS » — TROIS CANAUX CUMULÉS, 0 px DE COÛT** : le liseré passe au registre
+  CONFIRMATION, la rangée en prend la teinte, et **la DATE cède la place au CHRONO VIVANT**. Le
+  troisième est le plus juste : il occupe une place DÉJÀ prise (une date de validation n'apprend
+  rien pendant qu'une session tourne), un temps qui s'incrémente est un signal non ambigu — la
+  couleur n'est donc jamais seule (règle 8) — et l'on apprend en plus DEPUIS COMBIEN DE TEMPS.
+  Il est **peint sur place par `tickAll`** (`paintDirLive`), jamais par un re-rendu : reconstruire
+  l'annuaire chaque seconde détruirait le nœud sous le doigt (leçon du quai). Le point bat en
+  OPACITÉ seule, 2,4 s, sous `prefers-reduced-motion: no-preference` uniquement — sur l'ACCUEIL,
+  jamais dans la vue de crise où le mouvement est réservé à l'alarme (ECAM), et très loin du seuil
+  de 3 Hz de WCAG 2.3.1.
+  **DEUX PIÈGES RENCONTRÉS, TOUS DEUX SILENCIEUX** : (a) la rangée a **TROIS** enfants (contenu,
+  code, épingle) — avec une grille à deux colonnes le troisième passait à la ligne, donc HORS d'une
+  boîte à hauteur fixe, sans que rien ne le dise (épingle mesurée à 244 px de large) ; (b) retirer
+  le `padding:6px` compensé par marges négatives du bouton-titre a fait tomber sa cible mesurable
+  de 29 à **18 px** — sous le seuil WCAG 2.5.8, attrapé par `audit-a11y`. Le rembourrage compensé
+  n'est pas décoratif : il EST la cible.
+  **TÉMOINS** : on ne mesure pas « la rangée fait 71 px » (vrai sur une liste d'UNE fiche) mais que
+  TOUTES ont la MÊME hauteur, après avoir vérifié qu'il y en a plusieurs.
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.
