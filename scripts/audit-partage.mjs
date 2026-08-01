@@ -1728,18 +1728,33 @@ console.log(`\n══ PARTAGE · le placard de l'invité et les réponses direct
      mode invité n'est jamais une transition SUR PLACE (on arrive par l'écran d'entrée ; un lien
      coupé passe par `freeze`, qui garde `mode === 'guest'`). */
   await page.setViewportSize({ width: 320, height: 844 });
+  /* ⚠ TÉMOIN REMIS SUR SON SUJET (v5.0.0). Il comparait la hauteur du bandeau chez l'HÔTE et
+     chez l'INVITÉ — or depuis que le bandeau ne subsiste QUE pour les modes d'exception, l'hôte
+     n'en a plus du tout : le contrôle mesurait alors l'EXISTENCE du bandeau, pas le coût du
+     PLACARD, et il aurait rougi pour la mauvaise raison. Ce que la doctrine affirme est que
+     l'étiquette « ▪ Vous suivez » et sa hachure n'ajoutent AUCUNE hauteur au bandeau qui les
+     porte : on compare donc le bandeau de l'invité AVEC et SANS son étiquette, à 320 px, où le
+     titre occupe déjà deux lignes. C'est la même affirmation, mesurée sur le bon objet. */
   const cout = await page.evaluate(async () => {
     const band = document.getElementById('crisisBand');
     const H = () => Math.round(band.getBoundingClientRect().height * 10) / 10;
-    Share.mode = null; render(); await new Promise(x => setTimeout(x, 300));
-    const hote = H();
     Share.mode = 'guest'; Share.role = 'scribe'; Share.me = 'i'; Share.status = 'active';
     Share.lastOk = Date.now(); Share.offset = 0;
     render(); await new Promise(x => setTimeout(x, 350));
-    return { hote, invite: H() };
+    const avec = H();
+    const tg = band.querySelector('.cb-tag');
+    const vu = tg && !tg.hidden;                       // le contrôle rencontre-t-il son cas ?
+    if (tg) tg.hidden = true;
+    band.classList.remove('inv');
+    await new Promise(x => setTimeout(x, 250));
+    const sans = H();
+    if (tg) tg.hidden = false; band.classList.add('inv');
+    return { avec, sans, vu, present: H() > 0 };
   });
+  t('témoin : l’invité a bien un bandeau ET son étiquette', cout.present && cout.vu === true,
+    JSON.stringify(cout));
   t('le placard ne coûte RIEN à 320 px, la largeur qui compte',
-    cout.hote === cout.invite, `${cout.hote} → ${cout.invite} px`);
+    cout.avec === cout.sans, `${cout.sans} → ${cout.avec} px`);
   await page.close();
 }
 

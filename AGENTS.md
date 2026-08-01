@@ -2535,6 +2535,31 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   colonne de droite de l'éditeur, il est ce qu'on CONSULTE (une liste courte, repliée), le schéma
   ce qu'on REGARDE (un dessin haut). Le second poussait le premier hors de vue sur un écran de
   hauteur ordinaire.
+- **LE BANDEAU-TITRE N'EXISTE PLUS EN CRISE ORDINAIRE (v5.0.0, demande utilisateur)** : il pesait
+  **64 px à 320 et 390 px** (44 à 430) en haut de la colonne, et le RELAIS de la barre
+  (`#brandTitle`, v4.23.0) sait déjà porter le titre — on ne le supprime donc pas, on le fait
+  porter EN PERMANENCE par l'objet qui le portait déjà la moitié du temps. Bénéfice second : la
+  barre a la **même hauteur repliée et dépliée**, donc le chrome de lecture ne change plus jamais
+  de taille. Mesuré : chrome collant du premier écran **239,7 → 176 px**, et une étape entièrement
+  visible de plus à 390 px.
+  **⚠ ET C'EST INCONDITIONNEL, POUR UNE RAISON MESURÉE — MA PREMIÈRE VERSION ÉTAIT FAUSSE.** Je
+  l'avais effacé AU DÉMARRAGE (pour garder le titre entier pendant qu'on lit les critères) :
+  `audit-doctrine` a rougi sur « l'étape tapée ne bouge pas à la première action » (invariant ECAM
+  depuis la v4.4.0), et à juste titre — c'était la **TRANSITION** qui retirait 64 px AU-DESSUS de
+  l'étape touchée, au moment précis du tap, et l'ancrage ne peut pas compenser vers le haut quand
+  on est déjà en haut de page. **Sans transition, pas de saut** : le bandeau n'existe à aucun
+  moment, donc rien ne change de hauteur sous le doigt. La remarque qui a corrigé cela vient de
+  l'auteur, pas de moi.
+  **IL SURVIT AUX MODES D'EXCEPTION, ET SEULEMENT À EUX** (`bandOff`) : il porte la **PHRASE** et
+  la **HACHURE** de l'exercice, de l'invité et de l'essai — précisément ce que la pilule de la
+  barre ne sait pas dire, qui n'a que le MOT (« Suivi », « Exercice »). La v4.70.1 a réparti ces
+  deux offices ; le supprimer partout supprimerait la moitié du dispositif, **et aucun harnais
+  n'aurait crié** — `getComputedStyle` répond encore sur un élément masqué. Aucun saut non plus :
+  être en exercice ou invité ne CHANGE PAS au premier geste, la condition est stable pendant toute
+  la session. ⚠ Le témoin d'`audit-partage` a dû être **remis sur son sujet** : il comparait la
+  hauteur du bandeau HÔTE vs INVITÉ, donc mesurait désormais l'EXISTENCE du bandeau et non le coût
+  du PLACARD. Il compare maintenant le bandeau de l'invité **avec et sans son étiquette**, et
+  vérifie d'abord qu'il RENCONTRE SON CAS (bandeau présent, étiquette visible).
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.
