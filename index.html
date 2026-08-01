@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-k4FlNldPeKMn69RAiRv5sqLl3e1SLPIOPjUPDoXGcFk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-t0hjzzKJxs4xGY2XoP1m3pbFF5pJhKxKz3BuGsUtbjE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1722,8 +1722,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .rt-sum .rt-h{padding:0}
   .rt-n{font-size:11px;font-weight:700;color:var(--ink-soft)}
   /* CHERCHER DANS LA RÉFÉRENCE : le champ vit dans le sommaire — on cherche là où l'on s'oriente. */
-  .rt-h2{margin-top:6px;border-top:1px solid var(--line);padding-top:8px}
+  /* « Sommaire » ne colle plus à la ligne du dessus (signalé à l'usage). */
+  .rt-h2{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
   /* Les annexes dans la colonne : mêmes composants, dessin allégé — elles y sont subordonnées. */
+  /* Le CORPS d'une référence est la surface de travail : c'est lui qui porte la carte. */
+  .ref-main .md-body{background:var(--surface);border:1px solid var(--line);
+    border-radius:var(--radius-md);padding:16px 20px}
+  @media (max-width:639.98px){.ref-main .md-body{padding:12px 13px}}
   aside.ref-toc>.ref-copy{margin:10px 0 0;padding:8px 0 0;border-top:1px solid var(--line)}
   /* Une COPIE d'accès rapide : elle ne se prétend pas la source — pas de fond, pas de cadre. */
   aside.ref-toc>.ref-copy.block{background:none;border:0;border-top:1px solid var(--line);border-radius:0}
@@ -1750,8 +1755,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        bord. */
 
     .ref-toc{order:-1}
+    /* ⚠ FONDS INVERSÉS (proposition utilisateur, et elle a raison) : le sommaire était une CARTE
+       BLANCHE et le texte vivait sur le fond de page — l'objet le plus saillant de l'écran était
+       donc celui qui ORIENTE, pas celui qu'on LIT. C'est l'inverse de la doctrine du dossier : la
+       colonne d'orientation est DÉSATURÉE, la colonne de travail est la SURFACE (règle déjà
+       appliquée au rail de lecture et à l'Échelle, v4.59.0). */
     aside.ref-toc{display:block;position:sticky;top:calc(var(--stick-top,64px) + 8px);
-      background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:10px 8px;
+      background:none;border:0;border-radius:0;padding:10px 0;
       max-height:calc(100dvh / var(--zf,1) - var(--stick-top,64px) - 24px);overflow-y:auto}
     .rt-h{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);
       padding:0 8px 6px}
@@ -4645,7 +4655,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .md-toolbar .mdc-vig{color:var(--verify);font-weight:800}
   .md-toolbar .mdc-info{color:var(--primary-dk)}
   .md-toolbar .mdc-ok{color:var(--ok)}
-  .md-toolbar .md-mkb{background:var(--tag-bg);color:var(--tag-ink);font-weight:800}
+  /* ⚠ LE « S » PARAISSAIT DÉSACTIVÉ (signalé à l'usage : « pourquoi est-il grisé ? »). Il portait
+     le fond du SURLIGNEUR sur tout le bouton, pour montrer ce qu'il produit — mais un bouton au
+     fond neutre au milieu de boutons transparents se lit « inactif », pas « achromatique ». Le
+     principe est bon, l'échelle était fausse : c'est la LETTRE qui est surlignée, comme le B est
+     gras et le I italique — chaque outil montre son effet SUR SON GLYPHE, jamais sur sa boîte. */
+  .md-toolbar .md-mkb{font-weight:800}
+  .md-toolbar .md-mkb .mk-s{background:var(--tag-bg);color:var(--tag-ink);border-radius:3px;padding:0 3px}
   /* Images insérées : une rangée par image, avec SA taille d'affichage (v4.4.3). */
   .md-imgs{margin:12px 0 4px}
   .mi-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:7px 0;border-top:1px solid var(--line)}
@@ -9574,8 +9590,15 @@ function renderProtocolRead(){
      sommaire pour atteindre le texte (même règle que `.read-plan`, v4.59.0). */
   {const bd=main.querySelector('.md-body');
    const hs=bd?[...bd.querySelectorAll('.md-h1,.md-h2')]:[];
-   if(hs.length>=3){
-     hs.forEach((h,i)=>{if(!h.id)h.id='rt'+i;});
+   hs.forEach((h,i)=>{if(!h.id)h.id='rt'+i;});
+   /* ⚠ LA COLONNE NE DÉPEND PLUS DU NOMBRE DE TITRES (signalé à l'usage). Elle ne porte pas
+      qu'un sommaire : elle porte la RECHERCHE, les DOCUMENTS et « Voir aussi ». La conditionner à
+      trois titres, c'était priver une référence d'une page de sa recherche parce qu'elle n'a pas
+      de sous-parties — or c'est justement là qu'on cherche au mot. Elle existe dès qu'il y a un
+      corps à chercher ou une annexe à atteindre ; le SOMMAIRE, lui, ne s'affiche que s'il a au
+      moins un titre à lister (un sommaire vide serait le panneau vide que la doctrine proscrit). */
+   const annexes=!!main.querySelector('.ref-main .block:has(.h-doc),.ref-main .links');
+   if(bd||annexes){
      /* DEUX RÉGIMES, PAS UN SEUIL (signalé à l'usage, deux fois — d'abord la colonne qui passait
         SUR le texte, puis le sommaire qui s'effaçait « même s'il y a encore de la place »).
         · dès 1000 px : DEUX pistes, `260 + souple` — la paire est centrée, donc le corps est un
@@ -9585,16 +9608,19 @@ function renderProtocolRead(){
           fenêtre, le sommaire occupe la marge gauche. La place existe alors pour les deux.
         · en dessous de 1000 : le dépliant. Le sommaire ne disparaît jamais, il change de forme. */
      const large=mqReadWide.matches;
-     const liens=hs.map(h=>
-       `<button type="button" class="rt-lnk${h.classList.contains('md-h2')?' rt-2':''}" data-rtgo="${esc(h.id)}">${esc(h.textContent)}</button>`).join('');
+     const liens=hs.length?(`<div class="rt-h rt-h2">Sommaire</div>`+hs.map(h=>
+       `<button type="button" class="rt-lnk${h.classList.contains('md-h2')?' rt-2':''}" data-rtgo="${esc(h.id)}">${esc(h.textContent)}</button>`).join('')):'';
      const nav=document.createElement(large?'aside':'details');
      nav.className='ref-toc';
      /* CHERCHER D'ABORD, SE REPÉRER ENSUITE (demande utilisateur) : quand on sait ce qu'on
         cherche, on tape ; quand on ne sait pas, on parcourt. L'ordre suit la fréquence. */
+     /* SUR ÉCRAN ÉTROIT, LE DÉPLIANT EST EN TÊTE DE PAGE et s'annonce par ce qu'il contient —
+        « Rechercher » d'abord, puisque c'est ce qu'on vient y faire quand on sait ce qu'on veut. */
      nav.innerHTML=large
-       ?`<div class="rt-h">Rechercher</div>${protoFindHtml()}<div class="rt-h rt-h2">Sommaire</div>${liens}`
-       :`<summary class="rt-sum"><span class="rt-h">Sommaire</span><span class="rt-n">${hs.length} sections</span></summary>`
-         +`<div class="rt-h">Rechercher</div>${protoFindHtml()}<div class="rt-h rt-h2">Sommaire</div>${liens}`;
+       ?`<div class="rt-h">Rechercher</div>${protoFindHtml()}${liens}`
+       :`<summary class="rt-sum"><span class="rt-h">Rechercher${hs.length?' · sommaire':''}</span>`
+         +`<span class="rt-n">${hs.length?hs.length+(hs.length>1?' sections':' section'):'dans le texte'}</span></summary>`
+         +`${protoFindHtml()}${liens}`;
      /* ⚠ LA CLASSE SUIT LE SOMMAIRE, PAS LA LARGEUR (signalé à l'usage : « pour le texte formaté,
         pas de plan et le contenu se met à gauche »). C'est EXACTEMENT le défaut du cockpit réparé
         en v4.73.0 : une grille à deux pistes FIXES, mais un aside CONDITIONNEL — ici il n'existe
@@ -9760,11 +9786,18 @@ function renderProtocolEdit(){
     références) : documents et « Voir aussi » disparaissent vides et se recréent par la porte. */}
     ${(p.docs||[]).length?attFieldsetHtml(p):''}
     ${(p.links||[]).length?relFieldsetHtml(p):''}
-    <fieldset class="field"><label>Contenu rédigé <span class="hint">facultatif — mise en forme simple, aperçu en dessous</span></label>
+    ${''/* K1 ÉTENDU AUX RÉFÉRENCES (maquettes) : chaque section est une CARTE, comme dans
+    l'éditeur d'aide — l'auteur d'une référence et l'auteur d'une aide travaillent sur le même
+    dessin, donc n'apprennent qu'une grammaire. Coquille NEUTRE : la couleur reste aux registres.
+    LA MENTION DES CASES EST DANS L'INTITULÉ, là où l'auteur écrit la syntaxe : « - [ ] » produit
+    une case qu'on peut cocher en lecture, mais qui NE S'ENREGISTRE PAS — sortir de la page
+    l'efface, et c'est ce qui rend le geste sans conséquence. Une référence n'est pas une session ;
+    ce qui garde une trace, ce sont les fiches. */}
+    <fieldset class="field ed-card"><label>Contenu rédigé <span class="hint">facultatif — mise en forme simple ; « - [ ] » crée une case à cocher en lecture, éphémère (elle s'efface en quittant la page)</span></label>
       <div class="md-toolbar" role="toolbar" aria-label="Mise en forme">
         <button type="button" class="mini bld" data-mdtool="b" aria-label="Gras" title="Gras — **texte**">B</button>
         <button type="button" class="mini md-it" data-mdtool="i" aria-label="Italique" title="Italique — *texte*"><i>I</i></button>
-        <button type="button" class="mini md-mkb" data-mdtool="mark" aria-label="Surligner" title="Surligner — ==texte== (neutre : la couleur reste réservée aux registres)">S</button>
+        <button type="button" class="mini md-mkb" data-mdtool="mark" aria-label="Surligner" title="Surligner — ==texte== (neutre : la couleur reste réservée aux registres)"><span class="mk-s">S</span></button>
         <button type="button" class="mini" data-mdtool="h1" aria-label="Grand titre" title="Grand titre — # Titre">H1</button>
         <button type="button" class="mini" data-mdtool="h2" aria-label="Titre" title="Titre — ## Titre">H2</button>
         <button type="button" class="mini" data-mdtool="h3" aria-label="Sous-titre" title="Sous-titre — ### Sous-titre">H3</button>
@@ -9785,7 +9818,7 @@ function renderProtocolEdit(){
       <p class="hint">Syntaxe : <code># titre</code> (##, ###), <code>- liste</code> / <code>1. liste</code> (sous-liste : 2 espaces devant), <code>- [ ] tâche</code> liste cochable (<code>- [x]</code> déjà cochée) — en lecture, les coches repartent à zéro à chaque ouverture, <code>&gt; citation</code>, <code>\`code\`</code> (bloc : <code>\`\`\`</code>), <code>---</code> séparateur, <code>**gras**</code>, <code>*italique*</code>, <code>==surligné==</code>, <code>[texte](https://…)</code>, <code>[texte](att:ID)</code> ouvre un document joint, <code>![légende](img:ID)</code> image (taille réglable ci-dessous).<br>Tableau : <code>| a | b |</code> puis, en 2ᵉ ligne, <code>|---|---|</code> — l'alignement se règle là (<code>|:-:|</code> centré, <code>|---:|</code> à droite). Un <code>|</code> dans une cellule s'écrit <code>\\|</code>.<br>Encadré coloré — syntaxe GitHub, tapable au clavier, le marqueur seul sur sa ligne puis le texte en dessous : <code>&gt; [!CAUTION]</code> alerte · <code>&gt; [!WARNING]</code> attention · <code>&gt; [!NOTE]</code> information · <code>&gt; [!TIP]</code> confirmation (les boutons ci-dessus les posent). Alias acceptés ici : <code>[!alerte]</code>, <code>[!attention]</code>, <code>[!info]</code>, <code>[!ok]</code>, et les glyphes ⚠ △ ℹ ✓.<br><span class="hint">Portabilité : les mots-clés en MAJUSCULES sont rendus en encadré par GitHub, GitLab, pandoc et Typora, et <code>- [ ]</code> en case native ; ailleurs, encadrés et tâches restent une citation ou un « [ ] tâche » lisibles — rien n'est jamais perdu.</span></p>
       ${mdImagesHtml(p)}
       <p class="md-prev-h">Aperçu</p><div class="md-preview" id="mdPreview">${mdRender(p.body,{images:p.images})}</div></fieldset>
-    ${listEditor('Références','sources du protocole (traçabilité)','sources',p.sources||[])}
+    ${(p.sources||[]).length?listEditor('Références','sources du protocole (traçabilité)','sources',p.sources||[],false,{shell:'ed-card'}):''}
     ${''/* Le volet vit en PIED sous 1000 px (une seule colonne), et dans la colonne de droite
     au-dessus de l'aperçu au-delà — même arbitrage que l'éditeur d'aide : ce qu'on CONSULTE (liste
     courte, repliée) au-dessus de ce qu'on REGARDE (l'aperçu, haut). */}
@@ -9793,7 +9826,7 @@ function renderProtocolEdit(){
     du formulaire, collante, et l'unique bouton REMPLI de l'écran (l'action primaire d'un éditeur
     est d'écrire). Le volet de relecture et la suppression restent APRÈS elle : un bilan se lit en
     fermant, et un geste destructeur ne se met jamais avant une porte de création. */}
-    <button type="button" class="add-line ed-door" id="edAddOpenP"><span class="edd-p" aria-hidden="true">＋</span><span class="edd-l">Ajouter à cette référence</span><span class="edd-h">document · voir aussi · référence</span></button>
+    <button type="button" class="add-line ed-door" id="edAddOpenP"><span class="edd-p" aria-hidden="true">＋</span><span class="edd-l">Ajouter à cette référence</span><span class="edd-c">document · voir aussi · référence</span></button>
     ${wideEdit?'':`<div id="revPanel">${reviewPanelHtml(p,reviewNotesProto(p))}</div>`}
     ${isNew?'':'<div class="ed-del"><button class="btn danger" id="delBtn">Supprimer ce protocole</button></div>'}
     ${wideEdit?`</div><aside class="read-side" id="editSide"><div id="revPanel">${reviewPanelHtml(p,reviewNotesProto(p))}</div>${editPreviewHtml('proto')}</aside></div>`:''}
@@ -9882,7 +9915,7 @@ function relCandidates(entity){return relCandidatesFor(entity,fiches,protocols);
 function relFieldsetHtml(entity){
   const chips=(entity.links||[]).map(id=>{const t=relTarget(id);return t?`<span class="rel-chip">${uiIcon(relKindOf(id)==='p'?'book':'doc',12)}${esc(t.title)||'Sans titre'}<button class="rel-x" data-relrm="${esc(id)}" aria-label="Retirer">×</button></span>`:'';}).join('');
   const n=relCandidates(entity).length;
-  return `<fieldset class="field"><label>Voir aussi <span class="hint">aides cognitives et protocoles liés — raccourcis en lecture</span></label>
+  return `<fieldset class="field ed-card"><label>Voir aussi <span class="hint">aides cognitives et protocoles liés — raccourcis en lecture</span></label>
     <div class="rel-edit">${chips||'<span class="hint">Aucun lien pour le moment.</span>'}</div>
     ${n?`<button class="add-line" id="relAddBtn">+ Lier une aide ou un protocole (${n} disponible${n>1?'s':''})…</button>`:'<p class="hint">Rien d’autre à lier dans ce périmètre (Perso ou même bibliothèque).</p>'}</fieldset>`;}
 // Ouvre une cible « Voir aussi » selon sa nature : aide -> lecture de fiche (session), protocole
@@ -14606,7 +14639,7 @@ function attachablePdfs(f){const have=new Set((f.docs||[]).map(a=>a.id));const s
 // Fieldset « Documents (PDF) » PARTAGÉ entre l'éditeur de fiche et l'éditeur de protocole
 // (même composant, mêmes garde-fous). `entity` = state.draft ou state.pdraft.
 function attFieldsetHtml(entity){
-  return `<fieldset class="field"><label>Documents (PDF) <span class="hint">protocoles, recommandations — lisibles hors ligne</span></label>
+  return `<fieldset class="field ed-card"><label>Documents (PDF) <span class="hint">protocoles, recommandations — lisibles hors ligne</span></label>
       ${supportsAttachments()?`${(entity.docs||[]).map((a,i)=>`<div class="att-erow" data-ai="${i}"><span class="att-ico">${uiIcon('doc',15)}</span><input type="text" data-attname="${i}" value="${esc(a.name)}" aria-label="Nom du document" placeholder="Nom du document"><span class="att-size">${fmtBytes(a.size)}</span><button class="mini del" data-attrm="${i}" aria-label="Retirer le document">×</button></div>`).join('')}
       <button class="add-line" id="addPdf">+ Ajouter un PDF (${fmtBytes(MAX_PDF_BYTES)} max)</button>
       ${(()=>{const n=attachablePdfs(entity).length;return n?`<button class="add-line" id="attAddBtn">+ Joindre un document existant (${n} disponible${n>1?'s':''})…</button>`:'';})()}`

@@ -1234,15 +1234,17 @@ for (const W of [390, 999, 1000, 1199, 1200, 1400]) {
        laisserait des nœuds derrière lui à chaque frappe. */
     if(q){q.value='';q.dispatchEvent(new Event('input',{bubbles:true}));}
     await w(300);
-    /* ⚠ LE CAS SANS SOMMAIRE — deux titres seulement, donc pas de colonne. La grille ne doit
-       alors PAS être posée : sinon le corps glisse dans la piste de 260 px, avec un vide à
-       droite (défaut signalé, jumeau de celui du cockpit v4.73.0). Un témoin qui ne mesurerait
-       que le cas AVEC sommaire resterait vert dessus. */
+    /* ⚠ LA COLONNE NE DÉPEND PLUS DU NOMBRE DE TITRES (v5.0.0, demande utilisateur) : elle porte
+       aussi la RECHERCHE et les annexes. Ce qui reste conditionnel est le SOMMAIRE lui-même — une
+       liste de titres n'a de sens que s'il y en a. Le cas à mesurer est donc une référence SANS
+       AUCUN titre : la colonne doit exister (on cherche encore dans le texte), la liste non. */
     const court=migrateProtocol({id:'pzc',title:'Court',kind:'reference',
-      body:'# Un titre\n\ntexte\n\n## Un sous-titre\n\ntexte'});
+      body:'Un paragraphe sans le moindre titre.\n\nUn autre paragraphe.'});
     protocols.push(court);openProtocolRead('pzc');await w(600);
     const gC=document.querySelector('.ref-grid');
     const sansToc={toc:!!document.querySelector('.ref-toc'),
+      recherche:!!document.getElementById('pfQ'),
+      liens:document.querySelectorAll('.ref-toc [data-rtgo]').length,
       cls:gC?gC.className:'',largeur:Math.round(document.querySelector('.md-body').getBoundingClientRect().width)};
     openProtocolRead('pz');await w(500);
     /* ⚠ ON RE-INTERROGE LE DOM. `toc` a été capturé AVANT que la sonde ouvre le protocole court
@@ -1288,10 +1290,10 @@ for (const W of [390, 999, 1000, 1199, 1200, 1400]) {
      à sa place dans le document. Mesurer la seule copie laisserait passer un déplacement. */
   t(`${W} · les annexes restent DANS le corps`, r.dansCorps===true, `${r.dansCorps}`);
   t(`${W} · la recherche trouve dans le corps`, r.marks>=10&&/\/\s*\d+/.test(r.cnt), `${r.marks} — « ${r.cnt} »`);
-  t(`${W} · témoin : une référence COURTE n'a pas de sommaire`, r.sansToc.toc===false, JSON.stringify(r.sansToc));
-  t(`${W} · … et son corps occupe alors TOUTE la largeur`,
-    !/with-toc/.test(r.sansToc.cls)&&r.sansToc.largeur>(W>=1000?400:200),
-    `${r.sansToc.largeur} px, classes « ${r.sansToc.cls} »`);
+  /* Sans AUCUN titre : la colonne existe (la recherche y vit), mais elle ne liste rien. */
+  t(`${W} · une référence sans titre garde sa RECHERCHE`, r.sansToc.toc===true&&r.sansToc.recherche===true,
+    JSON.stringify(r.sansToc));
+  t(`${W} · … et n'affiche alors AUCUN sommaire`, r.sansToc.liens===0, `${r.sansToc.liens} lien(s)`);
   t(`${W} · … sans réécrire le HTML rendu (effacée, le document est identique)`,
     r.restaure===true&&r.resteMarks===0, `restauré=${r.restaure} restes=${r.resteMarks}`);
   await page.close();

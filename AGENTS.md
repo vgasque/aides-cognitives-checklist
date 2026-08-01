@@ -877,6 +877,15 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   les images DISPARAÎTRAIENT en bibliothèque partagée). Rendu par une CLASSE (`.md-fig.w50`), jamais
   un nombre interpolé dans un style. La réduction ne s'applique qu'au-dessus de 560 px (sur
   téléphone, une image à 25 % serait illisible sous stress).
+- **UNE RÉFÉRENCE A DES CASES COCHABLES, ET ELLES NE S'ENREGISTRENT PAS — C'EST VOULU (rappel
+  explicite, v5.0.0)** : une référence n'est pas une session. Les coches servent à ne pas perdre sa
+  place pendant qu'on la parcourt ; elles vivent dans `state.protoTasks`, sont remises à zéro à
+  chaque `openProtocolRead`, et **ne touchent AUCUN champ du modèle** (l'export est strictement
+  inchangé — un client antérieur affiche « [ ] tâche » en item de liste, dégradation lisible).
+  Sortir de la page les efface, et c'est la propriété qui rend le geste sans conséquence : rien à
+  nettoyer, rien à synchroniser, rien qui puisse être pris pour une trace de soin. **Ce qui garde
+  une trace, ce sont les FICHES** — sessions, journal, compte rendu. Confondre les deux ferait
+  croire qu'une référence cochée enregistre quelque chose.
 - **Listes cochables des protocoles (v4.5.4)** : syntaxe GFM `- [ ] tâche` / `- [x] cochée`
   (aussi en liste numérotée), pour la **vérification rapide en lecture** — coches **ÉPHÉMÈRES
   par ouverture** (`state.protoTasks`, remis à zéro par `openProtocolRead` ; survivent aux
