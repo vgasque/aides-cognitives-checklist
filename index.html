@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-7ZNKOUJVj5exjYMwt0me18Cf/CGQEPpd7jcpkeNbaqs='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-JOG3Is0IWgIiba4a3r8IJtfAJTdoAd/pOv0VboUpFeI='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1609,8 +1609,29 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .rt-lnk:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
     .rt-2{padding-left:20px;font-weight:500;color:var(--ink-soft)}
   }
-  .li-mk{flex:none;width:18px;display:flex;align-items:center;justify-content:center;color:var(--critical)}
-  .li-mk:empty{display:none}
+  /* LA MARQUE DE REGISTRE NE PREND PLUS DE PLACE DANS LA RANGÉE (v5.0.0) — et c'est ce qui
+     ALIGNE LES FLÈCHES. Chaque `.li` est sa propre boîte : si la marque est un item de la rangée,
+     les rangées marquées décalent tout ce qui suit, et les flèches partent en escalier. En la
+     posant en SUPERPOSITION sur le rembourrage gauche du champ, la boîte du champ commence au
+     même x sur toutes les rangées — donc la flèche aussi. Et l'on ne paie pas les ~50 px que
+     coûterait une colonne réservée, qui à 320 px se prendraient sur le texte. */
+  .li-mk{position:absolute;left:0;top:50%;transform:translateY(-50%);width:20px;
+    display:flex;align-items:center;justify-content:center;color:var(--critical);pointer-events:none}
+  .blk .li{position:relative}
+  .blk .li input[data-sf]{padding-left:11px}
+  .blk .li.li-crit input[data-sf],.blk .li.li-vigil input[data-sf]{padding-left:26px}
+  .li-vigil .li-mk{color:var(--verify)}
+  /* Le champ et sa marque forment un seul objet de la rangée : c'est LUI qui s'étire. */
+  .li-fw{position:relative;flex:1;min-width:0;display:flex}
+  .li-fw input{flex:1;min-width:0}
+  /* LA RÉPONSE ATTENDUE NE SE MONTRE QUE SI ELLE EXISTE — ou pendant qu'on écrit la ligne.
+     Répétée à vide sur chaque rangée, la phrase « réponse attendue (facultatif) » disait cinq
+     fois la même chose et volait un tiers de la largeur au geste, qui est le contenu. C'est la
+     grammaire MK-flux du dossier : au REPOS, aucun chrome ; à l'ÉDITION, les outils paraissent. */
+  .blk .li .li-arrow,.blk .li .li-exp{display:none}
+  .blk .li:focus-within .li-arrow,.blk .li:focus-within .li-exp{display:block}
+  .blk .li.has-exp .li-arrow,.blk .li.has-exp .li-exp{display:block}
+  .blk .li .li-arrow{align-self:center}
   /* Un memory item posé sur une ÉTAPE apparaît ici en LECTURE SEULE : il se modifie dans son
      bloc, pas dans le chapeau — le chapeau ne le possède pas, il l'agrège. */
   /* Un memory item posé sur une ÉTAPE : le texte, puis le renvoi vers le bloc où il vit — sur sa
@@ -1619,7 +1640,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .mem-ro{padding:7px 0;border-top:1px solid var(--line)}
   .mem-t{display:block;font-size:13.5px;font-weight:600;color:var(--ink)}
   .mem-go{display:block;width:100%;text-align:left;margin-top:4px;min-height:44px;padding:6px 0;
-    background:none;border:0;cursor:pointer;font-size:11.5px;font-weight:700;color:var(--link)}
+    background:none;border:0;cursor:pointer;font-size:11px;font-weight:700;color:var(--link)}
   .mem-go:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:6px}
   /* La phase vit sur l'en-tête du bloc, discrète : c'est une étiquette d'ORGANISATION, pas un
      registre — elle ne prend donc aucune couleur sémantique. */
@@ -4559,10 +4580,20 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* T3 — repli du chapeau EN SESSION. Le kicker devient une rangée : mot à gauche, compte + chevron
      à droite. La cible fait 44 px (mode crise) sans épaissir le bandeau : le bouton est en négatif
      de marge, le chapeau garde ses 10 px de rembourrage. */
-  .forget-strip.fs-foldable .fs-k{display:flex;align-items:center;gap:9px;margin-bottom:4px}
-  .fs-tgl{margin-left:auto;font:inherit;font-size:11px;font-weight:800;letter-spacing:.07em;
-    color:var(--critical);background:none;border:0;cursor:pointer;min-height:44px;margin:-10px -4px -10px 0;padding:0 4px}
-  .fs-tgl:focus-visible{outline:2px solid var(--critical-bd);outline-offset:2px;border-radius:6px}
+  .forget-strip.fs-foldable :is(.fs-k,.fs-btn){display:flex;align-items:center;gap:9px}
+  /* Le titre EST le déclencheur : cible pleine largeur, ≥ 48 px de haut, avec le rembourrage du
+     bandeau absorbé par des marges négatives pour ne rien décaler. */
+  .fs-btn{width:calc(100% + 26px);margin:-10px -13px 0;padding:10px 13px;min-height:48px;
+    background:none;border:0;cursor:pointer;text-align:left;font:inherit;border-radius:8px 8px 0 0}
+  .fs-btn:focus-visible{outline:2px solid var(--critical-bd);outline-offset:-2px}
+  .forget-strip:not(.fs-closed) .fs-btn{margin-bottom:4px}
+  /* La trace d'un compteur : muette, permanente, à l'endroit du geste. Aucune hauteur tant
+     qu'il n'y a rien à dire (`:empty`). */
+  .cn-log{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ok);margin-top:2px}
+  .cn-log:empty{display:none}
+  .fs-kt{flex:1;min-width:0}
+  .fs-tgl{margin-left:auto;flex:none;font:inherit;font-size:11px;font-weight:800;letter-spacing:.07em;
+    color:var(--critical)}
   .forget-strip.fs-closed .fs-list{display:none}
   .forget-strip.fs-closed .fs-k{margin-bottom:0}
   /* Bandeau LONG (v4.4.0) : > 4 rappels -> 2 colonnes en large pour contenir la hauteur du
@@ -8298,7 +8329,13 @@ function applyViewChrome(){
   {const cb=document.getElementById('crisisBand');
    const crisis=state.view==='read'&&!!state.fiche;
    cb.hidden=!crisis;
-   document.getElementById('hdrCrisis').hidden=!crisis;
+   /* « ■ CRISE » NE S'ANNONCE QU'UNE FOIS LA SESSION DÉMARRÉE (v5.0.0, maquette). Ouvrir une
+      fiche pour la RELIRE n'est pas être en crise : l'annoncer alors, c'est user le mot — la même
+      inflation que celle du rouge, et sur le seul annonciateur de mode de l'écran. Le bandeau-
+      titre, lui, reste (il porte le TITRE, qui est vrai dans les deux cas) ; c'est la PILULE DE
+      MODE qui attend le premier geste. `crisisOnScreen()` est le prédicat unique du dossier —
+      le même qui gouverne le quai, la mise en attente des banderoles et le masquage de la méta. */
+   document.getElementById('hdrCrisis').hidden=!(crisis&&crisisOnScreen());
    if(crisis){cb.querySelector('.cb-ttl').textContent=state.fiche.title||'Sans titre';
      /* K6 : le DISCRIMINANT survit à la troncature du titre — c'est tout son objet. Il vit dans
         sa propre pilule, à côté, jamais dans la chaîne qui se coupe à deux lignes. */
@@ -11017,9 +11054,25 @@ function syncTimerBtns(t){const lbl=esc(t.label)||(t.type==='interval'?'Minuteur
   const la=document.getElementById('tmlab-'+t.id);if(la){const sl=timerStateLabel(t);if(la.textContent!==sl)la.textContent=sl;}}
 function counterCard(c){const v=Runtime.counters[c.id]||0;const lbl=esc(c.label)||'Compteur';
   const linked=c.timerId&&Runtime.timers[c.timerId];
-  return `<div class="cncard" role="group" aria-label="${lbl}"><div class="tm-label">${lbl}</div><div class="cn-val" id="cnval-${c.id}" role="status" aria-label="${lbl} : ${v}">${v}</div><div class="cn-ctrl"><button class="cn-btn" data-cndec="${c.id}" data-step="${c.step||1}" aria-label="Diminuer — ${lbl}">−</button><button class="cn-btn" data-cninc="${c.id}" data-step="${c.step||1}" aria-label="Augmenter — ${lbl}">+</button></div>${linked?`<div class="cn-note">＋ relance le minuteur « ${esc(Runtime.timers[c.timerId].label)||'Minuteur'} »</div>`:''}<button class="cn-reset tm-reset" data-cnreset="${c.id}" title="Maintenir pour remettre à zéro" aria-label="Remettre à zéro — ${lbl}"><span class="tmr-lab">Remettre à zéro</span><span class="tmr-hint">maintenir</span></button></div>`;}
+  return `<div class="cncard" role="group" aria-label="${lbl}"><div class="tm-label">${lbl}</div><div class="cn-val" id="cnval-${c.id}" role="status" aria-label="${lbl} : ${v}">${v}</div><div class="cn-log" id="cnlog-${c.id}">${cnLogTxt(c.id)}</div><div class="cn-ctrl"><button class="cn-btn" data-cndec="${c.id}" data-step="${c.step||1}" aria-label="Diminuer — ${lbl}">−</button><button class="cn-btn" data-cninc="${c.id}" data-step="${c.step||1}" aria-label="Augmenter — ${lbl}">+</button></div>${linked?`<div class="cn-note">＋ relance le minuteur « ${esc(Runtime.timers[c.timerId].label)||'Minuteur'} »</div>`:''}<button class="cn-reset tm-reset" data-cnreset="${c.id}" title="Maintenir pour remettre à zéro" aria-label="Remettre à zéro — ${lbl}"><span class="tmr-lab">Remettre à zéro</span><span class="tmr-hint">maintenir</span></button></div>`;}
+/* « CONSIGNÉ À … » — LA TRACE SE VOIT, POUR NE PAS ÊTRE REFAITE (v5.0.0, demande utilisateur :
+   « éviter de le faire 2 fois »). Incrémenter POSE DÉJÀ un repère horodaté dans le journal
+   (`ref:{type:'counter',…}`, v4.52.0) — mais rien ne le disait, et l'on pouvait aller « Noter
+   l'heure » par-dessus, donc doubler la ligne du compte rendu.
+   POURQUOI PAS UNE ANIMATION : le mouvement est réservé à l'ALARME (ECAM) ; une valeur qui
+   s'envole vers le journal serait le seul mouvement autonome de l'écran, et sous stress il se
+   lirait comme un signal. POURQUOI PAS UNE SNACKBAR : elles sont mises en attente en session
+   (règle 11). Ce qu'il faut est une INFORMATION PERMANENTE et muette, à l'endroit du geste — la
+   même grammaire que l'accusé « ✓ 02:16 noté » du lot M7, pour qu'on n'apprenne qu'un seul
+   patron. Elle n'existe que s'il y a quelque chose à dire : aucun repère, aucune ligne. */
+function cnLogTxt(id){
+  const evs=(Runtime.events||[]).filter(e=>e&&e.ref&&e.ref.type==='counter'&&e.ref.id===id&&!e.voidAt);
+  if(!evs.length)return '';
+  const t0=(Runtime&&Runtime.startedAt)||0,last=evs[evs.length-1].t;
+  return '✓ consigné '+esc(t0?fmtMs(Math.max(0,last-t0)):fmtHMS(last));}
 // Met à jour la valeur affichée d'un compteur ET son étiquette accessible (role="status").
-function setCounterVal(id){const el=document.getElementById('cnval-'+id);if(!el)return;const c=((Runtime.fiche&&Runtime.fiche.counters)||[]).find(x=>x.id===id);const lbl=(c&&esc(c.label))||'Compteur';const v=Runtime.counters[id]||0;el.textContent=v;el.setAttribute('aria-label',lbl+' : '+v);}
+function setCounterVal(id){const el=document.getElementById('cnval-'+id);if(!el)return;const c=((Runtime.fiche&&Runtime.fiche.counters)||[]).find(x=>x.id===id);const lbl=(c&&esc(c.label))||'Compteur';const v=Runtime.counters[id]||0;el.textContent=v;el.setAttribute('aria-label',lbl+' : '+v);
+  const lg=document.getElementById('cnlog-'+id);if(lg)lg.innerHTML=cnLogTxt(id);}
 function runtimePanel(f){const tl=Object.values(Runtime.timers).filter(t=>!t.adhoc);const minis=Object.values(Runtime.timers).filter(t=>t.adhoc);const cl=f.counters||[];if(!tl.length&&!minis.length&&!cl.length)return '';
   // Stratégie V5 (canvas turn 6) : à >= 1000px la colonne droite montre TOUJOURS le panneau ;
   // en dessous, il reste REPLIÉ (le contenu clinique d'abord — la barre segmentée de l'en-tête
@@ -11563,7 +11616,16 @@ function renderRead(){
     const fsFold=démarrée&&!state.fsOpen;
     const fsN=items.length;
     return `<div class="forget-strip${items.length>4?' many':''}${démarrée?' fs-foldable':''}${fsFold?' fs-closed':''}">`
-      +`<div class="fs-k">■ Ne pas oublier${démarrée?`<button type="button" class="fs-tgl" id="fsTgl" aria-expanded="${fsFold?'false':'true'}">${fsN} rappel${fsN>1?'s':''} <span aria-hidden="true">${fsFold?'▾':'▴'}</span></button>`:''}</div>`
+      /* ⚠ LA CIBLE EST LA RANGÉE ENTIÈRE, PAS LE MOT (v5.0.0, demande utilisateur — gants,
+         stress, et WCAG 2.2 § 2.5.8). Le déclencheur était un bouton de la largeur de son texte,
+         posé au bout de la ligne : ~90 px à viser d'un pouce ganté sur un objet qui, lui, fait
+         toute la largeur de l'écran. Le TITRE devient donc le bouton — c'est le patron que le
+         dossier applique déjà à « Confirmation diagnostique » et à `.crit-guide`. Hors session,
+         rien n'est repliable : c'est alors un simple titre, et un bouton qui n'agit pas serait un
+         bouton mort. */
+      +(démarrée
+        ?`<button type="button" class="fs-k fs-btn" id="fsTgl" aria-expanded="${fsFold?'false':'true'}"><span class="fs-kt">■ Ne pas oublier</span><span class="fs-tgl">${fsN} rappel${fsN>1?'s':''} <span aria-hidden="true">${fsFold?'▾':'▴'}</span></span></button>`
+        :`<div class="fs-k"><span class="fs-kt">■ Ne pas oublier</span></div>`)
       +`<div class="fs-list">${items.map(x=>`<div class="fs-i"><span class="ftxt">${fmt(x)}</span></div>`).join('')}</div></div>`;})();
   // Historique = sessions de cette fiche, EN EXCLUANT la session vive courante (affichée par le bandeau).
   const ss=sessions.filter(s=>s.ficheId===f.id&&s.id!==Runtime.sessionId).sort((a,b)=>b.savedAt-a.savedAt);
@@ -14456,7 +14518,7 @@ function edDrop(at,lbl,warn){
   const idx=Math.min(parseInt(String(at).split(':').pop(),10)||0,6);
   return `<button type="button" class="ed-drop${warn?' warn':''}" style="--i:${idx}" data-drop="${esc(at)}">${warn?'△ ':''}${esc(lbl)}</button>`;}
 function blockEditor(b,blocks){if(b.kind==='decision'){return `<div class="blk blk-dec${edGrabCls('b',b.id)}" data-bid="${b.id}"><div class="blk-top"><span class="blk-n dec" aria-hidden="true">◆</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Réévaluation)" aria-label="Titre de la décision"><button class="mini grab" draggable="true" data-grab="b:${b.id}" aria-label="Déplacer ce bloc" title="Déplacer le bloc — touchez, puis touchez la destination">⠿</button></div><div class="blk-phase"><label for="ph-${b.id}">Phase</label><input id="ph-${b.id}" type="text" list="phaseList" data-bf="phase" value="${esc(b.phase||'')}" maxlength="40" placeholder="${esc(phaseOf(state.draft||{},b.id)||'facultative — héritée du bloc précédent')}"></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Question</div><input type="text" data-bf="question" value="${esc(b.question)}" placeholder="ex. Réponse à l'adrénaline ?" aria-label="Question posée" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)"><div class="sub">Réponses → bloc cible</div>${(b.options.length?b.options:[{label:'',target:''}]).map((o,i)=>`<div class="optedit" data-oi="${i}"><input type="text" data-of="label" value="${esc(o.label)}" placeholder="ex. Oui" aria-label="Libellé de la réponse ${i+1}">${targetSelect(blocks,b.id,o.target)}<button class="mini del" data-optdel="${i}" aria-label="Supprimer la réponse">×</button></div>`).join('')}<button class="add-line" data-addopt>+ Ajouter une réponse</button>${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
-  return `<div class="blk${edGrabCls('b',b.id)}" data-bid="${b.id}"><div class="blk-top"><span class="blk-n" aria-hidden="true">${(blocks||[]).indexOf(b)+1}</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Mesures immédiates)" aria-label="Titre du bloc"><button class="mini grab" draggable="true" data-grab="b:${b.id}" aria-label="Déplacer ce bloc" title="Déplacer le bloc — touchez, puis touchez la destination">⠿</button></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Étapes (cochables en mode crise)</div><details class="crit-guide"${(()=>{try{return localStorage.getItem('ac-cg-open')?' open':'';}catch(e){return '';}})()}><summary>${uiIcon('warn',11)} Rouge, △ ambre, réponse attendue — règles d'usage</summary><b class="cg-r">${uiIcon('warn',11)} Rouge</b> : ce qui tue si on l'oublie (memory item, geste vital). <b class="cg-a">△ Ambre</b> : là où l'on risque de se tromper (dose/dilution à vérifier avant injection, contre-indication à écarter, confusion voie/site/produit, seuil à contrôler avant de poursuivre). Les deux → rouge. <b>Réponse attendue</b> : « challenge :: réponse » (ex. « Adrénaline IM :: 0,01 mg/kg — max 0,5 mg ») — la réponse devient la pilule à confirmer en lecture (challenge-response).</details>${(stepsOf(b).length?stepsOf(b):['']).map((s,i)=>`${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+i,i===0?'Poser en tête':'Poser ici',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<div class="li${stepIsCrit(s)?' li-crit':(stepIsVigil(s)?' li-vigil':'')}${edGrabCls('s',b.id,i)}" data-si="${i}"><button class="mini grab li-grab" draggable="true" data-grab="s:${i}" aria-label="Déplacer l'étape ${i+1}" title="Déplacer — touchez, puis touchez la destination">⠿</button><span class="li-mk" aria-hidden="true">${stepIsCrit(s)?uiIcon('warn',13):(stepIsVigil(s)?'△':'')}</span><input type="text" data-sf value="${esc((bItems(b)[i]||{}).do||'')}" placeholder="Nouvelle étape…" aria-label="Étape ${i+1} — ce qui se prononce"><span class="li-arrow" aria-hidden="true">→</span><input type="text" class="li-exp" data-sx="${i}" value="${esc((bItems(b)[i]||{}).expect||'')}" placeholder="réponse attendue (facultatif)" aria-label="Étape ${i+1} — réponse attendue (facultatif)"><span class="li-tools"><button class="mini crit-tgl${stepIsCrit(s)?' on':(stepIsVigil(s)?' vig':'')}" data-crit="${i}" title="${stepIsCrit(s)?'Étape CRITIQUE (rouge : ce qui tue si oublié) — toucher : vigilance (ambre)':(stepIsVigil(s)?'Étape VIGILANCE (ambre : risque d’erreur — dose, voie, seuil) — toucher : étape normale':'Étape normale — toucher : critique (rouge : ce qui tue si oublié)')}">${stepIsVigil(s)?'△':uiIcon('warn',14)}<span class="mini-w">${stepIsCrit(s)?'vital':(stepIsVigil(s)?'vérifier':'registre')}</span></button><button class="mini mem-tgl${(bItems(b)[i]||{}).memory?' on':''}" data-mem="${i}" aria-pressed="${(bItems(b)[i]||{}).memory?'true':'false'}" title="${(bItems(b)[i]||{}).memory?'Memory item — apparaît AUSSI dans « Ne pas oublier » ; toucher : étape ordinaire':'Étape ordinaire — toucher : memory item (elle rejoint « Ne pas oublier »)'}">★<span class="mini-w">mémoire</span></button><button class="mini x2-tgl${(bItems(b)[i]||{}).dual?' on':''}" data-dual="${i}" aria-pressed="${(bItems(b)[i]||{}).dual?'true':'false'}" title="${(bItems(b)[i]||{}).dual?'Confirmé par les DEUX — toucher : confirmation simple':'Confirmation simple — toucher : à confirmer par les deux (AC 120-71B §5.2.2.5)'}">×2<span class="mini-w">double</span></button><span class="li-sp"></span><button class="mini del" data-rmstep="${i}" aria-label="Supprimer l'étape">×</button></span>${(()=>{const nt=stepNote(s);return nt?`<span class="li-note" role="status">△ <b>Relecture</b> — ${esc(nt)}</span>`:'';})()}</div>`).join('')}${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+(stepsOf(b).length||0),'Poser en fin',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<p class="nf-guard" data-stepguard role="status">${stepGuardTxt(stepsOf(b),'bloc')}</p><button class="add-line" data-addstep>+ Ajouter une étape</button><div class="sub">Étape suivante</div>${targetSelect(blocks,b.id,b.next)}${b.next?`<input type="text" data-bnextlbl value="${esc(b.nextLbl||'')}" maxlength="120" placeholder="Libellé du bouton Continuer (ex. réévaluation à 5 min)" aria-label="Libellé du bouton Continuer" style="margin-top:6px">`:''}${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
+  return `<div class="blk${edGrabCls('b',b.id)}" data-bid="${b.id}"><div class="blk-top"><span class="blk-n" aria-hidden="true">${(blocks||[]).indexOf(b)+1}</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Mesures immédiates)" aria-label="Titre du bloc"><button class="mini grab" draggable="true" data-grab="b:${b.id}" aria-label="Déplacer ce bloc" title="Déplacer le bloc — touchez, puis touchez la destination">⠿</button></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Étapes (cochables en mode crise)</div><details class="crit-guide"${(()=>{try{return localStorage.getItem('ac-cg-open')?' open':'';}catch(e){return '';}})()}><summary>${uiIcon('warn',11)} Rouge, △ ambre, réponse attendue — règles d'usage</summary><b class="cg-r">${uiIcon('warn',11)} Rouge</b> : ce qui tue si on l'oublie (memory item, geste vital). <b class="cg-a">△ Ambre</b> : là où l'on risque de se tromper (dose/dilution à vérifier avant injection, contre-indication à écarter, confusion voie/site/produit, seuil à contrôler avant de poursuivre). Les deux → rouge. <b>Réponse attendue</b> : « challenge :: réponse » (ex. « Adrénaline IM :: 0,01 mg/kg — max 0,5 mg ») — la réponse devient la pilule à confirmer en lecture (challenge-response).</details>${(stepsOf(b).length?stepsOf(b):['']).map((s,i)=>`${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+i,i===0?'Poser en tête':'Poser ici',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<div class="li${stepIsCrit(s)?' li-crit':(stepIsVigil(s)?' li-vigil':'')}${((bItems(b)[i]||{}).expect||'').trim()?' has-exp':''}${edGrabCls('s',b.id,i)}" data-si="${i}"><button class="mini grab li-grab" draggable="true" data-grab="s:${i}" aria-label="Déplacer l'étape ${i+1}" title="Déplacer — touchez, puis touchez la destination">⠿</button><span class="li-fw"><span class="li-mk" aria-hidden="true">${stepIsCrit(s)?uiIcon('warn',13):(stepIsVigil(s)?'△':'')}</span><input type="text" data-sf value="${esc((bItems(b)[i]||{}).do||'')}" placeholder="Nouvelle étape…" aria-label="Étape ${i+1} — ce qui se prononce"></span><span class="li-arrow" aria-hidden="true">→</span><input type="text" class="li-exp" data-sx="${i}" value="${esc((bItems(b)[i]||{}).expect||'')}" placeholder="réponse attendue (facultatif)" aria-label="Étape ${i+1} — réponse attendue (facultatif)"><span class="li-tools"><button class="mini crit-tgl${stepIsCrit(s)?' on':(stepIsVigil(s)?' vig':'')}" data-crit="${i}" title="${stepIsCrit(s)?'Étape CRITIQUE (rouge : ce qui tue si oublié) — toucher : vigilance (ambre)':(stepIsVigil(s)?'Étape VIGILANCE (ambre : risque d’erreur — dose, voie, seuil) — toucher : étape normale':'Étape normale — toucher : critique (rouge : ce qui tue si oublié)')}">${stepIsVigil(s)?'△':uiIcon('warn',14)}<span class="mini-w">${stepIsCrit(s)?'vital':(stepIsVigil(s)?'vérifier':'registre')}</span></button><button class="mini mem-tgl${(bItems(b)[i]||{}).memory?' on':''}" data-mem="${i}" aria-pressed="${(bItems(b)[i]||{}).memory?'true':'false'}" title="${(bItems(b)[i]||{}).memory?'Memory item — apparaît AUSSI dans « Ne pas oublier » ; toucher : étape ordinaire':'Étape ordinaire — toucher : memory item (elle rejoint « Ne pas oublier »)'}">★<span class="mini-w">mémoire</span></button><button class="mini x2-tgl${(bItems(b)[i]||{}).dual?' on':''}" data-dual="${i}" aria-pressed="${(bItems(b)[i]||{}).dual?'true':'false'}" title="${(bItems(b)[i]||{}).dual?'Confirmé par les DEUX — toucher : confirmation simple':'Confirmation simple — toucher : à confirmer par les deux (AC 120-71B §5.2.2.5)'}">×2<span class="mini-w">double</span></button><span class="li-sp"></span><button class="mini del" data-rmstep="${i}" aria-label="Supprimer l'étape">×</button></span>${(()=>{const nt=stepNote(s);return nt?`<span class="li-note" role="status">△ <b>Relecture</b> — ${esc(nt)}</span>`:'';})()}</div>`).join('')}${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+(stepsOf(b).length||0),'Poser en fin',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<p class="nf-guard" data-stepguard role="status">${stepGuardTxt(stepsOf(b),'bloc')}</p><button class="add-line" data-addstep>+ Ajouter une étape</button><div class="sub">Étape suivante</div>${targetSelect(blocks,b.id,b.next)}${b.next?`<input type="text" data-bnextlbl value="${esc(b.nextLbl||'')}" maxlength="120" placeholder="Libellé du bouton Continuer (ex. réévaluation à 5 min)" aria-label="Libellé du bouton Continuer" style="margin-top:6px">`:''}${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
 /* Éditeur des COMPLICATIONS (v4.26.0) : libellé de l'ÉVÉNEMENT + cible. La cible est soit un
    bloc de CETTE fiche (le sélecteur liste les blocs en premier), soit une AUTRE aide ou un
    protocole (demande utilisateur : « une complication peut ouvrir une nouvelle aide cognitive ») —
@@ -14724,7 +14786,7 @@ function renderEditor(){
     inchangé : il n'y a alors pas de seconde colonne où le mettre. */}
     ${wideEdit?'':`<div id="revPanel">${reviewPanelHtml(f)}</div>`}
     ${fiches.some(x=>x.id===f.id)?'<div class="ed-del"><button class="btn danger" id="delBtn">Supprimer cette fiche</button></div>':''}
-    ${wideEdit?`</div><aside class="ed-struct">${edStructHtml(f)}</aside><aside class="read-side" id="editSide">${editPreviewHtml('fiche')}<div id="revPanel">${reviewPanelHtml(f)}</div></aside></div>`:''}
+    ${wideEdit?`</div><aside class="ed-struct">${edStructHtml(f)}</aside><aside class="read-side" id="editSide"><div id="revPanel">${reviewPanelHtml(f)}</div>${editPreviewHtml('fiche')}</aside></div>`:''}
     <input type="file" id="imgInput" accept="image/*" hidden>
     <input type="file" id="pdfInput" accept="application/pdf,.pdf" hidden>`;
   bindEditorEvents(f);

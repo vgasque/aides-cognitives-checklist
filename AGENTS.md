@@ -2481,6 +2481,60 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   déjà son entrée là où il sert — dans la carte du bloc (« Journal des actions (n) ▾ », lot M7).
   Le quai NOMME les minuteurs et compteurs depuis le lot T2 ; il n'a pas à nommer un troisième
   objet dont le geste vit ailleurs.
+- **APRÈS UNE MIGRATION DE MODÈLE, UNE COMPARAISON À UNE ANCIENNE VALEUR NE LÈVE RIEN — ELLE SE
+  TAIT (v5.0.0, deux défauts signalés à l'usage, même faute)** : `buildFlowSVG` comparait `kind` à
+  `'steps'`, valeur disparue à l'étape C (`kind:'do'`) — tout bloc non-décision retombait dans la
+  branche « décision », `options` valait `[]`, et **aucune flèche n'était tracée pour les liens
+  `next`** ; les branches d'une décision, qui passent par `options`, continuaient de s'afficher,
+  d'où un symptôme partiel donc déroutant. On teste désormais `!== 'decision'` : le jeu de valeurs
+  de `kind` peut s'étendre, la décision reste le seul cas particulier, et un renommage futur du cas
+  GÉNÉRAL ne pourra plus faire disparaître les flèches en silence. Même famille que
+  `completionSpots` (`f.confirmation`). **Corollaire de méthode** : après un renommage, chercher les
+  comparaisons à l'ANCIENNE valeur, pas seulement les accès au champ.
+- **UN BINDER PAR CARTE N'ATTEINT PAS CE QUI VIT ENTRE LES CARTES (v5.0.0)** : les interstices de
+  niveau BLOC (`data-drop="B:n"`) sont émis ENTRE les `.blk`, donc FRÈRES — le binder tournait
+  `main.querySelectorAll('.blk').forEach(card=>card.querySelectorAll('[data-drop]'))` et ne les
+  câblait jamais : **déplacer un bloc ne faisait rien**, tandis que déplacer une ÉTAPE (interstice
+  INTERNE à la carte) fonctionnait. La moitié du geste marchait, ce qui rendait le défaut
+  déroutant. Binder hissé au niveau de `main` et SORTI de la boucle. ⚠ Piège rencontré en le
+  déplaçant : **`imgInput.onchange` existe DEUX fois** dans le fichier (fiche et protocole) — une
+  ancre textuelle a fait atterrir le binder dans la mauvaise portée, trouvé à la sonde.
+- **UN ÉLÉMENT TOURNÉ DÉBORDE SA PROPRE BOÎTE (v5.0.0)** : 26 px de côté font 36,8 px de diagonale,
+  soit 5,4 px de chaque côté — le losange d'une décision était rogné par la colonne (−3 px mesurés).
+  On tourne un **pseudo-élément plus petit à l'intérieur** d'une boîte qui, elle, ne bouge pas.
+- **LA MARQUE DE REGISTRE EST EN SUPERPOSITION, ET C'EST CE QUI ALIGNE LES FLÈCHES (v5.0.0)** :
+  chaque `.li` est sa propre boîte — une marque qui est un ITEM de la rangée décale tout ce qui
+  suit, et les flèches partent en escalier. Posée en superposition sur le rembourrage gauche du
+  champ, la boîte du champ commence au même x sur toutes les rangées, donc la flèche aussi ; et
+  l'on ne paie pas les ~50 px qu'une colonne réservée prendrait au texte à 320 px.
+  **ET LA RÉPONSE ATTENDUE NE SE MONTRE QUE SI ELLE EXISTE**, ou pendant qu'on écrit la ligne :
+  répétée à vide sur chaque rangée, « réponse attendue (facultatif) » disait cinq fois la même
+  chose et volait un tiers de la largeur au GESTE, qui est le contenu. C'est la grammaire MK-flux
+  du dossier — au REPOS aucun chrome, à l'ÉDITION les outils paraissent.
+- **LA CIBLE EST LA RANGÉE, PAS LE MOT (v5.0.0, demande utilisateur — gants, stress, WCAG 2.2
+  § 2.5.8)** : le déclencheur du chapeau « Ne pas oublier » était un bouton de la largeur de son
+  texte (~90 px) au bout d'une ligne qui, elle, fait toute la largeur. Le TITRE devient le bouton —
+  patron déjà appliqué à « Confirmation diagnostique » et à `.crit-guide`. Mesuré : **352 × 48 px**
+  au lieu de ~90 × 44. Hors session rien n'est repliable : c'est alors un simple titre, un bouton
+  qui n'agit pas serait un bouton mort.
+- **« ■ CRISE » NE S'ANNONCE QU'UNE FOIS LA SESSION DÉMARRÉE (v5.0.0, maquette)** : ouvrir une fiche
+  pour la RELIRE n'est pas être en crise, et l'annoncer alors use le mot — la même inflation que
+  celle du rouge, sur le seul annonciateur de MODE de l'écran. Le bandeau-titre reste (il porte le
+  TITRE, vrai dans les deux cas) ; c'est la PILULE qui attend le premier geste. Prédicat unique
+  `crisisOnScreen()`.
+- **« ✓ CONSIGNÉ À … » — LA TRACE SE VOIT, POUR NE PAS ÊTRE REFAITE (v5.0.0, demande utilisateur :
+  « éviter de le faire 2 fois »)** : incrémenter un compteur POSE DÉJÀ un repère horodaté
+  (`ref:{type:'counter'}`, v4.52.0) — mais rien ne le disait, et l'on pouvait « Noter l'heure »
+  par-dessus, donc doubler la ligne du compte rendu. **PAS D'ANIMATION** : le mouvement est réservé
+  à l'ALARME (ECAM), et une valeur qui s'envolerait vers le journal serait le seul mouvement
+  autonome de l'écran — sous stress il se lirait comme un signal. **PAS DE SNACKBAR** : elles sont
+  mises en attente en session (règle 11). Ce qu'il faut est une INFORMATION PERMANENTE et muette, à
+  l'endroit du geste — même grammaire que l'accusé « ✓ 02:16 noté » (M7), pour qu'on n'apprenne
+  qu'un seul patron. Elle n'existe que s'il y a quelque chose à dire (`:empty` → aucune hauteur).
+- **LE VOLET DE RELECTURE PASSE AU-DESSUS DU SCHÉMA (v5.0.0, demande utilisateur)** : dans la
+  colonne de droite de l'éditeur, il est ce qu'on CONSULTE (une liste courte, repliée), le schéma
+  ce qu'on REGARDE (un dessin haut). Le second poussait le premier hors de vue sur un écran de
+  hauteur ordinaire.
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.
