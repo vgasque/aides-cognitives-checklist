@@ -1369,6 +1369,107 @@ for (const W of [390, 999, 1000, 1199, 1200, 1400]) {
    avait été RENDUE. Même trou que celui réparé pour les éditeurs en v4.77.0.
    ⚠ ET IL FAUT PLAYWRIGHT : le pane du navigateur intégré n'émet NI `resize` NI
    `matchMedia change` sur un redimensionnement CDP — un palier n'y est pas éprouvable. */
+/* ⚠ LE BANDEAU-TITRE NE SE DIT PLUS DEUX FOIS (signalé à l'usage : « le bandeau inférieur avec le
+   titre apparaît encore en mode Essayer et en exercice, alors que le titre est déjà à côté du ‹ »).
+   Il ne porte plus QUE la phrase d'une exception ; le titre et son discriminant vivent dans la
+   barre, en permanence. Trois modes à vérifier — et le témoin doit RENCONTRER SON CAS : sans
+   session démarrée il n'y a pas de crise du tout, et tout serait vert pour la mauvaise raison. */
+console.log('\n══ BANDEAU · il ne porte plus que l’exception ══');
+{
+  const page = await br.newPage({viewport:{width:390,height:844},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();await w(200);
+    const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await w(900);
+    fiches[0].discriminant='adulte';openRead(fiches[0].id);await w(500);
+    const sb=document.getElementById('sessStart');if(sb)sb.click();await w(700);});
+  const R=await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    const cb=document.getElementById('crisisBand'),bt=document.getElementById('brandTitle');
+    const lire=()=>({vu:!cb.hidden,tag:cb.querySelector('.cb-tag').textContent.trim(),
+      titreDansBandeau:!!cb.querySelector('.cb-ttl')});
+    const crise=Object.assign(lire(),{titreBarre:bt.textContent.trim(),disc:!!bt.querySelector('.bt-d'),
+      pilule:!document.getElementById('hdrCrisis').hidden});
+    state.previewFrom='edit';render();await w(400);
+    const ess=Object.assign(lire(),{hach:getComputedStyle(document.querySelector('header.bar'),'::before').opacity,
+      cls:document.querySelector('header.bar').classList.contains('ess')});
+    state.previewFrom=null;Runtime.exercise=true;render();await w(400);
+    const exo=lire();
+    Runtime.exercise=false;render();await w(300);
+    return {crise,ess,exo};});
+  t('témoin : la crise est bien à l’écran (pilule de mode posée)', R.crise.pilule===true, String(R.crise.pilule));
+  t('crise ordinaire : aucun bandeau, le titre est dans la barre',
+    R.crise.vu===false&&R.crise.titreBarre.length>0, JSON.stringify(R.crise));
+  t('… et le discriminant l’y suit (K6 survit à la troncature)', R.crise.disc===true, String(R.crise.disc));
+  t('le bandeau ne porte plus AUCUN titre (purgé)', R.crise.titreDansBandeau===false, String(R.crise.titreDansBandeau));
+  /* L'ESSAI N'EST PAS UNE EXCEPTION AU SENS DU BANDEAU : la barre y dit déjà tout, il ne manquait
+     que la TEXTURE — et elle vit sur l'en-tête. Un bandeau sans titre ni phrase y serait une
+     bande hachurée vide. */
+  t('essai : pas de bandeau, la hachure vit sur l’en-tête',
+    R.ess.vu===false&&R.ess.cls===true&&parseFloat(R.ess.hach)>0.9, JSON.stringify(R.ess));
+  t('exercice : le bandeau reste, et il ne porte QUE la phrase',
+    R.exo.vu===true&&/Exercice/.test(R.exo.tag), JSON.stringify(R.exo));
+  await page.close();
+}
+
+/* ⚠ LA COLONNE D'ORIENTATION EST DÉSATURÉE — Y COMPRIS SES CHIPS DE BRANCHE (signalé à l'usage).
+   En ambre plein, la chip empruntait le registre ATTENTION à ce qui n'est ni une alerte ni un
+   point de vigilance : le NOM de la branche. Et le groupe « à tout moment » porte UN rail, du
+   titre à la dernière rangée, au lieu d'une bordure par rangée qui semblait surgir. */
+console.log('\n══ PARCOURS INERTE · registres et cohérence du groupe ══');
+{
+  const page = await br.newPage({viewport:{width:1280,height:900}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();await w(200);
+    const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await w(900);
+    openRead(fiches[0].id);await w(700);});
+  const R=await page.evaluate(()=>{
+    /* ⚠ UNE SEULE COLONNE À LA FOIS : à 1280 px le plan existe À GAUCHE *et* dans le rail de
+       droite. Comparer un intertitre de l'une à une rangée de l'autre mesure l'écart entre deux
+       colonnes, pas l'alignement — première version du témoin, rouge pour cette raison. */
+    const root=document.querySelector('.read-plan')||document.querySelector('.rail-lad')||document;
+    const ch=root.querySelector('.pl-brc span');
+    const sec=root.querySelector('.pl-sec.cx');
+    const sh=root.querySelector('.pl-sech'),ln=root.querySelector('.pl-line');
+    /* ⚠ ON RÉSOUT LE TOKEN, ON NE LE COMPARE PAS PAR SON NOM (douzième piège, v4.76.0) : lu dans
+       `--verify` il vaut « #… » alors que la couleur calculée d'un élément vaut « rgb(…) » —
+       comparer les deux ne peut JAMAIS être vrai, et le contrôle passait quoi qu'il arrive. On
+       peint une sonde et l'on lit ce que le moteur en fait. */
+    const sonde=document.createElement('span');
+    sonde.style.cssText='color:var(--verify);background:var(--verify-soft);position:absolute;left:-9999px';
+    document.body.appendChild(sonde);
+    const amb=getComputedStyle(sonde).color,ambBg=getComputedStyle(sonde).backgroundColor;
+    sonde.remove();
+    return {chip:!!ch,chipBg:ch?getComputedStyle(ch).backgroundColor:'',chipInk:ch?getComputedStyle(ch).color:'',
+      ambre:amb,ambreBg:ambBg,sec:!!sec,railSec:sec?getComputedStyle(sec).borderLeftWidth:'0px',
+      railLigne:root.querySelector('.pl-line.cxl')?getComputedStyle(root.querySelector('.pl-line.cxl')).borderLeftWidth:'0px',
+      /* ⚠ ON COMPARE LE DÉBUT DU TEXTE, PAS LE BORD DE LA BOÎTE : l'intertitre d'un groupe vit
+         dans un conteneur à rail (bordure + rembourrage), donc sa boîte commence ailleurs alors
+         que son texte, lui, doit tomber sur la même colonne que celui des rangées. */
+      alignSh:(()=>{if(!sh||!ln)return null;
+        const x=e=>e.getBoundingClientRect().left+parseFloat(getComputedStyle(e).paddingLeft)
+          +parseFloat(getComputedStyle(e).borderLeftWidth);
+        return Math.round(x(sh)-x(ln));})()};});
+  t('témoin : une chip de branche est mesurée', R.chip===true, String(R.chip));
+  /* On compare l'ENCRE RÉSOLUE, on ne se fie pas au nom du token (douzième piège, v4.76.0). */
+  t('… et elle n’emprunte plus le registre ATTENTION',
+    R.chip&&R.chipInk!==R.ambre&&R.chipBg!==R.ambreBg,
+    `fond ${R.chipBg} · encre ${R.chipInk} (ambre ${R.ambre} / ${R.ambreBg})`);
+  if(R.sec){
+    t('« à tout moment » : le rail borde le GROUPE, pas chaque rangée',
+      parseFloat(R.railSec)>0&&parseFloat(R.railLigne)===0, `groupe ${R.railSec} / rangée ${R.railLigne}`);
+  }
+  /* Tolérance de 3 px : c'est l'épaisseur du RAIL du groupe, le seul retrait qui subsiste — un
+     liseré coûte cette largeur partout ailleurs dans le dossier. Au-delà, c'est un rembourrage
+     qu'on a ajouté sans le vouloir. */
+  t('l’intertitre s’aligne sur les rangées', R.alignSh!==null&&Math.abs(R.alignSh)<=3, `${R.alignSh} px`);
+  await page.close();
+}
+
 console.log('\n══ RÉFÉRENCE · le palier se franchit RÉELLEMENT ══');
 {
   const page = await br.newPage({viewport:{width:390,height:900},hasTouch:true});

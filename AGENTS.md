@@ -2892,6 +2892,43 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   tombait à 46 % de rien et se coupait en plein nom de bloc — c'est-à-dire précisément sur
   l'information qui dit OÙ l'on va. Même remède que le bandeau de déplacement et que la ligne
   d'état : on empile, la croix reste ancrée avec sa place réservée.
+- **LE BANDEAU-TITRE N'EST PLUS QU'UN PLACARD (v5.0.0, signalé à l'usage : « en mode Essayer le
+  bandeau inférieur avec le titre apparaît encore, alors que le titre est déjà à côté du ‹ »)** :
+  depuis que la barre porte le titre EN PERMANENCE, le répéter dans le bandeau était la duplication
+  même que la v4.70.1 proscrit — et sur deux lignes de serif, au prix le plus fort. Il ne porte donc
+  plus que ce que la barre ne sait pas dire : la PHRASE d'une exception et sa hachure. `.cb-ttl` et
+  `.cb-disc` sont PURGÉS (règle 14) ; **le discriminant suit le titre dans la barre**, en pilule à
+  part — jamais dans la chaîne qui se tronque, c'est tout son objet (K6).
+  **ET IL NE SURVIT QU'À DEUX EXCEPTIONS, PAS TROIS** : l'ESSAI n'en est pas une — la v4.76.0 a
+  établi que la barre y porte déjà les deux énoncés (pilule « ■ Aperçu » ET badge « rien n'est
+  enregistré ») et qu'il ne manquait que la TEXTURE, laquelle vit sur l'en-tête. Un bandeau sans
+  titre et sans phrase n'y serait plus qu'une bande hachurée vide. Restent l'exercice et l'invité.
+  Corollaire : **la hachure de l'en-tête ne dépend plus du relais `.ttl-on`** — la barre porte le
+  titre dès le premier pixel, il n'y a plus de relais à attendre.
+- **LA COLONNE D'ORIENTATION EST DÉSATURÉE, Y COMPRIS SES CHIPS DE BRANCHE (v5.0.0, signalé à
+  l'usage : « ça ressort beaucoup, je ne suis pas sûr que ce soit approuvé ECAM/QRH/FAA »)** — la
+  remarque est juste. La chip nomme la BRANCHE qui mène au bloc : ni alerte, ni point de vigilance.
+  En ambre plein elle empruntait le registre ATTENTION dans une colonne dont toute la doctrine est
+  la désaturation (v4.23.0 : « l'état n'y est porté que par le marqueur, aucun texte coloré ») —
+  elle criait donc plus fort que le contenu clinique qu'elle indexe, exactement l'inflation que le
+  dossier combat pour le rouge. Pastille NEUTRE ; le registre reste au point où l'on CHOISIT,
+  c'est-à-dire sur les options `.opt` de la carte de décision.
+- **UN RAIL POUR LE GROUPE, PAS UNE BORDURE PAR RANGÉE (v5.0.0, signalé à l'usage : « la bordure
+  rouge sort un peu de nulle part »)** : le liseré des complications commençait SOUS l'intertitre,
+  donc après le mot qui annonce le groupe — il paraissait surgir. Il court désormais du titre à la
+  dernière rangée : c'est le GROUPE qui est hors séquence, pas chaque ligne prise séparément.
+  ⚠ **Et l'intertitre s'aligne sur les rangées DE SA COLONNE** : ma première correction l'avait
+  aligné sur le retrait de la carte de LECTURE (9 px) alors que la colonne désaturée retire de
+  2 px — soit le défaut signalé, à l'envers. On mesure, on n'extrapole pas d'une surface à l'autre.
+  Le rail est le SEUL retrait du groupe (aucun rembourrage en plus) : il reste 3 px, ce qu'un
+  liseré coûte partout ailleurs.
+- **« CONSULTER » A LA MÊME HAUTEUR PARTOUT, ET ELLE NE COÛTE RIEN (v5.0.0, signalé à l'usage :
+  « en dessous de 780 px il se rétrécit encore, sans raison valable » — vérifié, il n'y en avait
+  pas)** : il tombait de 46 à 38 px sous ce seuil et s'en remettait au halo `::after` pour atteindre
+  les 44 px de cible. Or **mesuré, la rangée fait 59 px des deux côtés** : c'est le sélecteur de
+  mode (46 px) qui la dimensionne. Le rétrécissement ne rendait aucun pixel — il désalignait les
+  deux contrôles de la même rangée et faisait dépendre la cible d'un halo qui ne se mesure pas.
+  Le libellé abrégé « Cons. » est PURGÉ avec lui (balisage mort depuis que le mot tient partout).
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.

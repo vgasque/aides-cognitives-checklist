@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-1mYg5DvSewx7SAFJQMjVrzPBZdMCkm4hq187RkOtqaQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-fAH74IW1jS5le6SW5V2WmIr4QHtfdI0S2CGiQ29jmOw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -828,7 +828,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      cette pilule est le SEUL énoncé du mode : plus de second libellé à harmoniser avec elle. */
   /* F5 : le titre de la fiche en crise porte la SÉRIF (graisse 600 — la seule embarquée ; 800
      forcerait une graisse synthétique, plus lourde et moins nette). */
-  #crisisBand .cb-ttl{flex:1;min-width:0;font-family:var(--serif);font-size:19px;font-weight:600;letter-spacing:-.2px;line-height:1.15;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   #crisisBand .cb-tag{flex:none;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--critical)}
   #crisisBand .cb-tag[hidden]{display:none}
   /* QUAI DE CRISE (v4.23.0, canvas 2a/3a) : rangée PLEINE LARGEUR et COLLANTE sous l'en-tête.
@@ -915,7 +914,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      d'action de l'écran, lu à bout de bras et sous stress. La saillance doit suivre le rôle. */
   /* Plan est le PREMIER segment de la bande (< 780) : pas de filet à gauche (bord du quai), un
      filet à DROITE le sépare de « ● Session ». À ≥ 780 il redevient une carte détachée. */
-  .dock-plan{flex:none;position:relative;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:38px;padding:0 12px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--link);font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;white-space:nowrap}
+  /* ⚠ MÊME HAUTEUR PARTOUT, ET ELLE NE COÛTE RIEN (signalé à l'usage : « en dessous de 780 px le
+     bouton se rétrécit encore, sans raison valable » — vérifié, il n'y en avait pas). Il tombait
+     de 46 à 38 px sous ce seuil, en s'en remettant au halo `::after` pour atteindre les 44 px de
+     cible. Or MESURÉ, la rangée fait 59 px des deux côtés : c'est le sélecteur de mode (46 px) qui
+     la dimensionne, pas ce bouton. Le rétrécissement ne rendait donc AUCUN pixel — il ne faisait
+     que désaligner les deux contrôles de la même rangée et rendre la cible dépendante d'un halo
+     qui ne se mesure pas. */
+  .dock-plan{flex:none;position:relative;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:46px;padding:0 12px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--link);font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;white-space:nowrap}
   /* HALO DE CIBLE (v4.32.0) : ces deux boutons vivent dans la zone de CRISE, où le seuil est de
      44 px — ils étaient mesurés à 38. Le défaut a échappé au harnais parce que son SCOPE listait
      #crisisDock (l'état) mais PAS #crisisCtrl (les commandes) : le trou de couverture cachait un
@@ -939,7 +945,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      palier de compression avant d'enrouler (v4.74.2), la place existe — vérifié de 320 à 430 px
      aux quatre tailles de texte. Un bouton qui change de mot selon la largeur est un bouton qu'on
      relit ; la constance du libellé est la même exigence que la constance de sa position. */
-  .dock-plan .dp-ab{display:none}
   /* Le libellé « Plan » ne disparaît à AUCUNE largeur : le glyphe ⤢ jouxte le chevron ▾ des
      minuteurs, et deux pictogrammes voisins sans mot se confondent sous stress. Ce sont les
      segments de minuteurs qui cèdent la place (ils s'ellipsent déjà). */
@@ -1102,7 +1107,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     #cbTimers .seg.due{border-color:var(--verify-bd)}
     #cbTimers .cbt-n{border-left:0;padding:0 4px}
     /* Plan : 1ʳᵉ carte du cluster gauche (plus de filet-séparateur ni de margin auto). */
-    .dock-plan{border:1px solid var(--line);border-radius:10px;min-height:46px;padding:0 16px}
+    .dock-plan{border:1px solid var(--line);border-radius:10px;padding:0 16px}
   }
   @keyframes cbIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
   /* LOGO DE MARQUE (v4.23.1) — ACCUEIL SEULEMENT, comme le nom de l'app qu'il accompagne
@@ -1159,6 +1164,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      Graisse 600 et non 700 : c'est la SEULE graisse embarquée, en demander une autre produirait
      une graisse SYNTHÉTIQUE — plus lourde et moins nette (v4.61.0). Corps inchangé (16,5 px, un
      palier de l'échelle fermée) : c'est la voix qui s'aligne, pas la hiérarchie. */
+  .bt-d{margin-left:7px;font-family:system-ui,sans-serif;font-size:12px;font-weight:800;
+    color:var(--ink);background:var(--surface-3);border-radius:6px;padding:1px 7px;white-space:nowrap}
   #brandTitle{font-family:var(--serif);font-size:16.5px;font-weight:600;line-height:1.2;color:inherit;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:0;text-transform:none;display:none}
   /* Icône Compte dans l'en-tête (présence utilisateur), avec pastille d'état de synchro discrète. */
   /* 40px (>= 32 exigés — ce n'est pas un contrôle du mode crise) : c'est lui qui fixe la hauteur
@@ -1607,8 +1614,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      (qui portent une pastille). Ce n'est ni un état ni un classement : c'est une partie du NOM,
      celle qui doit survivre à la troncature. */
   .tag.disc{background:transparent;border:1px solid var(--line-strong);color:var(--ink);font-weight:700}
-  #crisisBand .cb-disc{flex:none;align-self:center;font-size:12px;font-weight:800;color:var(--ink);background:var(--surface-3);border-radius:6px;padding:2px 8px}
-  #crisisBand .cb-disc[hidden]{display:none}
   .tag.cat.neutral{background:var(--tag-bg);color:var(--tag-ink)}
   /* Statuts ACHROMATIQUES (V5) : glyphe + texte sur fond neutre — la couleur reste réservée
      au danger (rouge/ambre des registres) et aux catégories (liserés). */
@@ -2041,17 +2046,35 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      `.pl-cxh` avec 9 px de retrait et un `space-between` qui renvoyait « hors numérotation » sur
      sa propre ligne, et `.pl-sech` avec 2 px. On garde le second et l'on n'en fait qu'un : même
      retrait que les rangées, et la précision suit le titre dans la même phrase. */
+  /* ⚠ L'INTERTITRE S'ALIGNE SUR LES RANGÉES (signalé à l'usage : « à tout moment paraît décalé
+     par rapport au reste »). Il vivait à 2 px du bord quand les rangées commencent à 9 : deux
+     colonnes de départ dans une colonne qui n'en a qu'une. */
+  /* ⚠ L'INTERTITRE S'ALIGNE SUR LES RANGÉES DE SA COLONNE — et celles-ci ont un retrait de 2 px,
+     pas de 9 (première correction : j'avais aligné sur le retrait de la carte de LECTURE, ce qui
+     décalait l'intertitre de 7 px dans la colonne désaturée, exactement le défaut signalé, à
+     l'envers). On mesure, on n'extrapole pas d'une surface à l'autre. */
   .pl-sech{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
     color:var(--ink-soft);margin:16px 0 2px;padding:0 2px;line-height:1.35}
   .pl-sech.cx{color:var(--critical)}
+  /* ⚠ UN RAIL POUR LE GROUPE, PAS UNE BORDURE PAR RANGÉE (signalé à l'usage : « la bordure rouge
+     sort un peu de nulle part, il faudrait plus de cohérence »). Le liseré commençait sous
+     l'intertitre, donc APRÈS le mot qui annonce le groupe : il paraissait surgir. Il court
+     désormais du titre à la dernière rangée — c'est le GROUPE qui est hors séquence, pas chaque
+     ligne prise séparément —, et il reprend la grammaire des cartes du dossier : un liseré
+     gauche qui borde ce qu'il qualifie. */
+  /* Le rail est le SEUL retrait du groupe : y ajouter un rembourrage décalait son contenu de
+     10 px par rapport aux rangées voisines — mesuré, et c'est ce qui se lisait comme « à tout
+     moment plus à droite que le reste ». Reste l'épaisseur du rail lui-même, 3 px, qui est ce
+     qu'un liseré coûte partout ailleurs dans le dossier. */
+  .pl-sec.cx{border-left:3px solid var(--critical-bd);border-radius:2px;margin-top:16px}
+  .pl-sec.cx>.pl-sech{margin-top:0}
   .pl-sech span{font-weight:700;color:var(--ink-soft);letter-spacing:.04em}
   /* Sans pastille, le texte d'une rangée de queue commence au bord — comme dans la maquette. */
   .pl-line.wl .t,.pl-line.cxl .t{font-weight:600}
-  .pl-line.cxl{padding-left:13px}
   .pl-line.wl{cursor:default}
   /* Une complication porte le liseré ROUGE : c'est le seul endroit de la colonne où un registre
      paraît, et il dit « ceci n'est pas dans la séquence, ceci arrive ». */
-  .pl-line.cxl{border-left:3px solid var(--critical-bd)}
+
   /* Les étapes en ligne du plan : désaturées comme le reste de la colonne (elle ORIENTE), le
      registre porté par le glyphe ET l'encre — jamais la couleur seule. */
   /* Dans la colonne de droite, le volet perd sa marge de pied : il suit le schéma. */
@@ -2397,7 +2420,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #crisisBand{position:relative}
   #crisisBand::before,header.bar.exo::before,header.bar.inv::before,header.bar.ess::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(-45deg,var(--surface),var(--surface) 14px,var(--primary-soft) 14px,var(--primary-soft) 22px);opacity:0;transition:opacity .3s ease;pointer-events:none}
   #crisisBand.exo::before{opacity:1}
-  header.bar.exo.ttl-on::before{opacity:1}
+  header.bar.exo::before{opacity:1}
   #crisisBand>*{position:relative;z-index:1}
   /* L'EN-TÊTE NE LÈVE PAS SES ENFANTS, ELLE ENFONCE SA HACHURE — et ce n'est pas une élégance,
      c'est le correctif d'un défaut signalé à l'usage : `header.bar.exo>*{position:relative}`
@@ -2434,7 +2457,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      PRIORITÉ : l'exercice l'emporte toujours (il protège d'une méprise clinique) ; un essai ne
      peut de toute façon pas être un invité (`previewFrom` l'exclut). */
   #crisisBand.ess::before,header.bar.ess::before{background:repeating-linear-gradient(-45deg,var(--surface),var(--surface) 14px,var(--surface-3) 14px,var(--surface-3) 22px)}
-  #crisisBand.ess::before,header.bar.ess.ttl-on::before{opacity:1}
+  #crisisBand.ess::before,header.bar.ess::before{opacity:1}
 
   /* PLACARD DE L'INVITÉ (v4.55.4, demande utilisateur) — MÊME MÉCANIQUE que le placard d'exercice,
      au trait près : hachure en fondu sur un `::before`, relais du bandeau vers l'en-tête au pixel
@@ -2444,7 +2467,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      Registre BLEU (`--primary-soft`), jamais l'ambre ni le rouge : suivre la session d'un collègue
      n'est ni une alerte ni une vigilance, c'est un ÉTAT. Le mot le porte (« ▪ Vous suivez ») ;
      la hachure ne fait que le rendre reconnaissable d'un coup d'œil, la couleur jamais seule. */
-  #crisisBand.inv::before,header.bar.inv.ttl-on::before{opacity:1}
+  #crisisBand.inv::before,header.bar.inv::before{opacity:1}
   /* `#crisisBand .cb-tag{color:var(--critical)}` vaut (1,1,0) : il ÉCRASAIT le bleu du placard
      invité, écrit en (0,2,0) — l'étiquette « ▪ Vous suivez » s'affichait donc en ROUGE depuis la
      v4.55.4, sur un cadre bleu, dans le seul registre qu'elle ne devait pas emprunter. Trouvé en
@@ -3588,8 +3611,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* La chip de branche : SEULE sur sa ligne, en retrait du niveau qu'elle ouvre. */
   .pl-brc{padding:9px 9px 4px}
   .pl-brc.d1{padding-left:22px}.pl-brc.d2{padding-left:35px}.pl-brc.d3{padding-left:48px}
+  /* ⚠ NEUTRE, ET C'EST DOCTRINAL (signalé à l'usage : « ça ressort beaucoup par rapport au reste
+     de la page, je ne suis pas sûr que ce soit approuvé ECAM/QRH/FAA » — la remarque est juste).
+     Cette chip nomme la BRANCHE qui mène au bloc ; ce n'est ni une alerte ni un point de
+     vigilance. En ambre plein elle empruntait le registre ATTENTION dans une colonne dont toute
+     la doctrine est la DÉSATURATION (v4.23.0 : « l'état n'y est plus porté que par le marqueur,
+     aucun texte coloré ») — donc elle criait plus fort que le contenu clinique qu'elle indexe,
+     exactement l'inflation que le dossier combat pour le rouge. Pastille NEUTRE (`--tag-bg`),
+     le registre reste au point où l'on CHOISIT : les options `.opt` de la carte de décision. */
   .pl-brc span{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.07em;
-    color:var(--verify);background:var(--verify-soft);border:1px solid var(--verify-bd);
+    color:var(--tag-ink);background:var(--tag-bg);border:1px solid var(--line);
     border-radius:6px;padding:2px 8px}
   /* `white-space:normal` + `min-width:0` : chaque renvoi reste insécable (`.pl-line .g > span`
      n'existe pas — les renvois sont séparés par des espaces), mais le groupe passe à la ligne. */
@@ -5206,7 +5237,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
          #cbTimers   — l'ÉTAT VIVANT, information qui CHANGE : rangée COLLANTE, jamais perdue.
        Aucun des deux n'est dans header.bar : un en-tête qui se replie raccourcit son propre
        encombrement de flux et ferait remonter tout le contenu d'un coup. -->
-  <div id="crisisBand" hidden><span class="cb-ttl"></span><span class="cb-disc" hidden></span><span class="cb-tag" hidden></span><button type="button" id="cbExoQuit" class="cb-exoquit" hidden>Quitter l’exercice…</button></div>
+  <!-- ⚠ LE BANDEAU N'EST PLUS QU'UN PLACARD (v5.0.0, signalé à l'usage : « le bandeau inférieur
+       avec le titre apparaît encore en mode Essayer et en exercice, alors que le titre est déjà
+       à côté du ‹ »). Depuis que le titre est porté EN PERMANENCE par la barre, le répéter ici
+       était la duplication même que la v4.70.1 a proscrite — et sur deux lignes de serif, au
+       prix le plus fort. Il ne porte donc plus que ce que la barre ne sait pas dire : la PHRASE
+       d'une exception et sa hachure. `.cb-ttl` et `.cb-disc` sont PURGÉS (règle 14). -->
+  <div id="crisisBand" hidden><span class="cb-tag" hidden></span><button type="button" id="cbExoQuit" class="cb-exoquit" hidden>Quitter l’exercice…</button></div>
   <!-- QUAI DE CRISE : rangée COLLANTE sous l'en-tête (v4.23.0) = état vivant (minuteurs) + accès
        permanent au Plan. FRÈRE direct de .app, jamais enfant de #crisisBand : un élément collant
        ne colle QUE dans les bornes de son bloc conteneur — logé dans le bandeau, il se serait
@@ -5230,7 +5267,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     <!-- « Se repérer » a QUITTÉ cette rangée au lot T8 (v5.0.0) : son Échelle est devenue
          l'onglet « Parcours » du cran « Toute la fiche ». Le geste reste au menu ⋯ — ce qui part
          d'ici, c'est la LARGEUR, et c'est elle que le lot T5b attend. -->
-    <button id="refBtn" hidden class="dock-plan" aria-haspopup="dialog" aria-label="Consulter — surveillances, différentiels, documents"><span class="dp-ic" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6"/><path d="M10 20H4v-6"/><path d="M20 4l-7 7"/><path d="M4 20l7-7"/></svg></span><span class="dp-lbl"><span class="dp-full">Consulter</span><span class="dp-ab">Cons.</span></span></button>
+    <button id="refBtn" hidden class="dock-plan" aria-haspopup="dialog" aria-label="Consulter — surveillances, différentiels, documents"><span class="dp-ic" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6"/><path d="M10 20H4v-6"/><path d="M20 4l-7 7"/><path d="M4 20l7-7"/></svg></span><span class="dp-lbl">Consulter</span></button>
   </div></div>
   <div id="crisisDock" hidden><div class="dock-in">
     <button id="cbTimers" hidden aria-label="Minuteurs en cours — afficher le panneau"></button>
@@ -8771,7 +8808,12 @@ function applyViewChrome(){
       harnais ne crie, `getComputedStyle` répondant encore sur un élément masqué.
       AUCUN SAUT NON PLUS : être en exercice ou invité ne CHANGE PAS au premier geste — la
       condition est stable pendant toute la session, donc la hauteur aussi. */
-   const bandOff=!(Runtime.exercise||(typeof Share!=='undefined'&&Share.mode==='guest')||!!state.previewFrom);
+   /* ⚠ ET IL NE SURVIT QU'À DEUX EXCEPTIONS, PAS TROIS. L'ESSAI N'EN EST PAS UNE : la v4.76.0 a
+      établi que la barre y porte DÉJÀ les deux énoncés (pilule « ■ Aperçu » ET badge « rien n'est
+      enregistré »), et qu'il ne manquait que la TEXTURE — laquelle vit sur l'en-tête. Un bandeau
+      sans titre et sans phrase n'y serait plus qu'une bande hachurée vide. Restent l'exercice et
+      l'invité, qui ont une PHRASE que la pilule ne dit pas. */
+   const bandOff=!(Runtime.exercise||(typeof Share!=='undefined'&&Share.mode==='guest'&&!state.previewFrom));
    /* ⚠ ESSAYÉ, MESURÉ, REFUSÉ (v5.0.0) — EFFACER LE BANDEAU-TITRE AU DÉMARRAGE.
       L'idée : il pèse 64 px à 320 et 390 px (44 à 430) en haut du premier écran de session, et le
       RELAIS de la barre (`#brandTitle`, v4.23.0) sait déjà porter le titre — on ne le supprimerait
@@ -8806,11 +8848,7 @@ function applyViewChrome(){
       MODE qui attend le premier geste. `crisisOnScreen()` est le prédicat unique du dossier —
       le même qui gouverne le quai, la mise en attente des banderoles et le masquage de la méta. */
    document.getElementById('hdrCrisis').hidden=!(crisis&&crisisOnScreen());
-   if(crisis){cb.querySelector('.cb-ttl').textContent=state.fiche.title||'Sans titre';
-     /* K6 : le DISCRIMINANT survit à la troncature du titre — c'est tout son objet. Il vit dans
-        sa propre pilule, à côté, jamais dans la chaîne qui se coupe à deux lignes. */
-     {const dd=cb.querySelector('.cb-disc');
-      if(dd){const v=(state.fiche.discriminant||'').trim();dd.textContent=v;dd.hidden=!v;}}
+   if(crisis){
      /* ═══ DEUX ANNONCIATEURS, DEUX OFFICES (v4.70.1, demande utilisateur) ═══════════════════
         La v4.58.0 avait ancré la pilule de mode au coin haut-droit SANS retirer celle du
         bandeau : on lisait donc « ■ CRISE » en barre et « ■ MODE CRISE » en bandeau, en même
@@ -8964,7 +9002,8 @@ function applyViewChrome(){
   setBarTitle(state.view==='read'&&state.fiche?state.fiche.title
     :state.view==='protocolRead'&&state.protocol?state.protocol.title
     :state.view==='edit'&&state.draft?state.draft.title
-    :state.view==='protocolEdit'&&state.pdraft?state.pdraft.title:'');
+    :state.view==='protocolEdit'&&state.pdraft?state.pdraft.title:'',
+    state.view==='read'&&state.fiche?state.fiche.discriminant:'');
   // Session en cours : pied de page réduit à l'état (les actions Exporter/Importer/Thème sortent
   // du champ visuel) ; le rappel minuteurs de l'en-tête est resynchronisé tout de suite.
   document.body.classList.toggle('crisis-live',crisisOnScreen());
@@ -9041,8 +9080,13 @@ function renderLibrary(){state.section==='protocols'?renderProtocols():(state.se
 // est non vide, sinon la marque revient. L'AFFICHAGE effectif attend le défilement (.ttl-on,
 // écouteur de scroll ci-dessous) : en haut de page, le corps porte déjà le titre — jamais deux
 // titres visibles à la fois. Seul point d'écriture de #brandTitle.
-function setBarTitle(t){t=(t||'').trim();
-  const bt=document.getElementById('brandTitle');bt.textContent=t;bt.style.display=t?'block':'none';
+/* K6 SUIT LE TITRE DANS LA BARRE : le discriminant vivait dans le bandeau, qui n'existe plus en
+   crise ordinaire. Il reste une PILULE À PART, jamais dans la chaîne qui se tronque — c'est tout
+   son objet. `esc()` sur les deux : ce sont des données d'auteur. */
+function setBarTitle(t,disc){t=(t||'').trim();disc=String(disc||'').trim();
+  const bt=document.getElementById('brandTitle');
+  bt.innerHTML=esc(t)+(t&&disc?`<span class="bt-d">${esc(disc)}</span>`:'');
+  bt.style.display=t?'block':'none';
   document.querySelector('header.bar').classList.toggle('titled',!!t);}
 // Transition de vue (défilement ci-dessus) : vue du rendu précédent, fiche affichée, position bibliothèque.
 let _lastView=null,_lastFicheId=null,_libScrollY=0,_scopeScroll=0;
@@ -13516,9 +13560,10 @@ function ovPlanLadderHtml(f,plan,num,md,off){
      séquence (ils s'entrent par l'événement, pas par la position — les numéroter les ferait lire
      comme « l'étape d'après »). Tap = y aller (navigation, sémantique jumpToBlock du plan). */
   {const det=cxDetached(f);
-   if(det.length){h+='<div class="pl-sech cx">⚡ À tout moment <span>· hors numérotation</span></div>';
+   if(det.length){h+='<div class="pl-sec cx"><div class="pl-sech cx">⚡ À tout moment <span>· hors numérotation</span></div>';
      det.forEach(c=>{const lp=latestPass(state.nav,state.navSeq,c.target);
-       h+=`<div class="pl-line cxl" data-plgo="${esc(c.target)}" role="button" tabindex="0"><span class="t">${esc(c.label)}${lp&&lp.total>1?`<span class="pl-x">×${lp.total}</span>`:''}</span><span class="g">${lp?'passé':''}</span></div>`;});}}
+       h+=`<div class="pl-line cxl" data-plgo="${esc(c.target)}" role="button" tabindex="0"><span class="t">${esc(c.label)}${lp&&lp.total>1?`<span class="pl-x">×${lp.total}</span>`:''}</span><span class="g">${lp?'passé':''}</span></div>`;});
+     h+='</div>';}}
   /* « △ SURVEILLER — APRÈS LES GESTES » : les items de rôle `watch`. Ils vivent déjà dans le flux
      (étage « Surveillances & pièges ») ; ici c'est une COPIE d'orientation, inerte, à sa place
      chronologique — ce qui vient après. Registre ATTENTION, jamais rouge : on ne surveille pas ce
