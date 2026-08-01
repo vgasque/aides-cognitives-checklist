@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-Jhqxicqupfoa3tQWwqdJ3B5Qq8vUn3Hpujiwg7twV58='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-JQ5vjgqdSADOv1rb+gj3khHY3rvICTDb+Y1GEgJqcsM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1867,6 +1867,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .rt-find input{width:100%;min-height:38px;font-size:12px;padding:6px 9px;border:1px solid var(--line-strong);
     border-radius:var(--radius-sm);background:var(--input-bg);color:var(--ink);font-family:inherit}
   .rt-find input:focus{border-color:var(--primary);outline:none}
+  /* DANS L'AIDE, C'EST UNE SURFACE DE CRISE : cibles de 44 px (le champ ET les deux flèches), et
+     le champ à 16 px de corps — sous 16, Safari iOS zoome la page au focus et les taps se perdent
+     (règle 9). Aucune autre différence : c'est le même composant, au même endroit de la feuille. */
+  .rt-find-all{padding:0 0 10px}
+  .rt-find-all input{min-height:44px;font-size:16px}
+  .rt-find-all .rt-fnav .mini{width:44px;height:44px}
   .rt-fnav{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:var(--ink-soft)}
   .rt-fnav .mini{width:30px;height:30px}
   mark.pf-h{background:var(--verify-soft);color:inherit;border-radius:3px;padding:0 1px}
@@ -8967,11 +8973,23 @@ function applyViewChrome(){
     const okAll=crisis&&!state.previewFrom&&hasFlow(state.fiche);
     ab.hidden=!okAll;
     if(okAll){const st=state.readMode==='static';
-      ab.classList.toggle('dp-back',st);
+      /* ⚠ LE VERT NE DIT QU'UNE CHOSE : « VOUS ÊTES LOIN DE CHEZ VOUS, CECI VOUS Y RAMÈNE »
+         (signalé à l'usage : « si j'ai choisi “toute la fiche” par défaut, je vois en permanence un
+         gros bouton vert “retour au bloc”, c'est perturbant » — la remarque est juste et elle
+         touche à la sémantique du registre). Le registre CONFIRMATION rempli est celui du RETOUR
+         D'EXCURSION ; l'afficher en permanence à quelqu'un qui n'est parti nulle part, c'est
+         l'inflation qui vide le vert de son sens — exactement ce que le dossier reproche au rouge
+         permanent. La condition n'est donc pas « je suis en statique » mais « je ne suis pas dans
+         MON format d'ouverture ». C'est symétrique par construction : qui lit d'ordinaire la fiche
+         entière voit un ⤢ neutre au repos, et un ↩ vert quand il est allé voir un bloc. */
+      const chezSoi=state.readMode===currentReadMode();
+      ab.classList.toggle('dp-back',!chezSoi);
       ab.querySelector('.dp-lbl').textContent=st?'Un bloc':'Tout voir';
-      ab.setAttribute('aria-label',st?'Revenir au bloc en cours':'Tout voir — la fiche entière, puis retour au bloc');
+      ab.setAttribute('aria-label',chezSoi
+        ?(st?'Voir un bloc à la fois':'Tout voir — la fiche entière, puis retour au bloc')
+        :(st?'Revenir au bloc en cours':'Revenir à la fiche entière'));
       const ic=ab.querySelector('.dp-ic');
-      ic.innerHTML=st
+      ic.innerHTML=!chezSoi
         ?'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 5 5v6"/></svg>'
         :'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6"/><path d="M10 20H4v-6"/><path d="M20 4l-7 7"/><path d="M4 20l7-7"/></svg>';}}
    {const rb=document.getElementById('refBtn');
@@ -9815,10 +9833,15 @@ function bindAttList(entity){main.querySelectorAll('[data-att]').forEach(b=>b.on
    seule barrière (règle 4). Aucun `mark` n'est créé sous 2 caractères : tout ressemble à tout.
    LA RECHERCHE NE FILTRE PAS, ELLE SURLIGNE ET SAUTE : masquer des sections d'une référence
    laisserait croire qu'elles n'existent pas — même garantie que `posoRank` et `tagRank`. */
-let _pfHits=[],_pfI=0;
-function protoFindHtml(){
-  return `<div class="rt-find"><input type="search" id="pfQ" placeholder="Chercher dans la référence…" `
-    +`aria-label="Chercher dans cette référence" autocomplete="off">`
+let _pfHits=[],_pfI=0,_pfQ='';
+/* ⚠ UNE SEULE RECHERCHE VIVANTE À LA FOIS, DONC DES IDENTIFIANTS FIXES. La lecture d'une
+   RÉFÉRENCE et la feuille « Toute la fiche » d'une AIDE ne coexistent jamais à l'écran : deux jeux
+   d'identifiants seraient deux chemins à tenir pour un composant qui n'a qu'un état. Ce qui varie,
+   c'est la RACINE où l'on cherche — d'où `_pfRoot`, posée par l'appelant. */
+let _pfRoot='.md-body';
+function protoFindHtml(ph,aria,cls){
+  return `<div class="rt-find${cls?' '+cls:''}"><input type="search" id="pfQ" placeholder="${esc(ph||'Chercher dans la référence…')}" `
+    +`aria-label="${esc(aria||'Chercher dans cette référence')}" autocomplete="off">`
     +`<div class="rt-fnav" id="pfNav" hidden><button type="button" class="mini" id="pfPrev" aria-label="Occurrence précédente">‹</button>`
     +`<span id="pfCount" role="status"></span>`
     +`<button type="button" class="mini" id="pfNext" aria-label="Occurrence suivante">›</button></div></div>`;}
@@ -9829,7 +9852,7 @@ function pfClear(){
   _pfHits=[];_pfI=0;}
 function pfRun(q){
   pfClear();
-  const bd=main.querySelector('.md-body');
+  const bd=main.querySelector(_pfRoot);
   const s=txNorm(String(q||'').trim());
   const nav=document.getElementById('pfNav');
   if(!bd||s.length<2){if(nav)nav.hidden=true;return;}
@@ -9860,12 +9883,13 @@ function pfGo(i){
   const c=document.getElementById('pfCount');
   if(c)c.textContent=(_pfI+1)+' / '+_pfHits.length;
   _pfHits[_pfI].scrollIntoView({block:'center'});}
-function bindProtoFind(){
+function bindProtoFind(root){
+  if(root)_pfRoot=root;
   const q=document.getElementById('pfQ');if(!q)return;
   let t=null;
-  q.addEventListener('input',()=>{clearTimeout(t);t=setTimeout(()=>pfRun(q.value),160);});
+  q.addEventListener('input',()=>{clearTimeout(t);t=setTimeout(()=>{_pfQ=q.value;pfRun(q.value);},160);});
   q.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();pfGo(_pfI+(e.shiftKey?-1:1));}
-    if(e.key==='Escape'){q.value='';pfRun('');}});
+    if(e.key==='Escape'){q.value='';_pfQ='';pfRun('');}});
   const pv=document.getElementById('pfPrev'),nx=document.getElementById('pfNext');
   if(pv)pv.onclick=()=>pfGo(_pfI-1);
   if(nx)nx.onclick=()=>pfGo(_pfI+1);}
@@ -9970,7 +9994,7 @@ function renderProtocolRead(){
        /* Le défilement de la PAGE, pas d'un conteneur : le corps d'une référence vit dans le flux.
           `scroll-padding-top` (v4.30.0) place déjà la cible sous les couches collantes. */
        t.scrollIntoView({block:'start'});t.classList.add('flash');setTimeout(()=>t.classList.remove('flash'),900);});
-     bindProtoFind();}}
+     bindProtoFind('.md-body');}}
   updateStorageInfo();   // remplit le pied (mesure asynchrone) — même libellé que la sidebar
   // Badge d'en-tête : statut (+ date de validation si posée), ex. « ✓ Validé · 03/2026 ».
   updateHdrStatusBadge(p.status,false,p.validatedAt?valToDisplay(p.validatedAt):'');
@@ -14293,7 +14317,24 @@ function staticSection(f){
   const tab=ALL_TABS.indexOf(state.allTab)>=0?state.allTab:'page';
   const onglets=`<div class="all-tabs" role="tablist" aria-label="Façon de regarder l'aide entière">`
     +ALL_TABS.map(k=>`<button type="button" role="tab" class="at-b${k===tab?' on':''}" aria-selected="${k===tab?'true':'false'}" data-alltab="${k}">${ALL_TAB_LBL[k]}</button>`).join('')
-    +`</div>`;
+    +`</div>`
+    /* ⚠ LOT B — CHERCHER DANS L'AIDE, PENDANT LE SOIN (retour d'usage : « difficile de trouver la
+       bonne information en mode guidé parfois » — c'est CE besoin qui faisait basculer de format,
+       et le format n'y répondait qu'en montrant tout d'un coup). C'est le composant de la lecture
+       de référence, à racine variable : aucun second parseur, aucun second surlignage.
+       TROIS GARDE-FOUS, tous repris de la version référence et tous nécessaires ici :
+       · ELLE NE FILTRE PAS — elle surligne et saute. Masquer laisserait croire que le reste
+         n'existe pas, et dans une aide de crise c'est le pire mode de défaillance possible ;
+       · ELLE NE PASSE JAMAIS PAR `innerHTML` — le surlignage parcourt les NŒUDS DE TEXTE et
+         n'insère que des nœuds créés (règle 4 : `esc()` est la seule barrière anti-XSS, on ne
+         rouvre pas une seconde occasion de se tromper) ;
+       · ELLE N'EST PAS LE CHEMIN OBLIGÉ — taper avec des gants sous adrénaline n'est pas fiable.
+         C'est un accélérateur pour qui SAIT ce qu'il cherche ; la vue d'ensemble reste entière
+         au-dessous, et ne pas s'en servir ne coûte rien.
+       PAS SUR LE SCHÉMA : ses textes vivent dans un SVG, où un `<mark>` n'est pas un nœud valide —
+       on abîmerait le dessin pour surligner un mot. L'onglet le dit en n'offrant pas le champ,
+       plutôt qu'en offrant un champ qui ne trouve rien. */
+    +(tab==='schema'?'':protoFindHtml('Chercher dans l’aide…','Chercher dans cette aide','rt-find-all'));
   const corps=tab==='parcours'?ovParcoursHtml(f)
              :tab==='schema'?`<div class="all-svg">${flowBlock(f,true)}</div>`
              :`<div class="sv-tb">${svExtras(f,'top')}${svTableHtml(f)}${svExtras(f,'bottom')}</div>`;
@@ -14632,6 +14673,15 @@ function bindStaticEvents(f){
      finirait par diverger de la première. */
   {const fs=wrap.querySelector('.all-svg .flow-scroll');
    if(fs){bindFlowZoom();applyFlowZoom();restoreFlow();flowPaintState(fs,f);bindSvgNav(fs,f);}}
+  /* LA RACINE SUIT L'ONGLET, ET LA REQUÊTE EST REJOUÉE. Les deux onglets textuels n'ont pas le
+     même conteneur (`.pc-wrap` pour Parcours, `.sv-tb` pour la Page) : chercher dans l'ancien
+     après un changement d'onglet ne trouverait rien et laisserait croire que le mot n'y est pas.
+     `_pfQ` garde la requête en vie le temps de la feuille — c'est une consultation, donc elle
+     n'est ni persistée ni synchronisée (même règle que `state.allTab`). */
+  {const q=wrap.querySelector('#pfQ');
+   if(q){bindProtoFind(state.allTab==='parcours'?'.pc-wrap':'.sv-tb');
+     if(_pfQ){q.value=_pfQ;pfRun(_pfQ);}}
+   else _pfHits=[];}
   const handle=t=>{
     /* CHANGER D'ONGLET NE RE-REND QUE CE CRAN (`renderSvOnly`), jamais la page : la rangée
        d'onglets est le seul objet qui ne doit pas bouger sous le doigt qui vient de la taper.
@@ -14640,7 +14690,10 @@ function bindStaticEvents(f){
        (même raisonnement que la bascule de densité, v4.74.2). */
     {const at=t.closest('[data-alltab]');
      if(at){const k=at.dataset.alltab;
-       if(ALL_TABS.indexOf(k)>=0&&k!==state.allTab){state.allTab=k;renderSvOnly();
+       if(ALL_TABS.indexOf(k)>=0&&k!==state.allTab){
+         /* Les surlignages appartiennent au contenu qu'on quitte : on les retire AVANT le
+            re-rendu, sinon `pfClear` chercherait des nœuds qui n'existent plus. */
+         pfClear();state.allTab=k;renderSvOnly();
          const w=main.querySelector('.sv-wrap');if(w)ovScrollEl(w);}
        return;}}
     // v4.14.2 : le bouton « démarrer » vit dans le tableau (sous Confirmation/Éliminer) —
@@ -15523,7 +15576,7 @@ function openDraftPreview(){state.previewFrom='edit';
      « ▶ Essayer » a UN objet : voir se COMPORTER ce qu'on vient d'écrire. Il ouvre donc toujours
      le cran « Un bloc », le seul où l'on coche et où l'on avance. La PRÉFÉRENCE n'est pas
      touchée : on force la vue de l'essai, on ne réécrit pas le réglage de l'auteur. */
-  state.readMode='overview';state.allTab='page';state.ovFold={};state.ovVerify=null;state.flowEnded=false;state.confOpen=undefined;
+  state.readMode=currentReadMode();state.allTab='page';_pfQ='';state.ovFold={};state.ovVerify=null;state.flowEnded=false;state.confOpen=undefined;
   state.view='read';render();}
 function openPDraftPreview(){state.previewFrom='protocolEdit';
   state.protocol=migrateProtocol(JSON.parse(JSON.stringify(state.pdraft)));state.view='protocolRead';render();}

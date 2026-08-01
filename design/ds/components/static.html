@@ -1582,6 +1582,12 @@
   .rt-find input{width:100%;min-height:38px;font-size:12px;padding:6px 9px;border:1px solid var(--line-strong);
     border-radius:var(--radius-sm);background:var(--input-bg);color:var(--ink);font-family:inherit}
   .rt-find input:focus{border-color:var(--primary);outline:none}
+  /* DANS L'AIDE, C'EST UNE SURFACE DE CRISE : cibles de 44 px (le champ ET les deux flèches), et
+     le champ à 16 px de corps — sous 16, Safari iOS zoome la page au focus et les taps se perdent
+     (règle 9). Aucune autre différence : c'est le même composant, au même endroit de la feuille. */
+  .rt-find-all{padding:0 0 10px}
+  .rt-find-all input{min-height:44px;font-size:16px}
+  .rt-find-all .rt-fnav .mini{width:44px;height:44px}
   .rt-fnav{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:var(--ink-soft)}
   .rt-fnav .mini{width:30px;height:30px}
   mark.pf-h{background:var(--verify-soft);color:inherit;border-radius:3px;padding:0 1px}

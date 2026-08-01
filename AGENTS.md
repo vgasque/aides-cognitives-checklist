@@ -2959,6 +2959,37 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   bascule** (59 → 73 px) et les deux boutons se désalignaient de 7 px — un saut de chrome sous le
   doigt. Un modificateur d'état porte TOUJOURS le préfixe de son composant (`.dp-back`) : c'est la
   leçon v4.23.2, et elle se re-perd dès qu'on ne la relit pas.
+- **LE VERT NE DIT QU'UNE CHOSE : « VOUS ÊTES LOIN DE CHEZ VOUS, CECI VOUS Y RAMÈNE » (v5.0.0,
+  lot A, signalé à l'usage : « si j'ai choisi “toute la fiche” par défaut, je vois en permanence un
+  gros bouton vert “retour au bloc” — c'est perturbant »)** : la remarque est juste et elle touche à
+  la sémantique du registre. Le CONFIRMATION rempli est celui du RETOUR D'EXCURSION ; l'afficher en
+  permanence à quelqu'un qui n'est parti nulle part, c'est l'inflation qui vide le vert de son sens
+  — exactement ce que le dossier reproche au rouge permanent. La condition n'est donc pas « je suis
+  en statique » mais **« je ne suis pas dans MON format d'ouverture »**. C'est symétrique par
+  construction : qui lit d'ordinaire la fiche entière voit un ⤢ neutre au repos, et un ↩ vert quand
+  il est allé voir un bloc. Le témoin mesure les DEUX préférences — sans quoi il ne rencontrerait
+  que la moitié de son cas.
+- **CHERCHER DANS L'AIDE PENDANT LE SOIN (v5.0.0, lot B — retour d'usage : « difficile de trouver
+  la bonne information en mode guidé parfois »)** : c'était CE besoin qui faisait basculer de
+  format, et le format n'y répondait qu'en montrant tout d'un coup. La feuille « Toute la fiche »
+  reçoit donc le composant de recherche de la lecture de référence, à **racine variable**
+  (`_pfRoot`) : aucun second parseur, aucun second surlignage, un seul jeu d'identifiants — les
+  deux surfaces ne coexistent jamais à l'écran.
+  **TROIS GARDE-FOUS, tous nécessaires ici** : (a) elle **ne filtre pas**, elle surligne et saute —
+  masquer laisserait croire que le reste n'existe pas, et dans une aide de crise c'est le pire mode
+  de défaillance ; (b) elle **ne passe jamais par `innerHTML`** — le surlignage parcourt les nœuds
+  de texte et n'insère que des nœuds créés (règle 4 : on ne rouvre pas une seconde occasion de se
+  tromper), et le témoin vérifie qu'après effacement **le document revient à l'identique** ;
+  (c) elle **n'est pas le chemin obligé** — taper avec des gants sous adrénaline n'est pas fiable,
+  c'est un accélérateur pour qui SAIT ce qu'il cherche, la vue d'ensemble reste entière dessous.
+  **PAS SUR LE SCHÉMA** : ses textes vivent dans un SVG, où un `<mark>` n'est pas un nœud valide —
+  on abîmerait le dessin pour surligner un mot. L'onglet le dit en n'offrant pas le champ, plutôt
+  qu'en offrant un champ qui ne trouve rien.
+  **LA RACINE SUIT L'ONGLET, ET LA REQUÊTE EST REJOUÉE** : les deux onglets textuels n'ont pas le
+  même conteneur (`.pc-wrap` / `.sv-tb`), chercher dans l'ancien ne trouverait rien et laisserait
+  croire que le mot n'y est pas. La requête vit le temps de la feuille (`_pfQ`), n'est ni persistée
+  ni synchronisée — c'est une consultation. Cibles **44 px** et champ à **16 px** (règle 9) :
+  mesuré à 320 px, 0 px de débordement.
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.

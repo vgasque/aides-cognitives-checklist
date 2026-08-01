@@ -951,7 +951,42 @@ for (const w of [320, 390]) {
     const navAv=(state.nav||[]).length;
     const coche=Object.keys(state.checked||{}).filter(k=>state.checked[k]).length;
     const nd=document.querySelector('.all-svg svg [data-fgo]'); if(nd)nd.dispatchEvent(new MouseEvent('click',{bubbles:true})); await wt(300);
+    /* ── LOT B : la recherche, mesurée sur l'onglet Page puis rejouée sur Parcours ── */
+    document.querySelector('[data-alltab="page"]').click(); await wt(500);
+    const avantHtml=document.querySelector('.sv-tb').innerHTML;
+    {const q=document.getElementById('pfQ');q.value='adrénaline';q.dispatchEvent(new Event('input',{bubbles:true}));}
+    await wt(400);
+    const hits=document.querySelectorAll('.sv-tb mark.pf-h').length;
+    const cpt=(document.getElementById('pfCount')||{}).textContent||'';
+    const cache=[...document.querySelectorAll('.sv-tb .sv-cell')].filter(e=>getComputedStyle(e).display==='none').length;
+    const qEl=document.getElementById('pfQ');
+    const champH=Math.round(qEl.getBoundingClientRect().height),champFs=getComputedStyle(qEl).fontSize;
+    const fleches=[...document.querySelectorAll('.rt-find-all .rt-fnav .mini')]
+      .map(b=>Math.round(Math.min(b.getBoundingClientRect().width,b.getBoundingClientRect().height)));
+    document.querySelector('[data-alltab="parcours"]').click(); await wt(600);
+    const hitsParcours=document.querySelectorAll('.pc-wrap mark.pf-h').length;
+    document.querySelector('[data-alltab="schema"]').click(); await wt(600);
+    const champSchema=!!document.getElementById('pfQ'),marksSchema=document.querySelectorAll('mark.pf-h').length;
+    document.querySelector('[data-alltab="page"]').click(); await wt(600);
+    {const q=document.getElementById('pfQ');q.value='';q.dispatchEvent(new Event('input',{bubbles:true}));}
+    await wt(350);
+    const identique=document.querySelector('.sv-tb').innerHTML===avantHtml;
+    /* ── Le registre du bouton, dans les DEUX préférences ── */
+    const vert=()=>document.getElementById('allBtn').classList.contains('dp-back');
+    document.getElementById('allBtn').click(); await wt(500);      // retour « chez soi »
+    const vertRepos=vert();
+    document.getElementById('allBtn').click(); await wt(500);
+    const vertLoin=vert();
+    document.getElementById('allBtn').click(); await wt(500);
+    setReadModePref('static'); openRead(f.id); await wt(500);
+    {const b2=document.getElementById('sessStart'); if(b2)b2.click(); await wt(500);}
+    const vertReposStatic=vert();
+    document.getElementById('allBtn').click(); await wt(500);
+    const vertLoinStatic=vert();
+    setReadModePref('overview');
     return {seg,segRetour,xAv,xAp,hAv,hAp,prefAv,prefAp,planBtn,ong,defaut,pageOk,debord,cible,parc,zAv,zAp,peint,
+            hits,cpt,cache,hitsParcours,champSchema,marksSchema,identique,champH,champFs,fleches,
+            vertRepos,vertLoin,vertReposStatic,vertLoinStatic,
             navBouge:(state.nav||[]).length!==navAv,
             cocheApres:Object.keys(state.checked||{}).filter(k=>state.checked[k]).length,cocheAvant:coche};});
   /* ⚠ PRENDRE DU RECUL EST UNE EXCURSION, PAS UN CHANGEMENT DE FORMAT (lot A, v5.0.0 — retour
@@ -965,6 +1000,28 @@ for (const w of [320, 390]) {
     r.xAv===r.xAp&&r.hAv===r.hAp, `x ${r.xAv}→${r.xAp}, rangée ${r.hAv}→${r.hAp}`);
   t(`${w} · … et l'excursion n'écrit pas la préférence`,
     r.prefAv===r.prefAp, `${r.prefAv} → ${r.prefAp}`);
+  /* ⚠ LE VERT NE DIT QU'UNE CHOSE : « vous êtes loin de chez vous » (signalé à l'usage). Au REPOS,
+     dans SON format d'ouverture, l'utilisateur ne doit voir aucun registre CONFIRMATION — sinon
+     c'est l'inflation qui vide le vert de son sens. Symétrique : on le vérifie dans les deux
+     préférences, sans quoi le témoin ne rencontrerait que la moitié de son cas. */
+  t(`${w} · au repos, aucun registre CONFIRMATION`,
+    r.vertRepos===false&&r.vertLoin===true, `repos=${r.vertRepos} loin=${r.vertLoin}`);
+  t(`${w} · … y compris quand « toute la fiche » EST le format d'ouverture`,
+    r.vertReposStatic===false&&r.vertLoinStatic===true,
+    `repos=${r.vertReposStatic} loin=${r.vertLoinStatic}`);
+  /* LOT B — CHERCHER DANS L'AIDE : elle SURLIGNE et SAUTE, elle ne filtre pas ; elle ne touche
+     jamais au balisage (le document revient à l'identique) ; et elle n'existe pas sur le SCHÉMA,
+     où un `<mark>` n'est pas un nœud valide. */
+  t(`${w} · on peut CHERCHER dans l'aide entière`,
+    r.hits>0&&/\d+ \/ \d+/.test(r.cpt||''), `${r.hits} occurrence(s), compteur « ${r.cpt} »`);
+  t(`${w} · … elle surligne et saute, elle ne FILTRE pas`, r.cache===0, `${r.cache} cellule(s) masquée(s)`);
+  t(`${w} · … la requête suit l'onglet`, r.hitsParcours>0, `${r.hitsParcours} occurrence(s) en Parcours`);
+  t(`${w} · … pas de champ sur le SCHÉMA (le SVG n'accepte pas de mark)`,
+    r.champSchema===false&&r.marksSchema===0, `champ=${r.champSchema} marques=${r.marksSchema}`);
+  t(`${w} · … et effacer rend le document IDENTIQUE`, r.identique===true, String(r.identique));
+  t(`${w} · … avec des cibles de 44 px et un champ à 16 px`,
+    r.champH>=44&&r.champFs==='16px'&&r.fleches.every(v=>v>=44),
+    `champ ${r.champH} px / ${r.champFs}, flèches ${JSON.stringify(r.fleches)}`);
   t(`${w} · « Se repérer » a quitté la rangée de commandes`, r.planBtn===false);
   t(`${w} · trois façons de regarder l'aide entière`,
     r.ong.join('|')==='Parcours|Page SFAR|Schéma', r.ong.join('|'));
