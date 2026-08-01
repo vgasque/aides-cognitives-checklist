@@ -1203,6 +1203,14 @@ for (const W of [330, 390, 700, 1000, 1400, 1600]) {
        rencontrerait pas son cas et resterait vert sur son absence. */
     const f=fiches[0];openRead(f.id);await w(400);
     const sb=document.getElementById('sessStart');if(sb)sb.click();await w(600);
+    /* ⚠ LE CONTRÔLE DOIT RENCONTRER SON CAS. Mesurer les fiches d'EXEMPLE ne prouvait rien : leur
+       code fait trois caractères et leur catégorie un mot — la rangée ne pouvait pas déborder, et
+       le témoin restait vert pendant qu'un code de trente caractères effaçait la date chez
+       l'utilisateur. On rend donc TOUT ce qui peut être long, long. */
+    const g=fiches[1]||fiches[0];
+    g.code='ACR-CODE-TRES-LONG-2025';
+    g.discriminant='adulte et adolescent > 12 ans';
+    {const c=categories.find(x=>x.id===g.category);if(c)c.name='Urgences vitales préhospitalières';}
     state.view='library';render();await w(600);
     const rows=[...document.querySelectorAll('.dir-row')];
     const H=[...new Set(rows.map(x=>Math.round(x.getBoundingClientRect().height)))];
@@ -1218,6 +1226,16 @@ for (const W of [330, 390, 700, 1000, 1400, 1600]) {
       ellipsees:rows.filter(x=>{const e=x.querySelector('.dir-sub');return e&&e.scrollWidth>e.clientWidth+1;}).length,
       reste:rows.map(x=>{const e=x.querySelector('.dir-sub');return e?Math.round(e.scrollWidth-e.clientWidth):0;}),
       fondTodo:(()=>{const e=document.querySelector('.dir-sub .tag.todo');return e?getComputedStyle(e).backgroundColor:null;})(),
+      /* Chaque item doit rester DANS la boîte de la méta : un item hors boîte a disparu, alors
+         qu'un item qui s'abrège LUI-MÊME reste présent et lisible en partie. La différence est la
+         règle : ce qui déborde ne doit pas AFFAMER le reste. */
+      itemsHors:(()=>{let h=0;rows.forEach(x=>{const sb2=x.querySelector('.dir-sub');if(!sb2)return;
+        const rr=sb2.getBoundingClientRect();
+        [...sb2.children].forEach(e=>{if(e.getBoundingClientRect().right>rr.right+0.5)h++;});});return h;})(),
+      /* Et la DATE, qui est un item DUR, ne doit jamais être amputée — un chiffre tronqué est
+         pire qu'absent (règle du quai). */
+      dateCoupee:(()=>{let c2=0;rows.forEach(x=>{const e=x.querySelector('.card-date');
+        if(e&&e.scrollWidth>e.clientWidth+1)c2++;});return c2;})(),
       pistes:getComputedStyle(rows[0].parentElement).gridTemplateColumns.split(' ').filter(Boolean).length,
       piste:Math.round(rows[0].getBoundingClientRect().width),
       ...(()=>{const b=rows[0].querySelector('.pinbtn');if(!b)return {pinOk:false,pinBox:'aucune épingle'};
@@ -1251,8 +1269,10 @@ for (const W of [330, 390, 700, 1000, 1400, 1600]) {
   /* LA MÉTA TIENT ENTIÈRE, à toutes les largeurs de PISTE. Le débordement de la RANGÉE ne suffit
      pas à le prouver : `.dir-sub` est en `overflow:hidden`, donc la rangée reste propre pendant
      que l'information disparaît. On mesure l'ellipse elle-même. */
-  t(`${W} · la méta n'est tronquée sur aucune rangée`, r.ellipsees===0,
+  t(`${W} · la méta ne déborde sur aucune rangée, même avec des libellés longs`, r.ellipsees===0,
     `${r.ellipsees} sur ${r.n} — reste ${JSON.stringify(r.reste)} px`);
+  t(`${W} · … aucun item n'est POUSSÉ hors de la méta`, r.itemsHors===0, `${r.itemsHors} item(s)`);
+  t(`${W} · … et la date n'est jamais amputée`, r.dateCoupee===0, `${r.dateCoupee}`);
   /* Et le registre est porté par l'ENCRE, pas par une chip : une chip a une largeur
      incompressible, c'est elle qui poussait la catégorie hors du cadre. */
   t(`${W} · « à compléter » n'a plus de fond de chip`,

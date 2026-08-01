@@ -2622,8 +2622,22 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   (`auto-fill minmax(290px,1fr)`), donc un écran de 1600 px donne QUATRE pistes de **319 px** —
   plus étroites qu'un téléphone de 390. Mesurer 330 et 390 ne prouvait rien sur ordinateur ; les
   témoins balayent les six largeurs qui produisent 1, 2, 3 et 4 colonnes.
+  **⚠ CE QUI DÉBORDE NE DOIT PAS AFFAMER LE RESTE** (signalé à l'usage : avec un code long, la DATE
+  disparaissait). Ellipser la LIGNE entière fait tomber la QUEUE — donc l'élément le moins large,
+  quel que soit le coupable. On distingue donc **deux natures** : les items **DURS** (chrono,
+  registre, statut, date) ne rétrécissent jamais — ils sont courts, bornés, et *un chiffre amputé
+  est pire qu'absent* (règle du quai) ; les items **SOUPLES** (discriminant, bibliothèque,
+  catégorie, code) rétrécissent chacun **pour soi**, avec leur propre ellipse — le flex répartit le
+  manque au prorata, donc c'est le PLUS LONG qui cède le plus, et tous restent présents. Un code de
+  vingt-trois caractères s'abrège lui-même au lieu d'effacer la date. Mesuré à 4 colonnes avec un
+  cas volontairement adverse : ligne non ellipsée, 0 item hors boîte, date intacte.
   **TÉMOINS** : on ne mesure pas « la rangée fait 71 px » (vrai sur une liste d'UNE fiche) mais que
-  TOUTES ont la MÊME hauteur, après avoir vérifié qu'il y en a plusieurs. Et le débordement de la
+  TOUTES ont la MÊME hauteur, après avoir vérifié qu'il y en a plusieurs. Et **ils construisent un
+  CAS ADVERSE** — code de 23 caractères, catégorie de 33, discriminant de 29 : mesurer les fiches
+  d'EXEMPLE ne prouvait rien, leur code faisant trois caractères et leur catégorie un mot. Le
+  témoin restait vert pendant que la date disparaissait chez l'utilisateur. **Un contrôle qui ne
+  rencontre pas son cas ne le couvre pas** — c'est la leçon la plus souvent redite de ce dossier, et
+  elle s'est encore vérifiée ici. Et le débordement de la
   RANGÉE ne suffit pas à prouver que la méta tient : `.dir-sub` est en `overflow:hidden`, donc la
   rangée reste propre pendant que l'information disparaît — **on mesure l'ellipse elle-même**.
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de

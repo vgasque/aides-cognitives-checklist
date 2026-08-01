@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-0WB+asBH0x+Qm6HFt0tXbTEjJAWwSt4J7ZySnXI0v5U='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-rc3cvQ5Qbq9DivGm1nmFShCr9wXsTH8yC6rWxCLS+1A='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1404,7 +1404,18 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      catégorie, et enfin le code et la date, qui sont ce qu'on peut perdre. */
   .dir-sub{display:flex;align-items:center;gap:6px;margin-top:3px;min-width:0;font-size:11px;
     color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* ⚠ CE QUI DÉBORDE NE DOIT PAS AFFAMER LE RESTE (signalé à l'usage : avec un code long, la
+     DATE disparaissait). Ellipser la LIGNE entière fait tomber la queue — donc l'élément le moins
+     large, quel que soit le coupable. On distingue donc deux natures :
+       · les items DURS (chrono, registre, statut, date) ne rétrécissent jamais : ils sont courts,
+         bornés, et un chiffre amputé est pire qu'absent (règle du quai) ;
+       · les items SOUPLES (discriminant, bibliothèque, catégorie, code) rétrécissent chacun POUR
+         SOI, avec leur propre ellipse — le flex répartit le manque au prorata, donc c'est le PLUS
+         LONG qui cède le plus, et tous restent présents.
+     Résultat : un code de trente caractères s'abrège lui-même au lieu d'effacer la date. */
   .dir-sub>*{flex:none}
+  .dir-sub>:is(b,.libtag,.dir-cat,.dir-code){flex:0 1 auto;min-width:2.5em;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   /* LA MÉTA EST DU TEXTE SÉPARÉ PAR DES POINTS, PAS UNE SUITE DE CHIPS (maquette). Une chip a une
      largeur INCOMPRESSIBLE : dans une grille d'accueil qui compte deux à quatre colonnes selon la
      largeur, elles se coupaient net dès que la piste rétrécissait — c'est ce qui a été signalé.
@@ -9147,7 +9158,7 @@ function _homeCfgF(){return {rerender:renderFiches,crossKind:'protocols',create:
       <div class="dir-row${isLive?' live':''}"${cc?` style="--catcol:${safeColor(cc.color)}"`:''}>
         <div class="dir-main">
           <button class="card-open" data-open="${f.id}">${esc(f.title)||'Sans titre'}</button>
-          <span class="dir-sub">${isLive?dirLiveHtml(f.id):''}${statusChip(f.status,true,{validatedAt:f.validatedAt})}${staleDate(f.validatedAt)?`<span class="tag stale" title="${esc(fmtDate(f.validatedAt))} — plus de 2 ans : à revérifier">△<span class="sr-only"> à revérifier</span></span>`:''}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo aria-label="À compléter — ${esc(sp.join(' · '))}" title="Reste à compléter : ${esc(sp.join(' · '))}">△<span class="sr-only"> à compléter</span></span>`:'';})()}${f.discriminant?`<b>${esc(f.discriminant)}</b>`:''}${searchLibTag(f)}${cc?`<span>${esc(cc.name)}</span>`:''}${f.code?`<span class="dir-code">${esc(f.code)}</span>`:''}${(!isLive&&f.validatedAt)?`<span class="card-date${staleDate(f.validatedAt)?' stale':''}" title="${esc(fmtDate(f.validatedAt))}">${esc(fmtDateShort(f.validatedAt))}</span>`:''}</span>
+          <span class="dir-sub">${isLive?dirLiveHtml(f.id):''}${statusChip(f.status,true,{validatedAt:f.validatedAt})}${staleDate(f.validatedAt)?`<span class="tag stale" title="${esc(fmtDate(f.validatedAt))} — plus de 2 ans : à revérifier">△<span class="sr-only"> à revérifier</span></span>`:''}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo aria-label="À compléter — ${esc(sp.join(' · '))}" title="Reste à compléter : ${esc(sp.join(' · '))}">△<span class="sr-only"> à compléter</span></span>`:'';})()}${f.discriminant?`<b>${esc(f.discriminant)}</b>`:''}${searchLibTag(f)}${cc?`<span class="dir-cat">${esc(cc.name)}</span>`:''}${f.code?`<span class="dir-code">${esc(f.code)}</span>`:''}${(!isLive&&f.validatedAt)?`<span class="card-date${staleDate(f.validatedAt)?' stale':''}" title="${esc(fmtDate(f.validatedAt))}">${esc(fmtDateShort(f.validatedAt))}</span>`:''}</span>
           ${inQ?searchSnippet(ficheSnipParts(f),state.q):''}
         </div>
         <button class="pinbtn${isPinned(f.id)?' on':''}" data-pin="${f.id}" aria-label="${isPinned(f.id)?'Désépingler':'Épingler en accès direct'}" title="${isPinned(f.id)?'Désépingler':'Épingler en accès direct'}">${pinIcon(isPinned(f.id))}</button>
@@ -9234,7 +9245,7 @@ function _homeCfgP(){return {rerender:renderProtocols,crossKind:'fiches',create:
       <div class="dir-row"${cc?` style="--catcol:${safeColor(cc.color)}"`:''}>
         <div class="dir-main">
           <button class="card-open" data-open="${p.id}">${esc(p.title)||'Sans titre'}</button>
-          <span class="dir-sub">${searchLibTag(p)}${statusChip(p.status,false,{validatedAt:p.validatedAt})}${staleDate(p.validatedAt)?`<span class="tag stale" title="${esc(fmtDate(p.validatedAt))} — plus de 2 ans : à revérifier">△<span class="sr-only"> à revérifier</span></span>`:''}${nDoc?`<span>${nDoc} PDF</span>`:''}${cc?`<span>${esc(cc.name)}</span>`:''}${p.code?`<span class="dir-code">${esc(p.code)}</span>`:''}${p.validatedAt?`<span class="card-date${staleDate(p.validatedAt)?' stale':''}" title="${esc(fmtDate(p.validatedAt))}">${esc(fmtDateShort(p.validatedAt))}</span>`:''}</span>
+          <span class="dir-sub">${searchLibTag(p)}${statusChip(p.status,false,{validatedAt:p.validatedAt})}${staleDate(p.validatedAt)?`<span class="tag stale" title="${esc(fmtDate(p.validatedAt))} — plus de 2 ans : à revérifier">△<span class="sr-only"> à revérifier</span></span>`:''}${nDoc?`<span>${nDoc} PDF</span>`:''}${cc?`<span class="dir-cat">${esc(cc.name)}</span>`:''}${p.code?`<span class="dir-code">${esc(p.code)}</span>`:''}${p.validatedAt?`<span class="card-date${staleDate(p.validatedAt)?' stale':''}" title="${esc(fmtDate(p.validatedAt))}">${esc(fmtDateShort(p.validatedAt))}</span>`:''}</span>
           ${inQ?searchSnippet(protoSnipParts(p),state.q):''}
         </div>
         <button class="pinbtn${isPinned(p.id)?' on':''}" data-pin="${p.id}" aria-label="${isPinned(p.id)?'Désépingler':'Épingler en accès direct'}" title="${isPinned(p.id)?'Désépingler':'Épingler en accès direct'}">${pinIcon(isPinned(p.id))}</button>
