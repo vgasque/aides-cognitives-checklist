@@ -2260,7 +2260,6 @@
   .cx-btn:hover{background:var(--critical-soft)}
   .cx-btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .cx-btn .cx-n{font-family:var(--mono);font-size:12px;background:var(--critical-soft);border-radius:999px;padding:1px 7px}
-  #cxModal .ai-card{max-width:440px}
   .cx-note{font-size:13.5px;color:var(--ink-soft);margin:0 0 10px}
   .cx-item{display:flex;align-items:center;gap:11px;width:100%;min-height:56px;padding:10px 13px;margin-bottom:8px;border:1px solid var(--critical-bd);border-radius:10px;background:transparent;font-family:inherit;text-align:left;cursor:pointer}
   .cx-item:hover{background:var(--critical-soft)}
@@ -2269,6 +2268,16 @@
   .cx-item-tx{flex:1;min-width:0}
   .cx-item-tx b{display:block;font-size:15.5px;color:var(--critical)}
   .cx-item-sub{display:block;font-size:12px;color:var(--ink-soft);margin-top:1px}
+  /* L'index DÉPLIÉ vit dans la carte : il pousse vers le bas, il ne recouvre rien. Le dernier
+     item perd sa marge — c'est le bas du groupe, pas un intervalle. */
+  .cx-list{margin-top:8px}
+  .cx-list .cx-item:last-child{margin-bottom:0}
+  /* « ↗ » : le glyphe des ouvertures externes du dossier — il DIT qu'on quitte la fiche. */
+  .cx-ext{font-size:12px;opacity:.9}
+  .cx-btn .cx-chev{margin-left:2px;font-size:11px;color:var(--ink-soft)}
+  /* Le retour en tête de carte : il ouvre le corps, donc pas de marge haute — c'est lui qui
+     commence, et l'écart le sépare de ce qui suit. */
+  .flow-ctrl.cx-back-top{margin:0 0 11px}
   .cx-tag{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--critical);background:var(--critical-soft);border:1px solid var(--critical-line);border-radius:999px;padding:1px 8px;vertical-align:1px;white-space:nowrap}
   .pl-cxh{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap;
     margin:14px 0 2px;padding:0 9px;font-size:11px;font-weight:800;letter-spacing:.07em;
@@ -3588,7 +3597,6 @@
      pastilles que le rail de soin (vert ✓ fait, bleu ici, neutre à venir — jamais d'alerte). */
   /* (`.rm-ctx` supprimée en v4.62.0 : le contexte « précédent / suivant » était une
      reconstruction manuelle — la liste le donne par construction. Règle 14.) */
-  #cxModal{z-index:94}   /* l'index ⚡ passe AU-DESSUS du mode lecteur (92), sous #screenFlash (99) */
   #shareModal{z-index:94}   /* même raison : ouvrable pendant que le lecteur (92) est affiché */
   /* LA CONFIRMATION PASSE AU-DESSUS DE TOUT CE QU'ELLE CONFIRME. `#confirmModal` héritait du
      z-index 55 des fenêtres ordinaires : demander « Arrêter le partage ? » depuis la fenêtre

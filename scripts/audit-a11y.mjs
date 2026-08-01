@@ -139,11 +139,18 @@ const SURFACES = [
       openRead(f.id);await new Promise(r=>setTimeout(r,400));
       document.getElementById('sessStart').click();await new Promise(r=>setTimeout(r,450));
       confirmEndSession(f); } },
-  { nom:'excursions',       w:390,  scope:'#cxModal', fn: async()=>{
+  /* L'index ⚡ n'est plus une FENÊTRE mais un dépliant DANS la carte (v5.0.0, audit design) : la
+     surface change de porteur, pas de nature — on l'ouvre par son vrai point d'entrée, et il faut
+     DEUX événements pour qu'un index existe (à un seul, l'événement est le bouton). */
+  { nom:'excursions',       w:390,  scope:'.cx-list', fn: async()=>{
       const f=fiches.find(x=>/Arrêt cardiaque/.test(x.title));
-      f.excursions=[{label:'Laryngospasme',target:f.blocks[1].id}];
+      f.excursions=[{label:'Laryngospasme',target:f.blocks[1].id},
+                    {label:'Choc réfractaire',target:f.blocks[0].id}];
       await Data.put(f);openRead(f.id);await new Promise(r=>setTimeout(r,400));
-      openCxDlg(f); } },
+      const sb=document.getElementById('sessStart');if(sb)sb.click();
+      await new Promise(r=>setTimeout(r,500));
+      const b=document.querySelector('[data-cxopen]');if(b)b.click();
+      await new Promise(r=>setTimeout(r,350)); } },
   { nom:'versions précédentes',w:390,  scope:'#versModal', fn: async()=>{
       const f=fiches.find(x=>/Arrêt cardiaque/.test(x.title));
       await Data.putBackup({bid:uid('bk'),ficheId:f.id,at:Date.now(),data:JSON.parse(JSON.stringify(f))});

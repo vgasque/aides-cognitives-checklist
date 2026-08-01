@@ -3004,6 +3004,32 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   Et l'occurrence COURANTE se distingue désormais par la **forme** (contour + graisse) et non par
   une seconde paire de couleurs, qui rouvrait le même problème à l'envers. Témoins ajoutés dans
   `audit-doctrine` : ils CONSTRUISENT l'état avant de mesurer, dans les deux thèmes.
+- **L'ENTRÉE SUR COMPLICATION — B, C, D (v5.0.0, audit design)** : trois défauts mesurés.
+  **(B) À UN SEUL ÉVÉNEMENT, IL N'Y A PAS D'INDEX.** Ouvrir une liste d'UN élément pour y choisir
+  cet élément est le bouton mort de la doctrine, en plus lent. L'événement DEVIENT le bouton, on
+  entre d'un tap. **L'arbitrage est nommé et il a été tranché par l'auteur** : le libellé devient
+  variable d'une fiche à l'autre, alors que la doctrine dit « un mot constant à position constante
+  s'apprend » — mais à UN seul événement, lire un mot n'est pas scanner cinq boutons, ce qui est
+  précisément le reproche fait aux N boutons rouges ; le glyphe ⚡ et la POSITION restent constants.
+  ⚠ **Une complication peut être une PORTE vers une autre aide** : le libellé le dit alors par
+  « ↗ », sinon on croirait rester dans la fiche et l'on se retrouverait ailleurs sans l'avoir voulu.
+  **(C) L'INDEX EST UN DÉPLIANT, PAS UNE FENÊTRE.** La doctrine QRH invoquée porte sur l'INDEX
+  UNIQUE (un objet plutôt qu'un bouton par urgence), **pas sur la modalité** : un dépliant est aussi
+  un index unique. Mesuré, la fenêtre couvrait **38 % de l'écran à 320 px, pendant un soin** — et
+  c'est la leçon du lot M11, payée là-bas au prix de sauts de 1120 px et 484 px. `#cxModal`,
+  `openCxDlg`, `closeCxDlg`, `#cxList` et `data-cxpick` sont PURGÉS (règle 14) ; le menu ⋯ ouvre le
+  dépliant et amène la carte courante à l'écran — c'est une navigation DEMANDÉE par un tap, pas un
+  défilement autonome. `state.cxOpen` est transitoire (`SHARE_LOCAL`), comme `state.allTab`.
+  **(D) LE RETOUR D'EXCURSION EST EN TÊTE DE CARTE.** Il vivait après les étapes : mesuré à
+  320 × 640, il naissait à **y = 738**, c'est-à-dire hors écran, alors que la doctrine le décrit
+  comme « LE contrôle rempli de l'écran pendant l'excursion ». Après : **y = 329**, visible.
+  ⚠ **L'ENTRÉE, ELLE, N'A PAS BOUGÉ — décision de l'auteur, et le raisonnement est le sien** : la
+  mettre en tête de carte donnerait la position de plus forte saillance à l'événement le MOINS
+  probable et repousserait les cases à cocher vers le bas. La dissymétrie entrée/retour n'est pas
+  une inconséquence : une fois DANS l'excursion, revenir EST l'action principale, et ce que le
+  retour repousse, ce sont les étapes de la complication où l'on vient d'entrer.
+  ⚠ **La surface « excursions » d'`audit-a11y` change de PORTEUR, pas de nature** : elle vise
+  `.cx-list` et construit désormais son cas (deux événements — à un seul, il n'y a pas d'index).
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.

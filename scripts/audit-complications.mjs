@@ -25,22 +25,29 @@ const d1=await p.evaluate(async()=>{
  const btns=[...document.querySelectorAll('.ov-block.cur .cx-btn')];
  const lbl=btns.map(b=>b.textContent.replace(/\s+/g,' ').trim());
  btns[0].click();await new Promise(r=>setTimeout(r,350));
- const rows=[...document.querySelectorAll('#cxList .cx-item')].map(x=>x.textContent.replace(/\s+/g,' ').trim());
- const on=document.getElementById('cxModal').classList.contains('on');
- document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));await new Promise(r=>setTimeout(r,250));
- return {nb:btns.length,lbl,rows,on,ferme:!document.getElementById('cxModal').classList.contains('on')};});
+ const rows=[...document.querySelectorAll('.cx-list .cx-item')].map(x=>x.textContent.replace(/\s+/g,' ').trim());
+ const on=!!document.querySelector('.cx-list');
+ const couvre=[...document.querySelectorAll('.ai-modal.on')].length;
+ /* ⚠ ON RE-INTERROGE LE DOM : le dépliant re-rend le journal, donc le bouton d'avant est un
+    nœud DÉTACHÉ — le cliquer ne fait rien et le témoin mesure l'état inchangé. */
+ document.querySelector('[data-cxopen]').click();await new Promise(r=>setTimeout(r,300));
+ return {nb:btns.length,lbl,rows,on,couvre,ferme:!document.querySelector('.cx-list')};});
 t('UN SEUL bouton, mot constant + compte', d1.nb===1&&/⚡ Complications 2/.test(d1.lbl[0]), JSON.stringify(d1.lbl));
 t('l’index liste les 2 événements en grandes rangées', d1.on&&d1.rows.length===2, JSON.stringify(d1.rows));
+/* ⚠ L'INDEX EST UN DÉPLIANT, PAS UNE FENÊTRE (v5.0.0, audit design) : mesurée, la fenêtre couvrait
+   38 % de l'écran à 320 px pendant un soin. Un dépliant est aussi un index unique — la doctrine QRH
+   porte sur l'objet, pas sur la modalité. */
+t('… et il ne COUVRE rien (dépliant, pas fenêtre)', d1.couvre===0, `${d1.couvre} fenêtre(s) ouverte(s)`);
 t('la cible externe annonce ce qu’elle ouvre (↗)', /ouvre :/.test(d1.rows[1])&&/↗/.test(d1.rows[1]), d1.rows[1]);
-t('Échap ferme l’index', d1.ferme);
+t('re-presser le déclencheur referme l’index', d1.ferme);
 const dm=await p.evaluate(()=>{document.getElementById('hdrMore').click();
  const rows=[...document.querySelectorAll('#moreMenu .mm-row')].map(x=>x.textContent.replace(/\s+/g,' ').trim());
  document.getElementById('hdrMore').click();return rows.filter(x=>/Complication/.test(x));});
 t('menu ⋯ : UNE entrée constante « Complications (2) »', dm.length===1&&/\(2\)/.test(dm[0]), JSON.stringify(dm));
 console.log('=== entrée / excursion / retour ===');
 const d2=await p.evaluate(async()=>{
- document.querySelector('[data-cxopen]').click();await new Promise(r=>setTimeout(r,300));
- [...document.querySelectorAll('#cxList .cx-item')].find(x=>/Laryngo/.test(x.textContent)).click();
+ {const b=document.querySelector('[data-cxopen]');if(b)b.click();}await new Promise(r=>setTimeout(r,300));
+ [...document.querySelectorAll('.cx-list .cx-item')].find(x=>/Laryngo/.test(x.textContent)).click();
  await new Promise(r=>setTimeout(r,450));
  const cur=document.querySelector('.ov-block.cur');
  return {bout:state.nav[state.nav.length-1],tag:!!cur.querySelector('.cx-tag'),
@@ -59,7 +66,7 @@ t('Reprendre = NOUVEAU passage, cases neuves (doctrine interruption)', d3.plus&&
 t('l’excursion reste tracée (cartes conservées)', d3.cartes);
 const d4=await p.evaluate(async()=>{const n0=state.nav.filter(x=>x==='cxL').length;
  document.querySelector('[data-cxopen]').click();await new Promise(r=>setTimeout(r,300));
- [...document.querySelectorAll('#cxList .cx-item')].find(x=>/Laryngo/.test(x.textContent)).click();
+ [...document.querySelectorAll('.cx-list .cx-item')].find(x=>/Laryngo/.test(x.textContent)).click();
  await new Promise(r=>setTimeout(r,400));
  return state.nav.filter(x=>x==='cxL').length>n0;});
 t('un événement qui SE REPRODUIT = nouveau passage', d4);
@@ -85,7 +92,7 @@ t('Statique : bande + cellule sans numéro (⚡)', d7.band&&d7.num==='⚡', JSON
 const d8=await p.evaluate(async()=>{
  document.getElementById('allBtn').click();await new Promise(r=>setTimeout(r,500));
  document.querySelector('[data-cxopen]').click();await new Promise(r=>setTimeout(r,300));
- [...document.querySelectorAll('#cxList .cx-item')].find(x=>/Anaphyl/.test(x.textContent)).click();
+ [...document.querySelectorAll('.cx-list .cx-item')].find(x=>/Anaphyl/.test(x.textContent)).click();
  await new Promise(r=>setTimeout(r,500));
  return {ouvert:state.fiche&&state.fiche.id===window.__autre};});
 t('cible EXTERNE : ouvre l’autre aide', d8.ouvert, JSON.stringify(d8));

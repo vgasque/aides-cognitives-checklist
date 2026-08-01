@@ -1459,6 +1459,70 @@ for (const W of [390, 999, 1000, 1199, 1200, 1400]) {
    n'était dans son champ, et les 301 contrôles restaient verts.
    Mesuré avant correction : surlignage 3,64:1 en clair et 1,76:1 en sombre (texte de 11 px),
    bouton vert 1,9:1 en sombre. On mesure donc ici les ÉTATS, dans les deux thèmes. */
+/* ⚠ COMPLICATIONS — B, C, D (v5.0.0, audit design). Trois défauts mesurés : l'index existait même
+   à UN seul événement (une liste d'un élément, deux taps) ; il ouvrait une FENÊTRE qui couvrait
+   38 % de l'écran pendant un soin ; et le RETOUR d'excursion naissait à y=738 sur un écran de 640,
+   c'est-à-dire hors écran, alors que la doctrine le décrit comme « LE contrôle rempli de l'écran ».
+   ⚠ L'ENTRÉE, ELLE, N'A PAS BOUGÉ, et c'est une décision de l'auteur : la mettre en tête de carte
+   donnerait la position de plus forte saillance à l'événement le MOINS probable et repousserait
+   les cases à cocher. La dissymétrie entrée/retour est le raisonnement, pas un oubli. */
+console.log('\n══ COMPLICATIONS · entrer d’un tap, revenir sans chercher ══');
+for (const W of [320, 390]) {
+  const page = await br.newPage({viewport:{width:W,height:844},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();await w(200);
+    const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await w(900);});
+  const r = await page.evaluate(async()=>{const wt=m=>new Promise(r=>setTimeout(r,m));
+    const f=fiches.find(x=>(x.excursions||[]).length);
+    openRead(f.id);await wt(400);
+    {const b=document.getElementById('sessStart');if(b)b.click();}await wt(700);
+    /* UN SEUL ÉVÉNEMENT : l'événement EST le bouton, il n'y a pas d'index à traverser. */
+    const un=document.querySelector('[data-cxgo]');
+    const unLbl=un?un.textContent.replace(/\s+/g,' ').trim():null;
+    const indexAUn=!!document.querySelector('[data-cxopen]');
+    if(un){un.scrollIntoView({block:'center'});await wt(200);un.click();}await wt(800);
+    const modale=[...document.querySelectorAll('.ai-modal.on')].length;
+    const ret=document.querySelector('[data-cxback]'),carte=document.querySelector('.ov-block.cur');
+    const rr=ret?ret.getBoundingClientRect():null,rc=carte?carte.getBoundingClientRect():null;
+    const corps=carte?carte.querySelector('.ov-body'):null;
+    /* Le retour ouvre le CORPS de la carte : il est le premier enfant, donc au-dessus des étapes. */
+    const premier=corps?(corps.firstElementChild&&corps.firstElementChild.className||''):'';
+    /* DEUX ÉVÉNEMENTS : l'index reparaît, en dépliant — et la porte EXTERNE le dit par « ↗ ». */
+    f.excursions.push({label:'Arrêt cardiaque',target:fiches.find(x=>x.id!==f.id).id});
+    openRead(f.id);await wt(400);
+    {const b=document.getElementById('sessStart');if(b)b.click();}await wt(700);
+    const tg=document.querySelector('[data-cxopen]');
+    const tgLbl=tg?tg.textContent.replace(/\s+/g,' ').trim():null;
+    if(tg){tg.scrollIntoView({block:'center'});await wt(200);tg.click();}await wt(600);
+    const items=[...document.querySelectorAll('.cx-list .cx-item')];
+    const modale2=[...document.querySelectorAll('.ai-modal.on')].length;
+    const cible=items.length?Math.round(Math.min(...items.map(e=>e.getBoundingClientRect().height))):0;
+    const ext=items.some(e=>/↗/.test(e.textContent));
+    {const b=document.querySelector('[data-cxopen]');if(b)b.click();}await wt(400);
+    const referme=!document.querySelector('.cx-list');
+    return {unLbl,indexAUn,modale,items:items.length,tgLbl,modale2,cible,ext,referme,
+      retourY:rr?Math.round(rr.top):null,
+      retourVisible:!!(rr&&rr.top>=0&&rr.bottom<=innerHeight),
+      premier};});
+  t(`${W} · B — à UN événement, il n'y a pas d'index`,
+    r.indexAUn===false&&/⚡/.test(r.unLbl||''), `${r.unLbl}`);
+  t(`${W} · C — à DEUX, l'index reparaît, et il ne COUVRE rien`,
+    r.items===2&&r.modale2===0&&/Complications 2/.test(r.tgLbl||''), `${r.tgLbl} · ${r.items} rangée(s), ${r.modale2} fenêtre(s)`);
+  t(`${W} · … rangées ≥ 44 px, et la porte EXTERNE se dit (↗)`, r.cible>=44&&r.ext===true,
+    `${r.cible} px, externe=${r.ext}`);
+  t(`${W} · … et re-presser referme`, r.referme===true, String(r.referme));
+  t(`${W} · entrer ne passe par AUCUNE fenêtre`, r.modale===0, `${r.modale}`);
+  /* ⚠ ON MESURE QUE LE RETOUR SE VOIT, pas seulement qu'il existe : un contrôle présent 400 px
+     plus bas est un contrôle qu'on cherche, et la doctrine le veut « rempli, sous les yeux ». */
+  t(`${W} · D — le retour d'excursion est VISIBLE sans défiler`,
+    r.retourVisible===true, `y = ${r.retourY} px`);
+  t(`${W} · … et il ouvre le corps de la carte`, /cx-back-top/.test(r.premier), r.premier);
+  await page.close();
+}
+
 console.log('\n══ CONTRASTE DES ÉTATS · ce qui n’existe qu’après un geste ══');
 for (const th of ['light','dark']) {
   const page = await br.newPage({viewport:{width:390,height:844},hasTouch:true,colorScheme:th});

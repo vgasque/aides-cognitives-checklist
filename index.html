@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-JQ5vjgqdSADOv1rb+gj3khHY3rvICTDb+Y1GEgJqcsM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-M/frLLy78E07JKzHhX3hlT9E5juIoGpkS5ljGeTnF2o='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -2545,7 +2545,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .cx-btn:hover{background:var(--critical-soft)}
   .cx-btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .cx-btn .cx-n{font-family:var(--mono);font-size:12px;background:var(--critical-soft);border-radius:999px;padding:1px 7px}
-  #cxModal .ai-card{max-width:440px}
   .cx-note{font-size:13.5px;color:var(--ink-soft);margin:0 0 10px}
   .cx-item{display:flex;align-items:center;gap:11px;width:100%;min-height:56px;padding:10px 13px;margin-bottom:8px;border:1px solid var(--critical-bd);border-radius:10px;background:transparent;font-family:inherit;text-align:left;cursor:pointer}
   .cx-item:hover{background:var(--critical-soft)}
@@ -2554,6 +2553,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .cx-item-tx{flex:1;min-width:0}
   .cx-item-tx b{display:block;font-size:15.5px;color:var(--critical)}
   .cx-item-sub{display:block;font-size:12px;color:var(--ink-soft);margin-top:1px}
+  /* L'index DÉPLIÉ vit dans la carte : il pousse vers le bas, il ne recouvre rien. Le dernier
+     item perd sa marge — c'est le bas du groupe, pas un intervalle. */
+  .cx-list{margin-top:8px}
+  .cx-list .cx-item:last-child{margin-bottom:0}
+  /* « ↗ » : le glyphe des ouvertures externes du dossier — il DIT qu'on quitte la fiche. */
+  .cx-ext{font-size:12px;opacity:.9}
+  .cx-btn .cx-chev{margin-left:2px;font-size:11px;color:var(--ink-soft)}
+  /* Le retour en tête de carte : il ouvre le corps, donc pas de marge haute — c'est lui qui
+     commence, et l'écart le sépare de ce qui suit. */
+  .flow-ctrl.cx-back-top{margin:0 0 11px}
   .cx-tag{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--critical);background:var(--critical-soft);border:1px solid var(--critical-line);border-radius:999px;padding:1px 8px;vertical-align:1px;white-space:nowrap}
   .pl-cxh{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap;
     margin:14px 0 2px;padding:0 9px;font-size:11px;font-weight:800;letter-spacing:.07em;
@@ -3873,7 +3882,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      pastilles que le rail de soin (vert ✓ fait, bleu ici, neutre à venir — jamais d'alerte). */
   /* (`.rm-ctx` supprimée en v4.62.0 : le contexte « précédent / suivant » était une
      reconstruction manuelle — la liste le donne par construction. Règle 14.) */
-  #cxModal{z-index:94}   /* l'index ⚡ passe AU-DESSUS du mode lecteur (92), sous #screenFlash (99) */
   #shareModal{z-index:94}   /* même raison : ouvrable pendant que le lecteur (92) est affiché */
   /* LA CONFIRMATION PASSE AU-DESSUS DE TOUT CE QU'ELLE CONFIRME. `#confirmModal` héritait du
      z-index 55 des fenêtres ordinaires : demander « Arrêter le partage ? » depuis la fenêtre
@@ -5418,8 +5426,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      toute `.ai-modal` fige le défilement de la page derrière elle au pointeur grossier, et celle-ci
      reste ouverte pendant toute la fenêtre d'admission — la checklist de crise de l'hôte
      deviendrait indéfilable au moment précis où il en a besoin. Le piège de superposition est
-     connu (z 55 pour une `.ai-modal`, 92 pour le mode lecteur) : elle monte au-dessus, comme
-     `#cxModal`. -->
+     connu (z 55 pour une `.ai-modal`) : elle monte au-dessus. -->
 <div class="ai-modal sheet-live" id="shareModal" role="dialog" aria-modal="true" aria-labelledby="shareTitle"><div class="ai-card dlg-480">
   <div class="ai-top"><h3 id="shareTitle">Partager cette session</h3><button class="ai-x" id="shareX" aria-label="Fermer">×</button></div>
   <div id="shareBody"></div>
@@ -5518,10 +5525,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
 <!-- COMPLICATIONS « à tout moment » (v4.26.1) : UN déclencheur constant ouvre cet INDEX par
      événement — le modèle QRH/Stanford (un manuel, des onglets), pas un bouton par urgence.
      Rangées larges (crise), fermeture voile/✕/Échap par le gestionnaire central de modales. -->
-<div class="ai-modal dlg-confirm" id="cxModal" role="dialog" aria-modal="true" aria-labelledby="cxModalTitle"><div class="ai-card">
-  <div class="ai-top"><h3 id="cxModalTitle">⚡ Complications</h3><button class="ai-x" id="cxX" aria-label="Fermer">×</button></div>
-  <p class="cx-note">Tapez l'événement survenu — le parcours est interrompu, un retour est prévu.</p>
-  <div id="cxList"></div>
 </div></div>
 <!-- Visionneuse PDF (documents joints) : plein écran, rendu pdf.js page par page (virtualisé).
      Même gestion d'accessibilité que les autres fenêtres (.ai-modal : focus, Échap, piège Tab). -->
@@ -6413,16 +6416,47 @@ function flowPaintState(container,f){if(!container||!f)return;
    honnête est donc l'index. Bonus : position ET libellé constants quelle que soit la fiche (N
    boutons rouges qui se ressemblent obligeraient à LIRE chacun sous stress), et l'écran d'action
    se désencombre. Coût assumé : un tap de plus, payé en rangées LARGES dans l'index. */
-const cxRowHtml=(list,tip)=>`<div class="cx-row">${(list&&list.length)?`<button type="button" class="cx-btn" data-cxopen title="Complications — à tout moment : interrompt le parcours, retour prévu">⚡ Complication${list.length>1?'s <span class="cx-n">'+list.length+'</span>':''}</button>`:''}${tip?`<button type="button" class="tk-add tk-inblk" data-tknote>${uiIcon('stopwatch',13)} Noter l’heure</button>`:''}</div>`;
-function openCxDlg(f){
-  const list=cxAll(f);if(!list.length)return;
-  const box=document.getElementById('cxList');
-  box.innerHTML=list.map((c,i)=>{const t=c.kind==='ext'?relTarget(c.target):null;
-    return `<button type="button" class="cx-item" data-cxpick="${esc(c.target)}"><span class="cx-item-ic" aria-hidden="true">⚡</span><span class="cx-item-tx"><b>${esc(c.label)}</b><span class="cx-item-sub">${c.kind==='ext'?('ouvre : '+esc((t&&t.title)||'aide introuvable')+' ↗'):'interrompt le parcours — retour prévu'}</span></span></button>`;}).join('');
-  box.querySelectorAll('[data-cxpick]').forEach(b=>b.onclick=()=>{closeCxDlg();cxEnter(f,b.dataset.cxpick);});
-  cxModal.classList.add('on');
-  const f1=box.querySelector('.cx-item');if(f1)f1.focus();}
-function closeCxDlg(){cxModal.classList.remove('on');}
+/* ⚠ B (v5.0.0, audit design) — À UN SEUL ÉVÉNEMENT, IL N'Y A PAS D'INDEX. Ouvrir une liste d'UN
+   élément pour y choisir cet élément est le bouton mort de la doctrine, en plus lent : c'est la
+   règle « la poignée n'existe qu'à partir de deux rangées », « aucun bouton mort », « un panneau
+   qui affirme 0 est du bruit ». L'événement DEVIENT le bouton, et l'on entre d'un tap.
+   L'ARBITRAGE EST NOMMÉ, ET IL A ÉTÉ TRANCHÉ PAR L'AUTEUR : le libellé devient alors variable
+   d'une fiche à l'autre, alors que la doctrine dit « un mot constant à position constante
+   s'apprend ». À UN SEUL événement, lire un mot n'est pas scanner cinq boutons — c'est exactement
+   ce que la doctrine reproche aux N boutons rouges ; le glyphe ⚡ et la POSITION, eux, restent
+   constants. Au-delà d'un, on retombe sur le mot constant et l'index.
+   ⚠ ET UNE COMPLICATION PEUT ÊTRE UNE PORTE VERS UNE AUTRE AIDE (rappel de l'auteur) : le libellé
+   le DIT alors par « ↗ », le glyphe des ouvertures externes du dossier — sinon on croirait rester
+   dans la fiche, et l'on se retrouverait ailleurs sans l'avoir voulu. */
+const cxOne=list=>(list&&list.length===1)?list[0]:null;
+const cxRowHtml=(list,tip)=>{
+  const un=cxOne(list);
+  const btn=un
+    ?`<button type="button" class="cx-btn" data-cxgo="${esc(un.target)}" title="${un.kind==='ext'?'Ouvre une autre aide — ':'Interrompt le parcours, retour prévu — '}à tout moment">⚡ ${esc(un.label)}${un.kind==='ext'?' <span class="cx-ext" aria-hidden="true">↗</span>':''}</button>`
+    :((list&&list.length)?`<button type="button" class="cx-btn" data-cxopen aria-expanded="${state.cxOpen?'true':'false'}" title="Complications — à tout moment : interrompt le parcours, retour prévu">⚡ Complications <span class="cx-n">${list.length}</span> <span class="cx-chev" aria-hidden="true">${state.cxOpen?'▴':'▾'}</span></button>`:'');
+  return `<div class="cx-row">${btn}${tip?`<button type="button" class="tk-add tk-inblk" data-tknote>${uiIcon('stopwatch',13)} Noter l’heure</button>`:''}</div>`
+    +((!un&&state.cxOpen&&list&&list.length)?cxListHtml(list):'');};
+/* ⚠ C — L'INDEX EST UN DÉPLIANT, PAS UNE FENÊTRE. La doctrine QRH que ce dossier invoque porte sur
+   l'INDEX UNIQUE (un objet plutôt qu'un bouton par urgence), pas sur la MODALITÉ : un dépliant est
+   aussi un index unique. Mesuré, la fenêtre couvrait 38 % de l'écran à 320 px, pendant un soin —
+   et c'est la leçon du lot M11, payée là-bas au prix de sauts de 1120 px et 484 px : un dépliant
+   appartient à son geste, il naît sous le doigt qui l'ouvre. Elle supprime en outre le piège de
+   focus, le verrou de fond et l'entrée d'historique.
+   `state.cxOpen` est TRANSITOIRE (jamais persisté, jamais synchronisé, classé `SHARE_LOCAL`) :
+   c'est une consultation, pas un réglage — même statut que `state.allTab`. */
+function cxListHtml(list){
+  return `<div class="cx-list" role="group" aria-label="Complications déclarées">`
+    +list.map(c=>{const t=c.kind==='ext'?relTarget(c.target):null;
+      return `<button type="button" class="cx-item" data-cxgo="${esc(c.target)}"><span class="cx-item-ic" aria-hidden="true">⚡</span><span class="cx-item-tx"><b>${esc(c.label)}</b><span class="cx-item-sub">${c.kind==='ext'?('ouvre : '+esc((t&&t.title)||'aide introuvable')+' ↗'):'interrompt le parcours — retour prévu'}</span></span></button>`;}).join('')
+    +`</div>`;}
+/* ⚠ LA FENÊTRE `#cxModal` EST PURGÉE (règle 14) : l'index vit dans la carte. Le menu ⋯ y mène en
+   OUVRANT le dépliant et en amenant la carte courante à l'écran — c'est une navigation DEMANDÉE
+   par un tap, pas un défilement autonome (la règle 11 vise ce qui arrive sans qu'on l'ait
+   demandé ; `jumpToBlock` et les renvois du plan défilent déjà pour la même raison). */
+function cxOpenFromMenu(f){
+  if(!cxAll(f).length)return;
+  state.cxOpen=true;renderOvOnly();
+  const cur=main.querySelector('.ov-block.cur');if(cur)ovScrollEl(cur);}
 /* MODE EXERCICE (v4.27.0 — pilier EMIC « se familiariser », gap n°2 de l'audit doctrinal).
    Un drapeau de SESSION, rien de plus : les sessions sont locales (jamais dans l'export v3,
    jamais synchronisées). L'écran reste STRICTEMENT identique au réel (fidélité = condition du
@@ -6440,7 +6474,7 @@ async function startExercise(f){
     endSession(Runtime);}
   freshRuntime(f,null);Runtime.fiche=f;liveSessions[f.id]=Runtime;
   Runtime.exercise=true;
-  state.flowEnded=false;state.ovVerify=null;state.confOpen=undefined;state.fsOpen=false;state.allTab='page';state.edPhaseNew=null;
+  state.flowEnded=false;state.ovVerify=null;state.confOpen=undefined;state.fsOpen=false;state.allTab='page';state.cxOpen=false;state.edPhaseNew=null;
   render();window.scrollTo(0,0);_exoPulse();}
 /* QUITTER L'EXERCICE (v4.28.0, demande utilisateur) : sortie DIRECTE sur le placard. Avant la
    1ʳᵉ action il n'y a rien à archiver — on repose une fiche neuve ; après, MÊME dialogue
@@ -6482,9 +6516,6 @@ function cxResume(f,backId){
   {const cards=document.querySelectorAll('.ov-wrap .ov-block');const last=cards[cards.length-1];
    if(last){last.classList.add('cx-return');last.addEventListener('animationend',()=>last.classList.remove('cx-return'),{once:true});}}
   }
-const cxModal=document.getElementById('cxModal');
-bindModalDismiss(cxModal,closeCxDlg);
-{const x=document.getElementById('cxX');if(x)x.onclick=closeCxDlg;}
 function jumpToBlock(f,id){if(!f||!(f.blocks||[]).some(b=>b.id===id))return;
   const lp=latestPass(state.nav,state.navSeq,id);
   if(state.readMode==='static'&&hasFlow(f)){svJump(f,id);return;}   // v4.13.0 : tout est déjà à l'écran
@@ -11232,7 +11263,7 @@ function shareCan(role,kind){
    son repli ou sa position de lecture à l'autre serait un mouvement non commandé. La frontière
    est écrite ICI et vérifiée par un test — sinon elle se re-perdra au prochain champ ajouté. */
 const SHARE_TRAVELS=['checked','verified','vgaps','nav','navSeq','counters','timers','events','flowEnded','cxBack'];
-const SHARE_LOCAL  =['confOpen','ovFold','ovVerify','navPos','rtOpen','fsOpen','showFlow','readMode','previewFrom'];
+const SHARE_LOCAL  =['confOpen','ovFold','ovVerify','navPos','rtOpen','fsOpen','showFlow','readMode','previewFrom','cxOpen'];
 /* CODE D'APPARIEMENT — lecture, normalisation, affichage.
    L'alphabet est RECOPIÉ du serveur, qui reste la seule autorité : ce qui est ici ne sert qu'à
    refuser tôt une saisie manifestement fautive et à afficher un message utile. Une divergence
@@ -12784,7 +12815,7 @@ function bindReadEvents(f,blk,cur){
     {label:'Quitter le partage…',ic:uiIcon('stop',16),danger:true,sub:'vous ne suivrez plus la session',act:quitShare}
   ]);
   else if(!state.previewFrom)_moreBuild=()=>setMoreMenu([
-    ...(cxAll(f).length?[{label:'Complication'+(cxAll(f).length>1?'s ('+cxAll(f).length+')':''),ic:'⚡',sub:'à tout moment',act:()=>openCxDlg(f)}]:[]),
+    ...(cxAll(f).length?[{label:'Complication'+(cxAll(f).length>1?'s ('+cxAll(f).length+')':''),ic:'⚡',sub:'à tout moment',act:()=>cxOpenFromMenu(f)}]:[]),
     ...(Runtime.started&&Runtime.ficheId===f.id?[{label:'Mode moniteur',ic:uiIcon('expand',16),sub:'appareil posé, lisible à 2 m',act:monOpen}]:[]),
     ...(hasFlow(f)&&state.readMode!=='static'?[{label:'Se repérer',ic:uiIcon('ladder',16),sub:'échelle des blocs',act:openPlanSheet}]:[]),
     ...(hasFlow(f)?[{label:'Schéma de l’algorithme',ic:uiIcon('flow',16),sub:'plein écran, zoom',act:()=>openFlowFull(f)}]:[]),
@@ -12940,7 +12971,8 @@ function bindReadEvents(f,blk,cur){
 // « Repartir d'ici (efface la suite) » tronque volontairement la suite pour repartir d'ici.
 function bindNavEvents(f,blk){
   // Complications (v4.26.0) — mêmes gestes qu'en journal ; câblage direct (pas de délégation ici).
-  main.querySelectorAll('[data-cxopen]').forEach(b=>b.onclick=()=>openCxDlg(f));
+  main.querySelectorAll('[data-cxopen]').forEach(b=>b.onclick=()=>{state.cxOpen=!state.cxOpen;renderOvOnly();});
+  main.querySelectorAll('[data-cxgo]').forEach(b=>b.onclick=()=>{state.cxOpen=false;cxEnter(f,b.dataset.cxgo);});
   main.querySelectorAll('[data-cxback]').forEach(b=>b.onclick=()=>cxResume(f,b.dataset.cxback));
   const nx=document.getElementById('navNext');if(nx)nx.onclick=()=>{
     if(nx.getAttribute('aria-disabled')==='true')return;   // étapes restantes : le libellé l'annonce, le clic est ignoré (ECAM)
@@ -13160,6 +13192,12 @@ function ovInstHtml(f,id,idx,topo,pres){
        (« ✓✓ constaté » / « △ écart », v4.23.0) y est portée pour les trois. */
     const _its=bItems(f.blocks.find(x=>x.id===id)||{});
     const listeH=stepsListHtml(steps,seq,id,{items:_its});
+    /* Le retour d'excursion, en TÊTE du corps de la carte (cf. la note au pied) : il est calculé
+       ici parce que le gabarit du corps se compose plus bas, et il ne dépend que de la visite. */
+    let cxBackH='';
+    {const cxb=(Runtime.cxBack||{})[seq];
+     if(cxb&&tip){const bb=f.blocks.find(x=>x.id===cxb.id);
+       cxBackH=`<div class="flow-ctrl cx-back-top"><button type="button" class="btn cont okay" data-cxback="${esc(cxb.id)}">↩ Reprendre — ${esc((bb&&bb.title)||'le parcours')} →</button></div>`;}}
     /* A1 (v5.0.0, lot M2, maquettes proto-r4) — LA LÉGENDE DES REGISTRES VIT SUR LA CARTE. Elle
        n'existait QUE dans l'éditeur (`.crit-guide`) : ⚠, △ et la bulle mono ne s'apprenaient donc
        nulle part pour qui LIT la fiche sans jamais l'écrire — c'est-à-dire pour la majorité de ceux
@@ -13189,9 +13227,16 @@ function ovInstHtml(f,id,idx,topo,pres){
          parcours n'est pas fini, il est INTERROMPU. Le contrôle de l'excursion est le RETOUR,
          toujours actif (non bloquant : on reprend quand l'événement est maîtrisé, pas quand
          toutes les cases sont cochées). */
-      {const cxb=(Runtime.cxBack||{})[seq];
-       if(cxb){const bb=f.blocks.find(x=>x.id===cxb.id);
-         ctl+=`<div class="flow-ctrl"><button type="button" class="btn cont okay" data-cxback="${esc(cxb.id)}">↩ Reprendre — ${esc((bb&&bb.title)||'le parcours')} →</button></div>`;}
+      {/* ⚠ D (v5.0.0, audit design) — LE RETOUR D'EXCURSION EST EN TÊTE DE CARTE. Il vivait APRÈS
+          les étapes : mesuré à 320 × 640, il naissait à y = 738, c'est-à-dire HORS ÉCRAN — alors
+          que la doctrine le décrit comme « LE contrôle rempli de l'écran pendant l'excursion ».
+          Il ne l'est que s'il se voit.
+          ET CE N'EST PAS L'INVERSION DE HIÉRARCHIE QUE L'AUTEUR A REFUSÉE POUR L'ENTRÉE : mettre
+          l'ENTRÉE en tête donnerait la position de plus forte saillance à l'événement le moins
+          probable, et repousserait ce qu'on est en train de faire. Une fois DANS l'excursion, le
+          retour EST l'action principale — la doctrine l'écrit —, et ce qu'il repousse, ce sont les
+          étapes de la complication où l'on vient d'entrer. La dissymétrie est le raisonnement,
+          pas une inconséquence. */
        /* A2 (v5.0.0, lot M2) — « ⏱ NOTER » REJOINT LA CARTE DU BLOC. Le lot T2 avait rapproché
           le JOURNAL (il se pose juste sous la carte) ; il n'avait pas rapproché le GESTE, qui
           restait un bouton du panneau, donc à lire et à viser ailleurs que là où l'on agit.
@@ -13203,7 +13248,7 @@ function ovInstHtml(f,id,idx,topo,pres){
        const cxs=cxAll(f);
        if(cxs.length||tip)ctl+=cxRowHtml(cxs,tip);
        if(tip)ctl+=tkAckHtml(f);}}
-    bodyH=`${imgH}${legH}${listeH}${ctl}`;
+    bodyH=`${cxBackH}${imgH}${legH}${listeH}${ctl}`;
     count=steps.length?dn+'/'+steps.length:'—';}}
   const takenH=taken?`<span class="ov-ans">→ ${esc(stripBold(taken.label)||'option')}</span>`:'';
   // Boutons d'en-tête : en vérification -> ✕ seulement ; sinon « Lecteur » (bout du journal,
@@ -14146,7 +14191,8 @@ function bindOverviewEvents(f){
     //  9 dès 800 px et la feuille 9 une fois ouverte. Les deux copies VIVANTES restent, et elles
     //  divergent — ne pas les factoriser sans décision : la version du rail ancre sur
     //  `.rail-lad`, celle de la feuille sur son propre corps.)
-    const co=t.closest('[data-cxopen]');if(co){openCxDlg(f);return;}
+    const co=t.closest('[data-cxopen]');if(co){state.cxOpen=!state.cxOpen;renderOvOnly();return;}
+    const cg=t.closest('[data-cxgo]');if(cg){state.cxOpen=false;cxEnter(f,cg.dataset.cxgo);return;}
     if(t.closest('[data-tknote]')){tkNoteNow(true);return;}
     {const pk=t.closest('[data-tkack]');
      if(pk){const ev=(Runtime.events||[]).find(x=>x.id===state.tkAck);
@@ -15590,7 +15636,7 @@ function openDraftPreview(){state.previewFrom='edit';
      « ▶ Essayer » a UN objet : voir se COMPORTER ce qu'on vient d'écrire. Il ouvre donc toujours
      le cran « Un bloc », le seul où l'on coche et où l'on avance. La PRÉFÉRENCE n'est pas
      touchée : on force la vue de l'essai, on ne réécrit pas le réglage de l'auteur. */
-  state.readMode=currentReadMode();state.allTab='page';_pfQ='';state.ovFold={};state.ovVerify=null;state.flowEnded=false;state.confOpen=undefined;
+  state.readMode=currentReadMode();state.allTab='page';_pfQ='';state.cxOpen=false;state.ovFold={};state.ovVerify=null;state.flowEnded=false;state.confOpen=undefined;
   state.view='read';render();}
 function openPDraftPreview(){state.previewFrom='protocolEdit';
   state.protocol=migrateProtocol(JSON.parse(JSON.stringify(state.pdraft)));state.view='protocolRead';render();}

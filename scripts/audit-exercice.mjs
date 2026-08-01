@@ -75,8 +75,13 @@ t('bouton « Quitter l’exercice… » sur le placard → dialogue « Terminer 
 t('« Poursuivre » n’interrompt rien (l’exercice continue)', e2b.encore);
 // matière pour le compte-rendu : une complication + une passe de vérification avec écart
 await p.evaluate(async()=>{
- document.querySelector('[data-cxopen]').click();await new Promise(r=>setTimeout(r,300));
- document.querySelector('#cxList .cx-item').click();await new Promise(r=>setTimeout(r,400));
+ /* L'index ⚡ n'est plus une fenêtre : à UN seul événement le bouton entre directement
+    (`data-cxgo`), à deux ou plus il déplie une liste dans la carte (v5.0.0, audit design). */
+ {const b0=document.querySelector('[data-cxgo]');
+  if(b0){b0.click();}
+  else{document.querySelector('[data-cxopen]').click();await new Promise(r=>setTimeout(r,300));
+       document.querySelector('.cx-list .cx-item').click();}}
+ await new Promise(r=>setTimeout(r,450));
  document.querySelector('[data-cxback]').click();await new Promise(r=>setTimeout(r,400));
  const vb=document.querySelector('.ov-block.cur [data-ovverify]');vb.click();await new Promise(r=>setTimeout(r,350));
  document.querySelector('[data-ovvok]').click();await new Promise(r=>setTimeout(r,250));
@@ -129,8 +134,13 @@ const e7=await p.evaluate(async()=>{
  const real={tag:cb.querySelector('.cb-tag').textContent,exo:cb.classList.contains('exo'),
    pilule:(document.getElementById('hdrCrisis')||{}).textContent||'',
    strip:document.getElementById('cbTimers').textContent};
- document.querySelector('[data-cxopen]').click();await new Promise(r=>setTimeout(r,300));
- document.querySelector('#cxList .cx-item').click();await new Promise(r=>setTimeout(r,400));
+ /* L'index ⚡ n'est plus une fenêtre : à UN seul événement le bouton entre directement
+    (`data-cxgo`), à deux ou plus il déplie une liste dans la carte (v5.0.0, audit design). */
+ {const b0=document.querySelector('[data-cxgo]');
+  if(b0){b0.click();}
+  else{document.querySelector('[data-cxopen]').click();await new Promise(r=>setTimeout(r,300));
+       document.querySelector('.cx-list .cx-item').click();}}
+ await new Promise(r=>setTimeout(r,450));
  endSession(Runtime);resetRuntime();state.fiche=null;state.view='library';render();await new Promise(r=>setTimeout(r,400));
  const card=document.querySelector('.last-sess');
  exportSessionReport(lastEndedSession.id);await new Promise(r=>setTimeout(r,400));
