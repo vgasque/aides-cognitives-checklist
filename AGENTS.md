@@ -3059,6 +3059,22 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   et gagnait par l'ORDRE. On règle en **RETIRANT le membre de la liste**, pas en ajoutant une
   exception encore plus bas. Après : **45 px de cible, hauteur d'en-tête inchangée** — c'est tout
   l'objet du halo, admis en zone haute précisément pour ne pas l'épaissir.
+- **LES TROIS ÉCHELLES QUI MANQUAIENT SONT FERMÉES ET GARDÉES (v5.0.0, audit design, actions 4, 5
+  et 8)** : le dossier verrouillait les couleurs, le texte et les paliers responsive — mais
+  **l'espacement n'avait aucun token ni aucun garde-fou** (valeurs de 1 à 26 px prises au cas par
+  cas : 138 usages de 8, 112 de 6, 89 de 10, 65 de 9, 55 de 7…), le **rayon avait dix-neuf valeurs
+  pour trois tokens**, et **neuf tailles d'affichage** vivaient hors de toute échelle. Ce n'est pas
+  une question de pureté : deux rembourrages à 1 px d'écart ne sont pas deux niveaux, ce sont deux
+  inattentions — l'argument qui a fermé l'échelle typographique en v4.71.1, mot pour mot.
+  **LES ÉCHELLES SONT CHOISIES SUR LA DISTRIBUTION RÉELLE, pas dans l'abstrait** : la migration
+  n'a déplacé aucune valeur de plus d'1 px (espacement) ou 2 px (rayons, affichages), ce qui la
+  rend vérifiable par les harnais existants — cibles de 44, rangées de 71, budgets d'écran — au
+  lieu de reposer sur une relecture.
+  **ET ELLE A IMMÉDIATEMENT COÛTÉ CE QU'ELLE DEVAIT COÛTER** : le halo de l'épingle du répertoire
+  est passé de -9 à -8 px, donc sa cible de 44 à **42** — six harnais rouges. Deux contraintes s'y
+  rencontrent (cible ≥ 44 ET halo ≤ rembourrage droit de la rangée, sinon l'épingle sort du cadre),
+  et c'est la BOÎTE qui monte à 28 px : 28 + 2 × 8 = 44 pile. **C'est exactement ce qu'une échelle
+  fermée doit provoquer — un déplacement mécanique se VOIT, il ne se subit pas.**
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.

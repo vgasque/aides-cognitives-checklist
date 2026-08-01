@@ -8,10 +8,14 @@
  * un écart de corps y signifie toujours quelque chose — et, comme les couleurs depuis la v4.31.0,
  * elle cesse d'être une intention pour devenir une propriété vérifiée.
  *
- * CE QUI EST CONTRÔLÉ : les corps de TEXTE, c'est-à-dire sous 20 px. Au-dessus vivent les
- * AFFICHAGES (chronos, challenge du mode lecteur, moniteur, tête de bilan) : chacun occupe sa
- * propre surface, ils ne se croisent jamais du regard, et les forcer sur l'échelle du texte
- * n'apprendrait rien à personne. Ils sont donc hors périmètre, et c'est délibéré.
+ * CE QUI EST CONTRÔLÉ : deux bandes, chacune avec SON échelle.
+ *   · le TEXTE, sous 20 px — sept paliers ;
+ *   · les AFFICHAGES, à partir de 20 px — cinq paliers (v5.0.0, audit design, action 8).
+ * L'exemption d'origine (« ils ne se croisent jamais du regard ») était juste pour 34 et 40 px —
+ * chronos, moniteur, tête de bilan, qui occupent chacun leur surface. Elle était FAUSSE pour
+ * 20/21/22/23/24, qui sont des titres et se croisent en permanence : cinq valeurs à moins de 5 %
+ * d'écart ne se lisent pas comme cinq niveaux. La bande d'affichage a donc sa propre échelle,
+ * plus lâche que celle du texte parce que ses objets sont plus rares et plus gros.
  *
  * DEUX VALEURS DE SERVICE, qui ne sont pas des paliers :
  *   · 16 px — plancher des champs de saisie sur écran tactile (règle 9 : sous 16, Safari iOS
@@ -27,6 +31,8 @@ const ROOT = decodeURIComponent(new URL('../', import.meta.url).pathname);
 /* Les sept paliers. Toute autre valeur sous 20 px doit être justifiée ci-dessous, jamais
    ajoutée en silence : c'est la discussion qu'on veut forcer, pas la conformité. */
 const PALIERS = [19, 18, 16.5, 15.5, 13.5, 12, 11];
+/* Les cinq paliers d'AFFICHAGE (≥ 20 px). Même règle : toute autre valeur se discute ici. */
+const AFFICHAGES = [20, 24, 26, 34, 40];
 /* Exemptions NOMMÉES par leur sélecteur, avec leur motif. Une exemption anonyme ne vaut rien —
    elle rouvre la porte qu'on vient de fermer. */
 const EXEMPTIONS = [
@@ -45,9 +51,9 @@ const rx = /font-size:\s*([0-9.]+)px/g;
 let m;
 while ((m = rx.exec(css))) {
   const val = parseFloat(m.group ? m.group(1) : m[1]);
-  if (val >= 20) continue;              // bande AFFICHAGE, hors périmètre (cf. en-tête)
+  const bande = val >= 20 ? AFFICHAGES : PALIERS;
   controlees++;
-  if (PALIERS.includes(val)) continue;
+  if (bande.includes(val)) continue;
 
   // Sélecteur : on remonte à l'accolade ouvrante puis au séparateur précédent.
   const st = css.lastIndexOf('{', m.index);
@@ -62,13 +68,14 @@ while ((m = rx.exec(css))) {
 }
 
 if (fautes.length) {
-  console.log('\n✗ check-type : corps hors de l’échelle fermée ('
-    + PALIERS.join(' · ') + ' px) :');
+  console.log('\n✗ check-type : corps hors des échelles fermées (texte '
+    + PALIERS.join(' · ') + ' px · affichage ' + AFFICHAGES.join(' · ') + ' px) :');
   for (const f of fautes) console.log(`   index.html:${f.ligne}  ${f.val}px  —  ${f.sel}`);
   console.log('\n  Choisissez le palier le plus proche, ou ajoutez une exemption NOMMÉE et motivée');
   console.log('  dans scripts/check-type.mjs. Une valeur de plus posée en silence est exactement');
   console.log('  ce que ce contrôle existe pour empêcher.\n');
   process.exit(1);
 }
-console.log(`✓ check-type : ${controlees} corps de texte, tous sur l’échelle fermée `
-  + `(${PALIERS.join(' · ')} px) — ${exemptees} exemption(s) documentée(s).`);
+console.log(`✓ check-type : ${controlees} corps, tous sur les échelles fermées `
+  + `(texte ${PALIERS.join(' · ')} · affichage ${AFFICHAGES.join(' · ')} px) — `
+  + `${exemptees} exemption(s) documentée(s).`);
