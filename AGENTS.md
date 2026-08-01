@@ -2412,6 +2412,25 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
 - **TROIS SURFACES REDESSINÉES SUR MAQUETTE (v5.0.0, lots M9/M10, captures fournies)** — et la
   première leçon est un écart que j'avais introduit : **la colonne d'orientation et la vue « toute
   la fiche » ne montrent PAS la même chose**, alors que je les faisais partager le même rendu.
+  **(0) ⚠ UN HÉRITAGE DE DESSIN NE SE CORRIGE PAS AU CAS PAR CAS, IL SE REPREND.** Le bloc de
+  désaturation `.rail-lad` datait du dessin PLAT, où l'état n'était porté que par la COULEUR DU
+  TEXTE du marqueur. Avec la pastille PLEINE de la maquette, sa règle `.pl-line.cur .n{color:
+  var(--link)}` peignait l'encre en bleu **sur un fond bleu** : le numéro du bloc courant était
+  INVISIBLE (mesuré `color === background === rgb(31,95,166)`). Et **`audit-a11y` ne pouvait pas
+  le voir** — la pastille est `aria-hidden`, donc hors de son champ. D'où trois témoins dans
+  `audit-doctrine` : un marqueur n'est jamais de la couleur de son propre fond, la colonne n'est
+  pas une carte, et **le contrôle rencontre son cas** (au moins une pastille PLEINE mesurée — sur
+  des contours gris il resterait vert sur le défaut).
+  **PLUS DE CARTE BLANCHE** (maquette) : les rangées vivent sur le fond de la colonne, séparées par
+  un filet — une carte ajoutait un cadre autour de ce qui est déjà une colonne, soit deux niveaux
+  de surface pour un seul objet. La DÉSATURATION reste, et elle est même plus nette : aucun aplat
+  de rangée sauf la courante, aucun texte coloré — **tout l'état vit dans la pastille**, qui est le
+  marqueur. Un bloc de DÉCISION n'émet pas de numéro (le losange EST le marqueur) : rien à masquer,
+  donc plus de `font-size:0`. Les rangées de queue (complication, surveillance) n'ont pas de
+  pastille — un liseré rouge suffit pour la première, rien pour la seconde. L'en-tête tient sur UNE
+  rangée (« Parcours inerte » + compte + « ⤢ complet ») : le titre cède par ellipse avant que le
+  bouton ne passe à la ligne — **40 px de colonne rendus, mesurés** ; un titre ellipsé se devine, un
+  bouton renvoyé à la ligne coûte une rangée entière.
   **(1) LE PARCOURS INERTE (colonne)** : une ligne par bloc — pastille RONDE numérotée (verte ✓
   faite, bleue pleine ICI, contour gris à venir), titre, renvois en MONO dans une colonne de
   droite. La chip de branche est **SEULE sur sa ligne**, au-dessus et en retrait : partagée avec le

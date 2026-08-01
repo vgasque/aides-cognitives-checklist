@@ -1143,6 +1143,49 @@ console.log('\n══ T13 · les fiches d\'exemple exercent la doctrine qu\'elle
    était réécrit et TOUT le sous-arbre remplacé : entre le `pointerdown` et le `click`, le nœud
    sous le doigt n'existait plus. Mesuré avant : 36 éléments détruits en 6 s, 0 survivant sur 8.
    Si un futur correctif remet une valeur dans la chaîne de structure, ce témoin doit crier. */
+/* LA PASTILLE DU PARCOURS INERTE DOIT ÊTRE LISIBLE (v5.0.0, défaut mesuré puis corrigé).
+   Elle est `aria-hidden` — donc HORS du champ d'`audit-a11y`, qui mesure le texte accessible — et
+   c'est exactement pour cela qu'un numéro BLEU SUR BLEU a pu vivre sans que rien ne crie : un
+   reste du dessin PLAT (`.rail-lad .pl-line.cur .n{color:var(--link)}`) peignait l'encre de la
+   couleur du fond que la nouvelle pastille pleine venait de poser. Un défaut hors scope n'est pas
+   un défaut absent (leçon v4.75.0) : on lui donne un scope.
+   On ne mesure PAS un seuil WCAG ici (le glyphe n'est pas du texte au sens de la norme) — on
+   mesure qu'il est DISTINCT de son propre fond, ce qui est la seule chose qui ait un sens pour
+   un marqueur, et la seule que le défaut violait. */
+console.log('\n══ PARCOURS INERTE · les marqueurs sont lisibles ══');
+{
+  const page = await br.newPage({viewport:{width:1280,height:1000}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();await w(200);
+    const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await w(800);});
+  const r = await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    const f=fiches.find(x=>/Anaphylaxie/i.test(x.title))||fiches[0];
+    openRead(f.id);await w(400);
+    const sb=document.getElementById('sessStart');if(sb)sb.click();await w(700);
+    const lum=c=>{const m=String(c).match(/[\d.]+/g)||[0,0,0];
+      const v=m.slice(0,3).map(x=>{const u=(+x)/255;return u<=0.03928?u/12.92:Math.pow((u+0.055)/1.055,2.4);});
+      return 0.2126*v[0]+0.7152*v[1]+0.0722*v[2];};
+    const ratio=(a,b)=>{const l1=lum(a),l2=lum(b);return +(((Math.max(l1,l2)+0.05)/(Math.min(l1,l2)+0.05))).toFixed(2);};
+    const badges=[...document.querySelectorAll('.rail-lad .pl-line .n,.read-plan .pl-line .n')]
+      .filter(n=>n.textContent.trim()||n.querySelector('svg'))
+      .map(n=>{const cs=getComputedStyle(n);
+        return {txt:n.textContent.trim()||'✓',r:ratio(cs.color,cs.backgroundColor)};});
+    /* Le contrôle doit RENCONTRER SON CAS : sans pastille pleine (bloc courant ou bloc fait) il
+       mesurerait des contours gris et resterait vert sur le défaut. */
+    const pleines=[...document.querySelectorAll('.rail-lad .pl-line.cur .n,.read-plan .pl-line.cur .n')].length;
+    return {badges,pleines,carte:getComputedStyle(document.querySelector('.rail-lad')||document.body).backgroundColor};});
+  t('témoin : au moins une pastille PLEINE est mesurée', r.pleines>=1, `${r.pleines}`);
+  t('aucun marqueur n’est de la couleur de son propre fond',
+    r.badges.length>0&&r.badges.every(b=>b.r>=3), JSON.stringify(r.badges));
+  /* La colonne n'est PAS une carte (maquette) : deux niveaux de surface pour un seul objet. */
+  t('le parcours n’est pas posé dans une carte blanche',
+    /rgba\(0, 0, 0, 0\)|transparent/.test(r.carte), r.carte);
+  await page.close();
+}
+
 console.log('\n══ QUAI · la structure survit aux ticks ══');
 {
   const page = await br.newPage({viewport:{width:390,height:844},hasTouch:true});

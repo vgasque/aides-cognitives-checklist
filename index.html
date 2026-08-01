@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-O1Emv8kJ3XAzyKn3V5bj71DDr2y7b6IfeqaeLucN96E='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-eKjkW01fJuVg9b98FY6VnOYX20uE4SWGA8CKywzyNb8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1688,7 +1688,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .rs-row.crit .rs-t{color:var(--critical)}
   .rs-row.crit .rs-box{border-color:var(--critical-bd)}
   .pl-sech{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
-    color:var(--ink-soft);margin:14px 0 2px;padding:0 9px}
+    color:var(--ink-soft);margin:16px 0 2px;padding:0 2px;line-height:1.3}
+  /* Sans pastille, le texte d'une rangée de queue commence au bord — comme dans la maquette. */
+  .pl-line.wl .t,.pl-line.cxl .t{font-weight:600}
+  .pl-line.cxl{padding-left:9px}
   .pl-line.wl{cursor:default}
   /* Une complication porte le liseré ROUGE : c'est le seul endroit de la colonne où un registre
      paraît, et il dit « ceci n'est pas dans la séquence, ceci arrive ». */
@@ -3191,8 +3194,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     background:var(--surface);border:1.5px solid var(--line-strong)}
   .pl-line.done .n{background:var(--ok);border-color:var(--ok);color:var(--on-primary)}
   .pl-line.cur .n{background:var(--primary);border-color:var(--primary);color:var(--on-primary)}
-  .pl-line.dec .n{border-radius:6px;transform:rotate(45deg);border-color:var(--verify-bd);color:var(--verify)}
-  .pl-line.dec .n svg,.pl-line.dec .n{font-size:0}
+  /* Le LOSANGE est le marqueur d'une décision : il n'a pas de numéro à porter (le tronc en a un,
+     la décision est un embranchement). Rien à masquer, donc — on n'émet rien. */
+  .pl-line.dec .n{border-radius:6px;transform:rotate(45deg);border-color:var(--verify-bd)}
   .pl-line .t{flex:1;min-width:0;font-size:12px;font-weight:600;color:var(--ink);
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .pl-line.cur .t{font-weight:800}
@@ -4179,6 +4183,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        défaut de mise en page. Désormais c'est « ⤢ complet » qui passe à la ligne — un contrôle
        qui descend d'un rang reste un contrôle, un titre haché n'est plus un titre. */
     .rail-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+    /* L'en-tête du parcours tient sur UNE rangée : le titre cède (ellipse) avant que le bouton
+       « ⤢ complet » ne passe à la ligne — 40 px de colonne rendus, mesurés. Un titre ellipsé se
+       devine, un bouton renvoyé à la ligne coûte une rangée entière. */
+    .rail-sec:has(.rail-lad) .rail-head{flex-wrap:nowrap}
+    .rail-sec:has(.rail-lad) .rail-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .rail-title{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);white-space:nowrap}
     .rail-head :is(.rt-sound,.rt-warn){margin-left:auto}
     .rail-head .rt-sound~.rt-sound,.rail-head .rt-warn~.rt-sound{margin-left:0}
@@ -4216,19 +4225,25 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        habillages en feraient deux composants.
        Le fond `--surface` ne rétablit AUCUN aplat d'état : la désaturation ci-dessous reste
        entière, l'état n'est porté que par le marqueur. */
-    .rail-lad{margin-top:6px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-sm);overflow:hidden}
-    .rail-lad .pl-line{border-left-color:transparent;padding-left:6px}
+    /* ⚠ CE BLOC A ÉTÉ RÉÉCRIT (v5.0.0) — il datait du dessin PLAT, où l'état n'était porté que
+       par la COULEUR DU TEXTE du marqueur. Avec la pastille PLEINE de la maquette, sa règle
+       `.pl-line.cur .n{color:var(--link)}` peignait l'encre en bleu SUR un fond bleu : le numéro
+       du bloc courant était invisible, mesuré `color === background === rgb(31,95,166)`. Un
+       héritage de dessin ne se corrige pas au cas par cas, il se REPREND.
+       PLUS DE CARTE BLANCHE (maquette) : les rangées vivent sur le fond de la colonne, séparées
+       par un filet. Une carte ajoutait un cadre autour de ce qui est déjà une colonne, et deux
+       niveaux de surface pour un seul objet.
+       LA DÉSATURATION RESTE, et elle est même plus nette : aucun aplat de rangée sauf la COURANTE,
+       aucun texte coloré — tout l'état vit dans la PASTILLE, qui est le marqueur. */
+    .rail-lad{margin-top:6px}
+    .rail-lad .pl-line{padding-left:2px}
     .rail-lad .pl-line:last-child{border-bottom:0}
     .rail-lad .pl-line.d1{padding-left:16px}
-    .rail-lad .pl-line.d2{padding-left:26px}
-    .rail-lad .pl-line.d3{padding-left:36px}
-    .rail-lad .pl-line:is(.dec,.cur,.done){background:none}
-    .rail-lad .pl-line.cur{border-left-color:var(--primary)}
+    .rail-lad .pl-line.d2{padding-left:28px}
+    .rail-lad .pl-line.d3{padding-left:40px}
+    .rail-lad .pl-line:is(.dec,.done){background:none}
     .rail-lad .pl-line:is(.dec,.cur,.done) .t{color:var(--ink)}
     .rail-lad .pl-line.cur .t{font-weight:800}
-    .rail-lad .pl-line.done .n{color:var(--ok)}
-    .rail-lad .pl-line.cur .n{color:var(--link)}
-    .rail-lad .pl-line.dec .n{color:var(--verify)}
     .rail-lad .pl-line .g b{color:var(--ink-soft)}
     /* « Hors chemin » : PAS d'opacité (un texte à 50% tombe sous le seuil AA — audit v4.23.0) ;
        encre douce + la mention en toutes lettres, la couleur n'est jamais seule. */
@@ -12593,7 +12608,7 @@ function railLadHtml(f){
   const num={};plan.order.forEach((id,i)=>{num[id]=i+1;});
   const md={};minimapData(f,state.nav,state.navSeq,state.checked,state.navPos).forEach(m=>{md[m.id]=m;});
   const off=offPathSet(f,state.nav,state.navPos);
-  return `<div class="rail-head"><span class="rail-title">Plan — Échelle</span><span class="rail-n">${plan.order.length}</span><button type="button" class="rail-exp" id="railPlanFull" aria-haspopup="dialog"><span class="rx-ic" aria-hidden="true">${uiIcon('expand',12)}</span> complet</button></div><div class="ov-plan rail-lad">${ovPlanLadderHtml(f,plan,num,md,off)}</div>`;}
+  return `<div class="rail-head"><span class="rail-title">Parcours inerte</span><span class="rail-n">${plan.order.length}</span><button type="button" class="rail-exp" id="railPlanFull" aria-haspopup="dialog"><span class="rx-ic" aria-hidden="true">${uiIcon('expand',12)}</span> complet</button></div><div class="ov-plan rail-lad">${ovPlanLadderHtml(f,plan,num,md,off)}</div>`;}
 /* ÉCHELLE DU RAIL (v4.23.0) : mêmes gestes que dans le Plan — déplier une ligne, aller à un bloc,
    suivre un renvoi. Délégation propre au rail : il n'est pas dans `.ov-wrap`, donc les écouteurs du
    journal ne l'atteignent pas. Re-rendu ANCRÉ sur la ligne touchée (le rail ne doit pas sauter sous
@@ -12667,7 +12682,7 @@ function ovPlanLadderHtml(f,plan,num,md,off){
     {const ph=phaseOf(f,it.id);
      if(ph&&ph!==phCur){phCur=ph;h+=`<div class="pl-phase">${esc(ph)}</div>`;}}
     const open=!!state.ovFold['l:'+it.id];
-    h+=lbl+`<div class="pl-line d${Math.min(it.depth,3)}${m.complete?' done':''}${m.cur?' cur':''}${off.has(it.id)?' off':''}${dec?' dec':''}" data-plln="${esc(it.id)}" role="button" tabindex="0" aria-expanded="${open?'true':'false'}"><span class="n" aria-hidden="true">${m.complete?uiIcon('check',13,{sw:3,cls:''}):(num[it.id]||'·')}</span><span class="t">${esc(b.title)||(dec?'Décision':'Étapes')}${(m.total||0)>1?`<span class="pl-x">×${m.total}</span>`:''}</span><span class="g">${m.cur?'<b class="pl-here">ICI</b>':g}</span></div>`;
+    h+=lbl+`<div class="pl-line d${Math.min(it.depth,3)}${m.complete?' done':''}${m.cur?' cur':''}${off.has(it.id)?' off':''}${dec?' dec':''}" data-plln="${esc(it.id)}" role="button" tabindex="0" aria-expanded="${open?'true':'false'}"><span class="n" aria-hidden="true">${dec?'':(m.complete?uiIcon('check',13,{sw:3,cls:''}):(num[it.id]||'·'))}</span><span class="t">${esc(b.title)||(dec?'Décision':'Étapes')}${(m.total||0)>1?`<span class="pl-x">×${m.total}</span>`:''}</span><span class="g">${m.cur?'<b class="pl-here">ICI</b>':g}</span></div>`;
     if(open){
       const det=dec?(b.question?`<div class="pl-q">${fmt(b.question)}</div>`:'')
         :(steps.length?`<ul class="pl-stp">${steps.map(s=>{const cr=stepCR(stepText(s));return `<li class="${stepIsCrit(s)?'crit':(stepIsVigil(s)?'vig':'')}">${fmt(cr.c)}${cr.r?` <span class="pl-r">${fmt(cr.r)}</span>`:''}</li>`;}).join('')}</ul>`:'');
@@ -12679,7 +12694,7 @@ function ovPlanLadderHtml(f,plan,num,md,off){
   {const det=cxDetached(f);
    if(det.length){h+='<div class="pl-cxh">⚡ À tout moment<span>hors numérotation</span></div>';
      det.forEach(c=>{const lp=latestPass(state.nav,state.navSeq,c.target);
-       h+=`<div class="pl-line cxl" data-plgo="${esc(c.target)}" role="button" tabindex="0"><span class="n" aria-hidden="true">⚡</span><span class="t">${esc(c.label)}${lp&&lp.total>1?`<span class="pl-x">×${lp.total}</span>`:''}</span><span class="g">${lp?'passé':''}</span></div>`;});}}
+       h+=`<div class="pl-line cxl" data-plgo="${esc(c.target)}" role="button" tabindex="0"><span class="t">${esc(c.label)}${lp&&lp.total>1?`<span class="pl-x">×${lp.total}</span>`:''}</span><span class="g">${lp?'passé':''}</span></div>`;});}}
   /* « △ SURVEILLER — APRÈS LES GESTES » : les items de rôle `watch`. Ils vivent déjà dans le flux
      (étage « Surveillances & pièges ») ; ici c'est une COPIE d'orientation, inerte, à sa place
      chronologique — ce qui vient après. Registre ATTENTION, jamais rouge : on ne surveille pas ce
