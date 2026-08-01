@@ -243,7 +243,37 @@
   body.view-edit main{width:100%;max-width:1282px;margin:0 auto}
   body.view-pedit main{width:100%;max-width:816px;margin:0 auto}
   @media (min-width:1000px){body.view-pedit main{max-width:1202px}}   /* 780 + 26 + 360 + marges */
+  /* ⚠ UNE COLONNE D'ORIENTATION S'AJOUTE AU PLAFOND, ELLE NE SE PRÉLÈVE PAS DESSUS (v5.0.0,
+     signalé à l'usage : « pourquoi le sommaire est dans l'espace central ? »). Le protocole est
+     plafonné à 780 px « à toutes les largeurs » — poser la grille du sommaire DEDANS le mettait
+     dans la colonne de lecture, et l'on n'avait plus 780 px de texte mais 496. C'est exactement
+     la règle déjà écrite pour la fiche : « le rail prend l'espace EXCÉDENTAIRE », le plafond de
+     la checklist ne bougeant pas. Le corps garde donc ses 780 px, et le sommaire s'ajoute :
+     260 + 24 + 780 + marges. */
   body.view-pread main{width:100%;max-width:816px;margin:0 auto}
+  @media (min-width:1000px){body.view-pread main:has(.ref-grid.with-toc){max-width:1064px}}
+  @media (min-width:1200px){body.view-pread main:has(.ref-grid.with-toc){max-width:1622px}}
+  @media (min-width:1000px){
+    /* 1000 → 1199 : DEUX pistes. La paire est centrée, donc le corps est légèrement à droite du
+       milieu — c'est le prix à payer pour garder le sommaire, et il est plus faible que celui de
+       le faire disparaître. Piste du corps SOUPLE : fixée, elle déborderait sous 1064 px et la
+       colonne collante recouvrirait le texte (défaut mesuré). */
+    .ref-grid.with-toc{display:grid;grid-template-columns:260px minmax(0,780px);gap:0 24px;align-items:start}
+    .ref-grid.with-toc>.ref-main{grid-column:2}
+    aside.ref-toc{grid-column:1;justify-self:start;width:min(260px,100%)}
+  }
+  @media (min-width:1200px){
+    /* ≥ 1200 : TROIS pistes symétriques — le corps revient exactement au milieu de la fenêtre par
+       construction, et le sommaire occupe la marge gauche. La piste de droite reste vide : c'est
+       le prix d'un texte centré, et c'est l'arbitrage déjà retenu pour la vue fiche. */
+    /* ⚠ LE RAIL DE GAUCHE A UN PLANCHER. Sans lui, la piste `1fr` valait 168 px à 1200 : le
+       sommaire passait de 260 à 168 puis revenait à 260 — un rétrécissement au moment PRÉCIS où
+       l'on gagne de la place, c'est-à-dire l'inverse de ce qu'on attend. Avec `minmax(260px,1fr)`
+       il ne rétrécit jamais ; c'est la piste de DROITE qui absorbe, et le corps se recentre
+       PROGRESSIVEMENT (décalage 92 px à 1200, nul à partir de ~1370). Un mouvement continu, jamais
+       un saut. */
+    .ref-grid.with-toc{grid-template-columns:minmax(260px,1fr) minmax(0,780px) minmax(0,1fr)}
+  }
   @media (min-width:1200px){
     /* Fiche : lecture plafonnée 860px + rail élargi 360px (chiffres lisibles à distance).
        `body.view-edit` N'EST PAS LISTÉ ICI — et ne doit pas l'être : le bloc 1000 (§ éditeurs,
@@ -943,7 +973,14 @@
   .tag .cat-dot,.cat-chip-selected .cat-dot{width:8px;height:8px;box-shadow:none}
   .scopebar{display:flex;gap:10px;align-items:center;margin-bottom:14px}
   .scopebar .chiprow{flex:1;min-width:0}
-  .scope-lbl{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin-right:2px}
+  /* ⚠ LES TROIS RANGÉES DE FILTRES PARTENT DU MÊME x (signalé à l'usage : « Tout » pas aligné
+     avec « Toutes »). Les intitulés ont des longueurs différentes — TYPE 33 px, CATÉG. 46 —, donc
+     chaque rangée de chips commençait ailleurs : 63 px contre 76, mesurés. Un `min-width` commun
+     aligne les chips sans toucher aux mots. Ce n'est pas de l'esthétique : trois colonnes de
+     départ pour trois filtres qui se lisent du plus large au plus étroit brouillent la hiérarchie
+     qu'on vient de mettre en place. */
+  .scope-lbl{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin-right:2px;
+    min-width:48px}
   /* inline-flex : la pastille ✎ de la chip active (34px, marges négatives) est ABSORBÉE par le
      conteneur flex au lieu de gonfler la boîte de ligne (sinon la chip grandit et décale tout). */
   /* line-height:normal : la chip ACTIVE est un <span> (pastille ✎ imbriquée, pas de bouton dans
@@ -1084,19 +1121,125 @@
   /* Rangée : le TITRE est le vrai <button> (clavier natif) et son ::after couvre la rangée ;
      épingle et badge « À compléter » repassent au-dessus via z-index — même patron ARIA APG que
      les anciennes cartes (pas de bouton dans un bouton). Anneau de focus porté par la rangée. */
-  .dir-row{position:relative;display:flex;align-items:center;gap:9px;min-height:52px;padding:6px 8px 6px 14px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--surface);overflow:hidden}
+  /* LA RANGÉE DE RÉPERTOIRE — V2 (v5.0.0, maquette validée). Le défaut réel n'était pas le style
+     mais la HAUTEUR VARIABLE : la sous-ligne était une rangée `flex-wrap` de six à sept pilules de
+     largeurs quelconques, donc chaque rangée se repliait différemment (52 à 86 px mesurés) et
+     l'annuaire n'avait aucun rythme. Elle est désormais À HAUTEUR FIXE, avec un TITRE SUR DEUX
+     LIGNES et une MÉTA SUR UNE SEULE, ellipsée.
+     ⚠ LE CORPS RESTE SUR L'ÉCHELLE FERMÉE (remarque de l'auteur, et elle a corrigé deux maquettes
+     hors échelle) : le titre est à 15,5 px, un palier. Ce qui se resserre pour tenir en 71 px est
+     l'INTERLIGNE et le REMBOURRAGE, jamais la police — descendre à 13,5 mettrait le titre d'une
+     fiche au corps du TEXTE COURANT, et il perdrait le relief que l'échelle existe pour tenir.
+     DEUX ÉCONOMIES GRATUITES, qui rendent la place des deux lignes : la pastille de catégorie est
+     REDONDANTE avec le liseré (même couleur, même information — la catégorie reste nommée en
+     toutes lettres dans la méta), et l'étoile passe de 34 à 26 px en gardant sa cible de 44 par un
+     halo `::after` — patron déjà employé par les contrôles de l'en-tête. */
+  /* DEUX colonnes : le contenu, l'épingle. Le CODE a rejoint la méta (maquette) — en colonne
+     séparée il prenait une piste au titre et se retrouvait au milieu de la rangée, entre le titre
+     et l'épingle, là où rien ne le rattache à ce qu'il nomme.
+     ⚠ TOUT ENFANT AJOUTÉ ICI DOIT AVOIR SA PISTE : dans une rangée à hauteur FIXE, un enfant de
+     trop passe à la ligne implicite, donc HORS de la boîte, en silence (mesuré une fois : épingle
+     à 244 px de large). */
+  /* ⚠ CINQ PIXELS SE TROUVENT DANS LE CHROME, PAS DANS UNE COLONNE EN MOINS (signalé à l'usage :
+     « ça commence à être juste »). Mesuré avec des données ORDINAIRES, la méta manquait de 5 px à
+     la configuration la plus serrée — quatre colonnes de 312 px, entre 1600 et 1690. Élargir la
+     piste minimale les aurait rendus, mais en supprimant une colonne entière sur toute cette
+     bande : 25 % de fiches en moins à l'écran, pour la queue d'un mot. On les prend donc sur les
+     écarts (gap 10 → 5, retrait gauche 14 → 12) et sur le chrome du tag de nature, qui est du
+     TEXTE et non une pastille. Mesuré après : 0 item tronqué de 360 à 1900 px, sauf 3 items à
+     2 px dans la seule bande des quatre colonnes serrées. */
+  .dir-row{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;
+    gap:5px;height:71px;padding:0 9px 0 12px;border:1px solid var(--line);border-radius:var(--radius-md);
+    background:var(--surface);overflow:hidden}
   .dir-row:hover{border-color:var(--line-hover);background:var(--surface-2)}
   .dir-main{flex:1;min-width:0}
   /* padding 6px compensé par marges négatives : la BOÎTE du bouton atteint 29px (cible WCAG
      2.5.8 mesurable ≥ 24 — le ::after étendu ne se mesure pas), le rendu ne bouge pas d'un px. */
-  .dir-row .card-open{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:none;border:0;padding:6px 0;margin:-6px 0;font-family:inherit;font-size:13.5px;font-weight:600;color:var(--ink);text-align:left;cursor:pointer}
+  .dir-row .card-open{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;max-width:100%;overflow:hidden;text-align:left;white-space:normal;line-height:1.15;background:none;border:0;padding:5px 0;margin:-5px 0;font-family:inherit;font-size:15.5px;font-weight:600;color:var(--ink);text-align:left;cursor:pointer}
   .dir-row .card-open::after{content:"";position:absolute;inset:0;border-radius:var(--radius-md)}
   .dir-row .card-open:focus-visible{outline:none}
   .dir-row:has(.card-open:focus-visible){outline:2px solid var(--primary);outline-offset:2px}
-  .dir-sub{display:flex;align-items:center;gap:6px;margin-top:2px;min-width:0;flex-wrap:wrap;font-size:11px;color:var(--ink-soft)}
+  /* UNE SEULE LIGNE, ELLIPSÉE — et l'ordre est celui de l'importance, puisque c'est la QUEUE qui
+     tombe : l'état d'abord (chrono vivant, statut, à compléter), puis le discriminant, puis la
+     catégorie, et enfin le code et la date, qui sont ce qu'on peut perdre. */
+  .dir-sub{display:flex;align-items:center;gap:5px;margin-top:3px;min-width:0;font-size:11px;
+    color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* ⚠ CE QUI DÉBORDE NE DOIT PAS AFFAMER LE RESTE (signalé à l'usage : avec un code long, la
+     DATE disparaissait). Ellipser la LIGNE entière fait tomber la queue — donc l'élément le moins
+     large, quel que soit le coupable. On distingue donc deux natures :
+       · les items DURS (chrono, registre, statut, date) ne rétrécissent jamais : ils sont courts,
+         bornés, et un chiffre amputé est pire qu'absent (règle du quai) ;
+       · les items SOUPLES (discriminant, bibliothèque, catégorie, code) rétrécissent chacun POUR
+         SOI, avec leur propre ellipse — le flex répartit le manque au prorata, donc c'est le PLUS
+         LONG qui cède le plus, et tous restent présents.
+     Résultat : un code de trente caractères s'abrège lui-même au lieu d'effacer la date. */
+  .dir-sub>*{flex:none}
+  .dir-sub>:is(b,.libtag,.dir-cat,.dir-code){flex:0 1 auto;min-width:2.5em;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  /* ⚠ SOUS 400 px, LE PLANCHER DES ITEMS SOUPLES DESCEND. Le tag de nature est un item DUR de
+     plus : sur la largeur la plus contrainte servie, avec un code et une catégorie très longs,
+     la somme des items durs et des quatre planchers de 2,5 em dépassait la boîte — et c'est
+     alors la DATE, dernier item dur, qui était POUSSÉE DEHORS. Or la règle est qu'un item ne
+     disparaît pas : il s'abrège. On abaisse donc le plancher là, et là seulement — 2,5 em reste
+     le bon compromis dès qu'il y a de la place. */
+  @media (max-width:399.98px){.dir-sub>:is(b,.libtag,.dir-cat,.dir-code){min-width:1.6em}}
+  /* LA MÉTA EST DU TEXTE SÉPARÉ PAR DES POINTS, PAS UNE SUITE DE CHIPS (maquette). Une chip a une
+     largeur INCOMPRESSIBLE : dans une grille d'accueil qui compte deux à quatre colonnes selon la
+     largeur, elles se coupaient net dès que la piste rétrécissait — c'est ce qui a été signalé.
+     Du texte, lui, s'ellipse proprement et par la QUEUE, donc dans l'ordre d'importance choisi.
+     Les composants partagés (`.tag`, `.status-tag`) sont donc DÉSHABILLÉS ICI, et ici seulement :
+     on ne touche pas à leur dessin ailleurs, où la chip a un sens. */
+  /* ⚠ QUATORZIÈME PIÈGE DE CASCADE : `.tag.todo` vaut (0,2,0) et est déclarée PLUS BAS que
+     `.dir-sub .tag` — à spécificité égale, c'est l'ORDRE qui tranche, et le fond gris de la chip
+     revenait. On passe par `.dir-row` (0,3,0), qui gagne quel que soit l'ordre : c'est la règle du
+     dossier depuis la v4.25.1 — « pour une géométrie, ne jamais dépendre de l'ordre ». */
+  .dir-row .dir-sub :is(.tag,.status-tag){background:none;border:0;padding:0;border-radius:0;
+    font-size:11px;font-weight:700;color:var(--ink-soft);text-decoration:none}
+  /* Le tag de NATURE : du TEXTE en petites capitales, pas une pastille — c'est la doctrine de
+     cette méta (« du texte séparé par des points, pas une suite de chips »), et ce n'est pas un
+     détail de goût : mesuré, la pastille coûtait 16 px de chrome par rangée et faisait basculer
+     la ligne dans l'ellipse à quatre colonnes, sur des données ORDINAIRES. Registre neutre,
+     jamais une couleur de sens (règle 8) ; item DUR, donc jamais rétréci. */
+  .dir-kind{flex:none;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--ink-soft)}
+  .dir-sub b{font-weight:700;color:var(--ink)}
+  .dir-row .dir-sub :is(.tag.todo,.tag.stale){color:var(--verify)}
+  /* Le point de séparation est posé par la CASCADE : rien à intercaler dans le gabarit, donc
+     aucun séparateur orphelin quand un élément manque. */
+  .dir-sub>*+*::before{content:"·";margin-right:4px;color:var(--line-strong);font-weight:400}
+  /* La cible du « △ À compléter » : rembourrage compensé, comme le bouton-titre — sans lui elle
+     tomberait à la hauteur du texte (11 px), sous le seuil WCAG 2.5.8. */
+  .dir-row .dir-sub .tag.todo{padding:6px 4px;margin:-6px -4px;cursor:pointer}
+  .dir-sub .tag.todo:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* Le liseré porte la CATÉGORIE — la pastille faisait double emploi (règle 14 : elle est purgée). */
+  .dir-row::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
+    background:var(--catcol,var(--line-strong));border-radius:var(--radius-md) 0 0 var(--radius-md)}
+  /* SESSION EN COURS — trois canaux cumulés, aucun ne coûtant de hauteur : le liseré passe au
+     registre CONFIRMATION, la rangée en prend la teinte, et la DATE cède la place au CHRONO
+     VIVANT. Ce dernier est le plus juste des trois : il occupe une place DÉJÀ prise (une date de
+     validation n'apprend rien pendant qu'une session tourne), un temps qui s'incrémente est un
+     signal non ambigu — la couleur n'est donc jamais seule (règle 8) —, et l'on apprend en plus
+     DEPUIS COMBIEN DE TEMPS. */
+  .dir-row.live{background:var(--ok-soft)}
+  .dir-row.live::before{background:var(--ok);width:4px}
+  .dir-live{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:11px;
+    font-weight:700;color:var(--ok)}
+  .dir-live i{width:7px;height:7px;border-radius:50%;background:var(--ok);flex:none}
+  /* Un seul mouvement, et il vit sur l'ACCUEIL — jamais dans la vue de crise, où il est réservé à
+     l'alarme (ECAM). Opacité seule, 2,4 s : très loin du seuil de 3 Hz de WCAG 2.3.1. */
+  @media (prefers-reduced-motion:no-preference){
+    .dir-live i{animation:dirBat 2.4s ease-in-out infinite}
+    @keyframes dirBat{0%,70%,100%{opacity:1}85%{opacity:.35}}
+  }
   .dir-code{flex:none;font-family:var(--mono);font-size:11px;color:var(--ink-soft)}
   .dir-row :is(.pinbtn,.tag.todo){position:relative;z-index:1}
   /* Épingle : cible tactile 40px, étoile SVG pleine ambrée quand actif. */
+  /* L'ÉPINGLE À 26 px GARDE UNE CIBLE DE 44 par un halo — mais le halo doit TENIR DANS LA RANGÉE :
+     avec 4 px de rembourrage à droite il en dépassait de 5, donc était rogné (`overflow:hidden`),
+     et la cible se retrouvait amputée du côté du pouce. Le rembourrage droit passe à 9 px : 26 + 9
+     + 9 = 44, exactement la cible, et plus rien ne sort. */
+  .dir-row .pinbtn{min-width:26px;min-height:26px;position:relative}
+  .dir-row .pinbtn::before{content:"";position:absolute;inset:-9px}
   .pinbtn{background:none;border:0;line-height:1;color:var(--ink-soft);min-width:40px;min-height:40px;border-radius:var(--radius-sm);cursor:pointer;flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center}
   .pinbtn:hover{background:var(--primary-soft);color:var(--primary)}
   .pinbtn.on{color:var(--verify)}
@@ -1105,14 +1248,21 @@
      (maquette mobile) — mêmes nœuds, seul le conteneur change de peau. */
   @media (max-width:639.98px){
     .dir-grid{display:block;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-md);overflow:hidden}
-    .dir-row{border:0;border-top:1px solid var(--surface-2);border-radius:0;min-height:48px}
+    .dir-row{border:0;border-top:1px solid var(--surface-2);border-radius:0}
+    .dir-row::before{border-radius:0}
     .dir-row:first-child{border-top:0}
     .dir-row .card-open::after{border-radius:0}
   }
   /* Rail alphabétique : tap = saut, glisser = parcourir (touch-action:none — le geste est le
      parcours, jamais un défilement de page). Débordement : le rail se masque (bindAzRail) —
      jamais de lettres coupées ni de cibles rétrécies sous 24 px. */
-  .azrail{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:8px 2px;touch-action:none;overflow:hidden}
+  /* ⚠ ANCRÉES EN HAUT, ET PARTOUT (signalé à l'usage : « sa position bouge sans cesse »). La
+     v4.73.0 avait posé `flex-start` sur la seule variante ÉTROITE ; en vue LARGE le rail restait
+     `justify-content:center`, donc la position des lettres dépendait de LEUR NOMBRE — filtrer ou
+     chercher en changeait la quantité et déplaçait toute la colonne (mesuré : première lettre à
+     307 px, ailleurs dès qu'une lettre disparaît). Un index d'annuaire doit être là où l'on a
+     appris à le viser, quel que soit ce qu'il contient. */
+  .azrail{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:1px;padding:8px 2px;touch-action:none;overflow:hidden}
   .azrail button{border:0;background:none;color:var(--link);font-size:11px;font-weight:700;cursor:pointer;padding:0 5px;min-height:24px;min-width:24px;border-radius:5px;font-family:inherit}
   .azrail button:hover{background:var(--primary-soft)}
   .azrail button:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
@@ -1300,6 +1450,348 @@
   /* ★ — registre ALERTE, et ici c'est justifié : un memory item est par définition « ce qui tue
      si on l'oublie », le registre même du chapeau qu'il rejoint. */
   .mem-tgl.on{background:var(--critical-soft);color:var(--critical);border-color:var(--critical-bd)}
+  /* RANGÉE D'ITEM (maquette proto-large) : poignée à GAUCHE, plus de case inerte, DEUX champs.
+     La marque de registre remplace la case : elle DIT le registre au lieu d'inviter à cocher. */
+  /* B4 — les deux moitiés de la condition d'entrée sont NUES dans leur fieldset commun : deux
+     cartes imbriquées feraient croire à deux sections, ce que la fusion vient précisément de
+     supprimer. Seul l'intitulé les distingue. */
+  .ed-entry .list-edit.bare{border:0;background:none;box-shadow:none;padding:0;margin:0 0 14px}
+  .ed-entry .list-edit.bare:last-child{margin-bottom:0}
+  .ed-entry .list-edit.bare>label{font-size:12px}
+  /* M5 — le sommaire d'une référence : colonne collante à droite, jamais sous 1000 px. */
+  .ref-grid{display:block}
+  /* SOUS 1000 px : LE VOLET S'ACCROCHE SOUS L'EN-TÊTE (demande utilisateur). Un dépliant posé
+     dans le flux disparaît dès qu'on descend de deux écrans — or chercher dans une référence, on
+     le fait précisément quand on est loin dans le texte. Collé, il est atteignable en permanence,
+     sans occuper de place tant qu'il est replié : c'est le même arbitrage que le quai de crise,
+     à ceci près qu'on est ici hors session.
+     DÉPLIÉ, IL EST BORNÉ ET DÉFILE : une référence à trente titres remplirait l'écran et
+     masquerait ce qu'on cherche à atteindre. La hauteur suit la règle 10 — jamais un `dvh` nu,
+     toujours divisé par le zoom du réglage de taille du texte. Et le résumé RESTE visible pendant
+     que la liste défile : sans lui on ne saurait plus comment refermer. */
+  /* ⚠ IL PROLONGE L'EN-TÊTE, IL NE FLOTTE PAS DESSOUS (signalé à l'usage : « lorsque ça colle ça
+     ne fusionne pas à l'en-tête et ça fait moche »). Une carte arrondie avec ses marges, collée
+     sous la barre, se lit comme un objet POSÉ sur la page — deux surfaces séparées par un liseré
+     de fond. Ici c'est le MÊME chrome : il déborde les marges du contenu (`margin-inline` négatif
+     compensé), n'a ni rayon ni bord latéral, et ne porte qu'un FILET BAS — exactement la
+     grammaire de `header.bar`. L'ombre ne paraît qu'OUVERT — c'est-à-dire au seul moment où il
+     RECOUVRE le texte ; replié il ne recouvre rien, et une ombre permanente y recréerait la
+     séparation qu'on vient de supprimer. */
+  /* La barre prend les traits de `header.bar` : même fond, filet bas, pleine largeur, aucun
+     rayon — rien qui la détache de la rangée du dessus. `--refbar-h` (mesurée par
+     `syncRefBar`, divisée par le zoom comme toute mesure réinjectée) réserve sa place dans le
+     flux : le contenu naît SOUS elle, donc rien ne se glisse derrière. */
+  /* CONTINUITÉ AVEC LE BANDEAU-TITRE, AU TRAIT PRÈS (demande utilisateur : « garde le même style
+     que le bandeau pour une bonne continuité ») : même fond `--surface`, même rembourrage
+     horizontal de 18 px, aucun rayon, aucune ombre au repos. LE FILET DE SÉPARATION EST GARDÉ
+     (demande utilisateur : « marque tout de même une petite ligne de séparation … comme pour les
+     aides ») : c'est exactement la grammaire de `#crisisCtrl` au-dessus de `#crisisDock` — deux
+     rangées de MÊME chrome, chacune bordée en bas. Continuité ne veut pas dire indistinction :
+     le fond commun fait le bloc, le filet dit qu'il a deux étages. */
+  #refBar{position:fixed;left:0;right:0;top:var(--hdr-h,64px);z-index:14;
+    background:var(--surface);border-bottom:1px solid var(--line)}
+  #refBar>.ref-toc{max-width:1064px;margin:0 auto;padding:0 18px}
+  body.refbar-on main{padding-top:calc(var(--refbar-h,0px) + 10px)}
+  details.ref-toc{background:none;border:0;border-radius:0}
+  /* OUVERT, il RECOUVRE le texte : il prend alors son ombre et se borne, avec l'intitulé
+     maintenu à l'écran pour que la sortie ne parte jamais hors de portée. Replié il ne recouvre
+     rien — une ombre permanente y recréerait la séparation qu'on vient de supprimer. */
+  details.ref-toc[open]{padding-bottom:8px;max-height:calc(56dvh / var(--zf,1));
+    overflow-y:auto;overscroll-behavior:contain}
+  #refBar:has(>.ref-toc[open]){box-shadow:var(--shadow)}
+  details.ref-toc>.rt-sum{position:sticky;top:0;z-index:1;background:var(--surface)}
+  details.ref-toc[open]>.rt-sum{border-bottom:1px solid var(--line);margin:0 -18px;padding:0 18px}
+  .rt-sum{display:flex;align-items:center;gap:9px;min-height:44px;cursor:pointer;list-style:none}
+  .rt-sum::-webkit-details-marker{display:none}
+  .rt-sum::after{content:"▾";margin-left:auto;color:var(--ink-soft);font-size:11px}
+  details.ref-toc[open] .rt-sum::after{content:"▴"}
+  .rt-sum .rt-h{padding:0}
+  .rt-n{font-size:11px;font-weight:700;color:var(--ink-soft)}
+  /* CHERCHER DANS LA RÉFÉRENCE : le champ vit dans le sommaire — on cherche là où l'on s'oriente. */
+  /* « Sommaire » ne colle plus à la ligne du dessus (signalé à l'usage). */
+  /* ⚠ AUTANT D'AIR DE PART ET D'AUTRE DU FILET (signalé à l'usage : « Sommaire est collé à la
+     barre du dessus, alors qu'il y a plus d'espace entre la barre et l'input »). Le rembourrage
+     bas de la zone de recherche s'ajoutait à la marge du titre : 8 + 16 = 24 px au-dessus du
+     filet contre 12 en dessous. On annule le rembourrage bas de la recherche et l'on pose la même
+     valeur des deux côtés — une séparation se lit à sa symétrie, pas à son trait. */
+  /* L'AIDE-MÉMOIRE DE SYNTAXE SE REPLIE (signalé à l'usage : « c'est moche »). C'était un
+     paragraphe de vingt lignes sous le champ, permanent : on le lit une fois, on le subit
+     ensuite. Replié, il tient en une ligne ; déplié, il devient LISIBLE — chaque règle sur sa
+     propre ligne au lieu d'une phrase continue, et les exemples en mono se détachent. Même
+     gabarit que les autres dépliants du produit (`.crit-guide`, `.rev-panel`). */
+  .md-syn{margin:8px 0 0;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--surface-2)}
+  .md-syn>summary{display:flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;cursor:pointer;
+    list-style:none;font-size:12px;font-weight:700;color:var(--ink-soft)}
+  .md-syn>summary::-webkit-details-marker{display:none}
+  .md-syn>summary::before{content:"▾";font-size:11px;color:var(--ink-soft)}
+  .md-syn[open]>summary::before{content:"▴"}
+  .md-syn>summary:focus-visible{outline:2px solid var(--primary);outline-offset:-2px;border-radius:var(--radius-sm)}
+  .md-syn>.hint{margin:0;padding:0 12px 12px;line-height:1.9}
+  .md-syn code{background:var(--tag-bg);color:var(--tag-ink);border-radius:4px;padding:1px 5px;
+    font-family:var(--mono);font-size:11px;white-space:nowrap}
+  /* ⚠ CES RÈGLES VIVAIENT DANS LA MEDIA QUERY ≥ 1000 px (signalé à l'usage : « le sommaire
+     s'affiche très mal en mode en-tête »). Sous ce seuil, les intitulés et les rangées n'avaient
+     donc AUCUN style : des boutons bruts, à la police du système. Le dessin d'un composant ne
+     dépend pas de la largeur — seule sa DISPOSITION en dépend ; ce qui est commun se déclare au
+     niveau commun. */
+  .rt-h{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);
+    padding:0 8px 6px}
+  .rt-lnk{display:block;width:100%;text-align:left;background:none;border:0;border-radius:8px;
+    padding:7px 8px;min-height:32px;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer;
+    font-family:inherit;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rt-lnk:hover{background:var(--hover)}
+  .rt-lnk:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
+  .rt-2{padding-left:20px;font-weight:500;color:var(--ink-soft)}
+  .rt-find{padding-bottom:0}
+  /* ⚠ QUINZIÈME PIÈGE DE CASCADE : `.rt-h2` posait un `padding-top` LONGHAND, et `.rt-h` — même
+     spécificité, déclarée plus bas — repose un `padding` RACCOURCI qui l'écrase intégralement.
+     Mesuré : 14 px demandés, 0 obtenu. On passe par `.ref-toc .rt-h2` (0,2,0), qui gagne quel que
+     soit l'ordre — règle du dossier depuis la v4.25.1. */
+  .ref-toc .rt-h2{margin-top:14px;border-top:1px solid var(--line);padding:14px 8px 6px}
+  /* Les annexes dans la colonne : mêmes composants, dessin allégé — elles y sont subordonnées. */
+  /* Le CORPS d'une référence est la surface de travail : c'est lui qui porte la carte. */
+  .ref-main .md-body{background:var(--surface);border:1px solid var(--line);
+    border-radius:var(--radius-md);padding:16px 20px}
+  @media (max-width:639.98px){.ref-main .md-body{padding:12px 13px}}
+  aside.ref-toc>.ref-copy{margin:10px 0 0;padding:8px 0 0;border-top:1px solid var(--line)}
+  /* Une COPIE d'accès rapide : elle ne se prétend pas la source — pas de fond, pas de cadre. */
+  aside.ref-toc>.ref-copy.block{background:none;border:0;border-top:1px solid var(--line);border-radius:0}
+  aside.ref-toc .block-h{font-size:11px;margin-bottom:6px}
+  aside.ref-toc .links b{display:block;font-size:11px;font-weight:800;letter-spacing:.07em;
+    text-transform:uppercase;color:var(--ink-soft);margin-bottom:6px}
+  aside.ref-toc .related-row{flex-direction:column;align-items:stretch;gap:5px}
+  aside.ref-toc .at-row,aside.ref-toc .btn.sm{width:100%}
+  /* ⚠ ENCORE UN OBJET COLLÉ À LA LIGNE DU DESSUS (signalé à l'usage). Le champ n'avait AUCUN
+     rembourrage haut : il touchait l'intitulé « Rechercher », alors qu'il en avait 8 en bas. On
+     égalise — et la leçon vaut au-delà de ce champ : quand un objet est encadré par deux traits,
+     ce sont les DEUX écarts qui se règlent, jamais un seul. */
+  .rt-find{display:flex;flex-direction:column;gap:6px;padding:8px 8px 0}
+  .rt-find input{width:100%;min-height:38px;font-size:12px;padding:6px 9px;border:1px solid var(--line-strong);
+    border-radius:var(--radius-sm);background:var(--input-bg);color:var(--ink);font-family:inherit}
+  .rt-find input:focus{border-color:var(--primary);outline:none}
+  .rt-fnav{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:var(--ink-soft)}
+  .rt-fnav .mini{width:30px;height:30px}
+  mark.pf-h{background:var(--verify-soft);color:inherit;border-radius:3px;padding:0 1px}
+  mark.pf-h.cur{background:var(--verify-bd);color:var(--on-primary)}
+  @media (min-width:1000px){
+    /* ⚠ LE CORPS EST CENTRÉ DANS LA FENÊTRE, PAS DANS LA GRILLE (signalé à l'usage : « ça donne
+       encore l'impression que le contenu est décalé »). Une grille « sommaire | corps » centre la
+       PAIRE, donc décale le texte vers la droite de la moitié du sommaire. Trois pistes
+       symétriques — `1fr 780px 1fr` — placent le corps exactement au milieu par construction, et
+       le sommaire occupe la marge GAUCHE, calé à son bord. La piste de droite reste vide : c'est
+       le prix d'un texte centré, et c'est le même arbitrage que la vue fiche, où le blanc part au
+       bord. */
+
+    .ref-toc{order:-1}
+    /* ⚠ FONDS INVERSÉS (proposition utilisateur, et elle a raison) : le sommaire était une CARTE
+       BLANCHE et le texte vivait sur le fond de page — l'objet le plus saillant de l'écran était
+       donc celui qui ORIENTE, pas celui qu'on LIT. C'est l'inverse de la doctrine du dossier : la
+       colonne d'orientation est DÉSATURÉE, la colonne de travail est la SURFACE (règle déjà
+       appliquée au rail de lecture et à l'Échelle, v4.59.0). */
+    aside.ref-toc{display:block;position:sticky;top:calc(var(--stick-top,64px) + 8px);
+      background:none;border:0;border-radius:0;padding:10px 0;
+      max-height:calc(100dvh / var(--zf,1) - var(--stick-top,64px) - 24px);overflow-y:auto}
+  }
+  /* LA MARQUE DE REGISTRE NE PREND PLUS DE PLACE DANS LA RANGÉE (v5.0.0) — et c'est ce qui
+     ALIGNE LES FLÈCHES. Chaque `.li` est sa propre boîte : si la marque est un item de la rangée,
+     les rangées marquées décalent tout ce qui suit, et les flèches partent en escalier. En la
+     posant en SUPERPOSITION sur le rembourrage gauche du champ, la boîte du champ commence au
+     même x sur toutes les rangées — donc la flèche aussi. Et l'on ne paie pas les ~50 px que
+     coûterait une colonne réservée, qui à 320 px se prendraient sur le texte. */
+  .li-mk{position:absolute;left:0;top:50%;transform:translateY(-50%);width:20px;
+    display:flex;align-items:center;justify-content:center;color:var(--critical);pointer-events:none}
+  .blk .li{position:relative}
+  .blk .li input[data-sf]{padding-left:11px}
+  .blk .li.li-crit input[data-sf],.blk .li.li-vigil input[data-sf]{padding-left:26px}
+  .li-vigil .li-mk{color:var(--verify)}
+  /* Le champ et sa marque forment un seul objet de la rangée : c'est LUI qui s'étire. */
+  .li-fw{position:relative;flex:1;min-width:0;display:flex}
+  .li-fw input{flex:1;min-width:0}
+  /* LA RÉPONSE ATTENDUE NE SE MONTRE QUE SI ELLE EXISTE — ou pendant qu'on écrit la ligne.
+     Répétée à vide sur chaque rangée, la phrase « réponse attendue (facultatif) » disait cinq
+     fois la même chose et volait un tiers de la largeur au geste, qui est le contenu. C'est la
+     grammaire MK-flux du dossier : au REPOS, aucun chrome ; à l'ÉDITION, les outils paraissent. */
+  .blk .li .li-arrow,.blk .li .li-exp{display:none}
+  .blk .li:focus-within .li-arrow,.blk .li:focus-within .li-exp{display:block}
+  .blk .li.has-exp .li-arrow,.blk .li.has-exp .li-exp{display:block}
+  .blk .li .li-arrow{align-self:center}
+  /* Un memory item posé sur une ÉTAPE apparaît ici en LECTURE SEULE : il se modifie dans son
+     bloc, pas dans le chapeau — le chapeau ne le possède pas, il l'agrège. */
+  /* Un memory item posé sur une ÉTAPE : le texte, puis le renvoi vers le bloc où il vit — sur sa
+     PROPRE ligne. En rangée, le renvoi mangeait la moitié de la largeur et se tronquait en plein
+     titre de bloc, sur téléphone comme sur ordinateur. */
+  .mem-ro{padding:7px 0;border-top:1px solid var(--line)}
+  .mem-l{display:flex;align-items:baseline;gap:8px}
+  .mem-st{flex:none;color:var(--critical);font-size:13.5px}
+  .mem-t{flex:1;min-width:0;font-size:13.5px;font-weight:600;color:var(--ink)}
+  .mem-go{display:block;width:100%;text-align:left;margin-top:4px;min-height:44px;padding:6px 0;
+    background:none;border:0;cursor:pointer;font-size:11px;font-weight:700;color:var(--link)}
+  .mem-go:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:6px}
+  /* La phase vit sur l'en-tête du bloc, discrète : c'est une étiquette d'ORGANISATION, pas un
+     registre — elle ne prend donc aucune couleur sémantique. */
+  /* La phase : un champ DISCRET dans l'en-tête, à droite — une étiquette d'ORGANISATION, jamais
+     un registre, donc aucune couleur sémantique. En filigrane, la phase HÉRITÉE : l'auteur voit
+     ce qui s'appliquera sans avoir à la retaper. */
+  .blk-phase{flex:none;display:flex;align-items:center}
+  .blk-phase :is(input,select){width:132px;font-size:11px;padding:5px 8px;border:1px dashed var(--line-strong);
+    border-radius:var(--radius-sm);background:none;color:var(--ink);font-family:inherit}
+  .blk-phase input{text-align:right}
+  .blk-phase input::placeholder{color:var(--ink-soft);font-style:italic}
+  .blk-phase.inh :is(input,select){border-style:dotted;color:var(--ink-soft)}
+  .blk-phase :is(input,select):focus{border-style:solid;border-color:var(--primary);outline:none;text-align:left}
+  @media (max-width:429.98px){.blk-phase :is(input,select){width:92px}}
+  /* Intertitre de PHASE dans la colonne Structure : un simple repère de groupe, sans surface ni
+     couleur — la colonne oriente, elle n'agit pas. */
+  .eds-ph{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
+    color:var(--ink-soft);margin:10px 0 3px;padding-top:8px;border-top:1px solid var(--line)}
+  .eds-ph:first-child{margin-top:0;padding-top:0;border-top:0}
+  .ph-chip{display:inline-flex;align-items:center;font-size:11px;font-weight:700;letter-spacing:.07em;
+    text-transform:uppercase;background:var(--tag-bg);color:var(--tag-ink);border-radius:6px;padding:2px 7px}
+  /* Les trois sections qui encadrent le parcours inerte (M6). Désaturées comme le reste de la
+     colonne : elle ORIENTE, la colonne d'action AGIT — deux surfaces ne se disputent pas le
+     regard au même niveau de saillance. */
+  /* L'ONGLET « PARCOURS » : la fiche entière en cartes de blocs, inertes (M9, maquette). */
+  .pc-sub{font-size:11px;font-weight:700;letter-spacing:.02em;color:var(--ink-soft);margin:2px 0 10px}
+  .pc-sub b{font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink)}
+  .pc-card{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--line-strong);
+    border-radius:var(--radius-md);padding:10px 12px;margin:0 0 10px}
+  .pc-card.d1{margin-left:12px}.pc-card.d2{margin-left:24px}.pc-card.d3{margin-left:36px}
+  .pc-card.cur{border-color:var(--primary);border-left-color:var(--primary);box-shadow:var(--shadow)}
+  .pc-card.done{border-left-color:var(--ok)}
+  .pc-card.dec{border-left-color:var(--verify-bd)}
+  .pc-card.exc{border-left-color:var(--critical-bd)}
+  .pc-card.entry{background:var(--surface-2)}
+  .pc-card.off{opacity:1}
+  .pc-h{display:flex;align-items:center;gap:9px;padding-bottom:7px;border-bottom:1px solid var(--line);margin-bottom:6px}
+  .pc-n{flex:none;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-family:var(--mono);font-size:11px;font-weight:700;color:var(--on-primary);background:var(--primary)}
+  .pc-card:not(.cur):not(.done) .pc-n{background:var(--surface);color:var(--ink-soft);border:1.5px solid var(--line-strong)}
+  .pc-n.ok{background:var(--ok);color:var(--on-primary);border:0}
+  .pc-ht{flex:1;min-width:0;font-size:12px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink)}
+  /* L'item : case INERTE (aucun `data-ck`, `aria-hidden`), texte, valeur attendue en pilule mono. */
+  .pc-it{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--line)}
+  .pc-it:last-of-type{border-bottom:0}
+  .pc-box{flex:none;width:22px;height:22px;border-radius:6px;border:2px solid var(--line-strong)}
+  .pc-t{flex:1;min-width:0;font-size:13.5px;font-weight:600;color:var(--ink)}
+  .pc-r{flex:none;font-family:var(--mono);font-size:11px;background:var(--tag-bg);color:var(--tag-ink);
+    border-radius:5px;padding:2px 7px}
+  .pc-it.crit{background:var(--critical-soft);border-radius:var(--radius-sm);padding:7px 9px;margin:3px 0}
+  .pc-it.crit .pc-t{color:var(--critical);font-weight:800}
+  .pc-it.crit .pc-box{border-color:var(--critical-bd)}
+  .pc-it.vig{background:var(--verify-soft);border-radius:var(--radius-sm);padding:7px 9px;margin:3px 0}
+  .pc-it.vig .pc-t{color:var(--verify);font-weight:800}
+  .pc-it.vig .pc-box{border-color:var(--verify-bd)}
+  .pc-foot{margin-top:7px;padding:6px 9px;background:var(--surface-2);border-radius:var(--radius-sm);
+    font-family:var(--mono);font-size:11px;color:var(--ink-soft)}
+  .pc-q{font-size:13.5px;font-weight:700;color:var(--verify);margin:2px 0 7px}
+  .pc-opts{display:flex;flex-wrap:wrap;gap:6px}
+  .pc-opt{font-size:11px;font-weight:700;color:var(--verify);background:var(--verify-soft);
+    border:1px solid var(--verify-bd);border-radius:6px;padding:3px 8px}
+  .pc-opt.tk{color:var(--ok);background:var(--done-bg);border-color:var(--done-line)}
+  .pc-opt b{font-family:var(--mono);font-weight:700}
+  /* LA FEUILLE « CONSULTER » (M10, maquette) : une rangée par entrée — case INERTE, intitulé,
+     valeur en pilule mono. Une entrée SIGNALÉE (△) devient une carte teintée, comme partout
+     ailleurs dans le produit : « normal = ligne, signalé = boîte ». */
+  .rs-rows{display:block}
+  .rs-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:9px 2px;
+    border-bottom:1px solid var(--line)}
+  .rs-row:last-child{border-bottom:0}
+  .rs-box{flex:none;width:22px;height:22px;border-radius:6px;border:2px solid var(--line-strong)}
+  .rs-t{flex:1;min-width:0;font-size:13.5px;font-weight:700;color:var(--ink)}
+  .rs-v{flex:1 1 100%;margin-left:32px;font-family:var(--mono);font-size:12px;
+    background:var(--tag-bg);color:var(--tag-ink);border-radius:6px;padding:4px 9px;width:fit-content}
+  .rs-row.vig{background:var(--verify-soft);border:1px solid var(--verify-bd);
+    border-radius:var(--radius-sm);padding:9px 10px;margin-bottom:8px}
+  .rs-row.vig .rs-t{color:var(--verify);text-transform:uppercase;letter-spacing:.02em}
+  .rs-row.vig .rs-box{border-color:var(--verify-bd)}
+  .rs-row.crit{background:var(--critical-soft);border:1px solid var(--critical-bd);
+    border-radius:var(--radius-sm);padding:9px 10px;margin-bottom:8px}
+  .rs-row.crit .rs-t{color:var(--critical)}
+  .rs-row.crit .rs-box{border-color:var(--critical-bd)}
+  /* LE DÉPLIANT DU QUAI (M11) : il appartient à la zone d'état, il se pose donc au plus près
+     d'elle et se distingue du contenu clinique par un simple retrait de surface. */
+  .tk-ack-l2{margin-top:8px;border-top:1px solid var(--ok-line);padding-top:6px}
+  .tk-ack-r{display:flex;align-items:baseline;gap:9px;padding:3px 0}
+  .tk-ack-r span{flex:none;font-family:var(--mono);font-size:11px;color:var(--ink-soft)}
+  .tk-ack-r b{flex:1;min-width:0;font-size:12px;font-weight:600;color:var(--ink)}
+  .tk-ack-r.vd b{text-decoration:line-through;color:var(--ink-soft)}
+  /* ⚠ LE DÉPLIANT D'UNE LIGNE N'EST PLUS UNE CARTE BLANCHE (signalé à l'usage : « est-ce
+     voulu ? » — non). Il datait du temps où la colonne ÉTAIT une carte blanche : il s'y fondait.
+     Depuis que les rangées vivent sur le fond de la colonne, c'était la seule surface blanche de
+     l'écran, donc la plus saillante — alors qu'elle porte du DÉTAIL. Elle prend la surface de
+     second plan et un retrait, comme un contenu subordonné. */
+  .rail-lad .pl-lx,.read-plan .pl-lx{background:var(--surface-2);border-radius:var(--radius-sm);
+    margin:0 2px 6px 28px;padding:8px 10px}
+  .rt-dock{margin:0 0 12px}
+  .rt-dock .rt-panel{margin-top:0}
+  /* ⚠ UN SEUL DESSIN D'INTERTITRE dans la colonne (signalé à l'usage : « à tout moment plus à
+     droite que le reste, hors numérotation qui sort de nulle part »). Il y en avait DEUX —
+     `.pl-cxh` avec 9 px de retrait et un `space-between` qui renvoyait « hors numérotation » sur
+     sa propre ligne, et `.pl-sech` avec 2 px. On garde le second et l'on n'en fait qu'un : même
+     retrait que les rangées, et la précision suit le titre dans la même phrase. */
+  .pl-sech{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
+    color:var(--ink-soft);margin:16px 0 2px;padding:0 2px;line-height:1.35}
+  .pl-sech.cx{color:var(--critical)}
+  .pl-sech span{font-weight:700;color:var(--ink-soft);letter-spacing:.04em}
+  /* Sans pastille, le texte d'une rangée de queue commence au bord — comme dans la maquette. */
+  .pl-line.wl .t,.pl-line.cxl .t{font-weight:600}
+  .pl-line.cxl{padding-left:13px}
+  .pl-line.wl{cursor:default}
+  /* Une complication porte le liseré ROUGE : c'est le seul endroit de la colonne où un registre
+     paraît, et il dit « ceci n'est pas dans la séquence, ceci arrive ». */
+  .pl-line.cxl{border-left:3px solid var(--critical-bd)}
+  /* Les étapes en ligne du plan : désaturées comme le reste de la colonne (elle ORIENTE), le
+     registre porté par le glyphe ET l'encre — jamais la couleur seule. */
+  /* Dans la colonne de droite, le volet perd sa marge de pied : il suit le schéma. */
+  .read-side #revPanel{margin:0 0 14px}
+  .read-side #revPanel .rev-panel{margin:0}
+  /* LA BARRE D'ACTIONS DU COMPTE-RENDU (M8). Sous 560 px, elle est COLLANTE au bas de la feuille
+     et les boutons occupent toute la largeur : le compte-rendu peut faire plusieurs écrans, et
+     l'action ne doit pas se chercher au bout d'un défilement. Elle n'enfreint pas « aucune zone
+     fixe en bas » (SPEC §5), qui vise le CHROME d'une vue de crise : ici on est dans une feuille
+     de débriefing, hors session, et la barre appartient à la feuille — pas à l'application.
+     Au-dessus, elle redevient une rangée alignée à droite : la place existe, le geste est rare. */
+  .rp-acts{display:flex;gap:9px;flex-direction:column;margin-top:14px;
+    position:sticky;bottom:0;padding:10px 0 2px;background:var(--surface);box-shadow:var(--shadow-up)}
+  .rp-acts .btn{width:100%;min-height:48px;justify-content:center}
+  @media (min-width:560px){
+    .rp-acts{flex-direction:row;justify-content:flex-end;position:static;box-shadow:none;padding:0}
+    .rp-acts .btn{width:auto;min-height:44px}
+  }
+  .pl-phase{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
+    color:var(--ink-soft);margin:12px 0 4px;padding-top:8px;border-top:1px solid var(--line)}
+  /* L'ACCUSÉ DE RÉCEPTION DU BLOC (M7). Registre CONFIRMATION — c'est un fait acquis, pas une
+     alerte ; teinte douce, jamais un aplat plein (on ne colore pas la colonne d'action). */
+  .tk-ack{margin-top:8px;padding:10px 11px;background:var(--ok-soft);border:1px solid var(--ok-line);
+    border-radius:var(--radius-md)}
+  .tk-ack-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .tk-ack-t{font-family:var(--mono);font-size:15.5px;font-weight:700;color:var(--ok)}
+  .tk-ack-l{font-size:12px;font-weight:700;color:var(--ink-soft)}
+  /* LES CHIPS DE SUGGESTION SUR FOND VERT (signalé à l'usage : « ça fait gris puis bleu sur du
+     vert »). Elles héritaient du dessin du PANNEAU (fond neutre, survol bleu), posé sur un fond
+     blanc — sur la teinte de confirmation, deux registres se superposaient. Dans l'accusé, elles
+     prennent donc la SURFACE (blanc franc, qui se détache de la teinte) et le filet du registre
+     courant ; le survol reste dans ce même registre. Un seul registre par surface. */
+  .tk-ack-c{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .tk-ack .tk-pick{background:var(--surface);border-color:var(--ok-line);color:var(--ink);
+    min-height:38px;padding:5px 11px}
+  .tk-ack .tk-pick:hover{background:var(--done-bg);border-color:var(--ok)}
+  .tk-ack .tk-pick:focus-visible{outline:2px solid var(--ok);outline-offset:2px}
+  .tk-ack .tk-pick.more{color:var(--ink-soft);font-weight:700}
+  .tk-ack-j{margin-top:9px;background:none;border:0;padding:4px 0;min-height:32px;
+    font-size:13.5px;font-weight:700;color:var(--link);cursor:pointer;text-align:left}
+  .tk-ack-j:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .eds-hors{margin-top:12px}
+  .eds-row.exc .eds-n{color:var(--critical)}
+
+  /* La flèche dit ce que « :: » disait : à gauche ce qui se PRONONCE, à droite ce qui se RÉPOND. */
+  .li-arrow{flex:none;color:var(--ink-soft);font-size:13.5px;font-weight:700}
+  .li .li-exp{flex:0 1 34%;min-width:0;font-family:var(--mono);font-size:12px;color:var(--ink-soft)}
+  .li .li-exp:focus{color:var(--ink)}
+  /* Les outils portent leur MOT (règle 8 étendue aux glyphes) — il s'efface sous 400 px, où la
+     rangée n'a plus la place et où le `title` reste. */
+  .mini-w{margin-left:5px;font-size:11px;font-weight:700;letter-spacing:.02em}
+  @media (max-width:399.98px){.mini-w{display:none}}
   .x2-tgl{font-family:var(--mono);font-weight:700}
   .x2-tgl.on{background:var(--primary-soft);color:var(--primary-dk);border-color:var(--primary)}
   .all-tabs{display:flex;gap:4px;margin:0 0 10px;border-bottom:1px solid var(--line)}
@@ -1314,35 +1806,11 @@
   .cf-stage{padding:0 0 20px}
   .cf-stage:last-child{padding-bottom:6px}
   .cf-stage.on>.cp-h{color:var(--primary-dk)}
-  .care-path{list-style:none;margin:0 0 6px;padding:0}
-  .cp-stage{position:relative;padding:0 0 20px 40px}
-  .cp-stage:last-child{padding-bottom:6px}
-  .cp-stage:not(:last-child)::before{content:"";position:absolute;left:13px;top:34px;bottom:4px;width:2px;border-radius:1px;background:var(--line)}
-  .cp-n{position:absolute;left:0;top:1px;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;font-variant-numeric:tabular-nums}
-  .cp-stage.on .cp-n{background:var(--primary);color:var(--on-primary)}
-  .cp-stage.done .cp-n{background:var(--ok);color:var(--on-primary)}
-  .cp-stage.off .cp-n{background:var(--surface);color:var(--ink-soft);border:2px solid var(--line-strong)}
-  [data-theme="dark"] .cp-stage.on .cp-n{background:var(--primary-dk);color:var(--bg)}
-  [data-theme="dark"] .cp-stage.done .cp-n{background:var(--ok);color:var(--bg)}
   .cp-body{min-width:0}
   /* En-tête d'étape : MÊME registre typographique que .block-h (un seul style de titres) —
      seule la couleur suit l'état, comme h-verify/h-forget suivent le leur. */
   .cp-h{margin:6px 0 10px}
-  .cp-stage.on>.cp-body>.cp-h{color:var(--primary-dk)}
-  @media (max-width:429.98px){.cp-stage{padding-left:33px}.cp-n{width:24px;height:24px;font-size:11px}.cp-stage:not(:last-child)::before{left:11px;top:30px}}
-  /* >= 1000px (vue fiche large, cf. mqReadWide) : pastilles et chiffres agrandis — le rail
-     doit rester lisible à distance sur un grand écran (poste de déchocage). GÉOMÉTRIE LIÉE,
-     ne pas régler « à l'œil » : pour une pastille de W px posée à top:1px,
-     ligne de liaison left = W/2 - 1 et top = 1 + W + 5 ; gouttière = W + 12 ;
-     margin-top du titre = 1 + W/2 - 8,25 (recentrage optique sur le chiffre).
-     Le ✓ des étapes faites suit la pastille via .cp-n svg (le JS pose 13px, valable < 1000px). */
-  @media (min-width:1000px){
-    .cp-stage{padding-left:46px}
-    .cp-n{width:34px;height:34px;font-size:15.5px}
-    .cp-n svg{width:16px;height:16px}
-    .cp-stage:not(:last-child)::before{left:16px;top:40px}
-    .cp-h{margin-top:10px}
-  }
+  @media (min-width:1000px){.cp-h{margin-top:10px}}
   /* Lien « Tableau atypique ? » (étape ① -> différentiels de l'étape ③) : cible 44px (crise). */
   .atyp-link{display:flex;align-items:center;width:100%;min-height:44px;background:none;border:0;border-top:1px solid var(--line);padding:6px 12px;font-family:inherit;font-size:12px;font-weight:700;color:var(--link);cursor:pointer;text-align:left}
   .atyp-link:hover{background:var(--surface-2)}
@@ -1718,7 +2186,10 @@
   .cx-item-tx b{display:block;font-size:15.5px;color:var(--critical)}
   .cx-item-sub{display:block;font-size:12px;color:var(--ink-soft);margin-top:1px}
   .cx-tag{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--critical);background:var(--critical-soft);border:1px solid var(--critical-line);border-radius:999px;padding:1px 8px;vertical-align:1px;white-space:nowrap}
-  .pl-cxh{margin:14px 0 4px;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--critical)}
+  .pl-cxh{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap;
+    margin:14px 0 2px;padding:0 9px;font-size:11px;font-weight:800;letter-spacing:.07em;
+    text-transform:uppercase;color:var(--critical)}
+  .pl-cxh span{color:var(--ink-soft);font-weight:700}
   .pl-line.cxl .n{color:var(--critical)}
   .sv-band.sv-cxband{border-color:var(--critical-bd);color:var(--critical);background:var(--critical-soft)}
   .sv-cell.sv-cx .sv-n{color:var(--critical)}
@@ -1874,6 +2345,16 @@
      règles de même spécificité : l'ordre décide, et c'était l'ancienne. Un survol sombre sur un
      fond clair, c'est-à-dire l'inverse du sens de lecture. */
   .tk-add:hover{background:var(--primary-100)}
+  /* La légende ne liste que les registres RÉELLEMENT présents dans le bloc (lot M2). */
+  .stp-legend{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin:0 0 8px;font-size:11px;font-weight:700;
+    letter-spacing:.02em;color:var(--ink-soft)}
+  .stp-legend svg{vertical-align:-2px;color:var(--critical)}
+  .lg-sp{color:var(--line-strong)}
+  .lg-r{font-family:var(--mono);background:var(--tag-bg);color:var(--tag-ink);border-radius:5px;padding:0 5px}
+  /* « ⏱ Noter » dans la rangée du bloc : même bouton tonal que celui du panneau, jamais rempli —
+     l'unique bouton rempli de l'écran reste « Continuer — … → ». */
+  .tk-inblk{min-height:44px}
+
   .tk-item{border-top:1px solid var(--line)}
   .tk-row{display:flex;gap:9px;align-items:center;padding:8px 0}
   .tk-item .tk-row{padding-bottom:8px}   /* symétrique : 0 collait le ✕ (44px) au filet du bas (v4.23.5) */
@@ -2007,7 +2488,7 @@
   body.share-dead #main :is([data-ck],[data-cninc],[data-cndec],[data-cnreset],[data-tmtoggle],[data-tmreset],
     [data-ovnext],[data-ovend],[data-ovredo],[data-ovopt],[data-plgo],[data-svgo],[data-svref],
     [data-rmok],[data-rmgap],[data-cxback],
-    [data-ovverify],[data-ovvok],[data-ovvgap],[data-tkdel],[data-tktime],#tkAdd),
+    [data-ovverify],[data-ovvok],[data-ovvgap],[data-tkdel],[data-tktime],#tkAdd,[data-tknote]),
   body.share-dead #main .btn:is([data-ovnext],[data-ovend],[data-ovopt],[data-ovverify]){
     color:var(--ink-soft);border-color:var(--line);background:var(--surface-2);
     box-shadow:none;cursor:not-allowed;font-weight:600}
@@ -2263,6 +2744,9 @@
   .blk .li{display:flex;gap:8px;align-items:center;margin-bottom:2px;flex-wrap:wrap}
   .blk .li input[type=text]{flex:1;min-width:0}
   .blk .li .mini{width:38px;height:38px}
+  /* Un outil qui porte son MOT (lot M1) cesse d'être un bouton carré : sans cela le texte
+     débordait de la boîte. La largeur suit le contenu, la hauteur reste la cible. */
+  .blk .li .mini:has(.mini-w){width:auto;min-width:38px;padding:0 10px;gap:0}
   /* Sous 400 px, les outils passent SOUS le champ plutôt que de le comprimer : une étape se lit
      et s'écrit avant de se déplacer, et le champ est ce qu'on manipule le plus. */
   /* Sous 400 px, les outils se compactent (32 px, écart 5) pour rendre de la largeur au CHAMP —
@@ -2529,9 +3013,6 @@
   .ed-forget .lst-n{color:var(--critical)}
   .lst-n.over{color:var(--verify)}
   .list-edit>label{display:flex;align-items:baseline;gap:8px}
-  .li-box{flex:none;width:26px;height:26px;border-radius:7px;border:2px solid var(--line-strong);display:grid;place-items:center;color:var(--line-strong);font-size:13.5px}
-  .li.li-crit .li-box{border-color:var(--critical-bd);color:var(--critical)}
-  .li.li-vigil .li-box{border-color:var(--verify-bd);color:var(--verify)}
   /* LA POIGNÉE DU BLOC VIT EN TÊTE, À DROITE DU TITRE (signalé à l'usage : « le bouton ⠿ des
      blocs est probablement mal placé — ne devrait-il pas être en haut à droite ? »). Elle était
      en pied, au CONTACT de « Supprimer le bloc » : c'est précisément ce que la v4.68.0 avait
@@ -2598,7 +3079,8 @@
   /* §8 fin d'algorithme : état annoncé + la session CONTINUE (Terminer ≠ terminer la session). */
   .flow-end{margin-top:16px;padding:15px;text-align:center;border:2px solid var(--done-line);border-radius:8px;color:var(--ok);font-size:15.5px;font-weight:800;letter-spacing:1px}
   /* ----- Vue d'ensemble du mode crise (v4.6.0) : tous les blocs à la suite ----- */
-  /* Bascule Dynamique ↔ Statique : même composant .seg que la tab bar. Contrairement à #tabBar,
+  /* Bascule Dynamique ↔ Statique : composant .seg à pastille glissante. Contrairement au segmenté
+     du dialogue « Créer »,
      ce segment est RE-RENDU (render complet à la bascule) — le glissement de la pastille est
      donc REJOUÉ par le handler (v4.21.0 : .seg-replay la pose sans transition sur l'ancien
      segment, reflow, retrait -> la transition .seg-pill joue comme sur la tab bar). */
@@ -2737,7 +3219,6 @@
   .ov-plan-h{flex-wrap:wrap}
   /* Nœud du plan : carte compacte NAVIGANTE (taper = y aller) — jamais de case à cocher ici. */
   .pl-x{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--primary);margin-left:6px}
-  .pl-here{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--primary);color:var(--on-primary);padding:1px 8px;border-radius:999px;margin-left:6px;vertical-align:1px}
   .pl-q{font-size:11px;font-weight:400;font-style:italic;color:var(--ink-soft);margin:4px 2px 0}
   /* Liens de structure : convergence « → n » / reprise « ↺ n » — défilement DANS le plan. */
   .pl-lnk{display:inline-flex;align-items:center;gap:5px;min-height:44px;font-size:11px;font-weight:700;color:var(--ink-soft);background:var(--tag-bg);border:1px solid var(--line);border-radius:999px;padding:4px 11px;margin-top:6px;cursor:pointer;font-family:inherit;text-align:left}
@@ -2753,28 +3234,50 @@
      On enroule plutôt que de tronquer : dans un PLAN, une branche cachée est une branche qu'on ne
      saura pas prendre. C'est la différence avec le quai, où l'on abrège et où l'on annonce « +n » —
      ici la place existe, verticalement. */
-  .pl-line{display:flex;align-items:baseline;gap:7px;min-height:44px;padding:7px 9px;border-left:3px solid var(--line-strong);border-bottom:1px solid var(--line);cursor:pointer;flex-wrap:wrap}
-  .pl-line.d1{padding-left:19px}
-  .pl-line.d2{padding-left:29px}
-  .pl-line.d3{padding-left:39px}
-  .pl-line .n{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink-soft);min-width:18px;flex:none;text-align:right}
-  .pl-line .t{flex:1;min-width:0;font-size:12px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* LA RANGÉE DU PARCOURS INERTE (v5.0.0, maquette) : pastille RONDE numérotée à gauche — la
+     même grammaire que les pastilles de bloc de la lecture —, titre au centre, renvois en mono à
+     droite. Pas de liseré coloré sur une rangée ordinaire : l'état vit dans la PASTILLE, et la
+     position dans le fond de la rangée courante. Un liseré de plus ferait deux canaux pour un
+     seul état, et hacherait la colonne. */
+  .pl-line{display:flex;align-items:center;gap:9px;min-height:44px;padding:7px 9px;
+    border-bottom:1px solid var(--line);cursor:pointer}
+  .pl-line.d1{padding-left:22px}
+  .pl-line.d2{padding-left:35px}
+  .pl-line.d3{padding-left:48px}
+  .pl-line .n{flex:none;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink-soft);
+    background:var(--surface);border:1.5px solid var(--line-strong)}
+  .pl-line.done .n{background:var(--ok);border-color:var(--ok);color:var(--on-primary)}
+  .pl-line.cur .n{background:var(--primary);border-color:var(--primary);color:var(--on-primary)}
+  /* Le LOSANGE est le marqueur d'une décision : il n'a pas de numéro à porter (le tronc en a un,
+     la décision est un embranchement). Rien à masquer, donc — on n'émet rien. */
+  .pl-line.dec .n{border:0;background:none;position:relative}
+  .pl-line.dec .n::before{content:"";position:absolute;left:50%;top:50%;width:18px;height:18px;
+    margin:-9px 0 0 -9px;border:1.5px solid var(--verify-bd);border-radius:4px;transform:rotate(45deg)}
+  .pl-line .t{flex:1;min-width:0;font-size:12px;font-weight:600;color:var(--ink);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pl-line.cur .t{font-weight:800}
+  /* La chip de branche : SEULE sur sa ligne, en retrait du niveau qu'elle ouvre. */
+  .pl-brc{padding:9px 9px 4px}
+  .pl-brc.d1{padding-left:22px}.pl-brc.d2{padding-left:35px}.pl-brc.d3{padding-left:48px}
+  .pl-brc span{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.07em;
+    color:var(--verify);background:var(--verify-soft);border:1px solid var(--verify-bd);
+    border-radius:6px;padding:2px 8px}
   /* `white-space:normal` + `min-width:0` : chaque renvoi reste insécable (`.pl-line .g > span`
      n'existe pas — les renvois sont séparés par des espaces), mais le groupe passe à la ligne. */
-  .pl-line .g{flex:1 1 100%;min-width:0;font-family:var(--mono);font-size:11px;color:var(--ink-soft);
-    white-space:normal;overflow-wrap:anywhere}
-  /* Deux options ou moins tiennent sur la même ligne que le titre : on ne casse pas le cas simple. */
-  .pl-line .t{flex:1 1 60%}
+  /* Les renvois sont une COLONNE DE DROITE : ils ne poussent plus le titre à la ligne. Ils
+     s'abrègent (`optAbbr`) donc ils tiennent ; s'ils ne tiennent pas, c'est le TITRE qui cède —
+     un titre ellipsé se devine, un renvoi tronqué ne se répare pas. */
+  .pl-line .g{flex:none;max-width:52%;font-family:var(--mono);font-size:11px;color:var(--ink-soft);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right}
+  .pl-here{color:var(--link);font-weight:800;letter-spacing:.07em;text-transform:uppercase}
   .pl-line .g b{font-weight:700;color:var(--verify)}
   .pl-line .g b.tk{color:var(--ok)}
   .pl-line .g .fin{color:var(--ok);font-weight:700}
   .pl-line .pl-ref{color:var(--link);font-weight:700;cursor:pointer;padding:0 1px}
   .pl-line .pl-bl2{flex:none;font-size:11px;font-weight:700;color:var(--verify);background:var(--verify-soft);border:1px solid var(--verify-bd);border-radius:5px;padding:0 5px}
-  .pl-line.done{border-left-color:var(--done-line)}
-  .pl-line.done .n,.pl-line.done .t{color:var(--ok)}
-  .pl-line.dec{background:var(--verify-soft);border-left-color:var(--verify-bd)}
   .pl-line.dec .t{color:var(--verify)}
-  .pl-line.cur{background:var(--primary-soft);border-left-color:var(--primary)}
+  .pl-line.cur{background:var(--primary-soft)}
   .pl-line.cur .t{color:var(--primary-dk)}
   .pl-line.off{opacity:.5}
   .pl-line:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
@@ -3546,10 +4049,15 @@
      (rôles tablist/tab, flèches + focus itinérant — WCAG 1.4.1 & APG). ----- */
   /* Compacte (v4.1.2) : 44px de haut (cible tactile minimale préservée) + paddings resserrés —
      l'ancienne barre (52px + 8/12 de padding) mangeait trop d'écran sur mobile. */
-  #tabBar{display:none;position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--surface);border-top:1px solid var(--line);padding:5px 10px calc(6px + env(safe-area-inset-bottom))}
-  body.view-home #tabBar{display:block}
+  /* DEUX GROUPES SUR UNE LIGNE, chacun avec son intitulé — et l'enroulement comme filet : à
+     320 px avec plusieurs bibliothèques, deux groupes comprimés seraient illisibles. */
+  .filterbar{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;margin-bottom:8px}
+  .filterbar>*{flex:1 1 auto;min-width:0;margin-bottom:0}
+  .filterbar>.typebar{flex:0 1 auto}
+  .typebar{display:flex;gap:10px;align-items:center;margin-bottom:8px}
+  .typebar .chiprow{flex:1;min-width:0}
   /* Sélecteur SEGMENTÉ à pastille glissante — composant GÉNÉRIQUE (v4.4.2), partagé par la tab
-     bar basse (#tabBar : Aides <-> Protocoles) et le dialogue « Créer » (Aide <-> Protocole).
+     dialogue « Créer » (Aide <-> Protocole) et le sélecteur de taille du texte.
      L'état vit sur la RACINE (.seg.i1 = 2e segment actif) et la racine n'est JAMAIS re-rendue
      -> la pastille GLISSE au lieu de sauter. Deux segments.
      v4.71.1 : le composant accepte N segments (`--seg-n` / `--seg-i`), pour la TAILLE DU TEXTE
@@ -3569,19 +4077,14 @@
      typographique fermée (cf. scripts/check-type.mjs). Largeur FIXE : 4 × 44 + 3 × 8 = 200 px,
      la cible de 44 px étant tenue même au palier le plus étroit servi. */
   #zoomSeg{flex:none;width:200px}
-  /* Le filtre de type a TROIS crans depuis le lot T9 — même mécanique que le sélecteur de taille,
-     par un #id pour ne pas dépendre de l'ordre de déclaration. */
-  #tabSeg .seg-pill{width:calc((100% - (var(--seg-n,3) - 1) * 8px) / var(--seg-n,3));
-    transform:translateX(calc(var(--seg-i,0) * (100% + 8px)))}
   #zoomSeg .seg-pill{width:calc((100% - (var(--seg-n,4) - 1) * 8px) / var(--seg-n,4));
     transform:translateX(calc(var(--seg-i,0) * (100% + 8px)))}
   #zoomSeg .seg-btn{gap:0;font-weight:800}
   #zoomSeg .ts-90{font-size:12px}#zoomSeg .ts-100{font-size:14px}
   #zoomSeg .ts-115{font-size:16.5px}#zoomSeg .ts-130{font-size:18px}
-  #tabBar .seg{max-width:560px;margin:0 auto}   /* skin tab bar : plafond + centrage */
   #createSeg{margin:2px 0 16px}                  /* skin dialogue Créer : respiration */
   /* La tab bar recouvre le bas de page : l'accueil réserve la place (pied de page accessible). */
-  body.view-home .app{padding-bottom:62px}
+  /* Plus de barre fixe en bas de l'accueil (M4) : la hauteur qu'elle réservait est rendue. */
   /* Colonne gauche de l'accueil (>= 780px), rendue par renderHomeList. */
   .home-side{display:none}
   .home-main{min-width:0}
@@ -3658,7 +4161,6 @@
   .hs-add:hover{background:var(--primary-soft)}
   .hs-add:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   @media (min-width:780px){
-    body.view-home #tabBar{display:none}
     /* COQUE FIXE (canvas) : le shell verrouille la hauteur — en-tête et pied ne bougent jamais,
        SEULS la sidebar et le contenu scrollent (chacun le sien). C'est pour ça que la sidebar
        « colle » : plus aucun scroll de page, donc plus aucun déplacement possible à la bascule
@@ -3678,7 +4180,7 @@
     .home-main{flex:1;min-width:0;overflow-y:auto;padding:18px 22px calc(24px + env(safe-area-inset-bottom));scrollbar-gutter:stable}
     .home-main>*{max-width:1320px}
     /* En large, bibliothèques et catégories vivent dans la colonne gauche (chips retirées du flux). */
-    body.view-home :is(.scopebar,.catbar){display:none}
+    body.view-home :is(.typebar,.scopebar,.catbar){display:none}
     /* Rail alphabétique en COLONNE de bord (frère de .home-main dans le flex) ; l'accès à
        l'historique global vit dans la sidebar (.hs-row data-sesshist) — le lien du pied de page
        est la voie ÉTROITE, il disparaît ici. */
@@ -3728,7 +4230,15 @@
     .read-side .pos-card.vig{background:var(--verify-soft);border:1px solid var(--verify-bd);
       border-radius:8px;padding:9px 11px;margin:8px 0}   /* 8 (pas 2) : deux boîtes ambre
       consécutives se collaient — les marges verticales fusionnent au MAX, 2+2 -> 2px */
-    .read-side .pos-card.vig+.pos-card{border-top:0}
+    /* ⚠ CETTE RÈGLE NE VAUT QUE POUR UNE LIGNE QUI SUIT UNE BOÎTE (signalé à l'usage : « la
+       bordure du haut des repères en dessous du premier est tronquée »). Elle a été écrite quand
+       le repère ORDINAIRE était une ligne à filet : après une boîte ambre, ce filet ferait double
+       trait. Mais deux BOÎTES qui se suivent — ce qui est le cas dès que deux repères sont
+       signalés △, donc sur les deux fiches d'exemple depuis le lot T13 — n'ont pas ce problème :
+       la seconde se retrouvait alors sans bord haut, et se lisait comme rognée.
+       C'est la même leçon que « normal = ligne, signalé = boîte » : une règle écrite pour une
+       LIGNE ne doit pas s'appliquer à une BOÎTE. */
+    .read-side .pos-card.vig+.pos-card:not(.vig){border-top:0}
     .read-side .pos-card.vig .pos-name{color:var(--verify)}
     /* AUCUNE section bornée (v4.23.0, retour d'usage « où sont passés mes minuteurs ? »).
        Une tentative de borner la seule section minuteurs a suffi à FAIRE DISPARAÎTRE le compteur
@@ -3743,6 +4253,11 @@
        défaut de mise en page. Désormais c'est « ⤢ complet » qui passe à la ligne — un contrôle
        qui descend d'un rang reste un contrôle, un titre haché n'est plus un titre. */
     .rail-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+    /* L'en-tête du parcours tient sur UNE rangée : le titre cède (ellipse) avant que le bouton
+       « ⤢ complet » ne passe à la ligne — 40 px de colonne rendus, mesurés. Un titre ellipsé se
+       devine, un bouton renvoyé à la ligne coûte une rangée entière. */
+    .rail-sec:has(.rail-lad) .rail-head{flex-wrap:nowrap}
+    .rail-sec:has(.rail-lad) .rail-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .rail-title{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);white-space:nowrap}
     .rail-head :is(.rt-sound,.rt-warn){margin-left:auto}
     .rail-head .rt-sound~.rt-sound,.rail-head .rt-warn~.rt-sound{margin-left:0}
@@ -3780,26 +4295,31 @@
        habillages en feraient deux composants.
        Le fond `--surface` ne rétablit AUCUN aplat d'état : la désaturation ci-dessous reste
        entière, l'état n'est porté que par le marqueur. */
-    .rail-lad{margin-top:6px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-sm);overflow:hidden}
-    .rail-lad .pl-line{border-left-color:transparent;padding-left:6px}
+    /* ⚠ CE BLOC A ÉTÉ RÉÉCRIT (v5.0.0) — il datait du dessin PLAT, où l'état n'était porté que
+       par la COULEUR DU TEXTE du marqueur. Avec la pastille PLEINE de la maquette, sa règle
+       `.pl-line.cur .n{color:var(--link)}` peignait l'encre en bleu SUR un fond bleu : le numéro
+       du bloc courant était invisible, mesuré `color === background === rgb(31,95,166)`. Un
+       héritage de dessin ne se corrige pas au cas par cas, il se REPREND.
+       PLUS DE CARTE BLANCHE (maquette) : les rangées vivent sur le fond de la colonne, séparées
+       par un filet. Une carte ajoutait un cadre autour de ce qui est déjà une colonne, et deux
+       niveaux de surface pour un seul objet.
+       LA DÉSATURATION RESTE, et elle est même plus nette : aucun aplat de rangée sauf la COURANTE,
+       aucun texte coloré — tout l'état vit dans la PASTILLE, qui est le marqueur. */
+    .rail-lad{margin-top:6px}
+    .rail-lad .pl-line{padding-left:2px}
     .rail-lad .pl-line:last-child{border-bottom:0}
     .rail-lad .pl-line.d1{padding-left:16px}
-    .rail-lad .pl-line.d2{padding-left:26px}
-    .rail-lad .pl-line.d3{padding-left:36px}
-    .rail-lad .pl-line:is(.dec,.cur,.done){background:none}
-    .rail-lad .pl-line.cur{border-left-color:var(--primary)}
+    .rail-lad .pl-line.d2{padding-left:28px}
+    .rail-lad .pl-line.d3{padding-left:40px}
+    .rail-lad .pl-line:is(.dec,.done){background:none}
     .rail-lad .pl-line:is(.dec,.cur,.done) .t{color:var(--ink)}
     .rail-lad .pl-line.cur .t{font-weight:800}
-    .rail-lad .pl-line.done .n{color:var(--ok)}
-    .rail-lad .pl-line.cur .n{color:var(--link)}
-    .rail-lad .pl-line.dec .n{color:var(--verify)}
     .rail-lad .pl-line .g b{color:var(--ink-soft)}
     /* « Hors chemin » : PAS d'opacité (un texte à 50% tombe sous le seuil AA — audit v4.23.0) ;
        encre douce + la mention en toutes lettres, la couleur n'est jamais seule. */
     .rail-lad .pl-line.off{opacity:1}
     .rail-lad .pl-line.off :is(.n,.t,.g){color:var(--ink-soft)}
     .rail-lad .pl-line.off .t::after{content:" · hors chemin";font-weight:500;font-size:11px;color:var(--ink-soft)}
-    .rail-lad .pl-here{background:var(--primary-soft);color:var(--primary-dk)}
     /* Seule la PREMIÈRE grille colle à l'en-tête ; `.rt-counters` GARDE son margin-top, sinon la
        dernière carte de minuteur et la première de compteur se touchent (retour d'usage). */
     body.view-read .read-side .rt-grid{margin-top:0}
@@ -3962,7 +4482,13 @@
   .md-toolbar .mdc-vig{color:var(--verify);font-weight:800}
   .md-toolbar .mdc-info{color:var(--primary-dk)}
   .md-toolbar .mdc-ok{color:var(--ok)}
-  .md-toolbar .md-mkb{background:var(--tag-bg);color:var(--tag-ink);font-weight:800}
+  /* ⚠ LE « S » PARAISSAIT DÉSACTIVÉ (signalé à l'usage : « pourquoi est-il grisé ? »). Il portait
+     le fond du SURLIGNEUR sur tout le bouton, pour montrer ce qu'il produit — mais un bouton au
+     fond neutre au milieu de boutons transparents se lit « inactif », pas « achromatique ». Le
+     principe est bon, l'échelle était fausse : c'est la LETTRE qui est surlignée, comme le B est
+     gras et le I italique — chaque outil montre son effet SUR SON GLYPHE, jamais sur sa boîte. */
+  .md-toolbar .md-mkb{font-weight:800}
+  .md-toolbar .md-mkb .mk-s{background:var(--tag-bg);color:var(--tag-ink);border-radius:3px;padding:0 3px}
   /* Images insérées : une rangée par image, avec SA taille d'affichage (v4.4.3). */
   .md-imgs{margin:12px 0 4px}
   .mi-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:7px 0;border-top:1px solid var(--line)}
@@ -4094,12 +4620,40 @@
   /* T3 — repli du chapeau EN SESSION. Le kicker devient une rangée : mot à gauche, compte + chevron
      à droite. La cible fait 44 px (mode crise) sans épaissir le bandeau : le bouton est en négatif
      de marge, le chapeau garde ses 10 px de rembourrage. */
-  .forget-strip.fs-foldable .fs-k{display:flex;align-items:center;gap:9px;margin-bottom:4px}
-  .fs-tgl{margin-left:auto;font:inherit;font-size:11px;font-weight:800;letter-spacing:.07em;
-    color:var(--critical);background:none;border:0;cursor:pointer;min-height:44px;margin:-10px -4px -10px 0;padding:0 4px}
-  .fs-tgl:focus-visible{outline:2px solid var(--critical-bd);outline-offset:2px;border-radius:6px}
+  .forget-strip.fs-foldable :is(.fs-k,.fs-btn){display:flex;align-items:center;gap:9px}
+  /* Le titre EST le déclencheur : cible pleine largeur, ≥ 48 px de haut, avec le rembourrage du
+     bandeau absorbé par des marges négatives pour ne rien décaler. */
+  .fs-btn{width:calc(100% + 26px);margin:-10px -13px 0;padding:10px 13px;min-height:48px;
+    background:none;border:0;cursor:pointer;text-align:left;font:inherit;border-radius:8px 8px 0 0}
+  .fs-btn:focus-visible{outline:2px solid var(--critical-bd);outline-offset:-2px}
+  .forget-strip:not(.fs-closed) .fs-btn{margin-bottom:4px}
+  /* La trace d'un compteur : muette, permanente, à l'endroit du geste. Aucune hauteur tant
+     qu'il n'y a rien à dire (`:empty`). */
+  /* ⚠ REGISTRE CORRIGÉ APRÈS RELECTURE ECAM (question de l'auteur : « bonne couleur ? bon
+     comportement ? »). CE N'EST PAS UNE CONFIRMATION : le vert du dossier dit « ce que l'on VIENT
+     DE FAIRE est acquis » — étape cochée, algorithme terminé —, c'est-à-dire la réponse à un
+     geste. Ici c'est un FAIT PASSIF, affiché en permanence sur chaque compteur : en vert, il
+     diluerait le vert des étapes cochées exactement comme un rouge permanent dilue le rouge des
+     étapes vitales. Registre MEMO (neutre), donc — celui de l'information qui n'appelle aucune
+     action.
+     ET IL RESTE, C'EST VOULU : un fait n'expire pas. C'est l'analogue du « last actuation » d'un
+     synoptique ECAM — un état de l'objet, pas une alerte à acquitter. Le faire disparaître au bout
+     de n secondes rendrait la question « ai-je consigné ? » à nouveau sans réponse, ce qui est
+     précisément ce qu'il vient réparer. */
+  .cn-log{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink-soft);margin-top:2px}
+  .cn-log:empty{display:none}
+  .fs-kt{flex:1;min-width:0}
+  .fs-tgl{margin-left:auto;flex:none;font:inherit;font-size:11px;font-weight:800;letter-spacing:.07em;
+    color:var(--critical)}
   .forget-strip.fs-closed .fs-list{display:none}
   .forget-strip.fs-closed .fs-k{margin-bottom:0}
+  /* ⚠ REPLIÉ, LE DÉCLENCHEUR OCCUPE TOUT LE BLOC (signalé à l'usage : texte non centré une fois
+     replié). Le bouton fait 48 px et centre son texte, mais le chapeau gardait SES 10 px de
+     rembourrage bas : le texte se trouvait donc au-dessus du milieu du bloc. On absorbe ce
+     rembourrage exactement comme le haut — par une marge négative —, si bien que la boîte du
+     bouton et celle du chapeau coïncident. LE TEXTE NE BOUGE PAS AU DÉPLIAGE : dans les deux
+     états il est centré dans les mêmes 48 px, ancrés en haut du chapeau. */
+  .forget-strip.fs-closed .fs-btn{margin-bottom:-10px;border-radius:8px}
   /* Bandeau LONG (v4.4.0) : > 4 rappels -> 2 colonnes en large pour contenir la hauteur du
      chapeau (jamais de repli ni de troncature : un rappel caché n'existe plus). Une colonne
      en étroit et au zoom 400 % (reflow WCAG 1.4.10). Le vrai remède reste éditorial
@@ -4215,10 +4769,14 @@
     .read-grid{display:block!important;grid-template-columns:none!important;gap:0!important;max-width:none!important}
     .read-head h2{font-size:22px!important}   /* corps unique, ni 21 ni 24 selon l'écran */
   }
-  @media print{body{background:var(--paper)}header.bar,#crisisBand,#cbTimers,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.sess-list,.notes-block,#readTopSeg,.ov-redo,.flow-zoom{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}
+  @media print{body{background:var(--paper)}header.bar,#crisisBand,#cbTimers,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.sess-list,.notes-block,#readTopSeg,.ov-redo,.flow-zoom,.ref-toc{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}
     /* Un conteneur à défilement s'imprime TRONQUÉ : à l'impression le tableau se déploie. */
     .md-tw{overflow:visible;break-inside:avoid}.md-tbl{min-width:0;font-size:11px}.md-tbl tr{break-inside:avoid}
     .forget-strip{break-inside:avoid}
+    /* LE SOMMAIRE NE S'IMPRIME PAS (demande utilisateur) : sur papier on TOURNE les pages, on ne
+       saute pas à une ancre — une table des matières qui ne mène nulle part est du bruit, et sa
+       colonne rétrécirait le texte. La grille redevient une seule colonne. */
+    .ref-grid.with-toc{display:block!important}
     /* v4.6.0 : l'algorithme s'imprime ENTIER (le conteneur à défilement tronquait le SVG à
        300 px) et la vue d'ensemble s'imprime DÉPLIÉE — blocs repliés rouverts par CSS (aucun
        état à toucher), hors-chemin en pleine encre (la mention « hors chemin » reste le marqueur). */

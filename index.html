@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-quy111oo1Zew+alofEtEx+Om4+wLmc+fi2jFucd2iBY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-+8gKXMot8O8CnfCT8K3IxUysgITmQ35UXFydOfWnEZ0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1258,7 +1258,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .tag .cat-dot,.cat-chip-selected .cat-dot{width:8px;height:8px;box-shadow:none}
   .scopebar{display:flex;gap:10px;align-items:center;margin-bottom:14px}
   .scopebar .chiprow{flex:1;min-width:0}
-  .scope-lbl{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin-right:2px}
+  /* ⚠ LES TROIS RANGÉES DE FILTRES PARTENT DU MÊME x (signalé à l'usage : « Tout » pas aligné
+     avec « Toutes »). Les intitulés ont des longueurs différentes — TYPE 33 px, CATÉG. 46 —, donc
+     chaque rangée de chips commençait ailleurs : 63 px contre 76, mesurés. Un `min-width` commun
+     aligne les chips sans toucher aux mots. Ce n'est pas de l'esthétique : trois colonnes de
+     départ pour trois filtres qui se lisent du plus large au plus étroit brouillent la hiérarchie
+     qu'on vient de mettre en place. */
+  .scope-lbl{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin-right:2px;
+    min-width:48px}
   /* inline-flex : la pastille ✎ de la chip active (34px, marges négatives) est ABSORBÉE par le
      conteneur flex au lieu de gonfler la boîte de ligne (sinon la chip grandit et décale tout). */
   /* line-height:normal : la chip ACTIVE est un <span> (pastille ✎ imbriquée, pas de bouton dans
@@ -1418,8 +1425,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      ⚠ TOUT ENFANT AJOUTÉ ICI DOIT AVOIR SA PISTE : dans une rangée à hauteur FIXE, un enfant de
      trop passe à la ligne implicite, donc HORS de la boîte, en silence (mesuré une fois : épingle
      à 244 px de large). */
+  /* ⚠ CINQ PIXELS SE TROUVENT DANS LE CHROME, PAS DANS UNE COLONNE EN MOINS (signalé à l'usage :
+     « ça commence à être juste »). Mesuré avec des données ORDINAIRES, la méta manquait de 5 px à
+     la configuration la plus serrée — quatre colonnes de 312 px, entre 1600 et 1690. Élargir la
+     piste minimale les aurait rendus, mais en supprimant une colonne entière sur toute cette
+     bande : 25 % de fiches en moins à l'écran, pour la queue d'un mot. On les prend donc sur les
+     écarts (gap 10 → 5, retrait gauche 14 → 12) et sur le chrome du tag de nature, qui est du
+     TEXTE et non une pastille. Mesuré après : 0 item tronqué de 360 à 1900 px, sauf 3 items à
+     2 px dans la seule bande des quatre colonnes serrées. */
   .dir-row{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;
-    gap:10px;height:71px;padding:0 9px 0 14px;border:1px solid var(--line);border-radius:var(--radius-md);
+    gap:5px;height:71px;padding:0 9px 0 12px;border:1px solid var(--line);border-radius:var(--radius-md);
     background:var(--surface);overflow:hidden}
   .dir-row:hover{border-color:var(--line-hover);background:var(--surface-2)}
   .dir-main{flex:1;min-width:0}
@@ -1432,7 +1447,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* UNE SEULE LIGNE, ELLIPSÉE — et l'ordre est celui de l'importance, puisque c'est la QUEUE qui
      tombe : l'état d'abord (chrono vivant, statut, à compléter), puis le discriminant, puis la
      catégorie, et enfin le code et la date, qui sont ce qu'on peut perdre. */
-  .dir-sub{display:flex;align-items:center;gap:6px;margin-top:3px;min-width:0;font-size:11px;
+  .dir-sub{display:flex;align-items:center;gap:5px;margin-top:3px;min-width:0;font-size:11px;
     color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   /* ⚠ CE QUI DÉBORDE NE DOIT PAS AFFAMER LE RESTE (signalé à l'usage : avec un code long, la
      DATE disparaissait). Ellipser la LIGNE entière fait tomber la queue — donc l'élément le moins
@@ -1446,6 +1461,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .dir-sub>*{flex:none}
   .dir-sub>:is(b,.libtag,.dir-cat,.dir-code){flex:0 1 auto;min-width:2.5em;
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  /* ⚠ SOUS 400 px, LE PLANCHER DES ITEMS SOUPLES DESCEND. Le tag de nature est un item DUR de
+     plus : sur la largeur la plus contrainte servie, avec un code et une catégorie très longs,
+     la somme des items durs et des quatre planchers de 2,5 em dépassait la boîte — et c'est
+     alors la DATE, dernier item dur, qui était POUSSÉE DEHORS. Or la règle est qu'un item ne
+     disparaît pas : il s'abrège. On abaisse donc le plancher là, et là seulement — 2,5 em reste
+     le bon compromis dès qu'il y a de la place. */
+  @media (max-width:399.98px){.dir-sub>:is(b,.libtag,.dir-cat,.dir-code){min-width:1.6em}}
   /* LA MÉTA EST DU TEXTE SÉPARÉ PAR DES POINTS, PAS UNE SUITE DE CHIPS (maquette). Une chip a une
      largeur INCOMPRESSIBLE : dans une grille d'accueil qui compte deux à quatre colonnes selon la
      largeur, elles se coupaient net dès que la piste rétrécissait — c'est ce qui a été signalé.
@@ -1458,11 +1480,18 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      dossier depuis la v4.25.1 — « pour une géométrie, ne jamais dépendre de l'ordre ». */
   .dir-row .dir-sub :is(.tag,.status-tag){background:none;border:0;padding:0;border-radius:0;
     font-size:11px;font-weight:700;color:var(--ink-soft);text-decoration:none}
+  /* Le tag de NATURE : du TEXTE en petites capitales, pas une pastille — c'est la doctrine de
+     cette méta (« du texte séparé par des points, pas une suite de chips »), et ce n'est pas un
+     détail de goût : mesuré, la pastille coûtait 16 px de chrome par rangée et faisait basculer
+     la ligne dans l'ellipse à quatre colonnes, sur des données ORDINAIRES. Registre neutre,
+     jamais une couleur de sens (règle 8) ; item DUR, donc jamais rétréci. */
+  .dir-kind{flex:none;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--ink-soft)}
   .dir-sub b{font-weight:700;color:var(--ink)}
   .dir-row .dir-sub :is(.tag.todo,.tag.stale){color:var(--verify)}
   /* Le point de séparation est posé par la CASCADE : rien à intercaler dans le gabarit, donc
      aucun séparateur orphelin quand un élément manque. */
-  .dir-sub>*+*::before{content:"·";margin-right:5px;color:var(--line-strong);font-weight:400}
+  .dir-sub>*+*::before{content:"·";margin-right:4px;color:var(--line-strong);font-weight:400}
   /* La cible du « △ À compléter » : rembourrage compensé, comme le bouton-titre — sans lui elle
      tomberait à la hauteur du texte (11 px), sous le seuil WCAG 2.5.8. */
   .dir-row .dir-sub .tag.todo{padding:6px 4px;margin:-6px -4px;cursor:pointer}
@@ -1512,7 +1541,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Rail alphabétique : tap = saut, glisser = parcourir (touch-action:none — le geste est le
      parcours, jamais un défilement de page). Débordement : le rail se masque (bindAzRail) —
      jamais de lettres coupées ni de cibles rétrécies sous 24 px. */
-  .azrail{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:8px 2px;touch-action:none;overflow:hidden}
+  /* ⚠ ANCRÉES EN HAUT, ET PARTOUT (signalé à l'usage : « sa position bouge sans cesse »). La
+     v4.73.0 avait posé `flex-start` sur la seule variante ÉTROITE ; en vue LARGE le rail restait
+     `justify-content:center`, donc la position des lettres dépendait de LEUR NOMBRE — filtrer ou
+     chercher en changeait la quantité et déplaçait toute la colonne (mesuré : première lettre à
+     307 px, ailleurs dès qu'une lettre disparaît). Un index d'annuaire doit être là où l'on a
+     appris à le viser, quel que soit ce qu'il contient. */
+  .azrail{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:1px;padding:8px 2px;touch-action:none;overflow:hidden}
   .azrail button{border:0;background:none;color:var(--link);font-size:11px;font-weight:700;cursor:pointer;padding:0 5px;min-height:24px;min-width:24px;border-radius:5px;font-family:inherit}
   .azrail button:hover{background:var(--primary-soft)}
   .azrail button:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
@@ -1710,11 +1745,47 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .ed-entry .list-edit.bare>label{font-size:12px}
   /* M5 — le sommaire d'une référence : colonne collante à droite, jamais sous 1000 px. */
   .ref-grid{display:block}
-  /* SOUS 1000 px : un DÉPLIANT en tête du corps, replié — un sommaire qu'on ouvre, jamais une
-     liste qui pousse le texte. Même gabarit que les autres dépliants du produit. */
-  details.ref-toc{margin:0 0 14px;background:var(--surface-2);border:1px solid var(--line);
-    border-radius:var(--radius-md);padding:0 10px}
-  details.ref-toc[open]{padding-bottom:8px}
+  /* SOUS 1000 px : LE VOLET S'ACCROCHE SOUS L'EN-TÊTE (demande utilisateur). Un dépliant posé
+     dans le flux disparaît dès qu'on descend de deux écrans — or chercher dans une référence, on
+     le fait précisément quand on est loin dans le texte. Collé, il est atteignable en permanence,
+     sans occuper de place tant qu'il est replié : c'est le même arbitrage que le quai de crise,
+     à ceci près qu'on est ici hors session.
+     DÉPLIÉ, IL EST BORNÉ ET DÉFILE : une référence à trente titres remplirait l'écran et
+     masquerait ce qu'on cherche à atteindre. La hauteur suit la règle 10 — jamais un `dvh` nu,
+     toujours divisé par le zoom du réglage de taille du texte. Et le résumé RESTE visible pendant
+     que la liste défile : sans lui on ne saurait plus comment refermer. */
+  /* ⚠ IL PROLONGE L'EN-TÊTE, IL NE FLOTTE PAS DESSOUS (signalé à l'usage : « lorsque ça colle ça
+     ne fusionne pas à l'en-tête et ça fait moche »). Une carte arrondie avec ses marges, collée
+     sous la barre, se lit comme un objet POSÉ sur la page — deux surfaces séparées par un liseré
+     de fond. Ici c'est le MÊME chrome : il déborde les marges du contenu (`margin-inline` négatif
+     compensé), n'a ni rayon ni bord latéral, et ne porte qu'un FILET BAS — exactement la
+     grammaire de `header.bar`. L'ombre ne paraît qu'OUVERT — c'est-à-dire au seul moment où il
+     RECOUVRE le texte ; replié il ne recouvre rien, et une ombre permanente y recréerait la
+     séparation qu'on vient de supprimer. */
+  /* La barre prend les traits de `header.bar` : même fond, filet bas, pleine largeur, aucun
+     rayon — rien qui la détache de la rangée du dessus. `--refbar-h` (mesurée par
+     `syncRefBar`, divisée par le zoom comme toute mesure réinjectée) réserve sa place dans le
+     flux : le contenu naît SOUS elle, donc rien ne se glisse derrière. */
+  /* CONTINUITÉ AVEC LE BANDEAU-TITRE, AU TRAIT PRÈS (demande utilisateur : « garde le même style
+     que le bandeau pour une bonne continuité ») : même fond `--surface`, même rembourrage
+     horizontal de 18 px, aucun rayon, aucune ombre au repos. LE FILET DE SÉPARATION EST GARDÉ
+     (demande utilisateur : « marque tout de même une petite ligne de séparation … comme pour les
+     aides ») : c'est exactement la grammaire de `#crisisCtrl` au-dessus de `#crisisDock` — deux
+     rangées de MÊME chrome, chacune bordée en bas. Continuité ne veut pas dire indistinction :
+     le fond commun fait le bloc, le filet dit qu'il a deux étages. */
+  #refBar{position:fixed;left:0;right:0;top:var(--hdr-h,64px);z-index:14;
+    background:var(--surface);border-bottom:1px solid var(--line)}
+  #refBar>.ref-toc{max-width:1064px;margin:0 auto;padding:0 18px}
+  body.refbar-on main{padding-top:calc(var(--refbar-h,0px) + 10px)}
+  details.ref-toc{background:none;border:0;border-radius:0}
+  /* OUVERT, il RECOUVRE le texte : il prend alors son ombre et se borne, avec l'intitulé
+     maintenu à l'écran pour que la sortie ne parte jamais hors de portée. Replié il ne recouvre
+     rien — une ombre permanente y recréerait la séparation qu'on vient de supprimer. */
+  details.ref-toc[open]{padding-bottom:8px;max-height:calc(56dvh / var(--zf,1));
+    overflow-y:auto;overscroll-behavior:contain}
+  #refBar:has(>.ref-toc[open]){box-shadow:var(--shadow)}
+  details.ref-toc>.rt-sum{position:sticky;top:0;z-index:1;background:var(--surface)}
+  details.ref-toc[open]>.rt-sum{border-bottom:1px solid var(--line);margin:0 -18px;padding:0 18px}
   .rt-sum{display:flex;align-items:center;gap:9px;min-height:44px;cursor:pointer;list-style:none}
   .rt-sum::-webkit-details-marker{display:none}
   .rt-sum::after{content:"▾";margin-left:auto;color:var(--ink-soft);font-size:11px}
@@ -1743,6 +1814,19 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .md-syn>.hint{margin:0;padding:0 12px 12px;line-height:1.9}
   .md-syn code{background:var(--tag-bg);color:var(--tag-ink);border-radius:4px;padding:1px 5px;
     font-family:var(--mono);font-size:11px;white-space:nowrap}
+  /* ⚠ CES RÈGLES VIVAIENT DANS LA MEDIA QUERY ≥ 1000 px (signalé à l'usage : « le sommaire
+     s'affiche très mal en mode en-tête »). Sous ce seuil, les intitulés et les rangées n'avaient
+     donc AUCUN style : des boutons bruts, à la police du système. Le dessin d'un composant ne
+     dépend pas de la largeur — seule sa DISPOSITION en dépend ; ce qui est commun se déclare au
+     niveau commun. */
+  .rt-h{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);
+    padding:0 8px 6px}
+  .rt-lnk{display:block;width:100%;text-align:left;background:none;border:0;border-radius:8px;
+    padding:7px 8px;min-height:32px;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer;
+    font-family:inherit;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rt-lnk:hover{background:var(--hover)}
+  .rt-lnk:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
+  .rt-2{padding-left:20px;font-weight:500;color:var(--ink-soft)}
   .rt-find{padding-bottom:0}
   /* ⚠ QUINZIÈME PIÈGE DE CASCADE : `.rt-h2` posait un `padding-top` LONGHAND, et `.rt-h` — même
      spécificité, déclarée plus bas — repose un `padding` RACCOURCI qui l'écrase intégralement.
@@ -1762,7 +1846,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     text-transform:uppercase;color:var(--ink-soft);margin-bottom:6px}
   aside.ref-toc .related-row{flex-direction:column;align-items:stretch;gap:5px}
   aside.ref-toc .at-row,aside.ref-toc .btn.sm{width:100%}
-  .rt-find{display:flex;flex-direction:column;gap:6px;padding:0 8px 8px}
+  /* ⚠ ENCORE UN OBJET COLLÉ À LA LIGNE DU DESSUS (signalé à l'usage). Le champ n'avait AUCUN
+     rembourrage haut : il touchait l'intitulé « Rechercher », alors qu'il en avait 8 en bas. On
+     égalise — et la leçon vaut au-delà de ce champ : quand un objet est encadré par deux traits,
+     ce sont les DEUX écarts qui se règlent, jamais un seul. */
+  .rt-find{display:flex;flex-direction:column;gap:6px;padding:8px 8px 0}
   .rt-find input{width:100%;min-height:38px;font-size:12px;padding:6px 9px;border:1px solid var(--line-strong);
     border-radius:var(--radius-sm);background:var(--input-bg);color:var(--ink);font-family:inherit}
   .rt-find input:focus{border-color:var(--primary);outline:none}
@@ -1788,13 +1876,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     aside.ref-toc{display:block;position:sticky;top:calc(var(--stick-top,64px) + 8px);
       background:none;border:0;border-radius:0;padding:10px 0;
       max-height:calc(100dvh / var(--zf,1) - var(--stick-top,64px) - 24px);overflow-y:auto}
-    .rt-h{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);
-      padding:0 8px 6px}
-    .rt-lnk{display:block;width:100%;text-align:left;background:none;border:0;border-radius:8px;
-      padding:7px 8px;min-height:32px;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer}
-    .rt-lnk:hover{background:var(--hover)}
-    .rt-lnk:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
-    .rt-2{padding-left:20px;font-weight:500;color:var(--ink-soft)}
   }
   /* LA MARQUE DE REGISTRE NE PREND PLUS DE PLACE DANS LA RANGÉE (v5.0.0) — et c'est ce qui
      ALIGNE LES FLÈCHES. Chaque `.li` est sa propre boîte : si la marque est un item de la rangée,
@@ -1837,12 +1918,18 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      un registre, donc aucune couleur sémantique. En filigrane, la phase HÉRITÉE : l'auteur voit
      ce qui s'appliquera sans avoir à la retaper. */
   .blk-phase{flex:none;display:flex;align-items:center}
-  .blk-phase input{width:110px;font-size:11px;padding:5px 8px;border:1px dashed var(--line-strong);
-    border-radius:var(--radius-sm);background:none;color:var(--ink);text-align:right}
+  .blk-phase :is(input,select){width:132px;font-size:11px;padding:5px 8px;border:1px dashed var(--line-strong);
+    border-radius:var(--radius-sm);background:none;color:var(--ink);font-family:inherit}
+  .blk-phase input{text-align:right}
   .blk-phase input::placeholder{color:var(--ink-soft);font-style:italic}
-  .blk-phase.inh input{border-style:dotted}
-  .blk-phase input:focus{border-style:solid;border-color:var(--primary);outline:none;text-align:left}
-  @media (max-width:429.98px){.blk-phase input{width:76px}}
+  .blk-phase.inh :is(input,select){border-style:dotted;color:var(--ink-soft)}
+  .blk-phase :is(input,select):focus{border-style:solid;border-color:var(--primary);outline:none;text-align:left}
+  @media (max-width:429.98px){.blk-phase :is(input,select){width:92px}}
+  /* Intertitre de PHASE dans la colonne Structure : un simple repère de groupe, sans surface ni
+     couleur — la colonne oriente, elle n'agit pas. */
+  .eds-ph{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
+    color:var(--ink-soft);margin:10px 0 3px;padding-top:8px;border-top:1px solid var(--line)}
+  .eds-ph:first-child{margin-top:0;padding-top:0;border-top:0}
   .ph-chip{display:inline-flex;align-items:center;font-size:11px;font-weight:700;letter-spacing:.07em;
     text-transform:uppercase;background:var(--tag-bg);color:var(--tag-ink);border-radius:6px;padding:2px 7px}
   /* Les trois sections qui encadrent le parcours inerte (M6). Désaturées comme le reste de la
@@ -4845,6 +4932,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     color:var(--critical)}
   .forget-strip.fs-closed .fs-list{display:none}
   .forget-strip.fs-closed .fs-k{margin-bottom:0}
+  /* ⚠ REPLIÉ, LE DÉCLENCHEUR OCCUPE TOUT LE BLOC (signalé à l'usage : texte non centré une fois
+     replié). Le bouton fait 48 px et centre son texte, mais le chapeau gardait SES 10 px de
+     rembourrage bas : le texte se trouvait donc au-dessus du milieu du bloc. On absorbe ce
+     rembourrage exactement comme le haut — par une marge négative —, si bien que la boîte du
+     bouton et celle du chapeau coïncident. LE TEXTE NE BOUGE PAS AU DÉPLIAGE : dans les deux
+     états il est centré dans les mêmes 48 px, ancrés en haut du chapeau. */
+  .forget-strip.fs-closed .fs-btn{margin-bottom:-10px;border-radius:8px}
   /* Bandeau LONG (v4.4.0) : > 4 rappels -> 2 colonnes en large pour contenir la hauteur du
      chapeau (jamais de repli ni de troncature : un rappel caché n'existe plus). Une colonne
      en étroit et au zoom 400 % (reflow WCAG 1.4.10). Le vrai remède reste éditorial
@@ -5089,6 +5183,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   <div id="crisisDock" hidden><div class="dock-in">
     <button id="cbTimers" hidden aria-label="Minuteurs en cours — afficher le panneau"></button>
   </div></div>
+  <!-- ⚠ LE SOMMAIRE ÉTROIT EST DU CHROME, PAS DU CONTENU (signalé à l'usage : « mets-le
+       directement en en-tête plutôt que sticky », « quand ça colle ça ne fusionne pas à
+       l'en-tête »). Un `sticky` DEVIENT collant : il vit d'abord dans le flux, puis se colle —
+       et à cet instant il touche la barre sans en faire partie, deux surfaces au lieu d'une.
+       Il est donc SŒUR de `.app` et `position:fixed`, comme #crisisCtrl et #crisisDock : il ne
+       transitionne jamais, il EST la seconde rangée de l'en-tête, dès le premier pixel. -->
+  <div id="refBar" hidden></div>
   <!-- Bandeau système (registre INFORMATION persistant, ex. nouvelle version du service worker) :
        sous l'en-tête, rejetable ; visible seulement sur l'accueil (body.view-home, v4.20.0). -->
   <div id="sysBanner" class="sys-banner" role="status" hidden><span class="sb-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01" stroke-linecap="round"/></svg></span><span class="sb-txt"></span><button class="sb-act" id="sbReload">Recharger</button><button class="sb-x" id="sbX" aria-label="Masquer">×</button></div>
@@ -6217,7 +6318,7 @@ async function startExercise(f){
     endSession(Runtime);}
   freshRuntime(f,null);Runtime.fiche=f;liveSessions[f.id]=Runtime;
   Runtime.exercise=true;
-  state.flowEnded=false;state.ovVerify=null;state.confOpen=undefined;state.fsOpen=false;state.allTab='page';
+  state.flowEnded=false;state.ovVerify=null;state.confOpen=undefined;state.fsOpen=false;state.allTab='page';state.edPhaseNew=null;
   render();window.scrollTo(0,0);_exoPulse();}
 /* QUITTER L'EXERCICE (v4.28.0, demande utilisateur) : sortie DIRECTE sur le placard. Avant la
    1ʳᵉ action il n'y a rien à archiver — on repose une fiche neuve ; après, MÊME dialogue
@@ -8543,6 +8644,9 @@ async function deleteSession(id){if(!await confirmDlg('Supprimer cette session ?
    renderFiches() : recherche + filtres catégories + accueil « poste accès direct » (v4.56.0) —
      tuiles épinglées puis répertoire A→Z en rangées compactes, rail alphabétique. */
 function applyViewChrome(){
+  // La barre de sommaire est du chrome de LECTURE DE RÉFÉRENCE : tout autre rendu la referme, et
+  // `renderProtocolRead` la repose ensuite si elle a lieu d'être. Un seul point d'extinction.
+  refBarOff();
   // En mode crise, l'en-tête met le TITRE DE LA FICHE en avant (classe .crisis) ; la marque s'efface.
   document.querySelector('header.bar').classList.toggle('crisis',state.view==='read'&&!!state.fiche);
   // Sur l'ACCUEIL, l'en-tête porte le sélecteur de section à la place de la marque (classe .home).
@@ -8925,7 +9029,13 @@ const mqCock=window.matchMedia('(min-width:1200px)');
    défaut préexistait (les trois colonnes de K11 avaient le même trou) ; le lot 1 l'a rendu visible
    en donnant au schéma deux logements très différents. Règle : toute vue dont la STRUCTURE dépend
    d'un palier doit être listée ici — c'est le pendant exact de `_onHomeBp` pour l'accueil. */
-const _onReadBp=()=>{if(state.view==='read'||state.view==='edit'||state.view==='protocolEdit')render();};
+/* ⚠ TOUTE VUE DONT LA STRUCTURE DÉPEND D'UN PALIER DOIT ÊTRE ICI — et la LECTURE D'UNE RÉFÉRENCE
+   y manquait (signalé à l'usage : « non responsive, pas d'adaptation »). Son sommaire est un
+   `<aside>` au-dessus de 1000 px et un `<details>` en dessous : c'est une STRUCTURE, décidée au
+   rendu, donc un redimensionnement laissait la page telle qu'elle avait été RENDUE. Exactement le
+   trou réparé pour les éditeurs en v4.77.0 — il en restait un. */
+const _onReadBp=()=>{if(state.view==='read'||state.view==='edit'||state.view==='protocolEdit'
+  ||state.view==='protocolRead')render();};
 [mqReadWide,mqRail,mqCock].forEach(mq=>{if(mq.addEventListener)mq.addEventListener('change',_onReadBp);else if(mq.addListener)mq.addListener(_onReadBp);});
 // La hauteur de l'en-tête est CONSTANTE : rien ne se replie au défilement. Un repli de la rangée
 // d'identité de l'accueil (classe `.condensed`) a été décrit ici et à deux autres endroits, au
@@ -8939,6 +9049,32 @@ let _hdrTtl=false,_hdrHCss='',_stickCss='',_ctrlHCss='';
 // v4.23.0 : extrait en fonction NOMMÉE — render() la rappelle en fin de rendu. Sans ça, ouvrir
 // une fiche depuis une page déjà en haut ne produit aucun évènement de défilement et l'état
 // .ttl-on héritait de la vue précédente (barre condensée sur une page au repos, ou l'inverse).
+/* ⚠ UNE BARRE DE CHROME SE MESURE, ELLE NE SE DEVINE PAS. Sa hauteur dépend de la taille du
+   texte, de la longueur de l'intitulé et de l'état ouvert/replié — un `padding-top` en dur
+   laisserait le contenu passer derrière elle dès le premier de ces trois cas. Divisée par le
+   zoom comme toute mesure JS réinjectée (règle 10). REPLIÉE seulement : ouverte, elle RECOUVRE
+   délibérément le texte, comme toute feuille qu'on vient d'ouvrir. */
+function syncRefBar(){
+  const bar=document.getElementById('refBar');if(!bar||bar.hidden)return;
+  /* ⚠ ON NE REFERME PAS LE DÉPLIANT POUR LE MESURER (défaut signalé à l'usage : « scroll de la
+     partie dépliée bug »). Ma première version posait `open=false`, lisait la hauteur, puis
+     reposait `open=true` — or `toggle` est ASYNCHRONE : chacune de ces deux écritures en émet un,
+     donc le handler se rappelait lui-même, le panneau battait, et le défilement acquis était
+     remis à zéro à chaque passage. La hauteur REPLIÉE n'a pas besoin de ce détour : elle vaut
+     l'intitulé plus les filets, tous deux présents quel que soit l'état. */
+  const sum=bar.querySelector('.rt-sum'),d=bar.querySelector('details.ref-toc');
+  const h=((sum?sum.getBoundingClientRect().height:bar.getBoundingClientRect().height)
+    +(d?parseFloat(getComputedStyle(bar).borderBottomWidth)||0:0))/zoomF();
+  document.documentElement.style.setProperty('--refbar-h',h+'px');
+}
+/* Elle n'existe QUE dans la lecture d'une référence en voie étroite : tout autre rendu la
+   referme. Le nettoyage vit au point d'étranglement du rendu, pas dans chaque chemin de sortie —
+   une liste de sorties à tenir est une liste dont on oublie un membre (leçon des placards). */
+function refBarOff(){
+  const bar=document.getElementById('refBar');if(!bar||bar.hidden)return;
+  bar.hidden=true;bar.innerHTML='';document.body.classList.remove('refbar-on');
+  document.documentElement.style.removeProperty('--refbar-h');
+}
 function syncHdrScroll(){
   // Vues fiche/protocole (.titled) : le titre n'entre dans la barre (.ttl-on) qu'une fois le
   // titre du CORPS sorti de l'écran (~110px : bouton retour + ligne de titre) — jamais deux
@@ -9103,8 +9239,33 @@ function homeSideHtml(){
 // ne doit pas avoir à se souvenir d'où vit un contenu). Bloc discret sous les résultats ; le tap
 // bascule de section en CONSERVANT la recherche (setSection keepQuery). Le nombre est calculé
 // sans le filtre de catégorie (remis à zéro à la bascule). `other` = section cible.
+/* ⚠ REJOINDRE NE DÉPEND PAS DU FILTRE DE TYPE (signalé à l'usage : « ça ne fonctionne que quand
+   type = aide »). La ligne vivait dans la configuration des FICHES, donc « Tout » l'héritait par
+   raccroc et « Protocoles » ne l'avait pas du tout — alors qu'un code de session ne désigne ni une
+   aide ni une référence : il désigne une SESSION. Elle est hissée dans le rendu commun, avant tout
+   ce qui dépend d'une configuration ; un filtre de type ne peut donc plus la faire disparaître. */
+function homeJoinHtml(){
+  const c=shareCodeNorm(String(state.q||'').trim());
+  if(!shareCodeValid(c))return '';
+  return '<div class="home-join">'
+    +'<span class="hj-ic" aria-hidden="true">⇄</span>'
+    +'<span class="hj-tx"><b>Code de session reconnu</b>'
+    +'<span class="hj-sub">Vous allez suivre la session d’un collègue</span></span>'
+    +'<button class="hj-go" id="homeJoin" data-code="'+esc(c)+'">Rejoindre '+esc(shareCodeFmt(c))+'</button></div>';}
+/* LA NATURE DE L'OBJET SE LIT SUR LA RANGÉE (demande utilisateur, d'après la maquette). En vue
+   « Tout » les deux types se mêlent, et rien ne disait lequel on allait ouvrir : une checklist qui
+   se déroule ou un document qu'on consulte — deux gestes différents. Il est REPRIS dans les vues
+   filtrées, à la demande : un seul dessin de rangée partout, donc rien à réapprendre en changeant
+   de filtre, et le tag reste juste (il ne ment jamais, il est seulement redondant avec le filtre).
+   C'est un item DUR de la méta : il ne rétrécit pas, il ne tombe pas — c'est la première chose
+   qu'on veut savoir, et un mot amputé en dirait moins que rien. */
+function dirKindHtml(k){return `<span class="dir-kind${k==='p'?' p':''}">${k==='p'?'Protocole':'Aide'}</span>`;}
 function crossHitsHtml(q,other){
-  if(!q)return '';
+  /* ⚠ SANS AUTRE SECTION, PAS DE RENVOI (signalé à l'usage). En vue « Tout » la recherche est
+     DÉJÀ globale : `crossKind` y vaut `null`, et le test `other==='protocols'` retombait alors
+     sur la branche FICHES — on annonçait donc « n aides correspondent AUSSI » à quelqu'un qui les
+     avait déjà sous les yeux. Un renvoi vers là où l'on est n'est pas un renvoi, c'est du bruit. */
+  if(!q||!other)return '';
   // Recherche transverse aux sections ET à toutes les bibliothèques (comme la liste principale).
   const vis=x=>canEditFiche(x)||x.status!=='draft';
   const T=qTerms(q);
@@ -9255,6 +9416,7 @@ function renderHomeList(cfg){
   main.innerHTML=`
     ${wide?homeSideHtml():''}
     <div class="home-main">
+    ${homeJoinHtml()}
     ${cfg.topHtml?cfg.topHtml():''}
     <div class="notice" id="syncErrNotice" hidden></div>
     ${cfg.notices?cfg.notices():''}
@@ -9273,6 +9435,7 @@ function renderHomeList(cfg){
   // ::after — cf. .card-open) ; vrai <button>, clavier natif. Épingle et badge « À compléter »
   // sont des frères posés AU-DESSUS (z-index) : leurs taps n'atteignent jamais ce bouton.
   main.querySelectorAll('[data-open]').forEach(el=>{el.onclick=()=>cfg.open(el.dataset.open);});
+  {const hj=document.getElementById('homeJoin');if(hj)hj.onclick=()=>openJoinScreen(hj.dataset.code||'');}
   if(cfg.bind)cfg.bind();
   {const row=document.getElementById('homeChrome').querySelector('.catbar .chiprow');if(row&&_catRowX)row.scrollLeft=_catRowX;}
   placeFooter();   // accueil large : le pied de page (version/synchro/stockage) vit en bas de la sidebar
@@ -9310,15 +9473,6 @@ function _homeCfgF(){return {rerender:renderFiches,crossKind:'protocols',create:
        ligne s'AJOUTE aux résultats, elle ne les remplace pas.
        Coût quand on ne s'en sert pas : ZÉRO pixel, zéro attention. */
     topHtml:()=>{
-      const q=String(state.q||'').trim();
-      if(q){
-        const c=shareCodeNorm(q);
-        if(shareCodeValid(c))return '<div class="home-join">'
-          +'<span class="hj-ic" aria-hidden="true">⇄</span>'
-          +'<span class="hj-tx"><b>Code de session reconnu</b>'
-          +'<span class="hj-sub">Vous allez suivre la session d’un collègue</span></span>'
-          +'<button class="hj-go" id="homeJoin" data-code="'+esc(c)+'">Rejoindre '+esc(shareCodeFmt(c))+'</button></div>';
-      }
       if(txNorm(state.q))return '';
       const liveArr=Object.values(liveSessions).filter(R=>R.started&&R.fiche);
       // CARTE-BILAN de fin de session (v4.16.3, décision utilisateur — esprit ECAM : le
@@ -9339,7 +9493,7 @@ function _homeCfgF(){return {rerender:renderFiches,crossKind:'protocols',create:
       <div class="dir-row${isLive?' live':''}"${cc?` style="--catcol:${safeColor(cc.color)}"`:''}>
         <div class="dir-main">
           <button class="card-open" data-open="${f.id}">${esc(f.title)||'Sans titre'}</button>
-          <span class="dir-sub">${isLive?dirLiveHtml(f.id):''}${statusChip(f.status,true,{validatedAt:f.validatedAt})}${staleDate(f.validatedAt)?`<span class="tag stale" title="${esc(fmtDate(f.validatedAt))} — plus de 2 ans : à revérifier">△<span class="sr-only"> à revérifier</span></span>`:''}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo aria-label="À compléter — ${esc(sp.join(' · '))}" title="Reste à compléter : ${esc(sp.join(' · '))}">△<span class="sr-only"> à compléter</span></span>`:'';})()}${f.discriminant?`<b>${esc(f.discriminant)}</b>`:''}${searchLibTag(f)}${cc?`<span class="dir-cat">${esc(cc.name)}</span>`:''}${f.code?`<span class="dir-code">${esc(f.code)}</span>`:''}${(!isLive&&f.validatedAt)?`<span class="card-date${staleDate(f.validatedAt)?' stale':''}" title="${esc(fmtDate(f.validatedAt))}">${esc(fmtDateShort(f.validatedAt))}</span>`:''}</span>
+          <span class="dir-sub">${dirKindHtml('f')}${isLive?dirLiveHtml(f.id):''}${statusChip(f.status,true,{validatedAt:f.validatedAt})}${staleDate(f.validatedAt)?`<span class="tag stale" title="${esc(fmtDate(f.validatedAt))} — plus de 2 ans : à revérifier">△<span class="sr-only"> à revérifier</span></span>`:''}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo aria-label="À compléter — ${esc(sp.join(' · '))}" title="Reste à compléter : ${esc(sp.join(' · '))}">△<span class="sr-only"> à compléter</span></span>`:'';})()}${f.discriminant?`<b>${esc(f.discriminant)}</b>`:''}${searchLibTag(f)}${cc?`<span class="dir-cat">${esc(cc.name)}</span>`:''}${f.code?`<span class="dir-code">${esc(f.code)}</span>`:''}${(!isLive&&f.validatedAt)?`<span class="card-date${staleDate(f.validatedAt)?' stale':''}" title="${esc(fmtDate(f.validatedAt))}">${esc(fmtDateShort(f.validatedAt))}</span>`:''}</span>
           ${inQ?searchSnippet(ficheSnipParts(f),state.q):''}
         </div>
         <button class="pinbtn${isPinned(f.id)?' on':''}" data-pin="${f.id}" aria-label="${isPinned(f.id)?'Désépingler':'Épingler en accès direct'}" title="${isPinned(f.id)?'Désépingler':'Épingler en accès direct'}">${pinIcon(isPinned(f.id))}</button>
@@ -9363,7 +9517,7 @@ function _homeCfgF(){return {rerender:renderFiches,crossKind:'protocols',create:
       main.querySelectorAll('[data-pin]').forEach(b=>b.onclick=e=>{e.stopPropagation();togglePin(b.dataset.pin);renderFiches();});
       {const br=document.getElementById('lsrReport');if(br)br.onclick=()=>{if(lastEndedSession)exportSessionReport(lastEndedSession.id);};
        const bx=document.getElementById('lsrX');if(bx)bx.onclick=()=>{lastEndedSession=null;renderFiches();};}
-     {const hj=document.getElementById('homeJoin');if(hj)hj.onclick=()=>openJoinScreen(hj.dataset.code||'');}}};}
+      }};}
 function renderFiches(){renderHomeList(_homeCfgF());}
 /* ----- Vues PROTOCOLES : liste (renderProtocols), lecture (renderProtocolRead), édition
    (renderProtocolEdit). Même chrome d'accueil que la bibliothèque de fiches (sélecteur de
@@ -9426,7 +9580,7 @@ function _homeCfgP(){return {rerender:renderProtocols,crossKind:'fiches',create:
       <div class="dir-row"${cc?` style="--catcol:${safeColor(cc.color)}"`:''}>
         <div class="dir-main">
           <button class="card-open" data-open="${p.id}">${esc(p.title)||'Sans titre'}</button>
-          <span class="dir-sub">${searchLibTag(p)}${statusChip(p.status,false,{validatedAt:p.validatedAt})}${staleDate(p.validatedAt)?`<span class="tag stale" title="${esc(fmtDate(p.validatedAt))} — plus de 2 ans : à revérifier">△<span class="sr-only"> à revérifier</span></span>`:''}${nDoc?`<span>${nDoc} PDF</span>`:''}${cc?`<span class="dir-cat">${esc(cc.name)}</span>`:''}${p.code?`<span class="dir-code">${esc(p.code)}</span>`:''}${p.validatedAt?`<span class="card-date${staleDate(p.validatedAt)?' stale':''}" title="${esc(fmtDate(p.validatedAt))}">${esc(fmtDateShort(p.validatedAt))}</span>`:''}</span>
+          <span class="dir-sub">${dirKindHtml('p')}${searchLibTag(p)}${statusChip(p.status,false,{validatedAt:p.validatedAt})}${staleDate(p.validatedAt)?`<span class="tag stale" title="${esc(fmtDate(p.validatedAt))} — plus de 2 ans : à revérifier">△<span class="sr-only"> à revérifier</span></span>`:''}${nDoc?`<span>${nDoc} PDF</span>`:''}${cc?`<span class="dir-cat">${esc(cc.name)}</span>`:''}${p.code?`<span class="dir-code">${esc(p.code)}</span>`:''}${p.validatedAt?`<span class="card-date${staleDate(p.validatedAt)?' stale':''}" title="${esc(fmtDate(p.validatedAt))}">${esc(fmtDateShort(p.validatedAt))}</span>`:''}</span>
           ${inQ?searchSnippet(protoSnipParts(p),state.q):''}
         </div>
         <button class="pinbtn${isPinned(p.id)?' on':''}" data-pin="${p.id}" aria-label="${isPinned(p.id)?'Désépingler':'Épingler en accès direct'}" title="${isPinned(p.id)?'Désépingler':'Épingler en accès direct'}">${pinIcon(isPinned(p.id))}</button>
@@ -9666,7 +9820,12 @@ function renderProtocolRead(){
         if(dg)nav.appendChild(Object.assign(dg.cloneNode(true),{className:dg.className+' ref-copy'}));
         const lk=main.querySelector('.ref-main .links');
         if(lk)nav.appendChild(Object.assign(lk.cloneNode(true),{className:lk.className+' ref-copy'}));}}
-     else bd.parentElement.insertBefore(nav,bd);
+     /* ÉTROIT : LA BARRE DE CHROME, jamais le flux. `syncRefBar` mesure sa hauteur RÉELLE et la
+        pose en `--refbar-h` (÷ zoom, règle v4.13.1) : elle réserve la place du contenu au lieu de
+        la deviner, et le dépliage la remesure — sinon le texte naîtrait derrière elle. */
+     else{const bar=document.getElementById('refBar');bar.innerHTML='';bar.appendChild(nav);
+       bar.hidden=false;document.body.classList.add('refbar-on');
+       nav.addEventListener('toggle',syncRefBar);syncRefBar();}
      nav.querySelectorAll('[data-rtgo]').forEach(b=>b.onclick=()=>{
        const t=document.getElementById(b.dataset.rtgo);if(!t)return;
        /* Le défilement de la PAGE, pas d'un conteneur : le corps d'une référence vit dans le flux.
@@ -15072,13 +15231,40 @@ function edDrop(at,lbl,warn){
    Elle est FACULTATIVE et HÉRITÉE : le champ vide affiche en filigrane la phase héritée du bloc
    précédent, de sorte que l'auteur voit ce qui s'appliquera sans avoir à la retaper. Un `datalist`
    propose le noyau, sans jamais l'imposer. */
+/* ⚠ UNE LISTE QU'ON CHOISIT, PAS UN MOT QU'ON RETAPE (demande utilisateur : « propose plutôt une
+   liste par défaut éditable avec sélectionneur, avec rappel des blocs dans chaque phase »). Le
+   champ libre demandait de RÉÉCRIRE le mot à l'identique d'un bloc à l'autre : une faute de frappe
+   créait une phase jumelle, et rien ne le disait. Le sélecteur supprime la classe d'erreur entière.
+   IL RESTE OUVERT — la décision de la v5.0.0 tient : rien n'établit que les cliniciens pensent en
+   cinq phases fixes. « ＋ Nouvelle phase… » ouvre le champ de saisie, la valeur entre dans la
+   liste, et une phase déjà écrite y figure même si elle n'est pas du noyau.
+   LE RAPPEL VIT DANS LES INTITULÉS : chaque option dit combien de blocs la portent. C'est
+   l'information qu'on cherche au moment où l'on choisit — « est-ce que cette phase existe déjà, et
+   qu'y ai-je mis ? » — et elle ne coûte pas une surface de plus. */
+/* ⚠ CE QUI EST HÉRITÉ EST LA PHASE DU BLOC PRÉCÉDENT, PAS L'EFFECTIVE. `phaseOf` rend la phase
+   qui S'APPLIQUE, celle du bloc comprise — s'en servir ici faisait dire « hérite : Immédiate » au
+   bloc qui DÉCLARE lui-même « Immédiate ». Ce que l'option vide doit annoncer, c'est ce qui
+   arriverait si l'on ne déclarait rien. */
+function phaseInherited(f,bid){const bs=(f&&f.blocks)||[];const i=bs.findIndex(b=>b&&b.id===bid);
+  return i>0?phaseOf(f,bs[i-1].id):'';}
+function phaseCounts(f){const c=Object.create(null);
+  ((f&&f.blocks)||[]).forEach(b=>{const p=phaseOf(f,b&&b.id);if(p)c[p]=(c[p]||0)+1;});return c;}
 function phaseFieldHtml(b){
-  const her=phaseOf(state.draft||{},b.id);
-  const prop=her&&!String(b.phase||'').trim();
-  return `<span class="blk-phase${prop?' inh':''}"><input type="text" list="phaseList" data-bf="phase" `
-    +`value="${esc(b.phase||'')}" maxlength="40" `
-    +`placeholder="${esc(her||'phase…')}" aria-label="Phase du bloc (facultative, héritée du bloc précédent)" `
-    +`title="Phase — facultative. Vide, le bloc reprend celle du bloc précédent${her?` (« ${esc(her)} »)`:''}."></span>`;}
+  const f=state.draft||{};
+  const her=phaseInherited(f,b.id),cur=String(b.phase||'').trim();
+  if(state.edPhaseNew===b.id)
+    return `<span class="blk-phase edit"><input type="text" list="phaseList" data-phnew="${esc(b.id)}" value="" maxlength="40" `
+      +`placeholder="Nom de la phase…" aria-label="Nom de la nouvelle phase"></span>`;
+  const cnt=phaseCounts(f);
+  const vals=PHASE_CORE.concat(Object.keys(cnt).filter(p=>PHASE_CORE.indexOf(p)<0))
+    .concat(cur&&PHASE_CORE.indexOf(cur)<0&&!cnt[cur]?[cur]:[]);
+  const seen=Object.create(null),liste=vals.filter(v=>seen[v]?false:(seen[v]=1));
+  const prop=her&&!cur;
+  return `<span class="blk-phase${prop?' inh':''}"><select data-bf="phase" aria-label="Phase du bloc (facultative, héritée du bloc précédent)" `
+    +`title="Phase — facultative. Vide, le bloc reprend celle du bloc précédent${her?` (« ${esc(her)} »)`:''}.">`
+    +`<option value=""${cur?'':' selected'}>${her?'— hérite : '+esc(her):'— aucune phase'}</option>`
+    +liste.map(v=>`<option value="${esc(v)}"${v===cur?' selected':''}>${esc(v)}${cnt[v]?` (${cnt[v]} bloc${cnt[v]>1?'s':''})`:''}</option>`).join('')
+    +`<option value="__new">＋ Nouvelle phase…</option></select></span>`;}
 function blockEditor(b,blocks){if(b.kind==='decision'){return `<div class="blk blk-dec${edGrabCls('b',b.id)}" data-bid="${b.id}"><div class="blk-top"><span class="blk-n dec" aria-hidden="true">◆</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Réévaluation)" aria-label="Titre de la décision">${phaseFieldHtml(b)}<button class="mini grab" draggable="true" data-grab="b:${b.id}" aria-label="Déplacer ce bloc" title="Déplacer le bloc — touchez, puis touchez la destination">⠿</button></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Question</div><input type="text" data-bf="question" value="${esc(b.question)}" placeholder="ex. Réponse à l'adrénaline ?" aria-label="Question posée" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)"><div class="sub">Réponses → bloc cible</div>${(b.options.length?b.options:[{label:'',target:''}]).map((o,i)=>`<div class="optedit" data-oi="${i}"><input type="text" data-of="label" value="${esc(o.label)}" placeholder="ex. Oui" aria-label="Libellé de la réponse ${i+1}">${targetSelect(blocks,b.id,o.target)}<button class="mini del" data-optdel="${i}" aria-label="Supprimer la réponse">×</button></div>`).join('')}<button class="add-line" data-addopt>+ Ajouter une réponse</button>${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
   return `<div class="blk${edGrabCls('b',b.id)}" data-bid="${b.id}"><div class="blk-top"><span class="blk-n" aria-hidden="true">${(blocks||[]).indexOf(b)+1}</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Mesures immédiates)" aria-label="Titre du bloc">${phaseFieldHtml(b)}<button class="mini grab" draggable="true" data-grab="b:${b.id}" aria-label="Déplacer ce bloc" title="Déplacer le bloc — touchez, puis touchez la destination">⠿</button></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Étapes (cochables en mode crise)</div><details class="crit-guide"${(()=>{try{return localStorage.getItem('ac-cg-open')?' open':'';}catch(e){return '';}})()}><summary>${uiIcon('warn',11)} Rouge, △ ambre, réponse attendue — règles d'usage</summary><b class="cg-r">${uiIcon('warn',11)} Rouge</b> : ce qui tue si on l'oublie (memory item, geste vital). <b class="cg-a">△ Ambre</b> : là où l'on risque de se tromper (dose/dilution à vérifier avant injection, contre-indication à écarter, confusion voie/site/produit, seuil à contrôler avant de poursuivre). Les deux → rouge. <b>Réponse attendue</b> : « challenge :: réponse » (ex. « Adrénaline IM :: 0,01 mg/kg — max 0,5 mg ») — la réponse devient la pilule à confirmer en lecture (challenge-response).</details>${(stepsOf(b).length?stepsOf(b):['']).map((s,i)=>`${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+i,i===0?'Poser en tête':'Poser ici',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<div class="li${stepIsCrit(s)?' li-crit':(stepIsVigil(s)?' li-vigil':'')}${((bItems(b)[i]||{}).expect||'').trim()?' has-exp':''}${edGrabCls('s',b.id,i)}" data-si="${i}"><button class="mini grab li-grab" draggable="true" data-grab="s:${i}" aria-label="Déplacer l'étape ${i+1}" title="Déplacer — touchez, puis touchez la destination">⠿</button><span class="li-fw"><span class="li-mk" aria-hidden="true">${stepIsCrit(s)?uiIcon('warn',13):(stepIsVigil(s)?'△':'')}</span><input type="text" data-sf value="${esc((bItems(b)[i]||{}).do||'')}" placeholder="Nouvelle étape…" aria-label="Étape ${i+1} — ce qui se prononce"></span><span class="li-arrow" aria-hidden="true">→</span><input type="text" class="li-exp" data-sx="${i}" value="${esc((bItems(b)[i]||{}).expect||'')}" placeholder="réponse attendue (facultatif)" aria-label="Étape ${i+1} — réponse attendue (facultatif)"><span class="li-tools"><button class="mini crit-tgl${stepIsCrit(s)?' on':(stepIsVigil(s)?' vig':'')}" data-crit="${i}" title="${stepIsCrit(s)?'Étape CRITIQUE (rouge : ce qui tue si oublié) — toucher : vigilance (ambre)':(stepIsVigil(s)?'Étape VIGILANCE (ambre : risque d’erreur — dose, voie, seuil) — toucher : étape normale':'Étape normale — toucher : critique (rouge : ce qui tue si oublié)')}">${stepIsVigil(s)?'△':uiIcon('warn',14)}<span class="mini-w">${stepIsCrit(s)?'vital':(stepIsVigil(s)?'vérifier':'registre')}</span></button><button class="mini mem-tgl${(bItems(b)[i]||{}).memory?' on':''}" data-mem="${i}" aria-pressed="${(bItems(b)[i]||{}).memory?'true':'false'}" title="${(bItems(b)[i]||{}).memory?'Memory item — apparaît AUSSI dans « Ne pas oublier » ; toucher : étape ordinaire':'Étape ordinaire — toucher : memory item (elle rejoint « Ne pas oublier »)'}">★<span class="mini-w">mémoire</span></button><button class="mini x2-tgl${(bItems(b)[i]||{}).dual?' on':''}" data-dual="${i}" aria-pressed="${(bItems(b)[i]||{}).dual?'true':'false'}" title="${(bItems(b)[i]||{}).dual?'Confirmé par les DEUX — toucher : confirmation simple':'Confirmation simple — toucher : à confirmer par les deux (AC 120-71B §5.2.2.5)'}">×2<span class="mini-w">double</span></button><span class="li-sp"></span><button class="mini del" data-rmstep="${i}" aria-label="Supprimer l'étape">×</button></span>${(()=>{const nt=stepNote(s);return nt?`<span class="li-note" role="status">△ <b>Relecture</b> — ${esc(nt)}</span>`:'';})()}</div>`).join('')}${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+(stepsOf(b).length||0),'Poser en fin',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<p class="nf-guard" data-stepguard role="status">${stepGuardTxt(stepsOf(b),'bloc')}</p><button class="add-line" data-addstep>+ Ajouter une étape</button><div class="sub">Étape suivante</div>${targetSelect(blocks,b.id,b.next)}${b.next?`<input type="text" data-bnextlbl value="${esc(b.nextLbl||'')}" maxlength="120" placeholder="Libellé du bouton Continuer (ex. réévaluation à 5 min)" aria-label="Libellé du bouton Continuer" style="margin-top:6px">`:''}${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
 /* Éditeur des COMPLICATIONS (v4.26.0) : libellé de l'ÉVÉNEMENT + cible. La cible est soit un
@@ -15174,10 +15360,17 @@ function edStructHtml(f){
   const exc=(f.excursions||[]);
   if(!bs.length&&!exc.length)return '';
   return `<div class="rail-head"><span class="rail-title">Structure</span><span class="rail-n">${bs.length}</span></div>`
+    /* ⚠ LE RAPPEL DES PHASES EST LA COLONNE ELLE-MÊME (demande utilisateur). Écrire une phase
+       bloc par bloc sans jamais voir le découpage, c'est décider à l'aveugle : l'intertitre
+       n'apparaît qu'AU CHANGEMENT de phase — c'est-à-dire là où l'auteur a effectivement décidé
+       quelque chose —, exactement comme l'héritage n'exige de la déclarer qu'à cet endroit. Une
+       fiche qui n'en déclare aucune n'affiche aucun intertitre : rien ne change pour elle. */
     +bs.map((b,i)=>{const dec=b.kind==='decision';
       const n=dec?((b.options||[]).length+' branche'+((b.options||[]).length>1?'s':''))
         :(clean(stepsOf(b)).length+' étape'+(clean(stepsOf(b)).length>1?'s':''));
-      return `<button type="button" class="eds-row${dec?' dec':''}" data-edgo="${esc(b.id)}"><span class="eds-n">${dec?'◆':(i+1)}</span><span class="eds-t">${esc((b.title||'').trim())||(dec?'Décision':'Sans titre')}</span><span class="eds-c">${n}</span></button>`;}).join('')
+      const ph=phaseOf(f,b.id),prev=i?phaseOf(f,bs[i-1].id):'';
+      const tete=ph&&ph!==prev?`<div class="eds-ph">${esc(ph)}</div>`:'';
+      return tete+`<button type="button" class="eds-row${dec?' dec':''}" data-edgo="${esc(b.id)}"><span class="eds-n">${dec?'◆':(i+1)}</span><span class="eds-t">${esc((b.title||'').trim())||(dec?'Décision':'Sans titre')}</span><span class="eds-c">${n}</span></button>`;}).join('')
     /* LES COMPLICATIONS SONT DANS LA STRUCTURE, ET HORS DE LA SÉQUENCE (maquette `proto-r4`) :
        un bloc d'excursion n'est pas « l'étape d'après », c'est un événement qui peut survenir à
        tout moment — lui donner un rang le ferait lire comme une suite (v4.26.0, `flowPlan`
@@ -15447,7 +15640,21 @@ function bindEditorEvents(f){
      boutons dispersés ont disparu, pas les gestes qu'ils portaient. */
   {const od=document.getElementById('edAddOpen');if(od)od.onclick=()=>edAddOpen(f);}
   main.querySelectorAll('.blk').forEach(card=>{const bid=card.dataset.bid;const b=f.blocks.find(x=>x.id===bid);
-    card.querySelectorAll('[data-bf]').forEach(inp=>{const fld=inp.dataset.bf;inp.addEventListener('input',e=>{b[fld]=e.target.value;scheduleFlowPreview(f);});inp.addEventListener('change',()=>renderEditor());});
+    card.querySelectorAll('[data-bf]').forEach(inp=>{const fld=inp.dataset.bf;
+      if(fld==='phase'&&inp.tagName==='SELECT'){
+        /* « ＋ Nouvelle phase… » n'écrit rien : il OUVRE le champ. L'état est transitoire (jamais
+           persisté, jamais synchronisé) — c'est un geste, pas une propriété du brouillon. */
+        inp.addEventListener('change',e=>{const v=e.target.value;
+          if(v==='__new'){state.edPhaseNew=b.id;renderEditor();
+            const nf=main.querySelector(`[data-phnew="${b.id}"]`);if(nf)nf.focus();return;}
+          b.phase=v;state.edPhaseNew=null;renderEditor();});
+        return;}
+      inp.addEventListener('input',e=>{b[fld]=e.target.value;scheduleFlowPreview(f);});inp.addEventListener('change',()=>renderEditor());});
+    {const nf=card.querySelector('[data-phnew]');
+     if(nf){const fin=()=>{b.phase=String(nf.value||'').trim().slice(0,40);state.edPhaseNew=null;renderEditor();};
+       nf.addEventListener('blur',fin);
+       nf.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();fin();}
+         if(e.key==='Escape'){e.preventDefault();state.edPhaseNew=null;renderEditor();}});}}
     const sb=card.querySelector('[data-start]');if(sb)sb.onclick=()=>{f.start=bid;renderEditor();};
     // Le champ affiche le texte NU (v4.3.0) : le marqueur ⚠/△ ne vit plus DANS l'input — on ne
     // peut plus l'effacer à la main (= changer le type par accident) ; le type est porté par

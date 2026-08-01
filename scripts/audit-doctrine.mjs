@@ -1250,10 +1250,44 @@ for (const W of [390, 999, 1000, 1199, 1200, 1400]) {
     /* ⚠ ON RE-INTERROGE LE DOM. `toc` a été capturé AVANT que la sonde ouvre le protocole court
        puis rouvre le long : la référence pointe un nœud DÉTACHÉ, dont toutes les mesures valent
        zéro — et un témoin qui mesure un nœud détaché mesure le vide (leçon v4.78.0). */
+    /* Une référence à TRENTE titres : sans elle, le bornage ne rencontrerait pas son cas. */
+    const secs=[];for(let i=1;i<=30;i++)secs.push('## Section '+i,'texte '+i);
+    const lg=migrateProtocol({id:'pzL',title:'Longue',kind:'reference',body:'# Grand\n\n'+secs.join('\n\n')});
+    protocols.push(lg);openProtocolRead('pzL');await w(600);
+    const dk=await (async()=>{const d=document.querySelector('details.ref-toc'),bar=document.getElementById('refBar');
+      if(!d||!bar)return {pos:'—',visibleLoin:null,borne:0,defile:'',liens:0,corpsLien:'',
+        ecart:999,fond:'—',hdrLine:'—',sousLaBarre:null,dansLaBarre:false};
+      const hd=document.querySelector('header.bar');
+      const cb=getComputedStyle(bar),ch=getComputedStyle(hd);const l=d.querySelector('.rt-lnk');
+      const ec=Math.round(bar.getBoundingClientRect().top-hd.getBoundingClientRect().bottom);
+      const sous=document.querySelector('.md-body').getBoundingClientRect().top>=bar.getBoundingClientRect().bottom;
+      /* ⚠ ON COMPTE LES `toggle`, ON NE REGARDE PAS SEULEMENT L'ÉTAT FINAL — première version
+         de ce témoin, qui restait VERTE sur le défaut : la mesure de hauteur refermait puis
+         rouvrait le panneau, donc l'état final était bien « ouvert » et le défilement, acquis
+         APRÈS le battement, survivait. Ce qui se voit à l'usage est le battement lui-même :
+         un seul geste d'ouverture doit produire un seul `toggle`. */
+      let nt=0;d.addEventListener('toggle',()=>{nt++;});
+      d.open=true;await w(260);const c2=getComputedStyle(d);
+      /* ⚠ LE DÉPLIAGE NE DOIT PAS SE DÉFAIRE TOUT SEUL : la mesure de hauteur refermait le
+         panneau pour lire sa taille repliée, et `toggle` étant asynchrone, le handler se
+         rappelait — le panneau battait et perdait son défilement. On mesure donc qu'il est
+         ENCORE ouvert et qu'un défilement acquis SURVIT. */
+      d.scrollTop=200;await w(160);
+      const b=parseFloat(c2.maxHeight)||0,ov=c2.overflowY,nb=d.querySelectorAll('.rt-lnk').length;
+      const cl=l?getComputedStyle(l).fontSize:'';
+      window.scrollTo(0,1200);
+      const vis=d.getBoundingClientRect().top>=0&&d.getBoundingClientRect().top<300;
+      const survit=d.open&&d.scrollTop>0&&nt===1;
+      window.scrollTo(0,0);d.open=false;
+      return {pos:cb.position,visibleLoin:vis,borne:Math.round(b),defile:ov,liens:nb,corpsLien:cl,survit,
+        ecart:ec,fond:cb.backgroundColor===ch.backgroundColor?'identique':cb.backgroundColor,
+        hdrLine:ch.borderBottomWidth,barLine:cb.borderBottomWidth,sousLaBarre:sous,
+        dansLaBarre:bar.contains(d)};})();
+    openProtocolRead('pz');await w(500);
     const toc2=document.querySelector('.ref-toc');
     const rb=document.querySelector('.md-body').getBoundingClientRect();
     const rt=toc2?toc2.getBoundingClientRect():null;
-    return {sansToc, tag:toc2?toc2.tagName:null,
+    return {sansToc, dock:dk, tag:toc2?toc2.tagName:null,
       chevauche:!!(toc2&&toc2.tagName==='ASIDE'&&rt.right>rb.left+1),
       centre:Math.abs((rb.left+rb.width/2)-innerWidth/2)<=2,
       ecart:Math.round(Math.abs((rb.left+rb.width/2)-innerWidth/2)),
@@ -1282,6 +1316,35 @@ for (const W of [390, 999, 1000, 1199, 1200, 1400]) {
     if(W>=1400)t(`${W} · … et il est alors centré dans la FENÊTRE`, r.ecart<=2, `écart ${r.ecart} px`);
   } else {
     t(`${W} · sans colonne, le plan est un DÉPLIANT replié`, r.tag==='DETAILS', String(r.tag));
+    /* ⚠ IL EST COLLANT ET BORNÉ. Un dépliant posé dans le flux disparaît dès qu'on descend de deux
+       écrans — or on cherche dans une référence précisément quand on est loin dans le texte. Et
+       déplié, une référence à trente titres remplirait l'écran : la hauteur est bornée et défile.
+       ⚠ ON MESURE AUSSI LE STYLE DES RANGÉES : elles vivaient dans la media query ≥ 1000, donc
+       sous ce seuil elles n'avaient AUCUN style — des boutons bruts à la police du système. Un
+       témoin qui ne regarde que la structure ne voit pas ça. */
+    /* ⚠ IL EST DU CHROME, PAS DU FLUX (signalé à l'usage : « lorsque ça colle ça ne fusionne pas
+       à l'en-tête et ça fait moche »). Un `sticky` vit d'abord dans le flux PUIS se colle : à cet
+       instant il touche la barre sans en faire partie. En `fixed`, sœur de `.app`, il ne
+       transitionne jamais — il EST la seconde rangée de l'en-tête dès le premier pixel. On mesure
+       la CONTINUITÉ (écart nul, même fond, un SEUL filet — celui du bas), pas seulement la
+       position : « collé » et « fusionné » ne sont pas la même chose, et c'est le second qui
+       était demandé. */
+    t(`${W} · … il est en en-tête (fixed), pas un dépliant du flux`,
+      r.dock.pos==='fixed'&&r.dock.dansLaBarre===true&&r.dock.visibleLoin===true, JSON.stringify(r.dock));
+    /* Le fond commun fait le BLOC, le filet dit qu'il a deux ÉTAGES (demande utilisateur) : les
+       deux rangées sont bordées, comme #crisisCtrl au-dessus de #crisisDock. */
+    t(`${W} · … et il PROLONGE le bandeau : écart nul, même fond, un filet par étage`,
+      r.dock.ecart===0&&r.dock.fond==='identique'&&parseFloat(r.dock.hdrLine)>0&&parseFloat(r.dock.barLine)>0,
+      `écart ${r.dock.ecart} px · fond ${r.dock.fond} · filets hdr ${r.dock.hdrLine} / barre ${r.dock.barLine}`);
+    t(`${W} · … et le dépliage ne se défait pas tout seul (défilement conservé)`,
+      r.dock.survit===true, `ouvert+défilé+un seul toggle=${r.dock.survit}`);
+    /* Une barre FIXE ne prend aucune place au flux : sans réservation mesurée, le texte naîtrait
+       DERRIÈRE elle — le défaut qu'un `sticky` n'a pas et qu'on hérite en changeant de mécanique. */
+    t(`${W} · … et le corps naît SOUS elle, jamais derrière`, r.dock.sousLaBarre===true, String(r.dock.sousLaBarre));
+    t(`${W} · … borné en hauteur et défilant quand il est long`,
+      r.dock.borne>0&&r.dock.defile!=='visible'&&r.dock.liens>=10,
+      `${r.dock.borne} px, ${r.dock.liens} liens, overflow ${r.dock.defile}`);
+    t(`${W} · … et ses rangées sont RÉELLEMENT stylées`, r.dock.corpsLien==='12px', r.dock.corpsLien);
   }
   /* LE DÉFAUT SIGNALÉ : une colonne collante qui passe PAR-DESSUS le texte. Il ne se voit pas
      dans un débordement de conteneur — il faut comparer les deux boîtes. */
@@ -1296,6 +1359,37 @@ for (const W of [390, 999, 1000, 1199, 1200, 1400]) {
   t(`${W} · … et n'affiche alors AUCUN sommaire`, r.sansToc.liens===0, `${r.sansToc.liens} lien(s)`);
   t(`${W} · … sans réécrire le HTML rendu (effacée, le document est identique)`,
     r.restaure===true&&r.resteMarks===0, `restauré=${r.restaure} restes=${r.resteMarks}`);
+  await page.close();
+}
+
+/* ⚠ LE FRANCHISSEMENT DE PALIER, MESURÉ SUR UN VRAI REDIMENSIONNEMENT (signalé à l'usage : « non
+   responsive, pas d'adaptation »). Le sommaire d'une référence est un `<aside>` au-dessus de
+   1000 px et un `<details>` en dessous : c'est une STRUCTURE, décidée au rendu — et `_onReadBp`
+   ne connaissait pas la vue `protocolRead`, donc redimensionner laissait la page telle qu'elle
+   avait été RENDUE. Même trou que celui réparé pour les éditeurs en v4.77.0.
+   ⚠ ET IL FAUT PLAYWRIGHT : le pane du navigateur intégré n'émet NI `resize` NI
+   `matchMedia change` sur un redimensionnement CDP — un palier n'y est pas éprouvable. */
+console.log('\n══ RÉFÉRENCE · le palier se franchit RÉELLEMENT ══');
+{
+  const page = await br.newPage({viewport:{width:390,height:900},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();await w(200);
+    const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await w(900);});
+  await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    const a=migrateProtocol({id:'pR',title:'Réf',kind:'reference',body:'# Un\n\nt\n\n## Deux\n\nt\n\n# Trois\n\nt'});
+    protocols.push(a);openProtocolRead('pR');await w(600);});
+  const tag=async()=>page.evaluate(()=>(document.querySelector('.ref-toc')||{}).tagName||null);
+  const a1=await tag();
+  await page.setViewportSize({width:1400,height:900}); await page.waitForTimeout(700);
+  const a2=await tag();
+  await page.setViewportSize({width:390,height:900}); await page.waitForTimeout(700);
+  const a3=await tag();
+  t('étroit → le dépliant', a1==='DETAILS', String(a1));
+  t('… puis large SANS re-rendu manuel → la colonne', a2==='ASIDE', String(a2));
+  t('… et retour à l’étroit → le dépliant', a3==='DETAILS', String(a3));
   await page.close();
 }
 
@@ -1341,6 +1435,11 @@ for (const W of [330, 390, 700, 1000, 1400, 1600]) {
        code fait trois caractères et leur catégorie un mot — la rangée ne pouvait pas déborder, et
        le témoin restait vert pendant qu'un code de trente caractères effaçait la date chez
        l'utilisateur. On rend donc TOUT ce qui peut être long, long. */
+    /* ⚠ ET LE RAIL ALPHABÉTIQUE DOIT EXISTER POUR ÊTRE MESURÉ : il ne paraît qu'à partir de deux
+       lettres distinctes, or les deux fiches d'exemple n'en donnent pas assez. Sans ce cas
+       construit, le témoin d'ancrage ne rencontrait rien et restait vert sur le défaut. */
+    for(let i=0;i<6;i++)fiches.push(migrate({id:'zaz'+i,
+      title:String.fromCharCode(67+i)+' fiche de répertoire '+i,blocks:[]}));
     const g=fiches[1]||fiches[0];
     g.code='ACR-CODE-TRES-LONG-2025';
     g.discriminant='adulte et adolescent > 12 ans';
@@ -1379,6 +1478,18 @@ for (const W of [330, 390, 700, 1000, 1400, 1600]) {
         const L=q.left-ins,R=q.right+ins,T=q.top-ins,B=q.bottom+ins;
         return {pinOk:(R-L)>=43.5&&(B-T)>=43.5&&R<=rr.right+0.5&&L>=rr.left-0.5,
           pinBox:`${Math.round(R-L)}×${Math.round(B-T)} px, hors rangée : ${R>rr.right+0.5}`};})(),
+      /* La NATURE de l'objet : présente sur chaque rangée, item DUR (jamais rétréci). */
+      kinds:[...document.querySelectorAll('.dir-row .dir-kind')].map(e=>e.textContent.trim()),
+      kindsTronq:[...document.querySelectorAll('.dir-row .dir-kind')]
+        .filter(e=>e.scrollWidth>e.clientWidth+1).length,
+      /* Les rangées de filtres partent-elles du même x ? (les intitulés ont des longueurs
+         différentes : sans largeur minimale commune, chaque rangée commençait ailleurs). */
+      chipsX:(()=>{const rs=[...document.querySelectorAll('#homeChrome .chiprow')]
+        .map(r=>r.firstElementChild&&Math.round(r.firstElementChild.getBoundingClientRect().left))
+        .filter(v=>v!=null);return [...new Set(rs)];})(),
+      /* Le rail alphabétique est ancré en HAUT : sa position ne doit pas dépendre du NOMBRE de
+         lettres — sinon un filtre déplace toute la colonne. */
+      railJc:(()=>{const r=document.getElementById('azRail');return r?getComputedStyle(r).justifyContent:'—';})(),
       liseCat:!!document.querySelector('.dir-row[style*="--catcol"]'),
       pastille:document.querySelectorAll('.dir-row .cat-dot').length,
       live:!!document.querySelector('.dir-row.live'),
@@ -1409,6 +1520,17 @@ for (const W of [330, 390, 700, 1000, 1400, 1600]) {
   t(`${W} · … et la date n'est jamais amputée`, r.dateCoupee===0, `${r.dateCoupee}`);
   /* Et le registre est porté par l'ENCRE, pas par une chip : une chip a une largeur
      incompressible, c'est elle qui poussait la catégorie hors du cadre. */
+  /* LA NATURE SE LIT SUR LA RANGÉE (demande utilisateur, d'après la maquette) : en vue « Tout »
+     les deux types se mêlent et rien ne disait lequel on allait ouvrir. C'est un item DUR : il ne
+     s'abrège jamais — un mot de nature amputé en dirait moins que rien. */
+  t(`${W} · chaque rangée dit sa NATURE`,
+    r.kinds.length===r.n&&r.kinds.every(k=>k==='Aide'||k==='Protocole'), JSON.stringify(r.kinds.slice(0,3)));
+  t(`${W} · … et ce mot n'est jamais abrégé`, r.kindsTronq===0, `${r.kindsTronq}`);
+  /* LES RANGÉES DE FILTRES PARTENT DU MÊME x (signalé à l'usage : « Tout » pas aligné). */
+  if(W<780)t(`${W} · les rangées de filtres sont alignées`, r.chipsX.length<=1, JSON.stringify(r.chipsX));
+  /* LE RAIL A-T-IL UNE POSITION QUI NE DÉPEND PAS DE SON CONTENU ? `center` la fait dépendre du
+     nombre de lettres — c'est le défaut signalé (« sa position bouge sans cesse »). */
+  if(r.railJc!=='—')t(`${W} · le rail alphabétique est ancré en haut`, r.railJc==='flex-start', r.railJc);
   t(`${W} · « à compléter » n'a plus de fond de chip`,
     /rgba\(0, 0, 0, 0\)|transparent/.test(r.fondTodo||'transparent'), r.fondTodo);
   await page.close();

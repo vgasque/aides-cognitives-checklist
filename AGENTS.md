@@ -2765,6 +2765,80 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   du bruit permanent, et la règle « un panneau vide est du bruit » est déjà tenue par son absence.
   Replié, il demandait un clic pour lire un BILAN — c'est-à-dire exactement la chose qu'on ne clique
   pas. Il reste repliable, et l'état n'est pas persisté : c'est une consultation, pas un réglage.
+- **LE SOMMAIRE D'UNE RÉFÉRENCE EST DU CHROME, PAS DU FLUX (v5.0.0, signalé à l'usage : « mets-le
+  directement en en-tête plutôt que sticky », « lorsque ça colle ça ne fusionne pas à l'en-tête et
+  ça fait moche »)** : un `sticky` vit d'abord dans le flux PUIS se colle — à cet instant il TOUCHE
+  la barre sans en faire partie, deux surfaces séparées par un liseré de fond. `#refBar` est donc
+  **sœur de `.app` et `position:fixed`**, comme `#crisisCtrl` et `#crisisDock` : il ne transitionne
+  jamais, il EST la seconde rangée de l'en-tête dès le premier pixel. Même fond, même rembourrage
+  de 18 px, aucun rayon — et **un filet par ÉTAGE** (demande utilisateur : « marque tout de même
+  une petite ligne de séparation, comme pour les aides ») : le fond commun fait le BLOC, le filet
+  dit qu'il a deux rangées. Ombre **seulement OUVERT**, c'est-à-dire au seul moment où il recouvre
+  le texte. `syncRefBar` mesure sa hauteur réelle et la pose en `--refbar-h` (÷ zoom) : une barre
+  fixe ne prend aucune place au flux, donc sans réservation MESURÉE le texte naîtrait derrière elle.
+  **⚠ ON NE REFERME PAS UN DÉPLIANT POUR LE MESURER** (défaut vécu : « scroll de la partie dépliée
+  bug ») : `toggle` est ASYNCHRONE, donc écrire `open=false` puis `open=true` dans son propre
+  handler le rappelle — le panneau bat et le défilement acquis repart à zéro. La hauteur repliée
+  vaut l'intitulé plus les filets, tous deux présents quel que soit l'état. **Le témoin compte les
+  `toggle`**, il ne regarde pas l'état final : la première version restait VERTE sur le défaut,
+  l'état final étant bien « ouvert ».
+- **TOUTE VUE DONT LA STRUCTURE DÉPEND D'UN PALIER DOIT ÊTRE DANS `_onReadBp`** — `protocolRead` y
+  manquait, d'où « non responsive, pas d'adaptation » : le sommaire est un `<aside>` au-dessus de
+  1000 px et un `<details>` en dessous, c'est-à-dire une STRUCTURE décidée au rendu. Corollaire déjà
+  écrit en v4.77.0, à ne pas re-perdre à chaque vue nouvelle.
+- **LES TROIS RANGÉES DE FILTRES PARTENT DU MÊME x (v5.0.0, signalé à l'usage : « Tout » pas
+  aligné)** : les intitulés ont des longueurs différentes — TYPE 33 px, CATÉG. 46 —, donc chaque
+  rangée de chips commençait ailleurs (63 px contre 76, mesurés). Un `min-width` commun sur
+  `.scope-lbl` les aligne sans toucher aux mots. Trois colonnes de départ pour trois filtres qui se
+  lisent du plus large au plus étroit brouillaient la hiérarchie qu'on venait d'établir.
+- **LE RAIL A→Z EST ANCRÉ EN HAUT PARTOUT (v5.0.0, signalé à l'usage : « sa position bouge sans
+  cesse »)** : la v4.73.0 avait posé `flex-start` sur la seule variante ÉTROITE ; en vue LARGE le
+  rail restait `justify-content:center`, donc la position des lettres dépendait de LEUR NOMBRE —
+  filtrer ou chercher en changeait la quantité et déplaçait toute la colonne (première lettre
+  mesurée à 307 px, ailleurs dès qu'une lettre disparaît). Un index d'annuaire doit être là où l'on
+  a appris à le viser, quel que soit ce qu'il contient. **Le témoin ne rencontrait pas son cas** :
+  le rail n'existe qu'à partir de deux lettres distinctes, et les deux fiches d'exemple n'en
+  donnent pas assez — il construit donc son répertoire.
+- **REJOINDRE UNE SESSION NE DÉPEND PAS DU FILTRE DE TYPE (v5.0.0, signalé à l'usage)** : la ligne
+  « code de session reconnu » vivait dans la configuration des FICHES, donc « Tout » l'héritait par
+  raccroc et « Protocoles » ne l'avait pas du tout — alors qu'un code ne désigne ni une aide ni une
+  référence : il désigne une SESSION. Elle est hissée dans le rendu commun, avec son câblage, avant
+  tout ce qui dépend d'une configuration.
+- **EN VUE « TOUT », PAS DE RENVOI VERS L'AUTRE TYPE (v5.0.0, signalé à l'usage)** : `crossKind` y
+  vaut `null`, et le test `other==='protocols'` retombait alors sur la branche FICHES — on annonçait
+  « n aides correspondent AUSSI » à quelqu'un qui les avait déjà sous les yeux. Un renvoi vers là où
+  l'on est n'est pas un renvoi, c'est du bruit.
+- **LA NATURE DE L'OBJET SE LIT SUR LA RANGÉE (v5.0.0, demande utilisateur, d'après la maquette)** :
+  en vue « Tout » les deux types se mêlent et rien ne disait lequel on allait ouvrir — une checklist
+  qui se DÉROULE ou un document qu'on CONSULTE, deux gestes différents. Repris dans les vues
+  filtrées à la demande : un seul dessin de rangée partout, donc rien à réapprendre en changeant de
+  filtre. **C'est du TEXTE en petites capitales, pas une pastille**, et ce n'est pas un détail de
+  goût : mesuré, la pastille coûtait 16 px de chrome par rangée et faisait basculer la méta dans
+  l'ellipse à quatre colonnes **sur des données ordinaires**. Item DUR — il ne s'abrège jamais.
+  **LES CINQ PIXELS MANQUANTS SE TROUVENT DANS LE CHROME, PAS DANS UNE COLONNE EN MOINS** : élargir
+  la piste minimale les rendait, mais en supprimant une colonne entière entre 1600 et 1690 px, soit
+  25 % de fiches en moins à l'écran pour la queue d'un mot. On les prend sur les écarts (gap 10 → 5,
+  retrait 14 → 12). Mesuré après : **0 item tronqué de 360 à 1900 px**, sauf 3 items à 2 px dans la
+  seule bande des quatre colonnes serrées. Et **sous 400 px le plancher des items souples descend à
+  1,6 em** : le tag est un item dur de plus, et la somme des durs et des quatre planchers de 2,5 em
+  poussait la DATE hors de la boîte — un item ne disparaît pas, il s'abrège.
+- **REPLIÉ, LE CHAPEAU « NE PAS OUBLIER » EST TOUT ENTIER SON DÉCLENCHEUR (v5.0.0, signalé à
+  l'usage)** : le bouton fait 48 px et centre son texte, mais le chapeau gardait ses 10 px de
+  rembourrage bas — le texte se trouvait donc au-dessus du milieu du bloc. On absorbe ce
+  rembourrage comme le haut, par une marge négative. **Le texte ne bouge pas au dépliage** : dans
+  les deux états il est centré dans les mêmes 48 px, ancrés en haut du chapeau.
+- **LA PHASE SE CHOISIT DANS UNE LISTE, ELLE NE SE RETAPE PAS (v5.0.0, demande utilisateur)** : le
+  champ libre demandait de RÉÉCRIRE le mot à l'identique d'un bloc à l'autre — une faute de frappe
+  créait une phase jumelle, et rien ne le disait. Le sélecteur supprime la classe d'erreur entière.
+  **Il reste OUVERT** — la décision du lot M6 tient, rien n'établit que les cliniciens pensent en
+  cinq phases fixes : « ＋ Nouvelle phase… » ouvre un champ, la valeur entre dans la liste, et une
+  phase déjà écrite y figure même hors noyau. **LE RAPPEL VIT DANS LES INTITULÉS** (« Immédiate
+  (3 blocs) ») : c'est l'information qu'on cherche au moment où l'on choisit, et elle ne coûte pas
+  une surface de plus ; la colonne « Structure » la double en intertitres, posés AU CHANGEMENT de
+  phase seulement — c'est-à-dire là où l'auteur a effectivement décidé quelque chose.
+  ⚠ **Ce qui est HÉRITÉ est la phase du bloc PRÉCÉDENT, pas l'effective** : `phaseOf` rend la phase
+  qui s'APPLIQUE, celle du bloc comprise — s'en servir faisait dire « hérite : Immédiate » au bloc
+  qui déclare lui-même « Immédiate ».
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.
