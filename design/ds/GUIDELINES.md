@@ -1,4 +1,4 @@
-# Aides cognitives — Lignes directrices du design (v4.55)
+# Aides cognitives — Lignes directrices du design (v5.0)
 
 PWA médicale monofichier, utilisée **en urgence vitale, sous stress** : la clarté et la
 robustesse priment sur toute considération esthétique. Tout choix de design se juge à
@@ -14,8 +14,10 @@ Toute évolution se fait dans l'app, puis se resynchronise.
 
 **Ce fichier-ci fait exception : il est rédigé à la main.** Aucun script ne le régénère,
 donc rien ne signale sa péremption — il était resté à la v4.34 pendant vingt et une
-versions, dont tout le chantier du partage de session. À relire à chaque lot qui touche
-une surface.
+versions, dont tout le chantier du partage de session, **puis à la v4.55 pendant tout le
+chantier v5** : il a décrit trois surfaces supprimées (le rail ①②③, le mode lecteur, la
+bascule Guidé/Statique) jusqu'à ce que l'auteur le demande. À relire à chaque lot qui
+touche une surface — c'est la seule protection dont il dispose.
 
 ## Couleur — sémantique FIXE
 
@@ -69,25 +71,43 @@ une surface.
   `--ink` et `--line` à `--line-strong` — **bloc déclaré en FIN de feuille** : à
   spécificité égale il doit gagner sur les tokens des deux thèmes.
 
-## Couleur d'accent par utilisateur (v4.5)
+## Couleur d'accent par utilisateur (v4.5 — CONFINÉE À L'AVATAR en v5.0.0)
 
-5 accents prédéfinis AA (sarcelle, violet, indigo, framboise, ardoise) + bleu clinique
-par défaut. **Connecté seulement** (l'accent tombe à la déconnexion). Portée : l'accueil
-ENTIER + l'EN-TÊTE de toutes les vues (l'identité reste visible partout) ; le **contenu
-clinique** (fiches en crise, protocoles, éditeurs) **reste bleu clinique**. Jamais de
-vert/ambre/rouge en accent : les registres sémantiques sont réservés.
+5 accents prédéfinis AA (sarcelle, violet, indigo, framboise, ardoise) + bleu clinique par
+défaut. **Connecté seulement** (l'accent tombe à la déconnexion). Jamais de vert/ambre/rouge
+en accent : les registres sémantiques sont réservés.
+
+**La PORTÉE a changé, pas la fonction.** L'accent teintait l'accueil ENTIER et l'en-tête de
+toutes les vues : c'était **la seule couleur du produit qui ne portait aucun sens**, dans un
+système dont la règle fondatrice est que la couleur en porte toujours un — et **70 hex sur
+104**. Il est désormais réduit au **DISQUE de l'avatar**, où il en porte un : « cette fenêtre
+appartient au compte X ». La reconnaissance périphérique est conservée (un disque coloré à
+position constante, ce qui est le vrai besoin sur un ordinateur PARTAGÉ), la concurrence avec
+les registres disparaît partout ailleurs, et la palette d'accent tombe à **10 hex** — un
+token `--accent` par accent et par thème, une seule règle qui le consomme.
 
 Le **logo de marque** (accueil seulement) est posé en **masque CSS** sur un aplat de
-`currentColor`, donc l'ENCRE : il suit le thème tout seul et ne concurrence AUCUN accent
-— l'accent colore déjà la loupe, les boutons et les liens, une marque neutre s'y lit
-comme une marque.
+`currentColor`, donc l'ENCRE : il suit le thème tout seul et ne concurrence rien.
 
 ## Typographie
 
 - Police système (`--sans`) ; mono (`--mono`, tabular-nums) réservée aux valeurs qui
   défilent (chronos, compteurs, numéros d'étape) et aux codes courts.
-- **Plancher : 11 px** pour tout texte courant ; seules les pilules-capitales à forte
-  graisse (`.status-tag`, `.tm-label`, 10.5 px / 700+) y dérogent (spec canvas).
+- **ÉCHELLE FERMÉE — sept paliers de texte** : `19 · 18 · 16,5 · 15,5 · 13,5 · 12 · 11`,
+  plus une bande d'AFFICHAGE au-dessus de 20 px (`20 · 24 · 26 · 34 · 40`) pour les chronos
+  et le moniteur, qui n'entrent pas en concurrence avec du texte. La feuille portait
+  **seize** corps entre 10 et 19 px : deux textes à 13 et 13,5 px ne se lisent pas comme deux
+  NIVEAUX, ils se lisent comme une inattention. `scripts/check-type.mjs` la fait respecter ;
+  toute exemption est **nommée par son sélecteur et motivée** dans le script.
+- **Plancher : 11 px** pour tout texte courant. ⚠ **ET UN QUOTA, depuis la v5.0.0** : un
+  plancher employé **173 fois sur ~520 déclarations** n'est plus un plancher, c'est le corps
+  de texte du produit — chaque déclaration était pourtant légale, donc rien ne pouvait le
+  voir. `check-type` porte un CLIQUET (`PLANCHER_MAX`) posé au niveau atteint : la valeur ne
+  peut que descendre. Il mesure des DÉCLARATIONS, pas des éléments à l'écran — il empêche la
+  dérive de s'aggraver, il ne prouve pas qu'elle a cessé.
+- **Deux valeurs de SERVICE qui ne sont pas des paliers** : `16` (plancher des champs sur
+  écran tactile, contrainte du moteur) et `14` (l'un des quatre « A » du sélecteur de taille,
+  dont l'écart de corps EST l'information).
 - **Un seul registre de titres de section** : petites capitales grasses (`.block-h`),
   repris par les titres du contenu rédigé (`.md-h1`/`.md-h2`). Pas de nouveau style de titre.
 - Le contenu (15–16 px) reste plus grand que ses titres de section.
@@ -102,8 +122,8 @@ comme une marque.
   secondaire, **plein** = action primaire.
 - En lecture, toutes les actions secondaires vivent dans le **menu ⋯** (rangées 44 px,
   séparateurs entre groupes, action destructrice DERNIÈRE et rouge — jamais première).
-  **Ordre = logique ECAM E/WD → SD** : la conduite EN COURS d'abord (Complications, mode
-  lecteur, Se repérer, Schéma, Consulter), puis le cycle de vie de la session, puis la
+  **Ordre = logique ECAM E/WD → SD** : la conduite EN COURS d'abord (Complications,
+  Se repérer, Schéma, Consulter, Moniteur), puis le cycle de vie de la session, puis la
   gestion, puis les exports. **Jamais deux entrées d'un même menu avec le même dessin**,
   ni deux dessins quasi identiques côte à côte.
 - En crise, le chrome s'efface : aucune notification flottante qui ARRIVE, une seule zone
@@ -145,20 +165,20 @@ comme une marque.
   la largeur à laquelle toute nouvelle addition au chrome se mesure. Deux surfaces y
   rognaient en silence avant qu'on ne le décide. On rend les pixels par la **recette des
   écarts et rembourrages**, jamais par un renommage ni une seconde ligne.
-- **Paliers RÉELS de la feuille**, à jour au 28/07/2026 :
+- **Paliers — ÉCHELLE FERMÉE ET AUTO-EXÉCUTOIRE depuis la v5.0.0** :
   **360 · 400 · 430 · 480 · 560 · 640 · 780 · 924 · 1000 · 1200**.
-  Trois précisions que l'ancienne liste taisait :
-  - **900 n'existe plus** (retiré depuis la V5) et figurait pourtant encore ici ;
-  - **924 est DÉRIVÉ**, pas arbitraire : c'est 860 (largeur de checklist) + 2 × 32 de
-    marge, le point où la barre de compte-rendu peut se centrer sur la colonne ;
-  - **480 est un palier NON DÉCLARÉ**, introduit en v4.52.0 pour la rangée du vocabulaire
-    du journal (libellé + alias + suppression). Mesuré : il n'est **pas porteur** — sans
-    lui, à 430 px le champ libellé offre 151 px utiles pour les 140,4 px de « Médecin
-    régulateur », le plus long libellé du noyau. Il est donc **candidat au repli sur
-    430**, ce qui restaurerait la liste fermée ; c'est un changement VISIBLE entre 430 et
-    479 px, donc une décision à prendre séparément.
-  Aucun nouveau palier sans décision explicite — et la décision s'écrit **ici**, sans
-  quoi la liste redevient fausse, comme elle vient de l'être.
+  Elle était DÉCLARATIVE, et elle avait fui : **douze** paliers réels pour **neuf** déclarés
+  — `480` et `924` n'y figuraient pas, et `900` y figurait sans exister nulle part. Une
+  échelle fermée qui a fui est une échelle ouverte qu'on croit fermée.
+  `scripts/check-paliers.mjs` compare désormais la liste au code à chaque commit : ajouter un
+  palier exige de l'écrire **ici** ET dans le script — c'est précisément le but. Il ne lit que
+  les conditions de `@media` (un `min-width:44px` de cible n'est pas un palier) et traite
+  `779.98` et `780` comme UN seul palier.
+  - **924 est DÉRIVÉ**, pas arbitraire : 860 (largeur de checklist) + 2 × 32 de marge, le
+    point où la barre de compte-rendu peut se centrer sur la colonne.
+  - **480** vient de la rangée du vocabulaire du journal (v4.52.0). Il est désormais
+    DÉCLARÉ ; son repli éventuel sur 430 reste un changement visible, donc une décision
+    à prendre séparément.
 - Largeurs par vue : accueil = sidebar 255 px + grille ≤ 1320 px (coque FIXE ≥ 780 :
   seuls la sidebar et le contenu défilent) ; fiche ≤ 860 px + **rail de lecture dès
   780 px**, 300 → 320 (≥ 1000) → 360 px (≥ 1200) ; protocole ≤ 780 px.
@@ -169,8 +189,16 @@ comme une marque.
   changement visible, à décider séparément.
 - **Deux seuils distincts, à ne jamais refusionner** : 780 = rail de LECTURE ;
   1000 = aperçu en direct des ÉDITEURS.
-- Rayons : `--radius` 14 px (cartes), `--radius-md` 11 px (boutons/champs),
-  `--radius-sm` 9 px (petits contrôles), 20 px (pastilles).
+- **Rayons — ÉCHELLE FERMÉE** : `3 · 6 · 8 · 11 · 14 · 18 · 999` px
+  (`--radius` 14 cartes, `--radius-md` 11 boutons/champs, `--radius-sm` petits contrôles,
+  999 pastilles). Il y avait **dix-neuf valeurs distinctes pour trois tokens** ;
+  `scripts/check-radius.mjs` ferme la liste.
+- **Espacement — ÉCHELLE FERMÉE** (v5.0.0) : `0 · 1 · 2 · 4 · 6 · 8 · 10 · 12 · 14 · 16 ·
+  18 · 20 · 24 · 28 · 32 · 40 · 48 · 56 · 64 · 72 · 96` px. C'était la **moitié ouverte** du
+  design system — 1 356 déclarations, aucun token, aucun garde-fou. L'échelle a été choisie
+  sur la distribution RÉELLE : la migration n'a déplacé aucune valeur de plus d'1 px, ce qui
+  la rend vérifiable par les harnais existants (cibles de 44, rangées de 71, budgets d'écran)
+  plutôt que par relecture. `scripts/check-space.mjs`.
 - Fenêtres : gabarit unique `dlg-480` (480 px, titre 17/800, croix 44 px) ; plein écran
   < 640 px SAUF les confirmations `dlg-confirm` (420 px, toujours centrées) ; la ZONE
   SENSIBLE est séparée par un filet et vient en dernier.
@@ -243,6 +271,61 @@ Trois réponses, et le choix se déduit de ce que coûte l'information cachée :
   des états réellement actionnables. L'ambre est réservé à « presque plein » et aux
   documents manquants.
 
+## L'ACCUEIL — une bibliothèque unique, le type n'est qu'un filtre (v4.56.0 / v5.0.0)
+
+C'est le premier écran, et il n'avait aucune section ici jusqu'à la v5.
+
+**Le TYPE a cessé d'être une navigation.** Choisir « Aides » ou « Protocoles » était une
+DÉCISION PRÉALABLE : il fallait savoir de quel type était ce qu'on cherchait avant de pouvoir
+le chercher. Or le type est une propriété de l'AUTEUR (« ai-je écrit une checklist ou un
+document ? »), pas du lecteur, qui cherche un SUJET. Le répertoire A→Z réunit donc les deux,
+et le type devient un filtre à trois crans — **« Tout » par défaut** —, c'est-à-dire quelque
+chose qu'on applique APRÈS avoir vu, jamais avant. **Ordre du rail de filtres : Bibliothèque,
+Type, Catégorie** — du plus large au plus étroit ; on choisit d'abord OÙ l'on cherche.
+
+**Trois étages** : tuiles **épinglées ★** (les favoris SEULS — jamais de remplissage par
+fréquence d'usage), **répertoire A→Z**, **rail alphabétique** (tap = saut, glisser = parcours ;
+il DISPARAÎT s'il ne tient pas en hauteur — jamais de lettres coupées). En recherche : liste
+plate triée par pertinence, avec extraits contextuels.
+
+**La rangée du répertoire est à hauteur FIXE (71 px)** — le défaut d'origine n'était pas le
+style mais la hauteur VARIABLE (52 à 86 px mesurés selon le repli des pilules) : un annuaire
+sans pas régulier ne se parcourt pas. Titre sur 2 lignes, **méta sur UNE seule**, ellipsée —
+et son ORDRE est celui de l'importance, puisque c'est la QUEUE qui tombe : nature, état,
+discriminant, catégorie, puis code et date, qui sont ce qu'on peut perdre. La méta est du
+**texte séparé par des points, jamais une suite de chips** : une chip a une largeur
+incompressible et se coupe net, un texte s'ellipse proprement. Deux natures d'items : les
+**DURS** (chrono, registre, statut, date, nature) ne rétrécissent jamais — un chiffre amputé
+est pire qu'absent ; les **SOUPLES** rétrécissent chacun pour soi, donc le plus long cède le
+plus et aucun ne disparaît.
+
+⚠ **Les 71 px sont le rythme de l'ANNUAIRE, pas une propriété de la rangée.** En RECHERCHE
+elle porte en plus l'extrait contextuel, et la hauteur fixe le clippait en plein milieu d'une
+ligne : sous `.dir-grid.flat` elle reprend sa hauteur naturelle, `min-height` gardant le pas —
+donc deux hauteurs possibles, jamais N.
+
+**« Session en cours » cumule trois canaux à coût nul** : liseré au registre CONFIRMATION,
+teinte de rangée, et la DATE qui cède la place au **chrono vivant** (une place déjà prise —
+une date de validation n'apprend rien pendant qu'une session tourne). Peint sur place par le
+tick, jamais par un re-rendu : reconstruire l'annuaire chaque seconde détruirait le nœud sous
+le doigt.
+
+**L'ÉTAT VIDE ENSEIGNE, et c'est le seul écran qui le puisse** (v5.0.0). Depuis que l'accueil
+mêle les deux types, la NATURE écrite sur chaque rangée les nomme sans les expliquer — le
+produit ne dit nulle part ailleurs ce qui distingue une aide d'un protocole. Le vide est le
+seul moment où l'on a la place ET l'attention pour le faire. Le nombre de cartes est
+exactement le nombre de types créables dans la vue courante (les deux en « Tout »), et le
+bouton d'une carte ouvre la création de SON type. Même composant, même anatomie pour les
+deux — elles sont côte à côte pour être COMPARÉES ; le verbe est le seul mot en encre pleine
+(« se **déroule** » / « se **lit** ») et deux lignes se répondent avec le même glyphe : la
+répétition EST la comparaison. **La leçon disparaît sous un filtre** : qui cherche sait déjà
+ce qu'est une aide, on lui doit un résultat et pas un cours.
+
+**Les filtres se replient tant qu'aucun n'est posé** : ~90 px permanents au premier écran pour
+un geste qu'on ne fait jamais sous stress. Mais **un état actif ne se cache JAMAIS** — dès
+qu'un filtre est posé, les rangées sont rendues en permanence et le déclencheur disparaît ;
+un filtre caché serait bien pire que trois rangées permanentes.
+
 ## Les placards — exercice, invité (v4.27.0 / v4.55.4)
 
 Un placard dit **dans quel régime on est**, à l'endroit le plus lu de l'écran. Deux
@@ -264,19 +347,30 @@ relayée par l'EN-TÊTE au pixel où le titre passe dessous, enfants en `z-index
 - **Ce qu'on ne hachure pas** : le QUAI. Il a été essayé et annulé (« immonde ») — des
   chiffres n'ont pas à vivre sur une texture.
 
-## Parcours de soin — le rail ①②③ (v4.4.0)
+## Parcours de soin — des ÉTAGES, plus un rail numéroté (v4.4.0, refondu en v5.0.0)
 
-La vue lecture d'une fiche est structurée par un rail vertical numéroté
-(`<ol class="care-path">`) : ① **Confirmer le diagnostic** → ② **Prise en charge** →
-③ **Surveillances & pièges**, puis les annexes (journal, galerie, documents, note).
+La vue lecture est structurée par trois étages titrés (`.care-flat` / `.cf-stage`) :
+**Confirmer le diagnostic** → **Prise en charge** → **Surveillances & pièges**, puis les
+annexes (journal, galerie, documents, note).
 
-- Pastilles : bleu = active (`aria-current="step"`), vert ✓ = faite, neutre cerclé =
-  à venir. **Jamais d'ambre ni de rouge dans le rail** : ce sont des registres d'alerte,
-  ils y perdraient leur sens.
+- **Le rail vertical numéroté ①②③ (`.care-path`) N'EXISTE PLUS** (lot M2a). Les numéros
+  vivent désormais sur les **BLOCS**, et deux numérotations concurrentes dans la même
+  colonne sont deux vocabulaires pour situer un même geste — ce qu'AC 120-71B proscrit.
+  Celle des blocs reste parce qu'elle est COMMUNE au journal, au plan, au tableau et au
+  schéma (`flowPlan().order`) ; le rail ne parlait qu'à lui-même.
+- **En session, l'ACTION passe devant l'ORIENTATION** (lot T5). Un rail numérote un
+  parcours : il oriente qui DÉCOUVRE la fiche, c'est-à-dire exactement ce dont on n'a plus
+  besoin quand on exécute. Mesuré à 320 × 640 avant correction : la première étape cochable
+  naissait à **y = 721 px pour un pli à 640** — zéro étape à l'écran au démarrage du soin.
+  Une fois la session démarrée, la suite verticale est donc réécrite (action d'abord, ce qui
+  est fait ensuite, ce qui suivra en dernier) ; **hors session rien ne bouge**, car avant
+  d'agir on s'oriente (condition d'entrée QRH).
 - La séquence est **SUGGÉRÉE, jamais bloquante** : la 1ʳᵉ action démarre la session, où
-  qu'elle soit. Étapes vides omises (numérotation recalculée) ; une seule étape → pas de rail.
-- « Ne pas oublier » reste le **CHAPEAU hors numérotation** (`.forget-strip`, bord
-  `--critical-bd`) : ce qui tue si on l'oublie se lit AVANT toute séquence.
+  qu'elle soit.
+- « Ne pas oublier » reste le **CHAPEAU** (`.forget-strip`, bord `--critical-bd`) : ce qui
+  tue si on l'oublie se lit AVANT toute séquence. Il est **entier tant que la session n'a
+  pas démarré**, puis **replié en une ligne qui annonce son compte** (lot T3) — 126 px
+  rendus à 320 px. Le registre, le glyphe et le mot restent : seule la surface part.
 
 ## Le rail de LECTURE, dès 780 px (v4.23.0)
 
@@ -299,16 +393,34 @@ minuteurs épinglés → repères posologiques → Échelle du plan → horodata
   Trois masses rouges d'égale valeur à l'écran faisaient perdre leur prééminence aux
   memory items. Une seule masse rouge par écran.
 
-## Les deux modes de lecture d'une aide (v4.13.0, fusionnés v4.16.0)
+## L'axe de DENSITÉ — « Un bloc » / « Toute la fiche » (v5.0.0, lots T8 et A)
 
-Une fiche À ALGORITHME se lit de deux façons, par une bascule **UNIQUE** en tête
-(`#readTopSeg`, masquée si la fiche n'a pas d'algorithme) :
+La bascule ne demande plus d'arbitrer entre deux PRÉSENTATIONS (« Guidé » / « Statique ») —
+un choix qu'aucun néophyte, et aucun expert sous stress, ne devrait avoir à faire. Elle
+nomme une **densité** : combien de la fiche on veut voir.
 
-- **Dynamique** — le JOURNAL chronologique : ce que je fais, maintenant.
-- **Statique** — le TABLEAU complet façon aide SFAR : toute l'aide d'un coup d'œil.
+- **Un bloc** — le journal chronologique : ce que je fais, maintenant.
+- **Toute la fiche** — un conteneur à **trois onglets** : **Parcours** (les cartes de blocs
+  avec leurs items, inertes), **Page SFAR** (le tableau compact), **Schéma** (le SVG
+  navigable, avec son zoom et son plein écran).
 
-Les deux vues partagent le MÊME état de session ; la préférence est **par utilisateur**.
-L'ancien 3ᵉ mode « guidé » n'existe plus : il est fusionné dans le journal.
+**Le sélecteur segmenté `#modeSeg` a été SUPPRIMÉ**, et c'est le cœur de la décision : un
+segmenté **remplace la vue de travail et ne ramène personne**. On prend du recul, on trouve
+son information, et si l'on n'y repense pas on **termine le soin dans un format qu'on n'avait
+pas choisi** — de la mode confusion au sens FAA. Le contrôle **nomme sa destination, jamais
+son état** : « ⤢ Tout voir » à l'aller, « ↩ Un bloc » au retour, à la **même position**
+(0 px de déplacement mesuré), avec le registre CONFIRMATION au retour. C'est le patron de
+l'excursion sur complication : le retour fait partie du dispositif, jamais de la mémoire.
+
+**Une excursion n'écrit pas la préférence** — regarder n'est pas régler. Le format par défaut
+se choisit **à froid**, dans Compte › Affichage. Corollaire : le vert du retour n'apparaît que
+si l'on n'est PAS dans son format d'ouverture — l'afficher en permanence à quelqu'un qui n'est
+parti nulle part viderait le vert de son sens, l'inflation même qu'on reproche au rouge.
+
+**Chercher DANS l'aide pendant le soin** (lot B) : la feuille « Toute la fiche » porte le
+composant de recherche de la lecture de référence. Elle **ne filtre pas** — elle surligne et
+saute : masquer laisserait croire que le reste n'existe pas. Jamais sur le Schéma, dont les
+textes vivent dans un SVG où un `<mark>` n'est pas un nœud valide.
 
 ## Journal de parcours & fil condensé (v4.9.0 / v4.16.0 — modèle ECAM)
 
@@ -414,10 +526,15 @@ reste lisible) :
    « Constaté ✓ » coche ; « △ Écart » avance **sans cocher** et ne **DÉCOCHE JAMAIS** (la
    coche est la trace). **Retour immédiat** : le résultat s'affiche dès qu'il est prononcé,
    pas en fin de bloc — la boucle est challenge → réponse → CONFIRMATION.
-3. **Mode lecteur** (binôme, plein écran) — UN challenge à la fois, gros caractères, zone
-   de validation ≥ 72 px. Bande minuteurs propre, carte des blocs, contexte local
-   (précédent / suivant) — le un-item-à-la-fois n'est PAS le modèle aviation (ECL Boeing =
-   liste entière + curseur), et perdre sa place est un mode de défaillance premier.
+3. **~~Mode lecteur~~ — SURFACE RETIRÉE (v5.0.0, lot T14).** L'overlay plein écran « un
+   challenge à la fois » ne gagnait qu'à **320 px** (63 % de l'écran aux étapes contre 36 %)
+   et **perdait à 390** (47 % contre 59 %) : son propre chrome coûtait plus qu'il ne rendait.
+   Sa justification s'était d'ailleurs érodée dans sa propre doctrine — la v4.28.0 avait
+   abandonné le un-item-à-la-fois (ECL Boeing = liste entière + curseur ; perdre sa place est
+   un mode de défaillance premier), et la v4.62.0 avait unifié structure et verbes. Il ne
+   restait qu'une coquille. Le cas qui le motivait le mieux (McEvoy 2014 : 99,5 % contre 70 %,
+   un lecteur tenant l'UNIQUE appareil) se résout en **tendant le téléphone**, ce que la carte
+   de bloc sert déjà ; le binôme à deux appareils est servi par le partage de session.
 
 **La trace de vérification est un état DISTINCT du cochage** : une étape cochée à
 l'exécution doit rester discernable d'une étape CONSTATÉE par observation — c'est
@@ -598,11 +715,11 @@ Le mouvement est un signal, pas une décoration. En situation de soin :
 - Taille des images réglée **par image dans le modèle** (jeu fermé), jamais dans la syntaxe,
   et rendue par une CLASSE — jamais un nombre interpolé dans un style.
 
-## La cascade — dix pièges, et ce qu'ils ont en commun
+## La cascade — dix-huit pièges, et ce qu'ils ont en commun
 
-Dix fois, une règle de GÉOMÉTRIE a été silencieusement annulée par une autre. Six par
+Dix-huit fois, une règle a été silencieusement annulée par une autre. La majorité par
 l'ORDRE de déclaration à spécificité égale (`.read-grid`, `.cbt-n`, `.mode-seg`, les
-largeurs d'éditeur, les paliers 320 px…), quatre par la SPÉCIFICITÉ :
+largeurs d'éditeur, les paliers 320 px…), les autres par la SPÉCIFICITÉ :
 
 - `.ai-card p` (0,1,1) l'emportant sur `.sh-code` (0,1,0) ;
 - un `#id` (1,1,0) battant un sélecteur de classes plus long (0,2,1) — le geste était bloqué
@@ -612,6 +729,20 @@ largeurs d'éditeur, les paliers 320 px…), quatre par la SPÉCIFICITÉ :
 - **un `>*` qui impose `position`** : le placard levait les enfants directs de l'en-tête en
   `position:relative` (0,2,1) et écrasait `.more-menu{position:absolute}` (0,1,0) — le menu ⋯
   s'ouvrait DANS la barre au lieu de flotter dessous.
+- **une COULEUR aussi se vérifie** : `#crisisBand .cb-tag` (1,1,0) écrasait le bleu du
+  placard invité écrit en `.cb-tag.inv` (0,2,0) — « ▪ Vous suivez » sortait en ROUGE, le seul
+  registre qu'il ne devait pas emprunter, pendant plusieurs versions.
+- **un LONGHAND ne survit pas à un RACCOURCI ultérieur** : la marque ⚠/△ d'une étape réserve
+  sa place par un `padding-left`, qu'un `padding` raccourci déclaré 1 350 lignes plus bas
+  écrasait intégralement — le défaut n'existait qu'AU FOCUS, ce qui explique qu'il ait
+  survécu. Même mécanique sur `.rt-h2` : 14 px demandés, **0 obtenu**.
+- **le composant RÉUTILISÉ ramène ses règles** : `.empty b{display:block}` (le titre d'un
+  état vide) attrapait tous les `b` descendants et coupait en deux chaque ligne de la carte
+  pédagogique, nom sur une ligne et glose sur la suivante.
+- **un membre de liste `:is()` déclaré plus bas** : `.hdr-back` avait son propre halo, mais
+  la liste générique qui le nomme est déclarée après et gagnait par l'ordre — cible à 39 px
+  au lieu de 44. On règle en RETIRANT le membre de la liste, jamais en ajoutant une exception
+  encore plus bas.
 
 **Deux règles qui en découlent.** Pour une GÉOMÉTRIE, ne jamais dépendre de l'ordre de
 déclaration : passer par un `#id`, ou vérifier la position dans la feuille — et compter les
@@ -619,6 +750,40 @@ déclaration : passer par un `#id`, ou vérifier la position dans la feuille —
 positionne lui-même en meurt. Quand un `::before` décoratif doit passer sous le contenu, on
 **l'enfonce** (`z-index:-1`, si l'élément est bien un contexte d'empilement) plutôt que de
 **lever** ses frères — l'un ne demande rien aux enfants, l'autre les contraint tous.
+
+## Les garde-fous — ce qui rend ces règles AUTO-EXÉCUTOIRES
+
+La leçon constante du dossier : **partout où une règle est restée déclarative, elle a fui.**
+Les paliers avaient douze valeurs pour neuf déclarées ; l'espacement n'avait aucun token ;
+le plancher typographique était employé 173 fois. Aucun de ces écarts n'était visible à la
+relecture — chaque déclaration prise isolément était parfaitement légale.
+
+Un garde-fou ne rend pas le système pur, il **l'empêche de dériver**. Ceux du design, joués
+à chaque commit par `npm run check` :
+
+| Contrôle | Ce qu'il ferme |
+|---|---|
+| `check-colors` | aucun hex hors DÉCLARATION de token |
+| `check-type` | sept paliers de texte + bande d'affichage, **et un QUOTA du plancher** |
+| `check-space` | 21 valeurs d'espacement |
+| `check-radius` | sept rayons |
+| `check-paliers` | les dix paliers de largeur, comparés au code |
+| `check-anim` | aucune propriété de MISE EN PAGE animée |
+| `check-classes` | toute classe émise est stylée, et réciproquement |
+| `check-icons` | aucun nom d'icône fantôme (un nom absent rend un `<svg>` VIDE, en silence) |
+| `check-syntax` | la feuille de style parse (un commentaire mal fermé AVALE la règle suivante) |
+
+Et côté mesure, `npm run audit` (18 harnais qui MESURENT au lieu d'affirmer) : `audit-a11y`
+balaye les surfaces **et les états** — il n'ouvrait que le repos, et deux violations AA ont
+vécu à l'écran sans qu'il les voie ; `audit-budget` mesure une **répartition** (chrome ≤ 30 %
+de la hauteur, au moins une étape cochable visible), le seul qui ne juge pas une propriété
+isolée mais leur SOMME.
+
+**Deux règles de méthode, payées cher.** Un contrôle doit être **vérifié capable d'échouer**
+(défaut réintroduit → rouge, fichier restauré à l'octet) : un garde-fou qui ne peut pas
+échouer ne prouve rien. Et il doit **rencontrer son cas** : mesurer les fiches d'exemple ne
+prouvait rien sur la rangée du répertoire, leur code faisant trois caractères — le témoin
+restait vert pendant que la date disparaissait chez l'utilisateur.
 
 ## Ce qui a été RETIRÉ (ne pas réintroduire sans besoin constaté)
 
@@ -642,3 +807,29 @@ positionne lui-même en meurt. Quand un `::before` décoratif doit passer sous l
   masqués pendant le soin — vus à l'ouverture, ils ne conduisent rien.
 - **La pastille « ▲ Exercice : date » dans la méta** (v4.29.0) : elle captait l'œil à côté
   de la date de validation pour une information non clinique.
+
+**Retraits du chantier v5.0.0** (chacun mesuré, aucun par simple goût) :
+
+- **Le mode LECTEUR** (lot T14) : ne gagnait qu'à 320 px et perdait à 390 — son chrome
+  coûtait plus qu'il ne rendait, et sa doctrine avait déjà été abandonnée en v4.28.0.
+- **Le rail ①②③ `.care-path`** (lot M2a) : deux numérotations concurrentes dans la même
+  colonne. Celle des blocs reste, étant commune à toutes les vues.
+- **Le sélecteur segmenté « Guidé / Statique » `#modeSeg`** (lot A) : un segmenté remplace la
+  vue et ne ramène personne — remplacé par une EXCURSION qui nomme sa destination.
+- **La tab bar basse Aides / Protocoles** (lot M4) : le type est devenu un FILTRE, pas une
+  navigation entre sections — **62 px de hauteur permanents** rendus sur l'accueil.
+- **La fenêtre `#cxModal` des complications** (lot audit design) : devenue un DÉPLIANT — la
+  doctrine QRH porte sur l'INDEX UNIQUE, pas sur la modalité, et la fenêtre couvrait **38 %
+  de l'écran à 320 px, pendant un soin**. À UN seul événement, il n'y a d'ailleurs plus
+  d'index du tout : l'événement DEVIENT le bouton.
+- **Le bandeau-titre en crise ORDINAIRE** : 64 px en haut de colonne pour un titre que la
+  barre porte déjà en permanence. Il ne survit qu'aux deux exceptions dont la barre ne sait
+  dire que le MOT — exercice et invité, qui ont une PHRASE et une hachure.
+- **Le bouton « ⤢ complet » de la colonne d'orientation** : il ouvrait une feuille qui rendait
+  **exactement ce que la colonne montrait déjà** (8 rangées identiques) ; sa seule valeur
+  ajoutée était la largeur. La feuille reste joignable par le menu ⋯.
+- **L'accent hors de l'avatar** : voir « Couleur d'accent ».
+- **Les cinq listes v3 comme CHAMPS** (`confirmation`, `notForget`, `verify`, `posology`,
+  `differentials`) : elles sont devenues des items à RÔLE dans le pool `items[]`. C'est la
+  levée explicite de la règle 12, avec un chemin de reprise écrit AVANT le changement et
+  vivant hors de l'application (`docs/conversion-v3-vers-v4.md`).

@@ -187,6 +187,49 @@ RÉPONDS UNIQUEMENT PAR LE JSON.
 3. **Gardez votre export v3 d'origine** tant que vous n'avez pas fait cette vérification sur
    plusieurs fiches.
 
+## ⚠ Si vos données sont SYNCHRONISÉES (compte, bibliothèques partagées)
+
+Tout ce qui précède convertit un **fichier**. Or la conversion d'un fichier ne convertit pas ce
+qui est **en base**, ni ce qui dort dans l'IndexedDB des autres appareils. Trois faits, mesurés :
+
+- **Une aide v3 lue par la v5 perd les étapes de ses blocs** (les listes du haut de fiche —
+  critères, « Ne pas oublier », surveillances, posologie, différentiels — sont, elles,
+  récupérées). La perte est **silencieuse** : la fiche s'ouvre, elle est vide.
+- **Elle devient définitive à la première écriture.** L'éditeur enregistre en continu depuis la
+  v4.72.0 : ouvrir la fiche vide pour comprendre suffit à la réécrire sans ses étapes, puis à
+  pousser cette version dans le cloud (dernier écrivain gagnant).
+- **Le mode d'import décide de tout.** À l'import, si des identifiants existent déjà,
+  l'application demande : **« Remplacer les existants »** garde l'identifiant, donc la fiche
+  convertie **écrase** la version v3 en base — c'est ce qu'il faut. **« Garder les deux »**
+  attribue un identifiant NEUF : vous obtenez des doublons, et les v3 restent en base.
+
+**Ordre à respecter, sur UN seul appareil :**
+
+1. Depuis votre version actuelle (4.x), **exportez** (fenêtre Compte → « Exporter mes données »)
+   et **gardez le fichier**. Faites-le pour **chaque bibliothèque** dont vous êtes responsable :
+   l'export porte le périmètre courant.
+2. **Convertissez** avec le prompt ci-dessus.
+3. Ouvrez la **v5** (elle n'a pas besoin d'être déployée : le fichier servi en local suffit),
+   connectez-vous, et **importez** en répondant **« Remplacer les existants »**.
+4. Laissez la synchro pousser, puis **vérifiez en base** qu'il ne reste plus de v3 :
+
+   ```sql
+   select count(*) filter (where data->'items' is null) as reste_v3, count(*) as total
+   from public.cognitive_aids;
+   ```
+
+5. **Seulement quand ce compte est à zéro**, déployez.
+
+**Les autres membres d'une bibliothèque partagée** n'ont rien à faire — leurs aides sont en base,
+donc converties par l'étape 4 —, **à condition qu'ils n'ouvrent pas la v5 avant**. Un appareil qui
+charge la v5 alors que la base porte encore du v3 affichera des fiches vides, et toute édition
+faite là écraserait la version d'origine. Déployer après vérification est donc ce qui les protège.
+
+**Les aides purement locales d'un autre appareil** (jamais synchronisées) ne sont couvertes par
+aucune de ces étapes : exportez-les depuis cet appareil, en 4.x, avant qu'il ne reçoive la v5.
+
+---
+
 Si l'import échoue, c'est presque toujours l'un de ces trois cas : l'IA a ajouté du texte autour
 du JSON (supprimez tout ce qui précède `{` et suit `}`), elle a tronqué un fichier trop long
 (convertissez fiche par fiche), ou elle a « corrigé » un contenu (recommencez en lui rappelant la
