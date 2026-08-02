@@ -251,7 +251,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-6ywUEa1XpTDKrKiYnVO7L+69vG55eFlF1AhkN9FfPrA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-JFMrEK8RP6UnKM1GR9iLLXBMFJdcpHxxt9SS2S2jztA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -5590,6 +5590,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     <button class="hdr-act2" id="hdrPreview" hidden title="Dérouler le brouillon comme en session — rien n'est enregistré" aria-label="Essayer"><span class="pv-ic" aria-hidden="true">▶</span><span class="pv-lbl">▶ Essayer</span></button>
     <button class="hdr-theme" id="hdrTheme" aria-label="Thème"></button>
     <button class="hdr-more" id="hdrMore" hidden aria-haspopup="menu" aria-expanded="false" aria-label="Actions"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><circle cx="4" cy="10" r="2"/><circle cx="10" cy="10" r="2"/><circle cx="16" cy="10" r="2"/></svg></button>
+    <!-- ⚠ Le tracé de la silhouette est DUPLIQUÉ dans `uiIcon('user')` (côté script) : même
+         dessin, même idée (« vous »). La coque étant du HTML statique, elle ne peut pas lire la
+         constante partagée — si l'un change, changer l'autre. -->
     <button class="bar-acct" id="acctTop" aria-label="Compte et synchronisation" title="Compte"><svg class="ic-outline" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M5.5 20.5v-1a5 5 0 015-5h3a5 5 0 015 5v1"/></svg><svg class="ic-filled" width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="7.7" r="3.7"/><path d="M4.6 20a7.4 7.4 0 0114.8 0 1 1 0 01-1 1.1H5.6a1 1 0 01-1-1.1z"/></svg><span class="acct-ini" id="acctIni" hidden></span><span class="acct-dot" id="acctDot" hidden></span></button></div></div>
     <!-- Chips bibliothèques/catégories de l'accueil ÉTROIT : dans l'en-tête sticky (fixes au
          défilement, canvas turn 6), remplies par renderHomeList. -->
@@ -11354,12 +11357,12 @@ function newProtocol(){if(!canEditScope(state.scope)){toast('Lecture seule : vou
 // Triangle « attention » UNIQUE (bandeau Brouillon, Ne pas oublier, toasts, erreurs de synchro…) :
 // tracé partagé entre uiIcon('warn') et headerIcon('h-forget'), jamais redessiné en dur.
 const WARN_GLYPH='<path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/>';
-// Tracés PARTAGÉS entre uiIcon, headerIcon et les gabarits (un dessin = une source — un doublon
-// inline finit toujours par diverger) :
+// Tracés PARTAGÉS entre uiIcon et headerIcon (un dessin = une source — un doublon inline finit
+// toujours par diverger). N'EN METTRE ICI QU'À PARTIR DU DEUXIÈME LECTEUR : une constante à
+// lecteur unique n'évite aucune duplication, elle déplace seulement le tracé loin de sa table —
+// c'était le cas de `BOOK_GLYPH` et d'`INFO_GLYPH`, désormais inlinés dans `uiIcon` (v5.0.0).
 const DOC_GLYPH='<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/>';
-const BOOK_GLYPH='<path d="M4 19.5A2.5 2.5 0 016.5 17H20V4H6.5A2.5 2.5 0 004 6.5v13z"/><path d="M4 19.5A2.5 2.5 0 006.5 22H20v-5"/>';
 const IMG_GLYPH='<rect x="3" y="3" width="18" height="18" rx="2.5"/><circle cx="8.5" cy="8.5" r="1.6"/><path d="M21 15l-5-5L5 21"/>';
-const INFO_GLYPH='<circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01" stroke-linecap="round"/>';
 // Épingle des cartes : étoile pleine si épinglée (fill bascule, hors gabarit uiIcon).
 function pinIcon(on){return '<svg width="18" height="18" viewBox="0 0 24 24" fill="'+(on?'currentColor':'none')+'" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"/></svg>';}
 // opts (facultatif) : { sw: graisse du trait (défaut 2), cls: classe CSS (défaut 'tic' ; ''
@@ -11391,9 +11394,21 @@ function uiIcon(name,size,opts){opts=opts||{};const P={
   stopwatch:'<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/>',
   sparkles:'<path fill="currentColor" d="M11 4l1.7 4.3L17 10l-4.3 1.7L11 16l-1.7-4.3L5 10l4.3-1.7z"/><path fill="currentColor" d="M18.5 14.5l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9z"/>',
   pen:'<path d="M17 3a2.83 2.83 0 014 4L7.5 20.5 2 22l1.5-5.5z"/>',
-  doc:DOC_GLYPH,book:BOOK_GLYPH,info:INFO_GLYPH,img:IMG_GLYPH,
+  doc:DOC_GLYPH,img:IMG_GLYPH,
+  book:'<path d="M4 19.5A2.5 2.5 0 016.5 17H20V4H6.5A2.5 2.5 0 004 6.5v13z"/><path d="M4 19.5A2.5 2.5 0 006.5 22H20v-5"/>',
+  info:'<circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01" stroke-linecap="round"/>',
   list:'<path d="M4 6h16M4 12h16M4 18h16"/>',
   phone:'<rect x="7" y="2" width="10" height="20" rx="2.5"/><path d="M11 18.2h2"/>',
+  /* « VOUS » — le pendant de `book` sur la pastille de provenance (`searchLibTag` : « 🕮 Partagée »
+     contre « Perso »). Il MANQUAIT, et `uiIcon` rend alors un <svg> de la bonne taille SANS aucun
+     tracé : la pilule « Perso » réservait 11 px de vide, un dessin absent ne se voyant ni à la
+     relecture ni dans un contrôle de classes. C'est le seul nom vide des 38 (mesuré).
+     ⚠ LE TRACÉ EST CELUI DU BOUTON COMPTE, AU CARACTÈRE PRÈS (sa variante `.ic-outline`, dans la
+     coque HTML statique) : deux silhouettes différentes pour une même idée — « vous » — seraient
+     deux dessins à apprendre là où il n'y a qu'une notion. Le partage par constante (patron de
+     `WARN_GLYPH`) est impossible ici : la coque est du HTML statique, elle ne lit aucune variable
+     JS ; c'est donc une duplication ASSUMÉE et signalée des deux côtés, pas un oubli. */
+  user:'<circle cx="12" cy="8" r="3.6"/><path d="M5.5 20.5v-1a5 5 0 015-5h3a5 5 0 015 5v1"/>',
   bulb:'<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 00-4 10.4c.8.8 1 1.6 1 2.6h6c0-1 .2-1.8 1-2.6A6 6 0 0012 3z"/>',
   check:'<path d="M4 12l5 5L20 6"/>',
   chev:'<path d="M9 6l6 6-6 6"/>',

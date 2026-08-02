@@ -3447,6 +3447,30 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   ⚠ **Ma formulation d'audit était fausse** : j'avais écrit « deux états vides seulement » en ne
   comptant qu'une classe. Le défaut n'était pas qu'il en manquait, c'est qu'il y en avait deux
   formes.
+- **UN NOM D'ICÔNE ABSENT NE LÈVE RIEN — IL REND UN BLANC À LA BONNE TAILLE (v5.0.0,
+  `scripts/check-icons.mjs`)** : `uiIcon` retombe sur `${P[name]||''}`, donc un nom fantôme produit
+  un `<svg>` correctement dimensionné et **sans aucun tracé**. Invisible à la relecture, invisible
+  à `check-classes` (la classe `.tic` est bien émise), invisible aux harnais (l'élément existe et
+  se mesure). C'est ainsi qu'`user` a vécu dans la pastille de provenance : « 🕮 Partagée » portait
+  son dessin, « Perso » portait **11 px de vide**. Le tracé posé est celui du **bouton Compte**, au
+  caractère près — deux silhouettes différentes pour une même idée (« vous ») seraient deux dessins
+  à apprendre là où il n'y a qu'une notion ; la coque HTML étant statique, elle ne peut pas lire de
+  constante partagée, la duplication est donc ASSUMÉE et signalée **des deux côtés**.
+  Le contrôle a deux sens (patron `check-harnais`) : tout nom littéral passé à `uiIcon`/
+  `headerIcon` existe dans sa table, et toute entrée de table a un tracé non vide. **Il dit ce
+  qu'il ne voit pas** : dix appels passent une variable et sortent par construction du champ d'un
+  contrôle statique — le dire vaut mieux que de laisser croire à une couverture totale. ⚠ Piège
+  d'écriture rencontré : prendre tous les littéraux du premier argument fait entrer la CONDITION
+  d'un ternaire (`relKindOf(id)==='p'?'book':'doc'`) — quatre faux positifs ; on retire les
+  opérandes de comparaison avant d'extraire. Vérifié capable d'échouer.
+- **UNE CONSTANTE DE TRACÉ NE SE JUSTIFIE QU'À PARTIR DU DEUXIÈME LECTEUR (v5.0.0, demande
+  utilisateur)** : cinq tracés vivaient en constantes au motif d'être « partagés entre uiIcon,
+  headerIcon et les gabarits ». Vérifié : `WARN_GLYPH`, `DOC_GLYPH` et `IMG_GLYPH` le sont
+  réellement (les deux tables) et **restent** — les inliner recréerait la duplication qu'elles
+  évitent. `BOOK_GLYPH` et `INFO_GLYPH` n'avaient qu'UN lecteur, la table d'`uiIcon` : une
+  constante à lecteur unique n'évite aucune duplication, elle éloigne seulement le tracé de sa
+  table. Inlinés, et le commentaire qui les couvrait rendu exact — il affirmait un partage qui
+  n'existait pas pour deux des cinq.
 - **LA BIBLIOTHÈQUE VIDE EST LE SEUL ÉCRAN QUI PEUT ENSEIGNER LA DIFFÉRENCE (v5.0.0, maquette
   d'audit + signalé à l'usage)** : en vue « Tout », l'état vide affichait un titre neutre
   (« Bibliothèque vide ») mais un texte et un bouton **spécifiques des AIDES** — on proposait un
