@@ -60,18 +60,18 @@ begin
   -- Alice crée une fiche perso.
   perform set_config('request.jwt.claims', json_build_object('sub',alice,'role','authenticated')::text, true);
   set local role authenticated;
-  insert into public.fiches(id,owner,library_id,data) values ('f-alice',alice,null,'{"t":1}');
-  select count(*) into v_cnt from public.fiches where id='f-alice';
+  insert into public.cognitive_aids(id,owner,library_id,data) values ('f-alice',alice,null,'{"t":1}');
+  select count(*) into v_cnt from public.cognitive_aids where id='f-alice';
   if v_cnt <> 1 then raise exception 'ÉCHEC : Alice ne voit pas sa propre fiche perso'; end if;
 
   -- Bob ne doit ni la voir, ni la modifier.
   perform set_config('request.jwt.claims', json_build_object('sub',bob,'role','authenticated')::text, true);
-  select count(*) into v_cnt from public.fiches where id='f-alice';
+  select count(*) into v_cnt from public.cognitive_aids where id='f-alice';
   if v_cnt <> 0 then raise exception 'ÉCHEC : Bob voit la fiche perso d''Alice'; end if;
-  update public.fiches set data='{"hack":1}' where id='f-alice';  -- RLS -> 0 ligne, sans erreur
+  update public.cognitive_aids set data='{"hack":1}' where id='f-alice';  -- RLS -> 0 ligne, sans erreur
 
   reset role;
-  select data->>'hack' into v_hack from public.fiches where id='f-alice';
+  select data->>'hack' into v_hack from public.cognitive_aids where id='f-alice';
   if v_hack is not null then raise exception 'ÉCHEC : Bob a pu modifier la fiche perso d''Alice'; end if;
 
   ------------------------------------------------------------------ 2. Tables invisibles de l'API
@@ -105,7 +105,7 @@ begin
   set local role authenticated;
   if public.is_approved() <> false then raise exception 'ÉCHEC : Bob (pending) est considéré approuvé'; end if;
   begin
-    insert into public.fiches(id,owner,library_id,data) values ('f-bob',bob,null,'{"t":1}');
+    insert into public.cognitive_aids(id,owner,library_id,data) values ('f-bob',bob,null,'{"t":1}');
     raise exception 'ÉCHEC : un compte pending a pu écrire dans son espace perso';
   exception when insufficient_privilege then null; end;
 
@@ -134,8 +134,8 @@ begin
   set local role authenticated;
   if public.my_status() <> 'approved' then raise exception 'ÉCHEC : my_status sans ligne user_status devrait être approved'; end if;
   if public.is_approved() <> true then raise exception 'ÉCHEC : is_approved diverge de my_status (compte sans ligne user_status refusé)'; end if;
-  insert into public.fiches(id,owner,library_id,data) values ('f-dave',dave,null,'{"t":1}');
-  select count(*) into v_cnt from public.fiches where id='f-dave';
+  insert into public.cognitive_aids(id,owner,library_id,data) values ('f-dave',dave,null,'{"t":1}');
+  select count(*) into v_cnt from public.cognitive_aids where id='f-dave';
   if v_cnt <> 1 then raise exception 'ÉCHEC : un compte sans ligne user_status ne peut pas écrire son espace perso'; end if;
 
   ------------------------------------------------------------------ 6. Notes personnelles : privées et gatées
@@ -145,7 +145,7 @@ begin
   set local role authenticated;
   -- Bob est PENDING (section 5) : l'écriture d'une note est bloquée par le gate is_approved().
   begin
-    insert into public.fiche_notes(user_id,fiche_id,note) values (bob,'f-alice','note de bob');
+    insert into public.aid_notes(user_id,fiche_id,note) values (bob,'f-alice','note de bob');
     raise exception 'ÉCHEC : un compte pending a pu écrire une note';
   exception when insufficient_privilege then null; end;
 
@@ -154,22 +154,22 @@ begin
   update public.user_status set status='approved' where user_id=bob;
   perform set_config('request.jwt.claims', json_build_object('sub',alice,'role','authenticated')::text, true);
   set local role authenticated;
-  insert into public.fiche_notes(user_id,fiche_id,note) values (alice,'f-alice','note d''alice');
+  insert into public.aid_notes(user_id,fiche_id,note) values (alice,'f-alice','note d''alice');
   perform set_config('request.jwt.claims', json_build_object('sub',bob,'role','authenticated')::text, true);
-  insert into public.fiche_notes(user_id,fiche_id,note) values (bob,'f-alice','note de bob');
+  insert into public.aid_notes(user_id,fiche_id,note) values (bob,'f-alice','note de bob');
 
   -- Chacun ne voit QUE la sienne ; impossible d'écrire une note au nom d'un autre.
-  select count(*) into v_cnt from public.fiche_notes where fiche_id='f-alice';
+  select count(*) into v_cnt from public.aid_notes where fiche_id='f-alice';
   if v_cnt <> 1 then raise exception 'ÉCHEC : Bob voit % note(s) sur f-alice (attendu : 1, la sienne)', v_cnt; end if;
-  select count(*) into v_cnt from public.fiche_notes where user_id=alice;
+  select count(*) into v_cnt from public.aid_notes where user_id=alice;
   if v_cnt <> 0 then raise exception 'ÉCHEC : Bob voit la note personnelle d''Alice'; end if;
   begin
-    insert into public.fiche_notes(user_id,fiche_id,note) values (alice,'f-2','usurpation');
+    insert into public.aid_notes(user_id,fiche_id,note) values (alice,'f-2','usurpation');
     raise exception 'ÉCHEC : Bob a pu écrire une note au nom d''Alice';
   exception when insufficient_privilege then null; end;
-  update public.fiche_notes set note='hack' where user_id=alice;  -- RLS -> 0 ligne, sans erreur
+  update public.aid_notes set note='hack' where user_id=alice;  -- RLS -> 0 ligne, sans erreur
   reset role;
-  select count(*) into v_cnt from public.fiche_notes where user_id=alice and note='hack';
+  select count(*) into v_cnt from public.aid_notes where user_id=alice and note='hack';
   if v_cnt <> 0 then raise exception 'ÉCHEC : Bob a pu modifier la note d''Alice'; end if;
 
   -- (Remise en pending pour ne pas fausser la suite éventuelle.)
@@ -204,7 +204,7 @@ begin
   select count(*) into v_cnt from auth.users where id=bob;
   if v_cnt <> 0 then raise exception 'ÉCHEC : delete_my_account n''a pas supprimé le compte'; end if;
   -- La suppression du compte emporte aussi ses notes personnelles (FK on delete cascade).
-  select count(*) into v_cnt from public.fiche_notes where user_id=bob;
+  select count(*) into v_cnt from public.aid_notes where user_id=bob;
   if v_cnt <> 0 then raise exception 'ÉCHEC : les notes de Bob ont survécu à la suppression du compte'; end if;
 
   ------------------------------------------------------------------ 8. Bibliothèques partagées :
@@ -224,23 +224,23 @@ begin
     on conflict (id) do nothing;
   insert into public.memberships(user_id,library_id,role) values (erin,'lib-team','editor'),(frank,'lib-team','viewer')
     on conflict (user_id,library_id) do update set role=excluded.role;
-  insert into public.fiches(id,owner,library_id,data) values ('f-other',alice,'lib-other','{"t":1}')
+  insert into public.cognitive_aids(id,owner,library_id,data) values ('f-other',alice,'lib-other','{"t":1}')
     on conflict (id) do nothing;
 
   -- 8.1 Editor : peut créer/lire une fiche de SA bibliothèque.
   perform set_config('request.jwt.claims', json_build_object('sub',erin,'role','authenticated')::text, true);
   set local role authenticated;
-  insert into public.fiches(id,owner,library_id,data) values ('f-team',erin,'lib-team','{"t":1}');
-  select count(*) into v_cnt from public.fiches where id='f-team';
+  insert into public.cognitive_aids(id,owner,library_id,data) values ('f-team',erin,'lib-team','{"t":1}');
+  select count(*) into v_cnt from public.cognitive_aids where id='f-team';
   if v_cnt <> 1 then raise exception 'ÉCHEC : un editor ne peut pas créer une fiche dans sa bibliothèque'; end if;
 
   -- 8.2 Viewer : peut LIRE mais pas ÉCRIRE (RLS -> 0 ligne affectée, sans erreur, comme section 1).
   perform set_config('request.jwt.claims', json_build_object('sub',frank,'role','authenticated')::text, true);
-  select count(*) into v_cnt from public.fiches where id='f-team';
+  select count(*) into v_cnt from public.cognitive_aids where id='f-team';
   if v_cnt <> 1 then raise exception 'ÉCHEC : un viewer ne voit pas une fiche de sa bibliothèque'; end if;
-  update public.fiches set data='{"hack":1}' where id='f-team';
+  update public.cognitive_aids set data='{"hack":1}' where id='f-team';
   reset role;
-  select data->>'hack' into v_hack from public.fiches where id='f-team';
+  select data->>'hack' into v_hack from public.cognitive_aids where id='f-team';
   if v_hack is not null then raise exception 'ÉCHEC : un viewer a pu modifier une fiche de sa bibliothèque'; end if;
 
   -- 8.2bis Déplacer une fiche partagée vers Perso (fonctionnalité VOULUE : sélecteur de
@@ -250,13 +250,13 @@ begin
   -- member_role in ('editor','admin') sur la ligne D'ORIGINE (USING) : un viewer échoue cette
   -- condition -> RLS -> 0 ligne affectée, sans erreur (même mécanique que le test précédent).
   reset role;
-  insert into public.fiches(id,owner,library_id,data) values ('f-move',erin,'lib-team','{"t":1}')
+  insert into public.cognitive_aids(id,owner,library_id,data) values ('f-move',erin,'lib-team','{"t":1}')
     on conflict (id) do nothing;
   perform set_config('request.jwt.claims', json_build_object('sub',frank,'role','authenticated')::text, true);
   set local role authenticated;
-  update public.fiches set library_id=null, owner=frank where id='f-move';
+  update public.cognitive_aids set library_id=null, owner=frank where id='f-move';
   reset role;
-  select library_id into v_hack from public.fiches where id='f-move';
+  select library_id into v_hack from public.cognitive_aids where id='f-move';
   if v_hack is distinct from 'lib-team' then raise exception 'ÉCHEC : un viewer a pu exfiltrer une fiche partagée vers son espace perso'; end if;
 
   -- Un EDITOR de la bibliothèque, en revanche, peut légitimement déplacer CETTE MÊME fiche vers
@@ -264,24 +264,24 @@ begin
   -- CHECK valide sur la nouvelle — owner = soi-même, cf. fiches_perso).
   perform set_config('request.jwt.claims', json_build_object('sub',erin,'role','authenticated')::text, true);
   set local role authenticated;
-  update public.fiches set library_id=null, owner=erin where id='f-move';
-  select count(*) into v_cnt from public.fiches where id='f-move' and library_id is null and owner=erin;
+  update public.cognitive_aids set library_id=null, owner=erin where id='f-move';
+  select count(*) into v_cnt from public.cognitive_aids where id='f-move' and library_id is null and owner=erin;
   if v_cnt <> 1 then raise exception 'ÉCHEC : un editor ne peut pas déplacer une fiche de sa bibliothèque vers Perso'; end if;
 
   -- 8.3 Non-membre : ni lecture ni écriture.
   perform set_config('request.jwt.claims', json_build_object('sub',gina,'role','authenticated')::text, true);
   set local role authenticated;
-  select count(*) into v_cnt from public.fiches where id='f-team';
+  select count(*) into v_cnt from public.cognitive_aids where id='f-team';
   if v_cnt <> 0 then raise exception 'ÉCHEC : un non-membre voit une fiche de la bibliothèque'; end if;
   begin
-    insert into public.fiches(id,owner,library_id,data) values ('f-intru',gina,'lib-team','{"t":1}');
+    insert into public.cognitive_aids(id,owner,library_id,data) values ('f-intru',gina,'lib-team','{"t":1}');
     raise exception 'ÉCHEC : un non-membre a pu écrire dans la bibliothèque';
   exception when insufficient_privilege then null; end;
 
   -- 8.4 Étanchéité entre bibliothèques : un membre de lib-team ne voit pas les fiches de lib-other.
   perform set_config('request.jwt.claims', json_build_object('sub',erin,'role','authenticated')::text, true);
   set local role authenticated;
-  select count(*) into v_cnt from public.fiches where id='f-other';
+  select count(*) into v_cnt from public.cognitive_aids where id='f-other';
   if v_cnt <> 0 then raise exception 'ÉCHEC : un membre de lib-team voit une fiche de lib-other'; end if;
 
   -- 8.5 invite_member : réservé à un admin de la bibliothèque (un editor est refusé).
@@ -493,7 +493,7 @@ begin
   -- 11.2 erin (rejetée) ne LIT plus rien de partagé : fiches, protocoles, bucket.
   perform set_config('request.jwt.claims', json_build_object('sub',erin,'role','authenticated')::text, true);
   set local role authenticated;
-  select count(*) into v_cnt from public.fiches where id='f-team';
+  select count(*) into v_cnt from public.cognitive_aids where id='f-team';
   if v_cnt <> 0 then raise exception 'ÉCHEC : un compte rejeté lit encore une fiche partagée'; end if;
   select count(*) into v_cnt from public.protocols where id='p-team';
   if v_cnt <> 0 then raise exception 'ÉCHEC : un compte rejeté lit encore un protocole partagé'; end if;
@@ -501,10 +501,10 @@ begin
   if v_cnt <> 0 then raise exception 'ÉCHEC : un compte rejeté lit encore un document du bucket partagé'; end if;
 
   -- 11.3 erin (rejetée) n'ÉCRIT plus rien de partagé (UPDATE -> 0 ligne sans erreur ; INSERT -> refus).
-  update public.fiches set data='{"revoked":1}' where id='f-team';
+  update public.cognitive_aids set data='{"revoked":1}' where id='f-team';
   update storage.objects set metadata='{"revoked":1}' where bucket_id='attachments' and name='l/lib-team/att-t1.pdf';
   begin
-    insert into public.fiches(id,owner,library_id,data) values ('f-revoked',erin,'lib-team','{"t":1}');
+    insert into public.cognitive_aids(id,owner,library_id,data) values ('f-revoked',erin,'lib-team','{"t":1}');
     raise exception 'ÉCHEC : un compte rejeté a pu créer une fiche partagée';
   exception when insufficient_privilege then null; end;
   begin
@@ -516,7 +516,7 @@ begin
     raise exception 'ÉCHEC : un compte rejeté a pu déposer un document dans le bucket partagé';
   exception when insufficient_privilege then null; end;
   reset role;
-  select data->>'revoked' into v_hack from public.fiches where id='f-team';
+  select data->>'revoked' into v_hack from public.cognitive_aids where id='f-team';
   if v_hack is not null then raise exception 'ÉCHEC : un compte rejeté a pu modifier une fiche partagée'; end if;
   select metadata->>'revoked' into v_hack from storage.objects where bucket_id='attachments' and name='l/lib-team/att-t1.pdf';
   if v_hack is not null then raise exception 'ÉCHEC : un compte rejeté a pu remplacer un document du bucket partagé'; end if;
@@ -540,9 +540,9 @@ begin
   -- 12.1 UPDATE d'une fiche partagée avec un updatedBy FALSIFIÉ -> l'e-mail réel du JWT s'impose.
   perform set_config('request.jwt.claims', json_build_object('sub',frank,'email','frank@test.local','role','authenticated')::text, true);
   set local role authenticated;
-  update public.fiches set data='{"t":2,"updatedBy":"chef@example.org"}' where id='f-team';
+  update public.cognitive_aids set data='{"t":2,"updatedBy":"chef@example.org"}' where id='f-team';
   reset role;
-  select data->>'updatedBy' into v_hack from public.fiches where id='f-team';
+  select data->>'updatedBy' into v_hack from public.cognitive_aids where id='f-team';
   if v_hack is distinct from 'frank@test.local' then
     raise exception 'ÉCHEC : updatedBy falsifié conservé sur une fiche (% au lieu de l''e-mail réel)', coalesce(v_hack,'NULL'); end if;
 
@@ -559,9 +559,9 @@ begin
   -- jamais un null JSON — le trigger ne doit rien AJOUTER).
   perform set_config('request.jwt.claims', json_build_object('sub',frank,'email','frank@test.local','role','authenticated')::text, true);
   set local role authenticated;
-  update public.fiches set data='{"t":3}' where id='f-team';
+  update public.cognitive_aids set data='{"t":3}' where id='f-team';
   reset role;
-  select count(*) into v_cnt from public.fiches where id='f-team' and data ? 'updatedBy';
+  select count(*) into v_cnt from public.cognitive_aids where id='f-team' and data ? 'updatedBy';
   if v_cnt <> 0 then raise exception 'ÉCHEC : updatedBy a été ajouté à un payload qui ne le portait pas'; end if;
 
   -- 12.4 SANS claim email (service_role, SQL Editor, maintenance) : la valeur déclarée est
@@ -569,8 +569,8 @@ begin
   -- persiste jusqu'à la fin de la transaction, même après reset role -> on vide explicitement
   -- les claims pour simuler l'absence de JWT.
   perform set_config('request.jwt.claims', '{}', true);
-  update public.fiches set data='{"t":4,"updatedBy":"admin@ops.local"}' where id='f-team';
-  select data->>'updatedBy' into v_hack from public.fiches where id='f-team';
+  update public.cognitive_aids set data='{"t":4,"updatedBy":"admin@ops.local"}' where id='f-team';
+  select data->>'updatedBy' into v_hack from public.cognitive_aids where id='f-team';
   if v_hack is distinct from 'admin@ops.local' then
     raise exception 'ÉCHEC : une écriture sans JWT a été écrasée (%) — la maintenance serait cassée', coalesce(v_hack,'NULL'); end if;
 

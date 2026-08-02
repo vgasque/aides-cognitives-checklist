@@ -19,6 +19,34 @@ vitale, sous stress : clarté et robustesse priment.
 > test hors-ligne complet (mode avion, PDF 50+ pages, iPhone). **Aucune autre dépendance runtime
 > n'est autorisée** ; tout nouveau fichier servi doit être ajouté à `ASSETS` (`sw.js`).
 
+### Mettre à jour un actif vendorisé (pdf.js, police) — la marche à suivre
+
+**⚠ CHANGER LES FICHIERS NE SUFFIT PAS À CHANGER CE QUI TOURNE (v5.0.0, audit).** Le service
+worker range pdf.js dans un cache versionné par pdf.js lui-même (`PDFJS_CACHE`), et son
+installation n'écrit **que ce qui manque** (`if (await c.match(a)) continue;`). Remplacer
+`vendor/pdfjs/` sans toucher `PDFJS_CACHE` laisse donc la clé inchangée, les entrées déjà
+présentes, et **rien n'est re-téléchargé** : chaque appareil déjà installé garde l'ANCIENNE
+bibliothèque, indéfiniment et sans un mot. Pour une bibliothèque qui analyse du contenu non
+maîtrisé — les PDF joints par l'utilisateur — c'est le pire mode de défaillance : la mise à jour
+de sécurité qui n'atteint personne. `scripts/check-vendor.mjs` relie désormais les deux sources et
+échoue si elles divergent (vérifié capable d'échouer sur les deux).
+
+1. Vérifier l'amont **et les avis de sécurité**, qui ne se déduisent pas du numéro de version :
+   `npm view pdfjs-dist version` et les *security advisories* de `mozilla/pdf.js`. Un avis dit
+   toujours sa **plage affectée** ET sa version de correction : lire les deux, une version plus
+   ancienne que la plage n'est pas concernée.
+2. Remplacer les fichiers (`legacy/build/pdf.min.mjs` → `pdf.min.js`, idem worker), **mettre à
+   jour `vendor/pdfjs/README.txt`** (c'est la seule trace de ce qui est réellement sur le disque)
+   **et `PDFJS_CACHE` dans `sw.js`**.
+3. `npm run check` (`check-vendor` + `check-sw`), puis le **test hors-ligne complet** : mode
+   avion, PDF de 50+ pages, iPhone — et sur un appareil **DÉJÀ INSTALLÉ**, seul cas où le piège
+   du cache se manifeste.
+
+Même discipline pour la police (`vendor/fonts/README.txt` annonce sa taille en octets ;
+`check-vendor` la compare au fichier). **`playwright` ne suit pas cette règle** : c'est une
+dépendance de DÉVELOPPEMENT, elle n'est ni servie, ni précachée, ni exécutée chez un utilisateur —
+`npm outdated` et `npm audit` suffisent, et la CI installe le lock à l'identique (`npm ci`).
+
 ## Si vous ne lisez qu'une chose
 
 Quinze règles qui ne se négocient pas. Le reste de ce fichier les explique et les étend ; **aucune
@@ -29,9 +57,12 @@ ne s'apprend en lisant le code** — elles viennent d'incidents mesurés, et plu
    notes et taguer. Ne JAMAIS éditer les numéros de version à la main (un décalage entre
    `APP_VERSION` et `CACHE` casse la mise à jour du service worker). **Jamais de `git push` sans
    demande explicite.**
-2. **Avant chaque commit** : `npm run check` (syntaxe · couleurs · classes émises · animations ·
-   service worker · SQL · hashs CSP) et
+2. **Avant chaque commit** : `npm run check` (syntaxe · couleurs · classes émises **et stylées** ·
+   animations · service worker · **actifs vendorisés** · **entrées de fichier** · SQL · harnais ·
+   hashs CSP) et
    `npm test` (Chromium **et** WebKit). Si le CSS a changé : `npm run design:build`.
+   **La passe d'audit qui vaut avant un commit est la COMPLÈTE** (`npm run audit` sans argument) ;
+   `npm run audit -- <noms>` n'est qu'un accélérateur d'itération et s'annonce « PARTIELLE ».
 3. **Toute édition du script inline exige `node scripts/csp-hashes.mjs`.** Sans cela, la CSP par
    hashs bloque le seul script de l'application et **elle ne démarre plus**. Le piège s'est produit
    trois fois ; `npm run check` le détecte désormais.
@@ -45,6 +76,11 @@ ne s'apprend en lisant le code** — elles viennent d'incidents mesurés, et plu
    pour zéro sûreté, le backtick n'étant pas un métacaractère HTML.
 5. **Toute donnée entrante passe par `migrate()` / `sanitizeCats()`** — chargement, import, ZIP,
    duplication ET pull cloud. N'ajoutez jamais un chemin qui contourne ces points d'entrée.
+   **`migrate()` NE LIT PLUS QU'UN SEUL FORMAT (v5.0.0, étape D)** : le v4 à pool. Il normalise, il
+   borne, il convertit EN PLACE les renommages internes du chantier v5 — mais il ne sait plus lire
+   un fichier v3, et c'est délibéré : un convertisseur embarqué serait du code mort dès la
+   migration finie, et du code mort dans un logiciel d'urgence vitale est une dette qu'on finit par
+   payer. La reprise d'un export v3 vit **hors** de l'application (`docs/conversion-v3-vers-v4.md`).
 6. **Tout identifiant servant de CLÉ d'objet passe par `safeId()`** (`__proto__` banni) et les
    tables temporaires par `Object.create(null)` : sinon, pollution de prototype.
 7. **Aucune couleur littérale hors déclaration de token** (`--…`). Vérifié par
@@ -67,8 +103,18 @@ ne s'apprend en lisant le code** — elles viennent d'incidents mesurés, et plu
     `contain:layout`, donc casserait tout descendant `fixed`.
 11. **Le mode crise n'est jamais interrompu** : aucune modale, aucune synchro intrusive, aucun
     défilement automatique, aucune notification flottante. Une alarme s'annonce sur place.
-12. **Ne jamais supprimer un champ du modèle** fiche / catégorie / protocole : un export v3 doit
-    rester lisible par un client antérieur.
+12. **~~Ne jamais supprimer un champ du modèle~~ — RÈGLE LEVÉE EN v5.0.0, par décision explicite
+    de l'auteur, et remplacée par celle-ci** : *un changement de modèle qui casse les clients
+    antérieurs exige un CHEMIN DE REPRISE écrit AVANT le changement, et hors de l'application.*
+    La règle d'origine — « un export v3 doit rester lisible par un client antérieur » — a tenu
+    tant que le modèle s'AJOUTAIT. Elle est devenue le principal obstacle au modèle v4, où six
+    champs devaient DISPARAÎTRE : la respecter aurait exigé un miroir par champ renommé, donc de
+    doubler la surface du modèle pour toujours.
+    **CE QUI LA REMPLACE N'EST PAS « on casse quand on veut »** : (a) le chemin de reprise existe
+    et il est écrit d'abord (`docs/conversion-v3-vers-v4.md`) ; (b) les données LOCALES ne sont
+    jamais cassées par une mise à jour que l'utilisateur n'a pas choisie — les renommages internes
+    se convertissent EN PLACE dans `migrate` ; (c) la rupture est annoncée dans les notes de
+    version. Ajouter un champ reste libre ; en retirer un engage ces trois obligations.
 13. **Aucune dépendance runtime**, à l'unique exception de pdf.js vendorisé (chargé paresseusement,
     précaché). Tout fichier servi doit entrer dans `ASSETS` (`sw.js`). **Une POLICE embarquée
     depuis v4.61.0** (`vendor/fonts/source-serif-4-latin-600.woff2`, 21 Ko, SIL OFL) : ce n'est
@@ -102,10 +148,10 @@ en gras de « Conventions de code » sont ses vraies entrées ; voici la carte, 
 | **Couleur, registres, accents** | Design tokens · Taxonomie des notices · Couleur dans le contenu rédigé · Saillance & registres · Couleur d'accent · Code couleur des catégories |
 | **Étapes, statuts, contenu clinique** | Statuts, code, étapes critiques · Liseré gauche 4 px · Taille des images · Listes cochables · Marqueur d'étape hors du champ · Liens « Voir aussi » |
 | **Mode crise — parcours et vues** | Parcours de soin · Journal de parcours · Plan de l'aide · PLAN = UNE SEULE VUE · Mode statique · Challenge-response · COMPLICATIONS · MODE EXERCICE · Alarme de minuteur · Dialogue « Terminer la session ? » · PORTÉE D'UNE ACTION DE REPRISE |
-| **Chrome, navigation, géométrie** | ON ANIME LA COMPOSITION · En-têtes V5 · ZONE HAUTE DE CRISE · DEUX RANGÉES COLLANTES · RAIL DE LECTURE · ANCRAGE ET DÉFILEMENT · DÉFILEMENT PRÉSERVÉ · HAUTEURS RELATIVES À LA FENÊTRE · Largeurs & échelles fermées · PILE DE RETOUR · RETOUR SYSTÈME · Sélecteur segmenté · Repli de l'étape ① · LOGO DE MARQUE · Pieds de page · Indicateur de mode des éditeurs · Interactif |
+| **Chrome, navigation, géométrie** | ON ANIME LA COMPOSITION · En-têtes V5 · ZONE HAUTE DE CRISE · DEUX RANGÉES COLLANTES · RAIL DE LECTURE · ANCRAGE ET DÉFILEMENT · DÉFILEMENT PRÉSERVÉ · RÉENTRÉE · HAUTEURS RELATIVES À LA FENÊTRE · Largeurs & échelles fermées · PILE DE RETOUR · RETOUR SYSTÈME · Sélecteur segmenté · Repli de l'étape ① · LOGO DE MARQUE · Pieds de page · Indicateur de mode des éditeurs · Interactif |
 | **Accueil (bibliothèques)** | ACCUEIL « POSTE ACCÈS DIRECT » |
 | **Consultation et références** | FEUILLE « CONSULTER » · FEUILLE CONSULTER = UN DOCUMENT · REPÈRES POSOLOGIQUES · SORTIE PDF UNIFIÉE |
-| **Données, stockage, sécurité** | Documents PDF · Export/import « avec documents » · Nommage SQL · (et les points 4 à 6 ci-dessus) |
+| **Données, stockage, sécurité** | Documents PDF · Export/import « avec documents » · TOUTE ENTRÉE DE FICHIER · LE DÉPÔT HORS ZONE · Nommage SQL · (et les points 4 à 6 ci-dessus) |
 | **Partage de session en direct** | PARTAGE DE SESSION · CE QUI VOYAGE · RÔLES ET CAPACITÉS · L'INVITÉ NE DÉPOSE RIEN · CONTINUER SEUL · TROIS RÉGIMES D'APPLICATION · JOURNAL RÉFÉRENTIEL · BILLET DE REPRISE · PASSATION DE LA MAIN · HISTORIQUE DE SESSIONS SYNCHRONISÉ |
 | **Leçons de maintenance** | Collision de noms de classe · Hygiène de suppression |
 
@@ -124,9 +170,18 @@ Publier une version = trois étapes, dans cet ordre :
    `vX.Y.Z : <résumé en français des changements>` — puis taguer `vX.Y.Z`.
 
 Les étapes 2 et 3 sont le travail de l'IA (ou de l'humain), jamais du script.
-**Le CHANGELOG garde les 20 dernières versions** ; au-delà, déplacer les plus anciennes
-dans `CHANGELOG-archive.md` — telles quelles, sans réécriture. La règle existait et n'avait servi
-qu'une fois en 112 entrées : le fichier pesait alors 221 Ko, la moitié de toute la documentation.
+**Le CHANGELOG garde les 20 dernières versions** ; au-delà, déplacer les plus anciennes dans
+**`docs/changelog/vN.md`, un fichier par VERSION MAJEURE** — telles quelles, sans réécriture. La
+règle existait et n'avait servi qu'une fois en 112 entrées : le fichier pesait alors 221 Ko, la
+moitié de toute la documentation.
+**L'ARCHIVE UNIQUE AVAIT DÉPASSÉ LE FICHIER QU'ELLE SOULAGE (v5.0.0, audit)** : `CHANGELOG-archive.md`
+atteignait **471 Ko pour 196 entrées** — plus que `CHANGELOG.md`, plus que tout `docs/`. La règle
+déplaçait donc le volume sans jamais le borner, et l'archive devenait à son tour illisible et
+inouvrable. Découpée par majeure, elle borne sa croissance par construction : une majeure close ne
+grossit plus jamais. Le contenu est repris **à l'octet** (réconciliation vérifiée : 196 entrées
+avant, 196 après, aucun contenu modifié) ; seule une coquille de crochet doublé sur `[4.29.8]` a
+été normalisée pour que l'entrée reste analysable.
+Versionnage sémantique : correctif → patch (Z), nouvelle fonctionnalité → mineure (Y).
 Versionnage sémantique : correctif → patch (Z), nouvelle fonctionnalité → mineure (Y).
 Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
 
@@ -141,7 +196,14 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   règle `.hs-wrap>.hs-row:hover` était mangée depuis sa publication, `npm run check` vert de bout en
   bout. Corollaire de méthode : après toute édition du CSS, ne pas se fier au vert de `check-colors`
   et `check-type`, qui travaillent au motif et ne voient pas une règle disparue. Puis **couleurs** (`check-colors.mjs`, cf. Conventions), **échelle
-  typographique** (`check-type.mjs`, v4.71.1 — sept paliers, exemptions nommées et motivées), et
+  typographique** (`check-type.mjs`, v4.71.1 — sept paliers, exemptions nommées et motivées),
+  **espacement** (`check-space.mjs`, v5.0.0 — 1 356 déclarations, échelle fermée à 21 valeurs,
+  migration à ≤ 1 px de déplacement : c'était la moitié du système sans aucun garde-fou),
+  **rayons** (`check-radius.mjs`, v5.0.0 — dix-neuf valeurs distinctes pour trois tokens, ramenées
+  à sept), et `check-type` couvre désormais AUSSI la bande d'AFFICHAGE (≥ 20 px : 20 · 24 · 26 ·
+  34 · 40),
+  **paliers de largeur** (`check-paliers.mjs`, v5.0.0 — l'échelle responsive cesse d'être
+  déclarative ; cf. « Largeurs & échelles fermées »), et
   **fraîcheur des hashs CSP** (`csp-hashes.mjs --check`). Ce dernier existe parce que le piège s'est produit trois
   fois : on édite le script inline, on oublie de rejouer `node scripts/csp-hashes.mjs`, et la CSP
   bloque le SEUL script de l'app — elle ne démarre plus, et le symptôme (page blanche, ou
@@ -190,7 +252,7 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
 - `npm run audit` — **audit transverse (v4.23.0 ; SOCLE COMMUN + MOTEUR CHOISISSABLE v4.45.0)**.
   Les harnais partagent `scripts/harness.mjs` (serveur statique, table MIME, choix du
   moteur) : ils recopiaient le même bloc, et la DIVERGENCE avait déjà commencé —
-  `audit-lecteur.mjs` était le seul dont la table MIME omettait `.ico`. Surtout, les onze d'alors
+  `audit-retour.mjs` était le seul dont la table MIME omettait `.ico`. Surtout, les onze d'alors
   lançaient `chromium.launch()` EN DUR : **iOS Safari, la cible principale déclarée, n'était
   auditée par AUCUN harnais**, alors que `npm test` tourne sur deux moteurs depuis v4.34.0. Le
   moteur se choisit désormais par `AC_ENGINE` (`chromium` par défaut, donc rien ne change sans
@@ -204,10 +266,30 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   identiques (variable isolée). RÈGLE : toute sonde qui lit une géométrie après `focus()` doit
   attendre. Il ne s'agissait donc pas d'un défaut d'accessibilité — mais on ne pouvait pas le
   savoir tant que les harnais ne tournaient que sur Blink., à rejouer dès qu'on touche au chrome de crise,
-  au rail, aux feuilles Plan/Consulter ou à un token de couleur. **SEIZE** harnais Playwright qui
-  MESURENT au lieu d'affirmer (liste exacte dans `package.json`, script `audit` : a11y, doctrine,
-  verify, session-card, zoom-scroll, verify-live, modeseg, consulter, complications, exercice,
-  **k5**, **prompt**, lecteur, qr, partage, historique). Ils tournent en CI en mode **NON BLOQUANT** (`continue-on-error`) : visibles à chaque
+  au rail, aux feuilles Plan/Consulter ou à un token de couleur. **DIX-SEPT** harnais Playwright qui
+  MESURENT au lieu d'affirmer (liste exacte dans `scripts/audit-run.mjs` : a11y, doctrine,
+  budget, verify, session-card, zoom-scroll, verify-live, modeseg, consulter, complications, exercice,
+  **k5**, **prompt**, retour, qr, partage, historique).
+  **LANCEUR PARALLÈLE À RAPPORT AGRÉGÉ (v5.0.0, `scripts/audit-run.mjs`)** : la chaîne `&&` de
+  `package.json` payait la SOMME des durées (mesuré 9 min 42 s, dont 87 % dans doctrine/a11y/
+  partage/k5) et son fail-fast CACHAIT tout ce qui suivait le premier rouge — l'incident « un
+  harnais qui plante en emporte cinq » (v4.70.1), revécu à chaque itération. Le lanceur joue les
+  dix-sept en concurrence (pool `AC_JOBS`, défaut 4, lourds d'abord — temps mural ≈ le max, pas la
+  somme) et rapporte TOUS les échecs d'une passe ; les sondes, leurs seuils et `AC_ENGINE` sont
+  inchangés, et chaque harnais reste lançable seul. **CIBLAGE pendant l'itération** :
+  `npm run audit -- partage qr` ne joue que les harnais nommés — la passe s'annonce alors
+  « PARTIELLE » en toutes lettres (un vert partiel pris pour un complet serait pire que le statu
+  quo), un nom inconnu ÉCHOUE bruyamment (une faute de frappe qui lancerait une passe vide aurait
+  l'air verte), et la règle « avant chaque commit » reste la passe COMPLÈTE, que la CI rejoue.
+  **GESTES D'AMORÇAGE PARTAGÉS (v5.0.0, `harness.mjs` : `amorce`/`ouvrirFiche`/`demarrerSession`)** :
+  les dix-sept recopiaient « Commencer → fiches d'exemple → `.card-open` → `#sessStart` » avec des
+  délais déjà divergents (120/350 ici, 200/700 là) — un changement du flux d'accueil coûtait
+  jusqu'à dix-sept éditions. Une copie désormais, avec attentes sur CONDITIONS RÉELLES
+  (`waitForFunction`) au lieu de délais fixes ; le point d'entrée reste le VRAI (doctrine v4.40.0).
+  DEUX sites gardent leur amorçage inline À DESSEIN, commentés sur place dans `audit-doctrine.mjs` :
+  la sonde de l'écran de bienvenue (l'amorçage est son SUJET de mesure, pas sa mise en condition)
+  et la sonde qui injecte SA fiche sans poser les exemples (autre trajet, pas une copie).
+  Ils tournent en CI en mode **NON BLOQUANT** (`continue-on-error`) : visibles à chaque
   push, mais un échec y demande un arbitrage humain, pas un blocage de merge. Les trois plus
   anciens, en détail :
   - `scripts/audit-a11y.mjs` — **25 surfaces × 2 thèmes, dont les 21 `.ai-modal` du monofichier
@@ -253,6 +335,24 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
     l'époque comptait les `$$` et vérifiait la PARITÉ — or un `$$` amputé ne matche plus le
     motif, il disparaît du compte des deux côtés et la parité reste vraie. Un contrôle aveugle au
     défaut qu'il prétend couvrir ne vaut rien (leçon v4.31.1, redite ici au prix fort).
+  `check-upload.mjs` (v5.0.0) tient la porte des ENTRÉES DE FICHIER : un seul
+  `<input type="file">` dans tout le fichier (il y en avait cinq), aucun `accept` écrit à la main
+  (il vient de `UP_KINDS`, sur la même ligne que la signature qui sera vérifiée), aucun `accept`
+  fourre-tout du genre « image/étoile » — c'est par là que le SVG entrait —, cinq champs par
+  nature, et **le compte des sites qui lisent `.files`** : un quatrième serait, par construction,
+  un chemin d'upload qui ne passe pas par `acceptFile`, c'est-à-dire le défaut d'avant ce chantier
+  en train de revenir. Il neutralise les commentaires avant de mesurer (le fichier CITE la règle à
+  plusieurs endroits) et cette approximation tombe du bon côté : sur-neutraliser fait ÉCHOUER, pas
+  passer sous silence. Vérifié capable d'échouer sur ses cinq points, fichier restauré à l'octet.
+  `check-harnais.mjs` (v5.0.0) rend auto-exécutoire la discipline née avec le lanceur parallèle :
+  (1) tout `scripts/audit-*.mjs` sur disque figure dans `HARNAIS` (audit-run.mjs) et
+  réciproquement — un harnais créé mais non listé ne tournerait JAMAIS dans `npm run audit`, et le
+  trou serait silencieux (la fuite exacte de l'échelle des paliers, rejouée ici) ; (2) aucun
+  harnais ne recopie l'amorçage « Commencer » — on passe par `amorce()`/`ouvrirFiche()`/
+  `demarrerSession()` de `harness.mjs`, et une exemption se marque SUR PLACE par le commentaire
+  « PAS `amorce()` ici » avec sa justification (jamais dans une liste du contrôle, qui se
+  périmerait). Vérifié CAPABLE D'ÉCHOUER dans les deux sens (harnais fantôme → rouge ; copie
+  d'amorçage réintroduite → rouge ; états restaurés).
 - L'intégration continue (`.github/workflows/ci.yml`) rejoue, sur chaque push/PR :
   `npm run check` (syntaxe + couleurs + hashs CSP), `design:check --strict`, `npm ci`, `npm test`,
   puis `npm run audit` **en non bloquant**. `npm ci` (et non `npm install`) : la CI installe
@@ -342,7 +442,9 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   de `stepTxtHtml`, + étiquette `.sr-only`) : depuis que le normal est plat, `⚠` rouge et `△`
   ambre ne se distingueraient QUE par la hue sans lui (WCAG 1.4.1) ; NON passé au mode lecteur
   (`.vstp`, dont le `△` signifie « écart »). Étape COCHÉE = aplatie (plus de fond de boîte pour
-  une normale — la coche verte + texte grisé barré + opacité suffisent ; une étape signalée
+  une normale — la coche verte, l'encre douce et la graisse suffisent ; **NI OPACITÉ NI BARRÉ,
+  cf. « UNE ÉTAPE COCHÉE RESTE LISIBLE » plus bas — la formulation d'origine disait « texte grisé
+  barré + opacité » et c'est elle qui produisait 1,95:1** ; une étape signalée
   cochée garde sa boîte au cadre vert doux). Le filet d'une ligne juste après une boîte est
   supprimé (la boîte a déjà sa bordure basse), mais deux boîtes consécutives gardent chacune la
   leur (`:is(.crit,.vigil)+li:not(.crit):not(.vigil)`). **Un REPÈRE POSOLOGIQUE est toujours ambre** (jamais rouge,
@@ -381,7 +483,10 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   de l'ÉTAPE — les confondre ferait porter deux sens au même trait et hacherait le bleu. C'est donc
   le liseré de la BANDE qui est supprimé : teinte + case colorée + texte coloré + glyphe ⚠/△
   marquent déjà l'étape sans ambiguïté. Ne pas le réintroduire.
-- **Parcours de soin (v4.4.0)** : la vue lecture d'une fiche est structurée par un rail vertical
+- **Parcours de soin (v4.4.0 ; ⚠ ROUVERT EN SESSION PAR LE LOT T5, v5.0.0 — lire « EN SESSION,
+  L'ACTION PASSE DEVANT L'ORIENTATION » plus bas : le rail décrit ci-dessous vaut HORS session ;
+  une fois le soin démarré il cesse d'être l'ossature et perd sa numérotation)** : la vue lecture
+  d'une fiche est structurée par un rail vertical
   numéroté (`<ol class="care-path">`, `aria-current="step"`) — ① **Confirmer le diagnostic**
   (ex-bloc repliable « Confirmation diagnostique », son en-tête EST le titre d'étape :
   « Confirmer le diagnostic » avant session, « Diagnostic confirmé » après ; bouton
@@ -575,7 +680,11 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   ce qui est tout le sens du Do-Verify.
   Portée : stocké dans la SESSION seulement — l'export v3 des fiches et le format des clés
   (`seq:blocId:index`) sont inchangés ; un client antérieur ignore les deux champs.
-  **Mode lecteur** (binôme, plein écran `#readerMode`, statique + délégation unique) : un
+  **~~Mode lecteur~~ — SURFACE RETIRÉE AU LOT T14 (v5.0.0).** Le paragraphe qui suit décrit ce qui
+  a existé de la v4.11.0 à la v4.79.0 et n'a plus d'équivalent dans le code ; il est conservé parce
+  qu'il porte le raisonnement challenge-réponse, qui lui reste vrai. Ce que la surface portait vit
+  désormais dans la carte de bloc : pilule de réponse attendue, passe Do-Verify et cochage sont les
+  mêmes verbes, dans la même liste (I4, v4.62.0). ~~(binôme, plein écran `#readerMode`) : un
   challenge à la fois (26 px, réponse mono 20 px, zone verte ≥ 72 px), piloté sur le BOUT du
   journal — « Répondu » coche la même clé, fin de bloc = mêmes règles que « Continuer »
   (jamais d'avance tant que tout n'est pas confirmé, « Revoir » ramène au premier écart),
@@ -602,7 +711,7 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   support — `_rmSync` le repilote depuis `cxEnter`/`cxResume`, y compris vers une fiche EXTERNE :
   `rmTitle` est re-posé à chaque `readerRender`) ; en fin de bloc d'excursion, JAMAIS
   « Terminer » — « ↩ Reprendre — bloc → » (rempli, non bloquant : présent même avec des étapes
-  non confirmées). Harnais `scripts/audit-lecteur.mjs`.
+  non confirmées). Harnais `scripts/audit-retour.mjs`.
   **Garde-fou télégraphique** (`stepGuardTxt`, non bloquant, patron `nfGuardTxt`) : bloc
   > 7 étapes ou challenge > 110 caractères (la réponse « :: » ne compte pas).
   **Minimaps SUPPRIMÉES (v4.17.0, décision utilisateur)** : la bande de chips-blocs
@@ -717,7 +826,7 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   entre-temps = repli bibliothèque silencieux. Micro-animations v4.29.0 (non bloquantes,
   inertes sous reduced-motion) : le retour par la pile fait entrer la vue d'origine dans le sens
   du geste (`main.back-anim`, keyframes `secInL` réutilisées) et la carte de reprise d'une
-  complication glisse en place (`.ov-block.cx-return`). Harnais : `scripts/audit-lecteur.mjs`.
+  complication glisse en place (`.ov-block.cx-return`). Harnais : `scripts/audit-retour.mjs`.
 - **RETOUR SYSTÈME (History API, v4.30.0 — P1 de l'audit externe)** : avant, 0 pushState/popstate —
   sur Android (PWA ou navigateur), le geste retour SORTAIT de l'app depuis une fiche en pleine
   session, le lecteur, un PDF ou une feuille plein écran (les données survivaient via
@@ -853,6 +962,15 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   les images DISPARAÎTRAIENT en bibliothèque partagée). Rendu par une CLASSE (`.md-fig.w50`), jamais
   un nombre interpolé dans un style. La réduction ne s'applique qu'au-dessus de 560 px (sur
   téléphone, une image à 25 % serait illisible sous stress).
+- **UNE RÉFÉRENCE A DES CASES COCHABLES, ET ELLES NE S'ENREGISTRENT PAS — C'EST VOULU (rappel
+  explicite, v5.0.0)** : une référence n'est pas une session. Les coches servent à ne pas perdre sa
+  place pendant qu'on la parcourt ; elles vivent dans `state.protoTasks`, sont remises à zéro à
+  chaque `openProtocolRead`, et **ne touchent AUCUN champ du modèle** (l'export est strictement
+  inchangé — un client antérieur affiche « [ ] tâche » en item de liste, dégradation lisible).
+  Sortir de la page les efface, et c'est la propriété qui rend le geste sans conséquence : rien à
+  nettoyer, rien à synchroniser, rien qui puisse être pris pour une trace de soin. **Ce qui garde
+  une trace, ce sont les FICHES** — sessions, journal, compte rendu. Confondre les deux ferait
+  croire qu'une référence cochée enregistre quelque chose.
 - **Listes cochables des protocoles (v4.5.4)** : syntaxe GFM `- [ ] tâche` / `- [x] cochée`
   (aussi en liste numérotée), pour la **vérification rapide en lecture** — coches **ÉPHÉMÈRES
   par ouverture** (`state.protoTasks`, remis à zéro par `openProtocolRead` ; survivent aux
@@ -968,6 +1086,134 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   enfant ait à être positionné. **`#crisisBand` garde l'ancienne mécanique**, et ce n'est pas une
   inconséquence : il est `position:relative` **sans `z-index`**, donc pas un contexte
   d'empilement — un `z-index:-1` y passerait sous son propre fond et la hachure disparaîtrait.
+- **UNE ÉTAPE COCHÉE RESTE LISIBLE — NI OPACITÉ NI BARRÉ (v5.0.0, audit design A1-1 ; RÈGLE
+  ROUVERTE, et c'était la SEULE violation AA du fichier)** : `ol.steps li.done{opacity:.6}` plus
+  `--done-ink` et `line-through` composaient un texte à **2,55:1 en clair et 1,95:1 en SOMBRE**,
+  quand l'étape non cochée juste en dessous mesure 17,36 / 16,65 — un facteur 7 à 9 entre deux
+  lignes voisines, sur **l'état le plus fréquent de toute l'application** (en réanimation, la
+  moitié des lignes à l'écran sont cochées). L'exemption WCAG « composant inactif » ne joue PAS :
+  une étape cochée reste un `role="checkbox"` `tabindex="0"` décochable.
+  **TROIS SOURCES CONVERGENTES, ET LA TROISIÈME EST CE FICHIER.** (a) **ECAM** : une action
+  accomplie passe au vert et RESTE pleinement lisible — le decluttering retire ce qui n'est plus
+  PERTINENT, il ne rend pas illisible ce qu'on vient de faire, parce que la relecture est le
+  mécanisme de reprise. (b) **AC 120-71B §5.4 + Degani & Wiener** : « perdre sa place est un mode
+  de défaillance premier », que ce dossier cite déjà pour justifier l'abandon du un-item-à-la-fois
+  (v4.28.0) — une ligne à 1,95:1 barrée EST une ligne perdue. (c) **LA CONTRADICTION INTERNE** :
+  `.sv-stp li.done` porte le commentaire « coché = ✓ vert, texte JAMAIS barré (relecture) » et les
+  listes cochables des références disent « on doit pouvoir relire » ; la vue de SOIN, seule des
+  trois à compter en crise, était la seule à barrer ET estomper. Deux vocabulaires pour une idée,
+  ce qu'AC 120-71B §5.5 proscrit.
+  APRÈS : **5,93:1 en clair, 11,15:1 en sombre**. Rien n'est perdu — la distinction fait/à faire
+  garde TROIS canaux (case verte pleine, graisse 400 contre 600, encre douce), donc la couleur
+  n'est jamais seule (règle 8). L'exception `@media print` qui remettait `opacity:1` et
+  `text-decoration:none` **a disparu avec sa cause** : l'écran et le papier disent la même chose.
+  `--done-ink` est PURGÉ (règle 14) — il valait exactement `--ink-soft` en clair, et 3,11:1 en
+  sombre sur les listes cochables des références, où il portait la même violation.
+- **⚠ LE HARNAIS D'ACCESSIBILITÉ IGNORAIT `opacity` — ET C'EST POUR ÇA QUE 443 CONTRÔLES ÉTAIENT
+  VERTS SUR UNE VIOLATION (v5.0.0, audit design A1-2)** : la sonde composait bien l'alpha de la
+  COULEUR (`rgba(…)`) mais lisait `getComputedStyle().color` sans tenir compte de la propriété
+  `opacity` de l'élément ni de ses ancêtres. Or `opacity` compose le rendu exactement comme un
+  alpha : un texte réellement peint à 2,55:1 était mesuré à 5,93 et déclaré conforme, **partout
+  dans l'application à la fois**. Le défaut n'était donc pas qu'il manquait un état à la liste :
+  **l'instrument ne POUVAIT PAS le voir**, et ajouter l'état sans corriger la sonde n'aurait
+  produit qu'un vert de plus, et un vert faux. On multiplie désormais les opacités jusqu'à la
+  racine avant de composer.
+  **CE QUE LA CORRECTION A RÉVÉLÉ IMMÉDIATEMENT**, et qui était là depuis longtemps : « MAINTENIR »
+  (`.tmr-hint`), l'affordance qui dit qu'une remise à zéro exige un appui prolongé, était à 11 px
+  avec `opacity:.65` — **2,81:1**. L'information la plus utile du bouton était la moins lisible.
+  Corrigée par l'ENCRE (`--ink-soft`), jamais par l'effacement : c'est la règle déjà écrite pour
+  `--soft`.
+  **CINQ ÉTATS D'ITEM ENTRENT DANS LE HARNAIS** (étape cochée, trace do-verify, bloc hors chemin,
+  contrôles fermés du scribe, plus les cinq états de surface d'avant), chacun avec son `must:` qui
+  échoue bruyamment si l'état ne se construit pas — ce qui est arrivé à l'écriture, et c'est ce
+  qu'on veut. **Vérifié capable d'échouer** : défaut réintroduit → rouge sur les deux moteurs,
+  fichier restauré à l'octet. 443 → 499 contrôles.
+- **LE PREMIER GARDE-FOU DE DISTRIBUTION : LE QUOTA DU PLANCHER (v5.0.0, audit design A5-1)** —
+  les six échelles fermées répondent toutes à « cette valeur est-elle ADMISE ? » ; aucune ne
+  répondait à « **est-elle TROP UTILISÉE ?** ». C'est par là que le plancher typographique a
+  glissé : **173 déclarations à 11 px sur ~520**, soit la taille la plus utilisée de toute la
+  feuille, devant 13,5 px (138) et 12 px (107) — 81 % des corps à 13,5 px ou moins, et **14 des 26
+  éléments visibles de l'accueil au plancher**. Chaque déclaration prise isolément était
+  parfaitement légale, donc rien ne pouvait le voir. Or un plancher est une EXCEPTION MOTIVÉE :
+  employé 173 fois, ce n'est plus un plancher, c'est le corps de texte du produit.
+  `check-type` porte désormais un **CLIQUET** (`PLANCHER_MAX`), posé au niveau ATTEINT : la valeur
+  ne peut que descendre, l'augmenter est un échec bruyant, la baisser est un geste explicite. Même
+  dispositif qu'`audit-budget` pour la répartition d'écran. **⚠ CE QU'IL NE MESURE PAS** : une
+  DÉCLARATION n'est pas un ÉLÉMENT À L'ÉCRAN — c'est un proxy statique, il empêche la dérive de
+  s'aggraver, il ne prouve pas qu'elle a cessé. Vérifié capable d'échouer.
+- **L'ACCUEIL — LA MARQUE NE DOMINE PLUS LE CONTENU (v5.0.0, audit design A3-1)** : mesuré à
+  390 × 844, **12 éléments de texte et 439 px sur 844 (52 % de l'écran) précédaient le premier
+  contenu clinique**, et le plus gros glyphe après la marque était un **« × » de fermeture à
+  19 px** quand le titre d'une aide vitale faisait 15,5. L'importance visuelle était inversement
+  proportionnelle à l'importance réelle — sous stress on ne lit pas, on scanne les masses, et la
+  masse dominante était le nom du logiciel, information de valeur nulle pour qui vient de
+  l'ouvrir. C'est le diagnostic qui a déclenché les lots T2–T5 sur la vue LECTURE, jamais posé sur
+  l'écran qu'on ouvre EN PREMIER.
+  Trois gestes, aucun composant nouveau : **marque 20/18 → 16,5 px** (le palier de `#brandTitle`,
+  son relais dans la barre — le même libellé cesse de changer de corps selon la vue, comme il a
+  cessé de changer de police en v4.73.0 ; l'abaissement à 18 px sous 430 px est PURGÉ, il ferait
+  désormais GRANDIR le mot) ; **titre de rangée 15,5 → 16,5** ; **méta 11 → 12** (le principal
+  gisement de plancher de l'accueil) ; **croix de bandeau 19 → 15,5**, cible inchangée.
+  **⚠ LA TUILE RESTE À 15,5, ET CE N'EST PAS UNE INCOHÉRENCE** (montée puis REVENUE, signalée à
+  l'usage) : la RANGÉE a un clamp à 2 lignes dans une boîte FIXE de 71 px où la mesure laisse 6 à
+  7 px ; la TUILE a un clamp à 3 lignes et une hauteur FLUIDE — mesuré, 16,5 px la portait de 72 à
+  **107 px** et, les tuiles étant des éléments de grille, la rangée ENTIÈRE suivait. C'est la
+  CONTRAINTE qui décide du palier. Et le constat d'audit ne s'y applique pas : dans une tuile, le
+  titre est déjà l'élément dominant de sa carte.
+- **⚠ UN `-webkit-line-clamp` SUR UN `<button>` NE S'APPLIQUE PAS — ET IL ÉTAIT INERTE DEPUIS LA
+  v4.56.0 (v5.0.0, signalé à l'usage, capture à l'appui)** : `.dir-row .card-open` portait
+  `display:-webkit-box; -webkit-line-clamp:2`, mais le display CALCULÉ y valait `flow-root`. Le
+  clamp ne « marchait » que parce que les titres tenaient sur deux lignes ; monter le corps à
+  16,5 px ne l'a pas cassé, il l'a **révélé** — un titre réel passait à trois lignes dans une
+  boîte de hauteur FIXE et poussait la méta hors du cadre. La TUILE ne l'avait pas, et c'est ce
+  qui met sur la piste : elle clampe `.qa-t`, un `<span>` INTERNE. Le titre de rangée vit donc
+  désormais dans un `<span class="dir-t">` — le bouton garde sa boîte, son rembourrage compensé
+  (cible ≥ 24 px) et son nom de classe, que quatorze harnais utilisent pour ouvrir une fiche.
+  **⚠ NE PAS AJOUTER la propriété standard `line-clamp` à côté de l'héritée** : déclarée ensuite,
+  elle fait basculer Chromium sur son nouvel algorithme et recalcule `display` (essayé, mesuré —
+  erreur commise puis retirée). Un `max-height` double la garantie sans dépendre d'aucun moteur.
+  **⚠ ET LE PIÈGE DE MESURE QUI VA AVEC** : sous zoom, `getBoundingClientRect` rend des px VISUELS
+  (71 × 1,3 ≈ 92) — on lit un débordement qui n'existe pas si l'on oublie de diviser par `--zf`
+  (règle 10). Le témoin le fait ; il mesure le `<span>`, jamais le `<button>` (dont la
+  `line-height` vaut `normal`), et il balaie **130 %**, seule taille où le défaut se produisait.
+  Vérifié capable d'échouer sur le défaut d'origine, aux deux moteurs.
+- **LES CARTES CLIQUABLES SE DÉLIMITENT AVEC `--line-strong` (v5.0.0, audit design A1-3,
+  WCAG 2.2 § 1.4.11)** : mesuré, en thème sombre une carte (`--surface` #0d0d0f) contre la page
+  (`--bg` #0a0a0c) vaut **1,02:1**, et il ne restait que le filet `--line` à **1,60:1** (clair :
+  1,18 et 1,39). Le TEXTE se lit parfaitement ; c'est le COMPTAGE qui échoue — où finit une
+  rangée, combien y en a-t-il —, et c'est précisément ce que 1.4.11 protège. `--line-strong` donne
+  3,93:1 en clair et 4,94:1 en sombre, et ce n'est pas un token neuf : la doctrine l'assigne DÉJÀ
+  aux « bordures de composants ». Posé sur `.dir-row`, `.qa-tile`, `.mem-row` et le cadre de
+  `.dir-grid` en voie étroite, dont le séparateur interne passe de `--surface-2` à `--line` (une
+  SURFACE employée comme filet est invisible par construction). Le survol passe à `--ink-soft` :
+  `--line-hover` ÉCLAIRCISSAIT le bord en thème clair une fois la base renforcée.
+  **⚠ UN TOKEN `--line-card` A ÉTÉ ÉCRIT PUIS ÉCARTÉ** : il valait `var(--line-strong)` dans les
+  deux thèmes, c'est-à-dire un ALIAS — exactement le défaut relevé sur `--done-ink` dans le même
+  audit. On ne corrige pas une duplication en en créant une autre.
+- **LES FILTRES SE REPLIENT TANT QU'AUCUN N'EST POSÉ (v5.0.0, audit design A3-1/A5-3)** : les
+  trois rangées (biblio, type, catégorie) coûtaient ~90 px permanents au premier écran pour un
+  geste qu'on ne fait JAMAIS sous stress — en urgence on cherche un SUJET, on n'affine pas un
+  corpus. Elles vivent derrière un déclencheur unique « Filtrer », qui reprend la grammaire des
+  chips (`.scopebtn`) et non celle des boutons d'action : c'est un objet de la même famille que ce
+  qu'il déplie. **UN ÉTAT ACTIF NE SE CACHE JAMAIS** — dès qu'un filtre est posé, les rangées sont
+  rendues en permanence et le déclencheur DISPARAÎT (plus rien à basculer, donc aucun bouton
+  mort) ; les chips actives sont elles-mêmes le moyen de revenir en arrière. Un filtre caché
+  serait bien pire que trois rangées permanentes : on chercherait une aide dans un corpus
+  restreint sans savoir pourquoi elle n'apparaît pas. `state.filtersOpen` VIT LE TEMPS DE LA PAGE
+  (ni persisté ni synchronisé, même statut que `state.allTab`) et n'est PAS remis à zéro au retour
+  de fiche : replier sous le doigt de quelqu'un qui vient de les ouvrir serait le punir de son
+  geste. L'ordre et les libellés sont INCHANGÉS (lot M4b) ; seule leur présence au repos change.
+  **⚠ UN TÉMOIN DE T9 A DÛ APPRENDRE À DÉPLIER** : il cliquait une chip désormais repliée et
+  emportait la passe entière. Un contrôle qui mesure ce que font les CRANS doit passer par le VRAI
+  geste, comme l'utilisateur.
+- **⚠ UN TÉMOIN QUI FIGE UN CHIFFRE ROUGIT SUR UN CHANGEMENT JUSTE (v5.0.0)** : le contrôle du
+  titre de rangée exigeait `15.5px` en dur — bonne réaction à ce qui l'avait motivé (deux
+  maquettes posant 15 puis 14,5 px, dont aucun n'est un palier), mauvaise expression de son
+  intention, qui a toujours été « ce titre est SUR L'ÉCHELLE FERMÉE et il ne redescend pas ». Un
+  littéral pousse à contourner le garde-fou, ce qui est la pire chose qu'on puisse lui faire. Il
+  vérifie désormais l'appartenance à l'échelle plus un PLANCHER, et garde l'exigence de cohérence
+  entre toutes les rangées, qui est ce qui donne son rythme à l'annuaire.
+
 - **UNE ATTRIBUTION S'AMARRE À CE QU'ELLE DÉCRIT (v4.55.4)** : « avancé par ‹rôle› » était un
   drapeau GLOBAL qu'un seul site du fichier effaçait — `cxEnter`, l'entrée sur complication.
   Aucun avancement ordinaire ne l'effaçait : posée une fois (typiquement par le backlog rattrapé
@@ -1056,6 +1302,46 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   on restaure la position laissée (`_scopeScroll`) et on suit les défilements, exactement comme les
   catégories (qui, elles, n'ont jamais eu de recentrage). Règle : une zone à défilement propre doit
   voir sa position CAPTURÉE avant un re-rendu et RESTAURÉE après — jamais recalculée.
+- **RÉENTRÉE — ON REVIENT SUR LE SOIN, PAS SUR LE PRÉAMBULE (v5.0.0, `landOnBout`)** : `render()`
+  posait `scrollTo(0,0)` à toute arrivée en lecture, sans distinguer les deux arrivées qui n'ont
+  rien à voir — OUVRIR une aide (on s'oriente avant d'agir : condition d'entrée QRH, le haut de
+  fiche est la bonne arrivée) et Y REVENIR alors qu'une session TOURNE (on reprend un geste
+  interrompu). **MESURÉ** sur la fiche d'exemple en boucle, après six avancées : la réouverture
+  depuis l'accueil déposait à **456 px du bout à 320 × 640** (355 à 390 × 844), **zéro étape
+  cochable** à l'écran à 320 et le contrôle « Continuer » hors écran aux deux formats. Après :
+  **8 px, 4 étapes cochables**. Le retour d'une FEUILLE (« Consulter », PDF) n'était pas concerné
+  et ne l'est toujours pas — `_bgUnlock` restaure déjà la position au pixel.
+  **CE N'EST PAS UN DÉFILEMENT AUTOMATIQUE (règle 11)** : la règle vise l'écran qui bouge tout seul
+  sous quelqu'un qui n'a rien demandé ; ici la page vient d'être rendue de neuf, il n'y a AUCUNE
+  position à préserver — on choisit le point d'arrivée d'une navigation demandée d'un tap. C'est la
+  distinction déjà tranchée pour `cxEnter` (« entrer sur une complication est une navigation
+  DEMANDÉE »). **MÊME RÈGLE DE VISIBILITÉ QU'`ovAdvanceRender`** : si le bout est déjà entièrement
+  à l'écran depuis le haut (aide courte, session à peine démarrée), rien ne bouge — un saut qui
+  n'apporte rien escamoterait le chapeau et les critères pour rien. Vaut aussi pour l'INVITÉ
+  (`crisisOnScreen` couvre les deux rôles). L'atterrissage est posé **après `syncHdrScroll()`** :
+  il se mesure contre `stickBase()`, dont les trois couches collantes viennent d'y être
+  resynchronisées — placé avant, il viserait la géométrie de la vue précédente.
+  ⚠ **LE TÉMOIN A DÛ ÊTRE CORRIGÉ DEUX FOIS, ET C'EST LA LEÇON** : « le bout est hors écran depuis
+  le haut » puis « 0 étape cochable depuis le haut » étaient tous deux FAUX à 390 px, où le haut de
+  la carte dépasse sous le pli et où deux de ses étapes se voient. Ce qu'on perdait réellement est
+  le **contrôle d'avancement**, et c'est lui que le contrefactuel mesure (on repose la page en haut
+  et l'on recompte). Un critère « rencontre son cas » mal choisi rend rouge un correctif juste.
+  **L'ORDRE DU JOURNAL N'A PAS ÉTÉ INVERSÉ, ET LA QUESTION EST TRANCHÉE PAR LA MESURE.** Le rebours
+  (le plus récent en haut) a été étudié : il achèterait exactement cette réentrée, en payant quatre
+  choses. (1) Il n'y a **rien à récupérer sur la croissance** — la condensation (`ovPresList` puis
+  ligne-bilan ECL) plafonne le journal : 13 passages tiennent en 3 cartes + 1 ligne et la distance
+  du bout au haut de page se STABILISE à 482 px dès le 4ᵉ passage. (2) Le sens du défilement
+  s'inverserait par rapport à l'avancement : mesuré sur 20 avancées, le chronologique demande
+  « descendre » 13 fois et « remonter » **0**, le rebours « remonter » 12 fois et « descendre »
+  **0** — pendant que l'historique, lui, continue de s'étendre vers le bas. (3) Le temps
+  descendrait DANS une carte (étapes puis « Continuer » au pied) et monterait ENTRE les cartes :
+  deux axes pour une séquence. (4) Plan, statique, schéma et compte rendu lisent tous vers le bas
+  via `flowPlan().order` — inverser le seul journal serait deux vocabulaires pour une même chose
+  (AC 120-71B §5.5), exactement ce que le retrait du rail ①②③ a supprimé au lot M2a.
+  **Ni ECAM ni AC 120-71B ne prescrivent d'ordre d'affichage d'un journal** : ils décrivent une
+  procédure, qui se lit de haut en bas parce que c'est le sens de lecture — le leur attribuer serait
+  la même erreur de source que « Do-Verify »/AC 120-71A. Ce qui EST contraignant est plus étroit :
+  les procédures se POSTENT (ECAM) et une même chose ne se dit pas de deux façons.
 - **ON ANIME LA COMPOSITION, JAMAIS LA MISE EN PAGE (v4.41.0, phase 3)** : une `transition` ou une
   `@keyframes` ne porte que sur `transform` et `opacity`. Animer `width`, `height`, `top`/`left`,
   `margin` ou `padding` force une passe de mise en page **par image**, pendant toute la durée de
@@ -1087,7 +1373,7 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   Safari repliée) — barre visible, son bas passe DERRIÈRE elle, et comme l'overlay est aussi le
   DÉFILEUR, la fin du contenu est INATTEIGNABLE (« le contenu ne scrolle pas sur cette bande, la
   fenêtre est coupée »). Tous les overlays défilables (`.ai-modal` — donc feuilles Plan/Consulter
-  et PDF —, `.lightbox`, `#readerMode`, `#flowFull`) reçoivent sous `@supports (height:100dvh)`
+  et PDF —, `.lightbox`, `#flowFull`, `#monMode`) reçoivent sous `@supports (height:100dvh)`
   un `bottom:auto; height:calc(100dvh / var(--zf,1))` : la fenêtre s'arrête au bord réellement
   VISIBLE et suit la barre dynamique ; sans dvh, `inset:0` inchangé. Vérifié au pixel sur
   Chromium ET WebKit à 90/100/130 % ; tout NOUVEL overlay plein écran doit entrer dans cette
@@ -1343,8 +1629,13 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   compte-rendu** (F6) : durée totale en mono 40 px + compteurs de la fiche en tuiles neutres
   (plafond 4 ; les compteurs à ZÉRO sont montrés — « 0 choc » est une information de débriefing,
   souvent LA question), identique à l'écran et à l'impression.
-- **LE SOMBRE DESCEND À #000, SURFACES EN GRIS NEUTRE (v4.71.0, décision utilisateur sur maquette
-  comparative)** : `--bg` #0c1420 → **#000000**, surfaces #0d0d0f / #070708 / #191a1d, filets
+- **LE SOMBRE DESCEND PRESQUE À ZÉRO, SURFACES EN GRIS NEUTRE (v4.71.0, décision utilisateur sur
+  maquette comparative — puis **#0a0a0c au lieu de #000000 en v5.0.0**, sur validation explicite de
+  l'audit design : le noir PUR maximise la halation autour du texte clair sur OLED, un effet gênant
+  pour les personnes astigmates ; #0a0a0c garde le bénéfice perçu du « vrai noir » sans elle, et
+  l'argument du gris neutre — sur un fond aussi sombre, toute couleur porte un sens — tient
+  identiquement. ⚠ C'est UN TOKEN : revenir à #000 est un mot si l'essai à l'écran déplaît)** :
+  `--bg` #0c1420 → **#0a0a0c**, surfaces #0d0d0f / #070708 / #191a1d, filets
   #33363b, `--input-bg` #000, plus les hors-teintes de survol (`--hover-dk`) — sans elles le
   « gris pur » se lirait bleu au premier passage de souris. **CE QUE LE NOIR OBLIGE À DÉPLACER,
   et c'est le vrai travail** : sur #000 une OMBRE NE DIT PLUS RIEN (assombrir du noir ne produit
@@ -1528,7 +1819,9 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   en casse de phrase + temps en `clamp(64px,20vw,190px)`), dernier repère horodaté.
   **AUCUN CONTRÔLE, ET C'EST LA PROPRIÉTÉ QUI COMPTE** : un tap n'importe où revient à la fiche —
   une surface sans commande ne peut pas être actionnée par mégarde, ce qu'on veut précisément d'un
-  appareil posé. Coquille du mode lecteur (z 92, sous le flash d'alarme à 99), `_histArm()` à
+  appareil posé. Coquille plein écran à z 92 (sous le flash d'alarme à 99 ; elle était partagée
+  avec le mode lecteur jusqu'à son retrait au lot T14 — le moniteur en est désormais le SEUL
+  porteur, et ses règles ne doivent pas partir avec une purge du lecteur), `_histArm()` à
   l'ouverture et entrée dans `_histBackAction()` (doctrine v4.30.0 : toute surface plein écran).
   `monPick` est PURE (testée) : un minuteur **ÉCHU l'emporte toujours** (annonciateur ECAM —
   l'écart passe avant le nominal), sinon le plus proche de son échéance parmi ceux qui TOURNENT.
@@ -1562,8 +1855,11 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   changeait donc de typographie au défilement. `#brandTitle` passe au serif, **graisse 600** (la
   seule embarquée — 700 produirait une graisse synthétique) et **corps inchangé** (16,5 px, un
   palier de l'échelle fermée) : c'est la voix qui s'aligne, pas la hiérarchie.
-- **I4 — UNE SEULE GRAMMAIRE DE PROGRESSION (v4.62.0, décision utilisateur)** : guidé, journal et
-  mode lecteur ne sont plus trois surfaces mais **une grammaire à trois densités**.
+- **I4 — UNE SEULE GRAMMAIRE DE PROGRESSION (v4.62.0 ; ABOUTIE AU LOT T14, v5.0.0)** : guidé,
+  journal et mode lecteur ne sont plus trois surfaces mais **une grammaire à trois densités** — et
+  depuis le retrait du lecteur, **il ne reste qu'une surface**. Ce que la v4.62.0 avait unifié
+  (structure, verbes, point d'écriture unique) rendait la coquille superflue ; le lot T14 l'a
+  constaté à la mesure et l'a retirée.
   **POURQUOI, ET C'EST DOCTRINAL** (argumentaire de l'utilisateur, retenu tel quel) : **ECAM** —
   l'affichage Airbus repose sur UN format unique pour tous les états ; le pilote n'apprend pas
   trois écrans, il apprend UNE grammaire qui se décline. Trois surfaces de progression, c'est
@@ -1985,8 +2281,11 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   seul trait la distinguait ; elle reste TONALE, jamais remplie (l'unique bouton rempli de l'écran
   est « ▶ Essayer »). **Elle redescend dans le flux pendant un déplacement** (`.ed-door.flat`) :
   collée, elle masque le dernier « Poser ici », et « créer » n'a rien à faire sous le doigt de qui
-  cherche où POSER. Piège résolu au passage : `_edImgMode` a dû monter au MODULE, la porte devant
-  ouvrir le sélecteur de fichier alors que la section « Schémas » est masquée (son bouton absent).
+  cherche où POSER. Piège résolu au passage : `_edImgMode` avait dû monter au MODULE, la porte
+  devant ouvrir le sélecteur de fichier alors que la section « Schémas » est masquée (son bouton
+  absent). **`_edImgMode` est PURGÉ en v5.0.0** (chantier des entrées de fichier) : la destination
+  voyage désormais avec le geste — `pickFile(kind, onFiles)` prend un callback — au lieu d'être
+  mémorisée à côté dans un drapeau qu'il fallait penser à remettre à zéro.
 - **UNE IMAGE S'ASSOCIE À UN BLOC DEPUIS LA GALERIE (v4.76.0, demande utilisateur)** : on ne pouvait
   joindre une image QUE depuis un bloc — partir de l'image était impossible, alors que c'est l'ordre
   naturel quand on vient d'en importer trois. Un `<select>` par vignette liste les blocs, montre
@@ -2199,6 +2498,1130 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   On distingue par l'attribut qui porte l'index (`data-ti` / `data-ci`). L'ambiguïté ne se voit pas,
   elle se SUBIT — et le témoin ne la rencontre que si l'ORDRE du contrôle l'y expose (créer un
   minuteur alors qu'un compteur existe déjà ; l'inverse tomberait juste par hasard).
+- **LA RANGÉE D'ITEM DE L'ÉDITEUR (v5.0.0, lot M1, maquettes `proto-large`)** — quatre écarts de
+  maquette corrigés d'un coup, parce qu'ils vivent sur la même rangée. **DEUX CHAMPS, `do` ET
+  `expect`** : l'auteur tapait « :: » à la main pour dire une chose que le modèle porte depuis que
+  l'étape est un OBJET — une convention à apprendre, et un « :: » écrit dans un texte clinique pris
+  pour une séparation. ⚠ PIÈGE MESURÉ : `setStepStr` écrivait `expect = cr.r || ''`, donc retaper le
+  geste EFFAÇAIT la réponse attendue — une chaîne SANS « :: » ne dit rien de la réponse, elle ne doit
+  pas la détruire ; un « :: » collé depuis un ancien contenu reste reconnu, seul cas où cette
+  écriture a encore un sens. **PLUS AUCUNE CASE DANS L'ÉDITEUR** : la v4.64.0 posait « la case reste
+  un GLYPHE INERTE » ; la maquette est plus juste — une case inerte dans un éditeur invite au geste
+  qu'elle refuse. La MARQUE de registre (`.li-mk`) la remplace : elle DIT le registre au lieu de
+  mimer l'action ; `.li-box` purgé, CSS compris (règle 14). En LECTURE les cases restent.
+  **LA POIGNÉE ⠿ PASSE À GAUCHE** (décision utilisateur, revirement assumé de la v4.68.0, qui l'avait
+  mise à droite pour éloigner le geste destructeur du ✕) : l'écart `.li-sp` fait ce travail, et à
+  gauche la poignée est le PREMIER objet de la ligne — là où l'œil la cherche avant même d'avoir lu.
+  **LES OUTILS PORTENT LEUR MOT** (`registre`/`vital`/`vérifier`, `mémoire`, `double`) : c'est la
+  règle 8 étendue aux glyphes — ★ et ×2 ne s'apprennent nulle part ; le mot s'efface sous 400 px, où
+  la rangée n'a plus la place et où le `title` reste. Mesuré : **0 px de débordement à 320 px**.
+- **LE RAIL ①②③ N'EXISTE PLUS NULLE PART (v5.0.0, lot M2a, décision utilisateur « le retirer
+  partout »)** : le lot T5 l'avait retiré EN SESSION, les maquettes ne le montrent nulle part — hors
+  session comprise — et les numéros y vivent sur les BLOCS. **Deux numérotations concurrentes dans la
+  même colonne sont deux vocabulaires pour situer un même geste**, ce qu'AC 120-71B proscrit ; celle
+  des blocs reste, étant commune au journal, au plan, au statique et au SVG (`flowPlan().order`),
+  quand le rail ne parlait qu'à lui-même. Les étages demeurent des SECTIONS titrées (`.care-flat` /
+  `.cf-stage`), et la PERMUTATION reste conditionnée au démarrage (avant d'agir on s'oriente).
+  `.care-path`, `.cp-stage`, `.cp-n` purgés avec leurs règles et leurs media queries (règle 14) ;
+  `.cp-h` survit, c'est le titre d'étage. ⚠ PIÈGE RENCONTRÉ : les intitulés d'étage sont des
+  LITTÉRAUX du code, déjà écrits en entités (`Surveillances &amp; pièges`) — les passer par `esc()`
+  les affiche tels quels à l'écran. `esc()` est pour la DONNÉE, pas pour le gabarit.
+- **LE TYPE EST UN FILTRE, PLUS UNE NAVIGATION (v5.0.0, lot M4, décision utilisateur)** : il vivait
+  dans une TAB BAR BASSE fixe, c'est-à-dire dans la grammaire d'une navigation entre SECTIONS — un
+  reste du temps où « Aides » et « Protocoles » étaient deux bibliothèques. Depuis qu'elles n'en font
+  qu'une (lot T9), le type est un filtre comme la bibliothèque et la catégorie : il prend leur forme
+  (`.typebar`, mêmes chips), se pose AU-DESSUS d'elles, et l'on lit du plus large au plus étroit —
+  **Type · Biblio · Catég.** Ce que cela rend : **62 px de hauteur permanents** en bas de l'accueil
+  (la place que la barre fixe réservait) et une grammaire de moins. `#tabBar`/`#tabSeg` purgés avec
+  leur CSS, leur câblage et leur `bindSegDrag` (règle 14) ; la colonne gauche de l'accueil LARGE
+  portait déjà les sections, rien n'y change. Le filtre est **délégué** (la rangée est re-rendue avec
+  le chrome), là où la tab bar était statique et câblée une fois.
+- **UN SEUL RAIL, ET SES COMPTES DISENT LA VÉRITÉ (v5.0.0, lot M4b, demande utilisateur)** : la
+  colonne gauche de l'accueil large n'avait que DEUX rangées de type (« Aides cognitives »,
+  « Protocoles ») alors que le filtre a TROIS crans depuis le lot T9 — elle ne pouvait donc pas
+  exprimer « Tout », c'est-à-dire la vue par DÉFAUT. Pire, `kindArr` retombait sur `fiches` en mode
+  « Tout » : **tous les comptes du rail — bibliothèques comme catégories — ignoraient les
+  protocoles**. Un compte faux dans un rail d'orientation est pire qu'un compte absent, il fait
+  renoncer à chercher là où le contenu est. Le rail porte désormais, de haut en bas : **Type ·
+  Bibliothèques (avec le ✎ pour celles qu'on administre, et « ＋ Nouvelle bibliothèque ») ·
+  Catégories (avec « Gérer les catégories ») · Historique** — tout ce qui oriente, au même endroit.
+  **LE TITRE DE GROUPE DE TÊTE EST SUPPRIMÉ** (une ligne rendue) : « Tout / Aides cognitives /
+  Protocoles » se lisent sans qu'on les annonce, quand « Bibliothèques » et « Catégories » nomment
+  des collections dont les rangées ne disent pas la nature. L'icône de « Tout » est **celle que
+  portait la tab bar** : le geste change de forme, pas de signe.
+- **LA LÉGENDE DES REGISTRES VIT SUR LA CARTE, ET ELLE NE DIT QUE CE QUE LE BLOC PORTE (v5.0.0,
+  lot M2, maquettes `proto-r4`)** : `⚠`, `△` et la bulle mono ne s'apprenaient QUE dans l'éditeur
+  (`.crit-guide`) — donc nulle part pour qui LIT une fiche sans jamais l'écrire, c'est-à-dire pour
+  la majorité de ceux qui l'utilisent en soin. C'est le seul endroit du produit où ces trois signes
+  se rencontrent. **ELLE EST CONDITIONNELLE, et c'est ce qui la rend admissible** : annoncer « △ à
+  vérifier » sur un bloc sans aucune vigilance n'enseigne rien et coûte une ligne à chaque carte —
+  c'est la règle « un panneau vide est du bruit », appliquée signe par signe. Un bloc qui n'a aucun
+  des trois n'a pas de légende du tout.
+- **« ⏱ NOTER » VIT DANS LA CARTE DU BLOC (v5.0.0, lot M2)** : le lot T2 avait rapproché le
+  JOURNAL (il se pose juste sous la carte) sans rapprocher le GESTE, qui restait un bouton du
+  panneau — donc à lire et à viser ailleurs que là où l'on agit. Horodater EST un geste de bloc :
+  on note l'heure de ce qu'on vient de faire ICI. **UN SEUL POINT D'ÉCRITURE** (`tkNoteNow`) : le
+  bouton du panneau et celui de la carte appellent la même fonction — deux copies auraient divergé,
+  c'est arrivé au cœur de cochage (v4.42.0) et aux verbes du lecteur (v4.55.0). Il ne paraît
+  **qu'au BOUT du journal** : noter l'heure depuis une carte passée daterait le présent au nom du
+  passé. Il entre dans `MUTE_SEL` (un lien mort le refuse et l'annonce) mais **pas** dans
+  `LEAD_ONLY_SEL` — poser un repère est additif, donc ouvert à tous les rôles (v4.55.0).
+- **« CONDITION D'ENTRÉE » RÉUNIT LES DEUX MOITIÉS D'UNE MÊME DÉCISION (v5.0.0, lot M3)** : les
+  critères de confirmation et les diagnostics à éliminer vivaient dans deux sections de l'éditeur
+  éloignées de ~1 200 px, alors qu'ils répondent à UNE question, à un seul instant — « est-ce bien
+  cela, et si non, quoi d'autre ? ». C'est le geste QRH de la condition d'entrée : on entre dans la
+  procédure, ou l'on n'y entre pas. **RIEN NE CHANGE EN LECTURE** (les critères restent en tête, les
+  différentiels dans « Consulter ») : c'est l'ÉCRITURE qu'on rapproche de la décision qu'elle sert,
+  et les deux gardent leur clé, donc leur rôle (`entry` et `ddx`). Les sous-listes sont **nues**
+  dans le fieldset commun — deux cartes imbriquées feraient croire à deux sections, ce que la
+  fusion vient de supprimer. La règle « présent dans la porte ⇔ masqué quand vide » vaut toujours
+  pour les différentiels ; les critères restent une INVITATION visible même vide (exception nommée,
+  v4.76.0).
+- **LES COMPLICATIONS SE RÉORDONNENT COMME TOUT LE RESTE (v5.0.0, lot M3)** : le lot 2 de la
+  v4.75.0 avait étendu « prendre / poser » à huit listes en les adressant par la clé du modèle ;
+  `excursions` avait été oubliée alors qu'elle a exactement la même forme qu'une liste d'objets.
+  Or l'ORDRE compte : c'est celui des rangées de l'index qui s'ouvre en pleine réanimation, et
+  l'auteur n'avait aucun moyen de le changer — il était celui où les événements lui étaient venus
+  à l'esprit. Aucun mécanisme nouveau, `edGrabRows('excursions', …)` comme les sept autres.
+- **LE SOMMAIRE D'UNE RÉFÉRENCE (v5.0.0, lot M5, maquettes `proto-r4`)** : une aide cognitive se
+  DÉROULE, une référence se CONSULTE — on y vient chercher UNE section, et sans sommaire il faut
+  faire défiler plusieurs milliers de pixels pour savoir ce que le document contient. C'est la
+  contrepartie exacte de la colonne « structure » de l'éditeur et du plan de la lecture : un
+  document long a besoin d'une carte. **CONSTRUIT APRÈS LE RENDU, jamais dans `mdRender`** — le
+  parseur reste PUR et NON interactif (les aperçus sont inertes, et un id posé au parsing
+  voyagerait dans tout rendu markdown, aperçus d'éditeur compris) ; les ancres sont posées sur les
+  nœuds réels. **Trois titres au minimum** (un sommaire de deux lignes n'épargne pas un défilement,
+  il ajoute une colonne) et **jamais sous 1000 px**, où il prendrait la place du texte qu'il indexe.
+- **DÉFAUT TROUVÉ À LA RELECTURE — `completionSpots` LISAIT DES CHAMPS SUPPRIMÉS (v5.0.0)** : les
+  cinq clés de liste ne sont plus des champs de la fiche depuis que les listes sont un POOL D'ITEMS
+  À RÔLE (étape B) ; `f.confirmation` valait donc `undefined` et le volet de relecture ne signalait
+  **plus aucun « à compléter » de liste**. Le panneau restait vert sur une fiche qui ne l'était pas
+  — la donnée périmée présentée comme vivante. Règle : **après une migration de modèle, tout accès
+  par CHAMP est suspect ; on lit par l'accesseur** (`listOf`), et un accès survivant ne lève aucune
+  erreur, il rend simplement `undefined` et se tait.
+- **UNE RÉFÉRENCE QUI NE RÉSOUT PAS NE SORT PAS VIVANTE DE `migrate` (v5.0.0, défaut de contrat
+  mesuré)** : depuis l'étape B, un bloc ne porte que des IDENTIFIANTS d'items. Une **chaîne** dans
+  `b.items` était recopiée telle quelle comme identifiant — ne désignant aucun item du pool, elle
+  produisait une **RÉFÉRENCE PENDANTE** : le bloc s'affichait **VIDE**, sans un mot, et le contenu
+  était perdu à l'import. Or c'est exactement la forme qu'une IA écrit spontanément, et c'est celle
+  que le prompt enseignait (« la forme SIMPLE, `"steps": [...]` »). RÈGLE : **une chaîne qui
+  correspond à un id du pool est une RÉFÉRENCE ; toute autre chaîne est le TEXTE d'une étape et
+  devient un item.** Ce n'est pas une tolérance v3 — le format v4 est inchangé — c'est la forme
+  ABRÉGÉE que le prompt documente désormais, et le refus d'avaler une donnée en silence (règle 5 :
+  `migrate` est le point d'ASSAINISSEMENT, pas seulement de compatibilité).
+  **LE PROMPT EST UN CONTRAT ET IL AVAIT DÉRIVÉ** : `"version": 3`, `"type": "steps"`, `"steps"`,
+  `localInfo`, `references`, `complications[]` — tout le vocabulaire d'avant les renommages. Une IA
+  fidèle produisait donc un fichier que l'import mutile, et la faute paraissait venir d'elle
+  (précédent exact : le `\n` mal échappé de la v4.73.0). Le schéma est désormais en v4 —
+  `"kind": "do"|"decision"`, `items` unique clé d'étapes, `local`/`sources`/`excursions`. Trois
+  témoins neufs dans `audit-prompt` (23/23), vérifiés capables d'échouer.
+  ⚠ **Un témoin qui ne rencontre pas son cas ne prouve rien** : les deux formes vivant maintenant
+  sous la même clé `items`, le contrôle de la forme ENRICHIE attrapait le premier bloc — abrégé —
+  et mesurait la forme qu'il ne couvre pas. Il sélectionne désormais le bloc dont les entrées sont
+  des OBJETS.
+- **LA PHASE — CHAMP LIBRE, VALEURS SUGGÉRÉES, HÉRITÉE (v5.0.0, lot M6, décision utilisateur)** :
+  la maquette posait trois valeurs FIXES et posait elle-même l'objection — rien n'établit que les
+  cliniciens pensent en exactement ces trois-là. On garde le MÉCANISME (regrouper la structure) et
+  l'on retire l'IMPOSITION : `b.phase` est un champ LIBRE borné à 40 caractères, `PHASE_CORE` n'est
+  qu'une liste de **suggestions** de saisie (Immédiate · 2ᵉ intention · Surveillance · Vérification ·
+  Orientation), exactement le patron `TAG_CORE` + `data.prefs.tags` des libellés de journal.
+  **ELLE EST HÉRITÉE** (`phaseOf`) : un bloc sans phase reprend celle du bloc précédent, donc
+  l'auteur ne la déclare QUE là où elle CHANGE — sans cet héritage il faudrait une décision par
+  bloc, c'est-à-dire le coût exact que l'objection reprochait au champ. **Aucune migration ne
+  devine** : défaut vide, et une fiche qui n'en déclare aucune se lit comme avant.
+- **LE PARCOURS INERTE PORTE LA FICHE ENTIÈRE (v5.0.0, lot M6, maquette `proto-r4`)** : il ne
+  montrait que la chaîne des blocs. Trois sections l'encadrent désormais — « ✓ Quand l'utiliser »
+  (condition d'entrée + « ça ne colle pas ? → n diagnostics à éliminer »), « ⚡ À tout moment »
+  (déjà là) et « △ Surveiller — après les gestes » — et les intertitres de PHASE le regroupent.
+  La colonne d'orientation taisait exactement les trois choses qu'on ne trouve pas dans la colonne
+  d'action au moment où l'on s'oriente. **LES ÉTAPES SE LISENT SANS DÉPLIER** : un plan qui ne
+  montre que des titres et des comptes dit ce qu'il y a, jamais CE QUE C'EST. Le dépliage reste le
+  DÉTAIL plus le geste (« → aller à ce bloc ») — deux niveaux, pas un doublon. **Tout y reste
+  INERTE** (doctrine du plan, re-confirmée quatre fois). ⚠ PIÈGE : `listOf` s'adresse par la CLÉ du
+  modèle (`confirmation`, `verify`, `differentials`), **pas par le rôle** (`entry`, `watch`, `ddx`) —
+  la première version lisait du vide et les trois sections ne s'affichaient jamais.
+- **L'ACCUSÉ DE RÉCEPTION VIT DANS LE BLOC (v5.0.0, lot M7, maquette + capture utilisateur)** :
+  « ✓ 02:16 noté · sans étiquette », les étiquettes proposées, puis « Journal des actions (n) ▾ ».
+  **Ce n'est PAS une notification flottante** (règle 11) : rien ne surgit, rien ne recouvre — c'est
+  la RÉPONSE à un bouton qu'on vient de presser, dans le flux, sous ce bouton (même distinction que
+  `toast(msg,ms,direct)`, v4.55.4). **L'heure est le TEMPS ÉCOULÉ**, comme le chrono du quai : à
+  côté d'un « noté », le nombre qui parle est « combien de temps après le début ». État
+  TRANSITOIRE (`state.tkAck`), jamais persisté, effacé par `ovDropOpens` au prochain geste de
+  navigation — on ne traîne pas un accusé de réception. ⚠ Depuis la CARTE, il faut `renderOvOnly` :
+  `renderTkOnly` ne remplace que le panneau du journal, plus bas, et l'accusé n'y apparaîtrait
+  jamais.
+- **PROPOSER UNE ÉTIQUETTE SANS QU'ON AIT TAPÉ (v5.0.0, lot M7, signalé à l'usage)** : `tkPaintSug`
+  n'ouvrait la bouche qu'à partir de DEUX caractères — donc jamais dans le geste le plus fréquent,
+  qui est UN TAP et rien d'autre. `tagSuggest` classe par CONTEXTE : étapes du bloc COURANT, puis
+  minuteurs et compteurs, puis le reste de la fiche, puis les repères posologiques, puis le noyau
+  universel. **AUCUN FILTRE — on RÉORDONNE** (même garantie que `posoRank` et `tagRank`) : un faux
+  positif coûte un rang, un faux négatif coûte le mot au moment où on le cherche. `tagShort` abrège
+  **à l'AFFICHAGE seulement** : la RÉFÉRENCE voyage entière et se résout en toutes lettres dans le
+  journal et le compte rendu — abréger la donnée serait perdre de l'information, abréger la chip ne
+  perd rien.
+- **L'ORDRE DU RAIL DE FILTRES : BIBLIOTHÈQUE, TYPE, CATÉGORIE (v5.0.0, décision utilisateur)** —
+  du plus large au plus étroit. Une bibliothèque est un CORPUS (le vôtre, celui du service) ; le
+  type n'est qu'une propriété des objets qui s'y trouvent. La mettre en tête affirme la doctrine du
+  lot T9 : **on choisit d'abord OÙ l'on cherche, jamais DE QUEL TYPE est ce qu'on cherche.** Vaut
+  pour les chips (étroit) comme pour la colonne gauche (large), qui portent déjà l'une et l'autre le
+  ✎ des bibliothèques qu'on administre et le « Gérer » des catégories.
+- **LE VOLET DE RELECTURE MONTE DANS LA COLONNE DE DROITE À ≥ 1000 px (v5.0.0, demande
+  utilisateur)** : il vivait en PIED, ce qui est sa place quand il n'y a qu'une colonne — on lit un
+  bilan en fermant. Mais dès qu'une colonne COLLANTE existe, le reléguer au pied revient à ne le
+  montrer qu'au bout d'un défilement de plusieurs milliers de pixels, alors que ce qu'il dit sert
+  PENDANT qu'on écrit. **Il ne concurrence pas le schéma** qui occupe la même colonne : l'un est un
+  DESSIN qu'on regarde, l'autre une LISTE COURTE qu'on lit — et il est replié par défaut, donc il
+  coûte une ligne. Sous 1000 px il reprend sa place au pied : il n'y a alors pas de colonne où le
+  mettre.
+- **LA BARRE D'ACTIONS DU COMPTE-RENDU (v5.0.0, lot M8)** : sous 560 px elle est COLLANTE au bas de
+  la feuille et les boutons occupent toute la largeur — un compte-rendu fait plusieurs écrans, et
+  l'action ne doit pas se chercher au bout d'un défilement. **Elle n'enfreint pas « aucune zone fixe
+  en bas »** (SPEC §5), qui vise le CHROME d'une vue de CRISE : ici on est dans une feuille de
+  débriefing, hors session, et la barre appartient à la feuille, pas à l'application. Au-dessus,
+  rangée alignée à droite : la place existe, le geste est rare.
+- **TROIS SURFACES REDESSINÉES SUR MAQUETTE (v5.0.0, lots M9/M10, captures fournies)** — et la
+  première leçon est un écart que j'avais introduit : **la colonne d'orientation et la vue « toute
+  la fiche » ne montrent PAS la même chose**, alors que je les faisais partager le même rendu.
+  **(0) ⚠ UN HÉRITAGE DE DESSIN NE SE CORRIGE PAS AU CAS PAR CAS, IL SE REPREND.** Le bloc de
+  désaturation `.rail-lad` datait du dessin PLAT, où l'état n'était porté que par la COULEUR DU
+  TEXTE du marqueur. Avec la pastille PLEINE de la maquette, sa règle `.pl-line.cur .n{color:
+  var(--link)}` peignait l'encre en bleu **sur un fond bleu** : le numéro du bloc courant était
+  INVISIBLE (mesuré `color === background === rgb(31,95,166)`). Et **`audit-a11y` ne pouvait pas
+  le voir** — la pastille est `aria-hidden`, donc hors de son champ. D'où trois témoins dans
+  `audit-doctrine` : un marqueur n'est jamais de la couleur de son propre fond, la colonne n'est
+  pas une carte, et **le contrôle rencontre son cas** (au moins une pastille PLEINE mesurée — sur
+  des contours gris il resterait vert sur le défaut).
+  **PLUS DE CARTE BLANCHE** (maquette) : les rangées vivent sur le fond de la colonne, séparées par
+  un filet — une carte ajoutait un cadre autour de ce qui est déjà une colonne, soit deux niveaux
+  de surface pour un seul objet. La DÉSATURATION reste, et elle est même plus nette : aucun aplat
+  de rangée sauf la courante, aucun texte coloré — **tout l'état vit dans la pastille**, qui est le
+  marqueur. Un bloc de DÉCISION n'émet pas de numéro (le losange EST le marqueur) : rien à masquer,
+  donc plus de `font-size:0`. Les rangées de queue (complication, surveillance) n'ont pas de
+  pastille — un liseré rouge suffit pour la première, rien pour la seconde. L'en-tête tient sur UNE
+  rangée (« Parcours inerte » + compte + « ⤢ complet ») : le titre cède par ellipse avant que le
+  bouton ne passe à la ligne — **40 px de colonne rendus, mesurés** ; un titre ellipsé se devine, un
+  bouton renvoyé à la ligne coûte une rangée entière.
+  **(1) LE PARCOURS INERTE (colonne)** : une ligne par bloc — pastille RONDE numérotée (verte ✓
+  faite, bleue pleine ICI, contour gris à venir), titre, renvois en MONO dans une colonne de
+  droite. La chip de branche est **SEULE sur sa ligne**, au-dessus et en retrait : partagée avec le
+  titre elle le comprimait et se lisait comme une étiquette DU bloc, alors qu'elle nomme la BRANCHE
+  qui y mène. Pas de liseré coloré sur une rangée ordinaire (l'état vit dans la pastille, la
+  position dans le fond) ; le liseré ROUGE est réservé aux complications, seul registre de la
+  colonne. Sections de queue : « ⚡ À tout moment · hors numérotation » et « Surveiller après les
+  gestes » (mêmes RANGÉES que les blocs — nom, valeur mono : une liste à puces aurait été une
+  seconde grammaire pour des objets qui se lisent pareil). **NI « Quand l'utiliser » NI les étapes
+  en ligne** : la maquette ne les y met pas, et la colonne tient dans 240 px parce qu'elle ne
+  montre rien du contenu.
+  **(2) L'ONGLET « PARCOURS » DE « TOUTE LA FICHE » N'EST PAS L'ÉCHELLE** (`ovParcoursHtml`) : on y
+  dispose de toute la largeur et l'on vient voir LA FICHE ENTIÈRE — donc des CARTES de blocs
+  empilées avec leurs items, imbrication comprise, précédées de la carte « Quand l'utiliser » (la
+  condition d'entrée n'a de sens QUE là). ⚠ **LES CASES Y SONT DESSINÉES, ET C'EST UN ÉCART ASSUMÉ**
+  à « jamais de cases dans le plan » : cette vue n'est pas un plan mais la fiche montrée d'un bloc,
+  et une étape sans sa case ne ressemblerait pas à ce qu'on lira en soin. L'inertie est portée par
+  l'ABSENCE de `data-ck` (aucun geste possible, cases `aria-hidden`) et le sous-titre le dit —
+  « rien ne s'y coche ». Vérifié : 0 `data-ck`, `state.checked` inchangé après clic.
+  **(3) LA FEUILLE « CONSULTER »** : une RANGÉE par entrée — case inerte, intitulé, et la valeur en
+  PILULE MONO. C'est la forme d'une référence qu'on CONSULTE : le nom sert à trouver, la pilule à
+  lire ; une entrée signalée devient une carte teintée (« normal = ligne, signalé = boîte »).
+  ⚠ **CE QUI N'A PAS ÉTÉ REPRIS DE LA MAQUETTE** : elle y remet « DOSES » et « SURVEILLANCES ». La
+  v4.25.3 les avait retirées SUR MESURE — 57 % de la hauteur (451 px sur 790) pour du contenu qui
+  existe déjà dans le flux, le rail et le Statique, soit QUATRE exemplaires, repoussant de ~450 px
+  le seul contenu unique (les différentiels), c'est-à-dire le motif même de l'ouverture. Le DESSIN
+  est repris, la duplication non ; à rouvrir ensemble si l'arbitrage a changé. La maquette affiche
+  aussi « role: dose » à côté des intitulés — nom INTERNE du modèle, jamais montré à un clinicien.
+- **UN DÉPLIANT APPARTIENT À SON GESTE (v5.0.0, lot M11, maquette — mesuré puis corrigé)** : la
+  règle 11 interdit le DÉFILEMENT AUTOMATIQUE en session — l'écran ne bouge que sous le doigt de
+  celui qui le fait bouger. **Deux gestes l'enfreignaient**, et tous deux étaient invisibles à la
+  relecture parce que le code disait simplement « `scrollIntoView` » :
+  · taper le **QUAI** ouvrait le panneau minuteurs, qui vit en bas de colonne depuis le lot T5, et
+  s'y rendait — **1120 px de saut mesurés à 320 px** (988 à 390), soit plus d'un écran et demi, en
+  pleine réanimation, en perdant de vue le bloc qu'on exécutait ;
+  · « Journal des actions (n) ▾ » de l'accusé de réception y allait aussi — **484 px**.
+  **LE « ▾ » DIT UN DÉPLIANT, PAS UNE NAVIGATION.** Le panneau ouvert PAR LE QUAI se rend juste
+  SOUS lui, en tête de la colonne d'action ; le journal se déplie DANS la carte. `state.rtOpen`
+  porte donc **l'ENDROIT du geste** (`'dock'` | `'flow'`), pas seulement l'état ouvert/fermé :
+  ouvert par la rangée du bas, le panneau s'ouvre en bas — la réponse vit là où le geste a eu lieu
+  (même règle que l'accusé « ✓ noté », lot M7). Mesuré après : **0 px de saut pour les deux**, le
+  panneau à 19 px sous le quai, le quai immobile.
+  **CE QUI A RENDU CECI POSSIBLE** est le correctif du quai (structure séparée des valeurs) : tant
+  que le sous-arbre était détruit deux fois par seconde, aucun dépliant ne pouvait lui appartenir.
+  ⚠ **ON MESURE LE SAUT, PAS LA PRÉSENCE DU PANNEAU** : un panneau présent 1120 px plus bas est un
+  panneau qu'on a perdu, et un témoin qui vérifie seulement qu'il existe reste vert sur le défaut.
+  **CE QUI N'ENTRE PAS DANS LE QUAI** : le journal des actions. La maquette ne l'y met pas, et il a
+  déjà son entrée là où il sert — dans la carte du bloc (« Journal des actions (n) ▾ », lot M7).
+  Le quai NOMME les minuteurs et compteurs depuis le lot T2 ; il n'a pas à nommer un troisième
+  objet dont le geste vit ailleurs.
+- **APRÈS UNE MIGRATION DE MODÈLE, UNE COMPARAISON À UNE ANCIENNE VALEUR NE LÈVE RIEN — ELLE SE
+  TAIT (v5.0.0, deux défauts signalés à l'usage, même faute)** : `buildFlowSVG` comparait `kind` à
+  `'steps'`, valeur disparue à l'étape C (`kind:'do'`) — tout bloc non-décision retombait dans la
+  branche « décision », `options` valait `[]`, et **aucune flèche n'était tracée pour les liens
+  `next`** ; les branches d'une décision, qui passent par `options`, continuaient de s'afficher,
+  d'où un symptôme partiel donc déroutant. On teste désormais `!== 'decision'` : le jeu de valeurs
+  de `kind` peut s'étendre, la décision reste le seul cas particulier, et un renommage futur du cas
+  GÉNÉRAL ne pourra plus faire disparaître les flèches en silence. Même famille que
+  `completionSpots` (`f.confirmation`). **Corollaire de méthode** : après un renommage, chercher les
+  comparaisons à l'ANCIENNE valeur, pas seulement les accès au champ.
+- **UN BINDER PAR CARTE N'ATTEINT PAS CE QUI VIT ENTRE LES CARTES (v5.0.0)** : les interstices de
+  niveau BLOC (`data-drop="B:n"`) sont émis ENTRE les `.blk`, donc FRÈRES — le binder tournait
+  `main.querySelectorAll('.blk').forEach(card=>card.querySelectorAll('[data-drop]'))` et ne les
+  câblait jamais : **déplacer un bloc ne faisait rien**, tandis que déplacer une ÉTAPE (interstice
+  INTERNE à la carte) fonctionnait. La moitié du geste marchait, ce qui rendait le défaut
+  déroutant. Binder hissé au niveau de `main` et SORTI de la boucle. ⚠ Piège rencontré en le
+  déplaçant : **`imgInput.onchange` existait DEUX fois** dans le fichier (fiche et protocole) — une
+  ancre textuelle a fait atterrir le binder dans la mauvaise portée, trouvé à la sonde. (Cette
+  duplication n'existe plus depuis le chantier des entrées de fichier, v5.0.0 : un seul `<input>`,
+  un seul point d'entrée.)
+- **UN ÉLÉMENT TOURNÉ DÉBORDE SA PROPRE BOÎTE (v5.0.0)** : 26 px de côté font 36,8 px de diagonale,
+  soit 5,4 px de chaque côté — le losange d'une décision était rogné par la colonne (−3 px mesurés).
+  On tourne un **pseudo-élément plus petit à l'intérieur** d'une boîte qui, elle, ne bouge pas.
+- **LA MARQUE DE REGISTRE EST EN SUPERPOSITION, ET C'EST CE QUI ALIGNE LES FLÈCHES (v5.0.0)** :
+  chaque `.li` est sa propre boîte — une marque qui est un ITEM de la rangée décale tout ce qui
+  suit, et les flèches partent en escalier. Posée en superposition sur le rembourrage gauche du
+  champ, la boîte du champ commence au même x sur toutes les rangées, donc la flèche aussi ; et
+  l'on ne paie pas les ~50 px qu'une colonne réservée prendrait au texte à 320 px.
+  **ET LA RÉPONSE ATTENDUE NE SE MONTRE QUE SI ELLE EXISTE**, ou pendant qu'on écrit la ligne :
+  répétée à vide sur chaque rangée, « réponse attendue (facultatif) » disait cinq fois la même
+  chose et volait un tiers de la largeur au GESTE, qui est le contenu. C'est la grammaire MK-flux
+  du dossier — au REPOS aucun chrome, à l'ÉDITION les outils paraissent.
+- **LA CIBLE EST LA RANGÉE, PAS LE MOT (v5.0.0, demande utilisateur — gants, stress, WCAG 2.2
+  § 2.5.8)** : le déclencheur du chapeau « Ne pas oublier » était un bouton de la largeur de son
+  texte (~90 px) au bout d'une ligne qui, elle, fait toute la largeur. Le TITRE devient le bouton —
+  patron déjà appliqué à « Confirmation diagnostique » et à `.crit-guide`. Mesuré : **352 × 48 px**
+  au lieu de ~90 × 44. Hors session rien n'est repliable : c'est alors un simple titre, un bouton
+  qui n'agit pas serait un bouton mort.
+- **« ■ CRISE » NE S'ANNONCE QU'UNE FOIS LA SESSION DÉMARRÉE (v5.0.0, maquette)** : ouvrir une fiche
+  pour la RELIRE n'est pas être en crise, et l'annoncer alors use le mot — la même inflation que
+  celle du rouge, sur le seul annonciateur de MODE de l'écran. Le bandeau-titre reste (il porte le
+  TITRE, vrai dans les deux cas) ; c'est la PILULE qui attend le premier geste. Prédicat unique
+  `crisisOnScreen()`.
+- **« ✓ CONSIGNÉ À … » — LA TRACE SE VOIT, POUR NE PAS ÊTRE REFAITE (v5.0.0, demande utilisateur :
+  « éviter de le faire 2 fois »)** : incrémenter un compteur POSE DÉJÀ un repère horodaté
+  (`ref:{type:'counter'}`, v4.52.0) — mais rien ne le disait, et l'on pouvait « Noter l'heure »
+  par-dessus, donc doubler la ligne du compte rendu. **PAS D'ANIMATION** : le mouvement est réservé
+  à l'ALARME (ECAM), et une valeur qui s'envolerait vers le journal serait le seul mouvement
+  autonome de l'écran — sous stress il se lirait comme un signal. **PAS DE SNACKBAR** : elles sont
+  mises en attente en session (règle 11). Ce qu'il faut est une INFORMATION PERMANENTE et muette, à
+  l'endroit du geste — même grammaire que l'accusé « ✓ 02:16 noté » (M7), pour qu'on n'apprenne
+  qu'un seul patron. Elle n'existe que s'il y a quelque chose à dire (`:empty` → aucune hauteur).
+- **LE VOLET DE RELECTURE PASSE AU-DESSUS DU SCHÉMA (v5.0.0, demande utilisateur)** : dans la
+  colonne de droite de l'éditeur, il est ce qu'on CONSULTE (une liste courte, repliée), le schéma
+  ce qu'on REGARDE (un dessin haut). Le second poussait le premier hors de vue sur un écran de
+  hauteur ordinaire.
+- **LE BANDEAU-TITRE N'EXISTE PLUS EN CRISE ORDINAIRE (v5.0.0, demande utilisateur)** : il pesait
+  **64 px à 320 et 390 px** (44 à 430) en haut de la colonne, et le RELAIS de la barre
+  (`#brandTitle`, v4.23.0) sait déjà porter le titre — on ne le supprime donc pas, on le fait
+  porter EN PERMANENCE par l'objet qui le portait déjà la moitié du temps. Bénéfice second : la
+  barre a la **même hauteur repliée et dépliée**, donc le chrome de lecture ne change plus jamais
+  de taille. Mesuré : chrome collant du premier écran **239,7 → 176 px**, et une étape entièrement
+  visible de plus à 390 px.
+  **⚠ ET C'EST INCONDITIONNEL, POUR UNE RAISON MESURÉE — MA PREMIÈRE VERSION ÉTAIT FAUSSE.** Je
+  l'avais effacé AU DÉMARRAGE (pour garder le titre entier pendant qu'on lit les critères) :
+  `audit-doctrine` a rougi sur « l'étape tapée ne bouge pas à la première action » (invariant ECAM
+  depuis la v4.4.0), et à juste titre — c'était la **TRANSITION** qui retirait 64 px AU-DESSUS de
+  l'étape touchée, au moment précis du tap, et l'ancrage ne peut pas compenser vers le haut quand
+  on est déjà en haut de page. **Sans transition, pas de saut** : le bandeau n'existe à aucun
+  moment, donc rien ne change de hauteur sous le doigt. La remarque qui a corrigé cela vient de
+  l'auteur, pas de moi.
+  **IL SURVIT AUX MODES D'EXCEPTION, ET SEULEMENT À EUX** (`bandOff`) : il porte la **PHRASE** et
+  la **HACHURE** de l'exercice, de l'invité et de l'essai — précisément ce que la pilule de la
+  barre ne sait pas dire, qui n'a que le MOT (« Suivi », « Exercice »). La v4.70.1 a réparti ces
+  deux offices ; le supprimer partout supprimerait la moitié du dispositif, **et aucun harnais
+  n'aurait crié** — `getComputedStyle` répond encore sur un élément masqué. Aucun saut non plus :
+  être en exercice ou invité ne CHANGE PAS au premier geste, la condition est stable pendant toute
+  la session. ⚠ Le témoin d'`audit-partage` a dû être **remis sur son sujet** : il comparait la
+  hauteur du bandeau HÔTE vs INVITÉ, donc mesurait désormais l'EXISTENCE du bandeau et non le coût
+  du PLACARD. Il compare maintenant le bandeau de l'invité **avec et sans son étiquette**, et
+  vérifie d'abord qu'il RENCONTRE SON CAS (bandeau présent, étiquette visible).
+- **LE LIBELLÉ DU RETOUR SUIT L'INFORMATION, PAS LA PLACE (v5.0.0, proposition utilisateur —
+  mesurée, et déplacée là où elle mord)** : « enlever Bibliothèque pour récupérer de la largeur »
+  était juste, mais **pas où on le croyait**. Mesuré : sous 560 px le libellé n'est PAS affiché
+  (bouton de 31 px, flèche seule) — il n'y avait donc rien à récupérer là où la place manque.
+  AU-DESSUS, il en prend 95 et **fait RÉTRÉCIR le titre** : 204 px de titre à 430, **179 seulement
+  à 560**, sur un écran pourtant plus large. Or « Bibliothèque » est la destination PAR DÉFAUT
+  d'une flèche de retour — elle se devine, et la nommer ne dit rien qu'on ne sache. Le TITRE D'UNE
+  FICHE D'ORIGINE, lui, dit d'où l'on vient (pile de retour, v4.28.0) et vaut sa largeur. Le
+  libellé est donc **présent quand la pile n'est pas vide, absent sinon**. Mesuré après : titre
+  **179 → 276 px** à 560, et le libellé revient bien nommer la fiche d'origine (224 px).
+- **LA RANGÉE DE RÉPERTOIRE — V2 (v5.0.0, maquette validée)** : le défaut réel n'était pas le style
+  mais la **HAUTEUR VARIABLE**. La sous-ligne était une rangée `flex-wrap` de six à sept pilules de
+  largeurs quelconques : chaque fiche se repliait différemment (**52 à 86 px** mesurés) et
+  l'annuaire n'avait aucun rythme. Elle est désormais **à hauteur fixe (71 px)**, avec un **titre
+  sur deux lignes** et une **méta sur une seule**, ellipsée — dont l'ORDRE est celui de
+  l'importance, puisque c'est la QUEUE qui tombe : état (chrono, statut, à compléter), puis
+  discriminant, puis catégorie, et enfin code et date, qui sont ce qu'on peut perdre.
+  **⚠ LES 71 px SONT LE RYTHME DE L'ANNUAIRE, PAS UNE PROPRIÉTÉ DE LA RANGÉE (v5.0.0, signalé à
+  l'usage : « en mode recherche le texte dépasse des cartes d'accueil »)** : ils ont été posés sur
+  un contenu BORNÉ par construction — titre à 2 lignes, méta à 1. En RECHERCHE la rangée porte EN
+  PLUS l'extrait contextuel (`.card-snip`, 2 lignes), et la boîte ne peut pas le contenir : mesuré
+  à 360 px, `.dir-main` atteint **81 à 99 px pour 71 disponibles**, l'extrait dépassant de 10 à
+  29 px. Il était donc CLIPÉ en plein milieu d'une ligne (`overflow:hidden`) — et la rangée étant
+  centrée, le titre l'était aussi par le haut : on promettait un extrait et on le rendait
+  illisible. La liste de recherche **n'est pas le répertoire** (elle est plate, triée par
+  pertinence, et son contenu est variable par nature) : sous `.dir-grid.flat`, la rangée reprend sa
+  hauteur naturelle. **Le rythme n'est pas abandonné pour autant** — `min-height` garde le pas de
+  71 px, donc une rangée SANS extrait (le cas nominal d'une recherche par titre, où
+  `searchSnippet` rend une chaîne vide) ne bouge pas d'un pixel, et l'extrait RÉSERVE ses deux
+  lignes : il n'existe que DEUX hauteurs possibles, jamais N. Spécificité (0,3,0), pour gagner sur
+  `.dir-row` et sa variante < 640 px quel que soit l'ordre de déclaration. Témoins dans
+  `audit-doctrine` (320/360/390/700/1400 px) : ils **rencontrent leur cas deux fois** — un extrait
+  doit être RENDU, et il doit faire deux lignes, sinon on mesurerait une rangée ordinaire ou un
+  extrait qui tenait de toute façon. Vérifiés capables d'échouer (règle retirée → 5 rouges).
+  **⚠ LE CORPS RESTE SUR L'ÉCHELLE FERMÉE**, et c'est la contrainte qui a fait échouer DEUX
+  maquettes de ma main (15 px et 14,5 px — aucun n'étant un palier ; l'auteur l'a vu, pas moi).
+  Le titre est à **15,5 px**, un palier : ce qui se resserre pour tenir en 71 px est l'**INTERLIGNE**
+  et le **REMBOURRAGE**, jamais la police. Descendre à 13,5 mettrait le titre d'une fiche au corps
+  du TEXTE COURANT et lui ferait perdre le relief que l'échelle existe pour tenir.
+  **DEUX ÉCONOMIES GRATUITES** rendent la place des deux lignes : la pastille de catégorie est
+  REDONDANTE avec le liseré (même couleur, même information — la catégorie reste nommée en toutes
+  lettres dans la méta ; `.cat-dot` purgée de la rangée, règle 14), et l'épingle passe de 34 à 26 px
+  en gardant sa cible de 44 par un halo `::before`.
+  **« SESSION EN COURS » — TROIS CANAUX CUMULÉS, 0 px DE COÛT** : le liseré passe au registre
+  CONFIRMATION, la rangée en prend la teinte, et **la DATE cède la place au CHRONO VIVANT**. Le
+  troisième est le plus juste : il occupe une place DÉJÀ prise (une date de validation n'apprend
+  rien pendant qu'une session tourne), un temps qui s'incrémente est un signal non ambigu — la
+  couleur n'est donc jamais seule (règle 8) — et l'on apprend en plus DEPUIS COMBIEN DE TEMPS.
+  Il est **peint sur place par `tickAll`** (`paintDirLive`), jamais par un re-rendu : reconstruire
+  l'annuaire chaque seconde détruirait le nœud sous le doigt (leçon du quai). Le point bat en
+  OPACITÉ seule, 2,4 s, sous `prefers-reduced-motion: no-preference` uniquement — sur l'ACCUEIL,
+  jamais dans la vue de crise où le mouvement est réservé à l'alarme (ECAM), et très loin du seuil
+  de 3 Hz de WCAG 2.3.1.
+  **DEUX PIÈGES RENCONTRÉS, TOUS DEUX SILENCIEUX** : (a) la rangée a **TROIS** enfants (contenu,
+  code, épingle) — avec une grille à deux colonnes le troisième passait à la ligne, donc HORS d'une
+  boîte à hauteur fixe, sans que rien ne le dise (épingle mesurée à 244 px de large) ; (b) retirer
+  le `padding:6px` compensé par marges négatives du bouton-titre a fait tomber sa cible mesurable
+  de 29 à **18 px** — sous le seuil WCAG 2.5.8, attrapé par `audit-a11y`. Le rembourrage compensé
+  n'est pas décoratif : il EST la cible.
+  **LA MÉTA EST DU TEXTE SÉPARÉ PAR DES POINTS, PAS UNE SUITE DE CHIPS** (signalé à l'usage : la
+  première livraison avait gardé les chips existantes). **Une chip a une largeur INCOMPRESSIBLE** :
+  dans une grille qui compte de deux à quatre colonnes, elle se coupait net dès que la piste
+  rétrécissait, et c'est elle qui poussait la catégorie hors du cadre. Du texte, lui, s'ellipse
+  proprement et **par la queue**, donc dans l'ordre d'importance choisi. Les composants partagés
+  (`.tag`, `.status-tag`) sont **déshabillés dans la rangée, et là seulement** — ailleurs la chip a
+  un sens. Le CODE a lui aussi rejoint la méta : en colonne séparée, il prenait une piste au titre
+  et se retrouvait au milieu de la rangée, loin de ce qu'il nomme.
+  **⚠ QUATORZIÈME PIÈGE DE CASCADE** : `.tag.todo` vaut (0,2,0) et est déclarée PLUS BAS que
+  `.dir-sub .tag` — à spécificité égale c'est l'ORDRE qui tranche, et le fond gris de la chip
+  revenait. On passe par `.dir-row` (0,3,0), qui gagne quel que soit l'ordre.
+  **LE MOT CÈDE, LE GLYPHE RESTE** : « △ À compléter » coûtait ~95 px sur une piste de 292 —
+  c'est-à-dire la catégorie entière. Il devient « △ » + étiquette `.sr-only`, exactement le patron
+  du quai (v4.23.0 : « le mot ne peut pas être écrit en clair ici, il serait le premier rogné »).
+  La règle 8 est tenue : le △ est une FORME, pas une couleur, et il porte son nom accessible.
+  Mesuré après : **0 méta tronquée** en 1, 2, 3 et 4 colonnes.
+  **⚠ ET LES LARGEURS QUI COMPTENT SONT CELLES DES PISTES, PAS DES ÉCRANS** : la grille est fluide
+  (`auto-fill minmax(290px,1fr)`), donc un écran de 1600 px donne QUATRE pistes de **319 px** —
+  plus étroites qu'un téléphone de 390. Mesurer 330 et 390 ne prouvait rien sur ordinateur ; les
+  témoins balayent les six largeurs qui produisent 1, 2, 3 et 4 colonnes.
+  **⚠ CE QUI DÉBORDE NE DOIT PAS AFFAMER LE RESTE** (signalé à l'usage : avec un code long, la DATE
+  disparaissait). Ellipser la LIGNE entière fait tomber la QUEUE — donc l'élément le moins large,
+  quel que soit le coupable. On distingue donc **deux natures** : les items **DURS** (chrono,
+  registre, statut, date) ne rétrécissent jamais — ils sont courts, bornés, et *un chiffre amputé
+  est pire qu'absent* (règle du quai) ; les items **SOUPLES** (discriminant, bibliothèque,
+  catégorie, code) rétrécissent chacun **pour soi**, avec leur propre ellipse — le flex répartit le
+  manque au prorata, donc c'est le PLUS LONG qui cède le plus, et tous restent présents. Un code de
+  vingt-trois caractères s'abrège lui-même au lieu d'effacer la date. Mesuré à 4 colonnes avec un
+  cas volontairement adverse : ligne non ellipsée, 0 item hors boîte, date intacte.
+  **TÉMOINS** : on ne mesure pas « la rangée fait 71 px » (vrai sur une liste d'UNE fiche) mais que
+  TOUTES ont la MÊME hauteur, après avoir vérifié qu'il y en a plusieurs. Et **ils construisent un
+  CAS ADVERSE** — code de 23 caractères, catégorie de 33, discriminant de 29 : mesurer les fiches
+  d'EXEMPLE ne prouvait rien, leur code faisant trois caractères et leur catégorie un mot. Le
+  témoin restait vert pendant que la date disparaissait chez l'utilisateur. **Un contrôle qui ne
+  rencontre pas son cas ne le couvre pas** — c'est la leçon la plus souvent redite de ce dossier, et
+  elle s'est encore vérifiée ici. Et le débordement de la
+  RANGÉE ne suffit pas à prouver que la méta tient : `.dir-sub` est en `overflow:hidden`, donc la
+  rangée reste propre pendant que l'information disparaît — **on mesure l'ellipse elle-même**.
+- **LA PHASE VIT DANS L'EN-TÊTE DU BLOC, À DROITE (v5.0.0, maquette)** — et ⚠ ma première pose ne
+  l'avait mise que dans la branche DÉCISION : un `replace(…, 1)` avait pris la première occurrence
+  des deux branches de `blockEditor`. Signalé à l'usage (« ça ne s'affiche que sur les blocs
+  conditionnels »). Le champ est FACULTATIF et HÉRITÉ : vide, il affiche **en filigrane** la phase
+  du bloc précédent, de sorte que l'auteur voit ce qui s'appliquera sans avoir à la retaper ; un
+  `datalist` propose le noyau sans l'imposer. Dessin discret (filet pointillé, aligné à droite) :
+  c'est une étiquette d'ORGANISATION, jamais un registre — aucune couleur sémantique.
+- **UN SEUL DESSIN D'INTERTITRE DANS LA COLONNE (v5.0.0, signalé à l'usage)** : il y en avait DEUX —
+  `.pl-cxh` (9 px de retrait, `space-between` qui renvoyait « hors numérotation » sur sa propre
+  ligne) et `.pl-sech` (2 px). D'où « à tout moment plus à droite que le reste » et « hors
+  numérotation qui sort de nulle part ». Un seul demeure : même retrait que les rangées, et la
+  précision suit le titre **dans la même phrase**. Le titre d'une complication ne colle plus à son
+  liseré (13 px). ⚠ Une purge d'intertitre emporte le SÉLECTEUR des harnais : `audit-complications`
+  visait `.pl-cxh` et serait resté vert sans rien mesurer (règle 14).
+- **LE DÉPLIANT D'UNE LIGNE DU PARCOURS N'EST PLUS UNE CARTE BLANCHE (v5.0.0, signalé à l'usage :
+  « est-ce voulu ? » — non)** : il datait du temps où la colonne ÉTAIT une carte blanche, où il se
+  fondait. Depuis que les rangées vivent sur le fond de la colonne, c'était la seule surface
+  blanche de l'écran, donc la plus saillante — alors qu'elle porte du DÉTAIL. Surface de second
+  plan et retrait, comme un contenu subordonné.
+- **L'ÉTOILE ★ REVIENT DANS LE CHAPEAU (v5.0.0, retour utilisateur : « avant c'était beaucoup plus
+  clair »)** — je l'avais retirée en la croyant redondante. Elle ne l'est pas : elle dit POURQUOI
+  cette ligne est là sans être éditable (elle a été posée sur une ÉTAPE). Ce qui était mal fait
+  n'était pas le glyphe mais le RENVOI en rangée, qui mangeait la moitié de la largeur et se
+  tronquait en plein titre de bloc. Il reste sur sa propre ligne, pleine largeur, ≥ 44 px.
+- **UN SEUL REGISTRE PAR SURFACE (v5.0.0, signalé à l'usage : « gris puis bleu sur du vert »)** :
+  les chips de suggestion de l'accusé héritaient du dessin du PANNEAU (fond neutre, survol bleu),
+  pensé pour un fond blanc — posées sur la teinte de CONFIRMATION, deux registres se superposaient.
+  Dans l'accusé elles prennent la SURFACE (blanc franc, qui se détache de la teinte) et le filet du
+  registre courant ; le survol reste dans ce registre.
+- **« CONSIGNÉ » EST UN MEMO, PAS UNE CONFIRMATION (v5.0.0, question de l'auteur, relecture ECAM)** :
+  le vert du dossier dit « ce que l'on VIENT DE FAIRE est acquis » — étape cochée, algorithme
+  terminé —, c'est-à-dire la réponse à un GESTE. La trace d'un compteur est un **fait passif**,
+  affiché en permanence sur chaque carte : en vert, elle diluerait le vert des étapes cochées
+  exactement comme un rouge permanent dilue le rouge des étapes vitales. Registre **MEMO** (neutre),
+  et le ✓ tombe avec lui. **ET ELLE RESTE, C'EST VOULU** : un fait n'expire pas — c'est l'analogue du
+  « last actuation » d'un synoptique ECAM, un état de l'objet et non une alerte à acquitter. La
+  faire disparaître au bout de n secondes rendrait la question « ai-je consigné ? » à nouveau sans
+  réponse, ce qu'elle vient précisément réparer.
+- **UNE RÈGLE ÉCRITE POUR UNE LIGNE NE DOIT PAS S'APPLIQUER À UNE BOÎTE (v5.0.0, signalé à
+  l'usage)** : `.pos-card.vig + .pos-card{border-top:0}` datait du temps où le repère ORDINAIRE
+  était une LIGNE à filet — après une boîte ambre, ce filet aurait fait double trait. Mais deux
+  BOÎTES qui se suivent — le cas dès que deux repères sont signalés △, donc sur les deux fiches
+  d'exemple depuis le lot T13 — n'ont pas ce problème : la seconde perdait son bord haut
+  (`border-top-width: 0px` mesuré) et se lisait comme rognée. La règle est bornée par `:not(.vig)`.
+  C'est le corollaire de « normal = ligne, signalé = boîte » : quand la doctrine distingue deux
+  formes, **toute règle qui vise l'une doit le dire dans son sélecteur**.
+- **LA RÉFÉRENCE — PLAN À GAUCHE, RECHERCHE DEDANS (v5.0.0, refonte des protocoles)** : le sommaire
+  vit **à gauche** ≥ 1000 px, comme le plan d'une aide en cockpit et pour la même raison — on
+  s'oriente à gauche, on lit au milieu. **Sous 1000 px il n'y a pas de colonne** : il devient un
+  DÉPLIANT replié en tête du corps, qui dit son nombre de sections — un sommaire qu'on ouvre,
+  jamais une liste qui pousse le texte. **L'ORDRE DU DOM RESTE CELUI DE LA LECTURE** : le sommaire
+  est ajouté APRÈS le corps et ramené à gauche par `order` — ni un lecteur d'écran ni une
+  tabulation ne traversent un sommaire pour atteindre le texte (règle de `.read-plan`, v4.59.0).
+  **CHERCHER DANS LA RÉFÉRENCE** : un protocole peut faire plusieurs milliers de mots, et la
+  recherche de l'accueil trouve la FICHE, jamais l'endroit. ⚠ **LE SURLIGNAGE NE PASSE JAMAIS PAR
+  `innerHTML`** — il parcourt les NŒUDS DE TEXTE et n'insère que des nœuds créés
+  (`createElement`/`createTextNode`) : réinjecter du balisage produit par `mdRender` ouvrirait une
+  seconde occasion de se tromper là où `esc()` est la SEULE barrière (règle 4). Le témoin vérifie
+  donc aussi qu'après effacement **le document revient à l'identique**. **La recherche ne FILTRE
+  pas, elle surligne et saute** : masquer des sections laisserait croire qu'elles n'existent pas —
+  même garantie que `posoRank` et `tagRank`.
+- **LA RELECTURE D'UNE RÉFÉRENCE (v5.0.0)** : le volet des AIDES lit des garde-fous de checklist
+  (memory items, longueur des challenges) qui n'ont aucun sens ici — une référence n'a ni bloc ni
+  étape. `reviewNotesProto` dit ce qui MANQUE pour qu'elle serve : contenu vide, « à compléter »
+  résiduel, aucune source citée, titre absent. **MÊME DESSIN, MÊME GRAMMAIRE** que le volet des
+  aides (`reviewPanelHtml` est partagé, il prend les notes en paramètre) : qui a appris à lire l'un
+  lit l'autre — doctrine I4 appliquée à l'édition. Il vit **au-dessus de l'aperçu** dans la colonne
+  de droite, en pied sous 1000 px.
+- **UNE COLONNE D'ORIENTATION S'AJOUTE AU PLAFOND, ELLE NE S'Y PRÉLÈVE PAS (v5.0.0, refonte des
+  protocoles, signalé à l'usage)** : la référence est plafonnée à 780 px « à toutes les largeurs » —
+  poser la grille du sommaire DEDANS le mettait dans la colonne de lecture, et l'on n'avait plus
+  780 px de texte mais 496. C'est la règle déjà écrite pour la fiche (« le rail prend l'espace
+  EXCÉDENTAIRE ») : le corps garde ses 780, le sommaire s'ajoute.
+  **DEUX RÉGIMES, PAS UN SEUIL** — et il a fallu deux signalements pour y arriver : (a) la colonne
+  passait PAR-DESSUS le texte entre 1000 et 1064 px (la grille demande 260 + 24 + 780 = 1064, et la
+  piste du corps était FIXÉE) ; (b) remonter le seuil à 1200 faisait disparaître le sommaire « alors
+  qu'il y a encore de la place ». D'où : **≥ 1000** deux pistes `260 + souple`, la paire centrée
+  donc le corps un peu à droite du milieu — mieux vaut un léger décalage qu'un sommaire qui
+  s'efface ; **≥ 1200** trois pistes, le corps reprend ses 780 px et se recentre PROGRESSIVEMENT ;
+  **< 1000** le dépliant. Le sommaire ne disparaît jamais, **il change de forme**.
+  **LE RAIL A UN PLANCHER** (`minmax(260px,1fr)`) : sans lui la piste valait 168 px à 1200 — le
+  sommaire rétrécissait au moment PRÉCIS où l'on gagne de la place, l'inverse de ce qu'on attend.
+  C'est la piste de DROITE qui absorbe, et le décalage décroît en continu (142 → 92 → 0 vers
+  1370) : **un mouvement continu, jamais un saut**.
+  **LES ANNEXES SONT RECOPIÉES, PAS DÉPLACÉES** (correction : ma première version les sortait du
+  corps) — documents et « Voir aussi » restent à leur place dans le document, ce sont des parties
+  de la référence ; la colonne n'en offre qu'un ACCÈS RAPIDE. Les copies sont insérées AVANT le
+  câblage (`main.querySelectorAll` court plus bas), donc bindées comme les originales : aucune
+  seconde vérité, aucun second écouteur à tenir.
+  **LE SOMMAIRE NE S'IMPRIME PAS** : sur papier on TOURNE les pages, on ne saute pas à une ancre —
+  une table des matières qui ne mène nulle part est du bruit, et sa colonne rétrécirait le texte.
+- **LA PORTE D'UNE RÉFÉRENCE (v5.0.0)** : même composant, même fenêtre, même grammaire que celle des
+  aides — mais une AUTRE liste, parce qu'une référence n'a ni bloc, ni étape, ni minuteur : elle a
+  un CORPS, des DOCUMENTS, des RENVOIS et des SOURCES. Proposer les types d'une checklist ici
+  serait promettre ce qui n'existe pas. Même règle **« présent dans la porte ⇔ masqué quand
+  vide »**, et même contrainte de tâche : le document ouvre le sélecteur de fichier DANS LA MÊME
+  TÂCHE que le clic de la palette, sinon l'activation utilisateur est perdue (leçon v4.71.0).
+  ⚠ **UNE LISTE SE TROUVE PAR SON BOUTON D'AJOUT**, pas par un `data-key` — `listEditor` n'en émet
+  pas : viser un attribut inexistant ne lève rien, le focus reste où il était, et l'auteur ne voit
+  pas ce qu'il vient de créer. Trouvé à la sonde.
+- **UNE SÉPARATION SE LIT À SA SYMÉTRIE, PAS À SON TRAIT (v5.0.0, signalé à l'usage)** : le
+  rembourrage bas de la zone de recherche s'ajoutait à la marge du titre — 24 px au-dessus du filet
+  contre 12 en dessous, et « Sommaire » paraissait collé à la barre. Même valeur des deux côtés.
+  ⚠ **QUINZIÈME PIÈGE DE CASCADE** au passage : `.rt-h2` posait un `padding-top` LONGHAND, et
+  `.rt-h` — même spécificité, déclarée plus bas — repose un `padding` RACCOURCI qui l'écrase
+  intégralement. Mesuré : 14 px demandés, **0 obtenu**. Passer par `.ref-toc .rt-h2` (0,2,0).
+- **L'AIDE-MÉMOIRE DE SYNTAXE SE REPLIE (v5.0.0, signalé à l'usage : « c'est moche »)** : c'était un
+  paragraphe de vingt lignes sous le champ, **permanent** — on le lit une fois, on le subit ensuite.
+  Replié il tient en une ligne ; déplié, l'interligne l'aère et les exemples en mono se détachent.
+  Même gabarit que les autres dépliants (`.crit-guide`, `.rev-panel`).
+- **LE VOLET DE RELECTURE EST OUVERT PAR DÉFAUT (v5.0.0, demande utilisateur)** — dans les DEUX
+  éditeurs, aide et référence : un seul dessin, une seule habitude. C'est cohérent parce qu'il
+  **n'existe pas** quand il n'a rien à dire (`if(!n.length)return ''`) : il ne peut donc jamais être
+  du bruit permanent, et la règle « un panneau vide est du bruit » est déjà tenue par son absence.
+  Replié, il demandait un clic pour lire un BILAN — c'est-à-dire exactement la chose qu'on ne clique
+  pas. Il reste repliable, et l'état n'est pas persisté : c'est une consultation, pas un réglage.
+- **LE SOMMAIRE D'UNE RÉFÉRENCE EST DU CHROME, PAS DU FLUX (v5.0.0, signalé à l'usage : « mets-le
+  directement en en-tête plutôt que sticky », « lorsque ça colle ça ne fusionne pas à l'en-tête et
+  ça fait moche »)** : un `sticky` vit d'abord dans le flux PUIS se colle — à cet instant il TOUCHE
+  la barre sans en faire partie, deux surfaces séparées par un liseré de fond. `#refBar` est donc
+  **sœur de `.app` et `position:fixed`**, comme `#crisisCtrl` et `#crisisDock` : il ne transitionne
+  jamais, il EST la seconde rangée de l'en-tête dès le premier pixel. Même fond, même rembourrage
+  de 18 px, aucun rayon — et **un filet par ÉTAGE** (demande utilisateur : « marque tout de même
+  une petite ligne de séparation, comme pour les aides ») : le fond commun fait le BLOC, le filet
+  dit qu'il a deux rangées. Ombre **seulement OUVERT**, c'est-à-dire au seul moment où il recouvre
+  le texte. `syncRefBar` mesure sa hauteur réelle et la pose en `--refbar-h` (÷ zoom) : une barre
+  fixe ne prend aucune place au flux, donc sans réservation MESURÉE le texte naîtrait derrière elle.
+  **⚠ ON NE REFERME PAS UN DÉPLIANT POUR LE MESURER** (défaut vécu : « scroll de la partie dépliée
+  bug ») : `toggle` est ASYNCHRONE, donc écrire `open=false` puis `open=true` dans son propre
+  handler le rappelle — le panneau bat et le défilement acquis repart à zéro. La hauteur repliée
+  vaut l'intitulé plus les filets, tous deux présents quel que soit l'état. **Le témoin compte les
+  `toggle`**, il ne regarde pas l'état final : la première version restait VERTE sur le défaut,
+  l'état final étant bien « ouvert ».
+- **TOUTE VUE DONT LA STRUCTURE DÉPEND D'UN PALIER DOIT ÊTRE DANS `_onReadBp`** — `protocolRead` y
+  manquait, d'où « non responsive, pas d'adaptation » : le sommaire est un `<aside>` au-dessus de
+  1000 px et un `<details>` en dessous, c'est-à-dire une STRUCTURE décidée au rendu. Corollaire déjà
+  écrit en v4.77.0, à ne pas re-perdre à chaque vue nouvelle.
+- **LES TROIS RANGÉES DE FILTRES PARTENT DU MÊME x (v5.0.0, signalé à l'usage : « Tout » pas
+  aligné)** : les intitulés ont des longueurs différentes — TYPE 33 px, CATÉG. 46 —, donc chaque
+  rangée de chips commençait ailleurs (63 px contre 76, mesurés). Un `min-width` commun sur
+  `.scope-lbl` les aligne sans toucher aux mots. Trois colonnes de départ pour trois filtres qui se
+  lisent du plus large au plus étroit brouillaient la hiérarchie qu'on venait d'établir.
+- **LE RAIL A→Z EST ANCRÉ EN HAUT PARTOUT (v5.0.0, signalé à l'usage : « sa position bouge sans
+  cesse »)** : la v4.73.0 avait posé `flex-start` sur la seule variante ÉTROITE ; en vue LARGE le
+  rail restait `justify-content:center`, donc la position des lettres dépendait de LEUR NOMBRE —
+  filtrer ou chercher en changeait la quantité et déplaçait toute la colonne (première lettre
+  mesurée à 307 px, ailleurs dès qu'une lettre disparaît). Un index d'annuaire doit être là où l'on
+  a appris à le viser, quel que soit ce qu'il contient. **Le témoin ne rencontrait pas son cas** :
+  le rail n'existe qu'à partir de deux lettres distinctes, et les deux fiches d'exemple n'en
+  donnent pas assez — il construit donc son répertoire.
+- **REJOINDRE UNE SESSION NE DÉPEND PAS DU FILTRE DE TYPE (v5.0.0, signalé à l'usage)** : la ligne
+  « code de session reconnu » vivait dans la configuration des FICHES, donc « Tout » l'héritait par
+  raccroc et « Protocoles » ne l'avait pas du tout — alors qu'un code ne désigne ni une aide ni une
+  référence : il désigne une SESSION. Elle est hissée dans le rendu commun, avec son câblage, avant
+  tout ce qui dépend d'une configuration.
+- **EN VUE « TOUT », PAS DE RENVOI VERS L'AUTRE TYPE (v5.0.0, signalé à l'usage)** : `crossKind` y
+  vaut `null`, et le test `other==='protocols'` retombait alors sur la branche FICHES — on annonçait
+  « n aides correspondent AUSSI » à quelqu'un qui les avait déjà sous les yeux. Un renvoi vers là où
+  l'on est n'est pas un renvoi, c'est du bruit.
+- **LA NATURE DE L'OBJET SE LIT SUR LA RANGÉE (v5.0.0, demande utilisateur, d'après la maquette)** :
+  en vue « Tout » les deux types se mêlent et rien ne disait lequel on allait ouvrir — une checklist
+  qui se DÉROULE ou un document qu'on CONSULTE, deux gestes différents. Repris dans les vues
+  filtrées à la demande : un seul dessin de rangée partout, donc rien à réapprendre en changeant de
+  filtre. **C'est du TEXTE en petites capitales, pas une pastille**, et ce n'est pas un détail de
+  goût : mesuré, la pastille coûtait 16 px de chrome par rangée et faisait basculer la méta dans
+  l'ellipse à quatre colonnes **sur des données ordinaires**. Item DUR — il ne s'abrège jamais.
+  **LES CINQ PIXELS MANQUANTS SE TROUVENT DANS LE CHROME, PAS DANS UNE COLONNE EN MOINS** : élargir
+  la piste minimale les rendait, mais en supprimant une colonne entière entre 1600 et 1690 px, soit
+  25 % de fiches en moins à l'écran pour la queue d'un mot. On les prend sur les écarts (gap 10 → 5,
+  retrait 14 → 12). Mesuré après : **0 item tronqué de 360 à 1900 px**, sauf 3 items à 2 px dans la
+  seule bande des quatre colonnes serrées. Et **sous 400 px le plancher des items souples descend à
+  1,6 em** : le tag est un item dur de plus, et la somme des durs et des quatre planchers de 2,5 em
+  poussait la DATE hors de la boîte — un item ne disparaît pas, il s'abrège.
+- **REPLIÉ, LE CHAPEAU « NE PAS OUBLIER » EST TOUT ENTIER SON DÉCLENCHEUR (v5.0.0, signalé à
+  l'usage)** : le bouton fait 48 px et centre son texte, mais le chapeau gardait ses 10 px de
+  rembourrage bas — le texte se trouvait donc au-dessus du milieu du bloc. On absorbe ce
+  rembourrage comme le haut, par une marge négative. **Le texte ne bouge pas au dépliage** : dans
+  les deux états il est centré dans les mêmes 48 px, ancrés en haut du chapeau.
+- **LA PHASE SE CHOISIT DANS UNE LISTE, ELLE NE SE RETAPE PAS (v5.0.0, demande utilisateur)** : le
+  champ libre demandait de RÉÉCRIRE le mot à l'identique d'un bloc à l'autre — une faute de frappe
+  créait une phase jumelle, et rien ne le disait. Le sélecteur supprime la classe d'erreur entière.
+  **Il reste OUVERT** — la décision du lot M6 tient, rien n'établit que les cliniciens pensent en
+  cinq phases fixes : « ＋ Nouvelle phase… » ouvre un champ, la valeur entre dans la liste, et une
+  phase déjà écrite y figure même hors noyau. **LE RAPPEL VIT DANS LES INTITULÉS** (« Immédiate
+  (3 blocs) ») : c'est l'information qu'on cherche au moment où l'on choisit, et elle ne coûte pas
+  une surface de plus ; la colonne « Structure » la double en intertitres, posés AU CHANGEMENT de
+  phase seulement — c'est-à-dire là où l'auteur a effectivement décidé quelque chose.
+  ⚠ **Ce qui est HÉRITÉ est la phase du bloc PRÉCÉDENT, pas l'effective** : `phaseOf` rend la phase
+  qui s'APPLIQUE, celle du bloc comprise — s'en servir faisait dire « hérite : Immédiate » au bloc
+  qui déclare lui-même « Immédiate ».
+- **SEIZIÈME PIÈGE DE CASCADE — UN LONGHAND NE SURVIT PAS À UN RACCOURCI ULTÉRIEUR (v5.0.0,
+  signalé à l'usage, capture à l'appui : « les icônes dans la zone de texte se superposent avec le
+  texte »)** : la marque ⚠/△ d'une étape est réservée par un `padding-left` LONGHAND ; 1 350 lignes
+  plus bas, `.blk .li input[type=text]:focus` repose un `padding` RACCOURCI — même spécificité
+  (0,4,1), déclaré APRÈS, donc gagnant. **Le défaut n'existait donc qu'AU FOCUS**, ce qui explique
+  qu'il ait survécu : mesuré à 390 px, rembourrage 11 px, texte commençant à 96 px pour une icône
+  finissant à 101. Même mécanisme que le quinzième piège (`.rt-h2`). On passe par `:is()` à (0,5,1)
+  et l'on couvre le repos ET le focus. **Le témoin doit FOCALISER** — sans cela il mesure l'état où
+  le défaut n'est pas.
+- **UNE CLASSE POSÉE AU RENDU NE SUIT PAS LA FRAPPE (v5.0.0, signalé à l'usage)** : `has-exp`
+  décide de l'affichage de la « réponse attendue » hors focus. Écrire ne re-rend pas (et ne DOIT
+  pas : un re-rendu détruirait le champ sous le curseur) — une réponse ajoutée disparaissait donc à
+  la sortie du champ, et une réponse effacée laissait le champ vide affiché pour toujours. On peint
+  la classe SUR PLACE dans le handler de saisie.
+- **UNE SEULE VOIX PAR RANGÉE (v5.0.0, signalé à l'usage)** : les deux champs d'une étape sont au
+  MÊME corps (16 px, plancher tactile) mais l'un était en chasse fixe — à taille égale, une chasse
+  fixe a une hauteur d'x plus grande et paraît plus grosse. Le champ prend la police du geste ; **la
+  chasse fixe reste où elle porte du sens**, c'est-à-dire sur la PILULE de lecture (`.stp-r`).
+- **LE CHAPEAU « NE PAS OUBLIER » EST UNE SEULE LISTE, ORDONNÉE PAR LE POOL (v5.0.0, signalé à
+  l'usage : « il faut pouvoir les mettre ENTRE les autres, pas tout en bas »)** : il agrégeait deux
+  familles en les CONCATÉNANT — rappels de portée fiche d'abord, ★ des étapes ensuite —, si bien
+  qu'un memory item posé sur un geste vital arrivait toujours DERNIER. Or les deux vivent dans le
+  MÊME pool : son ordre est l'ordre naturel, et c'est celui que l'auteur manipule déjà. La rangée
+  est la même pour les deux ; ce qui change est ce que le champ AUTORISE — une ligne portée par une
+  étape est un champ `:disabled`, dans la grammaire de « fermé » du dossier (v4.79.0), suivi du
+  renvoi vers son bloc. **Le chapeau AGRÈGE, il ne possède pas** : on ne duplique pas le lieu
+  d'écriture. ⚠ **`setList` écrit désormais EN PLACE** : il reposait la tranche en FIN de pool, donc
+  une simple frappe renvoyait les rappels derrière les ★ et défaisait l'entrelacement tout seul.
+- **LA GOUTTIÈRE DU RAIL A→Z EST RÉSERVÉE, MÊME SANS RAIL (v5.0.0, signalé à l'usage : « les cartes
+  sont de taille différente selon Tout / Aides / recherche »)** : le rail n'existe qu'en RÉPERTOIRE ;
+  en recherche il disparaissait, la colonne gagnait ses 30 px et la grille fluide pouvait changer de
+  nombre de colonnes — 312 px de rangée d'un côté, 322 de l'autre, mesurés. Un annuaire dont le pas
+  change quand on tape est un annuaire qu'on réapprend à chaque geste. Mesuré après : **319 px dans
+  les six configurations** (trois filtres × répertoire/recherche).
+- **UN SEUL LIBELLÉ POUR « CONSULTER », À TOUTES LES LARGEURS (v5.0.0, demande utilisateur)** :
+  l'abréviation « Cons. » datait d'avant la mesure. Depuis que `fitCtrlRow` mesure le débordement
+  RÉEL et descend d'un palier de compression avant d'enrouler (v4.74.2), la place existe — vérifié
+  de 320 à 430 px aux quatre tailles de texte. Un bouton qui change de mot selon la largeur est un
+  bouton qu'on relit : la constance du libellé est la même exigence que la constance de sa position.
+- **LES DEUX PORTES « ＋ » PARTAGENT LEUR FABRIQUE DE RANGÉE *ET* LEUR REGISTRE D'ÉCRITURE (v5.0.0,
+  signalé à l'usage)** : celle des références avait son propre gabarit (`.ep-grp`/`.ep-tx`, sans
+  aucune règle CSS — d'où son dessin fautif). Une seule fabrique désormais. **Et le gabarit ne
+  suffisait pas** : ses gloses étaient des PHRASES là où celles des aides disent la CONSÉQUENCE en
+  deux mots — elles enroulaient, et la rangée passait de 52 à 56 px. Deux portes qui n'écrivent pas
+  dans le même registre ne se ressemblent pas, quel que soit leur CSS.
+- **DEUX RANGÉES DE FILTRES VOISINES RÉPONDENT AU GESTE DE LA MÊME FAÇON (v5.0.0)** : les chips de
+  TYPE n'avaient aucune micro-réponse au survol, celles de CATÉGORIE oui — même grammaire, même
+  geste, deux comportements.
+- **UNE RANGÉE D'ÉDITEUR S'ENROULE PLUTÔT QUE DE TRONQUER (v5.0.0, signalé à l'usage)** : la rangée
+  de complication tenait trois objets incompressibles sur une ligne, et sur écran étroit la CIBLE
+  tombait à 46 % de rien et se coupait en plein nom de bloc — c'est-à-dire précisément sur
+  l'information qui dit OÙ l'on va. Même remède que le bandeau de déplacement et que la ligne
+  d'état : on empile, la croix reste ancrée avec sa place réservée.
+- **LE BANDEAU-TITRE N'EST PLUS QU'UN PLACARD (v5.0.0, signalé à l'usage : « en mode Essayer le
+  bandeau inférieur avec le titre apparaît encore, alors que le titre est déjà à côté du ‹ »)** :
+  depuis que la barre porte le titre EN PERMANENCE, le répéter dans le bandeau était la duplication
+  même que la v4.70.1 proscrit — et sur deux lignes de serif, au prix le plus fort. Il ne porte donc
+  plus que ce que la barre ne sait pas dire : la PHRASE d'une exception et sa hachure. `.cb-ttl` et
+  `.cb-disc` sont PURGÉS (règle 14) ; **le discriminant suit le titre dans la barre**, en pilule à
+  part — jamais dans la chaîne qui se tronque, c'est tout son objet (K6).
+  **ET IL NE SURVIT QU'À DEUX EXCEPTIONS, PAS TROIS** : l'ESSAI n'en est pas une — la v4.76.0 a
+  établi que la barre y porte déjà les deux énoncés (pilule « ■ Aperçu » ET badge « rien n'est
+  enregistré ») et qu'il ne manquait que la TEXTURE, laquelle vit sur l'en-tête. Un bandeau sans
+  titre et sans phrase n'y serait plus qu'une bande hachurée vide. Restent l'exercice et l'invité.
+  Corollaire : **la hachure de l'en-tête ne dépend plus du relais `.ttl-on`** — la barre porte le
+  titre dès le premier pixel, il n'y a plus de relais à attendre.
+- **LA COLONNE D'ORIENTATION EST DÉSATURÉE, Y COMPRIS SES CHIPS DE BRANCHE (v5.0.0, signalé à
+  l'usage : « ça ressort beaucoup, je ne suis pas sûr que ce soit approuvé ECAM/QRH/FAA »)** — la
+  remarque est juste. La chip nomme la BRANCHE qui mène au bloc : ni alerte, ni point de vigilance.
+  En ambre plein elle empruntait le registre ATTENTION dans une colonne dont toute la doctrine est
+  la désaturation (v4.23.0 : « l'état n'y est porté que par le marqueur, aucun texte coloré ») —
+  elle criait donc plus fort que le contenu clinique qu'elle indexe, exactement l'inflation que le
+  dossier combat pour le rouge. Pastille NEUTRE ; le registre reste au point où l'on CHOISIT,
+  c'est-à-dire sur les options `.opt` de la carte de décision.
+- **UN RAIL POUR LE GROUPE, PAS UNE BORDURE PAR RANGÉE (v5.0.0, signalé à l'usage : « la bordure
+  rouge sort un peu de nulle part »)** : le liseré des complications commençait SOUS l'intertitre,
+  donc après le mot qui annonce le groupe — il paraissait surgir. Il court désormais du titre à la
+  dernière rangée : c'est le GROUPE qui est hors séquence, pas chaque ligne prise séparément.
+  ⚠ **Et l'intertitre s'aligne sur les rangées DE SA COLONNE** : ma première correction l'avait
+  aligné sur le retrait de la carte de LECTURE (9 px) alors que la colonne désaturée retire de
+  2 px — soit le défaut signalé, à l'envers. On mesure, on n'extrapole pas d'une surface à l'autre.
+  Le rail est le SEUL retrait du groupe (aucun rembourrage en plus) : il reste 3 px, ce qu'un
+  liseré coûte partout ailleurs.
+- **« CONSULTER » A LA MÊME HAUTEUR PARTOUT, ET ELLE NE COÛTE RIEN (v5.0.0, signalé à l'usage :
+  « en dessous de 780 px il se rétrécit encore, sans raison valable » — vérifié, il n'y en avait
+  pas)** : il tombait de 46 à 38 px sous ce seuil et s'en remettait au halo `::after` pour atteindre
+  les 44 px de cible. Or **mesuré, la rangée fait 59 px des deux côtés** : c'est le sélecteur de
+  mode (46 px) qui la dimensionne. Le rétrécissement ne rendait aucun pixel — il désalignait les
+  deux contrôles de la même rangée et faisait dépendre la cible d'un halo qui ne se mesure pas.
+  Le libellé abrégé « Cons. » est PURGÉ avec lui (balisage mort depuis que le mot tient partout).
+- **PRENDRE DU RECUL EST UNE EXCURSION, PAS UN CHANGEMENT DE FORMAT (v5.0.0, lot A — audit design
+  + retour d'usage : « ça arrive de basculer en cours de session, notamment pour prendre du recul
+  et avoir une vision d'ensemble », « difficile de trouver la bonne information en mode guidé
+  parfois »)** : le besoin est réel et fréquent — il a donc gagné sa place dans le chrome de crise.
+  Ce qui était faux, c'est le MÉCANISME. Un sélecteur segmenté **remplace la vue de travail et ne
+  ramène personne** : on prend du recul, on trouve son information, et si l'on n'y repense pas on
+  **termine le soin dans un format qu'on n'avait pas choisi**. C'est de la mode confusion au sens
+  FAA (un même écran qui se comporte autrement sans signal univoque), et c'est plus grave que les
+  151 px que le segmenté coûtait.
+  **LE CONTRÔLE NOMME SA DESTINATION, JAMAIS SON ÉTAT** — « ⤢ Tout voir » à l'aller, « ↩ Un bloc »
+  au retour, à la MÊME position, avec le registre CONFIRMATION au retour. C'est le patron déjà
+  éprouvé de l'excursion sur complication (`↩ Reprendre — <bloc> →`, v4.26.0) : le retour fait
+  partie du dispositif, il n'est jamais laissé à la mémoire (AC 120-71B). Mesuré : **0 px** de
+  déplacement du bouton ET de la rangée dans les trois états.
+  **ET L'EXCURSION N'ÉCRIT PAS LA PRÉFÉRENCE** : regarder n'est pas régler — prendre du recul dix
+  fois dans un soin ne doit pas finir par changer le format d'ouverture de toutes les fiches (même
+  règle que `state.allTab`, transitoire par nature). Le format PAR DÉFAUT se choisit **à froid**,
+  dans Compte › Affichage, à côté du thème et de la taille du texte, c'est-à-dire au seul endroit
+  du produit où l'on règle. `#modeSeg` et `.ctrl-sp` sont PURGÉS (règle 14) — l'écart de Gestalt
+  ne séparait le MODE des OUVERTURES que parce qu'il y avait un mode ; il n'en reste que deux
+  ouvertures de même nature, et l'enroulement de `fitCtrlRow` coupe naturellement entre elles.
+  ⚠ **`audit-modeseg` N'EST PAS SUPPRIMÉ, IL EST RETARGÉ** sur `#dispSeg` : ses trois contrôles
+  (pastille alignée, libellés immobiles, glisser au doigt) valent pour TOUS les segmentés du
+  fichier et n'ont rien à voir avec la crise — même leçon que `audit-lecteur` → `audit-retour`.
+  ⚠ **COLLISION DE NOMS DE CLASSE, REJOUÉE AU PRIX D'UNE MESURE** : j'avais nommé le modificateur
+  d'état `.back`, qui est une classe AUTONOME du projet (le retour d'en-tête) portant
+  `margin-bottom:14px`. La rangée de commandes gagnait donc **14 px de haut à l'instant de la
+  bascule** (59 → 73 px) et les deux boutons se désalignaient de 7 px — un saut de chrome sous le
+  doigt. Un modificateur d'état porte TOUJOURS le préfixe de son composant (`.dp-back`) : c'est la
+  leçon v4.23.2, et elle se re-perd dès qu'on ne la relit pas.
+- **LE VERT NE DIT QU'UNE CHOSE : « VOUS ÊTES LOIN DE CHEZ VOUS, CECI VOUS Y RAMÈNE » (v5.0.0,
+  lot A, signalé à l'usage : « si j'ai choisi “toute la fiche” par défaut, je vois en permanence un
+  gros bouton vert “retour au bloc” — c'est perturbant »)** : la remarque est juste et elle touche à
+  la sémantique du registre. Le CONFIRMATION rempli est celui du RETOUR D'EXCURSION ; l'afficher en
+  permanence à quelqu'un qui n'est parti nulle part, c'est l'inflation qui vide le vert de son sens
+  — exactement ce que le dossier reproche au rouge permanent. La condition n'est donc pas « je suis
+  en statique » mais **« je ne suis pas dans MON format d'ouverture »**. C'est symétrique par
+  construction : qui lit d'ordinaire la fiche entière voit un ⤢ neutre au repos, et un ↩ vert quand
+  il est allé voir un bloc. Le témoin mesure les DEUX préférences — sans quoi il ne rencontrerait
+  que la moitié de son cas.
+- **CHERCHER DANS L'AIDE PENDANT LE SOIN (v5.0.0, lot B — retour d'usage : « difficile de trouver
+  la bonne information en mode guidé parfois »)** : c'était CE besoin qui faisait basculer de
+  format, et le format n'y répondait qu'en montrant tout d'un coup. La feuille « Toute la fiche »
+  reçoit donc le composant de recherche de la lecture de référence, à **racine variable**
+  (`_pfRoot`) : aucun second parseur, aucun second surlignage, un seul jeu d'identifiants — les
+  deux surfaces ne coexistent jamais à l'écran.
+  **TROIS GARDE-FOUS, tous nécessaires ici** : (a) elle **ne filtre pas**, elle surligne et saute —
+  masquer laisserait croire que le reste n'existe pas, et dans une aide de crise c'est le pire mode
+  de défaillance ; (b) elle **ne passe jamais par `innerHTML`** — le surlignage parcourt les nœuds
+  de texte et n'insère que des nœuds créés (règle 4 : on ne rouvre pas une seconde occasion de se
+  tromper), et le témoin vérifie qu'après effacement **le document revient à l'identique** ;
+  (c) elle **n'est pas le chemin obligé** — taper avec des gants sous adrénaline n'est pas fiable,
+  c'est un accélérateur pour qui SAIT ce qu'il cherche, la vue d'ensemble reste entière dessous.
+  **PAS SUR LE SCHÉMA** : ses textes vivent dans un SVG, où un `<mark>` n'est pas un nœud valide —
+  on abîmerait le dessin pour surligner un mot. L'onglet le dit en n'offrant pas le champ, plutôt
+  qu'en offrant un champ qui ne trouve rien.
+  **LA RACINE SUIT L'ONGLET, ET LA REQUÊTE EST REJOUÉE** : les deux onglets textuels n'ont pas le
+  même conteneur (`.pc-wrap` / `.sv-tb`), chercher dans l'ancien ne trouverait rien et laisserait
+  croire que le mot n'y est pas. La requête vit le temps de la feuille (`_pfQ`), n'est ni persistée
+  ni synchronisée — c'est une consultation. Cibles **44 px** et champ à **16 px** (règle 9) :
+  mesuré à 320 px, 0 px de débordement.
+- **⚠ LE HARNAIS D'ACCESSIBILITÉ MESURE DES SURFACES, PAS DES ÉTATS (v5.0.0, audit de design — et
+  ce sont MES deux régressions qu'il a laissé passer)** : `audit-a11y` ouvre chacune des 25
+  surfaces AU REPOS. Or le surlignage de recherche n'existe qu'une fois une requête tapée, et le
+  vert du bouton d'excursion qu'une fois parti — ni l'un ni l'autre n'était donc dans son champ, et
+  ses 301 contrôles restaient verts pendant que deux violations AA vivaient à l'écran.
+  **Mesuré avant correction** : surlignage **3,64:1 en clair et 1,76:1 en sombre** (texte de
+  11 px), bouton vert **1,9:1 en sombre**.
+  **DEUX CAUSES, DEUX RÈGLES** : (a) `color:inherit` sur un fond FIXE fait dépendre le contraste de
+  l'endroit où le mot se trouve — un surlignage définit ses DEUX couleurs, jamais une seule ;
+  (b) en sombre, `--ok` est un REMPLISSAGE CLAIR, donc son encre est `--bg`, jamais `--on-primary`
+  (règle déjà écrite pour les pastilles du rail, qui vaut pour tout aplat vert).
+  Et l'occurrence COURANTE se distingue désormais par la **forme** (contour + graisse) et non par
+  une seconde paire de couleurs, qui rouvrait le même problème à l'envers. Témoins ajoutés dans
+  `audit-doctrine` : ils CONSTRUISENT l'état avant de mesurer, dans les deux thèmes.
+- **L'ENTRÉE SUR COMPLICATION — B, C, D (v5.0.0, audit design)** : trois défauts mesurés.
+  **(B) À UN SEUL ÉVÉNEMENT, IL N'Y A PAS D'INDEX.** Ouvrir une liste d'UN élément pour y choisir
+  cet élément est le bouton mort de la doctrine, en plus lent. L'événement DEVIENT le bouton, on
+  entre d'un tap. **L'arbitrage est nommé et il a été tranché par l'auteur** : le libellé devient
+  variable d'une fiche à l'autre, alors que la doctrine dit « un mot constant à position constante
+  s'apprend » — mais à UN seul événement, lire un mot n'est pas scanner cinq boutons, ce qui est
+  précisément le reproche fait aux N boutons rouges ; le glyphe ⚡ et la POSITION restent constants.
+  ⚠ **Une complication peut être une PORTE vers une autre aide** : le libellé le dit alors par
+  « ↗ », sinon on croirait rester dans la fiche et l'on se retrouverait ailleurs sans l'avoir voulu.
+  **(C) L'INDEX EST UN DÉPLIANT, PAS UNE FENÊTRE.** La doctrine QRH invoquée porte sur l'INDEX
+  UNIQUE (un objet plutôt qu'un bouton par urgence), **pas sur la modalité** : un dépliant est aussi
+  un index unique. Mesuré, la fenêtre couvrait **38 % de l'écran à 320 px, pendant un soin** — et
+  c'est la leçon du lot M11, payée là-bas au prix de sauts de 1120 px et 484 px. `#cxModal`,
+  `openCxDlg`, `closeCxDlg`, `#cxList` et `data-cxpick` sont PURGÉS (règle 14) ; le menu ⋯ ouvre le
+  dépliant et amène la carte courante à l'écran — c'est une navigation DEMANDÉE par un tap, pas un
+  défilement autonome. `state.cxOpen` est transitoire (`SHARE_LOCAL`), comme `state.allTab`.
+  **(D) LE RETOUR D'EXCURSION EST EN TÊTE DE CARTE.** Il vivait après les étapes : mesuré à
+  320 × 640, il naissait à **y = 738**, c'est-à-dire hors écran, alors que la doctrine le décrit
+  comme « LE contrôle rempli de l'écran pendant l'excursion ». Après : **y = 329**, visible.
+  ⚠ **L'ENTRÉE, ELLE, N'A PAS BOUGÉ — décision de l'auteur, et le raisonnement est le sien** : la
+  mettre en tête de carte donnerait la position de plus forte saillance à l'événement le MOINS
+  probable et repousserait les cases à cocher vers le bas. La dissymétrie entrée/retour n'est pas
+  une inconséquence : une fois DANS l'excursion, revenir EST l'action principale, et ce que le
+  retour repousse, ce sont les étapes de la complication où l'on vient d'entrer.
+  ⚠ **La surface « excursions » d'`audit-a11y` change de PORTEUR, pas de nature** : elle vise
+  `.cx-list` et construit désormais son cas (deux événements — à un seul, il n'y a pas d'index).
+- **LE HARNAIS D'ACCESSIBILITÉ MESURE DÉSORMAIS DES ÉTATS ET CINQ SURFACES DE PLUS (v5.0.0,
+  audit design, action 1 et 2)** : il ouvrait ses 25 surfaces AU REPOS, et à 1100/1280/390 px.
+  Manquaient donc **la bibliothèque en voie étroite** (chips de filtre, rail A→Z, rangées du
+  répertoire), **la lecture d'une référence**, **le mode statique**, **le moniteur**, **l'éditeur
+  de protocole** — et **320 px**, le plancher que le dossier déclare servir, n'était mesuré que sur
+  l'écran d'entrée invité. Cinq **ÉTATS** entrent aussi : recherche active, excursion (retour),
+  minuteur échu, index ⚡ déplié, lien de partage mort.
+  **CHAQUE ÉTAT DÉCLARE CE QUI DOIT EXISTER (`must`), ET SON ABSENCE EST UN ÉCHEC** — sans quoi la
+  sonde mesure le repos en croyant mesurer autre chose, la leçon la plus redite du dossier. Elle a
+  immédiatement payé : deux états ne se construisaient pas, et l'un des deux a révélé un **défaut
+  préexistant** (voir ci-dessous).
+  **TROIS DÉFAUTS TROUVÉS PAR L'EXTENSION**, tous corrigés : le champ de recherche n'avait **aucun
+  anneau de focus** (`outline:none` + un simple changement de teinte de filet d'1 px — WCAG 2.4.11
+  et la règle « tout nouvel élément interactif reçoit un `:focus-visible` ») ; `#hdrBack` était à
+  **39 px de cible** (voir plus bas) ; et le retour d'excursion **n'existait pas sur un bloc de
+  décision**.
+- **LE RETOUR D'EXCURSION EXISTE AUSSI SUR UN BLOC DE DÉCISION (v5.0.0, défaut PRÉEXISTANT)** :
+  `↩ Reprendre` n'était émis que dans la branche « bloc d'étapes ». Entrer sur une complication
+  dont la cible est une DÉCISION laissait donc sans retour — le dispositif promet que le retour
+  n'est jamais laissé à la mémoire (AC 120-71B), il ne le tenait qu'à moitié. Une seule fabrique
+  (`cxBackHtml`) sert les deux natures de bloc : un gabarit écrit deux fois finit par diverger, et
+  c'est exactement ce qui s'était produit.
+- **DIX-SEPTIÈME PIÈGE DE CASCADE — UN MEMBRE DE LISTE `:is()` DÉCLARÉ PLUS BAS (v5.0.0)** :
+  `.hdr-back` faisait 31 × 40 px avec un halo de 4 → **39 px de cible**, sous les 44 de la doctrine
+  et de HIG. Son halo propre à -7 px ne s'appliquait pas : la liste générique
+  `:is(.hdr-new,.hdr-theme,.hdr-act2,.bar-acct,.hdr-back)::after{inset:-4px}` est déclarée plus bas
+  et gagnait par l'ORDRE. On règle en **RETIRANT le membre de la liste**, pas en ajoutant une
+  exception encore plus bas. Après : **45 px de cible, hauteur d'en-tête inchangée** — c'est tout
+  l'objet du halo, admis en zone haute précisément pour ne pas l'épaissir.
+- **LES TROIS ÉCHELLES QUI MANQUAIENT SONT FERMÉES ET GARDÉES (v5.0.0, audit design, actions 4, 5
+  et 8)** : le dossier verrouillait les couleurs, le texte et les paliers responsive — mais
+  **l'espacement n'avait aucun token ni aucun garde-fou** (valeurs de 1 à 26 px prises au cas par
+  cas : 138 usages de 8, 112 de 6, 89 de 10, 65 de 9, 55 de 7…), le **rayon avait dix-neuf valeurs
+  pour trois tokens**, et **neuf tailles d'affichage** vivaient hors de toute échelle. Ce n'est pas
+  une question de pureté : deux rembourrages à 1 px d'écart ne sont pas deux niveaux, ce sont deux
+  inattentions — l'argument qui a fermé l'échelle typographique en v4.71.1, mot pour mot.
+  **LES ÉCHELLES SONT CHOISIES SUR LA DISTRIBUTION RÉELLE, pas dans l'abstrait** : la migration
+  n'a déplacé aucune valeur de plus d'1 px (espacement) ou 2 px (rayons, affichages), ce qui la
+  rend vérifiable par les harnais existants — cibles de 44, rangées de 71, budgets d'écran — au
+  lieu de reposer sur une relecture.
+  **ET ELLE A IMMÉDIATEMENT COÛTÉ CE QU'ELLE DEVAIT COÛTER** : le halo de l'épingle du répertoire
+  est passé de -9 à -8 px, donc sa cible de 44 à **42** — six harnais rouges. Deux contraintes s'y
+  rencontrent (cible ≥ 44 ET halo ≤ rembourrage droit de la rangée, sinon l'épingle sort du cadre),
+  et c'est la BOÎTE qui monte à 28 px : 28 + 2 × 8 = 44 pile. **C'est exactement ce qu'une échelle
+  fermée doit provoquer — un déplacement mécanique se VOIT, il ne se subit pas.**
+- **LE PRÉAMBULE AVANT LA PREMIÈRE ÉTAPE — DEUX TITRES REDONDANTS EN SESSION (v5.0.0, audit
+  design, action 3)** : mesuré à 320 × 640, session démarrée, la première case à cocher naissait à
+  **y = 438 px**, soit **68 % de l'écran** consommés avant la première ligne actionnable. Deux
+  titres y disaient la même chose que la carte qu'ils surmontent — l'intitulé de l'étage COURANT
+  (« Prise en charge ») et le sous-titre « Parcours » — alors que la carte porte déjà son numéro et
+  son titre. Ils disparaissent **en session seulement** : hors session ils restent, parce qu'on
+  s'oriente avant d'agir et que les étages sont alors une vraie séquence à lire.
+  **Mesuré après : 387 px (−51), 60 % de l'écran à 320, et 2 étapes entièrement visibles au lieu
+  d'1 — 5 au lieu de 4 à 390 px.**
+  **CE QUI RESTE, ET QUI N'EST PAS À MOI DE TRANCHER** : la rangée d'en-tête de carte
+  (« Vous êtes ici » + « Vérifier ») coûte **54 px à 320 px** parce qu'elle passe sous le titre.
+  Déplacer « Vérifier » au pied de la carte — sa place logique, la seconde passe commençant quand
+  la première est finie — rendrait ces 54 px et amènerait le préambule sous 340. C'est un
+  déplacement de geste, donc une décision de conception.
+- **ACTION 7 (DÉSATURER LES CATÉGORIES) : MESURÉE, PUIS REFUSÉE — et c'est la mesure qui l'a
+  refusée (v5.0.0)**. L'objectif était d'éloigner les treize couleurs de catégorie des registres
+  (la rouge « Urgences » #b6382f est la plus proche de `--critical-bd`). Une désaturation d'ensemble
+  (× 0,72, luminance bornée) l'éloigne bien — mais **elle rapproche deux catégories l'une de
+  l'autre au point de les confondre** (écart minimal 32,4 → **11,6**) et **fait tomber le contraste
+  des pastilles en thème sombre à 2,29**, sous le seuil de 3:1 des composants (WCAG 1.4.11). Une
+  recherche sous contraintes (≥ 45 d'écart aux autres catégories, ≥ 4,5:1 en clair, ≥ 3:1 en
+  sombre) ne trouve **aucune** position meilleure pour la rouge : la palette est déjà à sa limite
+  de distinction. **Le remède serait donc pire que le mal**, et la protection existante n'est pas
+  la couleur mais la RÈGLE (la catégorie est un liseré et une pastille, jamais un signal ; elle est
+  toujours nommée en toutes lettres). À rouvrir seulement si l'on accepte de réduire le NOMBRE de
+  catégories offertes.
+- **ON NE PROPOSE PAS D'ENTRER LÀ OÙ L'ON EST DÉJÀ (v5.0.0, signalé à l'usage : « j'ai cliqué sur
+  complication bronchospasme réfractaire, et sur la fiche j'ai encore le bouton bronchospasme
+  réfractaire »)** : à UN SEUL événement, le bouton PORTE son nom depuis le lot B — le voir pendant
+  qu'on exécute ce bloc laisse croire qu'on n'y est pas encore. Il **disparaît** donc, et c'est
+  « aucun bouton mort » ; la carte n'est pas pour autant sans contrôle, `↩ Reprendre` est en tête,
+  juste au-dessus. **À DEUX OU PLUS, l'index RESTE** (décision de l'auteur : on peut vouloir passer
+  d'un événement à l'autre) — mais la rangée où l'on se trouve **s'y annonce (« vous y êtes ») et
+  n'est plus tapable**, plutôt que d'être retirée : une liste dont les rangées disparaissent selon
+  l'endroit où l'on est ne s'apprend pas. Apparence de FERMÉ reprise du scribe et du mode
+  déplacement — une seule grammaire de « fermé » dans le fichier.
+  ⚠ **Piège de témoin rencontré** : la première version rouvrait l'index puis cliquait la rangée
+  courante — laquelle est justement DÉSACTIVÉE. Le clic ne faisait rien et le tap suivant
+  REFERMAIT l'index : zéro rangée mesurée. On mesure l'état là où il existe DÉJÀ.
+- **L'ACCENT SE CONFINE À L'AVATAR (v5.0.0, audit design — l'auteur a défendu la fonction, et il a
+  raison)** : sur un ordinateur PARTAGÉ, reconnaître d'un coup d'œil à quel compte appartient cette
+  fenêtre est un vrai besoin, et les initiales du bouton Compte ne se lisent pas de loin. **Ce qui
+  change est la PORTÉE, pas la fonction** : l'accent teintait l'accueil ENTIER et l'en-tête de
+  toutes les vues — soit la seule couleur du produit qui ne portait aucun sens, dans un système
+  dont la règle fondatrice est que la couleur en porte toujours un, et **70 hex sur 104**. Réduit
+  au DISQUE de l'avatar, il en porte un : « cette fenêtre appartient au compte X ». La
+  reconnaissance périphérique est conservée (un disque coloré à position constante), la concurrence
+  avec les registres disparaît partout ailleurs, et la palette d'accent tombe à **10 hex**.
+  Un token `--accent` par accent et par thème, une seule règle qui le consomme.
+- **TOUS LES INTERTITRES DE LA COLONNE D'ORIENTATION PARTENT DU MÊME x (v5.0.0, demande
+  utilisateur)** : « ⚡ À tout moment » et « Surveiller après les gestes » s'alignent sur
+  « Parcours inerte » — et, en rail unique, sur « Minuteurs & compteurs » et « Repères
+  posologiques ». Mesuré avant : 18 / 20 / 23 px ; après : 18 partout, dans les deux régimes.
+  **ET LE LISERÉ ROUGE EST AUX RANGÉES, PAS AU TITRE** (après essai de l'inverse) : posé sur le
+  GROUPE il décalait l'intertitre du reste de la colonne, et un titre est un repère de LECTURE,
+  pas un objet du registre — ce qui est hors séquence, ce sont les complications elles-mêmes.
+- **ENTRER SUR UNE COMPLICATION AMÈNE EN HAUT DU BLOC (v5.0.0, signalé à l'usage)** : le
+  défilement n'existait que dans UNE des trois branches de `cxEnter` — ni au tout premier geste de
+  la session (qui re-rend tout), ni en mode « Toute la fiche », où l'on restait exactement où l'on
+  était. Une seule fabrique (`cxScrollTo`) sert les deux vues : deux défilements écrits séparément
+  finiraient par diverger, et l'un des deux manquait déjà. **Et le menu ⋯ n'avait AUCUN effet en
+  vue statique** (`renderOvOnly` n'y rend rien) : il amène désormais à la section « ⚡ À tout
+  moment » du tableau. Entrer sur une complication est une NAVIGATION demandée, pas un tap sur ce
+  qu'on a déjà sous les yeux : la règle « rien ne bouge sous le doigt » vise le second cas.
+- **« ⤢ COMPLET » EST SUPPRIMÉ (v5.0.0, demande utilisateur, après vérification MESURÉE)** : il
+  ouvrait la feuille `#planModal`, laquelle rend `ovPlanHtml` — c'est-à-dire **exactement ce que la
+  colonne montre déjà** : 8 rangées identiques, 281 caractères dans la colonne contre 326 dans la
+  feuille (l'écart n'est que l'ellipse des titres). Sa seule valeur ajoutée était la LARGEUR
+  (223 → 1280 px). ⚠ **Et l'onglet « Parcours » NE fait PAS doublon avec elle**, contrairement à ce
+  qu'on pouvait croire : il rend `ovParcoursHtml`, soit **7 cartes et 22 items pour 1 321
+  caractères** — un autre objet, pas un autre habillage. C'est la FEUILLE qui doublonne la COLONNE.
+  La feuille reste joignable par le menu ⋯ « Se repérer » : rien n'est perdu, sauf un tap.
+  `.rail-exp` est purgée avec le bouton (règle 14).
+- **« VÉRIFIER » DESCEND AU PIED DE LA CARTE (v5.0.0, demande utilisateur, après mesure)** : il
+  vivait dans l'EN-TÊTE, à côté de « Vous êtes ici » — et cette rangée passe SOUS le titre à
+  320 px, où elle coûtait **54 px au-dessus de la première case à cocher**. Sa place logique est le
+  pied : la seconde passe (Do-Verify) commence quand la première est FINIE, elle ne la précède pas.
+  L'en-tête ne garde que ce qui dit OÙ l'on est ; le pied porte ce qui fait AVANCER, ce qui RAMÈNE
+  et ce qui RE-VÉRIFIE. **« ↺ Refaire » RESTE en tête**, et ce n'est pas une inconséquence : il ne
+  s'applique qu'aux cartes PASSÉES, qui n'ont pas de pied d'action. Mesuré : en-tête **106 → 81 px**,
+  première étape **387 → 361** (cumul depuis le début de l'audit : **438 → 361**, soit 68 % → 56 %
+  de l'écran à 320 × 640).
+- **UN SEUL DESSIN D'ÉTAT VIDE (v5.0.0, audit design, action 10)** : il y en avait DEUX grammaires
+  — `.empty` (cadre pointillé, titre, action, pour un écran entier vide) et un simple paragraphe
+  posé au fil de l'eau, tantôt `.auth-msg` tantôt `.ai-note` selon l'endroit, donc deux corps, deux
+  couleurs et deux marges pour la même chose. `.empty-line` est le composant, `emptyLine()` son
+  point d'écriture unique. **La distinction entre les deux reste** : `.empty` quand l'écran n'a
+  rien d'autre à montrer ET qu'il y a une ACTION à proposer ; `.empty-line` dans un panneau ou une
+  fenêtre, où le reste de l'interface tient déjà debout.
+  ⚠ **Ma formulation d'audit était fausse** : j'avais écrit « deux états vides seulement » en ne
+  comptant qu'une classe. Le défaut n'était pas qu'il en manquait, c'est qu'il y en avait deux
+  formes.
+- **LE RAIL A→Z EST CENTRÉ VERTICALEMENT (v5.0.0, demande utilisateur — REVIREMENT ASSUMÉ de
+  l'ancrage en haut)** : la v4.73.0 puis la v5.0.0 l'avaient ancré en `flex-start` sur un défaut
+  signalé (« sa position bouge sans cesse »). ⚠ **CE QUE LE CENTRAGE RÉOUVRE, ET IL FAUT LE
+  SAVOIR** : la position des lettres dépend alors de LEUR NOMBRE — filtrer ou chercher en change
+  la quantité et déplace la colonne. C'est INHÉRENT au centrage, aucune technique ne l'évite ;
+  c'est un arbitrage de l'auteur, pas un oubli. **CE QUI RESTE GARANTI** est l'autre moitié du
+  problème d'origine, et c'est ce que les témoins mesurent : le rail ne bouge NI au défilement NI
+  pendant qu'on s'en sert (clic, glisser) — vérifié à six largeurs de 320 à 1440 px, déplacement
+  0 px sur les trois gestes. Sa BOÎTE est stable : bornée par `--hdr-h` (constante dans une vue)
+  en étroit, par la coque fixe de l'accueil en large ; un centrage dans une boîte qui ne bouge pas
+  ne bouge pas non plus.
+  **⚠ UNE GOUTTIÈRE FANTÔME DE 68 px** : le rail réservait la hauteur de la **tab bar**, supprimée
+  au lot M4 (`grep tabBar` : 0 occurrence). Invisible tant que les lettres étaient ancrées en
+  haut ; en les centrant, ce vide décalait tout le rail. Corollaire de la règle 14 — **une
+  suppression emporte ce qui RÉSERVE sa place, pas seulement ce qui la cite.**
+  ⚠ **LE TÉMOIN A CHANGÉ DE PROPRIÉTÉ, PAS DE SUJET** : il exigeait `justify-content:flex-start`,
+  un LITTÉRAL CSS — donc un témoin qui rougit sur un changement JUSTE et pousse à le contourner
+  (leçon déjà payée sur le corps du titre de rangée). Il mesure désormais ce qui reste vrai :
+  collé à droite, et sans gouttière fantôme.
+- **LE LOGO EST CENTRÉ ENTRE LE BORD ET LE MOT-MARQUE (v5.0.0, demande utilisateur)** : mesuré,
+  **18 px du bord contre 8-10 du texte** — il collait au texte. Trois contraintes posées par
+  l'auteur : ne pas élargir le logo, ne pas déplacer le texte, ne bouger que le logo. La SEULE
+  façon de les tenir toutes les trois est un décalage **HORS FLUX** (`position:relative; left`) —
+  une marge négative décalerait le logo mais le flex ramènerait le texte avec lui, et élargir sa
+  boîte pour l'y centrer pousserait le texte à droite. La valeur est la MOITIÉ de l'écart à
+  combler, donc elle suit le gap de la rangée (4 px, 5 px sous 430 px où le gap tombe à 8).
+  `left` n'entre pas dans l'échelle d'espacement : ce n'est ni une marge ni un rembourrage, c'est
+  une correction OPTIQUE dérivée de deux valeurs qui, elles, sont sur l'échelle. Vérifié par
+  comparaison directe avant/après : position du texte et largeur du logo **inchangées au pixel**.
+- **L'IMPORT REFUSAIT LE FICHIER QUE L'APPLICATION FAIT FABRIQUER (v5.0.0, signalé à l'usage :
+  « .zip ou .json de v4 → Fichier illisible »)** — mesuré sur un export RÉEL de l'auteur, 18 aides
+  converties. **DEUX défauts, et le second était SILENCIEUX.**
+  **(1) LA CLÉ RACINE.** Un export v3 porte `fiches` ; le format v4 porte `aids`. `readImportFile`
+  exigeait `imp.fiches` et répondait « Fichier illisible » — sur un JSON parfaitement valide. Le
+  prompt de conversion, lui, ne DISAIT pas quelle clé produire tout en imposant « chaque fiche
+  devient une AIDE » et `ficheId → aidId` : **une IA fidèle produit donc `aids`, et l'application
+  refuse le fichier qu'elle a elle-même fait fabriquer.** Le contrat est désormais écrit dans le
+  prompt (racine EXACTE, et « n'invente aucune autre clé »).
+  **(2) LE TYPE EST UNE PROPRIÉTÉ, PLUS UNE LISTE.** Depuis le lot T9 la bibliothèque est unique et
+  le type est un attribut (`kind`) : le format v4 fusionne donc légitimement aides et références
+  dans `aids[]`. L'import avait encore deux listes — et il aurait passé les références par
+  `migrate()`, **qui force `kind:'procedure'`**. Six protocoles seraient devenus six aides VIDES,
+  **sans le moindre message** : le premier défaut criait, celui-ci se serait tu. On répartit
+  désormais par `kind`, à l'entrée et en UN seul endroit (`normalizeImport`, pure et testée).
+  **ET « FICHIER ILLISIBLE » CESSE DE MENTIR** : un JSON valide dont la racine est inconnue reçoit
+  son propre message, qui NOMME les clés attendues. Un message qui ne désigne pas sa cause envoie
+  chercher la panne du mauvais côté — on soupçonne l'encodage, l'archive, la conversion, jamais un
+  nom de champ.
+  ⚠ **DEUX PIÈGES DE SONDE, tous deux commis ici.** (a) `attBuf` prend l'ENREGISTREMENT, pas
+  l'identifiant : ma première mesure annonçait « 0/7 PDF restaurés » sur un import parfaitement
+  sain — l'instrument était mal branché, pas l'application (7/7 après correction). (b) Le parcours
+  réel POSE DES QUESTIONS (destination, fusionner/remplacer, doublons) : une sonde qui ne clique
+  pas `#confirmYes` reste bloquée sur un dialogue et mesure zéro import, ce qui ressemble
+  exactement à un échec. Un import de plus d'une fiche n'est pas mesurable sans répondre.
+  ⚠ **ET UN PIÈGE DE TEST** : `r.protocols[0].id` LÈVE quand le correctif est absent, `run()`
+  s'arrête et toute la suite perd son résumé — un test qui plante en emporte cinquante. Les accès
+  y sont défensifs (`(x||[])[0]||{}`) pour produire un ROUGE lisible. Vérifié capable d'échouer :
+  4 rouges sur les deux moteurs.
+- **UN NOM D'ICÔNE ABSENT NE LÈVE RIEN — IL REND UN BLANC À LA BONNE TAILLE (v5.0.0,
+  `scripts/check-icons.mjs`)** : `uiIcon` retombe sur `${P[name]||''}`, donc un nom fantôme produit
+  un `<svg>` correctement dimensionné et **sans aucun tracé**. Invisible à la relecture, invisible
+  à `check-classes` (la classe `.tic` est bien émise), invisible aux harnais (l'élément existe et
+  se mesure). C'est ainsi qu'`user` a vécu dans la pastille de provenance : « 🕮 Partagée » portait
+  son dessin, « Perso » portait **11 px de vide**. Le tracé posé est celui du **bouton Compte**, au
+  caractère près — deux silhouettes différentes pour une même idée (« vous ») seraient deux dessins
+  à apprendre là où il n'y a qu'une notion ; la coque HTML étant statique, elle ne peut pas lire de
+  constante partagée, la duplication est donc ASSUMÉE et signalée **des deux côtés**.
+  Le contrôle a deux sens (patron `check-harnais`) : tout nom littéral passé à `uiIcon`/
+  `headerIcon` existe dans sa table, et toute entrée de table a un tracé non vide. **Il dit ce
+  qu'il ne voit pas** : dix appels passent une variable et sortent par construction du champ d'un
+  contrôle statique — le dire vaut mieux que de laisser croire à une couverture totale. ⚠ Piège
+  d'écriture rencontré : prendre tous les littéraux du premier argument fait entrer la CONDITION
+  d'un ternaire (`relKindOf(id)==='p'?'book':'doc'`) — quatre faux positifs ; on retire les
+  opérandes de comparaison avant d'extraire. Vérifié capable d'échouer.
+- **UNE CONSTANTE DE TRACÉ NE SE JUSTIFIE QU'À PARTIR DU DEUXIÈME LECTEUR (v5.0.0, demande
+  utilisateur)** : cinq tracés vivaient en constantes au motif d'être « partagés entre uiIcon,
+  headerIcon et les gabarits ». Vérifié : `WARN_GLYPH`, `DOC_GLYPH` et `IMG_GLYPH` le sont
+  réellement (les deux tables) et **restent** — les inliner recréerait la duplication qu'elles
+  évitent. `BOOK_GLYPH` et `INFO_GLYPH` n'avaient qu'UN lecteur, la table d'`uiIcon` : une
+  constante à lecteur unique n'évite aucune duplication, elle éloigne seulement le tracé de sa
+  table. Inlinés, et le commentaire qui les couvrait rendu exact — il affirmait un partage qui
+  n'existait pas pour deux des cinq.
+- **LA BIBLIOTHÈQUE VIDE EST LE SEUL ÉCRAN QUI PEUT ENSEIGNER LA DIFFÉRENCE (v5.0.0, maquette
+  d'audit + signalé à l'usage)** : en vue « Tout », l'état vide affichait un titre neutre
+  (« Bibliothèque vide ») mais un texte et un bouton **spécifiques des AIDES** — on proposait un
+  type là où l'on venait de dire qu'il n'y en avait aucun. La correction ne s'arrête pas à
+  neutraliser le libellé : depuis le lot T9 l'accueil MÊLE les deux types, et la NATURE écrite sur
+  chaque rangée les **nomme sans les expliquer** — le produit ne dit nulle part ailleurs ce qui
+  distingue une aide d'un protocole. Le vide est le seul moment où l'on a la place ET l'attention
+  pour le faire : il n'y a rien d'autre à regarder, et personne à interrompre.
+  `cfg.kinds` décide du nombre de cartes — **les DEUX en « Tout », une seule dans une vue
+  filtrée** : le nombre de cartes est exactement le nombre de choses créables ICI, et le bouton
+  d'une carte ouvre la création DE SON type (`state.section` est la source unique du type dans le
+  dialogue « Créer », v4.4.2 — même aiguillage que son sélecteur segmenté).
+  **MÊME COMPOSANT, MÊME ANATOMIE POUR LES DEUX** (une phrase qui donne le VERBE, puis les objets
+  qu'on y trouvera) : deux cartes de formes différentes se liraient comme deux objets sans
+  rapport, alors qu'on les met côte à côte précisément pour être COMPARÉES. Le verbe est le seul
+  mot en encre pleine de la phrase — « se **déroule** » contre « se **lit** » —, et deux lignes
+  se répondent d'une carte à l'autre avec le **même glyphe** (la coche, le chronomètre) : la
+  répétition EST la comparaison.
+  **⚠ UN PROTOCOLE N'EST PAS « CE QUI NE SE COCHE PAS » — la maquette avait tort, l'auteur l'a
+  corrigée** : une référence A des cases cochables (syntaxe GFM `- [ ]`, v4.5.4) ; elles servent à
+  ne pas perdre sa place, et c'est leur **NON-ENREGISTREMENT** qui est la propriété
+  (`state.protoTasks`, remis à zéro à chaque ouverture, aucun champ du modèle touché). Écrire
+  « rien ne s'y coche » aurait enseigné l'inverse de ce que l'écran fait, à l'endroit même où l'on
+  prétend l'expliquer.
+  **LA LEÇON NE S'AFFICHE PAS SOUS UN FILTRE** : qui cherche sait déjà ce qu'est une aide, on lui
+  doit un résultat et pas un cours. Restent alors le `.empty` ordinaire et « Aucun résultat » — le
+  titre spécifique par type y a été retiré, « Bibliothèque vide » au-dessus de « aucun résultat
+  pour ce filtre » disant deux choses différentes du même écran.
+  **PURGÉS avec le composant qu'ils servaient** (règle 14) : `#emptyNew`, `empty.anon`,
+  `empty.libEdit`, `empty.cta` — les cartes couvrent EXACTEMENT leur condition d'affichage
+  (`!q && !cat && canEdit`), et `canEditScope(null)` valant toujours vrai, aucun des trois textes
+  n'était plus atteignable. Il ne reste que `{title, libRead}`.
+  **⚠ DIX-HUITIÈME PIÈGE DE CASCADE, ET IL VENAIT DU COMPOSANT RÉUTILISÉ** : `.empty b` pose
+  `display:block` (c'est le TITRE d'un état vide) et attrape **tous** les `b` descendants — chaque
+  ligne d'anatomie se coupait en deux, le nom sur une ligne et sa glose sur la suivante, alors
+  qu'elles se lisent d'un trait. Réparé en (0,2,1), jamais par l'ordre de déclaration. Le TON des
+  glyphes passe par un **attribut** et non par `.crit`/`.vig`, qui sont des classes AUTONOMES du
+  produit : un modificateur ne prend jamais un nom déjà pris (leçon v4.23.2).
+  Témoins : `audit-doctrine` (nombre de cartes par vue, ligne non coupée, glyphe non vide,
+  ouverture du dialogue sur le bon type, disparition sous filtre) et une surface
+  `état · bibliothèque vide` dans `audit-a11y` — l'accueil y était ouvert AVEC les fiches
+  d'exemple, donc cet écran n'était mesuré nulle part.
+  **⚠ ET LA CARTE EST PLAFONNÉE À 780 px, CENTRÉE (signalé à l'usage : « ils prennent toute la
+  place en mode desktop »)** : elle s'étirait à ~1870 px sur un écran large, pour trois lignes de
+  texte — une ligne de cette longueur se lit mal, et l'état vide s'affirmait plus fort que
+  n'importe quel contenu réel de l'accueil, dont les rangées sont plafonnées et grillées. **780
+  n'est pas un pourcentage arbitraire** : c'est la largeur de lecture d'une référence et un palier
+  déclaré, la même valeur pour la même raison. `max-width` ne contraint QUE si la place existe :
+  mesuré, la carte occupe **100 % de son conteneur de 320 à 640 px** — le responsive est acquis
+  par construction, sans media query ni palier nouveau.
+- **LA COLONNE D'ORIENTATION — UN EN-TÊTE, UNE RANGÉE, UN MARQUEUR (v5.0.0, maquette C validée)** :
+  elle empilait **deux composants de titre** (`.rail-head` avec compte pour « Parcours inerte »,
+  `.pl-sech` texte seul — parfois sur deux lignes — pour les sections de queue) et **trois
+  anatomies de rangée** (pastille + titre + colonne droite ; liseré rouge et AUCUNE pastille ;
+  ni l'un ni l'autre). La seule section qui portait un registre coloré était donc aussi la seule
+  sans marqueur, dans une colonne dont toute la doctrine est la désaturation.
+  Désormais : **l'en-tête du rail droit partout** (titre + COMPTE — exigence ECAM : une zone qui
+  peut être tronquée annonce ce qu'elle contient), **un marqueur par rangée dans la même colonne**,
+  et **aucun liseré**. « Surveiller après les gestes » → « Surveiller ensuite » (sur 240 px
+  l'ancien passait sur deux lignes ; un titre haché n'est plus un titre).
+  **LE LOSANGE D'UNE DÉCISION PORTE SON NUMÉRO ET A LE STYLE DE LA PASTILLE** : même filet, même
+  fond, mêmes états — seule la FORME change. La doctrine disait « la décision est un embranchement,
+  elle n'a pas de numéro à porter » ; or `flowPlan` lui en attribue un, il est cité par le journal
+  et par le statique, et le taire obligeait à compter les rangées pour retrouver « le bloc 2 ».
+  L'ambre part avec : c'était le seul registre du marqueur dans une colonne désaturée.
+  **LES MARQUEURS DE QUEUE SONT NEUTRES** (demande utilisateur : « attention aux couleurs qui
+  peuvent détourner l'attention du bloc central ») — le registre y est porté par la FORME du glyphe.
+  ⚠ **« À TOUT MOMENT » A ENSUITE QUITTÉ LA COLONNE** (« c'est inutile ») : elle oriente dans la
+  SÉQUENCE, or une complication n'y est justement pas, et l'endroit où on l'attend est la carte du
+  bloc ou la vue « Toute la fiche », qui la gardent toutes deux. `.pl-sec.cx` et `.pl-line.cxl` sont
+  purgés ; `audit-complications` SUIT le composant plutôt que de disparaître avec lui (règle 14).
+  **Écart uniforme titre → rangées** : 10 px sous chaque titre, 20 px au-dessus.
+  **La chip de branche s'aligne sur le marqueur du bloc qu'elle ouvre** : elle portait les retraits
+  du PLAN (20/32/48) quand la colonne resserre les siens (16/28/40) — 4 px d'écart, mesurés,
+  exactement là où l'œil cherche une verticale. Aligné SANS ajouter de retrait.
+- **LES TROIS GESTES DE BLOC PARTAGENT UNE SEULE BOÎTE (v5.0.0, signalé à l'usage)** :
+  « ⚡ Complication », « ⏱ Noter l'heure » et « Vérifier » différaient sur TROIS axes — corps
+  13,5 / 13,5 / **12** px, rembourrage 8-14 / 8-12 / **6-10**, et trois traitements de fond. Le
+  troisième perdait en plus contre `.ov-redo`, déclarée ailleurs à spécificité égale : le gabarit
+  qu'on lui avait écrit ne s'appliquait qu'à moitié. Ils sont de MÊME RANG (trois actions qu'on
+  prend après avoir déroulé les étapes), donc même boîte — 44 px de cible, 13,5/700, rembourrage et
+  rayon identiques. **Seul le REGISTRE distingue, et il porte du sens** : « Noter l'heure » est
+  TONAL (le geste le plus fréquent), la complication est en CONTOUR d'alerte (jamais remplie — un
+  aplat rouge permanent désensibilise), « Vérifier » est neutre. Sélecteur en (0,2,0) pour battre
+  `.ov-redo` quel que soit l'ordre.
+- **LES DEUX RANGÉES COLLANTES PARTENT DU MÊME x (v5.0.0, signalé à l'usage : « aligne le compteur
+  de session sur Tout voir »)** — et la mesure a inversé la demande au-dessus de 780 px. Relevé :
+  à 900, « Tout voir » à **10**, la session à **18**, le contenu à **18** : c'est donc la RANGÉE DE
+  COMMANDES qui était décalée, pas le quai, et l'on aligne les commandes sur les deux autres.
+  **Sous 780 px, l'inverse** : la session était à **0**, alignée sur rien — et on ne peut pas la
+  porter à 18 sans voler 14 px à une rangée dont chaque pixel est compté à 320 (cf. `fitCtrlRow`) ;
+  elle prend donc le retrait des commandes, palier par palier (4 / 8 / 10). **Une verticale
+  au-dessus de 780, une au-dessous — jamais deux.** Vérifié à sept largeurs, aucun débordement.
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.
@@ -2400,7 +3823,8 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   posologie de la feuille. Corrigé en v4.44.0, avec le commentaire du code qui portait la même
   affirmation. **Menu ⋯ (v4.5 ; ORDRE REFAIT v4.28.0, retour utilisateur)** : en lecture, toutes les
   actions secondaires vivent dans le menu ⋯ de la barre. **Ordre = logique ECAM E/WD → SD** :
-  la CONDUITE EN COURS d'abord (⚡ Complications, Mode lecteur, Se repérer, Schéma, Consulter),
+  la CONDUITE EN COURS d'abord (⚡ Complications, Se repérer, Schéma, Consulter — « Mode lecteur »
+  en est sorti avec la surface, lot T14),
   puis le CYCLE DE VIE de la session (Répéter en exercice, Recommencer le parcours, Historique),
   puis la GESTION (Modifier, Versions, Dupliquer), puis les EXPORTS ; la rangée `danger`
   (Terminer…) ferme toujours la liste. Avant, « Modifier »/« Versions » — DÉSACTIVÉES pendant
@@ -2432,7 +3856,7 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   « Historique des sessions » a reçu `archive` (boîte, distinct de l'horloge-flèche `history`
   gardée par Versions) et « Se repérer » a reçu `ladder` (rail + lignes indentées = l'Échelle
   elle-même ; l'ex-icône `plan` — nœud + deux branches, quasi identique à `flow` juste
-  en-dessous — est SUPPRIMÉE). Couvert par `scripts/audit-lecteur.mjs`. **Pied de page nomade** : `#appFooter` (Installer l'app, version, pastille synchro,
+  en-dessous — est SUPPRIMÉE). Couvert par `scripts/audit-retour.mjs`. **Pied de page nomade** : `#appFooter` (Installer l'app, version, pastille synchro,
   jauge de stockage) ne vit plus qu'en bas de la sidebar de l'accueil — il est DÉPLACÉ
   (`placeFooter`/`rescueFooter`), jamais recréé (écouteurs vivants) ; « Exporter mes données »
   est dans la fenêtre Compte, l'import dans le dialogue Créer.
@@ -2452,8 +3876,15 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   séparément. Règle générale : pour une GÉOMÉTRIE, ne jamais dépendre de l'ordre de déclaration —
   passer par un `#id` ou vérifier la position dans la feuille. L'accueil ≥ 780 est une COQUE FIXE (`body.view-home` : 100dvh, overflow hidden ;
   seuls `.home-side` et `.home-main` défilent — la sidebar ne bouge jamais à la bascule de
-  section). Breakpoints : **360** / 400 / 430 / 560 / 640 / 780 / 900 / 1000 / 1200 px — pas de
-  nouveau palier sans décision explicite (360 et 400 étaient DÉJÀ dans le code, décidés en v4.30.0
+  section). Breakpoints : **360 / 400 / 430 / 480 / 560 / 640 / 780 / 924 / 1000 / 1200 px** — pas de
+  nouveau palier sans décision explicite. **CETTE LISTE EST AUTO-EXÉCUTOIRE DEPUIS LA v5.0.0**
+  (`scripts/check-paliers.mjs`, dans `npm run check` — lot T0) : elle était DÉCLARATIVE, et elle
+  avait FUI. Mesuré : **douze** paliers réels pour **neuf** déclarés — `479.98` (`.tg-row`) et `924`
+  (`.rs-bar`) n'y figuraient pas, et **900 était déclaré sans exister nulle part**. Une échelle
+  fermée qui a fui est une échelle ouverte qu'on croit fermée, et rien ne pouvait le voir. Le
+  contrôle ne lit que les conditions de `@media` (un `min-width:44px` de cible tactile n'est pas un
+  palier) et arrondit les bornes en `.98` au supérieur : `779.98` et `780` sont UN palier. Ajouter
+  un palier exige de l'écrire ICI **et** dans `PALIERS` du script — c'est précisément le but (360 et 400 étaient DÉJÀ dans le code, décidés en v4.30.0
   et v4.43.0 ; c'est cette liste qui n'avait pas suivi). En-têtes (SPEC §5) : marque uniquement sur l'accueil ;
   éditeurs = actions dans la barre (Enregistrer à droite), AUCUN pied d'éditeur ; crise = une
   seule zone fixe en haut, jamais en bas. Plancher typographique **11 px** (app consultée sous
@@ -2589,6 +4020,51 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   dans `docs/deploiement-et-conformite.md` (§ 1.1).
 - Toute donnée importée/chargée passe par `migrate()` / `sanitizeCats()` (point d'entrée unique de
   compatibilité et de sécurité) ; nouveaux champs = facultatifs, avec défaut posé dans `migrate()`.
+- **TOUTE ENTRÉE DE FICHIER PASSE PAR `UP_KINDS` ET `acceptFile` (v5.0.0, chantier des uploads)** :
+  quatre chemins cohabitaient avec quatre niveaux de rigueur — le PDF vérifiait sa signature,
+  l'import la sienne, les DEUX chemins d'image ne vérifiaient qu'un `accept`, **c'est-à-dire une
+  INDICATION donnée au sélecteur de fichier et jamais une garantie** (ni un renommage ni un dépôt
+  ne la respectent). Et ils avaient déjà divergé : 60 images maximum côté référence, aucun plafond
+  côté aide, **aucun plafond du tout à l'import**.
+  **CE QUI REND LA RÈGLE EXÉCUTOIRE** : l'`accept` AFFICHÉ, la SIGNATURE vérifiée et le PLAFOND
+  sortent de la **même ligne** de `UP_KINDS`. « Un champ de PDF n'accepte ni JSON ni image » cesse
+  d'être une intention pour devenir une propriété du code — on ne peut plus changer l'un sans
+  l'autre. **Trois natures, pas une de plus** (`pdf` · `image` · `data`) ; une quatrième s'ajoute
+  LÀ, ou nulle part. Un seul `<input type="file">` dans tout le fichier (il y en avait cinq), et
+  `pickFile(kind, onFiles)` prend un **callback** : la destination voyage avec le geste, ce qui a
+  permis de purger `_edImgMode` (règle 14).
+  **⚠ LE HEIC EST DANS LA LISTE BLANCHE, ET CE N'EST PAS UN DÉTAIL** : c'est le format de la
+  photothèque iPhone, donc de la cible principale déclarée — une liste PNG/JPEG/WebP aurait cassé
+  « joindre une photo » sur iOS **en silence**, seule vraie régression qu'aurait pu produire ce
+  chantier. **⚠ ET LE SVG N'Y EST PAS, DÉLIBÉRÉMENT** : seul format image à contenu ACTIF, et seul
+  à pouvoir n'avoir aucune dimension intrinsèque (il produisait alors un canvas 0×0, donc une image
+  vide enregistrée sans un mot). L'ancien `accept="image/*"` l'admettait.
+  **LA SECONDE BARRIÈRE RESTE `downscale()`**, et c'est la plus utile : le canvas RÉ-ENCODE, donc
+  les octets d'origine n'atteignent jamais le stockage et les métadonnées (EXIF, position GPS d'une
+  photo de terrain) partent avec. La porte ne la remplace pas, elle la précède.
+  **AUCUNE TRONCATURE SILENCIEUSE** : on prenait `files[0]` et rien d'autre — déposer cinq documents
+  en ajoutait UN sans un mot. Le compte des ignorés se dit, comme le « +n » du quai. Et **un refus
+  se dit toujours** (`toast(msg, ms, true)` + `announce`) : un fichier refusé en silence est pire
+  qu'un fichier accepté à tort, on croit avoir joint quelque chose.
+- **LE DÉPÔT HORS ZONE EST NEUTRALISÉ — LE DANGER EST DEVENU LA FONCTIONNALITÉ (v5.0.0)** : il n'y
+  avait **aucun garde global**, si bien qu'un fichier lâché à 3 px d'une zone faisait NAVIGUER le
+  navigateur vers ce fichier — l'écran d'édition, ou une session de soin en cours, disparaissait.
+  La fenêtre `#upDrag` n'existe que pendant un glisser RÉEL, annonce ce que l'écran accepte, et le
+  `preventDefault` de `window.drop` fait le reste.
+  **ELLE EST `pointer-events:none` — UN ANNONCIATEUR, PAS UN RÉCEPTEUR** : sans cela elle volerait
+  tous les dépôts et il faudrait lui apprendre la géométrie des zones qu'elle recouvre. Le fichier
+  traverse et atteint la zone du dessous ; le garde ne ramasse que ce qui tombe à côté.
+  **⚠ TOUT EST GATÉ SUR `dataTransfer.types` CONTENANT `Files`** : MK5-b amorce « prendre / poser »
+  sur un `dragstart` de poignée (v4.75.0) — sans ce garde, glisser une poignée ⠿ ouvrirait la
+  fenêtre de dépôt, deux gestes qui se ressemblent se déclenchant l'un l'autre.
+  **LE ROUTAGE SE FAIT PAR LE TYPE SNIFFÉ**, jamais par la zone visée ni par l'extension : dans un
+  éditeur, un PDF va aux documents et une image à la galerie. Les cibles sont déclarées par les
+  BINDERS (`upTarget`) et non par la présence d'un bouton — un dépôt marche donc même quand la
+  section est masquée parce qu'elle est vide (v4.76.0). `render()` les remet à zéro avant le
+  dispatch. **Coût NUL sur mobile**, où le glisser-déposer n'existe pas : la fenêtre ne s'y ouvre
+  jamais, et les zones restent ouvrables au clic — aucun tap ajouté à aucun geste.
+  Harnais : `scripts/audit-upload.mjs` (39 contrôles, écrit AVANT les correctifs — rouge à 4/27,
+  vert à 39/39 ; vérifié capable d'échouer en réintroduisant les deux défauts).
 - **Documents PDF** : le PDF vit en ArrayBuffer dans le store IndexedDB `attachments` (base v5 ; Blob historique accepté en lecture), JAMAIS en
   base64 dans la fiche ni dans l'export JSON ; la fiche ne porte que `attachments:[{id,name,size}]`
   (validé par `safeAttachment` — id jamais régénéré, entrée invalide rejetée ; plafonds
@@ -2604,6 +4080,522 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   n'écrase **JAMAIS** un binaire existant (même id → le document présent fait foi) ; binaire du
   zip posé seulement s'il manque, signé `%PDF-` (`isPdfBytes`) et sous plafond ; référence sans
   binaire gardée seulement si le fichier vient du même espace (elle peut suivre par la synchro).
+- **LA BIBLIOTHÈQUE EST UNIQUE, LE TYPE EST UN FILTRE (v5.0.0, lot T9 — R4).** Choisir « Aides »
+  ou « Protocoles » était une DÉCISION PRÉALABLE : il fallait savoir de quel TYPE était ce qu'on
+  cherchait avant de pouvoir le chercher. Or le type est une propriété de l'AUTEUR (« ai-je écrit
+  une checklist ou un document ? »), pas du lecteur, qui cherche un SUJET. Le répertoire A→Z réunit
+  donc les deux, et le type devient un filtre à trois crans — **« Tout » par défaut** — c'est-à-dire
+  quelque chose qu'on applique APRÈS avoir vu, jamais avant.
+  **CE N'EST PAS UNE FUSION DES DEUX RENDUS** : `renderFiches` et `renderProtocols` restent et
+  servent les deux crans filtrés ; une TROISIÈME configuration (`renderAll`) délègue rangée, tuile
+  et ouverture au type de chaque objet. Les fusionner aurait produit un rendu unique truffé de
+  conditions — et un seul endroit à casser pour les trois vues. Les deux configurations sont
+  EXTRAITES (`_homeCfgF` / `_homeCfgP`) et lues par les trois : trois descriptions qui
+  divergeraient seraient trois endroits à corriger.
+  **UN SEUL TRI POUR LES DEUX TYPES**, surtout pas « les aides d'abord » — ce serait rétablir la
+  séparation qu'on vient de supprimer, en plus discret. Épinglés, puis frecency en recherche, puis
+  alphabétique, exactement comme chaque liste séparée. **La PROVENANCE reste écrite sur la rangée**
+  (décision D4) : elle ne dépend d'aucun filtre, parce qu'une bibliothèque partagée et une fiche
+  perso ne s'engagent pas de la même façon.
+  **`paintSeg` ACCEPTE UN INDEX ET LA MÉCANIQUE À DEUX RESTE INTACTE** : le booléen d'avant vaut
+  0/1 (`#createSeg`, `#modeSeg` le passent toujours), `.i1` continue d'être posée pour eux, et
+  au-delà de deux crans on passe par `--seg-i` comme le sélecteur de taille depuis la v4.71.1 —
+  avec une règle CSS scopée par **`#id`**, jamais par une classe de plus : à spécificité égale ce
+  serait l'ORDRE de déclaration qui trancherait (cinquième piège de cascade du projet).
+- **⚠ LA TABLE `fiches` DEVIENT `cognitive_aids` (v5.0.0, lot T9) — ET IL FAUT REJOUER
+  `supabase/schema.sql` AVANT DE PUBLIER LE CLIENT.** La règle « ne JAMAIS renommer un identifiant
+  existant » tenait par son motif : « sans gain fonctionnel ». Le lot T9 fait disparaître ce motif —
+  la bibliothèque est unique, le type n'est plus qu'un filtre, et « fiches » cesse de nommer son
+  contenu. Un nom qui ment coûte plus cher qu'un renommage. `fiche_notes` devient `aid_notes`.
+  **LE RENOMMAGE EST UN BLOC IDEMPOTENT EN TÊTE DE `schema.sql`**, et c'est ce qui le rend sûr : il
+  n'agit que si l'ancienne table existe ET que la nouvelle n'existe pas. Sur une instance NEUVE il
+  ne fait rien ; sur une instance EN PLACE il **RENOMME**, donc données, index, contraintes et
+  politiques suivent — là où un `create table if not exists` sous le nouveau nom aurait créé une
+  table VIDE à côté et fait paraître les données disparues.
+  **LES CLIENTS 4.x NE CASSENT PAS** : deux vues de compatibilité (`fiches`, `fiche_notes`) en
+  **`security_invoker = true`** — sans cette option une vue contourne la RLS, ce qui serait ici une
+  fuite entre comptes ; et une vue simple sur une seule table est nativement MODIFIABLE, donc ils
+  continuent d'écrire sans règle ni trigger à maintenir. À supprimer quand plus aucun 4.x ne tourne.
+  **⚠ DÉFAUT VÉCU À LA PREMIÈRE EXÉCUTION, ET SA LEÇON** : le fichier livré contenait
+  `alter table public.cognitive_aids rename to cognitive_aids` — Postgres répond « relation does
+  not exist » et **toute la migration s'arrête**, sur l'instance de PRODUCTION, seul endroit où ce
+  fichier s'exécute. La cause n'est pas une faute de frappe mais une MÉTHODE : le renommage avait
+  été fait par remplacement en masse de l'ancien nom par le nouveau, et ce remplacement a réécrit
+  **l'intérieur de la chaîne `execute`** du bloc de migration — c'est-à-dire la seule ligne du
+  fichier qui devait garder l'ANCIEN nom. Même famille que le piège `String.replace()` / « $$ »
+  déjà consigné : **un patch scripté mutile en silence ce qu'il ne distingue pas.**
+  `check-sql.mjs` refuse désormais tout `rename to` dont la source et la cible portent le même
+  identifiant — c'est toujours une faute, jamais une intention. Vérifié capable d'échouer.
+  **COROLLAIRE DE MÉTHODE** : après un renommage scripté, relire les lignes qui doivent CITER
+  l'ancien nom (migrations, vues de compatibilité, commentaires normatifs) — ce sont exactement
+  celles que le remplacement casse, et les seules.
+    **LES COLONNES NE SONT PAS RENOMMÉES** (`fiche_id` reste `fiche_id`) : arbitrage de rayon
+  d'explosion, pas oubli — renommer une colonne oblige à reprendre chaque politique, chaque index
+  et chaque appel REST, pour un gain de lisibilité que personne ne lit hors du SQL.
+  **CÔTÉ CLIENT, CINQ APPELS SEULEMENT** — et le piège à connaître : `'fiches'` apparaît **339
+  fois** dans `index.html`, mais l'immense majorité désigne le **store IndexedDB**, pas la table
+  Supabase. Renommer au motif ne casserait pas la synchro, il casserait le stockage LOCAL et
+  exigerait une montée de version de base. Ne remplacer que ce qui porte `/rest/v1/` ou `table:`.
+- **v3 A QUITTÉ L'APPLICATION — ÉTAPE D (v5.0.0).** Sont partis : le **miroir `b.steps`** (regénéré
+  à chaque écriture depuis l'étape T6), les fonctions **`v3ToV4` / `v4ToV3`** et `V4_PERTES`, la
+  **détection de format** dans `migrate`, et les quatre-vingts témoins qui mesuraient la conversion
+  (règle 14 : une suppression emporte ce qui la mesurait). **`stepsOf(b)` reste** — c'est la lecture
+  des items, pas du miroir.
+  **UNE FICHE ENTRANTE SANS `items` EST UNE FICHE VIDE**, et c'est la conséquence assumée de la
+  rupture : `migrate` ne retombe plus sur des chaînes. Un fichier v3 se convertit par
+  `docs/conversion-v3-vers-v4.md`, jamais dans l'application.
+  **CE QUI RESTE N'EST PAS DU « CODE v3 »** : `V5_RENOMMAGES` convertit EN PLACE un format v5
+  intermédiaire (celui des étapes B et C) vers le format final — c'est une migration ordinaire, et
+  elle protège les données LOCALES d'une mise à jour que l'utilisateur n'a pas choisie.
+  **LES FIXTURES DES HARNAIS ONT DÛ SUIVRE, ET LA LEÇON EST GÉNÉRALE** : une fixture bâtie côté
+  NODE ne peut pas appeler les fonctions de l'application — d'où `items()` dans `harness.mjs`, qui
+  fait la même lecture (`⚠`/`△` → `level`, `::` → `expect`) ; une fixture bâtie DANS `page.evaluate`
+  utilise `v4MakeItem`, la vraie. Confondre les deux contextes donne un `ReferenceError` qui
+  ressemble à un défaut de l'application.
+- **LES RENOMMAGES — ÉTAPE C DU PASSAGE À v4 COMPLET (v5.0.0).** `libraryId`→`library`,
+  `validation`→`validatedAt`, `references`→`sources`, `attachments`→`docs`, `related`→`links`,
+  `localInfo`→`local`, `complications`→`excursions` ; le BLOC passe de `type` `'steps'`/`'decision'`
+  à `kind` `'do'`/`'decision'` ; l'aide se DÉCLARE (`v:4`, `kind:'procedure'`) ; et le statut prend
+  son vocabulaire (`''` → `'validated'`).
+  **UN STATUT INCONNU RETOMBE SUR `validated`, JAMAIS SUR `draft`** — c'est le défaut historique, et
+  l'inverser ferait passer en brouillon des fiches validées à la première donnée douteuse, donc les
+  **retirerait de l'accès de crise** (un brouillon ne s'épingle pas). J'ai écrit l'inverse d'abord ;
+  trois témeoins l'ont attrapé.
+  **LA CONVERSION EN PLACE (`V5_RENOMMAGES`) N'EST PAS DU « CODE v3 »**, et la distinction décide de
+  ce que l'étape D supprime : ces huit lignes convertissent un format v5 **intermédiaire** (celui de
+  l'étape B, qui portait encore les anciens noms) vers le format v5 final. C'est une migration en
+  place ordinaire — celle que fait toute application qui renomme un champ. Sans elles, une mise à
+  jour que l'utilisateur n'a pas choisie rendrait ses données locales illisibles : ce serait lui
+  faire payer une décision d'architecture.
+  **TROIS NOMS N'ONT PAS BOUGÉ, ET IL FAUT SAVOIR POURQUOI** : la colonne SQL `library_id` (le
+  mapping `rowConverters` fait le pont), le **store IndexedDB `'attachments'`** (renommer un store
+  exige une montée de version de base et casse le stockage LOCAL — c'est le piège déjà rencontré
+  avec `'fiches'`), et le bucket Storage. **Ne jamais renommer au motif : distinguer le CHAMP du
+  STORE.**
+- **LE POOL `items[]` — ÉTAPE B DU PASSAGE À v4 COMPLET (v5.0.0).** `f.items[]` est désormais LA
+  liste des items de l'aide, toutes portées confondues, et **un bloc ne porte plus que des
+  IDENTIFIANTS**. Les cinq listes v3 `confirmation`, `notForget`, `verify`, `posology`,
+  `differentials` **n'existent plus comme champs** : leurs lignes sont des items à `role`
+  (`entry`, `do`+`memory`, `watch`, `dose`, `ddx`). **`references` n'en fait PAS partie** — c'est
+  une métadonnée bibliographique, pas du contenu de crise, et la spécification en fait `sources`.
+  **⚠ LA RÈGLE 12 EST LEVÉE ICI, PAR DÉCISION EXPLICITE DE L'AUTEUR** : un client 4.x ne peut plus
+  lire ces aides. Le chemin de reprise existe et vit **hors** de l'application —
+  `docs/conversion-v3-vers-v4.md`.
+  **POURQUOI UN POOL, alors que le lot T6 avait mis les items DANS les blocs** : sans pool, les
+  items de rôle `entry`/`watch`/`dose`/`ddx` n'ont nulle part où vivre — ils restaient dans leurs
+  champs v3, c'est-à-dire que le modèle n'était pas v4. Le pool est ce qui donne un logement à
+  TOUS les items.
+  **RÉSOUDRE UN ID DEMANDE DE CONNAÎTRE L'AIDE**, et vingt-deux sites appellent `bItems(b)` sans
+  l'avoir sous la main. Plutôt que de threader `f` à travers vingt-deux signatures — donc d'ouvrir
+  vingt-deux occasions de se tromper — chaque bloc connaît son aide par une **WeakMap** posée dans
+  `migrate` (`poolOwn`). Elle ne touche pas la donnée : rien de neuf ne se sérialise, rien ne part
+  en synchro. Un bloc oublié se retrouve par un balayage de repli (`ownerOf`) — c'est un **filet,
+  pas un chemin** : s'il servait souvent, c'est qu'un site construirait des blocs sans les
+  normaliser, et c'est CE défaut-là qu'il faudrait corriger.
+  **⚠ `bItems` REND UNE COPIE RÉSOLUE, PAS LE TABLEAU VIVANT — et c'est le piège de cette étape** :
+  `bItems(b).splice(...)` compile, s'exécute, et **ne fait RIEN**. Toute mutation passe donc par
+  trois verbes et par eux seuls — `bItemAdd`, `bItemDel`, `bItemMove` — qui tiennent les DEUX côtés
+  (le pool ET la liste d'identifiants). Les séparer rouvrirait la porte à un pool qui garde des
+  items que plus aucun bloc ne référence. **Déplacer une étape entre deux blocs ne bouge PAS l'item
+  du pool** : seule sa référence change de bloc — c'est tout l'intérêt d'une identité.
+  **LES CINQ LISTES SE LISENT ENCORE COMME DES LISTES DE CHAÎNES** (`listOf(f,clé)`), et c'est ce
+  qui permet aux soixante-quinze sites de rendu de ne pas changer d'un caractère. Ce ne sont plus
+  des champs : c'est une **VUE** sur le pool. L'éditeur écrit par `edList`/`edPut` → `setList`, qui
+  **conserve les identités** des lignes inchangées — sinon une simple frappe casserait tout ce qui
+  s'y accroche.
+  **`listEditor` EST DÉFENSIF DEPUIS CETTE ÉTAPE** : un appelant qui passerait encore `f.verify`
+  transmettrait `undefined` et **tout le rendu de l'éditeur tomberait**. C'est arrivé, et ni
+  `npm run check` ni la suite ne l'ont vu — **aucun des deux n'exerce un rendu**. Troisième fois de
+  ce chantier.
+  **LE PARTAGE SUIT** : `SHARE_KEEP` emporte `items` à la place des cinq champs, et **la liste
+  blanche de `share_fiche` a été mise à jour dans `supabase/schema.sql`** — c'est ELLE l'autorité,
+  et sans elle un invité recevrait des blocs pleins d'identifiants ne résolvant vers rien,
+  c'est-à-dire **une checklist vide en pleine réanimation, sans le moindre signal**.
+  **⚠ `supabase/schema.sql` EST DONC À REJOUER.**
+- **L'ITEM EST LA SOURCE, `steps` N'EST PLUS QU'UN MIROIR (v5.0.0, lot T6 côté RENDU).** Une étape
+  était une CHAÎNE À UNE POSITION (`b.steps[3]`), et l'on a payé cela deux fois : un compte rendu
+  qui nomme le mauvais geste après une insertion (lot T1, rustiné en archivant le texte), et
+  l'impossibilité d'accrocher quoi que ce soit À UNE ÉTAPE autrement que par son rang —
+  c'est-à-dire par la chose même qui bouge.
+  **`b.items[]` EST DÉSORMAIS LA SOURCE ; `b.steps[]` EST RÉGÉNÉRÉ À CHAQUE ÉCRITURE.** Ce n'est
+  **pas** une seconde source de vérité, et la distinction est tout le dispositif : **le miroir est
+  ÉCRIT, jamais LU par ce client** (`stepsOf(b)` lit les items). Il existe pour UNE raison — un
+  client antérieur qui reçoit la fiche par la synchro doit continuer d'afficher la checklist. Le
+  jour où plus personne ne tourne en 4.x, il s'enlève en une ligne. **Ne jamais le réconcilier**
+  (« laquelle des deux formes est la plus fraîche ? ») : les items gagnent toujours, sans quoi on
+  reproduirait le défaut d'`edSyncGallery` (v4.78.0), où un geste qui retirait se défaisait au
+  rendu suivant.
+  **ÉCART ASSUMÉ AVEC LA SPÉCIFICATION v4, ET RÉVERSIBLE** : la spec range les items dans un POOL
+  `f.items[]` que les blocs référencent par id. Cette indirection sert un cas qu'aucune
+  fonctionnalité n'a (un item porté par deux blocs, ou par aucun) et se paierait à CHACUN des
+  **quarante-huit** sites de lecture. Les items d'un bloc vivent donc DANS leur bloc ;
+  `v3ToV4` / `v4ToV3` continuent d'écrire et de lire la forme à pool pour l'ÉCHANGE.
+  **TOUT PASSE PAR TROIS VERBES**, et il n'y en aura pas un quatrième : `bItems(b)` (les items,
+  dérivés une fois du miroir si la fiche est ancienne), `stepsOf(b)` (les chaînes, pour les
+  quarante-huit lectures), `syncSteps(b)` (régénérer le miroir). Toute écriture d'étape passe par
+  `setStepStr` ou par une mutation de `bItems`, **suivie de `syncSteps`** — c'est le point
+  d'étranglement, au même titre que `edCommit` pour le brouillon et `persistLive` pour la session.
+  **UN ITEM ENTRANT EST BORNÉ, JAMAIS RECOPIÉ** (`v4SanItem`, appelé depuis `migrate`) : `safeId`
+  sur l'identité (règle 6), niveau ramené dans 1-3, rôle dans la liste fermée, booléens coercés,
+  textes bornés. Un `level:99` ou un `dual:"oui"` venus d'un import ne franchissent pas la porte.
+- **`aidRev` — LA RÉVISION DE L'AIDE RÉELLEMENT LUE PENDANT LE SOIN (v5.0.0).** La spécification
+  v4 écrit « `aidRev` + `texts` réparent le défaut mesuré » ; **le lot T1 n'avait livré que
+  `texts`** — le compte rendu ne nommait plus le mauvais geste, mais il taisait toujours SUR
+  QUELLE VERSION de la fiche le soin avait été conduit. À la relecture d'un dossier six mois plus
+  tard, sur une aide révisée entre-temps, la question restait sans réponse.
+  **ON N'INVENTE PAS UN NUMÉRO DE RÉVISION** : `updatedAt` **EST** la révision — il change à chaque
+  écriture, il est déjà stocké, déjà synchronisé, et les points de version (`backups`) portent le
+  **même horodatage**, donc la version exacte se retrouve. Un compteur maison serait un second
+  mécanisme pour la même chose.
+  **CAPTURÉE AU DÉMARRAGE, JAMAIS AU SNAPSHOT** : c'est la révision qu'on a EUE SOUS LES YEUX. La
+  question ne se pose qu'une fois — ouvrir l'éditeur TERMINE la session (K5), donc la fiche ne peut
+  pas changer sous une session vive. **Et REPRENDRE une session archivée ne la re-lit pas** : le
+  soin a été conduit sur la révision archivée, pas sur celle d'aujourd'hui.
+  **UNE SESSION ANTÉRIEURE LE DIT** (« non enregistrée ») au lieu de se taire : un blanc laisserait
+  croire à une fiche jamais modifiée, et une absence annoncée est une information — même doctrine
+  que le drapeau `vElsewhere` de l'historique synchronisé.
+- **LES DEUX FICHES D'EXEMPLE EXERCENT LA DOCTRINE QU'ELLES ENSEIGNENT (v5.0.0, lot T13 —
+  constat 3 de l'audit J0).** Elles sont le **seul** matériel pédagogique du produit (la contrainte
+  de l'audit interdit d'en livrer une troisième), et elles n'exerçaient qu'un TIERS de ses
+  mécanismes : zéro repère posologique, zéro complication, aucun `discriminant`, aucun `onDue`,
+  aucun `code` — et le registre **AMBRE n'apparaissait qu'UNE FOIS dans tout le produit**, au
+  sixième geste d'un bloc terminal. Pire : elles ne respectaient pas les règles que `AI_PROMPT`
+  **impose à une IA**. On enseignait une doctrine qu'on n'appliquait pas.
+  **CE N'EST PAS UNE TROISIÈME FICHE** : on enrichit le CONTENU des deux existantes, ce que la
+  contrainte autorise explicitement. `discriminant:'adulte'` et un `code` sur les deux, deux
+  repères posologiques chacune (toujours **△**, jamais rouge — une dose est une RÉFÉRENCE),
+  `onDue` sur les deux minuteurs, une **complication « à tout moment »** sur l'anaphylaxie avec son
+  bloc HORS chaîne, et un **△ dès le premier écran** de chaque fiche.
+  **★ ET ×2 SE POSENT APRÈS `migrate`**, sur l'ITEM : ces deux propriétés n'ont aucune écriture
+  possible dans une chaîne `steps`, c'est tout l'objet du modèle v4. **UNE SEULE de chacune par
+  fiche**, et le choix n'est pas décoratif — l'adrénaline IM est LE memory item de l'anaphylaxie et
+  LE geste où une erreur de dose ou de voie coûte, donc le cas canonique du double contrôle ; la
+  RCP immédiate est le memory item de l'ACR, mais **sans ×2** (un geste continu n'est pas un produit
+  à double-contrôler). S'ils étaient partout, ils ne diraient plus rien.
+  **LE CHAPEAU RESTE SOUS SON PLAFOND** : `forgetAll` agrège `notForget` ET les étoiles — les deux
+  fiches sont à 4 rappels, exactement au plafond doctrinal, et un témoin le tient.
+- **J0-D6 — LE MESSAGE DES EXEMPLES N'EST PAS UNE SNACKBAR (v5.0.0, lot T13).** Mesurée à l'audit
+  J0, elle recouvrait **60,7 % du bouton d'action primaire** à l'instant où un nouveau venu venait
+  de le presser. Une snackbar ACCUSE un geste et s'efface ; ceci **AVERTIT** (« relisez-les avant
+  tout usage clinique ») et doit tenir jusqu'à lecture. Le bandeau système est exactement ce canal —
+  « information persistante, visible sur l'accueil seulement » (v4.20.0) — et il vit AU-DESSUS du
+  contenu au lieu de le couvrir : **recouvrement mesuré à 0 %**.
+- **J0-D5 — L'ÉCRAN DE BIENVENUE NE FAIT PLUS LE TOUR DU PRODUIT, ET LE GAIN N'EST PAS CELUI QU'ON
+  ATTENDAIT (v5.0.0, lot T13).** Deux paragraphes sont partis : décrire les étapes cochables, les
+  minuteurs et les compteurs, c'est raconter ce que la première fiche ouverte MONTRE d'elle-même —
+  la contrainte « aucun tutoriel » appliquée à cet écran.
+  **MAIS LA MESURE CORRIGE L'ATTENDU** : sur téléphone la carte est une **feuille pleine hauteur**
+  (règle « sous 780 px, toute fenêtre est une feuille plein écran »), donc le bouton était **déjà
+  visible** et le retrait ne rend que **6 px à 390, 1 px à 320**. Le gain réel est à **1100 px**
+  (350 → 261 px, −25 %) et surtout : **moins à lire avant d'agir**. Ne pas revendiquer un gain de
+  pixels sur téléphone — il n'existe pas.
+  **UNE PHRASE N'A PAS ÉTÉ RETIRÉE alors que la décision le prévoyait** (« le seul paragraphe
+  réglementaire ») : la promesse de confidentialité, conservée en une ligne. Retirer une PROMESSE
+  faite à l'utilisateur n'est pas la même chose que retirer une explication de fonctionnalité.
+- **LE PROMPT IA APPREND LA FORME ENRICHIE (v5.0.0, lot T12) — SANS REMPLACER LA SIMPLE.** Le
+  schéma v3 à chaînes (`"steps"`, préfixe `⚠`/`△`, séparateur `::`) reste la forme de référence et
+  **continue de fonctionner** : `migrate` dérive les items du miroir quand ils manquent. Ce qui
+  s'ajoute est une forme **facultative**, bloc par bloc — `"items"` — pour les deux propriétés
+  qu'une chaîne ne peut pas porter : **`memory`** (★, l'étape reste dans son bloc ET rejoint « Ne
+  pas oublier ») et **`dual`** (×2, AC 120-71B §5.2.2.5). Plus `level` 3/2/1, qui rend le registre
+  **ordonné donc comparable**, ce qu'un préfixe ne permet pas.
+  **LES DEUX FORMES NE SE MÉLANGENT PAS DANS UN MÊME BLOC** : si `items` est présent il fait foi, et
+  `steps` est régénéré par l'application — c'est la règle du miroir, énoncée au prompt pour qu'une
+  IA ne tente pas de tenir les deux à jour.
+  **LE PROMPT DIT AUSSI DE NE PAS INVENTER** : `memory` et `dual` ne se posent que si la SOURCE les
+  désigne (memory items d'un QRH, double-contrôle explicite d'un protocole) ; sinon on les omet et
+  l'auteur les pose d'un tap. Même refus que pour le `discriminant` — une IA qui devine écrit du
+  contenu clinique à la place de quelqu'un.
+  **ET C'EST UN CONTRAT VÉRIFIÉ** : `audit-prompt` EXTRAIT le bloc enrichi du schéma **affiché** et
+  le fait entrer par `migrate()`. Si l'import le refusait, une IA fidèle produirait un fichier
+  irrecevable et la faute paraîtrait venir d'elle — c'est exactement ce qui s'est produit en
+  v4.73.0 avec le `\n` mal échappé. 19/19 contrôles (13 → 19).
+- **LE MODE LECTEUR EST RETIRÉ (v5.0.0, lot T14 — décision de l'auteur, sur mesures).** Il ne
+  gagnait qu'à **320 px** (63 % de l'écran aux étapes contre 36 % pour la carte de bloc, 5 étapes
+  contre 3) et **perdait à 390** (47 % contre 59 %) : son propre chrome — titre, rôle, chrono,
+  Quitter, en-tête de bloc, pastilles, bouton de 72 px — coûtait alors plus qu'il ne rendait.
+  **SA JUSTIFICATION S'ÉTAIT ÉRODÉE DANS SA PROPRE DOCTRINE** : la v4.28.0 a explicitement
+  abandonné le « un item à la fois » (Degani & Wiener : perdre sa place est un mode de défaillance
+  premier ; modèle ECL Boeing = liste entière + curseur), et la v4.62.0 a unifié la structure
+  (`stepsListHtml`, `applyCheck`, le vocabulaire des verbes). Il ne restait qu'une coquille.
+  **ET LE CAS QUI LE MOTIVAIT LE MIEUX N'A PAS BESOIN DE LUI** (argument de l'auteur, retenu) :
+  McEvoy 2014 (99,5 % contre 70 %) décrit un **rôle de lecteur tenant l'unique appareil** — cela se
+  résout en **tendant le téléphone**, que la carte de bloc sert déjà. Le binôme à DEUX appareils,
+  lui, est servi par le partage de session, avec attribution tracée.
+  **PERTE ASSUMÉE, CHIFFRÉE** : à 320 px la part d'écran consacrée aux étapes retombe de 63 % à
+  36 %, et la cible de réponse de 72 px redevient une case de 44. Bornée au plus petit écran servi.
+  **CE QUE LE RETRAIT A EMPORTÉ** : 221 lignes de JS, 49 règles CSS, le balisage `#readerMode`, la
+  bande de minuteurs et le chrono PROPRES au lecteur (`#rmTimers`/`#rmTime` — ils n'existaient que
+  parce que l'overlay couvrait le quai), deux entrées du menu ⋯, le bouton de la carte de bloc,
+  l'entrée de `_histBackAction`, `state.readerI`, et **le régime de refus de navigation distante**
+  (`_rmOn`) avec sa bannière : sans overlay, une navigation distante s'applique normalement.
+  **TROIS PIÈGES DE RÈGLE 14, DONT UN DANS LEQUEL JE SUIS TOMBÉ** : (1) le **mode moniteur** vivait
+  DANS la plage de code retirée — supprimé par erreur, la page démarrait encore et `npm run check`
+  était vert, seul le hook `?__actest` a crié (« monPick is not defined ») ; restauré à
+  l'identique. (2) `audit-lecteur.mjs` portait **quatorze** contrôles dont **six** ne mesuraient
+  pas le lecteur — il est **taillé et renommé `audit-retour.mjs`** (menu ⋯ : ordre, séparateurs,
+  icônes distinctes ; pile de retour : titre de l'origine, garde anti double-tap 700 ms, sortie
+  vers la bibliothèque). Le supprimer aurait emporté six invariants sans rapport. (3) `audit-partage`
+  portait deux sections entières sur le lecteur (le régime de refus, et le bridage du scribe dans
+  l'overlay) : retirées avec le régime qu'elles mesuraient.
+- **⚠ LE RÉGIME « deferred » NE TENAIT AUCUNE DE SES DEUX MOITIÉS (v5.0.0 — défaut PRÉEXISTANT,
+  trouvé en préparant le retrait du mode lecteur).** `SHARE_APPLY` classe `verify` et `gap` en
+  `'deferred'`, et la doctrine promet « mis en file, appliqué **au prochain geste LOCAL DE
+  NAVIGATION** ». Les deux moitiés étaient fausses :
+  1. **LE DRAIN** — le seul site qui vidait `Share._defer` était `rmResume`, c'est-à-dire le bouton
+     « reprendre » **du mode lecteur**. Un invité qui n'ouvrait jamais le lecteur ne recevait donc
+     **JAMAIS** la trace do-verify de l'hôte : elle s'empilait indéfiniment, en silence.
+  2. **L'APPLICATION** — et même quand le drain tournait, `shareApplyAnchored` ne connaissait que
+     `nav`, `flow_end`, `check` et `uncheck`. Les `verify`/`gap` **sortaient de la file puis étaient
+     JETÉS**. Le drain « marchait » sans rien appliquer, ce qui est le pire des deux mondes : la
+     file se vidait, donc rien ne signalait le problème.
+  **LE DRAIN VIT DÉSORMAIS DANS `ovAdvanceRender`, ET NULLE PART AILLEURS** — c'est littéralement
+  ce que la doctrine décrivait : ses trois appelants sont `ovAnswer` (choisir une branche),
+  `ovNewPass` (↺ Refaire) et le handler de « Continuer ». **L'application distante n'y repasse
+  pas** (elle appelle `keepAnchor` directement), donc le drain ne peut pas se déclencher sur un
+  évènement distant — ce qui serait exactement l'interruption que le régime existe pour éviter.
+  **ON DRAINE AVANT DE RENDRE** : la trace entre dans l'état, puis le rendu du geste local peint
+  les deux d'un coup. C'est « l'acquittement par l'action » au sens propre.
+  **L'ÉCRITURE EST CELLE DU PLI** (`shareFold`) : `{a,t}` posé et le registre opposé effacé — une
+  étape ne peut pas être à la fois constatée et en écart. Deux écritures différentes feraient
+  diverger l'état appliqué en direct et l'état recalculé depuis le journal, ce qui est précisément
+  ce que l'empreinte de partage vérifie.
+  **UN CONSTAT DE MÉTHODE, TROUVÉ EN ÉCRIVANT LE TÉMOIN** : un scribe au milieu d'un bloc n'a
+  **aucun** geste de navigation disponible (« Continuer » est `aria-disabled` tant que le bloc
+  n'est pas coché). La file attend donc légitimement — mais il a fallu **constituer l'état** où le
+  geste existe pour mesurer quoi que ce soit. Un témoin qui se contente de cliquer un bouton
+  désactivé mesure le vide.
+- **★ MÉMOIRE — UN MEMORY ITEM EST UN ITEM DE LA LISTE, PAS UN CHAMP À PART (v5.0.0, lot T7).**
+  C'est la doctrine QRH, et le modèle v4 l'écrit ainsi : `memory:true` sur l'item, qui **RESTE dans
+  son bloc**. Le chapeau « Ne pas oublier » AGRÈGE désormais `notForget` (la liste historique,
+  conservée — règle 12) et les étoiles posées sur les étapes.
+  **IL APPARAÎT DEUX FOIS, ET CE N'EST PAS LA DUPLICATION QUE LA v4.70.1 PROSCRIT** : celle-là vise
+  deux canaux qui énoncent la même CONSTANTE en même temps et à demeure. Ici les deux moments sont
+  distincts, et c'est exactement le geste QRH — on lit le chapeau **AVANT** d'agir (condition
+  d'entrée ; il se replie dès le démarrage, lot T3), puis on **RE-VÉRIFIE** l'item à sa place dans
+  la checklist. Un memory item se récite de mémoire, puis se confirme sur la liste.
+  **UN SEUL CALCUL** (`forgetAll`, `memItemsOf`) : le chapeau, son garde-fou de 4 rappels et le
+  volet de relecture comptent la MÊME chose — trois calculs séparés divergeraient, et ce dépôt a
+  déjà payé cette leçon quatre fois.
+  **REGISTRE ALERTE POUR L'ÉTOILE, et ici c'est justifié** : un memory item est par définition « ce
+  qui tue si on l'oublie », le registre même du chapeau qu'il rejoint.
+- **⚠ UN RUNTIME CONSERVÉ GARDAIT UNE FICHE PÉRIMÉE (v5.0.0, trouvé à la sonde du lot T7 ;
+  DÉFAUT ANTÉRIEUR).** Quand on rouvre une fiche déjà chargée et non démarrée, `openRead` ne
+  reconstruit pas le Runtime — c'est voulu, il n'y a rien à jeter. Mais `edCommit` **REMPLACE**
+  l'objet dans `fiches` par sa copie normalisée : la référence gardée par le Runtime désignait
+  alors la version d'AVANT l'édition, et la lecture affichait un contenu périmé **sans que rien ne
+  le dise** — la donnée périmée présentée comme vivante, danger n°2 du palmarès ECRI 2015, que ce
+  dossier combat partout ailleurs. Une ligne : re-pointer `Runtime.fiche`, sans rien reconstruire.
+  **CE QUI L'A RÉVÉLÉ EST UNE LEÇON DE MÉTHODE** : le témoin unitaire du calcul était vert et le
+  serait resté. C'est le contrôle qui suit le CHEMIN RÉEL — poser l'étoile dans l'éditeur, revenir
+  en lecture, regarder le chapeau — qui a parlé. Mesurer une fonction ne mesure pas un parcours.
+- **« ×2 » — L'ITEM CONFIRMÉ PAR LES DEUX (v5.0.0, lot T7 ; AC 120-71B §5.2.2.5).** La source
+  exige que les items critiques soient vérifiés par les DEUX membres d'équipage. C'était **la seule
+  exigence explicite de la doctrine que le modèle ne savait pas EXPRIMER** — une chaîne n'a pas de
+  place où accrocher une propriété. Elle en a une depuis que l'item porte une identité.
+  **REGISTRE NEUTRE, jamais rouge ni ambre** : ce n'est ni un danger (⚠) ni un piège (△), c'est une
+  consigne de PROCÉDURE sur la façon de confirmer. Lui donner une couleur de registre la mettrait
+  en concurrence avec le contenu clinique (règle 8) ; et le glyphe seul ne suffirait pas
+  (WCAG 1.4.1), d'où le mot pour le lecteur d'écran.
+  **LE MIROIR N'EN PORTE AUCUNE TRACE, ET C'EST VOULU** : un client antérieur lit le texte de
+  l'étape, sans marque parasite. La propriété voyage dans `items`, qu'il ignore.
+  **ELLE SURVIT À L'EXPORT** : `v3ToV4` part des ITEMS quand ils existent (lire le miroir aurait
+  perdu `dual`, `note` et les identités au premier export — la conversion aurait annulé le lot qui
+  les introduit), et `v4ToV3` réémet les items du bloc en plus du miroir.
+  **LE PARTAGE LES EMPORTE DÉJÀ, ET IL FALLAIT LE VÉRIFIER** : `items` vit DANS `blocks`, qui
+  figure sur la liste blanche de `share_fiche` — la liste borne les champs de PREMIER NIVEAU de la
+  fiche, pas la forme interne des blocs. **`supabase/schema.sql` n'est donc pas à rejouer** pour ce
+  lot. C'est la question qu'on oublie (précédent `discriminant`, v4.70.0) : ici elle a été posée et
+  la réponse mesurée, au lieu d'être supposée dans un sens ou dans l'autre.
+  **CE QUI RESTE DE T7, ET POURQUOI** : `★ mémoire` et `phase` ne sont PAS livrés. Ce ne sont pas
+  des champs à écrire mais des changements de ce qu'une SURFACE AFFICHE — `memory` recompose le
+  chapeau « Ne pas oublier », `phase` pilote le decluttering. Un éditeur qui les écrirait sans que
+  rien ne les montre promettrait ce qu'il ne fait pas, défaut corrigé en v4.74.0.
+- **LE MODÈLE v4 EXISTE ET IL EST RÉVERSIBLE — MAIS L'APPLICATION TOURNE ENCORE EN v3
+  (v5.0.0, lot T6, LIVRÉ PARTIELLEMENT ET IL FAUT LE SAVOIR).** Ce qui est livré : deux fonctions
+  PURES `v3ToV4` / `v4ToV3`, et la reconnaissance du format v4 **dans `migrate()`**. Ce qui n'est
+  PAS livré : le rendu, l'éditeur, l'export et le partage lisent toujours v3 — aucune donnée
+  stockée n'a changé, aucune surface n'a bougé, et **rien ne PRODUIT encore de v4**.
+  **CE QUE v4 CHANGE, EN UNE PHRASE** : un item cesse d'être une CHAÎNE À UNE POSITION pour devenir
+  un OBJET À UNE IDENTITÉ. C'est la réparation structurelle du défaut du lot T1 — une clé
+  `visite:bloc:INDEX` désigne un autre geste dès qu'on insère une ligne, et T1 n'a pu que poser une
+  rustine (archiver le texte). Avec `id`, la question ne se pose plus.
+  **SIX CHAMPS v3 DEVIENNENT DES RÔLES** : `confirmation` → `entry`, `notForget` → `do` +
+  `memory:true`, `verify` → `watch`, `posology` → `dose`, `differentials` → `ddx` ; les étapes de
+  bloc restent `do`. **`references` N'EST PAS un rôle** (`sources[]`, métadonnée — ce n'est pas du
+  contenu de crise). Le préfixe `⚠`/`△`, convention DANS la chaîne, devient `level` 3/2/1 —
+  **ordonné, donc comparable**, ce qu'un préfixe ne permet pas ; `::` devient `do`/`expect`.
+  **LA LOSSLESSNESS EST UN MÉCANISME, PAS UNE INTENTION** : on ne recopie pas une liste de champs
+  (une liste se périme — le dépôt l'a payé quatre fois : `MUTE_SEL`, `LEAD_ONLY_SEL`, la liste des
+  placards, les deux listes de verbes de partage). On PART de l'objet entier, on RETIRE ce que l'on
+  convertit, **tout le reste voyage tel quel** — un champ ajouté demain traversera sans qu'une
+  ligne soit écrite. Deux témoins mesurent exactement cela sur un champ inconnu, à l'aller et au
+  retour.
+  **RIEN N'EST DEVINÉ** : `dual` (AC 120-71B §5.2.2.5, inexprimable en v3), `phase`, `concl` et
+  `note` naissent VIDES. Deviner qu'un premier bloc est « immediate » écrirait du contenu clinique
+  à la place de l'auteur — même refus que pour le `discriminant` (« aucune migration ne DEVINE »).
+  Seul `hors` est CALCULÉ, parce qu'il se DÉDUIT du graphe (un bloc qu'aucun chemin n'atteint depuis
+  le départ est une excursion) et ne demande donc rien à personne.
+  **LE RETOUR v4 → v3 EST À PERTE, ET LA LISTE EST DANS LE CODE** (`V4_PERTES`) : `dual`, `phase`,
+  `concl`, `note`, les identités d'items. **Elle est acceptable AUJOURD'HUI parce que rien ne
+  produit ces champs** ; elle cessera de l'être au lot T7, quand l'éditeur les écrira — ce jour-là
+  c'est le RENDU qui devra passer en v4, **et surtout pas cette conversion qui devra ruser**.
+  **LA DÉTECTION VIT DANS `migrate()`, ET NULLE PART AILLEURS** — règle 5 appliquée telle quelle :
+  la poser au point d'IMPORT aurait laissé dehors le chargement, le ZIP, la duplication et le pull
+  cloud, et le défaut aurait été SILENCIEUX (une aide v4 tombée du cloud lue comme une v3 vide :
+  aucun bloc, aucune étape, et rien pour le dire).
+  **`supabase/schema.sql` N'EST PAS À REJOUER POUR CE LOT** : la liste blanche du serveur borne ce
+  qui VOYAGE en partage de session, or rien n'émet de v4 sur le réseau. Elle le deviendra au lot
+  où le partage portera des items — et ce sera alors l'étape qu'on oublie (précédent
+  `discriminant`, v4.70.0).
+  **ALLER-RETOUR : LA PROPRIÉTÉ VÉRIFIÉE EST LA STABILITÉ, PAS L'IDENTITÉ AU CARACTÈRE PRÈS.**
+  « a::b » revient en « a :: b » — une normalisation d'espaces n'est pas une perte de sens, et
+  exiger l'identité stricte ferait échouer un témoin sur un non-défaut. On mesure donc que deux
+  passages donnent exactement ce que donne un seul : une perte RÉELLE se verrait au second.
+- **L'AXE DE DENSITÉ — « UN BLOC » / « TOUTE LA FICHE », ET TROIS FAÇONS DE REGARDER LA SECONDE
+  (v5.0.0, lot T8, LIVRÉ PARTIELLEMENT).** Le sélecteur demandait d'arbitrer entre deux
+  PRÉSENTATIONS (« Guidé » / « Statique ») — un choix qu'aucun néophyte et aucun expert sous stress
+  ne devrait avoir à faire. Il nomme désormais une **DENSITÉ** : combien de la fiche on veut voir.
+  **CE QUI EST LIVRÉ** : les deux crans du haut, et le cran « Toute la fiche » devenu un conteneur à
+  **trois onglets** — **Parcours** (l'Échelle, qui vivait derrière le bouton « Se repérer » de la
+  rangée de commandes), **Page** (le tableau statique) et **Schéma** (`buildFlowSVG`, qui vivait
+  dans le menu ⋯). **CE QUI NE L'EST PAS** : le cran « Une étape » (le mode lecteur reste une
+  SURFACE, il n'est pas encore une densité de la colonne) et la page SFAR en tant que document
+  distinct — le tableau statique en tient lieu.
+  **AUCUN DES TROIS RENDUS N'EST RÉÉCRIT, ET C'EST UNE CONTRAINTE, PAS UNE PRÉFÉRENCE** : réécrire
+  le générateur SVG reperdrait les flèches mesurées, la contre-inversion sombre, le cache de
+  géométrie et la navigation par nœud — la classe de régression exacte que la règle 14 existe pour
+  empêcher.
+  **MAIS LES REPRENDRE NE SUFFIT PAS : IL FAUT REBRANCHER LEURS ÉCOUTEURS.** Posé dans un onglet
+  sans `bindFlowZoom` / `flowPaintState` / `bindSvgNav`, le schéma n'est plus qu'une IMAGE —
+  **mesuré à la première passe : zoom figé à 100 % au clic, état de session non peint**. Trois
+  témoins mesurent donc le zoom, la peinture et l'invariant « taper un nœud NAVIGUE et ne coche
+  rien » (v4.7.0) ; vérifiés capables d'échouer.
+  **LA PAGE RESTE LE DÉFAUT DU CRAN 3, DÉLIBÉRÉMENT** : c'est ce que ce cran affichait déjà, et un
+  lot qui AJOUTE deux façons de regarder n'a pas à changer par surprise ce que voit celui qui n'a
+  rien demandé. L'onglet n'est pas persisté (`state.allTab`, classé `SHARE_LOCAL`) : c'est une
+  consultation, pas un réglage — même règle que l'ancien sélecteur de vue du plan.
+  **RETIRER UN ÉLÉMENT, C'EST BALAYER SES RÉFÉRENCES (règle 14, payée ici)** : `#planBtn` supprimé
+  de la rangée, `syncDock` faisait toujours `pb.hidden=…` sur `null` → **le démarrage entier
+  échouait**, sans une ligne de console, `.boot-load` figée. **Ni `npm test` ni `npm run check` ne
+  pouvaient le voir** — la suite charge la page avec `?__actest`, qui n'amorce pas. C'est la
+  deuxième fois de ce chantier qu'un défaut de RENDU passe sous les deux garde-fous (cf. la zone
+  morte du lot T3) : après une modification du chrome de lecture, seule une sonde qui AMORCE
+  l'application prouve que l'écran s'affiche.
+  **⚠ LE CRAN « UNE ÉTAPE » NE TIENT PAS DANS LA RANGÉE, ET C'EST ARITHMÉTIQUE (mesuré)** : un
+  troisième segment porte l'axe de **151 à 220 px**, donc la rangée de commandes de 267 à
+  **336 px pour 320 disponibles** — elle s'enroulerait EN PERMANENCE sur le plus petit écran
+  servi, en pleine zone de crise, là où la doctrine tient la hauteur pour un coût permanent. À
+  360 px : 372 pour 360. Elle ne tient qu'à partir de ~380 px, et **un contrôle qui n'existe
+  qu'au-delà d'une largeur est exactement ce que la v4.31.0 refuse** (constance positionnelle :
+  « une commande qui apparaît/disparaît selon la largeur romprait la constance »).
+  **LA VOIE QUI RESTE OUVERTE NE TOUCHE PAS LA RANGÉE** : garder l'entrée actuelle du lecteur (le
+  bouton de la carte de bloc) et le rendre **EN LIGNE** au lieu d'un overlay — « le lecteur cesse
+  d'être une surface » sans élargir quoi que ce soit. Son coût est ailleurs : reprise
+  d'`audit-retour` et de la règle de partage « lecteur ouvert refuse la navigation distante »,
+  qui tient à la façon dont le curseur calcule sa clé d'étape, pas à l'overlay lui-même.
+  **⚠ T5b EST DÉFINITIVEMENT BLOQUÉ EN L'ÉTAT, re-mesuré après T8 et T9** : rangée **267 px** +
+  quai **243 px** = **510 pour 320** sans aucun minuteur armé, **591** avec un minuteur (le quai
+  monte alors à 324). Le lot T8 a bien libéré « Se repérer » (313 → 267), mais l'hypothèse du plan
+  — « l'axe libère la rangée » — était fausse **dans son ampleur** : il manque encore 190 à 271 px.
+  Et compléter T8 l'AGGRAVE (axe à trois crans : 336 + 243 = 579). La fusion ne redeviendra
+  arbitrable que si un contrôle QUITTE la zone de crise — c'est une décision de conception, pas
+  d'ingénierie, et elle n'est pas prise ici.
+- **EN SESSION, L'ACTION PASSE DEVANT L'ORIENTATION — ET LE RAIL ①②③ CESSE D'ÊTRE L'OSSATURE
+  (v5.0.0, lot T5 ; règle v4.4.0 ROUVERTE).** Le rail numérote un PARCOURS : il oriente quelqu'un
+  qui découvre la fiche, et c'est exactement ce dont on n'a plus besoin une fois qu'on exécute.
+  Mesuré à 320 × 640 : **la première étape cochable naissait à y = 721 px pour un pli à 640** —
+  **zéro** étape à l'écran à l'instant où l'on démarre le soin. Une checklist qui n'affiche aucune
+  ligne à cocher au démarrage n'est pas une checklist, c'est un sommaire.
+  **RIEN N'EST SUPPRIMÉ, RIEN NE CHANGE DE VUE** : c'est la SUITE VERTICALE qui est réécrite, et
+  **seulement une fois la session démarrée** (`agirDabord = Runtime.started && !useSv`). Hors
+  session, pas un pixel ne bouge — avant d'agir on s'oriente, et le chapeau entier, les critères
+  diagnostiques et le rail restent en tête (condition d'entrée QRH). La bascule se fait au moment
+  précis où l'on presse « Confirmé — démarrer la session ».
+  **LA NUMÉROTATION DISPARAÎT AVEC LE RAIL, ET CE N'EST PAS UN DÉTAIL** : permuter les étages en
+  gardant les pastilles afficherait « ② Prise en charge » au-dessus de « ① Diagnostic confirmé » —
+  **une séquence qui se lit à l'envers est pire que pas de séquence du tout**. Les étages restent
+  des sections TITRÉES (`.care-flat` / `.cf-stage`), dans l'ordre ACTION → ce qui est fait → ce qui
+  suivra ; aucune couleur, aucun registre, aucun écart ne change.
+  **DEUX OBJETS DESCENDENT AVEC LUI** : la carte « Minuteurs & compteurs » (elle ne conduit pas le
+  geste, et depuis la v5.0.0 **le quai la NOMME en permanence** — c'est cette permanence qui autorise
+  à la faire descendre) et l'aperçu d'algorithme. **LE FIL D'ARIANE, LUI, RESTE COLLÉ À SA CARTE** :
+  il ne situe pas dans la fiche, il dit où l'on est DANS le bloc qu'on exécute.
+  **MESURÉ** : première étape à **525 px à 320 × 640** (−196) et **453 px à 390 × 844** (−158) ;
+  au moins une étape entièrement cochable sous le chrome collant dans les deux formats.
+  C'est l'application au téléphone de ce que la v4.59.0 admet déjà au-dessus de 1 200 px avec le
+  cockpit : **la structure était juste, son seuil était faux**.
+- **`audit-budget.mjs` — LE PREMIER HARNAIS QUI MESURE UNE RÉPARTITION (v5.0.0, lot T4).** Les
+  seize autres mesurent des PROPRIÉTÉS : un contraste, une cible, un ordre, un débordement. Or le
+  défaut central relevé par l'audit structurel n'est visible dans **aucune propriété prise
+  isolément** — chaque objet de la colonne est légitime, c'est leur SOMME qui ne l'était pas. Trois
+  budgets, mesurés à **320 × 640** (plancher servi) et **390 × 844**, session démarrée, **sans
+  jamais défiler** : chrome permanent ≤ **30 %** de la hauteur (en-tête + rangée de commandes +
+  quai) ; **au moins UNE étape cochable entièrement visible** ; pile d'actions ≤ **25 %** de la
+  carte du bloc.
+  **LE DEUXIÈME EST LE SEUL DONT L'ÉCHEC EST CLINIQUE** et pas esthétique — les deux autres sont
+  des indicateurs de dérive. Il est **borné au cas DOCTRINAL** (bloc ≥ 4 items) pour le troisième :
+  un bloc de deux lignes rend n'importe quelle pile d'actions proportionnellement énorme, et l'on
+  mesurerait alors la fiche d'exemple, pas l'application.
+  **CE QU'IL NE MESURE PAS, DÉLIBÉRÉMENT** : ni l'ordre, ni l'utilité d'aucun objet — deux
+  dispositions opposées peuvent tenir le même budget. Un harnais qui encoderait un ORDRE figerait
+  une décision de conception dans un contrôle automatique, et le prochain arbitrage se ferait
+  contre l'outil au lieu de se faire contre la doctrine.
+  **ÉCRIT AVANT LE CORRECTIF QU'IL COUVRE**, et c'est la seule façon de savoir qu'il mesure quelque
+  chose : livré seul (T4), il était **rouge** sur le défaut de T5 (0 étape visible à 320) ; vérifié
+  capable d'échouer ensuite dans l'autre sens (`agirDabord` neutralisé → rouge, fichier restauré à
+  l'octet).
+- **LE CHAPEAU « NE PAS OUBLIER » SE REPLIE EN SESSION (v5.0.0, lot T3) — RÈGLE ROUVERTE.** La
+  v4.4.0 posait qu'il reste le CHAPEAU, entier, jamais replié. L'argument d'origine est juste — un
+  memory item qu'on replie est un memory item qu'on oublie — mais il vise **le moment de la décision
+  d'entrée**, pas les quarante minutes qui suivent, pendant lesquelles le chapeau ne conduit plus
+  rien et **repousse ce qui conduit**. Mesuré : **172 px à 320, 133 à 390, 223 à 130 %**, en
+  permanence, au-dessus de la première étape à exécuter. **Entier tant que la session n'a pas
+  démarré** (condition d'entrée QRH : on le lit AVANT d'agir) ; **replié en une ligne ensuite**,
+  dépliable d'un tap. Gain mesuré : **126 px à 320, 87 à 390, 164 à 130 %**. **RÈGLE 8 TENUE** : le
+  registre (rouge), le glyphe ■ et le mot restent — seule la surface part ; le compte est ANNONCÉ
+  (« 3 rappels ▾ »), même vocabulaire que le « +n » du quai. **LE DÉPLIAGE NE RE-REND RIEN** (bascule
+  de classe en place) : un `render()` reconstruirait tout le DOM au-dessus du doigt, et le chapeau
+  est le premier objet de la colonne — mesuré, la dérive du défilement est de **0 px**. `state.fsOpen`
+  est TRANSITOIRE, remis à zéro à l'ouverture d'une fiche et classé dans `SHARE_LOCAL` : replier chez
+  soi ne doit pas replier chez l'autre.
+  **PIÈGE VÉCU, ET IL EST INSTRUCTIF** : la première version lisait la constante `started`, déclarée
+  **24 lignes plus bas** dans `renderRead` — zone morte temporelle, donc `ReferenceError`, donc
+  **tout le rendu échouait**. Ni `npm test` ni `npm run check` ne l'ont vu : **aucun des deux
+  n'exerce un rendu**. C'est la sonde de mesure qui a parlé. Corollaire de méthode : après une
+  modification de `renderRead`, le vert de la suite ne prouve pas que l'écran s'affiche.
+- **LE JOURNAL DES ACTIONS REMONTE SOUS LA CARTE DU BLOC (v5.0.0, lot T2).** Il vivait en FIN de
+  colonne : mesuré, « Noter l'heure » était à **y = 1829 px** sur un écran de 640 et **1588** sur
+  844 — le geste de traçabilité le plus fréquent d'une réanimation était le plus loin de la main. Il
+  se pose désormais **juste sous la carte du bloc courant** : c'est là que le geste se produit, donc
+  là qu'on l'horodate. **PAS AU-DESSUS** — le mettre avant repousserait l'action, ce que le lot T5
+  existe pour corriger. Mesuré après : **1305 px à 320** (−524) et **1101 à 390** (−487). Il reste
+  sous le pli parce que la carte du bloc est haute : **T5 le fera remonter davantage**, et il ne faut
+  pas vendre ce lot pour plus qu'il ne donne. En rail (≥ 780 px), rien ne change.
+  **UN CONSTAT D'AUDIT CORRIGÉ AU PASSAGE** : le constat 6 de l'audit J0 affirmait que « le quai ne
+  nomme pas ce qu'il cache » et que le minuteur d'une fiche est invisible. **C'est faux, et la faute
+  vient de l'instrument** : j'avais mesuré `.tm-label` — le libellé d'une CARTE de minuteur, qui
+  n'existe que panneau ouvert. La rangée `.rt-collapsed` dit en réalité, dans le flux,
+  « Minuteurs & compteurs · 1 minuteur · 1 compteur ▾ Afficher », **visible sans défiler à 390 px**
+  (y = 494 pour un pli à 844). Rien n'était donc à ajouter au quai — et l'y ajouter aurait
+  **dupliqué une constante sur deux canaux**, ce que la v4.70.1 proscrit.
+- **UN COMPTE RENDU NE SE DÉCALE PLUS — LE TEXTE DES ÉTAPES EST ARCHIVÉ AVEC LA SESSION (v5.0.0,
+  lot T1)** : une clé de cochage vaut `visite:bloc:INDEX`, et `exportSessionReport` la résolvait
+  contre la fiche **ACTUELLE** (`stepTextFromKey`), `snapshotSession` n'archivant que `ficheId` et
+  `ficheTitle`. **Mesuré, preuve pure** : après une insertion d'étape en tête de bloc, la clé
+  `1:b1:2` ne désigne plus « ⚠ Adrénaline IM » mais « Appeler à l'aide » — un enregistrement de soin
+  archivé nommait donc **le mauvais geste, en silence**. Le défaut était ancien ; **MK5-b (v4.64.0)
+  l'a rendu atteignable en deux taps**, réordonner une étape étant devenu un geste ordinaire.
+  `snapshotSession` archive désormais `stepTexts` — le texte des seules étapes **touchées** (cochées,
+  constatées, en écart) et le titre de leur bloc. **Pas la fiche entière** : une session doit rester
+  légère, et ce qu'on n'a pas touché n'a pas à être figé. `stepTextFromKey(f,key,snap)` lit
+  l'archive **d'abord**, la fiche en repli — les sessions archivées AVANT le correctif n'ont pas de
+  `stepTexts` et gardent l'ancien comportement, qui est tout ce qu'on peut faire pour elles.
+  **ET CE TEXTE NE MONTE JAMAIS** : `stepTexts` rejoint `SESS_LOCAL`, comme la trace do-verify depuis
+  la v4.54.0 — c'est du contenu **clinique**, il reste sur l'appareil qui l'a produit, et le drapeau
+  `vElsewhere` **dit** son absence au compte rendu distant au lieu de la taire. Sept témoins, dont
+  trois qui vérifient d'abord que **le défaut existe** : un contrôle qui ne rencontre pas le défaut
+  ne le couvre pas.
 - Fonctions pures testables : les exposer via le hook `?__actest` (fin de `index.html`) et ajouter
   un test dans `tests.html`.
 - Ne jamais supprimer un champ du modèle fiche/catégorie (compatibilité ascendante).
@@ -2640,9 +4632,11 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   À L'ÉCRAN** : tout ce qui suit, jusqu'à la fin de la ligne, sort du texte principal et
   s'affiche en gris, en bulle, à chasse fixe. C'est un outil de MISE EN PAGE autant que de
   méthode : les chiffres passés après « :: » raccourcissent la ligne de moitié à l'œil.
-- **Nommage SQL** : ne JAMAIS renommer un identifiant existant (`fiches`, `category_sets`,
-  `fiche_notes`… sont historiquement en français : un renommage casserait les instances déployées
-  et le client, sans gain fonctionnel) ; tout **nouvel** objet (table, fonction, politique,
+- **Nommage SQL** : ne JAMAIS renommer un identifiant existant **sans gain fonctionnel** — et
+  quand le gain existe, le faire par un bloc de renommage IDEMPOTENT plus une vue de compatibilité
+  `security_invoker` (précédent : `fiches` → `cognitive_aids`, lot T9 v5.0.0, décrit plus haut).
+  `category_sets`, `sessions`… restent historiquement en français ; un renommage gratuit casserait
+  les instances déployées et le client pour rien ; tout **nouvel** objet (table, fonction, politique,
   colonne) est nommé **en anglais** (`protocols`, `list_orphan_attachments`…). Le français reste
   la langue des commentaires et des textes visibles.
 - La sécurité réelle est **côté serveur** (politiques RLS de `supabase/schema.sql`, y compris
@@ -2829,13 +4823,13 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   le bout EN BAS de l'écran pour qu'il soit **capable d'échouer** — centré, `keepAnchor` laissait la
   nouvelle carte visible même sans suivi, et le contrôle passait au vert sur le défaut qu'il couvre
   (leçon v4.31.1, vérifié dans les deux sens).
-  **LE LECTEUR INVERSE LE RÉGIME** : sa clé d'étape est calculée AU CLIC depuis `state.nav`, jamais
-  depuis le DOM peint — une navigation distante arrivant entre le `pointerdown` et le `click` ferait
-  cocher **la mauvaise étape**, et le compte-rendu l'imprimerait comme réalisée. Tant que
-  `#readerMode` est ouvert, une navigation distante est donc REFUSÉE, mise en attente, et
-  **annoncée sur place** (`rmBanHtml`, registre INFORMATION) ; `rmResume` l'applique au geste local.
-  Le repaint du lecteur sur évènement distant passe par `readerRepaint` (position CONSERVÉE), jamais
-  par `_rmSync`, qui repositionne le curseur et ferait sauter le lecteur sous ses yeux.
+  **~~LE LECTEUR INVERSAIT LE RÉGIME~~ — CADUC DEPUIS LE LOT T14 (v5.0.0).** Ce régime existait
+  parce que la clé d'étape du lecteur était calculée AU CLIC depuis `state.nav` : une navigation
+  distante arrivée entre le `pointerdown` et le `click` aurait fait cocher la mauvaise étape. La
+  carte de bloc n'a pas cette exposition — son `data-ck` est inscrit dans le DOM AU RENDU, donc une
+  navigation distante le remplace au lieu de le décaler. **Une navigation distante s'applique
+  désormais normalement** (régime `anchored`), et la file `deferred` ne sert plus qu'à `verify` et
+  `gap`, drainés au prochain geste local de navigation (cf. `shareDrainDefer`).
 - **JOURNAL RÉFÉRENTIEL (v4.52.0) — UN REPÈRE VOYAGE COMME UNE RÉFÉRENCE, JAMAIS COMME UN MOT.**
   `ref` n'existait que pour les compteurs : un repère posé par l'hôte s'affichait « Action 3 » chez
   l'invité — l'heure juste, le mot manquant. **QUATRE SOURCES** cumulatives : la FICHE elle-même
@@ -2950,12 +4944,12 @@ par défaut borné à 12 h, purge 30 min après expiration) et ce qui ne sort ja
 cohérent avec la notice affichée à l'invité** (`#joinScreen`) : les deux évoluent ensemble, ou
 aucun.
 
-## Se repérer dans `index.html` (monofichier, ~14 400 lignes)
+## Se repérer dans `index.html` (monofichier, ~18 800 lignes)
 Le fichier s'ouvre sur un **grand commentaire d'architecture** (objectif, règles de conception,
 modèle de données, règles de sécurité) : le lire en premier. Ensuite, dans l'ordre.
 
 > **Le tableau ci-dessous est un RÉSUMÉ, pas un index** : il décrit une vingtaine de sections sur
-> les **57** bannières `/* ===== … ===== */` du fichier, et volontairement sans numéros de ligne —
+> les **63** bannières `/* ===== … ===== */` du fichier, et volontairement sans numéros de ligne —
 > ils seraient périmés au commit suivant. Pour l'index EXACT et à jour, une commande :
 >
 > ```bash
@@ -2964,7 +4958,7 @@ modèle de données, règles de sécurité) : le lire en premier. Ensuite, dans 
 >
 > Découpage global : CSS ≈ lignes 273-3379, coque HTML statique ≈ 3381-3697 (dont **22 fenêtres
 > modales** déclarées en dur — `grep -c 'class="ai-modal' index.html`, toutes auditées par
-> `audit-a11y.mjs` —, plus deux surfaces plein écran qui n'en sont pas : `#readerMode` et
+> `audit-a11y.mjs` —, plus deux surfaces plein écran qui n'en sont pas : `#monMode` et
 > `#joinScreen`), JavaScript ≈ 3699 à la fin.
 
 | Section (bannières `/* ===== … ===== */`) | Contenu |

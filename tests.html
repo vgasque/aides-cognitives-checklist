@@ -122,8 +122,8 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
 
   group('migrate() — fiche hostile neutralisée');
   const before=Object.prototype.polluted;
-  const m=A.migrate({id:'__proto__',title:'<img onerror=alert(1)>',category:'c',validation:'2026-01',
-    confirmation:['x'],blocks:[{id:'constructor',type:'steps',title:'b',steps:['s']}],
+  const m=A.migrate({id:'__proto__',title:'<img onerror=alert(1)>',category:'c',validatedAt:'2026-01',
+    confirmation:['x'],blocks:[{id:'constructor',kind:'do',title:'b',items:['s'].map(x=>A.v4MakeItem(A.uid('i'),'do',x))}],
     images:[{id:'i',data:'javascript:alert(1)',caption:'c'}]});
   ok('id __proto__ remplacé', m.id!=='__proto__');
   ok('aucune prototype pollution', Object.prototype.polluted===before);
@@ -132,17 +132,17 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   ok('structure blocs préservée', Array.isArray(m.blocks)&&m.blocks.length>=1);
 
   group('statut 3 états / code / étapes critiques (V5)');
-  eq('bloc étapes : nextLbl conservé et borné', A.migrate({blocks:[{id:'b1',type:'steps',steps:['s'],nextLbl:'réévaluation à 5 min'}]}).blocks[0].nextLbl, 'réévaluation à 5 min');
+  eq('bloc étapes : nextLbl conservé et borné', A.migrate({blocks:[{id:'b1',kind:'do',items:['s'].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),nextLbl:'réévaluation à 5 min'}]}).blocks[0].nextLbl, 'réévaluation à 5 min');
   eq('compteur lié : timerId sûr conservé', A.migrate({counters:[{id:'n1',label:'Adré',timerId:'t1'}]}).counters[0].timerId, 't1');
   eq('compteur lié : timerId hostile vidé', A.migrate({counters:[{id:'n1',label:'Adré',timerId:'__proto__'}]}).counters[0].timerId, '');
   eq('statut review conservé', A.migrate({status:'review'}).status, 'review');
-  eq('statut inconnu → validée (défaut historique)', A.migrate({status:'weird'}).status, '');
+  eq('statut inconnu → validée (défaut historique)', A.migrate({status:'weird'}).status, 'validated');
   eq('statut draft conservé', A.migrate({status:'draft'}).status, 'draft');
   eq('code borné et conservé', A.migrate({code:'URG-ANA-01'}).code, 'URG-ANA-01');
   eq('code absent → vide', A.migrate({}).code, '');
   eq('protocole : statut review conservé', A.migrateProtocol({status:'review'}).status, 'review');
   eq('protocole : code conservé', A.migrateProtocol({code:'PRO-ISR-01'}).code, 'PRO-ISR-01');
-  ok('protocole : fiches liées filtrées (ids sûrs)', A.migrateProtocol({related:['ok-1','__proto__',42]}).related.join(',')==='ok-1');
+  ok('protocole : fiches liées filtrées (ids sûrs)', A.migrateProtocol({links:['ok-1','__proto__',42]}).links.join(',')==='ok-1');
   ok('étape « ⚠ » critique', A.stepIsCrit('⚠ Adrénaline IM 0,5 mg'));
   ok('étape « ! » critique', A.stepIsCrit('!Adrénaline IM'));
   ok('étape ordinaire non critique', !A.stepIsCrit('Oxygène 15 L/min'));
@@ -153,12 +153,15 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   ok('vigilance ≠ critique', !A.stepIsCrit('△ Réévaluer')&&!A.stepIsVigil('⚠ Adrénaline'));
   eq('stepText retire aussi « △ »', A.stepText('△ Réévaluer PA'), 'Réévaluer PA');
   ok('recherche : le code des fiches est indexé', A.ficheHaystack(A.migrate({title:'X',code:'URG-ANA-01'})).indexOf('urg-ana-01')>=0);
-  ok('posology assaini en tableau borné', Array.isArray(A.migrate({posology:['⚠ **ADRÉNALINE** : 0,5 mg',42]}).posology));
+  /* v5.0.0, étape B : `posology` n'est plus un CHAMP mais un RÔLE du pool — le nettoyage se
+     mesure donc sur ce que la fiche rend, pas sur un champ disparu. */
+  ok('posologie assainie et lisible comme une liste',
+     Array.isArray(A.listOf(A.migrate({posology:['⚠ **ADRÉNALINE** : 0,5 mg',42]}),'posology')));
   ok('recherche : les repères posologiques sont indexés', A.ficheHaystack(A.migrate({title:'X',posology:['Amiodarone 300 mg']})).indexOf('amiodarone')>=0);
   ok('prompt IA : section posology documentée', A.AI_PROMPT.indexOf('"posology"')>=0);
 
   group('sanitizeCats() — catégories hostiles');
-  const sc=A.sanitizeCats([{id:'prototype',name:'<img>',color:'javascript:alert(1)',libraryId:null}]);
+  const sc=A.sanitizeCats([{id:'prototype',name:'<img>',color:'javascript:alert(1)',library:null}]);
   ok('id prototype remplacé', sc[0].id!=='prototype');
   eq('couleur javascript: → défaut', sc[0].color, '#45556b');
   ok('nom conservé comme chaîne', typeof sc[0].name==='string');
@@ -173,7 +176,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
 
   group('txNorm() / recherche plein texte');
   eq('accents et casse normalisés', A.txNorm('Réanimation ÉCG'), 'reanimation ecg');
-  const hay=A.ficheHaystack({title:'ACR',confirmation:['Pas de pouls'],blocks:[{type:'steps',title:'RCP',steps:['Amiodarone 300 mg']},{type:'decision',title:'Rythme',question:'Choquable ?',options:[{label:'Oui choquable'}]}]});
+  const hay=A.ficheHaystack({title:'ACR',confirmation:['Pas de pouls'],blocks:[{kind:'do',title:'RCP',items:['Amiodarone 300 mg'].map(x=>A.v4MakeItem(A.uid('i'),'do',x))},{kind:'decision',title:'Rythme',question:'Choquable ?',options:[{label:'Oui choquable'}]}]});
   ok('haystack inclut une étape', hay.indexOf('amiodarone')>=0);
   ok('haystack inclut une question de décision', hay.indexOf('choquable')>=0);
   ok('haystack inclut un libellé d’option', hay.indexOf('oui choquable')>=0);
@@ -190,7 +193,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   eq('occurrences chevauchantes fusionnées', A.markQTerms('anaphylaxie', ['anaph','phylaxie']), '<b>anaphylaxie</b>');
   ok('sans occurrence : texte échappé tel quel', A.markQTerms('<x> & y', ['zzz'])==='&lt;x&gt; &amp; y');
   ok('XSS : le texte reste échappé autour du <b>', A.markQTerms('<img src=x> adrénaline', ['adrenaline']).indexOf('<img')<0);
-  {const f=A.migrate({title:'Anaphylaxie',notForget:[],blocks:[{type:'steps',title:'Traitement',steps:['⚠ Adrénaline 0,5 mg IM face antéro-latérale de cuisse']}]});
+  {const f=A.migrate({title:'Anaphylaxie',notForget:[],blocks:[{kind:'do',title:'Traitement',items:['⚠ Adrénaline 0,5 mg IM face antéro-latérale de cuisse'].map(x=>A.v4MakeItem(A.uid('i'),'do',x))}]});
    const sn=A.searchSnippet(A.ficheSnipParts(f),'adrénaline');
    ok('extrait trouvé dans une étape', sn.indexOf('<b>Adrénaline</b>')>=0, sn);
    ok('extrait sans le préfixe ⚠ (stepText)', sn.indexOf('⚠')<0);
@@ -200,7 +203,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    const sn=A.searchSnippet([long],'titree');
    ok('fenêtre bornée avec ellipses', sn.indexOf('… ')>=0&&sn.lastIndexOf(' …')>=0&&sn.length<400, sn.length+' car.');
    ok('le terme reste dans la fenêtre', sn.indexOf('<b>titrée</b>')>=0);}
-  {const p=A.migrateProtocol({title:'Intubation',body:'# Prépa\nInduction en séquence rapide.',attachments:[{id:'a1',name:'ISR-service.pdf',size:10}]});
+  {const p=A.migrateProtocol({title:'Intubation',body:'# Prépa\nInduction en séquence rapide.',docs:[{id:'a1',name:'ISR-service.pdf',size:10}]});
    ok('protocole : extrait depuis le corps rédigé', A.searchSnippet(A.protoSnipParts(p),'sequence').indexOf('<b>séquence</b>')>=0);
    ok('protocole : nom de PDF comme source', A.searchSnippet(A.protoSnipParts(p),'isr-service').indexOf('<b>')>=0);}
 
@@ -291,19 +294,23 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    ok('rien à montrer → null (l’écran le dit, il n’invente pas)', A.monPick({},now)===null);}
 
   group('phase K (v4.63.0) — reviewNotes : la relecture doctrinale en une grammaire');
-  {const F=(nf,blocks)=>({notForget:nf||[],blocks:blocks||[]});
-   eq('fiche saine → aucune remarque', A.reviewNotes(F(['a','b'],[{id:'b1',title:'Bloc',steps:['x']}])), []);
+   /* v5.0.0, étape B — LES FIXTURES PASSENT PAR `migrate`. Elles étaient des objets v3 bruts :
+      depuis que les six listes sont devenues des items à rôle dans un POOL, un tel objet n'a plus
+      de contenu pour l'application. Les faire entrer par la vraie porte est d'ailleurs plus juste —
+      le test mesure alors ce que le produit fabrique, pas ce que le test imagine. */
+   {const F=(nf,blocks)=>A.migrate({notForget:nf||[],blocks:blocks||[],start:((blocks||[])[0]||{}).id||null});
+   eq('fiche saine → aucune remarque', A.reviewNotes(F(['a','b'],[{id:'b1',title:'Bloc',items:['x'].map(x=>A.v4MakeItem(A.uid('i'),'do',x))}])), []);
    {const n=A.reviewNotes(F(['a','b','c','d','e'],[]));
     eq('chapeau à 5 rappels : une remarque, ciblée', n.length, 1);
     eq('… et elle nomme sa cible', n[0].cible, 'Ne pas oublier');
     eq('… avec l’ancre du chapeau', n[0].at, 'nf');}
-   {const b={id:'b7',title:'Mesures',steps:['a','b','c','d','e','f','g','h']};
+   {const b={id:'b7',title:'Mesures',items:['a','b','c','d','e','f','g','h'].map(x=>A.v4MakeItem(A.uid('i'),'do',x))};
     const n=A.reviewNotes(F([],[b]));
     eq('bloc à 8 étapes : une remarque ancrée sur le bloc', n.length&&n[0].at, 'b:b7');
     ok('… qui nomme le bloc', n[0].cible==='Mesures');}
    ok('une DÉCISION n’est jamais relue comme un bloc d’étapes (pas d’étapes à compter)',
-     A.reviewNotes(F([],[{id:'d1',type:'decision',title:'Choquable ?',options:[]}])).length===0);
-   {const n=A.reviewNotes(F(['a','b','c','d','e'],[{id:'b1',title:'B',steps:Array(9).fill('x')}]));
+     A.reviewNotes(F([],[{id:'d1',kind:'decision',title:'Choquable ?',options:[]}])).length===0);
+   {const n=A.reviewNotes(F(['a','b','c','d','e'],[{id:'b1',title:'B',items:Array(9).fill('x').map(x=>A.v4MakeItem(A.uid('i'),'do',x))}]));
     eq('les remarques s’additionnent, chacune avec sa cible', n.map(x=>x.at), ['nf','b:b1']);}
    eq('fiche vide → rien à dire', A.reviewNotes({}), []);}
 
@@ -350,8 +357,8 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   eq('giga-octets', A.fmtBytes(2147483648), '2,00 Go');
 
   group('flattenFiche() / diffFicheLines()');
-  const fF={title:'T',status:'draft',localInfo:'Ctx',confirmation:['c1'],
-    blocks:[{id:'b1',type:'steps',title:'B',steps:['s1']},{id:'b2',type:'decision',title:'D',question:'Q ?',options:[{label:'Oui',target:'b1'}]}],
+  const fF={title:'T',status:'draft',local:'Ctx',confirmation:['c1'],
+    blocks:[{id:'b1',kind:'do',title:'B',items:['s1'].map(x=>A.v4MakeItem(A.uid('i'),'do',x))},{id:'b2',kind:'decision',title:'D',question:'Q ?',options:[{label:'Oui',target:'b1'}]}],
     timers:[{label:'Cycle',type:'interval',seconds:120}],counters:[{label:'Adré'}]};
   const fl=A.flattenFiche(fF);
   ok('aplatit le titre', fl.indexOf('Titre · T')>=0);
@@ -362,15 +369,15 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   ok('minuteur avec durée', fl.indexOf('Minuteur · Cycle (120 s)')>=0);
   ok('compteur', fl.indexOf('Compteur · Adré')>=0);
   eq('fiche nulle → []', A.flattenFiche(null), []);
-  const fA={title:'T',confirmation:['a','b'],blocks:[{type:'steps',title:'B',steps:['s1']}]};
-  const fB={title:'T',confirmation:['a'],blocks:[{type:'steps',title:'B',steps:['s1','s2']}]};
+  const fA={title:'T',confirmation:['a','b'],blocks:[{kind:'do',title:'B',items:['s1'].map(x=>A.v4MakeItem(A.uid('i'),'do',x))}]};
+  const fB={title:'T',confirmation:['a'],blocks:[{kind:'do',title:'B',items:['s1','s2'].map(x=>A.v4MakeItem(A.uid('i'),'do',x))}]};
   const d=A.diffFicheLines(fA,fB); // cur=fA, old=fB : restaurer fB retirerait 'b', ajouterait 's2'
   ok('diff détecte une suppression', d.removed.some(x=>/·\s*b$/.test(x)));
   ok('diff détecte un ajout', d.added.some(x=>/s2$/.test(x)));
   eq('aucune diff si identiques', A.diffFicheLines(fA,fA), {removed:[],added:[]});
 
   group('stepTextFromKey()');
-  const fK={blocks:[{id:'b1',type:'steps',title:'Mesures',steps:['Étape A','Étape B']}]};
+  const fK={blocks:[{id:'b1',kind:'do',title:'Mesures',items:['Étape A','Étape B'].map(x=>A.v4MakeItem(A.uid('i'),'do',x))}]};
   eq('résout une étape cochée', A.stepTextFromKey(fK,'0:b1:1'), {block:'Mesures',step:'Étape B'});
   eq('clé orpheline → null', A.stepTextFromKey(fK,'0:zz:0'), null);
 
@@ -470,12 +477,12 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   eq('stripBold retire les paires', A.stripBold('**a** et **b**'), 'a et b');
   eq('stripBold laisse le non-apparié', A.stripBold('a **b'), 'a **b');
   ok('recherche : le gras n\'empêche pas de trouver une expression',
-    A.ficheHaystack({title:'x',blocks:[{type:'steps',title:'B',steps:['**Adrénaline** 0,5 mg IM']}]}).indexOf('adrenaline 0,5 mg')>=0);
+    A.ficheHaystack({title:'x',blocks:[{kind:'do',title:'B',items:['**Adrénaline** 0,5 mg IM'].map(x=>A.v4MakeItem(A.uid('i'),'do',x))}]}).indexOf('adrenaline 0,5 mg')>=0);
 
   group('buildFlowSVG() / wrapText() — organigramme (structure & échappement)');
   const svg=A.buildFlowSVG({blocks:[
-    {id:'a',type:'steps',title:'<img src=x onerror=alert(1)>',steps:['x'],next:'d'},
-    {id:'d',type:'decision',title:'D',question:'Q ?',options:[{label:'retour',target:'a'},{label:'fin',target:''}]}],start:'a'},'d');
+    {id:'a',kind:'do',title:'<img src=x onerror=alert(1)>',items:['x'].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),next:'d'},
+    {id:'d',kind:'decision',title:'D',question:'Q ?',options:[{label:'retour',target:'a'},{label:'fin',target:''}]}],start:'a'},'d');
   ok('rend un <svg> dimensionné', /^<svg width="[\d.]+" height="[\d.]+"/.test(svg));
   ok('titre échappé (pas de balise brute)', svg.indexOf('<img src')<0&&svg.indexOf('&lt;img')>=0);
   ok('pastille DÉPART présente', svg.indexOf('DÉPART')>=0);
@@ -487,21 +494,31 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   eq('wrapText coupe les mots trop longs', A.wrapText('abcdefghij',4), ['abcd','efgh','ij']);
 
   group('completionSpots() — badge « À compléter »');
-  ok('invite dans localInfo', A.completionSpots({localInfo:'Tél renfort : à compléter'}).length>0);
-  ok('marqueur « ⚠ À COMPLÉTER » dans une étape', A.completionSpots({blocks:[{type:'steps',steps:['⚠ À COMPLÉTER : dose']}]}).length>0);
-  ok('invite dans une section liste', A.completionSpots({verify:['PAS cible : à compléter']}).length>0);
-  ok('accent manquant toléré (« a completer »)', A.completionSpots({verify:['cible a completer']}).length>0);
+  ok('invite dans localInfo', A.completionSpots({local:'Tél renfort : à compléter'}).length>0);
+  ok('marqueur « ⚠ À COMPLÉTER » dans une étape', A.completionSpots({blocks:[{kind:'do',items:['⚠ À COMPLÉTER : dose'].map(x=>A.v4MakeItem(A.uid('i'),'do',x))}]}).length>0);
+  /* ⚠ FIXTURES REMISES À LA FORME RÉELLE (v5.0.0) : elles portaient `verify` en CHAMP, forme v3
+     disparue depuis que les listes sont un pool d'items à rôle — le test restait vert sur un accès
+     que l'application ne rencontrait plus jamais, et le défaut (aucun « à compléter » de liste
+     signalé) a vécu invisible. Une fixture qui n'a pas la forme du réel valide un chemin mort. */
+  ok('invite dans une section liste', A.completionSpots(A.migrate({verify:['PAS cible : à compléter']})).length>0);
+  ok('accent manquant toléré (« a completer »)', A.completionSpots(A.migrate({verify:['cible a completer']})).length>0);
+  ok('… et la fixture a bien la forme v4 (le contrôle rencontre son cas)',
+     (A.migrate({verify:['x à compléter']}).verify===undefined)&&A.listOf(A.migrate({verify:['x à compléter']}),'verify').length===1);
   ok('⚠ seul (avertissement clinique) ne déclenche PAS', A.completionSpots({notForget:['⚠ NE PAS associer adrénaline et isoprénaline']}).length===0);
-  ok('fiche complète → aucun emplacement', A.completionSpots({localInfo:'Tél 1234',verify:['PAS ≥ 80'],blocks:[{type:'steps',steps:['ok']}]}).length===0);
+  ok('fiche complète → aucun emplacement', A.completionSpots({local:'Tél 1234',verify:['PAS ≥ 80'],blocks:[{kind:'do',items:['ok'].map(x=>A.v4MakeItem(A.uid('i'),'do',x))}]}).length===0);
   ok('non-objet → aucun emplacement', A.completionSpots(null).length===0);
   eq('completionSpots liste les emplacements (infobulle du badge)',
-    A.completionSpots({localInfo:'Tél : à compléter',references:['Exemple à compléter'],blocks:[{type:'steps',title:'Traitement',steps:['⚠ À COMPLÉTER : dose']}]}),
+    A.completionSpots({local:'Tél : à compléter',sources:['Exemple à compléter'],blocks:[{kind:'do',title:'Traitement',items:['⚠ À COMPLÉTER : dose'].map(x=>A.v4MakeItem(A.uid('i'),'do',x))}]}),
     ['Contexte local','Références','Bloc « Traitement »']);
   eq('aucun emplacement → tableau vide', A.completionSpots({title:'x'}), []);
 
   group('AI_PROMPT — invariants du prompt embarqué');
   ok('brouillon imposé', A.AI_PROMPT.indexOf('"status": "draft"')>=0);
-  ok('schéma version 3', A.AI_PROMPT.indexOf('"version": 3')>=0);
+  /* v5.0.0 : l'application ne lit plus que le format v4 (rupture assumée, chemin de reprise dans
+     docs/conversion-v3-vers-v4.md). Un prompt qui annoncerait encore « version 3 » produirait un
+     fichier que l'import mutile, et la faute paraîtrait venir de l'IA. */
+  ok('schéma version 4', A.AI_PROMPT.indexOf('"version": 4')>=0);
+  ok('… et plus aucune mention de "version": 3', A.AI_PROMPT.indexOf('"version": 3')<0);
   ok('double contexte structure/SMUR (régulation)', A.AI_PROMPT.indexOf('régulation')>=0);
   ok('convention de manque explicite', A.AI_PROMPT.indexOf('⚠ À COMPLÉTER')>=0);
   ok('gras autorisé avec parcimonie', A.AI_PROMPT.indexOf('PARCIMONIE')>=0);
@@ -516,26 +533,26 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   ok('gras exclu des étapes (texte déjà en gras)', A.AI_PROMPT.indexOf('ne s\'applique PAS aux étapes')>=0);
 
   group('références des protocoles (v4.2.2)');
-  eq('migrateProtocol : références nettoyées/coercées', A.migrateProtocol({references:['SFAR 2023',42]}).references, ['SFAR 2023','42']);
-  ok('migrateProtocol : défaut = tableau', Array.isArray(A.migrateProtocol({}).references));
-  ok('blankProtocol : champ references présent', Array.isArray(A.blankProtocol().references));
+  eq('migrateProtocol : références nettoyées/coercées', A.migrateProtocol({sources:['SFAR 2023',42]}).sources, ['SFAR 2023','42']);
+  ok('migrateProtocol : défaut = tableau', Array.isArray(A.migrateProtocol({}).sources));
+  ok('blankProtocol : champ references présent', Array.isArray(A.blankProtocol().sources));
 
   group('migrate() — champs status/related/updatedBy');
-  const m31=A.migrate({title:'x',status:'draft',related:['ok-1','__proto__','bad id'],updatedBy:'a@b.fr'});
+  const m31=A.migrate({title:'x',status:'draft',links:['ok-1','__proto__','bad id'],updatedBy:'a@b.fr'});
   eq('status brouillon conservé', m31.status, 'draft');
-  eq('related nettoyé', m31.related, ['ok-1']);
+  eq('related nettoyé', m31.links, ['ok-1']);
   eq('updatedBy conservé', m31.updatedBy, 'a@b.fr');
-  eq('status inconnu → validée', A.migrate({title:'x',status:'???'}).status, '');
+  eq('status inconnu → validée', A.migrate({title:'x',status:'???'}).status, 'validated');
 
   group('relCandidatesFor() — candidats « Voir aussi » (liens croisés v4.2.0)');
-  {const fs=[{id:'f1',title:'Choc',order:2},{id:'f2',title:'ACR',order:1},{id:'f3',title:'Poubelle',deletedAt:1},{id:'f4',title:'Partagée',libraryId:'L1'}];
-   const ps=[{id:'p1',title:'Proto ISR',code:'ISR-01',order:1},{id:'p2',title:'Proto partagé',libraryId:'L1'}];
-   const c=A.relCandidatesFor({id:'f1',related:['p1']},fs,ps);
+  {const fs=[{id:'f1',title:'Choc',order:2},{id:'f2',title:'ACR',order:1},{id:'f3',title:'Poubelle',deletedAt:1},{id:'f4',title:'Partagée',library:'L1'}];
+   const ps=[{id:'p1',title:'Proto ISR',code:'ISR-01',order:1},{id:'p2',title:'Proto partagé',library:'L1'}];
+   const c=A.relCandidatesFor({id:'f1',links:['p1']},fs,ps);
    eq('même périmètre, hors soi-même/liés/corbeille', c.map(x=>x.id), ['f2']);
-   eq('aides d\'abord puis protocoles', A.relCandidatesFor({id:'x',related:[]},fs,ps).map(x=>x.kind), ['f','f','p']);
-   eq('périmètre bibliothèque respecté', A.relCandidatesFor({id:'x',libraryId:'L1',related:[]},fs,ps).map(x=>x.id), ['f4','p2']);
-   eq('code repris pour le filtre', A.relCandidatesFor({id:'x',related:[]},fs,ps).find(x=>x.id==='p1').code, 'ISR-01');
-   eq('titre vide → « Sans titre »', A.relCandidatesFor({id:'x',related:[]},[{id:'f9'}],[]).map(x=>x.title), ['Sans titre']);}
+   eq('aides d\'abord puis protocoles', A.relCandidatesFor({id:'x',links:[]},fs,ps).map(x=>x.kind), ['f','f','p']);
+   eq('périmètre bibliothèque respecté', A.relCandidatesFor({id:'x',library:'L1',links:[]},fs,ps).map(x=>x.id), ['f4','p2']);
+   eq('code repris pour le filtre', A.relCandidatesFor({id:'x',links:[]},fs,ps).find(x=>x.id==='p1').code, 'ISR-01');
+   eq('titre vide → « Sans titre »', A.relCandidatesFor({id:'x',links:[]},[{id:'f9'}],[]).map(x=>x.title), ['Sans titre']);}
 
   group('safeFileName() — nom de document affichable');
   eq('nom simple conservé', A.safeFileName('protocole-ACR.pdf'), 'protocole-ACR.pdf');
@@ -566,9 +583,9 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
 
   group('attMissingInfo() — vérification hors-ligne des documents (v4.20.0)');
   {const ents=[
-    {id:'f1',attachments:[{id:'a1',name:'x.pdf',size:1},{id:'a2',name:'y.pdf',size:1}]},
-    {id:'f2',libraryId:'lib9',attachments:[{id:'a2',name:'y.pdf',size:1},{id:'a3',name:'z.pdf',size:1}]},
-    {id:'f3',deletedAt:123,attachments:[{id:'a4',name:'w.pdf',size:1}]}];
+    {id:'f1',docs:[{id:'a1',name:'x.pdf',size:1},{id:'a2',name:'y.pdf',size:1}]},
+    {id:'f2',library:'lib9',docs:[{id:'a2',name:'y.pdf',size:1},{id:'a3',name:'z.pdf',size:1}]},
+    {id:'f3',deletedAt:123,docs:[{id:'a4',name:'w.pdf',size:1}]}];
    const r=A.attMissingInfo(ents,['a1'],'u1');
    eq('total dédoublonné, supprimés ignorés', r.total, 3);
    eq('manquants = référencés sans binaire local', r.missing, ['a2','a3']);
@@ -707,16 +724,16 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
 
   group('migrateProtocol() — protocole hostile neutralisé');
   const mp=A.migrateProtocol({id:'__proto__',title:'<b>x</b>',body:42,category:'c a t',
-    images:[{id:'i',data:'javascript:alert(1)'}],attachments:[{id:'ok-1',name:'d.pdf',size:9},{id:'bad id'}]});
+    images:[{id:'i',data:'javascript:alert(1)'}],docs:[{id:'ok-1',name:'d.pdf',size:9},{id:'bad id'}]});
   ok('id __proto__ remplacé', mp.id!=='__proto__');
   eq('body coercé en chaîne', mp.body, '42');
   eq('catégorie invalide vidée', mp.category, '');
   eq('image javascript: supprimée', mp.images, []);
-  eq('attachments filtrés', mp.attachments, [{id:'ok-1',name:'d.pdf',size:9}]);
-  eq('statut par défaut', mp.status, '');
+  eq('attachments filtrés', mp.docs, [{id:'ok-1',name:'d.pdf',size:9}]);
+  eq('statut par défaut', mp.status, 'validated');
   ok('updatedAt posé', typeof mp.updatedAt==='number');
   eq('blankProtocol : modèle complet', Object.keys(A.blankProtocol()).sort(),
-     ['attachments','body','category','code','deletedAt','id','images','libraryId','order','ownerId','references','related','status','title','updatedAt','updatedBy','validation'].sort());
+     ['body','category','code','deletedAt','docs','id','images','library','order','ownerId','sources','links','status','title','updatedAt','updatedBy','validatedAt'].sort());
 
   group('attBuf() — formats de stockage des documents (ArrayBuffer courant, Blob historique)');
   ok('format courant {buf:ArrayBuffer} accepté', A.attBuf({buf:new ArrayBuffer(4)})!==null);
@@ -725,10 +742,10 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   eq('absent -> null', A.attBuf(null), null);
 
   group('migrate() — champ attachments');
-  eq('absent → tableau vide', A.migrate({title:'x'}).attachments, []);
-  eq('non-tableau → tableau vide', A.migrate({title:'x',attachments:'zzz'}).attachments, []);
-  eq('entrées invalides filtrées', A.migrate({title:'x',attachments:[{id:'__proto__'},null,'s',{id:'ok-1',name:'d.pdf',size:9}]}).attachments, [{id:'ok-1',name:'d.pdf',size:9}]);
-  ok('plafonné à MAX_ATT_PER_ENTITY', A.migrate({title:'x',attachments:Array.from({length:99},(_,i)=>({id:'a'+i,name:'d',size:1}))}).attachments.length<=A.MAX_ATT_PER_ENTITY);
+  eq('absent → tableau vide', A.migrate({title:'x'}).docs, []);
+  eq('non-tableau → tableau vide', A.migrate({title:'x',docs:'zzz'}).docs, []);
+  eq('entrées invalides filtrées', A.migrate({title:'x',docs:[{id:'__proto__'},null,'s',{id:'ok-1',name:'d.pdf',size:9}]}).docs, [{id:'ok-1',name:'d.pdf',size:9}]);
+  ok('plafonné à MAX_ATT_PER_ENTITY', A.migrate({title:'x',docs:Array.from({length:99},(_,i)=>({id:'a'+i,name:'d',size:1}))}).docs.length<=A.MAX_ATT_PER_ENTITY);
 
   group('ZIP — export/import « avec documents » (v4.5.0)');
   const zEnc=new TextEncoder();
@@ -755,11 +772,11 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   group('Vue d’ensemble du mode crise (v4.6.0) — flowOrder / latestPass / offPathSet / minimapData');
   // Gabarit : A (étapes) → D (décision : Oui→S, Non→R), R (étapes) → D (boucle), S terminal, X orphelin.
   const ovF={start:'A',blocks:[
-    {id:'A',type:'steps',title:'Actions',steps:['⚠ un','deux'],next:'D'},
-    {id:'D',type:'decision',title:'Amélioration ?',question:'?',options:[{label:'Oui',target:'S'},{label:'Non',target:'R'}]},
-    {id:'S',type:'steps',title:'Surveillance',steps:['s1','s2'],next:null},
-    {id:'R',type:'steps',title:'Pas de réponse',steps:['r1'],next:'D'},
-    {id:'X',type:'steps',title:'Orphelin',steps:['x1'],next:null}]};
+    {id:'A',kind:'do',title:'Actions',items:['⚠ un','deux'].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),next:'D'},
+    {id:'D',kind:'decision',title:'Amélioration ?',question:'?',options:[{label:'Oui',target:'S'},{label:'Non',target:'R'}]},
+    {id:'S',kind:'do',title:'Surveillance',items:['s1','s2'].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),next:null},
+    {id:'R',kind:'do',title:'Pas de réponse',items:['r1'].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),next:'D'},
+    {id:'X',kind:'do',title:'Orphelin',items:['x1'].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),next:null}]};
   eq('flowOrder : BFS depuis start, orphelin en fin', A.flowOrder(ovF), ['A','D','S','R','X']);
   eq('flowOrder : start invalide → repli sur le premier bloc', A.flowOrder({start:'zz',blocks:ovF.blocks}), ['A','D','S','R','X']);
   eq('flowOrder : boucle sans doublon ni blocage', A.flowOrder({start:'R',blocks:ovF.blocks}), ['R','D','S','A','X']);
@@ -805,11 +822,11 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   eq('ovPresList : repli manuel d’un incomplet → ligne d’état, jamais chip', P([[false,true],[true,null]])[0], 'line');
   // flowPlan (v4.10.0) : arbre indenté avec point de convergence (post-dominateur).
   const pl1=A.flowPlan({start:'A',blocks:[
-    {id:'A',type:'steps',steps:['a'],next:'D1',title:'A'},
-    {id:'D1',type:'decision',title:'D1',options:[{label:'Oui',target:'B'},{label:'Non',target:'C'}]},
-    {id:'B',type:'steps',steps:['b'],next:'E',title:'B'},
-    {id:'C',type:'steps',steps:['c'],next:'E',title:'C'},
-    {id:'E',type:'steps',steps:['e'],next:null,title:'E'}]});
+    {id:'A',kind:'do',items:['a'].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),next:'D1',title:'A'},
+    {id:'D1',kind:'decision',title:'D1',options:[{label:'Oui',target:'B'},{label:'Non',target:'C'}]},
+    {id:'B',kind:'do',items:['b'].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),next:'E',title:'B'},
+    {id:'C',kind:'do',items:['c'].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),next:'E',title:'C'},
+    {id:'E',kind:'do',items:['e'].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),next:null,title:'E'}]});
   eq('flowPlan : ordre de lecture (branches puis tronc)', pl1.order, ['A','D1','B','C','E']);
   ok('flowPlan : le TRONC reprend au point de convergence (E à la racine, pas dans une branche)',
     pl1.items.some(it=>it.k==='block'&&it.id==='E'&&it.depth===0));
@@ -858,14 +875,14 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
 
   group('Complications « à tout moment » (v4.26.0)');
   {const f=A.migrate({title:'Sédation',blocks:[
-     {id:'b1',type:'steps',title:'Sédation titrée',steps:['Titration'],next:null},
-     {id:'cx1',type:'steps',title:'Laryngospasme',steps:['⚠ PPC + subluxation'],next:null}],
+     {id:'b1',kind:'do',title:'Sédation titrée',items:['Titration'].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),next:null},
+     {id:'cx1',kind:'do',title:'Laryngospasme',items:['⚠ PPC + subluxation'].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),next:null}],
      start:'b1',
-     complications:[{label:'Laryngospasme',target:'cx1'},{label:'ACR',target:'fiche_acr_01'},
+     excursions:[{label:'Laryngospasme',target:'cx1'},{label:'ACR',target:'fiche_acr_01'},
        {label:'',target:'cx1'},{label:'Sans cible',target:''},{label:'Injection',target:'x"><script>'},'pasunobjet']});
-   eq('migrate : rangées valides conservées, invalides rejetées', f.complications.length, 2);
+   eq('migrate : rangées valides conservées, invalides rejetées', f.excursions.length, 2);
    eq('migrate : une cible invalide (id non sûr) est REJETÉE, jamais régénérée',
-     f.complications.map(c=>c.label).join(','), 'Laryngospasme,ACR');
+     f.excursions.map(c=>c.label).join(','), 'Laryngospasme,ACR');
    const all=A.cxAll(f);
    eq('cxAll : nature résolue — bloc de la fiche vs référence externe',
      all.map(c=>c.kind).join(','), 'block,ext');
@@ -875,13 +892,13 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
      A.flowPlan(f).order.indexOf('cx1')<0);
    ok('flowPlan : le tronc, lui, est numéroté normalement', A.flowPlan(f).order.indexOf('b1')===0);}
   {const f2=A.migrate({title:'X',blocks:[
-     {id:'b1',type:'steps',title:'A',steps:['a'],next:'cx1'},
-     {id:'cx1',type:'steps',title:'B',steps:['b'],next:null}],start:'b1',
-     complications:[{label:'B direct',target:'cx1'}]});
+     {id:'b1',kind:'do',title:'A',items:['a'].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),next:'cx1'},
+     {id:'cx1',kind:'do',title:'B',items:['b'].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),next:null}],start:'b1',
+     excursions:[{label:'B direct',target:'cx1'}]});
    ok('un bloc cible AUSSI atteint par la séquence garde son numéro (pas de trou dans le tronc)',
      A.flowPlan(f2).order.indexOf('cx1')>=0);
    eq('cxDetached : rien à détacher quand la cible est dans le tronc', A.cxDetached(f2).length, 0);}
-  {const f3=A.migrate({title:'Sans',blocks:[{id:'b1',type:'steps',title:'A',steps:['a'],next:null}],start:'b1'});
+  {const f3=A.migrate({title:'Sans',blocks:[{id:'b1',kind:'do',title:'A',items:['a'].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),next:null}],start:'b1'});
    eq('fiche sans champ : défaut [], aucun bouton', A.cxAll(f3).length, 0);}
 
   group('Repères posologiques — rapprochement RÉSILIENT (v4.23.0)');
@@ -959,6 +976,63 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    // (c) Non-régression du chemin normal : une archive intacte reste lisible après ces gardes.
    eq('l’archive intacte reste lisible (aucune borne déclenchée à tort)',
      (await A.zipParse(z)).length, 3);}
+
+  /* ═══ ENTRÉES DE FICHIER — LA TABLE ET SES SIGNATURES (v5.0.0) ═══════════════════════════
+     Ces fonctions sont la SEULE chose qui distingue un champ d'un autre : l'`accept` d'un
+     `<input>` est une indication donnée au sélecteur de fichier, jamais une garantie — il ne
+     survit ni à un renommage ni à un glisser-déposer. Ce qui suit est donc le contrôle réel. */
+  group('Entrées de fichier — signatures et table fermée (v5.0.0)');
+  {const B=a=>new Uint8Array(a);
+   const A2=t=>{const o=[];for(let i=0;i<t.length;i++)o.push(t.charCodeAt(i));return B(o);};
+   // Images : la signature, jamais l'extension ni le type déclaré.
+   eq('PNG reconnu', A.imgKind(B([0x89,0x50,0x4E,0x47,0x0D,0x0A,0x1A,0x0A,0,0,0,13])), 'png');
+   eq('JPEG reconnu', A.imgKind(B([0xFF,0xD8,0xFF,0xE0,0,16])), 'jpeg');
+   eq('WebP reconnu', A.imgKind(B([0x52,0x49,0x46,0x46,0,0,0,0,0x57,0x45,0x42,0x50])), 'webp');
+   eq('GIF reconnu', A.imgKind(A2('GIF89a....')), 'gif');
+   // HEIC : c'est le format de la photothèque iPhone, donc de la cible principale déclarée.
+   // Une liste blanche qui l'oublierait casserait « joindre une photo » sur iOS, en silence.
+   eq('HEIC reconnu (photothèque iPhone)', A.imgKind(B([0,0,0,0x18,0x66,0x74,0x79,0x70,0x68,0x65,0x69,0x63])), 'heic');
+   eq('HEIF « mif1 » reconnu', A.imgKind(B([0,0,0,0x18,0x66,0x74,0x79,0x70,0x6D,0x69,0x66,0x31])), 'heic');
+   // Le SVG est le SEUL format image porteur de contenu actif, et le seul à pouvoir n'avoir
+   // aucune dimension intrinsèque (canvas 0×0). `accept="image/*"` l'admettait.
+   eq('SVG refusé', A.imgKind(A2('<svg xmlns="http://www.w3.org/2000/svg">')), null);
+   eq('un PDF n’est pas une image', A.imgKind(A2('%PDF-1.7')), null);
+   eq('octets vides : aucun format', A.imgKind(B([])), null);
+
+   // Données : le zip a une signature, le JSON n'en a pas — on lit sa tête.
+   eq('ZIP reconnu', A.dataKind(B([0x50,0x4B,3,4,20,0])), 'zip');
+   eq('JSON objet reconnu', A.dataKind(A2('{"version":3}')), 'json');
+   eq('JSON tableau reconnu', A.dataKind(A2('[{"id":1}]')), 'json');
+   eq('JSON précédé de blancs reconnu', A.dataKind(A2('\n\t  {"a":1}')), 'json');
+   eq('JSON avec BOM reconnu', A.dataKind(B([0xEF,0xBB,0xBF,0x7B,0x22,0x61,0x22])), 'json');
+   // Le prompt IA produit des clôtures ``` que stripJsonFences retire ensuite : la tête doit
+   // donc les accepter, sinon une génération recopiée fidèlement serait refusée à la porte.
+   eq('bloc de code ``` accepté (le prompt IA en produit)', A.dataKind(A2('```json\n{"a":1}')), 'json');
+   eq('un PDF renommé .json est refusé', A.dataKind(A2('%PDF-1.7')), null);
+   eq('du texte libre est refusé', A.dataKind(A2('bonjour')), null);
+
+   // Détection croisée : c'est elle qui ROUTE un fichier déposé n'importe où dans un éditeur.
+   eq('routage : PDF', A.upDetect(A2('%PDF-1.4')), 'pdf');
+   eq('routage : image', A.upDetect(B([0x89,0x50,0x4E,0x47,0x0D,0x0A,0x1A,0x0A])), 'image');
+   eq('routage : données', A.upDetect(A2('{"fiches":[]}')), 'data');
+   eq('routage : rien de connu', A.upDetect(A2('bonjour')), null);
+
+   // LA TABLE : accept, sniff et plafond indissociables — c'est ce qui empêche l'accept affiché
+   // et la vérification faite de diverger, la panne silencieuse que ce chantier corrige.
+   const kinds=Object.keys(A.UP_KINDS);
+   eq('trois natures, pas une de plus', kinds.sort(), ['data','image','pdf']);
+   ok('chaque nature porte accept + sniff + plafond',
+     kinds.every(k=>{const K=A.UP_KINDS[k];return K.accept&&typeof K.sniff==='function'&&K.max>0;}));
+   ok('aucun accept fourre-tout',
+     !kinds.some(k=>/image\/\*|\*\/\*/.test(A.UP_KINDS[k].accept)));
+   ok('chaque nature nomme ce qu’elle accepte (la zone le montre à l’écran)',
+     kinds.every(k=>A.UP_KINDS[k].un&&A.UP_KINDS[k].ind));
+
+   // Nom de fichier montré dans un refus : borné, sans séparateur de chemin (safeFileName).
+   eq('nom long tronqué', A.upShortName('a'.repeat(80)).length, 42);
+   eq('nom vide : formule neutre', A.upShortName(''), 'ce fichier');
+   ok('séparateurs de chemin retirés', A.upShortName('../../etc/passwd').indexOf('/')<0,
+     A.upShortName('../../etc/passwd'));}
 
   group('Code QR — encodeur du code d’appariement');
   // LA TABLE RECOUPÉE PAR LA GÉOMÉTRIE. Le seul tableau recopié de l'encodeur, ce sont 20 nombres
@@ -1042,12 +1116,12 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   {const f=A.migrate(A.blankFiche());
    f.title='ACR';f.blocks[0].steps=['Adrénaline 1 mg'];f.blocks[0].image='i1';
    f.images=[{id:'i1',data:'data:image/png;base64,AAAA',w:10,h:10,caption:'',scale:100}];
-   f.ownerId='u1';f.libraryId='lib1';
+   f.ownerId='u1';f.library='lib1';
    const p=A.sharePayload(f);
-   ok('le gabarit local (téléphones) ne part pas',p.localInfo===undefined);
+   ok('le gabarit local (téléphones) ne part pas',p.local===undefined);
    ok('les images ne partent pas',p.images===undefined);
-   ok('les documents joints ne partent pas',p.attachments===undefined);
-   ok('propriétaire et bibliothèque ne partent pas',p.ownerId===undefined&&p.libraryId===undefined);
+   ok('les documents joints ne partent pas',p.docs===undefined);
+   ok('propriétaire et bibliothèque ne partent pas',p.ownerId===undefined&&p.library===undefined);
    ok('le contenu clinique part bien',p.title==='ACR'&&p.blocks[0].steps[0]==='Adrénaline 1 mg');
    ok('la référence d’image d’un bloc est retirée (sinon elle pendrait dans le vide)',
      p.blocks[0].image===undefined);
@@ -1089,8 +1163,10 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   // serait un mouvement non commandé. flowEnded, lui, est un état de SESSION et doit voyager.
   ok('flowEnded voyage (sinon les deux écrans divergent sur « algorithme terminé »)',
     A.SHARE_TRAVELS.indexOf('flowEnded')>=0);
-  ok('le repli, la passe de vérification et la position du lecteur restent locaux',
-    ['confOpen','ovFold','ovVerify','readerI'].every(k=>A.SHARE_LOCAL.indexOf(k)>=0));
+  /* `readerI` est parti avec le mode lecteur (lot T14, v5.0.0) : l'invariant porte sur ce qui
+     RESTE — un état d'AFFICHAGE ne voyage pas. */
+  ok('le repli et la passe de vérification restent locaux',
+    ['confOpen','ovFold','ovVerify'].every(k=>A.SHARE_LOCAL.indexOf(k)>=0));
   ok('les deux listes sont disjointes',A.SHARE_TRAVELS.every(k=>A.SHARE_LOCAL.indexOf(k)<0));
 
   // Pli du journal : déterministe, et l'annexe d'un détaché n'entre JAMAIS dans l'état.
@@ -1351,7 +1427,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   // 48 sur une fiche de 8 blocs à 6 étapes, sans un message. On garde ce qu'on a reçu et on lève
   // un drapeau : échouer bruyamment, jamais deviner.
   {const f=A.migrate(A.blankFiche());
-   const b2={id:'b2',type:'steps',title:'Second',steps:['x'],next:null};
+   const b2={id:'b2',kind:'do',title:'Second',items:['x'].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),next:null};
    f.blocks.push(b2);
    const sess={nav:[f.blocks[0].id,'b2'],navSeq:[7],checked:{}};
    const loc=A.buildRuntime(f,sess);
@@ -1557,7 +1633,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
       timers:[{id:'t1',label:'Cycle RCP'}],
       counters:[{id:'c1',label:'Choc'}],
       posology:['Adrénaline IV : 1 mg'],
-      blocks:[{id:'b1',steps:['⚠ Adrénaline 1 mg IV : toutes les 4 min','Masser']}]};
+      blocks:[{id:'b1',items:['⚠ Adrénaline 1 mg IV : toutes les 4 min','Masser'].map(x=>A.v4MakeItem(A.uid('i'),'do',x))}]};
     const TAGS=[{k:'mru',l:'Médecin régulateur',a:['mru','regul']}];
 
     eq('un compteur se résout depuis la fiche',A_.tagLabel({type:'counter',id:'c1',v:3},F,[]),'Choc n° 3');
@@ -1698,6 +1774,39 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
     A.shareCodeFromHash('#j=K7M2P4QO')===null);
   ok('aucun fragment : rien',A.shareCodeFromHash('')===null);
 
+  group('Import — normaliser la racine (v3 « fiches » / v4 « aids »)');
+  {
+    /* Signalé à l'usage : « .zip ou .json de v4 → Fichier illisible ». Mesuré sur un export
+       RÉEL de 18 aides — la racine v4 porte `aids`, l'import exigeait `fiches`. Le fichier
+       était parfaitement valide ; c'est une clé qui manquait. */
+    const aide={id:'a1',kind:'procedure',title:'A'}, ref={id:'p1',kind:'reference',title:'R',body:'x'};
+    const r1=A.normalizeImport({version:4,categories:[],aids:[aide,ref]});
+    eq('« aids » devient « fiches »',(r1.fiches||[]).length,1);
+    eq('… et une kind:reference part dans « protocols »',(r1.protocols||[]).length,1);
+    eq('… la clé « aids » ne survit pas',r1.aids,undefined);
+    /* Le SECOND défaut était silencieux : `migrate()` force kind:'procedure', donc une
+       référence laissée dans `fiches` serait devenue une aide VIDE, sans un message. */
+    /* ⚠ JAMAIS D'ACCÈS NU dans un test : `r1.protocols[0].id` LÈVE quand le correctif est
+       absent, run() s'arrête et la suite entière perd son résumé — un test qui plante en
+       emporte cinquante. On veut un ROUGE lisible, pas une exception. */
+    eq('la référence garde son identité',((r1.protocols||[])[0]||{}).id,'p1');
+    const r2=A.normalizeImport({version:3,categories:[],fiches:[aide],protocols:[ref]});
+    eq('un export v3 est inchangé (fiches)',(r2.fiches||[]).length,1);
+    eq('un export v3 est inchangé (protocols)',(r2.protocols||[]).length,1);
+    /* Les deux formes coexistent : un fichier qui porterait les deux clés ne perd rien. */
+    const r3=A.normalizeImport({fiches:[aide],aids:[{id:'z',kind:'procedure'}]});
+    eq('« fiches » présent : il fait foi, « aids » est ignoré',(r3.fiches||[]).length,1);
+    eq('… et rien n’est inventé',r3.fiches[0].id,'a1');
+    /* Entrées dégénérées : la fonction ne doit jamais lever — c'est `readImportFile` qui
+       décide du message, pas elle. */
+    eq('null ne lève pas',(A.normalizeImport(null).fiches||[]).length,0);
+    eq('un objet sans liste passe tel quel',A.normalizeImport({x:1}).fiches,undefined);
+    /* Un fichier ne contenant QUE des références reste importable (0 aide, n références). */
+    const r4=A.normalizeImport({version:4,aids:[ref,{id:'p2',kind:'reference'}]});
+    eq('que des références : 0 aide',(r4.fiches||[]).length,0);
+    eq('… et 2 protocoles',(r4.protocols||[]).length,2);
+  }
+
   group('Journal des actions — repères référentiels');
   {const f={counters:[{id:'c1',label:'Chocs'},{id:'c2',label:'Adrénaline'}]};
    const ev=[
@@ -1752,6 +1861,122 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
     A.shareCan('scribe','mark_void'));
   ok('mais décocher reste réservé au lead (geste destructeur)',!A.shareCan('scribe','uncheck'));
   eq('l’annulation s’applique en direct, par chirurgie',A.shareApplyMode('mark_void'),'live');
+
+  /* ===== T1 (v5.0.0) — L'INTÉGRITÉ DU COMPTE RENDU =====
+     Le défaut mesuré : une clé de cochage vaut « visite:bloc:INDEX », et le compte rendu la
+     résolvait contre la fiche ACTUELLE. Éditer la fiche après coup faisait donc nommer LE MAUVAIS
+     GESTE dans un enregistrement de soin. Ces témoins vérifient les trois moitiés du correctif :
+     la dérive existe bel et bien, le texte archivé la neutralise, et le repli reste. */
+  {
+    const mk=()=>A.migrate({id:'f1',title:'ACR',start:'b1',blocks:[
+      {id:'b1',kind:'do',title:'Mesures immédiates',items:[
+        'Retirer / arrêter l’allergène','Appeler à l’aide','⚠ Adrénaline IM, cuisse :: 0,5 mg'].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),next:null}]});
+    const cle='1:b1:2';
+
+    // 1. LE DÉFAUT EXISTE — sans texte archivé, la clé suit l'INDEX et désigne autre chose.
+    const f=mk();
+    eq('sans archive, la clé désigne l’étape attendue',
+       A.stepTextFromKey(f,cle).step,'⚠ Adrénaline IM, cuisse :: 0,5 mg');
+    A.bItemAdd(f.blocks[0],0,A.v4MakeItem(A.uid('i'),'do','Mettre des gants'));   // un seul geste d’éditeur
+    eq('après insertion, la MÊME clé désigne une AUTRE étape (le défaut)',
+       A.stepTextFromKey(f,cle).step,'Appeler à l’aide');
+
+    // 2. LE CORRECTIF — la session porte le texte, et il fait foi.
+    const snap={stepTexts:{'1:b1:2':{b:'Mesures immédiates',s:'⚠ Adrénaline IM, cuisse :: 0,5 mg'}}};
+    eq('avec le texte archivé, la clé désigne le geste RÉELLEMENT fait',
+       A.stepTextFromKey(f,cle,snap).step,'⚠ Adrénaline IM, cuisse :: 0,5 mg');
+    eq('et le bloc archivé aussi',A.stepTextFromKey(f,cle,snap).block,'Mesures immédiates');
+    ok('le texte archivé est marqué comme tel',A.stepTextFromKey(f,cle,snap).archived===true);
+
+    // 3. LE REPLI — une session archivée AVANT le correctif n'a pas de stepTexts : la fiche sert.
+    ok('sans stepTexts, on retombe sur la fiche (sessions antérieures)',
+       A.stepTextFromKey(f,cle,{}).step==='Appeler à l’aide');
+    ok('une clé inconnue de l’archive retombe aussi sur la fiche',
+       A.stepTextFromKey(f,'1:b1:0',snap).step==='Mettre des gants');
+  }
+  /* Le texte clinique ne monte JAMAIS vers le serveur : même règle que la trace do-verify. */
+  {
+    const row=A.sessionToRow({id:'s1',savedAt:1,checked:{'1:b1:2':true},
+      stepTexts:{'1:b1:2':{b:'Bloc',s:'⚠ Adrénaline IM'}},verified:{},vgaps:{}},'u1');
+    ok('stepTexts ne quitte pas l’appareil',!row.data.stepTexts);
+    ok('et il n’entre pas non plus dans la charge de PARTAGE',
+       !('stepTexts' in A.shareSnap({checked:{},timers:{},counters:{},nav:[],navSeq:[],events:[]},false)));
+    ok('et son absence est DITE, pas taue',row.data.vElsewhere===true);
+    eq('les coches, elles, montent normalement',Object.keys(row.data.checked).length,1);
+  }
+  /* ===== ÉTAPE B — LE POOL ================================================================ */
+  /* Fixture v3 conservée : elle décrit une aide telle qu'un utilisateur l'écrivait avant
+     la v5, et c'est exactement ce que `migrate` doit encore savoir NORMALISER — la conversion
+     de FORMAT, elle, a quitté l'application (étape D). */
+  const v3={id:'a1',title:'Anaphylaxie',discriminant:'adulte',code:'ANA',category:'c1',
+    library:'lib7',status:'review',validatedAt:'2025-03',local:'Tél : 15',
+    confirmation:['Œdème + hypotension'],
+    notForget:['⚠ Retirer l’allergène','Position allongée'],
+    verify:['△ Récidive à 6 h'],posology:['△ Adrénaline 0,5 mg IM'],
+    differentials:['Choc septique'],sources:['SFAR 2016'],
+    excursions:[{label:'Bronchospasme',target:'bx'}],
+    links:['p2'],docs:[{id:'at1',name:'d.pdf',size:9}],
+    images:[{id:'g1'}],timers:[{label:'Réévaluation',seconds:300}],counters:[{label:'Doses'}],
+    blocks:[{id:'b1',kind:'do',title:'Immédiat',items:['⚠ Adrénaline IM :: 0,5 mg','Oxygène'].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),image:null,next:'b2'},
+            {id:'b2',kind:'decision',title:'Réponse ?',question:'Amélioration ?',
+             options:[{label:'Oui',target:'b1'},{label:'Non',target:'b1'}],items:[].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),image:null,next:null},
+            {id:'bx',kind:'do',title:'Bronchospasme',items:['Salbutamol'].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),image:null,next:null}],
+    start:'b1',order:42,
+    champInconnuDuFutur:{quoi:'ajouté après ce lot'}};
+  {const m=A.migrate(JSON.parse(JSON.stringify(v3)));
+   ok('pool · les cinq listes v3 ne sont PLUS des champs',
+      m.confirmation===undefined&&m.verify===undefined&&m.posology===undefined
+      &&m.notForget===undefined&&m.differentials===undefined);
+   ok('pool · … mais elles se LISENT toujours comme des listes',
+      A.listOf(m,'confirmation').length===1&&A.listOf(m,'verify').length===1
+      &&A.listOf(m,'posology').length===1&&A.listOf(m,'differentials').length===1
+      &&A.listOf(m,'notForget').length===2);
+   ok('pool · `references` reste un CHAMP (métadonnée, pas un rôle)',Array.isArray(m.sources));
+   /* L'INVARIANT QUI TIENT TOUT : aucun item du pool n'est orphelin, aucun id de bloc ne pend. */
+   const ids=new Set((m.items||[]).map(i=>i.id));
+   ok('pool · chaque id cité par un bloc existe dans le pool',
+      (m.blocks||[]).every(b=>(b.items||[]).every(id=>ids.has(id))));
+   const cites=new Set();(m.blocks||[]).forEach(b=>(b.items||[]).forEach(id=>cites.add(id)));
+   ok('pool · et tout item non cité a un rôle de portée FICHE (ou une étoile)',
+      (m.items||[]).every(it=>cites.has(it.id)||it.role!=='do'||it.memory));
+   /* `bItems` REND UNE COPIE : c'est le piège de l'étape, donc il se mesure. */
+   const b0=m.blocks[0],avant=A.bItems(b0).length;
+   A.bItems(b0).splice(0,1);
+   eq('pool · muter la copie rendue par bItems ne change RIEN',A.bItems(b0).length,avant);
+   A.bItemAdd(b0,0,A.newStepItem('Neuve'));
+   eq('pool · … seul bItemAdd ajoute',A.bItems(b0).length,avant+1);
+   eq('pool · … et l’item entre AUSSI dans le pool',(m.items||[]).filter(i=>i.do==='Neuve').length,1);
+   A.bItemDel(b0,0);
+   eq('pool · bItemDel retire des deux côtés',
+      A.bItems(b0).length+':'+(m.items||[]).filter(i=>i.do==='Neuve').length,avant+':0');
+   /* Déplacer entre blocs ne recrée rien : l'identité est le point du modèle. */
+   const b1=m.blocks.find(x=>x.id!==b0.id&&Array.isArray(x.items)&&x.kind!=='decision')||m.blocks[2];
+   if(b1){const idAv=b0.items[0],n0=(m.items||[]).length;
+     A.bItemMove(b0,0,b1,0);
+     eq('pool · déplacer entre blocs ne touche pas au pool',(m.items||[]).length,n0);
+     eq('pool · … et l’identité suit',b1.items[0],idAv);}}
+
+
+  /* ===== LOT T7 — ★ MÉMOIRE : UN MEMORY ITEM EST UN ITEM DE LA LISTE ======================== */
+  {const m=A.migrate(JSON.parse(JSON.stringify(v3)));
+   const n0=A.forgetAll(m).length;
+   eq('★ · sans étoile, le chapeau vaut exactement notForget',n0,A.listOf(m,'notForget').length);
+   A.bItems(m.blocks[0])[1].memory=true;
+   eq('★ · une étoile ajoute UNE ligne au chapeau',A.forgetAll(m).length,n0+1);
+   ok('★ · … et cette ligne est le texte de l’étape',
+      A.forgetAll(m).some(x=>x.indexOf(A.bItems(m.blocks[0])[1].do)>=0));
+   /* LA PROPRIÉTÉ QUI FAIT LA DOCTRINE : l'item RESTE dans son bloc. Un memory item se récite de
+      mémoire AVANT d'agir, puis se re-vérifie à sa place dans la checklist (QRH). */
+   ok('★ · l’item RESTE dans son bloc (il n’est pas déplacé)',
+      A.bItems(m.blocks[0]).filter(i=>i.memory).length===1&&A.bItems(m.blocks[0]).length>=2);
+   ok('★ · le contexte d’origine est donné',
+      A.memItemsOf(m).every(x=>!!x.src));
+   /* Une décision n'a pas d'items : le calcul ne doit pas s'y perdre. */
+   ok('★ · un bloc de décision n’apporte rien au chapeau',
+      A.memItemsOf({blocks:[{id:'d1',kind:'decision',options:[],items:[].map(x=>A.v4MakeItem(A.uid('i'),'do',x))}]}).length===0);
+   eq('★ · une fiche sans bloc ne fait pas tomber le calcul',A.forgetAll({}).length,0);}
+  /* (Les trois témoins d'aller-retour v3 ⇄ v4 sont partis avec la conversion — étape D, règle 14 :
+     une suppression emporte ce qui la mesurait. Ce que ★ garantit est mesuré ci-dessus.) */
 }
 
 // Ouvert en double-cliquant le fichier (file://) : le navigateur isole les iframes (origine
@@ -1773,7 +1998,7 @@ document.getElementById('app').addEventListener('load',async()=>{
     await run(A);
     s.className=fail?'ko':'ok';
     s.textContent=(fail?'✗ ':'✓ ')+pass+' réussis, '+fail+' échoués.';
-  }catch(e){s.className='ko';s.textContent=(String(e.message).indexOf('cross-origin')>=0?FILE_HELP:'Erreur d’exécution des tests : '+e.message);}
+  }catch(e){s.className='ko';s.textContent=(String(e.message).indexOf('cross-origin')>=0?FILE_HELP:'Erreur d’exécution des tests : '+e.message+' | '+String(e.stack||'').split(String.fromCharCode(10)).slice(0,4).join(' « ').slice(0,600));}
 });
 </script>
 </body>

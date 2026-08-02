@@ -44,6 +44,11 @@ const EXEMPT_RGB = new Set([
   '242,176,28',       // .alert-toast : halo de la pulsation (toastPulse)
 ]);
 
+/* Blocs de tokens, gardés BRUTS pour le contrôle de la barre système plus bas : c'est la seule
+   partie du fichier dont une valeur doive être RELUE, et non seulement autorisée. */
+const rootTokensRaw = (css.match(/:root\{[^}]*\}/) || [])[0];
+const darkTokensRaw = (css.match(/html\[data-theme="dark"\]\{--[^}]*\}/) || [])[0];
+
 const bad = [];
 // Déclarations `prop: valeur` — une couleur littérale n'est admise que si prop commence par `--`.
 const rx = /([{;]\s*)(--?[a-zA-Z][\w-]*|[a-zA-Z-]+)\s*:\s*([^;{}]*)/g;
@@ -68,4 +73,64 @@ if (bad.length) {
   console.error('     l\'ajouter à EXEMPT_RGB avec sa raison.');
   process.exit(1);
 }
-console.log('✓ check-colors : aucune couleur littérale hors déclaration de token (hex, rgb, hsl).');
+
+/* ═══ LA BARRE SYSTÈME (v5.0.0, audit) ═══════════════════════════════════════════════════════
+   CE CONTRÔLE EXISTE PARCE QUE LE PRÉCÉDENT S'ARRÊTAIT AU <style>, ET QUE LA FUITE ÉTAIT DEHORS.
+   `themeColorCurrent()` et le script de boot peignent la barre d'état du téléphone avec deux hex
+   ÉCRITS EN CLAIR DANS LE JS. Ils valaient `--bg` à l'écriture ; `--bg` sombre est passé de
+   `#121d2b` à `#0a0a0c` en v4.71.0 et personne n'a suivi — pendant six versions, la barre d'état
+   d'un iPhone en thème sombre était peinte d'un bleu marine qui n'existait plus dans la palette,
+   sur 44 px, juste au-dessus de l'annonciateur de mode. Le fichier était vert de bout en bout.
+
+   TROIS PROPRIÉTÉS VÉRIFIÉES, et la troisième est celle qui mord :
+     1. les deux sites (table `THEME_COLOR` et script de boot) portent les MÊMES valeurs — leur
+        désaccord se verrait par un flash de couleur au premier rendu ;
+     2. chaque valeur est un token RÉEL de son thème, pas une couleur inventée ;
+     3. c'est bien `--surface` (décision utilisateur : la barre système prolonge l'EN-TÊTE, qui
+        est en `--surface`, et non la page, qui est en `--bg`). Sans ce troisième point, remettre
+        `--bg` demain repasserait au vert tout en refaisant exactement le défaut d'origine.
+
+   LE RESTE DES LITTÉRAUX DU JS N'EST PAS INSPECTÉ, ET C'EST MOTIVÉ : ce sont des copies FIGÉES,
+   pas des suiveurs de token. `PALETTE`/`defaultCats` (couleurs de CATÉGORIE — hors palette de
+   registres, déjà hors champ par la règle d'origine) ; le CSS de `_reportDoc` (document autonome
+   TÉLÉCHARGEABLE : il doit s'afficher sans l'app, et ne doit surtout pas suivre le thème sombre —
+   un compte rendu s'imprime) ; `buildFlowSVG` (primaire baké clair + contre-inversion sombre,
+   décision v4.7.0). Les exempter en bloc serait laxiste ; les tokeniser casserait leur raison
+   d'être. On nomme donc ce qui DOIT suivre, et on inspecte cela seul. */
+const themeBad = [];
+/* `#fff` et `#ffffff` sont la MÊME couleur : comparer les chaînes ferait échouer le contrôle sur
+   une notation, pas sur une dérive — et un garde-fou qui crie sur ce qui va bien finit ignoré. */
+const hex6 = h => {
+  const s = String(h || '').toLowerCase();
+  return s.length === 4 ? '#' + s[1] + s[1] + s[2] + s[2] + s[3] + s[3] : s;
+};
+const tokenOf = (block, name) => {
+  const m = (block || '').match(new RegExp('--' + name + ':\\s*(#[0-9a-fA-F]{3,8})\\b'));
+  return m ? hex6(m[1]) : null;
+};
+const surfLight = tokenOf(rootTokensRaw, 'surface');
+const surfDark  = tokenOf(darkTokensRaw, 'surface');
+const tableM = html.match(/const THEME_COLOR=\{light:'(#[0-9a-fA-F]{3,8})',dark:'(#[0-9a-fA-F]{3,8})'\}/);
+const bootM  = html.match(/_tc\.setAttribute\('content',\s*_d==='dark'\?'(#[0-9a-fA-F]{3,8})':'(#[0-9a-fA-F]{3,8})'\)/);
+
+if (!surfLight || !surfDark) themeBad.push('token --surface introuvable dans :root ou le bloc sombre');
+if (!tableM) themeBad.push('table THEME_COLOR introuvable (forme attendue : const THEME_COLOR={light:\'#…\',dark:\'#…\'})');
+if (!bootM)  themeBad.push('script de boot : pose de meta[theme-color] introuvable');
+if (tableM && bootM && surfLight && surfDark) {
+  const t = { light: hex6(tableM[1]), dark: hex6(tableM[2]) };
+  const b = { light: hex6(bootM[2]),  dark: hex6(bootM[1])  };
+  for (const th of ['light', 'dark']) {
+    const want = th === 'light' ? surfLight : surfDark;
+    if (t[th] !== b[th]) themeBad.push(`${th} : THEME_COLOR (${t[th]}) ≠ script de boot (${b[th]}) — flash au premier rendu`);
+    else if (t[th] !== want) themeBad.push(`${th} : barre système ${t[th]} ≠ --surface ${want} (la barre prolonge l'en-tête)`);
+  }
+}
+if (themeBad.length) {
+  console.error('✗ check-colors : la barre système a dérivé de ses tokens.');
+  themeBad.forEach(x => console.error('    ' + x));
+  console.error('  -> aligner THEME_COLOR (index.html) ET le script de boot sur --surface des deux thèmes.');
+  process.exit(1);
+}
+
+console.log('✓ check-colors : aucune couleur littérale hors déclaration de token (hex, rgb, hsl) ;'
+  + ` barre système alignée sur --surface (${surfLight} / ${surfDark}).`);

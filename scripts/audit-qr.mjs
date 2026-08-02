@@ -16,7 +16,7 @@
  * déguiser en échec — mais il ne doit pas non plus se déguiser en réussite : la ligne d'avertissement
  * dit explicitement que la vérification n'a pas eu lieu.
  */
-import { serveApp, moteur, NOM_MOTEUR, ROOT } from './harness.mjs';
+import { serveApp, moteur, NOM_MOTEUR, ROOT, amorce } from './harness.mjs';
 import { execFileSync } from 'node:child_process';
 import { writeFileSync, mkdtempSync } from 'node:fs';
 import { join } from 'node:path';
@@ -126,12 +126,8 @@ for (const [w, h, theme] of [[320, 568, 'light'], [390, 844, 'light'], [390, 844
   const p = await br.newPage({ viewport: { width: w, height: h }, colorScheme: theme,
     deviceScaleFactor: 2 });
   await p.goto(`http://localhost:${port}/index.html`);
-  await p.waitForFunction(() => !document.querySelector('.boot-load'));
+  await amorce(p);
   await p.evaluate(async () => {
-    const b = [...document.querySelectorAll('button')].find(x => /Commencer/.test(x.textContent)); if (b) b.click();
-    await new Promise(r => setTimeout(r, 120));
-    const s = [...document.querySelectorAll('button')].find(x => x.textContent.includes("fiches d'exemple")); if (s) s.click();
-    await new Promise(r => setTimeout(r, 400));
     const f = fiches.find(x => /Arrêt/.test(x.title)) || fiches[0]; openRead(f.id);
     await new Promise(r => setTimeout(r, 300)); document.getElementById('sessStart').click();
     await new Promise(r => setTimeout(r, 300));

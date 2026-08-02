@@ -36,7 +36,8 @@ Durée : ~30 min. Aucune compétence serveur avancée requise.
    |---|---|---|
    | Mise en place | Settings → Pages → branche `main`, racine | glisser-déposer le dossier |
    | CSP | balise `<meta>` d'`index.html` seulement | `<meta>` **et** en-tête HTTP (`_headers`) |
-   | HSTS, `nosniff`, anti-iframe (`X-Frame-Options`) | ✗ non appliqués | ✓ appliqués |
+   | HSTS, `nosniff` | ✗ non appliqués | ✓ appliqués |
+   | Anti-iframe (`X-Frame-Options`, `frame-ancestors`) | ✗ en-tête absent — **compensé dans le document** (v5.0.0) | ✓ en-tête appliqué |
    | `Cache-Control: no-cache` sur `sw.js` | ✗ (cache ~10 min par défaut) | ✓ appliqué |
    | `Cache-Control: no-cache` sur `/` et `/index.html` | ✗ non appliqué | ✓ appliqué |
    | `Referrer-Policy` | ✓ via la balise `<meta name="referrer">` | ✓ en-tête **et** balise |
@@ -46,6 +47,15 @@ Durée : ~30 min. Aucune compétence serveur avancée requise.
    posture complète**. Sur GitHub Pages, accepter explicitement la perte des en-têtes HTTP
    ci-dessus (la mise à jour du service worker reste fonctionnelle : les navigateurs revérifient
    `sw.js` au plus tard toutes les 24 h).
+
+   **L'anti-iframe fait exception depuis la v5.0.0, et c'est le seul en-tête récupéré.** Ce tableau
+   se contentait de constater la perte ; or ce que `frame-ancestors` protège — l'encadrement de
+   l'app dans un site tiers pour faire cliquer autre chose que ce qu'on croit (*clickjacking*) — se
+   rattrape côté document, et l'app était encadrable **en production**, la production déclarée étant
+   GitHub Pages. Un garde en tête d'`index.html` détecte l'encadrement, rend tout le document
+   INERTE (aucun clic ne passe) et affiche la cause. Vérifié dans un vrai iframe de même origine —
+   le pire cas — sur Chromium **et** WebKit. Les autres pertes (HSTS, `nosniff`, `no-cache`) n'ont
+   pas d'équivalent côté document et restent acceptées telles quelles.
 
    **DÉCISION DATÉE (2026-07-27).** La production est **GitHub Pages**, et l'application doit
    **rester déployable ailleurs** (Netlify, Cloudflare Pages, intranet hospitalier HTTPS). Deux

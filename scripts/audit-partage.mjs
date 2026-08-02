@@ -14,7 +14,7 @@
  * verdicts faux, leçon v4.40.0) : la dérive en pixels d'une étape visible pendant qu'un lot
  * d'évènements distants s'applique.
  */
-import { serveApp, moteur, NOM_MOTEUR } from './harness.mjs';
+import { serveApp, moteur, NOM_MOTEUR, amorce } from './harness.mjs';
 
 const { port, srv } = await serveApp();
 const br = await moteur().launch();
@@ -25,14 +25,8 @@ const t = (nom, cond, det) => { if (cond) { ok++; console.log('  ✓ ' + nom); }
 // Bootstrap identique à celui d'audit-doctrine : on passe par les VRAIS points d'entrée.
 async function session(page) {
   await page.goto(`http://localhost:${port}/index.html`);
-  await page.waitForFunction(() => !document.querySelector('.boot-load'));
+  await amorce(page);
   await page.evaluate(async () => {
-    const b = [...document.querySelectorAll('button')].find(x => /Commencer/.test(x.textContent));
-    if (b) b.click();
-    await new Promise(r => setTimeout(r, 120));
-    const s = [...document.querySelectorAll('button')].find(x => x.textContent.includes("fiches d'exemple"));
-    if (s) s.click();
-    await new Promise(r => setTimeout(r, 400));
     const f = fiches.find(x => /Arrêt cardiaque/.test(x.title)) || fiches[0];
     openRead(f.id);
     await new Promise(r => setTimeout(r, 350));
@@ -172,8 +166,12 @@ console.log(`\n══ PARTAGE · un décochage distant ne recompose pas le journ
        On la pose par `migrate` + `Data.put` puis on l'ouvre par `openRead` — le vrai point
        d'entrée, seul à construire le Runtime (leçon v4.40.0). */
     const f = migrate({ id: 'shend', title: 'Fin distante', start: 'b1', blocks: [
-      { id: 'b1', type: 'steps', title: 'Premier', steps: ['a', 'b'], next: 'b2' },
-      { id: 'b2', type: 'steps', title: 'Second', steps: ['c', 'd'], next: null }] });
+      /* ⚠ FIXTURE REMISE À LA FORME RÉELLE (v5.0.0) : elle portait `steps`, la clé v3, qui ne
+         produit plus RIEN depuis l'étape D — les deux blocs étaient VIDES, la sonde ne trouvait
+         aucune étape à cocher et levait une exception, emportant la fin de la chaîne d'audit.
+         Le format v4 écrit les étapes sous `items` (forme abrégée : chaîne, ou objet). */
+      { id: 'b1', kind: 'do', title: 'Premier', items: ['a', 'b'], next: 'b2' },
+      { id: 'b2', kind: 'do', title: 'Second', items: ['c', 'd'], next: null }] });
     await Data.put(f); fiches.push(f);
     openRead(f.id); await new Promise(x => setTimeout(x, 350));
     /* On RE-INTERROGE le DOM entre chaque clic. La PREMIÈRE action d'une session déclenche
@@ -355,13 +353,7 @@ for (const [w, h] of [[320, 568], [390, 844]]) {
   const ctx = await br.newContext({ viewport: { width: w, height: h } });
   const page = await ctx.newPage();
   await page.goto(`http://localhost:${port}/index.html`);
-  await page.waitForFunction(() => !document.querySelector('.boot-load'));
-  await page.evaluate(async () => {
-    const b = [...document.querySelectorAll('button')].find(x => /Commencer/.test(x.textContent)); if (b) b.click();
-    await new Promise(r => setTimeout(r, 120));
-    const s = [...document.querySelectorAll('button')].find(x => x.textContent.includes("fiches d'exemple")); if (s) s.click();
-    await new Promise(r => setTimeout(r, 400));
-  });
+  await amorce(page);
   const r = await page.evaluate(async () => {
     const f = fiches.find(x => /Arrêt cardiaque/.test(x.title)) || fiches[0];
     // Serveur bouchonné : une jointure RÉUSSIE, avec la projection réelle de la fiche.
@@ -440,13 +432,7 @@ for (const [w, h] of [[320, 568], [390, 844]]) {
   const ctx = await br.newContext({ viewport: { width: 390, height: 844 } });
   const page = await ctx.newPage();
   await page.goto(`http://localhost:${port}/index.html`);
-  await page.waitForFunction(() => !document.querySelector('.boot-load'));
-  await page.evaluate(async () => {
-    const b = [...document.querySelectorAll('button')].find(x => /Commencer/.test(x.textContent)); if (b) b.click();
-    await new Promise(r => setTimeout(r, 120));
-    const s = [...document.querySelectorAll('button')].find(x => x.textContent.includes("fiches d'exemple")); if (s) s.click();
-    await new Promise(r => setTimeout(r, 400));
-  });
+  await amorce(page);
   const r = await page.evaluate(async () => {
     const f = fiches.find(x => /Arrêt cardiaque/.test(x.title)) || fiches[0];
     const pousses = [];
@@ -878,13 +864,7 @@ console.log(`\n══ PARTAGE · rejoindre se tape dans la recherche — moteur 
 {
   const page = await br.newPage({ viewport: { width: 390, height: 844 } });
   await page.goto(`http://localhost:${port}/index.html`);
-  await page.waitForFunction(() => !document.querySelector('.boot-load'));
-  await page.evaluate(async () => {
-    const b = [...document.querySelectorAll('button')].find(x => /Commencer/.test(x.textContent)); if (b) b.click();
-    await new Promise(r => setTimeout(r, 120));
-    const s = [...document.querySelectorAll('button')].find(x => x.textContent.includes("fiches d'exemple")); if (s) s.click();
-    await new Promise(r => setTimeout(r, 400));
-  });
+  await amorce(page);
   const r = await page.evaluate(async () => {
     const haut = () => document.getElementById('main').scrollHeight;
     const repos = haut(), sansCode = !document.getElementById('homeJoin');
@@ -1115,8 +1095,26 @@ console.log(`\n══ PARTAGE · le miroir suit quand l'hôte avance — moteur 
        doit bouger d'un pixel. C'est l'ancienne garantie, conservée telle quelle — la nouveauté ne
        vaut que si elle ne coûte pas celle-là. */
     {
-      window.scrollTo(0, 0);
-      await new Promise(x => setTimeout(x, 200));
+      /* ⚠ LE MONTAGE A DÛ ÊTRE REFAIT AU LOT T5 (v5.0.0), et la leçon vaut au-delà de ce
+         contrôle. Il faisait `scrollTo(0,0)` pour signifier « il regarde ailleurs » — ce qui
+         était vrai tant que le journal naissait à ~700 px du haut. Depuis que L'ACTION PASSE
+         DEVANT L'ORIENTATION, le haut de page est précisément le bout du journal : le montage
+         produisait donc l'AUTRE régime, l'application suivait le bord vif comme elle le doit, et
+         le témoin est passé au rouge en accusant un comportement juste (mesuré : 508 px).
+         On ne vise donc plus une POSITION, on vise la PROPRIÉTÉ — le bout doit être hors de vue —
+         et l'on vérifie d'abord que le cas est bien rencontré : un contrôle qui ne rencontre pas
+         son cas ne le couvre pas (leçon v4.31.1, redite ici au prix d'un faux rouge). */
+      window.scrollTo(0, document.documentElement.scrollHeight);   // le plus loin possible du bout
+      await new Promise(x => setTimeout(x, 250));
+      {const nb = [...main.querySelectorAll('.ov-block[data-ovi]')].pop();
+       const q = nb ? nb.getBoundingClientRect() : null;
+       /* LE PRÉDICAT EST CELUI DE L'APPLICATION, pas un « entièrement hors écran » de notre
+          invention : le régime se décide sur « le BOUT était-il sous les yeux », c'est-à-dire son
+          HAUT dans la fenêtre (même test que `boutVisible` ci-dessus et qu'`ovAdvanceRender`).
+          Mesurer autre chose reviendrait à écrire une seconde définition du régime — celle-là
+          même que le dépôt a payé deux fois quand deux critères concurrents ont divergé. */
+       out.ailleursMonte = !!q && !(q.top >= 0 && q.top < window.innerHeight - 4);
+       out.dbg = q ? {top:Math.round(q.top),vh:window.innerHeight,sy:Math.round(window.scrollY)} : null;}
       const cibleB = blocs.find(id => Runtime.nav.indexOf(id) < 0) || blocs[0];
       const tA = main.querySelector('.ov-block');
       const yA = tA ? tA.getBoundingClientRect().top : null;
@@ -1131,25 +1129,47 @@ console.log(`\n══ PARTAGE · le miroir suit quand l'hôte avance — moteur 
       out.scrollAilleurs = Math.round(window.scrollY - scA);
     }
 
-    // ── Lecteur OUVERT : le régime s'inverse.
-    readerOpen();
-    await new Promise(x => setTimeout(x, 350));
-    const navAvantLecteur = Runtime.nav.slice();
-    const cible2 = blocs.find(id => navAvantLecteur.indexOf(id) < 0) || blocs[0];
-    Share.onEvents([{ seq: 12, id: 'n2', actor: 'hote', kind: 'nav',
-      payload: { nav: navAvantLecteur.concat([cible2]),
-                 navSeq: Runtime.navSeq.concat([(Runtime.seq || 1) + 1]) } }]);
-    await new Promise(x => setTimeout(x, 450));
-    out.lecteurRefuse = Runtime.nav.join('|') === navAvantLecteur.join('|');
-    out.banniere = !!document.querySelector('#readerMode [data-rmresume]');
-    out.banniereTexte = (document.querySelector('#readerMode [data-rmresume]') || {}).textContent || '';
+    /* ── LE RÉGIME « deferred » SE DRAINE SUR UN GESTE LOCAL DE NAVIGATION, ET SANS LE LECTEUR.
+       C'est le cas que le défaut laissait passer : `SHARE_APPLY` classe `verify` et `gap` en
+       'deferred', et le SEUL drain était le bouton « reprendre » du mode lecteur. Un invité qui
+       n'ouvre jamais le lecteur ne recevait donc jamais la trace do-verify de l'hôte.
+       LE CONTRÔLE VÉRIFIE D'ABORD QUE LE CAS EST RENCONTRÉ — la file doit être NON VIDE avant le
+       geste local, sinon on mesurerait un drain qui n'a rien à drainer. */
+    {
+      const cle = Object.keys(state.checked || {})[0]
+        || (state.navSeq[state.navPos] + ':' + state.nav[state.navPos] + ':0');
+      Share.onEvents([{ seq: 20, id: 'v1', actor: 'hote', kind: 'verify', payload: { k: cle } }]);
+      await new Promise(x => setTimeout(x, 300));
+      out.filePleine = (Share._defer || []).length;
+      out.avantDrain = !!(Runtime.verified || {})[cle];
+      /* Le geste LOCAL : un « Continuer » ordinaire du journal — pas un bouton du lecteur. */
+      /* On prend un geste de navigation RÉELLEMENT disponible à ce rôle et à cet instant :
+         « Continuer » est `aria-disabled` tant que le bloc n'est pas coché (le libellé le dit),
+         et le cocher entièrement changerait l'état qu'on mesure. « ↺ Refaire » est une
+         navigation locale ouverte à tous les rôles depuis la v4.55.0, et il poste une carte au
+         bout du journal sans rien effacer. */
+      /* IL FAUT CONSTITUER L'ÉTAT OÙ LE GESTE EXISTE. « Continuer » est `aria-disabled` tant que
+         le bloc n'est pas coché — et c'est une information en soi : un scribe au milieu d'un bloc
+         n'a AUCUN geste de navigation disponible, donc la file attend, ce qui est exactement ce
+         que « acquittement par l'action » veut dire. On coche donc les étapes restantes (le
+         cochage est ouvert à tous les rôles) avant de mesurer le drain. */
+      const cartes=[...main.querySelectorAll('.ov-block')];
+      const derniere=cartes[cartes.length-1];
+      if(derniere)[...derniere.querySelectorAll('li[data-ck]')]
+        .filter(li=>li.getAttribute('aria-checked')!=='true')
+        .forEach(li=>li.click());
+      await new Promise(x => setTimeout(x, 400));
+      const nx = [...main.querySelectorAll('.ov-block [data-ovnext]')]
+        .find(b=>b.getAttribute('aria-disabled')!=='true');
+      out.btn = nx ? (nx.textContent||'').trim().slice(0,40) : 'ABSENT';
+      out.role = Share.role;
+      if (nx) nx.click();
+      await new Promise(x => setTimeout(x, 500));
+      out.fileApres = (Share._defer || []).length;
+      out.apresDrain = !!(Runtime.verified || {})[cle];
+      out.cleDrain = cle;
+    }
 
-    // Le geste LOCAL qui lève l'attente — et lui seul.
-    const b = document.querySelector('#readerMode [data-rmresume]');
-    if (b) b.click();
-    await new Promise(x => setTimeout(x, 400));
-    out.apresReprise = Runtime.nav.indexOf(cible2) >= 0;
-    out.banniereApres = !!document.querySelector('#readerMode [data-rmresume]');
     return out;
   });
   t('l’hôte avance : la navigation ATTEINT l’écran', r.applique === true, JSON.stringify(r).slice(0, 220));
@@ -1158,14 +1178,19 @@ console.log(`\n══ PARTAGE · le miroir suit quand l'hôte avance — moteur 
   t('… une carte de plus au journal', r.cartes >= 2, `${r.cartes} carte(s)`);
   t('… il suivait le bord vif : la nouvelle carte est sous les yeux',
     r.boutVisible === true, JSON.stringify({ boutVisible: r.boutVisible, derive: r.derive }));
+  t('… témoin : le bout n’était PAS sous les yeux avant le lot',
+    r.ailleursMonte === true, JSON.stringify(r.dbg));
   t('… il regardait ailleurs : rien ne bouge (≤ 1 px)',
     (r.deriveAilleurs === null || Math.abs(r.deriveAilleurs) <= 1) && Math.abs(r.scrollAilleurs || 0) <= 1,
     `${r.deriveAilleurs} px de dérive, ${r.scrollAilleurs} px de défilement`);
   t('… sans banderole ni fenêtre (règle 11)', r.toasts === 0 && r.modales === 0);
-  t('lecteur ouvert : la navigation est REFUSÉE', r.lecteurRefuse === true);
-  t('… mais elle est ANNONCÉE sur place', r.banniere === true && /avanc/i.test(r.banniereTexte), r.banniereTexte);
-  t('… et un geste LOCAL la reprend', r.apresReprise === true);
-  t('… la bannière disparaît une fois reprise', r.banniereApres === false);
+  /* Le drain du régime « deferred » — SANS jamais ouvrir le lecteur. */
+  t('témoin : la file « deferred » est bien pleine avant le geste',
+    r.filePleine >= 1, `${r.filePleine} en file`);
+  t('… et rien n’est appliqué tant qu’aucun geste local n’a eu lieu', r.avantDrain === false);
+  t('un « Continuer » ORDINAIRE draine la file (sans le mode lecteur)',
+    r.fileApres === 0 && r.apresDrain === true,
+    `file ${r.filePleine} → ${r.fileApres}, trace ${r.avantDrain} → ${r.apresDrain} · geste « ${r.btn} », rôle ${r.role}`);
   await page.close();
 }
 
@@ -1523,102 +1548,6 @@ console.log(`\n══ PARTAGE · la passation de la main — moteur ${NOM_MOTEUR
   await page.close();
 }
 
-/* ── LE MODE LECTEUR EST BRIDÉ COMME LA PAGE ─────────────────────────────────────────────────
-   Signalé à l'usage : « pourquoi l'invité peut passer de bloc en bloc en mode lecteur mais pas sur
-   la page de l'aide ? » — et c'était vrai. `data-rmnext` et `data-rmopt` étaient les MÊMES verbes
-   que `data-ovnext` et `data-ovopt` sous d'autres noms ; la liste ne les nommait pas.
-   DEPUIS I4 (v4.62.0) LE VOCABULAIRE PARALLÈLE N'EXISTE PLUS : le lecteur ÉMET `data-ovnext` et
-   `data-ovopt`. Ce contrôle garde tout son sens — il vérifie désormais que la surface du lecteur
-   et celle de la page se comportent identiquement PARCE QU'elles parlent la même langue, et il
-   échouerait si quelqu'un réintroduisait un synonyme.
-   CE CONTRÔLE OUVRE LE LECTEUR, et ce n'est pas un détail : celui qui existait interrogeait
-   `LEAD_ONLY_SEL` le lecteur FERMÉ — il ne pouvait donc pas voir les entrées du lecteur, et serait
-   resté vert même en n'en corrigeant qu'une des deux listes. Un contrôle aveugle au défaut qu'il
-   prétend couvrir ne prouve rien (leçon v4.31.1). */
-console.log(`\n══ PARTAGE · le lecteur est bridé comme la page — moteur ${NOM_MOTEUR} ══`);
-{
-  const page = await br.newPage({ viewport: { width: 390, height: 844 } });
-  await session(page);
-  const r = await page.evaluate(async () => {
-    Share.mode = 'guest'; Share.role = 'scribe'; Share.me = 'inv'; Share.status = 'active';
-    Share.lastOk = Date.now(); Share.offset = 0; Share._q = [];
-    document.body.classList.add('share-scribe');
-    readerOpen();
-    await new Promise(x => setTimeout(x, 400));
-    const rm = document.getElementById('readerMode');
-    const out = { ouvert: rm.classList.contains('on') };
-
-    /* LE CONTRÔLE DE CONDUITE N'EXISTE QU'EN FIN DE BLOC. Le lecteur montre un challenge à la
-       fois : « Continuer » (`data-ovnext`) n'apparaît qu'une fois les étapes confirmées. Mesurer
-       avant, c'est mesurer un écran qui n'a rien à brider — la sonde le voyait vide et accusait
-       la liste. On CONFIRME donc d'abord, ce qui est précisément le verbe du scribe. */
-    for (let i = 0; i < 12 && !rm.querySelector('[data-ovnext],[data-ovopt],[data-ovend]'); i++) {
-      const b2 = rm.querySelector('[data-rmok]'); if (!b2) break;
-      b2.click(); await new Promise(x => setTimeout(x, 120));
-    }
-    out.conduiteVisible = !!rm.querySelector('[data-ovnext],[data-ovopt],[data-ovend]');
-
-    /* 1 — LE LECTEUR N'A PLUS AUCUN CONTRÔLE BRIDÉ (v4.55.0). Avancer et choisir une branche y
-       sont ouverts comme sur la page : c'est le même verbe sous un autre nom, et la cohérence
-       entre les deux surfaces est ce qui manquait — dans un sens comme dans l'autre. */
-    out.recenses = rm.querySelectorAll(LEAD_ONLY_SEL).length;
-
-    // 3 — AVANCER NE FAIT RIEN. Le vrai enjeu n'est pas « le geste est refusé » mais « le miroir
-    // ne diverge pas » : `shareEmitDiff` avance la base de comparaison AVANT d'émettre, donc un
-    // geste passé ici laisserait l'invité seul à avoir avancé, pour toujours.
-    const navAvant = Runtime.nav.length;
-    const qAvant = Share.pending();
-    const nx = rm.querySelector('[data-ovnext]') || rm.querySelector('[data-ovopt]');
-    if (nx) nx.click();
-    await new Promise(x => setTimeout(x, 350));
-    out.navApres = Runtime.nav.length;
-    out.avance = Runtime.nav.length > navAvant;
-    out.aEmis = Share.pending() > qAvant;
-
-    // 4 — LA TROISIÈME COPIE DU CŒUR DE COCHAGE passe par le prédicat unique. Mesuré avec le lien
-    // ARRÊTÉ : le même geste est refusé sur la page, il devait l'être ici aussi.
-    Share.status = 'ended';
-    const nCoches = Object.keys(state.checked).length;
-    const ok2 = rm.querySelector('[data-rmok]');
-    if (ok2) ok2.click();
-    await new Promise(x => setTimeout(x, 250));
-    out.cocheLienMort = Object.keys(state.checked).length > nCoches;
-    Share.status = 'active';
-
-    // 5 — Le focus initial n'atterrit pas sur un contrôle mort.
-    readerClose(); await new Promise(x => setTimeout(x, 200));
-    readerOpen(); await new Promise(x => setTimeout(x, 350));
-    const af = document.activeElement;
-    out.focusMort = !!(af && af.matches && af.matches(LEAD_ONLY_SEL));
-    out.focusSur = af ? (af.id || af.className || af.tagName) : '(aucun)';
-
-    // 6 — Un geste refusé déclare le miroir PÉRIMÉ plutôt que de le laisser diverger en silence.
-    // (le verbe d'épreuve est désormais un DESTRUCTEUR — c'est là que passe la ligne)
-    Share._resync = false;
-    Share.emit('timer_reset', { id: 't1' });
-    out.perimeApresRefus = Share._resync === true;
-    document.body.classList.remove('share-scribe');
-    return out;
-  });
-  t('le lecteur s’ouvre pour un scribe', r.ouvert === true);
-  t('témoin : un scribe CONFIRME bien (c’est son verbe)', r.conduiteVisible === true);
-  t('aucun contrôle du lecteur n’est bridé (v4.55.0)', r.recenses === 0, `${r.recenses} élément(s)`);
-  t('AVANCER fonctionne comme sur la page', r.avance === true, `${r.navApres} bloc(s)`);
-  t('… et le geste PART', r.aEmis === true);
-  t('cocher au lien mort est refusé ici AUSSI', r.cocheLienMort === false);
-  t('le focus n’atterrit pas sur un contrôle mort', r.focusMort === false, String(r.focusSur));
-  t('un geste refusé déclare le miroir périmé', r.perimeApresRefus === true);
-  await page.close();
-}
-
-/* ── LE MENU SUIT L'ÉTAT DU PARTAGE, ET LE LIEN MORT REFUSE TOUT ─────────────────────────────
-   Trois signalements d'usage, une cause commune pour les deux premiers : les rangées du menu ⋯
-   sont construites AU RENDU, et la règle 3 interdit de rendre sur évènement distant. Le compte de
-   participants restait donc figé, et « Prendre la main » — qui n'existe que si une offre est
-   arrivée — ne paraissait JAMAIS : la passation n'avait pas de porte.
-   Le troisième : un invité COUPÉ pouvait encore incrémenter un compteur, sans que rien ne lui dise
-   que son geste ne partait plus. « Cocher dans le vide en croyant contribuer » est nommé au plan
-   comme le pire mode de défaillance du dispositif. */
 console.log(`\n══ PARTAGE · le menu suit, le lien mort refuse — moteur ${NOM_MOTEUR} ══`);
 {
   const page = await br.newPage({ viewport: { width: 390, height: 844 } });
@@ -1775,18 +1704,33 @@ console.log(`\n══ PARTAGE · le placard de l'invité et les réponses direct
      mode invité n'est jamais une transition SUR PLACE (on arrive par l'écran d'entrée ; un lien
      coupé passe par `freeze`, qui garde `mode === 'guest'`). */
   await page.setViewportSize({ width: 320, height: 844 });
+  /* ⚠ TÉMOIN REMIS SUR SON SUJET (v5.0.0). Il comparait la hauteur du bandeau chez l'HÔTE et
+     chez l'INVITÉ — or depuis que le bandeau ne subsiste QUE pour les modes d'exception, l'hôte
+     n'en a plus du tout : le contrôle mesurait alors l'EXISTENCE du bandeau, pas le coût du
+     PLACARD, et il aurait rougi pour la mauvaise raison. Ce que la doctrine affirme est que
+     l'étiquette « ▪ Vous suivez » et sa hachure n'ajoutent AUCUNE hauteur au bandeau qui les
+     porte : on compare donc le bandeau de l'invité AVEC et SANS son étiquette, à 320 px, où le
+     titre occupe déjà deux lignes. C'est la même affirmation, mesurée sur le bon objet. */
   const cout = await page.evaluate(async () => {
     const band = document.getElementById('crisisBand');
     const H = () => Math.round(band.getBoundingClientRect().height * 10) / 10;
-    Share.mode = null; render(); await new Promise(x => setTimeout(x, 300));
-    const hote = H();
     Share.mode = 'guest'; Share.role = 'scribe'; Share.me = 'i'; Share.status = 'active';
     Share.lastOk = Date.now(); Share.offset = 0;
     render(); await new Promise(x => setTimeout(x, 350));
-    return { hote, invite: H() };
+    const avec = H();
+    const tg = band.querySelector('.cb-tag');
+    const vu = tg && !tg.hidden;                       // le contrôle rencontre-t-il son cas ?
+    if (tg) tg.hidden = true;
+    band.classList.remove('inv');
+    await new Promise(x => setTimeout(x, 250));
+    const sans = H();
+    if (tg) tg.hidden = false; band.classList.add('inv');
+    return { avec, sans, vu, present: H() > 0 };
   });
+  t('témoin : l’invité a bien un bandeau ET son étiquette', cout.present && cout.vu === true,
+    JSON.stringify(cout));
   t('le placard ne coûte RIEN à 320 px, la largeur qui compte',
-    cout.hote === cout.invite, `${cout.hote} → ${cout.invite} px`);
+    cout.avec === cout.sans, `${cout.sans} → ${cout.avec} px`);
   await page.close();
 }
 

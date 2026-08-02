@@ -10,16 +10,13 @@
      · ouvrir l'éditeur pose UN point de version — le filet qui remplace le « Annuler » disparu.
    Les trois derniers contrôles sont les plus importants : ce sont eux qui garantissent qu'un
    essai d'auteur ne contamine pas l'historique clinique de quelqu'un. */
-import { serveApp, moteur } from './harness.mjs';
+import { serveApp, moteur, amorce } from './harness.mjs';
 const {port,srv}=await serveApp(); const br=await moteur().launch();
 const p=await br.newPage({viewport:{width:390,height:900}});
 let ok=0,ko=0;const t=(n,c,d)=>{if(c){ok++;console.log('  ✓ '+n);}else{ko++;console.log('  ✗ '+n+(d?' — '+d:''));}};
 p.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
 await p.goto(`http://localhost:${port}/index.html`);
-await p.waitForFunction(()=>!document.querySelector('.boot-load'));
-await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
-  const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();await w(200);
-  const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await w(700);});
+await amorce(p);
 
 console.log('=== une fiche NEUVE sans titre n’entre pas ===');
 const a=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
@@ -46,7 +43,12 @@ t('titre saisi : la fiche entre dans la bibliothèque', b.dedans, JSON.stringify
    accepter « l'une ou l'autre » ne prouverait rien sur celle qu'on n'a pas regardée. */
 t('la barre DIT l’enregistrement, avec l’heure (étroit)', /^✓ \d{2}:\d{2}$/.test(b.etat.trim()), b.etat);
 await p.setViewportSize({width:900,height:900});
+/* ⚠ LE REDIMENSIONNEMENT RE-REND L'ÉDITEUR (`_onReadBp`, v4.77.0), et un re-rendu passe par
+   `edTouch` qui repose « ⟳ Enregistrement… ». Poser l'état AVANT que le re-rendu soit retombé
+   mesurait donc une course, pas un libellé : on laisse le rendu s'achever, PUIS on pose l'état. */
+await p.waitForTimeout(500);
 await p.evaluate(()=>{if(typeof edSaySave==='function')edSaySave('saved');});
+await p.waitForTimeout(120);
 const bLarge=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   return {etat:(document.getElementById('hdrSaved')||{}).textContent||''};});
 t('… et en toutes lettres au large', /^✓ Enregistré · \d{2}:\d{2}$/.test(bLarge.etat.trim()), bLarge.etat);
@@ -189,7 +191,7 @@ const g=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   document.getElementById('hdrBack').click(); await w(800);
   await openEdit(id); await w(600);
   const nb=()=>document.querySelectorAll('.blk .li').length;
-  const pub=()=>((fiches.find(f=>f.id===id)||{blocks:[]}).blocks||[]).reduce((a,b)=>a+((b.steps||[]).length),0);
+  const pub=()=>((fiches.find(f=>f.id===id)||{blocks:[]}).blocks||[]).reduce((a,b)=>a+bItems(b).length,0);
   const bouton=()=>document.getElementById('hdrUndo');
   const etat=[];
   etat.push({e:'ouverture',n:nb(),pile:_edUndo.length,visible:!bouton().hidden,pub:pub()});
@@ -266,8 +268,11 @@ const L=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   const id=state.draft.id,d=state.draft;
   if(state.edGrab){state.edGrab=null;renderEditor();await w(300);}
   // un jeu de listes garni : deux objets par liste d'objets, quatre lignes en texte
-  d.differentials=['Un','Deux','Trois','Quatre'];
-  d.posology=['Adrénaline : 0,5 mg','△ Noradré : dilution'];
+  /* v5.0.0, étape B — ces listes ne sont plus des CHAMPS mais des RÔLES du pool `items` :
+     `setList` est l'écriture réelle. Les écraser directement ne faisait plus rien, et la sonde
+     mesurait alors une fiche qu'elle croyait avoir remplie. */
+  setList(d,'differentials',['Un','Deux','Trois','Quatre']);
+  setList(d,'posology',['Adrénaline : 0,5 mg','△ Noradré : dilution']);
   while((d.timers||[]).length<2)edAdd(d,'stopwatch');
   while((d.counters||[]).length<2)edAdd(d,'counter');
   d.timers[0].label='Minuteur A';d.timers[1].label='Minuteur B';
@@ -276,8 +281,8 @@ const L=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   const cles=[...new Set([...document.querySelectorAll('[data-lgrab]')].map(b=>b.dataset.lgrab.split(':')[0]))];
   const H=k=>document.querySelector('[data-lgrab="'+k+'"]');
   // une liste à UNE seule rangée n'a pas de poignée (aucun bouton mort)
-  d.references=['Seule'];renderEditor();await w(400);
-  const refSeule=!H('references:0');
+  d.sources=['Seule'];renderEditor();await w(400);
+  const refSeule=!H('sources:0');
   // PRISE : ancrage à 0 px + confinement
   H('differentials:3').scrollIntoView({block:'center'});await w(150);
   const y0=Math.round(H('differentials:3').getBoundingClientRect().top);
@@ -288,8 +293,8 @@ const L=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   const bandeau=(document.querySelector('.ed-grab .eg-l')||{}).textContent||'';
   // DÉPÔT
   document.querySelector('[data-ldrop="differentials:0"]').click();await w(500);
-  const apres=(d.differentials||[]).slice();
-  const publie=((fiches.find(f=>f.id===id)||{}).differentials||[]).slice();
+  const apres=listOf(d,'differentials').slice();
+  const publie=listOf(fiches.find(f=>f.id===id)||{},'differentials').slice();
   // ÉCHAP repose l'objet sans rien déplacer
   H('differentials:2').click();await w(350);
   const avantEchap=(d.differentials||[]).slice();
@@ -362,20 +367,24 @@ const P=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   if(document.querySelector('#edAddModal.on'))edAddClose();
   await w(250);
   // (3) « présent dans la porte ⇔ masqué quand vide »
-  d.verify=[];d.differentials=[];d.references=[];d.posology=[];d.images=[];d.attachments=[];
-  d.notForget=[];d.confirmation=[];
+  setList(d,'verify',[]);setList(d,'differentials',[]);d.sources=[];setList(d,'posology',[]);d.images=[];d.docs=[];
+  setList(d,'notForget',[]);setList(d,'confirmation',[]);
   renderEditor();await w(500);
-  const vides={verify:a(/À vérifier/),diff:a(/Diagnostics différentiels/),ref:a(/Références/),
+  /* v5.0.0, lot M3 : « Confirmation diagnostique » et « Diagnostics différentiels » sont réunis
+     sous « Condition d'entrée » (critères + diagnostics à éliminer). Les LIBELLÉS changent, la
+     RÈGLE ne change pas : les critères restent une invitation visible même vide, les diagnostics
+     à éliminer restent masqués quand la liste est vide et recréés par la porte. */
+  const vides={verify:a(/À vérifier/),diff:a(/Diagnostics à éliminer/),ref:a(/Références/),
     poso:a(/Repères posologiques/),img:a(/Schémas/),att:a(/Documents \(PDF\)/),
-    nf:a(/Ne pas oublier/),conf:a(/Confirmation diagnostique/)};
+    nf:a(/Ne pas oublier/),conf:a(/Condition d’entrée/)};
   // (4) chaque entrée de liste recrée sa section
   const recree={};
-  for(const [k,rx] of [['verify',/À vérifier/],['diff',/Diagnostics différentiels/],['ref',/Références/],['poso',/Repères posologiques/]]){
+  for(const [k,rx] of [['verify',/À vérifier/],['diff',/Diagnostics à éliminer/],['ref',/Références/],['poso',/Repères posologiques/]]){
     porte().click();await w(250);
     document.querySelector('[data-edadd="'+k+'"]').click();await w(450);
     recree[k]=a(rx);}
   // (5) la porte redescend dans le flux pendant un déplacement
-  d.differentials=['Un','Deux'];renderEditor();await w(400);
+  setList(d,'differentials',['Un','Deux']);renderEditor();await w(400);
   document.querySelector('[data-lgrab="differentials:1"]').click();await w(350);
   const platPendantDeplacement=getComputedStyle(porte()).position;
   state.edGrab=null;renderEditor();await w(350);
@@ -393,9 +402,9 @@ const P=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   const detache=(d.blocks||[]).filter(b=>b.image===px).length;
   // (7) le compte de relecture
   const rb=document.getElementById('hdrRev');
-  d.notForget=['a'];renderEditor();await w(400);
+  setList(d,'notForget',['a']);renderEditor();await w(400);
   const revZero=rb.hidden;
-  d.notForget=['a','b','c','d','e'];renderEditor();await w(400);
+  setList(d,'notForget',['a','b','c','d','e']);renderEditor();await w(400);
   const revUn={cache:rb.hidden,txt:rb.textContent};
   rb.click();await w(400);
   const voletOuvert=!!document.querySelector('#revPanel details.rev-panel[open]');
@@ -411,7 +420,7 @@ t('elle NE porte PAS le chapeau ni la confirmation (hors règle, assumé)',
   !P.cles.includes('nf')&&!P.cles.includes('conf'), P.cles.join(','));
 t('vide = masqué : à vérifier, différentiels, références, doses, schémas, documents',
   !P.vides.verify&&!P.vides.diff&&!P.vides.ref&&!P.vides.poso&&!P.vides.img&&!P.vides.att, JSON.stringify(P.vides));
-t('… MAIS le chapeau et la confirmation restent VISIBLES même vides',
+t('… MAIS le chapeau et la CONDITION D’ENTRÉE restent VISIBLES même vides',
   P.vides.nf&&P.vides.conf, JSON.stringify(P.vides));
 t('chaque entrée de liste recrée sa section',
   Object.values(P.recree).every(Boolean), JSON.stringify(P.recree));
@@ -487,7 +496,7 @@ console.log('=== v4.77.0 : le mode déplacement est modal, et réversible ===');
 await p.setViewportSize({width:900,height:900});
 const R2=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   const d=state.draft;
-  d.differentials=['Un','Deux','Trois'];renderEditor();await w(450);
+  setList(d,'differentials',['Un','Deux','Trois']);renderEditor();await w(450);
   const H=k=>document.querySelector('[data-lgrab="'+k+'"]');
   H('differentials:2').scrollIntoView({block:'center'});await w(200);
   const y0=Math.round(H('differentials:2').getBoundingClientRect().top);
@@ -532,7 +541,7 @@ console.log('=== v4.77.0 : les outils d’une étape agissent vraiment ===');
 {
   const CH='.blk:not(.blk-dec) .li input[data-sf]';
   const cle=await p.evaluate(()=>{const b=document.querySelector('.blk:not(.blk-dec)');return b?b.dataset.bid:null;});
-  const etapes=async()=>p.evaluate(id=>((state.draft.blocks.find(b=>b.id===id)||{}).steps||[]).slice(),cle);
+  const etapes=async()=>p.evaluate(id=>bItems(state.draft.blocks.find(b=>b.id===id)||{}).map(v4ItemToStr),cle);
   await p.click(CH); await p.waitForTimeout(250);
   const vus=await p.evaluate(()=>{const e=document.querySelector('.blk:not(.blk-dec) .li-tools');
     return e?getComputedStyle(e).display:'absent';});
@@ -623,7 +632,7 @@ const V=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   const nomme=(()=>{const o=[...document.querySelectorAll('select[data-target] option')]
     .map(x=>x.textContent);return o.some(t=>/Bloc sans titre \(\d\)/.test(t))&&!o.some(t=>/^b[_0-9a-z]{4,}$/.test(t));})();
   /* (4) LA MARQUE « EN DÉPLACEMENT » NE MANGE PLUS LE CHAMP D'UNE LIGNE DE LISTE. */
-  d.differentials=['Un','Deux','Trois'];renderEditor();await w(450);
+  setList(d,'differentials',['Un','Deux','Trois']);renderEditor();await w(450);
   const champ=()=>document.querySelector('.list-edit .li input[data-key="differentials"]');
   const lRepos=Math.round(champ().getBoundingClientRect().width);
   document.querySelector('[data-lgrab="differentials:0"]').click();await w(450);
@@ -758,7 +767,7 @@ const G=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   if(state.previewFrom){document.getElementById('hdrBack').click();await w(800);}
   if(state.view!=='edit'){const f=fiches.find(x=>!x.deletedAt);await openEdit(f.id);await w(700);}
   const d=state.draft;
-  d.confirmation=['Un critère','Deux'];renderEditor();await w(450);
+  setList(d,'confirmation',['Un critère','Deux']);renderEditor();await w(450);
   /* On mesure la RÈGLE, pas l'intention : encre, fond et curseur des deux boutons que l'utilisateur
      nomme (le ✕ d'une étape — le seul qui soit ROUGE au repos, donc celui où la spécificité pouvait
      échouer — et le B d'une ligne de liste). Et l'on vérifie le RETOUR à l'identique : le dégrisage
@@ -792,6 +801,145 @@ t('la POIGNÉE, elle, reste active', !G.pendant.poignee.dis&&G.pendant.poignee.c
   JSON.stringify(G.pendant.poignee));
 t('en sortant du mode, tout est DÉGRISÉ à l’identique',
   JSON.stringify(G.apres)===JSON.stringify(G.avant), JSON.stringify(G.apres));
+
+/* ── M1 — LA RANGÉE D'ITEM DE L'ÉDITEUR (v5.0.0, maquettes proto-large) ──────────────────────
+   Trois écarts de maquette corrigés d'un coup, et le troisième est le plus fort : une case à
+   cocher INERTE dans un éditeur invite au geste qu'elle refuse. La marque de registre la
+   remplace — elle DIT le registre au lieu de mimer l'action.
+   Le contrôle mesure aussi le 320 px, parce que la rangée porte désormais DEUX champs et TROIS
+   mots : c'est exactement là qu'un ajout se paie. */
+await p.setViewportSize({width:320,height:640});
+const M1=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+  const f=fiches[0];state.view='edit';state.draft=JSON.parse(JSON.stringify(f));render();await w(400);
+  const li=document.querySelector('.blk .li');
+  const inp=li?[...li.querySelectorAll('input[type=text]')]:[];
+  if(inp[0]){inp[0].value='Geste témoin';inp[0].dispatchEvent(new Event('input',{bubbles:true}));}
+  if(inp[1]){inp[1].value='30 mg';inp[1].dispatchEvent(new Event('input',{bubbles:true}));}
+  await w(80);
+  const it0=bItems(state.draft.blocks[0])[0],do1=it0.do,exp1=it0.expect;
+  /* Retaper le `do` SANS « :: » ne doit pas effacer la réponse attendue : ce sont deux champs. */
+  if(inp[0]){inp[0].value='Geste témoin bis';inp[0].dispatchEvent(new Event('input',{bubbles:true}));}
+  await w(80);
+  const it2=bItems(state.draft.blocks[0])[0];
+  const r=li.getBoundingClientRect();let mx=0;
+  [...li.children].forEach(c=>{const q=c.getBoundingClientRect();if(q.right>mx)mx=q.right;});
+  return {nInp:inp.length,do1,exp1,exp2:it2.expect,
+    premier:li.firstElementChild?li.firstElementChild.className:'',
+    cases:document.querySelectorAll('.li-box').length,
+    marques:document.querySelectorAll('.li-mk').length,
+    mots:[...document.querySelectorAll('.mini-w')].slice(0,3).map(x=>x.textContent.trim()),
+    deb:Math.round(mx-r.right)};});
+
+t('B1 — la rangée d’item porte DEUX champs (`do` et `expect`)', M1.nInp===2, `${M1.nInp} champ(s)`);
+t('… et ils écrivent chacun le leur, sans « :: » à composer',
+  M1.do1==='Geste témoin'&&M1.exp1==='30 mg', `do=${M1.do1} / expect=${M1.exp1}`);
+t('… retaper le geste n’EFFACE PAS la réponse attendue', M1.exp2==='30 mg', `expect=${M1.exp2}`);
+t('A4 — plus AUCUNE case à cocher dans l’éditeur', M1.cases===0&&M1.marques>0,
+  `${M1.cases} case(s), ${M1.marques} marque(s)`);
+t('B7 — la poignée ⠿ est le PREMIER objet de la rangée', /li-grab/.test(M1.premier), M1.premier);
+t('B2 — les outils portent leur MOT', /^(registre|vital|vérifier)$/.test(M1.mots[0])&&M1.mots[1]==='mémoire'&&M1.mots[2]==='double', M1.mots.join('·'));
+t('… et la rangée ne déborde pas à 320 px', M1.deb<=0, `${M1.deb} px hors de la boîte`);
+await p.setViewportSize({width:390,height:900});
+
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   L'ÉDITEUR, PASSE D'UNIFORMISATION (v5.0.0) — sept défauts signalés à l'usage.
+   Tous se mesurent sur la MÊME page : on la construit une fois.
+   ───────────────────────────────────────────────────────────────────────────── */
+await p.setViewportSize({width:390,height:900});
+const U=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+  await openEdit(fiches[0].id);await w(700);
+  /* (1) LA MARQUE DE REGISTRE NE PASSE PAS SOUS LE TEXTE. Le défaut n'existait qu'au FOCUS —
+     un `padding` raccourci de la règle `:focus`, déclarée 1 350 lignes plus bas, écrasait le
+     `padding-left` longhand qui réserve la place de l'icône. Le témoin doit donc FOCALISER. */
+  const li=document.querySelector('.blk .li.li-crit')||document.querySelector('.blk .li');
+  const inp=li.querySelector('input[data-sf]'),mk=li.querySelector('.li-mk');
+  inp.focus();await w(200);
+  const ci=getComputedStyle(inp),ri=inp.getBoundingClientRect();
+  const svg=mk&&mk.querySelector('svg'),rs=(svg||mk||inp).getBoundingClientRect();
+  const marque=li.classList.contains('li-crit')||li.classList.contains('li-vigil');
+  const chevauche=marque&&(ri.left+parseFloat(ci.paddingLeft)+parseFloat(ci.borderLeftWidth))<rs.right;
+  /* (7) UNE SEULE VOIX : les deux champs de la rangée, même corps ET même police. */
+  const ex=li.querySelector('.li-exp');const ce=getComputedStyle(ex);
+  /* (2) LA RÉPONSE ATTENDUE SUIT LA FRAPPE, SANS RE-RENDU : la classe `has-exp` décide de son
+     affichage hors focus — posée au rendu seulement, elle restait périmée dans les deux sens. */
+  const li2=[...document.querySelectorAll('.blk .li')].find(x=>!x.classList.contains('has-exp'))||li;
+  const ex2=li2.querySelector('.li-exp');
+  ex2.value='témoin';ex2.dispatchEvent(new Event('input',{bubbles:true}));await w(120);
+  const apresAjout=li2.classList.contains('has-exp');
+  ex2.value='';ex2.dispatchEvent(new Event('input',{bubbles:true}));await w(120);
+  const apresEffacement=li2.classList.contains('has-exp');
+  /* (3) LE SÉLECTEUR DE PHASE A LA BOÎTE DE SON VOISIN. */
+  const ph=document.querySelector('.blk-phase select'),ti=document.querySelector('.blk-top input[data-bf="title"]');
+  /* (5) LE CHAPEAU EST UNE SEULE LISTE, ORDONNÉE PAR LE POOL : une ligne portée par une étape y
+     est une rangée COMME LES AUTRES, au champ fermé, et elle se déplace. */
+  const fg=[...document.querySelectorAll('.ed-forget .li')];
+  const heritee=fg.find(r=>r.querySelector('.fg-st'));
+  const propre=fg.find(r=>!r.querySelector('.fg-st'));
+  const memeBoite=heritee&&propre
+    ?Math.abs(heritee.querySelector('input').getBoundingClientRect().height
+      -propre.querySelector('input').getBoundingClientRect().height)<=1:false;
+  /* On identifie la ligne par SON texte, pas par sa position : la mesure précédente a pu
+     réécrire une étape, donc l'ordre d'avant n'est pas une hypothèse sûre. */
+  const herTxt=heritee?heritee.querySelector('input').value:null;
+  let deplace=null,apresTxt=null;
+  if(heritee&&heritee.querySelector('[data-lgrab]')){
+    heritee.querySelector('[data-lgrab]').click();await w(320);
+    const d0=document.querySelector('.ed-forget [data-ldrop]');if(d0){d0.click();await w(420);}
+    apresTxt=forgetAll(state.draft)[0]||'';
+    deplace=!!herTxt&&apresTxt.indexOf(herTxt.slice(0,18))>=0;}
+  return {marque,chevauche,fsDo:ci.fontSize,fsEx:ce.fontSize,
+    famDo:ci.fontFamily.split(',')[0].trim(),famEx:ce.fontFamily.split(',')[0].trim(),
+    apresAjout,apresEffacement,
+    phH:ph?Math.round(ph.getBoundingClientRect().height):0,
+    tiH:ti?Math.round(ti.getBoundingClientRect().height):0,
+    phTag:ph?ph.tagName:'—',
+    fgN:fg.length,heritee:!!heritee,ferme:heritee?heritee.querySelector('input').disabled:null,
+    memeBoite,deplace,herTxt,apresTxt};});
+
+t('témoin : la rangée mesurée porte bien une marque de registre', U.marque===true, String(U.marque));
+t('la marque ⚠ ne passe pas SOUS le texte, même au focus', U.chevauche===false, `chevauche=${U.chevauche}`);
+t('les deux champs de la rangée ont la même voix (corps ET police)',
+  U.fsDo===U.fsEx&&U.famDo===U.famEx, `${U.fsDo}/${U.famDo} vs ${U.fsEx}/${U.famEx}`);
+t('une réponse attendue AJOUTÉE s’affiche hors focus', U.apresAjout===true, String(U.apresAjout));
+t('… et EFFACÉE, elle disparaît', U.apresEffacement===false, String(U.apresEffacement));
+/* ⚠ MESURÉ À 1280 px, ET C'EST LÀ QUE LE DÉFAUT VIT : à 390 le sélecteur retombait par hasard
+   sur la hauteur du champ voisin, si bien qu'un témoin étroit restait vert sur l'écart (39 px
+   contre 43, mesurés en large). Un contrôle qui ne rencontre pas son cas ne le couvre pas. */
+await p.setViewportSize({width:1280,height:900});
+const PH=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+  await openEdit(fiches[0].id);await w(700);
+  const ph=document.querySelector('.blk-phase select'),ti=document.querySelector('.blk-top input[data-bf="title"]');
+  return {tag:ph?ph.tagName:'—',ph:ph?Math.round(ph.getBoundingClientRect().height):0,
+    ti:ti?Math.round(ti.getBoundingClientRect().height):0};});
+await p.setViewportSize({width:390,height:900});
+t('la phase est un SÉLECTEUR, à la boîte de son voisin',
+  PH.tag==='SELECT'&&Math.abs(PH.ph-PH.ti)<=1, `${PH.tag} ${PH.ph} px vs ${PH.ti} px`);
+t('le chapeau est UNE liste : la ligne héritée y est une rangée fermée',
+  U.heritee===true&&U.ferme===true&&U.memeBoite===true,
+  `héritée=${U.heritee} fermée=${U.ferme} même boîte=${U.memeBoite}`);
+t('… et elle se déplace parmi les autres (ordre du pool)', U.deplace===true,
+  `« ${String(U.herTxt).slice(0,28)} » → tête « ${String(U.apresTxt).slice(0,28)} »`);
+
+/* (9) LES DEUX PORTES ONT LE MÊME GABARIT DE RANGÉE. */
+const PORTE=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+  const mes=()=>{const r=document.querySelector('.ed-palette .ep-row')||document.querySelector('.ep-row');
+    if(!r)return null;const c=getComputedStyle(r);
+    return {h:Math.round(r.getBoundingClientRect().height),fs:getComputedStyle(r.querySelector('.ep-n')||r).fontSize,
+      ic:!!r.querySelector('.ep-ic'),n:!!r.querySelector('.ep-n')};};
+  document.getElementById('edAddOpen').click();await w(350);const A=mes();
+  document.querySelector('#edAddModal .ai-x').click();await w(250);
+  /* ⚠ UNE SONDE OUVRE PAR LE VRAI POINT D'ENTRÉE (doctrine v4.40.0) : reconstruire l'état à la
+     main donnait un éditeur sans sa porte, et le témoin mesurait alors le vide. */
+  protocols.push(migrateProtocol({id:'pT',title:'T',kind:'reference',body:''}));
+  await openProtocolEdit('pT');await w(700);
+  const b=document.getElementById('edAddOpenP');if(!b)return {A,B:null};
+  b.click();await w(350);const B=mes();
+  return {A,B};});
+t('témoin : les deux portes ont été ouvertes', !!PORTE.A&&!!PORTE.B, JSON.stringify(PORTE));
+t('… et leurs rangées ont le même gabarit',
+  !!PORTE.A&&!!PORTE.B&&PORTE.A.h===PORTE.B.h&&PORTE.A.fs===PORTE.B.fs&&PORTE.B.ic&&PORTE.B.n,
+  JSON.stringify(PORTE));
 
 console.log(`\n${ok}/${ok+ko} OK${ko?` — ${ko} ÉCHEC(S)`:''}`);
 await br.close();srv.close();process.exit(ko?1:0);

@@ -2,18 +2,17 @@
    mais était invisible (position:absolute sans ancêtre positionné), et la carte survivait à la
    SUPPRESSION de sa session dans l'historique (son bouton « Compte-rendu » menait alors à un
    rapport introuvable). */
-import { serveApp, moteur, NOM_MOTEUR, ROOT } from './harness.mjs';
+import { serveApp, moteur, NOM_MOTEUR, ROOT, amorce, ouvrirFiche, demarrerSession } from './harness.mjs';
 
 const { port, srv } = await serveApp();
 const br=await moteur().launch();const p=await br.newPage({viewport:{width:1000,height:820},deviceScaleFactor:2});
 let ok=0,ko=0;const t=(n,c,d)=>{if(c){ok++;console.log('  ✓ '+n);}else{ko++;console.log('  ✗ '+n+(d?'\n      '+d:''));}};
-await p.goto(`http://localhost:${port}/index.html`);await p.waitForFunction(()=>!document.querySelector('.boot-load'));
-await p.evaluate(async()=>{const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();await new Promise(r=>setTimeout(r,150));
- const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await new Promise(r=>setTimeout(r,450));
- // démarrer puis terminer une session -> carte-bilan
- [...document.querySelectorAll('.card-open')].find(x=>/Arr.t cardiaque/.test(x.textContent)).click();await new Promise(r=>setTimeout(r,350));
- document.getElementById('sessStart').click();await new Promise(r=>setTimeout(r,350));
- endSession(Runtime);resetRuntime();state.fiche=null;state.view='library';render();await new Promise(r=>setTimeout(r,500));});
+await p.goto(`http://localhost:${port}/index.html`);
+await amorce(p);
+// démarrer puis terminer une session -> carte-bilan
+await ouvrirFiche(p,/Arr.t cardiaque/);
+await demarrerSession(p);
+await p.evaluate(async()=>{endSession(Runtime);resetRuntime();state.fiche=null;state.view='library';render();await new Promise(r=>setTimeout(r,500));});
 const r=await p.evaluate(()=>{const c=document.querySelector('.last-sess');if(!c)return null;
  const x=c.querySelector('.notice-x');const cr=c.getBoundingClientRect(),xr=x.getBoundingClientRect();
  const cs=getComputedStyle(x);

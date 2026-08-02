@@ -2,20 +2,21 @@
    sa hauteur était de la redite (surveillances, posologie), qui repoussait le contenu unique.
    Verrouille aussi l'invariant du BOUTON MORT : la rangée d'accès et le bouton du quai ne
    doivent exister que si la feuille a réellement du contenu. */
-import { serveApp, moteur, NOM_MOTEUR, ROOT } from './harness.mjs';
+import { serveApp, moteur, NOM_MOTEUR, ROOT, amorce, ouvrirFiche, demarrerSession } from './harness.mjs';
 
 const { port, srv } = await serveApp();
 const br=await moteur().launch();const p=await br.newPage({viewport:{width:420,height:900},deviceScaleFactor:2});
 let ok=0,ko=0;const t=(n,c,d)=>{if(c){ok++;console.log('  ✓ '+n);}else{ko++;console.log('  ✗ '+n+(d?' — '+d:''));}};
 p.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
-await p.goto(`http://localhost:${port}/index.html`);await p.waitForFunction(()=>!document.querySelector('.boot-load'));
-await p.evaluate(async()=>{const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();await new Promise(r=>setTimeout(r,150));
- const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await new Promise(r=>setTimeout(r,400));
- const c=[...document.querySelectorAll('.card-open')].find(x=>/Arr.t cardiaque/.test(x.textContent));
- const f=fiches.find(x=>x.id===c.dataset.open);
- f.posology=['△ **ADRÉNALINE — IV** : 1 mg / 3–5 min','**AMIODARONE** : 300 mg'];
- c.click();await new Promise(r=>setTimeout(r,400));
- document.getElementById('sessStart').click();await new Promise(r=>setTimeout(r,450));});
+await p.goto(`http://localhost:${port}/index.html`);
+await amorce(p);
+await p.evaluate(()=>{const f=fiches.find(x=>/Arr.t cardiaque/.test(x.title));
+ /* v5.0.0, étape B — `posology`, `verify` et `differentials` ne sont plus des CHAMPS mais des
+    RÔLES du pool `items`. Les écraser ne faisait plus rien : la sonde croyait vider la fiche et
+    mesurait une fiche pleine. On passe par `setList`, l'écriture réelle. */
+ setList(f,'posology',['△ **ADRÉNALINE — IV** : 1 mg / 3–5 min','**AMIODARONE** : 300 mg']);});
+await ouvrirFiche(p,/Arr.t cardiaque/);
+await demarrerSession(p);
 // composition + hauteur
 await p.evaluate(async()=>{document.getElementById('refBtn').click();await new Promise(r=>setTimeout(r,500));});
 const r=await p.evaluate(()=>{const secs=[...document.querySelectorAll('#refModal .rs-sec')];
@@ -34,10 +35,10 @@ t('la posologie reste dans le flux (téléphone)', await p.evaluate(()=>document
 t('les surveillances restent dans le flux', await p.evaluate(()=>document.querySelector('#main').textContent.indexOf('Chariot')>=0));
 // INVARIANT : pas de bouton sans contenu
 const vide=await p.evaluate(async()=>{const f=state.fiche;
- f.differentials=[];f.images=[];f.attachments=[];f.references=[];f.related=[];
+ setList(f,'differentials',[]);f.images=[];f.docs=[];f.sources=[];f.links=[];
  render();await new Promise(r=>setTimeout(r,400));
  return {btn:!document.getElementById('refBtn').hidden,rangee:!!document.getElementById('annexRow'),
-   verify:clean(f.verify).length,poso:clean(f.posology).length};});
+   verify:clean(listOf(f,'verify')).length,poso:clean(listOf(f,'posology')).length};});
 t('fiche SANS contenu de feuille (mais avec surveillances+posologie) : aucun bouton mort',
   vide.btn===false&&vide.rangee===false, JSON.stringify(vide));
 await p.close();await br.close();srv.close();

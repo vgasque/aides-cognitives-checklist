@@ -39,7 +39,6 @@ const FAMILIES = /^(pl|sv|ov|rm|cb|cx|rt|tk|care|flow|seg|stp)-/;
 // des classes qui existent pour être sélectionnées en JS, pas pour peindre.
 const EXEMPT = new Map([
   ['flow-scroll', 'conteneur de défilement du SVG : géométrie posée en style inline'],
-  ['seg-replay', 'modificateur transitoire retiré au reflow (rejeu de la pastille)'],
   ['ov-wrap', 'crochet de DÉLÉGATION du journal (cf. bindOverviewEvents) — aucun style propre'],
   ['ov-journal', 'crochet de sélection JS (`.ov-journal .flow-end`) — aucun style propre'],
   ['seg-ic', 'conteneur d\'icône rempli par uiIcon() : le SVG porte ses propres dimensions'],
@@ -74,7 +73,45 @@ const cssCode = css.replace(/\/\*[\s\S]*?\*\//g, '');
 const styled = new Set();
 for (const mm of cssCode.matchAll(/\.([A-Za-z][\w-]*)/g)) styled.add(mm[1]);
 
+/* ═══ LA PASSE INVERSE : « UNE RÈGLE CSS A UN PORTEUR » (v5.0.0, audit) ══════════════════════
+   L'EN-TÊTE DE CE FICHIER LA DÉCLARAIT « PAS AUTOMATISABLE DE FAÇON FIABLE », et c'était vrai du
+   raisonnement, pas du terrain : la mesure dit qu'exactement TREIZE classes sont posées par
+   concaténation, et qu'elles tiennent en trois familles qu'on peut nommer. Tout le reste s'écrit
+   littéralement quelque part — attribut, `classList`, chaîne de sélecteur — et se cherche donc.
+
+   CE QUE SON ABSENCE A COÛTÉ : dix classes mortes vivaient dans la feuille, dont `.pl-cxh`, que
+   `AGENTS.md` déclare PURGÉE en toutes lettres (« un seul demeure »). Autrement dit la doctrine
+   affirmait un nettoyage qui n'avait pas eu lieu — exactement le défaut que la règle 14 nomme
+   (« une purge à moitié faite est pire qu'aucune purge ») et que la moitié FORWARD de ce script
+   avait été écrite pour attraper, dans l'autre sens seulement.
+
+   PORTÉE : toutes les classes de la feuille, pas seulement les familles de crise. La moitié
+   forward se restreint aux familles parce qu'y perdre un registre a des conséquences cliniques ;
+   ici le risque est inverse et uniforme — du CSS mort qu'on relit, qu'on croit vivant, et sur
+   lequel on raisonne. Les dix trouvées étaient à 70 % HORS des familles surveillées. */
+const CONCAT = new Map([
+  [/^a-/,   'accent utilisateur : classe posée par `\'a-\'+accent` (applyAccent)'],
+  [/^ts-/,  'taille du texte : classe posée par `\'ts-\'+z` (applyZoom)'],
+  [/^zw/,   'palier de largeur sous zoom : classe posée par `\'zw\'+w` (syncZoomWidth)'],
+  [/^c\d$/, 'nombre de branches en colonne : classe posée par `\'c\'+n` (plan et statique)'],
+  [/^d\d$/, 'profondeur d\'imbrication : classe posée par `\'d\'+depth` (retraits du plan)'],
+]);
+const usedSomewhere = new Set();
+for (const mm of body.matchAll(/[A-Za-z][\w-]*/g)) usedSomewhere.add(mm[0]);
+const deadCss = [...styled]
+  .filter(c => !usedSomewhere.has(c) && ![...CONCAT.keys()].some(rx => rx.test(c)))
+  .sort();
+
 const orphans = [...emitted.keys()].filter(c => !styled.has(c) && !EXEMPT.has(c)).sort();
+
+if (deadCss.length) {
+  console.error(`✗ ${deadCss.length} règle(s) CSS dont la classe n'est émise NULLE PART :`);
+  for (const c of deadCss) console.error(`    .${c}`);
+  console.error('  -> le composant a disparu sans son CSS (règle 14) : supprimer la ou les règles,');
+  console.error('     leurs commentaires, et la doc qui les cite.');
+  console.error('     Si la classe est posée par CONCATÉNATION, ajouter sa famille à CONCAT avec sa raison.');
+  process.exit(1);
+}
 
 if (orphans.length) {
   console.error(`✗ ${orphans.length} classe(s) ÉMISE(S) sans aucune règle CSS :`);
@@ -84,4 +121,5 @@ if (orphans.length) {
   console.error('     Si elle est volontairement sans style, l\'ajouter à EXEMPT avec sa raison.');
   process.exit(1);
 }
-console.log(`✓ check-classes : ${emitted.size} classe(s) émise(s) surveillée(s), toutes stylées.`);
+console.log(`✓ check-classes : ${emitted.size} classe(s) émise(s) surveillée(s), toutes stylées ;`
+  + ` ${styled.size} classe(s) stylée(s), toutes émises (${CONCAT.size} familles concaténées exemptées).`);

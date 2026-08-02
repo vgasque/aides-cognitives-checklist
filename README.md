@@ -16,6 +16,8 @@ Code réalisé avec Claude AI.
 - `sw.js`, `manifest.webmanifest`, `icon-*.png` — service worker (hors ligne) et installation PWA ;
 - `exemples/` — fiches d'exemple prêtes à importer ;
 - `supabase/` — schéma et tests de sécurité (RLS) de la synchronisation optionnelle ;
+- `CHANGELOG.md` — les 20 dernières versions ; `docs/changelog/vN.md` — l'archive, une par
+  version majeure ;
 - `docs/deploiement-et-conformite.md` — kit de déploiement en établissement + statut
   réglementaire (non-DM), modèles RGPD et conditions d'utilisation ;
 - `AGENTS.md` — instructions pour les contributeurs (humains ou IA) ; `CLAUDE.md` l'importe ;

@@ -6,7 +6,7 @@
      • focus visible au CLAVIER (parcours Tab réel, pas un .focus() programmatique)
      • règles projet : jamais --soft en couleur de texte, « hors chemin » jamais par opacité seule
 */
-import { serveApp, moteur, NOM_MOTEUR, ROOT } from './harness.mjs';
+import { serveApp, moteur, NOM_MOTEUR, ROOT, amorce, ouvrirFiche, demarrerSession } from './harness.mjs';
 
 
 const { port, srv } = await serveApp();
@@ -64,8 +64,27 @@ const AUDIT = `(() => {
       if(ownText(el)&&el.textContent.trim()){
         // plancher typographique (règle projet)
         if(fs&&fs<11) out.typo.push({sel:el.className||el.tagName,px:fs,txt:el.textContent.trim().slice(0,28)});
-        // contraste du texte
-        const fg=parse(cs.color); if(fg){
+        /* contraste du texte
+           ATTENTION — L'OPACITE HERITEE COMPTE (v5.0.0, audit design A1-2). C'etait un defaut de
+           la SONDE, pas de l'application, et il la rendait aveugle partout a la fois : la passe
+           composait bien l'alpha de la COULEUR (une notation rgba), mais ignorait la propriete
+           opacity sur l'element et sur ses ancetres. Or opacity compose le rendu exactement comme
+           un alpha : getComputedStyle continue de rapporter l'encre PLEINE, si bien qu'un texte
+           reellement peint a 2,55:1 etait mesure a 5,93 et declare conforme.
+           C'est ce qui a laisse passer l'ETAPE COCHEE (opacity .6 + --done-ink), c'est-a-dire
+           l'etat le plus frequent de l'application. Le defaut n'etait donc pas qu'il manquait un
+           etat a la liste : c'est que l'instrument ne POUVAIT PAS le voir. Ajouter l'etat sans
+           corriger la sonde aurait produit un vert de plus, et un vert faux.
+           On multiplie les opacites jusqu'a la racine, puis on compose l'encre sur son fond
+           effectif. Une valeur inferieure a 1 sur un ANCETRE compte autant que sur l'element :
+           c'est le groupe entier qui est peint en transparence.
+           NOTE DE MAINTENANCE : ce bloc vit dans un litteral gabarit (la sonde est une chaine
+           evaluee dans la page). Aucun accent grave ni sequence dollar-accolade ici, sous peine
+           de refermer le gabarit — erreur commise en ecrivant ce commentaire. */
+        const opAcc=(()=>{let o=1,n=el;while(n&&n.nodeType===1){o*=px(getComputedStyle(n).opacity);n=n.parentElement;}return o;})();
+        const fg0=parse(cs.color);
+        const fg=fg0?{r:fg0.r,g:fg0.g,b:fg0.b,a:fg0.a*opAcc}:null;
+        if(fg){
           const eff=fg.a<1?over(fg,bgOf(el)):fg;
           const rr=ratio(eff,bgOf(el));
           const big=fs>=24||(fs>=18.66&&px(cs.fontWeight)>=700);
@@ -113,8 +132,16 @@ const report=(label,arr,fmt)=>{ checks++; if(!arr.length){return;} fails++;
   if(arr.length>6)console.log('      … +'+(arr.length-6)+' autres'); };
 
 // ---- surfaces à auditer -------------------------------------------------
+/* ⚠ CINQ SURFACES MANQUAIENT, ET LE PLANCHER SERVI N'ÉTAIT PAS AUDITÉ (audit design v5.0.0).
+   La bibliothèque n'était mesurée qu'à 1100 px — c'est-à-dire JAMAIS en voie étroite, là où vivent
+   les chips de filtre, le rail A→Z et les rangées du répertoire. La lecture d'une RÉFÉRENCE, le
+   mode STATIQUE, le MONITEUR et l'éditeur de PROTOCOLE n'y étaient pas du tout. Et 320 px — le
+   plancher que le dossier déclare servir, celui de WCAG 1.4.10 — n'était mesuré que sur l'écran
+   d'entrée invité. Un défaut hors scope n'est pas un défaut absent (leçon v4.75.0). */
 const SURFACES = [
   { nom:'bibliothèque',        w:1100, prep:null },
+  { nom:'bibliothèque étroite',w:320,  prep:null },
+  { nom:'lecture 320',         w:320,  prep:'read' },
   { nom:'lecture étroite',     w:390,  prep:'read' },
   { nom:'lecture + rail',      w:1280, prep:'read' },
   { nom:'feuille Plan',        w:1280, prep:'plan' },
@@ -139,11 +166,18 @@ const SURFACES = [
       openRead(f.id);await new Promise(r=>setTimeout(r,400));
       document.getElementById('sessStart').click();await new Promise(r=>setTimeout(r,450));
       confirmEndSession(f); } },
-  { nom:'complications',       w:390,  scope:'#cxModal', fn: async()=>{
+  /* L'index ⚡ n'est plus une FENÊTRE mais un dépliant DANS la carte (v5.0.0, audit design) : la
+     surface change de porteur, pas de nature — on l'ouvre par son vrai point d'entrée, et il faut
+     DEUX événements pour qu'un index existe (à un seul, l'événement est le bouton). */
+  { nom:'excursions',       w:390,  scope:'.cx-list', fn: async()=>{
       const f=fiches.find(x=>/Arrêt cardiaque/.test(x.title));
-      f.complications=[{label:'Laryngospasme',target:f.blocks[1].id}];
+      f.excursions=[{label:'Laryngospasme',target:f.blocks[1].id},
+                    {label:'Choc réfractaire',target:f.blocks[0].id}];
       await Data.put(f);openRead(f.id);await new Promise(r=>setTimeout(r,400));
-      openCxDlg(f); } },
+      const sb=document.getElementById('sessStart');if(sb)sb.click();
+      await new Promise(r=>setTimeout(r,500));
+      const b=document.querySelector('[data-cxopen]');if(b)b.click();
+      await new Promise(r=>setTimeout(r,350)); } },
   { nom:'versions précédentes',w:390,  scope:'#versModal', fn: async()=>{
       const f=fiches.find(x=>/Arrêt cardiaque/.test(x.title));
       await Data.putBackup({bid:uid('bk'),ficheId:f.id,at:Date.now(),data:JSON.parse(JSON.stringify(f))});
@@ -165,7 +199,7 @@ const SURFACES = [
       await IDB.putAtt({id:'att-y',buf:by.buffer,size:by.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:0});
       // Un document joint AILLEURS : sans lui, la liste filtrable serait vide et ne mesurerait rien.
       const g=fiches.find(x=>x.id!==f.id);
-      if(g){g.attachments=[{id:'att-y',name:'Annexe partagée.pdf',size:by.byteLength}];await Data.put(g);}
+      if(g){g.docs=[{id:'att-y',name:'Annexe partagée.pdf',size:by.byteLength}];await Data.put(g);}
       openEdit(f.id);await new Promise(r=>setTimeout(r,500));
       openAttPicker(state.draft,()=>{}); } },
   { nom:'lier une aide',       w:390,  scope:'#relPickModal', fn: async()=>{
@@ -190,6 +224,120 @@ const SURFACES = [
      ET le bandeau système), jamais un `hidden=false` posé à la main. Le dépliage de la notice est
      le geste de l'utilisateur, pas une reconstruction d'état : sans lui, le texte qui porte
      l'information légale ne serait pas mesuré du tout. */
+  { nom:'mode statique',       w:390,  prep:'read', fn: async()=>{
+      const b=document.getElementById('allBtn'); if(b)b.click();
+      await new Promise(r=>setTimeout(r,500)); } },
+  { nom:'mode moniteur',       w:390,  scope:'#monMode', prep:'read', fn: async()=>{
+      if(typeof openMonitor==='function')openMonitor();
+      await new Promise(r=>setTimeout(r,400)); } },
+  { nom:'lecture de référence',w:390,  fn: async()=>{
+      protocols.push(migrateProtocol({id:'pA11y',title:'Référence témoin',kind:'reference',
+        body:'# Titre A\n\ntexte de la référence\n\n## Sous-titre\n\n- [ ] tâche\n\n## Autre\n\ntexte'}));
+      openProtocolRead('pA11y'); await new Promise(r=>setTimeout(r,500)); } },
+  { nom:'éditeur de protocole',w:1100, fn: async()=>{
+      protocols.push(migrateProtocol({id:'pEd',title:'Référence à écrire',kind:'reference',body:'# A\n\nx'}));
+      await openProtocolEdit('pEd'); await new Promise(r=>setTimeout(r,500)); } },
+  /* ═══ ÉTATS ═══ (audit design v5.0.0 — ACTION 1, et c'est la plus importante du rapport).
+     Ce harnais ouvrait chaque surface AU REPOS. Or DEUX violations AA ont vécu à l'écran sans
+     qu'il les voie, parce qu'elles n'existent qu'après un geste : le surlignage de recherche
+     (3,64:1 en clair, 1,76:1 en sombre) et le vert du retour d'excursion (1,9:1 en sombre). Un
+     harnais qui ne mesure que le repos ne couvre pas la moitié de ce qu'il prétend couvrir.
+     Chaque entrée ci-dessous CONSTRUIT son état par les gestes réels de l'application. */
+  /* BIBLIOTHÈQUE VIDE — le premier écran d'un nouveau venu, et il n'était mesuré nulle part : la
+     surface « bibliothèque » est ouverte AVEC les fiches d'exemple, donc l'état vide n'existe
+     jamais dans le balayage. Il porte pourtant du texte à 13,5 px en encre douce et des glyphes
+     de registre (rouge, ambre, gris d'absence) : exactement ce que ce harnais existe pour voir.
+     ⚠ ON VIDE LES LISTES, ON NE FABRIQUE PAS L'ÉCRAN : c'est `renderHomeList` qui décide, sur la
+     même condition que chez l'utilisateur (rien à afficher, aucun filtre, droit de créer). */
+  { nom:'état · bibliothèque vide', w:390, must:'.emp-intro .emp-anat b', fn: async()=>{
+      fiches.length=0; protocols.length=0;
+      state.section='all'; state.q=''; state.cat=''; state.view='library';
+      render(); await new Promise(r=>setTimeout(r,400)); } },
+  { nom:'état · recherche active', w:390, prep:'read', must:'mark.pf-h', fn: async()=>{
+      const b=document.getElementById('allBtn'); if(b)b.click();
+      await new Promise(r=>setTimeout(r,600));
+      const q=document.getElementById('pfQ');
+      if(q){q.value='adrénaline';q.dispatchEvent(new Event('input',{bubbles:true}));}
+      await new Promise(r=>setTimeout(r,450)); } },
+  { nom:'état · excursion (retour)', w:390, prep:'read', must:'[data-cxback]', fn: async()=>{
+      /* ⚠ ON NE RÉ-OUVRE PAS LA FICHE : `openRead` reconstruit le Runtime, donc la session
+         démarrée par la préparation disparaîtrait — et `cxEnter` refuse d'enregistrer un retour
+         hors session. On ajoute la déclaration et l'on re-rend le journal, rien de plus. */
+      const f=state.fiche;
+      f.excursions=[{label:'Laryngospasme',target:f.blocks[1].id}];
+      renderOvOnly(); await new Promise(r=>setTimeout(r,350));
+      const g=document.querySelector('[data-cxgo]'); if(g)g.click();
+      await new Promise(r=>setTimeout(r,700)); } },
+  { nom:'état · minuteur échu', w:390, prep:'read', must:'.seg.due,.tmcard.due', fn: async()=>{
+      /* Les minuteurs du Runtime sont un DICTIONNAIRE par id, pas un tableau — et l'échéance se
+         calcule sur `elapsedMs` + `lastStart`, pas sur une durée nue. On arme, puis on antidate. */
+      const R=Runtime, ks=Object.keys(R.timers||{});
+      const src=(state.fiche.timers||[])[0];
+      /* ⚠ ET IL FAUT COUPER `autoloop` : un minuteur à cycles se REMET À ZÉRO à l'échéance, donc
+         il n'est jamais « échu » — l'état qu'on veut mesurer ne pouvait pas exister. */
+      if(ks.length&&src){const t=R.timers[ks[0]];
+        t.autoloop=false;src.autoloop=false;
+        t.running=true;t.elapsedMs=0;t.lastStart=Date.now()-((src.seconds||60)*1000+9000);}
+      if(typeof tickAll==='function')tickAll();
+      await new Promise(r=>setTimeout(r,500)); } },
+  { nom:'état · index ⚡ déplié', w:390, prep:'read', must:'.cx-list .cx-item', fn: async()=>{
+      const f=state.fiche;
+      f.excursions=[{label:'Laryngospasme',target:f.blocks[1].id},
+                    {label:'Choc réfractaire',target:f.blocks[0].id}];
+      renderOvOnly(); await new Promise(r=>setTimeout(r,350));
+      const b=document.querySelector('[data-cxopen]'); if(b)b.click();
+      await new Promise(r=>setTimeout(r,450)); } },
+  /* ═══ ÉTATS D'ITEM (v5.0.0, audit design A1-2) ═══
+     LES CINQ ÉTATS DE SURFACE ci-dessus mesuraient des ÉCRANS après un geste. Aucun ne mesurait
+     l'état d'un ITEM — et c'est par là qu'une violation AA a survécu à 443 contrôles verts :
+     l'étape COCHÉE, c'est-à-dire l'état le plus fréquent de toute l'application (en réanimation,
+     la moitié des lignes à l'écran le sont), composait un texte à 2,55:1 en clair et 1,95:1 en
+     SOMBRE. Le harnais ouvrait la fiche, mesurait des lignes vierges, et concluait.
+     « Un contrôle qui ne rencontre pas son cas ne le couvre pas » est la leçon la plus redite de
+     ce dossier ; elle n'avait pas été appliquée à la couverture du harnais lui-même. */
+  { nom:'état · étape cochée', w:390, prep:'read', must:'ol.steps li.done .txt', fn: async()=>{
+      /* On coche par le VRAI geste (clic sur la rangée), jamais en posant `.done` à la main :
+         c'est `applyCheck` qui écrit l'état, et une classe posée de force mesurerait un rendu
+         que l'application ne produit pas. Deux étapes, dont une SIGNALÉE si elle existe — la
+         boîte teintée `.crit` change le fond effectif, donc le contraste à mesurer. */
+      const li=[...document.querySelectorAll('ol.steps li[data-ck]')];
+      if(li[0])li[0].click();
+      const sig=li.find(e=>e.classList.contains('crit')||e.classList.contains('vigil'));
+      if(sig)sig.click(); else if(li[1])li[1].click();
+      /* La transition d'état dure 250 ms : mesurer avant, c'est mesurer une couleur en vol. */
+      await new Promise(r=>setTimeout(r,600)); } },
+  { nom:'état · trace do-verify', w:390, prep:'read', must:'.stp-vf', fn: async()=>{
+      /* La passe Do-Verify laisse DEUX marqueurs DURABLES et distincts de `checked` (v4.23.0) :
+         « ✓✓ constaté » (`.stp-vf.ok`) et « △ écart » (`.stp-vf.gap`), peints sur la rangée par
+         `paintStepTrace`. On mesure la TRACE, c'est-à-dire ce qui reste APRÈS la passe — c'est
+         elle qu'on relit au débriefing, et elle vit sur la liste ordinaire.
+         ⚠ Il faut SORTIR de la passe (`data-ovvx`) : pendant, les rangées sont des `.vstp`, un
+         autre composant. Mesurer là aurait couvert l'écran de passe et laissé la trace dehors —
+         exactement le trou que ces entrées existent pour fermer. */
+      const v=document.querySelector('[data-ovverify]'); if(v)v.click();
+      await new Promise(r=>setTimeout(r,450));
+      const ok=document.querySelector('[data-ovvok]'); if(ok)ok.click();
+      await new Promise(r=>setTimeout(r,350));
+      const gap=document.querySelector('[data-ovvgap]'); if(gap)gap.click();
+      await new Promise(r=>setTimeout(r,350));
+      const x=document.querySelector('[data-ovvx]'); if(x)x.click();
+      await new Promise(r=>setTimeout(r,600)); } },
+  { nom:'état · bloc hors chemin', w:1280, prep:'read', must:'.pl-line.off,.sv-cell.off,[class*="off"]', fn: async()=>{
+      /* Le « hors chemin » est signalé par une encre douce PLUS la mention en toutes lettres —
+         jamais par l'opacité seule (le harnais a une sonde dédiée pour ça). Il faut donc une
+         DÉCISION dont une branche a été prise pour que l'autre devienne hors chemin. */
+      const o=document.querySelector('[data-ovopt]'); if(o)o.click();
+      await new Promise(r=>setTimeout(r,700)); } },
+  { nom:'état · contrôles fermés (scribe)', w:390, prep:'read', must:'body.share-scribe', fn: async()=>{
+      /* La grammaire de « fermé » du fichier — encre douce, filet neutre, `--surface-2`, ombre
+         retirée — sert TROIS régimes (scribe, mode déplacement, lien mort). WCAG 1.4.3 exempte
+         les composants inactifs du seuil, mais la sonde vérifie le reste de la surface, et
+         surtout que le grisé ne déborde pas sur le contenu CLINIQUE, qui doit rester lisible. */
+      document.body.classList.add('share-scribe');
+      await new Promise(r=>setTimeout(r,400)); } },
+  { nom:'état · lien de partage mort', w:390, prep:'read', must:'.share-dead,[data-sharedead],#srLive', fn: async()=>{
+      if(typeof Share!=='undefined'&&Share.freeze){Share.mode='guest';Share.freeze('over');}
+      await new Promise(r=>setTimeout(r,500)); } },
   { nom:'entrée invité',       w:320,  scope:'#joinScreen', fn: async()=>{
       openJoinScreen('K7M2P4Q9');
       const d=document.querySelector('#joinScreen .join-info'); if(d)d.open=true; } },
@@ -211,25 +359,30 @@ for (const theme of ['light','dark']) {
     page.on('console',m=>{ if(m.type()==='error'&&!bruitReseau.test(m.text())) errs.push(`${S.nom}/${theme}: ${m.text()}`); });
     await page.goto(`http://localhost:${port}/index.html`);
     await page.waitForFunction(()=>!document.querySelector('.boot-load'),null,{timeout:10000});
-    if (!S.noSeed) await page.evaluate(async(kind)=>{
-      const w=[...document.querySelectorAll('button')].find(b=>/Commencer/.test(b.textContent)); if(w)w.click();
-      await new Promise(r=>setTimeout(r,120));
-      const s=[...document.querySelectorAll('button')].find(b=>b.textContent.includes("fiches d'exemple")); if(s)s.click();
-      await new Promise(r=>setTimeout(r,320));
+    if (!S.noSeed) { await amorce(page);
+    await page.evaluate(async(kind)=>{
       const a=[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='Toutes'); if(a)a.click();
       if(!kind)return;
       const c=[...document.querySelectorAll('.card-open')].find(x=>/Arrêt cardiaque/.test(x.textContent));
       const id=c.dataset.open;
       const f=fiches.find(x=>x.id===id);
       f.posology=['△ **ADRÉNALINE — IV** : 1 mg / 3–5 min','**Remplissage** : cristalloïdes','**O₂** : haut débit','**Amiodarone** : 300 mg'];
-      f.references=['Réanimation — recommandations 2023.'];
+      f.sources=['Réanimation — recommandations 2023.'];
       if(kind==='edit'){openEdit(id);await new Promise(r=>setTimeout(r,350));return;}
       c.click();
       document.getElementById('sessStart').click();
       await new Promise(r=>setTimeout(r,300));
-      if(kind==='plan'){document.getElementById('planBtn').click();await new Promise(r=>setTimeout(r,300));}
+      /* LOT T8 (v5.0.0) — le bouton « Se repérer » a QUITTÉ la rangée de commandes : son Échelle
+         est devenue l'onglet « Parcours » du cran « Toute la fiche ». La FEUILLE, elle, existe
+         toujours (menu ⋯, « complet » depuis le rail) et reste donc à mesurer : on l'ouvre par sa
+         fonction plutôt que par un bouton disparu. Sans ce correctif la sonde ne rougissait pas —
+         elle levait une exception et EMPORTAIT les seize harnais suivants (`&&` en chaîne), le
+         défaut de la v4.70.1 exactement. */
+      if(kind==='plan'){const b=document.getElementById('planBtn');
+        if(b)b.click();else if(typeof openPlanSheet==='function')openPlanSheet();
+        await new Promise(r=>setTimeout(r,300));}
       if(kind==='ref'){const rb=document.getElementById('refBtn');if(rb)rb.click();await new Promise(r=>setTimeout(r,300));}
-    }, S.prep && S.prep.indexOf('dlg:')===0 ? null : S.prep);
+    }, S.prep && S.prep.indexOf('dlg:')===0 ? null : S.prep); }
     // Fenêtres ouvertes par leur VRAI point d'entrée (jamais un classList.add('on') : une modale
     // forcée vide n'a pas le contenu qu'on veut mesurer, et produirait des verdicts faux).
     if (S.prep && S.prep.indexOf('dlg:') === 0) {
@@ -242,6 +395,15 @@ for (const theme of ['light','dark']) {
     if (S.scope) await page.evaluate(s => { window.__acScope = s; }, S.scope);
     await page.waitForTimeout(250);
 
+    /* ⚠ UN ÉTAT QUI NE S'EST PAS CONSTRUIT EST UN REPOS QU'ON MESURE EN CROYANT MESURER AUTRE
+       CHOSE — c'est la leçon la plus redite du dossier. Chaque entrée d'état déclare donc CE QUI
+       DOIT EXISTER, et son absence est un ÉCHEC, pas un silence. */
+    if (S.must) {
+      const vu = await page.evaluate(sel=>!!document.querySelector(sel), S.must);
+      checks++; if(!vu){fails++;console.log(`\n── ${S.nom} (${S.w}px)`);
+        console.log(`  ✗ l'état ne s'est pas construit — rien ne correspond à « ${S.must} »`);
+        await page.close(); continue;}
+    }
     const res = await page.evaluate(AUDIT);
     console.log(`\n── ${S.nom} (${S.w}px)`);
     const before=fails;
@@ -303,16 +465,9 @@ console.log('\n══════ WCAG 2.2 · 2.4.11 focus non masqué (session,
   const page = await browser.newPage({ viewport:{width:360,height:780} });
   await page.goto(`http://localhost:${port}/index.html`);
   await page.waitForFunction(()=>!document.querySelector('.boot-load'),null,{timeout:10000});
-  await page.evaluate(async()=>{
-    const w=[...document.querySelectorAll('button')].find(b=>/Commencer/.test(b.textContent)); if(w)w.click();
-    await new Promise(r=>setTimeout(r,120));
-    const s=[...document.querySelectorAll('button')].find(b=>b.textContent.includes("fiches d'exemple")); if(s)s.click();
-    await new Promise(r=>setTimeout(r,320));
-    [...document.querySelectorAll('.card-open')].find(x=>/Arrêt cardiaque/.test(x.textContent)).click();
-    await new Promise(r=>setTimeout(r,200));
-    document.getElementById('sessStart').click();
-    await new Promise(r=>setTimeout(r,300));
-  });
+  await amorce(page);
+  await ouvrirFiche(page,/Arrêt cardiaque/);
+  await demarrerSession(page);
   const bad = await page.evaluate(async()=>{
     const layers=['header.bar','#crisisCtrl','#crisisDock'].map(s=>document.querySelector(s)).filter(Boolean);
     const stick=()=>Math.max(...layers.map(e=>e.getBoundingClientRect().bottom));

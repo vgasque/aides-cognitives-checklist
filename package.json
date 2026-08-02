@@ -1,15 +1,15 @@
 {
   "name": "aides-cognitives-checklist",
-  "version": "4.79.0",
+  "version": "5.0.0",
   "description": "PWA d'aides cognitives cliniques, hors-ligne, sans dépendance runtime.",
   "private": true,
   "scripts": {
-    "check": "node scripts/check-syntax.mjs && node scripts/check-colors.mjs && node scripts/check-classes.mjs && node scripts/check-anim.mjs && node scripts/check-type.mjs && node scripts/check-sw.mjs && node scripts/check-sql.mjs && node scripts/csp-hashes.mjs --check",
+    "check": "node scripts/check-syntax.mjs && node scripts/check-colors.mjs && node scripts/check-classes.mjs && node scripts/check-anim.mjs && node scripts/check-type.mjs && node scripts/check-space.mjs && node scripts/check-radius.mjs && node scripts/check-paliers.mjs && node scripts/check-sw.mjs && node scripts/check-vendor.mjs && node scripts/check-upload.mjs && node scripts/check-sql.mjs && node scripts/check-icons.mjs && node scripts/check-harnais.mjs && node scripts/csp-hashes.mjs --check",
     "test": "node scripts/run-tests.mjs",
     "design:build": "node design/build.mjs",
     "design:check": "node scripts/design-check.mjs --strict",
     "ci": "npm run check && npm test && npm run design:check",
-    "audit": "node scripts/audit-a11y.mjs && node scripts/audit-doctrine.mjs && node scripts/audit-verify.mjs && node scripts/audit-session-card.mjs && node scripts/audit-zoom-scroll.mjs && node scripts/audit-verify-live.mjs && node scripts/audit-modeseg.mjs && node scripts/audit-consulter.mjs && node scripts/audit-complications.mjs && node scripts/audit-exercice.mjs && node scripts/audit-k5.mjs && node scripts/audit-prompt.mjs && node scripts/audit-lecteur.mjs && node scripts/audit-qr.mjs && node scripts/audit-partage.mjs && node scripts/audit-historique.mjs"
+    "audit": "node scripts/audit-run.mjs"
   },
   "devDependencies": {
     "playwright": "^1.44.0"

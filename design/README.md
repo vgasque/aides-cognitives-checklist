@@ -1,12 +1,12 @@
-# design/ — export du Design System et sources d'icônes
+# design/ — export du Design System
 
-Dossier **hors app** : rien ici n'est servi par la PWA (absent d'`ASSETS` dans `sw.js`). Deux rôles
-distincts, réunis dans ce seul fichier depuis v4.34.0 — ils tenaient auparavant dans deux `.md`
-séparés pour un même sujet.
+Dossier **hors app** : rien ici n'est servi par la PWA (absent d'`ASSETS` dans `sw.js`).
 
 1. **`ds/`** alimente le projet « Design System » de claude.ai/design
    (projectId `ded5aff6-1b5c-4813-919d-c9774c5163d1`).
-2. **`icons/`** garde les masters vectoriels dont sont exportées les icônes de l'application.
+2. **Les icônes** ne vivent plus ici : `design/icons/` a été SUPPRIMÉ avec l'identité de marque
+   v1, et les masters vectoriels sont remplacés par **une géométrie unique dans un script**
+   (§ 2 ci-dessous).
 
 ---
 
@@ -17,7 +17,10 @@ séparés pour un même sujet.
 - `ds/` — sortie générée : **20 fiches HTML** (Fondations + Composants ; chaque fiche montre les
   deux thèmes et embarque le CSS complet, ce qui la rend **autonome** — c'est voulu, l'outil
   distant les lit isolément), `tokens/tokens.css`, et `GUIDELINES.md`.
-- `ds/GUIDELINES.md` — **rédigé à la main**, seul fichier de `ds/` à éditer. Il RESTE dans `ds/` :
+- `ds/GUIDELINES.md` — **rédigé à la main**, seul fichier de `ds/` à éditer. ⚠ **Aucun script
+  ne le régénère, donc rien ne signale sa péremption** : il est resté à la v4.34 pendant vingt et
+  une versions, puis à la v4.55 pendant tout le chantier v5, décrivant trois surfaces supprimées.
+  À relire à chaque lot qui touche une surface — c'est sa seule protection. Il RESTE dans `ds/` :
   la synchro pousse `design/ds/` *tel quel*, le déplacer d'un niveau le sortirait du périmètre
   envoyé au projet distant. `scripts/design-check.mjs` l'exclut donc explicitement de sa
   vérification de dérive (il n'est pas produit par `build.mjs`).
@@ -40,76 +43,73 @@ restaure** — un arbre propre après un échec ne veut donc pas dire qu'il n'y 
 
 ---
 
-## 2. `icons/` — masters vectoriels de l'icône d'application
+## 2. Les icônes — UNE géométrie, un script, dix cadrages
 
-Le glyphe associe un **cerveau** (cognition/mémoire) et une **croix médicale**, blanc sur **bleu
-clinique `#1F5FA6`**. Handoff design de juillet 2026.
+**`design/icons/` n'existe plus.** Il gardait une douzaine de masters SVG d'une identité
+abandonnée (un cerveau associé à une croix médicale) ; l'identité de marque v1 les a tous
+remplacés par **`scripts/build-icons.mjs`**, qui régénère **toutes** les icônes servies à
+partir d'une seule géométrie déclarée en tête du fichier.
 
-> Ces fichiers ne sont **ni servis ni précachés** : ce sont les sources d'export. Les seuls fichiers
-> servis sont les PNG à la racine du dépôt.
+**La marque** : un **chronomètre coché à onglet** — un chronomètre dont la coupure de l'anneau
+laisse sortir une coche, surmonté d'un onglet d'intercalaire. Le temps, la validation et le
+protocole dans un seul signe, d'un trait d'épaisseur constante et à bouts coupés (SF Symbols
+et Material 3 arrondissent ; l'arrondi date sa décennie).
 
-### Masters
+**Pourquoi un script et non des fichiers binaires** : dix rasters dessinés à la main
+divergent — c'est la leçon des listes tenues en double de ce dépôt. La marque n'existe qu'à un
+seul endroit (`GLYPHE`), et chaque sortie n'est qu'un **cadrage** : couleur de fond, coins,
+échelle.
 
-| Master | Usage |
+```bash
+node scripts/build-icons.mjs
+```
+
+> ⚠ **CHANGER CES OCTETS NE CHANGE PAS CE QUI EST INSTALLÉ.** `sw.js` range les icônes dans un
+> cache versionné par `APP_VERSION` : sans `./release.sh X.Y.Z`, un appareil déjà installé garde
+> les ANCIENNES icônes, indéfiniment et sans un mot — exactement le piège de pdf.js.
+
+### Ce qui est servi (racine du dépôt)
+
+Tous sont générés par `build-icons.mjs`, tous sont listés dans `ASSETS` (`sw.js`), donc
+disponibles hors ligne dès l'installation.
+
+| Fichier | Rôle |
 |---|---|
-| `ios-icon-1024-square.svg` | icône pleine (fond + glyphe), **carré plein** — source des PNG « any » |
-| `icon-master-white-glyph.svg` | glyphe blanc, fond transparent (à poser sur un aplat) |
-| `icon-master-clinical-glyph.svg` | glyphe `#1F5FA6`, fond transparent (sur blanc) |
-| `android-adaptive-foreground.svg` / `-background.svg` | calques adaptive Android — source des PNG **maskable** |
-| `android-monochrome.svg` | calque monochrome (themed icons Android 13+) |
-| `favicon-glyph-clinical.svg`, `icon-rounded-preview.svg` | favicon vectoriel ; aperçu coins arrondis (**jamais livré tel quel**) |
+| `favicon.ico` (16+32+48), `favicon.svg`, `favicon-16.png`, `favicon-32.png` | onglet |
+| `icon-192.png`, `icon-512.png` | manifest, cadrage `any` |
+| `icon-192-maskable.png`, `icon-512-maskable.png` | manifest, cadrage `maskable` |
+| `icon-monochrome-512.png` | icône thématisée Android 13+ |
+| `apple-touch-icon.png` | écran d'accueil iOS |
+| `logo-glyph.svg` | la marque DANS l'app (accueil), posée en **masque CSS** sur `currentColor` |
 
-### Ce qui est effectivement servi (racine du dépôt)
+### Règles d'export — ce qui ne se devine pas
 
-| Fichier | Taille | Origine | Référencé par |
-|---|---|---|---|
-| `favicon.ico` | 16+32+48 | **généré** (`scripts/build-favicons.mjs`) | `<link rel="icon" sizes="any">` + requête implicite `/favicon.ico` |
-| `favicon.svg` | vectoriel | **généré** (copie du master arrondi) | `<link rel="icon" type="image/svg+xml">` |
-| `favicon-16.png` | 16 | **généré** | `<link rel="icon" sizes="16x16">` |
-| `favicon-32.png` | 32 | **généré** | `<link rel="icon" sizes="32x32">` |
-| `icon-192.png` | 192 | **généré** (`scripts/build-app-icons.mjs`, glyphe ~88 %) | `manifest.webmanifest` (`any`) — **plus aucun `<link>`** |
-| `icon-512.png` | 512 | **généré** (`scripts/build-app-icons.mjs`, glyphe ~88 %) | `manifest.webmanifest` (`any`) |
-| `icon-192-maskable.png` | 192 | foreground adaptive aplati sur `#1F5FA6` | `manifest.webmanifest` (`maskable`) |
-| `icon-512-maskable.png` | 512 | idem | `manifest.webmanifest` (`maskable`) |
-| `apple-touch-icon.png` | 180 | export carré plein | `<link rel="apple-touch-icon">` |
-
-Tous sont listés dans `ASSETS` (`sw.js`) : disponibles hors ligne dès l'installation.
-
-> Le tableau d'origine listait `icon-512.png` **deux fois**, avec deux origines contradictoires
-> (« généré » et « export carré plein ») : c'est bien `build-app-icons.mjs` qui le produit, la
-> seconde ligne était un vestige — retiré en v4.34.0.
-
-### Règles d'export
-
-- **DEUX FORMES, volontairement divergentes** (ne pas « harmoniser ») :
-  - icônes d'**application** (`icon-*.png`, `apple-touch-icon.png`, maskables) = **carré plein**,
-    jamais de coins pré-arrondis ni de transparence : iOS et Android appliquent leur propre masque
-    (l'ancienne icône v4.x arrondissait elle-même — double arrondi, glyphe rogné) ;
-  - **favicon** (`favicon.*`) = **coins arrondis** (rx 22,5 %, master `icon-rounded-preview.svg`) :
-    il n'est masqué par personne et se pose dans un conteneur déjà arrondi — un carré à angles
-    vifs y jure avec le fond de l'emplacement (constaté sur Safari, v4.22.4).
-- Les favicons sont **générés**, jamais exportés à la main : `node scripts/build-favicons.mjs`
-  (rendu à la taille finale depuis le SVG, `.ico` 16+32+48 écrit à la main, zéro dépendance
-  runtime). Rejouer après toute retouche du master arrondi.
+- **L'échelle la plus contraignante n'est pas Apple mais Material 3** : l'icône adaptative ne
+  garantit qu'un disque de 66 dp sur 108, soit **61 % du canevas**. Le cadrage `maskable` s'y
+  tient ; les autres, que personne ne masque, respirent davantage.
+- **DEUX FORMES, volontairement divergentes** (ne pas « harmoniser ») : les icônes
+  d'**application** sont un **carré plein** — iOS et Android appliquent leur propre masque, et
+  pré-arrondir produit un double arrondi qui rogne le glyphe ; le **favicon** est à **coins
+  arrondis**, car personne ne le masque et il se pose dans un conteneur déjà arrondi.
+- **Deux réglages de taille de glyphe** (leçon v4.22.5) : iOS pose l'icône PLEIN BORD, macOS
+  (Safari « Ajouter au Dock », Chrome installé) la place dans une tuile à ~80 % du canevas — un
+  glyphe calibré pour iOS y paraîtrait perdu. On compense sur le cadrage `any` ; ne PAS
+  agrandir `apple-touch-icon`, l'iPhone est déjà à la bonne taille.
 - **Ordre des `<link rel="icon">`** : WebKit exploite `sizes` moins finement que Blink et peut
-  retenir la dernière déclaration comprise — terminer la liste par le **32 px** pour qu'un repli
-  naïf reste correct, et ne JAMAIS y déclarer une grande taille (le 192 y provoquait le liseré).
-- **Maskable** = calque *foreground* aplati sur `#1F5FA6` plein cadre : le glyphe occupe ≈ 62 % du
-  canvas, donc reste dans le cercle sûr de 66 % quel que soit le masque du lanceur.
-- **Taille du glyphe : deux réglages** (leçon v4.22.5). iOS pose l'icône PLEIN BORD → glyphe à
-  ~72 % sur `apple-touch-icon.png` (= ~72 % de la case). macOS (Safari « Ajouter au Dock », Chrome
-  installé) place l'icône du MANIFEST dans une tuile à ~80 % du canevas → un glyphe à 72 % n'y
-  ferait que ~58 % de la case. On COMPENSE : `icon-192/512.png` (`any`) portent un glyphe à **~88 %**
-  (`scripts/build-app-icons.mjs`), qui retrouve ~70 % de la case après la marge macOS. Ne PAS
-  agrandir `apple-touch-icon` — l'iPhone est déjà à la bonne taille.
-- **Servir la taille NATIVE de l'emplacement.** Un favicon de 192 px dans un onglet de 16 px force
-  une réduction ×12 : le filtre du rasteriseur échantillonne hors de l'image et laisse une arête
-  d'un pixel semi-transparente, lue comme un **liseré blanc** sur une barre d'onglets claire
-  (constaté en v4.22.2, corrigé en v4.22.3 par `favicon-16/32.png`). Vérification d'un export :
-  aucun pixel du contour ne doit avoir un alpha < 255.
-- Toute nouvelle taille s'exporte **depuis ces SVG**, jamais par agrandissement d'un PNG.
-- Le bleu `#1F5FA6` est la couleur de marque de l'icône ; il ne circule pas dans le CSS de
-  l'app (les couleurs d'interface restent les tokens `:root` d'`index.html`).
+  retenir la dernière déclaration comprise — terminer par le **32 px**, et ne JAMAIS y déclarer
+  une grande taille (le 192 y provoquait un liseré).
+- **Servir la taille NATIVE de l'emplacement** : un favicon de 192 px dans un onglet de 16 px
+  force une réduction ×12, dont le filtre laisse une arête semi-transparente lue comme un
+  **liseré blanc**. Vérification d'un export : aucun pixel du contour ne doit avoir un alpha
+  < 255.
+- Le bleu de marque ne circule pas dans le CSS de l'app : les couleurs d'interface restent les
+  tokens `:root` d'`index.html`.
 
-> Ni `build-favicons.mjs` ni `build-app-icons.mjs` n'a de point d'entrée `npm` : ils s'appellent à
-> la main, et seulement quand un master change.
+> **Un seul script, et c'est récent.** `scripts/build-favicons.mjs` et
+> `scripts/build-app-icons.mjs` ont été SUPPRIMÉS : ils lisaient encore
+> `design/icons/icon-rounded-preview.svg` et `design/icons/icon-master-white-glyph.svg`, partis
+> avec le dossier — ils **échouaient donc si on les lançait**, et ils dessinaient l'ancienne
+> marque. `build-icons.mjs` produit toutes leurs sorties (vérifié fichier par fichier), plus
+> `icon-monochrome-512.png` et `logo-glyph.svg` : aucune capacité perdue. N'ayant jamais eu de
+> point d'entrée `npm`, rien n'avait signalé qu'ils étaient morts — c'est le corollaire de la
+> règle 14 : une suppression de dossier emporte ce qui le LIT, pas seulement ce qui le cite.
