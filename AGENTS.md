@@ -141,9 +141,18 @@ Publier une version = trois étapes, dans cet ordre :
    `vX.Y.Z : <résumé en français des changements>` — puis taguer `vX.Y.Z`.
 
 Les étapes 2 et 3 sont le travail de l'IA (ou de l'humain), jamais du script.
-**Le CHANGELOG garde les 20 dernières versions** ; au-delà, déplacer les plus anciennes
-dans `CHANGELOG-archive.md` — telles quelles, sans réécriture. La règle existait et n'avait servi
-qu'une fois en 112 entrées : le fichier pesait alors 221 Ko, la moitié de toute la documentation.
+**Le CHANGELOG garde les 20 dernières versions** ; au-delà, déplacer les plus anciennes dans
+**`docs/changelog/vN.md`, un fichier par VERSION MAJEURE** — telles quelles, sans réécriture. La
+règle existait et n'avait servi qu'une fois en 112 entrées : le fichier pesait alors 221 Ko, la
+moitié de toute la documentation.
+**L'ARCHIVE UNIQUE AVAIT DÉPASSÉ LE FICHIER QU'ELLE SOULAGE (v5.0.0, audit)** : `CHANGELOG-archive.md`
+atteignait **471 Ko pour 196 entrées** — plus que `CHANGELOG.md`, plus que tout `docs/`. La règle
+déplaçait donc le volume sans jamais le borner, et l'archive devenait à son tour illisible et
+inouvrable. Découpée par majeure, elle borne sa croissance par construction : une majeure close ne
+grossit plus jamais. Le contenu est repris **à l'octet** (réconciliation vérifiée : 196 entrées
+avant, 196 après, aucun contenu modifié) ; seule une coquille de crochet doublé sur `[4.29.8]` a
+été normalisée pour que l'entrée reste analysable.
+Versionnage sémantique : correctif → patch (Z), nouvelle fonctionnalité → mineure (Y).
 Versionnage sémantique : correctif → patch (Z), nouvelle fonctionnalité → mineure (Y).
 Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
 
