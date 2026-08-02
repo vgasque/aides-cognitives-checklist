@@ -3447,6 +3447,35 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   ⚠ **Ma formulation d'audit était fausse** : j'avais écrit « deux états vides seulement » en ne
   comptant qu'une classe. Le défaut n'était pas qu'il en manquait, c'est qu'il y en avait deux
   formes.
+- **L'IMPORT REFUSAIT LE FICHIER QUE L'APPLICATION FAIT FABRIQUER (v5.0.0, signalé à l'usage :
+  « .zip ou .json de v4 → Fichier illisible »)** — mesuré sur un export RÉEL de l'auteur, 18 aides
+  converties. **DEUX défauts, et le second était SILENCIEUX.**
+  **(1) LA CLÉ RACINE.** Un export v3 porte `fiches` ; le format v4 porte `aids`. `readImportFile`
+  exigeait `imp.fiches` et répondait « Fichier illisible » — sur un JSON parfaitement valide. Le
+  prompt de conversion, lui, ne DISAIT pas quelle clé produire tout en imposant « chaque fiche
+  devient une AIDE » et `ficheId → aidId` : **une IA fidèle produit donc `aids`, et l'application
+  refuse le fichier qu'elle a elle-même fait fabriquer.** Le contrat est désormais écrit dans le
+  prompt (racine EXACTE, et « n'invente aucune autre clé »).
+  **(2) LE TYPE EST UNE PROPRIÉTÉ, PLUS UNE LISTE.** Depuis le lot T9 la bibliothèque est unique et
+  le type est un attribut (`kind`) : le format v4 fusionne donc légitimement aides et références
+  dans `aids[]`. L'import avait encore deux listes — et il aurait passé les références par
+  `migrate()`, **qui force `kind:'procedure'`**. Six protocoles seraient devenus six aides VIDES,
+  **sans le moindre message** : le premier défaut criait, celui-ci se serait tu. On répartit
+  désormais par `kind`, à l'entrée et en UN seul endroit (`normalizeImport`, pure et testée).
+  **ET « FICHIER ILLISIBLE » CESSE DE MENTIR** : un JSON valide dont la racine est inconnue reçoit
+  son propre message, qui NOMME les clés attendues. Un message qui ne désigne pas sa cause envoie
+  chercher la panne du mauvais côté — on soupçonne l'encodage, l'archive, la conversion, jamais un
+  nom de champ.
+  ⚠ **DEUX PIÈGES DE SONDE, tous deux commis ici.** (a) `attBuf` prend l'ENREGISTREMENT, pas
+  l'identifiant : ma première mesure annonçait « 0/7 PDF restaurés » sur un import parfaitement
+  sain — l'instrument était mal branché, pas l'application (7/7 après correction). (b) Le parcours
+  réel POSE DES QUESTIONS (destination, fusionner/remplacer, doublons) : une sonde qui ne clique
+  pas `#confirmYes` reste bloquée sur un dialogue et mesure zéro import, ce qui ressemble
+  exactement à un échec. Un import de plus d'une fiche n'est pas mesurable sans répondre.
+  ⚠ **ET UN PIÈGE DE TEST** : `r.protocols[0].id` LÈVE quand le correctif est absent, `run()`
+  s'arrête et toute la suite perd son résumé — un test qui plante en emporte cinquante. Les accès
+  y sont défensifs (`(x||[])[0]||{}`) pour produire un ROUGE lisible. Vérifié capable d'échouer :
+  4 rouges sur les deux moteurs.
 - **UN NOM D'ICÔNE ABSENT NE LÈVE RIEN — IL REND UN BLANC À LA BONNE TAILLE (v5.0.0,
   `scripts/check-icons.mjs`)** : `uiIcon` retombe sur `${P[name]||''}`, donc un nom fantôme produit
   un `<svg>` correctement dimensionné et **sans aucun tracé**. Invisible à la relecture, invisible

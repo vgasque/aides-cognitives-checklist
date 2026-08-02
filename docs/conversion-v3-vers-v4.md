@@ -51,7 +51,14 @@ Un JSON qui commence par {"version": 3, ...} et contient "categories" et "fiches
 
 SORTIE
 Un JSON, et RIEN d'autre — pas de texte avant, pas de commentaire après, pas de bloc de code.
-Il commence par {"version": 4, ...}.
+Sa racine est EXACTEMENT :
+
+  { "version": 4, "origin": <recopié de l'entrée si présent>, "categories": [...], "aids": [...] }
+
+⚠ La clé s'appelle "aids", et elle contient TOUT : les aides converties depuis "fiches" (avec
+"kind": "procedure") ET les protocoles convertis depuis "protocols" (avec "kind": "reference").
+Il n'y a PLUS de clé "fiches" ni "protocols" à la racine : en v4 le type n'est plus une liste,
+c'est une PROPRIÉTÉ de l'objet. N'invente aucune autre clé racine.
 
 ═══ RÈGLE 1 — CHAQUE FICHE DEVIENT UNE « AIDE » ═══
 
@@ -182,7 +189,11 @@ RÉPONDS UNIQUEMENT PAR LE JSON.
 
 ## Après la conversion
 
-1. Dans l'application (v5), **fenêtre Créer → Importer un fichier**, et choisissez le JSON produit.
+1. Dans l'application (v5), **fenêtre Créer → Importer un fichier**, et choisissez le JSON produit
+   (ou le `.zip` si vous aviez des documents — c'est LUI qu'il faut importer, un `.json` seul ne
+   porte pas les PDF).
+   ⚠ Si l'application répond « Fichier illisible » : votre version est antérieure à ce correctif,
+   elle n'attendait que la clé `fiches`. Mettez-la à jour — ne modifiez pas le fichier converti.
 2. Ouvrez **une** fiche et vérifiez trois choses : le nombre d'étapes de son premier bloc, la
    présence des repères posologiques, et que le chapeau « Ne pas oublier » contient bien ce qu'il
    contenait avant.

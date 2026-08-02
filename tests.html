@@ -1774,6 +1774,39 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
     A.shareCodeFromHash('#j=K7M2P4QO')===null);
   ok('aucun fragment : rien',A.shareCodeFromHash('')===null);
 
+  group('Import — normaliser la racine (v3 « fiches » / v4 « aids »)');
+  {
+    /* Signalé à l'usage : « .zip ou .json de v4 → Fichier illisible ». Mesuré sur un export
+       RÉEL de 18 aides — la racine v4 porte `aids`, l'import exigeait `fiches`. Le fichier
+       était parfaitement valide ; c'est une clé qui manquait. */
+    const aide={id:'a1',kind:'procedure',title:'A'}, ref={id:'p1',kind:'reference',title:'R',body:'x'};
+    const r1=A.normalizeImport({version:4,categories:[],aids:[aide,ref]});
+    eq('« aids » devient « fiches »',(r1.fiches||[]).length,1);
+    eq('… et une kind:reference part dans « protocols »',(r1.protocols||[]).length,1);
+    eq('… la clé « aids » ne survit pas',r1.aids,undefined);
+    /* Le SECOND défaut était silencieux : `migrate()` force kind:'procedure', donc une
+       référence laissée dans `fiches` serait devenue une aide VIDE, sans un message. */
+    /* ⚠ JAMAIS D'ACCÈS NU dans un test : `r1.protocols[0].id` LÈVE quand le correctif est
+       absent, run() s'arrête et la suite entière perd son résumé — un test qui plante en
+       emporte cinquante. On veut un ROUGE lisible, pas une exception. */
+    eq('la référence garde son identité',((r1.protocols||[])[0]||{}).id,'p1');
+    const r2=A.normalizeImport({version:3,categories:[],fiches:[aide],protocols:[ref]});
+    eq('un export v3 est inchangé (fiches)',(r2.fiches||[]).length,1);
+    eq('un export v3 est inchangé (protocols)',(r2.protocols||[]).length,1);
+    /* Les deux formes coexistent : un fichier qui porterait les deux clés ne perd rien. */
+    const r3=A.normalizeImport({fiches:[aide],aids:[{id:'z',kind:'procedure'}]});
+    eq('« fiches » présent : il fait foi, « aids » est ignoré',(r3.fiches||[]).length,1);
+    eq('… et rien n’est inventé',r3.fiches[0].id,'a1');
+    /* Entrées dégénérées : la fonction ne doit jamais lever — c'est `readImportFile` qui
+       décide du message, pas elle. */
+    eq('null ne lève pas',(A.normalizeImport(null).fiches||[]).length,0);
+    eq('un objet sans liste passe tel quel',A.normalizeImport({x:1}).fiches,undefined);
+    /* Un fichier ne contenant QUE des références reste importable (0 aide, n références). */
+    const r4=A.normalizeImport({version:4,aids:[ref,{id:'p2',kind:'reference'}]});
+    eq('que des références : 0 aide',(r4.fiches||[]).length,0);
+    eq('… et 2 protocoles',(r4.protocols||[]).length,2);
+  }
+
   group('Journal des actions — repères référentiels');
   {const f={counters:[{id:'c1',label:'Chocs'},{id:'c2',label:'Adrénaline'}]};
    const ev=[
