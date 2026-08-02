@@ -10,16 +10,13 @@
      · ouvrir l'éditeur pose UN point de version — le filet qui remplace le « Annuler » disparu.
    Les trois derniers contrôles sont les plus importants : ce sont eux qui garantissent qu'un
    essai d'auteur ne contamine pas l'historique clinique de quelqu'un. */
-import { serveApp, moteur } from './harness.mjs';
+import { serveApp, moteur, amorce } from './harness.mjs';
 const {port,srv}=await serveApp(); const br=await moteur().launch();
 const p=await br.newPage({viewport:{width:390,height:900}});
 let ok=0,ko=0;const t=(n,c,d)=>{if(c){ok++;console.log('  ✓ '+n);}else{ko++;console.log('  ✗ '+n+(d?' — '+d:''));}};
 p.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
 await p.goto(`http://localhost:${port}/index.html`);
-await p.waitForFunction(()=>!document.querySelector('.boot-load'));
-await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
-  const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();await w(200);
-  const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await w(700);});
+await amorce(p);
 
 console.log('=== une fiche NEUVE sans titre n’entre pas ===');
 const a=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));

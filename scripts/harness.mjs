@@ -79,3 +79,70 @@ export const items = arr => (arr || []).map(s => {
   return i < 0 ? { do: nu.trim(), expect: '', level }
                : { do: nu.slice(0, i).trim(), expect: nu.slice(i + 2).trim(), level };
 });
+
+/* ══ GESTES PARTAGÉS D'AMORÇAGE (v5.0.0) ══════════════════════════════════════════════════════
+ *
+ * POURQUOI. Les dix-sept harnais recopiaient chacun le même trajet — « Commencer » → « Ajouter
+ * les fiches d'exemple » → ouvrir une fiche par `.card-open` → `#sessStart` — et les copies
+ * avaient DÉJÀ divergé sur leurs délais (120/350 ms ici, 150/400 là, 200/700 ailleurs) : la même
+ * dérive que le serveur statique avant ce socle (v4.45.0), et que toute liste tenue en double
+ * (`MUTE_SEL`, les placards…). Un changement du flux d'accueil coûtait jusqu'à dix-sept éditions.
+ *
+ * CE QUE CES GESTES NE CHANGENT PAS : le POINT D'ENTRÉE. La doctrine « une sonde ouvre par le
+ * vrai point d'entrée, elle ne reconstruit jamais l'état » (v4.40.0) est tenue à l'identique —
+ * on clique les vrais boutons ; seul l'ENDROIT où c'est écrit change (une copie au lieu de 17).
+ *
+ * ET CE QU'ILS AMÉLIORENT : les délais fixes deviennent des attentes sur CONDITIONS RÉELLES
+ * (waitForFunction), donc ni trop courts sous charge (un pool parallèle d'audit-run.mjs affame
+ * le CPU) ni payés à vide sur machine rapide. Un geste qui n'aboutit pas ÉCHOUE bruyamment au
+ * timeout de Playwright au lieu de laisser la sonde mesurer un écran à moitié construit.
+ */
+
+/* Traverser l'écran de bienvenue et poser les fiches d'exemple. Prérequis : `page.goto` déjà
+   fait par le harnais (les URL et viewports varient). Rendu final attendu : l'accueil avec au
+   moins une rangée ouvrable. */
+export async function amorce(page) {
+  await page.waitForFunction(() => !document.querySelector('.boot-load'));
+  await page.evaluate(() => {
+    const b = [...document.querySelectorAll('button')].find(x => /Commencer/.test(x.textContent));
+    if (b) b.click();
+  });
+  await page.waitForFunction(() =>
+    [...document.querySelectorAll('button')].some(x => x.textContent.includes("fiches d'exemple"))
+    || document.querySelector('.card-open'));
+  await page.evaluate(() => {
+    const s = [...document.querySelectorAll('button')].find(x => x.textContent.includes("fiches d'exemple"));
+    if (s) s.click();
+  });
+  await page.waitForFunction(() => typeof fiches !== 'undefined' && fiches.length > 0
+    && !!document.querySelector('.card-open'));
+}
+
+/* Ouvrir une fiche par son bouton-titre `.card-open` — le sélecteur que la doctrine protège
+   (« quatorze harnais ouvrent une fiche par ce sélecteur »). `motif` : RegExp ou chaîne testée
+   sur le libellé. Aucune rangée ne correspond → échec BRUYANT, jamais un écran d'accueil mesuré
+   en croyant mesurer une fiche. */
+export async function ouvrirFiche(page, motif) {
+  const src = motif instanceof RegExp ? motif.source : String(motif);
+  await page.evaluate((s) => {
+    const re = new RegExp(s, 'i');
+    const c = [...document.querySelectorAll('.card-open')].find(x => re.test(x.textContent));
+    if (!c) throw new Error(`ouvrirFiche : aucune rangée ne correspond à /${s}/i`);
+    c.click();
+  }, src);
+  await page.waitForFunction(() => document.body.classList.contains('view-read'));
+}
+
+/* Presser « Confirmé — démarrer la session » (`#sessStart`) et attendre que la session ait
+   RÉELLEMENT démarré (`Runtime.started`) — c'est la mesure qui distingue le vrai point d'entrée
+   d'un état reconstruit (v4.40.0 : Runtime.started=false quand on court-circuite openRead). */
+export async function demarrerSession(page) {
+  await page.evaluate(() => {
+    const b = document.getElementById('sessStart');
+    if (!b) throw new Error('demarrerSession : #sessStart introuvable (fiche non ouverte ?)');
+    b.click();
+  });
+  await page.waitForFunction(() => typeof Runtime !== 'undefined' && !!Runtime.started);
+  // Deux rAF : laisser retomber le re-rendu de démarrage avant que la sonde ne mesure.
+  await page.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))));
+}

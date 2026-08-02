@@ -11,7 +11,7 @@
  * prouver qu'une ligne PART : cela demande le stockage réel, la vraie chaîne d'écriture et le vrai
  * `_pushTable`. D'où ce harnais, qui bouchonne le transport et regarde ce qui SERAIT envoyé.
  */
-import { serveApp, moteur, NOM_MOTEUR } from './harness.mjs';
+import { serveApp, moteur, NOM_MOTEUR, amorce } from './harness.mjs';
 
 const { port, srv } = await serveApp();
 const br = await moteur().launch();
@@ -23,15 +23,7 @@ console.log(`\n══ HISTORIQUE · ce qui monte, et ce qui reste — moteur ${N
 {
   const page = await br.newPage({ viewport: { width: 1100, height: 900 } });
   await page.goto(`http://localhost:${port}/index.html`);
-  await page.waitForFunction(() => !document.querySelector('.boot-load'));
-  await page.evaluate(async () => {
-    const b = [...document.querySelectorAll('button')].find(x => /Commencer/.test(x.textContent));
-    if (b) b.click();
-    await new Promise(r => setTimeout(r, 120));
-    const s = [...document.querySelectorAll('button')].find(x => x.textContent.includes("fiches d'exemple"));
-    if (s) s.click();
-    await new Promise(r => setTimeout(r, 400));
-  });
+  await amorce(page);
 
   const r = await page.evaluate(async () => {
     const out = {};

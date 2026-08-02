@@ -30,8 +30,10 @@ ne s'apprend en lisant le code** — elles viennent d'incidents mesurés, et plu
    `APP_VERSION` et `CACHE` casse la mise à jour du service worker). **Jamais de `git push` sans
    demande explicite.**
 2. **Avant chaque commit** : `npm run check` (syntaxe · couleurs · classes émises · animations ·
-   service worker · SQL · hashs CSP) et
+   service worker · SQL · harnais · hashs CSP) et
    `npm test` (Chromium **et** WebKit). Si le CSS a changé : `npm run design:build`.
+   **La passe d'audit qui vaut avant un commit est la COMPLÈTE** (`npm run audit` sans argument) ;
+   `npm run audit -- <noms>` n'est qu'un accélérateur d'itération et s'annonce « PARTIELLE ».
 3. **Toute édition du script inline exige `node scripts/csp-hashes.mjs`.** Sans cela, la CSP par
    hashs bloque le seul script de l'application et **elle ne démarre plus**. Le piège s'est produit
    trois fois ; `npm run check` le détecte désormais.
@@ -227,9 +229,29 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   attendre. Il ne s'agissait donc pas d'un défaut d'accessibilité — mais on ne pouvait pas le
   savoir tant que les harnais ne tournaient que sur Blink., à rejouer dès qu'on touche au chrome de crise,
   au rail, aux feuilles Plan/Consulter ou à un token de couleur. **DIX-SEPT** harnais Playwright qui
-  MESURENT au lieu d'affirmer (liste exacte dans `package.json`, script `audit` : a11y, doctrine,
+  MESURENT au lieu d'affirmer (liste exacte dans `scripts/audit-run.mjs` : a11y, doctrine,
   budget, verify, session-card, zoom-scroll, verify-live, modeseg, consulter, complications, exercice,
-  **k5**, **prompt**, retour, qr, partage, historique). Ils tournent en CI en mode **NON BLOQUANT** (`continue-on-error`) : visibles à chaque
+  **k5**, **prompt**, retour, qr, partage, historique).
+  **LANCEUR PARALLÈLE À RAPPORT AGRÉGÉ (v5.0.0, `scripts/audit-run.mjs`)** : la chaîne `&&` de
+  `package.json` payait la SOMME des durées (mesuré 9 min 42 s, dont 87 % dans doctrine/a11y/
+  partage/k5) et son fail-fast CACHAIT tout ce qui suivait le premier rouge — l'incident « un
+  harnais qui plante en emporte cinq » (v4.70.1), revécu à chaque itération. Le lanceur joue les
+  dix-sept en concurrence (pool `AC_JOBS`, défaut 4, lourds d'abord — temps mural ≈ le max, pas la
+  somme) et rapporte TOUS les échecs d'une passe ; les sondes, leurs seuils et `AC_ENGINE` sont
+  inchangés, et chaque harnais reste lançable seul. **CIBLAGE pendant l'itération** :
+  `npm run audit -- partage qr` ne joue que les harnais nommés — la passe s'annonce alors
+  « PARTIELLE » en toutes lettres (un vert partiel pris pour un complet serait pire que le statu
+  quo), un nom inconnu ÉCHOUE bruyamment (une faute de frappe qui lancerait une passe vide aurait
+  l'air verte), et la règle « avant chaque commit » reste la passe COMPLÈTE, que la CI rejoue.
+  **GESTES D'AMORÇAGE PARTAGÉS (v5.0.0, `harness.mjs` : `amorce`/`ouvrirFiche`/`demarrerSession`)** :
+  les dix-sept recopiaient « Commencer → fiches d'exemple → `.card-open` → `#sessStart` » avec des
+  délais déjà divergents (120/350 ici, 200/700 là) — un changement du flux d'accueil coûtait
+  jusqu'à dix-sept éditions. Une copie désormais, avec attentes sur CONDITIONS RÉELLES
+  (`waitForFunction`) au lieu de délais fixes ; le point d'entrée reste le VRAI (doctrine v4.40.0).
+  DEUX sites gardent leur amorçage inline À DESSEIN, commentés sur place dans `audit-doctrine.mjs` :
+  la sonde de l'écran de bienvenue (l'amorçage est son SUJET de mesure, pas sa mise en condition)
+  et la sonde qui injecte SA fiche sans poser les exemples (autre trajet, pas une copie).
+  Ils tournent en CI en mode **NON BLOQUANT** (`continue-on-error`) : visibles à chaque
   push, mais un échec y demande un arbitrage humain, pas un blocage de merge. Les trois plus
   anciens, en détail :
   - `scripts/audit-a11y.mjs` — **25 surfaces × 2 thèmes, dont les 21 `.ai-modal` du monofichier
@@ -275,6 +297,15 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
     l'époque comptait les `$$` et vérifiait la PARITÉ — or un `$$` amputé ne matche plus le
     motif, il disparaît du compte des deux côtés et la parité reste vraie. Un contrôle aveugle au
     défaut qu'il prétend couvrir ne vaut rien (leçon v4.31.1, redite ici au prix fort).
+  `check-harnais.mjs` (v5.0.0) rend auto-exécutoire la discipline née avec le lanceur parallèle :
+  (1) tout `scripts/audit-*.mjs` sur disque figure dans `HARNAIS` (audit-run.mjs) et
+  réciproquement — un harnais créé mais non listé ne tournerait JAMAIS dans `npm run audit`, et le
+  trou serait silencieux (la fuite exacte de l'échelle des paliers, rejouée ici) ; (2) aucun
+  harnais ne recopie l'amorçage « Commencer » — on passe par `amorce()`/`ouvrirFiche()`/
+  `demarrerSession()` de `harness.mjs`, et une exemption se marque SUR PLACE par le commentaire
+  « PAS `amorce()` ici » avec sa justification (jamais dans une liste du contrôle, qui se
+  périmerait). Vérifié CAPABLE D'ÉCHOUER dans les deux sens (harnais fantôme → rouge ; copie
+  d'amorçage réintroduite → rouge ; états restaurés).
 - L'intégration continue (`.github/workflows/ci.yml`) rejoue, sur chaque push/PR :
   `npm run check` (syntaxe + couleurs + hashs CSP), `design:check --strict`, `npm ci`, `npm test`,
   puis `npm run audit` **en non bloquant**. `npm ci` (et non `npm install`) : la CI installe

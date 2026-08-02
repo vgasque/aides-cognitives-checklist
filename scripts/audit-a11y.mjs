@@ -6,7 +6,7 @@
      • focus visible au CLAVIER (parcours Tab réel, pas un .focus() programmatique)
      • règles projet : jamais --soft en couleur de texte, « hors chemin » jamais par opacité seule
 */
-import { serveApp, moteur, NOM_MOTEUR, ROOT } from './harness.mjs';
+import { serveApp, moteur, NOM_MOTEUR, ROOT, amorce, ouvrirFiche, demarrerSession } from './harness.mjs';
 
 
 const { port, srv } = await serveApp();
@@ -282,11 +282,8 @@ for (const theme of ['light','dark']) {
     page.on('console',m=>{ if(m.type()==='error'&&!bruitReseau.test(m.text())) errs.push(`${S.nom}/${theme}: ${m.text()}`); });
     await page.goto(`http://localhost:${port}/index.html`);
     await page.waitForFunction(()=>!document.querySelector('.boot-load'),null,{timeout:10000});
-    if (!S.noSeed) await page.evaluate(async(kind)=>{
-      const w=[...document.querySelectorAll('button')].find(b=>/Commencer/.test(b.textContent)); if(w)w.click();
-      await new Promise(r=>setTimeout(r,120));
-      const s=[...document.querySelectorAll('button')].find(b=>b.textContent.includes("fiches d'exemple")); if(s)s.click();
-      await new Promise(r=>setTimeout(r,320));
+    if (!S.noSeed) { await amorce(page);
+    await page.evaluate(async(kind)=>{
       const a=[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='Toutes'); if(a)a.click();
       if(!kind)return;
       const c=[...document.querySelectorAll('.card-open')].find(x=>/Arrêt cardiaque/.test(x.textContent));
@@ -308,7 +305,7 @@ for (const theme of ['light','dark']) {
         if(b)b.click();else if(typeof openPlanSheet==='function')openPlanSheet();
         await new Promise(r=>setTimeout(r,300));}
       if(kind==='ref'){const rb=document.getElementById('refBtn');if(rb)rb.click();await new Promise(r=>setTimeout(r,300));}
-    }, S.prep && S.prep.indexOf('dlg:')===0 ? null : S.prep);
+    }, S.prep && S.prep.indexOf('dlg:')===0 ? null : S.prep); }
     // Fenêtres ouvertes par leur VRAI point d'entrée (jamais un classList.add('on') : une modale
     // forcée vide n'a pas le contenu qu'on veut mesurer, et produirait des verdicts faux).
     if (S.prep && S.prep.indexOf('dlg:') === 0) {
@@ -391,16 +388,9 @@ console.log('\n══════ WCAG 2.2 · 2.4.11 focus non masqué (session,
   const page = await browser.newPage({ viewport:{width:360,height:780} });
   await page.goto(`http://localhost:${port}/index.html`);
   await page.waitForFunction(()=>!document.querySelector('.boot-load'),null,{timeout:10000});
-  await page.evaluate(async()=>{
-    const w=[...document.querySelectorAll('button')].find(b=>/Commencer/.test(b.textContent)); if(w)w.click();
-    await new Promise(r=>setTimeout(r,120));
-    const s=[...document.querySelectorAll('button')].find(b=>b.textContent.includes("fiches d'exemple")); if(s)s.click();
-    await new Promise(r=>setTimeout(r,320));
-    [...document.querySelectorAll('.card-open')].find(x=>/Arrêt cardiaque/.test(x.textContent)).click();
-    await new Promise(r=>setTimeout(r,200));
-    document.getElementById('sessStart').click();
-    await new Promise(r=>setTimeout(r,300));
-  });
+  await amorce(page);
+  await ouvrirFiche(page,/Arrêt cardiaque/);
+  await demarrerSession(page);
   const bad = await page.evaluate(async()=>{
     const layers=['header.bar','#crisisCtrl','#crisisDock'].map(s=>document.querySelector(s)).filter(Boolean);
     const stick=()=>Math.max(...layers.map(e=>e.getBoundingClientRect().bottom));

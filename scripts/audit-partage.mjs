@@ -14,7 +14,7 @@
  * verdicts faux, leçon v4.40.0) : la dérive en pixels d'une étape visible pendant qu'un lot
  * d'évènements distants s'applique.
  */
-import { serveApp, moteur, NOM_MOTEUR } from './harness.mjs';
+import { serveApp, moteur, NOM_MOTEUR, amorce } from './harness.mjs';
 
 const { port, srv } = await serveApp();
 const br = await moteur().launch();
@@ -25,14 +25,8 @@ const t = (nom, cond, det) => { if (cond) { ok++; console.log('  ✓ ' + nom); }
 // Bootstrap identique à celui d'audit-doctrine : on passe par les VRAIS points d'entrée.
 async function session(page) {
   await page.goto(`http://localhost:${port}/index.html`);
-  await page.waitForFunction(() => !document.querySelector('.boot-load'));
+  await amorce(page);
   await page.evaluate(async () => {
-    const b = [...document.querySelectorAll('button')].find(x => /Commencer/.test(x.textContent));
-    if (b) b.click();
-    await new Promise(r => setTimeout(r, 120));
-    const s = [...document.querySelectorAll('button')].find(x => x.textContent.includes("fiches d'exemple"));
-    if (s) s.click();
-    await new Promise(r => setTimeout(r, 400));
     const f = fiches.find(x => /Arrêt cardiaque/.test(x.title)) || fiches[0];
     openRead(f.id);
     await new Promise(r => setTimeout(r, 350));
@@ -359,13 +353,7 @@ for (const [w, h] of [[320, 568], [390, 844]]) {
   const ctx = await br.newContext({ viewport: { width: w, height: h } });
   const page = await ctx.newPage();
   await page.goto(`http://localhost:${port}/index.html`);
-  await page.waitForFunction(() => !document.querySelector('.boot-load'));
-  await page.evaluate(async () => {
-    const b = [...document.querySelectorAll('button')].find(x => /Commencer/.test(x.textContent)); if (b) b.click();
-    await new Promise(r => setTimeout(r, 120));
-    const s = [...document.querySelectorAll('button')].find(x => x.textContent.includes("fiches d'exemple")); if (s) s.click();
-    await new Promise(r => setTimeout(r, 400));
-  });
+  await amorce(page);
   const r = await page.evaluate(async () => {
     const f = fiches.find(x => /Arrêt cardiaque/.test(x.title)) || fiches[0];
     // Serveur bouchonné : une jointure RÉUSSIE, avec la projection réelle de la fiche.
@@ -444,13 +432,7 @@ for (const [w, h] of [[320, 568], [390, 844]]) {
   const ctx = await br.newContext({ viewport: { width: 390, height: 844 } });
   const page = await ctx.newPage();
   await page.goto(`http://localhost:${port}/index.html`);
-  await page.waitForFunction(() => !document.querySelector('.boot-load'));
-  await page.evaluate(async () => {
-    const b = [...document.querySelectorAll('button')].find(x => /Commencer/.test(x.textContent)); if (b) b.click();
-    await new Promise(r => setTimeout(r, 120));
-    const s = [...document.querySelectorAll('button')].find(x => x.textContent.includes("fiches d'exemple")); if (s) s.click();
-    await new Promise(r => setTimeout(r, 400));
-  });
+  await amorce(page);
   const r = await page.evaluate(async () => {
     const f = fiches.find(x => /Arrêt cardiaque/.test(x.title)) || fiches[0];
     const pousses = [];
@@ -882,13 +864,7 @@ console.log(`\n══ PARTAGE · rejoindre se tape dans la recherche — moteur 
 {
   const page = await br.newPage({ viewport: { width: 390, height: 844 } });
   await page.goto(`http://localhost:${port}/index.html`);
-  await page.waitForFunction(() => !document.querySelector('.boot-load'));
-  await page.evaluate(async () => {
-    const b = [...document.querySelectorAll('button')].find(x => /Commencer/.test(x.textContent)); if (b) b.click();
-    await new Promise(r => setTimeout(r, 120));
-    const s = [...document.querySelectorAll('button')].find(x => x.textContent.includes("fiches d'exemple")); if (s) s.click();
-    await new Promise(r => setTimeout(r, 400));
-  });
+  await amorce(page);
   const r = await page.evaluate(async () => {
     const haut = () => document.getElementById('main').scrollHeight;
     const repos = haut(), sansCode = !document.getElementById('homeJoin');

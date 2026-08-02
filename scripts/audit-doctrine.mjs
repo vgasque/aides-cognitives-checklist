@@ -1,6 +1,6 @@
 /* LOT 7 — volet DOCTRINE : ECAM / QRH / FAA AC 120-71B, mesuré sur l'app réelle.
    Chaque contrôle traduit une règle de sûreté en invariant observable. */
-import { serveApp, moteur, NOM_MOTEUR, ROOT , items} from './harness.mjs';
+import { serveApp, moteur, NOM_MOTEUR, ROOT , items, amorce, ouvrirFiche, demarrerSession} from './harness.mjs';
 
 const { port, srv } = await serveApp();
 const br=await moteur().launch();
@@ -10,17 +10,11 @@ const t=(nom,cond,det)=>{if(cond){ok++;console.log('  ✓ '+nom);}else{ko++;cons
 async function session(w,demarrer){
   const page=await br.newPage({viewport:{width:w,height:820}});
   await page.goto(`http://localhost:${port}/index.html`);
-  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
-  await page.evaluate(async(demarrer)=>{
-    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();
-    await new Promise(r=>setTimeout(r,120));
-    const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();
-    await new Promise(r=>setTimeout(r,350));
-    const c=[...document.querySelectorAll('.card-open')].find(x=>/Arrêt cardiaque/.test(x.textContent));
-    c.click();await new Promise(r=>setTimeout(r,150));
-    // `demarrer===false` = l'écran d'un INVITÉ : la fiche est ouverte, mais rien n'a démarré
-    // localement — c'est le principe même du miroir, et c'est ce qui faisait disparaître le quai.
-    if(demarrer!==false){document.getElementById('sessStart').click();await new Promise(r=>setTimeout(r,350));}},demarrer);
+  await amorce(page);
+  await ouvrirFiche(page,/Arrêt cardiaque/);
+  // `demarrer===false` = l'écran d'un INVITÉ : la fiche est ouverte, mais rien n'a démarré
+  // localement — c'est le principe même du miroir, et c'est ce qui faisait disparaître le quai.
+  if(demarrer!==false)await demarrerSession(page);
   return page;
 }
 
@@ -95,14 +89,8 @@ console.log('\n══ ECAM · naviguer ≠ agir ══');
 {
   const page=await br.newPage({viewport:{width:1280,height:820}});
   await page.goto(`http://localhost:${port}/index.html`);
-  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
-  await page.evaluate(async()=>{
-    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();
-    await new Promise(r=>setTimeout(r,120));
-    const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();
-    await new Promise(r=>setTimeout(r,350));
-    [...document.querySelectorAll('.card-open')].find(x=>/Arrêt cardiaque/.test(x.textContent)).click();
-    await new Promise(r=>setTimeout(r,250));});
+  await amorce(page);
+  await ouvrirFiche(page,/Arrêt cardiaque/);
   const before=await page.evaluate(()=>({live:Object.keys(liveSessions||{}).length,
     checked:JSON.stringify(Runtime.checked||{})}));
   // Le nœud du plan est une LIGNE de l'Échelle (.pl-line[data-plln]) — l'ancien sélecteur .pl-nd
@@ -329,12 +317,8 @@ console.log('\n══ ECAM · barre d\'éditeur sans rognage (320/360) ══');
 {
   const page=await br.newPage({viewport:{width:320,height:844}});
   await page.goto(`http://localhost:${port}/index.html`);
-  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await amorce(page);
   await page.evaluate(async()=>{
-    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();
-    await new Promise(r=>setTimeout(r,120));
-    const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();
-    await new Promise(r=>setTimeout(r,400));
     const f=fiches.find(x=>/Arrêt cardiaque/.test(x.title))||fiches[0];
     await openEdit(f.id);await new Promise(r=>setTimeout(r,600));});
   for(const w of [320,360]){
@@ -358,14 +342,9 @@ console.log('\n══ WCAG · prefers-reduced-motion ══');
   const page=await br.newPage({viewport:{width:1280,height:820},reducedMotion:'reduce'});
   await page.goto(`http://localhost:${port}/index.html`);
   await page.waitForFunction(()=>!document.querySelector('.boot-load'));
-  await page.evaluate(async()=>{
-    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();
-    await new Promise(r=>setTimeout(r,120));
-    const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();
-    await new Promise(r=>setTimeout(r,350));
-    [...document.querySelectorAll('.card-open')].find(x=>/Arrêt cardiaque/.test(x.textContent)).click();
-    await new Promise(r=>setTimeout(r,250));
-    document.getElementById('sessStart').click();await new Promise(r=>setTimeout(r,300));});
+  await amorce(page);
+  await ouvrirFiche(page,/Arrêt cardiaque/);
+  await demarrerSession(page);
   const anim=await page.evaluate(()=>{
     const bad=[];
     document.querySelectorAll('#crisisDock *,.ov-wrap *,.read-side *,.pl-chip,.seg .seg-pill').forEach(e=>{
@@ -402,6 +381,8 @@ console.log('\n══ QRH · intitulé de décision toujours visible (statique e
     const page=await br.newPage({viewport:{width:w,height:h}});
     await page.goto(`http://localhost:${port}/index.html`);
     await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+    /* PAS `amorce()` ici, à dessein : cette sonde injecte SA fiche et ne pose pas les exemples —
+       le clic « Commencer » seul n'est pas une copie du geste partagé, c'est un autre trajet. */
     await page.evaluate(async f=>{
       const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();
       await new Promise(r=>setTimeout(r,120));
@@ -482,11 +463,7 @@ console.log('\n══ Rendu guidé · décocher annule la fin de l\'algorithme �
   const page=await br.newPage({viewport:{width:390,height:844}});
   await page.goto(`http://localhost:${port}/index.html`);
   await page.waitForFunction(()=>!document.querySelector('.boot-load'));
-  await page.evaluate(async()=>{
-    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();
-    await new Promise(r=>setTimeout(r,120));
-    const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();
-    await new Promise(r=>setTimeout(r,400));});
+  await amorce(page);
   const r=await page.evaluate(async()=>{
     // Fiche MONO-BLOC : pas d'algorithme -> rendu guidé (`navSection`), pas le journal.
     const f=migrate({id:'dgui',title:'Sonde guidée',blocks:[
@@ -520,11 +497,8 @@ console.log('\n══ ECAM · ancrage — résidu nul au geste de première acti
   const page=await br.newPage({viewport:{width:390,height:844}});
   await page.goto(`http://localhost:${port}/index.html`);
   await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await amorce(page);
   await page.evaluate(async()=>{
-    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();
-    await new Promise(r=>setTimeout(r,120));
-    const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();
-    await new Promise(r=>setTimeout(r,400));
     window.__anc=[];const o=window.keepAnchor;
     window.keepAnchor=function(sel,rr){const el=sel?main.querySelector(sel):null;
       const av=el?el.getBoundingClientRect().top:null;
@@ -801,15 +775,9 @@ for (const w of [320, 360, 390]) {
   const page = await br.newPage({ viewport: { width: w, height: 820 }, hasTouch: true, isMobile: true });
   await page.goto(`http://localhost:${port}/index.html`);
   await page.waitForFunction(() => !document.querySelector('.boot-load'));
-  await page.evaluate(async () => {
-    const b = [...document.querySelectorAll('button')].find(x => /Commencer/.test(x.textContent)); if (b) b.click();
-    await new Promise(r => setTimeout(r, 120));
-    const s = [...document.querySelectorAll('button')].find(x => x.textContent.includes("fiches d'exemple")); if (s) s.click();
-    await new Promise(r => setTimeout(r, 400));
-    const c = [...document.querySelectorAll('.card-open')].find(x => /Arrêt cardiaque/.test(x.textContent));
-    c.click(); await new Promise(r => setTimeout(r, 200));
-    document.getElementById('sessStart').click(); await new Promise(r => setTimeout(r, 350));
-  });
+  await amorce(page);
+  await ouvrirFiche(page, /Arrêt cardiaque/);
+  await demarrerSession(page);
   const r = await page.evaluate(async () => {
     const o = {};
     /* (a) LA BARRE DE TITRE D'UNE FEUILLE AFFLEURE LE HAUT. Une règle de largeur étroite reposait
@@ -879,9 +847,7 @@ for (const w of [320, 360, 390, 430]) {
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
   await page.goto(`http://localhost:${port}/index.html`);
   await page.waitForFunction(()=>!document.querySelector('.boot-load'));
-  await page.evaluate(async()=>{const wt=m=>new Promise(r=>setTimeout(r,m));
-    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();await wt(200);
-    const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await wt(700);});
+  await amorce(page);
   const r = await page.evaluate(async()=>{const wt=m=>new Promise(r=>setTimeout(r,m));
     const f=fiches.find(x=>/Anaphylaxie/i.test(x.title))||fiches[0]; openRead(f.id); await wt(400);
     const b=document.getElementById('sessStart'); if(b)b.click(); await wt(600);
@@ -913,9 +879,7 @@ for (const w of [320, 390]) {
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
   await page.goto(`http://localhost:${port}/index.html`);
   await page.waitForFunction(()=>!document.querySelector('.boot-load'));
-  await page.evaluate(async()=>{const wt=m=>new Promise(r=>setTimeout(r,m));
-    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();await wt(200);
-    const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await wt(700);});
+  await amorce(page);
   const r = await page.evaluate(async()=>{const wt=m=>new Promise(r=>setTimeout(r,m));
     const f=fiches.find(x=>/Anaphylaxie/i.test(x.title))||fiches[0]; openRead(f.id); await wt(400);
     const b=document.getElementById('sessStart'); if(b)b.click(); await wt(600);
@@ -1059,9 +1023,7 @@ console.log('\n══ T9 · une seule bibliothèque, le type en filtre ══');
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
   await page.goto(`http://localhost:${port}/index.html`);
   await page.waitForFunction(()=>!document.querySelector('.boot-load'));
-  await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
-    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();await w(200);
-    const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await w(800);});
+  await amorce(page);
   const r = await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
     const pr=blankProtocol();pr.title='Procédure de décontamination';
     protocols.push(migrateProtocol(pr));await persist();render();await w(600);
@@ -1115,9 +1077,7 @@ console.log('\n══ T7 · ★ mémoire — de l\'éditeur au chapeau ══');
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
   await page.goto(`http://localhost:${port}/index.html`);
   await page.waitForFunction(()=>!document.querySelector('.boot-load'));
-  await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
-    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();await w(200);
-    const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await w(800);});
+  await amorce(page);
   const r = await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
     const f=fiches.find(x=>/Anaphylaxie/i.test(x.title))||fiches[0];
     openRead(f.id); await w(500);
@@ -1201,6 +1161,8 @@ console.log('\n══ T13 · les fiches d\'exemple exercent la doctrine qu\'elle
   await page.goto(`http://localhost:${port}/index.html`);
   await page.waitForFunction(()=>!document.querySelector('.boot-load'));
   const r = await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    /* PAS `amorce()` ici, à dessein : cette sonde MESURE le trajet d'accueil lui-même (nombre de
+       paragraphes, position du CTA, bandeau) — l'amorçage est son SUJET, pas sa mise en condition. */
     const m=document.getElementById('welcomeModal');
     const paras=m.querySelectorAll('p').length;
     const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));
@@ -1299,9 +1261,7 @@ for (const W of [390, 999, 1000, 1199, 1200, 1400]) {
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
   await page.goto(`http://localhost:${port}/index.html`);
   await page.waitForFunction(()=>!document.querySelector('.boot-load'));
-  await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
-    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();await w(200);
-    const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await w(900);});
+  await amorce(page);
   const r = await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
     const pr=migrateProtocol({id:'pz',title:'Référence témoin',kind:'reference',
       body:['# Préparation',Array(30).fill('Vérifier le matériel de perfusion.').join('\n\n'),
@@ -1481,9 +1441,7 @@ for (const W of [320, 390]) {
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
   await page.goto(`http://localhost:${port}/index.html`);
   await page.waitForFunction(()=>!document.querySelector('.boot-load'));
-  await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
-    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();await w(200);
-    const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await w(900);});
+  await amorce(page);
   const r = await page.evaluate(async()=>{const wt=m=>new Promise(r=>setTimeout(r,m));
     const f=fiches.find(x=>(x.excursions||[]).length);
     openRead(f.id);await wt(400);
@@ -1601,10 +1559,9 @@ for (const th of ['light','dark']) {
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
   await page.goto(`http://localhost:${port}/index.html`);
   await page.waitForFunction(()=>!document.querySelector('.boot-load'));
-  await page.evaluate(async(th)=>{const w=m=>new Promise(r=>setTimeout(r,m));
-    document.documentElement.dataset.theme=th;
-    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();await w(200);
-    const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await w(900);
+  await page.evaluate(th=>{document.documentElement.dataset.theme=th;},th);
+  await amorce(page);
+  await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
     openRead(fiches[0].id);await w(400);
     const sb=document.getElementById('sessStart');if(sb)sb.click();await w(600);
     document.getElementById('allBtn').click();await w(700);
@@ -1638,9 +1595,8 @@ console.log('\n══ BANDEAU · il ne porte plus que l’exception ══');
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
   await page.goto(`http://localhost:${port}/index.html`);
   await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await amorce(page);
   await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
-    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();await w(200);
-    const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await w(900);
     fiches[0].discriminant='adulte';openRead(fiches[0].id);await w(500);
     const sb=document.getElementById('sessStart');if(sb)sb.click();await w(700);});
   const R=await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
@@ -1681,9 +1637,8 @@ console.log('\n══ PARCOURS INERTE · registres et cohérence du groupe ═�
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
   await page.goto(`http://localhost:${port}/index.html`);
   await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await amorce(page);
   await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
-    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();await w(200);
-    const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await w(900);
     openRead(fiches[0].id);await w(700);});
   const R=await page.evaluate(()=>{
     /* ⚠ UNE SEULE COLONNE À LA FOIS : à 1280 px le plan existe À GAUCHE *et* dans le rail de
@@ -1776,9 +1731,7 @@ console.log('\n══ RÉFÉRENCE · le palier se franchit RÉELLEMENT ══');
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
   await page.goto(`http://localhost:${port}/index.html`);
   await page.waitForFunction(()=>!document.querySelector('.boot-load'));
-  await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
-    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();await w(200);
-    const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await w(900);});
+  await amorce(page);
   await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
     const a=migrateProtocol({id:'pR',title:'Réf',kind:'reference',body:'# Un\n\nt\n\n## Deux\n\nt\n\n# Trois\n\nt'});
     protocols.push(a);openProtocolRead('pR');await w(600);});
@@ -1800,9 +1753,7 @@ console.log('\n══ REPÈRES POSOLOGIQUES · une boîte garde ses quatre côt�
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
   await page.goto(`http://localhost:${port}/index.html`);
   await page.waitForFunction(()=>!document.querySelector('.boot-load'));
-  await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
-    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();await w(200);
-    const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await w(900);});
+  await amorce(page);
   const r = await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
     const f=fiches.find(x=>/Anaphylaxie/i.test(x.title))||fiches[0];
     openRead(f.id);await w(500);
@@ -1824,9 +1775,7 @@ for (const W of [330, 390, 700, 1000, 1400, 1600]) {
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
   await page.goto(`http://localhost:${port}/index.html`);
   await page.waitForFunction(()=>!document.querySelector('.boot-load'));
-  await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
-    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();await w(200);
-    const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await w(900);});
+  await amorce(page);
   const r = await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
     /* Une session EN COURS sur la première fiche : sans elle, le contrôle du chrono vivant ne
        rencontrerait pas son cas et resterait vert sur son absence. */
@@ -1943,9 +1892,7 @@ console.log('\n══ RÉGRESSIONS · déplacement, flèches, losange ══');
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
   await page.goto(`http://localhost:${port}/index.html`);
   await page.waitForFunction(()=>!document.querySelector('.boot-load'));
-  await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
-    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();await w(200);
-    const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await w(800);});
+  await amorce(page);
   const r = await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
     const f=fiches.find(x=>/cardiaque/i.test(x.title))||fiches[0];
     /* 1 — DÉPLACER UN BLOC, par le vrai geste : poignée puis interstice. */
@@ -1984,9 +1931,7 @@ for (const W of [320, 390]) {
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
   await page.goto(`http://localhost:${port}/index.html`);
   await page.waitForFunction(()=>!document.querySelector('.boot-load'));
-  await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
-    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();await w(200);
-    const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await w(800);});
+  await amorce(page);
   const r = await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
     const f=fiches.find(x=>/Anaphylaxie/i.test(x.title))||fiches[0];
     openRead(f.id);await w(400);
@@ -2020,9 +1965,7 @@ console.log('\n══ PARCOURS INERTE · les marqueurs sont lisibles ══');
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
   await page.goto(`http://localhost:${port}/index.html`);
   await page.waitForFunction(()=>!document.querySelector('.boot-load'));
-  await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
-    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();await w(200);
-    const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await w(800);});
+  await amorce(page);
   const r = await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
     const f=fiches.find(x=>/Anaphylaxie/i.test(x.title))||fiches[0];
     openRead(f.id);await w(400);
@@ -2054,9 +1997,7 @@ console.log('\n══ QUAI · la structure survit aux ticks ══');
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
   await page.goto(`http://localhost:${port}/index.html`);
   await page.waitForFunction(()=>!document.querySelector('.boot-load'));
-  await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
-    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();await w(200);
-    const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await w(800);});
+  await amorce(page);
   const q = await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
     openRead(fiches[0].id);await w(400);
     const sb=document.getElementById('sessStart');if(sb)sb.click();await w(600);
@@ -2089,9 +2030,7 @@ console.log('\n══ aidRev · la révision lue pendant le soin ══');
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
   await page.goto(`http://localhost:${port}/index.html`);
   await page.waitForFunction(()=>!document.querySelector('.boot-load'));
-  await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
-    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();await w(200);
-    const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await w(800);});
+  await amorce(page);
   const r = await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
     const f=fiches[0]; const revLue=f.updatedAt||0;
     openRead(f.id); await w(400);

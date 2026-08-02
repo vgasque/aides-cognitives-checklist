@@ -10,18 +10,17 @@
    `audit-lecteur` → `audit-retour` (v5.0.0, lot T14) : on TAILLE, on ne jette pas.
    Il mesure donc désormais `#dispSeg` (Compte › Affichage — le réglage à froid qui a remplacé la
    bascule de crise), qui est le même composant à deux crans, et il garde les trois contrôles. */
-import { serveApp, moteur } from './harness.mjs';
+import { serveApp, moteur, amorce } from './harness.mjs';
 
 const { port, srv } = await serveApp();
 const br=await moteur().launch();let KO=0;
 for(const TH of ['light','dark']){
 const p=await br.newPage({viewport:{width:900,height:800},colorScheme:TH,deviceScaleFactor:2});
-await p.goto(`http://localhost:${port}/index.html`);await p.waitForFunction(()=>!document.querySelector('.boot-load'));
+await p.goto(`http://localhost:${port}/index.html`);
+await amorce(p);
 /* ⚠ ON OUVRE PAR LE VRAI POINT D'ENTRÉE (doctrine v4.40.0) : la fenêtre Compte se construit à
    l'ouverture, et un état reconstruit à la main donnerait un sélecteur sans son câblage. */
 await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
- const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();await w(150);
- const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await w(400);
  setReadModePref('overview');openAuth();await w(700);});
 const m=async()=>p.evaluate(()=>{const sg=document.getElementById('dispSeg');
  const pill=sg.querySelector('.seg-pill'),btns=[...sg.querySelectorAll('.seg-btn')];

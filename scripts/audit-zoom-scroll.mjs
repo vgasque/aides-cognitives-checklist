@@ -1,17 +1,16 @@
 /* AUDIT — HAUTEURS DE FENÊTRE SOUS ZOOM. `zoom` sur <html> agrandit une hauteur en vh/dvh APRÈS
    sa résolution : à 130 %, `100dvh` occupe 1,3 écran (bas inatteignable) et `min-height:100vh`
    crée du défilement dans le vide. Prouve que --zf corrige les deux. */
-import { serveApp, moteur, NOM_MOTEUR, ROOT } from './harness.mjs';
+import { serveApp, moteur, NOM_MOTEUR, ROOT, amorce } from './harness.mjs';
 
 const { port, srv } = await serveApp();
 const br=await moteur().launch();let ok=0,ko=0;
 const t=(n,c,d)=>{if(c){ok++;console.log('  ✓ '+n);}else{ko++;console.log('  ✗ '+n+(d?' — '+d:''));}};
 for(const z of [100,130]){
  const p=await br.newPage({viewport:{width:1200,height:800}});
- await p.goto(`http://localhost:${port}/index.html`);await p.waitForFunction(()=>!document.querySelector('.boot-load'));
- await p.evaluate(async(z)=>{const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();await new Promise(r=>setTimeout(r,150));
-  const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await new Promise(r=>setTimeout(r,400));
-  applyZoom(z);await new Promise(r=>setTimeout(r,350));},z);
+ await p.goto(`http://localhost:${port}/index.html`);
+ await amorce(p);
+ await p.evaluate(async(z)=>{applyZoom(z);await new Promise(r=>setTimeout(r,350));},z);
  console.log(`\n=== zoom ${z}% ===`);
  // A. sidebar de l'ACCUEIL : peut-on atteindre le bas ?
  const a=await p.evaluate(()=>{const s=document.querySelector('.home-side');if(!s)return null;

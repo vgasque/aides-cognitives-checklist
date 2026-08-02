@@ -3,23 +3,21 @@
    urgence. Excursion tracée, « Terminer » supprimé pendant, RETOUR nommé toujours actif (cases
    neuves — doctrine d'interruption AC 120-71B), sections « À tout moment » hors numérotation,
    cible externe = autre aide, zéro chrome sans déclaration, sélecteur filtrable de l'éditeur. */
-import { serveApp, moteur, NOM_MOTEUR, ROOT , items} from './harness.mjs';
+import { serveApp, moteur, NOM_MOTEUR, ROOT , items, amorce, ouvrirFiche, demarrerSession } from './harness.mjs';
 
 const { port, srv } = await serveApp();
 const br=await moteur().launch();const p=await br.newPage({viewport:{width:1000,height:950},deviceScaleFactor:2});
 let ok=0,ko=0;const t=(n,c,d)=>{if(c){ok++;console.log('  ✓ '+n);}else{ko++;console.log('  ✗ '+n+(d?' — '+d:''));}};
 p.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
-await p.goto(`http://localhost:${port}/index.html`);await p.waitForFunction(()=>!document.querySelector('.boot-load'));
-await p.evaluate(async()=>{const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();await new Promise(r=>setTimeout(r,150));
- const s=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));if(s)s.click();await new Promise(r=>setTimeout(r,400));
- const c=[...document.querySelectorAll('.card-open')].find(x=>/Arr.t cardiaque/.test(x.textContent));
- const f=fiches.find(x=>x.id===c.dataset.open);
+await p.goto(`http://localhost:${port}/index.html`);
+await amorce(p);
+await p.evaluate(()=>{const f=fiches.find(x=>/Arr.t cardiaque/.test(x.title));
  f.blocks.push({id:'cxL',kind:'do',title:'Laryngospasme — gestes',items:['Arrêter la stimulation','⚠ PPC + subluxation mandibulaire','Approfondir la sédation'].map(x=>v4MakeItem(uid('i'),'do',x)),next:null});
  const autre=fiches.find(x=>x.id!==f.id);
  f.excursions=[{label:'Laryngospasme',target:'cxL'},{label:'Anaphylaxie',target:autre.id}];
- window.__autre=autre.id;window.__acr=f.id;
- c.click();await new Promise(r=>setTimeout(r,400));
- document.getElementById('sessStart').click();await new Promise(r=>setTimeout(r,450));});
+ window.__autre=autre.id;window.__acr=f.id;});
+await ouvrirFiche(p,/Arr.t cardiaque/);
+await demarrerSession(p);
 console.log('=== déclencheur constant + index ===');
 const d1=await p.evaluate(async()=>{
  const btns=[...document.querySelectorAll('.ov-block.cur .cx-btn')];

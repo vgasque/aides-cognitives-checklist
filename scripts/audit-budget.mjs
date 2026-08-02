@@ -31,7 +31,7 @@
  * à « bloc ≥ 4 items » — un bloc de deux lignes rend n'importe quelle pile d'actions
  * proportionnellement énorme, et l'on mesurerait alors la fiche, pas l'application.
  */
-import { serveApp, moteur, NOM_MOTEUR } from './harness.mjs';
+import { serveApp, moteur, NOM_MOTEUR, amorce } from './harness.mjs';
 
 const { port, srv } = await serveApp();
 const br = await moteur().launch();
@@ -52,12 +52,7 @@ for (const fmt of FORMATS) {
   const p = await br.newPage({ viewport: { width: fmt.w, height: fmt.h }, hasTouch: true });
   p.on('pageerror', e => { ko++; console.log('  ✗ ERREUR PAGE : ' + e.message); });
   await p.goto(`http://localhost:${port}/index.html`);
-  await p.waitForFunction(() => !document.querySelector('.boot-load'));
-  await p.evaluate(async () => {
-    const w = m => new Promise(r => setTimeout(r, m));
-    const b = [...document.querySelectorAll('button')].find(x => /Commencer/.test(x.textContent)); if (b) b.click(); await w(200);
-    const s = [...document.querySelectorAll('button')].find(x => x.textContent.includes("fiches d'exemple")); if (s) s.click(); await w(700);
-  });
+  await amorce(p);
 
   const r = await p.evaluate(async () => {
     const w = m => new Promise(r => setTimeout(r, m));
