@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-22AfkG7t5y6efNGL294wzxFmC2/rh9Pa72u49rYDjc0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-XUNwuqKJfP0/zkutzqCaaMKRlwGHY27swOzO2C0phuM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -2576,6 +2576,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      item perd sa marge — c'est le bas du groupe, pas un intervalle. */
   .cx-list{margin-top:8px}
   .cx-list .cx-item:last-child{margin-bottom:0}
+  /* « Vous y êtes » : même grammaire de FERMÉ que le scribe et le mode déplacement — encre douce,
+     filet neutre, fond de second plan, curseur refusé. WCAG 1.4.3 exempte les composants INACTIFS
+     du seuil de contraste : on baisse donc par l'ENCRE, franchement, et jamais par l'opacité (qui
+     affadirait aussi le registre rouge de la rangée). */
+  .cx-list .cx-item.ici{border-color:var(--line);background:var(--surface-2);cursor:not-allowed}
+  .cx-list .cx-item.ici :is(b,.cx-item-ic,.cx-item-sub){color:var(--ink-soft)}
   /* « ↗ » : le glyphe des ouvertures externes du dossier — il DIT qu'on quitte la fiche. */
   .cx-ext{font-size:12px;opacity:.9}
   .cx-btn .cx-chev{margin-left:2px;font-size:11px;color:var(--ink-soft)}
@@ -6448,14 +6454,24 @@ function flowPaintState(container,f){if(!container||!f)return;
    ⚠ ET UNE COMPLICATION PEUT ÊTRE UNE PORTE VERS UNE AUTRE AIDE (rappel de l'auteur) : le libellé
    le DIT alors par « ↗ », le glyphe des ouvertures externes du dossier — sinon on croirait rester
    dans la fiche, et l'on se retrouverait ailleurs sans l'avoir voulu. */
+/* ⚠ ON NE PROPOSE PAS D'ENTRER LÀ OÙ L'ON EST DÉJÀ (signalé à l'usage : « j'ai cliqué sur
+   complication bronchospasme réfractaire, et sur la fiche j'ai encore le bouton bronchospasme
+   réfractaire »). À UN SEUL événement, le bouton PORTE son nom : le voir pendant qu'on exécute ce
+   bloc laisse croire qu'on n'y est pas encore. Il disparaît donc — c'est « aucun bouton mort »,
+   et la carte n'est pas pour autant sans contrôle : `↩ Reprendre` est en tête, juste au-dessus.
+   À DEUX OU PLUS, l'index RESTE (décision de l'auteur : on peut vouloir passer d'un événement à
+   l'autre) — mais celui où l'on se trouve s'y annonce et n'est plus tapable, plutôt que d'être
+   retiré : une liste dont les rangées bougent selon l'endroit où l'on est ne s'apprend pas. */
 const cxOne=list=>(list&&list.length===1)?list[0]:null;
-const cxRowHtml=(list,tip)=>{
+const cxRowHtml=(list,tip,curId)=>{
   const un=cxOne(list);
-  const btn=un
+  if(un&&curId&&un.target===curId)list=[];
+  const btn=(un&&curId&&un.target===curId)?''
+    :un
     ?`<button type="button" class="cx-btn" data-cxgo="${esc(un.target)}" title="${un.kind==='ext'?'Ouvre une autre aide — ':'Interrompt le parcours, retour prévu — '}à tout moment">⚡ ${esc(un.label)}${un.kind==='ext'?' <span class="cx-ext" aria-hidden="true">↗</span>':''}</button>`
     :((list&&list.length)?`<button type="button" class="cx-btn" data-cxopen aria-expanded="${state.cxOpen?'true':'false'}" title="Complications — à tout moment : interrompt le parcours, retour prévu">⚡ Complications <span class="cx-n">${list.length}</span> <span class="cx-chev" aria-hidden="true">${state.cxOpen?'▴':'▾'}</span></button>`:'');
   return `<div class="cx-row">${btn}${tip?`<button type="button" class="tk-add tk-inblk" data-tknote>${uiIcon('stopwatch',13)} Noter l’heure</button>`:''}</div>`
-    +((!un&&state.cxOpen&&list&&list.length)?cxListHtml(list):'');};
+    +((!un&&state.cxOpen&&list&&list.length)?cxListHtml(list,curId):'');};
 /* ⚠ C — L'INDEX EST UN DÉPLIANT, PAS UNE FENÊTRE. La doctrine QRH que ce dossier invoque porte sur
    l'INDEX UNIQUE (un objet plutôt qu'un bouton par urgence), pas sur la MODALITÉ : un dépliant est
    aussi un index unique. Mesuré, la fenêtre couvrait 38 % de l'écran à 320 px, pendant un soin —
@@ -6471,10 +6487,11 @@ function cxBackHtml(f,seq,tip){
   if(!cxb||!tip)return '';
   const bb=(f.blocks||[]).find(x=>x.id===cxb.id);
   return `<div class="flow-ctrl cx-back-top"><button type="button" class="btn cont okay" data-cxback="${esc(cxb.id)}">↩ Reprendre — ${esc((bb&&bb.title)||'le parcours')} →</button></div>`;}
-function cxListHtml(list){
+function cxListHtml(list,curId){
   return `<div class="cx-list" role="group" aria-label="Complications déclarées">`
     +list.map(c=>{const t=c.kind==='ext'?relTarget(c.target):null;
-      return `<button type="button" class="cx-item" data-cxgo="${esc(c.target)}"><span class="cx-item-ic" aria-hidden="true">⚡</span><span class="cx-item-tx"><b>${esc(c.label)}</b><span class="cx-item-sub">${c.kind==='ext'?('ouvre : '+esc((t&&t.title)||'aide introuvable')+' ↗'):'interrompt le parcours — retour prévu'}</span></span></button>`;}).join('')
+      const ici=!!curId&&c.target===curId;
+      return `<button type="button" class="cx-item${ici?' ici':''}" data-cxgo="${esc(c.target)}"${ici?' disabled':''}><span class="cx-item-ic" aria-hidden="true">⚡</span><span class="cx-item-tx"><b>${esc(c.label)}</b><span class="cx-item-sub">${ici?'vous y êtes':(c.kind==='ext'?('ouvre : '+esc((t&&t.title)||'aide introuvable')+' ↗'):'interrompt le parcours — retour prévu')}</span></span></button>`;}).join('')
     +`</div>`;}
 /* ⚠ LA FENÊTRE `#cxModal` EST PURGÉE (règle 14) : l'index vit dans la carte. Le menu ⋯ y mène en
    OUVRANT le dépliant et en amenant la carte courante à l'écran — c'est une navigation DEMANDÉE
@@ -12415,7 +12432,7 @@ function navSection(f){
         ?`<div class="flow-end">Algorithme terminé — surveillance en cours</div>`
         :(atTip?`<button class="btn cont ${allDone?'okay':'idle'}" id="navNext" data-contlbl="${esc(goLbl)}"${allDone?'':' aria-disabled="true"'}>${esc(contLbl)}</button>`:histBtn);
       blockDone=done;blockTot=steps.length;
-      navHtml=`<div class="nav-wrap"><div class="node-title">Bloc · ${esc(blk.title)||'Étapes'}${passTag} — <span id="ntCount">${done}/${steps.length}</span> coché</div>${imgH}${stepsListHtml(steps,curSeq,blk.id,{items:bItems(blk)})}<div class="flow-ctrl">${fwdc}</div>${cxAll(f).length?cxRowHtml(cxAll(f)):''}</div>`;}}
+      navHtml=`<div class="nav-wrap"><div class="node-title">Bloc · ${esc(blk.title)||'Étapes'}${passTag} — <span id="ntCount">${done}/${steps.length}</span> coché</div>${imgH}${stepsListHtml(steps,curSeq,blk.id,{items:bItems(blk)})}<div class="flow-ctrl">${fwdc}</div>${cxAll(f).length?cxRowHtml(cxAll(f),false,blk.id):''}</div>`;}}
   return {blk,cur,atTip,crumbsH,navHtml,navRowH,blockDone,blockTot};}
 // Sous-titre du panneau « Algorithme » : compteur n/total quand le bloc courant est cochable —
 // partagé entre le rendu complet (renderRead) et la mise à jour ciblée (renderNavOnly).
@@ -13188,7 +13205,7 @@ function ovInstHtml(f,id,idx,topo,pres){
        construisait pas — le bloc courant était une décision). Sans lui, entrer sur une
        complication dont la cible est une décision laissait sans retour : le dispositif promet que
        le retour n'est jamais laissé à la mémoire (AC 120-71B), il ne le tenait qu'à moitié. */
-    bodyH=`${cxBackHtml(f,seq,tip)}${imgH}<div class="question">${fmt(b.question)||'…'}</div><div class="options">${opts}</div>${tip&&cxAll(f).length?cxRowHtml(cxAll(f)):''}`;
+    bodyH=`${cxBackHtml(f,seq,tip)}${imgH}<div class="question">${fmt(b.question)||'…'}</div><div class="options">${opts}</div>${tip&&cxAll(f).length?cxRowHtml(cxAll(f),false,id):''}`;
     count=taken?'✓':'?';}
   else{
     const steps=clean(stepsOf(b));
@@ -13284,7 +13301,7 @@ function ovInstHtml(f,id,idx,topo,pres){
           immédiatement dessous, donc sous le doigt. Il ne paraît QU'AU BOUT du journal : noter
           l'heure depuis une carte passée daterait le présent au nom du passé. */
        const cxs=cxAll(f);
-       if(cxs.length||tip)ctl+=cxRowHtml(cxs,tip);
+       if(cxs.length||tip)ctl+=cxRowHtml(cxs,tip,id);
        if(tip)ctl+=tkAckHtml(f);}}
     bodyH=`${cxBackH}${imgH}${legH}${listeH}${ctl}`;
     count=steps.length?dn+'/'+steps.length:'—';}}

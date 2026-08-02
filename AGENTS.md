@@ -3111,6 +3111,19 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   la couleur mais la RÈGLE (la catégorie est un liseré et une pastille, jamais un signal ; elle est
   toujours nommée en toutes lettres). À rouvrir seulement si l'on accepte de réduire le NOMBRE de
   catégories offertes.
+- **ON NE PROPOSE PAS D'ENTRER LÀ OÙ L'ON EST DÉJÀ (v5.0.0, signalé à l'usage : « j'ai cliqué sur
+  complication bronchospasme réfractaire, et sur la fiche j'ai encore le bouton bronchospasme
+  réfractaire »)** : à UN SEUL événement, le bouton PORTE son nom depuis le lot B — le voir pendant
+  qu'on exécute ce bloc laisse croire qu'on n'y est pas encore. Il **disparaît** donc, et c'est
+  « aucun bouton mort » ; la carte n'est pas pour autant sans contrôle, `↩ Reprendre` est en tête,
+  juste au-dessus. **À DEUX OU PLUS, l'index RESTE** (décision de l'auteur : on peut vouloir passer
+  d'un événement à l'autre) — mais la rangée où l'on se trouve **s'y annonce (« vous y êtes ») et
+  n'est plus tapable**, plutôt que d'être retirée : une liste dont les rangées disparaissent selon
+  l'endroit où l'on est ne s'apprend pas. Apparence de FERMÉ reprise du scribe et du mode
+  déplacement — une seule grammaire de « fermé » dans le fichier.
+  ⚠ **Piège de témoin rencontré** : la première version rouvrait l'index puis cliquait la rangée
+  courante — laquelle est justement DÉSACTIVÉE. Le clic ne faisait rien et le tap suivant
+  REFERMAIT l'index : zéro rangée mesurée. On mesure l'état là où il existe DÉJÀ.
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.

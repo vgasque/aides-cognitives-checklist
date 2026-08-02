@@ -2291,6 +2291,12 @@
      item perd sa marge — c'est le bas du groupe, pas un intervalle. */
   .cx-list{margin-top:8px}
   .cx-list .cx-item:last-child{margin-bottom:0}
+  /* « Vous y êtes » : même grammaire de FERMÉ que le scribe et le mode déplacement — encre douce,
+     filet neutre, fond de second plan, curseur refusé. WCAG 1.4.3 exempte les composants INACTIFS
+     du seuil de contraste : on baisse donc par l'ENCRE, franchement, et jamais par l'opacité (qui
+     affadirait aussi le registre rouge de la rangée). */
+  .cx-list .cx-item.ici{border-color:var(--line);background:var(--surface-2);cursor:not-allowed}
+  .cx-list .cx-item.ici :is(b,.cx-item-ic,.cx-item-sub){color:var(--ink-soft)}
   /* « ↗ » : le glyphe des ouvertures externes du dossier — il DIT qu'on quitte la fiche. */
   .cx-ext{font-size:12px;opacity:.9}
   .cx-btn .cx-chev{margin-left:2px;font-size:11px;color:var(--ink-soft)}

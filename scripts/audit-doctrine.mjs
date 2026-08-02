@@ -1484,6 +1484,8 @@ for (const W of [320, 390]) {
     const unLbl=un?un.textContent.replace(/\s+/g,' ').trim():null;
     const indexAUn=!!document.querySelector('[data-cxopen]');
     if(un){un.scrollIntoView({block:'center'});await wt(200);un.click();}await wt(800);
+    /* Entré sur l'unique événement : son bouton ne doit plus être proposé — on y EST. */
+    const btnApres=!!document.querySelector('[data-cxgo]');
     const modale=[...document.querySelectorAll('.ai-modal.on')].length;
     const ret=document.querySelector('[data-cxback]'),carte=document.querySelector('.ov-block.cur');
     const rr=ret?ret.getBoundingClientRect():null,rc=carte?carte.getBoundingClientRect():null;
@@ -1503,7 +1505,18 @@ for (const W of [320, 390]) {
     const ext=items.some(e=>/↗/.test(e.textContent));
     {const b=document.querySelector('[data-cxopen]');if(b)b.click();}await wt(400);
     const referme=!document.querySelector('.cx-list');
+    /* ⚠ ON MESURE L'ÉTAT « on y est » LÀ OÙ IL EXISTE DÉJÀ : la première moitié du contrôle nous
+       a fait ENTRER sur l'unique complication, et la session vive garde cette position. Il suffit
+       donc de déclarer le second événement et de rouvrir l'index. Ma première version rouvrait
+       puis cliquait la rangée courante — laquelle est justement DÉSACTIVÉE : le clic ne faisait
+       rien et le dernier tap REFERMAIT l'index, d'où zéro rangée mesurée. */
+    {const b=document.querySelector('[data-cxopen]');if(b)b.click();}await wt(500);
+    const ap=[...document.querySelectorAll('.cx-list .cx-item')];
+    const iciEl=ap.find(e=>e.classList.contains('ici'));
+    const iciTxt=iciEl?iciEl.textContent.replace(/\s+/g,' ').trim():null;
+    const iciDis=ap.filter(e=>e.disabled).length,autreTapable=ap.filter(e=>!e.disabled).length;
     return {unLbl,indexAUn,modale,items:items.length,tgLbl,modale2,cible,ext,referme,
+      btnApres,iciTxt,iciDis,autreTapable,
       retourY:rr?Math.round(rr.top):null,
       retourVisible:!!(rr&&rr.top>=0&&rr.bottom<=innerHeight),
       premier};});
@@ -1520,6 +1533,16 @@ for (const W of [320, 390]) {
   t(`${W} · D — le retour d'excursion est VISIBLE sans défiler`,
     r.retourVisible===true, `y = ${r.retourY} px`);
   t(`${W} · … et il ouvre le corps de la carte`, /cx-back-top/.test(r.premier), r.premier);
+  /* ⚠ ON NE PROPOSE PAS D'ENTRER LÀ OÙ L'ON EST DÉJÀ (signalé à l'usage). À UN SEUL événement le
+     bouton PORTE son nom : le voir pendant qu'on exécute ce bloc laisse croire qu'on n'y est pas
+     encore. À DEUX ou plus l'index reste — on peut vouloir passer d'un événement à l'autre —, mais
+     celui où l'on se trouve s'y ANNONCE et n'est plus tapable : une liste dont les rangées bougent
+     selon l'endroit où l'on est ne s'apprend pas. */
+  t(`${W} · à UN événement, le bouton disparaît quand on y est`,
+    r.btnApres===false, `présent=${r.btnApres}`);
+  t(`${W} · à DEUX, la rangée où l'on est se dit et n'est plus tapable`,
+    r.iciTxt&&/vous y êtes/.test(r.iciTxt)&&r.iciDis===1&&r.autreTapable===1,
+    `« ${r.iciTxt} » · ${r.iciDis} désactivée, ${r.autreTapable} tapable`);
   await page.close();
 }
 
