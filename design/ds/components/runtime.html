@@ -1500,6 +1500,36 @@
   .card-date{font-size:12px;color:var(--ink-soft)}.card-date.stale{color:var(--verify);font-weight:700}
   /* (.chev supprimé v4.56.0 avec les cartes d'accueil, son seul émetteur — règle 14.) */
   .empty{text-align:center;padding:56px 20px;color:var(--ink-soft);border:1.5px dashed var(--line);border-radius:var(--radius);background:rgba(255,255,255,.5)}
+  /* ÉTAT VIDE PÉDAGOGIQUE (v5.0.0) — le MÊME `.empty` (cadre pointillé = la grammaire de
+     « créer », partagée avec la porte ＋ des éditeurs), enrichi de l'anatomie du type. Le titre
+     et la phrase restent CENTRÉS, l'anatomie s'aligne à GAUCHE : une liste centrée n'a pas de
+     bord d'appel pour l'œil, et c'est une liste qu'on parcourt, pas une accroche qu'on lit.
+     Rembourrage ramené de 56 à 24 px : les 56 px existaient pour donner du corps à un état vide
+     de trois mots — ici le contenu le donne, et deux cartes empilées doivent tenir sur un écran. */
+  .emp-intro{text-align:left;padding:24px 20px}
+  .emp-intro>b{text-align:center;font-size:16.5px;color:var(--ink)}
+  .emp-intro+.emp-intro{margin-top:12px}
+  .emp-lede{margin:0 0 16px;text-align:center;font-size:13.5px;line-height:1.45}
+  /* Le VERBE est ce qui distingue les deux natures : c'est le seul mot en encre pleine de la
+     phrase, et il porte à lui seul la comparaison (« se déroule » / « se lit »). */
+  .emp-lede strong{color:var(--ink);font-weight:700}
+  .emp-anat{list-style:none;margin:0 0 20px;padding:0;display:grid;gap:10px}
+  .emp-anat li{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;line-height:1.45}
+  /* ⚠ `.empty b` POSE `display:block` (c'est le TITRE d'un état vide), et il attrape tous les `b`
+     descendants : chaque ligne d'anatomie se coupait en deux — le nom sur une ligne, sa glose sur
+     la suivante — alors qu'elles se lisent d'un trait (« Des étapes qu'on coche une par une »).
+     Spécificité (0,2,1) pour gagner sur (0,1,1) quel que soit l'ordre de déclaration. */
+  .emp-intro .emp-anat b{display:inline;margin:0;font-size:inherit;color:var(--ink);font-weight:700}
+  /* Le ton par ATTRIBUT, jamais par `.crit`/`.vig` : ce sont des classes autonomes du produit
+     (étape critique, repère de vigilance) et un modificateur ne prend jamais un nom déjà pris. */
+  .emp-ic{flex:none;display:inline-flex;margin-top:1px;color:var(--primary)}
+  .emp-ic[data-ton="crit"]{color:var(--critical)}
+  .emp-ic[data-ton="vig"]{color:var(--verify)}
+  /* « off » = une ABSENCE (aucune session, aucun minuteur) : le glyphe est le MÊME que celui de
+     la carte d'en face — c'est la répétition qui rend la comparaison lisible — mais en encre
+     douce, parce qu'un dessin en couleur d'accent affirmerait ce que la ligne vient de nier. */
+  .emp-ic[data-ton="off"]{color:var(--ink-soft)}
+  .emp-intro>.btn{display:block;margin:0 auto}
   /* Échec de démarrage : overlay plein écran centré, carte au registre ALERTE. */
   .boot-fail{position:fixed;inset:0;display:grid;place-items:center;padding:20px;background:var(--bg);z-index:90}
   .boot-card{max-width:440px;width:100%;background:var(--surface);border:1px solid var(--critical);border-left:4px solid var(--critical);border-radius:14px;padding:20px 20px;box-shadow:var(--shadow-lg)}

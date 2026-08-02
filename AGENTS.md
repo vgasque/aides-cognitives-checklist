@@ -3447,6 +3447,48 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   ⚠ **Ma formulation d'audit était fausse** : j'avais écrit « deux états vides seulement » en ne
   comptant qu'une classe. Le défaut n'était pas qu'il en manquait, c'est qu'il y en avait deux
   formes.
+- **LA BIBLIOTHÈQUE VIDE EST LE SEUL ÉCRAN QUI PEUT ENSEIGNER LA DIFFÉRENCE (v5.0.0, maquette
+  d'audit + signalé à l'usage)** : en vue « Tout », l'état vide affichait un titre neutre
+  (« Bibliothèque vide ») mais un texte et un bouton **spécifiques des AIDES** — on proposait un
+  type là où l'on venait de dire qu'il n'y en avait aucun. La correction ne s'arrête pas à
+  neutraliser le libellé : depuis le lot T9 l'accueil MÊLE les deux types, et la NATURE écrite sur
+  chaque rangée les **nomme sans les expliquer** — le produit ne dit nulle part ailleurs ce qui
+  distingue une aide d'un protocole. Le vide est le seul moment où l'on a la place ET l'attention
+  pour le faire : il n'y a rien d'autre à regarder, et personne à interrompre.
+  `cfg.kinds` décide du nombre de cartes — **les DEUX en « Tout », une seule dans une vue
+  filtrée** : le nombre de cartes est exactement le nombre de choses créables ICI, et le bouton
+  d'une carte ouvre la création DE SON type (`state.section` est la source unique du type dans le
+  dialogue « Créer », v4.4.2 — même aiguillage que son sélecteur segmenté).
+  **MÊME COMPOSANT, MÊME ANATOMIE POUR LES DEUX** (une phrase qui donne le VERBE, puis les objets
+  qu'on y trouvera) : deux cartes de formes différentes se liraient comme deux objets sans
+  rapport, alors qu'on les met côte à côte précisément pour être COMPARÉES. Le verbe est le seul
+  mot en encre pleine de la phrase — « se **déroule** » contre « se **lit** » —, et deux lignes
+  se répondent d'une carte à l'autre avec le **même glyphe** (la coche, le chronomètre) : la
+  répétition EST la comparaison.
+  **⚠ UN PROTOCOLE N'EST PAS « CE QUI NE SE COCHE PAS » — la maquette avait tort, l'auteur l'a
+  corrigée** : une référence A des cases cochables (syntaxe GFM `- [ ]`, v4.5.4) ; elles servent à
+  ne pas perdre sa place, et c'est leur **NON-ENREGISTREMENT** qui est la propriété
+  (`state.protoTasks`, remis à zéro à chaque ouverture, aucun champ du modèle touché). Écrire
+  « rien ne s'y coche » aurait enseigné l'inverse de ce que l'écran fait, à l'endroit même où l'on
+  prétend l'expliquer.
+  **LA LEÇON NE S'AFFICHE PAS SOUS UN FILTRE** : qui cherche sait déjà ce qu'est une aide, on lui
+  doit un résultat et pas un cours. Restent alors le `.empty` ordinaire et « Aucun résultat » — le
+  titre spécifique par type y a été retiré, « Bibliothèque vide » au-dessus de « aucun résultat
+  pour ce filtre » disant deux choses différentes du même écran.
+  **PURGÉS avec le composant qu'ils servaient** (règle 14) : `#emptyNew`, `empty.anon`,
+  `empty.libEdit`, `empty.cta` — les cartes couvrent EXACTEMENT leur condition d'affichage
+  (`!q && !cat && canEdit`), et `canEditScope(null)` valant toujours vrai, aucun des trois textes
+  n'était plus atteignable. Il ne reste que `{title, libRead}`.
+  **⚠ DIX-HUITIÈME PIÈGE DE CASCADE, ET IL VENAIT DU COMPOSANT RÉUTILISÉ** : `.empty b` pose
+  `display:block` (c'est le TITRE d'un état vide) et attrape **tous** les `b` descendants — chaque
+  ligne d'anatomie se coupait en deux, le nom sur une ligne et sa glose sur la suivante, alors
+  qu'elles se lisent d'un trait. Réparé en (0,2,1), jamais par l'ordre de déclaration. Le TON des
+  glyphes passe par un **attribut** et non par `.crit`/`.vig`, qui sont des classes AUTONOMES du
+  produit : un modificateur ne prend jamais un nom déjà pris (leçon v4.23.2).
+  Témoins : `audit-doctrine` (nombre de cartes par vue, ligne non coupée, glyphe non vide,
+  ouverture du dialogue sur le bon type, disparition sous filtre) et une surface
+  `état · bibliothèque vide` dans `audit-a11y` — l'accueil y était ouvert AVEC les fiches
+  d'exemple, donc cet écran n'était mesuré nulle part.
 - **LA COLONNE D'ORIENTATION — UN EN-TÊTE, UNE RANGÉE, UN MARQUEUR (v5.0.0, maquette C validée)** :
   elle empilait **deux composants de titre** (`.rail-head` avec compte pour « Parcours inerte »,
   `.pl-sech` texte seul — parfois sur deux lignes — pour les sections de queue) et **trois

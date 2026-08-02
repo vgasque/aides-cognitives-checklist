@@ -2038,6 +2038,73 @@ for (const W of [330, 390, 700, 1000, 1400, 1600]) {
   await page.close();
 }
 
+/* L'ÉTAT VIDE N'OFFRE QUE CE QU'ON PEUT CRÉER LÀ (v5.0.0, signalé à l'usage : en vue « Tout »,
+   le titre était neutre mais le texte et le bouton étaient ceux des AIDES seules). Le nombre de
+   cartes doit être exactement le nombre de types créables dans la vue courante, et le bouton
+   d'une carte doit ouvrir la création DE SON type — `state.section` étant la source unique du
+   type dans le dialogue « Créer », c'est lui qu'on mesure, pas l'apparence du dialogue.
+   ⚠ ET LA LEÇON NE S'AFFICHE PAS SOUS UN FILTRE : qui cherche sait déjà ce qu'est une aide ; on
+   lui doit un résultat, pas un cours. Le témoin construit donc les DEUX cas. */
+console.log('\n══ ACCUEIL · l\'état vide n\'offre que ce qu\'on peut créer ici ══');
+{
+  const page = await br.newPage({viewport:{width:390,height:900}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  // ⚠ PAS `amorce()` ici : elle POSE les fiches d'exemple, or le sujet mesuré est la bibliothèque
+  // VIDE. On traverse l'écran de bienvenue et l'on s'arrête là — c'est le vrai point d'entrée.
+  await page.evaluate(()=>{const b=[...document.querySelectorAll('button')]
+    .find(x=>/Commencer/.test(x.textContent));if(b)b.click();});
+  await page.waitForFunction(()=>document.body.classList.contains('view-home'));
+  const lire=()=>page.evaluate(()=>({
+    cartes:document.querySelectorAll('.emp-intro').length,
+    kinds:[...document.querySelectorAll('[data-emptynew]')].map(b=>b.dataset.emptynew),
+    /* Chaque ligne d'anatomie se lit d'un TRAIT : `.empty b{display:block}` la coupait en deux
+       (nom sur une ligne, glose sur la suivante) — mesuré par la hauteur de la ligne. */
+    coupees:[...document.querySelectorAll('.emp-anat li')]
+      .filter(li=>li.getBoundingClientRect().height
+        >parseFloat(getComputedStyle(li).lineHeight)*1.9
+        &&li.querySelector('b').getBoundingClientRect().width<li.getBoundingClientRect().width*0.9
+        &&getComputedStyle(li.querySelector('b')).display!=='inline').length,
+    /* Aucun glyphe VIDE : `uiIcon` rend un <svg> sans tracé pour un nom inconnu — un dessin
+       absent ne se voit pas à la relecture, seulement à l'écran. */
+    icVides:[...document.querySelectorAll('.emp-ic svg')].filter(s=>!s.innerHTML.trim()).length}));
+  for(const [sec,att] of [['all',['fiches','protocols']],['fiches',['fiches']],['protocols',['protocols']]]){
+    await page.evaluate(s=>{state.section=s;state.q='';state.cat='';render();},sec);
+    await page.waitForTimeout(300);
+    const r=await lire();
+    t(`vue « ${sec} » · ${att.length} carte(s), du ou des types créables ici`,
+      r.cartes===att.length&&JSON.stringify(r.kinds)===JSON.stringify(att), JSON.stringify(r.kinds));
+    t(`vue « ${sec} » · chaque ligne se lit d'un trait, glyphes présents`,
+      r.coupees===0&&r.icVides===0, `${r.coupees} coupée(s), ${r.icVides} glyphe(s) vide(s)`);
+  }
+  /* LE BOUTON OUVRE LA CRÉATION DE SON TYPE — depuis la vue « Tout », où les deux coexistent.
+     ⚠ ON VÉRIFIE QUE LE BOUTON EXISTE AVANT DE LE CLIQUER : un `page.click` sur un sélecteur
+     absent lève, et un harnais qui PLANTE en emporte cinq (leçon v4.70.1). Ici l'absence est
+     déjà signalée par le témoin de comptage ci-dessus ; celui-ci doit échouer, pas exploser. */
+  for(const k of ['protocols','fiches']){
+    await page.evaluate(()=>{state.section='all';render();});
+    await page.waitForTimeout(250);
+    if(!await page.$(`[data-emptynew="${k}"]`)){
+      t(`« ${k} » ouvre le dialogue Créer sur SON type`, false, 'bouton absent');
+      continue;}
+    await page.click(`[data-emptynew="${k}"]`);
+    await page.waitForTimeout(350);
+    const r=await page.evaluate(()=>({ouvert:document.getElementById('createModal').classList.contains('on'),
+      section:state.section}));
+    t(`« ${k} » ouvre le dialogue Créer sur SON type`, r.ouvert===true&&r.section===k,
+      `ouvert=${r.ouvert} section=${r.section}`);
+    await page.keyboard.press('Escape');await page.waitForTimeout(250);
+  }
+  /* SOUS UN FILTRE : aucune carte, aucun bouton — on doit un résultat, pas un cours. */
+  await page.evaluate(()=>{state.section='all';state.q='zzzintrouvable';render();});
+  await page.waitForTimeout(350);
+  const r=await lire();
+  t('sous un filtre, la leçon disparaît (0 carte, 0 bouton)', r.cartes===0&&r.kinds.length===0,
+    `${r.cartes} carte(s), ${r.kinds.length} bouton(s)`);
+  await page.close();
+}
+
 /* L'EXTRAIT DE RECHERCHE TIENT DANS SA RANGÉE (v5.0.0, signalé à l'usage : « en mode recherche
    le texte dépasse des cartes d'accueil »). La boucle ci-dessus mesure le RÉPERTOIRE, où la
    rangée porte un contenu borné (titre + méta) et tient ses 71 px fixes ; en RECHERCHE elle porte

@@ -251,7 +251,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-eREZuKaAEc/cGKpIgIpTAVMPNq0Zi/0H/tG30yDamFw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-6ywUEa1XpTDKrKiYnVO7L+69vG55eFlF1AhkN9FfPrA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -1809,6 +1809,36 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .card-date{font-size:12px;color:var(--ink-soft)}.card-date.stale{color:var(--verify);font-weight:700}
   /* (.chev supprimé v4.56.0 avec les cartes d'accueil, son seul émetteur — règle 14.) */
   .empty{text-align:center;padding:56px 20px;color:var(--ink-soft);border:1.5px dashed var(--line);border-radius:var(--radius);background:rgba(255,255,255,.5)}
+  /* ÉTAT VIDE PÉDAGOGIQUE (v5.0.0) — le MÊME `.empty` (cadre pointillé = la grammaire de
+     « créer », partagée avec la porte ＋ des éditeurs), enrichi de l'anatomie du type. Le titre
+     et la phrase restent CENTRÉS, l'anatomie s'aligne à GAUCHE : une liste centrée n'a pas de
+     bord d'appel pour l'œil, et c'est une liste qu'on parcourt, pas une accroche qu'on lit.
+     Rembourrage ramené de 56 à 24 px : les 56 px existaient pour donner du corps à un état vide
+     de trois mots — ici le contenu le donne, et deux cartes empilées doivent tenir sur un écran. */
+  .emp-intro{text-align:left;padding:24px 20px}
+  .emp-intro>b{text-align:center;font-size:16.5px;color:var(--ink)}
+  .emp-intro+.emp-intro{margin-top:12px}
+  .emp-lede{margin:0 0 16px;text-align:center;font-size:13.5px;line-height:1.45}
+  /* Le VERBE est ce qui distingue les deux natures : c'est le seul mot en encre pleine de la
+     phrase, et il porte à lui seul la comparaison (« se déroule » / « se lit »). */
+  .emp-lede strong{color:var(--ink);font-weight:700}
+  .emp-anat{list-style:none;margin:0 0 20px;padding:0;display:grid;gap:10px}
+  .emp-anat li{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;line-height:1.45}
+  /* ⚠ `.empty b` POSE `display:block` (c'est le TITRE d'un état vide), et il attrape tous les `b`
+     descendants : chaque ligne d'anatomie se coupait en deux — le nom sur une ligne, sa glose sur
+     la suivante — alors qu'elles se lisent d'un trait (« Des étapes qu'on coche une par une »).
+     Spécificité (0,2,1) pour gagner sur (0,1,1) quel que soit l'ordre de déclaration. */
+  .emp-intro .emp-anat b{display:inline;margin:0;font-size:inherit;color:var(--ink);font-weight:700}
+  /* Le ton par ATTRIBUT, jamais par `.crit`/`.vig` : ce sont des classes autonomes du produit
+     (étape critique, repère de vigilance) et un modificateur ne prend jamais un nom déjà pris. */
+  .emp-ic{flex:none;display:inline-flex;margin-top:1px;color:var(--primary)}
+  .emp-ic[data-ton="crit"]{color:var(--critical)}
+  .emp-ic[data-ton="vig"]{color:var(--verify)}
+  /* « off » = une ABSENCE (aucune session, aucun minuteur) : le glyphe est le MÊME que celui de
+     la carte d'en face — c'est la répétition qui rend la comparaison lisible — mais en encre
+     douce, parce qu'un dessin en couleur d'accent affirmerait ce que la ligne vient de nier. */
+  .emp-ic[data-ton="off"]{color:var(--ink-soft)}
+  .emp-intro>.btn{display:block;margin:0 auto}
   /* Échec de démarrage : overlay plein écran centré, carte au registre ALERTE. */
   .boot-fail{position:fixed;inset:0;display:grid;place-items:center;padding:20px;background:var(--bg);z-index:90}
   .boot-card{max-width:440px;width:100%;background:var(--surface);border:1px solid var(--critical);border-left:4px solid var(--critical);border-radius:14px;padding:20px 20px;box-shadow:var(--shadow-lg)}
@@ -10181,7 +10211,8 @@ function bindAzRail(){const rail=document.getElementById('azRail');if(!rail)retu
              list(q,canEdit) -> éléments filtrés/triés, row(x) -> rangée du répertoire,
              tile(x) -> tuile « Accès direct », open(id), create(),
              remainLbl(n) (accord du « Afficher plus »),
-             empty:{title,filter?,libEdit,libRead,anon,cta},
+             kinds (types créables ICI : ['fiches'] | ['protocols'] | les deux),
+             empty:{title,libRead},
              topHtml()? / notices()? (sections propres à la vue), bind()? (écouteurs en plus) } */
 /* LE CHRONO D'UNE SESSION EN COURS, DANS LA RANGÉE (v5.0.0, V2). Il remplace la DATE de
    validation, qui n'apprend rien pendant qu'une session tourne — donc coût de largeur NUL. Un
@@ -10196,6 +10227,54 @@ function paintDirLive(){
   document.querySelectorAll('[data-dirlive]').forEach(e=>{
     const v=fmtMs(dirLiveMs(e.dataset.dirlive));
     const n=e.lastChild;if(n&&n.nodeValue!==v)n.nodeValue=v;});}
+/* CE QUE L'ON VA CRÉER, DIT AU SEUL MOMENT OÙ ON PEUT L'ENTENDRE (v5.0.0, maquette d'audit).
+   Une aide cognitive et un protocole ne se distinguent nulle part ailleurs dans le produit :
+   l'accueil les mêle depuis le lot T9, et la NATURE écrite sur la rangée nomme la différence
+   sans l'expliquer. Le seul écran qui a la place ET l'attention pour le faire est la
+   bibliothèque VIDE — il n'y a alors rien d'autre à regarder, et personne à interrompre.
+   MÊME COMPOSANT `.empty` pour les deux, MÊME anatomie (une phrase qui donne le VERBE, puis
+   les objets qu'on y trouvera) : deux cartes de formes différentes se liraient comme deux
+   objets sans rapport, alors qu'on les met côte à côte précisément pour être COMPARÉES.
+   ⚠ LE PROTOCOLE N'EST PAS « CE QUI NE SE COCHE PAS » (correction de l'utilisateur sur la
+   maquette, et la maquette avait tort) : une référence A des cases cochables — syntaxe GFM
+   `- [ ]`, v4.5.4 — elles servent à ne pas perdre sa place pendant qu'on la parcourt, et c'est
+   leur NON-ENREGISTREMENT qui est la propriété (`state.protoTasks`, remis à zéro à chaque
+   ouverture, aucun champ du modèle touché). Écrire « rien ne s'y coche » aurait enseigné
+   l'inverse de ce que l'écran fait, à l'endroit même où l'on prétend l'expliquer.
+   LES GLYPHES SONT CEUX DU PRODUIT (`uiIcon`), et la couleur n'est jamais seule (règle 8) : le
+   registre est nommé en toutes lettres (« Rouge », « Ambre »), le glyphe ne fait que le montrer.
+   Le TON passe par un attribut, jamais par une classe `.crit`/`.vig` — ce sont des classes
+   AUTONOMES du produit, et un modificateur ne prend jamais le nom d'une classe existante
+   (leçon v4.23.2, collision `.tk-panel.empty`). */
+const EMPTY_INTRO={
+  fiches:{titre:'Aucune aide cognitive',
+    lede:'Une aide cognitive <strong>se déroule</strong> pendant le soin.',
+    cta:'Créer une aide cognitive',
+    lignes:[
+      {ic:'check',t:'Des étapes',d:'qu\'on coche une par une, groupées en blocs.'},
+      {ic:'flow',t:'Des décisions',d:'qui aiguillent vers la suite.'},
+      {ic:'warn',ton:'crit',t:'Rouge',d:'— ce qui tue si on l\'oublie.'},
+      {ic:'warn',ton:'vig',t:'Ambre',d:'— là où l\'on risque de se tromper.'},
+      {ic:'stopwatch',t:'Minuteurs et compteurs',d:'qui tournent pendant la session.'}]},
+  protocols:{titre:'Aucun protocole',
+    lede:'Un protocole <strong>se lit</strong> : une référence, une procédure, un PDF.',
+    cta:'Créer un protocole',
+    lignes:[
+      {ic:'doc',t:'Un texte qu\'on parcourt',d:'— titres, listes, tableaux, encadrés, et les PDF joints.'},
+      {ic:'check',t:'Des cases pour ne pas perdre sa place',d:'— elles s\'effacent en sortant : rien ne s\'y enregistre.'},
+      {ic:'stopwatch',ton:'off',t:'Aucune session, aucun minuteur',d:'— c\'est ce qui le distingue d\'une aide cognitive.'}]}};
+function emptyIntroHtml(kind){const c=EMPTY_INTRO[kind];if(!c)return '';
+  return `<div class="empty emp-intro"><b>${c.titre}</b>
+    <p class="emp-lede">${c.lede}</p>
+    <ul class="emp-anat">${c.lignes.map(l=>
+      `<li><span class="emp-ic"${l.ton?` data-ton="${l.ton}"`:''}>${uiIcon(l.ic,16)}</span><span><b>${l.t}</b> ${l.d}</span></li>`).join('')}</ul>
+    <button class="btn primary" data-emptynew="${kind}">${c.cta}</button></div>`;}
+/* Le bouton d'une carte crée SON type : on aligne le filtre d'accueil avant d'ouvrir, puisque
+   `state.section` est la source unique du type dans le dialogue « Créer » (v4.4.2) — c'est le
+   même aiguillage que son sélecteur segmenté, et le retour de l'éditeur retrouve la bonne liste. */
+function openCreateFor(kind){
+  if(state.section!==kind)setSection(kind,true,{keepCat:true,silent:true});
+  openCreateDlg();}
 function renderHomeList(cfg){
   const q=txNorm(state.q);
   // Le re-rendu remplace la rangée de catégories (dans l'en-tête, V5) : on mémorise son
@@ -10240,9 +10319,30 @@ function renderHomeList(cfg){
        plus » au milieu ferait des lettres injoignables ; les rangées sont assez légères.
      .dir-wrap enveloppe la zone de contenu des DEUX régimes : c'est le périmètre que
      audit-a11y.mjs balaye sur l'accueil (ex-.cards — garder ce sélecteur vivant, v4.31.1). */
-  const emptyHtml=`<div class="empty"><b>${cfg.empty.title}</b>${state.q||state.cat?'Aucun résultat pour ce filtre.'
-        :state.scope?(canEdit?cfg.empty.libEdit:cfg.empty.libRead)
-        :cfg.empty.anon}${(!state.q&&!state.cat&&canEdit)?'<br><button class="btn primary" id="emptyNew">'+cfg.empty.cta+'</button>':''}</div>`;
+  /* ÉTAT VIDE — LE VIDE EST LE SEUL MOMENT OÙ L'ON PEUT ENSEIGNER LA DIFFÉRENCE (v5.0.0,
+     maquette d'audit, demande utilisateur). Deux cas, et un seul portait l'information :
+     — BIBLIOTHÈQUE VIDE et l'on peut créer : c'est le premier écran d'un nouveau venu, et
+       c'est le seul instant où l'on a sa place ET son attention pour dire ce qu'il va créer.
+       `cfg.kinds` décide combien de cartes : les DEUX en vue « Tout », une seule dans une vue
+       filtrée — le nombre de cartes est donc exactement le nombre de choses créables ICI.
+       ⚠ C'est ce qui corrige le défaut signalé : en vue « Tout », le titre était bien neutre
+       (« Bibliothèque vide ») mais le texte et le bouton étaient ceux des AIDES seules — on
+       proposait un type là où l'on venait de dire qu'il n'y en avait pas.
+     — FILTRE SANS RÉSULTAT, ou bibliothèque partagée en LECTURE SEULE : rien à enseigner (on
+       sait déjà ce qu'est une aide, on cherchait autre chose), et rien à créer. Le `.empty`
+       ordinaire suffit, sans bouton.
+     `empty.anon`, `empty.libEdit` et `empty.cta` sont PURGÉS avec `#emptyNew` (règle 14) : les
+     cartes couvrent exactement leur condition d'affichage (`!q && !cat && canEdit`), et
+     `canEditScope(null)` valant toujours vrai, aucun de ces trois textes n'était plus
+     atteignable. Le titre du cas filtré devient « Aucun résultat » : « Bibliothèque vide »
+     au-dessus de « aucun résultat pour ce filtre » disait deux choses différentes du même écran. */
+  const dansFiltre=!!(state.q||state.cat);
+  const introK=(!dansFiltre&&canEdit)?(cfg.kinds||[]):[];
+  const emptyHtml=introK.length
+    ?(state.scope?emptyLine('Cette bibliothèque partagée est vide.'):'')+introK.map(emptyIntroHtml).join('')
+    :`<div class="empty"><b>${dansFiltre?'Aucun résultat':cfg.empty.title}</b>${
+        dansFiltre?(state.q?'Rien ne correspond à cette recherche.':'Rien ne correspond à ce filtre.')
+                  :cfg.empty.libRead}</div>`;
   let listHtml,railHtml='';
   if(q){
     listHtml=`<div class="list-title">${cfg.listTitle()} <span>— ${list.length} ${cfg.countLbl(list.length)}</span></div>`
@@ -10276,7 +10376,7 @@ function renderHomeList(cfg){
   bindHomeChrome(cfg.rerender);   // sélecteur de section, bibliothèques, catégories
   bindAzRail();
   {const sm=document.getElementById('showMore');if(sm)sm.onclick=()=>{state.libLimit+=LIB_PAGE;cfg.rerender();};}
-  {const en=document.getElementById('emptyNew');if(en)en.onclick=cfg.create;}
+  main.querySelectorAll('[data-emptynew]').forEach(b=>b.onclick=()=>openCreateFor(b.dataset.emptynew));
   // Voie étroite vers l'historique global (le lien du pied de page — la sidebar n'existe pas
   // sous 780 px) : visible seulement s'il y a quelque chose à ouvrir (aucun bouton mort).
   {const hb=document.getElementById('histBtn');if(hb)hb.hidden=!sessions.some(x=>!x.live);}
@@ -10357,7 +10457,8 @@ function _homeCfgF(){return {rerender:renderFiches,crossKind:'protocols',create:
         ${isLive?'<span class="tag live">● En cours</span>':''}
       </button>`;},
     remainLbl:n=>'restante'+(n>1?'s':''),
-    empty:{title:'Aucune fiche',libEdit:'Cette bibliothèque partagée est vide — créez sa première fiche.',libRead:'Cette bibliothèque partagée est vide.',anon:'Créez votre première aide cognitive.',cta:'Créer une aide cognitive'},
+    kinds:['fiches'],
+    empty:{title:'Aucune fiche',libRead:'Cette bibliothèque partagée est vide.'},
     bind:()=>{
       {const nx=document.getElementById('noticeX');if(nx)nx.onclick=()=>{try{localStorage.setItem('ac-notice-hidden','1');}catch(e){}renderFiches();};}
       {const sa=document.getElementById('seedAdd');if(sa)sa.onclick=addSeedFiches;}
@@ -10410,8 +10511,10 @@ function renderAll(){
     row:x=>est(x)==='p'?cfgP.row(x):cfgF.row(x),
     tile:x=>est(x)==='p'?cfgP.tile(x):cfgF.tile(x),
     topHtml:cfgF.topHtml,notices:cfgF.notices,bind:cfgF.bind,
-    empty:{title:'Bibliothèque vide',anon:cfgF.empty.anon,libEdit:cfgF.empty.libEdit,
-      libRead:cfgF.empty.libRead,cta:cfgF.empty.cta}});}
+    /* LES DEUX TYPES SONT CRÉABLES ICI, donc les deux cartes — c'est le seul endroit du produit
+       où l'on peut les montrer côte à côte, et c'est ce qui les rend comparables. */
+    kinds:['fiches','protocols'],
+    empty:{title:'Bibliothèque vide',libRead:cfgF.empty.libRead}});}
 /* Configuration EXTRAITE (lot T9) : les deux vues filtrées et la vue unifiée lisent la
    MÊME description — trois rendus qui divergeraient seraient trois endroits à corriger. */
 function _homeCfgP(){return {rerender:renderProtocols,crossKind:'fiches',create:openCreateDlg,open:openProtocolRead,
@@ -10441,7 +10544,8 @@ function _homeCfgP(){return {rerender:renderProtocols,crossKind:'fiches',create:
         <span class="qa-sub">${p.code?`<span class="code">${esc(p.code)}</span>`:''}${cc?`<span>${p.code?'· ':''}${esc(cc.name)}</span>`:''}</span></span>
       </button>`;},
     remainLbl:n=>'restant'+(n>1?'s':''),
-    empty:{title:'Aucun protocole',libEdit:'Cette bibliothèque partagée est vide — ajoutez son premier protocole.',libRead:'Cette bibliothèque partagée ne contient pas encore de protocole.',anon:'Ajoutez un protocole : un ou plusieurs PDF, et/ou un contenu rédigé dans l’app.',cta:'Créer un protocole'},
+    kinds:['protocols'],
+    empty:{title:'Aucun protocole',libRead:'Cette bibliothèque partagée ne contient pas encore de protocole.'},
     bind:()=>{main.querySelectorAll('[data-pin]').forEach(b=>b.onclick=e=>{e.stopPropagation();togglePin(b.dataset.pin);renderProtocols();});}};}
 function renderProtocols(){renderHomeList(_homeCfgP());}
 // ----- Miniatures des documents PDF (v4.4.4) : la 1re page en vignette dans la liste

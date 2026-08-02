@@ -243,6 +243,16 @@ const SURFACES = [
      (3,64:1 en clair, 1,76:1 en sombre) et le vert du retour d'excursion (1,9:1 en sombre). Un
      harnais qui ne mesure que le repos ne couvre pas la moitié de ce qu'il prétend couvrir.
      Chaque entrée ci-dessous CONSTRUIT son état par les gestes réels de l'application. */
+  /* BIBLIOTHÈQUE VIDE — le premier écran d'un nouveau venu, et il n'était mesuré nulle part : la
+     surface « bibliothèque » est ouverte AVEC les fiches d'exemple, donc l'état vide n'existe
+     jamais dans le balayage. Il porte pourtant du texte à 13,5 px en encre douce et des glyphes
+     de registre (rouge, ambre, gris d'absence) : exactement ce que ce harnais existe pour voir.
+     ⚠ ON VIDE LES LISTES, ON NE FABRIQUE PAS L'ÉCRAN : c'est `renderHomeList` qui décide, sur la
+     même condition que chez l'utilisateur (rien à afficher, aucun filtre, droit de créer). */
+  { nom:'état · bibliothèque vide', w:390, must:'.emp-intro .emp-anat b', fn: async()=>{
+      fiches.length=0; protocols.length=0;
+      state.section='all'; state.q=''; state.cat=''; state.view='library';
+      render(); await new Promise(r=>setTimeout(r,400)); } },
   { nom:'état · recherche active', w:390, prep:'read', must:'mark.pf-h', fn: async()=>{
       const b=document.getElementById('allBtn'); if(b)b.click();
       await new Promise(r=>setTimeout(r,600));
